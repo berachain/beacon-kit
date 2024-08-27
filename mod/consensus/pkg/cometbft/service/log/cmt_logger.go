@@ -21,22 +21,28 @@
 package log
 
 import (
-	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/log"
 	cmtlog "github.com/cometbft/cometbft/libs/log"
 )
 
-var _ cmtlog.Logger = (*CometLoggerWrapper)(nil)
-
-// CometLoggerWrapper provides a wrapper around a cosmossdk.io/log instance.
-// It implements CometBFT's Logger interface.
-type CometLoggerWrapper struct {
-	log.Logger
+type CometLogger[LoggerT log.AdvancedLogger[LoggerT]] struct {
+	log.AdvancedLogger[LoggerT]
 }
 
-// With returns a new wrapped logger with additional context provided by a set
-// of key/value tuples. The number of tuples must be even and the key of the
-// tuple must be a string.
-func (cmt CometLoggerWrapper) With(keyVals ...interface{}) cmtlog.Logger {
-	logger := cmt.Logger.With(keyVals...)
-	return CometLoggerWrapper{logger}
+func WrapCometLogger[LoggerT log.AdvancedLogger[LoggerT]](
+	logger LoggerT,
+) *CometLogger[LoggerT] {
+	return &CometLogger[LoggerT]{
+		AdvancedLogger: logger,
+	}
+}
+
+func (l *CometLogger[LoggerT]) With(keyVals ...any) cmtlog.Logger {
+	return &CometLogger[LoggerT]{
+		AdvancedLogger: l.AdvancedLogger.With(keyVals...),
+	}
+}
+
+func (l *CometLogger[LoggerT]) Impl() any {
+	return l.AdvancedLogger
 }

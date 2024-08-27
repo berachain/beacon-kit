@@ -26,7 +26,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/log"
 	service "github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"golang.org/x/sync/errgroup"

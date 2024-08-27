@@ -24,8 +24,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/mod/config"
 	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/log"
-	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	cmtcfg "github.com/cometbft/cometbft/config"
@@ -33,23 +32,25 @@ import (
 )
 
 // ProvideCometBFTService provides the CometBFT service component.
-func ProvideCometBFTService(
-	logger *phuslu.Logger,
+func ProvideCometBFTService[
+	LoggerT log.AdvancedLogger[LoggerT],
+](
+	logger LoggerT,
 	storeKey **storetypes.KVStoreKey,
 	abciMiddleware cometbft.MiddlewareI,
 	db dbm.DB,
 	cmtCfg *cmtcfg.Config,
 	appOpts config.AppOptions,
 	chainSpec common.ChainSpec,
-) *cometbft.Service {
+) *cometbft.Service[LoggerT] {
 	return cometbft.NewService(
 		*storeKey,
-		log.WrapSDKLogger(logger),
+		logger,
 		db,
 		abciMiddleware,
 		true,
 		cmtCfg,
 		chainSpec,
-		builder.DefaultServiceOptions(appOpts)...,
+		builder.DefaultServiceOptions[LoggerT](appOpts)...,
 	)
 }

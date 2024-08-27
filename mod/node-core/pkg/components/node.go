@@ -21,7 +21,6 @@
 package components
 
 import (
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/log"
 	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
 	service "github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry"
@@ -33,5 +32,5 @@ func ProvideNode(
 	registry *service.Registry,
 	logger *phuslu.Logger,
 ) types.Node {
-	return node.New[types.Node](registry, log.WrapSDKLogger(logger))
+	return node.New[types.Node](registry, logger)
 }

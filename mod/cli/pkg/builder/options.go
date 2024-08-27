@@ -73,7 +73,7 @@ func WithNodeBuilderFunc[
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
-	nodeBuilderFunc servertypes.AppCreator[T],
+	nodeBuilderFunc servertypes.AppCreator[T, LoggerT],
 ) Opt[T, ExecutionPayloadT, LoggerT] {
 	return func(cb *CLIBuilder[T, ExecutionPayloadT, LoggerT]) {
 		cb.nodeBuilderFunc = nodeBuilderFunc
