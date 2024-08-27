@@ -98,7 +98,7 @@ func ProvideBlobProcessor[
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BlobSidecarT BlobSidecar[BeaconBlockHeaderT],
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	in BlobProcessorIn[BlobSidecarsT, LoggerT],
 ) *dablob.Processor[
@@ -144,7 +144,7 @@ func ProvideDAService[
 	BeaconBlockBodyT any,
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	in DAServiceIn[
 		AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT, LoggerT,

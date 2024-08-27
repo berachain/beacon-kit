@@ -21,8 +21,6 @@
 package params
 
 import (
-	"context"
-
 	math "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 	cmttypes "github.com/cometbft/cometbft/types"
@@ -48,26 +46,9 @@ func NewConsensusParamsStore(cs ChainSpec) *ConsensusParamsStore {
 
 // Get retrieves the consensus parameters from the store.
 // It returns the consensus parameters and an error, if any.
-func (s *ConsensusParamsStore) Get(
-	context.Context,
-) (cmtproto.ConsensusParams, error) {
-	return s.cs.
+func (s *ConsensusParamsStore) Get() *cmtproto.ConsensusParams {
+	p := s.cs.
 		GetCometBFTConfigForSlot(0).(*cmttypes.ConsensusParams).
-		ToProto(), nil
-}
-
-// Has checks if the consensus parameters exist in the store.
-// It returns a boolean indicating the presence of the parameters and an error,
-// if any.
-func (s *ConsensusParamsStore) Has(context.Context) (bool, error) {
-	return true, nil
-}
-
-// Set stores the given consensus parameters in the store.
-// It returns an error, if any.
-func (s *ConsensusParamsStore) Set(
-	_ context.Context,
-	_ cmtproto.ConsensusParams,
-) error {
-	return nil
+		ToProto()
+	return &p
 }

@@ -28,7 +28,7 @@ import (
 type RegistryOption func(*Registry) error
 
 // WithLogger is an option to set the logger for the Registry.
-func WithLogger(logger log.Logger[any]) RegistryOption {
+func WithLogger(logger log.Logger) RegistryOption {
 	return func(r *Registry) error {
 		r.logger = logger
 		return nil

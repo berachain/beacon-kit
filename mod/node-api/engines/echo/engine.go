@@ -30,7 +30,7 @@ import (
 // Engine is an implementation of the API engine interface using Echo.
 type Engine struct {
 	*echo.Echo
-	logger log.Logger[any]
+	logger log.Logger
 }
 
 // New initializes a new API engine with the given Echo instance.
@@ -61,7 +61,7 @@ func (e *Engine) Run(addr string) error {
 // RegisterRoutes registers the given route set with the Echo engine.
 func (e *Engine) RegisterRoutes(
 	hs *handlers.RouteSet[Context],
-	logger log.Logger[any],
+	logger log.Logger,
 ) {
 	e.logger = logger
 	group := e.Group(hs.BasePath)

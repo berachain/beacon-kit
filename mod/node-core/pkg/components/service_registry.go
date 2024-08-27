@@ -64,7 +64,7 @@ type ServiceRegistryInput[
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
 	KVStoreT any,
-	LoggerT any,
+	LoggerT log.AdvancedLogger[LoggerT],
 	NodeAPIContextT NodeAPIContext,
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalsT Withdrawals[WithdrawalT],
@@ -104,7 +104,7 @@ type ServiceRegistryInput[
 		*Eth1Data, ExecutionPayloadT, ExecutionPayloadHeaderT,
 		*ForkData, *SlashingInfo, *SlotData,
 	]
-	CometBFTService *cometbft.Service
+	CometBFTService *cometbft.Service[LoggerT]
 }
 
 // ProvideServiceRegistry is the depinject provider for the service registry.
@@ -132,7 +132,7 @@ func ProvideServiceRegistry[
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
 	KVStoreT any,
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT log.AdvancedLogger[LoggerT],
 	NodeAPIContextT NodeAPIContext,
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalsT Withdrawals[WithdrawalT],

@@ -48,7 +48,7 @@ type Engine[
 	// interact with the execution layer.
 	ec *client.EngineClient[ExecutionPayloadT, PayloadAttributesT]
 	// logger is the logger for the engine.
-	logger log.Logger[any]
+	logger log.Logger
 	// metrics is the metrics for the engine.
 	metrics *engineMetrics
 }
@@ -64,7 +64,7 @@ func New[
 	},
 ](
 	engineClient *client.EngineClient[ExecutionPayloadT, PayloadAttributesT],
-	logger log.Logger[any],
+	logger log.Logger,
 	telemtrySink TelemetrySink,
 ) *Engine[
 	ExecutionPayloadT, PayloadAttributesT,

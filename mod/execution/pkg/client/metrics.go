@@ -31,13 +31,13 @@ type clientMetrics struct {
 	// TelemetrySink is the sink for the metrics.
 	sink TelemetrySink
 	// logger is the logger for the engineMetrics.
-	logger log.Logger[any]
+	logger log.Logger
 }
 
 // newClientMetrics creates a new engineMetrics.
 func newClientMetrics(
 	sink TelemetrySink,
-	logger log.Logger[any],
+	logger log.Logger,
 ) *clientMetrics {
 	return &clientMetrics{
 		sink:   sink,

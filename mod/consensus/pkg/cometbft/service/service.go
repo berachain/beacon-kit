@@ -25,17 +25,15 @@ import (
 	"errors"
 	"fmt"
 
-	"cosmossdk.io/log"
-	"cosmossdk.io/store"
-	storemetrics "cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
 	servercmtlog "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/log"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/params"
+	statem "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/state"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
-	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cometbft/cometbft/node"
 	"github.com/cometbft/cometbft/p2p"
@@ -58,14 +56,15 @@ const (
 
 const InitialAppVersion uint64 = 0
 
-type Service struct {
+type Service[
+	LoggerT log.AdvancedLogger[LoggerT],
+] struct {
 	node   *node.Node
 	cmtCfg *cmtcfg.Config
-	// initialized on creation
-	logger     log.Logger
+
+	logger     LoggerT
 	name       string
-	db         dbm.DB
-	cms        storetypes.CommitMultiStore
+	sm         *statem.Manager
 	Middleware MiddlewareI
 
 	prepareProposalState *state
@@ -75,67 +74,68 @@ type Service struct {
 	paramStore           *params.ConsensusParamsStore
 	initialHeight        int64
 	minRetainBlocks      uint64
+
 	// application's version string
 	version string
 	chainID string
 }
 
-func NewService(
+func NewService[
+	LoggerT log.AdvancedLogger[LoggerT],
+](
 	storeKey *storetypes.KVStoreKey,
-	logger log.Logger,
+	logger LoggerT,
 	db dbm.DB,
 	middleware MiddlewareI,
 	loadLatest bool,
 	cmtCfg *cmtcfg.Config,
 	cs common.ChainSpec,
-	options ...func(*Service),
-) *Service {
-	app := &Service{
-		logger: logger.With(log.ModuleKey, "cometbft"),
+	options ...func(*Service[LoggerT]),
+) *Service[LoggerT] {
+	s := &Service[LoggerT]{
+		logger: logger,
 		name:   "beacond",
-		db:     db,
-		cms: store.NewCommitMultiStore(
+		sm: statem.NewManager(
 			db,
-			logger,
-			storemetrics.NewNoOpMetrics(),
+			servercmtlog.WrapSDKLogger(logger),
 		),
 		Middleware: middleware,
 		cmtCfg:     cmtCfg,
 		paramStore: params.NewConsensusParamsStore(cs),
 	}
 
-	app.SetVersion(version.Version)
-	app.MountStore(storeKey, storetypes.StoreTypeIAVL)
+	s.SetVersion(version.Version)
+	s.MountStore(storeKey, storetypes.StoreTypeIAVL)
 
 	for _, option := range options {
-		option(app)
+		option(s)
 	}
 
-	if app.interBlockCache != nil {
-		app.cms.SetInterBlockCache(app.interBlockCache)
+	if s.interBlockCache != nil {
+		s.sm.CommitMultiStore().SetInterBlockCache(s.interBlockCache)
 	}
 
-	// Load the app.
+	// Load the s.
 	if loadLatest {
-		if err := app.LoadLatestVersion(); err != nil {
+		if err := s.sm.LoadLatestVersion(); err != nil {
 			panic(err)
 		}
 	}
 
-	return app
+	return s
 }
 
 // TODO: Move nodeKey into being created within the function.
-func (app *Service) Start(
+func (s *Service[_]) Start(
 	ctx context.Context,
 ) error {
-	cfg := app.cmtCfg
+	cfg := s.cmtCfg
 	nodeKey, err := p2p.LoadOrGenNodeKey(cfg.NodeKeyFile())
 	if err != nil {
 		return err
 	}
 
-	app.node, err = node.NewNode(
+	s.node, err = node.NewNode(
 		ctx,
 		cfg,
 		pvm.LoadOrGenFilePV(
@@ -143,177 +143,98 @@ func (app *Service) Start(
 			cfg.PrivValidatorStateFile(),
 		),
 		nodeKey,
-		proxy.NewLocalClientCreator(app),
+		proxy.NewLocalClientCreator(s),
 		GetGenDocProvider(cfg),
 		cmtcfg.DefaultDBProvider,
 		node.DefaultMetricsProvider(cfg.Instrumentation),
-		servercmtlog.CometLoggerWrapper{Logger: app.logger},
+		servercmtlog.WrapCometLogger(s.logger),
 	)
 	if err != nil {
 		return err
 	}
 
-	return app.node.Start()
+	return s.node.Start()
 }
 
 // Close is called in start cmd to gracefully cleanup resources.
-func (app *Service) Close() error {
+func (s *Service[_]) Close() error {
 	var errs []error
 
-	if app.node != nil && app.node.IsRunning() {
-		app.logger.Info("Stopping CometBFT Node")
+	if s.node != nil && s.node.IsRunning() {
+		s.logger.Info("Stopping CometBFT Node")
 		//#nosec:G703 // its a bet.
-		_ = app.node.Stop()
+		_ = s.node.Stop()
 	}
 
-	// Close app.db (opened by cosmos-sdk/server/start.go call to openDB)
-	if app.db != nil {
-		app.logger.Info("Closing application.db")
-		if err := app.db.Close(); err != nil {
-			errs = append(errs, err)
-		}
-	}
+	// Close s.db (opened by cosmos-sdk/server/start.go call to openDB)
 
+	s.logger.Info("Closing application.db")
+	if err := s.sm.Close(); err != nil {
+		errs = append(errs, err)
+	}
 	return errors.Join(errs...)
 }
 
 // Name returns the name of the cometbft.
-func (app *Service) Name() string {
-	return app.name
+func (s *Service[_]) Name() string {
+	return s.name
 }
 
 // CommitMultiStore returns the CommitMultiStore of the cometbft.
-func (app *Service) CommitMultiStore() storetypes.CommitMultiStore {
-	return app.cms
+func (s *Service[_]) CommitMultiStore() storetypes.CommitMultiStore {
+	return s.sm.CommitMultiStore()
 }
 
 // AppVersion returns the application's protocol version.
-func (app *Service) AppVersion(ctx context.Context) (uint64, error) {
-	cp, err := app.paramStore.Get(ctx)
-	if err != nil {
-		return 0, fmt.Errorf("failed to get consensus params: %w", err)
-	}
-	if cp.Version == nil {
-		return 0, nil
-	}
+func (s *Service[_]) AppVersion(_ context.Context) (uint64, error) {
+	cp := s.paramStore.Get()
 	return cp.Version.App, nil
 }
 
 // MountStore mounts a store to the provided key in the Service multistore,
 // using the default DB.
-func (app *Service) MountStore(
+func (s *Service[_]) MountStore(
 	key storetypes.StoreKey,
 	typ storetypes.StoreType,
 ) {
-	app.cms.MountStoreWithDB(key, typ, nil)
-}
-
-func (app *Service) LoadLatestVersion() error {
-	if err := app.cms.LoadLatestVersion(); err != nil {
-		return fmt.Errorf("failed to load latest version: %w", err)
-	}
-
-	// Validator pruning settings.
-	return app.cms.GetPruning().Validate()
-}
-
-func (app *Service) LoadVersion(version int64) error {
-	err := app.cms.LoadVersion(version)
-	if err != nil {
-		return fmt.Errorf("failed to load version %d: %w", version, err)
-	}
-
-	// Validate Pruning settings.
-	return app.cms.GetPruning().Validate()
-}
-
-// LastCommitID returns the last CommitID of the multistore.
-func (app *Service) LastCommitID() storetypes.CommitID {
-	return app.cms.LastCommitID()
+	s.sm.CommitMultiStore().MountStoreWithDB(key, typ, nil)
 }
 
 // LastBlockHeight returns the last committed block height.
-func (app *Service) LastBlockHeight() int64 {
-	return app.cms.LastCommitID().Version
+func (s *Service[_]) LastBlockHeight() int64 {
+	return s.sm.CommitMultiStore().LastCommitID().Version
 }
 
-func (app *Service) setMinRetainBlocks(minRetainBlocks uint64) {
-	app.minRetainBlocks = minRetainBlocks
+func (s *Service[_]) setMinRetainBlocks(minRetainBlocks uint64) {
+	s.minRetainBlocks = minRetainBlocks
 }
 
-func (app *Service) setInterBlockCache(
+func (s *Service[_]) setInterBlockCache(
 	cache storetypes.MultiStorePersistentCache,
 ) {
-	app.interBlockCache = cache
+	s.interBlockCache = cache
 }
 
-func (app *Service) setState(mode execMode) {
-	ms := app.cms.CacheMultiStore()
+func (s *Service[LoggerT]) setState(mode execMode) {
+	ms := s.sm.CommitMultiStore().CacheMultiStore()
 	baseState := &state{
 		ms:  ms,
-		ctx: sdk.NewContext(ms, false, app.logger),
+		ctx: sdk.NewContext(ms, false, servercmtlog.WrapSDKLogger(s.logger)),
 	}
 
 	switch mode {
 	case execModePrepareProposal:
-		app.prepareProposalState = baseState
+		s.prepareProposalState = baseState
 
 	case execModeProcessProposal:
-		app.processProposalState = baseState
+		s.processProposalState = baseState
 
 	case execModeFinalize:
-		app.finalizeBlockState = baseState
+		s.finalizeBlockState = baseState
 
 	default:
 		panic(fmt.Sprintf("invalid runTxMode for setState: %d", mode))
 	}
-}
-
-// GetConsensusParams returns the current consensus parameters from the
-// Service's
-// ParamStore. If the Service has no ParamStore defined, nil is returned.
-func (app *Service) GetConsensusParams(
-	ctx context.Context,
-) cmtproto.ConsensusParams {
-	//#nosec:G703 // bet.
-	cp, _ := app.paramStore.Get(ctx)
-	return cp
-}
-
-func (app *Service) validateFinalizeBlockHeight(
-	req *abci.FinalizeBlockRequest,
-) error {
-	if req.Height < 1 {
-		return fmt.Errorf("invalid height: %d", req.Height)
-	}
-
-	lastBlockHeight := app.LastBlockHeight()
-
-	// expectedHeight holds the expected height to validate
-	var expectedHeight int64
-	if lastBlockHeight == 0 && app.initialHeight > 1 {
-		// In this case, we're validating the first block of the chain, i.e no
-		// previous commit. The height we're expecting is the initial height.
-		expectedHeight = app.initialHeight
-	} else {
-		// This case can mean two things:
-		//
-		// - Either there was already a previous commit in the store, in which
-		// case we increment the version from there.
-		// - Or there was no previous commit, in which case we start at version
-		// 1.
-		expectedHeight = lastBlockHeight + 1
-	}
-
-	if req.Height != expectedHeight {
-		return fmt.Errorf(
-			"invalid height: %d; expected: %d",
-			req.Height,
-			expectedHeight,
-		)
-	}
-
-	return nil
 }
 
 // convertValidatorUpdate abstracts the conversion of a

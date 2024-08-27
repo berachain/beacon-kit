@@ -25,51 +25,51 @@ import "github.com/berachain/beacon-kit/mod/log"
 // Logger is a logger that performs no operations. It can be used in
 // environments where logging should be disabled. It implements the Logger
 // interface with no-op methods.
-type Logger[KeyValT any, ImplT any] struct{}
+type Logger[ImplT any] struct{}
 
 // NewLogger creates a blank no-op AdvancedLogger.
-func NewLogger[ImplT any]() *Logger[any, ImplT] {
-	return &Logger[any, ImplT]{}
+func NewLogger[ImplT any]() *Logger[ImplT] {
+	return &Logger[ImplT]{}
 }
 
 // Info logs an informational message with associated key-value pairs. This
 // method does nothing.
-func (n *Logger[KeyValT, ImplT]) Info(string, ...KeyValT) {
+func (n *Logger[ImplT]) Info(string, ...any) {
 	// No operation
 }
 
 // Warn logs a warning message with associated key-value pairs. This method does
 // nothing.
-func (n *Logger[KeyValT, ImplT]) Warn(string, ...KeyValT) {
+func (n *Logger[ImplT]) Warn(string, ...any) {
 	// No operation
 }
 
 // Error logs an error message with associated key-value pairs. This method does
 // nothing.
-func (n *Logger[KeyValT, ImplT]) Error(string, ...KeyValT) {
+func (n *Logger[ImplT]) Error(string, ...any) {
 	// No operation
 }
 
 // Debug logs a debug message with associated key-value pairs. This method does
 // nothing.
-func (n *Logger[KeyValT, ImplT]) Debug(string, ...KeyValT) {
+func (n *Logger[ImplT]) Debug(string, ...any) {
 	// No operation
 }
 
 // With returns a new AdvancedLogger with the provided key-value pairs. This
 // method does nothing.
-func (n *Logger[KeyValT, ImplT]) With(...KeyValT) ImplT {
+func (n *Logger[ImplT]) With(...any) ImplT {
 	return any(n).(ImplT)
 }
 
-func (n *Logger[KeyValT, ImplT]) Impl() any {
+func (n *Logger[ImplT]) Impl() any {
 	return nil
 }
 
-func (n *Logger[KeyValT, ImplT]) AddKeyColor(any, log.Color) {
+func (n *Logger[ImplT]) AddKeyColor(any, log.Color) {
 	// No operation
 }
 
-func (n *Logger[KeyValT, ImplT]) AddKeyValColor(any, any, log.Color) {
+func (n *Logger[ImplT]) AddKeyValColor(any, any, log.Color) {
 	// No operation
 }

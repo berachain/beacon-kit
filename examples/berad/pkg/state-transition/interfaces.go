@@ -54,7 +54,7 @@ type BeaconState[
 	HashTreeRoot() common.Root
 	ReadOnlyBeaconState[
 		BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-		ForkT, ValidatorT, ValidatorsT, WithdrawalT,
+		ForkT, ValidatorT, ValidatorsT,
 	]
 	WriteOnlyBeaconState[
 		BeaconBlockHeaderT, ExecutionPayloadHeaderT,
@@ -66,7 +66,7 @@ type BeaconState[
 type ReadOnlyBeaconState[
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	ExecutionPayloadHeaderT, ForkT,
-	ValidatorT, ValidatorsT, WithdrawalT any,
+	ValidatorT, ValidatorsT any,
 ] interface {
 	ReadOnlyRandaoMixes
 	ReadOnlyStateRoots

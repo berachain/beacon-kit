@@ -43,7 +43,7 @@ type pruner[
 	PrunableT Prunable,
 ] struct {
 	prunable                Prunable
-	logger                  log.Logger[any]
+	logger                  log.Logger
 	name                    string
 	subBeaconBlockFinalized chan async.Event[BeaconBlockT]
 	pruneRangeFn            func(async.Event[BeaconBlockT]) (uint64, uint64)
@@ -54,7 +54,7 @@ func NewPruner[
 	BeaconBlockT BeaconBlock,
 	PrunableT Prunable,
 ](
-	logger log.Logger[any],
+	logger log.Logger,
 	prunable Prunable,
 	name string,
 	subBeaconBlockFinalized chan async.Event[BeaconBlockT],

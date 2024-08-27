@@ -29,7 +29,7 @@ import (
 type Opt[
 	NodeT types.Node,
 	LoggerT interface {
-		log.AdvancedLogger[any, LoggerT]
+		log.AdvancedLogger[LoggerT]
 		log.Configurable[LoggerT, LoggerConfigT]
 	},
 	LoggerConfigT any,
@@ -39,7 +39,7 @@ type Opt[
 func WithComponents[
 	NodeT types.Node,
 	LoggerT interface {
-		log.AdvancedLogger[any, LoggerT]
+		log.AdvancedLogger[LoggerT]
 		log.Configurable[LoggerT, LoggerConfigT]
 	},
 	LoggerConfigT any,

@@ -44,7 +44,7 @@ type ABCIMiddleware[
 	// metrics is the metrics emitter.
 	metrics *ABCIMiddlewareMetrics
 	// logger is the logger for the middleware.
-	logger log.Logger[any]
+	logger log.Logger
 	// subGenDataProcessed is the channel to hold GenesisDataProcessed events.
 	subGenDataProcessed chan async.Event[validatorUpdates]
 	// subBuiltBeaconBlock is the channel to hold BuiltBeaconBlock events.
@@ -69,7 +69,7 @@ func NewABCIMiddleware[
 ](
 	chainSpec common.ChainSpec,
 	dispatcher types.EventDispatcher,
-	logger log.Logger[any],
+	logger log.Logger,
 	telemetrySink TelemetrySink,
 ) *ABCIMiddleware[
 	BeaconBlockT, BlobSidecarsT, GenesisT, SlotDataT,

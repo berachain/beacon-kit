@@ -30,6 +30,7 @@ import (
 
 	"cosmossdk.io/store/rootmulti"
 	ctypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	servercmtlog "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/log"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	errorsmod "github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
@@ -42,14 +43,14 @@ import (
 )
 
 //nolint:gocognit // todo fix.
-func (app *Service) InitChain(
+func (s *Service[LoggerT]) InitChain(
 	_ context.Context,
 	req *cmtabci.InitChainRequest,
 ) (*cmtabci.InitChainResponse, error) {
-	if req.ChainId != app.chainID {
+	if req.ChainId != s.chainID {
 		return nil, fmt.Errorf(
 			"invalid chain-id on InitChain; expected: %s, got: %s",
-			app.chainID,
+			s.chainID,
 			req.ChainId,
 		)
 	}
@@ -57,7 +58,7 @@ func (app *Service) InitChain(
 	// On a new chain, we consider the init chain block height as 0, even though
 	// req.InitialHeight is 1 by default.
 	initHeader := cmtproto.Header{ChainID: req.ChainId, Time: req.Time}
-	app.logger.Info(
+	s.logger.Info(
 		"InitChain",
 		"initialHeight",
 		req.InitialHeight,
@@ -68,21 +69,22 @@ func (app *Service) InitChain(
 	// Set the initial height, which will be used to determine if we are
 	// proposing
 	// or processing the first block or not.
-	app.initialHeight = req.InitialHeight
-	if app.initialHeight == 0 { // If initial height is 0, set it to 1
-		app.initialHeight = 1
+	s.initialHeight = req.InitialHeight
+	if s.initialHeight == 0 { // If initial height is 0, set it to 1
+		s.initialHeight = 1
 	}
 
 	// if req.InitialHeight is > 1, then we set the initial version on all
 	// stores
 	if req.InitialHeight > 1 {
 		initHeader.Height = req.InitialHeight
-		if err := app.cms.SetInitialVersion(req.InitialHeight); err != nil {
+		if err := s.sm.CommitMultiStore().
+			SetInitialVersion(req.InitialHeight); err != nil {
 			return nil, err
 		}
 	}
 
-	app.setState(execModeFinalize)
+	s.setState(execModeFinalize)
 
 	defer func() {
 		// InitChain represents the state of the application BEFORE the first
@@ -91,21 +93,21 @@ func (app *Service) InitChain(
 		// However, after Commit is called
 		// the height needs to reflect the true block height.
 		initHeader.Height = req.InitialHeight
-		app.finalizeBlockState.SetContext(
-			app.finalizeBlockState.Context().WithBlockHeader(initHeader),
+		s.finalizeBlockState.SetContext(
+			s.finalizeBlockState.Context().WithBlockHeader(initHeader),
 		)
 	}()
 
-	if app.finalizeBlockState == nil {
+	if s.finalizeBlockState == nil {
 		return nil, errors.New("finalizeBlockState is nil")
 	}
 
 	// add block gas meter for any genesis transactions (allow infinite gas)
-	app.finalizeBlockState.SetContext(
-		app.finalizeBlockState.Context(),
+	s.finalizeBlockState.SetContext(
+		s.finalizeBlockState.Context(),
 	)
 
-	res, err := app.initChainer(app.finalizeBlockState.Context(), req)
+	res, err := s.initChainer(s.finalizeBlockState.Context(), req)
 	if err != nil {
 		return nil, err
 	}
@@ -151,12 +153,12 @@ func (app *Service) InitChain(
 	return &cmtabci.InitChainResponse{
 		ConsensusParams: res.ConsensusParams,
 		Validators:      res.Validators,
-		AppHash:         app.LastCommitID().Hash,
+		AppHash:         s.sm.CommitMultiStore().LastCommitID().Hash,
 	}, nil
 }
 
 // InitChainer initializes the chain.
-func (app *Service) initChainer(
+func (s *Service[LoggerT]) initChainer(
 	ctx sdk.Context,
 	req *cmtabci.InitChainRequest,
 ) (*cmtabci.InitChainResponse, error) {
@@ -164,7 +166,7 @@ func (app *Service) initChainer(
 	if err := json.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		return nil, err
 	}
-	valUpdates, err := app.Middleware.InitGenesis(
+	valUpdates, err := s.Middleware.InitGenesis(
 		ctx,
 		[]byte(genesisState["beacon"]),
 	)
@@ -185,26 +187,26 @@ func (app *Service) initChainer(
 	}, nil
 }
 
-func (app *Service) Info(
+func (s *Service[LoggerT]) Info(
 	context.Context,
 	*cmtabci.InfoRequest,
 ) (*cmtabci.InfoResponse, error) {
-	lastCommitID := app.cms.LastCommitID()
+	lastCommitID := s.sm.CommitMultiStore().LastCommitID()
 	appVersion := InitialAppVersion
 	if lastCommitID.Version > 0 {
-		ctx, err := app.CreateQueryContext(lastCommitID.Version, false)
+		ctx, err := s.CreateQueryContext(lastCommitID.Version, false)
 		if err != nil {
 			return nil, fmt.Errorf("failed creating query context: %w", err)
 		}
-		appVersion, err = app.AppVersion(ctx)
+		appVersion, err = s.AppVersion(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("failed getting app version: %w", err)
 		}
 	}
 
 	return &cmtabci.InfoResponse{
-		Data:             app.name,
-		Version:          app.version,
+		Data:             s.name,
+		Version:          s.version,
 		AppVersion:       appVersion,
 		LastBlockHeight:  lastCommitID.Version,
 		LastBlockAppHash: lastCommitID.Hash,
@@ -213,28 +215,28 @@ func (app *Service) Info(
 
 // PrepareProposal implements the PrepareProposal ABCI method and returns a
 // ResponsePrepareProposal object to the client.
-func (app *Service) PrepareProposal(
+func (s *Service[LoggerT]) PrepareProposal(
 	_ context.Context,
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
-	app.setState(execModePrepareProposal)
+	s.setState(execModePrepareProposal)
 
 	// CometBFT must never call PrepareProposal with a height of 0.
 	if req.Height < 1 {
 		return nil, errors.New("PrepareProposal called with invalid height")
 	}
 
-	app.prepareProposalState.SetContext(
-		app.getContextForProposal(
-			app.prepareProposalState.Context(),
+	s.prepareProposalState.SetContext(
+		s.getContextForProposal(
+			s.prepareProposalState.Context(),
 			req.Height,
 		),
 	)
 
-	app.prepareProposalState.SetContext(app.prepareProposalState.Context())
+	s.prepareProposalState.SetContext(s.prepareProposalState.Context())
 
-	blkBz, sidecarsBz, err := app.Middleware.PrepareProposal(
-		app.prepareProposalState.Context(), &types.SlotData[
+	blkBz, sidecarsBz, err := s.Middleware.PrepareProposal(
+		s.prepareProposalState.Context(), &types.SlotData[
 			*ctypes.AttestationData,
 			*ctypes.SlashingInfo,
 		]{
@@ -242,7 +244,7 @@ func (app *Service) PrepareProposal(
 		},
 	)
 	if err != nil {
-		app.logger.Error(
+		s.logger.Error(
 			"failed to prepare proposal",
 			"height",
 			req.Height,
@@ -261,7 +263,7 @@ func (app *Service) PrepareProposal(
 
 // ProcessProposal implements the ProcessProposal ABCI method and returns a
 // ResponseProcessProposal object to the client.
-func (app *Service) ProcessProposal(
+func (s *Service[LoggerT]) ProcessProposal(
 	_ context.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
@@ -270,7 +272,7 @@ func (app *Service) ProcessProposal(
 		return nil, errors.New("ProcessProposal called with invalid height")
 	}
 
-	app.setState(execModeProcessProposal)
+	s.setState(execModeProcessProposal)
 
 	// Since the application can get access to FinalizeBlock state and write to
 	// it, we must be sure to reset it in case ProcessProposal timeouts and is
@@ -279,23 +281,23 @@ func (app *Service) ProcessProposal(
 	// processed the first block, as we want to avoid overwriting the
 	// finalizeState
 	// after state changes during InitChain.
-	if req.Height > app.initialHeight {
-		app.setState(execModeFinalize)
+	if req.Height > s.initialHeight {
+		s.setState(execModeFinalize)
 	}
 
-	app.processProposalState.SetContext(
-		app.getContextForProposal(
-			app.processProposalState.Context(),
+	s.processProposalState.SetContext(
+		s.getContextForProposal(
+			s.processProposalState.Context(),
 			req.Height,
 		),
 	)
 
-	resp, err := app.Middleware.ProcessProposal(
-		app.processProposalState.Context(),
+	resp, err := s.Middleware.ProcessProposal(
+		s.processProposalState.Context(),
 		req,
 	)
 	if err != nil {
-		app.logger.Error(
+		s.logger.Error(
 			"failed to process proposal",
 			"height",
 			req.Height,
@@ -314,21 +316,21 @@ func (app *Service) ProcessProposal(
 	return resp, nil
 }
 
-func (app *Service) internalFinalizeBlock(
+func (s *Service[LoggerT]) internalFinalizeBlock(
 	ctx context.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (*cmtabci.FinalizeBlockResponse, error) {
-	if err := app.validateFinalizeBlockHeight(req); err != nil {
+	if err := s.validateFinalizeBlockHeight(req); err != nil {
 		return nil, err
 	}
 
-	if app.finalizeBlockState == nil {
-		app.setState(execModeFinalize)
+	if s.finalizeBlockState == nil {
+		s.setState(execModeFinalize)
 	}
-	if app.finalizeBlockState == nil {
+	if s.finalizeBlockState == nil {
 		return nil, errors.New("finalizeBlockState is nil")
 	}
-	app.finalizeBlockState.SetContext(app.finalizeBlockState.Context())
+	s.finalizeBlockState.SetContext(s.finalizeBlockState.Context())
 
 	// First check for an abort signal after beginBlock, as it's the first place
 	// we spend any significant amount of time.
@@ -339,8 +341,8 @@ func (app *Service) internalFinalizeBlock(
 		// continue
 	}
 
-	app.finalizeBlockState.SetContext(
-		app.finalizeBlockState.Context(),
+	s.finalizeBlockState.SetContext(
+		s.finalizeBlockState.Context(),
 	)
 
 	// Iterate over all raw transactions in the proposal and attempt to execute
@@ -368,8 +370,8 @@ func (app *Service) internalFinalizeBlock(
 		})
 	}
 
-	finalizeBlock, err := app.Middleware.FinalizeBlock(
-		app.finalizeBlockState.Context(),
+	finalizeBlock, err := s.Middleware.FinalizeBlock(
+		s.finalizeBlockState.Context(),
 		req,
 	)
 	if err != nil {
@@ -393,21 +395,56 @@ func (app *Service) internalFinalizeBlock(
 		// continue
 	}
 
-	cp := app.GetConsensusParams(app.finalizeBlockState.Context())
 	return &cmtabci.FinalizeBlockResponse{
 		TxResults:             txResults,
 		ValidatorUpdates:      valUpdates,
-		ConsensusParamUpdates: &cp,
+		ConsensusParamUpdates: s.paramStore.Get(),
 	}, nil
 }
 
-func (app *Service) FinalizeBlock(
+func (s *Service[_]) validateFinalizeBlockHeight(
+	req *cmtabci.FinalizeBlockRequest,
+) error {
+	if req.Height < 1 {
+		return fmt.Errorf("invalid height: %d", req.Height)
+	}
+
+	lastBlockHeight := s.LastBlockHeight()
+
+	// expectedHeight holds the expected height to validate
+	var expectedHeight int64
+	if lastBlockHeight == 0 && s.initialHeight > 1 {
+		// In this case, we're validating the first block of the chain, i.e no
+		// previous commit. The height we're expecting is the initial height.
+		expectedHeight = s.initialHeight
+	} else {
+		// This case can mean two things:
+		//
+		// - Either there was already a previous commit in the store, in which
+		// case we increment the version from there.
+		// - Or there was no previous commit, in which case we start at version
+		// 1.
+		expectedHeight = lastBlockHeight + 1
+	}
+
+	if req.Height != expectedHeight {
+		return fmt.Errorf(
+			"invalid height: %d; expected: %d",
+			req.Height,
+			expectedHeight,
+		)
+	}
+
+	return nil
+}
+
+func (s *Service[_]) FinalizeBlock(
 	_ context.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (*cmtabci.FinalizeBlockResponse, error) {
-	res, err := app.internalFinalizeBlock(context.Background(), req)
+	res, err := s.internalFinalizeBlock(context.Background(), req)
 	if res != nil {
-		res.AppHash = app.workingHash()
+		res.AppHash = s.workingHash()
 	}
 
 	return res, err
@@ -420,51 +457,53 @@ func (app *Service) FinalizeBlock(
 // defined in config, Commit will execute a deferred function call to check
 // against that height and gracefully halt if it matches the latest committed
 // height.
-func (app *Service) Commit(
+func (s *Service[LoggerT]) Commit(
 	context.Context, *cmtabci.CommitRequest,
 ) (*cmtabci.CommitResponse, error) {
-	if app.finalizeBlockState == nil {
+	if s.finalizeBlockState == nil {
 		return nil, errors.New("finalizeBlockState is nil")
 	}
-	header := app.finalizeBlockState.Context().BlockHeader()
-	retainHeight := app.GetBlockRetentionHeight(header.Height)
+	header := s.finalizeBlockState.Context().BlockHeader()
+	retainHeight := s.GetBlockRetentionHeight(header.Height)
 
-	rms, ok := app.cms.(*rootmulti.Store)
+	rms, ok := s.sm.CommitMultiStore().(*rootmulti.Store)
 	if ok {
 		rms.SetCommitHeader(header)
 	}
 
-	app.cms.Commit()
+	s.sm.CommitMultiStore().Commit()
 
 	resp := &cmtabci.CommitResponse{
 		RetainHeight: retainHeight,
 	}
 
-	app.finalizeBlockState = nil
+	s.finalizeBlockState = nil
 
 	return resp, nil
 }
 
 // workingHash gets the apphash that will be finalized in commit.
-// These writes will be persisted to the root multi-store (app.cms) and flushed
+// These writes will be persisted to the root multi-store
+// (s.sm.CommitMultiStore()) and flushed
 // to disk in the Commit phase. This means when the ABCI client requests
 // Commit(), the application state transitions will be flushed to disk and as a
 // result, but we already have
 // an application Merkle root.
-func (app *Service) workingHash() []byte {
+func (s *Service[LoggerT]) workingHash() []byte {
 	// Write the FinalizeBlock state into branched storage and commit the
 	// MultiStore. The write to the FinalizeBlock state writes all state
 	// transitions to the root
-	// MultiStore (app.cms) so when Commit() is called it persists those values.
-	if app.finalizeBlockState == nil {
+	// MultiStore (s.sm.CommitMultiStore()) so when Commit() is called it
+	// persists those values.
+	if s.finalizeBlockState == nil {
 		panic("workingHash() called before FinalizeBlock()")
 	}
-	app.finalizeBlockState.ms.Write()
+	s.finalizeBlockState.ms.Write()
 
 	// Get the hash of all writes in order to return the apphash to the comet in
 	// finalizeBlock.
-	commitHash := app.cms.WorkingHash()
-	app.logger.Debug(
+	commitHash := s.sm.CommitMultiStore().WorkingHash()
+	s.logger.Debug(
 		"hash of all writes",
 		"workingHash",
 		fmt.Sprintf("%X", commitHash),
@@ -476,15 +515,15 @@ func (app *Service) workingHash() []byte {
 // getContextForProposal returns the correct Context for PrepareProposal and
 // ProcessProposal. We use finalizeBlockState on the first block to be able to
 // access any state changes made in InitChain.
-func (app *Service) getContextForProposal(
+func (s *Service[LoggerT]) getContextForProposal(
 	ctx sdk.Context,
 	height int64,
 ) sdk.Context {
-	if height == app.initialHeight {
-		if app.finalizeBlockState == nil {
+	if height == s.initialHeight {
+		if s.finalizeBlockState == nil {
 			return ctx
 		}
-		ctx, _ = app.finalizeBlockState.Context().CacheContext()
+		ctx, _ = s.finalizeBlockState.Context().CacheContext()
 		return ctx
 	}
 
@@ -493,17 +532,17 @@ func (app *Service) getContextForProposal(
 
 // CreateQueryContext creates a new sdk.Context for a query, taking as args
 // the block height and whether the query needs a proof or not.
-func (app *Service) CreateQueryContext(
+func (s *Service[LoggerT]) CreateQueryContext(
 	height int64,
 	prove bool,
 ) (sdk.Context, error) {
 	// use custom query multi-store if provided
-	lastBlockHeight := app.cms.LatestVersion()
+	lastBlockHeight := s.sm.CommitMultiStore().LatestVersion()
 	if lastBlockHeight == 0 {
 		return sdk.Context{}, errorsmod.Wrapf(
 			sdkerrors.ErrInvalidHeight,
 			"%s is not ready; please wait for first block",
-			app.name,
+			s.name,
 		)
 	}
 
@@ -528,7 +567,7 @@ func (app *Service) CreateQueryContext(
 			)
 	}
 
-	cacheMS, err := app.cms.CacheMultiStoreWithVersion(height)
+	cacheMS, err := s.sm.CommitMultiStore().CacheMultiStoreWithVersion(height)
 	if err != nil {
 		return sdk.Context{},
 			errorsmod.Wrapf(
@@ -540,7 +579,11 @@ func (app *Service) CreateQueryContext(
 			)
 	}
 
-	return sdk.NewContext(cacheMS, true, app.logger), nil
+	return sdk.NewContext(
+		cacheMS,
+		true,
+		servercmtlog.WrapSDKLogger(s.logger),
+	), nil
 }
 
 // GetBlockRetentionHeight returns the height for which all blocks below this
@@ -567,9 +610,9 @@ func (app *Service) CreateQueryContext(
 // all blocks, e.g. via a local config option min-retain-blocks. There may also
 // be a need to vary retention for other nodes, e.g. sentry nodes which do not
 // need historical blocks.
-func (app *Service) GetBlockRetentionHeight(commitHeight int64) int64 {
+func (s *Service[_]) GetBlockRetentionHeight(commitHeight int64) int64 {
 	// pruning is disabled if minRetainBlocks is zero
-	if app.minRetainBlocks == 0 {
+	if s.minRetainBlocks == 0 {
 		return 0
 	}
 
@@ -601,16 +644,16 @@ func (app *Service) GetBlockRetentionHeight(commitHeight int64) int64 {
 	// based
 	// on the unbonding period and block commitment time as the two should be
 	// equivalent.
-	if app.finalizeBlockState == nil {
+	if s.finalizeBlockState == nil {
 		return 0
 	}
-	cp := app.GetConsensusParams(app.finalizeBlockState.Context())
+	cp := s.paramStore.Get()
 	if cp.Evidence != nil && cp.Evidence.MaxAgeNumBlocks > 0 {
 		retentionHeight = commitHeight - cp.Evidence.MaxAgeNumBlocks
 	}
 
 	//#nosec:G701 // bet.
-	v := commitHeight - int64(app.minRetainBlocks)
+	v := commitHeight - int64(s.minRetainBlocks)
 	retentionHeight = minNonZero(retentionHeight, v)
 
 	if retentionHeight <= 0 {
