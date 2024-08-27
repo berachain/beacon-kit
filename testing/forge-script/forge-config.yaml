@@ -20,15 +20,14 @@
 
 # Please refer to the README.md file for more information on how to fill this file.
 deployment:
-  repository: "github.com/berachain/contracts-monorepo"
-  contracts_path: ""
-  script_path: ""
-  contract_name: ""
+  repository: "github.com/nidhi-singh02/beacon-kit"  # give repo name if there are submodules, else give the folder till contracts
+  contracts_path: "contracts"  # give the path till contracts, if the repository is the contract folder itself, then leave it empty
+  script_path: "script/DeployAndCallERC20.s.sol"  # this must be relative to the repository path + contracts_path(if applicable)
+  contract_name: "DeployAndCallERC20"
   dependency: 
-      status : true
-      directory: "dependency"
-      path: "dependency-berps.sh"
-  rpc_url: "https://bartio.rpc.berachain.com/"  # If you spin up local devnet via kurtosis, then public port is 8547
+    type : "none"  # type can be `git` or `local` or `none`
+    path: "script/berps/dependency/dependency.sh"
+  rpc_url: "http://HOST_IP_ADDRESS:8547"  # If you spin up local devnet via kurtosis, then public port is 8547
   wallet:
     type: "private_key"  # currently only private_key wallet is supported. Do not change the type.
-    value: "0x"
+    value: "0xYOUR_PRIVATE_KEY"

@@ -15,7 +15,7 @@ def deploy_contracts(plan, deployment):
     rpc_url = deployment["rpc_url"]
     wallet = deployment["wallet"]
     dependency = deployment["dependency"]
-    dependency_status = dependency["status"]
+    dependency_type = dependency["type"]
 
     # TODO: Support other wallet options such as mnemonics, keystore, hardware wallets.
     if wallet["type"] == "private_key":
@@ -26,10 +26,9 @@ def deploy_contracts(plan, deployment):
     folder = plan.upload_files(src = repository, name = "contracts")
 
     dependency_artifact_name = ""
-    if dependency_status:
+    if dependency_type == "local" or dependency_type == "git":
         dependency_path = dependency["path"]
 
-        # plan.upload_files(src = dependency_path, name = "dependency")
         plan.upload_files(src = "dependency", name = "dependency")
         dependency_artifact_name = "dependency"
 
@@ -43,8 +42,7 @@ def deploy_contracts(plan, deployment):
     else:
         contract_path = SOURCE_DIR_PATH
 
-    # Check if dependency status is set to true
-    if dependency_status:
+    if dependency_type == "local":
         # Run shell script
         plan.exec(
             service_name = foundry_service.name,
@@ -52,6 +50,13 @@ def deploy_contracts(plan, deployment):
                 command = ["/bin/sh", "-c", "sh {}/{}".format(DEPENDENCY_DIR_PATH, dependency_path)],
             ),
         )
+    elif dependency_type == "git":
+        plan.exec(
+            service_name = foundry_service.name,
+            recipe = ExecRecipe(
+                command = ["/bin/sh", "-c", "cd {} && sh {}".format(contract_path,dependency_path)],
+            ),
+        )    
     if script_path:
         result = plan.exec(
             service_name = foundry_service.name,

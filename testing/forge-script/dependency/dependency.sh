@@ -1,3 +1,4 @@
+#!/bin/sh
 # SPDX-License-Identifier: BUSL-1.1
 #
 # Copyright (C) 2024, Berachain Foundation. All rights reserved.
@@ -18,12 +19,13 @@
 # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 # TITLE.
 
-HONEY: ""
-PYTH: ""
-FEE_COLLECTOR: ""
-API_KEY_ROUTESCAN: "YourRouteScanAPIKey"
-RPC_URL: ""
-GOV: ""
-GOV_PK: ""
-DEPOSITOR: ""
-DEP_PK: ""
+apk update && apk add --no-cache nodejs npm
+
+npm --version
+npm install -g bun
+
+bun --version
+
+cd /app/contracts && bun install
+
+echo "Bun installation complete!"

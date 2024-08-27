@@ -70,16 +70,4 @@ dependency:
     status : true
     path: "dependency.sh"
 ```
-## Deploy Berps Smart Contract
 
-```bash
-deployment:
-  repository: "github.com/berachain/contracts-monorepo"
-  contracts_path: ""
-  script_path: ""
-  contract_name: ""
-  dependency: 
-      status : true
-      directory: "dependency"
-      path: "dependency-berps.sh"
-```    
