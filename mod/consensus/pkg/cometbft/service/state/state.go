@@ -21,6 +21,8 @@
 package state
 
 import (
+	"fmt"
+
 	"cosmossdk.io/log"
 	"cosmossdk.io/store"
 	storemetrics "cosmossdk.io/store/metrics"
@@ -45,11 +47,40 @@ func NewManager(
 			db,
 			logger,
 			storemetrics.NewNoOpMetrics(),
-		)}
+		),
+	}
+
 	for _, opt := range opts {
 		opt(sm)
 	}
+
+	// TODO: Kill KVStoreService and register here.
+	// sm.cms.MountStoreWithDB(
+	// 	storetypes.NewKVStoreKey("beacon"),
+	// 	storetypes.StoreTypeIAVL,
+	// 	db,
+	// )
+
 	return sm
+}
+
+func (sm *Manager) LoadVersion(version int64) error {
+	err := sm.CommitMultiStore().LoadVersion(version)
+	if err != nil {
+		return fmt.Errorf("failed to load version %d: %w", version, err)
+	}
+
+	// Validate Pruning settings.
+	return sm.CommitMultiStore().GetPruning().Validate()
+}
+
+func (sm *Manager) LoadLatestVersion() error {
+	if err := sm.cms.LoadLatestVersion(); err != nil {
+		return fmt.Errorf("failed to load latest version: %w", err)
+	}
+
+	// Validator pruning settings.
+	return sm.cms.GetPruning().Validate()
 }
 
 func (sm *Manager) Close() error {
