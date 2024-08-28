@@ -1,6 +1,37 @@
+# Full reference https://github.com/foundry-rs/foundry/tree/master/crates/config
 [profile.default]
-src = "src"
+auto_detect_solc = false
+solc = "0.8.26"
+evm_version = "cancun"
+fuzz = { runs = 256, seed = "42" }
+gas_reports = ["*"]
+cache = true
+optimizer = true
+optimizer_runs = 4294967295
+via_ir = false
 out = "out"
-libs = ["lib"]
+script = "script"
+src = "src"
+test = "test"
+verbosity = 3
+fs_permissions = [{ access = "read", path = "./"}]
 
-# See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
+[profile.fuzz]
+fuzz = { runs = 1024 }
+verbosity = 1
+
+[profile.coverage]
+fuzz = { runs = 16 }
+
+[fmt]
+bracket_spacing = true
+int_types = "long"
+line_length = 80
+multiline_func_header = "all"
+number_underscore = "thousands"
+quote_style = "double"
+tab_width = 4
+wrap_comments = false
+
+[rpc_endpoints]
+localhost = "http://localhost:8545"
