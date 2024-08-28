@@ -53,7 +53,7 @@ golines:
 
 license: 
 	@echo "--> Running addlicense with -check"
-	@dirs=$$(find . -name 'go.mod' -exec dirname {} \; | grep -v '/contracts/'); \
+	@dirs=$$(find . -name 'go.mod' -exec dirname {} \;); \
 	total=$$(echo "$$dirs" | wc -l); \
 	count=0; \
 	for dir in $$dirs; do \
@@ -65,7 +65,7 @@ license:
 
 license-fix:
 	@echo "--> Running addlicense"
-	@dirs=$$(find . -name 'go.mod' -exec dirname {} \; | grep -v '/contracts/'); \
+	@dirs=$$(find . -name 'go.mod' -exec dirname {} \;); \
 	total=$$(echo "$$dirs" | wc -l); \
 	count=0; \
 	for dir in $$dirs; do \
@@ -82,7 +82,7 @@ license-fix:
 
 nilaway:
 	@echo "--> Running nilaway"
-	@dirs=$$(find . -name 'go.mod' -exec dirname {} \; | grep -v '/contracts/'); \
+	@dirs=$$(find . -name 'go.mod' -exec dirname {} \;); \
 	total=$$(echo "$$dirs" | wc -l); \
 	count=0; \
 	for dir in $$dirs; do \
