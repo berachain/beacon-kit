@@ -1,0 +1,6 @@
+BeaconVerifierTest:test_verifyBeaconBlockProposer() (gas: 155057)
+BeaconVerifierTest:test_verifyCoinbase() (gas: 49435)
+BeaconVerifierTest:test_verifyExecutionNumber() (gas: 49540)
+SSZTest:test_ValidatorPubkeyRoot() (gas: 3495)
+SSZTest:test_addressHashTreeRoot() (gas: 3731)
+SSZTest:test_uint64HashTreeRoot() (gas: 4955)

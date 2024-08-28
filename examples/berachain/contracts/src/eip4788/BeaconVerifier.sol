@@ -3,7 +3,7 @@ pragma solidity ^0.8.21;
 
 import { Ownable } from "@solady/src/auth/Ownable.sol";
 
-import { IBeaconVerifier } from "./interfaces/IBeaconVerifier.sol";
+import { IBeaconVerifier } from "./IBeaconVerifier.sol";
 
 import { SSZ } from "./SSZ.sol";
 import { Verifier } from "./Verifier.sol";

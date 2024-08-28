@@ -3,7 +3,7 @@ go 1.23.0
 use (
 	./beacond
 	./build/tools
-	./examples/berad
+	./examples/berachain/berad
 	./mod/async
 	./mod/beacon
 	./mod/chain-spec
