@@ -4,9 +4,9 @@
 [submodule "contracts/lib/forge-std"]
 	path = contracts/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
-[submodule "examples/berad/contracts/lib/forge-std"]
-	path = examples/berad/contracts/lib/forge-std
-	url = https://github.com/foundry-rs/forge-std
-[submodule "examples/berad/contracts/lib/solady"]
-	path = examples/berad/contracts/lib/solady
+[submodule "examples/berachain/contracts/lib/solady"]
+	path = examples/berachain/contracts/lib/solady
 	url = https://github.com/Vectorized/solady
+[submodule "examples/berachain/contracts/lib/forge-std"]
+	path = examples/berachain/contracts/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
