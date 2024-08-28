@@ -12,6 +12,7 @@ include contracts/Makefile
 include kurtosis/Makefile
 include build/scripts/help.mk
 include testing/forge-script/Makefile
+include examples/berachain/contracts/Makefile
 
 # Specify the default target if none is provided
 .DEFAULT_GOAL := build

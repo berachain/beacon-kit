@@ -4,4 +4,9 @@ MODULES := $(shell find . -type f -name 'go.mod' -exec dirname {} \;)
 MODULES := $(filter-out ./,$(MODULES))
 
 CONTRACTS_DIR := ./contracts
-
+EXAMPLES_DIR = examples
+OUT_DIR ?= $(CURDIR)/build/bin
+BINDIR ?= $(GOPATH)/build/bin
+TESTAPP_DIR = beacond
+TESTAPP_FILES_DIR = testing/files
+TESTAPP_CMD_DIR = $(TESTAPP_DIR)/cmd
