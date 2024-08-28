@@ -71,7 +71,7 @@ build_tags += $(BUILD_TAGS)
 BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
 # check for nostrip option
 ifeq (,$(findstring nostrip,$(COSMOS_BUILD_OPTIONS)))
-  BUILD_FLAGS += -trimpath 
+  BUILD_FLAGS += -trimpath
 endif
 
 # Check for debug option
@@ -83,7 +83,7 @@ endif
 BUILD_TARGETS := build install
 
 ## Build: 
-build: BUILD_ARGS=-o $(OUT_DIR)/$(TESTAPP) ## build `beacond` 
+build: BUILD_ARGS=-o $(OUT_DIR)/$(TESTAPP) ## build `beacond`
 
 $(BUILD_TARGETS): $(OUT_DIR)/
 	@echo "Building ${TESTAPP_CMD_DIR}"
