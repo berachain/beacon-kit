@@ -69,6 +69,6 @@ func (h *Handler[_, ContextT, _, _]) GetStateFork(c ContextT) (any, error) {
 	return beacontypes.ValidatorResponse{
 		ExecutionOptimistic: false, // stubbed
 		Finalized:           false, // stubbed
-		Data:                types.Wrap(fork),
+		Data:                fork,
 	}, nil
 }
