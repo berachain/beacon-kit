@@ -47,7 +47,7 @@ type Fork struct {
 	// CurrentVersion is the first version after the fork.
 	CurrentVersion common.Version `json:"current_version"`
 	// Epoch is the epoch at which the fork occurred.
-	Epoch uint64 `json:"epoch"`
+	Epoch math.Epoch `json:"epoch"`
 }
 
 /* -------------------------------------------------------------------------- */
@@ -68,7 +68,7 @@ func (f *Fork) New(
 	return &Fork{
 		PreviousVersion: previousVersion,
 		CurrentVersion:  currentVersion,
-		Epoch:           epoch.Unwrap(),
+		Epoch:           epoch,
 	}
 }
 
@@ -129,7 +129,7 @@ func (f *Fork) HashTreeRootWith(hh fastssz.HashWalker) error {
 	hh.PutBytes(f.CurrentVersion[:])
 
 	// Field (2) 'Epoch'
-	hh.PutUint64(f.Epoch)
+	hh.PutUint64(f.Epoch.Unwrap())
 
 	hh.Merkleize(indx)
 	return nil
