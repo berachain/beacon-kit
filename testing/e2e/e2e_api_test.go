@@ -78,12 +78,12 @@ func (s *BeaconKitE2ESuite) TestBeaconFork() {
 // &beaconapi.ValidatorsOpts{
 //	State:   utils.StateIDHead,
 //	Indices: make([]phase0.ValidatorIndex, 0),
-//PubKeys:         make([]phase0.BLSPubKey, 0),
-//ValidatorStates: make([]apiv1.ValidatorState, 0),
+//  PubKeys:         make([]phase0.BLSPubKey, 0),
+//  ValidatorStates: make([]apiv1.ValidatorState, 0),
 // })
 // s.Require().NoError(err)
 // s.Require().NotNil(stateValidatorsResp)
-////s.Require().NotEmpty(stateValidatorsResp.Data)
+// s.Require().NotEmpty(stateValidatorsResp.Data)
 
 // Ensure the state validator are not nil.
 // stateValidatorResp, err := client.Validator(s.Ctx(),
@@ -92,7 +92,7 @@ func (s *BeaconKitE2ESuite) TestBeaconFork() {
 // })
 // s.Require().NoError(err)
 // s.Require().NotNil(stateValidatorResp)
-//s.Require().NotNil(stateValidatorResp.Data)
+// s.Require().NotNil(stateValidatorResp.Data)
 
 // {"level":"debug","service":"client",
 // "impl":"http","id":"36162dc1","address":"http://0.0.0.0:52501",
@@ -107,8 +107,8 @@ func (s *BeaconKitE2ESuite) TestBeaconFork() {
 //	//Indices: []phase0.ValidatorIndex{},
 //	//PubKeys: nil,
 // })
-//s.Require().NoError(err)
-//s.Require().NotNil(stateValidatorBalanceResp)
+// s.Require().NoError(err)
+// s.Require().NotNil(stateValidatorBalanceResp)
 
 // json: cannot unmarshal string into Go value of type
 // http.beaconStateRandaoJSON
