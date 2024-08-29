@@ -154,6 +154,10 @@ func (h *Handler[_, ContextT, _, _]) RegisterRoutes(
 			Handler: h.NotImplemented,
 		},
 		{
+			Method: http.MethodGet,
+			Path:   "/eth/v1/beacon/rewards/blocks/:block_id",
+		},
+		{
 			Method:  http.MethodPost,
 			Path:    "/eth/v1/beacon/rewards/attestation/:epoch",
 			Handler: h.NotImplemented,
