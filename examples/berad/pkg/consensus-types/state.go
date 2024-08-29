@@ -66,6 +66,58 @@ type BeaconState[
 	NextWithdrawalValidatorIndex math.ValidatorIndex
 }
 
+// New creates a new BeaconState.
+func (st *BeaconState[
+	BeaconBlockHeaderT,
+	ExecutionPayloadHeaderT,
+	ForkT,
+	ValidatorT,
+	B, E, P, F, V,
+]) New(
+	_ uint32,
+	genesisValidatorsRoot common.Root,
+	slot math.Slot,
+	fork ForkT,
+	latestBlockHeader BeaconBlockHeaderT,
+	blockRoots []common.Root,
+	stateRoots []common.Root,
+	eth1DepositIndex uint64,
+	latestExecutionPayloadHeader ExecutionPayloadHeaderT,
+	validators []ValidatorT,
+	balances []uint64,
+	randaoMixes []common.Bytes32,
+	nextWithdrawalIndex uint64,
+	nextWithdrawalValidatorIndex math.ValidatorIndex,
+) (*BeaconState[
+	BeaconBlockHeaderT,
+	ExecutionPayloadHeaderT,
+	ForkT,
+	ValidatorT,
+	B, E, P, F, V,
+], error) {
+	return &BeaconState[
+		BeaconBlockHeaderT,
+		ExecutionPayloadHeaderT,
+		ForkT,
+		ValidatorT,
+		B, E, P, F, V,
+	]{
+		Slot:                         slot,
+		GenesisValidatorsRoot:        genesisValidatorsRoot,
+		Fork:                         fork,
+		LatestBlockHeader:            latestBlockHeader,
+		BlockRoots:                   blockRoots,
+		StateRoots:                   stateRoots,
+		LatestExecutionPayloadHeader: latestExecutionPayloadHeader,
+		Eth1DepositIndex:             eth1DepositIndex,
+		Validators:                   validators,
+		Balances:                     balances,
+		RandaoMixes:                  randaoMixes,
+		NextWithdrawalIndex:          nextWithdrawalIndex,
+		NextWithdrawalValidatorIndex: nextWithdrawalValidatorIndex,
+	}, nil
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                     SSZ                                    */
 /* -------------------------------------------------------------------------- */

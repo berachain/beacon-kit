@@ -49,7 +49,6 @@ type BeaconState[
 		cs common.ChainSpec,
 	) T
 	Copy() T
-	Save()
 	Context() context.Context
 	HashTreeRoot() common.Root
 	ReadOnlyBeaconState[
@@ -142,6 +141,7 @@ type WriteOnlyValidators[ValidatorT any] interface {
 	) error
 
 	AddValidator(ValidatorT) error
+	AddValidatorBartio(ValidatorT) error
 }
 
 // ReadOnlyValidators has read access to validator methods.
