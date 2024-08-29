@@ -7,9 +7,10 @@ COMMIT = $(shell git log -1 --format='%H')
 CURRENT_DIR = $(shell pwd)
 OUT_DIR ?= $(CURDIR)/build/bin
 BINDIR ?= $(GOPATH)/build/bin
-TESTAPP_DIR = beacond
+TESTNAME = beacon
+TESTAPP = beacond
 TESTAPP_FILES_DIR = testing/files
-TESTAPP_CMD_DIR = $(TESTAPP_DIR)/cmd
+TESTAPP_CMD_DIR = $(TESTAPP)/cmd
 PROJECT_NAME = $(shell git remote get-url origin | xargs basename -s .git)
 
 # process build tags
@@ -53,8 +54,8 @@ comma := ,
 build_tags_comma_sep := $(subst $(whitespace),$(comma),$(build_tags))
 
 # process linker flags
-ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=beacon \
-		-X github.com/cosmos/cosmos-sdk/version.AppName=beacond \
+ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=$(TESTNAME) \
+		-X github.com/cosmos/cosmos-sdk/version.AppName=$(TESTAPP) \
 		-X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
 		-X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT) \
 		-X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(build_tags_comma_sep)"
@@ -70,7 +71,7 @@ build_tags += $(BUILD_TAGS)
 BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
 # check for nostrip option
 ifeq (,$(findstring nostrip,$(COSMOS_BUILD_OPTIONS)))
-  BUILD_FLAGS += -trimpath 
+  BUILD_FLAGS += -trimpath
 endif
 
 # Check for debug option
@@ -82,7 +83,7 @@ endif
 BUILD_TARGETS := build install
 
 ## Build: 
-build: BUILD_ARGS=-o $(OUT_DIR)/beacond ## build `beacond`
+build: BUILD_ARGS=-o $(OUT_DIR)/$(TESTAPP) ## build `beacond`
 
 $(BUILD_TARGETS): $(OUT_DIR)/
 	@echo "Building ${TESTAPP_CMD_DIR}"
@@ -91,12 +92,12 @@ $(BUILD_TARGETS): $(OUT_DIR)/
 $(OUT_DIR)/:
 	mkdir -p $(OUT_DIR)/
 
-	# Variables
+# Variables
 ARCH ?= $(shell uname -m)
 ifeq ($(ARCH),)
 	ARCH = arm64
 endif
-IMAGE_NAME ?= beacond
+IMAGE_NAME ?= $(TESTAPP)
 
 # Docker Paths
 DOCKERFILE = ./Dockerfile
