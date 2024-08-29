@@ -58,7 +58,7 @@ func TestFork_SizeSSZ(t *testing.T) {
 	fork := &types.Fork{
 		PreviousVersion: common.Version{1, 2, 3, 4},
 		CurrentVersion:  common.Version{5, 6, 7, 8},
-		Epoch:           math.Epoch(1000),
+		Epoch:           1000,
 	}
 
 	size := fork.SizeSSZ()
@@ -69,7 +69,7 @@ func TestFork_HashTreeRoot(t *testing.T) {
 	fork := &types.Fork{
 		PreviousVersion: common.Version{1, 2, 3, 4},
 		CurrentVersion:  common.Version{5, 6, 7, 8},
-		Epoch:           math.Epoch(1000),
+		Epoch:           1000,
 	}
 
 	require.NotPanics(t, func() {
@@ -81,7 +81,7 @@ func TestFork_GetTree(t *testing.T) {
 	fork := &types.Fork{
 		PreviousVersion: common.Version{1, 2, 3, 4},
 		CurrentVersion:  common.Version{5, 6, 7, 8},
-		Epoch:           math.Epoch(1000),
+		Epoch:           1000,
 	}
 
 	tree, err := fork.GetTree()
