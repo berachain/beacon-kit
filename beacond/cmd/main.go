@@ -80,9 +80,7 @@ func run() error {
 	}
 
 	// eventually we want to decouple from cosmos cli, and just pass in a built
-	// Node and Cmd to a runner
-
-	// for now, running the cmd will start the node
+	// Node and Cmd to a runner for now, running the cmd will start the node
 	return cmd.Run(clicomponents.DefaultNodeHome)
 }
 
