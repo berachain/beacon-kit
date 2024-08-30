@@ -22,8 +22,6 @@ package cometbft
 
 import (
 	"context"
-	"errors"
-	"fmt"
 
 	pruningtypes "cosmossdk.io/store/pruning/types"
 	storetypes "cosmossdk.io/store/types"
@@ -37,7 +35,7 @@ import (
 func SetPruning[
 	LoggerT log.AdvancedLogger[LoggerT],
 ](opts pruningtypes.PruningOptions) func(*Service[LoggerT]) {
-	return func(bs *Service[LoggerT]) { bs.cms.SetPruning(opts) }
+	return func(bs *Service[LoggerT]) { bs.sm.CommitMultiStore().SetPruning(opts) }
 }
 
 // SetMinRetainBlocks returns a Service option function that sets the minimum
@@ -54,7 +52,9 @@ func SetMinRetainBlocks[
 func SetIAVLCacheSize[
 	LoggerT log.AdvancedLogger[LoggerT],
 ](size int) func(*Service[LoggerT]) {
-	return func(bs *Service[LoggerT]) { bs.cms.SetIAVLCacheSize(size) }
+	return func(bs *Service[LoggerT]) {
+		bs.sm.CommitMultiStore().SetIAVLCacheSize(size)
+	}
 }
 
 // SetIAVLDisableFastNode enables(false)/disables(true) fast node usage from the
@@ -62,7 +62,9 @@ func SetIAVLCacheSize[
 func SetIAVLDisableFastNode[
 	LoggerT log.AdvancedLogger[LoggerT],
 ](disable bool) func(*Service[LoggerT]) {
-	return func(bs *Service[LoggerT]) { bs.cms.SetIAVLDisableFastNode(disable) }
+	return func(bs *Service[LoggerT]) {
+		bs.sm.CommitMultiStore().SetIAVLDisableFastNode(disable)
+	}
 }
 
 // SetInterBlockCache provides a Service option function that sets the
@@ -70,7 +72,9 @@ func SetIAVLDisableFastNode[
 func SetInterBlockCache[
 	LoggerT log.AdvancedLogger[LoggerT],
 ](cache storetypes.MultiStorePersistentCache) func(*Service[LoggerT]) {
-	return func(s *Service[LoggerT]) { s.setInterBlockCache(cache) }
+	return func(s *Service[LoggerT]) {
+		s.setInterBlockCache(cache)
+	}
 }
 
 // SetChainID sets the chain ID in cometbft.
@@ -87,25 +91,6 @@ func (s *Service[_]) SetName(name string) {
 // SetVersion sets the application's version string.
 func (s *Service[_]) SetVersion(v string) {
 	s.version = v
-}
-
-func (s *Service[_]) SetAppVersion(ctx context.Context, v uint64) error {
-	if s.paramStore == nil {
-		return errors.
-			New("param store must be set to set app version")
-	}
-
-	cp, err := s.paramStore.Get(ctx)
-	if err != nil {
-		return fmt.
-			Errorf("failed to get consensus params: %w", err)
-	}
-	if cp.Version == nil {
-		return errors.
-			New("version is not set in param store")
-	}
-	cp.Version.App = v
-	return s.paramStore.Set(ctx, cp)
 }
 
 func (s *Service[_]) SetCommitHook(hook func(context.Context) error) {
