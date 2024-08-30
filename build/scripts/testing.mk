@@ -303,7 +303,7 @@ test-unit: ## run golang unit tests
 test-unit-cover: ## run golang unit tests with coverage
 	@echo "Running unit tests with coverage..."
 	@go list -f '{{.Dir}}/...' -m | xargs \
-		go test -race -coverprofile=test-unit-cover.txt 
+		go test -race -coverprofile=test-unit-cover.txt
 
 test-unit-bench: ## run golang unit benchmarks
 	@echo "Running unit tests with benchmarks..."
