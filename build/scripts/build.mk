@@ -5,6 +5,12 @@ endif
 
 COMMIT = $(shell git log -1 --format='%H')
 CURRENT_DIR = $(shell pwd)
+OUT_DIR ?= $(CURDIR)/build/bin
+BINDIR ?= $(GOPATH)/build/bin
+TESTNAME = beacon
+TESTAPP = beacond
+TESTAPP_FILES_DIR = testing/files
+TESTAPP_CMD_DIR = $(TESTAPP)/cmd
 PROJECT_NAME = $(shell git remote get-url origin | xargs basename -s .git)
 
 # process build tags
