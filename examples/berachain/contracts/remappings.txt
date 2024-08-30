@@ -1,5 +1,0 @@
-@forge-std/=lib/forge-std/src/
-@solady/src/=lib/solady/src/
-@solady/test/=lib/solady/test/
-@interfaces/=interfaces/
-@src/=src/
