@@ -7,6 +7,8 @@ bin/
 ./out/
 data/
 site/
+contracts/cache
+contracts/out
 tmp/
 
 ##########
@@ -193,10 +195,9 @@ pkg/**/.*.yaml
 
 # forge
 */**/solidity-files-cache.json
-**/contracts/cache
-**/contracts/out
+contracts/out/
 */**/broadcast
-**/contracts/out/**/*.bin
+contracts/out/**/*.bin
 
 # e2e
 e2e/**/*.txt
