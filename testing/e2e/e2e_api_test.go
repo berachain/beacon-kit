@@ -73,49 +73,50 @@ func (s *BeaconKitE2ESuite) TestBeaconFork() {
 	s.Require().Greater(fork.Epoch, phase0.Epoch(0))
 }
 
-// Ensure the state validators are not nil.
-// stateValidatorsResp, err := client.Validators(s.Ctx(),
-// &beaconapi.ValidatorsOpts{
-//	State:   utils.StateIDHead,
-//	Indices: make([]phase0.ValidatorIndex, 0),
-//  PubKeys:         make([]phase0.BLSPubKey, 0),
-//  ValidatorStates: make([]apiv1.ValidatorState, 0),
-// })
-// s.Require().NoError(err)
-// s.Require().NotNil(stateValidatorsResp)
-// s.Require().NotEmpty(stateValidatorsResp.Data)
+// func (s *BeaconKitE2ESuite) TestBeaconValidators() {
+//	client := s.initBeaconTest()
+//
+//	// Ensure the validators are not nil.
+//	validatorsResp, err := client.Validators(
+//		s.Ctx(),
+//		&beaconapi.ValidatorsOpts{
+//			State: utils.StateIDHead,
+//		},
+//	)
+//	s.Require().NoError(err)
+//	s.Require().NotNil(validatorsResp)
+//	s.Require().NotEmpty(validatorsResp.Data)
+// }
 
-// Ensure the state validator are not nil.
-// stateValidatorResp, err := client.Validator(s.Ctx(),
-// &beaconapi.ValidatorsOpts{
-//	State: utils.StateIDHead,
-// })
-// s.Require().NoError(err)
-// s.Require().NotNil(stateValidatorResp)
-// s.Require().NotNil(stateValidatorResp.Data)
+// func (s *BeaconKitE2ESuite) TestBeaconValidatorBalances() {
+//	client := s.initBeaconTest()
+//
+//	// Ensure the validator balances are not nil.
+//	validatorBalancesResp, err := client.ValidatorBalances(
+//		s.Ctx(),
+//		&beaconapi.ValidatorBalancesOpts{
+//			State: utils.StateIDHead,
+//		},
+//	)
+//	s.Require().NoError(err)
+//	s.Require().NotNil(validatorBalancesResp)
+// }
 
-// {"level":"debug","service":"client",
-// "impl":"http","id":"36162dc1","address":"http://0.0.0.0:52501",
-// "endpoint":"/eth/v1/beacon/states/0/validator_balances",
+// func (s *BeaconKitE2ESuite) TestBeaconRandao() {
+//	client := s.initBeaconTest()
+//	stateRandaoResp, err := client.BeaconStateRandao(s.Ctx(),
+//		&beaconapi.BeaconStateRandaoOpts{
+//			State: utils.StateIDHead,
+//		})
+//	s.Require().NoError(err)
+//	s.Require().NotNil(stateRandaoResp)
+// }
+
+// {"level":"debug","service":"client", "impl":"http","id":"36162dc1","address":"http://0.0.0.0:52501", "endpoint":"/eth/v1/beacon/states/0/validator_balances",
 // "status_code":400,"status_code":400,
 // "response":{"code":400,"message":"invalid
 // request"},"time":"2024-08-29T15:58:40+05:30","message":"POST failed"}
 // Ensure the state validator balances are not nil.
-// stateValidatorBalanceResp, err := client.ValidatorBalances(s.Ctx(),
-// &beaconapi.ValidatorBalancesOpts{
-//	State: "0",
-//	//Indices: []phase0.ValidatorIndex{},
-//	//PubKeys: nil,
-// })
-// s.Require().NoError(err)
-// s.Require().NotNil(stateValidatorBalanceResp)
 
 // json: cannot unmarshal string into Go value of type
-// http.beaconStateRandaoJSON
-// Ensure beacon randao is not nil.
-// stateRandaoResp, err := client.BeaconStateRandao(s.Ctx(),
-// &beaconapi.BeaconStateRandaoOpts{
-//	State: utils.StateIDHead,
-// })
-// s.Require().NoError(err)
-// s.Require().NotNil(stateRandaoResp)
+// http.beaconStateRandaoJSON - Ensure beacon randao is not nil.
