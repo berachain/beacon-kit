@@ -69,7 +69,7 @@ jobs:
           - binary: beacond
     runs-on: ${{ matrix.configs.runs-on }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-go@v3
         with:
           go-version: "^1.22"
@@ -77,16 +77,24 @@ jobs:
           GOOS: ${{ matrix.configs.target-os }}
           GOARCH: ${{ matrix.configs.arch }}
 
-      - name: Build ${{ matrix.build.binary }}
+      - name: Build ${{ matrix.build.binary }}, create tarball, and calculate SHA256 checksum
         run: |
+          # Build the binary
           make build-${{ matrix.configs.target-os }}-${{ matrix.configs.arch }}-${{ needs.extract-version.outputs.VERSION }}
+          # Display architecture of the build binary 
+          file build/bin/${{ matrix.build.binary }}-${{ needs.extract-version.outputs.VERSION }}-${{ matrix.configs.target-os }}-${{ matrix.configs.arch }}
+          # Create tar.gz archive
           tar -czvf ${{ matrix.build.binary }}-${{ needs.extract-version.outputs.VERSION }}-${{ matrix.configs.target-os }}-${{ matrix.configs.arch }}.tar.gz -C build/bin .
-      
-      # Upload binaries
+          # Calculate SHA256 checksum and save to .tar.gz.sha256 file
+          shasum -a 256 ${{ matrix.build.binary }}-${{ needs.extract-version.outputs.VERSION }}-${{ matrix.configs.target-os }}-${{ matrix.configs.arch }}.tar.gz > ${{ matrix.build.binary }}-${{ needs.extract-version.outputs.VERSION }}-${{ matrix.configs.target-os }}-${{ matrix.configs.arch }}.tar.gz.sha256
+
+      # Upload binaries and SHA256 checksum
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.build.binary }}-${{ needs.extract-version.outputs.VERSION }}-${{ matrix.configs.target-os }}-${{ matrix.configs.arch }}.tar.gz
-          path: ${{ matrix.build.binary }}-${{ needs.extract-version.outputs.VERSION }}-${{ matrix.configs.target-os }}-${{ matrix.configs.arch }}.tar.gz
+          name: ${{ matrix.build.binary }}-${{ needs.extract-version.outputs.VERSION }}-${{ matrix.configs.target-os }}-${{ matrix.configs.arch }}
+          path: |
+            ${{ matrix.build.binary }}-${{ needs.extract-version.outputs.VERSION }}-${{ matrix.configs.target-os }}-${{ matrix.configs.arch }}.tar.gz
+            ${{ matrix.build.binary }}-${{ needs.extract-version.outputs.VERSION }}-${{ matrix.configs.target-os }}-${{ matrix.configs.arch }}.tar.gz.sha256
 
   # Job to draft release
   draft-release:
@@ -155,11 +163,11 @@ jobs:
 
           ## Binaries
 
-          | System | Architecture | Binary | PGP Signature |
+          | System | Architecture | Binary | PGP Signature | SHA256 Checksum |
           |:---:|:---:|:---:|:---|
-          | <img src="https://simpleicons.org/icons/linux.svg" style="width: 32px;"/> | amd64 | [beacond-${{ env.VERSION }}-linux-amd64](https://github.com/${{ env.REPO_NAME }}/releases/download/${{ env.VERSION }}/beacond-${{ env.VERSION }}-linux-amd64.tar.gz) |
-          | <img src="https://simpleicons.org/icons/linux.svg" style="width: 32px;"/> | arm64 | [beacond-${{ env.VERSION }}-linux-arm64](https://github.com/${{ env.REPO_NAME }}/releases/download/${{ env.VERSION }}/beacond-${{ env.VERSION }}-linux-arm64.tar.gz) | 
-          | <img src="https://simpleicons.org/icons/apple.svg" style="width: 32px;"/> | arm64 | [beacond-${{ env.VERSION }}-darwin-arm64](https://github.com/${{ env.REPO_NAME }}/releases/download/${{ env.VERSION }}/beacond-${{ env.VERSION }}-darwin-arm64.tar.gz) |
+          | <img src="https://simpleicons.org/icons/linux.svg" style="width: 32px;"/> | amd64 | [beacond-${{ env.VERSION }}-linux-amd64](https://github.com/${{ env.REPO_NAME }}/releases/download/${{ env.VERSION }}/beacond-${{ env.VERSION }}-linux-amd64.tar.gz) | [beacond-${{ env.VERSION }}-linux-amd64.sha256](https://github.com/${{ env.REPO_NAME }}/releases/download/${{ env.VERSION }}/beacond-${{ env.VERSION }}-linux-amd64.tar.gz.sha256) |
+          | <img src="https://simpleicons.org/icons/linux.svg" style="width: 32px;"/> | arm64 | [beacond-${{ env.VERSION }}-linux-arm64](https://github.com/${{ env.REPO_NAME }}/releases/download/${{ env.VERSION }}/beacond-${{ env.VERSION }}-linux-arm64.tar.gz) | [beacond-${{ env.VERSION }}-linux-arm64.sha256](https://github.com/${{ env.REPO_NAME }}/releases/download/${{ env.VERSION }}/beacond-${{ env.VERSION }}-linux-arm64.tar.gz.sha256) |
+          | <img src="https://simpleicons.org/icons/apple.svg" style="width: 32px;"/> | arm64 | [beacond-${{ env.VERSION }}-darwin-arm64](https://github.com/${{ env.REPO_NAME }}/releases/download/${{ env.VERSION }}/beacond-${{ env.VERSION }}-darwin-arm64.tar.gz) | [beacond-${{ env.VERSION }}-darwin-arm64.sha256](https://github.com/${{ env.REPO_NAME }}/releases/download/${{ env.VERSION }}/beacond-${{ env.VERSION }}-darwin-arm64.tar.gz.sha256) |
           | | | | |
           | **System** | **Option** | - | **Resource** |
           | <img src="https://simpleicons.org/icons/docker.svg" style="width: 32px;"/> | Docker | | [${{ env.IMAGE_NAME }}](https://ghcr.io/berachain/beacon-kit) |
