@@ -84,7 +84,7 @@ func NewService[
 		dispatcher:              dispatcher,
 		ds:                      ds,
 		eth1FollowDistance:      eth1FollowDistance,
-		failedBlocks:            make(map[math.Slot]struct{}),
+		failedBlocks:            sync.Map{},
 		subFinalizedBlockEvents: make(chan async.Event[BeaconBlockT]),
 		logger:                  logger,
 		metrics:                 newMetrics(telemetrySink),
