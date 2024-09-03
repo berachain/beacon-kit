@@ -23,7 +23,7 @@ package beacondb
 // GetEth1DepositIndex retrieves the eth1 deposit index from the beacon state.
 func (kv *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT,
 ]) GetEth1DepositIndex() (uint64, error) {
 	return kv.eth1DepositIndex.Get(kv.ctx)
 }
@@ -31,7 +31,7 @@ func (kv *KVStore[
 // SetEth1DepositIndex sets the eth1 deposit index in the beacon state.
 func (kv *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT,
 ]) SetEth1DepositIndex(
 	index uint64,
 ) error {
