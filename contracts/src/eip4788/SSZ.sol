@@ -12,9 +12,7 @@ library SSZ {
     error BranchHasExtraItem();
     error InvalidValidatorPubkeyLength();
 
-    function validatorPubkeyHashTreeRoot(
-        bytes memory pubkey
-    )
+    function validatorPubkeyHashTreeRoot(bytes memory pubkey)
         internal
         view
         returns (bytes32 root)
@@ -34,9 +32,7 @@ library SSZ {
         }
     }
 
-    function addressHashTreeRoot(
-        address v
-    )
+    function addressHashTreeRoot(address v)
         internal
         pure
         returns (bytes32 root)
