@@ -1,0 +1,4 @@
+name: github.com/berachain/beacon-kit/testing/hardhat-deployment
+description: |-
+  This is a package that lets you do deployment of smart contract using Hardhat.
+  It is intended to be used for development/local testing purposes.
