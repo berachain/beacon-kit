@@ -5,7 +5,7 @@ import { Ownable } from "@solady/src/auth/Ownable.sol";
 import { DepositContract } from "@src/staking/DepositContract.sol";
 
 /// @notice A test contract that permissions deposits.
-contract BeaconDepositContract is DepositContract, Ownable {
+contract PermissionedDepositContract is DepositContract, Ownable {
     error UnauthorizedDeposit();
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -19,9 +19,9 @@ contract BeaconDepositContract is DepositContract, Ownable {
     mapping(address => uint64) private depositAuth;
 
     /// @dev Initializes the owner of the contract.
-    function initializeOwner() external {
+    function initializeOwner(address owner) external {
         require(!initialized, "Already initialized");
-        _initializeOwner(0x8a73D1380345942F1cb32541F1b19C40D8e6C94B);
+        _initializeOwner(owner);
         initialized = true;
     }
 

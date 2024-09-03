@@ -3,7 +3,7 @@ pragma solidity ^0.8.25;
 
 import { SoladyTest } from "@solady/test/utils/SoladyTest.sol";
 import { IDepositContract } from "@src/staking/IDepositContract.sol";
-import { BeaconDepositContract } from "./BeaconDepositContract.sol";
+import { PermissionedDepositContract } from "./PermissionedDepositContract.sol";
 
 contract DepositContractTest is SoladyTest {
     /// @dev The depositor address.
@@ -25,13 +25,14 @@ contract DepositContractTest is SoladyTest {
     bytes32 internal constant STAKING_ASSET_SLOT = bytes32(0);
 
     /// @dev the deposit contract.
-    BeaconDepositContract internal depositContract;
+    PermissionedDepositContract internal depositContract;
 
     function setUp() public virtual {
         // Set the STAKE_ASSET to the NATIVE token.
-        depositContract = new BeaconDepositContract();
-        depositContract.initializeOwner();
-        vm.prank(0x8a73D1380345942F1cb32541F1b19C40D8e6C94B);
+        depositContract = new PermissionedDepositContract();
+        address owner = 0x6969696969696969696969696969696969696969;
+        depositContract.initializeOwner(owner);
+        vm.prank(owner);
         depositContract.allowDeposit(depositor, 100);
     }
 
