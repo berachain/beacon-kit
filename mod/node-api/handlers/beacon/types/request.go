@@ -60,7 +60,7 @@ type GetValidatorBalancesRequest struct {
 
 type PostValidatorBalancesRequest struct {
 	types.StateIDRequest
-	IDs []string `validate:"dive,validator_id"`
+	_ []string
 }
 
 type GetStateCommitteesRequest struct {

@@ -71,17 +71,17 @@ func (h *Handler[_, ContextT, _, _]) PostStateValidators(
 		return nil, err
 	}
 	// TODO: remove this once status filter is implemented.
-	if len(req.Statuses) > 0 {
-		return nil, types.ErrNotImplemented
-	}
+	//if len(req.Statuses) > 0 {
+	//	return nil, types.ErrNotImplemented
+	//}
 	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
 	if err != nil {
 		return nil, err
 	}
-	validators, err := h.backend.ValidatorsByIDs(
+	validators, err := h.backend.Validators(
 		slot,
-		req.IDs,
-		req.Statuses,
+		//req.IDs,
+		//req.Statuses,
 	)
 	if err != nil {
 		return nil, err
@@ -156,10 +156,7 @@ func (h *Handler[_, ContextT, _, _]) PostStateValidatorBalances(
 	if err != nil {
 		return nil, err
 	}
-	balances, err := h.backend.ValidatorBalancesByIDs(
-		slot,
-		req.IDs,
-	)
+	balances, err := h.backend.ValidatorBalances(slot)
 	if err != nil {
 		return nil, err
 	}

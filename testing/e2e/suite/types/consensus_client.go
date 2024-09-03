@@ -25,15 +25,13 @@ import (
 	"fmt"
 
 	beaconapi "github.com/attestantio/go-eth2-client/api"
+	apiv1 "github.com/attestantio/go-eth2-client/api/v1"
 	beaconhttp "github.com/attestantio/go-eth2-client/http"
 	"github.com/attestantio/go-eth2-client/spec/phase0"
-
 	"github.com/berachain/beacon-kit/mod/errors"
-
 	rpcclient "github.com/cometbft/cometbft/rpc/client"
 	httpclient "github.com/cometbft/cometbft/rpc/client/http"
 	ctypes "github.com/cometbft/cometbft/rpc/core/types"
-
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
 	"github.com/rs/zerolog"
 )
@@ -178,6 +176,22 @@ func (cc ConsensusClient) Fork(
 	opts *beaconapi.ForkOpts,
 ) (*beaconapi.Response[*phase0.Fork], error) {
 	return cc.beaconClient.Fork(ctx, opts)
+}
+
+// ValidatorBalances returns the validator balances of the node.
+func (cc ConsensusClient) ValidatorBalances(
+	ctx context.Context,
+	opts *beaconapi.ValidatorBalancesOpts,
+) (*beaconapi.Response[map[phase0.ValidatorIndex]phase0.Gwei], error) {
+	return cc.beaconClient.ValidatorBalances(ctx, opts)
+}
+
+// Validators returns the validator
+func (cc ConsensusClient) Validators(
+	ctx context.Context,
+	opts *beaconapi.ValidatorsOpts,
+) (*beaconapi.Response[map[phase0.ValidatorIndex]*apiv1.Validator], error) {
+	return cc.beaconClient.Validators(ctx, opts)
 }
 
 // TODO: Add helpers for the beacon node-api client (converting from
