@@ -25,9 +25,9 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
+	"github.com/berachain/beacon-kit/examples/berad/pkg/storage/keys"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/index"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/keys"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -116,7 +116,10 @@ func New[
 	},
 	ValidatorT Validator[ValidatorT],
 	ValidatorsT ~[]ValidatorT,
-	WithdrawalT any,
+	WithdrawalT interface {
+		constraints.Empty[WithdrawalT]
+		constraints.SSZMarshallable
+	},
 ](
 	kss store.KVStoreService,
 	payloadCodec *encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT],
@@ -212,6 +215,13 @@ func New[
 			),
 			keys.LatestBeaconBlockHeaderPrefixHumanReadable,
 			encoding.SSZValueCodec[BeaconBlockHeaderT]{},
+		),
+		withdrawals: sdkcollections.NewMap(
+			schemaBuilder,
+			sdkcollections.NewPrefix([]byte{keys.WithdrawalsPrefix}),
+			keys.WithdrawalsPrefixHumanReadable,
+			sdkcollections.Uint64Key,
+			encoding.SSZValueCodec[WithdrawalT]{},
 		),
 	}
 }
