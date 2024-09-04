@@ -21,6 +21,7 @@
 package beacon
 
 import (
+	"github.com/berachain/beacon-kit/mod/errors"
 	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
@@ -150,15 +151,16 @@ func (h *Handler[_, ContextT, _, _]) PostStateValidatorBalances(
 		c, h.Logger(),
 	)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(errors.New("err in bind and validate "), "err %v", err)
 	}
 	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(errors.New("err in getting slot "), "err %v", err)
 	}
-	balances, err := h.backend.ValidatorBalancesBySlot(slot)
+
+	balances, err := h.backend.ValidatorBalancesBySlot(slot, req.IDs)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(errors.New("err in backend "), "err %v", err)
 	}
 	return beacontypes.ValidatorResponse{
 		ExecutionOptimistic: false, // stubbed

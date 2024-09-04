@@ -79,5 +79,6 @@ type ValidatorBackend[ValidatorT any] interface {
 	) ([]*types.ValidatorBalanceData, error)
 	ValidatorBalancesBySlot(
 		slot math.Slot,
+		body []string,
 	) ([]*types.ValidatorBalanceData, error)
 }

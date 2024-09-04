@@ -21,6 +21,7 @@
 package utils
 
 import (
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/mod/node-api/server/context"
@@ -33,7 +34,7 @@ func BindAndValidate[RequestT any, ContextT context.Context](
 ) (RequestT, error) {
 	var req RequestT
 	if err := c.Bind(&req); err != nil {
-		return req, types.ErrInvalidRequest
+		return req, errors.Wrapf(errors.New("err in bind "), "err req %v %v", err, req)
 	}
 	if err := c.Validate(&req); err != nil {
 		return req, types.ErrInvalidRequest
