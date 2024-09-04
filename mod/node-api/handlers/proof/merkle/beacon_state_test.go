@@ -32,10 +32,8 @@ import (
 // TestProveBeaconStateInBlock tests the ProveBeaconStateInBlock function and
 // that the generated proof correctly verifies.
 func TestProveBeaconStateInBlock(t *testing.T) {
-	// Create an empty BeaconBlockHeader
 	bbh := (&types.BeaconBlockHeader{}).Empty()
 
-	// Set up test cases
 	testCases := []struct {
 		name            string
 		slot            math.Slot
@@ -106,6 +104,7 @@ func TestProveBeaconStateInBlock(t *testing.T) {
 			bbh.SetParentBlockRoot(tc.parentBlockRoot)
 			bbh.SetBodyRoot(tc.bodyRoot)
 			bbh.SetStateRoot(tc.stateRoot)
+
 			proof, err := ProveBeaconStateInBlock(bbh, true)
 			assert.Equal(t, tc.expectedError, err)
 			assert.Equal(t, tc.expectedProof, proof)
