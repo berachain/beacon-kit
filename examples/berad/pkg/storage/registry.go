@@ -29,7 +29,7 @@ import (
 // AddValidator registers a new validator in the beacon state.
 func (kv *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT,
 ]) AddValidator(val ValidatorT) error {
 	// Get the next validator index from the sequence.
 	idx, err := kv.validatorIndex.Next(kv.ctx)
@@ -44,7 +44,7 @@ func (kv *KVStore[
 // UpdateValidatorAtIndex updates a validator at a specific index.
 func (kv *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT,
 ]) UpdateValidatorAtIndex(
 	index math.ValidatorIndex,
 	val ValidatorT,
@@ -55,7 +55,7 @@ func (kv *KVStore[
 // ValidatorIndexByPubkey returns the validator address by index.
 func (kv *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT,
 ]) ValidatorIndexByPubkey(
 	pubkey crypto.BLSPubkey,
 ) (math.ValidatorIndex, error) {
@@ -72,7 +72,7 @@ func (kv *KVStore[
 // ValidatorIndexByCometBFTAddress returns the validator address by index.
 func (kv *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT,
 ]) ValidatorIndexByCometBFTAddress(
 	cometBFTAddress []byte,
 ) (math.ValidatorIndex, error) {
@@ -89,7 +89,7 @@ func (kv *KVStore[
 // ValidatorByIndex returns the validator address by index.
 func (kv *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT,
 ]) ValidatorByIndex(
 	index math.ValidatorIndex,
 ) (ValidatorT, error) {
@@ -104,7 +104,7 @@ func (kv *KVStore[
 // GetValidators retrieves all validators from the beacon state.
 func (kv *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT,
 ]) GetValidators() (
 	ValidatorsT, error,
 ) {
@@ -140,7 +140,7 @@ func (kv *KVStore[
 // GetTotalValidators returns the total number of validators.
 func (kv *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT,
 ]) GetTotalValidators() (uint64, error) {
 	validators, err := kv.GetValidators()
 	if err != nil {
@@ -153,7 +153,7 @@ func (kv *KVStore[
 // effective balance from the beacon state.
 func (kv *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT,
 ]) GetValidatorsByEffectiveBalance() (
 	[]ValidatorT, error,
 ) {
@@ -190,7 +190,7 @@ func (kv *KVStore[
 // TODO: this shouldn't live in KVStore
 func (kv *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT,
 ]) GetTotalActiveBalances(
 	slotsPerEpoch uint64,
 ) (math.Gwei, error) {

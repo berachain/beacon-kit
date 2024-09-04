@@ -29,7 +29,7 @@ import (
 // state.
 func (kv *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT,
 ]) SetGenesisValidatorsRoot(
 	root common.Root,
 ) error {
@@ -40,7 +40,7 @@ func (kv *KVStore[
 // beacon state.
 func (kv *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT,
 ]) GetGenesisValidatorsRoot() (common.Root, error) {
 	bz, err := kv.genesisValidatorsRoot.Get(kv.ctx)
 	if err != nil {
@@ -52,7 +52,7 @@ func (kv *KVStore[
 // GetSlot returns the current slot.
 func (kv *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT,
 ]) GetSlot() (math.Slot, error) {
 	slot, err := kv.slot.Get(kv.ctx)
 	return math.Slot(slot), err
@@ -61,7 +61,7 @@ func (kv *KVStore[
 // SetSlot sets the current slot.
 func (kv *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT,
 ]) SetSlot(
 	slot math.Slot,
 ) error {
@@ -71,7 +71,7 @@ func (kv *KVStore[
 // SetFork sets the fork version for the given epoch.
 func (kv *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT,
 ]) SetFork(
 	fork ForkT,
 ) error {
@@ -81,7 +81,7 @@ func (kv *KVStore[
 // GetFork gets the fork version for the given epoch.
 func (kv *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT,
 ]) GetFork() (ForkT, error) {
 	return kv.fork.Get(kv.ctx)
 }
