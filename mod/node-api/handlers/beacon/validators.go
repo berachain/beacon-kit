@@ -156,7 +156,7 @@ func (h *Handler[_, ContextT, _, _]) PostStateValidatorBalances(
 	if err != nil {
 		return nil, err
 	}
-	balances, err := h.backend.ValidatorBalances(slot)
+	balances, err := h.backend.ValidatorBalancesBySlot(slot)
 	if err != nil {
 		return nil, err
 	}

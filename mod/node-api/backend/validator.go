@@ -109,3 +109,34 @@ func (b Backend[
 	}
 	return balances, nil
 }
+
+func (b Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) ValidatorBalancesBySlot(
+	slot math.Slot,
+) ([]*beacontypes.ValidatorBalanceData, error) {
+	var index math.U64
+	st, _, err := b.stateFromSlot(slot)
+	if err != nil {
+		return nil, err
+	}
+	balances := make([]*beacontypes.ValidatorBalanceData, 0)
+	//for _, id := range ids {
+	//	index, err = utils.ValidatorIndexByID(st, id)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	var balance math.U64
+	// TODO: same issue as above, shouldn't error on not found.
+	index = 0
+	balance, err = st.GetBalance(index)
+	if err != nil {
+		return nil, err
+	}
+	balances = append(balances, &beacontypes.ValidatorBalanceData{
+		Index:   index.Unwrap(),
+		Balance: balance.Unwrap(),
+	})
+	//}
+	return balances, nil
+}
