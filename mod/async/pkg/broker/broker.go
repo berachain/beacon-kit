@@ -22,7 +22,6 @@ package broker
 
 import (
 	"context"
-	"sync"
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
@@ -41,8 +40,6 @@ type Broker[T async.BaseEvent] struct {
 	msgs chan T
 	// timeout is the timeout for sending a msg to a client.
 	timeout time.Duration
-	// mu is the mutex for the clients map.
-	mu sync.Mutex
 }
 
 // New creates a new broker publishing events of type T for the
@@ -53,7 +50,6 @@ func New[T async.BaseEvent](eventID string) *Broker[T] {
 		subscriptions: make(map[chan T]struct{}),
 		msgs:          make(chan T, defaultBufferSize),
 		timeout:       defaultBrokerTimeout,
-		mu:            sync.Mutex{},
 	}
 }
 
@@ -110,8 +106,6 @@ func (b *Broker[T]) Subscribe(ch any) error {
 	if err != nil {
 		return err
 	}
-	b.mu.Lock()
-	defer b.mu.Unlock()
 	b.subscriptions[client] = struct{}{}
 	return nil
 }
@@ -124,8 +118,6 @@ func (b *Broker[T]) Unsubscribe(ch any) error {
 	if err != nil {
 		return err
 	}
-	b.mu.Lock()
-	defer b.mu.Unlock()
 	delete(b.subscriptions, client)
 	close(client)
 	return nil
