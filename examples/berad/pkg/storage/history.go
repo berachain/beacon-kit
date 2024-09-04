@@ -25,7 +25,7 @@ import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 // UpdateBlockRootAtIndex sets a block root in the BeaconStore.
 func (kv *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT, WithdrawalT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT, WithdrawalsT,
 ]) UpdateBlockRootAtIndex(
 	index uint64,
 	root common.Root,
@@ -36,7 +36,7 @@ func (kv *KVStore[
 // GetBlockRootAtIndex retrieves the block root from the BeaconStore.
 func (kv *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT, WithdrawalT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT, WithdrawalsT,
 ]) GetBlockRootAtIndex(
 	index uint64,
 ) (common.Root, error) {
@@ -50,7 +50,7 @@ func (kv *KVStore[
 // SetLatestBlockHeader sets the latest block header in the BeaconStore.
 func (kv *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT, WithdrawalT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT, WithdrawalsT,
 ]) SetLatestBlockHeader(
 	header BeaconBlockHeaderT,
 ) error {
@@ -60,7 +60,7 @@ func (kv *KVStore[
 // GetLatestBlockHeader retrieves the latest block header from the BeaconStore.
 func (kv *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT, WithdrawalT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT, WithdrawalsT,
 ]) GetLatestBlockHeader() (
 	BeaconBlockHeaderT, error,
 ) {
@@ -70,7 +70,7 @@ func (kv *KVStore[
 // UpdateStateRootAtIndex updates the state root at the given slot.
 func (kv *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT, WithdrawalT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT, WithdrawalsT,
 ]) UpdateStateRootAtIndex(
 	idx uint64,
 	stateRoot common.Root,
@@ -81,7 +81,7 @@ func (kv *KVStore[
 // StateRootAtIndex returns the state root at the given slot.
 func (kv *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT, WithdrawalT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT, WithdrawalsT,
 ]) StateRootAtIndex(
 	idx uint64,
 ) (common.Root, error) {
@@ -96,7 +96,7 @@ func (kv *KVStore[
 // header from the BeaconStore.
 func (kv *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT, WithdrawalT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT, WithdrawalsT,
 ]) GetLatestExecutionPayloadHeader() (
 	ExecutionPayloadHeaderT, error,
 ) {
@@ -113,7 +113,7 @@ func (kv *KVStore[
 // the BeaconStore.
 func (kv *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT, WithdrawalT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT, WithdrawalsT,
 ]) SetLatestExecutionPayloadHeader(
 	payloadHeader ExecutionPayloadHeaderT,
 ) error {
