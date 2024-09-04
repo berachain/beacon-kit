@@ -51,6 +51,7 @@ type KVStore[
 	ValidatorT Validator[ValidatorT],
 	ValidatorsT ~[]ValidatorT,
 	WithdrawalT any,
+	WithdrawalsT ~[]WithdrawalT,
 ] struct {
 	ctx context.Context
 	// Versioning
@@ -90,7 +91,7 @@ type KVStore[
 	randaoMix sdkcollections.Map[uint64, []byte]
 	// Staking
 	// withdrawals stores a list of initiated withdrawals.
-	withdrawals sdkcollections.Map[uint64, WithdrawalT]
+	withdrawals sdkcollections.Item[WithdrawalsT]
 }
 
 // New creates a new instance of Store.
@@ -120,17 +121,22 @@ func New[
 		constraints.Empty[WithdrawalT]
 		constraints.SSZMarshallable
 	},
+	WithdrawalsT interface {
+		~[]WithdrawalT
+		constraints.Empty[WithdrawalsT]
+		constraints.SSZMarshallable
+	},
 ](
 	kss store.KVStoreService,
 	payloadCodec *encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT],
 ) *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT, WithdrawalT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT, WithdrawalsT,
 ] {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kss)
 	return &KVStore[
 		BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-		ForkT, ValidatorT, ValidatorsT, WithdrawalT,
+		ForkT, ValidatorT, ValidatorsT, WithdrawalT, WithdrawalsT,
 	]{
 		ctx: nil,
 		genesisValidatorsRoot: sdkcollections.NewItem(
@@ -216,12 +222,11 @@ func New[
 			keys.LatestBeaconBlockHeaderPrefixHumanReadable,
 			encoding.SSZValueCodec[BeaconBlockHeaderT]{},
 		),
-		withdrawals: sdkcollections.NewMap(
+		withdrawals: sdkcollections.NewItem(
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.WithdrawalsPrefix}),
 			keys.WithdrawalsPrefixHumanReadable,
-			sdkcollections.Uint64Key,
-			encoding.SSZValueCodec[WithdrawalT]{},
+			encoding.SSZValueCodec[WithdrawalsT]{},
 		),
 	}
 }
@@ -229,10 +234,10 @@ func New[
 // Copy returns a copy of the Store.
 func (kv *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT, WithdrawalT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT, WithdrawalsT,
 ]) Copy() *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT, WithdrawalT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT, WithdrawalsT,
 ] {
 	// TODO: Decouple the KVStore type from the Cosmos-SDK.
 	cctx, _ := sdk.UnwrapSDKContext(kv.ctx).CacheContext()
@@ -243,7 +248,7 @@ func (kv *KVStore[
 // Context returns the context of the Store.
 func (kv *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT, WithdrawalT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT, WithdrawalsT,
 ]) Context() context.Context {
 	return kv.ctx
 }
@@ -251,12 +256,12 @@ func (kv *KVStore[
 // WithContext returns a copy of the Store with the given context.
 func (kv *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT, WithdrawalT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT, WithdrawalsT,
 ]) WithContext(
 	ctx context.Context,
 ) *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT, WithdrawalT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT, WithdrawalsT,
 ] {
 	cpy := *kv
 	cpy.ctx = ctx
