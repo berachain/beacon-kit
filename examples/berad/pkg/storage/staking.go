@@ -23,7 +23,7 @@ package beacondb
 // GetEth1DepositIndex retrieves the eth1 deposit index from the beacon state.
 func (kv *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT, WithdrawalT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT, WithdrawalsT,
 ]) GetEth1DepositIndex() (uint64, error) {
 	return kv.eth1DepositIndex.Get(kv.ctx)
 }
@@ -31,9 +31,25 @@ func (kv *KVStore[
 // SetEth1DepositIndex sets the eth1 deposit index in the beacon state.
 func (kv *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT, WithdrawalT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT, WithdrawalsT,
 ]) SetEth1DepositIndex(
 	index uint64,
 ) error {
 	return kv.eth1DepositIndex.Set(kv.ctx, index)
+}
+
+// GetWithdrawals retrieves the pending withdrawals from the beacon state.
+func (kv *KVStore[
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT, WithdrawalsT,
+]) GetWithdrawals() (WithdrawalsT, error) {
+	return kv.withdrawals.Get(kv.ctx)
+}
+
+// SetWithdrawals overwrites the pending withdrawals from the beacon state.
+func (kv *KVStore[
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT, WithdrawalsT,
+]) SetWithdrawals(withdrawals WithdrawalsT) error {
+	return kv.withdrawals.Set(kv.ctx, withdrawals)
 }
