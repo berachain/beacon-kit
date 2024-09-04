@@ -60,7 +60,6 @@ type GetValidatorBalancesRequest struct {
 
 type PostValidatorBalancesRequest struct {
 	types.StateIDRequest
-	_ []string
 }
 
 type GetStateCommitteesRequest struct {

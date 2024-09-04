@@ -1163,5 +1163,8 @@ type (
 			slot math.Slot,
 			ids []string,
 		) ([]*types.ValidatorBalanceData, error)
+		ValidatorBalances(
+			slot math.Slot,
+		) ([]*types.ValidatorBalanceData, error)
 	}
 )

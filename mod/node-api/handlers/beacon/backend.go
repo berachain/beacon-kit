@@ -80,7 +80,4 @@ type ValidatorBackend[ValidatorT any] interface {
 	ValidatorBalances(
 		slot math.Slot,
 	) ([]*types.ValidatorBalanceData, error)
-	Validators(
-		slot math.Slot,
-	) ([]*types.ValidatorData[ValidatorT], error)
 }
