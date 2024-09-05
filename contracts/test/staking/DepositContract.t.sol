@@ -18,10 +18,6 @@ contract DepositContractTest is SoladyTest {
     /// @dev The staking credentials that are right.
     bytes internal STAKING_CREDENTIALS = _credential(depositor);
 
-    /// @dev the deposit contract address.
-    address internal constant DEPOSIT_CONTRACT_ADDRESS =
-        0x4242424242424242424242424242424242424242;
-
     bytes32 internal constant STAKING_ASSET_SLOT = bytes32(0);
 
     /// @dev the deposit contract.

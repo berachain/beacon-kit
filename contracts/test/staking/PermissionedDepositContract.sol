@@ -16,7 +16,7 @@ contract PermissionedDepositContract is DepositContract, Ownable {
     bool private initialized = false;
 
     /// @dev depositAuth is a mapping of number of deposits an authorized address can make.
-    mapping(address => uint64) private depositAuth;
+    mapping(address => uint64) public depositAuth;
 
     /// @dev Initializes the owner of the contract.
     function initializeOwner(address owner) external {
