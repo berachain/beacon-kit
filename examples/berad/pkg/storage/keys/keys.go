@@ -32,8 +32,9 @@ const (
 	LatestExecutionPayloadHeaderPrefix
 	LatestExecutionPayloadVersionPrefix
 	GenesisValidatorsRootPrefix
-	NextWithdrawalIndexPrefix
-	NextWithdrawalValidatorIndexPrefix
+	WithdrawalsPrefix
+	// NextWithdrawalIndexPrefix
+	// NextWithdrawalValidatorIndexPrefix.
 	ForkPrefix
 )
 
@@ -50,7 +51,6 @@ const (
 	LatestExecutionPayloadHeaderPrefixHumanReadable  = "LatestExecutionPayloadHeaderPrefix"
 	LatestExecutionPayloadVersionPrefixHumanReadable = "LatestExecutionPayloadVersionPrefix"
 	GenesisValidatorsRootPrefixHumanReadable         = "GenesisValidatorsRootPrefix"
-	NextWithdrawalIndexPrefixHumanReadable           = "NextWithdrawalIndexPrefix"
-	NextWithdrawalValidatorIndexPrefixHumanReadable  = "NextWithdrawalValidatorIndexPrefix"
+	WithdrawalsPrefixHumanReadable                   = "WithdrawalsPrefix"
 	ForkPrefixHumanReadable                          = "ForkPrefix"
 )
