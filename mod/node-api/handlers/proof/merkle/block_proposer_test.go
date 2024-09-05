@@ -78,7 +78,6 @@ func TestProveProposerInBlock(t *testing.T) {
 		bodyRoot        common.Root
 		pubKey          crypto.BLSPubkey
 		expectedProof   []common.Root
-		expectedError   error
 	}{
 		{
 			name:            "1 Validator Set",

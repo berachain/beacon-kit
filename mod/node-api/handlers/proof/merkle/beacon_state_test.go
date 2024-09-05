@@ -43,7 +43,6 @@ func TestProveBeaconStateInBlock(t *testing.T) {
 		bodyRoot        common.Root
 		stateRoot       common.Root
 		expectedProof   []common.Root
-		expectedError   error
 	}{
 		{
 			name:      "Empty block with non-empty state root",
@@ -67,7 +66,6 @@ func TestProveBeaconStateInBlock(t *testing.T) {
 					0x5d, 0x71,
 				},
 			},
-			expectedError: nil,
 		},
 		{
 			name:            "Non-empty block with empty state root",
@@ -94,7 +92,6 @@ func TestProveBeaconStateInBlock(t *testing.T) {
 					0xbd, 0x58,
 				},
 			},
-			expectedError: nil,
 		},
 	}
 
@@ -107,7 +104,7 @@ func TestProveBeaconStateInBlock(t *testing.T) {
 			bbh.SetStateRoot(tc.stateRoot)
 
 			proof, err := merkle.ProveBeaconStateInBlock(bbh, true)
-			require.Equal(t, tc.expectedError, err)
+			require.NoError(t, err)
 			require.Equal(t, tc.expectedProof, proof)
 		})
 	}
