@@ -18,12 +18,13 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package merkle
+package merkle_test
 
 import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/proof/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/stretchr/testify/assert"
@@ -105,7 +106,7 @@ func TestProveBeaconStateInBlock(t *testing.T) {
 			bbh.SetBodyRoot(tc.bodyRoot)
 			bbh.SetStateRoot(tc.stateRoot)
 
-			proof, err := ProveBeaconStateInBlock(bbh, true)
+			proof, err := merkle.ProveBeaconStateInBlock(bbh, true)
 			assert.Equal(t, tc.expectedError, err)
 			assert.Equal(t, tc.expectedProof, proof)
 		})
