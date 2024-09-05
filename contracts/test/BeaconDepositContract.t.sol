@@ -60,9 +60,7 @@ contract DepositContractTest is SoladyTest {
         );
     }
 
-    function testFuzz_DepositWrongCredentials(
-        bytes calldata credentials
-    )
+    function testFuzz_DepositWrongCredentials(bytes calldata credentials)
         public
     {
         vm.assume(credentials.length != 32);
@@ -119,9 +117,7 @@ contract DepositContractTest is SoladyTest {
         );
     }
 
-    function testFuzz_DepositNativeWrongMinAmount(
-        uint256 amountInEther
-    )
+    function testFuzz_DepositNativeWrongMinAmount(uint256 amountInEther)
         public
     {
         amountInEther = _bound(amountInEther, 1, 31);
