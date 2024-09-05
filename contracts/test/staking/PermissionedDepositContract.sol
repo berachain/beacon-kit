@@ -12,17 +12,24 @@ contract PermissionedDepositContract is DepositContract, Ownable {
     /*                           STORAGE                          */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
-    /// @dev A flag to check if the contract has been initialized.
-    bool private initialized = false;
-
-    /// @dev depositAuth is a mapping of number of deposits an authorized address can make.
+    /// @dev depositAuth is a mapping of number of deposits an authorized
+    /// address can make.
     mapping(address => uint64) public depositAuth;
 
     /// @dev Initializes the owner of the contract.
-    function initializeOwner(address owner) external {
-        require(!initialized, "Already initialized");
+    constructor(address owner) {
         _initializeOwner(owner);
-        initialized = true;
+    }
+
+    /// @dev Override to return true to make `_initializeOwner` prevent
+    /// double-initialization.
+    function _guardInitializeOwner()
+        internal
+        pure
+        override
+        returns (bool guard)
+    {
+        return true;
     }
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/

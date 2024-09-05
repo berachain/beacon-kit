@@ -24,10 +24,8 @@ contract DepositContractTest is SoladyTest {
     PermissionedDepositContract internal depositContract;
 
     function setUp() public virtual {
-        // Set the STAKE_ASSET to the NATIVE token.
-        depositContract = new PermissionedDepositContract();
         address owner = 0x6969696969696969696969696969696969696969;
-        depositContract.initializeOwner(owner);
+        depositContract = new PermissionedDepositContract(owner);
         vm.prank(owner);
         depositContract.allowDeposit(depositor, 100);
     }
