@@ -27,7 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/proof/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // TestProveBeaconStateInBlock tests the ProveBeaconStateInBlock function and
@@ -107,8 +107,8 @@ func TestProveBeaconStateInBlock(t *testing.T) {
 			bbh.SetStateRoot(tc.stateRoot)
 
 			proof, err := merkle.ProveBeaconStateInBlock(bbh, true)
-			assert.Equal(t, tc.expectedError, err)
-			assert.Equal(t, tc.expectedProof, proof)
+			require.Equal(t, tc.expectedError, err)
+			require.Equal(t, tc.expectedProof, proof)
 		})
 	}
 }

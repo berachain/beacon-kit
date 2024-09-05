@@ -62,7 +62,7 @@ func ProveProposerInBlock[
 	//
 	//nolint:gocritic // ok.
 	combinedProof := append(valPubkeyInStateProof, stateInBlockProof...)
-	beaconRoot, err := verifyProposerInBlock(
+	beaconRoot, err := VerifyProposerInBlock(
 		bbh, proposerOffset, combinedProof, leaf,
 	)
 	if err != nil {
@@ -111,7 +111,7 @@ func ProveProposerPubkeyInState[
 // returning the beacon block root used to verify against.
 //
 // TODO: verifying the proof is not absolutely necessary.
-func verifyProposerInBlock(
+func VerifyProposerInBlock(
 	bbh types.BeaconBlockHeader,
 	valOffset math.U64,
 	proof []common.Root,
