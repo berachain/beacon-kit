@@ -23,51 +23,19 @@ package merkle_test
 import (
 	"testing"
 
-	cmdtypes "github.com/berachain/beacon-kit/beacond/cmd/types"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/proof/merkle"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/proof/merkle/mock"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/stretchr/testify/require"
 )
 
-type mockBeaconState struct {
-	val      *types.Validator
-	valIndex math.ValidatorIndex
-	bsm      *cmdtypes.BeaconStateMarshallable
-}
-
-func (*mockBeaconState) GetLatestExecutionPayloadHeader() (
-	*types.ExecutionPayloadHeader, error,
-) {
-	return &types.ExecutionPayloadHeader{}, nil
-}
-
-func (m *mockBeaconState) GetMarshallable() (
-	*cmdtypes.BeaconStateMarshallable, error,
-) {
-	return m.bsm, nil
-}
-
-func (m *mockBeaconState) ValidatorByIndex(
-	index math.ValidatorIndex,
-) (*types.Validator, error) {
-	if index == m.valIndex {
-		return m.val, nil
-	}
-
-	return &types.Validator{}, nil
-}
-
 // TestProveProposerInBlock tests the ProveProposerInBlock function and
 // that the generated proof correctly verifies.
 func TestProveProposerInBlock(t *testing.T) {
-	var (
-		bsm   = &cmdtypes.BeaconStateMarshallable{}
-		proof []common.Root
-		err   error
-	)
+	var proof []common.Root
 
 	testCases := []struct {
 		name            string
@@ -111,25 +79,9 @@ func TestProveProposerInBlock(t *testing.T) {
 			}
 			vals[tc.proposerIndex] = &types.Validator{Pubkey: tc.pubKey}
 
-			bsm, err = bsm.New(
-				0,
-				common.Root{},
-				tc.slot,
-				(&types.Fork{}).Empty(),
-				(&types.BeaconBlockHeader{}).Empty(),
-				[]common.Root{},
-				[]common.Root{},
-				(&types.Eth1Data{}).Empty(),
-				0,
-				(&types.ExecutionPayloadHeader{}).Empty(),
-				vals,
-				[]uint64{},
-				[]common.Bytes32{},
-				0,
-				0,
-				[]uint64{},
-				0,
-			)
+			bs, err := mock.NewBeaconState(tc.slot, vals)
+			require.NoError(t, err)
+			bsm, err := bs.GetMarshallable()
 			require.NoError(t, err)
 
 			bbh := (&types.BeaconBlockHeader{}).New(
@@ -139,11 +91,7 @@ func TestProveProposerInBlock(t *testing.T) {
 				bsm.HashTreeRoot(),
 				tc.bodyRoot,
 			)
-			bs := &mockBeaconState{
-				val:      vals[tc.proposerIndex],
-				valIndex: tc.proposerIndex,
-				bsm:      bsm,
-			}
+
 			proof, _, err = merkle.ProveProposerInBlock(bbh, bs)
 			require.NoError(t, err)
 			require.Equal(t, tc.expectedProof, proof)
