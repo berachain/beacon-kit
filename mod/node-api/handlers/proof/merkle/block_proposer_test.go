@@ -79,7 +79,9 @@ func TestProveProposerInBlock(t *testing.T) {
 			}
 			vals[tc.proposerIndex] = &types.Validator{Pubkey: tc.pubKey}
 
-			bs, err := mock.NewBeaconState(tc.slot, vals)
+			bs, err := mock.NewBeaconState(
+				tc.slot, vals, 0, common.ExecutionAddress{},
+			)
 			require.NoError(t, err)
 			bsm, err := bs.GetMarshallable()
 			require.NoError(t, err)

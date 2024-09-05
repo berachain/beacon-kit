@@ -41,6 +41,8 @@ type mockBeaconState struct {
 func NewBeaconState(
 	slot math.Slot,
 	vals types.Validators,
+	executionNumber math.U64,
+	executionFeeRecipient common.ExecutionAddress,
 ) (
 	ptypes.BeaconState[
 		*cmdtypes.BeaconStateMarshallable,
@@ -49,6 +51,14 @@ func NewBeaconState(
 	],
 	error,
 ) {
+	if len(vals) == 0 {
+		vals = make(types.Validators, 0)
+	}
+
+	execPayloadHeader := (&types.ExecutionPayloadHeader{}).Empty()
+	execPayloadHeader.Number = executionNumber
+	execPayloadHeader.FeeRecipient = executionFeeRecipient
+
 	var (
 		bsm = &cmdtypes.BeaconStateMarshallable{}
 		err error
@@ -63,7 +73,7 @@ func NewBeaconState(
 		[]common.Root{},
 		(&types.Eth1Data{}).Empty(),
 		0,
-		(&types.ExecutionPayloadHeader{}).Empty(),
+		execPayloadHeader,
 		vals,
 		[]uint64{},
 		[]common.Bytes32{},
@@ -77,15 +87,14 @@ func NewBeaconState(
 	}
 
 	return &mockBeaconState{
-		vals: vals,
-		bsm:  bsm,
+		bsm: bsm,
 	}, nil
 }
 
-func (*mockBeaconState) GetLatestExecutionPayloadHeader() (
+func (m *mockBeaconState) GetLatestExecutionPayloadHeader() (
 	*types.ExecutionPayloadHeader, error,
 ) {
-	return &types.ExecutionPayloadHeader{}, nil
+	return m.bsm.LatestExecutionPayloadHeader, nil
 }
 
 func (m *mockBeaconState) GetMarshallable() (
@@ -101,14 +110,9 @@ func (m *mockBeaconState) ValidatorByIndex(
 		return nil, errors.New("validator index out of range")
 	}
 
-	return m.vals[index], nil
+	return m.bsm.Validators[index], nil
 }
 
 func (m *mockBeaconState) HashTreeRoot() common.Root {
-	bsm, err := m.GetMarshallable()
-	if err != nil {
-		return common.Root{}
-	}
-
-	return bsm.HashTreeRoot()
+	return m.bsm.HashTreeRoot()
 }
