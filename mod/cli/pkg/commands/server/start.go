@@ -89,8 +89,8 @@ func StartCmdWithOptions[
 	//nolint:lll // its okay.
 	cmd := &cobra.Command{
 		Use:   "start",
-		Short: "Run the full node",
-		Long: `Run the full node application with CometBFT in process. By
+		Short: "Run the node",
+		Long: `Run the node application with CometBFT in process. By
 default, the application will run with CometBFT in process.
 
 Pruning options can be provided via the '--pruning' flag or alternatively with '--pruning-keep-recent', and
