@@ -147,7 +147,6 @@ func (h *Handler[_, ContextT, _, _]) GetStateValidatorBalances(
 func (h *Handler[_, ContextT, _, _]) PostStateValidatorBalances(
 	c ContextT,
 ) (any, error) {
-
 	var ids []string
 	if err := c.Bind(&ids); err != nil {
 		return nil, errors.Wrapf(errors.New("err in func bind"), "err %v", err)
@@ -164,7 +163,9 @@ func (h *Handler[_, ContextT, _, _]) PostStateValidatorBalances(
 
 	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
 	if err != nil {
-		return nil, errors.Wrapf(errors.New("err in getting slot "), " slot req err %v %v %v", req, slot, err)
+		return nil, errors.Wrapf(
+			errors.New("err in getting slot "),
+			" slot req err %v %v %v", req, slot, err)
 	}
 
 	h.Logger().Info("PostStateValidatorBalances", "slot", slot, "req", req)
