@@ -84,12 +84,6 @@ type BlockRewardsData struct {
 	AttesterSlashings uint64 `json:"attester_slashings,string"`
 }
 
-type RandaoResponse struct {
-	ExecutionOptimistic bool       `json:"execution_optimistic"`
-	Finalized           bool       `json:"finalized"`
-	Data                RandaoData `json:"data"`
-}
-
 type RandaoData struct {
 	Randao common.Bytes32 `json:"randao"`
 }

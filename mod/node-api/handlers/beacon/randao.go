@@ -49,7 +49,7 @@ func (h *Handler[_, ContextT, _, _]) GetRandao(c ContextT) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return beacontypes.RandaoResponse{
+	return beacontypes.ValidatorResponse{
 		ExecutionOptimistic: false, // stubbed
 		Finalized:           false, // stubbed
 		Data: beacontypes.RandaoData{
