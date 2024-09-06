@@ -186,7 +186,7 @@ func (cc ConsensusClient) ValidatorBalances(
 	return cc.beaconClient.ValidatorBalances(ctx, opts)
 }
 
-// Validators returns the validator
+// Validators returns the validator.
 func (cc ConsensusClient) Validators(
 	ctx context.Context,
 	opts *beaconapi.ValidatorsOpts,
