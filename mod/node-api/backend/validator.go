@@ -129,7 +129,6 @@ func (b Backend[
 		}
 		var balance math.U64
 		// TODO: same issue as above, shouldn't error on not found.
-		index = 0
 		balance, err = st.GetBalance(index)
 		if err != nil {
 			return nil, err

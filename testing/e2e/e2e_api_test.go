@@ -21,6 +21,8 @@
 package e2e_test
 
 import (
+	"time"
+
 	beaconapi "github.com/attestantio/go-eth2-client/api"
 	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
@@ -35,7 +37,7 @@ func (s *BeaconKitE2ESuite) initBeaconTest() *types.ConsensusClient {
 	s.Require().NoError(err)
 
 	// Get the consensus client.
-	client := s.ConsensusClients()[config.DefaultClient]
+	client := s.ConsensusClients()[config.AlternateClient]
 	s.Require().NotNil(client)
 
 	return client
@@ -80,7 +82,13 @@ func (s *BeaconKitE2ESuite) TestBeaconValidators() {
 	validatorsResp, err := client.Validators(
 		s.Ctx(),
 		&beaconapi.ValidatorsOpts{
-			State: utils.StateIDHead,
+			Common: beaconapi.CommonOpts{
+				Timeout: 5 * time.Minute,
+			},
+			State:   utils.StateIDHead,
+			Indices: []phase0.ValidatorIndex{0},
+			PubKeys: []phase0.BLSPubKey{},
+			//ValidatorStates: []apiv1.ValidatorState{},
 		},
 	)
 	s.Require().NoError(err)
@@ -95,22 +103,24 @@ func (s *BeaconKitE2ESuite) TestBeaconValidatorBalances() {
 	validatorBalancesResp, err := client.ValidatorBalances(
 		s.Ctx(),
 		&beaconapi.ValidatorBalancesOpts{
-			State: utils.StateIDHead,
+			Common: beaconapi.CommonOpts{
+				Timeout: 5 * time.Minute,
+			},
+			State:   utils.StateIDHead,
+			Indices: []phase0.ValidatorIndex{0},
+			//PubKeys: []phase0.BLSPubKey{},
 		},
 	)
 	s.Require().NoError(err)
 	s.Require().NotNil(validatorBalancesResp)
 }
 
-// func (s *BeaconKitE2ESuite) TestBeaconRandao() {
-//	client := s.initBeaconTest()
-//	stateRandaoResp, err := client.BeaconStateRandao(s.Ctx(),
-//		&beaconapi.BeaconStateRandaoOpts{
-//			State: utils.StateIDHead,
-//		})
-//	s.Require().NoError(err)
-//	s.Require().NotNil(stateRandaoResp)
-// }
-
-// json: cannot unmarshal string into Go value of type
-// http.beaconStateRandaoJSON - Ensure beacon randao is not nil.
+func (s *BeaconKitE2ESuite) TestBeaconRandao() {
+	client := s.initBeaconTest()
+	stateRandaoResp, err := client.BeaconStateRandao(s.Ctx(),
+		&beaconapi.BeaconStateRandaoOpts{
+			State: utils.StateIDHead,
+		})
+	s.Require().NoError(err)
+	s.Require().NotNil(stateRandaoResp)
+}

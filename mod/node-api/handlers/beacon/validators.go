@@ -144,19 +144,127 @@ func (h *Handler[_, ContextT, _, _]) GetStateValidatorBalances(
 	}, nil
 }
 
+//func (h *Handler[_, ContextT, _, _]) PostStateValidatorBalances(
+//	c ContextT,
+//) (any, error) {
+//	h.Logger().Info("PostStateValidatorBalances: Received request")
+//
+//	// First, let's log the raw request body
+//	var rawBody json.RawMessage
+//	if err := c.Bind(&rawBody); err != nil {
+//		h.Logger().Error("Failed to read raw body", "error", err)
+//		return nil, errors.Wrapf(errors.New("err reading raw body"), "err %v", err)
+//	}
+//	h.Logger().Info("Raw request body", "body", string(rawBody))
+//
+//	// Try to unmarshal as array of strings
+//	var ids []string
+//	if err := json.Unmarshal(rawBody, &ids); err == nil {
+//		h.Logger().Info("Parsed request as array of strings", "ids", ids)
+//		return h.processValidatorBalances(c, "head", ids)
+//	}
+//
+//	// Try to unmarshal as array of integers
+//	var indices []uint64
+//	if err := json.Unmarshal(rawBody, &indices); err == nil {
+//		h.Logger().Info("Parsed request as array of integers", "indices", indices)
+//		ids := make([]string, len(indices))
+//		for i, index := range indices {
+//			ids[i] = fmt.Sprintf("%d", index)
+//		}
+//		return h.processValidatorBalances(c, "head", ids)
+//	}
+//
+//	// Try to unmarshal as PostValidatorBalancesRequest
+//	var req beacontypes.PostValidatorBalancesRequest
+//	if err := json.Unmarshal(rawBody, &req); err == nil {
+//		h.Logger().Info("Parsed request as PostValidatorBalancesRequest", "request", req)
+//		return h.processValidatorBalances(c, req.StateID, req.IDs)
+//	}
+//
+//	h.Logger().Error("Failed to parse request body")
+//	return nil, errors.New("invalid request format")
+//}
+
+//func (h *Handler[_, ContextT, _, _]) processValidatorBalances(
+//	c ContextT,
+//	stateID string,
+//	ids []string,
+//) (any, error) {
+//	h.Logger().Info("Processing validator balances", "stateID", stateID, "ids", ids)
+//
+//	slot, err := utils.SlotFromStateID(stateID, h.backend)
+//	if err != nil {
+//		return nil, errors.Wrapf(errors.New("err in getting slot"), "slot req err %v %v %v", stateID, slot, err)
+//	}
+//
+//	balances, err := h.backend.ValidatorBalancesBySlot(slot, ids)
+//	if err != nil {
+//		return nil, errors.Wrapf(errors.New("err in backend"), "err %v", err)
+//	}
+//
+//	return beacontypes.ValidatorResponse{
+//		ExecutionOptimistic: false, // stubbed
+//		Finalized:           false, // stubbed
+//		Data:                balances,
+//	}, nil
+//}
+
 func (h *Handler[_, ContextT, _, _]) PostStateValidatorBalances(
 	c ContextT,
 ) (any, error) {
-	req, err := utils.BindAndValidate[beacontypes.PostValidatorBalancesRequest](
-		c, h.Logger(),
-	)
-	if err != nil {
-		return nil, errors.Wrapf(errors.New("err in bind and validate "), "err %v", err)
+
+	h.Logger().Info("PostStateValidatorBalances: Received request")
+
+	//var ids []string
+	//var req beacontypes.PostValidatorBalancesRequest
+	//
+	//// Try to bind to the new format (array of strings)
+	//if err := c.Bind(&ids); err == nil {
+	//	req = beacontypes.PostValidatorBalancesRequest{
+	//		StateIDRequest: types.StateIDRequest{StateID: "head"},
+	//		IDs:            ids,
+	//	}
+	//} else {
+	//	// If binding to array of strings fails, try the original format
+	//	if err := c.Bind(&req); err != nil {
+	//		return nil, errors.Wrapf(errors.New("err in bind"), "err %v", err)
+	//	}
+	//	// If IDs field is empty, it might be because the client sent indices as numbers
+	//	// We need to convert these to strings
+	//	if len(req.IDs) == 0 {
+	//		var indices []uint64
+	//		if err := c.Bind(&indices); err == nil {
+	//			for _, index := range indices {
+	//				req.IDs = append(req.IDs, strconv.FormatUint(index, 10))
+	//			}
+	//		}
+	//	}
+	//}
+	//
+
+	var ids []string
+	if err := c.Bind(&ids); err != nil {
+		return nil, errors.Wrapf(errors.New("err in func bind"), "err %v", err)
 	}
+
+	req := beacontypes.PostValidatorBalancesRequest{
+		StateIDRequest: types.StateIDRequest{StateID: "head"},
+		IDs:            ids,
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return nil, errors.Wrapf(errors.New("err in validate"), "err %v", err)
+	}
+
+	h.Logger().Info("PostStateValidatorBalances", "req", req)
+
 	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
 	if err != nil {
-		return nil, errors.Wrapf(errors.New("err in getting slot "), "err %v", err)
+		return nil, errors.Wrapf(errors.New("err in getting slot "), " slot req err %v %v %v", req, slot, err)
 	}
+
+	h.Logger().Info("PostStateValidatorBalances", "slot", slot, "req", req)
 
 	balances, err := h.backend.ValidatorBalancesBySlot(slot, req.IDs)
 	if err != nil {

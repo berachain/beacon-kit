@@ -194,5 +194,13 @@ func (cc ConsensusClient) Validators(
 	return cc.beaconClient.Validators(ctx, opts)
 }
 
+// BeaconStateRandao returns the beacon state randao of the node.
+func (cc ConsensusClient) BeaconStateRandao(
+	ctx context.Context,
+	opts *beaconapi.BeaconStateRandaoOpts,
+) (*beaconapi.Response[*phase0.Root], error) {
+	return cc.beaconClient.BeaconStateRandao(ctx, opts)
+}
+
 // TODO: Add helpers for the beacon node-api client (converting from
 // go-eth2-client types to beacon-kit consensus types).
