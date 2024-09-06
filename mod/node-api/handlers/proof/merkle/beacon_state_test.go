@@ -21,7 +21,6 @@
 package merkle_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -71,9 +70,6 @@ func TestProveBeaconStateInBlock(t *testing.T) {
 			proof, err := merkle.ProveBeaconStateInBlock(bbh, true)
 			require.NoError(t, err)
 			expectedProof := ReadProofFromFile(t, tc.expectedProofFile)
-			for _, root := range proof {
-				fmt.Println("\"" + root.Hex() + "\",")
-			}
 			require.Equal(t, expectedProof, proof)
 		})
 	}
