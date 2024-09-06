@@ -1,4 +1,4 @@
-package middleware
+package miniavalanche
 
 import (
 	"encoding/json"
@@ -13,9 +13,9 @@ import (
 type (
 	BeaconBlockT     = *types.BeaconBlock
 	BlobSidecarsT    = *datypes.BlobSidecars
-	validatorUpdates = transition.ValidatorUpdates
+	ValidatorUpdates = transition.ValidatorUpdates
 	GenesisT         = json.Unmarshaler
-	SlotDataT        = *consruntimetypes.SlotData[
+	SlotDataT        = consruntimetypes.SlotData[
 		*types.AttestationData,
 		*types.SlashingInfo,
 	]

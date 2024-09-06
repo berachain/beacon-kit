@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/miniavalanche"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 )
@@ -18,18 +19,18 @@ type VMMiddleware struct {
 	// logger is the logger for the middleware.
 	logger log.Logger
 	// subGenDataProcessed is the channel to hold GenesisDataProcessed events.
-	subGenDataProcessed chan async.Event[validatorUpdates]
+	subGenDataProcessed chan async.Event[miniavalanche.ValidatorUpdates]
 	// subBuiltBeaconBlock is the channel to hold BuiltBeaconBlock events.
-	subBuiltBeaconBlock chan async.Event[BeaconBlockT]
+	subBuiltBeaconBlock chan async.Event[miniavalanche.BeaconBlockT]
 	// subBuiltSidecars is the channel to hold BuiltSidecars events.
-	subBuiltSidecars chan async.Event[BlobSidecarsT]
+	subBuiltSidecars chan async.Event[miniavalanche.BlobSidecarsT]
 	// subBBVerified is the channel to hold BeaconBlockVerified events.
-	subBBVerified chan async.Event[BeaconBlockT]
+	subBBVerified chan async.Event[miniavalanche.BeaconBlockT]
 	// subSCVerified is the channel to hold SidecarsVerified events.
-	subSCVerified chan async.Event[BlobSidecarsT]
+	subSCVerified chan async.Event[miniavalanche.BlobSidecarsT]
 	// subFinalValidatorUpdates is the channel to hold
 	// FinalValidatorUpdatesProcessed events.
-	subFinalValidatorUpdates chan async.Event[validatorUpdates]
+	subFinalValidatorUpdates chan async.Event[miniavalanche.ValidatorUpdates]
 }
 
 func NewABCIMiddleware(
@@ -39,12 +40,12 @@ func NewABCIMiddleware(
 	return &VMMiddleware{
 		dispatcher:               dispatcher,
 		logger:                   logger,
-		subGenDataProcessed:      make(chan async.Event[validatorUpdates]),
-		subBuiltBeaconBlock:      make(chan async.Event[BeaconBlockT]),
-		subBuiltSidecars:         make(chan async.Event[BlobSidecarsT]),
-		subBBVerified:            make(chan async.Event[BeaconBlockT]),
-		subSCVerified:            make(chan async.Event[BlobSidecarsT]),
-		subFinalValidatorUpdates: make(chan async.Event[validatorUpdates]),
+		subGenDataProcessed:      make(chan async.Event[miniavalanche.ValidatorUpdates]),
+		subBuiltBeaconBlock:      make(chan async.Event[miniavalanche.BeaconBlockT]),
+		subBuiltSidecars:         make(chan async.Event[miniavalanche.BlobSidecarsT]),
+		subBBVerified:            make(chan async.Event[miniavalanche.BeaconBlockT]),
+		subSCVerified:            make(chan async.Event[miniavalanche.BlobSidecarsT]),
+		subFinalValidatorUpdates: make(chan async.Event[miniavalanche.ValidatorUpdates]),
 	}
 }
 

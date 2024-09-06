@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/miniavalanche"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/miniavalanche/block"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -19,7 +21,7 @@ func (vm *VMMiddleware) InitGenesis(ctx context.Context, bz []byte) (transition.
 	waitCtx, cancel := context.WithTimeout(ctx, AwaitTimeout)
 	defer cancel()
 
-	data := new(GenesisT)
+	data := new(miniavalanche.GenesisT)
 	if err := json.Unmarshal(bz, data); err != nil {
 		vm.logger.Error("Failed to unmarshal genesis data", "error", err)
 		return nil, err
@@ -49,7 +51,7 @@ func (vm *VMMiddleware) waitForGenesisProcessed(ctx context.Context) (transition
 /* -------------------------------------------------------------------------- */
 
 // BuildBlock is the internal handler for preparing proposals.
-func (vm *VMMiddleware) BuildBlock(ctx context.Context, slotData SlotDataT) ([]byte, []byte, error) {
+func (vm *VMMiddleware) BuildBlock(ctx context.Context, slotData *miniavalanche.SlotDataT) ([]byte, []byte, error) {
 	awaitCtx, cancel := context.WithTimeout(ctx, AwaitTimeout)
 	defer cancel()
 
@@ -89,20 +91,20 @@ func (vm *VMMiddleware) BuildBlock(ctx context.Context, slotData SlotDataT) ([]b
 }
 
 // waitForBuiltBeaconBlock waits for the built beacon block to be received.
-func (vm *VMMiddleware) waitForBuiltBeaconBlock(ctx context.Context) (BeaconBlockT, error) {
+func (vm *VMMiddleware) waitForBuiltBeaconBlock(ctx context.Context) (miniavalanche.BeaconBlockT, error) {
 	select {
 	case <-ctx.Done():
-		return *new(BeaconBlockT), ErrBuildBeaconBlockTimeout(ctx.Err())
+		return *new(miniavalanche.BeaconBlockT), ErrBuildBeaconBlockTimeout(ctx.Err())
 	case bbEvent := <-vm.subBuiltBeaconBlock:
 		return bbEvent.Data(), bbEvent.Error()
 	}
 }
 
 // waitForBuiltSidecars waits for the built sidecars to be received.
-func (vm *VMMiddleware) waitForBuiltSidecars(ctx context.Context) (BlobSidecarsT, error) {
+func (vm *VMMiddleware) waitForBuiltSidecars(ctx context.Context) (miniavalanche.BlobSidecarsT, error) {
 	select {
 	case <-ctx.Done():
-		return *new(BlobSidecarsT), ErrBuildSidecarsTimeout(ctx.Err())
+		return *new(miniavalanche.BlobSidecarsT), ErrBuildSidecarsTimeout(ctx.Err())
 	case scEvent := <-vm.subBuiltSidecars:
 		return scEvent.Data(), scEvent.Error()
 	}
@@ -110,7 +112,7 @@ func (vm *VMMiddleware) waitForBuiltSidecars(ctx context.Context) (BlobSidecarsT
 
 // handleBuiltBeaconBlockAndSidecars gossips the built beacon block and blob
 // sidecars to the network.
-func (vm *VMMiddleware) handleBuiltBeaconBlockAndSidecars(bb BeaconBlockT, sc BlobSidecarsT) ([]byte, []byte, error) {
+func (vm *VMMiddleware) handleBuiltBeaconBlockAndSidecars(bb miniavalanche.BeaconBlockT, sc miniavalanche.BlobSidecarsT) ([]byte, []byte, error) {
 	bbBz, bbErr := bb.MarshalSSZ()
 	if bbErr != nil {
 		return nil, nil, bbErr
@@ -129,7 +131,7 @@ func (vm *VMMiddleware) handleBuiltBeaconBlockAndSidecars(bb BeaconBlockT, sc Bl
 // VerifyBlock processes the proposal for the ABCI middleware.
 // It handles both the beacon block and blob sidecars concurrently.
 // Returns error if block does not verify, nil otherwise
-func (vm *VMMiddleware) VerifyBlock(ctx context.Context, outerBlk OuterBlock) error {
+func (vm *VMMiddleware) VerifyBlock(ctx context.Context, outerBlk *block.StatelessBlock) error {
 	awaitCtx, cancel := context.WithTimeout(ctx, AwaitTimeout)
 	defer cancel()
 
@@ -147,7 +149,7 @@ func (vm *VMMiddleware) VerifyBlock(ctx context.Context, outerBlk OuterBlock) er
 
 	// Request the beacon block.
 	forkVersion := vm.ActiveForkVersionForSlot(math.U64(outerBlk.Height()))
-	blk, err := UnmarshalBeaconBlockFromOuterBlock(outerBlk, forkVersion)
+	blk, err := outerBlk.GetBeaconBlock(forkVersion)
 	if err != nil {
 		return errors.WrapNonFatal(err)
 	}
@@ -160,7 +162,7 @@ func (vm *VMMiddleware) VerifyBlock(ctx context.Context, outerBlk OuterBlock) er
 	}
 
 	// Request the blob sidecars.
-	sidecars, err := UnmarshalBlobSidecarsFromOuterBlock(outerBlk)
+	sidecars, err := outerBlk.GetBlobSidecars()
 	if err != nil {
 		return errors.WrapNonFatal(err)
 	}
@@ -183,20 +185,20 @@ func (vm *VMMiddleware) VerifyBlock(ctx context.Context, outerBlk OuterBlock) er
 
 // waitForBeaconBlockVerification waits for the built beacon block to be
 // verified.
-func (vm *VMMiddleware) waitForBeaconBlockVerification(ctx context.Context) (BeaconBlockT, error) {
+func (vm *VMMiddleware) waitForBeaconBlockVerification(ctx context.Context) (miniavalanche.BeaconBlockT, error) {
 	select {
 	case <-ctx.Done():
-		return *new(BeaconBlockT), ErrVerifyBeaconBlockTimeout(ctx.Err())
+		return *new(miniavalanche.BeaconBlockT), ErrVerifyBeaconBlockTimeout(ctx.Err())
 	case vEvent := <-vm.subBBVerified:
 		return vEvent.Data(), vEvent.Error()
 	}
 }
 
 // waitForSidecarVerification waits for the built sidecars to be verified.
-func (vm *VMMiddleware) waitForSidecarVerification(ctx context.Context) (BlobSidecarsT, error) {
+func (vm *VMMiddleware) waitForSidecarVerification(ctx context.Context) (miniavalanche.BlobSidecarsT, error) {
 	select {
 	case <-ctx.Done():
-		return *new(BlobSidecarsT), ErrVerifySidecarsTimeout(ctx.Err())
+		return *new(miniavalanche.BlobSidecarsT), ErrVerifySidecarsTimeout(ctx.Err())
 	case vEvent := <-vm.subSCVerified:
 		return vEvent.Data(), vEvent.Error()
 	}
@@ -207,7 +209,7 @@ func (vm *VMMiddleware) waitForSidecarVerification(ctx context.Context) (BlobSid
 /* -------------------------------------------------------------------------- */
 
 // AcceptBlock returns the validator set updates from the beacon state.
-func (vm *VMMiddleware) AcceptBlock(ctx context.Context, outerBlk OuterBlock) (transition.ValidatorUpdates, error) {
+func (vm *VMMiddleware) AcceptBlock(ctx context.Context, outerBlk *block.StatelessBlock) (transition.ValidatorUpdates, error) {
 	awaitCtx, cancel := context.WithTimeout(ctx, AwaitTimeout)
 	defer cancel()
 
@@ -219,12 +221,12 @@ func (vm *VMMiddleware) AcceptBlock(ctx context.Context, outerBlk OuterBlock) (t
 	}
 
 	forkVersion := vm.ActiveForkVersionForSlot(math.Slot(outerBlk.Height()))
-	blk, err := UnmarshalBeaconBlockFromOuterBlock(outerBlk, forkVersion)
+	blk, err := outerBlk.GetBeaconBlock(forkVersion)
 	if err != nil {
 		// If we don't have a block, we can't do anything.
 		return nil, nil
 	}
-	blobs, err := UnmarshalBlobSidecarsFromOuterBlock(outerBlk)
+	blobs, err := outerBlk.GetBlobSidecars()
 	if err != nil {
 		// If we don't have a block, we can't do anything.
 		return nil, nil
