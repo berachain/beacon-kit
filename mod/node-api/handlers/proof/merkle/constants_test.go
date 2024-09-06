@@ -31,6 +31,8 @@ import (
 )
 
 var (
+	// beaconStateSchema is the schema for the BeaconState struct defined in
+	// beacon-kit/mod/consensus-types/pkg/types/state.go.
 	beaconStateSchema = schema.DefineContainer(
 		schema.NewField("GenesisValidatorsRoot", schema.B32()),
 		schema.NewField("Slot", schema.U64()),
@@ -95,7 +97,10 @@ var (
 		schema.NewField("TotalSlashing", schema.U64()),
 	)
 
-	beaconBlockSchema = schema.DefineContainer(
+	// beaconHeaderSchema is the schema for the BeaconBlockHeader struct defined
+	// in beacon-kit/mod/consensus-types/pkg/types/header.go, with the SSZ
+	// expansion of StateRoot to use the BeaconState.
+	beaconHeaderSchema = schema.DefineContainer(
 		schema.NewField("Slot", schema.U64()),
 		schema.NewField("ProposerIndex", schema.U64()),
 		schema.NewField("ParentRoot", schema.B32()),
@@ -110,7 +115,7 @@ func TestGIndicesValidatorPubkeyDeneb(t *testing.T) {
 	// GIndex of state in the block.
 	_, stateGIndexDenebBlock, _, err := mlib.ObjectPath[
 		mlib.GeneralizedIndex, [32]byte,
-	]("State").GetGeneralizedIndex(beaconBlockSchema)
+	]("State").GetGeneralizedIndex(beaconHeaderSchema)
 	require.NoError(t, err)
 	require.Equal(t, merkle.StateGIndexDenebBlock, int(stateGIndexDenebBlock))
 
@@ -127,7 +132,7 @@ func TestGIndicesValidatorPubkeyDeneb(t *testing.T) {
 	// GIndex of the 0 validator's pubkey in the block.
 	_, zeroValidatorPubkeyGIndexDenebBlock, _, err := mlib.ObjectPath[
 		mlib.GeneralizedIndex, [32]byte,
-	]("State/Validators/0/Pubkey").GetGeneralizedIndex(beaconBlockSchema)
+	]("State/Validators/0/Pubkey").GetGeneralizedIndex(beaconHeaderSchema)
 	require.NoError(t, err)
 	require.Equal(t,
 		merkle.ZeroValidatorPubkeyGIndexDenebBlock,
@@ -174,7 +179,7 @@ func TestGInidicesExecutionDeneb(t *testing.T) {
 	_, executionNumberGIndexDenebBlock, _, err := mlib.ObjectPath[
 		mlib.GeneralizedIndex, [32]byte,
 	]("State/LatestExecutionPayloadHeader/Number").GetGeneralizedIndex(
-		beaconBlockSchema,
+		beaconHeaderSchema,
 	)
 	require.NoError(t, err)
 	require.Equal(t,
@@ -208,7 +213,7 @@ func TestGInidicesExecutionDeneb(t *testing.T) {
 	_, executionFeeRecipientGIndexDenebBlock, _, err := mlib.ObjectPath[
 		mlib.GeneralizedIndex, [32]byte,
 	]("State/LatestExecutionPayloadHeader/FeeRecipient").GetGeneralizedIndex(
-		beaconBlockSchema,
+		beaconHeaderSchema,
 	)
 	require.NoError(t, err)
 	require.Equal(t,

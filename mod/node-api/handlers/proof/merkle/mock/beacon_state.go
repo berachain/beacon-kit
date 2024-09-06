@@ -30,31 +30,34 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// mockBeaconState is a mock implementation of the BeaconState interface.
-type mockBeaconState struct {
-	vals types.Validators
-	bsm  *cmdtypes.BeaconStateMarshallable
+// Compile time check to ensure MockBeaconState implements the methods
+// required by the BeaconState for proofs.
+var _ ptypes.BeaconState[
+	*cmdtypes.BeaconStateMarshallable,
+	*types.ExecutionPayloadHeader,
+	*types.Validator,
+] = (*MockBeaconState)(nil)
+
+// MockBeaconState is a mock implementation of the proof BeaconState interface.
+type MockBeaconState struct {
+	*cmdtypes.BeaconStateMarshallable
 }
 
-// NewBeaconState creates a new mock beacon state, with only the given slot and
-// validators set.
+// NewBeaconState creates a new mock beacon state, with only the given slot,
+// validators, execution number, and execution fee recipient.
 func NewBeaconState(
 	slot math.Slot,
 	vals types.Validators,
 	executionNumber math.U64,
 	executionFeeRecipient common.ExecutionAddress,
-) (
-	ptypes.BeaconState[
-		*cmdtypes.BeaconStateMarshallable,
-		*types.ExecutionPayloadHeader,
-		*types.Validator,
-	],
-	error,
-) {
+) (*MockBeaconState, error) {
+	// If no validators are provided, create an empty slice.
 	if len(vals) == 0 {
 		vals = make(types.Validators, 0)
 	}
 
+	// Create an empty execution payload header with the given execution number
+	// and fee recipient.
 	execPayloadHeader := (&types.ExecutionPayloadHeader{}).Empty()
 	execPayloadHeader.Number = executionNumber
 	execPayloadHeader.FeeRecipient = executionFeeRecipient
@@ -82,37 +85,31 @@ func NewBeaconState(
 		[]uint64{},
 		0,
 	)
-	if err != nil {
-		return nil, err
-	}
-
-	return &mockBeaconState{
-		bsm: bsm,
-	}, nil
+	return &MockBeaconState{BeaconStateMarshallable: bsm}, err
 }
 
-func (m *mockBeaconState) GetLatestExecutionPayloadHeader() (
+// GetLatestExecutionPayloadHeader implements proof BeaconState.
+func (m *MockBeaconState) GetLatestExecutionPayloadHeader() (
 	*types.ExecutionPayloadHeader, error,
 ) {
-	return m.bsm.LatestExecutionPayloadHeader, nil
+	return m.BeaconStateMarshallable.LatestExecutionPayloadHeader, nil
 }
 
-func (m *mockBeaconState) GetMarshallable() (
+// GetMarshallable implements proof BeaconState.
+func (m *MockBeaconState) GetMarshallable() (
 	*cmdtypes.BeaconStateMarshallable, error,
 ) {
-	return m.bsm, nil
+	return m.BeaconStateMarshallable, nil
 }
 
-func (m *mockBeaconState) ValidatorByIndex(
+// ValidatorByIndex implements proof BeaconState.
+func (m *MockBeaconState) ValidatorByIndex(
 	index math.ValidatorIndex,
 ) (*types.Validator, error) {
-	if index >= math.ValidatorIndex(len(m.vals)) {
+	vals := m.BeaconStateMarshallable.Validators
+	if index >= math.ValidatorIndex(len(vals)) {
 		return nil, errors.New("validator index out of range")
 	}
 
-	return m.bsm.Validators[index], nil
-}
-
-func (m *mockBeaconState) HashTreeRoot() common.Root {
-	return m.bsm.HashTreeRoot()
+	return vals[index], nil
 }

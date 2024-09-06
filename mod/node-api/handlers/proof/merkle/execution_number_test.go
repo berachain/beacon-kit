@@ -73,14 +73,12 @@ func TestProveExecutionNumber(t *testing.T) {
 				tc.slot, nil, tc.executionNumber, common.ExecutionAddress{},
 			)
 			require.NoError(t, err)
-			bsm, err := bs.GetMarshallable()
-			require.NoError(t, err)
 
 			bbh := (&types.BeaconBlockHeader{}).New(
 				tc.slot,
 				tc.proposerIndex,
 				tc.parentBlockRoot,
-				bsm.HashTreeRoot(),
+				bs.HashTreeRoot(),
 				tc.bodyRoot,
 			)
 

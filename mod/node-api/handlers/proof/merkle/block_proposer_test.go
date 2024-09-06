@@ -35,8 +35,6 @@ import (
 // TestProveProposerInBlock tests the ProveProposerInBlock function and
 // that the generated proof correctly verifies.
 func TestProveProposerInBlock(t *testing.T) {
-	var proof []common.Root
-
 	testCases := []struct {
 		name            string
 		numValidators   int
@@ -83,18 +81,16 @@ func TestProveProposerInBlock(t *testing.T) {
 				tc.slot, vals, 0, common.ExecutionAddress{},
 			)
 			require.NoError(t, err)
-			bsm, err := bs.GetMarshallable()
-			require.NoError(t, err)
 
 			bbh := (&types.BeaconBlockHeader{}).New(
 				tc.slot,
 				tc.proposerIndex,
 				tc.parentBlockRoot,
-				bsm.HashTreeRoot(),
+				bs.HashTreeRoot(),
 				tc.bodyRoot,
 			)
 
-			proof, _, err = merkle.ProveProposerInBlock(bbh, bs)
+			proof, _, err := merkle.ProveProposerInBlock(bbh, bs)
 			require.NoError(t, err)
 			require.Equal(t, tc.expectedProof, proof)
 		})

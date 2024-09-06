@@ -75,14 +75,12 @@ func TestProveExecutionFeeRecipient(t *testing.T) {
 				tc.slot, nil, 0, tc.executionFeeRecipient,
 			)
 			require.NoError(t, err)
-			bsm, err := bs.GetMarshallable()
-			require.NoError(t, err)
 
 			bbh := (&types.BeaconBlockHeader{}).New(
 				tc.slot,
 				tc.proposerIndex,
 				tc.parentBlockRoot,
-				bsm.HashTreeRoot(),
+				bs.HashTreeRoot(),
 				tc.bodyRoot,
 			)
 
