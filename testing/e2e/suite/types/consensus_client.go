@@ -167,6 +167,9 @@ func (cc ConsensusClient) BeaconStateRoot(
 	ctx context.Context,
 	opts *beaconapi.BeaconStateRootOpts,
 ) (*beaconapi.Response[*phase0.Root], error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
 	return cc.beaconClient.BeaconStateRoot(ctx, opts)
 }
 
@@ -175,6 +178,9 @@ func (cc ConsensusClient) Fork(
 	ctx context.Context,
 	opts *beaconapi.ForkOpts,
 ) (*beaconapi.Response[*phase0.Fork], error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
 	return cc.beaconClient.Fork(ctx, opts)
 }
 
@@ -183,6 +189,9 @@ func (cc ConsensusClient) ValidatorBalances(
 	ctx context.Context,
 	opts *beaconapi.ValidatorBalancesOpts,
 ) (*beaconapi.Response[map[phase0.ValidatorIndex]phase0.Gwei], error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
 	return cc.beaconClient.ValidatorBalances(ctx, opts)
 }
 
@@ -191,6 +200,9 @@ func (cc ConsensusClient) Validators(
 	ctx context.Context,
 	opts *beaconapi.ValidatorsOpts,
 ) (*beaconapi.Response[map[phase0.ValidatorIndex]*apiv1.Validator], error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
 	return cc.beaconClient.Validators(ctx, opts)
 }
 
@@ -199,6 +211,9 @@ func (cc ConsensusClient) BeaconStateRandao(
 	ctx context.Context,
 	opts *beaconapi.BeaconStateRandaoOpts,
 ) (*beaconapi.Response[*phase0.Root], error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
 	return cc.beaconClient.BeaconStateRandao(ctx, opts)
 }
 
