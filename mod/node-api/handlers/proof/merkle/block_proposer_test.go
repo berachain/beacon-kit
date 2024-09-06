@@ -32,9 +32,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestProveProposerInBlock tests the ProveProposerInBlock function and
+// TestBlockProposerProof tests the ProveProposerInBlock function and
 // that the generated proof correctly verifies.
-func TestProveProposerInBlock(t *testing.T) {
+func TestBlockProposerProof(t *testing.T) {
 	testCases := []struct {
 		name            string
 		numValidators   int

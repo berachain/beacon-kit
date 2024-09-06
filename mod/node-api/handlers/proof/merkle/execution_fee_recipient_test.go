@@ -31,9 +31,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestProveExecutionFeeRecipient tests the ProveExecutionFeeRecipientInBlock
+// TestExecutionFeeRecipientProof tests the ProveExecutionFeeRecipientInBlock
 // function and that the generated proof correctly verifies.
-func TestProveExecutionFeeRecipient(t *testing.T) {
+func TestExecutionFeeRecipientProof(t *testing.T) {
 	var proof []common.Root
 
 	testCases := []struct {

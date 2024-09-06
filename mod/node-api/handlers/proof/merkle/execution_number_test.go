@@ -31,9 +31,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestProveExecutionNumber tests the ProveExecutionNumberInBlock
+// TestExecutionNumberProof tests the ProveExecutionNumberInBlock
 // function and that the generated proof correctly verifies.
-func TestProveExecutionNumber(t *testing.T) {
+func TestExecutionNumberProof(t *testing.T) {
 	var proof []common.Root
 
 	testCases := []struct {
