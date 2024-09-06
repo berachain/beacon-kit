@@ -135,6 +135,11 @@ func (s *Service[_]) Start(
 		return err
 	}
 
+	// TODO ABENEGIA: Here should to miniAvalanche.NewNode
+	// Note that proxy.NewLocalClientCreator(s) injects this whole
+	// service s into the node. Similarly we should inject this service
+	// into the beraVM, since ideally only the middleware should change,
+	// not service (although now service is modelled over CometBFT expected interface)
 	s.node, err = node.NewNode(
 		ctx,
 		cfg,
