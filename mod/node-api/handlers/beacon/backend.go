@@ -77,8 +77,4 @@ type ValidatorBackend[ValidatorT any] interface {
 		slot math.Slot,
 		ids []string,
 	) ([]*types.ValidatorBalanceData, error)
-	ValidatorBalancesBySlot(
-		slot math.Slot,
-		body []string,
-	) ([]*types.ValidatorBalanceData, error)
 }

@@ -270,7 +270,7 @@ func (h *Handler[_, ContextT, _, _]) PostStateValidatorBalances(
 
 	h.Logger().Info("PostStateValidatorBalances", "slot", slot, "req", req)
 
-	balances, err := h.backend.ValidatorBalancesBySlot(slot, req.IDs)
+	balances, err := h.backend.ValidatorBalancesByIDs(slot, req.IDs)
 	if err != nil {
 		return nil, errors.Wrapf(errors.New("err in backend "), "err %v", err)
 	}
