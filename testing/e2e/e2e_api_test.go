@@ -75,7 +75,7 @@ func (s *BeaconKitE2ESuite) TestBeaconFork() {
 	s.Require().Equal(fork.Epoch, phase0.Epoch(0))
 }
 
-//func (s *BeaconKitE2ESuite) TestBeaconValidators() {
+// func (s *BeaconKitE2ESuite) TestBeaconValidators() {
 //	client := s.initBeaconTest()
 //
 //	// Ensure the validators are not nil.
@@ -92,7 +92,7 @@ func (s *BeaconKitE2ESuite) TestBeaconFork() {
 //	s.Require().NoError(err)
 //	s.Require().NotNil(validatorsResp)
 //	s.Require().NotEmpty(validatorsResp.Data)
-//}
+// }
 
 func (s *BeaconKitE2ESuite) TestBeaconValidatorBalances() {
 	client := s.initBeaconTest()

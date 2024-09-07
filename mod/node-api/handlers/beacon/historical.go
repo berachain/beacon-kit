@@ -21,10 +21,10 @@
 package beacon
 
 import (
-	"fmt"
 	"strconv"
 
 	consensustypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/errors"
 	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
@@ -103,7 +103,7 @@ func (h *Handler[_, ContextT, _, _]) GetStateFork(c ContextT) (any, error) {
 func convertToFork[T any](forkGeneric T) (*consensustypes.Fork, error) {
 	fork, ok := any(forkGeneric).(*consensustypes.Fork)
 	if !ok {
-		return nil, fmt.Errorf("unexpected fork type")
+		return nil, errors.New("unexpected fork type")
 	}
 	return fork, nil
 }
