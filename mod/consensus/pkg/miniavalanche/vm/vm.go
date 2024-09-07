@@ -58,10 +58,21 @@ func (vm *VM) Initialize(
 	vm.chainCtx = chainCtx
 	vm.db = db
 
-	// TODO: genesis bytes should be only for middleware.
-	// so TODO_1: update validators with data returned by middleware.InitGenesis
-	// and TODO_2: understand how to create genesis block
-	state, err := newState(chainCtx, db, vm.validators, genesisBytes)
+	// parse genesis to retrieve its components
+	genBlk, genVals, ethGen, err := parseGenesis(genesisBytes)
+	if err != nil {
+		return fmt.Errorf("failed initializing VM: %w", err)
+	}
+
+	// init validator set, static for now
+	for _, val := range genVals {
+		err = vm.validators.AddStaker(chainCtx.SubnetID, val.NodeID, nil, val.id, val.Weight)
+		if err != nil {
+			return fmt.Errorf("failed registration of validator %v: %w", val.id, err)
+		}
+	}
+
+	state, err := newState(db, genBlk)
 	if err != nil {
 		return fmt.Errorf("failed initializing vm state: %w", err)
 	}
@@ -72,11 +83,6 @@ func (vm *VM) Initialize(
 
 	// initialize block building stuff
 	genBlkID := vm.state.GetLastAccepted()
-	genBlk, err := vm.state.GetBlock(genBlkID)
-	if err != nil {
-		return fmt.Errorf("failed retrieving genesis block: %w", err)
-	}
-
 	vm.bb = newBlockBuilder(toEngine, vm)
 
 	// TODO: handle dynamic validator set
@@ -84,7 +90,7 @@ func (vm *VM) Initialize(
 	// where validators (and especially the mapping validator -> NodeID) is
 	// setup in Genesis. We don't even check data correspondence and assume
 	// genesis is well formatted
-	_, err = vm.middleware.InitGenesis(ctx, genBlk.BlkContent.GenesisContent)
+	_, err = vm.middleware.InitGenesis(ctx, ethGen)
 	if err != nil {
 		return fmt.Errorf("failed initializing genesis in middleware: %w", err)
 	}

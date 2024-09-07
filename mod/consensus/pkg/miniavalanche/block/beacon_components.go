@@ -35,9 +35,6 @@ func (b *StatelessBlock) GetBlobSidecars() (miniavalanche.BlobSidecarsT, error) 
 	if b.BlkContent.BlobsBytes == nil {
 		return sidecars, errNilBeaconBlock
 	}
-
-	// TODO: Do some research to figure out how to make this more
-	// elegant.
 	sidecars = sidecars.Empty()
 	return sidecars, sidecars.UnmarshalSSZ(b.BlkContent.BlobsBytes)
 }

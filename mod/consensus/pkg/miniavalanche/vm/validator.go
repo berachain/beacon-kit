@@ -10,18 +10,19 @@ import (
 
 type Validator struct {
 	NodeID ids.NodeID
-	Weight uint64 // in Avalanche this is amount staked by the validator, which is also its weight in consensus voting
-	Nonce  uint16 // just something I introduced to associate a different validator to the same node restaking
+	Weight uint64
+
+	// note no nonce, not validatorTxID to distinguish restaked validators
+	// TODO: mind this once dynamic validators set is introduced
 
 	bytes []byte
 	id    ids.ID
 }
 
-func NewValidator(nodeID ids.NodeID, weight uint64, nonce uint16) (*Validator, error) {
+func NewValidator(nodeID ids.NodeID, weight uint64) (*Validator, error) {
 	val := &Validator{
 		NodeID: nodeID,
 		Weight: weight,
-		Nonce:  nonce,
 	}
 	return val, val.initValID()
 }
