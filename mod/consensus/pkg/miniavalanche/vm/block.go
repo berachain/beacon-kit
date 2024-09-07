@@ -43,15 +43,12 @@ func (b *StatefulBlock) Accept(ctx context.Context) error {
 		zap.Stringer("parentID", b.Parent()),
 	)
 
-	valUpdates, err := b.vm.middleware.AcceptBlock(ctx, b.StatelessBlock)
-	if err != nil {
-		// TODO: consider rolling back database, or not, since Accept failure is fatal in Avalanche
-		// In any case handle checking and rebuilding coherence of VM db and middleware backend upon VM creation
-		return err
-	}
-
-	// TODO: update validator set
-	return nil
+	// TODO: handle dynamic validator set
+	// At this stage of hooking stuff up, we consider a static validators set
+	// where validators (and especially the mapping validator -> NodeID) is
+	// setup in Genesis
+	_, err := b.vm.middleware.AcceptBlock(ctx, b.StatelessBlock)
+	return err
 }
 
 func (b *StatefulBlock) Reject(context.Context) error {

@@ -78,7 +78,13 @@ func (vm *VM) Initialize(
 	}
 
 	vm.bb = newBlockBuilder(toEngine, vm)
-	valUpdates, err := vm.middleware.InitGenesis(ctx, genBlk.BlkContent.GenesisContent)
+
+	// TODO: handle dynamic validator set
+	// At this stage of hooking stuff up, we consider a static validators set
+	// where validators (and especially the mapping validator -> NodeID) is
+	// setup in Genesis. We don't even check data correspondence and assume
+	// genesis is well formatted
+	_, err = vm.middleware.InitGenesis(ctx, genBlk.BlkContent.GenesisContent)
 	if err != nil {
 		return fmt.Errorf("failed initializing genesis in middleware: %w", err)
 	}
