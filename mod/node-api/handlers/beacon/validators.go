@@ -21,10 +21,16 @@
 package beacon
 
 import (
+	"strconv"
+	"strings"
+
+	consensustypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 )
 
 func (h *Handler[_, ContextT, _, _]) GetStateValidators(
@@ -62,6 +68,26 @@ func (h *Handler[_, ContextT, _, _]) GetStateValidators(
 	}, nil
 }
 
+type CustomValidator struct {
+	Pubkey                     crypto.BLSPubkey                     `json:"pubkey"`
+	WithdrawalCredentials      consensustypes.WithdrawalCredentials `json:"withdrawal_credentials"`
+	EffectiveBalance           string                               `json:"effective_balance"`
+	Slashed                    bool                                 `json:"slashed"`
+	ActivationEligibilityEpoch string                               `json:"activation_eligibility_epoch"`
+	ActivationEpoch            string                               `json:"activation_epoch"`
+	ExitEpoch                  string                               `json:"exit_epoch"`
+	WithdrawableEpoch          string                               `json:"withdrawable_epoch"`
+}
+
+// ConvertedValidatorData mirrors the original ValidatorData struct
+// but uses the ConvertedValidator
+type ConvertedValidatorData struct {
+	Index     string          `json:"index"`
+	Balance   string          `json:"balance"`
+	Status    string          `json:"status"`
+	Validator CustomValidator `json:"validator"`
+}
+
 func (h *Handler[_, ContextT, _, _]) PostStateValidators(
 	c ContextT,
 ) (any, error) {
@@ -87,11 +113,76 @@ func (h *Handler[_, ContextT, _, _]) PostStateValidators(
 	if err != nil {
 		return nil, err
 	}
+
+	convertedValidators := make([]ConvertedValidatorData, len(validators))
+	for i, validator := range validators {
+		convertedValidator, err := convertValidator(validator)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to convert validator")
+		}
+		convertedValidators[i] = convertedValidator
+	}
 	return beacontypes.ValidatorResponse{
 		ExecutionOptimistic: false, // stubbed
 		Finalized:           false, // stubbed
-		Data:                validators,
+		Data:                convertedValidators,
 	}, nil
+}
+
+func convertValidator[ValidatorT any](validator *beacontypes.ValidatorData[ValidatorT]) (ConvertedValidatorData, error) {
+
+	// Convert the original validator to JSON
+	jsonData, err := json.Marshal(validator.Validator)
+	if err != nil {
+		return ConvertedValidatorData{}, errors.Wrap(err, "failed to marshal validator")
+	}
+
+	// Unmarshal into our ConvertedValidator struct
+	var convertedValidator CustomValidator
+	if err := json.Unmarshal(jsonData, &convertedValidator); err != nil {
+		return ConvertedValidatorData{}, errors.Wrap(err, "failed to unmarshal validator")
+	}
+
+	// Convert hex fields to decimal
+	convertedValidator.EffectiveBalance, err = hexToDecimalString(convertedValidator.EffectiveBalance)
+	if err != nil {
+		return ConvertedValidatorData{}, errors.Wrap(err, "failed to convert effective balance")
+	}
+	convertedValidator.ActivationEligibilityEpoch, err = hexToDecimalString(convertedValidator.ActivationEligibilityEpoch)
+	if err != nil {
+		return ConvertedValidatorData{}, errors.Wrap(err, "failed to convert activation eligibility epoch")
+	}
+	convertedValidator.ActivationEpoch, err = hexToDecimalString(convertedValidator.ActivationEpoch)
+	if err != nil {
+		return ConvertedValidatorData{}, errors.Wrap(err, "failed to convert activation epoch")
+	}
+	convertedValidator.ExitEpoch, err = hexToDecimalString(convertedValidator.ExitEpoch)
+	if err != nil {
+		return ConvertedValidatorData{}, errors.Wrap(err, "failed to convert exit epoch")
+	}
+	convertedValidator.WithdrawableEpoch, err = hexToDecimalString(convertedValidator.WithdrawableEpoch)
+	if err != nil {
+		return ConvertedValidatorData{}, errors.Wrap(err, "failed to convert withdrawable epoch")
+	}
+
+	return ConvertedValidatorData{
+		Index:     strconv.FormatUint(validator.Index, 10),
+		Balance:   strconv.FormatUint(validator.Balance, 10),
+		Status:    validator.Status,
+		Validator: convertedValidator,
+	}, nil
+}
+
+func hexToDecimalString(hexStr string) (string, error) {
+	hexStr = strings.TrimPrefix(hexStr, "0x")
+
+	// Convert hex string to uint64
+	value, err := strconv.ParseUint(hexStr, 16, 64)
+	if err != nil {
+		return "", err
+	}
+
+	return strconv.FormatUint(value, 10), nil
 }
 
 func (h *Handler[_, ContextT, _, _]) GetStateValidator(
