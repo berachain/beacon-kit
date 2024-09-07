@@ -44,6 +44,9 @@ func (vm *VM) GetValidatorSet(
 	return vm.validators.GetMap(vm.chainCtx.SubnetID), nil
 }
 
-func (vm *VM) ConnectedSubnet(_ context.Context, _ ids.NodeID, _ ids.ID) error {
-	return fmt.Errorf("vm ConnectedSubnet: %w", errDisabledMethodCalled)
+func (vm *VM) ConnectedSubnet(_ context.Context, _ ids.NodeID, subnetID ids.ID) error {
+	if subnetID != vm.chainCtx.SubnetID {
+		return fmt.Errorf("unknown subnetID %v, only known subnetID %v", subnetID, vm.chainCtx.SubnetID)
+	}
+	return nil
 }

@@ -10,6 +10,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/miniavalanche"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/miniavalanche/block"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // how often VM should ping consensus to try and build blocks.
@@ -42,24 +43,17 @@ func (bb *blockBuilder) Shutdown() {
 func (bb *blockBuilder) BuildBlock(ctx context.Context) (*StatefulBlock, error) {
 	// STEP 1: retrieve parent block data
 	parentBlkID := bb.vm.preferredBlkID
-	var parentStatelessBlk *block.StatelessBlock
-	parentBlk, found := bb.vm.verifiedBlocks[parentBlkID]
-	if found {
-		parentStatelessBlk = parentBlk.StatelessBlock
-	} else {
-		var err error
-		parentStatelessBlk, err = bb.vm.state.GetBlock(parentBlkID)
-		if err != nil {
-			return nil, fmt.Errorf("failed retrieving preferred block, ID: %v: %w", bb.vm.preferredBlkID, err)
-		}
+	parentBlk, err := bb.vm.getBlock(parentBlkID)
+	if err != nil {
+		return nil, fmt.Errorf("failed retrieving preferred block, ID: %v: %w", bb.vm.preferredBlkID, err)
 	}
-	parentBlkHeight := parentStatelessBlk.Height()
 
 	// STEP 2: generate block content
-	childBlkHeight := parentBlkHeight + 1
-	childChainTime := parentStatelessBlk.Timestamp()
-
-	slotData := &miniavalanche.SlotDataT{} // TODO: FILL IT UP
+	childBlkHeight := parentBlk.Height() + 1
+	childChainTime := parentBlk.Timestamp()
+	slotData := &miniavalanche.SlotDataT{
+		Slot: math.Slot(childBlkHeight),
+	}
 	blkBytes, blobBytes, err := bb.vm.middleware.BuildBlock(ctx, slotData)
 	if err != nil {
 		return nil, fmt.Errorf("failed building block or blob: %w", err)

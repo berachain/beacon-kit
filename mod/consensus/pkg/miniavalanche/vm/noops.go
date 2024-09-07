@@ -2,6 +2,7 @@ package vm
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -12,6 +13,11 @@ import (
 // VM level gossip should not be needed in mini avalanche, since
 // consensus-level gossip is handled to consensus engine (above VM)
 // and application level gossip should be handled by pluggable vm
+
+// Some methods are required by the interfaces required by Avalanche consensus engine,
+// but should never apply to mini-Avalanche case. [errDisabledMethodCalled] signals if
+// such methods are ever called
+var errDisabledMethodCalled = errors.New("called disabled method")
 
 func (vm *VM) AppGossip(_ context.Context, _ ids.NodeID, _ []byte) error {
 	return fmt.Errorf("vm AppGossip: %w", errDisabledMethodCalled)

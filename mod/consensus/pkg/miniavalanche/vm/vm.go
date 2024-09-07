@@ -24,11 +24,6 @@ var (
 
 	// mini-avalanche seems to distinguish from third party libs (e.g. github.com/shirou/gopsutils)
 	errNotYetImplemented = errors.New("mini-avalanche: not yet implemented")
-
-	// Some methods are required by the interfaces required by Avalanche consensus engine,
-	// but should never apply to mini-Avalanche case. [errDisabledMethodCalled] signals if
-	// such methods are ever called
-	errDisabledMethodCalled = errors.New("called disabled method")
 )
 
 type VM struct {
@@ -137,6 +132,10 @@ func (vm *VM) Disconnected(_ context.Context, _ ids.NodeID) error {
 }
 
 func (vm *VM) GetBlock(_ context.Context, blkID ids.ID) (snowman.Block, error) {
+	return vm.getBlock(blkID)
+}
+
+func (vm *VM) getBlock(blkID ids.ID) (*StatefulBlock, error) {
 	fullBlk, found := vm.verifiedBlocks[blkID]
 	if found {
 		return fullBlk, nil
