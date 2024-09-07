@@ -139,3 +139,15 @@ func (f *Fork) HashTreeRootWith(hh fastssz.HashWalker) error {
 func (f *Fork) GetTree() (*fastssz.Node, error) {
 	return fastssz.ProofTree(f)
 }
+
+func (f *Fork) GetPreviousVersion() common.Version {
+	return f.PreviousVersion
+}
+
+func (f *Fork) GetCurrentVersion() common.Version {
+	return f.CurrentVersion
+}
+
+func (f *Fork) GetEpoch() math.Epoch {
+	return f.Epoch
+}

@@ -21,9 +21,14 @@
 package beacon
 
 import (
+	"fmt"
+	"strconv"
+
+	consensustypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
 func (h *Handler[_, ContextT, _, _]) GetStateRoot(c ContextT) (any, error) {
@@ -62,13 +67,43 @@ func (h *Handler[_, ContextT, _, _]) GetStateFork(c ContextT) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	fork, err := h.backend.StateForkAtSlot(slot)
+	forkGeneric, err := h.backend.StateForkAtSlot(slot)
 	if err != nil {
 		return nil, err
 	}
+	fork, err := convertToFork(forkGeneric)
+	if err != nil {
+		return nil, err
+	}
+
+	var epochString string
+	epochUint := uint64(fork.GetEpoch())
+	epochString = strconv.FormatUint(epochUint, 10)
+
+	// Create a custom struct for JSON marshaling
+	type CustomFork struct {
+		PreviousVersion common.Version `json:"previous_version"`
+		CurrentVersion  common.Version `json:"current_version"`
+		Epoch           string         `json:"epoch"`
+	}
+
+	customFork := CustomFork{
+		PreviousVersion: fork.GetPreviousVersion(),
+		CurrentVersion:  fork.GetCurrentVersion(),
+		Epoch:           epochString,
+	}
+
 	return beacontypes.ValidatorResponse{
 		ExecutionOptimistic: false, // stubbed
 		Finalized:           false, // stubbed
-		Data:                fork,
+		Data:                customFork,
 	}, nil
+}
+
+func convertToFork[T any](forkGeneric T) (*consensustypes.Fork, error) {
+	fork, ok := any(forkGeneric).(*consensustypes.Fork)
+	if !ok {
+		return nil, fmt.Errorf("unexpected fork type")
+	}
+	return fork, nil
 }

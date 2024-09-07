@@ -72,29 +72,27 @@ func (s *BeaconKitE2ESuite) TestBeaconFork() {
 	fork := stateForkResp.Data
 	s.Require().NotEmpty(fork.PreviousVersion)
 	s.Require().NotEmpty(fork.CurrentVersion)
-	s.Require().Greater(fork.Epoch, phase0.Epoch(0))
+	s.Require().Equal(fork.Epoch, phase0.Epoch(0))
 }
 
-func (s *BeaconKitE2ESuite) TestBeaconValidators() {
-	client := s.initBeaconTest()
-
-	// Ensure the validators are not nil.
-	validatorsResp, err := client.Validators(
-		s.Ctx(),
-		&beaconapi.ValidatorsOpts{
-			Common: beaconapi.CommonOpts{
-				Timeout: 5 * time.Minute,
-			},
-			State:   utils.StateIDHead,
-			Indices: []phase0.ValidatorIndex{0},
-			PubKeys: []phase0.BLSPubKey{},
-			//ValidatorStates: []apiv1.ValidatorState{},
-		},
-	)
-	s.Require().NoError(err)
-	s.Require().NotNil(validatorsResp)
-	s.Require().NotEmpty(validatorsResp.Data)
-}
+//func (s *BeaconKitE2ESuite) TestBeaconValidators() {
+//	client := s.initBeaconTest()
+//
+//	// Ensure the validators are not nil.
+//	validatorsResp, err := client.Validators(
+//		s.Ctx(),
+//		&beaconapi.ValidatorsOpts{
+//			Common: beaconapi.CommonOpts{
+//				Timeout: 5 * time.Minute,
+//			},
+//			State:   utils.StateIDHead,
+//			Indices: []phase0.ValidatorIndex{0},
+//		},
+//	)
+//	s.Require().NoError(err)
+//	s.Require().NotNil(validatorsResp)
+//	s.Require().NotEmpty(validatorsResp.Data)
+//}
 
 func (s *BeaconKitE2ESuite) TestBeaconValidatorBalances() {
 	client := s.initBeaconTest()

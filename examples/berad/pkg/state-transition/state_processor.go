@@ -58,6 +58,9 @@ type StateProcessor[
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	ForkT interface {
 		New(common.Version, common.Version, math.Epoch) ForkT
+		GetPreviousVersion() common.Version
+		GetCurrentVersion() common.Version
+		GetEpoch() math.Epoch
 	},
 	ForkDataT ForkData[ForkDataT],
 	KVStoreT any,
@@ -111,6 +114,9 @@ func NewStateProcessor[
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	ForkT interface {
 		New(common.Version, common.Version, math.Epoch) ForkT
+		GetPreviousVersion() common.Version
+		GetCurrentVersion() common.Version
+		GetEpoch() math.Epoch
 	},
 	ForkDataT ForkData[ForkDataT],
 	KVStoreT any,
