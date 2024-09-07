@@ -68,6 +68,9 @@ func (h *Handler[_, ContextT, _, _]) GetStateValidators(
 	}, nil
 }
 
+// CustomValidator to hold the validator data for BeaconAPIs.
+//
+//nolint:lll
 type CustomValidator struct {
 	Pubkey                     crypto.BLSPubkey                     `json:"pubkey"`
 	WithdrawalCredentials      consensustypes.WithdrawalCredentials `json:"withdrawal_credentials"`
@@ -105,11 +108,14 @@ func (h *Handler[_, ContextT, _, _]) PostStateValidators(
 		return nil, err
 	}
 
-	convertedValidators := make([]beacontypes.ValidatorData[CustomValidator], len(validators))
+	convertedValidators := make(
+		[]beacontypes.ValidatorData[CustomValidator],
+		len(validators),
+	)
 	for i, validator := range validators {
-		convertedValidator, err := convertValidator(validator)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to convert validator")
+		convertedValidator, convErr := convertValidator(validator)
+		if convErr != nil {
+			return nil, errors.Wrap(convErr, "failed to convert validator")
 		}
 		convertedValidators[i] = convertedValidator
 	}
@@ -120,22 +126,26 @@ func (h *Handler[_, ContextT, _, _]) PostStateValidators(
 	}, nil
 }
 
-func convertValidator[ValidatorT any](validator *beacontypes.ValidatorData[ValidatorT]) (beacontypes.ValidatorData[CustomValidator], error) {
-
+func convertValidator[ValidatorT any](
+	validator *beacontypes.ValidatorData[ValidatorT],
+) (beacontypes.ValidatorData[CustomValidator], error) {
 	// Convert the original validator to JSON
 	jsonData, err := json.Marshal(validator.Validator)
 	if err != nil {
-		return beacontypes.ValidatorData[CustomValidator]{}, errors.Wrap(err, "failed to marshal validator")
+		return beacontypes.ValidatorData[CustomValidator]{},
+			errors.Wrap(err, "failed to marshal validator")
 	}
 
 	// Unmarshal into our ConvertedValidator struct
 	var customValidator CustomValidator
-	if err := json.Unmarshal(jsonData, &customValidator); err != nil {
-		return beacontypes.ValidatorData[CustomValidator]{}, errors.Wrap(err, "failed to unmarshal validator")
+	if err = json.Unmarshal(jsonData, &customValidator); err != nil {
+		return beacontypes.ValidatorData[CustomValidator]{},
+			errors.Wrap(err, "failed to unmarshal validator")
 	}
 
-	if err := convertHexFields(&customValidator); err != nil {
-		return beacontypes.ValidatorData[CustomValidator]{}, errors.Wrap(err, "failed to convert hex fields")
+	if err = convertHexFields(&customValidator); err != nil {
+		return beacontypes.ValidatorData[CustomValidator]{},
+			errors.Wrap(err, "failed to convert hex fields")
 	}
 
 	return beacontypes.ValidatorData[CustomValidator]{
@@ -151,7 +161,9 @@ func convertHexFields(v *CustomValidator) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to convert effective balance")
 	}
-	v.ActivationEligibilityEpoch, err = hexToDecimalString(v.ActivationEligibilityEpoch)
+	v.ActivationEligibilityEpoch, err = hexToDecimalString(
+		v.ActivationEligibilityEpoch,
+	)
 	if err != nil {
 		return errors.Wrap(err, "failed to convert activation eligibility epoch")
 	}
