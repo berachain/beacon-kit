@@ -88,6 +88,10 @@ type ConvertedValidatorData struct {
 	Validator CustomValidator `json:"validator"`
 }
 
+//type ConvertedValidatorData[ValidatorT any] struct {
+//	beacontypes.ValidatorData[CustomValidator]
+//}
+
 func (h *Handler[_, ContextT, _, _]) PostStateValidators(
 	c ContextT,
 ) (any, error) {
@@ -143,26 +147,8 @@ func convertValidator[ValidatorT any](validator *beacontypes.ValidatorData[Valid
 		return ConvertedValidatorData{}, errors.Wrap(err, "failed to unmarshal validator")
 	}
 
-	// Convert hex fields to decimal
-	convertedValidator.EffectiveBalance, err = hexToDecimalString(convertedValidator.EffectiveBalance)
-	if err != nil {
-		return ConvertedValidatorData{}, errors.Wrap(err, "failed to convert effective balance")
-	}
-	convertedValidator.ActivationEligibilityEpoch, err = hexToDecimalString(convertedValidator.ActivationEligibilityEpoch)
-	if err != nil {
-		return ConvertedValidatorData{}, errors.Wrap(err, "failed to convert activation eligibility epoch")
-	}
-	convertedValidator.ActivationEpoch, err = hexToDecimalString(convertedValidator.ActivationEpoch)
-	if err != nil {
-		return ConvertedValidatorData{}, errors.Wrap(err, "failed to convert activation epoch")
-	}
-	convertedValidator.ExitEpoch, err = hexToDecimalString(convertedValidator.ExitEpoch)
-	if err != nil {
-		return ConvertedValidatorData{}, errors.Wrap(err, "failed to convert exit epoch")
-	}
-	convertedValidator.WithdrawableEpoch, err = hexToDecimalString(convertedValidator.WithdrawableEpoch)
-	if err != nil {
-		return ConvertedValidatorData{}, errors.Wrap(err, "failed to convert withdrawable epoch")
+	if err := convertHexFields(&convertedValidator); err != nil {
+		return ConvertedValidatorData{}, errors.Wrap(err, "failed to convert hex fields")
 	}
 
 	return ConvertedValidatorData{
@@ -171,6 +157,31 @@ func convertValidator[ValidatorT any](validator *beacontypes.ValidatorData[Valid
 		Status:    validator.Status,
 		Validator: convertedValidator,
 	}, nil
+}
+
+func convertHexFields(v *CustomValidator) error {
+	var err error
+	v.EffectiveBalance, err = hexToDecimalString(v.EffectiveBalance)
+	if err != nil {
+		return errors.Wrap(err, "failed to convert effective balance")
+	}
+	v.ActivationEligibilityEpoch, err = hexToDecimalString(v.ActivationEligibilityEpoch)
+	if err != nil {
+		return errors.Wrap(err, "failed to convert activation eligibility epoch")
+	}
+	v.ActivationEpoch, err = hexToDecimalString(v.ActivationEpoch)
+	if err != nil {
+		return errors.Wrap(err, "failed to convert activation epoch")
+	}
+	v.ExitEpoch, err = hexToDecimalString(v.ExitEpoch)
+	if err != nil {
+		return errors.Wrap(err, "failed to convert exit epoch")
+	}
+	v.WithdrawableEpoch, err = hexToDecimalString(v.WithdrawableEpoch)
+	if err != nil {
+		return errors.Wrap(err, "failed to convert withdrawable epoch")
+	}
+	return nil
 }
 
 func hexToDecimalString(hexStr string) (string, error) {
