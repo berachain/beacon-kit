@@ -76,21 +76,15 @@ func (h *Handler[_, ContextT, _, _]) GetStateFork(c ContextT) (any, error) {
 		return nil, err
 	}
 
-	var epochString string
-	epochUint := uint64(fork.GetEpoch())
-	epochString = strconv.FormatUint(epochUint, 10)
-
-	// Create a custom struct for JSON marshaling
-	type CustomFork struct {
+	// Create a custom struct for JSON marshaling as per BeaconAPIs.
+	customFork := struct {
 		PreviousVersion common.Version `json:"previous_version"`
 		CurrentVersion  common.Version `json:"current_version"`
 		Epoch           string         `json:"epoch"`
-	}
-
-	customFork := CustomFork{
+	}{
 		PreviousVersion: fork.GetPreviousVersion(),
 		CurrentVersion:  fork.GetCurrentVersion(),
-		Epoch:           epochString,
+		Epoch:           strconv.FormatUint(uint64(fork.GetEpoch()), 10),
 	}
 
 	return beacontypes.ValidatorResponse{
@@ -103,7 +97,10 @@ func (h *Handler[_, ContextT, _, _]) GetStateFork(c ContextT) (any, error) {
 func convertToFork[T any](forkGeneric T) (*consensustypes.Fork, error) {
 	fork, ok := any(forkGeneric).(*consensustypes.Fork)
 	if !ok {
-		return nil, errors.New("unexpected fork type")
+		return nil, errors.Wrapf(errors.New(
+			"type assertion failed",
+		), "unexpected fork type: %T", forkGeneric)
+
 	}
 	return fork, nil
 }
