@@ -100,7 +100,6 @@ func convertToFork[T any](forkGeneric T) (*consensustypes.Fork, error) {
 		return nil, errors.Wrapf(errors.New(
 			"type assertion failed",
 		), "unexpected fork type: %T", forkGeneric)
-
 	}
 	return fork, nil
 }

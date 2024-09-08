@@ -45,7 +45,7 @@ type GetStateValidatorsRequest struct {
 type PostStateValidatorsRequest struct {
 	types.StateIDRequest
 	IDs      []string `json:"ids"      validate:"dive,validator_id"`
-	Statuses []string `json:"statuses" validate:"omitempty,dive,validator_status"`
+	Statuses []string `json:"statuses" validate:"dive,validator_status"`
 }
 
 type GetStateValidatorRequest struct {
@@ -60,7 +60,7 @@ type GetValidatorBalancesRequest struct {
 
 type PostValidatorBalancesRequest struct {
 	types.StateIDRequest
-	IDs []string `json:"-"`
+	IDs []string `json:"-" validate:"dive,validator_id"`
 }
 
 type GetStateCommitteesRequest struct {
