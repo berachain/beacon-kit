@@ -156,35 +156,27 @@ func convertValidator[ValidatorT any](
 }
 
 func convertHexFields(v *CustomValidator) error {
-	var err error
-	v.EffectiveBalance, err = hexToDecimalString(v.EffectiveBalance)
-	if err != nil {
-		return errors.Wrap(err, "failed to convert effective balance")
+	fields := []*string{
+		&v.EffectiveBalance,
+		&v.ActivationEligibilityEpoch,
+		&v.ActivationEpoch,
+		&v.ExitEpoch,
+		&v.WithdrawableEpoch,
 	}
-	v.ActivationEligibilityEpoch, err = hexToDecimalString(
-		v.ActivationEligibilityEpoch,
-	)
-	if err != nil {
-		return errors.Wrap(err, "failed to convert activation eligibility epoch")
+
+	for _, field := range fields {
+		converted, err := hexToDecimalString(*field)
+		if err != nil {
+			return errors.Wrap(err, "failed to convert hex field")
+		}
+		*field = converted
 	}
-	v.ActivationEpoch, err = hexToDecimalString(v.ActivationEpoch)
-	if err != nil {
-		return errors.Wrap(err, "failed to convert activation epoch")
-	}
-	v.ExitEpoch, err = hexToDecimalString(v.ExitEpoch)
-	if err != nil {
-		return errors.Wrap(err, "failed to convert exit epoch")
-	}
-	v.WithdrawableEpoch, err = hexToDecimalString(v.WithdrawableEpoch)
-	if err != nil {
-		return errors.Wrap(err, "failed to convert withdrawable epoch")
-	}
+
 	return nil
 }
 
 func hexToDecimalString(hexStr string) (string, error) {
 	hexStr = strings.TrimPrefix(hexStr, "0x")
-
 	// Convert hex string to uint64
 	value, err := strconv.ParseUint(hexStr, 16, 64)
 	if err != nil {
@@ -249,30 +241,30 @@ func (h *Handler[_, ContextT, _, _]) PostStateValidatorBalances(
 ) (any, error) {
 	var ids []string
 	if err := c.Bind(&ids); err != nil {
-		return nil, errors.Wrapf(errors.New("err in func bind"), "err %v", err)
+		return nil, types.ErrInvalidRequest
 	}
 
+	// TODO: Find a way to pass the state_id from request.
+	// Currently only head is supported.
 	req := beacontypes.PostValidatorBalancesRequest{
 		StateIDRequest: types.StateIDRequest{StateID: "head"},
 		IDs:            ids,
 	}
 
 	if err := c.Validate(&req); err != nil {
-		return nil, errors.Wrapf(errors.New("err in validate"), "err %v", err)
+		return nil, types.ErrInvalidRequest
 	}
 
 	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
 	if err != nil {
-		return nil, errors.Wrapf(
-			errors.New("err in getting slot "),
-			" slot req err %v %v %v", req, slot, err)
+		return nil, errors.Wrapf(err, "err getting slot for req %v ", req)
 	}
 
 	h.Logger().Info("PostStateValidatorBalances", "slot", slot, "req", req)
 
 	balances, err := h.backend.ValidatorBalancesByIDs(slot, req.IDs)
 	if err != nil {
-		return nil, errors.Wrapf(errors.New("err in backend "), "err %v", err)
+		return nil, errors.Wrap(err, "err in backend")
 	}
 	return beacontypes.ValidatorResponse{
 		ExecutionOptimistic: false, // stubbed
