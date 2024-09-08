@@ -71,11 +71,26 @@ func (s *BeaconKitE2ESuite) TestBeaconFork() {
 	s.Require().NotEmpty(fork.PreviousVersion)
 	s.Require().NotEmpty(fork.CurrentVersion)
 	expectedVersion := phase0.Version{0x04, 0x00, 0x00, 0x00}
-	s.Require().Equal(expectedVersion, fork.PreviousVersion, "PreviousVersion does not match expected value")
-	s.Require().Equal(expectedVersion, fork.CurrentVersion, "CurrentVersion does not match expected value")
-	s.Require().Equal(phase0.Epoch(0), fork.Epoch, "Epoch does not match expected value")
+	s.Require().Equal(
+		expectedVersion,
+		fork.PreviousVersion,
+		"PreviousVersion does not match expected value",
+	)
+	s.Require().Equal(
+		expectedVersion,
+		fork.CurrentVersion,
+		"CurrentVersion does not match expected value",
+	)
+	s.Require().Equal(
+		phase0.Epoch(0),
+		fork.Epoch,
+		"Epoch does not match expected value",
+	)
 }
 
+// TestBeaconValidators tests the beacon node api for beacon validators.
+//
+//nolint:lll
 func (s *BeaconKitE2ESuite) TestBeaconValidators() {
 	client := s.initBeaconTest()
 
@@ -98,7 +113,6 @@ func (s *BeaconKitE2ESuite) TestBeaconValidators() {
 	for _, validator := range validatorData {
 		s.Require().NotNil(validator, "Validator should not be nil")
 
-		s.Require().True(validator.Index >= 0, "Validator index should be non-negative")
 		s.Require().Contains(indices, validator.Index, "Validator index should be one of the requested indices")
 
 		s.Require().NotEmpty(validator.Validator.PublicKey, "Validator public key should not be empty")
@@ -111,8 +125,6 @@ func (s *BeaconKitE2ESuite) TestBeaconValidators() {
 		s.Require().True(validator.Validator.EffectiveBalance <= 32e9, "Effective balance should not exceed 32 ETH")
 
 		s.Require().False(validator.Validator.Slashed, "Slashed status should not be true")
-
-		s.Require().True(validator.Validator.ActivationEligibilityEpoch >= 0, "Activation eligibility epoch should be non-negative")
 
 		s.Require().True(validator.Validator.ActivationEpoch >= validator.Validator.ActivationEligibilityEpoch,
 			"Activation epoch should be greater than or equal to activation eligibility epoch")
@@ -159,6 +171,14 @@ func (s *BeaconKitE2ESuite) TestBeaconRandao() {
 	s.Require().NotNil(stateRandaoResp)
 	s.Require().NotEmpty(stateRandaoResp.Data)
 	randao := stateRandaoResp.Data
-	s.Require().Len(randao, 32, "Randao should be 32 bytes long")
-	s.Require().NotEqual(make([]byte, 32), randao, "Randao should not be all zeros")
+	s.Require().Len(
+		randao,
+		32,
+		"Randao should be 32 bytes long",
+	)
+	s.Require().NotEqual(
+		make([]byte, 32),
+		randao,
+		"Randao should not be all zeros",
+	)
 }
