@@ -21,6 +21,7 @@
 package beacon
 
 import (
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -176,7 +177,15 @@ func convertHexFields(v *CustomValidator) error {
 }
 
 func hexToDecimalString(hexStr string) (string, error) {
+	// Check if the input is empty or only contains "0x"
+	if hexStr == "" || hexStr == "0x" {
+		return "", errors.New("invalid input: empty or only '0x' prefix")
+	}
 	hexStr = strings.TrimPrefix(hexStr, "0x")
+	// Validate that the remaining string contains only valid hex characters
+	if !regexp.MustCompile(`^[0-9a-fA-F]+$`).MatchString(hexStr) {
+		return "", errors.New("invalid input: non-hexadecimal characters found")
+	}
 	// Convert hex string to uint64
 	value, err := strconv.ParseUint(hexStr, 16, 64)
 	if err != nil {

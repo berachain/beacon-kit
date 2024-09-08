@@ -70,38 +70,83 @@ func (s *BeaconKitE2ESuite) TestBeaconFork() {
 	fork := stateForkResp.Data
 	s.Require().NotEmpty(fork.PreviousVersion)
 	s.Require().NotEmpty(fork.CurrentVersion)
-	s.Require().Equal(fork.Epoch, phase0.Epoch(0))
+	expectedVersion := phase0.Version{0x04, 0x00, 0x00, 0x00}
+	s.Require().Equal(expectedVersion, fork.PreviousVersion, "PreviousVersion does not match expected value")
+	s.Require().Equal(expectedVersion, fork.CurrentVersion, "CurrentVersion does not match expected value")
+	s.Require().Equal(phase0.Epoch(0), fork.Epoch, "Epoch does not match expected value")
 }
 
 func (s *BeaconKitE2ESuite) TestBeaconValidators() {
 	client := s.initBeaconTest()
 
+	indices := []phase0.ValidatorIndex{0}
 	// Ensure the validators are not nil.
 	validatorsResp, err := client.Validators(
 		s.Ctx(),
 		&beaconapi.ValidatorsOpts{
 			State:   utils.StateIDHead,
-			Indices: []phase0.ValidatorIndex{0},
+			Indices: indices,
 		},
 	)
 	s.Require().NoError(err)
 	s.Require().NotNil(validatorsResp)
-	s.Require().NotEmpty(validatorsResp.Data)
+
+	validatorData := validatorsResp.Data
+	s.Require().NotNil(validatorData, "Validator data should not be nil")
+	s.Require().Len(validatorData, len(indices), "Number of validator responses should match number of requested indices")
+
+	for _, validator := range validatorData {
+		s.Require().NotNil(validator, "Validator should not be nil")
+
+		s.Require().True(validator.Index >= 0, "Validator index should be non-negative")
+		s.Require().Contains(indices, validator.Index, "Validator index should be one of the requested indices")
+
+		s.Require().NotEmpty(validator.Validator.PublicKey, "Validator public key should not be empty")
+		s.Require().Len(validator.Validator.PublicKey, 48, "Validator public key should be 48 bytes long")
+
+		s.Require().NotEmpty(validator.Validator.WithdrawalCredentials, "Withdrawal credentials should not be empty")
+		s.Require().Len(validator.Validator.WithdrawalCredentials, 32, "Withdrawal credentials should be 32 bytes long")
+
+		s.Require().True(validator.Validator.EffectiveBalance > 0, "Effective balance should be positive")
+		s.Require().True(validator.Validator.EffectiveBalance <= 32e9, "Effective balance should not exceed 32 ETH")
+
+		s.Require().False(validator.Validator.Slashed, "Slashed status should not be true")
+
+		s.Require().True(validator.Validator.ActivationEligibilityEpoch >= 0, "Activation eligibility epoch should be non-negative")
+
+		s.Require().True(validator.Validator.ActivationEpoch >= validator.Validator.ActivationEligibilityEpoch,
+			"Activation epoch should be greater than or equal to activation eligibility epoch")
+
+		s.Require().True(validator.Validator.WithdrawableEpoch >= validator.Validator.ExitEpoch,
+			"Withdrawable epoch should be greater than or equal to exit epoch")
+
+		s.Require().NotEmpty(validator.Status, "Validator status should not be empty")
+
+		s.Require().True(validator.Balance > 0, "Validator balance should be positive")
+		s.Require().True(validator.Balance <= 32e9, "Validator balance should not exceed 32 ETH")
+	}
 }
 
 func (s *BeaconKitE2ESuite) TestBeaconValidatorBalances() {
 	client := s.initBeaconTest()
 
+	indices := []phase0.ValidatorIndex{0}
 	// Ensure the validator balances are not nil.
 	validatorBalancesResp, err := client.ValidatorBalances(
 		s.Ctx(),
 		&beaconapi.ValidatorBalancesOpts{
 			State:   utils.StateIDHead,
-			Indices: []phase0.ValidatorIndex{0},
+			Indices: indices,
 		},
 	)
 	s.Require().NoError(err)
 	s.Require().NotNil(validatorBalancesResp)
+	balanceMap := validatorBalancesResp.Data
+	for _, index := range indices {
+		balance, exists := balanceMap[index]
+		s.Require().True(exists, "Balance should exist for validator index %d", index)
+		s.Require().True(balance > 0, "Validator balance should be positive")
+	}
 }
 
 func (s *BeaconKitE2ESuite) TestBeaconRandao() {
@@ -112,4 +157,8 @@ func (s *BeaconKitE2ESuite) TestBeaconRandao() {
 		})
 	s.Require().NoError(err)
 	s.Require().NotNil(stateRandaoResp)
+	s.Require().NotEmpty(stateRandaoResp.Data)
+	randao := stateRandaoResp.Data
+	s.Require().Len(randao, 32, "Randao should be 32 bytes long")
+	s.Require().NotEqual(make([]byte, 32), randao, "Randao should not be all zeros")
 }
