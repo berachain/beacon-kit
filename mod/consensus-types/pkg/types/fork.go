@@ -140,14 +140,21 @@ func (f *Fork) GetTree() (*fastssz.Node, error) {
 	return fastssz.ProofTree(f)
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                 Getters                                    */
+/* -------------------------------------------------------------------------- */
+
+// GetPreviousVersion returns the previous version of the fork.
 func (f *Fork) GetPreviousVersion() common.Version {
 	return f.PreviousVersion
 }
 
+// GetCurrentVersion returns the current version of the fork.
 func (f *Fork) GetCurrentVersion() common.Version {
 	return f.CurrentVersion
 }
 
+// GetEpoch returns the epoch at which the fork occurred.
 func (f *Fork) GetEpoch() math.Epoch {
 	return f.Epoch
 }
