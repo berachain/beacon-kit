@@ -217,5 +217,26 @@ func (cc ConsensusClient) BeaconStateRandao(
 	return cc.beaconClient.BeaconStateRandao(ctx, opts)
 }
 
+// Genesis returns the genesis of the node.
+func (cc ConsensusClient) Genesis(
+	ctx context.Context,
+	opts *beaconapi.GenesisOpts,
+) (*beaconapi.Response[*apiv1.Genesis], error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
+	return cc.beaconClient.Genesis(ctx, opts)
+}
+
+func (cc ConsensusClient) BeaconBlockHeader(
+	ctx context.Context,
+	opts *beaconapi.BeaconBlockHeaderOpts,
+) (*beaconapi.Response[*apiv1.BeaconBlockHeader], error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
+	return cc.beaconClient.BeaconBlockHeader(ctx, opts)
+}
+
 // TODO: Add helpers for the beacon node-api client (converting from
 // go-eth2-client types to beacon-kit consensus types).
