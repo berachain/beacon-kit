@@ -217,7 +217,7 @@ rpc-dial-url = "http://localhost:8551"
 rpc-retries = "3"
 
 # RPC timeout for execution client requests.
-rpc-timeout = "2s"
+rpc-timeout = "900ms"
 
 # Interval for the startup check.
 rpc-startup-check-interval = "3s"
