@@ -21,14 +21,9 @@
 package beacon
 
 import (
-	"strconv"
-
-	"github.com/berachain/beacon-kit/mod/errors"
 	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 )
 
 func (h *Handler[_, ContextT, _, _]) GetStateRoot(c ContextT) (any, error) {
@@ -67,35 +62,14 @@ func (h *Handler[_, ContextT, _, ForkT]) GetStateFork(c ContextT) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	forkGeneric, err := h.backend.StateForkAtSlot(slot)
+	fork, err := h.backend.StateForkAtSlot(slot)
 	if err != nil {
 		return nil, err
-	}
-
-	fork, ok := any(forkGeneric).(core.Fork[ForkT])
-	if !ok {
-		return nil, errors.New("failed to cast ForkT")
 	}
 
 	return beacontypes.ValidatorResponse{
 		ExecutionOptimistic: false, // stubbed
 		Finalized:           false, // stubbed
-		Data:                forkWrapper[ForkT]{Fork: fork},
+		Data:                beacontypes.ForkResponse{Fork: fork},
 	}, nil
-}
-
-type forkWrapper[ForkT any] struct {
-	core.Fork[ForkT]
-}
-
-func (fw forkWrapper[ForkT]) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		PreviousVersion string `json:"previous_version"`
-		CurrentVersion  string `json:"current_version"`
-		Epoch           string `json:"epoch"`
-	}{
-		PreviousVersion: fw.GetPreviousVersion().String(),
-		CurrentVersion:  fw.GetCurrentVersion().String(),
-		Epoch:           strconv.FormatUint(uint64(fw.GetEpoch()), 10),
-	})
 }

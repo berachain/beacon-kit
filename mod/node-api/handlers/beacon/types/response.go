@@ -21,10 +21,15 @@
 package types
 
 import (
+	"encoding/json"
+	"strconv"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
+// TODO: change this to a arbitrary response type. types.Wrap(data) should
+// always put the data as the Data struct and return this struct.
 type ValidatorResponse struct {
 	ExecutionOptimistic bool `json:"execution_optimistic"`
 	Finalized           bool `json:"finalized"`
@@ -86,4 +91,20 @@ type BlockRewardsData struct {
 
 type RandaoData struct {
 	Randao common.Bytes32 `json:"randao"`
+}
+
+type ForkResponse struct {
+	Fork
+}
+
+func (fr ForkResponse) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		PreviousVersion string `json:"previous_version"`
+		CurrentVersion  string `json:"current_version"`
+		Epoch           string `json:"epoch"`
+	}{
+		PreviousVersion: fr.GetPreviousVersion().String(),
+		CurrentVersion:  fr.GetCurrentVersion().String(),
+		Epoch:           strconv.FormatUint(fr.GetEpoch().Unwrap(), 10),
+	})
 }

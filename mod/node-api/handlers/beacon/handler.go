@@ -30,7 +30,7 @@ import (
 type Handler[
 	BeaconBlockHeaderT types.BeaconBlockHeader,
 	ContextT context.Context,
-	ForkT any,
+	ForkT types.Fork,
 	ValidatorT any,
 ] struct {
 	*handlers.BaseHandler[ContextT]
@@ -41,7 +41,7 @@ type Handler[
 func NewHandler[
 	BeaconBlockHeaderT types.BeaconBlockHeader,
 	ContextT context.Context,
-	ForkT any,
+	ForkT types.Fork,
 	ValidatorT any,
 ](
 	backend Backend[BeaconBlockHeaderT, ForkT, ValidatorT],

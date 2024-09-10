@@ -20,9 +20,19 @@
 
 package types
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+)
 
 // BeaconBlockHeader is the interface for the beacon block header.
 type BeaconBlockHeader interface {
 	GetBodyRoot() common.Root
+}
+
+// Fork is the interface for the fork type.
+type Fork interface {
+	GetPreviousVersion() common.Version
+	GetCurrentVersion() common.Version
+	GetEpoch() math.Epoch
 }
