@@ -33,7 +33,9 @@ func ParseBase64StringToBytes(genesisStr string) ([]byte, error) {
 	}
 
 	// Step 2: Base64Genesis to InMemoryGenesis
-	inMemGen := &Genesis{}
+	inMemGen := &Genesis{
+		EthGenesis: []byte(base64Gen.EthGenesis),
+	}
 	for i, v := range base64Gen.Validators {
 		nodeID, err := ids.NodeIDFromString(v.NodeID)
 		if err != nil {

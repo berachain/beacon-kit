@@ -2,6 +2,7 @@ package vm
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -90,7 +91,12 @@ func (vm *VM) Initialize(
 	// where validators (and especially the mapping validator -> NodeID) is
 	// setup in Genesis. We don't even check data correspondence and assume
 	// genesis is well formatted
-	_, err = vm.middleware.InitGenesis(ctx, ethGen)
+	var genesisState map[string]json.RawMessage
+	if err := json.Unmarshal(ethGen, &genesisState); err != nil {
+		return fmt.Errorf("failed unmarshalling genesis: %w", err)
+	}
+
+	_, err = vm.middleware.InitGenesis(ctx, genesisState["beacon"])
 	if err != nil {
 		return fmt.Errorf("failed initializing genesis in middleware: %w", err)
 	}

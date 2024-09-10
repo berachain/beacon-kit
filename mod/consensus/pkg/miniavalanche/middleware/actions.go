@@ -21,14 +21,14 @@ func (vm *VMMiddleware) InitGenesis(ctx context.Context, bz []byte) (transition.
 	waitCtx, cancel := context.WithTimeout(ctx, AwaitTimeout)
 	defer cancel()
 
-	data := new(miniavalanche.GenesisT)
-	if err := json.Unmarshal(bz, data); err != nil {
+	var data map[string]json.RawMessage
+	if err := json.Unmarshal(bz, &data); err != nil {
 		vm.logger.Error("Failed to unmarshal genesis data", "error", err)
 		return nil, err
 	}
 
 	if err := vm.dispatcher.Publish(
-		async.NewEvent(ctx, async.GenesisDataReceived, *data),
+		async.NewEvent(ctx, async.GenesisDataReceived, data),
 	); err != nil {
 		return nil, err
 	}
