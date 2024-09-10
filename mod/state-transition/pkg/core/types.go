@@ -248,3 +248,11 @@ type Withdrawal[WithdrawalT any] interface {
 	// GetAddress returns the address of the withdrawal.
 	GetAddress() common.ExecutionAddress
 }
+
+// Fork is the interface for a fork.
+type Fork[ForkT any] interface {
+	New(common.Version, common.Version, math.Epoch) ForkT
+	GetPreviousVersion() common.Version
+	GetCurrentVersion() common.Version
+	GetEpoch() math.Epoch
+}

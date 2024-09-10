@@ -59,12 +59,7 @@ type StateProcessor[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	ForkT interface {
-		New(common.Version, common.Version, math.Epoch) ForkT
-		GetPreviousVersion() common.Version
-		GetCurrentVersion() common.Version
-		GetEpoch() math.Epoch
-	},
+	ForkT Fork[ForkT],
 	ForkDataT ForkData[ForkDataT],
 	KVStoreT any,
 	ValidatorT Validator[ValidatorT, WithdrawalCredentialsT],
@@ -117,12 +112,7 @@ func NewStateProcessor[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	ForkT interface {
-		New(common.Version, common.Version, math.Epoch) ForkT
-		GetPreviousVersion() common.Version
-		GetCurrentVersion() common.Version
-		GetEpoch() math.Epoch
-	},
+	ForkT Fork[ForkT],
 	ForkDataT ForkData[ForkDataT],
 	KVStoreT any,
 	ValidatorT Validator[ValidatorT, WithdrawalCredentialsT],
