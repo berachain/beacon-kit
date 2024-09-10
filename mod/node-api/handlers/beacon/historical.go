@@ -23,6 +23,7 @@ package beacon
 import (
 	"strconv"
 
+	"github.com/berachain/beacon-kit/mod/errors"
 	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
@@ -71,7 +72,10 @@ func (h *Handler[_, ContextT, _, ForkT]) GetStateFork(c ContextT) (any, error) {
 		return nil, err
 	}
 
-	fork := any(forkGeneric).(core.Fork[ForkT])
+	fork, ok := any(forkGeneric).(core.Fork[ForkT])
+	if !ok {
+		return nil, errors.New("failed to cast ForkT")
+	}
 
 	// Create a custom struct for JSON marshaling as per BeaconAPIs.
 	customFork := struct {
