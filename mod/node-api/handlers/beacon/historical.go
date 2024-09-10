@@ -27,7 +27,7 @@ import (
 	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 )
 
@@ -77,20 +77,25 @@ func (h *Handler[_, ContextT, _, ForkT]) GetStateFork(c ContextT) (any, error) {
 		return nil, errors.New("failed to cast ForkT")
 	}
 
-	// Create a custom struct for JSON marshaling as per BeaconAPIs.
-	customFork := struct {
-		PreviousVersion common.Version `json:"previous_version"`
-		CurrentVersion  common.Version `json:"current_version"`
-		Epoch           string         `json:"epoch"`
-	}{
-		PreviousVersion: fork.GetPreviousVersion(),
-		CurrentVersion:  fork.GetCurrentVersion(),
-		Epoch:           strconv.FormatUint(uint64(fork.GetEpoch()), 10),
-	}
-
 	return beacontypes.ValidatorResponse{
 		ExecutionOptimistic: false, // stubbed
 		Finalized:           false, // stubbed
-		Data:                customFork,
+		Data:                forkWrapper[ForkT]{Fork: fork},
 	}, nil
+}
+
+type forkWrapper[ForkT any] struct {
+	core.Fork[ForkT]
+}
+
+func (fw forkWrapper[ForkT]) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		PreviousVersion string `json:"previous_version"`
+		CurrentVersion  string `json:"current_version"`
+		Epoch           string `json:"epoch"`
+	}{
+		PreviousVersion: fw.GetPreviousVersion().String(),
+		CurrentVersion:  fw.GetCurrentVersion().String(),
+		Epoch:           strconv.FormatUint(uint64(fw.GetEpoch()), 10),
+	})
 }
