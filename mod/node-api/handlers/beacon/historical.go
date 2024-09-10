@@ -23,12 +23,11 @@ package beacon
 import (
 	"strconv"
 
-	consensustypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/errors"
 	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 )
 
 func (h *Handler[_, ContextT, _, _]) GetStateRoot(c ContextT) (any, error) {
@@ -56,7 +55,7 @@ func (h *Handler[_, ContextT, _, _]) GetStateRoot(c ContextT) (any, error) {
 	}, nil
 }
 
-func (h *Handler[_, ContextT, _, _]) GetStateFork(c ContextT) (any, error) {
+func (h *Handler[_, ContextT, _, ForkT]) GetStateFork(c ContextT) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetStateForkRequest](
 		c, h.Logger(),
 	)
@@ -71,10 +70,8 @@ func (h *Handler[_, ContextT, _, _]) GetStateFork(c ContextT) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	fork, err := convertToFork(forkGeneric)
-	if err != nil {
-		return nil, err
-	}
+
+	fork := any(forkGeneric).(core.Fork[ForkT])
 
 	// Create a custom struct for JSON marshaling as per BeaconAPIs.
 	customFork := struct {
@@ -92,14 +89,4 @@ func (h *Handler[_, ContextT, _, _]) GetStateFork(c ContextT) (any, error) {
 		Finalized:           false, // stubbed
 		Data:                customFork,
 	}, nil
-}
-
-func convertToFork[T any](forkGeneric T) (*consensustypes.Fork, error) {
-	fork, ok := any(forkGeneric).(*consensustypes.Fork)
-	if !ok {
-		return nil, errors.Wrapf(errors.New(
-			"type assertion failed",
-		), "unexpected fork type: %T", forkGeneric)
-	}
-	return fork, nil
 }
