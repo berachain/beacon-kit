@@ -58,7 +58,6 @@ type StateProcessor[
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	ForkT interface {
 		Fork[ForkT]
-		New(common.Version, common.Version, math.Epoch) ForkT
 	},
 	ForkDataT ForkData[ForkDataT],
 	KVStoreT any,

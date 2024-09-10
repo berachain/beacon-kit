@@ -251,6 +251,7 @@ type Withdrawal[WithdrawalT any] interface {
 
 // Fork is the interface for a fork.
 type Fork[ForkT any] interface {
+	New(common.Version, common.Version, math.Epoch) ForkT
 	GetPreviousVersion() common.Version
 	GetCurrentVersion() common.Version
 	GetEpoch() math.Epoch
