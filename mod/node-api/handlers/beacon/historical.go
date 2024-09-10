@@ -70,10 +70,6 @@ func (h *Handler[_, ContextT, _, ForkT]) GetStateFork(c ContextT) (any, error) {
 	return beacontypes.ValidatorResponse{
 		ExecutionOptimistic: false, // stubbed
 		Finalized:           false, // stubbed
-		Data: beacontypes.ForkResponse{
-			PreviousVersion: fork.GetPreviousVersion(),
-			CurrentVersion:  fork.GetCurrentVersion(),
-			Epoch:           fork.GetEpoch(),
-		},
+		Data:                beacontypes.ForkResponse{Fork: fork},
 	}, nil
 }
