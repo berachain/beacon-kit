@@ -21,11 +21,9 @@
 package types
 
 import (
-	"encoding/json"
-	"strconv"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // TODO: change this to a arbitrary response type. types.Wrap(data) should
@@ -94,17 +92,7 @@ type RandaoData struct {
 }
 
 type ForkResponse struct {
-	Fork
-}
-
-func (fr ForkResponse) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		PreviousVersion string `json:"previous_version"`
-		CurrentVersion  string `json:"current_version"`
-		Epoch           string `json:"epoch"`
-	}{
-		PreviousVersion: fr.GetPreviousVersion().String(),
-		CurrentVersion:  fr.GetCurrentVersion().String(),
-		Epoch:           strconv.FormatUint(fr.GetEpoch().Unwrap(), 10),
-	})
+	PreviousVersion common.Version `json:"previous_version"`
+	CurrentVersion  common.Version `json:"current_version"`
+	Epoch           math.Epoch     `json:"epoch"`
 }
