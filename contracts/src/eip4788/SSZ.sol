@@ -1,51 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.21;
 
+/// @notice Library for SSZ (Simple Serialize) proof verification.
 /// @author [madlabman](https://github.com/madlabman/eip-4788-proof)
 library SSZ {
     /// @dev SHA256 precompile address.
     uint8 internal constant SHA256 = 0x02;
-    /// @dev Length of the validator pubkey in bytes.
-    uint8 internal constant VALIDATOR_PUBKEY_LENGTH = 48;
 
     error BranchHasMissingItem();
     error BranchHasExtraItem();
-    error InvalidValidatorPubkeyLength();
-
-    function validatorPubkeyHashTreeRoot(bytes memory pubkey)
-        internal
-        view
-        returns (bytes32 root)
-    {
-        if (pubkey.length != VALIDATOR_PUBKEY_LENGTH) {
-            revert InvalidValidatorPubkeyLength();
-        }
-
-        assembly {
-            // Call sha256 precompile with the pubkey pointer
-            let result :=
-                staticcall(gas(), SHA256, add(pubkey, 32), 0x40, 0x00, 0x20)
-            // Precompile returns no data on OutOfGas error.
-            if eq(result, 0) { revert(0, 0) }
-
-            root := mload(0x00)
-        }
-    }
-
-    function addressHashTreeRoot(address v)
-        internal
-        pure
-        returns (bytes32 root)
-    {
-        return bytes32(bytes20(v));
-    }
-
-    function uint64HashTreeRoot(uint64 v) internal pure returns (bytes32) {
-        v = ((v & 0xFF00FF00FF00FF00) >> 8) | ((v & 0x00FF00FF00FF00FF) << 8);
-        v = ((v & 0xFFFF0000FFFF0000) >> 16) | ((v & 0x0000FFFF0000FFFF) << 16);
-        v = (v >> 32) | (v << 32);
-        return bytes32(uint256(v) << 192);
-    }
 
     /// @notice Modified version of `verify` from `MerkleProofLib` to support
     /// generalized indices and sha256 precompile.
