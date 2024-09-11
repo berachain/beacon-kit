@@ -78,8 +78,8 @@ github.com/berachain/beacon-kit/mod/async v0.0.0-20240821213929-f32b8e2dc5c8 h1:
 github.com/berachain/beacon-kit/mod/async v0.0.0-20240821213929-f32b8e2dc5c8/go.mod h1:3wR01SglBZ+HvDvhbugz/Mxem22JUThJRwo2Ec8Q0No=
 github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df h1:mnD1LKqDQ0n+OFdDqOuvKaEiUKRJzsO4V0wyyn/gJYg=
 github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df/go.mod h1:bTFB4Rdvm7D/WdwPYkqQ+8T0XOMBv0pzXfp1E46BFX8=
-github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240821182712-08bbb9c7d685 h1:pTvESOpJ0a6oCV81+pec+zoTBmojZ8C1+7fd4HtKpbI=
-github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240821182712-08bbb9c7d685/go.mod h1:jduqdSJEtO5eL43l/MpfnIK81o81m10wzt6Gb++Qi9M=
+github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240904192942-99aeabe6bb1f h1:Vzglhdv60M7LBS3FBuqK0eUX8vYJBJnL/RwYpxUswpo=
+github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240904192942-99aeabe6bb1f/go.mod h1:cZd8cFZ+ylhh3/NUbrdXO2ri1/7KOaYBjo1B8MgbgMM=
 github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240809202957-3e3f169ad720 h1:rVltwwt4JAhpvqeRDZ8J07e9XM+jzfDCJEghPA4r5lg=
 github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240809202957-3e3f169ad720/go.mod h1:kGxAesqTkt75+QYQ73O9I5PqAicSL9JGh5wypiWgb8I=
 github.com/berachain/beacon-kit/mod/errors v0.0.0-20240806211103-d1105603bfc0 h1:kCSrkb/uVXfMKJPKjf0c7nlJkwn5cNwMxtzRW4zNq2A=

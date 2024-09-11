@@ -24,6 +24,7 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/berachain/beacon-kit/beacond/cmd/types"
 	clibuilder "github.com/berachain/beacon-kit/mod/cli/pkg/builder"
 	clicomponents "github.com/berachain/beacon-kit/mod/cli/pkg/components"
 	nodebuilder "github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
@@ -44,7 +45,7 @@ func run() error {
 	// Build the node using the node-core.
 	nb := nodebuilder.New(
 		// Set the Runtime Components to the Default.
-		nodebuilder.WithComponents[Node, *Logger, *LoggerConfig](
+		nodebuilder.WithComponents[Node, *types.Logger, *types.LoggerConfig](
 			DefaultComponents(),
 		),
 	)
@@ -52,15 +53,19 @@ func run() error {
 	// Build the root command using the builder
 	cb := clibuilder.New(
 		// Set the Name to the Default.
-		clibuilder.WithName[Node, *ExecutionPayload, *Logger](
+		clibuilder.WithName[Node, *types.ExecutionPayload, *types.Logger](
 			"beacond",
 		),
 		// Set the Description to the Default.
-		clibuilder.WithDescription[Node, *ExecutionPayload, *Logger](
+		clibuilder.WithDescription[
+			Node, *types.ExecutionPayload, *types.Logger,
+		](
 			"A basic beacon node, usable most standard networks.",
 		),
 		// Set the Runtime Components to the Default.
-		clibuilder.WithComponents[Node, *ExecutionPayload, *Logger](
+		clibuilder.WithComponents[
+			Node, *types.ExecutionPayload, *types.Logger,
+		](
 			append(
 				clicomponents.DefaultClientComponents(),
 				// TODO: remove these, and eventually pull cfg and chainspec
@@ -70,7 +75,7 @@ func run() error {
 		),
 		// Set the NodeBuilderFunc to the NodeBuilder Build.
 		clibuilder.WithNodeBuilderFunc[
-			Node, *ExecutionPayload, *Logger,
+			Node, *types.ExecutionPayload, *types.Logger,
 		](nb.Build),
 	)
 
