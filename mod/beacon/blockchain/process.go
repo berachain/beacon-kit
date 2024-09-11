@@ -80,7 +80,7 @@ func (s *Service[
 	// If required, we want to forkchoice at the end of post
 	// block processing.
 	// TODO: this is hood as fuck.
-	// We won't send a fcu if the block is bad, should be addressed
+	// We won't send an fcu if the block is bad, should be addressed
 	// via ticker later.
 	if err = s.dispatcher.Publish(
 		async.NewEvent(
