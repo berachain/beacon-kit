@@ -44,6 +44,7 @@ func Commands[ExecutionPayloadT constraints.EngineType[ExecutionPayloadT]](
 
 	cmd.AddCommand(
 		NewValidateDeposit(chainSpec),
+		NewCreateValidator[ExecutionPayloadT](chainSpec),
 	)
 
 	return cmd
