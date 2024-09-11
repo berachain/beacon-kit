@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package main
+package types
 
 import (
 	"cosmossdk.io/core/appmodule/v2"
