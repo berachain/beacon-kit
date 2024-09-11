@@ -42,9 +42,6 @@ const (
 	// defaultValidatorPrivateKey is the default value for the
 	// validatorPrivateKey flag.
 	defaultValidatorPrivateKey = ""
-
-	// defaultRPCURL is the default value for the rpcURL flag.
-	defaultRPCURL = "http://localhost:8545"
 )
 
 const (
