@@ -38,7 +38,8 @@ type BeaconState[
 	KVStoreT any,
 	ValidatorT Validator[ValidatorT, WithdrawalCredentialsT],
 	ValidatorsT,
-	WithdrawalT any,
+	WithdrawalT,
+	WithdrawalsT any,
 	WithdrawalCredentialsT interface {
 		~[32]byte
 		ToExecutionAddress() (common.ExecutionAddress, error)
@@ -53,11 +54,11 @@ type BeaconState[
 	HashTreeRoot() common.Root
 	ReadOnlyBeaconState[
 		BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-		ForkT, ValidatorT, ValidatorsT,
+		ForkT, ValidatorT, ValidatorsT, WithdrawalT, WithdrawalsT,
 	]
 	WriteOnlyBeaconState[
 		BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-		ForkT, ValidatorT,
+		ForkT, ValidatorT, WithdrawalT, WithdrawalsT,
 	]
 }
 
@@ -65,7 +66,7 @@ type BeaconState[
 type ReadOnlyBeaconState[
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	ExecutionPayloadHeaderT, ForkT,
-	ValidatorT, ValidatorsT any,
+	ValidatorT, ValidatorsT, WithdrawalT, WithdrawalsT any,
 ] interface {
 	ReadOnlyRandaoMixes
 	ReadOnlyStateRoots
@@ -84,6 +85,7 @@ type ReadOnlyBeaconState[
 	GetTotalValidators() (uint64, error)
 	GetValidators() (ValidatorsT, error)
 	GetValidatorsByEffectiveBalance() ([]ValidatorT, error)
+	GetWithdrawals() (WithdrawalsT, error)
 	ValidatorIndexByCometBFTAddress(
 		cometBFTAddress []byte,
 	) (math.ValidatorIndex, error)
@@ -92,7 +94,7 @@ type ReadOnlyBeaconState[
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
 type WriteOnlyBeaconState[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT any,
+	ForkT, ValidatorT, WithdrawalT, WithdrawalsT any,
 ] interface {
 	WriteOnlyRandaoMixes
 	WriteOnlyStateRoots
@@ -106,6 +108,7 @@ type WriteOnlyBeaconState[
 		ExecutionPayloadHeaderT,
 	) error
 	SetSlot(math.Slot) error
+	SetWithdrawals(WithdrawalsT) error
 	UpdateBlockRootAtIndex(uint64, common.Root) error
 }
 
