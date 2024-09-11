@@ -51,7 +51,7 @@ func ProveExecutionNumberInBlock[
 	}
 
 	// Then get the proof of the beacon state in the beacon block.
-	stateInBlockProof, err := ProveBeaconStateInBlock(bbh, false)
+	stateInBlockProof, err := ProveBeaconStateInBlock(bbh)
 	if err != nil {
 		return nil, common.Root{}, err
 	}
@@ -97,9 +97,9 @@ func ProveExecutionNumberInState[
 
 	proof := make([]common.Root, len(numberInStateProof.Hashes))
 	for i, hash := range numberInStateProof.Hashes {
-		proof[i] = common.NewRootFromBytes(hash)
+		proof[i] = common.Root(hash)
 	}
-	return proof, common.NewRootFromBytes(numberInStateProof.Leaf), nil
+	return proof, common.Root(numberInStateProof.Leaf), nil
 }
 
 // verifyExecutionNumberInBlock verifies the execution number in the beacon

@@ -51,7 +51,7 @@ func ProveExecutionFeeRecipientInBlock[
 	}
 
 	// Then get the proof of the beacon state in the beacon block.
-	stateInBlockProof, err := ProveBeaconStateInBlock(bbh, false)
+	stateInBlockProof, err := ProveBeaconStateInBlock(bbh)
 	if err != nil {
 		return nil, common.Root{}, err
 	}
@@ -100,9 +100,9 @@ func ProveExecutionFeeRecipientInState[
 
 	proof := make([]common.Root, len(feeRecipientInStateProof.Hashes))
 	for i, hash := range feeRecipientInStateProof.Hashes {
-		proof[i] = common.NewRootFromBytes(hash)
+		proof[i] = common.Root(hash)
 	}
-	return proof, common.NewRootFromBytes(feeRecipientInStateProof.Leaf), nil
+	return proof, common.Root(feeRecipientInStateProof.Leaf), nil
 }
 
 // verifyExecutionFeeRecipientInBlock verifies the execution fee recipient in

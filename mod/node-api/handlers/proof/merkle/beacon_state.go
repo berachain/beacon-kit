@@ -21,16 +21,14 @@
 package merkle
 
 import (
-	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 )
 
 // ProveBeaconStateInBlock generates a proof for the beacon state in the
 // beacon block. It uses the fastssz library to generate the proof.
 func ProveBeaconStateInBlock(
-	bbh types.BeaconBlockHeader, verifyProof bool,
+	bbh types.BeaconBlockHeader,
 ) ([]common.Root, error) {
 	blockProofTree, err := bbh.GetTree()
 	if err != nil {
@@ -44,37 +42,7 @@ func ProveBeaconStateInBlock(
 
 	proof := make([]common.Root, len(stateInBlockProof.Hashes))
 	for i, hash := range stateInBlockProof.Hashes {
-		proof[i] = common.NewRootFromBytes(hash)
+		proof[i] = common.Root(hash)
 	}
-
-	if verifyProof {
-		if err = verifyBeaconStateInBlock(
-			bbh, proof, common.NewRootFromBytes(stateInBlockProof.Leaf),
-		); err != nil {
-			return nil, err
-		}
-	}
-
 	return proof, nil
-}
-
-// verifyBeaconStateInBlock verifies the beacon state proof in the block.
-//
-// TODO: verifying the proof is not absolutely necessary.
-func verifyBeaconStateInBlock(
-	bbh types.BeaconBlockHeader,
-	proof []common.Root,
-	leaf common.Root,
-) error {
-	beaconRoot := bbh.HashTreeRoot()
-	if beaconRootVerified, err := merkle.VerifyProof(
-		StateGIndexDenebBlock, leaf, proof, beaconRoot,
-	); err != nil {
-		return err
-	} else if !beaconRootVerified {
-		return errors.New(
-			"beacon state proof failed to verify against beacon root",
-		)
-	}
-	return nil
 }
