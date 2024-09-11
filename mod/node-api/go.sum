@@ -20,8 +20,8 @@ github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240806160829-cde2d1
 github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240806160829-cde2d1347e7e/go.mod h1:7/SXz8S5VpFl2thcKuBdu1OId+SgI1o4N+S1FB92Zw8=
 github.com/berachain/beacon-kit/mod/log v0.0.0-20240807213340-5779c7a563cd h1:DYSjsq80Omqqlt+z2VcYsSxjZpLqCDRz7CvUDBrLDJE=
 github.com/berachain/beacon-kit/mod/log v0.0.0-20240807213340-5779c7a563cd/go.mod h1:BilVBmqKhC4GXYCaIs8QnKaR14kpn3YmF5uYBdayF9I=
-github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240825202904-98dbc4268be1 h1:cYa9o1Lbyz6QkC/X5bECJ1S2p22PeFIlX8svZmIb8+c=
-github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240825202904-98dbc4268be1/go.mod h1:Mrq1qol8vbkgZp2IMPFwngg75qE3k9IvT2MouBEhuus=
+github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240911165923-82f71ec86570 h1:w0Gkg31VQRFDv0EJjYgVtlpza7kSaJq7U28zxZjfZeE=
+github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240911165923-82f71ec86570/go.mod h1:Mrq1qol8vbkgZp2IMPFwngg75qE3k9IvT2MouBEhuus=
 github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240717225334-64ec6650da31 h1:1bJbJcoksyXfYMiga8YxPnkVKqT1lKwym/8kZnEPz58=
 github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240717225334-64ec6650da31/go.mod h1:sIzib45R7B9Q99yvsYUcj2xJZPBpe3J9JbcBDMZNp7E=
 github.com/bits-and-blooms/bitset v1.13.0 h1:bAQ9OPNFYbGHV6Nez0tmNI0RiEu7/hxlYJRUA0wFAVE=

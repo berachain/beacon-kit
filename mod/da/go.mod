@@ -9,7 +9,7 @@ require (
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240808194557-e72e74f58197
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240806211103-d1105603bfc0
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240807213340-5779c7a563cd
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240825202904-98dbc4268be1
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240911165923-82f71ec86570
 	github.com/crate-crypto/go-kzg-4844 v1.1.0
 	github.com/ethereum/c-kzg-4844 v1.0.3
 	github.com/karalabe/ssz v0.2.1-0.20240724074312-3d1ff7a6f7c4
