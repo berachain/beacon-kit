@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-/// @title IBeaconDepositContract
+/// @title IDepositContract
 /// @author Berachain Team.
-/// @dev This contract is used to create validator, deposit and withdraw stake from the Beaconchain.
-interface IBeaconDepositContract {
+/// @dev This contract is used to create validator, deposit and withdraw stake from the Beacon chain.
+interface IDepositContract {
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                        EVENTS                              */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
@@ -47,11 +47,8 @@ interface IBeaconDepositContract {
     /// @dev Error thrown when the signature length is not 96 bytes.
     error InvalidSignatureLength();
 
-    /// @dev Error thrown when the deposit is not authorized.
-    error UnauthorizedDeposit();
-
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
-    /*                        WRITES                              */
+    /*                            WRITES                          */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /**
@@ -62,6 +59,7 @@ interface IBeaconDepositContract {
      * validator operator public key, if subsequent deposit it is the depositor's public key.
      * @param amount is the amount of stake native/ERC20 token to be deposited, in Gwei.
      * @param signature is the signature used only on the first deposit.
+     * @dev emits the Deposit event upon successful deposit.
      */
     function deposit(
         bytes calldata pubkey,
@@ -71,11 +69,4 @@ interface IBeaconDepositContract {
     )
         external
         payable;
-
-    /**
-     * @notice Permits an address to use the deposit contract for N number of deposits.
-     * @param depositor the address to allow deposits for.
-     * @param number the number of deposits to allow.
-     */
-    function allowDeposit(address depositor, uint64 number) external;
 }
