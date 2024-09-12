@@ -21,6 +21,7 @@
 package types
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"strconv"
 
@@ -106,5 +107,52 @@ func (fr ForkResponse) MarshalJSON() ([]byte, error) {
 		PreviousVersion: fr.GetPreviousVersion().String(),
 		CurrentVersion:  fr.GetCurrentVersion().String(),
 		Epoch:           strconv.FormatUint(fr.GetEpoch().Unwrap(), 10),
+	})
+}
+
+type ValidatorResponseData struct {
+	Index     uint64    `json:"index"`
+	Balance   uint64    `json:"balance"`
+	Status    string    `json:"status"`
+	Validator Validator `json:"validator"`
+}
+
+func (vrd ValidatorResponseData) MarshalJSON() ([]byte, error) {
+
+	withdrawalCredentials := vrd.Validator.GetWithdrawalCredentials()
+	withdrawalCredentialsBytes := withdrawalCredentials[:]
+
+	type ValidatorJSON struct {
+		PublicKey                  string `json:"pubkey"`
+		WithdrawalCredentials      string `json:"withdrawal_credentials"`
+		EffectiveBalance           string `json:"effective_balance"`
+		Slashed                    bool   `json:"slashed"`
+		ActivationEligibilityEpoch string `json:"activation_eligibility_epoch"`
+		ActivationEpoch            string `json:"activation_epoch"`
+		ExitEpoch                  string `json:"exit_epoch"`
+		WithdrawableEpoch          string `json:"withdrawable_epoch"`
+	}
+
+	type ResponseJSON struct {
+		Index     string        `json:"index"`
+		Balance   string        `json:"balance"`
+		Status    string        `json:"status"`
+		Validator ValidatorJSON `json:"validator"`
+	}
+
+	return json.Marshal(ResponseJSON{
+		Index:   strconv.FormatUint(vrd.Index, 10),
+		Balance: strconv.FormatUint(vrd.Balance, 10),
+		Status:  vrd.Status,
+		Validator: ValidatorJSON{
+			PublicKey:                  vrd.Validator.GetPubkey().String(),
+			WithdrawalCredentials:      "0x" + hex.EncodeToString(withdrawalCredentialsBytes),
+			EffectiveBalance:           strconv.FormatUint(uint64(vrd.Validator.GetEffectiveBalance()), 10),
+			Slashed:                    vrd.Validator.IsSlashed(),
+			ActivationEligibilityEpoch: strconv.FormatUint(uint64(vrd.Validator.GetActivationEligibilityEpoch()), 10),
+			ActivationEpoch:            strconv.FormatUint(uint64(vrd.Validator.GetActivationEpoch()), 10),
+			ExitEpoch:                  strconv.FormatUint(uint64(vrd.Validator.GetExitEpoch()), 10),
+			WithdrawableEpoch:          strconv.FormatUint(uint64(vrd.Validator.GetWithdrawableEpoch()), 10),
+		},
 	})
 }
