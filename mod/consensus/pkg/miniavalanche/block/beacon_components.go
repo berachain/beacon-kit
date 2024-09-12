@@ -36,7 +36,9 @@ var (
 	errNilBlock = errors.New("nil abci request")
 )
 
-func (b *StatelessBlock) GetBeaconBlock(forkVersion uint32) (miniavalanche.BeaconBlockT, error) {
+func (b *StatelessBlock) GetBeaconBlock(
+	forkVersion uint32,
+) (miniavalanche.BeaconBlockT, error) {
 	var blk miniavalanche.BeaconBlockT
 	if b == nil {
 		return blk, errNilBlock
@@ -47,7 +49,10 @@ func (b *StatelessBlock) GetBeaconBlock(forkVersion uint32) (miniavalanche.Beaco
 	return blk.NewFromSSZ(b.BlkContent.BeaconBlockByte, forkVersion)
 }
 
-func (b *StatelessBlock) GetBlobSidecars() (miniavalanche.BlobSidecarsT, error) {
+func (b *StatelessBlock) GetBlobSidecars() (
+	miniavalanche.BlobSidecarsT,
+	error,
+) {
 	var sidecars miniavalanche.BlobSidecarsT
 	if b == nil {
 		return sidecars, errNilBlock

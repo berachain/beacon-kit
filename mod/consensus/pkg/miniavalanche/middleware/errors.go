@@ -22,6 +22,7 @@ package middleware
 
 import "github.com/berachain/beacon-kit/mod/errors"
 
+//nolint:gochecknoglobals // errors
 var (
 	ErrInitGenesisTimeout = func(errTimeout error) error {
 		return errors.Wrapf(errTimeout,

@@ -18,47 +18,49 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package vm
+package vm_test
 
 import (
 	"log"
 	"testing"
 
 	"github.com/ava-labs/avalanchego/ids"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/miniavalanche/vm"
 	"github.com/stretchr/testify/require"
 )
 
 var (
-	testGenesisValidators []*Validator
+	testGenesisValidators []*vm.Validator
 	testEthGenesisBytes   []byte
 )
 
+//nolint:gochecknoinits // prolly useful test stuff
 func init() {
 	// init testEthGenesisBytes
 	var err error
-	testEthGenesisBytes, err = DefaultEthGenesisBytes()
+	testEthGenesisBytes, err = vm.DefaultEthGenesisBytes()
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// init testValidators
-	val0, err := NewValidator(ids.GenerateTestNodeID(), uint64(999))
+	val0, err := vm.NewValidator(ids.GenerateTestNodeID(), uint64(999))
 	if err != nil {
 		log.Fatal(err)
 	}
-	val1, err := NewValidator(ids.GenerateTestNodeID(), uint64(1001))
+	val1, err := vm.NewValidator(ids.GenerateTestNodeID(), uint64(1001))
 	if err != nil {
 		log.Fatal(err)
 	}
-	testGenesisValidators = []*Validator{val0, val1}
+	testGenesisValidators = []*vm.Validator{val0, val1}
 }
 
 func TestEthGenesisEncoding(t *testing.T) {
 	r := require.New(t)
 
 	// setup genesis
-	genesisData := &Base64Genesis{
-		Validators: []Base64GenesisValidator{
+	genesisData := &vm.Base64Genesis{
+		Validators: []vm.Base64GenesisValidator{
 			{
 				NodeID: testGenesisValidators[0].NodeID.String(),
 				Weight: testGenesisValidators[0].Weight,
@@ -72,14 +74,14 @@ func TestEthGenesisEncoding(t *testing.T) {
 	}
 
 	// marshal genesis
-	genContent, err := BuildBase64GenesisString(genesisData)
+	genContent, err := vm.BuildBase64GenesisString(genesisData)
 	r.NoError(err)
 
 	// unmarshal genesis
-	parsedGenesisData, err := ParseBase64StringToBytes(genContent)
+	parsedGenesisData, err := vm.ParseBase64StringToBytes(genContent)
 	r.NoError(err)
 
-	_, rValidators, rGenEthData, err := parseGenesis(parsedGenesisData)
+	_, rValidators, rGenEthData, err := vm.ParseGenesis(parsedGenesisData)
 	r.NoError(err)
 	r.Equal(testGenesisValidators, rValidators)
 	r.Equal(testEthGenesisBytes, rGenEthData)

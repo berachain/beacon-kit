@@ -36,8 +36,12 @@ import (
 /*                                 InitGenesis                                */
 /* -------------------------------------------------------------------------- */
 
-// vm.ValidatorManager should be filled with the content in returned ValidatorUpdates
-func (vm *VMMiddleware) InitGenesis(ctx context.Context, bz []byte) (transition.ValidatorUpdates, error) {
+// vm.ValidatorManager should be filled with
+// the content in returned ValidatorUpdates.
+func (vm *VMMiddleware) InitGenesis(
+	ctx context.Context,
+	bz []byte,
+) (transition.ValidatorUpdates, error) {
 	waitCtx, cancel := context.WithTimeout(ctx, AwaitTimeout)
 	defer cancel()
 
@@ -57,7 +61,9 @@ func (vm *VMMiddleware) InitGenesis(ctx context.Context, bz []byte) (transition.
 
 // waitForGenesisProcessed waits until the genesis data has been processed and
 // returns the validator updates, or err if the context is cancelled.
-func (vm *VMMiddleware) waitForGenesisProcessed(ctx context.Context) (transition.ValidatorUpdates, error) {
+func (vm *VMMiddleware) waitForGenesisProcessed(
+	ctx context.Context,
+) (transition.ValidatorUpdates, error) {
 	select {
 	case <-ctx.Done():
 		return nil, ErrInitGenesisTimeout(ctx.Err())
@@ -71,7 +77,10 @@ func (vm *VMMiddleware) waitForGenesisProcessed(ctx context.Context) (transition
 /* -------------------------------------------------------------------------- */
 
 // BuildBlock is the internal handler for preparing proposals.
-func (vm *VMMiddleware) BuildBlock(ctx context.Context, slotData *miniavalanche.SlotDataT) ([]byte, []byte, error) {
+func (vm *VMMiddleware) BuildBlock(
+	ctx context.Context,
+	slotData *miniavalanche.SlotDataT,
+) ([]byte, []byte, error) {
 	awaitCtx, cancel := context.WithTimeout(ctx, AwaitTimeout)
 	defer cancel()
 
@@ -111,20 +120,24 @@ func (vm *VMMiddleware) BuildBlock(ctx context.Context, slotData *miniavalanche.
 }
 
 // waitForBuiltBeaconBlock waits for the built beacon block to be received.
-func (vm *VMMiddleware) waitForBuiltBeaconBlock(ctx context.Context) (miniavalanche.BeaconBlockT, error) {
+func (vm *VMMiddleware) waitForBuiltBeaconBlock(
+	ctx context.Context,
+) (miniavalanche.BeaconBlockT, error) {
 	select {
 	case <-ctx.Done():
-		return *new(miniavalanche.BeaconBlockT), ErrBuildBeaconBlockTimeout(ctx.Err())
+		return miniavalanche.BeaconBlockT(nil), ErrBuildBeaconBlockTimeout(ctx.Err())
 	case bbEvent := <-vm.subBuiltBeaconBlock:
 		return bbEvent.Data(), bbEvent.Error()
 	}
 }
 
 // waitForBuiltSidecars waits for the built sidecars to be received.
-func (vm *VMMiddleware) waitForBuiltSidecars(ctx context.Context) (miniavalanche.BlobSidecarsT, error) {
+func (vm *VMMiddleware) waitForBuiltSidecars(
+	ctx context.Context,
+) (miniavalanche.BlobSidecarsT, error) {
 	select {
 	case <-ctx.Done():
-		return *new(miniavalanche.BlobSidecarsT), ErrBuildSidecarsTimeout(ctx.Err())
+		return miniavalanche.BlobSidecarsT(nil), ErrBuildSidecarsTimeout(ctx.Err())
 	case scEvent := <-vm.subBuiltSidecars:
 		return scEvent.Data(), scEvent.Error()
 	}
@@ -132,7 +145,10 @@ func (vm *VMMiddleware) waitForBuiltSidecars(ctx context.Context) (miniavalanche
 
 // handleBuiltBeaconBlockAndSidecars gossips the built beacon block and blob
 // sidecars to the network.
-func (vm *VMMiddleware) handleBuiltBeaconBlockAndSidecars(bb miniavalanche.BeaconBlockT, sc miniavalanche.BlobSidecarsT) ([]byte, []byte, error) {
+func (vm *VMMiddleware) handleBuiltBeaconBlockAndSidecars(
+	bb miniavalanche.BeaconBlockT,
+	sc miniavalanche.BlobSidecarsT,
+) ([]byte, []byte, error) {
 	bbBz, bbErr := bb.MarshalSSZ()
 	if bbErr != nil {
 		return nil, nil, bbErr
@@ -150,8 +166,11 @@ func (vm *VMMiddleware) handleBuiltBeaconBlockAndSidecars(bb miniavalanche.Beaco
 
 // VerifyBlock processes the proposal for the ABCI middleware.
 // It handles both the beacon block and blob sidecars concurrently.
-// Returns error if block does not verify, nil otherwise
-func (vm *VMMiddleware) VerifyBlock(ctx context.Context, outerBlk *block.StatelessBlock) error {
+// Returns error if block does not verify, nil otherwise.
+func (vm *VMMiddleware) VerifyBlock(
+	ctx context.Context,
+	outerBlk *block.StatelessBlock,
+) error {
 	awaitCtx, cancel := context.WithTimeout(ctx, AwaitTimeout)
 	defer cancel()
 
@@ -205,20 +224,24 @@ func (vm *VMMiddleware) VerifyBlock(ctx context.Context, outerBlk *block.Statele
 
 // waitForBeaconBlockVerification waits for the built beacon block to be
 // verified.
-func (vm *VMMiddleware) waitForBeaconBlockVerification(ctx context.Context) (miniavalanche.BeaconBlockT, error) {
+func (vm *VMMiddleware) waitForBeaconBlockVerification(
+	ctx context.Context,
+) (miniavalanche.BeaconBlockT, error) {
 	select {
 	case <-ctx.Done():
-		return *new(miniavalanche.BeaconBlockT), ErrVerifyBeaconBlockTimeout(ctx.Err())
+		return miniavalanche.BeaconBlockT(nil), ErrVerifyBeaconBlockTimeout(ctx.Err())
 	case vEvent := <-vm.subBBVerified:
 		return vEvent.Data(), vEvent.Error()
 	}
 }
 
 // waitForSidecarVerification waits for the built sidecars to be verified.
-func (vm *VMMiddleware) waitForSidecarVerification(ctx context.Context) (miniavalanche.BlobSidecarsT, error) {
+func (vm *VMMiddleware) waitForSidecarVerification(
+	ctx context.Context,
+) (miniavalanche.BlobSidecarsT, error) {
 	select {
 	case <-ctx.Done():
-		return *new(miniavalanche.BlobSidecarsT), ErrVerifySidecarsTimeout(ctx.Err())
+		return miniavalanche.BlobSidecarsT(nil), ErrVerifySidecarsTimeout(ctx.Err())
 	case vEvent := <-vm.subSCVerified:
 		return vEvent.Data(), vEvent.Error()
 	}
@@ -229,12 +252,15 @@ func (vm *VMMiddleware) waitForSidecarVerification(ctx context.Context) (miniava
 /* -------------------------------------------------------------------------- */
 
 // AcceptBlock returns the validator set updates from the beacon state.
-func (vm *VMMiddleware) AcceptBlock(ctx context.Context, outerBlk *block.StatelessBlock) (transition.ValidatorUpdates, error) {
+func (vm *VMMiddleware) AcceptBlock(
+	ctx context.Context,
+	outerBlk *block.StatelessBlock,
+) (transition.ValidatorUpdates, error) {
 	awaitCtx, cancel := context.WithTimeout(ctx, AwaitTimeout)
 	defer cancel()
 
 	// flush the channel to ensure that we are not handling old data.
-	if numMsgs := async.ClearChan(vm.subFinalValidatorUpdates); numMsgs > 0 {
+	if numMsgs := async.ClearChan(vm.subValidatorUpdates); numMsgs > 0 {
 		vm.logger.Error(
 			"WARNING: messages remaining in final validator updates channel",
 			"num_msgs", numMsgs)
@@ -278,7 +304,7 @@ func (vm *VMMiddleware) waitForFinalValidatorUpdates(
 	select {
 	case <-ctx.Done():
 		return nil, ErrFinalValidatorUpdatesTimeout(ctx.Err())
-	case event := <-vm.subFinalValidatorUpdates:
+	case event := <-vm.subValidatorUpdates:
 		return event.Data(), event.Error()
 	}
 }

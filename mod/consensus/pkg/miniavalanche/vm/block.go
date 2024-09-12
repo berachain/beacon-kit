@@ -24,9 +24,8 @@ import (
 	"context"
 
 	"github.com/ava-labs/avalanchego/snow/consensus/snowman"
-	"go.uber.org/zap"
-
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/miniavalanche/block"
+	"go.uber.org/zap"
 )
 
 var _ snowman.Block = (*StatefulBlock)(nil)

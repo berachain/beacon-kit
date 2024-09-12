@@ -35,7 +35,6 @@ import (
 	"github.com/ava-labs/avalanchego/snow/engine/snowman/block"
 	"github.com/ava-labs/avalanchego/snow/validators"
 	"github.com/ava-labs/avalanchego/version"
-
 	berablock "github.com/berachain/beacon-kit/mod/consensus/pkg/miniavalanche/block"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/miniavalanche/middleware"
 )
@@ -43,7 +42,8 @@ import (
 var (
 	_ block.ChainVM = (*VM)(nil)
 
-	// mini-avalanche seems to distinguish from third party libs (e.g. github.com/shirou/gopsutils)
+	// mini-avalanche seems to distinguish from third party libs
+	// (e.g. github.com/shirou/gopsutils).
 	errNotYetImplemented = errors.New("mini-avalanche: not yet implemented")
 )
 
@@ -80,16 +80,26 @@ func (vm *VM) Initialize(
 	vm.db = db
 
 	// parse genesis to retrieve its components
-	genBlk, genVals, ethGen, err := parseGenesis(genesisBytes)
+	genBlk, genVals, ethGen, err := ParseGenesis(genesisBytes)
 	if err != nil {
 		return fmt.Errorf("failed initializing VM: %w", err)
 	}
 
 	// init validator set, static for now
 	for _, val := range genVals {
-		err = vm.validators.AddStaker(chainCtx.SubnetID, val.NodeID, nil, val.id, val.Weight)
+		err = vm.validators.AddStaker(
+			chainCtx.SubnetID,
+			val.NodeID,
+			nil,
+			val.id,
+			val.Weight,
+		)
 		if err != nil {
-			return fmt.Errorf("failed registration of validator %v: %w", val.id, err)
+			return fmt.Errorf(
+				"failed registration of validator %v: %w",
+				val.id,
+				err,
+			)
 		}
 	}
 
@@ -112,7 +122,7 @@ func (vm *VM) Initialize(
 	// setup in Genesis. We don't even check data correspondence and assume
 	// genesis is well formatted
 	var genesisState map[string]json.RawMessage
-	if err := json.Unmarshal(ethGen, &genesisState); err != nil {
+	if err = json.Unmarshal(ethGen, &genesisState); err != nil {
 		return fmt.Errorf("failed unmarshalling genesis: %w", err)
 	}
 
@@ -161,7 +171,11 @@ func (vm *VM) HealthCheck(context.Context) (interface{}, error) {
 	return nil, fmt.Errorf("healthCheck: %w", errNotYetImplemented)
 }
 
-func (vm *VM) Connected(_ context.Context, _ ids.NodeID, _ *version.Application) error {
+func (vm *VM) Connected(
+	_ context.Context,
+	_ ids.NodeID,
+	_ *version.Application,
+) error {
 	return nil
 }
 
@@ -179,20 +193,23 @@ func (vm *VM) getBlock(blkID ids.ID) (*StatefulBlock, error) {
 		return fullBlk, nil
 	}
 
-	switch blk, err := vm.state.GetBlock(blkID); err {
-	case nil:
+	switch blk, err := vm.state.GetBlock(blkID); {
+	case err == nil:
 		return &StatefulBlock{
 			StatelessBlock: blk,
 			vm:             vm,
 		}, nil
-	case database.ErrNotFound:
+	case errors.Is(err, database.ErrNotFound):
 		return nil, database.ErrNotFound
 	default:
 		return nil, fmt.Errorf("failed retrieving block %s: %w", blkID, err)
 	}
 }
 
-func (vm *VM) ParseBlock(_ context.Context, blockBytes []byte) (snowman.Block, error) {
+func (vm *VM) ParseBlock(
+	_ context.Context,
+	blockBytes []byte,
+) (snowman.Block, error) {
 	blk, err := berablock.ParseStatelessBlock(blockBytes)
 	if err != nil {
 		return nil, err
@@ -218,12 +235,16 @@ func (vm *VM) LastAccepted(context.Context) (ids.ID, error) {
 }
 
 func (vm *VM) GetBlockIDAtHeight(_ context.Context, h uint64) (ids.ID, error) {
-	switch blkID, err := vm.state.GetBlockID(h); err {
-	case nil:
-		return blkID, err
-	case database.ErrNotFound:
+	switch blkID, err := vm.state.GetBlockID(h); {
+	case err == nil:
+		return blkID, nil
+	case errors.Is(err, database.ErrNotFound):
 		return ids.Empty, database.ErrNotFound
 	default:
-		return ids.Empty, fmt.Errorf("failed retrieving block ID at height %d: %w", h, err)
+		return ids.Empty, fmt.Errorf(
+			"failed retrieving block ID at height %d: %w",
+			h,
+			err,
+		)
 	}
 }

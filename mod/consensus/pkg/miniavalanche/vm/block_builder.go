@@ -26,15 +26,14 @@ import (
 	"time"
 
 	"github.com/ava-labs/avalanchego/snow/engine/common"
-	"go.uber.org/zap"
-
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/miniavalanche"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/miniavalanche/block"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"go.uber.org/zap"
 )
 
 // how often VM should ping consensus to try and build blocks.
-// ProposerVM is active, hence it will eventually decide when BuildBlock is really called
+// (note: ProposerVM is active).
 const pingInterval = time.Second
 
 type blockBuilder struct {
@@ -60,12 +59,19 @@ func (bb *blockBuilder) Shutdown() {
 	close(bb.shutdown)
 }
 
-func (bb *blockBuilder) BuildBlock(ctx context.Context) (*StatefulBlock, error) {
+func (bb *blockBuilder) BuildBlock(ctx context.Context) (
+	*StatefulBlock,
+	error,
+) {
 	// STEP 1: retrieve parent block data
 	parentBlkID := bb.vm.preferredBlkID
 	parentBlk, err := bb.vm.getBlock(parentBlkID)
 	if err != nil {
-		return nil, fmt.Errorf("failed retrieving preferred block, ID: %v: %w", bb.vm.preferredBlkID, err)
+		return nil, fmt.Errorf(
+			"failed retrieving preferred block, ID: %v: %w",
+			bb.vm.preferredBlkID,
+			err,
+		)
 	}
 
 	// STEP 2: generate block content
@@ -84,7 +90,7 @@ func (bb *blockBuilder) BuildBlock(ctx context.Context) (*StatefulBlock, error) 
 		parentBlkID,
 		childBlkHeight,
 		childChainTime,
-		block.BlockContent{
+		block.Content{
 			BeaconBlockByte: blkBytes,
 			BlobsBytes:      blobBytes,
 		},

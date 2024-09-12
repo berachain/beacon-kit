@@ -26,7 +26,6 @@ import (
 
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/avalanchego/utils/hashing"
-
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/miniavalanche/encoding"
 )
 
@@ -34,14 +33,14 @@ type StatelessBlock struct {
 	ParentID   ids.ID
 	BlkHeight  uint64
 	ChainTime  time.Time
-	BlkContent BlockContent
+	BlkContent Content
 
 	// in memory attributes, unexported since they won't be serialized
 	bytes []byte
 	blkID ids.ID
 }
 
-type BlockContent struct {
+type Content struct {
 	GenesisContent  []byte
 	BeaconBlockByte []byte
 	BlobsBytes      []byte
@@ -51,7 +50,7 @@ func NewStatelessBlock(
 	parentID ids.ID,
 	blkHeight uint64,
 	chainTime time.Time,
-	blkContent BlockContent,
+	blkContent Content,
 ) (*StatelessBlock, error) {
 	b := &StatelessBlock{
 		ParentID:   parentID,

@@ -24,13 +24,13 @@ import (
 	"github.com/ava-labs/avalanchego/utils/logging"
 	"github.com/ava-labs/avalanchego/version"
 	"github.com/ava-labs/avalanchego/vms"
-
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/miniavalanche/middleware"
 )
 
 var (
 	_ vms.Factory = (*Factory)(nil)
 
+	//nolint:gochecknoglobals // will be exported with APIs
 	vmVersion = &version.Semantic{
 		Major: 0,
 		Minor: 0,
@@ -38,7 +38,7 @@ var (
 	}
 )
 
-// Entry point for node to build the VM
+// Entry point for node to build the VM.
 type Factory struct {
 	Config     Config
 	Middleware *middleware.VMMiddleware
