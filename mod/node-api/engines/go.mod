@@ -12,7 +12,7 @@ require (
 
 require (
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df // indirect
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240825202904-98dbc4268be1 // indirect
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240911165923-82f71ec86570 // indirect
 	github.com/cockroachdb/errors v1.11.3 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect
 	github.com/cockroachdb/redact v1.1.5 // indirect

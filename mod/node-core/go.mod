@@ -35,7 +35,7 @@ require (
 	github.com/berachain/beacon-kit/mod/node-api/engines v0.0.0-20240806160829-cde2d1347e7e
 	github.com/berachain/beacon-kit/mod/observability v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240825202904-98dbc4268be1
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240911165923-82f71ec86570
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240717225334-64ec6650da31
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240822205119-6d7f90fac7d7
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240806094948-2c4293ef36c4

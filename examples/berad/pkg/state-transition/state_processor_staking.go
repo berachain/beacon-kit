@@ -187,22 +187,10 @@ func (sp *StateProcessor[
 	return nil
 }
 
-// TODO: This is exposed for the PayloadBuilder and probably should be done in a
-// better way.
+// ExpectedWithdrawals retrieves the expected withdrawals.
 func (sp *StateProcessor[
-	_, BeaconBlockBodyT, _, BeaconStateT, _, _, _,
-	_, _, _, _, ValidatorT, _, WithdrawalT, _, _,
-]) ExpectedWithdrawals(st BeaconStateT) ([]WithdrawalT, error) {
-	return sp.expectedWithdrawals(st)
-}
-
-// ExpectedWithdrawals as defined in the Ethereum 2.0 Specification:
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-get_expected_withdrawals
-//
-//nolint:lll
-func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, WithdrawalT, _, _,
-]) expectedWithdrawals(_ BeaconStateT) ([]WithdrawalT, error) {
-	// TODO: rethink the sweep
-	return []WithdrawalT{}, nil
+	_, _, _, BeaconStateT, _, _, _,
+	_, _, _, _, _, _, _, WithdrawalsT, _,
+]) ExpectedWithdrawals(st BeaconStateT) (WithdrawalsT, error) {
+	return st.GetWithdrawals()
 }
