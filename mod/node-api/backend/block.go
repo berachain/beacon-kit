@@ -21,7 +21,10 @@
 package backend
 
 import (
+	"fmt"
+
 	types "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -68,4 +71,40 @@ func (b Backend[
 		ProposerSlashings: 1,
 		AttesterSlashings: 1,
 	}, nil
+}
+
+func (b Backend[
+	_, _, _, BeaconBlockHeaderT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_,
+]) BlockSignatureAtSlot(slot math.Slot) (bytes.B48, error) {
+	// Get the block header
+	header, err := b.BlockHeaderAtSlot(slot)
+	if err != nil {
+		return bytes.B48{}, err
+	}
+
+	// Extract the signature from the header
+	// This will depend on how your BeaconBlockHeaderT type stores the signature
+	signature, err := b.extractSignatureFromHeader(header)
+	if err != nil {
+		return bytes.B48{}, err
+	}
+
+	return signature, nil
+}
+
+func (b Backend[
+	_, _, _, BeaconBlockHeaderT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_,
+]) extractSignatureFromHeader(header BeaconBlockHeaderT) (bytes.B48, error) {
+	// Implementation depends on how signatures are stored in your header structure
+	// This is a placeholder implementation
+	rawSignature := header.GetSignatures()
+	if len(rawSignature) != 48 {
+		return bytes.B48{}, fmt.Errorf("invalid signature length: expected 48, got %d", len(rawSignature))
+	}
+
+	//var signature bytes.B48
+	//copy(signature[:], rawSignature)
+	return rawSignature, nil
 }

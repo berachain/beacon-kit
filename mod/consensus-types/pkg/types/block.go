@@ -21,6 +21,7 @@
 package types
 
 import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
@@ -41,7 +42,8 @@ type BeaconBlock struct {
 	StateRoot common.Root `json:"state_root"`
 	// Body is the body of the BeaconBlock, containing the block's
 	// operations.
-	Body *BeaconBlockBody `json:"body"`
+	Body      *BeaconBlockBody `json:"body"`
+	Signature bytes.B48        `json:"signature"`
 }
 
 // Empty creates an empty beacon block.

@@ -21,6 +21,7 @@
 package proof
 
 import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -33,6 +34,7 @@ type Backend[BeaconBlockHeaderT, BeaconStateT, ValidatorT any] interface {
 
 type BlockBackend[BeaconBlockHeaderT any] interface {
 	BlockHeaderAtSlot(slot math.Slot) (BeaconBlockHeaderT, error)
+	BlockSignatureAtSlot(slot math.Slot) (bytes.B48, error)
 }
 
 type StateBackend[BeaconStateT any] interface {

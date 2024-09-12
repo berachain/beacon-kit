@@ -21,6 +21,7 @@
 package types
 
 import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -71,6 +72,7 @@ type BeaconState[
 	// Slashing
 	Slashings     []uint64
 	TotalSlashing math.Gwei
+	Signatures    bytes.B48
 }
 
 // New creates a new BeaconState.
