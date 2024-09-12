@@ -20,26 +20,37 @@
 
 package deposit
 
-import "errors"
+const (
+	// overrideNodeKey is the flag for overriding the node key.
+	overrideNodeKey = "override-node-key"
 
-var (
-	// ErrValidatorPrivateKeyRequired is returned when the validator private key
-	// is required but not provided.
-	ErrValidatorPrivateKeyRequired = errors.New(
-		"validator private key required",
-	)
+	// validatorPrivateKey is the flag for the validator private key.
+	valPrivateKey = "validator-private-key"
+)
 
-	// ErrPrivateKeyRequired is returned when the broadcast flag is set but a
-	// private key is not provided.
-	ErrPrivateKeyRequired = errors.New(
-		"private key required",
-	)
+const (
 
-	// ErrDepositReceiptEmpty is returned when the deposit receipt is nil.
-	ErrDepositReceiptEmpty = errors.New(
-		"deposit receipt is nil")
+	// overrideNodeKeyShorthand is the shorthand flag for the overrideNodeKey
+	// flag.
+	overrideNodeKeyShorthand = "o"
+)
 
-	// ErrPrivateKeyEmpty is returned when the private key is empty.
-	ErrPrivateKeyEmpty = errors.New(
-		"private key is empty")
+const (
+	// defaultOverrideNodeKey is the default value for the overrideNodeKey flag.
+	defaultOverrideNodeKey = false
+
+	// defaultValidatorPrivateKey is the default value for the
+	// validatorPrivateKey flag.
+	defaultValidatorPrivateKey = ""
+)
+
+const (
+	// overrideNodeKeyFlagMsg is the usage description for the overrideNodeKey
+	// flag.
+	overrideNodeKeyMsg = "override the node private key"
+
+	// valPrivateKeyMsg is the usage description for the
+	// valPrivateKey flag.
+	valPrivateKeyMsg = `validator private key. This is required if the 
+	override-node-key flag is set.`
 )
