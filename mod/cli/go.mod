@@ -22,6 +22,7 @@ replace (
 
 require (
 	cosmossdk.io/depinject v1.0.0
+	cosmossdk.io/log v1.4.1
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240821053614-036c5d2945f0
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240821182712-08bbb9c7d685
@@ -43,7 +44,6 @@ require (
 require (
 	cosmossdk.io/core v1.0.0 // indirect
 	cosmossdk.io/errors/v2 v2.0.0-20240731132947-df72853b3ca5 // indirect
-	cosmossdk.io/log v1.4.1 // indirect
 	cosmossdk.io/schema v0.1.1 // indirect
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240821052951-c15422305b4e // indirect
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df // indirect
