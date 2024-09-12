@@ -30,7 +30,7 @@ import (
 )
 
 var (
-	testGenesisValidators []*vm.Validator
+	testGenesisValidators [2]*vm.Validator
 	testEthGenesisBytes   []byte
 )
 
@@ -52,7 +52,7 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	testGenesisValidators = []*vm.Validator{val0, val1}
+	testGenesisValidators = [2]*vm.Validator{val0, val1}
 }
 
 func TestEthGenesisEncoding(t *testing.T) {
@@ -83,6 +83,9 @@ func TestEthGenesisEncoding(t *testing.T) {
 
 	_, rValidators, rGenEthData, err := vm.ParseGenesis(parsedGenesisData)
 	r.NoError(err)
-	r.Equal(testGenesisValidators, rValidators)
 	r.Equal(testEthGenesisBytes, rGenEthData)
+	r.Equal(len(testGenesisValidators), len(rValidators))
+	for i, v := range rValidators {
+		r.Equal(v, testGenesisValidators[i])
+	}
 }

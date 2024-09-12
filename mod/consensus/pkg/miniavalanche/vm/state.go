@@ -173,6 +173,10 @@ func (s *state) commitBatch() (database.Batch, error) {
 }
 
 func (s *state) writeBlocks() error {
+	if s.addedBlock == nil {
+		return nil // TODO: appeasing nilaway, consider removing
+	}
+
 	var (
 		blkID     = s.addedBlock.ID()
 		blkBytes  = s.addedBlock.Bytes()
