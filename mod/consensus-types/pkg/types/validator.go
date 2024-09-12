@@ -323,17 +323,18 @@ func (v Validator) GetWithdrawalCredentials() WithdrawalCredentials {
 	return v.WithdrawalCredentials
 }
 
-// GetActivationEligibilityEpoch returns the activation eligibility epoch of the validator.
-func (v *Validator) GetActivationEligibilityEpoch() math.Epoch {
+// GetActivationEligibilityEpoch returns the activation eligibility
+// epoch of the validator.
+func (v Validator) GetActivationEligibilityEpoch() math.Epoch {
 	return v.ActivationEligibilityEpoch
 }
 
 // GetActivationEpoch returns the activation epoch of the validator.
-func (v *Validator) GetActivationEpoch() math.Epoch {
+func (v Validator) GetActivationEpoch() math.Epoch {
 	return v.ActivationEpoch
 }
 
 // GetExitEpoch returns the exit epoch of the validator.
-func (v *Validator) GetExitEpoch() math.Epoch {
+func (v Validator) GetExitEpoch() math.Epoch {
 	return v.ExitEpoch
 }
