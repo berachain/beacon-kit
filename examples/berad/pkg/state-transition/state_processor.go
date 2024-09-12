@@ -48,7 +48,7 @@ type StateProcessor[
 		BeaconStateT,
 		BeaconBlockHeaderT,
 		ExecutionPayloadHeaderT, ForkT, KVStoreT,
-		ValidatorT, ValidatorsT, WithdrawalT, WithdrawalCredentialsT,
+		ValidatorT, ValidatorsT, WithdrawalT, WithdrawalsT, WithdrawalCredentialsT,
 	],
 	ContextT Context,
 	DepositT Deposit[ForkDataT, WithdrawalCredentialsT],
@@ -101,7 +101,7 @@ func NewStateProcessor[
 	BeaconStateT BeaconState[
 		BeaconStateT,
 		BeaconBlockHeaderT, ExecutionPayloadHeaderT, ForkT, KVStoreT,
-		ValidatorT, ValidatorsT, WithdrawalT, WithdrawalCredentialsT,
+		ValidatorT, ValidatorsT, WithdrawalT, WithdrawalsT, WithdrawalCredentialsT,
 	],
 	ContextT Context,
 	DepositT Deposit[ForkDataT, WithdrawalCredentialsT],

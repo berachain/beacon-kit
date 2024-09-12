@@ -14,7 +14,7 @@ require (
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240809202957-3e3f169ad720
 	github.com/berachain/beacon-kit/mod/node-api v0.0.0-20240806160829-cde2d1347e7e
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240624003607-df94860f8eeb
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240825202904-98dbc4268be1
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240911165923-82f71ec86570
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240805092115-3b2c5d9e1843
 	github.com/cosmos/cosmos-sdk v0.50.9
 	github.com/mitchellh/mapstructure v1.5.0
