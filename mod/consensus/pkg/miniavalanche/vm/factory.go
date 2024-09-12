@@ -21,7 +21,7 @@ var (
 // Entry point for node to build the VM
 type Factory struct {
 	Config     Config
-	Middleware middleware.VMMiddleware
+	Middleware *middleware.VMMiddleware
 }
 
 func (f *Factory) New(logging.Logger) (interface{}, error) {

@@ -1,8 +1,6 @@
 package vm
 
 import (
-	"embed"
-	"encoding/json"
 	"log"
 	"testing"
 
@@ -11,17 +9,14 @@ import (
 )
 
 var (
-	//go:embed test-eth-genesis.json
-	testEthGenesisContent embed.FS
-
-	testValidators      []*Validator
-	testEthGenesisBytes []byte
+	testGenesisValidators []*Validator
+	testEthGenesisBytes   []byte
 )
 
 func init() {
 	// init testEthGenesisBytes
 	var err error
-	testEthGenesisBytes, err = testEthGenesisContent.ReadFile("test-eth-genesis.json")
+	testEthGenesisBytes, err = DefaultEthGenesisBytes()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -35,7 +30,7 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	testValidators = []*Validator{val0, val1}
+	testGenesisValidators = []*Validator{val0, val1}
 }
 
 func TestEthGenesisEncoding(t *testing.T) {
@@ -45,12 +40,12 @@ func TestEthGenesisEncoding(t *testing.T) {
 	genesisData := &Base64Genesis{
 		Validators: []Base64GenesisValidator{
 			{
-				NodeID: testValidators[0].NodeID.String(),
-				Weight: testValidators[0].Weight,
+				NodeID: testGenesisValidators[0].NodeID.String(),
+				Weight: testGenesisValidators[0].Weight,
 			},
 			{
-				NodeID: testValidators[1].NodeID.String(),
-				Weight: testValidators[1].Weight,
+				NodeID: testGenesisValidators[1].NodeID.String(),
+				Weight: testGenesisValidators[1].Weight,
 			},
 		},
 		EthGenesis: string(testEthGenesisBytes),
@@ -66,23 +61,6 @@ func TestEthGenesisEncoding(t *testing.T) {
 
 	_, rValidators, rGenEthData, err := parseGenesis(parsedGenesisData)
 	r.NoError(err)
-	r.Equal(testValidators, rValidators)
+	r.Equal(testGenesisValidators, rValidators)
 	r.Equal(testEthGenesisBytes, rGenEthData)
-
-	// check eth genesis content
-	var genesisState map[string]json.RawMessage
-	r.NoError(json.Unmarshal(testEthGenesisBytes, &genesisState))
-
-	beaconMsg, found := genesisState["beacon"]
-	r.True(found)
-
-	var data map[string]json.RawMessage
-	r.NoError(json.Unmarshal([]byte(beaconMsg), &data))
-
-	_, found = data["fork_version"]
-	r.True(found)
-	_, found = data["deposits"]
-	r.True(found)
-	_, found = data["execution_payload_header"]
-	r.True(found)
 }

@@ -1,11 +1,13 @@
 package vm
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/ava-labs/avalanchego/ids"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/miniavalanche/block"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/miniavalanche/encoding"
 )
@@ -16,6 +18,19 @@ var genesisTime = time.Date(2024, 8, 21, 10, 17, 0, 0, time.UTC)
 type Genesis struct {
 	Validators []*Validator
 	EthGenesis []byte
+}
+
+// DefaultEthGenesisBytes implements the default genesis state for the application.
+func DefaultEthGenesisBytes() ([]byte, error) {
+	var (
+		gen = make(map[string]json.RawMessage)
+		err error
+	)
+	gen["beacon"], err = json.Marshal(types.DefaultGenesisDeneb())
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(gen)
 }
 
 // process genesisBytes and from them build:

@@ -31,7 +31,7 @@ type VM struct {
 	chainCtx *snow.Context
 
 	// middleware interfaces with the bus to send/receive data from the EVM
-	middleware middleware.VMMiddleware
+	middleware *middleware.VMMiddleware
 
 	db    database.Database
 	state chainState
