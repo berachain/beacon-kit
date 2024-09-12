@@ -62,20 +62,6 @@ func (h *Handler[_, ContextT, _, ValidatorT]) GetStateValidators(
 	}, nil
 }
 
-// CustomValidator to hold the validator data for BeaconAPIs.
-//
-//nolint:lll
-//type CustomValidator struct {
-//	Pubkey                     crypto.BLSPubkey                     `json:"pubkey"`
-//	WithdrawalCredentials      consensustypes.WithdrawalCredentials `json:"withdrawal_credentials"`
-//	EffectiveBalance           string                               `json:"effective_balance"`
-//	Slashed                    bool                                 `json:"slashed"`
-//	ActivationEligibilityEpoch string                               `json:"activation_eligibility_epoch"`
-//	ActivationEpoch            string                               `json:"activation_epoch"`
-//	ExitEpoch                  string                               `json:"exit_epoch"`
-//	WithdrawableEpoch          string                               `json:"withdrawable_epoch"`
-//}
-
 func (h *Handler[_, ContextT, _, _]) PostStateValidators(
 	c ContextT,
 ) (any, error) {
@@ -102,18 +88,6 @@ func (h *Handler[_, ContextT, _, _]) PostStateValidators(
 		return nil, err
 	}
 
-	//convertedValidators := make(
-	//	[]beacontypes.ValidatorData[CustomValidator],
-	//	len(validators),
-	//)
-	//for i, validator := range validators {
-	//	convertedValidator, convErr := convertValidator(validator)
-	//	if convErr != nil {
-	//		return nil, errors.Wrap(convErr, "failed to convert validator")
-	//	}
-	//	convertedValidators[i] = convertedValidator
-	//}
-
 	// Convert validators to ValidatorResponseData
 	validatorResponseData := make([]beacontypes.ValidatorResponseData, len(validators))
 	for i, validator := range validators {
@@ -131,74 +105,6 @@ func (h *Handler[_, ContextT, _, _]) PostStateValidators(
 		Data:                validatorResponseData,
 	}, nil
 }
-
-//func convertValidator[ValidatorT any](
-//	validator *beacontypes.ValidatorData[ValidatorT],
-//) (beacontypes.ValidatorData[CustomValidator], error) {
-//	// Convert the original validator to JSON
-//	jsonData, err := json.Marshal(validator.Validator)
-//	if err != nil {
-//		return beacontypes.ValidatorData[CustomValidator]{},
-//			errors.Wrap(err, "failed to marshal validator")
-//	}
-//
-//	// Unmarshal into our ConvertedValidator struct
-//	var customValidator CustomValidator
-//	if err = json.Unmarshal(jsonData, &customValidator); err != nil {
-//		return beacontypes.ValidatorData[CustomValidator]{},
-//			errors.Wrap(err, "failed to unmarshal validator")
-//	}
-//
-//	if err = convertHexFields(&customValidator); err != nil {
-//		return beacontypes.ValidatorData[CustomValidator]{},
-//			errors.Wrap(err, "failed to convert hex fields")
-//	}
-//
-//	return beacontypes.ValidatorData[CustomValidator]{
-//		ValidatorBalanceData: validator.ValidatorBalanceData,
-//		Status:               validator.Status,
-//		Validator:            customValidator,
-//	}, nil
-//}
-
-//func convertHexFields(v *CustomValidator) error {
-//	fields := []*string{
-//		&v.EffectiveBalance,
-//		&v.ActivationEligibilityEpoch,
-//		&v.ActivationEpoch,
-//		&v.ExitEpoch,
-//		&v.WithdrawableEpoch,
-//	}
-//
-//	for _, field := range fields {
-//		converted, err := hexToDecimalString(*field)
-//		if err != nil {
-//			return errors.Wrap(err, "failed to convert hex field")
-//		}
-//		*field = converted
-//	}
-//
-//	return nil
-//}
-
-//func hexToDecimalString(hexStr string) (string, error) {
-//	// Check if the input is empty or only contains "0x"
-//	if hexStr == "" || hexStr == "0x" {
-//		return "", errors.New("invalid input: empty or only '0x' prefix")
-//	}
-//	hexStr = strings.TrimPrefix(hexStr, "0x")
-//	// Validate that the remaining string contains only valid hex characters
-//	if !regexp.MustCompile(`^[0-9a-fA-F]+$`).MatchString(hexStr) {
-//		return "", errors.New("invalid input: non-hexadecimal characters found")
-//	}
-//	// Convert hex string to uint64
-//	value, err := strconv.ParseUint(hexStr, 16, 64)
-//	if err != nil {
-//		return "", err
-//	}
-//
-//	return strconv.FormatUint(value, 10), nil
-//}
 
 func (h *Handler[_, ContextT, _, _]) GetStateValidator(
 	c ContextT,
