@@ -23,7 +23,7 @@ package beacon
 import (
 	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 )
 
 func (h *Handler[
@@ -51,7 +51,7 @@ func (h *Handler[
 			Canonical: true,
 			Header: &beacontypes.BlockHeader{
 				Message:   header,
-				Signature: bytes.B48{}, // TODO: implement
+				Signature: crypto.BLSSignature{}, // TODO: implement
 			},
 		},
 	}, nil
@@ -82,7 +82,7 @@ func (h *Handler[
 			Canonical: true,
 			Header: &beacontypes.BlockHeader{
 				Message:   header,
-				Signature: bytes.B48{}, // TODO: implement
+				Signature: crypto.BLSSignature{}, // TODO: implement
 			},
 		},
 	}, nil

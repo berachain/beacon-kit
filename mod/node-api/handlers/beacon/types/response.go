@@ -25,8 +25,8 @@ import (
 	"encoding/json"
 	"strconv"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 )
 
 // TODO: change this to a arbitrary response type. types.Wrap(data) should
@@ -52,13 +52,13 @@ type BlockHeaderHeadResponse struct {
 	BeaconBlockHeader
 }
 
-// BlockHeader contains the block header details
+// BlockHeader contains the block header details.
 type BlockHeader struct {
-	Message   BeaconBlockHeader `json:"message"`
-	Signature bytes.B48         `json:"signature"`
+	Message   BeaconBlockHeader   `json:"message"`
+	Signature crypto.BLSSignature `json:"signature"`
 }
 
-// MarshalJSON implements custom JSON marshaling for BlockHeader
+// MarshalJSON implements custom JSON marshaling for BlockHeader.
 func (bh *BlockHeader) MarshalJSON() ([]byte, error) {
 	type Alias struct {
 		Message struct {
@@ -68,7 +68,7 @@ func (bh *BlockHeader) MarshalJSON() ([]byte, error) {
 			StateRoot     common.Root `json:"state_root"`
 			BodyRoot      common.Root `json:"body_root"`
 		} `json:"message"`
-		Signature bytes.B48 `json:"signature"`
+		Signature crypto.BLSSignature `json:"signature"`
 	}
 
 	return json.Marshal(&Alias{
