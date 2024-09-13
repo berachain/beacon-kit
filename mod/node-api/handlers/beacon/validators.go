@@ -55,11 +55,7 @@ func (h *Handler[_, ContextT, _, _]) GetStateValidators(
 	if len(validators) == 0 {
 		return nil, types.ErrNotFound
 	}
-	return beacontypes.ValidatorResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data:                validators,
-	}, nil
+	return types.Wrap(validators), nil
 }
 
 func (h *Handler[_, ContextT, _, _]) PostStateValidators(
@@ -88,13 +84,13 @@ func (h *Handler[_, ContextT, _, _]) PostStateValidators(
 		return nil, err
 	}
 
-	// Convert validators to ValidatorResponseData
-	validatorResponseData := make(
-		[]beacontypes.ValidatorResponseData,
+	// Convert validators to ValidatorResponse.
+	validatorResponse := make(
+		[]beacontypes.ValidatorResponse,
 		len(validators),
 	)
 	for i, validator := range validators {
-		validatorResponseData[i] = beacontypes.ValidatorResponseData{
+		validatorResponse[i] = beacontypes.ValidatorResponse{
 			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
 				Index:   validator.Index,
 				Balance: validator.Balance,
@@ -104,11 +100,7 @@ func (h *Handler[_, ContextT, _, _]) PostStateValidators(
 		}
 	}
 
-	return beacontypes.ValidatorResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data:                validatorResponseData,
-	}, nil
+	return types.Wrap(validatorResponse), nil
 }
 
 func (h *Handler[_, ContextT, _, _]) GetStateValidator(
@@ -154,11 +146,8 @@ func (h *Handler[_, ContextT, _, _]) GetStateValidatorBalances(
 	if err != nil {
 		return nil, err
 	}
-	return beacontypes.ValidatorResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data:                balances,
-	}, nil
+	return types.Wrap(balances), nil
+
 }
 
 func (h *Handler[_, ContextT, _, _]) PostStateValidatorBalances(
@@ -191,9 +180,5 @@ func (h *Handler[_, ContextT, _, _]) PostStateValidatorBalances(
 	if err != nil {
 		return nil, errors.Wrap(err, "err in backend")
 	}
-	return beacontypes.ValidatorResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data:                balances,
-	}, nil
+	return types.Wrap(balances), nil
 }

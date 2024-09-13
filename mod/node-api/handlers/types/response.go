@@ -20,12 +20,17 @@
 
 package types
 
-type DataResponse struct {
-	Data any `json:"data"`
+type Response struct {
+	ExecutionOptimistic bool `json:"execution_optimistic"`
+	Finalized           bool `json:"finalized"`
+	Data                any  `json:"data"`
 }
 
-func Wrap(data any) DataResponse {
-	return DataResponse{
-		Data: data,
+func Wrap(data any) Response {
+	return Response{
+		ExecutionOptimistic: false, //stubbed
+		Finalized:           false, //stubbed
+		Data:                data,
 	}
+
 }

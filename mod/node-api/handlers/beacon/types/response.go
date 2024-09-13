@@ -29,19 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
-// TODO: change this to a arbitrary response type. types.Wrap(data) should
-// always put the data as the Data struct and return this struct.
-type ValidatorResponse struct {
-	ExecutionOptimistic bool `json:"execution_optimistic"`
-	Finalized           bool `json:"finalized"`
-	Data                any  `json:"data"`
-}
-
-type BlockResponse struct {
-	Version string `json:"version"`
-	ValidatorResponse
-}
-
 type BlockHeaderResponse[BlockHeaderT any] struct {
 	Root      common.Root                `json:"root"`
 	Canonical bool                       `json:"canonical"`
@@ -70,56 +57,20 @@ type ValidatorData[ValidatorT any] struct {
 }
 
 type ValidatorBalanceData struct {
-	Index   uint64 `json:"index,string"`
-	Balance uint64 `json:"balance,string"`
+	Index   uint64 `json:"index"`
+	Balance uint64 `json:"balance"`
 }
 
-//nolint:staticcheck // todo: figure this out.
-type CommitteeData struct {
-	Index      uint64   `json:"index,string"`
-	Slot       uint64   `json:"slot,string"`
-	Validators []uint64 `json:"validators,string"`
-}
-
-type BlockRewardsData struct {
-	ProposerIndex     uint64 `json:"proposer_index,string"`
-	Total             uint64 `json:"total,string"`
-	Attestations      uint64 `json:"attestations,string"`
-	SyncAggregate     uint64 `json:"sync_aggregate,string"`
-	ProposerSlashings uint64 `json:"proposer_slashings,string"`
-	AttesterSlashings uint64 `json:"attester_slashings,string"`
-}
-
-type RandaoData struct {
-	Randao common.Bytes32 `json:"randao"`
-}
-
-type ForkResponse struct {
-	Fork
-}
-
-func (fr ForkResponse) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		PreviousVersion string `json:"previous_version"`
-		CurrentVersion  string `json:"current_version"`
-		Epoch           string `json:"epoch"`
-	}{
-		PreviousVersion: fr.GetPreviousVersion().String(),
-		CurrentVersion:  fr.GetCurrentVersion().String(),
-		Epoch:           strconv.FormatUint(fr.GetEpoch().Unwrap(), 10),
-	})
-}
-
-type ValidatorResponseData struct {
+type ValidatorResponse struct {
 	ValidatorBalanceData
 	Status    string    `json:"status"`
 	Validator Validator `json:"validator"`
 }
 
-// MarshalJSON implements json.Marshal for ValidatorResponseData.
+// MarshalJSON implements json.Marshal for ValidatorResponse.
 //
 //nolint:lll
-func (vrd ValidatorResponseData) MarshalJSON() ([]byte, error) {
+func (vrd ValidatorResponse) MarshalJSON() ([]byte, error) {
 	type ValidatorJSON struct {
 		PublicKey                  string `json:"pubkey"`
 		WithdrawalCredentials      string `json:"withdrawal_credentials"`
@@ -155,5 +106,41 @@ func (vrd ValidatorResponseData) MarshalJSON() ([]byte, error) {
 			ExitEpoch:                  strconv.FormatUint(uint64(vrd.Validator.GetExitEpoch()), 10),
 			WithdrawableEpoch:          strconv.FormatUint(uint64(vrd.Validator.GetWithdrawableEpoch()), 10),
 		},
+	})
+}
+
+//nolint:staticcheck // todo: figure this out.
+type CommitteeData struct {
+	Index      uint64   `json:"index,string"`
+	Slot       uint64   `json:"slot,string"`
+	Validators []uint64 `json:"validators,string"`
+}
+
+type BlockRewardsData struct {
+	ProposerIndex     uint64 `json:"proposer_index,string"`
+	Total             uint64 `json:"total,string"`
+	Attestations      uint64 `json:"attestations,string"`
+	SyncAggregate     uint64 `json:"sync_aggregate,string"`
+	ProposerSlashings uint64 `json:"proposer_slashings,string"`
+	AttesterSlashings uint64 `json:"attester_slashings,string"`
+}
+
+type RandaoData struct {
+	Randao common.Bytes32 `json:"randao"`
+}
+
+type ForkResponse struct {
+	Fork
+}
+
+func (fr ForkResponse) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		PreviousVersion string `json:"previous_version"`
+		CurrentVersion  string `json:"current_version"`
+		Epoch           string `json:"epoch"`
+	}{
+		PreviousVersion: fr.GetPreviousVersion().String(),
+		CurrentVersion:  fr.GetCurrentVersion().String(),
+		Epoch:           strconv.FormatUint(fr.GetEpoch().Unwrap(), 10),
 	})
 }

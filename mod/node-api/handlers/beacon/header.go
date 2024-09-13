@@ -22,6 +22,7 @@ package beacon
 
 import (
 	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 )
@@ -43,18 +44,15 @@ func (h *Handler[
 	if err != nil {
 		return nil, err
 	}
-	return beacontypes.ValidatorResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data: &beacontypes.BlockHeaderResponse[BeaconBlockHeaderT]{
-			Root:      header.GetBodyRoot(),
-			Canonical: true,
-			Header: &beacontypes.BlockHeader[BeaconBlockHeaderT]{
-				Message:   header,
-				Signature: bytes.B48{}, // TODO: implement
-			},
+
+	return types.Wrap(&beacontypes.BlockHeaderResponse[BeaconBlockHeaderT]{
+		Root:      header.GetBodyRoot(),
+		Canonical: true,
+		Header: &beacontypes.BlockHeader[BeaconBlockHeaderT]{
+			Message:   header,
+			Signature: bytes.B48{}, // TODO: implement
 		},
-	}, nil
+	}), nil
 }
 
 func (h *Handler[
@@ -74,16 +72,14 @@ func (h *Handler[
 	if err != nil {
 		return nil, err
 	}
-	return beacontypes.ValidatorResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data: &beacontypes.BlockHeaderResponse[BeaconBlockHeaderT]{
-			Root:      header.GetBodyRoot(),
-			Canonical: true,
-			Header: &beacontypes.BlockHeader[BeaconBlockHeaderT]{
-				Message:   header,
-				Signature: bytes.B48{}, // TODO: implement
-			},
+
+	return types.Wrap(&beacontypes.BlockHeaderResponse[BeaconBlockHeaderT]{
+		Root:      header.GetBodyRoot(),
+		Canonical: true,
+		Header: &beacontypes.BlockHeader[BeaconBlockHeaderT]{
+			Message:   header,
+			Signature: bytes.B48{}, // TODO: implement
 		},
-	}, nil
+	}), nil
+
 }
