@@ -65,7 +65,7 @@ func NewCreateValidator[
 
 // createValidatorCmd returns a command that builds a create validator request.
 //
-//nolint:gocognit // The function is not complex.
+
 func createValidatorCmd[
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 ](
