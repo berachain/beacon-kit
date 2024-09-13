@@ -21,7 +21,6 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -51,8 +50,7 @@ type BeaconBlockHeader struct {
 	// StateRoot is the hash of the state at the block.
 	StateRoot common.Root `json:"state_root"`
 	// BodyRoot is the root of the block body.
-	BodyRoot  common.Root `json:"body_root"`
-	Signature bytes.B48   `json:"signature"`
+	BodyRoot common.Root `json:"body_root"`
 }
 
 /* -------------------------------------------------------------------------- */
@@ -226,8 +224,4 @@ func (b *BeaconBlockHeader) GetBodyRoot() common.Root {
 // SetBodyRoot sets the body root of the BeaconBlockHeader.
 func (b *BeaconBlockHeader) SetBodyRoot(bodyRoot common.Root) {
 	b.BodyRoot = bodyRoot
-}
-
-func (b *BeaconBlockHeader) GetSignatures() bytes.B48 {
-	return b.Signature
 }

@@ -176,7 +176,6 @@ type (
 		SetStateRoot(common.Root)
 		GetBodyRoot() common.Root
 		GetTree() (*fastssz.Node, error)
-		GetSignatures() bytes.B48
 	}
 
 	// BeaconStateMarshallable represents an interface for a beacon state
@@ -1143,7 +1142,6 @@ type (
 		BlockRootAtSlot(slot math.Slot) (common.Root, error)
 		BlockRewardsAtSlot(slot math.Slot) (*types.BlockRewardsData, error)
 		BlockHeaderAtSlot(slot math.Slot) (BeaconBlockHeaderT, error)
-		BlockSignatureAtSlot(slot math.Slot) (bytes.B48, error)
 	}
 
 	StateBackend[BeaconStateT, ForkT any] interface {

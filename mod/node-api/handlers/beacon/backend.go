@@ -22,7 +22,6 @@ package beacon
 
 import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -58,7 +57,6 @@ type BlockBackend[BeaconBlockHeaderT any] interface {
 	BlockRootAtSlot(slot math.Slot) (common.Root, error)
 	BlockRewardsAtSlot(slot math.Slot) (*types.BlockRewardsData, error)
 	BlockHeaderAtSlot(slot math.Slot) (BeaconBlockHeaderT, error)
-	BlockSignatureAtSlot(slot math.Slot) (bytes.B48, error)
 }
 
 type StateBackend[ForkT any] interface {

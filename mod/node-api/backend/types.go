@@ -22,7 +22,7 @@ package backend
 
 import (
 	"context"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -60,7 +60,6 @@ type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
 	GetStateRoot() common.Root
 	SetStateRoot(common.Root)
 	GetBodyRoot() common.Root
-	GetSignatures() bytes.B48
 }
 
 // BeaconState is the interface for the beacon state.

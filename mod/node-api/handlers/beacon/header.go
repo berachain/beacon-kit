@@ -74,12 +74,6 @@ func (h *Handler[
 	if err != nil {
 		return nil, err
 	}
-
-	signature, err := h.backend.BlockSignatureAtSlot(slot)
-	if err != nil {
-		return nil, err
-	}
-
 	return beacontypes.ValidatorResponse{
 		ExecutionOptimistic: false, // stubbed
 		Finalized:           false, // stubbed
@@ -88,7 +82,7 @@ func (h *Handler[
 			Canonical: true,
 			Header: &beacontypes.BlockHeader[BeaconBlockHeaderT]{
 				Message:   header,
-				Signature: signature, // TODO: implement
+				Signature: bytes.B48{}, // TODO: implement
 			},
 		},
 	}, nil
