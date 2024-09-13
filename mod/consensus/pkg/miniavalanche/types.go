@@ -21,6 +21,8 @@
 package miniavalanche
 
 import (
+	"encoding/json"
+
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	consruntimetypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
@@ -28,6 +30,7 @@ import (
 )
 
 type (
+	GenesisT         = json.Unmarshaler
 	BeaconBlockT     = *types.BeaconBlock
 	BlobSidecarsT    = *datypes.BlobSidecars
 	ValidatorUpdates = transition.ValidatorUpdates

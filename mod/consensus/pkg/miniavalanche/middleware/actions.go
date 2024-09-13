@@ -45,8 +45,8 @@ func (vm *VMMiddleware) InitGenesis(
 	waitCtx, cancel := context.WithTimeout(ctx, AwaitTimeout)
 	defer cancel()
 
-	var data map[string]json.RawMessage
-	if err := json.Unmarshal(bz, &data); err != nil {
+	data := new(json.RawMessage)
+	if err := json.Unmarshal(bz, data); err != nil {
 		vm.logger.Error("Failed to unmarshal genesis data", "error", err)
 		return nil, err
 	}
