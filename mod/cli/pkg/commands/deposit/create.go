@@ -59,7 +59,6 @@ func NewCreateValidator[
 	)
 	cmd.Flags().
 		String(valPrivateKey, defaultValidatorPrivateKey, valPrivateKeyMsg)
-	cmd.Flags().String(rpcURL, defaultRPCURL, rpcURLMsg)
 
 	return cmd
 }

@@ -21,9 +21,6 @@
 package deposit
 
 const (
-	// broadcastDeposit is the flag for broadcasting a deposit transaction.
-	broadcastDeposit = "broadcast"
-
 	// privateKey is the flag for the private key to sign the deposit message.
 	privateKey = "private-key"
 
@@ -38,20 +35,12 @@ const (
 )
 
 const (
-	// broadcastDepositShorthand is the shorthand flag for the broadcastDeposit
-	// flag.
-	broadcastDepositShorthand = "b"
-
 	// overrideNodeKeyShorthand is the shorthand flag for the overrideNodeKey
 	// flag.
 	overrideNodeKeyShorthand = "o"
 )
 
 const (
-	// defaultBroadcastDeposit is the default value for the broadcastDeposit
-	// flag.
-	defaultBroadcastDeposit = false
-
 	// defaultPrivateKey is the default value for the privateKey flag.
 	defaultPrivateKey = ""
 
@@ -83,7 +72,4 @@ const (
 	// valPrivateKey flag.
 	valPrivateKeyMsg = `validator private key. This is required if the 
 	override-node-key flag is set.`
-
-	// rpcURLMsg is the usage description for the rpcURL flag.
-	rpcURLMsg = "URL for the execution client RPC"
 )
