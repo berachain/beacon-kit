@@ -61,6 +61,16 @@ type ValidatorBalanceData struct {
 	Balance uint64 `json:"balance"`
 }
 
+func (vbd ValidatorBalanceData) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Index   string `json:"index"`
+		Balance string `json:"balance"`
+	}{
+		Index:   strconv.FormatUint(vbd.Index, 10),
+		Balance: strconv.FormatUint(vbd.Balance, 10),
+	})
+}
+
 type ValidatorResponse struct {
 	ValidatorBalanceData
 	Status    string    `json:"status"`
