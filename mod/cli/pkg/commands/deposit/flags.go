@@ -29,9 +29,6 @@ const (
 
 	// validatorPrivateKey is the flag for the validator private key.
 	valPrivateKey = "validator-private-key"
-
-	// rpcURL is the flag for the URL for the execution client RPC.
-	rpcURL = "rpc-url"
 )
 
 const (
