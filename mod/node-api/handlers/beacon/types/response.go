@@ -111,17 +111,15 @@ func (fr ForkResponse) MarshalJSON() ([]byte, error) {
 }
 
 type ValidatorResponseData struct {
-	Index     uint64    `json:"index"`
-	Balance   uint64    `json:"balance"`
+	ValidatorBalanceData
 	Status    string    `json:"status"`
 	Validator Validator `json:"validator"`
 }
 
+// MarshalJSON implements json.Marshal for ValidatorResponseData.
+//
+//nolint:lll
 func (vrd ValidatorResponseData) MarshalJSON() ([]byte, error) {
-
-	withdrawalCredentials := vrd.Validator.GetWithdrawalCredentials()
-	withdrawalCredentialsBytes := withdrawalCredentials[:]
-
 	type ValidatorJSON struct {
 		PublicKey                  string `json:"pubkey"`
 		WithdrawalCredentials      string `json:"withdrawal_credentials"`
@@ -139,6 +137,9 @@ func (vrd ValidatorResponseData) MarshalJSON() ([]byte, error) {
 		Status    string        `json:"status"`
 		Validator ValidatorJSON `json:"validator"`
 	}
+
+	withdrawalCredentials := vrd.Validator.GetWithdrawalCredentials()
+	withdrawalCredentialsBytes := withdrawalCredentials[:]
 
 	return json.Marshal(ResponseJSON{
 		Index:   strconv.FormatUint(vrd.Index, 10),

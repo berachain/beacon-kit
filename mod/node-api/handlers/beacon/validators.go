@@ -27,7 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 )
 
-func (h *Handler[_, ContextT, _, ValidatorT]) GetStateValidators(
+func (h *Handler[_, ContextT, _, _]) GetStateValidators(
 	c ContextT,
 ) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetStateValidatorsRequest](
@@ -89,11 +89,16 @@ func (h *Handler[_, ContextT, _, _]) PostStateValidators(
 	}
 
 	// Convert validators to ValidatorResponseData
-	validatorResponseData := make([]beacontypes.ValidatorResponseData, len(validators))
+	validatorResponseData := make(
+		[]beacontypes.ValidatorResponseData,
+		len(validators),
+	)
 	for i, validator := range validators {
 		validatorResponseData[i] = beacontypes.ValidatorResponseData{
-			Index:     validator.Index,
-			Balance:   validator.Balance,
+			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
+				Index:   validator.Index,
+				Balance: validator.Balance,
+			},
 			Status:    validator.Status,
 			Validator: validator.Validator,
 		}
