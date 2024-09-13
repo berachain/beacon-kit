@@ -50,16 +50,9 @@ const (
 	// defaultValidatorPrivateKey is the default value for the
 	// validatorPrivateKey flag.
 	defaultValidatorPrivateKey = ""
-
-	// defaultRPCURL is the default value for the rpcURL flag.
-	defaultRPCURL = "http://localhost:8545"
 )
 
 const (
-	// broadcastDepositFlagMsg is the usage description for the
-	// broadcastDeposit flag.
-	broadcastDepositMsg = "broadcast the deposit transaction"
-
 	// privateKeyFlagMsg is the usage description for the privateKey flag.
 	privateKeyMsg = `private key to sign and pay for the deposit message. 
 	This is required if the broadcast flag is set.`
