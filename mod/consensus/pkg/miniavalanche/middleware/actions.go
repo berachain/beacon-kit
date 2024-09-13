@@ -45,14 +45,14 @@ func (vm *VMMiddleware) InitGenesis(
 	waitCtx, cancel := context.WithTimeout(ctx, AwaitTimeout)
 	defer cancel()
 
-	data := new(json.RawMessage)
+	data := new(miniavalanche.GenesisT)
 	if err := json.Unmarshal(bz, data); err != nil {
 		vm.logger.Error("Failed to unmarshal genesis data", "error", err)
 		return nil, err
 	}
 
 	if err := vm.dispatcher.Publish(
-		async.NewEvent(ctx, async.GenesisDataReceived, data),
+		async.NewEvent(ctx, async.GenesisDataReceived, *data),
 	); err != nil {
 		return nil, err
 	}
