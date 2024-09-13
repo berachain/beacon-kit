@@ -116,8 +116,10 @@ type ValidatorResponseData struct {
 	Validator Validator `json:"validator"`
 }
 
+// MarshalJSON implements json.Marshal for ValidatorResponseData.
+//
+//nolint:lll
 func (vrd ValidatorResponseData) MarshalJSON() ([]byte, error) {
-
 	type ValidatorJSON struct {
 		PublicKey                  string `json:"pubkey"`
 		WithdrawalCredentials      string `json:"withdrawal_credentials"`

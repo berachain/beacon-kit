@@ -89,7 +89,10 @@ func (h *Handler[_, ContextT, _, _]) PostStateValidators(
 	}
 
 	// Convert validators to ValidatorResponseData
-	validatorResponseData := make([]beacontypes.ValidatorResponseData, len(validators))
+	validatorResponseData := make(
+		[]beacontypes.ValidatorResponseData,
+		len(validators),
+	)
 	for i, validator := range validators {
 		validatorResponseData[i] = beacontypes.ValidatorResponseData{
 			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
