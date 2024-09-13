@@ -51,19 +51,22 @@ func NewCreateValidator[
 		Args: cobra.ExactArgs(4), //nolint:mnd // The number of arguments.
 		RunE: createValidatorCmd[ExecutionPayloadT](chainSpec),
 	}
+
+	cmd.Flags().String(privateKey, defaultPrivateKey, privateKeyMsg)
 	cmd.Flags().BoolP(
 		overrideNodeKey, overrideNodeKeyShorthand,
 		defaultOverrideNodeKey, overrideNodeKeyMsg,
 	)
 	cmd.Flags().
 		String(valPrivateKey, defaultValidatorPrivateKey, valPrivateKeyMsg)
+	cmd.Flags().String(rpcURL, defaultRPCURL, rpcURLMsg)
 
 	return cmd
 }
 
 // createValidatorCmd returns a command that builds a create validator request.
 //
-
+//nolint:gocognit // The function is not complex.
 func createValidatorCmd[
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 ](
