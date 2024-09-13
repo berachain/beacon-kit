@@ -28,9 +28,8 @@ type Response struct {
 
 func Wrap(data any) Response {
 	return Response{
-		ExecutionOptimistic: false, //stubbed
-		Finalized:           false, //stubbed
+		ExecutionOptimistic: false, // stubbed
+		Finalized:           false, // stubbed
 		Data:                data,
 	}
-
 }

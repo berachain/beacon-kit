@@ -53,5 +53,4 @@ func (h *Handler[_, ContextT, _, _]) GetRandao(c ContextT) (any, error) {
 	return types.Wrap(beacontypes.RandaoData{
 		Randao: randao,
 	}), nil
-
 }

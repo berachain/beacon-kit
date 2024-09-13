@@ -147,7 +147,6 @@ func (h *Handler[_, ContextT, _, _]) GetStateValidatorBalances(
 		return nil, err
 	}
 	return types.Wrap(balances), nil
-
 }
 
 func (h *Handler[_, ContextT, _, _]) PostStateValidatorBalances(
