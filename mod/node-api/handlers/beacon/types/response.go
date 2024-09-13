@@ -43,14 +43,50 @@ type BlockResponse struct {
 }
 
 type BlockHeaderResponse[BlockHeaderT any] struct {
-	Root      common.Root                `json:"root"`
-	Canonical bool                       `json:"canonical"`
-	Header    *BlockHeader[BlockHeaderT] `json:"header"`
+	Root      common.Root  `json:"root"`
+	Canonical bool         `json:"canonical"`
+	Header    *BlockHeader `json:"header"`
 }
 
-type BlockHeader[BlockHeaderT any] struct {
-	Message   BlockHeaderT `json:"message"`
-	Signature bytes.B48    `json:"signature"`
+type BlockHeaderHeadResponse struct {
+	BeaconBlockHeader
+}
+
+// BlockHeader contains the block header details
+type BlockHeader struct {
+	Message   BeaconBlockHeader `json:"message"`
+	Signature bytes.B48         `json:"signature"`
+}
+
+// MarshalJSON implements custom JSON marshaling for BlockHeader
+func (bh *BlockHeader) MarshalJSON() ([]byte, error) {
+	type Alias struct {
+		Message struct {
+			Slot          string      `json:"slot"`
+			ProposerIndex string      `json:"proposer_index"`
+			ParentRoot    common.Root `json:"parent_root"`
+			StateRoot     common.Root `json:"state_root"`
+			BodyRoot      common.Root `json:"body_root"`
+		} `json:"message"`
+		Signature bytes.B48 `json:"signature"`
+	}
+
+	return json.Marshal(&Alias{
+		Message: struct {
+			Slot          string      `json:"slot"`
+			ProposerIndex string      `json:"proposer_index"`
+			ParentRoot    common.Root `json:"parent_root"`
+			StateRoot     common.Root `json:"state_root"`
+			BodyRoot      common.Root `json:"body_root"`
+		}{
+			Slot:          strconv.FormatUint(uint64(bh.Message.GetSlot()), 10),
+			ProposerIndex: strconv.FormatUint(uint64(bh.Message.GetProposerIndex()), 10),
+			ParentRoot:    bh.Message.GetParentBlockRoot(),
+			StateRoot:     bh.Message.GetStateRoot(),
+			BodyRoot:      bh.Message.GetBodyRoot(),
+		},
+		Signature: bh.Signature,
+	})
 }
 
 type GenesisData struct {

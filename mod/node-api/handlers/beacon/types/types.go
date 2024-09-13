@@ -29,6 +29,10 @@ import (
 
 // BeaconBlockHeader is the interface for the beacon block header.
 type BeaconBlockHeader interface {
+	GetProposerIndex() math.ValidatorIndex
+	GetSlot() math.Slot
+	GetStateRoot() common.Root
+	GetParentBlockRoot() common.Root
 	GetBodyRoot() common.Root
 }
 

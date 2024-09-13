@@ -49,7 +49,7 @@ func (h *Handler[
 		Data: &beacontypes.BlockHeaderResponse[BeaconBlockHeaderT]{
 			Root:      header.GetBodyRoot(),
 			Canonical: true,
-			Header: &beacontypes.BlockHeader[BeaconBlockHeaderT]{
+			Header: &beacontypes.BlockHeader{
 				Message:   header,
 				Signature: bytes.B48{}, // TODO: implement
 			},
@@ -80,7 +80,7 @@ func (h *Handler[
 		Data: &beacontypes.BlockHeaderResponse[BeaconBlockHeaderT]{
 			Root:      header.GetBodyRoot(),
 			Canonical: true,
-			Header: &beacontypes.BlockHeader[BeaconBlockHeaderT]{
+			Header: &beacontypes.BlockHeader{
 				Message:   header,
 				Signature: bytes.B48{}, // TODO: implement
 			},
