@@ -157,6 +157,8 @@ type (
 		*Fork,
 		*Validator,
 		Validators,
+		any,
+		[]any,
 	]
 
 	// LocalBuilder is a type alias for the local builder.

@@ -61,13 +61,16 @@ func ProvideStateProcessor[
 		*beaconcomponents.Eth1Data, ExecutionPayloadT, *beaconcomponents.SlashingInfo,
 	],
 	BeaconBlockHeaderT beaconcomponents.BeaconBlockHeader[BeaconBlockHeaderT],
-	BeaconStateT beaconcomponents.BeaconState[
+	BeaconStateT BeaconState[
 		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
-		*beaconcomponents.Eth1Data, ExecutionPayloadHeaderT, *beaconcomponents.Fork, KVStoreT, *beaconcomponents.Validator,
-		beaconcomponents.Validators, WithdrawalT,
+		*beaconcomponents.Eth1Data, ExecutionPayloadHeaderT,
+		*beaconcomponents.Fork, KVStoreT, *beaconcomponents.Validator,
+		beaconcomponents.Validators, WithdrawalT, WithdrawalsT,
 	],
 	BeaconStateMarshallableT any,
-	DepositT beaconcomponents.Deposit[DepositT, *beaconcomponents.ForkData, beaconcomponents.WithdrawalCredentials],
+	DepositT beaconcomponents.Deposit[
+		DepositT, *beaconcomponents.ForkData, beaconcomponents.WithdrawalCredentials,
+	],
 	ExecutionPayloadT beaconcomponents.ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],

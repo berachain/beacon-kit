@@ -272,21 +272,21 @@ func (kv *KVStore[
 // TODO: remove this properly
 func (kv *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT, WithdrawalsT,
 ]) AddValidatorBartio(val ValidatorT) error {
 	return nil
 }
 
 func (kv *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT, WithdrawalsT,
 ]) GetBalance(idx math.U64) (math.U64, error) {
 	return 0, nil
 }
 
 func (kv *KVStore[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT, WithdrawalsT,
 ]) GetBalances() ([]uint64, error) {
 	return nil, nil
 }
