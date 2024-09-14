@@ -21,7 +21,6 @@
 package backend
 
 import (
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-api/backend/utils"
 	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -56,17 +55,8 @@ func (b Backend[
 			Index:   index.Unwrap(),
 			Balance: balance.Unwrap(),
 		},
-		Status: "active_ongoing", // TODO: fix
-		Validator: types.Validator{
-			Pubkey:                     validator.GetPubkey(),
-			WithdrawalCredentials:      validator.GetWithdrawalCredentials(),
-			EffectiveBalance:           validator.GetEffectiveBalance(),
-			Slashed:                    validator.IsSlashed(),
-			ActivationEligibilityEpoch: validator.GetActivationEligibilityEpoch(),
-			ActivationEpoch:            validator.GetActivationEpoch(),
-			ExitEpoch:                  validator.GetExitEpoch(),
-			WithdrawableEpoch:          validator.GetWithdrawableEpoch(),
-		},
+		Status:    "active_ongoing", // TODO: fix
+		Validator: validator,
 	}, nil
 }
 
