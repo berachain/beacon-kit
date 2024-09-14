@@ -28,7 +28,7 @@ import (
 )
 
 func (h *Handler[
-	BeaconBlockHeaderT, ContextT, _, _,
+	BeaconBlockHeaderT, ContextT, _,
 ]) GetBlockHeaders(c ContextT) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetBlockHeadersRequest](
 		c, h.Logger(),
@@ -56,7 +56,7 @@ func (h *Handler[
 }
 
 func (h *Handler[
-	BeaconBlockHeaderT, ContextT, _, _,
+	BeaconBlockHeaderT, ContextT, _,
 ]) GetBlockHeaderByID(c ContextT) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetBlockHeaderRequest](
 		c, h.Logger(),

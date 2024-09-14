@@ -26,7 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 )
 
-func (h *Handler[_, ContextT, _, _]) GetGenesis(_ ContextT) (any, error) {
+func (h *Handler[_, ContextT, _]) GetGenesis(_ ContextT) (any, error) {
 	genesisRoot, err := h.backend.GenesisValidatorsRoot(utils.Genesis)
 	if err != nil {
 		return nil, err
