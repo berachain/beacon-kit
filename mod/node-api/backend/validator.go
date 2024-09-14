@@ -21,6 +21,7 @@
 package backend
 
 import (
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-api/backend/utils"
 	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -30,7 +31,7 @@ func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _, _,
 ]) ValidatorByID(
 	slot math.Slot, id string,
-) (*beacontypes.ValidatorData[ValidatorT], error) {
+) (*beacontypes.ValidatorData, error) {
 	// TODO: to adhere to the spec, this shouldn't error if the error
 	// is not found, but i can't think of a way to do that without coupling
 	// db impl to the api impl.
@@ -50,13 +51,22 @@ func (b Backend[
 	if err != nil {
 		return nil, err
 	}
-	return &beacontypes.ValidatorData[ValidatorT]{
+	return &beacontypes.ValidatorData{
 		ValidatorBalanceData: beacontypes.ValidatorBalanceData{
 			Index:   index.Unwrap(),
 			Balance: balance.Unwrap(),
 		},
-		Status:    "active_ongoing", // TODO: fix
-		Validator: validator,
+		Status: "active_ongoing", // TODO: fix
+		Validator: types.Validator{
+			Pubkey:                     validator.GetPubkey(),
+			WithdrawalCredentials:      validator.GetWithdrawalCredentials(),
+			EffectiveBalance:           validator.GetEffectiveBalance(),
+			Slashed:                    validator.IsSlashed(),
+			ActivationEligibilityEpoch: validator.GetActivationEligibilityEpoch(),
+			ActivationEpoch:            validator.GetActivationEpoch(),
+			ExitEpoch:                  validator.GetExitEpoch(),
+			WithdrawableEpoch:          validator.GetWithdrawableEpoch(),
+		},
 	}, nil
 }
 
@@ -65,8 +75,8 @@ func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _, _,
 ]) ValidatorsByIDs(
 	slot math.Slot, ids []string, _ []string,
-) ([]*beacontypes.ValidatorData[ValidatorT], error) {
-	validatorsData := make([]*beacontypes.ValidatorData[ValidatorT], 0)
+) ([]*beacontypes.ValidatorData, error) {
+	validatorsData := make([]*beacontypes.ValidatorData, 0)
 	for _, id := range ids {
 		// TODO: we can probably optimize this via a getAllValidators
 		// query and then filtering but blocked by the fact that IDs

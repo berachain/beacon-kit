@@ -34,7 +34,7 @@ type Handler[
 	ValidatorT types.Validator,
 ] struct {
 	*handlers.BaseHandler[ContextT]
-	backend Backend[BeaconBlockHeaderT, ForkT, ValidatorT]
+	backend Backend[BeaconBlockHeaderT, ForkT, any]
 }
 
 // NewHandler creates a new handler for the beacon API.

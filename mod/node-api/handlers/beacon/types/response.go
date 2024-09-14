@@ -50,12 +50,6 @@ type RootData struct {
 	Root common.Root `json:"root"`
 }
 
-type ValidatorData[ValidatorT any] struct {
-	ValidatorBalanceData
-	Status    string     `json:"status"`
-	Validator ValidatorT `json:"validator"`
-}
-
 type ValidatorBalanceData struct {
 	Index   uint64 `json:"index"`
 	Balance uint64 `json:"balance"`
@@ -71,7 +65,7 @@ func (vbd ValidatorBalanceData) MarshalJSON() ([]byte, error) {
 	})
 }
 
-type ValidatorResponse struct {
+type ValidatorData struct {
 	ValidatorBalanceData
 	Status    string    `json:"status"`
 	Validator Validator `json:"validator"`
@@ -80,7 +74,7 @@ type ValidatorResponse struct {
 // MarshalJSON implements json.Marshal for ValidatorResponse.
 //
 //nolint:lll
-func (vrd ValidatorResponse) MarshalJSON() ([]byte, error) {
+func (vd ValidatorData) MarshalJSON() ([]byte, error) {
 	type ValidatorJSON struct {
 		PublicKey                  string `json:"pubkey"`
 		WithdrawalCredentials      string `json:"withdrawal_credentials"`
@@ -99,22 +93,22 @@ func (vrd ValidatorResponse) MarshalJSON() ([]byte, error) {
 		Validator ValidatorJSON `json:"validator"`
 	}
 
-	withdrawalCredentials := vrd.Validator.GetWithdrawalCredentials()
+	withdrawalCredentials := vd.Validator.GetWithdrawalCredentials()
 	withdrawalCredentialsBytes := withdrawalCredentials[:]
 
 	return json.Marshal(ResponseJSON{
-		Index:   strconv.FormatUint(vrd.Index, 10),
-		Balance: strconv.FormatUint(vrd.Balance, 10),
-		Status:  vrd.Status,
+		Index:   strconv.FormatUint(vd.Index, 10),
+		Balance: strconv.FormatUint(vd.Balance, 10),
+		Status:  vd.Status,
 		Validator: ValidatorJSON{
-			PublicKey:                  vrd.Validator.GetPubkey().String(),
+			PublicKey:                  vd.Validator.GetPubkey().String(),
 			WithdrawalCredentials:      "0x" + hex.EncodeToString(withdrawalCredentialsBytes),
-			EffectiveBalance:           strconv.FormatUint(uint64(vrd.Validator.GetEffectiveBalance()), 10),
-			Slashed:                    vrd.Validator.IsSlashed(),
-			ActivationEligibilityEpoch: strconv.FormatUint(uint64(vrd.Validator.GetActivationEligibilityEpoch()), 10),
-			ActivationEpoch:            strconv.FormatUint(uint64(vrd.Validator.GetActivationEpoch()), 10),
-			ExitEpoch:                  strconv.FormatUint(uint64(vrd.Validator.GetExitEpoch()), 10),
-			WithdrawableEpoch:          strconv.FormatUint(uint64(vrd.Validator.GetWithdrawableEpoch()), 10),
+			EffectiveBalance:           strconv.FormatUint(uint64(vd.Validator.GetEffectiveBalance()), 10),
+			Slashed:                    vd.Validator.IsSlashed(),
+			ActivationEligibilityEpoch: strconv.FormatUint(uint64(vd.Validator.GetActivationEligibilityEpoch()), 10),
+			ActivationEpoch:            strconv.FormatUint(uint64(vd.Validator.GetActivationEpoch()), 10),
+			ExitEpoch:                  strconv.FormatUint(uint64(vd.Validator.GetExitEpoch()), 10),
+			WithdrawableEpoch:          strconv.FormatUint(uint64(vd.Validator.GetWithdrawableEpoch()), 10),
 		},
 	})
 }

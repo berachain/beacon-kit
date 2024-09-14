@@ -1108,7 +1108,7 @@ type (
 		BlockBackend[BeaconBlockHeaderT]
 		RandaoBackend
 		StateBackend[BeaconStateT, ForkT]
-		ValidatorBackend[ValidatorT]
+		ValidatorBackend
 		HistoricalBackend[ForkT]
 		// GetSlotByBlockRoot retrieves the slot by a given root from the store.
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
@@ -1150,15 +1150,15 @@ type (
 		StateFromSlotForProof(slot math.Slot) (BeaconStateT, math.Slot, error)
 	}
 
-	ValidatorBackend[ValidatorT any] interface {
+	ValidatorBackend interface {
 		ValidatorByID(
 			slot math.Slot, id string,
-		) (*types.ValidatorData[ValidatorT], error)
+		) (*types.ValidatorData, error)
 		ValidatorsByIDs(
 			slot math.Slot,
 			ids []string,
 			statuses []string,
-		) ([]*types.ValidatorData[ValidatorT], error)
+		) ([]*types.ValidatorData, error)
 		ValidatorBalancesByIDs(
 			slot math.Slot,
 			ids []string,

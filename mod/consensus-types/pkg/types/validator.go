@@ -213,12 +213,12 @@ func (v *Validator) GetTree() (*fastssz.Node, error) {
 /* -------------------------------------------------------------------------- */
 
 // GetPubkey returns the public key of the validator.
-func (v *Validator) GetPubkey() crypto.BLSPubkey {
+func (v Validator) GetPubkey() crypto.BLSPubkey {
 	return v.Pubkey
 }
 
 // GetEffectiveBalance returns the effective balance of the validator.
-func (v *Validator) GetEffectiveBalance() math.Gwei {
+func (v Validator) GetEffectiveBalance() math.Gwei {
 	return v.EffectiveBalance
 }
 
