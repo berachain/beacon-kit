@@ -1084,7 +1084,7 @@ type (
 		BeaconStateT any,
 		ForkT any,
 		NodeT any,
-		ValidatorT any,
+		ValidatorT types.Validator,
 	] interface {
 		AttachQueryBackend(node NodeT)
 		ChainSpec() common.ChainSpec
@@ -1102,13 +1102,14 @@ type (
 
 	// NodeAPIBackend is the interface for backend of the beacon API.
 	NodeAPIBeaconBackend[
-		BeaconStateT, BeaconBlockHeaderT, ForkT, ValidatorT any,
+		BeaconStateT, BeaconBlockHeaderT, ForkT any,
+		ValidatorT types.Validator,
 	] interface {
 		GenesisBackend
 		BlockBackend[BeaconBlockHeaderT]
 		RandaoBackend
 		StateBackend[BeaconStateT, ForkT]
-		ValidatorBackend
+		ValidatorBackend[ValidatorT]
 		HistoricalBackend[ForkT]
 		// GetSlotByBlockRoot retrieves the slot by a given root from the store.
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
@@ -1150,15 +1151,15 @@ type (
 		StateFromSlotForProof(slot math.Slot) (BeaconStateT, math.Slot, error)
 	}
 
-	ValidatorBackend interface {
+	ValidatorBackend[ValidatorT types.Validator] interface {
 		ValidatorByID(
 			slot math.Slot, id string,
-		) (*types.ValidatorData, error)
+		) (*types.ValidatorData[ValidatorT], error)
 		ValidatorsByIDs(
 			slot math.Slot,
 			ids []string,
 			statuses []string,
-		) ([]*types.ValidatorData, error)
+		) ([]*types.ValidatorData[ValidatorT], error)
 		ValidatorBalancesByIDs(
 			slot math.Slot,
 			ids []string,

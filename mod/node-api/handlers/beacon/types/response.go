@@ -65,16 +65,13 @@ func (vbd ValidatorBalanceData) MarshalJSON() ([]byte, error) {
 	})
 }
 
-type ValidatorData struct {
+type ValidatorData[ValidatorT Validator] struct {
 	ValidatorBalanceData
-	Status    string    `json:"status"`
-	Validator Validator `json:"validator"`
+	Status    string     `json:"status"`
+	Validator ValidatorT `json:"validator"`
 }
 
-// MarshalJSON implements json.Marshal for ValidatorResponse.
-//
-//nolint:lll
-func (vd ValidatorData) MarshalJSON() ([]byte, error) {
+func (vd ValidatorData[ValidatorT]) MarshalJSON() ([]byte, error) {
 	type ValidatorJSON struct {
 		PublicKey                  string `json:"pubkey"`
 		WithdrawalCredentials      string `json:"withdrawal_credentials"`
@@ -94,30 +91,34 @@ func (vd ValidatorData) MarshalJSON() ([]byte, error) {
 	}
 
 	withdrawalCredentials := vd.Validator.GetWithdrawalCredentials()
-	withdrawalCredentialsBytes := withdrawalCredentials[:]
 
 	return json.Marshal(ResponseJSON{
 		Index:   strconv.FormatUint(vd.Index, 10),
 		Balance: strconv.FormatUint(vd.Balance, 10),
 		Status:  vd.Status,
 		Validator: ValidatorJSON{
-			PublicKey:                  vd.Validator.GetPubkey().String(),
-			WithdrawalCredentials:      "0x" + hex.EncodeToString(withdrawalCredentialsBytes),
-			EffectiveBalance:           strconv.FormatUint(uint64(vd.Validator.GetEffectiveBalance()), 10),
-			Slashed:                    vd.Validator.IsSlashed(),
-			ActivationEligibilityEpoch: strconv.FormatUint(uint64(vd.Validator.GetActivationEligibilityEpoch()), 10),
-			ActivationEpoch:            strconv.FormatUint(uint64(vd.Validator.GetActivationEpoch()), 10),
-			ExitEpoch:                  strconv.FormatUint(uint64(vd.Validator.GetExitEpoch()), 10),
-			WithdrawableEpoch:          strconv.FormatUint(uint64(vd.Validator.GetWithdrawableEpoch()), 10),
+			PublicKey: vd.Validator.GetPubkey().String(),
+			WithdrawalCredentials: "0x" + hex.EncodeToString(
+				withdrawalCredentials[:],
+			),
+			EffectiveBalance: strconv.FormatUint(
+				vd.Validator.GetEffectiveBalance().Unwrap(), 10,
+			),
+			Slashed: vd.Validator.IsSlashed(),
+			ActivationEligibilityEpoch: strconv.FormatUint(
+				vd.Validator.GetActivationEligibilityEpoch().Unwrap(), 10,
+			),
+			ActivationEpoch: strconv.FormatUint(
+				vd.Validator.GetActivationEpoch().Unwrap(), 10,
+			),
+			ExitEpoch: strconv.FormatUint(
+				vd.Validator.GetExitEpoch().Unwrap(), 10,
+			),
+			WithdrawableEpoch: strconv.FormatUint(
+				vd.Validator.GetWithdrawableEpoch().Unwrap(), 10,
+			),
 		},
 	})
-}
-
-//nolint:staticcheck // todo: figure this out.
-type CommitteeData struct {
-	Index      uint64   `json:"index,string"`
-	Slot       uint64   `json:"slot,string"`
-	Validators []uint64 `json:"validators,string"`
 }
 
 type BlockRewardsData struct {

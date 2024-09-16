@@ -23,7 +23,6 @@ package backend
 import (
 	"context"
 
-	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -56,10 +55,10 @@ type Backend[
 	StorageBackendT StorageBackend[
 		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,
 	],
-	ValidatorT beacontypes.Validator,
+	ValidatorT Validator,
 	ValidatorsT ~[]ValidatorT,
 	WithdrawalT Withdrawal[WithdrawalT],
-	WithdrawalCredentialsT WithdrawalCredentials,
+	WithdrawalCredentialsT any,
 ] struct {
 	sb   StorageBackendT
 	cs   common.ChainSpec
@@ -94,10 +93,10 @@ func New[
 	StorageBackendT StorageBackend[
 		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,
 	],
-	ValidatorT beacontypes.Validator,
+	ValidatorT Validator,
 	ValidatorsT ~[]ValidatorT,
 	WithdrawalT Withdrawal[WithdrawalT],
-	WithdrawalCredentialsT WithdrawalCredentials,
+	WithdrawalCredentialsT any,
 ](
 	storageBackend StorageBackendT,
 	cs common.ChainSpec,

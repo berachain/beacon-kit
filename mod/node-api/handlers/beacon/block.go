@@ -26,7 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 )
 
-func (h *Handler[_, ContextT, _]) GetBlockRewards(c ContextT) (any, error) {
+func (h *Handler[_, ContextT, _, _]) GetBlockRewards(c ContextT) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetBlockRewardsRequest](
 		c, h.Logger(),
 	)

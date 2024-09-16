@@ -27,7 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 )
 
-func (h *Handler[_, ContextT, _]) GetStateValidators(
+func (h *Handler[_, ContextT, _, _]) GetStateValidators(
 	c ContextT,
 ) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetStateValidatorsRequest](
@@ -58,7 +58,7 @@ func (h *Handler[_, ContextT, _]) GetStateValidators(
 	return types.Wrap(validators), nil
 }
 
-func (h *Handler[_, ContextT, _]) PostStateValidators(
+func (h *Handler[_, ContextT, _, _]) PostStateValidators(
 	c ContextT,
 ) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.PostStateValidatorsRequest](
@@ -86,7 +86,7 @@ func (h *Handler[_, ContextT, _]) PostStateValidators(
 	return types.Wrap(validators), nil
 }
 
-func (h *Handler[_, ContextT, _]) GetStateValidator(
+func (h *Handler[_, ContextT, _, _]) GetStateValidator(
 	c ContextT,
 ) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetStateValidatorRequest](
@@ -109,7 +109,7 @@ func (h *Handler[_, ContextT, _]) GetStateValidator(
 	return validator, nil
 }
 
-func (h *Handler[_, ContextT, _]) GetStateValidatorBalances(
+func (h *Handler[_, ContextT, _, _]) GetStateValidatorBalances(
 	c ContextT,
 ) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetValidatorBalancesRequest](
@@ -132,7 +132,7 @@ func (h *Handler[_, ContextT, _]) GetStateValidatorBalances(
 	return types.Wrap(balances), nil
 }
 
-func (h *Handler[_, ContextT, _]) PostStateValidatorBalances(
+func (h *Handler[_, ContextT, _, _]) PostStateValidatorBalances(
 	c ContextT,
 ) (any, error) {
 	var ids []string

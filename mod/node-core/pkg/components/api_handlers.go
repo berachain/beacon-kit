@@ -50,7 +50,7 @@ type NodeAPIHandlersInput[
 ] struct {
 	depinject.In
 	BeaconAPIHandler *beaconapi.Handler[
-		BeaconBlockHeaderT, NodeAPIContextT, *Fork,
+		BeaconBlockHeaderT, NodeAPIContextT, *Fork, *Validator,
 	]
 	BuilderAPIHandler *builderapi.Handler[NodeAPIContextT]
 	ConfigAPIHandler  *configapi.Handler[NodeAPIContextT]
@@ -108,12 +108,13 @@ func ProvideNodeAPIBeaconHandler[
 	NodeT,
 	*Validator,
 ]) *beaconapi.Handler[
-	BeaconBlockHeaderT, NodeAPIContextT, *Fork,
+	BeaconBlockHeaderT, NodeAPIContextT, *Fork, *Validator,
 ] {
 	return beaconapi.NewHandler[
 		BeaconBlockHeaderT,
 		NodeAPIContextT,
 		*Fork,
+		*Validator,
 	](b)
 }
 
