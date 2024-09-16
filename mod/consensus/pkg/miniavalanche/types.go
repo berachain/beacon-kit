@@ -28,7 +28,10 @@ import (
 )
 
 type (
-	GenesisT         = *types.Genesis[*types.Deposit, *types.ExecutionPayloadHeader]
+	GenesisT = *types.Genesis[
+		*types.Deposit,
+		*types.ExecutionPayloadHeader,
+	]
 	BeaconBlockT     = *types.BeaconBlock
 	BlobSidecarsT    = *datypes.BlobSidecars
 	ValidatorUpdates = transition.ValidatorUpdates
