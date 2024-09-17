@@ -50,7 +50,7 @@ func (h *Handler[
 		Canonical: true,
 		Header: &beacontypes.BlockHeader[BeaconBlockHeaderT]{
 			Message:   header,
-			Signature: bytes.B48{}, // TODO: implement
+			Signature: crypto.BLSSignature{}, // TODO: implement
 		},
 	}), nil
 }
@@ -78,7 +78,7 @@ func (h *Handler[
 		Canonical: true,
 		Header: &beacontypes.BlockHeader[BeaconBlockHeaderT]{
 			Message:   header,
-			Signature: bytes.B48{}, // TODO: implement
+			Signature: crypto.BLSSignature{}, // TODO: implement
 		},
 	}), nil
 }
