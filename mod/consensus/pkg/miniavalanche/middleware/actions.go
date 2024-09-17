@@ -51,6 +51,7 @@ func (vm *VMMiddleware) InitGenesis(
 		return nil, err
 	}
 
+	// TODO: events should send a sdk.Context, rather than a context.Context
 	if err := vm.dispatcher.Publish(
 		async.NewEvent(ctx, async.GenesisDataReceived, *data),
 	); err != nil {

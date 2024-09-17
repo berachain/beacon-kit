@@ -103,7 +103,7 @@ func (vm *VM) Initialize(
 		}
 	}
 
-	state, err := newState(db, genBlk)
+	state, err := newState(vm.db, genBlk)
 	if err != nil {
 		return fmt.Errorf("failed initializing vm state: %w", err)
 	}
