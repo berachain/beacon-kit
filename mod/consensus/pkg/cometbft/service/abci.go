@@ -147,6 +147,12 @@ func (s *Service[LoggerT]) InitChain(
 		}
 	}
 
+	if s.commitHook != nil {
+		if err = s.commitHook(s.finalizeBlockState.ctx); err != nil {
+			return nil, err
+		}
+	}
+
 	// NOTE: We don't commit, but FinalizeBlock for block InitialHeight starts
 	// from
 	// this FinalizeBlockState.
@@ -230,7 +236,7 @@ func (s *Service[LoggerT]) PrepareProposal(
 		s.getContextForProposal(
 			s.prepareProposalState.Context(),
 			req.Height,
-		),
+		).WithValue("exec-mode", uint8(execModePrepareProposal)),
 	)
 
 	s.prepareProposalState.SetContext(s.prepareProposalState.Context())
@@ -289,7 +295,7 @@ func (s *Service[LoggerT]) ProcessProposal(
 		s.getContextForProposal(
 			s.processProposalState.Context(),
 			req.Height,
-		),
+		).WithValue("exec-mode", uint8(execModeProcessProposal)),
 	)
 
 	resp, err := s.Middleware.ProcessProposal(
@@ -472,6 +478,11 @@ func (s *Service[LoggerT]) Commit(
 	}
 
 	s.sm.CommitMultiStore().Commit()
+	if s.commitHook != nil {
+		if err := s.commitHook(s.finalizeBlockState.ctx); err != nil {
+			return nil, err
+		}
+	}
 
 	resp := &cmtabci.CommitResponse{
 		RetainHeight: retainHeight,

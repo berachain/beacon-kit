@@ -20,7 +20,10 @@
 
 package beacondb
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	fastssz "github.com/ferranbt/fastssz"
+)
 
 // GetNextWithdrawalIndex returns the next withdrawal index.
 func (kv *KVStore[
@@ -37,6 +40,13 @@ func (kv *KVStore[
 ]) SetNextWithdrawalIndex(
 	index uint64,
 ) error {
+	if err := kv.sszDB.SetRaw(
+		kv.ctx,
+		"next_withdrawal_index",
+		fastssz.MarshalUint64(nil, index),
+	); err != nil {
+		return err
+	}
 	return kv.nextWithdrawalIndex.Set(kv.ctx, index)
 }
 
@@ -58,5 +68,12 @@ func (kv *KVStore[
 ]) SetNextWithdrawalValidatorIndex(
 	index math.ValidatorIndex,
 ) error {
+	if err := kv.sszDB.SetRaw(
+		kv.ctx,
+		"next_withdrawal_validator_index",
+		fastssz.MarshalUint64(nil, index.Unwrap()),
+	); err != nil {
+		return err
+	}
 	return kv.nextWithdrawalValidatorIndex.Set(kv.ctx, index.Unwrap())
 }

@@ -21,6 +21,8 @@
 package cometbft
 
 import (
+	"context"
+
 	pruningtypes "cosmossdk.io/store/pruning/types"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -89,4 +91,8 @@ func (s *Service[_]) SetName(name string) {
 // SetVersion sets the application's version string.
 func (s *Service[_]) SetVersion(v string) {
 	s.version = v
+}
+
+func (s *Service[_]) SetCommitHook(hook func(context.Context) error) {
+	s.commitHook = hook
 }

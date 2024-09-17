@@ -44,6 +44,7 @@ type KVStore[
 	WithContext(ctx context.Context) T
 	// Copy returns a copy of the key-value store.
 	Copy() T
+	RootHash() ([]byte, error)
 	// GetLatestExecutionPayloadHeader retrieves the latest execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (

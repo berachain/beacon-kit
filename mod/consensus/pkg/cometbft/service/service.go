@@ -67,6 +67,7 @@ type Service[
 	sm         *statem.Manager
 	Middleware MiddlewareI
 
+	commitHook           func(context.Context) error
 	prepareProposalState *state
 	processProposalState *state
 	finalizeBlockState   *state

@@ -30,6 +30,10 @@ func (kv *KVStore[
 	index uint64,
 	root common.Root,
 ) error {
+	if err := kv.sszDB.SetListElementRaw(
+		kv.ctx, "block_roots", index, root[:]); err != nil {
+		return err
+	}
 	return kv.blockRoots.Set(kv.ctx, index, root[:])
 }
 
@@ -54,6 +58,10 @@ func (kv *KVStore[
 ]) SetLatestBlockHeader(
 	header BeaconBlockHeaderT,
 ) error {
+	if err := kv.sszDB.SetObject(
+		kv.ctx, "latest_block_header", header); err != nil {
+		return err
+	}
 	return kv.latestBlockHeader.Set(kv.ctx, header)
 }
 
@@ -75,6 +83,10 @@ func (kv *KVStore[
 	idx uint64,
 	stateRoot common.Root,
 ) error {
+	if err := kv.sszDB.SetListElementRaw(
+		kv.ctx, "state_roots", idx, stateRoot[:]); err != nil {
+		return err
+	}
 	return kv.stateRoots.Set(kv.ctx, idx, stateRoot[:])
 }
 

@@ -30,6 +30,10 @@ func (kv *KVStore[
 	index uint64,
 	mix common.Bytes32,
 ) error {
+	if err := kv.sszDB.SetListElementRaw(
+		kv.ctx, "randao_mixes", index, mix[:]); err != nil {
+		return err
+	}
 	return kv.randaoMix.Set(kv.ctx, index, mix[:])
 }
 

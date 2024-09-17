@@ -21,9 +21,12 @@
 package beacondb
 
 import (
+	"errors"
+
 	"cosmossdk.io/collections/indexes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	fastssz "github.com/ferranbt/fastssz"
 )
 
 // AddValidator registers a new validator in the beacon state.
@@ -42,7 +45,22 @@ func (kv *KVStore[
 		return err
 	}
 
-	return kv.balances.Set(kv.ctx, idx, 0)
+	err = kv.balances.Set(kv.ctx, idx, 0)
+	if err != nil {
+		return err
+	}
+	idx2, err := kv.sszDB.GetListLength(kv.ctx, "validators")
+	if err != nil {
+		return err
+	}
+	if idx2 != idx {
+		return errors.New("validator index mismatch")
+	}
+	err = kv.sszDB.SetListElementObject(kv.ctx, "validators", idx, val)
+	if err != nil {
+		return err
+	}
+	return kv.sszDB.SetListElementRaw(kv.ctx, "balances", idx, []byte{})
 }
 
 // AddValidator registers a new validator in the beacon state.
@@ -73,6 +91,10 @@ func (kv *KVStore[
 	index math.ValidatorIndex,
 	val ValidatorT,
 ) error {
+	if err := kv.sszDB.SetListElementObject(
+		kv.ctx, "validators", index.Unwrap(), val); err != nil {
+		return err
+	}
 	return kv.validators.Set(kv.ctx, index.Unwrap(), val)
 }
 
@@ -228,6 +250,12 @@ func (kv *KVStore[
 	idx math.ValidatorIndex,
 	balance math.Gwei,
 ) error {
+	var bz []byte
+	bz = fastssz.MarshalUint64(bz, balance.Unwrap())
+	if err := kv.sszDB.SetListElementRaw(
+		kv.ctx, "balances", idx.Unwrap(), bz); err != nil {
+		return err
+	}
 	return kv.balances.Set(kv.ctx, idx.Unwrap(), balance.Unwrap())
 }
 

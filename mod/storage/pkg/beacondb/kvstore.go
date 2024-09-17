@@ -21,15 +21,22 @@
 package beacondb
 
 import (
+	"bytes"
 	"context"
+	"errors"
+	"fmt"
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/index"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/keys"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/sszdb"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	fastssz "github.com/ferranbt/fastssz"
+	"github.com/stretchr/testify/assert"
 )
 
 // KVStore is a wrapper around an sdk.Context
@@ -38,24 +45,30 @@ type KVStore[
 	BeaconBlockHeaderT interface {
 		constraints.Empty[BeaconBlockHeaderT]
 		constraints.SSZMarshallable
+		sszdb.Treeable
 	},
 	Eth1DataT interface {
 		constraints.Empty[Eth1DataT]
 		constraints.SSZMarshallable
+		sszdb.Treeable
 	},
 	ExecutionPayloadHeaderT interface {
 		constraints.SSZMarshallable
+		constraints.Empty[ExecutionPayloadHeaderT]
+		sszdb.Treeable
 		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
 		Version() uint32
 	},
 	ForkT interface {
 		constraints.Empty[ForkT]
 		constraints.SSZMarshallable
+		sszdb.Treeable
 	},
 	ValidatorT Validator[ValidatorT],
 	ValidatorsT ~[]ValidatorT,
 ] struct {
-	ctx context.Context
+	ctx   context.Context
+	sszDB *sszdb.SchemaDB
 	// Versioning
 	// genesisValidatorsRoot is the root of the genesis validators.
 	genesisValidatorsRoot sdkcollections.Item[[]byte]
@@ -115,25 +128,31 @@ func New[
 	BeaconBlockHeaderT interface {
 		constraints.Empty[BeaconBlockHeaderT]
 		constraints.SSZMarshallable
+		sszdb.Treeable
 	},
 	Eth1DataT interface {
 		constraints.Empty[Eth1DataT]
 		constraints.SSZMarshallable
+		sszdb.Treeable
 	},
 	ExecutionPayloadHeaderT interface {
 		constraints.SSZMarshallable
+		constraints.Empty[ExecutionPayloadHeaderT]
+		sszdb.Treeable
 		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
 		Version() uint32
 	},
 	ForkT interface {
 		constraints.Empty[ForkT]
 		constraints.SSZMarshallable
+		sszdb.Treeable
 	},
 	ValidatorT Validator[ValidatorT],
 	ValidatorsT ~[]ValidatorT,
 ](
 	kss store.KVStoreService,
 	payloadCodec *encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT],
+	sszDB *sszdb.SchemaDB,
 ) *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
@@ -143,7 +162,8 @@ func New[
 		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 		ForkT, ValidatorT, ValidatorsT,
 	]{
-		ctx: nil,
+		ctx:   nil,
+		sszDB: sszDB,
 		genesisValidatorsRoot: sdkcollections.NewItem(
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.GenesisValidatorsRootPrefix}),
@@ -305,4 +325,345 @@ func (kv *KVStore[
 	cpy := *kv
 	cpy.ctx = ctx
 	return &cpy
+}
+
+func (kv *KVStore[
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
+]) debugFieldAssertions() error {
+	// genesisValidatorsRoot
+	genesisValidatorsRoot, err := kv.GetGenesisValidatorsRoot()
+	if err != nil {
+		return err
+	}
+	genesisValidatorsRoot2, err := kv.sszDB.GetPath(
+		kv.ctx,
+		"genesis_validators_root",
+	)
+	if err != nil {
+		return err
+	}
+	if !bytes.Equal(genesisValidatorsRoot[:], genesisValidatorsRoot2) {
+		return errors.New("genesisValidatorsRoot not equal")
+	}
+
+	// slot
+	slot, err := kv.GetSlot()
+	if err != nil {
+		return err
+	}
+	slot2Bz, err := kv.sszDB.GetPath(kv.ctx, "slot")
+	if err != nil {
+		return err
+	}
+	slot2 := fastssz.UnmarshallUint64(slot2Bz)
+	if slot2 != slot.Unwrap() {
+		return errors.New("slot not equal")
+	}
+
+	// fork
+	fork, err := kv.GetFork()
+	if err != nil {
+		return err
+	}
+	var fork2 ForkT
+	fork2 = fork2.Empty()
+	err = kv.sszDB.GetObject(kv.ctx, "fork", fork2)
+	if err != nil {
+		return err
+	}
+	if !assert.ObjectsAreEqual(fork, fork2) {
+		return errors.New("fork not equal")
+	}
+
+	// latestBlockHeader
+	latestBlockHeader, err := kv.GetLatestBlockHeader()
+	if err != nil {
+		return err
+	}
+	var latestBlockHeader2 BeaconBlockHeaderT
+	latestBlockHeader2 = latestBlockHeader2.Empty()
+	err = kv.sszDB.GetObject(
+		kv.ctx,
+		"latest_block_header",
+		latestBlockHeader2,
+	)
+	if err != nil {
+		return err
+	}
+	if !assert.ObjectsAreEqual(latestBlockHeader, latestBlockHeader2) {
+		return errors.New("latestBlockHeader not equal")
+	}
+
+	// blockRoots
+	const slotsPerHistoricalRoot = 8
+	blockRoots := make([]common.Root, slotsPerHistoricalRoot)
+	blockRoots2 := make([]common.Root, slotsPerHistoricalRoot)
+	for i := range blockRoots {
+		blockRoots[i], err = kv.GetBlockRootAtIndex(uint64(i))
+		if err != nil {
+			return err
+		}
+		op := fmt.Sprintf("block_roots/%d", i)
+		var bz []byte
+		bz, err = kv.sszDB.GetPath(kv.ctx, sszdb.ObjectPath(op))
+		if err != nil {
+			return err
+		}
+		blockRoots2[i] = common.Root(bz)
+	}
+	if !assert.ObjectsAreEqual(blockRoots, blockRoots2) {
+		return errors.New("blockRoots not equal")
+	}
+
+	// state roots
+	stateRoots := make([]common.Root, slotsPerHistoricalRoot)
+	stateRoots2 := make([]common.Root, slotsPerHistoricalRoot)
+	for i := range stateRoots {
+		stateRoots[i], err = kv.StateRootAtIndex(uint64(i))
+		if err != nil {
+			return err
+		}
+		op := fmt.Sprintf("state_roots/%d", i)
+		var bz []byte
+		bz, err = kv.sszDB.GetPath(kv.ctx, sszdb.ObjectPath(op))
+		if err != nil {
+			return err
+		}
+		stateRoots2[i] = common.Root(bz)
+	}
+	if !assert.ObjectsAreEqual(stateRoots, stateRoots2) {
+		return errors.New("stateRoots not equal")
+	}
+
+	// eth1Data
+	eth1Data, err := kv.GetEth1Data()
+	if err != nil {
+		return err
+	}
+	var eth1Data2 Eth1DataT
+	eth1Data2 = eth1Data2.Empty()
+	err = kv.sszDB.GetObject(kv.ctx, "eth1_data", eth1Data2)
+	if err != nil {
+		return err
+	}
+	if !assert.ObjectsAreEqual(eth1Data, eth1Data2) {
+		return errors.New("eth1Data not equal")
+	}
+
+	// eth1DepositIndex
+	eth1DepositIndex, err := kv.GetEth1DepositIndex()
+	if err != nil {
+		return err
+	}
+	eth1DepositIndex2Bz, err := kv.sszDB.GetPath(kv.ctx, "eth1_deposit_index")
+	if err != nil {
+		return err
+	}
+	eth1DepositIndex2 := fastssz.UnmarshallUint64(eth1DepositIndex2Bz)
+	if eth1DepositIndex2 != eth1DepositIndex {
+		return errors.New("eth1DepositIndex not equal")
+	}
+
+	// latestExecutionPayloadHeader
+	latestExecutionPayloadHeader, err := kv.GetLatestExecutionPayloadHeader()
+	if err != nil {
+		return err
+	}
+	var latestExecutionPayloadHeader2 ExecutionPayloadHeaderT
+	latestExecutionPayloadHeader2 = latestExecutionPayloadHeader2.Empty()
+	err = kv.sszDB.GetObject(
+		kv.ctx,
+		"latest_execution_payload_header",
+		latestExecutionPayloadHeader2,
+	)
+	if err != nil {
+		return err
+	}
+	if !assert.ObjectsAreEqual(
+		latestExecutionPayloadHeader,
+		latestExecutionPayloadHeader2,
+	) {
+		return errors.New("latestExecutionPayloadHeader not equal")
+	}
+
+	// validators
+	validators, err := kv.GetValidators()
+	if err != nil {
+		return err
+	}
+	numValidators, err := kv.sszDB.GetListLength(kv.ctx, "validators")
+	if err != nil {
+		return err
+	}
+	if numValidators != uint64(len(validators)) {
+		return errors.New("validators length mismatch")
+	}
+	validators2 := make([]ValidatorT, numValidators)
+	for i := range validators2 {
+		validators2[i] = validators2[i].Empty()
+		err = kv.sszDB.GetObject(
+			kv.ctx,
+			sszdb.ObjectPath(fmt.Sprintf("validators/%d", i)),
+			validators2[i],
+		)
+		if err != nil {
+			return err
+		}
+	}
+	for i, v := range validators {
+		if !assert.ObjectsAreEqual(v, validators2[i]) {
+			return errors.New("validators not equal")
+		}
+	}
+
+	// balances
+	balances, err := kv.GetBalances()
+	if err != nil {
+		return err
+	}
+	numBalances, err := kv.sszDB.GetListLength(kv.ctx, "balances")
+	if err != nil {
+		return err
+	}
+	if numBalances != uint64(len(balances)) {
+		return errors.New("balances length mismatch")
+	}
+	balances2 := make([]uint64, numBalances)
+	for i := range balances2 {
+		var bz []byte
+		bz, err = kv.sszDB.GetPath(
+			kv.ctx,
+			sszdb.ObjectPath(fmt.Sprintf("balances/%d", i)),
+		)
+		if err != nil {
+			return err
+		}
+		balances2[i] = fastssz.UnmarshallUint64(bz)
+	}
+	for i, b := range balances {
+		if b != balances2[i] {
+			return errors.New("balances not equal")
+		}
+	}
+
+	// randaoMixes
+	const epochsPerHistoricalVector = 8
+	randaoMixes := make([]common.Bytes32, epochsPerHistoricalVector)
+	randaoMixes2 := make([]common.Bytes32, epochsPerHistoricalVector)
+	for i := range randaoMixes {
+		randaoMixes[i], err = kv.GetRandaoMixAtIndex(uint64(i))
+		if err != nil {
+			return err
+		}
+		op := fmt.Sprintf("randao_mixes/%d", i)
+		var bz []byte
+		bz, err = kv.sszDB.GetPath(kv.ctx, sszdb.ObjectPath(op))
+		if err != nil {
+			return err
+		}
+		randaoMixes2[i] = common.Bytes32(bz)
+	}
+	if !assert.ObjectsAreEqual(randaoMixes, randaoMixes2) {
+		return errors.New("randaoMixes not equal")
+	}
+
+	// nextWithdrawalIndex
+	nextWithdrawalIndex, err := kv.GetNextWithdrawalIndex()
+	if err != nil {
+		return err
+	}
+	nextWithdrawalIndex2Bz, err := kv.sszDB.GetPath(
+		kv.ctx,
+		"next_withdrawal_index",
+	)
+	if err != nil {
+		return err
+	}
+	nextWithdrawalIndex2 := fastssz.UnmarshallUint64(nextWithdrawalIndex2Bz)
+	if nextWithdrawalIndex2 != nextWithdrawalIndex {
+		return fmt.Errorf(
+			"nextWithdrawalIndex not equal, expected %d, got %d",
+			nextWithdrawalIndex,
+			nextWithdrawalIndex2,
+		)
+	}
+
+	// nextWithdrawalValidatorIndex
+	nextWithdrawalValidatorIndex, err := kv.GetNextWithdrawalValidatorIndex()
+	if err != nil {
+		return err
+	}
+	nextWithdrawalValidatorIndex2Bz, err := kv.sszDB.GetPath(
+		kv.ctx,
+		"next_withdrawal_validator_index",
+	)
+	if err != nil {
+		return err
+	}
+	nextWithdrawalValidatorIndex2 := fastssz.UnmarshallUint64(
+		nextWithdrawalValidatorIndex2Bz,
+	)
+	if nextWithdrawalValidatorIndex2 != nextWithdrawalValidatorIndex.Unwrap() {
+		return errors.New("nextWithdrawalValidatorIndex not equal")
+	}
+
+	// slashings
+	slashings, err := kv.GetSlashings()
+	if err != nil {
+		return err
+	}
+	numSlashings, err := kv.sszDB.GetListLength(kv.ctx, "slashings")
+	if err != nil {
+		return err
+	}
+	if numSlashings != uint64(len(slashings)) {
+		return errors.New("slashings length mismatch")
+	}
+	slashings2 := make([]uint64, numSlashings)
+	for i := range slashings2 {
+		var bz []byte
+		bz, err = kv.sszDB.GetPath(
+			kv.ctx,
+			sszdb.ObjectPath(fmt.Sprintf("slashings/%d", i)),
+		)
+		if err != nil {
+			return err
+		}
+		slashings2[i] = fastssz.UnmarshallUint64(bz)
+	}
+	for i, s := range slashings {
+		if s != slashings2[i] {
+			return errors.New("slashings not equal")
+		}
+	}
+
+	// totalSlashing
+	totalSlashing, err := kv.GetTotalSlashing()
+	if err != nil {
+		return err
+	}
+	totalSlashing2Bz, err := kv.sszDB.GetPath(kv.ctx, "total_slashing")
+	if err != nil {
+		return err
+	}
+	totalSlashing2 := fastssz.UnmarshallUint64(totalSlashing2Bz)
+	if totalSlashing2 != totalSlashing.Unwrap() {
+		return errors.New("totalSlashing not equal")
+	}
+	return nil
+}
+
+func (kv *KVStore[
+	BeaconBlockHeaderT,
+	Eth1DataT,
+	ExecutionPayloadHeaderT,
+	ForkT,
+	ValidatorT,
+	ValidatorsT,
+]) RootHash() ([]byte, error) {
+	// debug: preform equivalence checks
+	// kv.debugFieldAssertions()
+
+	return kv.sszDB.Hash(kv.ctx)
 }

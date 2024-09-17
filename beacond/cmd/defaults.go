@@ -137,6 +137,7 @@ func DefaultComponents() []any {
 			*ExecutionPayload, *ExecutionPayloadHeader, *KVStore, *Logger,
 			*StorageBackend,
 		],
+		components.ProvideSSZDB[*BeaconStateMarshallable],
 		// TODO Hacks
 		components.ProvideKVStoreService,
 		components.ProvideKVStoreKey,

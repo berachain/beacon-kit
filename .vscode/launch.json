@@ -1,0 +1,29 @@
+
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Start Beacon Kit",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/beacond/cmd/",
+            "buildFlags": "-tags='netgo,pebbledb,blst,bls12381,ckzg,cgo'",
+            "args": [
+                "start",
+                "--pruning=nothing",
+                "--beacon-kit.logger.log-level", "info",
+                "--home", "${workspaceFolder}/.tmp/beacond",
+                "--beacon-kit.engine.jwt-secret-path", "${workspaceFolder}/testing/files/jwt.hex",
+                "--beacon-kit.kzg.trusted-setup-path", "${workspaceFolder}/testing/files/kzg-trusted-setup.json",
+                "--beacon-kit.block-store-service.enabled",
+                "--beacon-kit.node-api.enabled", 
+                "--beacon-kit.node-api.logging"
+            ],
+            "env": {
+                "CHAIN_SPEC": "devnet"
+            },
+            "console": "integratedTerminal"
+        }
+    ]
+}
