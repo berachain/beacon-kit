@@ -22,6 +22,61 @@ func (_m *BlockStore[BeaconBlockT]) EXPECT() *BlockStore_Expecter[BeaconBlockT] 
 	return &BlockStore_Expecter[BeaconBlockT]{mock: &_m.Mock}
 }
 
+// GetHeadSlot provides a mock function with given fields:
+func (_m *BlockStore[BeaconBlockT]) GetHeadSlot() (math.U64, error) {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetHeadSlot")
+	}
+
+	var r0 math.U64
+	var r1 error
+	if rf, ok := ret.Get(0).(func() (math.U64, error)); ok {
+		return rf()
+	}
+	if rf, ok := ret.Get(0).(func() math.U64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(math.U64)
+	}
+
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// BlockStore_GetHeadSlot_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetHeadSlot'
+type BlockStore_GetHeadSlot_Call[BeaconBlockT interface{}] struct {
+	*mock.Call
+}
+
+// GetHeadSlot is a helper method to define mock.On call
+func (_e *BlockStore_Expecter[BeaconBlockT]) GetHeadSlot() *BlockStore_GetHeadSlot_Call[BeaconBlockT] {
+	return &BlockStore_GetHeadSlot_Call[BeaconBlockT]{Call: _e.mock.On("GetHeadSlot")}
+}
+
+func (_c *BlockStore_GetHeadSlot_Call[BeaconBlockT]) Run(run func()) *BlockStore_GetHeadSlot_Call[BeaconBlockT] {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *BlockStore_GetHeadSlot_Call[BeaconBlockT]) Return(_a0 math.U64, _a1 error) *BlockStore_GetHeadSlot_Call[BeaconBlockT] {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *BlockStore_GetHeadSlot_Call[BeaconBlockT]) RunAndReturn(run func() (math.U64, error)) *BlockStore_GetHeadSlot_Call[BeaconBlockT] {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetSlotByBlockRoot provides a mock function with given fields: root
 func (_m *BlockStore[BeaconBlockT]) GetSlotByBlockRoot(root common.Root) (math.U64, error) {
 	ret := _m.Called(root)
