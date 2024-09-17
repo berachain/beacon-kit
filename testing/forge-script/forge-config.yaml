@@ -30,4 +30,4 @@ deployment:
   rpc_url: "http://HOST_IP_ADDRESS:8547"  # If you spin up local devnet via kurtosis, then public port is 8547
   wallet:
     type: "private_key"  # currently only private_key wallet is supported. Do not change the type.
-    value: "0xff" # private key of the account which will deploy the contract.
+    value: "0xfffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306" # private key of the account which will deploy the contract.
