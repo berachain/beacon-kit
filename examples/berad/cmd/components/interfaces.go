@@ -15,7 +15,7 @@ type (
 		T,
 		BeaconBlockHeaderT,
 		BeaconStateMarshallableT,
-		Eth1DataT,
+		// Eth1DataT,
 		ExecutionPayloadHeaderT,
 		ForkT,
 		KVStoreT,
@@ -34,11 +34,11 @@ type (
 		GetMarshallable() (BeaconStateMarshallableT, error)
 
 		ReadOnlyBeaconState[
-			BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+			BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 			ForkT, ValidatorT, ValidatorsT, WithdrawalT, WithdrawalsT,
 		]
 		WriteOnlyBeaconState[
-			BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+			BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 			ForkT, ValidatorT, WithdrawalsT,
 		]
 	}
@@ -47,7 +47,6 @@ type (
 	BeaconStore[
 		T any,
 		BeaconBlockHeaderT any,
-		Eth1DataT any,
 		ExecutionPayloadHeaderT any,
 		ForkT any,
 		ValidatorT any,
@@ -103,10 +102,10 @@ type (
 		GetBlockRootAtIndex(index uint64) (common.Root, error)
 		// StateRootAtIndex retrieves the state root at the given index.
 		StateRootAtIndex(index uint64) (common.Root, error)
-		// GetEth1Data retrieves the eth1 data.
-		GetEth1Data() (Eth1DataT, error)
+		// // GetEth1Data retrieves the eth1 data.
+		// GetEth1Data() (Eth1DataT, error)
 		// SetEth1Data sets the eth1 data.
-		SetEth1Data(data Eth1DataT) error
+		// SetEth1Data(data Eth1DataT) error
 		// GetValidators retrieves all validators.
 		GetValidators() (ValidatorsT, error)
 		// GetBalances retrieves all balances.
@@ -172,20 +171,22 @@ type (
 
 	// ReadOnlyBeaconState is the interface for a read-only beacon state.
 	ReadOnlyBeaconState[
-		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+		BeaconBlockHeaderT, ExecutionPayloadHeaderT, ForkT,
 		ValidatorT, ValidatorsT, WithdrawalT, WithdrawalsT any,
 	] interface {
-		ReadOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT]
 		ReadOnlyRandaoMixes
 		ReadOnlyStateRoots
 		ReadOnlyValidators[ValidatorT]
 		ReadOnlyWithdrawals[WithdrawalT]
-
 		// GetBalances retrieves all balances.
 		GetBalances() ([]uint64, error)
 		GetBalance(math.ValidatorIndex) (math.Gwei, error)
 		GetSlot() (math.Slot, error)
 		GetFork() (ForkT, error)
+		GetEth1DepositIndex() (uint64, error)
+		GetLatestExecutionPayloadHeader() (
+			ExecutionPayloadHeaderT, error,
+		)
 		GetGenesisValidatorsRoot() (common.Root, error)
 		GetBlockRootAtIndex(uint64) (common.Root, error)
 		GetLatestBlockHeader() (BeaconBlockHeaderT, error)
@@ -205,10 +206,9 @@ type (
 
 	// WriteOnlyBeaconState is the interface for a write-only beacon state.
 	WriteOnlyBeaconState[
-		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+		BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 		ForkT, ValidatorT, WithdrawalsT any,
 	] interface {
-		WriteOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT]
 		WriteOnlyRandaoMixes
 		WriteOnlyStateRoots
 		WriteOnlyValidators[ValidatorT]
@@ -216,6 +216,10 @@ type (
 		SetGenesisValidatorsRoot(root common.Root) error
 		SetFork(ForkT) error
 		SetSlot(math.Slot) error
+		SetEth1DepositIndex(uint64) error
+		SetLatestExecutionPayloadHeader(
+			ExecutionPayloadHeaderT,
+		) error
 		UpdateBlockRootAtIndex(uint64, common.Root) error
 		SetLatestBlockHeader(BeaconBlockHeaderT) error
 		IncreaseBalance(math.ValidatorIndex, math.Gwei) error
@@ -273,24 +277,6 @@ type (
 		ValidatorByIndex(
 			math.ValidatorIndex,
 		) (ValidatorT, error)
-	}
-
-	// WriteOnlyEth1Data has write access to eth1 data.
-	WriteOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT any] interface {
-		SetEth1Data(Eth1DataT) error
-		SetEth1DepositIndex(uint64) error
-		SetLatestExecutionPayloadHeader(
-			ExecutionPayloadHeaderT,
-		) error
-	}
-
-	// ReadOnlyEth1Data has read access to eth1 data.
-	ReadOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT any] interface {
-		GetEth1Data() (Eth1DataT, error)
-		GetEth1DepositIndex() (uint64, error)
-		GetLatestExecutionPayloadHeader() (
-			ExecutionPayloadHeaderT, error,
-		)
 	}
 
 	// ReadOnlyWithdrawals only has read access to withdrawal methods.

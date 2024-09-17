@@ -63,7 +63,7 @@ func ProvideStateProcessor[
 	BeaconBlockHeaderT beaconcomponents.BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
-		*beaconcomponents.Eth1Data, ExecutionPayloadHeaderT,
+		ExecutionPayloadHeaderT,
 		*beaconcomponents.Fork, KVStoreT, *beaconcomponents.Validator,
 		beaconcomponents.Validators, WithdrawalT, WithdrawalsT,
 	],
