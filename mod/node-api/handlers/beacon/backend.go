@@ -42,6 +42,8 @@ type Backend[
 	GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 	// GetSlotByStateRoot retrieves the slot by a given root from the store.
 	GetSlotByStateRoot(root common.Root) (math.Slot, error)
+	// GetHeadSlot retrieves the head slot from the store using block root.
+	GetHeadSlot() (math.Slot, error)
 }
 
 type GenesisBackend interface {

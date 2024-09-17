@@ -206,3 +206,10 @@ func (b *Backend[
 	}
 	return st, slot, err
 }
+
+// GetHeadSlot returns the head slot from the backend.
+func (b *Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) GetHeadSlot() (math.Slot, error) {
+	return b.sb.BlockStore().GetHeadSlot()
+}

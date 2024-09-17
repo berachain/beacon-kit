@@ -111,3 +111,29 @@ func (kv *KVStore[BeaconBlockT]) GetSlotByStateRoot(
 	}
 	return slot, nil
 }
+
+// GetHeadSlot retrieves the head slot.
+// TODO: This is very hoody way to get the the current slot, optimize it.
+func (kv *KVStore[BeaconBlockT]) GetHeadSlot() (math.Slot, error) {
+	keys := kv.blockRoots.Keys()
+	if len(keys) == 0 {
+		return 0, fmt.Errorf("no blocks in the store")
+	}
+
+	var maxSlot math.Slot
+	for _, key := range keys {
+		slot, ok := kv.blockRoots.Peek(key)
+		if !ok {
+			continue
+		}
+		if slot > maxSlot {
+			maxSlot = slot
+		}
+	}
+
+	if maxSlot == 0 {
+		return 0, fmt.Errorf("no valid slots found")
+	}
+
+	return maxSlot, nil
+}

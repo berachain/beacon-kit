@@ -25,6 +25,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 func (h *Handler[
@@ -36,9 +37,19 @@ func (h *Handler[
 	if err != nil {
 		return nil, err
 	}
-	slot, err := utils.U64FromString(req.Slot)
-	if err != nil {
-		return nil, err
+	var slot math.Slot
+	// If slot is not being passed in the request,
+	// by default fetch current head slot blocks.
+	if req.Slot == "" {
+		slot, err = h.backend.GetHeadSlot()
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		slot, err = utils.U64FromString(req.Slot)
+		if err != nil {
+			return nil, err
+		}
 	}
 	header, err := h.backend.BlockHeaderAtSlot(slot)
 	if err != nil {

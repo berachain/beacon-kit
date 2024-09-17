@@ -297,6 +297,8 @@ type (
 		// number
 		// from the store.
 		GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error)
+		// GetHeadSlot retrieves the head slot by the block root.
+		GetHeadSlot() (math.Slot, error)
 	}
 
 	ConsensusEngine interface {
@@ -1091,6 +1093,7 @@ type (
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		GetSlotByStateRoot(root common.Root) (math.Slot, error)
 		GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error)
+		GetHeadSlot() (math.Slot, error)
 
 		NodeAPIBeaconBackend[
 			BeaconStateT, BeaconBlockHeaderT, ForkT, ValidatorT,
@@ -1115,6 +1118,8 @@ type (
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		// GetSlotByStateRoot retrieves the slot by a given root from the store.
 		GetSlotByStateRoot(root common.Root) (math.Slot, error)
+		// GetHeadSlot retrieves the head slot from the store.
+		GetHeadSlot() (math.Slot, error)
 	}
 
 	// NodeAPIProofBackend is the interface for backend of the proof API.
