@@ -25,6 +25,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	fastssz "github.com/ferranbt/fastssz"
@@ -82,7 +83,9 @@ type ExecutionPayloadHeader struct {
 
 // Empty returns an empty ExecutionPayload for the given fork version.
 func (h *ExecutionPayloadHeader) Empty() *ExecutionPayloadHeader {
-	return &ExecutionPayloadHeader{}
+	return &ExecutionPayloadHeader{
+		BaseFeePerGas: new(uint256.Int),
+	}
 }
 
 // NewFromSSZ returns a new ExecutionPayloadHeader from the given SSZ bytes.
@@ -143,6 +146,32 @@ func (h *ExecutionPayloadHeader) DefineSSZ(codec *ssz.Codec) {
 	// Define the dynamic data (fields)
 	//nolint:mnd // todo fix.
 	ssz.DefineDynamicBytesContent(codec, (*[]byte)(&h.ExtraData), 32)
+}
+
+func (h *ExecutionPayloadHeader) DefineSchema(codec *schema.Codec) {
+	schema.DefineStaticBytes(codec, "parent_hash", &h.ParentHash)
+	schema.DefineStaticBytes(codec, "fee_recipient", &h.FeeRecipient)
+	schema.DefineStaticBytes(codec, "state_root", &h.StateRoot)
+	schema.DefineStaticBytes(codec, "receipts_root", &h.ReceiptsRoot)
+	schema.DefineStaticBytes(codec, "logs_bloom", &h.LogsBloom)
+	schema.DefineStaticBytes(codec, "random", &h.Random)
+	schema.DefineUint64(codec, "number", &h.Number)
+	schema.DefineUint64(codec, "gas_limit", &h.GasLimit)
+	schema.DefineUint64(codec, "gas_used", &h.GasUsed)
+	schema.DefineUint64(codec, "timestamp", &h.Timestamp)
+	//nolint:mnd // todo fix.
+	schema.DefineDynamicBytesOffset(
+		codec,
+		"extra_data",
+		(*[]byte)(&h.ExtraData),
+		32,
+	)
+	schema.DefineUint256(codec, "base_fee_per_gas", &h.BaseFeePerGas)
+	schema.DefineStaticBytes(codec, "block_hash", &h.BlockHash)
+	schema.DefineStaticBytes(codec, "transactions_root", &h.TransactionsRoot)
+	schema.DefineStaticBytes(codec, "withdrawals_root", &h.WithdrawalsRoot)
+	schema.DefineUint64(codec, "blob_gas_used", &h.BlobGasUsed)
+	schema.DefineUint64(codec, "excess_blob_gas", &h.ExcessBlobGas)
 }
 
 // MarshalSSZ serializes the ExecutionPayloadHeader object into a slice of
