@@ -27,7 +27,11 @@ import (
 )
 
 // Backend is the interface for backend of the beacon API.
-type Backend[BlockHeaderT, ForkT, ValidatorT any] interface {
+type Backend[
+	BlockHeaderT any,
+	ForkT any,
+	ValidatorT types.Validator,
+] interface {
 	GenesisBackend
 	BlockBackend[BlockHeaderT]
 	RandaoBackend
@@ -64,7 +68,7 @@ type StateBackend[ForkT any] interface {
 	StateForkAtSlot(slot math.Slot) (ForkT, error)
 }
 
-type ValidatorBackend[ValidatorT any] interface {
+type ValidatorBackend[ValidatorT types.Validator] interface {
 	ValidatorByID(
 		slot math.Slot, id string,
 	) (*types.ValidatorData[ValidatorT], error)

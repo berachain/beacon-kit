@@ -83,17 +83,6 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	dep DepositT,
 ) error {
-	// TODO: fill this in properly
-	// if !sp.isValidMerkleBranch(
-	// 	leaf,
-	// 	dep.Credentials,
-	// 	32 + 1,
-	// 	dep.Index,
-	// 	st.root,
-	// ) {
-	// 	return errors.New("invalid merkle branch")
-	// }
-
 	depositIndex, err := st.GetEth1DepositIndex()
 	if err != nil {
 		return err

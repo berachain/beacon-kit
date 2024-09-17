@@ -22,6 +22,7 @@ package beacon
 
 import (
 	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 )
 
@@ -40,9 +41,5 @@ func (h *Handler[_, ContextT, _, _]) GetBlockRewards(c ContextT) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &beacontypes.ValidatorResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data:                rewards,
-	}, nil
+	return types.Wrap(rewards), nil
 }

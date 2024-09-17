@@ -23,8 +23,10 @@ package backend
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
@@ -117,19 +119,16 @@ type StorageBackend[
 	StateFromContext(context.Context) BeaconStateT
 }
 
-// Validator represents an interface for a validator with generic withdrawal
-// credentials. WithdrawalCredentialsT is a type parameter that must implement
-// the WithdrawalCredentials interface.
-type Validator[WithdrawalCredentialsT WithdrawalCredentials] interface {
-	// GetWithdrawalCredentials returns the withdrawal credentials of the
-	// validator.
-	GetWithdrawalCredentials() WithdrawalCredentialsT
-	// IsFullyWithdrawable checks if the validator is fully withdrawable given a
-	// certain Gwei amount and epoch.
-	IsFullyWithdrawable(amount math.Gwei, epoch math.Epoch) bool
-	// IsPartiallyWithdrawable checks if the validator is partially withdrawable
-	// given two Gwei amounts.
-	IsPartiallyWithdrawable(amount1 math.Gwei, amount2 math.Gwei) bool
+// Validator represents an interface for a validator.
+type Validator interface {
+	GetWithdrawalCredentials() types.WithdrawalCredentials
+	GetPubkey() crypto.BLSPubkey
+	GetEffectiveBalance() math.Gwei
+	IsSlashed() bool
+	GetActivationEligibilityEpoch() math.Epoch
+	GetActivationEpoch() math.Epoch
+	GetExitEpoch() math.Epoch
+	GetWithdrawableEpoch() math.Epoch
 }
 
 // Withdrawal represents an interface for a withdrawal.
@@ -140,11 +139,4 @@ type Withdrawal[T any] interface {
 		address common.ExecutionAddress,
 		amount math.Gwei,
 	) T
-}
-
-// WithdrawalCredentials represents an interface for withdrawal credentials.
-type WithdrawalCredentials interface {
-	// ToExecutionAddress converts the withdrawal credentials to an execution
-	// address.
-	ToExecutionAddress() (common.ExecutionAddress, error)
 }

@@ -1084,7 +1084,7 @@ type (
 		BeaconStateT any,
 		ForkT any,
 		NodeT any,
-		ValidatorT any,
+		ValidatorT types.Validator,
 	] interface {
 		AttachQueryBackend(node NodeT)
 		ChainSpec() common.ChainSpec
@@ -1102,7 +1102,8 @@ type (
 
 	// NodeAPIBackend is the interface for backend of the beacon API.
 	NodeAPIBeaconBackend[
-		BeaconStateT, BeaconBlockHeaderT, ForkT, ValidatorT any,
+		BeaconStateT, BeaconBlockHeaderT, ForkT any,
+		ValidatorT types.Validator,
 	] interface {
 		GenesisBackend
 		BlockBackend[BeaconBlockHeaderT]
@@ -1150,7 +1151,7 @@ type (
 		StateFromSlotForProof(slot math.Slot) (BeaconStateT, math.Slot, error)
 	}
 
-	ValidatorBackend[ValidatorT any] interface {
+	ValidatorBackend[ValidatorT types.Validator] interface {
 		ValidatorByID(
 			slot math.Slot, id string,
 		) (*types.ValidatorData[ValidatorT], error)

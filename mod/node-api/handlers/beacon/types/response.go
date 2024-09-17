@@ -29,19 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 )
 
-// TODO: change this to a arbitrary response type. types.Wrap(data) should
-// always put the data as the Data struct and return this struct.
-type ValidatorResponse struct {
-	ExecutionOptimistic bool `json:"execution_optimistic"`
-	Finalized           bool `json:"finalized"`
-	Data                any  `json:"data"`
-}
-
-type BlockResponse struct {
-	Version string `json:"version"`
-	ValidatorResponse
-}
-
 type BlockHeaderResponse[BlockHeaderT any] struct {
 	Root      common.Root  `json:"root"`
 	Canonical bool         `json:"canonical"`
@@ -99,22 +86,75 @@ type RootData struct {
 	Root common.Root `json:"root"`
 }
 
-type ValidatorData[ValidatorT any] struct {
+type ValidatorBalanceData struct {
+	Index   uint64 `json:"index"`
+	Balance uint64 `json:"balance"`
+}
+
+func (vbd ValidatorBalanceData) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Index   string `json:"index"`
+		Balance string `json:"balance"`
+	}{
+		Index:   strconv.FormatUint(vbd.Index, 10),
+		Balance: strconv.FormatUint(vbd.Balance, 10),
+	})
+}
+
+type ValidatorData[ValidatorT Validator] struct {
 	ValidatorBalanceData
 	Status    string     `json:"status"`
 	Validator ValidatorT `json:"validator"`
 }
 
-type ValidatorBalanceData struct {
-	Index   uint64 `json:"index,string"`
-	Balance uint64 `json:"balance,string"`
-}
+func (vd ValidatorData[ValidatorT]) MarshalJSON() ([]byte, error) {
+	type ValidatorJSON struct {
+		PublicKey                  string `json:"pubkey"`
+		WithdrawalCredentials      string `json:"withdrawal_credentials"`
+		EffectiveBalance           string `json:"effective_balance"`
+		Slashed                    bool   `json:"slashed"`
+		ActivationEligibilityEpoch string `json:"activation_eligibility_epoch"`
+		ActivationEpoch            string `json:"activation_epoch"`
+		ExitEpoch                  string `json:"exit_epoch"`
+		WithdrawableEpoch          string `json:"withdrawable_epoch"`
+	}
 
-//nolint:staticcheck // todo: figure this out.
-type CommitteeData struct {
-	Index      uint64   `json:"index,string"`
-	Slot       uint64   `json:"slot,string"`
-	Validators []uint64 `json:"validators,string"`
+	type ResponseJSON struct {
+		Index     string        `json:"index"`
+		Balance   string        `json:"balance"`
+		Status    string        `json:"status"`
+		Validator ValidatorJSON `json:"validator"`
+	}
+
+	withdrawalCredentials := vd.Validator.GetWithdrawalCredentials()
+
+	return json.Marshal(ResponseJSON{
+		Index:   strconv.FormatUint(vd.Index, 10),
+		Balance: strconv.FormatUint(vd.Balance, 10),
+		Status:  vd.Status,
+		Validator: ValidatorJSON{
+			PublicKey: vd.Validator.GetPubkey().String(),
+			WithdrawalCredentials: "0x" + hex.EncodeToString(
+				withdrawalCredentials[:],
+			),
+			EffectiveBalance: strconv.FormatUint(
+				vd.Validator.GetEffectiveBalance().Unwrap(), 10,
+			),
+			Slashed: vd.Validator.IsSlashed(),
+			ActivationEligibilityEpoch: strconv.FormatUint(
+				vd.Validator.GetActivationEligibilityEpoch().Unwrap(), 10,
+			),
+			ActivationEpoch: strconv.FormatUint(
+				vd.Validator.GetActivationEpoch().Unwrap(), 10,
+			),
+			ExitEpoch: strconv.FormatUint(
+				vd.Validator.GetExitEpoch().Unwrap(), 10,
+			),
+			WithdrawableEpoch: strconv.FormatUint(
+				vd.Validator.GetWithdrawableEpoch().Unwrap(), 10,
+			),
+		},
+	})
 }
 
 type BlockRewardsData struct {
@@ -143,53 +183,5 @@ func (fr ForkResponse) MarshalJSON() ([]byte, error) {
 		PreviousVersion: fr.GetPreviousVersion().String(),
 		CurrentVersion:  fr.GetCurrentVersion().String(),
 		Epoch:           strconv.FormatUint(fr.GetEpoch().Unwrap(), 10),
-	})
-}
-
-type ValidatorResponseData struct {
-	ValidatorBalanceData
-	Status    string    `json:"status"`
-	Validator Validator `json:"validator"`
-}
-
-// MarshalJSON implements json.Marshal for ValidatorResponseData.
-//
-//nolint:lll
-func (vrd ValidatorResponseData) MarshalJSON() ([]byte, error) {
-	type ValidatorJSON struct {
-		PublicKey                  string `json:"pubkey"`
-		WithdrawalCredentials      string `json:"withdrawal_credentials"`
-		EffectiveBalance           string `json:"effective_balance"`
-		Slashed                    bool   `json:"slashed"`
-		ActivationEligibilityEpoch string `json:"activation_eligibility_epoch"`
-		ActivationEpoch            string `json:"activation_epoch"`
-		ExitEpoch                  string `json:"exit_epoch"`
-		WithdrawableEpoch          string `json:"withdrawable_epoch"`
-	}
-
-	type ResponseJSON struct {
-		Index     string        `json:"index"`
-		Balance   string        `json:"balance"`
-		Status    string        `json:"status"`
-		Validator ValidatorJSON `json:"validator"`
-	}
-
-	withdrawalCredentials := vrd.Validator.GetWithdrawalCredentials()
-	withdrawalCredentialsBytes := withdrawalCredentials[:]
-
-	return json.Marshal(ResponseJSON{
-		Index:   strconv.FormatUint(vrd.Index, 10),
-		Balance: strconv.FormatUint(vrd.Balance, 10),
-		Status:  vrd.Status,
-		Validator: ValidatorJSON{
-			PublicKey:                  vrd.Validator.GetPubkey().String(),
-			WithdrawalCredentials:      "0x" + hex.EncodeToString(withdrawalCredentialsBytes),
-			EffectiveBalance:           strconv.FormatUint(uint64(vrd.Validator.GetEffectiveBalance()), 10),
-			Slashed:                    vrd.Validator.IsSlashed(),
-			ActivationEligibilityEpoch: strconv.FormatUint(uint64(vrd.Validator.GetActivationEligibilityEpoch()), 10),
-			ActivationEpoch:            strconv.FormatUint(uint64(vrd.Validator.GetActivationEpoch()), 10),
-			ExitEpoch:                  strconv.FormatUint(uint64(vrd.Validator.GetExitEpoch()), 10),
-			WithdrawableEpoch:          strconv.FormatUint(uint64(vrd.Validator.GetWithdrawableEpoch()), 10),
-		},
 	})
 }
