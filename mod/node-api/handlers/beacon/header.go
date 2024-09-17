@@ -45,7 +45,7 @@ func (h *Handler[
 		return nil, err
 	}
 
-	return types.Wrap(&beacontypes.BlockHeaderData[BeaconBlockHeaderT]{
+	return types.Wrap(&beacontypes.BlockHeaderResponse[BeaconBlockHeaderT]{
 		Root:      header.GetBodyRoot(),
 		Canonical: true,
 		Header: &beacontypes.BlockHeader[BeaconBlockHeaderT]{
@@ -73,7 +73,7 @@ func (h *Handler[
 		return nil, err
 	}
 
-	return types.Wrap(&beacontypes.BlockHeaderData[BeaconBlockHeaderT]{
+	return types.Wrap(&beacontypes.BlockHeaderResponse[BeaconBlockHeaderT]{
 		Root:      header.GetBodyRoot(),
 		Canonical: true,
 		Header: &beacontypes.BlockHeader[BeaconBlockHeaderT]{

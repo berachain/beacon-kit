@@ -63,5 +63,5 @@ func (h *Handler[_, ContextT, _, _]) GetStateFork(c ContextT) (any, error) {
 		return nil, err
 	}
 
-	return types.Wrap(beacontypes.ForkData{Fork: fork}), nil
+	return types.Wrap(beacontypes.ForkResponse{Fork: fork}), nil
 }

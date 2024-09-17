@@ -29,7 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
-type BlockHeaderData[BlockHeaderT any] struct {
+type BlockHeaderResponse[BlockHeaderT any] struct {
 	Root      common.Root                `json:"root"`
 	Canonical bool                       `json:"canonical"`
 	Header    *BlockHeader[BlockHeaderT] `json:"header"`
@@ -134,7 +134,7 @@ type RandaoData struct {
 	Randao common.Bytes32 `json:"randao"`
 }
 
-type ForkData struct {
+type ForkResponse struct {
 	Fork
 }
 
@@ -144,10 +144,10 @@ type forkJSON struct {
 	Epoch           string `json:"epoch"`
 }
 
-func (fd ForkData) MarshalJSON() ([]byte, error) {
+func (fr ForkResponse) MarshalJSON() ([]byte, error) {
 	return json.Marshal(forkJSON{
-		PreviousVersion: fd.GetPreviousVersion().String(),
-		CurrentVersion:  fd.GetCurrentVersion().String(),
-		Epoch:           strconv.FormatUint(fd.GetEpoch().Unwrap(), 10),
+		PreviousVersion: fr.GetPreviousVersion().String(),
+		CurrentVersion:  fr.GetCurrentVersion().String(),
+		Epoch:           strconv.FormatUint(fr.GetEpoch().Unwrap(), 10),
 	})
 }
