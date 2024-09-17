@@ -23,6 +23,7 @@ package block
 import (
 	"fmt"
 
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -65,8 +66,9 @@ func NewStore[BeaconBlockT BeaconBlock](
 }
 
 // Set sets the block by a given index in the store, storing the block root,
-// execution number, state root and head slot. Only this function may potentially evict
-// entries from the store if the availability window is reached.
+// execution number, state root and head slot. Only this function may
+// potentially evict entries from the store if
+// the availability window is reached.
 func (kv *KVStore[BeaconBlockT]) Set(blk BeaconBlockT) error {
 	slot := blk.GetSlot()
 	kv.blockRoots.Add(blk.HashTreeRoot(), slot)
@@ -79,7 +81,7 @@ func (kv *KVStore[BeaconBlockT]) Set(blk BeaconBlockT) error {
 	return nil
 }
 
-// GetSlotByRoot retrieves the slot by a given block root from the store.
+// GetSlotByBlockRoot retrieves the slot by a given block root from the store.
 func (kv *KVStore[BeaconBlockT]) GetSlotByBlockRoot(
 	blockRoot common.Root,
 ) (math.Slot, error) {
@@ -119,7 +121,7 @@ func (kv *KVStore[BeaconBlockT]) GetSlotByStateRoot(
 // GetHeadSlot retrieves the head slot.
 func (kv *KVStore[BeaconBlockT]) GetHeadSlot() (math.Slot, error) {
 	if kv.headSlot == 0 {
-		return 0, fmt.Errorf("no blocks in the store")
+		return 0, errors.New("head slot not found: store may be empty")
 	}
 	return kv.headSlot, nil
 }
