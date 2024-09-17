@@ -35,8 +35,8 @@ type KVStore[BeaconBlockT BeaconBlock] struct {
 	blockRoots       *lru.Cache[common.Root, math.Slot]
 	executionNumbers *lru.Cache[math.U64, math.Slot]
 	stateRoots       *lru.Cache[common.Root, math.Slot]
-
-	logger log.Logger
+	headSlot         math.Slot
+	logger           log.Logger
 }
 
 // NewStore creates a new block store.
@@ -65,13 +65,17 @@ func NewStore[BeaconBlockT BeaconBlock](
 }
 
 // Set sets the block by a given index in the store, storing the block root,
-// execution number, and state root. Only this function may potentially evict
+// execution number, state root and head slot. Only this function may potentially evict
 // entries from the store if the availability window is reached.
 func (kv *KVStore[BeaconBlockT]) Set(blk BeaconBlockT) error {
 	slot := blk.GetSlot()
 	kv.blockRoots.Add(blk.HashTreeRoot(), slot)
 	kv.executionNumbers.Add(blk.GetExecutionNumber(), slot)
 	kv.stateRoots.Add(blk.GetStateRoot(), slot)
+	// Update head slot if this is a new head
+	if slot > kv.headSlot {
+		kv.headSlot = slot
+	}
 	return nil
 }
 
@@ -113,27 +117,9 @@ func (kv *KVStore[BeaconBlockT]) GetSlotByStateRoot(
 }
 
 // GetHeadSlot retrieves the head slot.
-// TODO: This is very hoody way to get the the current slot, optimize it.
 func (kv *KVStore[BeaconBlockT]) GetHeadSlot() (math.Slot, error) {
-	keys := kv.blockRoots.Keys()
-	if len(keys) == 0 {
+	if kv.headSlot == 0 {
 		return 0, fmt.Errorf("no blocks in the store")
 	}
-
-	var maxSlot math.Slot
-	for _, key := range keys {
-		slot, ok := kv.blockRoots.Peek(key)
-		if !ok {
-			continue
-		}
-		if slot > maxSlot {
-			maxSlot = slot
-		}
-	}
-
-	if maxSlot == 0 {
-		return 0, fmt.Errorf("no valid slots found")
-	}
-
-	return maxSlot, nil
+	return kv.headSlot, nil
 }
