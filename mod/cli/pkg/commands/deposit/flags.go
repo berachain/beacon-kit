@@ -21,6 +21,9 @@
 package deposit
 
 const (
+	// privateKey is the flag for the private key to sign the deposit message.
+	privateKey = "private-key"
+
 	// overrideNodeKey is the flag for overriding the node key.
 	overrideNodeKey = "override-node-key"
 
@@ -29,13 +32,15 @@ const (
 )
 
 const (
-
 	// overrideNodeKeyShorthand is the shorthand flag for the overrideNodeKey
 	// flag.
 	overrideNodeKeyShorthand = "o"
 )
 
 const (
+	// defaultPrivateKey is the default value for the privateKey flag.
+	defaultPrivateKey = ""
+
 	// defaultOverrideNodeKey is the default value for the overrideNodeKey flag.
 	defaultOverrideNodeKey = false
 
@@ -45,6 +50,10 @@ const (
 )
 
 const (
+	// privateKeyFlagMsg is the usage description for the privateKey flag.
+	privateKeyMsg = `private key to sign and pay for the deposit message. 
+	This is required if the broadcast flag is set.`
+
 	// overrideNodeKeyFlagMsg is the usage description for the overrideNodeKey
 	// flag.
 	overrideNodeKeyMsg = "override the node private key"

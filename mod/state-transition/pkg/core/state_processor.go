@@ -297,21 +297,12 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	// TODO:
-	//
-	// phase0.ProcessProposerSlashings
-	// phase0.ProcessAttesterSlashings
-
 	// process the randao reveal.
 	if err := sp.processRandaoReveal(
 		st, blk, ctx.GetSkipValidateRandao(),
 	); err != nil {
 		return err
 	}
-
-	// TODO:
-	//
-	// phase0.ProcessEth1Vote
 
 	// process the deposits and ensure they match the local state.
 	if err := sp.processOperations(st, blk); err != nil {

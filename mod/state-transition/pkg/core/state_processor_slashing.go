@@ -56,19 +56,6 @@ func (sp *StateProcessor[
 	return nil
 }
 
-// processAttesterSlashing as defined in the Ethereum 2.0 specification.
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#attester-slashings
-//
-//nolint:lll,unused // will be used later
-func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) processAttesterSlashing(
-	_ BeaconStateT,
-	// as AttesterSlashing,
-) error {
-	return nil
-}
-
 // processSlashings as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#slashings
 //
