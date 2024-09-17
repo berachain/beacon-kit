@@ -29,7 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
-type BlockHeaderResponse[BlockHeaderT any] struct {
+type BlockHeaderData[BlockHeaderT any] struct {
 	Root      common.Root                `json:"root"`
 	Canonical bool                       `json:"canonical"`
 	Header    *BlockHeader[BlockHeaderT] `json:"header"`
@@ -71,7 +71,7 @@ type ValidatorData[ValidatorT Validator] struct {
 	Validator ValidatorT `json:"validator"`
 }
 
-type ValidatorJSON struct {
+type validatorJSON struct {
 	PublicKey                  string `json:"pubkey"`
 	WithdrawalCredentials      string `json:"withdrawal_credentials"`
 	EffectiveBalance           string `json:"effective_balance"`
@@ -82,21 +82,21 @@ type ValidatorJSON struct {
 	WithdrawableEpoch          string `json:"withdrawable_epoch"`
 }
 
-type ResponseJSON struct {
+type responseJSON struct {
 	Index     string        `json:"index"`
 	Balance   string        `json:"balance"`
 	Status    string        `json:"status"`
-	Validator ValidatorJSON `json:"validator"`
+	Validator validatorJSON `json:"validator"`
 }
 
 func (vd ValidatorData[ValidatorT]) MarshalJSON() ([]byte, error) {
 	withdrawalCredentials := vd.Validator.GetWithdrawalCredentials()
 
-	return json.Marshal(ResponseJSON{
+	return json.Marshal(responseJSON{
 		Index:   strconv.FormatUint(vd.Index, 10),
 		Balance: strconv.FormatUint(vd.Balance, 10),
 		Status:  vd.Status,
-		Validator: ValidatorJSON{
+		Validator: validatorJSON{
 			PublicKey: vd.Validator.GetPubkey().String(),
 			WithdrawalCredentials: "0x" + hex.EncodeToString(
 				withdrawalCredentials[:],
@@ -134,18 +134,20 @@ type RandaoData struct {
 	Randao common.Bytes32 `json:"randao"`
 }
 
-type ForkResponse struct {
+type ForkData struct {
 	Fork
 }
 
-func (fr ForkResponse) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		PreviousVersion string `json:"previous_version"`
-		CurrentVersion  string `json:"current_version"`
-		Epoch           string `json:"epoch"`
-	}{
-		PreviousVersion: fr.GetPreviousVersion().String(),
-		CurrentVersion:  fr.GetCurrentVersion().String(),
-		Epoch:           strconv.FormatUint(fr.GetEpoch().Unwrap(), 10),
+type forkJSON struct {
+	PreviousVersion string `json:"previous_version"`
+	CurrentVersion  string `json:"current_version"`
+	Epoch           string `json:"epoch"`
+}
+
+func (fd ForkData) MarshalJSON() ([]byte, error) {
+	return json.Marshal(forkJSON{
+		PreviousVersion: fd.GetPreviousVersion().String(),
+		CurrentVersion:  fd.GetCurrentVersion().String(),
+		Epoch:           strconv.FormatUint(fd.GetEpoch().Unwrap(), 10),
 	})
 }

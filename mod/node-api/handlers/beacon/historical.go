@@ -47,7 +47,7 @@ func (h *Handler[_, ContextT, _, _]) GetStateRoot(c ContextT) (any, error) {
 	return types.Wrap(beacontypes.RootData{Root: stateRoot}), nil
 }
 
-func (h *Handler[_, ContextT, ForkT, _]) GetStateFork(c ContextT) (any, error) {
+func (h *Handler[_, ContextT, _, _]) GetStateFork(c ContextT) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetStateForkRequest](
 		c, h.Logger(),
 	)
@@ -63,5 +63,5 @@ func (h *Handler[_, ContextT, ForkT, _]) GetStateFork(c ContextT) (any, error) {
 		return nil, err
 	}
 
-	return types.Wrap(beacontypes.ForkResponse{Fork: fork}), nil
+	return types.Wrap(beacontypes.ForkData{Fork: fork}), nil
 }
