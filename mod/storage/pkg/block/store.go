@@ -35,7 +35,8 @@ type KVStore[BeaconBlockT BeaconBlock] struct {
 	blockRoots       *lru.Cache[common.Root, math.Slot]
 	executionNumbers *lru.Cache[math.U64, math.Slot]
 	stateRoots       *lru.Cache[common.Root, math.Slot]
-	logger           log.Logger
+
+	logger log.Logger
 }
 
 // NewStore creates a new block store.
@@ -64,15 +65,13 @@ func NewStore[BeaconBlockT BeaconBlock](
 }
 
 // Set sets the block by a given index in the store, storing the block root,
-// execution number, state root and head slot. Only this function may
-// potentially evict entries from the store if
-// the availability window is reached.
+// execution number, and state root. Only this function may potentially evict
+// entries from the store if the availability window is reached.
 func (kv *KVStore[BeaconBlockT]) Set(blk BeaconBlockT) error {
 	slot := blk.GetSlot()
 	kv.blockRoots.Add(blk.HashTreeRoot(), slot)
 	kv.executionNumbers.Add(blk.GetExecutionNumber(), slot)
 	kv.stateRoots.Add(blk.GetStateRoot(), slot)
-
 	return nil
 }
 
