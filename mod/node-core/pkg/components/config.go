@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -22,18 +22,19 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/config"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/berachain/beacon-kit/mod/config"
 )
 
 // ConfigInput is the input for the dependency injection framework.
 type ConfigInput struct {
 	depinject.In
-	AppOpts servertypes.AppOptions
+	AppOpts config.AppOptions
 }
 
 // ProvideConfig is a function that provides the BeaconConfig to the
 // application.
 func ProvideConfig(in ConfigInput) (*config.Config, error) {
+	// AppOpts is not populated when called from CLI
+	// Read the directory
 	return config.ReadConfigFromAppOpts(in.AppOpts)
 }

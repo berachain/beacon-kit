@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -24,17 +24,17 @@ import (
 	"math/big"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // ConvertPubkey converts a string to a public key.
 func ConvertPubkey(pubkey string) (crypto.BLSPubkey, error) {
 	// convert the public key to a BLSPubkey.
-	pubkeyBytes, err := bytes.FromHex(pubkey)
+	pubkeyBytes, err := hex.ToBytes(pubkey)
 	if err != nil {
 		return crypto.BLSPubkey{}, err
 	}
@@ -51,7 +51,7 @@ func ConvertWithdrawalCredentials(credentials string) (
 	error,
 ) {
 	// convert the credentials to a WithdrawalCredentials.
-	credentialsBytes, err := bytes.FromHex(credentials)
+	credentialsBytes, err := hex.ToBytes(credentials)
 	if err != nil {
 		return types.WithdrawalCredentials{}, err
 	}
@@ -77,7 +77,7 @@ func ConvertAmount(amount string) (math.Gwei, error) {
 // ConvertSignature converts a string to a signature.
 func ConvertSignature(signature string) (crypto.BLSSignature, error) {
 	// convert the signature to a BLSSignature.
-	signatureBytes, err := bytes.FromHex(signature)
+	signatureBytes, err := hex.ToBytes(signature)
 	if err != nil {
 		return crypto.BLSSignature{}, err
 	}
@@ -88,25 +88,25 @@ func ConvertSignature(signature string) (crypto.BLSSignature, error) {
 }
 
 // ConvertVersion converts a string to a version.
-func ConvertVersion(version string) (primitives.Version, error) {
-	versionBytes, err := bytes.FromHex(version)
+func ConvertVersion(version string) (common.Version, error) {
+	versionBytes, err := hex.ToBytes(version)
 	if err != nil {
-		return primitives.Version{}, err
+		return common.Version{}, err
 	}
 	if len(versionBytes) != constants.DomainTypeLength {
-		return primitives.Version{}, ErrInvalidVersionLength
+		return common.Version{}, ErrInvalidVersionLength
 	}
-	return primitives.Version(versionBytes), nil
+	return common.Version(versionBytes), nil
 }
 
 // ConvertGenesisValidatorRoot converts a string to a genesis validator root.
-func ConvertGenesisValidatorRoot(root string) (primitives.Root, error) {
-	rootBytes, err := bytes.FromHex(root)
+func ConvertGenesisValidatorRoot(root string) (common.Root, error) {
+	rootBytes, err := hex.ToBytes(root)
 	if err != nil {
-		return primitives.Root{}, err
+		return common.Root{}, err
 	}
 	if len(rootBytes) != constants.RootLength {
-		return primitives.Root{}, ErrInvalidRootLength
+		return common.Root{}, ErrInvalidRootLength
 	}
-	return primitives.Root(rootBytes), nil
+	return common.Root(rootBytes), nil
 }

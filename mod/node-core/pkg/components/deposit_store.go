@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -22,36 +22,32 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
 	storev2 "cosmossdk.io/store/v2/db"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
-	"github.com/berachain/beacon-kit/mod/interfaces"
-	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
+	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	depositstore "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/ethereum/go-ethereum/event"
 	"github.com/spf13/cast"
 )
 
 // DepositStoreInput is the input for the dep inject framework.
 type DepositStoreInput struct {
 	depinject.In
-	AppOpts servertypes.AppOptions
+	AppOpts config.AppOptions
 }
 
 // ProvideDepositStore is a function that provides the module to the
 // application.
 func ProvideDepositStore[
-	DepositT interface {
-		interfaces.SSZMarshallable
-		GetIndex() uint64
-		HashTreeRoot() ([32]byte, error)
-	},
+	DepositT Deposit[
+		DepositT, *ForkData, WithdrawalCredentials,
+	],
 ](
 	in DepositStoreInput,
 ) (*depositstore.KVStore[DepositT], error) {
@@ -62,41 +58,59 @@ func ProvideDepositStore[
 		return nil, err
 	}
 
-	return depositstore.NewStore[DepositT](&depositstore.KVStoreProvider{
-		KVStoreWithBatch: kvp,
-	}), nil
+	return depositstore.NewStore[DepositT](storage.NewKVStoreProvider(kvp)), nil
 }
 
 // DepositPrunerInput is the input for the deposit pruner.
-type DepositPrunerInput struct {
+type DepositPrunerInput[
+	BeaconBlockT any,
+	DepositStoreT any,
+	LoggerT any,
+] struct {
 	depinject.In
-	Logger       log.Logger
-	ChainSpec    primitives.ChainSpec
-	BlockFeed    *event.FeedOf[*feed.Event[*types.BeaconBlock]]
-	DepositStore *depositstore.KVStore[*types.Deposit]
+	ChainSpec    common.ChainSpec
+	DepositStore DepositStoreT
+	Dispatcher   Dispatcher
+	Logger       LoggerT
 }
 
 // ProvideDepositPruner provides a deposit pruner for the depinject framework.
-func ProvideDepositPruner(
-	in DepositPrunerInput,
-) pruner.Pruner[*depositstore.KVStore[*types.Deposit]] {
-	return pruner.NewPruner[
-		*types.BeaconBlock,
-		*feed.Event[*types.BeaconBlock],
-		*depositstore.KVStore[*types.Deposit],
-		event.Subscription,
-	](
+func ProvideDepositPruner[
+	BeaconBlockT BeaconBlock[
+		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	],
+	BeaconBlockBodyT interface {
+		GetDeposits() []DepositT
+	},
+	BeaconBlockHeaderT any,
+	DepositT Deposit[
+		DepositT, *ForkData, WithdrawalCredentials,
+	],
+	DepositStoreT DepositStore[DepositT],
+	LoggerT log.AdvancedLogger[LoggerT],
+](
+	in DepositPrunerInput[BeaconBlockT, DepositStoreT, LoggerT],
+) (pruner.Pruner[DepositStoreT], error) {
+	// initialize a subscription for finalized blocks.
+	subFinalizedBlocks := make(chan async.Event[BeaconBlockT])
+	if err := in.Dispatcher.Subscribe(
+		async.BeaconBlockFinalized, subFinalizedBlocks,
+	); err != nil {
+		in.Logger.Error("failed to subscribe to event", "event",
+			async.BeaconBlockFinalized, "err", err)
+		return nil, err
+	}
+
+	return pruner.NewPruner[BeaconBlockT, DepositStoreT](
 		in.Logger.With("service", manager.DepositPrunerName),
 		in.DepositStore,
 		manager.DepositPrunerName,
-		in.BlockFeed,
+		subFinalizedBlocks,
 		deposit.BuildPruneRangeFn[
-			*types.BeaconBlockBody,
-			*types.BeaconBlock,
-			*feed.Event[*types.BeaconBlock],
-			*types.Deposit,
-			*types.ExecutionPayload,
-			types.WithdrawalCredentials,
+			BeaconBlockT,
+			BeaconBlockBodyT,
+			DepositT,
+			WithdrawalCredentials,
 		](in.ChainSpec),
-	)
+	), nil
 }

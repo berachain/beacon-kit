@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -21,9 +21,10 @@
 package types_test
 
 import (
+	"io"
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	types "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/stretchr/testify/require"
@@ -46,6 +47,12 @@ func TestForkData_Serialization(t *testing.T) {
 	require.Equal(t, original, &unmarshalled)
 }
 
+func TestForkData_Unmarshal(t *testing.T) {
+	var unmarshalled types.ForkData
+	err := unmarshalled.UnmarshalSSZ([]byte{})
+	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
+}
+
 func TestForkData_SizeSSZ(t *testing.T) {
 	forkData := &types.ForkData{
 		CurrentVersion:        common.Version{},
@@ -54,7 +61,7 @@ func TestForkData_SizeSSZ(t *testing.T) {
 
 	size := forkData.SizeSSZ()
 
-	require.Equal(t, 36, size)
+	require.Equal(t, uint32(36), size)
 }
 
 func TestForkData_HashTreeRoot(t *testing.T) {
@@ -62,21 +69,9 @@ func TestForkData_HashTreeRoot(t *testing.T) {
 		CurrentVersion:        common.Version{},
 		GenesisValidatorsRoot: common.Root{},
 	}
-	_, err := forkData.HashTreeRoot()
-
-	require.NoError(t, err)
-}
-
-func TestForkData_GetTree(t *testing.T) {
-	forkData := &types.ForkData{
-		CurrentVersion:        common.Version{},
-		GenesisValidatorsRoot: common.Root{},
-	}
-
-	tree, err := forkData.GetTree()
-
-	require.NoError(t, err)
-	require.NotNil(t, tree)
+	require.NotPanics(t, func() {
+		_ = forkData.HashTreeRoot()
+	})
 }
 
 func TestForkData_ComputeDomain(t *testing.T) {
@@ -87,8 +82,9 @@ func TestForkData_ComputeDomain(t *testing.T) {
 	domainType := common.DomainType{
 		0x01, 0x00, 0x00, 0x00,
 	}
-	_, err := forkData.ComputeDomain(domainType)
-	require.NoError(t, err)
+	require.NotPanics(t, func() {
+		_ = forkData.ComputeDomain(domainType)
+	})
 }
 
 func TestForkData_ComputeRandaoSigningRoot(t *testing.T) {
@@ -100,8 +96,9 @@ func TestForkData_ComputeRandaoSigningRoot(t *testing.T) {
 	domainType := common.DomainType{0, 0, 0, 0}
 	epoch := math.Epoch(1)
 
-	_, err := fd.ComputeRandaoSigningRoot(domainType, epoch)
-	require.NoError(t, err)
+	require.NotPanics(t, func() {
+		fd.ComputeRandaoSigningRoot(domainType, epoch)
+	})
 }
 
 func TestNewForkData(t *testing.T) {

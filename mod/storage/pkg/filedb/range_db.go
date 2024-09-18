@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -26,7 +26,7 @@ import (
 	"strconv"
 
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	db "github.com/berachain/beacon-kit/mod/storage/pkg/interfaces"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 )
@@ -94,7 +94,8 @@ func (db *RangeDB) DeleteRange(from, to uint64) error {
 		return errors.New("rangedb: delete range not supported for this db")
 	}
 	for ; from < to; from++ {
-		if err := f.fs.RemoveAll(fmt.Sprintf("%d/", from)); err != nil {
+		path := strconv.FormatUint(from, 10) + "/"
+		if err := f.fs.RemoveAll(path); err != nil {
 			return err
 		}
 	}
@@ -131,7 +132,7 @@ func ExtractIndex(prefixedKey []byte) (uint64, error) {
 	indexStr := string(parts[0])
 	index, err := strconv.ParseUint(indexStr, 10, 64)
 	if err != nil {
-		return 0, errors.Newf("invalid index: %w", err)
+		return 0, err
 	}
 
 	//#nosec:g

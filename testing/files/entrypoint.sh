@@ -68,20 +68,23 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	./build/bin/beacond init $MONIKER \
 		--chain-id $CHAINID \
 		--home $HOMEDIR \
-		--beacon-kit.accept-tos \
 		--consensus-key-algo $CONSENSUS_KEY_ALGO
-	./build/bin/beacond genesis add-premined-deposit --home $HOMEDIR
-	./build/bin/beacond genesis collect-premined-deposits --home $HOMEDIR 
-	./build/bin/beacond genesis execution-payload "$ETH_GENESIS" --home $HOMEDIR
+	
+	if [ "$CHAIN_SPEC" == "testnet" ]; then
+		cp -f testing/networks/80084/*.toml testing/networks/80084/genesis.json ${HOMEDIR}/config
+	else
+		./build/bin/beacond genesis add-premined-deposit --home $HOMEDIR
+		./build/bin/beacond genesis collect-premined-deposits --home $HOMEDIR 
+		./build/bin/beacond genesis execution-payload "$ETH_GENESIS" --home $HOMEDIR
+	fi
 fi
-
-export CHAIN_SPEC="devnet"
 
 # Start the node (remove the --pruning=nothing flag if historical queries are not needed)
 BEACON_START_CMD="./build/bin/beacond start --pruning=nothing "$TRACE" \
---log_level $LOGLEVEL --api.enabled-unsafe-cors \
---api.enable --api.swagger --minimum-gas-prices=0.0001abgt \
---home $HOMEDIR --beacon-kit.engine.jwt-secret-path ${JWT_SECRET_PATH}"
+--beacon-kit.logger.log-level $LOGLEVEL --home $HOMEDIR \
+--beacon-kit.engine.jwt-secret-path ${JWT_SECRET_PATH} \
+--beacon-kit.block-store-service.enabled \
+--beacon-kit.node-api.enabled --beacon-kit.node-api.logging"
 
 # Conditionally add the rpc-dial-url flag if RPC_DIAL_URL is not empty
 if [ -n "$RPC_DIAL_URL" ]; then
@@ -91,5 +94,4 @@ if [ -n "$RPC_DIAL_URL" ]; then
 	BEACON_START_CMD="$BEACON_START_CMD --beacon-kit.engine.rpc-dial-url ${RPC_PREFIX}${RPC_DIAL_URL}"
 fi
 
-# run the beacon node
 eval $BEACON_START_CMD

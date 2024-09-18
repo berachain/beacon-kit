@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -21,6 +21,7 @@
 package engine
 
 import (
+	"bytes"
 	"context"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
@@ -35,38 +36,52 @@ import (
 // Engine is Beacon-Kit's implementation of the `ExecutionEngine`
 // from the Ethereum 2.0 Specification.
 type Engine[
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, *engineprimitives.Withdrawal,
-	],
+	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT, WithdrawalsT],
+	PayloadAttributesT engineprimitives.PayloadAttributer,
+	PayloadIDT ~[8]byte,
+	WithdrawalsT interface {
+		Len() int
+		EncodeIndex(int, *bytes.Buffer)
+	},
 ] struct {
 	// ec is the engine client that the engine will use to
 	// interact with the execution layer.
-	ec *client.EngineClient[ExecutionPayloadT]
+	ec *client.EngineClient[ExecutionPayloadT, PayloadAttributesT]
 	// logger is the logger for the engine.
-	logger log.Logger[any]
+	logger log.Logger
 	// metrics is the metrics for the engine.
 	metrics *engineMetrics
 }
 
 // New creates a new Engine.
 func New[
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, *engineprimitives.Withdrawal,
-	],
+	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT, WithdrawalsT],
+	PayloadAttributesT engineprimitives.PayloadAttributer,
+	PayloadIDT ~[8]byte,
+	WithdrawalsT interface {
+		Len() int
+		EncodeIndex(int, *bytes.Buffer)
+	},
 ](
-	ec *client.EngineClient[ExecutionPayloadT],
-	logger log.Logger[any],
-	ts TelemetrySink,
-) *Engine[ExecutionPayloadT] {
-	return &Engine[ExecutionPayloadT]{
-		ec:      ec,
+	engineClient *client.EngineClient[ExecutionPayloadT, PayloadAttributesT],
+	logger log.Logger,
+	telemtrySink TelemetrySink,
+) *Engine[
+	ExecutionPayloadT, PayloadAttributesT,
+	PayloadIDT, WithdrawalsT,
+] {
+	return &Engine[
+		ExecutionPayloadT, PayloadAttributesT, PayloadIDT,
+		WithdrawalsT,
+	]{
+		ec:      engineClient,
 		logger:  logger,
-		metrics: newEngineMetrics(ts, logger),
+		metrics: newEngineMetrics(telemtrySink, logger),
 	}
 }
 
 // Start spawns any goroutines required by the service.
-func (ee *Engine[ExecutionPayloadT]) Start(
+func (ee *Engine[_, _, _, _]) Start(
 	ctx context.Context,
 ) error {
 	go func() {
@@ -78,15 +93,12 @@ func (ee *Engine[ExecutionPayloadT]) Start(
 	return nil
 }
 
-// Status returns error if the service is not considered healthy.
-func (ee *Engine[ExecutionPayloadT]) Status() error {
-	return ee.ec.Status()
-}
-
 // GetPayload returns the payload and blobs bundle for the given slot.
-func (ee *Engine[ExecutionPayloadT]) GetPayload(
+func (ee *Engine[
+	ExecutionPayloadT, _, _, _,
+]) GetPayload(
 	ctx context.Context,
-	req *engineprimitives.GetPayloadRequest,
+	req *engineprimitives.GetPayloadRequest[engineprimitives.PayloadID],
 ) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
 	return ee.ec.GetPayload(
 		ctx, req.PayloadID,
@@ -95,16 +107,15 @@ func (ee *Engine[ExecutionPayloadT]) GetPayload(
 }
 
 // NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
-func (ee *Engine[ExecutionPayloadT]) NotifyForkchoiceUpdate(
+func (ee *Engine[
+	_, PayloadAttributesT, _, _,
+]) NotifyForkchoiceUpdate(
 	ctx context.Context,
-	req *engineprimitives.ForkchoiceUpdateRequest,
+	req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
 	// Log the forkchoice update attempt.
-	hasPayloadAttributes := req.PayloadAttributes != nil &&
-		!req.PayloadAttributes.IsNil()
-	ee.metrics.markNotifyForkchoiceUpdateCalled(
-		req.State, hasPayloadAttributes,
-	)
+	hasPayloadAttributes := !req.PayloadAttributes.IsNil()
+	ee.metrics.markNotifyForkchoiceUpdateCalled(hasPayloadAttributes)
 
 	// Notify the execution engine of the forkchoice update.
 	payloadID, latestValidHash, err := ee.ec.ForkchoiceUpdated(
@@ -147,13 +158,17 @@ func (ee *Engine[ExecutionPayloadT]) NotifyForkchoiceUpdate(
 	case err != nil:
 		ee.metrics.markForkchoiceUpdateUndefinedError(err)
 		return nil, nil, err
+	default:
+		ee.metrics.markForkchoiceUpdateValid(
+			req.State, hasPayloadAttributes, payloadID,
+		)
 	}
 
 	// If we reached here, and we have a nil payload ID, we should log a
 	// warning.
 	if payloadID == nil && hasPayloadAttributes {
 		ee.logger.Warn(
-			"received nil payload ID on VALID engine response",
+			"Received nil payload ID on VALID engine response",
 			"head_eth1_hash", req.State.HeadBlockHash,
 			"safe_eth1_hash", req.State.SafeBlockHash,
 			"finalized_eth1_hash", req.State.FinalizedBlockHash,
@@ -166,10 +181,13 @@ func (ee *Engine[ExecutionPayloadT]) NotifyForkchoiceUpdate(
 
 // VerifyAndNotifyNewPayload verifies the new payload and notifies the
 // execution client.
-func (ee *Engine[ExecutionPayloadT]) VerifyAndNotifyNewPayload(
+func (ee *Engine[
+	ExecutionPayloadT, _, _, WithdrawalsT,
+]) VerifyAndNotifyNewPayload(
 	ctx context.Context,
 	req *engineprimitives.NewPayloadRequest[
-		ExecutionPayloadT, *engineprimitives.Withdrawal],
+		ExecutionPayloadT, WithdrawalsT,
+	],
 ) error {
 	// Log the new payload attempt.
 	ee.metrics.markNewPayloadCalled(
@@ -250,6 +268,12 @@ func (ee *Engine[ExecutionPayloadT]) VerifyAndNotifyNewPayload(
 			req.Optimistic,
 			err,
 		)
+	default:
+		ee.metrics.markNewPayloadValid(
+			req.ExecutionPayload.GetBlockHash(),
+			req.ExecutionPayload.GetParentHash(),
+			req.Optimistic,
+		)
 	}
 
 	// Under the optimistic condition, we are fine ignoring the error. This
@@ -261,7 +285,7 @@ func (ee *Engine[ExecutionPayloadT]) VerifyAndNotifyNewPayload(
 	// was marked as valid by an honest majority of validators, and we
 	// don't want to halt the chain because of an error here.
 	//
-	// The pratical reason we want to handle this edge case
+	// The practical reason we want to handle this edge case
 	// is to protect against an awkward shutdown condition in which an
 	// execution client dies between the end of abci.ProcessProposal
 	// and the beginning of abci.FinalizeBlock. Without handling this case

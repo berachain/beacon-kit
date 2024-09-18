@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -24,14 +24,16 @@ import "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 
 // GetNextWithdrawalIndex returns the next withdrawal index.
 func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) GetNextWithdrawalIndex() (uint64, error) {
 	return kv.nextWithdrawalIndex.Get(kv.ctx)
 }
 
 // SetNextWithdrawalIndex sets the next withdrawal index.
 func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) SetNextWithdrawalIndex(
 	index uint64,
 ) error {
@@ -40,7 +42,8 @@ func (kv *KVStore[
 
 // GetNextWithdrawalValidatorIndex returns the next withdrawal validator index.
 func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) GetNextWithdrawalValidatorIndex() (
 	math.ValidatorIndex, error,
 ) {
@@ -50,9 +53,10 @@ func (kv *KVStore[
 
 // SetNextWithdrawalValidatorIndex sets the next withdrawal validator index.
 func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) SetNextWithdrawalValidatorIndex(
 	index math.ValidatorIndex,
 ) error {
-	return kv.nextWithdrawalValidatorIndex.Set(kv.ctx, uint64(index))
+	return kv.nextWithdrawalValidatorIndex.Set(kv.ctx, index.Unwrap())
 }

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -22,37 +22,81 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/config"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/config"
+	"github.com/berachain/beacon-kit/mod/execution/pkg/engine"
+	"github.com/berachain/beacon-kit/mod/log"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-type LocalBuilderInput struct {
+// LocalBuilderInput is an input for the dep inject framework.
+type LocalBuilderInput[
+	BeaconStateT any,
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+	],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	LoggerT log.AdvancedLogger[LoggerT],
+	WithdrawalT Withdrawal[WithdrawalT],
+	WithdrawalsT Withdrawals[WithdrawalT],
+] struct {
 	depinject.In
+	AttributesFactory AttributesFactory[
+		BeaconStateT, *engineprimitives.PayloadAttributes[WithdrawalT],
+	]
 	Cfg             *config.Config
-	ChainSpec       primitives.ChainSpec
-	Logger          log.Logger
-	ExecutionEngine *execution.Engine[*types.ExecutionPayload]
+	ChainSpec       common.ChainSpec
+	ExecutionEngine *engine.Engine[
+		ExecutionPayloadT,
+		*engineprimitives.PayloadAttributes[WithdrawalT],
+		PayloadID,
+		WithdrawalsT,
+	]
+	Logger LoggerT
 }
 
-func ProvideLocalBuilder(
-	in LocalBuilderInput,
+// ProvideLocalBuilder provides a local payload builder for the
+// depinject framework.
+func ProvideLocalBuilder[
+	BeaconBlockHeaderT any,
+	BeaconStateT BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
+		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT, *Validator,
+		Validators, WithdrawalT,
+	],
+	BeaconStateMarshallableT any,
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+	],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	KVStoreT any,
+	LoggerT log.AdvancedLogger[LoggerT],
+	WithdrawalT Withdrawal[WithdrawalT],
+	WithdrawalsT Withdrawals[WithdrawalT],
+](
+	in LocalBuilderInput[
+		BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT, LoggerT,
+		WithdrawalT, WithdrawalsT,
+	],
 ) *payloadbuilder.PayloadBuilder[
-	BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
+	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	*engineprimitives.PayloadAttributes[WithdrawalT], PayloadID, WithdrawalT,
 ] {
 	return payloadbuilder.New[
-		BeaconState, *types.ExecutionPayload, *types.ExecutionPayloadHeader,
+		BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+		*engineprimitives.PayloadAttributes[WithdrawalT], PayloadID, WithdrawalT,
 	](
 		&in.Cfg.PayloadBuilder,
 		in.ChainSpec,
 		in.Logger.With("service", "payload-builder"),
 		in.ExecutionEngine,
-		cache.NewPayloadIDCache[engineprimitives.PayloadID, [32]byte, math.Slot](),
+		cache.NewPayloadIDCache[
+			PayloadID,
+			[32]byte, math.Slot,
+		](),
+		in.AttributesFactory,
 	)
 }

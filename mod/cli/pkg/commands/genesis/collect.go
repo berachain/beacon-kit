@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -21,29 +21,28 @@
 package genesis
 
 import (
-	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
+	"github.com/berachain/beacon-kit/mod/cli/pkg/context"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/cosmos/cosmos-sdk/server"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
 
-// CollectGenTxsCmd - return the cobra command to collect genesis transactions.
+// CollectGenesisDepositsCmd - return the cobra command to
+// collect genesis transactions.
 func CollectGenesisDepositsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "collect-premined-deposits",
 		Short: "adds a validator to the genesis file",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			serverCtx := server.GetServerContextFromCmd(cmd)
-			config := serverCtx.Config
+			config := context.GetConfigFromCmd(cmd)
 
 			appGenesis, err := genutiltypes.AppGenesisFromFile(
 				config.GenesisFile(),
@@ -71,9 +70,9 @@ func CollectGenesisDepositsCmd() *cobra.Command {
 				)
 			}
 
-			genesisInfo := &genesis.Genesis[
+			genesisInfo := &types.Genesis[
 				*types.Deposit,
-				*types.ExecutionPayloadHeaderDeneb,
+				*types.ExecutionPayloadHeader,
 			]{}
 
 			if err = json.Unmarshal(
@@ -106,7 +105,8 @@ func CollectGenesisDepositsCmd() *cobra.Command {
 	return cmd
 }
 
-// CollectValidatorJSONFiles.
+// CollectValidatorJSONFiles collects JSON files from the specified directory
+// and unmarshals them into a list of Deposit objects.
 func CollectValidatorJSONFiles(
 	genTxsDir string,
 	genesis *genutiltypes.AppGenesis,

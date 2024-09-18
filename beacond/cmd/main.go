@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -24,12 +24,15 @@ import (
 	"log/slog"
 	"os"
 
+	clibuilder "github.com/berachain/beacon-kit/mod/cli/pkg/builder"
+	clicomponents "github.com/berachain/beacon-kit/mod/cli/pkg/components"
 	nodebuilder "github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/config/spec"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
+	nodecomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
+	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"go.uber.org/automaxprocs/maxprocs"
 )
+
+type Node = nodetypes.Node
 
 // run runs the beacon node.
 func run() error {
@@ -38,41 +41,49 @@ func run() error {
 		return err
 	}
 
-	// TODO: This is hood as fuck needs to be improved
-	// but for now we ball to get CI unblocked.
-	chainSpec := os.Getenv("CHAIN_SPEC")
-	loadedSpec := spec.TestnetChainSpec()
-	if chainSpec == "devnet" {
-		loadedSpec = spec.DevnetChainSpec()
-	}
-
 	// Build the node using the node-core.
 	nb := nodebuilder.New(
-		// Set the Name to the Default.
-		nodebuilder.WithName[types.NodeI](
-			nodebuilder.DefaultAppName),
-		// Set the Description to the Default.
-		nodebuilder.WithDescription[types.NodeI](
-			nodebuilder.DefaultDescription),
-		// Set the DepInject Configuration to the Default.
-		nodebuilder.WithDepInjectConfig[types.NodeI](
-			nodebuilder.DefaultDepInjectConfig()),
-		// Set the ChainSpec to the Default.
-		nodebuilder.WithChainSpec[types.NodeI](loadedSpec),
 		// Set the Runtime Components to the Default.
-		nodebuilder.WithComponents[types.NodeI](
-			components.DefaultComponentsWithStandardTypes(),
+		nodebuilder.WithComponents[Node, *Logger, *LoggerConfig](
+			DefaultComponents(),
 		),
 	)
 
-	// Assemble the node with all our components.
-	node, err := nb.Build()
+	// Build the root command using the builder
+	cb := clibuilder.New(
+		// Set the Name to the Default.
+		clibuilder.WithName[Node, *ExecutionPayload, *Logger](
+			"beacond",
+		),
+		// Set the Description to the Default.
+		clibuilder.WithDescription[Node, *ExecutionPayload, *Logger](
+			"A basic beacon node, usable most standard networks.",
+		),
+		// Set the Runtime Components to the Default.
+		clibuilder.WithComponents[Node, *ExecutionPayload, *Logger](
+			append(
+				clicomponents.DefaultClientComponents(),
+				// TODO: remove these, and eventually pull cfg and chainspec
+				// from built node
+				nodecomponents.ProvideChainSpec,
+			),
+		),
+		// Set the NodeBuilderFunc to the NodeBuilder Build.
+		clibuilder.WithNodeBuilderFunc[
+			Node, *ExecutionPayload, *Logger,
+		](nb.Build),
+	)
+
+	cmd, err := cb.Build()
 	if err != nil {
 		return err
 	}
 
-	// TODO: create a "runner" type harness that takes the node as a parameter.
-	return node.Run()
+	// eventually we want to decouple from cosmos cli, and just pass in a built
+	// Node and Cmd to a runner
+
+	// for now, running the cmd will start the node
+	return cmd.Run(clicomponents.DefaultNodeHome)
 }
 
 // main is the entry point.

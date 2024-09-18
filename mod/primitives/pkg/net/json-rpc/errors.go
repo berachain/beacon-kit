@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -52,7 +52,7 @@ func IsPreDefinedError(err error) bool {
 }
 
 var (
-	// ErrParseError indicates that invalid JSON was received by the server.
+	// ErrParse indicates that invalid JSON was received by the server.
 	// (code: -32700).
 	ErrParse = errors.New(
 		"invalid JSON was received by the server (code: -32700)",
@@ -76,13 +76,13 @@ var (
 	// ErrInternal indicates an internal JSON-RPC error. (code: -32603).
 	ErrInternal = errors.New("internal JSON-RPC error (code: -32603)")
 
-	// ErrServerError is reserved for implementation-defined server errors.
+	// ErrServer is reserved for implementation-defined server errors.
 	// (code: -32000 to -32099).
 	ErrServer = errors.New(
 		"received implementation-defined server-error (code: -32000 to -32099)",
 	)
 
-	// ErrServerParseError indicates an error occurred on the server while
+	// ErrServerParse indicates an error occurred on the server while
 	// parsing the JSON text. (code: -32700).
 	ErrServerParse = errors.New(
 		"an error occurred on the server while parsing the JSON text (code: -32700)",

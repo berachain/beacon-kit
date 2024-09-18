@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -22,7 +22,7 @@
 package config
 
 import (
-	"encoding/json"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 )
 
 // E2ETestConfig defines the configuration for end-to-end tests, including any
@@ -271,7 +271,7 @@ func defaultExecutionSettings() ExecutionSettings {
 			MaxMemory: 2048, //nolint:mnd // 2 GB
 		},
 		Images: map[string]string{
-			"besu":       "hyperledger/besu:latest",
+			"besu":       "hyperledger/besu:24.5.4",
 			"erigon":     "thorax/erigon:v2.60.1",
 			"ethereumjs": "ethpandaops/ethereumjs:stable",
 			"geth":       "ethereum/client-go:stable",

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -25,14 +25,17 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
-	"github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"golang.org/x/sync/errgroup"
 )
 
 // Verifier is responsible for verifying blobs, including their
 // inclusion and KZG proofs.
-type Verifier struct {
+type Verifier[
+	BeaconBlockHeaderT BeaconBlockHeader,
+	BlobSidecarT Sidecar[BeaconBlockHeaderT],
+	BlobSidecarsT Sidecars[BlobSidecarT],
+] struct {
 	// proofVerifier is used to verify the KZG proofs of the blobs.
 	proofVerifier kzg.BlobProofVerifier
 	// metrics collects and reports metrics related to the verification process.
@@ -40,28 +43,32 @@ type Verifier struct {
 }
 
 // NewVerifier creates a new Verifier with the given proof verifier.
-func NewVerifier(
+func NewVerifier[
+	BeaconBlockHeaderT BeaconBlockHeader,
+	BlobSidecarT Sidecar[BeaconBlockHeaderT],
+	BlobSidecarsT Sidecars[BlobSidecarT],
+](
 	proofVerifier kzg.BlobProofVerifier,
 	telemetrySink TelemetrySink,
-) *Verifier {
-	return &Verifier{
+) *Verifier[BeaconBlockHeaderT, BlobSidecarT, BlobSidecarsT] {
+	return &Verifier[BeaconBlockHeaderT, BlobSidecarT, BlobSidecarsT]{
 		proofVerifier: proofVerifier,
 		metrics:       newVerifierMetrics(telemetrySink),
 	}
 }
 
-// VerifyBlobs verifies the blobs for both inclusion as well
+// VerifySidecars verifies the blobs for both inclusion as well
 // as the KZG proofs.
-func (bv *Verifier) VerifyBlobs(
-	sidecars *types.BlobSidecars, kzgOffset uint64,
+func (bv *Verifier[_, _, BlobSidecarsT]) VerifySidecars(
+	sidecars BlobSidecarsT, kzgOffset uint64,
 ) error {
 	var (
 		g, _      = errgroup.WithContext(context.Background())
 		startTime = time.Now()
 	)
 
-	defer bv.metrics.measureVerifyBlobsDuration(
-		startTime, math.U64(len(sidecars.Sidecars)),
+	defer bv.metrics.measureVerifySidecarsDuration(
+		startTime, math.U64(sidecars.Len()),
 		bv.proofVerifier.GetImplementation(),
 	)
 
@@ -87,36 +94,37 @@ func (bv *Verifier) VerifyBlobs(
 	return g.Wait()
 }
 
-func (bv *Verifier) VerifyInclusionProofs(
-	scs *types.BlobSidecars,
+func (bv *Verifier[_, _, BlobSidecarsT]) VerifyInclusionProofs(
+	scs BlobSidecarsT,
 	kzgOffset uint64,
 ) error {
 	startTime := time.Now()
 	defer bv.metrics.measureVerifyInclusionProofsDuration(
-		startTime, math.U64(len(scs.Sidecars)),
+		startTime, math.U64(scs.Len()),
 	)
 	return scs.VerifyInclusionProofs(kzgOffset)
 }
 
 // VerifyKZGProofs verifies the sidecars.
-func (bv *Verifier) VerifyKZGProofs(
-	scs *types.BlobSidecars,
+func (bv *Verifier[_, _, BlobSidecarsT]) VerifyKZGProofs(
+	scs BlobSidecarsT,
 ) error {
 	start := time.Now()
 	defer bv.metrics.measureVerifyKZGProofsDuration(
-		start, math.U64(len(scs.Sidecars)),
+		start, math.U64(scs.Len()),
 		bv.proofVerifier.GetImplementation(),
 	)
 
-	switch len(scs.Sidecars) {
+	switch scs.Len() {
 	case 0:
 		return nil
 	case 1:
+		blob := scs.Get(0).GetBlob()
 		// This method is fastest for a single blob.
 		return bv.proofVerifier.VerifyBlobProof(
-			&scs.Sidecars[0].Blob,
-			scs.Sidecars[0].KzgProof,
-			scs.Sidecars[0].KzgCommitment,
+			&blob,
+			scs.Get(0).GetKzgProof(),
+			scs.Get(0).GetKzgCommitment(),
 		)
 	default:
 		// For multiple blobs batch verification is more performant

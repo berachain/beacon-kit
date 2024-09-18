@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -26,24 +26,24 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// depositMetrics is a struct that contains metrics for the deposit service.
-type depositMetrics struct {
+// metrics is a struct that contains metrics for the deposit service.
+type metrics struct {
 	// sink is the telemetry sink.
 	sink TelemetrySink
 }
 
-// newDepositMetrics creates a new instance of the depositMetrics struct.
-func newDepositMetrics(sink TelemetrySink) *depositMetrics {
-	return &depositMetrics{
+// newMetrics creates a new instance of the metrics struct.
+func newMetrics(sink TelemetrySink) *metrics {
+	return &metrics{
 		sink: sink,
 	}
 }
 
 // markFailedToGetBlockLogs increments the counter for failed to get block logs.
-func (m *depositMetrics) markFailedToGetBlockLogs(blockNum math.U64) {
+func (m *metrics) markFailedToGetBlockLogs(blockNum math.U64) {
 	m.sink.IncrementCounter(
 		"beacon_kit.execution.deposit.failed_to_get_block_logs",
 		"block_num",
-		strconv.FormatUint(uint64(blockNum), 10),
+		strconv.FormatUint(blockNum.Unwrap(), 10),
 	)
 }

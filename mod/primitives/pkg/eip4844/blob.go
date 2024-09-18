@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -21,8 +21,6 @@
 package eip4844
 
 import (
-	"reflect"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 )
 
@@ -31,7 +29,7 @@ type Blob [131072]byte
 
 // UnmarshalJSON parses a blob in hex syntax.
 func (b *Blob) UnmarshalJSON(input []byte) error {
-	return bytes.UnmarshalFixedJSON(reflect.TypeOf(Blob{}), input, b[:])
+	return bytes.UnmarshalFixedJSON(input, b[:])
 }
 
 // MarshalText returns the hex representation of b.

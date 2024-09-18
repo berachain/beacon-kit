@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -26,27 +26,31 @@ import (
 	ctypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/da/pkg/types"
 	byteslib "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/stretchr/testify/require"
 )
 
 func TestEmptySidecarMarshalling(t *testing.T) {
 	// Create an empty BlobSidecar
-	sidecar := types.BlobSidecar{
-		Index:             0,
-		Blob:              eip4844.Blob{},
-		BeaconBlockHeader: &ctypes.BeaconBlockHeader{},
-		InclusionProof: [][32]byte{
-			byteslib.ToBytes32([]byte("1")),
-			byteslib.ToBytes32([]byte("2")),
-			byteslib.ToBytes32([]byte("3")),
-			byteslib.ToBytes32([]byte("4")),
-			byteslib.ToBytes32([]byte("5")),
-			byteslib.ToBytes32([]byte("6")),
-			byteslib.ToBytes32([]byte("7")),
-			byteslib.ToBytes32([]byte("8")),
+	sidecar := types.BuildBlobSidecar(
+		math.U64(0),
+		&ctypes.BeaconBlockHeader{},
+		&eip4844.Blob{},
+		eip4844.KZGCommitment{},
+		[48]byte{},
+		[]common.Root{
+			common.Root(byteslib.ToBytes32([]byte("1"))),
+			common.Root(byteslib.ToBytes32([]byte("2"))),
+			common.Root(byteslib.ToBytes32([]byte("3"))),
+			common.Root(byteslib.ToBytes32([]byte("4"))),
+			common.Root(byteslib.ToBytes32([]byte("5"))),
+			common.Root(byteslib.ToBytes32([]byte("6"))),
+			common.Root(byteslib.ToBytes32([]byte("7"))),
+			common.Root(byteslib.ToBytes32([]byte("8"))),
 		},
-	}
+	)
 
 	// Marshal the empty sidecar
 	marshalled, err := sidecar.MarshalSSZ()
@@ -62,7 +66,7 @@ func TestEmptySidecarMarshalling(t *testing.T) {
 	)
 
 	// Unmarshal the empty sidecar
-	unmarshalled := types.BlobSidecar{}
+	unmarshalled := &types.BlobSidecar{}
 	err = unmarshalled.UnmarshalSSZ(marshalled)
 	require.NoError(
 		t,
@@ -78,32 +82,34 @@ func TestEmptySidecarMarshalling(t *testing.T) {
 		"The original and unmarshalled empty sidecars should be equal",
 	)
 }
+
 func TestValidateBlockRoots(t *testing.T) {
 	// Create a sample BlobSidecar with valid roots
-	validSidecar := types.BlobSidecar{
-		Index: 0,
-		Blob:  eip4844.Blob{},
-		BeaconBlockHeader: &ctypes.BeaconBlockHeader{
-			BeaconBlockHeaderBase: ctypes.BeaconBlockHeaderBase{
-				StateRoot: [32]byte{1},
-			},
-			BodyRoot: [32]byte{2},
+	validSidecar := types.BuildBlobSidecar(
+		math.U64(0),
+		&ctypes.BeaconBlockHeader{
+			StateRoot: [32]byte{1},
+			BodyRoot:  [32]byte{2},
 		},
-		InclusionProof: [][32]byte{
-			byteslib.ToBytes32([]byte("1")),
-			byteslib.ToBytes32([]byte("2")),
-			byteslib.ToBytes32([]byte("3")),
-			byteslib.ToBytes32([]byte("4")),
-			byteslib.ToBytes32([]byte("5")),
-			byteslib.ToBytes32([]byte("6")),
-			byteslib.ToBytes32([]byte("7")),
-			byteslib.ToBytes32([]byte("8")),
+
+		&eip4844.Blob{},
+		[48]byte{},
+		[48]byte{},
+		[]common.Root{
+			common.Root(byteslib.ToBytes32([]byte("1"))),
+			common.Root(byteslib.ToBytes32([]byte("2"))),
+			common.Root(byteslib.ToBytes32([]byte("3"))),
+			common.Root(byteslib.ToBytes32([]byte("4"))),
+			common.Root(byteslib.ToBytes32([]byte("5"))),
+			common.Root(byteslib.ToBytes32([]byte("6"))),
+			common.Root(byteslib.ToBytes32([]byte("7"))),
+			common.Root(byteslib.ToBytes32([]byte("8"))),
 		},
-	}
+	)
 
 	// Validate the sidecar with valid roots
 	sidecars := types.BlobSidecars{
-		Sidecars: []*types.BlobSidecar{&validSidecar},
+		Sidecars: []*types.BlobSidecar{validSidecar},
 	}
 	err := sidecars.ValidateBlockRoots()
 	require.NoError(
@@ -113,31 +119,31 @@ func TestValidateBlockRoots(t *testing.T) {
 	)
 
 	// Create a sample BlobSidecar with invalid roots
-	differentBlockRootSidecar := types.BlobSidecar{
-		Index: 0,
-		Blob:  eip4844.Blob{},
-		BeaconBlockHeader: &ctypes.BeaconBlockHeader{
-			BeaconBlockHeaderBase: ctypes.BeaconBlockHeaderBase{
-				StateRoot: [32]byte{1},
-			},
-			BodyRoot: [32]byte{3},
+	differentBlockRootSidecar := types.BuildBlobSidecar(
+		math.U64(0),
+		&ctypes.BeaconBlockHeader{
+			StateRoot: [32]byte{1},
+			BodyRoot:  [32]byte{3},
 		},
-		InclusionProof: [][32]byte{
-			byteslib.ToBytes32([]byte("1")),
-			byteslib.ToBytes32([]byte("2")),
-			byteslib.ToBytes32([]byte("3")),
-			byteslib.ToBytes32([]byte("4")),
-			byteslib.ToBytes32([]byte("5")),
-			byteslib.ToBytes32([]byte("6")),
-			byteslib.ToBytes32([]byte("7")),
-			byteslib.ToBytes32([]byte("8")),
+		&eip4844.Blob{},
+		eip4844.KZGCommitment{},
+		eip4844.KZGProof{},
+		[]common.Root{
+			common.Root(byteslib.ToBytes32([]byte("1"))),
+			common.Root(byteslib.ToBytes32([]byte("2"))),
+			common.Root(byteslib.ToBytes32([]byte("3"))),
+			common.Root(byteslib.ToBytes32([]byte("4"))),
+			common.Root(byteslib.ToBytes32([]byte("5"))),
+			common.Root(byteslib.ToBytes32([]byte("6"))),
+			common.Root(byteslib.ToBytes32([]byte("7"))),
+			common.Root(byteslib.ToBytes32([]byte("8"))),
 		},
-	}
+	)
 	// Validate the sidecar with invalid roots
 	sidecarsInvalid := types.BlobSidecars{
 		Sidecars: []*types.BlobSidecar{
-			&validSidecar,
-			&differentBlockRootSidecar,
+			validSidecar,
+			differentBlockRootSidecar,
 		},
 	}
 	err = sidecarsInvalid.ValidateBlockRoots()

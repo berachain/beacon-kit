@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -20,22 +20,30 @@
 
 package version
 
-import "github.com/berachain/beacon-kit/mod/log"
+import (
+	"fmt"
+	"runtime"
+
+	"github.com/berachain/beacon-kit/mod/log"
+)
 
 // versionMetrics holds metrics related to the version reporting.
 type versionMetrics struct {
+	// system is the current system the node is running on.
+	system string
 	// logger is the logger used to log information about the version.
-	logger log.Logger[any]
+	logger log.Logger
 	// sink is the telemetry sink used to report metrics.
 	sink TelemetrySink
 }
 
 // newVersionMetrics creates a new instance of versionMetrics.
 func newVersionMetrics(
-	logger log.Logger[any],
+	logger log.Logger,
 	sink TelemetrySink,
 ) *versionMetrics {
 	return &versionMetrics{
+		system: runtime.GOOS + "/" + runtime.GOARCH,
 		logger: logger,
 		sink:   sink,
 	}
@@ -43,12 +51,23 @@ func newVersionMetrics(
 
 // reportVersion increments the versionReported counter.
 func (vm *versionMetrics) reportVersion(version string) {
-	vm.logger.Info(
-		"this node is running beacon-kit software",
-		"version",
+	vm.logger.Info(fmt.Sprintf(`
+
+
+	+==========================================================================+
+	+ ⭐️ Star BeaconKit on GitHub @ https://github.com/berachain/beacon-kit    +
+	+ 🧩 Your node is running version: %-40s+
+	+ 💾 Your system: %-57s+
+	+ 🦺 Please report issues @ https://github.com/berachain/beacon-kit/issues +
+	+==========================================================================+
+
+
+`,
 		version,
-	)
+		vm.system,
+	))
 	vm.sink.IncrementCounter(
-		"beacon_kit.runtime.version.reported", "version", version,
+		"beacon_kit.runtime.version.reported",
+		"version", version, "system", vm.system,
 	)
 }

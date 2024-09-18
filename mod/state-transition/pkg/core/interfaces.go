@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -23,7 +23,6 @@ package core
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -32,20 +31,26 @@ import (
 // BeaconState is the interface for the beacon state. It
 // is a combination of the read-only and write-only beacon state types.
 type BeaconState[
-	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
-	Eth1DataT, ExecutionPayloadHeaderT, ForkT,
-	ValidatorT, WithdrawalT any,
+	T any,
+	BeaconBlockHeaderT,
+	Eth1DataT,
+	ExecutionPayloadHeaderT,
+	ForkT,
+	KVStoreT,
+	ValidatorT,
+	ValidatorsT,
+	WithdrawalT any,
 ] interface {
-	Copy() BeaconState[
-		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
-		ValidatorT, WithdrawalT,
-	]
-	Save()
+	NewFromDB(
+		bdb KVStoreT,
+		cs common.ChainSpec,
+	) T
+	Copy() T
 	Context() context.Context
-	HashTreeRoot() ([32]byte, error)
+	HashTreeRoot() common.Root
 	ReadOnlyBeaconState[
 		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-		ValidatorT, WithdrawalT,
+		ForkT, ValidatorT, ValidatorsT, WithdrawalT,
 	]
 	WriteOnlyBeaconState[
 		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
@@ -55,8 +60,8 @@ type BeaconState[
 
 // ReadOnlyBeaconState is the interface for a read-only beacon state.
 type ReadOnlyBeaconState[
-	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
-	Eth1DataT, ExecutionPayloadHeaderT, ValidatorT, WithdrawalT any,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT any,
 ] interface {
 	ReadOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT]
 	ReadOnlyRandaoMixes
@@ -66,11 +71,13 @@ type ReadOnlyBeaconState[
 
 	GetBalance(math.ValidatorIndex) (math.Gwei, error)
 	GetSlot() (math.Slot, error)
-	GetGenesisValidatorsRoot() (primitives.Root, error)
-	GetBlockRootAtIndex(uint64) (primitives.Root, error)
+	GetFork() (ForkT, error)
+	GetGenesisValidatorsRoot() (common.Root, error)
+	GetBlockRootAtIndex(uint64) (common.Root, error)
 	GetLatestBlockHeader() (BeaconBlockHeaderT, error)
 	GetTotalActiveBalances(uint64) (math.Gwei, error)
-	GetValidators() ([]ValidatorT, error)
+	GetValidators() (ValidatorsT, error)
+	GetSlashingAtIndex(uint64) (math.Gwei, error)
 	GetTotalSlashing() (math.Gwei, error)
 	GetNextWithdrawalIndex() (uint64, error)
 	GetNextWithdrawalValidatorIndex() (math.ValidatorIndex, error)
@@ -81,68 +88,51 @@ type ReadOnlyBeaconState[
 	) (math.ValidatorIndex, error)
 }
 
-// BeaconBlockHeader is the interface for a beacon block header.
-type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
-	New(
-		slot math.Slot,
-		proposerIndex math.ValidatorIndex,
-		parentBlockRoot common.Root,
-		stateRoot common.Root,
-		bodyRoot common.Root,
-	) BeaconBlockHeaderT
-	HashTreeRoot() ([32]byte, error)
-	GetSlot() math.Slot
-	GetProposerIndex() math.ValidatorIndex
-	GetParentBlockRoot() primitives.Root
-	GetStateRoot() primitives.Root
-	SetStateRoot(primitives.Root)
-}
-
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
 type WriteOnlyBeaconState[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT any,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT any,
 ] interface {
 	WriteOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT]
 	WriteOnlyRandaoMixes
 	WriteOnlyStateRoots
 	WriteOnlyValidators[ValidatorT]
 
-	SetGenesisValidatorsRoot(root primitives.Root) error
+	SetGenesisValidatorsRoot(root common.Root) error
 	SetFork(ForkT) error
 	SetSlot(math.Slot) error
-	UpdateBlockRootAtIndex(uint64, primitives.Root) error
+	UpdateBlockRootAtIndex(uint64, common.Root) error
 	SetLatestBlockHeader(BeaconBlockHeaderT) error
 	IncreaseBalance(math.ValidatorIndex, math.Gwei) error
 	DecreaseBalance(math.ValidatorIndex, math.Gwei) error
 	UpdateSlashingAtIndex(uint64, math.Gwei) error
 	SetNextWithdrawalIndex(uint64) error
 	SetNextWithdrawalValidatorIndex(math.ValidatorIndex) error
-	RemoveValidatorAtIndex(math.ValidatorIndex) error
 	SetTotalSlashing(math.Gwei) error
 }
 
 // WriteOnlyStateRoots defines a struct which only has write access to state
 // roots methods.
 type WriteOnlyStateRoots interface {
-	UpdateStateRootAtIndex(uint64, primitives.Root) error
+	UpdateStateRootAtIndex(uint64, common.Root) error
 }
 
 // ReadOnlyStateRoots defines a struct which only has read access to state roots
 // methods.
 type ReadOnlyStateRoots interface {
-	StateRootAtIndex(uint64) (primitives.Root, error)
+	StateRootAtIndex(uint64) (common.Root, error)
 }
 
 // WriteOnlyRandaoMixes defines a struct which only has write access to randao
 // mixes methods.
 type WriteOnlyRandaoMixes interface {
-	UpdateRandaoMixAtIndex(uint64, primitives.Bytes32) error
+	UpdateRandaoMixAtIndex(uint64, common.Bytes32) error
 }
 
 // ReadOnlyRandaoMixes defines a struct which only has read access to randao
 // mixes methods.
 type ReadOnlyRandaoMixes interface {
-	GetRandaoMixAtIndex(uint64) (primitives.Bytes32, error)
+	GetRandaoMixAtIndex(uint64) (common.Bytes32, error)
 }
 
 // WriteOnlyValidators has write access to validator methods.
@@ -153,6 +143,7 @@ type WriteOnlyValidators[ValidatorT any] interface {
 	) error
 
 	AddValidator(ValidatorT) error
+	AddValidatorBartio(ValidatorT) error
 }
 
 // ReadOnlyValidators has read access to validator methods.

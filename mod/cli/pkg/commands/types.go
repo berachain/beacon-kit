@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -21,16 +21,8 @@
 package commands
 
 import (
-	"context"
-
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/server"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"golang.org/x/sync/errgroup"
+	"github.com/spf13/cobra"
 )
 
-// PostSetupFn is a function that is called after the application is created
-// and the cosmos server is started.
-type PostSetupFn[T servertypes.Application] func(
-	app T, svrCtx *server.Context, clientCtx client.Context,
-	ctx context.Context, g *errgroup.Group) error
+// runHandler is a function that sets up run handlers for the root command.
+type runHandler func(cmd *cobra.Command) error

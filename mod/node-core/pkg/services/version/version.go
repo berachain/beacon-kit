@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -35,7 +35,7 @@ const defaultReportingInterval = 5 * time.Minute
 // version.
 type ReportingService struct {
 	// logger is used to log information about the running chain version.
-	logger log.Logger[any]
+	logger log.Logger
 	// version represents the current version of the running chain.
 	version string
 	// reportingInterval is the interval at which the version is reported.
@@ -46,7 +46,7 @@ type ReportingService struct {
 
 // NewReportingService creates a new VersionReporterService.
 func NewReportingService(
-	logger log.Logger[any],
+	logger log.Logger,
 	telemetrySink TelemetrySink,
 	version string,
 ) *ReportingService {
@@ -81,11 +81,3 @@ func (v *ReportingService) Start(ctx context.Context) error {
 	}()
 	return nil
 }
-
-// Status returns nil if the service is healthy.
-func (*ReportingService) Status() error {
-	return nil
-}
-
-// WaitForHealthy waits for all registered services to be healthy.
-func (*ReportingService) WaitForHealthy(context.Context) {}

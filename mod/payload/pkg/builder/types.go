@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -24,22 +24,22 @@ import (
 	"context"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // BeaconState defines the interface for accessing various state-related data
 // required for block processing.
-type BeaconState[ExecutionPayloadHeaderT interface {
-	GetBlockHash() common.ExecutionHash
-	GetParentHash() common.ExecutionHash
-}] interface {
+type BeaconState[
+	ExecutionPayloadHeaderT any,
+	WithdrawalT any,
+] interface {
 	// GetRandaoMixAtIndex retrieves the RANDAO mix at a specified index.
-	GetRandaoMixAtIndex(uint64) (primitives.Bytes32, error)
+	GetRandaoMixAtIndex(uint64) (common.Bytes32, error)
 	// ExpectedWithdrawals lists the expected withdrawals in the current state.
-	ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error)
+	ExpectedWithdrawals() ([]WithdrawalT, error)
 	// GetLatestExecutionPayloadHeader fetches the most recent execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (
@@ -49,20 +49,78 @@ type BeaconState[ExecutionPayloadHeaderT interface {
 	// BLS public key.
 	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
 	// GetBlockRootAtIndex retrieves the block root at a specified index.
-	GetBlockRootAtIndex(uint64) (primitives.Root, error)
+	GetBlockRootAtIndex(uint64) (common.Root, error)
+}
+
+type PayloadCache[PayloadIDT, RootT, SlotT any] interface {
+	Get(slot SlotT, stateRoot RootT) (PayloadIDT, bool)
+	Has(slot SlotT, stateRoot RootT) bool
+	Set(slot SlotT, stateRoot RootT, pid PayloadIDT)
+	UnsafePrunePrior(slot SlotT)
+}
+
+// ExecutionPayload is the interface for the execution payload.
+type ExecutionPayload[T any] interface {
+	constraints.ForkTyped[T]
+	// GetBlockHash returns the block hash.
+	GetBlockHash() common.ExecutionHash
+	// GetFeeRecipient returns the fee recipient.
+	GetFeeRecipient() common.ExecutionAddress
+	// GetParentHash returns the parent hash.
+	GetParentHash() common.ExecutionHash
+}
+
+// ExecutionPayloadHeader is the interface for the execution payload header.
+type ExecutionPayloadHeader interface {
+	// GetBlockHash returns the block hash.
+	GetBlockHash() common.ExecutionHash
+	// GetParentHash returns the parent hash.
+	GetParentHash() common.ExecutionHash
+}
+
+// AttributesFactory is the interface for the attributes factory.
+type AttributesFactory[
+	BeaconStateT any,
+	PayloadAttributesT any,
+] interface {
+	BuildPayloadAttributes(
+		st BeaconStateT,
+		slot math.U64,
+		timestamp uint64,
+		prevHeadRoot [32]byte,
+	) (PayloadAttributesT, error)
+}
+
+// PayloadAttributes is the interface for the payload attributes.
+type PayloadAttributes[
+	SelfT any,
+	WithdrawalT any,
+] interface {
+	engineprimitives.PayloadAttributer
+	// New creates a new payload attributes instance.
+	New(
+		uint32,
+		uint64,
+		common.Bytes32,
+		common.ExecutionAddress,
+		[]WithdrawalT,
+		common.Root,
+	) (SelfT, error)
 }
 
 // ExecutionEngine is the interface for the execution engine.
-type ExecutionEngine[ExecutionPayloadT any] interface {
+type ExecutionEngine[
+	ExecutionPayloadT, PayloadAttributesT any, PayloadIDT ~[8]byte,
+] interface {
 	// GetPayload returns the payload and blobs bundle for the given slot.
 	GetPayload(
 		ctx context.Context,
-		req *engineprimitives.GetPayloadRequest,
+		req *engineprimitives.GetPayloadRequest[PayloadIDT],
 	) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
-		req *engineprimitives.ForkchoiceUpdateRequest,
-	) (*engineprimitives.PayloadID, *common.ExecutionHash, error)
+		req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
+	) (*PayloadIDT, *common.ExecutionHash, error)
 }

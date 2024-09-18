@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -21,8 +21,7 @@
 package engineprimitives
 
 import (
-	"encoding/json"
-
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -32,7 +31,7 @@ type BuiltExecutionPayloadEnv[ExecutionPayloadT any] interface {
 	// GetExecutionPayload retrieves the associated execution payload.
 	GetExecutionPayload() ExecutionPayloadT
 	// GetValue returns the Wei value of the block in the execution payload.
-	GetValue() math.Wei
+	GetValue() *math.U256
 	// GetBlobsBundle fetches the associated BlobsBundleV1 if available.
 	GetBlobsBundle() BlobsBundle
 	// ShouldOverrideBuilder indicates if the builder should be overridden.
@@ -54,14 +53,11 @@ type BlobsBundle interface {
 // It utilizes a generic type ExecutionData to allow for different types of
 // execution payloads depending on the active hard fork.
 type ExecutionPayloadEnvelope[
-	ExecutionPayloadT interface {
-		json.Marshaler
-		json.Unmarshaler
-	},
+	ExecutionPayloadT constraints.JSONMarshallable,
 	BlobsBundleT BlobsBundle,
 ] struct {
 	ExecutionPayload ExecutionPayloadT `json:"executionPayload"`
-	BlockValue       math.Wei          `json:"blockValue"`
+	BlockValue       *math.U256        `json:"blockValue"`
 	BlobsBundle      BlobsBundleT      `json:"blobsBundle"`
 	Override         bool              `json:"shouldOverrideBuilder"`
 }
@@ -77,7 +73,7 @@ func (e *ExecutionPayloadEnvelope[
 // GetValue returns the value of the ExecutionPayloadEnvelope.
 func (e *ExecutionPayloadEnvelope[
 	ExecutionPayloadT, BlobsBundleT,
-]) GetValue() math.Wei {
+]) GetValue() *math.U256 {
 	return e.BlockValue
 }
 

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -34,7 +34,7 @@ import (
 // performant to store in a traditional key-value database.
 type DB struct {
 	fs        afero.Fs
-	logger    log.Logger[any]
+	logger    log.Logger
 	rootDir   string
 	extension string
 	dirPerms  os.FileMode
@@ -72,7 +72,7 @@ func (db *DB) Set(key []byte, value []byte) error {
 	if exists, err := afero.Exists(db.fs, db.pathForKey(key)); err != nil {
 		return err
 	} else if exists {
-		db.logger.Warn("overriding existing key", "key", key)
+		db.logger.Warn("Overriding existing key", "key", key)
 	}
 
 	if err := db.fs.MkdirAll(

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -21,30 +21,32 @@
 package core
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
+)
+
+//nolint:lll // temporary.
+const (
+	bArtioValRoot = "0x9147586693b6e8faa837715c0f3071c2000045b54233901c2e7871b15872bc43"
+	bArtioChainID = 80084
 )
 
 // InitializePreminedBeaconStateFromEth1 initializes the beacon state.
 //
 //nolint:gocognit,funlen // todo fix.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	_, BeaconBlockBodyT, BeaconBlockHeaderT, BeaconStateT, _, DepositT,
+	Eth1DataT, _, ExecutionPayloadHeaderT, ForkT, _, _, ValidatorT, _, _, _, _,
 ]) InitializePreminedBeaconStateFromEth1(
 	st BeaconStateT,
 	deposits []DepositT,
 	executionPayloadHeader ExecutionPayloadHeaderT,
-	genesisVersion primitives.Version,
-) ([]*transition.ValidatorUpdate, error) {
+	genesisVersion common.Version,
+) (transition.ValidatorUpdates, error) {
 	var (
 		blkHeader BeaconBlockHeaderT
 		blkBody   BeaconBlockBodyT
@@ -70,64 +72,52 @@ func (sp *StateProcessor[
 	}
 
 	if err := st.SetEth1Data(eth1Data.New(
-		bytes.B32(common.ZeroHash),
+		common.Root{},
 		0,
 		executionPayloadHeader.GetBlockHash(),
 	)); err != nil {
 		return nil, err
 	}
 
-	// TODO: we need to handle primitives.Version vs
+	// TODO: we need to handle common.Version vs
 	// uint32 better.
-	bodyRoot, err := blkBody.Empty(
+	bodyRoot := blkBody.Empty(
 		version.ToUint32(genesisVersion)).HashTreeRoot()
-	if err != nil {
-		return nil, err
-	}
-
-	if err = st.SetLatestBlockHeader(blkHeader.New(
+	if err := st.SetLatestBlockHeader(blkHeader.New(
 		0, 0, common.Root{}, common.Root{}, bodyRoot,
 	)); err != nil {
 		return nil, err
 	}
 
 	for i := range sp.cs.EpochsPerHistoricalVector() {
-		if err = st.UpdateRandaoMixAtIndex(
+		if err := st.UpdateRandaoMixAtIndex(
 			i,
-			bytes.B32(executionPayloadHeader.GetBlockHash()),
+			common.Bytes32(executionPayloadHeader.GetBlockHash()),
 		); err != nil {
 			return nil, err
 		}
 	}
 
-	// Prime the db so that processDeposit doesn't fail.
-	if err = st.SetGenesisValidatorsRoot(primitives.Root{}); err != nil {
-		return nil, err
-	}
-
 	for _, deposit := range deposits {
-		// TODO: process deposits into eth1 data.
-		if err = sp.processDeposit(st, deposit); err != nil {
+		if err := sp.processDeposit(st, deposit); err != nil {
 			return nil, err
 		}
 	}
 
 	// TODO: process activations.
-	var validators []ValidatorT
-	validators, err = st.GetValidators()
+	validators, err := st.GetValidators()
 	if err != nil {
 		return nil, err
 	}
 
-	var validatorsRoot primitives.Root
-	validatorsRoot, err = ssz.MerkleizeListComposite[
-		common.ChainSpec, math.U64, [32]byte,
-	](validators, uint64(len(validators)))
-	if err != nil {
-		return nil, err
-	}
-
-	if err = st.SetGenesisValidatorsRoot(validatorsRoot); err != nil {
+	// Handle special case bartio genesis.
+	if sp.cs.DepositEth1ChainID() == bArtioChainID {
+		if err = st.SetGenesisValidatorsRoot(
+			common.Root(hex.MustToBytes(bArtioValRoot))); err != nil {
+			return nil, err
+		}
+	} else if err = st.
+		SetGenesisValidatorsRoot(validators.HashTreeRoot()); err != nil {
 		return nil, err
 	}
 
@@ -140,10 +130,10 @@ func (sp *StateProcessor[
 	// Setup a bunch of 0s to prime the DB.
 	for i := range sp.cs.HistoricalRootsLimit() {
 		//#nosec:G701 // won't overflow in practice.
-		if err = st.UpdateBlockRootAtIndex(i, primitives.Root{}); err != nil {
+		if err = st.UpdateBlockRootAtIndex(i, common.Root{}); err != nil {
 			return nil, err
 		}
-		if err = st.UpdateStateRootAtIndex(i, primitives.Root{}); err != nil {
+		if err = st.UpdateStateRootAtIndex(i, common.Root{}); err != nil {
 			return nil, err
 		}
 	}
@@ -162,11 +152,10 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	var updates []*transition.ValidatorUpdate
+	var updates transition.ValidatorUpdates
 	updates, err = sp.processSyncCommitteeUpdates(st)
 	if err != nil {
 		return nil, err
 	}
-	st.Save()
 	return updates, nil
 }

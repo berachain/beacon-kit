@@ -1,31 +1,34 @@
-shared_utils = import_module("github.com/kurtosis-tech/ethereum-package/src/shared_utils/shared_utils.star")
+shared_utils = import_module("github.com/ethpandaops/ethereum-package/src/shared_utils/shared_utils.star")
 execution = import_module("../../execution/execution.star")
 node = import_module("./node.star")
 bash = import_module("../../../lib/bash.star")
 
 COMETBFT_RPC_PORT_NUM = 26657
 COMETBFT_P2P_PORT_NUM = 26656
-COMETBFT_GRPC_PORT_NUM = 9090
-COMETBFT_REST_PORT_NUM = 1317
+
+COMETBFT_PPROF_PORT_NUM = 6060
 METRICS_PORT_NUM = 26660
 ENGINE_RPC_PORT_NUM = 8551
+NODE_API_PORT_NUM = 3500
 
 # Port IDs
 COMETBFT_RPC_PORT_ID = "cometbft-rpc"
 COMETBFT_P2P_PORT_ID = "cometbft-p2p"
 COMETBFT_GRPC_PORT_ID = "cometbft-grpc"
 COMETBFT_REST_PORT_ID = "cometbft-rest"
+COMETBFT_PPROF_PORT_ID = "cometbft-pprof"
 ENGINE_RPC_PORT_ID = "engine-rpc"
 METRICS_PORT_ID = "metrics"
 METRICS_PATH = "/metrics"
+NODE_API_PORT_ID = "node-api"
 
 USED_PORTS = {
     COMETBFT_RPC_PORT_ID: shared_utils.new_port_spec(COMETBFT_RPC_PORT_NUM, shared_utils.TCP_PROTOCOL),
     COMETBFT_P2P_PORT_ID: shared_utils.new_port_spec(COMETBFT_P2P_PORT_NUM, shared_utils.TCP_PROTOCOL),
-    COMETBFT_GRPC_PORT_ID: shared_utils.new_port_spec(COMETBFT_GRPC_PORT_NUM, shared_utils.TCP_PROTOCOL),
-    COMETBFT_REST_PORT_ID: shared_utils.new_port_spec(COMETBFT_REST_PORT_NUM, shared_utils.TCP_PROTOCOL),
+    COMETBFT_PPROF_PORT_ID: shared_utils.new_port_spec(COMETBFT_PPROF_PORT_NUM, shared_utils.TCP_PROTOCOL),
     # ENGINE_RPC_PORT_ID: shared_utils.new_port_spec(ENGINE_RPC_PORT_NUM, shared_utils.TCP_PROTOCOL),
     METRICS_PORT_ID: shared_utils.new_port_spec(METRICS_PORT_NUM, shared_utils.TCP_PROTOCOL, wait = None),
+    NODE_API_PORT_ID: shared_utils.new_port_spec(NODE_API_PORT_NUM, shared_utils.TCP_PROTOCOL),
 }
 
 def get_config(node_struct, engine_dial_url, entrypoint = [], cmd = [], persistent_peers = "", expose_ports = True, jwt_file = None, kzg_trusted_setup_file = None):
@@ -118,14 +121,6 @@ def get_persistent_peers(plan, peers):
         peer_service = plan.get_service(peer_cl_service_name)
         persistent_peers[i] = persistent_peers[i] + "@" + peer_service.ip_address + ":26656"
     return ",".join(persistent_peers)
-
-def create_node(plan, node_struct, peers, paired_el_client_name, jwt_file = None, kzg_trusted_setup_file = None):
-    beacond_config = create_node_config(plan, node_struct, peers, paired_el_client_name, jwt_file, kzg_trusted_setup_file)
-
-    return plan.add_service(
-        name = node_struct.cl_service_name,
-        config = beacond_config,
-    )
 
 def init_consensus_nodes():
     genesis_file = "{}/config/genesis.json".format("$BEACOND_HOME")

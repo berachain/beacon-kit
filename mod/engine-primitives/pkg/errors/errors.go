@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -79,45 +79,14 @@ var (
 	ErrNilForkchoiceResponse = errors.New(
 		"nil forkchoice response",
 	)
-	/// ErrNilBlobsBundle is returned when nil blobs bundle is received.
+	// ErrNilBlobsBundle is returned when nil blobs bundle is received.
 	ErrNilBlobsBundle = errors.New(
 		"nil blobs bundle received from execution client")
-
-	// ErrInvalidPayloadAttributeVersion indicates an invalid version of payload
-	// attributes was provided.
-	ErrInvalidPayloadAttributeVersion = errors.New(
-		"invalid payload attribute version")
-	// ErrInvalidPayloadType indicates an invalid payload type
-	// was provided for an RPC call.
-	ErrInvalidPayloadType = errors.New("invalid payload type for RPC call")
-
-	// ErrInvalidGetPayloadVersion indicates that an unknown fork version was
-	// provided for getting a payload.
-	ErrInvalidGetPayloadVersion = errors.New("unknown fork for get payload")
-
-	// ErrUnsupportedVersion indicates a request for a block type with an
-	// unknown ExecutionPayload schema.
-	ErrUnsupportedVersion = errors.New(
-		"unknown ExecutionPayload schema for block version")
-
-	// ErrNilJWTSecret indicates that the JWT secret is nil.
-	ErrNilJWTSecret = errors.New("nil JWT secret")
-
-	// ErrNilAttributesPassedToClient is returned when nil attributes are
-	// passed to the client.
-	ErrNilAttributesPassedToClient = errors.New(
-		"nil attributes passed to client",
-	)
 
 	// ErrNilExecutionPayloadEnvelope is returned when nil execution payload
 	// envelope is received.
 	ErrNilExecutionPayloadEnvelope = errors.New(
 		"nil execution payload envelope received from execution client")
-
-	// ErrNilExecutionPayload is returned when nil execution payload
-	// envelope is received.
-	ErrNilExecutionPayload = errors.New(
-		"nil execution payload received from execution client")
 
 	// ErrNilPayloadStatus is returned when nil payload status is received.
 	ErrNilPayloadStatus = errors.New(

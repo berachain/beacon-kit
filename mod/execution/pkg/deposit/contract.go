@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -24,21 +24,21 @@ import (
 	"context"
 	"errors"
 
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/bind"
+	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 )
 
 // WrappedBeaconDepositContract is a struct that holds a pointer to an ABI.
-//
-//go:generate go run github.com/ethereum/go-ethereum/cmd/abigen --abi=../../../../contracts/out/BeaconDepositContract.sol/BeaconDepositContract.abi.json --pkg=deposit --type=BeaconDepositContract --out=contract.abigen.go
 type WrappedBeaconDepositContract[
 	DepositT Deposit[DepositT, WithdrawalCredentialsT],
 	WithdrawalCredentialsT ~[32]byte,
 ] struct {
-	// BeaconDepositContract is a pointer to the codegen ABI binding.
-	BeaconDepositContract
+	// BeaconDepositContractFilterer is a pointer to the codegen ABI binding.
+	deposit.BeaconDepositContractFilterer
 }
 
 // NewWrappedBeaconDepositContract creates a new BeaconDepositContract.
@@ -47,13 +47,13 @@ func NewWrappedBeaconDepositContract[
 	WithdrawalCredentialsT ~[32]byte,
 ](
 	address common.ExecutionAddress,
-	client bind.ContractBackend,
+	client bind.ContractFilterer,
 ) (*WrappedBeaconDepositContract[
 	DepositT,
 	WithdrawalCredentialsT,
 ], error) {
-	contract, err := NewBeaconDepositContract(
-		address, client,
+	contract, err := deposit.NewBeaconDepositContractFilterer(
+		gethprimitives.ExecutionAddress(address), client,
 	)
 
 	if err != nil {
@@ -66,7 +66,7 @@ func NewWrappedBeaconDepositContract[
 		DepositT,
 		WithdrawalCredentialsT,
 	]{
-		BeaconDepositContract: *contract,
+		BeaconDepositContractFilterer: *contract,
 	}, nil
 }
 
@@ -81,7 +81,7 @@ func (dc *WrappedBeaconDepositContract[
 	logs, err := dc.FilterDeposit(
 		&bind.FilterOpts{
 			Context: ctx,
-			Start:   uint64(blkNum),
+			Start:   blkNum.Unwrap(),
 			End:     (*uint64)(&blkNum),
 		},
 	)

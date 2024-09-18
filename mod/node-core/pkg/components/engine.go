@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -24,39 +24,47 @@ import (
 	"math/big"
 
 	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
-	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
+	"github.com/berachain/beacon-kit/mod/config"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/execution/pkg/client"
+	"github.com/berachain/beacon-kit/mod/execution/pkg/engine"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/config"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 )
 
 // EngineClientInputs is the input for the EngineClient.
-type EngineClientInputs struct {
+type EngineClientInputs[LoggerT any] struct {
 	depinject.In
-	// ChainSpec is the chain spec.
-	ChainSpec primitives.ChainSpec
-	// Config is the BeaconKit configuration.
-	Config *config.Config
-	// Logger is the logger.
-	Logger log.Logger
-	// TelemetrySink is the telemetry sink.
+	ChainSpec common.ChainSpec
+	Config    *config.Config
+	// TODO: this feels like a hood way to handle it.
+	JWTSecret     *jwt.Secret `optional:"true"`
+	Logger        LoggerT
 	TelemetrySink *metrics.TelemetrySink
-	// JWTSecret is the jwt secret. It is optional, since
-	// it is not required when connecting to the execution client
-	// over IPC.
-	JWTSecret *jwt.Secret `optional:"true"`
 }
 
 // ProvideEngineClient creates a new EngineClient.
-func ProvideEngineClient(
-	in EngineClientInputs,
-) *engineclient.EngineClient[*types.ExecutionPayload] {
-	return engineclient.New[*types.ExecutionPayload](
-		&in.Config.Engine,
+func ProvideEngineClient[
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+	],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	LoggerT log.AdvancedLogger[LoggerT],
+	WithdrawalT Withdrawal[WithdrawalT],
+	WithdrawalsT Withdrawals[WithdrawalT],
+](
+	in EngineClientInputs[LoggerT],
+) *client.EngineClient[
+	ExecutionPayloadT,
+	*engineprimitives.PayloadAttributes[WithdrawalT],
+] {
+	return client.New[
+		ExecutionPayloadT,
+		*engineprimitives.PayloadAttributes[WithdrawalT],
+	](
+		in.Config.GetEngine(),
 		in.Logger.With("service", "engine.client"),
 		in.JWTSecret,
 		in.TelemetrySink,
@@ -64,21 +72,52 @@ func ProvideEngineClient(
 	)
 }
 
-// ExecutionEngineInput is the input for the execution engine for the depinject
-// framework.
-type ExecutionEngineInput struct {
+// EngineClientInputs is the input for the EngineClient.
+type ExecutionEngineInputs[
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+	],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	LoggerT any,
+	WithdrawalT Withdrawal[WithdrawalT],
+	WithdrawalsT Withdrawals[WithdrawalT],
+] struct {
 	depinject.In
-	EngineClient  *engineclient.EngineClient[*types.ExecutionPayload]
-	Logger        log.Logger
+	EngineClient *client.EngineClient[
+		ExecutionPayloadT,
+		*engineprimitives.PayloadAttributes[WithdrawalT],
+	]
+	Logger        LoggerT
 	TelemetrySink *metrics.TelemetrySink
 }
 
 // ProvideExecutionEngine provides the execution engine to the depinject
 // framework.
-func ProvideExecutionEngine(
-	in ExecutionEngineInput,
-) *execution.Engine[*types.ExecutionPayload] {
-	return execution.New[*types.ExecutionPayload](
+func ProvideExecutionEngine[
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+	],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	LoggerT log.AdvancedLogger[LoggerT],
+	WithdrawalT Withdrawal[WithdrawalT],
+	WithdrawalsT Withdrawals[WithdrawalT],
+](
+	in ExecutionEngineInputs[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, LoggerT, WithdrawalT,
+		WithdrawalsT,
+	],
+) *engine.Engine[
+	ExecutionPayloadT,
+	*engineprimitives.PayloadAttributes[WithdrawalT],
+	PayloadID,
+	WithdrawalsT,
+] {
+	return engine.New[
+		ExecutionPayloadT,
+		*engineprimitives.PayloadAttributes[WithdrawalT],
+		PayloadID,
+		WithdrawalsT,
+	](
 		in.EngineClient,
 		in.Logger.With("service", "execution-engine"),
 		in.TelemetrySink,

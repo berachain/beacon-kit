@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -21,11 +21,10 @@
 package core
 
 import (
-	"crypto/sha256"
-
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/go-faster/xor"
 )
@@ -33,10 +32,8 @@ import (
 // processRandaoReveal processes the randao reveal and
 // ensures it matches the local state.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	BeaconBlockT, _, _, BeaconStateT,
+	_, _, _, _, _, _, ForkDataT, _, _, _, _, _, _,
 ]) processRandaoReveal(
 	st BeaconStateT,
 	blk BeaconBlockT,
@@ -63,19 +60,15 @@ func (sp *StateProcessor[
 
 	var fd ForkDataT
 	fd = fd.New(
-		version.FromUint32[primitives.Version](
+		version.FromUint32[common.Version](
 			sp.cs.ActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,
 	)
 
 	if !skipVerification {
-		var signingRoot primitives.Root
-		signingRoot, err = fd.ComputeRandaoSigningRoot(
-			sp.cs.DomainTypeRandao(), epoch)
-		if err != nil {
-			return err
-		}
-
+		signingRoot := fd.ComputeRandaoSigningRoot(
+			sp.cs.DomainTypeRandao(), epoch,
+		)
 		reveal := body.GetRandaoReveal()
 		if err = sp.signer.VerifySignature(
 			proposer.GetPubkey(),
@@ -87,19 +80,15 @@ func (sp *StateProcessor[
 	}
 
 	prevMix, err := st.GetRandaoMixAtIndex(
-		uint64(epoch) % sp.cs.EpochsPerHistoricalVector(),
+		epoch.Unwrap() % sp.cs.EpochsPerHistoricalVector(),
 	)
 	if err != nil {
 		return err
 	}
 
-	mix, err := sp.buildRandaoMix(prevMix, body.GetRandaoReveal())
-	if err != nil {
-		return err
-	}
-
 	return st.UpdateRandaoMixAtIndex(
-		uint64(epoch)%sp.cs.EpochsPerHistoricalVector(), mix,
+		epoch.Unwrap()%sp.cs.EpochsPerHistoricalVector(),
+		sp.buildRandaoMix(prevMix, body.GetRandaoReveal()),
 	)
 }
 
@@ -108,10 +97,7 @@ func (sp *StateProcessor[
 //
 //nolint:lll
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) processRandaoMixesReset(
 	st BeaconStateT,
 ) error {
@@ -122,34 +108,31 @@ func (sp *StateProcessor[
 
 	epoch := sp.cs.SlotToEpoch(slot)
 	mix, err := st.GetRandaoMixAtIndex(
-		uint64(epoch) % sp.cs.EpochsPerHistoricalVector(),
+		epoch.Unwrap() % sp.cs.EpochsPerHistoricalVector(),
 	)
 	if err != nil {
 		return err
 	}
 	return st.UpdateRandaoMixAtIndex(
-		uint64(epoch+1)%sp.cs.EpochsPerHistoricalVector(),
+		(epoch.Unwrap()+1)%sp.cs.EpochsPerHistoricalVector(),
 		mix,
 	)
 }
 
 // buildRandaoMix as defined in the Ethereum 2.0 specification.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) buildRandaoMix(
-	mix primitives.Bytes32,
+	mix common.Bytes32,
 	reveal crypto.BLSSignature,
-) (primitives.Bytes32, error) {
+) common.Bytes32 {
 	newMix := make([]byte, constants.RootLength)
-	revealHash := sha256.Sum256(reveal[:])
+	revealHash := sha256.Hash(reveal[:])
 	// Apparently this library giga fast? Good project? lmeow.
-	if numXor := xor.Bytes(
+	// It is safe to ignore this error, since it is guaranteed that
+	// mix[:] and revealHash[:] are both Bytes32.
+	_ = xor.Bytes(
 		newMix, mix[:], revealHash[:],
-	); numXor != constants.RootLength {
-		return primitives.Bytes32{}, ErrXorInvalid
-	}
-	return primitives.Bytes32(newMix), nil
+	)
+	return common.Bytes32(newMix)
 }

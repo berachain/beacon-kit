@@ -28,10 +28,11 @@ name: pipeline
 on:
   push:
     branches:
-      - main
+      - main 
+    tags:
+      - "v*"
   pull_request:
   merge_group:
-
 
 concurrency:
   group: ci-${{ github.ref }}-tests
@@ -41,7 +42,20 @@ concurrency:
   # Case 2: The reference branch is not main => we want to cancel in progress
   cancel-in-progress: ${{ !(github.base_ref == 'refs/heads/main' && github.event_name == 'merge_group') || github.ref != 'refs/heads/main' }}
 
+env:
+  GCP_ID_PROVIDER: 'projects/341806074811/locations/global/workloadIdentityPools/oidc-apps-automation-st-01-pool/providers/gh-apps-oidc-provider'
+  GCP_SERVICE_ACCOUNT: 'sa-apps-deployment@prj-berachain-automation-st-01.iam.gserviceaccount.com'
+  GCP_REGISTRY: northamerica-northeast1-docker.pkg.dev
+  GHCR_REGISTRY: ghcr.io
+  PUSH_DOCKER_IMAGE: ${{ (github.base_ref == github.head_ref && github.event_name == 'push') || github.ref == 'refs/tags/v*'}}
+  VERSION: ${{ github.ref_name }}
+
 jobs:
+
+# -------------------------------------------------------------------------- #
+#                                Main Pipeline                               #
+# -------------------------------------------------------------------------- #
+
   ci:
     strategy:
       matrix:
@@ -55,11 +69,12 @@ jobs:
           - "generate-check"
           - "tidy-sync-check"
           - "test-unit-cover"
+          - "test-unit-bench"
           - "test-unit-fuzz"
           - "test-forge-cover"
           - "test-forge-fuzz"
         os: 
-          - ubuntu-latest-large
+          - ubuntu-24.04-beacon-kit
     name: ${{ matrix.args }}
     runs-on:
       labels: ${{ matrix.os }}
@@ -68,13 +83,14 @@ jobs:
         uses: actions/checkout@v3
         with: 
           submodules: recursive
+
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         if: ${{ matrix.args == 'lint' || matrix.args == 'generate-check' || matrix.args == 'test-forge-cover' || matrix.args == 'test-forge-fuzz' }}
       - name: Setup Golang
         uses: actions/setup-go@v5
         with:
-          go-version: "stable"
+          go-version: "1.23.0"
           check-latest: true
           cache-dependency-path: "**/*.sum"    
         if: ${{ !(matrix.args == 'test-forge-cover' || matrix.args == 'test-forge-fuzz') }}
@@ -91,11 +107,14 @@ jobs:
         if: ${{ matrix.args == 'test-unit-cover' || matrix.args == 'test-forge-cover'}}
 
 
+# -------------------------------------------------------------------------- #
+#                                 E2E Testing                                #
+# -------------------------------------------------------------------------- #
+
   ci-e2e:
     strategy:
       matrix:
         args:
-          - "build-docker"
           - "test-e2e"
         os: 
           - ubuntu-24.04-e2e
@@ -107,8 +126,6 @@ jobs:
         uses: actions/checkout@v3
         with: 
           submodules: recursive
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
       - name: Setup Golang
         uses: actions/setup-go@v5
         with:
@@ -131,3 +148,72 @@ jobs:
           make ${{ matrix.args }}
         env:
           GOPATH: /home/runner/go
+
+# -------------------------------------------------------------------------- #
+#                       Docker Container Build and Push                      #
+# -------------------------------------------------------------------------- #
+
+  build-and-push-container:
+    runs-on:
+      labels: ubuntu-24.04-beacon-kit
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Echo GitHub Context Variables
+        run: |
+          echo "GitHub Actor: ${{ github.actor }}"
+          echo "GitHub Repository: ${{ github.repository }}"
+          echo "GitHub Event Name: ${{ github.event_name }}"
+          echo "GitHub SHA: ${{ github.sha }}"
+          echo "GitHub Ref: ${{ github.ref }}"
+          echo "GitHub Workflow: ${{ github.workflow }}"
+          echo "GitHub Action: ${{ github.action }}"
+          echo "GitHub Run ID: ${{ github.run_id }}"
+          echo "GitHub Run Number: ${{ github.run_number }}"
+          echo "GitHub Job: ${{ github.job }}"
+          echo "GitHub Server URL: ${{ github.server_url }}"
+          echo "GitHub API URL: ${{ github.api_url }}"
+          echo "GitHub GraphQL URL: ${{ github.graphql_url }}"
+          echo "Github Ref: ${{ github.ref }}"
+          echo "GitHub Head Ref: ${{ github.head_ref }}"
+          echo "GitHub Base Ref: ${{ github.base_ref }}"
+          echo "PUSH_DOCKER_IMAGE: ${{ env.PUSH_DOCKER_IMAGE }}"
+          echo "VERSION: ${{ env.VERSION }}"
+      - name: Build Docker image
+        run: |
+          make build-docker
+
+      - if: ${{ env.PUSH_DOCKER_IMAGE == 'true' }}
+        name: Authenticate to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.GHCR_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GH_TOKEN }}
+        
+      - if: ${{ env.PUSH_DOCKER_IMAGE == 'true' }}
+        name: Authenticate to Google Cloud
+        id: 'auth'
+        uses: 'google-github-actions/auth@v2'
+        with:
+          workload_identity_provider: ${{ env.GCP_ID_PROVIDER }}
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
+        
+      - if: ${{ env.PUSH_DOCKER_IMAGE == 'true' }}
+        name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+       
+      - if: ${{ env.PUSH_DOCKER_IMAGE == 'true' }}
+        name: Setup Docker to use Google Cloud OIDC
+        run: |
+          gcloud auth configure-docker ${{ env.GCP_REGISTRY }} --quiet
+        
+      - if: ${{ env.PUSH_DOCKER_IMAGE == 'true' }}
+        name: Push Docker image
+        run: |
+            make push-docker-gcp push-docker-github
+        

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -22,7 +22,6 @@ package types
 
 import "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs ValidatorsMarshaling -include ../../../../../primitives/pkg/crypto,../../../../../consensus-types/pkg/types,../../../../../primitives/pkg/bytes,../../../../../primitives,../../../../../primitives/pkg/math -output validators.ssz.go
 type ValidatorsMarshaling struct {
 	Validators []*types.Validator `json:"validators" ssz-max:"1099511627776"`
 }

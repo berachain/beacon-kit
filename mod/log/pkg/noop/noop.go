@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -20,36 +20,56 @@
 
 package noop
 
+import "github.com/berachain/beacon-kit/mod/log"
+
 // Logger is a logger that performs no operations. It can be used in
 // environments where logging should be disabled. It implements the Logger
 // interface with no-op methods.
-type Logger[KeyValT any] struct{}
+type Logger[ImplT any] struct{}
 
-// NewLogger creates a blank no-op logger.
-func NewLogger() *Logger[any] {
-	return &Logger[any]{}
+// NewLogger creates a blank no-op AdvancedLogger.
+func NewLogger[ImplT any]() *Logger[ImplT] {
+	return &Logger[ImplT]{}
 }
 
 // Info logs an informational message with associated key-value pairs. This
 // method does nothing.
-func (n *Logger[KeyValT]) Info(string, ...KeyValT) {
+func (n *Logger[ImplT]) Info(string, ...any) {
 	// No operation
 }
 
 // Warn logs a warning message with associated key-value pairs. This method does
 // nothing.
-func (n *Logger[KeyValT]) Warn(string, ...KeyValT) {
+func (n *Logger[ImplT]) Warn(string, ...any) {
 	// No operation
 }
 
 // Error logs an error message with associated key-value pairs. This method does
 // nothing.
-func (n *Logger[KeyValT]) Error(string, ...KeyValT) {
+func (n *Logger[ImplT]) Error(string, ...any) {
 	// No operation
 }
 
 // Debug logs a debug message with associated key-value pairs. This method does
 // nothing.
-func (n *Logger[KeyValT]) Debug(string, ...KeyValT) {
+func (n *Logger[ImplT]) Debug(string, ...any) {
+	// No operation
+}
+
+// With returns a new AdvancedLogger with the provided key-value pairs. This
+// method does nothing.
+func (n *Logger[ImplT]) With(...any) ImplT {
+	return any(n).(ImplT)
+}
+
+func (n *Logger[ImplT]) Impl() any {
+	return nil
+}
+
+func (n *Logger[ImplT]) AddKeyColor(any, log.Color) {
+	// No operation
+}
+
+func (n *Logger[ImplT]) AddKeyValColor(any, any, log.Color) {
 	// No operation
 }

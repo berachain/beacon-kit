@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -41,7 +41,7 @@ func newFactoryMetrics(
 	}
 }
 
-// measureBuildSidecarDuration measures the duration of the build sidecar.
+// measureBuildSidecarsDuration measures the duration of the build sidecars.
 func (fm *factoryMetrics) measureBuildSidecarsDuration(
 	startTime time.Time, numSidecars math.U64,
 ) {
@@ -49,7 +49,7 @@ func (fm *factoryMetrics) measureBuildSidecarsDuration(
 		"beacon_kit.da.blob.factory.build_sidecar_duration",
 		startTime,
 		"num_sidecars",
-		string(numSidecars.String()),
+		numSidecars.Base10(),
 	)
 }
 

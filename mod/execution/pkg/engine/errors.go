@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -23,20 +23,6 @@ package engine
 import "github.com/berachain/beacon-kit/mod/errors"
 
 var (
-	// ErrExecutionClientDisconnected represents an error when
-	/// the execution client is disconnected.
-	ErrExecutionClientDisconnected = errors.New(
-		"execution client disconnected")
-
-	// ErrAcceptedSyncingPayloadStatus represents an error when
-	// the payload status is SYNCING or ACCEPTED.
-	ErrAcceptedSyncingPayloadStatus = errors.New(
-		"payload status is SYNCING or ACCEPTED")
-
-	// ErrInvalidPayloadStatus represents an error when the
-	// payload status is INVALID.
-	ErrInvalidPayloadStatus = errors.New(
-		"payload status is INVALID")
 
 	// ErrBadBlockProduced represents an error when the beacon
 	// chain has produced a bad block.

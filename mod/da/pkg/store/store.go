@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -26,7 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/sourcegraph/conc/iter"
 )
@@ -36,16 +36,16 @@ type Store[BeaconBlockBodyT BeaconBlockBody] struct {
 	// IndexDB is a basic database interface.
 	IndexDB
 	// logger is used for logging.
-	logger log.Logger[any]
+	logger log.Logger
 	// chainSpec contains the chain specification.
-	chainSpec primitives.ChainSpec
+	chainSpec common.ChainSpec
 }
 
 // New creates a new instance of the AvailabilityStore.
 func New[BeaconBlockT BeaconBlockBody](
 	db IndexDB,
-	logger log.Logger[any],
-	chainSpec primitives.ChainSpec,
+	logger log.Logger,
+	chainSpec common.ChainSpec,
 ) *Store[BeaconBlockT] {
 	return &Store[BeaconBlockT]{
 		IndexDB:   db,
@@ -63,7 +63,7 @@ func (s *Store[BeaconBlockBodyT]) IsDataAvailable(
 ) bool {
 	for _, commitment := range body.GetBlobKzgCommitments() {
 		// Check if the block data is available in the IndexDB
-		blockData, err := s.IndexDB.Has(uint64(slot), commitment[:])
+		blockData, err := s.IndexDB.Has(slot.Unwrap(), commitment[:])
 		if err != nil || !blockData {
 			return false
 		}
@@ -106,12 +106,14 @@ func (s *Store[BeaconBlockT]) Persist(
 			if err != nil {
 				return err
 			}
-			return s.Set(uint64(slot), sc.KzgCommitment[:], bz)
+			return s.Set(slot.Unwrap(), sc.KzgCommitment[:], bz)
 		},
 	)...); err != nil {
 		return err
 	}
 
-	s.logger.Info("successfully stored all blob sidecars 🚗", "slot", slot)
+	s.logger.Info("Successfully stored all blob sidecars 🚗",
+		"slot", slot.Base10(), "num_sidecars", sidecars.Len(),
+	)
 	return nil
 }

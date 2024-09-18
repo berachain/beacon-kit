@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -28,28 +28,26 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/stretchr/testify/require"
 )
 
-func generateBeaconBlockBodyDeneb() types.BeaconBlockBodyDeneb {
-	var byteArray [256]byte
-	byteSlice := byteArray[:]
-	return types.BeaconBlockBodyDeneb{
-		BeaconBlockBodyBase: types.BeaconBlockBodyBase{
-			RandaoReveal: [96]byte{1, 2, 3},
-			Eth1Data:     &types.Eth1Data{},
-			Graffiti:     [32]byte{4, 5, 6},
-			Deposits:     []*types.Deposit{},
-		},
-		ExecutionPayload: &types.ExecutableDataDeneb{
-			LogsBloom: byteSlice,
+func generateBeaconBlockBody() types.BeaconBlockBody {
+	return types.BeaconBlockBody{
+		RandaoReveal: [96]byte{1, 2, 3},
+		Eth1Data:     &types.Eth1Data{},
+		Graffiti:     [32]byte{4, 5, 6},
+		Deposits:     []*types.Deposit{},
+		ExecutionPayload: &types.ExecutionPayload{
+			BaseFeePerGas: math.NewU256(0),
 		},
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
 }
 
 func TestBeaconBlockBodyBase(t *testing.T) {
-	body := types.BeaconBlockBodyBase{
+	body := types.BeaconBlockBody{
 		RandaoReveal: [96]byte{1, 2, 3},
 		Eth1Data:     &types.Eth1Data{},
 		Graffiti:     [32]byte{4, 5, 6},
@@ -58,19 +56,21 @@ func TestBeaconBlockBodyBase(t *testing.T) {
 
 	require.Equal(t, bytes.B96{1, 2, 3}, body.GetRandaoReveal())
 	require.NotNil(t, body.GetEth1Data())
-	require.Equal(t, bytes.B32{4, 5, 6}, body.GetGraffiti())
+
+	newGraffiti := [32]byte{7, 8, 9}
+	body.SetGraffiti(newGraffiti)
+
+	require.Equal(t, newGraffiti, [32]byte(body.GetGraffiti()))
 	require.NotNil(t, body.GetDeposits())
 }
 
-func TestBeaconBlockBodyDeneb(t *testing.T) {
-	body := types.BeaconBlockBodyDeneb{
-		BeaconBlockBodyBase: types.BeaconBlockBodyBase{
-			RandaoReveal: [96]byte{1, 2, 3},
-			Eth1Data:     &types.Eth1Data{},
-			Graffiti:     [32]byte{4, 5, 6},
-			Deposits:     []*types.Deposit{},
-		},
-		ExecutionPayload:   &types.ExecutableDataDeneb{},
+func TestBeaconBlockBody(t *testing.T) {
+	body := types.BeaconBlockBody{
+		RandaoReveal:       [96]byte{1, 2, 3},
+		Eth1Data:           &types.Eth1Data{},
+		Graffiti:           [32]byte{4, 5, 6},
+		Deposits:           []*types.Deposit{},
+		ExecutionPayload:   &types.ExecutionPayload{},
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
 
@@ -80,56 +80,83 @@ func TestBeaconBlockBodyDeneb(t *testing.T) {
 	require.Equal(t, types.BodyLengthDeneb, body.Length())
 }
 
-func TestBeaconBlockBodyDeneb_GetTree(t *testing.T) {
-	body := generateBeaconBlockBodyDeneb()
+func TestBeaconBlockBody_GetTree(t *testing.T) {
+	body := generateBeaconBlockBody()
 	tree, err := body.GetTree()
 	require.NoError(t, err)
 	require.NotNil(t, tree)
 }
 
-func TestBeaconBlockBodyDeneb_SetExecutionData_Error(t *testing.T) {
-	body := types.BeaconBlockBodyDeneb{}
-	executionData := &types.ExecutionPayload{}
-	err := body.SetExecutionData(executionData)
-
-	require.ErrorContains(t, err, "invalid execution data type")
-}
-
-func TestBeaconBlockBodyDeneb_SetBlobKzgCommitments(t *testing.T) {
-	body := types.BeaconBlockBodyDeneb{}
+func TestBeaconBlockBody_SetBlobKzgCommitments(t *testing.T) {
+	body := types.BeaconBlockBody{}
 	commitments := eip4844.KZGCommitments[common.ExecutionHash]{}
 	body.SetBlobKzgCommitments(commitments)
 
 	require.Equal(t, commitments, body.GetBlobKzgCommitments())
 }
 
-func TestBeaconBlockBodyDeneb_SetRandaoReveal(t *testing.T) {
-	body := types.BeaconBlockBodyDeneb{}
+func TestBeaconBlockBody_SetRandaoReveal(t *testing.T) {
+	body := types.BeaconBlockBody{}
 	randaoReveal := crypto.BLSSignature{1, 2, 3}
 	body.SetRandaoReveal(randaoReveal)
 
 	require.Equal(t, randaoReveal, body.GetRandaoReveal())
 }
 
-func TestBeaconBlockBodyDeneb_SetEth1Data(t *testing.T) {
-	body := types.BeaconBlockBodyDeneb{}
+func TestBeaconBlockBody_SetEth1Data(t *testing.T) {
+	body := types.BeaconBlockBody{}
 	eth1Data := &types.Eth1Data{}
 	body.SetEth1Data(eth1Data)
 
 	require.Equal(t, eth1Data, body.GetEth1Data())
 }
 
-func TestBeaconBlockBodyDeneb_SetDeposits(t *testing.T) {
-	body := types.BeaconBlockBodyDeneb{}
+func TestBeaconBlockBody_SetDeposits(t *testing.T) {
+	body := types.BeaconBlockBody{}
 	deposits := []*types.Deposit{}
 	body.SetDeposits(deposits)
 
 	require.Equal(t, deposits, body.GetDeposits())
 }
 
-func TestBeaconBlockBodyDeneb_GetTopLevelRoots(t *testing.T) {
-	body := generateBeaconBlockBodyDeneb()
-	roots, err := body.GetTopLevelRoots()
+func TestBeaconBlockBody_MarshalSSZ(t *testing.T) {
+	body := types.BeaconBlockBody{
+		RandaoReveal:       [96]byte{1, 2, 3},
+		Eth1Data:           &types.Eth1Data{},
+		Graffiti:           [32]byte{4, 5, 6},
+		Deposits:           []*types.Deposit{},
+		ExecutionPayload:   &types.ExecutionPayload{},
+		BlobKzgCommitments: []eip4844.KZGCommitment{},
+	}
+	data, err := body.MarshalSSZ()
+
 	require.NoError(t, err)
+	require.NotNil(t, data)
+}
+
+func TestBeaconBlockBody_MarshalSSZTo(t *testing.T) {
+	body := generateBeaconBlockBody()
+
+	data, err := body.MarshalSSZ()
+	require.NoError(t, err)
+	require.NotNil(t, data)
+
+	var buf []byte
+	buf, err = body.MarshalSSZTo(buf)
+	require.NoError(t, err)
+
+	// The two byte slices should be equal
+	require.Equal(t, data, buf)
+}
+
+func TestBeaconBlockBody_GetTopLevelRoots(t *testing.T) {
+	body := generateBeaconBlockBody()
+	roots := body.GetTopLevelRoots()
 	require.NotNil(t, roots)
+}
+
+func TestBeaconBlockBody_Empty(t *testing.T) {
+	blockBody := types.BeaconBlockBody{}
+	body := blockBody.Empty(version.Deneb)
+	require.NotNil(t, body)
 }

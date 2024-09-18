@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -32,4 +32,7 @@ var (
 	// illegal characters.
 	ErrContainsIllegalCharacter = errors.New(
 		"JWT secret contains illegal character(s)")
+
+	// ErrCreateJWT is returned when a JWT token fails to be created.
+	ErrCreateJWT = errors.New("failed to create JWT token")
 )

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -24,5 +24,5 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 )
 
-// A KZG proof is a 48-byte slice.
+// KZGProof represents a KZG proof, which is a 48-byte slice.
 type KZGProof = bytes.B48

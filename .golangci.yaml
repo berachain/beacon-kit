@@ -121,6 +121,7 @@ linters-settings:
               - github.com/gofrs/uuid/v5
             reason: "gofrs' package was not go module before v5"
 
+
   govet:
     # Enable all analyzers.
     # Default: false
@@ -229,8 +230,7 @@ linters:
     - gosimple # specializes in simplifying a code
     - govet # reports suspicious constructs, such as Printf calls whose arguments do not align with the format string
     - ineffassign # detects when assignments to existing variables are not used
-    # bug in library that needs to be resolved.
-    # - staticcheck # is a go vet on steroids, applying a ton of static analysis checks
+    - staticcheck # is a go vet on steroids, applying a ton of static analysis checks
     - typecheck # like the front-end of a Go compiler, parses and type-checks Go code
     - unused # checks for unused constants, variables, functions and types
     ## disabled by default
@@ -239,14 +239,12 @@ linters:
     - bidichk # checks for dangerous unicode character sequences
     - bodyclose # checks whether HTTP response body is closed successfully
     - canonicalheader # checks whether net/http.Header uses canonical header
-    - copyloopvar # detects places where loop variables are copied
     - cyclop # checks function and package cyclomatic complexity
     - dupl # tool for code clone detection
     - durationcheck # checks for two durations multiplied together
     - errname # checks that sentinel errors are prefixed with the Err and error types are suffixed with the Error
     - errorlint # finds code that will cause problems with the error wrapping scheme introduced in Go 1.13
     - exhaustive # checks exhaustiveness of enum switch statements
-    - exportloopref # checks for pointers to enclosing loop variables
     - fatcontext # detects nested contexts in loops
     - forbidigo # forbids identifiers
     - funlen # tool for detection of long functions
@@ -361,3 +359,7 @@ issues:
         - gosec
         - noctx
         - wrapcheck
+        - gochecknoglobals
+  exclude-files:
+    - "pkg/cometbft/cli/.*\\.go"
+    - "pkg/cometbft/service/server/.*\\.go"

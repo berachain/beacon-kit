@@ -26,6 +26,9 @@
 package manager
 
 import (
+	"context"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -36,19 +39,8 @@ type BeaconBlock interface {
 
 // BlockEvent is an interface for block events.
 type BlockEvent[BeaconBlockT BeaconBlock] interface {
-	Is(string) bool
+	Is(async.EventID) bool
+	ID() async.EventID
 	Data() BeaconBlockT
-}
-
-type Subscription interface {
-	Unsubscribe()
-}
-
-// BlockFeed is an interface for subscribing to block events.
-type BlockFeed[
-	BeaconBlockT BeaconBlock,
-	BlockEventT BlockEvent[BeaconBlockT],
-	SubscriptionT Subscription,
-] interface {
-	Subscribe(chan<- (BlockEventT)) SubscriptionT
+	Context() context.Context
 }

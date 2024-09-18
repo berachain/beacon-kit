@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -21,11 +21,10 @@
 package eip4844
 
 import (
-	"crypto/sha256"
-	"reflect"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
 	"github.com/prysmaticlabs/gohashtree"
 )
 
@@ -38,7 +37,7 @@ type KZGCommitment [48]byte
 //
 //nolint:lll // link.
 func (c KZGCommitment) ToVersionedHash() [32]byte {
-	sum := sha256.Sum256(c[:])
+	sum := sha256.Hash(c[:])
 	// Prefix the hash with the BlobCommitmentVersion
 	// to create a versioned hash.
 	sum[0] = constants.BlobCommitmentVersion
@@ -48,22 +47,21 @@ func (c KZGCommitment) ToVersionedHash() [32]byte {
 // ToHashChunks converts this KZG commitment into a set of hash chunks.
 func (c KZGCommitment) ToHashChunks() [][32]byte {
 	chunks := make([][32]byte, 2) //nolint:mnd // 2 chunks.
-	copy(chunks[0][:], c[:])
+	copy(chunks[0][:], c[:constants.RootLength])
 	copy(chunks[1][:], c[constants.RootLength:])
 	gohashtree.HashChunks(chunks, chunks)
 	return chunks
 }
 
 // HashTreeRoot returns the hash tree root of the commitment.
-func (c KZGCommitment) HashTreeRoot() ([32]byte, error) {
+func (c KZGCommitment) HashTreeRoot() common.Root {
 	chunks := c.ToHashChunks()
-	return chunks[0], nil
+	return chunks[0]
 }
 
 // UnmarshalJSON parses a commitment in hex syntax.
 func (c *KZGCommitment) UnmarshalJSON(input []byte) error {
 	return bytes.UnmarshalFixedJSON(
-		reflect.TypeOf(KZGCommitment{}),
 		input,
 		c[:],
 	)
@@ -89,11 +87,12 @@ func (c KZGCommitments[HashT]) ToVersionedHashes() []HashT {
 	return hashes
 }
 
-// Leafify converts the commitments to a slice of leaves.
-func (c KZGCommitments[HashT]) Leafify() [][32]byte {
-	leaves := make([][32]byte, len(c))
+// Leafify converts the commitments to a slice of leaves. Each leaf is the
+// hash tree root of each commitment.
+func (c KZGCommitments[HashT]) Leafify() []common.Root {
+	leaves := make([]common.Root, len(c))
 	for i, commitment := range c {
-		leaves[i] = commitment.ToHashChunks()[0]
+		leaves[i] = commitment.HashTreeRoot()
 	}
 	return leaves
 }

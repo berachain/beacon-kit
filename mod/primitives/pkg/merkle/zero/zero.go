@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -20,7 +20,7 @@
 
 package zero
 
-import sha256 "github.com/minio/sha256-simd"
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
 
 // NumZeroHashes is the number of pre-computed zero-hashes.
 const NumZeroHashes = 64
@@ -30,13 +30,14 @@ const NumZeroHashes = 64
 //nolint:gochecknoglobals // saves recomputing.
 var Hashes [NumZeroHashes + 1][32]byte
 
-// initialize the zero-hashes pre-computed data with the given hash-function.
+// InitZeroHashes the zero-hashes pre-computed data
+// with the given hash-function.
 func InitZeroHashes(zeroHashesLevels int) {
+	v := [64]byte{}
 	for i := range zeroHashesLevels {
-		v := [64]byte{}
 		copy(v[:32], Hashes[i][:])
 		copy(v[32:], Hashes[i][:])
-		Hashes[i+1] = sha256.Sum256(v[:])
+		Hashes[i+1] = sha256.Hash(v[:])
 	}
 }
 

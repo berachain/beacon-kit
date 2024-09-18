@@ -1,5 +1,5 @@
 el_cl_genesis_data_generator = import_module(
-    "github.com/kurtosis-tech/ethereum-package/src/prelaunch_data_generator/el_cl_genesis/el_cl_genesis_generator.star",
+    "github.com/ethpandaops/ethereum-package/src/prelaunch_data_generator/el_cl_genesis/el_cl_genesis_generator.star",
 )
 
 execution = import_module("./src/nodes/execution/execution.star")
@@ -17,6 +17,8 @@ pyroscope = import_module("./src/observability/pyroscope/pyroscope.star")
 tx_fuzz = import_module("./src/services/tx_fuzz/launcher.star")
 op = import_module("./src/services/op/launcher.star")
 blutgang = import_module("./src/services/blutgang/launcher.star")
+blockscout = import_module("./src/services/blockscout/launcher.star")
+otterscan = import_module("./src/services/otterscan/launcher.star")
 
 def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpoints = [], additional_services = [], metrics_enabled_services = []):
     """
@@ -103,7 +105,7 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
         full_node_el_client_configs.append(el_client_config)
 
     if full_node_el_client_configs != []:
-        full_node_el_clients = execution.deploy_nodes(plan, full_node_el_client_configs)
+        full_node_el_clients = execution.deploy_nodes(plan, full_node_el_client_configs, True)
 
     for n, full in enumerate(full_nodes):
         metrics_enabled_services = execution.add_metrics(metrics_enabled_services, full, full.el_service_name, full_node_el_clients[full.el_service_name], node_modules)
@@ -117,7 +119,6 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
         services = plan.add_services(
             configs = full_node_configs,
         )
-
     for n, full_node in enumerate(full_nodes):
         # excluding ethereumjs from metrics as it is the last full node in the args file beaconkit-all.yaml, TO-DO: to improve this later
         peer_info = beacond.get_peer_info(plan, full_node.cl_service_name)
@@ -224,5 +225,18 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
             grafana.start(plan, prometheus_url)
         elif s.name == "pyroscope":
             pyroscope.run(plan)
-
+        elif s.name == "blockscout":
+            plan.print("Launching blockscout")
+            blockscout.launch_blockscout(
+                plan,
+                full_node_el_clients,
+                s.client,
+                False,
+            )
+        elif s.name == "otterscan":
+            plan.print("Launching otterscan")
+            otterscan.launch_otterscan(
+                plan,
+                s.client,
+            )
     plan.print("Successfully launched development network")

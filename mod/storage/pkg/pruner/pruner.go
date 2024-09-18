@@ -30,75 +30,75 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 )
 
-// DBPruner is a struct that holds the prunable interface and a notifier
+// Compile-time check to ensure pruner implements the Pruner interface.
+var _ Pruner[Prunable] = (*pruner[BeaconBlock, Prunable])(nil)
+
+// pruner is a struct that holds the prunable interface and a notifier
 // channel.
-type DBPruner[
+type pruner[
 	BeaconBlockT BeaconBlock,
-	BlockEventT BlockEvent[BeaconBlockT],
 	PrunableT Prunable,
-	SubscriptionT Subscription,
 ] struct {
-	prunable     Prunable
-	logger       log.Logger[any]
-	name         string
-	feed         BlockFeed[BeaconBlockT, BlockEventT, SubscriptionT]
-	pruneRangeFn func(BlockEventT) (uint64, uint64)
+	prunable                Prunable
+	logger                  log.Logger
+	name                    string
+	subBeaconBlockFinalized chan async.Event[BeaconBlockT]
+	pruneRangeFn            func(async.Event[BeaconBlockT]) (uint64, uint64)
 }
 
+// NewPruner creates a new Pruner.
 func NewPruner[
 	BeaconBlockT BeaconBlock,
-	BlockEventT BlockEvent[BeaconBlockT],
 	PrunableT Prunable,
-	SubscriptionT Subscription,
 ](
-	logger log.Logger[any],
+	logger log.Logger,
 	prunable Prunable,
 	name string,
-	feed BlockFeed[BeaconBlockT, BlockEventT, SubscriptionT],
-	pruneRangeFn func(BlockEventT) (uint64, uint64),
-) *DBPruner[BeaconBlockT, BlockEventT, PrunableT, SubscriptionT] {
-	return &DBPruner[BeaconBlockT, BlockEventT, PrunableT, SubscriptionT]{
-		logger:       logger,
-		prunable:     prunable,
-		name:         name,
-		feed:         feed,
-		pruneRangeFn: pruneRangeFn,
+	subBeaconBlockFinalized chan async.Event[BeaconBlockT],
+	pruneRangeFn func(async.Event[BeaconBlockT]) (uint64, uint64),
+) Pruner[PrunableT] {
+	return &pruner[BeaconBlockT, PrunableT]{
+		logger:                  logger,
+		prunable:                prunable,
+		name:                    name,
+		pruneRangeFn:            pruneRangeFn,
+		subBeaconBlockFinalized: subBeaconBlockFinalized,
 	}
 }
 
 // Start starts the Pruner by listening for new indexes to prune.
-func (p *DBPruner[
-	BeaconBlockT, BlockEventT, PrunableT, SubscriptionT,
-]) Start(ctx context.Context) {
-	ch := make(chan BlockEventT)
-	sub := p.feed.Subscribe(ch)
-	go func() {
-		defer sub.Unsubscribe()
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case event := <-ch:
-				if event.Is(events.BeaconBlockFinalized) {
-					start, end := p.pruneRangeFn(event)
-					if err := p.prunable.Prune(start, end); err != nil {
-						p.logger.Error(
-							"‼️ error pruning index ‼️",
-							"error", err,
-						)
-					}
-				}
-			}
+func (p *pruner[BeaconBlockT, PrunableT]) Start(ctx context.Context) {
+	go p.listen(ctx)
+}
+
+// listen listens for new finalized blocks and prunes the prunable store based
+// on the received finalized block event.
+func (p *pruner[_, PrunableT]) listen(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case event := <-p.subBeaconBlockFinalized:
+			p.onFinalizeBlock(event)
 		}
-	}()
+	}
+}
+
+// onFinalizeBlock will prune the prunable store based on the received
+// finalized block event.
+func (p *pruner[BeaconBlockT, PrunableT]) onFinalizeBlock(
+	event async.Event[BeaconBlockT],
+) {
+	start, end := p.pruneRangeFn(event)
+	if err := p.prunable.Prune(start, end); err != nil {
+		p.logger.Error("‼️ error pruning index ‼️", "error", err)
+	}
 }
 
 // Name returns the name of the Pruner.
-func (p *DBPruner[
-	BeaconBlockT, BlockEventT, PrunableT, SubscriptionT,
-]) Name() string {
+func (p *pruner[_, _]) Name() string {
 	return p.name
 }

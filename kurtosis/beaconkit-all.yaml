@@ -58,7 +58,7 @@ network_configuration:
       - el_type: besu
         replicas: 0
       - el_type: erigon
-        replicas: 0
+        replicas: 1
       - el_type: ethereumjs
         replicas: 0
   seed_nodes:
@@ -92,7 +92,7 @@ node_settings:
       min_memory: 0
       max_memory: 2048
     images:
-      besu: hyperledger/besu:latest
+      besu: hyperledger/besu:24.5.4
       erigon: thorax/erigon:v2.60.1
       ethereumjs: ethpandaops/ethereumjs:stable
       geth: ethereum/client-go:latest
@@ -116,3 +116,7 @@ additional_services:
   - name: "prometheus"
   - name: "grafana"
   - name: "pyroscope"
+  - name: "blockscout"
+    client: "el-full-reth-0"
+  - name: "otterscan" # otterscan supports only erigon nodes
+    client: "el-full-erigon-3"

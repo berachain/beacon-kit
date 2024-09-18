@@ -38,12 +38,7 @@ packages:
       recursive: True
       with-expecter: true
       all: True
-  github.com/berachain/beacon-kit/mod/runtime/pkg/service:
-    config:
-      recursive: True
-      with-expecter: true
-      all: True
-  github.com/berachain/beacon-kit/mod/cli/pkg/utils/prompt:
+  github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry:
     config:
       recursive: True
       with-expecter: true
@@ -64,6 +59,11 @@ packages:
       with-expecter: true
       all: True
   github.com/berachain/beacon-kit/mod/primitives/pkg/crypto:
+    config:
+      recursive: False
+      with-expecter: true
+      all: True
+  github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives:
     config:
       recursive: False
       with-expecter: true

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -31,10 +31,8 @@ import (
 // processExecutionPayload processes the execution payload and ensures it
 // matches the local state.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	BeaconBlockT, _, _, BeaconStateT, ContextT,
+	_, _, _, ExecutionPayloadHeaderT, _, _, _, _, _, _, _, _,
 ]) processExecutionPayload(
 	ctx ContextT,
 	st BeaconStateT,
@@ -56,10 +54,16 @@ func (sp *StateProcessor[
 		})
 	}
 
-	// Get the execution payload header.
+	// Get the execution payload header. TODO: This is live on bArtio with a bug
+	// and needs to be hardforked off of. We check for version and convert to
+	// header based on that version as a temporary solution to avoid breaking
+	// changes.
 	g.Go(func() error {
 		var err error
-		header, err = payload.ToHeader()
+		header, err = payload.ToHeader(
+			sp.cs.MaxWithdrawalsPerPayload(),
+			sp.cs.DepositEth1ChainID(),
+		)
 		return err
 	})
 
@@ -72,14 +76,59 @@ func (sp *StateProcessor[
 }
 
 // validateExecutionPayload validates the execution payload against both local
-// state
-// and the execution engine.
+// state and the execution engine.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	BeaconBlockT, _, _, BeaconStateT,
+	_, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) validateExecutionPayload(
+	ctx context.Context,
+	st BeaconStateT,
+	blk BeaconBlockT,
+	optimisticEngine bool,
+) error {
+	if err := sp.validateStatelessPayload(blk); err != nil {
+		return err
+	}
+	return sp.validateStatefulPayload(ctx, st, blk, optimisticEngine)
+}
+
+// validateStatelessPayload performs stateless checks on the execution payload.
+func (sp *StateProcessor[
+	BeaconBlockT, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _,
+]) validateStatelessPayload(blk BeaconBlockT) error {
+	body := blk.GetBody()
+	payload := body.GetExecutionPayload()
+
+	// Verify the number of withdrawals.
+	if withdrawals := payload.GetWithdrawals(); uint64(
+		len(withdrawals),
+	) > sp.cs.MaxWithdrawalsPerPayload() {
+		return errors.Wrapf(
+			ErrExceedMaximumWithdrawals,
+			"too many withdrawals, expected: %d, got: %d",
+			sp.cs.MaxWithdrawalsPerPayload(), len(withdrawals),
+		)
+	}
+
+	// Verify the number of blobs.
+	blobKzgCommitments := body.GetBlobKzgCommitments()
+	if uint64(len(blobKzgCommitments)) > sp.cs.MaxBlobsPerBlock() {
+		return errors.Wrapf(
+			ErrExceedsBlockBlobLimit,
+			"expected: %d, got: %d",
+			sp.cs.MaxBlobsPerBlock(), len(blobKzgCommitments),
+		)
+	}
+
+	return nil
+}
+
+// validateStatefulPayload performs stateful checks on the execution payload.
+func (sp *StateProcessor[
+	BeaconBlockT, _, _, BeaconStateT,
+	_, _, _, _, _, _, _, _, _, _, _, _, _,
+]) validateStatefulPayload(
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
@@ -93,12 +142,7 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	// We want to check to ensure the chain is canonical with respect to the
-	// parent hash before we let the execution client know about the
-	// payload,
-	// this is to prevent Polygon style re-orgs from being triggered by a
-	// malicious actor who tries to force clients to accept a non-canonical
-	// block that passes block validity checks.
+	// Check chain canonicity
 	if safeHash := lph.GetBlockHash(); safeHash != payload.GetParentHash() {
 		return errors.Wrapf(
 			ErrParentPayloadHashMismatch,
@@ -120,21 +164,18 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	// Get the current epoch.
+	// Verify RANDAO
 	slot, err := st.GetSlot()
 	if err != nil {
 		return err
 	}
 
-	// When we are verifying a payload we expect that it was produced by
-	// the proposer for the slot that it is for.
 	expectedMix, err := st.GetRandaoMixAtIndex(
-		uint64(sp.cs.SlotToEpoch(slot)) % sp.cs.EpochsPerHistoricalVector())
+		sp.cs.SlotToEpoch(slot).Unwrap() % sp.cs.EpochsPerHistoricalVector())
 	if err != nil {
 		return err
 	}
 
-	// Ensure the prev randao matches the local state.
 	if payload.GetPrevRandao() != expectedMix {
 		return errors.Wrapf(
 			ErrRandaoMixMismatch,
@@ -143,37 +184,5 @@ func (sp *StateProcessor[
 		)
 	}
 
-	// TODO: Verify timestamp data once Clock is done.
-	// if expectedTime, err := spec.TimeAtSlot(slot, genesisTime); err !=
-	// nil { 	return errors.Newf("slot or genesis time in state is corrupt,
-	// cannot
-	// compute time: %v", err)
-	// } else if payload.Timestamp != expectedTime {
-	// 	return errors.Newf("state at slot %d, genesis time %d, expected
-	// execution
-	// payload time %d, but got %d",
-	// 		slot, genesisTime, expectedTime, payload.Timestamp)
-	// }
-
-	// Verify the number of blobs.
-	blobKzgCommitments := body.GetBlobKzgCommitments()
-	if uint64(len(blobKzgCommitments)) > sp.cs.MaxBlobsPerBlock() {
-		return errors.Wrapf(
-			ErrExceedsBlockBlobLimit,
-			"expected: %d, got: %d",
-			sp.cs.MaxBlobsPerBlock(), len(blobKzgCommitments),
-		)
-	}
-
-	// Verify the number of withdrawals.
-	// TODO: This is in the wrong spot I think.
-	if withdrawals := payload.GetWithdrawals(); uint64(
-		len(payload.GetWithdrawals()),
-	) > sp.cs.MaxWithdrawalsPerPayload() {
-		return errors.Newf(
-			"too many withdrawals, expected: %d, got: %d",
-			sp.cs.MaxWithdrawalsPerPayload(), len(withdrawals),
-		)
-	}
 	return nil
 }

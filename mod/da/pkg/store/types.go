@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -38,9 +38,9 @@ type BlockEvent[BeaconBlockT BeaconBlock] interface {
 
 // IndexDB is a database that allows prefixing by index.
 type IndexDB interface {
-	// Has
 	Has(index uint64, key []byte) (bool, error)
 	Set(index uint64, key []byte, value []byte) error
+	Prune(start uint64, end uint64) error
 }
 
 // BeaconBlockBody is the body of a beacon block.

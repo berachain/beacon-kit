@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -23,28 +23,22 @@ package e2e_test
 import (
 	"math/big"
 
-	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
-	byteslib "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/deposit"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/berachain/beacon-kit/testing/e2e/suite"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/common"
+	gethcommon "github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
-)
-
-const (
-	// DepositContractAddress is the address of the deposit contract.
-	DepositContractAddress = "0x4242424242424242424242424242424242424242"
-	DefaultClient          = "cl-validator-beaconkit-0"
-	AlternateClient        = "cl-validator-beaconkit-1"
-	NumDepositsLoad        = 500
 )
 
 func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	// Get the consensus client.
-	client := s.ConsensusClients()[DefaultClient]
+	client := s.ConsensusClients()[config.DefaultClient]
 	s.Require().NotNil(client)
 
-	client2 := s.ConsensusClients()[AlternateClient]
+	client2 := s.ConsensusClients()[config.AlternateClient]
 	s.Require().NotNil(client2)
 
 	// Sender account
@@ -79,32 +73,21 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 
 	// Bind the deposit contract.
 	dc, err := deposit.NewBeaconDepositContract(
-		common.HexToAddress(DepositContractAddress),
+		gethcommon.HexToAddress(config.DepositContractAddress),
 		s.JSONRPCBalancer(),
 	)
 	s.Require().NoError(err)
 
-	tx, err := dc.InitializeOwner(&bind.TransactOpts{
+	tx, err := dc.AllowDeposit(&bind.TransactOpts{
 		From:   genesisAccount.Address(),
 		Signer: genesisAccount.SignerFunc(chainID),
-	})
+	}, sender.Address(), config.NumDepositsLoad)
 	s.Require().NoError(err)
 
 	// Wait for the transaction to be mined.
 	receipt, err := bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
 	s.Require().NoError(err)
-	s.Require().Equal(uint64(1), receipt.Status)
-
-	tx, err = dc.AllowDeposit(&bind.TransactOpts{
-		From:   genesisAccount.Address(),
-		Signer: genesisAccount.SignerFunc(chainID),
-	}, sender.Address(), NumDepositsLoad)
-	s.Require().NoError(err)
-
-	// Wait for the transaction to be mined.
-	receipt, err = bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
-	s.Require().NoError(err)
-	s.Require().Equal(uint64(1), receipt.Status)
+	s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
 
 	// Get the nonce.
 	nonce, err := s.JSONRPCBalancer().NonceAt(
@@ -114,7 +97,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	)
 	s.Require().NoError(err)
 
-	for i := range NumDepositsLoad {
+	for i := range config.NumDepositsLoad {
 		// Create a deposit transaction.
 		tx, err = s.generateNewDepositTx(
 			dc,
@@ -125,14 +108,14 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 		s.Require().NoError(err)
 		s.Logger().
 			Info("Deposit transaction created", "txHash", tx.Hash().Hex())
-		if i == NumDepositsLoad-1 {
+		if i == config.NumDepositsLoad-1 {
 			s.Logger().Info(
 				"Waiting for deposit transaction to be mined", "txHash",
 				tx.Hash().Hex(),
 			)
 			receipt, err = bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
 			s.Require().NoError(err)
-			s.Require().Equal(uint64(1), receipt.Status)
+			s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
 			s.Logger().
 				Info("Deposit transaction mined", "txHash", receipt.TxHash.Hex())
 		}
@@ -157,7 +140,9 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	// upper bound: 32ether * 500 + 1ether
 	// lower bound: 32ether * 500
 	oneEther := big.NewInt(1e18)
-	totalAmt := new(big.Int).Mul(oneEther, big.NewInt(NumDepositsLoad*32))
+	totalAmt := new(big.Int).Mul(
+		oneEther, big.NewInt(config.NumDepositsLoad*32),
+	)
 	upperBound := new(big.Int).Add(totalAmt, oneEther)
 	amtSpent := new(big.Int).Sub(balance, postDepositBalance)
 
@@ -191,12 +176,12 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 
 func (s *BeaconKitE2ESuite) generateNewDepositTx(
 	dc *deposit.BeaconDepositContract,
-	sender common.Address,
+	sender gethcommon.Address,
 	signer bind.SignerFn,
 	nonce *big.Int,
 ) (*coretypes.Transaction, error) {
 	// Get the consensus client.
-	client := s.ConsensusClients()[DefaultClient]
+	client := s.ConsensusClients()[config.DefaultClient]
 	s.Require().NotNil(client)
 
 	pubkey, err := client.GetPubKey(s.Ctx())
@@ -204,11 +189,9 @@ func (s *BeaconKitE2ESuite) generateNewDepositTx(
 	s.Require().Len(pubkey, 48)
 
 	// Generate the credentials.
-	credentials := byteslib.PrependExtendToSize(
-		s.GenesisAccount().Address().Bytes(),
-		32,
+	credentials := types.NewCredentialsFromExecutionAddress(
+		common.ExecutionAddress(s.GenesisAccount().Address()),
 	)
-	credentials[0] = 0x01
 
 	// Generate the signature.
 	signature := [96]byte{}
@@ -221,5 +204,5 @@ func (s *BeaconKitE2ESuite) generateNewDepositTx(
 		Signer:   signer,
 		Nonce:    nonce,
 		GasLimit: 600000,
-	}, pubkey, credentials, 32*suite.OneGwei, signature[:])
+	}, pubkey, credentials[:], 32*suite.OneGwei, signature[:])
 }

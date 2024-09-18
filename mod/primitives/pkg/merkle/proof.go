@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -20,9 +20,7 @@
 
 package merkle
 
-import (
-	sha256 "github.com/minio/sha256-simd"
-)
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
 
 // VerifyProof given a tree root, a leaf, the generalized merkle index
 // of the leaf in the tree, and the proof itself.
@@ -63,7 +61,7 @@ func IsValidMerkleBranch[RootT, BranchT ~[32]byte](
 
 // RootFromBranch calculates the Merkle root from a leaf and a branch.
 // Inspired by:
-// https://github.com/sigp/lighthouse/blob/2cd0e609f59391692b4c8e989e26e0dac61ff801/consensus/merkle_proof/src/lib.rs#L357
+// https://github.com/sigp/lighthouse/blob/stable/consensus/merkle_proof/src/lib.rs#L372
 //
 //nolint:lll
 func RootFromBranch[RootT, BranchT ~[32]byte](
@@ -72,11 +70,21 @@ func RootFromBranch[RootT, BranchT ~[32]byte](
 	depth uint8,
 	index uint64,
 ) RootT {
-	merkleRoot := leaf
-	var hashInput [64]byte
+	var (
+		hashInput  [64]byte
+		hashFn     func([]byte) [32]byte
+		merkleRoot = leaf
+	)
+
+	//nolint:mnd // 5 as defined by the library.
+	if depth > 5 {
+		hashFn = sha256.CustomHashFn()
+	} else {
+		hashFn = sha256.Hash
+	}
+
 	for i := range depth {
-		//nolint:mnd // from spec.
-		ithBit := (index >> i) & 0x01
+		ithBit := (index >> i) & 1
 		if ithBit == 1 {
 			copy(hashInput[:32], branch[i][:])
 			copy(hashInput[32:], merkleRoot[:])
@@ -84,7 +92,7 @@ func RootFromBranch[RootT, BranchT ~[32]byte](
 			copy(hashInput[:32], merkleRoot[:])
 			copy(hashInput[32:], branch[i][:])
 		}
-		merkleRoot = sha256.Sum256(hashInput[:])
+		merkleRoot = hashFn(hashInput[:])
 	}
 	return merkleRoot
 }

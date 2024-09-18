@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -21,69 +21,75 @@
 package commands
 
 import (
-	confixcmd "cosmossdk.io/tools/confix/cmd"
-	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/client"
-	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/cometbft"
-	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/deposit"
-	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/genesis"
-	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/jwt"
-	beaconconfig "github.com/berachain/beacon-kit/mod/node-core/pkg/config"
-	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/cosmos/cosmos-sdk/client/keys"
-	"github.com/cosmos/cosmos-sdk/client/pruning"
-	"github.com/cosmos/cosmos-sdk/client/snapshot"
-	"github.com/cosmos/cosmos-sdk/server"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/version"
-	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
+	svrcmd "github.com/berachain/beacon-kit/mod/cli/pkg/commands/server/cmd"
+	"github.com/berachain/beacon-kit/mod/cli/pkg/config"
+	sdkclient "github.com/cosmos/cosmos-sdk/client"
+	sdkconfig "github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/spf13/cobra"
 )
 
-// DefaultRootCommandSetup sets up the default commands for the root command.
-func DefaultRootCommandSetup[T servertypes.Application](
-	rootCmd *cobra.Command,
-	mm *module.Manager,
-	newApp servertypes.AppCreator[T],
-	chainSpec primitives.ChainSpec,
-) {
-	// Add the ToS Flag to the root command.
-	beaconconfig.AddToSFlag(rootCmd)
+// Root is a wrapper around cobra.Command.
+type Root struct {
+	cmd *cobra.Command
+}
 
-	// Setup the custom start command options.
-	startCmdOptions := server.StartCmdOptions[T]{
-		AddFlags: beaconconfig.AddBeaconKitFlags,
+// New returns a new root command with the provided configuration.
+func New(
+	name string,
+	description string,
+	runHandler runHandler,
+	clientCtx sdkclient.Context,
+) *Root {
+	// create the underlying cobra command
+	cmd := &cobra.Command{
+		Use:   name,
+		Short: description,
+		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
+			// set the default command outputs
+			cmd.SetOut(cmd.OutOrStdout())
+			cmd.SetErr(cmd.ErrOrStderr())
+
+			var err error
+			// Update the client context with the flags from the command
+			clientCtx, err = sdkclient.ReadPersistentCommandFlags(
+				clientCtx,
+				cmd.Flags(),
+			)
+			if err != nil {
+				return err
+			}
+
+			customClientTemplate, customClientConfig := config.InitClientConfig()
+			// Update the client context with the default custom config
+			clientCtx, err = sdkconfig.CreateClientConfig(
+				clientCtx,
+				customClientTemplate,
+				customClientConfig,
+			)
+			if err != nil {
+				return err
+			}
+
+			if err = sdkclient.SetCmdClientContextHandler(
+				clientCtx, cmd,
+			); err != nil {
+				return err
+			}
+
+			return runHandler(cmd)
+		},
 	}
 
-	// Add all the commands to the root command.
-	rootCmd.AddCommand(
-		// `comet`
-		cometbft.Commands(newApp),
-		// `client`
-		client.Commands[T](),
-		// `config`
-		confixcmd.ConfigCommand(),
-		// `init`
-		genutilcli.InitCmd(mm),
-		// `genesis`
-		genesis.Commands(chainSpec),
-		// `deposit`
-		deposit.Commands(chainSpec),
-		// `jwt`
-		jwt.Commands(),
-		// `keys`
-		keys.Commands(),
-		// `prune`
-		pruning.Cmd(newApp),
-		// `rollback`
-		server.NewRollbackCmd(newApp),
-		// `snapshots`
-		snapshot.Cmd(newApp),
-		// `start`
-		server.StartCmdWithOptions(newApp, startCmdOptions),
-		// `status`
-		server.StatusCommand(),
-		// `version`
-		version.NewVersionCommand(),
+	cmd.CompletionOptions.DisableDefaultCmd = true
+
+	return &Root{
+		cmd: cmd,
+	}
+}
+
+// Run executes the root command.
+func (root *Root) Run(defaultNodeHome string) error {
+	return svrcmd.Execute(
+		root.cmd, "", defaultNodeHome,
 	)
 }

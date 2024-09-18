@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -22,15 +22,15 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/cli/pkg/flags"
+	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
+	"github.com/berachain/beacon-kit/mod/da/pkg/da"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
-	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/config/flags"
-	"github.com/berachain/beacon-kit/mod/primitives"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/spf13/cast"
 )
@@ -39,7 +39,7 @@ import (
 // dep inject framework.
 type BlobProofVerifierInput struct {
 	depinject.In
-	AppOpts          servertypes.AppOptions
+	AppOpts          config.AppOptions
 	JSONTrustedSetup *gokzg4844.JSONTrustedSetup
 }
 
@@ -54,30 +54,109 @@ func ProvideBlobProofVerifier(
 	)
 }
 
+// BlobVerifierInput is the input for the BlobVerifier.
+type BlobVerifierInput struct {
+	depinject.In
+	BlobProofVerifier kzg.BlobProofVerifier
+	TelemetrySink     *metrics.TelemetrySink
+}
+
+// ProvideBlobVerifier is a function that provides the BlobVerifier to the
+// depinject framework.
+func ProvideBlobVerifier[
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BlobSidecarT BlobSidecar[BeaconBlockHeaderT],
+	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
+](in BlobVerifierInput) *dablob.Verifier[
+	BeaconBlockHeaderT, BlobSidecarT, BlobSidecarsT,
+] {
+	return dablob.NewVerifier[
+		BeaconBlockHeaderT,
+		BlobSidecarT,
+		BlobSidecarsT,
+	](in.BlobProofVerifier, in.TelemetrySink)
+}
+
 // BlobProcessorIn is the input for the BlobProcessor.
-type BlobProcessorIn struct {
+type BlobProcessorIn[
+	BlobSidecarsT any,
+	LoggerT any,
+] struct {
 	depinject.In
 
-	Logger            log.Logger
-	BlobProofVerifier kzg.BlobProofVerifier
-	ChainSpec         primitives.ChainSpec
-	TelemetrySink     *metrics.TelemetrySink
+	BlobVerifier  BlobVerifier[BlobSidecarsT]
+	ChainSpec     common.ChainSpec
+	Logger        LoggerT
+	TelemetrySink *metrics.TelemetrySink
 }
 
 // ProvideBlobProcessor is a function that provides the BlobProcessor to the
 // depinject framework.
-func ProvideBlobProcessor(in BlobProcessorIn) *dablob.Processor[
-	*dastore.Store[*types.BeaconBlockBody],
-	*types.BeaconBlockBody,
+func ProvideBlobProcessor[
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	BeaconBlockBodyT any,
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BlobSidecarT BlobSidecar[BeaconBlockHeaderT],
+	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
+	LoggerT log.AdvancedLogger[LoggerT],
+](
+	in BlobProcessorIn[BlobSidecarsT, LoggerT],
+) *dablob.Processor[
+	AvailabilityStoreT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BlobSidecarT, BlobSidecarsT,
 ] {
 	return dablob.NewProcessor[
-		*dastore.Store[*types.BeaconBlockBody],
-		*types.BeaconBlockBody,
+		AvailabilityStoreT,
+		BeaconBlockBodyT,
+		BeaconBlockHeaderT,
+		BlobSidecarT,
+		BlobSidecarsT,
 	](
 		in.Logger.With("service", "blob-processor"),
 		in.ChainSpec,
-		dablob.NewVerifier(in.BlobProofVerifier, in.TelemetrySink),
+		in.BlobVerifier,
 		types.BlockBodyKZGOffset,
 		in.TelemetrySink,
+	)
+}
+
+// DAServiceIn is the input for the BlobService.
+type DAServiceIn[
+	AvailabilityStoreT any,
+	BeaconBlockBodyT any,
+	BlobSidecarsT any,
+	LoggerT any,
+] struct {
+	depinject.In
+
+	AvailabilityStore AvailabilityStoreT
+	BlobProcessor     BlobProcessor[
+		AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT,
+	]
+	Dispatcher Dispatcher
+	Logger     LoggerT
+}
+
+// ProvideDAService is a function that provides the BlobService to the
+// depinject framework.
+func ProvideDAService[
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	BeaconBlockBodyT any,
+	BlobSidecarT any,
+	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
+	LoggerT log.AdvancedLogger[LoggerT],
+](
+	in DAServiceIn[
+		AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT, LoggerT,
+	],
+) *da.Service[AvailabilityStoreT, BlobSidecarsT] {
+	return da.NewService[
+		AvailabilityStoreT,
+		BlobSidecarsT,
+	](
+		in.AvailabilityStore,
+		in.BlobProcessor,
+		in.Dispatcher,
+		in.Logger.With("service", "da"),
 	)
 }

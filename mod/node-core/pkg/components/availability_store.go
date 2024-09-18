@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -24,34 +24,36 @@ import (
 	"os"
 
 	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/config"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
-	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
+	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/ethereum/go-ethereum/event"
 	"github.com/spf13/cast"
 )
 
 // AvailabilityStoreInput is the input for the ProviderAvailabilityStore
 // function for the depinject framework.
-type AvailabilityStoreInput struct {
+type AvailabilityStoreInput[LoggerT any] struct {
 	depinject.In
-	AppOpts   servertypes.AppOptions
-	ChainSpec primitives.ChainSpec
-	Logger    log.Logger
+	AppOpts   config.AppOptions
+	ChainSpec common.ChainSpec
+	Logger    LoggerT
 }
 
 // ProvideAvailibilityStore provides the availability store.
 func ProvideAvailibilityStore[
-	BeaconBlockBodyT types.RawBeaconBlockBody,
+	BeaconBlockBodyT interface {
+		GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
+	},
+	LoggerT log.AdvancedLogger[LoggerT],
 ](
-	in AvailabilityStoreInput,
+	in AvailabilityStoreInput[LoggerT],
 ) (*dastore.Store[BeaconBlockBodyT], error) {
 	return dastore.New[BeaconBlockBodyT](
 		filedb.NewRangeDB(
@@ -66,41 +68,59 @@ func ProvideAvailibilityStore[
 				filedb.WithLogger(in.Logger),
 			),
 		),
-		in.Logger.With("service", "beacon-kit.da.store"),
+		in.Logger.With("service", "da-store"),
 		in.ChainSpec,
 	), nil
 }
 
 // AvailabilityPrunerInput is the input for the ProviderAvailabilityPruner
 // function for the depinject framework.
-type AvailabilityPrunerInput struct {
+type AvailabilityPrunerInput[
+	AvailabilityStoreT any,
+	BeaconBlockT any,
+	LoggerT any,
+] struct {
 	depinject.In
-	Logger            log.Logger
-	ChainSpec         primitives.ChainSpec
-	BlockFeed         *event.FeedOf[*feed.Event[*types.BeaconBlock]]
-	AvailabilityStore *dastore.Store[*types.BeaconBlockBody]
+	AvailabilityStore AvailabilityStoreT
+	ChainSpec         common.ChainSpec
+	Dispatcher        Dispatcher
+	Logger            LoggerT
 }
 
 // ProvideAvailabilityPruner provides a availability pruner for the depinject
 // framework.
-func ProvideAvailabilityPruner(
-	in AvailabilityPrunerInput,
-) pruner.Pruner[*filedb.RangeDB] {
-	rangeDB, _ := in.AvailabilityStore.IndexDB.(*filedb.RangeDB)
+func ProvideAvailabilityPruner[
+	AvailabilityStoreT AvailabilityStore[
+		BeaconBlockBodyT, BlobSidecarsT,
+	],
+	BeaconBlockT BeaconBlock[
+		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	],
+	BeaconBlockBodyT any,
+	BeaconBlockHeaderT any,
+	BlobSidecarsT any,
+	LoggerT log.AdvancedLogger[LoggerT],
+](
+	in AvailabilityPrunerInput[AvailabilityStoreT, BeaconBlockT, LoggerT],
+) (pruner.Pruner[AvailabilityStoreT], error) {
+	// TODO: add dispatcher field in the pruner or something, the provider
+	// should not execute any business logic.
+	// create new subscription for finalized blocks.
+	subFinalizedBlocks := make(chan async.Event[BeaconBlockT])
+	if err := in.Dispatcher.Subscribe(
+		async.BeaconBlockFinalized, subFinalizedBlocks,
+	); err != nil {
+		in.Logger.Error("failed to subscribe to event", "event",
+			async.BeaconBlockFinalized, "err", err)
+		return nil, err
+	}
+
 	// build the availability pruner if IndexDB is available.
-	return pruner.NewPruner[
-		*types.BeaconBlock,
-		*feed.Event[*types.BeaconBlock],
-		*filedb.RangeDB,
-		event.Subscription,
-	](
+	return pruner.NewPruner[BeaconBlockT, AvailabilityStoreT](
 		in.Logger.With("service", manager.AvailabilityPrunerName),
-		rangeDB,
+		in.AvailabilityStore,
 		manager.AvailabilityPrunerName,
-		in.BlockFeed,
-		dastore.BuildPruneRangeFn[
-			*types.BeaconBlock,
-			*feed.Event[*types.BeaconBlock],
-		](in.ChainSpec),
-	)
+		subFinalizedBlocks,
+		dastore.BuildPruneRangeFn[BeaconBlockT](in.ChainSpec),
+	), nil
 }

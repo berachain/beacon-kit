@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -34,20 +34,7 @@ var (
 	// cache.
 	ErrPayloadIDNotFound = errors.New("unable to find payload ID in cache")
 
-	// ErrCachedPayloadNotFoundOnExecutionClient is returned when a cached
-	// payloadID is not found on the execution client.
-	ErrCachedPayloadNotFoundOnExecutionClient = errors.New(
-		"cached payload ID could not be resolved on execution client",
-	)
-
-	// ErrLocalBuildingDisabled is returned when local building is disabled.
-	ErrLocalBuildingDisabled = errors.New("local building is disabled")
-
 	// ErrNilPayloadEnvelope is returned when a nil payload envelope is
 	// received.
 	ErrNilPayloadEnvelope = errors.New("received nil payload envelope")
-
-	// ErrNilPayload is returned when a nil payload envelope is
-	// received.
-	ErrNilPayload = errors.New("received nil payload envelope")
 )

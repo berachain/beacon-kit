@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -21,175 +21,102 @@
 package builder
 
 import (
-	"os"
+	"io"
 
-	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
-	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
-	consensustypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/noop"
-	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
-	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
-	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
+	servertypes "github.com/berachain/beacon-kit/mod/cli/pkg/commands/server/types"
+	"github.com/berachain/beacon-kit/mod/config"
+	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
-	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/config"
-	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/cosmos/cosmos-sdk/types/module"
-	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+	cmtcfg "github.com/cometbft/cometbft/config"
+	dbm "github.com/cosmos/cosmos-db"
 )
 
-type NodeBuilder[NodeT types.NodeI] struct {
-	node NodeT
-
-	name         string
-	description  string
-	depInjectCfg depinject.Config
-	chainSpec    primitives.ChainSpec
-
+// NodeBuilder is a construction helper for creating nodes that implement
+// the types.NodeI interface.
+// TODO: #Make nodebuilder build a node. Currently this is just a builder for
+// the AppCreator function, which is eventually called by cosmos to build a
+// node.
+type NodeBuilder[
+	NodeT types.Node,
+	LoggerT interface {
+		log.AdvancedLogger[LoggerT]
+		log.Configurable[LoggerT, LoggerConfigT]
+	},
+	LoggerConfigT any,
+] struct {
 	// components is a list of components to provide.
 	components []any
 }
 
 // New returns a new NodeBuilder.
-func New[NodeT types.NodeI](opts ...Opt[NodeT]) *NodeBuilder[NodeT] {
-	nb := &NodeBuilder[NodeT]{
-		node: node.New[NodeT](),
-	}
+func New[
+	NodeT types.Node,
+	LoggerT interface {
+		log.AdvancedLogger[LoggerT]
+		log.Configurable[LoggerT, LoggerConfigT]
+	},
+	LoggerConfigT any,
+](
+	opts ...Opt[NodeT, LoggerT, LoggerConfigT],
+) *NodeBuilder[NodeT, LoggerT, LoggerConfigT] {
+	nb := &NodeBuilder[NodeT, LoggerT, LoggerConfigT]{}
 	for _, opt := range opts {
 		opt(nb)
 	}
 	return nb
 }
 
-// Build builds the application.
-func (nb *NodeBuilder[NodeT]) Build() (NodeT, error) {
-	rootCmd, err := nb.buildRootCmd()
-	if err != nil {
-		return nb.node, err
-	}
-
-	nb.node.SetRootCmd(rootCmd)
-	return nb.node, nil
-}
-
-// buildRootCmd builds the root command for the application.
-func (nb *NodeBuilder[NodeT]) buildRootCmd() (*cobra.Command, error) {
+// Build uses the node builder options and runtime parameters to
+// build a new instance of the node.
+// It is necessary to adhere to the types.AppCreator[T] interface.
+func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
+	logger LoggerT,
+	db dbm.DB,
+	_ io.Writer,
+	cmtCfg *cmtcfg.Config,
+	appOpts servertypes.AppOptions,
+) NodeT {
+	// variables to hold the components needed to set up BeaconApp
 	var (
-		autoCliOpts autocli.AppOptions
-		mm          *module.Manager
-		clientCtx   client.Context
+		apiBackend interface {
+			AttachQueryBackend(*cometbft.Service[LoggerT])
+		}
+		beaconNode NodeT
+		cmtService *cometbft.Service[LoggerT]
+		config     *config.Config
 	)
+
+	// build all node components using depinject
 	if err := depinject.Inject(
 		depinject.Configs(
-			nb.depInjectCfg,
-			// TODO: the reason these all need to be supplied here is because
-			// we build the runtime in ProvideModule, which is forced to be
-			// called every time we do Inject.
-			//
-			// TODO: we have to decouple the instatiation of the runtime from
-			// the beacon module so that we don't need to define these empty
-			// placeholders to get the depinject framework to not freak out.
-			depinject.Supply(
-				log.NewLogger(os.Stdout),
-				viper.GetViper(),
-				nb.chainSpec,
-				&depositdb.KVStore[*consensustypes.Deposit]{},
-				&engineclient.EngineClient[*consensustypes.ExecutionPayload]{},
-				&gokzg4844.JSONTrustedSetup{},
-				&noop.Verifier{},
-				&dastore.Store[*consensustypes.BeaconBlockBody]{},
-				&signer.BLSSigner{},
-				&metrics.TelemetrySink{},
-				&deposit.WrappedBeaconDepositContract[
-					*consensustypes.Deposit,
-					consensustypes.WithdrawalCredentials,
-				]{},
-			),
 			depinject.Provide(
-				components.ProvideNoopTxConfig,
-				components.ProvideClientContext,
-				components.ProvideKeyring,
-				components.ProvideConfig,
-				components.ProvideLocalBuilder,
-				components.ProvideStateProcessor,
-				components.ProvideExecutionEngine,
-				components.ProvideBlockFeed,
-				components.ProvideDepositPruner,
-				components.ProvideAvailabilityPruner,
-				components.ProvideBlobProcessor,
-				components.ProvideDBManager,
-				components.ProvideDepositService,
+				nb.components...,
+			),
+			depinject.Supply(
+				appOpts,
+				logger,
+				db,
+				cmtCfg,
 			),
 		),
-		&autoCliOpts,
-		&mm,
-		&clientCtx,
+		&apiBackend,
+		&beaconNode,
+		&cmtService,
+		&config,
 	); err != nil {
-		return nil, err
+		panic(err)
+	}
+	if config == nil {
+		panic("config is nil")
+	}
+	if apiBackend == nil {
+		panic("node or api backend is nil")
 	}
 
-	cmd := &cobra.Command{
-		Use:   nb.name,
-		Short: nb.description,
-		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
-			// set the default command outputs
-			cmd.SetOut(cmd.OutOrStdout())
-			cmd.SetErr(cmd.ErrOrStderr())
-
-			var err error
-			clientCtx, err = client.ReadPersistentCommandFlags(
-				clientCtx,
-				cmd.Flags(),
-			)
-			if err != nil {
-				return err
-			}
-
-			customClientTemplate, customClientConfig := components.InitClientConfig()
-			clientCtx, err = config.CreateClientConfig(
-				clientCtx,
-				customClientTemplate,
-				customClientConfig,
-			)
-			if err != nil {
-				return err
-			}
-
-			if err = client.SetCmdClientContextHandler(
-				clientCtx, cmd,
-			); err != nil {
-				return err
-			}
-
-			return server.InterceptConfigsPreRunHandler(
-				cmd,
-				DefaultAppConfigTemplate(),
-				DefaultAppConfig(),
-				DefaultCometConfig(),
-			)
-		},
-	}
-
-	cmdlib.DefaultRootCommandSetup(
-		cmd,
-		mm,
-		nb.AppCreator,
-		nb.chainSpec,
-	)
-
-	if err := autoCliOpts.EnhanceRootCommand(cmd); err != nil {
-		return nil, err
-	}
-
-	return cmd, nil
+	// TODO: so hood
+	logger.WithConfig(any(config.GetLogger()).(LoggerConfigT))
+	apiBackend.AttachQueryBackend(cmtService)
+	return beaconNode
 }

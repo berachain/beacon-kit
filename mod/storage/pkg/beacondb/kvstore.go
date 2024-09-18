@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -25,28 +25,37 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/index"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/keys"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // KVStore is a wrapper around an sdk.Context
 // that provides access to all beacon related data.
 type KVStore[
-	ForkT ssz.Marshallable,
-	BeaconBlockHeaderT ssz.Marshallable,
+	BeaconBlockHeaderT interface {
+		constraints.Empty[BeaconBlockHeaderT]
+		constraints.SSZMarshallable
+	},
+	Eth1DataT interface {
+		constraints.Empty[Eth1DataT]
+		constraints.SSZMarshallable
+	},
 	ExecutionPayloadHeaderT interface {
-		ssz.Marshallable
+		constraints.SSZMarshallable
 		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
 		Version() uint32
 	},
-	Eth1DataT ssz.Marshallable,
-	ValidatorT Validator,
+	ForkT interface {
+		constraints.Empty[ForkT]
+		constraints.SSZMarshallable
+	},
+	ValidatorT Validator[ValidatorT],
+	ValidatorsT ~[]ValidatorT,
 ] struct {
-	ctx   context.Context
-	write func()
+	ctx context.Context
 	// Versioning
 	// genesisValidatorsRoot is the root of the genesis validators.
 	genesisValidatorsRoot sdkcollections.Item[[]byte]
@@ -66,11 +75,11 @@ type KVStore[
 	eth1Data sdkcollections.Item[Eth1DataT]
 	// eth1DepositIndex is the index of the latest eth1 deposit.
 	eth1DepositIndex sdkcollections.Item[uint64]
-	// latestExecutionPayload stores the latest execution payload version.
+	// latestExecutionPayloadVersion stores the latest execution payload
+	// version.
 	latestExecutionPayloadVersion sdkcollections.Item[uint32]
 	// latestExecutionPayloadCodec is the codec for the latest execution
-	// payload, it
-	// allows us to update the codec with the latest version.
+	// payload, it allows us to update the codec with the latest version.
 	latestExecutionPayloadCodec *encoding.
 					SSZInterfaceCodec[ExecutionPayloadHeaderT]
 	// latestExecutionPayloadHeader stores the latest execution payload header.
@@ -99,29 +108,40 @@ type KVStore[
 	totalSlashing sdkcollections.Item[uint64]
 }
 
-// Store creates a new instance of Store.
+// New creates a new instance of Store.
 //
 //nolint:funlen // its not overly complex.
 func New[
-	ForkT ssz.Marshallable,
-	BeaconBlockHeaderT ssz.Marshallable,
+	BeaconBlockHeaderT interface {
+		constraints.Empty[BeaconBlockHeaderT]
+		constraints.SSZMarshallable
+	},
+	Eth1DataT interface {
+		constraints.Empty[Eth1DataT]
+		constraints.SSZMarshallable
+	},
 	ExecutionPayloadHeaderT interface {
-		ssz.Marshallable
+		constraints.SSZMarshallable
 		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
 		Version() uint32
 	},
-	Eth1DataT ssz.Marshallable,
-	ValidatorT Validator,
+	ForkT interface {
+		constraints.Empty[ForkT]
+		constraints.SSZMarshallable
+	},
+	ValidatorT Validator[ValidatorT],
+	ValidatorsT ~[]ValidatorT,
 ](
 	kss store.KVStoreService,
 	payloadCodec *encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT],
 ) *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadHeaderT, Eth1DataT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
 ] {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kss)
 	return &KVStore[
-		ForkT, BeaconBlockHeaderT,
-		ExecutionPayloadHeaderT, Eth1DataT, ValidatorT,
+		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+		ForkT, ValidatorT, ValidatorsT,
 	]{
 		ctx: nil,
 		genesisValidatorsRoot: sdkcollections.NewItem(
@@ -252,42 +272,37 @@ func New[
 
 // Copy returns a copy of the Store.
 func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) Copy() *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
 ] {
 	// TODO: Decouple the KVStore type from the Cosmos-SDK.
-	cctx, write := sdk.UnwrapSDKContext(kv.ctx).CacheContext()
+	cctx, _ := sdk.UnwrapSDKContext(kv.ctx).CacheContext()
 	ss := kv.WithContext(cctx)
-	ss.write = write
 	return ss
 }
 
 // Context returns the context of the Store.
 func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) Context() context.Context {
 	return kv.ctx
 }
 
 // WithContext returns a copy of the Store with the given context.
 func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) WithContext(
 	ctx context.Context,
 ) *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
 ] {
 	cpy := *kv
 	cpy.ctx = ctx
 	return &cpy
-}
-
-// Save saves the Store.
-func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
-]) Save() {
-	if kv.write != nil {
-		kv.write()
-	}
 }

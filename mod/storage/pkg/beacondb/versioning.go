@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -21,16 +21,17 @@
 package beacondb
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // SetGenesisValidatorsRoot sets the genesis validators root in the beacon
 // state.
 func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) SetGenesisValidatorsRoot(
-	root primitives.Root,
+	root common.Root,
 ) error {
 	return kv.genesisValidatorsRoot.Set(kv.ctx, root[:])
 }
@@ -38,18 +39,20 @@ func (kv *KVStore[
 // GetGenesisValidatorsRoot retrieves the genesis validators root from the
 // beacon state.
 func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
-]) GetGenesisValidatorsRoot() (primitives.Root, error) {
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
+]) GetGenesisValidatorsRoot() (common.Root, error) {
 	bz, err := kv.genesisValidatorsRoot.Get(kv.ctx)
 	if err != nil {
-		return primitives.Root{}, err
+		return common.Root{}, err
 	}
-	return primitives.Root(bz), nil
+	return common.Root(bz), nil
 }
 
 // GetSlot returns the current slot.
 func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) GetSlot() (math.Slot, error) {
 	slot, err := kv.slot.Get(kv.ctx)
 	return math.Slot(slot), err
@@ -57,9 +60,10 @@ func (kv *KVStore[
 
 // SetSlot sets the current slot.
 func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) SetSlot(
 	slot math.Slot,
 ) error {
-	return kv.slot.Set(kv.ctx, uint64(slot))
+	return kv.slot.Set(kv.ctx, slot.Unwrap())
 }

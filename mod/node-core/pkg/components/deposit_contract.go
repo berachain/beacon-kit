@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -22,47 +22,53 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
-	"github.com/berachain/beacon-kit/mod/interfaces"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // BeaconDepositContractInput is the input for the beacon deposit contract
 // for the dep inject framework.
-type BeaconDepositContractInput struct {
+type BeaconDepositContractInput[
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+	],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	WithdrawalT Withdrawal[WithdrawalT],
+	WithdrawalsT Withdrawals[WithdrawalT],
+] struct {
 	depinject.In
-	ChainSpec    primitives.ChainSpec
-	EngineClient *engineclient.EngineClient[*types.ExecutionPayload]
+	ChainSpec    common.ChainSpec
+	EngineClient *client.EngineClient[
+		ExecutionPayloadT,
+		*engineprimitives.PayloadAttributes[WithdrawalT],
+	]
 }
 
 // ProvideBeaconDepositContract provides a beacon deposit contract through the
 // dep inject framework.
 func ProvideBeaconDepositContract[
-	DepositT interfaces.Deposit[
-		crypto.BLSPubkey, crypto.BLSSignature,
-		DepositT, math.U64, WithdrawalCredentialsT,
+	DepositT Deposit[
+		DepositT, *ForkData, WithdrawalCredentials,
 	],
-	ExecutionPayloadT interfaces.ExecutionPayload[
-		common.ExecutionAddress, common.ExecutionHash,
-		primitives.Bytes32, math.U64, math.Wei,
-		[]byte, WithdrawalT,
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
-	WithdrawalT any,
-	WithdrawalCredentialsT ~[32]byte,
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	WithdrawalT Withdrawal[WithdrawalT],
+	WithdrawalsT Withdrawals[WithdrawalT],
 ](
-	in BeaconDepositContractInput,
+	in BeaconDepositContractInput[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT, WithdrawalsT,
+	],
 ) (*deposit.WrappedBeaconDepositContract[
-	DepositT,
-	WithdrawalCredentialsT,
+	DepositT, WithdrawalCredentials,
 ], error) {
 	// Build the deposit contract.
 	return deposit.NewWrappedBeaconDepositContract[
-		DepositT, WithdrawalCredentialsT,
+		DepositT,
+		WithdrawalCredentials,
 	](
 		in.ChainSpec.DepositContractAddress(),
 		in.EngineClient,

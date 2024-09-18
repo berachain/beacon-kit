@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -22,36 +22,32 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/feed"
-	dastore "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
-	"github.com/ethereum/go-ethereum/event"
 )
 
 // DBManagerInput is the input for the dep inject framework.
-type DBManagerInput struct {
+type DBManagerInput[
+	AvailabilityStoreT pruner.Prunable,
+	DepositStoreT pruner.Prunable,
+	LoggerT any,
+] struct {
 	depinject.In
-	Logger             log.Logger
-	DepositPruner      pruner.Pruner[*dastore.KVStore[*types.Deposit]]
-	AvailabilityPruner pruner.Pruner[*filedb.RangeDB]
+	AvailabilityPruner pruner.Pruner[AvailabilityStoreT]
+	DepositPruner      pruner.Pruner[DepositStoreT]
+	Logger             LoggerT
 }
 
 // ProvideDBManager provides a DBManager for the depinject framework.
-func ProvideDBManager(
-	in DBManagerInput,
-) (*manager.DBManager[*types.BeaconBlock,
-	*feed.Event[*types.BeaconBlock],
-	event.Subscription,
-], error) {
-	return manager.NewDBManager[
-		*types.BeaconBlock,
-		*feed.Event[*types.BeaconBlock],
-		event.Subscription,
-	](
+func ProvideDBManager[
+	AvailabilityStoreT pruner.Prunable,
+	DepositStoreT pruner.Prunable,
+	LoggerT log.AdvancedLogger[LoggerT],
+](
+	in DBManagerInput[AvailabilityStoreT, DepositStoreT, LoggerT],
+) (*manager.DBManager, error) {
+	return manager.NewDBManager(
 		in.Logger.With("service", "db-manager"),
 		in.DepositPruner,
 		in.AvailabilityPruner,

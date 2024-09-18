@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -22,53 +22,88 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/execution/pkg/engine"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 )
 
 // StateProcessorInput is the input for the state processor for the depinject
 // framework.
-type StateProcessorInput struct {
+type StateProcessorInput[
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+	],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	WithdrawalT Withdrawal[WithdrawalT],
+	WithdrawalsT Withdrawals[WithdrawalT],
+] struct {
 	depinject.In
-	ChainSpec       primitives.ChainSpec
-	ExecutionEngine *execution.Engine[*types.ExecutionPayload]
-	Signer          crypto.BLSSigner
+	ChainSpec       common.ChainSpec
+	ExecutionEngine *engine.Engine[
+		ExecutionPayloadT,
+		*engineprimitives.PayloadAttributes[WithdrawalT],
+		PayloadID,
+		WithdrawalsT,
+	]
+	Signer crypto.BLSSigner
 }
 
 // ProvideStateProcessor provides the state processor to the depinject
 // framework.
-func ProvideStateProcessor(
-	in StateProcessorInput,
-) blockchain.StateProcessor[
-	*types.BeaconBlock,
-	BeaconState,
-	*datypes.BlobSidecars,
-	*transition.Context,
-	*types.Deposit,
+func ProvideStateProcessor[
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT],
+	BeaconBlockBodyT BeaconBlockBody[
+		BeaconBlockBodyT, *AttestationData, DepositT,
+		*Eth1Data, ExecutionPayloadT, *SlashingInfo,
+	],
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconStateT BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
+		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT, *Validator,
+		Validators, WithdrawalT,
+	],
+	BeaconStateMarshallableT any,
+	DepositT Deposit[DepositT, *ForkData, WithdrawalCredentials],
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+	],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	KVStoreT BeaconStore[
+		KVStoreT, BeaconBlockHeaderT, *Eth1Data, ExecutionPayloadHeaderT,
+		*Fork, *Validator, Validators, WithdrawalT,
+	],
+	WithdrawalsT Withdrawals[WithdrawalT],
+	WithdrawalT Withdrawal[WithdrawalT],
+](
+	in StateProcessorInput[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT, WithdrawalsT,
+	],
+) *core.StateProcessor[
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BeaconStateT, *Context, DepositT, *Eth1Data, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, *Fork, *ForkData, KVStoreT, *Validator,
+	Validators, WithdrawalT, WithdrawalsT, WithdrawalCredentials,
 ] {
 	return core.NewStateProcessor[
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
-		*types.BeaconBlockHeader,
-		BeaconState,
-		*datypes.BlobSidecars,
-		*transition.Context,
-		*types.Deposit,
-		*types.Eth1Data,
-		*types.ExecutionPayload,
-		*types.ExecutionPayloadHeader,
-		*types.Fork,
-		*types.ForkData,
-		*types.Validator,
-		*engineprimitives.Withdrawal,
-		types.WithdrawalCredentials,
+		BeaconBlockT,
+		BeaconBlockBodyT,
+		BeaconBlockHeaderT,
+		BeaconStateT,
+		*Context,
+		DepositT,
+		*Eth1Data,
+		ExecutionPayloadT,
+		ExecutionPayloadHeaderT,
+		*Fork,
+		*ForkData,
+		KVStoreT,
+		*Validator,
+		Validators,
+		WithdrawalT,
+		WithdrawalsT,
+		WithdrawalCredentials,
 	](
 		in.ChainSpec,
 		in.ExecutionEngine,

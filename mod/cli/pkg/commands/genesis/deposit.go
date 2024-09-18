@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -21,38 +21,35 @@
 package genesis
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 
-	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/cli/pkg/context"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/parser"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
-// CollectGenTxsCmd - return the cobra command to collect genesis transactions.
-func AddGenesisDepositCmd(cs primitives.ChainSpec) *cobra.Command {
+// AddGenesisDepositCmd - returns the cobra command to
+// add a premined deposit to the genesis file.
+func AddGenesisDepositCmd(cs common.ChainSpec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add-premined-deposit",
 		Short: "adds a validator to the genesis file",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			serverCtx := server.GetServerContextFromCmd(cmd)
-			config := serverCtx.Config
+			config := context.GetConfigFromCmd(cmd)
 
 			_, valPubKey, err := genutil.InitializeNodeValidatorFiles(
 				config, crypto.CometBLSType,
@@ -70,7 +67,11 @@ func AddGenesisDepositCmd(cs primitives.ChainSpec) *cobra.Command {
 			)
 
 			// Get the BLS signer.
-			blsSigner, err := getBLSSigner()
+			blsSigner, err := components.ProvideBlsSigner(
+				components.BlsSignerInput{
+					AppOpts: context.GetViperFromCmd(cmd),
+				},
+			)
 			if err != nil {
 				return err
 			}
@@ -87,7 +88,7 @@ func AddGenesisDepositCmd(cs primitives.ChainSpec) *cobra.Command {
 			}
 
 			// TODO: configurable.
-			currentVersion := version.FromUint32[primitives.Version](
+			currentVersion := version.FromUint32[common.Version](
 				version.Deneb,
 			)
 
@@ -149,8 +150,8 @@ func AddGenesisDepositCmd(cs primitives.ChainSpec) *cobra.Command {
 func makeOutputFilepath(rootDir, pubkey string) (string, error) {
 	writePath := filepath.Join(rootDir, "config", "premined-deposits")
 	if err := afero.NewOsFs().MkdirAll(writePath, os.ModePerm); err != nil {
-		return "", errors.Newf(
-			"could not create directory %q: %w",
+		return "", errors.Wrapf(
+			errors.New("could not create directory"), "%q: %w",
 			writePath,
 			err,
 		)
@@ -186,24 +187,4 @@ func writeDepositToFile(
 	_, err = fmt.Fprintf(outputFile, "%s\n", bz)
 
 	return err
-}
-
-// getBLSSigner returns a BLS signer based on the override node key flag.
-func getBLSSigner() (crypto.BLSSigner, error) {
-	var blsSigner crypto.BLSSigner
-	if err := depinject.Inject(
-		depinject.Configs(
-			depinject.Supply(
-				viper.GetViper(),
-			),
-			depinject.Provide(
-				components.ProvideBlsSigner,
-			),
-		),
-		&blsSigner,
-	); err != nil {
-		return nil, err
-	}
-
-	return blsSigner, nil
 }

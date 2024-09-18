@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -24,17 +24,17 @@ import (
 	"strings"
 
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/config/flags"
+	"github.com/berachain/beacon-kit/mod/cli/pkg/flags"
+	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/afero"
 	"github.com/spf13/cast"
 )
 
-// TrustedSetupInput is the input for the dep inject framework.
+// JWTSecretInput is the input for the dep inject framework.
 type JWTSecretInput struct {
 	depinject.In
-	AppOpts servertypes.AppOptions
+	AppOpts config.AppOptions
 }
 
 // ProvideJWTSecret is a function that provides the module to the application.

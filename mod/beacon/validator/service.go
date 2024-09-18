@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -23,120 +23,115 @@ package validator
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
-// Service is responsible for building beacon blocks.
+// Service is responsible for building beacon blocks and sidecars.
 type Service[
+	AttestationDataT any,
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[
-		*types.Deposit, *types.Eth1Data, *types.ExecutionPayload,
+		AttestationDataT, DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
 	],
-	BeaconStateT BeaconState[
-		*types.BeaconBlockHeader,
-		BeaconStateT,
-		*types.ExecutionPayloadHeader,
-	],
-	BlobSidecarsT BlobSidecars,
-	DepositStoreT DepositStore[*types.Deposit],
-	ForkDataT interface {
-		New(
-			primitives.Version,
-			primitives.Root,
-		) ForkDataT
-		ComputeRandaoSigningRoot(
-			primitives.DomainType,
-			math.Epoch,
-		) (primitives.Root, error)
-	},
+	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
+	BlobSidecarsT any,
+	DepositT any,
+	DepositStoreT DepositStore[DepositT],
+	Eth1DataT Eth1Data[Eth1DataT],
+	ExecutionPayloadT any,
+	ExecutionPayloadHeaderT ExecutionPayloadHeader,
+	ForkDataT ForkData[ForkDataT],
+	SlashingInfoT any,
+	SlotDataT SlotData[AttestationDataT, SlashingInfoT],
 ] struct {
 	// cfg is the validator config.
 	cfg *Config
 	// logger is a logger.
-	logger log.Logger[any]
+	logger log.Logger
 	// chainSpec is the chain spec.
-	chainSpec primitives.ChainSpec
+	chainSpec common.ChainSpec
 	// signer is used to retrieve the public key of this node.
 	signer crypto.BLSSigner
 	// blobFactory is used to create blob sidecars for blocks.
-	blobFactory BlobFactory[
-		BeaconBlockT, BeaconBlockBodyT, BlobSidecarsT,
-	]
-	// bsb is the beacon state backend.
-	bsb StorageBackend[BeaconStateT, *types.Deposit, DepositStoreT]
-	// blobProcessor is used to process blobs.
-	blobProcessor BlobProcessor[BlobSidecarsT]
+	blobFactory BlobFactory[BeaconBlockT, BlobSidecarsT]
+	// sb is the beacon state backend.
+	sb StorageBackend[BeaconStateT, DepositStoreT]
+	// dispatcher is the dispatcher.
+	dispatcher asynctypes.EventDispatcher
 	// stateProcessor is responsible for processing the state.
 	stateProcessor StateProcessor[
 		BeaconBlockT,
 		BeaconStateT,
 		*transition.Context,
+		ExecutionPayloadHeaderT,
 	]
 	// localPayloadBuilder represents the local block builder, this builder
 	// is connected to this nodes execution client via the EngineAPI.
-	// Building blocks is done by submitting forkchoice updates through.
+	// Building blocks are done by submitting forkchoice updates through.
 	// The local Builder.
-	localPayloadBuilder PayloadBuilder[BeaconStateT, *types.ExecutionPayload]
+	localPayloadBuilder PayloadBuilder[BeaconStateT, ExecutionPayloadT]
 	// remotePayloadBuilders represents a list of remote block builders, these
 	// builders are connected to other execution clients via the EngineAPI.
-	remotePayloadBuilders []PayloadBuilder[BeaconStateT, *types.ExecutionPayload]
+	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT]
 	// metrics is a metrics collector.
 	metrics *validatorMetrics
+	// subNewSlot is a channel to hold NewSlot events.
+	subNewSlot chan async.Event[SlotDataT]
 }
 
 // NewService creates a new validator service.
 func NewService[
+	AttestationDataT any,
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[
-		*types.Deposit, *types.Eth1Data, *types.ExecutionPayload],
-	BeaconStateT BeaconState[
-		*types.BeaconBlockHeader,
-		BeaconStateT,
-		*types.ExecutionPayloadHeader,
+		AttestationDataT, DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
 	],
-	BlobSidecarsT BlobSidecars,
-	DepositStoreT DepositStore[*types.Deposit],
-	ForkDataT interface {
-		New(
-			primitives.Version,
-			primitives.Root,
-		) ForkDataT
-		ComputeRandaoSigningRoot(
-			primitives.DomainType,
-			math.Epoch,
-		) (primitives.Root, error)
-	},
+	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
+	BlobSidecarsT any,
+	DepositT any,
+	DepositStoreT DepositStore[DepositT],
+	Eth1DataT Eth1Data[Eth1DataT],
+	ExecutionPayloadT any,
+	ExecutionPayloadHeaderT ExecutionPayloadHeader,
+	ForkDataT ForkData[ForkDataT],
+	SlashingInfoT any,
+	SlotDataT SlotData[AttestationDataT, SlashingInfoT],
 ](
 	cfg *Config,
-	logger log.Logger[any],
-	chainSpec primitives.ChainSpec,
-	bsb StorageBackend[BeaconStateT, *types.Deposit, DepositStoreT],
-	blobProcessor BlobProcessor[BlobSidecarsT],
-	stateProcessor StateProcessor[BeaconBlockT, BeaconStateT, *transition.Context],
-	signer crypto.BLSSigner,
-	blobFactory BlobFactory[
-		BeaconBlockT, BeaconBlockBodyT, BlobSidecarsT,
+	logger log.Logger,
+	chainSpec common.ChainSpec,
+	sb StorageBackend[BeaconStateT, DepositStoreT],
+	stateProcessor StateProcessor[
+		BeaconBlockT,
+		BeaconStateT,
+		*transition.Context,
+		ExecutionPayloadHeaderT,
 	],
-	localPayloadBuilder PayloadBuilder[BeaconStateT, *types.ExecutionPayload],
-	remotePayloadBuilders []PayloadBuilder[BeaconStateT, *types.ExecutionPayload],
+	signer crypto.BLSSigner,
+	blobFactory BlobFactory[BeaconBlockT, BlobSidecarsT],
+	localPayloadBuilder PayloadBuilder[BeaconStateT, ExecutionPayloadT],
+	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT],
 	ts TelemetrySink,
+	dispatcher asynctypes.EventDispatcher,
 ) *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
+	AttestationDataT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, ForkDataT, SlashingInfoT, SlotDataT,
 ] {
 	return &Service[
-		BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-		BlobSidecarsT, DepositStoreT, ForkDataT,
+		AttestationDataT, BeaconBlockT, BeaconBlockBodyT,
+		BeaconStateT, BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT, ForkDataT, SlashingInfoT,
+		SlotDataT,
 	]{
 		cfg:                   cfg,
 		logger:                logger,
-		blobProcessor:         blobProcessor,
-		bsb:                   bsb,
+		sb:                    sb,
 		chainSpec:             chainSpec,
 		signer:                signer,
 		stateProcessor:        stateProcessor,
@@ -144,44 +139,79 @@ func NewService[
 		localPayloadBuilder:   localPayloadBuilder,
 		remotePayloadBuilders: remotePayloadBuilders,
 		metrics:               newValidatorMetrics(ts),
+		dispatcher:            dispatcher,
+		subNewSlot:            make(chan async.Event[SlotDataT]),
 	}
 }
 
 // Name returns the name of the service.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
+	_, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) Name() string {
 	return "validator"
 }
 
-// Start starts the service.
+// Start listens for NewSlot events and builds a block and sidecars for the
+// requested slot data.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
+	_, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) Start(
-	context.Context,
+	ctx context.Context,
 ) error {
-	s.logger.Info(
-		"starting validator service 🛜 ",
-		"optimistic_payload_builds", s.cfg.EnableOptimisticPayloadBuilds,
-	)
+	// subscribe to NewSlot events
+	err := s.dispatcher.Subscribe(async.NewSlot, s.subNewSlot)
+	if err != nil {
+		return err
+	}
+	// start the event loop to listen and handle events.
+	go s.eventLoop(ctx)
 	return nil
 }
 
-// Status returns the status of the service.
-func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
-]) Status() error {
-	return nil
-}
-
-// WaitForHealthy waits for the service to become healthy.
-func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
-]) WaitForHealthy(
-	context.Context,
+// eventLoop is the main event loop for the validator service.
+func (s *Service[_, _, _, _, _, _, _, _, _, _, _, _, _]) eventLoop(
+	ctx context.Context,
 ) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case event := <-s.subNewSlot:
+			s.handleNewSlot(event)
+		}
+	}
+}
+
+// handleNewSlot builds a block and sidecars for the requested slot data and
+// emits BuiltBeaconBlock and BuiltSidecars events containing the built block
+// and sidecars.
+func (s *Service[
+	_, BeaconBlockT, _, _, BlobSidecarsT, _, _, _, _, _, _, _, SlotDataT,
+]) handleNewSlot(req async.Event[SlotDataT]) {
+	var (
+		blk      BeaconBlockT
+		sidecars BlobSidecarsT
+		err      error
+	)
+	// build the block and sidecars for the requested slot data
+	blk, sidecars, err = s.buildBlockAndSidecars(
+		req.Context(), req.Data(),
+	)
+	if err != nil {
+		s.logger.Error("failed to build block", "err", err)
+	}
+
+	// emit a built block event with the built block and the error
+	if bbErr := s.dispatcher.Publish(
+		async.NewEvent(req.Context(), async.BuiltBeaconBlock, blk, err),
+	); bbErr != nil {
+		s.logger.Error("failed to dispatch built block", "err", err)
+	}
+
+	// emit a built sidecars event with the built sidecars and the error
+	if scErr := s.dispatcher.Publish(
+		async.NewEvent(req.Context(), async.BuiltSidecars, sidecars, err),
+	); scErr != nil {
+		s.logger.Error("failed to dispatch built sidecars", "err", err)
+	}
 }

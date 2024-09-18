@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -22,21 +22,41 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	fastssz "github.com/ferranbt/fastssz"
+	"github.com/karalabe/ssz"
+)
+
+// ForkSize is the size of the Fork object in bytes.
+// 4 bytes for PreviousVersion + 4 bytes for CurrentVersion + 8 bytes for Epoch.
+const ForkSize = 16
+
+var (
+	_ ssz.StaticObject                    = (*Fork)(nil)
+	_ constraints.SSZMarshallableRootable = (*Fork)(nil)
 )
 
 // Fork as defined in the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#fork
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path fork.go -objs Fork -include ../../../primitives/pkg/bytes,../../../primitives/pkg/math,../../../primitives/pkg/common -output fork.ssz.go
 //nolint:lll
 type Fork struct {
 	// PreviousVersion is the last version before the fork.
-	PreviousVersion common.Version
+	PreviousVersion common.Version `json:"previous_version"`
 	// CurrentVersion is the first version after the fork.
-	CurrentVersion common.Version
+	CurrentVersion common.Version `json:"current_version"`
 	// Epoch is the epoch at which the fork occurred.
-	Epoch math.Epoch
+	Epoch math.Epoch `json:"epoch"`
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                 Constructor                                */
+/* -------------------------------------------------------------------------- */
+
+// Empty creates an empty Fork.
+func (f *Fork) Empty() *Fork {
+	return &Fork{}
 }
 
 // New creates a new fork.
@@ -50,4 +70,72 @@ func (f *Fork) New(
 		CurrentVersion:  currentVersion,
 		Epoch:           epoch,
 	}
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                     SSZ                                    */
+/* -------------------------------------------------------------------------- */
+
+// SizeSSZ returns the SSZ encoded size of the Fork object in bytes.
+func (f *Fork) SizeSSZ() uint32 {
+	return ForkSize
+}
+
+// DefineSSZ defines the SSZ encoding for the Fork object.
+func (f *Fork) DefineSSZ(codec *ssz.Codec) {
+	ssz.DefineStaticBytes(codec, &f.PreviousVersion)
+	ssz.DefineStaticBytes(codec, &f.CurrentVersion)
+	ssz.DefineUint64(codec, &f.Epoch)
+}
+
+// MarshalSSZ marshals the Fork object to SSZ format.
+func (f *Fork) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, f.SizeSSZ())
+	return buf, ssz.EncodeToBytes(buf, f)
+}
+
+// UnmarshalSSZ unmarshals the Fork object from SSZ format.
+func (f *Fork) UnmarshalSSZ(buf []byte) error {
+	return ssz.DecodeFromBytes(buf, f)
+}
+
+// HashTreeRoot computes the SSZ hash tree root of the Fork object.
+func (f *Fork) HashTreeRoot() common.Root {
+	return ssz.HashSequential(f)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
+
+// MarshalSSZTo ssz marshals the Fork object to a target array.
+func (f *Fork) MarshalSSZTo(buf []byte) ([]byte, error) {
+	bz, err := f.MarshalSSZ()
+	if err != nil {
+		return nil, err
+	}
+
+	return append(buf, bz...), nil
+}
+
+// HashTreeRootWith ssz hashes the Fork object with a hasher.
+func (f *Fork) HashTreeRootWith(hh fastssz.HashWalker) error {
+	indx := hh.Index()
+
+	// Field (0) 'PreviousVersion'
+	hh.PutBytes(f.PreviousVersion[:])
+
+	// Field (1) 'CurrentVersion'
+	hh.PutBytes(f.CurrentVersion[:])
+
+	// Field (2) 'Epoch'
+	hh.PutUint64(uint64(f.Epoch))
+
+	hh.Merkleize(indx)
+	return nil
+}
+
+// GetTree ssz hashes the Fork object.
+func (f *Fork) GetTree() (*fastssz.Node, error) {
+	return fastssz.ProofTree(f)
 }

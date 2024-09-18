@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -21,10 +21,12 @@
 package signer
 
 import (
+	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/cometbft/cometbft/crypto/bls12381"
 	"github.com/cometbft/cometbft/privval"
 	"github.com/cometbft/cometbft/types"
-	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 )
 
 // BLSSigner utilize an underlying PrivValidator signer using data persisted to
@@ -33,8 +35,12 @@ type BLSSigner struct {
 	types.PrivValidator
 }
 
+// NewBLSSigner creates a new BLSSigner instance using the provided key and
+// state
+// file paths.
+// If the key file does not exist, the program will exit.
 func NewBLSSigner(keyFilePath string, stateFilePath string) *BLSSigner {
-	filePV := privval.LoadOrGenFilePV(keyFilePath, stateFilePath)
+	filePV := privval.LoadFilePV(keyFilePath, stateFilePath)
 	return &BLSSigner{PrivValidator: filePV}
 }
 
@@ -54,26 +60,23 @@ func (f BLSSigner) Sign(msg []byte) (crypto.BLSSignature, error) {
 	sig, err := f.PrivValidator.SignBytes(msg)
 	if err != nil {
 		return crypto.BLSSignature{}, err
+	} else if len(sig) != constants.BLSSignatureLength {
+		return crypto.BLSSignature{}, errors.Wrapf(
+			ErrInvalidSignature, "expected signature length %d, got %d",
+			constants.BLSSignatureLength, len(sig),
+		)
 	}
 	return crypto.BLSSignature(sig), nil
 }
 
 // VerifySignature verifies a signature against a message and a public key.
 func (f BLSSigner) VerifySignature(
-	blsPk crypto.BLSPubkey,
+	pubKey crypto.BLSPubkey,
 	msg []byte,
-	signature crypto.BLSSignature) error {
-	pk, err := blst.PublicKeyFromBytes(blsPk[:])
-	if err != nil {
-		return err
-	}
-
-	sig, err := blst.SignatureFromBytes(signature[:])
-	if err != nil {
-		return err
-	}
-
-	if !sig.Verify(pk, msg) {
+	signature crypto.BLSSignature,
+) error {
+	if ok := bls12381.PubKey(pubKey[:]).
+		VerifySignature(msg, signature[:]); !ok {
 		return ErrInvalidSignature
 	}
 	return nil

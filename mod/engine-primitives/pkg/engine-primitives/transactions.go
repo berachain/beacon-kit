@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -21,29 +21,56 @@
 package engineprimitives
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/karalabe/ssz"
 )
 
-// Transactions is a typealias for [][]byte, which is how transactions are
-// received in the execution payload.
+// ProperTransactions is a type alias for [][]byte, which is how
+// transactions are received in the execution payload.
 type Transactions [][]byte
 
-// HashTreeRoot returns the hash tree root of the Transactions list.
-func (txs Transactions) HashTreeRoot() (primitives.Root, error) {
-	var err error
+/* -------------------------------------------------------------------------- */
+/*                                     SSZ                                    */
+/* -------------------------------------------------------------------------- */
 
-	roots := make([]primitives.Root, len(txs))
-	for i, tx := range txs {
-		roots[i], err = ssz.MerkleizeByteSlice[math.U64, primitives.Root](tx)
-		if err != nil {
-			return primitives.Root{}, err
-		}
-	}
+// SizeSSZ returns the SSZ encoded size in bytes for the Transactions.
+func (txs Transactions) SizeSSZ(bool) uint32 {
+	return ssz.SizeSliceOfDynamicBytes(txs)
+}
 
-	return ssz.MerkleizeListComposite[any, math.U64](
-		roots, constants.MaxTxsPerPayload,
-	)
+// DefineSSZ defines the SSZ encoding for the Transactions object.
+// TODO: This can accidentally decouple from the definition in
+// ExecutionPayload and we should be cognizant of that and/or
+// make a PR to allow for them to be defined in one place.
+func (txs Transactions) DefineSSZ(codec *ssz.Codec) {
+	codec.DefineEncoder(func(*ssz.Encoder) {
+		ssz.DefineSliceOfDynamicBytesContent(
+			codec,
+			(*[][]byte)(&txs),
+			constants.MaxTxsPerPayload,
+			constants.MaxBytesPerTx,
+		)
+	})
+	codec.DefineDecoder(func(*ssz.Decoder) {
+		ssz.DefineSliceOfDynamicBytesContent(
+			codec,
+			(*[][]byte)(&txs),
+			constants.MaxTxsPerPayload,
+			constants.MaxBytesPerTx,
+		)
+	})
+	codec.DefineHasher(func(*ssz.Hasher) {
+		ssz.DefineSliceOfDynamicBytesOffset(
+			codec,
+			(*[][]byte)(&txs),
+			constants.MaxTxsPerPayload,
+			constants.MaxBytesPerTx,
+		)
+	})
+}
+
+// HashTreeRoot returns the hash tree root of the Transactions object.
+func (txs Transactions) HashTreeRoot() common.Root {
+	return ssz.HashConcurrent(txs)
 }

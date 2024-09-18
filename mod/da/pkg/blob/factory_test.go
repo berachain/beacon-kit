@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -34,7 +34,7 @@ func (m *MockSpec) MaxBlobCommitmentsPerBlock() uint64 {
 	return 16
 }
 
-// TODO: Renable once we can easily decouple from core/types.
+// TODO: Re-enable once we can easily decouple from core/types.
 // func TestBuildKZGInclusionProof(t *testing.T) {
 // 	chainspec := &MockSpec{}
 // 	factory := da.NewSidecarFactory[da.BeaconBlockBody](
@@ -98,7 +98,7 @@ func (m *MockSpec) MaxBlobCommitmentsPerBlock() uint64 {
 
 // func mockBody() da.BeaconBlockBody {
 // 	// Create a real ExecutionPayloadDeneb and BeaconBlockBody
-// 	executionPayload := &engineprimitives.ExecutableDataDeneb{
+// 	executionPayload := &engineprimitives.ExecutionPayload{
 // 		ParentHash:    common.HexToHash("0x01"),
 // 		FeeRecipient:  common.HexToAddress("0x02"),
 // 		StateRoot:     common.HexToHash("0x03"),
@@ -114,7 +114,7 @@ func (m *MockSpec) MaxBlobCommitmentsPerBlock() uint64 {
 // 	return &types.BeaconBlockBodyDeneb{
 // 		RandaoReveal: [96]byte{0x01},
 // 		Eth1Data: &primitives.Eth1Data{
-// 			DepositRoot:  primitives.Root{},
+// 			DepositRoot:  common.Root{},
 // 			DepositCount: 0,
 // 			BlockHash:    common.ZeroHash,
 // 		},

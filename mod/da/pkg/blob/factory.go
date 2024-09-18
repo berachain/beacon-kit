@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -25,6 +25,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/da/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 	"golang.org/x/sync/errgroup"
@@ -32,8 +33,9 @@ import (
 
 // SidecarFactory is a factory for sidecars.
 type SidecarFactory[
-	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
+	BeaconBlockT BeaconBlock[BeaconBlockBodyT, BeaconBlockHeaderT],
 	BeaconBlockBodyT BeaconBlockBody,
+	BeaconBlockHeaderT any,
 ] struct {
 	// chainSpec defines the specifications of the blockchain.
 	chainSpec ChainSpec
@@ -47,15 +49,20 @@ type SidecarFactory[
 
 // NewSidecarFactory creates a new sidecar factory.
 func NewSidecarFactory[
-	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
+	BeaconBlockT BeaconBlock[BeaconBlockBodyT, BeaconBlockHeaderT],
 	BeaconBlockBodyT BeaconBlockBody,
+	BeaconBlockHeaderT any,
 ](
 	chainSpec ChainSpec,
 	// todo: calculate from config.
 	kzgPosition uint64,
 	telemetrySink TelemetrySink,
-) *SidecarFactory[BeaconBlockT, BeaconBlockBodyT] {
-	return &SidecarFactory[BeaconBlockT, BeaconBlockBodyT]{
+) *SidecarFactory[
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+] {
+	return &SidecarFactory[
+		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	]{
 		chainSpec: chainSpec,
 		// TODO: This should be configurable / modular.
 		kzgPosition: kzgPosition,
@@ -63,8 +70,8 @@ func NewSidecarFactory[
 	}
 }
 
-// BuildSidecar builds a sidecar.
-func (f *SidecarFactory[BeaconBlockT, BeaconBlockBodyT]) BuildSidecars(
+// BuildSidecars builds a sidecar.
+func (f *SidecarFactory[BeaconBlockT, _, _]) BuildSidecars(
 	blk BeaconBlockT,
 	bundle engineprimitives.BlobsBundle,
 ) (*types.BlobSidecars, error) {
@@ -105,10 +112,10 @@ func (f *SidecarFactory[BeaconBlockT, BeaconBlockBodyT]) BuildSidecars(
 }
 
 // BuildKZGInclusionProof builds a KZG inclusion proof.
-func (f *SidecarFactory[BeaconBlockT, BeaconBlockBodyT]) BuildKZGInclusionProof(
+func (f *SidecarFactory[_, BeaconBlockBodyT, _]) BuildKZGInclusionProof(
 	body BeaconBlockBodyT,
 	index math.U64,
-) ([][32]byte, error) {
+) ([]common.Root, error) {
 	startTime := time.Now()
 	defer f.metrics.measureBuildKZGInclusionProofDuration(startTime)
 
@@ -131,19 +138,15 @@ func (f *SidecarFactory[BeaconBlockT, BeaconBlockBodyT]) BuildKZGInclusionProof(
 }
 
 // BuildBlockBodyProof builds a block body proof.
-func (f *SidecarFactory[BeaconBlockT, BeaconBlockBodyT]) BuildBlockBodyProof(
+func (f *SidecarFactory[_, BeaconBlockBodyT, _]) BuildBlockBodyProof(
 	body BeaconBlockBodyT,
-) ([][32]byte, error) {
+) ([]common.Root, error) {
 	startTime := time.Now()
 	defer f.metrics.measureBuildBlockBodyProofDuration(startTime)
-	membersRoots, err := body.GetTopLevelRoots()
-	if err != nil {
-		return nil, err
-	}
-
-	tree, err := merkle.NewTreeWithMaxLeaves[
-		[32]byte, [32]byte,
-	](membersRoots, body.Length()-1)
+	tree, err := merkle.NewTreeWithMaxLeaves[common.Root](
+		body.GetTopLevelRoots(),
+		body.Length()-1,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -152,16 +155,13 @@ func (f *SidecarFactory[BeaconBlockT, BeaconBlockBodyT]) BuildBlockBodyProof(
 }
 
 // BuildCommitmentProof builds a commitment proof.
-func (f *SidecarFactory[BeaconBlockT, BeaconBlockBodyT]) BuildCommitmentProof(
+func (f *SidecarFactory[_, BeaconBlockBodyT, _]) BuildCommitmentProof(
 	body BeaconBlockBodyT,
 	index math.U64,
-) ([][32]byte, error) {
+) ([]common.Root, error) {
 	startTime := time.Now()
 	defer f.metrics.measureBuildCommitmentProofDuration(startTime)
-
-	bodyTree, err := merkle.NewTreeWithMaxLeaves[
-		[32]byte, [32]byte,
-	](
+	bodyTree, err := merkle.NewTreeWithMaxLeaves[common.Root](
 		body.GetBlobKzgCommitments().Leafify(),
 		f.chainSpec.MaxBlobCommitmentsPerBlock(),
 	)

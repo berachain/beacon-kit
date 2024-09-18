@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -47,7 +47,7 @@ func (s *KurtosisE2ESuite) SetupSuite() {
 	s.SetupSuiteWithOptions()
 }
 
-// Option is a function that sets a field on the KurtosisE2ESuite.
+// SetupSuiteWithOptions sets up the test suite with the provided options.
 func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	var (
 		key1, key2, key3 *ecdsa.PrivateKey
@@ -87,7 +87,7 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 
 	// Apply all the provided options, this allows
 	// the test suite to be configured in a flexible manner by
-	// the caller (i.e overriding defaults).
+	// the caller (i.e. overriding defaults).
 	for _, opt := range opts {
 		if err = opt(s); err != nil {
 			s.Require().NoError(err, "Error applying option")
@@ -96,22 +96,23 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 
 	s.kCtx, err = kurtosis_context.NewKurtosisContextFromLocalEngine()
 	s.Require().NoError(err)
-	s.logger.Info("destroying any existing enclave...")
-	//#nosec:G703 // its okay if this errors out. It will error out
+	s.logger.Info("Destroying any existing enclave...")
+	//#nosec:G703 // It's okay if this errors out. It will error out
 	// if there is no enclave to destroy.
 	_ = s.kCtx.DestroyEnclave(s.ctx, "e2e-test-enclave")
 
-	s.logger.Info("creating enclave...")
+	s.logger.Info("Creating enclave...")
 	s.enclave, err = s.kCtx.CreateEnclave(s.ctx, "e2e-test-enclave")
 	s.Require().NoError(err)
 
 	s.logger.Info(
-		"spinning up enclave...",
+		"Spinning up enclave...",
 		"num_validators",
 		len(s.cfg.NetworkConfiguration.Validators.Nodes),
 		"num_full_nodes",
 		len(s.cfg.NetworkConfiguration.FullNodes.Nodes),
 	)
+
 	result, err := s.enclave.RunStarlarkPackageBlocking(
 		s.ctx,
 		"../../kurtosis",
@@ -124,17 +125,20 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	s.Require().NoError(err, "Error running Starlark package")
 	s.Require().Nil(result.ExecutionError, "Error running Starlark package")
 	s.Require().Empty(result.ValidationErrors)
-	s.logger.Info("enclave spun up successfully")
+	s.logger.Info("Enclave spun up successfully")
 
-	s.logger.Info("setting up consensus clients")
+	s.logger.Info("Setting up consensus clients")
 	err = s.SetupConsensusClients()
 	s.Require().NoError(err, "Error setting up consensus clients")
 
 	// Setup the JSON-RPC balancer.
-	s.logger.Info("setting up JSON-RPC balancer")
+	s.logger.Info("Setting up JSON-RPC balancer")
 	err = s.SetupJSONRPCBalancer()
 	s.Require().NoError(err, "Error setting up JSON-RPC balancer")
 
+	s.logger.Info("Waiting for nodes to get ready...")
+	//nolint:mnd // its okay.
+	time.Sleep(5 * time.Second)
 	// Wait for the finalized block number to increase a bit to
 	// ensure all clients are in sync.
 	//nolint:mnd // 3 blocks
@@ -199,7 +203,7 @@ func (s *KurtosisE2ESuite) SetupJSONRPCBalancer() error {
 	// get the type for EthJSONRPCEndpoint
 	typeRPCEndpoint := s.JSONRPCBalancerType()
 
-	s.logger.Info("setting up JSON-RPC balancer:", "type", typeRPCEndpoint)
+	s.logger.Info("Setting up JSON-RPC balancer:", "type", typeRPCEndpoint)
 
 	sCtx, err := s.Enclave().GetServiceContext(typeRPCEndpoint)
 	if err != nil {
@@ -227,7 +231,7 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 	var chainID *big.Int
 	chainID, err = s.JSONRPCBalancer().ChainID(ctx)
 	s.Require().NoError(err, "failed to get chain ID")
-	s.logger.Info("chain-id is", "chain_id", chainID)
+	s.logger.Info("Chain-id is", "chain_id", chainID)
 	_, err = iter.MapErr(
 		s.testAccounts,
 		func(acc **types.EthAccount) (*ethtypes.Receipt, error) {
@@ -275,7 +279,7 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 			}
 
 			s.logger.Info(
-				"funding transaction submitted, waiting for confirmation...",
+				"Funding transaction submitted, waiting for confirmation...",
 				"tx_hash", signedTx.Hash().Hex(), "nonce", nonceToSubmit,
 				"account", account.Name(), "value", value,
 			)
@@ -289,7 +293,7 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 			}
 
 			s.logger.Info(
-				"funding transaction confirmed",
+				"Funding transaction confirmed",
 				"tx_hash", signedTx.Hash().Hex(),
 				"account", account.Name(),
 			)
@@ -332,6 +336,7 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 	cctx, cancel := context.WithTimeout(s.ctx, DefaultE2ETestTimeout)
 	defer cancel()
 	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
 	var finalBlockNum uint64
 	for finalBlockNum < target {
 		var err error
@@ -341,7 +346,7 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 			continue
 		}
 		s.logger.Info(
-			"waiting for finalized block number to reach target",
+			"Waiting for finalized block number to reach target",
 			"target",
 			target,
 			"finalized",
@@ -357,7 +362,7 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 	}
 
 	s.logger.Info(
-		"finalized block number reached target 🎉",
+		"Finalized block number reached target 🎉",
 		"target",
 		target,
 		"finalized",
@@ -367,7 +372,7 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 	return nil
 }
 
-// WaitForNBlockNumber waits for a specified amount of blocks into the future
+// WaitForNBlockNumbers waits for a specified amount of blocks into the future
 // from now.
 func (s *KurtosisE2ESuite) WaitForNBlockNumbers(
 	n uint64,
@@ -382,7 +387,7 @@ func (s *KurtosisE2ESuite) WaitForNBlockNumbers(
 // TearDownSuite cleans up resources after all tests have been executed.
 // this function executes after all tests executed.
 func (s *KurtosisE2ESuite) TearDownSuite() {
-	s.Logger().Info("destroying enclave...")
+	s.Logger().Info("Destroying enclave...")
 	s.Require().NoError(s.kCtx.DestroyEnclave(s.ctx, "e2e-test-enclave"))
 }
 
@@ -394,7 +399,7 @@ func (s *KurtosisE2ESuite) CheckForSuccessfulTx(
 	defer cancel()
 	receipt, err := s.JSONRPCBalancer().TransactionReceipt(ctx, tx)
 	if err != nil {
-		s.Logger().Error("error getting transaction receipt", "error", err)
+		s.Logger().Error("Error getting transaction receipt", "error", err)
 		return false
 	}
 	return receipt.Status == ethtypes.ReceiptStatusSuccessful

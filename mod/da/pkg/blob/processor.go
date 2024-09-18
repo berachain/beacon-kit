@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -23,9 +23,8 @@ package blob
 import (
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -33,19 +32,22 @@ import (
 // of blob sidecars.
 type Processor[
 	AvailabilityStoreT AvailabilityStore[
-		BeaconBlockBodyT, *types.BlobSidecars,
+		BeaconBlockBodyT, BlobSidecarsT,
 	],
 	BeaconBlockBodyT any,
+	BeaconBlockHeaderT BeaconBlockHeader,
+	BlobSidecarT Sidecar[BeaconBlockHeaderT],
+	BlobSidecarsT Sidecars[BlobSidecarT],
 ] struct {
 	// logger is used to log information and errors.
-	logger log.Logger[any]
+	logger log.Logger
 	// chainSpec defines the specifications of the blockchain.
-	chainSpec primitives.ChainSpec
+	chainSpec common.ChainSpec
 	// verifier is responsible for verifying the blobs.
-	verifier *Verifier
+	verifier BlobVerifier[BlobSidecarsT]
 	// blockBodyOffsetFn is a function that calculates the block body offset
 	// based on the slot and chain specifications.
-	blockBodyOffsetFn func(math.Slot, primitives.ChainSpec) uint64
+	blockBodyOffsetFn func(math.Slot, common.ChainSpec) uint64
 	// metrics is used to collect and report processor metrics.
 	metrics *processorMetrics
 }
@@ -53,17 +55,26 @@ type Processor[
 // NewProcessor creates a new blob processor.
 func NewProcessor[
 	AvailabilityStoreT AvailabilityStore[
-		BeaconBlockBodyT, *types.BlobSidecars,
+		BeaconBlockBodyT, BlobSidecarsT,
 	],
 	BeaconBlockBodyT any,
+	BeaconBlockHeaderT BeaconBlockHeader,
+	BlobSidecarT Sidecar[BeaconBlockHeaderT],
+	BlobSidecarsT Sidecars[BlobSidecarT],
 ](
-	logger log.Logger[any],
-	chainSpec primitives.ChainSpec,
-	verifier *Verifier,
-	blockBodyOffsetFn func(math.Slot, primitives.ChainSpec) uint64,
+	logger log.Logger,
+	chainSpec common.ChainSpec,
+	verifier BlobVerifier[BlobSidecarsT],
+	blockBodyOffsetFn func(math.Slot, common.ChainSpec) uint64,
 	telemetrySink TelemetrySink,
-) *Processor[AvailabilityStoreT, BeaconBlockBodyT] {
-	return &Processor[AvailabilityStoreT, BeaconBlockBodyT]{
+) *Processor[
+	AvailabilityStoreT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BlobSidecarT, BlobSidecarsT,
+] {
+	return &Processor[
+		AvailabilityStoreT, BeaconBlockBodyT, BeaconBlockHeaderT,
+		BlobSidecarT, BlobSidecarsT,
+	]{
 		logger:            logger,
 		chainSpec:         chainSpec,
 		verifier:          verifier,
@@ -72,32 +83,51 @@ func NewProcessor[
 	}
 }
 
-// VerifyBlobs verifies the blobs and ensures they match the local state.
-func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) VerifyBlobs(
-	slot math.Slot,
-	sidecars *types.BlobSidecars,
+// VerifySidecars verifies the blobs and ensures they match the local state.
+func (sp *Processor[AvailabilityStoreT, _, _, _, BlobSidecarsT]) VerifySidecars(
+	sidecars BlobSidecarsT,
 ) error {
 	startTime := time.Now()
 	defer sp.metrics.measureVerifySidecarsDuration(
 		startTime, math.U64(sidecars.Len()),
 	)
 
-	return sp.verifier.VerifyBlobs(
+	// Abort if there are no blobs to store.
+	if sidecars.Len() == 0 {
+		return nil
+	}
+
+	// Verify the blobs and ensure they match the local state.
+	return sp.verifier.VerifySidecars(
 		sidecars,
-		sp.blockBodyOffsetFn(slot, sp.chainSpec),
+		sp.blockBodyOffsetFn(
+			sidecars.Get(0).GetBeaconBlockHeader().GetSlot(),
+			sp.chainSpec,
+		),
 	)
 }
 
-// ProcessBlobs processes the blobs and ensures they match the local state.
-func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) ProcessBlobs(
-	slot math.Slot,
+// slot :=  processes the blobs and ensures they match the local state.
+func (sp *Processor[
+	AvailabilityStoreT, _, _, _, BlobSidecarsT,
+]) ProcessSidecars(
 	avs AvailabilityStoreT,
-	sidecars *types.BlobSidecars,
+	sidecars BlobSidecarsT,
 ) error {
 	startTime := time.Now()
-	defer sp.metrics.measureProcessBlobsDuration(
+	defer sp.metrics.measureProcessSidecarsDuration(
 		startTime, math.U64(sidecars.Len()),
 	)
 
-	return avs.Persist(slot, sidecars)
+	// Abort if there are no blobs to store.
+	if sidecars.Len() == 0 {
+		return nil
+	}
+
+	// If we have reached this point, we can safely assume that the blobs are
+	// valid and can be persisted, as well as that index 0 is filled.
+	return avs.Persist(
+		sidecars.Get(0).GetBeaconBlockHeader().GetSlot(),
+		sidecars,
+	)
 }

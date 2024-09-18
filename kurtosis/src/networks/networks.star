@@ -1,5 +1,5 @@
 el_cl_genesis_data = import_module(
-    "github.com/kurtosis-tech/ethereum-package/src/prelaunch_data_generator/el_cl_genesis/el_cl_genesis_data.star",
+    "github.com/ethpandaops/ethereum-package/src/prelaunch_data_generator/el_cl_genesis/el_cl_genesis_data.star",
 )
 
 NETWORKS_DIR_PATH = "/kurtosis/src/networks/"

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -24,38 +24,29 @@ import (
 	"context"
 	"time"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // defaultRetryInterval processes a deposit event.
 const defaultRetryInterval = 20 * time.Second
 
-// depositFetcher processes a deposit event.
+// depositFetcher returns a function that retrieves the block number from the
+// event and fetches and stores the deposits for that block.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
-	ExecutionPayloadT, SubscriptionT,
-	WithdrawalCredentialsT, DepositT,
-]) depositFetcher(ctx context.Context) {
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case blk := <-s.newBlock:
-			querierBlockNum := blk.
-				GetBody().GetExecutionPayload().GetNumber() - s.eth1FollowDistance
-			s.fetchAndStoreDeposits(ctx, querierBlockNum)
-		}
-	}
+	BeaconBlockT, _, _, _, _,
+]) depositFetcher(ctx context.Context, event async.Event[BeaconBlockT]) {
+	blockNum := event.Data().GetBody().GetExecutionPayload().GetNumber()
+	s.fetchAndStoreDeposits(ctx, blockNum-s.eth1FollowDistance)
 }
 
 // depositCatchupFetcher fetches deposits for blocks that failed to be
 // processed.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
-	ExecutionPayloadT, SubscriptionT,
-	WithdrawalCredentialsT, DepositT,
+	_, _, _, _, _,
 ]) depositCatchupFetcher(ctx context.Context) {
 	ticker := time.NewTicker(defaultRetryInterval)
+	defer ticker.Stop()
 	for {
 		select {
 		case <-ctx.Done():
@@ -65,7 +56,7 @@ func (s *Service[
 				continue
 			}
 			s.logger.Warn(
-				"failed to get deposits from block(s), retrying...",
+				"Failed to get deposits from block(s), retrying...",
 				"num_blocks",
 				s.failedBlocks,
 			)
@@ -77,10 +68,9 @@ func (s *Service[
 		}
 	}
 }
+
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
-	ExecutionPayloadT, SubscriptionT,
-	WithdrawalCredentialsT, DepositT,
+	_, _, _, _, _,
 ]) fetchAndStoreDeposits(ctx context.Context, blockNum math.U64) {
 	deposits, err := s.dc.ReadDeposits(ctx, blockNum)
 	if err != nil {
@@ -91,7 +81,7 @@ func (s *Service[
 
 	if len(deposits) > 0 {
 		s.logger.Info(
-			"found deposits on execution layer",
+			"Found deposits on execution layer",
 			"block", blockNum, "deposits", len(deposits),
 		)
 	}

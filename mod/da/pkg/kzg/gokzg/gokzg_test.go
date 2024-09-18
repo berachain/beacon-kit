@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -21,19 +21,18 @@
 package gokzg_test
 
 import (
-	"encoding/json"
 	"path/filepath"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/gokzg"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )
 
-//nolint:gochecknoglobals // this is a test.
 var baseDir = "../../../../../testing/files/"
 
 func TestVerifyBlobProof(t *testing.T) {
@@ -125,6 +124,14 @@ func TestVerifyBlobProofBatch(t *testing.T) {
 
 	err = verifier.VerifyBlobProofBatch(args)
 	require.NoError(t, err)
+}
+
+func TestGetImplementation(t *testing.T) {
+	verifier, err := setupVerifier()
+	require.NoError(t, err)
+
+	impl := verifier.GetImplementation()
+	require.Equal(t, gokzg.Implementation, impl)
 }
 
 // setupVerifier reads the trusted setup file and creates a new GoKZGVerifier.

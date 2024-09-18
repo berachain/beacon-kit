@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -21,35 +21,31 @@
 package deposit
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 func BuildPruneRangeFn[
-	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
-	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT],
-	BlockEventT BlockEvent[
-		DepositT, BeaconBlockBodyT, BeaconBlockT, ExecutionPayloadT,
-	],
-	DepositT Deposit[DepositT, WithdrawalCredentialsT],
-	ExecutionPayloadT interface {
-		GetNumber() math.U64
+	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
+	BeaconBlockBodyT interface {
+		GetDeposits() []DepositT
 	},
+	DepositT Deposit[DepositT, WithdrawalCredentialsT],
 	WithdrawalCredentialsT any,
-
-](cs primitives.ChainSpec) func(BlockEventT) (uint64, uint64) {
-	return func(event BlockEventT) (uint64, uint64) {
+](cs common.ChainSpec) func(async.Event[BeaconBlockT]) (uint64, uint64) {
+	return func(event async.Event[BeaconBlockT]) (uint64, uint64) {
 		deposits := event.Data().GetBody().GetDeposits()
-		if len(deposits) == 0 {
+		if len(deposits) == 0 || cs.MaxDepositsPerBlock() == 0 {
 			return 0, 0
 		}
 		index := deposits[len(deposits)-1].GetIndex()
 
-		end := min(index, cs.MaxDepositsPerBlock())
-		if index < cs.MaxDepositsPerBlock() {
+		end := min(index.Unwrap(), cs.MaxDepositsPerBlock())
+		if index < math.U64(cs.MaxDepositsPerBlock()) {
 			return 0, end
 		}
 
-		return index - cs.MaxDepositsPerBlock(), end
+		return index.Unwrap() - cs.MaxDepositsPerBlock(), end
 	}
 }

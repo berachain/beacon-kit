@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -33,13 +33,13 @@ type engineMetrics struct {
 	// TelemetrySink is the sink for the metrics.
 	sink TelemetrySink
 	// logger is the logger for the engineMetrics.
-	logger log.Logger[any]
+	logger log.Logger
 }
 
 // newEngineMetrics creates a new engineMetrics.
 func newEngineMetrics(
 	sink TelemetrySink,
-	logger log.Logger[any],
+	logger log.Logger,
 ) *engineMetrics {
 	return &engineMetrics{
 		sink:   sink,
@@ -53,17 +53,29 @@ func (em *engineMetrics) markNewPayloadCalled(
 	parentHash common.ExecutionHash,
 	isOptimistic bool,
 ) {
+	em.sink.IncrementCounter(
+		"beacon_kit.execution.engine.new_payload",
+		"payload_block_hash", payloadHash.Hex(),
+		"payload_parent_block_hash", parentHash.Hex(),
+		"is_optimistic", strconv.FormatBool(isOptimistic),
+	)
+}
+
+// markNewPayloadValid increments the counter for valid payloads.
+func (em *engineMetrics) markNewPayloadValid(
+	payloadHash common.ExecutionHash,
+	parentHash common.ExecutionHash,
+	isOptimistic bool,
+) {
 	em.logger.Info(
-		"calling new payload",
+		"Inserted new payload into execution chain",
 		"payload_block_hash", payloadHash,
 		"payload_parent_block_hash", parentHash,
 		"is_optimistic", isOptimistic,
 	)
 
 	em.sink.IncrementCounter(
-		"beacon_kit.execution.engine.new_payload",
-		"payload_block_hash", payloadHash.Hex(),
-		"payload_parent_block_hash", parentHash.Hex(),
+		"beacon_kit.execution.engine.new_payload_valid",
 		"is_optimistic", strconv.FormatBool(isOptimistic),
 	)
 }
@@ -76,7 +88,7 @@ func (em *engineMetrics) markNewPayloadAcceptedSyncingPayloadStatus(
 	isOptimistic bool,
 ) {
 	em.errorLoggerFn(isOptimistic)(
-		"received accepted syncing payload status",
+		"Received accepted syncing payload status",
 		"payload_block_hash", payloadHash,
 		"parent_hash", parentHash,
 		"is_optimistic", isOptimistic,
@@ -96,7 +108,7 @@ func (em *engineMetrics) markNewPayloadInvalidPayloadStatus(
 	isOptimistic bool,
 ) {
 	em.errorLoggerFn(isOptimistic)(
-		"received invalid payload status during new payload call",
+		"Received invalid payload status during new payload call",
 		"payload_block_hash", payloadHash,
 		"parent_hash", payloadHash,
 		"is_optimistic", isOptimistic,
@@ -116,7 +128,7 @@ func (em *engineMetrics) markNewPayloadJSONRPCError(
 	err error,
 ) {
 	em.errorLoggerFn(isOptimistic)(
-		"received JSON-RPC error during new payload call",
+		"Received JSON-RPC error during new payload call",
 		"payload_block_hash", payloadHash,
 		"parent_hash", payloadHash,
 		"last_valid_hash", lastValidHash,
@@ -138,7 +150,7 @@ func (em *engineMetrics) markNewPayloadUndefinedError(
 	err error,
 ) {
 	em.errorLoggerFn(isOptimistic)(
-		"received undefined error during new payload call",
+		"Received undefined error during new payload call",
 		"payload_block_hash", payloadHash,
 		"parent_hash", payloadHash,
 		"is_optimistic", isOptimistic,
@@ -155,19 +167,34 @@ func (em *engineMetrics) markNewPayloadUndefinedError(
 // markNotifyForkchoiceUpdateCalled increments the counter for
 // notify forkchoice update calls.
 func (em *engineMetrics) markNotifyForkchoiceUpdateCalled(
-	state *engineprimitives.ForkchoiceStateV1,
 	hasPayloadAttributes bool,
 ) {
-	em.logger.Info("notifying forkchoice update 🍕 ",
-		"head_eth1_hash", state.HeadBlockHash,
-		"safe_eth1_hash", state.SafeBlockHash,
-		"finalized_eth1_hash", state.FinalizedBlockHash,
-		"has_attributes", hasPayloadAttributes,
-	)
-
 	em.sink.IncrementCounter(
 		"beacon_kit.execution.engine.forkchoice_update",
 		"has_payload_attributes", strconv.FormatBool(hasPayloadAttributes),
+	)
+}
+
+// markForkchoiceUpdateValid increments the counter for valid forkchoice
+// updates.
+func (em *engineMetrics) markForkchoiceUpdateValid(
+	state *engineprimitives.ForkchoiceStateV1,
+	hasPayloadAttributes bool,
+	payloadID *engineprimitives.PayloadID,
+) {
+	args := []any{
+		"head_block_hash", state.HeadBlockHash,
+		"safe_block_hash", state.SafeBlockHash,
+		"finalized_block_hash", state.FinalizedBlockHash,
+		"with_attributes", hasPayloadAttributes,
+	}
+	if hasPayloadAttributes {
+		args = append(args, "payload_id", payloadID)
+	}
+	em.logger.Info("Forkchoice updated", args...)
+
+	em.sink.IncrementCounter(
+		"beacon_kit.execution.engine.forkchoice_update_valid",
 	)
 }
 
@@ -178,7 +205,7 @@ func (em *engineMetrics) markForkchoiceUpdateAcceptedSyncing(
 	err error,
 ) {
 	em.errorLoggerFn(true)(
-		"received accepted syncing payload status during forkchoice update call",
+		"Received accepted syncing payload status during forkchoice update call",
 		"head_block_hash",
 		state.HeadBlockHash,
 		"safe_block_hash",
@@ -203,7 +230,7 @@ func (em *engineMetrics) markForkchoiceUpdateInvalid(
 	err error,
 ) {
 	em.logger.Error(
-		"received invalid payload status during forkchoice update call",
+		"Received invalid payload status during forkchoice update call",
 		"head_block_hash", state.HeadBlockHash,
 		"safe_block_hash", state.SafeBlockHash,
 		"finalized_block_hash", state.FinalizedBlockHash,
@@ -221,7 +248,7 @@ func (em *engineMetrics) markForkchoiceUpdateInvalid(
 // during forkchoice updates.
 func (em *engineMetrics) markForkchoiceUpdateJSONRPCError(err error) {
 	em.logger.Error(
-		"received json-rpc error during forkchoice update call",
+		"Received json-rpc error during forkchoice update call",
 		"error", err,
 	)
 
@@ -235,7 +262,7 @@ func (em *engineMetrics) markForkchoiceUpdateJSONRPCError(err error) {
 // errors during forkchoice updates.
 func (em *engineMetrics) markForkchoiceUpdateUndefinedError(err error) {
 	em.logger.Error(
-		"received undefined execution engine error during forkchoice update call",
+		"Received undefined execution engine error during forkchoice update call",
 		"error",
 		err,
 	)

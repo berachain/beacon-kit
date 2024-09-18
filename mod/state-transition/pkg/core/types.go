@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -21,33 +21,17 @@
 package core
 
 import (
+	stdbytes "bytes"
 	"context"
-	"encoding/json"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
-
-// The AvailabilityStore interface is responsible for validating and storing
-// sidecars for specific blocks, as well as verifying sidecars that have already
-// been stored.
-type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
-	// IsDataAvailable ensures that all blobs referenced in the block are
-	// securely stored before it returns without an error.
-	IsDataAvailable(
-		context.Context, math.Slot, BeaconBlockBodyT,
-	) bool
-
-	// Persist makes sure that the sidecar remains accessible for data
-	// availability checks throughout the beacon node's operation.
-	Persist(math.Slot, BlobSidecarsT) error
-}
 
 // BeaconBlock represents a generic interface for a beacon block.
 type BeaconBlock[
@@ -81,13 +65,12 @@ type BeaconBlockBody[
 	BeaconBlockBodyT any,
 	DepositT any,
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
-	ExecutionPayloadHeaderT interface{ GetBlockHash() common.ExecutionHash },
-	WithdrawalT any,
+	ExecutionPayloadHeaderT ExecutionPayloadHeader,
+	WithdrawalsT any,
 ] interface {
-	// Empty returns an empty beacon block body.
-	Empty(uint32) BeaconBlockBodyT
+	constraints.EmptyWithVersion[BeaconBlockBodyT]
 	// GetRandaoReveal returns the RANDAO reveal signature.
 	GetRandaoReveal() crypto.BLSSignature
 	// GetExecutionPayload returns the execution payload.
@@ -95,14 +78,27 @@ type BeaconBlockBody[
 	// GetDeposits returns the list of deposits.
 	GetDeposits() []DepositT
 	// HashTreeRoot returns the hash tree root of the block body.
-	HashTreeRoot() ([32]byte, error)
+	HashTreeRoot() common.Root
 	// GetBlobKzgCommitments returns the KZG commitments for the blobs.
 	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 }
 
-// BlobSidecars is the interface for blobs sidecars.
-type BlobSidecars interface {
-	Len() int
+// BeaconBlockHeader is the interface for a beacon block header.
+type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
+	New(
+		slot math.Slot,
+		proposerIndex math.ValidatorIndex,
+		parentBlockRoot common.Root,
+		stateRoot common.Root,
+		bodyRoot common.Root,
+	) BeaconBlockHeaderT
+	HashTreeRoot() common.Root
+	GetSlot() math.Slot
+	GetProposerIndex() math.ValidatorIndex
+	GetParentBlockRoot() common.Root
+	GetStateRoot() common.Root
+	GetBodyRoot() common.Root
+	SetStateRoot(common.Root)
 }
 
 // Context defines an interface for managing state transition context.
@@ -122,9 +118,6 @@ type Context interface {
 	// GetSkipValidateResult returns whether to validate the result of the state
 	// transition.
 	GetSkipValidateResult() bool
-
-	// Unwrap returns the underlying golang standard library context.
-	Unwrap() context.Context
 }
 
 // Deposit is the interface for a deposit.
@@ -134,12 +127,8 @@ type Deposit[
 ] interface {
 	// GetAmount returns the amount of the deposit.
 	GetAmount() math.Gwei
-	// GetIndex returns the index of the deposit.
-	GetIndex() uint64
 	// GetPubkey returns the public key of the validator.
 	GetPubkey() crypto.BLSPubkey
-	// GetSignature returns the signature of the deposit.
-	GetSignature() crypto.BLSSignature
 	// GetWithdrawalCredentials returns the withdrawal credentials.
 	GetWithdrawalCredentials() WithdrawlCredentialsT
 	// VerifySignature verifies the deposit and creates a validator.
@@ -154,77 +143,63 @@ type Deposit[
 }
 
 type ExecutionPayload[
-	ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT any,
+	ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT any,
 ] interface {
-	ssz.Marshallable
-	json.Marshaler
-	json.Unmarshaler
-	Empty(uint32) ExecutionPayloadT
-	Version() uint32
-	GetTransactions() [][]byte
+	constraints.EngineType[ExecutionPayloadT]
+	GetTransactions() engineprimitives.Transactions
 	GetParentHash() common.ExecutionHash
 	GetBlockHash() common.ExecutionHash
-	GetPrevRandao() bytes.B32
-	GetWithdrawals() []WithdrawalT
+	GetPrevRandao() common.Bytes32
+	GetWithdrawals() WithdrawalsT
 	GetFeeRecipient() common.ExecutionAddress
-	GetStateRoot() bytes.B32
-	GetReceiptsRoot() common.Root
-	GetLogsBloom() []byte
+	GetStateRoot() common.Bytes32
+	GetReceiptsRoot() common.Bytes32
+	GetLogsBloom() bytes.B256
 	GetNumber() math.U64
 	GetGasLimit() math.U64
 	GetTimestamp() math.U64
 	GetGasUsed() math.U64
 	GetExtraData() []byte
-	GetBaseFeePerGas() math.U256L
+	GetBaseFeePerGas() *math.U256
 	GetBlobGasUsed() math.U64
 	GetExcessBlobGas() math.U64
-	ToHeader() (ExecutionPayloadHeaderT, error)
-	IsNil() bool
+	ToHeader(
+		maxWithdrawalsPerPayload uint64,
+		eth1ChainID uint64,
+	) (ExecutionPayloadHeaderT, error)
 }
 
 type ExecutionPayloadHeader interface {
-	Version() uint32
-	GetParentHash() common.ExecutionHash
 	GetBlockHash() common.ExecutionHash
-	GetPrevRandao() bytes.B32
-	GetFeeRecipient() common.ExecutionAddress
-	GetStateRoot() bytes.B32
-	GetReceiptsRoot() common.Root
-	GetLogsBloom() []byte
-	GetNumber() math.U64
-	GetGasLimit() math.U64
-	GetTimestamp() math.U64
-	GetGasUsed() math.U64
-	GetExtraData() []byte
-	GetBaseFeePerGas() math.U256L
-	GetBlobGasUsed() math.U64
-	GetExcessBlobGas() math.U64
 }
 
 // ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine[
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT],
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT],
 	ExecutionPayloadHeaderT any,
-	WithdrawalT Withdrawal[WithdrawalT],
+	WithdrawalsT interface {
+		Len() int
+		EncodeIndex(int, *stdbytes.Buffer)
+	},
 ] interface {
 	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
 	// execution client.
 	VerifyAndNotifyNewPayload(
 		ctx context.Context,
-		req *engineprimitives.NewPayloadRequest[ExecutionPayloadT, WithdrawalT],
+		req *engineprimitives.NewPayloadRequest[ExecutionPayloadT, WithdrawalsT],
 	) error
 }
 
 // ForkData is the interface for the fork data.
 type ForkData[ForkDataT any] interface {
 	// New creates a new fork data object.
-	New(primitives.Version, primitives.Root) ForkDataT
+	New(common.Version, common.Root) ForkDataT
 	// ComputeRandaoSigningRoot returns the signing root for the fork data.
 	ComputeRandaoSigningRoot(
 		domainType common.DomainType,
 		epoch math.Epoch,
-	) (common.Root, error)
+	) common.Root
 }
 
 // Validator represents an interface for a validator with generic type
@@ -233,7 +208,8 @@ type Validator[
 	ValidatorT any,
 	WithdrawalCredentialsT ~[32]byte,
 ] interface {
-	ssz.Marshallable
+	constraints.SSZMarshallableRootable
+	SizeSSZ() uint32
 	// New creates a new validator with the given parameters.
 	New(
 		pubkey crypto.BLSPubkey,
@@ -255,13 +231,17 @@ type Validator[
 	GetWithdrawableEpoch() math.Epoch
 }
 
+type Validators interface {
+	HashTreeRoot() common.Root
+}
+
 // Withdrawal is the interface for a withdrawal.
 type Withdrawal[WithdrawalT any] interface {
 	// Equals returns true if the withdrawal is equal to the other.
 	Equals(WithdrawalT) bool
 	// GetAmount returns the amount of the withdrawal.
 	GetAmount() math.Gwei
-	// GetPubkey returns the public key of the validator.
+	// GetIndex returns the public key of the validator.
 	GetIndex() math.U64
 	// GetValidatorIndex returns the index of the validator.
 	GetValidatorIndex() math.ValidatorIndex

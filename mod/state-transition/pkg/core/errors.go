@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -25,11 +25,6 @@ import "github.com/berachain/beacon-kit/mod/errors"
 var (
 	// ErrBlockSlotTooLow is returned when the block slot is too low.
 	ErrBlockSlotTooLow = errors.New("block slot too low")
-
-	// ErrBeaconStateOutOfSync is returned when the state is either too far
-	// behind
-	// or too far ahead of the head and we must abort the state transition.
-	ErrBeaconStateOutOfSync = errors.New("state is out of sync with head")
 
 	// ErrSlotMismatch is returned when the slot in a block header does not
 	// match the expected value.
@@ -72,9 +67,11 @@ var (
 	// does not match the expected value.
 	ErrStateRootMismatch = errors.New("state root mismatch")
 
-	// ErrInvalidSignature is returned when the signature is invalid.
-	ErrInvalidSignature = errors.New("invalid signature")
+	// ErrExceedMaximumWithdrawals is returned when the number of withdrawals
+	// in a block exceeds the maximum allowed.
+	ErrExceedMaximumWithdrawals = errors.New("exceeds maximum withdrawals")
 
-	// ErrXorInvalid is returned when the XOR operation is invalid.
-	ErrXorInvalid = errors.New("xor invalid")
+	// ErrNumWithdrawalsMismatch is returned when the number of withdrawals
+	// in a block does not match the expected value.
+	ErrNumWithdrawalsMismatch = errors.New("number of withdrawals mismatch")
 )

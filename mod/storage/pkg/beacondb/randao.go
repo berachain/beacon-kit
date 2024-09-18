@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -20,29 +20,29 @@
 
 package beacondb
 
-import (
-	"github.com/berachain/beacon-kit/mod/primitives"
-)
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 
 // UpdateRandaoMixAtIndex sets the current RANDAO mix in the store.
 func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) UpdateRandaoMixAtIndex(
 	index uint64,
-	mix primitives.Bytes32,
+	mix common.Bytes32,
 ) error {
 	return kv.randaoMix.Set(kv.ctx, index, mix[:])
 }
 
 // GetRandaoMixAtIndex retrieves the current RANDAO mix from the store.
 func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) GetRandaoMixAtIndex(
 	index uint64,
-) (primitives.Bytes32, error) {
+) (common.Bytes32, error) {
 	bz, err := kv.randaoMix.Get(kv.ctx, index)
 	if err != nil {
-		return primitives.Bytes32{}, err
+		return common.Bytes32{}, err
 	}
-	return primitives.Bytes32(bz), nil
+	return common.Bytes32(bz), nil
 }

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -21,15 +21,55 @@
 package transition
 
 import (
+	"sort"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
+// ValidatorUpdates is a list of validator updates.
+type ValidatorUpdates []*ValidatorUpdate
+
 // ValidatorUpdate is a struct that holds the validator update.
 type ValidatorUpdate struct {
-	// Pubkey is the public key of the validator.
+	// Pubkey is the public key of the validator. PubKey identifies
+	// updates, meaning that two validator updates are considered equal
+	// if they refer to the same PubKey
 	Pubkey crypto.BLSPubkey
-
 	// EffectiveBalance is the effective balance of the validator.
 	EffectiveBalance math.Gwei
+}
+
+// CanonicalSort sorts validator updates in the canonical order.
+// Canonical order requires validators updates being sorted
+// by their PubKey, with no duplicates. In case of duplicates
+// the latest is preferred.
+func (vu ValidatorUpdates) CanonicalSort() ValidatorUpdates {
+	return vu.removeDuplicates().sort()
+}
+
+// removeDuplicates removes duplicate validator updates. We
+// iterate through the list backwards since we want the last
+// update to be the one that is kept.
+func (vu ValidatorUpdates) removeDuplicates() ValidatorUpdates {
+	duplicateCheck := make(map[crypto.BLSPubkey]struct{})
+	j := len(vu) - 1
+	for i := j; i >= 0; i-- {
+		update := vu[i]
+		if _, exists := duplicateCheck[update.Pubkey]; !exists {
+			duplicateCheck[update.Pubkey] = struct{}{}
+			vu[j] = vu[i]
+			j--
+		}
+	}
+	vu = vu[j+1:]
+	return vu
+}
+
+// sort sorts the validator updates.
+func (vu ValidatorUpdates) sort() ValidatorUpdates {
+	sort.SliceStable(vu, func(i, j int) bool {
+		return string((vu)[i].Pubkey[:]) < string((vu)[j].Pubkey[:])
+	})
+	return vu
 }

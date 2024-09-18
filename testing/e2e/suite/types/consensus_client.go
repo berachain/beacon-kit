@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -24,16 +24,26 @@ import (
 	"context"
 	"fmt"
 
+	beaconhttp "github.com/attestantio/go-eth2-client/http"
 	"github.com/berachain/beacon-kit/mod/errors"
 	rpcclient "github.com/cometbft/cometbft/rpc/client"
 	httpclient "github.com/cometbft/cometbft/rpc/client/http"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
+	"github.com/rs/zerolog"
 )
 
 // ConsensusClient represents a consensus client.
 type ConsensusClient struct {
 	*WrappedServiceContext
+
+	// Comet JSON-RPC client
 	rpcclient.Client
+
+	// Beacon node-api client
+	BeaconKitNodeClient
+
+	// Cancel function for the context
+	cancelFunc context.CancelFunc
 }
 
 // NewConsensusClient creates a new consensus client.
@@ -42,7 +52,7 @@ func NewConsensusClient(serviceCtx *WrappedServiceContext) *ConsensusClient {
 		WrappedServiceContext: serviceCtx,
 	}
 
-	if err := cc.Connect(); err != nil {
+	if err := cc.Connect(context.Background()); err != nil {
 		panic(err)
 	}
 
@@ -50,18 +60,38 @@ func NewConsensusClient(serviceCtx *WrappedServiceContext) *ConsensusClient {
 }
 
 // Connect connects the consensus client to the consensus client.
-func (cc *ConsensusClient) Connect() error {
-	// Start by trying to get the public port for the JSON-RPC WebSocket
-	port, ok := cc.WrappedServiceContext.GetPublicPorts()["cometbft-rpc"]
+func (cc *ConsensusClient) Connect(ctx context.Context) error {
+	// Start by trying to get the public port for the comet JSON-RPC.
+	cometPort, ok := cc.WrappedServiceContext.GetPublicPorts()["cometbft-rpc"]
 	if !ok {
-		panic("Couldn't find the public port for the JSON-RPC WebSocket")
+		panic("Couldn't find the public port for the comet JSON-RPC")
 	}
-	clientURL := fmt.Sprintf("http://0.0.0.0:%d", port.GetNumber())
+	clientURL := fmt.Sprintf("http://0.0.0.0:%d", cometPort.GetNumber())
 	client, err := httpclient.New(clientURL)
 	if err != nil {
 		return err
 	}
 	cc.Client = client
+
+	// Then try to get the public port for the node API.
+	nodePort, ok := cc.WrappedServiceContext.GetPublicPorts()["node-api"]
+	if !ok {
+		panic("Couldn't find the public port for the node API")
+	}
+	cancelCtx, cancel := context.WithCancel(ctx)
+	cc.BeaconKitNodeClient, err = NewBeaconKitNodeClient(
+		cancelCtx,
+		beaconhttp.WithAddress(
+			fmt.Sprintf("http://0.0.0.0:%d", nodePort.GetNumber()),
+		),
+		beaconhttp.WithLogLevel(zerolog.DebugLevel),
+	)
+	if err != nil {
+		cancel()
+		return err
+	}
+	cc.cancelFunc = cancel
+
 	return nil
 }
 
@@ -75,13 +105,14 @@ func (cc ConsensusClient) Start(
 		return nil, err
 	}
 
-	return res, cc.Connect()
+	return res, cc.Connect(ctx)
 }
 
 // Stop stops the consensus client.
 func (cc ConsensusClient) Stop(
 	ctx context.Context,
 ) (*enclaves.StarlarkRunResult, error) {
+	cc.cancelFunc()
 	return cc.WrappedServiceContext.Stop(ctx)
 }
 
@@ -119,3 +150,6 @@ func (cc ConsensusClient) IsActive(ctx context.Context) (bool, error) {
 
 	return res.ValidatorInfo.VotingPower > 0, nil
 }
+
+// TODO: Add helpers for the beacon node-api client (converting from
+// go-eth2-client types to beacon-kit consensus types).

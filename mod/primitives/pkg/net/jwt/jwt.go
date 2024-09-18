@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -24,15 +24,17 @@ import (
 	"crypto/rand"
 	"regexp"
 	"strings"
+	"time"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
+	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
+	gjwt "github.com/golang-jwt/jwt/v5"
 )
 
 // HexRegexp is a regular expression to match hexadecimal characters.
 var HexRegexp = regexp.MustCompile(`^(?:0x)?[0-9a-fA-F]*$`)
 
-// JWTLength defines the length of the JWT byte array to be 32 bytes as
+// EthereumJWTLength defines the length of the JWT byte array to be 32 bytes as
 // defined the Engine API specification.
 // https://github.com/ethereum/execution-apis/blob/main/src/engine/authentication.md
 //
@@ -50,7 +52,10 @@ func NewFromHex(hexStr string) (*Secret, error) {
 	}
 
 	// Convert the hex string to a byte array.
-	bz := common.FromHex(hexStr)
+	bz, err := hex.ToBytes(hexStr)
+	if err != nil {
+		return nil, err
+	}
 	if bz == nil || len(bz) != EthereumJWTLength {
 		return nil, ErrLengthMismatch
 	}
@@ -68,6 +73,18 @@ func NewRandom() (*Secret, error) {
 		return nil, err
 	}
 	return NewFromHex(hex.FromBytes(secret).Unwrap())
+}
+
+// BuildSignedToken creates a signed JWT token from the secret.
+func (s *Secret) BuildSignedToken() (string, error) {
+	token := gjwt.NewWithClaims(gjwt.SigningMethodHS256, gjwt.MapClaims{
+		"iat": &gjwt.NumericDate{Time: time.Now()},
+	})
+	str, err := token.SignedString(s[:])
+	if err != nil {
+		return "", errors.Wrapf(ErrCreateJWT, "%w", err)
+	}
+	return str, nil
 }
 
 // String returns the JWT secret as a string with the first 8 characters

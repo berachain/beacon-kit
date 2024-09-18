@@ -33,55 +33,28 @@ import (
 )
 
 // DBManager is a manager for all pruners.
-type DBManager[
-	BeaconBlockT BeaconBlock,
-	BlockEventT BlockEvent[BeaconBlockT],
-	SubscriptionT Subscription,
-] struct {
+type DBManager struct {
 	pruners []pruner.Pruner[pruner.Prunable]
-	logger  log.Logger[any]
+	logger  log.Logger
 }
 
-func NewDBManager[
-	BeaconBlockT BeaconBlock,
-	BlockEventT BlockEvent[BeaconBlockT],
-	SubscriptionT Subscription,
-](
-	logger log.Logger[any],
+func NewDBManager(
+	logger log.Logger,
 	pruners ...pruner.Pruner[pruner.Prunable],
-) (*DBManager[BeaconBlockT, BlockEventT, SubscriptionT], error) {
-	return &DBManager[
-		BeaconBlockT, BlockEventT, SubscriptionT,
-	]{
+) (*DBManager, error) {
+	return &DBManager{
 		logger:  logger,
 		pruners: pruners,
 	}, nil
 }
 
 // Name returns the name of the Basic Service.
-func (m *DBManager[
-	BeaconBlockT, BlockEventT, SubscriptionT,
-]) Name() string {
+func (m *DBManager) Name() string {
 	return "db-manager"
 }
 
-// TODO: fr implementation
-func (m *DBManager[
-	BeaconBlockT, BlockEventT, SubscriptionT,
-]) Status() error {
-	return nil
-}
-
-// TODO: fr implementation
-func (m *DBManager[
-	BeaconBlockT, BlockEventT, SubscriptionT,
-]) WaitForHealthy(_ context.Context) {
-}
-
 // Start starts all pruners.
-func (m *DBManager[
-	BeaconBlockT, BlockEventT, SubscriptionT,
-]) Start(ctx context.Context) error {
+func (m *DBManager) Start(ctx context.Context) error {
 	for _, pruner := range m.pruners {
 		pruner.Start(ctx)
 	}

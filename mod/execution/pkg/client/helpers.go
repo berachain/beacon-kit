@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -21,15 +21,30 @@
 package client
 
 import (
+	"context"
 	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
-	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
-	gjwt "github.com/golang-jwt/jwt/v5"
 )
+
+// createContextWithTimeout creates a context with a timeout and returns it
+// along with the cancel function.
+func (s *EngineClient[
+	_, _,
+]) createContextWithTimeout(
+	ctx context.Context,
+) (context.Context, context.CancelFunc) {
+	startTime := time.Now()
+	dctx, cancel := context.WithTimeoutCause(
+		ctx,
+		s.cfg.RPCTimeout,
+		engineerrors.ErrEngineAPITimeout,
+	)
+	s.metrics.measureNewPayloadDuration(startTime)
+	return dctx, cancel
+}
 
 // processPayloadStatusResult processes the payload status result and
 // returns the latest valid hash or an error.
@@ -48,16 +63,4 @@ func processPayloadStatusResult(
 	default:
 		return nil, engineerrors.ErrUnknownPayloadStatus
 	}
-}
-
-// buildSignedJWT builds a signed JWT from the provided JWT secret.
-func buildSignedJWT(s *jwt.Secret) (string, error) {
-	token := gjwt.NewWithClaims(gjwt.SigningMethodHS256, gjwt.MapClaims{
-		"iat": &gjwt.NumericDate{Time: time.Now()},
-	})
-	str, err := token.SignedString(s[:])
-	if err != nil {
-		return "", errors.Newf("failed to create JWT token: %w", err)
-	}
-	return str, nil
 }

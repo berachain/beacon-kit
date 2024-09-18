@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -22,16 +22,24 @@
 package engineprimitives
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/ethereum/go-ethereum/beacon/engine"
 )
 
-// There are some types we can borrow from geth.
-type (
-	ClientVersionV1 = engine.ClientVersionV1
-	ExecutableData  = engine.ExecutableData
-)
+// ClientVersionV1 contains information which identifies a client
+// implementation.
+type ClientVersionV1 struct {
+	Code    string `json:"code"`
+	Name    string `json:"name"`
+	Version string `json:"version"`
+	Commit  string `json:"commit"`
+}
+
+func (v *ClientVersionV1) String() string {
+	return fmt.Sprintf("%s-%s-%s-%s", v.Code, v.Name, v.Version, v.Commit)
+}
 
 type PayloadStatusStr = string
 
@@ -59,7 +67,7 @@ type ForkchoiceResponseV1 struct {
 	PayloadID *PayloadID `json:"payloadId"`
 }
 
-// ForkchoicStateV1 as per the EngineAPI Specification:
+// ForkchoiceStateV1 as per the EngineAPI Specification:
 // https://github.com/ethereum/execution-apis/blob/main/src/engine/paris.md#forkchoicestatev1
 //
 //nolint:lll // link.

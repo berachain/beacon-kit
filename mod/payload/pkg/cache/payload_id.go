@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -54,9 +54,9 @@ func NewPayloadIDCache[
 	}
 }
 
-// Get retrieves the payload ID associated with a given slot and eth1 hash.
+// Has retrieves the payload ID associated with a given slot and eth1 hash.
 // Has checks if a payload ID exists for a given slot and eth1 hash.
-func (p *PayloadIDCache[PayloadIDT, RootT, SlotT]) Has(
+func (p *PayloadIDCache[_, RootT, SlotT]) Has(
 	slot SlotT,
 	stateRoot RootT,
 ) bool {
@@ -66,7 +66,7 @@ func (p *PayloadIDCache[PayloadIDT, RootT, SlotT]) Has(
 	return ok
 }
 
-// was successful.
+// Get was successful.
 func (p *PayloadIDCache[PayloadIDT, RootT, SlotT]) Get(
 	slot SlotT,
 	stateRoot RootT,
@@ -109,7 +109,7 @@ func (p *PayloadIDCache[PayloadIDT, RootT, SlotT]) Set(
 
 // UnsafePrunePrior removes payload IDs from the cache for slots less than
 // the specified slot. Only used for testing.
-func (p *PayloadIDCache[PayloadIDT, RootT, SlotT]) UnsafePrunePrior(
+func (p *PayloadIDCache[_, _, SlotT]) UnsafePrunePrior(
 	slot SlotT,
 ) {
 	p.mu.Lock()
@@ -120,7 +120,7 @@ func (p *PayloadIDCache[PayloadIDT, RootT, SlotT]) UnsafePrunePrior(
 // Prune removes payload IDs from the cache for slots less than the specified
 // slot. This method helps in managing the memory usage of the cache by
 // discarding outdated entries.
-func (p *PayloadIDCache[PayloadIDT, RootT, SlotT]) prunePrior(slot SlotT) {
+func (p *PayloadIDCache[_, _, SlotT]) prunePrior(slot SlotT) {
 	for s := range p.slotToStateRootToPayloadID {
 		if s < slot {
 			delete(p.slotToStateRootToPayloadID, s)

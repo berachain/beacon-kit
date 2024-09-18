@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -24,13 +24,16 @@ import (
 	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/parser"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 )
 
 // Commands creates a new command for deposit related actions.
-func Commands(chainSpec primitives.ChainSpec) *cobra.Command {
+func Commands[ExecutionPayloadT constraints.EngineType[ExecutionPayloadT]](
+	chainSpec common.ChainSpec,
+) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "deposit",
 		Short:                      "deposit subcommands",
@@ -41,7 +44,7 @@ func Commands(chainSpec primitives.ChainSpec) *cobra.Command {
 
 	cmd.AddCommand(
 		NewValidateDeposit(chainSpec),
-		NewCreateValidator(chainSpec),
+		NewCreateValidator[ExecutionPayloadT](chainSpec),
 	)
 
 	return cmd
@@ -50,7 +53,7 @@ func Commands(chainSpec primitives.ChainSpec) *cobra.Command {
 // NewValidateDeposit creates a new command for validating a deposit message.
 //
 //nolint:mnd // lots of magic numbers
-func NewValidateDeposit(chainSpec primitives.ChainSpec) *cobra.Command {
+func NewValidateDeposit(chainSpec common.ChainSpec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "validate",
 		Short: "Validates a deposit message for creating a new validator",
@@ -68,7 +71,7 @@ func NewValidateDeposit(chainSpec primitives.ChainSpec) *cobra.Command {
 
 // validateDepositMessage validates a deposit message for creating a new
 // validator.
-func validateDepositMessage(chainSpec primitives.ChainSpec) func(
+func validateDepositMessage(chainSpec common.ChainSpec) func(
 	_ *cobra.Command,
 	args []string,
 ) error {

@@ -43,7 +43,7 @@ And that's it!
 
 #### Requirements: GCP access
 
-Ask for GCP access in #devops if you need.
+Ask for GCP access in #devops if you need it.
 
 Set Kurtosis to run with cloud(GCP)/remote:
 

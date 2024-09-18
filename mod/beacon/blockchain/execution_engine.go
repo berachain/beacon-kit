@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -25,18 +25,11 @@ import (
 	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives"
 )
 
 // sendPostBlockFCU sends a forkchoice update to the execution client.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositT,
-	DepositStoreT,
+	_, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _,
 ]) sendPostBlockFCU(
 	ctx context.Context,
 	st BeaconStateT,
@@ -51,74 +44,95 @@ func (s *Service[
 		return
 	}
 
-	// This is technically not an optimistic payload
-	// TODO: This needs a refactor, big hood energy.
-	//nolint:nestif // todo fix.5
-	if !s.shouldBuildOptimisticPayloads() && s.lb.Enabled() {
-		stCopy := st.Copy()
-		if _, err = s.sp.ProcessSlots(
-			stCopy, blk.GetSlot()+1,
-		); err != nil {
-			return
-		}
-
-		var prevBlockRoot primitives.Root
-		prevBlockRoot, err = blk.HashTreeRoot()
-		if err != nil {
-			s.logger.Error(
-				"failed to get block root in postBlockProcess",
-				"error", err,
-			)
-			return
-		}
-
-		// Ask the builder to send a forkchoice update with attributes.
-		// This will trigger a new payload to be built.
-		if _, err = s.lb.RequestPayloadAsync(
-			ctx,
-			stCopy,
-			blk.GetSlot()+1,
-			//#nosec:G701 // won't realistically overflow.
-			// TODO: clock time properly.
-			(max(
-				uint64(time.Now().Unix()+int64(s.cs.TargetSecondsPerEth1Block())),
-				uint64(blk.GetBody().GetExecutionPayload().GetTimestamp()+1),
-			)),
-			prevBlockRoot,
-			lph.GetBlockHash(),
-			lph.GetParentHash(),
-		); err == nil {
-			return
-		}
-
-		// If we error we log and continue, we try again without building a
-		// block
-		// just incase this can help get our execution client back on track.
-		s.logger.
-			Error(
-				"failed to send forkchoice update with attributes",
-				"error", err,
-			)
+	if !s.shouldBuildOptimisticPayloads() && s.localBuilder.Enabled() {
+		s.sendNextFCUWithAttributes(ctx, st, blk, lph)
 	} else {
-		// If we are not building blocks, or we failed to build a block
-		// we can just send the forkchoice update without attributes.
-		_, _, err = s.ee.NotifyForkchoiceUpdate(
-			ctx,
-			engineprimitives.BuildForkchoiceUpdateRequest(
-				&engineprimitives.ForkchoiceStateV1{
-					HeadBlockHash:      lph.GetBlockHash(),
-					SafeBlockHash:      lph.GetParentHash(),
-					FinalizedBlockHash: lph.GetParentHash(),
-				},
-				nil,
-				s.cs.ActiveForkVersionForSlot(blk.GetSlot()),
-			),
-		)
-		if err != nil {
-			s.logger.Error(
-				"failed to send forkchoice update without attributes",
-				"error", err,
-			)
-		}
+		s.sendNextFCUWithoutAttributes(ctx, blk, lph)
 	}
+}
+
+// sendNextFCUWithAttributes sends a forkchoice update to the execution
+// client with attributes.
+func (s *Service[
+	_, BeaconBlockT, _, _, BeaconStateT,
+	_, _, ExecutionPayloadHeaderT, _, _,
+]) sendNextFCUWithAttributes(
+	ctx context.Context,
+	st BeaconStateT,
+	blk BeaconBlockT,
+	lph ExecutionPayloadHeaderT,
+) {
+	var err error
+	stCopy := st.Copy()
+	if _, err = s.stateProcessor.ProcessSlots(
+		stCopy, blk.GetSlot()+1,
+	); err != nil {
+		s.logger.Error(
+			"failed to process slots in non-optimistic payload",
+			"error", err,
+		)
+		return
+	}
+
+	prevBlockRoot := blk.HashTreeRoot()
+	if _, err = s.localBuilder.RequestPayloadAsync(
+		ctx,
+		stCopy,
+		blk.GetSlot()+1,
+		s.calculateNextTimestamp(blk),
+		prevBlockRoot,
+		lph.GetBlockHash(),
+		lph.GetParentHash(),
+	); err != nil {
+		s.logger.Error(
+			"failed to send forkchoice update with attributes in non-optimistic payload",
+			"error",
+			err,
+		)
+	}
+}
+
+// sendNextFCUWithoutAttributes sends a forkchoice update to the
+// execution client without attributes.
+func (s *Service[
+	_, BeaconBlockT, _, _, _, _, _,
+	ExecutionPayloadHeaderT, _, PayloadAttributesT,
+]) sendNextFCUWithoutAttributes(
+	ctx context.Context,
+	blk BeaconBlockT,
+	lph ExecutionPayloadHeaderT,
+) {
+	if _, _, err := s.executionEngine.NotifyForkchoiceUpdate(
+		ctx,
+		// TODO: Switch to New().
+		engineprimitives.
+			BuildForkchoiceUpdateRequestNoAttrs[PayloadAttributesT](
+			&engineprimitives.ForkchoiceStateV1{
+				HeadBlockHash:      lph.GetBlockHash(),
+				SafeBlockHash:      lph.GetParentHash(),
+				FinalizedBlockHash: lph.GetParentHash(),
+			},
+			s.chainSpec.ActiveForkVersionForSlot(blk.GetSlot()),
+		),
+	); err != nil {
+		s.logger.Error(
+			"failed to send forkchoice update without attributes",
+			"error", err,
+		)
+	}
+}
+
+// calculateNextTimestamp calculates the next timestamp for an execution
+// payload.
+//
+// TODO: This is hood and needs to be improved.
+func (s *Service[
+	_, BeaconBlockT, _, _, _, _, _, _, _, _,
+]) calculateNextTimestamp(blk BeaconBlockT) uint64 {
+	//#nosec:G701 // not an issue in practice.
+	return max(
+		uint64(time.Now().Unix()+
+			int64(s.chainSpec.TargetSecondsPerEth1Block())),
+		uint64(blk.GetBody().GetExecutionPayload().GetTimestamp()+1),
+	)
 }

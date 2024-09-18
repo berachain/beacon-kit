@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -23,16 +23,8 @@ package blockchain
 import "github.com/berachain/beacon-kit/mod/errors"
 
 var (
-	// ErrInvalidPayload indicates that the payload of a beacon block is
-	// invalid.
-	ErrInvalidPayload = errors.New("invalid payload")
-	// ErrNoPayloadInBeaconBlock indicates that a beacon block was expected to
-	// have a payload, but none was found.
-	ErrNoPayloadInBeaconBlock = errors.New("no payload in beacon block")
-	// ErrNilBlkBody is an error for when the block body is nil.
-	ErrNilBlkBody = errors.New("nil block body")
 	// ErrNilBlk is an error for when the beacon block is nil.
 	ErrNilBlk = errors.New("nil beacon block")
-	// ErrDataNotAvailable.
+	// ErrDataNotAvailable indicates that the required data is not available.
 	ErrDataNotAvailable = errors.New("data not available")
 )

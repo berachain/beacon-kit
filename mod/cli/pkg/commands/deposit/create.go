@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -23,22 +23,24 @@ package deposit
 import (
 	"os"
 
-	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/parser"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
-// NewValidateDeposit creates a new command for validating a deposit message.
-//
-
-func NewCreateValidator(chainSpec primitives.ChainSpec) *cobra.Command {
+// NewCreateValidator creates a new command to create a validator deposit.
+func NewCreateValidator[
+	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+](
+	chainSpec common.ChainSpec,
+) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-validator",
 		Short: "Creates a validator deposit",
@@ -47,13 +49,9 @@ func NewCreateValidator(chainSpec primitives.ChainSpec) *cobra.Command {
 		amount, current version, and genesis validator root. If the broadcast
 		flag is set to true, a private key must be provided to sign the transaction.`,
 		Args: cobra.ExactArgs(4), //nolint:mnd // The number of arguments.
-		RunE: createValidatorCmd(chainSpec),
+		RunE: createValidatorCmd[ExecutionPayloadT](chainSpec),
 	}
 
-	cmd.Flags().BoolP(
-		broadcastDeposit, broadcastDepositShorthand,
-		defaultBroadcastDeposit, broadcastDepositMsg,
-	)
 	cmd.Flags().String(privateKey, defaultPrivateKey, privateKeyMsg)
 	cmd.Flags().BoolP(
 		overrideNodeKey, overrideNodeKeyShorthand,
@@ -61,25 +59,20 @@ func NewCreateValidator(chainSpec primitives.ChainSpec) *cobra.Command {
 	)
 	cmd.Flags().
 		String(valPrivateKey, defaultValidatorPrivateKey, valPrivateKeyMsg)
-	cmd.Flags().String(jwtSecretPath, defaultJWTSecretPath, jwtSecretPathMsg)
-	cmd.Flags().String(engineRPCURL, defaultEngineRPCURL, engineRPCURLMsg)
 
 	return cmd
 }
 
 // createValidatorCmd returns a command that builds a create validator request.
 //
-// TODO: Implement broadcast functionality. Currently, the implementation works
-// for the geth client but something about the Deposit binding is not handling
-// other execution layers correctly. Peep the commit history for what we had.
-// 🤷‍♂️.
-func createValidatorCmd(
-	chainSpec primitives.ChainSpec,
+
+func createValidatorCmd[
+	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+](
+	chainSpec common.ChainSpec,
 ) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		var (
-			logger = log.NewLogger(os.Stdout)
-		)
+		logger := log.NewLogger(os.Stdout)
 
 		// Get the BLS signer.
 		blsSigner, err := getBLSSigner(cmd)
@@ -139,9 +132,6 @@ func createValidatorCmd(
 			"signature", signature.String(),
 		)
 
-		// TODO: once broadcast is fixed, remove this.
-		logger.Info("Send the above calldata to the deposit contract 🫡")
-
 		return nil
 	}
 }
@@ -150,8 +140,7 @@ func createValidatorCmd(
 func getBLSSigner(
 	cmd *cobra.Command,
 ) (crypto.BLSSigner, error) {
-	var blsSigner crypto.BLSSigner
-	supplies := []interface{}{viper.GetViper()}
+	var legacyKey components.LegacyKey
 	overrideFlag, err := cmd.Flags().GetBool(overrideNodeKey)
 	if err != nil {
 		return nil, err
@@ -159,10 +148,7 @@ func getBLSSigner(
 
 	// Build the BLS signer.
 	if overrideFlag {
-		var (
-			validatorPrivKey string
-			legacyInput      components.LegacyKey
-		)
+		var validatorPrivKey string
 		validatorPrivKey, err = cmd.Flags().GetString(valPrivateKey)
 		if err != nil {
 			return nil, err
@@ -170,24 +156,16 @@ func getBLSSigner(
 		if validatorPrivKey == "" {
 			return nil, ErrValidatorPrivateKeyRequired
 		}
-		legacyInput, err = components.GetLegacyKey(validatorPrivKey)
+		legacyKey, err = signer.LegacyKeyFromString(validatorPrivKey)
 		if err != nil {
 			return nil, err
 		}
-		supplies = append(supplies, legacyInput)
 	}
 
-	if err = depinject.Inject(
-		depinject.Configs(
-			depinject.Supply(supplies...),
-			depinject.Provide(
-				components.ProvideBlsSigner,
-			),
-		),
-		&blsSigner,
-	); err != nil {
-		return nil, err
-	}
-
-	return blsSigner, nil
+	return components.ProvideBlsSigner(
+		components.BlsSignerInput{
+			AppOpts: client.GetViperFromCmd(cmd),
+			PrivKey: legacyKey,
+		},
+	)
 }

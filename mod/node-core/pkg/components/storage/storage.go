@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -23,110 +23,86 @@ package storage
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
-
-// KVStore is a type alias for the beacon store with the generics defined using
-// primitives.
-type KVStore = beacondb.KVStore[
-	*types.Fork, *types.BeaconBlockHeader, *types.ExecutionPayloadHeader,
-	*types.Eth1Data, *types.Validator,
-]
 
 // Backend is a struct that holds the storage backend. It provides a simple
 // interface to access all types of storage required by the runtime.
 type Backend[
-	AvailabilityStoreT runtime.AvailabilityStore[
-		BeaconBlockBodyT, *datypes.BlobSidecars,
-	],
-	BeaconBlock types.RawBeaconBlock[BeaconBlockBodyT],
-	BeaconBlockBodyT types.RawBeaconBlockBody,
-	BeaconStateT core.BeaconState[
-		*types.BeaconBlockHeader, *types.Eth1Data, *types.ExecutionPayloadHeader,
-		*types.Fork, *types.Validator, *engineprimitives.Withdrawal],
-	DepositStoreT *deposit.KVStore[*types.Deposit],
+	AvailabilityStoreT any,
+	BeaconStateT BeaconState[BeaconStateT, KVStoreT],
+	BlockStoreT any,
+	DepositStoreT any,
+	KVStoreT KVStore[KVStoreT],
 ] struct {
-	cs primitives.ChainSpec
-	as AvailabilityStoreT
-	bs *KVStore
-	ds DepositStoreT
+	chainSpec         common.ChainSpec
+	availabilityStore AvailabilityStoreT
+	kvStore           KVStoreT
+	depositStore      DepositStoreT
+	blockStore        BlockStoreT
 }
 
 func NewBackend[
-	AvailabilityStoreT runtime.AvailabilityStore[
-		BeaconBlockBodyT, *datypes.BlobSidecars,
-	],
-	BeaconBlockT types.RawBeaconBlock[BeaconBlockBodyT],
-	BeaconBlockBodyT types.RawBeaconBlockBody,
-	BeaconStateT core.BeaconState[
-		*types.BeaconBlockHeader, *types.Eth1Data,
-		*types.ExecutionPayloadHeader, *types.Fork,
-		*types.Validator, *engineprimitives.Withdrawal],
-	DepositStoreT *deposit.KVStore[*types.Deposit],
+	AvailabilityStoreT any,
+	BeaconStateT BeaconState[BeaconStateT, KVStoreT],
+	BlockStoreT any,
+	DepositStoreT any,
+	KVStoreT KVStore[KVStoreT],
 ](
-	cs primitives.ChainSpec,
-	as AvailabilityStoreT,
-	bs *KVStore,
-	ds DepositStoreT,
-) *Backend[AvailabilityStoreT, BeaconBlockT,
-	BeaconBlockBodyT, BeaconStateT, DepositStoreT,
+	chainSpec common.ChainSpec,
+	availabilityStore AvailabilityStoreT,
+	kvStore KVStoreT,
+	depositStore DepositStoreT,
+	blockStore BlockStoreT,
+) *Backend[
+	AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT, KVStoreT,
 ] {
 	return &Backend[
-		AvailabilityStoreT, BeaconBlockT,
-		BeaconBlockBodyT, BeaconStateT, DepositStoreT,
+		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT, KVStoreT,
 	]{
-		cs: cs,
-		as: as,
-		bs: bs,
-		ds: ds,
+		chainSpec:         chainSpec,
+		availabilityStore: availabilityStore,
+		kvStore:           kvStore,
+		depositStore:      depositStore,
+		blockStore:        blockStore,
 	}
 }
 
-// AvailabilityStore returns the availability store struct initialized with a.
+// AvailabilityStore returns the availability store struct initialized with a
+// given context.
 func (k Backend[
-	AvailabilityStoreT, BeaconBlockT,
-	BeaconBlockBodyT, BeaconStateT, DepositT,
-]) AvailabilityStore(
-	_ context.Context,
-) AvailabilityStoreT {
-	return k.as
+	AvailabilityStoreT, _, _, _, _,
+]) AvailabilityStore() AvailabilityStoreT {
+	return k.availabilityStore
 }
 
 // BeaconState returns the beacon state struct initialized with a given
 // context and the store key.
 func (k Backend[
-	AvailabilityStoreT, BeaconBlockT,
-	BeaconBlockBodyT, BeaconStateT, DepositT,
+	_, BeaconStateT, _, _, _,
 ]) StateFromContext(
 	ctx context.Context,
 ) BeaconStateT {
-	return state.NewBeaconStateFromDB[BeaconStateT](
-		k.bs.WithContext(ctx), k.cs,
-	)
+	var st BeaconStateT
+	return st.NewFromDB(k.kvStore.WithContext(ctx), k.chainSpec)
 }
 
 // BeaconStore returns the beacon store struct.
 func (k Backend[
-	AvailabilityStoreT, BeaconBlockT,
-	BeaconBlockBodyT, BeaconStateT, DepositStoreT,
-]) BeaconStore() *KVStore {
-	return k.bs
+	_, _, _, _, KVStoreT,
+]) BeaconStore() KVStoreT {
+	return k.kvStore
+}
+
+func (k Backend[
+	_, _, BlockStoreT, _, _,
+]) BlockStore() BlockStoreT {
+	return k.blockStore
 }
 
 // DepositStore returns the deposit store struct initialized with a.
 func (k Backend[
-	AvailabilityStoreT, BeaconBlockT,
-	BeaconBlockBodyT, BeaconStateT, DepositStoreT,
-]) DepositStore(
-	_ context.Context,
-) DepositStoreT {
-	return k.ds
+	_, _, _, DepositStoreT, _,
+]) DepositStore() DepositStoreT {
+	return k.depositStore
 }

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -21,6 +21,7 @@
 package types_test
 
 import (
+	"io"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -43,17 +44,30 @@ func TestEth1Data_Serialization(t *testing.T) {
 	err = unmarshalled.UnmarshalSSZ(data)
 	require.NoError(t, err)
 	require.Equal(t, original, &unmarshalled)
+
+	var buf []byte
+	buf, err = original.MarshalSSZTo(buf)
+	require.NoError(t, err)
+
+	// The two byte slices should be equal
+	require.Equal(t, data, buf)
+}
+
+func TestEth1Data_UnmarshalError(t *testing.T) {
+	var unmarshalled types.Eth1Data
+	err := unmarshalled.UnmarshalSSZ([]byte{})
+	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
 
 func TestEth1Data_SizeSSZ(t *testing.T) {
-	eth1Data := &types.Eth1Data{
-		DepositRoot:  common.Root{},
-		DepositCount: 10,
-		BlockHash:    common.ExecutionHash{},
-	}
+	eth1Data := (&types.Eth1Data{}).New(
+		common.Root{},
+		10,
+		common.ExecutionHash{},
+	)
 
 	size := eth1Data.SizeSSZ()
-	require.Equal(t, 72, size)
+	require.Equal(t, uint32(72), size)
 }
 
 func TestEth1Data_HashTreeRoot(t *testing.T) {
@@ -63,8 +77,9 @@ func TestEth1Data_HashTreeRoot(t *testing.T) {
 		BlockHash:    common.ExecutionHash{},
 	}
 
-	_, err := eth1Data.HashTreeRoot()
-	require.NoError(t, err)
+	require.NotPanics(t, func() {
+		_ = eth1Data.HashTreeRoot()
+	})
 }
 
 func TestEth1Data_GetTree(t *testing.T) {
@@ -78,4 +93,16 @@ func TestEth1Data_GetTree(t *testing.T) {
 
 	require.NoError(t, err)
 	require.NotNil(t, tree)
+}
+
+func TestEth1Data_GetDepositCount(t *testing.T) {
+	eth1Data := &types.Eth1Data{
+		DepositRoot:  common.Root{},
+		DepositCount: 10,
+		BlockHash:    common.ExecutionHash{},
+	}
+
+	count := eth1Data.GetDepositCount()
+
+	require.Equal(t, uint64(10), count.Unwrap())
 }

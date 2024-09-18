@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -22,31 +22,28 @@ package core
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
+	"github.com/sourcegraph/conc/iter"
 )
 
+// processSyncCommitteeUpdates processes the sync committee updates.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
 ]) processSyncCommitteeUpdates(
 	st BeaconStateT,
-) ([]*transition.ValidatorUpdate, error) {
+) (transition.ValidatorUpdates, error) {
 	vals, err := st.GetValidatorsByEffectiveBalance()
 	if err != nil {
 		return nil, err
 	}
 
-	// Create a list of validator updates.
-	//
-	// TODO: This is a trivial implementation that is to improved upon later.
-	updates := make([]*transition.ValidatorUpdate, 0)
-	for _, val := range vals {
-		updates = append(updates, &transition.ValidatorUpdate{
-			Pubkey:           val.GetPubkey(),
-			EffectiveBalance: val.GetEffectiveBalance(),
-		})
-	}
-
-	return updates, nil
+	return iter.MapErr(
+		vals,
+		func(val *ValidatorT) (*transition.ValidatorUpdate, error) {
+			v := (*val)
+			return &transition.ValidatorUpdate{
+				Pubkey:           v.GetPubkey(),
+				EffectiveBalance: v.GetEffectiveBalance(),
+			}, nil
+		},
+	)
 }

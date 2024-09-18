@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -21,55 +21,89 @@
 package node
 
 import (
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/app"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
+	"context"
+	"os"
+	"os/signal"
+	"syscall"
+
+	"github.com/berachain/beacon-kit/mod/log"
+	service "github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
-	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/spf13/cobra"
+	"golang.org/x/sync/errgroup"
 )
 
-// Node represents the node application.
-type Node struct {
-	*app.BeaconApp
+// Compile-time assertion that node implements the NodeI interface.
+var _ types.Node = (*node)(nil)
 
-	// name and description of the application.
-	name        string
-	description string
+// node is the hard-type representation of the beacon-kit node.
+type node struct {
+	// logger is the node's logger.
+	logger log.Logger
+	// registry is the node's service registry.
+	registry *service.Registry
 
-	// rootCmd is the root command for the application.
-	rootCmd *cobra.Command
+	// TODO: FIX, HACK TO MAKE CLI HAPPY FOR NOW.
+	// THIS SHOULD BE REMOVED EVENTUALLY.
+	types.Node
 }
 
-// New returns a new Node.
-func New[NodeT types.NodeI]() NodeT {
-	return types.NodeI(&Node{}).(NodeT)
+// New returns a new node.
+func New[NodeT types.Node](
+	registry *service.Registry, logger log.Logger) NodeT {
+	return types.Node(&node{registry: registry, logger: logger}).(NodeT)
 }
 
-// Run runs the node's server application.
-func (n *Node) Run() error {
-	return svrcmd.Execute(
-		n.rootCmd, "", components.DefaultNodeHome,
-	)
+// Start starts the node.
+func (n *node) Start(
+	ctx context.Context,
+) error {
+	// Make the context cancellable.
+	cctx, cancelFn := context.WithCancel(ctx)
+
+	// Create an errgroup to manage the lifecycle of all the services.
+	g, gctx := errgroup.WithContext(cctx)
+
+	// listen for quit signals so the calling parent process can gracefully exit
+	n.listenForQuitSignals(g, true, cancelFn)
+
+	// Start all the registered services.
+	if err := n.registry.StartAll(gctx); err != nil {
+		return err
+	}
+
+	// Wait for those aforementioned exit signals.
+	return g.Wait()
 }
 
-// SetAppName sets the name of the application.
-func (n *Node) SetAppName(name string) {
-	n.name = name
-}
+// listenForQuitSignals listens for SIGINT and SIGTERM. When a signal is
+// received,
+// the cleanup function is called, indicating the caller can gracefully exit or
+// return.
+//
+// Note, the blocking behavior of this depends on the block argument.
+// The caller must ensure the corresponding context derived from the cancelFn is
+// used correctly.
+func (n *node) listenForQuitSignals(
+	g *errgroup.Group,
+	block bool,
+	cancelFn context.CancelFunc,
+) {
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 
-// SetAppDescription sets the description of the application.
-func (n *Node) SetAppDescription(description string) {
-	n.description = description
-}
+	f := func() {
+		sig := <-sigCh
+		cancelFn()
 
-// SetApplication sets the application.
-func (n *Node) SetApplication(a servertypes.Application) {
-	//nolint:errcheck // BeaconApp is our servertypes.Application
-	n.BeaconApp = a.(*app.BeaconApp)
-}
+		n.logger.Info("caught exit signal", "signal", sig.String())
+	}
 
-// SetRootCmd sets the root command for the application.
-func (n *Node) SetRootCmd(cmd *cobra.Command) {
-	n.rootCmd = cmd
+	if block {
+		g.Go(func() error {
+			f()
+			return nil
+		})
+	} else {
+		go f()
+	}
 }

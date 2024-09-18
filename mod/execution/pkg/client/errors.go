@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -25,7 +25,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/http"
 	jsonrpc "github.com/berachain/beacon-kit/mod/primitives/pkg/net/json-rpc"
-	gethRPC "github.com/ethereum/go-ethereum/rpc"
 )
 
 // ErrUnauthenticatedConnection indicates that the connection is not
@@ -47,10 +46,21 @@ const (
 var (
 	// ErrNotStarted indicates that the execution client is not started.
 	ErrNotStarted = errors.New("engine client is not started")
+
+	// ErrFailedToRefreshJWT indicates that the JWT could not be refreshed.
+	ErrFailedToRefreshJWT = errors.New("failed to refresh auth token")
+
+	// ErrMismatchedEth1ChainID is returned when the chainID does not
+	// match the expected chain ID.
+	ErrMismatchedEth1ChainID = errors.New("mismatched chain ID")
 )
 
 // Handles errors received from the RPC server according to the specification.
-func (s *EngineClient[ExecutionPayloadDenebT]) handleRPCError(err error) error {
+func (s *EngineClient[
+	_, _,
+]) handleRPCError(
+	err error,
+) error {
 	// Exit early if there is no error.
 	if err == nil {
 		return nil
@@ -108,16 +118,17 @@ func (s *EngineClient[ExecutionPayloadDenebT]) handleRPCError(err error) error {
 		return engineerrors.ErrRequestTooLarge
 	case -32000:
 		s.metrics.incrementInternalServerErrorCounter()
-		// Only -32000 status codes are data errors in the RPC specification.
-		var errWithData gethRPC.DataError
-		errWithData, ok = err.(gethRPC.DataError) //nolint:errorlint // from prysm.
-		if !ok {
-			return errors.Wrapf(
-				errors.Join(jsonrpc.ErrServer, err),
-				"got an unexpected data error in JSON-RPC response",
-			)
-		}
-		return errors.Wrapf(jsonrpc.ErrServer, "%v", errWithData.Error())
+		// // Only -32000 status codes are data errors in the RPC specification.
+		// var errWithData rpc.DataError
+		// errWithData, ok = err.(rpc.DataError) //nolint:errorlint // from
+		// prysm.
+		// if !ok {
+		// 	return errors.Wrapf(
+		// 		errors.Join(jsonrpc.ErrServer, err),
+		// 		"got an unexpected data error in JSON-RPC response",
+		// 	)
+		// }
+		return errors.Wrapf(jsonrpc.ErrServer, "%v", e.Error())
 	default:
 		return err
 	}

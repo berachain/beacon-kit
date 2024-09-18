@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -29,10 +29,7 @@ import (
 //
 //nolint:lll
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) processSlashingsReset(
 	st BeaconStateT,
 ) error {
@@ -42,7 +39,7 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	index := (uint64(sp.cs.SlotToEpoch(slot)) + 1) % sp.cs.EpochsPerSlashingsVector()
+	index := (sp.cs.SlotToEpoch(slot).Unwrap() + 1) % sp.cs.EpochsPerSlashingsVector()
 	return st.UpdateSlashingAtIndex(index, 0)
 }
 
@@ -51,29 +48,10 @@ func (sp *StateProcessor[
 //
 //nolint:lll,unused // will be used later
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) processProposerSlashing(
 	_ BeaconStateT,
 	// ps ProposerSlashing,
-) error {
-	return nil
-}
-
-// processAttesterSlashing as defined in the Ethereum 2.0 specification.
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#attester-slashings
-//
-//nolint:lll,unused // will be used later
-func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
-]) processAttesterSlashing(
-	_ BeaconStateT,
-	// as AttesterSlashing,
 ) error {
 	return nil
 }
@@ -86,10 +64,7 @@ func (sp *StateProcessor[
 //
 //nolint:lll,unused // will be used later
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) processSlashings(
 	st BeaconStateT,
 ) error {
@@ -104,8 +79,8 @@ func (sp *StateProcessor[
 	}
 
 	adjustedTotalSlashingBalance := min(
-		uint64(totalSlashings)*sp.cs.ProportionalSlashingMultiplier(),
-		uint64(totalBalance),
+		totalSlashings.Unwrap()*sp.cs.ProportionalSlashingMultiplier(),
+		totalBalance.Unwrap(),
 	)
 
 	vals, err := st.GetValidators()
@@ -120,16 +95,16 @@ func (sp *StateProcessor[
 	}
 
 	//nolint:mnd // this is in the spec
-	slashableEpoch := (uint64(sp.cs.SlotToEpoch(slot)) + sp.cs.EpochsPerSlashingsVector()) / 2
+	slashableEpoch := (sp.cs.SlotToEpoch(slot).Unwrap() + sp.cs.EpochsPerSlashingsVector()) / 2
 
 	// Iterate through the validators and slash if needed.
 	for _, val := range vals {
 		if val.IsSlashed() &&
-			(slashableEpoch == uint64(val.GetWithdrawableEpoch())) {
+			(slashableEpoch == val.GetWithdrawableEpoch().Unwrap()) {
 			if err = sp.processSlash(
 				st, val,
 				adjustedTotalSlashingBalance,
-				uint64(totalBalance),
+				totalBalance.Unwrap(),
 			); err != nil {
 				return err
 			}
@@ -142,10 +117,7 @@ func (sp *StateProcessor[
 //
 //nolint:unused // will be used later
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
 ]) processSlash(
 	st BeaconStateT,
 	val ValidatorT,
@@ -154,7 +126,7 @@ func (sp *StateProcessor[
 ) error {
 	// Calculate the penalty.
 	increment := sp.cs.EffectiveBalanceIncrement()
-	balDivIncrement := uint64(val.GetEffectiveBalance()) / increment
+	balDivIncrement := val.GetEffectiveBalance().Unwrap() / increment
 	penaltyNumerator := balDivIncrement * adjustedTotalSlashingBalance
 	penalty := penaltyNumerator / totalBalance * increment
 

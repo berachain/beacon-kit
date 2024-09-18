@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -21,8 +21,6 @@
 package math
 
 import (
-	"math/big"
-
 	"github.com/berachain/beacon-kit/mod/errors"
 )
 
@@ -30,26 +28,12 @@ var (
 	// ErrUnexpectedInputLengthBase is the base error for unexpected input
 	// length errors.
 	ErrUnexpectedInputLengthBase = errors.New("unexpected input length")
-
-	// ErrNilBigInt is returned when a nil big.Int is provided to a.
-	ErrNilBigInt = errors.New("big.Int is nil")
-
-	// ErrNegativeBigInt is returned when a negative big.Int is provided to a
-	// function that requires a positive big.Int.
-	ErrNegativeBigIntBase = errors.New("big.Int is negative")
 )
 
 // ErrUnexpectedInputLength returns an error indicating that the input length.
-func ErrUnexpectedInputLength(expected, actual int) error {
+func ErrUnexpectedInputLength(expected uint32, actual int) error {
 	return errors.Wrapf(
 		ErrUnexpectedInputLengthBase,
 		"expected %d, got %d", expected, actual,
 	)
-}
-
-// ErrNegativeBigInt returns an error indicating that a negative big.Int was
-// provided.
-func ErrNegativeBigInt(actual *big.Int) error {
-	return errors.Wrapf(
-		ErrNegativeBigIntBase, "big.Int is negative: got %s", actual.String())
 }

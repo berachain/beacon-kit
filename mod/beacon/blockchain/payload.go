@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -24,20 +24,12 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // forceStartupHead sends a force head FCU to the execution client.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
-	DepositT,
+	_, _, _, _, BeaconStateT, _, _, _, _, _,
 ]) forceStartupHead(
 	ctx context.Context,
 	st BeaconStateT,
@@ -54,7 +46,7 @@ func (s *Service[
 	// TODO: Verify if the slot number is correct here, I believe in current
 	// form
 	// it should be +1'd. Not a big deal until hardforks are in play though.
-	if err = s.lb.SendForceHeadFCU(ctx, st, slot+1); err != nil {
+	if err = s.localBuilder.SendForceHeadFCU(ctx, st, slot+1); err != nil {
 		s.logger.Error(
 			"failed to send force head FCU",
 			"error", err,
@@ -65,13 +57,7 @@ func (s *Service[
 // handleRebuildPayloadForRejectedBlock handles the case where the incoming
 // block was rejected and we need to rebuild the payload for the current slot.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
-	DepositT,
+	_, _, _, _, BeaconStateT, _, _, _, _, _,
 ]) handleRebuildPayloadForRejectedBlock(
 	ctx context.Context,
 	st BeaconStateT,
@@ -94,28 +80,20 @@ func (s *Service[
 // rejected the incoming block and it would be unsafe to use any
 // information from it.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
-	DepositT,
+	_, _, _, _, BeaconStateT, _, _, ExecutionPayloadHeaderT, _, _,
 ]) rebuildPayloadForRejectedBlock(
 	ctx context.Context,
 	st BeaconStateT,
 ) error {
 	var (
-		prevStateRoot primitives.Root
-		prevBlockRoot primitives.Root
-		lph           *types.ExecutionPayloadHeader
-		slot          math.Slot
+		lph  ExecutionPayloadHeaderT
+		slot math.Slot
 	)
 
-	s.logger.Info("rebuilding payload for rejected block ⏳ ")
+	s.logger.Info("Rebuilding payload for rejected block ⏳ ")
 
 	// In order to rebuild a payload for the current slot, we need to know the
-	// previous block root, since we know that this is unmodified state.
+	// previous block root, since we know that this is an unmodified state.
 	// We can safely get the latest block header and then rebuild the
 	// previous block and it's root.
 	latestHeader, err := st.GetLatestBlockHeader()
@@ -128,16 +106,8 @@ func (s *Service[
 		return err
 	}
 
-	prevStateRoot, err = st.HashTreeRoot()
-	if err != nil {
-		return err
-	}
-
-	latestHeader.StateRoot = prevStateRoot
-	prevBlockRoot, err = latestHeader.HashTreeRoot()
-	if err != nil {
-		return err
-	}
+	// Set the previous state root on the header.
+	latestHeader.SetStateRoot(st.HashTreeRoot())
 
 	// We need to get the *last* finalized execution payload, thus
 	// the BeaconState that was passed in must be `unmodified`.
@@ -147,7 +117,7 @@ func (s *Service[
 	}
 
 	// Submit a request for a new payload.
-	if _, err = s.lb.RequestPayloadAsync(
+	if _, err = s.localBuilder.RequestPayloadAsync(
 		ctx,
 		st,
 		// We are rebuilding for the current slot.
@@ -159,13 +129,13 @@ func (s *Service[
 			uint64((lph.GetTimestamp()+1)),
 		),
 		// We set the parent root to the previous block root.
-		prevBlockRoot,
-		// We set the head of our chain to previous finalized block.
+		latestHeader.HashTreeRoot(),
+		// We set the head of our chain to the previous finalized block.
 		lph.GetBlockHash(),
 		// We can say that the payload from the previous block is *finalized*,
 		// TODO: This is making an assumption about the consensus rules
 		// and possibly should be made more explicit later on.
-		lph.GetBlockHash(),
+		lph.GetParentHash(),
 	); err != nil {
 		s.metrics.markRebuildPayloadForRejectedBlockFailure(slot, err)
 		return err
@@ -177,13 +147,7 @@ func (s *Service[
 // handleOptimisticPayloadBuild handles optimistically
 // building for the next slot.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
-	DepositT,
+	_, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _,
 ]) handleOptimisticPayloadBuild(
 	ctx context.Context,
 	st BeaconStateT,
@@ -191,8 +155,8 @@ func (s *Service[
 ) {
 	if err := s.optimisticPayloadBuild(ctx, st, blk); err != nil {
 		s.logger.Error(
-			"failed to build optimistic payload",
-			"for_slot", blk.GetSlot()+1,
+			"Failed to build optimistic payload",
+			"for_slot", (blk.GetSlot() + 1).Base10(),
 			"error", err,
 		)
 	}
@@ -200,13 +164,7 @@ func (s *Service[
 
 // optimisticPayloadBuild builds a payload for the next slot.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositStoreT,
-	DepositT,
+	_, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _,
 ]) optimisticPayloadBuild(
 	ctx context.Context,
 	st BeaconStateT,
@@ -217,19 +175,12 @@ func (s *Service[
 	slot := blk.GetSlot() + 1
 
 	s.logger.Info(
-		"optimistically triggering payload build for next slot 🛩️ ",
-		"next_slot", slot,
+		"Optimistically triggering payload build for next slot 🛩️ ",
+		"next_slot", slot.Base10(),
 	)
 
-	// We know that this block was properly formed so we can
-	// calculate the block hash easily.
-	blkRoot, err := blk.HashTreeRoot()
-	if err != nil {
-		return err
-	}
-
 	// We process the slot to update any RANDAO values.
-	if _, err = s.sp.ProcessSlots(
+	if _, err := s.stateProcessor.ProcessSlots(
 		st, slot,
 	); err != nil {
 		return err
@@ -237,18 +188,18 @@ func (s *Service[
 
 	// We then trigger a request for the next payload.
 	payload := blk.GetBody().GetExecutionPayload()
-	if _, err = s.lb.RequestPayloadAsync(
+	if _, err := s.localBuilder.RequestPayloadAsync(
 		ctx, st,
 		slot,
 		// TODO: this is hood as fuck.
 		max(
 			//#nosec:G701
-			uint64(time.Now().Unix()+int64(s.cs.TargetSecondsPerEth1Block())),
+			uint64(time.Now().Unix()+int64(s.chainSpec.TargetSecondsPerEth1Block())),
 			uint64((payload.GetTimestamp()+1)),
 		),
 		// The previous block root is simply the root of the block we just
 		// processed.
-		blkRoot,
+		blk.HashTreeRoot(),
 		// We set the head of our chain to the block we just processed.
 		payload.GetBlockHash(),
 		// We can say that the payload from the previous block is *finalized*,

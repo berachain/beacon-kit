@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -21,7 +21,9 @@
 package errors
 
 import (
-	"github.com/cockroachdb/errors"
+	stderrors "errors"
+
+	"github.com/pkg/errors"
 )
 
 // TODO: eventually swap out via build flags if we believe there is value
@@ -30,14 +32,22 @@ import (
 //nolint:gochecknoglobals // used an alias.
 var (
 	New   = errors.New
-	Newf  = errors.Newf
 	Wrap  = errors.Wrap
 	Wrapf = errors.Wrapf
 	Is    = errors.Is
-	IsAny = errors.IsAny
 	As    = errors.As
-	Join  = errors.Join
+	Join  = stderrors.Join
 )
+
+// IsAny checks if the provided error is any of the provided errors.
+func IsAny(err error, errs ...error) bool {
+	for _, e := range errs {
+		if errors.Is(err, e) {
+			return true
+		}
+	}
+	return false
+}
 
 // DetailedError is a custom error type that includes a message and a flag
 // indicating if the error is fatal.
@@ -48,7 +58,7 @@ type DetailedError struct {
 	fatal bool
 }
 
-// Error returns the error message.
+// WrapNonFatal returns the error message.
 func WrapNonFatal(err error) error {
 	return &DetailedError{
 		error: err,
@@ -104,7 +114,7 @@ func JoinFatal(errs ...error) error {
 			break
 		}
 	}
-	retErr := errors.Join(errs...)
+	retErr := stderrors.Join(errs...)
 	if fatal {
 		return WrapFatal(retErr)
 	}

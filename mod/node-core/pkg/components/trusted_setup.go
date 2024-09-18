@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -21,11 +21,10 @@
 package components
 
 import (
-	"encoding/json"
-
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/config/flags"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/berachain/beacon-kit/mod/cli/pkg/flags"
+	"github.com/berachain/beacon-kit/mod/config"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/spf13/afero"
 	"github.com/spf13/cast"
@@ -34,10 +33,10 @@ import (
 // TrustedSetupInput is the input for the dep inject framework.
 type TrustedSetupInput struct {
 	depinject.In
-	AppOpts servertypes.AppOptions
+	AppOpts config.AppOptions
 }
 
-// ProvideBlsSigner is a function that provides the module to the application.
+// ProvideTrustedSetup provides the module to the application.
 func ProvideTrustedSetup(
 	in TrustedSetupInput,
 ) (*gokzg4844.JSONTrustedSetup, error) {

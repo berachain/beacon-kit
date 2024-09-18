@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -21,12 +21,12 @@
 package types_test
 
 import (
+	"io"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	ssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -46,6 +46,13 @@ func TestBeaconBlockHeader_Serialization(t *testing.T) {
 	err = unmarshalled.UnmarshalSSZ(data)
 	require.NoError(t, err)
 	require.Equal(t, original, &unmarshalled)
+
+	var buf []byte
+	buf, err = original.MarshalSSZTo(buf)
+	require.NoError(t, err)
+
+	// The two byte slices should be equal
+	require.Equal(t, data, buf)
 }
 
 func TestBeaconBlockHeader_SizeSSZ(t *testing.T) {
@@ -58,10 +65,10 @@ func TestBeaconBlockHeader_SizeSSZ(t *testing.T) {
 	)
 
 	size := header.SizeSSZ()
-	require.Equal(t, 112, size)
+	require.Equal(t, uint32(112), size)
 }
 
-func TestBeaconBlockHeader_HashTreeRoot(t *testing.T) {
+func TestBeaconBlockHeader_HashTreeRoot(_ *testing.T) {
 	header := types.NewBeaconBlockHeader(
 		math.Slot(100),
 		math.ValidatorIndex(200),
@@ -70,8 +77,7 @@ func TestBeaconBlockHeader_HashTreeRoot(t *testing.T) {
 		common.Root{},
 	)
 
-	_, err := header.HashTreeRoot()
-	require.NoError(t, err)
+	_ = header.HashTreeRoot()
 }
 
 func TestBeaconBlockHeader_GetTree(t *testing.T) {
@@ -133,10 +139,69 @@ func TestBeaconBlockHeader_New(t *testing.T) {
 	require.Equal(t, bodyRoot, newHeader.BodyRoot)
 }
 
+func TestBeaconBlockHeader_SetSlot(t *testing.T) {
+	header := types.NewBeaconBlockHeader(
+		math.Slot(100),
+		math.ValidatorIndex(200),
+		common.Root{},
+		common.Root{},
+		common.Root{},
+	)
+
+	newSlot := math.Slot(101)
+	header.SetSlot(newSlot)
+
+	require.Equal(t, newSlot, header.GetSlot())
+}
+
+func TestBeaconBlockHeader_SetProposerIndex(t *testing.T) {
+	header := types.NewBeaconBlockHeader(
+		math.Slot(100),
+		math.ValidatorIndex(200),
+		common.Root{},
+		common.Root{},
+		common.Root{},
+	)
+
+	newProposerIndex := math.ValidatorIndex(201)
+	header.SetProposerIndex(newProposerIndex)
+	require.Equal(t, newProposerIndex, header.GetProposerIndex())
+}
+
+func TestBeaconBlockHeader_SetParentBlockRoot(t *testing.T) {
+	header := types.NewBeaconBlockHeader(
+		math.Slot(100),
+		math.ValidatorIndex(200),
+		common.Root{},
+		common.Root{},
+		common.Root{},
+	)
+
+	newParentBlockRoot := common.Root{}
+	header.SetParentBlockRoot(newParentBlockRoot)
+
+	require.Equal(t, newParentBlockRoot, header.GetParentBlockRoot())
+}
+
+func TestBeaconBlockHeader_SetBodyRoot(t *testing.T) {
+	header := types.NewBeaconBlockHeader(
+		math.Slot(100),
+		math.ValidatorIndex(200),
+		common.Root{},
+		common.Root{},
+		common.Root{},
+	)
+
+	newBodyRoot := common.Root{}
+	header.SetBodyRoot(newBodyRoot)
+
+	require.Equal(t, newBodyRoot, header.GetBodyRoot())
+}
+
 func TestBeaconBlockHeader_UnmarshalSSZ_ErrSize(t *testing.T) {
 	header := &types.BeaconBlockHeader{}
 	buf := make([]byte, 100) // Incorrect size
 
 	err := header.UnmarshalSSZ(buf)
-	require.ErrorIs(t, err, ssz.ErrSize)
+	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }

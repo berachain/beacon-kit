@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -21,24 +21,13 @@
 package math
 
 import (
-	"encoding/binary"
 	"math/big"
-	"math/bits"
-	"reflect"
+	"strconv"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math/log"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math/pow"
 )
-
-const (
-	// U64NumBytes is the number of bytes in a U64.
-	U64NumBytes = 8
-	// U64NumBits is the number of bits in a U64.
-	U64NumBits = U64NumBytes * 8
-)
-
-//nolint:gochecknoglobals // stores the reflect type of U64.
-var uint64T = reflect.TypeOf(U64(0))
 
 //nolint:lll
 type (
@@ -69,49 +58,6 @@ type (
 	Epoch = U64
 )
 
-// -------------------------- SSZMarshallable --------------------------
-
-// MarshalSSZTo serializes the U64 into a byte slice.
-func (u U64) MarshalSSZTo(buf []byte) ([]byte, error) {
-	binary.LittleEndian.PutUint64(buf, uint64(u))
-	return buf, nil
-}
-
-// MarshalSSZ serializes the U64 into a byte slice.
-func (u U64) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, U64NumBytes)
-	if _, err := u.MarshalSSZTo(buf); err != nil {
-		return nil, err
-	}
-	return buf, nil
-}
-
-// UnmarshalSSZ deserializes the U64 from a byte slice.
-func (u *U64) UnmarshalSSZ(buf []byte) error {
-	if len(buf) != U64NumBytes {
-		return ErrUnexpectedInputLength(U64NumBytes, len(buf))
-	}
-	if u == nil {
-		u = new(U64)
-	}
-	*u = U64(binary.LittleEndian.Uint64(buf))
-	return nil
-}
-
-// SizeSSZ returns the size of the U64 in bytes.
-func (u U64) SizeSSZ() int {
-	return U64NumBytes
-}
-
-// HashTreeRoot computes the Merkle root of the U64 using SSZ hashing rules.
-func (u U64) HashTreeRoot() ([32]byte, error) {
-	buf := make([]byte, U64NumBytes)
-	binary.LittleEndian.PutUint64(buf, uint64(u))
-	var hashRoot [32]byte
-	copy(hashRoot[:], buf)
-	return hashRoot, nil
-}
-
 // -------------------------- JSONMarshallable -------------------------
 
 // MarshalText implements encoding.TextMarshaler.
@@ -121,7 +67,7 @@ func (u U64) MarshalText() ([]byte, error) {
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (u *U64) UnmarshalJSON(input []byte) error {
-	return hex.UnmarshalJSONText(input, u, uint64T)
+	return hex.UnmarshalJSONText(input, u)
 }
 
 // ---------------------------------- Hex ----------------------------------
@@ -136,9 +82,9 @@ func (u *U64) UnmarshalText(input []byte) error {
 	return nil
 }
 
-// String returns the hex encoding of b.
-func (u U64) String() hex.String {
-	return hex.FromUint64(u.Unwrap())
+// String returns the string representation of the U64.
+func (u U64) Base10() string {
+	return strconv.FormatUint(uint64(u), 10)
 }
 
 // ----------------------- U64 Mathematical Methods -----------------------
@@ -160,23 +106,9 @@ func (u U64) UnwrapPtr() *uint64 {
 //
 // https://github.com/ethereum/consensus-specs/blob/dev/ssz/merkle-proofs.md#helper-functions
 //
-//nolint:mnd,lll // powers of 2.
+//nolint:lll // powers of 2.
 func (u U64) NextPowerOfTwo() U64 {
-	if u == 0 {
-		return 1
-	}
-	if u > 1<<63 {
-		panic("Next power of 2 is 1 << 64.")
-	}
-	u--
-	u |= u >> 1
-	u |= u >> 2
-	u |= u >> 4
-	u |= u >> 8
-	u |= u >> 16
-	u |= u >> 32
-	u++
-	return u
+	return pow.NextPowerOfTwo(u)
 }
 
 // Get the power of 2 for given input, or the closest lower power of 2 if the
@@ -187,52 +119,31 @@ func (u U64) NextPowerOfTwo() U64 {
 //
 // https://github.com/ethereum/consensus-specs/blob/dev/ssz/merkle-proofs.md#helper-functions
 //
-//nolint:mnd,lll // From Ethereum 2.0 spec.
+//nolint:lll // From Ethereum 2.0 spec.
 func (u U64) PrevPowerOfTwo() U64 {
-	if u == 0 {
-		return 1
-	}
-	u |= u >> 1
-	u |= u >> 2
-	u |= u >> 4
-	u |= u >> 8
-	u |= u >> 16
-	u |= u >> 32
-	return u - (u >> 1)
+	return pow.PrevPowerOfTwo(u)
 }
 
 // ILog2Ceil returns the ceiling of the base 2 logarithm of the U64.
 func (u U64) ILog2Ceil() uint8 {
-	// Log2(0) is undefined, should we panic?
-	if u == 0 {
-		return 0
-	}
-	//#nosec:G701 // we handle the case of u == 0 above, so this is safe.
-	return uint8(bits.Len64(uint64(u - 1)))
+	return log.ILog2Ceil(u)
 }
 
 // ILog2Floor returns the floor of the base 2 logarithm of the U64.
 func (u U64) ILog2Floor() uint8 {
-	// Log2(0) is undefined, should we panic?
-	if u == 0 {
-		return 0
-	}
-	//#nosec:G701 // we handle the case of u == 0 above, so this is safe.
-	return uint8(bits.Len64(uint64(u))) - 1
+	return log.ILog2Floor(u)
 }
 
 // ---------------------------- Gwei Methods ----------------------------
 
-// GweiToWei returns the value of Wei in Gwei.
+// GweiFromWei returns the value of Wei in Gwei.
 func GweiFromWei(i *big.Int) Gwei {
-	intToGwei := big.NewInt(0).SetUint64(constants.GweiPerWei)
+	intToGwei := big.NewInt(0).SetUint64(GweiPerWei)
 	i.Div(i, intToGwei)
 	return Gwei(i.Uint64())
 }
 
 // ToWei converts a value from Gwei to Wei.
-func (u Gwei) ToWei() *big.Int {
-	gweiAmount := big.NewInt(0).SetUint64(u.Unwrap())
-	intToGwei := big.NewInt(0).SetUint64(constants.GweiPerWei)
-	return gweiAmount.Mul(gweiAmount, intToGwei)
+func (u Gwei) ToWei() *U256 {
+	return (&U256{}).Mul(NewU256(uint64(u)), NewU256(GweiPerWei))
 }

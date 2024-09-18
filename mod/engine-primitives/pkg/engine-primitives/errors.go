@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is govered by the Business Source License included
+// Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
 // ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
@@ -25,9 +25,6 @@ import "github.com/berachain/beacon-kit/mod/errors"
 var (
 	// ErrInvalidTimestamp indicates that the provided timestamp is not valid.
 	ErrInvalidTimestamp = errors.New("invalid timestamp")
-
-	// ErrInvalidRandao indicates that the provided RANDAO value is not valid.
-	ErrInvalidRandao = errors.New("invalid randao")
 
 	// ErrNilWithdrawals indicates that the withdrawals are in a
 	// Capella versioned payload.
