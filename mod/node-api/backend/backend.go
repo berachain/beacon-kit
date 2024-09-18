@@ -211,5 +211,11 @@ func (b *Backend[
 func (b *Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) GetHeadSlot() (math.Slot, error) {
-	return b.sb.BlockStore().GetHeadSlot()
+	//#nosec:G701 // not an issue in practice.
+	queryCtx, err := b.node.CreateQueryContext(0, false)
+	if err != nil {
+		return 0, err
+	}
+	st := b.sb.StateFromContext(queryCtx)
+	return st.GetSlot()
 }

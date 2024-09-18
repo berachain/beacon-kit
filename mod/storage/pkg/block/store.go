@@ -23,7 +23,6 @@ package block
 import (
 	"fmt"
 
-	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -36,7 +35,6 @@ type KVStore[BeaconBlockT BeaconBlock] struct {
 	blockRoots       *lru.Cache[common.Root, math.Slot]
 	executionNumbers *lru.Cache[math.U64, math.Slot]
 	stateRoots       *lru.Cache[common.Root, math.Slot]
-	headSlot         math.Slot
 	logger           log.Logger
 }
 
@@ -74,10 +72,7 @@ func (kv *KVStore[BeaconBlockT]) Set(blk BeaconBlockT) error {
 	kv.blockRoots.Add(blk.HashTreeRoot(), slot)
 	kv.executionNumbers.Add(blk.GetExecutionNumber(), slot)
 	kv.stateRoots.Add(blk.GetStateRoot(), slot)
-	// Update head slot if this is a new head
-	if slot > kv.headSlot {
-		kv.headSlot = slot
-	}
+
 	return nil
 }
 
@@ -116,12 +111,4 @@ func (kv *KVStore[BeaconBlockT]) GetSlotByStateRoot(
 		return 0, fmt.Errorf("slot not found at state root: %s", stateRoot)
 	}
 	return slot, nil
-}
-
-// GetHeadSlot retrieves the head slot.
-func (kv *KVStore[BeaconBlockT]) GetHeadSlot() (math.Slot, error) {
-	if kv.headSlot == 0 {
-		return 0, errors.New("head slot not found: store may be empty")
-	}
-	return kv.headSlot, nil
 }

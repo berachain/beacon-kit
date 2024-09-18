@@ -86,8 +86,6 @@ type BlockStore[BeaconBlockT any] interface {
 	GetSlotByStateRoot(root common.Root) (math.Slot, error)
 	// GetSlotByExecutionNumber retrieves the slot by a given execution number.
 	GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error)
-	// GetHeadSlot retrieves the head slot by block root.
-	GetHeadSlot() (math.Slot, error)
 }
 
 // DepositStore defines the interface for deposit storage.

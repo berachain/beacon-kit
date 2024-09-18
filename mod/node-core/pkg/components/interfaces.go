@@ -297,8 +297,6 @@ type (
 		// number
 		// from the store.
 		GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error)
-		// GetHeadSlot retrieves the head slot by the block root.
-		GetHeadSlot() (math.Slot, error)
 	}
 
 	ConsensusEngine interface {
@@ -1103,7 +1101,7 @@ type (
 		]
 	}
 
-	// NodeAPIBackend is the interface for backend of the beacon API.
+	// NodeAPIBeaconBackend is the interface for backend of the beacon API.
 	NodeAPIBeaconBackend[
 		BeaconStateT, BeaconBlockHeaderT, ForkT any,
 		ValidatorT types.Validator,
