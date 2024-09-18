@@ -21,7 +21,6 @@
 package e2e_test
 
 import (
-	"encoding/json"
 	"strconv"
 
 	beaconapi "github.com/attestantio/go-eth2-client/api"
@@ -228,6 +227,22 @@ func (s *BeaconKitE2ESuite) TestBeaconGenesis() {
 func (s *BeaconKitE2ESuite) TestBeaconBlockHeaderByID() {
 	client := s.initBeaconTest()
 
+	// Test getting the genesis block header.
+	genesisResp, err := client.BeaconBlockHeader(
+		s.Ctx(),
+		&beaconapi.BeaconBlockHeaderOpts{
+			Block: "genesis",
+		},
+	)
+
+	s.Require().NoError(err)
+	s.Require().NotNil(genesisResp)
+	s.Require().NotNil(genesisResp.Data)
+	s.Require().NotZero(genesisResp.Data.Root)
+	s.Require().NotZero(genesisResp.Data.Header.Message.Slot)
+	// Check slot to be equal than 1
+	s.Require().Equal(genesisResp.Data.Header.Message.Slot, uint64(1))
+
 	// Test getting the head block header.
 	headResp, err := client.BeaconBlockHeader(
 		s.Ctx(),
@@ -236,14 +251,13 @@ func (s *BeaconKitE2ESuite) TestBeaconBlockHeaderByID() {
 		},
 	)
 
-	rawJSON, _ := json.MarshalIndent(headResp, "", "  ")
-	s.Logger().Info("Raw JSON response:%s\n", string(rawJSON))
-
 	s.Require().NoError(err)
 	s.Require().NotNil(headResp)
 	s.Require().NotNil(headResp.Data)
-	s.Require().NotEmpty(headResp.Data.Root)
+	s.Require().NotZero(headResp.Data.Root)
 	s.Require().NotZero(headResp.Data.Header.Message.Slot)
+	// Check slot to be greater than 1
+	s.Require().Greater(headResp.Data.Header.Message.Slot, uint64(1))
 
 	// Test getting a block header by slot.
 	slot := headResp.Data.Header.Message.Slot - 1
@@ -256,6 +270,7 @@ func (s *BeaconKitE2ESuite) TestBeaconBlockHeaderByID() {
 	s.Require().NoError(err)
 	s.Require().NotNil(slotResp)
 	s.Require().NotNil(slotResp.Data)
+	s.Require().NotZero(slotResp.Data.Root)
 	s.Require().Equal(slot, slotResp.Data.Header.Message.Slot)
 
 	// Test getting a block header by root.
