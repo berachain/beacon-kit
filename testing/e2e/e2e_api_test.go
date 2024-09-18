@@ -241,7 +241,7 @@ func (s *BeaconKitE2ESuite) TestBeaconBlockHeaderByID() {
 	s.Require().NotZero(genesisResp.Data.Root)
 	s.Require().NotZero(genesisResp.Data.Header.Message.Slot)
 	// Check slot to be equal than 1
-	s.Require().Equal(genesisResp.Data.Header.Message.Slot, uint64(1))
+	s.Require().Equal(uint64(1), uint64(genesisResp.Data.Header.Message.Slot))
 
 	// Test getting the head block header.
 	headResp, err := client.BeaconBlockHeader(
@@ -257,7 +257,7 @@ func (s *BeaconKitE2ESuite) TestBeaconBlockHeaderByID() {
 	s.Require().NotZero(headResp.Data.Root)
 	s.Require().NotZero(headResp.Data.Header.Message.Slot)
 	// Check slot to be greater than 1
-	s.Require().Greater(headResp.Data.Header.Message.Slot, uint64(1))
+	s.Require().Greater(uint64(headResp.Data.Header.Message.Slot), uint64(1))
 
 	// Test getting a block header by slot.
 	slot := headResp.Data.Header.Message.Slot - 1
@@ -271,7 +271,7 @@ func (s *BeaconKitE2ESuite) TestBeaconBlockHeaderByID() {
 	s.Require().NotNil(slotResp)
 	s.Require().NotNil(slotResp.Data)
 	s.Require().NotZero(slotResp.Data.Root)
-	s.Require().Equal(slot, slotResp.Data.Header.Message.Slot)
+	s.Require().Equal(uint64(slot), uint64(slotResp.Data.Header.Message.Slot))
 
 	// Test getting a block header by root.
 	// rootResp, err := client.BeaconBlockHeader(
