@@ -51,6 +51,8 @@ func NewCreateValidator[
 		Args: cobra.ExactArgs(4), //nolint:mnd // The number of arguments.
 		RunE: createValidatorCmd[ExecutionPayloadT](chainSpec),
 	}
+
+	cmd.Flags().String(privateKey, defaultPrivateKey, privateKeyMsg)
 	cmd.Flags().BoolP(
 		overrideNodeKey, overrideNodeKeyShorthand,
 		defaultOverrideNodeKey, overrideNodeKeyMsg,
