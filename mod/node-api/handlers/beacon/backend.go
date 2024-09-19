@@ -49,6 +49,7 @@ type Backend[
 type GenesisBackend interface {
 	GenesisValidatorsRoot(slot math.Slot) (common.Root, error)
 	GetGenesisForkVersion(genesisSlot math.Slot) (common.Version, error)
+	GetGenesisTime(slot math.Slot) (uint64, error)
 }
 
 type HistoricalBackend[ForkT any] interface {

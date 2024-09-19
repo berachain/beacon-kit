@@ -73,6 +73,7 @@ type ReadOnlyBeaconState[
 	GetSlot() (math.Slot, error)
 	GetFork() (ForkT, error)
 	GetGenesisValidatorsRoot() (common.Root, error)
+	GetGenesisTime() (uint64, error)
 	GetBlockRootAtIndex(uint64) (common.Root, error)
 	GetLatestBlockHeader() (BeaconBlockHeaderT, error)
 	GetTotalActiveBalances(uint64) (math.Gwei, error)

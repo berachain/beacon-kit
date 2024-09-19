@@ -49,6 +49,28 @@ func (kv *KVStore[
 	return common.Root(bz), nil
 }
 
+// GetGenesisTime retrieves the genesis time from the beacon state.
+func (kv *KVStore[
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
+]) GetGenesisTime() (uint64, error) {
+	genesisTime, err := kv.genesisTime.Get(kv.ctx)
+	if err != nil {
+		return 0, err
+	}
+	return genesisTime, nil
+}
+
+// SetGenesisTime sets the genesis time in the beacon state.
+func (kv *KVStore[
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
+]) SetGenesisTime(
+	genesisTime uint64,
+) error {
+	return kv.genesisTime.Set(kv.ctx, genesisTime)
+}
+
 // GetSlot returns the current slot.
 func (kv *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,

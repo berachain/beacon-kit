@@ -44,6 +44,7 @@ const (
 	NextWithdrawalIndexPrefix
 	NextWithdrawalValidatorIndexPrefix
 	ForkPrefix
+	GenesisTimePrefix
 )
 
 //nolint:lll
@@ -71,4 +72,5 @@ const (
 	NextWithdrawalIndexPrefixHumanReadable              = "NextWithdrawalIndexPrefix"
 	NextWithdrawalValidatorIndexPrefixHumanReadable     = "NextWithdrawalValidatorIndexPrefix"
 	ForkPrefixHumanReadable                             = "ForkPrefix"
+	GenesisTimePrefixHumanReadable                      = "GenesisTimePrefix"
 )

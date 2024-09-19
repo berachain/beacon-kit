@@ -90,6 +90,7 @@ type ReadOnlyBeaconState[
 	ValidatorIndexByCometBFTAddress(
 		cometBFTAddress []byte,
 	) (math.ValidatorIndex, error)
+	//GetGenesisTime() (uint64, error)
 }
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
@@ -111,6 +112,7 @@ type WriteOnlyBeaconState[
 	SetSlot(math.Slot) error
 	SetWithdrawals(WithdrawalsT) error
 	UpdateBlockRootAtIndex(uint64, common.Root) error
+	//SetGenesi
 }
 
 // WriteOnlyStateRoots defines a struct which only has write access to state
