@@ -21,6 +21,7 @@
 package e2e_test
 
 import (
+	"encoding/hex"
 	"strconv"
 
 	beaconapi "github.com/attestantio/go-eth2-client/api"
@@ -273,15 +274,15 @@ func (s *BeaconKitE2ESuite) TestBeaconBlockHeaderByID() {
 	s.Require().NotZero(slotResp.Data.Root)
 	s.Require().Equal(uint64(slot), uint64(slotResp.Data.Header.Message.Slot))
 
-	// Test getting a block header by root.
-	// rootResp, err := client.BeaconBlockHeader(
-	//	s.Ctx(),
-	//	&beaconapi.BeaconBlockHeaderOpts{
-	//		Block: "0x" + hex.EncodeToString(headResp.Data.Root[:]),
-	//	},
-	// )
-	// s.Require().NoError(err)
-	// s.Require().NotNil(rootResp)
-	// s.Require().NotNil(rootResp.Data)
-	// s.Require().Equal(headResp.Data.Root, rootResp.Data.Root)
+	// Test getting a block header by block root.
+	rootResp, err := client.BeaconBlockHeader(
+		s.Ctx(),
+		&beaconapi.BeaconBlockHeaderOpts{
+			Block: "0x" + hex.EncodeToString(headResp.Data.Root[:]),
+		},
+	)
+	s.Require().NoError(err)
+	s.Require().NotNil(rootResp)
+	s.Require().NotNil(rootResp.Data)
+	s.Require().Equal(headResp.Data.Root, rootResp.Data.Root)
 }

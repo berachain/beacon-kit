@@ -39,7 +39,7 @@ func (h *Handler[
 	}
 	var slot math.Slot
 	// If slot is not being passed in the request,
-	// by default fetch current head slot blocks.
+	// by default fetch current head slot. Else use the slot from the request.
 	if req.Slot == "" {
 		slot, err = h.backend.GetHeadSlot()
 		if err != nil {
@@ -84,8 +84,12 @@ func (h *Handler[
 		return nil, err
 	}
 
+	root, err := h.backend.BlockRootAtSlot(slot)
+	if err != nil {
+		return nil, err
+	}
 	return types.Wrap(&beacontypes.BlockHeaderResponse[BeaconBlockHeaderT]{
-		Root:      header.GetBodyRoot(),
+		Root:      root, // This is root hash of entire beacon block.
 		Canonical: true,
 		Header: &beacontypes.BlockHeader[BeaconBlockHeaderT]{
 			Message:   header,
