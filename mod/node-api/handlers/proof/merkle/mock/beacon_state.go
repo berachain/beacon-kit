@@ -23,7 +23,6 @@ package mock
 import (
 	"errors"
 
-	cmdtypes "github.com/berachain/beacon-kit/beacond/cmd/types"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	ptypes "github.com/berachain/beacon-kit/mod/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -33,15 +32,31 @@ import (
 // Compile time check to ensure BeaconState implements the methods
 // required by the BeaconState for proofs.
 var _ ptypes.BeaconState[
-	*cmdtypes.BeaconStateMarshallable,
+	*BeaconStateMarshallable,
 	*types.ExecutionPayloadHeader,
 	*types.Validator,
 ] = (*BeaconState)(nil)
 
-// BeaconState is a mock implementation of the proof BeaconState interface.
-type BeaconState struct {
-	*cmdtypes.BeaconStateMarshallable
-}
+// BeaconState is a mock implementation of the proof BeaconState interface
+// using the default BeaconState type that is marshallable.
+type (
+	BeaconStateMarshallable = types.BeaconState[
+		*types.BeaconBlockHeader,
+		*types.Eth1Data,
+		*types.ExecutionPayloadHeader,
+		*types.Fork,
+		*types.Validator,
+		types.BeaconBlockHeader,
+		types.Eth1Data,
+		types.ExecutionPayloadHeader,
+		types.Fork,
+		types.Validator,
+	]
+
+	BeaconState struct {
+		*BeaconStateMarshallable
+	}
+)
 
 // NewBeaconState creates a new mock beacon state, with only the given slot,
 // validators, execution number, and execution fee recipient.
@@ -63,7 +78,7 @@ func NewBeaconState(
 	execPayloadHeader.FeeRecipient = executionFeeRecipient
 
 	var (
-		bsm = &cmdtypes.BeaconStateMarshallable{}
+		bsm = &BeaconStateMarshallable{}
 		err error
 	)
 	bsm, err = bsm.New(
@@ -97,7 +112,7 @@ func (m *BeaconState) GetLatestExecutionPayloadHeader() (
 
 // GetMarshallable implements proof BeaconState.
 func (m *BeaconState) GetMarshallable() (
-	*cmdtypes.BeaconStateMarshallable, error,
+	*BeaconStateMarshallable, error,
 ) {
 	return m.BeaconStateMarshallable, nil
 }
