@@ -21,6 +21,7 @@
 package beacon
 
 import (
+	"encoding/hex"
 	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
@@ -34,9 +35,15 @@ func (h *Handler[_, ContextT, _, _]) GetGenesis(_ ContextT) (any, error) {
 	if len(genesisRoot) == 0 {
 		return nil, types.ErrNotFound
 	}
+
+	genesisVersion, err := h.backend.GetGenesisForkVersion(utils.Genesis)
+	if err != nil {
+		return nil, err
+	}
+	genesisForkVersionHex := "0x" + hex.EncodeToString(genesisVersion[:])
 	return types.Wrap(beacontypes.GenesisData{
 		GenesisTime:           "1590832934", // stub
 		GenesisValidatorsRoot: genesisRoot,
-		GenesisForkVersion:    "0x00000000", // stub
+		GenesisForkVersion:    genesisForkVersionHex,
 	}), nil
 }

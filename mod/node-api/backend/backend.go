@@ -48,8 +48,8 @@ type Backend[
 	DepositT any,
 	DepositStoreT DepositStore[DepositT],
 	Eth1DataT,
-	ExecutionPayloadHeaderT,
-	ForkT any,
+	ExecutionPayloadHeaderT any,
+	ForkT Fork[ForkT],
 	NodeT Node[ContextT],
 	StateStoreT any,
 	StorageBackendT StorageBackend[
@@ -86,8 +86,8 @@ func New[
 	DepositT any,
 	DepositStoreT DepositStore[DepositT],
 	Eth1DataT,
-	ExecutionPayloadHeaderT,
-	ForkT any,
+	ExecutionPayloadHeaderT any,
+	ForkT Fork[ForkT],
 	NodeT Node[ContextT],
 	StateStoreT any,
 	StorageBackendT StorageBackend[

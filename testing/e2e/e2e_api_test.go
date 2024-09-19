@@ -219,10 +219,17 @@ func (s *BeaconKitE2ESuite) TestBeaconGenesis() {
 		"Genesis validators root should not be empty",
 	)
 
-	// s.Require().NotEmpty(
-	//	genesisResp.Data.GenesisForkVersion,
-	//	"Genesis fork version should be empty",
-	// )
+	s.Require().NotEmpty(
+		genesisResp.Data.GenesisForkVersion,
+		"Genesis fork version should be empty",
+	)
+
+	expectedVersion := phase0.Version{0x04, 0x00, 0x00, 0x00}
+	s.Require().Equal(
+		expectedVersion,
+		genesisResp.Data.GenesisForkVersion,
+		"Genesis fork version does not match expected value",
+	)
 }
 
 func (s *BeaconKitE2ESuite) TestBeaconBlockHeaderByID() {

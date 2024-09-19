@@ -36,3 +36,18 @@ func (b Backend[
 	}
 	return st.GetGenesisValidatorsRoot()
 }
+
+// GetGenesisForkVersion returns the genesis fork version of the beacon chain.
+func (b Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) GetGenesisForkVersion(genesisSlot math.Slot) (common.Version, error) {
+	st, _, err := b.stateFromSlot(genesisSlot)
+	if err != nil {
+		return common.Version{}, err
+	}
+	fork, err := st.GetFork()
+	if err != nil {
+		return common.Version{}, err
+	}
+	return fork.GetPreviousVersion(), nil
+}

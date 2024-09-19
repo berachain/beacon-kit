@@ -140,3 +140,7 @@ type Withdrawal[T any] interface {
 		amount math.Gwei,
 	) T
 }
+
+type Fork[ForkT any] interface {
+	GetPreviousVersion() common.Version
+}
