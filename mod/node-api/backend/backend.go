@@ -219,3 +219,10 @@ func (b *Backend[
 	st := b.sb.StateFromContext(queryCtx)
 	return st.GetSlot()
 }
+
+// GetSlotByParentRoot returns the slot by a parent root from the block store.
+func (b *Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) GetSlotByParentRoot(root common.Root) (math.Slot, error) {
+	return b.sb.BlockStore().GetSlotByParentRoot(root)
+}

@@ -26,10 +26,11 @@ import (
 )
 
 // BeaconBlock is a block in the beacon chain that has a slot, block root (hash
-// tree root), execution number, and state root.
+// tree root), execution number, state root and parent block root.
 type BeaconBlock interface {
 	GetSlot() math.U64
 	HashTreeRoot() common.Root
 	GetExecutionNumber() math.U64
 	GetStateRoot() common.Root
+	GetParentBlockRoot() common.Root
 }
