@@ -58,7 +58,6 @@ func DefaultCometConfig() *cmtcfg.Config {
 	cfg.Mempool.Recheck = false
 	cfg.Mempool.Broadcast = false
 	cfg.Storage.DiscardABCIResponses = true
-	cfg.Storage.DiscardABCIResponses = true
 	cfg.Instrumentation.Prometheus = true
 
 	cfg.P2P.MaxNumInboundPeers = 100
