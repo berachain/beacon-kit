@@ -213,12 +213,12 @@ func (v *Validator) GetTree() (*fastssz.Node, error) {
 /* -------------------------------------------------------------------------- */
 
 // GetPubkey returns the public key of the validator.
-func (v Validator) GetPubkey() crypto.BLSPubkey {
+func (v *Validator) GetPubkey() crypto.BLSPubkey {
 	return v.Pubkey
 }
 
 // GetEffectiveBalance returns the effective balance of the validator.
-func (v Validator) GetEffectiveBalance() math.Gwei {
+func (v *Validator) GetEffectiveBalance() math.Gwei {
 	return v.EffectiveBalance
 }
 
@@ -325,16 +325,16 @@ func (v Validator) GetWithdrawalCredentials() WithdrawalCredentials {
 
 // GetActivationEligibilityEpoch returns the activation eligibility
 // epoch of the validator.
-func (v Validator) GetActivationEligibilityEpoch() math.Epoch {
+func (v *Validator) GetActivationEligibilityEpoch() math.Epoch {
 	return v.ActivationEligibilityEpoch
 }
 
 // GetActivationEpoch returns the activation epoch of the validator.
-func (v Validator) GetActivationEpoch() math.Epoch {
+func (v *Validator) GetActivationEpoch() math.Epoch {
 	return v.ActivationEpoch
 }
 
 // GetExitEpoch returns the exit epoch of the validator.
-func (v Validator) GetExitEpoch() math.Epoch {
+func (v *Validator) GetExitEpoch() math.Epoch {
 	return v.ExitEpoch
 }
