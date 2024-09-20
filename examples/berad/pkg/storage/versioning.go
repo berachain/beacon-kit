@@ -85,3 +85,25 @@ func (kv *KVStore[
 ]) GetFork() (ForkT, error) {
 	return kv.fork.Get(kv.ctx)
 }
+
+// GetGenesisTime retrieves the genesis time from the beacon state.
+func (kv *KVStore[
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT, WithdrawalsT,
+]) GetGenesisTime() (uint64, error) {
+	genesisTime, err := kv.genesisTime.Get(kv.ctx)
+	if err != nil {
+		return 0, err
+	}
+	return genesisTime, nil
+}
+
+// SetGenesisTime sets the genesis time in the beacon state.
+func (kv *KVStore[
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT, WithdrawalsT,
+]) SetGenesisTime(
+	genesisTime uint64,
+) error {
+	return kv.genesisTime.Set(kv.ctx, genesisTime)
+}

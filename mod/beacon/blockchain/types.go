@@ -113,6 +113,7 @@ type Genesis[DepositT any, ExecutionPayloadHeaderT any] interface {
 	GetDeposits() []DepositT
 	// GetExecutionPayloadHeader returns the execution payload header.
 	GetExecutionPayloadHeader() ExecutionPayloadHeaderT
+	GetGenesisTime() uint64
 }
 
 // LocalBuilder is the interface for the builder service.
@@ -186,6 +187,7 @@ type StateProcessor[
 		[]DepositT,
 		ExecutionPayloadHeaderT,
 		common.Version,
+		//uint64,
 	) (transition.ValidatorUpdates, error)
 	// ProcessSlots processes the state transition for a range of slots.
 	ProcessSlots(

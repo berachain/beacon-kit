@@ -55,6 +55,7 @@ type BeaconStateMarshallable[
 		nextWithdrawalIndex uint64,
 		nextWithdrawalValidatorIndex math.U64,
 		slashings []uint64, totalSlashing math.U64,
+		//genesisTime uint64,
 	) (T, error)
 }
 

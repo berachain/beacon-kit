@@ -110,6 +110,7 @@ type WriteOnlyBeaconState[
 	SetNextWithdrawalIndex(uint64) error
 	SetNextWithdrawalValidatorIndex(math.ValidatorIndex) error
 	SetTotalSlashing(math.Gwei) error
+	SetGenesisTime(uint64) error
 }
 
 // WriteOnlyStateRoots defines a struct which only has write access to state

@@ -152,6 +152,10 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
+	if err = st.SetGenesisTime(uint64(executionPayloadHeader.GetTimestamp())); err != nil {
+		return nil, err
+	}
+
 	var updates transition.ValidatorUpdates
 	updates, err = sp.processSyncCommitteeUpdates(st)
 	if err != nil {

@@ -208,6 +208,7 @@ type (
 			nextWithdrawalIndex uint64,
 			nextWithdrawalValidatorIndex math.U64,
 			slashings []uint64, totalSlashing math.U64,
+			//genesisTime uint64,
 		) (T, error)
 	}
 
@@ -538,6 +539,8 @@ type (
 		GetDeposits() []DepositT
 		// GetExecutionPayloadHeader returns the execution payload header.
 		GetExecutionPayloadHeader() ExecutionPayloadHeaderT
+		// GetGenesisTime returns the genesis time.
+		GetGenesisTime() uint64
 	}
 
 	// IndexDB is the interface for the range DB.
@@ -638,6 +641,7 @@ type (
 			[]DepositT,
 			ExecutionPayloadHeaderT,
 			common.Version,
+			//uint64,
 		) (transition.ValidatorUpdates, error)
 		// ProcessSlot processes the slot.
 		ProcessSlots(

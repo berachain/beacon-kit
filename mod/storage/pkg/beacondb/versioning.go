@@ -21,6 +21,7 @@
 package beacondb
 
 import (
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -56,7 +57,7 @@ func (kv *KVStore[
 ]) GetGenesisTime() (uint64, error) {
 	genesisTime, err := kv.genesisTime.Get(kv.ctx)
 	if err != nil {
-		return 0, err
+		return 0, errors.Wrapf(err, "err in GetGenesisTime")
 	}
 	return genesisTime, nil
 }
