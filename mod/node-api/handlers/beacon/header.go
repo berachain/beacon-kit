@@ -67,7 +67,6 @@ func (h *Handler[
 func (h *Handler[
 	BeaconBlockHeaderT, ContextT, _, _,
 ]) determineSlot(req *beacontypes.GetBlockHeadersRequest) (math.Slot, error) {
-	var slot math.Slot
 	var parentRoot common.Root
 	switch {
 	case req.Slot != "" && req.ParentRoot != "":
@@ -86,7 +85,9 @@ func (h *Handler[
 			return 0, errVerify
 		}
 		if verifiedSlot != slot {
-			return 0, errors.New("provided slot does not match the slot for the given parent root")
+			return 0, errors.New(
+				"provided slot does not match the slot for the given parent root",
+			)
 		}
 		return slot, nil
 
@@ -106,7 +107,7 @@ func (h *Handler[
 		if err != nil {
 			return 0, errors.Wrapf(err, "invalid parent root: %v", req.ParentRoot)
 		}
-		slot, err = h.backend.GetSlotByParentRoot(parentRoot)
+		slot, err := h.backend.GetSlotByParentRoot(parentRoot)
 		if err != nil {
 			return 0, err
 		}
