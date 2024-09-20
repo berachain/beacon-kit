@@ -297,6 +297,9 @@ type (
 		// number
 		// from the store.
 		GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error)
+		// GetSlotByParentRoot retrieves the slot by a given parent root from the
+		// store.
+		GetSlotByParentRoot(root common.Root) (math.Slot, error)
 	}
 
 	ConsensusEngine interface {
@@ -1092,6 +1095,7 @@ type (
 		GetSlotByStateRoot(root common.Root) (math.Slot, error)
 		GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error)
 		GetHeadSlot() (math.Slot, error)
+		GetSlotByParentRoot(root common.Root) (math.Slot, error)
 
 		NodeAPIBeaconBackend[
 			BeaconStateT, BeaconBlockHeaderT, ForkT, ValidatorT,

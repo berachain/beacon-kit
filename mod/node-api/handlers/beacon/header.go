@@ -40,28 +40,50 @@ func (h *Handler[
 		return nil, err
 	}
 	var slot math.Slot
-	// If slot is being passed in the request, fetch block header at that slot.
-	if req.Slot != "" {
+	var parentRoot common.Root
+
+	switch {
+	case req.Slot != "" && req.ParentRoot != "":
+		// Both slot and parent_root are provided
 		slot, err = utils.U64FromString(req.Slot)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrapf(err, "invalid slot: %v", req.Slot)
 		}
-	} else if req.ParentRoot != "" {
-		// TODO: If parent_root is being passed in the request,
-		// fetch block header at that parent_root.
-		// Convert the string to common.Root
-		var parentRoot common.Root
 		err = parentRoot.UnmarshalText([]byte(req.ParentRoot))
 		if err != nil {
 			return nil, errors.Wrapf(err, "invalid parent root: %v", req.ParentRoot)
 		}
-
-		slot, err = h.backend.GetSlotByStateRoot(parentRoot)
+		// Verify that the provided slot and parent root match
+		verifiedSlot, err := h.backend.GetSlotByParentRoot(parentRoot)
 		if err != nil {
 			return nil, err
 		}
-	} else {
-		// If neither slot nor parent_root is provided, fetch current head slot.
+		if verifiedSlot != slot {
+			return nil, errors.New("provided slot does not match the slot for the given parent root")
+		}
+
+	case req.Slot != "":
+		// If only slot is provided
+		slot, err = utils.U64FromString(req.Slot)
+		if err != nil {
+			return nil, err
+		}
+
+	case req.ParentRoot != "":
+		// If only parent_root is provided
+
+		// Convert the string to common.Root
+		err = parentRoot.UnmarshalText([]byte(req.ParentRoot))
+		if err != nil {
+			return nil, errors.Wrapf(err, "invalid parent root: %v", req.ParentRoot)
+		}
+		slot, err = h.backend.GetSlotByParentRoot(parentRoot)
+		if err != nil {
+			return nil, err
+		}
+
+	default:
+		// If neither slot nor parent_root is provided, fetch current head slot
 		slot, err = h.backend.GetHeadSlot()
 		if err != nil {
 			return nil, err

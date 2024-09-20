@@ -35,6 +35,7 @@ type KVStore[BeaconBlockT BeaconBlock] struct {
 	blockRoots       *lru.Cache[common.Root, math.Slot]
 	executionNumbers *lru.Cache[math.U64, math.Slot]
 	stateRoots       *lru.Cache[common.Root, math.Slot]
+	parentRoots      *lru.Cache[common.Root, math.Slot]
 
 	logger log.Logger
 }
@@ -56,11 +57,17 @@ func NewStore[BeaconBlockT BeaconBlock](
 	if err != nil {
 		panic(err)
 	}
+
+	parentRoots, err := lru.New[common.Root, math.Slot](availabilityWindow)
+	if err != nil {
+		panic(err)
+	}
 	return &KVStore[BeaconBlockT]{
 		blockRoots:       blockRoots,
 		executionNumbers: executionNumbers,
 		stateRoots:       stateRoots,
 		logger:           logger,
+		parentRoots:      parentRoots,
 	}
 }
 
@@ -72,6 +79,7 @@ func (kv *KVStore[BeaconBlockT]) Set(blk BeaconBlockT) error {
 	kv.blockRoots.Add(blk.HashTreeRoot(), slot)
 	kv.executionNumbers.Add(blk.GetExecutionNumber(), slot)
 	kv.stateRoots.Add(blk.GetStateRoot(), slot)
+	kv.parentRoots.Add(blk.GetParentBlockRoot(), slot)
 	return nil
 }
 
@@ -108,6 +116,17 @@ func (kv *KVStore[BeaconBlockT]) GetSlotByStateRoot(
 	slot, ok := kv.stateRoots.Peek(stateRoot)
 	if !ok {
 		return 0, fmt.Errorf("slot not found at state root: %s", stateRoot)
+	}
+	return slot, nil
+}
+
+// GetSlotByParentRoot retrieves the slot by a given parent root from the store.
+func (kv *KVStore[BeaconBlockT]) GetSlotByParentRoot(
+	parentRoot common.Root,
+) (math.Slot, error) {
+	slot, ok := kv.parentRoots.Peek(parentRoot)
+	if !ok {
+		return 0, fmt.Errorf("slot not found at parent root: %s", parentRoot)
 	}
 	return slot, nil
 }
