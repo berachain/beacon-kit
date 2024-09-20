@@ -21,9 +21,11 @@
 package beacon
 
 import (
+	"github.com/berachain/beacon-kit/mod/errors"
 	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -38,15 +40,29 @@ func (h *Handler[
 		return nil, err
 	}
 	var slot math.Slot
-	// If slot is not being passed in the request,
-	// by default fetch current head slot. Else use the slot from the request.
-	if req.Slot == "" {
-		slot, err = h.backend.GetHeadSlot()
+	// If slot is being passed in the request, fetch block header at that slot.
+	if req.Slot != "" {
+		slot, err = utils.U64FromString(req.Slot)
+		if err != nil {
+			return nil, err
+		}
+	} else if req.ParentRoot != "" {
+		// TODO: If parent_root is being passed in the request,
+		// fetch block header at that parent_root.
+		// Convert the string to common.Root
+		var parentRoot common.Root
+		err = parentRoot.UnmarshalText([]byte(req.ParentRoot))
+		if err != nil {
+			return nil, errors.Wrapf(err, "invalid parent root: %v", req.ParentRoot)
+		}
+
+		slot, err = h.backend.GetSlotByStateRoot(parentRoot)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		slot, err = utils.U64FromString(req.Slot)
+		// If neither slot nor parent_root is provided, fetch current head slot.
+		slot, err = h.backend.GetHeadSlot()
 		if err != nil {
 			return nil, err
 		}
@@ -56,8 +72,13 @@ func (h *Handler[
 		return nil, err
 	}
 
+	root, err := h.backend.BlockRootAtSlot(slot)
+	if err != nil {
+		return nil, err
+	}
+
 	return types.Wrap(&beacontypes.BlockHeaderResponse[BeaconBlockHeaderT]{
-		Root:      header.GetBodyRoot(),
+		Root:      root,
 		Canonical: true,
 		Header: &beacontypes.BlockHeader[BeaconBlockHeaderT]{
 			Message:   header,
