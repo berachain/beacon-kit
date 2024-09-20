@@ -134,6 +134,62 @@ func (_c *BlockStore_GetSlotByExecutionNumber_Call[BeaconBlockT]) RunAndReturn(r
 	return _c
 }
 
+// GetSlotByParentRoot provides a mock function with given fields: root
+func (_m *BlockStore[BeaconBlockT]) GetSlotByParentRoot(root common.Root) (math.U64, error) {
+	ret := _m.Called(root)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSlotByParentRoot")
+	}
+
+	var r0 math.U64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(common.Root) (math.U64, error)); ok {
+		return rf(root)
+	}
+	if rf, ok := ret.Get(0).(func(common.Root) math.U64); ok {
+		r0 = rf(root)
+	} else {
+		r0 = ret.Get(0).(math.U64)
+	}
+
+	if rf, ok := ret.Get(1).(func(common.Root) error); ok {
+		r1 = rf(root)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// BlockStore_GetSlotByParentRoot_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSlotByParentRoot'
+type BlockStore_GetSlotByParentRoot_Call[BeaconBlockT interface{}] struct {
+	*mock.Call
+}
+
+// GetSlotByParentRoot is a helper method to define mock.On call
+//   - root common.Root
+func (_e *BlockStore_Expecter[BeaconBlockT]) GetSlotByParentRoot(root interface{}) *BlockStore_GetSlotByParentRoot_Call[BeaconBlockT] {
+	return &BlockStore_GetSlotByParentRoot_Call[BeaconBlockT]{Call: _e.mock.On("GetSlotByParentRoot", root)}
+}
+
+func (_c *BlockStore_GetSlotByParentRoot_Call[BeaconBlockT]) Run(run func(root common.Root)) *BlockStore_GetSlotByParentRoot_Call[BeaconBlockT] {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(common.Root))
+	})
+	return _c
+}
+
+func (_c *BlockStore_GetSlotByParentRoot_Call[BeaconBlockT]) Return(_a0 math.U64, _a1 error) *BlockStore_GetSlotByParentRoot_Call[BeaconBlockT] {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *BlockStore_GetSlotByParentRoot_Call[BeaconBlockT]) RunAndReturn(run func(common.Root) (math.U64, error)) *BlockStore_GetSlotByParentRoot_Call[BeaconBlockT] {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetSlotByStateRoot provides a mock function with given fields: root
 func (_m *BlockStore[BeaconBlockT]) GetSlotByStateRoot(root common.Root) (math.U64, error) {
 	ret := _m.Called(root)

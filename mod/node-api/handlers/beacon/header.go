@@ -39,55 +39,10 @@ func (h *Handler[
 	if err != nil {
 		return nil, err
 	}
-	var slot math.Slot
-	var parentRoot common.Root
 
-	switch {
-	case req.Slot != "" && req.ParentRoot != "":
-		// Both slot and parent_root are provided
-		slot, err = utils.U64FromString(req.Slot)
-		if err != nil {
-			return nil, errors.Wrapf(err, "invalid slot: %v", req.Slot)
-		}
-		err = parentRoot.UnmarshalText([]byte(req.ParentRoot))
-		if err != nil {
-			return nil, errors.Wrapf(err, "invalid parent root: %v", req.ParentRoot)
-		}
-		// Verify that the provided slot and parent root match
-		verifiedSlot, err := h.backend.GetSlotByParentRoot(parentRoot)
-		if err != nil {
-			return nil, err
-		}
-		if verifiedSlot != slot {
-			return nil, errors.New("provided slot does not match the slot for the given parent root")
-		}
-
-	case req.Slot != "":
-		// If only slot is provided
-		slot, err = utils.U64FromString(req.Slot)
-		if err != nil {
-			return nil, err
-		}
-
-	case req.ParentRoot != "":
-		// If only parent_root is provided
-
-		// Convert the string to common.Root
-		err = parentRoot.UnmarshalText([]byte(req.ParentRoot))
-		if err != nil {
-			return nil, errors.Wrapf(err, "invalid parent root: %v", req.ParentRoot)
-		}
-		slot, err = h.backend.GetSlotByParentRoot(parentRoot)
-		if err != nil {
-			return nil, err
-		}
-
-	default:
-		// If neither slot nor parent_root is provided, fetch current head slot
-		slot, err = h.backend.GetHeadSlot()
-		if err != nil {
-			return nil, err
-		}
+	slot, err := h.determineSlot(&req)
+	if err != nil {
+		return nil, err
 	}
 	header, err := h.backend.BlockHeaderAtSlot(slot)
 	if err != nil {
@@ -107,6 +62,64 @@ func (h *Handler[
 			Signature: crypto.BLSSignature{}, // TODO: implement
 		},
 	}), nil
+}
+
+func (h *Handler[
+	BeaconBlockHeaderT, ContextT, _, _,
+]) determineSlot(req *beacontypes.GetBlockHeadersRequest) (math.Slot, error) {
+	var slot math.Slot
+	var parentRoot common.Root
+	switch {
+	case req.Slot != "" && req.ParentRoot != "":
+		// Both slot and parent_root are provided
+		slot, err := utils.U64FromString(req.Slot)
+		if err != nil {
+			return 0, errors.Wrapf(err, "invalid slot: %v", req.Slot)
+		}
+		err = parentRoot.UnmarshalText([]byte(req.ParentRoot))
+		if err != nil {
+			return 0, errors.Wrapf(err, "invalid parent root: %v", req.ParentRoot)
+		}
+		// Verify that the provided slot and parent root match
+		verifiedSlot, errVerify := h.backend.GetSlotByParentRoot(parentRoot)
+		if errVerify != nil {
+			return 0, errVerify
+		}
+		if verifiedSlot != slot {
+			return 0, errors.New("provided slot does not match the slot for the given parent root")
+		}
+		return slot, nil
+
+	case req.Slot != "":
+		// If only slot is provided
+		slot, err := utils.U64FromString(req.Slot)
+		if err != nil {
+			return 0, err
+		}
+		return slot, nil
+
+	case req.ParentRoot != "":
+		// If only parent_root is provided
+
+		// Convert the string to common.Root
+		err := parentRoot.UnmarshalText([]byte(req.ParentRoot))
+		if err != nil {
+			return 0, errors.Wrapf(err, "invalid parent root: %v", req.ParentRoot)
+		}
+		slot, err = h.backend.GetSlotByParentRoot(parentRoot)
+		if err != nil {
+			return 0, err
+		}
+		return slot, nil
+
+	default:
+		// If neither slot nor parent_root is provided, fetch current head slot
+		slot, err := h.backend.GetHeadSlot()
+		if err != nil {
+			return 0, err
+		}
+		return slot, nil
+	}
 }
 
 func (h *Handler[

@@ -68,3 +68,8 @@ packages:
       recursive: False
       with-expecter: true
       all: True
+  github.com/berachain/beacon-kit/mod/storage/pkg/block:
+    config:
+      recursive: False
+      with-expecter: true
+      all: True
