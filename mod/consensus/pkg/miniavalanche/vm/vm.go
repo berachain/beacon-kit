@@ -28,6 +28,7 @@ import (
 	"net/http"
 
 	"github.com/ava-labs/avalanchego/database"
+	"github.com/ava-labs/avalanchego/database/prefixdb"
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/avalanchego/snow"
 	"github.com/ava-labs/avalanchego/snow/consensus/snowman"
@@ -35,7 +36,13 @@ import (
 	"github.com/ava-labs/avalanchego/snow/engine/snowman/block"
 	"github.com/ava-labs/avalanchego/snow/validators"
 	"github.com/ava-labs/avalanchego/version"
+
+	"cosmossdk.io/store"
+	storemetrics "cosmossdk.io/store/metrics"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	berablock "github.com/berachain/beacon-kit/mod/consensus/pkg/miniavalanche/block"
+	cosmoswrappers "github.com/berachain/beacon-kit/mod/consensus/pkg/miniavalanche/cosmos-wrappers"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/miniavalanche/middleware"
 )
 
@@ -45,6 +52,9 @@ var (
 	// mini-avalanche seems to distinguish from third party libs
 	// (e.g. github.com/shirou/gopsutils).
 	errNotYetImplemented = errors.New("mini-avalanche: not yet implemented")
+
+	avalanchePrefix  = []byte{'a'}
+	middlewarePrefix = []byte{'m'}
 )
 
 type VM struct {
@@ -77,7 +87,7 @@ func (vm *VM) Initialize(
 	_ common.AppSender,
 ) error {
 	vm.chainCtx = chainCtx
-	vm.db = db
+	vm.db = prefixdb.New(avalanchePrefix, db)
 
 	// parse genesis to retrieve its components
 	genBlk, genVals, ethGen, err := ParseGenesis(genesisBytes)
@@ -116,6 +126,17 @@ func (vm *VM) Initialize(
 	genBlkID := vm.state.GetLastAccepted()
 	vm.bb = newBlockBuilder(toEngine, vm)
 
+	// init middleware Context
+	cosmosDB := cosmoswrappers.NewAvaDBWrapper(middlewarePrefix, db)
+	cosmosLog := cosmoswrappers.NewAvaLogWrapper(vm.chainCtx.Log)
+	cms := store.NewCommitMultiStore(
+		cosmosDB,
+		cosmosLog,
+		storemetrics.NewNoOpMetrics(),
+	)
+	ms := cms.CacheMultiStore()
+	middlewareCtx := sdk.NewContext(ms, false, cosmosLog /*servercmtlog.WrapSDKLogger(cosmosLog)*/)
+
 	// TODO: handle dynamic validator set
 	// At this stage of hooking stuff up, we consider a static validators set
 	// where validators (and especially the mapping validator -> NodeID) is
@@ -126,7 +147,7 @@ func (vm *VM) Initialize(
 		return fmt.Errorf("failed unmarshalling genesis: %w", err)
 	}
 
-	_, err = vm.middleware.InitGenesis(ctx, genesisState["beacon"])
+	_, err = vm.middleware.InitGenesis(middlewareCtx, genesisState["beacon"])
 	if err != nil {
 		return fmt.Errorf("failed initializing genesis in middleware: %w", err)
 	}
