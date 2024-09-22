@@ -27,6 +27,9 @@ import (
 	"fmt"
 	"net/http"
 
+	"cosmossdk.io/store"
+	storemetrics "cosmossdk.io/store/metrics"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/ava-labs/avalanchego/database"
 	"github.com/ava-labs/avalanchego/database/prefixdb"
 	"github.com/ava-labs/avalanchego/ids"
@@ -36,16 +39,13 @@ import (
 	"github.com/ava-labs/avalanchego/snow/engine/snowman/block"
 	"github.com/ava-labs/avalanchego/snow/validators"
 	"github.com/ava-labs/avalanchego/version"
-
-	"cosmossdk.io/store"
-	storemetrics "cosmossdk.io/store/metrics"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	berablock "github.com/berachain/beacon-kit/mod/consensus/pkg/miniavalanche/block"
 	cosmoswrappers "github.com/berachain/beacon-kit/mod/consensus/pkg/miniavalanche/cosmos-wrappers"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/miniavalanche/middleware"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+//nolint:gochecknoglobals // db prefixes
 var (
 	_ block.ChainVM = (*VM)(nil)
 
@@ -76,7 +76,7 @@ type VM struct {
 }
 
 func (vm *VM) Initialize(
-	ctx context.Context,
+	_ context.Context,
 	chainCtx *snow.Context,
 	db database.Database,
 	genesisBytes []byte,
@@ -134,8 +134,21 @@ func (vm *VM) Initialize(
 		cosmosLog,
 		storemetrics.NewNoOpMetrics(),
 	)
+	cms.MountStoreWithDB(
+		storetypes.NewKVStoreKey("beacon"),
+		storetypes.StoreTypeIAVL,
+		nil,
+	)
+	if err = cms.LoadLatestVersion(); err != nil {
+		return fmt.Errorf("failed loading latest version: %w", err)
+	}
+
 	ms := cms.CacheMultiStore()
-	middlewareCtx := sdk.NewContext(ms, false, cosmosLog /*servercmtlog.WrapSDKLogger(cosmosLog)*/)
+	middlewareCtx := sdk.NewContext(
+		ms,
+		false,
+		cosmosLog, /*servercmtlog.WrapSDKLogger(cosmosLog)*/
+	)
 
 	// TODO: handle dynamic validator set
 	// At this stage of hooking stuff up, we consider a static validators set
@@ -147,6 +160,7 @@ func (vm *VM) Initialize(
 		return fmt.Errorf("failed unmarshalling genesis: %w", err)
 	}
 
+	//nolint:contextcheck // TODO: fix later on.
 	_, err = vm.middleware.InitGenesis(middlewareCtx, genesisState["beacon"])
 	if err != nil {
 		return fmt.Errorf("failed initializing genesis in middleware: %w", err)

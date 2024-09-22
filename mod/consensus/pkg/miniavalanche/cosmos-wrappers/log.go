@@ -2,12 +2,10 @@ package cosmoswrappers
 
 import (
 	"cosmossdk.io/log"
+	"github.com/ava-labs/avalanchego/utils/logging"
+	bklog "github.com/berachain/beacon-kit/mod/log"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-
-	bklog "github.com/berachain/beacon-kit/mod/log"
-
-	"github.com/ava-labs/avalanchego/utils/logging"
 )
 
 var _ log.Logger = (*AvaLogWrap)(nil)
@@ -38,7 +36,7 @@ func (alw *AvaLogWrap) Debug(msg string, keyVals ...any) {
 	alw.log.Debug(msg, toZapFields(keyVals...)...)
 }
 
-func (alw *AvaLogWrap) With(keyVals ...any) log.Logger {
+func (alw *AvaLogWrap) With(...any) log.Logger {
 	return alw // TODO: figure out how to implement this
 }
 
@@ -46,12 +44,12 @@ func (alw *AvaLogWrap) Impl() any {
 	return alw // TODO: figure out how to implement this
 }
 
-func (alw *AvaLogWrap) AddKeyColor(key any, color bklog.Color) {
-	return // TODO: figure out how to implement this
+func (alw *AvaLogWrap) AddKeyColor(any, bklog.Color) {
+	// TODO: figure out how to implement this
 }
 
-func (alw *AvaLogWrap) AddKeyValColor(key any, val any, color bklog.Color) {
-	return // TODO: figure out how to implement this
+func (alw *AvaLogWrap) AddKeyValColor(any, any, bklog.Color) {
+	// TODO: figure out how to implement this
 }
 
 func toZapFields(keyVals ...any) []zapcore.Field {

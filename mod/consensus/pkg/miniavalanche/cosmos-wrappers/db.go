@@ -6,7 +6,6 @@ import (
 
 	"github.com/ava-labs/avalanchego/database"
 	"github.com/ava-labs/avalanchego/database/prefixdb"
-
 	dbm "github.com/cosmos/cosmos-db"
 )
 
@@ -29,7 +28,11 @@ func NewAvaDBWrapper(prefix []byte, db database.Database) *AvaDBWrap {
 }
 
 func (adbw *AvaDBWrap) Get(key []byte) ([]byte, error) {
-	return adbw.db.Get(key)
+	res, err := adbw.db.Get(key)
+	if errors.Is(err, database.ErrNotFound) {
+		return nil, nil
+	}
+	return res, err
 }
 
 func (adbw *AvaDBWrap) Has(key []byte) (bool, error) {
@@ -61,7 +64,7 @@ func (adbw *AvaDBWrap) Iterator(start, end []byte) (dbm.Iterator, error) {
 	}, nil
 }
 
-func (adbw *AvaDBWrap) ReverseIterator(start, end []byte) (dbm.Iterator, error) {
+func (adbw *AvaDBWrap) ReverseIterator([]byte, []byte) (dbm.Iterator, error) {
 	return nil, errDBFeatureNotImplementedYet
 }
 
@@ -124,7 +127,7 @@ type AvaIteratorWrap struct {
 	it database.Iterator
 }
 
-func (aiw *AvaIteratorWrap) Domain() (start []byte, end []byte) {
+func (aiw *AvaIteratorWrap) Domain() ([]byte, []byte) {
 	return aiw.start, aiw.end
 }
 
@@ -150,11 +153,11 @@ func (aiw *AvaIteratorWrap) Next() {
 	}
 }
 
-func (aiw *AvaIteratorWrap) Key() (key []byte) {
+func (aiw *AvaIteratorWrap) Key() []byte {
 	return aiw.it.Key()
 }
 
-func (aiw *AvaIteratorWrap) Value() (value []byte) {
+func (aiw *AvaIteratorWrap) Value() []byte {
 	return aiw.it.Value()
 }
 
