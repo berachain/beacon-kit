@@ -22,6 +22,15 @@ _The project is still heavily under construction, see the [disclaimer below](#st
 
 </div>
 
+## Table of Contents
+
+1. [What is BeaconKit?](#what-is-beaconkit)
+2. [Supported Execution Clients](#supported-execution-clients)
+3. [Running a Local Development Network](#running-a-local-development-network)
+4. [Multinode Local Devnet](#multinode-local-devnet)
+5. [Troubleshooting](#troubleshooting)
+6. [Status](#status)
+
 ## What is BeaconKit?
 
 [BeaconKit](https://docs.berachain.com/learn/what-is-beaconkit) is a modular framework for building EVM based consensus clients.
@@ -71,6 +80,14 @@ preloaded with the native EVM token.
 ## Multinode Local Devnet
 
 Please refer to the [Kurtosis README](https://github.com/berachain/beacon-kit/blob/main/kurtosis/README.md) for more information on how to run a multinode local devnet.
+
+## Troubleshooting
+
+If you encounter issues when running the commands, here are some common fixes:
+
+1. **Docker not starting**: Ensure Docker is running, and you have enough allocated resources (RAM, CPU).
+2. **Golang version errors**: Check that you have Go 1.23.0 or above installed by running `go version`.
+3. **Port conflicts**: If you receive a port conflict error, try stopping other services running on the same port or change the port configuration in the `docker-compose.yml` file.
 
 ## Status
 
