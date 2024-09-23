@@ -61,6 +61,8 @@ var (
 type VM struct {
 	chainCtx *snow.Context
 
+	storeKey *storetypes.KVStoreKey
+
 	// middleware interfaces with the bus to send/receive data from the EVM
 	middleware *middleware.VMMiddleware
 
@@ -137,7 +139,7 @@ func (vm *VM) Initialize(
 		storemetrics.NewNoOpMetrics(),
 	)
 	cms.MountStoreWithDB(
-		storetypes.NewKVStoreKey("beacon"),
+		vm.storeKey,
 		storetypes.StoreTypeIAVL,
 		nil,
 	)

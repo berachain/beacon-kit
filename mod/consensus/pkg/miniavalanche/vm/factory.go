@@ -21,6 +21,7 @@
 package vm
 
 import (
+	storetypes "cosmossdk.io/store/types"
 	"github.com/ava-labs/avalanchego/utils/logging"
 	"github.com/ava-labs/avalanchego/version"
 	"github.com/ava-labs/avalanchego/vms"
@@ -44,6 +45,7 @@ type Factory struct {
 	Config     Config
 	BaseDB     *avalanchewrappers.DB
 	Middleware *middleware.VMMiddleware
+	StoreKey   *storetypes.KVStoreKey
 }
 
 func (f *Factory) New(logging.Logger) (interface{}, error) {
@@ -51,5 +53,6 @@ func (f *Factory) New(logging.Logger) (interface{}, error) {
 		validators: f.Config.Validators,
 		middleware: f.Middleware,
 		baseDB:     f.BaseDB,
+		storeKey:   f.StoreKey,
 	}, nil
 }
