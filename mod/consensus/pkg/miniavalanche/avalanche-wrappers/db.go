@@ -19,10 +19,10 @@ var (
 )
 
 type DB struct {
-	cosmosDB dbm.DB
+	cosmosDB *dbm.PrefixDB
 }
 
-func NewDB(cosmosDB dbm.DB) *DB {
+func NewDB(cosmosDB *dbm.PrefixDB) *DB {
 	return &DB{
 		cosmosDB: cosmosDB,
 	}

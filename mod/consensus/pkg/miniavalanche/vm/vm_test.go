@@ -35,6 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/miniavalanche/middleware"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/miniavalanche/vm"
 	"github.com/berachain/beacon-kit/mod/log/pkg/noop"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	cosmosdb "github.com/cosmos/cosmos-db"
@@ -101,7 +102,7 @@ func TestVMInitialization(t *testing.T) {
 			brokers: make(map[async.EventID]any),
 		}
 		mdw      = middleware.NewABCIMiddleware(dp, beaconLogger)
-		cosmosDB = cosmosdb.NewMemDB()
+		cosmosDB = cosmosdb.NewPrefixDB(cosmosdb.NewMemDB(), vm.BerachainDBPrefix)
 		db       = avalanchewrappers.NewDB(cosmosDB)
 		f        = vm.Factory{
 			Config: vm.Config{
@@ -109,6 +110,7 @@ func TestVMInitialization(t *testing.T) {
 			},
 			BaseDB:     db,
 			Middleware: mdw,
+			StoreKey:   *components.ProvideKVStoreKey(),
 		}
 
 		ctx      = context.TODO()

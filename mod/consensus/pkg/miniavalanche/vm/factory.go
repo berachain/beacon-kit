@@ -29,15 +29,18 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/miniavalanche/middleware"
 )
 
+//nolint:gochecknoglobals // global variables will are exported
 var (
 	_ vms.Factory = (*Factory)(nil)
 
-	//nolint:gochecknoglobals // will be exported with APIs
 	vmVersion = &version.Semantic{
 		Major: 0,
 		Minor: 0,
 		Patch: 0,
 	}
+
+	AvalancheDBPrefix = []byte{'a'}
+	BerachainDBPrefix = []byte{'b'}
 )
 
 // Entry point for node to build the VM.
