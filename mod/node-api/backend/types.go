@@ -140,3 +140,10 @@ type Withdrawal[T any] interface {
 		amount math.Gwei,
 	) T
 }
+
+// WithdrawalCredentials represents an interface for withdrawal credentials.
+type WithdrawalCredentials interface {
+	// ToExecutionAddress converts the withdrawal credentials to an execution
+	// address.
+	ToExecutionAddress() (common.ExecutionAddress, error)
+}
