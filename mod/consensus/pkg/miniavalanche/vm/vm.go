@@ -39,6 +39,7 @@ import (
 	"github.com/ava-labs/avalanchego/snow/engine/snowman/block"
 	"github.com/ava-labs/avalanchego/snow/validators"
 	"github.com/ava-labs/avalanchego/version"
+	avalanchewrappers "github.com/berachain/beacon-kit/mod/consensus/pkg/miniavalanche/avalanche-wrappers"
 	berablock "github.com/berachain/beacon-kit/mod/consensus/pkg/miniavalanche/block"
 	cosmoswrappers "github.com/berachain/beacon-kit/mod/consensus/pkg/miniavalanche/cosmos-wrappers"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/miniavalanche/middleware"
@@ -53,8 +54,8 @@ var (
 	// (e.g. github.com/shirou/gopsutils).
 	errNotYetImplemented = errors.New("mini-avalanche: not yet implemented")
 
-	avalanchePrefix  = []byte{'a'}
-	middlewarePrefix = []byte{'m'}
+	avalanchePrefix = []byte{'a'}
+	// middlewarePrefix = []byte{'m'}.
 )
 
 type VM struct {
@@ -63,8 +64,10 @@ type VM struct {
 	// middleware interfaces with the bus to send/receive data from the EVM
 	middleware *middleware.VMMiddleware
 
-	db    database.Database
-	state chainState
+	// baseDB is built on top of Cosmos DB. db is build on top of baseDB
+	baseDB *avalanchewrappers.DB
+	db     database.Database
+	state  chainState
 
 	validators validators.Manager // exposed to consensus engine
 
@@ -127,10 +130,9 @@ func (vm *VM) Initialize(
 	vm.bb = newBlockBuilder(toEngine, vm)
 
 	// init middleware Context
-	cosmosDB := cosmoswrappers.NewAvaDBWrapper(middlewarePrefix, db)
 	cosmosLog := cosmoswrappers.NewAvaLogWrapper(vm.chainCtx.Log)
 	cms := store.NewCommitMultiStore(
-		cosmosDB,
+		vm.baseDB.UnderlyingDB(),
 		cosmosLog,
 		storemetrics.NewNoOpMetrics(),
 	)

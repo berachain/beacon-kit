@@ -24,6 +24,7 @@ import (
 	"github.com/ava-labs/avalanchego/utils/logging"
 	"github.com/ava-labs/avalanchego/version"
 	"github.com/ava-labs/avalanchego/vms"
+	avalanchewrappers "github.com/berachain/beacon-kit/mod/consensus/pkg/miniavalanche/avalanche-wrappers"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/miniavalanche/middleware"
 )
 
@@ -41,6 +42,7 @@ var (
 // Entry point for node to build the VM.
 type Factory struct {
 	Config     Config
+	BaseDB     *avalanchewrappers.DB
 	Middleware *middleware.VMMiddleware
 }
 
@@ -48,5 +50,6 @@ func (f *Factory) New(logging.Logger) (interface{}, error) {
 	return &VM{
 		validators: f.Config.Validators,
 		middleware: f.Middleware,
+		baseDB:     f.BaseDB,
 	}, nil
 }

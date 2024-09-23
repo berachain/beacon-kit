@@ -26,17 +26,18 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ava-labs/avalanchego/database/memdb"
 	"github.com/ava-labs/avalanchego/snow/engine/common"
 	"github.com/ava-labs/avalanchego/snow/snowtest"
 	"github.com/ava-labs/avalanchego/snow/validators"
 	"github.com/ava-labs/avalanchego/utils/logging"
 	"github.com/berachain/beacon-kit/mod/async/pkg/types"
+	avalanchewrappers "github.com/berachain/beacon-kit/mod/consensus/pkg/miniavalanche/avalanche-wrappers"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/miniavalanche/middleware"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/miniavalanche/vm"
 	"github.com/berachain/beacon-kit/mod/log/pkg/noop"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
+	cosmosdb "github.com/cosmos/cosmos-db"
 	"github.com/stretchr/testify/require"
 )
 
@@ -99,18 +100,20 @@ func TestVMInitialization(t *testing.T) {
 		dp           = &genesisDispatcherStub{
 			brokers: make(map[async.EventID]any),
 		}
-		mdw = middleware.NewABCIMiddleware(dp, beaconLogger)
-		f   = vm.Factory{
+		mdw      = middleware.NewABCIMiddleware(dp, beaconLogger)
+		cosmosDB = cosmosdb.NewMemDB()
+		db       = avalanchewrappers.NewDB(cosmosDB)
+		f        = vm.Factory{
 			Config: vm.Config{
 				Validators: validators.NewManager(),
 			},
+			BaseDB:     db,
 			Middleware: mdw,
 		}
 
 		ctx      = context.TODO()
 		msgChan  = make(chan common.Message, 1)
 		chainCtx = snowtest.Context(t, snowtest.PChainID)
-		db       = memdb.New()
 	)
 
 	vmIntf, err := f.New(avaLogger)
