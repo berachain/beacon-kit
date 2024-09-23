@@ -121,13 +121,24 @@ type StorageBackend[
 
 // Validator represents an interface for a validator.
 type Validator interface {
+	// GetWithdrawalCredentials returns the withdrawal credentials
+	// of the validator.
 	GetWithdrawalCredentials() types.WithdrawalCredentials
+	// GetPubkey returns the public key of the validator.
 	GetPubkey() crypto.BLSPubkey
+	// GetEffectiveBalance returns the effective balance of the validator.
 	GetEffectiveBalance() math.Gwei
+	// IsSlashed returns true if the validator is slashed.
 	IsSlashed() bool
+	// GetActivationEligibilityEpoch returns the epoch when the validator
+	// became eligible for activation.
 	GetActivationEligibilityEpoch() math.Epoch
+	// GetActivationEpoch returns the epoch when the validator was activated.
 	GetActivationEpoch() math.Epoch
+	// GetExitEpoch returns the epoch when the validator exited.
 	GetExitEpoch() math.Epoch
+	// GetWithdrawableEpoch returns the epoch when the validator
+	// can withdraw their balance.
 	GetWithdrawableEpoch() math.Epoch
 }
 
