@@ -140,7 +140,7 @@ type RandaoData struct {
 	Randao common.Bytes32 `json:"randao"`
 }
 
-type ForkResponse struct {
+type ForkData struct {
 	Fork
 }
 
@@ -150,7 +150,7 @@ type forkJSON struct {
 	Epoch           string `json:"epoch"`
 }
 
-func (fr ForkResponse) MarshalJSON() ([]byte, error) {
+func (fr ForkData) MarshalJSON() ([]byte, error) {
 	return json.Marshal(forkJSON{
 		PreviousVersion: fr.GetPreviousVersion().String(),
 		CurrentVersion:  fr.GetCurrentVersion().String(),
