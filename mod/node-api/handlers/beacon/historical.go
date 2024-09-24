@@ -26,7 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 )
 
-func (h *Handler[_, ContextT, _, _]) GetStateRoot(c ContextT) (any, error) {
+func (h *Handler[_, ContextT, _, _, _]) GetStateRoot(c ContextT) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetStateRootRequest](
 		c, h.Logger(),
 	)
@@ -51,7 +51,7 @@ func (h *Handler[_, ContextT, _, _]) GetStateRoot(c ContextT) (any, error) {
 	}, nil
 }
 
-func (h *Handler[_, ContextT, _, _]) GetStateFork(c ContextT) (any, error) {
+func (h *Handler[_, ContextT, _, _, _]) GetStateFork(c ContextT) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetStateForkRequest](
 		c, h.Logger(),
 	)

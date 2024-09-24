@@ -21,37 +21,38 @@
 package types
 
 import (
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/karalabe/ssz"
 )
 
 const MaxValidators = 1099511627776
 
-type Validators []*Validator
+type Validators[WithdrawalCredentialsT types.WithdrawalCredentials] []*Validator[WithdrawalCredentialsT]
 
 // SizeSSZ returns the SSZ encoded size in bytes for the Validators.
-func (vs Validators) SizeSSZ(bool) uint32 {
-	return ssz.SizeSliceOfStaticObjects(([]*Validator)(vs))
+func (vs Validators[WithdrawalCredentialsT]) SizeSSZ(bool) uint32 {
+	return ssz.SizeSliceOfStaticObjects(([]*Validator[WithdrawalCredentialsT])(vs))
 }
 
 // DefineSSZ defines the SSZ encoding for the Validators object.
-func (vs Validators) DefineSSZ(c *ssz.Codec) {
+func (vs Validators[WithdrawalCredentialsT]) DefineSSZ(c *ssz.Codec) {
 	c.DefineDecoder(func(*ssz.Decoder) {
 		ssz.DefineSliceOfStaticObjectsContent(
-			c, (*[]*Validator)(&vs), MaxValidators)
+			c, (*[]*Validator[WithdrawalCredentialsT])(&vs), MaxValidators)
 	})
 	c.DefineEncoder(func(*ssz.Encoder) {
 		ssz.DefineSliceOfStaticObjectsContent(
-			c, (*[]*Validator)(&vs), MaxValidators)
+			c, (*[]*Validator[WithdrawalCredentialsT])(&vs), MaxValidators)
 	})
 
 	c.DefineHasher(func(*ssz.Hasher) {
 		ssz.DefineSliceOfStaticObjectsOffset(
-			c, (*[]*Validator)(&vs), MaxValidators)
+			c, (*[]*Validator[WithdrawalCredentialsT])(&vs), MaxValidators)
 	})
 }
 
 // HashTreeRoot returns the SSZ hash tree root for the Validators object.
-func (vs Validators) HashTreeRoot() common.Root {
+func (vs Validators[WithdrawalCredentialsT]) HashTreeRoot() common.Root {
 	return ssz.HashSequential(vs)
 }

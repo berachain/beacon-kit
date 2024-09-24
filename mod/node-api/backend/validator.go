@@ -27,10 +27,10 @@ import (
 )
 
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _, WithdrawalCredentialsT,
 ]) ValidatorByID(
 	slot math.Slot, id string,
-) (*beacontypes.ValidatorData[ValidatorT], error) {
+) (*beacontypes.ValidatorData[ValidatorT, WithdrawalCredentialsT], error) {
 	// TODO: to adhere to the spec, this shouldn't error if the error
 	// is not found, but i can't think of a way to do that without coupling
 	// db impl to the api impl.
@@ -50,7 +50,7 @@ func (b Backend[
 	if err != nil {
 		return nil, err
 	}
-	return &beacontypes.ValidatorData[ValidatorT]{
+	return &beacontypes.ValidatorData[ValidatorT, WithdrawalCredentialsT]{
 		ValidatorBalanceData: beacontypes.ValidatorBalanceData{
 			Index:   index.Unwrap(),
 			Balance: balance.Unwrap(),
@@ -62,11 +62,11 @@ func (b Backend[
 
 // TODO: filter by status
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _, WithdrawalCredentialsT,
 ]) ValidatorsByIDs(
 	slot math.Slot, ids []string, _ []string,
-) ([]*beacontypes.ValidatorData[ValidatorT], error) {
-	validatorsData := make([]*beacontypes.ValidatorData[ValidatorT], 0)
+) ([]*beacontypes.ValidatorData[ValidatorT, WithdrawalCredentialsT], error) {
+	validatorsData := make([]*beacontypes.ValidatorData[ValidatorT, WithdrawalCredentialsT], 0)
 	for _, id := range ids {
 		// TODO: we can probably optimize this via a getAllValidators
 		// query and then filtering but blocked by the fact that IDs

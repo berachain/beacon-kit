@@ -47,10 +47,11 @@ type NodeAPIHandlersInput[
 	KVStoreT any,
 	NodeAPIContextT NodeAPIContext,
 	WithdrawalT Withdrawal[WithdrawalT],
+	WithdrawalCredentialsT WithdrawalCredentials,
 ] struct {
 	depinject.In
 	BeaconAPIHandler *beaconapi.Handler[
-		BeaconBlockHeaderT, NodeAPIContextT, *Fork, *Validator,
+		BeaconBlockHeaderT, NodeAPIContextT, *Fork, *Validator, WithdrawalCredentialsT,
 	]
 	BuilderAPIHandler *builderapi.Handler[NodeAPIContextT]
 	ConfigAPIHandler  *configapi.Handler[NodeAPIContextT]
@@ -78,11 +79,12 @@ func ProvideNodeAPIHandlers[
 	KVStoreT any,
 	NodeAPIContextT NodeAPIContext,
 	WithdrawalT Withdrawal[WithdrawalT],
+	WithdrawalCredentialsT WithdrawalCredentials,
 ](
 	in NodeAPIHandlersInput[
 		BeaconBlockHeaderT, BeaconStateT,
 		BeaconStateMarshallableT, ExecutionPayloadHeaderT, KVStoreT,
-		NodeAPIContextT, WithdrawalT,
+		NodeAPIContextT, WithdrawalT, WithdrawalCredentialsT,
 	],
 ) []handlers.Handlers[NodeAPIContextT] {
 	return []handlers.Handlers[NodeAPIContextT]{
@@ -101,20 +103,23 @@ func ProvideNodeAPIBeaconHandler[
 	BeaconStateT any,
 	NodeT any,
 	NodeAPIContextT NodeAPIContext,
+	WithdrawalCredentialsT WithdrawalCredentials,
 ](b NodeAPIBackend[
 	BeaconBlockHeaderT,
 	BeaconStateT,
 	*Fork,
 	NodeT,
 	*Validator,
+	WithdrawalCredentialsT,
 ]) *beaconapi.Handler[
-	BeaconBlockHeaderT, NodeAPIContextT, *Fork, *Validator,
+	BeaconBlockHeaderT, NodeAPIContextT, *Fork, *Validator, WithdrawalCredentialsT,
 ] {
 	return beaconapi.NewHandler[
 		BeaconBlockHeaderT,
 		NodeAPIContextT,
 		*Fork,
 		*Validator,
+		WithdrawalCredentialsT,
 	](b)
 }
 
@@ -164,12 +169,14 @@ func ProvideNodeAPIProofHandler[
 	NodeT any,
 	NodeAPIContextT NodeAPIContext,
 	WithdrawalT Withdrawal[WithdrawalT],
+	WithdrawalCredentialsT WithdrawalCredentials,
 ](b NodeAPIBackend[
 	BeaconBlockHeaderT,
 	BeaconStateT,
 	*Fork,
 	NodeT,
 	*Validator,
+	WithdrawalCredentialsT,
 ]) *proofapi.Handler[
 	BeaconBlockHeaderT, BeaconStateT, BeaconStateMarshallableT,
 	NodeAPIContextT, ExecutionPayloadHeaderT, *Validator,

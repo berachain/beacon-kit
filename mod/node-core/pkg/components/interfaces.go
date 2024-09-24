@@ -25,7 +25,6 @@ import (
 	"context"
 	"encoding/json"
 
-	consensustypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
@@ -1085,7 +1084,8 @@ type (
 		BeaconStateT any,
 		ForkT any,
 		NodeT any,
-		ValidatorT types.Validator[consensustypes.WithdrawalCredentials],
+		ValidatorT types.Validator[WithdrawalCredentialsT],
+		WithdrawalCredentialsT types.WithdrawalCredentials,
 	] interface {
 		AttachQueryBackend(node NodeT)
 		ChainSpec() common.ChainSpec
@@ -1094,7 +1094,7 @@ type (
 		GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error)
 
 		NodeAPIBeaconBackend[
-			BeaconStateT, BeaconBlockHeaderT, ForkT, ValidatorT,
+			BeaconStateT, BeaconBlockHeaderT, ForkT, ValidatorT, WithdrawalCredentialsT,
 		]
 		NodeAPIProofBackend[
 			BeaconBlockHeaderT, BeaconStateT, ForkT, ValidatorT,
@@ -1104,13 +1104,14 @@ type (
 	// NodeAPIBackend is the interface for backend of the beacon API.
 	NodeAPIBeaconBackend[
 		BeaconStateT, BeaconBlockHeaderT, ForkT any,
-		ValidatorT types.Validator[consensustypes.WithdrawalCredentials],
+		ValidatorT types.Validator[WithdrawalCredentialsT],
+		WithdrawalCredentialsT types.WithdrawalCredentials,
 	] interface {
 		GenesisBackend
 		BlockBackend[BeaconBlockHeaderT]
 		RandaoBackend
 		StateBackend[BeaconStateT, ForkT]
-		ValidatorBackend[ValidatorT]
+		ValidatorBackend[ValidatorT, WithdrawalCredentialsT]
 		HistoricalBackend[ForkT]
 		// GetSlotByBlockRoot retrieves the slot by a given root from the store.
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
@@ -1152,15 +1153,15 @@ type (
 		StateFromSlotForProof(slot math.Slot) (BeaconStateT, math.Slot, error)
 	}
 
-	ValidatorBackend[ValidatorT types.Validator[consensustypes.WithdrawalCredentials]] interface {
+	ValidatorBackend[ValidatorT types.Validator[WithdrawalCredentialsT], WithdrawalCredentialsT types.WithdrawalCredentials] interface {
 		ValidatorByID(
 			slot math.Slot, id string,
-		) (*types.ValidatorData[ValidatorT], error)
+		) (*types.ValidatorData[ValidatorT, WithdrawalCredentialsT], error)
 		ValidatorsByIDs(
 			slot math.Slot,
 			ids []string,
 			statuses []string,
-		) ([]*types.ValidatorData[ValidatorT], error)
+		) ([]*types.ValidatorData[ValidatorT, WithdrawalCredentialsT], error)
 		ValidatorBalancesByIDs(
 			slot math.Slot,
 			ids []string,

@@ -23,7 +23,6 @@ package backend
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -125,7 +124,7 @@ type StorageBackend[
 type Validator[WithdrawalCredentialsT WithdrawalCredentials] interface {
 	// GetWithdrawalCredentials returns the withdrawal credentials of the
 	// validator.
-	GetWithdrawalCredentials() types.WithdrawalCredentials
+	GetWithdrawalCredentials() WithdrawalCredentialsT
 	// GetPubkey returns the public key of the validator.
 	GetPubkey() crypto.BLSPubkey
 	// GetEffectiveBalance returns the effective balance of the validator.
@@ -159,4 +158,5 @@ type WithdrawalCredentials interface {
 	// ToExecutionAddress converts the withdrawal credentials to an execution
 	// address.
 	ToExecutionAddress() (common.ExecutionAddress, error)
+	Bytes() []byte
 }

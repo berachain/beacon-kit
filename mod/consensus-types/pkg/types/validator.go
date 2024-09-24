@@ -21,6 +21,7 @@
 package types
 
 import (
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
@@ -35,19 +36,19 @@ const ValidatorSize = 121
 
 // Compile-time checks for the Validator struct.
 var (
-	_ ssz.StaticObject                    = (*Validator)(nil)
-	_ constraints.SSZMarshallableRootable = (*Validator)(nil)
+	_ ssz.StaticObject                    = (*Validator[types.WithdrawalCredentials])(nil)
+	_ constraints.SSZMarshallableRootable = (*Validator[types.WithdrawalCredentials])(nil)
 )
 
 // Validator as defined in the Ethereum 2.0 Spec
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#validator
 //
 //nolint:lll
-type Validator struct {
+type Validator[WithdrawalCredentialsT types.WithdrawalCredentials] struct {
 	// Pubkey is the validator's 48-byte BLS public key.
 	Pubkey crypto.BLSPubkey `json:"pubkey"`
 	// WithdrawalCredentials are an address that controls the validator.
-	WithdrawalCredentials WithdrawalCredentials `json:"withdrawal_credentials"`
+	WithdrawalCredentials WithdrawalCredentialsT `json:"withdrawal_credentials"`
 	// EffectiveBalance is the validator's current effective balance in gwei.
 	EffectiveBalance math.Gwei `json:"effective_balance"`
 	// Slashed indicates whether the validator has been slashed.
@@ -74,14 +75,14 @@ type Validator struct {
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#deposits
 //
 //nolint:lll
-func NewValidatorFromDeposit(
+func NewValidatorFromDeposit[WithdrawalCredentialsT types.WithdrawalCredentials](
 	pubkey crypto.BLSPubkey,
-	withdrawalCredentials WithdrawalCredentials,
+	withdrawalCredentials WithdrawalCredentialsT,
 	amount math.Gwei,
 	effectiveBalanceIncrement math.Gwei,
 	maxEffectiveBalance math.Gwei,
-) *Validator {
-	return &Validator{
+) *Validator[WithdrawalCredentialsT] {
+	return &Validator[WithdrawalCredentialsT]{
 		Pubkey:                pubkey,
 		WithdrawalCredentials: withdrawalCredentials,
 		EffectiveBalance: min(
@@ -97,20 +98,20 @@ func NewValidatorFromDeposit(
 }
 
 // Empty creates an empty Validator.
-func (*Validator) Empty() *Validator {
-	return &Validator{}
+func (*Validator[WithdrawalCredentialsT]) Empty() *Validator[WithdrawalCredentialsT] {
+	return &Validator[WithdrawalCredentialsT]{}
 }
 
 // New creates a new Validator with the given public key, withdrawal
 // credentials,.
-func (v *Validator) New(
+func (v *Validator[WithdrawalCredentialsT]) New(
 	pubkey crypto.BLSPubkey,
-	withdrawalCredentials WithdrawalCredentials,
+	withdrawalCredentials WithdrawalCredentialsT,
 	amount math.Gwei,
 	effectiveBalanceIncrement math.Gwei,
 	maxEffectiveBalance math.Gwei,
-) *Validator {
-	return NewValidatorFromDeposit(
+) *Validator[WithdrawalCredentialsT] {
+	return NewValidatorFromDeposit[WithdrawalCredentialsT](
 		pubkey,
 		withdrawalCredentials,
 		amount,
@@ -124,14 +125,14 @@ func (v *Validator) New(
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the Validator object in SSZ encoding.
-func (*Validator) SizeSSZ() uint32 {
+func (*Validator[WithdrawalCredentialsT]) SizeSSZ() uint32 {
 	return ValidatorSize
 }
 
 // DefineSSZ defines the SSZ encoding for the Validator object.
-func (v *Validator) DefineSSZ(codec *ssz.Codec) {
+func (v *Validator[WithdrawalCredentialsT]) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineStaticBytes(codec, &v.Pubkey)
-	ssz.DefineStaticBytes(codec, &v.WithdrawalCredentials)
+	ssz.DefineStaticBytes(codec, (*[32]byte)(v.WithdrawalCredentials.Bytes()))
 	ssz.DefineUint64(codec, &v.EffectiveBalance)
 	ssz.DefineBool(codec, &v.Slashed)
 	ssz.DefineUint64(codec, &v.ActivationEligibilityEpoch)
@@ -141,18 +142,18 @@ func (v *Validator) DefineSSZ(codec *ssz.Codec) {
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the Validator object.
-func (v *Validator) HashTreeRoot() common.Root {
+func (v *Validator[WithdrawalCredentialsT]) HashTreeRoot() common.Root {
 	return ssz.HashSequential(v)
 }
 
 // MarshalSSZ marshals the Validator object to SSZ format.
-func (v *Validator) MarshalSSZ() ([]byte, error) {
+func (v *Validator[WithdrawalCredentialsT]) MarshalSSZ() ([]byte, error) {
 	buf := make([]byte, v.SizeSSZ())
 	return buf, ssz.EncodeToBytes(buf, v)
 }
 
 // UnmarshalSSZ unmarshals the Validator object from SSZ format.
-func (v *Validator) UnmarshalSSZ(buf []byte) error {
+func (v *Validator[WithdrawalCredentialsT]) UnmarshalSSZ(buf []byte) error {
 	return ssz.DecodeFromBytes(buf, v)
 }
 
@@ -162,7 +163,7 @@ func (v *Validator) UnmarshalSSZ(buf []byte) error {
 
 // MarshalSSZTo marshals the Validator object to SSZ format into the provided
 // buffer.
-func (v *Validator) MarshalSSZTo(dst []byte) ([]byte, error) {
+func (v *Validator[WithdrawalCredentialsT]) MarshalSSZTo(dst []byte) ([]byte, error) {
 	bz, err := v.MarshalSSZ()
 	if err != nil {
 		return nil, err
@@ -172,14 +173,14 @@ func (v *Validator) MarshalSSZTo(dst []byte) ([]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the Validator object with a hasher.
-func (v *Validator) HashTreeRootWith(hh fastssz.HashWalker) error {
+func (v *Validator[WithdrawalCredentialsT]) HashTreeRootWith(hh fastssz.HashWalker) error {
 	indx := hh.Index()
 
 	// Field (0) 'Pubkey'
 	hh.PutBytes(v.Pubkey[:])
 
 	// Field (1) 'WithdrawalCredentials'
-	hh.PutBytes(v.WithdrawalCredentials[:])
+	hh.PutBytes(v.WithdrawalCredentials.Bytes())
 
 	// Field (2) 'EffectiveBalance'
 	hh.PutUint64(uint64(v.EffectiveBalance))
@@ -204,7 +205,7 @@ func (v *Validator) HashTreeRootWith(hh fastssz.HashWalker) error {
 }
 
 // GetTree ssz hashes the Validator object.
-func (v *Validator) GetTree() (*fastssz.Node, error) {
+func (v *Validator[WithdrawalCredentialsT]) GetTree() (*fastssz.Node, error) {
 	return fastssz.ProofTree(v)
 }
 
@@ -213,12 +214,12 @@ func (v *Validator) GetTree() (*fastssz.Node, error) {
 /* -------------------------------------------------------------------------- */
 
 // GetPubkey returns the public key of the validator.
-func (v *Validator) GetPubkey() crypto.BLSPubkey {
+func (v Validator[WithdrawalCredentialsT]) GetPubkey() crypto.BLSPubkey {
 	return v.Pubkey
 }
 
 // GetEffectiveBalance returns the effective balance of the validator.
-func (v *Validator) GetEffectiveBalance() math.Gwei {
+func (v Validator[WithdrawalCredentialsT]) GetEffectiveBalance() math.Gwei {
 	return v.EffectiveBalance
 }
 
@@ -226,7 +227,7 @@ func (v *Validator) GetEffectiveBalance() math.Gwei {
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#is_active_validator
 //
 //nolint:lll
-func (v Validator) IsActive(epoch math.Epoch) bool {
+func (v Validator[WithdrawalCredentialsT]) IsActive(epoch math.Epoch) bool {
 	return v.ActivationEpoch <= epoch && epoch < v.ExitEpoch
 }
 
@@ -234,7 +235,7 @@ func (v Validator) IsActive(epoch math.Epoch) bool {
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#is_eligible_for_activation_queue
 //
 //nolint:lll
-func (v Validator) IsEligibleForActivation(
+func (v Validator[WithdrawalCredentialsT]) IsEligibleForActivation(
 	finalizedEpoch math.Epoch,
 ) bool {
 	return v.ActivationEligibilityEpoch <= finalizedEpoch &&
@@ -245,7 +246,7 @@ func (v Validator) IsEligibleForActivation(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#is_eligible_for_activation_queue
 //
 //nolint:lll
-func (v Validator) IsEligibleForActivationQueue(
+func (v Validator[WithdrawalCredentialsT]) IsEligibleForActivationQueue(
 	maxEffectiveBalance math.Gwei,
 ) bool {
 	return v.ActivationEligibilityEpoch == math.Epoch(
@@ -258,13 +259,13 @@ func (v Validator) IsEligibleForActivationQueue(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#is_slashable_validator
 //
 //nolint:lll
-func (v Validator) IsSlashable(epoch math.Epoch) bool {
+func (v Validator[WithdrawalCredentialsT]) IsSlashable(epoch math.Epoch) bool {
 	return !v.Slashed && v.ActivationEpoch <= epoch &&
 		epoch < v.WithdrawableEpoch
 }
 
 // IsSlashed returns whether the validator has been slashed.
-func (v Validator) IsSlashed() bool {
+func (v Validator[WithdrawalCredentialsT]) IsSlashed() bool {
 	return v.Slashed
 }
 
@@ -272,7 +273,7 @@ func (v Validator) IsSlashed() bool {
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#is_fully_withdrawable_validator
 //
 //nolint:lll
-func (v Validator) IsFullyWithdrawable(
+func (v Validator[WithdrawalCredentialsT]) IsFullyWithdrawable(
 	balance math.Gwei,
 	epoch math.Epoch,
 ) bool {
@@ -284,7 +285,7 @@ func (v Validator) IsFullyWithdrawable(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#is_partially_withdrawable_validator
 //
 //nolint:lll
-func (v Validator) IsPartiallyWithdrawable(
+func (v Validator[WithdrawalCredentialsT]) IsPartiallyWithdrawable(
 	balance, maxEffectiveBalance math.Gwei,
 ) bool {
 	hasExcessBalance := balance > maxEffectiveBalance
@@ -296,45 +297,45 @@ func (v Validator) IsPartiallyWithdrawable(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#has_eth1_withdrawal_credential
 //
 //nolint:lll
-func (v Validator) HasEth1WithdrawalCredentials() bool {
-	return v.WithdrawalCredentials[0] == EthSecp256k1CredentialPrefix
+func (v Validator[WithdrawalCredentialsT]) HasEth1WithdrawalCredentials() bool {
+	return v.WithdrawalCredentials.Bytes()[0] == EthSecp256k1CredentialPrefix
 }
 
 // HasMaxEffectiveBalance determines if the validator has the maximum effective
 // balance.
-func (v Validator) HasMaxEffectiveBalance(
+func (v Validator[WithdrawalCredentialsT]) HasMaxEffectiveBalance(
 	maxEffectiveBalance math.Gwei,
 ) bool {
 	return v.EffectiveBalance == maxEffectiveBalance
 }
 
 // SetEffectiveBalance sets the effective balance of the validator.
-func (v *Validator) SetEffectiveBalance(balance math.Gwei) {
+func (v *Validator[WithdrawalCredentialsT]) SetEffectiveBalance(balance math.Gwei) {
 	v.EffectiveBalance = balance
 }
 
 // GetWithdrawableEpoch returns the epoch when the validator can withdraw.
-func (v Validator) GetWithdrawableEpoch() math.Epoch {
+func (v Validator[WithdrawalCredentialsT]) GetWithdrawableEpoch() math.Epoch {
 	return v.WithdrawableEpoch
 }
 
 // GetWithdrawalCredentials returns the withdrawal credentials of the validator.
-func (v Validator) GetWithdrawalCredentials() WithdrawalCredentials {
+func (v Validator[WithdrawalCredentialsT]) GetWithdrawalCredentials() WithdrawalCredentialsT {
 	return v.WithdrawalCredentials
 }
 
 // GetActivationEligibilityEpoch returns the activation eligibility
 // epoch of the validator.
-func (v *Validator) GetActivationEligibilityEpoch() math.Epoch {
+func (v Validator[WithdrawalCredentialsT]) GetActivationEligibilityEpoch() math.Epoch {
 	return v.ActivationEligibilityEpoch
 }
 
 // GetActivationEpoch returns the activation epoch of the validator.
-func (v *Validator) GetActivationEpoch() math.Epoch {
+func (v Validator[WithdrawalCredentialsT]) GetActivationEpoch() math.Epoch {
 	return v.ActivationEpoch
 }
 
 // GetExitEpoch returns the exit epoch of the validator.
-func (v *Validator) GetExitEpoch() math.Epoch {
+func (v Validator[WithdrawalCredentialsT]) GetExitEpoch() math.Epoch {
 	return v.ExitEpoch
 }

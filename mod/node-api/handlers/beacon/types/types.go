@@ -21,7 +21,6 @@
 package types
 
 import (
-	consensustypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -40,7 +39,7 @@ type Fork interface {
 }
 
 // Validator is the interface for the validator data.
-type Validator[WithdrawalCredentialsT consensustypes.WithdrawalCredentials] interface {
+type Validator[WithdrawalCredentialsT WithdrawalCredentials] interface {
 	GetPubkey() crypto.BLSPubkey
 	GetWithdrawalCredentials() WithdrawalCredentialsT
 	GetEffectiveBalance() math.Gwei
@@ -49,4 +48,9 @@ type Validator[WithdrawalCredentialsT consensustypes.WithdrawalCredentials] inte
 	GetActivationEpoch() math.Epoch
 	GetExitEpoch() math.Epoch
 	GetWithdrawableEpoch() math.Epoch
+}
+
+// WithdrawalCredentials represents an interface for withdrawal credentials.
+type WithdrawalCredentials interface {
+	Bytes() []byte
 }

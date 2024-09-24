@@ -85,10 +85,12 @@ type (
 	SlashingInfo = types.SlashingInfo
 
 	// Validator is a type alias for the validator.
-	Validator = types.Validator
+	Validator = types.Validator[WithdrawalCredentialsT]
 
 	// Validators is a type alias for the validators.
-	Validators = types.Validators
+	Validators = types.Validators[WithdrawalCredentialsT]
+
+	WithdrawalCredentialsT = WithdrawalCredentials
 
 	// ValidatorUpdate is a type alias for the validator update.
 	ABCIValidatorUpdate = appmodule.ValidatorUpdate

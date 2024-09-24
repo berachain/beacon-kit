@@ -21,7 +21,6 @@
 package beacon
 
 import (
-	consensustypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/node-api/server/context"
@@ -32,10 +31,11 @@ type Handler[
 	BeaconBlockHeaderT types.BeaconBlockHeader,
 	ContextT context.Context,
 	ForkT types.Fork,
-	ValidatorT types.Validator[consensustypes.WithdrawalCredentials],
+	ValidatorT types.Validator[WithdrawalCredentialsT],
+	WithdrawalCredentialsT types.WithdrawalCredentials,
 ] struct {
 	*handlers.BaseHandler[ContextT]
-	backend Backend[BeaconBlockHeaderT, ForkT, ValidatorT]
+	backend Backend[BeaconBlockHeaderT, ForkT, ValidatorT, WithdrawalCredentialsT]
 }
 
 // NewHandler creates a new handler for the beacon API.
@@ -43,11 +43,12 @@ func NewHandler[
 	BeaconBlockHeaderT types.BeaconBlockHeader,
 	ContextT context.Context,
 	ForkT types.Fork,
-	ValidatorT types.Validator[consensustypes.WithdrawalCredentials],
+	ValidatorT types.Validator[WithdrawalCredentialsT],
+	WithdrawalCredentialsT types.WithdrawalCredentials,
 ](
-	backend Backend[BeaconBlockHeaderT, ForkT, ValidatorT],
-) *Handler[BeaconBlockHeaderT, ContextT, ForkT, ValidatorT] {
-	h := &Handler[BeaconBlockHeaderT, ContextT, ForkT, ValidatorT]{
+	backend Backend[BeaconBlockHeaderT, ForkT, ValidatorT, WithdrawalCredentialsT],
+) *Handler[BeaconBlockHeaderT, ContextT, ForkT, ValidatorT, WithdrawalCredentialsT] {
+	h := &Handler[BeaconBlockHeaderT, ContextT, ForkT, ValidatorT, WithdrawalCredentialsT]{
 		BaseHandler: handlers.NewBaseHandler(
 			handlers.NewRouteSet[ContextT](""),
 		),

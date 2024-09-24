@@ -25,7 +25,6 @@ import (
 	"encoding/json"
 	"strconv"
 
-	consensustypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
@@ -72,7 +71,7 @@ func (vbd ValidatorBalanceData) MarshalJSON() ([]byte, error) {
 	})
 }
 
-type ValidatorData[ValidatorT Validator[consensustypes.WithdrawalCredentials]] struct {
+type ValidatorData[ValidatorT Validator[WithdrawalCredentialsT], WithdrawalCredentialsT WithdrawalCredentials] struct {
 	ValidatorBalanceData
 	Status    string     `json:"status"`
 	Validator ValidatorT `json:"validator"`
@@ -96,8 +95,9 @@ type responseJSON struct {
 	Validator validatorJSON `json:"validator"`
 }
 
-func (vd ValidatorData[ValidatorT]) MarshalJSON() ([]byte, error) {
+func (vd ValidatorData[ValidatorT, WithdrawalCredentialsT]) MarshalJSON() ([]byte, error) {
 	withdrawalCredentials := vd.Validator.GetWithdrawalCredentials()
+	withdrawalCredentialsBytes := withdrawalCredentials.Bytes()
 
 	return json.Marshal(responseJSON{
 		Index:   strconv.FormatUint(vd.Index, 10),
@@ -106,7 +106,7 @@ func (vd ValidatorData[ValidatorT]) MarshalJSON() ([]byte, error) {
 		Validator: validatorJSON{
 			PublicKey: vd.Validator.GetPubkey().String(),
 			WithdrawalCredentials: "0x" + hex.EncodeToString(
-				withdrawalCredentials[:],
+				withdrawalCredentialsBytes,
 			),
 			EffectiveBalance: strconv.FormatUint(
 				vd.Validator.GetEffectiveBalance().Unwrap(), 10,
