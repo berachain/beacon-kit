@@ -85,10 +85,10 @@ type (
 	SlashingInfo = types.SlashingInfo
 
 	// Validator is a type alias for the validator.
-	Validator = types.Validator[WithdrawalCredentialsT]
+	Validator = types.Validator
 
 	// Validators is a type alias for the validators.
-	Validators = types.Validators[WithdrawalCredentialsT]
+	Validators = types.Validators
 
 	WithdrawalCredentialsT = WithdrawalCredentials
 

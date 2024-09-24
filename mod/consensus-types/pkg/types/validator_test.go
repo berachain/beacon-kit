@@ -41,7 +41,7 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 		amount                    math.Gwei
 		effectiveBalanceIncrement math.Gwei
 		maxEffectiveBalance       math.Gwei
-		want                      *types.Validator[types.WithdrawalCredentials]
+		want                      *types.Validator
 	}{
 		{
 			name:   "normal case",
@@ -53,7 +53,7 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 			amount:                    32e9,
 			effectiveBalanceIncrement: 1e9,
 			maxEffectiveBalance:       32e9,
-			want: &types.Validator[types.WithdrawalCredentials]{
+			want: &types.Validator{
 				Pubkey: [48]byte{0x01},
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
@@ -85,7 +85,7 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 			amount:                    40e9,
 			effectiveBalanceIncrement: 1e9,
 			maxEffectiveBalance:       32e9,
-			want: &types.Validator[types.WithdrawalCredentials]{
+			want: &types.Validator{
 				Pubkey: [48]byte{0x02},
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
@@ -117,7 +117,7 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 			amount:                    32.5e9,
 			effectiveBalanceIncrement: 1e9,
 			maxEffectiveBalance:       32e9,
-			want: &types.Validator[types.WithdrawalCredentials]{
+			want: &types.Validator{
 				Pubkey: [48]byte{0x03},
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
@@ -158,13 +158,13 @@ func TestValidator_IsActive(t *testing.T) {
 	tests := []struct {
 		name      string
 		epoch     math.Epoch
-		validator *types.Validator[types.WithdrawalCredentials]
+		validator *types.Validator
 		want      bool
 	}{
 		{
 			name:  "active",
 			epoch: 10,
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				ActivationEpoch: 5,
 				ExitEpoch:       15,
 			},
@@ -173,7 +173,7 @@ func TestValidator_IsActive(t *testing.T) {
 		{
 			name:  "not active, before activation",
 			epoch: 4,
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				ActivationEpoch: 5,
 				ExitEpoch:       15,
 			},
@@ -182,7 +182,7 @@ func TestValidator_IsActive(t *testing.T) {
 		{
 			name:  "not active, after exit",
 			epoch: 16,
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				ActivationEpoch: 5,
 				ExitEpoch:       15,
 			},
@@ -200,13 +200,13 @@ func TestValidator_IsEligibleForActivation(t *testing.T) {
 	tests := []struct {
 		name           string
 		finalizedEpoch math.Epoch
-		validator      *types.Validator[types.WithdrawalCredentials]
+		validator      *types.Validator
 		want           bool
 	}{
 		{
 			name:           "eligible",
 			finalizedEpoch: 10,
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				ActivationEligibilityEpoch: 5,
 				ActivationEpoch: math.Epoch(
 					constants.FarFutureEpoch,
@@ -217,7 +217,7 @@ func TestValidator_IsEligibleForActivation(t *testing.T) {
 		{
 			name:           "not eligible, activation eligibility in future",
 			finalizedEpoch: 4,
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				ActivationEligibilityEpoch: 5,
 				ActivationEpoch: math.Epoch(
 					constants.FarFutureEpoch,
@@ -228,7 +228,7 @@ func TestValidator_IsEligibleForActivation(t *testing.T) {
 		{
 			name:           "not eligible, already activated",
 			finalizedEpoch: 10,
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				ActivationEligibilityEpoch: 5,
 				ActivationEpoch:            8,
 			},
@@ -250,12 +250,12 @@ func TestValidator_IsEligibleForActivationQueue(t *testing.T) {
 	maxEffectiveBalance := math.Gwei(32e9)
 	tests := []struct {
 		name      string
-		validator *types.Validator[types.WithdrawalCredentials]
+		validator *types.Validator
 		want      bool
 	}{
 		{
 			name: "eligible",
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				ActivationEligibilityEpoch: math.Epoch(
 					constants.FarFutureEpoch,
 				),
@@ -265,7 +265,7 @@ func TestValidator_IsEligibleForActivationQueue(t *testing.T) {
 		},
 		{
 			name: "not eligible, activation eligibility set",
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				ActivationEligibilityEpoch: 5,
 				EffectiveBalance:           maxEffectiveBalance,
 			},
@@ -273,7 +273,7 @@ func TestValidator_IsEligibleForActivationQueue(t *testing.T) {
 		},
 		{
 			name: "not eligible, effective balance too low",
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				ActivationEligibilityEpoch: math.Epoch(
 					constants.FarFutureEpoch,
 				),
@@ -297,13 +297,13 @@ func TestValidator_IsSlashable(t *testing.T) {
 	tests := []struct {
 		name      string
 		epoch     math.Epoch
-		validator *types.Validator[types.WithdrawalCredentials]
+		validator *types.Validator
 		want      bool
 	}{
 		{
 			name:  "slashable",
 			epoch: 10,
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				Slashed:           false,
 				ActivationEpoch:   5,
 				WithdrawableEpoch: 15,
@@ -313,7 +313,7 @@ func TestValidator_IsSlashable(t *testing.T) {
 		{
 			name:  "not slashable, already slashed",
 			epoch: 10,
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				Slashed:           true,
 				ActivationEpoch:   5,
 				WithdrawableEpoch: 15,
@@ -323,7 +323,7 @@ func TestValidator_IsSlashable(t *testing.T) {
 		{
 			name:  "not slashable, before activation",
 			epoch: 4,
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				Slashed:           false,
 				ActivationEpoch:   5,
 				WithdrawableEpoch: 15,
@@ -333,7 +333,7 @@ func TestValidator_IsSlashable(t *testing.T) {
 		{
 			name:  "not slashable, after withdrawable",
 			epoch: 16,
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				Slashed:           false,
 				ActivationEpoch:   5,
 				WithdrawableEpoch: 15,
@@ -353,14 +353,14 @@ func TestValidator_IsFullyWithdrawable(t *testing.T) {
 		name      string
 		balance   math.Gwei
 		epoch     math.Epoch
-		validator *types.Validator[types.WithdrawalCredentials]
+		validator *types.Validator
 		want      bool
 	}{
 		{
 			name:    "fully withdrawable",
 			balance: 32e9,
 			epoch:   10,
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
 						common.ExecutionAddress{0x01},
@@ -373,7 +373,7 @@ func TestValidator_IsFullyWithdrawable(t *testing.T) {
 			name:    "not fully withdrawable, non-eth1 credentials",
 			balance: 32e9,
 			epoch:   10,
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				WithdrawalCredentials: types.
 					WithdrawalCredentials{0x00},
 				WithdrawableEpoch: 5,
@@ -384,7 +384,7 @@ func TestValidator_IsFullyWithdrawable(t *testing.T) {
 			name:    "not fully withdrawable, before withdrawable epoch",
 			balance: 32e9,
 			epoch:   4,
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
 						common.ExecutionAddress{0x01},
@@ -397,7 +397,7 @@ func TestValidator_IsFullyWithdrawable(t *testing.T) {
 			name:    "not fully withdrawable, zero balance",
 			balance: 0,
 			epoch:   10,
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
 						common.ExecutionAddress{0x01},
@@ -423,13 +423,13 @@ func TestValidator_IsPartiallyWithdrawable(t *testing.T) {
 	tests := []struct {
 		name      string
 		balance   math.Gwei
-		validator *types.Validator[types.WithdrawalCredentials]
+		validator *types.Validator
 		want      bool
 	}{
 		{
 			name:    "partially withdrawable",
 			balance: 33e9,
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
 						common.ExecutionAddress{0x01},
@@ -441,7 +441,7 @@ func TestValidator_IsPartiallyWithdrawable(t *testing.T) {
 		{
 			name:    "not partially withdrawable, non-eth1 credentials",
 			balance: 33e9,
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				WithdrawalCredentials: types.WithdrawalCredentials{
 					0x00,
 				},
@@ -452,7 +452,7 @@ func TestValidator_IsPartiallyWithdrawable(t *testing.T) {
 		{
 			name:    "not partially withdrawable, not at max effective balance",
 			balance: 33e9,
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
 						common.ExecutionAddress{0x01},
@@ -464,7 +464,7 @@ func TestValidator_IsPartiallyWithdrawable(t *testing.T) {
 		{
 			name:    "not partially withdrawable, no excess balance",
 			balance: 32e9,
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
 						common.ExecutionAddress{0x01},
@@ -491,12 +491,12 @@ func TestValidator_IsPartiallyWithdrawable(t *testing.T) {
 func TestValidator_HasEth1WithdrawalCredentials(t *testing.T) {
 	tests := []struct {
 		name      string
-		validator *types.Validator[types.WithdrawalCredentials]
+		validator *types.Validator
 		want      bool
 	}{
 		{
 			name: "has eth1 credentials",
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
 						common.ExecutionAddress{0x01},
@@ -506,7 +506,7 @@ func TestValidator_HasEth1WithdrawalCredentials(t *testing.T) {
 		},
 		{
 			name: "does not have eth1 credentials",
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				WithdrawalCredentials: types.WithdrawalCredentials{
 					0x00,
 				},
@@ -529,19 +529,19 @@ func TestValidator_HasMaxEffectiveBalance(t *testing.T) {
 	maxEffectiveBalance := math.Gwei(32e9)
 	tests := []struct {
 		name      string
-		validator *types.Validator[types.WithdrawalCredentials]
+		validator *types.Validator
 		want      bool
 	}{
 		{
 			name: "has max effective balance",
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				EffectiveBalance: maxEffectiveBalance,
 			},
 			want: true,
 		},
 		{
 			name: "does not have max effective balance",
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				EffectiveBalance: maxEffectiveBalance - 1,
 			},
 			want: false,
@@ -561,12 +561,12 @@ func TestValidator_HasMaxEffectiveBalance(t *testing.T) {
 func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 	tests := []struct {
 		name       string
-		validator  *types.Validator[types.WithdrawalCredentials]
+		validator  *types.Validator
 		invalidSSZ bool
 	}{
 		{
 			name: "normal case",
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				Pubkey: [48]byte{0x01},
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
@@ -591,7 +591,7 @@ func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 		},
 		{
 			name: "slashed validator",
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				Pubkey: [48]byte{0x02},
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
@@ -608,7 +608,7 @@ func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 		},
 		{
 			name: "validator with zero balance",
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				Pubkey: [48]byte{0x03},
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
@@ -633,7 +633,7 @@ func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 		},
 		{
 			name: "validator with non-default epochs",
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				Pubkey: [48]byte{0x04},
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
@@ -650,7 +650,7 @@ func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 		},
 		{
 			name:       "invalid SSZ size",
-			validator:  &types.Validator[types.WithdrawalCredentials]{},
+			validator:  &types.Validator{},
 			invalidSSZ: true,
 		},
 	}
@@ -660,7 +660,7 @@ func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 			if tt.invalidSSZ {
 				// Create a byte slice with an invalid size (not 121)
 				invalidSizeData := make([]byte, 120)
-				var v types.Validator[types.WithdrawalCredentials]
+				var v types.Validator
 				err := v.UnmarshalSSZ(invalidSizeData)
 				require.Error(t, err, "Test case: %s", tt.name)
 				require.Equal(t, io.ErrUnexpectedEOF, err,
@@ -671,7 +671,7 @@ func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 				require.NoError(t, err)
 
 				// Unmarshal into a new validator
-				var unmarshaled types.Validator[types.WithdrawalCredentials]
+				var unmarshaled types.Validator
 				err = unmarshaled.UnmarshalSSZ(marshaled)
 				require.NoError(t, err)
 
@@ -698,11 +698,11 @@ func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 func TestValidator_HashTreeRoot(t *testing.T) {
 	tests := []struct {
 		name      string
-		validator *types.Validator[types.WithdrawalCredentials]
+		validator *types.Validator
 	}{
 		{
 			name: "normal case",
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				Pubkey: [48]byte{0x01},
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
@@ -726,7 +726,7 @@ func TestValidator_HashTreeRoot(t *testing.T) {
 		},
 		{
 			name: "slashed validator",
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				Pubkey: [48]byte{0x02},
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
@@ -765,13 +765,13 @@ func TestValidator_SetEffectiveBalance(t *testing.T) {
 	tests := []struct {
 		name      string
 		balance   math.Gwei
-		validator *types.Validator[types.WithdrawalCredentials]
+		validator *types.Validator
 		want      math.Gwei
 	}{
 		{
 			name:    "set effective balance",
 			balance: 32e9,
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				EffectiveBalance: 0,
 			},
 			want: 32e9,
@@ -779,7 +779,7 @@ func TestValidator_SetEffectiveBalance(t *testing.T) {
 		{
 			name:    "update effective balance",
 			balance: 16e9,
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				EffectiveBalance: 32e9,
 			},
 			want: 16e9,
@@ -797,19 +797,19 @@ func TestValidator_SetEffectiveBalance(t *testing.T) {
 func TestValidator_GetWithdrawableEpoch(t *testing.T) {
 	tests := []struct {
 		name      string
-		validator *types.Validator[types.WithdrawalCredentials]
+		validator *types.Validator
 		want      math.Epoch
 	}{
 		{
 			name: "get withdrawable epoch",
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				WithdrawableEpoch: 10,
 			},
 			want: 10,
 		},
 		{
 			name: "get far future withdrawable epoch",
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				WithdrawableEpoch: math.Epoch(constants.FarFutureEpoch),
 			},
 			want: math.Epoch(constants.FarFutureEpoch),
@@ -826,12 +826,12 @@ func TestValidator_GetWithdrawableEpoch(t *testing.T) {
 func TestValidator_GetWithdrawalCredentials(t *testing.T) {
 	tests := []struct {
 		name      string
-		validator *types.Validator[types.WithdrawalCredentials]
+		validator *types.Validator
 		want      types.WithdrawalCredentials
 	}{
 		{
 			name: "get withdrawal credentials",
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
 						common.ExecutionAddress{0x01},
@@ -843,7 +843,7 @@ func TestValidator_GetWithdrawalCredentials(t *testing.T) {
 		},
 		{
 			name: "get empty withdrawal credentials",
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				WithdrawalCredentials: types.WithdrawalCredentials{0x00},
 			},
 			want: types.WithdrawalCredentials{0x00},
@@ -860,19 +860,19 @@ func TestValidator_GetWithdrawalCredentials(t *testing.T) {
 func TestValidator_IsSlashed(t *testing.T) {
 	tests := []struct {
 		name      string
-		validator *types.Validator[types.WithdrawalCredentials]
+		validator *types.Validator
 		want      bool
 	}{
 		{
 			name: "validator is slashed",
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				Slashed: true,
 			},
 			want: true,
 		},
 		{
 			name: "validator is not slashed",
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				Slashed: false,
 			},
 			want: false,
@@ -894,7 +894,7 @@ func TestValidator_New(t *testing.T) {
 		amount                    math.Gwei
 		effectiveBalanceIncrement math.Gwei
 		maxEffectiveBalance       math.Gwei
-		want                      *types.Validator[types.WithdrawalCredentials]
+		want                      *types.Validator
 	}{
 		{
 			name:   "create new validator",
@@ -906,7 +906,7 @@ func TestValidator_New(t *testing.T) {
 			amount:                    32e9,
 			effectiveBalanceIncrement: 1e9,
 			maxEffectiveBalance:       32e9,
-			want: &types.Validator[types.WithdrawalCredentials]{
+			want: &types.Validator{
 				Pubkey: [48]byte{0x01},
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
@@ -931,7 +931,7 @@ func TestValidator_New(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			v := &types.Validator[types.WithdrawalCredentials]{}
+			v := &types.Validator{}
 			got := v.New(
 				tt.pubkey,
 				tt.withdrawalCredentials,
@@ -947,19 +947,19 @@ func TestValidator_New(t *testing.T) {
 func TestValidator_GetPubkey(t *testing.T) {
 	tests := []struct {
 		name      string
-		validator *types.Validator[types.WithdrawalCredentials]
+		validator *types.Validator
 		want      crypto.BLSPubkey
 	}{
 		{
 			name: "get pubkey",
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				Pubkey: [48]byte{0x01},
 			},
 			want: [48]byte{0x01},
 		},
 		{
 			name: "get pubkey with multiple bytes",
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				Pubkey: [48]byte{0x01, 0x02, 0x03},
 			},
 			want: [48]byte{0x01, 0x02, 0x03},
@@ -976,26 +976,26 @@ func TestValidator_GetPubkey(t *testing.T) {
 func TestValidator_GetEffectiveBalance(t *testing.T) {
 	tests := []struct {
 		name      string
-		validator *types.Validator[types.WithdrawalCredentials]
+		validator *types.Validator
 		want      math.Gwei
 	}{
 		{
 			name: "get effective balance",
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				EffectiveBalance: 32e9,
 			},
 			want: 32e9,
 		},
 		{
 			name: "get zero effective balance",
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				EffectiveBalance: 0,
 			},
 			want: 0,
 		},
 		{
 			name: "get maximum effective balance",
-			validator: &types.Validator[types.WithdrawalCredentials]{
+			validator: &types.Validator{
 				EffectiveBalance: math.Gwei(1<<64 - 1),
 			},
 			want: math.Gwei(1<<64 - 1),

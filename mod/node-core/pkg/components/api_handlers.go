@@ -47,11 +47,10 @@ type NodeAPIHandlersInput[
 	KVStoreT any,
 	NodeAPIContextT NodeAPIContext,
 	WithdrawalT Withdrawal[WithdrawalT],
-	WithdrawalCredentialsT WithdrawalCredentials,
 ] struct {
 	depinject.In
 	BeaconAPIHandler *beaconapi.Handler[
-		BeaconBlockHeaderT, NodeAPIContextT, *Fork, *Validator, WithdrawalCredentialsT,
+		BeaconBlockHeaderT, NodeAPIContextT, *Fork, *Validator, WithdrawalCredentials,
 	]
 	BuilderAPIHandler *builderapi.Handler[NodeAPIContextT]
 	ConfigAPIHandler  *configapi.Handler[NodeAPIContextT]
@@ -79,12 +78,11 @@ func ProvideNodeAPIHandlers[
 	KVStoreT any,
 	NodeAPIContextT NodeAPIContext,
 	WithdrawalT Withdrawal[WithdrawalT],
-	WithdrawalCredentialsT WithdrawalCredentials,
 ](
 	in NodeAPIHandlersInput[
 		BeaconBlockHeaderT, BeaconStateT,
 		BeaconStateMarshallableT, ExecutionPayloadHeaderT, KVStoreT,
-		NodeAPIContextT, WithdrawalT, WithdrawalCredentialsT,
+		NodeAPIContextT, WithdrawalT,
 	],
 ) []handlers.Handlers[NodeAPIContextT] {
 	return []handlers.Handlers[NodeAPIContextT]{
@@ -103,23 +101,22 @@ func ProvideNodeAPIBeaconHandler[
 	BeaconStateT any,
 	NodeT any,
 	NodeAPIContextT NodeAPIContext,
-	WithdrawalCredentialsT WithdrawalCredentials,
 ](b NodeAPIBackend[
 	BeaconBlockHeaderT,
 	BeaconStateT,
 	*Fork,
 	NodeT,
 	*Validator,
-	WithdrawalCredentialsT,
+	WithdrawalCredentials,
 ]) *beaconapi.Handler[
-	BeaconBlockHeaderT, NodeAPIContextT, *Fork, *Validator, WithdrawalCredentialsT,
+	BeaconBlockHeaderT, NodeAPIContextT, *Fork, *Validator, WithdrawalCredentials,
 ] {
 	return beaconapi.NewHandler[
 		BeaconBlockHeaderT,
 		NodeAPIContextT,
 		*Fork,
 		*Validator,
-		WithdrawalCredentialsT,
+		WithdrawalCredentials,
 	](b)
 }
 
@@ -169,14 +166,13 @@ func ProvideNodeAPIProofHandler[
 	NodeT any,
 	NodeAPIContextT NodeAPIContext,
 	WithdrawalT Withdrawal[WithdrawalT],
-	WithdrawalCredentialsT WithdrawalCredentials,
 ](b NodeAPIBackend[
 	BeaconBlockHeaderT,
 	BeaconStateT,
 	*Fork,
 	NodeT,
 	*Validator,
-	WithdrawalCredentialsT,
+	WithdrawalCredentials,
 ]) *proofapi.Handler[
 	BeaconBlockHeaderT, BeaconStateT, BeaconStateMarshallableT,
 	NodeAPIContextT, ExecutionPayloadHeaderT, *Validator,
