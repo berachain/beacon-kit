@@ -158,5 +158,6 @@ type WithdrawalCredentials interface {
 	// ToExecutionAddress converts the withdrawal credentials to an execution
 	// address.
 	ToExecutionAddress() (common.ExecutionAddress, error)
+	// Bytes returns the raw byte representation of the withdrawal credentials.
 	Bytes() []byte
 }
