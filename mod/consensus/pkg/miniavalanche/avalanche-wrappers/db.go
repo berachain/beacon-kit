@@ -218,11 +218,23 @@ func (i *Iterator) Error() error {
 }
 
 func (i *Iterator) Key() []byte {
-	return i.it.Key()
+	if i.it.Valid() {
+		return i.it.Key()
+	}
+
+	// there are cases whey Key is called even if Next() is false
+	// (see meterDB for instance)
+	return nil
 }
 
 func (i *Iterator) Value() []byte {
-	return i.it.Value()
+	if i.it.Valid() {
+		return i.it.Value()
+	}
+
+	// there are cases whey Key is called even if Next() is false
+	// (see meterDB for instance)
+	return nil
 }
 
 func (i *Iterator) Release() {
