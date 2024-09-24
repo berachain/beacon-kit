@@ -39,7 +39,7 @@ require (
 	github.com/VictoriaMetrics/fastcache v1.12.2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/berachain/beacon-kit/mod/async v0.0.0-20240821213929-f32b8e2dc5c8 // indirect
-	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240906211613-74eea7007e70 // indirect
+	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240904192942-99aeabe6bb1f // indirect
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240809202957-3e3f169ad720 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
