@@ -71,7 +71,10 @@ func (vbd ValidatorBalanceData) MarshalJSON() ([]byte, error) {
 	})
 }
 
-type ValidatorData[ValidatorT Validator[WithdrawalCredentialsT], WithdrawalCredentialsT WithdrawalCredentials] struct {
+type ValidatorData[
+	ValidatorT Validator[WithdrawalCredentialsT],
+	WithdrawalCredentialsT WithdrawalCredentials,
+] struct {
 	ValidatorBalanceData
 	Status    string     `json:"status"`
 	Validator ValidatorT `json:"validator"`
@@ -95,7 +98,9 @@ type responseJSON struct {
 	Validator validatorJSON `json:"validator"`
 }
 
-func (vd ValidatorData[ValidatorT, WithdrawalCredentialsT]) MarshalJSON() ([]byte, error) {
+func (vd ValidatorData[
+	ValidatorT, WithdrawalCredentialsT,
+]) MarshalJSON() ([]byte, error) {
 	withdrawalCredentials := vd.Validator.GetWithdrawalCredentials()
 	withdrawalCredentialsBytes := withdrawalCredentials.Bytes()
 

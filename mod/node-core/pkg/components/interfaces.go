@@ -1153,7 +1153,10 @@ type (
 		StateFromSlotForProof(slot math.Slot) (BeaconStateT, math.Slot, error)
 	}
 
-	ValidatorBackend[ValidatorT types.Validator[WithdrawalCredentialsT], WithdrawalCredentialsT types.WithdrawalCredentials] interface {
+	ValidatorBackend[
+		ValidatorT types.Validator[WithdrawalCredentialsT],
+		WithdrawalCredentialsT types.WithdrawalCredentials,
+	] interface {
 		ValidatorByID(
 			slot math.Slot, id string,
 		) (*types.ValidatorData[ValidatorT, WithdrawalCredentialsT], error)

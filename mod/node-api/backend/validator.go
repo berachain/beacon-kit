@@ -27,7 +27,8 @@ import (
 )
 
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _, WithdrawalCredentialsT,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _,
+	WithdrawalCredentialsT,
 ]) ValidatorByID(
 	slot math.Slot, id string,
 ) (*beacontypes.ValidatorData[ValidatorT, WithdrawalCredentialsT], error) {
@@ -62,11 +63,14 @@ func (b Backend[
 
 // TODO: filter by status
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _, WithdrawalCredentialsT,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _,
+	WithdrawalCredentialsT,
 ]) ValidatorsByIDs(
 	slot math.Slot, ids []string, _ []string,
 ) ([]*beacontypes.ValidatorData[ValidatorT, WithdrawalCredentialsT], error) {
-	validatorsData := make([]*beacontypes.ValidatorData[ValidatorT, WithdrawalCredentialsT], 0)
+	validatorsData := make(
+		[]*beacontypes.ValidatorData[ValidatorT, WithdrawalCredentialsT],
+		0)
 	for _, id := range ids {
 		// TODO: we can probably optimize this via a getAllValidators
 		// query and then filtering but blocked by the fact that IDs
