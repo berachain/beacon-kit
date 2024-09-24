@@ -90,8 +90,6 @@ type (
 	// Validators is a type alias for the validators.
 	Validators = types.Validators
 
-	WithdrawalCredentialsT = WithdrawalCredentials
-
 	// ValidatorUpdate is a type alias for the validator update.
 	ABCIValidatorUpdate = appmodule.ValidatorUpdate
 

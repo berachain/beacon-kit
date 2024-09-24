@@ -38,7 +38,9 @@ type Fork interface {
 	GetEpoch() math.Epoch
 }
 
-// Validator is the interface for the validator data.
+// Validator represents an interface for a validator with generic withdrawal
+// credentials. WithdrawalCredentialsT is a type parameter that must implement
+// the WithdrawalCredentials interface.
 type Validator[WithdrawalCredentialsT WithdrawalCredentials] interface {
 	GetPubkey() crypto.BLSPubkey
 	GetWithdrawalCredentials() WithdrawalCredentialsT
