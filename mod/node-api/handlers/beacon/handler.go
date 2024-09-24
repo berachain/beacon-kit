@@ -21,6 +21,7 @@
 package beacon
 
 import (
+	consensustypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/node-api/server/context"
@@ -31,7 +32,7 @@ type Handler[
 	BeaconBlockHeaderT types.BeaconBlockHeader,
 	ContextT context.Context,
 	ForkT types.Fork,
-	ValidatorT types.Validator,
+	ValidatorT types.Validator[consensustypes.WithdrawalCredentials],
 ] struct {
 	*handlers.BaseHandler[ContextT]
 	backend Backend[BeaconBlockHeaderT, ForkT, ValidatorT]
@@ -42,7 +43,7 @@ func NewHandler[
 	BeaconBlockHeaderT types.BeaconBlockHeader,
 	ContextT context.Context,
 	ForkT types.Fork,
-	ValidatorT types.Validator,
+	ValidatorT types.Validator[consensustypes.WithdrawalCredentials],
 ](
 	backend Backend[BeaconBlockHeaderT, ForkT, ValidatorT],
 ) *Handler[BeaconBlockHeaderT, ContextT, ForkT, ValidatorT] {

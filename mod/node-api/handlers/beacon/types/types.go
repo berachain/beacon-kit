@@ -40,9 +40,9 @@ type Fork interface {
 }
 
 // Validator is the interface for the validator data.
-type Validator interface {
+type Validator[WithdrawalCredentialsT consensustypes.WithdrawalCredentials] interface {
 	GetPubkey() crypto.BLSPubkey
-	GetWithdrawalCredentials() consensustypes.WithdrawalCredentials
+	GetWithdrawalCredentials() WithdrawalCredentialsT
 	GetEffectiveBalance() math.Gwei
 	IsSlashed() bool
 	GetActivationEligibilityEpoch() math.Epoch

@@ -21,6 +21,7 @@
 package beacon
 
 import (
+	consensustypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -30,7 +31,7 @@ import (
 type Backend[
 	BlockHeaderT any,
 	ForkT any,
-	ValidatorT types.Validator,
+	ValidatorT types.Validator[consensustypes.WithdrawalCredentials],
 ] interface {
 	GenesisBackend
 	BlockBackend[BlockHeaderT]
@@ -68,7 +69,7 @@ type StateBackend[ForkT any] interface {
 	StateForkAtSlot(slot math.Slot) (ForkT, error)
 }
 
-type ValidatorBackend[ValidatorT types.Validator] interface {
+type ValidatorBackend[ValidatorT types.Validator[consensustypes.WithdrawalCredentials]] interface {
 	ValidatorByID(
 		slot math.Slot, id string,
 	) (*types.ValidatorData[ValidatorT], error)

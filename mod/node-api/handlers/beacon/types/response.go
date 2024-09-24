@@ -25,6 +25,7 @@ import (
 	"encoding/json"
 	"strconv"
 
+	consensustypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
@@ -71,7 +72,7 @@ func (vbd ValidatorBalanceData) MarshalJSON() ([]byte, error) {
 	})
 }
 
-type ValidatorData[ValidatorT Validator] struct {
+type ValidatorData[ValidatorT Validator[consensustypes.WithdrawalCredentials]] struct {
 	ValidatorBalanceData
 	Status    string     `json:"status"`
 	Validator ValidatorT `json:"validator"`
