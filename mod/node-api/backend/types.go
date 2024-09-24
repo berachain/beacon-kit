@@ -119,10 +119,12 @@ type StorageBackend[
 	StateFromContext(context.Context) BeaconStateT
 }
 
-// Validator represents an interface for a validator.
-type Validator interface {
-	// GetWithdrawalCredentials returns the withdrawal credentials
-	// of the validator.
+// Validator represents an interface for a validator with generic withdrawal
+// credentials. WithdrawalCredentialsT is a type parameter that must implement
+// the WithdrawalCredentials interface.
+type Validator[WithdrawalCredentialsT WithdrawalCredentials] interface {
+	// GetWithdrawalCredentials returns the withdrawal credentials of the
+	// validator.
 	GetWithdrawalCredentials() types.WithdrawalCredentials
 	// GetPubkey returns the public key of the validator.
 	GetPubkey() crypto.BLSPubkey
