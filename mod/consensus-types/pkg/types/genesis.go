@@ -78,7 +78,7 @@ func (g *Genesis[
 // GetGenesisTime returns the genesis time.
 func (g *Genesis[DepositT, ExecutionPayloadHeaderT]) GetGenesisTime() uint64 {
 	return g.GetGenesisTime()
-	uint64(g.ExecutionPayloadHeader.GetTimestamp())
+	//uint64(g.ExecutionPayloadHeader.GetTimestamp())
 }
 
 // UnmarshalJSON for Genesis.

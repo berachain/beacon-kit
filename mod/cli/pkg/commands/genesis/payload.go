@@ -77,7 +77,9 @@ func AddExecutionPayloadCmd(chainSpec common.ChainSpec) *cobra.Command {
 				return errors.Wrap(err, "failed to read genesis doc from file")
 			}
 
-			fmt.Printf("\n appGenesis %v \n ", appGenesis.GenesisTime)
+			fmt.Printf("\n appGenesis GenesisTime %v \n ", appGenesis.GenesisTime)
+			// Set the timestamp in the payload
+			payload.Timestamp = uint64(appGenesis.GenesisTime.UnixNano())
 
 			// create the app state
 			appGenesisState, err := genutiltypes.GenesisStateFromAppGenesis(
@@ -86,8 +88,6 @@ func AddExecutionPayloadCmd(chainSpec common.ChainSpec) *cobra.Command {
 			if err != nil {
 				return err
 			}
-
-			fmt.Printf("appGenesisState %v \n ", appGenesisState)
 
 			genesisInfo := &types.Genesis[
 				*types.Deposit, *types.ExecutionPayloadHeader,
@@ -99,9 +99,8 @@ func AddExecutionPayloadCmd(chainSpec common.ChainSpec) *cobra.Command {
 				return errors.Wrap(err, "failed to unmarshal beacon state")
 			}
 
-			fmt.Printf("payload nidz %v \n ", payload.Timestamp)
+			fmt.Printf("payload nidz timestamp ======%v \n ", payload.Timestamp)
 
-			fmt.Printf("genesisInfo nids %v \n ", genesisInfo)
 			// Inject the execution payload.
 			genesisInfo.ExecutionPayloadHeader = executableDataToExecutionPayloadHeader(
 				version.ToUint32(genesisInfo.ForkVersion),
@@ -165,6 +164,7 @@ func executableDataToExecutionPayloadHeader(
 			excessBlobGas = *data.ExcessBlobGas
 		}
 
+		fmt.Printf("data.Timestamp %v /n", math.U64(data.Timestamp))
 		executionPayloadHeader = &types.ExecutionPayloadHeader{
 			ParentHash:    common.ExecutionHash(data.ParentHash),
 			FeeRecipient:  common.ExecutionAddress(data.FeeRecipient),

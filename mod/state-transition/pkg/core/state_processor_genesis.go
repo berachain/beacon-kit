@@ -49,7 +49,7 @@ func (sp *StateProcessor[
 	genesisVersion common.Version,
 ) (transition.ValidatorUpdates, error) {
 
-	fmt.Printf("Execution Payload Header %v %v %v %v\n",
+	fmt.Printf("Execution Payload Header InitializePreminedBeaconStateFromEth1 %v %v \n",
 		executionPayloadHeader.GetTimestamp(), executionPayloadHeader.GetBlockHash())
 
 	var (
@@ -158,7 +158,7 @@ func (sp *StateProcessor[
 	}
 
 	genesisTime := uint64(executionPayloadHeader.GetTimestamp())
-	fmt.Printf("Setting genesis time %v", genesisTime)
+	fmt.Printf("Setting genesis time %v \n", genesisTime)
 	if err = st.SetGenesisTime(genesisTime); err != nil {
 		fmt.Errorf("failed to set genesis time %v", err)
 		return nil, err
