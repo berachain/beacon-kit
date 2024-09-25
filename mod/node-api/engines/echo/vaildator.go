@@ -81,19 +81,19 @@ func ConstructValidator() *validator.Validate {
 
 func ValidateStateID(fl validator.FieldLevel) bool {
 	allowedValues := map[string]bool{
-		utils.StateIDHead:      true,
-		utils.StateIDGenesis:   true,
-		utils.StateIDFinalized: true,
-		utils.StateIDJustified: true,
+		"head":      true,
+		"genesis":   true,
+		"finalized": true,
+		"justified": true,
 	}
 	return validateStateBlockIDs(fl.Field().String(), allowedValues)
 }
 
 func ValidateBlockID(fl validator.FieldLevel) bool {
 	allowedValues := map[string]bool{
-		utils.StateIDHead:      true,
-		utils.StateIDGenesis:   true,
-		utils.StateIDFinalized: true,
+		"head":      true,
+		"genesis":   true,
+		"finalized": true,
 	}
 	return validateStateBlockIDs(fl.Field().String(), allowedValues)
 }

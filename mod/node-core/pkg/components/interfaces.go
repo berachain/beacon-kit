@@ -1087,7 +1087,8 @@ type (
 		BeaconStateT any,
 		ForkT any,
 		NodeT any,
-		ValidatorT types.Validator,
+		ValidatorT types.Validator[WithdrawalCredentialsT],
+		WithdrawalCredentialsT types.WithdrawalCredentials,
 	] interface {
 		AttachQueryBackend(node NodeT)
 		ChainSpec() common.ChainSpec
@@ -1098,7 +1099,7 @@ type (
 		GetSlotByParentRoot(root common.Root) (math.Slot, error)
 
 		NodeAPIBeaconBackend[
-			BeaconStateT, BeaconBlockHeaderT, ForkT, ValidatorT,
+			BeaconStateT, BeaconBlockHeaderT, ForkT, ValidatorT, WithdrawalCredentialsT,
 		]
 		NodeAPIProofBackend[
 			BeaconBlockHeaderT, BeaconStateT, ForkT, ValidatorT,
@@ -1108,13 +1109,14 @@ type (
 	// NodeAPIBeaconBackend is the interface for backend of the beacon API.
 	NodeAPIBeaconBackend[
 		BeaconStateT, BeaconBlockHeaderT, ForkT any,
-		ValidatorT types.Validator,
+		ValidatorT types.Validator[WithdrawalCredentialsT],
+		WithdrawalCredentialsT types.WithdrawalCredentials,
 	] interface {
 		GenesisBackend
 		BlockBackend[BeaconBlockHeaderT]
 		RandaoBackend
 		StateBackend[BeaconStateT, ForkT]
-		ValidatorBackend[ValidatorT]
+		ValidatorBackend[ValidatorT, WithdrawalCredentialsT]
 		HistoricalBackend[ForkT]
 		// GetSlotByBlockRoot retrieves the slot by a given root from the store.
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
@@ -1159,15 +1161,18 @@ type (
 		StateFromSlotForProof(slot math.Slot) (BeaconStateT, math.Slot, error)
 	}
 
-	ValidatorBackend[ValidatorT types.Validator] interface {
+	ValidatorBackend[
+		ValidatorT types.Validator[WithdrawalCredentialsT],
+		WithdrawalCredentialsT types.WithdrawalCredentials,
+	] interface {
 		ValidatorByID(
 			slot math.Slot, id string,
-		) (*types.ValidatorData[ValidatorT], error)
+		) (*types.ValidatorData[ValidatorT, WithdrawalCredentialsT], error)
 		ValidatorsByIDs(
 			slot math.Slot,
 			ids []string,
 			statuses []string,
-		) ([]*types.ValidatorData[ValidatorT], error)
+		) ([]*types.ValidatorData[ValidatorT, WithdrawalCredentialsT], error)
 		ValidatorBalancesByIDs(
 			slot math.Slot,
 			ids []string,

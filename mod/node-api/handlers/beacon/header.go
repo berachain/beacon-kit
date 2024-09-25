@@ -23,7 +23,6 @@ package beacon
 import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
-	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -31,7 +30,7 @@ import (
 )
 
 func (h *Handler[
-	BeaconBlockHeaderT, ContextT, _, _,
+	BeaconBlockHeaderT, ContextT, _, _, _,
 ]) GetBlockHeaders(c ContextT) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetBlockHeadersRequest](
 		c, h.Logger(),
@@ -54,18 +53,22 @@ func (h *Handler[
 		return nil, err
 	}
 
-	return types.Wrap(&beacontypes.BlockHeaderResponse[BeaconBlockHeaderT]{
-		Root:      root,
-		Canonical: true,
-		Header: &beacontypes.BlockHeader[BeaconBlockHeaderT]{
-			Message:   header,
-			Signature: crypto.BLSSignature{}, // TODO: implement
+	return beacontypes.ValidatorResponse{
+		ExecutionOptimistic: false, // stubbed
+		Finalized:           false, // stubbed
+		Data: &beacontypes.BlockHeaderResponse[BeaconBlockHeaderT]{
+			Root:      root,
+			Canonical: true,
+			Header: &beacontypes.BlockHeader[BeaconBlockHeaderT]{
+				Message:   header,
+				Signature: bcrypto.BLSSignature{}, // TODO: implement
+			},
 		},
-	}), nil
+	}, nil
 }
 
 func (h *Handler[
-	BeaconBlockHeaderT, ContextT, _, _,
+	BeaconBlockHeaderT, ContextT, _, _, _,
 ]) determineSlot(req *beacontypes.GetBlockHeadersRequest) (math.Slot, error) {
 	var parentRoot common.Root
 	switch {
@@ -124,7 +127,7 @@ func (h *Handler[
 }
 
 func (h *Handler[
-	BeaconBlockHeaderT, ContextT, _, _,
+	BeaconBlockHeaderT, ContextT, _, _, _,
 ]) GetBlockHeaderByID(c ContextT) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetBlockHeaderRequest](
 		c, h.Logger(),
@@ -145,12 +148,16 @@ func (h *Handler[
 	if err != nil {
 		return nil, err
 	}
-	return types.Wrap(&beacontypes.BlockHeaderResponse[BeaconBlockHeaderT]{
-		Root:      root, // This is root hash of entire beacon block.
-		Canonical: true,
-		Header: &beacontypes.BlockHeader[BeaconBlockHeaderT]{
-			Message:   header,
-			Signature: crypto.BLSSignature{}, // TODO: implement
+	return beacontypes.ValidatorResponse{
+		ExecutionOptimistic: false, // stubbed
+		Finalized:           false, // stubbed
+		Data: &beacontypes.BlockHeaderResponse[BeaconBlockHeaderT]{
+			Root:      root, // This is root hash of entire beacon block.
+			Canonical: true,
+			Header: &beacontypes.BlockHeader[BeaconBlockHeaderT]{
+				Message:   header,
+				Signature: crypto.BLSSignature{}, // TODO: implement
+			},
 		},
-	}), nil
+	}, nil
 }

@@ -18,33 +18,28 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package beacon
+package merkle_test
 
 import (
-	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
-	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
+	"encoding/json"
+	"os"
+	"path/filepath"
+	"testing"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/stretchr/testify/require"
 )
 
-func (h *Handler[_, ContextT, _, _, _]) GetBlockRewards(c ContextT) (
-	any, error,
-) {
-	req, err := utils.BindAndValidate[beacontypes.GetBlockRewardsRequest](
-		c, h.Logger(),
-	)
-	if err != nil {
-		return nil, err
-	}
-	slot, err := utils.SlotFromBlockID(req.BlockID, h.backend)
-	if err != nil {
-		return nil, err
-	}
-	rewards, err := h.backend.BlockRewardsAtSlot(slot)
-	if err != nil {
-		return nil, err
-	}
-	return &beacontypes.ValidatorResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data:                rewards,
-	}, nil
+// ReadProofFromFile reads a proof from a JSON file in the testdata directory.
+func ReadProofFromFile(t *testing.T, filename string) []common.Root {
+	t.Helper()
+	path := filepath.Join("testdata", filename)
+	data, err := os.ReadFile(path)
+	require.NoError(t, err)
+
+	var proof []common.Root
+	err = json.Unmarshal(data, &proof)
+	require.NoError(t, err)
+
+	return proof
 }

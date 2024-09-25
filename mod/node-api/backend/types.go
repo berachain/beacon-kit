@@ -23,7 +23,6 @@ package backend
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -121,15 +120,28 @@ type StorageBackend[
 	StateFromContext(context.Context) BeaconStateT
 }
 
-// Validator represents an interface for a validator.
-type Validator interface {
-	GetWithdrawalCredentials() types.WithdrawalCredentials
+// Validator represents an interface for a validator with generic withdrawal
+// credentials. WithdrawalCredentialsT is a type parameter that must implement
+// the WithdrawalCredentials interface.
+type Validator[WithdrawalCredentialsT WithdrawalCredentials] interface {
+	// GetWithdrawalCredentials returns the withdrawal credentials of the
+	// validator.
+	GetWithdrawalCredentials() WithdrawalCredentialsT
+	// GetPubkey returns the public key of the validator.
 	GetPubkey() crypto.BLSPubkey
+	// GetEffectiveBalance returns the effective balance of the validator.
 	GetEffectiveBalance() math.Gwei
+	// IsSlashed returns true if the validator is slashed.
 	IsSlashed() bool
+	// GetActivationEligibilityEpoch returns the epoch when the validator
+	// became eligible for activation.
 	GetActivationEligibilityEpoch() math.Epoch
+	// GetActivationEpoch returns the epoch when the validator was activated.
 	GetActivationEpoch() math.Epoch
+	// GetExitEpoch returns the epoch when the validator exited.
 	GetExitEpoch() math.Epoch
+	// GetWithdrawableEpoch returns the epoch when the validator
+	// can withdraw their balance.
 	GetWithdrawableEpoch() math.Epoch
 }
 
@@ -145,4 +157,12 @@ type Withdrawal[T any] interface {
 
 type Fork[ForkT any] interface {
 	GetPreviousVersion() common.Version
+
+// WithdrawalCredentials represents an interface for withdrawal credentials.
+type WithdrawalCredentials interface {
+	// ToExecutionAddress converts the withdrawal credentials to an execution
+	// address.
+	ToExecutionAddress() (common.ExecutionAddress, error)
+	// Bytes returns the raw byte representation of the withdrawal credentials.
+	Bytes() []byte
 }

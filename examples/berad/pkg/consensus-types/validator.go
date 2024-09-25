@@ -243,5 +243,3 @@ func (v *Validator) GetActivationEpoch() math.Epoch {
 func (v *Validator) GetExitEpoch() math.Epoch {
 	return v.ExitEpoch
 }
-
-//

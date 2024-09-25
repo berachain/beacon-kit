@@ -30,13 +30,14 @@ import (
 type Backend[
 	BlockHeaderT any,
 	ForkT any,
-	ValidatorT types.Validator,
+	ValidatorT types.Validator[WithdrawalCredentialsT],
+	WithdrawalCredentialsT types.WithdrawalCredentials,
 ] interface {
 	GenesisBackend
 	BlockBackend[BlockHeaderT]
 	RandaoBackend
 	StateBackend[ForkT]
-	ValidatorBackend[ValidatorT]
+	ValidatorBackend[ValidatorT, WithdrawalCredentialsT]
 	HistoricalBackend[ForkT]
 	// GetSlotByBlockRoot retrieves the slot by a given root from the store.
 	GetSlotByBlockRoot(root common.Root) (math.Slot, error)
@@ -73,15 +74,18 @@ type StateBackend[ForkT any] interface {
 	StateForkAtSlot(slot math.Slot) (ForkT, error)
 }
 
-type ValidatorBackend[ValidatorT types.Validator] interface {
+type ValidatorBackend[
+	ValidatorT types.Validator[WithdrawalCredentialsT],
+	WithdrawalCredentialsT types.WithdrawalCredentials,
+] interface {
 	ValidatorByID(
 		slot math.Slot, id string,
-	) (*types.ValidatorData[ValidatorT], error)
+	) (*types.ValidatorData[ValidatorT, WithdrawalCredentialsT], error)
 	ValidatorsByIDs(
 		slot math.Slot,
 		ids []string,
 		statuses []string,
-	) ([]*types.ValidatorData[ValidatorT], error)
+	) ([]*types.ValidatorData[ValidatorT, WithdrawalCredentialsT], error)
 	ValidatorBalancesByIDs(
 		slot math.Slot,
 		ids []string,
