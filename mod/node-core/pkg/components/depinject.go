@@ -28,8 +28,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+//nolint:gochecknoglobals // storeKey is a singleton.
+var storeKey = storetypes.NewKVStoreKey("beacon")
+
 func ProvideKVStoreKey() **storetypes.KVStoreKey {
-	storeKey := storetypes.NewKVStoreKey("beacon")
 	return &storeKey
 }
 
