@@ -360,6 +360,61 @@ func (_c *BeaconState_GetFork_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPaylo
 	return _c
 }
 
+// GetGenesisTime provides a mock function with given fields:
+func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) GetGenesisTime() (uint64, error) {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetGenesisTime")
+	}
+
+	var r0 uint64
+	var r1 error
+	if rf, ok := ret.Get(0).(func() (uint64, error)); ok {
+		return rf()
+	}
+	if rf, ok := ret.Get(0).(func() uint64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(uint64)
+	}
+
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// BeaconState_GetGenesisTime_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetGenesisTime'
+type BeaconState_GetGenesisTime_Call[BeaconBlockHeaderT interface{}, Eth1DataT interface{}, ExecutionPayloadHeaderT interface{}, ForkT interface{}, ValidatorT interface{}, ValidatorsT interface{}, WithdrawalT interface{}] struct {
+	*mock.Call
+}
+
+// GetGenesisTime is a helper method to define mock.On call
+func (_e *BeaconState_Expecter[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) GetGenesisTime() *BeaconState_GetGenesisTime_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+	return &BeaconState_GetGenesisTime_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]{Call: _e.mock.On("GetGenesisTime")}
+}
+
+func (_c *BeaconState_GetGenesisTime_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Run(run func()) *BeaconState_GetGenesisTime_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *BeaconState_GetGenesisTime_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Return(_a0 uint64, _a1 error) *BeaconState_GetGenesisTime_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *BeaconState_GetGenesisTime_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) RunAndReturn(run func() (uint64, error)) *BeaconState_GetGenesisTime_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetGenesisValidatorsRoot provides a mock function with given fields:
 func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) GetGenesisValidatorsRoot() (common.Root, error) {
 	ret := _m.Called()
