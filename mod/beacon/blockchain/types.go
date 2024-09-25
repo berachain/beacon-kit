@@ -113,7 +113,6 @@ type Genesis[DepositT any, ExecutionPayloadHeaderT any] interface {
 	GetDeposits() []DepositT
 	// GetExecutionPayloadHeader returns the execution payload header.
 	GetExecutionPayloadHeader() ExecutionPayloadHeaderT
-	GetGenesisTime() uint64
 }
 
 // LocalBuilder is the interface for the builder service.

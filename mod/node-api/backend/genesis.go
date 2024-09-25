@@ -60,6 +60,5 @@ func (b Backend[
 	if err != nil {
 		return 0, err
 	}
-
 	return st.GetGenesisTime()
 }
