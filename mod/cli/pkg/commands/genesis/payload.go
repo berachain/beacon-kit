@@ -21,7 +21,6 @@
 package genesis
 
 import (
-	"fmt"
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/cli/pkg/context"
@@ -59,8 +58,6 @@ func AddExecutionPayloadCmd(chainSpec common.ChainSpec) *cobra.Command {
 			}
 			genesisBlock := ethGenesis.ToBlock()
 
-			fmt.Printf("genesis Block nidz %v", genesisBlock.Time())
-
 			// Create the execution payload.
 			payload := gethprimitives.BlockToExecutableData(
 				genesisBlock,
@@ -77,8 +74,7 @@ func AddExecutionPayloadCmd(chainSpec common.ChainSpec) *cobra.Command {
 				return errors.Wrap(err, "failed to read genesis doc from file")
 			}
 
-			fmt.Printf("\n appGenesis GenesisTime %v \n ", appGenesis.GenesisTime)
-			// Set the timestamp in the payload
+			// Set the genesis time from app Genesis in the payload
 			payload.Timestamp = uint64(appGenesis.GenesisTime.UnixNano())
 
 			// create the app state
@@ -98,8 +94,6 @@ func AddExecutionPayloadCmd(chainSpec common.ChainSpec) *cobra.Command {
 			); err != nil {
 				return errors.Wrap(err, "failed to unmarshal beacon state")
 			}
-
-			fmt.Printf("payload nidz timestamp ======%v \n ", payload.Timestamp)
 
 			// Inject the execution payload.
 			genesisInfo.ExecutionPayloadHeader = executableDataToExecutionPayloadHeader(
@@ -164,7 +158,6 @@ func executableDataToExecutionPayloadHeader(
 			excessBlobGas = *data.ExcessBlobGas
 		}
 
-		fmt.Printf("data.Timestamp %v /n", math.U64(data.Timestamp))
 		executionPayloadHeader = &types.ExecutionPayloadHeader{
 			ParentHash:    common.ExecutionHash(data.ParentHash),
 			FeeRecipient:  common.ExecutionAddress(data.FeeRecipient),
