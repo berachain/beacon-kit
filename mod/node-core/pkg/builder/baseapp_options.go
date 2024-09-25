@@ -21,6 +21,7 @@
 package builder
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -87,27 +88,24 @@ func DefaultServiceOptions[
 func loadChainIDFromGenesis(appOpts config.AppOptions) (string, error) {
 	var (
 		homeDir = cast.ToString(appOpts.Get(flags.FlagHome))
-		fp      = filepath.Clean(filepath.Join(homeDir, "config", "genesis.json"))
+		fp      = filepath.Join(homeDir, "config", "genesis.json")
 	)
 
-	reader, err := os.Open(fp)
+	f, err := os.Open(filepath.Clean(fp))
 	if err != nil {
-		panic(err)
+		return "", err
 	}
-	defer func() {
-		cerr := reader.Close()
-		if err == nil {
-			err = fmt.Errorf("failed closing genesis file: %w", cerr)
-		}
-	}()
 
-	chainID, err := genutiltypes.ParseChainIDFromGenesis(reader)
+	chainID, err := genutiltypes.ParseChainIDFromGenesis(f)
 	if err != nil {
 		return "",
-			fmt.Errorf(
-				"failed to parse chain-id from genesis file: %w",
-				err,
+			errors.Join(
+				f.Close(),
+				fmt.Errorf(
+					"failed to parse chain-id from genesis file: %w",
+					err,
+				),
 			)
 	}
-	return chainID, err
+	return chainID, f.Close()
 }
