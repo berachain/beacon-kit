@@ -56,11 +56,6 @@ func (h *Handler[_, ContextT, _, _, _]) GetGenesis(_ ContextT) (any, error) {
 		return nil, errors.New("genesis time not properly initialized")
 	}
 
-	h.Logger().Info("Retrieved genesis data",
-		"genesisTime", genesisTime,
-		"genesisValidatorsRoot", genesisRoot,
-		"genesisForkVersion", genesisForkVersionHex)
-
 	return types.Wrap(beacontypes.GenesisData{
 		GenesisTime:           strconv.FormatUint(genesisTime, 10),
 		GenesisValidatorsRoot: genesisRoot,

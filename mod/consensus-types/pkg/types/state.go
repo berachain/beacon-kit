@@ -71,8 +71,6 @@ type BeaconState[
 	// Slashing
 	Slashings     []uint64
 	TotalSlashing math.Gwei
-	// Genesis
-	//GenesisTime uint64
 }
 
 // New creates a new BeaconState.
@@ -101,7 +99,6 @@ func (st *BeaconState[
 	nextWithdrawalValidatorIndex math.ValidatorIndex,
 	slashings []uint64,
 	totalSlashing math.Gwei,
-	// genesisTime uint64,
 ) (*BeaconState[
 	BeaconBlockHeaderT,
 	Eth1DataT,
@@ -134,7 +131,6 @@ func (st *BeaconState[
 		NextWithdrawalValidatorIndex: nextWithdrawalValidatorIndex,
 		Slashings:                    slashings,
 		TotalSlashing:                totalSlashing,
-		//GenesisTime:                  genesisTime,
 	}, nil
 }
 
@@ -208,9 +204,6 @@ func (st *BeaconState[
 	ssz.DefineSliceOfUint64sContent(codec, &st.Balances, 1099511627776)
 	ssz.DefineSliceOfStaticBytesContent(codec, &st.RandaoMixes, 65536)
 	ssz.DefineSliceOfUint64sContent(codec, &st.Slashings, 1099511627776)
-
-	// Genesis Time
-	//ssz.DefineUint64(codec, &st.GenesisTime)
 }
 
 // MarshalSSZ marshals the BeaconState into SSZ format.
@@ -397,9 +390,6 @@ func (st *BeaconState[
 
 	// Field (15) 'TotalSlashing'
 	hh.PutUint64(uint64(st.TotalSlashing))
-
-	// Field (16) 'GenesisTime'
-	//hh.PutUint64(st.GenesisTime)
 
 	hh.Merkleize(indx)
 	return nil

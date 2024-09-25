@@ -21,7 +21,6 @@
 package backend
 
 import (
-	"fmt"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -57,27 +56,10 @@ func (b Backend[
 func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) GetGenesisTime(slot math.Slot) (uint64, error) {
-
-	//state := b.sb.StateFromContext(ctx)
-	//if state == nil {
-	//	fmt.Errorf("Failed to retrieve beacon state")
-	//	return 0, errors.New("failed to retrieve beacon state")
-	//}
-	//
-	//genesisTime, err := state.GetGenesisTime()
-	//if err != nil {
-	//	fmt.Errorf("Failed to get genesis time", err)
-	//	return 0, err
-	//}
-	//
-	//fmt.Printf("Retrieved genesis time %v", genesisTime)
-	//return genesisTime, nil
-
 	st, _, err := b.stateFromSlot(slot)
 	if err != nil {
 		return 0, err
 	}
 
-	fmt.Printf("state nidzi %v", st)
 	return st.GetGenesisTime()
 }

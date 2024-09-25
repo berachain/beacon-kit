@@ -187,7 +187,6 @@ type StateProcessor[
 		[]DepositT,
 		ExecutionPayloadHeaderT,
 		common.Version,
-		//uint64,
 	) (transition.ValidatorUpdates, error)
 	// ProcessSlots processes the state transition for a range of slots.
 	ProcessSlots(

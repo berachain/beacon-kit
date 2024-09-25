@@ -377,11 +377,6 @@ func (s *StateDB[
 	if err != nil {
 		return empty, err
 	}
-	//
-	//genesisTime, err := s.GetGenesisTime()
-	//if err != nil {
-	//	return empty, nil
-	//}
 
 	// TODO: Properly move BeaconState into full generics.
 	return (*new(BeaconStateMarshallableT)).New(
@@ -402,7 +397,6 @@ func (s *StateDB[
 		nextWithdrawalValidatorIndex,
 		slashings,
 		totalSlashings,
-		//genesisTime,
 	)
 }
 
