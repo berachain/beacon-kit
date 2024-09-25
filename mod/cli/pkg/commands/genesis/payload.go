@@ -74,7 +74,10 @@ func AddExecutionPayloadCmd(chainSpec common.ChainSpec) *cobra.Command {
 				return errors.Wrap(err, "failed to read genesis doc from file")
 			}
 
-			// Set the genesis time from app Genesis in the payload
+			//#nosec:G701 // genesis time won't ever be negative i.e.
+			// before Unix epoch (1st Jan 1970)
+			// Set the genesis time from app Genesis in the execution payload
+			// which gets converted to ExecutionPayloadHeader.
 			payload.Timestamp = uint64(appGenesis.GenesisTime.Unix())
 
 			// create the app state
