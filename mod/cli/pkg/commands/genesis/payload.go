@@ -75,7 +75,7 @@ func AddExecutionPayloadCmd(chainSpec common.ChainSpec) *cobra.Command {
 			}
 
 			// Set the genesis time from app Genesis in the payload
-			payload.Timestamp = uint64(appGenesis.GenesisTime.UnixNano())
+			payload.Timestamp = uint64(appGenesis.GenesisTime.Unix())
 
 			// create the app state
 			appGenesisState, err := genutiltypes.GenesisStateFromAppGenesis(

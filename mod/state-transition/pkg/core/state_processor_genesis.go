@@ -21,7 +21,6 @@
 package core
 
 import (
-	"fmt"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
@@ -48,10 +47,6 @@ func (sp *StateProcessor[
 	executionPayloadHeader ExecutionPayloadHeaderT,
 	genesisVersion common.Version,
 ) (transition.ValidatorUpdates, error) {
-
-	fmt.Printf("Execution Payload Header InitializePreminedBeaconStateFromEth1 %v %v \n",
-		executionPayloadHeader.GetTimestamp(), executionPayloadHeader.GetBlockHash())
-
 	var (
 		blkHeader BeaconBlockHeaderT
 		blkBody   BeaconBlockBodyT
@@ -158,9 +153,7 @@ func (sp *StateProcessor[
 	}
 
 	genesisTime := uint64(executionPayloadHeader.GetTimestamp())
-	fmt.Printf("Setting genesis time %v \n", genesisTime)
 	if err = st.SetGenesisTime(genesisTime); err != nil {
-		fmt.Errorf("failed to set genesis time %v", err)
 		return nil, err
 	}
 

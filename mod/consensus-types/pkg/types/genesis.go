@@ -41,6 +41,7 @@ type Genesis[
 	DepositT any,
 	ExecutionPayloadHeaderT interface {
 		NewFromJSON([]byte, uint32) (ExecutionPayloadHeaderT, error)
+		GetTimestamp() math.U64
 	},
 ] struct {
 	// ForkVersion is the fork version of the genesis slot.
@@ -76,7 +77,7 @@ func (g *Genesis[
 
 // GetGenesisTime returns the genesis time.
 func (g *Genesis[DepositT, ExecutionPayloadHeaderT]) GetGenesisTime() uint64 {
-	return g.GetGenesisTime()
+	return uint64(g.ExecutionPayloadHeader.GetTimestamp())
 }
 
 // UnmarshalJSON for Genesis.
