@@ -26,7 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// BlockHeaderAtSlot returns the block header at the given slot.
+// BlockHeader returns the block header at the given slot.
 func (b Backend[
 	_, _, _, BeaconBlockHeaderT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 	_,
@@ -42,7 +42,7 @@ func (b Backend[
 	return blockHeader, err
 }
 
-// BlockRootAtSlot returns the root of the block at the given stateID.
+// GetBlockRoot returns the root of the block at the given stateID.
 func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) BlockRootAtSlot(slot math.Slot) (common.Root, error) {
@@ -56,7 +56,6 @@ func (b Backend[
 	return st.GetBlockRootAtIndex(slot.Unwrap() % b.cs.SlotsPerHistoricalRoot())
 }
 
-// BlockRewardsAtSlot returns the block rewards at the given slot.
 // TODO: Implement this.
 func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,

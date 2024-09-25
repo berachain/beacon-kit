@@ -157,6 +157,7 @@ type Withdrawal[T any] interface {
 
 type Fork[ForkT any] interface {
 	GetPreviousVersion() common.Version
+}
 
 // WithdrawalCredentials represents an interface for withdrawal credentials.
 type WithdrawalCredentials interface {
