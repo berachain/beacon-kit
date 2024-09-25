@@ -31,10 +31,16 @@ type Handler[
 	BeaconBlockHeaderT types.BeaconBlockHeader,
 	ContextT context.Context,
 	ForkT types.Fork,
-	ValidatorT types.Validator,
+	ValidatorT types.Validator[WithdrawalCredentialsT],
+	WithdrawalCredentialsT types.WithdrawalCredentials,
 ] struct {
 	*handlers.BaseHandler[ContextT]
-	backend Backend[BeaconBlockHeaderT, ForkT, ValidatorT]
+	backend Backend[
+		BeaconBlockHeaderT,
+		ForkT,
+		ValidatorT,
+		WithdrawalCredentialsT,
+	]
 }
 
 // NewHandler creates a new handler for the beacon API.
@@ -42,11 +48,24 @@ func NewHandler[
 	BeaconBlockHeaderT types.BeaconBlockHeader,
 	ContextT context.Context,
 	ForkT types.Fork,
-	ValidatorT types.Validator,
+	ValidatorT types.Validator[WithdrawalCredentialsT],
+	WithdrawalCredentialsT types.WithdrawalCredentials,
 ](
-	backend Backend[BeaconBlockHeaderT, ForkT, ValidatorT],
-) *Handler[BeaconBlockHeaderT, ContextT, ForkT, ValidatorT] {
-	h := &Handler[BeaconBlockHeaderT, ContextT, ForkT, ValidatorT]{
+	backend Backend[BeaconBlockHeaderT, ForkT, ValidatorT, WithdrawalCredentialsT],
+) *Handler[
+	BeaconBlockHeaderT,
+	ContextT,
+	ForkT,
+	ValidatorT,
+	WithdrawalCredentialsT,
+] {
+	h := &Handler[
+		BeaconBlockHeaderT,
+		ContextT,
+		ForkT,
+		ValidatorT,
+		WithdrawalCredentialsT,
+	]{
 		BaseHandler: handlers.NewBaseHandler(
 			handlers.NewRouteSet[ContextT](""),
 		),

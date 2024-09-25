@@ -22,12 +22,11 @@ package beacon
 
 import (
 	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
-	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-func (h *Handler[_, ContextT, _, _]) GetRandao(c ContextT) (any, error) {
+func (h *Handler[_, ContextT, _, _, _]) GetRandao(c ContextT) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetRandaoRequest](
 		c,
 		h.Logger(),
@@ -50,7 +49,11 @@ func (h *Handler[_, ContextT, _, _]) GetRandao(c ContextT) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return types.Wrap(beacontypes.RandaoData{
-		Randao: randao,
-	}), nil
+	return beacontypes.ValidatorResponse{
+		ExecutionOptimistic: false, // stubbed
+		Finalized:           false, // stubbed
+		Data: beacontypes.RandaoData{
+			Randao: randao,
+		},
+	}, nil
 }

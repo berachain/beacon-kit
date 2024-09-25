@@ -4,7 +4,7 @@ go 1.23.0
 
 require (
 	github.com/berachain/beacon-kit/mod/async v0.0.0-20240821213929-f32b8e2dc5c8
-	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240906211613-74eea7007e70
+	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240904192942-99aeabe6bb1f
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240806211103-d1105603bfc0
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240807213340-5779c7a563cd
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240911165923-82f71ec86570

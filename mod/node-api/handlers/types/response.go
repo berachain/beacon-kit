@@ -20,19 +20,12 @@
 
 package types
 
-type Response struct {
-	ExecutionOptimistic bool `json:"execution_optimistic"`
-	Finalized           bool `json:"finalized"`
-	Data                any  `json:"data"`
+type DataResponse struct {
+	Data any `json:"data"`
 }
 
-// Wrap wraps the given data in a Response object for the beacon API spec.
-//
-// TODO: Allow configuring the execution optimistic and finalized flags.
-func Wrap(data any) *Response {
-	return &Response{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data:                data,
+func Wrap(data any) DataResponse {
+	return DataResponse{
+		Data: data,
 	}
 }

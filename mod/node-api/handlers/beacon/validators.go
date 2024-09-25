@@ -27,7 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 )
 
-func (h *Handler[_, ContextT, _, _]) GetStateValidators(
+func (h *Handler[_, ContextT, _, _, _]) GetStateValidators(
 	c ContextT,
 ) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetStateValidatorsRequest](
@@ -55,10 +55,14 @@ func (h *Handler[_, ContextT, _, _]) GetStateValidators(
 	if len(validators) == 0 {
 		return nil, types.ErrNotFound
 	}
-	return types.Wrap(validators), nil
+	return beacontypes.ValidatorResponse{
+		ExecutionOptimistic: false, // stubbed
+		Finalized:           false, // stubbed
+		Data:                validators,
+	}, nil
 }
 
-func (h *Handler[_, ContextT, _, _]) PostStateValidators(
+func (h *Handler[_, ContextT, _, _, _]) PostStateValidators(
 	c ContextT,
 ) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.PostStateValidatorsRequest](
@@ -83,10 +87,14 @@ func (h *Handler[_, ContextT, _, _]) PostStateValidators(
 	if err != nil {
 		return nil, err
 	}
-	return types.Wrap(validators), nil
+	return beacontypes.ValidatorResponse{
+		ExecutionOptimistic: false, // stubbed
+		Finalized:           false, // stubbed
+		Data:                validators,
+	}, nil
 }
 
-func (h *Handler[_, ContextT, _, _]) GetStateValidator(
+func (h *Handler[_, ContextT, _, _, _]) GetStateValidator(
 	c ContextT,
 ) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetStateValidatorRequest](
@@ -109,7 +117,7 @@ func (h *Handler[_, ContextT, _, _]) GetStateValidator(
 	return validator, nil
 }
 
-func (h *Handler[_, ContextT, _, _]) GetStateValidatorBalances(
+func (h *Handler[_, ContextT, _, _, _]) GetStateValidatorBalances(
 	c ContextT,
 ) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetValidatorBalancesRequest](
@@ -129,10 +137,14 @@ func (h *Handler[_, ContextT, _, _]) GetStateValidatorBalances(
 	if err != nil {
 		return nil, err
 	}
-	return types.Wrap(balances), nil
+	return beacontypes.ValidatorResponse{
+		ExecutionOptimistic: false, // stubbed
+		Finalized:           false, // stubbed
+		Data:                balances,
+	}, nil
 }
 
-func (h *Handler[_, ContextT, _, _]) PostStateValidatorBalances(
+func (h *Handler[_, ContextT, _, _, _]) PostStateValidatorBalances(
 	c ContextT,
 ) (any, error) {
 	var ids []string
@@ -162,5 +174,9 @@ func (h *Handler[_, ContextT, _, _]) PostStateValidatorBalances(
 	if err != nil {
 		return nil, errors.Wrap(err, "err in backend")
 	}
-	return types.Wrap(balances), nil
+	return beacontypes.ValidatorResponse{
+		ExecutionOptimistic: false, // stubbed
+		Finalized:           false, // stubbed
+		Data:                balances,
+	}, nil
 }

@@ -55,10 +55,10 @@ type Backend[
 	StorageBackendT StorageBackend[
 		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,
 	],
-	ValidatorT Validator,
+	ValidatorT Validator[WithdrawalCredentialsT],
 	ValidatorsT ~[]ValidatorT,
 	WithdrawalT Withdrawal[WithdrawalT],
-	WithdrawalCredentialsT any,
+	WithdrawalCredentialsT WithdrawalCredentials,
 ] struct {
 	sb   StorageBackendT
 	cs   common.ChainSpec
@@ -93,10 +93,10 @@ func New[
 	StorageBackendT StorageBackend[
 		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,
 	],
-	ValidatorT Validator,
+	ValidatorT Validator[WithdrawalCredentialsT],
 	ValidatorsT ~[]ValidatorT,
 	WithdrawalT Withdrawal[WithdrawalT],
-	WithdrawalCredentialsT any,
+	WithdrawalCredentialsT WithdrawalCredentials,
 ](
 	storageBackend StorageBackendT,
 	cs common.ChainSpec,
