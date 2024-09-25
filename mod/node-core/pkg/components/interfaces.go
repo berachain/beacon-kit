@@ -541,8 +541,6 @@ type (
 		GetDeposits() []DepositT
 		// GetExecutionPayloadHeader returns the execution payload header.
 		GetExecutionPayloadHeader() ExecutionPayloadHeaderT
-		// GetGenesisTime returns the genesis time.
-		GetGenesisTime() uint64
 	}
 
 	// IndexDB is the interface for the range DB.
