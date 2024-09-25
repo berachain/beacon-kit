@@ -171,7 +171,6 @@ type ExecutionPayload[
 
 type ExecutionPayloadHeader interface {
 	GetBlockHash() common.ExecutionHash
-	GetTimestamp() math.U64
 }
 
 // ExecutionEngine is the interface for the execution engine.

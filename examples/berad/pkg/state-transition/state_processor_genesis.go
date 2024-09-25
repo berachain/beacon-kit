@@ -98,10 +98,6 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	if err = st.SetGenesisTime(uint64(executionPayloadHeader.GetTimestamp())); err != nil {
-		return nil, err
-	}
-
 	if err = st.SetLatestExecutionPayloadHeader(
 		executionPayloadHeader,
 	); err != nil {
