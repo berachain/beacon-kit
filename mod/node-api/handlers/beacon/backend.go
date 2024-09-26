@@ -22,6 +22,7 @@ package beacon
 
 import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types/data"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -60,7 +61,7 @@ type RandaoBackend interface {
 
 type BlockBackend[BeaconBlockHeaderT any] interface {
 	BlockRootAtSlot(slot math.Slot) (common.Root, error)
-	BlockRewardsAtSlot(slot math.Slot) (*types.BlockRewardsData, error)
+	BlockRewardsAtSlot(slot math.Slot) (*data.BlockRewardsData, error)
 	BlockHeaderAtSlot(slot math.Slot) (BeaconBlockHeaderT, error)
 }
 
@@ -75,14 +76,14 @@ type ValidatorBackend[
 ] interface {
 	ValidatorByID(
 		slot math.Slot, id string,
-	) (*types.ValidatorData[ValidatorT, WithdrawalCredentialsT], error)
+	) (*data.ValidatorData[ValidatorT, WithdrawalCredentialsT], error)
 	ValidatorsByIDs(
 		slot math.Slot,
 		ids []string,
 		statuses []string,
-	) ([]*types.ValidatorData[ValidatorT, WithdrawalCredentialsT], error)
+	) ([]*data.ValidatorData[ValidatorT, WithdrawalCredentialsT], error)
 	ValidatorBalancesByIDs(
 		slot math.Slot,
 		ids []string,
-	) ([]*types.ValidatorBalanceData, error)
+	) ([]*data.ValidatorBalanceData, error)
 }

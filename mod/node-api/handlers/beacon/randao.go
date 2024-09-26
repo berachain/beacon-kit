@@ -22,6 +22,7 @@ package beacon
 
 import (
 	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types/data"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -52,7 +53,7 @@ func (h *Handler[_, ContextT, _, _, _]) GetRandao(c ContextT) (any, error) {
 	return beacontypes.ValidatorResponse{
 		ExecutionOptimistic: false, // stubbed
 		Finalized:           false, // stubbed
-		Data: beacontypes.RandaoData{
+		Data: data.RandaoData{
 			Randao: randao,
 		},
 	}, nil

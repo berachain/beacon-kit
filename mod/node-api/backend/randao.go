@@ -25,6 +25,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
+// RandaoAtEpoch returns the randao mix at the given slot and epoch.
 func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes32, error) {

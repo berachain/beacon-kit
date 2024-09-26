@@ -22,6 +22,7 @@ package echo
 
 import (
 	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/node-api/engines/echo/validator"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -46,8 +47,8 @@ func NewDefaultEngine() *Engine {
 	engine.Use(middleware.CORSWithConfig(
 		middleware.DefaultCORSConfig,
 	))
-	engine.Validator = &CustomValidator{
-		Validator: ConstructValidator(),
+	engine.Validator = &validator.CustomValidator{
+		Validator: validator.ConstructValidator(),
 	}
 	engine.HideBanner = true
 	return New(engine)
