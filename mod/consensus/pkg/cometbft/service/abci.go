@@ -102,11 +102,6 @@ func (s *Service[LoggerT]) InitChain(
 		return nil, errors.New("finalizeBlockState is nil")
 	}
 
-	// add block gas meter for any genesis transactions (allow infinite gas)
-	s.finalizeBlockState.SetContext(
-		s.finalizeBlockState.Context(),
-	)
-
 	res, err := s.initChainer(s.finalizeBlockState.Context(), req)
 	if err != nil {
 		return nil, err
@@ -233,8 +228,6 @@ func (s *Service[LoggerT]) PrepareProposal(
 		),
 	)
 
-	s.prepareProposalState.SetContext(s.prepareProposalState.Context())
-
 	blkBz, sidecarsBz, err := s.Middleware.PrepareProposal(
 		s.prepareProposalState.Context(), &types.SlotData[
 			*ctypes.AttestationData,
@@ -330,7 +323,6 @@ func (s *Service[LoggerT]) internalFinalizeBlock(
 	if s.finalizeBlockState == nil {
 		return nil, errors.New("finalizeBlockState is nil")
 	}
-	s.finalizeBlockState.SetContext(s.finalizeBlockState.Context())
 
 	// First check for an abort signal after beginBlock, as it's the first place
 	// we spend any significant amount of time.
@@ -340,10 +332,6 @@ func (s *Service[LoggerT]) internalFinalizeBlock(
 	default:
 		// continue
 	}
-
-	s.finalizeBlockState.SetContext(
-		s.finalizeBlockState.Context(),
-	)
 
 	// Iterate over all raw transactions in the proposal and attempt to execute
 	// them, gathering the execution results.
