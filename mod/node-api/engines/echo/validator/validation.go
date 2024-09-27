@@ -26,6 +26,12 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
+// ValidateUint64 checks if the provided field is a valid uint64.
+func ValidateUint64(fl validator.FieldLevel) bool {
+	return validateUint64Dec(fl.Field().String())
+}
+
+// ValidateStateID checks if the provided field is a valid state identifier.
 func ValidateStateID(fl validator.FieldLevel) bool {
 	allowedValues := map[string]bool{
 		constants.StateIDHead:      true,
@@ -36,6 +42,7 @@ func ValidateStateID(fl validator.FieldLevel) bool {
 	return validateStateBlockIDs(fl.Field().String(), allowedValues)
 }
 
+// ValidateBlockID checks if the provided field is a valid block identifier.
 func ValidateBlockID(fl validator.FieldLevel) bool {
 	allowedValues := map[string]bool{
 		constants.StateIDHead:      true,
@@ -45,6 +52,8 @@ func ValidateBlockID(fl validator.FieldLevel) bool {
 	return validateStateBlockIDs(fl.Field().String(), allowedValues)
 }
 
+// ValidateExecutionID checks if the provided field is a
+// valid execution identifier.
 func ValidateExecutionID(fl validator.FieldLevel) bool {
 	allowedValues := map[string]bool{
 		constants.StateIDHead:      true,
@@ -72,12 +81,14 @@ func ValidateValidatorID(fl validator.FieldLevel) bool {
 	if valid {
 		return true
 	}
-	if validateUint64(fl) {
+	if ValidateUint64(fl) {
 		return true
 	}
 	return false
 }
 
+// ValidateValidatorStatus checks if the provided field is a
+// valid validator status.
 func ValidateValidatorStatus(fl validator.FieldLevel) bool {
 	// Eth Beacon Node API specs: https://hackmd.io/ofFJ5gOmQpu1jjHilHbdQQ
 	allowedStatuses := map[string]bool{

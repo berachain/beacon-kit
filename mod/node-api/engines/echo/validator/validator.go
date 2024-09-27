@@ -55,14 +55,15 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 	return nil
 }
 
+// ConstructValidator constructs a new validator.
 func ConstructValidator() *validator.Validate {
 	validators := map[string](func(fl validator.FieldLevel) bool){
 		"state_id":         ValidateStateID,
 		"block_id":         ValidateBlockID,
 		"execution_id":     ValidateExecutionID,
 		"validator_id":     ValidateValidatorID,
-		"epoch":            validateUint64,
-		"slot":             validateUint64,
+		"epoch":            ValidateUint64,
+		"slot":             ValidateUint64,
 		"validator_status": ValidateValidatorStatus,
 	}
 	validate := validator.New()

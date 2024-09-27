@@ -25,7 +25,6 @@ import (
 	"strconv"
 
 	"github.com/berachain/beacon-kit/mod/node-api/engines/echo/validator/constants"
-	"github.com/go-playground/validator/v10"
 )
 
 func validateUint64Dec(value string) bool {
@@ -36,10 +35,6 @@ func validateUint64Dec(value string) bool {
 		return true
 	}
 	return false
-}
-
-func validateUint64(fl validator.FieldLevel) bool {
-	return validateUint64Dec(fl.Field().String())
 }
 
 // validateRoot checks if the provided field is a valid root.
