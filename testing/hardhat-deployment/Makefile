@@ -5,7 +5,7 @@
 ###############################################################################
 
 # Starts a Kurtosis enclave containing a local devnet
-start-hardhat-deploy: install-kurtosis get-ip-address
+start-hardhat-deploy: install-kurtosis
 	kurtosis run ./testing/hardhat-deployment --args-file ./testing/hardhat-deployment/config.yaml \
 	--enclave hardhat-devnet
 
