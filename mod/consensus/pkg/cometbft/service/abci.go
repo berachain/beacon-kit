@@ -111,13 +111,12 @@ func (s *Service[LoggerT]) InitChain(
 		return nil, err
 	}
 
+	// check validators
 	if len(resValidators) == 0 {
 		return nil, errors.New(
 			"application init chain handler returned no validators",
 		)
 	}
-
-	// check validators
 	if len(req.Validators) != len(resValidators) {
 		return nil, fmt.Errorf(
 			"len(RequestInitChain.Validators) != len(GenesisValidators) (%d != %d)",
