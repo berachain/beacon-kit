@@ -72,8 +72,11 @@ type Service[
 	finalizeBlockState   *state
 	interBlockCache      storetypes.MultiStorePersistentCache
 	paramStore           *params.ConsensusParamsStore
-	initialHeight        int64
-	minRetainBlocks      uint64
+
+	// initialHeight is used to determine if we are
+	// proposing or processing the first block or not.
+	initialHeight   int64
+	minRetainBlocks uint64
 
 	// application's version string
 	version string

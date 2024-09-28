@@ -57,7 +57,6 @@ func (s *Service[LoggerT]) InitChain(
 
 	// On a new chain, we consider the init chain block height as 0, even though
 	// req.InitialHeight is 1 by default.
-	initHeader := cmtproto.Header{ChainID: req.ChainId, Time: req.Time}
 	s.logger.Info(
 		"InitChain",
 		"initialHeight",
@@ -70,14 +69,13 @@ func (s *Service[LoggerT]) InitChain(
 	// proposing
 	// or processing the first block or not.
 	s.initialHeight = req.InitialHeight
-	if s.initialHeight == 0 { // If initial height is 0, set it to 1
+	if s.initialHeight == 0 {
 		s.initialHeight = 1
 	}
 
 	// if req.InitialHeight is > 1, then we set the initial version on all
 	// stores
 	if req.InitialHeight > 1 {
-		initHeader.Height = req.InitialHeight
 		if err := s.sm.CommitMultiStore().
 			SetInitialVersion(req.InitialHeight); err != nil {
 			return nil, err
@@ -90,19 +88,19 @@ func (s *Service[LoggerT]) InitChain(
 		// InitChain represents the state of the application BEFORE the first
 		// block, i.e. the genesis block. This means that when processing the
 		// app's InitChain handler, the block height is zero by default.
-		// However, after Commit is called
+		// However, after genesis is handled
 		// the height needs to reflect the true block height.
-		initHeader.Height = req.InitialHeight
+		initHeader := cmtproto.Header{
+			ChainID: req.ChainId,
+			Time:    req.Time,
+			Height:  req.InitialHeight,
+		}
 		s.finalizeBlockState.SetContext(
 			s.finalizeBlockState.Context().WithBlockHeader(initHeader),
 		)
 	}()
 
-	if s.finalizeBlockState == nil {
-		return nil, errors.New("finalizeBlockState is nil")
-	}
-
-	res, err := s.initChainer(s.finalizeBlockState.Context(), req)
+	res, err := s.initChainer(s.finalizeBlockState.Context(), req.AppStateBytes)
 	if err != nil {
 		return nil, err
 	}
@@ -155,10 +153,10 @@ func (s *Service[LoggerT]) InitChain(
 // InitChainer initializes the chain.
 func (s *Service[LoggerT]) initChainer(
 	ctx sdk.Context,
-	req *cmtabci.InitChainRequest,
+	appStateBytes []byte,
 ) (*cmtabci.InitChainResponse, error) {
 	var genesisState map[string]json.RawMessage
-	if err := json.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
+	if err := json.Unmarshal(appStateBytes, &genesisState); err != nil {
 		return nil, err
 	}
 	valUpdates, err := s.Middleware.InitGenesis(
@@ -214,13 +212,12 @@ func (s *Service[LoggerT]) PrepareProposal(
 	_ context.Context,
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
-	s.setState(execModePrepareProposal)
-
 	// CometBFT must never call PrepareProposal with a height of 0.
 	if req.Height < 1 {
 		return nil, errors.New("PrepareProposal called with invalid height")
 	}
 
+	s.setState(execModePrepareProposal)
 	s.prepareProposalState.SetContext(
 		s.getContextForProposal(
 			s.prepareProposalState.Context(),
@@ -265,8 +262,6 @@ func (s *Service[LoggerT]) ProcessProposal(
 		return nil, errors.New("ProcessProposal called with invalid height")
 	}
 
-	s.setState(execModeProcessProposal)
-
 	// Since the application can get access to FinalizeBlock state and write to
 	// it, we must be sure to reset it in case ProcessProposal timeouts and is
 	// called
@@ -274,6 +269,7 @@ func (s *Service[LoggerT]) ProcessProposal(
 	// processed the first block, as we want to avoid overwriting the
 	// finalizeState
 	// after state changes during InitChain.
+	s.setState(execModeProcessProposal)
 	if req.Height > s.initialHeight {
 		s.setState(execModeFinalize)
 	}
@@ -319,9 +315,6 @@ func (s *Service[LoggerT]) internalFinalizeBlock(
 
 	if s.finalizeBlockState == nil {
 		s.setState(execModeFinalize)
-	}
-	if s.finalizeBlockState == nil {
-		return nil, errors.New("finalizeBlockState is nil")
 	}
 
 	// First check for an abort signal after beginBlock, as it's the first place
