@@ -44,7 +44,6 @@ import (
 
 var errInvalidHeight = errors.New("invalid height")
 
-//nolint:gocognit // todo fix.
 func (s *Service[LoggerT]) InitChain(
 	_ context.Context,
 	req *cmtabci.InitChainRequest,
@@ -111,35 +110,34 @@ func (s *Service[LoggerT]) InitChain(
 
 	if len(resValidators) == 0 {
 		return nil, errors.New(
-			"application init chain handler returned a no validators",
+			"application init chain handler returned no validators",
 		)
 	}
 
-	if len(req.Validators) > 0 {
-		if len(req.Validators) != len(resValidators) {
-			return nil, fmt.Errorf(
-				"len(RequestInitChain.Validators) != len(GenesisValidators) (%d != %d)",
-				len(req.Validators),
-				len(resValidators),
-			)
+	// check validators
+	if len(req.Validators) != len(resValidators) {
+		return nil, fmt.Errorf(
+			"len(RequestInitChain.Validators) != len(GenesisValidators) (%d != %d)",
+			len(req.Validators),
+			len(resValidators),
+		)
+	}
+
+	sort.Sort(cmtabci.ValidatorUpdates(req.Validators))
+
+	for i := range resValidators {
+		if req.Validators[i].Power != resValidators[i].Power {
+			return nil, errors.New("mismatched power")
+		}
+		if !bytes.Equal(
+			req.Validators[i].PubKeyBytes, resValidators[i].
+				PubKeyBytes) {
+			return nil, errors.New("mismatched pubkey bytes")
 		}
 
-		sort.Sort(cmtabci.ValidatorUpdates(req.Validators))
-
-		for i := range resValidators {
-			if req.Validators[i].Power != resValidators[i].Power {
-				return nil, errors.New("mismatched power")
-			}
-			if !bytes.Equal(
-				req.Validators[i].PubKeyBytes, resValidators[i].
-					PubKeyBytes) {
-				return nil, errors.New("mismatched pubkey bytes")
-			}
-
-			if req.Validators[i].PubKeyType !=
-				resValidators[i].PubKeyType {
-				return nil, errors.New("mismatched pubkey types")
-			}
+		if req.Validators[i].PubKeyType !=
+			resValidators[i].PubKeyType {
+			return nil, errors.New("mismatched pubkey types")
 		}
 	}
 
