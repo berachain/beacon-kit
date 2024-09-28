@@ -42,7 +42,10 @@ import (
 	"github.com/sourcegraph/conc/iter"
 )
 
-var errInvalidHeight = errors.New("invalid height")
+var (
+	errInvalidHeight         = errors.New("invalid height")
+	errNilFinalizeBlockState = errors.New("finalizeBlockState is nil")
+)
 
 func (s *Service[LoggerT]) InitChain(
 	_ context.Context,
@@ -82,7 +85,7 @@ func (s *Service[LoggerT]) InitChain(
 		}
 	}
 
-	s.setState(execModeFinalize)
+	s.finalizeBlockState = s.resetState()
 
 	defer func() {
 		// InitChain represents the state of the application BEFORE the first
@@ -210,7 +213,7 @@ func (s *Service[LoggerT]) PrepareProposal(
 		return nil, fmt.Errorf("PrepareProposal: %w %v", errInvalidHeight, req.Height)
 	}
 
-	s.setState(execModePrepareProposal)
+	s.prepareProposalState = s.resetState()
 	s.prepareProposalState.SetContext(
 		s.getContextForProposal(
 			s.prepareProposalState.Context(),
@@ -260,9 +263,9 @@ func (s *Service[LoggerT]) ProcessProposal(
 	// called again in a subsequent round. However, we only want to do this
 	// after we've processed the first block, as we want to avoid overwriting
 	// the finalizeState after state changes during InitChain.
-	s.setState(execModeProcessProposal)
+	s.processProposalState = s.resetState()
 	if req.Height > s.initialHeight {
-		s.setState(execModeFinalize)
+		s.finalizeBlockState = s.resetState()
 	}
 
 	s.processProposalState.SetContext(
@@ -304,9 +307,7 @@ func (s *Service[LoggerT]) internalFinalizeBlock(
 		return nil, err
 	}
 
-	if s.finalizeBlockState == nil {
-		s.setState(execModeFinalize)
-	}
+	s.finalizeBlockState = s.resetState()
 
 	// First check for an abort signal after beginBlock, as it's the first place
 	// we spend any significant amount of time.
@@ -433,7 +434,7 @@ func (s *Service[LoggerT]) Commit(
 	context.Context, *cmtabci.CommitRequest,
 ) (*cmtabci.CommitResponse, error) {
 	if s.finalizeBlockState == nil {
-		return nil, errors.New("finalizeBlockState is nil")
+		return nil, fmt.Errorf("Commit: %w", errNilFinalizeBlockState)
 	}
 	header := s.finalizeBlockState.Context().BlockHeader()
 	retainHeight := s.GetBlockRetentionHeight(header.Height)
@@ -468,7 +469,7 @@ func (s *Service[LoggerT]) workingHash() []byte {
 	// MultiStore (s.sm.CommitMultiStore()) so when Commit() is called it
 	// persists those values.
 	if s.finalizeBlockState == nil {
-		panic("workingHash() called before FinalizeBlock()")
+		panic(fmt.Errorf("workingHash: %w", errNilFinalizeBlockState))
 	}
 	s.finalizeBlockState.ms.Write()
 

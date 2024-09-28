@@ -23,7 +23,6 @@ package cometbft
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	storetypes "cosmossdk.io/store/types"
 	servercmtlog "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/log"
@@ -42,16 +41,6 @@ import (
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-)
-
-type (
-	execMode uint8
-)
-
-const (
-	execModePrepareProposal execMode = iota
-	execModeProcessProposal
-	execModeFinalize
 )
 
 const InitialAppVersion uint64 = 0
@@ -215,25 +204,15 @@ func (s *Service[_]) setInterBlockCache(
 	s.interBlockCache = cache
 }
 
-func (s *Service[LoggerT]) setState(mode execMode) {
+// resetState provides a fresh state which can be used to reset
+// prepareProposal/processProposal/finalizeBlock State.
+// A state is explicitly returned to avoid false positives from
+// nilaway tool.
+func (s *Service[LoggerT]) resetState() *state {
 	ms := s.sm.CommitMultiStore().CacheMultiStore()
-	baseState := &state{
+	return &state{
 		ms:  ms,
 		ctx: sdk.NewContext(ms, false, servercmtlog.WrapSDKLogger(s.logger)),
-	}
-
-	switch mode {
-	case execModePrepareProposal:
-		s.prepareProposalState = baseState
-
-	case execModeProcessProposal:
-		s.processProposalState = baseState
-
-	case execModeFinalize:
-		s.finalizeBlockState = baseState
-
-	default:
-		panic(fmt.Sprintf("invalid runTxMode for setState: %d", mode))
 	}
 }
 
