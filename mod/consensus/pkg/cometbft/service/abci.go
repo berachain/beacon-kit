@@ -500,14 +500,11 @@ func (s *Service[LoggerT]) getContextForProposal(
 	ctx sdk.Context,
 	height int64,
 ) sdk.Context {
-	if height == s.initialHeight {
-		if s.finalizeBlockState == nil {
-			return ctx
-		}
-		ctx, _ = s.finalizeBlockState.Context().CacheContext()
+	if height != s.initialHeight || s.finalizeBlockState == nil {
 		return ctx
 	}
 
+	ctx, _ = s.finalizeBlockState.Context().CacheContext()
 	return ctx
 }
 
