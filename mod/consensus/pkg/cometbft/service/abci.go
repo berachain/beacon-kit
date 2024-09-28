@@ -68,8 +68,7 @@ func (s *Service[LoggerT]) InitChain(
 	)
 
 	// Set the initial height, which will be used to determine if we are
-	// proposing
-	// or processing the first block or not.
+	// proposing or processing the first block or not.
 	s.initialHeight = req.InitialHeight
 	if s.initialHeight == 0 {
 		s.initialHeight = 1
@@ -90,8 +89,8 @@ func (s *Service[LoggerT]) InitChain(
 		// InitChain represents the state of the application BEFORE the first
 		// block, i.e. the genesis block. This means that when processing the
 		// app's InitChain handler, the block height is zero by default.
-		// However, after genesis is handled
-		// the height needs to reflect the true block height.
+		// However, after genesis is handled the height needs to reflect
+		// the true block height.
 		initHeader := cmtproto.Header{
 			ChainID: req.ChainId,
 			Time:    req.Time,
@@ -143,8 +142,7 @@ func (s *Service[LoggerT]) InitChain(
 	}
 
 	// NOTE: We don't commit, but FinalizeBlock for block InitialHeight starts
-	// from
-	// this FinalizeBlockState.
+	// from this FinalizeBlockState.
 	return &cmtabci.InitChainResponse{
 		ConsensusParams: res.ConsensusParams,
 		Validators:      res.Validators,
@@ -266,11 +264,9 @@ func (s *Service[LoggerT]) ProcessProposal(
 
 	// Since the application can get access to FinalizeBlock state and write to
 	// it, we must be sure to reset it in case ProcessProposal timeouts and is
-	// called
-	// again in a subsequent round. However, we only want to do this after we've
-	// processed the first block, as we want to avoid overwriting the
-	// finalizeState
-	// after state changes during InitChain.
+	// called again in a subsequent round. However, we only want to do this
+	// after we've processed the first block, as we want to avoid overwriting
+	// the finalizeState after state changes during InitChain.
 	s.setState(execModeProcessProposal)
 	if req.Height > s.initialHeight {
 		s.setState(execModeFinalize)
