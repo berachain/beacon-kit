@@ -101,41 +101,43 @@ func (s *Service[LoggerT]) InitChain(
 		)
 	}()
 
-	res, err := s.initChainer(s.finalizeBlockState.Context(), req.AppStateBytes)
+	resValidators, err := s.initChainer(
+		s.finalizeBlockState.Context(),
+		req.AppStateBytes,
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	if res == nil {
+	if len(resValidators) == 0 {
 		return nil, errors.New(
-			"application init chain handler returned a nil response",
+			"application init chain handler returned a no validators",
 		)
 	}
 
 	if len(req.Validators) > 0 {
-		if len(req.Validators) != len(res.Validators) {
+		if len(req.Validators) != len(resValidators) {
 			return nil, fmt.Errorf(
 				"len(RequestInitChain.Validators) != len(GenesisValidators) (%d != %d)",
 				len(req.Validators),
-				len(res.Validators),
+				len(resValidators),
 			)
 		}
 
 		sort.Sort(cmtabci.ValidatorUpdates(req.Validators))
 
-		for i := range res.Validators {
-			if req.Validators[i].Power != res.Validators[i].Power {
+		for i := range resValidators {
+			if req.Validators[i].Power != resValidators[i].Power {
 				return nil, errors.New("mismatched power")
 			}
 			if !bytes.Equal(
-				req.Validators[i].PubKeyBytes, res.Validators[i].
+				req.Validators[i].PubKeyBytes, resValidators[i].
 					PubKeyBytes) {
 				return nil, errors.New("mismatched pubkey bytes")
 			}
 
-			if req.
-				Validators[i].PubKeyType != res.
-				Validators[i].PubKeyType {
+			if req.Validators[i].PubKeyType !=
+				resValidators[i].PubKeyType {
 				return nil, errors.New("mismatched pubkey types")
 			}
 		}
@@ -144,8 +146,8 @@ func (s *Service[LoggerT]) InitChain(
 	// NOTE: We don't commit, but FinalizeBlock for block InitialHeight starts
 	// from this FinalizeBlockState.
 	return &cmtabci.InitChainResponse{
-		ConsensusParams: res.ConsensusParams,
-		Validators:      res.Validators,
+		ConsensusParams: req.ConsensusParams,
+		Validators:      resValidators,
 		AppHash:         s.sm.CommitMultiStore().LastCommitID().Hash,
 	}, nil
 }
@@ -154,7 +156,7 @@ func (s *Service[LoggerT]) InitChain(
 func (s *Service[LoggerT]) initChainer(
 	ctx sdk.Context,
 	appStateBytes []byte,
-) (*cmtabci.InitChainResponse, error) {
+) ([]cmtabci.ValidatorUpdate, error) {
 	var genesisState map[string]json.RawMessage
 	if err := json.Unmarshal(appStateBytes, &genesisState); err != nil {
 		return nil, err
@@ -167,17 +169,10 @@ func (s *Service[LoggerT]) initChainer(
 		return nil, err
 	}
 
-	convertedValUpdates, err := iter.MapErr(
+	return iter.MapErr(
 		valUpdates,
 		convertValidatorUpdate[cmtabci.ValidatorUpdate],
 	)
-	if err != nil {
-		return nil, err
-	}
-
-	return &cmtabci.InitChainResponse{
-		Validators: convertedValUpdates,
-	}, nil
 }
 
 func (s *Service[LoggerT]) Info(
