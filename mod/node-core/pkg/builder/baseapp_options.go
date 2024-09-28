@@ -21,6 +21,7 @@
 package builder
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -58,27 +59,12 @@ func DefaultServiceOptions[
 		panic(err)
 	}
 
-	homeDir := cast.ToString(appOpts.Get(flags.FlagHome))
+	// get chainID, possibly falling back to genesis if flag is not set
 	chainID := cast.ToString(appOpts.Get(flags.FlagChainID))
-	var reader *os.File
 	if chainID == "" {
-		// fallback to genesis chain-id
-		//#nosec:G304 // bet.
-		reader, err = os.Open(filepath.Join(homeDir, "config", "genesis.json"))
+		chainID, err = loadChainIDFromGenesis(appOpts)
 		if err != nil {
 			panic(err)
-		}
-		//#nosec:307 // bet.
-		defer reader.Close()
-
-		chainID, err = genutiltypes.ParseChainIDFromGenesis(reader)
-		if err != nil {
-			panic(
-				fmt.Errorf(
-					"failed to parse chain-id from genesis file: %w",
-					err,
-				),
-			)
 		}
 	}
 
@@ -97,4 +83,29 @@ func DefaultServiceOptions[
 		),
 		cometbft.SetChainID[LoggerT](chainID),
 	}
+}
+
+func loadChainIDFromGenesis(appOpts config.AppOptions) (string, error) {
+	var (
+		homeDir = cast.ToString(appOpts.Get(flags.FlagHome))
+		fp      = filepath.Join(homeDir, "config", "genesis.json")
+	)
+
+	f, err := os.Open(filepath.Clean(fp))
+	if err != nil {
+		return "", err
+	}
+
+	chainID, err := genutiltypes.ParseChainIDFromGenesis(f)
+	if err != nil {
+		return "",
+			errors.Join(
+				f.Close(),
+				fmt.Errorf(
+					"failed to parse chain-id from genesis file: %w",
+					err,
+				),
+			)
+	}
+	return chainID, f.Close()
 }
