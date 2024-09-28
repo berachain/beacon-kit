@@ -42,6 +42,8 @@ import (
 	"github.com/sourcegraph/conc/iter"
 )
 
+var errInvalidHeight = errors.New("invalid height")
+
 //nolint:gocognit // todo fix.
 func (s *Service[LoggerT]) InitChain(
 	_ context.Context,
@@ -214,7 +216,7 @@ func (s *Service[LoggerT]) PrepareProposal(
 ) (*cmtabci.PrepareProposalResponse, error) {
 	// CometBFT must never call PrepareProposal with a height of 0.
 	if req.Height < 1 {
-		return nil, errors.New("PrepareProposal called with invalid height")
+		return nil, fmt.Errorf("PrepareProposal: %w %v", errInvalidHeight, req.Height)
 	}
 
 	s.setState(execModePrepareProposal)
@@ -259,7 +261,7 @@ func (s *Service[LoggerT]) ProcessProposal(
 ) (*cmtabci.ProcessProposalResponse, error) {
 	// CometBFT must never call ProcessProposal with a height of 0.
 	if req.Height < 1 {
-		return nil, errors.New("ProcessProposal called with invalid height")
+		return nil, fmt.Errorf("ProcessProposal: %w %v", errInvalidHeight, req.Height)
 	}
 
 	// Since the application can get access to FinalizeBlock state and write to
@@ -387,7 +389,7 @@ func (s *Service[_]) validateFinalizeBlockHeight(
 	req *cmtabci.FinalizeBlockRequest,
 ) error {
 	if req.Height < 1 {
-		return fmt.Errorf("invalid height: %d", req.Height)
+		return fmt.Errorf("FinalizeBlock: %w %v", errInvalidHeight, req.Height)
 	}
 
 	lastBlockHeight := s.LastBlockHeight()
