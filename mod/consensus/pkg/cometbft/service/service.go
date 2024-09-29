@@ -87,7 +87,6 @@ func NewService[
 	logger LoggerT,
 	db dbm.DB,
 	middleware MiddlewareI,
-	loadLatest bool,
 	cmtCfg *cmtcfg.Config,
 	cs common.ChainSpec,
 	options ...func(*Service[LoggerT]),
@@ -102,9 +101,9 @@ func NewService[
 		Middleware: middleware,
 		cmtCfg:     cmtCfg,
 		paramStore: params.NewConsensusParamsStore(cs),
+		version:    version.Version,
 	}
 
-	s.SetVersion(version.Version)
 	s.MountStore(storeKey, storetypes.StoreTypeIAVL)
 
 	for _, option := range options {
@@ -115,11 +114,9 @@ func NewService[
 		s.sm.CommitMultiStore().SetInterBlockCache(s.interBlockCache)
 	}
 
-	// Load the s.
-	if loadLatest {
-		if err := s.sm.LoadLatestVersion(); err != nil {
-			panic(err)
-		}
+	// Load latest height, once all stores have been set
+	if err := s.sm.LoadLatestVersion(); err != nil {
+		panic(err)
 	}
 
 	return s

@@ -31,15 +31,15 @@ import (
 //nolint:gochecknoglobals // storeKey is a singleton.
 var storeKey = storetypes.NewKVStoreKey("beacon")
 
-func ProvideKVStoreKey() **storetypes.KVStoreKey {
-	return &storeKey
+func ProvideKVStoreKey() *storetypes.KVStoreKey {
+	return storeKey
 }
 
 func ProvideKVStoreService(
-	storeKey **storetypes.KVStoreKey,
+	storeKey *storetypes.KVStoreKey,
 ) store.KVStoreService {
 	// skips modules that have no store
-	return kvStoreService{key: *storeKey}
+	return kvStoreService{key: storeKey}
 }
 
 func NewKVStoreService(storeKey *storetypes.KVStoreKey) store.KVStoreService {
