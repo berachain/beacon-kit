@@ -417,6 +417,8 @@ func (s *Service[LoggerT]) Commit(
 	context.Context, *cmtabci.CommitRequest,
 ) (*cmtabci.CommitResponse, error) {
 	if s.finalizeBlockState == nil {
+		// This is unexpected since CometBFT should call Commit only
+		// after FinalizeBlock has been called. Panic appeases nilaway.
 		panic(fmt.Errorf("commit: %w", errNilFinalizeBlockState))
 	}
 	header := s.finalizeBlockState.Context().BlockHeader()
@@ -445,10 +447,11 @@ func (s *Service[LoggerT]) Commit(
 func (s *Service[LoggerT]) workingHash() []byte {
 	// Write the FinalizeBlock state into branched storage and commit the
 	// MultiStore. The write to the FinalizeBlock state writes all state
-	// transitions to the root
-	// MultiStore (s.sm.CommitMultiStore()) so when Commit() is called it
-	// persists those values.
+	// transitions to the root MultiStore (s.sm.CommitMultiStore())
+	// so when Commit() is called it persists those values.
 	if s.finalizeBlockState == nil {
+		// this is unexpected since workingHash is called only after
+		// internalFinalizeBlock. Panic appeases nilaway.
 		panic(fmt.Errorf("workingHash: %w", errNilFinalizeBlockState))
 	}
 	s.finalizeBlockState.ms.Write()
@@ -472,10 +475,15 @@ func (s *Service[LoggerT]) getContextForProposal(
 	ctx sdk.Context,
 	height int64,
 ) sdk.Context {
-	if height != s.initialHeight || s.finalizeBlockState == nil {
+	if height != s.initialHeight {
 		return ctx
 	}
 
+	if s.finalizeBlockState == nil {
+		// this is unexpected since cometBFT won't call PrepareProposal
+		// on initialHeight. Panic appeases nilaway.
+		panic(fmt.Errorf("getContextForProposal: %w", errNilFinalizeBlockState))
+	}
 	ctx, _ = s.finalizeBlockState.Context().CacheContext()
 	return ctx
 }
