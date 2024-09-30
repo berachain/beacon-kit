@@ -4,7 +4,7 @@ package mocks
 
 import (
 	backend "github.com/berachain/beacon-kit/mod/node-api/backend"
-	bytes "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	crypto "github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 
 	math "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 
@@ -205,20 +205,18 @@ func (_c *Validator_GetExitEpoch_Call[WithdrawalCredentialsT]) RunAndReturn(run 
 }
 
 // GetPubkey provides a mock function with given fields:
-func (_m *Validator[WithdrawalCredentialsT]) GetPubkey() bytes.B48 {
+func (_m *Validator[WithdrawalCredentialsT]) GetPubkey() crypto.BLSPubkey {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetPubkey")
 	}
 
-	var r0 bytes.B48
-	if rf, ok := ret.Get(0).(func() bytes.B48); ok {
+	var r0 crypto.BLSPubkey
+	if rf, ok := ret.Get(0).(func() crypto.BLSPubkey); ok {
 		r0 = rf()
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(bytes.B48)
-		}
+		r0 = ret.Get(0).(crypto.BLSPubkey)
 	}
 
 	return r0
@@ -241,12 +239,12 @@ func (_c *Validator_GetPubkey_Call[WithdrawalCredentialsT]) Run(run func()) *Val
 	return _c
 }
 
-func (_c *Validator_GetPubkey_Call[WithdrawalCredentialsT]) Return(_a0 bytes.B48) *Validator_GetPubkey_Call[WithdrawalCredentialsT] {
+func (_c *Validator_GetPubkey_Call[WithdrawalCredentialsT]) Return(_a0 crypto.BLSPubkey) *Validator_GetPubkey_Call[WithdrawalCredentialsT] {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *Validator_GetPubkey_Call[WithdrawalCredentialsT]) RunAndReturn(run func() bytes.B48) *Validator_GetPubkey_Call[WithdrawalCredentialsT] {
+func (_c *Validator_GetPubkey_Call[WithdrawalCredentialsT]) RunAndReturn(run func() crypto.BLSPubkey) *Validator_GetPubkey_Call[WithdrawalCredentialsT] {
 	_c.Call.Return(run)
 	return _c
 }
