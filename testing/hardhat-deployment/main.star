@@ -20,6 +20,7 @@ def run(plan, deployment = {}):
 
     plan.upload_files(src = repository, name = "contracts")
 
+    dependency_artifact_name = ""
     if dependency_type == LOCAL_DEPENDENCY or dependency_type == GIT_DEPENDENCY:
         dependency_path = dependency["path"]
         plan.upload_files(src = "dependency", name = "dependency")
@@ -48,7 +49,7 @@ def run(plan, deployment = {}):
     result = exec_on_service(plan, node_service.name, "cd {} && npx hardhat run {}".format(contract_path, script_path))
     plan.verify(result["code"], "==", 0)
 
-def get_service_config(wallet, dependency_artifact_name):
+def get_service_config(wallet, dependency_artifact_name = None):
     files = {
         SOURCE_DIR_PATH: "contracts",
     }

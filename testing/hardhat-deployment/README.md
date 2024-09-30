@@ -14,7 +14,8 @@
     1) If the contracts repository has its dependency built-in, provide the full path to the dependency script.
     2) Else, to set it locally via kurtosis package. Ensure that the `dependency.sh` file inside the `dependency` folder is completed.
     
-    Set the `dependency` `type` to "git" or "local". This is necessary when additional setup is required before deployment.
+  Set the `dependency` `type` to "git" or "local". This is necessary when additional setup is required before deployment.
+  In case of no dependency, set it to "none".
 
 ## Example for GitHub hosted repository having dependency in the local kurtosis package
 
