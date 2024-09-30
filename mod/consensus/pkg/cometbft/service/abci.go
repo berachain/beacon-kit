@@ -205,7 +205,7 @@ func (s *Service[LoggerT]) PrepareProposal(
 	// CometBFT must never call PrepareProposal with a height of 0.
 	if req.Height < 1 {
 		return nil, fmt.Errorf(
-			"prepareProposal, height %v: %w",
+			"prepareProposal at height %v: %w",
 			req.Height,
 			errInvalidHeight,
 		)
@@ -254,7 +254,7 @@ func (s *Service[LoggerT]) ProcessProposal(
 	// CometBFT must never call ProcessProposal with a height of 0.
 	if req.Height < 1 {
 		return nil, fmt.Errorf(
-			"processProposal, height %v: %w",
+			"processProposal at height %v: %w",
 			req.Height,
 			errInvalidHeight,
 		)
@@ -384,7 +384,7 @@ func (s *Service[_]) validateFinalizeBlockHeight(
 ) error {
 	if req.Height < 1 {
 		return fmt.Errorf(
-			"finalizeBlock, height %v: %w",
+			"finalizeBlock at height %v: %w",
 			req.Height,
 			errInvalidHeight,
 		)
