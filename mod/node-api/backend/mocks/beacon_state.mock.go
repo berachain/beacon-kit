@@ -391,7 +391,7 @@ func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, Fo
 }
 
 // BeaconState_GetGenesisTime_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetGenesisTime'
-type BeaconState_GetGenesisTime_Call[BeaconBlockHeaderT interface{}, Eth1DataT interface{}, ExecutionPayloadHeaderT interface{}, ForkT interface{}, ValidatorT interface{}, ValidatorsT interface{}, WithdrawalT interface{}] struct {
+type BeaconState_GetGenesisTime_Call[BeaconBlockHeaderT any, Eth1DataT any, ExecutionPayloadHeaderT any, ForkT any, ValidatorT any, ValidatorsT any, WithdrawalT any] struct {
 	*mock.Call
 }
 
