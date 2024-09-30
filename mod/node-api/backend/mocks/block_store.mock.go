@@ -163,7 +163,7 @@ func (_m *BlockStore[BeaconBlockT]) GetSlotByParentRoot(root common.Root) (math.
 }
 
 // BlockStore_GetSlotByParentRoot_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSlotByParentRoot'
-type BlockStore_GetSlotByParentRoot_Call[BeaconBlockT interface{}] struct {
+type BlockStore_GetSlotByParentRoot_Call[BeaconBlockT any] struct {
 	*mock.Call
 }
 
