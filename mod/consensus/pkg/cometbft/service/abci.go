@@ -311,7 +311,9 @@ func (s *Service[LoggerT]) internalFinalizeBlock(
 		return nil, err
 	}
 
-	s.finalizeBlockState = s.resetState()
+	if s.finalizeBlockState == nil {
+		s.finalizeBlockState = s.resetState()
+	}
 
 	// First check for an abort signal after beginBlock, as it's the first place
 	// we spend any significant amount of time.
