@@ -1,3 +1,4 @@
+#!/bin/sh
 # SPDX-License-Identifier: BUSL-1.1
 #
 # Copyright (C) 2024, Berachain Foundation. All rights reserved.
@@ -18,6 +19,7 @@
 # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 # TITLE.
 
-apk update && apk add --no-cache python3 make g++ build-base
-cd /app/contracts && npm install
-
+set -e
+apk update && apk add --no-cache python3 make g++ build-base || { echo "Failed to install system packages"; exit 1; }
+cd /app/contracts && npm install || { echo "Failed to install Node.js dependencies"; exit 1; }
+echo "All dependencies installed successfully."
