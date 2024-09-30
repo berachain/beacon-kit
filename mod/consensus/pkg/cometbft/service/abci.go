@@ -209,7 +209,7 @@ func (s *Service[LoggerT]) PrepareProposal(
 ) (*cmtabci.PrepareProposalResponse, error) {
 	// CometBFT must never call PrepareProposal with a height of 0.
 	if req.Height < 1 {
-		return nil, fmt.Errorf("PrepareProposal: %w %v", errInvalidHeight, req.Height)
+		return nil, fmt.Errorf("prepareProposal: %w %v", errInvalidHeight, req.Height)
 	}
 
 	s.prepareProposalState = s.resetState()
@@ -254,7 +254,7 @@ func (s *Service[LoggerT]) ProcessProposal(
 ) (*cmtabci.ProcessProposalResponse, error) {
 	// CometBFT must never call ProcessProposal with a height of 0.
 	if req.Height < 1 {
-		return nil, fmt.Errorf("ProcessProposal: %w %v", errInvalidHeight, req.Height)
+		return nil, fmt.Errorf("processProposal: %w %v", errInvalidHeight, req.Height)
 	}
 
 	// Since the application can get access to FinalizeBlock state and write to
@@ -378,7 +378,7 @@ func (s *Service[_]) validateFinalizeBlockHeight(
 	req *cmtabci.FinalizeBlockRequest,
 ) error {
 	if req.Height < 1 {
-		return fmt.Errorf("FinalizeBlock: %w %v", errInvalidHeight, req.Height)
+		return fmt.Errorf("finalizeBlock: %w %v", errInvalidHeight, req.Height)
 	}
 
 	lastBlockHeight := s.LastBlockHeight()
@@ -433,7 +433,7 @@ func (s *Service[LoggerT]) Commit(
 	context.Context, *cmtabci.CommitRequest,
 ) (*cmtabci.CommitResponse, error) {
 	if s.finalizeBlockState == nil {
-		return nil, fmt.Errorf("Commit: %w", errNilFinalizeBlockState)
+		return nil, fmt.Errorf("commit: %w", errNilFinalizeBlockState)
 	}
 	header := s.finalizeBlockState.Context().BlockHeader()
 	retainHeight := s.GetBlockRetentionHeight(header.Height)
