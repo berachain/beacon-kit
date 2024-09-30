@@ -60,8 +60,6 @@ func (s *Service[LoggerT]) InitChain(
 		)
 	}
 
-	// On a new chain, we consider the init chain block height as 0, even though
-	// req.InitialHeight is 1 by default.
 	s.logger.Info(
 		"InitChain",
 		"initialHeight",
@@ -70,15 +68,14 @@ func (s *Service[LoggerT]) InitChain(
 		req.ChainId,
 	)
 
-	// Set the initial height, which will be used to determine if we are
-	// proposing or processing the first block or not.
+	// Set the initial height, which will be used to determine if we are proposing
+	// or processing the first block or not.
 	s.initialHeight = req.InitialHeight
 	if s.initialHeight == 0 {
 		s.initialHeight = 1
 	}
 
-	// if req.InitialHeight is > 1, then we set the initial version on all
-	// stores
+	// if req.InitialHeight is > 1, then we set the initial version on all stores
 	if req.InitialHeight > 1 {
 		if err := s.sm.CommitMultiStore().
 			SetInitialVersion(req.InitialHeight); err != nil {
@@ -141,8 +138,8 @@ func (s *Service[LoggerT]) InitChain(
 		}
 	}
 
-	// NOTE: We don't commit, but FinalizeBlock for block InitialHeight starts
-	// from this FinalizeBlockState.
+	// NOTE: We don't commit, but FinalizeBlock for block InitialHeight starts from
+	// this FinalizeBlockState.
 	return &cmtabci.InitChainResponse{
 		ConsensusParams: req.ConsensusParams,
 		Validators:      resValidators,
@@ -211,6 +208,8 @@ func (s *Service[LoggerT]) PrepareProposal(
 		)
 	}
 
+	// Always reset state given that PrepareProposal can timeout
+	// and be called again in a subsequent round.
 	s.prepareProposalState = s.resetState()
 	s.prepareProposalState.SetContext(
 		s.getContextForProposal(
@@ -260,11 +259,11 @@ func (s *Service[LoggerT]) ProcessProposal(
 		)
 	}
 
-	// Since the application can get access to FinalizeBlock state and write to
-	// it, we must be sure to reset it in case ProcessProposal timeouts and is
-	// called again in a subsequent round. However, we only want to do this
-	// after we've processed the first block, as we want to avoid overwriting
-	// the finalizeState after state changes during InitChain.
+	// Since the application can get access to FinalizeBlock state and write to it,
+	// we must be sure to reset it in case ProcessProposal timeouts and is called
+	// again in a subsequent round. However, we only want to do this after we've
+	// processed the first block, as we want to avoid overwriting the finalizeState
+	// after state changes during InitChain.
 	s.processProposalState = s.resetState()
 	if req.Height > s.initialHeight {
 		s.finalizeBlockState = s.resetState()
@@ -302,24 +301,17 @@ func (s *Service[LoggerT]) ProcessProposal(
 }
 
 func (s *Service[LoggerT]) internalFinalizeBlock(
-	ctx context.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (*cmtabci.FinalizeBlockResponse, error) {
 	if err := s.validateFinalizeBlockHeight(req); err != nil {
 		return nil, err
 	}
 
+	// finalizeBlockState should be set on InitChain or ProcessProposal. If it is
+	// nil, it means we are replaying this block and we need to set the state here
+	// given that during block replay ProcessProposal is not executed by CometBFT.
 	if s.finalizeBlockState == nil {
 		s.finalizeBlockState = s.resetState()
-	}
-
-	// First check for an abort signal after beginBlock, as it's the first place
-	// we spend any significant amount of time.
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	default:
-		// continue
 	}
 
 	// Iterate over all raw transactions in the proposal and attempt to execute
@@ -329,14 +321,6 @@ func (s *Service[LoggerT]) internalFinalizeBlock(
 	// vote extensions, so skip those.
 	txResults := make([]*cmtabci.ExecTxResult, 0, len(req.Txs))
 	for range req.Txs {
-		// check after every tx if we should abort
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		default:
-			// continue
-		}
-
 		//nolint:mnd // its okay for now.
 		txResults = append(txResults, &cmtabci.ExecTxResult{
 			Codespace: "sdk",
@@ -361,15 +345,6 @@ func (s *Service[LoggerT]) internalFinalizeBlock(
 	)
 	if err != nil {
 		return nil, err
-	}
-
-	// check after finalizeBlock if we should abort, to avoid propagating the
-	// result
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	default:
-		// continue
 	}
 
 	return &cmtabci.FinalizeBlockResponse{
@@ -423,7 +398,7 @@ func (s *Service[_]) FinalizeBlock(
 	_ context.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (*cmtabci.FinalizeBlockResponse, error) {
-	res, err := s.internalFinalizeBlock(context.Background(), req)
+	res, err := s.internalFinalizeBlock(req)
 	if res != nil {
 		res.AppHash = s.workingHash()
 	}
@@ -442,7 +417,7 @@ func (s *Service[LoggerT]) Commit(
 	context.Context, *cmtabci.CommitRequest,
 ) (*cmtabci.CommitResponse, error) {
 	if s.finalizeBlockState == nil {
-		return nil, fmt.Errorf("commit: %w", errNilFinalizeBlockState)
+		panic(fmt.Errorf("commit: %w", errNilFinalizeBlockState))
 	}
 	header := s.finalizeBlockState.Context().BlockHeader()
 	retainHeight := s.GetBlockRetentionHeight(header.Height)
@@ -451,16 +426,13 @@ func (s *Service[LoggerT]) Commit(
 	if ok {
 		rms.SetCommitHeader(header)
 	}
-
 	s.sm.CommitMultiStore().Commit()
-
-	resp := &cmtabci.CommitResponse{
-		RetainHeight: retainHeight,
-	}
 
 	s.finalizeBlockState = nil
 
-	return resp, nil
+	return &cmtabci.CommitResponse{
+		RetainHeight: retainHeight,
+	}, nil
 }
 
 // workingHash gets the apphash that will be finalized in commit.

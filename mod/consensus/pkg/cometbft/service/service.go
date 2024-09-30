@@ -57,14 +57,25 @@ type Service[
 	sm         *statem.Manager
 	Middleware MiddlewareI
 
+	// prepareProposalState is used for PrepareProposal, which is set based on the
+	// previous block's state. This state is never committed. In case of multiple
+	// consensus rounds, the state is always reset to the previous block's state.
 	prepareProposalState *state
-	processProposalState *state
-	finalizeBlockState   *state
-	interBlockCache      storetypes.MultiStorePersistentCache
-	paramStore           *params.ConsensusParamsStore
 
-	// initialHeight is used to determine if we are
-	// proposing or processing the first block or not.
+	// processProposalState is used for ProcessProposal, which is set based on the
+	// previous block's state. This state is never committed. In case of multiple
+	// consensus rounds, the state is always reset to the previous block's state.
+	processProposalState *state
+
+	// finalizeBlockState is used for FinalizeBlock, which is set based on the
+	// previous block's state. This state is committed. finalizeBlockState is set
+	// on InitChain and FinalizeBlock and set to nil on Commit.
+	finalizeBlockState *state
+
+	interBlockCache storetypes.MultiStorePersistentCache
+	paramStore      *params.ConsensusParamsStore
+
+	// initialHeight is the initial height at which we start the node
 	initialHeight   int64
 	minRetainBlocks uint64
 
@@ -151,8 +162,6 @@ func (s *Service[_]) Close() error {
 		//#nosec:G703 // its a bet.
 		_ = s.node.Stop()
 	}
-
-	// Close s.db (opened by cosmos-sdk/server/start.go call to openDB)
 
 	s.logger.Info("Closing application.db")
 	if err := s.sm.Close(); err != nil {
