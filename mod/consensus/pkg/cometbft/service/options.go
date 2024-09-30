@@ -81,12 +81,3 @@ func SetChainID[
 ](chainID string) func(*Service[LoggerT]) {
 	return func(s *Service[LoggerT]) { s.chainID = chainID }
 }
-
-func (s *Service[_]) SetName(name string) {
-	s.name = name
-}
-
-// SetVersion sets the application's version string.
-func (s *Service[_]) SetVersion(v string) {
-	s.version = v
-}

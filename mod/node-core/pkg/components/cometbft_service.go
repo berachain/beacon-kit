@@ -36,7 +36,7 @@ func ProvideCometBFTService[
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	logger LoggerT,
-	storeKey **storetypes.KVStoreKey,
+	storeKey *storetypes.KVStoreKey,
 	abciMiddleware cometbft.MiddlewareI,
 	db dbm.DB,
 	cmtCfg *cmtcfg.Config,
@@ -44,11 +44,10 @@ func ProvideCometBFTService[
 	chainSpec common.ChainSpec,
 ) *cometbft.Service[LoggerT] {
 	return cometbft.NewService(
-		*storeKey,
+		storeKey,
 		logger,
 		db,
 		abciMiddleware,
-		true,
 		cmtCfg,
 		chainSpec,
 		builder.DefaultServiceOptions[LoggerT](appOpts)...,
