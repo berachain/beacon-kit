@@ -1,6 +1,8 @@
 SOURCE_DIR_PATH = "/app/contracts"
 IMAGE_NODE = "node:current-alpine3.20"
 DEPENDENCY_DIR_PATH = "/app/dependency"
+LOCAL_DEPENDENCY = "local"
+GIT_DEPENDENCY = "git"
 
 def run(plan, deployment = {}):
     repository = deployment["repository"]
@@ -16,9 +18,9 @@ def run(plan, deployment = {}):
 
     wallet_value = wallet["value"]
 
-    folder = plan.upload_files(src = repository, name = "contracts")
+    plan.upload_files(src = repository, name = "contracts")
 
-    if dependency_type == "local" or dependency_type == "git":
+    if dependency_type == LOCAL_DEPENDENCY or dependency_type == GIT_DEPENDENCY:
         dependency_path = dependency["path"]
         plan.upload_files(src = "dependency", name = "dependency")
         dependency_artifact_name = "dependency"
@@ -33,37 +35,17 @@ def run(plan, deployment = {}):
     else:
         contract_path = SOURCE_DIR_PATH
 
-    if dependency_type == "local":
-        plan.exec(
-            service_name = node_service.name,
-            recipe = ExecRecipe(
-                command = ["/bin/sh", "-c", "sh {}/{}".format(DEPENDENCY_DIR_PATH, dependency_path)],
-            ),
-        )
-    elif dependency_type == "git":
-        plan.exec(
-            service_name = node_service.name,
-            recipe = ExecRecipe(
-                command = ["/bin/sh", "-c", "cd {} && sh {}".format(contract_path, dependency_path)],
-            ),
-        )
+    if dependency_type == LOCAL_DEPENDENCY:
+        exec_on_service(plan, node_service.name, "sh {}/{}".format(DEPENDENCY_DIR_PATH, dependency_path))
+    elif dependency_type == GIT_DEPENDENCY:
+        exec_on_service(plan, node_service.name, "cd {} && sh {}".format(contract_path, dependency_path))
 
     # Compile the contracts
-    result = plan.exec(
-        service_name = node_service.name,
-        recipe = ExecRecipe(
-            command = ["/bin/sh", "-c", "cd {} && npx hardhat compile --network {}".format(contract_path, network)],
-        ),
-    )
+    result = exec_on_service(plan, node_service.name, "cd {} && npx hardhat compile --network {}".format(contract_path, network))
     plan.verify(result["code"], "==", 0)
 
     # Deploy the contracts
-    result = plan.exec(
-        service_name = node_service.name,
-        recipe = ExecRecipe(
-            command = ["/bin/sh", "-c", "cd {} && npx hardhat run {}".format(contract_path, script_path)],
-        ),
-    )
+    result = exec_on_service(plan, node_service.name, "cd {} && npx hardhat run {}".format(contract_path, script_path))
     plan.verify(result["code"], "==", 0)
 
 def get_service_config(wallet, dependency_artifact_name):
@@ -80,4 +62,12 @@ def get_service_config(wallet, dependency_artifact_name):
         env_vars = {
             "WALLET_KEY": wallet,
         },
+    )
+
+def exec_on_service(plan, service_name, command):
+    return plan.exec(
+        service_name = service_name,
+        recipe = ExecRecipe(
+            command = ["/bin/sh", "-c", command],
+        ),
     )
