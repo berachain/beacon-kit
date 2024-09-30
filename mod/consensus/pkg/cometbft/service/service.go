@@ -41,7 +41,6 @@ import (
 	"github.com/cometbft/cometbft/proxy"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/version"
 )
 
 type (
@@ -54,7 +53,10 @@ const (
 	execModeFinalize
 )
 
-const InitialAppVersion uint64 = 0
+const (
+	initialAppVersion uint64 = 0
+	appName           string = "beacond"
+)
 
 type Service[
 	LoggerT log.AdvancedLogger[LoggerT],
@@ -63,7 +65,6 @@ type Service[
 	cmtCfg *cmtcfg.Config
 
 	logger     LoggerT
-	name       string
 	sm         *statem.Manager
 	Middleware MiddlewareI
 
@@ -75,8 +76,6 @@ type Service[
 	initialHeight        int64
 	minRetainBlocks      uint64
 
-	// application's version string
-	version string
 	chainID string
 }
 
@@ -93,7 +92,6 @@ func NewService[
 ) *Service[LoggerT] {
 	s := &Service[LoggerT]{
 		logger: logger,
-		name:   "beacond",
 		sm: statem.NewManager(
 			db,
 			servercmtlog.WrapSDKLogger(logger),
@@ -101,7 +99,6 @@ func NewService[
 		Middleware: middleware,
 		cmtCfg:     cmtCfg,
 		paramStore: params.NewConsensusParamsStore(cs),
-		version:    version.Version,
 	}
 
 	s.MountStore(storeKey, storetypes.StoreTypeIAVL)
@@ -174,7 +171,7 @@ func (s *Service[_]) Close() error {
 
 // Name returns the name of the cometbft.
 func (s *Service[_]) Name() string {
-	return s.name
+	return appName
 }
 
 // CommitMultiStore returns the CommitMultiStore of the cometbft.
@@ -184,6 +181,10 @@ func (s *Service[_]) CommitMultiStore() storetypes.CommitMultiStore {
 
 // AppVersion returns the application's protocol version.
 func (s *Service[_]) AppVersion(_ context.Context) (uint64, error) {
+	return s.appVersion()
+}
+
+func (s *Service[_]) appVersion() (uint64, error) {
 	cp := s.paramStore.Get()
 	return cp.Version.App, nil
 }

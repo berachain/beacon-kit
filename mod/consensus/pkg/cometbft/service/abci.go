@@ -39,6 +39,7 @@ import (
 	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	sdkversion "github.com/cosmos/cosmos-sdk/version"
 	"github.com/sourcegraph/conc/iter"
 )
 
@@ -187,21 +188,18 @@ func (s *Service[LoggerT]) Info(
 	*cmtabci.InfoRequest,
 ) (*cmtabci.InfoResponse, error) {
 	lastCommitID := s.sm.CommitMultiStore().LastCommitID()
-	appVersion := InitialAppVersion
+	appVersion := initialAppVersion
 	if lastCommitID.Version > 0 {
-		ctx, err := s.CreateQueryContext(lastCommitID.Version, false)
-		if err != nil {
-			return nil, fmt.Errorf("failed creating query context: %w", err)
-		}
-		appVersion, err = s.AppVersion(ctx)
+		var err error
+		appVersion, err = s.appVersion()
 		if err != nil {
 			return nil, fmt.Errorf("failed getting app version: %w", err)
 		}
 	}
 
 	return &cmtabci.InfoResponse{
-		Data:             s.name,
-		Version:          s.version,
+		Data:             appName,
+		Version:          sdkversion.Version,
 		AppVersion:       appVersion,
 		LastBlockHeight:  lastCommitID.Version,
 		LastBlockAppHash: lastCommitID.Hash,
@@ -530,7 +528,7 @@ func (s *Service[LoggerT]) CreateQueryContext(
 		return sdk.Context{}, errorsmod.Wrapf(
 			sdkerrors.ErrInvalidHeight,
 			"%s is not ready; please wait for first block",
-			s.name,
+			appName,
 		)
 	}
 
