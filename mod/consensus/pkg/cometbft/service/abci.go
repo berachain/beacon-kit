@@ -209,7 +209,11 @@ func (s *Service[LoggerT]) PrepareProposal(
 ) (*cmtabci.PrepareProposalResponse, error) {
 	// CometBFT must never call PrepareProposal with a height of 0.
 	if req.Height < 1 {
-		return nil, fmt.Errorf("prepareProposal: %w %v", errInvalidHeight, req.Height)
+		return nil, fmt.Errorf(
+			"prepareProposal, height %v: %w",
+			req.Height,
+			errInvalidHeight,
+		)
 	}
 
 	s.prepareProposalState = s.resetState()
@@ -254,7 +258,11 @@ func (s *Service[LoggerT]) ProcessProposal(
 ) (*cmtabci.ProcessProposalResponse, error) {
 	// CometBFT must never call ProcessProposal with a height of 0.
 	if req.Height < 1 {
-		return nil, fmt.Errorf("processProposal: %w %v", errInvalidHeight, req.Height)
+		return nil, fmt.Errorf(
+			"processProposal, height %v: %w",
+			req.Height,
+			errInvalidHeight,
+		)
 	}
 
 	// Since the application can get access to FinalizeBlock state and write to
@@ -378,7 +386,11 @@ func (s *Service[_]) validateFinalizeBlockHeight(
 	req *cmtabci.FinalizeBlockRequest,
 ) error {
 	if req.Height < 1 {
-		return fmt.Errorf("finalizeBlock: %w %v", errInvalidHeight, req.Height)
+		return fmt.Errorf(
+			"finalizeBlock, height %v: %w",
+			req.Height,
+			errInvalidHeight,
+		)
 	}
 
 	lastBlockHeight := s.LastBlockHeight()
