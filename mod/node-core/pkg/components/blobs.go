@@ -23,6 +23,7 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/flags"
+	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	"github.com/berachain/beacon-kit/mod/da/pkg/da"
@@ -30,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/spf13/cast"
 )
@@ -39,7 +39,7 @@ import (
 // dep inject framework.
 type BlobProofVerifierInput struct {
 	depinject.In
-	AppOpts          servertypes.AppOptions
+	AppOpts          config.AppOptions
 	JSONTrustedSetup *gokzg4844.JSONTrustedSetup
 }
 
@@ -63,21 +63,28 @@ type BlobVerifierInput struct {
 
 // ProvideBlobVerifier is a function that provides the BlobVerifier to the
 // depinject framework.
-func ProvideBlobVerifier(in BlobVerifierInput) *BlobVerifier {
+func ProvideBlobVerifier[
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BlobSidecarT BlobSidecar[BeaconBlockHeaderT],
+	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
+](in BlobVerifierInput) *dablob.Verifier[
+	BeaconBlockHeaderT, BlobSidecarT, BlobSidecarsT,
+] {
 	return dablob.NewVerifier[
-		*BeaconBlockHeader,
-		*BlobSidecar,
-		*BlobSidecars,
+		BeaconBlockHeaderT,
+		BlobSidecarT,
+		BlobSidecarsT,
 	](in.BlobProofVerifier, in.TelemetrySink)
 }
 
 // BlobProcessorIn is the input for the BlobProcessor.
 type BlobProcessorIn[
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	BlobSidecarsT any,
+	LoggerT any,
 ] struct {
 	depinject.In
 
-	BlobVerifier  *BlobVerifier
+	BlobVerifier  BlobVerifier[BlobSidecarsT]
 	ChainSpec     common.ChainSpec
 	Logger        LoggerT
 	TelemetrySink *metrics.TelemetrySink
@@ -86,13 +93,24 @@ type BlobProcessorIn[
 // ProvideBlobProcessor is a function that provides the BlobProcessor to the
 // depinject framework.
 func ProvideBlobProcessor[
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	BeaconBlockBodyT any,
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BlobSidecarT BlobSidecar[BeaconBlockHeaderT],
+	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
+	LoggerT log.AdvancedLogger[LoggerT],
 ](
-	in BlobProcessorIn[LoggerT],
-) *BlobProcessor {
+	in BlobProcessorIn[BlobSidecarsT, LoggerT],
+) *dablob.Processor[
+	AvailabilityStoreT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BlobSidecarT, BlobSidecarsT,
+] {
 	return dablob.NewProcessor[
-		*AvailabilityStore,
-		*BeaconBlockBody,
+		AvailabilityStoreT,
+		BeaconBlockBodyT,
+		BeaconBlockHeaderT,
+		BlobSidecarT,
+		BlobSidecarsT,
 	](
 		in.Logger.With("service", "blob-processor"),
 		in.ChainSpec,
@@ -104,33 +122,41 @@ func ProvideBlobProcessor[
 
 // DAServiceIn is the input for the BlobService.
 type DAServiceIn[
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	AvailabilityStoreT any,
+	BeaconBlockBodyT any,
+	BlobSidecarsT any,
+	LoggerT any,
 ] struct {
 	depinject.In
 
-	AvailabilityStore *AvailabilityStore
-	SidecarsBroker    *SidecarsBroker
-	BlobProcessor     *BlobProcessor
-	Logger            LoggerT
+	AvailabilityStore AvailabilityStoreT
+	BlobProcessor     BlobProcessor[
+		AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT,
+	]
+	Dispatcher Dispatcher
+	Logger     LoggerT
 }
 
 // ProvideDAService is a function that provides the BlobService to the
 // depinject framework.
 func ProvideDAService[
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	BeaconBlockBodyT any,
+	BlobSidecarT any,
+	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
+	LoggerT log.AdvancedLogger[LoggerT],
 ](
-	in DAServiceIn[LoggerT],
-) *DAService {
+	in DAServiceIn[
+		AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT, LoggerT,
+	],
+) *da.Service[AvailabilityStoreT, BlobSidecarsT] {
 	return da.NewService[
-		*AvailabilityStore,
-		*BeaconBlockBody,
-		*BlobSidecars,
-		*SidecarsBroker,
-		*ExecutionPayload,
+		AvailabilityStoreT,
+		BlobSidecarsT,
 	](
 		in.AvailabilityStore,
 		in.BlobProcessor,
-		in.SidecarsBroker,
+		in.Dispatcher,
 		in.Logger.With("service", "da"),
 	)
 }

@@ -22,8 +22,6 @@ package builder
 
 import (
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
-	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -43,19 +41,15 @@ type PayloadBuilder[
 	// chainSpec holds the chain specifications for the PayloadBuilder.
 	chainSpec common.ChainSpec
 	// logger is used for logging within the PayloadBuilder.
-	logger log.Logger[any]
+	logger log.Logger
 	// ee is the execution engine.
 	ee ExecutionEngine[ExecutionPayloadT, PayloadAttributesT, PayloadIDT]
 	// pc is the payload ID cache, it is used to store
 	// "in-flight" payloads that are being built on
 	// the execution client.
-	pc *cache.PayloadIDCache[
-		PayloadIDT, [32]byte, math.Slot,
-	]
+	pc PayloadCache[PayloadIDT, [32]byte, math.Slot]
 	// attributesFactory is used to create attributes for the
-	attributesFactory *attributes.Factory[
-		BeaconStateT, PayloadAttributesT, WithdrawalT,
-	]
+	attributesFactory AttributesFactory[BeaconStateT, PayloadAttributesT]
 }
 
 // New creates a new service.
@@ -69,14 +63,10 @@ func New[
 ](
 	cfg *Config,
 	chainSpec common.ChainSpec,
-	logger log.Logger[any],
+	logger log.Logger,
 	ee ExecutionEngine[ExecutionPayloadT, PayloadAttributesT, PayloadIDT],
-	pc *cache.PayloadIDCache[
-		PayloadIDT, [32]byte, math.Slot,
-	],
-	af *attributes.Factory[
-		BeaconStateT, PayloadAttributesT, WithdrawalT,
-	],
+	pc PayloadCache[PayloadIDT, [32]byte, math.Slot],
+	af AttributesFactory[BeaconStateT, PayloadAttributesT],
 ) *PayloadBuilder[
 	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 	PayloadAttributesT, PayloadIDT, WithdrawalT,

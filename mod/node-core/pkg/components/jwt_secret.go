@@ -25,8 +25,8 @@ import (
 
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/flags"
+	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/afero"
 	"github.com/spf13/cast"
 )
@@ -34,7 +34,7 @@ import (
 // JWTSecretInput is the input for the dep inject framework.
 type JWTSecretInput struct {
 	depinject.In
-	AppOpts servertypes.AppOptions
+	AppOpts config.AppOptions
 }
 
 // ProvideJWTSecret is a function that provides the module to the application.

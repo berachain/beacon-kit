@@ -22,27 +22,52 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
 // BeaconDepositContractInput is the input for the beacon deposit contract
 // for the dep inject framework.
-type BeaconDepositContractInput struct {
+type BeaconDepositContractInput[
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+	],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	WithdrawalT Withdrawal[WithdrawalT],
+	WithdrawalsT Withdrawals[WithdrawalT],
+] struct {
 	depinject.In
 	ChainSpec    common.ChainSpec
-	EngineClient *EngineClient
+	EngineClient *client.EngineClient[
+		ExecutionPayloadT,
+		*engineprimitives.PayloadAttributes[WithdrawalT],
+	]
 }
 
 // ProvideBeaconDepositContract provides a beacon deposit contract through the
 // dep inject framework.
-func ProvideBeaconDepositContract(
-	in BeaconDepositContractInput,
-) (*DepositContract, error) {
+func ProvideBeaconDepositContract[
+	DepositT Deposit[
+		DepositT, *ForkData, WithdrawalCredentials,
+	],
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+	],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	WithdrawalT Withdrawal[WithdrawalT],
+	WithdrawalsT Withdrawals[WithdrawalT],
+](
+	in BeaconDepositContractInput[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT, WithdrawalsT,
+	],
+) (*deposit.WrappedBeaconDepositContract[
+	DepositT, WithdrawalCredentials,
+], error) {
 	// Build the deposit contract.
 	return deposit.NewWrappedBeaconDepositContract[
-		*Deposit,
-		Log,
+		DepositT,
 		WithdrawalCredentials,
 	](
 		in.ChainSpec.DepositContractAddress(),

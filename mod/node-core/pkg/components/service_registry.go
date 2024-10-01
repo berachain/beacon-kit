@@ -22,57 +22,143 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
+	"github.com/berachain/beacon-kit/mod/beacon/validator"
+	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/middleware"
+	"github.com/berachain/beacon-kit/mod/da/pkg/da"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/execution/pkg/client"
+	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/log"
+	blockstore "github.com/berachain/beacon-kit/mod/node-api/block_store"
+	"github.com/berachain/beacon-kit/mod/node-api/server"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
+	service "github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry"
+	"github.com/berachain/beacon-kit/mod/observability/pkg/telemetry"
 )
 
 // ServiceRegistryInput is the input for the service registry provider.
 type ServiceRegistryInput[
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT],
+	BeaconBlockBodyT BeaconBlockBody[
+		BeaconBlockBodyT, *AttestationData, DepositT,
+		*Eth1Data, ExecutionPayloadT, *SlashingInfo,
+	],
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconBlockStoreT BlockStore[BeaconBlockT],
+	BeaconStateT BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
+		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT,
+		*Validator, Validators, WithdrawalT,
+	],
+	BeaconStateMarshallableT any,
+	BlobSidecarT any,
+	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
+	DepositT Deposit[DepositT, *ForkData, WithdrawalCredentials],
+	DepositStoreT DepositStore[DepositT],
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+	],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
+	KVStoreT any,
+	LoggerT log.AdvancedLogger[LoggerT],
+	NodeAPIContextT NodeAPIContext,
+	WithdrawalT Withdrawal[WithdrawalT],
+	WithdrawalsT Withdrawals[WithdrawalT],
 ] struct {
 	depinject.In
-	ABCIService           *ABCIMiddleware
-	BlockBroker           *BlockBroker
-	BlockStoreService     *BlockStoreService
-	ChainService          *ChainService
-	DAService             *DAService
-	DBManager             *DBManager
-	DepositService        *DepositService
-	EngineClient          *EngineClient
-	GenesisBroker         *GenesisBroker
-	Logger                LoggerT
-	NodeAPIServer         *NodeAPIServer
-	ReportingService      *ReportingService
-	SidecarsBroker        *SidecarsBroker
-	SlotBroker            *SlotBroker
-	TelemetrySink         *metrics.TelemetrySink
-	ValidatorService      *ValidatorService
-	ValidatorUpdateBroker *ValidatorUpdateBroker
+	ABCIService *middleware.ABCIMiddleware[
+		BeaconBlockT, BlobSidecarsT, GenesisT, *SlotData,
+	]
+	BlockStoreService *blockstore.Service[
+		BeaconBlockT, BeaconBlockStoreT,
+	]
+	ChainService *blockchain.Service[
+		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+		BeaconBlockHeaderT, BeaconStateT, DepositT, ExecutionPayloadT,
+		ExecutionPayloadHeaderT, GenesisT,
+		*engineprimitives.PayloadAttributes[WithdrawalT],
+	]
+	DAService      *da.Service[AvailabilityStoreT, BlobSidecarsT]
+	DBManager      *DBManager
+	DepositService *deposit.Service[
+		BeaconBlockT, BeaconBlockBodyT, DepositT,
+		ExecutionPayloadT, WithdrawalCredentials,
+	]
+	Dispatcher   Dispatcher
+	EngineClient *client.EngineClient[
+		ExecutionPayloadT,
+		*engineprimitives.PayloadAttributes[WithdrawalT],
+	]
+	Logger           LoggerT
+	NodeAPIServer    *server.Server[NodeAPIContextT]
+	ReportingService *ReportingService
+	TelemetrySink    *metrics.TelemetrySink
+	TelemetryService *telemetry.Service
+	ValidatorService *validator.Service[
+		*AttestationData, BeaconBlockT, BeaconBlockBodyT,
+		BeaconStateT, BlobSidecarsT, DepositT, DepositStoreT,
+		*Eth1Data, ExecutionPayloadT, ExecutionPayloadHeaderT,
+		*ForkData, *SlashingInfo, *SlotData,
+	]
+	CometBFTService *cometbft.Service[LoggerT]
 }
 
 // ProvideServiceRegistry is the depinject provider for the service registry.
 func ProvideServiceRegistry[
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT],
+	BeaconBlockBodyT BeaconBlockBody[
+		BeaconBlockBodyT, *AttestationData, DepositT,
+		*Eth1Data, ExecutionPayloadT, *SlashingInfo,
+	],
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconBlockStoreT BlockStore[BeaconBlockT],
+	BeaconStateT BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
+		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT,
+		*Validator, Validators, WithdrawalT,
+	],
+	BeaconStateMarshallableT any,
+	BlobSidecarT any,
+	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
+	DepositT Deposit[DepositT, *ForkData, WithdrawalCredentials],
+	DepositStoreT DepositStore[DepositT],
+	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT,
+		ExecutionPayloadHeaderT, WithdrawalsT],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
+	KVStoreT any,
+	LoggerT log.AdvancedLogger[LoggerT],
+	NodeAPIContextT NodeAPIContext,
+	WithdrawalT Withdrawal[WithdrawalT],
+	WithdrawalsT Withdrawals[WithdrawalT],
 ](
-	in ServiceRegistryInput[LoggerT],
+	in ServiceRegistryInput[
+		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+		BeaconBlockHeaderT, BeaconBlockStoreT, BeaconStateT,
+		BeaconStateMarshallableT, BlobSidecarT, BlobSidecarsT,
+		DepositT, DepositStoreT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+		GenesisT, KVStoreT, LoggerT, NodeAPIContextT, WithdrawalT, WithdrawalsT,
+	],
 ) *service.Registry {
 	return service.NewRegistry(
 		service.WithLogger(in.Logger),
+		service.WithService(in.ABCIService),
+		service.WithService(in.Dispatcher),
 		service.WithService(in.ValidatorService),
 		service.WithService(in.BlockStoreService),
 		service.WithService(in.ChainService),
 		service.WithService(in.DAService),
 		service.WithService(in.DepositService),
-		service.WithService(in.ABCIService),
 		service.WithService(in.NodeAPIServer),
 		service.WithService(in.ReportingService),
 		service.WithService(in.DBManager),
-		service.WithService(in.GenesisBroker),
-		service.WithService(in.BlockBroker),
-		service.WithService(in.SlotBroker),
-		service.WithService(in.SidecarsBroker),
-		service.WithService(in.ValidatorUpdateBroker),
 		service.WithService(in.EngineClient),
+		service.WithService(in.TelemetryService),
+		service.WithService(in.CometBFTService),
 	)
 }

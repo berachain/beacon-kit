@@ -23,32 +23,34 @@ package deposit
 import (
 	"context"
 
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // Service represents the deposit service that processes deposit events.
 type Service[
-	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT],
+	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
-	BlockEventT BlockEvent[
-		DepositT, BeaconBlockBodyT, BeaconBlockT, ExecutionPayloadT,
-	],
-	DepositT Deposit[DepositT, LogT, WithdrawalCredentialsT],
+	DepositT Deposit[DepositT, WithdrawalCredentialsT],
 	ExecutionPayloadT ExecutionPayload,
 	LogT any,
 	WithdrawalCredentialsT any,
 ] struct {
 	// logger is used for logging information and errors.
-	logger log.Logger[any]
+	logger log.Logger
 	// eth1FollowDistance is the follow distance for Ethereum 1.0 blocks.
 	eth1FollowDistance math.U64
 	// dc is the contract interface for interacting with the deposit contract.
 	dc Contract[DepositT]
 	// ds is the deposit store that stores deposits.
 	ds Store[DepositT]
-	// feed is the block feed that provides block events.
-	feed chan BlockEventT
+	// dispatcher is the dispatcher for the service.
+	dispatcher asynctypes.EventDispatcher
+	// subFinalizedBlockEvents is the channel holding BeaconBlockFinalized
+	// events.
+	subFinalizedBlockEvents chan async.Event[BeaconBlockT]
 	// metrics is the metrics for the deposit service.
 	metrics *metrics
 	// failedBlocks is a map of blocks that failed to be processed to be
@@ -58,57 +60,77 @@ type Service[
 
 // NewService creates a new instance of the Service struct.
 func NewService[
-	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT],
+	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
-	BlockEventT BlockEvent[
-		DepositT, BeaconBlockBodyT,
-		BeaconBlockT, ExecutionPayloadT,
-	],
-	DepositT Deposit[DepositT, LogT, WithdrawalCredentialsT],
+	DepositT Deposit[DepositT, WithdrawalCredentialsT],
 	ExecutionPayloadT ExecutionPayload,
 	LogT any,
 	WithdrawalCredentialsT any,
 ](
-	logger log.Logger[any],
+	logger log.Logger,
 	eth1FollowDistance math.U64,
 	telemetrySink TelemetrySink,
 	ds Store[DepositT],
 	dc Contract[DepositT],
-	feed chan BlockEventT,
+	dispatcher asynctypes.EventDispatcher,
 ) *Service[
-	BeaconBlockT, BeaconBlockBodyT,
-	BlockEventT, DepositT,
-	ExecutionPayloadT, LogT,
-	WithdrawalCredentialsT,
+	BeaconBlockT, BeaconBlockBodyT, DepositT,
+	ExecutionPayloadT, WithdrawalCredentialsT,
 ] {
 	return &Service[
-		BeaconBlockT, BeaconBlockBodyT,
-		BlockEventT, DepositT,
-		ExecutionPayloadT, LogT,
-		WithdrawalCredentialsT,
+		BeaconBlockT, BeaconBlockBodyT, DepositT,
+		ExecutionPayloadT, WithdrawalCredentialsT,
 	]{
-		feed:               feed,
-		logger:             logger,
-		eth1FollowDistance: eth1FollowDistance,
-		metrics:            newMetrics(telemetrySink),
-		dc:                 dc,
-		ds:                 ds,
-		failedBlocks:       make(map[math.Slot]struct{}),
+		dc:                      dc,
+		dispatcher:              dispatcher,
+		ds:                      ds,
+		eth1FollowDistance:      eth1FollowDistance,
+		failedBlocks:            make(map[math.Slot]struct{}),
+		subFinalizedBlockEvents: make(chan async.Event[BeaconBlockT]),
+		logger:                  logger,
+		metrics:                 newMetrics(telemetrySink),
 	}
 }
 
-// Start starts the service and begins processing block events.
+// Start subscribes the Deposit service to BeaconBlockFinalized events and
+// begins the main event loop to handle them accordingly.
 func (s *Service[
-	_, _, _, _, _, _, _,
+	_, _, _, _, _,
 ]) Start(ctx context.Context) error {
-	go s.depositFetcher(ctx)
+	if err := s.dispatcher.Subscribe(
+		async.BeaconBlockFinalized, s.subFinalizedBlockEvents,
+	); err != nil {
+		s.logger.Error("failed to subscribe to event", "event",
+			async.BeaconBlockFinalized, "err", err)
+		return err
+	}
+
+	// Listen for finalized block events and fetch deposits for the block.
+	go s.eventLoop(ctx)
+
+	// Catchup deposits for failed blocks.
 	go s.depositCatchupFetcher(ctx)
 	return nil
 }
 
+// eventLoop starts the main event loop to listen and handle
+// BeaconBlockFinalized events.
+func (s *Service[
+	_, _, _, _, _,
+]) eventLoop(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case event := <-s.subFinalizedBlockEvents:
+			s.depositFetcher(ctx, event)
+		}
+	}
+}
+
 // Name returns the name of the service.
 func (s *Service[
-	_, _, _, _, _, _, _,
+	_, _, _, _, _,
 ]) Name() string {
 	return "deposit-handler"
 }

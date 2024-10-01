@@ -21,8 +21,26 @@
 package broker
 
 import (
-	"errors"
+	"github.com/berachain/beacon-kit/mod/errors"
 )
 
-// ErrTimeout is the error returned when a broker operation timed out.
-var ErrTimeout = errors.New("timeout")
+// errTimeout is the error returned when a dispatch operation timed out.
+//
+//nolint:gochecknoglobals // errors
+var (
+	// ErrWrongType is the error returned when the assignee is not
+	// compatible with the assigner.
+	ErrWrongType = errors.New("incompatible assignee")
+	// errWrongType is the error returned when the assignee is not
+	// compatible with the assigner.
+	errWrongType = func(
+		assigner interface{}, assignee interface{},
+	) error {
+		return errors.Wrapf(
+			ErrWrongType,
+			"expected: %T, received: %T",
+			assigner,
+			assignee,
+		)
+	}
+)

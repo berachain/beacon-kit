@@ -24,6 +24,9 @@ import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/config"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/execution/pkg/client"
+	"github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -32,55 +35,107 @@ import (
 
 // ChainServiceInput is the input for the chain service provider.
 type ChainServiceInput[
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	BeaconBlockT any,
+	BeaconStateT any,
+	DepositT any,
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+	],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	StorageBackendT any,
+	LoggerT any,
+	WithdrawalT Withdrawal[WithdrawalT],
+	WithdrawalsT Withdrawals[WithdrawalT],
 ] struct {
 	depinject.In
 
-	BlockBroker           *BlockBroker
-	ChainSpec             common.ChainSpec
-	Cfg                   *config.Config
-	DepositService        *DepositService
-	EngineClient          *EngineClient
-	ExecutionEngine       *ExecutionEngine
-	GenesisBrocker        *GenesisBroker
-	LocalBuilder          *LocalBuilder
-	Logger                LoggerT
-	Signer                crypto.BLSSigner
-	StateProcessor        *StateProcessor
-	StorageBackend        *StorageBackend
-	TelemetrySink         *metrics.TelemetrySink
-	ValidatorUpdateBroker *ValidatorUpdateBroker
+	ChainSpec    common.ChainSpec
+	Cfg          *config.Config
+	EngineClient *client.EngineClient[
+		ExecutionPayloadT,
+		*engineprimitives.PayloadAttributes[WithdrawalT],
+	]
+	ExecutionEngine *engine.Engine[
+		ExecutionPayloadT,
+		*engineprimitives.PayloadAttributes[WithdrawalT],
+		PayloadID,
+		WithdrawalsT,
+	]
+	Dispatcher     Dispatcher
+	LocalBuilder   LocalBuilder[BeaconStateT, ExecutionPayloadT]
+	Logger         LoggerT
+	Signer         crypto.BLSSigner
+	StateProcessor StateProcessor[
+		BeaconBlockT, BeaconStateT, *Context,
+		DepositT, ExecutionPayloadHeaderT,
+	]
+	StorageBackend StorageBackendT
+	TelemetrySink  *metrics.TelemetrySink
 }
 
 // ProvideChainService is a depinject provider for the blockchain service.
 func ProvideChainService[
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT],
+	BeaconBlockBodyT BeaconBlockBody[
+		BeaconBlockBodyT, *AttestationData, DepositT,
+		*Eth1Data, ExecutionPayloadT, *SlashingInfo,
+	],
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconStateT BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
+		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT,
+		*Validator, Validators, WithdrawalT,
+	],
+	BeaconStateMarshallableT any,
+	BlobSidecarsT any,
+	BlockStoreT any,
+	DepositT any,
+	DepositStoreT any,
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+	],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
+	KVStoreT any,
+	LoggerT log.AdvancedLogger[LoggerT],
+	StorageBackendT StorageBackend[
+		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,
+	],
+	WithdrawalT Withdrawal[WithdrawalT],
+	WithdrawalsT Withdrawals[WithdrawalT],
 ](
-	in ChainServiceInput[LoggerT],
-) *ChainService {
+	in ChainServiceInput[
+		BeaconBlockT, BeaconStateT, DepositT, ExecutionPayloadT,
+		ExecutionPayloadHeaderT, StorageBackendT, LoggerT,
+		WithdrawalT, WithdrawalsT,
+	],
+) *blockchain.Service[
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockHeaderT, BeaconStateT, DepositT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, GenesisT,
+	*engineprimitives.PayloadAttributes[WithdrawalT],
+] {
 	return blockchain.NewService[
-		*AvailabilityStore,
-		*BeaconBlock,
-		*BeaconBlockBody,
-		*BeaconBlockHeader,
-		*BeaconState,
-		*Deposit,
-		*ExecutionPayload,
-		*ExecutionPayloadHeader,
-		*Genesis,
-		*PayloadAttributes,
-		*Withdrawal,
+		AvailabilityStoreT,
+		BeaconBlockT,
+		BeaconBlockBodyT,
+		BeaconBlockHeaderT,
+		BeaconStateT,
+		DepositT,
+		ExecutionPayloadT,
+		ExecutionPayloadHeaderT,
+		GenesisT,
+		*engineprimitives.PayloadAttributes[WithdrawalT],
 	](
 		in.StorageBackend,
 		in.Logger.With("service", "blockchain"),
 		in.ChainSpec,
+		in.Dispatcher,
 		in.ExecutionEngine,
 		in.LocalBuilder,
 		in.StateProcessor,
 		in.TelemetrySink,
-		in.GenesisBrocker,
-		in.BlockBroker,
-		in.ValidatorUpdateBroker,
 		// If optimistic is enabled, we want to skip post finalization FCUs.
 		in.Cfg.Validator.EnableOptimisticPayloadBuilds,
 	)

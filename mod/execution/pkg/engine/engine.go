@@ -24,8 +24,6 @@ import (
 	"bytes"
 	"context"
 
-	broker "github.com/berachain/beacon-kit/mod/async/pkg/broker"
-	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -33,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	jsonrpc "github.com/berachain/beacon-kit/mod/primitives/pkg/net/json-rpc"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 )
 
 // Engine is Beacon-Kit's implementation of the `ExecutionEngine`
@@ -51,11 +48,9 @@ type Engine[
 	// interact with the execution layer.
 	ec *client.EngineClient[ExecutionPayloadT, PayloadAttributesT]
 	// logger is the logger for the engine.
-	logger log.Logger[any]
+	logger log.Logger
 	// metrics is the metrics for the engine.
 	metrics *engineMetrics
-	// statusPublisher is the status publishder for the engine.
-	statusPublisher *broker.Broker[*asynctypes.Event[*service.StatusEvent]]
 }
 
 // New creates a new Engine.
@@ -68,9 +63,8 @@ func New[
 		EncodeIndex(int, *bytes.Buffer)
 	},
 ](
-	ec *client.EngineClient[ExecutionPayloadT, PayloadAttributesT],
-	logger log.Logger[any],
-	statusPublisher *broker.Broker[*asynctypes.Event[*service.StatusEvent]],
+	engineClient *client.EngineClient[ExecutionPayloadT, PayloadAttributesT],
+	logger log.Logger,
 	telemtrySink TelemetrySink,
 ) *Engine[
 	ExecutionPayloadT, PayloadAttributesT,
@@ -80,10 +74,9 @@ func New[
 		ExecutionPayloadT, PayloadAttributesT, PayloadIDT,
 		WithdrawalsT,
 	]{
-		ec:              ec,
-		logger:          logger,
-		metrics:         newEngineMetrics(telemtrySink, logger),
-		statusPublisher: statusPublisher,
+		ec:      engineClient,
+		logger:  logger,
+		metrics: newEngineMetrics(telemtrySink, logger),
 	}
 }
 

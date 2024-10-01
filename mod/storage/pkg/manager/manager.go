@@ -35,11 +35,11 @@ import (
 // DBManager is a manager for all pruners.
 type DBManager struct {
 	pruners []pruner.Pruner[pruner.Prunable]
-	logger  log.Logger[any]
+	logger  log.Logger
 }
 
 func NewDBManager(
-	logger log.Logger[any],
+	logger log.Logger,
 	pruners ...pruner.Pruner[pruner.Prunable],
 ) (*DBManager, error) {
 	return &DBManager{

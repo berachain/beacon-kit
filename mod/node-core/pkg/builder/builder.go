@@ -21,21 +21,16 @@
 package builder
 
 import (
-	"context"
 	"io"
 
 	"cosmossdk.io/depinject"
-	sdklog "cosmossdk.io/log"
-	storetypes "cosmossdk.io/store/types"
+	servertypes "github.com/berachain/beacon-kit/mod/cli/pkg/commands/server/types"
+	"github.com/berachain/beacon-kit/mod/config"
+	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/runtime"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
+	cmtcfg "github.com/cometbft/cometbft/config"
 	dbm "github.com/cosmos/cosmos-db"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
 
 // NodeBuilder is a construction helper for creating nodes that implement
@@ -46,12 +41,11 @@ import (
 type NodeBuilder[
 	NodeT types.Node,
 	LoggerT interface {
-		log.AdvancedLogger[any, LoggerT]
+		log.AdvancedLogger[LoggerT]
 		log.Configurable[LoggerT, LoggerConfigT]
 	},
 	LoggerConfigT any,
 ] struct {
-	node NodeT
 	// components is a list of components to provide.
 	components []any
 }
@@ -60,16 +54,14 @@ type NodeBuilder[
 func New[
 	NodeT types.Node,
 	LoggerT interface {
-		log.AdvancedLogger[any, LoggerT]
+		log.AdvancedLogger[LoggerT]
 		log.Configurable[LoggerT, LoggerConfigT]
 	},
 	LoggerConfigT any,
 ](
 	opts ...Opt[NodeT, LoggerT, LoggerConfigT],
 ) *NodeBuilder[NodeT, LoggerT, LoggerConfigT] {
-	nb := &NodeBuilder[NodeT, LoggerT, LoggerConfigT]{
-		node: node.New[NodeT](),
-	}
+	nb := &NodeBuilder[NodeT, LoggerT, LoggerConfigT]{}
 	for _, opt := range opts {
 		opt(nb)
 	}
@@ -80,25 +72,20 @@ func New[
 // build a new instance of the node.
 // It is necessary to adhere to the types.AppCreator[T] interface.
 func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
-	logger sdklog.Logger,
+	logger LoggerT,
 	db dbm.DB,
-	traceStore io.Writer,
+	_ io.Writer,
+	cmtCfg *cmtcfg.Config,
 	appOpts servertypes.AppOptions,
 ) NodeT {
-	// Check for goleveldb cause bad project.
-	if appOpts.Get("app-db-backend") == "goleveldb" {
-		panic("goleveldb is not supported")
-	}
-
 	// variables to hold the components needed to set up BeaconApp
 	var (
-		chainSpec       common.ChainSpec
-		abciMiddleware  *components.ABCIMiddleware
-		serviceRegistry *service.Registry
-		consensusEngine *components.ConsensusEngine
-		apiBackend      *components.NodeAPIBackend
-		storeKey        = new(storetypes.KVStoreKey)
-		storeKeyDblPtr  = &storeKey
+		apiBackend interface {
+			AttachQueryBackend(*cometbft.Service[LoggerT])
+		}
+		beaconNode NodeT
+		cmtService *cometbft.Service[LoggerT]
+		config     *config.Config
 	)
 
 	// build all node components using depinject
@@ -109,43 +96,27 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 			),
 			depinject.Supply(
 				appOpts,
-				logger.Impl().(LoggerT),
+				logger,
+				db,
+				cmtCfg,
 			),
-			// TODO: cosmos depinject bad project, fixed with dig.
-			// depinject.Invoke(
-			// 	SetLoggerConfig[LoggerT, LoggerConfigT],
-			// ),
 		),
-		&storeKeyDblPtr,
-		&chainSpec,
-		&abciMiddleware,
-		&serviceRegistry,
-		&consensusEngine,
 		&apiBackend,
+		&beaconNode,
+		&cmtService,
+		&config,
 	); err != nil {
 		panic(err)
 	}
-
-	// set the application to a new BeaconApp with necessary ABCI handlers
-	nb.node.RegisterApp(
-		runtime.NewBeaconKitApp(
-			*storeKeyDblPtr, logger, db, traceStore, true, abciMiddleware,
-			append(
-				DefaultBaseappOptions(appOpts),
-				WithCometParamStore(chainSpec),
-				WithPrepareProposal(consensusEngine.PrepareProposal),
-				WithProcessProposal(consensusEngine.ProcessProposal),
-			)...,
-		),
-	)
-	// TODO: so hood
-	apiBackend.AttachNode(nb.node)
-	nb.node.SetServiceRegistry(serviceRegistry)
-
-	// TODO: put this in some post node creation hook/listener.
-	if err := nb.node.Start(context.Background()); err != nil {
-		logger.Error("failed to start node", "err", err)
-		panic(err)
+	if config == nil {
+		panic("config is nil")
 	}
-	return nb.node
+	if apiBackend == nil {
+		panic("node or api backend is nil")
+	}
+
+	// TODO: so hood
+	logger.WithConfig(any(config.GetLogger()).(LoggerConfigT))
+	apiBackend.AttachQueryBackend(cmtService)
+	return beaconNode
 }

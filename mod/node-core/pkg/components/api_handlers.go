@@ -32,22 +32,60 @@ import (
 	proofapi "github.com/berachain/beacon-kit/mod/node-api/handlers/proof"
 )
 
-type NodeAPIHandlersInput struct {
+type NodeAPIHandlersInput[
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconStateT BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
+		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT,
+		*Validator, Validators, WithdrawalT,
+	],
+	BeaconStateMarshallableT BeaconStateMarshallable[
+		BeaconStateMarshallableT, BeaconBlockHeaderT, *Eth1Data,
+		ExecutionPayloadHeaderT, *Fork, *Validator,
+	],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	KVStoreT any,
+	NodeAPIContextT NodeAPIContext,
+	WithdrawalT Withdrawal[WithdrawalT],
+] struct {
 	depinject.In
-
-	BeaconAPIHandler  *BeaconAPIHandler
-	BuilderAPIHandler *BuilderAPIHandler
-	ConfigAPIHandler  *ConfigAPIHandler
-	DebugAPIHandler   *DebugAPIHandler
-	EventsAPIHandler  *EventsAPIHandler
-	NodeAPIHandler    *NodeAPIHandler
-	ProofAPIHandler   *ProofAPIHandler
+	BeaconAPIHandler *beaconapi.Handler[
+		BeaconBlockHeaderT, NodeAPIContextT, *Fork, *Validator,
+	]
+	BuilderAPIHandler *builderapi.Handler[NodeAPIContextT]
+	ConfigAPIHandler  *configapi.Handler[NodeAPIContextT]
+	DebugAPIHandler   *debugapi.Handler[NodeAPIContextT]
+	EventsAPIHandler  *eventsapi.Handler[NodeAPIContextT]
+	NodeAPIHandler    *nodeapi.Handler[NodeAPIContextT]
+	ProofAPIHandler   *proofapi.Handler[
+		BeaconBlockHeaderT, BeaconStateT, BeaconStateMarshallableT,
+		NodeAPIContextT, ExecutionPayloadHeaderT, *Validator,
+	]
 }
 
-func ProvideNodeAPIHandlers(
-	in NodeAPIHandlersInput,
-) []handlers.Handlers[NodeAPIContext] {
-	return []handlers.Handlers[NodeAPIContext]{
+func ProvideNodeAPIHandlers[
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconStateT BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
+		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT,
+		*Validator, Validators, WithdrawalT,
+	],
+	BeaconStateMarshallableT BeaconStateMarshallable[
+		BeaconStateMarshallableT, BeaconBlockHeaderT, *Eth1Data,
+		ExecutionPayloadHeaderT, *Fork, *Validator,
+	],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	KVStoreT any,
+	NodeAPIContextT NodeAPIContext,
+	WithdrawalT Withdrawal[WithdrawalT],
+](
+	in NodeAPIHandlersInput[
+		BeaconBlockHeaderT, BeaconStateT,
+		BeaconStateMarshallableT, ExecutionPayloadHeaderT, KVStoreT,
+		NodeAPIContextT, WithdrawalT,
+	],
+) []handlers.Handlers[NodeAPIContextT] {
+	return []handlers.Handlers[NodeAPIContextT]{
 		in.BeaconAPIHandler,
 		in.BuilderAPIHandler,
 		in.ConfigAPIHandler,
@@ -58,48 +96,90 @@ func ProvideNodeAPIHandlers(
 	}
 }
 
-func ProvideNodeAPIBeaconHandler(b *NodeAPIBackend) *BeaconAPIHandler {
+func ProvideNodeAPIBeaconHandler[
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconStateT any,
+	NodeT any,
+	NodeAPIContextT NodeAPIContext,
+](b NodeAPIBackend[
+	BeaconBlockHeaderT,
+	BeaconStateT,
+	*Fork,
+	NodeT,
+	*Validator,
+]) *beaconapi.Handler[
+	BeaconBlockHeaderT, NodeAPIContextT, *Fork, *Validator,
+] {
 	return beaconapi.NewHandler[
-		*BeaconBlockHeader,
-		NodeAPIContext,
+		BeaconBlockHeaderT,
+		NodeAPIContextT,
 		*Fork,
 		*Validator,
 	](b)
 }
 
-func ProvideNodeAPIBuilderHandler() *BuilderAPIHandler {
-	return builderapi.NewHandler[NodeAPIContext]()
+func ProvideNodeAPIBuilderHandler[
+	NodeAPIContextT NodeAPIContext,
+]() *builderapi.Handler[NodeAPIContextT] {
+	return builderapi.NewHandler[NodeAPIContextT]()
 }
 
-func ProvideNodeAPIConfigHandler() *ConfigAPIHandler {
-	return configapi.NewHandler[NodeAPIContext]()
+func ProvideNodeAPIConfigHandler[
+	NodeAPIContextT NodeAPIContext,
+]() *configapi.Handler[NodeAPIContextT] {
+	return configapi.NewHandler[NodeAPIContextT]()
 }
 
-func ProvideNodeAPIDebugHandler() *DebugAPIHandler {
-	return debugapi.NewHandler[NodeAPIContext]()
+func ProvideNodeAPIDebugHandler[
+	NodeAPIContextT NodeAPIContext,
+]() *debugapi.Handler[NodeAPIContextT] {
+	return debugapi.NewHandler[NodeAPIContextT]()
 }
 
-func ProvideNodeAPIEventsHandler() *EventsAPIHandler {
-	return eventsapi.NewHandler[NodeAPIContext]()
+func ProvideNodeAPIEventsHandler[
+	NodeAPIContextT NodeAPIContext,
+]() *eventsapi.Handler[NodeAPIContextT] {
+	return eventsapi.NewHandler[NodeAPIContextT]()
 }
 
-func ProvideNodeAPINodeHandler() *NodeAPIHandler {
-	return nodeapi.NewHandler[NodeAPIContext]()
+func ProvideNodeAPINodeHandler[
+	NodeAPIContextT NodeAPIContext,
+]() *nodeapi.Handler[NodeAPIContextT] {
+	return nodeapi.NewHandler[NodeAPIContextT]()
 }
 
-func ProvideNodeAPIProofHandler(b *NodeAPIBackend) *ProofAPIHandler {
-	return proofapi.NewHandler[NodeAPIContext](b)
-}
-
-func DefaultNodeAPIHandlers() []any {
-	return []any{
-		ProvideNodeAPIHandlers,
-		ProvideNodeAPIBeaconHandler,
-		ProvideNodeAPIBuilderHandler,
-		ProvideNodeAPIConfigHandler,
-		ProvideNodeAPIDebugHandler,
-		ProvideNodeAPIEventsHandler,
-		ProvideNodeAPINodeHandler,
-		ProvideNodeAPIProofHandler,
-	}
+func ProvideNodeAPIProofHandler[
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconStateT BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
+		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT,
+		*Validator, Validators, WithdrawalT,
+	],
+	BeaconStateMarshallableT BeaconStateMarshallable[
+		BeaconStateMarshallableT, BeaconBlockHeaderT, *Eth1Data,
+		ExecutionPayloadHeaderT, *Fork, *Validator,
+	],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	KVStoreT any,
+	NodeT any,
+	NodeAPIContextT NodeAPIContext,
+	WithdrawalT Withdrawal[WithdrawalT],
+](b NodeAPIBackend[
+	BeaconBlockHeaderT,
+	BeaconStateT,
+	*Fork,
+	NodeT,
+	*Validator,
+]) *proofapi.Handler[
+	BeaconBlockHeaderT, BeaconStateT, BeaconStateMarshallableT,
+	NodeAPIContextT, ExecutionPayloadHeaderT, *Validator,
+] {
+	return proofapi.NewHandler[
+		BeaconBlockHeaderT,
+		BeaconStateT,
+		BeaconStateMarshallableT,
+		NodeAPIContextT,
+		ExecutionPayloadHeaderT,
+		*Validator,
+	](b)
 }

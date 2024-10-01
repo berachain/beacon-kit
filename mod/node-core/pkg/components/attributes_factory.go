@@ -23,14 +23,13 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/config"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
-type AttributesFactoryInput[
-	LoggerT log.Logger[any],
-] struct {
+type AttributesFactoryInput[LoggerT any] struct {
 	depinject.In
 
 	ChainSpec common.ChainSpec
@@ -40,14 +39,26 @@ type AttributesFactoryInput[
 
 // ProvideAttributesFactory provides an AttributesFactory for the client.
 func ProvideAttributesFactory[
-	LoggerT log.Logger[any],
+	BeaconBlockHeaderT any,
+	BeaconStateT BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
+		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT,
+		*Validator, Validators, WithdrawalT,
+	],
+	BeaconStateMarshallableT any,
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	KVStoreT any,
+	LoggerT log.Logger,
+	WithdrawalT Withdrawal[WithdrawalT],
 ](
 	in AttributesFactoryInput[LoggerT],
-) (*AttributesFactory, error) {
+) (*attributes.Factory[
+	BeaconStateT, *engineprimitives.PayloadAttributes[WithdrawalT], WithdrawalT,
+], error) {
 	return attributes.NewAttributesFactory[
-		*BeaconState,
-		*PayloadAttributes,
-		*Withdrawal,
+		BeaconStateT,
+		*engineprimitives.PayloadAttributes[WithdrawalT],
+		WithdrawalT,
 	](
 		in.ChainSpec,
 		in.Logger,

@@ -21,49 +21,59 @@
 package components
 
 import (
+	"context"
+
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
 // StorageBackendInput is the input for the ProvideStorageBackend function.
-type StorageBackendInput struct {
+type StorageBackendInput[
+	AvailabilityStoreT any,
+	BeaconBlockStoreT any,
+	BeaconStoreT any,
+	DepositStoreT any,
+] struct {
 	depinject.In
-	AvailabilityStore *AvailabilityStore
-	BlockStore        *BlockStore
+	AvailabilityStore AvailabilityStoreT
+	BlockStore        BeaconBlockStoreT
 	ChainSpec         common.ChainSpec
-	DepositStore      *DepositStore
-	KVStore           *KVStore
+	DepositStore      DepositStoreT
+	BeaconStore       BeaconStoreT
 }
 
 // ProvideStorageBackend is the depinject provider that returns a beacon storage
 // backend.
-func ProvideStorageBackend(
-	in StorageBackendInput,
-) *StorageBackend {
+func ProvideStorageBackend[
+	AvailabilityStoreT any,
+	BeaconBlockStoreT any,
+	BeaconStateT interface {
+		NewFromDB(BeaconStoreT, common.ChainSpec) BeaconStateT
+	},
+	BeaconStoreT interface {
+		WithContext(context.Context) BeaconStoreT
+	},
+	DepositStoreT any,
+](
+	in StorageBackendInput[
+		AvailabilityStoreT, BeaconBlockStoreT, BeaconStoreT,
+		DepositStoreT,
+	],
+) *storage.Backend[
+	AvailabilityStoreT, BeaconStateT, BeaconBlockStoreT,
+	DepositStoreT, BeaconStoreT,
+] {
 	return storage.NewBackend[
-		*AvailabilityStore,
-		*BeaconBlock,
-		*BeaconBlockBody,
-		*BeaconBlockHeader,
-		*BeaconState,
-		*BeaconStateMarshallable,
-		*BlobSidecars,
-		*BlockStore,
-		*Deposit,
-		*DepositStore,
-		*Eth1Data,
-		*ExecutionPayloadHeader,
-		*Fork,
-		*KVStore,
-		*Validator,
-		Validators,
-		*Withdrawal,
-		WithdrawalCredentials,
+		AvailabilityStoreT,
+		BeaconStateT,
+		BeaconBlockStoreT,
+		DepositStoreT,
+		BeaconStoreT,
 	](
 		in.ChainSpec,
 		in.AvailabilityStore,
-		in.KVStore,
+		in.BeaconStore,
 		in.DepositStore,
 		in.BlockStore,
 	)

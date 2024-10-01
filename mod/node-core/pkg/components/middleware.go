@@ -22,49 +22,51 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/middleware"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
 )
 
 // ABCIMiddlewareInput is the input for the validator middleware provider.
 type ABCIMiddlewareInput[
-	LoggerT log.Logger[any],
+	BeaconBlockT any,
+	BlobSidecarsT any,
+	LoggerT log.Logger,
 ] struct {
 	depinject.In
-	BeaconBlockFeed       *BlockBroker
-	ChainSpec             common.ChainSpec
-	GenesisBroker         *GenesisBroker
-	Logger                LoggerT
-	SidecarsFeed          *SidecarsBroker
-	SlotBroker            *SlotBroker
-	TelemetrySink         *metrics.TelemetrySink
-	ValidatorUpdateBroker *ValidatorUpdateBroker
+	ChainSpec     common.ChainSpec
+	Dispatcher    Dispatcher
+	Logger        LoggerT
+	TelemetrySink *metrics.TelemetrySink
 }
 
 // ProvideABCIMiddleware is a depinject provider for the validator
 // middleware.
 func ProvideABCIMiddleware[
-	LoggerT log.Logger[any],
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT],
+	BeaconBlockBodyT any,
+	BeaconBlockHeaderT any,
+	BlobSidecarT any,
+	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
+	DepositT any,
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
+	LoggerT log.Logger,
 ](
-	in ABCIMiddlewareInput[LoggerT],
-) (*ABCIMiddleware, error) {
-	validatorUpdatesSub, err := in.ValidatorUpdateBroker.Subscribe()
-	if err != nil {
-		return nil, err
-	}
+	in ABCIMiddlewareInput[BeaconBlockT, BlobSidecarsT, LoggerT],
+) (*middleware.ABCIMiddleware[
+	BeaconBlockT, BlobSidecarsT, GenesisT, *SlotData,
+], error) {
 	return middleware.NewABCIMiddleware[
-		*AvailabilityStore, *BeaconBlock, *BlobSidecars,
-		*Deposit, *ExecutionPayload, *Genesis, *SlotData,
+		BeaconBlockT,
+		BlobSidecarsT,
+		GenesisT,
+		*SlotData,
 	](
 		in.ChainSpec,
+		in.Dispatcher,
 		in.Logger,
 		in.TelemetrySink,
-		in.GenesisBroker,
-		in.BeaconBlockFeed,
-		in.SidecarsFeed,
-		in.SlotBroker,
-		validatorUpdatesSub,
 	), nil
 }

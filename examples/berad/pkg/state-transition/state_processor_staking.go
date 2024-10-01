@@ -21,12 +21,10 @@
 package transition
 
 import (
-	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
-	"github.com/davecgh/go-spew/spew"
 )
 
 // processDeposits processes the deposits and ensures  they match the
@@ -161,22 +159,7 @@ func (sp *StateProcessor[
 		math.Gwei(sp.cs.MaxEffectiveBalance()),
 	)
 
-	// TODO: This is a bug that lives on bArtio. Delete this eventually.
-	const bArtioChainID = 80084
-	if sp.cs.DepositEth1ChainID() == bArtioChainID {
-		if err := st.AddValidatorBartio(val); err != nil {
-			return err
-		}
-	} else if err := st.AddValidator(val); err != nil {
-		return err
-	}
-
-	idx, err := st.ValidatorIndexByPubkey(val.GetPubkey())
-	if err != nil {
-		return err
-	}
-
-	return st.IncreaseBalance(idx, dep.GetAmount())
+	return st.AddValidator(val)
 }
 
 // processWithdrawals as per the Ethereum 2.0 specification.
@@ -186,86 +169,11 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	_, BeaconBlockBodyT, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) processWithdrawals(
-	st BeaconStateT,
-	body BeaconBlockBodyT,
+	_ BeaconStateT,
+	_ BeaconBlockBodyT,
 ) error {
-	// Dequeue and verify the logs.
-	var (
-		nextValidatorIndex math.ValidatorIndex
-		payload            = body.GetExecutionPayload()
-		payloadWithdrawals = payload.GetWithdrawals()
-	)
-
-	// Get the expected withdrawals.
-	expectedWithdrawals, err := sp.expectedWithdrawals(st)
-	if err != nil {
-		return err
-	}
-	numWithdrawals := len(expectedWithdrawals)
-
-	// Ensure the withdrawals have the same length
-	if numWithdrawals != len(payloadWithdrawals) {
-		return errors.Wrapf(
-			ErrNumWithdrawalsMismatch,
-			"withdrawals do not match expected length %d, got %d",
-			len(expectedWithdrawals), len(payloadWithdrawals),
-		)
-	}
-
-	// Compare and process each withdrawal.
-	for i, wd := range expectedWithdrawals {
-		// Ensure the withdrawals match the local state.
-		if !wd.Equals(payloadWithdrawals[i]) {
-			return errors.Wrapf(
-				ErrNumWithdrawalsMismatch,
-				"withdrawals do not match expected %s, got %s",
-				spew.Sdump(wd), spew.Sdump(payloadWithdrawals[i]),
-			)
-		}
-
-		// Then we process the withdrawal.
-		if err = st.DecreaseBalance(
-			wd.GetValidatorIndex(), wd.GetAmount(),
-		); err != nil {
-			return err
-		}
-	}
-
-	// Update the next withdrawal index if this block contained withdrawals
-	if numWithdrawals != 0 {
-		// Next sweep starts after the latest withdrawal's validator index
-		if err = st.SetNextWithdrawalIndex(
-			(expectedWithdrawals[numWithdrawals-1].GetIndex() + 1).Unwrap(),
-		); err != nil {
-			return err
-		}
-	}
-
-	totalValidators, err := st.GetTotalValidators()
-	if err != nil {
-		return err
-	}
-
-	// Update the next validator index to start the next withdrawal sweep
-	//#nosec:G701 // won't overflow in practice.
-	if numWithdrawals == int(sp.cs.MaxWithdrawalsPerPayload()) {
-		// Next sweep starts after the latest withdrawal's validator index
-		nextValidatorIndex =
-			(expectedWithdrawals[len(expectedWithdrawals)-1].GetIndex() + 1) %
-				math.U64(totalValidators)
-	} else {
-		// Advance sweep by the max length of the sweep if there was not
-		// a full set of withdrawals
-		nextValidatorIndex, err = st.GetNextWithdrawalValidatorIndex()
-		if err != nil {
-			return err
-		}
-		nextValidatorIndex += math.ValidatorIndex(
-			sp.cs.MaxValidatorsPerWithdrawalsSweep())
-		nextValidatorIndex %= math.ValidatorIndex(totalValidators)
-	}
-
-	return st.SetNextWithdrawalValidatorIndex(nextValidatorIndex)
+	// TODO: implement
+	return nil
 }
 
 // processForcedWithdrawals is a helper function to process forced withdrawals.
@@ -279,110 +187,10 @@ func (sp *StateProcessor[
 	return nil
 }
 
-// TODO: This is exposed for the PayloadBuilder and probably should be done in a
-// better way.
+// ExpectedWithdrawals retrieves the expected withdrawals.
 func (sp *StateProcessor[
-	_, BeaconBlockBodyT, _, BeaconStateT, _, _, _,
-	_, _, _, _, ValidatorT, ValidatorsT, WithdrawalT, _, _,
-]) ExpectedWithdrawals(st BeaconStateT) ([]WithdrawalT, error) {
-	return sp.expectedWithdrawals(st)
-}
-
-// ExpectedWithdrawals as defined in the Ethereum 2.0 Specification:
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-get_expected_withdrawals
-//
-//nolint:lll
-func (sp *StateProcessor[
-	_, BeaconBlockBodyT, _, BeaconStateT, _, _, _, _, _, _, _, ValidatorT, ValidatorsT, WithdrawalT, _, _,
-]) expectedWithdrawals(st BeaconStateT) ([]WithdrawalT, error) {
-	var (
-		balance           math.Gwei
-		withdrawalAddress common.ExecutionAddress
-		withdrawals       = make([]WithdrawalT, 0)
-	)
-
-	slot, err := st.GetSlot()
-	if err != nil {
-		return nil, err
-	}
-
-	epoch := math.Epoch(uint64(slot) / sp.cs.SlotsPerEpoch())
-
-	withdrawalIndex, err := st.GetNextWithdrawalIndex()
-	if err != nil {
-		return nil, err
-	}
-
-	validatorIndex, err := st.GetNextWithdrawalValidatorIndex()
-	if err != nil {
-		return nil, err
-	}
-
-	totalValidators, err := st.GetTotalValidators()
-	if err != nil {
-		return nil, err
-	}
-
-	bound := min(
-		totalValidators, sp.cs.MaxValidatorsPerWithdrawalsSweep(),
-	)
-
-	var (
-		validator  ValidatorT
-		withdrawal WithdrawalT
-		amount     math.Gwei
-	)
-
-	// Iterate through indices to find the next validators to withdraw.
-	for range bound {
-		validator, err = st.ValidatorByIndex(validatorIndex)
-		if err != nil {
-			return nil, err
-		}
-
-		balance, err = st.GetBalance(validatorIndex)
-		if err != nil {
-			return nil, err
-		}
-
-		withdrawalAddress, err = validator.
-			GetWithdrawalCredentials().ToExecutionAddress()
-		if err != nil {
-			return nil, err
-		}
-
-		// Set the amount of the withdrawal depending on the balance of the
-		// validator.
-		if validator.IsFullyWithdrawable(balance, epoch) {
-			amount = balance
-		} else if validator.IsPartiallyWithdrawable(
-			balance, math.Gwei(sp.cs.MaxEffectiveBalance()),
-		) {
-			amount = balance - math.Gwei(sp.cs.MaxEffectiveBalance())
-		}
-		withdrawal = withdrawal.New(
-			math.U64(withdrawalIndex),
-			validatorIndex,
-			withdrawalAddress,
-			amount,
-		)
-
-		withdrawals = append(withdrawals, withdrawal)
-
-		// Increment the withdrawal index to process the next withdrawal.
-		withdrawalIndex++
-
-		// Cap the number of withdrawals to the maximum allowed per payload.
-		//#nosec:G701 // won't overflow in practice.
-		if len(withdrawals) == int(sp.cs.MaxWithdrawalsPerPayload()) {
-			break
-		}
-
-		// Increment the validator index to process the next validator.
-		validatorIndex = (validatorIndex + 1) % math.ValidatorIndex(
-			totalValidators,
-		)
-	}
-
-	return withdrawals, nil
+	_, _, _, BeaconStateT, _, _, _,
+	_, _, _, _, _, _, _, WithdrawalsT, _,
+]) ExpectedWithdrawals(st BeaconStateT) (WithdrawalsT, error) {
+	return st.GetWithdrawals()
 }

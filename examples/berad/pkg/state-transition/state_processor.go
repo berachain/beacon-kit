@@ -48,7 +48,7 @@ type StateProcessor[
 		BeaconStateT,
 		BeaconBlockHeaderT,
 		ExecutionPayloadHeaderT, ForkT, KVStoreT,
-		ValidatorT, ValidatorsT, WithdrawalT, WithdrawalCredentialsT,
+		ValidatorT, ValidatorsT, WithdrawalT, WithdrawalsT, WithdrawalCredentialsT,
 	],
 	ContextT Context,
 	DepositT Deposit[ForkDataT, WithdrawalCredentialsT],
@@ -101,7 +101,7 @@ func NewStateProcessor[
 	BeaconStateT BeaconState[
 		BeaconStateT,
 		BeaconBlockHeaderT, ExecutionPayloadHeaderT, ForkT, KVStoreT,
-		ValidatorT, ValidatorsT, WithdrawalT, WithdrawalCredentialsT,
+		ValidatorT, ValidatorsT, WithdrawalT, WithdrawalsT, WithdrawalCredentialsT,
 	],
 	ContextT Context,
 	DepositT Deposit[ForkDataT, WithdrawalCredentialsT],
@@ -186,7 +186,7 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) ProcessSlots(
-	st BeaconStateT, slot math.U64,
+	st BeaconStateT, slot math.Slot,
 ) (transition.ValidatorUpdates, error) {
 	var (
 		validatorUpdates      transition.ValidatorUpdates
@@ -507,23 +507,24 @@ func (sp *StateProcessor[
 		)
 	}
 
-	for i := range validators {
-		// Increase the balance of the validator.
-		if err = st.IncreaseBalance(
-			math.ValidatorIndex(i),
-			rewards[i],
-		); err != nil {
-			return err
-		}
+	// TODO: deviating from spec here.
+	// for i := range validators {
+	// 	// Increase the balance of the validator.
+	// 	if err = st.IncreaseBalance(
+	// 		math.ValidatorIndex(i),
+	// 		rewards[i],
+	// 	); err != nil {
+	// 		return err
+	// 	}
 
-		// Decrease the balance of the validator.
-		if err = st.DecreaseBalance(
-			math.ValidatorIndex(i),
-			penalties[i],
-		); err != nil {
-			return err
-		}
-	}
+	// 	// Decrease the balance of the validator.
+	// 	if err = st.DecreaseBalance(
+	// 		math.ValidatorIndex(i),
+	// 		penalties[i],
+	// 	); err != nil {
+	// 		return err
+	// 	}
+	// }
 
 	return nil
 }

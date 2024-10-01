@@ -20,28 +20,8 @@
 
 package da
 
-import (
-	"context"
-
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-)
-
-// AvailabilityStore interface is responsible for validating and storing
-// sidecars for specific blocks, as well as verifying sidecars that have already
-// been stored.
-type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
-	// Persist makes sure that the sidecar remains accessible for data
-	// availability checks throughout the beacon node's operation.
-	Persist(math.Slot, BlobSidecarsT) error
-}
-
 // BlobProcessor is the interface for the blobs processor.
-type BlobProcessor[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
-	BeaconBlockBodyT any,
-	BlobSidecarsT BlobSidecar,
-	ExecutionPayloadT any,
-] interface {
+type BlobProcessor[AvailabilityStoreT any, BlobSidecarsT any] interface {
 	// ProcessSidecars processes the blobs and ensures they match the local
 	// state.
 	ProcessSidecars(
@@ -60,24 +40,4 @@ type BlobSidecar interface {
 	Len() int
 	// IsNil checks if the sidecar is nil.
 	IsNil() bool
-}
-
-// EventPublisherSubscriber represents the event publisher interface.
-type EventPublisherSubscriber[T any] interface {
-	// Publish publishes an event.
-	Publish(context.Context, T) error
-	// Subscribe subscribes to the event system.
-	Subscribe() (chan T, error)
-}
-
-// StorageBackend defines an interface for accessing various storage components
-// required by the beacon node.
-type StorageBackend[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
-	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT BlobSidecar,
-] interface {
-	// AvailabilityStore returns the availability store for the given context.
-	AvailabilityStore() AvailabilityStoreT
 }

@@ -38,7 +38,8 @@ type BeaconState[
 	KVStoreT any,
 	ValidatorT Validator[ValidatorT, WithdrawalCredentialsT],
 	ValidatorsT,
-	WithdrawalT any,
+	WithdrawalT,
+	WithdrawalsT any,
 	WithdrawalCredentialsT interface {
 		~[32]byte
 		ToExecutionAddress() (common.ExecutionAddress, error)
@@ -54,11 +55,11 @@ type BeaconState[
 	HashTreeRoot() common.Root
 	ReadOnlyBeaconState[
 		BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-		ForkT, ValidatorT, ValidatorsT, WithdrawalT,
+		ForkT, ValidatorT, ValidatorsT, WithdrawalT, WithdrawalsT,
 	]
 	WriteOnlyBeaconState[
 		BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-		ForkT, ValidatorT,
+		ForkT, ValidatorT, WithdrawalT, WithdrawalsT,
 	]
 }
 
@@ -66,13 +67,12 @@ type BeaconState[
 type ReadOnlyBeaconState[
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	ExecutionPayloadHeaderT, ForkT,
-	ValidatorT, ValidatorsT, WithdrawalT any,
+	ValidatorT, ValidatorsT, WithdrawalT, WithdrawalsT any,
 ] interface {
 	ReadOnlyRandaoMixes
 	ReadOnlyStateRoots
 	ReadOnlyValidators[ValidatorT]
 
-	GetBalance(math.ValidatorIndex) (math.Gwei, error)
 	GetBlockRootAtIndex(uint64) (common.Root, error)
 	GetEth1DepositIndex() (uint64, error)
 	GetFork() (ForkT, error)
@@ -81,15 +81,12 @@ type ReadOnlyBeaconState[
 	GetLatestExecutionPayloadHeader() (
 		ExecutionPayloadHeaderT, error,
 	)
-	GetNextWithdrawalIndex() (uint64, error)
-	GetNextWithdrawalValidatorIndex() (math.ValidatorIndex, error)
 	GetSlot() (math.Slot, error)
-	GetSlashingAtIndex(uint64) (math.Gwei, error)
 	GetTotalActiveBalances(uint64) (math.Gwei, error)
-	GetTotalSlashing() (math.Gwei, error)
 	GetTotalValidators() (uint64, error)
 	GetValidators() (ValidatorsT, error)
 	GetValidatorsByEffectiveBalance() ([]ValidatorT, error)
+	GetWithdrawals() (WithdrawalsT, error)
 	ValidatorIndexByCometBFTAddress(
 		cometBFTAddress []byte,
 	) (math.ValidatorIndex, error)
@@ -98,14 +95,12 @@ type ReadOnlyBeaconState[
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
 type WriteOnlyBeaconState[
 	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT any,
+	ForkT, ValidatorT, WithdrawalT, WithdrawalsT any,
 ] interface {
 	WriteOnlyRandaoMixes
 	WriteOnlyStateRoots
 	WriteOnlyValidators[ValidatorT]
 
-	DecreaseBalance(math.ValidatorIndex, math.Gwei) error
-	IncreaseBalance(math.ValidatorIndex, math.Gwei) error
 	SetEth1DepositIndex(uint64) error
 	SetFork(ForkT) error
 	SetGenesisValidatorsRoot(root common.Root) error
@@ -113,12 +108,9 @@ type WriteOnlyBeaconState[
 	SetLatestExecutionPayloadHeader(
 		ExecutionPayloadHeaderT,
 	) error
-	SetNextWithdrawalIndex(uint64) error
-	SetNextWithdrawalValidatorIndex(math.ValidatorIndex) error
 	SetSlot(math.Slot) error
-	SetTotalSlashing(math.Gwei) error
+	SetWithdrawals(WithdrawalsT) error
 	UpdateBlockRootAtIndex(uint64, common.Root) error
-	UpdateSlashingAtIndex(uint64, math.Gwei) error
 }
 
 // WriteOnlyStateRoots defines a struct which only has write access to state
@@ -153,7 +145,6 @@ type WriteOnlyValidators[ValidatorT any] interface {
 	) error
 
 	AddValidator(ValidatorT) error
-	AddValidatorBartio(ValidatorT) error
 }
 
 // ReadOnlyValidators has read access to validator methods.

@@ -25,151 +25,150 @@ import (
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 )
 
+// The Data Availability service is responsible for verifying and processing
+// incoming blob sidecars.
+//
+
 type Service[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
-	BeaconBlockBodyT any,
+	AvailabilityStoreT any,
 	BlobSidecarsT BlobSidecar,
-	//nolint:lll // formatter.
-	EventPublisherSubscriberT EventPublisherSubscriber[*asynctypes.Event[BlobSidecarsT]],
-	ExecutionPayloadT any,
 ] struct {
 	avs AvailabilityStoreT
 	bp  BlobProcessor[
-		AvailabilityStoreT, BeaconBlockBodyT,
-		BlobSidecarsT, ExecutionPayloadT,
+		AvailabilityStoreT,
+		BlobSidecarsT,
 	]
-	sidecarsBroker EventPublisherSubscriberT
-	logger         log.Logger[any]
+	dispatcher asynctypes.EventDispatcher
+	logger     log.Logger
+	// subSidecarsReceived is a channel holding SidecarsReceived events.
+	subSidecarsReceived chan async.Event[BlobSidecarsT]
+	// subFinalBlobSidecars is a channel holding FinalSidecarsReceived events.
+	subFinalBlobSidecars chan async.Event[BlobSidecarsT]
 }
 
 // NewService returns a new DA service.
 func NewService[
-	AvailabilityStoreT AvailabilityStore[
-		BeaconBlockBodyT, BlobSidecarsT,
-	],
-	BeaconBlockBodyT any,
+	AvailabilityStoreT any,
 	BlobSidecarsT BlobSidecar,
-	//nolint:lll // formatter.
-	EventPublisherSubscriberT EventPublisherSubscriber[*asynctypes.Event[BlobSidecarsT]],
-	ExecutionPayloadT any,
 ](
 	avs AvailabilityStoreT,
 	bp BlobProcessor[
-		AvailabilityStoreT, BeaconBlockBodyT,
-		BlobSidecarsT, ExecutionPayloadT,
+		AvailabilityStoreT, BlobSidecarsT,
 	],
-	sidecarsBroker EventPublisherSubscriberT,
-	logger log.Logger[any],
+	dispatcher asynctypes.EventDispatcher,
+	logger log.Logger,
 ) *Service[
-	AvailabilityStoreT, BeaconBlockBodyT,
-	BlobSidecarsT, EventPublisherSubscriberT, ExecutionPayloadT,
+	AvailabilityStoreT, BlobSidecarsT,
 ] {
 	return &Service[
-		AvailabilityStoreT, BeaconBlockBodyT,
-		BlobSidecarsT, EventPublisherSubscriberT, ExecutionPayloadT,
+		AvailabilityStoreT, BlobSidecarsT,
 	]{
-		avs:            avs,
-		bp:             bp,
-		sidecarsBroker: sidecarsBroker,
-		logger:         logger,
+		avs:                  avs,
+		bp:                   bp,
+		dispatcher:           dispatcher,
+		logger:               logger,
+		subSidecarsReceived:  make(chan async.Event[BlobSidecarsT]),
+		subFinalBlobSidecars: make(chan async.Event[BlobSidecarsT]),
 	}
 }
 
 // Name returns the name of the service.
-func (s *Service[_, _, _, _, _]) Name() string {
+func (s *Service[_, _]) Name() string {
 	return "da"
 }
 
-// Start starts the service.
-func (s *Service[_, _, _, _, _]) Start(ctx context.Context) error {
-	subSidecarsCh, err := s.sidecarsBroker.Subscribe()
-	if err != nil {
+// Start subscribes the DA service to SidecarsReceived and FinalSidecarsReceived
+// events and begins the main event loop to handle them accordingly.
+func (s *Service[_, _]) Start(ctx context.Context) error {
+	var err error
+
+	// subscribe to SidecarsReceived events
+	if err = s.dispatcher.Subscribe(
+		async.SidecarsReceived, s.subSidecarsReceived,
+	); err != nil {
 		return err
 	}
-	go s.start(ctx, subSidecarsCh)
+
+	// subscribe to FinalSidecarsReceived events
+	if err = s.dispatcher.Subscribe(
+		async.FinalSidecarsReceived, s.subFinalBlobSidecars,
+	); err != nil {
+		return err
+	}
+
+	// start the main event loop to listen and handle events.
+	go s.eventLoop(ctx)
 	return nil
 }
 
-// start starts the service.
-func (s *Service[_, _, BlobSidecarsT, _, _]) start(
-	ctx context.Context,
-	sidecarsCh chan *asynctypes.Event[BlobSidecarsT],
-) {
+// eventLoop listens and handles SidecarsReceived and FinalSidecarsReceived
+// events.
+func (s *Service[_, _]) eventLoop(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case msg := <-sidecarsCh:
-			switch msg.Type() {
-			case events.BlobSidecarsProcessRequest:
-				s.handleBlobSidecarsProcessRequest(msg)
-			case events.BlobSidecarsReceived:
-				s.handleBlobSidecarsReceived(msg)
-			}
+		case event := <-s.subSidecarsReceived:
+			s.handleSidecarsReceived(event)
+		case event := <-s.subFinalBlobSidecars:
+			s.handleFinalSidecarsReceived(event)
 		}
 	}
 }
 
-// handleBlobSidecarsProcessRequest handles the BlobSidecarsProcessRequest
+/* -------------------------------------------------------------------------- */
+/*                               Event Handlers                             */
+/* -------------------------------------------------------------------------- */
+
+// handleFinalSidecarsReceived handles the BlobSidecarsProcessRequest
 // event.
 // It processes the sidecars and publishes a BlobSidecarsProcessed event.
-func (s *Service[_, _, BlobSidecarsT, _, _]) handleBlobSidecarsProcessRequest(
-	msg *asynctypes.Event[BlobSidecarsT],
+func (s *Service[_, BlobSidecarsT]) handleFinalSidecarsReceived(
+	msg async.Event[BlobSidecarsT],
 ) {
-	err := s.processSidecars(msg.Context(), msg.Data())
-	if err != nil {
+	if err := s.processSidecars(msg.Context(), msg.Data()); err != nil {
 		s.logger.Error(
 			"Failed to process blob sidecars",
 			"error",
 			err,
 		)
 	}
-
-	if err = s.sidecarsBroker.Publish(
-		msg.Context(),
-		asynctypes.NewEvent(
-			msg.Context(), events.BlobSidecarsProcessed, msg.Data(), err,
-		)); err != nil {
-		s.logger.Error(
-			"Failed to publish blob sidecars processed event",
-			"error",
-			err,
-		)
-	}
 }
 
-// handleBlobSidecarsReceived handles the BlobSidecarsReceived event.
-// It receives the sidecars and publishes a BlobSidecarsProcessed event.
-func (s *Service[_, _, BlobSidecarsT, _, _]) handleBlobSidecarsReceived(
-	msg *asynctypes.Event[BlobSidecarsT],
+// handleSidecarsReceived handles the SidecarsVerifyRequest event.
+// It verifies the sidecars and publishes a SidecarsVerified event.
+func (s *Service[_, BlobSidecarsT]) handleSidecarsReceived(
+	msg async.Event[BlobSidecarsT],
 ) {
-	err := s.receiveSidecars(msg.Data())
-	if err != nil {
+	var sidecarsErr error
+	// verify the sidecars.
+	if sidecarsErr = s.verifySidecars(msg.Data()); sidecarsErr != nil {
 		s.logger.Error(
 			"Failed to receive blob sidecars",
 			"error",
-			err,
+			sidecarsErr,
 		)
 	}
 
-	if err = s.sidecarsBroker.Publish(
-		msg.Context(),
-		asynctypes.NewEvent(
-			msg.Context(), events.BlobSidecarsProcessed, msg.Data(), err,
-		)); err != nil {
-		s.logger.Error(
-			"Failed to publish blob sidecars processed event",
-			"error",
-			err,
-		)
+	// emit the sidecars verification event with error from verifySidecars
+	if err := s.dispatcher.Publish(
+		async.NewEvent(
+			msg.Context(), async.SidecarsVerified, msg.Data(), sidecarsErr,
+		),
+	); err != nil {
+		s.logger.Error("failed to publish event", "err", err)
 	}
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                   helpers                                  */
+/* -------------------------------------------------------------------------- */
+
 // ProcessSidecars processes the blob sidecars.
-func (s *Service[_, _, BlobSidecarsT, _, _]) processSidecars(
+func (s *Service[_, BlobSidecarsT]) processSidecars(
 	_ context.Context,
 	sidecars BlobSidecarsT,
 ) error {
@@ -182,7 +181,7 @@ func (s *Service[_, _, BlobSidecarsT, _, _]) processSidecars(
 }
 
 // VerifyIncomingBlobs receives blobs from the network and processes them.
-func (s *Service[_, _, BlobSidecarsT, _, _]) receiveSidecars(
+func (s *Service[_, BlobSidecarsT]) verifySidecars(
 	sidecars BlobSidecarsT,
 ) error {
 	// If there are no blobs to verify, return early.

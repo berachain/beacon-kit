@@ -28,8 +28,8 @@ import (
 )
 
 func (
-	h *Handler[ContextT, _, _, _, _, _],
-) RegisterRoutes(logger log.Logger[any]) {
+	h *Handler[_, _, _, ContextT, _, _],
+) RegisterRoutes(logger log.Logger) {
 	h.SetLogger(logger)
 	h.BaseHandler.AddRoutes([]*handlers.Route[ContextT]{
 		{

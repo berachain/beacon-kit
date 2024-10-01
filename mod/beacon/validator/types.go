@@ -35,15 +35,8 @@ import (
 
 // BeaconBlock represents a beacon block interface.
 type BeaconBlock[
-	AttestationDataT any,
-	BeaconBlockT any,
-	BeaconBlockBodyT BeaconBlockBody[
-		AttestationDataT, DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
-	],
-	DepositT,
-	Eth1DataT,
-	ExecutionPayloadT,
-	SlashingInfoT any,
+	T any,
+	BeaconBlockBodyT any,
 ] interface {
 	constraints.SSZMarshallable
 	// NewWithVersion creates a new beacon block with the given parameters.
@@ -52,7 +45,7 @@ type BeaconBlock[
 		proposerIndex math.ValidatorIndex,
 		parentBlockRoot common.Root,
 		forkVersion uint32,
-	) (BeaconBlockT, error)
+	) (T, error)
 	// GetSlot returns the slot of the beacon block.
 	GetSlot() math.Slot
 	// GetParentBlockRoot returns the parent block root of the beacon block.
@@ -114,19 +107,8 @@ type BeaconState[ExecutionPayloadHeaderT any] interface {
 
 // BlobFactory represents a blob factory interface.
 type BlobFactory[
-	AttestationDataT any,
-	BeaconBlockT BeaconBlock[
-		AttestationDataT, BeaconBlockT, BeaconBlockBodyT, DepositT,
-		Eth1DataT, ExecutionPayloadT, SlashingInfoT,
-	],
-	BeaconBlockBodyT BeaconBlockBody[
-		AttestationDataT, DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
-	],
-	BlobSidecarsT,
-	DepositT,
-	Eth1DataT,
-	ExecutionPayloadT,
-	SlashingInfoT any,
+	BeaconBlockT any,
+	BlobSidecarsT any,
 ] interface {
 	// BuildSidecars builds sidecars for a given block and blobs bundle.
 	BuildSidecars(
@@ -162,15 +144,6 @@ type ExecutionPayloadHeader interface {
 	GetBlockHash() common.ExecutionHash
 	// GetParentHash returns the parent hash of the execution payload header.
 	GetParentHash() common.ExecutionHash
-}
-
-// EventSubscription represents the event subscription interface.
-type EventSubscription[T any] chan T
-
-// EventPublisher represents the event publisher interface.
-type EventPublisher[T any] interface {
-	// PublishEvent publishes an event.
-	Publish(context.Context, T) error
 }
 
 // ForkData represents the fork data interface.
@@ -222,8 +195,8 @@ type SlotData[AttestationDataT, SlashingInfoT any] interface {
 // StateProcessor defines the interface for processing the state.
 type StateProcessor[
 	BeaconBlockT any,
-	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
-	ContextT,
+	BeaconStateT any,
+	ContextT any,
 	ExecutionPayloadHeaderT any,
 ] interface {
 	// ProcessSlot processes the slot.
@@ -240,10 +213,8 @@ type StateProcessor[
 
 // StorageBackend is the interface for the storage backend.
 type StorageBackend[
-	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
-	DepositT any,
-	DepositStoreT DepositStore[DepositT],
-	ExecutionPayloadHeaderT any,
+	BeaconStateT any,
+	DepositStoreT any,
 ] interface {
 	// DepositStore retrieves the deposit store.
 	DepositStore() DepositStoreT

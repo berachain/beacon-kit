@@ -32,47 +32,91 @@ import (
 
 // ValidatorServiceInput is the input for the validator service provider.
 type ValidatorServiceInput[
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	AvailabilityStoreT any,
+	BeaconBlockT any,
+	BeaconStateT any,
+	BlobSidecarsT any,
+	DepositT any,
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+	],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	LoggerT any,
+	StorageBackendT any,
+	WithdrawalT Withdrawal[WithdrawalT],
+	WithdrawalsT Withdrawals[WithdrawalT],
 ] struct {
 	depinject.In
-	BeaconBlockFeed *BlockBroker
-	BlobProcessor   *BlobProcessor
-	Cfg             *config.Config
-	ChainSpec       common.ChainSpec
-	LocalBuilder    *LocalBuilder
-	Logger          LoggerT
-	StateProcessor  *StateProcessor
-	StorageBackend  *StorageBackend
-	Signer          crypto.BLSSigner
-	SidecarsFeed    *SidecarsBroker
-	SidecarFactory  *SidecarFactory
-	SlotBroker      *SlotBroker
-	TelemetrySink   *metrics.TelemetrySink
+	Cfg            *config.Config
+	ChainSpec      common.ChainSpec
+	Dispatcher     Dispatcher
+	LocalBuilder   LocalBuilder[BeaconStateT, ExecutionPayloadT]
+	Logger         LoggerT
+	StateProcessor StateProcessor[
+		BeaconBlockT, BeaconStateT, *Context, DepositT, ExecutionPayloadHeaderT,
+	]
+	StorageBackend StorageBackendT
+	Signer         crypto.BLSSigner
+	SidecarFactory SidecarFactory[BeaconBlockT, BlobSidecarsT]
+	TelemetrySink  *metrics.TelemetrySink
 }
 
 // ProvideValidatorService is a depinject provider for the validator service.
 func ProvideValidatorService[
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	AvailabilityStoreT any,
+	BeaconBlockT BeaconBlock[
+		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	],
+	BeaconBlockBodyT BeaconBlockBody[
+		BeaconBlockBodyT, *AttestationData, DepositT,
+		*Eth1Data, ExecutionPayloadT, *SlashingInfo,
+	],
+	BeaconBlockHeaderT any,
+	BeaconStateT BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
+		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT,
+		*Validator, Validators, WithdrawalT,
+	],
+	BeaconStateMarshallableT any,
+	BeaconBlockStoreT any,
+	BlobSidecarsT any,
+	DepositT any,
+	DepositStoreT DepositStore[DepositT],
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+	],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	KVStoreT any,
+	LoggerT log.AdvancedLogger[LoggerT],
+	StorageBackendT StorageBackend[
+		AvailabilityStoreT, BeaconStateT, BeaconBlockStoreT, DepositStoreT,
+	],
+	WithdrawalT Withdrawal[WithdrawalT],
+	WithdrawalsT Withdrawals[WithdrawalT],
 ](
-	in ValidatorServiceInput[LoggerT],
-) (*ValidatorService, error) {
-	slotSubscription, err := in.SlotBroker.Subscribe()
-	if err != nil {
-		in.Logger.Error("failed to subscribe to slot feed", "err", err)
-		return nil, err
-	}
+	in ValidatorServiceInput[
+		AvailabilityStoreT, BeaconBlockT, BeaconStateT,
+		BlobSidecarsT, DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+		LoggerT, StorageBackendT, WithdrawalT, WithdrawalsT,
+	],
+) (*validator.Service[
+	*AttestationData, BeaconBlockT, BeaconBlockBodyT,
+	BeaconStateT, BlobSidecarsT, DepositT, DepositStoreT,
+	*Eth1Data, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	*ForkData, *SlashingInfo, *SlotData,
+], error) {
 	// Build the builder service.
 	return validator.NewService[
 		*AttestationData,
-		*BeaconBlock,
-		*BeaconBlockBody,
-		*BeaconState,
-		*BlobSidecars,
-		*Deposit,
-		*DepositStore,
+		BeaconBlockT,
+		BeaconBlockBodyT,
+		BeaconStateT,
+		BlobSidecarsT,
+		DepositT,
+		DepositStoreT,
 		*Eth1Data,
-		*ExecutionPayload,
-		*ExecutionPayloadHeader,
+		ExecutionPayloadT,
+		ExecutionPayloadHeaderT,
 		*ForkData,
 		*SlashingInfo,
 		*SlotData,
@@ -85,12 +129,10 @@ func ProvideValidatorService[
 		in.Signer,
 		in.SidecarFactory,
 		in.LocalBuilder,
-		[]validator.PayloadBuilder[*BeaconState, *ExecutionPayload]{
+		[]validator.PayloadBuilder[BeaconStateT, ExecutionPayloadT]{
 			in.LocalBuilder,
 		},
 		in.TelemetrySink,
-		in.BeaconBlockFeed,
-		in.SidecarsFeed,
-		slotSubscription,
+		in.Dispatcher,
 	), nil
 }

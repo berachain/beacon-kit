@@ -26,7 +26,9 @@
 package manager
 
 import (
-	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"context"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -37,6 +39,8 @@ type BeaconBlock interface {
 
 // BlockEvent is an interface for block events.
 type BlockEvent[BeaconBlockT BeaconBlock] interface {
-	Is(asynctypes.EventID) bool
+	Is(async.EventID) bool
+	ID() async.EventID
 	Data() BeaconBlockT
+	Context() context.Context
 }

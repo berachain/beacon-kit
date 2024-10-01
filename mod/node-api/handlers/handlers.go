@@ -23,29 +23,28 @@ package handlers
 import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/node-api/server/context"
 )
 
 // handlerFn enforces a signature for all handler functions.
-type handlerFn[ContextT context.Context] func(c ContextT) (any, error)
+type handlerFn[ContextT any] func(c ContextT) (any, error)
 
 // Handlers is an interface that all handlers must implement.
-type Handlers[ContextT context.Context] interface {
+type Handlers[ContextT any] interface {
 	// RegisterRoutes is a method that registers the routes for the handler.
-	RegisterRoutes(logger log.Logger[any])
+	RegisterRoutes(logger log.Logger)
 	RouteSet() *RouteSet[ContextT]
 }
 
 // BaseHandler is a base handler for all handlers. It abstracts the route set
 // and logger from the handler.
-type BaseHandler[ContextT context.Context] struct {
+type BaseHandler[ContextT any] struct {
 	routes *RouteSet[ContextT]
-	logger log.Logger[any]
+	logger log.Logger
 }
 
 // NewBaseHandler initializes a new base handler with the given routes and
 // logger.
-func NewBaseHandler[ContextT context.Context](
+func NewBaseHandler[ContextT any](
 	routes *RouteSet[ContextT],
 ) *BaseHandler[ContextT] {
 	return &BaseHandler[ContextT]{
@@ -64,11 +63,11 @@ func (b *BaseHandler[ContextT]) RouteSet() *RouteSet[ContextT] {
 }
 
 // Logger is used to access the logger for the base handler.
-func (b *BaseHandler[ContextT]) Logger() log.Logger[any] {
+func (b *BaseHandler[ContextT]) Logger() log.Logger {
 	return b.logger
 }
 
-func (b *BaseHandler[ContextT]) SetLogger(logger log.Logger[any]) {
+func (b *BaseHandler[ContextT]) SetLogger(logger log.Logger) {
 	b.logger = logger
 }
 

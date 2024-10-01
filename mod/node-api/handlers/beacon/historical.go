@@ -47,9 +47,7 @@ func (h *Handler[_, ContextT, _, _]) GetStateRoot(c ContextT) (any, error) {
 	return beacontypes.ValidatorResponse{
 		ExecutionOptimistic: false, // stubbed
 		Finalized:           false, // stubbed
-		Data: types.Wrap(
-			beacontypes.RootData{Root: stateRoot},
-		),
+		Data:                beacontypes.RootData{Root: stateRoot},
 	}, nil
 }
 

@@ -25,15 +25,15 @@ import (
 
 	"cosmossdk.io/depinject"
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
+	servertypes "github.com/berachain/beacon-kit/mod/cli/pkg/commands/server/types"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/config"
+	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/runtime"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cobra"
 )
 
@@ -41,7 +41,7 @@ import (
 type CLIBuilder[
 	T types.Node,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT log.AdvancedLogger[LoggerT],
 ] struct {
 	name        string
 	description string
@@ -49,21 +49,17 @@ type CLIBuilder[
 	components []any
 	// suppliers is a list of suppliers for depinject.
 	suppliers []any
-	// runHandler is a function to set up run handlers for the command.
-	runHandler runHandler
 	// nodeBuilderFunc is a function that builds the Node,
 	// eventually called by the cosmos-sdk.
 	// TODO: CLI should not know about the AppCreator
-	nodeBuilderFunc servertypes.AppCreator[T]
-	// rootCmdSetup is a function that sets up the root command.
-	rootCmdSetup rootCmdSetup[T]
+	nodeBuilderFunc servertypes.AppCreator[T, LoggerT]
 }
 
 // New returns a new CLIBuilder with the given options.
 func New[
 	T types.Node,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	opts ...Opt[T, ExecutionPayloadT, LoggerT],
 ) *CLIBuilder[T, ExecutionPayloadT, LoggerT] {
@@ -88,6 +84,7 @@ func (cb *CLIBuilder[
 		chainSpec common.ChainSpec
 		logger    LoggerT
 	)
+
 	// build dependencies for the root command
 	if err := depinject.Inject(
 		depinject.Configs(
@@ -114,7 +111,7 @@ func (cb *CLIBuilder[
 	// apply default root command setup
 	cmdlib.DefaultRootCommandSetup[T, ExecutionPayloadT](
 		rootCmd,
-		&runtime.App{},
+		&cometbft.Service[LoggerT]{},
 		cb.nodeBuilderFunc,
 		chainSpec,
 	)

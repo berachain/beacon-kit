@@ -28,10 +28,11 @@ import (
 	clicomponents "github.com/berachain/beacon-kit/mod/cli/pkg/components"
 	nodebuilder "github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
 	nodecomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/runtime"
-	"github.com/cosmos/cosmos-sdk/server"
+	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"go.uber.org/automaxprocs/maxprocs"
 )
+
+type Node = nodetypes.Node
 
 // run runs the beacon node.
 func run() error {
@@ -44,7 +45,7 @@ func run() error {
 	nb := nodebuilder.New(
 		// Set the Runtime Components to the Default.
 		nodebuilder.WithComponents[Node, *Logger, *LoggerConfig](
-			nodecomponents.DefaultComponents(),
+			DefaultComponents(),
 		),
 	)
 
@@ -52,7 +53,7 @@ func run() error {
 	cb := clibuilder.New(
 		// Set the Name to the Default.
 		clibuilder.WithName[Node, *ExecutionPayload, *Logger](
-			"BeaconKit",
+			"beacond",
 		),
 		// Set the Description to the Default.
 		clibuilder.WithDescription[Node, *ExecutionPayload, *Logger](
@@ -64,20 +65,8 @@ func run() error {
 				clicomponents.DefaultClientComponents(),
 				// TODO: remove these, and eventually pull cfg and chainspec
 				// from built node
-				nodecomponents.ProvideConfig,
 				nodecomponents.ProvideChainSpec,
 			),
-		),
-		clibuilder.SupplyModuleDeps[Node, *ExecutionPayload, *Logger](
-			[]any{
-				&nodecomponents.ABCIMiddleware{},
-				&runtime.App{},
-				&nodecomponents.StorageBackend{},
-			},
-		),
-		// Set the Run Handler to the Default.
-		clibuilder.WithRunHandler[Node, *ExecutionPayload, *Logger](
-			server.InterceptConfigsPreRunHandler,
 		),
 		// Set the NodeBuilderFunc to the NodeBuilder Build.
 		clibuilder.WithNodeBuilderFunc[

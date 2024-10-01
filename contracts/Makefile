@@ -32,7 +32,7 @@ forge-snapshot-diff:
 
 forge-lint-fix:
 	@echo "--> Running forge fmt"
-	@cd $(CONTRACTS_DIR) && forge fmt
+	@cd $(CONTRACTS_DIR) && forge fmt --root $(CONTRACTS_DIR) .
 
 forge-lint:
 	@echo "--> Running forge lint"

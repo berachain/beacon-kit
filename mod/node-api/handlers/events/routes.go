@@ -28,7 +28,7 @@ import (
 )
 
 func (h *Handler[ContextT]) RegisterRoutes(
-	logger log.Logger[any],
+	logger log.Logger,
 ) {
 	h.SetLogger(logger)
 	h.BaseHandler.AddRoutes([]*handlers.Route[ContextT]{

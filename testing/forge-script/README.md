@@ -14,7 +14,7 @@
     - If you want to spin up a devnet locally, you could use Kurtosis `make start-devnet`.
         `rpc_url` would be `http://HOST_IP_ADDRESS:8547` , Do not change the port as 8547 is the public port for the Erigon node.
 
-
+- If the smart contract has prerequisites or dependencies, set the `dependency` `status` to true. Ensure that the `dependency.sh` file is completed or provide an appropriate shell script in the `forge-script` folder. This is necessary when additional setup is required before deployment.
 
 ## There could be different cases -
 
@@ -58,3 +58,16 @@ contracts_path: ""
 script_path: "script/NFT.s.sol"
 contract_name: "MyScript"
 ```
+
+## Deploy PoL Smart Contract
+
+```bash
+repository: "github.com/berachain/contracts-monorepo"
+contracts_path: ""
+script_path: "script/pol/DeployPoL.s.sol"
+contract_name: "DeployPoL"
+dependency: 
+    status : true
+    path: "dependency.sh"
+```
+

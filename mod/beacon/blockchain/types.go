@@ -43,16 +43,11 @@ type AvailabilityStore[BeaconBlockBodyT any] interface {
 }
 
 // BeaconBlock represents a beacon block interface.
-type BeaconBlock[
-	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
-	ExecutionPayloadT any,
-] interface {
+type BeaconBlock[BeaconBlockBodyT any] interface {
 	constraints.SSZMarshallableRootable
 	constraints.Nillable
 	// GetSlot returns the slot of the beacon block.
 	GetSlot() math.Slot
-	// GetParentBlockRoot returns the parent block root of the beacon block.
-	GetParentBlockRoot() common.Root
 	// GetStateRoot returns the state root of the beacon block.
 	GetStateRoot() common.Root
 	// GetBody returns the body of the beacon block.
@@ -93,14 +88,6 @@ type ExecutionEngine[PayloadAttributesT any] interface {
 		ctx context.Context,
 		req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
 	) (*engineprimitives.PayloadID, *common.ExecutionHash, error)
-}
-
-// EventFeed is a generic interface for sending events.
-type EventFeed[EventT any] interface {
-	// Publish sends an event and returns an error if any occurred.
-	Publish(ctx context.Context, event EventT) error
-	// Subscribe returns a channel that will receive events.
-	Subscribe() (chan EventT, error)
 }
 
 // ExecutionPayload is the interface for the execution payload.
@@ -150,11 +137,17 @@ type LocalBuilder[BeaconStateT any] interface {
 	) error
 }
 
+type PayloadAttributes interface {
+	IsNil() bool
+	Version() uint32
+	GetSuggestedFeeRecipient() common.ExecutionAddress
+}
+
 // ReadOnlyBeaconState defines the interface for accessing various components of
 // the beacon state.
 type ReadOnlyBeaconState[
 	T any,
-	BeaconBlockHeaderT BeaconBlockHeader,
+	BeaconBlockHeaderT any,
 	ExecutionPayloadHeaderT any,
 ] interface {
 	// Copy creates a copy of the beacon state.
@@ -209,8 +202,7 @@ type StateProcessor[
 // StorageBackend defines an interface for accessing various storage components
 // required by the beacon node.
 type StorageBackend[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT],
-	BeaconBlockBodyT,
+	AvailabilityStoreT any,
 	BeaconStateT any,
 ] interface {
 	// AvailabilityStore returns the availability store for the given context.
@@ -229,3 +221,5 @@ type TelemetrySink interface {
 	// identified by the provided keys.
 	MeasureSince(key string, start time.Time, args ...string)
 }
+
+type ValidatorUpdates = transition.ValidatorUpdates
