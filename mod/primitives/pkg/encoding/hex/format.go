@@ -77,7 +77,8 @@ func formatAndValidateNumber[T []byte | string](input T) (T, error) {
 	// realistically, this shouldn't rarely error if called on
 	// unwrapped hex.String
 	if err := isValidHex(input); err != nil {
-		return *new(T), err
+		var zero T
+		return zero, err
 	}
 	input = input[2:]
 	if len(input) == 0 {
