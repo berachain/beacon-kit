@@ -81,10 +81,7 @@ func ValidateValidatorID(fl validator.FieldLevel) bool {
 	if valid {
 		return true
 	}
-	if ValidateUint64(fl) {
-		return true
-	}
-	return false
+	return ValidateUint64(fl)
 }
 
 // ValidateValidatorStatus checks if the provided field is a
