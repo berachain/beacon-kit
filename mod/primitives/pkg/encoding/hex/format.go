@@ -65,7 +65,7 @@ func formatAndValidateText(input []byte) ([]byte, error) {
 			return nil, ErrOddLength
 		}
 		return input, nil
-	case errors.Is(err, ErrMissingPrefix):
+	case errors.Is(err, ErrEmptyString):
 		return nil, nil // empty strings are allowed
 	default:
 		return nil, err
