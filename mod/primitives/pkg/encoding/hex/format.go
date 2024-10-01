@@ -20,6 +20,8 @@
 
 package hex
 
+import "errors"
+
 // has0xPrefix returns true if s has a 0x prefix.
 func has0xPrefix[T []byte | string](s T) bool {
 	return len(s) >= 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X')
@@ -56,28 +58,26 @@ func isQuotedString[T []byte | string](input T) bool {
 
 // formatAndValidateText validates the input text for a hex string.
 func formatAndValidateText(input []byte) ([]byte, error) {
-	if len(input) == 0 {
+	switch err := isValidHex(input); {
+	case err == nil:
+		input = input[2:]
+		if len(input)%2 != 0 {
+			return nil, ErrOddLength
+		}
+		return input, nil
+	case errors.Is(err, ErrMissingPrefix):
 		return nil, nil // empty strings are allowed
+	default:
+		return nil, err
 	}
-	if !has0xPrefix(input) {
-		return nil, ErrMissingPrefix
-	}
-	input = input[2:]
-	if len(input)%2 != 0 {
-		return nil, ErrOddLength
-	}
-	return input, nil
 }
 
 // formatAndValidateNumber checks the input text for a hex number.
 func formatAndValidateNumber[T []byte | string](input T) (T, error) {
 	// realistically, this shouldn't rarely error if called on
 	// unwrapped hex.String
-	if len(input) == 0 {
-		return *new(T), ErrEmptyString
-	}
-	if !has0xPrefix(input) {
-		return *new(T), ErrMissingPrefix
+	if err := isValidHex(input); err != nil {
+		return *new(T), err
 	}
 	input = input[2:]
 	if len(input) == 0 {

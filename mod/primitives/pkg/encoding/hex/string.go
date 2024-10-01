@@ -55,7 +55,7 @@ func (s *String) UnmarshalText(text []byte) error {
 	return nil
 }
 
-func isValidHex(str string) error {
+func isValidHex[T []byte | string](str T) error {
 	if len(str) == 0 {
 		return ErrEmptyString
 	} else if !has0xPrefix(str) {
@@ -67,13 +67,10 @@ func isValidHex(str string) error {
 // NewStringStrict creates a hex string with 0x prefix. It errors if any of the
 // string invariants are violated.
 func NewStringStrict[T []byte | string](s T) (String, error) {
-	str := string(s)
-	if len(str) == 0 {
-		return "", ErrEmptyString
-	} else if !has0xPrefix(str) {
-		return "", ErrMissingPrefix
+	if err := isValidHex(s); err != nil {
+		return "", err
 	}
-	return String(str), nil
+	return String(s), nil
 }
 
 // FromBytes creates a hex string with 0x prefix.
