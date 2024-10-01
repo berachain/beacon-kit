@@ -193,7 +193,7 @@ func (b *BeaconBlock) GetSlot() math.Slot {
 	return b.Slot
 }
 
-// GetSlot retrieves the slot of the BeaconBlockBase.
+// GetProposerIndex retrieves the proposer index.
 func (b *BeaconBlock) GetProposerIndex() math.ValidatorIndex {
 	return b.ProposerIndex
 }

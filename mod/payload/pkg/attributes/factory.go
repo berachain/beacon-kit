@@ -58,7 +58,7 @@ func NewAttributesFactory[
 	}
 }
 
-// CreateAttributes creates a new instance of PayloadAttributes.
+// BuildPayloadAttributes creates a new instance of PayloadAttributes.
 func (f *Factory[
 	BeaconStateT,
 	PayloadAttributesT,

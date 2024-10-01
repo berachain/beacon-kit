@@ -117,7 +117,7 @@ func (p *PayloadIDCache[_, _, SlotT]) UnsafePrunePrior(
 	p.prunePrior(slot)
 }
 
-// Prune removes payload IDs from the cache for slots less than the specified
+// prunePrior removes payload IDs from the cache for slots less than the specified
 // slot. This method helps in managing the memory usage of the cache by
 // discarding outdated entries.
 func (p *PayloadIDCache[_, _, SlotT]) prunePrior(slot SlotT) {
