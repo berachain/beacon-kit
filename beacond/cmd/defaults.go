@@ -65,7 +65,7 @@ func DefaultComponents() []any {
 			*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,
 			*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
 			*BlobSidecars, *BlockStore, *Deposit, *DepositStore,
-			*ExecutionPayload, *ExecutionPayloadHeader, *Log, *Genesis,
+			*ExecutionPayload, *ExecutionPayloadHeader, Log, *Genesis,
 			*KVStore, *Logger, *StorageBackend,
 		],
 		components.ProvideNode,
@@ -96,15 +96,15 @@ func DefaultComponents() []any {
 			*BeaconBlock, *BlobSidecars, *Genesis, *Logger,
 		],
 		components.ProvideEngineClient[
-			*ExecutionPayload, *ExecutionPayloadHeader, *Log, *Logger,
+			*ExecutionPayload, *ExecutionPayloadHeader, Log, *Logger,
 		],
 		components.ProvideExecutionEngine[
-			*ExecutionPayload, *ExecutionPayloadHeader, *Log, *Logger,
+			*ExecutionPayload, *ExecutionPayloadHeader, Log, *Logger,
 		],
 		components.ProvideJWTSecret,
 		components.ProvideLocalBuilder[
 			*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
-			*ExecutionPayload, *ExecutionPayloadHeader, *Log, *KVStore, *Logger,
+			*ExecutionPayload, *ExecutionPayloadHeader, Log, *KVStore, *Logger,
 		],
 		components.ProvideReportingService[*Logger],
 		components.ProvideCometBFTService[*Logger],

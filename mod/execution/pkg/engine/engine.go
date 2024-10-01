@@ -69,7 +69,7 @@ func New[
 	logger log.Logger,
 	telemtrySink TelemetrySink,
 ) *Engine[
-	ExecutionPayloadT, LogT,PayloadAttributesT,
+	ExecutionPayloadT, LogT, PayloadAttributesT,
 	PayloadIDT, WithdrawalsT,
 ] {
 	return &Engine[
