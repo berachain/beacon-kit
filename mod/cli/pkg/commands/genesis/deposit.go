@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/cli/pkg/context"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/parser"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
@@ -116,7 +117,7 @@ func AddGenesisDepositCmd(cs common.ChainSpec) *cobra.Command {
 				return err
 			}
 
-			deposit := types.Deposit{
+			deposit := types.Deposit[engineprimitives.Log]{
 				Pubkey:      depositMsg.Pubkey,
 				Amount:      depositMsg.Amount,
 				Signature:   signature,
@@ -165,7 +166,7 @@ func makeOutputFilepath(rootDir, pubkey string) (string, error) {
 
 func writeDepositToFile(
 	outputDocument string,
-	depositMessage *types.Deposit,
+	depositMessage *types.Deposit[engineprimitives.Log],
 ) error {
 	//#nosec:G302,G304 // Ignore errors on this line.
 	outputFile, err := afero.NewOsFs().OpenFile(

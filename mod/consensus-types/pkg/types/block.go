@@ -21,6 +21,7 @@
 package types
 
 import (
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
@@ -41,7 +42,7 @@ type BeaconBlock struct {
 	StateRoot common.Root `json:"state_root"`
 	// Body is the body of the BeaconBlock, containing the block's
 	// operations.
-	Body *BeaconBlockBody `json:"body"`
+	Body *BeaconBlockBody[engineprimitives.Log] `json:"body"`
 }
 
 // Empty creates an empty beacon block.
@@ -67,7 +68,7 @@ func (b *BeaconBlock) NewWithVersion(
 			ProposerIndex: proposerIndex,
 			ParentRoot:    parentBlockRoot,
 			StateRoot:     common.Root{},
-			Body:          &BeaconBlockBody{},
+			Body:          &BeaconBlockBody[engineprimitives.Log]{},
 		}
 	default:
 		return &BeaconBlock{}, ErrForkVersionNotSupported
@@ -219,7 +220,7 @@ func (b *BeaconBlock) SetStateRoot(root common.Root) {
 }
 
 // GetBody retrieves the body of the BeaconBlock.
-func (b *BeaconBlock) GetBody() *BeaconBlockBody {
+func (b *BeaconBlock) GetBody() *BeaconBlockBody[engineprimitives.Log] {
 	return b.Body
 }
 

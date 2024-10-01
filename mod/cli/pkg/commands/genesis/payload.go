@@ -83,7 +83,8 @@ func AddExecutionPayloadCmd(chainSpec common.ChainSpec) *cobra.Command {
 			}
 
 			genesisInfo := &types.Genesis[
-				*types.Deposit, *types.ExecutionPayloadHeader,
+				*types.Deposit[engineprimitives.Log],
+				*types.ExecutionPayloadHeader,
 			]{}
 
 			if err = json.Unmarshal(

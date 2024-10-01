@@ -33,7 +33,7 @@ import (
 type Service[
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
-	DepositT Deposit[DepositT, WithdrawalCredentialsT],
+	DepositT Deposit[DepositT, LogT, WithdrawalCredentialsT],
 	ExecutionPayloadT ExecutionPayload,
 	LogT any,
 	WithdrawalCredentialsT any,
@@ -62,7 +62,7 @@ type Service[
 func NewService[
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
-	DepositT Deposit[DepositT, WithdrawalCredentialsT],
+	DepositT Deposit[DepositT, LogT, WithdrawalCredentialsT],
 	ExecutionPayloadT ExecutionPayload,
 	LogT any,
 	WithdrawalCredentialsT any,
@@ -75,11 +75,11 @@ func NewService[
 	dispatcher asynctypes.EventDispatcher,
 ) *Service[
 	BeaconBlockT, BeaconBlockBodyT, DepositT,
-	ExecutionPayloadT, WithdrawalCredentialsT,
+	ExecutionPayloadT, LogT, WithdrawalCredentialsT,
 ] {
 	return &Service[
 		BeaconBlockT, BeaconBlockBodyT, DepositT,
-		ExecutionPayloadT, WithdrawalCredentialsT,
+		ExecutionPayloadT, LogT, WithdrawalCredentialsT,
 	]{
 		dc:                      dc,
 		dispatcher:              dispatcher,
@@ -95,7 +95,7 @@ func NewService[
 // Start subscribes the Deposit service to BeaconBlockFinalized events and
 // begins the main event loop to handle them accordingly.
 func (s *Service[
-	_, _, _, _, _,
+	_, _, _, _, _, _,
 ]) Start(ctx context.Context) error {
 	if err := s.dispatcher.Subscribe(
 		async.BeaconBlockFinalized, s.subFinalizedBlockEvents,
@@ -116,7 +116,7 @@ func (s *Service[
 // eventLoop starts the main event loop to listen and handle
 // BeaconBlockFinalized events.
 func (s *Service[
-	_, _, _, _, _,
+	_, _, _, _, _, _,
 ]) eventLoop(ctx context.Context) {
 	for {
 		select {
@@ -130,7 +130,7 @@ func (s *Service[
 
 // Name returns the name of the service.
 func (s *Service[
-	_, _, _, _, _,
+	_, _, _, _, _, _,
 ]) Name() string {
 	return "deposit-handler"
 }

@@ -35,6 +35,7 @@ type BeaconDepositContractInput[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	LogT any,
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalsT Withdrawals[WithdrawalT],
 ] struct {
@@ -42,6 +43,7 @@ type BeaconDepositContractInput[
 	ChainSpec    common.ChainSpec
 	EngineClient *client.EngineClient[
 		ExecutionPayloadT,
+		LogT,
 		*engineprimitives.PayloadAttributes[WithdrawalT],
 	]
 }
@@ -50,25 +52,29 @@ type BeaconDepositContractInput[
 // dep inject framework.
 func ProvideBeaconDepositContract[
 	DepositT Deposit[
-		DepositT, *ForkData, WithdrawalCredentials,
+		DepositT, *ForkData, LogT, WithdrawalCredentials,
 	],
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	LogT deposit.Log,
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalsT Withdrawals[WithdrawalT],
+	WithdrawalCredentialsT ~[32]byte,
 ](
 	in BeaconDepositContractInput[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT, LogT,
+		WithdrawalT, WithdrawalsT,
 	],
 ) (*deposit.WrappedBeaconDepositContract[
-	DepositT, WithdrawalCredentials,
+	DepositT, LogT, WithdrawalCredentialsT,
 ], error) {
 	// Build the deposit contract.
 	return deposit.NewWrappedBeaconDepositContract[
 		DepositT,
-		WithdrawalCredentials,
+		LogT,
+		WithdrawalCredentialsT,
 	](
 		in.ChainSpec.DepositContractAddress(),
 		in.EngineClient,

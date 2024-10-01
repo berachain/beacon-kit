@@ -38,9 +38,10 @@ import (
 // EngineClient is a struct that holds a pointer to an Eth1Client.
 type EngineClient[
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+	LogT any,
 	PayloadAttributesT PayloadAttributes,
 ] struct {
-	*ethclient.Client[ExecutionPayloadT]
+	*ethclient.Client[ExecutionPayloadT, LogT]
 	// cfg is the supplied configuration for the engine client.
 	cfg *Config
 	// logger is the logger for the engine client.
@@ -58,6 +59,7 @@ type EngineClient[
 // EngineClient.
 func New[
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+	LogT any,
 	PayloadAttributesT PayloadAttributes,
 ](
 	cfg *Config,
@@ -66,12 +68,12 @@ func New[
 	telemetrySink TelemetrySink,
 	eth1ChainID *big.Int,
 ) *EngineClient[
-	ExecutionPayloadT, PayloadAttributesT,
+	ExecutionPayloadT, LogT, PayloadAttributesT,
 ] {
-	return &EngineClient[ExecutionPayloadT, PayloadAttributesT]{
+	return &EngineClient[ExecutionPayloadT, LogT, PayloadAttributesT]{
 		cfg:    cfg,
 		logger: logger,
-		Client: ethclient.New[ExecutionPayloadT](
+		Client: ethclient.New[ExecutionPayloadT, LogT](
 			ethclientrpc.NewClient(
 				cfg.RPCDialURL.String(),
 				ethclientrpc.WithJWTSecret(jwtSecret),
@@ -87,14 +89,14 @@ func New[
 
 // Name returns the name of the engine client.
 func (s *EngineClient[
-	_, _,
+	_, _, _,
 ]) Name() string {
 	return "engine-client"
 }
 
 // Start the engine client.
 func (s *EngineClient[
-	_, _,
+	_, _, _,
 ]) Start(
 	ctx context.Context,
 ) error {
@@ -142,7 +144,7 @@ func (s *EngineClient[
 // verifyChainID dials the execution client and
 // ensures the chain ID is correct.
 func (s *EngineClient[
-	_, _,
+	_, _, _,
 ]) verifyChainIDAndConnection(
 	ctx context.Context,
 ) error {

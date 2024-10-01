@@ -32,7 +32,7 @@ import (
 // createContextWithTimeout creates a context with a timeout and returns it
 // along with the cancel function.
 func (s *EngineClient[
-	_, _,
+	_, _, _,
 ]) createContextWithTimeout(
 	ctx context.Context,
 ) (context.Context, context.CancelFunc) {

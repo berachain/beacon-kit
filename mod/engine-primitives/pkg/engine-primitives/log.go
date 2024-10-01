@@ -60,6 +60,12 @@ type Log struct {
 	Removed bool `json:"removed"`
 }
 
+// GetData returns the data of the log.
+func (l Log) GetData() []byte {
+	return l.Data
+}
+
+// GetTopics returns the topics of the log.
 func (l Log) GetTopics() []common.ExecutionHash {
 	return l.Topics
 }

@@ -51,22 +51,6 @@ const (
 	ExtraDataSize = 32
 )
 
-// Empty returns a new BeaconBlockBody with empty fields
-// for the given fork version.
-func (b *BeaconBlockBody) Empty(forkVersion uint32) *BeaconBlockBody {
-	switch forkVersion {
-	case version.Deneb:
-		return &BeaconBlockBody{
-			Eth1Data: new(Eth1Data),
-			ExecutionPayload: &ExecutionPayload{
-				ExtraData: make([]byte, ExtraDataSize),
-			},
-		}
-	default:
-		panic("unsupported fork version")
-	}
-}
-
 // BlockBodyKZGOffset returns the offset of the KZG commitments in the block
 // body.
 // TODO: I still feel like we need to clean this up somehow.
@@ -84,7 +68,9 @@ func BlockBodyKZGOffset(
 
 // BeaconBlockBody represents the body of a beacon block in the Deneb
 // chain.
-type BeaconBlockBody struct {
+type BeaconBlockBody[LogT interface {
+	GetData() []byte
+}] struct {
 	// RandaoReveal is the reveal of the RANDAO.
 	RandaoReveal crypto.BLSSignature
 	// Eth1Data is the data from the Eth1 chain.
@@ -92,11 +78,29 @@ type BeaconBlockBody struct {
 	// Graffiti is for a fun message or meme.
 	Graffiti [32]byte
 	// Deposits is the list of deposits included in the body.
-	Deposits []*Deposit
+	Deposits []*Deposit[LogT]
 	// ExecutionPayload is the execution payload of the body.
 	ExecutionPayload *ExecutionPayload
 	// BlobKzgCommitments is the list of KZG commitments for the EIP-4844 blobs.
 	BlobKzgCommitments []eip4844.KZGCommitment
+}
+
+// Empty returns a new BeaconBlockBody with empty fields
+// for the given fork version.
+func (b *BeaconBlockBody[LogT]) Empty(
+	forkVersion uint32,
+) *BeaconBlockBody[LogT] {
+	switch forkVersion {
+	case version.Deneb:
+		return &BeaconBlockBody[LogT]{
+			Eth1Data: new(Eth1Data),
+			ExecutionPayload: &ExecutionPayload{
+				ExtraData: make([]byte, ExtraDataSize),
+			},
+		}
+	default:
+		panic("unsupported fork version")
+	}
 }
 
 /* -------------------------------------------------------------------------- */
@@ -104,7 +108,7 @@ type BeaconBlockBody struct {
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the BeaconBlockBody in SSZ.
-func (b *BeaconBlockBody) SizeSSZ(fixed bool) uint32 {
+func (b *BeaconBlockBody[_]) SizeSSZ(fixed bool) uint32 {
 	var size uint32 = 96 + 72 + 32 + 4 + 4 + 4
 	if fixed {
 		return size
@@ -119,7 +123,7 @@ func (b *BeaconBlockBody) SizeSSZ(fixed bool) uint32 {
 // DefineSSZ defines the SSZ serialization of the BeaconBlockBody.
 //
 //nolint:mnd // TODO: chainspec.
-func (b *BeaconBlockBody) DefineSSZ(codec *ssz.Codec) {
+func (b *BeaconBlockBody[_]) DefineSSZ(codec *ssz.Codec) {
 	// Define the static data (fields and dynamic offsets)
 	ssz.DefineStaticBytes(codec, &b.RandaoReveal)
 	ssz.DefineStaticObject(codec, &b.Eth1Data)
@@ -135,18 +139,18 @@ func (b *BeaconBlockBody) DefineSSZ(codec *ssz.Codec) {
 }
 
 // MarshalSSZ serializes the BeaconBlockBody to SSZ-encoded bytes.
-func (b *BeaconBlockBody) MarshalSSZ() ([]byte, error) {
+func (b *BeaconBlockBody[_]) MarshalSSZ() ([]byte, error) {
 	buf := make([]byte, b.SizeSSZ(false))
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 
 // UnmarshalSSZ deserializes the BeaconBlockBody from SSZ-encoded bytes.
-func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte) error {
+func (b *BeaconBlockBody[_]) UnmarshalSSZ(buf []byte) error {
 	return ssz.DecodeFromBytes(buf, b)
 }
 
 // HashTreeRoot returns the SSZ hash tree root of the BeaconBlockBody.
-func (b *BeaconBlockBody) HashTreeRoot() common.Root {
+func (b *BeaconBlockBody[_]) HashTreeRoot() common.Root {
 	return ssz.HashConcurrent(b)
 }
 
@@ -155,7 +159,7 @@ func (b *BeaconBlockBody) HashTreeRoot() common.Root {
 /* -------------------------------------------------------------------------- */
 
 // MarshalSSZTo serializes the BeaconBlockBody into a writer.
-func (b *BeaconBlockBody) MarshalSSZTo(dst []byte) ([]byte, error) {
+func (b *BeaconBlockBody[_]) MarshalSSZTo(dst []byte) ([]byte, error) {
 	bz, err := b.MarshalSSZ()
 	if err != nil {
 		return nil, err
@@ -167,7 +171,7 @@ func (b *BeaconBlockBody) MarshalSSZTo(dst []byte) ([]byte, error) {
 // HashTreeRootWith ssz hashes the BeaconBlockBody object with a hasher.
 //
 //nolint:mnd // todo fix.
-func (b *BeaconBlockBody) HashTreeRootWith(hh fastssz.HashWalker) error {
+func (b *BeaconBlockBody[_]) HashTreeRootWith(hh fastssz.HashWalker) error {
 	indx := hh.Index()
 
 	// Field (0) 'RandaoReveal'
@@ -226,24 +230,24 @@ func (b *BeaconBlockBody) HashTreeRootWith(hh fastssz.HashWalker) error {
 }
 
 // GetTree ssz hashes the BeaconBlockBody object.
-func (b *BeaconBlockBody) GetTree() (*fastssz.Node, error) {
+func (b *BeaconBlockBody[_]) GetTree() (*fastssz.Node, error) {
 	return fastssz.ProofTree(b)
 }
 
 // IsNil checks if the BeaconBlockBody is nil.
-func (b *BeaconBlockBody) IsNil() bool {
+func (b *BeaconBlockBody[_]) IsNil() bool {
 	return b == nil
 }
 
 // GetExecutionPayload returns the ExecutionPayload of the Body.
 func (
-	b *BeaconBlockBody,
+	b *BeaconBlockBody[_],
 ) GetExecutionPayload() *ExecutionPayload {
 	return b.ExecutionPayload
 }
 
 // SetExecutionPayload sets the ExecutionData of the BeaconBlockBody.
-func (b *BeaconBlockBody) SetExecutionPayload(
+func (b *BeaconBlockBody[_]) SetExecutionPayload(
 	executionData *ExecutionPayload,
 ) {
 	b.ExecutionPayload = executionData
@@ -251,51 +255,51 @@ func (b *BeaconBlockBody) SetExecutionPayload(
 
 // GetBlobKzgCommitments returns the BlobKzgCommitments of the Body.
 func (
-	b *BeaconBlockBody,
+	b *BeaconBlockBody[_],
 ) GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash] {
 	return b.BlobKzgCommitments
 }
 
 // SetBlobKzgCommitments sets the BlobKzgCommitments of the
 // BeaconBlockBody.
-func (b *BeaconBlockBody) SetBlobKzgCommitments(
+func (b *BeaconBlockBody[_]) SetBlobKzgCommitments(
 	commitments eip4844.KZGCommitments[common.ExecutionHash],
 ) {
 	b.BlobKzgCommitments = commitments
 }
 
 // SetEth1Data sets the Eth1Data of the BeaconBlockBody.
-func (b *BeaconBlockBody) SetEth1Data(eth1Data *Eth1Data) {
+func (b *BeaconBlockBody[_]) SetEth1Data(eth1Data *Eth1Data) {
 	b.Eth1Data = eth1Data
 }
 
 // SetDeposits is not implemented for BeaconBlockDeneb.
-func (b *BeaconBlockBody) GetAttestations() []*AttestationData {
+func (b *BeaconBlockBody[_]) GetAttestations() []*AttestationData {
 	panic("not implemented")
 }
 
 // SetDeposits is not implemented for BeaconBlockDeneb.
-func (b *BeaconBlockBody) SetAttestations(_ []*AttestationData) {
+func (b *BeaconBlockBody[_]) SetAttestations(_ []*AttestationData) {
 	panic("not implemented")
 }
 
 // GetSlashingInfo is not implemented for BeaconBlockDeneb.
-func (b *BeaconBlockBody) GetSlashingInfo() []*SlashingInfo {
+func (b *BeaconBlockBody[_]) GetSlashingInfo() []*SlashingInfo {
 	panic("not implemented")
 }
 
 // SetSlashingInfo is not implemented for BeaconBlockDeneb.
-func (b *BeaconBlockBody) SetSlashingInfo(_ []*SlashingInfo) {
+func (b *BeaconBlockBody[_]) SetSlashingInfo(_ []*SlashingInfo) {
 	panic("not implemented")
 }
 
 // GetTopLevelRoots returns the top-level roots of the BeaconBlockBody.
-func (b *BeaconBlockBody) GetTopLevelRoots() []common.Root {
+func (b *BeaconBlockBody[LogT]) GetTopLevelRoots() []common.Root {
 	return []common.Root{
 		common.Root(b.GetRandaoReveal().HashTreeRoot()),
 		b.Eth1Data.HashTreeRoot(),
 		common.Root(b.GetGraffiti().HashTreeRoot()),
-		Deposits(b.GetDeposits()).HashTreeRoot(),
+		Deposits[LogT](b.GetDeposits()).HashTreeRoot(),
 		b.GetExecutionPayload().HashTreeRoot(),
 		// I think this is a bug.
 		common.Root{},
@@ -303,41 +307,41 @@ func (b *BeaconBlockBody) GetTopLevelRoots() []common.Root {
 }
 
 // Length returns the number of fields in the BeaconBlockBody struct.
-func (b *BeaconBlockBody) Length() uint64 {
+func (b *BeaconBlockBody[_]) Length() uint64 {
 	return BodyLengthDeneb
 }
 
 // GetRandaoReveal returns the RandaoReveal of the Body.
-func (b *BeaconBlockBody) GetRandaoReveal() crypto.BLSSignature {
+func (b *BeaconBlockBody[_]) GetRandaoReveal() crypto.BLSSignature {
 	return b.RandaoReveal
 }
 
 // SetRandaoReveal sets the RandaoReveal of the Body.
-func (b *BeaconBlockBody) SetRandaoReveal(reveal crypto.BLSSignature) {
+func (b *BeaconBlockBody[_]) SetRandaoReveal(reveal crypto.BLSSignature) {
 	b.RandaoReveal = reveal
 }
 
 // GetEth1Data returns the Eth1Data of the Body.
-func (b *BeaconBlockBody) GetEth1Data() *Eth1Data {
+func (b *BeaconBlockBody[_]) GetEth1Data() *Eth1Data {
 	return b.Eth1Data
 }
 
 // GetGraffiti returns the Graffiti of the Body.
-func (b *BeaconBlockBody) GetGraffiti() common.Bytes32 {
+func (b *BeaconBlockBody[_]) GetGraffiti() common.Bytes32 {
 	return b.Graffiti
 }
 
 // SetGraffiti sets the Graffiti of the Body.
-func (b *BeaconBlockBody) SetGraffiti(graffiti common.Bytes32) {
+func (b *BeaconBlockBody[_]) SetGraffiti(graffiti common.Bytes32) {
 	b.Graffiti = graffiti
 }
 
 // GetDeposits returns the Deposits of the BeaconBlockBody.
-func (b *BeaconBlockBody) GetDeposits() []*Deposit {
+func (b *BeaconBlockBody[LogT]) GetDeposits() []*Deposit[LogT] {
 	return b.Deposits
 }
 
 // SetDeposits sets the Deposits of the BeaconBlockBody.
-func (b *BeaconBlockBody) SetDeposits(deposits []*Deposit) {
+func (b *BeaconBlockBody[LogT]) SetDeposits(deposits []*Deposit[LogT]) {
 	b.Deposits = deposits
 }

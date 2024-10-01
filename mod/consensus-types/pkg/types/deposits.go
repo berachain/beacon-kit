@@ -27,34 +27,36 @@ import (
 )
 
 // Deposits is a typealias for a list of Deposits.
-type Deposits []*Deposit
+type Deposits[LogT interface {
+	GetData() []byte
+}] []*Deposit[LogT]
 
 /* -------------------------------------------------------------------------- */
 /*                                     SSZ                                    */
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the SSZ encoded size in bytes for the Deposits.
-func (ds Deposits) SizeSSZ(bool) uint32 {
-	return ssz.SizeSliceOfStaticObjects(([]*Deposit)(ds))
+func (ds Deposits[LogT]) SizeSSZ(bool) uint32 {
+	return ssz.SizeSliceOfStaticObjects(([]*Deposit[LogT])(ds))
 }
 
 // DefineSSZ defines the SSZ encoding for the Deposits object.
-func (ds Deposits) DefineSSZ(c *ssz.Codec) {
+func (ds Deposits[LogT]) DefineSSZ(c *ssz.Codec) {
 	c.DefineDecoder(func(*ssz.Decoder) {
 		ssz.DefineSliceOfStaticObjectsContent(
-			c, (*[]*Deposit)(&ds), constants.MaxDepositsPerBlock)
+			c, (*[]*Deposit[LogT])(&ds), constants.MaxDepositsPerBlock)
 	})
 	c.DefineEncoder(func(*ssz.Encoder) {
 		ssz.DefineSliceOfStaticObjectsContent(
-			c, (*[]*Deposit)(&ds), constants.MaxDepositsPerBlock)
+			c, (*[]*Deposit[LogT])(&ds), constants.MaxDepositsPerBlock)
 	})
 	c.DefineHasher(func(*ssz.Hasher) {
 		ssz.DefineSliceOfStaticObjectsOffset(
-			c, (*[]*Deposit)(&ds), constants.MaxDepositsPerBlock)
+			c, (*[]*Deposit[LogT])(&ds), constants.MaxDepositsPerBlock)
 	})
 }
 
 // HashTreeRoot returns the hash tree root of the Deposits.
-func (ds Deposits) HashTreeRoot() common.Root {
+func (ds Deposits[_]) HashTreeRoot() common.Root {
 	return ssz.HashSequential(ds)
 }

@@ -24,7 +24,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -58,6 +58,11 @@ type BlockEvent[
 // ExecutionPayload is an interface for execution payloads.
 type ExecutionPayload interface {
 	GetNumber() math.U64
+}
+
+// Log is an interface for logs.
+type Log interface {
+	GetTopics() []common.ExecutionHash
 }
 
 // Client is an interface for the client.

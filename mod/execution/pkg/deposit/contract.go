@@ -35,9 +35,7 @@ var DepositEventSignature = common.ExecutionHash(
 // WrappedBeaconDepositContract is a struct that holds a pointer to an ABI.
 type WrappedBeaconDepositContract[
 	DepositT Deposit[DepositT, LogT, WithdrawalCredentialsT],
-	LogT interface {
-		GetTopics() []common.ExecutionHash
-	},
+	LogT Log,
 	WithdrawalCredentialsT ~[32]byte,
 ] struct {
 	client  Client[LogT]
@@ -47,9 +45,7 @@ type WrappedBeaconDepositContract[
 // NewWrappedBeaconDepositContract creates a new BeaconDepositContract.
 func NewWrappedBeaconDepositContract[
 	DepositT Deposit[DepositT, LogT, WithdrawalCredentialsT],
-	LogT interface {
-		GetTopics() []common.ExecutionHash
-	},
+	LogT Log,
 	WithdrawalCredentialsT ~[32]byte,
 ](
 	address common.ExecutionAddress,

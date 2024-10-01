@@ -27,6 +27,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/cli/pkg/context"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
@@ -59,7 +60,7 @@ func CollectGenesisDepositsCmd() *cobra.Command {
 				return err
 			}
 
-			var deposits []*types.Deposit
+			var deposits []*types.Deposit[engineprimitives.Log]
 			if deposits, err = CollectValidatorJSONFiles(
 				filepath.Join(config.RootDir, "config", "premined-deposits"),
 				appGenesis,
@@ -71,7 +72,7 @@ func CollectGenesisDepositsCmd() *cobra.Command {
 			}
 
 			genesisInfo := &types.Genesis[
-				*types.Deposit,
+				*types.Deposit[engineprimitives.Log],
 				*types.ExecutionPayloadHeader,
 			]{}
 
@@ -110,7 +111,7 @@ func CollectGenesisDepositsCmd() *cobra.Command {
 func CollectValidatorJSONFiles(
 	genTxsDir string,
 	genesis *genutiltypes.AppGenesis,
-) ([]*types.Deposit, error) {
+) ([]*types.Deposit[engineprimitives.Log], error) {
 	// prepare a map of all balances in genesis state to then validate
 	// against the validators addresses
 	var appState map[string]json.RawMessage
@@ -125,7 +126,7 @@ func CollectValidatorJSONFiles(
 	}
 
 	// prepare the list of validators
-	deposits := make([]*types.Deposit, 0)
+	deposits := make([]*types.Deposit[engineprimitives.Log], 0)
 	for _, fo := range fos {
 		if fo.IsDir() {
 			continue
@@ -143,7 +144,7 @@ func CollectValidatorJSONFiles(
 			return nil, err
 		}
 
-		val := &types.Deposit{}
+		val := &types.Deposit[engineprimitives.Log]{}
 		if err = json.Unmarshal(bz, val); err != nil {
 			return nil, err
 		}

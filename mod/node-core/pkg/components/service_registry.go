@@ -56,12 +56,13 @@ type ServiceRegistryInput[
 	BeaconStateMarshallableT any,
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
-	DepositT Deposit[DepositT, *ForkData, WithdrawalCredentials],
+	DepositT Deposit[DepositT, *ForkData, LogT, WithdrawalCredentials],
 	DepositStoreT DepositStore[DepositT],
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	LogT any,
 	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
@@ -86,11 +87,12 @@ type ServiceRegistryInput[
 	DBManager      *DBManager
 	DepositService *deposit.Service[
 		BeaconBlockT, BeaconBlockBodyT, DepositT,
-		ExecutionPayloadT, WithdrawalCredentials,
+		ExecutionPayloadT, LogT, WithdrawalCredentials,
 	]
 	Dispatcher   Dispatcher
 	EngineClient *client.EngineClient[
 		ExecutionPayloadT,
+		LogT,
 		*engineprimitives.PayloadAttributes[WithdrawalT],
 	]
 	Logger           LoggerT
@@ -125,11 +127,12 @@ func ProvideServiceRegistry[
 	BeaconStateMarshallableT any,
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
-	DepositT Deposit[DepositT, *ForkData, WithdrawalCredentials],
+	DepositT Deposit[DepositT, *ForkData, LogT, WithdrawalCredentials],
 	DepositStoreT DepositStore[DepositT],
 	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT,
 		ExecutionPayloadHeaderT, WithdrawalsT],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	LogT any,
 	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
@@ -142,7 +145,8 @@ func ProvideServiceRegistry[
 		BeaconBlockHeaderT, BeaconBlockStoreT, BeaconStateT,
 		BeaconStateMarshallableT, BlobSidecarT, BlobSidecarsT,
 		DepositT, DepositStoreT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-		GenesisT, KVStoreT, LoggerT, NodeAPIContextT, WithdrawalT, WithdrawalsT,
+		LogT, GenesisT, KVStoreT, LoggerT, NodeAPIContextT, WithdrawalT,
+		WithdrawalsT,
 	],
 ) *service.Registry {
 	return service.NewRegistry(

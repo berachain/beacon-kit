@@ -46,8 +46,9 @@ type DepositStoreInput struct {
 // application.
 func ProvideDepositStore[
 	DepositT Deposit[
-		DepositT, *ForkData, WithdrawalCredentials,
+		DepositT, *ForkData, LogT, WithdrawalCredentials,
 	],
+	LogT any,
 ](
 	in DepositStoreInput,
 ) (*depositstore.KVStore[DepositT], error) {
@@ -84,9 +85,10 @@ func ProvideDepositPruner[
 	},
 	BeaconBlockHeaderT any,
 	DepositT Deposit[
-		DepositT, *ForkData, WithdrawalCredentials,
+		DepositT, *ForkData, LogT, WithdrawalCredentials,
 	],
 	DepositStoreT DepositStore[DepositT],
+	LogT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	in DepositPrunerInput[BeaconBlockT, DepositStoreT, LoggerT],
@@ -110,6 +112,7 @@ func ProvideDepositPruner[
 			BeaconBlockT,
 			BeaconBlockBodyT,
 			DepositT,
+			LogT,
 			WithdrawalCredentials,
 		](in.ChainSpec),
 	), nil

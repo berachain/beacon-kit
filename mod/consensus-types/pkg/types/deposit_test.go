@@ -25,6 +25,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -33,14 +34,14 @@ import (
 )
 
 // generateValidDeposit generates a valid deposit for testing purposes.
-func generateValidDeposit() *types.Deposit {
+func generateValidDeposit() *types.Deposit[engineprimitives.Log] {
 	var pubKey crypto.BLSPubkey
 	var signature crypto.BLSSignature
 	var credentials types.WithdrawalCredentials
 	amount := math.Gwei(32)
 	index := uint64(1)
 
-	return &types.Deposit{
+	return &types.Deposit[engineprimitives.Log]{
 		Pubkey:      pubKey,
 		Credentials: credentials,
 		Amount:      amount,
@@ -69,7 +70,7 @@ func TestDeposit_MarshalUnmarshalSSZ(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, sszDeposit)
 
-	var unmarshalledDeposit types.Deposit
+	var unmarshalledDeposit types.Deposit[engineprimitives.Log]
 	err = unmarshalledDeposit.UnmarshalSSZ(sszDeposit)
 	require.NoError(t, err)
 
@@ -116,7 +117,7 @@ func TestDeposit_UnmarshalSSZ_ErrSize(t *testing.T) {
 	// Create a byte slice of incorrect size
 	buf := make([]byte, 10) // size less than 192
 
-	var unmarshalledDeposit types.Deposit
+	var unmarshalledDeposit types.Deposit[engineprimitives.Log]
 	err := unmarshalledDeposit.UnmarshalSSZ(buf)
 
 	require.ErrorIs(t, err, io.ErrUnexpectedEOF)

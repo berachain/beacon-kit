@@ -129,18 +129,21 @@ type (
 		*BeaconBlockBody,
 		*Deposit,
 		*ExecutionPayload,
+		Log,
 		WithdrawalCredentials,
 	]
 
 	// EngineClient is a type alias for the engine client.
 	EngineClient = engineclient.EngineClient[
 		*ExecutionPayload,
+		Log,
 		*PayloadAttributes,
 	]
 
 	// EngineClient is a type alias for the engine client.
 	ExecutionEngine = execution.Engine[
 		*ExecutionPayload,
+		*Log,
 		*PayloadAttributes,
 		PayloadID,
 		engineprimitives.Withdrawals,
@@ -246,7 +249,7 @@ type (
 
 	// BeaconBlock type aliases.
 	BeaconBlock       = types.BeaconBlock
-	BeaconBlockBody   = types.BeaconBlockBody
+	BeaconBlockBody   = types.BeaconBlockBody[Log]
 	BeaconBlockHeader = types.BeaconBlockHeader
 
 	// BeaconState is a type alias for the BeaconState.
@@ -290,11 +293,12 @@ type (
 	Context = transition.Context
 
 	// Deposit is a type alias for the deposit.
-	Deposit = types.Deposit
+	Deposit = types.Deposit[Log]
 
 	// DepositContract is a type alias for the deposit contract.
 	DepositContract = deposit.WrappedBeaconDepositContract[
 		*Deposit,
+		Log,
 		WithdrawalCredentials,
 	]
 
@@ -319,6 +323,9 @@ type (
 		*Deposit,
 		*ExecutionPayloadHeader,
 	]
+
+	// Log is a type alias for the log.
+	Log = engineprimitives.Log
 
 	// Logger is a type alias for the logger.
 	Logger = phuslu.Logger

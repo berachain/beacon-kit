@@ -42,6 +42,7 @@ type ChainServiceInput[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	LogT any,
 	StorageBackendT any,
 	LoggerT any,
 	WithdrawalT Withdrawal[WithdrawalT],
@@ -53,10 +54,12 @@ type ChainServiceInput[
 	Cfg          *config.Config
 	EngineClient *client.EngineClient[
 		ExecutionPayloadT,
+		LogT,
 		*engineprimitives.PayloadAttributes[WithdrawalT],
 	]
 	ExecutionEngine *engine.Engine[
 		ExecutionPayloadT,
+		LogT,
 		*engineprimitives.PayloadAttributes[WithdrawalT],
 		PayloadID,
 		WithdrawalsT,
@@ -96,6 +99,7 @@ func ProvideChainService[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	LogT any,
 	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
@@ -107,7 +111,7 @@ func ProvideChainService[
 ](
 	in ChainServiceInput[
 		BeaconBlockT, BeaconStateT, DepositT, ExecutionPayloadT,
-		ExecutionPayloadHeaderT, StorageBackendT, LoggerT,
+		ExecutionPayloadHeaderT, LogT, StorageBackendT, LoggerT,
 		WithdrawalT, WithdrawalsT,
 	],
 ) *blockchain.Service[

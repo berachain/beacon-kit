@@ -23,13 +23,12 @@ package ethclient
 import (
 	"context"
 
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // ChainID retrieves the current chain ID.
-func (ec *Client[ExecutionPayloadT]) ChainID(
+func (ec *Client[ExecutionPayloadT, _]) ChainID(
 	ctx context.Context,
 ) (math.U64, error) {
 	var result math.U64
@@ -40,12 +39,12 @@ func (ec *Client[ExecutionPayloadT]) ChainID(
 }
 
 // GetLogsByBlockHash retrieves logs for a block hash.
-func (ec *Client[ExecutionPayloadT]) GetLogsAtBlockNumber(
+func (ec *Client[ExecutionPayloadT, LogT]) GetLogsAtBlockNumber(
 	ctx context.Context,
 	number math.U64,
 	address common.ExecutionAddress,
-) ([]engineprimitives.Log, error) {
-	var result []engineprimitives.Log
+) ([]LogT, error) {
+	var result []LogT
 	return result,
 		ec.Call(ctx,
 			&result, "eth_getLogs", map[string]interface{}{

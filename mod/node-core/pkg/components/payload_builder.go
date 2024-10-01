@@ -39,6 +39,7 @@ type LocalBuilderInput[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	LogT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalsT Withdrawals[WithdrawalT],
@@ -51,6 +52,7 @@ type LocalBuilderInput[
 	ChainSpec       common.ChainSpec
 	ExecutionEngine *engine.Engine[
 		ExecutionPayloadT,
+		LogT,
 		*engineprimitives.PayloadAttributes[WithdrawalT],
 		PayloadID,
 		WithdrawalsT,
@@ -72,14 +74,15 @@ func ProvideLocalBuilder[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	LogT any,
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalsT Withdrawals[WithdrawalT],
 ](
 	in LocalBuilderInput[
-		BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT, LoggerT,
-		WithdrawalT, WithdrawalsT,
+		BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT, LogT,
+		LoggerT, WithdrawalT, WithdrawalsT,
 	],
 ) *payloadbuilder.PayloadBuilder[
 	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,

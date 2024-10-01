@@ -23,6 +23,8 @@ package json
 
 import (
 	"encoding/json"
+
+	gojson "github.com/goccy/go-json"
 )
 
 // Marshaler is the interface implemented by types that
@@ -35,15 +37,15 @@ type Unmarshaler = gojson.Unmarshaler
 
 // Marshal is a wrapper for gojson.Marshal, which provides high-performance JSON
 // encoding.
-var Marshal = json.Marshal
+var Marshal = gojson.Marshal
 
 // MarshalIndent is a wrapper for gojson.MarshalIndent, which provides
 // high-performance JSON encoding with indentation.
-var MarshalIndent = json.MarshalIndent
+var MarshalIndent = gojson.MarshalIndent
 
 // Unmarshal is a wrapper for gojson.Unmarshal, which provides high-performance
 // JSON decoding.
-var Unmarshal = json.Unmarshal
+var Unmarshal = gojson.Unmarshal
 
 // RawMessage is an alias for json.RawMessage, represensting a raw encoded JSON
 // value. It implements Marshaler and Unmarshaler and can be used to delay JSON

@@ -42,7 +42,8 @@ func DefaultComponents() []any {
 			*BeaconBlockHeader, *BlobSidecars, *Logger,
 		],
 		components.ProvideBeaconDepositContract[
-			*Deposit, *ExecutionPayload, *ExecutionPayloadHeader,
+			*Deposit, *ExecutionPayload, *ExecutionPayloadHeader, Log,
+			*Withdrawal, Withdrawals, WithdrawalCredentials,
 		],
 		components.ProvideBlockStore[
 			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader, *Logger,
@@ -64,7 +65,7 @@ func DefaultComponents() []any {
 			*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,
 			*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
 			*BlobSidecars, *BlockStore, *Deposit, *DepositStore,
-			*ExecutionPayload, *ExecutionPayloadHeader, *Genesis,
+			*ExecutionPayload, *ExecutionPayloadHeader, *Log, *Genesis,
 			*KVStore, *Logger, *StorageBackend,
 		],
 		components.ProvideNode,
@@ -82,27 +83,28 @@ func DefaultComponents() []any {
 		components.ProvideDBManager[*AvailabilityStore, *DepositStore, *Logger],
 		components.ProvideDepositPruner[
 			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader,
-			*Deposit, *DepositStore, *Logger,
+			*Deposit, *DepositStore, Log, *Logger,
 		],
 		components.ProvideDepositService[
 			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader, *Deposit,
 			*DepositContract, *DepositStore, *ExecutionPayload,
-			*ExecutionPayloadHeader, *Logger,
+			*ExecutionPayloadHeader, Log, *Logger,
+			*Withdrawal, Withdrawals, WithdrawalCredentials,
 		],
 		components.ProvideDepositStore[*Deposit],
 		components.ProvideDispatcher[
 			*BeaconBlock, *BlobSidecars, *Genesis, *Logger,
 		],
 		components.ProvideEngineClient[
-			*ExecutionPayload, *ExecutionPayloadHeader, *Logger,
+			*ExecutionPayload, *ExecutionPayloadHeader, *Log, *Logger,
 		],
 		components.ProvideExecutionEngine[
-			*ExecutionPayload, *ExecutionPayloadHeader, *Logger,
+			*ExecutionPayload, *ExecutionPayloadHeader, *Log, *Logger,
 		],
 		components.ProvideJWTSecret,
 		components.ProvideLocalBuilder[
 			*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
-			*ExecutionPayload, *ExecutionPayloadHeader, *KVStore, *Logger,
+			*ExecutionPayload, *ExecutionPayloadHeader, *Log, *KVStore, *Logger,
 		],
 		components.ProvideReportingService[*Logger],
 		components.ProvideCometBFTService[*Logger],
@@ -111,7 +113,7 @@ func DefaultComponents() []any {
 			*BeaconBlockHeader, *BlockStore, *BeaconState,
 			*BeaconStateMarshallable, *BlobSidecar, *BlobSidecars,
 			*Deposit, *DepositStore, *ExecutionPayload, *ExecutionPayloadHeader,
-			*Genesis, *KVStore, *Logger,
+			Log, *Genesis, *KVStore, *Logger,
 			NodeAPIContext,
 		],
 		components.ProvideSidecarFactory[
@@ -120,7 +122,7 @@ func DefaultComponents() []any {
 		components.ProvideStateProcessor[
 			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader,
 			*BeaconState, *BeaconStateMarshallable, *Deposit, *ExecutionPayload,
-			*ExecutionPayloadHeader, *KVStore,
+			*ExecutionPayloadHeader, Log, *KVStore,
 		],
 		components.ProvideKVStore[*BeaconBlockHeader, *ExecutionPayloadHeader],
 		components.ProvideStorageBackend[

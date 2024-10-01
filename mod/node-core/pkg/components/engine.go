@@ -51,6 +51,7 @@ func ProvideEngineClient[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	LogT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalsT Withdrawals[WithdrawalT],
@@ -58,10 +59,12 @@ func ProvideEngineClient[
 	in EngineClientInputs[LoggerT],
 ) *client.EngineClient[
 	ExecutionPayloadT,
+	LogT,
 	*engineprimitives.PayloadAttributes[WithdrawalT],
 ] {
 	return client.New[
 		ExecutionPayloadT,
+		LogT,
 		*engineprimitives.PayloadAttributes[WithdrawalT],
 	](
 		in.Config.GetEngine(),
@@ -78,13 +81,15 @@ type ExecutionEngineInputs[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-	LoggerT any,
+	LogT any,
+	LoggerT log.AdvancedLogger[LoggerT],
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalsT Withdrawals[WithdrawalT],
 ] struct {
 	depinject.In
 	EngineClient *client.EngineClient[
 		ExecutionPayloadT,
+		LogT,
 		*engineprimitives.PayloadAttributes[WithdrawalT],
 	]
 	Logger        LoggerT
@@ -98,22 +103,25 @@ func ProvideExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	LogT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalsT Withdrawals[WithdrawalT],
 ](
 	in ExecutionEngineInputs[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, LoggerT, WithdrawalT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT, LogT, LoggerT, WithdrawalT,
 		WithdrawalsT,
 	],
 ) *engine.Engine[
 	ExecutionPayloadT,
+	LogT,
 	*engineprimitives.PayloadAttributes[WithdrawalT],
 	PayloadID,
 	WithdrawalsT,
 ] {
 	return engine.New[
 		ExecutionPayloadT,
+		LogT,
 		*engineprimitives.PayloadAttributes[WithdrawalT],
 		PayloadID,
 		WithdrawalsT,
