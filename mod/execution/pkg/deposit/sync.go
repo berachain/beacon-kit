@@ -74,6 +74,9 @@ func (s *Service[
 ]) fetchAndStoreDeposits(ctx context.Context, blockNum math.U64) {
 	deposits, err := s.dc.ReadDeposits(ctx, blockNum)
 	if err != nil {
+		s.logger.Error(
+			"Failed to read deposits", "error", err, "block", blockNum,
+		)
 		s.metrics.markFailedToGetBlockLogs(blockNum)
 		s.failedBlocks[blockNum] = struct{}{}
 		return
@@ -87,7 +90,9 @@ func (s *Service[
 	}
 
 	if err = s.ds.EnqueueDeposits(deposits); err != nil {
-		s.logger.Error("Failed to store deposits", "error", err)
+		s.logger.Error(
+			"Failed to store deposits", "error", err, "block", blockNum,
+		)
 		s.failedBlocks[blockNum] = struct{}{}
 		return
 	}

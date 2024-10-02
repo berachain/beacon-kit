@@ -38,11 +38,27 @@ func (ec *Client[ExecutionPayloadT, _]) ChainID(
 	return result, nil
 }
 
-// GetLogsByBlockHash retrieves logs for a block hash.
+// GetLogsAtBlockNumber retrieves logs for a block number, contract address,
+// and optional topics.
+//
+// The topics list restricts matches to particular event topics. Topics matches
+// a prefix of that list. An empty element slice matches any topic. Non-empty
+// elements represent an alternative that matches any of the contained topics.
+//
+// Examples:
+// {} or nil          matches any topic list
+// {{A}}              matches topic A in first position
+// {{}, {B}}          matches any topic in first position AND B in second 
+//                    position
+// {{A}, {B}}         matches topic A in first position AND B in second 
+//                    position
+// {{A, B}, {C, D}}   matches topic (A OR B) in first position AND (C OR D) in 
+//                    second position
 func (ec *Client[ExecutionPayloadT, LogT]) GetLogsAtBlockNumber(
 	ctx context.Context,
 	number math.U64,
 	address common.ExecutionAddress,
+	topics [][]common.ExecutionHash,
 ) ([]LogT, error) {
 	var result []LogT
 	return result,
@@ -51,5 +67,6 @@ func (ec *Client[ExecutionPayloadT, LogT]) GetLogsAtBlockNumber(
 				"fromBlock": number.Hex(),
 				"toBlock":   number.Hex(),
 				"address":   address,
+				"topics":    topics,
 			})
 }

@@ -62,6 +62,7 @@ type ExecutionPayload interface {
 
 // Log is an interface for logs.
 type Log interface {
+	GetAddress() common.ExecutionAddress
 	GetTopics() []common.ExecutionHash
 }
 
@@ -71,6 +72,7 @@ type Client[LogT any] interface {
 		ctx context.Context,
 		number math.U64,
 		address common.ExecutionAddress,
+		topics [][]common.ExecutionHash,
 	) ([]LogT, error)
 }
 

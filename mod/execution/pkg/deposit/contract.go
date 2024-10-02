@@ -32,7 +32,7 @@ import (
 // string that should be keccak256 hashed for the event's topic.
 const DepositEventSignatureString = "Deposit(bytes,bytes,uint64,bytes,uint64)"
 
-//nolint:gochecknoglobals // temporary.
+//nolint:gochecknoglobals // TODO: remove usage of geth's crypto.Keccak256.
 var DepositEventSignature = common.ExecutionHash(
 	crypto.Keccak256([]byte(DepositEventSignatureString)),
 )
@@ -79,6 +79,7 @@ func (dc *WrappedBeaconDepositContract[DepositT, _, _]) ReadDeposits(
 		ctx,
 		blkNum,
 		dc.address,
+		[][]common.ExecutionHash{{DepositEventSignature}},
 	)
 	if err != nil {
 		return nil, err
@@ -86,9 +87,10 @@ func (dc *WrappedBeaconDepositContract[DepositT, _, _]) ReadDeposits(
 
 	deposits := make([]DepositT, 0)
 	for _, log := range logs {
-		if log.GetTopics()[0] != DepositEventSignature {
+		if log.GetAddress() != dc.address || log.GetTopics()[0] != DepositEventSignature {
 			continue
 		}
+
 		var d DepositT
 		d = d.Empty()
 		if err = d.UnmarshalLog(log); err != nil {

@@ -273,12 +273,12 @@ func (b *BeaconBlockBody[_]) SetEth1Data(eth1Data *Eth1Data) {
 	b.Eth1Data = eth1Data
 }
 
-// SetDeposits is not implemented for BeaconBlockDeneb.
+// GetAttestations is not implemented for BeaconBlockDeneb.
 func (b *BeaconBlockBody[_]) GetAttestations() []*AttestationData {
 	panic("not implemented")
 }
 
-// SetDeposits is not implemented for BeaconBlockDeneb.
+// SetAttestations is not implemented for BeaconBlockDeneb.
 func (b *BeaconBlockBody[_]) SetAttestations(_ []*AttestationData) {
 	panic("not implemented")
 }

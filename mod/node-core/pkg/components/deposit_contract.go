@@ -52,7 +52,7 @@ type BeaconDepositContractInput[
 // dep inject framework.
 func ProvideBeaconDepositContract[
 	DepositT Deposit[
-		DepositT, *ForkData, LogT, WithdrawalCredentials,
+		DepositT, *ForkData, LogT, WithdrawalCredentialsT,
 	],
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,

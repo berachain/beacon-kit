@@ -60,14 +60,19 @@ type Log struct {
 	Removed bool `json:"removed"`
 }
 
-// GetData returns the data of the log.
-func (l Log) GetData() []byte {
-	return l.Data
+// GetAddress returns the address of contract that generated the event.
+func (l Log) GetAddress() common.ExecutionAddress {
+	return l.Address
 }
 
-// GetTopics returns the topics of the log.
+// GetTopics returns the list of topics provided by the contract.
 func (l Log) GetTopics() []common.ExecutionHash {
 	return l.Topics
+}
+
+// GetData returns the data supplied by the contract, usually ABI-encoded.
+func (l Log) GetData() []byte {
+	return l.Data
 }
 
 // MarshalJSON marshals as JSON.

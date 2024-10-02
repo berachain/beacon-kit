@@ -22,6 +22,7 @@ package types
 
 import (
 	"encoding/binary"
+	"fmt"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
@@ -198,6 +199,13 @@ func (d *Deposit[_]) GetTree() (*fastssz.Node, error) {
 // UnmarshalLog unmarshals the Deposit object from an Ethereum log.
 func (d *Deposit[LogT]) UnmarshalLog(log LogT) error {
 	data := log.GetData()
+	if len(data) < 448 {
+		return fmt.Errorf(
+			"log data is too short: expected at least 448 bytes, got %d",
+			len(data),
+		)
+	}
+
 	d.Index = binary.BigEndian.Uint64(data[152:160])
 	d.Pubkey = bytes.B48(data[208:256])
 	d.Amount = math.U64(binary.BigEndian.Uint64(data[280:288]))
