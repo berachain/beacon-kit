@@ -155,7 +155,7 @@ func (s String) ToBigInt() (*big.Int, error) {
 	if err != nil {
 		return nil, err
 	}
-	if len(raw) > bytesPer256Bits {
+	if len(raw) > nibblesPer256Bits {
 		return nil, ErrBig256Range
 	}
 	bigWordNibbles, err := getBigWordNibbles()
