@@ -33,16 +33,10 @@ type Marshaler = json.Marshaler
 // that can unmarshal a JSON description of themselves.
 type Unmarshaler = json.Unmarshaler
 
-// Marshal is a wrapper for gojson.Marshal, which provides high-performance JSON
-// encoding.
 var Marshal = json.Marshal
 
-// MarshalIndent is a wrapper for gojson.MarshalIndent, which provides
-// high-performance JSON encoding with indentation.
 var MarshalIndent = json.MarshalIndent
 
-// Unmarshal is a wrapper for gojson.Unmarshal, which provides high-performance
-// JSON decoding.
 var Unmarshal = json.Unmarshal
 
 // RawMessage is an alias for json.RawMessage, represensting a raw encoded JSON
