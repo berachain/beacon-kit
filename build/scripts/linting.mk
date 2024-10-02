@@ -81,6 +81,7 @@ license-fix:
 #################
 
 nilaway:
+	go install go.uber.org/nilaway/cmd/nilaway
 	@echo "--> Running nilaway"
 	@dirs=$$(find . -name 'go.mod' -exec dirname {} \;); \
 	total=$$(echo "$$dirs" | wc -l); \
