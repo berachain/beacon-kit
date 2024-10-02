@@ -48,12 +48,17 @@ func (ec *Client[ExecutionPayloadT, _]) ChainID(
 // Examples:
 // {} or nil          matches any topic list
 // {{A}}              matches topic A in first position
-// {{}, {B}}          matches any topic in first position AND B in second 
-//                    position
-// {{A}, {B}}         matches topic A in first position AND B in second 
-//                    position
-// {{A, B}, {C, D}}   matches topic (A OR B) in first position AND (C OR D) in 
-//                    second position
+// {{}, {B}}          matches any topic in first position AND B in second
+//
+//	position
+//
+// {{A}, {B}}         matches topic A in first position AND B in second
+//
+//	position
+//
+// {{A, B}, {C, D}}   matches topic (A OR B) in first position AND (C OR D) in
+//
+//	second position
 func (ec *Client[ExecutionPayloadT, LogT]) GetLogsAtBlockNumber(
 	ctx context.Context,
 	number math.U64,

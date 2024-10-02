@@ -87,7 +87,8 @@ func (dc *WrappedBeaconDepositContract[DepositT, _, _]) ReadDeposits(
 
 	deposits := make([]DepositT, 0)
 	for _, log := range logs {
-		if log.GetAddress() != dc.address || log.GetTopics()[0] != DepositEventSignature {
+		if log.GetAddress() != dc.address ||
+			log.GetTopics()[0] != DepositEventSignature {
 			continue
 		}
 
