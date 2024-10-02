@@ -28,9 +28,14 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
+// DepositEventSignatureString is the Deposit event signature human readable
+// string that should be keccak256 hashed for the event's topic.
+const DepositEventSignatureString = "Deposit(bytes,bytes,uint64,bytes,uint64)"
+
 //nolint:gochecknoglobals // temporary.
 var DepositEventSignature = common.ExecutionHash(
-	crypto.Keccak256([]byte("Deposit(bytes,bytes,uint64,bytes,uint64)")))
+	crypto.Keccak256([]byte(DepositEventSignatureString)),
+)
 
 // WrappedBeaconDepositContract is a struct that holds a pointer to an ABI.
 type WrappedBeaconDepositContract[
@@ -66,11 +71,7 @@ func NewWrappedBeaconDepositContract[
 }
 
 // ReadDeposits reads deposits from the deposit contract.
-func (dc *WrappedBeaconDepositContract[
-	DepositT,
-	WithdrawalCredentialsT,
-	LogT,
-]) ReadDeposits(
+func (dc *WrappedBeaconDepositContract[DepositT, _, _]) ReadDeposits(
 	ctx context.Context,
 	blkNum math.U64,
 ) ([]DepositT, error) {

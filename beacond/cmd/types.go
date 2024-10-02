@@ -143,7 +143,7 @@ type (
 	// EngineClient is a type alias for the engine client.
 	ExecutionEngine = execution.Engine[
 		*ExecutionPayload,
-		*Log,
+		Log,
 		*PayloadAttributes,
 		PayloadID,
 		engineprimitives.Withdrawals,
