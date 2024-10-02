@@ -21,36 +21,48 @@
 package common_test
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/stretchr/testify/require"
 )
 
 func TestExecutionAddressMarshalling(t *testing.T) {
-	var (
-		v   common.ExecutionAddress
-		err error
-	)
+	//nolint:lll // some test data may be long
+	tests := []struct {
+		name        string
+		input       []byte
+		expectedErr error
+	}{
+		{
+			name:        "address too short",
+			input:       []byte("\"0xab\""),
+			expectedErr: hex.ErrInvalidHexStringLength,
+		},
+		{
+			name:        "address missing hex prefix",
+			input:       []byte("\"abc\""),
+			expectedErr: hex.ErrMissingPrefix,
+		},
+		{
+			name:        "address too long",
+			input:       []byte("\"0x000102030405060708090a0b0c0d0e0f101112131415161718\""),
+			expectedErr: hex.ErrInvalidHexStringLength,
+		},
+	}
 
-	// No panic with hex string too short
-	require.NotPanics(t, func() {
-		err = json.Unmarshal([]byte("\"0xab\""), &v)
-	})
-	require.ErrorIs(t, err, hex.ErrInvalidHexStringLength)
-
-	// No panic with hex string missing 0x prefix
-	require.NotPanics(t, func() {
-		err = json.Unmarshal([]byte("\"abc\""), &v)
-	})
-	require.ErrorIs(t, err, hex.ErrMissingPrefix)
-
-	// Err upon trunctation on hex string too long
-	err = json.Unmarshal(
-		[]byte("\"0x000102030405060708090a0b0c0d0e0f101112131415161718\""),
-		&v,
-	)
-	require.ErrorIs(t, err, hex.ErrInvalidHexStringLength)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var (
+				v   common.ExecutionAddress
+				err error
+			)
+			require.NotPanics(t, func() {
+				err = json.Unmarshal(tt.input, &v)
+			})
+			require.ErrorIs(t, err, tt.expectedErr)
+		})
+	}
 }
