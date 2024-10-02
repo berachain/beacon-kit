@@ -41,15 +41,15 @@ func (b basic) ID() ID { return Basic }
 // ItemLength returns the size of the basic type in bytes.
 func (b basic) ItemLength() uint64 { return uint64(b) }
 
-// position always returns an error for basic types, as they have no children.
+// ItemPosition always returns an error for basic types, as they have no children.
 func (b basic) ItemPosition(_ string) (uint64, uint8, uint8, error) {
 	return 0, 0, 0, errors.New("basic type has no children")
 }
 
-// child returns the basic type itself, as it has no children.
+// ElementType returns the basic type itself, as it has no children.
 func (b basic) ElementType(_ string) SSZType { return b }
 
-// Chunks returns the number of 32-byte chunks required to represent the basic
+// HashChunkCount returns the number of 32-byte chunks required to represent the basic
 // type.
 func (b basic) HashChunkCount() uint64 { return 1 }
 
@@ -93,7 +93,7 @@ func (v vector) HashChunkCount() uint64 {
 	return chunks
 }
 
-// typ.length describes the length for vector.
+// Length describes the length for vector.
 func (v vector) Length() uint64 {
 	return v.length
 }
@@ -134,12 +134,12 @@ func (l list) ElementType(_ string) SSZType {
 	return l.elementType
 }
 
-// typ.length describes the limit for list.
+// Length describes the limit for list.
 func (l list) Length() uint64 {
 	return l.limit
 }
 
-// position returns the chunk index and offset for a given list index.
+// ItemPosition returns the chunk index and offset for a given list index.
 func (l list) ItemPosition(p string) (uint64, uint8, uint8, error) {
 	i, err := strconv.ParseUint(p, 10, 64)
 	if err != nil {
