@@ -197,6 +197,8 @@ func (d *Deposit[_]) GetTree() (*fastssz.Node, error) {
 /* -------------------------------------------------------------------------- */
 
 // UnmarshalLog unmarshals the Deposit object from an Ethereum log.
+//
+// TODO: use abi decoding or constants for reading the bytes.
 func (d *Deposit[LogT]) UnmarshalLog(log LogT) error {
 	data := log.GetData()
 	if len(data) < 448 {
