@@ -69,6 +69,7 @@ func BlockBodyKZGOffset(
 // BeaconBlockBody represents the body of a beacon block in the Deneb
 // chain.
 type BeaconBlockBody[LogT interface {
+	GetTopics() []common.ExecutionHash
 	GetData() []byte
 }] struct {
 	// RandaoReveal is the reveal of the RANDAO.

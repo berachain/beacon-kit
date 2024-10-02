@@ -23,18 +23,9 @@ package deposit
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/ethereum/go-ethereum/crypto"
-)
-
-// DepositEventSignatureString is the Deposit event signature human readable
-// string that should be keccak256 hashed for the event's topic.
-const DepositEventSignatureString = "Deposit(bytes,bytes,uint64,bytes,uint64)"
-
-//nolint:gochecknoglobals // TODO: remove usage of geth's crypto.Keccak256.
-var DepositEventSignature = common.ExecutionHash(
-	crypto.Keccak256([]byte(DepositEventSignatureString)),
 )
 
 // WrappedBeaconDepositContract is a struct that holds a pointer to an ABI.
@@ -79,7 +70,7 @@ func (dc *WrappedBeaconDepositContract[DepositT, _, _]) ReadDeposits(
 		ctx,
 		blkNum,
 		dc.address,
-		[][]common.ExecutionHash{{DepositEventSignature}},
+		[][]common.ExecutionHash{{types.DepositEventSignature}},
 	)
 	if err != nil {
 		return nil, err
@@ -87,11 +78,6 @@ func (dc *WrappedBeaconDepositContract[DepositT, _, _]) ReadDeposits(
 
 	deposits := make([]DepositT, 0)
 	for _, log := range logs {
-		if log.GetAddress() != dc.address ||
-			log.GetTopics()[0] != DepositEventSignature {
-			continue
-		}
-
 		var d DepositT
 		d = d.Empty()
 		if err = d.UnmarshalLog(log); err != nil {

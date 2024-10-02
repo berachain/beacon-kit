@@ -28,6 +28,7 @@ import (
 
 // Deposits is a typealias for a list of Deposits.
 type Deposits[LogT interface {
+	GetTopics() []common.ExecutionHash
 	GetData() []byte
 }] []*Deposit[LogT]
 

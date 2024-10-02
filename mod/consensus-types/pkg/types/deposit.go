@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	gethcrypto "github.com/ethereum/go-ethereum/crypto"
 	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
 )
@@ -46,6 +47,7 @@ var (
 // Deposit into the consensus layer from the deposit contract in the execution
 // layer.
 type Deposit[LogT interface {
+	GetTopics() []common.ExecutionHash
 	GetData() []byte
 }] struct {
 	// Public key of the validator specified in the deposit.
@@ -63,6 +65,7 @@ type Deposit[LogT interface {
 
 // NewDeposit creates a new Deposit instance.
 func NewDeposit[LogT interface {
+	GetTopics() []common.ExecutionHash
 	GetData() []byte
 }](
 	pubkey crypto.BLSPubkey,
@@ -196,10 +199,29 @@ func (d *Deposit[_]) GetTree() (*fastssz.Node, error) {
 /*                                   EthLog                                   */
 /* -------------------------------------------------------------------------- */
 
+// DepositEventSignatureString is the Deposit event signature human readable
+// string that should be keccak256 hashed for the event's topic.
+const DepositEventSignatureString = "Deposit(bytes,bytes,uint64,bytes,uint64)"
+
+//nolint:gochecknoglobals // TODO: remove usage of geth's crypto.Keccak256.
+var DepositEventSignature = common.ExecutionHash(
+	gethcrypto.Keccak256([]byte(DepositEventSignatureString)),
+)
+
 // UnmarshalLog unmarshals the Deposit object from an Ethereum log.
 //
 // TODO: use abi decoding or constants for reading the bytes.
 func (d *Deposit[LogT]) UnmarshalLog(log LogT) error {
+	topics := log.GetTopics()
+	if len(topics) != 1 {
+		return fmt.Errorf("expected 1 topic, got %d", len(topics))
+	}
+	if topics[0] != DepositEventSignature {
+		return fmt.Errorf(
+			"expected topic %s, got %s", DepositEventSignature, topics[0],
+		)
+	}
+
 	data := log.GetData()
 	if len(data) < 448 {
 		return fmt.Errorf(
