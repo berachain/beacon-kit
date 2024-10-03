@@ -100,7 +100,7 @@ func generateValidBeaconState() *types.BeaconState[
 		},
 		Balances:                     []uint64{32000000000, 31000000000},
 		RandaoMixes:                  generateRandomBytes32(65536),
-		Slashings:                    []uint64{1000000000, 2000000000},
+		Slashings:                    []math.Gwei{1000000000, 2000000000},
 		NextWithdrawalIndex:          7,
 		NextWithdrawalValidatorIndex: 8,
 		TotalSlashing:                3000000000,

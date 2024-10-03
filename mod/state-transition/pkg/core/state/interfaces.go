@@ -107,7 +107,7 @@ type KVStore[
 	// GetRandaoMixAtIndex retrieves the randao mix at the given index.
 	GetRandaoMixAtIndex(index uint64) (common.Bytes32, error)
 	// GetSlashings retrieves all slashings.
-	GetSlashings() ([]uint64, error)
+	GetSlashings() ([]math.Gwei, error)
 	// SetSlashingAtIndex sets the slashing at the given index.
 	SetSlashingAtIndex(index uint64, amount math.Gwei) error
 	// GetSlashingAtIndex retrieves the slashing at the given index.
