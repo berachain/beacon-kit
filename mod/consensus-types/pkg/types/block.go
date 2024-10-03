@@ -81,17 +81,16 @@ func (b *BeaconBlock) NewFromSSZ(
 	bz []byte,
 	forkVersion uint32,
 ) (*BeaconBlock, error) {
-	var block = new(BeaconBlock)
+	var block *BeaconBlock
 	switch forkVersion {
 	case version.Deneb:
 		block = &BeaconBlock{}
+		return block, block.UnmarshalSSZ(bz)
 	case version.DenebPlus:
 		panic("unsupported fork version")
 	default:
 		return block, ErrForkVersionNotSupported
 	}
-
-	return block, block.UnmarshalSSZ(bz)
 }
 
 /* -------------------------------------------------------------------------- */
