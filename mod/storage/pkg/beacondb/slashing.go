@@ -29,8 +29,8 @@ import (
 func (kv *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
-]) GetSlashings() ([]uint64, error) {
-	var slashings []uint64
+]) GetSlashings() ([]math.Gwei, error) {
+	var slashings []math.Gwei
 	iter, err := kv.slashings.Iterate(kv.ctx, nil)
 	if err != nil {
 		return nil, err
@@ -41,7 +41,7 @@ func (kv *KVStore[
 		if err != nil {
 			return nil, err
 		}
-		slashings = append(slashings, slashing)
+		slashings = append(slashings, math.Gwei(slashing))
 		iter.Next()
 	}
 	return slashings, nil

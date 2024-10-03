@@ -97,7 +97,7 @@ func NewBeaconState(
 		[]common.Bytes32{},
 		0,
 		0,
-		[]uint64{},
+		[]math.Gwei{},
 		0,
 	)
 	return &BeaconState{BeaconStateMarshallable: bsm}, err
