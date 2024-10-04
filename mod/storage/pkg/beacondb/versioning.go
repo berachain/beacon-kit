@@ -21,6 +21,7 @@
 package beacondb
 
 import (
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -47,6 +48,28 @@ func (kv *KVStore[
 		return common.Root{}, err
 	}
 	return common.Root(bz), nil
+}
+
+// GetGenesisTime retrieves the genesis time from the beacon state.
+func (kv *KVStore[
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
+]) GetGenesisTime() (uint64, error) {
+	genesisTime, err := kv.genesisTime.Get(kv.ctx)
+	if err != nil {
+		return 0, errors.Wrapf(err, "err in GetGenesisTime")
+	}
+	return genesisTime, nil
+}
+
+// SetGenesisTime sets the genesis time in the beacon state.
+func (kv *KVStore[
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
+]) SetGenesisTime(
+	genesisTime uint64,
+) error {
+	return kv.genesisTime.Set(kv.ctx, genesisTime)
 }
 
 // GetSlot returns the current slot.

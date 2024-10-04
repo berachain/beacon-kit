@@ -936,6 +936,10 @@ type (
 		// GetValidatorsByEffectiveBalance retrieves validators by effective
 		// balance.
 		GetValidatorsByEffectiveBalance() ([]ValidatorT, error)
+		// GetGenesisTime retrieves the genesis time.
+		GetGenesisTime() (uint64, error)
+		// SetGenesisTime updates the genesis time.
+		SetGenesisTime(time uint64) error
 	}
 
 	// ReadOnlyBeaconState is the interface for a read-only beacon state.
@@ -968,6 +972,7 @@ type (
 		ValidatorIndexByCometBFTAddress(
 			cometBFTAddress []byte,
 		) (math.ValidatorIndex, error)
+		GetGenesisTime() (uint64, error)
 	}
 
 	// WriteOnlyBeaconState is the interface for a write-only beacon state.
@@ -991,6 +996,7 @@ type (
 		SetNextWithdrawalIndex(uint64) error
 		SetNextWithdrawalValidatorIndex(math.ValidatorIndex) error
 		SetTotalSlashing(math.Gwei) error
+		SetGenesisTime(time uint64) error
 	}
 
 	// WriteOnlyStateRoots defines a struct which only has write access to state
@@ -1138,6 +1144,7 @@ type (
 	GenesisBackend interface {
 		GenesisValidatorsRoot(slot math.Slot) (common.Root, error)
 		GetGenesisForkVersion(genesisSlot math.Slot) (common.Version, error)
+		GetGenesisTime(slot math.Slot) (uint64, error)
 	}
 
 	HistoricalBackend[ForkT any] interface {
