@@ -105,7 +105,6 @@ gosec:
 #################
 
 slither:
-	mkdir contracts/out
 	docker run \
 	-t \
 	--platform linux/amd64 \

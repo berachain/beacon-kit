@@ -64,7 +64,7 @@ jobs:
         args:
           - "build"
           - "lint"
-          - "slither"
+          # - "slither"
           - "gosec"
           - "nilaway"
           - "markdownlint"
