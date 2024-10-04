@@ -97,12 +97,12 @@ func FromUint64[U ~uint64](i U) String {
 // Precondition: bigint is non-negative.
 func FromBigInt(bigint *big.Int) String {
 	if sign := bigint.Sign(); sign == 0 {
-		return NewString("0x0")
+		return NewString(prefix + "0")
 	} else if sign > 0 {
-		return NewString("0x" + bigint.Text(hexBase))
+		return NewString(prefix + bigint.Text(hexBase))
 	}
 	// this return should never reach if precondition is met
-	return NewString("0x" + bigint.Text(hexBase)[1:])
+	return NewString(prefix + bigint.Text(hexBase)[1:])
 }
 
 func FromJSONString[B ~[]byte](b B) String {

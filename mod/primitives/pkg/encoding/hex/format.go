@@ -29,9 +29,9 @@ func ensure0xPrefix[T []byte | string](s T) T {
 	}
 	switch v := any(s).(type) {
 	case string:
-		return T("0x" + v)
+		return T(string(prefix) + v)
 	case []byte:
-		return T(append([]byte("0x"), v...))
+		return T(append([]byte(prefix), v...))
 	default:
 		return s
 	}
