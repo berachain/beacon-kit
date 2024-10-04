@@ -41,7 +41,7 @@ concurrency:
   # us to debug main if a bad commit is pushed.
   # Case 1: The base branch is main and the event triggered via merge group => we DO NOT want to cancel in progress
   # Case 2: The reference branch is not main => we want to cancel in progress
-  cancel-in-progress: ${{ !(github.base_ref == 'refs/heads/main' && github.event_name == 'merge_group') || github.ref != 'refs/heads/main' }}
+  # cancel-in-progress: ${{ !(github.base_ref == 'refs/heads/main' && github.event_name == 'merge_group') || github.ref != 'refs/heads/main' }}
 
 env:
   GCP_ID_PROVIDER: 'projects/341806074811/locations/global/workloadIdentityPools/oidc-apps-automation-st-01-pool/providers/gh-apps-oidc-provider'
