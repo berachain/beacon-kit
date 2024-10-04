@@ -42,7 +42,7 @@ func NewCredentialsFromExecutionAddress(
 	address common.ExecutionAddress,
 ) WithdrawalCredentials {
 	credentials := WithdrawalCredentials{}
-	credentials[0] = 0x01
+	credentials[0] = EthSecp256k1CredentialPrefix
 	copy(credentials[12:], address[:])
 	return credentials
 }
