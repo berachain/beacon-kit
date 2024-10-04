@@ -23,7 +23,6 @@ package cometbft
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	storetypes "cosmossdk.io/store/types"
 	servercmtlog "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/log"
@@ -41,20 +40,12 @@ import (
 	"github.com/cometbft/cometbft/proxy"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/version"
-)
-
-type (
-	execMode uint8
 )
 
 const (
-	execModePrepareProposal execMode = iota
-	execModeProcessProposal
-	execModeFinalize
+	initialAppVersion uint64 = 0
+	appName           string = "beacond"
 )
-
-const InitialAppVersion uint64 = 0
 
 type Service[
 	LoggerT log.AdvancedLogger[LoggerT],
@@ -63,20 +54,31 @@ type Service[
 	cmtCfg *cmtcfg.Config
 
 	logger     LoggerT
-	name       string
 	sm         *statem.Manager
 	Middleware MiddlewareI
 
+	// prepareProposalState is used for PrepareProposal, which is set based on the
+	// previous block's state. This state is never committed. In case of multiple
+	// consensus rounds, the state is always reset to the previous block's state.
 	prepareProposalState *state
-	processProposalState *state
-	finalizeBlockState   *state
-	interBlockCache      storetypes.MultiStorePersistentCache
-	paramStore           *params.ConsensusParamsStore
-	initialHeight        int64
-	minRetainBlocks      uint64
 
-	// application's version string
-	version string
+	// processProposalState is used for ProcessProposal, which is set based on the
+	// previous block's state. This state is never committed. In case of multiple
+	// consensus rounds, the state is always reset to the previous block's state.
+	processProposalState *state
+
+	// finalizeBlockState is used for FinalizeBlock, which is set based on the
+	// previous block's state. This state is committed. finalizeBlockState is set
+	// on InitChain and FinalizeBlock and set to nil on Commit.
+	finalizeBlockState *state
+
+	interBlockCache storetypes.MultiStorePersistentCache
+	paramStore      *params.ConsensusParamsStore
+
+	// initialHeight is the initial height at which we start the node
+	initialHeight   int64
+	minRetainBlocks uint64
+
 	chainID string
 }
 
@@ -93,7 +95,6 @@ func NewService[
 ) *Service[LoggerT] {
 	s := &Service[LoggerT]{
 		logger: logger,
-		name:   "beacond",
 		sm: statem.NewManager(
 			db,
 			servercmtlog.WrapSDKLogger(logger),
@@ -101,7 +102,6 @@ func NewService[
 		Middleware: middleware,
 		cmtCfg:     cmtCfg,
 		paramStore: params.NewConsensusParamsStore(cs),
-		version:    version.Version,
 	}
 
 	s.MountStore(storeKey, storetypes.StoreTypeIAVL)
@@ -163,8 +163,6 @@ func (s *Service[_]) Close() error {
 		_ = s.node.Stop()
 	}
 
-	// Close s.db (opened by cosmos-sdk/server/start.go call to openDB)
-
 	s.logger.Info("Closing application.db")
 	if err := s.sm.Close(); err != nil {
 		errs = append(errs, err)
@@ -174,7 +172,7 @@ func (s *Service[_]) Close() error {
 
 // Name returns the name of the cometbft.
 func (s *Service[_]) Name() string {
-	return s.name
+	return appName
 }
 
 // CommitMultiStore returns the CommitMultiStore of the cometbft.
@@ -184,6 +182,10 @@ func (s *Service[_]) CommitMultiStore() storetypes.CommitMultiStore {
 
 // AppVersion returns the application's protocol version.
 func (s *Service[_]) AppVersion(_ context.Context) (uint64, error) {
+	return s.appVersion()
+}
+
+func (s *Service[_]) appVersion() (uint64, error) {
 	cp := s.paramStore.Get()
 	return cp.Version.App, nil
 }
@@ -212,25 +214,15 @@ func (s *Service[_]) setInterBlockCache(
 	s.interBlockCache = cache
 }
 
-func (s *Service[LoggerT]) setState(mode execMode) {
+// resetState provides a fresh state which can be used to reset
+// prepareProposal/processProposal/finalizeBlock State.
+// A state is explicitly returned to avoid false positives from
+// nilaway tool.
+func (s *Service[LoggerT]) resetState() *state {
 	ms := s.sm.CommitMultiStore().CacheMultiStore()
-	baseState := &state{
+	return &state{
 		ms:  ms,
 		ctx: sdk.NewContext(ms, false, servercmtlog.WrapSDKLogger(s.logger)),
-	}
-
-	switch mode {
-	case execModePrepareProposal:
-		s.prepareProposalState = baseState
-
-	case execModeProcessProposal:
-		s.processProposalState = baseState
-
-	case execModeFinalize:
-		s.finalizeBlockState = baseState
-
-	default:
-		panic(fmt.Sprintf("invalid runTxMode for setState: %d", mode))
 	}
 }
 
