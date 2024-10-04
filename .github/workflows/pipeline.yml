@@ -120,7 +120,7 @@ jobs:
         # os: 
         #   - ubuntu-24.04-e2e
     name: ${{ matrix.args }}
-    runs-on: ubicloud-standard-4
+    runs-on: ubicloud-standard-8
     steps:
       - name: Checkout
         uses: actions/checkout@v3
