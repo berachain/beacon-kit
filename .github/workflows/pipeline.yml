@@ -33,20 +33,9 @@ on:
       - "v*"
   pull_request:
   merge_group:
-
-concurrency:
-  group: ci-${{ github.ref }}-tests
-  # We don't want to cancel in progress on main. This is to allow
-  # us to debug main if a bad commit is pushed.
-  # Case 1: The base branch is main and the event triggered via merge group => we DO NOT want to cancel in progress
-  # Case 2: The reference branch is not main => we want to cancel in progress
-  cancel-in-progress: ${{ !(github.base_ref == 'refs/heads/main' && github.event_name == 'merge_group') || github.ref != 'refs/heads/main' }}
+  workflow_dispatch:
 
 env:
-  GCP_ID_PROVIDER: 'projects/341806074811/locations/global/workloadIdentityPools/oidc-apps-automation-st-01-pool/providers/gh-apps-oidc-provider'
-  GCP_SERVICE_ACCOUNT: 'sa-apps-deployment@prj-berachain-automation-st-01.iam.gserviceaccount.com'
-  GCP_REGISTRY: northamerica-northeast1-docker.pkg.dev
-  GHCR_REGISTRY: ghcr.io
   PUSH_DOCKER_IMAGE: ${{ (github.base_ref == github.head_ref && github.event_name == 'push') || github.ref == 'refs/tags/v*'}}
   VERSION: ${{ github.ref_name }}
 
@@ -62,7 +51,6 @@ jobs:
         args:
           - "build"
           - "lint"
-          - "slither"
           - "gosec"
           - "nilaway"
           - "markdownlint"
@@ -73,11 +61,8 @@ jobs:
           - "test-unit-fuzz"
           - "test-forge-cover"
           - "test-forge-fuzz"
-        os: 
-          - ubuntu-24.04-beacon-kit
     name: ${{ matrix.args }}
-    runs-on:
-      labels: ${{ matrix.os }}
+    runs-on: ubicloud-standard-8
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -99,13 +84,6 @@ jobs:
           make ${{ matrix.args }}
         env:
           GOPATH: /home/runner/go
-      - name: Upload to Codecov
-        uses: codecov/codecov-action@v2
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./${{ matrix.args }}.txt
-        if: ${{ matrix.args == 'test-unit-cover' || matrix.args == 'test-forge-cover'}}
-
 
 # -------------------------------------------------------------------------- #
 #                                 E2E Testing                                #
@@ -116,11 +94,8 @@ jobs:
       matrix:
         args:
           - "test-e2e"
-        os: 
-          - ubuntu-24.04-e2e
     name: ${{ matrix.args }}
-    runs-on:
-      labels: ${{ matrix.os }}
+    runs-on: ubicloud-standard-16
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -150,12 +125,11 @@ jobs:
           GOPATH: /home/runner/go
 
 # -------------------------------------------------------------------------- #
-#                       Docker Container Build and Push                      #
+#                       Docker Container Build                               #
 # -------------------------------------------------------------------------- #
 
-  build-and-push-container:
-    runs-on:
-      labels: ubuntu-24.04-beacon-kit
+  build-docker:
+    runs-on: ubicloud-standard-4
     permissions:
       id-token: write
       contents: read
@@ -186,34 +160,4 @@ jobs:
       - name: Build Docker image
         run: |
           make build-docker
-
-      - if: ${{ env.PUSH_DOCKER_IMAGE == 'true' }}
-        name: Authenticate to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.GHCR_REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GH_TOKEN }}
-        
-      - if: ${{ env.PUSH_DOCKER_IMAGE == 'true' }}
-        name: Authenticate to Google Cloud
-        id: 'auth'
-        uses: 'google-github-actions/auth@v2'
-        with:
-          workload_identity_provider: ${{ env.GCP_ID_PROVIDER }}
-          service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
-        
-      - if: ${{ env.PUSH_DOCKER_IMAGE == 'true' }}
-        name: 'Set up Cloud SDK'
-        uses: 'google-github-actions/setup-gcloud@v2'
-       
-      - if: ${{ env.PUSH_DOCKER_IMAGE == 'true' }}
-        name: Setup Docker to use Google Cloud OIDC
-        run: |
-          gcloud auth configure-docker ${{ env.GCP_REGISTRY }} --quiet
-        
-      - if: ${{ env.PUSH_DOCKER_IMAGE == 'true' }}
-        name: Push Docker image
-        run: |
-            make push-docker-gcp push-docker-github
         
