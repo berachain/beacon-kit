@@ -113,8 +113,7 @@ func (a ExecutionAddress) MarshalText() ([]byte, error) {
 
 // UnmarshalText parses an address in hex syntax.
 func (a *ExecutionAddress) UnmarshalText(input []byte) error {
-	*a = NewExecutionAddressFromHex(string(input))
-	return nil
+	return hex.DecodeFixedText(input, a[:])
 }
 
 // MarshalJSON returns the JSON representation of a.

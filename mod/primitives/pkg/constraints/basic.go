@@ -36,7 +36,7 @@ type EngineType[SelfT any] interface {
 	JSONMarshallable
 }
 
-// EmptyWithForkVersion is a constraint that requires a type to have an Empty
+// EmptyWithVersion is a constraint that requires a type to have an Empty
 // method.
 type EmptyWithVersion[SelfT any] interface {
 	Empty(uint32) SelfT
@@ -47,7 +47,7 @@ type Empty[SelfT any] interface {
 	Empty() SelfT
 }
 
-// IsNil is a constraint that requires a type to have an IsNil method.
+// Nillable is a constraint that requires a type to have an IsNil method.
 type Nillable interface {
 	IsNil() bool
 }
