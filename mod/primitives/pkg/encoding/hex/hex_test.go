@@ -74,7 +74,8 @@ func TestNewStringStrictInvariants(t *testing.T) {
 				require.Error(t, err, "Test case: %s", test.name)
 			} else {
 				require.NoError(t, err, "Test case: %s", test.name)
-				verifyInvariants(t, "NewStringStrict()", str)
+				_, err = hex.IsValidHex(str)
+				require.NoError(t, err)
 			}
 		})
 	}
@@ -112,7 +113,8 @@ func TestNewStringInvariants(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			str := hex.NewString(test.input)
-			verifyInvariants(t, "NewString()", str)
+			_, err := hex.IsValidHex(str)
+			require.NoError(t, err)
 		})
 	}
 }
@@ -155,7 +157,8 @@ func TestFromBytes(t *testing.T) {
 			result := hex.FromBytes(tt.input)
 			require.Equal(t, tt.expected, result.Unwrap())
 
-			verifyInvariants(t, "FromBytes()", result)
+			_, err := hex.IsValidHex(result)
+			require.NoError(t, err)
 
 			decoded, err := result.ToBytes()
 			require.NoError(t, err)
@@ -195,7 +198,8 @@ func TestUint64RoundTrip(t *testing.T) {
 			result := hex.FromUint64(tt.input)
 			require.Equal(t, tt.expected, result.Unwrap())
 
-			verifyInvariants(t, "FromUint64()", result)
+			_, err := hex.IsValidHex(result)
+			require.NoError(t, err)
 
 			decoded, err := strconv.ParseUint(result.Unwrap()[2:], 16, 64)
 			require.NoError(t, err)
@@ -234,12 +238,10 @@ func TestBigIntRoundTrip(t *testing.T) {
 			result := hex.FromBigInt(tt.input)
 			require.Equal(t, tt.expected, result.Unwrap())
 
-			verifyInvariants(t, "FromBigInt()", result)
+			_, err := hex.IsValidHex(result)
+			require.NoError(t, err)
 
-			var (
-				dec *big.Int
-				err error
-			)
+			var dec *big.Int
 
 			if tt.input.Sign() >= 0 {
 				dec, err = hex.NewString(result.Unwrap()).ToBigInt()
@@ -255,12 +257,6 @@ func TestBigIntRoundTrip(t *testing.T) {
 }
 
 // ====================== Helpers ===========================.
-
-func verifyInvariants(t *testing.T, invoker string, s hex.String) {
-	t.Helper()
-	require.True(t, s.Has0xPrefix(), invoker+"result does not have 0x prefix: %v", s)
-	require.False(t, s.IsEmpty(), invoker+"result is empty: %v", s)
-}
 
 func TestUnmarshalJSONText(t *testing.T) {
 	tests := []struct {

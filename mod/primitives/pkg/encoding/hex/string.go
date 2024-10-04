@@ -25,6 +25,7 @@ import (
 	"encoding/hex"
 	"math/big"
 	"strconv"
+	"strings"
 
 	"github.com/berachain/beacon-kit/mod/errors"
 )
@@ -46,34 +47,36 @@ func NewString[T []byte | string](s T) String {
 // assigns it to the String type.
 // Returns an error if the input is not a valid hex string.
 func (s *String) UnmarshalText(text []byte) error {
-	str := string(text)
-	err := isValidHex(str)
-	if err != nil {
-		return errors.Wrapf(ErrInvalidString, "%s", str)
+	if _, err := IsValidHex(text); err != nil {
+		return errors.Wrapf(ErrInvalidString, "%s", text)
 	}
-	*s = String(str)
+	*s = String(text)
 	return nil
 }
 
-func isValidHex(str string) error {
-	if len(str) == 0 {
-		return ErrEmptyString
-	} else if !has0xPrefix(str) {
-		return ErrMissingPrefix
+// IsValidHex performs basic validations that every hex string
+// must pass (there may be extra ones depending on the type encoded)
+// It returns the suffix (dropping 0x prefix) in the hope to appease nilaway.
+func IsValidHex[T ~[]byte | ~string](s T) (T, error) {
+	if len(s) == 0 {
+		return *new(T), ErrEmptyString
 	}
-	return nil
+	if len(s) < prefixLen {
+		return *new(T), ErrMissingPrefix
+	}
+	if strings.ToLower(string(s[:prefixLen])) != prefix {
+		return *new(T), ErrMissingPrefix
+	}
+	return s[prefixLen:], nil
 }
 
 // NewStringStrict creates a hex string with 0x prefix. It errors if any of the
 // string invariants are violated.
 func NewStringStrict[T []byte | string](s T) (String, error) {
-	str := string(s)
-	if len(str) == 0 {
-		return "", ErrEmptyString
-	} else if !has0xPrefix(str) {
-		return "", ErrMissingPrefix
+	if _, err := IsValidHex(s); err != nil {
+		return "", err
 	}
-	return String(str), nil
+	return String(s), nil
 }
 
 // FromBytes creates a hex string with 0x prefix.
@@ -104,16 +107,6 @@ func FromBigInt(bigint *big.Int) String {
 
 func FromJSONString[B ~[]byte](b B) String {
 	return NewString(bytes.Trim(b, "\""))
-}
-
-// Has0xPrefix returns true if s has a 0x prefix.
-func (s String) Has0xPrefix() bool {
-	return has0xPrefix[string](string(s))
-}
-
-// IsEmpty returns true if s is empty.
-func (s String) IsEmpty() bool {
-	return len(s) == 0
 }
 
 // ToBytes decodes a hex string with 0x prefix.
