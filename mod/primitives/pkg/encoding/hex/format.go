@@ -20,9 +20,12 @@
 
 package hex
 
+import "strings"
+
 // has0xPrefix returns true if s has a 0x prefix.
 func has0xPrefix[T []byte | string](s T) bool {
-	return len(s) >= prefixLen && s[0] == '0' && (s[1] == 'x' || s[1] == 'X')
+	return len(s) >= prefixLen &&
+		strings.ToLower(string(s[:prefixLen])) == prefix
 }
 
 // ensure0xPrefix ensures that s has a 0x prefix. If it doesn't, it adds it.
