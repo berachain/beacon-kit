@@ -22,7 +22,7 @@ package hex
 
 // has0xPrefix returns true if s has a 0x prefix.
 func has0xPrefix[T []byte | string](s T) bool {
-	return len(s) >= 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X')
+	return len(s) >= prefixLen && s[0] == '0' && (s[1] == 'x' || s[1] == 'X')
 }
 
 // ensure0xPrefix ensures that s has a 0x prefix. If it doesn't, it adds it.
@@ -62,7 +62,7 @@ func formatAndValidateText(input []byte) ([]byte, error) {
 	if !has0xPrefix(input) {
 		return nil, ErrMissingPrefix
 	}
-	input = input[2:]
+	input = input[prefixLen:]
 	if len(input)%2 != 0 {
 		return nil, ErrOddLength
 	}
@@ -79,7 +79,7 @@ func formatAndValidateNumber[T []byte | string](input T) (T, error) {
 	if !has0xPrefix(input) {
 		return *new(T), ErrMissingPrefix
 	}
-	input = input[2:]
+	input = input[prefixLen:]
 	if len(input) == 0 {
 		return *new(T), ErrEmptyNumber
 	}

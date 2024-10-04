@@ -50,6 +50,6 @@ func (b *Bytes) UnmarshalText(input []byte) error {
 }
 
 // String returns the hex encoding of b.
-func (b Bytes) String() hex.String {
-	return hex.FromBytes(b)
+func (b Bytes) String() string {
+	return hex.FromBytes(b).Unwrap()
 }

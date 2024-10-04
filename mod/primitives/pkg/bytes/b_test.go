@@ -1430,7 +1430,7 @@ func TestBytes_String(t *testing.T) {
 			require.Equal(
 				t,
 				tt.expected,
-				string(result),
+				result,
 				"Test case: %s",
 				tt.name,
 			)

@@ -77,11 +77,9 @@ func NewStringStrict[T []byte | string](s T) (String, error) {
 }
 
 // FromBytes creates a hex string with 0x prefix.
-func FromBytes[B ~[]byte](b B) String {
-	enc := make([]byte, len(b)*2+prefixLen)
-	copy(enc, prefix)
-	hex.Encode(enc[2:], b)
-	return NewString(enc)
+func FromBytes[B ~[]byte](input B) String {
+	b := EncodeBytes(input)
+	return NewString(b)
 }
 
 // FromUint64 encodes i as a hex string with 0x prefix.
@@ -120,7 +118,7 @@ func (s String) IsEmpty() bool {
 
 // ToBytes decodes a hex string with 0x prefix.
 func (s String) ToBytes() ([]byte, error) {
-	return hex.DecodeString(string(s[2:]))
+	return hex.DecodeString(string(s[prefixLen:]))
 }
 
 // MustToBytes decodes a hex string with 0x prefix.

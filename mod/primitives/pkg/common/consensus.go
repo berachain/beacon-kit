@@ -84,7 +84,7 @@ func NewRootFromBytes(input []byte) Root {
 }
 
 // Hex converts a root to a hex string.
-func (r Root) Hex() string { return string(hex.EncodeBytes(r[:])) }
+func (r Root) Hex() string { return hex.FromBytes(r[:]).Unwrap() }
 
 // String implements the stringer interface and is used also by the logger when
 // doing full logging into a file.
