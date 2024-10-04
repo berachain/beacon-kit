@@ -126,10 +126,10 @@ jobs:
           GOPATH: /home/runner/go
 
 # -------------------------------------------------------------------------- #
-#                       Docker Container Build and Push                      #
+#                       Docker Container Build                               #
 # -------------------------------------------------------------------------- #
 
-  build-and-push-container:
+  build-docker:
     runs-on: ubicloud-standard-4
     permissions:
       id-token: write

@@ -104,7 +104,7 @@ eth_json_rpc_endpoints:
     clients:
       - el-full-reth-0
       - el-full-reth-1
-      # - el-full-geth-2 
+      - el-full-geth-2 
       # - el-full-nethermind-3
       # - el-full-besu-4
       # - el-full-erigon-5
@@ -118,5 +118,3 @@ additional_services:
   - name: "pyroscope"
   - name: "blockscout"
     client: "el-full-reth-0"
-  # - name: "otterscan" # otterscan supports only erigon nodes
-  #   client: "el-full-erigon-3"
