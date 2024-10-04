@@ -67,6 +67,7 @@ func ConstructValidator() *validator.Validate {
 		"epoch":            ValidateUint64,
 		"slot":             ValidateUint64,
 		"validator_status": ValidateValidatorStatus,
+		"parent_root":      ValidateRoot,
 	}
 	validate := validator.New()
 	for tag, fn := range validators {
@@ -144,9 +145,9 @@ func ValidateValidatorID(fl validator.FieldLevel) bool {
 	return false
 }
 
-// ValidateRoot checks if the provided field is a valid root.
+// validateRoot checks if the provided field is a valid root.
 // It validates against a 32 byte hex-encoded root with "0x" prefix.
-func ValidateRoot(value string) bool {
+func validateRoot(value string) bool {
 	valid, err := validateRegex(value, `^0x[0-9a-fA-F]{64}$`)
 	if err != nil {
 		return false
@@ -201,8 +202,14 @@ func validateStateBlockIDs(value string, allowedValues map[string]bool) bool {
 		return true
 	}
 	// Check if value is a hex-encoded 32 byte root with "0x" prefix
-	if ValidateRoot(value) {
+	if validateRoot(value) {
 		return true
 	}
 	return false
+}
+
+// ValidateRoot checks if the provided field is a valid root.
+// It validates against a 32 byte hex-encoded root with "0x" prefix.
+func ValidateRoot(fl validator.FieldLevel) bool {
+	return validateRoot(fl.Field().String())
 }

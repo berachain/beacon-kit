@@ -297,6 +297,9 @@ type (
 		// number
 		// from the store.
 		GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error)
+		// GetSlotByParentRoot retrieves the slot by a given parent root from the
+		// store.
+		GetSlotByParentRoot(root common.Root) (math.Slot, error)
 	}
 
 	ConsensusEngine interface {
@@ -1092,6 +1095,8 @@ type (
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		GetSlotByStateRoot(root common.Root) (math.Slot, error)
 		GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error)
+		GetHeadSlot() (math.Slot, error)
+		GetSlotByParentRoot(root common.Root) (math.Slot, error)
 
 		NodeAPIBeaconBackend[
 			BeaconStateT, BeaconBlockHeaderT, ForkT, ValidatorT, WithdrawalCredentialsT,
@@ -1101,7 +1106,7 @@ type (
 		]
 	}
 
-	// NodeAPIBackend is the interface for backend of the beacon API.
+	// NodeAPIBeaconBackend is the interface for backend of the beacon API.
 	NodeAPIBeaconBackend[
 		BeaconStateT, BeaconBlockHeaderT, ForkT any,
 		ValidatorT types.Validator[WithdrawalCredentialsT],
@@ -1117,6 +1122,8 @@ type (
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		// GetSlotByStateRoot retrieves the slot by a given root from the store.
 		GetSlotByStateRoot(root common.Root) (math.Slot, error)
+		// GetHeadSlot retrieves the head slot from the store.
+		GetHeadSlot() (math.Slot, error)
 	}
 
 	// NodeAPIProofBackend is the interface for backend of the proof API.
@@ -1130,6 +1137,7 @@ type (
 
 	GenesisBackend interface {
 		GenesisValidatorsRoot(slot math.Slot) (common.Root, error)
+		GetGenesisForkVersion(genesisSlot math.Slot) (common.Version, error)
 	}
 
 	HistoricalBackend[ForkT any] interface {

@@ -21,6 +21,9 @@
 package e2e_test
 
 import (
+	"encoding/hex"
+	"strconv"
+
 	beaconapi "github.com/attestantio/go-eth2-client/api"
 	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
@@ -196,4 +199,97 @@ func (s *BeaconKitE2ESuite) TestBeaconRandao() {
 		randao,
 		"Randao should not be all zeros",
 	)
+}
+
+func (s *BeaconKitE2ESuite) TestBeaconGenesis() {
+	client := s.initBeaconTest()
+
+	genesisResp, err := client.Genesis(s.Ctx(),
+		&beaconapi.GenesisOpts{})
+	s.Require().NoError(err)
+	s.Require().NotNil(genesisResp)
+
+	s.Require().NotZero(
+		genesisResp.Data.GenesisTime,
+		"Genesis time should not be zero",
+	)
+
+	s.Require().NotEmpty(
+		genesisResp.Data.GenesisValidatorsRoot,
+		"Genesis validators root should not be empty",
+	)
+
+	s.Require().NotEmpty(
+		genesisResp.Data.GenesisForkVersion,
+		"Genesis fork version should be empty",
+	)
+
+	expectedVersion := phase0.Version{0x04, 0x00, 0x00, 0x00}
+	s.Require().Equal(
+		expectedVersion,
+		genesisResp.Data.GenesisForkVersion,
+		"Genesis fork version does not match expected value",
+	)
+}
+
+func (s *BeaconKitE2ESuite) TestBeaconBlockHeaderByID() {
+	client := s.initBeaconTest()
+
+	// Test getting the genesis block header.
+	genesisResp, err := client.BeaconBlockHeader(
+		s.Ctx(),
+		&beaconapi.BeaconBlockHeaderOpts{
+			Block: "genesis",
+		},
+	)
+
+	s.Require().NoError(err)
+	s.Require().NotNil(genesisResp)
+	s.Require().NotNil(genesisResp.Data)
+	s.Require().NotZero(genesisResp.Data.Root)
+	s.Require().NotZero(genesisResp.Data.Header.Message.Slot)
+	// Check slot to be equal than 1
+	s.Require().Equal(uint64(1), uint64(genesisResp.Data.Header.Message.Slot))
+
+	// Test getting the head block header.
+	headResp, err := client.BeaconBlockHeader(
+		s.Ctx(),
+		&beaconapi.BeaconBlockHeaderOpts{
+			Block: "head",
+		},
+	)
+
+	s.Require().NoError(err)
+	s.Require().NotNil(headResp)
+	s.Require().NotNil(headResp.Data)
+	s.Require().NotZero(headResp.Data.Root)
+	s.Require().NotZero(headResp.Data.Header.Message.Slot)
+	// Check slot to be greater than 1
+	s.Require().Greater(uint64(headResp.Data.Header.Message.Slot), uint64(1))
+
+	// Test getting a block header by slot.
+	slot := headResp.Data.Header.Message.Slot - 1
+	slotResp, err := client.BeaconBlockHeader(
+		s.Ctx(),
+		&beaconapi.BeaconBlockHeaderOpts{
+			Block: strconv.FormatUint(uint64(slot), 10),
+		},
+	)
+	s.Require().NoError(err)
+	s.Require().NotNil(slotResp)
+	s.Require().NotNil(slotResp.Data)
+	s.Require().NotZero(slotResp.Data.Root)
+	s.Require().Equal(uint64(slot), uint64(slotResp.Data.Header.Message.Slot))
+
+	// Test getting a block header by block root.
+	rootResp, err := client.BeaconBlockHeader(
+		s.Ctx(),
+		&beaconapi.BeaconBlockHeaderOpts{
+			Block: "0x" + hex.EncodeToString(headResp.Data.Root[:]),
+		},
+	)
+	s.Require().NoError(err)
+	s.Require().NotNil(rootResp)
+	s.Require().NotNil(rootResp.Data)
+	s.Require().Equal(headResp.Data.Root, rootResp.Data.Root)
 }
