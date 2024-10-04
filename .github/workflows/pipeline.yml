@@ -35,18 +35,10 @@ on:
   merge_group:
   workflow_dispatch:
 
-# concurrency:
-  # group: ci-${{ github.ref }}-tests
-  # We don't want to cancel in progress on main. This is to allow
-  # us to debug main if a bad commit is pushed.
-  # Case 1: The base branch is main and the event triggered via merge group => we DO NOT want to cancel in progress
-  # Case 2: The reference branch is not main => we want to cancel in progress
-  # cancel-in-progress: ${{ !(github.base_ref == 'refs/heads/main' && github.event_name == 'merge_group') || github.ref != 'refs/heads/main' }}
-
 env:
-  GCP_ID_PROVIDER: 'projects/341806074811/locations/global/workloadIdentityPools/oidc-apps-automation-st-01-pool/providers/gh-apps-oidc-provider'
-  GCP_SERVICE_ACCOUNT: 'sa-apps-deployment@prj-berachain-automation-st-01.iam.gserviceaccount.com'
-  GCP_REGISTRY: northamerica-northeast1-docker.pkg.dev
+  # GCP_ID_PROVIDER: 'projects/341806074811/locations/global/workloadIdentityPools/oidc-apps-automation-st-01-pool/providers/gh-apps-oidc-provider'
+  # GCP_SERVICE_ACCOUNT: 'sa-apps-deployment@prj-berachain-automation-st-01.iam.gserviceaccount.com'
+  # GCP_REGISTRY: northamerica-northeast1-docker.pkg.dev
   GHCR_REGISTRY: ghcr.io
   PUSH_DOCKER_IMAGE: ${{ (github.base_ref == github.head_ref && github.event_name == 'push') || github.ref == 'refs/tags/v*'}}
   VERSION: ${{ github.ref_name }}
