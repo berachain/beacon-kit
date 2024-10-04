@@ -216,7 +216,9 @@ func (_m *Validator[WithdrawalCredentialsT]) GetPubkey() crypto.BLSPubkey {
 	if rf, ok := ret.Get(0).(func() crypto.BLSPubkey); ok {
 		r0 = rf()
 	} else {
-		r0 = ret.Get(0).(crypto.BLSPubkey)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(crypto.BLSPubkey)
+		}
 	}
 
 	return r0
