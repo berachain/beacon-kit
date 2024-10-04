@@ -50,7 +50,7 @@ env:
   GHCR_REGISTRY: ghcr.io
   PUSH_DOCKER_IMAGE: ${{ (github.base_ref == github.head_ref && github.event_name == 'push') || github.ref == 'refs/tags/v*'}}
   VERSION: ${{ github.ref_name }}
-  FOUNDRY_PROFILE: ci
+  # FOUNDRY_PROFILE: ci
 
 jobs:
 
