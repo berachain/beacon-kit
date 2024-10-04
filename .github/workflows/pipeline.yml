@@ -35,8 +35,8 @@ on:
   merge_group:
   workflow_dispatch:
 
-concurrency:
-  group: ci-${{ github.ref }}-tests
+# concurrency:
+  # group: ci-${{ github.ref }}-tests
   # We don't want to cancel in progress on main. This is to allow
   # us to debug main if a bad commit is pushed.
   # Case 1: The base branch is main and the event triggered via merge group => we DO NOT want to cancel in progress
