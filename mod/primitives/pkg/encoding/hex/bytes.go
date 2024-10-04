@@ -26,6 +26,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 )
 
+var ErrInvalidHexStringLength = errors.New("invalid hex string length")
+
 func EncodeBytes[B ~[]byte](b B) []byte {
 	result := make([]byte, len(b)*2+prefixLen)
 	copy(result, prefix)
@@ -64,7 +66,7 @@ func DecodeFixedText(input, out []byte) error {
 	}
 	if len(raw)/encDecRatio != len(out) {
 		return errors.Wrapf(
-			errors.New("invalid hex string length"),
+			ErrInvalidHexStringLength,
 			"hex string has length %d, want %d",
 			len(raw), len(out)*encDecRatio,
 		)
@@ -82,7 +84,7 @@ func DecodeFixedText(input, out []byte) error {
 	return nil
 }
 
-// MustFromHex returns the bytes represented by the given hex string.
+// MustToBytes returns the bytes represented by the given hex string.
 // It panics if the input is not a valid hex string.
 func MustToBytes(input string) []byte {
 	bz, err := ToBytes(input)
@@ -92,7 +94,7 @@ func MustToBytes(input string) []byte {
 	return bz
 }
 
-// FromHex returns the bytes represented by the given hex string.
+// ToBytes returns the bytes represented by the given hex string.
 // An error is returned if the input is not a valid hex string.
 func ToBytes(input string) ([]byte, error) {
 	s, err := NewStringStrict(input)

@@ -21,15 +21,15 @@
 package hex
 
 const (
-	prefix          = "0x"
-	prefixLen       = len(prefix)
-	badNibble       = ^uint64(0)
-	hexBase         = 16
-	initialCapacity = 10
-	encDecRatio     = 2
-	bytesPer64Bits  = 16 // 64/8
-	bytesPer256Bits = 64 // 256/8
-	nibbleShift     = 4
+	prefix            = "0x"
+	prefixLen         = len(prefix)
+	badNibble         = ^uint64(0)
+	hexBase           = 16
+	initialCapacity   = 10
+	encDecRatio       = 2
+	nibblesPer64Bits  = 16 // 64/4
+	nibblesPer256Bits = 64 // 256/4
+	nibbleShift       = 4
 
 	// hexadecimal conversion constants.
 	hexBaseOffset       = '0'
