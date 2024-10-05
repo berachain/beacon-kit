@@ -62,15 +62,6 @@ func IsValidHex[T ~[]byte | ~string](s T) (T, error) {
 	return s[prefixLen:], nil
 }
 
-// NewStringStrict creates a hex string with 0x prefix. It errors if any of the
-// string invariants are violated.
-func NewStringStrict[T []byte | string](s T) (String, error) {
-	if _, err := IsValidHex(s); err != nil {
-		return "", err
-	}
-	return String(s), nil
-}
-
 // NewString creates a hex string with 0x prefix. It modifies the input to
 // ensure that the string invariants are satisfied.
 func NewString[T []byte | string](s T) String {

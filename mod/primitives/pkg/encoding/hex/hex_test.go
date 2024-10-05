@@ -36,45 +36,43 @@ import (
 func TestNewStringStrictInvariants(t *testing.T) {
 	// NewStringStrict constructor should error if the input is invalid
 	tests := []struct {
-		name      string
-		input     string
-		expectErr bool
+		name        string
+		input       string
+		expectedErr error
 	}{
 		{
-			name:      "Valid hex string",
-			input:     "0x48656c6c6f",
-			expectErr: false,
+			name:        "Valid hex string",
+			input:       "0x48656c6c6f",
+			expectedErr: nil,
 		},
 		{
-			name:      "Empty string",
-			input:     "",
-			expectErr: true,
+			name:        "Empty string",
+			input:       "",
+			expectedErr: hex.ErrEmptyString,
 		},
 		{
-			name:      "No 0x prefix",
-			input:     "48656c6c6f",
-			expectErr: true,
+			name:        "No 0x prefix",
+			input:       "48656c6c6f",
+			expectedErr: hex.ErrMissingPrefix,
 		},
 		{
-			name:      "Valid single hex character",
-			input:     "0x0",
-			expectErr: false,
+			name:        "Valid single hex character",
+			input:       "0x0",
+			expectedErr: nil,
 		},
 		{
-			name:      "Empty hex string",
-			input:     "0x",
-			expectErr: false,
+			name:        "Empty hex string",
+			input:       "0x",
+			expectedErr: nil,
 		},
 	}
 
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			str, err := hex.NewStringStrict(test.input)
-			if test.expectErr {
-				require.Error(t, err, "Test case: %s", test.name)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := hex.IsValidHex(tt.input)
+			if tt.expectedErr != nil {
+				require.Error(t, err)
 			} else {
-				require.NoError(t, err, "Test case: %s", test.name)
-				_, err = hex.IsValidHex(str)
 				require.NoError(t, err)
 			}
 		})

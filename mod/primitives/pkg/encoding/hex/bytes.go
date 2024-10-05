@@ -97,13 +97,9 @@ func MustToBytes(input string) []byte {
 // ToBytes returns the bytes represented by the given hex string.
 // An error is returned if the input is not a valid hex string.
 func ToBytes(input string) ([]byte, error) {
-	s, err := NewStringStrict(input)
+	strippedInput, err := IsValidHex(input)
 	if err != nil {
 		return nil, err
 	}
-	h, err := s.ToBytes()
-	if err != nil {
-		return nil, err
-	}
-	return h, nil
+	return hex.DecodeString(strippedInput)
 }
