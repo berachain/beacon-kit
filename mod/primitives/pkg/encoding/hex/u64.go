@@ -57,6 +57,10 @@ func UnmarshalUint64Text(input []byte) (uint64, error) {
 	if len(raw) > nibblesPer64Bits {
 		return 0, ErrUint64Range
 	}
+
+	// Question: could the code below be
+	// return strconv.ParseUint(string(raw), 16, 64)
+	// as it was in String.ToUint64() ?
 	var dec uint64
 	for _, byte := range raw {
 		nib := decodeNibble(byte)

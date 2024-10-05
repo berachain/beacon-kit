@@ -87,14 +87,17 @@ func TestUnmarshalUint64Text(t *testing.T) {
 		err      error
 	}{
 		{"Zero", []byte("0x0"), 0, nil},
+		{"Single digit", []byte("0x1"), 1, nil},
+		{"Two digits", []byte("0x10"), 16, nil},
+		{"Mixed digits and letters", []byte("0x1a"), 26, nil},
 		{"MaxByte", []byte("0xff"), 255, nil},
 		{"MaxWord", []byte("0xffff"), 65535, nil},
 		{"MaxDWord", []byte("0xffffffff"), 4294967295, nil},
 		{"MaxQWord", []byte("0xffffffffffffffff"), 18446744073709551615, nil},
 		{"OutOfRange", []byte("0x10000000000000000"), 0, hex.ErrUint64Range},
 		{"InvalidString", []byte("0xzz"), 0, hex.ErrInvalidString},
+		{"Invalid hex string", []byte("0xinvalid"), 0, hex.ErrInvalidString},
 	}
-
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			result, err := hex.UnmarshalUint64Text(test.input)

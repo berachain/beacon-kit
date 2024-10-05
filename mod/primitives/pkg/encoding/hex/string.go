@@ -21,9 +21,7 @@
 package hex
 
 import (
-	"bytes"
 	"math/big"
-	"strconv"
 	"strings"
 
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -88,29 +86,6 @@ func FromBigInt(bigint *big.Int) String {
 	return NewString(prefix + bigint.Text(hexBase)[1:])
 }
 
-func FromJSONString[B ~[]byte](b B) String {
-	return NewString(bytes.Trim(b, "\""))
-}
-
-// ToUint64 decodes a hex string with 0x prefix.
-func (s String) ToUint64() (uint64, error) {
-	raw, err := formatAndValidateNumber(s.Unwrap())
-	if err != nil {
-		return 0, err
-	}
-	return strconv.ParseUint(raw, 16, 64)
-}
-
-// MustToUInt64 decodes a hex string with 0x prefix.
-// It panics for invalid input.
-func (s String) MustToUInt64() uint64 {
-	i, err := s.ToUint64()
-	if err != nil {
-		panic(err)
-	}
-	return i
-}
-
 // ToBigInt decodes a hex string with 0x prefix.
 func (s String) ToBigInt() (*big.Int, error) {
 	raw, err := formatAndValidateNumber(s.Unwrap())
@@ -153,10 +128,6 @@ func (s String) MustToBigInt() *big.Int {
 		panic(err)
 	}
 	return bi
-}
-
-func (s String) AddQuotes() String {
-	return "\"" + s + "\""
 }
 
 // Unwrap returns the string value.
