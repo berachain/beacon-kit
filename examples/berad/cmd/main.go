@@ -19,3 +19,76 @@
 // TITLE.
 
 package main
+
+import (
+	"log/slog"
+	"os"
+
+	clibuilder "github.com/berachain/beacon-kit/mod/cli/pkg/builder"
+	clicomponents "github.com/berachain/beacon-kit/mod/cli/pkg/components"
+	nodebuilder "github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
+	nodecomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
+	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
+	"go.uber.org/automaxprocs/maxprocs"
+)
+
+type Node = nodetypes.Node
+
+// run runs the beacon node.
+func run() error {
+	// Set the uber max procs
+	if _, err := maxprocs.Set(); err != nil {
+		return err
+	}
+
+	// Build the node using the node-core.
+	nb := nodebuilder.New(
+		// Set the Runtime Components to the Default.
+		nodebuilder.WithComponents[Node, *Logger, *LoggerConfig](
+			DefaultComponents(),
+		),
+	)
+
+	// Build the root command using the builder
+	cb := clibuilder.New(
+		// Set the Name to the Default.
+		clibuilder.WithName[Node, *ExecutionPayload, *Logger](
+			"beacond",
+		),
+		// Set the Description to the Default.
+		clibuilder.WithDescription[Node, *ExecutionPayload, *Logger](
+			"A basic beacon node, usable most standard networks.",
+		),
+		// Set the Runtime Components to the Default.
+		clibuilder.WithComponents[Node, *ExecutionPayload, *Logger](
+			append(
+				clicomponents.DefaultClientComponents(),
+				// TODO: remove these, and eventually pull cfg and chainspec
+				// from built node
+				nodecomponents.ProvideChainSpec,
+			),
+		),
+		// Set the NodeBuilderFunc to the NodeBuilder Build.
+		clibuilder.WithNodeBuilderFunc[
+			Node, *ExecutionPayload, *Logger,
+		](nb.Build),
+	)
+
+	cmd, err := cb.Build()
+	if err != nil {
+		return err
+	}
+
+	// eventually we want to decouple from cosmos cli, and just pass in a built
+	// Node and Cmd to a runner for now, running the cmd will start the node
+	return cmd.Run(clicomponents.DefaultNodeHome)
+}
+
+// main is the entry point.
+func main() {
+	if err := run(); err != nil {
+		//nolint:sloglint // todo fix.
+		slog.Error("startup failure", "error", err)
+		os.Exit(1)
+	}
+}
