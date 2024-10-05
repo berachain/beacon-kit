@@ -34,7 +34,7 @@ type BeaconBlock struct {
 	// Slot represents the position of the block in the chain.
 	Slot math.Slot `json:"slot"`
 	// ProposerIndex is the index of the validator who proposed the block.
-	ProposerIndex math.Slot `json:"proposer_index"`
+	ProposerIndex math.ValidatorIndex `json:"proposer_index"`
 	// ParentRoot is the hash of the parent block
 	ParentRoot common.Root `json:"parent_root"`
 	// StateRoot is the hash of the state at the block.
