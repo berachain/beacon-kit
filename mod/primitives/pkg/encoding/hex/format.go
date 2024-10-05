@@ -20,7 +20,26 @@
 
 package hex
 
-import "errors"
+import (
+	"errors"
+	"strings"
+)
+
+// IsValidHex performs basic validations that every hex string
+// must pass (there may be extra ones depending on the type encoded)
+// It returns the suffix (dropping 0x prefix) in the hope to appease nilaway.
+func IsValidHex[T ~[]byte | ~string](s T) (T, error) {
+	if len(s) == 0 {
+		return *new(T), ErrEmptyString
+	}
+	if len(s) < prefixLen {
+		return *new(T), ErrMissingPrefix
+	}
+	if strings.ToLower(string(s[:prefixLen])) != prefix {
+		return *new(T), ErrMissingPrefix
+	}
+	return s[prefixLen:], nil
+}
 
 // isQuotedString returns true if input has quotes.
 func validateQuotedString(input []byte) error {

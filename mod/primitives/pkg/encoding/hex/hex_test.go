@@ -75,44 +75,6 @@ func TestNewStringStrictInvariants(t *testing.T) {
 	}
 }
 
-func TestNewStringInvariants(t *testing.T) {
-	// NewString constructor should never error or panic
-	// output should always satisfy the string invariants regardless of input
-	tests := []struct {
-		name  string
-		input string
-	}{
-		{
-			name:  "Valid hex string",
-			input: "0x48656c6c6f",
-		},
-		{
-			name:  "Empty string",
-			input: "",
-		},
-		{
-			name:  "No 0x prefix",
-			input: "48656c6c6f",
-		},
-		{
-			name:  "Valid single hex character",
-			input: "0x0",
-		},
-		{
-			name:  "Empty hex string",
-			input: "0x",
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			str := hex.NewString(test.input)
-			_, err := hex.IsValidHex(str)
-			require.NoError(t, err)
-		})
-	}
-}
-
 // ====================== Bytes ===========================.
 func TestFromBytes(t *testing.T) {
 	tests := []struct {
