@@ -34,14 +34,6 @@ import (
 // Invariants: IsEmpty(s) > 0, has0xPrefix(s) == true.
 type String string
 
-// NewString creates a hex string with 0x prefix. It modifies the input to
-// ensure that the string invariants are satisfied.
-func NewString[T []byte | string](s T) String {
-	str := string(s)
-	str = ensureStringInvariants(str)
-	return String(str)
-}
-
 // UnmarshalText implements the encoding.TextUnmarshaler interface.
 // It validates the input text as a hex string and
 // assigns it to the String type.
@@ -77,6 +69,21 @@ func NewStringStrict[T []byte | string](s T) (String, error) {
 		return "", err
 	}
 	return String(s), nil
+}
+
+// NewString creates a hex string with 0x prefix. It modifies the input to
+// ensure that the string invariants are satisfied.
+func NewString[T []byte | string](s T) String {
+	str := string(s)
+	switch _, err := IsValidHex(str); {
+	case err == nil:
+		break // already well formatted
+	case errors.Is(err, ErrEmptyString):
+		str = prefix + "0"
+	default:
+		str = prefix + str
+	}
+	return String(str)
 }
 
 // FromBytes creates a hex string with 0x prefix.
