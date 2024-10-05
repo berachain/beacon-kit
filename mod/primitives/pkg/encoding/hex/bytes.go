@@ -68,8 +68,8 @@ func UnmarshalByteText(input []byte) ([]byte, error) {
 // of out determines the required input length. This function is commonly used
 // to implement the UnmarshalJSON method for fixed-size types.
 func DecodeFixedJSON(input, out []byte) error {
-	if !isQuotedString(input) {
-		return ErrNonQuotedString
+	if err := validateQuotedString(input); err != nil {
+		return err
 	}
 	return DecodeFixedText(input[1:len(input)-1], out)
 }

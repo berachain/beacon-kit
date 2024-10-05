@@ -23,8 +23,11 @@ package hex
 import "errors"
 
 // isQuotedString returns true if input has quotes.
-func isQuotedString[T []byte | string](input T) bool {
-	return len(input) >= 2 && input[0] == '"' && input[len(input)-1] == '"'
+func validateQuotedString(input []byte) error {
+	if len(input) >= 2 && input[0] == '"' && input[len(input)-1] == '"' {
+		return nil
+	}
+	return ErrNonQuotedString
 }
 
 // formatAndValidateText validates the input text for a hex string.
@@ -32,7 +35,8 @@ func formatAndValidateText(input []byte) ([]byte, error) {
 	input, err := IsValidHex(input)
 	if errors.Is(err, ErrEmptyString) {
 		return nil, nil // empty strings are allowed
-	} else if err != nil {
+	}
+	if err != nil {
 		return nil, err
 	}
 
@@ -43,17 +47,17 @@ func formatAndValidateText(input []byte) ([]byte, error) {
 }
 
 // formatAndValidateNumber checks the input text for a hex number.
-func formatAndValidateNumber[T []byte | string](input T) (T, error) {
+func formatAndValidateNumber(input []byte) ([]byte, error) {
 	input, err := IsValidHex(input)
 	if err != nil {
-		return *new(T), err
+		return nil, err
 	}
 
 	if len(input) == 0 {
-		return *new(T), ErrEmptyNumber
+		return nil, ErrEmptyNumber
 	}
 	if len(input) > 1 && input[0] == '0' {
-		return *new(T), ErrLeadingZero
+		return nil, ErrLeadingZero
 	}
 	return input, nil
 }
