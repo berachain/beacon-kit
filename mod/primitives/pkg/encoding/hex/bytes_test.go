@@ -33,29 +33,29 @@ func TestEncodeBytes(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    []byte
-		expected []byte
+		expected string
 	}{
 		{
 			name:     "typical byte slice",
 			input:    []byte{0x48, 0x65, 0x6c, 0x6c, 0x6f},
-			expected: []byte("0x48656c6c6f"),
+			expected: "0x48656c6c6f",
 		},
 		{
 			name:     "empty byte slice",
 			input:    []byte{},
-			expected: []byte("0x"),
+			expected: "0x",
 		},
 		{
 			name:     "single byte",
 			input:    []byte{0x01},
-			expected: []byte("0x01"),
+			expected: "0x01",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := hex.EncodeBytes(tt.input)
-			require.Equal(t, tt.expected, result, "Test case : %s", tt.name)
+			require.Equal(t, tt.expected, result)
 		})
 	}
 }

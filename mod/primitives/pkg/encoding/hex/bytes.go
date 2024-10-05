@@ -28,11 +28,21 @@ import (
 
 var ErrInvalidHexStringLength = errors.New("invalid hex string length")
 
-func EncodeBytes[B ~[]byte](b B) []byte {
-	result := make([]byte, len(b)*2+prefixLen)
-	copy(result, prefix)
-	hex.Encode(result[prefixLen:], b)
-	return result
+func EncodeBytes[B ~[]byte](b B) string {
+	hexStr := make([]byte, len(b)*2+prefixLen)
+	copy(hexStr, prefix)
+	hex.Encode(hexStr[prefixLen:], b)
+	return string(hexStr)
+}
+
+// ToBytes returns the bytes represented by the given hex string.
+// An error is returned if the input is not a valid hex string.
+func ToBytes(hexStr string) ([]byte, error) {
+	strippedInput, err := IsValidHex(hexStr)
+	if err != nil {
+		return nil, err
+	}
+	return hex.DecodeString(strippedInput)
 }
 
 func UnmarshalByteText(input []byte) ([]byte, error) {
@@ -92,14 +102,4 @@ func MustToBytes(input string) []byte {
 		panic(err)
 	}
 	return bz
-}
-
-// ToBytes returns the bytes represented by the given hex string.
-// An error is returned if the input is not a valid hex string.
-func ToBytes(input string) ([]byte, error) {
-	strippedInput, err := IsValidHex(input)
-	if err != nil {
-		return nil, err
-	}
-	return hex.DecodeString(strippedInput)
 }

@@ -152,13 +152,10 @@ func TestFromBytes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := hex.FromBytes(tt.input)
-			require.Equal(t, tt.expected, result.Unwrap())
+			result := hex.EncodeBytes(tt.input)
+			require.Equal(t, tt.expected, result)
 
-			_, err := hex.IsValidHex(result)
-			require.NoError(t, err)
-
-			decoded, err := result.ToBytes()
+			decoded, err := hex.ToBytes(result)
 			require.NoError(t, err)
 			require.Equal(t, tt.input, decoded)
 		})
@@ -307,7 +304,7 @@ func TestUnmarshalJSONText(t *testing.T) {
 func TestString_MustToBytes(t *testing.T) {
 	tests := []struct {
 		name     string
-		input    hex.String
+		input    string
 		expected []byte
 		panics   bool
 	}{
@@ -321,7 +318,7 @@ func TestString_MustToBytes(t *testing.T) {
 			var (
 				res []byte
 				f   = func() {
-					res = tt.input.MustToBytes()
+					res = hex.MustToBytes(tt.input)
 				}
 			)
 			if tt.panics {

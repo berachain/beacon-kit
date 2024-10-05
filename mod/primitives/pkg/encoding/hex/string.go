@@ -22,7 +22,6 @@ package hex
 
 import (
 	"bytes"
-	"encoding/hex"
 	"math/big"
 	"strconv"
 	"strings"
@@ -77,12 +76,6 @@ func NewString[T []byte | string](s T) String {
 	return String(str)
 }
 
-// FromBytes creates a hex string with 0x prefix.
-func FromBytes[B ~[]byte](input B) String {
-	b := EncodeBytes(input)
-	return NewString(b)
-}
-
 // FromUint64 encodes i as a hex string with 0x prefix.
 func FromUint64[U ~uint64](i U) String {
 	enc := make([]byte, prefixLen, initialCapacity)
@@ -105,21 +98,6 @@ func FromBigInt(bigint *big.Int) String {
 
 func FromJSONString[B ~[]byte](b B) String {
 	return NewString(bytes.Trim(b, "\""))
-}
-
-// ToBytes decodes a hex string with 0x prefix.
-func (s String) ToBytes() ([]byte, error) {
-	return hex.DecodeString(string(s[prefixLen:]))
-}
-
-// MustToBytes decodes a hex string with 0x prefix.
-// It panics for invalid input.
-func (s String) MustToBytes() []byte {
-	b, err := s.ToBytes()
-	if err != nil {
-		panic(err)
-	}
-	return b
 }
 
 // ToUint64 decodes a hex string with 0x prefix.
