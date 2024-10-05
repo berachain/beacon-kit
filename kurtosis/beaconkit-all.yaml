@@ -42,6 +42,8 @@ network_configuration:
       - el_type: erigon
         kzg_impl: crate-crypto/go-kzg-4844
         replicas: 1
+      - el_type: nimbus
+        replicas: 1
       - el_type: ethereumjs
         replicas: 0
   full_nodes:
@@ -58,6 +60,8 @@ network_configuration:
       - el_type: besu
         replicas: 0
       - el_type: erigon
+        replicas: 0
+      - el_type: nimbus
         replicas: 1
       - el_type: ethereumjs
         replicas: 0
@@ -98,6 +102,7 @@ node_settings:
       geth: ethereum/client-go:latest
       nethermind: nethermind/nethermind:latest
       reth: ghcr.io/paradigmxyz/reth:latest
+      nimbus: ethpandaops/nimbus-eth1:master
 eth_json_rpc_endpoints:
   # type has to be either blutgang or nginx
   - type: blutgang
@@ -113,7 +118,7 @@ additional_services:
   - name: "goomy-blob"
   - name: "tx-fuzz"
     replicas: 16
-  - name: "prometheus"
+#  - name: "prometheus"
   - name: "grafana"
   - name: "pyroscope"
   - name: "blockscout"
