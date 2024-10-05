@@ -74,7 +74,8 @@ func TestNewStringStrictInvariants(t *testing.T) {
 				require.Error(t, err, "Test case: %s", test.name)
 			} else {
 				require.NoError(t, err, "Test case: %s", test.name)
-				verifyInvariants(t, "NewStringStrict()", str)
+				_, err = hex.IsValidHex(str)
+				require.NoError(t, err)
 			}
 		})
 	}
@@ -112,7 +113,8 @@ func TestNewStringInvariants(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			str := hex.NewString(test.input)
-			verifyInvariants(t, "NewString()", str)
+			_, err := hex.IsValidHex(str)
+			require.NoError(t, err)
 		})
 	}
 }
@@ -153,24 +155,14 @@ func TestFromBytes(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := hex.FromBytes(tt.input)
+			require.Equal(t, tt.expected, result.Unwrap())
 
-			if result.Unwrap() != tt.expected {
-				t.Errorf(
-					"FromBytes() = %v, want %v",
-					result.Unwrap(),
-					tt.expected,
-				)
-			}
-
-			verifyInvariants(t, "FromBytes()", result)
+			_, err := hex.IsValidHex(result)
+			require.NoError(t, err)
 
 			decoded, err := result.ToBytes()
-			if err != nil {
-				t.Errorf("ToBytes() error = %v", err)
-			}
-			if !bytes.Equal(decoded, tt.input) {
-				t.Errorf("ToBytes() = %v, want %v", decoded, tt.input)
-			}
+			require.NoError(t, err)
+			require.Equal(t, tt.input, decoded)
 		})
 	}
 }
@@ -204,22 +196,14 @@ func TestUint64RoundTrip(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := hex.FromUint64(tt.input)
+			require.Equal(t, tt.expected, result.Unwrap())
 
-			if result.Unwrap() != tt.expected {
-				t.Errorf(
-					"FromUint64() = %v, want %v",
-					result.Unwrap(),
-					tt.expected,
-				)
-			}
-			verifyInvariants(t, "FromUint64()", result)
+			_, err := hex.IsValidHex(result)
+			require.NoError(t, err)
+
 			decoded, err := strconv.ParseUint(result.Unwrap()[2:], 16, 64)
-			if err != nil {
-				t.Errorf("ParseUint() error = %v", err)
-			}
-			if decoded != tt.input {
-				t.Errorf("ParseUint() = %v, want %v", decoded, tt.input)
-			}
+			require.NoError(t, err)
+			require.Equal(t, tt.input, decoded)
 		})
 	}
 }
@@ -252,19 +236,12 @@ func TestBigIntRoundTrip(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := hex.FromBigInt(tt.input)
+			require.Equal(t, tt.expected, result.Unwrap())
 
-			if result.Unwrap() != tt.expected {
-				t.Errorf(
-					"FromBigInt() = %v, want %v",
-					result.Unwrap(),
-					tt.expected,
-				)
-			}
-
-			verifyInvariants(t, "FromBigInt()", result)
+			_, err := hex.IsValidHex(result)
+			require.NoError(t, err)
 
 			var dec *big.Int
-			var err error
 
 			if tt.input.Sign() >= 0 {
 				dec, err = hex.NewString(result.Unwrap()).ToBigInt()
@@ -273,27 +250,13 @@ func TestBigIntRoundTrip(t *testing.T) {
 				dec = dec.Neg(dec)
 			}
 
-			if err != nil {
-				t.Errorf("ToBigInt() error = %v", err)
-			}
-			if dec.Cmp(tt.input) != 0 {
-				t.Errorf("ToBigInt() = %v, want %v", dec, tt.input)
-			}
+			require.NoError(t, err)
+			require.Zero(t, dec.Cmp(tt.input))
 		})
 	}
 }
 
 // ====================== Helpers ===========================.
-
-func verifyInvariants(t *testing.T, invoker string, s hex.String) {
-	t.Helper()
-	if !s.Has0xPrefix() {
-		t.Errorf(invoker+"result does not have 0x prefix: %v", s)
-	}
-	if s.IsEmpty() {
-		t.Errorf(invoker+"result is empty: %v", s)
-	}
-}
 
 func TestUnmarshalJSONText(t *testing.T) {
 	tests := []struct {
@@ -357,16 +320,17 @@ func TestString_MustToBytes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			var (
+				res []byte
+				f   = func() {
+					res = tt.input.MustToBytes()
+				}
+			)
 			if tt.panics {
-				defer func() {
-					if r := recover(); r == nil {
-						t.Errorf("MustToBytes did not panic on invalid input")
-					}
-				}()
-				tt.input.MustToBytes()
+				require.Panics(t, f, "Test case: %s", tt.name)
 			} else {
-				result := tt.input.MustToBytes()
-				require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
+				require.NotPanics(t, f)
+				require.Equal(t, tt.expected, res, "Test case: %s", tt.name)
 			}
 		})
 	}
@@ -413,16 +377,17 @@ func TestString_MustToUInt64(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			var (
+				res uint64
+				f   = func() {
+					res = tt.input.MustToUInt64()
+				}
+			)
 			if tt.panics {
-				defer func() {
-					if r := recover(); r == nil {
-						t.Errorf("MustToUInt64 did not panic on invalid input")
-					}
-				}()
-				tt.input.MustToUInt64()
+				require.Panics(t, f)
 			} else {
-				result := tt.input.MustToUInt64()
-				require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
+				require.NotPanics(t, f)
+				require.Equal(t, tt.expected, res)
 			}
 		})
 	}
@@ -443,16 +408,17 @@ func TestString_MustToBigInt(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			var (
+				res *big.Int
+				f   = func() {
+					res = tt.input.MustToBigInt()
+				}
+			)
 			if tt.panics {
-				defer func() {
-					if r := recover(); r == nil {
-						t.Errorf("MustToBigInt did not panic on invalid input")
-					}
-				}()
-				tt.input.MustToBigInt()
+				require.Panics(t, f)
 			} else {
-				result := tt.input.MustToBigInt()
-				require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
+				require.NotPanics(t, f)
+				require.Equal(t, tt.expected, res)
 			}
 		})
 	}
