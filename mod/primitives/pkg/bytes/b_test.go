@@ -158,6 +158,54 @@ func TestReverseEndianness(t *testing.T) {
 	}
 }
 
+func TestUnmarshalJSONText(t *testing.T) {
+	tests := []struct {
+		name        string
+		input       []byte
+		unmarshaler *bytes.Bytes
+		expectErr   bool
+	}{
+		{
+			name:        "Valid JSON text",
+			input:       []byte(`"0x48656c6c6f"`),
+			unmarshaler: &bytes.Bytes{},
+			expectErr:   false,
+		},
+		{
+			name:        "Invalid JSON text",
+			input:       []byte(`"invalid"`),
+			unmarshaler: &bytes.Bytes{},
+			expectErr:   true,
+		},
+		{
+			name:        "Invalid quoted JSON text",
+			input:       []byte(`"0x`),
+			unmarshaler: &bytes.Bytes{},
+			expectErr:   true,
+		},
+		{
+			name:        "Empty JSON text",
+			input:       []byte(`""`),
+			unmarshaler: &bytes.Bytes{},
+			expectErr:   false, // unlike what we had in hex hex_test.go
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := hex.UnmarshalJSONText(
+				tt.input,
+				tt.unmarshaler,
+			)
+			if tt.expectErr {
+				require.Error(t, err, "Test case: %s", tt.name)
+			} else {
+				require.NoError(t, err, "Test case: %s", tt.name)
+			}
+		})
+	}
+}
+
 func TestBytes4UnmarshalJSON(t *testing.T) {
 	tests := []struct {
 		name    string

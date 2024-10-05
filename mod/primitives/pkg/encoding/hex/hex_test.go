@@ -22,7 +22,6 @@
 package hex_test
 
 import (
-	"encoding"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
@@ -160,54 +159,6 @@ func TestFromBytes(t *testing.T) {
 }
 
 // ====================== Helpers ===========================.
-
-func TestUnmarshalJSONText(t *testing.T) {
-	tests := []struct {
-		name        string
-		input       []byte
-		unmarshaler encoding.TextUnmarshaler
-		expectErr   bool
-	}{
-		{
-			name:        "Valid JSON text",
-			input:       []byte(`"0x48656c6c6f"`),
-			unmarshaler: new(hex.String),
-			expectErr:   false,
-		},
-		{
-			name:        "Invalid JSON text",
-			input:       []byte(`"invalid"`),
-			unmarshaler: new(hex.String),
-			expectErr:   true,
-		},
-		{
-			name:        "Invalid quoted JSON text",
-			input:       []byte(`"0x`),
-			unmarshaler: new(hex.String),
-			expectErr:   true,
-		},
-		{
-			name:        "Empty JSON text",
-			input:       []byte(`""`),
-			unmarshaler: new(hex.String),
-			expectErr:   true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := hex.UnmarshalJSONText(
-				tt.input,
-				tt.unmarshaler,
-			)
-			if tt.expectErr {
-				require.Error(t, err, "Test case: %s", tt.name)
-			} else {
-				require.NoError(t, err, "Test case: %s", tt.name)
-			}
-		})
-	}
-}
 
 func TestString_MustToBytes(t *testing.T) {
 	tests := []struct {

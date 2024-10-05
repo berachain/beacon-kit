@@ -30,18 +30,6 @@ import (
 // Invariants: IsEmpty(s) > 0, has0xPrefix(s) == true.
 type String string
 
-// UnmarshalText implements the encoding.TextUnmarshaler interface.
-// It validates the input text as a hex string and
-// assigns it to the String type.
-// Returns an error if the input is not a valid hex string.
-func (s *String) UnmarshalText(text []byte) error {
-	if _, err := IsValidHex(text); err != nil {
-		return errors.Wrapf(ErrInvalidString, "%s", text)
-	}
-	*s = String(text)
-	return nil
-}
-
 // IsValidHex performs basic validations that every hex string
 // must pass (there may be extra ones depending on the type encoded)
 // It returns the suffix (dropping 0x prefix) in the hope to appease nilaway.
