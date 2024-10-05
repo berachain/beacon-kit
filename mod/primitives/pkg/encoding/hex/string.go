@@ -76,14 +76,6 @@ func NewString[T []byte | string](s T) String {
 	return String(str)
 }
 
-// FromUint64 encodes i as a hex string with 0x prefix.
-func FromUint64[U ~uint64](i U) String {
-	enc := make([]byte, prefixLen, initialCapacity)
-	copy(enc, prefix)
-	//#nosec:G701 // i is a uint64, so it can't overflow.
-	return String(strconv.AppendUint(enc, uint64(i), hexBase))
-}
-
 // FromBigInt encodes bigint as a hex string with 0x prefix.
 // Precondition: bigint is non-negative.
 func FromBigInt(bigint *big.Int) String {

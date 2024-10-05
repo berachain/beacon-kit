@@ -25,7 +25,6 @@ import (
 	"bytes"
 	"encoding"
 	"math/big"
-	"strconv"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
@@ -163,45 +162,6 @@ func TestFromBytes(t *testing.T) {
 }
 
 // ====================== Numeric ===========================.
-
-// FromUint64, then ToUint64.
-func TestUint64RoundTrip(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    uint64
-		expected string
-	}{
-		{
-			name:     "Zero value",
-			input:    0,
-			expected: "0x0",
-		},
-		{
-			name:     "Positive value",
-			input:    12345,
-			expected: "0x3039",
-		},
-		{
-			name:     "Max uint64 value",
-			input:    ^uint64(0), // 2^64 - 1
-			expected: "0xffffffffffffffff",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := hex.FromUint64(tt.input)
-			require.Equal(t, tt.expected, result.Unwrap())
-
-			_, err := hex.IsValidHex(result)
-			require.NoError(t, err)
-
-			decoded, err := strconv.ParseUint(result.Unwrap()[2:], 16, 64)
-			require.NoError(t, err)
-			require.Equal(t, tt.input, decoded)
-		})
-	}
-}
 
 // FromBigInt, then ToBigInt.
 func TestBigIntRoundTrip(t *testing.T) {
