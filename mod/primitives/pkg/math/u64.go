@@ -62,7 +62,7 @@ type (
 
 // MarshalText implements encoding.TextMarshaler.
 func (u U64) MarshalText() ([]byte, error) {
-	return hex.MarshalText(u.Unwrap())
+	return hex.MarshalUint64Text(u.Unwrap())
 }
 
 // UnmarshalJSON implements json.Unmarshaler.

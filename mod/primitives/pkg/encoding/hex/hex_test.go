@@ -22,9 +22,7 @@
 package hex_test
 
 import (
-	"bytes"
 	"encoding"
-	"math/big"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
@@ -161,56 +159,6 @@ func TestFromBytes(t *testing.T) {
 	}
 }
 
-// ====================== Numeric ===========================.
-
-// FromBigInt, then ToBigInt.
-func TestBigIntRoundTrip(t *testing.T) {
-	// assume FromBigInt only called on non-negative big.Int
-	tests := []struct {
-		name     string
-		input    *big.Int
-		expected string
-	}{
-		{
-			name:     "zero value",
-			input:    big.NewInt(0),
-			expected: "0x0",
-		},
-		{
-			name:     "positive value",
-			input:    big.NewInt(12345),
-			expected: "0x3039",
-		},
-		{
-			name:     "large positive value",
-			input:    new(big.Int).SetBytes(bytes.Repeat([]byte{0xff}, 32)),
-			expected: "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := hex.FromBigInt(tt.input)
-			require.Equal(t, tt.expected, result.Unwrap())
-
-			_, err := hex.IsValidHex(result)
-			require.NoError(t, err)
-
-			var dec *big.Int
-
-			if tt.input.Sign() >= 0 {
-				dec, err = hex.NewString(result.Unwrap()).ToBigInt()
-			} else {
-				dec, err = hex.NewString(result.Unwrap()).ToBigInt()
-				dec = dec.Neg(dec)
-			}
-
-			require.NoError(t, err)
-			require.Zero(t, dec.Cmp(tt.input))
-		})
-	}
-}
-
 // ====================== Helpers ===========================.
 
 func TestUnmarshalJSONText(t *testing.T) {
@@ -286,37 +234,6 @@ func TestString_MustToBytes(t *testing.T) {
 			} else {
 				require.NotPanics(t, f)
 				require.Equal(t, tt.expected, res, "Test case: %s", tt.name)
-			}
-		})
-	}
-}
-
-func TestString_MustToBigInt(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    hex.String
-		expected *big.Int
-		panics   bool
-	}{
-		{"Valid hex string", "0x1", big.NewInt(1), false},
-		{"Another valid hex string", "0x10", big.NewInt(16), false},
-		{"Large valid hex string", "0x1a", big.NewInt(26), false},
-		{"Invalid hex string", "0xinvalid", nil, true},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			var (
-				res *big.Int
-				f   = func() {
-					res = tt.input.MustToBigInt()
-				}
-			)
-			if tt.panics {
-				require.Panics(t, f)
-			} else {
-				require.NotPanics(t, f)
-				require.Equal(t, tt.expected, res)
 			}
 		})
 	}

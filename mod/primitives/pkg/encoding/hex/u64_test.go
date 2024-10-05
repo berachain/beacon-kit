@@ -42,7 +42,7 @@ func TestMarshalText(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			result, err := hex.MarshalText(test.input)
+			result, err := hex.MarshalUint64Text(test.input)
 			require.NoError(t, err, "Test case %s", test.name)
 			require.Equal(
 				t,

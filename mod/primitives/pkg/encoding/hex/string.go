@@ -21,7 +21,6 @@
 package hex
 
 import (
-	"math/big"
 	"strings"
 
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -72,65 +71,4 @@ func NewString[T []byte | string](s T) String {
 		str = prefix + str
 	}
 	return String(str)
-}
-
-// FromBigInt encodes bigint as a hex string with 0x prefix.
-// Precondition: bigint is non-negative.
-func FromBigInt(bigint *big.Int) String {
-	if sign := bigint.Sign(); sign == 0 {
-		return NewString(prefix + "0")
-	} else if sign > 0 {
-		return NewString(prefix + bigint.Text(hexBase))
-	}
-	// this return should never reach if precondition is met
-	return NewString(prefix + bigint.Text(hexBase)[1:])
-}
-
-// ToBigInt decodes a hex string with 0x prefix.
-func (s String) ToBigInt() (*big.Int, error) {
-	raw, err := formatAndValidateNumber(s.Unwrap())
-	if err != nil {
-		return nil, err
-	}
-	if len(raw) > nibblesPer256Bits {
-		return nil, ErrBig256Range
-	}
-	bigWordNibbles, err := getBigWordNibbles()
-	if err != nil {
-		return nil, err
-	}
-	words := make([]big.Word, len(raw)/bigWordNibbles+1)
-	end := len(raw)
-	for i := range words {
-		start := end - bigWordNibbles
-		if start < 0 {
-			start = 0
-		}
-		for ri := start; ri < end; ri++ {
-			nib := decodeNibble(raw[ri])
-			if nib == badNibble {
-				return nil, ErrInvalidString
-			}
-			words[i] *= 16
-			words[i] += big.Word(nib)
-		}
-		end = start
-	}
-	dec := new(big.Int).SetBits(words)
-	return dec, nil
-}
-
-// MustToBigInt decodes a hex string with 0x prefix.
-// It panics for invalid input.
-func (s String) MustToBigInt() *big.Int {
-	bi, err := s.ToBigInt()
-	if err != nil {
-		panic(err)
-	}
-	return bi
-}
-
-// Unwrap returns the string value.
-func (s String) Unwrap() string {
-	return string(s)
 }

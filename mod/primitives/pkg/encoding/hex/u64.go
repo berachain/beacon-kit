@@ -28,9 +28,9 @@ import (
 // from hexadecimal strings, and marshaling and unmarshaling uint64 values to
 // and from byte slices representing hexadecimal strings.
 
-// MarshalText returns a byte slice containing the hexadecimal representation
-// of uint64 input.
-func MarshalText(b uint64) ([]byte, error) {
+// MarshalUint64Text returns a byte slice containing
+// the hexadecimal representation of uint64 input.
+func MarshalUint64Text(b uint64) ([]byte, error) {
 	buf := make([]byte, prefixLen, initialCapacity)
 	copy(buf, prefix)
 	buf = strconv.AppendUint(buf, b, hexBase)
