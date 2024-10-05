@@ -89,7 +89,7 @@ func TestMustFromHex(t *testing.T) {
 	tests := []struct {
 		name        string
 		input       string
-		expected    bytes.Bytes
+		expected    []byte
 		shouldPanic bool
 	}{
 		{
@@ -112,21 +112,19 @@ func TestMustFromHex(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			if test.shouldPanic {
-				defer func() {
-					if r := recover(); r == nil {
-						t.Errorf(
-							"MustFromHex did not panic for input: %s",
-							test.input,
-						)
-					}
-				}()
-				_ = hex.MustToBytes(test.input)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var (
+				res []byte
+				f   = func() {
+					res = hex.MustToBytes(tt.input)
+				}
+			)
+			if tt.shouldPanic {
+				require.Panics(t, f)
 			} else {
-				result := hex.MustToBytes(test.input)
-				require.True(t, stdbytes.Equal(result, test.expected), "Test case %s", test.name)
+				require.NotPanics(t, f)
+				require.Equal(t, tt.expected, res)
 			}
 		})
 	}
@@ -1427,13 +1425,7 @@ func TestBytes_String(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := tt.input.String()
-			require.Equal(
-				t,
-				tt.expected,
-				result,
-				"Test case: %s",
-				tt.name,
-			)
+			require.Equal(t, tt.expected, result)
 		})
 	}
 }

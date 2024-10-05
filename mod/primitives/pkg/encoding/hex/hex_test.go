@@ -384,10 +384,10 @@ func TestString_MustToUInt64(t *testing.T) {
 				}
 			)
 			if tt.panics {
-				require.Panics(t, f, "Test case: %s", tt.name)
+				require.Panics(t, f)
 			} else {
 				require.NotPanics(t, f)
-				require.Equal(t, tt.expected, res, "Test case: %s", tt.name)
+				require.Equal(t, tt.expected, res)
 			}
 		})
 	}
@@ -415,10 +415,10 @@ func TestString_MustToBigInt(t *testing.T) {
 				}
 			)
 			if tt.panics {
-				require.Panics(t, f, "Test case: %s", tt.name)
+				require.Panics(t, f)
 			} else {
 				require.NotPanics(t, f)
-				require.Equal(t, tt.expected, res, "Test case: %s", tt.name)
+				require.Equal(t, tt.expected, res)
 			}
 		})
 	}
