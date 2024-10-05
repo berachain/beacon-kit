@@ -34,7 +34,7 @@ import (
 // ConvertPubkey converts a string to a public key.
 func ConvertPubkey(pubkey string) (crypto.BLSPubkey, error) {
 	// convert the public key to a BLSPubkey.
-	pubkeyBytes, err := hex.ToBytes(pubkey)
+	pubkeyBytes, err := hex.DecodeToBytes(pubkey)
 	if err != nil {
 		return crypto.BLSPubkey{}, err
 	}
@@ -51,7 +51,7 @@ func ConvertWithdrawalCredentials(credentials string) (
 	error,
 ) {
 	// convert the credentials to a WithdrawalCredentials.
-	credentialsBytes, err := hex.ToBytes(credentials)
+	credentialsBytes, err := hex.DecodeToBytes(credentials)
 	if err != nil {
 		return types.WithdrawalCredentials{}, err
 	}
@@ -77,7 +77,7 @@ func ConvertAmount(amount string) (math.Gwei, error) {
 // ConvertSignature converts a string to a signature.
 func ConvertSignature(signature string) (crypto.BLSSignature, error) {
 	// convert the signature to a BLSSignature.
-	signatureBytes, err := hex.ToBytes(signature)
+	signatureBytes, err := hex.DecodeToBytes(signature)
 	if err != nil {
 		return crypto.BLSSignature{}, err
 	}
@@ -89,7 +89,7 @@ func ConvertSignature(signature string) (crypto.BLSSignature, error) {
 
 // ConvertVersion converts a string to a version.
 func ConvertVersion(version string) (common.Version, error) {
-	versionBytes, err := hex.ToBytes(version)
+	versionBytes, err := hex.DecodeToBytes(version)
 	if err != nil {
 		return common.Version{}, err
 	}
@@ -101,7 +101,7 @@ func ConvertVersion(version string) (common.Version, error) {
 
 // ConvertGenesisValidatorRoot converts a string to a genesis validator root.
 func ConvertGenesisValidatorRoot(root string) (common.Root, error) {
-	rootBytes, err := hex.ToBytes(root)
+	rootBytes, err := hex.DecodeToBytes(root)
 	if err != nil {
 		return common.Root{}, err
 	}

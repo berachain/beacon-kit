@@ -52,7 +52,7 @@ func NewFromHex(hexStr string) (*Secret, error) {
 	}
 
 	// Convert the hex string to a byte array.
-	bz, err := hex.ToBytes(hexStr)
+	bz, err := hex.DecodeToBytes(hexStr)
 	if err != nil {
 		return nil, err
 	}

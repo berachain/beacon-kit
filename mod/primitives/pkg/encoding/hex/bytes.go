@@ -35,14 +35,24 @@ func EncodeBytes[B ~[]byte](b B) string {
 	return string(hexStr)
 }
 
-// ToBytes returns the bytes represented by the given hex string.
+// DecodeToBytes returns the bytes represented by the given hex string.
 // An error is returned if the input is not a valid hex string.
-func ToBytes(hexStr string) ([]byte, error) {
+func DecodeToBytes(hexStr string) ([]byte, error) {
 	strippedInput, err := IsValidHex(hexStr)
 	if err != nil {
 		return nil, err
 	}
 	return hex.DecodeString(strippedInput)
+}
+
+// MustDecodeToBytes returns the bytes represented by the given hex string.
+// It panics if the input is not a valid hex string.
+func MustDecodeToBytes(input string) []byte {
+	bz, err := DecodeToBytes(input)
+	if err != nil {
+		panic(err)
+	}
+	return bz
 }
 
 func UnmarshalByteText(input []byte) ([]byte, error) {
@@ -92,14 +102,4 @@ func DecodeFixedText(input, out []byte) error {
 	}
 
 	return nil
-}
-
-// MustToBytes returns the bytes represented by the given hex string.
-// It panics if the input is not a valid hex string.
-func MustToBytes(input string) []byte {
-	bz, err := ToBytes(input)
-	if err != nil {
-		panic(err)
-	}
-	return bz
 }

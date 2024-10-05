@@ -69,7 +69,7 @@ type Root [32]byte
 
 // NewRootFromHex creates a new root from a hex string.
 func NewRootFromHex(input string) (Root, error) {
-	val, err := hex.ToBytes(input)
+	val, err := hex.DecodeToBytes(input)
 	if err != nil {
 		return Root{}, err
 	}

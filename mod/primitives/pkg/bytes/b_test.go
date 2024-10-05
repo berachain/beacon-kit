@@ -74,7 +74,7 @@ func TestFromHex(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := hex.ToBytes(tt.input)
+			got, err := hex.DecodeToBytes(tt.input)
 			if tt.wantErr {
 				require.Error(t, err, "Test case: %s", tt.name)
 			} else {
@@ -117,7 +117,7 @@ func TestMustFromHex(t *testing.T) {
 			var (
 				res []byte
 				f   = func() {
-					res = hex.MustToBytes(tt.input)
+					res = hex.MustDecodeToBytes(tt.input)
 				}
 			)
 			if tt.shouldPanic {

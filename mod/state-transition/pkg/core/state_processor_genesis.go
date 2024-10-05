@@ -113,7 +113,7 @@ func (sp *StateProcessor[
 	// Handle special case bartio genesis.
 	if sp.cs.DepositEth1ChainID() == bArtioChainID {
 		if err = st.SetGenesisValidatorsRoot(
-			common.Root(hex.MustToBytes(bArtioValRoot))); err != nil {
+			common.Root(hex.MustDecodeToBytes(bArtioValRoot))); err != nil {
 			return nil, err
 		}
 	} else if err = st.

@@ -155,7 +155,7 @@ func TestFromBytes(t *testing.T) {
 			result := hex.EncodeBytes(tt.input)
 			require.Equal(t, tt.expected, result)
 
-			decoded, err := hex.ToBytes(result)
+			decoded, err := hex.DecodeToBytes(result)
 			require.NoError(t, err)
 			require.Equal(t, tt.input, decoded)
 		})
@@ -318,7 +318,7 @@ func TestString_MustToBytes(t *testing.T) {
 			var (
 				res []byte
 				f   = func() {
-					res = hex.MustToBytes(tt.input)
+					res = hex.MustDecodeToBytes(tt.input)
 				}
 			)
 			if tt.panics {
