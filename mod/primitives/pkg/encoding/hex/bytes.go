@@ -29,10 +29,7 @@ import (
 var ErrInvalidHexStringLength = errors.New("invalid hex string length")
 
 func EncodeBytes[B ~[]byte](b B) string {
-	hexStr := make([]byte, len(b)*2+prefixLen)
-	copy(hexStr, prefix)
-	hex.Encode(hexStr[prefixLen:], b)
-	return string(hexStr)
+	return prefix + hex.EncodeToString(b)
 }
 
 // DecodeToBytes returns the bytes represented by the given hex string.
