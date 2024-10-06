@@ -110,10 +110,10 @@ func TestFromBytes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := hex.EncodeBytes(tt.input)
+			result := hex.FromBytes(tt.input)
 			require.Equal(t, tt.expected, result)
 
-			decoded, err := hex.DecodeToBytes(result)
+			decoded, err := hex.ToBytes(result)
 			require.NoError(t, err)
 			require.Equal(t, tt.input, decoded)
 		})
@@ -139,7 +139,7 @@ func TestString_MustToBytes(t *testing.T) {
 			var (
 				res []byte
 				f   = func() {
-					res = hex.MustDecodeToBytes(tt.input)
+					res = hex.MustToBytes(tt.input)
 				}
 			)
 			if tt.panics {

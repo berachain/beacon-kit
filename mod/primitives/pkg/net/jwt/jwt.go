@@ -52,7 +52,7 @@ func NewFromHex(hexStr string) (*Secret, error) {
 	}
 
 	// Convert the hex string to a byte array.
-	bz, err := hex.DecodeToBytes(hexStr)
+	bz, err := hex.ToBytes(hexStr)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +72,7 @@ func NewRandom() (*Secret, error) {
 	if err != nil {
 		return nil, err
 	}
-	return NewFromHex(hex.EncodeBytes(secret))
+	return NewFromHex(hex.FromBytes(secret))
 }
 
 // BuildSignedToken creates a signed JWT token from the secret.
@@ -90,13 +90,13 @@ func (s *Secret) BuildSignedToken() (string, error) {
 // String returns the JWT secret as a string with the first 8 characters
 // visible and the rest masked out for security.
 func (s *Secret) String() string {
-	secret := hex.EncodeBytes(s.Bytes())
+	secret := hex.FromBytes(s.Bytes())
 	return secret[:8] + strings.Repeat("*", len(secret[8:]))
 }
 
 // Hex returns the JWT secret as a hexadecimal string.
 func (s *Secret) Hex() string {
-	return hex.EncodeBytes(s.Bytes())
+	return hex.FromBytes(s.Bytes())
 }
 
 // Bytes returns the JWT secret as a byte array.

@@ -32,7 +32,7 @@ import (
 
 func TestNewFromHex(t *testing.T) {
 	wantValid := jwt.Secret(
-		hex.MustDecodeToBytes(
+		hex.MustToBytes(
 			"0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
 		),
 	)
@@ -91,7 +91,7 @@ func TestSecretString(t *testing.T) {
 		{
 			name: "mask secret correctly",
 			secret: jwt.Secret(
-				hex.MustDecodeToBytes(
+				hex.MustToBytes(
 					"0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
 				),
 			),
@@ -157,7 +157,7 @@ func TestSecretRoundTripEncoding(t *testing.T) {
 	require.NoError(t, err, "NewRandom() error")
 
 	// Encode the original secret to hex string
-	encodedSecret := hex.EncodeBytes((originalSecret.Bytes()))
+	encodedSecret := hex.FromBytes((originalSecret.Bytes()))
 
 	// Decode the hex string back to secret
 	decodedSecret, err := jwt.NewFromHex(encodedSecret)

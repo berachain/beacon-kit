@@ -51,11 +51,11 @@ type ExecutionHash [32]byte
 
 // NewExecutionHashFromHex creates a new hash from a hex string.
 func NewExecutionHashFromHex(input string) ExecutionHash {
-	return ExecutionHash(hex.MustDecodeToBytes(input))
+	return ExecutionHash(hex.MustToBytes(input))
 }
 
 // Hex converts a hash to a hex string.
-func (h ExecutionHash) Hex() string { return hex.EncodeBytes(h[:]) }
+func (h ExecutionHash) Hex() string { return hex.FromBytes(h[:]) }
 
 // String implements the stringer interface and is used also by the logger when
 // doing full logging into a file.
@@ -65,7 +65,7 @@ func (h ExecutionHash) String() string {
 
 // MarshalText returns the hex representation of h.
 func (h ExecutionHash) MarshalText() ([]byte, error) {
-	return []byte(hex.EncodeBytes(h[:])), nil
+	return []byte(hex.FromBytes(h[:])), nil
 }
 
 // UnmarshalText parses a hash in hex syntax.
@@ -94,7 +94,7 @@ type ExecutionAddress [20]byte
 
 // NewExecutionAddressFromHex creates a new address from a hex string.
 func NewExecutionAddressFromHex(input string) ExecutionAddress {
-	return ExecutionAddress(hex.MustDecodeToBytes(input))
+	return ExecutionAddress(hex.MustToBytes(input))
 }
 
 // Hex converts an address to a hex string.
@@ -128,7 +128,7 @@ func (a *ExecutionAddress) UnmarshalJSON(input []byte) error {
 
 // checksumHex returns the checksummed hex representation of a.
 func (a *ExecutionAddress) checksumHex() []byte {
-	buf := []byte(hex.EncodeBytes(a[:]))
+	buf := []byte(hex.FromBytes(a[:]))
 
 	// compute checksum
 	sha := sha3.NewLegacyKeccak256()
