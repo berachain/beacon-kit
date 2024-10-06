@@ -22,11 +22,7 @@ package hex
 
 import (
 	"encoding/hex"
-
-	"github.com/berachain/beacon-kit/mod/errors"
 )
-
-var ErrInvalidHexStringLength = errors.New("invalid hex string length")
 
 func FromBytes[B ~[]byte](b B) string {
 	return prefix + hex.EncodeToString(b)
@@ -50,41 +46,4 @@ func MustToBytes(input string) []byte {
 		panic(err)
 	}
 	return bz
-}
-
-// DecodeFixedJSON decodes the input as a string with 0x prefix. The length
-// of out determines the required input length. This function is commonly used
-// to implement the UnmarshalJSON method for fixed-size types.
-func DecodeFixedJSON(input, out []byte) error {
-	if err := validateQuotedString(input); err != nil {
-		return err
-	}
-	return DecodeFixedText(input[1:len(input)-1], out)
-}
-
-// DecodeFixedText decodes the input as a string with 0x prefix. The length
-// of out determines the required input length.
-func DecodeFixedText(input, out []byte) error {
-	raw, err := formatAndValidateText(input)
-	if err != nil {
-		return err
-	}
-	if len(raw)/encDecRatio != len(out) {
-		return errors.Wrapf(
-			ErrInvalidHexStringLength,
-			"hex string has length %d, want %d",
-			len(raw), len(out)*encDecRatio,
-		)
-	}
-	// Pre-verify syntax and decode in a single pass
-	for i := 0; i < len(raw); i += 2 {
-		highNibble := decodeNibble(raw[i])
-		lowNibble := decodeNibble(raw[i+1])
-		if highNibble == badNibble || lowNibble == badNibble {
-			return ErrInvalidString
-		}
-		out[i/2] = byte((highNibble << nibbleShift) | lowNibble)
-	}
-
-	return nil
 }

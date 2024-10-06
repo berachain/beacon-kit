@@ -21,7 +21,6 @@
 package hex
 
 import (
-	"errors"
 	"strings"
 )
 
@@ -47,22 +46,6 @@ func validateQuotedString(input []byte) error {
 		return nil
 	}
 	return ErrNonQuotedString
-}
-
-// formatAndValidateText validates the input text for a hex string.
-func formatAndValidateText(input []byte) ([]byte, error) {
-	input, err := IsValidHex(input)
-	if errors.Is(err, ErrEmptyString) {
-		return nil, nil // empty strings are allowed
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	if len(input)%2 != 0 {
-		return nil, ErrOddLength
-	}
-	return input, nil
 }
 
 // formatAndValidateNumber checks the input text for a hex number.
