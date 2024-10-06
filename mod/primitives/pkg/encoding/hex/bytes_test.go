@@ -60,52 +60,6 @@ func TestEncodeBytes(t *testing.T) {
 	}
 }
 
-func TestUnmarshalByteText(t *testing.T) {
-	tests := []struct {
-		name      string
-		input     []byte
-		expected  []byte
-		expectErr bool
-	}{
-		{
-			name:      "valid hex string",
-			input:     []byte("0x48656c6c6f"),
-			expected:  []byte{0x48, 0x65, 0x6c, 0x6c, 0x6f},
-			expectErr: false,
-		},
-		{
-			name:      "empty hex string",
-			input:     []byte("0x"),
-			expected:  []byte{},
-			expectErr: false,
-		},
-		{
-			name:      "invalid hex string",
-			input:     []byte("0xZZZZ"),
-			expected:  nil,
-			expectErr: true,
-		},
-		{
-			name:      "invalid format",
-			input:     []byte("invalid hex string"),
-			expected:  nil,
-			expectErr: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result, err := hex.UnmarshalByteText(tt.input)
-			if tt.expectErr {
-				require.Error(t, err, "Test case : %s", tt.name)
-			} else {
-				require.NoError(t, err, "Test case : %s", tt.name)
-				require.Equal(t, tt.expected, result, "Test case : %s", tt.name)
-			}
-		})
-	}
-}
-
 func TestDecodeFixedText(t *testing.T) {
 	tests := []struct {
 		name      string

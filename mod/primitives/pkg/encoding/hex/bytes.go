@@ -52,14 +52,6 @@ func MustToBytes(input string) []byte {
 	return bz
 }
 
-func UnmarshalByteText(input []byte) ([]byte, error) {
-	raw, err := formatAndValidateText(input)
-	if err != nil {
-		return []byte{}, err
-	}
-	return hex.DecodeString(string(raw))
-}
-
 // DecodeFixedJSON decodes the input as a string with 0x prefix. The length
 // of out determines the required input length. This function is commonly used
 // to implement the UnmarshalJSON method for fixed-size types.

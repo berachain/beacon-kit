@@ -187,7 +187,7 @@ func TestUnmarshalJSONText(t *testing.T) {
 			name:        "Empty JSON text",
 			input:       []byte(`""`),
 			unmarshaler: &bytes.Bytes{},
-			expectErr:   false, // unlike what we had in hex hex_test.go
+			expectErr:   true,
 		},
 	}
 
