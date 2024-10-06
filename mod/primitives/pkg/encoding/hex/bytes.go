@@ -57,11 +57,7 @@ func UnmarshalByteText(input []byte) ([]byte, error) {
 	if err != nil {
 		return []byte{}, err
 	}
-	dec := make([]byte, len(raw)/encDecRatio)
-	if _, err = hex.Decode(dec, raw); err != nil {
-		return []byte{}, err
-	}
-	return dec, nil
+	return hex.DecodeString(string(raw))
 }
 
 // DecodeFixedJSON decodes the input as a string with 0x prefix. The length
