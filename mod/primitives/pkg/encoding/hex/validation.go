@@ -21,6 +21,7 @@
 package hex
 
 import (
+	"errors"
 	"strings"
 )
 
@@ -62,6 +63,22 @@ func validateNumber(input []byte) ([]byte, error) {
 	}
 	if len(input) > 1 && input[0] == '0' {
 		return nil, ErrLeadingZero
+	}
+	return input, nil
+}
+
+// validateFixedLenghtText validates the input text for a hex string.
+func validateFixedLenghtText(input []byte) ([]byte, error) {
+	input, err := ValidateBasicHex(input)
+	if errors.Is(err, ErrEmptyString) {
+		return nil, nil // empty strings are allowed
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	if len(input)%2 != 0 {
+		return nil, ErrOddLength
 	}
 	return input, nil
 }

@@ -40,7 +40,7 @@ func DecodeFixedJSON(input, out []byte) error {
 // DecodeFixedText decodes the input as a string with 0x prefix. The length
 // of out determines the required input length.
 func DecodeFixedText(input, out []byte) error {
-	raw, err := formatAndValidateText(input)
+	raw, err := validateFixedLenghtText(input)
 	if err != nil {
 		return err
 	}
@@ -62,20 +62,4 @@ func DecodeFixedText(input, out []byte) error {
 	}
 
 	return nil
-}
-
-// formatAndValidateText validates the input text for a hex string.
-func formatAndValidateText(input []byte) ([]byte, error) {
-	input, err := ValidateBasicHex(input)
-	if errors.Is(err, ErrEmptyString) {
-		return nil, nil // empty strings are allowed
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	if len(input)%2 != 0 {
-		return nil, ErrOddLength
-	}
-	return input, nil
 }
