@@ -27,7 +27,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestIsValidHex(t *testing.T) {
+func TestValidateBasicHex(t *testing.T) {
 	tests := []struct {
 		name        string
 		input       string
@@ -62,7 +62,7 @@ func TestIsValidHex(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := hex.IsValidHex(tt.input)
+			_, err := hex.ValidateBasicHex(tt.input)
 			if tt.expectedErr != nil {
 				require.Error(t, err)
 			} else {

@@ -24,10 +24,10 @@ import (
 	"strings"
 )
 
-// IsValidHex performs basic validations that every hex string
+// ValidateBasicHex performs basic validations that every hex string
 // must pass (there may be extra ones depending on the type encoded)
 // It returns the suffix (dropping 0x prefix) in the hope to appease nilaway.
-func IsValidHex[T ~[]byte | ~string](s T) (T, error) {
+func ValidateBasicHex[T ~[]byte | ~string](s T) (T, error) {
 	if len(s) == 0 {
 		return *new(T), ErrEmptyString
 	}
@@ -51,7 +51,7 @@ func ValidateQuotedString(input []byte) error {
 
 // validateNumber checks the input text for a hex number.
 func validateNumber(input []byte) ([]byte, error) {
-	input, err := IsValidHex(input)
+	input, err := ValidateBasicHex(input)
 	if err != nil {
 		return nil, err
 	}

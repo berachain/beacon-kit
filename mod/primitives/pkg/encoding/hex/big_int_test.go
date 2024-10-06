@@ -59,7 +59,7 @@ func TestBigIntRoundTrip(t *testing.T) {
 			result := hex.MarshalBigIntText(tt.input)
 			require.Equal(t, tt.expected, result)
 
-			_, err := hex.IsValidHex(result)
+			_, err := hex.ValidateBasicHex(result)
 			require.NoError(t, err)
 
 			var dec *big.Int

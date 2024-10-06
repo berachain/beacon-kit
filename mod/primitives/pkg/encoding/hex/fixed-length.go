@@ -65,7 +65,7 @@ func DecodeFixedText(input, out []byte) error {
 
 // formatAndValidateText validates the input text for a hex string.
 func formatAndValidateText(input []byte) ([]byte, error) {
-	input, err := IsValidHex(input)
+	input, err := ValidateBasicHex(input)
 	if errors.Is(err, ErrEmptyString) {
 		return nil, nil // empty strings are allowed
 	}

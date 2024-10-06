@@ -33,5 +33,7 @@ func UnmarshalJSONText(input []byte,
 	if err := ValidateQuotedString(input); err != nil {
 		return err
 	}
-	return u.UnmarshalText(input[1 : len(input)-1])
+
+	strippedInput := input[1 : len(input)-1]
+	return u.UnmarshalText(strippedInput)
 }

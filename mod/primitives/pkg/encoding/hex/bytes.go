@@ -31,7 +31,7 @@ func FromBytes[B ~[]byte](b B) string {
 // ToBytes returns the bytes represented by the given hex string.
 // An error is returned if the input is not a valid hex string.
 func ToBytes(hexStr string) ([]byte, error) {
-	strippedInput, err := IsValidHex(hexStr)
+	strippedInput, err := ValidateBasicHex(hexStr)
 	if err != nil {
 		return nil, err
 	}
