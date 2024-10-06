@@ -85,51 +85,6 @@ func TestFromHex(t *testing.T) {
 	}
 }
 
-func TestMustFromHex(t *testing.T) {
-	tests := []struct {
-		name        string
-		input       string
-		expected    []byte
-		shouldPanic bool
-	}{
-		{
-			name:        "Valid hex string",
-			input:       "0x48656c6c6f",
-			expected:    bytes.Bytes{0x48, 0x65, 0x6c, 0x6c, 0x6f},
-			shouldPanic: false,
-		},
-		{
-			name:        "Empty hex string",
-			input:       "0x",
-			expected:    bytes.Bytes{},
-			shouldPanic: false,
-		},
-		{
-			name:        "Invalid hex string",
-			input:       "0x12345",
-			expected:    nil,
-			shouldPanic: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			var (
-				res []byte
-				f   = func() {
-					res = hex.MustToBytes(tt.input)
-				}
-			)
-			if tt.shouldPanic {
-				require.Panics(t, f)
-			} else {
-				require.NotPanics(t, f)
-				require.Equal(t, tt.expected, res)
-			}
-		})
-	}
-}
-
 func TestReverseEndianness(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -158,7 +113,7 @@ func TestReverseEndianness(t *testing.T) {
 	}
 }
 
-func TestUnmarshalJSONText(t *testing.T) {
+func TestBytesUnmarshalJSON(t *testing.T) {
 	tests := []struct {
 		name      string
 		input     []byte
@@ -908,7 +863,7 @@ func TestToBytes48(t *testing.T) {
 	}
 }
 
-func TestUnmarshalJSON(t *testing.T) {
+func TestB48UnmarshalJSON(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    string

@@ -28,37 +28,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestEncodeBytes(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    []byte
-		expected string
-	}{
-		{
-			name:     "typical byte slice",
-			input:    []byte{0x48, 0x65, 0x6c, 0x6c, 0x6f},
-			expected: "0x48656c6c6f",
-		},
-		{
-			name:     "empty byte slice",
-			input:    []byte{},
-			expected: "0x",
-		},
-		{
-			name:     "single byte",
-			input:    []byte{0x01},
-			expected: "0x01",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := hex.FromBytes(tt.input)
-			require.Equal(t, tt.expected, result)
-		})
-	}
-}
-
 func TestFromBytes(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -124,10 +93,10 @@ func TestString_MustToBytes(t *testing.T) {
 				}
 			)
 			if tt.panics {
-				require.Panics(t, f, "Test case: %s", tt.name)
+				require.Panics(t, f)
 			} else {
 				require.NotPanics(t, f)
-				require.Equal(t, tt.expected, res, "Test case: %s", tt.name)
+				require.Equal(t, tt.expected, res)
 			}
 		})
 	}
