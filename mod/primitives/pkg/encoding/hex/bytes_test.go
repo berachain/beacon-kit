@@ -22,7 +22,6 @@
 package hex_test
 
 import (
-	"strconv"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
@@ -60,139 +59,75 @@ func TestEncodeBytes(t *testing.T) {
 	}
 }
 
-func TestDecodeFixedText(t *testing.T) {
+func TestFromBytes(t *testing.T) {
 	tests := []struct {
-		name      string
-		typename  string
-		input     []byte
-		expected  []byte
-		expectErr bool
+		name     string
+		input    []byte
+		expected string
 	}{
 		{
-			name:      "valid hex string",
-			typename:  "testType",
-			input:     []byte("0x48656c6c6f"),
-			expected:  []byte{0x48, 0x65, 0x6c, 0x6c, 0x6f},
-			expectErr: false,
+			name:     "typical byte slice",
+			input:    []byte{0x48, 0x65, 0x6c, 0x6c, 0x6f},
+			expected: "0x48656c6c6f",
 		},
 		{
-			name:      "invalid hex string length",
-			typename:  "testType",
-			input:     []byte("0x48656c6c"),
-			expected:  make([]byte, 5),
-			expectErr: true,
+			name:     "empty byte slice",
+			input:    []byte{},
+			expected: "0x",
 		},
 		{
-			name:      "invalid hex characters",
-			typename:  "testType",
-			input:     []byte("0xZZZZZZZZZZ"),
-			expected:  make([]byte, 5),
-			expectErr: true,
+			name:     "single byte",
+			input:    []byte{0x01},
+			expected: "0x01",
 		},
 		{
-			name:      "hex.Decode error",
-			typename:  "testType",
-			input:     []byte("0x123"), // Invalid length for hex.Decode
-			expected:  make([]byte, 2),
-			expectErr: true,
+			name: "long byte slice",
+			input: []byte{
+				0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbe, 0xde, 0xad,
+				0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbe, 0xde, 0xad, 0xbe, 0xef,
+				0xca, 0xfe, 0xba, 0xbe, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe,
+				0xba, 0xbe},
+			expected: "0xdeadbeefcafebabe" + "deadbeefcafebabe" + "deadbeefcafebabe" + "deadbeefcafebabe",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out := make([]byte, len(tt.expected))
-			err := hex.DecodeFixedText(tt.input, out)
-			if tt.expectErr {
-				require.Error(t, err, "Test case : %s", tt.name)
-			} else {
-				require.NoError(t, err, "Test case : %s", tt.name)
-				require.Equal(t, tt.expected, out, "Test case : %s", tt.name)
-			}
+			result := hex.FromBytes(tt.input)
+			require.Equal(t, tt.expected, result)
+
+			decoded, err := hex.ToBytes(result)
+			require.NoError(t, err)
+			require.Equal(t, tt.input, decoded)
 		})
 	}
 }
 
-func TestDecodeFixedJSON(t *testing.T) {
+func TestString_MustToBytes(t *testing.T) {
 	tests := []struct {
-		name      string
-		typename  string
-		input     []byte
-		out       []byte
-		expectErr bool
+		name     string
+		input    string
+		expected []byte
+		panics   bool
 	}{
-		{
-			name:      "valid hex string",
-			typename:  "testType",
-			input:     []byte(`"0x48656c6c6f"`),
-			out:       make([]byte, 5),
-			expectErr: false,
-		},
-		{
-			name:      "invalid hex string length",
-			typename:  "testType",
-			input:     []byte(`"0x48656c6c"`),
-			out:       make([]byte, 5),
-			expectErr: true,
-		},
-		{
-			name:      "invalid hex characters",
-			typename:  "testType",
-			input:     []byte(`"0xZZZZZZZZZZ"`),
-			out:       make([]byte, 5),
-			expectErr: true,
-		},
-		{
-			name:      "non-quoted string",
-			typename:  "testType",
-			input:     []byte(`0x48656c6c6f`),
-			out:       make([]byte, 5),
-			expectErr: true,
-		},
+		{"Valid hex string", "0x68656c6c6f", []byte("hello"), false},
+		{"Another valid hex string", "0x776f726c64", []byte("world"), false},
+		{"Invalid hex string", "0xinvalid", nil, true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := hex.DecodeFixedJSON(
-				tt.input,
-				tt.out,
-			)
-			if tt.expectErr {
-				require.Error(t, err, "Test case : %s", tt.name)
-			} else {
-				require.NoError(t, err, "Test case : %s", tt.name)
-				require.Equal(t, []byte{0x48, 0x65, 0x6c, 0x6c, 0x6f}, tt.out, "Test case : %s", tt.name)
-			}
-		})
-	}
-}
-
-func BenchmarkDecodeFixedText(b *testing.B) {
-	sizes := []int{100, 1000, 10000} // Different input sizes
-
-	for _, size := range sizes {
-		benchName := "Size" + strconv.Itoa(size)
-		b.Run(benchName, func(b *testing.B) {
-			input := make(
-				[]byte,
-				size*2+2,
-			) // Each byte is represented by 2 hex characters + "0x" prefix
-			input[0] = '0'
-			input[1] = 'x'
-			for i := 2; i < len(input); i += 2 {
-				input[i] = 'a'
-				input[i+1] = 'f'
-			}
-			out := make(
-				[]byte,
-				size,
-			) // Adjust the size based on the expected output length
-
-			b.ResetTimer()
-			for i := 0; i < b.N; i++ {
-				err := hex.DecodeFixedText(input, out)
-				if err != nil {
-					b.Fatalf("DecodeFixedText failed: %v", err)
+			var (
+				res []byte
+				f   = func() {
+					res = hex.MustToBytes(tt.input)
 				}
+			)
+			if tt.panics {
+				require.Panics(t, f, "Test case: %s", tt.name)
+			} else {
+				require.NotPanics(t, f)
+				require.Equal(t, tt.expected, res, "Test case: %s", tt.name)
 			}
 		})
 	}
