@@ -30,7 +30,7 @@ var ErrInvalidHexStringLength = errors.New("invalid hex string length")
 // of out determines the required input length. This function is commonly used
 // to implement the UnmarshalJSON method for fixed-size types.
 func DecodeFixedJSON(input, out []byte) error {
-	if err := validateQuotedString(input); err != nil {
+	if err := ValidateQuotedString(input); err != nil {
 		return err
 	}
 	return DecodeFixedText(input[1:len(input)-1], out)

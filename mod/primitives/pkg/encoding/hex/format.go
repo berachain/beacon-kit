@@ -40,8 +40,9 @@ func IsValidHex[T ~[]byte | ~string](s T) (T, error) {
 	return s[prefixLen:], nil
 }
 
-// isQuotedString returns true if input has quotes.
-func validateQuotedString(input []byte) error {
+// ValidateQuotedString validates the input byte slice for unmarshaling.
+// It returns an error iff input is not a quoted string.
+func ValidateQuotedString(input []byte) error {
 	if len(input) >= 2 && input[0] == '"' && input[len(input)-1] == '"' {
 		return nil
 	}

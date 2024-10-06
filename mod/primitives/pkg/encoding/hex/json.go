@@ -30,7 +30,7 @@ import (
 func UnmarshalJSONText(input []byte,
 	u encoding.TextUnmarshaler,
 ) error {
-	if err := ValidateUnmarshalInput(input); err != nil {
+	if err := ValidateQuotedString(input); err != nil {
 		return err
 	}
 	return u.UnmarshalText(input[1 : len(input)-1])

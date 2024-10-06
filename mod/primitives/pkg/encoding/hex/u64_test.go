@@ -55,30 +55,6 @@ func TestMarshalText(t *testing.T) {
 	}
 }
 
-func TestValidateUnmarshalInput(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    []byte
-		expected error
-	}{
-		{"ValidQuotedString", []byte(`"0x0"`), nil},
-		{"ValidQuotedStringFF", []byte(`"0xff"`), nil},
-		{"NonQuotedString", []byte(`0xff`), hex.ErrNonQuotedString},
-		{"InvalidQuotedString", []byte(`"z`), hex.ErrNonQuotedString},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			err := hex.ValidateUnmarshalInput(test.input)
-			if test.expected != nil {
-				require.Equal(t, test.expected, err, "Test case %s", test.name)
-			} else {
-				require.NoError(t, err, "Test case %s", test.name)
-			}
-		})
-	}
-}
-
 func TestUnmarshalUint64Text(t *testing.T) {
 	tests := []struct {
 		name     string

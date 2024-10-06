@@ -37,13 +37,6 @@ func MarshalUint64Text(b uint64) ([]byte, error) {
 	return buf, nil
 }
 
-// ValidateUnmarshalInput validates the input byte slice for unmarshaling.
-// It returns an error iff input is not a quoted string.
-// This is used to prevent exposing validation logic to the caller.
-func ValidateUnmarshalInput(input []byte) error {
-	return validateQuotedString(input)
-}
-
 // UnmarshalUint64Text parses a byte slice containing a hexadecimal string and
 // returns the uint64 value it represents.
 func UnmarshalUint64Text(input []byte) (uint64, error) {
