@@ -49,8 +49,8 @@ func ValidateQuotedString(input []byte) error {
 	return ErrNonQuotedString
 }
 
-// formatAndValidateNumber checks the input text for a hex number.
-func formatAndValidateNumber(input []byte) ([]byte, error) {
+// validateNumber checks the input text for a hex number.
+func validateNumber(input []byte) ([]byte, error) {
 	input, err := IsValidHex(input)
 	if err != nil {
 		return nil, err

@@ -36,7 +36,7 @@ func MarshalBigIntText(bigint *big.Int) []byte {
 
 // UnmarshalBigIntText decodes a hex string with 0x prefix.
 func UnmarshalBigIntText(input []byte) (*big.Int, error) {
-	raw, err := formatAndValidateNumber(input)
+	raw, err := validateNumber(input)
 	if err != nil {
 		return nil, err
 	}

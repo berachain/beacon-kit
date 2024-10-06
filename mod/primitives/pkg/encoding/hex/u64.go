@@ -40,7 +40,7 @@ func MarshalUint64Text(b uint64) ([]byte, error) {
 // UnmarshalUint64Text parses a byte slice containing a hexadecimal string and
 // returns the uint64 value it represents.
 func UnmarshalUint64Text(input []byte) (uint64, error) {
-	raw, err := formatAndValidateNumber(input)
+	raw, err := validateNumber(input)
 	if err != nil {
 		return 0, err
 	}
