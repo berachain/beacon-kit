@@ -88,9 +88,9 @@ func TestValidateUnmarshalInput(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			_, err := hex.ValidateQuotedString(test.input)
 			if test.expected != nil {
-				require.Equal(t, test.expected, err, "Test case %s", test.name)
+				require.Equal(t, test.expected, err)
 			} else {
-				require.NoError(t, err, "Test case %s", test.name)
+				require.NoError(t, err)
 			}
 		})
 	}

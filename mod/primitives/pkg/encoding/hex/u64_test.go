@@ -43,14 +43,8 @@ func TestMarshalText(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			result, err := hex.MarshalUint64Text(test.input)
-			require.NoError(t, err, "Test case %s", test.name)
-			require.Equal(
-				t,
-				test.expected,
-				string(result),
-				"Test case %s",
-				test.name,
-			)
+			require.NoError(t, err)
+			require.Equal(t, test.expected, string(result))
 		})
 	}
 }
@@ -78,9 +72,9 @@ func TestUnmarshalUint64Text(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			result, err := hex.UnmarshalUint64Text(test.input)
 			if test.err != nil {
-				require.Equal(t, test.err, err, "Test case %s", test.name)
+				require.ErrorIs(t, test.err, err)
 			} else {
-				require.Equal(t, test.expected, result, "Test case %s", test.name)
+				require.Equal(t, test.expected, result)
 				require.NoError(t, err)
 			}
 		})
