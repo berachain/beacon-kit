@@ -42,11 +42,12 @@ func ValidateBasicHex[T ~[]byte | ~string](s T) (T, error) {
 
 // ValidateQuotedString validates the input byte slice for unmarshaling.
 // It returns an error iff input is not a quoted string.
-func ValidateQuotedString(input []byte) error {
+func ValidateQuotedString(input []byte) ([]byte, error) {
 	if len(input) >= 2 && input[0] == '"' && input[len(input)-1] == '"' {
-		return nil
+		strippedInput := input[1 : len(input)-1]
+		return strippedInput, nil
 	}
-	return ErrNonQuotedString
+	return nil, ErrNonQuotedString
 }
 
 // validateNumber checks the input text for a hex number.

@@ -36,7 +36,11 @@ func (b Bytes) MarshalText() ([]byte, error) {
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (b *Bytes) UnmarshalJSON(input []byte) error {
-	return hex.UnmarshalJSONText(input, b)
+	strippedInput, err := hex.ValidateQuotedString(input)
+	if err != nil {
+		return err
+	}
+	return b.UnmarshalText(strippedInput)
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler.

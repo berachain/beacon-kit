@@ -110,12 +110,11 @@ func TestU64_UnmarshalText(t *testing.T) {
 	}
 }
 
-func TestUnmarshalJSONText(t *testing.T) {
+func TestUnmarshalJSON(t *testing.T) {
 	tests := []struct {
-		name        string
-		input       []byte
-		unmarshaler math.U64
-		expectErr   bool
+		name      string
+		input     []byte
+		expectErr bool
 	}{
 		{
 			name:      "Valid JSON text",
@@ -141,10 +140,8 @@ func TestUnmarshalJSONText(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := hex.UnmarshalJSONText(
-				tt.input,
-				&tt.unmarshaler,
-			)
+			var u64 math.U64
+			err := u64.UnmarshalJSON(tt.input)
 			if tt.expectErr {
 				require.Error(t, err, "Test case: %s", tt.name)
 			} else {
