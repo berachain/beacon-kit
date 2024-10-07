@@ -604,3 +604,8 @@ func (s *Service[_]) GetBlockRetentionHeight(commitHeight int64) int64 {
 
 	return retentionHeight
 }
+
+// GetBeaconVersion returns the current version of the beacon node.
+func (s *Service[_]) GetBeaconVersion() (string, error) {
+	return sdkversion.Version, nil
+}

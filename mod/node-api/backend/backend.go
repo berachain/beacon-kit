@@ -226,3 +226,14 @@ func (b *Backend[
 ]) GetSlotByParentRoot(root common.Root) (math.Slot, error) {
 	return b.sb.BlockStore().GetSlotByParentRoot(root)
 }
+
+// GetNodeVersion returns the version of the beacon node.
+func (b *Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) GetNodeVersion() (string, error) {
+	appVersion, err := b.node.GetBeaconVersion()
+	if err != nil {
+		return "", err
+	}
+	return appVersion, nil
+}

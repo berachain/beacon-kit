@@ -20,6 +20,11 @@
 
 package node
 
+import (
+	nodetypes "github.com/berachain/beacon-kit/mod/node-api/handlers/node/types"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
+)
+
 // Syncing is a placeholder so that beacon API clients don't break.
 //
 // TODO: Implement with real data.
@@ -44,18 +49,13 @@ func (h *Handler[ContextT]) Syncing(ContextT) (any, error) {
 	return response, nil
 }
 
-// Version is a placeholder so that beacon API clients don't break.
-//
-// TODO: Implement with real data.
-func (h *Handler[ContextT]) Version(ContextT) (any, error) {
-	type VersionResponse struct {
-		Data struct {
-			Version string `json:"version"`
-		} `json:"data"`
+// Version returns the version of the beacon node.
+func (h *Handler[ContextT]) Version(_ ContextT) (any, error) {
+	version, err := h.backend.GetNodeVersion()
+	if err != nil {
+		return nil, err
 	}
-
-	response := VersionResponse{}
-	response.Data.Version = "1.0.0"
-
-	return response, nil
+	return types.Wrap(nodetypes.VersionData{
+		Version: version,
+	}), nil
 }
