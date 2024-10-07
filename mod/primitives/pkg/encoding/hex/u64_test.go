@@ -98,7 +98,7 @@ func TestUnmarshalUint64Text(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			result, err := hex.UnmarshalUint64Text(test.input)
 			if test.err != nil {
-				require.Equal(t, test.err, err)
+				require.ErrorIs(t, test.err, err)
 			} else {
 				require.NoError(t, err)
 				require.Equal(t, test.expected, result)
