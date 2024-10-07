@@ -74,6 +74,61 @@ func (_c *Node_CreateQueryContext_Call[ContextT]) RunAndReturn(run func(int64, b
 	return _c
 }
 
+// GetBeaconVersion provides a mock function with given fields:
+func (_m *Node[ContextT]) GetBeaconVersion() (string, error) {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetBeaconVersion")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func() (string, error)); ok {
+		return rf()
+	}
+	if rf, ok := ret.Get(0).(func() string); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Node_GetBeaconVersion_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetBeaconVersion'
+type Node_GetBeaconVersion_Call[ContextT any] struct {
+	*mock.Call
+}
+
+// GetBeaconVersion is a helper method to define mock.On call
+func (_e *Node_Expecter[ContextT]) GetBeaconVersion() *Node_GetBeaconVersion_Call[ContextT] {
+	return &Node_GetBeaconVersion_Call[ContextT]{Call: _e.mock.On("GetBeaconVersion")}
+}
+
+func (_c *Node_GetBeaconVersion_Call[ContextT]) Run(run func()) *Node_GetBeaconVersion_Call[ContextT] {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *Node_GetBeaconVersion_Call[ContextT]) Return(_a0 string, _a1 error) *Node_GetBeaconVersion_Call[ContextT] {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Node_GetBeaconVersion_Call[ContextT]) RunAndReturn(run func() (string, error)) *Node_GetBeaconVersion_Call[ContextT] {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewNode creates a new instance of Node. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewNode[ContextT any](t interface {
