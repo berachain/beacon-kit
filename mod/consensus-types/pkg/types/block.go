@@ -35,7 +35,7 @@ type BeaconBlock struct {
 	// Slot represents the position of the block in the chain.
 	Slot math.Slot `json:"slot"`
 	// ProposerIndex is the index of the validator who proposed the block.
-	ProposerIndex math.Slot `json:"proposer_index"`
+	ProposerIndex math.ValidatorIndex `json:"proposer_index"`
 	// ParentRoot is the hash of the parent block
 	ParentRoot common.Root `json:"parent_root"`
 	// StateRoot is the hash of the state at the block.
@@ -82,17 +82,16 @@ func (b *BeaconBlock) NewFromSSZ(
 	bz []byte,
 	forkVersion uint32,
 ) (*BeaconBlock, error) {
-	var block = new(BeaconBlock)
+	var block *BeaconBlock
 	switch forkVersion {
 	case version.Deneb:
 		block = &BeaconBlock{}
+		return block, block.UnmarshalSSZ(bz)
 	case version.DenebPlus:
 		panic("unsupported fork version")
 	default:
 		return block, ErrForkVersionNotSupported
 	}
-
-	return block, block.UnmarshalSSZ(bz)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -194,7 +193,7 @@ func (b *BeaconBlock) GetSlot() math.Slot {
 	return b.Slot
 }
 
-// GetSlot retrieves the slot of the BeaconBlockBase.
+// GetProposerIndex retrieves the proposer index.
 func (b *BeaconBlock) GetProposerIndex() math.ValidatorIndex {
 	return b.ProposerIndex
 }

@@ -17,39 +17,52 @@
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
-//
 
-package bytes
+package common_test
 
 import (
+	"encoding/json"
+	"testing"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
+	"github.com/stretchr/testify/require"
 )
 
-// Bytes marshals/unmarshals as a JSON string with 0x prefix.
-// The empty slice marshals as "0x".
-type Bytes []byte
-
-// MarshalText implements encoding.TextMarshaler.
-func (b Bytes) MarshalText() ([]byte, error) {
-	return []byte(hex.EncodeBytes(b)), nil
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (b *Bytes) UnmarshalJSON(input []byte) error {
-	return hex.UnmarshalJSONText(input, b)
-}
-
-// UnmarshalText implements encoding.TextUnmarshaler.
-func (b *Bytes) UnmarshalText(input []byte) error {
-	dec, err := hex.UnmarshalByteText(input)
-	if err != nil {
-		return err
+func TestExecutionAddressMarshalling(t *testing.T) {
+	//nolint:lll // some test data may be long
+	tests := []struct {
+		name        string
+		input       []byte
+		expectedErr error
+	}{
+		{
+			name:        "address too short",
+			input:       []byte("\"0xab\""),
+			expectedErr: hex.ErrInvalidHexStringLength,
+		},
+		{
+			name:        "address missing hex prefix",
+			input:       []byte("\"abc\""),
+			expectedErr: hex.ErrMissingPrefix,
+		},
+		{
+			name:        "address too long",
+			input:       []byte("\"0x000102030405060708090a0b0c0d0e0f101112131415161718\""),
+			expectedErr: hex.ErrInvalidHexStringLength,
+		},
 	}
-	*b = Bytes(dec)
-	return nil
-}
 
-// String returns the hex encoding of b.
-func (b Bytes) String() string {
-	return hex.EncodeBytes(b)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var (
+				v   common.ExecutionAddress
+				err error
+			)
+			require.NotPanics(t, func() {
+				err = json.Unmarshal(tt.input, &v)
+			})
+			require.ErrorIs(t, err, tt.expectedErr)
+		})
+	}
 }

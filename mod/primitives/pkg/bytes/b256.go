@@ -57,7 +57,7 @@ func (h *B256) UnmarshalText(text []byte) error {
 
 // String returns the hex string representation of B256.
 func (h *B256) String() string {
-	return hex.FromBytes(h[:]).Unwrap()
+	return hex.EncodeBytes(h[:])
 }
 
 /* -------------------------------------------------------------------------- */

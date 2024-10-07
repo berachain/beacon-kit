@@ -22,7 +22,7 @@
 package bytes_test
 
 import (
-	stdbytes "bytes"
+	stdhex "encoding/hex"
 	"fmt"
 	"reflect"
 	"strings"
@@ -35,51 +35,51 @@ import (
 
 func TestFromHex(t *testing.T) {
 	tests := []struct {
-		name    string
-		input   string
-		want    bytes.Bytes
-		wantErr bool
+		name       string
+		input      string
+		wantOutput bytes.Bytes
+		wantErr    error
 	}{
 		{
-			name:    "Valid hex string",
-			input:   "0x48656c6c6f",
-			want:    bytes.Bytes{0x48, 0x65, 0x6c, 0x6c, 0x6f},
-			wantErr: false,
+			name:       "Valid hex string",
+			input:      "0x48656c6c6f",
+			wantOutput: bytes.Bytes{0x48, 0x65, 0x6c, 0x6c, 0x6f},
+			wantErr:    nil,
 		},
 		{
-			name:    "Empty hex string",
-			input:   "0x",
-			want:    bytes.Bytes{},
-			wantErr: false,
+			name:       "Empty hex string",
+			input:      "0x",
+			wantOutput: bytes.Bytes{},
+			wantErr:    nil,
 		},
 		{
-			name:    "Invalid hex string - odd length",
-			input:   "0x12345",
-			want:    nil,
-			wantErr: true,
+			name:       "Invalid hex string - odd length",
+			input:      "0x12345",
+			wantOutput: nil,
+			wantErr:    stdhex.ErrLength,
 		},
 		{
-			name:    "Invalid hex string - no 0x prefix",
-			input:   "12345",
-			want:    nil,
-			wantErr: true,
+			name:       "Invalid hex string - no 0x prefix",
+			input:      "12345",
+			wantOutput: nil,
+			wantErr:    hex.ErrMissingPrefix,
 		},
 		{
-			name:    "Empty input string",
-			input:   "",
-			want:    nil,
-			wantErr: true,
+			name:       "Empty input string",
+			input:      "",
+			wantOutput: nil,
+			wantErr:    hex.ErrEmptyString,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := hex.ToBytes(tt.input)
-			if tt.wantErr {
-				require.Error(t, err, "Test case: %s", tt.name)
+			if tt.wantErr != nil {
+				require.ErrorIs(t, err, tt.wantErr)
 			} else {
-				require.NoError(t, err, "Test case: %s", tt.name)
-				require.True(t, stdbytes.Equal(got, tt.want), "Test case: %s", tt.name)
+				require.NoError(t, err)
+				require.Equal(t, tt.wantOutput, bytes.Bytes(got))
 			}
 		})
 	}
@@ -89,13 +89,19 @@ func TestMustFromHex(t *testing.T) {
 	tests := []struct {
 		name        string
 		input       string
-		expected    bytes.Bytes
+		expected    []byte
 		shouldPanic bool
 	}{
 		{
 			name:        "Valid hex string",
-			input:       "0x48656c6c6f",
-			expected:    bytes.Bytes{0x48, 0x65, 0x6c, 0x6c, 0x6f},
+			input:       "0x68656c6c6f",
+			expected:    bytes.Bytes("hello"),
+			shouldPanic: false,
+		},
+		{
+			name:        "Another valid hex string",
+			input:       "0x776f726c64",
+			expected:    bytes.Bytes("world"),
 			shouldPanic: false,
 		},
 		{
@@ -112,21 +118,19 @@ func TestMustFromHex(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			if test.shouldPanic {
-				defer func() {
-					if r := recover(); r == nil {
-						t.Errorf(
-							"MustFromHex did not panic for input: %s",
-							test.input,
-						)
-					}
-				}()
-				_ = hex.MustToBytes(test.input)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var (
+				res []byte
+				f   = func() {
+					res = hex.MustToBytes(tt.input)
+				}
+			)
+			if tt.shouldPanic {
+				require.Panics(t, f)
 			} else {
-				result := hex.MustToBytes(test.input)
-				require.True(t, stdbytes.Equal(result, test.expected), "Test case %s", test.name)
+				require.NotPanics(t, f)
+				require.Equal(t, tt.expected, res)
 			}
 		})
 	}
@@ -1427,13 +1431,7 @@ func TestBytes_String(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := tt.input.String()
-			require.Equal(
-				t,
-				tt.expected,
-				string(result),
-				"Test case: %s",
-				tt.name,
-			)
+			require.Equal(t, tt.expected, result)
 		})
 	}
 }

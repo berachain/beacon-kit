@@ -36,7 +36,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	math "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
-	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	sdkversion "github.com/cosmos/cosmos-sdk/version"
@@ -86,22 +85,6 @@ func (s *Service[LoggerT]) InitChain(
 	}
 
 	s.finalizeBlockState = s.resetState()
-
-	defer func() {
-		// InitChain represents the state of the application BEFORE the first
-		// block, i.e. the genesis block. This means that when processing the
-		// app's InitChain handler, the block height is zero by default.
-		// However, after genesis is handled the height needs to reflect
-		// the true block height.
-		initHeader := cmtproto.Header{
-			ChainID: req.ChainId,
-			Time:    req.Time,
-			Height:  req.InitialHeight,
-		}
-		s.finalizeBlockState.SetContext(
-			s.finalizeBlockState.Context().WithBlockHeader(initHeader),
-		)
-	}()
 
 	resValidators, err := s.initChainer(
 		s.finalizeBlockState.Context(),
