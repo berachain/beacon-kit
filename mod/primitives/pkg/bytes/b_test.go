@@ -22,7 +22,7 @@
 package bytes_test
 
 import (
-	stdbytes "bytes"
+	stdhex "encoding/hex"
 	"fmt"
 	"reflect"
 	"strings"
@@ -35,51 +35,51 @@ import (
 
 func TestFromHex(t *testing.T) {
 	tests := []struct {
-		name    string
-		input   string
-		want    bytes.Bytes
-		wantErr bool
+		name       string
+		input      string
+		wantOutput bytes.Bytes
+		wantErr    error
 	}{
 		{
-			name:    "Valid hex string",
-			input:   "0x48656c6c6f",
-			want:    bytes.Bytes{0x48, 0x65, 0x6c, 0x6c, 0x6f},
-			wantErr: false,
+			name:       "Valid hex string",
+			input:      "0x48656c6c6f",
+			wantOutput: bytes.Bytes{0x48, 0x65, 0x6c, 0x6c, 0x6f},
+			wantErr:    nil,
 		},
 		{
-			name:    "Empty hex string",
-			input:   "0x",
-			want:    bytes.Bytes{},
-			wantErr: false,
+			name:       "Empty hex string",
+			input:      "0x",
+			wantOutput: bytes.Bytes{},
+			wantErr:    nil,
 		},
 		{
-			name:    "Invalid hex string - odd length",
-			input:   "0x12345",
-			want:    nil,
-			wantErr: true,
+			name:       "Invalid hex string - odd length",
+			input:      "0x12345",
+			wantOutput: nil,
+			wantErr:    stdhex.ErrLength,
 		},
 		{
-			name:    "Invalid hex string - no 0x prefix",
-			input:   "12345",
-			want:    nil,
-			wantErr: true,
+			name:       "Invalid hex string - no 0x prefix",
+			input:      "12345",
+			wantOutput: nil,
+			wantErr:    hex.ErrMissingPrefix,
 		},
 		{
-			name:    "Empty input string",
-			input:   "",
-			want:    nil,
-			wantErr: true,
+			name:       "Empty input string",
+			input:      "",
+			wantOutput: nil,
+			wantErr:    hex.ErrEmptyString,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := hex.ToBytes(tt.input)
-			if tt.wantErr {
-				require.Error(t, err, "Test case: %s", tt.name)
+			if tt.wantErr != nil {
+				require.ErrorIs(t, err, tt.wantErr)
 			} else {
-				require.NoError(t, err, "Test case: %s", tt.name)
-				require.True(t, stdbytes.Equal(got, tt.want), "Test case: %s", tt.name)
+				require.NoError(t, err)
+				require.Equal(t, tt.wantOutput, bytes.Bytes(got))
 			}
 		})
 	}

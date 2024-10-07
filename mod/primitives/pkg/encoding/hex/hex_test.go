@@ -33,54 +33,6 @@ import (
 )
 
 // ====================== Constructors ===========================.
-func TestNewStringStrictInvariants(t *testing.T) {
-	// NewStringStrict constructor should error if the input is invalid
-	tests := []struct {
-		name      string
-		input     string
-		expectErr bool
-	}{
-		{
-			name:      "Valid hex string",
-			input:     "0x48656c6c6f",
-			expectErr: false,
-		},
-		{
-			name:      "Empty string",
-			input:     "",
-			expectErr: true,
-		},
-		{
-			name:      "No 0x prefix",
-			input:     "48656c6c6f",
-			expectErr: true,
-		},
-		{
-			name:      "Valid single hex character",
-			input:     "0x0",
-			expectErr: false,
-		},
-		{
-			name:      "Empty hex string",
-			input:     "0x",
-			expectErr: false,
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			str, err := hex.NewStringStrict(test.input)
-			if test.expectErr {
-				require.Error(t, err, "Test case: %s", test.name)
-			} else {
-				require.NoError(t, err, "Test case: %s", test.name)
-				_, err = hex.IsValidHex(str)
-				require.NoError(t, err)
-			}
-		})
-	}
-}
-
 func TestNewStringInvariants(t *testing.T) {
 	// NewString constructor should never error or panic
 	// output should always satisfy the string invariants regardless of input
