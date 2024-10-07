@@ -70,7 +70,7 @@ func TestValidateQuotedString(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			_, err := hex.ValidateQuotedString(test.input)
 			if test.expected != nil {
-				require.Equal(t, test.expected, err)
+				require.ErrorIs(t, test.expected, err)
 			} else {
 				require.NoError(t, err)
 			}
