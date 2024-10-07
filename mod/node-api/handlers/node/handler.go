@@ -27,13 +27,15 @@ import (
 
 type Handler[ContextT context.Context] struct {
 	*handlers.BaseHandler[ContextT]
+	backend Backend
 }
 
-func NewHandler[ContextT context.Context]() *Handler[ContextT] {
+func NewHandler[ContextT context.Context](backend Backend) *Handler[ContextT] {
 	h := &Handler[ContextT]{
 		BaseHandler: handlers.NewBaseHandler(
 			handlers.NewRouteSet[ContextT](""),
 		),
+		backend: backend,
 	}
 	return h
 }

@@ -104,6 +104,8 @@ type Node[ContextT any] interface {
 	// CreateQueryContext creates a query context for a given height and proof
 	// flag.
 	CreateQueryContext(height int64, prove bool) (ContextT, error)
+	// GetAppVersion returns the application version.
+	GetAppVersion(context.Context) (uint64, error)
 }
 
 type StateProcessor[BeaconStateT any] interface {

@@ -22,6 +22,8 @@ package backend
 
 import (
 	"context"
+	"fmt"
+	"strconv"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -225,4 +227,20 @@ func (b *Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) GetSlotByParentRoot(root common.Root) (math.Slot, error) {
 	return b.sb.BlockStore().GetSlotByParentRoot(root)
+}
+
+// GetVersionFromGenesis returns the version from the genesis state.
+func (b *Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) GetVersionFromGenesis() (string, error) {
+	queryCtx, err := b.node.CreateQueryContext(0, false)
+	if err != nil {
+		return "", err
+	}
+	appVersion, err := b.node.GetAppVersion(queryCtx)
+	if err != nil {
+		return "", err
+	}
+	fmt.Printf("app version %v\n", appVersion)
+	return strconv.FormatUint(appVersion, 10), nil
 }

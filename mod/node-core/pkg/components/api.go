@@ -21,6 +21,7 @@
 package components
 
 import (
+	"context"
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -73,6 +74,7 @@ func ProvideNodeAPIBackend[
 	KVStoreT any,
 	NodeT interface {
 		CreateQueryContext(height int64, prove bool) (sdk.Context, error)
+		GetAppVersion(ctx context.Context) (uint64, error)
 	},
 	StorageBackendT StorageBackend[
 		AvailabilityStoreT, BeaconStateT, BeaconBlockStoreT, DepositStoreT,

@@ -144,10 +144,14 @@ func ProvideNodeAPIEventsHandler[
 	return eventsapi.NewHandler[NodeAPIContextT]()
 }
 
+type Backend interface {
+	GetVersionFromGenesis() (string, error)
+}
+
 func ProvideNodeAPINodeHandler[
 	NodeAPIContextT NodeAPIContext,
-]() *nodeapi.Handler[NodeAPIContextT] {
-	return nodeapi.NewHandler[NodeAPIContextT]()
+](b Backend) *nodeapi.Handler[NodeAPIContextT] {
+	return nodeapi.NewHandler[NodeAPIContextT](b)
 }
 
 func ProvideNodeAPIProofHandler[

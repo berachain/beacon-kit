@@ -604,3 +604,8 @@ func (s *Service[_]) GetBlockRetentionHeight(commitHeight int64) int64 {
 
 	return retentionHeight
 }
+
+// GetAppVersion returns the application version.
+func (s *Service[_]) GetAppVersion(ctx context.Context) (uint64, error) {
+	return s.AppVersion(ctx)
+}

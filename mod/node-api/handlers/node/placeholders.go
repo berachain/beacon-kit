@@ -20,6 +20,11 @@
 
 package node
 
+import (
+	"errors"
+	"fmt"
+)
+
 // Syncing is a placeholder so that beacon API clients don't break.
 //
 // TODO: Implement with real data.
@@ -55,7 +60,16 @@ func (h *Handler[ContextT]) Version(ContextT) (any, error) {
 	}
 
 	response := VersionResponse{}
-	response.Data.Version = "1.0.0"
+	if h.backend == nil {
+		return nil, errors.New("backend is not set")
+	}
+	//response.Data.Version = "1.0.0"
+	version, err := h.backend.GetVersionFromGenesis()
+	fmt.Printf("version nidz %v", version)
+	if err != nil {
+		return nil, err
+	}
 
+	response.Data.Version = version
 	return response, nil
 }

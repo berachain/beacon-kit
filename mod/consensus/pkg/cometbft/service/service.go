@@ -23,6 +23,7 @@ package cometbft
 import (
 	"context"
 	"errors"
+	"strconv"
 
 	storetypes "cosmossdk.io/store/types"
 	servercmtlog "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/log"
@@ -182,6 +183,9 @@ func (s *Service[_]) CommitMultiStore() storetypes.CommitMultiStore {
 
 // AppVersion returns the application's protocol version.
 func (s *Service[_]) AppVersion(_ context.Context) (uint64, error) {
+	s.logger.Info("AppVersion called")
+	version, _ := s.appVersion()
+	s.logger.Info("AppVersion returning", "version %v\n", strconv.FormatUint(version, 10))
 	return s.appVersion()
 }
 
