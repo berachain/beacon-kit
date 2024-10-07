@@ -18,7 +18,6 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-
 package hex_test
 
 import (
@@ -28,41 +27,47 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// ====================== Constructors ===========================.
-func TestNewStringInvariants(t *testing.T) {
-	// NewString constructor should never error or panic
-	// output should always satisfy the string invariants regardless of input
+func TestIsValidHex(t *testing.T) {
 	tests := []struct {
-		name  string
-		input string
+		name    string
+		input   string
+		wantErr error
 	}{
 		{
-			name:  "Valid hex string",
-			input: "0x48656c6c6f",
+			name:    "Valid hex string",
+			input:   "0x48656c6c6f",
+			wantErr: nil,
 		},
 		{
-			name:  "Empty string",
-			input: "",
+			name:    "Empty string",
+			input:   "",
+			wantErr: hex.ErrEmptyString,
 		},
 		{
-			name:  "No 0x prefix",
-			input: "48656c6c6f",
+			name:    "No 0x prefix",
+			input:   "48656c6c6f",
+			wantErr: hex.ErrMissingPrefix,
 		},
 		{
-			name:  "Valid single hex character",
-			input: "0x0",
+			name:    "Valid single hex character",
+			input:   "0x0",
+			wantErr: nil,
 		},
 		{
-			name:  "Empty hex string",
-			input: "0x",
+			name:    "Empty hex string",
+			input:   "0x",
+			wantErr: nil,
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			str := hex.NewString(test.input)
-			_, err := hex.IsValidHex(str)
-			require.NoError(t, err)
+			_, err := hex.IsValidHex(test.input)
+			if test.wantErr != nil {
+				require.ErrorIs(t, test.wantErr, err)
+			} else {
+				require.NoError(t, err)
+			}
 		})
 	}
 }
