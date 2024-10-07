@@ -58,7 +58,7 @@ func (h *B32) UnmarshalText(text []byte) error {
 
 // String returns the hex string representation of B32.
 func (h B32) String() string {
-	return string(hex.EncodeBytes(h[:]))
+	return hex.EncodeBytes(h[:])
 }
 
 /* -------------------------------------------------------------------------- */

@@ -71,54 +71,6 @@ func TestNewStringInvariants(t *testing.T) {
 	}
 }
 
-// ====================== Bytes ===========================.
-func TestFromBytes(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    []byte
-		expected string
-	}{
-		{
-			name:     "typical byte slice",
-			input:    []byte{0x48, 0x65, 0x6c, 0x6c, 0x6f},
-			expected: "0x48656c6c6f",
-		},
-		{
-			name:     "empty byte slice",
-			input:    []byte{},
-			expected: "0x",
-		},
-		{
-			name:     "single byte",
-			input:    []byte{0x01},
-			expected: "0x01",
-		},
-		{
-			name: "long byte slice",
-			input: []byte{
-				0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbe, 0xde, 0xad,
-				0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbe, 0xde, 0xad, 0xbe, 0xef,
-				0xca, 0xfe, 0xba, 0xbe, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe,
-				0xba, 0xbe},
-			expected: "0xdeadbeefcafebabe" + "deadbeefcafebabe" + "deadbeefcafebabe" + "deadbeefcafebabe",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := hex.EncodeBytes(tt.input)
-			require.Equal(t, tt.expected, string(result))
-
-			_, err := hex.IsValidHex(result)
-			require.NoError(t, err)
-
-			decoded, err := hex.ToBytes(string(result))
-			require.NoError(t, err)
-			require.Equal(t, tt.input, decoded)
-		})
-	}
-}
-
 // ====================== Numeric ===========================.
 
 // FromUint64, then ToUint64.

@@ -157,7 +157,7 @@ func TestSecretRoundTripEncoding(t *testing.T) {
 	require.NoError(t, err, "NewRandom() error")
 
 	// Encode the original secret to hex string
-	encodedSecret := string(hex.EncodeBytes(originalSecret.Bytes()))
+	encodedSecret := hex.EncodeBytes(originalSecret.Bytes())
 
 	// Decode the hex string back to secret
 	decodedSecret, err := jwt.NewFromHex(encodedSecret)
