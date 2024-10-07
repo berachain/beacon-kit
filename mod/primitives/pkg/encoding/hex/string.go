@@ -38,8 +38,14 @@ type String string
 // ensure that the string invariants are satisfied.
 func NewString[T []byte | string](s T) String {
 	str := string(s)
-	str = ensureStringInvariants(str)
-	return String(str)
+	switch _, err := IsValidHex(s); {
+	case errors.Is(err, ErrEmptyString):
+		return String(prefix + "0")
+	case err == nil:
+		return String(str)
+	default:
+		return String(prefix + string(s))
+	}
 }
 
 // UnmarshalText implements the encoding.TextUnmarshaler interface.
