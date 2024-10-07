@@ -22,9 +22,13 @@ package hex
 
 import "errors"
 
-// isQuotedString returns true if input has quotes.
-func isQuotedString[T []byte | string](input T) bool {
-	return len(input) >= 2 && input[0] == '"' && input[len(input)-1] == '"'
+// ValidateQuotedString errs if input has no quotes.
+// For convenience it returns the unstrip content if it does not err.
+func ValidateQuotedString(input []byte) ([]byte, error) {
+	if len(input) >= 2 && input[0] == '"' && input[len(input)-1] == '"' {
+		return input[1 : len(input)-1], nil
+	}
+	return nil, ErrNonQuotedString
 }
 
 // formatAndValidateText validates the input text for a hex string.
