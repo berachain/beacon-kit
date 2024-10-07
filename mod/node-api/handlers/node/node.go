@@ -21,8 +21,8 @@
 package node
 
 import (
-	"errors"
-	"fmt"
+	nodetypes "github.com/berachain/beacon-kit/mod/node-api/handlers/node/types"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 )
 
 // Syncing is a placeholder so that beacon API clients don't break.
@@ -49,27 +49,13 @@ func (h *Handler[ContextT]) Syncing(ContextT) (any, error) {
 	return response, nil
 }
 
-// Version is a placeholder so that beacon API clients don't break.
-//
-// TODO: Implement with real data.
+// Version returns the version of the beacon node.
 func (h *Handler[ContextT]) Version(ContextT) (any, error) {
-	type VersionResponse struct {
-		Data struct {
-			Version string `json:"version"`
-		} `json:"data"`
-	}
-
-	response := VersionResponse{}
-	if h.backend == nil {
-		return nil, errors.New("backend is not set")
-	}
-	//response.Data.Version = "1.0.0"
 	version, err := h.backend.GetVersionFromGenesis()
-	fmt.Printf("version nidz %v", version)
 	if err != nil {
 		return nil, err
 	}
-
-	response.Data.Version = version
-	return response, nil
+	return types.Wrap(nodetypes.VersionData{
+		Version: version,
+	}), nil
 }
