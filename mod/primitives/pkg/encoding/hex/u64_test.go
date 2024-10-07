@@ -54,7 +54,7 @@ func TestMarshalText(t *testing.T) {
 	}
 }
 
-func TestValidateUnmarshalInput(t *testing.T) {
+func TestValidateQuotedString(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    []byte
@@ -98,10 +98,10 @@ func TestUnmarshalUint64Text(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			result, err := hex.UnmarshalUint64Text(test.input)
 			if test.err != nil {
-				require.Equal(t, test.err, err, "Test case %s", test.name)
+				require.Equal(t, test.err, err)
 			} else {
-				require.Equal(t, test.expected, result, "Test case %s", test.name)
 				require.NoError(t, err)
+				require.Equal(t, test.expected, result)
 			}
 		})
 	}

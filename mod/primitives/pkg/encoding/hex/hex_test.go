@@ -121,63 +121,6 @@ func TestBigIntRoundTrip(t *testing.T) {
 
 // ====================== Helpers ===========================.
 
-func TestString_ToUint64(t *testing.T) {
-	tests := []struct {
-		name      string
-		input     hex.String
-		expected  uint64
-		expectErr bool
-	}{
-		{"Single digit", "0x1", 1, false},
-		{"Two digits", "0x10", 16, false},
-		{"Mixed digits and letters", "0x1a", 26, false},
-		{"Invalid hex string", "0xinvalid", 0, true},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result, err := tt.input.ToUint64()
-			if tt.expectErr {
-				require.Error(t, err, "Test case: %s", tt.name)
-			} else {
-				require.NoError(t, err, "Test case: %s", tt.name)
-				require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
-			}
-		})
-	}
-}
-
-func TestString_MustToUInt64(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    hex.String
-		expected uint64
-		panics   bool
-	}{
-		{"Single digit", "0x1", 1, false},
-		{"Two digits", "0x10", 16, false},
-		{"Mixed digits and letters", "0x1a", 26, false},
-		{"Invalid hex string", "0xinvalid", 0, true},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			var (
-				res uint64
-				f   = func() {
-					res = tt.input.MustToUInt64()
-				}
-			)
-			if tt.panics {
-				require.Panics(t, f)
-			} else {
-				require.NotPanics(t, f)
-				require.Equal(t, tt.expected, res)
-			}
-		})
-	}
-}
-
 func TestString_MustToBigInt(t *testing.T) {
 	tests := []struct {
 		name     string
