@@ -73,7 +73,7 @@ func ProvideNodeAPIBackend[
 	KVStoreT any,
 	NodeT interface {
 		CreateQueryContext(height int64, prove bool) (sdk.Context, error)
-		GetAppVersion() (string, error)
+		GetBeaconVersion() (string, error)
 	},
 	StorageBackendT StorageBackend[
 		AvailabilityStoreT, BeaconStateT, BeaconBlockStoreT, DepositStoreT,

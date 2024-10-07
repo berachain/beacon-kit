@@ -231,7 +231,7 @@ func (b *Backend[
 func (b *Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) GetNodeVersion() (string, error) {
-	appVersion, err := b.node.GetAppVersion()
+	appVersion, err := b.node.GetBeaconVersion()
 	if err != nil {
 		return "", err
 	}
