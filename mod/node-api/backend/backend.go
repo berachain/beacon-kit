@@ -231,11 +231,7 @@ func (b *Backend[
 func (b *Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) GetNodeVersion() (string, error) {
-	queryCtx, err := b.node.CreateQueryContext(0, false)
-	if err != nil {
-		return "", err
-	}
-	appVersion, err := b.node.GetAppVersion(queryCtx)
+	appVersion, err := b.node.GetAppVersion()
 	if err != nil {
 		return "", err
 	}

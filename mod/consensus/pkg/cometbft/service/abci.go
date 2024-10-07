@@ -606,6 +606,6 @@ func (s *Service[_]) GetBlockRetentionHeight(commitHeight int64) int64 {
 }
 
 // GetAppVersion returns the application version.
-func (s *Service[_]) GetAppVersion(ctx context.Context) (string, error) {
+func (s *Service[_]) GetAppVersion() (string, error) {
 	return sdkversion.Version, nil
 }

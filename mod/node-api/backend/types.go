@@ -105,7 +105,7 @@ type Node[ContextT any] interface {
 	// flag.
 	CreateQueryContext(height int64, prove bool) (ContextT, error)
 	// GetAppVersion returns the application version.
-	GetAppVersion(context.Context) (string, error)
+	GetAppVersion() (string, error)
 }
 
 type StateProcessor[BeaconStateT any] interface {
