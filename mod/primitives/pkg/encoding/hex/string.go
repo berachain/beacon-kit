@@ -76,12 +76,6 @@ func IsValidHex[T ~[]byte | ~string](s T) (T, error) {
 	return s[prefixLen:], nil
 }
 
-// FromBytes creates a hex string with 0x prefix.
-func FromBytes[B ~[]byte](input B) String {
-	b := EncodeBytes(input)
-	return NewString(b)
-}
-
 // FromUint64 encodes i as a hex string with 0x prefix.
 func FromUint64[U ~uint64](i U) String {
 	enc := make([]byte, prefixLen, initialCapacity)

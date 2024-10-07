@@ -106,13 +106,13 @@ func TestFromBytes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := hex.FromBytes(tt.input)
-			require.Equal(t, tt.expected, result.Unwrap())
+			result := hex.EncodeBytes(tt.input)
+			require.Equal(t, tt.expected, string(result))
 
 			_, err := hex.IsValidHex(result)
 			require.NoError(t, err)
 
-			decoded, err := result.ToBytes()
+			decoded, err := hex.ToBytes(string(result))
 			require.NoError(t, err)
 			require.Equal(t, tt.input, decoded)
 		})

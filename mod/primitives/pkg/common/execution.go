@@ -55,7 +55,7 @@ func NewExecutionHashFromHex(input string) ExecutionHash {
 }
 
 // Hex converts a hash to a hex string.
-func (h ExecutionHash) Hex() string { return hex.FromBytes(h[:]).Unwrap() }
+func (h ExecutionHash) Hex() string { return string(hex.EncodeBytes(h[:])) }
 
 // String implements the stringer interface and is used also by the logger when
 // doing full logging into a file.

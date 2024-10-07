@@ -51,5 +51,5 @@ func (b *Bytes) UnmarshalText(input []byte) error {
 
 // String returns the hex encoding of b.
 func (b Bytes) String() string {
-	return hex.FromBytes(b).Unwrap()
+	return string(hex.EncodeBytes(b))
 }
