@@ -21,8 +21,6 @@
 package hex
 
 import (
-	"bytes"
-	"encoding/hex"
 	"math/big"
 	"strconv"
 	"strings"
@@ -38,8 +36,14 @@ type String string
 // ensure that the string invariants are satisfied.
 func NewString[T []byte | string](s T) String {
 	str := string(s)
-	str = ensureStringInvariants(str)
-	return String(str)
+	switch _, err := IsValidHex(s); {
+	case errors.Is(err, ErrEmptyString):
+		return String(prefix + "0")
+	case err == nil:
+		return String(str)
+	default:
+		return String(prefix + string(s))
+	}
 }
 
 // UnmarshalText implements the encoding.TextUnmarshaler interface.
@@ -70,21 +74,6 @@ func IsValidHex[T ~[]byte | ~string](s T) (T, error) {
 	return s[prefixLen:], nil
 }
 
-// NewStringStrict creates a hex string with 0x prefix. It errors if any of the
-// string invariants are violated.
-func NewStringStrict[T []byte | string](s T) (String, error) {
-	if _, err := IsValidHex(s); err != nil {
-		return "", err
-	}
-	return String(s), nil
-}
-
-// FromBytes creates a hex string with 0x prefix.
-func FromBytes[B ~[]byte](input B) String {
-	b := EncodeBytes(input)
-	return NewString(b)
-}
-
 // FromUint64 encodes i as a hex string with 0x prefix.
 func FromUint64[U ~uint64](i U) String {
 	enc := make([]byte, prefixLen, initialCapacity)
@@ -103,25 +92,6 @@ func FromBigInt(bigint *big.Int) String {
 	}
 	// this return should never reach if precondition is met
 	return NewString(prefix + bigint.Text(hexBase)[1:])
-}
-
-func FromJSONString[B ~[]byte](b B) String {
-	return NewString(bytes.Trim(b, "\""))
-}
-
-// ToBytes decodes a hex string with 0x prefix.
-func (s String) ToBytes() ([]byte, error) {
-	return hex.DecodeString(string(s[prefixLen:]))
-}
-
-// MustToBytes decodes a hex string with 0x prefix.
-// It panics for invalid input.
-func (s String) MustToBytes() []byte {
-	b, err := s.ToBytes()
-	if err != nil {
-		panic(err)
-	}
-	return b
 }
 
 // ToUint64 decodes a hex string with 0x prefix.
@@ -185,10 +155,6 @@ func (s String) MustToBigInt() *big.Int {
 		panic(err)
 	}
 	return bi
-}
-
-func (s String) AddQuotes() String {
-	return "\"" + s + "\""
 }
 
 // Unwrap returns the string value.
