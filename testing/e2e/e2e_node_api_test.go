@@ -26,6 +26,8 @@ import (
 	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
 )
 
+// TODO: Extract a helper function to initialize the consensus client so that
+// it can be used for different API endpoints, instead of defining separately.
 // initNodeTest initializes any tests for the node api.
 func (s *BeaconKitE2ESuite) initNodeTest() *types.ConsensusClient {
 	// Wait for execution block 5.
