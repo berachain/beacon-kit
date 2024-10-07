@@ -94,8 +94,14 @@ func TestMustFromHex(t *testing.T) {
 	}{
 		{
 			name:        "Valid hex string",
-			input:       "0x48656c6c6f",
-			expected:    bytes.Bytes{0x48, 0x65, 0x6c, 0x6c, 0x6f},
+			input:       "0x68656c6c6f",
+			expected:    bytes.Bytes("hello"),
+			shouldPanic: false,
+		},
+		{
+			name:        "Another valid hex string",
+			input:       "0x776f726c64",
+			expected:    bytes.Bytes("world"),
 			shouldPanic: false,
 		},
 		{

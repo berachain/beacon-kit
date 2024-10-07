@@ -210,36 +210,6 @@ func TestUnmarshalJSONText(t *testing.T) {
 	}
 }
 
-func TestString_MustToBytes(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    hex.String
-		expected []byte
-		panics   bool
-	}{
-		{"Valid hex string", "0x68656c6c6f", []byte("hello"), false},
-		{"Another valid hex string", "0x776f726c64", []byte("world"), false},
-		{"Invalid hex string", "0xinvalid", nil, true},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			var (
-				res []byte
-				f   = func() {
-					res = tt.input.MustToBytes()
-				}
-			)
-			if tt.panics {
-				require.Panics(t, f, "Test case: %s", tt.name)
-			} else {
-				require.NotPanics(t, f)
-				require.Equal(t, tt.expected, res, "Test case: %s", tt.name)
-			}
-		})
-	}
-}
-
 func TestString_ToUint64(t *testing.T) {
 	tests := []struct {
 		name      string
