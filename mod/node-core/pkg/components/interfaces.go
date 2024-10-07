@@ -345,6 +345,7 @@ type (
 	Deposit[
 		T any,
 		ForkDataT any,
+		LogT any,
 		WithdrawalCredentialsT any,
 	] interface {
 		constraints.Empty[T]
@@ -374,6 +375,8 @@ type (
 				message []byte, signature crypto.BLSSignature,
 			) error,
 		) error
+		// UnmarshalLog unmarshals a log into a deposit.
+		UnmarshalLog(LogT) error
 	}
 
 	DepositStore[DepositT any] interface {

@@ -40,6 +40,7 @@ type DepositServiceIn[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	LogT any,
 	LoggerT any,
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalsT Withdrawals[WithdrawalT],
@@ -51,6 +52,7 @@ type DepositServiceIn[
 	Dispatcher            Dispatcher
 	EngineClient          *client.EngineClient[
 		ExecutionPayloadT,
+		LogT,
 		*engineprimitives.PayloadAttributes[WithdrawalT],
 	]
 	Logger        LoggerT
@@ -69,7 +71,7 @@ func ProvideDepositService[
 	],
 	BeaconBlockHeaderT any,
 	DepositT Deposit[
-		DepositT, *ForkData, WithdrawalCredentials,
+		DepositT, *ForkData, LogT, WithdrawalCredentials,
 	],
 	DepositContractT deposit.Contract[DepositT],
 	DepositStoreT DepositStore[DepositT],
@@ -77,17 +79,19 @@ func ProvideDepositService[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	LogT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalsT Withdrawals[WithdrawalT],
+	WithdrawalCredentialsT any,
 ](
 	in DepositServiceIn[
 		BeaconBlockT, DepositContractT, DepositStoreT, ExecutionPayloadT,
-		ExecutionPayloadHeaderT, LoggerT, WithdrawalT, WithdrawalsT,
+		ExecutionPayloadHeaderT, LogT, LoggerT, WithdrawalT, WithdrawalsT,
 	],
 ) (*deposit.Service[
 	BeaconBlockT, BeaconBlockBodyT, DepositT,
-	ExecutionPayloadT, WithdrawalCredentials,
+	ExecutionPayloadT, LogT, WithdrawalCredentialsT,
 ], error) {
 	// Build the deposit service.
 	return deposit.NewService[
@@ -95,6 +99,8 @@ func ProvideDepositService[
 		BeaconBlockBodyT,
 		DepositT,
 		ExecutionPayloadT,
+		LogT,
+		WithdrawalCredentialsT,
 	](
 		in.Logger.With("service", "deposit"),
 		math.U64(in.ChainSpec.Eth1FollowDistance()),

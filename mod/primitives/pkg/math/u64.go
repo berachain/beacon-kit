@@ -87,6 +87,13 @@ func (u U64) Base10() string {
 	return strconv.FormatUint(uint64(u), 10)
 }
 
+// Hex returns the hex representation of the U64.
+func (u U64) Hex() string {
+	//#nosec:G703 // its okay.
+	val, _ := hex.MarshalText(u.Unwrap())
+	return string(val)
+}
+
 // ----------------------- U64 Mathematical Methods -----------------------
 
 // Unwrap returns a copy of the underlying uint64 value of U64.

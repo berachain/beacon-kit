@@ -24,6 +24,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -33,12 +34,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func generateBeaconBlockBody() types.BeaconBlockBody {
-	return types.BeaconBlockBody{
+func generateBeaconBlockBody() types.BeaconBlockBody[engineprimitives.Log] {
+	return types.BeaconBlockBody[engineprimitives.Log]{
 		RandaoReveal: [96]byte{1, 2, 3},
 		Eth1Data:     &types.Eth1Data{},
 		Graffiti:     [32]byte{4, 5, 6},
-		Deposits:     []*types.Deposit{},
+		Deposits:     []*types.Deposit[engineprimitives.Log]{},
 		ExecutionPayload: &types.ExecutionPayload{
 			BaseFeePerGas: math.NewU256(0),
 		},
@@ -47,11 +48,11 @@ func generateBeaconBlockBody() types.BeaconBlockBody {
 }
 
 func TestBeaconBlockBodyBase(t *testing.T) {
-	body := types.BeaconBlockBody{
+	body := types.BeaconBlockBody[engineprimitives.Log]{
 		RandaoReveal: [96]byte{1, 2, 3},
 		Eth1Data:     &types.Eth1Data{},
 		Graffiti:     [32]byte{4, 5, 6},
-		Deposits:     []*types.Deposit{},
+		Deposits:     []*types.Deposit[engineprimitives.Log]{},
 	}
 
 	require.Equal(t, bytes.B96{1, 2, 3}, body.GetRandaoReveal())
@@ -65,11 +66,11 @@ func TestBeaconBlockBodyBase(t *testing.T) {
 }
 
 func TestBeaconBlockBody(t *testing.T) {
-	body := types.BeaconBlockBody{
+	body := types.BeaconBlockBody[engineprimitives.Log]{
 		RandaoReveal:       [96]byte{1, 2, 3},
 		Eth1Data:           &types.Eth1Data{},
 		Graffiti:           [32]byte{4, 5, 6},
-		Deposits:           []*types.Deposit{},
+		Deposits:           []*types.Deposit[engineprimitives.Log]{},
 		ExecutionPayload:   &types.ExecutionPayload{},
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
@@ -88,7 +89,7 @@ func TestBeaconBlockBody_GetTree(t *testing.T) {
 }
 
 func TestBeaconBlockBody_SetBlobKzgCommitments(t *testing.T) {
-	body := types.BeaconBlockBody{}
+	body := types.BeaconBlockBody[engineprimitives.Log]{}
 	commitments := eip4844.KZGCommitments[common.ExecutionHash]{}
 	body.SetBlobKzgCommitments(commitments)
 
@@ -96,7 +97,7 @@ func TestBeaconBlockBody_SetBlobKzgCommitments(t *testing.T) {
 }
 
 func TestBeaconBlockBody_SetRandaoReveal(t *testing.T) {
-	body := types.BeaconBlockBody{}
+	body := types.BeaconBlockBody[engineprimitives.Log]{}
 	randaoReveal := crypto.BLSSignature{1, 2, 3}
 	body.SetRandaoReveal(randaoReveal)
 
@@ -104,7 +105,7 @@ func TestBeaconBlockBody_SetRandaoReveal(t *testing.T) {
 }
 
 func TestBeaconBlockBody_SetEth1Data(t *testing.T) {
-	body := types.BeaconBlockBody{}
+	body := types.BeaconBlockBody[engineprimitives.Log]{}
 	eth1Data := &types.Eth1Data{}
 	body.SetEth1Data(eth1Data)
 
@@ -112,19 +113,19 @@ func TestBeaconBlockBody_SetEth1Data(t *testing.T) {
 }
 
 func TestBeaconBlockBody_SetDeposits(t *testing.T) {
-	body := types.BeaconBlockBody{}
-	deposits := []*types.Deposit{}
+	body := types.BeaconBlockBody[engineprimitives.Log]{}
+	deposits := []*types.Deposit[engineprimitives.Log]{}
 	body.SetDeposits(deposits)
 
 	require.Equal(t, deposits, body.GetDeposits())
 }
 
 func TestBeaconBlockBody_MarshalSSZ(t *testing.T) {
-	body := types.BeaconBlockBody{
+	body := types.BeaconBlockBody[engineprimitives.Log]{
 		RandaoReveal:       [96]byte{1, 2, 3},
 		Eth1Data:           &types.Eth1Data{},
 		Graffiti:           [32]byte{4, 5, 6},
-		Deposits:           []*types.Deposit{},
+		Deposits:           []*types.Deposit[engineprimitives.Log]{},
 		ExecutionPayload:   &types.ExecutionPayload{},
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
@@ -156,7 +157,7 @@ func TestBeaconBlockBody_GetTopLevelRoots(t *testing.T) {
 }
 
 func TestBeaconBlockBody_Empty(t *testing.T) {
-	blockBody := types.BeaconBlockBody{}
+	blockBody := types.BeaconBlockBody[engineprimitives.Log]{}
 	body := blockBody.Empty(version.Deneb)
 	require.NotNil(t, body)
 }

@@ -26,11 +26,14 @@ import (
 )
 
 // Client - Ethereum rpc client.
-type Client[ExecutionPayloadT interface {
-	constraints.JSONMarshallable
-	Empty(uint32) ExecutionPayloadT
-	Version() uint32
-}] struct {
+type Client[
+	ExecutionPayloadT interface {
+		constraints.JSONMarshallable
+		Empty(uint32) ExecutionPayloadT
+		Version() uint32
+	},
+	LogT any,
+] struct {
 	*rpc.Client
 }
 
@@ -41,8 +44,9 @@ func New[
 		Empty(uint32) ExecutionPayloadT
 		Version() uint32
 	},
-](client *rpc.Client) *Client[ExecutionPayloadT] {
-	rpc := &Client[ExecutionPayloadT]{
+	LogT any,
+](client *rpc.Client) *Client[ExecutionPayloadT, LogT] {
+	rpc := &Client[ExecutionPayloadT, LogT]{
 		Client: client,
 	}
 

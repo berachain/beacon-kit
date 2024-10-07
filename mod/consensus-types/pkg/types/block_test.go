@@ -40,7 +40,7 @@ func generateValidBeaconBlock() *types.BeaconBlock {
 		ProposerIndex: 5,
 		ParentRoot:    common.Root{1, 2, 3, 4, 5},
 		StateRoot:     common.Root{5, 4, 3, 2, 1},
-		Body: &types.BeaconBlockBody{
+		Body: &types.BeaconBlockBody[engineprimitives.Log]{
 			ExecutionPayload: &types.ExecutionPayload{
 				Number:    10,
 				ExtraData: []byte("dummy extra data for testing"),
@@ -56,7 +56,7 @@ func generateValidBeaconBlock() *types.BeaconBlock {
 				BaseFeePerGas: math.NewU256(0),
 			},
 			Eth1Data: &types.Eth1Data{},
-			Deposits: []*types.Deposit{
+			Deposits: []*types.Deposit[engineprimitives.Log]{
 				{
 					Index: 1,
 				},

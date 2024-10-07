@@ -34,7 +34,7 @@ var sha256Pool = sync.Pool{New: func() interface{} {
 	return sha256.New()
 }}
 
-// Sha256 defines a function that returns the sha256 checksum of the data passed
+// Hash defines a function that returns the sha256 checksum of the data passed
 // in. Adheres to the crypto.HashFn signature.
 // https://github.com/ethereum/consensus-specs/blob/v0.9.3/specs/core/0_beacon-chain.md#hash
 //

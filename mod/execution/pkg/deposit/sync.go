@@ -34,7 +34,7 @@ const defaultRetryInterval = 20 * time.Second
 // depositFetcher returns a function that retrieves the block number from the
 // event and fetches and stores the deposits for that block.
 func (s *Service[
-	BeaconBlockT, _, _, _, _,
+	BeaconBlockT, _, _, _, _, _,
 ]) depositFetcher(ctx context.Context, event async.Event[BeaconBlockT]) {
 	blockNum := event.Data().GetBody().GetExecutionPayload().GetNumber()
 	s.fetchAndStoreDeposits(ctx, blockNum-s.eth1FollowDistance)
@@ -43,7 +43,7 @@ func (s *Service[
 // depositCatchupFetcher fetches deposits for blocks that failed to be
 // processed.
 func (s *Service[
-	_, _, _, _, _,
+	_, _, _, _, _, _,
 ]) depositCatchupFetcher(ctx context.Context) {
 	ticker := time.NewTicker(defaultRetryInterval)
 	defer ticker.Stop()
@@ -70,10 +70,13 @@ func (s *Service[
 }
 
 func (s *Service[
-	_, _, _, _, _,
+	_, _, _, _, _, _,
 ]) fetchAndStoreDeposits(ctx context.Context, blockNum math.U64) {
 	deposits, err := s.dc.ReadDeposits(ctx, blockNum)
 	if err != nil {
+		s.logger.Error(
+			"Failed to read deposits", "error", err, "block", blockNum,
+		)
 		s.metrics.markFailedToGetBlockLogs(blockNum)
 		s.failedBlocks[blockNum] = struct{}{}
 		return
@@ -87,7 +90,9 @@ func (s *Service[
 	}
 
 	if err = s.ds.EnqueueDeposits(deposits); err != nil {
-		s.logger.Error("Failed to store deposits", "error", err)
+		s.logger.Error(
+			"Failed to store deposits", "error", err, "block", blockNum,
+		)
 		s.failedBlocks[blockNum] = struct{}{}
 		return
 	}

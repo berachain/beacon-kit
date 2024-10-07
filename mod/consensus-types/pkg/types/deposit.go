@@ -21,10 +21,16 @@
 package types
 
 import (
+	"encoding/binary"
+	"fmt"
+
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	gethcrypto "github.com/ethereum/go-ethereum/crypto"
 	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
 )
@@ -34,13 +40,16 @@ const DepositSize = 192 // 48 + 32 + 8 + 96 + 8
 
 // Compile-time assertions to ensure Deposit implements necessary interfaces.
 var (
-	_ ssz.StaticObject                    = (*Deposit)(nil)
-	_ constraints.SSZMarshallableRootable = (*Deposit)(nil)
+	_ ssz.StaticObject                    = &Deposit[engineprimitives.Log]{}
+	_ constraints.SSZMarshallableRootable = &Deposit[engineprimitives.Log]{}
 )
 
 // Deposit into the consensus layer from the deposit contract in the execution
 // layer.
-type Deposit struct {
+type Deposit[LogT interface {
+	GetTopics() []common.ExecutionHash
+	GetData() []byte
+}] struct {
 	// Public key of the validator specified in the deposit.
 	Pubkey crypto.BLSPubkey `json:"pubkey"`
 	// A staking credentials with
@@ -55,14 +64,17 @@ type Deposit struct {
 }
 
 // NewDeposit creates a new Deposit instance.
-func NewDeposit(
+func NewDeposit[LogT interface {
+	GetTopics() []common.ExecutionHash
+	GetData() []byte
+}](
 	pubkey crypto.BLSPubkey,
 	credentials WithdrawalCredentials,
 	amount math.Gwei,
 	signature crypto.BLSSignature,
 	index uint64,
-) *Deposit {
-	return &Deposit{
+) *Deposit[LogT] {
+	return &Deposit[LogT]{
 		Pubkey:      pubkey,
 		Credentials: credentials,
 		Amount:      amount,
@@ -72,25 +84,25 @@ func NewDeposit(
 }
 
 // Empty creates an empty Deposit instance.
-func (d *Deposit) Empty() *Deposit {
-	return &Deposit{}
+func (d *Deposit[LogT]) Empty() *Deposit[LogT] {
+	return &Deposit[LogT]{}
 }
 
 // New creates a new Deposit instance.
-func (d *Deposit) New(
+func (d *Deposit[LogT]) New(
 	pubkey crypto.BLSPubkey,
 	credentials WithdrawalCredentials,
 	amount math.Gwei,
 	signature crypto.BLSSignature,
 	index uint64,
-) *Deposit {
-	return NewDeposit(
+) *Deposit[LogT] {
+	return NewDeposit[LogT](
 		pubkey, credentials, amount, signature, index,
 	)
 }
 
 // VerifySignature verifies the deposit data and signature.
-func (d *Deposit) VerifySignature(
+func (d *Deposit[_]) VerifySignature(
 	forkData *ForkData,
 	domainType common.DomainType,
 	signatureVerificationFn func(
@@ -112,7 +124,7 @@ func (d *Deposit) VerifySignature(
 /* -------------------------------------------------------------------------- */
 
 // DefineSSZ defines the SSZ encoding for the Deposit object.
-func (d *Deposit) DefineSSZ(c *ssz.Codec) {
+func (d *Deposit[_]) DefineSSZ(c *ssz.Codec) {
 	ssz.DefineStaticBytes(c, &d.Pubkey)
 	ssz.DefineStaticBytes(c, &d.Credentials)
 	ssz.DefineUint64(c, &d.Amount)
@@ -121,23 +133,23 @@ func (d *Deposit) DefineSSZ(c *ssz.Codec) {
 }
 
 // MarshalSSZ marshals the Deposit object to SSZ format.
-func (d *Deposit) MarshalSSZ() ([]byte, error) {
+func (d *Deposit[_]) MarshalSSZ() ([]byte, error) {
 	buf := make([]byte, d.SizeSSZ())
 	return buf, ssz.EncodeToBytes(buf, d)
 }
 
 // UnmarshalSSZ unmarshals the Deposit object from SSZ format.
-func (d *Deposit) UnmarshalSSZ(buf []byte) error {
+func (d *Deposit[_]) UnmarshalSSZ(buf []byte) error {
 	return ssz.DecodeFromBytes(buf, d)
 }
 
 // SizeSSZ returns the SSZ encoded size of the Deposit object.
-func (d *Deposit) SizeSSZ() uint32 {
+func (d *Deposit[_]) SizeSSZ() uint32 {
 	return DepositSize
 }
 
 // HashTreeRoot computes the Merkleization of the Deposit object.
-func (d *Deposit) HashTreeRoot() common.Root {
+func (d *Deposit[_]) HashTreeRoot() common.Root {
 	return ssz.HashSequential(d)
 }
 
@@ -146,7 +158,7 @@ func (d *Deposit) HashTreeRoot() common.Root {
 /* -------------------------------------------------------------------------- */
 
 // MarshalSSZTo marshals the Deposit object into a pre-allocated byte slice.
-func (d *Deposit) MarshalSSZTo(dst []byte) ([]byte, error) {
+func (d *Deposit[_]) MarshalSSZTo(dst []byte) ([]byte, error) {
 	bz, err := d.MarshalSSZ()
 	if err != nil {
 		return nil, err
@@ -156,7 +168,7 @@ func (d *Deposit) MarshalSSZTo(dst []byte) ([]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the Deposit object with a hasher.
-func (d *Deposit) HashTreeRootWith(hh fastssz.HashWalker) error {
+func (d *Deposit[_]) HashTreeRootWith(hh fastssz.HashWalker) error {
 	indx := hh.Index()
 
 	// Field (0) 'Pubkey'
@@ -179,8 +191,51 @@ func (d *Deposit) HashTreeRootWith(hh fastssz.HashWalker) error {
 }
 
 // GetTree ssz hashes the Deposit object.
-func (d *Deposit) GetTree() (*fastssz.Node, error) {
+func (d *Deposit[_]) GetTree() (*fastssz.Node, error) {
 	return fastssz.ProofTree(d)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   EthLog                                   */
+/* -------------------------------------------------------------------------- */
+
+// DepositEventSignatureString is the Deposit event signature human readable
+// string that should be keccak256 hashed for the event's topic.
+const DepositEventSignatureString = "Deposit(bytes,bytes,uint64,bytes,uint64)"
+
+//nolint:gochecknoglobals // TODO: remove usage of geth's crypto.Keccak256.
+var DepositEventSignature = common.ExecutionHash(
+	gethcrypto.Keccak256([]byte(DepositEventSignatureString)),
+)
+
+// UnmarshalLog unmarshals the Deposit object from an Ethereum log.
+//
+// TODO: use abi decoding or constants for reading the bytes.
+func (d *Deposit[LogT]) UnmarshalLog(log LogT) error {
+	topics := log.GetTopics()
+	if len(topics) != 1 {
+		return fmt.Errorf("expected 1 topic, got %d", len(topics))
+	}
+	if topics[0] != DepositEventSignature {
+		return fmt.Errorf(
+			"expected topic %s, got %s", DepositEventSignature, topics[0],
+		)
+	}
+
+	data := log.GetData()
+	if len(data) < 448 {
+		return fmt.Errorf(
+			"log data is too short: expected at least 448 bytes, got %d",
+			len(data),
+		)
+	}
+
+	d.Index = binary.BigEndian.Uint64(data[152:160])
+	d.Pubkey = bytes.B48(data[208:256])
+	d.Amount = math.U64(binary.BigEndian.Uint64(data[280:288]))
+	d.Credentials = WithdrawalCredentials(bytes.B32(data[288:320]))
+	d.Signature = bytes.B96(data[352:448])
+	return nil
 }
 
 /* -------------------------------------------------------------------------- */
@@ -188,26 +243,26 @@ func (d *Deposit) GetTree() (*fastssz.Node, error) {
 /* -------------------------------------------------------------------------- */
 
 // GetAmount returns the deposit amount in gwei.
-func (d *Deposit) GetAmount() math.Gwei {
+func (d *Deposit[_]) GetAmount() math.Gwei {
 	return d.Amount
 }
 
 // GetPubkey returns the public key of the validator specified in the deposit.
-func (d *Deposit) GetPubkey() crypto.BLSPubkey {
+func (d *Deposit[_]) GetPubkey() crypto.BLSPubkey {
 	return d.Pubkey
 }
 
 // GetIndex returns the index of the deposit in the deposit contract.
-func (d *Deposit) GetIndex() math.U64 {
+func (d *Deposit[_]) GetIndex() math.U64 {
 	return math.U64(d.Index)
 }
 
 // GetSignature returns the signature of the deposit data.
-func (d *Deposit) GetSignature() crypto.BLSSignature {
+func (d *Deposit[_]) GetSignature() crypto.BLSSignature {
 	return d.Signature
 }
 
 // GetWithdrawalCredentials returns the staking credentials of the deposit.
-func (d *Deposit) GetWithdrawalCredentials() WithdrawalCredentials {
+func (d *Deposit[_]) GetWithdrawalCredentials() WithdrawalCredentials {
 	return d.Credentials
 }

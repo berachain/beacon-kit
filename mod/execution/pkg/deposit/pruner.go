@@ -31,7 +31,8 @@ func BuildPruneRangeFn[
 	BeaconBlockBodyT interface {
 		GetDeposits() []DepositT
 	},
-	DepositT Deposit[DepositT, WithdrawalCredentialsT],
+	DepositT Deposit[DepositT, LogT, WithdrawalCredentialsT],
+	LogT any,
 	WithdrawalCredentialsT any,
 ](cs common.ChainSpec) func(async.Event[BeaconBlockT]) (uint64, uint64) {
 	return func(event async.Event[BeaconBlockT]) (uint64, uint64) {

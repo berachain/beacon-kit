@@ -108,7 +108,7 @@ func (g *Genesis[DepositT, ExecutionPayloadHeaderT]) UnmarshalJSON(
 
 // DefaultGenesisDeneb returns a the default genesis.
 func DefaultGenesisDeneb() *Genesis[
-	*Deposit, *ExecutionPayloadHeader,
+	*Deposit[engineprimitives.Log], *ExecutionPayloadHeader,
 ] {
 	defaultHeader, err :=
 		DefaultGenesisExecutionPayloadHeaderDeneb()
@@ -117,11 +117,11 @@ func DefaultGenesisDeneb() *Genesis[
 	}
 
 	// TODO: Uncouple from deneb.
-	return &Genesis[*Deposit, *ExecutionPayloadHeader]{
+	return &Genesis[*Deposit[engineprimitives.Log], *ExecutionPayloadHeader]{
 		ForkVersion: version.FromUint32[common.Version](
 			version.Deneb,
 		),
-		Deposits:               make([]*Deposit, 0),
+		Deposits:               make([]*Deposit[engineprimitives.Log], 0),
 		ExecutionPayloadHeader: defaultHeader,
 	}
 }

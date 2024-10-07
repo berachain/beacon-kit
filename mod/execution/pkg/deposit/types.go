@@ -24,7 +24,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -60,6 +60,22 @@ type ExecutionPayload interface {
 	GetNumber() math.U64
 }
 
+// Log is an interface for logs.
+type Log interface {
+	GetAddress() common.ExecutionAddress
+	GetTopics() []common.ExecutionHash
+}
+
+// Client is an interface for the client.
+type Client[LogT any] interface {
+	GetLogsAtBlockNumber(
+		ctx context.Context,
+		number math.U64,
+		address common.ExecutionAddress,
+		topics [][]common.ExecutionHash,
+	) ([]LogT, error)
+}
+
 // Contract is the ABI for the deposit contract.
 type Contract[DepositT any] interface {
 	// ReadDeposits reads deposits from the deposit contract.
@@ -70,17 +86,13 @@ type Contract[DepositT any] interface {
 }
 
 // Deposit is an interface for deposits.
-type Deposit[DepositT, WithdrawalCredentialsT any] interface {
-	// New creates a new deposit.
-	New(
-		crypto.BLSPubkey,
-		WithdrawalCredentialsT,
-		math.U64,
-		crypto.BLSSignature,
-		uint64,
-	) DepositT
+type Deposit[DepositT, LogT, WithdrawalCredentialsT any] interface {
+	// Empty() returns a new empty deposit.
+	Empty() DepositT
 	// GetIndex returns the index of the deposit.
 	GetIndex() math.U64
+	// UnmarshalLog unmarshals a log into a deposit.
+	UnmarshalLog(LogT) error
 }
 
 // Store defines the interface for managing deposit operations.

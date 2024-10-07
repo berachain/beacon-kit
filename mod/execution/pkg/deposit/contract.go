@@ -22,84 +22,68 @@ package deposit
 
 import (
 	"context"
-	"errors"
 
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
-	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/bind"
-	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/deposit"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // WrappedBeaconDepositContract is a struct that holds a pointer to an ABI.
 type WrappedBeaconDepositContract[
-	DepositT Deposit[DepositT, WithdrawalCredentialsT],
+	DepositT Deposit[DepositT, LogT, WithdrawalCredentialsT],
+	LogT Log,
 	WithdrawalCredentialsT ~[32]byte,
 ] struct {
-	// BeaconDepositContractFilterer is a pointer to the codegen ABI binding.
-	deposit.BeaconDepositContractFilterer
+	client  Client[LogT]
+	address common.ExecutionAddress
 }
 
 // NewWrappedBeaconDepositContract creates a new BeaconDepositContract.
 func NewWrappedBeaconDepositContract[
-	DepositT Deposit[DepositT, WithdrawalCredentialsT],
+	DepositT Deposit[DepositT, LogT, WithdrawalCredentialsT],
+	LogT Log,
 	WithdrawalCredentialsT ~[32]byte,
 ](
 	address common.ExecutionAddress,
-	client bind.ContractFilterer,
+	client Client[LogT],
 ) (*WrappedBeaconDepositContract[
 	DepositT,
+	LogT,
 	WithdrawalCredentialsT,
 ], error) {
-	contract, err := deposit.NewBeaconDepositContractFilterer(
-		gethprimitives.ExecutionAddress(address), client,
-	)
-
-	if err != nil {
-		return nil, err
-	} else if contract == nil {
-		return nil, errors.New("contract must not be nil")
-	}
-
 	return &WrappedBeaconDepositContract[
 		DepositT,
+		LogT,
 		WithdrawalCredentialsT,
 	]{
-		BeaconDepositContractFilterer: *contract,
+		client:  client,
+		address: address,
 	}, nil
 }
 
 // ReadDeposits reads deposits from the deposit contract.
-func (dc *WrappedBeaconDepositContract[
-	DepositT,
-	WithdrawalCredentialsT,
-]) ReadDeposits(
+func (dc *WrappedBeaconDepositContract[DepositT, _, _]) ReadDeposits(
 	ctx context.Context,
 	blkNum math.U64,
 ) ([]DepositT, error) {
-	logs, err := dc.FilterDeposit(
-		&bind.FilterOpts{
-			Context: ctx,
-			Start:   blkNum.Unwrap(),
-			End:     (*uint64)(&blkNum),
-		},
+	logs, err := dc.client.GetLogsAtBlockNumber(
+		ctx,
+		blkNum,
+		dc.address,
+		[][]common.ExecutionHash{{types.DepositEventSignature}},
 	)
 	if err != nil {
 		return nil, err
 	}
 
 	deposits := make([]DepositT, 0)
-	for logs.Next() {
+	for _, log := range logs {
 		var d DepositT
-		deposits = append(deposits, d.New(
-			bytes.ToBytes48(logs.Event.Pubkey),
-			WithdrawalCredentialsT(
-				bytes.ToBytes32(logs.Event.Credentials)),
-			math.U64(logs.Event.Amount),
-			bytes.ToBytes96(logs.Event.Signature),
-			logs.Event.Index,
-		))
+		d = d.Empty()
+		if err = d.UnmarshalLog(log); err != nil {
+			return nil, err
+		}
+		deposits = append(deposits, d)
 	}
 
 	return deposits, nil

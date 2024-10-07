@@ -36,6 +36,7 @@ type StateProcessorInput[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	LogT any,
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalsT Withdrawals[WithdrawalT],
 ] struct {
@@ -43,6 +44,7 @@ type StateProcessorInput[
 	ChainSpec       common.ChainSpec
 	ExecutionEngine *engine.Engine[
 		ExecutionPayloadT,
+		LogT,
 		*engineprimitives.PayloadAttributes[WithdrawalT],
 		PayloadID,
 		WithdrawalsT,
@@ -65,11 +67,12 @@ func ProvideStateProcessor[
 		Validators, WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
-	DepositT Deposit[DepositT, *ForkData, WithdrawalCredentials],
+	DepositT Deposit[DepositT, *ForkData, LogT, WithdrawalCredentials],
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	LogT any,
 	KVStoreT BeaconStore[
 		KVStoreT, BeaconBlockHeaderT, *Eth1Data, ExecutionPayloadHeaderT,
 		*Fork, *Validator, Validators, WithdrawalT,
@@ -78,7 +81,7 @@ func ProvideStateProcessor[
 	WithdrawalT Withdrawal[WithdrawalT],
 ](
 	in StateProcessorInput[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT, LogT, WithdrawalT, WithdrawalsT,
 	],
 ) *core.StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,

@@ -67,14 +67,16 @@ func (s *Service[LoggerT]) InitChain(
 		req.ChainId,
 	)
 
-	// Set the initial height, which will be used to determine if we are proposing
+	// Set the initial height, which will be used to determine if we are
+	// proposing
 	// or processing the first block or not.
 	s.initialHeight = req.InitialHeight
 	if s.initialHeight == 0 {
 		s.initialHeight = 1
 	}
 
-	// if req.InitialHeight is > 1, then we set the initial version on all stores
+	// if req.InitialHeight is > 1, then we set the initial version on all
+	// stores
 	if req.InitialHeight > 1 {
 		if err := s.sm.CommitMultiStore().
 			SetInitialVersion(req.InitialHeight); err != nil {
@@ -121,7 +123,8 @@ func (s *Service[LoggerT]) InitChain(
 		}
 	}
 
-	// NOTE: We don't commit, but FinalizeBlock for block InitialHeight starts from
+	// NOTE: We don't commit, but FinalizeBlock for block InitialHeight starts
+	// from
 	// this FinalizeBlockState.
 	return &cmtabci.InitChainResponse{
 		ConsensusParams: req.ConsensusParams,
@@ -242,10 +245,12 @@ func (s *Service[LoggerT]) ProcessProposal(
 		)
 	}
 
-	// Since the application can get access to FinalizeBlock state and write to it,
-	// we must be sure to reset it in case ProcessProposal timeouts and is called
+	// Since the application can get access to FinalizeBlock state and write to
+	// it, we must be sure to reset it in case ProcessProposal timeouts and is
+	// called
 	// again in a subsequent round. However, we only want to do this after we've
-	// processed the first block, as we want to avoid overwriting the finalizeState
+	// processed the first block, as we want to avoid overwriting the
+	// finalizeState
 	// after state changes during InitChain.
 	s.processProposalState = s.resetState()
 	if req.Height > s.initialHeight {
@@ -290,9 +295,10 @@ func (s *Service[LoggerT]) internalFinalizeBlock(
 		return nil, err
 	}
 
-	// finalizeBlockState should be set on InitChain or ProcessProposal. If it is
-	// nil, it means we are replaying this block and we need to set the state here
-	// given that during block replay ProcessProposal is not executed by CometBFT.
+	// finalizeBlockState should be set on InitChain or ProcessProposal. If it
+	// is nil, it means we are replaying this block and we need to set the state
+	// here given that during block replay ProcessProposal is not executed by
+	// CometBFT.
 	if s.finalizeBlockState == nil {
 		s.finalizeBlockState = s.resetState()
 	}
