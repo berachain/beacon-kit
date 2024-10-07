@@ -1,5 +1,5 @@
 package node
 
 type Backend interface {
-	GetVersionFromGenesis() (string, error)
+	GetNodeVersion() (string, error)
 }

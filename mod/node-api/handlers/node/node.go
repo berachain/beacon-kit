@@ -51,7 +51,7 @@ func (h *Handler[ContextT]) Syncing(ContextT) (any, error) {
 
 // Version returns the version of the beacon node.
 func (h *Handler[ContextT]) Version(ContextT) (any, error) {
-	version, err := h.backend.GetVersionFromGenesis()
+	version, err := h.backend.GetNodeVersion()
 	if err != nil {
 		return nil, err
 	}

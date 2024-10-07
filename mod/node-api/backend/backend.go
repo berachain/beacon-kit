@@ -22,6 +22,7 @@ package backend
 
 import (
 	"context"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -226,10 +227,10 @@ func (b *Backend[
 	return b.sb.BlockStore().GetSlotByParentRoot(root)
 }
 
-// GetVersionFromGenesis returns the version from the genesis state.
+// GetNodeVersion returns the version of the beacon node.
 func (b *Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) GetVersionFromGenesis() (string, error) {
+]) GetNodeVersion() (string, error) {
 	queryCtx, err := b.node.CreateQueryContext(0, false)
 	if err != nil {
 		return "", err

@@ -145,7 +145,7 @@ func ProvideNodeAPIEventsHandler[
 }
 
 type Backend interface {
-	GetVersionFromGenesis() (string, error)
+	GetNodeVersion() (string, error)
 }
 
 func ProvideNodeAPINodeHandler[
