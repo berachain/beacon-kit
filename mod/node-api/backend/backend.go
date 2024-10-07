@@ -22,9 +22,6 @@ package backend
 
 import (
 	"context"
-	"fmt"
-	"strconv"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -241,6 +238,5 @@ func (b *Backend[
 	if err != nil {
 		return "", err
 	}
-	fmt.Printf("app version %v\n", appVersion)
-	return strconv.FormatUint(appVersion, 10), nil
+	return appVersion, nil
 }
