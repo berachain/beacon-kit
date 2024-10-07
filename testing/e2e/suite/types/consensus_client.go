@@ -238,5 +238,15 @@ func (cc ConsensusClient) BeaconBlockHeader(
 	return cc.beaconClient.BeaconBlockHeader(ctx, opts)
 }
 
+func (cc ConsensusClient) NodeVersion(
+	ctx context.Context,
+	opts *beaconapi.NodeVersionOpts,
+) (*beaconapi.Response[string], error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
+	return cc.beaconClient.NodeVersion(ctx, opts)
+}
+
 // TODO: Add helpers for the beacon node-api client (converting from
 // go-eth2-client types to beacon-kit consensus types).
