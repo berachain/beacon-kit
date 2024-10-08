@@ -1173,6 +1173,9 @@ type (
 			ids []string,
 			statuses []string,
 		) ([]*types.ValidatorData[ValidatorT, WithdrawalCredentialsT], error)
+		ValidatorsByStateID(
+			slot math.Slot,
+		) ([]*types.ValidatorData[ValidatorT, WithdrawalCredentialsT], error)
 		ValidatorBalancesByIDs(
 			slot math.Slot,
 			ids []string,

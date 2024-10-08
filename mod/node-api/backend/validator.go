@@ -113,3 +113,43 @@ func (b Backend[
 	}
 	return balances, nil
 }
+
+func (b Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _,
+	WithdrawalCredentialsT,
+]) ValidatorsByStateID(
+	slot math.Slot,
+) ([]*beacontypes.ValidatorData[ValidatorT, WithdrawalCredentialsT], error) {
+	st, _, err := b.stateFromSlot(slot)
+	if err != nil {
+		return nil, err
+	}
+	validators, err := st.GetValidators()
+	if err != nil {
+		return nil, err
+	}
+	validatorsData := make(
+		[]*beacontypes.ValidatorData[ValidatorT, WithdrawalCredentialsT],
+		len(validators),
+	)
+
+	for i, validator := range validators {
+		index := math.ValidatorIndex(i)
+		balance, errInBalance := st.GetBalance(index)
+		if errInBalance != nil {
+			return nil, errInBalance
+		}
+
+		validatorsData[i] = &beacontypes.ValidatorData[ValidatorT,
+			WithdrawalCredentialsT,
+		]{
+			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
+				Index:   uint64(index),
+				Balance: balance.Unwrap(),
+			},
+			Status:    "active_ongoing", // TODO: Implement proper status determination
+			Validator: validator,
+		}
+	}
+	return validatorsData, nil
+}

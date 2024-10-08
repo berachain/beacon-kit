@@ -27,7 +27,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 )
 
-func (h *Handler[_, ContextT, _, _, _]) GetStateValidators(
+func (h *Handler[_, ContextT, _, ValidatorT,
+	WithdrawalCredentialsT,
+]) GetStateValidators(
 	c ContextT,
 ) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetStateValidatorsRequest](
@@ -44,11 +46,18 @@ func (h *Handler[_, ContextT, _, _, _]) GetStateValidators(
 	if err != nil {
 		return nil, err
 	}
-	validators, err := h.backend.ValidatorsByIDs(
-		slot,
-		req.IDs,
-		req.Statuses,
-	)
+	var validators []*beacontypes.ValidatorData[
+		ValidatorT, WithdrawalCredentialsT,
+	]
+	if len(req.IDs) == 0 && len(req.Statuses) == 0 {
+		validators, err = h.backend.ValidatorsByStateID(slot)
+	} else {
+		validators, err = h.backend.ValidatorsByIDs(
+			slot,
+			req.IDs,
+			req.Statuses,
+		)
+	}
 	if err != nil {
 		return nil, err
 	}
