@@ -46,12 +46,21 @@ func FuzzTree_IsValidMerkleBranch(f *testing.F) {
 	}
 
 	items := make([][32]byte, 0)
-	for _, v := range []string{"A", "B", "C", "D", "E", "F", "G", "H"} {
-		it := byteslib.ExtendToSize([]byte(v), byteslib.B32Size)
-		item, err := byteslib.ToBytes32(it)
+	for _, v := range [][]byte{
+		byteslib.ExtendToSize([]byte("A"), byteslib.B32Size),
+		byteslib.ExtendToSize([]byte("B"), byteslib.B32Size),
+		byteslib.ExtendToSize([]byte("C"), byteslib.B32Size),
+		byteslib.ExtendToSize([]byte("D"), byteslib.B32Size),
+		byteslib.ExtendToSize([]byte("E"), byteslib.B32Size),
+		byteslib.ExtendToSize([]byte("F"), byteslib.B32Size),
+		byteslib.ExtendToSize([]byte("G"), byteslib.B32Size),
+	} {
+		item, err := byteslib.ToBytes32(v)
 		require.NoError(f, err)
 		items = append(items, item)
 	}
+	require.NotEmpty(f, items) // appease nilaway
+
 	m, err := merkle.NewTreeFromLeavesWithDepth(items, depth)
 	require.NoError(f, err)
 	proof, err := m.MerkleProofWithMixin(0)

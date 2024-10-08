@@ -76,12 +76,21 @@ func TestNewTreeFromLeavesWithDepth_DepthSupport(t *testing.T) {
 func TestMerkleTree_IsValidMerkleBranch(t *testing.T) {
 	treeDepth := uint8(32)
 	items := make([][32]byte, 0)
-	for _, v := range []string{"A", "B", "C", "D", "E", "F", "G", "H"} {
-		it := byteslib.ExtendToSize([]byte(v), byteslib.B32Size)
-		item, err := byteslib.ToBytes32(it)
+	for _, v := range [][]byte{
+		byteslib.ExtendToSize([]byte("A"), byteslib.B32Size),
+		byteslib.ExtendToSize([]byte("B"), byteslib.B32Size),
+		byteslib.ExtendToSize([]byte("C"), byteslib.B32Size),
+		byteslib.ExtendToSize([]byte("D"), byteslib.B32Size),
+		byteslib.ExtendToSize([]byte("E"), byteslib.B32Size),
+		byteslib.ExtendToSize([]byte("F"), byteslib.B32Size),
+		byteslib.ExtendToSize([]byte("G"), byteslib.B32Size),
+	} {
+		item, err := byteslib.ToBytes32(v)
 		require.NoError(t, err)
 		items = append(items, item)
 	}
+	require.NotEmpty(t, items)
+
 	m, err := merkle.NewTreeFromLeavesWithDepth(
 		items,
 		treeDepth,
@@ -130,13 +139,22 @@ func TestMerkleTree_IsValidMerkleBranch(t *testing.T) {
 
 func TestMerkleTree_VerifyProof(t *testing.T) {
 	treeDepth := uint8(32)
+
 	items := make([][32]byte, 0)
-	for _, v := range []string{"A", "B", "C", "D", "E", "F", "G", "H"} {
-		it := byteslib.ExtendToSize([]byte(v), byteslib.B32Size)
-		item, err := byteslib.ToBytes32(it)
+	for _, v := range [][]byte{
+		byteslib.ExtendToSize([]byte("A"), byteslib.B32Size),
+		byteslib.ExtendToSize([]byte("B"), byteslib.B32Size),
+		byteslib.ExtendToSize([]byte("C"), byteslib.B32Size),
+		byteslib.ExtendToSize([]byte("D"), byteslib.B32Size),
+		byteslib.ExtendToSize([]byte("E"), byteslib.B32Size),
+		byteslib.ExtendToSize([]byte("F"), byteslib.B32Size),
+		byteslib.ExtendToSize([]byte("G"), byteslib.B32Size),
+	} {
+		item, err := byteslib.ToBytes32(v)
 		require.NoError(t, err)
 		items = append(items, item)
 	}
+	require.NotEmpty(t, items) // appease nilaway
 
 	m, err := merkle.NewTreeFromLeavesWithDepth[[32]byte](
 		items,
@@ -337,20 +355,20 @@ func BenchmarkIsValidMerkleBranch(b *testing.B) {
 	b.StopTimer()
 
 	items := make([][32]byte, 0)
-	for _, v := range []string{
-		"A",
-		"BB",
-		"CCC",
-		"DDDD",
-		"EEEEE",
-		"FFFFFF",
-		"GGGGGGG",
+	for _, v := range [][]byte{
+		byteslib.ExtendToSize([]byte("A"), byteslib.B32Size),
+		byteslib.ExtendToSize([]byte("BB"), byteslib.B32Size),
+		byteslib.ExtendToSize([]byte("CCC"), byteslib.B32Size),
+		byteslib.ExtendToSize([]byte("DDDD"), byteslib.B32Size),
+		byteslib.ExtendToSize([]byte("EEEEE"), byteslib.B32Size),
+		byteslib.ExtendToSize([]byte("FFFFFF"), byteslib.B32Size),
+		byteslib.ExtendToSize([]byte("GGGGGGG"), byteslib.B32Size),
 	} {
-		it := byteslib.ExtendToSize([]byte(v), byteslib.B32Size)
-		item, err := byteslib.ToBytes32(it)
+		item, err := byteslib.ToBytes32(v)
 		require.NoError(b, err)
 		items = append(items, item)
 	}
+	require.NotEmpty(b, items) // appease nilaway
 
 	m, err := merkle.NewTreeFromLeavesWithDepth[[32]byte](
 		items,
