@@ -21,7 +21,7 @@
 package types_test
 
 import (
-	"fmt"
+	"strconv"
 	"testing"
 
 	ctypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -37,7 +37,8 @@ func TestEmptySidecarMarshalling(t *testing.T) {
 	// Create an empty BlobSidecar
 	inclusionProof := make([]common.Root, 0)
 	for i := int(1); i <= 8; i++ {
-		proof, err := byteslib.ToBytes32([]byte(fmt.Sprintf("\"%d\"", i)))
+		it := byteslib.ExtendToSize([]byte(strconv.Itoa(i)), byteslib.B32Size)
+		proof, err := byteslib.ToBytes32(it)
 		require.NoError(t, err)
 		inclusionProof = append(inclusionProof, common.Root(proof))
 	}
@@ -86,7 +87,8 @@ func TestValidateBlockRoots(t *testing.T) {
 	// Create a sample BlobSidecar with valid roots
 	inclusionProof := make([]common.Root, 0)
 	for i := int(1); i <= 8; i++ {
-		proof, err := byteslib.ToBytes32([]byte(fmt.Sprintf("\"%d\"", i)))
+		it := byteslib.ExtendToSize([]byte(strconv.Itoa(i)), byteslib.B32Size)
+		proof, err := byteslib.ToBytes32(it)
 		require.NoError(t, err)
 		inclusionProof = append(inclusionProof, common.Root(proof))
 	}

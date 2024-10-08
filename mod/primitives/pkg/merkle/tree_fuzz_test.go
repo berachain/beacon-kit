@@ -21,7 +21,6 @@
 package merkle_test
 
 import (
-	"fmt"
 	"testing"
 
 	byteslib "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
@@ -48,7 +47,8 @@ func FuzzTree_IsValidMerkleBranch(f *testing.F) {
 
 	items := make([][32]byte, 0)
 	for _, v := range []string{"A", "B", "C", "D", "E", "F", "G", "H"} {
-		item, err := byteslib.ToBytes32([]byte(fmt.Sprintf("\"%s\"", v)))
+		it := byteslib.ExtendToSize([]byte(v), byteslib.B32Size)
+		item, err := byteslib.ToBytes32(it)
 		require.NoError(f, err)
 		items = append(items, item)
 	}
@@ -65,7 +65,7 @@ func FuzzTree_IsValidMerkleBranch(f *testing.F) {
 	f.Add(root[:], items[0][:], uint64(0), proofRaw, depth)
 
 	f.Fuzz(
-		func(_ *testing.T,
+		func(t *testing.T,
 			root, item []byte, merkleIndex uint64,
 			proofRaw []byte, depth uint8,
 		) {
@@ -73,11 +73,11 @@ func FuzzTree_IsValidMerkleBranch(f *testing.F) {
 
 			item = byteslib.ExtendToSize(item, byteslib.B32Size)[:byteslib.B32Size]
 			leaf, err = byteslib.ToBytes32(item)
-			require.NoError(f, err)
+			require.NoError(t, err)
 
 			root = byteslib.ExtendToSize(root, byteslib.B32Size)[:byteslib.B32Size]
 			r, err = byteslib.ToBytes32(root)
-			require.NoError(f, err)
+			require.NoError(t, err)
 
 			merkle.IsValidMerkleBranch(
 				leaf,
