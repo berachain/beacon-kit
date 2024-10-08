@@ -18,10 +18,12 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 //
-//nolint:dupl // it's okay.
+
 package bytes
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 )
 
@@ -35,9 +37,17 @@ const (
 type B4 [4]byte
 
 // ToBytes4 is a utility function that transforms a byte slice into a fixed
-// 4-byte array. If the input exceeds 4 bytes, it gets truncated.
-func ToBytes4(input []byte) B4 {
-	return B4(ExtendToSize(input, B4Size))
+// 4-byte array. It errs if input has not the required size.
+func ToBytes4(input []byte) (B4, error) {
+	if len(input) != B4Size {
+		return B4{}, fmt.Errorf(
+			"%w, got %d, expected %d",
+			ErrIncorrectLenght,
+			len(input),
+			B4Size,
+		)
+	}
+	return B4(input), nil
 }
 
 /* -------------------------------------------------------------------------- */
