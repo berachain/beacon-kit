@@ -37,7 +37,7 @@ const (
 type B8 [8]byte
 
 // ToBytes8 is a utility function that transforms a byte slice into a fixed
-// 8-byte array.  It errs if input has not the required size.
+// 8-byte array. It errs if input has not the required size.
 func ToBytes8(input []byte) (B8, error) {
 	if len(input) != B8Size {
 		return B8{}, fmt.Errorf(

@@ -38,7 +38,7 @@ const (
 type B256 [256]byte
 
 // ToBytes256 is a utility function that transforms a byte slice into a fixed
-// 256-byte array. If the input exceeds 256 bytes, it gets truncated.
+// 256-byte array. It errs if input has not the required size.
 func ToBytes256(input []byte) (B256, error) {
 	if len(input) != B256Size {
 		return B256{}, fmt.Errorf(
