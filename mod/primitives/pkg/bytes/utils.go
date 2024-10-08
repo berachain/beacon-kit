@@ -25,6 +25,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 )
 
+var ErrIncorrectLenght = errors.New("incorrect length")
+
 // ------------------------------ Helpers ------------------------------
 
 // Helper function to unmarshal JSON for various byte types.
@@ -34,7 +36,7 @@ func UnmarshalJSONHelper(target []byte, input []byte) error {
 		return err
 	}
 	if len(bz) != len(target) {
-		return errors.New("incorrect length")
+		return ErrIncorrectLenght
 	}
 	copy(target, bz)
 	return nil
@@ -47,7 +49,7 @@ func UnmarshalTextHelper(target []byte, text []byte) error {
 		return err
 	}
 	if len(bz) != len(target) {
-		return errors.New("incorrect length")
+		return ErrIncorrectLenght
 	}
 	copy(target, bz)
 	return nil
