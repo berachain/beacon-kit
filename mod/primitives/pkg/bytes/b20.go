@@ -22,6 +22,8 @@
 package bytes
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 )
 
@@ -36,8 +38,16 @@ type B20 [20]byte
 
 // ToBytes20 is a utility function that transforms a byte slice into a fixed
 // 20-byte array. If the input exceeds 20 bytes, it gets truncated.
-func ToBytes20(input []byte) B20 {
-	return B20(ExtendToSize(input, B20Size))
+func ToBytes20(input []byte) (B20, error) {
+	if len(input) != B20Size {
+		return B20{}, fmt.Errorf(
+			"%w, got %d, expected %d",
+			ErrIncorrectLenght,
+			len(input),
+			B20Size,
+		)
+	}
+	return B20(input), nil
 }
 
 /* -------------------------------------------------------------------------- */
