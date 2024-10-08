@@ -22,6 +22,8 @@
 package bytes_test
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
@@ -29,6 +31,206 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
 	"github.com/stretchr/testify/require"
 )
+
+func TestBytes96UnmarshalText(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   string
+		want    bytes.B96
+		wantErr bool
+	}{
+		{
+			name:  "valid input",
+			input: "0x" + strings.Repeat("01", 96),
+			want: func() bytes.B96 {
+				var b bytes.B96
+				for i := range b {
+					b[i] = 0x01
+				}
+				return b
+			}(),
+		},
+		{
+			name:    "invalid input - not hex",
+			input:   strings.Repeat("01", 96),
+			wantErr: true,
+		},
+		{
+			name:    "invalid input - wrong length",
+			input:   "0x" + strings.Repeat("01", 95),
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var got bytes.B96
+			err := got.UnmarshalText([]byte(tt.input))
+			if tt.wantErr {
+				require.Error(t, err, "Test case: %s", tt.name)
+			} else {
+				require.NoError(t, err, "Test case: %s", tt.name)
+				require.Equal(t, tt.want, got, "Test case: %s", tt.name)
+			}
+		})
+	}
+}
+
+func TestBytes96UnmarshalJSON(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   string
+		want    bytes.B96
+		wantErr bool
+	}{
+		{
+			name:  "valid input",
+			input: `"0x` + strings.Repeat("01", 96) + `"`,
+			want: func() bytes.B96 {
+				var b bytes.B96
+				for i := range b {
+					b[i] = 0x01
+				}
+				return b
+			}(),
+		},
+		{
+			name:    "invalid input - not hex",
+			input:   `"` + strings.Repeat("01", 96) + `"`,
+			wantErr: true,
+		},
+		{
+			name:    "invalid input - wrong length",
+			input:   `"0x` + strings.Repeat("01", 95) + `"`,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var got bytes.B96
+			err := got.UnmarshalJSON([]byte(tt.input))
+			if tt.wantErr {
+				require.Error(t, err, "Test case: %s", tt.name)
+			} else {
+				require.NoError(t, err, "Test case: %s", tt.name)
+				require.Equal(t, tt.want, got, "Test case: %s", tt.name)
+			}
+		})
+	}
+}
+func TestBytes96MarshalText(t *testing.T) {
+	tests := []struct {
+		name string
+		h    bytes.B96
+		want string
+	}{
+		{
+			name: "valid bytes",
+			h: func() bytes.B96 {
+				var b bytes.B96
+				for i := range b {
+					b[i] = 0x01
+				}
+				return b
+			}(),
+			want: "0x" + strings.Repeat("01", 96),
+		},
+		{
+			name: "empty bytes",
+			h:    bytes.B96{},
+			want: "0x" + strings.Repeat("00", 96),
+		},
+		{
+			name: "mixed bytes",
+			h: func() bytes.B96 {
+				var b bytes.B96
+				for i := 0; i < len(b); i++ {
+					b[i] = byte(i % 256)
+				}
+				return b
+			}(),
+			want: "0x" + func() string {
+				var s string
+				for i := range 96 {
+					s += fmt.Sprintf("%02x", i%256)
+				}
+				return s
+			}(),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := tt.h.MarshalText()
+			require.NoError(t, err, "Test case: %s", tt.name)
+			require.Equal(t, tt.want, string(got), "Test case: %s", tt.name)
+		})
+	}
+}
+
+func TestBytes96String(t *testing.T) {
+	tests := []struct {
+		name string
+		h    bytes.B96
+		want string
+	}{
+		{
+			name: "non-empty bytes",
+			h: func() bytes.B96 {
+				var b bytes.B96
+				for i := range b {
+					b[i] = 0x01
+				}
+				return b
+			}(),
+			want: "0x" + strings.Repeat("01", 96),
+		},
+		{
+			name: "empty bytes",
+			h:    bytes.B96{},
+			want: "0x" + strings.Repeat("00", 96),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.h.String()
+			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
+		})
+	}
+}
+
+func TestToBytes96(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    []byte
+		expected bytes.B96
+	}{
+		{
+			name:     "Input less than 96 bytes",
+			input:    []byte{1, 2, 3},
+			expected: bytes.B96{1, 2, 3},
+		},
+		{
+			name:     "Input exactly 96 bytes",
+			input:    make([]byte, 96),
+			expected: bytes.B96{},
+		},
+		{
+			name:     "Input more than 96 bytes",
+			input:    make([]byte, 100),
+			expected: bytes.B96{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := bytes.ToBytes96(tt.input)
+			require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
+		})
+	}
+}
 
 func TestB96_HashTreeRoot(t *testing.T) {
 	tests := []struct {
