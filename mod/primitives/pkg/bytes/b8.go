@@ -18,10 +18,12 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 //
-
+//nolint:dupl // it's okay.
 package bytes
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 )
 
@@ -35,9 +37,17 @@ const (
 type B8 [8]byte
 
 // ToBytes8 is a utility function that transforms a byte slice into a fixed
-// 8-byte array. If the input exceeds 8 bytes, it gets truncated.
-func ToBytes8(input []byte) B8 {
-	return B8(ExtendToSize(input, B8Size))
+// 8-byte array.  It errs if input has not the required size.
+func ToBytes8(input []byte) (B8, error) {
+	if len(input) != B8Size {
+		return B8{}, fmt.Errorf(
+			"%w, got %d, expected %d",
+			ErrIncorrectLenght,
+			len(input),
+			B8Size,
+		)
+	}
+	return B8(input), nil
 }
 
 /* -------------------------------------------------------------------------- */

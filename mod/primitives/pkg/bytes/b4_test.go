@@ -167,6 +167,7 @@ func TestBytes4UnmarshalText(t *testing.T) {
 		})
 	}
 }
+
 func TestToBytes4(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -203,7 +204,7 @@ func TestToBytes4(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result, err := bytes.ToBytes4(tt.input)
 			if tt.expectedErr != nil {
-				require.ErrorIs(t, tt.expectedErr, err)
+				require.ErrorIs(t, err, tt.expectedErr)
 			} else {
 				require.NoError(t, err)
 				require.Equal(t, tt.expectedRes, result)

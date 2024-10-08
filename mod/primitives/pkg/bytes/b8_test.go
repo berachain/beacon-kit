@@ -170,43 +170,51 @@ func TestBytes8UnmarshalText(t *testing.T) {
 		})
 	}
 }
+
 func TestToBytes8(t *testing.T) {
 	tests := []struct {
-		name     string
-		input    []byte
-		expected bytes.B8
+		name        string
+		input       []byte
+		expectedRes bytes.B8
+		expectedErr error
 	}{
 		{
-			name:     "Exact 8 bytes",
-			input:    []byte{1, 2, 3, 4, 5, 6, 7, 8},
-			expected: bytes.B8{1, 2, 3, 4, 5, 6, 7, 8},
+			name:        "Exact 8 bytes",
+			input:       []byte{1, 2, 3, 4, 5, 6, 7, 8},
+			expectedRes: bytes.B8{1, 2, 3, 4, 5, 6, 7, 8},
+			expectedErr: nil,
 		},
 		{
-			name:     "Less than 8 bytes",
-			input:    []byte{1, 2, 3, 4},
-			expected: bytes.B8{1, 2, 3, 4, 0, 0, 0, 0},
+			name:        "Less than 8 bytes",
+			input:       []byte{1, 2, 3, 4},
+			expectedErr: bytes.ErrIncorrectLenght,
 		},
 		{
-			name:     "Two bytes",
-			input:    []byte{1, 2},
-			expected: bytes.B8{1, 2, 0, 0, 0, 0, 0, 0},
+			name:        "Two bytes",
+			input:       []byte{1, 2},
+			expectedErr: bytes.ErrIncorrectLenght,
 		},
 		{
-			name:     "Empty input",
-			input:    []byte{},
-			expected: bytes.B8{0, 0, 0, 0, 0, 0, 0, 0},
+			name:        "Empty input",
+			input:       []byte{},
+			expectedErr: bytes.ErrIncorrectLenght,
 		},
 		{
-			name:     "More than 8 bytes",
-			input:    []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
-			expected: bytes.B8{1, 2, 3, 4, 5, 6, 7, 8},
+			name:        "More than 8 bytes",
+			input:       []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
+			expectedErr: bytes.ErrIncorrectLenght,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := bytes.ToBytes8(tt.input)
-			require.Equal(t, tt.expected, result)
+			result, err := bytes.ToBytes8(tt.input)
+			if tt.expectedErr != nil {
+				require.ErrorIs(t, err, tt.expectedErr)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, tt.expectedRes, result)
+			}
 		})
 	}
 }
