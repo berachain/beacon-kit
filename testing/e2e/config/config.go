@@ -182,27 +182,27 @@ func defaultValidators() NodeSet {
 		Nodes: []Node{
 			{
 				ElType:   "nethermind",
-				Replicas: 1,
+				Replicas: 0,
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
 				ElType:   "geth",
-				Replicas: 2, //nolint:mnd // bet.
+				Replicas: 1,
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
 				ElType:   "reth",
-				Replicas: 1,
+				Replicas: 4, //nolint:mnd // bet.
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
 				ElType:   "erigon",
-				Replicas: 1,
+				Replicas: 0,
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
 				ElType:   "besu",
-				Replicas: 1,
+				Replicas: 0,
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 		},
@@ -215,12 +215,12 @@ func defaultFullNodes() NodeSet {
 		Nodes: []Node{
 			{
 				ElType:   "nethermind",
-				Replicas: 1,
+				Replicas: 0,
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
 				ElType:   "reth",
-				Replicas: 1,
+				Replicas: 2, //nolint:mnd // bet.
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
@@ -230,12 +230,12 @@ func defaultFullNodes() NodeSet {
 			},
 			{
 				ElType:   "erigon",
-				Replicas: 1,
+				Replicas: 0,
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
 				ElType:   "besu",
-				Replicas: 1,
+				Replicas: 0,
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 		},
@@ -247,7 +247,7 @@ func defaultSeedNodes() NodeSet {
 		Type: "seed",
 		Nodes: []Node{
 			{
-				ElType:   "geth",
+				ElType:   "reth",
 				Replicas: 1,
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
@@ -267,7 +267,7 @@ func defaultExecutionSettings() ExecutionSettings {
 		Specs: NodeSpecs{
 			MinCPU:    0,
 			MaxCPU:    0,
-			MinMemory: 1024, //nolint:mnd // 1 GB
+			MinMemory: 0,
 			MaxMemory: 2048, //nolint:mnd // 2 GB
 		},
 		Images: map[string]string{
@@ -313,9 +313,8 @@ func defaultEthJSONRPCEndpoints() []EthJSONRPCEndpoint {
 			Type: "blutgang",
 			Clients: []string{
 				// "el-full-nethermind-0",
-				// "el-full-reth-0",
-				"el-full-geth-2",
-				// "el-full-erigon-3",
+				"el-full-reth-0",
+				// "el-full-geth-2",
 				// "el-full-erigon-3",
 				// Besu causing flakey tests.
 				// "el-full-besu-4",
