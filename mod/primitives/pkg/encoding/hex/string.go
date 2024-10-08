@@ -38,11 +38,11 @@ func NewString[T []byte | string](s T) String {
 	str := string(s)
 	switch _, err := IsValidHex(s); {
 	case errors.Is(err, ErrEmptyString):
-		return String(prefix + "0")
+		return String(Prefix + "0")
 	case err == nil:
 		return String(str)
 	default:
-		return String(prefix + string(s))
+		return String(Prefix + string(s))
 	}
 }
 
@@ -68,7 +68,7 @@ func IsValidHex[T ~[]byte | ~string](s T) (T, error) {
 	if len(s) < prefixLen {
 		return *new(T), ErrMissingPrefix
 	}
-	if strings.ToLower(string(s[:prefixLen])) != prefix {
+	if strings.ToLower(string(s[:prefixLen])) != Prefix {
 		return *new(T), ErrMissingPrefix
 	}
 	return s[prefixLen:], nil
@@ -77,7 +77,7 @@ func IsValidHex[T ~[]byte | ~string](s T) (T, error) {
 // FromUint64 encodes i as a hex string with 0x prefix.
 func FromUint64[U ~uint64](i U) String {
 	enc := make([]byte, prefixLen, initialCapacity)
-	copy(enc, prefix)
+	copy(enc, Prefix)
 	//#nosec:G701 // i is a uint64, so it can't overflow.
 	return String(strconv.AppendUint(enc, uint64(i), hexBase))
 }
@@ -86,12 +86,12 @@ func FromUint64[U ~uint64](i U) String {
 // Precondition: bigint is non-negative.
 func FromBigInt(bigint *big.Int) String {
 	if sign := bigint.Sign(); sign == 0 {
-		return NewString(prefix + "0")
+		return NewString(Prefix + "0")
 	} else if sign > 0 {
-		return NewString(prefix + bigint.Text(hexBase))
+		return NewString(Prefix + bigint.Text(hexBase))
 	}
 	// this return should never reach if precondition is met
-	return NewString(prefix + bigint.Text(hexBase)[1:])
+	return NewString(Prefix + bigint.Text(hexBase)[1:])
 }
 
 // ToUint64 decodes a hex string with 0x prefix.
