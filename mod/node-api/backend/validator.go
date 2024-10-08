@@ -124,6 +124,7 @@ func (b Backend[
 	if err != nil {
 		return nil, err
 	}
+	// Fetch all validators
 	validators, err := st.GetValidators()
 	if err != nil {
 		return nil, err
@@ -144,7 +145,7 @@ func (b Backend[
 			WithdrawalCredentialsT,
 		]{
 			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
-				Index:   uint64(index),
+				Index:   index.Unwrap(),
 				Balance: balance.Unwrap(),
 			},
 			Status:    "active_ongoing", // TODO: Implement proper status determination
