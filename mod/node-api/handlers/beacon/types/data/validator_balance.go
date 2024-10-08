@@ -18,10 +18,24 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package data
 
-type ValidatorResponse struct {
-	ExecutionOptimistic bool `json:"execution_optimistic"`
-	Finalized           bool `json:"finalized"`
-	Data                any  `json:"data"`
+import (
+	"encoding/json"
+	"strconv"
+)
+
+type ValidatorBalanceData struct {
+	Index   uint64 `json:"index"`
+	Balance uint64 `json:"balance"`
+}
+
+func (vbd ValidatorBalanceData) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Index   string `json:"index"`
+		Balance string `json:"balance"`
+	}{
+		Index:   strconv.FormatUint(vbd.Index, 10),
+		Balance: strconv.FormatUint(vbd.Balance, 10),
+	})
 }

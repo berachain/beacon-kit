@@ -18,10 +18,13 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package data
 
-type ValidatorResponse struct {
-	ExecutionOptimistic bool `json:"execution_optimistic"`
-	Finalized           bool `json:"finalized"`
-	Data                any  `json:"data"`
+type BlockRewardsData struct {
+	ProposerIndex     uint64 `json:"proposer_index,string"`
+	Total             uint64 `json:"total,string"`
+	Attestations      uint64 `json:"attestations,string"`
+	SyncAggregate     uint64 `json:"sync_aggregate,string"`
+	ProposerSlashings uint64 `json:"proposer_slashings,string"`
+	AttesterSlashings uint64 `json:"attester_slashings,string"`
 }

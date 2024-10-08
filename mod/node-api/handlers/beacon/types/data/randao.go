@@ -18,10 +18,10 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package data
 
-type ValidatorResponse struct {
-	ExecutionOptimistic bool `json:"execution_optimistic"`
-	Finalized           bool `json:"finalized"`
-	Data                any  `json:"data"`
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+
+type RandaoData struct {
+	Randao common.Bytes32 `json:"randao"`
 }

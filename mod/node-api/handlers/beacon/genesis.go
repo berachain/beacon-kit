@@ -21,7 +21,7 @@
 package beacon
 
 import (
-	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types/data"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 )
@@ -34,7 +34,7 @@ func (h *Handler[_, ContextT, _, _, _]) GetGenesis(_ ContextT) (any, error) {
 	if len(genesisRoot) == 0 {
 		return nil, types.ErrNotFound
 	}
-	return types.Wrap(beacontypes.GenesisData{
+	return types.Wrap(data.GenesisData{
 		GenesisTime:           "1590832934", // stub
 		GenesisValidatorsRoot: genesisRoot,
 		GenesisForkVersion:    "0x00000000", // stub

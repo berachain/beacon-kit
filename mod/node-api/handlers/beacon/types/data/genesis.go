@@ -18,10 +18,12 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package data
 
-type ValidatorResponse struct {
-	ExecutionOptimistic bool `json:"execution_optimistic"`
-	Finalized           bool `json:"finalized"`
-	Data                any  `json:"data"`
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+
+type GenesisData struct {
+	GenesisTime           string      `json:"genesis_time"`
+	GenesisValidatorsRoot common.Root `json:"genesis_validators_root"`
+	GenesisForkVersion    string      `json:"genesis_fork_version"`
 }

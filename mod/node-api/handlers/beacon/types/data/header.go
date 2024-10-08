@@ -18,10 +18,20 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package data
 
-type ValidatorResponse struct {
-	ExecutionOptimistic bool `json:"execution_optimistic"`
-	Finalized           bool `json:"finalized"`
-	Data                any  `json:"data"`
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+)
+
+type BlockHeaderResponse[BlockHeaderT any] struct {
+	Root      common.Root                `json:"root"`
+	Canonical bool                       `json:"canonical"`
+	Header    *BlockHeader[BlockHeaderT] `json:"header"`
+}
+
+type BlockHeader[BlockHeaderT any] struct {
+	Message   BlockHeaderT `json:"message"`
+	Signature bytes.B48    `json:"signature"`
 }

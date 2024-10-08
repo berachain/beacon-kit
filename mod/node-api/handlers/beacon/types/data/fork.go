@@ -18,10 +18,29 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package data
 
-type ValidatorResponse struct {
-	ExecutionOptimistic bool `json:"execution_optimistic"`
-	Finalized           bool `json:"finalized"`
-	Data                any  `json:"data"`
+import (
+	"encoding/json"
+	"strconv"
+
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
+)
+
+type ForkData struct {
+	types.Fork
+}
+
+type forkJSON struct {
+	PreviousVersion string `json:"previous_version"`
+	CurrentVersion  string `json:"current_version"`
+	Epoch           string `json:"epoch"`
+}
+
+func (fr ForkData) MarshalJSON() ([]byte, error) {
+	return json.Marshal(forkJSON{
+		PreviousVersion: fr.GetPreviousVersion().String(),
+		CurrentVersion:  fr.GetCurrentVersion().String(),
+		Epoch:           strconv.FormatUint(fr.GetEpoch().Unwrap(), 10),
+	})
 }

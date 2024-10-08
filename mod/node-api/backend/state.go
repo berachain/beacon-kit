@@ -34,7 +34,7 @@ func (b *Backend[
 	return b.stateFromSlotRaw(slot)
 }
 
-// GetStateRoot returns the root of the state at the given slot.
+// StateRootAtSlot returns the root of the state at the given slot.
 func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) StateRootAtSlot(slot math.Slot) (common.Root, error) {
@@ -48,7 +48,7 @@ func (b Backend[
 	return st.StateRootAtIndex(slot.Unwrap() % b.cs.SlotsPerHistoricalRoot())
 }
 
-// GetStateFork returns the fork of the state at the given stateID.
+// StateForkAtSlot returns the fork of the state at the given slot.
 func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, ForkT, _, _, _, _, _, _, _,
 ]) StateForkAtSlot(slot math.Slot) (ForkT, error) {

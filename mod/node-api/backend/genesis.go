@@ -25,7 +25,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// GetGenesis returns the genesis state of the beacon chain.
+// GenesisValidatorsRoot returns the genesis validators root at the given slot.
 func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) GenesisValidatorsRoot(slot math.Slot) (common.Root, error) {

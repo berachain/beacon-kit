@@ -22,6 +22,7 @@ package beacon
 
 import (
 	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types/data"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 )
@@ -46,10 +47,10 @@ func (h *Handler[
 	return beacontypes.ValidatorResponse{
 		ExecutionOptimistic: false, // stubbed
 		Finalized:           false, // stubbed
-		Data: &beacontypes.BlockHeaderResponse[BeaconBlockHeaderT]{
+		Data: &data.BlockHeaderResponse[BeaconBlockHeaderT]{
 			Root:      header.GetBodyRoot(),
 			Canonical: true,
-			Header: &beacontypes.BlockHeader[BeaconBlockHeaderT]{
+			Header: &data.BlockHeader[BeaconBlockHeaderT]{
 				Message:   header,
 				Signature: bytes.B48{}, // TODO: implement
 			},
@@ -77,10 +78,10 @@ func (h *Handler[
 	return beacontypes.ValidatorResponse{
 		ExecutionOptimistic: false, // stubbed
 		Finalized:           false, // stubbed
-		Data: &beacontypes.BlockHeaderResponse[BeaconBlockHeaderT]{
+		Data: &data.BlockHeaderResponse[BeaconBlockHeaderT]{
 			Root:      header.GetBodyRoot(),
 			Canonical: true,
-			Header: &beacontypes.BlockHeader[BeaconBlockHeaderT]{
+			Header: &data.BlockHeader[BeaconBlockHeaderT]{
 				Message:   header,
 				Signature: bytes.B48{}, // TODO: implement
 			},

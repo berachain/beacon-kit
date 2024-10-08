@@ -22,16 +22,17 @@ package backend
 
 import (
 	"github.com/berachain/beacon-kit/mod/node-api/backend/utils"
-	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types/data"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
+// ValidatorByID returns the validator at the given slot and ID.
 func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _,
 	WithdrawalCredentialsT,
 ]) ValidatorByID(
 	slot math.Slot, id string,
-) (*beacontypes.ValidatorData[ValidatorT, WithdrawalCredentialsT], error) {
+) (*data.ValidatorData[ValidatorT, WithdrawalCredentialsT], error) {
 	// TODO: to adhere to the spec, this shouldn't error if the error
 	// is not found, but i can't think of a way to do that without coupling
 	// db impl to the api impl.
@@ -51,8 +52,8 @@ func (b Backend[
 	if err != nil {
 		return nil, err
 	}
-	return &beacontypes.ValidatorData[ValidatorT, WithdrawalCredentialsT]{
-		ValidatorBalanceData: beacontypes.ValidatorBalanceData{
+	return &data.ValidatorData[ValidatorT, WithdrawalCredentialsT]{
+		ValidatorBalanceData: data.ValidatorBalanceData{
 			Index:   index.Unwrap(),
 			Balance: balance.Unwrap(),
 		},
@@ -61,15 +62,16 @@ func (b Backend[
 	}, nil
 }
 
+// ValidatorsByIDs returns the validators at the given slot and IDs.
 // TODO: filter by status
 func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _,
 	WithdrawalCredentialsT,
 ]) ValidatorsByIDs(
 	slot math.Slot, ids []string, _ []string,
-) ([]*beacontypes.ValidatorData[ValidatorT, WithdrawalCredentialsT], error) {
+) ([]*data.ValidatorData[ValidatorT, WithdrawalCredentialsT], error) {
 	validatorsData := make(
-		[]*beacontypes.ValidatorData[ValidatorT, WithdrawalCredentialsT],
+		[]*data.ValidatorData[ValidatorT, WithdrawalCredentialsT],
 		0)
 	for _, id := range ids {
 		// TODO: we can probably optimize this via a getAllValidators
@@ -84,17 +86,19 @@ func (b Backend[
 	return validatorsData, nil
 }
 
+// ValidatorBalancesByIDs returns the balances of the validators at the given
+// slot and IDs.
 func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) ValidatorBalancesByIDs(
 	slot math.Slot, ids []string,
-) ([]*beacontypes.ValidatorBalanceData, error) {
+) ([]*data.ValidatorBalanceData, error) {
 	var index math.U64
 	st, _, err := b.stateFromSlot(slot)
 	if err != nil {
 		return nil, err
 	}
-	balances := make([]*beacontypes.ValidatorBalanceData, 0)
+	balances := make([]*data.ValidatorBalanceData, 0)
 	for _, id := range ids {
 		index, err = utils.ValidatorIndexByID(st, id)
 		if err != nil {
@@ -106,7 +110,7 @@ func (b Backend[
 		if err != nil {
 			return nil, err
 		}
-		balances = append(balances, &beacontypes.ValidatorBalanceData{
+		balances = append(balances, &data.ValidatorBalanceData{
 			Index:   index.Unwrap(),
 			Balance: balance.Unwrap(),
 		})

@@ -18,10 +18,28 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package constants
 
-type ValidatorResponse struct {
-	ExecutionOptimistic bool `json:"execution_optimistic"`
-	Finalized           bool `json:"finalized"`
-	Data                any  `json:"data"`
-}
+const (
+	StateIDHead      = "head"
+	StateIDGenesis   = "genesis"
+	StateIDFinalized = "finalized"
+	StateIDJustified = "justified"
+)
+
+const (
+	ValidatorIDRegex = `^0x[0-9a-fA-F]{1,96}$`
+	RootRegex        = `^0x[0-9a-fA-F]{64}$`
+)
+
+const (
+	StatusPendingInitialized = "pending_initialized"
+	StatusPendingQueued      = "pending_queued"
+	StatusActiveOngoing      = "active_ongoing"
+	StatusActiveExiting      = "active_exiting"
+	StatusActiveSlashed      = "active_slashed"
+	StatusExitedUnslashed    = "exited_unslashed"
+	StatusExitedSlashed      = "exited_slashed"
+	StatusWithdrawalPossible = "withdrawal_possible"
+	StatusWithdrawalDone     = "withdrawal_done"
+)
