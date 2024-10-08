@@ -21,31 +21,18 @@
 package config
 
 import (
-	"net/http"
-
-	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/node-api/handlers"
+	configtypes "github.com/berachain/beacon-kit/mod/node-api/handlers/config/types"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 )
 
-func (h *Handler[ContextT]) RegisterRoutes(
-	logger log.Logger,
-) {
-	h.SetLogger(logger)
-	h.BaseHandler.AddRoutes([]*handlers.Route[ContextT]{
-		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v1/config/fork_schedule",
-			Handler: h.NotImplemented,
-		},
-		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v1/config/spec",
-			Handler: h.GetSpec,
-		},
-		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v1/config/deposit_contract",
-			Handler: h.NotImplemented,
-		},
-	})
+// GetSpec returns the spec data.
+// TODO: Implement with real data. Stubbed for time being.
+func (h *Handler[ContextT]) GetSpec(_ ContextT) (any, error) {
+	return types.Wrap(configtypes.SpecData{
+		DepositContractAddress:          "0x4242424242424242424242424242424242424242",
+		DepositNetworkID:                "80084",
+		DomainAggregateAndProof:         "0x06000000",
+		InactivityPenaltyQuotient:       "33554432",
+		InactivityPenaltyQuotientAltair: "50331648",
+	}), nil
 }
