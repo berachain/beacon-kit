@@ -269,31 +269,39 @@ func TestBytes48UnmarshalText(t *testing.T) {
 
 func TestToBytes48(t *testing.T) {
 	tests := []struct {
-		name     string
-		input    []byte
-		expected bytes.B48
+		name    string
+		input   []byte
+		wantRes bytes.B48
+		wantErr error
 	}{
 		{
-			name:     "Input less than 48 bytes",
-			input:    []byte{1, 2, 3},
-			expected: bytes.B48{1, 2, 3},
+			name:    "Input less than 48 bytes",
+			input:   []byte{1, 2, 3},
+			wantRes: bytes.B48{},
+			wantErr: bytes.ErrIncorrectLenght,
 		},
 		{
-			name:     "Input exactly 48 bytes",
-			input:    make([]byte, 48),
-			expected: bytes.B48{},
+			name:    "Input exactly 48 bytes",
+			input:   make([]byte, 48),
+			wantRes: bytes.B48{},
 		},
 		{
-			name:     "Input more than 48 bytes",
-			input:    make([]byte, 60),
-			expected: bytes.B48{},
+			name:    "Input more than 48 bytes",
+			input:   make([]byte, 60),
+			wantRes: bytes.B48{},
+			wantErr: bytes.ErrIncorrectLenght,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := bytes.ToBytes48(tt.input)
-			require.Equal(t, tt.expected, result)
+			result, err := bytes.ToBytes48(tt.input)
+			if tt.wantErr != nil {
+				require.ErrorIs(t, err, tt.wantErr)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, tt.wantRes, result)
+			}
 		})
 	}
 }

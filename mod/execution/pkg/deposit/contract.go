@@ -93,15 +93,20 @@ func (dc *WrappedBeaconDepositContract[
 	deposits := make([]DepositT, 0)
 	for logs.Next() {
 		var (
-			cred bytes.B32
-			d    DepositT
+			cred   bytes.B32
+			pubKey bytes.B48
+			d      DepositT
 		)
+		pubKey, err = bytes.ToBytes48(logs.Event.Pubkey)
+		if err != nil {
+			return nil, fmt.Errorf("failed reading pub key: %w", err)
+		}
 		cred, err = bytes.ToBytes32(logs.Event.Credentials)
 		if err != nil {
 			return nil, fmt.Errorf("failed reading credentials: %w", err)
 		}
 		deposits = append(deposits, d.New(
-			bytes.ToBytes48(logs.Event.Pubkey),
+			pubKey,
 			WithdrawalCredentialsT(cred),
 			math.U64(logs.Event.Amount),
 			bytes.ToBytes96(logs.Event.Signature),
