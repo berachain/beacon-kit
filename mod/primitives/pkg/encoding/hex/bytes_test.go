@@ -29,33 +29,49 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestEncodeBytes(t *testing.T) {
+func TestEncodeAndDecodeBytes(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    []byte
-		expected []byte
+		expected string
 	}{
 		{
 			name:     "typical byte slice",
 			input:    []byte{0x48, 0x65, 0x6c, 0x6c, 0x6f},
-			expected: []byte("0x48656c6c6f"),
+			expected: "0x48656c6c6f",
 		},
 		{
 			name:     "empty byte slice",
 			input:    []byte{},
-			expected: []byte("0x"),
+			expected: "0x",
 		},
 		{
 			name:     "single byte",
 			input:    []byte{0x01},
-			expected: []byte("0x01"),
+			expected: "0x01",
+		},
+		{
+			name: "long byte slice",
+			input: []byte{
+				0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbe, 0xde, 0xad,
+				0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbe, 0xde, 0xad, 0xbe, 0xef,
+				0xca, 0xfe, 0xba, 0xbe, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe,
+				0xba, 0xbe},
+			expected: "0xdeadbeefcafebabe" + "deadbeefcafebabe" + "deadbeefcafebabe" + "deadbeefcafebabe",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := hex.EncodeBytes(tt.input)
-			require.Equal(t, tt.expected, result, "Test case : %s", tt.name)
+			require.Equal(t, tt.expected, result)
+
+			_, err := hex.IsValidHex(result)
+			require.NoError(t, err)
+
+			decoded, err := hex.ToBytes(result)
+			require.NoError(t, err)
+			require.Equal(t, tt.input, decoded)
 		})
 	}
 }
@@ -97,10 +113,10 @@ func TestUnmarshalByteText(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result, err := hex.UnmarshalByteText(tt.input)
 			if tt.expectErr {
-				require.Error(t, err, "Test case : %s", tt.name)
+				require.Error(t, err)
 			} else {
-				require.NoError(t, err, "Test case : %s", tt.name)
-				require.Equal(t, tt.expected, result, "Test case : %s", tt.name)
+				require.NoError(t, err)
+				require.Equal(t, tt.expected, result)
 			}
 		})
 	}
@@ -149,10 +165,10 @@ func TestDecodeFixedText(t *testing.T) {
 			out := make([]byte, len(tt.expected))
 			err := hex.DecodeFixedText(tt.input, out)
 			if tt.expectErr {
-				require.Error(t, err, "Test case : %s", tt.name)
+				require.Error(t, err)
 			} else {
-				require.NoError(t, err, "Test case : %s", tt.name)
-				require.Equal(t, tt.expected, out, "Test case : %s", tt.name)
+				require.NoError(t, err)
+				require.Equal(t, tt.expected, out)
 			}
 		})
 	}
@@ -203,10 +219,10 @@ func TestDecodeFixedJSON(t *testing.T) {
 				tt.out,
 			)
 			if tt.expectErr {
-				require.Error(t, err, "Test case : %s", tt.name)
+				require.Error(t, err)
 			} else {
-				require.NoError(t, err, "Test case : %s", tt.name)
-				require.Equal(t, []byte{0x48, 0x65, 0x6c, 0x6c, 0x6f}, tt.out, "Test case : %s", tt.name)
+				require.NoError(t, err)
+				require.Equal(t, []byte{0x48, 0x65, 0x6c, 0x6c, 0x6f}, tt.out)
 			}
 		})
 	}

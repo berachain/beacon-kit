@@ -21,10 +21,9 @@
 package hex
 
 import (
-	"bytes"
-	"encoding/hex"
 	"math/big"
 	"strconv"
+	"strings"
 
 	"github.com/berachain/beacon-kit/mod/errors"
 )
@@ -37,8 +36,14 @@ type String string
 // ensure that the string invariants are satisfied.
 func NewString[T []byte | string](s T) String {
 	str := string(s)
-	str = ensureStringInvariants(str)
-	return String(str)
+	switch _, err := IsValidHex(s); {
+	case errors.Is(err, ErrEmptyString):
+		return String(prefix + "0")
+	case err == nil:
+		return String(str)
+	default:
+		return String(prefix + string(s))
+	}
 }
 
 // UnmarshalText implements the encoding.TextUnmarshaler interface.
@@ -46,42 +51,27 @@ func NewString[T []byte | string](s T) String {
 // assigns it to the String type.
 // Returns an error if the input is not a valid hex string.
 func (s *String) UnmarshalText(text []byte) error {
-	str := string(text)
-	err := isValidHex(str)
-	if err != nil {
-		return errors.Wrapf(ErrInvalidString, "%s", str)
+	if _, err := IsValidHex(text); err != nil {
+		return errors.Wrapf(ErrInvalidString, "%s", text)
 	}
-	*s = String(str)
+	*s = String(text)
 	return nil
 }
 
-func isValidHex(str string) error {
-	if len(str) == 0 {
-		return ErrEmptyString
-	} else if !has0xPrefix(str) {
-		return ErrMissingPrefix
+// IsValidHex performs basic validations that every hex string
+// must pass (there may be extra ones depending on the type encoded)
+// It returns the suffix (dropping 0x prefix) in the hope to appease nilaway.
+func IsValidHex[T ~[]byte | ~string](s T) (T, error) {
+	if len(s) == 0 {
+		return *new(T), ErrEmptyString
 	}
-	return nil
-}
-
-// NewStringStrict creates a hex string with 0x prefix. It errors if any of the
-// string invariants are violated.
-func NewStringStrict[T []byte | string](s T) (String, error) {
-	str := string(s)
-	if len(str) == 0 {
-		return "", ErrEmptyString
-	} else if !has0xPrefix(str) {
-		return "", ErrMissingPrefix
+	if len(s) < prefixLen {
+		return *new(T), ErrMissingPrefix
 	}
-	return String(str), nil
-}
-
-// FromBytes creates a hex string with 0x prefix.
-func FromBytes[B ~[]byte](b B) String {
-	enc := make([]byte, len(b)*2+prefixLen)
-	copy(enc, prefix)
-	hex.Encode(enc[2:], b)
-	return NewString(enc)
+	if strings.ToLower(string(s[:prefixLen])) != prefix {
+		return *new(T), ErrMissingPrefix
+	}
+	return s[prefixLen:], nil
 }
 
 // FromUint64 encodes i as a hex string with 0x prefix.
@@ -96,41 +86,12 @@ func FromUint64[U ~uint64](i U) String {
 // Precondition: bigint is non-negative.
 func FromBigInt(bigint *big.Int) String {
 	if sign := bigint.Sign(); sign == 0 {
-		return NewString("0x0")
+		return NewString(prefix + "0")
 	} else if sign > 0 {
-		return NewString("0x" + bigint.Text(hexBase))
+		return NewString(prefix + bigint.Text(hexBase))
 	}
 	// this return should never reach if precondition is met
-	return NewString("0x" + bigint.Text(hexBase)[1:])
-}
-
-func FromJSONString[B ~[]byte](b B) String {
-	return NewString(bytes.Trim(b, "\""))
-}
-
-// Has0xPrefix returns true if s has a 0x prefix.
-func (s String) Has0xPrefix() bool {
-	return has0xPrefix[string](string(s))
-}
-
-// IsEmpty returns true if s is empty.
-func (s String) IsEmpty() bool {
-	return len(s) == 0
-}
-
-// ToBytes decodes a hex string with 0x prefix.
-func (s String) ToBytes() ([]byte, error) {
-	return hex.DecodeString(string(s[2:]))
-}
-
-// MustToBytes decodes a hex string with 0x prefix.
-// It panics for invalid input.
-func (s String) MustToBytes() []byte {
-	b, err := s.ToBytes()
-	if err != nil {
-		panic(err)
-	}
-	return b
+	return NewString(prefix + bigint.Text(hexBase)[1:])
 }
 
 // ToUint64 decodes a hex string with 0x prefix.
@@ -194,10 +155,6 @@ func (s String) MustToBigInt() *big.Int {
 		panic(err)
 	}
 	return bi
-}
-
-func (s String) AddQuotes() String {
-	return "\"" + s + "\""
 }
 
 // Unwrap returns the string value.
