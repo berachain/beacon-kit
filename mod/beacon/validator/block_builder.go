@@ -22,6 +22,7 @@ package validator
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
@@ -303,7 +304,11 @@ func (s *Service[
 	))
 
 	// Set the graffiti on the block body.
-	body.SetGraffiti(bytes.ToBytes32([]byte(s.cfg.Graffiti)))
+	graffiti, err := bytes.ToBytes32([]byte(s.cfg.Graffiti))
+	if err != nil {
+		return fmt.Errorf("failed processing graffiti: %w", err)
+	}
+	body.SetGraffiti(graffiti)
 
 	// Get the epoch to find the active fork version.
 	epoch := s.chainSpec.SlotToEpoch(blk.GetSlot())

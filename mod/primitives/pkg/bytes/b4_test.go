@@ -250,7 +250,8 @@ func TestBytes4HashTreeRoot(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := tt.input.HashTreeRoot()
+			got, err := tt.input.HashTreeRoot()
+			require.NoError(t, err)
 			require.Equal(t, tt.want, got)
 		})
 	}

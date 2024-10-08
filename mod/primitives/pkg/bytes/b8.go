@@ -88,6 +88,6 @@ func (h B8) MarshalSSZ() ([]byte, error) {
 }
 
 // HashTreeRoot returns the hash tree root of the B8.
-func (h B8) HashTreeRoot() B32 {
-	return ToBytes32(h[:])
+func (h B8) HashTreeRoot() (B32, error) {
+	return ToBytes32(ExtendToSize(h[:], B32Size))
 }
