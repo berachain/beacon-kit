@@ -57,10 +57,10 @@ func TestBytes4UnmarshalJSON(t *testing.T) {
 			var got bytes.B4
 			err := got.UnmarshalJSON([]byte(tt.input))
 			if tt.wantErr {
-				require.Error(t, err, "Test case %s", tt.name)
+				require.Error(t, err)
 			} else {
-				require.NoError(t, err, "Test case %s", tt.name)
-				require.Equal(t, tt.want, got, "Test case %s", tt.name)
+				require.NoError(t, err)
+				require.Equal(t, tt.want, got)
 			}
 		})
 	}
@@ -87,7 +87,7 @@ func TestBytes4String(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := tt.h.String()
-			require.Equal(t, tt.want, got, "Test case %s", tt.name)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -123,8 +123,8 @@ func TestBytes4MarshalText(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := tt.h.MarshalText()
-			require.NoError(t, err, "Test case %s", tt.name)
-			require.Equal(t, tt.want, string(got), "Test case %s", tt.name)
+			require.NoError(t, err)
+			require.Equal(t, tt.want, string(got))
 		})
 	}
 }
@@ -159,10 +159,10 @@ func TestBytes4UnmarshalText(t *testing.T) {
 			var got bytes.B4
 			err := got.UnmarshalText([]byte(tt.input))
 			if tt.wantErr {
-				require.Error(t, err, "Test case %s", tt.name)
+				require.Error(t, err)
 			} else {
-				require.NoError(t, err, "Test case %s", tt.name)
-				require.Equal(t, tt.want, got, "Test case %s", tt.name)
+				require.NoError(t, err)
+				require.Equal(t, tt.want, got)
 			}
 		})
 	}

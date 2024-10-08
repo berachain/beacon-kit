@@ -86,7 +86,7 @@ func TestBytes8String(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := tt.h.String()
-			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -127,8 +127,8 @@ func TestBytes8MarshalText(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := tt.h.MarshalText()
-			require.NoError(t, err, "Test case: %s", tt.name)
-			require.Equal(t, tt.want, string(got), "Test case: %s", tt.name)
+			require.NoError(t, err)
+			require.Equal(t, tt.want, string(got))
 		})
 	}
 }
@@ -163,9 +163,9 @@ func TestBytes8UnmarshalText(t *testing.T) {
 			var got bytes.B8
 			err := got.UnmarshalText([]byte(tt.input))
 			if tt.wantErr {
-				require.Error(t, err, "Test case: %s", tt.name)
+				require.Error(t, err)
 			} else {
-				require.NoError(t, err, "Test case: %s", tt.name)
+				require.NoError(t, err)
 			}
 		})
 	}
@@ -206,7 +206,7 @@ func TestToBytes8(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := bytes.ToBytes8(tt.input)
-			require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
+			require.Equal(t, tt.expected, result)
 		})
 	}
 }
@@ -227,8 +227,8 @@ func TestBytes8MarshalSSZ(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := tt.input.MarshalSSZ()
-			require.NoError(t, err, "Test case: %s", tt.name)
-			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
+			require.NoError(t, err)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -249,7 +249,7 @@ func TestBytes8HashTreeRoot(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := tt.input.HashTreeRoot()
-			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }

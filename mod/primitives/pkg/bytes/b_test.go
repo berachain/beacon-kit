@@ -156,7 +156,7 @@ func TestReverseEndianness(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := bytes.CopyAndReverseEndianess(tt.input)
-			require.Equal(t, tt.expected, result, "Test case %s", tt.name)
+			require.Equal(t, tt.expected, result)
 		})
 	}
 }
@@ -182,7 +182,7 @@ func TestHashTreeRoot(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := tt.input.HashTreeRoot()
-			require.Equal(t, tt.want, result, "Test case: %s", tt.name)
+			require.Equal(t, tt.want, result)
 		})
 	}
 }
@@ -226,10 +226,10 @@ func TestUnmarshalFixedJSON(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := bytes.UnmarshalFixedJSON(tt.input, tt.out)
 			if tt.wantErr {
-				require.Error(t, err, "Test case: %s", tt.name)
+				require.Error(t, err)
 			} else {
-				require.NoError(t, err, "Test case: %s", tt.name)
-				require.Equal(t, tt.expected, tt.out, "Test case: %s", tt.name)
+				require.NoError(t, err)
+				require.Equal(t, tt.expected, tt.out)
 			}
 		})
 	}
@@ -274,10 +274,10 @@ func TestUnmarshalFixedText(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := bytes.UnmarshalFixedText(tt.input, tt.out)
 			if tt.wantErr {
-				require.Error(t, err, "Test case: %s", tt.name)
+				require.Error(t, err)
 			} else {
-				require.NoError(t, err, "Test case: %s", tt.name)
-				require.Equal(t, tt.expected, tt.out, "Test case: %s", tt.name)
+				require.NoError(t, err)
+				require.Equal(t, tt.expected, tt.out)
 			}
 		})
 	}
@@ -356,10 +356,10 @@ func TestBytes_MarshalText(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := tt.input.MarshalText()
 			if tt.wantErr {
-				require.Error(t, err, "Test case: %s", tt.name)
+				require.Error(t, err)
 			} else {
-				require.NoError(t, err, "Test case: %s", tt.name)
-				require.Equal(t, tt.want, string(got), "Test case: %s", tt.name)
+				require.NoError(t, err)
+				require.Equal(t, tt.want, string(got))
 			}
 		})
 	}
