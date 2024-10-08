@@ -22,6 +22,8 @@
 package bytes
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/prysmaticlabs/gohashtree"
 )
@@ -37,8 +39,16 @@ type B96 [96]byte
 
 // ToBytes96 is a utility function that transforms a byte slice into a fixed
 // 96-byte array. If the input exceeds 96 bytes, it gets truncated.
-func ToBytes96(input []byte) B96 {
-	return B96(ExtendToSize(input, B96Size))
+func ToBytes96(input []byte) (B96, error) {
+	if len(input) != B96Size {
+		return B96{}, fmt.Errorf(
+			"%w, got %d, expected %d",
+			ErrIncorrectLenght,
+			len(input),
+			B96Size,
+		)
+	}
+	return B96(input), nil
 }
 
 /* -------------------------------------------------------------------------- */
