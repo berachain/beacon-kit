@@ -198,7 +198,50 @@ func TestToBytes4(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := bytes.ToBytes4(tt.input)
-			require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
+			require.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestBytes4MarshalSSZ(t *testing.T) {
+	tests := []struct {
+		name  string
+		input bytes.B4
+		want  []byte
+	}{
+		{
+			name:  "marshal B4",
+			input: bytes.B4{0x01, 0x02, 0x03, 0x04},
+			want:  []byte{0x01, 0x02, 0x03, 0x04},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := tt.input.MarshalSSZ()
+			require.NoError(t, err)
+			require.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestBytes4HashTreeRoot(t *testing.T) {
+	tests := []struct {
+		name  string
+		input bytes.B4
+		want  bytes.B32
+	}{
+		{
+			name:  "hash tree root",
+			input: bytes.B4{0x01, 0x02, 0x03, 0x04},
+			want:  bytes.B32{0x01, 0x02, 0x03, 0x04},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.input.HashTreeRoot()
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
