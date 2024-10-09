@@ -32,11 +32,15 @@ func (h *Handler[ContextT]) GetSpec(_ ContextT) (any, error) {
 		return nil, err
 	}
 
-	return types.Wrap(configtypes.SpecData{
-		DepositContractAddress:          chainSpec.DepositContractAddress(),
-		DepositNetworkID:                chainSpec.DepositEth1ChainID(),
-		DomainAggregateAndProof:         chainSpec.DomainTypeAggregateAndProof(),
-		InactivityPenaltyQuotient:       chainSpec.InactivityPenaltyQuotient(),
-		InactivityPenaltyQuotientAltair: chainSpec.InactivityPenaltyQuotient(), // TODO: stubbed as it doesn't exist in the spec
-	}), nil
+	return types.Wrap(
+		configtypes.SpecData{
+			DepositContractAddress: chainSpec.DepositContractAddress(),
+			// TODO: Get the Network ID, introduce in chainSpec
+			DepositNetworkID:                chainSpec.DepositEth1ChainID(),
+			DomainAggregateAndProof:         chainSpec.DomainTypeAggregateAndProof(),
+			InactivityPenaltyQuotient:       chainSpec.InactivityPenaltyQuotient(),
+			InactivityPenaltyQuotientAltair: chainSpec.InactivityPenaltyQuotient(),
+			// TODO: stubbed InactivityPenaltyQuotientAltair as
+			// it doesn't exist in the spec
+		}), nil
 }

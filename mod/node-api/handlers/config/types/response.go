@@ -48,10 +48,20 @@ type specJSON struct {
 
 func (sd SpecData) MarshalJSON() ([]byte, error) {
 	return json.Marshal(specJSON{
-		DepositContractAddress:          "0x" + hex.EncodeToString(sd.DepositContractAddress[:]),
-		DepositNetworkID:                strconv.FormatUint(sd.DepositNetworkID, 10),
-		DomainAggregateAndProof:         "0x" + hex.EncodeToString(sd.DomainAggregateAndProof[:]),
-		InactivityPenaltyQuotient:       strconv.FormatUint(sd.InactivityPenaltyQuotient, 10),
-		InactivityPenaltyQuotientAltair: strconv.FormatUint(sd.InactivityPenaltyQuotientAltair, 10),
+		DepositContractAddress: "0x" + hex.EncodeToString(
+			sd.DepositContractAddress[:],
+		),
+		DepositNetworkID: strconv.FormatUint(
+			sd.DepositNetworkID, 10,
+		),
+		DomainAggregateAndProof: "0x" + hex.EncodeToString(
+			sd.DomainAggregateAndProof[:],
+		),
+		InactivityPenaltyQuotient: strconv.FormatUint(
+			sd.InactivityPenaltyQuotient, 10,
+		),
+		InactivityPenaltyQuotientAltair: strconv.FormatUint(
+			sd.InactivityPenaltyQuotientAltair, 10,
+		),
 	})
 }
