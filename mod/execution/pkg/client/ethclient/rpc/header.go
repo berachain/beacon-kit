@@ -29,7 +29,9 @@ func (rpc *Client) updateHeader() error {
 		return err
 	}
 
-	// Add the JWT token to the headers.
+	// Add the JWT token to the headers. Access header safely.
+	rpc.mtx.Lock()
+	defer rpc.mtx.Unlock()
 	rpc.header.Set("Authorization", "Bearer "+token)
 	return nil
 }

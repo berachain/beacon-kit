@@ -46,7 +46,10 @@ type Client struct {
 	// jwtRefershInterval is the interval at which the JWT token should be
 	// refreshed.
 	jwtRefreshInterval time.Duration
-	// header is the HTTP header used for RPC requests.
+
+	// header is the HTTP header used for RPC requests. header is
+	// accessed by multiple goroutines, so it's protected by a mutex.
+	mtx    sync.RWMutex
 	header http.Header
 }
 
@@ -143,6 +146,9 @@ func (rpc *Client) CallRaw(
 	if err != nil {
 		return nil, err
 	}
+
+	rpc.mtx.Lock()
+	defer rpc.mtx.Unlock()
 	req.Header = rpc.header
 
 	response, err := rpc.client.Do(req)
