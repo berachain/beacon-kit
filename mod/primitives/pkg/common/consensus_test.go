@@ -37,9 +37,16 @@ func TestNewRootFromHex(t *testing.T) {
 		expectedErr error
 	}{
 		{
+			name: "EmptyString",
+			input: func() string {
+				return ""
+			},
+			expectedErr: hex.ErrEmptyString,
+		},
+		{
 			name: "ShortSize",
 			input: func() string {
-				return hex.Prefix + strings.Repeat("f", 2*common.RootSize-1)
+				return hex.Prefix + strings.Repeat("f", 2*common.RootSize-2)
 			},
 			expectedErr: bytes.ErrIncorrectLength,
 		},
@@ -53,7 +60,7 @@ func TestNewRootFromHex(t *testing.T) {
 		{
 			name: "LongSize",
 			input: func() string {
-				return hex.Prefix + strings.Repeat("f", 2*common.RootSize+1)
+				return hex.Prefix + strings.Repeat("f", 2*common.RootSize+2)
 			},
 			expectedErr: bytes.ErrIncorrectLength,
 		},
@@ -68,7 +75,7 @@ func TestNewRootFromHex(t *testing.T) {
 			}
 			require.NotPanics(t, f)
 			if tt.expectedErr != nil {
-				require.Error(t, err)
+				require.ErrorIs(t, err, tt.expectedErr)
 			} else {
 				require.NoError(t, err)
 			}
