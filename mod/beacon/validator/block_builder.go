@@ -304,7 +304,8 @@ func (s *Service[
 	))
 
 	// Set the graffiti on the block body.
-	graffiti, err := bytes.ToBytes32([]byte(s.cfg.Graffiti))
+	sizedGraffiti := bytes.ExtendToSize([]byte(s.cfg.Graffiti), bytes.B32Size)
+	graffiti, err := bytes.ToBytes32(sizedGraffiti)
 	if err != nil {
 		return fmt.Errorf("failed processing graffiti: %w", err)
 	}
