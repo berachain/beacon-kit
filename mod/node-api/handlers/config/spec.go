@@ -21,26 +21,14 @@
 package config
 
 import (
-	configtypes "github.com/berachain/beacon-kit/mod/node-api/handlers/config/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 )
 
 // GetSpec returns the spec data.
 func (h *Handler[ContextT]) GetSpec(_ ContextT) (any, error) {
-	chainSpec, err := h.backend.GetSpec()
+	chainSpecData, err := h.backend.GetSpec()
 	if err != nil {
 		return nil, err
 	}
-
-	return types.Wrap(
-		configtypes.SpecData{
-			DepositContractAddress: chainSpec.DepositContractAddress(),
-			// TODO: Get the Network ID, introduce in chainSpec
-			DepositNetworkID:                chainSpec.DepositEth1ChainID(),
-			DomainAggregateAndProof:         chainSpec.DomainTypeAggregateAndProof(),
-			InactivityPenaltyQuotient:       chainSpec.InactivityPenaltyQuotient(),
-			InactivityPenaltyQuotientAltair: chainSpec.InactivityPenaltyQuotient(),
-			// TODO: stubbed InactivityPenaltyQuotientAltair as
-			// it doesn't exist in the spec
-		}), nil
+	return types.Wrap(chainSpecData), nil
 }

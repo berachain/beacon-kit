@@ -20,12 +20,14 @@
 
 package config
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+import (
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/config/types"
+)
 
 type Backend interface {
 	SpecBackend
 }
 type SpecBackend interface {
 	// GetSpec retrieves the spec from the store.
-	GetSpec() (common.ChainSpec, error)
+	GetSpec() (types.SpecData, error)
 }
