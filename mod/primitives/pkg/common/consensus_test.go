@@ -41,7 +41,7 @@ func TestNewRootFromHex(t *testing.T) {
 			input: func() string {
 				return hex.Prefix + strings.Repeat("f", 2*common.RootSize-1)
 			},
-			expectedErr: bytes.ErrIncorrectLenght,
+			expectedErr: bytes.ErrIncorrectLength,
 		},
 		{
 			name: "RightSize",
@@ -55,7 +55,7 @@ func TestNewRootFromHex(t *testing.T) {
 			input: func() string {
 				return hex.Prefix + strings.Repeat("f", 2*common.RootSize+1)
 			},
-			expectedErr: bytes.ErrIncorrectLenght,
+			expectedErr: bytes.ErrIncorrectLength,
 		},
 	}
 

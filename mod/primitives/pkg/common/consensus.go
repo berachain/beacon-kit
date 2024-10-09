@@ -76,7 +76,7 @@ func NewRootFromHex(input string) (Root, error) {
 		return Root{}, err
 	}
 	if len(val) != RootSize {
-		return Root{}, bytes.ErrIncorrectLenght
+		return Root{}, bytes.ErrIncorrectLength
 	}
 	return Root(val), nil
 }
