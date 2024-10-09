@@ -20,11 +20,38 @@
 
 package types
 
+import (
+	"encoding/hex"
+	"encoding/json"
+	"strconv"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+)
+
 //nolint:lll // tags get long
 type SpecData struct {
+	DepositContractAddress          common.ExecutionAddress `json:"DEPOSIT_CONTRACT_ADDRESS"`
+	DepositNetworkID                uint64                  `json:"DEPOSIT_NETWORK_ID"`
+	DomainAggregateAndProof         common.DomainType       `json:"DOMAIN_AGGREGATE_AND_PROOF"`
+	InactivityPenaltyQuotient       uint64                  `json:"INACTIVITY_PENALTY_QUOTIENT"`
+	InactivityPenaltyQuotientAltair uint64                  `json:"INACTIVITY_PENALTY_QUOTIENT_ALTAIR"`
+}
+
+//nolint:lll // tags get long
+type specJSON struct {
 	DepositContractAddress          string `json:"DEPOSIT_CONTRACT_ADDRESS"`
 	DepositNetworkID                string `json:"DEPOSIT_NETWORK_ID"`
 	DomainAggregateAndProof         string `json:"DOMAIN_AGGREGATE_AND_PROOF"`
 	InactivityPenaltyQuotient       string `json:"INACTIVITY_PENALTY_QUOTIENT"`
 	InactivityPenaltyQuotientAltair string `json:"INACTIVITY_PENALTY_QUOTIENT_ALTAIR"`
+}
+
+func (sd SpecData) MarshalJSON() ([]byte, error) {
+	return json.Marshal(specJSON{
+		DepositContractAddress:          "0x" + hex.EncodeToString(sd.DepositContractAddress[:]),
+		DepositNetworkID:                strconv.FormatUint(sd.DepositNetworkID, 10),
+		DomainAggregateAndProof:         "0x" + hex.EncodeToString(sd.DomainAggregateAndProof[:]),
+		InactivityPenaltyQuotient:       strconv.FormatUint(sd.InactivityPenaltyQuotient, 10),
+		InactivityPenaltyQuotientAltair: strconv.FormatUint(sd.InactivityPenaltyQuotientAltair, 10),
+	})
 }
