@@ -1141,6 +1141,11 @@ type (
 		GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error)
 	}
 
+	// NodeAPIConfigBackend is the interface for the config backend of the API.
+	NodeAPIConfigBackend interface {
+		GetSpec() (common.ChainSpec, error)
+	}
+
 	GenesisBackend interface {
 		GenesisValidatorsRoot(slot math.Slot) (common.Root, error)
 		GetGenesisForkVersion(genesisSlot math.Slot) (common.Version, error)

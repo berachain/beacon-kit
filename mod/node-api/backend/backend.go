@@ -237,3 +237,10 @@ func (b *Backend[
 	}
 	return appVersion, nil
 }
+
+// GetSpec returns the chain spec from the backend.
+func (b *Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) GetSpec() (common.ChainSpec, error) {
+	return b.cs, nil
+}

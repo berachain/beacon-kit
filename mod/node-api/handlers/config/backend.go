@@ -20,22 +20,12 @@
 
 package config
 
-import (
-	"github.com/berachain/beacon-kit/mod/node-api/handlers"
-	"github.com/berachain/beacon-kit/mod/node-api/server/context"
-)
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 
-type Handler[ContextT context.Context] struct {
-	*handlers.BaseHandler[ContextT]
-	backend Backend
+type Backend interface {
+	SpecBackend
 }
-
-func NewHandler[ContextT context.Context](backend Backend) *Handler[ContextT] {
-	h := &Handler[ContextT]{
-		BaseHandler: handlers.NewBaseHandler(
-			handlers.NewRouteSet[ContextT](""),
-		),
-		backend: backend,
-	}
-	return h
+type SpecBackend interface {
+	// GetSpec retrieves the spec from the store.
+	GetSpec() (common.ChainSpec, error)
 }

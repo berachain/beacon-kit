@@ -23,25 +23,20 @@ package config
 import (
 	configtypes "github.com/berachain/beacon-kit/mod/node-api/handlers/config/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
 // GetSpec returns the spec data.
-// TODO: Implement with real data. Stubbed for time being.
 func (h *Handler[ContextT]) GetSpec(_ ContextT) (any, error) {
-	domainAggregateAndProof := common.DomainType{
-		0x06, 0x00, 0x00, 0x00,
+	chainSpec, err := h.backend.GetSpec()
+	if err != nil {
+		return nil, err
 	}
 
-	depositAddress := common.NewExecutionAddressFromHex(
-		"0x4242424242424242424242424242424242424242",
-	)
-
 	return types.Wrap(configtypes.SpecData{
-		DepositContractAddress:          depositAddress,
-		DepositNetworkID:                80084,
-		DomainAggregateAndProof:         domainAggregateAndProof,
-		InactivityPenaltyQuotient:       33554432,
-		InactivityPenaltyQuotientAltair: 50331648,
+		DepositContractAddress:          chainSpec.DepositContractAddress(),
+		DepositNetworkID:                chainSpec.DepositEth1ChainID(),
+		DomainAggregateAndProof:         chainSpec.DomainTypeAggregateAndProof(),
+		InactivityPenaltyQuotient:       chainSpec.InactivityPenaltyQuotient(),
+		InactivityPenaltyQuotientAltair: chainSpec.InactivityPenaltyQuotient(), // TODO: stubbed as it doesn't exist in the spec
 	}), nil
 }
