@@ -47,9 +47,10 @@ type Client struct {
 	// refreshed.
 	jwtRefreshInterval time.Duration
 
-	// header is the HTTP header used for RPC requests. header is
-	// accessed by multiple goroutines, so it's protected by a mutex.
-	mtx    sync.RWMutex
+	// mu protects header for concurrent access.
+	mu sync.RWMutex
+
+	// header is the HTTP header used for RPC requests.
 	header http.Header
 }
 
@@ -147,9 +148,9 @@ func (rpc *Client) CallRaw(
 		return nil, err
 	}
 
-	rpc.mtx.RLock()
+	rpc.mu.RLock()
 	req.Header = rpc.header.Clone()
-	rpc.mtx.RUnlock()
+	rpc.mu.RUnlock()
 
 	response, err := rpc.client.Do(req)
 	if err != nil {
