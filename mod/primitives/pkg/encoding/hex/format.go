@@ -20,11 +20,34 @@
 
 package hex
 
-import "errors"
+import (
+	"errors"
+	"strings"
+)
 
-// isQuotedString returns true if input has quotes.
-func isQuotedString[T []byte | string](input T) bool {
-	return len(input) >= 2 && input[0] == '"' && input[len(input)-1] == '"'
+// IsValidHex performs basic validations that every hex string
+// must pass (there may be extra ones depending on the type encoded)
+// It returns the suffix (dropping 0x prefix) in the hope to appease nilaway.
+func IsValidHex[T ~[]byte | ~string](s T) (T, error) {
+	if len(s) == 0 {
+		return *new(T), ErrEmptyString
+	}
+	if len(s) < prefixLen {
+		return *new(T), ErrMissingPrefix
+	}
+	if strings.ToLower(string(s[:prefixLen])) != Prefix {
+		return *new(T), ErrMissingPrefix
+	}
+	return s[prefixLen:], nil
+}
+
+// ValidateQuotedString errs if input has no quotes.
+// For convenience it returns the unstrip content if it does not err.
+func ValidateQuotedString(input []byte) ([]byte, error) {
+	if len(input) >= 2 && input[0] == '"' && input[len(input)-1] == '"' {
+		return input[1 : len(input)-1], nil
+	}
+	return nil, ErrNonQuotedString
 }
 
 // formatAndValidateText validates the input text for a hex string.
