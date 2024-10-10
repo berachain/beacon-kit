@@ -33,54 +33,6 @@ import (
 )
 
 // ====================== Constructors ===========================.
-func TestNewStringStrictInvariants(t *testing.T) {
-	// NewStringStrict constructor should error if the input is invalid
-	tests := []struct {
-		name      string
-		input     string
-		expectErr bool
-	}{
-		{
-			name:      "Valid hex string",
-			input:     "0x48656c6c6f",
-			expectErr: false,
-		},
-		{
-			name:      "Empty string",
-			input:     "",
-			expectErr: true,
-		},
-		{
-			name:      "No 0x prefix",
-			input:     "48656c6c6f",
-			expectErr: true,
-		},
-		{
-			name:      "Valid single hex character",
-			input:     "0x0",
-			expectErr: false,
-		},
-		{
-			name:      "Empty hex string",
-			input:     "0x",
-			expectErr: false,
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			str, err := hex.NewStringStrict(test.input)
-			if test.expectErr {
-				require.Error(t, err, "Test case: %s", test.name)
-			} else {
-				require.NoError(t, err, "Test case: %s", test.name)
-				_, err = hex.IsValidHex(str)
-				require.NoError(t, err)
-			}
-		})
-	}
-}
-
 func TestNewStringInvariants(t *testing.T) {
 	// NewString constructor should never error or panic
 	// output should always satisfy the string invariants regardless of input
@@ -115,54 +67,6 @@ func TestNewStringInvariants(t *testing.T) {
 			str := hex.NewString(test.input)
 			_, err := hex.IsValidHex(str)
 			require.NoError(t, err)
-		})
-	}
-}
-
-// ====================== Bytes ===========================.
-func TestFromBytes(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    []byte
-		expected string
-	}{
-		{
-			name:     "typical byte slice",
-			input:    []byte{0x48, 0x65, 0x6c, 0x6c, 0x6f},
-			expected: "0x48656c6c6f",
-		},
-		{
-			name:     "empty byte slice",
-			input:    []byte{},
-			expected: "0x",
-		},
-		{
-			name:     "single byte",
-			input:    []byte{0x01},
-			expected: "0x01",
-		},
-		{
-			name: "long byte slice",
-			input: []byte{
-				0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbe, 0xde, 0xad,
-				0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbe, 0xde, 0xad, 0xbe, 0xef,
-				0xca, 0xfe, 0xba, 0xbe, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe,
-				0xba, 0xbe},
-			expected: "0xdeadbeefcafebabe" + "deadbeefcafebabe" + "deadbeefcafebabe" + "deadbeefcafebabe",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := hex.FromBytes(tt.input)
-			require.Equal(t, tt.expected, result.Unwrap())
-
-			_, err := hex.IsValidHex(result)
-			require.NoError(t, err)
-
-			decoded, err := result.ToBytes()
-			require.NoError(t, err)
-			require.Equal(t, tt.input, decoded)
 		})
 	}
 }
@@ -301,36 +205,6 @@ func TestUnmarshalJSONText(t *testing.T) {
 				require.Error(t, err, "Test case: %s", tt.name)
 			} else {
 				require.NoError(t, err, "Test case: %s", tt.name)
-			}
-		})
-	}
-}
-
-func TestString_MustToBytes(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    hex.String
-		expected []byte
-		panics   bool
-	}{
-		{"Valid hex string", "0x68656c6c6f", []byte("hello"), false},
-		{"Another valid hex string", "0x776f726c64", []byte("world"), false},
-		{"Invalid hex string", "0xinvalid", nil, true},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			var (
-				res []byte
-				f   = func() {
-					res = tt.input.MustToBytes()
-				}
-			)
-			if tt.panics {
-				require.Panics(t, f, "Test case: %s", tt.name)
-			} else {
-				require.NotPanics(t, f)
-				require.Equal(t, tt.expected, res, "Test case: %s", tt.name)
 			}
 		})
 	}
