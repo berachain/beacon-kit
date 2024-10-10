@@ -52,17 +52,18 @@ func (s *Service[
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			if len(s.failedBlocks) == 0 {
+			failedBlks := s.getFailedBlocks()
+			if len(failedBlks) == 0 {
 				continue
 			}
 			s.logger.Warn(
 				"Failed to get deposits from block(s), retrying...",
 				"num_blocks",
-				s.failedBlocks,
+				failedBlks,
 			)
 
 			// Fetch deposits for blocks that failed to be processed.
-			for blockNum := range s.failedBlocks {
+			for _, blockNum := range failedBlks {
 				s.fetchAndStoreDeposits(ctx, blockNum)
 			}
 		}
@@ -75,7 +76,7 @@ func (s *Service[
 	deposits, err := s.dc.ReadDeposits(ctx, blockNum)
 	if err != nil {
 		s.metrics.markFailedToGetBlockLogs(blockNum)
-		s.failedBlocks[blockNum] = struct{}{}
+		s.markFailedBlock(blockNum)
 		return
 	}
 
@@ -88,9 +89,9 @@ func (s *Service[
 
 	if err = s.ds.EnqueueDeposits(deposits); err != nil {
 		s.logger.Error("Failed to store deposits", "error", err)
-		s.failedBlocks[blockNum] = struct{}{}
+		s.markFailedBlock(blockNum)
 		return
 	}
 
-	delete(s.failedBlocks, blockNum)
+	s.clearFailedBlock(blockNum)
 }

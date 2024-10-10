@@ -22,6 +22,9 @@ package deposit
 
 import (
 	"context"
+	"maps"
+	"slices"
+	"sync"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -52,8 +55,10 @@ type Service[
 	subFinalizedBlockEvents chan async.Event[BeaconBlockT]
 	// metrics is the metrics for the deposit service.
 	metrics *metrics
-	// failedBlocks is a map of blocks that failed to be processed to be
-	// retried.
+	// mu protects failedBlocks for concurrent access.
+	mu sync.RWMutex
+	// failedBlocks is a map of blocks that failed to be processed
+	// and should be retried.
 	failedBlocks map[math.U64]struct{}
 }
 
@@ -131,4 +136,28 @@ func (s *Service[
 	_, _, _, _, _,
 ]) Name() string {
 	return "deposit-handler"
+}
+
+func (s *Service[
+	_, _, _, _, _,
+]) markFailedBlock(blockNum math.U64) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.failedBlocks[blockNum] = struct{}{}
+}
+
+func (s *Service[
+	_, _, _, _, _,
+]) clearFailedBlock(blockNum math.U64) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	delete(s.failedBlocks, blockNum)
+}
+
+func (s *Service[
+	_, _, _, _, _,
+]) getFailedBlocks() []math.U64 {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return slices.Collect(maps.Keys(s.failedBlocks))
 }
