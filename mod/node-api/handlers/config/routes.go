@@ -35,17 +35,17 @@ func (h *Handler[ContextT]) RegisterRoutes(
 		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/config/fork_schedule",
-			Handler: h.NotImplemented,
+			Handler: h.GetForkSchedule,
 		},
 		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/config/spec",
-			Handler: h.NotImplemented,
+			Handler: h.GetSpec,
 		},
 		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/config/deposit_contract",
-			Handler: h.NotImplemented,
+			Handler: h.GetDepositContract,
 		},
 	})
 }

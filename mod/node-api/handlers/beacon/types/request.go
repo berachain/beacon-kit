@@ -39,13 +39,13 @@ type GetFinalityCheckpointsRequest struct {
 type GetStateValidatorsRequest struct {
 	types.StateIDRequest
 	IDs      []string `query:"id"     validate:"dive,validator_id"`
-	Statuses []string `query:"status" validate:"dive,validator_status"`
+	Statuses []string `query:"status" validate:"dive"`
 }
 
 type PostStateValidatorsRequest struct {
 	types.StateIDRequest
 	IDs      []string `json:"ids"      validate:"dive,validator_id"`
-	Statuses []string `json:"statuses" validate:"dive,validator_status"`
+	Statuses []string `json:"statuses" validate:"dive"`
 }
 
 type GetStateValidatorRequest struct {

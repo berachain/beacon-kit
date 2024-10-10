@@ -89,6 +89,9 @@ type KVStore[
 	SetEth1Data(data Eth1DataT) error
 	// GetValidators retrieves all validators.
 	GetValidators() (ValidatorsT, error)
+	/// HERE
+	GetValidatorIndices() ([]math.ValidatorIndex, error)
+	///
 	// GetBalances retrieves all balances.
 	GetBalances() ([]uint64, error)
 	// GetNextWithdrawalIndex retrieves the next withdrawal index.

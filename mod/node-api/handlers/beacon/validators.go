@@ -33,25 +33,29 @@ func (h *Handler[_, ContextT, _, _]) GetStateValidators(
 		c, h.Logger(),
 	)
 	if err != nil {
+		h.Logger().Error("ERROR AFTER BIND AND VALIDATE")
 		return nil, err
 	}
 	// TODO: remove this once status filter is implemented.
-	if len(req.Statuses) > 0 {
-		return nil, types.ErrNotImplemented
-	}
+	// if len(req.Statuses) > 0 {
+	// 	return nil, types.ErrNotImplemented
+	// }
 	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
 	if err != nil {
+		h.Logger().Error("ERROR AFTER SLOT FROM STATE ID")
 		return nil, err
 	}
-	validators, err := h.backend.ValidatorsByIDs(
+	validators, err := h.backend.ListValidators(
 		slot,
 		req.IDs,
 		req.Statuses,
 	)
 	if err != nil {
+		h.Logger().Error("ERROR AFTER LIST VALIDATORS")
 		return nil, err
 	}
 	if len(validators) == 0 {
+		h.Logger().Error("NOT FOUND")
 		return nil, types.ErrNotFound
 	}
 	return beacontypes.ValidatorResponse{

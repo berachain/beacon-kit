@@ -27,21 +27,10 @@ import (
 )
 
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _, _,
-]) ValidatorByID(
-	slot math.Slot, id string,
+	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _, _,
+]) ValidatorByIndex(
+	st BeaconStateT, index math.ValidatorIndex,
 ) (*beacontypes.ValidatorData[ValidatorT], error) {
-	// TODO: to adhere to the spec, this shouldn't error if the error
-	// is not found, but i can't think of a way to do that without coupling
-	// db impl to the api impl.
-	st, _, err := b.stateFromSlot(slot)
-	if err != nil {
-		return nil, err
-	}
-	index, err := utils.ValidatorIndexByID(st, id)
-	if err != nil {
-		return nil, err
-	}
 	validator, err := st.ValidatorByIndex(index)
 	if err != nil {
 		return nil, err
@@ -58,6 +47,25 @@ func (b Backend[
 		Status:    "active_ongoing", // TODO: fix
 		Validator: validator,
 	}, nil
+}
+
+func (b Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _, _,
+]) ValidatorByID(
+	slot math.Slot, id string,
+) (*beacontypes.ValidatorData[ValidatorT], error) {
+	// TODO: to adhere to the spec, this shouldn't error if the error
+	// is not found, but i can't think of a way to do that without coupling
+	// db impl to the api impl.
+	st, _, err := b.stateFromSlot(slot)
+	if err != nil {
+		return nil, err
+	}
+	index, err := utils.ValidatorIndexByID(st, id)
+	if err != nil {
+		return nil, err
+	}
+	return b.ValidatorByIndex(st, index)
 }
 
 // TODO: filter by status
@@ -108,4 +116,50 @@ func (b Backend[
 		})
 	}
 	return balances, nil
+}
+
+func (b Backend[
+	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _, _,
+]) ListValidators(
+	slot math.Slot,
+	ids []string,
+	statuses []string,
+) ([]*beacontypes.ValidatorData[ValidatorT], error) {
+	// TODO: I guess once there are status filters it makes sense
+	// to merge ListValidators and ValidatorsByIds to reuse this filtering
+	// logic, but as of right now they are pretty much different functions
+	if len(ids) > 0 {
+		return b.ValidatorsByIDs(slot, ids, statuses)
+	}
+
+	st, _, err := b.stateFromSlot(slot)
+	if err != nil {
+		return nil, err
+	}
+	indices, err := st.GetValidatorIndices()
+	if err != nil {
+		return nil, err
+	}
+
+	// statusSet := make(map[string]struct{})
+	// for _, status := range statuses {
+	// 	statusSet[status] = struct{}{}
+	// }
+
+	var validators []*beacontypes.ValidatorData[ValidatorT]
+	for _, index := range indices {
+		validator, err := b.ValidatorByIndex(st, index)
+		if err != nil {
+			return nil, err
+		}
+		// if len(statuses) > 0 {
+		// 	if _, exists := statusSet[validator.Status]; exists {
+		// 		validators = append(validators, validator)
+		// 	}
+		// } else {
+		validators = append(validators, validator)
+		// }
+	}
+
+	return validators, nil
 }

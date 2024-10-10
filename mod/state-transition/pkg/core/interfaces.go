@@ -77,6 +77,7 @@ type ReadOnlyBeaconState[
 	GetLatestBlockHeader() (BeaconBlockHeaderT, error)
 	GetTotalActiveBalances(uint64) (math.Gwei, error)
 	GetValidators() (ValidatorsT, error)
+	GetValidatorIndices() ([]math.ValidatorIndex, error)
 	GetSlashingAtIndex(uint64) (math.Gwei, error)
 	GetTotalSlashing() (math.Gwei, error)
 	GetNextWithdrawalIndex() (uint64, error)

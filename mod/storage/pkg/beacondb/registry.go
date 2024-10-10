@@ -161,6 +161,31 @@ func (kv *KVStore[
 	return vals, nil
 }
 
+func (kv *KVStore[
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
+]) GetValidatorIndices() (
+	[]math.ValidatorIndex, error,
+) {
+	iter, err := kv.validators.Indexes.Pubkey.Iterate(
+		kv.ctx,
+		nil,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	var indices []math.ValidatorIndex
+	for ; iter.Valid(); iter.Next() {
+		index, err := iter.PrimaryKey()
+		if err != nil {
+			return nil, err
+		}
+		indices = append(indices, math.ValidatorIndex(index))
+	}
+	return indices, nil
+}
+
 // GetTotalValidators returns the total number of validators.
 func (kv *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,

@@ -63,6 +63,7 @@ func ConstructValidator() *validator.Validate {
 		"state_id":     ValidateStateID,
 		"block_id":     ValidateBlockID,
 		"execution_id": ValidateExecutionID,
+		// TODO: "validator_status":
 		"validator_id": ValidateValidatorID,
 		"epoch":        ValidateUint64,
 		"slot":         ValidateUint64,

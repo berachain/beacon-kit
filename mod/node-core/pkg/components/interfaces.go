@@ -956,6 +956,9 @@ type (
 		GetLatestBlockHeader() (BeaconBlockHeaderT, error)
 		GetTotalActiveBalances(uint64) (math.Gwei, error)
 		GetValidators() (ValidatorsT, error)
+		/// HERE
+		GetValidatorIndices() ([]math.ValidatorIndex, error)
+		///
 		GetSlashingAtIndex(uint64) (math.Gwei, error)
 		GetTotalSlashing() (math.Gwei, error)
 		GetNextWithdrawalIndex() (uint64, error)
@@ -1155,6 +1158,11 @@ type (
 			slot math.Slot, id string,
 		) (*types.ValidatorData[ValidatorT], error)
 		ValidatorsByIDs(
+			slot math.Slot,
+			ids []string,
+			statuses []string,
+		) ([]*types.ValidatorData[ValidatorT], error)
+		ListValidators(
 			slot math.Slot,
 			ids []string,
 			statuses []string,
