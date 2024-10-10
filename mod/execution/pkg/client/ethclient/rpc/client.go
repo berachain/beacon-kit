@@ -46,6 +46,10 @@ type Client struct {
 	// jwtRefershInterval is the interval at which the JWT token should be
 	// refreshed.
 	jwtRefreshInterval time.Duration
+
+	// mu protects header for concurrent access.
+	mu sync.RWMutex
+
 	// header is the HTTP header used for RPC requests.
 	header http.Header
 }
@@ -76,13 +80,14 @@ func NewClient(url string, options ...func(rpc *Client)) *Client {
 // Start starts the rpc client.
 func (rpc *Client) Start(ctx context.Context) {
 	ticker := time.NewTicker(rpc.jwtRefreshInterval)
+	defer ticker.Stop()
+
 	if err := rpc.updateHeader(); err != nil {
 		panic(err)
 	}
 	for {
 		select {
 		case <-ctx.Done():
-			ticker.Stop()
 			return
 		case <-ticker.C:
 			if err := rpc.updateHeader(); err != nil {
@@ -143,7 +148,10 @@ func (rpc *Client) CallRaw(
 	if err != nil {
 		return nil, err
 	}
-	req.Header = rpc.header
+
+	rpc.mu.RLock()
+	req.Header = rpc.header.Clone()
+	rpc.mu.RUnlock()
 
 	response, err := rpc.client.Do(req)
 	if err != nil {
