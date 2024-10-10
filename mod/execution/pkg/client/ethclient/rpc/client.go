@@ -148,8 +148,8 @@ func (rpc *Client) CallRaw(
 	}
 
 	rpc.mtx.RLock()
-	defer rpc.mtx.RUnlock()
-	req.Header = rpc.header
+	req.Header = rpc.header.Clone()
+	rpc.mtx.RUnlock()
 
 	response, err := rpc.client.Do(req)
 	if err != nil {
