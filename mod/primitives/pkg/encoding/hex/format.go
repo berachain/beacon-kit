@@ -35,7 +35,7 @@ func IsValidHex[T ~[]byte | ~string](s T) (T, error) {
 	if len(s) < prefixLen {
 		return *new(T), ErrMissingPrefix
 	}
-	if strings.ToLower(string(s[:prefixLen])) != prefix {
+	if strings.ToLower(string(s[:prefixLen])) != Prefix {
 		return *new(T), ErrMissingPrefix
 	}
 	return s[prefixLen:], nil

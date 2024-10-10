@@ -27,12 +27,12 @@ import "math/big"
 func FromBigInt(bigint *big.Int) string {
 	switch sign := bigint.Sign(); {
 	case sign == 0:
-		return prefix + "0"
+		return Prefix + "0"
 	case sign > 0:
-		return prefix + bigint.Text(hexBase)
+		return Prefix + bigint.Text(hexBase)
 	default:
 		// this return should never reach if precondition is met
-		return prefix + bigint.Text(hexBase)[1:]
+		return Prefix + bigint.Text(hexBase)[1:]
 	}
 }
 
