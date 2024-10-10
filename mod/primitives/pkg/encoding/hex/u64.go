@@ -32,7 +32,7 @@ import (
 // of uint64 input.
 func MarshalText(b uint64) ([]byte, error) {
 	buf := make([]byte, prefixLen, initialCapacity)
-	copy(buf, prefix)
+	copy(buf, Prefix)
 	buf = strconv.AppendUint(buf, b, hexBase)
 	return buf, nil
 }

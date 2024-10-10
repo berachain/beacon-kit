@@ -23,6 +23,7 @@ package deposit
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/bind"
@@ -91,13 +92,29 @@ func (dc *WrappedBeaconDepositContract[
 
 	deposits := make([]DepositT, 0)
 	for logs.Next() {
-		var d DepositT
+		var (
+			cred   bytes.B32
+			pubKey bytes.B48
+			d      DepositT
+			sign   bytes.B96
+		)
+		pubKey, err = bytes.ToBytes48(logs.Event.Pubkey)
+		if err != nil {
+			return nil, fmt.Errorf("failed reading pub key: %w", err)
+		}
+		cred, err = bytes.ToBytes32(logs.Event.Credentials)
+		if err != nil {
+			return nil, fmt.Errorf("failed reading credentials: %w", err)
+		}
+		sign, err = bytes.ToBytes96(logs.Event.Signature)
+		if err != nil {
+			return nil, fmt.Errorf("failed reading signature: %w", err)
+		}
 		deposits = append(deposits, d.New(
-			bytes.ToBytes48(logs.Event.Pubkey),
-			WithdrawalCredentialsT(
-				bytes.ToBytes32(logs.Event.Credentials)),
+			pubKey,
+			WithdrawalCredentialsT(cred),
 			math.U64(logs.Event.Amount),
-			bytes.ToBytes96(logs.Event.Signature),
+			sign,
 			logs.Event.Index,
 		))
 	}
