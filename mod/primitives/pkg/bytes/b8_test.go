@@ -187,22 +187,22 @@ func TestToBytes8(t *testing.T) {
 		{
 			name:    "Less than 8 bytes",
 			input:   []byte{1, 2, 3, 4},
-			wantErr: bytes.ErrIncorrectLenght,
+			wantErr: bytes.ErrIncorrectLength,
 		},
 		{
 			name:    "Two bytes",
 			input:   []byte{1, 2},
-			wantErr: bytes.ErrIncorrectLenght,
+			wantErr: bytes.ErrIncorrectLength,
 		},
 		{
 			name:    "Empty input",
 			input:   []byte{},
-			wantErr: bytes.ErrIncorrectLenght,
+			wantErr: bytes.ErrIncorrectLength,
 		},
 		{
 			name:    "More than 8 bytes",
 			input:   []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
-			wantErr: bytes.ErrIncorrectLenght,
+			wantErr: bytes.ErrIncorrectLength,
 		},
 	}
 

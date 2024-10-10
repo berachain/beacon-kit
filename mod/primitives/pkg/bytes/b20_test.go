@@ -226,7 +226,7 @@ func TestToBytes20(t *testing.T) {
 			name:    "less than 20 bytes",
 			input:   []byte{0x01, 0x02, 0x03, 0x04, 0x05},
 			wantRes: bytes.B20{},
-			wantErr: bytes.ErrIncorrectLenght,
+			wantErr: bytes.ErrIncorrectLength,
 		},
 		{
 			name: "more than 20 bytes",
@@ -235,7 +235,7 @@ func TestToBytes20(t *testing.T) {
 				0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16,
 			},
 			wantRes: bytes.B20{},
-			wantErr: bytes.ErrIncorrectLenght,
+			wantErr: bytes.ErrIncorrectLength,
 		},
 	}
 

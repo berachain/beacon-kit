@@ -278,7 +278,7 @@ func TestToBytes48(t *testing.T) {
 			name:    "Input less than 48 bytes",
 			input:   []byte{1, 2, 3},
 			wantRes: bytes.B48{},
-			wantErr: bytes.ErrIncorrectLenght,
+			wantErr: bytes.ErrIncorrectLength,
 		},
 		{
 			name:    "Input exactly 48 bytes",
@@ -289,7 +289,7 @@ func TestToBytes48(t *testing.T) {
 			name:    "Input more than 48 bytes",
 			input:   make([]byte, 60),
 			wantRes: bytes.B48{},
-			wantErr: bytes.ErrIncorrectLenght,
+			wantErr: bytes.ErrIncorrectLength,
 		},
 	}
 

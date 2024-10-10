@@ -43,7 +43,7 @@ func ToBytes96(input []byte) (B96, error) {
 	if len(input) != B96Size {
 		return B96{}, fmt.Errorf(
 			"%w, got %d, expected %d",
-			ErrIncorrectLenght,
+			ErrIncorrectLength,
 			len(input),
 			B96Size,
 		)

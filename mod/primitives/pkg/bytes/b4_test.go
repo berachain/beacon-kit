@@ -179,7 +179,7 @@ func TestToBytes4(t *testing.T) {
 			name:    "Input less than 4 bytes",
 			input:   []byte{0x01, 0x02},
 			wantRes: bytes.B4{},
-			wantErr: bytes.ErrIncorrectLenght,
+			wantErr: bytes.ErrIncorrectLength,
 		},
 		{
 			name:    "Input exactly 4 bytes",
@@ -190,13 +190,13 @@ func TestToBytes4(t *testing.T) {
 			name:    "Input more than 4 bytes",
 			input:   []byte{0x01, 0x02, 0x03, 0x04, 0x05},
 			wantRes: bytes.B4{},
-			wantErr: bytes.ErrIncorrectLenght,
+			wantErr: bytes.ErrIncorrectLength,
 		},
 		{
 			name:    "Empty input",
 			input:   []byte{},
 			wantRes: bytes.B4{},
-			wantErr: bytes.ErrIncorrectLenght,
+			wantErr: bytes.ErrIncorrectLength,
 		},
 	}
 
