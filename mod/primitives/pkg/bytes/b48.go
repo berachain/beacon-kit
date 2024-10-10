@@ -22,6 +22,8 @@
 package bytes
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/prysmaticlabs/gohashtree"
 )
@@ -36,9 +38,17 @@ const (
 type B48 [48]byte
 
 // ToBytes48 is a utility function that transforms a byte slice into a fixed
-// 48-byte array. If the input exceeds 48 bytes, it gets truncated.
-func ToBytes48(input []byte) B48 {
-	return B48(ExtendToSize(input, B48Size))
+// 48-byte array. It errs if input has not the required size.
+func ToBytes48(input []byte) (B48, error) {
+	if len(input) != B48Size {
+		return B48{}, fmt.Errorf(
+			"%w, got %d, expected %d",
+			ErrIncorrectLenght,
+			len(input),
+			B48Size,
+		)
+	}
+	return B48(input), nil
 }
 
 /* -------------------------------------------------------------------------- */

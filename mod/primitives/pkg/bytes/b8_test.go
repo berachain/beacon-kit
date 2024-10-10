@@ -170,43 +170,51 @@ func TestBytes8UnmarshalText(t *testing.T) {
 		})
 	}
 }
+
 func TestToBytes8(t *testing.T) {
 	tests := []struct {
-		name     string
-		input    []byte
-		expected bytes.B8
+		name    string
+		input   []byte
+		wantRes bytes.B8
+		wantErr error
 	}{
 		{
-			name:     "Exact 8 bytes",
-			input:    []byte{1, 2, 3, 4, 5, 6, 7, 8},
-			expected: bytes.B8{1, 2, 3, 4, 5, 6, 7, 8},
+			name:    "Exact 8 bytes",
+			input:   []byte{1, 2, 3, 4, 5, 6, 7, 8},
+			wantRes: bytes.B8{1, 2, 3, 4, 5, 6, 7, 8},
+			wantErr: nil,
 		},
 		{
-			name:     "Less than 8 bytes",
-			input:    []byte{1, 2, 3, 4},
-			expected: bytes.B8{1, 2, 3, 4, 0, 0, 0, 0},
+			name:    "Less than 8 bytes",
+			input:   []byte{1, 2, 3, 4},
+			wantErr: bytes.ErrIncorrectLenght,
 		},
 		{
-			name:     "Two bytes",
-			input:    []byte{1, 2},
-			expected: bytes.B8{1, 2, 0, 0, 0, 0, 0, 0},
+			name:    "Two bytes",
+			input:   []byte{1, 2},
+			wantErr: bytes.ErrIncorrectLenght,
 		},
 		{
-			name:     "Empty input",
-			input:    []byte{},
-			expected: bytes.B8{0, 0, 0, 0, 0, 0, 0, 0},
+			name:    "Empty input",
+			input:   []byte{},
+			wantErr: bytes.ErrIncorrectLenght,
 		},
 		{
-			name:     "More than 8 bytes",
-			input:    []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
-			expected: bytes.B8{1, 2, 3, 4, 5, 6, 7, 8},
+			name:    "More than 8 bytes",
+			input:   []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
+			wantErr: bytes.ErrIncorrectLenght,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := bytes.ToBytes8(tt.input)
-			require.Equal(t, tt.expected, result)
+			result, err := bytes.ToBytes8(tt.input)
+			if tt.wantErr != nil {
+				require.ErrorIs(t, err, tt.wantErr)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, tt.wantRes, result)
+			}
 		})
 	}
 }
@@ -248,7 +256,8 @@ func TestBytes8HashTreeRoot(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := tt.input.HashTreeRoot()
+			got, err := tt.input.HashTreeRoot()
+			require.NoError(t, err)
 			require.Equal(t, tt.want, got)
 		})
 	}

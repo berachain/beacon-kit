@@ -203,31 +203,39 @@ func TestBytes96String(t *testing.T) {
 
 func TestToBytes96(t *testing.T) {
 	tests := []struct {
-		name     string
-		input    []byte
-		expected bytes.B96
+		name    string
+		input   []byte
+		wantRes bytes.B96
+		wantErr error
 	}{
 		{
-			name:     "Input less than 96 bytes",
-			input:    []byte{1, 2, 3},
-			expected: bytes.B96{1, 2, 3},
+			name:    "Input less than 96 bytes",
+			input:   []byte{1, 2, 3},
+			wantRes: bytes.B96{},
+			wantErr: bytes.ErrIncorrectLenght,
 		},
 		{
-			name:     "Input exactly 96 bytes",
-			input:    make([]byte, 96),
-			expected: bytes.B96{},
+			name:    "Input exactly 96 bytes",
+			input:   make([]byte, 96),
+			wantRes: bytes.B96{},
 		},
 		{
-			name:     "Input more than 96 bytes",
-			input:    make([]byte, 100),
-			expected: bytes.B96{},
+			name:    "Input more than 96 bytes",
+			input:   make([]byte, 100),
+			wantRes: bytes.B96{},
+			wantErr: bytes.ErrIncorrectLenght,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := bytes.ToBytes96(tt.input)
-			require.Equal(t, tt.expected, result)
+			result, err := bytes.ToBytes96(tt.input)
+			if tt.wantErr != nil {
+				require.ErrorIs(t, err, tt.wantErr)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, tt.wantRes, result)
+			}
 		})
 	}
 }

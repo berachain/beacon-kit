@@ -22,6 +22,8 @@
 package bytes
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/prysmaticlabs/gohashtree"
 )
@@ -36,9 +38,17 @@ const (
 type B256 [256]byte
 
 // ToBytes256 is a utility function that transforms a byte slice into a fixed
-// 256-byte array. If the input exceeds 256 bytes, it gets truncated.
-func ToBytes256(input []byte) B256 {
-	return B256(ExtendToSize(input, B256Size))
+// 256-byte array. It errs if input has not the required size.
+func ToBytes256(input []byte) (B256, error) {
+	if len(input) != B256Size {
+		return B256{}, fmt.Errorf(
+			"%w, got %d, expected %d",
+			ErrIncorrectLenght,
+			len(input),
+			B256Size,
+		)
+	}
+	return B256(input), nil
 }
 
 /* -------------------------------------------------------------------------- */

@@ -238,31 +238,40 @@ func TestBytes32String(t *testing.T) {
 
 func TestToBytes32(t *testing.T) {
 	tests := []struct {
-		name     string
-		input    []byte
-		expected bytes.B32
+		name    string
+		input   []byte
+		wantRes bytes.B32
+		wantErr error
 	}{
 		{
-			name:     "Input less than 32 bytes",
-			input:    []byte{1, 2, 3},
-			expected: bytes.B32{1, 2, 3},
+			name:    "Input less than 32 bytes",
+			input:   []byte{1, 2, 3},
+			wantRes: bytes.B32{},
+			wantErr: bytes.ErrIncorrectLenght,
 		},
 		{
-			name:     "Input exactly 32 bytes",
-			input:    make([]byte, 32),
-			expected: bytes.B32{},
+			name:    "Input exactly 32 bytes",
+			input:   make([]byte, 32),
+			wantRes: bytes.B32{},
+			wantErr: nil,
 		},
 		{
-			name:     "Input more than 32 bytes",
-			input:    make([]byte, 40),
-			expected: bytes.B32{},
+			name:    "Input more than 32 bytes",
+			input:   make([]byte, 40),
+			wantRes: bytes.B32{},
+			wantErr: bytes.ErrIncorrectLenght,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := bytes.ToBytes32(tt.input)
-			require.Equal(t, tt.expected, result)
+			result, err := bytes.ToBytes32(tt.input)
+			if tt.wantErr != nil {
+				require.ErrorIs(t, err, tt.wantErr)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, tt.wantRes, result)
+			}
 		})
 	}
 }

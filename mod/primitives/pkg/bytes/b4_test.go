@@ -167,38 +167,48 @@ func TestBytes4UnmarshalText(t *testing.T) {
 		})
 	}
 }
+
 func TestToBytes4(t *testing.T) {
 	tests := []struct {
-		name     string
-		input    []byte
-		expected bytes.B4
+		name    string
+		input   []byte
+		wantRes bytes.B4
+		wantErr error
 	}{
 		{
-			name:     "Input less than 4 bytes",
-			input:    []byte{0x01, 0x02},
-			expected: bytes.B4{0x01, 0x02, 0x00, 0x00},
+			name:    "Input less than 4 bytes",
+			input:   []byte{0x01, 0x02},
+			wantRes: bytes.B4{},
+			wantErr: bytes.ErrIncorrectLenght,
 		},
 		{
-			name:     "Input exactly 4 bytes",
-			input:    []byte{0x01, 0x02, 0x03, 0x04},
-			expected: bytes.B4{0x01, 0x02, 0x03, 0x04},
+			name:    "Input exactly 4 bytes",
+			input:   []byte{0x01, 0x02, 0x03, 0x04},
+			wantRes: bytes.B4{0x01, 0x02, 0x03, 0x04},
 		},
 		{
-			name:     "Input more than 4 bytes",
-			input:    []byte{0x01, 0x02, 0x03, 0x04, 0x05},
-			expected: bytes.B4{0x01, 0x02, 0x03, 0x04},
+			name:    "Input more than 4 bytes",
+			input:   []byte{0x01, 0x02, 0x03, 0x04, 0x05},
+			wantRes: bytes.B4{},
+			wantErr: bytes.ErrIncorrectLenght,
 		},
 		{
-			name:     "Empty input",
-			input:    []byte{},
-			expected: bytes.B4{0x00, 0x00, 0x00, 0x00},
+			name:    "Empty input",
+			input:   []byte{},
+			wantRes: bytes.B4{},
+			wantErr: bytes.ErrIncorrectLenght,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := bytes.ToBytes4(tt.input)
-			require.Equal(t, tt.expected, result)
+			result, err := bytes.ToBytes4(tt.input)
+			if tt.wantErr != nil {
+				require.ErrorIs(t, err, tt.wantErr)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, tt.wantRes, result)
+			}
 		})
 	}
 }
@@ -240,7 +250,8 @@ func TestBytes4HashTreeRoot(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := tt.input.HashTreeRoot()
+			got, err := tt.input.HashTreeRoot()
+			require.NoError(t, err)
 			require.Equal(t, tt.want, got)
 		})
 	}
