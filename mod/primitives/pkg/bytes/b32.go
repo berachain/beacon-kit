@@ -22,6 +22,8 @@
 package bytes
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 )
 
@@ -35,11 +37,17 @@ const (
 type B32 [B32Size]byte
 
 // ToBytes32 is a utility function that transforms a byte slice into a fixed
-// 32-byte array. If the input exceeds 32 bytes, it gets truncated.
-func ToBytes32(input []byte) B32 {
-	var b B32
-	copy(b[:], input)
-	return b
+// 32-byte array It errs if input has not the required size.
+func ToBytes32(input []byte) (B32, error) {
+	if len(input) != B32Size {
+		return B32{}, fmt.Errorf(
+			"%w, got %d, expected %d",
+			ErrIncorrectLength,
+			len(input),
+			B32Size,
+		)
+	}
+	return B32(input), nil
 }
 
 /* -------------------------------------------------------------------------- */
