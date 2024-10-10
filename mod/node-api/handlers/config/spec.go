@@ -21,21 +21,14 @@
 package config
 
 import (
-	"github.com/berachain/beacon-kit/mod/node-api/handlers"
-	"github.com/berachain/beacon-kit/mod/node-api/server/context"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 )
 
-type Handler[ContextT context.Context] struct {
-	*handlers.BaseHandler[ContextT]
-	backend Backend
-}
-
-func NewHandler[ContextT context.Context](backend Backend) *Handler[ContextT] {
-	h := &Handler[ContextT]{
-		BaseHandler: handlers.NewBaseHandler(
-			handlers.NewRouteSet[ContextT](""),
-		),
-		backend: backend,
+// GetSpec returns the spec data.
+func (h *Handler[ContextT]) GetSpec(_ ContextT) (any, error) {
+	chainSpecData, err := h.backend.GetSpec()
+	if err != nil {
+		return nil, err
 	}
-	return h
+	return types.Wrap(chainSpecData), nil
 }

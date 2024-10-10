@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
+	configtypes "github.com/berachain/beacon-kit/mod/node-api/handlers/config/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
@@ -1139,6 +1140,11 @@ type (
 		BlockBackend[BeaconBlockHeaderT]
 		StateBackend[BeaconStateT, ForkT]
 		GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error)
+	}
+
+	// NodeAPIConfigBackend is the interface for the config backend of the API.
+	NodeAPIConfigBackend interface {
+		GetSpec() (configtypes.SpecData, error)
 	}
 
 	GenesisBackend interface {

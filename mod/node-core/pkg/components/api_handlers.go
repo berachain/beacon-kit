@@ -128,8 +128,8 @@ func ProvideNodeAPIBuilderHandler[
 
 func ProvideNodeAPIConfigHandler[
 	NodeAPIContextT NodeAPIContext,
-]() *configapi.Handler[NodeAPIContextT] {
-	return configapi.NewHandler[NodeAPIContextT]()
+](b NodeAPIConfigBackend) *configapi.Handler[NodeAPIContextT] {
+	return configapi.NewHandler[NodeAPIContextT](b)
 }
 
 func ProvideNodeAPIDebugHandler[
