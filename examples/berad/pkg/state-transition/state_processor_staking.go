@@ -21,6 +21,10 @@
 package transition
 
 import (
+	"errors"
+	"fmt"
+
+	sdkcollections "cosmossdk.io/collections"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
@@ -73,8 +77,9 @@ func (sp *StateProcessor[
 	dep DepositT,
 ) error {
 	idx, err := st.ValidatorIndexByPubkey(dep.GetPubkey())
-	// If the validator already exists, we update the balance.
-	if err == nil {
+	switch {
+	case err == nil:
+		// If the validator already exists, we update the balance.
 		var val ValidatorT
 		val, err = st.ValidatorByIndex(idx)
 		if err != nil {
@@ -82,14 +87,17 @@ func (sp *StateProcessor[
 		}
 
 		// TODO: Modify balance here and then effective balance once per epoch.
-		val.SetEffectiveBalance(min(val.GetEffectiveBalance()+dep.GetAmount(),
-			math.Gwei(sp.cs.MaxEffectiveBalance())))
+		maxBalance := math.Gwei(sp.cs.MaxEffectiveBalance())
+		newBalance := min(val.GetEffectiveBalance()+dep.GetAmount(), maxBalance)
+		val.SetEffectiveBalance(newBalance)
 		return st.UpdateValidatorAtIndex(idx, val)
+	case errors.Is(err, sdkcollections.ErrNotFound):
+		// If the validator does not exist, we add the validator.
+		// Add the validator to the registry.
+		return sp.createValidator(st, dep)
+	default:
+		return fmt.Errorf("failed retrieving validator by PubKey: %w", err)
 	}
-
-	// If the validator does not exist, we add the validator.
-	// Add the validator to the registry.
-	return sp.createValidator(st, dep)
 }
 
 // createValidator creates a validator if the deposit is valid.
