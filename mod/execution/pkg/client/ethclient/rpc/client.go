@@ -76,13 +76,14 @@ func NewClient(url string, options ...func(rpc *Client)) *Client {
 // Start starts the rpc client.
 func (rpc *Client) Start(ctx context.Context) {
 	ticker := time.NewTicker(rpc.jwtRefreshInterval)
+	defer ticker.Stop()
+
 	if err := rpc.updateHeader(); err != nil {
 		panic(err)
 	}
 	for {
 		select {
 		case <-ctx.Done():
-			ticker.Stop()
 			return
 		case <-ticker.C:
 			if err := rpc.updateHeader(); err != nil {
