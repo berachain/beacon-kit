@@ -34,7 +34,7 @@ const (
 
 // B32 represents a 32-byte fixed-size byte array.
 // For SSZ purposes it is serialized a `Vector[Byte, 32]`.
-type B32 [32]byte
+type B32 [B32Size]byte
 
 // ToBytes32 is a utility function that transforms a byte slice into a fixed
 // 32-byte array It errs if input has not the required size.
