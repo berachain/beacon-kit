@@ -81,3 +81,8 @@ func (wc WithdrawalCredentials) MarshalText() ([]byte, error) {
 func (wc *WithdrawalCredentials) UnmarshalText(text []byte) error {
 	return (*common.Bytes32)(wc).UnmarshalText(text)
 }
+
+// Bytes returns the raw byte representation of the withdrawal credentials.
+func (wc WithdrawalCredentials) Bytes() []byte {
+	return wc[:]
+}

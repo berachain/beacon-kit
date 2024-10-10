@@ -26,7 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-func (h *Handler[_, ContextT, _, _]) GetRandao(c ContextT) (any, error) {
+func (h *Handler[_, ContextT, _, _, _]) GetRandao(c ContextT) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetRandaoRequest](
 		c,
 		h.Logger(),
@@ -52,6 +52,8 @@ func (h *Handler[_, ContextT, _, _]) GetRandao(c ContextT) (any, error) {
 	return beacontypes.ValidatorResponse{
 		ExecutionOptimistic: false, // stubbed
 		Finalized:           false, // stubbed
-		Data:                randao,
+		Data: beacontypes.RandaoData{
+			Randao: randao,
+		},
 	}, nil
 }

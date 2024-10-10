@@ -25,6 +25,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
@@ -124,12 +125,22 @@ type Validator[WithdrawalCredentialsT WithdrawalCredentials] interface {
 	// GetWithdrawalCredentials returns the withdrawal credentials of the
 	// validator.
 	GetWithdrawalCredentials() WithdrawalCredentialsT
-	// IsFullyWithdrawable checks if the validator is fully withdrawable given a
-	// certain Gwei amount and epoch.
-	IsFullyWithdrawable(amount math.Gwei, epoch math.Epoch) bool
-	// IsPartiallyWithdrawable checks if the validator is partially withdrawable
-	// given two Gwei amounts.
-	IsPartiallyWithdrawable(amount1 math.Gwei, amount2 math.Gwei) bool
+	// GetPubkey returns the public key of the validator.
+	GetPubkey() crypto.BLSPubkey
+	// GetEffectiveBalance returns the effective balance of the validator.
+	GetEffectiveBalance() math.Gwei
+	// IsSlashed returns true if the validator is slashed.
+	IsSlashed() bool
+	// GetActivationEligibilityEpoch returns the epoch when the validator
+	// became eligible for activation.
+	GetActivationEligibilityEpoch() math.Epoch
+	// GetActivationEpoch returns the epoch when the validator was activated.
+	GetActivationEpoch() math.Epoch
+	// GetExitEpoch returns the epoch when the validator exited.
+	GetExitEpoch() math.Epoch
+	// GetWithdrawableEpoch returns the epoch when the validator
+	// can withdraw their balance.
+	GetWithdrawableEpoch() math.Epoch
 }
 
 // Withdrawal represents an interface for a withdrawal.
@@ -147,4 +158,6 @@ type WithdrawalCredentials interface {
 	// ToExecutionAddress converts the withdrawal credentials to an execution
 	// address.
 	ToExecutionAddress() (common.ExecutionAddress, error)
+	// Bytes returns the raw byte representation of the withdrawal credentials.
+	Bytes() []byte
 }
