@@ -157,7 +157,7 @@ func (s *Service[
 func (s *Service[
 	_, _, _, _, _,
 ]) getFailedBlocks() []math.U64 {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	return slices.Collect(maps.Keys(s.failedBlocks))
 }
