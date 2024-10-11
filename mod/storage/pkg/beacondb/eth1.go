@@ -22,6 +22,7 @@ package beacondb
 
 import (
 	"errors"
+	"fmt"
 
 	"cosmossdk.io/collections"
 )
@@ -34,10 +35,10 @@ func (kv *KVStore[
 ]) GetLatestExecutionPayloadHeader() (
 	ExecutionPayloadHeaderT, error,
 ) {
-	forkVersion, err := kv.latestExecutionPayloadVersion.Get(kv.ctx)
+	v, err := kv.latestExecutionPayloadVersion.Get(kv.ctx)
 	switch {
 	case err == nil:
-		kv.latestExecutionPayloadCodec.SetActiveForkVersion(forkVersion)
+		kv.latestExecutionPayloadCodec.SetActiveForkVersion(v)
 		return kv.latestExecutionPayloadHeader.Get(kv.ctx)
 	case errors.Is(err, collections.ErrNotFound):
 		var t ExecutionPayloadHeaderT
@@ -77,9 +78,17 @@ func (kv *KVStore[
 	case err == nil:
 		return idx, nil
 	case errors.Is(err, collections.ErrNotFound):
-		return 0, ErrNotFound
+		return 0, fmt.Errorf(
+			"failed retrieving eth1 deposit index %d, %w",
+			idx,
+			ErrNotFound,
+		)
 	default:
-		return 0, err
+		return 0, fmt.Errorf(
+			"failed retrieving eth1 deposit index %d, %w",
+			idx,
+			err,
+		)
 	}
 }
 
@@ -98,7 +107,15 @@ func (kv *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) GetEth1Data() (Eth1DataT, error) {
-	return kv.eth1Data.Get(kv.ctx)
+	d, err := kv.eth1Data.Get(kv.ctx)
+	switch {
+	case err == nil:
+		return d, nil
+	case errors.Is(err, collections.ErrNotFound):
+		return d, ErrNotFound
+	default:
+		return d, err
+	}
 }
 
 // SetEth1Data sets the eth1 data in the beacon state.

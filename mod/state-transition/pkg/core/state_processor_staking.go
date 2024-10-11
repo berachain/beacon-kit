@@ -43,11 +43,11 @@ func (sp *StateProcessor[
 	deposits := blk.GetBody().GetDeposits()
 	index, err := st.GetEth1DepositIndex()
 	if err != nil {
-		return fmt.Errorf("failed retrieving eth1 deposit index, %w", err)
+		return err
 	}
 	eth1Data, err := st.GetEth1Data()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed retrieving eth1 data, %w", err)
 	}
 	depositCount := min(
 		sp.cs.MaxDepositsPerBlock(),
@@ -87,7 +87,7 @@ func (sp *StateProcessor[
 ) error {
 	depositIndex, err := st.GetEth1DepositIndex()
 	if err != nil {
-		return fmt.Errorf("failed retrieving eth1 deposit index, %w", err)
+		return err
 	}
 
 	if err = st.SetEth1DepositIndex(

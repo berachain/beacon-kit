@@ -20,6 +20,12 @@
 
 package beacondb
 
+import (
+	"errors"
+
+	"cosmossdk.io/collections"
+)
+
 // SetFork sets the fork version for the given epoch.
 func (kv *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
@@ -35,5 +41,13 @@ func (kv *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) GetFork() (ForkT, error) {
-	return kv.fork.Get(kv.ctx)
+	f, err := kv.fork.Get(kv.ctx)
+	switch {
+	case err == nil:
+		return f, nil
+	case errors.Is(err, collections.ErrNotFound):
+		return f, ErrNotFound
+	default:
+		return f, err
+	}
 }

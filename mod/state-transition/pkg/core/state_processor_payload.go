@@ -22,7 +22,6 @@ package core
 
 import (
 	"context"
-	"fmt"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -140,7 +139,7 @@ func (sp *StateProcessor[
 
 	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
-		return fmt.Errorf("failed retrieving latest payload header: %w", err)
+		return err
 	}
 
 	// Check chain canonicity

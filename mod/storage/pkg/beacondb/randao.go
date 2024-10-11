@@ -20,7 +20,13 @@
 
 package beacondb
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+import (
+	"errors"
+	"fmt"
+
+	"cosmossdk.io/collections"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+)
 
 // UpdateRandaoMixAtIndex sets the current RANDAO mix in the store.
 func (kv *KVStore[
@@ -41,8 +47,20 @@ func (kv *KVStore[
 	index uint64,
 ) (common.Bytes32, error) {
 	bz, err := kv.randaoMix.Get(kv.ctx, index)
-	if err != nil {
-		return common.Bytes32{}, err
+	switch {
+	case err == nil:
+		return common.Bytes32(bz), nil
+	case errors.Is(err, collections.ErrNotFound):
+		return common.Bytes32{}, fmt.Errorf(
+			"failed retrieving randao mix at index %d: %w",
+			index,
+			ErrNotFound,
+		)
+	default:
+		return common.Bytes32{}, fmt.Errorf(
+			"failed retrieving randao mix at index %d: %w",
+			index,
+			err,
+		)
 	}
-	return common.Bytes32(bz), nil
 }
