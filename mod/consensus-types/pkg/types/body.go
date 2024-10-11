@@ -26,6 +26,9 @@
 package types
 
 import (
+	"fmt"
+
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
@@ -50,6 +53,8 @@ const (
 	// ExtraDataSize is the size of ExtraData in bytes.
 	ExtraDataSize = 32
 )
+
+var errNotImplemented = errors.New("not implemented")
 
 // Empty returns a new BeaconBlockBody with empty fields
 // for the given fork version.
@@ -269,24 +274,24 @@ func (b *BeaconBlockBody) SetEth1Data(eth1Data *Eth1Data) {
 	b.Eth1Data = eth1Data
 }
 
-// SetDeposits is not implemented for BeaconBlockDeneb.
+// GetAttestations is not implemented for BeaconBlockDeneb.
 func (b *BeaconBlockBody) GetAttestations() []*AttestationData {
-	panic("not implemented")
+	panic(fmt.Errorf("GetAttestations %w", errNotImplemented))
 }
 
-// SetDeposits is not implemented for BeaconBlockDeneb.
+// SetAttestations is not implemented for BeaconBlockDeneb.
 func (b *BeaconBlockBody) SetAttestations(_ []*AttestationData) {
-	panic("not implemented")
+	panic(fmt.Errorf("SetAttestations %w", errNotImplemented))
 }
 
 // GetSlashingInfo is not implemented for BeaconBlockDeneb.
 func (b *BeaconBlockBody) GetSlashingInfo() []*SlashingInfo {
-	panic("not implemented")
+	panic(fmt.Errorf("GetSlashingInfo %w", errNotImplemented))
 }
 
 // SetSlashingInfo is not implemented for BeaconBlockDeneb.
 func (b *BeaconBlockBody) SetSlashingInfo(_ []*SlashingInfo) {
-	panic("not implemented")
+	panic(fmt.Errorf("SetSlashingInfo %w", errNotImplemented))
 }
 
 // GetTopLevelRoots returns the top-level roots of the BeaconBlockBody.
