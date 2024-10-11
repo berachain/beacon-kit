@@ -31,13 +31,18 @@ import (
 // BlobSidecarsAtSlot returns the blob sidecars at a given slot.
 func (b Backend[
 	_, _, _, BeaconBlockHeaderT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) BlobSidecarsAtSlot(slot math.Slot) ([]*types.BlobSidecarData[BeaconBlockHeaderT], error) {
+]) BlobSidecarsAtSlot(
+	slot math.Slot,
+) ([]*types.BlobSidecarData[BeaconBlockHeaderT], error) {
 	blockHeader, err := b.BlockHeaderAtSlot(slot)
 	if err != nil {
 		return nil, err
 	}
 
-	// blobSidecars, err := b.getBlobSidecarsFromBlockRoot(blockHeader.GetBodyRoot(), slot)
+	// blobSidecars, err := b.getBlobSidecarsFromBlockRoot(
+	//	blockHeader.GetBodyRoot(),
+	//	slot,
+	// )
 	// if err != nil {
 	//	return nil, err
 	// }
@@ -50,14 +55,15 @@ func (b Backend[
 				0x62, 0x6c, 0x6f, 0x62, 0x31, // "blob1" in hex
 			},
 			KzgCommitment: eip4844.KZGCommitment{
-				0x6b, 0x7a, 0x67, 0x5f, 0x63, 0x6f, 0x6d, 0x6d, 0x69, 0x74, 0x6d, 0x65, 0x6e, 0x74, // "kzg_commitment" in hex
+				0x6b, 0x7a, 0x67, 0x5f, 0x63, 0x6f, 0x6d, 0x6d, 0x69, 0x74,
+				0x6d, 0x65, 0x6e, 0x74, // "kzg_commitment" in hex
 			},
 			KzgProof: eip4844.KZGProof{
 				0x6b, 0x7a, 0x67, 0x5f, 0x70, 0x72, 0x6f, 0x6f, 0x66, // "kzg_proof" in hex
 			},
 			BeaconBlockHeader: types.BlockHeader[BeaconBlockHeaderT]{
 				Message:   blockHeader,
-				Signature: crypto.BLSSignature{0x01, 0x02, 0x03}, // Example signature, replace with actual signature if available
+				Signature: crypto.BLSSignature{0x01, 0x02, 0x03},
 			},
 			KzgCommitmentInclusionProof: []common.Root{
 				{

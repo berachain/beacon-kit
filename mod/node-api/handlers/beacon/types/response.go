@@ -199,6 +199,7 @@ func (fr ForkData) MarshalJSON() ([]byte, error) {
 	})
 }
 
+//nolint:lll // The JSON structure is too long.
 type BlobSidecarData[BlockHeaderT BeaconBlockHeader] struct {
 	Index                       uint64                    `json:"index"`
 	Blob                        eip4844.Blob              `json:"blob"`
@@ -208,6 +209,7 @@ type BlobSidecarData[BlockHeaderT BeaconBlockHeader] struct {
 	KzgCommitmentInclusionProof []common.Root             `json:"kzg_commitment_inclusion_proof"`
 }
 
+//nolint:lll // The JSON structure is too long.
 type blobSidecarJSON struct {
 	Index                       string          `json:"index"`
 	Blob                        string          `json:"blob"`

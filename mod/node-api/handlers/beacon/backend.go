@@ -95,5 +95,7 @@ type ValidatorBackend[
 }
 
 type BlobSideCarsBackend[BeaconBlockHeaderT types.BeaconBlockHeader] interface {
-	BlobSidecarsAtSlot(slot math.Slot) ([]*types.BlobSidecarData[BeaconBlockHeaderT], error)
+	BlobSidecarsAtSlot(
+		slot math.Slot,
+	) ([]*types.BlobSidecarData[BeaconBlockHeaderT], error)
 }
