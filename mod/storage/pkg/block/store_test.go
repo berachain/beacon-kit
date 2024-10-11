@@ -39,7 +39,7 @@ func (m MockBeaconBlock) GetSlot() math.Slot {
 }
 
 func (m MockBeaconBlock) HashTreeRoot() common.Root {
-	return [32]byte{byte(m.slot)}
+	return common.Root{byte(m.slot)}
 }
 
 func (m MockBeaconBlock) GetExecutionNumber() math.U64 {
@@ -47,7 +47,7 @@ func (m MockBeaconBlock) GetExecutionNumber() math.U64 {
 }
 
 func (m MockBeaconBlock) GetStateRoot() common.Root {
-	return [32]byte{byte(m.slot)}
+	return common.Root{byte(m.slot)}
 }
 
 func TestBlockStore(t *testing.T) {
@@ -81,8 +81,10 @@ func TestBlockStore(t *testing.T) {
 	}
 
 	// Try getting a slot that doesn't exist.
-	_, err = blockStore.GetSlotByBlockRoot([32]byte{byte(8)})
-	require.ErrorContains(t, err, "not found")
+	_, err = blockStore.GetSlotByBlockRoot(common.Root{byte(8)})
+	require.ErrorIs(t, err, block.ErrSlotNotFound)
 	_, err = blockStore.GetSlotByExecutionNumber(2)
-	require.ErrorContains(t, err, "not found")
+	require.ErrorIs(t, err, block.ErrSlotNotFound)
+	_, err = blockStore.GetSlotByStateRoot(common.Root{byte(8)})
+	require.ErrorIs(t, err, block.ErrSlotNotFound)
 }
