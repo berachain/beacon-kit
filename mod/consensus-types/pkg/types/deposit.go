@@ -35,8 +35,19 @@ import (
 	"github.com/karalabe/ssz"
 )
 
-// DepositSize is the size of the SSZ encoding of a Deposit.
-const DepositSize = 192 // 48 + 32 + 8 + 96 + 8
+const (
+	// DepositSize is the size of the SSZ encoding of a Deposit.
+	DepositSize = 192 // 48 + 32 + 8 + 96 + 8
+
+	// DepositEventSignatureString is the Deposit event signature human
+	// readable string that should be keccak256 hashed for the event's topic.
+	DepositEventSignatureString = "Deposit(bytes,bytes,uint64,bytes,uint64)"
+)
+
+//nolint:gochecknoglobals // TODO: remove usage of geth's crypto.Keccak256.
+var DepositEventSignature = common.ExecutionHash(
+	gethcrypto.Keccak256([]byte(DepositEventSignatureString)),
+)
 
 // Compile-time assertions to ensure Deposit implements necessary interfaces.
 var (
@@ -198,15 +209,6 @@ func (d *Deposit[_]) GetTree() (*fastssz.Node, error) {
 /* -------------------------------------------------------------------------- */
 /*                                   EthLog                                   */
 /* -------------------------------------------------------------------------- */
-
-// DepositEventSignatureString is the Deposit event signature human readable
-// string that should be keccak256 hashed for the event's topic.
-const DepositEventSignatureString = "Deposit(bytes,bytes,uint64,bytes,uint64)"
-
-//nolint:gochecknoglobals // TODO: remove usage of geth's crypto.Keccak256.
-var DepositEventSignature = common.ExecutionHash(
-	gethcrypto.Keccak256([]byte(DepositEventSignatureString)),
-)
 
 // UnmarshalLog unmarshals the Deposit object from an Ethereum log.
 //
