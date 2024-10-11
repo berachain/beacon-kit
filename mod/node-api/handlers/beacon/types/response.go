@@ -27,6 +27,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 )
 
 type ValidatorResponse struct {
@@ -195,5 +196,44 @@ func (fr ForkData) MarshalJSON() ([]byte, error) {
 		PreviousVersion: fr.GetPreviousVersion().String(),
 		CurrentVersion:  fr.GetCurrentVersion().String(),
 		Epoch:           strconv.FormatUint(fr.GetEpoch().Unwrap(), 10),
+	})
+}
+
+type BlobSidecarData[BlockHeaderT BeaconBlockHeader] struct {
+	Index                       uint64                    `json:"index"`
+	Blob                        eip4844.Blob              `json:"blob"`
+	KzgCommitment               eip4844.KZGCommitment     `json:"kzg_commitment"`
+	KzgProof                    eip4844.KZGProof          `json:"kzg_proof"`
+	BeaconBlockHeader           BlockHeader[BlockHeaderT] `json:"signed_block_header"`
+	KzgCommitmentInclusionProof []common.Root             `json:"kzg_commitment_inclusion_proof"`
+}
+
+type blobSidecarJSON struct {
+	Index                       string          `json:"index"`
+	Blob                        string          `json:"blob"`
+	KzgCommitment               string          `json:"kzg_commitment"`
+	KzgProof                    string          `json:"kzg_proof"`
+	BeaconBlockHeader           json.RawMessage `json:"signed_block_header"`
+	KzgCommitmentInclusionProof []string        `json:"kzg_commitment_inclusion_proof"`
+}
+
+func (bsd BlobSidecarData[BlockHeaderT]) MarshalJSON() ([]byte, error) {
+	inclusionProof := make([]string, len(bsd.KzgCommitmentInclusionProof))
+	for i, proof := range bsd.KzgCommitmentInclusionProof {
+		inclusionProof[i] = hex.EncodeToString(proof[:])
+	}
+
+	// Marshal BeaconBlockHeader separately
+	beaconBlockHeader, err := json.Marshal(bsd.BeaconBlockHeader)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(blobSidecarJSON{
+		Index:                       strconv.FormatUint(bsd.Index, 10),
+		Blob:                        hex.EncodeToString(bsd.Blob[:]),
+		KzgCommitment:               hex.EncodeToString(bsd.KzgCommitment[:]),
+		KzgProof:                    hex.EncodeToString(bsd.KzgProof[:]),
+		BeaconBlockHeader:           beaconBlockHeader,
+		KzgCommitmentInclusionProof: inclusionProof,
 	})
 }

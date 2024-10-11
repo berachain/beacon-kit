@@ -28,7 +28,7 @@ import (
 
 // Backend is the interface for backend of the beacon API.
 type Backend[
-	BlockHeaderT any,
+	BlockHeaderT types.BeaconBlockHeader,
 	ForkT any,
 	ValidatorT types.Validator[WithdrawalCredentialsT],
 	WithdrawalCredentialsT types.WithdrawalCredentials,
@@ -39,6 +39,7 @@ type Backend[
 	StateBackend[ForkT]
 	ValidatorBackend[ValidatorT, WithdrawalCredentialsT]
 	HistoricalBackend[ForkT]
+	BlobSideCarsBackend[BlockHeaderT]
 	// GetSlotByBlockRoot retrieves the slot by a given root from the store.
 	GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 	// GetSlotByStateRoot retrieves the slot by a given root from the store.
@@ -91,4 +92,8 @@ type ValidatorBackend[
 		slot math.Slot,
 		ids []string,
 	) ([]*types.ValidatorBalanceData, error)
+}
+
+type BlobSideCarsBackend[BeaconBlockHeaderT types.BeaconBlockHeader] interface {
+	BlobSidecarsAtSlot(slot math.Slot) ([]*types.BlobSidecarData[BeaconBlockHeaderT], error)
 }

@@ -23,6 +23,7 @@ package types
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -59,4 +60,14 @@ type Validator[WithdrawalCredentialsT WithdrawalCredentials] interface {
 // WithdrawalCredentials represents an interface for withdrawal credentials.
 type WithdrawalCredentials interface {
 	Bytes() []byte
+}
+
+// BlobSidecar is the interface for the blob sidecar.
+type BlobSidecar interface {
+	GetIndex() uint64
+	GetBlob() eip4844.Blob
+	GetKzgCommitment() eip4844.KZGCommitment
+	GetKzgProof() eip4844.KZGProof
+	GetBeaconBlockHeader() BeaconBlockHeader
+	GetInclusionProof() []common.Root
 }

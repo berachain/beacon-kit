@@ -1090,7 +1090,7 @@ type (
 	}
 
 	NodeAPIBackend[
-		BeaconBlockHeaderT any,
+		BeaconBlockHeaderT types.BeaconBlockHeader,
 		BeaconStateT any,
 		ForkT any,
 		NodeT any,
@@ -1115,7 +1115,7 @@ type (
 
 	// NodeAPIBeaconBackend is the interface for backend of the beacon API.
 	NodeAPIBeaconBackend[
-		BeaconStateT, BeaconBlockHeaderT, ForkT any,
+		BeaconStateT any, BeaconBlockHeaderT types.BeaconBlockHeader, ForkT any,
 		ValidatorT types.Validator[WithdrawalCredentialsT],
 		WithdrawalCredentialsT types.WithdrawalCredentials,
 	] interface {
@@ -1125,6 +1125,7 @@ type (
 		StateBackend[BeaconStateT, ForkT]
 		ValidatorBackend[ValidatorT, WithdrawalCredentialsT]
 		HistoricalBackend[ForkT]
+		BlobSideCarsBackend[BeaconBlockHeaderT]
 		// GetSlotByBlockRoot retrieves the slot by a given root from the store.
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		// GetSlotByStateRoot retrieves the slot by a given root from the store.
@@ -1190,5 +1191,9 @@ type (
 			slot math.Slot,
 			ids []string,
 		) ([]*types.ValidatorBalanceData, error)
+	}
+
+	BlobSideCarsBackend[BeaconBlockHeaderT types.BeaconBlockHeader] interface {
+		BlobSidecarsAtSlot(slot math.Slot) ([]*types.BlobSidecarData[BeaconBlockHeaderT], error)
 	}
 )
