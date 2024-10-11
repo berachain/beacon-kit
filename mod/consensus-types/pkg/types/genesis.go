@@ -21,6 +21,7 @@
 package types
 
 import (
+	"fmt"
 	"math/big"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
@@ -131,22 +132,31 @@ func DefaultGenesisDeneb() *Genesis[
 func DefaultGenesisExecutionPayloadHeaderDeneb() (
 	*ExecutionPayloadHeader, error,
 ) {
+	stateRoot, err := byteslib.ToBytes32(
+		hex.MustToBytes(
+			"0x12965ab9cbe2d2203f61d23636eb7e998f167cb79d02e452f532535641e35bcc",
+		),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed generating state root: %w", err)
+	}
+
+	receiptsRoot, err := byteslib.ToBytes32(
+		hex.MustToBytes(
+			"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
+		),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed generating receipts root: %w", err)
+	}
 	return &ExecutionPayloadHeader{
 		ParentHash:   common.ExecutionHash{},
 		FeeRecipient: common.ExecutionAddress{},
-		StateRoot: byteslib.ToBytes32(
-			hex.MustToBytes(
-				"0x12965ab9cbe2d2203f61d23636eb7e998f167cb79d02e452f532535641e35bcc",
-			),
-		),
-		ReceiptsRoot: byteslib.ToBytes32(
-			hex.MustToBytes(
-				"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
-			),
-		),
-		LogsBloom: [256]byte{},
-		Random:    common.Bytes32{},
-		Number:    0,
+		StateRoot:    stateRoot,
+		ReceiptsRoot: receiptsRoot,
+		LogsBloom:    [256]byte{},
+		Random:       common.Bytes32{},
+		Number:       0,
 		//nolint:mnd // default value.
 		GasLimit:  math.U64(30000000),
 		GasUsed:   0,

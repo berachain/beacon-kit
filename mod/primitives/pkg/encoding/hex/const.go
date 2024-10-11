@@ -21,8 +21,8 @@
 package hex
 
 const (
-	prefix            = "0x"
-	prefixLen         = len(prefix)
+	Prefix            = "0x"
+	prefixLen         = len(Prefix)
 	badNibble         = ^uint64(0)
 	hexBase           = 16
 	initialCapacity   = 10
