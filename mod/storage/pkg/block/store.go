@@ -32,9 +32,9 @@ import (
 // KVStore is a simple memory store based implementation that stores metadata of
 // beacon blocks.
 type KVStore[BeaconBlockT BeaconBlock] struct {
-	blockRoots       *lru.Cache[common.Root, math.Slot]
-	executionNumbers *lru.Cache[math.U64, math.Slot]
-	stateRoots       *lru.Cache[common.Root, math.Slot]
+	blockRoots *lru.Cache[common.Root, math.Slot]
+	timestamps *lru.Cache[math.U64, math.Slot]
+	stateRoots *lru.Cache[common.Root, math.Slot]
 
 	logger log.Logger
 }
@@ -48,7 +48,7 @@ func NewStore[BeaconBlockT BeaconBlock](
 	if err != nil {
 		panic(err)
 	}
-	executionNumbers, err := lru.New[math.U64, math.Slot](availabilityWindow)
+	timestamps, err := lru.New[math.U64, math.Slot](availabilityWindow)
 	if err != nil {
 		panic(err)
 	}
@@ -57,20 +57,20 @@ func NewStore[BeaconBlockT BeaconBlock](
 		panic(err)
 	}
 	return &KVStore[BeaconBlockT]{
-		blockRoots:       blockRoots,
-		executionNumbers: executionNumbers,
-		stateRoots:       stateRoots,
-		logger:           logger,
+		blockRoots: blockRoots,
+		timestamps: timestamps,
+		stateRoots: stateRoots,
+		logger:     logger,
 	}
 }
 
 // Set sets the block by a given index in the store, storing the block root,
-// execution number, and state root. Only this function may potentially evict
+// timestamp, and state root. Only this function may potentially evict
 // entries from the store if the availability window is reached.
 func (kv *KVStore[BeaconBlockT]) Set(blk BeaconBlockT) error {
 	slot := blk.GetSlot()
 	kv.blockRoots.Add(blk.HashTreeRoot(), slot)
-	kv.executionNumbers.Add(blk.GetExecutionNumber(), slot)
+	kv.timestamps.Add(blk.GetTimestamp(), slot)
 	kv.stateRoots.Add(blk.GetStateRoot(), slot)
 	return nil
 }
@@ -86,17 +86,13 @@ func (kv *KVStore[BeaconBlockT]) GetSlotByBlockRoot(
 	return slot, nil
 }
 
-// GetSlotByExecutionNumber retrieves the slot by a given execution number from
-// the store.
-func (kv *KVStore[BeaconBlockT]) GetSlotByExecutionNumber(
-	executionNumber math.U64,
+// GetSlotByTimestamp retrieves the slot by a given timestamp from the store.
+func (kv *KVStore[BeaconBlockT]) GetSlotByTimestamp(
+	timestamp math.U64,
 ) (math.Slot, error) {
-	slot, ok := kv.executionNumbers.Peek(executionNumber)
+	slot, ok := kv.timestamps.Peek(timestamp)
 	if !ok {
-		return 0, fmt.Errorf(
-			"slot not found at execution number: %d",
-			executionNumber,
-		)
+		return 0, fmt.Errorf("slot not found at timestamp: %d", timestamp)
 	}
 	return slot, nil
 }

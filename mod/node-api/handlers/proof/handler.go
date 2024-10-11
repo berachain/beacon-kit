@@ -71,11 +71,11 @@ func NewHandler[
 	return h
 }
 
-// Get the slot from the given input of execution id, beacon state, and beacon
+// Get the slot from the given input of timestamp id, beacon state, and beacon
 // block header for the resolved slot.
 func (h *Handler[
 	BeaconBlockHeaderT, BeaconStateT, _, _, _, _,
-]) resolveExecutionID(executionID string) (
+]) resolveTimestampID(timestampID string) (
 	math.Slot, BeaconStateT, BeaconBlockHeaderT, error,
 ) {
 	var (
@@ -83,7 +83,7 @@ func (h *Handler[
 		blockHeader BeaconBlockHeaderT
 	)
 
-	slot, err := utils.SlotFromExecutionID(executionID, h.backend)
+	slot, err := utils.SlotFromTimestampID(timestampID, h.backend)
 	if err != nil {
 		return 0, beaconState, blockHeader, err
 	}

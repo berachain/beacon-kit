@@ -43,6 +43,7 @@ func generateValidBeaconBlock() *types.BeaconBlock {
 		Body: &types.BeaconBlockBody{
 			ExecutionPayload: &types.ExecutionPayload{
 				Number:    10,
+				Timestamp: 10,
 				ExtraData: []byte("dummy extra data for testing"),
 				Transactions: [][]byte{
 					[]byte("tx1"),
@@ -101,7 +102,7 @@ func TestBeaconBlock(t *testing.T) {
 	block := generateValidBeaconBlock()
 
 	require.NotNil(t, block.Body)
-	require.Equal(t, math.U64(10), block.GetExecutionNumber())
+	require.Equal(t, math.U64(10), block.GetTimestamp())
 	require.Equal(t, version.Deneb, block.Version())
 	require.False(t, block.IsNil())
 
