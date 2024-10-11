@@ -22,6 +22,7 @@ package beacondb
 
 import (
 	"context"
+	"errors"
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
@@ -31,6 +32,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
+
+var ErrNotFound = errors.New("beacondb: not found")
 
 // KVStore is a wrapper around an sdk.Context
 // that provides access to all beacon related data.

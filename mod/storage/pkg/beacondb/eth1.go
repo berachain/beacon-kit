@@ -20,6 +20,12 @@
 
 package beacondb
 
+import (
+	"errors"
+
+	"cosmossdk.io/collections"
+)
+
 // GetLatestExecutionPayloadHeader retrieves the latest execution payload
 // header from the BeaconStore.
 func (kv *KVStore[
@@ -29,12 +35,17 @@ func (kv *KVStore[
 	ExecutionPayloadHeaderT, error,
 ) {
 	forkVersion, err := kv.latestExecutionPayloadVersion.Get(kv.ctx)
-	if err != nil {
+	switch {
+	case err == nil:
+		kv.latestExecutionPayloadCodec.SetActiveForkVersion(forkVersion)
+		return kv.latestExecutionPayloadHeader.Get(kv.ctx)
+	case errors.Is(err, collections.ErrNotFound):
+		var t ExecutionPayloadHeaderT
+		return t, ErrNotFound
+	default:
 		var t ExecutionPayloadHeaderT
 		return t, err
 	}
-	kv.latestExecutionPayloadCodec.SetActiveForkVersion(forkVersion)
-	return kv.latestExecutionPayloadHeader.Get(kv.ctx)
 }
 
 // SetLatestExecutionPayloadHeader sets the latest execution payload header in
@@ -45,9 +56,11 @@ func (kv *KVStore[
 ]) SetLatestExecutionPayloadHeader(
 	payloadHeader ExecutionPayloadHeaderT,
 ) error {
-	if err := kv.latestExecutionPayloadVersion.Set(
-		kv.ctx, payloadHeader.Version(),
-	); err != nil {
+	var (
+		ctx     = kv.ctx
+		version = payloadHeader.Version()
+	)
+	if err := kv.latestExecutionPayloadVersion.Set(ctx, version); err != nil {
 		return err
 	}
 	kv.latestExecutionPayloadCodec.SetActiveForkVersion(payloadHeader.Version())
@@ -59,7 +72,15 @@ func (kv *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) GetEth1DepositIndex() (uint64, error) {
-	return kv.eth1DepositIndex.Get(kv.ctx)
+	idx, err := kv.eth1DepositIndex.Get(kv.ctx)
+	switch {
+	case err == nil:
+		return idx, nil
+	case errors.Is(err, collections.ErrNotFound):
+		return 0, ErrNotFound
+	default:
+		return 0, err
+	}
 }
 
 // SetEth1DepositIndex sets the eth1 deposit index in the beacon state.
