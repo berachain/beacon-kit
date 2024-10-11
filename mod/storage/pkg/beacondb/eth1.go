@@ -35,17 +35,51 @@ func (kv *KVStore[
 ]) GetLatestExecutionPayloadHeader() (
 	ExecutionPayloadHeaderT, error,
 ) {
+	var h ExecutionPayloadHeaderT
+	v, err := kv.getLatestExecutionPayloadVersion()
+	if err != nil {
+		return h, fmt.Errorf(
+			"failed retrieving latest execution payload header: %w",
+			err,
+		)
+	}
+
+	kv.latestExecutionPayloadCodec.SetActiveForkVersion(v)
+	h, err = kv.latestExecutionPayloadHeader.Get(kv.ctx)
+	switch {
+	case err == nil:
+		return h, nil
+	case errors.Is(err, collections.ErrNotFound):
+		return h, fmt.Errorf(
+			"failed retrieving latest execution payload header: %w",
+			ErrNotFound,
+		)
+	default:
+		return h, fmt.Errorf(
+			"failed retrieving latest execution payload header: %w",
+			err,
+		)
+	}
+}
+
+func (kv *KVStore[
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
+]) getLatestExecutionPayloadVersion() (uint32, error) {
 	v, err := kv.latestExecutionPayloadVersion.Get(kv.ctx)
 	switch {
 	case err == nil:
-		kv.latestExecutionPayloadCodec.SetActiveForkVersion(v)
-		return kv.latestExecutionPayloadHeader.Get(kv.ctx)
+		return v, nil
 	case errors.Is(err, collections.ErrNotFound):
-		var t ExecutionPayloadHeaderT
-		return t, ErrNotFound
+		return 0, fmt.Errorf(
+			"failed retrieving latest execution payload version: %w",
+			ErrNotFound,
+		)
 	default:
-		var t ExecutionPayloadHeaderT
-		return t, err
+		return 0, fmt.Errorf(
+			"failed retrieving latest execution payload version: %w",
+			err,
+		)
 	}
 }
 
@@ -112,9 +146,15 @@ func (kv *KVStore[
 	case err == nil:
 		return d, nil
 	case errors.Is(err, collections.ErrNotFound):
-		return d, ErrNotFound
+		return d, fmt.Errorf(
+			"failed retrieving eth1 data: %w",
+			ErrNotFound,
+		)
 	default:
-		return d, err
+		return d, fmt.Errorf(
+			"failed retrieving eth1 data: %w",
+			err,
+		)
 	}
 }
 

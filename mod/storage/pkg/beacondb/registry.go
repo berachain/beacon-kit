@@ -21,6 +21,10 @@
 package beacondb
 
 import (
+	"errors"
+	"fmt"
+
+	"cosmossdk.io/collections"
 	"cosmossdk.io/collections/indexes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -87,10 +91,22 @@ func (kv *KVStore[
 		kv.ctx,
 		pubkey[:],
 	)
-	if err != nil {
-		return 0, err
+	switch {
+	case err == nil:
+		return math.ValidatorIndex(idx), nil
+	case errors.Is(err, collections.ErrNotFound):
+		return 0, fmt.Errorf(
+			"failed retrieving validator by pub key %s: %w",
+			pubkey,
+			ErrNotFound,
+		)
+	default:
+		return 0, fmt.Errorf(
+			"failed retrieving validator by pub key %s: %w",
+			pubkey,
+			err,
+		)
 	}
-	return math.ValidatorIndex(idx), nil
 }
 
 // ValidatorIndexByCometBFTAddress returns the validator address by index.
@@ -104,10 +120,22 @@ func (kv *KVStore[
 		kv.ctx,
 		cometBFTAddress,
 	)
-	if err != nil {
-		return 0, err
+	switch {
+	case err == nil:
+		return math.ValidatorIndex(idx), nil
+	case errors.Is(err, collections.ErrNotFound):
+		return 0, fmt.Errorf(
+			"failed retrieving validator by address %s: %w",
+			cometBFTAddress,
+			ErrNotFound,
+		)
+	default:
+		return 0, fmt.Errorf(
+			"failed retrieving validator by address %s: %w",
+			cometBFTAddress,
+			err,
+		)
 	}
-	return math.ValidatorIndex(idx), nil
 }
 
 // ValidatorByIndex returns the validator address by index.
@@ -118,11 +146,24 @@ func (kv *KVStore[
 	index math.ValidatorIndex,
 ) (ValidatorT, error) {
 	val, err := kv.validators.Get(kv.ctx, index.Unwrap())
-	if err != nil {
+	switch {
+	case err == nil:
+		return val, nil
+	case errors.Is(err, collections.ErrNotFound):
 		var t ValidatorT
-		return t, err
+		return t, fmt.Errorf(
+			"failed retrieving validator by index %d: %w",
+			index,
+			ErrNotFound,
+		)
+	default:
+		var t ValidatorT
+		return t, fmt.Errorf(
+			"failed retrieving validator by index %d: %w",
+			index,
+			err,
+		)
 	}
-	return val, err
 }
 
 // GetValidators retrieves all validators from the beacon state.
@@ -201,7 +242,7 @@ func (kv *KVStore[
 		if err != nil {
 			return nil, err
 		}
-		if v, err = kv.validators.Get(kv.ctx, idx); err != nil {
+		if v, err = kv.ValidatorByIndex(math.U64(idx)); err != nil {
 			return nil, err
 		}
 		vals = append(vals, v)
@@ -217,7 +258,22 @@ func (kv *KVStore[
 	idx math.ValidatorIndex,
 ) (math.Gwei, error) {
 	balance, err := kv.balances.Get(kv.ctx, idx.Unwrap())
-	return math.Gwei(balance), err
+	switch {
+	case err == nil:
+		return math.Gwei(balance), nil
+	case errors.Is(err, collections.ErrNotFound):
+		return 0, fmt.Errorf(
+			"failed retrieving balance at index %d: %w",
+			idx,
+			ErrNotFound,
+		)
+	default:
+		return 0, fmt.Errorf(
+			"failed retrieving balance at index %d: %w",
+			idx,
+			err,
+		)
+	}
 }
 
 // SetBalance sets the balance of a validator.
@@ -268,13 +324,13 @@ func (kv *KVStore[
 		return 0, err
 	}
 
-	slot, err := kv.slot.Get(kv.ctx)
+	slot, err := kv.GetSlot()
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("failed retrieving total active balances: %w", err)
 	}
 
 	totalActiveBalances := math.Gwei(0)
-	epoch := math.Epoch(slot / slotsPerEpoch)
+	epoch := slot / math.Epoch(slotsPerEpoch)
 	return totalActiveBalances, indexes.ScanValues(
 		kv.ctx, kv.validators, iter, func(v ValidatorT,
 		) bool {

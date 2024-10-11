@@ -22,6 +22,7 @@ package beacondb
 
 import (
 	"errors"
+	"fmt"
 
 	"cosmossdk.io/collections"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -50,9 +51,17 @@ func (kv *KVStore[
 	case err == nil:
 		return common.Root(bz), nil
 	case errors.Is(err, collections.ErrNotFound):
-		return common.Root{}, ErrNotFound
+		return common.Root{}, fmt.Errorf(
+			"failed retrieving block root at index %d: %w",
+			index,
+			ErrNotFound,
+		)
 	default:
-		return common.Root{}, err
+		return common.Root{}, fmt.Errorf(
+			"failed retrieving block root at index %d: %w",
+			index,
+			err,
+		)
 	}
 }
 
@@ -78,9 +87,15 @@ func (kv *KVStore[
 	case err == nil:
 		return h, nil
 	case errors.Is(err, collections.ErrNotFound):
-		return h, ErrNotFound
+		return h, fmt.Errorf(
+			"failed retrieving latest block header: %w",
+			ErrNotFound,
+		)
 	default:
-		return h, err
+		return h, fmt.Errorf(
+			"failed retrieving latest block header: %w",
+			err,
+		)
 	}
 }
 
@@ -103,8 +118,20 @@ func (kv *KVStore[
 	idx uint64,
 ) (common.Root, error) {
 	bz, err := kv.stateRoots.Get(kv.ctx, idx)
-	if err != nil {
-		return common.Root{}, err
+	switch {
+	case err == nil:
+		return common.Root(bz), nil
+	case errors.Is(err, collections.ErrNotFound):
+		return common.Root{}, fmt.Errorf(
+			"failed retrieving state root at index %d: %w",
+			idx,
+			ErrNotFound,
+		)
+	default:
+		return common.Root{}, fmt.Errorf(
+			"failed retrieving state root at index %d: %w",
+			idx,
+			err,
+		)
 	}
-	return common.Root(bz), nil
 }

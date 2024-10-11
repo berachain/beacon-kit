@@ -21,8 +21,6 @@
 package core
 
 import (
-	"fmt"
-
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -47,7 +45,7 @@ func (sp *StateProcessor[
 	}
 	eth1Data, err := st.GetEth1Data()
 	if err != nil {
-		return fmt.Errorf("failed retrieving eth1 data, %w", err)
+		return err
 	}
 	depositCount := min(
 		sp.cs.MaxDepositsPerBlock(),

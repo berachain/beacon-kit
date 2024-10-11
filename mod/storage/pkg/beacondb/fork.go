@@ -22,6 +22,7 @@ package beacondb
 
 import (
 	"errors"
+	"fmt"
 
 	"cosmossdk.io/collections"
 )
@@ -46,8 +47,8 @@ func (kv *KVStore[
 	case err == nil:
 		return f, nil
 	case errors.Is(err, collections.ErrNotFound):
-		return f, ErrNotFound
+		return f, fmt.Errorf("failed retrieving fork: %w", ErrNotFound)
 	default:
-		return f, err
+		return f, fmt.Errorf("failed retrieving fork: %w", err)
 	}
 }
