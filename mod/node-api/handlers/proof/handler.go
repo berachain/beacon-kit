@@ -83,7 +83,7 @@ func (h *Handler[
 		blockHeader BeaconBlockHeaderT
 	)
 
-	slot, err := utils.SlotFromTimestampID(timestampID, h.backend)
+	slot, err := utils.ParentSlotFromTimestampID(timestampID, h.backend)
 	if err != nil {
 		return 0, beaconState, blockHeader, err
 	}

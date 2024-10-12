@@ -150,12 +150,12 @@ func (b *Backend[
 	return b.sb.BlockStore().GetSlotByStateRoot(root)
 }
 
-// GetSlotByTimestamp retrieves the slot by a given timestamp from
+// GetParentSlotByTimestamp retrieves the parent slot by a given timestamp from
 // the block store.
 func (b *Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) GetSlotByTimestamp(timestamp math.U64) (math.Slot, error) {
-	return b.sb.BlockStore().GetSlotByTimestamp(timestamp)
+]) GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error) {
+	return b.sb.BlockStore().GetParentSlotByTimestamp(timestamp)
 }
 
 // stateFromSlot returns the state at the given slot, after also processing the

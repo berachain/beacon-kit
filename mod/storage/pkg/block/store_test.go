@@ -71,7 +71,7 @@ func TestBlockStore(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, i, slot)
 
-		slot, err = blockStore.GetSlotByTimestamp(i)
+		slot, err = blockStore.GetParentSlotByTimestamp(i)
 		require.NoError(t, err)
 		require.Equal(t, i, slot)
 
@@ -83,6 +83,6 @@ func TestBlockStore(t *testing.T) {
 	// Try getting a slot that doesn't exist.
 	_, err = blockStore.GetSlotByBlockRoot([32]byte{byte(8)})
 	require.ErrorContains(t, err, "not found")
-	_, err = blockStore.GetSlotByTimestamp(2)
+	_, err = blockStore.GetParentSlotByTimestamp(2)
 	require.ErrorContains(t, err, "not found")
 }

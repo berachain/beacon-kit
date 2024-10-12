@@ -70,18 +70,19 @@ func SlotFromBlockID[StorageBackendT interface {
 	return storage.GetSlotByBlockRoot(root)
 }
 
-// SlotFromTimestampID returns a slot from the block timestamp ID.
+// ParentSlotFromTimestampID returns the slot from the block timestamp ID.
 //
 // NOTE: `timestampID` shares the same semantics as `stateID`, with the
-// modification of being able to query by block <timestamp> instead of
+// modification of being able to query by next block <timestamp> instead of
 // <stateRoot>.
 //
 // The <timestamp> must be prefixed by the 't', followed by the timestamp
 // in decimal notation. For example 't1728681738' corresponds to the slot with
-// timestamp 1728681738. Providing just the string '1728681738' (without the
-// prefix 't') will query for the beacon block with slot 1728681738.
-func SlotFromTimestampID[StorageBackendT interface {
-	GetSlotByTimestamp(timestamp math.U64) (math.Slot, error)
+// next block timestamp of 1728681738. Providing just the string '1728681738'
+// (without the prefix 't') will query for the beacon block with slot
+// 1728681738.
+func ParentSlotFromTimestampID[StorageBackendT interface {
+	GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
 }](timestampID string, storage StorageBackendT) (math.Slot, error) {
 	if !IsTimestampIDPrefix(timestampID) {
 		return slotFromStateID(timestampID)
@@ -92,7 +93,7 @@ func SlotFromTimestampID[StorageBackendT interface {
 	if err != nil {
 		return 0, err
 	}
-	return storage.GetSlotByTimestamp(timestamp)
+	return storage.GetParentSlotByTimestamp(timestamp)
 }
 
 // IsTimestampIDPrefix checks if the given timestampID is prefixed with the

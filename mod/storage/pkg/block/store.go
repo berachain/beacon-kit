@@ -86,15 +86,19 @@ func (kv *KVStore[BeaconBlockT]) GetSlotByBlockRoot(
 	return slot, nil
 }
 
-// GetSlotByTimestamp retrieves the slot by a given timestamp from the store.
-func (kv *KVStore[BeaconBlockT]) GetSlotByTimestamp(
+// GetParentSlotByTimestamp retrieves the parent slot by a given timestamp from
+// the store.
+func (kv *KVStore[BeaconBlockT]) GetParentSlotByTimestamp(
 	timestamp math.U64,
 ) (math.Slot, error) {
-	slot, ok := kv.timestamps.Peek(timestamp)
-	if !ok {
-		return 0, fmt.Errorf("slot not found at timestamp: %d", timestamp)
+	slot, _ := kv.timestamps.Peek(timestamp)
+	if slot == 0 {
+		return slot, fmt.Errorf(
+			"parent slot not found at timestamp: %d", timestamp,
+		)
 	}
-	return slot, nil
+
+	return slot - 1, nil
 }
 
 // GetSlotByStateRoot retrieves the slot by a given state root from the store.
