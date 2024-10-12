@@ -50,6 +50,10 @@ func (m MockBeaconBlock) GetStateRoot() common.Root {
 	return [32]byte{byte(m.slot)}
 }
 
+func (m MockBeaconBlock) GetParentBlockRoot() common.Root {
+	return [32]byte{byte(m.slot - 1)}
+}
+
 func TestBlockStore(t *testing.T) {
 	blockStore := block.NewStore[*MockBeaconBlock](noop.NewLogger[any](), 5)
 
