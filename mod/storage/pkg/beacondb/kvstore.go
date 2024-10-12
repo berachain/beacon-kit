@@ -22,6 +22,7 @@ package beacondb
 
 import (
 	"context"
+	"fmt"
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
@@ -139,7 +140,7 @@ func New[
 	ForkT, ValidatorT, ValidatorsT,
 ] {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kss)
-	return &KVStore[
+	res := &KVStore[
 		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 		ForkT, ValidatorT, ValidatorsT,
 	]{
@@ -268,6 +269,10 @@ func New[
 			encoding.SSZValueCodec[BeaconBlockHeaderT]{},
 		),
 	}
+	if _, err := schemaBuilder.Build(); err != nil {
+		panic(fmt.Errorf("failed building KVStore schema: %w", err))
+	}
+	return res
 }
 
 // Copy returns a copy of the Store.
