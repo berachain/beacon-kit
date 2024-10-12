@@ -22,6 +22,62 @@ func (_m *BlockStore[BeaconBlockT]) EXPECT() *BlockStore_Expecter[BeaconBlockT] 
 	return &BlockStore_Expecter[BeaconBlockT]{mock: &_m.Mock}
 }
 
+// GetParentSlotByTimestamp provides a mock function with given fields: timestamp
+func (_m *BlockStore[BeaconBlockT]) GetParentSlotByTimestamp(timestamp math.U64) (math.U64, error) {
+	ret := _m.Called(timestamp)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetParentSlotByTimestamp")
+	}
+
+	var r0 math.U64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(math.U64) (math.U64, error)); ok {
+		return rf(timestamp)
+	}
+	if rf, ok := ret.Get(0).(func(math.U64) math.U64); ok {
+		r0 = rf(timestamp)
+	} else {
+		r0 = ret.Get(0).(math.U64)
+	}
+
+	if rf, ok := ret.Get(1).(func(math.U64) error); ok {
+		r1 = rf(timestamp)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// BlockStore_GetParentSlotByTimestamp_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetParentSlotByTimestamp'
+type BlockStore_GetParentSlotByTimestamp_Call[BeaconBlockT any] struct {
+	*mock.Call
+}
+
+// GetParentSlotByTimestamp is a helper method to define mock.On call
+//   - timestamp math.U64
+func (_e *BlockStore_Expecter[BeaconBlockT]) GetParentSlotByTimestamp(timestamp interface{}) *BlockStore_GetParentSlotByTimestamp_Call[BeaconBlockT] {
+	return &BlockStore_GetParentSlotByTimestamp_Call[BeaconBlockT]{Call: _e.mock.On("GetParentSlotByTimestamp", timestamp)}
+}
+
+func (_c *BlockStore_GetParentSlotByTimestamp_Call[BeaconBlockT]) Run(run func(timestamp math.U64)) *BlockStore_GetParentSlotByTimestamp_Call[BeaconBlockT] {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(math.U64))
+	})
+	return _c
+}
+
+func (_c *BlockStore_GetParentSlotByTimestamp_Call[BeaconBlockT]) Return(_a0 math.U64, _a1 error) *BlockStore_GetParentSlotByTimestamp_Call[BeaconBlockT] {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *BlockStore_GetParentSlotByTimestamp_Call[BeaconBlockT]) RunAndReturn(run func(math.U64) (math.U64, error)) *BlockStore_GetParentSlotByTimestamp_Call[BeaconBlockT] {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetSlotByBlockRoot provides a mock function with given fields: root
 func (_m *BlockStore[BeaconBlockT]) GetSlotByBlockRoot(root common.Root) (math.U64, error) {
 	ret := _m.Called(root)
@@ -130,62 +186,6 @@ func (_c *BlockStore_GetSlotByStateRoot_Call[BeaconBlockT]) Return(_a0 math.U64,
 }
 
 func (_c *BlockStore_GetSlotByStateRoot_Call[BeaconBlockT]) RunAndReturn(run func(common.Root) (math.U64, error)) *BlockStore_GetSlotByStateRoot_Call[BeaconBlockT] {
-	_c.Call.Return(run)
-	return _c
-}
-
-// GetSlotByTimestamp provides a mock function with given fields: timestamp
-func (_m *BlockStore[BeaconBlockT]) GetSlotByTimestamp(timestamp math.U64) (math.U64, error) {
-	ret := _m.Called(timestamp)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetSlotByTimestamp")
-	}
-
-	var r0 math.U64
-	var r1 error
-	if rf, ok := ret.Get(0).(func(math.U64) (math.U64, error)); ok {
-		return rf(timestamp)
-	}
-	if rf, ok := ret.Get(0).(func(math.U64) math.U64); ok {
-		r0 = rf(timestamp)
-	} else {
-		r0 = ret.Get(0).(math.U64)
-	}
-
-	if rf, ok := ret.Get(1).(func(math.U64) error); ok {
-		r1 = rf(timestamp)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// BlockStore_GetSlotByTimestamp_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSlotByTimestamp'
-type BlockStore_GetSlotByTimestamp_Call[BeaconBlockT any] struct {
-	*mock.Call
-}
-
-// GetSlotByTimestamp is a helper method to define mock.On call
-//   - timestamp math.U64
-func (_e *BlockStore_Expecter[BeaconBlockT]) GetSlotByTimestamp(timestamp interface{}) *BlockStore_GetSlotByTimestamp_Call[BeaconBlockT] {
-	return &BlockStore_GetSlotByTimestamp_Call[BeaconBlockT]{Call: _e.mock.On("GetSlotByTimestamp", timestamp)}
-}
-
-func (_c *BlockStore_GetSlotByTimestamp_Call[BeaconBlockT]) Run(run func(timestamp math.U64)) *BlockStore_GetSlotByTimestamp_Call[BeaconBlockT] {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(math.U64))
-	})
-	return _c
-}
-
-func (_c *BlockStore_GetSlotByTimestamp_Call[BeaconBlockT]) Return(_a0 math.U64, _a1 error) *BlockStore_GetSlotByTimestamp_Call[BeaconBlockT] {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *BlockStore_GetSlotByTimestamp_Call[BeaconBlockT]) RunAndReturn(run func(math.U64) (math.U64, error)) *BlockStore_GetSlotByTimestamp_Call[BeaconBlockT] {
 	_c.Call.Return(run)
 	return _c
 }
