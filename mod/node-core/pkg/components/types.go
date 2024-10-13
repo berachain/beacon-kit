@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/services/version"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 )
@@ -123,15 +122,6 @@ type (
 	// FinalValidatorUpdatesProcessedEvent is a type alias for the final
 	// validator updates processed event.
 	ValidatorUpdateEvent = async.Event[transition.ValidatorUpdates]
-)
-
-// Messages.
-type (
-	// SlotMessage is a type alias for the slot message.
-	SlotMessage = async.Event[*SlotData]
-
-	// StatusMessage is a type alias for the status message.
-	StatusMessage = async.Event[*service.StatusEvent]
 )
 
 /* -------------------------------------------------------------------------- */
