@@ -45,7 +45,7 @@ func (kv *KVStore[
 	index uint64,
 ) (common.Bytes32, error) {
 	bz, err := kv.randaoMix.Get(kv.ctx, index)
-	err = mapErrors(err)
+	err = mapError(err)
 	if err != nil {
 		return common.Bytes32{}, fmt.Errorf(
 			"failed retrieving randao mix at index %d: %w",

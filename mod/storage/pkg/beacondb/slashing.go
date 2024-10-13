@@ -34,7 +34,7 @@ func (kv *KVStore[
 ]) GetSlashings() ([]math.Gwei, error) {
 	var slashings []math.Gwei
 	iter, err := kv.slashings.Iterate(kv.ctx, nil)
-	err = mapErrors(err)
+	err = mapError(err)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"failed iterating slashings: %w",

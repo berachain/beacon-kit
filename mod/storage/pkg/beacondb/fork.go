@@ -40,7 +40,7 @@ func (kv *KVStore[
 	ForkT, ValidatorT, ValidatorsT,
 ]) GetFork() (ForkT, error) {
 	f, err := kv.fork.Get(kv.ctx)
-	err = mapErrors(err)
+	err = mapError(err)
 	if err != nil {
 		return f, fmt.Errorf("failed retrieving fork: %w", err)
 	}
