@@ -100,7 +100,7 @@ func (kv *KVStore[
 	err = mapErrors(err)
 	if err != nil {
 		return 0, fmt.Errorf(
-			"failed retrieving validator by pub key %s: %w",
+			"failed retrieving validator by pub key %x: %w",
 			pubkey,
 			err,
 		)
@@ -122,7 +122,7 @@ func (kv *KVStore[
 	err = mapErrors(err)
 	if err != nil {
 		return 0, fmt.Errorf(
-			"failed retrieving validator by address %s: %w",
+			"failed retrieving validator by address %x: %w",
 			cometBFTAddress,
 			err,
 		)
