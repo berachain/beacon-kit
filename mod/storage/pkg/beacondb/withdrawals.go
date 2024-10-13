@@ -21,10 +21,8 @@
 package beacondb
 
 import (
-	"errors"
 	"fmt"
 
-	"cosmossdk.io/collections"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -34,20 +32,14 @@ func (kv *KVStore[
 	ForkT, ValidatorT, ValidatorsT,
 ]) GetNextWithdrawalIndex() (uint64, error) {
 	idx, err := kv.nextWithdrawalIndex.Get(kv.ctx)
-	switch {
-	case err == nil:
-		return idx, nil
-	case errors.Is(err, collections.ErrNotFound):
-		return 0, fmt.Errorf(
-			"failed retrieving next withdrawal index: %w",
-			ErrNotFound,
-		)
-	default:
+	err = mapErrors(err)
+	if err != nil {
 		return 0, fmt.Errorf(
 			"failed retrieving next withdrawal index: %w",
 			err,
 		)
 	}
+	return idx, nil
 }
 
 // SetNextWithdrawalIndex sets the next withdrawal index.
@@ -68,22 +60,15 @@ func (kv *KVStore[
 	math.ValidatorIndex, error,
 ) {
 	idx, err := kv.nextWithdrawalValidatorIndex.Get(kv.ctx)
-	switch {
-	case err == nil:
-		return math.ValidatorIndex(idx), nil
-	case errors.Is(err, collections.ErrNotFound):
-		return 0, fmt.Errorf(
-			"failed retrieving next withdrawal validator at index %d: %w",
-			idx,
-			ErrNotFound,
-		)
-	default:
+	err = mapErrors(err)
+	if err != nil {
 		return 0, fmt.Errorf(
 			"failed retrieving next withdrawal validator at index %d: %w",
 			idx,
 			err,
 		)
 	}
+	return math.ValidatorIndex(idx), nil
 }
 
 // SetNextWithdrawalValidatorIndex sets the next withdrawal validator index.

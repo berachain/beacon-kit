@@ -21,10 +21,8 @@
 package beacondb
 
 import (
-	"errors"
 	"fmt"
 
-	"cosmossdk.io/collections"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
@@ -47,22 +45,15 @@ func (kv *KVStore[
 	index uint64,
 ) (common.Root, error) {
 	bz, err := kv.blockRoots.Get(kv.ctx, index)
-	switch {
-	case err == nil:
-		return common.Root(bz), nil
-	case errors.Is(err, collections.ErrNotFound):
-		return common.Root{}, fmt.Errorf(
-			"failed retrieving block root at index %d: %w",
-			index,
-			ErrNotFound,
-		)
-	default:
+	err = mapErrors(err)
+	if err != nil {
 		return common.Root{}, fmt.Errorf(
 			"failed retrieving block root at index %d: %w",
 			index,
 			err,
 		)
 	}
+	return common.Root(bz), nil
 }
 
 // SetLatestBlockHeader sets the latest block header in the BeaconStore.
@@ -83,20 +74,14 @@ func (kv *KVStore[
 	BeaconBlockHeaderT, error,
 ) {
 	h, err := kv.latestBlockHeader.Get(kv.ctx)
-	switch {
-	case err == nil:
-		return h, nil
-	case errors.Is(err, collections.ErrNotFound):
-		return h, fmt.Errorf(
-			"failed retrieving latest block header: %w",
-			ErrNotFound,
-		)
-	default:
+	err = mapErrors(err)
+	if err != nil {
 		return h, fmt.Errorf(
 			"failed retrieving latest block header: %w",
 			err,
 		)
 	}
+	return h, nil
 }
 
 // UpdateStateRootAtIndex updates the state root at the given slot.
@@ -118,20 +103,13 @@ func (kv *KVStore[
 	idx uint64,
 ) (common.Root, error) {
 	bz, err := kv.stateRoots.Get(kv.ctx, idx)
-	switch {
-	case err == nil:
-		return common.Root(bz), nil
-	case errors.Is(err, collections.ErrNotFound):
-		return common.Root{}, fmt.Errorf(
-			"failed retrieving state root at index %d: %w",
-			idx,
-			ErrNotFound,
-		)
-	default:
+	err = mapErrors(err)
+	if err != nil {
 		return common.Root{}, fmt.Errorf(
 			"failed retrieving state root at index %d: %w",
 			idx,
 			err,
 		)
 	}
+	return common.Root(bz), nil
 }

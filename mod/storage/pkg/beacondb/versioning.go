@@ -21,10 +21,8 @@
 package beacondb
 
 import (
-	"errors"
 	"fmt"
 
-	"cosmossdk.io/collections"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -47,20 +45,14 @@ func (kv *KVStore[
 	ForkT, ValidatorT, ValidatorsT,
 ]) GetGenesisValidatorsRoot() (common.Root, error) {
 	bz, err := kv.genesisValidatorsRoot.Get(kv.ctx)
-	switch {
-	case err == nil:
-		return common.Root(bz), nil
-	case errors.Is(err, collections.ErrNotFound):
-		return common.Root{}, fmt.Errorf(
-			"failed retrieving genesis validators root: %w",
-			ErrNotFound,
-		)
-	default:
+	err = mapErrors(err)
+	if err != nil {
 		return common.Root{}, fmt.Errorf(
 			"failed retrieving genesis validators root: %w",
 			err,
 		)
 	}
+	return common.Root(bz), nil
 }
 
 // GetSlot returns the current slot.
@@ -69,20 +61,14 @@ func (kv *KVStore[
 	ForkT, ValidatorT, ValidatorsT,
 ]) GetSlot() (math.Slot, error) {
 	slot, err := kv.slot.Get(kv.ctx)
-	switch {
-	case err == nil:
-		return math.Slot(slot), nil
-	case errors.Is(err, collections.ErrNotFound):
-		return 0, fmt.Errorf(
-			"failed retrieving current slot: %w",
-			ErrNotFound,
-		)
-	default:
+	err = mapErrors(err)
+	if err != nil {
 		return 0, fmt.Errorf(
 			"failed retrieving current slot: %w",
 			err,
 		)
 	}
+	return math.Slot(slot), nil
 }
 
 // SetSlot sets the current slot.

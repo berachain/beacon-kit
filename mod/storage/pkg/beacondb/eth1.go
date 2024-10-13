@@ -21,10 +21,7 @@
 package beacondb
 
 import (
-	"errors"
 	"fmt"
-
-	"cosmossdk.io/collections"
 )
 
 // GetLatestExecutionPayloadHeader retrieves the latest execution payload
@@ -46,20 +43,14 @@ func (kv *KVStore[
 
 	kv.latestExecutionPayloadCodec.SetActiveForkVersion(v)
 	h, err = kv.latestExecutionPayloadHeader.Get(kv.ctx)
-	switch {
-	case err == nil:
-		return h, nil
-	case errors.Is(err, collections.ErrNotFound):
-		return h, fmt.Errorf(
-			"failed retrieving latest execution payload header: %w",
-			ErrNotFound,
-		)
-	default:
+	err = mapErrors(err)
+	if err != nil {
 		return h, fmt.Errorf(
 			"failed retrieving latest execution payload header: %w",
 			err,
 		)
 	}
+	return h, nil
 }
 
 func (kv *KVStore[
@@ -67,20 +58,14 @@ func (kv *KVStore[
 	ForkT, ValidatorT, ValidatorsT,
 ]) getLatestExecutionPayloadVersion() (uint32, error) {
 	v, err := kv.latestExecutionPayloadVersion.Get(kv.ctx)
-	switch {
-	case err == nil:
-		return v, nil
-	case errors.Is(err, collections.ErrNotFound):
-		return 0, fmt.Errorf(
-			"failed retrieving latest execution payload version: %w",
-			ErrNotFound,
-		)
-	default:
+	err = mapErrors(err)
+	if err != nil {
 		return 0, fmt.Errorf(
 			"failed retrieving latest execution payload version: %w",
 			err,
 		)
 	}
+	return v, nil
 }
 
 // SetLatestExecutionPayloadHeader sets the latest execution payload header in
@@ -108,22 +93,15 @@ func (kv *KVStore[
 	ForkT, ValidatorT, ValidatorsT,
 ]) GetEth1DepositIndex() (uint64, error) {
 	idx, err := kv.eth1DepositIndex.Get(kv.ctx)
-	switch {
-	case err == nil:
-		return idx, nil
-	case errors.Is(err, collections.ErrNotFound):
-		return 0, fmt.Errorf(
-			"failed retrieving eth1 deposit index %d, %w",
-			idx,
-			ErrNotFound,
-		)
-	default:
+	err = mapErrors(err)
+	if err != nil {
 		return 0, fmt.Errorf(
 			"failed retrieving eth1 deposit index %d, %w",
 			idx,
 			err,
 		)
 	}
+	return idx, nil
 }
 
 // SetEth1DepositIndex sets the eth1 deposit index in the beacon state.
@@ -142,20 +120,14 @@ func (kv *KVStore[
 	ForkT, ValidatorT, ValidatorsT,
 ]) GetEth1Data() (Eth1DataT, error) {
 	d, err := kv.eth1Data.Get(kv.ctx)
-	switch {
-	case err == nil:
-		return d, nil
-	case errors.Is(err, collections.ErrNotFound):
-		return d, fmt.Errorf(
-			"failed retrieving eth1 data: %w",
-			ErrNotFound,
-		)
-	default:
+	err = mapErrors(err)
+	if err != nil {
 		return d, fmt.Errorf(
 			"failed retrieving eth1 data: %w",
 			err,
 		)
 	}
+	return d, nil
 }
 
 // SetEth1Data sets the eth1 data in the beacon state.
