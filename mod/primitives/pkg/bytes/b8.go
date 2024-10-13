@@ -22,6 +22,8 @@
 package bytes
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 )
 
@@ -35,9 +37,17 @@ const (
 type B8 [8]byte
 
 // ToBytes8 is a utility function that transforms a byte slice into a fixed
-// 8-byte array. If the input exceeds 8 bytes, it gets truncated.
-func ToBytes8(input []byte) B8 {
-	return B8(ExtendToSize(input, B8Size))
+// 8-byte array. It errs if input has not the required size.
+func ToBytes8(input []byte) (B8, error) {
+	if len(input) != B8Size {
+		return B8{}, fmt.Errorf(
+			"%w, got %d, expected %d",
+			ErrIncorrectLength,
+			len(input),
+			B8Size,
+		)
+	}
+	return B8(input), nil
 }
 
 /* -------------------------------------------------------------------------- */
@@ -78,6 +88,6 @@ func (h B8) MarshalSSZ() ([]byte, error) {
 }
 
 // HashTreeRoot returns the hash tree root of the B8.
-func (h B8) HashTreeRoot() B32 {
-	return ToBytes32(h[:])
+func (h B8) HashTreeRoot() (B32, error) {
+	return ToBytes32(ExtendToSize(h[:], B32Size))
 }

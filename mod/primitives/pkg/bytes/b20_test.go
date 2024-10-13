@@ -66,9 +66,8 @@ func TestBytes20MarshalText(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := tt.input.MarshalText()
-			require.NoError(t, err, "Test case: %s", tt.name)
-			require.Equal(t, tt.want, string(got),
-				"Test case: %s", tt.name)
+			require.NoError(t, err)
+			require.Equal(t, tt.want, string(got))
 		})
 	}
 }
@@ -95,8 +94,8 @@ func TestBytes20MarshalSSZ(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := tt.input.MarshalSSZ()
-			require.NoError(t, err, "Test case: %s", tt.name)
-			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
+			require.NoError(t, err)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -123,8 +122,9 @@ func TestBytes20HashTreeRoot(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := tt.input.HashTreeRoot()
-			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
+			got, err := tt.input.HashTreeRoot()
+			require.NoError(t, err)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -157,10 +157,10 @@ func TestBytes20UnmarshalText(t *testing.T) {
 			var got bytes.B20
 			err := got.UnmarshalText([]byte(tt.input))
 			if tt.wantErr {
-				require.Error(t, err, "Test case: %s", tt.name)
+				require.Error(t, err)
 			} else {
-				require.NoError(t, err, "Test case: %s", tt.name)
-				require.Equal(t, tt.want, got, "Test case: %s", tt.name)
+				require.NoError(t, err)
+				require.Equal(t, tt.want, got)
 			}
 		})
 	}
@@ -194,10 +194,10 @@ func TestBytes20UnmarshalJSON(t *testing.T) {
 			var got bytes.B20
 			err := got.UnmarshalJSON([]byte(tt.input))
 			if tt.wantErr {
-				require.Error(t, err, "Test case: %s", tt.name)
+				require.Error(t, err)
 			} else {
-				require.NoError(t, err, "Test case: %s", tt.name)
-				require.Equal(t, tt.want, got, "Test case: %s", tt.name)
+				require.NoError(t, err)
+				require.Equal(t, tt.want, got)
 			}
 		})
 	}
@@ -205,68 +205,49 @@ func TestBytes20UnmarshalJSON(t *testing.T) {
 
 func TestToBytes20(t *testing.T) {
 	tests := []struct {
-		name  string
-		input []byte
-		want  bytes.B20
+		name    string
+		input   []byte
+		wantRes bytes.B20
+		wantErr error
 	}{
 		{
 			name: "exact 20 bytes",
-			input: []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09,
-				0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14},
-			want: bytes.B20{
+			input: []byte{
 				0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A,
 				0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14,
 			},
+			wantRes: bytes.B20{
+				0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A,
+				0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14,
+			},
+			wantErr: nil,
 		},
 		{
-			name:  "less than 20 bytes",
-			input: []byte{0x01, 0x02, 0x03, 0x04, 0x05},
-			want: bytes.B20{
-				0x01, 0x02, 0x03, 0x04, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00,
-				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			},
-		},
-		{
-			name:  "less than 20 bytes",
-			input: []byte{0x01, 0x02, 0x03, 0x04, 0x05},
-			want: bytes.B20{
-				0x01,
-				0x02,
-				0x03,
-				0x04,
-				0x05,
-				0x00,
-				0x00,
-				0x00,
-				0x00,
-				0x00,
-				0x00,
-				0x00,
-				0x00,
-				0x00,
-				0x00,
-				0x00,
-				0x00,
-				0x00,
-				0x00,
-				0x00,
-			},
+			name:    "less than 20 bytes",
+			input:   []byte{0x01, 0x02, 0x03, 0x04, 0x05},
+			wantRes: bytes.B20{},
+			wantErr: bytes.ErrIncorrectLength,
 		},
 		{
 			name: "more than 20 bytes",
 			input: []byte{
 				0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B,
-				0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16},
-			want: bytes.B20{
-				0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B,
-				0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14},
+				0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16,
+			},
+			wantRes: bytes.B20{},
+			wantErr: bytes.ErrIncorrectLength,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := bytes.ToBytes20(tt.input)
-			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
+			result, err := bytes.ToBytes20(tt.input)
+			if tt.wantErr != nil {
+				require.ErrorIs(t, err, tt.wantErr)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, tt.wantRes, result)
+			}
 		})
 	}
 }

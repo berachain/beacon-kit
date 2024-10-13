@@ -21,6 +21,7 @@
 package types_test
 
 import (
+	"strconv"
 	"testing"
 
 	ctypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -39,22 +40,20 @@ func TestSidecarMarshalling(t *testing.T) {
 	for i := range blob {
 		blob[i] = byte(i % 256)
 	}
+	inclusionProof := make([]common.Root, 0)
+	for i := int(1); i <= 8; i++ {
+		it := byteslib.ExtendToSize([]byte(strconv.Itoa(i)), byteslib.B32Size)
+		proof, err := byteslib.ToBytes32(it)
+		require.NoError(t, err)
+		inclusionProof = append(inclusionProof, common.Root(proof))
+	}
 	sidecar := types.BuildBlobSidecar(
 		1,
 		&ctypes.BeaconBlockHeader{},
 		&blob,
 		eip4844.KZGCommitment{},
 		eip4844.KZGProof{},
-		[]common.Root{
-			common.Root(byteslib.ToBytes32([]byte("1"))),
-			common.Root(byteslib.ToBytes32([]byte("2"))),
-			common.Root(byteslib.ToBytes32([]byte("3"))),
-			common.Root(byteslib.ToBytes32([]byte("4"))),
-			common.Root(byteslib.ToBytes32([]byte("5"))),
-			common.Root(byteslib.ToBytes32([]byte("6"))),
-			common.Root(byteslib.ToBytes32([]byte("7"))),
-			common.Root(byteslib.ToBytes32([]byte("8"))),
-		},
+		inclusionProof,
 	)
 
 	// Marshal the sidecar
@@ -79,39 +78,47 @@ func TestSidecarMarshalling(t *testing.T) {
 func TestHasValidInclusionProof(t *testing.T) {
 	tests := []struct {
 		name           string
-		sidecar        *types.BlobSidecar
+		sidecar        func(t *testing.T) *types.BlobSidecar
 		kzgOffset      uint64
 		expectedResult bool
 	}{
 		{
 			name: "Invalid inclusion proof",
-			sidecar: types.BuildBlobSidecar(
-				math.U64(0),
-				&ctypes.BeaconBlockHeader{
-					BodyRoot: [32]byte{3},
-				},
-				&eip4844.Blob{},
-				eip4844.KZGCommitment{},
-				eip4844.KZGProof{},
-				[]common.Root{
-					common.Root(byteslib.ToBytes32([]byte("4"))),
-					common.Root(byteslib.ToBytes32([]byte("5"))),
-					common.Root(byteslib.ToBytes32([]byte("6"))),
-				},
-			),
+			sidecar: func(t *testing.T) *types.BlobSidecar {
+				t.Helper()
+				inclusionProof := make([]common.Root, 0)
+				for i := int(1); i <= 8; i++ {
+					it := byteslib.ExtendToSize([]byte(strconv.Itoa(i)), byteslib.B32Size)
+					proof, err := byteslib.ToBytes32(it)
+					require.NoError(t, err)
+					inclusionProof = append(inclusionProof, common.Root(proof))
+				}
+				return types.BuildBlobSidecar(
+					math.U64(0),
+					&ctypes.BeaconBlockHeader{
+						BodyRoot: [32]byte{3},
+					},
+					&eip4844.Blob{},
+					eip4844.KZGCommitment{},
+					eip4844.KZGProof{},
+					inclusionProof,
+				)
+			},
 			kzgOffset:      0,
 			expectedResult: false,
 		},
 		{
 			name: "Empty inclusion proof",
-			sidecar: types.BuildBlobSidecar(
-				math.U64(0),
-				&ctypes.BeaconBlockHeader{},
-				&eip4844.Blob{},
-				eip4844.KZGCommitment{},
-				eip4844.KZGProof{},
-				[]common.Root{},
-			),
+			sidecar: func(*testing.T) *types.BlobSidecar {
+				return types.BuildBlobSidecar(
+					math.U64(0),
+					&ctypes.BeaconBlockHeader{},
+					&eip4844.Blob{},
+					eip4844.KZGCommitment{},
+					eip4844.KZGProof{},
+					[]common.Root{},
+				)
+			},
 			kzgOffset:      0,
 			expectedResult: false,
 		},
@@ -119,7 +126,8 @@ func TestHasValidInclusionProof(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := tt.sidecar.HasValidInclusionProof(tt.kzgOffset)
+			sidecar := tt.sidecar(t)
+			result := sidecar.HasValidInclusionProof(tt.kzgOffset)
 			require.Equal(t, tt.expectedResult, result,
 				"Result should match expected value")
 		})
@@ -129,31 +137,32 @@ func TestHasValidInclusionProof(t *testing.T) {
 func TestHashTreeRoot(t *testing.T) {
 	tests := []struct {
 		name           string
-		sidecar        *types.BlobSidecar
+		sidecar        func(t *testing.T) *types.BlobSidecar
 		expectedResult common.Root
 		expectError    bool
 	}{
 		{
 			name: "Valid BlobSidecar",
-			sidecar: types.BuildBlobSidecar(
-				math.U64(1),
-				&ctypes.BeaconBlockHeader{
-					BodyRoot: [32]byte{7, 8, 9},
-				},
-				&eip4844.Blob{0, 1, 2, 3, 4, 5, 6, 7},
-				eip4844.KZGCommitment{1, 2, 3},
-				eip4844.KZGProof{4, 5, 6},
-				[]common.Root{
-					common.Root(byteslib.ToBytes32([]byte("1"))),
-					common.Root(byteslib.ToBytes32([]byte("2"))),
-					common.Root(byteslib.ToBytes32([]byte("3"))),
-					common.Root(byteslib.ToBytes32([]byte("4"))),
-					common.Root(byteslib.ToBytes32([]byte("5"))),
-					common.Root(byteslib.ToBytes32([]byte("6"))),
-					common.Root(byteslib.ToBytes32([]byte("7"))),
-					common.Root(byteslib.ToBytes32([]byte("8"))),
-				},
-			),
+			sidecar: func(t *testing.T) *types.BlobSidecar {
+				t.Helper()
+				inclusionProof := make([]common.Root, 0)
+				for i := int(1); i <= 8; i++ {
+					it := byteslib.ExtendToSize([]byte(strconv.Itoa(i)), byteslib.B32Size)
+					proof, err := byteslib.ToBytes32(it)
+					require.NoError(t, err)
+					inclusionProof = append(inclusionProof, common.Root(proof))
+				}
+				return types.BuildBlobSidecar(
+					math.U64(1),
+					&ctypes.BeaconBlockHeader{
+						BodyRoot: [32]byte{7, 8, 9},
+					},
+					&eip4844.Blob{0, 1, 2, 3, 4, 5, 6, 7},
+					eip4844.KZGCommitment{1, 2, 3},
+					eip4844.KZGProof{4, 5, 6},
+					inclusionProof,
+				)
+			},
 			expectedResult: [32]uint8{
 				0xce, 0x75, 0x41, 0x87, 0x48, 0x46, 0x6d, 0x26, 0x9e, 0x72, 0x5d,
 				0xac, 0x5a, 0x6e, 0x36, 0xed, 0x8c, 0x2a, 0x98, 0x19, 0x6b, 0xe1,
@@ -165,7 +174,8 @@ func TestHashTreeRoot(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			require.NotPanics(t, func() {
-				result := tt.sidecar.HashTreeRoot()
+				sidecar := tt.sidecar(t)
+				result := sidecar.HashTreeRoot()
 				require.Equal(
 					t,
 					tt.expectedResult,
