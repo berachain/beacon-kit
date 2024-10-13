@@ -168,12 +168,14 @@ func (s *StateDB[
 	if errors.Is(err, beacondb.ErrNotFound) {
 		total = 0
 	} else if err != nil {
-		return fmt.Errorf("failed processing total slashings: %w", err)
+		return fmt.Errorf("failed updating slashing: %w", err)
 	}
 
 	oldValue, err := s.GetSlashingAtIndex(index)
-	if err != nil {
-		return err
+	if errors.Is(err, beacondb.ErrNotFound) {
+		oldValue = 0
+	} else if err != nil {
+		return fmt.Errorf("failed updating slashing: %w", err)
 	}
 
 	// Defensive check but total - oldValue should never underflow.

@@ -21,10 +21,8 @@
 package beacondb
 
 import (
-	"errors"
 	"fmt"
 
-	"cosmossdk.io/collections"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -62,11 +60,15 @@ func (kv *KVStore[
 	index uint64,
 ) (math.Gwei, error) {
 	amount, err := kv.slashings.Get(kv.ctx, index)
-	if errors.Is(err, collections.ErrNotFound) {
-		return 0, nil
-	} else if err != nil {
-		return 0, err
+	err = mapError(err)
+	if err != nil {
+		return 0, fmt.Errorf(
+			"failed retrieving slashing at index %d: %w",
+			index,
+			err,
+		)
 	}
+
 	return math.Gwei(amount), nil
 }
 
