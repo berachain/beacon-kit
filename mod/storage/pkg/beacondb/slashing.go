@@ -87,10 +87,12 @@ func (kv *KVStore[
 	ForkT, ValidatorT, ValidatorsT,
 ]) GetTotalSlashing() (math.Gwei, error) {
 	total, err := kv.totalSlashing.Get(kv.ctx)
-	if errors.Is(err, collections.ErrNotFound) {
-		return 0, nil
-	} else if err != nil {
-		return 0, err
+	err = mapError(err)
+	if err != nil {
+		return 0, fmt.Errorf(
+			"failed retrieving total slashing: %w",
+			err,
+		)
 	}
 	return math.Gwei(total), nil
 }

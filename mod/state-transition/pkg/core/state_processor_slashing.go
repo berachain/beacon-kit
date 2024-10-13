@@ -21,7 +21,11 @@
 package core
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 )
 
 // processSlashingsReset as defined in the Ethereum 2.0 specification.
@@ -74,8 +78,10 @@ func (sp *StateProcessor[
 	}
 
 	totalSlashings, err := st.GetTotalSlashing()
-	if err != nil {
-		return err
+	if errors.Is(err, beacondb.ErrNotFound) {
+		totalSlashings = 0
+	} else if err != nil {
+		return fmt.Errorf("failed processing total slashings: %w", err)
 	}
 
 	adjustedTotalSlashingBalance := min(
