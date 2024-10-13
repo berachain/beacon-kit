@@ -93,9 +93,7 @@ func (kv *KVStore[BeaconBlockT]) GetParentSlotByTimestamp(
 ) (math.Slot, error) {
 	slot, _ := kv.timestamps.Peek(timestamp)
 	if slot == 0 {
-		return slot, fmt.Errorf(
-			"parent slot not found at timestamp: %d", timestamp,
-		)
+		return slot, fmt.Errorf("slot not found at timestamp: %d", timestamp)
 	}
 
 	return slot - 1, nil

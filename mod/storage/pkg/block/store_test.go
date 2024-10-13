@@ -65,7 +65,7 @@ func TestBlockStore(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	// Get the slots by roots & execution numbers.
+	// Get the slots by roots & timestamps.
 	for i := math.Slot(3); i <= 7; i++ {
 		slot, err = blockStore.GetSlotByBlockRoot([32]byte{byte(i)})
 		require.NoError(t, err)
@@ -73,7 +73,7 @@ func TestBlockStore(t *testing.T) {
 
 		slot, err = blockStore.GetParentSlotByTimestamp(i)
 		require.NoError(t, err)
-		require.Equal(t, i, slot)
+		require.Equal(t, i-1, slot)
 
 		slot, err = blockStore.GetSlotByStateRoot([32]byte{byte(i)})
 		require.NoError(t, err)

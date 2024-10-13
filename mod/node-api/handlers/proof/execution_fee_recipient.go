@@ -27,7 +27,7 @@ import (
 )
 
 // GetExecutionFeeRecipient returns the fee recipient from the latest execution
-// payload header for the given block id, along with the proof that can be
+// payload header for the given timestamp id, along with the proof that can be
 // verified against the beacon block root.
 func (h *Handler[
 	BeaconBlockHeaderT, _, _, ContextT, _, _,

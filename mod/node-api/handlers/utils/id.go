@@ -70,17 +70,18 @@ func SlotFromBlockID[StorageBackendT interface {
 	return storage.GetSlotByBlockRoot(root)
 }
 
-// ParentSlotFromTimestampID returns the slot from the block timestamp ID.
+// ParentSlotFromTimestampID returns the parent slot corresponding to the
+// timestamp ID.
 //
 // NOTE: `timestampID` shares the same semantics as `stateID`, with the
-// modification of being able to query by next block <timestamp> instead of
-// <stateRoot>.
+// modification of being able to query by next block's <timestamp> instead of
+// the current block's <stateRoot>.
 //
 // The <timestamp> must be prefixed by the 't', followed by the timestamp
-// in decimal notation. For example 't1728681738' corresponds to the slot with
-// next block timestamp of 1728681738. Providing just the string '1728681738'
-// (without the prefix 't') will query for the beacon block with slot
-// 1728681738.
+// in decimal UNIX notation. For example 't1728681738' corresponds to the slot
+// which has the next block with a timestamp of 1728681738. Providing just the
+// string '1728681738' (without the prefix 't') will query for the beacon block
+// for slot 1728681738.
 func ParentSlotFromTimestampID[StorageBackendT interface {
 	GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
 }](timestampID string, storage StorageBackendT) (math.Slot, error) {

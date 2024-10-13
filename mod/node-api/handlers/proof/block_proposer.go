@@ -26,8 +26,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 )
 
-// GetBlockProposer returns the block proposer pubkey for the given block id
-// along with a merkle proof that can be verified against the beacon block root.
+// GetBlockProposer returns the block proposer pubkey for the given timestamp
+// id along with a merkle proof that can be verified against the beacon block
+// root.
 func (h *Handler[
 	BeaconBlockHeaderT, _, _, ContextT, _, _,
 ]) GetBlockProposer(c ContextT) (any, error) {
