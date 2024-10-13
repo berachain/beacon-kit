@@ -26,6 +26,8 @@ import (
 	"cosmossdk.io/collections"
 )
 
+var ErrNotFound = errors.New("beacondb: not found")
+
 // mapErrors ensure that we replace collections.ErrNotFound error
 // with ErrNotFound. This allows beacond clients to implement custom
 // logic when items they were quering are not available, while loosening
