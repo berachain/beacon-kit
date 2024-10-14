@@ -219,18 +219,18 @@ type blobSidecarJSON struct {
 	KzgCommitmentInclusionProof []string        `json:"kzg_commitment_inclusion_proof"`
 }
 
-func (bsd BlobSidecarData[BlockHeaderT]) MarshalJSON() ([]byte, error) {
+func (bsd *BlobSidecarData[BlockHeaderT]) MarshalJSON() ([]byte, error) {
 	inclusionProof := make([]string, len(bsd.KzgCommitmentInclusionProof))
 	for i, proof := range bsd.KzgCommitmentInclusionProof {
 		inclusionProof[i] = hex.EncodeToString(proof[:])
 	}
 
 	// Marshal BeaconBlockHeader separately
-	beaconBlockHeader, err := json.Marshal(bsd.BeaconBlockHeader)
+	beaconBlockHeader, err := json.Marshal(&bsd.BeaconBlockHeader)
 	if err != nil {
 		return nil, err
 	}
-	return json.Marshal(blobSidecarJSON{
+	return json.Marshal(&blobSidecarJSON{
 		Index:                       strconv.FormatUint(bsd.Index, 10),
 		Blob:                        hex.EncodeToString(bsd.Blob[:]),
 		KzgCommitment:               hex.EncodeToString(bsd.KzgCommitment[:]),

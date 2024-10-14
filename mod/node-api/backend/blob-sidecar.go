@@ -63,7 +63,7 @@ func (b Backend[
 			},
 			BeaconBlockHeader: types.BlockHeader[BeaconBlockHeaderT]{
 				Message:   blockHeader,
-				Signature: crypto.BLSSignature{0x01, 0x02, 0x03},
+				Signature: crypto.BLSSignature{}, // TODO: Implement signature.
 			},
 			KzgCommitmentInclusionProof: []common.Root{
 				{
