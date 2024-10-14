@@ -81,7 +81,7 @@ func TestPayloadAttributes(t *testing.T) {
 			wantErr: engineprimitives.ErrEmptyPrevRandao,
 		},
 		{
-			name: "Nil withdrawals on Capella",
+			name: "Invalid nil withdrawals on Capella",
 			input: func() payloadAttributesInput {
 				res := validInput
 				res.forkVersion = version.Capella
