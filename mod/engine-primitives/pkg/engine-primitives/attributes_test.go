@@ -29,76 +29,97 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type Withdrawal struct{}
+type testWithdrawal struct{}
 
-func TestPayloadAttributes(t *testing.T) {
-	forkVersion := uint32(1)
-	timestamp := uint64(123456789)
-	prevRandao := common.Bytes32{1, 2, 3}
-	suggestedFeeRecipient := common.ExecutionAddress{}
-	withdrawals := []Withdrawal{}
-	parentBeaconBlockRoot := common.Root{}
-
-	payloadAttributes, err := engineprimitives.NewPayloadAttributes[Withdrawal](
-		forkVersion,
-		timestamp,
-		prevRandao,
-		suggestedFeeRecipient,
-		withdrawals,
-		parentBeaconBlockRoot,
-	)
-	require.NoError(t, err)
-	require.NotNil(t, payloadAttributes)
-
-	require.False(t, payloadAttributes.IsNil())
-
-	require.Equal(
-		t,
-		suggestedFeeRecipient,
-		payloadAttributes.GetSuggestedFeeRecipient(),
-	)
-	require.Equal(t, forkVersion, payloadAttributes.Version())
-
-	require.NoError(t, payloadAttributes.Validate())
+type payloadAttributesInput struct {
+	forkVersion           uint32
+	timestamp             uint64
+	prevRandao            common.Bytes32
+	suggestedFeeRecipient common.ExecutionAddress
+	withdrawals           []testWithdrawal
+	parentBeaconBlockRoot common.Root
 }
 
-func TestNewPayloadAttributes_ErrorCases(t *testing.T) {
-	forkVersion := uint32(1)
-	prevRandao := common.Bytes32{1, 2, 3}
-	suggestedFeeRecipient := common.ExecutionAddress{}
-	withdrawals := []Withdrawal{}
-	parentBeaconBlockRoot := common.Root{}
+func TestPayloadAttributes(t *testing.T) {
+	// default valid data
+	validInput := payloadAttributesInput{
+		forkVersion:           uint32(1),
+		timestamp:             uint64(123456789),
+		prevRandao:            common.Bytes32{1, 2, 3},
+		suggestedFeeRecipient: common.ExecutionAddress{},
+		withdrawals:           []testWithdrawal{},
+		parentBeaconBlockRoot: common.Root{},
+	}
+	tests := []struct {
+		name    string
+		input   func() payloadAttributesInput
+		wantErr error
+	}{
+		{
+			name: "Valid payload attributes",
+			input: func() payloadAttributesInput {
+				return validInput
+			},
+			wantErr: nil,
+		},
+		{
+			name: "Invalid timestamp",
+			input: func() payloadAttributesInput {
+				res := validInput
+				res.timestamp = 0
+				return res
+			},
+			wantErr: engineprimitives.ErrInvalidTimestamp,
+		},
+		{
+			name: "Invalid PreRandao",
+			input: func() payloadAttributesInput {
+				res := validInput
+				res.prevRandao = common.Bytes32{}
+				return res
+			},
+			wantErr: engineprimitives.ErrEmptyPrevRandao,
+		},
+		{
+			name: "Nil withdrawals on Capella",
+			input: func() payloadAttributesInput {
+				res := validInput
+				res.forkVersion = version.Capella
+				res.withdrawals = nil
+				return res
+			},
+			wantErr: engineprimitives.ErrNilWithdrawals,
+		},
+	}
 
-	// Test case where Timestamp is 0
-	_, err := engineprimitives.NewPayloadAttributes[Withdrawal](
-		forkVersion,
-		0,
-		prevRandao,
-		suggestedFeeRecipient,
-		withdrawals,
-		parentBeaconBlockRoot,
-	)
-	require.ErrorIs(t, err, engineprimitives.ErrInvalidTimestamp)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			in := tt.input()
+			p := &engineprimitives.PayloadAttributes[testWithdrawal]{}
+			got, err := p.New(
+				in.forkVersion,
+				in.timestamp,
+				in.prevRandao,
+				in.suggestedFeeRecipient,
+				in.withdrawals,
+				in.parentBeaconBlockRoot,
+			)
+			if tt.wantErr != nil {
+				require.ErrorIs(t, err, tt.wantErr)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, got)
 
-	// Test case where PrevRandao is an empty array
-	_, err = engineprimitives.NewPayloadAttributes[Withdrawal](
-		forkVersion,
-		123456789,
-		common.Bytes32{},
-		suggestedFeeRecipient,
-		withdrawals,
-		parentBeaconBlockRoot,
-	)
-	require.ErrorIs(t, err, engineprimitives.ErrEmptyPrevRandao)
+				require.False(t, got.IsNil())
+				require.NoError(t, got.Validate())
 
-	// Test case where Withdrawals is nil and version is equal to Capella
-	_, err = engineprimitives.NewPayloadAttributes[Withdrawal](
-		version.Capella,
-		123456789,
-		prevRandao,
-		suggestedFeeRecipient,
-		nil,
-		parentBeaconBlockRoot,
-	)
-	require.ErrorIs(t, err, engineprimitives.ErrNilWithdrawals)
+				require.Equal(
+					t,
+					in.suggestedFeeRecipient,
+					got.GetSuggestedFeeRecipient(),
+				)
+				require.Equal(t, in.forkVersion, got.Version())
+			}
+		})
+	}
 }
