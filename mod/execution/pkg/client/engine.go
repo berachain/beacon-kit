@@ -122,7 +122,7 @@ func (s *EngineClient[
 		return nil, nil, engineerrors.ErrNilForkchoiceResponse
 	}
 
-	latestValidHash, err := processPayloadStatusResult((&result.PayloadStatus))
+	latestValidHash, err := processPayloadStatusResult(&result.PayloadStatus)
 	if err != nil {
 		return nil, latestValidHash, err
 	}
