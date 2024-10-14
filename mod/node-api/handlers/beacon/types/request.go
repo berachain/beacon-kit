@@ -130,7 +130,7 @@ type GetBlockAttestationsRequest struct {
 
 type GetBlobSidecarsRequest struct {
 	types.BlockIDRequest
-	Indices []string `query:"indices" validate:"dive,uint64"`
+	Indices []string `query:"indices" validate:"dive,validator_id"`
 }
 
 type PostRewardsSyncCommitteeRequest struct {
