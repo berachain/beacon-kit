@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	ethclient "github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
 /* -------------------------------------------------------------------------- */
@@ -160,7 +159,7 @@ func (s *EngineClient[
 	if result == nil {
 		return result, engineerrors.ErrNilExecutionPayloadEnvelope
 	}
-	if (forkVersion >= version.Deneb) && result.GetBlobsBundle() == nil {
+	if result.GetBlobsBundle() == nil {
 		return result, engineerrors.ErrNilBlobsBundle
 	}
 
