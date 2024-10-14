@@ -61,7 +61,8 @@ func (s *EngineClient[
 			s.metrics.incrementNewPayloadTimeout()
 		}
 		return nil, s.handleRPCError(err)
-	} else if result == nil {
+	}
+	if result == nil {
 		return nil, engineerrors.ErrNilPayloadStatus
 	}
 
@@ -116,7 +117,8 @@ func (s *EngineClient[
 			s.metrics.incrementForkchoiceUpdateTimeout()
 		}
 		return nil, nil, s.handleRPCError(err)
-	} else if result == nil {
+	}
+	if result == nil {
 		return nil, nil, engineerrors.ErrNilForkchoiceResponse
 	}
 
@@ -149,16 +151,16 @@ func (s *EngineClient[
 
 	// Call and check for errors.
 	result, err := s.Client.GetPayload(cctx, payloadID, forkVersion)
-	switch {
-	case err != nil:
+	if err != nil {
 		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {
 			s.metrics.incrementGetPayloadTimeout()
 		}
 		return result, s.handleRPCError(err)
-	case result == nil:
+	}
+	if result == nil {
 		return result, engineerrors.ErrNilExecutionPayloadEnvelope
-	case result.GetBlobsBundle() == nil &&
-		((forkVersion >= version.Deneb) || (forkVersion >= version.DenebPlus)):
+	}
+	if (forkVersion >= version.Deneb) && result.GetBlobsBundle() == nil {
 		return result, engineerrors.ErrNilBlobsBundle
 	}
 
