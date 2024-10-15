@@ -28,7 +28,7 @@ import (
 
 var ErrNotFound = errors.New("storage: object not found")
 
-// mapError ensure that we replace collections.ErrNotFound error
+// MapError ensure that we replace collections.ErrNotFound error
 // with ErrNotFound. This allows beacond clients to implement custom
 // logic when items they were quering are not available, while loosening
 // dependencies on cosmos sdk package.
