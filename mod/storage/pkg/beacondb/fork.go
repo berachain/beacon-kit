@@ -23,7 +23,7 @@ package beacondb
 import (
 	"fmt"
 
-	storage "github.com/berachain/beacon-kit/mod/storage/pkg"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/errors"
 )
 
 // SetFork sets the fork version for the given epoch.
@@ -42,7 +42,7 @@ func (kv *KVStore[
 	ForkT, ValidatorT, ValidatorsT,
 ]) GetFork() (ForkT, error) {
 	f, err := kv.fork.Get(kv.ctx)
-	err = storage.MapError(err)
+	err = errors.MapError(err)
 	if err != nil {
 		return f, fmt.Errorf("failed retrieving fork: %w", err)
 	}

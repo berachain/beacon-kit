@@ -26,8 +26,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/log/pkg/noop"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	storage "github.com/berachain/beacon-kit/mod/storage/pkg"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/block"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/errors"
 	"github.com/stretchr/testify/require"
 )
 
@@ -83,9 +83,9 @@ func TestBlockStore(t *testing.T) {
 
 	// Try getting a slot that doesn't exist.
 	_, err = blockStore.GetSlotByBlockRoot(common.Root{byte(8)})
-	require.ErrorIs(t, err, storage.ErrNotFound)
+	require.ErrorIs(t, err, errors.ErrNotFound)
 	_, err = blockStore.GetSlotByExecutionNumber(2)
-	require.ErrorIs(t, err, storage.ErrNotFound)
+	require.ErrorIs(t, err, errors.ErrNotFound)
 	_, err = blockStore.GetSlotByStateRoot(common.Root{byte(8)})
-	require.ErrorIs(t, err, storage.ErrNotFound)
+	require.ErrorIs(t, err, errors.ErrNotFound)
 }
