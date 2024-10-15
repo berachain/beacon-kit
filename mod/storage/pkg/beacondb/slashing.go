@@ -24,7 +24,7 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	storage "github.com/berachain/beacon-kit/mod/storage/pkg"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/errors"
 )
 
 func (kv *KVStore[
@@ -33,7 +33,7 @@ func (kv *KVStore[
 ]) GetSlashings() ([]math.Gwei, error) {
 	var slashings []math.Gwei
 	iter, err := kv.slashings.Iterate(kv.ctx, nil)
-	err = storage.MapError(err)
+	err = errors.MapError(err)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"failed iterating slashings: %w",
@@ -61,7 +61,7 @@ func (kv *KVStore[
 	index uint64,
 ) (math.Gwei, error) {
 	amount, err := kv.slashings.Get(kv.ctx, index)
-	err = storage.MapError(err)
+	err = errors.MapError(err)
 	if err != nil {
 		return 0, err
 	}
@@ -85,7 +85,7 @@ func (kv *KVStore[
 	ForkT, ValidatorT, ValidatorsT,
 ]) GetTotalSlashing() (math.Gwei, error) {
 	total, err := kv.totalSlashing.Get(kv.ctx)
-	err = storage.MapError(err)
+	err = errors.MapError(err)
 	if err != nil {
 		return 0, err
 	}

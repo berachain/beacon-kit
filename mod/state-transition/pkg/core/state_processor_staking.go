@@ -27,7 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
-	storage "github.com/berachain/beacon-kit/mod/storage/pkg"
+	storageerrors "github.com/berachain/beacon-kit/mod/storage/pkg/errors"
 	"github.com/davecgh/go-spew/spew"
 )
 
@@ -122,7 +122,7 @@ func (sp *StateProcessor[
 		newBalance := min(val.GetEffectiveBalance()+dep.GetAmount(), maxBalance)
 		val.SetEffectiveBalance(newBalance)
 		return st.UpdateValidatorAtIndex(idx, val)
-	case errors.Is(err, storage.ErrNotFound):
+	case errors.Is(err, storageerrors.ErrNotFound):
 		// If the validator does not exist, we add the validator.
 		return sp.createValidator(st, dep)
 	default:
