@@ -21,10 +21,8 @@
 package beacondb
 
 import (
-	"errors"
 	"fmt"
 
-	"cosmossdk.io/collections"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	storage "github.com/berachain/beacon-kit/mod/storage/pkg"
 )
@@ -63,9 +61,8 @@ func (kv *KVStore[
 	index uint64,
 ) (math.Gwei, error) {
 	amount, err := kv.slashings.Get(kv.ctx, index)
-	if errors.Is(err, collections.ErrNotFound) {
-		return 0, nil
-	} else if err != nil {
+	err = storage.MapError(err)
+	if err != nil {
 		return 0, err
 	}
 	return math.Gwei(amount), nil
@@ -88,9 +85,8 @@ func (kv *KVStore[
 	ForkT, ValidatorT, ValidatorsT,
 ]) GetTotalSlashing() (math.Gwei, error) {
 	total, err := kv.totalSlashing.Get(kv.ctx)
-	if errors.Is(err, collections.ErrNotFound) {
-		return 0, nil
-	} else if err != nil {
+	err = storage.MapError(err)
+	if err != nil {
 		return 0, err
 	}
 	return math.Gwei(total), nil

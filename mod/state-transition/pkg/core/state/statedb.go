@@ -24,6 +24,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	storage "github.com/berachain/beacon-kit/mod/storage/pkg"
 )
 
 // StateDB is the underlying struct behind the BeaconState interface.
@@ -162,12 +163,16 @@ func (s *StateDB[
 ) error {
 	// Update the total slashing amount before overwriting the old amount.
 	total, err := s.GetTotalSlashing()
-	if err != nil {
+	if errors.Is(err, storage.ErrNotFound) {
+		total = 0
+	} else if err != nil {
 		return err
 	}
 
 	oldValue, err := s.GetSlashingAtIndex(index)
-	if err != nil {
+	if errors.Is(err, storage.ErrNotFound) {
+		oldValue = 0
+	} else if err != nil {
 		return err
 	}
 
