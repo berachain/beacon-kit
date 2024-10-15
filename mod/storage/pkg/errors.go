@@ -18,30 +18,27 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package service
+package storage
 
-// StatusEvent represents a service status event.
-type StatusEvent struct {
-	// name represents the name of the service.
-	name string
-	// healthy indicates whether the service is in a healthy state.
-	healthy bool
-}
+import (
+	"errors"
 
-// NewStatusEvent creates a new status service.
-func NewStatusEvent(name string, healthy bool) *StatusEvent {
-	return &StatusEvent{
-		name:    name,
-		healthy: healthy,
+	"cosmossdk.io/collections"
+)
+
+var ErrNotFound = errors.New("storage: object not found")
+
+// mapError ensure that we replace collections.ErrNotFound error
+// with ErrNotFound. This allows beacond clients to implement custom
+// logic when items they were quering are not available, while loosening
+// dependencies on cosmos sdk package.
+func MapError(err error) error {
+	switch {
+	case err == nil:
+		return nil
+	case errors.Is(err, collections.ErrNotFound):
+		return ErrNotFound
+	default:
+		return err
 	}
-}
-
-// Name returns the name of the service.
-func (s *StatusEvent) Name() string {
-	return s.name
-}
-
-// IsHealthy returns the health status of the service.
-func (s *StatusEvent) IsHealthy() bool {
-	return s.healthy
 }

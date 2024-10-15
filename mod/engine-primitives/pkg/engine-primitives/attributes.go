@@ -63,10 +63,8 @@ type PayloadAttributes[
 	ParentBeaconBlockRoot common.Root `json:"parentBeaconBlockRoot"`
 }
 
-// NewPayloadAttributes creates a new PayloadAttributes.
-func NewPayloadAttributes[
-	WithdrawalT any,
-](
+// New empty PayloadAttributes.
+func (p *PayloadAttributes[WithdrawalT]) New(
 	forkVersion uint32,
 	timestamp uint64,
 	prevRandao common.Bytes32,
@@ -74,7 +72,7 @@ func NewPayloadAttributes[
 	withdrawals []WithdrawalT,
 	parentBeaconBlockRoot common.Root,
 ) (*PayloadAttributes[WithdrawalT], error) {
-	p := &PayloadAttributes[WithdrawalT]{
+	p = &PayloadAttributes[WithdrawalT]{
 		version:               forkVersion,
 		Timestamp:             math.U64(timestamp),
 		PrevRandao:            prevRandao,
@@ -88,27 +86,6 @@ func NewPayloadAttributes[
 	}
 
 	return p, nil
-}
-
-// New empty PayloadAttributes.
-func (p *PayloadAttributes[WithdrawalT]) New(
-	forkVersion uint32,
-	timestamp uint64,
-	prevRandao common.Bytes32,
-	suggestedFeeRecipient common.ExecutionAddress,
-	withdrawals []WithdrawalT,
-	parentBeaconBlockRoot common.Root,
-) (*PayloadAttributes[WithdrawalT], error) {
-	var err error
-	p, err = NewPayloadAttributes(
-		forkVersion,
-		timestamp,
-		prevRandao,
-		suggestedFeeRecipient,
-		withdrawals,
-		parentBeaconBlockRoot,
-	)
-	return p, err
 }
 
 // IsNil returns true if the PayloadAttributes is nil.
