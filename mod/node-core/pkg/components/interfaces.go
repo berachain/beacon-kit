@@ -297,7 +297,7 @@ type (
 		GetSlotByStateRoot(root common.Root) (math.Slot, error)
 		// GetParentSlotByTimestamp retrieves the parent slot by a given
 		// timestamp from the store.
-		GetParentSlotByTimestamp(executionNumber math.U64) (math.Slot, error)
+		GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
 	}
 
 	ConsensusEngine interface {
@@ -1091,7 +1091,7 @@ type (
 		ChainSpec() common.ChainSpec
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		GetSlotByStateRoot(root common.Root) (math.Slot, error)
-		GetParentSlotByTimestamp(executionNumber math.U64) (math.Slot, error)
+		GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
 
 		NodeAPIBeaconBackend[
 			BeaconStateT, BeaconBlockHeaderT, ForkT, ValidatorT,
@@ -1123,7 +1123,7 @@ type (
 	] interface {
 		BlockBackend[BeaconBlockHeaderT]
 		StateBackend[BeaconStateT, ForkT]
-		GetParentSlotByTimestamp(executionNumber math.U64) (math.Slot, error)
+		GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
 	}
 
 	GenesisBackend interface {

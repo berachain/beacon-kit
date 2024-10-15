@@ -23,6 +23,7 @@ package block
 import (
 	"fmt"
 
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -32,10 +33,18 @@ import (
 // KVStore is a simple memory store based implementation that stores metadata of
 // beacon blocks.
 type KVStore[BeaconBlockT BeaconBlock] struct {
+	// Beacon block root to slot mapping is injective for finalized blocks.
 	blockRoots *lru.Cache[common.Root, math.Slot]
+
+	// Timestamp to slot mapping is injective for finalized blocks. This is
+	// guaranteed by CometBFT consensus. So each slot will be associated with a
+	// different timestamp (no overwriting) as we store only finalized blocks.
 	timestamps *lru.Cache[math.U64, math.Slot]
+
+	// Beacon state root to slot mapping is injective for finalized blocks.
 	stateRoots *lru.Cache[common.Root, math.Slot]
 
+	// Logger for the store.
 	logger log.Logger
 }
 
@@ -91,9 +100,12 @@ func (kv *KVStore[BeaconBlockT]) GetSlotByBlockRoot(
 func (kv *KVStore[BeaconBlockT]) GetParentSlotByTimestamp(
 	timestamp math.U64,
 ) (math.Slot, error) {
-	slot, _ := kv.timestamps.Peek(timestamp)
-	if slot == 0 {
+	slot, ok := kv.timestamps.Peek(timestamp)
+	if !ok {
 		return slot, fmt.Errorf("slot not found at timestamp: %d", timestamp)
+	}
+	if slot == 0 {
+		return slot, errors.New("parent slot not supported for genesis slot 0")
 	}
 
 	return slot - 1, nil
