@@ -24,6 +24,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -92,7 +93,9 @@ func ParentSlotFromTimestampID[StorageBackendT interface {
 	// Parse the timestamp from the timestampID.
 	timestamp, err := U64FromString(timestampID[1:])
 	if err != nil {
-		return 0, err
+		return 0, errors.Wrapf(
+			err, "failed to parse timestamp from timestampID: %s", timestampID,
+		)
 	}
 	return storage.GetParentSlotByTimestamp(timestamp)
 }
