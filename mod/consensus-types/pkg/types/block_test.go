@@ -42,7 +42,6 @@ func generateValidBeaconBlock() *types.BeaconBlock {
 		StateRoot:     common.Root{5, 4, 3, 2, 1},
 		Body: &types.BeaconBlockBody{
 			ExecutionPayload: &types.ExecutionPayload{
-				Number:    10,
 				Timestamp: 10,
 				ExtraData: []byte("dummy extra data for testing"),
 				Transactions: [][]byte{
