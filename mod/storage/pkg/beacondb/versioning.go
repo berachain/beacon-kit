@@ -25,6 +25,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	storage "github.com/berachain/beacon-kit/mod/storage/pkg"
 )
 
 // SetGenesisValidatorsRoot sets the genesis validators root in the beacon
@@ -45,7 +46,7 @@ func (kv *KVStore[
 	ForkT, ValidatorT, ValidatorsT,
 ]) GetGenesisValidatorsRoot() (common.Root, error) {
 	bz, err := kv.genesisValidatorsRoot.Get(kv.ctx)
-	err = mapError(err)
+	err = storage.MapError(err)
 	if err != nil {
 		return common.Root{}, fmt.Errorf(
 			"failed retrieving genesis validators root: %w",
@@ -61,7 +62,7 @@ func (kv *KVStore[
 	ForkT, ValidatorT, ValidatorsT,
 ]) GetSlot() (math.Slot, error) {
 	slot, err := kv.slot.Get(kv.ctx)
-	err = mapError(err)
+	err = storage.MapError(err)
 	if err != nil {
 		return 0, fmt.Errorf(
 			"failed retrieving current slot: %w",

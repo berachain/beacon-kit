@@ -21,16 +21,14 @@
 package block
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	storage "github.com/berachain/beacon-kit/mod/storage/pkg"
 	lru "github.com/hashicorp/golang-lru/v2"
 )
-
-var ErrSlotNotFound = errors.New("slot not found")
 
 // KVStore is a simple memory store based implementation that stores metadata of
 // beacon blocks.
@@ -86,7 +84,7 @@ func (kv *KVStore[BeaconBlockT]) GetSlotByBlockRoot(
 	if !ok {
 		return 0, fmt.Errorf(
 			"%w, block root: %s",
-			ErrSlotNotFound,
+			storage.ErrNotFound,
 			blockRoot,
 		)
 	}
@@ -102,7 +100,7 @@ func (kv *KVStore[BeaconBlockT]) GetSlotByExecutionNumber(
 	if !ok {
 		return 0, fmt.Errorf(
 			"%w, execution number: %d",
-			ErrSlotNotFound,
+			storage.ErrNotFound,
 			executionNumber,
 		)
 	}
@@ -117,7 +115,7 @@ func (kv *KVStore[BeaconBlockT]) GetSlotByStateRoot(
 	if !ok {
 		return 0, fmt.Errorf(
 			"%w, state root: %s",
-			ErrSlotNotFound,
+			storage.ErrNotFound,
 			stateRoot,
 		)
 	}

@@ -26,6 +26,7 @@ import (
 
 	"cosmossdk.io/collections"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	storage "github.com/berachain/beacon-kit/mod/storage/pkg"
 )
 
 func (kv *KVStore[
@@ -34,7 +35,7 @@ func (kv *KVStore[
 ]) GetSlashings() ([]math.Gwei, error) {
 	var slashings []math.Gwei
 	iter, err := kv.slashings.Iterate(kv.ctx, nil)
-	err = mapError(err)
+	err = storage.MapError(err)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"failed iterating slashings: %w",

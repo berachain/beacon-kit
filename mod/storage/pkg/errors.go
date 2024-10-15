@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package beacondb
+package storage
 
 import (
 	"errors"
@@ -32,7 +32,7 @@ var ErrNotFound = errors.New("beacondb: not found")
 // with ErrNotFound. This allows beacond clients to implement custom
 // logic when items they were quering are not available, while loosening
 // dependencies on cosmos sdk package.
-func mapError(err error) error {
+func MapError(err error) error {
 	switch {
 	case err == nil:
 		return nil
