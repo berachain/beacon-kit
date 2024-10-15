@@ -62,7 +62,7 @@ func ConstructValidator() *validator.Validate {
 	validators := map[string](func(fl validator.FieldLevel) bool){
 		"state_id":     ValidateStateID,
 		"block_id":     ValidateBlockID,
-		"execution_id": ValidateTimestampID,
+		"timestamp_id": ValidateTimestampID,
 		"validator_id": ValidateValidatorID,
 		"epoch":        ValidateUint64,
 		"slot":         ValidateUint64,
