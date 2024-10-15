@@ -22,67 +22,50 @@
 package bytes
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 )
 
-const (
-	// B20Size represents a 20-byte size.
-	B20Size = 20
-)
+const B20Size = 20
 
 // B20 represents a 20-byte fixed-size byte array.
-// For SSZ purposes it is serialized a `Vector[Byte, 20]`.
-type B20 [20]byte
+type B20 [B20Size]byte
 
-// ToBytes20 is a utility function that transforms a byte slice into a fixed
-// 20-byte array. It errs if input has not the required size.
+var ErrIncorrectLength = errors.New("incorrect length")
+
+// ToBytes20 converts a byte slice into a fixed 20-byte array.
 func ToBytes20(input []byte) (B20, error) {
 	if len(input) != B20Size {
-		return B20{}, fmt.Errorf(
-			"%w, got %d, expected %d",
-			ErrIncorrectLength,
-			len(input),
-			B20Size,
-		)
+		return B20{}, fmt.Errorf("%w: got %d, expected %d", ErrIncorrectLength, len(input), B20Size)
 	}
-	return B20(input), nil
+	var b20 B20
+	copy(b20[:], input)
+	return b20, nil
 }
 
-/* -------------------------------------------------------------------------- */
-/*                                TextMarshaler                               */
-/* -------------------------------------------------------------------------- */
-
-// MarshalText implements the encoding.TextMarshaler interface for B20.
+// MarshalText implements encoding.TextMarshaler for B20.
 func (h B20) MarshalText() ([]byte, error) {
 	return []byte(h.String()), nil
 }
 
-// UnmarshalText implements the encoding.TextUnmarshaler interface for B20.
+// UnmarshalText implements encoding.TextUnmarshaler for B20.
 func (h *B20) UnmarshalText(text []byte) error {
 	return UnmarshalTextHelper(h[:], text)
 }
 
 // String returns the hex string representation of B20.
-func (h *B20) String() string {
+func (h B20) String() string {
 	return hex.EncodeBytes(h[:])
 }
 
-/* -------------------------------------------------------------------------- */
-/*                                JSONMarshaler                               */
-/* -------------------------------------------------------------------------- */
-
-// UnmarshalJSON implements the json.Unmarshaler interface for B20.
+// UnmarshalJSON implements json.Unmarshaler for B20.
 func (h *B20) UnmarshalJSON(input []byte) error {
 	return UnmarshalJSONHelper(h[:], input)
 }
 
-/* -------------------------------------------------------------------------- */
-/*                                SSZMarshaler                                */
-/* -------------------------------------------------------------------------- */
-
-// MarshalSSZ implements the SSZ marshaling for B20.
+// MarshalSSZ implements SSZ marshaling for B20.
 func (h B20) MarshalSSZ() ([]byte, error) {
 	return h[:], nil
 }
