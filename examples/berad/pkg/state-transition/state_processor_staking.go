@@ -24,11 +24,11 @@ import (
 	"errors"
 	"fmt"
 
-	sdkcollections "cosmossdk.io/collections"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
+	storage "github.com/berachain/beacon-kit/mod/storage/pkg"
 )
 
 // processDeposits processes the deposits and ensures  they match the
@@ -91,7 +91,7 @@ func (sp *StateProcessor[
 		newBalance := min(val.GetEffectiveBalance()+dep.GetAmount(), maxBalance)
 		val.SetEffectiveBalance(newBalance)
 		return st.UpdateValidatorAtIndex(idx, val)
-	case errors.Is(err, sdkcollections.ErrNotFound):
+	case errors.Is(err, storage.ErrNotFound):
 		// If the validator does not exist, we add the validator.
 		// Add the validator to the registry.
 		return sp.createValidator(st, dep)
