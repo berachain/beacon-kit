@@ -40,14 +40,13 @@ func (s *Client[ExecutionPayloadT]) NewPayload(
 	versionedHashes []common.ExecutionHash,
 	parentBlockRoot *common.Root,
 ) (*engineprimitives.PayloadStatusV1, error) {
-	switch payload.Version() {
-	case version.Deneb, version.DenebPlus:
-		return s.NewPayloadV3(
-			ctx, payload, versionedHashes, parentBlockRoot,
-		)
-	default:
+	if payload.Version() < version.Deneb {
 		return nil, ErrInvalidVersion
 	}
+
+	return s.NewPayloadV3(
+		ctx, payload, versionedHashes, parentBlockRoot,
+	)
 }
 
 // NewPayloadV3 is used to call the underlying JSON-RPC method for newPayload.
@@ -78,12 +77,11 @@ func (s *Client[ExecutionPayloadT]) ForkchoiceUpdated(
 	attrs any,
 	forkVersion uint32,
 ) (*engineprimitives.ForkchoiceResponseV1, error) {
-	switch forkVersion {
-	case version.Deneb, version.DenebPlus:
-		return s.ForkchoiceUpdatedV3(ctx, state, attrs)
-	default:
+	if forkVersion < version.Deneb {
 		return nil, ErrInvalidVersion
 	}
+
+	return s.ForkchoiceUpdatedV3(ctx, state, attrs)
 }
 
 // ForkchoiceUpdatedV3 calls the engine_forkchoiceUpdatedV3 method via JSON-RPC.
@@ -129,12 +127,11 @@ func (s *Client[ExecutionPayloadT]) GetPayload(
 	payloadID engineprimitives.PayloadID,
 	forkVersion uint32,
 ) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
-	switch forkVersion {
-	case version.Deneb, version.DenebPlus:
-		return s.GetPayloadV3(ctx, payloadID)
-	default:
+	if forkVersion < version.Deneb {
 		return nil, ErrInvalidVersion
 	}
+
+	return s.GetPayloadV3(ctx, payloadID)
 }
 
 // GetPayloadV3 calls the engine_getPayloadV3 method via JSON-RPC.
