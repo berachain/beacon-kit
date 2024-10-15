@@ -26,7 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	storage "github.com/berachain/beacon-kit/mod/storage/pkg"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/errors"
 	lru "github.com/hashicorp/golang-lru/v2"
 )
 
@@ -84,7 +84,7 @@ func (kv *KVStore[BeaconBlockT]) GetSlotByBlockRoot(
 	if !ok {
 		return 0, fmt.Errorf(
 			"%w, block root: %s",
-			storage.ErrNotFound,
+			errors.ErrNotFound,
 			blockRoot,
 		)
 	}
@@ -100,7 +100,7 @@ func (kv *KVStore[BeaconBlockT]) GetSlotByExecutionNumber(
 	if !ok {
 		return 0, fmt.Errorf(
 			"%w, execution number: %d",
-			storage.ErrNotFound,
+			errors.ErrNotFound,
 			executionNumber,
 		)
 	}
@@ -115,7 +115,7 @@ func (kv *KVStore[BeaconBlockT]) GetSlotByStateRoot(
 	if !ok {
 		return 0, fmt.Errorf(
 			"%w, state root: %s",
-			storage.ErrNotFound,
+			errors.ErrNotFound,
 			stateRoot,
 		)
 	}
