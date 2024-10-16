@@ -368,40 +368,62 @@ func TestGwei_ToWei(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    math.Gwei
-		expected *math.U256
+		expected func(t *testing.T) *math.U256
 	}{
 		{
-			name:     "zero gwei",
-			input:    math.Gwei(0),
-			expected: math.NewU256FromBigInt(big.NewInt(0)),
+			name:  "zero gwei",
+			input: math.Gwei(0),
+			expected: func(t *testing.T) *math.U256 {
+				t.Helper()
+				res, err := math.NewU256FromBigInt(big.NewInt(0))
+				require.NoError(t, err)
+				return res
+			},
 		},
 		{
-			name:     "one gwei",
-			input:    math.Gwei(1),
-			expected: math.NewU256FromBigInt(big.NewInt(math.GweiPerWei)),
+			name:  "one gwei",
+			input: math.Gwei(1),
+			expected: func(t *testing.T) *math.U256 {
+				t.Helper()
+				res, err := math.NewU256FromBigInt(big.NewInt(math.GweiPerWei))
+				require.NoError(t, err)
+				return res
+			},
 		},
 		{
 			name:  "arbitrary gwei",
 			input: math.Gwei(123456789),
-			expected: math.NewU256FromBigInt(new(big.Int).Mul(
-				big.NewInt(math.GweiPerWei),
-				big.NewInt(123456789),
-			)),
+			expected: func(t *testing.T) *math.U256 {
+				t.Helper()
+				n := new(big.Int).Mul(
+					big.NewInt(math.GweiPerWei),
+					big.NewInt(123456789),
+				)
+				res, err := math.NewU256FromBigInt(n)
+				require.NoError(t, err)
+				return res
+			},
 		},
 		{
 			name:  "max uint64 gwei",
 			input: math.Gwei(1<<64 - 1),
-			expected: math.NewU256FromBigInt(new(big.Int).Mul(
-				big.NewInt(math.GweiPerWei),
-				new(big.Int).SetUint64(1<<64-1),
-			)),
+			expected: func(t *testing.T) *math.U256 {
+				t.Helper()
+				n := new(big.Int).Mul(
+					big.NewInt(math.GweiPerWei),
+					new(big.Int).SetUint64(1<<64-1),
+				)
+				res, err := math.NewU256FromBigInt(n)
+				require.NoError(t, err)
+				return res
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := tt.input.ToWei()
-			require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
+			require.Equal(t, tt.expected(t), result)
 		})
 	}
 }
