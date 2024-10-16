@@ -32,6 +32,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/db"
@@ -57,29 +58,14 @@ var (
 	testCodec    = &encoding.SSZInterfaceCodec[*types.ExecutionPayloadHeader]{}
 )
 
-func TestGetBalances(t *testing.T) {
-	ctx, err := initStoreBanckend()
+func TestBalances(t *testing.T) {
+	store, err := initTestStore()
 	require.NoError(t, err)
-	testStoreService := &testKVStoreService{
-		ctx: ctx,
-	}
-
-	store := beacondb.New[
-		*types.BeaconBlockHeader,
-		*types.Eth1Data,
-		*types.ExecutionPayloadHeader,
-		*types.Fork,
-		*types.Validator,
-		[]*types.Validator,
-	](
-		testStoreService,
-		testCodec,
-	)
 
 	// no balance to start
 	res, err := store.GetBalances()
 	require.NoError(t, err)
-	require.Zero(t, res)
+	require.Empty(t, res)
 
 	// add balances
 	var (
@@ -90,19 +76,19 @@ func TestGetBalances(t *testing.T) {
 	require.NoError(t, store.SetBalance(idx2, inBal2))
 
 	// check we can query added balances
-	balRes, err := store.GetBalance(idx1)
+	outBal, err := store.GetBalance(idx1)
 	require.NoError(t, err)
-	require.Equal(t, balRes, inBal1)
+	require.Equal(t, inBal1, outBal)
 
-	balRes, err = store.GetBalance(idx2)
+	outBal, err = store.GetBalance(idx2)
 	require.NoError(t, err)
-	require.Equal(t, balRes, inBal2)
+	require.Equal(t, inBal2, outBal)
 
 	res, err = store.GetBalances()
 	require.NoError(t, err)
 	require.Len(t, res, 2)
-	require.Equal(t, res[0], inBal1.Unwrap())
-	require.Equal(t, res[1], inBal2.Unwrap())
+	require.Equal(t, inBal1.Unwrap(), res[0])
+	require.Equal(t, inBal2.Unwrap(), res[1])
 
 	// update existing balances
 	newInBal1, newInBal2 := math.U64(0), inBal2*2
@@ -110,25 +96,119 @@ func TestGetBalances(t *testing.T) {
 	require.NoError(t, store.SetBalance(idx2, newInBal2))
 
 	// check we can query updated balances
-	balRes, err = store.GetBalance(idx1)
+	outBal, err = store.GetBalance(idx1)
 	require.NoError(t, err)
-	require.Equal(t, balRes, newInBal1)
+	require.Equal(t, newInBal1, outBal)
 
-	balRes, err = store.GetBalance(idx2)
+	outBal, err = store.GetBalance(idx2)
 	require.NoError(t, err)
-	require.Equal(t, balRes, newInBal2)
+	require.Equal(t, newInBal2, outBal)
 
 	res, err = store.GetBalances()
 	require.NoError(t, err)
 	require.Len(t, res, 2)
-	require.Equal(t, res[0], newInBal1.Unwrap())
-	require.Equal(t, res[1], newInBal2.Unwrap())
+	require.Equal(t, newInBal1.Unwrap(), res[0])
+	require.Equal(t, newInBal2.Unwrap(), res[1])
 }
 
-func initStoreBanckend() (sdk.Context, error) {
+func TestValidators(t *testing.T) {
+	store, err := initTestStore()
+	require.NoError(t, err)
+
+	// no validators to start
+	res, err := store.GetValidators()
+	require.NoError(t, err)
+	require.Empty(t, res)
+
+	// add validators
+	var (
+		inVal1 = &types.Validator{
+			Pubkey:           bytes.B48{0x01},
+			EffectiveBalance: 31e9,
+		}
+		inVal2 = &types.Validator{
+			Pubkey:           bytes.B48{0x02},
+			EffectiveBalance: 32e9,
+		}
+	)
+	require.NoError(t, store.AddValidator(inVal1))
+	require.NoError(t, store.AddValidator(inVal2))
+
+	// check we can query added validators
+	valIdx1, err := store.ValidatorIndexByPubkey(inVal1.GetPubkey())
+	require.NoError(t, err)
+	outVal, err := store.ValidatorByIndex(valIdx1)
+	require.NoError(t, err)
+	require.Equal(t, inVal1, outVal)
+
+	valIdx2, err := store.ValidatorIndexByPubkey(inVal2.GetPubkey())
+	require.NoError(t, err)
+	outVal, err = store.ValidatorByIndex(valIdx2)
+	require.NoError(t, err)
+	require.Equal(t, inVal2, outVal)
+
+	valCount, err := store.GetTotalValidators()
+	require.NoError(t, err)
+	require.Equal(t, uint64(2), valCount)
+
+	res, err = store.GetValidators()
+	require.NoError(t, err)
+	require.Len(t, res, int(valCount))
+	require.Equal(t, inVal1, res[0])
+	require.Equal(t, inVal2, res[1])
+
+	// update existing validators balances
+	var (
+		inUpdatedVal1 = &types.Validator{
+			Pubkey:           inVal1.GetPubkey(),
+			EffectiveBalance: inVal1.EffectiveBalance * 2,
+		}
+		inUpdatedVal2 = &types.Validator{
+			Pubkey:           inVal2.GetPubkey(),
+			EffectiveBalance: inVal1.EffectiveBalance / 2,
+		}
+	)
+	require.NoError(t, store.UpdateValidatorAtIndex(valIdx1, inUpdatedVal1))
+	require.NoError(t, store.UpdateValidatorAtIndex(valIdx2, inUpdatedVal2))
+
+	// check we can query updated validators
+	upValIdx1, err := store.ValidatorIndexByPubkey(inVal1.GetPubkey())
+	require.NoError(t, err)
+	require.Equal(t, valIdx1, upValIdx1)
+	outVal, err = store.ValidatorByIndex(upValIdx1)
+	require.NoError(t, err)
+	require.Equal(t, inUpdatedVal1, outVal)
+
+	upValIdx2, err := store.ValidatorIndexByPubkey(inVal2.GetPubkey())
+	require.NoError(t, err)
+	require.Equal(t, valIdx2, upValIdx2)
+	outVal, err = store.ValidatorByIndex(upValIdx2)
+	require.NoError(t, err)
+	require.Equal(t, inUpdatedVal2, outVal)
+
+	upValCount, err := store.GetTotalValidators()
+	require.NoError(t, err)
+	require.Equal(t, valCount, upValCount)
+
+	res, err = store.GetValidators()
+	require.NoError(t, err)
+	require.Len(t, res, int(valCount))
+	require.Equal(t, inUpdatedVal1, res[0])
+	require.Equal(t, inUpdatedVal2, res[1])
+}
+
+func initTestStore() (
+	*beacondb.KVStore[
+		*types.BeaconBlockHeader,
+		*types.Eth1Data,
+		*types.ExecutionPayloadHeader,
+		*types.Fork,
+		*types.Validator,
+		[]*types.Validator,
+	], error) {
 	db, err := db.OpenDB("", dbm.MemDBBackend)
 	if err != nil {
-		return sdk.Context{}, fmt.Errorf("failed opening mem db: %w", err)
+		return nil, fmt.Errorf("failed opening mem db: %w", err)
 	}
 	var (
 		nopLog     = log.NewNopLogger()
@@ -144,7 +224,21 @@ func initStoreBanckend() (sdk.Context, error) {
 	ctx := sdk.NewContext(cms, true, nopLog)
 	cms.MountStoreWithDB(testStoreKey, storetypes.StoreTypeIAVL, nil)
 	if err = cms.LoadLatestVersion(); err != nil {
-		return sdk.Context{}, fmt.Errorf("failed to load latest version: %w", err)
+		return nil, fmt.Errorf("failed to load latest version: %w", err)
 	}
-	return ctx, nil
+	testStoreService := &testKVStoreService{
+		ctx: ctx,
+	}
+
+	return beacondb.New[
+		*types.BeaconBlockHeader,
+		*types.Eth1Data,
+		*types.ExecutionPayloadHeader,
+		*types.Fork,
+		*types.Validator,
+		[]*types.Validator,
+	](
+		testStoreService,
+		testCodec,
+	), nil
 }
