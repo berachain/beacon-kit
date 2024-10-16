@@ -58,13 +58,13 @@ var (
 )
 
 func TestGetBalances(t *testing.T) {
-	ctx, err := initKvStore()
+	ctx, err := initStoreBanckend()
 	require.NoError(t, err)
 	testStoreService := &testKVStoreService{
 		ctx: ctx,
 	}
 
-	kvStore := beacondb.New[
+	store := beacondb.New[
 		*types.BeaconBlockHeader,
 		*types.Eth1Data,
 		*types.ExecutionPayloadHeader,
@@ -77,7 +77,7 @@ func TestGetBalances(t *testing.T) {
 	)
 
 	// no balance to start
-	res, err := kvStore.GetBalances()
+	res, err := store.GetBalances()
 	require.NoError(t, err)
 	require.Zero(t, res)
 
@@ -86,19 +86,19 @@ func TestGetBalances(t *testing.T) {
 		idx1, idx2     = math.U64(1_987), math.U64(1_989)
 		inBal1, inBal2 = math.U64(8_992), math.U64(10_000)
 	)
-	require.NoError(t, kvStore.SetBalance(idx1, inBal1))
-	require.NoError(t, kvStore.SetBalance(idx2, inBal2))
+	require.NoError(t, store.SetBalance(idx1, inBal1))
+	require.NoError(t, store.SetBalance(idx2, inBal2))
 
 	// check we can query added balances
-	balRes, err := kvStore.GetBalance(idx1)
+	balRes, err := store.GetBalance(idx1)
 	require.NoError(t, err)
 	require.Equal(t, balRes, inBal1)
 
-	balRes, err = kvStore.GetBalance(idx2)
+	balRes, err = store.GetBalance(idx2)
 	require.NoError(t, err)
 	require.Equal(t, balRes, inBal2)
 
-	res, err = kvStore.GetBalances()
+	res, err = store.GetBalances()
 	require.NoError(t, err)
 	require.Len(t, res, 2)
 	require.Equal(t, res[0], inBal1.Unwrap())
@@ -106,26 +106,26 @@ func TestGetBalances(t *testing.T) {
 
 	// update existing balances
 	newInBal1, newInBal2 := math.U64(0), inBal2*2
-	require.NoError(t, kvStore.SetBalance(idx1, newInBal1))
-	require.NoError(t, kvStore.SetBalance(idx2, newInBal2))
+	require.NoError(t, store.SetBalance(idx1, newInBal1))
+	require.NoError(t, store.SetBalance(idx2, newInBal2))
 
 	// check we can query updated balances
-	balRes, err = kvStore.GetBalance(idx1)
+	balRes, err = store.GetBalance(idx1)
 	require.NoError(t, err)
 	require.Equal(t, balRes, newInBal1)
 
-	balRes, err = kvStore.GetBalance(idx2)
+	balRes, err = store.GetBalance(idx2)
 	require.NoError(t, err)
 	require.Equal(t, balRes, newInBal2)
 
-	res, err = kvStore.GetBalances()
+	res, err = store.GetBalances()
 	require.NoError(t, err)
 	require.Len(t, res, 2)
 	require.Equal(t, res[0], newInBal1.Unwrap())
 	require.Equal(t, res[1], newInBal2.Unwrap())
 }
 
-func initKvStore() (sdk.Context, error) {
+func initStoreBanckend() (sdk.Context, error) {
 	db, err := db.OpenDB("", dbm.MemDBBackend)
 	if err != nil {
 		return sdk.Context{}, fmt.Errorf("failed opening mem db: %w", err)
