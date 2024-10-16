@@ -36,6 +36,12 @@ func NewU256(v uint64) *U256 {
 
 // NewU256FromBigInt creates a new U256 from a big.Int.
 func NewU256FromBigInt(b *big.Int) *U256 {
+	// Negative integers ought to be rejected by math.NewU256FromBigInt(b)
+	// since they cannot be expressed in the U256 type. However this does
+	// not seem to happen holiman/uint256#115 so guarding here.
+	if b.Sign() < 0 {
+		panic("Attempting to create U256 from negative big.Int")
+	}
 	return uint256.MustFromBig(b)
 }
 
