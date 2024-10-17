@@ -87,7 +87,7 @@ func (b *BeaconBlock) NewFromSSZ(
 		block = &BeaconBlock{}
 		return block, block.UnmarshalSSZ(bz)
 	case version.DenebPlus:
-		panic("unsupported fork version")
+		panic(ErrForkVersionNotSupported)
 	default:
 		return block, ErrForkVersionNotSupported
 	}
