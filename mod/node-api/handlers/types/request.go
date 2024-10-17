@@ -28,6 +28,6 @@ type BlockIDRequest struct {
 	BlockID string `param:"block_id" validate:"required,block_id"`
 }
 
-type ExecutionIDRequest struct {
-	ExecutionID string `param:"execution_id" validate:"required,execution_id"`
+type TimestampIDRequest struct {
+	TimestampID string `param:"timestamp_id" validate:"required,timestamp_id"`
 }

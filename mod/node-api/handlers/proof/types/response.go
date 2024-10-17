@@ -27,7 +27,7 @@ import (
 )
 
 // BlockProposerResponse is the response for the
-// `/proof/block_proposer/{execution_id}` endpoint.
+// `/proof/block_proposer/{timestamp_id}` endpoint.
 type BlockProposerResponse[BeaconBlockHeaderT any] struct {
 	// BeaconBlockHeader is the block header of which the hash tree root is the
 	// beacon block root to verify against.
@@ -47,7 +47,7 @@ type BlockProposerResponse[BeaconBlockHeaderT any] struct {
 }
 
 // ExecutionNumberResponse is the response for the
-// `/proof/execution_number/{execution_id}` endpoint.
+// `/proof/execution_number/{timestamp_id}` endpoint.
 type ExecutionNumberResponse[BeaconBlockHeaderT any] struct {
 	// BeaconBlockHeader is the block header of which the hash tree root is the
 	// beacon block root to verify against.
@@ -65,7 +65,7 @@ type ExecutionNumberResponse[BeaconBlockHeaderT any] struct {
 }
 
 // ExecutionFeeRecipientResponse is the response for the
-// `/proof/execution_fee_recipient/{execution_id}` endpoint.
+// `/proof/execution_fee_recipient/{timestamp_id}` endpoint.
 type ExecutionFeeRecipientResponse[BeaconBlockHeaderT any] struct {
 	// BeaconBlockHeader is the block header of which the hash tree root is the
 	// beacon block root to verify against.

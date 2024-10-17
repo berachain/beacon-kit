@@ -32,7 +32,7 @@ var ErrInvalidHexStringLength = errors.New("invalid hex string length")
 // Inverse operation is ToBytes or MustToBytes.
 func EncodeBytes(b []byte) string {
 	hexStr := make([]byte, len(b)*2+prefixLen)
-	copy(hexStr, prefix)
+	copy(hexStr, Prefix)
 	hex.Encode(hexStr[prefixLen:], b)
 	return string(hexStr)
 }
