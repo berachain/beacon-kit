@@ -23,6 +23,7 @@ package types
 import (
 	"fmt"
 
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
@@ -68,10 +69,9 @@ func (b *BeaconBlock) NewWithVersion(
 		}, nil
 	}
 
-	return nil, fmt.Errorf(
-		"fork %d: %w",
-		forkVersion,
+	return nil, errors.Wrap(
 		ErrForkVersionNotSupported,
+		fmt.Sprintf("fork %d", forkVersion),
 	)
 }
 
@@ -85,10 +85,9 @@ func (b *BeaconBlock) NewFromSSZ(
 		return block, block.UnmarshalSSZ(bz)
 	}
 
-	return nil, fmt.Errorf(
-		"fork %d: %w",
-		forkVersion,
+	return nil, errors.Wrap(
 		ErrForkVersionNotSupported,
+		fmt.Sprintf("fork %d", forkVersion),
 	)
 }
 
