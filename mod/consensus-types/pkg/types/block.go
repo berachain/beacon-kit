@@ -21,6 +21,8 @@
 package types
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
@@ -56,24 +58,21 @@ func (b *BeaconBlock) NewWithVersion(
 	parentBlockRoot common.Root,
 	forkVersion uint32,
 ) (*BeaconBlock, error) {
-	var (
-		block *BeaconBlock
-	)
-
-	switch forkVersion {
-	case version.Deneb:
-		block = &BeaconBlock{
+	if forkVersion == version.Deneb {
+		return &BeaconBlock{
 			Slot:          slot,
 			ProposerIndex: proposerIndex,
 			ParentRoot:    parentBlockRoot,
 			StateRoot:     common.Root{},
 			Body:          &BeaconBlockBody{},
-		}
-	default:
-		return &BeaconBlock{}, ErrForkVersionNotSupported
+		}, nil
 	}
 
-	return block, nil
+	return nil, fmt.Errorf(
+		"fork %d: %w",
+		forkVersion,
+		ErrForkVersionNotSupported,
+	)
 }
 
 // NewFromSSZ creates a new beacon block from the given SSZ bytes.
@@ -81,16 +80,16 @@ func (b *BeaconBlock) NewFromSSZ(
 	bz []byte,
 	forkVersion uint32,
 ) (*BeaconBlock, error) {
-	var block *BeaconBlock
-	switch forkVersion {
-	case version.Deneb:
-		block = &BeaconBlock{}
+	if forkVersion == version.Deneb {
+		block := &BeaconBlock{}
 		return block, block.UnmarshalSSZ(bz)
-	case version.DenebPlus:
-		panic("unsupported fork version")
-	default:
-		return block, ErrForkVersionNotSupported
 	}
+
+	return nil, fmt.Errorf(
+		"fork %d: %w",
+		forkVersion,
+		ErrForkVersionNotSupported,
+	)
 }
 
 /* -------------------------------------------------------------------------- */
