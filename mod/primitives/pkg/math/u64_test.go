@@ -329,38 +329,81 @@ func TestU64_PrevPowerOfTwo(t *testing.T) {
 
 func TestGweiFromWei(t *testing.T) {
 	tests := []struct {
-		name     string
-		input    *big.Int
-		expected math.Gwei
+		name        string
+		input       func(t *testing.T) *big.Int
+		expectedErr error
+		expectedRes math.Gwei
 	}{
 		{
-			name:     "zero wei",
-			input:    big.NewInt(0),
-			expected: math.Gwei(0),
+			name: "invalid negative gwei",
+			input: func(t *testing.T) *big.Int {
+				t.Helper()
+				b, _ := new(big.Int).SetString("-1", 10)
+				return b
+			},
+			expectedErr: math.ErrGweiOverflow,
+			expectedRes: math.Gwei(0),
 		},
 		{
-			name:     "one gwei",
-			input:    big.NewInt(math.GweiPerWei),
-			expected: math.Gwei(1),
+			name: "invalid huge gwei",
+			input: func(t *testing.T) *big.Int {
+				t.Helper()
+				b, _ := new(big.Int).SetString("18446744073709551616000000000", 10)
+				return b
+			},
+			expectedErr: math.ErrGweiOverflow,
+			expectedRes: math.Gwei(0),
 		},
 		{
-			name:     "arbitrary wei",
-			input:    big.NewInt(math.GweiPerWei * 123456789),
-			expected: math.Gwei(123456789),
+			name: "zero wei",
+			input: func(t *testing.T) *big.Int {
+				t.Helper()
+				return big.NewInt(0)
+			},
+			expectedErr: nil,
+			expectedRes: math.Gwei(0),
+		},
+		{
+			name: "one gwei",
+			input: func(t *testing.T) *big.Int {
+				t.Helper()
+				return big.NewInt(math.GweiPerWei)
+			},
+			expectedErr: nil,
+			expectedRes: math.Gwei(1),
+		},
+		{
+			name: "arbitrary wei",
+			input: func(t *testing.T) *big.Int {
+				t.Helper()
+				return big.NewInt(math.GweiPerWei * 123456789)
+			},
+			expectedErr: nil,
+			expectedRes: math.Gwei(123456789),
 		},
 		{
 			name: "max uint64 wei",
-			input: new(
-				big.Int,
-			).Mul(big.NewInt(math.GweiPerWei), new(big.Int).SetUint64(^uint64(0))),
-			expected: math.Gwei(1<<64 - 1),
+			input: func(t *testing.T) *big.Int {
+				t.Helper()
+				return new(big.Int).Mul(
+					big.NewInt(math.GweiPerWei),
+					new(big.Int).SetUint64(^uint64(0)),
+				)
+			},
+			expectedErr: nil,
+			expectedRes: math.Gwei(1<<64 - 1),
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := math.GweiFromWei(tt.input)
-			require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
+			result, err := math.GweiFromWei(tt.input(t))
+			if tt.expectedErr != nil {
+				require.ErrorIs(t, err, tt.expectedErr)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, tt.expectedRes, result, "Test case: %s", tt.name)
+			}
 		})
 	}
 }
@@ -369,40 +412,62 @@ func TestGwei_ToWei(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    math.Gwei
-		expected *math.U256
+		expected func(t *testing.T) *math.U256
 	}{
 		{
-			name:     "zero gwei",
-			input:    math.Gwei(0),
-			expected: math.NewU256FromBigInt(big.NewInt(0)),
+			name:  "zero gwei",
+			input: math.Gwei(0),
+			expected: func(t *testing.T) *math.U256 {
+				t.Helper()
+				res, err := math.NewU256FromBigInt(big.NewInt(0))
+				require.NoError(t, err)
+				return res
+			},
 		},
 		{
-			name:     "one gwei",
-			input:    math.Gwei(1),
-			expected: math.NewU256FromBigInt(big.NewInt(math.GweiPerWei)),
+			name:  "one gwei",
+			input: math.Gwei(1),
+			expected: func(t *testing.T) *math.U256 {
+				t.Helper()
+				res, err := math.NewU256FromBigInt(big.NewInt(math.GweiPerWei))
+				require.NoError(t, err)
+				return res
+			},
 		},
 		{
 			name:  "arbitrary gwei",
 			input: math.Gwei(123456789),
-			expected: math.NewU256FromBigInt(new(big.Int).Mul(
-				big.NewInt(math.GweiPerWei),
-				big.NewInt(123456789),
-			)),
+			expected: func(t *testing.T) *math.U256 {
+				t.Helper()
+				n := new(big.Int).Mul(
+					big.NewInt(math.GweiPerWei),
+					big.NewInt(123456789),
+				)
+				res, err := math.NewU256FromBigInt(n)
+				require.NoError(t, err)
+				return res
+			},
 		},
 		{
 			name:  "max uint64 gwei",
 			input: math.Gwei(1<<64 - 1),
-			expected: math.NewU256FromBigInt(new(big.Int).Mul(
-				big.NewInt(math.GweiPerWei),
-				new(big.Int).SetUint64(1<<64-1),
-			)),
+			expected: func(t *testing.T) *math.U256 {
+				t.Helper()
+				n := new(big.Int).Mul(
+					big.NewInt(math.GweiPerWei),
+					new(big.Int).SetUint64(1<<64-1),
+				)
+				res, err := math.NewU256FromBigInt(n)
+				require.NoError(t, err)
+				return res
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := tt.input.ToWei()
-			require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
+			require.Equal(t, tt.expected(t), result)
 		})
 	}
 }

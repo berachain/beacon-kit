@@ -66,10 +66,9 @@ func (*ReportingService) Name() string {
 // Start begins the periodic logging of the chain version.
 func (v *ReportingService) Start(ctx context.Context) error {
 	ticker := time.NewTicker(v.reportingInterval)
-	defer ticker.Stop()
-
 	v.metrics.reportVersion(v.version)
 	go func() {
+		defer ticker.Stop()
 		for {
 			select {
 			case <-ticker.C:
