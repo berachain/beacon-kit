@@ -87,7 +87,7 @@ func (b *BeaconBlock) NewFromSSZ(
 		block = &BeaconBlock{}
 		return block, block.UnmarshalSSZ(bz)
 	case version.DenebPlus:
-		panic("unsupported fork version")
+		panic(ErrForkVersionNotSupported)
 	default:
 		return block, ErrForkVersionNotSupported
 	}
@@ -233,8 +233,8 @@ func (b *BeaconBlock) GetHeader() *BeaconBlockHeader {
 	}
 }
 
-// GetExecutionNumber retrieves the execution number of the BeaconBlock from
+// GetTimestamp retrieves the timestamp of the BeaconBlock from
 // the ExecutionPayload.
-func (b *BeaconBlock) GetExecutionNumber() math.U64 {
-	return b.Body.ExecutionPayload.Number
+func (b *BeaconBlock) GetTimestamp() math.U64 {
+	return b.Body.ExecutionPayload.Timestamp
 }

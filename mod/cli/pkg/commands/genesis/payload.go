@@ -21,6 +21,7 @@
 package genesis
 
 import (
+	"fmt"
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/cli/pkg/context"
@@ -93,11 +94,15 @@ func AddExecutionPayloadCmd(chainSpec common.ChainSpec) *cobra.Command {
 			}
 
 			// Inject the execution payload.
-			genesisInfo.ExecutionPayloadHeader = executableDataToExecutionPayloadHeader(
-				version.ToUint32(genesisInfo.ForkVersion),
-				payload,
-				chainSpec.MaxWithdrawalsPerPayload(),
-			)
+			genesisInfo.ExecutionPayloadHeader, err =
+				executableDataToExecutionPayloadHeader(
+					version.ToUint32(genesisInfo.ForkVersion),
+					payload,
+					chainSpec.MaxWithdrawalsPerPayload(),
+				)
+			if err != nil {
+				return errors.Wrap(err, "failed to unmarshal beacon state")
+			}
 
 			appGenesisState["beacon"], err = json.Marshal(genesisInfo)
 			if err != nil {
@@ -124,7 +129,7 @@ func executableDataToExecutionPayloadHeader(
 	data *gethprimitives.ExecutableData,
 	// todo: re-enable when codec supports.
 	_ uint64,
-) *types.ExecutionPayloadHeader {
+) (*types.ExecutionPayloadHeader, error) {
 	var executionPayloadHeader *types.ExecutionPayloadHeader
 	switch forkVersion {
 	case version.Deneb, version.DenebPlus:
@@ -155,6 +160,11 @@ func executableDataToExecutionPayloadHeader(
 			excessBlobGas = *data.ExcessBlobGas
 		}
 
+		baseFeePerGas, err := math.NewU256FromBigInt(data.BaseFeePerGas)
+		if err != nil {
+			return nil, fmt.Errorf("failed baseFeePerGas conversion: %w", err)
+		}
+
 		executionPayloadHeader = &types.ExecutionPayloadHeader{
 			ParentHash:    common.ExecutionHash(data.ParentHash),
 			FeeRecipient:  common.ExecutionAddress(data.FeeRecipient),
@@ -167,7 +177,7 @@ func executableDataToExecutionPayloadHeader(
 			GasUsed:       math.U64(data.GasUsed),
 			Timestamp:     math.U64(data.Timestamp),
 			ExtraData:     data.ExtraData,
-			BaseFeePerGas: math.NewU256FromBigInt(data.BaseFeePerGas),
+			BaseFeePerGas: baseFeePerGas,
 			BlockHash:     common.ExecutionHash(data.BlockHash),
 			// TODO: Decouple from broken bArtio.
 			TransactionsRoot: engineprimitives.
@@ -180,8 +190,8 @@ func executableDataToExecutionPayloadHeader(
 			ExcessBlobGas: math.U64(excessBlobGas),
 		}
 	default:
-		panic("unsupported fork version")
+		return nil, types.ErrForkVersionNotSupported
 	}
 
-	return executionPayloadHeader
+	return executionPayloadHeader, nil
 }

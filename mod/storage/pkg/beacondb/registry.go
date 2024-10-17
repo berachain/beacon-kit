@@ -21,6 +21,7 @@
 package beacondb
 
 import (
+	stderrors "errors"
 	"fmt"
 
 	"cosmossdk.io/collections/indexes"
@@ -168,7 +169,7 @@ func (kv *KVStore[
 	}
 
 	var (
-		vals = make([]ValidatorT, registrySize)
+		vals = make([]ValidatorT, 0, registrySize)
 		val  ValidatorT
 	)
 
@@ -180,19 +181,19 @@ func (kv *KVStore[
 			err,
 		)
 	}
+	defer func() {
+		err = stderrors.Join(err, iter.Close())
+	}()
 
-	i := 0
-	for iter.Valid() {
+	for ; iter.Valid(); iter.Next() {
 		val, err = iter.Value()
 		if err != nil {
 			return nil, err
 		}
-		vals[i] = val
-		iter.Next()
-		i++
+		vals = append(vals, val)
 	}
 
-	return vals, nil
+	return vals, err
 }
 
 // GetTotalValidators returns the total number of validators.
@@ -232,6 +233,9 @@ func (kv *KVStore[
 			err,
 		)
 	}
+	defer func() {
+		err = stderrors.Join(err, iter.Close())
+	}()
 
 	// Iterate over all validators and collect them.
 	for ; iter.Valid(); iter.Next() {
@@ -244,7 +248,7 @@ func (kv *KVStore[
 		}
 		vals = append(vals, v)
 	}
-	return vals, nil
+	return vals, err
 }
 
 // GetBalance returns the balance of a validator.
@@ -291,17 +295,19 @@ func (kv *KVStore[
 			err,
 		)
 	}
+	defer func() {
+		err = stderrors.Join(err, iter.Close())
+	}()
 
 	var balance uint64
-	for iter.Valid() {
+	for ; iter.Valid(); iter.Next() {
 		balance, err = iter.Value()
 		if err != nil {
 			return nil, err
 		}
 		balances = append(balances, balance)
-		iter.Next()
 	}
-	return balances, nil
+	return balances, err
 }
 
 // GetTotalActiveBalances returns the total active balances of all validatorkv.
@@ -313,6 +319,14 @@ func (kv *KVStore[
 ]) GetTotalActiveBalances(
 	slotsPerEpoch uint64,
 ) (math.Gwei, error) {
+	slot, err := kv.slot.Get(kv.ctx)
+	if err != nil {
+		return 0, fmt.Errorf("failed retrieving total active balances: %w", err)
+	}
+
+	totalActiveBalances := math.Gwei(0)
+	epoch := math.Epoch(slot / slotsPerEpoch)
+
 	iter, err := kv.validators.Indexes.EffectiveBalance.Iterate(kv.ctx, nil)
 	err = errors.MapError(err)
 	if err != nil {
@@ -322,13 +336,9 @@ func (kv *KVStore[
 		)
 	}
 
-	slot, err := kv.GetSlot()
-	if err != nil {
-		return 0, fmt.Errorf("failed retrieving total active balances: %w", err)
-	}
-
-	totalActiveBalances := math.Gwei(0)
-	epoch := slot / math.Epoch(slotsPerEpoch)
+	defer func() {
+		err = stderrors.Join(err, iter.Close())
+	}()
 
 	err = indexes.ScanValues(
 		kv.ctx, kv.validators, iter, func(v ValidatorT,

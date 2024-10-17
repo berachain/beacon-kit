@@ -21,6 +21,7 @@
 package beacondb
 
 import (
+	stderrors "errors"
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -40,17 +41,19 @@ func (kv *KVStore[
 			err,
 		)
 	}
+	defer func() {
+		err = stderrors.Join(err, iter.Close())
+	}()
 
-	for iter.Valid() {
+	for ; iter.Valid(); iter.Next() {
 		var slashing uint64
 		slashing, err = iter.Value()
 		if err != nil {
 			return nil, err
 		}
 		slashings = append(slashings, math.Gwei(slashing))
-		iter.Next()
 	}
-	return slashings, nil
+	return slashings, err
 }
 
 // GetSlashingAtIndex retrieves the slashing amount by index from the store.
