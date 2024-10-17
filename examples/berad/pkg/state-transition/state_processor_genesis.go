@@ -120,6 +120,5 @@ func (sp *StateProcessor[
 	if err != nil {
 		return nil, err
 	}
-	st.Save()
 	return updates, nil
 }
