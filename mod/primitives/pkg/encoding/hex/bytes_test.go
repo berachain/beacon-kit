@@ -72,6 +72,11 @@ func TestEncodeAndDecodeBytes(t *testing.T) {
 			decoded, err := hex.ToBytes(result)
 			require.NoError(t, err)
 			require.Equal(t, tt.input, decoded)
+
+			require.NotPanics(t, func() {
+				decoded = hex.MustToBytes(result)
+			})
+			require.Equal(t, tt.input, decoded)
 		})
 	}
 }
