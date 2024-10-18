@@ -31,31 +31,30 @@ func TestMarshalText(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    uint64
-		expected string
+		expected []byte
 	}{
-		{"Zero", 0, "0x0"},
-		{"MaxByte", 255, "0xff"},
-		{"MaxWord", 65535, "0xffff"},
-		{"MaxDWord", 4294967295, "0xffffffff"},
-		{"MaxQWord", 18446744073709551615, "0xffffffffffffffff"},
+		{"Zero", 0, []byte("0x0")},
+		{"MaxByte", 255, []byte("0xff")},
+		{"Positive value", 12345, []byte("0x3039")},
+		{"MaxWord", 65535, []byte("0xffff")},
+		{"MaxDWord", 4294967295, []byte("0xffffffff")},
+		{"MaxQWord", 18446744073709551615, []byte("0xffffffffffffffff")},
 	}
 
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			result, err := hex.MarshalText(test.input)
-			require.NoError(t, err, "Test case %s", test.name)
-			require.Equal(
-				t,
-				test.expected,
-				string(result),
-				"Test case %s",
-				test.name,
-			)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := hex.MarshalText(tt.input)
+			require.NoError(t, err)
+			require.Equal(t, tt.expected, result)
+
+			decoded, err := hex.UnmarshalUint64Text(result)
+			require.NoError(t, err)
+			require.Equal(t, tt.input, decoded)
 		})
 	}
 }
 
-func TestValidateUnmarshalInput(t *testing.T) {
+func TestValidateQuotedString(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    []byte
@@ -69,11 +68,11 @@ func TestValidateUnmarshalInput(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := hex.ValidateUnmarshalInput(test.input)
+			_, err := hex.ValidateQuotedString(test.input)
 			if test.expected != nil {
-				require.Equal(t, test.expected, err, "Test case %s", test.name)
+				require.ErrorIs(t, test.expected, err)
 			} else {
-				require.NoError(t, err, "Test case %s", test.name)
+				require.NoError(t, err)
 			}
 		})
 	}
@@ -99,10 +98,10 @@ func TestUnmarshalUint64Text(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			result, err := hex.UnmarshalUint64Text(test.input)
 			if test.err != nil {
-				require.Equal(t, test.err, err, "Test case %s", test.name)
+				require.ErrorIs(t, test.err, err)
 			} else {
-				require.Equal(t, test.expected, result, "Test case %s", test.name)
 				require.NoError(t, err)
+				require.Equal(t, test.expected, result)
 			}
 		})
 	}
