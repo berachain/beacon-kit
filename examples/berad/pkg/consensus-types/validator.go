@@ -37,15 +37,15 @@ type Validator struct {
 	// Pubkey is the validator's 48-byte BLS public key.
 	Pubkey crypto.BLSPubkey `json:"pubkey"`
 	// WithdrawalCredentials are an address that controls the validator.
-	WithdrawalCredentials types.WithdrawalCredentials `json:"withdrawalCredentials"`
+	WithdrawalCredentials types.WithdrawalCredentials `json:"withdrawal_credentials"`
 	// EffectiveBalance is the validator's current effective balance in gwei.
-	EffectiveBalance math.Gwei `json:"effectiveBalance"`
+	EffectiveBalance math.Gwei `json:"effective_balance"`
 	// ActivationEpoch is the epoch in which the validator activated.
-	ActivationEpoch math.Epoch `json:"activationEpoch"`
+	ActivationEpoch math.Epoch `json:"activation_epoch"`
 	// ExitEpoch is the epoch in which the validator exited.
-	ExitEpoch math.Epoch `json:"exitEpoch"`
+	ExitEpoch math.Epoch `json:"exit_epoch"`
 	// WithdrawableEpoch is the epoch in which the validator can withdraw.
-	WithdrawableEpoch math.Epoch `json:"withdrawableEpoch"`
+	WithdrawableEpoch math.Epoch `json:"withdrawable_epoch"`
 }
 
 /* -------------------------------------------------------------------------- */
@@ -232,4 +232,14 @@ func (v Validator) GetWithdrawableEpoch() math.Epoch {
 // GetWithdrawalCredentials returns the withdrawal credentials of the validator.
 func (v Validator) GetWithdrawalCredentials() types.WithdrawalCredentials {
 	return v.WithdrawalCredentials
+}
+
+// GetActivationEpoch returns the activation epoch of the validator.
+func (v *Validator) GetActivationEpoch() math.Epoch {
+	return v.ActivationEpoch
+}
+
+// GetExitEpoch returns the exit epoch of the validator.
+func (v *Validator) GetExitEpoch() math.Epoch {
+	return v.ExitEpoch
 }

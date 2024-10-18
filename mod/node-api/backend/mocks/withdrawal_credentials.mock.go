@@ -20,6 +20,53 @@ func (_m *WithdrawalCredentials) EXPECT() *WithdrawalCredentials_Expecter {
 	return &WithdrawalCredentials_Expecter{mock: &_m.Mock}
 }
 
+// Bytes provides a mock function with given fields:
+func (_m *WithdrawalCredentials) Bytes() []byte {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for Bytes")
+	}
+
+	var r0 []byte
+	if rf, ok := ret.Get(0).(func() []byte); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]byte)
+		}
+	}
+
+	return r0
+}
+
+// WithdrawalCredentials_Bytes_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Bytes'
+type WithdrawalCredentials_Bytes_Call struct {
+	*mock.Call
+}
+
+// Bytes is a helper method to define mock.On call
+func (_e *WithdrawalCredentials_Expecter) Bytes() *WithdrawalCredentials_Bytes_Call {
+	return &WithdrawalCredentials_Bytes_Call{Call: _e.mock.On("Bytes")}
+}
+
+func (_c *WithdrawalCredentials_Bytes_Call) Run(run func()) *WithdrawalCredentials_Bytes_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *WithdrawalCredentials_Bytes_Call) Return(_a0 []byte) *WithdrawalCredentials_Bytes_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *WithdrawalCredentials_Bytes_Call) RunAndReturn(run func() []byte) *WithdrawalCredentials_Bytes_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ToExecutionAddress provides a mock function with given fields:
 func (_m *WithdrawalCredentials) ToExecutionAddress() (common.ExecutionAddress, error) {
 	ret := _m.Called()
