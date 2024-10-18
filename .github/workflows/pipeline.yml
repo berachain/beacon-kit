@@ -28,11 +28,11 @@ name: pipeline
 on:
   push:
     branches:
-      - main 
+      - develop
+      - main
     tags:
       - "v*"
   pull_request:
-  merge_group:
   workflow_dispatch:
 
 env:

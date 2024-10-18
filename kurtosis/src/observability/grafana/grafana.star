@@ -2,7 +2,7 @@ CONFIG_DIR_PATH = "/config"
 DASHBOARDS_DIR_PATH = "/dashboards"
 
 def start(plan, prometheus_url):
-    run(plan, prometheus_url, "github.com/berachain/helm-charts/grafana-dashboards")
+    run(plan, prometheus_url, "./ivm-dashboards")
 
 def run(
         plan,
@@ -38,7 +38,7 @@ def run(
     )
 
     # grab grafana dashboards from given location and upload them into enclave as a files artifact
-    # grafana_dashboards_files_artifact = plan.upload_files(src = grafana_dashboards_location, name = "grafana-dashboards")
+    grafana_dashboards_files_artifact = plan.upload_files(src = grafana_dashboards_location, name = "grafana-dashboards")
 
     plan.add_service(name = name, config = ServiceConfig(
         image = "grafana/grafana-enterprise:9.5.12",
@@ -57,6 +57,6 @@ def run(
         },
         files = {
             CONFIG_DIR_PATH: grafana_config_files_artifact,
-            # DASHBOARDS_DIR_PATH: grafana_dashboards_files_artifact,
+            DASHBOARDS_DIR_PATH: grafana_dashboards_files_artifact,
         },
     ))

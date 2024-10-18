@@ -97,7 +97,7 @@ node_settings:
       ethereumjs: ethpandaops/ethereumjs:stable
       geth: ethereum/client-go:latest
       nethermind: nethermind/nethermind:latest
-      reth: ghcr.io/paradigmxyz/reth:latest
+      reth: infinity-reth:latest
 eth_json_rpc_endpoints:
   # type has to be either blutgang or nginx
   - type: blutgang
@@ -113,8 +113,8 @@ additional_services:
   # - name: "goomy-blob"
   - name: "tx-fuzz"
     replicas: 8
-  # - name: "prometheus"
-  # - name: "grafana"
+  - name: "prometheus"
+  - name: "grafana"
   # - name: "pyroscope"
   # - name: "blockscout"
     # client: "el-full-reth-0"

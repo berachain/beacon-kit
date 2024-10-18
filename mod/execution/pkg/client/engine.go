@@ -55,6 +55,11 @@ func (s *EngineClient[
 	result, err := s.Client.NewPayload(
 		cctx, payload, versionedHashes, parentBeaconBlockRoot,
 	)
+	s.logger.Info(
+		"EL NewPayload RPC",
+		"duration", time.Since(startTime).String(),
+		"error", err,
+	)
 	if err != nil {
 		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {
 			s.metrics.incrementNewPayloadTimeout()
@@ -110,6 +115,11 @@ func (s *EngineClient[
 	result, err := s.Client.ForkchoiceUpdated(
 		cctx, state, attrs, forkVersion,
 	)
+	s.logger.Info(
+		"EL ForkchoiceUpdated RPC",
+		"duration", time.Since(startTime).String(),
+		"error", err,
+	)
 
 	if err != nil {
 		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {
@@ -150,6 +160,12 @@ func (s *EngineClient[
 
 	// Call and check for errors.
 	result, err := s.Client.GetPayload(cctx, payloadID, forkVersion)
+	s.logger.Info(
+		"EL GetPayload RPC",
+		"duration", time.Since(startTime).String(),
+		"error", err,
+	)
+
 	if err != nil {
 		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {
 			s.metrics.incrementGetPayloadTimeout()

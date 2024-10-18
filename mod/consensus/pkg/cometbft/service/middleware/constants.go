@@ -30,6 +30,6 @@ const (
 	// It follows the beacon block transaction in the tx list.
 	BlobSidecarsTxIndex
 	// AwaitTimeout is the timeout for awaiting events.
-	// Changing this to 3 avoids timeouts from Reth.
+	// Changing this to 3 avoids timeouts from normal Reth.
 	AwaitTimeout = 2 * time.Second
 )
