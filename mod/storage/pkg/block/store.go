@@ -21,12 +21,13 @@
 package block
 
 import (
+	stderrors "errors"
 	"fmt"
 
-	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/errors"
 	lru "github.com/hashicorp/golang-lru/v2"
 )
 
@@ -90,7 +91,11 @@ func (kv *KVStore[BeaconBlockT]) GetSlotByBlockRoot(
 ) (math.Slot, error) {
 	slot, ok := kv.blockRoots.Peek(blockRoot)
 	if !ok {
-		return 0, fmt.Errorf("slot not found at block root: %s", blockRoot)
+		return 0, fmt.Errorf(
+			"%w, block root: %s",
+			errors.ErrNotFound,
+			blockRoot,
+		)
 	}
 	return slot, nil
 }
@@ -102,10 +107,14 @@ func (kv *KVStore[BeaconBlockT]) GetParentSlotByTimestamp(
 ) (math.Slot, error) {
 	slot, ok := kv.timestamps.Peek(timestamp)
 	if !ok {
-		return slot, fmt.Errorf("slot not found at timestamp: %d", timestamp)
+		return 0, fmt.Errorf(
+			"%w, timestamp: %d",
+			errors.ErrNotFound,
+			timestamp,
+		)
 	}
 	if slot == 0 {
-		return slot, errors.New("parent slot not supported for genesis slot 0")
+		return slot, stderrors.New("parent slot not supported for genesis slot 0")
 	}
 
 	return slot - 1, nil
@@ -117,7 +126,11 @@ func (kv *KVStore[BeaconBlockT]) GetSlotByStateRoot(
 ) (math.Slot, error) {
 	slot, ok := kv.stateRoots.Peek(stateRoot)
 	if !ok {
-		return 0, fmt.Errorf("slot not found at state root: %s", stateRoot)
+		return 0, fmt.Errorf(
+			"%w, state root: %s",
+			errors.ErrNotFound,
+			stateRoot,
+		)
 	}
 	return slot, nil
 }

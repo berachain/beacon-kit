@@ -67,13 +67,15 @@ func (kv *KVStore[DepositT]) GetDepositsByIndex(
 	deposits := []DepositT{}
 	for i := range numView {
 		deposit, err := kv.store.Get(context.TODO(), startIndex+i)
-		if errors.Is(err, sdkcollections.ErrNotFound) {
+		switch {
+		case err == nil:
+			deposits = append(deposits, deposit)
+		case errors.Is(err, sdkcollections.ErrNotFound):
+			// not more deposits from index i on.
 			return deposits, nil
+		default:
+			return nil, err
 		}
-		if err != nil {
-			return deposits, err
-		}
-		deposits = append(deposits, deposit)
 	}
 	return deposits, nil
 }
@@ -108,7 +110,6 @@ func (kv *KVStore[DepositT]) Prune(start, end uint64) error {
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
 	for i := range end {
-		// This only errors if the key passed in cannot be encoded.
 		if err := kv.store.Remove(ctx, start+i); err != nil {
 			return err
 		}

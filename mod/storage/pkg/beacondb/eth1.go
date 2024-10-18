@@ -20,6 +20,12 @@
 
 package beacondb
 
+import (
+	"fmt"
+
+	"github.com/berachain/beacon-kit/mod/storage/pkg/errors"
+)
+
 // GetLatestExecutionPayloadHeader retrieves the latest execution payload
 // header from the BeaconStore.
 func (kv *KVStore[
@@ -28,13 +34,40 @@ func (kv *KVStore[
 ]) GetLatestExecutionPayloadHeader() (
 	ExecutionPayloadHeaderT, error,
 ) {
-	forkVersion, err := kv.latestExecutionPayloadVersion.Get(kv.ctx)
+	var h ExecutionPayloadHeaderT
+	v, err := kv.getLatestExecutionPayloadVersion()
 	if err != nil {
-		var t ExecutionPayloadHeaderT
-		return t, err
+		return h, fmt.Errorf(
+			"failed retrieving latest execution payload header: %w",
+			err,
+		)
 	}
-	kv.latestExecutionPayloadCodec.SetActiveForkVersion(forkVersion)
-	return kv.latestExecutionPayloadHeader.Get(kv.ctx)
+
+	kv.latestExecutionPayloadCodec.SetActiveForkVersion(v)
+	h, err = kv.latestExecutionPayloadHeader.Get(kv.ctx)
+	err = errors.MapError(err)
+	if err != nil {
+		return h, fmt.Errorf(
+			"failed retrieving latest execution payload header: %w",
+			err,
+		)
+	}
+	return h, nil
+}
+
+func (kv *KVStore[
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
+]) getLatestExecutionPayloadVersion() (uint32, error) {
+	v, err := kv.latestExecutionPayloadVersion.Get(kv.ctx)
+	err = errors.MapError(err)
+	if err != nil {
+		return 0, fmt.Errorf(
+			"failed retrieving latest execution payload version: %w",
+			err,
+		)
+	}
+	return v, nil
 }
 
 // SetLatestExecutionPayloadHeader sets the latest execution payload header in
@@ -45,9 +78,11 @@ func (kv *KVStore[
 ]) SetLatestExecutionPayloadHeader(
 	payloadHeader ExecutionPayloadHeaderT,
 ) error {
-	if err := kv.latestExecutionPayloadVersion.Set(
-		kv.ctx, payloadHeader.Version(),
-	); err != nil {
+	var (
+		ctx     = kv.ctx
+		version = payloadHeader.Version()
+	)
+	if err := kv.latestExecutionPayloadVersion.Set(ctx, version); err != nil {
 		return err
 	}
 	kv.latestExecutionPayloadCodec.SetActiveForkVersion(payloadHeader.Version())
@@ -59,7 +94,16 @@ func (kv *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) GetEth1DepositIndex() (uint64, error) {
-	return kv.eth1DepositIndex.Get(kv.ctx)
+	idx, err := kv.eth1DepositIndex.Get(kv.ctx)
+	err = errors.MapError(err)
+	if err != nil {
+		return 0, fmt.Errorf(
+			"failed retrieving eth1 deposit index %d, %w",
+			idx,
+			err,
+		)
+	}
+	return idx, nil
 }
 
 // SetEth1DepositIndex sets the eth1 deposit index in the beacon state.
@@ -77,7 +121,15 @@ func (kv *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) GetEth1Data() (Eth1DataT, error) {
-	return kv.eth1Data.Get(kv.ctx)
+	d, err := kv.eth1Data.Get(kv.ctx)
+	err = errors.MapError(err)
+	if err != nil {
+		return d, fmt.Errorf(
+			"failed retrieving eth1 data: %w",
+			err,
+		)
+	}
+	return d, nil
 }
 
 // SetEth1Data sets the eth1 data in the beacon state.
