@@ -119,7 +119,7 @@ func (db *RangeDB) Prune(start, end uint64) error {
 
 // prefix prefixes the given key with the index and a slash.
 func (db *RangeDB) prefix(index uint64, key []byte) []byte {
-	return []byte(fmt.Sprintf("%d/%s", index, hex.FromBytes(key).Unwrap()))
+	return []byte(fmt.Sprintf("%d/%s", index, hex.EncodeBytes(key)))
 }
 
 // ExtractIndex extracts the index from a prefixed key.

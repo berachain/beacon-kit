@@ -21,6 +21,7 @@
 package types
 
 import (
+	"fmt"
 	"math/big"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
@@ -31,6 +32,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
+)
+
+const (
+	defaultGasLimit      = math.U64(30000000)
+	defaultBaseFeePerGas = int64(3906250)
 )
 
 // Genesis is a struct that contains the genesis information
@@ -131,29 +137,42 @@ func DefaultGenesisDeneb() *Genesis[
 func DefaultGenesisExecutionPayloadHeaderDeneb() (
 	*ExecutionPayloadHeader, error,
 ) {
+	stateRoot, err := byteslib.ToBytes32(
+		hex.MustToBytes(
+			"0x12965ab9cbe2d2203f61d23636eb7e998f167cb79d02e452f532535641e35bcc",
+		),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed generating state root: %w", err)
+	}
+
+	receiptsRoot, err := byteslib.ToBytes32(
+		hex.MustToBytes(
+			"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
+		),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed generating receipts root: %w", err)
+	}
+
+	baseFeePerGas, err := math.NewU256FromBigInt(big.NewInt(defaultBaseFeePerGas))
+	if err != nil {
+		return nil, fmt.Errorf("failed setting base fee per gas: %w", err)
+	}
+
 	return &ExecutionPayloadHeader{
-		ParentHash:   common.ExecutionHash{},
-		FeeRecipient: common.ExecutionAddress{},
-		StateRoot: byteslib.ToBytes32(
-			hex.MustToBytes(
-				"0x12965ab9cbe2d2203f61d23636eb7e998f167cb79d02e452f532535641e35bcc",
-			),
-		),
-		ReceiptsRoot: byteslib.ToBytes32(
-			hex.MustToBytes(
-				"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
-			),
-		),
-		LogsBloom: [256]byte{},
-		Random:    common.Bytes32{},
-		Number:    0,
-		//nolint:mnd // default value.
-		GasLimit:  math.U64(30000000),
-		GasUsed:   0,
-		Timestamp: 0,
-		ExtraData: make([]byte, constants.ExtraDataLength),
-		//nolint:mnd // default value.
-		BaseFeePerGas: math.NewU256FromBigInt(big.NewInt(3906250)),
+		ParentHash:    common.ExecutionHash{},
+		FeeRecipient:  common.ExecutionAddress{},
+		StateRoot:     stateRoot,
+		ReceiptsRoot:  receiptsRoot,
+		LogsBloom:     [256]byte{},
+		Random:        common.Bytes32{},
+		Number:        0,
+		GasLimit:      defaultGasLimit,
+		GasUsed:       0,
+		Timestamp:     0,
+		ExtraData:     make([]byte, constants.ExtraDataLength),
+		BaseFeePerGas: baseFeePerGas,
 		BlockHash: common.NewExecutionHashFromHex(
 			"0xcfff92cd918a186029a847b59aca4f83d3941df5946b06bca8de0861fc5d0850",
 		),

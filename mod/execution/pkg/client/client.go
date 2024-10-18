@@ -98,7 +98,7 @@ func (s *EngineClient[
 ]) Start(
 	ctx context.Context,
 ) error {
-	// Start the Clien.
+	// Start the Client.
 	go s.Client.Start(ctx)
 
 	s.logger.Info(

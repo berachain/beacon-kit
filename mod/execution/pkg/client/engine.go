@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	ethclient "github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
 /* -------------------------------------------------------------------------- */
@@ -61,7 +60,8 @@ func (s *EngineClient[
 			s.metrics.incrementNewPayloadTimeout()
 		}
 		return nil, s.handleRPCError(err)
-	} else if result == nil {
+	}
+	if result == nil {
 		return nil, engineerrors.ErrNilPayloadStatus
 	}
 
@@ -116,11 +116,12 @@ func (s *EngineClient[
 			s.metrics.incrementForkchoiceUpdateTimeout()
 		}
 		return nil, nil, s.handleRPCError(err)
-	} else if result == nil {
+	}
+	if result == nil {
 		return nil, nil, engineerrors.ErrNilForkchoiceResponse
 	}
 
-	latestValidHash, err := processPayloadStatusResult((&result.PayloadStatus))
+	latestValidHash, err := processPayloadStatusResult(&result.PayloadStatus)
 	if err != nil {
 		return nil, latestValidHash, err
 	}
@@ -149,16 +150,16 @@ func (s *EngineClient[
 
 	// Call and check for errors.
 	result, err := s.Client.GetPayload(cctx, payloadID, forkVersion)
-	switch {
-	case err != nil:
+	if err != nil {
 		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {
 			s.metrics.incrementGetPayloadTimeout()
 		}
 		return result, s.handleRPCError(err)
-	case result == nil:
+	}
+	if result == nil {
 		return result, engineerrors.ErrNilExecutionPayloadEnvelope
-	case result.GetBlobsBundle() == nil &&
-		((forkVersion >= version.Deneb) || (forkVersion >= version.DenebPlus)):
+	}
+	if result.GetBlobsBundle() == nil {
 		return result, engineerrors.ErrNilBlobsBundle
 	}
 

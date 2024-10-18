@@ -46,7 +46,7 @@ type (
 	//nolint:lll
 	DomainType = bytes.B4
 
-	// Hash32 as er the Ethereum 2.0 Specification:
+	// Hash32 as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
 	Hash32 = bytes.B32
 
@@ -65,13 +65,18 @@ type (
 
 // Root represents a 32-byte Merkle root.
 // We use this type to represent roots that come from the consensus layer.
-type Root [32]byte
+type Root [RootSize]byte
+
+const RootSize = 32
 
 // NewRootFromHex creates a new root from a hex string.
 func NewRootFromHex(input string) (Root, error) {
 	val, err := hex.ToBytes(input)
 	if err != nil {
 		return Root{}, err
+	}
+	if len(val) != RootSize {
+		return Root{}, bytes.ErrIncorrectLength
 	}
 	return Root(val), nil
 }
@@ -84,7 +89,7 @@ func NewRootFromBytes(input []byte) Root {
 }
 
 // Hex converts a root to a hex string.
-func (r Root) Hex() string { return string(hex.EncodeBytes(r[:])) }
+func (r Root) Hex() string { return hex.EncodeBytes(r[:]) }
 
 // String implements the stringer interface and is used also by the logger when
 // doing full logging into a file.
