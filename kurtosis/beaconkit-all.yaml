@@ -35,10 +35,10 @@ network_configuration:
         replicas: 0
       - el_type: reth
         kzg_impl: crate-crypto/go-kzg-4844
-        replicas: 4
+        replicas: 3
       - el_type: geth
         kzg_impl: crate-crypto/go-kzg-4844
-        replicas: 1
+        replicas: 0
       - el_type: erigon
         kzg_impl: crate-crypto/go-kzg-4844
         replicas: 0
@@ -49,10 +49,10 @@ network_configuration:
     nodes:
       - el_type: reth
         kzg_impl: crate-crypto/go-kzg-4844
-        replicas: 2
+        replicas: 1
       - el_type: geth
         kzg_impl: crate-crypto/go-kzg-4844
-        replicas: 1
+        replicas: 0
       - el_type: nethermind
         replicas: 0
       - el_type: besu
@@ -79,11 +79,11 @@ node_settings:
       timeout_propose: 3s
       timeout_prevote: 1s
       timeout_precommit: 1s
-      timeout_commit: 2s
+      timeout_commit: 300ms
       max_num_inbound_peers: 40
       max_num_outbound_peers: 10
     app:
-      payload_timeout: 2.5s
+      payload_timeout: 300ms # This in theory is how long beaconkit waits until it requests the built payload. This should in theory be tuned to however fast reth can go.
       enable_optimistic_payload_builds: true
   execution_settings:
     specs:
@@ -103,18 +103,18 @@ eth_json_rpc_endpoints:
   - type: blutgang
     clients:
       - el-full-reth-0
-      - el-full-reth-1
-      - el-full-geth-2
+      # - el-full-reth-1
+      # - el-full-reth-2
       # - el-full-nethermind-3
       # - el-full-besu-4
       # - el-full-erigon-5
       # - el-full-ethereumjs-6
 additional_services:
-  - name: "goomy-blob"
+  # - name: "goomy-blob"
   - name: "tx-fuzz"
-    replicas: 16
-  - name: "prometheus"
-  - name: "grafana"
-  - name: "pyroscope"
-  - name: "blockscout"
-    client: "el-full-reth-0"
+    replicas: 8
+  # - name: "prometheus"
+  # - name: "grafana"
+  # - name: "pyroscope"
+  # - name: "blockscout"
+    # client: "el-full-reth-0"

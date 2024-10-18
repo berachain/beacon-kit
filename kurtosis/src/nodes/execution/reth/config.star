@@ -71,9 +71,11 @@ CMD = [
     "--nat",
     "extip:" + KURTOSIS_IP_ADDRESS_PLACEHOLDER,
     "--builder.deadline",
-    "2",
+    "1",
+    "--builder.interval",
+    "1s",
     "--builder.max-tasks",
-    "20",
+    "3", # This could in theory be 1, e.g. 1 task per payload, but that is probably only necessary if payload building is maxing out the CPU, and even then if the machine is multi core it shouldn't matter if this <= num_cores.
     "--txpool.pending-max-count",
     "100000",
     "--txpool.pending-max-size",
@@ -92,6 +94,7 @@ CMD = [
     "1000",
     "--rpc-cache.max-receipts",
     "10000",
+    "-vvv", # // Add more v's for more logging
 ]
 BOOTNODE_CMD = "--bootnodes"
 MAX_PEERS_OUTBOUND_CMD = "--max-outbound-peers"
