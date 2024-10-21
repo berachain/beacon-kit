@@ -82,6 +82,7 @@ type BeaconKitNodeClient interface {
 	client.NodeClientProvider
 
 	// Other beacon-kit node-api methods here...
+	ProofProvider
 }
 
 // NewBeaconKitNodeClient creates a new beacon-kit node-api client instance
