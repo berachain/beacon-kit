@@ -1,4 +1,4 @@
-package types
+package proof
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 
 // GetBlockProposerProof retrieves the block proposer index, block proposer pubkey,
 // and validator pubkey proof for the specified timestamp.
-func (c *BeaconKitNodeClient) GetBlockProposerProof(
+func (c *Client) GetBlockProposerProof(
 	ctx context.Context, timestamp uint64,
 ) (math.U64, bytes.B48, [][32]byte, error) {
 	resp, err := c.httpClient.Get(fmt.Sprintf(

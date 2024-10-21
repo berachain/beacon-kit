@@ -1,4 +1,4 @@
-package types
+package proof
 
 import (
 	"context"
@@ -8,10 +8,9 @@ import (
 
 // GetExecutionNumberProof gets the execution number proof for the given
 // timestamp.
-func (c *BeaconKitNodeClient) GetExecutionNumberProof(
+func (c *Client) GetExecutionNumberProof(
 	ctx context.Context, timestamp uint64,
 ) ([][32]byte, error) {
-	
 	resp, err := c.httpClient.Get(
 		fmt.Sprintf(
 			"%s/%s/t%d", c.baseURL, executionNumberEndpoint, timestamp,

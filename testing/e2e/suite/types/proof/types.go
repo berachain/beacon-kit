@@ -1,4 +1,4 @@
-package types
+package proof
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"

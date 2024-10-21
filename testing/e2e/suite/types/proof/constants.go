@@ -1,4 +1,4 @@
-package types
+package proof
 
 // API endpoints used.
 const (
