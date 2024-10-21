@@ -17,7 +17,8 @@ install-kurtosis:
 			if [ "$$ARCH" = "x86_64" ]; then ARCH="amd64"; \
 			elif [ "$$ARCH" = "arm64" ]; then ARCH="arm64"; \
 			else echo "Unsupported architecture $$ARCH for Kurtosis installation" && exit 1; fi; \
-			curl -Lo kurtosis.tar.gz "https://github.com/kurtosis-tech/kurtosis-cli/releases/latest/download/kurtosis-$$OS-$$ARCH.tar.gz"; \
+			TAG=`curl -s "https://api.github.com/repos/kurtosis-tech/kurtosis-cli-release-artifacts/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'`; \
+			curl -Lo kurtosis.tar.gz "https://github.com/kurtosis-tech/kurtosis-cli-release-artifacts/releases/latest/download/kurtosis-$$TAG-$$OS-$$ARCH.tar.gz"; \
 			tar -xzf kurtosis.tar.gz; \
 			rm kurtosis.tar.gz; \
 			chmod +x kurtosis; \
