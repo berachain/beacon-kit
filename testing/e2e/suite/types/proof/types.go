@@ -20,7 +20,7 @@ type executionNumberResponse struct {
 type blockProposerProofResponse struct {
 	// TODO: Switch to use the json tag once resolved on the beacon API
 	BeaconBlockHeader struct {
-		ProposerIndex math.U64 `json:"ProposerIndex"`
+		ProposerIndex math.U64 `json:"proposer_index"`
 	} `json:"beacon_block_header"`
 	Pubkey bytes.B48     `json:"validator_pubkey"`
 	Proof  []common.Root `json:"validator_pubkey_proof"`
