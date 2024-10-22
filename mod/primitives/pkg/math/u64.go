@@ -68,7 +68,11 @@ func (u U64) MarshalText() ([]byte, error) {
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (u *U64) UnmarshalJSON(input []byte) error {
-	return hex.UnmarshalJSONText(input, u)
+	strippedInput, err := hex.ValidateQuotedString(input)
+	if err != nil {
+		return err
+	}
+	return u.UnmarshalText(strippedInput)
 }
 
 // ---------------------------------- Hex ----------------------------------
