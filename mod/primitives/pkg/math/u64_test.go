@@ -60,9 +60,10 @@ func TestU64_UnmarshalJSON(t *testing.T) {
 		{"Valid hex string", "\"0x7b\"", 123, nil},
 		{"Zero value", "\"0x0\"", 0, nil},
 		{"Max uint64 value", "\"0xffffffffffffffff\"", ^uint64(0), nil},
-		{"Invalid hex string", "\"0xxyz\"", 0,
-			hex.ErrInvalidString,
-		},
+		{"Invalid hex string", "\"0xxyz\"", 0, hex.ErrInvalidString},
+		{"Invalid JSON text", "", 0, hex.ErrNonQuotedString},
+		{"Invalid quoted JSON text", `"0x`, 0, hex.ErrNonQuotedString},
+		{"Empty JSON text", `""`, 0, hex.ErrEmptyString},
 	}
 
 	for _, tt := range tests {
