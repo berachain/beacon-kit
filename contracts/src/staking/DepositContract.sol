@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import {IDepositContract} from "./IDepositContract.sol";
-import {ERC165} from "./IERC165.sol";
+import { IDepositContract } from "./IDepositContract.sol";
+import { ERC165 } from "./IERC165.sol";
 
 /**
  * @title DepositContract
@@ -46,8 +46,14 @@ abstract contract DepositContract is IDepositContract, ERC165 {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @inheritdoc ERC165
-    function supportsInterface(bytes4 interfaceId) external pure override returns (bool) {
-        return interfaceId == type(ERC165).interfaceId || interfaceId == type(IDepositContract).interfaceId;
+    function supportsInterface(bytes4 interfaceId)
+        external
+        pure
+        override
+        returns (bool)
+    {
+        return interfaceId == type(ERC165).interfaceId
+            || interfaceId == type(IDepositContract).interfaceId;
     }
 
     /// @inheritdoc IDepositContract
@@ -66,7 +72,11 @@ abstract contract DepositContract is IDepositContract, ERC165 {
         uint64 amount,
         bytes calldata signature,
         address operator
-    ) public payable virtual {
+    )
+        public
+        payable
+        virtual
+    {
         if (pubkey.length != PUBLIC_KEY_LENGTH) {
             revert InvalidPubKeyLength();
         }
@@ -97,11 +107,18 @@ abstract contract DepositContract is IDepositContract, ERC165 {
 
         unchecked {
             // slither-disable-next-line reentrancy-benign,reentrancy-events
-            emit Deposit(pubkey, credentials, amountInGwei, signature, depositCount++);
+            emit Deposit(
+                pubkey, credentials, amountInGwei, signature, depositCount++
+            );
         }
     }
 
-    function updateOperator(bytes calldata pubkey, address newOperator) external {
+    function updateOperator(
+        bytes calldata pubkey,
+        address newOperator
+    )
+        external
+    {
         // cache the current operator
         address currentOperator = operatorByPubKey[pubkey];
         // This will also revert if the pubkey is not registered.
@@ -146,7 +163,9 @@ abstract contract DepositContract is IDepositContract, ERC165 {
     function _safeTransferETH(address to, uint256 amount) internal {
         /// @solidity memory-safe-assembly
         assembly {
-            if iszero(call(gas(), to, amount, codesize(), 0x00, codesize(), 0x00)) {
+            if iszero(
+                call(gas(), to, amount, codesize(), 0x00, codesize(), 0x00)
+            ) {
                 mstore(0x00, 0xb12d13eb) // `ETHTransferFailed()`.
                 revert(0x1c, 0x04)
             }

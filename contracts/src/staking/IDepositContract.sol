@@ -17,7 +17,13 @@ interface IDepositContract {
      * @param signature the signature of the deposit message, only checked when creating a new validator.
      * @param index the index of the deposit.
      */
-    event Deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature, uint64 index);
+    event Deposit(
+        bytes pubkey,
+        bytes credentials,
+        uint64 amount,
+        bytes signature,
+        uint64 index
+    );
 
     /**
      * @notice Emitted when the operator of a validator is updated.
@@ -25,7 +31,9 @@ interface IDepositContract {
      * @param newOperator The new operator address.
      * @param previousOperator The previous operator address.
      */
-    event OperatorUpdated(bytes indexed pubkey, address newOperator, address previousOperator);
+    event OperatorUpdated(
+        bytes indexed pubkey, address newOperator, address previousOperator
+    );
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                        ERRORS                              */
@@ -68,7 +76,10 @@ interface IDepositContract {
      * @param pubkey The pubkey of the validator.
      * @return The operator address for the given pubkey.
      */
-    function getOperator(bytes calldata pubkey) external view returns (address);
+    function getOperator(bytes calldata pubkey)
+        external
+        view
+        returns (address);
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                            WRITES                          */
@@ -91,5 +102,7 @@ interface IDepositContract {
         uint64 amount,
         bytes calldata signature,
         address operator
-    ) external payable;
+    )
+        external
+        payable;
 }
