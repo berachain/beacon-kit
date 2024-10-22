@@ -14,12 +14,7 @@ library SSZ {
     /// generalized indices and sha256 precompile.
     /// @dev Returns whether `leaf` exists in the Merkle tree with `root`,
     /// given `proof`.
-    function verifyProof(
-        bytes32[] calldata proof,
-        bytes32 root,
-        bytes32 leaf,
-        uint256 index
-    )
+    function verifyProof(bytes32[] calldata proof, bytes32 root, bytes32 leaf, uint256 index)
         internal
         view
         returns (bool isValid)
@@ -32,7 +27,7 @@ library SSZ {
                 // Initialize `offset` to the offset of `proof` in the calldata.
                 let offset := proof.offset
                 // Iterate over proof elements to compute root hash.
-                for { } 1 { } {
+                for {} 1 {} {
                     // Slot of `leaf` in scratch space.
                     // If the condition is true: 0x20, otherwise: 0x00.
                     let scratch := shl(5, and(index, 1))
@@ -48,8 +43,7 @@ library SSZ {
                     mstore(scratch, leaf)
                     mstore(xor(scratch, 0x20), calldataload(offset))
                     // Call sha256 precompile
-                    let result :=
-                        staticcall(gas(), SHA256, 0x00, 0x40, 0x00, 0x20)
+                    let result := staticcall(gas(), SHA256, 0x00, 0x40, 0x00, 0x20)
 
                     if eq(result, 0) { revert(0, 0) }
 

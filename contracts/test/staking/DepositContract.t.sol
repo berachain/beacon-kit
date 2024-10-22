@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import { SoladyTest } from "@solady/test/utils/SoladyTest.sol";
-import { IDepositContract } from "@src/staking/IDepositContract.sol";
-import { PermissionedDepositContract } from "./PermissionedDepositContract.sol";
+import {SoladyTest} from "@solady/test/utils/SoladyTest.sol";
+import {IDepositContract} from "@src/staking/IDepositContract.sol";
+import {PermissionedDepositContract} from "./PermissionedDepositContract.sol";
 
 contract DepositContractTest is SoladyTest {
     /// @dev The depositor address.
@@ -20,6 +20,8 @@ contract DepositContractTest is SoladyTest {
 
     bytes32 internal constant STAKING_ASSET_SLOT = bytes32(0);
 
+    address internal operator = vm.addr(1);
+
     /// @dev the deposit contract.
     PermissionedDepositContract internal depositContract;
 
@@ -34,43 +36,27 @@ contract DepositContractTest is SoladyTest {
         vm.assume(pubKey.length != 96);
         vm.expectRevert(IDepositContract.InvalidPubKeyLength.selector);
         vm.prank(depositor);
-        depositContract.deposit(
-            bytes("wrong_public_key"),
-            STAKING_CREDENTIALS,
-            32e9,
-            _create96Byte()
-        );
+        depositContract.deposit(bytes("wrong_public_key"), STAKING_CREDENTIALS, 32e9, _create96Byte(), operator);
     }
 
     function test_DepositWrongPubKey() public {
         vm.expectRevert(IDepositContract.InvalidPubKeyLength.selector);
         vm.prank(depositor);
-        depositContract.deposit(
-            bytes("wrong_public_key"),
-            STAKING_CREDENTIALS,
-            32e9,
-            _create96Byte()
-        );
+        depositContract.deposit(bytes("wrong_public_key"), STAKING_CREDENTIALS, 32e9, _create96Byte(), operator);
     }
 
-    function testFuzz_DepositWrongCredentials(bytes calldata credentials)
-        public
-    {
+    function testFuzz_DepositWrongCredentials(bytes calldata credentials) public {
         vm.assume(credentials.length != 32);
 
         vm.expectRevert(IDepositContract.InvalidCredentialsLength.selector);
         vm.prank(depositor);
-        depositContract.deposit(
-            _create48Byte(), credentials, 32e9, _create96Byte()
-        );
+        depositContract.deposit(_create48Byte(), credentials, 32e9, _create96Byte(), operator);
     }
 
     function test_DepositWrongCredentials() public {
         vm.expectRevert(IDepositContract.InvalidCredentialsLength.selector);
         vm.prank(depositor);
-        depositContract.deposit(
-            VALIDATOR_PUBKEY, bytes("wrong_credentials"), 32e9, _create96Byte()
-        );
+        depositContract.deposit(VALIDATOR_PUBKEY, bytes("wrong_credentials"), 32e9, _create96Byte(), operator);
     }
 
     function testFuzz_DepositWrongAmount(uint256 amount) public {
@@ -78,44 +64,38 @@ contract DepositContractTest is SoladyTest {
         vm.deal(depositor, amount);
         vm.prank(depositor);
         vm.expectRevert(IDepositContract.InsufficientDeposit.selector);
-        depositContract.deposit(
-            VALIDATOR_PUBKEY,
-            STAKING_CREDENTIALS,
-            uint64(amount),
-            _create96Byte()
-        );
+        depositContract.deposit(VALIDATOR_PUBKEY, STAKING_CREDENTIALS, uint64(amount), _create96Byte(), operator);
     }
 
     function test_DepositWrongAmount() public {
         vm.expectRevert(IDepositContract.InsufficientDeposit.selector);
         vm.prank(depositor);
-        depositContract.deposit(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32e9 - 1, _create96Byte()
-        );
+        depositContract.deposit(VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32e9 - 1, _create96Byte(), operator);
+    }
+
+    function test_DepositZeroOperator() public {
+        vm.expectRevert(IDepositContract.ZeroOperatorOnFirstDeposit.selector);
+        vm.prank(depositor);
+        depositContract.deposit(VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32e9, _create96Byte(), address(0));
     }
 
     function test_Deposit() public {
         vm.deal(depositor, 32 ether);
         vm.prank(depositor);
         vm.expectEmit(true, true, true, true);
-        emit IDepositContract.Deposit(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32e9, _create96Byte(), 0
-        );
-        depositContract.deposit{ value: 32 ether }(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32e9, _create96Byte()
-        );
+        emit IDepositContract.Deposit(VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32e9, _create96Byte(), 0);
+        emit IDepositContract.OperatorUpdated(VALIDATOR_PUBKEY, operator, address(0));
+        depositContract.deposit{value: 32 ether}(VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32e9, _create96Byte(), operator);
     }
 
-    function testFuzz_DepositNativeWrongMinAmount(uint256 amountInEther)
-        public
-    {
+    function testFuzz_DepositNativeWrongMinAmount(uint256 amountInEther) public {
         amountInEther = _bound(amountInEther, 1, 31);
         uint256 amountInGwei = amountInEther * 1 gwei;
         vm.deal(depositor, amountInGwei);
         vm.prank(depositor);
         vm.expectRevert(IDepositContract.InsufficientDeposit.selector);
-        depositContract.deposit{ value: amountInGwei }(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
+        depositContract.deposit{value: amountInGwei}(
+            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte(), operator
         );
     }
 
@@ -124,9 +104,7 @@ contract DepositContractTest is SoladyTest {
         vm.deal(depositor, amount);
         vm.prank(depositor);
         vm.expectRevert(IDepositContract.InsufficientDeposit.selector);
-        depositContract.deposit{ value: amount }(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
-        );
+        depositContract.deposit{value: amount}(VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte(), operator);
     }
 
     function testFuzz_DepositNativeNotDivisibleByGwei(uint256 amount) public {
@@ -136,9 +114,7 @@ contract DepositContractTest is SoladyTest {
 
         vm.prank(depositor);
         vm.expectRevert(IDepositContract.DepositNotMultipleOfGwei.selector);
-        depositContract.deposit{ value: amount }(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
-        );
+        depositContract.deposit{value: amount}(VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte(), operator);
     }
 
     function test_DepositNativeNotDivisibleByGwei() public {
@@ -146,29 +122,21 @@ contract DepositContractTest is SoladyTest {
         vm.deal(depositor, amount);
         vm.expectRevert(IDepositContract.DepositNotMultipleOfGwei.selector);
         vm.prank(depositor);
-        depositContract.deposit{ value: amount }(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
-        );
+        depositContract.deposit{value: amount}(VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte(), operator);
 
         amount = 32e9 - 1;
         vm.deal(depositor, amount);
         vm.expectRevert(IDepositContract.DepositNotMultipleOfGwei.selector);
         vm.prank(depositor);
-        depositContract.deposit{ value: amount }(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
-        );
+        depositContract.deposit{value: amount}(VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte(), operator);
     }
 
     function test_DepositNative() public {
         vm.deal(depositor, 32 ether);
         vm.prank(depositor);
         vm.expectEmit(true, true, true, true);
-        emit IDepositContract.Deposit(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32 gwei, _create96Byte(), 0
-        );
-        depositContract.deposit{ value: 32 ether }(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
-        );
+        emit IDepositContract.Deposit(VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32 gwei, _create96Byte(), 0);
+        depositContract.deposit{value: 32 ether}(VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte(), operator);
     }
 
     function testFuzz_DepositCount(uint256 count) public {
@@ -178,19 +146,43 @@ contract DepositContractTest is SoladyTest {
         uint64 depositCount;
         for (uint256 i; i < count; ++i) {
             vm.expectEmit(true, true, true, true);
-            emit IDepositContract.Deposit(
-                VALIDATOR_PUBKEY,
-                STAKING_CREDENTIALS,
-                32 gwei,
-                _create96Byte(),
-                depositCount
-            );
-            depositContract.deposit{ value: 32 ether }(
-                VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
+            emit IDepositContract.Deposit(VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32 gwei, _create96Byte(), depositCount);
+            depositContract.deposit{value: 32 ether}(
+                VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte(), operator
             );
             ++depositCount;
         }
         assertEq(depositContract.depositCount(), depositCount);
+    }
+
+    function test_UpdateOperatorNotCurrentOperator() public {
+        // Reverts if pubkey is not registered.
+        address newOperator = vm.addr(2);
+        vm.expectRevert(IDepositContract.NotCurrentOperator.selector);
+        vm.prank(operator);
+        depositContract.updateOperator(VALIDATOR_PUBKEY, newOperator);
+
+        // Reverts if pubkey is registered but the caller is not the current operator.
+        test_Deposit();
+        vm.expectRevert(IDepositContract.NotCurrentOperator.selector);
+        vm.prank(newOperator);
+        depositContract.updateOperator(VALIDATOR_PUBKEY, newOperator);
+    }
+
+    function test_UpdateOperatorZeroAddress() public {
+        test_Deposit();
+        vm.expectRevert(IDepositContract.ZeroAddress.selector);
+        vm.prank(operator);
+        depositContract.updateOperator(VALIDATOR_PUBKEY, address(0));
+    }
+
+    function test_UpdateOperator() public {
+        test_Deposit();
+        address newOperator = vm.addr(2);
+        vm.prank(operator);
+        vm.expectEmit(true, true, true, true);
+        emit IDepositContract.OperatorUpdated(VALIDATOR_PUBKEY, newOperator, operator);
+        depositContract.updateOperator(VALIDATOR_PUBKEY, newOperator);
     }
 
     function _credential(address addr) internal pure returns (bytes memory) {

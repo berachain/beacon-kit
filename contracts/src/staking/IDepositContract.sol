@@ -17,13 +17,15 @@ interface IDepositContract {
      * @param signature the signature of the deposit message, only checked when creating a new validator.
      * @param index the index of the deposit.
      */
-    event Deposit(
-        bytes pubkey,
-        bytes credentials,
-        uint64 amount,
-        bytes signature,
-        uint64 index
-    );
+    event Deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature, uint64 index);
+
+    /**
+     * @notice Emitted when the operator of a validator is updated.
+     * @param pubkey The pubkey of the validator.
+     * @param newOperator The new operator address.
+     * @param previousOperator The previous operator address.
+     */
+    event OperatorUpdated(bytes indexed pubkey, address newOperator, address previousOperator);
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                        ERRORS                              */
@@ -47,6 +49,27 @@ interface IDepositContract {
     /// @dev Error thrown when the signature length is not 96 bytes.
     error InvalidSignatureLength();
 
+    /// @dev Error thrown when the input operator is zero address on the first deposit.
+    error ZeroOperatorOnFirstDeposit();
+
+    /// @dev Error thrown when the caller is not the current operator.
+    error NotCurrentOperator();
+
+    /// @dev Error thrown when the address is zero address.
+    error ZeroAddress();
+
+    /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+    /*                            VIEWS                           */
+    /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+    /**
+     * @notice Get the operator address for a given pubkey.
+     * @dev Returns zero address if the pubkey is not registered.
+     * @param pubkey The pubkey of the validator.
+     * @return The operator address for the given pubkey.
+     */
+    function getOperator(bytes calldata pubkey) external view returns (address);
+
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                            WRITES                          */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
@@ -59,14 +82,14 @@ interface IDepositContract {
      * validator operator public key, if subsequent deposit it is the depositor's public key.
      * @param amount is the amount of stake native/ERC20 token to be deposited, in Gwei.
      * @param signature is the signature used only on the first deposit.
+     * @param operator is the address of the operator.
      * @dev emits the Deposit event upon successful deposit.
      */
     function deposit(
         bytes calldata pubkey,
         bytes calldata credentials,
         uint64 amount,
-        bytes calldata signature
-    )
-        external
-        payable;
+        bytes calldata signature,
+        address operator
+    ) external payable;
 }

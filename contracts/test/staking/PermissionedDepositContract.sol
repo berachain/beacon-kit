@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import { Ownable } from "@solady/src/auth/Ownable.sol";
-import { DepositContract } from "@src/staking/DepositContract.sol";
+import {Ownable} from "@solady/src/auth/Ownable.sol";
+import {DepositContract} from "@src/staking/DepositContract.sol";
 
 /// @notice A test contract that permissions deposits.
 contract PermissionedDepositContract is DepositContract, Ownable {
@@ -23,12 +23,7 @@ contract PermissionedDepositContract is DepositContract, Ownable {
 
     /// @dev Override to return true to make `_initializeOwner` prevent
     /// double-initialization.
-    function _guardInitializeOwner()
-        internal
-        pure
-        override
-        returns (bool guard)
-    {
+    function _guardInitializeOwner() internal pure override returns (bool guard) {
         return true;
     }
 
@@ -40,25 +35,16 @@ contract PermissionedDepositContract is DepositContract, Ownable {
         bytes calldata pubkey,
         bytes calldata withdrawal_credentials,
         uint64 amount,
-        bytes calldata signature
-    )
-        public
-        payable
-        override
-    {
+        bytes calldata signature,
+        address operator
+    ) public payable override {
         if (depositAuth[msg.sender] == 0) revert UnauthorizedDeposit();
         --depositAuth[msg.sender];
 
-        super.deposit(pubkey, withdrawal_credentials, amount, signature);
+        super.deposit(pubkey, withdrawal_credentials, amount, signature, operator);
     }
 
-    function allowDeposit(
-        address depositor,
-        uint64 number
-    )
-        external
-        onlyOwner
-    {
+    function allowDeposit(address depositor, uint64 number) external onlyOwner {
         depositAuth[depositor] = number;
     }
 }
