@@ -232,6 +232,10 @@ func (pb *PayloadBuilder[
 	st BeaconStateT,
 	slot math.Slot,
 ) error {
+	if !pb.Enabled() {
+		return ErrPayloadBuilderDisabled
+	}
+
 	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return err
