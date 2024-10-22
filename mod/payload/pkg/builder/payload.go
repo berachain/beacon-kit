@@ -121,7 +121,8 @@ func (pb *PayloadBuilder[
 	)
 	if err != nil {
 		return nil, err
-	} else if payloadID == nil {
+	}
+	if payloadID == nil {
 		return nil, ErrNilPayloadID
 	}
 
@@ -140,13 +141,20 @@ func (pb *PayloadBuilder[
 	}
 
 	// Get the payload from the execution client.
-	return pb.ee.GetPayload(
+	envelope, err := pb.ee.GetPayload(
 		ctx,
 		&engineprimitives.GetPayloadRequest[PayloadIDT]{
 			PayloadID:   *payloadID,
 			ForkVersion: pb.chainSpec.ActiveForkVersionForSlot(slot),
 		},
 	)
+	if err != nil {
+		return nil, err
+	}
+	if envelope == nil {
+		return nil, ErrNilPayloadEnvelope
+	}
+	return envelope, nil
 }
 
 // RetrievePayload attempts to pull a previously built payload
@@ -181,7 +189,8 @@ func (pb *PayloadBuilder[
 	)
 	if err != nil {
 		return nil, err
-	} else if envelope == nil {
+	}
+	if envelope == nil {
 		return nil, ErrNilPayloadEnvelope
 	}
 
