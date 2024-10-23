@@ -21,23 +21,24 @@
 package payloadtime
 
 import (
-	"time"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// Next calculates the
-// next timestamp for an execution payload
-//
-// TODO: This is hood and needs to be improved.
+// Next calculates the timestamp for the
+// next execution payload to be built.
+// The timestamp is set to be:
+// Strictly increasing wrt parent payload timestamp
+// Ideally spaced around the TargetSecondsPerEth1Block
+// Referred to consensus tracked time, which should have
+// extra stability properties.
 func Next(
 	chainSpec common.ChainSpec,
 	parentPayloadTime math.U64,
+	consensusBlkTime math.U64,
 ) uint64 {
-	//#nosec:G701 // not an issue in practice.
 	return max(
-		uint64(time.Now().Unix())+chainSpec.TargetSecondsPerEth1Block(),
+		uint64(consensusBlkTime)+chainSpec.TargetSecondsPerEth1Block(),
 		uint64(parentPayloadTime+1),
 	)
 }

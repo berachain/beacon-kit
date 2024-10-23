@@ -22,9 +22,11 @@ package blockchain
 
 import (
 	"context"
+	"time"
 
 	payloadtime "github.com/berachain/beacon-kit/mod/beacon/payload-time"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // sendPostBlockFCU sends a forkchoice update to the execution client.
@@ -80,7 +82,11 @@ func (s *Service[
 		ctx,
 		stCopy,
 		blk.GetSlot()+1,
-		payloadtime.Next(s.chainSpec, payloadTime),
+		payloadtime.Next(
+			s.chainSpec,
+			payloadTime,
+			math.U64(time.Now().Unix()),
+		),
 		prevBlockRoot,
 		lph.GetBlockHash(),
 		lph.GetParentHash(),

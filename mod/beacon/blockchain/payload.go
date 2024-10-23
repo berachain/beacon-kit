@@ -24,6 +24,7 @@ import (
 	"context"
 
 	payloadtime "github.com/berachain/beacon-kit/mod/beacon/payload-time"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // forceStartupHead sends a force head FCU to the execution client.
@@ -60,8 +61,13 @@ func (s *Service[
 ]) handleRebuildPayloadForRejectedBlock(
 	ctx context.Context,
 	st BeaconStateT,
+	consensusTime math.U64,
 ) {
-	if err := s.rebuildPayloadForRejectedBlock(ctx, st); err != nil {
+	if err := s.rebuildPayloadForRejectedBlock(
+		ctx,
+		st,
+		consensusTime,
+	); err != nil {
 		s.logger.Error(
 			"failed to rebuild payload for nil block",
 			"error", err,
@@ -81,6 +87,7 @@ func (s *Service[
 ]) rebuildPayloadForRejectedBlock(
 	ctx context.Context,
 	st BeaconStateT,
+	consensusTime math.U64,
 ) error {
 	s.logger.Info("Rebuilding payload for rejected block ⏳ ")
 
@@ -114,7 +121,7 @@ func (s *Service[
 		st,
 		// We are rebuilding for the current slot.
 		stateSlot,
-		payloadtime.Next(s.chainSpec, lph.GetTimestamp()),
+		payloadtime.Next(s.chainSpec, lph.GetTimestamp(), consensusTime),
 		// We set the parent root to the previous block root.
 		latestHeader.HashTreeRoot(),
 		// We set the head of our chain to the previous finalized block.
@@ -139,8 +146,14 @@ func (s *Service[
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
+	consensusTime math.U64,
 ) {
-	if err := s.optimisticPayloadBuild(ctx, st, blk); err != nil {
+	if err := s.optimisticPayloadBuild(
+		ctx,
+		st,
+		blk,
+		consensusTime,
+	); err != nil {
 		s.logger.Error(
 			"Failed to build optimistic payload",
 			"for_slot", (blk.GetSlot() + 1).Base10(),
@@ -156,6 +169,7 @@ func (s *Service[
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
+	consensusTime math.U64,
 ) error {
 	// We are building for the next slot, so we increment the slot relative
 	// to the block we just processed.
@@ -176,7 +190,7 @@ func (s *Service[
 	if _, err := s.localBuilder.RequestPayloadAsync(
 		ctx, st,
 		slot,
-		payloadtime.Next(s.chainSpec, payload.GetTimestamp()),
+		payloadtime.Next(s.chainSpec, payload.GetTimestamp(), consensusTime),
 		// The previous block root is simply the root of the block we just
 		// processed.
 		blk.HashTreeRoot(),

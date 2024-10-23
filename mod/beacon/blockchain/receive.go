@@ -38,8 +38,8 @@ func (s *Service[
 	consensusBlk ConsensusBlockT,
 ) error {
 	var (
-		blk = consensusBlk.GetBeaconBlock()
-		_   = consensusBlk.GetConsensusBlockTime()
+		blk           = consensusBlk.GetBeaconBlock()
+		consensusTime = consensusBlk.GetConsensusBlockTime()
 	)
 
 	// Grab a copy of the state to verify the incoming block.
@@ -81,7 +81,11 @@ func (s *Service[
 		)
 
 		if s.shouldBuildOptimisticPayloads() {
-			go s.handleRebuildPayloadForRejectedBlock(ctx, preState)
+			go s.handleRebuildPayloadForRejectedBlock(
+				ctx,
+				preState,
+				consensusTime,
+			)
 		}
 
 		return err
@@ -94,7 +98,12 @@ func (s *Service[
 	)
 
 	if s.shouldBuildOptimisticPayloads() {
-		go s.handleOptimisticPayloadBuild(ctx, postState, blk)
+		go s.handleOptimisticPayloadBuild(
+			ctx,
+			postState,
+			blk,
+			consensusTime,
+		)
 	}
 
 	return nil
