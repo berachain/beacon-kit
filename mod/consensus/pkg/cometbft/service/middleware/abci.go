@@ -25,6 +25,7 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/encoding"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
@@ -220,7 +221,13 @@ func (h *ABCIMiddleware[
 	}
 
 	// notify that the beacon block has been received.
-	blkEvent := async.NewEvent(ctx, async.BeaconBlockReceived, blk)
+	var enrichedBlk *types.ConsensusBlock[BeaconBlockT]
+	enrichedBlk = enrichedBlk.New(
+		blk,
+		ctx.BlockTime(),
+		ctx.BlockHeader().ProposerAddress,
+	)
+	blkEvent := async.NewEvent(ctx, async.BeaconBlockReceived, enrichedBlk)
 	if err = h.dispatcher.Publish(blkEvent); err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}

@@ -22,53 +22,43 @@ package types
 
 import (
 	"time"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-type ConsensusEnrichedBlock[BeaconBlockT any] struct {
+type ConsensusBlock[BeaconBlockT any] struct {
 	blk BeaconBlockT
 
 	// blkTime assigned by CometBFT to the beacon block
-	blkTime time.Time
+	blkTime math.U64
 
 	// block proposer address assigned  by CometBFT to the beacon block
 	blkProposerAddress []byte
 }
 
 // New creates a new SlotData instance.
-func (b *ConsensusEnrichedBlock[BeaconBlockT]) New(
+func (b *ConsensusBlock[BeaconBlockT]) New(
 	beaconBlock BeaconBlockT,
 	blkTime time.Time,
 	blkProposerAddress []byte,
-) *ConsensusEnrichedBlock[BeaconBlockT] {
-	b = &ConsensusEnrichedBlock[BeaconBlockT]{
+) *ConsensusBlock[BeaconBlockT] {
+	b = &ConsensusBlock[BeaconBlockT]{
 		blk:                beaconBlock,
-		blkTime:            blkTime,
+		blkTime:            math.U64(blkTime.Unix()),
 		blkProposerAddress: blkProposerAddress,
 	}
 	return b
 }
 
-func NewBlockFromConsensus[BeaconBlockT any](
-	beaconBlock BeaconBlockT,
-	blkTime time.Time,
-	blkProposerAddress []byte,
-) *ConsensusEnrichedBlock[BeaconBlockT] {
-	return &ConsensusEnrichedBlock[BeaconBlockT]{
-		blk:                beaconBlock,
-		blkTime:            blkTime,
-		blkProposerAddress: blkProposerAddress,
-	}
-}
-
-func (b *ConsensusEnrichedBlock[BeaconBlockT]) GetBeaconBlock() BeaconBlockT {
+func (b *ConsensusBlock[BeaconBlockT]) GetBeaconBlock() BeaconBlockT {
 	return b.blk
 }
 
-func (b *ConsensusEnrichedBlock[_]) GetConsensusBlockTime() time.Time {
+func (b *ConsensusBlock[_]) GetConsensusBlockTime() math.U64 {
 	return b.blkTime
 }
 
 // TODO: harden the return type
-func (b *ConsensusEnrichedBlock[_]) GetConsensusProposerAddress() []byte {
+func (b *ConsensusBlock[_]) GetConsensusProposerAddress() []byte {
 	return b.blkProposerAddress
 }
