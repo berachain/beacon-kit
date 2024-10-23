@@ -81,7 +81,7 @@ func (s *Service[
 	// via ticker later.
 	if err = s.dispatcher.Publish(
 		async.NewEvent(
-			ctx, async.BeaconBlockFinalized, blk,
+			ctx, async.BeaconBlockFinalized, beaconBlk,
 		),
 	); err != nil {
 		return nil, err
