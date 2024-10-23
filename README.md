@@ -19,6 +19,7 @@ _The project is still heavily under construction, see the [disclaimer below](#st
 [![CodeCov](https://codecov.io/gh/berachain/beacon-kit/graph/badge.svg?token=0l5iJ3ZbzV)](https://codecov.io/gh/berachain/beacon-kit)
 [![Telegram Chat](https://img.shields.io/endpoint?color=neon&logo=telegram&label=chat&url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Fbeacon_kit)](https://t.me/beacon_kit)
 [![X Follow](https://img.shields.io/twitter/follow/berachain)](https://x.com/berachain)
+[![Discord](https://img.shields.io/discord/1067165013397213286?label=discord)](https://discord.com/invite/berachain)
 
 </div>
 
