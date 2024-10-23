@@ -315,12 +315,7 @@ func (h *ABCIMiddleware[
 	ctx sdk.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (transition.ValidatorUpdates, error) {
-	var (
-		err              error
-		blk              BeaconBlockT
-		blobs            BlobSidecarsT
-		awaitCtx, cancel = context.WithTimeout(ctx, AwaitTimeout)
-	)
+	awaitCtx, cancel := context.WithTimeout(ctx, AwaitTimeout)
 	defer cancel()
 	// flush the channel to ensure that we are not handling old data.
 	if numMsgs := async.ClearChan(h.subFinalValidatorUpdates); numMsgs > 0 {
@@ -329,7 +324,7 @@ func (h *ABCIMiddleware[
 			"num_msgs", numMsgs)
 	}
 
-	blk, blobs, err = encoding.
+	blk, blobs, err := encoding.
 		ExtractBlobsAndBlockFromRequest[BeaconBlockT, BlobSidecarsT](
 		req,
 		BeaconBlockTxIndex,
@@ -343,9 +338,15 @@ func (h *ABCIMiddleware[
 	}
 
 	// notify that the final beacon block has been received.
-	if err = h.dispatcher.Publish(
-		async.NewEvent(ctx, async.FinalBeaconBlockReceived, blk),
-	); err != nil {
+	// notify that the beacon block has been received.
+	var enrichedBlk *types.ConsensusBlock[BeaconBlockT]
+	enrichedBlk = enrichedBlk.New(
+		blk,
+		ctx.BlockTime(),
+		ctx.BlockHeader().ProposerAddress,
+	)
+	blkEvent := async.NewEvent(ctx, async.FinalBeaconBlockReceived, enrichedBlk)
+	if err = h.dispatcher.Publish(blkEvent); err != nil {
 		return nil, err
 	}
 

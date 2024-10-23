@@ -82,7 +82,7 @@ type Service[
 	forceStartupSyncOnce *sync.Once
 
 	// subFinalBlkReceived is a channel holding FinalBeaconBlockReceived events.
-	subFinalBlkReceived chan async.Event[BeaconBlockT]
+	subFinalBlkReceived chan async.Event[ConsensusBlockT]
 	// subBlockReceived is a channel holding BeaconBlockReceived events.
 	subBlockReceived chan async.Event[ConsensusBlockT]
 	// subGenDataReceived is a channel holding GenesisDataReceived events.
@@ -146,7 +146,7 @@ func NewService[
 		metrics:                 newChainMetrics(telemetrySink),
 		optimisticPayloadBuilds: optimisticPayloadBuilds,
 		forceStartupSyncOnce:    new(sync.Once),
-		subFinalBlkReceived:     make(chan async.Event[BeaconBlockT]),
+		subFinalBlkReceived:     make(chan async.Event[ConsensusBlockT]),
 		subBlockReceived:        make(chan async.Event[ConsensusBlockT]),
 		subGenDataReceived:      make(chan async.Event[GenesisT]),
 	}
@@ -280,9 +280,9 @@ func (s *Service[
 // a FinalValidatorUpdatesProcessed event containing the resulting validator
 // updates.
 func (s *Service[
-	_, _, BeaconBlockT, _, _, _, _, _, _, _, _,
+	_, ConsensusBlockT, _, _, _, _, _, _, _, _, _,
 ]) handleBeaconBlockFinalization(
-	msg async.Event[BeaconBlockT],
+	msg async.Event[ConsensusBlockT],
 ) {
 	var (
 		valUpdates  transition.ValidatorUpdates

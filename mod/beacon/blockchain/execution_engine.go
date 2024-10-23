@@ -22,20 +22,18 @@ package blockchain
 
 import (
 	"context"
-	"time"
 
 	payloadtime "github.com/berachain/beacon-kit/mod/beacon/payload-time"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // sendPostBlockFCU sends a forkchoice update to the execution client.
 func (s *Service[
-	_, _, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _,
+	_, ConsensusBlockT, _, _, _, BeaconStateT, _, _, _, _, _,
 ]) sendPostBlockFCU(
 	ctx context.Context,
 	st BeaconStateT,
-	blk BeaconBlockT,
+	consensusBlk ConsensusBlockT,
 ) {
 	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
@@ -47,26 +45,27 @@ func (s *Service[
 	}
 
 	if !s.shouldBuildOptimisticPayloads() && s.localBuilder.Enabled() {
-		s.sendNextFCUWithAttributes(ctx, st, blk, lph)
+		s.sendNextFCUWithAttributes(ctx, st, consensusBlk, lph)
 	} else {
-		s.sendNextFCUWithoutAttributes(ctx, blk, lph)
+		s.sendNextFCUWithoutAttributes(ctx, consensusBlk, lph)
 	}
 }
 
 // sendNextFCUWithAttributes sends a forkchoice update to the execution
 // client with attributes.
 func (s *Service[
-	_, _, BeaconBlockT, _, _, BeaconStateT,
+	_, ConsensusBlockT, _, _, _, BeaconStateT,
 	_, _, ExecutionPayloadHeaderT, _, _,
 ]) sendNextFCUWithAttributes(
 	ctx context.Context,
 	st BeaconStateT,
-	blk BeaconBlockT,
+	consensusBlk ConsensusBlockT,
 	lph ExecutionPayloadHeaderT,
 ) {
-	var err error
+	blk := consensusBlk.GetBeaconBlock()
+
 	stCopy := st.Copy()
-	if _, err = s.stateProcessor.ProcessSlots(
+	if _, err := s.stateProcessor.ProcessSlots(
 		stCopy, blk.GetSlot()+1,
 	); err != nil {
 		s.logger.Error(
@@ -78,14 +77,14 @@ func (s *Service[
 
 	prevBlockRoot := blk.HashTreeRoot()
 	payloadTime := blk.GetBody().GetExecutionPayload().GetTimestamp()
-	if _, err = s.localBuilder.RequestPayloadAsync(
+	if _, err := s.localBuilder.RequestPayloadAsync(
 		ctx,
 		stCopy,
 		blk.GetSlot()+1,
 		payloadtime.Next(
 			s.chainSpec,
 			payloadTime,
-			math.U64(time.Now().Unix()),
+			consensusBlk.GetConsensusBlockTime(),
 		),
 		prevBlockRoot,
 		lph.GetBlockHash(),
@@ -102,13 +101,15 @@ func (s *Service[
 // sendNextFCUWithoutAttributes sends a forkchoice update to the
 // execution client without attributes.
 func (s *Service[
-	_, _, BeaconBlockT, _, _, _, _, _,
+	_, ConsensusBlockT, _, _, _, _, _, _,
 	ExecutionPayloadHeaderT, _, PayloadAttributesT,
 ]) sendNextFCUWithoutAttributes(
 	ctx context.Context,
-	blk BeaconBlockT,
+	consensusBlk ConsensusBlockT,
 	lph ExecutionPayloadHeaderT,
 ) {
+	blk := consensusBlk.GetBeaconBlock()
+
 	if _, _, err := s.executionEngine.NotifyForkchoiceUpdate(
 		ctx,
 		// TODO: Switch to New().

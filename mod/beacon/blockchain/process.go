@@ -47,11 +47,13 @@ func (s *Service[
 // ProcessBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
 func (s *Service[
-	_, _, BeaconBlockT, _, _, _, _, _, _, _, _,
+	_, ConsensusBlockT, _, _, _, _, _, _, _, _, _,
 ]) ProcessBeaconBlock(
 	ctx context.Context,
-	blk BeaconBlockT,
+	consensusBlk ConsensusBlockT,
 ) (transition.ValidatorUpdates, error) {
+	blk := consensusBlk.GetBeaconBlock()
+
 	// If the block is nil, exit early.
 	if blk.IsNil() {
 		return nil, ErrNilBlk
@@ -79,13 +81,13 @@ func (s *Service[
 	// via ticker later.
 	if err = s.dispatcher.Publish(
 		async.NewEvent(
-			ctx, async.BeaconBlockFinalized, blk,
+			ctx, async.BeaconBlockFinalized, consensusBlk,
 		),
 	); err != nil {
 		return nil, err
 	}
 
-	go s.sendPostBlockFCU(ctx, st, blk)
+	go s.sendPostBlockFCU(ctx, st, consensusBlk)
 
 	return valUpdates.CanonicalSort(), nil
 }
