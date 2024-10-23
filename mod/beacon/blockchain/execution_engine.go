@@ -23,7 +23,7 @@ package blockchain
 import (
 	"context"
 
-	blocktime "github.com/berachain/beacon-kit/mod/beacon/block-time"
+	payloadtime "github.com/berachain/beacon-kit/mod/beacon/payload-time"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 )
 
@@ -80,7 +80,7 @@ func (s *Service[
 		ctx,
 		stCopy,
 		blk.GetSlot()+1,
-		blocktime.NextPayloadTime(s.chainSpec, payloadTime),
+		payloadtime.Next(s.chainSpec, payloadTime),
 		prevBlockRoot,
 		lph.GetBlockHash(),
 		lph.GetParentHash(),

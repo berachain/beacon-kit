@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package blocktime
+package payloadtime
 
 import (
 	"time"
@@ -27,11 +27,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// NextPayloadTime calculates the
+// Next calculates the
 // next timestamp for an execution payload
 //
 // TODO: This is hood and needs to be improved.
-func NextPayloadTime(
+func Next(
 	chainSpec common.ChainSpec,
 	parentPayloadTime math.U64,
 ) uint64 {
