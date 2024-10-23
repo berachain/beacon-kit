@@ -91,6 +91,7 @@ type (
 	// ChainService is a type alias for the chain service.
 	ChainService = blockchain.Service[
 		*AvailabilityStore,
+		*ConsensusBlock,
 		*BeaconBlock,
 		*BeaconBlockBody,
 		*BeaconBlockHeader,
@@ -233,6 +234,7 @@ type (
 	AvailabilityStore = dastore.Store[*BeaconBlockBody]
 
 	// BeaconBlock type aliases.
+	ConsensusBlock    = consruntimetypes.ConsensusBlock[*BeaconBlock]
 	BeaconBlock       = types.BeaconBlock
 	BeaconBlockBody   = types.BeaconBlockBody
 	BeaconBlockHeader = types.BeaconBlockHeader

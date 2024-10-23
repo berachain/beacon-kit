@@ -42,6 +42,15 @@ type AvailabilityStore[BeaconBlockBodyT any] interface {
 	) bool
 }
 
+type ConsensusBlock[BeaconBlockT any] interface {
+	GetBeaconBlock() BeaconBlockT
+
+	GetConsensusBlockTime() math.U64
+
+	// TODO: harden the return type
+	GetConsensusProposerAddress() []byte
+}
+
 // BeaconBlock represents a beacon block interface.
 type BeaconBlock[BeaconBlockBodyT any] interface {
 	constraints.SSZMarshallableRootable

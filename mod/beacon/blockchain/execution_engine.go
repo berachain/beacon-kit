@@ -29,7 +29,7 @@ import (
 
 // sendPostBlockFCU sends a forkchoice update to the execution client.
 func (s *Service[
-	_, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _,
+	_, _, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _,
 ]) sendPostBlockFCU(
 	ctx context.Context,
 	st BeaconStateT,
@@ -54,7 +54,7 @@ func (s *Service[
 // sendNextFCUWithAttributes sends a forkchoice update to the execution
 // client with attributes.
 func (s *Service[
-	_, BeaconBlockT, _, _, BeaconStateT,
+	_, _, BeaconBlockT, _, _, BeaconStateT,
 	_, _, ExecutionPayloadHeaderT, _, _,
 ]) sendNextFCUWithAttributes(
 	ctx context.Context,
@@ -96,7 +96,7 @@ func (s *Service[
 // sendNextFCUWithoutAttributes sends a forkchoice update to the
 // execution client without attributes.
 func (s *Service[
-	_, BeaconBlockT, _, _, _, _, _,
+	_, _, BeaconBlockT, _, _, _, _, _,
 	ExecutionPayloadHeaderT, _, PayloadAttributesT,
 ]) sendNextFCUWithoutAttributes(
 	ctx context.Context,
