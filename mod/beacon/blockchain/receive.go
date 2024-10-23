@@ -35,11 +35,11 @@ func (s *Service[
 	_, ConsensusBlockT, BeaconBlockT, _, _, _, _, _, _, _, _,
 ]) VerifyIncomingBlock(
 	ctx context.Context,
-	consensusBlk ConsensusBlockT,
+	blk ConsensusBlockT,
 ) error {
 	var (
-		blk           = consensusBlk.GetBeaconBlock()
-		consensusTime = consensusBlk.GetConsensusBlockTime()
+		beaconBlk     = blk.GetBeaconBlock()
+		consensusTime = blk.GetConsensusBlockTime()
 	)
 
 	// Grab a copy of the state to verify the incoming block.
@@ -52,7 +52,7 @@ func (s *Service[
 	s.forceStartupSyncOnce.Do(func() { s.forceStartupHead(ctx, preState) })
 
 	// If the block is nil or a nil pointer, exit early.
-	if blk.IsNil() {
+	if beaconBlk.IsNil() {
 		s.logger.Warn(
 			"Aborting block verification - beacon block not found in proposal",
 		)
@@ -61,7 +61,7 @@ func (s *Service[
 
 	s.logger.Info(
 		"Received incoming beacon block",
-		"state_root", blk.GetStateRoot(), "slot", blk.GetSlot(),
+		"state_root", beaconBlk.GetStateRoot(), "slot", beaconBlk.GetSlot(),
 	)
 
 	// We purposefully make a copy of the BeaconState in order
@@ -71,11 +71,11 @@ func (s *Service[
 	postState := preState.Copy()
 
 	// Verify the state root of the incoming block.
-	if err := s.verifyStateRoot(ctx, postState, blk); err != nil {
+	if err := s.verifyStateRoot(ctx, postState, beaconBlk); err != nil {
 		s.logger.Error(
 			"Rejecting incoming beacon block ❌ ",
 			"state_root",
-			blk.GetStateRoot(),
+			beaconBlk.GetStateRoot(),
 			"reason",
 			err,
 		)
@@ -94,14 +94,14 @@ func (s *Service[
 	s.logger.Info(
 		"State root verification succeeded - accepting incoming beacon block",
 		"state_root",
-		blk.GetStateRoot(),
+		beaconBlk.GetStateRoot(),
 	)
 
 	if s.shouldBuildOptimisticPayloads() {
 		go s.handleOptimisticPayloadBuild(
 			ctx,
 			postState,
-			blk,
+			beaconBlk,
 			consensusTime,
 		)
 	}

@@ -50,17 +50,17 @@ func (s *Service[
 	_, ConsensusBlockT, _, _, _, _, _, _, _, _, _,
 ]) ProcessBeaconBlock(
 	ctx context.Context,
-	consensusBlk ConsensusBlockT,
+	blk ConsensusBlockT,
 ) (transition.ValidatorUpdates, error) {
-	blk := consensusBlk.GetBeaconBlock()
+	beaconBlk := blk.GetBeaconBlock()
 
 	// If the block is nil, exit early.
-	if blk.IsNil() {
+	if beaconBlk.IsNil() {
 		return nil, ErrNilBlk
 	}
 
 	st := s.storageBackend.StateFromContext(ctx)
-	valUpdates, err := s.executeStateTransition(ctx, st, blk)
+	valUpdates, err := s.executeStateTransition(ctx, st, beaconBlk)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +69,7 @@ func (s *Service[
 	// return an error. It is safe to use the slot off of the beacon block
 	// since it has been verified as correct already.
 	if !s.storageBackend.AvailabilityStore().IsDataAvailable(
-		ctx, blk.GetSlot(), blk.GetBody(),
+		ctx, beaconBlk.GetSlot(), beaconBlk.GetBody(),
 	) {
 		return nil, ErrDataNotAvailable
 	}
@@ -81,13 +81,13 @@ func (s *Service[
 	// via ticker later.
 	if err = s.dispatcher.Publish(
 		async.NewEvent(
-			ctx, async.BeaconBlockFinalized, consensusBlk,
+			ctx, async.BeaconBlockFinalized, blk,
 		),
 	); err != nil {
 		return nil, err
 	}
 
-	go s.sendPostBlockFCU(ctx, st, consensusBlk)
+	go s.sendPostBlockFCU(ctx, st, blk)
 
 	return valUpdates.CanonicalSort(), nil
 }

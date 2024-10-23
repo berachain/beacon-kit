@@ -35,10 +35,10 @@ import (
 func Next(
 	chainSpec common.ChainSpec,
 	parentPayloadTime math.U64,
-	consensusBlkTime math.U64,
+	consensusTime math.U64,
 ) uint64 {
 	return max(
-		uint64(consensusBlkTime)+chainSpec.TargetSecondsPerEth1Block(),
+		uint64(consensusTime)+chainSpec.TargetSecondsPerEth1Block(),
 		uint64(parentPayloadTime+1),
 	)
 }

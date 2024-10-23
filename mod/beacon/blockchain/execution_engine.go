@@ -33,7 +33,7 @@ func (s *Service[
 ]) sendPostBlockFCU(
 	ctx context.Context,
 	st BeaconStateT,
-	consensusBlk ConsensusBlockT,
+	blk ConsensusBlockT,
 ) {
 	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
@@ -45,9 +45,9 @@ func (s *Service[
 	}
 
 	if !s.shouldBuildOptimisticPayloads() && s.localBuilder.Enabled() {
-		s.sendNextFCUWithAttributes(ctx, st, consensusBlk, lph)
+		s.sendNextFCUWithAttributes(ctx, st, blk, lph)
 	} else {
-		s.sendNextFCUWithoutAttributes(ctx, consensusBlk, lph)
+		s.sendNextFCUWithoutAttributes(ctx, blk, lph)
 	}
 }
 
@@ -59,14 +59,14 @@ func (s *Service[
 ]) sendNextFCUWithAttributes(
 	ctx context.Context,
 	st BeaconStateT,
-	consensusBlk ConsensusBlockT,
+	blk ConsensusBlockT,
 	lph ExecutionPayloadHeaderT,
 ) {
-	blk := consensusBlk.GetBeaconBlock()
+	beaconBlk := blk.GetBeaconBlock()
 
 	stCopy := st.Copy()
 	if _, err := s.stateProcessor.ProcessSlots(
-		stCopy, blk.GetSlot()+1,
+		stCopy, beaconBlk.GetSlot()+1,
 	); err != nil {
 		s.logger.Error(
 			"failed to process slots in non-optimistic payload",
@@ -75,16 +75,16 @@ func (s *Service[
 		return
 	}
 
-	prevBlockRoot := blk.HashTreeRoot()
-	payloadTime := blk.GetBody().GetExecutionPayload().GetTimestamp()
+	prevBlockRoot := beaconBlk.HashTreeRoot()
+	payloadTime := beaconBlk.GetBody().GetExecutionPayload().GetTimestamp()
 	if _, err := s.localBuilder.RequestPayloadAsync(
 		ctx,
 		stCopy,
-		blk.GetSlot()+1,
+		beaconBlk.GetSlot()+1,
 		payloadtime.Next(
 			s.chainSpec,
 			payloadTime,
-			consensusBlk.GetConsensusBlockTime(),
+			blk.GetConsensusBlockTime(),
 		),
 		prevBlockRoot,
 		lph.GetBlockHash(),
@@ -105,10 +105,10 @@ func (s *Service[
 	ExecutionPayloadHeaderT, _, PayloadAttributesT,
 ]) sendNextFCUWithoutAttributes(
 	ctx context.Context,
-	consensusBlk ConsensusBlockT,
+	blk ConsensusBlockT,
 	lph ExecutionPayloadHeaderT,
 ) {
-	blk := consensusBlk.GetBeaconBlock()
+	beaconBlk := blk.GetBeaconBlock()
 
 	if _, _, err := s.executionEngine.NotifyForkchoiceUpdate(
 		ctx,
@@ -120,7 +120,7 @@ func (s *Service[
 				SafeBlockHash:      lph.GetParentHash(),
 				FinalizedBlockHash: lph.GetParentHash(),
 			},
-			s.chainSpec.ActiveForkVersionForSlot(blk.GetSlot()),
+			s.chainSpec.ActiveForkVersionForSlot(beaconBlk.GetSlot()),
 		),
 	); err != nil {
 		s.logger.Error(
