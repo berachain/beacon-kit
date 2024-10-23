@@ -30,6 +30,8 @@ type SlotData[AttestationDataT, SlashingInfoT any] struct {
 	AttestationData []AttestationDataT
 	// SlashingInfo is the slashing info of the incoming slot.
 	SlashingInfo []SlashingInfoT
+	// Time tracked by consensus engine at the time SlotData is emitted.
+	ConsensusTime math.U64
 }
 
 // New creates a new SlotData instance.
@@ -65,6 +67,14 @@ func (b *SlotData[
 	SlashingInfoT,
 ]) GetSlashingInfo() []SlashingInfoT {
 	return b.SlashingInfo
+}
+
+// GetConsensusTime retrieves the slot of the SlotData.
+func (b *SlotData[
+	AttestationDataT,
+	SlashingInfoT,
+]) GetConsensusTime() math.U64 {
+	return b.ConsensusTime
 }
 
 // SetAttestationData sets the attestation data of the SlotData.

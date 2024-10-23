@@ -206,7 +206,8 @@ func (s *Service[LoggerT]) PrepareProposal(
 			*ctypes.AttestationData,
 			*ctypes.SlashingInfo,
 		]{
-			Slot: math.Slot(req.Height),
+			Slot:          math.Slot(req.Height),
+			ConsensusTime: math.U64(req.GetTime().Unix()),
 		},
 	)
 	if err != nil {

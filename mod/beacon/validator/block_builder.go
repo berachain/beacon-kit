@@ -84,7 +84,7 @@ func (s *Service[
 	}
 
 	// Get the payload for the block.
-	envelope, err := s.retrieveExecutionPayload(ctx, st, blk)
+	envelope, err := s.retrieveExecutionPayload(ctx, st, blk, slotData)
 	if err != nil {
 		return blk, sidecars, err
 	} else if envelope == nil {
@@ -195,9 +195,12 @@ func (s *Service[
 // retrieveExecutionPayload retrieves the execution payload for the block.
 func (s *Service[
 	_, BeaconBlockT, _, BeaconStateT, _, _, _, _,
-	ExecutionPayloadT, ExecutionPayloadHeaderT, _, _, _,
+	ExecutionPayloadT, ExecutionPayloadHeaderT, _, _, SlotDataT,
 ]) retrieveExecutionPayload(
-	ctx context.Context, st BeaconStateT, blk BeaconBlockT,
+	ctx context.Context,
+	st BeaconStateT,
+	blk BeaconBlockT,
+	slotData SlotDataT,
 ) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
 	//
 	// TODO: Add external block builders to this flow.
@@ -238,7 +241,7 @@ func (s *Service[
 			payloadtime.Next(
 				s.chainSpec,
 				lph.GetTimestamp(),
-				math.U64(time.Now().Unix()),
+				slotData.GetConsensusTime(),
 			),
 			blk.GetParentBlockRoot(),
 			lph.GetBlockHash(),
