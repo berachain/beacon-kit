@@ -167,7 +167,7 @@ func (s *EngineClient[
 		return err
 	}
 
-	if chainID.Unwrap() != s.eth1ChainID.Uint64() {
+	if !s.eth1ChainID.IsUint64() || chainID.Unwrap() != s.eth1ChainID.Uint64() {
 		err = errors.Wrapf(
 			ErrMismatchedEth1ChainID,
 			"wanted chain ID %d, got %d",
