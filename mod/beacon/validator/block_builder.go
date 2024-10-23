@@ -222,7 +222,7 @@ func (s *Service[
 			return nil, err
 		}
 
-		// If we failed to retrieve the payload, request a synchrnous payload.
+		// If we failed to retrieve the payload, request a synchronous payload.
 		//
 		// NOTE: The state here is properly configured by the
 		// prepareStateForBuilding
