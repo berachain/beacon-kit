@@ -32,11 +32,16 @@ import (
 // VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
 func (s *Service[
-	_, _, BeaconBlockT, _, _, _, _, _, _, _, _,
+	_, ConsensusBlockT, BeaconBlockT, _, _, _, _, _, _, _, _,
 ]) VerifyIncomingBlock(
 	ctx context.Context,
-	blk BeaconBlockT,
+	consensusBlk ConsensusBlockT,
 ) error {
+	var (
+		blk = consensusBlk.GetBeaconBlock()
+		_   = consensusBlk.GetConsensusBlockTime()
+	)
+
 	// Grab a copy of the state to verify the incoming block.
 	preState := s.storageBackend.StateFromContext(ctx)
 

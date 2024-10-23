@@ -84,7 +84,7 @@ type Service[
 	// subFinalBlkReceived is a channel holding FinalBeaconBlockReceived events.
 	subFinalBlkReceived chan async.Event[BeaconBlockT]
 	// subBlockReceived is a channel holding BeaconBlockReceived events.
-	subBlockReceived chan async.Event[BeaconBlockT]
+	subBlockReceived chan async.Event[ConsensusBlockT]
 	// subGenDataReceived is a channel holding GenesisDataReceived events.
 	subGenDataReceived chan async.Event[GenesisT]
 }
@@ -147,7 +147,7 @@ func NewService[
 		optimisticPayloadBuilds: optimisticPayloadBuilds,
 		forceStartupSyncOnce:    new(sync.Once),
 		subFinalBlkReceived:     make(chan async.Event[BeaconBlockT]),
-		subBlockReceived:        make(chan async.Event[BeaconBlockT]),
+		subBlockReceived:        make(chan async.Event[ConsensusBlockT]),
 		subGenDataReceived:      make(chan async.Event[GenesisT]),
 	}
 }
@@ -190,7 +190,7 @@ func (s *Service[
 
 // eventLoop listens for events and handles them accordingly.
 func (s *Service[
-	_, _, BeaconBlockT, _, _, _, _, _, _, GenesisT, _,
+	_, _, _, _, _, _, _, _, _, _, _,
 ]) eventLoop(ctx context.Context) {
 	for {
 		select {
@@ -249,9 +249,9 @@ func (s *Service[
 // handleBeaconBlockReceived emits a BeaconBlockVerified event with the error
 // result from VerifyIncomingBlock.
 func (s *Service[
-	_, _, BeaconBlockT, _, _, _, _, _, _, _, _,
+	_, ConsensusBlockT, _, _, _, _, _, _, _, _, _,
 ]) handleBeaconBlockReceived(
-	msg async.Event[BeaconBlockT],
+	msg async.Event[ConsensusBlockT],
 ) {
 	// If the block is nil, exit early.
 	if msg.Error() != nil {
