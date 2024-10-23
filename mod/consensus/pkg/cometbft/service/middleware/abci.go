@@ -196,21 +196,17 @@ func (h *ABCIMiddleware[
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
 	var (
-		err              error
 		startTime        = time.Now()
-		blk              BeaconBlockT
-		numMsgs          int
-		sidecars         BlobSidecarsT
 		awaitCtx, cancel = context.WithTimeout(ctx, AwaitTimeout)
 	)
 	defer cancel()
 	// flush the channels to ensure that we are not handling old data.
-	if numMsgs = async.ClearChan(h.subBBVerified); numMsgs > 0 {
+	if numMsgs := async.ClearChan(h.subBBVerified); numMsgs > 0 {
 		h.logger.Error(
 			"WARNING: messages remaining in beacon block verification channel",
 			"num_msgs", numMsgs)
 	}
-	if numMsgs = async.ClearChan(h.subSCVerified); numMsgs > 0 {
+	if numMsgs := async.ClearChan(h.subSCVerified); numMsgs > 0 {
 		h.logger.Error(
 			"WARNING: messages remaining in sidecar verification channel",
 			"num_msgs", numMsgs)
@@ -219,32 +215,35 @@ func (h *ABCIMiddleware[
 	defer h.metrics.measureProcessProposalDuration(startTime)
 
 	// Request the beacon block.
-	if blk, err = encoding.
+	blk, err := encoding.
 		UnmarshalBeaconBlockFromABCIRequest[BeaconBlockT](
-		req, 0, h.chainSpec.ActiveForkVersionForSlot(math.U64(req.Height)),
-	); err != nil {
+		req,
+		BeaconBlockTxIndex,
+		h.chainSpec.ActiveForkVersionForSlot(math.U64(req.Height)),
+	)
+	if err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
 
 	// notify that the beacon block has been received.
-	if err = h.dispatcher.Publish(
-		async.NewEvent(ctx, async.BeaconBlockReceived, blk),
-	); err != nil {
+	blkEvent := async.NewEvent(ctx, async.BeaconBlockReceived, blk)
+	if err = h.dispatcher.Publish(blkEvent); err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
 
 	// Request the blob sidecars.
-	if sidecars, err = encoding.
+	sidecars, err := encoding.
 		UnmarshalBlobSidecarsFromABCIRequest[BlobSidecarsT](
-		req, 1,
-	); err != nil {
+		req,
+		BlobSidecarsTxIndex,
+	)
+	if err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
 
 	// notify that the sidecars have been received.
-	if err = h.dispatcher.Publish(
-		async.NewEvent(ctx, async.SidecarsReceived, sidecars),
-	); err != nil {
+	blobEvent := async.NewEvent(ctx, async.SidecarsReceived, sidecars)
+	if err = h.dispatcher.Publish(blobEvent); err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
 
