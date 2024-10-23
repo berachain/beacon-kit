@@ -45,10 +45,7 @@ type AvailabilityStore[BeaconBlockBodyT any] interface {
 type ConsensusBlock[BeaconBlockT any] interface {
 	GetBeaconBlock() BeaconBlockT
 
-	GetConsensusBlockTime() math.U64
-
-	// TODO: harden the return type
-	GetConsensusProposerAddress() []byte
+	GetConsensusTime() math.U64
 }
 
 // BeaconBlock represents a beacon block interface.

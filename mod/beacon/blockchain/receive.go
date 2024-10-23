@@ -39,7 +39,7 @@ func (s *Service[
 ) error {
 	var (
 		beaconBlk     = blk.GetBeaconBlock()
-		consensusTime = blk.GetConsensusBlockTime()
+		consensusTime = blk.GetConsensusTime()
 	)
 
 	// Grab a copy of the state to verify the incoming block.

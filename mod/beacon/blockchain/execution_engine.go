@@ -84,7 +84,7 @@ func (s *Service[
 		payloadtime.Next(
 			s.chainSpec,
 			payloadTime,
-			blk.GetConsensusBlockTime(),
+			blk.GetConsensusTime(),
 		),
 		prevBlockRoot,
 		lph.GetBlockHash(),

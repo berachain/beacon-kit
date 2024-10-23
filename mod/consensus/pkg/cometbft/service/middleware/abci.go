@@ -225,7 +225,6 @@ func (h *ABCIMiddleware[
 	enrichedBlk = enrichedBlk.New(
 		blk,
 		ctx.BlockTime(),
-		ctx.BlockHeader().ProposerAddress,
 	)
 	blkEvent := async.NewEvent(ctx, async.BeaconBlockReceived, enrichedBlk)
 	if err = h.dispatcher.Publish(blkEvent); err != nil {
@@ -343,7 +342,6 @@ func (h *ABCIMiddleware[
 	enrichedBlk = enrichedBlk.New(
 		blk,
 		ctx.BlockTime(),
-		ctx.BlockHeader().ProposerAddress,
 	)
 	blkEvent := async.NewEvent(ctx, async.FinalBeaconBlockReceived, enrichedBlk)
 	if err = h.dispatcher.Publish(blkEvent); err != nil {

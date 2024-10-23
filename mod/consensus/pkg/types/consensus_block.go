@@ -29,23 +29,18 @@ import (
 type ConsensusBlock[BeaconBlockT any] struct {
 	blk BeaconBlockT
 
-	// blkTime assigned by CometBFT to the beacon block
-	blkTime math.U64
-
-	// block proposer address assigned  by CometBFT to the beacon block
-	blkProposerAddress []byte
+	// consensusTime assigned by CometBFT to the beacon block
+	consensusTime math.U64
 }
 
 // New creates a new SlotData instance.
 func (b *ConsensusBlock[BeaconBlockT]) New(
 	beaconBlock BeaconBlockT,
 	blkTime time.Time,
-	blkProposerAddress []byte,
 ) *ConsensusBlock[BeaconBlockT] {
 	b = &ConsensusBlock[BeaconBlockT]{
-		blk:                beaconBlock,
-		blkTime:            math.U64(blkTime.Unix()),
-		blkProposerAddress: blkProposerAddress,
+		blk:           beaconBlock,
+		consensusTime: math.U64(blkTime.Unix()),
 	}
 	return b
 }
@@ -54,11 +49,6 @@ func (b *ConsensusBlock[BeaconBlockT]) GetBeaconBlock() BeaconBlockT {
 	return b.blk
 }
 
-func (b *ConsensusBlock[_]) GetConsensusBlockTime() math.U64 {
-	return b.blkTime
-}
-
-// TODO: harden the return type
-func (b *ConsensusBlock[_]) GetConsensusProposerAddress() []byte {
-	return b.blkProposerAddress
+func (b *ConsensusBlock[_]) GetConsensusTime() math.U64 {
+	return b.consensusTime
 }
