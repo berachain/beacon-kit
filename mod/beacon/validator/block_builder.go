@@ -235,7 +235,7 @@ func (s *Service[
 			ctx,
 			st,
 			blk.GetSlot(),
-			blocktime.NextPayloadTimeFromFailure(lph.GetTimestamp()),
+			blocktime.NextPayloadTime(s.chainSpec, lph.GetTimestamp()),
 			blk.GetParentBlockRoot(),
 			lph.GetBlockHash(),
 			lph.GetParentHash(),

@@ -27,32 +27,17 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// NextPayloadTimeFromSuccess calculates the
+// NextPayloadTime calculates the
 // next timestamp for an execution payload
-// once parent block has successfully verified or
-// has been accepted
 //
 // TODO: This is hood and needs to be improved.
-func NextPayloadTimeFromSuccess(
+func NextPayloadTime(
 	chainSpec common.ChainSpec,
 	parentPayloadTime math.U64,
 ) uint64 {
 	//#nosec:G701 // not an issue in practice.
 	return max(
 		uint64(time.Now().Unix())+chainSpec.TargetSecondsPerEth1Block(),
-		uint64(parentPayloadTime+1),
-	)
-}
-
-// NextPayloadTimeFromFailure calculates the
-// next timestamp for an execution payload
-// once parent block has not verified.
-//
-// TODO: this is hood as fuck.
-func NextPayloadTimeFromFailure(parentPayloadTime math.U64) uint64 {
-	//#nosec:G701 // not an issue in practice.
-	return max(
-		uint64(time.Now().Add(time.Second).Unix()),
 		uint64(parentPayloadTime+1),
 	)
 }

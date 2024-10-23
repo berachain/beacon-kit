@@ -80,7 +80,7 @@ func (s *Service[
 		ctx,
 		stCopy,
 		blk.GetSlot()+1,
-		blocktime.NextPayloadTimeFromSuccess(s.chainSpec, payloadTime),
+		blocktime.NextPayloadTime(s.chainSpec, payloadTime),
 		prevBlockRoot,
 		lph.GetBlockHash(),
 		lph.GetParentHash(),
