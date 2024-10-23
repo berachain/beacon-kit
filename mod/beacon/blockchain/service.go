@@ -265,7 +265,7 @@ func (s *Service[
 		async.NewEvent(
 			msg.Context(),
 			async.BeaconBlockVerified,
-			msg.Data(),
+			msg.Data().GetBeaconBlock(),
 			s.VerifyIncomingBlock(msg.Context(), msg.Data()),
 		),
 	); err != nil {
