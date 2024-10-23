@@ -21,8 +21,6 @@
 package cometbft
 
 import (
-	"context"
-
 	ctypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -38,16 +36,6 @@ type AttestationData[AttestationDataT any] interface {
 	GetIndex() math.U64
 	// New creates a new attestation data instance.
 	New(math.U64, math.U64, common.Root) AttestationDataT
-}
-
-// BeaconState is an interface for accessing the beacon state.
-type BeaconState interface {
-	// GetValidatorIndexByCometBFTAddress returns the validator index by the
-	ValidatorIndexByCometBFTAddress(
-		cometBFTAddress []byte,
-	) (math.ValidatorIndex, error)
-	// HashTreeRoot returns the hash tree root of the beacon state.
-	HashTreeRoot() common.Root
 }
 
 type MiddlewareI interface {
@@ -81,11 +69,4 @@ type SlashingInfo[SlashingInfoT any] interface {
 type SlotData[AttestationDataT, SlashingInfoT, SlotDataT any] interface {
 	// New creates a new slot data instance.
 	New(math.Slot, []AttestationDataT, []SlashingInfoT) SlotDataT
-}
-
-// StorageBackend defines an interface for accessing various storage components
-// required by the beacon node.
-type StorageBackend[BeaconStateT BeaconState] interface {
-	// StateFromContext retrieves the beacon state from the given context.
-	StateFromContext(context.Context) BeaconStateT
 }
