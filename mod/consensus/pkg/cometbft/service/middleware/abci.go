@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 /* -------------------------------------------------------------------------- */
@@ -41,7 +42,7 @@ import (
 func (h *ABCIMiddleware[
 	_, _, GenesisT, _,
 ]) InitGenesis(
-	ctx context.Context,
+	ctx sdk.Context,
 	bz []byte,
 ) (transition.ValidatorUpdates, error) {
 	var (
@@ -87,7 +88,7 @@ func (h *ABCIMiddleware[
 func (h *ABCIMiddleware[
 	BeaconBlockT, BlobSidecarsT, _, SlotDataT,
 ]) PrepareProposal(
-	ctx context.Context,
+	ctx sdk.Context,
 	slotData SlotDataT,
 ) ([]byte, []byte, error) {
 	var (
@@ -192,7 +193,7 @@ func (h *ABCIMiddleware[
 func (h *ABCIMiddleware[
 	BeaconBlockT, BlobSidecarsT, _, _,
 ]) ProcessProposal(
-	ctx context.Context,
+	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
 	var (
@@ -311,7 +312,8 @@ func (*ABCIMiddleware[
 func (h *ABCIMiddleware[
 	BeaconBlockT, BlobSidecarsT, _, _,
 ]) FinalizeBlock(
-	ctx context.Context, req *cmtabci.FinalizeBlockRequest,
+	ctx sdk.Context,
+	req *cmtabci.FinalizeBlockRequest,
 ) (transition.ValidatorUpdates, error) {
 	var (
 		err              error

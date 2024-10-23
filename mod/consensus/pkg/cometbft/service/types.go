@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // AttestationData is an interface for accessing the attestation data.
@@ -51,17 +52,22 @@ type BeaconState interface {
 
 type MiddlewareI interface {
 	InitGenesis(
-		ctx context.Context, bz []byte,
+		sdk.Context,
+		[]byte,
 	) (transition.ValidatorUpdates, error)
-	PrepareProposal(context.Context, *types.SlotData[
-		*ctypes.AttestationData,
-		*ctypes.SlashingInfo]) ([]byte, []byte, error)
+	PrepareProposal(
+		sdk.Context,
+		*types.SlotData[
+			*ctypes.AttestationData,
+			*ctypes.SlashingInfo],
+	) ([]byte, []byte, error)
 	ProcessProposal(
-		ctx context.Context, req *cmtabci.ProcessProposalRequest,
+		sdk.Context,
+		*cmtabci.ProcessProposalRequest,
 	) (*cmtabci.ProcessProposalResponse, error)
 	FinalizeBlock(
-		ctx context.Context,
-		req *cmtabci.FinalizeBlockRequest,
+		sdk.Context,
+		*cmtabci.FinalizeBlockRequest,
 	) (transition.ValidatorUpdates, error)
 }
 
