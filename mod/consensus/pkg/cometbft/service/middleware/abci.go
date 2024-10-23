@@ -45,19 +45,16 @@ func (h *ABCIMiddleware[
 	ctx sdk.Context,
 	bz []byte,
 ) (transition.ValidatorUpdates, error) {
-	var (
-		err             error
-		waitCtx, cancel = context.WithTimeout(ctx, AwaitTimeout)
-	)
+	waitCtx, cancel := context.WithTimeout(ctx, AwaitTimeout)
 	defer cancel()
 
 	data := new(GenesisT)
-	if err = json.Unmarshal(bz, data); err != nil {
+	if err := json.Unmarshal(bz, data); err != nil {
 		h.logger.Error("Failed to unmarshal genesis data", "error", err)
 		return nil, err
 	}
 
-	if err = h.dispatcher.Publish(
+	if err := h.dispatcher.Publish(
 		async.NewEvent(ctx, async.GenesisDataReceived, *data),
 	); err != nil {
 		return nil, err
@@ -92,10 +89,6 @@ func (h *ABCIMiddleware[
 	slotData SlotDataT,
 ) ([]byte, []byte, error) {
 	var (
-		err              error
-		builtBeaconBlock BeaconBlockT
-		builtSidecars    BlobSidecarsT
-		numMsgs          int
 		startTime        = time.Now()
 		awaitCtx, cancel = context.WithTimeout(ctx, AwaitTimeout)
 	)
@@ -103,18 +96,18 @@ func (h *ABCIMiddleware[
 	defer cancel()
 	defer h.metrics.measurePrepareProposalDuration(startTime)
 	// flush the channels to ensure that we are not handling old data.
-	if numMsgs = async.ClearChan(h.subBuiltBeaconBlock); numMsgs > 0 {
+	if numMsgs := async.ClearChan(h.subBuiltBeaconBlock); numMsgs > 0 {
 		h.logger.Error(
 			"WARNING: messages remaining in built beacon block channel",
 			"num_msgs", numMsgs)
 	}
-	if numMsgs = async.ClearChan(h.subBuiltSidecars); numMsgs > 0 {
+	if numMsgs := async.ClearChan(h.subBuiltSidecars); numMsgs > 0 {
 		h.logger.Error(
 			"WARNING: messages remaining in built sidecars channel",
 			"num_msgs", numMsgs)
 	}
 
-	if err = h.dispatcher.Publish(
+	if err := h.dispatcher.Publish(
 		async.NewEvent(
 			ctx, async.NewSlot, slotData,
 		),
@@ -123,13 +116,13 @@ func (h *ABCIMiddleware[
 	}
 
 	// wait for built beacon block
-	builtBeaconBlock, err = h.waitForBuiltBeaconBlock(awaitCtx)
+	builtBeaconBlock, err := h.waitForBuiltBeaconBlock(awaitCtx)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	// wait for built sidecars
-	builtSidecars, err = h.waitForBuiltSidecars(awaitCtx)
+	builtSidecars, err := h.waitForBuiltSidecars(awaitCtx)
 	if err != nil {
 		return nil, nil, err
 	}
