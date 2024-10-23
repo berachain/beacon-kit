@@ -22,7 +22,8 @@ package blockchain
 
 import (
 	"context"
-	"time"
+
+	blocktime "github.com/berachain/beacon-kit/mod/beacon/block-time"
 )
 
 // forceStartupHead sends a force head FCU to the execution client.
@@ -113,12 +114,7 @@ func (s *Service[
 		st,
 		// We are rebuilding for the current slot.
 		stateSlot,
-		// TODO: this is hood as fuck.
-		max(
-			//#nosec:G701
-			uint64(time.Now().Unix()+1),
-			uint64((lph.GetTimestamp()+1)),
-		),
+		blocktime.NextPayloadTimeFromFailure(lph.GetTimestamp()),
 		// We set the parent root to the previous block root.
 		latestHeader.HashTreeRoot(),
 		// We set the head of our chain to the previous finalized block.
@@ -180,12 +176,7 @@ func (s *Service[
 	if _, err := s.localBuilder.RequestPayloadAsync(
 		ctx, st,
 		slot,
-		// TODO: this is hood as fuck.
-		max(
-			//#nosec:G701
-			uint64(time.Now().Unix()+int64(s.chainSpec.TargetSecondsPerEth1Block())),
-			uint64((payload.GetTimestamp()+1)),
-		),
+		blocktime.NextPayloadTimeFromSuccess(s.chainSpec, payload.GetTimestamp()),
 		// The previous block root is simply the root of the block we just
 		// processed.
 		blk.HashTreeRoot(),

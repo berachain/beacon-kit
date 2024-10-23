@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"time"
 
+	blocktime "github.com/berachain/beacon-kit/mod/beacon/block-time"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -234,12 +235,7 @@ func (s *Service[
 			ctx,
 			st,
 			blk.GetSlot(),
-			// TODO: this is hood.
-			max(
-				//#nosec:G701
-				uint64(time.Now().Unix()+1),
-				uint64((lph.GetTimestamp()+1)),
-			),
+			blocktime.NextPayloadTimeFromFailure(lph.GetTimestamp()),
 			blk.GetParentBlockRoot(),
 			lph.GetBlockHash(),
 			lph.GetParentHash(),
