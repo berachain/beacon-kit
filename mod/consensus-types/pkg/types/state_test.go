@@ -78,8 +78,10 @@ func generateValidBeaconState() *types.BeaconState[
 		},
 		Validators: []*types.Validator{
 			{
-				Pubkey:                     [48]byte{0x01},
-				WithdrawalCredentials:      [32]byte{0x02},
+				Pubkey: [48]byte{0x01},
+				WithdrawalCredentials: types.NewCredentialsFromExecutionAddress(
+					common.ExecutionAddress{0x02},
+				),
 				EffectiveBalance:           32000000000,
 				Slashed:                    false,
 				ActivationEligibilityEpoch: 1,
@@ -88,8 +90,10 @@ func generateValidBeaconState() *types.BeaconState[
 				WithdrawableEpoch:          18446744073709551615,
 			},
 			{
-				Pubkey:                     [48]byte{0x03},
-				WithdrawalCredentials:      [32]byte{0x04},
+				Pubkey: [48]byte{0x03},
+				WithdrawalCredentials: types.NewCredentialsFromExecutionAddress(
+					common.ExecutionAddress{0x04},
+				),
 				EffectiveBalance:           31000000000,
 				Slashed:                    true,
 				ActivationEligibilityEpoch: 3,

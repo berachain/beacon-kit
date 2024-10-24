@@ -60,12 +60,13 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 
 func ConstructValidator() *validator.Validate {
 	validators := map[string](func(fl validator.FieldLevel) bool){
-		"state_id":     ValidateStateID,
-		"block_id":     ValidateBlockID,
-		"timestamp_id": ValidateTimestampID,
-		"validator_id": ValidateValidatorID,
-		"epoch":        ValidateUint64,
-		"slot":         ValidateUint64,
+		"state_id":         ValidateStateID,
+		"block_id":         ValidateBlockID,
+		"timestamp_id":     ValidateTimestampID,
+		"validator_id":     ValidateValidatorID,
+		"epoch":            ValidateUint64,
+		"slot":             ValidateUint64,
+		"validator_status": ValidateValidatorStatus,
 	}
 	validate := validator.New()
 	for tag, fn := range validators {

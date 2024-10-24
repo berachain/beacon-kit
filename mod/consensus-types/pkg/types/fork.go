@@ -129,7 +129,7 @@ func (f *Fork) HashTreeRootWith(hh fastssz.HashWalker) error {
 	hh.PutBytes(f.CurrentVersion[:])
 
 	// Field (2) 'Epoch'
-	hh.PutUint64(uint64(f.Epoch))
+	hh.PutUint64(f.Epoch.Unwrap())
 
 	hh.Merkleize(indx)
 	return nil
@@ -138,4 +138,23 @@ func (f *Fork) HashTreeRootWith(hh fastssz.HashWalker) error {
 // GetTree ssz hashes the Fork object.
 func (f *Fork) GetTree() (*fastssz.Node, error) {
 	return fastssz.ProofTree(f)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                 Getters                                    */
+/* -------------------------------------------------------------------------- */
+
+// GetPreviousVersion returns the previous version of the fork.
+func (f *Fork) GetPreviousVersion() common.Version {
+	return f.PreviousVersion
+}
+
+// GetCurrentVersion returns the current version of the fork.
+func (f *Fork) GetCurrentVersion() common.Version {
+	return f.CurrentVersion
+}
+
+// GetEpoch returns the epoch at which the fork occurred.
+func (f *Fork) GetEpoch() math.Epoch {
+	return f.Epoch
 }
