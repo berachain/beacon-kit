@@ -20,14 +20,27 @@
 
 package beacondb
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+import (
+	"fmt"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/errors"
+)
 
 // GetNextWithdrawalIndex returns the next withdrawal index.
 func (kv *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) GetNextWithdrawalIndex() (uint64, error) {
-	return kv.nextWithdrawalIndex.Get(kv.ctx)
+	idx, err := kv.nextWithdrawalIndex.Get(kv.ctx)
+	err = errors.MapError(err)
+	if err != nil {
+		return 0, fmt.Errorf(
+			"failed retrieving next withdrawal index: %w",
+			err,
+		)
+	}
+	return idx, nil
 }
 
 // SetNextWithdrawalIndex sets the next withdrawal index.
@@ -48,7 +61,15 @@ func (kv *KVStore[
 	math.ValidatorIndex, error,
 ) {
 	idx, err := kv.nextWithdrawalValidatorIndex.Get(kv.ctx)
-	return math.ValidatorIndex(idx), err
+	err = errors.MapError(err)
+	if err != nil {
+		return 0, fmt.Errorf(
+			"failed retrieving next withdrawal validator at index %d: %w",
+			idx,
+			err,
+		)
+	}
+	return math.ValidatorIndex(idx), nil
 }
 
 // SetNextWithdrawalValidatorIndex sets the next withdrawal validator index.

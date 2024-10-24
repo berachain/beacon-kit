@@ -21,9 +21,14 @@
 package encoding
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/davecgh/go-spew/spew"
 )
+
+var errNotImplemented = errors.New("not implemented")
 
 // SSZValueCodec provides methods to encode and decode SSZ values.
 type SSZValueCodec[T interface {
@@ -45,12 +50,12 @@ func (SSZValueCodec[T]) Decode(bz []byte) (T, error) {
 
 // EncodeJSON is not implemented and will panic if called.
 func (SSZValueCodec[T]) EncodeJSON(_ T) ([]byte, error) {
-	panic("not implemented")
+	panic(fmt.Errorf("EncodeJson %w", errNotImplemented))
 }
 
 // DecodeJSON is not implemented and will panic if called.
 func (SSZValueCodec[T]) DecodeJSON(_ []byte) (T, error) {
-	panic("not implemented")
+	panic(fmt.Errorf("DecodeJSON %w", errNotImplemented))
 }
 
 // Stringify returns the string representation of the provided value.
@@ -94,12 +99,12 @@ func (cdc SSZInterfaceCodec[T]) Decode(b []byte) (T, error) {
 
 // EncodeJSON is not implemented and will panic if called.
 func (SSZInterfaceCodec[T]) EncodeJSON(_ T) ([]byte, error) {
-	panic("not implemented")
+	panic(fmt.Errorf("EncodeJSON %w", errNotImplemented))
 }
 
 // DecodeJSON is not implemented and will panic if called.
 func (SSZInterfaceCodec[T]) DecodeJSON(_ []byte) (T, error) {
-	panic("not implemented")
+	panic(fmt.Errorf("DecodeJSON %w", errNotImplemented))
 }
 
 // Stringify returns the string representation of the provided value.

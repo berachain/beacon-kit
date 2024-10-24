@@ -18,33 +18,27 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package beacondb
+package errors
 
 import (
-	"fmt"
+	"errors"
 
-	"github.com/berachain/beacon-kit/mod/storage/pkg/errors"
+	"cosmossdk.io/collections"
 )
 
-// SetFork sets the fork version for the given epoch.
-func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
-]) SetFork(
-	fork ForkT,
-) error {
-	return kv.fork.Set(kv.ctx, fork)
-}
+var ErrNotFound = errors.New("storage: object not found")
 
-// GetFork gets the fork version for the given epoch.
-func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
-]) GetFork() (ForkT, error) {
-	f, err := kv.fork.Get(kv.ctx)
-	err = errors.MapError(err)
-	if err != nil {
-		return f, fmt.Errorf("failed retrieving fork: %w", err)
+// MapError ensure that we replace collections.ErrNotFound error
+// with ErrNotFound. This allows beacond clients to implement custom
+// logic when items they were quering are not available, while loosening
+// dependencies on cosmos sdk package.
+func MapError(err error) error {
+	switch {
+	case err == nil:
+		return nil
+	case errors.Is(err, collections.ErrNotFound):
+		return ErrNotFound
+	default:
+		return err
 	}
-	return f, nil
 }
