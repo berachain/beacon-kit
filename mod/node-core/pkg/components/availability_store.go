@@ -52,10 +52,11 @@ func ProvideAvailibilityStore[
 		GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 	},
 	LoggerT log.AdvancedLogger[LoggerT],
+	BeaconBlockHeaderT any,
 ](
 	in AvailabilityStoreInput[LoggerT],
-) (*dastore.Store[BeaconBlockBodyT], error) {
-	return dastore.New[BeaconBlockBodyT](
+) (*dastore.Store[BeaconBlockBodyT, BeaconBlockHeaderT], error) {
+	return dastore.New[BeaconBlockBodyT, BeaconBlockHeaderT](
 		filedb.NewRangeDB(
 			filedb.NewDB(
 				filedb.WithRootDirectory(
@@ -91,7 +92,7 @@ type AvailabilityPrunerInput[
 // framework.
 func ProvideAvailabilityPruner[
 	AvailabilityStoreT AvailabilityStore[
-		BeaconBlockBodyT, BlobSidecarsT,
+		BeaconBlockBodyT, BlobSidecarsT, BeaconBlockHeaderT,
 	],
 	BeaconBlockT BeaconBlock[
 		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
