@@ -23,7 +23,6 @@ package blockchain
 import (
 	"context"
 
-	payloadtime "github.com/berachain/beacon-kit/mod/beacon/payload-time"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 )
 
@@ -76,16 +75,11 @@ func (s *Service[
 	}
 
 	prevBlockRoot := beaconBlk.HashTreeRoot()
-	payloadTime := beaconBlk.GetBody().GetExecutionPayload().GetTimestamp()
 	if _, err := s.localBuilder.RequestPayloadAsync(
 		ctx,
 		stCopy,
 		beaconBlk.GetSlot()+1,
-		payloadtime.Next(
-			s.chainSpec,
-			payloadTime,
-			blk.GetConsensusTime(),
-		),
+		blk.GetConsensusTime().Unwrap(),
 		prevBlockRoot,
 		lph.GetBlockHash(),
 		lph.GetParentHash(),
