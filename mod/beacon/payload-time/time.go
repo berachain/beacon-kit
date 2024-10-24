@@ -28,10 +28,10 @@ import (
 // Next calculates the timestamp for the
 // next execution payload to be built.
 // The timestamp is set to be:
-// Strictly increasing wrt parent payload timestamp
-// Ideally spaced around the TargetSecondsPerEth1Block
-// Referred to consensus tracked time, which should have
-// extra stability properties.
+//   - Strictly increasing wrt parent payload timestamp
+//   - Ideally spaced around the TargetSecondsPerEth1Block
+//   - Referred to consensus tracked time, which should have
+//     extra stability properties.
 func Next(
 	chainSpec common.ChainSpec,
 	parentPayloadTime math.U64,

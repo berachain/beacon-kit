@@ -71,7 +71,7 @@ func (b *SlotData[
 	return b.slashingInfo
 }
 
-// GetConsensusTime retrieves the slot of the SlotData.
+// GetConsensusTime retrieves the consensus time.
 func (b *SlotData[
 	AttestationDataT,
 	SlashingInfoT,

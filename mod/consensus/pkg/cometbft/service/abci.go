@@ -206,7 +206,7 @@ func (s *Service[LoggerT]) PrepareProposal(
 		*ctypes.SlashingInfo,
 	]
 	slotData = slotData.New(
-		math.Slot(req.Height),
+		math.Slot(req.GetHeight()),
 		nil,
 		nil,
 		math.U64(req.GetTime().Unix()),
