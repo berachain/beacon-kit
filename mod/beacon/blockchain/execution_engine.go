@@ -44,7 +44,7 @@ func (s *Service[
 		return
 	}
 
-	if !s.shouldBuildOptimisticPayloads() && s.localBuilder.Enabled() {
+	if !s.shouldBuildOptimisticPayloads() {
 		s.sendNextFCUWithAttributes(ctx, st, blk, lph)
 	} else {
 		s.sendNextFCUWithoutAttributes(ctx, blk, lph)
