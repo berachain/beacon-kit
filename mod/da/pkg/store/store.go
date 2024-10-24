@@ -24,11 +24,11 @@ import (
 	"context"
 	"encoding/binary"
 	"fmt"
-	"github.com/berachain/beacon-kit/mod/node-api/backend"
 
 	"github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/node-api/backend"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -206,13 +206,13 @@ func (s *Store[BeaconBlockBodyT, BeaconBlockHeaderT]) GetBlobSideCars(slot math.
 		var commitment eip4844.KZGCommitment
 		copy(commitment[:], commitmentBytes)
 
-		//sidecar := []types.BlobSidecar{
+		//sidecar := backend.BlobSideCar{
 		//	Index:                       uint64(i),
 		//	Blob:                        blob,
 		//	KzgProof:                    proof,
 		//	KzgCommitment:               commitment,
 		//	BeaconBlockHeader:           beacontypes.BlockHeader[]{},
-		//	KzgCommitmentInclusionProof: header,
+		//	KzgCommitmentInclusionProof: headerBytes,
 		//}
 		//
 		//blobSidecars = append(blobSidecars, sidecar)
