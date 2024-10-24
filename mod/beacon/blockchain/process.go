@@ -60,7 +60,7 @@ func (s *Service[
 	}
 
 	st := s.storageBackend.StateFromContext(ctx)
-	valUpdates, err := s.executeStateTransition(ctx, st, beaconBlk)
+	valUpdates, err := s.executeStateTransition(ctx, st, blk)
 	if err != nil {
 		return nil, err
 	}
@@ -94,11 +94,11 @@ func (s *Service[
 
 // executeStateTransition runs the stf.
 func (s *Service[
-	_, _, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _,
+	_, ConsensusBlockT, _, _, _, BeaconStateT, _, _, _, _, _,
 ]) executeStateTransition(
 	ctx context.Context,
 	st BeaconStateT,
-	blk BeaconBlockT,
+	blk ConsensusBlockT,
 ) (transition.ValidatorUpdates, error) {
 	startTime := time.Now()
 	defer s.metrics.measureStateTransitionDuration(startTime)
@@ -127,9 +127,11 @@ func (s *Service[
 			// the "verification aspect" of this NewPayload call is
 			// actually irrelevant at this point.
 			SkipPayloadVerification: false,
+
+			ConsensusTime: blk.GetConsensusTime(),
 		},
 		st,
-		blk,
+		blk.GetBeaconBlock(),
 	)
 	return valUpdates, err
 }

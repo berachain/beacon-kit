@@ -71,7 +71,7 @@ func (s *Service[
 	postState := preState.Copy()
 
 	// Verify the state root of the incoming block.
-	if err := s.verifyStateRoot(ctx, postState, beaconBlk); err != nil {
+	if err := s.verifyStateRoot(ctx, postState, blk); err != nil {
 		s.logger.Error(
 			"Rejecting incoming beacon block ❌ ",
 			"state_root",
@@ -111,15 +111,15 @@ func (s *Service[
 
 // verifyStateRoot verifies the state root of an incoming block.
 func (s *Service[
-	_, _, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _,
+	_, ConsensusBlockT, _, _, _, BeaconStateT, _, _, _, _, _,
 ]) verifyStateRoot(
 	ctx context.Context,
 	st BeaconStateT,
-	blk BeaconBlockT,
+	blk ConsensusBlockT,
 ) error {
 	startTime := time.Now()
 	defer s.metrics.measureStateRootVerificationTime(startTime)
-	if _, err := s.stateProcessor.Transition(
+	_, err := s.stateProcessor.Transition(
 		// We run with a non-optimistic engine here to ensure
 		// that the proposer does not try to push through a bad block.
 		&transition.Context{
@@ -128,20 +128,20 @@ func (s *Service[
 			SkipPayloadVerification: false,
 			SkipValidateResult:      false,
 			SkipValidateRandao:      false,
+			ConsensusTime:           blk.GetConsensusTime(),
 		},
-		st, blk,
-	); errors.Is(err, engineerrors.ErrAcceptedPayloadStatus) {
+		st, blk.GetBeaconBlock(),
+	)
+	if errors.Is(err, engineerrors.ErrAcceptedPayloadStatus) {
 		// It is safe for the validator to ignore this error since
 		// the state transition will enforce that the block is part
 		// of the canonical chain.
 		//
 		// TODO: this is only true because we are assuming SSF.
 		return nil
-	} else if err != nil {
-		return err
 	}
 
-	return nil
+	return err
 }
 
 // shouldBuildOptimisticPayloads returns true if optimistic

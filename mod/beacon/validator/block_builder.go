@@ -86,7 +86,8 @@ func (s *Service[
 	envelope, err := s.retrieveExecutionPayload(ctx, st, blk, slotData)
 	if err != nil {
 		return blk, sidecars, err
-	} else if envelope == nil {
+	}
+	if envelope == nil {
 		return blk, sidecars, ErrNilPayload
 	}
 
@@ -113,7 +114,12 @@ func (s *Service[
 
 	// Compute the state root for the block.
 	g.Go(func() error {
-		return s.computeAndSetStateRoot(ctx, st, blk)
+		return s.computeAndSetStateRoot(
+			ctx,
+			slotData.GetConsensusTime(),
+			st,
+			blk,
+		)
 	})
 
 	// Wait for all the goroutines to finish.
@@ -332,10 +338,11 @@ func (s *Service[
 	_, BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
 ]) computeAndSetStateRoot(
 	ctx context.Context,
+	consensusTime math.U64,
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
-	stateRoot, err := s.computeStateRoot(ctx, st, blk)
+	stateRoot, err := s.computeStateRoot(ctx, consensusTime, st, blk)
 	if err != nil {
 		s.logger.Error(
 			"failed to compute state root while building block ❗️ ",
@@ -353,6 +360,7 @@ func (s *Service[
 	_, BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
 ]) computeStateRoot(
 	ctx context.Context,
+	consensusTime math.U64,
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) (common.Root, error) {
@@ -368,6 +376,7 @@ func (s *Service[
 			SkipPayloadVerification: true,
 			SkipValidateResult:      true,
 			SkipValidateRandao:      true,
+			ConsensusTime:           consensusTime,
 		},
 		st, blk,
 	); err != nil {
