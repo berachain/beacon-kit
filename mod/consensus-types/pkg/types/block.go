@@ -34,7 +34,7 @@ type BeaconBlock struct {
 	// Slot represents the position of the block in the chain.
 	Slot math.Slot `json:"slot"`
 	// ProposerIndex is the index of the validator who proposed the block.
-	ProposerIndex math.Slot `json:"proposer_index"`
+	ProposerIndex math.ValidatorIndex `json:"proposer_index"`
 	// ParentRoot is the hash of the parent block
 	ParentRoot common.Root `json:"parent_root"`
 	// StateRoot is the hash of the state at the block.
@@ -192,7 +192,7 @@ func (b *BeaconBlock) GetSlot() math.Slot {
 	return b.Slot
 }
 
-// GetSlot retrieves the slot of the BeaconBlockBase.
+// GetProposerIndex retrieves the proposer index.
 func (b *BeaconBlock) GetProposerIndex() math.ValidatorIndex {
 	return b.ProposerIndex
 }
@@ -233,8 +233,8 @@ func (b *BeaconBlock) GetHeader() *BeaconBlockHeader {
 	}
 }
 
-// GetExecutionNumber retrieves the execution number of the BeaconBlock from
+// GetTimestamp retrieves the timestamp of the BeaconBlock from
 // the ExecutionPayload.
-func (b *BeaconBlock) GetExecutionNumber() math.U64 {
-	return b.Body.ExecutionPayload.Number
+func (b *BeaconBlock) GetTimestamp() math.U64 {
+	return b.Body.ExecutionPayload.Timestamp
 }

@@ -22,6 +22,8 @@
 package bytes
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 )
 
@@ -35,9 +37,17 @@ const (
 type B20 [20]byte
 
 // ToBytes20 is a utility function that transforms a byte slice into a fixed
-// 20-byte array. If the input exceeds 20 bytes, it gets truncated.
-func ToBytes20(input []byte) B20 {
-	return B20(ExtendToSize(input, B20Size))
+// 20-byte array. It errs if input has not the required size.
+func ToBytes20(input []byte) (B20, error) {
+	if len(input) != B20Size {
+		return B20{}, fmt.Errorf(
+			"%w, got %d, expected %d",
+			ErrIncorrectLength,
+			len(input),
+			B20Size,
+		)
+	}
+	return B20(input), nil
 }
 
 /* -------------------------------------------------------------------------- */
@@ -56,7 +66,7 @@ func (h *B20) UnmarshalText(text []byte) error {
 
 // String returns the hex string representation of B20.
 func (h *B20) String() string {
-	return hex.FromBytes(h[:]).Unwrap()
+	return hex.EncodeBytes(h[:])
 }
 
 /* -------------------------------------------------------------------------- */
@@ -78,6 +88,6 @@ func (h B20) MarshalSSZ() ([]byte, error) {
 }
 
 // HashTreeRoot returns the hash tree root of the B20.
-func (h B20) HashTreeRoot() B32 {
-	return ToBytes32(h[:])
+func (h B20) HashTreeRoot() (B32, error) {
+	return ToBytes32(ExtendToSize(h[:], B32Size))
 }
