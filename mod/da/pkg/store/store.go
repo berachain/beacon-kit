@@ -24,6 +24,7 @@ import (
 	"context"
 	"encoding/binary"
 	"fmt"
+	"github.com/berachain/beacon-kit/mod/node-api/backend"
 
 	"github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -44,7 +45,7 @@ const (
 )
 
 // Store is the default implementation of the AvailabilityStore.
-type Store[BeaconBlockBodyT BeaconBlockBody] struct {
+type Store[BeaconBlockBodyT BeaconBlockBody, BeaconBlockHeaderT any] struct {
 	// IndexDB is a basic database interface.
 	IndexDB
 	// logger is used for logging.
@@ -54,12 +55,12 @@ type Store[BeaconBlockBodyT BeaconBlockBody] struct {
 }
 
 // New creates a new instance of the AvailabilityStore.
-func New[BeaconBlockT BeaconBlockBody](
+func New[BeaconBlockT BeaconBlockBody, BeaconBlockHeaderT any](
 	db IndexDB,
 	logger log.Logger,
 	chainSpec common.ChainSpec,
-) *Store[BeaconBlockT] {
-	return &Store[BeaconBlockT]{
+) *Store[BeaconBlockT, BeaconBlockHeaderT] {
+	return &Store[BeaconBlockT, BeaconBlockHeaderT]{
 		IndexDB:   db,
 		chainSpec: chainSpec,
 		logger:    logger,
@@ -68,7 +69,7 @@ func New[BeaconBlockT BeaconBlockBody](
 
 // IsDataAvailable ensures that all blobs referenced in the block are
 // stored before it returns without an error.
-func (s *Store[BeaconBlockBodyT]) IsDataAvailable(
+func (s *Store[BeaconBlockBodyT, _]) IsDataAvailable(
 	_ context.Context,
 	slot math.Slot,
 	body BeaconBlockBodyT,
@@ -85,7 +86,7 @@ func (s *Store[BeaconBlockBodyT]) IsDataAvailable(
 
 // Persist ensures the sidecar data remains accessible, utilizing parallel
 // processing for efficiency.
-func (s *Store[BeaconBlockT]) Persist(
+func (s *Store[BeaconBlockT, _]) Persist(
 	slot math.Slot,
 	sidecars *types.BlobSidecars,
 ) error {
@@ -131,13 +132,13 @@ func (s *Store[BeaconBlockT]) Persist(
 }
 
 // GetBlobSideCars retrieves blob sidecars for a given slot
-func (s *Store[BeaconBlockBodyT]) GetBlobSideCars(slot math.U64) (*[]types.BlobSidecar, error) {
+func (s *Store[BeaconBlockBodyT, BeaconBlockHeaderT]) GetBlobSideCars(slot math.U64) (*[]backend.BlobSideCar[BeaconBlockHeaderT], error) {
 	// Implementation to fetch blob sidecars for the given slot
 	// 1. Check if we have data for this slot
 	// 2. Convert the stored data to BlobSidecarData format
 	// 3. Return the result
 
-	blobSidecars := make([]types.BlobSidecar, 0)
+	blobSidecars := make([]backend.BlobSideCar[BeaconBlockHeaderT], 0)
 	// TODO: Implement actual data retrieval logic here
 	// - Query the stored blobs for the given slot
 	// - Convert them to BlobSidecarData format

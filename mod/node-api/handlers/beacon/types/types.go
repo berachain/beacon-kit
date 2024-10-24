@@ -63,11 +63,11 @@ type WithdrawalCredentials interface {
 }
 
 // BlobSidecar is the interface for the blob sidecar.
-type BlobSidecar interface {
+type BlobSidecar[BeaconBlockHeaderT any] interface {
 	GetIndex() uint64
 	GetBlob() eip4844.Blob
 	GetKzgCommitment() eip4844.KZGCommitment
 	GetKzgProof() eip4844.KZGProof
-	GetBeaconBlockHeader() BeaconBlockHeader
+	GetBeaconBlockHeader() BeaconBlockHeaderT
 	GetInclusionProof() []common.Root
 }

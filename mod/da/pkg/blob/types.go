@@ -22,6 +22,7 @@ package blob
 
 import (
 	"context"
+	"github.com/berachain/beacon-kit/mod/node-api/backend"
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -39,7 +40,7 @@ type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any, BeaconBlockHeade
 	// Persist makes sure that the sidecar remains accessible for data
 	// availability checks throughout the beacon node's operation.
 	Persist(math.Slot, BlobSidecarsT) error
-	GetBlobSideCars(math.Slot) (*[]Sidecar[BeaconBlockHeaderT], error)
+	GetBlobSideCars(math.Slot) (*[]backend.BlobSideCar[BeaconBlockHeaderT], error)
 }
 
 type BeaconBlock[

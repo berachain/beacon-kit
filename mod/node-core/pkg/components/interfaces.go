@@ -24,9 +24,9 @@ import (
 	stdbytes "bytes"
 	"context"
 	"encoding/json"
-
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/node-api/backend"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	configtypes "github.com/berachain/beacon-kit/mod/node-api/handlers/config/types"
@@ -79,7 +79,7 @@ type (
 		// Persist makes sure that the sidecar remains accessible for data
 		// availability checks throughout the beacon node's operation.
 		Persist(math.Slot, BlobSidecarsT) error
-		GetBlobSideCars(math.Slot) (*[]BlobSidecar[BeaconBlockHeaderT], error)
+		GetBlobSideCars(math.Slot) (*[]backend.BlobSideCar[BeaconBlockHeaderT], error)
 	}
 
 	// BeaconBlock represents a generic interface for a beacon block.
