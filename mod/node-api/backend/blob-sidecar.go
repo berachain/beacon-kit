@@ -24,7 +24,6 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
-	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -45,21 +44,24 @@ func (b Backend[
 		return nil, fmt.Errorf("failed to get blob sidecars: %w", err)
 	}
 
-	fmt.Printf("blob side cars length %v\n", len(*blobSidecars))
-	// Convert the returned blobSidecars to []*beacontypes.BlobSidecarData[BeaconBlockHeaderT]
-	result := make([]*beacontypes.BlobSidecarData[BeaconBlockHeaderT], len(*blobSidecars))
+	// Convert the returned blobSidecars to
+	// []*beacontypes.BlobSidecarData[BeaconBlockHeaderT]
+	result := make(
+		[]*types.BlobSidecarData[BeaconBlockHeaderT],
+		len(*blobSidecars),
+	)
 
 	for i, sidecar := range *blobSidecars {
-		result[i] = &beacontypes.BlobSidecarData[BeaconBlockHeaderT]{
+		result[i] = &types.BlobSidecarData[BeaconBlockHeaderT]{
 			Index:         sidecar.GetIndex(),
 			Blob:          sidecar.GetBlob(),
 			KzgCommitment: sidecar.GetKzgCommitment(),
 			KzgProof:      sidecar.GetKzgProof(),
-			BeaconBlockHeader: &beacontypes.BlockHeader[BeaconBlockHeaderT]{
+			BeaconBlockHeader: &types.BlockHeader[BeaconBlockHeaderT]{
 				Message:   blockHeader,
 				Signature: crypto.BLSSignature{},
 			},
-			//sidecar.GetBeaconBlockHeader(),
+			// sidecar.GetBeaconBlockHeader(),
 			KzgCommitmentInclusionProof: sidecar.GetInclusionProof(),
 		}
 	}
@@ -67,7 +69,7 @@ func (b Backend[
 	return result, nil
 
 	// TODO: Implement with real data.
-	//blobSidecars := []*types.BlobSidecarData[BeaconBlockHeaderT]{
+	// blobSidecars := []*types.BlobSidecarData[BeaconBlockHeaderT]{
 	//	{
 	//		Index: 0,
 	//		Blob: eip4844.Blob{
@@ -78,7 +80,8 @@ func (b Backend[
 	//			0x6d, 0x65, 0x6e, 0x74, // "kzg_commitment" in hex
 	//		},
 	//		KzgProof: eip4844.KZGProof{
-	//			0x6b, 0x7a, 0x67, 0x5f, 0x70, 0x72, 0x6f, 0x6f, 0x66, // "kzg_proof" in hex
+	//			0x6b, 0x7a, 0x67, 0x5f,
+	//			0x70, 0x72, 0x6f, 0x6f, 0x66, // "kzg_proof" in hex
 	//		},
 	//		BeaconBlockHeader: types.BlockHeader[BeaconBlockHeaderT]{
 	//			Message:   blockHeader,
@@ -86,10 +89,11 @@ func (b Backend[
 	//		},
 	//		KzgCommitmentInclusionProof: []common.Root{
 	//			{
-	//				0x69, 0x6e, 0x63, 0x6c, 0x75, 0x73, 0x69, 0x6f, 0x6e, // "inclusion" in hex
+	//				0x69, 0x6e, 0x63, 0x6c, 0x75,
+	//				0x73, 0x69, 0x6f, 0x6e, // "inclusion" in hex
 	//			},
 	//		},
 	//	},
-	//}
-	//return blobSidecars, nil
+	// }
+	// return blobSidecars, nil
 }

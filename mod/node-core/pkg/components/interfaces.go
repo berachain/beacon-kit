@@ -24,6 +24,7 @@ import (
 	stdbytes "bytes"
 	"context"
 	"encoding/json"
+
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-api/backend"
@@ -71,7 +72,11 @@ type (
 	}
 
 	// AvailabilityStore is the interface for the availability store.
-	AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any, BeaconBlockHeaderT any] interface {
+	AvailabilityStore[
+		BeaconBlockBodyT any,
+		BlobSidecarsT any,
+		BeaconBlockHeaderT any,
+	] interface {
 		IndexDB
 		// IsDataAvailable ensures that all blobs referenced in the block are
 		// securely stored before it returns without an error.

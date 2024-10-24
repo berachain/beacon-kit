@@ -35,7 +35,11 @@ import (
 // The AvailabilityStore interface is responsible for validating and storing
 // sidecars for specific blocks, as well as verifying sidecars that have already
 // been stored.
-type AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT any, BeaconBlockHeaderT any] interface {
+type AvailabilityStore[
+	BeaconBlockBodyT,
+	BlobSidecarsT any,
+	BeaconBlockHeaderT any,
+] interface {
 	// IsDataAvailable ensures that all blobs referenced in the block are
 	// securely stored before it returns without an error.
 	IsDataAvailable(
