@@ -24,7 +24,7 @@ package pow
 //
 //nolint:mnd // todo fix.
 func PrevPowerOfTwo[U64T ~uint64](u U64T) U64T {
-	if u == 0 {
+	if u <= 1 {
 		return 1
 	}
 	u |= u >> 1
@@ -40,7 +40,7 @@ func PrevPowerOfTwo[U64T ~uint64](u U64T) U64T {
 //
 //nolint:mnd // todo fix.
 func NextPowerOfTwo[U64T ~uint64](u U64T) U64T {
-	if u == 0 {
+	if u <= 1 {
 		return 1
 	}
 	if u > 1<<63 {

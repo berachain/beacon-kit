@@ -17,43 +17,27 @@
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
-//
 
-package bytes
+package payloadtime
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
+	"time"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// Bytes marshals/unmarshals as a JSON string with 0x prefix.
-// The empty slice marshals as "0x".
-type Bytes []byte
-
-// MarshalText implements encoding.TextMarshaler.
-func (b Bytes) MarshalText() ([]byte, error) {
-	return []byte(hex.EncodeBytes(b)), nil
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (b *Bytes) UnmarshalJSON(input []byte) error {
-	strippedInput, err := hex.ValidateQuotedString(input)
-	if err != nil {
-		return err
-	}
-	return b.UnmarshalText(strippedInput)
-}
-
-// UnmarshalText implements encoding.TextUnmarshaler.
-func (b *Bytes) UnmarshalText(input []byte) error {
-	dec, err := hex.UnmarshalByteText(input)
-	if err != nil {
-		return err
-	}
-	*b = Bytes(dec)
-	return nil
-}
-
-// String returns the hex encoding of b.
-func (b Bytes) String() string {
-	return hex.EncodeBytes(b)
+// Next calculates the
+// next timestamp for an execution payload
+//
+// TODO: This is hood and needs to be improved.
+func Next(
+	chainSpec common.ChainSpec,
+	parentPayloadTime math.U64,
+) uint64 {
+	//#nosec:G701 // not an issue in practice.
+	return max(
+		uint64(time.Now().Unix())+chainSpec.TargetSecondsPerEth1Block(),
+		uint64(parentPayloadTime+1),
+	)
 }
