@@ -101,9 +101,8 @@ func (sp *StateProcessor[
 	payload := body.GetExecutionPayload()
 
 	// Verify the number of withdrawals.
-	if withdrawals := payload.GetWithdrawals(); uint64(
-		len(withdrawals),
-	) > sp.cs.MaxWithdrawalsPerPayload() {
+	withdrawals := payload.GetWithdrawals()
+	if uint64(len(withdrawals)) > sp.cs.MaxWithdrawalsPerPayload() {
 		return errors.Wrapf(
 			ErrExceedMaximumWithdrawals,
 			"too many withdrawals, expected: %d, got: %d",
@@ -143,7 +142,8 @@ func (sp *StateProcessor[
 	}
 
 	// Check chain canonicity
-	if safeHash := lph.GetBlockHash(); safeHash != payload.GetParentHash() {
+	safeHash := lph.GetBlockHash()
+	if safeHash != payload.GetParentHash() {
 		return errors.Wrapf(
 			ErrParentPayloadHashMismatch,
 			"parent block with hash %x is not finalized, expected finalized hash %x",
