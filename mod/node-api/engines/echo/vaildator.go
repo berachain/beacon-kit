@@ -24,10 +24,11 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"regexp"
 	"strconv"
 
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 )
@@ -130,11 +131,9 @@ func ValidateUint64(fl validator.FieldLevel) bool {
 // validator identifier. It validates against a hex-encoded public key
 // or a numeric validator index.
 func ValidateValidatorID(fl validator.FieldLevel) bool {
-	valid, err := validateRegex(fl.Field().String(), `^0x[0-9a-fA-F]{1,96}$`)
-	if err != nil {
-		return false
-	}
-	if valid {
+	var key crypto.BLSPubkey
+	err := key.UnmarshalText([]byte(fl.Field().String()))
+	if err == nil {
 		return true
 	}
 	if ValidateUint64(fl) {
@@ -146,11 +145,8 @@ func ValidateValidatorID(fl validator.FieldLevel) bool {
 // ValidateRoot checks if the provided field is a valid root.
 // It validates against a 32 byte hex-encoded root with "0x" prefix.
 func ValidateRoot(value string) bool {
-	valid, err := validateRegex(value, `^0x[0-9a-fA-F]{64}$`)
-	if err != nil {
-		return false
-	}
-	return valid
+	_, err := common.NewRootFromHex(value)
+	return err == nil
 }
 
 func ValidateValidatorStatus(fl validator.FieldLevel) bool {
@@ -177,17 +173,6 @@ func validateAllowedStrings(
 		return true
 	}
 	return allowedValues[value]
-}
-
-func validateRegex(value string, hexPattern string) (bool, error) {
-	if value == "" {
-		return true, nil
-	}
-	matched, err := regexp.MatchString(hexPattern, value)
-	if err != nil {
-		return false, err
-	}
-	return matched, nil
 }
 
 func validateStateBlockIDs(value string, allowedValues map[string]bool) bool {
