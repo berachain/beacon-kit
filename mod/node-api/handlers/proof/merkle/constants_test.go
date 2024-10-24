@@ -117,7 +117,11 @@ func TestGIndexProposerIndexDeneb(t *testing.T) {
 		mlib.GeneralizedIndex, [32]byte,
 	]("ProposerIndex").GetGeneralizedIndex(beaconHeaderSchema)
 	require.NoError(t, err)
-	require.Equal(t, merkle.ProposerIndexGIndexDenebBlock, int(proposerIndexGIndexDenebBlock))
+	require.Equal(
+		t,
+		merkle.ProposerIndexGIndexDenebBlock,
+		int(proposerIndexGIndexDenebBlock),
+	)
 }
 
 // TestGIndicesValidatorPubkeyDeneb tests the generalized indices used by
