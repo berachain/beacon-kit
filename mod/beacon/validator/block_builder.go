@@ -25,7 +25,6 @@ import (
 	"fmt"
 	"time"
 
-	payloadtime "github.com/berachain/beacon-kit/mod/beacon/payload-time"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -238,11 +237,7 @@ func (s *Service[
 			ctx,
 			st,
 			blk.GetSlot(),
-			payloadtime.Next(
-				s.chainSpec,
-				lph.GetTimestamp(),
-				slotData.GetConsensusTime(),
-			),
+			uint64(slotData.GetConsensusTime()),
 			blk.GetParentBlockRoot(),
 			lph.GetBlockHash(),
 			lph.GetParentHash(),

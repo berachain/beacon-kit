@@ -23,7 +23,6 @@ package blockchain
 import (
 	"context"
 
-	payloadtime "github.com/berachain/beacon-kit/mod/beacon/payload-time"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -121,7 +120,7 @@ func (s *Service[
 		st,
 		// We are rebuilding for the current slot.
 		stateSlot,
-		payloadtime.Next(s.chainSpec, lph.GetTimestamp(), consensusTime),
+		consensusTime.Unwrap(),
 		// We set the parent root to the previous block root.
 		latestHeader.HashTreeRoot(),
 		// We set the head of our chain to the previous finalized block.
@@ -190,7 +189,7 @@ func (s *Service[
 	if _, err := s.localBuilder.RequestPayloadAsync(
 		ctx, st,
 		slot,
-		payloadtime.Next(s.chainSpec, payload.GetTimestamp(), consensusTime),
+		consensusTime.Unwrap(),
 		// The previous block root is simply the root of the block we just
 		// processed.
 		blk.HashTreeRoot(),
