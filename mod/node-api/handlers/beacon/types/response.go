@@ -201,12 +201,12 @@ func (fr ForkData) MarshalJSON() ([]byte, error) {
 
 //nolint:lll // The JSON structure is too long.
 type BlobSidecarData[BlockHeaderT BeaconBlockHeader] struct {
-	Index                       uint64                    `json:"index"`
-	Blob                        eip4844.Blob              `json:"blob"`
-	KzgCommitment               eip4844.KZGCommitment     `json:"kzg_commitment"`
-	KzgProof                    eip4844.KZGProof          `json:"kzg_proof"`
-	BeaconBlockHeader           BlockHeader[BlockHeaderT] `json:"signed_block_header"`
-	KzgCommitmentInclusionProof []common.Root             `json:"kzg_commitment_inclusion_proof"`
+	Index                       uint64                     `json:"index"`
+	Blob                        eip4844.Blob               `json:"blob"`
+	KzgCommitment               eip4844.KZGCommitment      `json:"kzg_commitment"`
+	KzgProof                    eip4844.KZGProof           `json:"kzg_proof"`
+	BeaconBlockHeader           *BlockHeader[BlockHeaderT] `json:"signed_block_header"`
+	KzgCommitmentInclusionProof []common.Root              `json:"kzg_commitment_inclusion_proof"`
 }
 
 //nolint:lll // The JSON structure is too long.

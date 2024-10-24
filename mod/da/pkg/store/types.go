@@ -41,6 +41,7 @@ type IndexDB interface {
 	Has(index uint64, key []byte) (bool, error)
 	Set(index uint64, key []byte, value []byte) error
 	Prune(start uint64, end uint64) error
+	Get(index uint64, key []byte) ([]byte, error)
 }
 
 // BeaconBlockBody is the body of a beacon block.

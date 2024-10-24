@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
@@ -34,7 +35,7 @@ import (
 // The AvailabilityStore interface is responsible for validating and storing
 // sidecars for specific blocks, as well as verifying sidecars that have already
 // been stored.
-type AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT any] interface {
+type AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT any, BeaconBlockHeaderT any] interface {
 	// IsDataAvailable ensures that all blobs referenced in the block are
 	// securely stored before it returns without an error.
 	IsDataAvailable(
@@ -43,6 +44,7 @@ type AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT any] interface {
 	// Persist makes sure that the sidecar remains accessible for data
 	// availability checks throughout the beacon node's operation.
 	Persist(math.Slot, BlobSidecarsT) error
+	GetBlobSideCars(math.Slot) (*[]BlobSideCar[BeaconBlockHeaderT], error)
 }
 
 // BeaconBlockHeader is the interface for a beacon block header.
@@ -168,4 +170,13 @@ type WithdrawalCredentials interface {
 	ToExecutionAddress() (common.ExecutionAddress, error)
 	// Bytes returns the raw byte representation of the withdrawal credentials.
 	Bytes() []byte
+}
+
+type BlobSideCar[BeaconBlockHeaderT any] interface {
+	GetIndex() uint64
+	GetBlob() eip4844.Blob
+	GetKzgCommitment() eip4844.KZGCommitment
+	GetKzgProof() eip4844.KZGProof
+	GetBeaconBlockHeader() BeaconBlockHeaderT
+	GetInclusionProof() []common.Root
 }

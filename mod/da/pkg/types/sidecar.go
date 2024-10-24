@@ -106,6 +106,14 @@ func (b *BlobSidecar) GetBeaconBlockHeader() *types.BeaconBlockHeader {
 	return b.BeaconBlockHeader
 }
 
+func (b *BlobSidecar) GetIndex() uint64 {
+	return b.Index
+}
+
+func (b *BlobSidecar) GetInclusionProof() []common.Root {
+	return b.InclusionProof
+}
+
 // DefineSSZ defines the SSZ encoding for the BlobSidecar object.
 func (b *BlobSidecar) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineUint64(codec, &b.Index)

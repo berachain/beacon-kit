@@ -91,7 +91,7 @@ type AvailabilityPrunerInput[
 // framework.
 func ProvideAvailabilityPruner[
 	AvailabilityStoreT AvailabilityStore[
-		BeaconBlockBodyT, BlobSidecarsT,
+		BeaconBlockBodyT, BlobSidecarsT, BeaconBlockHeaderT,
 	],
 	BeaconBlockT BeaconBlock[
 		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,

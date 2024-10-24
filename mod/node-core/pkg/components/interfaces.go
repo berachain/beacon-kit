@@ -71,7 +71,7 @@ type (
 	}
 
 	// AvailabilityStore is the interface for the availability store.
-	AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
+	AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any, BeaconBlockHeaderT any] interface {
 		IndexDB
 		// IsDataAvailable ensures that all blobs referenced in the block are
 		// securely stored before it returns without an error.
@@ -79,6 +79,7 @@ type (
 		// Persist makes sure that the sidecar remains accessible for data
 		// availability checks throughout the beacon node's operation.
 		Persist(math.Slot, BlobSidecarsT) error
+		GetBlobSideCars(math.Slot) (*[]BlobSidecar[BeaconBlockHeaderT], error)
 	}
 
 	// BeaconBlock represents a generic interface for a beacon block.
@@ -236,6 +237,8 @@ type (
 		GetBlob() eip4844.Blob
 		GetKzgProof() eip4844.KZGProof
 		GetKzgCommitment() eip4844.KZGCommitment
+		GetIndex() uint64
+		GetInclusionProof() []common.Root
 	}
 
 	// BlobSidecars is the interface for blobs sidecars.
@@ -549,6 +552,7 @@ type (
 		Has(index uint64, key []byte) (bool, error)
 		Set(index uint64, key []byte, value []byte) error
 		Prune(start uint64, end uint64) error
+		Get(index uint64, key []byte) ([]byte, error)
 	}
 
 	// LocalBuilder is the interface for the builder service.

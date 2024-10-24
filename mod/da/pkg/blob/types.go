@@ -32,13 +32,14 @@ import (
 // The AvailabilityStore interface is responsible for validating and storing
 // sidecars for specific blocks, as well as verifying sidecars that have already
 // been stored.
-type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
+type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any, BeaconBlockHeaderT any] interface {
 	// IsDataAvailable ensures that all blobs referenced in the block are
 	// securely stored before it returns without an error.
 	IsDataAvailable(context.Context, math.Slot, BeaconBlockBodyT) bool
 	// Persist makes sure that the sidecar remains accessible for data
 	// availability checks throughout the beacon node's operation.
 	Persist(math.Slot, BlobSidecarsT) error
+	GetBlobSideCars(math.Slot) (*[]Sidecar[BeaconBlockHeaderT], error)
 }
 
 type BeaconBlock[
@@ -57,6 +58,10 @@ type BeaconBlockBody interface {
 
 type BeaconBlockHeader interface {
 	GetSlot() math.Slot
+	GetProposerIndex() math.ValidatorIndex
+	GetStateRoot() common.Root
+	GetParentBlockRoot() common.Root
+	GetBodyRoot() common.Root
 }
 
 //nolint:revive // name conflict
@@ -71,6 +76,8 @@ type Sidecar[BeaconBlockHeaderT any] interface {
 	GetBlob() eip4844.Blob
 	GetKzgProof() eip4844.KZGProof
 	GetKzgCommitment() eip4844.KZGCommitment
+	GetIndex() uint64
+	GetInclusionProof() []common.Root
 }
 
 type Sidecars[SidecarT any] interface {
@@ -80,6 +87,15 @@ type Sidecars[SidecarT any] interface {
 	ValidateBlockRoots() error
 	VerifyInclusionProofs(kzgOffset uint64) error
 }
+
+//type BlobSideCar[BeaconBlockHeaderT any] interface {
+//	GetIndex() uint64
+//	GetBlob() eip4844.Blob
+//	GetKzgCommitment() eip4844.KZGCommitment
+//	GetKzgProof() eip4844.KZGProof
+//	GetBeaconBlockHeader() BeaconBlockHeaderT
+//	GetInclusionProof() []common.Root
+//}
 
 // ChainSpec represents a chain spec.
 type ChainSpec interface {
