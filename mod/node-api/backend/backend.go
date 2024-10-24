@@ -48,8 +48,8 @@ type Backend[
 	DepositT any,
 	DepositStoreT DepositStore[DepositT],
 	Eth1DataT,
-	ExecutionPayloadHeaderT,
-	ForkT any,
+	ExecutionPayloadHeaderT any,
+	ForkT Fork[ForkT],
 	NodeT Node[ContextT],
 	StateStoreT any,
 	StorageBackendT StorageBackend[
@@ -86,8 +86,8 @@ func New[
 	DepositT any,
 	DepositStoreT DepositStore[DepositT],
 	Eth1DataT,
-	ExecutionPayloadHeaderT,
-	ForkT any,
+	ExecutionPayloadHeaderT any,
+	ForkT Fork[ForkT],
 	NodeT Node[ContextT],
 	StateStoreT any,
 	StorageBackendT StorageBackend[
@@ -205,4 +205,24 @@ func (b *Backend[
 		}
 	}
 	return st, slot, err
+}
+
+// GetHeadSlot returns the head slot from the backend.
+func (b *Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) GetHeadSlot() (math.Slot, error) {
+	//#nosec:G701 // not an issue in practice.
+	queryCtx, err := b.node.CreateQueryContext(0, false)
+	if err != nil {
+		return 0, err
+	}
+	st := b.sb.StateFromContext(queryCtx)
+	return st.GetSlot()
+}
+
+// GetSlotByParentRoot returns the slot by a parent root from the block store.
+func (b *Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) GetSlotByParentRoot(root common.Root) (math.Slot, error) {
+	return b.sb.BlockStore().GetSlotByParentRoot(root)
 }
