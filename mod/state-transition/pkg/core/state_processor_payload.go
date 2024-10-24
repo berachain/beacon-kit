@@ -25,6 +25,7 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -49,7 +50,9 @@ func (sp *StateProcessor[
 	if !ctx.GetSkipPayloadVerification() {
 		g.Go(func() error {
 			return sp.validateExecutionPayload(
-				gCtx, st, blk, ctx.GetOptimisticEngine(),
+				gCtx, st, blk,
+				ctx.GetConsensusTime(),
+				ctx.GetOptimisticEngine(),
 			)
 		})
 	}
@@ -84,9 +87,10 @@ func (sp *StateProcessor[
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
+	consensusTime math.U64,
 	optimisticEngine bool,
 ) error {
-	if err := sp.validateStatelessPayload(blk); err != nil {
+	if err := sp.validateStatelessPayload(blk, consensusTime); err != nil {
 		return err
 	}
 	return sp.validateStatefulPayload(ctx, st, blk, optimisticEngine)
@@ -96,9 +100,21 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	BeaconBlockT, _, _, _,
 	_, _, _, _, _, _, _, _, _, _, _, _, _,
-]) validateStatelessPayload(blk BeaconBlockT) error {
+]) validateStatelessPayload(
+	blk BeaconBlockT,
+	consensusTime math.U64,
+) error {
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
+
+	timeBound := consensusTime + math.U64(sp.cs.TargetSecondsPerEth1Block())
+	if pt := payload.GetTimestamp(); pt > timeBound {
+		return errors.Wrapf(
+			ErrTooFarInTheFuture,
+			"payload timestamp, max: %d, got: %d",
+			timeBound, pt,
+		)
+	}
 
 	// Verify the number of withdrawals.
 	withdrawals := payload.GetWithdrawals()
