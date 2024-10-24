@@ -76,15 +76,6 @@ type (
 		*Withdrawal,
 	]
 
-	// BlobProcessor is a type alias for the blob processor.
-	//BlobProcessor = dablob.Processor[
-	//	*AvailabilityStore,
-	//	*BeaconBlockBody,
-	//	*BeaconBlockHeader,
-	//	*BlobSidecar,
-	//	*BlobSidecars,
-	//]
-
 	// BlobVerifier is a type alias for the blob verifier.
 	BlobVerifier = dablob.Verifier[
 		*BeaconBlockHeader,
@@ -332,31 +323,6 @@ type (
 
 	// LegacyKey type alias to LegacyKey used for LegacySinger construction.
 	LegacyKey = signer.LegacyKey
-
-	// NodeAPIBackend is a type alias for the node API backend.
-	//NodeAPIBackend = backend.Backend[
-	//	*AvailabilityStore,
-	//	*BeaconBlock,
-	//	*BeaconBlockBody,
-	//	*BeaconBlockHeader,
-	//	*BeaconState,
-	//	*BeaconStateMarshallable,
-	//	*BlobSidecars,
-	//	*BlockStore,
-	//	sdk.Context,
-	//	*Deposit,
-	//	*DepositStore,
-	//	*Eth1Data,
-	//	*ExecutionPayloadHeader,
-	//	*Fork,
-	//	*CometBFTService,
-	//	*KVStore,
-	//	*StorageBackend,
-	//	*Validator,
-	//	Validators,
-	//	*Withdrawal,
-	//	WithdrawalCredentials,
-	//]
 
 	// NodeAPIContext is a type alias for the node API context.
 	NodeAPIContext = echo.Context

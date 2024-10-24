@@ -44,6 +44,8 @@ func (b Backend[
 	if err != nil {
 		return nil, fmt.Errorf("failed to get blob sidecars: %w", err)
 	}
+
+	fmt.Printf("blob side cars length %v\n", len(*blobSidecars))
 	// Convert the returned blobSidecars to []*beacontypes.BlobSidecarData[BeaconBlockHeaderT]
 	result := make([]*beacontypes.BlobSidecarData[BeaconBlockHeaderT], len(*blobSidecars))
 

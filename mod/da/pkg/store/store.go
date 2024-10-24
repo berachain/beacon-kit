@@ -35,13 +35,17 @@ import (
 	"github.com/sourcegraph/conc/iter"
 )
 
-// Constants for key prefixes and encoding
+// Constants for key prefixes and encoding.
 const (
 	blobKeyPrefix       = "blob-"
 	headerKeyPrefix     = "header-"
 	kzgKeyPrefix        = "kzg-"
 	proofKeyPrefix      = "proof-"
 	commitmentKeyPrefix = "commitment-"
+
+	// Size constants for key components.
+	slotSize  = 8 // size of uint64 in bytes
+	indexSize = 4 // size of uint32 in bytes
 )
 
 // Store is the default implementation of the AvailabilityStore.
@@ -131,8 +135,10 @@ func (s *Store[BeaconBlockT, _]) Persist(
 	return nil
 }
 
-// GetBlobSideCars retrieves blob sidecars for a given slot
-func (s *Store[BeaconBlockBodyT, BeaconBlockHeaderT]) GetBlobSideCars(slot math.U64) (*[]backend.BlobSideCar[BeaconBlockHeaderT], error) {
+// GetBlobSideCars retrieves blob sidecars for a given slot.
+func (s *Store[BeaconBlockBodyT, BeaconBlockHeaderT]) GetBlobSideCars(
+	slot math.U64,
+) (*[]backend.BlobSideCar[BeaconBlockHeaderT], error) {
 	// Implementation to fetch blob sidecars for the given slot
 	// 1. Check if we have data for this slot
 	// 2. Convert the stored data to BlobSidecarData format
@@ -150,48 +156,53 @@ func (s *Store[BeaconBlockBodyT, BeaconBlockHeaderT]) GetBlobSideCars(slot math.
 	if err != nil {
 		return nil, fmt.Errorf("error checking slot data existence: %w", err)
 	}
+	s.logger.Info("hasData", "hasData", hasData)
 	if !hasData {
 		// No data for this slot
 		return &blobSidecars, nil
 	}
 
-	// Retrieve the block header for this slot
+	// Retrieve the block header for this slot.
 	headerBytes, err := s.Get(uint64(slot), []byte(headerKeyPrefix))
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving block header: %w", err)
 	}
-	fmt.Printf("headerBytes %v", headerBytes)
+	s.logger.Info("headerBytes", "headerBytes", headerBytes)
 
-	//header, err := s.decodeBlockHeader(headerBytes)
-	//if err != nil {
+	// header, err := s.decodeBlockHeader(headerBytes)
+	// if err != nil {
 	//	return nil, fmt.Errorf("error decoding block header: %w", err)
-	//}
+	// }
 	//
-	//fmt.Printf("header %v", header)
 
 	// Retrieve the number of blobs for this slot
-	countBytes, err := s.Get(uint64(slot), []byte("count"))
-	if err != nil {
-		return nil, fmt.Errorf("error retrieving blob count: %w", err)
+	countBytes, errInGet := s.Get(uint64(slot), []byte("count"))
+	if errInGet != nil {
+		return nil, fmt.Errorf("error retrieving blob count: %w", errInGet)
 	}
 	count := binary.BigEndian.Uint32(countBytes)
 
-	// Retrieve each blob and its associated data
-	for i := uint32(0); i < count; i++ {
+	// Retrieve each blob and its associated data.
+	for i := range count {
 		// Retrieve blob data
-		blobBytes, err := s.Get(uint64(slot), buildKey(blobKeyPrefix, slot, int(i)))
+		var blobBytes []byte
+		blobBytes, err = s.Get(uint64(slot), buildKey(blobKeyPrefix, slot, int(i)))
 		if err != nil {
 			return nil, fmt.Errorf("error retrieving blob %d: %w", i, err)
 		}
-
+		var proofBytes []byte
 		// Retrieve KZG proof
-		proofBytes, err := s.Get(uint64(slot), buildKey(proofKeyPrefix, slot, int(i)))
+		proofBytes, err = s.Get(uint64(slot), buildKey(proofKeyPrefix, slot, int(i)))
 		if err != nil {
 			return nil, fmt.Errorf("error retrieving KZG proof %d: %w", i, err)
 		}
+		var commitmentBytes []byte
 
 		// Retrieve KZG commitment
-		commitmentBytes, err := s.Get(uint64(slot), buildKey(commitmentKeyPrefix, slot, int(i)))
+		commitmentBytes, err = s.Get(
+			uint64(slot),
+			buildKey(commitmentKeyPrefix, slot, int(i)),
+		)
 		if err != nil {
 			return nil, fmt.Errorf("error retrieving KZG commitment %d: %w", i, err)
 		}
@@ -206,40 +217,52 @@ func (s *Store[BeaconBlockBodyT, BeaconBlockHeaderT]) GetBlobSideCars(slot math.
 		var commitment eip4844.KZGCommitment
 		copy(commitment[:], commitmentBytes)
 
-		//sidecar := backend.BlobSideCar{
+		// sidecar := backend.BlobSideCar{
 		//	Index:                       uint64(i),
 		//	Blob:                        blob,
 		//	KzgProof:                    proof,
 		//	KzgCommitment:               commitment,
 		//	BeaconBlockHeader:           beacontypes.BlockHeader[]{},
 		//	KzgCommitmentInclusionProof: headerBytes,
-		//}
+		// }
 		//
-		//blobSidecars = append(blobSidecars, sidecar)
+		// blobSidecars = append(blobSidecars, sidecar)
 	}
-
 	return &blobSidecars, nil
-
 }
 
-// Helper methods for encoding/decoding block headers
-//func (s *Store[BeaconBlockBodyT]) encodeBlockHeader(header beacontypes.BeaconBlockHeader) ([]byte, error) {
+// Helper methods for encoding/decoding block headers.
+// func (s *Store[BeaconBlockBodyT]) encodeBlockHeader(
+// header beacontypes.BeaconBlockHeader,
+// ) ([]byte, error) {
 //	// Implement header encoding logic
 //	return header.MarshalSSZ()
-//}
+// }
 
-//func (s *Store[BeaconBlockBodyT]) decodeBlockHeader(data []byte) (beacontypes.BeaconBlockHeader, error) {
+// func (s *Store[BeaconBlockBodyT]) decodeBlockHeader(data []byte) (
+// beacontypes.BeaconBlockHeader,
+// error,
+// ) {
 //	// Implement header decoding logic
 //	var header beacontypes.BeaconBlockHeader
 //	err := header.UnmarshalSSZ(data)
 //	return header, err
-//}
+// }
 
-// buildKey creates a composite key for storing blob-related data
+// buildKey creates a composite key for storing blob-related data.
 func buildKey(prefix string, slot math.U64, index int) []byte {
-	key := make([]byte, len(prefix)+8+4)
+	// Calculate total key size using named constants
+	keySize := len(prefix) + slotSize + indexSize
+	key := make([]byte, keySize)
+
+	// Copy prefix into key
 	copy(key, prefix)
+
+	// Write slot number using constant offset
 	binary.BigEndian.PutUint64(key[len(prefix):], uint64(slot))
-	binary.BigEndian.PutUint32(key[len(prefix)+8:], uint32(index))
+
+	// Write index using constant offset
+	binary.BigEndian.PutUint32(key[len(prefix)+slotSize:], uint32(index))
+
 	return key
 }

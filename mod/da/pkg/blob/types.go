@@ -22,9 +22,9 @@ package blob
 
 import (
 	"context"
-	"github.com/berachain/beacon-kit/mod/node-api/backend"
 	"time"
 
+	"github.com/berachain/beacon-kit/mod/node-api/backend"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -33,13 +33,18 @@ import (
 // The AvailabilityStore interface is responsible for validating and storing
 // sidecars for specific blocks, as well as verifying sidecars that have already
 // been stored.
-type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any, BeaconBlockHeaderT any] interface {
+type AvailabilityStore[
+	BeaconBlockBodyT any,
+	BlobSidecarsT any,
+	BeaconBlockHeaderT any,
+] interface {
 	// IsDataAvailable ensures that all blobs referenced in the block are
 	// securely stored before it returns without an error.
 	IsDataAvailable(context.Context, math.Slot, BeaconBlockBodyT) bool
 	// Persist makes sure that the sidecar remains accessible for data
 	// availability checks throughout the beacon node's operation.
 	Persist(math.Slot, BlobSidecarsT) error
+	// GetBlobSideCars returns the sidecars for the given slot.
 	GetBlobSideCars(math.Slot) (*[]backend.BlobSideCar[BeaconBlockHeaderT], error)
 }
 
@@ -88,15 +93,6 @@ type Sidecars[SidecarT any] interface {
 	ValidateBlockRoots() error
 	VerifyInclusionProofs(kzgOffset uint64) error
 }
-
-//type BlobSideCar[BeaconBlockHeaderT any] interface {
-//	GetIndex() uint64
-//	GetBlob() eip4844.Blob
-//	GetKzgCommitment() eip4844.KZGCommitment
-//	GetKzgProof() eip4844.KZGProof
-//	GetBeaconBlockHeader() BeaconBlockHeaderT
-//	GetInclusionProof() []common.Root
-//}
 
 // ChainSpec represents a chain spec.
 type ChainSpec interface {
