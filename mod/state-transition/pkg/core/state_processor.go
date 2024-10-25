@@ -341,7 +341,7 @@ func (sp *StateProcessor[
 	BeaconBlockT, _, BeaconBlockHeaderT, BeaconStateT,
 	ContextT, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
 ]) processBlockHeader(
-	_ ContextT,
+	ctx ContextT,
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
@@ -383,6 +383,17 @@ func (sp *StateProcessor[
 	if err != nil {
 		return err
 	}
+	stateProposerAddress, err := crypto.GetAddressFromPubKey(proposer.GetPubkey())
+	if err != nil {
+		return err
+	}
+	if !bytes.Equal(stateProposerAddress, ctx.GetProposerAddress()) {
+		return errors.Wrapf(
+			ErrProposerMismatch, "store key: %s, consensus key: %s",
+			stateProposerAddress, ctx.GetProposerAddress(),
+		)
+	}
+
 	if proposer.IsSlashed() {
 		return errors.Wrapf(
 			ErrSlashedProposer,

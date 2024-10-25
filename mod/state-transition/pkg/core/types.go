@@ -118,6 +118,7 @@ type Context interface {
 	// GetSkipValidateResult returns whether to validate the result of the state
 	// transition.
 	GetSkipValidateResult() bool
+	GetProposerAddress() []byte
 	// GetNextPayloadTimestamp returns the timestamp proposed by
 	// consensus for the next payload to be proposed. It is also
 	// used to bound current payload upon validation
