@@ -29,9 +29,6 @@ import (
 type ConsensusBlock[BeaconBlockT any] struct {
 	blk BeaconBlockT
 
-	// nextPayloadTimestamp is the timestamp proposed by consensus
-	// for the next payload to be proposed.
-	// TODO: consider validating that it is strictly bounded and increasing
 	nextPayloadTimestamp math.U64
 }
 
@@ -51,6 +48,9 @@ func (b *ConsensusBlock[BeaconBlockT]) GetBeaconBlock() BeaconBlockT {
 	return b.blk
 }
 
+// GetNextPayloadTimestamp returns the timestamp proposed by consensus
+// for the next payload to be proposed. It is also used to bound
+// current payload upon validation.
 func (b *ConsensusBlock[_]) GetNextPayloadTimestamp() math.U64 {
 	return b.nextPayloadTimestamp
 }

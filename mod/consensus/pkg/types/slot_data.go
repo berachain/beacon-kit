@@ -34,9 +34,9 @@ type SlotData[AttestationDataT, SlashingInfoT any] struct {
 	attestationData []AttestationDataT
 	// slashingInfo is the slashing info of the incoming slot.
 	slashingInfo []SlashingInfoT
-	// nextPayloadTimestamp is the timestamp proposed by consensus
-	// for the next payload to be proposed.
-	// TODO: consider validating that it is strictly bounded and increasing
+	// nextPayloadTimestamp is the timestamp proposed by
+	// consensus for the next payload to be proposed. It is also
+	// used to bound current payload upon validation
 	nextPayloadTimestamp math.U64
 }
 

@@ -42,8 +42,9 @@ type Context struct {
 	// SkipValidateResult indicates whether to validate the result of
 	// the state transition.
 	SkipValidateResult bool
-	// NextPayloadTimestamp is consensus proposed timestamp for the
-	// next payload to be built
+	// NextPayloadTimestamp is the timestamp proposed by
+	// consensus for the next payload to be proposed. It is also
+	// used to bound current payload upon validation
 	NextPayloadTimestamp math.U64
 }
 
@@ -73,7 +74,8 @@ func (c *Context) GetSkipValidateResult() bool {
 }
 
 // GetNextPayloadTimestamp returns the timestamp proposed by consensus
-// for the next payload to be built.
+// for the next payload to be proposed. It is also used to bound
+// current payload upon validation.
 func (c *Context) GetNextPayloadTimestamp() math.U64 {
 	return c.NextPayloadTimestamp
 }

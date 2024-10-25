@@ -42,7 +42,7 @@ type ABCIMiddleware[
 	// chainSpec is the chain specification.
 	chainSpec common.ChainSpec
 	// minimum delay among blocks, useful to set a strictly increasing
-	// execution payload timestamp
+	// execution payload timestamp.
 	minPayloadDelay time.Duration
 	// dispatcher is the central dispatcher to
 	dispatcher types.EventDispatcher
@@ -80,6 +80,10 @@ func NewABCIMiddleware[
 ) *ABCIMiddleware[
 	BeaconBlockT, BlobSidecarsT, GenesisT, SlotDataT,
 ] {
+	// We may build execution payload optimistically, i.e. build execution
+	// payload for next block while current block is being verified and not yet
+	// finalized. Hence we need a minPayloadDelay that guarantees that:
+	// curr
 	minPayloadDelay := min(
 		cmtCfg.Consensus.TimeoutPropose,
 		cmtCfg.Consensus.TimeoutPrevote,
