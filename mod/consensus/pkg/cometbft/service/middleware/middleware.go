@@ -80,15 +80,23 @@ func NewABCIMiddleware[
 ) *ABCIMiddleware[
 	BeaconBlockT, BlobSidecarsT, GenesisT, SlotDataT,
 ] {
-	// We may build execution payload optimistically, i.e. build execution
+	// We may build execution payload optimistically (i.e. build the execution
 	// payload for next block while current block is being verified and not yet
-	// finalized. Hence we need a minPayloadDelay that guarantees that:
-	// curr
+	// finalized) or not (build only after parent block has been finalized).
+	// Hence we need to guarantee that we provide to the execution layer a
+	// strictly increasing timestamp for any ABCI valid call sequence of
+	// Prepare/Propose/FinalizeBlock.
+	// To this purpose, we set next payload timestamp as follows:
+	// - ProposeBlock: req.Time
+	// - Prepare/FinalizeBlock: to req.Time + minPayloadDelay
+	// Monotonicity across request sequences is ensured by construction of
+	// minPayloadDelay: no block can be finalized before minPayloadDelay.
 	minPayloadDelay := min(
 		cmtCfg.Consensus.TimeoutPropose,
 		cmtCfg.Consensus.TimeoutPrevote,
 		cmtCfg.Consensus.TimeoutPrecommit,
-		cmtCfg.Consensus.TimeoutCommit,
+		// TimeoutCommit can be zero
+		max(cmtCfg.Consensus.TimeoutCommit, time.Second),
 	)
 
 	return &ABCIMiddleware[
