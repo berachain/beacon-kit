@@ -118,9 +118,10 @@ type Context interface {
 	// GetSkipValidateResult returns whether to validate the result of the state
 	// transition.
 	GetSkipValidateResult() bool
-	// GetConsensusTime returns the consensus time for the block causing
-	// the state transition.
-	GetConsensusTime() math.U64
+	// GetNextPayloadTimestamp returns the timestamp proposed by
+	// consensus for the next payload to be proposed. It is also
+	// used to bound current payload upon validation
+	GetNextPayloadTimestamp() math.U64
 }
 
 // Deposit is the interface for a deposit.

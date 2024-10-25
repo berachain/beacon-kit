@@ -212,7 +212,11 @@ func (s *Service[LoggerT]) PrepareProposal(
 		math.Slot(req.GetHeight()),
 		nil,
 		nil,
-		math.U64(req.GetTime().Unix()),
+
+		// we do not add h.minPayloadDelay here since req.GetTime()
+		// is guaranteed to be strictly larger than
+		// prevBlock.GetTime() + h.minPayloadDelay
+		req.GetTime(),
 	)
 	blkBz, sidecarsBz, err := s.Middleware.PrepareProposal(
 		s.prepareProposalState.Context(),

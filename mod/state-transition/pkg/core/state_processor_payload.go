@@ -51,7 +51,7 @@ func (sp *StateProcessor[
 		g.Go(func() error {
 			return sp.validateExecutionPayload(
 				gCtx, st, blk,
-				ctx.GetConsensusTime(),
+				ctx.GetNextPayloadTimestamp(),
 				ctx.GetOptimisticEngine(),
 			)
 		})
@@ -87,10 +87,10 @@ func (sp *StateProcessor[
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
-	consensusTime math.U64,
+	nextPayloadTimestamp math.U64,
 	optimisticEngine bool,
 ) error {
-	if err := sp.validateStatelessPayload(blk, consensusTime); err != nil {
+	if err := sp.validateStatelessPayload(blk, nextPayloadTimestamp); err != nil {
 		return err
 	}
 	return sp.validateStatefulPayload(ctx, st, blk, optimisticEngine)
@@ -102,17 +102,16 @@ func (sp *StateProcessor[
 	_, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) validateStatelessPayload(
 	blk BeaconBlockT,
-	consensusTime math.U64,
+	nextPayloadTimestamp math.U64,
 ) error {
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
 
-	timeBound := consensusTime + math.U64(sp.cs.TargetSecondsPerEth1Block())
-	if pt := payload.GetTimestamp(); pt > timeBound {
+	if pt := payload.GetTimestamp(); pt > nextPayloadTimestamp {
 		return errors.Wrapf(
 			ErrTooFarInTheFuture,
 			"payload timestamp, max: %d, got: %d",
-			timeBound, pt,
+			nextPayloadTimestamp, pt,
 		)
 	}
 

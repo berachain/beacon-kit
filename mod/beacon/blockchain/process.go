@@ -128,7 +128,7 @@ func (s *Service[
 			// actually irrelevant at this point.
 			SkipPayloadVerification: false,
 
-			ConsensusTime: blk.GetConsensusTime(),
+			NextPayloadTimestamp: blk.GetNextPayloadTimestamp(),
 		},
 		st,
 		blk.GetBeaconBlock(),

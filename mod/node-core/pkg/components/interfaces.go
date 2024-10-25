@@ -83,7 +83,10 @@ type (
 	ConsensusBlock[BeaconBlockT any] interface {
 		GetBeaconBlock() BeaconBlockT
 
-		GetConsensusTime() math.U64
+		// GetNextPayloadTimestamp returns the timestamp proposed by
+		// consensus for the next payload to be proposed. It is also
+		// used to bound current payload upon validation
+		GetNextPayloadTimestamp() math.U64
 	}
 
 	// BeaconBlock represents a generic interface for a beacon block.

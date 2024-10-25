@@ -75,9 +75,7 @@ func (s *Service[
 	}
 
 	// Create a new empty block from the current state.
-	blk, err = s.getEmptyBeaconBlockForSlot(
-		st, slotData.GetSlot(),
-	)
+	blk, err = s.getEmptyBeaconBlockForSlot(st, slotData.GetSlot())
 	if err != nil {
 		return blk, sidecars, err
 	}
@@ -116,7 +114,7 @@ func (s *Service[
 	g.Go(func() error {
 		return s.computeAndSetStateRoot(
 			ctx,
-			slotData.GetConsensusTime(),
+			slotData.GetNextPayloadTimestamp(),
 			st,
 			blk,
 		)
@@ -243,7 +241,7 @@ func (s *Service[
 			ctx,
 			st,
 			blk.GetSlot(),
-			uint64(slotData.GetConsensusTime()),
+			slotData.GetNextPayloadTimestamp().Unwrap(),
 			blk.GetParentBlockRoot(),
 			lph.GetBlockHash(),
 			lph.GetParentHash(),
@@ -338,11 +336,11 @@ func (s *Service[
 	_, BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
 ]) computeAndSetStateRoot(
 	ctx context.Context,
-	consensusTime math.U64,
+	nextPayloadTimestamp math.U64,
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
-	stateRoot, err := s.computeStateRoot(ctx, consensusTime, st, blk)
+	stateRoot, err := s.computeStateRoot(ctx, nextPayloadTimestamp, st, blk)
 	if err != nil {
 		s.logger.Error(
 			"failed to compute state root while building block ❗️ ",
@@ -360,7 +358,7 @@ func (s *Service[
 	_, BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
 ]) computeStateRoot(
 	ctx context.Context,
-	consensusTime math.U64,
+	nextPayloadTimestamp math.U64,
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) (common.Root, error) {
@@ -376,7 +374,7 @@ func (s *Service[
 			SkipPayloadVerification: true,
 			SkipValidateResult:      true,
 			SkipValidateRandao:      true,
-			ConsensusTime:           consensusTime,
+			NextPayloadTimestamp:    nextPayloadTimestamp,
 		},
 		st, blk,
 	); err != nil {
