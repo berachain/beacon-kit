@@ -278,29 +278,22 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
-	// process the freshly created header.
-	if err := sp.processBlockHeader(st, blk); err != nil {
+	if err := sp.processBlockHeader(ctx, st, blk); err != nil {
 		return err
 	}
 
-	// process the execution payload.
 	if err := sp.processExecutionPayload(ctx, st, blk); err != nil {
 		return err
 	}
 
-	// process the withdrawals.
 	if err := sp.processWithdrawals(st, blk.GetBody()); err != nil {
 		return err
 	}
 
-	// process the randao reveal.
-	if err := sp.processRandaoReveal(
-		st, blk, ctx.GetSkipValidateRandao(),
-	); err != nil {
+	if err := sp.processRandaoReveal(ctx, st, blk); err != nil {
 		return err
 	}
 
-	// process the deposits and ensure they match the local state.
 	if err := sp.processOperations(st, blk); err != nil {
 		return err
 	}
@@ -332,9 +325,11 @@ func (sp *StateProcessor[
 ) (transition.ValidatorUpdates, error) {
 	if err := sp.processRewardsAndPenalties(st); err != nil {
 		return nil, err
-	} else if err = sp.processSlashingsReset(st); err != nil {
+	}
+	if err := sp.processSlashingsReset(st); err != nil {
 		return nil, err
-	} else if err = sp.processRandaoMixesReset(st); err != nil {
+	}
+	if err := sp.processRandaoMixesReset(st); err != nil {
 		return nil, err
 	}
 	return sp.processSyncCommitteeUpdates(st)
@@ -344,8 +339,9 @@ func (sp *StateProcessor[
 // state.
 func (sp *StateProcessor[
 	BeaconBlockT, _, BeaconBlockHeaderT, BeaconStateT,
-	_, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+	ContextT, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
 ]) processBlockHeader(
+	_ ContextT,
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
