@@ -20,7 +20,11 @@
 
 package types
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+import (
+	"time"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+)
 
 // SlotData represents the data to be used to propose a block.
 type SlotData[AttestationDataT, SlashingInfoT any] struct {
@@ -41,13 +45,13 @@ func (b *SlotData[AttestationDataT, SlashingInfoT]) New(
 	slot math.Slot,
 	attestationData []AttestationDataT,
 	slashingInfo []SlashingInfoT,
-	nextPayloadTimestamp math.U64,
+	nextPayloadTimestamp time.Time,
 ) *SlotData[AttestationDataT, SlashingInfoT] {
 	b = &SlotData[AttestationDataT, SlashingInfoT]{
 		slot:                 slot,
 		attestationData:      attestationData,
 		slashingInfo:         slashingInfo,
-		nextPayloadTimestamp: nextPayloadTimestamp,
+		nextPayloadTimestamp: math.U64(nextPayloadTimestamp.Unix()),
 	}
 	return b
 }

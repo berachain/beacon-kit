@@ -22,12 +22,14 @@ package middleware
 
 import (
 	"context"
+	"time"
 
 	"github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
+	cmtcfg "github.com/cometbft/cometbft/config"
 )
 
 // ABCIMiddleware is a middleware between ABCI and the validator logic.
@@ -39,6 +41,9 @@ type ABCIMiddleware[
 ] struct {
 	// chainSpec is the chain specification.
 	chainSpec common.ChainSpec
+	// minimum delay among blocks, useful to set a strictly increasing
+	// execution payload timestamp
+	minPayloadDelay time.Duration
 	// dispatcher is the central dispatcher to
 	dispatcher types.EventDispatcher
 	// metrics is the metrics emitter.
@@ -68,16 +73,25 @@ func NewABCIMiddleware[
 	SlotDataT any,
 ](
 	chainSpec common.ChainSpec,
+	cmtCfg *cmtcfg.Config,
 	dispatcher types.EventDispatcher,
 	logger log.Logger,
 	telemetrySink TelemetrySink,
 ) *ABCIMiddleware[
 	BeaconBlockT, BlobSidecarsT, GenesisT, SlotDataT,
 ] {
+	minPayloadDelay := min(
+		cmtCfg.Consensus.TimeoutPropose,
+		cmtCfg.Consensus.TimeoutPrevote,
+		cmtCfg.Consensus.TimeoutPrecommit,
+		cmtCfg.Consensus.TimeoutCommit,
+	)
+
 	return &ABCIMiddleware[
 		BeaconBlockT, BlobSidecarsT, GenesisT, SlotDataT,
 	]{
 		chainSpec:                chainSpec,
+		minPayloadDelay:          minPayloadDelay,
 		dispatcher:               dispatcher,
 		logger:                   logger,
 		metrics:                  newABCIMiddlewareMetrics(telemetrySink),
