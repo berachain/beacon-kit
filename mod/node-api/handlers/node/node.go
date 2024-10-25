@@ -21,14 +21,35 @@
 package node
 
 import (
+	"context"
+	"fmt"
+	"strconv"
+
 	nodetypes "github.com/berachain/beacon-kit/mod/node-api/handlers/node/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
+	cmtclient "github.com/cometbft/cometbft/rpc/client/http"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 )
 
-// Syncing is a placeholder so that beacon API clients don't break.
-//
-// TODO: Implement with real data.
-func (h *Handler[ContextT]) Syncing(ContextT) (any, error) {
+// Syncing returns the syncing status of the beacon node.
+func (h *Handler[ContextT]) Syncing(_ ContextT) (any, error) {
+	// Create a new RPC client
+	rpcClient, err := cmtclient.New("tcp://localhost:26657")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create RPC client: %w", err)
+	}
+
+	// Create client context with the RPC client
+	clientCtx := client.Context{}
+	clientCtx = clientCtx.WithClient(rpcClient)
+
+	// Query CometBFT status
+	status, err := cmtservice.GetNodeStatus(context.Background(), clientCtx)
+	if err != nil {
+		return nil, fmt.Errorf("err in getting node status %w", err)
+	}
+
 	type SyncingResponse struct {
 		Data struct {
 			HeadSlot     string `json:"head_slot"`
@@ -40,9 +61,23 @@ func (h *Handler[ContextT]) Syncing(ContextT) (any, error) {
 	}
 
 	response := SyncingResponse{}
-	response.Data.HeadSlot = "0"
-	response.Data.SyncDistance = "1"
-	response.Data.IsSyncing = false
+	response.Data.HeadSlot = strconv.FormatInt(
+		status.SyncInfo.LatestBlockHeight,
+		10,
+	)
+
+	// Calculate sync distance
+	if status.SyncInfo.LatestBlockHeight < status.SyncInfo.EarliestBlockHeight {
+		syncDistance := status.SyncInfo.EarliestBlockHeight -
+			status.SyncInfo.LatestBlockHeight
+		response.Data.SyncDistance = strconv.FormatInt(syncDistance, 10)
+		response.Data.IsSyncing = status.SyncInfo.CatchingUp
+	} else {
+		response.Data.SyncDistance = "0"
+		response.Data.IsSyncing = false
+	}
+
+	// Keep existing values for these fields
 	response.Data.IsOptimistic = true
 	response.Data.ELOffline = false
 
