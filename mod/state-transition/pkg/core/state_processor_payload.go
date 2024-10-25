@@ -107,7 +107,7 @@ func (sp *StateProcessor[
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
 
-	if pt := payload.GetTimestamp(); pt > nextPayloadTimestamp {
+	if pt := payload.GetTimestamp(); pt >= nextPayloadTimestamp {
 		return errors.Wrapf(
 			ErrTooFarInTheFuture,
 			"payload timestamp, max: %d, got: %d",
