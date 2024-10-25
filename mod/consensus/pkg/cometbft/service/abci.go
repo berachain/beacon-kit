@@ -212,6 +212,7 @@ func (s *Service[LoggerT]) PrepareProposal(
 		math.Slot(req.GetHeight()),
 		nil,
 		nil,
+		req.GetProposerAddress(),
 
 		// we do not add h.minPayloadDelay here since req.GetTime()
 		// is guaranteed to be strictly larger than

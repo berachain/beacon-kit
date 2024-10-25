@@ -34,10 +34,8 @@ type SlotData[AttestationDataT, SlashingInfoT any] struct {
 	attestationData []AttestationDataT
 	// slashingInfo is the slashing info of the incoming slot.
 	slashingInfo []SlashingInfoT
-	// nextPayloadTimestamp is the timestamp proposed by
-	// consensus for the next payload to be proposed. It is also
-	// used to bound current payload upon validation
-	nextPayloadTimestamp math.U64
+
+	*commonConsensusData
 }
 
 // New creates a new SlotData instance.
@@ -45,13 +43,17 @@ func (b *SlotData[AttestationDataT, SlashingInfoT]) New(
 	slot math.Slot,
 	attestationData []AttestationDataT,
 	slashingInfo []SlashingInfoT,
+	proposerAddress []byte,
 	nextPayloadTimestamp time.Time,
 ) *SlotData[AttestationDataT, SlashingInfoT] {
 	b = &SlotData[AttestationDataT, SlashingInfoT]{
-		slot:                 slot,
-		attestationData:      attestationData,
-		slashingInfo:         slashingInfo,
-		nextPayloadTimestamp: math.U64(nextPayloadTimestamp.Unix()),
+		slot:            slot,
+		attestationData: attestationData,
+		slashingInfo:    slashingInfo,
+		commonConsensusData: &commonConsensusData{
+			proposerAddress:      proposerAddress,
+			nextPayloadTimestamp: math.U64(nextPayloadTimestamp.Unix()),
+		},
 	}
 	return b
 }
@@ -75,14 +77,6 @@ func (b *SlotData[
 	SlashingInfoT,
 ]) GetSlashingInfo() []SlashingInfoT {
 	return b.slashingInfo
-}
-
-// GetNextPayloadTimestamp retrieves the proposed next payload timestamp.
-func (b *SlotData[
-	AttestationDataT,
-	SlashingInfoT,
-]) GetNextPayloadTimestamp() math.U64 {
-	return b.nextPayloadTimestamp
 }
 
 // SetAttestationData sets the attestation data of the SlotData.

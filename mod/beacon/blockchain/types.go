@@ -45,7 +45,7 @@ type AvailabilityStore[BeaconBlockBodyT any] interface {
 type ConsensusBlock[BeaconBlockT any] interface {
 	GetBeaconBlock() BeaconBlockT
 
-	GetProposerAddreess() []byte
+	GetProposerAddress() []byte
 
 	// GetNextPayloadTimestamp returns the timestamp proposed by
 	// consensus for the next payload to be proposed. It is also

@@ -20,34 +20,21 @@
 
 package types
 
-import (
-	"time"
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-)
+type commonConsensusData struct {
+	proposerAddress []byte
 
-type ConsensusBlock[BeaconBlockT any] struct {
-	blk BeaconBlockT
-
-	*commonConsensusData
+	nextPayloadTimestamp math.U64
 }
 
-// New creates a new ConsensusBlock instance.
-func (b *ConsensusBlock[BeaconBlockT]) New(
-	beaconBlock BeaconBlockT,
-	proposerAddress []byte,
-	nextPayloadTimestamp time.Time,
-) *ConsensusBlock[BeaconBlockT] {
-	b = &ConsensusBlock[BeaconBlockT]{
-		blk: beaconBlock,
-		commonConsensusData: &commonConsensusData{
-			proposerAddress:      proposerAddress,
-			nextPayloadTimestamp: math.U64(nextPayloadTimestamp.Unix()),
-		},
-	}
-	return b
+func (c *commonConsensusData) GetProposerAddress() []byte {
+	return c.proposerAddress
 }
 
-func (b *ConsensusBlock[BeaconBlockT]) GetBeaconBlock() BeaconBlockT {
-	return b.blk
+// GetNextPayloadTimestamp returns the timestamp proposed by consensus
+// for the next payload to be proposed. It is also used to bound
+// current payload upon validation.
+func (c *commonConsensusData) GetNextPayloadTimestamp() math.U64 {
+	return c.nextPayloadTimestamp
 }
