@@ -88,7 +88,10 @@ func TestHasValidInclusionProof(t *testing.T) {
 				t.Helper()
 				inclusionProof := make([]common.Root, 0)
 				for i := int(1); i <= 8; i++ {
-					it := byteslib.ExtendToSize([]byte(strconv.Itoa(i)), byteslib.B32Size)
+					it := byteslib.ExtendToSize(
+						[]byte(strconv.Itoa(i)),
+						byteslib.B32Size,
+					)
 					proof, err := byteslib.ToBytes32(it)
 					require.NoError(t, err)
 					inclusionProof = append(inclusionProof, common.Root(proof))
@@ -147,7 +150,10 @@ func TestHashTreeRoot(t *testing.T) {
 				t.Helper()
 				inclusionProof := make([]common.Root, 0)
 				for i := int(1); i <= 8; i++ {
-					it := byteslib.ExtendToSize([]byte(strconv.Itoa(i)), byteslib.B32Size)
+					it := byteslib.ExtendToSize(
+						[]byte(strconv.Itoa(i)),
+						byteslib.B32Size,
+					)
 					proof, err := byteslib.ToBytes32(it)
 					require.NoError(t, err)
 					inclusionProof = append(inclusionProof, common.Root(proof))
