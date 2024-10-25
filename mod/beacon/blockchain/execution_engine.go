@@ -79,7 +79,7 @@ func (s *Service[
 		ctx,
 		stCopy,
 		beaconBlk.GetSlot()+1,
-		blk.GetConsensusTime().Unwrap(),
+		blk.GetNextPayloadTimestamp().Unwrap(),
 		prevBlockRoot,
 		lph.GetBlockHash(),
 		lph.GetParentHash(),

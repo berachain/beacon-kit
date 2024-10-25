@@ -42,9 +42,9 @@ type Context struct {
 	// SkipValidateResult indicates whether to validate the result of
 	// the state transition.
 	SkipValidateResult bool
-	// ConsensusTime is the network agreed time for the block causing the
-	// state transition to be performed
-	ConsensusTime math.U64
+	// NextPayloadTimestamp is consensus proposed timestamp for the
+	// next payload to be built
+	NextPayloadTimestamp math.U64
 }
 
 // GetOptimisticEngine returns whether to optimistically assume the execution
@@ -72,10 +72,10 @@ func (c *Context) GetSkipValidateResult() bool {
 	return c.SkipValidateResult
 }
 
-// GetConsensusTime returns the consensus time for the block causing
-// the state transition.
-func (c *Context) GetConsensusTime() math.U64 {
-	return c.ConsensusTime
+// GetNextPayloadTimestamp returns the timestamp proposed by consensus
+// for the next payload to be built.
+func (c *Context) GetNextPayloadTimestamp() math.U64 {
+	return c.NextPayloadTimestamp
 }
 
 // Unwrap returns the underlying standard context.

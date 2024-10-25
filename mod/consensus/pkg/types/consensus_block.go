@@ -29,18 +29,20 @@ import (
 type ConsensusBlock[BeaconBlockT any] struct {
 	blk BeaconBlockT
 
-	// consensusTime assigned by CometBFT to the beacon block
-	consensusTime math.U64
+	// nextPayloadTimestamp is the timestamp proposed by consensus
+	// for the next payload to be proposed.
+	// TODO: consider validating that it is strictly bounded and increasing
+	nextPayloadTimestamp math.U64
 }
 
 // New creates a new SlotData instance.
 func (b *ConsensusBlock[BeaconBlockT]) New(
 	beaconBlock BeaconBlockT,
-	blkTime time.Time,
+	nextPayloadTimestamp time.Time,
 ) *ConsensusBlock[BeaconBlockT] {
 	b = &ConsensusBlock[BeaconBlockT]{
-		blk:           beaconBlock,
-		consensusTime: math.U64(blkTime.Unix()),
+		blk:                  beaconBlock,
+		nextPayloadTimestamp: math.U64(nextPayloadTimestamp.Unix()),
 	}
 	return b
 }
@@ -49,6 +51,6 @@ func (b *ConsensusBlock[BeaconBlockT]) GetBeaconBlock() BeaconBlockT {
 	return b.blk
 }
 
-func (b *ConsensusBlock[_]) GetConsensusTime() math.U64 {
-	return b.consensusTime
+func (b *ConsensusBlock[_]) GetNextPayloadTimestamp() math.U64 {
+	return b.nextPayloadTimestamp
 }

@@ -45,7 +45,7 @@ type AvailabilityStore[BeaconBlockBodyT any] interface {
 type ConsensusBlock[BeaconBlockT any] interface {
 	GetBeaconBlock() BeaconBlockT
 
-	GetConsensusTime() math.U64
+	GetNextPayloadTimestamp() math.U64
 }
 
 // BeaconBlock represents a beacon block interface.

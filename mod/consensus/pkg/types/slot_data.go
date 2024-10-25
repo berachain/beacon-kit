@@ -30,8 +30,10 @@ type SlotData[AttestationDataT, SlashingInfoT any] struct {
 	attestationData []AttestationDataT
 	// slashingInfo is the slashing info of the incoming slot.
 	slashingInfo []SlashingInfoT
-	// Time tracked by consensus engine at the time SlotData is emitted.
-	consensusTime math.U64
+	// nextPayloadTimestamp is the timestamp proposed by consensus
+	// for the next payload to be proposed.
+	// TODO: consider validating that it is strictly bounded and increasing
+	nextPayloadTimestamp math.U64
 }
 
 // New creates a new SlotData instance.
@@ -39,13 +41,13 @@ func (b *SlotData[AttestationDataT, SlashingInfoT]) New(
 	slot math.Slot,
 	attestationData []AttestationDataT,
 	slashingInfo []SlashingInfoT,
-	consensusTime math.U64,
+	nextPayloadTimestamp math.U64,
 ) *SlotData[AttestationDataT, SlashingInfoT] {
 	b = &SlotData[AttestationDataT, SlashingInfoT]{
-		slot:            slot,
-		attestationData: attestationData,
-		slashingInfo:    slashingInfo,
-		consensusTime:   consensusTime,
+		slot:                 slot,
+		attestationData:      attestationData,
+		slashingInfo:         slashingInfo,
+		nextPayloadTimestamp: nextPayloadTimestamp,
 	}
 	return b
 }
@@ -71,12 +73,12 @@ func (b *SlotData[
 	return b.slashingInfo
 }
 
-// GetConsensusTime retrieves the consensus time.
+// GetNextPayloadTimestamp retrieves the proposed next payload timestamp.
 func (b *SlotData[
 	AttestationDataT,
 	SlashingInfoT,
-]) GetConsensusTime() math.U64 {
-	return b.consensusTime
+]) GetNextPayloadTimestamp() math.U64 {
+	return b.nextPayloadTimestamp
 }
 
 // SetAttestationData sets the attestation data of the SlotData.

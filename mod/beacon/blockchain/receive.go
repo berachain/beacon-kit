@@ -38,8 +38,8 @@ func (s *Service[
 	blk ConsensusBlockT,
 ) error {
 	var (
-		beaconBlk     = blk.GetBeaconBlock()
-		consensusTime = blk.GetConsensusTime()
+		beaconBlk            = blk.GetBeaconBlock()
+		nextPayloadTimestamp = blk.GetNextPayloadTimestamp()
 	)
 
 	// Grab a copy of the state to verify the incoming block.
@@ -84,7 +84,7 @@ func (s *Service[
 			go s.handleRebuildPayloadForRejectedBlock(
 				ctx,
 				preState,
-				consensusTime,
+				nextPayloadTimestamp,
 			)
 		}
 
@@ -102,7 +102,7 @@ func (s *Service[
 			ctx,
 			postState,
 			beaconBlk,
-			consensusTime,
+			nextPayloadTimestamp,
 		)
 	}
 
@@ -128,7 +128,7 @@ func (s *Service[
 			SkipPayloadVerification: false,
 			SkipValidateResult:      false,
 			SkipValidateRandao:      false,
-			ConsensusTime:           blk.GetConsensusTime(),
+			NextPayloadTimestamp:    blk.GetNextPayloadTimestamp(),
 		},
 		st, blk.GetBeaconBlock(),
 	)
