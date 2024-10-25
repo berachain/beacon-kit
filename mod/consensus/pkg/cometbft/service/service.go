@@ -82,6 +82,10 @@ type Service[
 	initialHeight   int64
 	minRetainBlocks uint64
 
+	// minimum delay among blocks, useful to set a strictly increasing
+	// execution payload timestamp
+	minPayloadDelay uint64
+
 	chainID string
 }
 
@@ -121,6 +125,13 @@ func NewService[
 	if err := s.sm.LoadLatestVersion(); err != nil {
 		panic(err)
 	}
+
+	s.minPayloadDelay = uint64(min(
+		cmtCfg.Consensus.TimeoutPropose,
+		cmtCfg.Consensus.TimeoutPrevote,
+		cmtCfg.Consensus.TimeoutPrecommit,
+		cmtCfg.Consensus.TimeoutCommit,
+	))
 
 	return s
 }
