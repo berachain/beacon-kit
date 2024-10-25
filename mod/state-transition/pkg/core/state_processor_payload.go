@@ -107,13 +107,11 @@ func (sp *StateProcessor[
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
 
-	timeBound := nextPayloadTimestamp +
-		math.U64(sp.cs.TargetSecondsPerEth1Block()) // TODO: consider other bound
-	if pt := payload.GetTimestamp(); pt > timeBound {
+	if pt := payload.GetTimestamp(); pt > nextPayloadTimestamp {
 		return errors.Wrapf(
 			ErrTooFarInTheFuture,
 			"payload timestamp, max: %d, got: %d",
-			timeBound, pt,
+			nextPayloadTimestamp, pt,
 		)
 	}
 
