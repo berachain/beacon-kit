@@ -50,7 +50,6 @@ func (b Backend[
 		[]*types.BlobSidecarData[BeaconBlockHeaderT],
 		len(*blobSidecars),
 	)
-
 	for i, sidecar := range *blobSidecars {
 		result[i] = &types.BlobSidecarData[BeaconBlockHeaderT]{
 			Index:         sidecar.GetIndex(),
@@ -59,7 +58,7 @@ func (b Backend[
 			KzgProof:      sidecar.GetKzgProof(),
 			BeaconBlockHeader: &types.BlockHeader[BeaconBlockHeaderT]{
 				Message:   blockHeader,
-				Signature: crypto.BLSSignature{},
+				Signature: crypto.BLSSignature{}, // TODO: Implement signature.
 			},
 			// sidecar.GetBeaconBlockHeader(),
 			KzgCommitmentInclusionProof: sidecar.GetInclusionProof(),
@@ -67,33 +66,4 @@ func (b Backend[
 	}
 
 	return result, nil
-
-	// TODO: Implement with real data.
-	// blobSidecars := []*types.BlobSidecarData[BeaconBlockHeaderT]{
-	//	{
-	//		Index: 0,
-	//		Blob: eip4844.Blob{
-	//			0x62, 0x6c, 0x6f, 0x62, 0x31, // "blob1" in hex
-	//		},
-	//		KzgCommitment: eip4844.KZGCommitment{
-	//			0x6b, 0x7a, 0x67, 0x5f, 0x63, 0x6f, 0x6d, 0x6d, 0x69, 0x74,
-	//			0x6d, 0x65, 0x6e, 0x74, // "kzg_commitment" in hex
-	//		},
-	//		KzgProof: eip4844.KZGProof{
-	//			0x6b, 0x7a, 0x67, 0x5f,
-	//			0x70, 0x72, 0x6f, 0x6f, 0x66, // "kzg_proof" in hex
-	//		},
-	//		BeaconBlockHeader: types.BlockHeader[BeaconBlockHeaderT]{
-	//			Message:   blockHeader,
-	//			Signature: crypto.BLSSignature{}, // TODO: Implement signature.
-	//		},
-	//		KzgCommitmentInclusionProof: []common.Root{
-	//			{
-	//				0x69, 0x6e, 0x63, 0x6c, 0x75,
-	//				0x73, 0x69, 0x6f, 0x6e, // "inclusion" in hex
-	//			},
-	//		},
-	//	},
-	// }
-	// return blobSidecars, nil
 }
