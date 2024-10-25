@@ -224,6 +224,7 @@ func (h *ABCIMiddleware[
 	var enrichedBlk *types.ConsensusBlock[BeaconBlockT]
 	enrichedBlk = enrichedBlk.New(
 		blk,
+		req.GetProposerAddress(),
 		req.GetTime().Add(h.minPayloadDelay),
 	)
 	blkEvent := async.NewEvent(ctx, async.BeaconBlockReceived, enrichedBlk)
@@ -341,6 +342,7 @@ func (h *ABCIMiddleware[
 	var enrichedBlk *types.ConsensusBlock[BeaconBlockT]
 	enrichedBlk = enrichedBlk.New(
 		blk,
+		req.GetProposerAddress(),
 		req.GetTime().Add(h.minPayloadDelay),
 	)
 	blkEvent := async.NewEvent(ctx, async.FinalBeaconBlockReceived, enrichedBlk)

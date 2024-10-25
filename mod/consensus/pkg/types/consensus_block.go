@@ -29,16 +29,20 @@ import (
 type ConsensusBlock[BeaconBlockT any] struct {
 	blk BeaconBlockT
 
+	proposerAddress []byte
+
 	nextPayloadTimestamp math.U64
 }
 
 // New creates a new ConsensusBlock instance.
 func (b *ConsensusBlock[BeaconBlockT]) New(
 	beaconBlock BeaconBlockT,
+	proposerAddress []byte,
 	nextPayloadTimestamp time.Time,
 ) *ConsensusBlock[BeaconBlockT] {
 	b = &ConsensusBlock[BeaconBlockT]{
 		blk:                  beaconBlock,
+		proposerAddress:      proposerAddress,
 		nextPayloadTimestamp: math.U64(nextPayloadTimestamp.Unix()),
 	}
 	return b
@@ -46,6 +50,10 @@ func (b *ConsensusBlock[BeaconBlockT]) New(
 
 func (b *ConsensusBlock[BeaconBlockT]) GetBeaconBlock() BeaconBlockT {
 	return b.blk
+}
+
+func (b *ConsensusBlock[_]) GetProposerAddreess() []byte {
+	return b.proposerAddress
 }
 
 // GetNextPayloadTimestamp returns the timestamp proposed by consensus
