@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 //
-//nolint:contextcheck // its fine.
+
 package cometbft
 
 import (
@@ -204,13 +204,19 @@ func (s *Service[LoggerT]) PrepareProposal(
 		),
 	)
 
+	var slotData *types.SlotData[
+		*ctypes.AttestationData,
+		*ctypes.SlashingInfo,
+	]
+	slotData = slotData.New(
+		math.Slot(req.GetHeight()),
+		nil,
+		nil,
+		math.U64(req.GetTime().Unix()),
+	)
 	blkBz, sidecarsBz, err := s.Middleware.PrepareProposal(
-		s.prepareProposalState.Context(), &types.SlotData[
-			*ctypes.AttestationData,
-			*ctypes.SlashingInfo,
-		]{
-			Slot: math.Slot(req.Height),
-		},
+		s.prepareProposalState.Context(),
+		slotData,
 	)
 	if err != nil {
 		s.logger.Error(

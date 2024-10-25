@@ -18,26 +18,37 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package payloadtime
+package types
 
 import (
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// Next calculates the
-// next timestamp for an execution payload
-//
-// TODO: This is hood and needs to be improved.
-func Next(
-	chainSpec common.ChainSpec,
-	parentPayloadTime math.U64,
-) uint64 {
-	//#nosec:G701 // not an issue in practice.
-	return max(
-		uint64(time.Now().Unix())+chainSpec.TargetSecondsPerEth1Block(),
-		uint64(parentPayloadTime+1),
-	)
+type ConsensusBlock[BeaconBlockT any] struct {
+	blk BeaconBlockT
+
+	// consensusTime assigned by CometBFT to the beacon block
+	consensusTime math.U64
+}
+
+// New creates a new SlotData instance.
+func (b *ConsensusBlock[BeaconBlockT]) New(
+	beaconBlock BeaconBlockT,
+	blkTime time.Time,
+) *ConsensusBlock[BeaconBlockT] {
+	b = &ConsensusBlock[BeaconBlockT]{
+		blk:           beaconBlock,
+		consensusTime: math.U64(blkTime.Unix()),
+	}
+	return b
+}
+
+func (b *ConsensusBlock[BeaconBlockT]) GetBeaconBlock() BeaconBlockT {
+	return b.blk
+}
+
+func (b *ConsensusBlock[_]) GetConsensusTime() math.U64 {
+	return b.consensusTime
 }

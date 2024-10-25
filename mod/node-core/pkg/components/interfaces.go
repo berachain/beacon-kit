@@ -80,6 +80,12 @@ type (
 		Persist(math.Slot, BlobSidecarsT) error
 	}
 
+	ConsensusBlock[BeaconBlockT any] interface {
+		GetBeaconBlock() BeaconBlockT
+
+		GetConsensusTime() math.U64
+	}
+
 	// BeaconBlock represents a generic interface for a beacon block.
 	BeaconBlock[
 		T any,

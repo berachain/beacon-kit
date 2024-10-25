@@ -67,6 +67,10 @@ var (
 	// does not match the expected value.
 	ErrStateRootMismatch = errors.New("state root mismatch")
 
+	// ErrTooFarInTheFuture is returned when the payload timestamp
+	// in a block exceeds the time bound.
+	ErrTooFarInTheFuture = errors.New("timestamp too far in the future")
+
 	// ErrExceedMaximumWithdrawals is returned when the number of withdrawals
 	// in a block exceeds the maximum allowed.
 	ErrExceedMaximumWithdrawals = errors.New("exceeds maximum withdrawals")
