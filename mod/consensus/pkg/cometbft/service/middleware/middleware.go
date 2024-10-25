@@ -88,7 +88,7 @@ func NewABCIMiddleware[
 	// Prepare/Propose/FinalizeBlock.
 	// To this purpose, we set next payload timestamp as follows:
 	// - ProposeBlock: req.Time
-	// - Prepare/FinalizeBlock: to req.Time + minPayloadDelay
+	// - Prepare/FinalizeBlock: req.Time + minPayloadDelay
 	// Monotonicity across request sequences is ensured by construction of
 	// minPayloadDelay: no block can be finalized before minPayloadDelay.
 	minPayloadDelay := min(

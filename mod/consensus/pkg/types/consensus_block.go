@@ -32,7 +32,7 @@ type ConsensusBlock[BeaconBlockT any] struct {
 	nextPayloadTimestamp math.U64
 }
 
-// New creates a new SlotData instance.
+// New creates a new ConsensusBlock instance.
 func (b *ConsensusBlock[BeaconBlockT]) New(
 	beaconBlock BeaconBlockT,
 	nextPayloadTimestamp time.Time,
