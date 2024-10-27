@@ -59,16 +59,14 @@ func (s *Service[
 		"state_root", blk.GetStateRoot(), "slot", blk.GetSlot(),
 	)
 
-	// We purposefully make a copy of the BeaconState in orer
+	// We purposefully make a copy of the BeaconState in order
 	// to avoid modifying the underlying state, for the event in which
 	// we have to rebuild a payload for this slot again, if we do not agree
 	// with the incoming block.
 	postState := preState.Copy()
 
 	// Verify the state root of the incoming block.
-	if err := s.verifyStateRoot(
-		ctx, postState, blk,
-	); err != nil {
+	if err := s.verifyStateRoot(ctx, postState, blk); err != nil {
 		s.logger.Error(
 			"Rejecting incoming beacon block ❌ ",
 			"state_root",
