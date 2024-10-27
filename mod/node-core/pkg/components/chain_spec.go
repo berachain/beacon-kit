@@ -21,10 +21,13 @@
 package components
 
 import (
-	"os"
-
+	"encoding/json"
+	"fmt"
+	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
 	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"os"
+	"strings"
 )
 
 const (
@@ -35,10 +38,37 @@ const (
 
 // ProvideChainSpec provides the chain spec based on the environment variable.
 func ProvideChainSpec() common.ChainSpec {
-	// TODO: This is hood as fuck needs to be improved
-	// but for now we ball to get CI unblocked.
+	// TODO: This is still pretty hood but we shouldn't deviate to far from upstream
 	specType := os.Getenv(ChainSpecTypeEnvVar)
+	if specType == "" {
+		panic(fmt.Sprintf("environment variable %s not set", ChainSpecTypeEnvVar))
+	}
+
 	var chainSpec common.ChainSpec
+	if strings.HasPrefix(specType, "file://") {
+		specPath := strings.TrimPrefix(specType, "file://")
+		if specPath == "" {
+			panic(fmt.Sprintf("file path not set: %s", specPath))
+		}
+
+		b, err := os.ReadFile(specPath)
+		if err != nil {
+			panic(fmt.Sprintf("Failed to open chain specification file: %w", err))
+		}
+
+		chainSpecInput := new(spec.ChainSpecInput)
+		err = json.Unmarshal(b, &chainSpecInput)
+		if err != nil {
+			panic(fmt.Sprintf("Failed to unmarshal chain specification: %w", err))
+		}
+
+		sd := spec.BaseSpec()
+		sd.DepositEth1ChainID = chainSpecInput.Eth1ChainID
+		chainSpec = chain.NewChainSpec(sd)
+
+		return chainSpec
+	}
+
 	switch specType {
 	case DevnetChainSpecType:
 		chainSpec = spec.DevnetChainSpec()
@@ -47,6 +77,6 @@ func ProvideChainSpec() common.ChainSpec {
 	default:
 		chainSpec = spec.TestnetChainSpec()
 	}
-
 	return chainSpec
+
 }
