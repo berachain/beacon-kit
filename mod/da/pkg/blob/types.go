@@ -60,10 +60,14 @@ type BeaconBlockHeader interface {
 }
 
 //nolint:revive // name conflict
-type BlobVerifier[BlobSidecarsT any] interface {
+type BlobVerifier[BlobSidecarsT, BeaconBlockHeaderT any] interface {
 	VerifyInclusionProofs(scs BlobSidecarsT, kzgOffset uint64) error
 	VerifyKZGProofs(scs BlobSidecarsT) error
-	VerifySidecars(sidecars BlobSidecarsT, kzgOffset uint64) error
+	VerifySidecars(
+		sidecars BlobSidecarsT,
+		kzgOffset uint64,
+		blkHeader BeaconBlockHeaderT,
+	) error
 }
 
 type ConsensusSidecars[BlobSidecarsT any, BeaconBlockHeaderT any] interface {

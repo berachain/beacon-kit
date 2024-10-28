@@ -45,7 +45,7 @@ type Processor[
 	// chainSpec defines the specifications of the blockchain.
 	chainSpec common.ChainSpec
 	// verifier is responsible for verifying the blobs.
-	verifier BlobVerifier[BlobSidecarsT]
+	verifier BlobVerifier[BlobSidecarsT, BeaconBlockHeaderT]
 	// blockBodyOffsetFn is a function that calculates the block body offset
 	// based on the slot and chain specifications.
 	blockBodyOffsetFn func(math.Slot, common.ChainSpec) uint64
@@ -66,7 +66,7 @@ func NewProcessor[
 ](
 	logger log.Logger,
 	chainSpec common.ChainSpec,
-	verifier BlobVerifier[BlobSidecarsT],
+	verifier BlobVerifier[BlobSidecarsT, BeaconBlockHeaderT],
 	blockBodyOffsetFn func(math.Slot, common.ChainSpec) uint64,
 	telemetrySink TelemetrySink,
 ) *Processor[
@@ -94,6 +94,7 @@ func (sp *Processor[
 	var (
 		startTime = time.Now()
 		sidecars  = cs.GetSidecars()
+		blkHeader = cs.GetHeader()
 	)
 	defer sp.metrics.measureVerifySidecarsDuration(
 		startTime, math.U64(sidecars.Len()),
@@ -111,6 +112,7 @@ func (sp *Processor[
 			sidecars.Get(0).GetBeaconBlockHeader().GetSlot(),
 			sp.chainSpec,
 		),
+		blkHeader,
 	)
 }
 

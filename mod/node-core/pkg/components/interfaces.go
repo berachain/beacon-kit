@@ -194,7 +194,7 @@ type (
 	// BeaconStateMarshallable represents an interface for a beacon state
 	// with generic types.
 	BeaconStateMarshallable[
-		T any,
+		T,
 		BeaconBlockHeaderT,
 		Eth1DataT,
 		ExecutionPayloadHeaderT,
@@ -270,10 +270,14 @@ type (
 		VerifyInclusionProofs(kzgOffset uint64) error
 	}
 
-	BlobVerifier[BlobSidecarsT any] interface {
+	BlobVerifier[BlobSidecarsT, BeaconBlockHeaderT any] interface {
 		VerifyInclusionProofs(scs BlobSidecarsT, kzgOffset uint64) error
 		VerifyKZGProofs(scs BlobSidecarsT) error
-		VerifySidecars(sidecars BlobSidecarsT, kzgOffset uint64) error
+		VerifySidecars(
+			sidecars BlobSidecarsT,
+			kzgOffset uint64,
+			blkHeader BeaconBlockHeaderT,
+		) error
 	}
 
 	// 	// BlockchainService defines the interface for interacting with the

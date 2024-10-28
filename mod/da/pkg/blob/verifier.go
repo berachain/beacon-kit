@@ -22,6 +22,8 @@ package blob
 
 import (
 	"context"
+	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
@@ -60,7 +62,9 @@ func NewVerifier[
 // VerifySidecars verifies the blobs for both inclusion as well
 // as the KZG proofs.
 func (bv *Verifier[_, _, BlobSidecarsT]) VerifySidecars(
-	sidecars BlobSidecarsT, kzgOffset uint64,
+	sidecars BlobSidecarsT,
+	kzgOffset uint64,
+	blkHeader BeaconBlockHeader,
 ) error {
 	var (
 		g, _      = errgroup.WithContext(context.Background())
@@ -71,6 +75,12 @@ func (bv *Verifier[_, _, BlobSidecarsT]) VerifySidecars(
 		startTime, math.U64(sidecars.Len()),
 		bv.proofVerifier.GetImplementation(),
 	)
+
+	for i, s := range sidecars.GetSidecars() {
+		if !reflect.DeepEqual(s, blkHeader) {
+			return fmt.Errorf("unequal block header: idx %d", i)
+		}
+	}
 
 	// Verify the inclusion proofs on the blobs concurrently.
 	g.Go(func() error {
