@@ -20,6 +20,37 @@
 
 package types
 
+import (
+	"encoding/json"
+	"strconv"
+)
+
 type VersionData struct {
 	Version string `json:"version"`
+}
+
+type SyncingData struct {
+	HeadSlot     int64 `json:"head_slot"`
+	SyncDistance int64 `json:"sync_distance"`
+	IsSyncing    bool  `json:"is_syncing"`
+	IsOptimistic bool  `json:"is_optimistic"`
+	ELOffline    bool  `json:"el_offline"`
+}
+
+type syncingJSON struct {
+	HeadSlot     string `json:"head_slot"`
+	SyncDistance string `json:"sync_distance"`
+	IsSyncing    bool   `json:"is_syncing"`
+	IsOptimistic bool   `json:"is_optimistic"`
+	ELOffline    bool   `json:"el_offline"`
+}
+
+func (s *SyncingData) MarshalJSON() ([]byte, error) {
+	return json.Marshal(syncingJSON{
+		HeadSlot:     strconv.FormatInt(s.HeadSlot, 10),
+		SyncDistance: strconv.FormatInt(s.SyncDistance, 10),
+		IsSyncing:    s.IsSyncing,
+		IsOptimistic: s.IsOptimistic,
+		ELOffline:    s.ELOffline,
+	})
 }

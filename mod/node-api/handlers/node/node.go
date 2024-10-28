@@ -23,7 +23,6 @@ package node
 import (
 	"context"
 	"fmt"
-	"strconv"
 
 	nodetypes "github.com/berachain/beacon-kit/mod/node-api/handlers/node/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
@@ -49,39 +48,25 @@ func (h *Handler[ContextT]) Syncing(_ ContextT) (any, error) {
 	if err != nil {
 		return nil, fmt.Errorf("err in getting node status %w", err)
 	}
-
-	type SyncingResponse struct {
-		Data struct {
-			HeadSlot     string `json:"head_slot"`
-			SyncDistance string `json:"sync_distance"`
-			IsSyncing    bool   `json:"is_syncing"`
-			IsOptimistic bool   `json:"is_optimistic"`
-			ELOffline    bool   `json:"el_offline"`
-		} `json:"data"`
-	}
-
-	response := SyncingResponse{}
-	response.Data.HeadSlot = strconv.FormatInt(
-		status.SyncInfo.LatestBlockHeight,
-		10,
-	)
+	response := nodetypes.SyncingData{}
+	response.HeadSlot = status.SyncInfo.LatestBlockHeight
 
 	// Calculate sync distance
 	if status.SyncInfo.LatestBlockHeight < status.SyncInfo.EarliestBlockHeight {
 		syncDistance := status.SyncInfo.EarliestBlockHeight -
 			status.SyncInfo.LatestBlockHeight
-		response.Data.SyncDistance = strconv.FormatInt(syncDistance, 10)
-		response.Data.IsSyncing = status.SyncInfo.CatchingUp
+		response.SyncDistance = syncDistance
+		response.IsSyncing = status.SyncInfo.CatchingUp
 	} else {
-		response.Data.SyncDistance = "0"
-		response.Data.IsSyncing = false
+		response.SyncDistance = 0
+		response.IsSyncing = false
 	}
 
 	// Keep existing values for these fields
-	response.Data.IsOptimistic = true
-	response.Data.ELOffline = false
+	response.IsOptimistic = true
+	response.ELOffline = false
 
-	return response, nil
+	return types.Wrap(&response), nil
 }
 
 // Version returns the version of the beacon node.
