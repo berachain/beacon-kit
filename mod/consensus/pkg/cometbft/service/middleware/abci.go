@@ -40,9 +40,7 @@ import (
 /* -------------------------------------------------------------------------- */
 
 // InitGenesis is called by the base app to initialize the state of the.
-func (h *ABCIMiddleware[
-	_, _, GenesisT, _,
-]) InitGenesis(
+func (h *ABCIMiddleware[_, _, _, GenesisT, _]) InitGenesis(
 	ctx sdk.Context,
 	bz []byte,
 ) (transition.ValidatorUpdates, error) {
@@ -65,9 +63,7 @@ func (h *ABCIMiddleware[
 
 // waitForGenesisProcessed waits until the genesis data has been processed and
 // returns the validator updates, or err if the context is cancelled.
-func (h *ABCIMiddleware[
-	_, _, _, _,
-]) waitForGenesisProcessed(
+func (h *ABCIMiddleware[_, _, _, _, _]) waitForGenesisProcessed(
 	ctx context.Context,
 ) (transition.ValidatorUpdates, error) {
 	select {
@@ -84,8 +80,7 @@ func (h *ABCIMiddleware[
 
 // prepareProposal is the internal handler for preparing proposals.
 func (h *ABCIMiddleware[
-	BeaconBlockT, BlobSidecarsT, _, SlotDataT,
-]) PrepareProposal(
+	BeaconBlockT, _, BlobSidecarsT, _, SlotDataT]) PrepareProposal(
 	ctx sdk.Context,
 	slotData SlotDataT,
 ) ([]byte, []byte, error) {
@@ -133,7 +128,7 @@ func (h *ABCIMiddleware[
 
 // waitForBuiltBeaconBlock waits for the built beacon block to be received.
 func (h *ABCIMiddleware[
-	BeaconBlockT, BlobSidecarsT, _, SlotDataT,
+	BeaconBlockT, _, BlobSidecarsT, _, SlotDataT,
 ]) waitForBuiltBeaconBlock(
 	ctx context.Context,
 ) (BeaconBlockT, error) {
@@ -147,7 +142,7 @@ func (h *ABCIMiddleware[
 
 // waitForBuiltSidecars waits for the built sidecars to be received.
 func (h *ABCIMiddleware[
-	_, BlobSidecarsT, _, _,
+	_, _, BlobSidecarsT, _, _,
 ]) waitForBuiltSidecars(
 	ctx context.Context,
 ) (BlobSidecarsT, error) {
@@ -162,7 +157,7 @@ func (h *ABCIMiddleware[
 // handleBuiltBeaconBlockAndSidecars gossips the built beacon block and blob
 // sidecars to the network.
 func (h *ABCIMiddleware[
-	BeaconBlockT, BlobSidecarsT, _, _,
+	BeaconBlockT, _, BlobSidecarsT, _, _,
 ]) handleBuiltBeaconBlockAndSidecars(
 	bb BeaconBlockT,
 	sc BlobSidecarsT,
@@ -185,7 +180,7 @@ func (h *ABCIMiddleware[
 // ProcessProposal processes the proposal for the ABCI middleware.
 // It handles both the beacon block and blob sidecars concurrently.
 func (h *ABCIMiddleware[
-	BeaconBlockT, BlobSidecarsT, _, _,
+	BeaconBlockT, BeaconBlockHeaderT, BlobSidecarsT, _, _,
 ]) ProcessProposal(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
@@ -209,7 +204,7 @@ func (h *ABCIMiddleware[
 
 	defer h.metrics.measureProcessProposalDuration(startTime)
 
-	// Request the beacon block.
+	// Decode the beacon block.
 	blk, err := encoding.
 		UnmarshalBeaconBlockFromABCIRequest[BeaconBlockT](
 		req,
@@ -232,7 +227,7 @@ func (h *ABCIMiddleware[
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
 
-	// Request the blob sidecars.
+	// Decode the blob sidecars.
 	sidecars, err := encoding.
 		UnmarshalBlobSidecarsFromABCIRequest[BlobSidecarsT](
 		req,
@@ -243,7 +238,15 @@ func (h *ABCIMiddleware[
 	}
 
 	// notify that the sidecars have been received.
-	blobEvent := async.NewEvent(ctx, async.SidecarsReceived, sidecars)
+	var enricheSidecars *types.ConsensusSidecars[
+		BlobSidecarsT,
+		BeaconBlockHeaderT,
+	]
+	enricheSidecars = enricheSidecars.New(
+		sidecars,
+		blk.GetHeader(),
+	)
+	blobEvent := async.NewEvent(ctx, async.SidecarsReceived, enricheSidecars)
 	if err = h.dispatcher.Publish(blobEvent); err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
@@ -263,7 +266,7 @@ func (h *ABCIMiddleware[
 // waitForBeaconBlockVerification waits for the built beacon block to be
 // verified.
 func (h *ABCIMiddleware[
-	BeaconBlockT, _, _, _,
+	BeaconBlockT, _, _, _, _,
 ]) waitForBeaconBlockVerification(
 	ctx context.Context,
 ) (BeaconBlockT, error) {
@@ -277,7 +280,7 @@ func (h *ABCIMiddleware[
 
 // waitForSidecarVerification waits for the built sidecars to be verified.
 func (h *ABCIMiddleware[
-	_, BlobSidecarsT, _, _,
+	_, _, BlobSidecarsT, _, _,
 ]) waitForSidecarVerification(
 	ctx context.Context,
 ) (BlobSidecarsT, error) {
@@ -292,7 +295,7 @@ func (h *ABCIMiddleware[
 // createResponse generates the appropriate ProcessProposalResponse based on the
 // error.
 func (*ABCIMiddleware[
-	BeaconBlockT, _, BlobSidecarsT, _,
+	BeaconBlockT, _, _, BlobSidecarsT, _,
 ]) createProcessProposalResponse(
 	err error,
 ) (*cmtabci.ProcessProposalResponse, error) {
@@ -310,7 +313,7 @@ func (*ABCIMiddleware[
 
 // EndBlock returns the validator set updates from the beacon state.
 func (h *ABCIMiddleware[
-	BeaconBlockT, BlobSidecarsT, _, _,
+	BeaconBlockT, _, BlobSidecarsT, _, _,
 ]) FinalizeBlock(
 	ctx sdk.Context,
 	req *cmtabci.FinalizeBlockRequest,
@@ -364,7 +367,7 @@ func (h *ABCIMiddleware[
 // waitForFinalValidatorUpdates waits for the final validator updates to be
 // received.
 func (h *ABCIMiddleware[
-	_, _, _, _,
+	_, _, _, _, _,
 ]) waitForFinalValidatorUpdates(
 	ctx context.Context,
 ) (transition.ValidatorUpdates, error) {

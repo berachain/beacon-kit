@@ -18,34 +18,29 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package middleware
+package types
 
-import (
-	"time"
+type ConsensusSidecars[SidecarsT any, BeaconBlockHeaderT any] struct {
+	sidecars SidecarsT
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-)
-
-// BeaconBlock is an interface for accessing the beacon block.
-type BeaconBlock[BeaconBlockT any, BeaconBlockHeaderT any] interface {
-	constraints.SSZMarshallable
-	constraints.Nillable
-	constraints.Empty[BeaconBlockT]
-	NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
-
-	GetHeader() BeaconBlockHeaderT
+	blkHeader BeaconBlockHeaderT
 }
 
-// TelemetrySink is an interface for sending metrics to a telemetry backend.
-type TelemetrySink interface {
-	// MeasureSince measures the time since the given time.
-	MeasureSince(key string, start time.Time, args ...string)
+// New creates a new ConsensusSidecars instance.
+func (s *ConsensusSidecars[SidecarsT, BeaconBlockHeaderT]) New(
+	sidecars SidecarsT,
+	blkHeader BeaconBlockHeaderT,
+) *ConsensusSidecars[SidecarsT, BeaconBlockHeaderT] {
+	s = &ConsensusSidecars[SidecarsT, BeaconBlockHeaderT]{
+		sidecars:  sidecars,
+		blkHeader: blkHeader,
+	}
+	return s
 }
 
-type BlobSidecars[T any] interface {
-	constraints.SSZMarshallable
-	constraints.Empty[T]
+func (s *ConsensusSidecars[
+	SidecarsT,
+	BeaconBlockHeaderT,
+]) GetHeader() BeaconBlockHeaderT {
+	return s.blkHeader
 }
-
-type validatorUpdates = transition.ValidatorUpdates

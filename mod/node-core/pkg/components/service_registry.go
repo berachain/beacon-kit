@@ -72,7 +72,7 @@ type ServiceRegistryInput[
 ] struct {
 	depinject.In
 	ABCIService *middleware.ABCIMiddleware[
-		BeaconBlockT, BlobSidecarsT, GenesisT, *SlotData,
+		BeaconBlockT, BeaconBlockHeaderT, BlobSidecarsT, GenesisT, *SlotData,
 	]
 	BlockStoreService *blockstore.Service[
 		BeaconBlockT, BeaconBlockStoreT,
