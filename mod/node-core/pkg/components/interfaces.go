@@ -250,6 +250,14 @@ type (
 		GetKzgCommitment() eip4844.KZGCommitment
 	}
 
+	ConsensusSidecars[
+		BlobSidecarsT any,
+		BeaconBlockHeaderT any,
+	] interface {
+		GetSidecars() BlobSidecarsT
+		GetHeader() BeaconBlockHeaderT
+	}
+
 	// BlobSidecars is the interface for blobs sidecars.
 	BlobSidecars[T, BlobSidecarT any] interface {
 		constraints.Nillable

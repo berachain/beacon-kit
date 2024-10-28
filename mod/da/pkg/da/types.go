@@ -34,6 +34,11 @@ type BlobProcessor[AvailabilityStoreT any, BlobSidecarsT any] interface {
 	) error
 }
 
+type ConsensusSidecars[BlobSidecarsT any, BeaconBlockHeaderT any] interface {
+	GetSidecars() BlobSidecarsT
+	GetHeader() BeaconBlockHeaderT
+}
+
 // BlobSidecar is the interface for the blob sidecar.
 type BlobSidecar interface {
 	// Len returns the length of the sidecar.

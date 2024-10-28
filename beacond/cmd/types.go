@@ -107,7 +107,10 @@ type (
 	CometBFTService = cometbft.Service[*Logger]
 
 	// DAService is a type alias for the DA service.
-	DAService = da.Service[*AvailabilityStore, *BlobSidecars]
+	DAService = da.Service[
+		*AvailabilityStore,
+		*ConsensusSidecars, *BlobSidecars, *BeaconBlockHeader,
+	]
 
 	// DBManager is a type alias for the database manager.
 	DBManager = manager.DBManager
@@ -269,8 +272,8 @@ type (
 
 	// BlobSidecars type aliases.
 	ConsensusSidecars = consruntimetypes.ConsensusSidecars[
-		BlobSidecars,
-		BeaconBlockHeader,
+		*BlobSidecars,
+		*BeaconBlockHeader,
 	]
 	BlobSidecar  = datypes.BlobSidecar
 	BlobSidecars = datypes.BlobSidecars

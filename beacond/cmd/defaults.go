@@ -77,8 +77,8 @@ func DefaultComponents() []any {
 		// 	*BeaconStateMarshallable, *BlockStore, *KVStore, *StorageBackend,
 		// ],
 		components.ProvideDAService[
-			*AvailabilityStore, *BeaconBlockBody, *BlobSidecar,
-			*BlobSidecars, *Logger,
+			*AvailabilityStore, *BeaconBlockBody, *BeaconBlockHeader,
+			*ConsensusSidecars, *BlobSidecar, *BlobSidecars, *Logger,
 		],
 		components.ProvideDBManager[*AvailabilityStore, *DepositStore, *Logger],
 		components.ProvideDepositPruner[
@@ -113,7 +113,8 @@ func DefaultComponents() []any {
 			*AvailabilityStore,
 			*ConsensusBlock, *BeaconBlock, *BeaconBlockBody,
 			*BeaconBlockHeader, *BlockStore, *BeaconState,
-			*BeaconStateMarshallable, *BlobSidecar, *BlobSidecars,
+			*BeaconStateMarshallable,
+			*ConsensusSidecars, *BlobSidecar, *BlobSidecars,
 			*Deposit, *DepositStore, *ExecutionPayload, *ExecutionPayloadHeader,
 			*Genesis, *KVStore, *Logger,
 			NodeAPIContext,

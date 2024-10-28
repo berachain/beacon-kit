@@ -34,7 +34,9 @@ import (
 
 type Service[
 	AvailabilityStoreT any,
+	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, BeaconBlockHeaderT],
 	BlobSidecarsT BlobSidecar,
+	BeaconBlockHeaderT any,
 ] struct {
 	avs AvailabilityStoreT
 	bp  BlobProcessor[
@@ -44,7 +46,7 @@ type Service[
 	dispatcher asynctypes.EventDispatcher
 	logger     log.Logger
 	// subSidecarsReceived is a channel holding SidecarsReceived events.
-	subSidecarsReceived chan async.Event[BlobSidecarsT]
+	subSidecarsReceived chan async.Event[ConsensusSidecarsT]
 	// subFinalBlobSidecars is a channel holding FinalSidecarsReceived events.
 	subFinalBlobSidecars chan async.Event[BlobSidecarsT]
 }
@@ -52,7 +54,9 @@ type Service[
 // NewService returns a new DA service.
 func NewService[
 	AvailabilityStoreT any,
+	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, BeaconBlockHeaderT],
 	BlobSidecarsT BlobSidecar,
+	BeaconBlockHeaderT any,
 ](
 	avs AvailabilityStoreT,
 	bp BlobProcessor[
@@ -61,28 +65,29 @@ func NewService[
 	dispatcher asynctypes.EventDispatcher,
 	logger log.Logger,
 ) *Service[
-	AvailabilityStoreT, BlobSidecarsT,
+	AvailabilityStoreT, ConsensusSidecarsT, BlobSidecarsT, BeaconBlockHeaderT,
 ] {
 	return &Service[
-		AvailabilityStoreT, BlobSidecarsT,
+		AvailabilityStoreT,
+		ConsensusSidecarsT, BlobSidecarsT, BeaconBlockHeaderT,
 	]{
 		avs:                  avs,
 		bp:                   bp,
 		dispatcher:           dispatcher,
 		logger:               logger,
-		subSidecarsReceived:  make(chan async.Event[BlobSidecarsT]),
+		subSidecarsReceived:  make(chan async.Event[ConsensusSidecarsT]),
 		subFinalBlobSidecars: make(chan async.Event[BlobSidecarsT]),
 	}
 }
 
 // Name returns the name of the service.
-func (s *Service[_, _]) Name() string {
+func (s *Service[_, _, _, _]) Name() string {
 	return "da"
 }
 
 // Start subscribes the DA service to SidecarsReceived and FinalSidecarsReceived
 // events and begins the main event loop to handle them accordingly.
-func (s *Service[_, _]) Start(ctx context.Context) error {
+func (s *Service[_, _, _, _]) Start(ctx context.Context) error {
 	var err error
 
 	// subscribe to SidecarsReceived events
@@ -106,7 +111,7 @@ func (s *Service[_, _]) Start(ctx context.Context) error {
 
 // eventLoop listens and handles SidecarsReceived and FinalSidecarsReceived
 // events.
-func (s *Service[_, _]) eventLoop(ctx context.Context) {
+func (s *Service[_, _, _, _]) eventLoop(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -126,7 +131,7 @@ func (s *Service[_, _]) eventLoop(ctx context.Context) {
 // handleFinalSidecarsReceived handles the BlobSidecarsProcessRequest
 // event.
 // It processes the sidecars and publishes a BlobSidecarsProcessed event.
-func (s *Service[_, BlobSidecarsT]) handleFinalSidecarsReceived(
+func (s *Service[_, _, BlobSidecarsT, _]) handleFinalSidecarsReceived(
 	msg async.Event[BlobSidecarsT],
 ) {
 	if err := s.processSidecars(msg.Context(), msg.Data()); err != nil {
@@ -140,25 +145,26 @@ func (s *Service[_, BlobSidecarsT]) handleFinalSidecarsReceived(
 
 // handleSidecarsReceived handles the SidecarsVerifyRequest event.
 // It verifies the sidecars and publishes a SidecarsVerified event.
-func (s *Service[_, BlobSidecarsT]) handleSidecarsReceived(
-	msg async.Event[BlobSidecarsT],
+func (s *Service[_, ConsensusSidecarsT, _, _]) handleSidecarsReceived(
+	msg async.Event[ConsensusSidecarsT],
 ) {
-	var sidecarsErr error
 	// verify the sidecars.
-	if sidecarsErr = s.verifySidecars(msg.Data()); sidecarsErr != nil {
+	sidecarsErr := s.verifySidecars(msg.Data())
+	if sidecarsErr != nil {
 		s.logger.Error(
 			"Failed to receive blob sidecars",
-			"error",
-			sidecarsErr,
+			"error", sidecarsErr,
 		)
 	}
 
 	// emit the sidecars verification event with error from verifySidecars
-	if err := s.dispatcher.Publish(
-		async.NewEvent(
-			msg.Context(), async.SidecarsVerified, msg.Data(), sidecarsErr,
-		),
-	); err != nil {
+	event := async.NewEvent(
+		msg.Context(),
+		async.SidecarsVerified,
+		msg.Data().GetSidecars(),
+		sidecarsErr,
+	)
+	if err := s.dispatcher.Publish(event); err != nil {
 		s.logger.Error("failed to publish event", "err", err)
 	}
 }
@@ -168,7 +174,7 @@ func (s *Service[_, BlobSidecarsT]) handleSidecarsReceived(
 /* -------------------------------------------------------------------------- */
 
 // ProcessSidecars processes the blob sidecars.
-func (s *Service[_, BlobSidecarsT]) processSidecars(
+func (s *Service[_, _, BlobSidecarsT, _]) processSidecars(
 	_ context.Context,
 	sidecars BlobSidecarsT,
 ) error {
@@ -181,9 +187,10 @@ func (s *Service[_, BlobSidecarsT]) processSidecars(
 }
 
 // VerifyIncomingBlobs receives blobs from the network and processes them.
-func (s *Service[_, BlobSidecarsT]) verifySidecars(
-	sidecars BlobSidecarsT,
+func (s *Service[_, ConsensusSidecarsT, _, _]) verifySidecars(
+	cs ConsensusSidecarsT,
 ) error {
+	sidecars := cs.GetSidecars()
 	// If there are no blobs to verify, return early.
 	if sidecars.IsNil() || sidecars.Len() == 0 {
 		return nil
