@@ -258,5 +258,15 @@ func (cc ConsensusClient) Spec(
 	return cc.beaconClient.Spec(ctx, opts)
 }
 
+func (cc ConsensusClient) NodeSyncing(
+	ctx context.Context,
+	opts *beaconapi.NodeSyncingOpts,
+) (*beaconapi.Response[*apiv1.SyncState], error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
+	return cc.beaconClient.NodeSyncing(ctx, opts)
+}
+
 // TODO: Add helpers for the beacon node-api client (converting from
 // go-eth2-client types to beacon-kit consensus types).

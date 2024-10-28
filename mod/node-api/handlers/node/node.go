@@ -52,11 +52,12 @@ func (h *Handler[ContextT]) Syncing(_ ContextT) (any, error) {
 	response.HeadSlot = status.SyncInfo.LatestBlockHeight
 
 	// Calculate sync distance
-	if status.SyncInfo.LatestBlockHeight < status.SyncInfo.EarliestBlockHeight {
-		syncDistance := status.SyncInfo.EarliestBlockHeight -
-			status.SyncInfo.LatestBlockHeight
+	if status.SyncInfo.CatchingUp {
+		// If we're catching up, the sync distance is the difference between
+		// the latest block height and the earliest block height
+		syncDistance := status.SyncInfo.LatestBlockHeight - status.SyncInfo.EarliestBlockHeight
 		response.SyncDistance = syncDistance
-		response.IsSyncing = status.SyncInfo.CatchingUp
+		response.IsSyncing = true
 	} else {
 		response.SyncDistance = 0
 		response.IsSyncing = false
