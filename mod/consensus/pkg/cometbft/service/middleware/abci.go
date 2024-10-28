@@ -216,13 +216,13 @@ func (h *ABCIMiddleware[
 	}
 
 	// notify that the beacon block has been received.
-	var enrichedBlk *types.ConsensusBlock[BeaconBlockT]
-	enrichedBlk = enrichedBlk.New(
+	var consensusBlk *types.ConsensusBlock[BeaconBlockT]
+	consensusBlk = consensusBlk.New(
 		blk,
 		req.GetProposerAddress(),
 		req.GetTime().Add(h.minPayloadDelay),
 	)
-	blkEvent := async.NewEvent(ctx, async.BeaconBlockReceived, enrichedBlk)
+	blkEvent := async.NewEvent(ctx, async.BeaconBlockReceived, consensusBlk)
 	if err = h.dispatcher.Publish(blkEvent); err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
@@ -238,15 +238,15 @@ func (h *ABCIMiddleware[
 	}
 
 	// notify that the sidecars have been received.
-	var enricheSidecars *types.ConsensusSidecars[
+	var consensusSidecars *types.ConsensusSidecars[
 		BlobSidecarsT,
 		BeaconBlockHeaderT,
 	]
-	enricheSidecars = enricheSidecars.New(
+	consensusSidecars = consensusSidecars.New(
 		sidecars,
 		blk.GetHeader(),
 	)
-	blobEvent := async.NewEvent(ctx, async.SidecarsReceived, enricheSidecars)
+	blobEvent := async.NewEvent(ctx, async.SidecarsReceived, consensusSidecars)
 	if err = h.dispatcher.Publish(blobEvent); err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
@@ -342,13 +342,17 @@ func (h *ABCIMiddleware[
 
 	// notify that the final beacon block has been received.
 	// notify that the beacon block has been received.
-	var enrichedBlk *types.ConsensusBlock[BeaconBlockT]
-	enrichedBlk = enrichedBlk.New(
+	var consensusBlk *types.ConsensusBlock[BeaconBlockT]
+	consensusBlk = consensusBlk.New(
 		blk,
 		req.GetProposerAddress(),
 		req.GetTime().Add(h.minPayloadDelay),
 	)
-	blkEvent := async.NewEvent(ctx, async.FinalBeaconBlockReceived, enrichedBlk)
+	blkEvent := async.NewEvent(
+		ctx,
+		async.FinalBeaconBlockReceived,
+		consensusBlk,
+	)
 	if err = h.dispatcher.Publish(blkEvent); err != nil {
 		return nil, err
 	}

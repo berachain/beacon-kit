@@ -92,7 +92,9 @@ func DefaultComponents() []any {
 		],
 		components.ProvideDepositStore[*Deposit],
 		components.ProvideDispatcher[
-			*ConsensusBlock, *BeaconBlock, *BlobSidecars, *Genesis, *Logger,
+			*ConsensusBlock, *BeaconBlock,
+			*ConsensusSidecars, *BlobSidecars,
+			*Genesis, *Logger,
 		],
 		components.ProvideEngineClient[
 			*ExecutionPayload, *ExecutionPayloadHeader, *Logger,
