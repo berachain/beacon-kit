@@ -40,6 +40,13 @@ func (s *ConsensusSidecars[SidecarsT, BeaconBlockHeaderT]) New(
 
 func (s *ConsensusSidecars[
 	SidecarsT,
+	_,
+]) GetSidecars() SidecarsT {
+	return s.sidecars
+}
+
+func (s *ConsensusSidecars[
+	SidecarsT,
 	BeaconBlockHeaderT,
 ]) GetHeader() BeaconBlockHeaderT {
 	return s.blkHeader
