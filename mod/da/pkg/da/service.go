@@ -146,10 +146,10 @@ func (s *Service[_, _, BlobSidecarsT, _]) handleFinalSidecarsReceived(
 // handleSidecarsReceived handles the SidecarsVerifyRequest event.
 // It verifies the sidecars and publishes a SidecarsVerified event.
 func (s *Service[_, ConsensusSidecarsT, _, _]) handleSidecarsReceived(
-	msg async.Event[ConsensusSidecarsT],
+	cs async.Event[ConsensusSidecarsT],
 ) {
 	// verify the sidecars.
-	sidecarsErr := s.verifySidecars(msg.Data())
+	sidecarsErr := s.verifySidecars(cs.Data())
 	if sidecarsErr != nil {
 		s.logger.Error(
 			"Failed to receive blob sidecars",
@@ -159,9 +159,9 @@ func (s *Service[_, ConsensusSidecarsT, _, _]) handleSidecarsReceived(
 
 	// emit the sidecars verification event with error from verifySidecars
 	event := async.NewEvent(
-		msg.Context(),
+		cs.Context(),
 		async.SidecarsVerified,
-		msg.Data().GetSidecars(),
+		cs.Data().GetSidecars(),
 		sidecarsErr,
 	)
 	if err := s.dispatcher.Publish(event); err != nil {
@@ -196,9 +196,7 @@ func (s *Service[_, ConsensusSidecarsT, _, _]) verifySidecars(
 		return nil
 	}
 
-	s.logger.Info(
-		"Received incoming blob sidecars",
-	)
+	s.logger.Info("Received incoming blob sidecars")
 
 	// Verify the blobs and ensure they match the local state.
 	if err := s.bp.VerifySidecars(sidecars); err != nil {
