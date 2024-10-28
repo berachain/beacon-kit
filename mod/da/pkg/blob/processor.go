@@ -36,6 +36,7 @@ type Processor[
 	],
 	BeaconBlockBodyT any,
 	BeaconBlockHeaderT BeaconBlockHeader,
+	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, BeaconBlockHeaderT],
 	BlobSidecarT Sidecar[BeaconBlockHeaderT],
 	BlobSidecarsT Sidecars[BlobSidecarT],
 ] struct {
@@ -59,6 +60,7 @@ func NewProcessor[
 	],
 	BeaconBlockBodyT any,
 	BeaconBlockHeaderT BeaconBlockHeader,
+	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, BeaconBlockHeaderT],
 	BlobSidecarT Sidecar[BeaconBlockHeaderT],
 	BlobSidecarsT Sidecars[BlobSidecarT],
 ](
@@ -69,11 +71,11 @@ func NewProcessor[
 	telemetrySink TelemetrySink,
 ) *Processor[
 	AvailabilityStoreT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	BlobSidecarT, BlobSidecarsT,
+	ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
 ] {
 	return &Processor[
 		AvailabilityStoreT, BeaconBlockBodyT, BeaconBlockHeaderT,
-		BlobSidecarT, BlobSidecarsT,
+		ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
 	]{
 		logger:            logger,
 		chainSpec:         chainSpec,
@@ -84,10 +86,15 @@ func NewProcessor[
 }
 
 // VerifySidecars verifies the blobs and ensures they match the local state.
-func (sp *Processor[AvailabilityStoreT, _, _, _, BlobSidecarsT]) VerifySidecars(
-	sidecars BlobSidecarsT,
+func (sp *Processor[
+	AvailabilityStoreT, _, _, ConsensusSidecarsT, _, _,
+]) VerifySidecars(
+	cs ConsensusSidecarsT,
 ) error {
-	startTime := time.Now()
+	var (
+		startTime = time.Now()
+		sidecars  = cs.GetSidecars()
+	)
 	defer sp.metrics.measureVerifySidecarsDuration(
 		startTime, math.U64(sidecars.Len()),
 	)
@@ -109,7 +116,7 @@ func (sp *Processor[AvailabilityStoreT, _, _, _, BlobSidecarsT]) VerifySidecars(
 
 // slot :=  processes the blobs and ensures they match the local state.
 func (sp *Processor[
-	AvailabilityStoreT, _, _, _, BlobSidecarsT,
+	AvailabilityStoreT, _, _, _, _, BlobSidecarsT,
 ]) ProcessSidecars(
 	avs AvailabilityStoreT,
 	sidecars BlobSidecarsT,

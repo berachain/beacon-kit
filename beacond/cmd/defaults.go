@@ -54,7 +54,7 @@ func DefaultComponents() []any {
 		components.ProvideBlsSigner,
 		components.ProvideBlobProcessor[
 			*AvailabilityStore, *BeaconBlockBody, *BeaconBlockHeader,
-			*BlobSidecar, *BlobSidecars, *Logger,
+			*ConsensusSidecars, *BlobSidecar, *BlobSidecars, *Logger,
 		],
 		components.ProvideBlobProofVerifier,
 		components.ProvideBlobVerifier[

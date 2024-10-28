@@ -21,7 +21,10 @@
 package da
 
 // BlobProcessor is the interface for the blobs processor.
-type BlobProcessor[AvailabilityStoreT any, BlobSidecarsT any] interface {
+type BlobProcessor[
+	AvailabilityStoreT,
+	ConsensusSidecarsT, BlobSidecarsT any,
+] interface {
 	// ProcessSidecars processes the blobs and ensures they match the local
 	// state.
 	ProcessSidecars(
@@ -29,9 +32,7 @@ type BlobProcessor[AvailabilityStoreT any, BlobSidecarsT any] interface {
 		sidecars BlobSidecarsT,
 	) error
 	// VerifySidecars verifies the blobs and ensures they match the local state.
-	VerifySidecars(
-		sidecars BlobSidecarsT,
-	) error
+	VerifySidecars(sidecars ConsensusSidecarsT) error
 }
 
 type ConsensusSidecars[BlobSidecarsT any, BeaconBlockHeaderT any] interface {

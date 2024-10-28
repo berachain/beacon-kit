@@ -66,6 +66,11 @@ type BlobVerifier[BlobSidecarsT any] interface {
 	VerifySidecars(sidecars BlobSidecarsT, kzgOffset uint64) error
 }
 
+type ConsensusSidecars[BlobSidecarsT any, BeaconBlockHeaderT any] interface {
+	GetSidecars() BlobSidecarsT
+	GetHeader() BeaconBlockHeaderT
+}
+
 type Sidecar[BeaconBlockHeaderT any] interface {
 	GetBeaconBlockHeader() BeaconBlockHeaderT
 	GetBlob() eip4844.Blob

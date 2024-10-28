@@ -41,7 +41,7 @@ type Service[
 	avs AvailabilityStoreT
 	bp  BlobProcessor[
 		AvailabilityStoreT,
-		BlobSidecarsT,
+		ConsensusSidecarsT, BlobSidecarsT,
 	]
 	dispatcher asynctypes.EventDispatcher
 	logger     log.Logger
@@ -60,7 +60,8 @@ func NewService[
 ](
 	avs AvailabilityStoreT,
 	bp BlobProcessor[
-		AvailabilityStoreT, BlobSidecarsT,
+		AvailabilityStoreT,
+		ConsensusSidecarsT, BlobSidecarsT,
 	],
 	dispatcher asynctypes.EventDispatcher,
 	logger log.Logger,
@@ -191,15 +192,15 @@ func (s *Service[_, ConsensusSidecarsT, _, _]) verifySidecars(
 	cs ConsensusSidecarsT,
 ) error {
 	sidecars := cs.GetSidecars()
-	// If there are no blobs to verify, return early.
 	if sidecars.IsNil() || sidecars.Len() == 0 {
+		// nothing to verify
 		return nil
 	}
 
 	s.logger.Info("Received incoming blob sidecars")
 
 	// Verify the blobs and ensure they match the local state.
-	if err := s.bp.VerifySidecars(sidecars); err != nil {
+	if err := s.bp.VerifySidecars(cs); err != nil {
 		s.logger.Error(
 			"rejecting incoming blob sidecars",
 			"reason", err,

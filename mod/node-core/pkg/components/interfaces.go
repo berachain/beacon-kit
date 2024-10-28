@@ -227,7 +227,7 @@ type (
 	// BlobProcessor is the interface for the blobs processor.
 	BlobProcessor[
 		AvailabilityStoreT any,
-		BeaconBlockBodyT any,
+		ConsensusSidecarsT any,
 		BlobSidecarsT any,
 	] interface {
 		// ProcessSidecars processes the blobs and ensures they match the local
@@ -239,7 +239,7 @@ type (
 		// VerifySidecars verifies the blobs and ensures they match the local
 		// state.
 		VerifySidecars(
-			sidecars BlobSidecarsT,
+			sidecars ConsensusSidecarsT,
 		) error
 	}
 

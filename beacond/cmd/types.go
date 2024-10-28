@@ -74,6 +74,7 @@ type (
 		*AvailabilityStore,
 		*BeaconBlockBody,
 		*BeaconBlockHeader,
+		*ConsensusSidecars,
 		*BlobSidecar,
 		*BlobSidecars,
 	]
