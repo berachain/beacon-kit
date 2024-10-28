@@ -225,10 +225,6 @@ func (s *StateDB[
 
 	// Iterate through indices to find the next validators to withdraw.
 	for range bound {
-		var (
-			withdrawal WithdrawalT
-			amount     math.Gwei
-		)
 		validator, err = s.ValidatorByIndex(validatorIndex)
 		if err != nil {
 			return nil, err
@@ -247,21 +243,24 @@ func (s *StateDB[
 
 		// Set the amount of the withdrawal depending on the balance of the
 		// validator.
+		var withdrawal WithdrawalT
 		if validator.IsFullyWithdrawable(balance, epoch) {
-			amount = balance
+			withdrawals = append(withdrawals, withdrawal.New(
+				math.U64(withdrawalIndex),
+				validatorIndex,
+				withdrawalAddress,
+				balance,
+			))
 		} else if validator.IsPartiallyWithdrawable(
 			balance, math.Gwei(s.cs.MaxEffectiveBalance()),
 		) {
-			amount = balance - math.Gwei(s.cs.MaxEffectiveBalance())
+			withdrawals = append(withdrawals, withdrawal.New(
+				math.U64(withdrawalIndex),
+				validatorIndex,
+				withdrawalAddress,
+				balance-math.Gwei(s.cs.MaxEffectiveBalance()),
+			))
 		}
-		withdrawal = withdrawal.New(
-			math.U64(withdrawalIndex),
-			validatorIndex,
-			withdrawalAddress,
-			amount,
-		)
-
-		withdrawals = append(withdrawals, withdrawal)
 
 		// Increment the withdrawal index to process the next withdrawal.
 		withdrawalIndex++
