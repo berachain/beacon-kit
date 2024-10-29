@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/mocks"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
@@ -76,6 +77,7 @@ type (
 )
 
 func TestInitialize(t *testing.T) {
+	// Create state processor to test
 	cs := spec.TestnetChainSpec()
 	execEngine := &testExecutionEngine{}
 	mocksSigner := &mocks.BLSSigner{}
@@ -104,6 +106,7 @@ func TestInitialize(t *testing.T) {
 		mocksSigner,
 	)
 
+	// create test inputs
 	kvStore, err := initTestStore()
 	require.NoError(t, err)
 
@@ -112,12 +115,12 @@ func TestInitialize(t *testing.T) {
 		deposits    = []*types.Deposit{
 			{
 				Pubkey: [48]byte{0x01},
-				Amount: math.Gwei(1_000),
+				Amount: math.Gwei(cs.MaxEffectiveBalance()),
 				Index:  uint64(0),
 			},
 			{
 				Pubkey: [48]byte{0x02},
-				Amount: math.Gwei(2_000),
+				Amount: math.Gwei(cs.MaxEffectiveBalance() / 2),
 				Index:  uint64(1),
 			},
 		}
@@ -125,19 +128,49 @@ func TestInitialize(t *testing.T) {
 		genesisVersion         = version.FromUint32[common.Version](version.Deneb)
 	)
 
+	// define mocks expectations
 	mocksSigner.On(
 		"VerifySignature",
-		mock.Anything,
-		mock.Anything,
-		mock.Anything,
+		mock.Anything, mock.Anything, mock.Anything,
 	).Return(nil)
 
+	// run test
 	vals, err := sp.InitializePreminedBeaconStateFromEth1(
 		beaconState,
 		deposits,
 		executionPayloadHeader,
 		genesisVersion,
 	)
+
+	// check outputs
 	require.NoError(t, err)
 	require.Len(t, vals, len(deposits))
+
+	// check beacon state changes
+	resSlot, err := beaconState.GetSlot()
+	require.NoError(t, err)
+	require.Equal(t, math.Slot(0), resSlot)
+
+	resFork, err := beaconState.GetFork()
+	require.NoError(t, err)
+	require.Equal(t,
+		&types.Fork{
+			PreviousVersion: genesisVersion,
+			CurrentVersion:  genesisVersion,
+			Epoch:           math.Epoch(constants.GenesisEpoch),
+		},
+		resFork)
+
+	for _, dep := range deposits {
+		var idx math.U64
+		idx, err = beaconState.ValidatorIndexByPubkey(dep.Pubkey)
+		require.NoError(t, err)
+		require.Equal(t, math.U64(dep.Index), idx)
+
+		var val *types.Validator
+		val, err = beaconState.ValidatorByIndex(idx)
+		require.NoError(t, err)
+		require.Equal(t, dep.Pubkey, val.Pubkey)
+		require.Equal(t, dep.Amount, val.EffectiveBalance)
+	}
 }
