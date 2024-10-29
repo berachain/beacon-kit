@@ -23,6 +23,7 @@ package blob
 import (
 	"time"
 
+	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -64,13 +65,18 @@ func NewProcessor[
 ](
 	logger log.Logger,
 	chainSpec common.ChainSpec,
-	verifier BlobVerifier[BlobSidecarsT],
+	proofVerifier kzg.BlobProofVerifier,
 	blockBodyOffsetFn func(math.Slot, common.ChainSpec) uint64,
 	telemetrySink TelemetrySink,
 ) *Processor[
 	AvailabilityStoreT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BlobSidecarT, BlobSidecarsT,
 ] {
+	verifier := NewVerifier[
+		BeaconBlockHeaderT,
+		BlobSidecarT,
+		BlobSidecarsT,
+	](proofVerifier, telemetrySink)
 	return &Processor[
 		AvailabilityStoreT, BeaconBlockBodyT, BeaconBlockHeaderT,
 		BlobSidecarT, BlobSidecarsT,
