@@ -131,12 +131,6 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	dep DepositT,
 ) error {
-	var (
-		genesisValidatorsRoot common.Root
-		epoch                 math.Epoch
-		err                   error
-	)
-
 	// Get the current slot.
 	slot, err := st.GetSlot()
 	if err != nil {
@@ -144,9 +138,8 @@ func (sp *StateProcessor[
 	}
 
 	// At genesis, the validators sign over an empty root.
-	if slot == 0 {
-		genesisValidatorsRoot = common.Root{}
-	} else {
+	genesisValidatorsRoot := common.Root{}
+	if slot != 0 {
 		// Get the genesis validators root to be used to find fork data later.
 		genesisValidatorsRoot, err = st.GetGenesisValidatorsRoot()
 		if err != nil {
@@ -155,7 +148,7 @@ func (sp *StateProcessor[
 	}
 
 	// Get the current epoch.
-	epoch = sp.cs.SlotToEpoch(slot)
+	epoch := sp.cs.SlotToEpoch(slot)
 
 	// Verify that the message was signed correctly.
 	var d ForkDataT
@@ -192,7 +185,6 @@ func (sp *StateProcessor[
 	)
 
 	// TODO: This is a bug that lives on bArtio. Delete this eventually.
-	const bArtioChainID = 80084
 	if sp.cs.DepositEth1ChainID() == bArtioChainID {
 		if err := st.AddValidatorBartio(val); err != nil {
 			return err
