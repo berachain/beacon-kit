@@ -27,7 +27,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 )
 
-const RpcEndpoint = "tcp://localhost:26657"
+const RPCEndpoint = "tcp://localhost:26657"
 
 // Handler is the handler for the node API.
 type Handler[ContextT context.Context] struct {
@@ -38,7 +38,7 @@ type Handler[ContextT context.Context] struct {
 }
 
 func NewHandler[ContextT context.Context](backend Backend) *Handler[ContextT] {
-	rpcClient, err := cmtclient.New(RpcEndpoint)
+	rpcClient, err := cmtclient.New(RPCEndpoint)
 	if err != nil {
 		// Not returning error to keep the pattern same across all handlers.
 		rpcClient = nil

@@ -22,8 +22,8 @@ package node
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/berachain/beacon-kit/mod/errors"
 	nodetypes "github.com/berachain/beacon-kit/mod/node-api/handlers/node/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
@@ -32,12 +32,12 @@ import (
 // Syncing returns the syncing status of the beacon node.
 func (h *Handler[ContextT]) Syncing(_ ContextT) (any, error) {
 	if h.clientCtx.Client == nil {
-		return nil, fmt.Errorf("RPC client not initialized")
+		return nil, errors.New("RPC client not initialized")
 	}
 	// Query node status from the cometBFT node
 	status, err := cmtservice.GetNodeStatus(context.Background(), h.clientCtx)
 	if err != nil {
-		return nil, fmt.Errorf("err in getting node status %w", err)
+		return nil, errors.Wrapf(err, "err in getting node status")
 	}
 	response := nodetypes.SyncingData{
 		HeadSlot:     status.SyncInfo.LatestBlockHeight,
@@ -49,7 +49,8 @@ func (h *Handler[ContextT]) Syncing(_ ContextT) (any, error) {
 	if status.SyncInfo.CatchingUp {
 		// If we're catching up, the sync distance is the difference between
 		// the latest block height and the earliest block height
-		response.SyncDistance = status.SyncInfo.LatestBlockHeight - status.SyncInfo.EarliestBlockHeight
+		response.SyncDistance = status.SyncInfo.LatestBlockHeight -
+			status.SyncInfo.EarliestBlockHeight
 		response.IsSyncing = true
 	}
 	return types.Wrap(&response), nil
