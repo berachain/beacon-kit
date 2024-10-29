@@ -54,29 +54,6 @@ func ProvideBlobProofVerifier(
 	)
 }
 
-// BlobVerifierInput is the input for the BlobVerifier.
-type BlobVerifierInput struct {
-	depinject.In
-	BlobProofVerifier kzg.BlobProofVerifier
-	TelemetrySink     *metrics.TelemetrySink
-}
-
-// ProvideBlobVerifier is a function that provides the BlobVerifier to the
-// depinject framework.
-func ProvideBlobVerifier[
-	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
-	BlobSidecarT BlobSidecar[BeaconBlockHeaderT],
-	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
-](in BlobVerifierInput) *dablob.Verifier[
-	BeaconBlockHeaderT, BlobSidecarT, BlobSidecarsT,
-] {
-	return dablob.NewVerifier[
-		BeaconBlockHeaderT,
-		BlobSidecarT,
-		BlobSidecarsT,
-	](in.BlobProofVerifier, in.TelemetrySink)
-}
-
 // BlobProcessorIn is the input for the BlobProcessor.
 type BlobProcessorIn[
 	BlobSidecarsT any,
@@ -85,10 +62,10 @@ type BlobProcessorIn[
 ] struct {
 	depinject.In
 
-	BlobVerifier  BlobVerifier[BlobSidecarsT, BeaconBlockHeaderT]
-	ChainSpec     common.ChainSpec
-	Logger        LoggerT
-	TelemetrySink *metrics.TelemetrySink
+	BlobProofVerifier kzg.BlobProofVerifier
+	ChainSpec         common.ChainSpec
+	Logger            LoggerT
+	TelemetrySink     *metrics.TelemetrySink
 }
 
 // ProvideBlobProcessor is a function that provides the BlobProcessor to the
@@ -117,7 +94,7 @@ func ProvideBlobProcessor[
 	](
 		in.Logger.With("service", "blob-processor"),
 		in.ChainSpec,
-		in.BlobVerifier,
+		in.BlobProofVerifier,
 		types.BlockBodyKZGOffset,
 		in.TelemetrySink,
 	)
