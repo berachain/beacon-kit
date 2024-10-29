@@ -76,9 +76,11 @@ func (bv *verifier[_, _, BlobSidecarsT]) verifySidecars(
 		bv.proofVerifier.GetImplementation(),
 	)
 
+	// check that sideracs block headers match with header of the
+	// corresponding block
 	for i, s := range sidecars.GetSidecars() {
-		if !reflect.DeepEqual(s, blkHeader) {
-			return fmt.Errorf("unequal block header: idx %d", i)
+		if !reflect.DeepEqual(s.GetBeaconBlockHeader(), blkHeader) {
+			return fmt.Errorf("unequal block header: idx: %d", i)
 		}
 	}
 
