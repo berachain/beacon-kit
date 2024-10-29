@@ -26,47 +26,32 @@ import (
 
 	nodetypes "github.com/berachain/beacon-kit/mod/node-api/handlers/node/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
-	cmtclient "github.com/cometbft/cometbft/rpc/client/http"
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 )
 
 // Syncing returns the syncing status of the beacon node.
 func (h *Handler[ContextT]) Syncing(_ ContextT) (any, error) {
-	// Create a new RPC client
-	rpcClient, err := cmtclient.New("tcp://localhost:26657")
-	if err != nil {
-		return nil, fmt.Errorf("failed to create RPC client: %w", err)
+	if h.clientCtx.Client == nil {
+		return nil, fmt.Errorf("RPC client not initialized")
 	}
-
-	// Create client context with the RPC client
-	clientCtx := client.Context{}
-	clientCtx = clientCtx.WithClient(rpcClient)
-
-	// Query CometBFT status
-	status, err := cmtservice.GetNodeStatus(context.Background(), clientCtx)
+	// Query node status from the cometBFT node
+	status, err := cmtservice.GetNodeStatus(context.Background(), h.clientCtx)
 	if err != nil {
 		return nil, fmt.Errorf("err in getting node status %w", err)
 	}
-	response := nodetypes.SyncingData{}
-	response.HeadSlot = status.SyncInfo.LatestBlockHeight
+	response := nodetypes.SyncingData{
+		HeadSlot:     status.SyncInfo.LatestBlockHeight,
+		IsOptimistic: true,
+		ELOffline:    false,
+	}
 
 	// Calculate sync distance
 	if status.SyncInfo.CatchingUp {
 		// If we're catching up, the sync distance is the difference between
 		// the latest block height and the earliest block height
-		syncDistance := status.SyncInfo.LatestBlockHeight - status.SyncInfo.EarliestBlockHeight
-		response.SyncDistance = syncDistance
+		response.SyncDistance = status.SyncInfo.LatestBlockHeight - status.SyncInfo.EarliestBlockHeight
 		response.IsSyncing = true
-	} else {
-		response.SyncDistance = 0
-		response.IsSyncing = false
 	}
-
-	// Keep existing values for these fields
-	response.IsOptimistic = true
-	response.ELOffline = false
-
 	return types.Wrap(&response), nil
 }
 
