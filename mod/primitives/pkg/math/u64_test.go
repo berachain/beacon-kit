@@ -60,9 +60,10 @@ func TestU64_UnmarshalJSON(t *testing.T) {
 		{"Valid hex string", "\"0x7b\"", 123, nil},
 		{"Zero value", "\"0x0\"", 0, nil},
 		{"Max uint64 value", "\"0xffffffffffffffff\"", ^uint64(0), nil},
-		{"Invalid hex string", "\"0xxyz\"", 0,
-			hex.ErrInvalidString,
-		},
+		{"Invalid hex string", "\"0xxyz\"", 0, hex.ErrInvalidString},
+		{"Invalid JSON text", "", 0, hex.ErrNonQuotedString},
+		{"Invalid quoted JSON text", `"0x`, 0, hex.ErrNonQuotedString},
+		{"Empty JSON text", `""`, 0, hex.ErrEmptyString},
 	}
 
 	for _, tt := range tests {
@@ -347,7 +348,9 @@ func TestGweiFromWei(t *testing.T) {
 			name: "invalid huge gwei",
 			input: func(t *testing.T) *big.Int {
 				t.Helper()
-				b, _ := new(big.Int).SetString("18446744073709551616000000000", 10)
+				b, _ := new(
+					big.Int,
+				).SetString("18446744073709551616000000000", 10)
 				return b
 			},
 			expectedErr: math.ErrGweiOverflow,

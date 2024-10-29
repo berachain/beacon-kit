@@ -155,7 +155,9 @@ func DefaultGenesisExecutionPayloadHeaderDeneb() (
 		return nil, fmt.Errorf("failed generating receipts root: %w", err)
 	}
 
-	baseFeePerGas, err := math.NewU256FromBigInt(big.NewInt(defaultBaseFeePerGas))
+	baseFeePerGas, err := math.NewU256FromBigInt(
+		big.NewInt(defaultBaseFeePerGas),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed setting base fee per gas: %w", err)
 	}
