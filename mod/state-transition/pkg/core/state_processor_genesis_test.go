@@ -123,6 +123,11 @@ func TestInitialize(t *testing.T) {
 				Amount: math.Gwei(cs.MaxEffectiveBalance() / 2),
 				Index:  uint64(1),
 			},
+			{
+				Pubkey: [48]byte{0x03},
+				Amount: math.Gwei(cs.EffectiveBalanceIncrement()),
+				Index:  uint64(2),
+			},
 		}
 		executionPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		genesisVersion         = version.FromUint32[common.Version](version.Deneb)
