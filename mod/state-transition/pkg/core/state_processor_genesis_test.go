@@ -34,47 +34,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/mocks"
-	statedb "github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-)
-
-type (
-	TestBeaconStateMarshallableT = types.BeaconState[
-		*types.BeaconBlockHeader,
-		*types.Eth1Data,
-		*types.ExecutionPayloadHeader,
-		*types.Fork,
-		*types.Validator,
-		types.BeaconBlockHeader,
-		types.Eth1Data,
-		types.ExecutionPayloadHeader,
-		types.Fork,
-		types.Validator,
-	]
-
-	TestKVStoreT = beacondb.KVStore[
-		*types.BeaconBlockHeader,
-		*types.Eth1Data,
-		*types.ExecutionPayloadHeader,
-		*types.Fork,
-		*types.Validator,
-		types.Validators,
-	]
-
-	TestBeaconStateT = statedb.StateDB[
-		*types.BeaconBlockHeader,
-		*TestBeaconStateMarshallableT,
-		*types.Eth1Data,
-		*types.ExecutionPayloadHeader,
-		*types.Fork,
-		*TestKVStoreT,
-		*types.Validator,
-		types.Validators,
-		*engineprimitives.Withdrawal,
-		types.WithdrawalCredentials,
-	]
 )
 
 func TestInitialize(t *testing.T) {
