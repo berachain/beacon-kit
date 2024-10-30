@@ -172,6 +172,8 @@ type ExecutionPayload[
 type ExecutionPayloadHeader interface {
 	GetBlockHash() common.ExecutionHash
 }
+
+// Withdrawals defines the interface for managing withdrawal operations.
 type Withdrawals interface {
 	Len() int
 	EncodeIndex(int, *stdbytes.Buffer)
