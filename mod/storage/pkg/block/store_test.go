@@ -42,7 +42,7 @@ func (m MockBeaconBlock) HashTreeRoot() common.Root {
 	return [32]byte{byte(m.slot)}
 }
 
-func (m MockBeaconBlock) GetExecutionNumber() math.U64 {
+func (m MockBeaconBlock) GetTimestamp() math.U64 {
 	return m.slot
 }
 
@@ -65,15 +65,15 @@ func TestBlockStore(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	// Get the slots by roots & execution numbers.
+	// Get the slots by roots & timestamps.
 	for i := math.Slot(3); i <= 7; i++ {
 		slot, err = blockStore.GetSlotByBlockRoot([32]byte{byte(i)})
 		require.NoError(t, err)
 		require.Equal(t, i, slot)
 
-		slot, err = blockStore.GetSlotByExecutionNumber(i)
+		slot, err = blockStore.GetParentSlotByTimestamp(i)
 		require.NoError(t, err)
-		require.Equal(t, i, slot)
+		require.Equal(t, i-1, slot)
 
 		slot, err = blockStore.GetSlotByStateRoot([32]byte{byte(i)})
 		require.NoError(t, err)
@@ -83,6 +83,6 @@ func TestBlockStore(t *testing.T) {
 	// Try getting a slot that doesn't exist.
 	_, err = blockStore.GetSlotByBlockRoot([32]byte{byte(8)})
 	require.ErrorContains(t, err, "not found")
-	_, err = blockStore.GetSlotByExecutionNumber(2)
+	_, err = blockStore.GetParentSlotByTimestamp(2)
 	require.ErrorContains(t, err, "not found")
 }

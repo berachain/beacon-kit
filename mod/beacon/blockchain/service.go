@@ -255,8 +255,8 @@ func (s *Service[
 		return
 	}
 
-	// emit a BeaconBlockVerified event with the error result from \
-	// VerifyIncomingBlock
+	// emit a BeaconBlockVerified event with
+	// the error result from VerifyIncomingBlock
 	if err := s.dispatcher.Publish(
 		async.NewEvent(
 			msg.Context(),

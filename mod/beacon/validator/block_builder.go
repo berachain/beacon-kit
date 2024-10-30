@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"time"
 
+	payloadtime "github.com/berachain/beacon-kit/mod/beacon/payload-time"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -222,7 +223,7 @@ func (s *Service[
 			return nil, err
 		}
 
-		// If we failed to retrieve the payload, request a synchrnous payload.
+		// If we failed to retrieve the payload, request a synchronous payload.
 		//
 		// NOTE: The state here is properly configured by the
 		// prepareStateForBuilding
@@ -234,12 +235,7 @@ func (s *Service[
 			ctx,
 			st,
 			blk.GetSlot(),
-			// TODO: this is hood.
-			max(
-				//#nosec:G701
-				uint64(time.Now().Unix()+1),
-				uint64((lph.GetTimestamp()+1)),
-			),
+			payloadtime.Next(s.chainSpec, lph.GetTimestamp()),
 			blk.GetParentBlockRoot(),
 			lph.GetBlockHash(),
 			lph.GetParentHash(),
