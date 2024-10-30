@@ -87,7 +87,8 @@ func (s *Service[
 	envelope, err := s.retrieveExecutionPayload(ctx, st, blk)
 	if err != nil {
 		return blk, sidecars, err
-	} else if envelope == nil {
+	}
+	if envelope == nil {
 		return blk, sidecars, ErrNilPayload
 	}
 

@@ -108,6 +108,7 @@ func TestInitialize(t *testing.T) {
 	](
 		cs,
 		execEngine,
+		nil, // TODO: add deposit store
 		mocksSigner,
 	)
 

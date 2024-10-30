@@ -85,6 +85,7 @@ type StateProcessor[
 	executionEngine ExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	]
+	ds DepositStore[DepositT]
 }
 
 // NewStateProcessor creates a new state processor.
@@ -136,6 +137,7 @@ func NewStateProcessor[
 	executionEngine ExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
+	ds DepositStore[DepositT],
 	signer crypto.BLSSigner,
 ) *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
@@ -152,6 +154,7 @@ func NewStateProcessor[
 		cs:              cs,
 		executionEngine: executionEngine,
 		signer:          signer,
+		ds:              ds,
 	}
 }
 

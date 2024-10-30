@@ -21,6 +21,9 @@
 package core
 
 import (
+	"fmt"
+	"reflect"
+
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -36,26 +39,36 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
-	// Verify that outstanding deposits are processed up to the maximum number
-	// of deposits.
-	deposits := blk.GetBody().GetDeposits()
-	index, err := st.GetEth1DepositIndex()
+	// Verify that outstanding deposits matches those listed by contract
+	depositIndex, err := st.GetEth1DepositIndex()
 	if err != nil {
 		return err
 	}
-	eth1Data, err := st.GetEth1Data()
-	if err != nil {
-		return err
-	}
-	depositCount := min(
+
+	stateDeposits, err := sp.ds.GetDepositsByIndex(
+		depositIndex,
 		sp.cs.MaxDepositsPerBlock(),
-		eth1Data.GetDepositCount().Unwrap()-index,
 	)
-	_ = depositCount
-	// TODO: Update eth1data count and check this.
-	// if uint64(len(deposits)) != depositCount {
-	// 	return errors.New("deposit count mismatch")
-	// }
+	if err != nil {
+		return err
+	}
+
+	deposits := blk.GetBody().GetDeposits()
+	if len(stateDeposits) != len(deposits) {
+		return fmt.Errorf("deposits mismatched lengths, state: %d, payload: %d",
+			len(stateDeposits),
+			len(deposits),
+		)
+	}
+
+	for i, sd := range stateDeposits {
+		if !reflect.DeepEqual(sd, deposits[i]) {
+			return fmt.Errorf("deposits mismatched, idx %d state: %v, payload: %v",
+				i, sd, deposits[i],
+			)
+		}
+	}
+
 	return sp.processDeposits(st, deposits)
 }
 
