@@ -3,9 +3,7 @@
 package mocks
 
 import (
-	bytes "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	common "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-
 	crypto "github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 
 	math "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -84,25 +82,25 @@ func (_c *BeaconState_ExpectedWithdrawals_Call[BeaconBlockHeaderT, Eth1DataT, Ex
 }
 
 // GetBalance provides a mock function with given fields: _a0
-func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) GetBalance(_a0 math.U64) (math.U64, error) {
+func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) GetBalance(_a0 math.ValidatorIndex) (math.Gwei, error) {
 	ret := _m.Called(_a0)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetBalance")
 	}
 
-	var r0 math.U64
+	var r0 math.Gwei
 	var r1 error
-	if rf, ok := ret.Get(0).(func(math.U64) (math.U64, error)); ok {
+	if rf, ok := ret.Get(0).(func(math.ValidatorIndex) (math.Gwei, error)); ok {
 		return rf(_a0)
 	}
-	if rf, ok := ret.Get(0).(func(math.U64) math.U64); ok {
+	if rf, ok := ret.Get(0).(func(math.ValidatorIndex) math.Gwei); ok {
 		r0 = rf(_a0)
 	} else {
-		r0 = ret.Get(0).(math.U64)
+		r0 = ret.Get(0).(math.Gwei)
 	}
 
-	if rf, ok := ret.Get(1).(func(math.U64) error); ok {
+	if rf, ok := ret.Get(1).(func(math.ValidatorIndex) error); ok {
 		r1 = rf(_a0)
 	} else {
 		r1 = ret.Error(1)
@@ -117,24 +115,24 @@ type BeaconState_GetBalance_Call[BeaconBlockHeaderT any, Eth1DataT any, Executio
 }
 
 // GetBalance is a helper method to define mock.On call
-//   - _a0 math.U64
+//   - _a0 math.ValidatorIndex
 func (_e *BeaconState_Expecter[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) GetBalance(_a0 interface{}) *BeaconState_GetBalance_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
 	return &BeaconState_GetBalance_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]{Call: _e.mock.On("GetBalance", _a0)}
 }
 
-func (_c *BeaconState_GetBalance_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Run(run func(_a0 math.U64)) *BeaconState_GetBalance_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+func (_c *BeaconState_GetBalance_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Run(run func(_a0 math.ValidatorIndex)) *BeaconState_GetBalance_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(math.U64))
+		run(args[0].(math.ValidatorIndex))
 	})
 	return _c
 }
 
-func (_c *BeaconState_GetBalance_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Return(_a0 math.U64, _a1 error) *BeaconState_GetBalance_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+func (_c *BeaconState_GetBalance_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Return(_a0 math.Gwei, _a1 error) *BeaconState_GetBalance_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *BeaconState_GetBalance_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) RunAndReturn(run func(math.U64) (math.U64, error)) *BeaconState_GetBalance_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+func (_c *BeaconState_GetBalance_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) RunAndReturn(run func(math.ValidatorIndex) (math.Gwei, error)) *BeaconState_GetBalance_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
 	_c.Call.Return(run)
 	return _c
 }
@@ -585,22 +583,22 @@ func (_c *BeaconState_GetNextWithdrawalIndex_Call[BeaconBlockHeaderT, Eth1DataT,
 }
 
 // GetNextWithdrawalValidatorIndex provides a mock function with given fields:
-func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) GetNextWithdrawalValidatorIndex() (math.U64, error) {
+func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) GetNextWithdrawalValidatorIndex() (math.ValidatorIndex, error) {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetNextWithdrawalValidatorIndex")
 	}
 
-	var r0 math.U64
+	var r0 math.ValidatorIndex
 	var r1 error
-	if rf, ok := ret.Get(0).(func() (math.U64, error)); ok {
+	if rf, ok := ret.Get(0).(func() (math.ValidatorIndex, error)); ok {
 		return rf()
 	}
-	if rf, ok := ret.Get(0).(func() math.U64); ok {
+	if rf, ok := ret.Get(0).(func() math.ValidatorIndex); ok {
 		r0 = rf()
 	} else {
-		r0 = ret.Get(0).(math.U64)
+		r0 = ret.Get(0).(math.ValidatorIndex)
 	}
 
 	if rf, ok := ret.Get(1).(func() error); ok {
@@ -629,34 +627,34 @@ func (_c *BeaconState_GetNextWithdrawalValidatorIndex_Call[BeaconBlockHeaderT, E
 	return _c
 }
 
-func (_c *BeaconState_GetNextWithdrawalValidatorIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Return(_a0 math.U64, _a1 error) *BeaconState_GetNextWithdrawalValidatorIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+func (_c *BeaconState_GetNextWithdrawalValidatorIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Return(_a0 math.ValidatorIndex, _a1 error) *BeaconState_GetNextWithdrawalValidatorIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *BeaconState_GetNextWithdrawalValidatorIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) RunAndReturn(run func() (math.U64, error)) *BeaconState_GetNextWithdrawalValidatorIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+func (_c *BeaconState_GetNextWithdrawalValidatorIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) RunAndReturn(run func() (math.ValidatorIndex, error)) *BeaconState_GetNextWithdrawalValidatorIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetRandaoMixAtIndex provides a mock function with given fields: _a0
-func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) GetRandaoMixAtIndex(_a0 uint64) (bytes.B32, error) {
+func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) GetRandaoMixAtIndex(_a0 uint64) (common.Bytes32, error) {
 	ret := _m.Called(_a0)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetRandaoMixAtIndex")
 	}
 
-	var r0 bytes.B32
+	var r0 common.Bytes32
 	var r1 error
-	if rf, ok := ret.Get(0).(func(uint64) (bytes.B32, error)); ok {
+	if rf, ok := ret.Get(0).(func(uint64) (common.Bytes32, error)); ok {
 		return rf(_a0)
 	}
-	if rf, ok := ret.Get(0).(func(uint64) bytes.B32); ok {
+	if rf, ok := ret.Get(0).(func(uint64) common.Bytes32); ok {
 		r0 = rf(_a0)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(bytes.B32)
+			r0 = ret.Get(0).(common.Bytes32)
 		}
 	}
 
@@ -687,33 +685,33 @@ func (_c *BeaconState_GetRandaoMixAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, Ex
 	return _c
 }
 
-func (_c *BeaconState_GetRandaoMixAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Return(_a0 bytes.B32, _a1 error) *BeaconState_GetRandaoMixAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+func (_c *BeaconState_GetRandaoMixAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Return(_a0 common.Bytes32, _a1 error) *BeaconState_GetRandaoMixAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *BeaconState_GetRandaoMixAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) RunAndReturn(run func(uint64) (bytes.B32, error)) *BeaconState_GetRandaoMixAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+func (_c *BeaconState_GetRandaoMixAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) RunAndReturn(run func(uint64) (common.Bytes32, error)) *BeaconState_GetRandaoMixAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetSlashingAtIndex provides a mock function with given fields: _a0
-func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) GetSlashingAtIndex(_a0 uint64) (math.U64, error) {
+func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) GetSlashingAtIndex(_a0 uint64) (math.Gwei, error) {
 	ret := _m.Called(_a0)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetSlashingAtIndex")
 	}
 
-	var r0 math.U64
+	var r0 math.Gwei
 	var r1 error
-	if rf, ok := ret.Get(0).(func(uint64) (math.U64, error)); ok {
+	if rf, ok := ret.Get(0).(func(uint64) (math.Gwei, error)); ok {
 		return rf(_a0)
 	}
-	if rf, ok := ret.Get(0).(func(uint64) math.U64); ok {
+	if rf, ok := ret.Get(0).(func(uint64) math.Gwei); ok {
 		r0 = rf(_a0)
 	} else {
-		r0 = ret.Get(0).(math.U64)
+		r0 = ret.Get(0).(math.Gwei)
 	}
 
 	if rf, ok := ret.Get(1).(func(uint64) error); ok {
@@ -743,33 +741,33 @@ func (_c *BeaconState_GetSlashingAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, Exe
 	return _c
 }
 
-func (_c *BeaconState_GetSlashingAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Return(_a0 math.U64, _a1 error) *BeaconState_GetSlashingAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+func (_c *BeaconState_GetSlashingAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Return(_a0 math.Gwei, _a1 error) *BeaconState_GetSlashingAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *BeaconState_GetSlashingAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) RunAndReturn(run func(uint64) (math.U64, error)) *BeaconState_GetSlashingAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+func (_c *BeaconState_GetSlashingAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) RunAndReturn(run func(uint64) (math.Gwei, error)) *BeaconState_GetSlashingAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetSlot provides a mock function with given fields:
-func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) GetSlot() (math.U64, error) {
+func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) GetSlot() (math.Slot, error) {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetSlot")
 	}
 
-	var r0 math.U64
+	var r0 math.Slot
 	var r1 error
-	if rf, ok := ret.Get(0).(func() (math.U64, error)); ok {
+	if rf, ok := ret.Get(0).(func() (math.Slot, error)); ok {
 		return rf()
 	}
-	if rf, ok := ret.Get(0).(func() math.U64); ok {
+	if rf, ok := ret.Get(0).(func() math.Slot); ok {
 		r0 = rf()
 	} else {
-		r0 = ret.Get(0).(math.U64)
+		r0 = ret.Get(0).(math.Slot)
 	}
 
 	if rf, ok := ret.Get(1).(func() error); ok {
@@ -798,33 +796,33 @@ func (_c *BeaconState_GetSlot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPaylo
 	return _c
 }
 
-func (_c *BeaconState_GetSlot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Return(_a0 math.U64, _a1 error) *BeaconState_GetSlot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+func (_c *BeaconState_GetSlot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Return(_a0 math.Slot, _a1 error) *BeaconState_GetSlot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *BeaconState_GetSlot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) RunAndReturn(run func() (math.U64, error)) *BeaconState_GetSlot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+func (_c *BeaconState_GetSlot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) RunAndReturn(run func() (math.Slot, error)) *BeaconState_GetSlot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetTotalActiveBalances provides a mock function with given fields: _a0
-func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) GetTotalActiveBalances(_a0 uint64) (math.U64, error) {
+func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) GetTotalActiveBalances(_a0 uint64) (math.Gwei, error) {
 	ret := _m.Called(_a0)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetTotalActiveBalances")
 	}
 
-	var r0 math.U64
+	var r0 math.Gwei
 	var r1 error
-	if rf, ok := ret.Get(0).(func(uint64) (math.U64, error)); ok {
+	if rf, ok := ret.Get(0).(func(uint64) (math.Gwei, error)); ok {
 		return rf(_a0)
 	}
-	if rf, ok := ret.Get(0).(func(uint64) math.U64); ok {
+	if rf, ok := ret.Get(0).(func(uint64) math.Gwei); ok {
 		r0 = rf(_a0)
 	} else {
-		r0 = ret.Get(0).(math.U64)
+		r0 = ret.Get(0).(math.Gwei)
 	}
 
 	if rf, ok := ret.Get(1).(func(uint64) error); ok {
@@ -854,33 +852,33 @@ func (_c *BeaconState_GetTotalActiveBalances_Call[BeaconBlockHeaderT, Eth1DataT,
 	return _c
 }
 
-func (_c *BeaconState_GetTotalActiveBalances_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Return(_a0 math.U64, _a1 error) *BeaconState_GetTotalActiveBalances_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+func (_c *BeaconState_GetTotalActiveBalances_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Return(_a0 math.Gwei, _a1 error) *BeaconState_GetTotalActiveBalances_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *BeaconState_GetTotalActiveBalances_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) RunAndReturn(run func(uint64) (math.U64, error)) *BeaconState_GetTotalActiveBalances_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+func (_c *BeaconState_GetTotalActiveBalances_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) RunAndReturn(run func(uint64) (math.Gwei, error)) *BeaconState_GetTotalActiveBalances_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetTotalSlashing provides a mock function with given fields:
-func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) GetTotalSlashing() (math.U64, error) {
+func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) GetTotalSlashing() (math.Gwei, error) {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetTotalSlashing")
 	}
 
-	var r0 math.U64
+	var r0 math.Gwei
 	var r1 error
-	if rf, ok := ret.Get(0).(func() (math.U64, error)); ok {
+	if rf, ok := ret.Get(0).(func() (math.Gwei, error)); ok {
 		return rf()
 	}
-	if rf, ok := ret.Get(0).(func() math.U64); ok {
+	if rf, ok := ret.Get(0).(func() math.Gwei); ok {
 		r0 = rf()
 	} else {
-		r0 = ret.Get(0).(math.U64)
+		r0 = ret.Get(0).(math.Gwei)
 	}
 
 	if rf, ok := ret.Get(1).(func() error); ok {
@@ -909,12 +907,12 @@ func (_c *BeaconState_GetTotalSlashing_Call[BeaconBlockHeaderT, Eth1DataT, Execu
 	return _c
 }
 
-func (_c *BeaconState_GetTotalSlashing_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Return(_a0 math.U64, _a1 error) *BeaconState_GetTotalSlashing_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+func (_c *BeaconState_GetTotalSlashing_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Return(_a0 math.Gwei, _a1 error) *BeaconState_GetTotalSlashing_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *BeaconState_GetTotalSlashing_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) RunAndReturn(run func() (math.U64, error)) *BeaconState_GetTotalSlashing_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+func (_c *BeaconState_GetTotalSlashing_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) RunAndReturn(run func() (math.Gwei, error)) *BeaconState_GetTotalSlashing_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1087,7 +1085,7 @@ func (_c *BeaconState_GetValidatorsByEffectiveBalance_Call[BeaconBlockHeaderT, E
 }
 
 // SetSlot provides a mock function with given fields: _a0
-func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) SetSlot(_a0 math.U64) error {
+func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) SetSlot(_a0 math.Slot) error {
 	ret := _m.Called(_a0)
 
 	if len(ret) == 0 {
@@ -1095,7 +1093,7 @@ func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, Fo
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(math.U64) error); ok {
+	if rf, ok := ret.Get(0).(func(math.Slot) error); ok {
 		r0 = rf(_a0)
 	} else {
 		r0 = ret.Error(0)
@@ -1110,14 +1108,14 @@ type BeaconState_SetSlot_Call[BeaconBlockHeaderT any, Eth1DataT any, ExecutionPa
 }
 
 // SetSlot is a helper method to define mock.On call
-//   - _a0 math.U64
+//   - _a0 math.Slot
 func (_e *BeaconState_Expecter[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) SetSlot(_a0 interface{}) *BeaconState_SetSlot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
 	return &BeaconState_SetSlot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]{Call: _e.mock.On("SetSlot", _a0)}
 }
 
-func (_c *BeaconState_SetSlot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Run(run func(_a0 math.U64)) *BeaconState_SetSlot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+func (_c *BeaconState_SetSlot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Run(run func(_a0 math.Slot)) *BeaconState_SetSlot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(math.U64))
+		run(args[0].(math.Slot))
 	})
 	return _c
 }
@@ -1127,7 +1125,7 @@ func (_c *BeaconState_SetSlot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPaylo
 	return _c
 }
 
-func (_c *BeaconState_SetSlot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) RunAndReturn(run func(math.U64) error) *BeaconState_SetSlot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+func (_c *BeaconState_SetSlot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) RunAndReturn(run func(math.Slot) error) *BeaconState_SetSlot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1191,7 +1189,7 @@ func (_c *BeaconState_StateRootAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, Execu
 }
 
 // ValidatorByIndex provides a mock function with given fields: _a0
-func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) ValidatorByIndex(_a0 math.U64) (ValidatorT, error) {
+func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) ValidatorByIndex(_a0 math.ValidatorIndex) (ValidatorT, error) {
 	ret := _m.Called(_a0)
 
 	if len(ret) == 0 {
@@ -1200,16 +1198,16 @@ func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, Fo
 
 	var r0 ValidatorT
 	var r1 error
-	if rf, ok := ret.Get(0).(func(math.U64) (ValidatorT, error)); ok {
+	if rf, ok := ret.Get(0).(func(math.ValidatorIndex) (ValidatorT, error)); ok {
 		return rf(_a0)
 	}
-	if rf, ok := ret.Get(0).(func(math.U64) ValidatorT); ok {
+	if rf, ok := ret.Get(0).(func(math.ValidatorIndex) ValidatorT); ok {
 		r0 = rf(_a0)
 	} else {
 		r0 = ret.Get(0).(ValidatorT)
 	}
 
-	if rf, ok := ret.Get(1).(func(math.U64) error); ok {
+	if rf, ok := ret.Get(1).(func(math.ValidatorIndex) error); ok {
 		r1 = rf(_a0)
 	} else {
 		r1 = ret.Error(1)
@@ -1224,14 +1222,14 @@ type BeaconState_ValidatorByIndex_Call[BeaconBlockHeaderT any, Eth1DataT any, Ex
 }
 
 // ValidatorByIndex is a helper method to define mock.On call
-//   - _a0 math.U64
+//   - _a0 math.ValidatorIndex
 func (_e *BeaconState_Expecter[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) ValidatorByIndex(_a0 interface{}) *BeaconState_ValidatorByIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
 	return &BeaconState_ValidatorByIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]{Call: _e.mock.On("ValidatorByIndex", _a0)}
 }
 
-func (_c *BeaconState_ValidatorByIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Run(run func(_a0 math.U64)) *BeaconState_ValidatorByIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+func (_c *BeaconState_ValidatorByIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Run(run func(_a0 math.ValidatorIndex)) *BeaconState_ValidatorByIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(math.U64))
+		run(args[0].(math.ValidatorIndex))
 	})
 	return _c
 }
@@ -1241,28 +1239,28 @@ func (_c *BeaconState_ValidatorByIndex_Call[BeaconBlockHeaderT, Eth1DataT, Execu
 	return _c
 }
 
-func (_c *BeaconState_ValidatorByIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) RunAndReturn(run func(math.U64) (ValidatorT, error)) *BeaconState_ValidatorByIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+func (_c *BeaconState_ValidatorByIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) RunAndReturn(run func(math.ValidatorIndex) (ValidatorT, error)) *BeaconState_ValidatorByIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ValidatorIndexByCometBFTAddress provides a mock function with given fields: cometBFTAddress
-func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) ValidatorIndexByCometBFTAddress(cometBFTAddress []byte) (math.U64, error) {
+func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) ValidatorIndexByCometBFTAddress(cometBFTAddress []byte) (math.ValidatorIndex, error) {
 	ret := _m.Called(cometBFTAddress)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ValidatorIndexByCometBFTAddress")
 	}
 
-	var r0 math.U64
+	var r0 math.ValidatorIndex
 	var r1 error
-	if rf, ok := ret.Get(0).(func([]byte) (math.U64, error)); ok {
+	if rf, ok := ret.Get(0).(func([]byte) (math.ValidatorIndex, error)); ok {
 		return rf(cometBFTAddress)
 	}
-	if rf, ok := ret.Get(0).(func([]byte) math.U64); ok {
+	if rf, ok := ret.Get(0).(func([]byte) math.ValidatorIndex); ok {
 		r0 = rf(cometBFTAddress)
 	} else {
-		r0 = ret.Get(0).(math.U64)
+		r0 = ret.Get(0).(math.ValidatorIndex)
 	}
 
 	if rf, ok := ret.Get(1).(func([]byte) error); ok {
@@ -1292,33 +1290,33 @@ func (_c *BeaconState_ValidatorIndexByCometBFTAddress_Call[BeaconBlockHeaderT, E
 	return _c
 }
 
-func (_c *BeaconState_ValidatorIndexByCometBFTAddress_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Return(_a0 math.U64, _a1 error) *BeaconState_ValidatorIndexByCometBFTAddress_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+func (_c *BeaconState_ValidatorIndexByCometBFTAddress_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Return(_a0 math.ValidatorIndex, _a1 error) *BeaconState_ValidatorIndexByCometBFTAddress_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *BeaconState_ValidatorIndexByCometBFTAddress_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) RunAndReturn(run func([]byte) (math.U64, error)) *BeaconState_ValidatorIndexByCometBFTAddress_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+func (_c *BeaconState_ValidatorIndexByCometBFTAddress_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) RunAndReturn(run func([]byte) (math.ValidatorIndex, error)) *BeaconState_ValidatorIndexByCometBFTAddress_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ValidatorIndexByPubkey provides a mock function with given fields: _a0
-func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) ValidatorIndexByPubkey(_a0 crypto.BLSPubkey) (math.U64, error) {
+func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) ValidatorIndexByPubkey(_a0 crypto.BLSPubkey) (math.ValidatorIndex, error) {
 	ret := _m.Called(_a0)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ValidatorIndexByPubkey")
 	}
 
-	var r0 math.U64
+	var r0 math.ValidatorIndex
 	var r1 error
-	if rf, ok := ret.Get(0).(func(crypto.BLSPubkey) (math.U64, error)); ok {
+	if rf, ok := ret.Get(0).(func(crypto.BLSPubkey) (math.ValidatorIndex, error)); ok {
 		return rf(_a0)
 	}
-	if rf, ok := ret.Get(0).(func(crypto.BLSPubkey) math.U64); ok {
+	if rf, ok := ret.Get(0).(func(crypto.BLSPubkey) math.ValidatorIndex); ok {
 		r0 = rf(_a0)
 	} else {
-		r0 = ret.Get(0).(math.U64)
+		r0 = ret.Get(0).(math.ValidatorIndex)
 	}
 
 	if rf, ok := ret.Get(1).(func(crypto.BLSPubkey) error); ok {
@@ -1348,12 +1346,12 @@ func (_c *BeaconState_ValidatorIndexByPubkey_Call[BeaconBlockHeaderT, Eth1DataT,
 	return _c
 }
 
-func (_c *BeaconState_ValidatorIndexByPubkey_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Return(_a0 math.U64, _a1 error) *BeaconState_ValidatorIndexByPubkey_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+func (_c *BeaconState_ValidatorIndexByPubkey_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Return(_a0 math.ValidatorIndex, _a1 error) *BeaconState_ValidatorIndexByPubkey_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *BeaconState_ValidatorIndexByPubkey_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) RunAndReturn(run func(crypto.BLSPubkey) (math.U64, error)) *BeaconState_ValidatorIndexByPubkey_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+func (_c *BeaconState_ValidatorIndexByPubkey_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) RunAndReturn(run func(crypto.BLSPubkey) (math.ValidatorIndex, error)) *BeaconState_ValidatorIndexByPubkey_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
 	_c.Call.Return(run)
 	return _c
 }

@@ -4,6 +4,7 @@ package mocks
 
 import (
 	common "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+
 	math "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 
 	mock "github.com/stretchr/testify/mock"
@@ -300,63 +301,6 @@ func (_c *BeaconBlockHeader_HashTreeRoot_Call[BeaconBlockHeaderT]) RunAndReturn(
 	return _c
 }
 
-// MarshalSSZ provides a mock function with given fields:
-func (_m *BeaconBlockHeader[BeaconBlockHeaderT]) MarshalSSZ() ([]byte, error) {
-	ret := _m.Called()
-
-	if len(ret) == 0 {
-		panic("no return value specified for MarshalSSZ")
-	}
-
-	var r0 []byte
-	var r1 error
-	if rf, ok := ret.Get(0).(func() ([]byte, error)); ok {
-		return rf()
-	}
-	if rf, ok := ret.Get(0).(func() []byte); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]byte)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// BeaconBlockHeader_MarshalSSZ_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MarshalSSZ'
-type BeaconBlockHeader_MarshalSSZ_Call[BeaconBlockHeaderT any] struct {
-	*mock.Call
-}
-
-// MarshalSSZ is a helper method to define mock.On call
-func (_e *BeaconBlockHeader_Expecter[BeaconBlockHeaderT]) MarshalSSZ() *BeaconBlockHeader_MarshalSSZ_Call[BeaconBlockHeaderT] {
-	return &BeaconBlockHeader_MarshalSSZ_Call[BeaconBlockHeaderT]{Call: _e.mock.On("MarshalSSZ")}
-}
-
-func (_c *BeaconBlockHeader_MarshalSSZ_Call[BeaconBlockHeaderT]) Run(run func()) *BeaconBlockHeader_MarshalSSZ_Call[BeaconBlockHeaderT] {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *BeaconBlockHeader_MarshalSSZ_Call[BeaconBlockHeaderT]) Return(_a0 []byte, _a1 error) *BeaconBlockHeader_MarshalSSZ_Call[BeaconBlockHeaderT] {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *BeaconBlockHeader_MarshalSSZ_Call[BeaconBlockHeaderT]) RunAndReturn(run func() ([]byte, error)) *BeaconBlockHeader_MarshalSSZ_Call[BeaconBlockHeaderT] {
-	_c.Call.Return(run)
-	return _c
-}
-
 // New provides a mock function with given fields: slot, proposerIndex, parentBlockRoot, stateRoot, bodyRoot
 func (_m *BeaconBlockHeader[BeaconBlockHeaderT]) New(slot math.Slot, proposerIndex math.ValidatorIndex, parentBlockRoot common.Root, stateRoot common.Root, bodyRoot common.Root) BeaconBlockHeaderT {
 	ret := _m.Called(slot, proposerIndex, parentBlockRoot, stateRoot, bodyRoot)
@@ -436,52 +380,6 @@ func (_c *BeaconBlockHeader_SetStateRoot_Call[BeaconBlockHeaderT]) Return() *Bea
 }
 
 func (_c *BeaconBlockHeader_SetStateRoot_Call[BeaconBlockHeaderT]) RunAndReturn(run func(common.Root)) *BeaconBlockHeader_SetStateRoot_Call[BeaconBlockHeaderT] {
-	_c.Call.Return(run)
-	return _c
-}
-
-// UnmarshalSSZ provides a mock function with given fields: _a0
-func (_m *BeaconBlockHeader[BeaconBlockHeaderT]) UnmarshalSSZ(_a0 []byte) error {
-	ret := _m.Called(_a0)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UnmarshalSSZ")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func([]byte) error); ok {
-		r0 = rf(_a0)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// BeaconBlockHeader_UnmarshalSSZ_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UnmarshalSSZ'
-type BeaconBlockHeader_UnmarshalSSZ_Call[BeaconBlockHeaderT any] struct {
-	*mock.Call
-}
-
-// UnmarshalSSZ is a helper method to define mock.On call
-//   - _a0 []byte
-func (_e *BeaconBlockHeader_Expecter[BeaconBlockHeaderT]) UnmarshalSSZ(_a0 interface{}) *BeaconBlockHeader_UnmarshalSSZ_Call[BeaconBlockHeaderT] {
-	return &BeaconBlockHeader_UnmarshalSSZ_Call[BeaconBlockHeaderT]{Call: _e.mock.On("UnmarshalSSZ", _a0)}
-}
-
-func (_c *BeaconBlockHeader_UnmarshalSSZ_Call[BeaconBlockHeaderT]) Run(run func(_a0 []byte)) *BeaconBlockHeader_UnmarshalSSZ_Call[BeaconBlockHeaderT] {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].([]byte))
-	})
-	return _c
-}
-
-func (_c *BeaconBlockHeader_UnmarshalSSZ_Call[BeaconBlockHeaderT]) Return(_a0 error) *BeaconBlockHeader_UnmarshalSSZ_Call[BeaconBlockHeaderT] {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *BeaconBlockHeader_UnmarshalSSZ_Call[BeaconBlockHeaderT]) RunAndReturn(run func([]byte) error) *BeaconBlockHeader_UnmarshalSSZ_Call[BeaconBlockHeaderT] {
 	_c.Call.Return(run)
 	return _c
 }

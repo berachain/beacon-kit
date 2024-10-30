@@ -23,22 +23,22 @@ func (_m *BlockStore[BeaconBlockT]) EXPECT() *BlockStore_Expecter[BeaconBlockT] 
 }
 
 // GetParentSlotByTimestamp provides a mock function with given fields: timestamp
-func (_m *BlockStore[BeaconBlockT]) GetParentSlotByTimestamp(timestamp math.U64) (math.U64, error) {
+func (_m *BlockStore[BeaconBlockT]) GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error) {
 	ret := _m.Called(timestamp)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetParentSlotByTimestamp")
 	}
 
-	var r0 math.U64
+	var r0 math.Slot
 	var r1 error
-	if rf, ok := ret.Get(0).(func(math.U64) (math.U64, error)); ok {
+	if rf, ok := ret.Get(0).(func(math.U64) (math.Slot, error)); ok {
 		return rf(timestamp)
 	}
-	if rf, ok := ret.Get(0).(func(math.U64) math.U64); ok {
+	if rf, ok := ret.Get(0).(func(math.U64) math.Slot); ok {
 		r0 = rf(timestamp)
 	} else {
-		r0 = ret.Get(0).(math.U64)
+		r0 = ret.Get(0).(math.Slot)
 	}
 
 	if rf, ok := ret.Get(1).(func(math.U64) error); ok {
@@ -68,33 +68,33 @@ func (_c *BlockStore_GetParentSlotByTimestamp_Call[BeaconBlockT]) Run(run func(t
 	return _c
 }
 
-func (_c *BlockStore_GetParentSlotByTimestamp_Call[BeaconBlockT]) Return(_a0 math.U64, _a1 error) *BlockStore_GetParentSlotByTimestamp_Call[BeaconBlockT] {
+func (_c *BlockStore_GetParentSlotByTimestamp_Call[BeaconBlockT]) Return(_a0 math.Slot, _a1 error) *BlockStore_GetParentSlotByTimestamp_Call[BeaconBlockT] {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *BlockStore_GetParentSlotByTimestamp_Call[BeaconBlockT]) RunAndReturn(run func(math.U64) (math.U64, error)) *BlockStore_GetParentSlotByTimestamp_Call[BeaconBlockT] {
+func (_c *BlockStore_GetParentSlotByTimestamp_Call[BeaconBlockT]) RunAndReturn(run func(math.U64) (math.Slot, error)) *BlockStore_GetParentSlotByTimestamp_Call[BeaconBlockT] {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetSlotByBlockRoot provides a mock function with given fields: root
-func (_m *BlockStore[BeaconBlockT]) GetSlotByBlockRoot(root common.Root) (math.U64, error) {
+func (_m *BlockStore[BeaconBlockT]) GetSlotByBlockRoot(root common.Root) (math.Slot, error) {
 	ret := _m.Called(root)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetSlotByBlockRoot")
 	}
 
-	var r0 math.U64
+	var r0 math.Slot
 	var r1 error
-	if rf, ok := ret.Get(0).(func(common.Root) (math.U64, error)); ok {
+	if rf, ok := ret.Get(0).(func(common.Root) (math.Slot, error)); ok {
 		return rf(root)
 	}
-	if rf, ok := ret.Get(0).(func(common.Root) math.U64); ok {
+	if rf, ok := ret.Get(0).(func(common.Root) math.Slot); ok {
 		r0 = rf(root)
 	} else {
-		r0 = ret.Get(0).(math.U64)
+		r0 = ret.Get(0).(math.Slot)
 	}
 
 	if rf, ok := ret.Get(1).(func(common.Root) error); ok {
@@ -124,33 +124,33 @@ func (_c *BlockStore_GetSlotByBlockRoot_Call[BeaconBlockT]) Run(run func(root co
 	return _c
 }
 
-func (_c *BlockStore_GetSlotByBlockRoot_Call[BeaconBlockT]) Return(_a0 math.U64, _a1 error) *BlockStore_GetSlotByBlockRoot_Call[BeaconBlockT] {
+func (_c *BlockStore_GetSlotByBlockRoot_Call[BeaconBlockT]) Return(_a0 math.Slot, _a1 error) *BlockStore_GetSlotByBlockRoot_Call[BeaconBlockT] {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *BlockStore_GetSlotByBlockRoot_Call[BeaconBlockT]) RunAndReturn(run func(common.Root) (math.U64, error)) *BlockStore_GetSlotByBlockRoot_Call[BeaconBlockT] {
+func (_c *BlockStore_GetSlotByBlockRoot_Call[BeaconBlockT]) RunAndReturn(run func(common.Root) (math.Slot, error)) *BlockStore_GetSlotByBlockRoot_Call[BeaconBlockT] {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetSlotByStateRoot provides a mock function with given fields: root
-func (_m *BlockStore[BeaconBlockT]) GetSlotByStateRoot(root common.Root) (math.U64, error) {
+func (_m *BlockStore[BeaconBlockT]) GetSlotByStateRoot(root common.Root) (math.Slot, error) {
 	ret := _m.Called(root)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetSlotByStateRoot")
 	}
 
-	var r0 math.U64
+	var r0 math.Slot
 	var r1 error
-	if rf, ok := ret.Get(0).(func(common.Root) (math.U64, error)); ok {
+	if rf, ok := ret.Get(0).(func(common.Root) (math.Slot, error)); ok {
 		return rf(root)
 	}
-	if rf, ok := ret.Get(0).(func(common.Root) math.U64); ok {
+	if rf, ok := ret.Get(0).(func(common.Root) math.Slot); ok {
 		r0 = rf(root)
 	} else {
-		r0 = ret.Get(0).(math.U64)
+		r0 = ret.Get(0).(math.Slot)
 	}
 
 	if rf, ok := ret.Get(1).(func(common.Root) error); ok {
@@ -180,12 +180,12 @@ func (_c *BlockStore_GetSlotByStateRoot_Call[BeaconBlockT]) Run(run func(root co
 	return _c
 }
 
-func (_c *BlockStore_GetSlotByStateRoot_Call[BeaconBlockT]) Return(_a0 math.U64, _a1 error) *BlockStore_GetSlotByStateRoot_Call[BeaconBlockT] {
+func (_c *BlockStore_GetSlotByStateRoot_Call[BeaconBlockT]) Return(_a0 math.Slot, _a1 error) *BlockStore_GetSlotByStateRoot_Call[BeaconBlockT] {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *BlockStore_GetSlotByStateRoot_Call[BeaconBlockT]) RunAndReturn(run func(common.Root) (math.U64, error)) *BlockStore_GetSlotByStateRoot_Call[BeaconBlockT] {
+func (_c *BlockStore_GetSlotByStateRoot_Call[BeaconBlockT]) RunAndReturn(run func(common.Root) (math.Slot, error)) *BlockStore_GetSlotByStateRoot_Call[BeaconBlockT] {
 	_c.Call.Return(run)
 	return _c
 }

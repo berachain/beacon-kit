@@ -23,7 +23,7 @@ func (_m *Withdrawal[T]) EXPECT() *Withdrawal_Expecter[T] {
 }
 
 // New provides a mock function with given fields: index, validator, address, amount
-func (_m *Withdrawal[T]) New(index math.U64, validator math.U64, address common.ExecutionAddress, amount math.U64) T {
+func (_m *Withdrawal[T]) New(index math.U64, validator math.ValidatorIndex, address common.ExecutionAddress, amount math.Gwei) T {
 	ret := _m.Called(index, validator, address, amount)
 
 	if len(ret) == 0 {
@@ -31,7 +31,7 @@ func (_m *Withdrawal[T]) New(index math.U64, validator math.U64, address common.
 	}
 
 	var r0 T
-	if rf, ok := ret.Get(0).(func(math.U64, math.U64, common.ExecutionAddress, math.U64) T); ok {
+	if rf, ok := ret.Get(0).(func(math.U64, math.ValidatorIndex, common.ExecutionAddress, math.Gwei) T); ok {
 		r0 = rf(index, validator, address, amount)
 	} else {
 		r0 = ret.Get(0).(T)
@@ -47,16 +47,16 @@ type Withdrawal_New_Call[T any] struct {
 
 // New is a helper method to define mock.On call
 //   - index math.U64
-//   - validator math.U64
+//   - validator math.ValidatorIndex
 //   - address common.ExecutionAddress
-//   - amount math.U64
+//   - amount math.Gwei
 func (_e *Withdrawal_Expecter[T]) New(index interface{}, validator interface{}, address interface{}, amount interface{}) *Withdrawal_New_Call[T] {
 	return &Withdrawal_New_Call[T]{Call: _e.mock.On("New", index, validator, address, amount)}
 }
 
-func (_c *Withdrawal_New_Call[T]) Run(run func(index math.U64, validator math.U64, address common.ExecutionAddress, amount math.U64)) *Withdrawal_New_Call[T] {
+func (_c *Withdrawal_New_Call[T]) Run(run func(index math.U64, validator math.ValidatorIndex, address common.ExecutionAddress, amount math.Gwei)) *Withdrawal_New_Call[T] {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(math.U64), args[1].(math.U64), args[2].(common.ExecutionAddress), args[3].(math.U64))
+		run(args[0].(math.U64), args[1].(math.ValidatorIndex), args[2].(common.ExecutionAddress), args[3].(math.Gwei))
 	})
 	return _c
 }
@@ -66,7 +66,7 @@ func (_c *Withdrawal_New_Call[T]) Return(_a0 T) *Withdrawal_New_Call[T] {
 	return _c
 }
 
-func (_c *Withdrawal_New_Call[T]) RunAndReturn(run func(math.U64, math.U64, common.ExecutionAddress, math.U64) T) *Withdrawal_New_Call[T] {
+func (_c *Withdrawal_New_Call[T]) RunAndReturn(run func(math.U64, math.ValidatorIndex, common.ExecutionAddress, math.Gwei) T) *Withdrawal_New_Call[T] {
 	_c.Call.Return(run)
 	return _c
 }
