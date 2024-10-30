@@ -197,11 +197,11 @@ func TestExtractIndex(t *testing.T) {
 func TestRangeDB_DeleteRange_NotSupported(t *testing.T) {
 	tests := []struct {
 		name string
-		db   *mocks.Db
+		db   *mocks.DB
 	}{
 		{
 			name: "DeleteRangeNotSupported",
-			db:   new(mocks.Db),
+			db:   new(mocks.DB),
 		},
 	}
 

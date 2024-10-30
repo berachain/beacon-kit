@@ -23,7 +23,6 @@ package core_test
 import (
 	"context"
 	"fmt"
-	"testing"
 
 	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
@@ -33,48 +32,24 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/mocks"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/db"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/require"
 )
 
-func TestExecutionEngine_VerifyAndNotifyNewPayload(t *testing.T) {
-	mockEngine := mocks.NewExecutionEngine[
+// TODO: replace with proper mock
+type testExecutionEngine struct{}
+
+func (tee *testExecutionEngine) VerifyAndNotifyNewPayload(
+	_ context.Context,
+	_ *engineprimitives.NewPayloadRequest[
 		*types.ExecutionPayload,
-		*types.ExecutionPayloadHeader,
 		engineprimitives.Withdrawals,
-	](t)
-
-	t.Run("successful verification with complete payload", func(t *testing.T) {
-		req := &engineprimitives.NewPayloadRequest[
-			*types.ExecutionPayload,
-			engineprimitives.Withdrawals,
-		]{
-			ExecutionPayload: &types.ExecutionPayload{},
-			VersionedHashes: []common.ExecutionHash{
-				{0x1},
-				{0x2},
-			},
-			ParentBeaconBlockRoot: &common.Root{0x3},
-			Optimistic:            false,
-		}
-
-		// Set up expectation for successful verification
-		mockEngine.EXPECT().
-			VerifyAndNotifyNewPayload(
-				context.Background(),
-				req,
-			).
-			Return(nil)
-
-		err := mockEngine.VerifyAndNotifyNewPayload(context.Background(), req)
-		require.NoError(t, err)
-	})
+	],
+) error {
+	return nil
 }
 
 type testKVStoreService struct {

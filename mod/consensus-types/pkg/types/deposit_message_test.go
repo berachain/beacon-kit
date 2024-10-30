@@ -44,7 +44,7 @@ func TestCreateAndSignDepositMessage(t *testing.T) {
 		0x01, 0x00, 0x00, 0x00,
 	}
 
-	mocksSigner := &mocks.Blssigner{}
+	mocksSigner := &mocks.BLSSigner{}
 	mocksSigner.On("PublicKey").Return(crypto.BLSPubkey{})
 	mocksSigner.On("Sign", mock.Anything).Return(crypto.BLSSignature{}, nil)
 

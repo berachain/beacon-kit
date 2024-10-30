@@ -117,18 +117,18 @@ func (_c *BeaconBlockHeader_GetParentBlockRoot_Call[BeaconBlockHeaderT]) RunAndR
 }
 
 // GetProposerIndex provides a mock function with given fields:
-func (_m *BeaconBlockHeader[BeaconBlockHeaderT]) GetProposerIndex() math.ValidatorIndex {
+func (_m *BeaconBlockHeader[BeaconBlockHeaderT]) GetProposerIndex() math.U64 {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetProposerIndex")
 	}
 
-	var r0 math.ValidatorIndex
-	if rf, ok := ret.Get(0).(func() math.ValidatorIndex); ok {
+	var r0 math.U64
+	if rf, ok := ret.Get(0).(func() math.U64); ok {
 		r0 = rf()
 	} else {
-		r0 = ret.Get(0).(math.ValidatorIndex)
+		r0 = ret.Get(0).(math.U64)
 	}
 
 	return r0
@@ -151,29 +151,29 @@ func (_c *BeaconBlockHeader_GetProposerIndex_Call[BeaconBlockHeaderT]) Run(run f
 	return _c
 }
 
-func (_c *BeaconBlockHeader_GetProposerIndex_Call[BeaconBlockHeaderT]) Return(_a0 math.ValidatorIndex) *BeaconBlockHeader_GetProposerIndex_Call[BeaconBlockHeaderT] {
+func (_c *BeaconBlockHeader_GetProposerIndex_Call[BeaconBlockHeaderT]) Return(_a0 math.U64) *BeaconBlockHeader_GetProposerIndex_Call[BeaconBlockHeaderT] {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *BeaconBlockHeader_GetProposerIndex_Call[BeaconBlockHeaderT]) RunAndReturn(run func() math.ValidatorIndex) *BeaconBlockHeader_GetProposerIndex_Call[BeaconBlockHeaderT] {
+func (_c *BeaconBlockHeader_GetProposerIndex_Call[BeaconBlockHeaderT]) RunAndReturn(run func() math.U64) *BeaconBlockHeader_GetProposerIndex_Call[BeaconBlockHeaderT] {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetSlot provides a mock function with given fields:
-func (_m *BeaconBlockHeader[BeaconBlockHeaderT]) GetSlot() math.Slot {
+func (_m *BeaconBlockHeader[BeaconBlockHeaderT]) GetSlot() math.U64 {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetSlot")
 	}
 
-	var r0 math.Slot
-	if rf, ok := ret.Get(0).(func() math.Slot); ok {
+	var r0 math.U64
+	if rf, ok := ret.Get(0).(func() math.U64); ok {
 		r0 = rf()
 	} else {
-		r0 = ret.Get(0).(math.Slot)
+		r0 = ret.Get(0).(math.U64)
 	}
 
 	return r0
@@ -196,12 +196,12 @@ func (_c *BeaconBlockHeader_GetSlot_Call[BeaconBlockHeaderT]) Run(run func()) *B
 	return _c
 }
 
-func (_c *BeaconBlockHeader_GetSlot_Call[BeaconBlockHeaderT]) Return(_a0 math.Slot) *BeaconBlockHeader_GetSlot_Call[BeaconBlockHeaderT] {
+func (_c *BeaconBlockHeader_GetSlot_Call[BeaconBlockHeaderT]) Return(_a0 math.U64) *BeaconBlockHeader_GetSlot_Call[BeaconBlockHeaderT] {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *BeaconBlockHeader_GetSlot_Call[BeaconBlockHeaderT]) RunAndReturn(run func() math.Slot) *BeaconBlockHeader_GetSlot_Call[BeaconBlockHeaderT] {
+func (_c *BeaconBlockHeader_GetSlot_Call[BeaconBlockHeaderT]) RunAndReturn(run func() math.U64) *BeaconBlockHeader_GetSlot_Call[BeaconBlockHeaderT] {
 	_c.Call.Return(run)
 	return _c
 }
@@ -358,7 +358,7 @@ func (_c *BeaconBlockHeader_MarshalSSZ_Call[BeaconBlockHeaderT]) RunAndReturn(ru
 }
 
 // New provides a mock function with given fields: slot, proposerIndex, parentBlockRoot, stateRoot, bodyRoot
-func (_m *BeaconBlockHeader[BeaconBlockHeaderT]) New(slot math.Slot, proposerIndex math.ValidatorIndex, parentBlockRoot common.Root, stateRoot common.Root, bodyRoot common.Root) BeaconBlockHeaderT {
+func (_m *BeaconBlockHeader[BeaconBlockHeaderT]) New(slot math.U64, proposerIndex math.U64, parentBlockRoot common.Root, stateRoot common.Root, bodyRoot common.Root) BeaconBlockHeaderT {
 	ret := _m.Called(slot, proposerIndex, parentBlockRoot, stateRoot, bodyRoot)
 
 	if len(ret) == 0 {
@@ -366,7 +366,7 @@ func (_m *BeaconBlockHeader[BeaconBlockHeaderT]) New(slot math.Slot, proposerInd
 	}
 
 	var r0 BeaconBlockHeaderT
-	if rf, ok := ret.Get(0).(func(math.Slot, math.ValidatorIndex, common.Root, common.Root, common.Root) BeaconBlockHeaderT); ok {
+	if rf, ok := ret.Get(0).(func(math.U64, math.U64, common.Root, common.Root, common.Root) BeaconBlockHeaderT); ok {
 		r0 = rf(slot, proposerIndex, parentBlockRoot, stateRoot, bodyRoot)
 	} else {
 		r0 = ret.Get(0).(BeaconBlockHeaderT)
@@ -381,8 +381,8 @@ type BeaconBlockHeader_New_Call[BeaconBlockHeaderT any] struct {
 }
 
 // New is a helper method to define mock.On call
-//   - slot math.Slot
-//   - proposerIndex math.ValidatorIndex
+//   - slot math.U64
+//   - proposerIndex math.U64
 //   - parentBlockRoot common.Root
 //   - stateRoot common.Root
 //   - bodyRoot common.Root
@@ -390,9 +390,9 @@ func (_e *BeaconBlockHeader_Expecter[BeaconBlockHeaderT]) New(slot interface{}, 
 	return &BeaconBlockHeader_New_Call[BeaconBlockHeaderT]{Call: _e.mock.On("New", slot, proposerIndex, parentBlockRoot, stateRoot, bodyRoot)}
 }
 
-func (_c *BeaconBlockHeader_New_Call[BeaconBlockHeaderT]) Run(run func(slot math.Slot, proposerIndex math.ValidatorIndex, parentBlockRoot common.Root, stateRoot common.Root, bodyRoot common.Root)) *BeaconBlockHeader_New_Call[BeaconBlockHeaderT] {
+func (_c *BeaconBlockHeader_New_Call[BeaconBlockHeaderT]) Run(run func(slot math.U64, proposerIndex math.U64, parentBlockRoot common.Root, stateRoot common.Root, bodyRoot common.Root)) *BeaconBlockHeader_New_Call[BeaconBlockHeaderT] {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(math.Slot), args[1].(math.ValidatorIndex), args[2].(common.Root), args[3].(common.Root), args[4].(common.Root))
+		run(args[0].(math.U64), args[1].(math.U64), args[2].(common.Root), args[3].(common.Root), args[4].(common.Root))
 	})
 	return _c
 }
@@ -402,7 +402,7 @@ func (_c *BeaconBlockHeader_New_Call[BeaconBlockHeaderT]) Return(_a0 BeaconBlock
 	return _c
 }
 
-func (_c *BeaconBlockHeader_New_Call[BeaconBlockHeaderT]) RunAndReturn(run func(math.Slot, math.ValidatorIndex, common.Root, common.Root, common.Root) BeaconBlockHeaderT) *BeaconBlockHeader_New_Call[BeaconBlockHeaderT] {
+func (_c *BeaconBlockHeader_New_Call[BeaconBlockHeaderT]) RunAndReturn(run func(math.U64, math.U64, common.Root, common.Root, common.Root) BeaconBlockHeaderT) *BeaconBlockHeader_New_Call[BeaconBlockHeaderT] {
 	_c.Call.Return(run)
 	return _c
 }

@@ -3,6 +3,7 @@
 package mocks
 
 import (
+	bytes "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	eip4844 "github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 
 	mock "github.com/stretchr/testify/mock"
@@ -116,19 +117,19 @@ func (_c *BlobsBundle_GetCommitments_Call) RunAndReturn(run func() []eip4844.KZG
 }
 
 // GetProofs provides a mock function with given fields:
-func (_m *BlobsBundle) GetProofs() []eip4844.KZGProof {
+func (_m *BlobsBundle) GetProofs() []bytes.B48 {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetProofs")
 	}
 
-	var r0 []eip4844.KZGProof
-	if rf, ok := ret.Get(0).(func() []eip4844.KZGProof); ok {
+	var r0 []bytes.B48
+	if rf, ok := ret.Get(0).(func() []bytes.B48); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]eip4844.KZGProof)
+			r0 = ret.Get(0).([]bytes.B48)
 		}
 	}
 
@@ -152,12 +153,12 @@ func (_c *BlobsBundle_GetProofs_Call) Run(run func()) *BlobsBundle_GetProofs_Cal
 	return _c
 }
 
-func (_c *BlobsBundle_GetProofs_Call) Return(_a0 []eip4844.KZGProof) *BlobsBundle_GetProofs_Call {
+func (_c *BlobsBundle_GetProofs_Call) Return(_a0 []bytes.B48) *BlobsBundle_GetProofs_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *BlobsBundle_GetProofs_Call) RunAndReturn(run func() []eip4844.KZGProof) *BlobsBundle_GetProofs_Call {
+func (_c *BlobsBundle_GetProofs_Call) RunAndReturn(run func() []bytes.B48) *BlobsBundle_GetProofs_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -68,7 +68,7 @@ func (_c *Validator_GetWithdrawalCredentials_Call[WithdrawalCredentialsT]) RunAn
 }
 
 // IsFullyWithdrawable provides a mock function with given fields: amount, epoch
-func (_m *Validator[WithdrawalCredentialsT]) IsFullyWithdrawable(amount math.Gwei, epoch math.Epoch) bool {
+func (_m *Validator[WithdrawalCredentialsT]) IsFullyWithdrawable(amount math.U64, epoch math.U64) bool {
 	ret := _m.Called(amount, epoch)
 
 	if len(ret) == 0 {
@@ -76,7 +76,7 @@ func (_m *Validator[WithdrawalCredentialsT]) IsFullyWithdrawable(amount math.Gwe
 	}
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func(math.Gwei, math.Epoch) bool); ok {
+	if rf, ok := ret.Get(0).(func(math.U64, math.U64) bool); ok {
 		r0 = rf(amount, epoch)
 	} else {
 		r0 = ret.Get(0).(bool)
@@ -91,15 +91,15 @@ type Validator_IsFullyWithdrawable_Call[WithdrawalCredentialsT backend.Withdrawa
 }
 
 // IsFullyWithdrawable is a helper method to define mock.On call
-//   - amount math.Gwei
-//   - epoch math.Epoch
+//   - amount math.U64
+//   - epoch math.U64
 func (_e *Validator_Expecter[WithdrawalCredentialsT]) IsFullyWithdrawable(amount interface{}, epoch interface{}) *Validator_IsFullyWithdrawable_Call[WithdrawalCredentialsT] {
 	return &Validator_IsFullyWithdrawable_Call[WithdrawalCredentialsT]{Call: _e.mock.On("IsFullyWithdrawable", amount, epoch)}
 }
 
-func (_c *Validator_IsFullyWithdrawable_Call[WithdrawalCredentialsT]) Run(run func(amount math.Gwei, epoch math.Epoch)) *Validator_IsFullyWithdrawable_Call[WithdrawalCredentialsT] {
+func (_c *Validator_IsFullyWithdrawable_Call[WithdrawalCredentialsT]) Run(run func(amount math.U64, epoch math.U64)) *Validator_IsFullyWithdrawable_Call[WithdrawalCredentialsT] {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(math.Gwei), args[1].(math.Epoch))
+		run(args[0].(math.U64), args[1].(math.U64))
 	})
 	return _c
 }
@@ -109,13 +109,13 @@ func (_c *Validator_IsFullyWithdrawable_Call[WithdrawalCredentialsT]) Return(_a0
 	return _c
 }
 
-func (_c *Validator_IsFullyWithdrawable_Call[WithdrawalCredentialsT]) RunAndReturn(run func(math.Gwei, math.Epoch) bool) *Validator_IsFullyWithdrawable_Call[WithdrawalCredentialsT] {
+func (_c *Validator_IsFullyWithdrawable_Call[WithdrawalCredentialsT]) RunAndReturn(run func(math.U64, math.U64) bool) *Validator_IsFullyWithdrawable_Call[WithdrawalCredentialsT] {
 	_c.Call.Return(run)
 	return _c
 }
 
 // IsPartiallyWithdrawable provides a mock function with given fields: amount1, amount2
-func (_m *Validator[WithdrawalCredentialsT]) IsPartiallyWithdrawable(amount1 math.Gwei, amount2 math.Gwei) bool {
+func (_m *Validator[WithdrawalCredentialsT]) IsPartiallyWithdrawable(amount1 math.U64, amount2 math.U64) bool {
 	ret := _m.Called(amount1, amount2)
 
 	if len(ret) == 0 {
@@ -123,7 +123,7 @@ func (_m *Validator[WithdrawalCredentialsT]) IsPartiallyWithdrawable(amount1 mat
 	}
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func(math.Gwei, math.Gwei) bool); ok {
+	if rf, ok := ret.Get(0).(func(math.U64, math.U64) bool); ok {
 		r0 = rf(amount1, amount2)
 	} else {
 		r0 = ret.Get(0).(bool)
@@ -138,15 +138,15 @@ type Validator_IsPartiallyWithdrawable_Call[WithdrawalCredentialsT backend.Withd
 }
 
 // IsPartiallyWithdrawable is a helper method to define mock.On call
-//   - amount1 math.Gwei
-//   - amount2 math.Gwei
+//   - amount1 math.U64
+//   - amount2 math.U64
 func (_e *Validator_Expecter[WithdrawalCredentialsT]) IsPartiallyWithdrawable(amount1 interface{}, amount2 interface{}) *Validator_IsPartiallyWithdrawable_Call[WithdrawalCredentialsT] {
 	return &Validator_IsPartiallyWithdrawable_Call[WithdrawalCredentialsT]{Call: _e.mock.On("IsPartiallyWithdrawable", amount1, amount2)}
 }
 
-func (_c *Validator_IsPartiallyWithdrawable_Call[WithdrawalCredentialsT]) Run(run func(amount1 math.Gwei, amount2 math.Gwei)) *Validator_IsPartiallyWithdrawable_Call[WithdrawalCredentialsT] {
+func (_c *Validator_IsPartiallyWithdrawable_Call[WithdrawalCredentialsT]) Run(run func(amount1 math.U64, amount2 math.U64)) *Validator_IsPartiallyWithdrawable_Call[WithdrawalCredentialsT] {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(math.Gwei), args[1].(math.Gwei))
+		run(args[0].(math.U64), args[1].(math.U64))
 	})
 	return _c
 }
@@ -156,7 +156,7 @@ func (_c *Validator_IsPartiallyWithdrawable_Call[WithdrawalCredentialsT]) Return
 	return _c
 }
 
-func (_c *Validator_IsPartiallyWithdrawable_Call[WithdrawalCredentialsT]) RunAndReturn(run func(math.Gwei, math.Gwei) bool) *Validator_IsPartiallyWithdrawable_Call[WithdrawalCredentialsT] {
+func (_c *Validator_IsPartiallyWithdrawable_Call[WithdrawalCredentialsT]) RunAndReturn(run func(math.U64, math.U64) bool) *Validator_IsPartiallyWithdrawable_Call[WithdrawalCredentialsT] {
 	_c.Call.Return(run)
 	return _c
 }

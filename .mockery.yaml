@@ -68,8 +68,3 @@ packages:
       recursive: False
       with-expecter: true
       all: True
-  github.com/berachain/beacon-kit/mod/state-transition/pkg/core:
-    config:
-      recursive: False
-      with-expecter: true
-      all: True
