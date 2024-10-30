@@ -33,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/db"
+	depositstore "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -54,7 +55,7 @@ var (
 	testCodec    = &encoding.SSZInterfaceCodec[*types.ExecutionPayloadHeader]{}
 )
 
-func initTestStore() (
+func initTestStores() (
 	*beacondb.KVStore[
 		*types.BeaconBlockHeader,
 		*types.Eth1Data,
@@ -62,10 +63,12 @@ func initTestStore() (
 		*types.Fork,
 		*types.Validator,
 		types.Validators,
-	], error) {
+	],
+	*depositstore.KVStore[*types.Deposit],
+	error) {
 	db, err := db.OpenDB("", dbm.MemDBBackend)
 	if err != nil {
-		return nil, fmt.Errorf("failed opening mem db: %w", err)
+		return nil, nil, fmt.Errorf("failed opening mem db: %w", err)
 	}
 	var (
 		nopLog     = log.NewNopLogger()
@@ -81,19 +84,21 @@ func initTestStore() (
 	ctx := sdk.NewContext(cms, true, nopLog)
 	cms.MountStoreWithDB(testStoreKey, storetypes.StoreTypeIAVL, nil)
 	if err = cms.LoadLatestVersion(); err != nil {
-		return nil, fmt.Errorf("failed to load latest version: %w", err)
+		return nil, nil, fmt.Errorf("failed to load latest version: %w", err)
 	}
 	testStoreService := &testKVStoreService{ctx: ctx}
 
 	return beacondb.New[
-		*types.BeaconBlockHeader,
-		*types.Eth1Data,
-		*types.ExecutionPayloadHeader,
-		*types.Fork,
-		*types.Validator,
-		types.Validators,
-	](
-		testStoreService,
-		testCodec,
-	), nil
+			*types.BeaconBlockHeader,
+			*types.Eth1Data,
+			*types.ExecutionPayloadHeader,
+			*types.Fork,
+			*types.Validator,
+			types.Validators,
+		](
+			testStoreService,
+			testCodec,
+		),
+		depositstore.NewStore[*types.Deposit](testStoreService),
+		nil
 }
