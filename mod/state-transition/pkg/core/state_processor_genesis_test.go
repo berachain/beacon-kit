@@ -183,4 +183,9 @@ func checkValidator(
 	case dep.Amount < minBalance:
 		require.Equal(t, math.Gwei(0), val.EffectiveBalance)
 	}
+
+	// check that validator index is duly set
+	latestValIdx, err := beaconState.GetEth1DepositIndex()
+	require.NoError(t, err)
+	require.Equal(t, uint64(len(deposits)-1), latestValIdx)
 }
