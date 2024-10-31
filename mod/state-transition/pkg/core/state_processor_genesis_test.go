@@ -144,6 +144,11 @@ func TestInitialize(t *testing.T) {
 	for _, dep := range deposits {
 		checkValidator(t, cs, beaconState, dep)
 	}
+
+	// check that validator index is duly set
+	latestValIdx, err := beaconState.GetEth1DepositIndex()
+	require.NoError(t, err)
+	require.Equal(t, uint64(len(deposits)-1), latestValIdx)
 }
 
 func checkValidator(
