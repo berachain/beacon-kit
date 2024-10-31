@@ -96,14 +96,19 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	dep DepositT,
 ) error {
-	depositIndex, err := st.GetEth1DepositIndex()
-	if err != nil {
-		return err
+	var nextDepositIndex uint64
+	switch depositIndex, err := st.GetEth1DepositIndex(); {
+	case err == nil:
+		nextDepositIndex = depositIndex + 1
+	case sp.processingGenesis && err != nil:
+		// Eth1DepositIndex may have not been set yet
+		nextDepositIndex = 0
+	default:
+		// Failed retrieving Eth1DepositIndex outside genesis is an error
+		return fmt.Errorf("failed retrieving eth1 deposit index: %w", err)
 	}
 
-	if err = st.SetEth1DepositIndex(
-		depositIndex + 1,
-	); err != nil {
+	if err := st.SetEth1DepositIndex(nextDepositIndex); err != nil {
 		return err
 	}
 

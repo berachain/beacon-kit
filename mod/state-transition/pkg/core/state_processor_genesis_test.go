@@ -23,6 +23,7 @@ package core_test
 import (
 	"testing"
 
+	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
 	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
@@ -95,9 +96,23 @@ func TestInitialize(t *testing.T) {
 				Amount: math.Gwei(cs.EffectiveBalanceIncrement()),
 				Index:  uint64(2),
 			},
+			{
+				Pubkey: [48]byte{0x04},
+				Amount: math.Gwei(2 * cs.MaxEffectiveBalance()),
+				Index:  uint64(3),
+			},
+			{
+				Pubkey: [48]byte{0x05},
+				Amount: math.Gwei(cs.EffectiveBalanceIncrement() * 2 / 3),
+				Index:  uint64(4),
+			},
 		}
 		executionPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		genesisVersion         = version.FromUint32[common.Version](version.Deneb)
+		fork                   = &types.Fork{
+			PreviousVersion: version.FromUint32[common.Version](version.Deneb),
+			CurrentVersion:  version.FromUint32[common.Version](version.Deneb),
+			Epoch:           math.Epoch(constants.GenesisEpoch),
+		}
 	)
 
 	// define mocks expectations
@@ -111,7 +126,7 @@ func TestInitialize(t *testing.T) {
 		beaconState,
 		deposits,
 		executionPayloadHeader,
-		genesisVersion,
+		fork.CurrentVersion,
 	)
 
 	// check outputs
@@ -125,24 +140,53 @@ func TestInitialize(t *testing.T) {
 
 	resFork, err := beaconState.GetFork()
 	require.NoError(t, err)
-	require.Equal(t,
-		&types.Fork{
-			PreviousVersion: genesisVersion,
-			CurrentVersion:  genesisVersion,
-			Epoch:           math.Epoch(constants.GenesisEpoch),
-		},
-		resFork)
+	require.Equal(t, fork, resFork)
 
 	for _, dep := range deposits {
-		var idx math.U64
-		idx, err = beaconState.ValidatorIndexByPubkey(dep.Pubkey)
-		require.NoError(t, err)
-		require.Equal(t, math.U64(dep.Index), idx)
+		checkValidator(t, cs, beaconState, dep)
+	}
 
-		var val *types.Validator
-		val, err = beaconState.ValidatorByIndex(idx)
-		require.NoError(t, err)
-		require.Equal(t, dep.Pubkey, val.Pubkey)
+	// check that validator index is duly set
+	latestValIdx, err := beaconState.GetEth1DepositIndex()
+	require.NoError(t, err)
+	require.Equal(t, uint64(len(deposits)-1), latestValIdx)
+}
+
+func checkValidator(
+	t *testing.T,
+	cs chain.Spec[
+		common.DomainType,
+		math.Epoch,
+		common.ExecutionAddress,
+		math.Slot,
+		any,
+	],
+	bs *TestBeaconStateT,
+	dep *types.Deposit,
+) {
+	t.Helper()
+
+	idx, err := bs.ValidatorIndexByPubkey(dep.Pubkey)
+	require.NoError(t, err)
+	require.Equal(t, math.U64(dep.Index), idx)
+
+	val, err := bs.ValidatorByIndex(idx)
+	require.NoError(t, err)
+	require.Equal(t, dep.Pubkey, val.Pubkey)
+
+	var (
+		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
+		minBalance = math.Gwei(cs.EffectiveBalanceIncrement())
+	)
+	switch {
+	case dep.Amount >= maxBalance:
+		require.Equal(t, maxBalance, val.EffectiveBalance)
+	case dep.Amount >= minBalance && dep.Amount < maxBalance:
 		require.Equal(t, dep.Amount, val.EffectiveBalance)
+
+		// validator balance must be multiple of EffectiveBalanceIncrement
+		require.Equal(t, math.U64(0), val.EffectiveBalance%minBalance)
+	case dep.Amount < minBalance:
+		require.Equal(t, math.Gwei(0), val.EffectiveBalance)
 	}
 }
