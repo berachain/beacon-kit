@@ -30,12 +30,51 @@ import (
 	"cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
+	statedb "github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/db"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+)
+
+type (
+	TestBeaconStateMarshallableT = types.BeaconState[
+		*types.BeaconBlockHeader,
+		*types.Eth1Data,
+		*types.ExecutionPayloadHeader,
+		*types.Fork,
+		*types.Validator,
+		types.BeaconBlockHeader,
+		types.Eth1Data,
+		types.ExecutionPayloadHeader,
+		types.Fork,
+		types.Validator,
+	]
+
+	TestKVStoreT = beacondb.KVStore[
+		*types.BeaconBlockHeader,
+		*types.Eth1Data,
+		*types.ExecutionPayloadHeader,
+		*types.Fork,
+		*types.Validator,
+		types.Validators,
+	]
+
+	TestBeaconStateT = statedb.StateDB[
+		*types.BeaconBlockHeader,
+		*TestBeaconStateMarshallableT,
+		*types.Eth1Data,
+		*types.ExecutionPayloadHeader,
+		*types.Fork,
+		*TestKVStoreT,
+		*types.Validator,
+		types.Validators,
+		*engineprimitives.Withdrawal,
+		types.WithdrawalCredentials,
+	]
 )
 
 type testKVStoreService struct {
