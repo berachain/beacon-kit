@@ -27,10 +27,13 @@ package pruner
 
 import (
 	"context"
+	"errors"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
+
+var ErrInvalidRange = errors.New("range start greater than end")
 
 // BeaconBlock is an interface for beacon blocks.
 type BeaconBlock interface {
@@ -48,6 +51,7 @@ type BlockEvent[BeaconBlockT BeaconBlock] interface {
 // Prunable is an interface representing a store that can be pruned.
 type Prunable interface {
 	// Prune prunes the store from [start, end).
+	// Returns ErrInvalidRange if start > end
 	Prune(start, end uint64) error
 }
 

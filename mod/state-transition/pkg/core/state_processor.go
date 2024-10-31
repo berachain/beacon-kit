@@ -378,7 +378,7 @@ func (sp *StateProcessor[
 		)
 	}
 
-	// Check to make sure the proposer isn't slashed.
+	// Verify that proposer matches with what consensus declares as proposer
 	proposer, err := st.ValidatorByIndex(blk.GetProposerIndex())
 	if err != nil {
 		return err
@@ -394,6 +394,7 @@ func (sp *StateProcessor[
 		)
 	}
 
+	// Check to make sure the proposer isn't slashed.
 	if proposer.IsSlashed() {
 		return errors.Wrapf(
 			ErrSlashedProposer,
