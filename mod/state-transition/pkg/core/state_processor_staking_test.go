@@ -128,7 +128,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 			{
 				Pubkey:      genDeposits[0].Pubkey,
 				Credentials: emptyCredentials,
-				Amount:      minBalance,
+				Amount:      minBalance, // avoid breaching maxBalance
 				Index:       genDeposits[0].Index,
 			},
 		}
@@ -140,36 +140,35 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	genStateRoot := beaconState.HashTreeRoot()
 	genBlockHeader.SetStateRoot(genStateRoot)
 
-	blk, err := new(types.BeaconBlock).NewWithVersion(
-		genBlockHeader.GetSlot()+1,
-		genBlockHeader.GetProposerIndex(),
-		genBlockHeader.HashTreeRoot(),
-		version.Deneb,
-	)
-	require.NoError(t, err)
-	blk.Body = &types.BeaconBlockBody{
-		ExecutionPayload: &types.ExecutionPayload{
-			Timestamp:    10,
-			ExtraData:    []byte("testing"),
-			Transactions: [][]byte{[]byte("tx1")},
-			Withdrawals: []*engineprimitives.Withdrawal{
-				{ // fill empty withdrawals
-					Index:     0,
-					Validator: 0,
-					Address:   emptyAddress,
-					Amount:    0,
+	blk := &types.BeaconBlock{
+		Slot:          genBlockHeader.GetSlot() + 1,
+		ProposerIndex: genBlockHeader.GetProposerIndex(),
+		ParentRoot:    genBlockHeader.HashTreeRoot(),
+		StateRoot:     common.Root{},
+		Body: &types.BeaconBlockBody{
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:    10,
+				ExtraData:    []byte("testing"),
+				Transactions: [][]byte{},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					{ // fill empty withdrawals
+						Index:     0,
+						Validator: 0,
+						Address:   emptyAddress,
+						Amount:    0,
+					},
+					{
+						Index:     1,
+						Validator: 1,
+						Address:   emptyAddress,
+						Amount:    0,
+					},
 				},
-				{
-					Index:     1,
-					Validator: 1,
-					Address:   emptyAddress,
-					Amount:    0,
-				},
+				BaseFeePerGas: math.NewU256(0),
 			},
-			BaseFeePerGas: math.NewU256(0),
+			Eth1Data: &types.Eth1Data{},
+			Deposits: blkDeposits,
 		},
-		Eth1Data: &types.Eth1Data{},
-		Deposits: blkDeposits,
 	}
 
 	// run the test
