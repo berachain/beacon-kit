@@ -365,7 +365,7 @@ wal_dir = ""
 size = 0
 
 # Maximum size in bytes of a single transaction accepted into the mempool.
-max_tx_bytes = 1048576
+max_tx_bytes = 104857600 // 100 MB high enough to be impossible to hit
 
 # The maximum size in bytes of all transactions stored in the mempool.
 # This is the raw, total transaction size. For example, given 1MB
