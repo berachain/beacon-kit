@@ -199,18 +199,18 @@ func (sp *StateProcessor[
 
 	// TODO: This is a bug that lives on bArtio. Delete this eventually.
 	if sp.cs.DepositEth1ChainID() == bArtioChainID {
-		if err := st.AddValidatorBartio(val); err != nil {
-			return err
-		}
-	} else if err := st.AddValidator(val); err != nil {
-		return err
+		// Note in AddValidatorBartio we implicitly increase
+		// the balance from state st. This is unlike AddValidator.
+		return st.AddValidatorBartio(val)
 	}
 
+	if err := st.AddValidator(val); err != nil {
+		return err
+	}
 	idx, err := st.ValidatorIndexByPubkey(val.GetPubkey())
 	if err != nil {
 		return err
 	}
-
 	return st.IncreaseBalance(idx, dep.GetAmount())
 }
 
