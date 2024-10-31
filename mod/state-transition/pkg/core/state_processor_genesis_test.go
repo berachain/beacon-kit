@@ -164,8 +164,7 @@ func checkValidator(
 	require.NoError(t, err)
 	require.Equal(t, math.U64(dep.Index), idx)
 
-	var val *types.Validator
-	val, err = bs.ValidatorByIndex(idx)
+	val, err := bs.ValidatorByIndex(idx)
 	require.NoError(t, err)
 	require.Equal(t, dep.Pubkey, val.Pubkey)
 
@@ -180,7 +179,7 @@ func checkValidator(
 		require.Equal(t, dep.Amount, val.EffectiveBalance)
 
 		// validator balance must be multiple of EffectiveBalanceIncrement
-		require.True(t, val.EffectiveBalance%minBalance == 0)
+		require.Equal(t, math.U64(0), val.EffectiveBalance%minBalance)
 	case dep.Amount < minBalance:
 		require.Equal(t, math.Gwei(0), val.EffectiveBalance)
 	}
