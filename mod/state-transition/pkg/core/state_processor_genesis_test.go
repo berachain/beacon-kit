@@ -34,47 +34,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/mocks"
-	statedb "github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-)
-
-type (
-	TestBeaconStateMarshallableT = types.BeaconState[
-		*types.BeaconBlockHeader,
-		*types.Eth1Data,
-		*types.ExecutionPayloadHeader,
-		*types.Fork,
-		*types.Validator,
-		types.BeaconBlockHeader,
-		types.Eth1Data,
-		types.ExecutionPayloadHeader,
-		types.Fork,
-		types.Validator,
-	]
-
-	TestKVStoreT = beacondb.KVStore[
-		*types.BeaconBlockHeader,
-		*types.Eth1Data,
-		*types.ExecutionPayloadHeader,
-		*types.Fork,
-		*types.Validator,
-		types.Validators,
-	]
-
-	TestBeaconStateT = statedb.StateDB[
-		*types.BeaconBlockHeader,
-		*TestBeaconStateMarshallableT,
-		*types.Eth1Data,
-		*types.ExecutionPayloadHeader,
-		*types.Fork,
-		*TestKVStoreT,
-		*types.Validator,
-		types.Validators,
-		*engineprimitives.Withdrawal,
-		types.WithdrawalCredentials,
-	]
 )
 
 func TestInitialize(t *testing.T) {
@@ -183,4 +144,9 @@ func TestInitialize(t *testing.T) {
 		require.Equal(t, dep.Pubkey, val.Pubkey)
 		require.Equal(t, dep.Amount, val.EffectiveBalance)
 	}
+
+	// check that validator index is duly set
+	latestValIdx, err := beaconState.GetEth1DepositIndex()
+	require.NoError(t, err)
+	require.Equal(t, uint64(len(deposits)-1), latestValIdx)
 }
