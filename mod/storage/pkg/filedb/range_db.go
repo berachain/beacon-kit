@@ -93,6 +93,9 @@ func (db *RangeDB) DeleteRange(from, to uint64) error {
 	if !ok {
 		return errors.New("rangedb: delete range not supported for this db")
 	}
+	if from > to {
+		return pruner.ErrInvalidRange
+	}
 	for ; from < to; from++ {
 		path := strconv.FormatUint(from, 10) + "/"
 		if err := f.fs.RemoveAll(path); err != nil {
@@ -105,6 +108,10 @@ func (db *RangeDB) DeleteRange(from, to uint64) error {
 // Prune removes all values in the given range [start, end) from the db.
 func (db *RangeDB) Prune(start, end uint64) error {
 	start = max(start, db.firstNonNilIndex)
+	if start > end {
+		return pruner.ErrInvalidRange
+	}
+
 	if err := db.DeleteRange(start, end); err != nil {
 		// Resets last pruned index in case Delete somehow populates indices on
 		// err. This will cause the next prune operation is O(n), but next
