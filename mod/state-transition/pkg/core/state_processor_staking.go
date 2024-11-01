@@ -191,25 +191,27 @@ func (sp *StateProcessor[
 		math.Gwei(sp.cs.MaxEffectiveBalance()),
 	)
 
-	// BeaconKit enforces a cap on the validator set size. If a deposit is made
-	// that would breach the cap, we mark the validator as immediately
-	// withdrawable, so that it will be evicted in the next block along with
-	// the amount deposited.
-	validators, err := st.GetValidators()
-	if err != nil {
-		return err
-	}
-
-	//#nosec:G701 // can't overflow.
-	if uint32(len(validators)) >= sp.cs.GetValidatorsSetCapSize() {
-		var slot math.Slot
-		slot, err = st.GetSlot()
+	if !sp.processingGenesis {
+		// BeaconKit enforces a cap on the validator set size. If a deposit is made
+		// that would breach the cap, we mark the validator as immediately
+		// withdrawable, so that it will be evicted in the next block along with
+		// the amount deposited.
+		validators, err := st.GetValidators()
 		if err != nil {
 			return err
 		}
 
-		epoch := sp.cs.SlotToEpoch(slot)
-		val.SetWithdrawableEpoch(epoch)
+		//#nosec:G701 // can't overflow.
+		if uint32(len(validators)) >= sp.cs.GetValidatorsSetCapSize() {
+			var slot math.Slot
+			slot, err = st.GetSlot()
+			if err != nil {
+				return err
+			}
+
+			epoch := sp.cs.SlotToEpoch(slot)
+			val.SetWithdrawableEpoch(epoch)
+		}
 	}
 
 	// TODO: This is a bug that lives on bArtio. Delete this eventually.
@@ -217,12 +219,11 @@ func (sp *StateProcessor[
 		return st.AddValidatorBartio(val)
 	}
 
-	if err = st.AddValidator(val); err != nil {
+	if err := st.AddValidator(val); err != nil {
 		return err
 	}
 
-	var idx math.U64
-	idx, err = st.ValidatorIndexByPubkey(val.GetPubkey())
+	idx, err := st.ValidatorIndexByPubkey(val.GetPubkey())
 	if err != nil {
 		return err
 	}
