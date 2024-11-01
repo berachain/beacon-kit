@@ -98,12 +98,11 @@ func (sp *Processor[
 	cs ConsensusSidecarsT,
 ) error {
 	var (
-		startTime = time.Now()
 		sidecars  = cs.GetSidecars()
 		blkHeader = cs.GetHeader()
 	)
 	defer sp.metrics.measureVerifySidecarsDuration(
-		startTime, math.U64(sidecars.Len()),
+		time.Now(), math.U64(sidecars.Len()),
 	)
 
 	// Abort if there are no blobs to store.
@@ -129,9 +128,8 @@ func (sp *Processor[
 	avs AvailabilityStoreT,
 	sidecars BlobSidecarsT,
 ) error {
-	startTime := time.Now()
 	defer sp.metrics.measureProcessSidecarsDuration(
-		startTime, math.U64(sidecars.Len()),
+		time.Now(), math.U64(sidecars.Len()),
 	)
 
 	// Abort if there are no blobs to store.

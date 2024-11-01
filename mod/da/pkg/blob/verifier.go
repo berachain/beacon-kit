@@ -66,13 +66,8 @@ func (bv *verifier[_, _, BlobSidecarsT]) verifySidecars(
 	kzgOffset uint64,
 	blkHeader BeaconBlockHeader,
 ) error {
-	var (
-		g, _      = errgroup.WithContext(context.Background())
-		startTime = time.Now()
-	)
-
 	defer bv.metrics.measureVerifySidecarsDuration(
-		startTime, math.U64(sidecars.Len()),
+		time.Now(), math.U64(sidecars.Len()),
 		bv.proofVerifier.GetImplementation(),
 	)
 
@@ -85,6 +80,7 @@ func (bv *verifier[_, _, BlobSidecarsT]) verifySidecars(
 	}
 
 	// Verify the inclusion proofs on the blobs concurrently.
+	g, _ := errgroup.WithContext(context.Background())
 	g.Go(func() error {
 		// TODO: KZGOffset needs to be configurable and not
 		// passed in.
