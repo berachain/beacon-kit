@@ -21,11 +21,13 @@
 package core_test
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	cryptomocks "github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/mocks"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -180,4 +182,158 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	latestValIdx, err := beaconState.GetEth1DepositIndex()
 	require.NoError(t, err)
 	require.Equal(t, uint64(len(genDeposits)), latestValIdx)
+}
+
+func TestTransitionHittingValidatorsCap(t *testing.T) {
+	// Create state processor to test
+	cs := spec.BetnetChainSpec()
+	execEngine := mocks.NewExecutionEngine[
+		*types.ExecutionPayload,
+		*types.ExecutionPayloadHeader,
+		engineprimitives.Withdrawals,
+	](t)
+	mocksSigner := &cryptomocks.BLSSigner{}
+
+	sp := core.NewStateProcessor[
+		*types.BeaconBlock,
+		*types.BeaconBlockBody,
+		*types.BeaconBlockHeader,
+		*TestBeaconStateT,
+		*transition.Context,
+		*types.Deposit,
+		*types.Eth1Data,
+		*types.ExecutionPayload,
+		*types.ExecutionPayloadHeader,
+		*types.Fork,
+		*types.ForkData,
+		*TestKVStoreT,
+		*types.Validator,
+		types.Validators,
+		*engineprimitives.Withdrawal,
+		engineprimitives.Withdrawals,
+		types.WithdrawalCredentials,
+	](
+		cs,
+		execEngine,
+		mocksSigner,
+	)
+
+	kvStore, err := initTestStore()
+	require.NoError(t, err)
+	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
+
+	var (
+		maxBalance       = math.Gwei(cs.MaxEffectiveBalance())
+		minBalance       = math.Gwei(cs.EffectiveBalanceIncrement())
+		emptyAddress     = common.ExecutionAddress{}
+		emptyCredentials = types.NewCredentialsFromExecutionAddress(
+			emptyAddress,
+		)
+	)
+
+	// Setup initial state via genesis
+	// TODO: consider instead setting state artificially
+	var (
+		genDeposits      = make([]*types.Deposit, 0, cs.GetValidatorsSetCapSize())
+		valPKSeed        = 2024 // seed used to generate unique PK for validators
+		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genVersion       = version.FromUint32[common.Version](version.Deneb)
+	)
+
+	// let genesis define all available validators
+	for idx := range cs.GetValidatorsSetCapSize() {
+		var key bytes.B48
+		key, valPKSeed = generateTestPK(t, valPKSeed)
+
+		genDeposits = append(genDeposits,
+			&types.Deposit{
+				Pubkey:      key,
+				Credentials: emptyCredentials,
+				Amount:      maxBalance,
+				Index:       uint64(idx),
+			},
+		)
+	}
+
+	mocksSigner.On(
+		"VerifySignature",
+		mock.Anything, mock.Anything, mock.Anything,
+	).Return(nil)
+
+	_, err = sp.InitializePreminedBeaconStateFromEth1(
+		beaconState,
+		genDeposits,
+		genPayloadHeader,
+		genVersion,
+	)
+	require.NoError(t, err)
+
+	// create test inputs
+	extraValKey, _ := generateTestPK(t, valPKSeed)
+	var (
+		ctx = &transition.Context{
+			SkipPayloadVerification: true,
+			SkipValidateResult:      true,
+		}
+		blkDeposits = []*types.Deposit{
+			{
+				Pubkey:      extraValKey,
+				Credentials: emptyCredentials,
+				Amount:      minBalance, // avoid breaching maxBalance
+				Index:       genDeposits[0].Index,
+			},
+		}
+	)
+
+	// here we duly update state root, similarly to what we do in processSlot
+	genBlockHeader, err := beaconState.GetLatestBlockHeader()
+	require.NoError(t, err)
+	genStateRoot := beaconState.HashTreeRoot()
+	genBlockHeader.SetStateRoot(genStateRoot)
+
+	blk := &types.BeaconBlock{
+		Slot:          genBlockHeader.GetSlot() + 1,
+		ProposerIndex: genBlockHeader.GetProposerIndex(),
+		ParentRoot:    genBlockHeader.HashTreeRoot(),
+		StateRoot:     common.Root{},
+		Body: &types.BeaconBlockBody{
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:     10,
+				ExtraData:     []byte("testing"),
+				Transactions:  [][]byte{},
+				Withdrawals:   []*engineprimitives.Withdrawal{}, // no withdrawals
+				BaseFeePerGas: math.NewU256(0),
+			},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: blkDeposits,
+		},
+	}
+
+	// run the test
+	vals, err := sp.Transition(ctx, beaconState, blk)
+
+	// check outputs
+	require.NoError(t, err)
+	require.Zero(t, vals) // no new validators (with minimal weight)
+
+	// check extra validator is added with Withdraw epoch duly set
+	idx, err := beaconState.ValidatorIndexByPubkey(blkDeposits[0].Pubkey)
+	require.NoError(t, err)
+	val, err := beaconState.ValidatorByIndex(idx)
+	require.NoError(t, err)
+	require.Equal(t, blkDeposits[0].Pubkey, val.Pubkey)
+	require.Equal(t, blkDeposits[0].Amount, val.EffectiveBalance)
+	require.Equal(t, math.Slot(0), val.WithdrawableEpoch)
+
+	// TODO: Add next block and show withdrawals for extra validator are added
+}
+
+func generateTestPK(t *testing.T, valPKSeed int) (bytes.B48, int) {
+	t.Helper()
+	keyStr := strconv.Itoa(valPKSeed)
+	keyBytes := bytes.ExtendToSize([]byte(keyStr), bytes.B48Size)
+	key, err := bytes.ToBytes48(keyBytes)
+	require.NoError(t, err)
+	valPKSeed++
+	return key, valPKSeed
 }
