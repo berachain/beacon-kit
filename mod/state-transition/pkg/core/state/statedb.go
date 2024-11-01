@@ -251,6 +251,9 @@ func (s *StateDB[
 				withdrawalAddress,
 				balance,
 			))
+
+			// Increment the withdrawal index to process the next withdrawal.
+			withdrawalIndex++
 		} else if validator.IsPartiallyWithdrawable(
 			balance, math.Gwei(s.cs.MaxEffectiveBalance()),
 		) {
@@ -260,10 +263,10 @@ func (s *StateDB[
 				withdrawalAddress,
 				balance-math.Gwei(s.cs.MaxEffectiveBalance()),
 			))
-		}
 
-		// Increment the withdrawal index to process the next withdrawal.
-		withdrawalIndex++
+			// Increment the withdrawal index to process the next withdrawal.
+			withdrawalIndex++
+		}
 
 		// Cap the number of withdrawals to the maximum allowed per payload.
 		//#nosec:G701 // won't overflow in practice.
