@@ -39,6 +39,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestTransitionUpdateValidators shows that when validator is
+// updated (increasing amount), corrensponding balance is updated.
 func TestTransitionUpdateValidators(t *testing.T) {
 	// Create state processor to test
 	cs := spec.BetnetChainSpec()
@@ -136,12 +138,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		}
 	)
 
-	// here we duly update state root, similarly to what we do in processSlot
-	genBlockHeader, err := beaconState.GetLatestBlockHeader()
-	require.NoError(t, err)
-	genStateRoot := beaconState.HashTreeRoot()
-	genBlockHeader.SetStateRoot(genStateRoot)
-
+	genBlockHeader := updateStateRootForLatestBlock(t, beaconState)
 	blk := &types.BeaconBlock{
 		Slot:          genBlockHeader.GetSlot() + 1,
 		ProposerIndex: genBlockHeader.GetProposerIndex(),
@@ -184,6 +181,9 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	require.Equal(t, uint64(len(genDeposits)), latestValIdx)
 }
 
+// TestTransitionHittingValidatorsCap shows that no extra
+// validators are added when validators set is at cap and
+// that deposit of the extra validator are withdrawed.
 func TestTransitionHittingValidatorsCap(t *testing.T) {
 	// Create state processor to test
 	cs := spec.BetnetChainSpec()
@@ -220,35 +220,35 @@ func TestTransitionHittingValidatorsCap(t *testing.T) {
 
 	kvStore, err := initTestStore()
 	require.NoError(t, err)
-	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
+	bs := new(TestBeaconStateT).NewFromDB(kvStore, cs)
 
 	var (
-		maxBalance       = math.Gwei(cs.MaxEffectiveBalance())
-		minBalance       = math.Gwei(cs.EffectiveBalanceIncrement())
-		emptyAddress     = common.ExecutionAddress{}
-		emptyCredentials = types.NewCredentialsFromExecutionAddress(
-			emptyAddress,
-		)
+		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
+		minBalance = math.Gwei(cs.EffectiveBalanceIncrement())
+		rndSeed    = 2024 // seed used to generate unique random value
 	)
 
 	// Setup initial state via genesis
 	// TODO: consider instead setting state artificially
 	var (
 		genDeposits      = make([]*types.Deposit, 0, cs.GetValidatorsSetCapSize())
-		valPKSeed        = 2024 // seed used to generate unique PK for validators
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		genVersion       = version.FromUint32[common.Version](version.Deneb)
 	)
 
 	// let genesis define all available validators
 	for idx := range cs.GetValidatorsSetCapSize() {
-		var key bytes.B48
-		key, valPKSeed = generateTestPK(t, valPKSeed)
+		var (
+			key   bytes.B48
+			creds types.WithdrawalCredentials
+		)
+		key, rndSeed = generateTestPK(t, rndSeed)
+		creds, _, rndSeed = generateTestExecutionAddress(t, rndSeed)
 
 		genDeposits = append(genDeposits,
 			&types.Deposit{
 				Pubkey:      key,
-				Credentials: emptyCredentials,
+				Credentials: creds,
 				Amount:      maxBalance,
 				Index:       uint64(idx),
 			},
@@ -261,7 +261,7 @@ func TestTransitionHittingValidatorsCap(t *testing.T) {
 	).Return(nil)
 
 	_, err = sp.InitializePreminedBeaconStateFromEth1(
-		beaconState,
+		bs,
 		genDeposits,
 		genPayloadHeader,
 		genVersion,
@@ -269,7 +269,8 @@ func TestTransitionHittingValidatorsCap(t *testing.T) {
 	require.NoError(t, err)
 
 	// create test inputs
-	extraValKey, _ := generateTestPK(t, valPKSeed)
+	extraValKey, rndSeed := generateTestPK(t, rndSeed)
+	extraValCreds, extraValAddr, _ := generateTestExecutionAddress(t, rndSeed)
 	var (
 		ctx = &transition.Context{
 			SkipPayloadVerification: true,
@@ -278,20 +279,15 @@ func TestTransitionHittingValidatorsCap(t *testing.T) {
 		blkDeposits = []*types.Deposit{
 			{
 				Pubkey:      extraValKey,
-				Credentials: emptyCredentials,
+				Credentials: extraValCreds,
 				Amount:      minBalance, // avoid breaching maxBalance
 				Index:       genDeposits[0].Index,
 			},
 		}
 	)
 
-	// here we duly update state root, similarly to what we do in processSlot
-	genBlockHeader, err := beaconState.GetLatestBlockHeader()
-	require.NoError(t, err)
-	genStateRoot := beaconState.HashTreeRoot()
-	genBlockHeader.SetStateRoot(genStateRoot)
-
-	blk := &types.BeaconBlock{
+	genBlockHeader := updateStateRootForLatestBlock(t, bs)
+	blk1 := &types.BeaconBlock{
 		Slot:          genBlockHeader.GetSlot() + 1,
 		ProposerIndex: genBlockHeader.GetProposerIndex(),
 		ParentRoot:    genBlockHeader.HashTreeRoot(),
@@ -310,30 +306,90 @@ func TestTransitionHittingValidatorsCap(t *testing.T) {
 	}
 
 	// run the test
-	vals, err := sp.Transition(ctx, beaconState, blk)
+	vals1, err := sp.Transition(ctx, bs, blk1)
 
 	// check outputs
 	require.NoError(t, err)
-	require.Zero(t, vals) // no new validators (with minimal weight)
+	require.Zero(t, vals1) // no new validators (with minimal weight)
 
 	// check extra validator is added with Withdraw epoch duly set
-	idx, err := beaconState.ValidatorIndexByPubkey(blkDeposits[0].Pubkey)
+	extraValIdx, err := bs.ValidatorIndexByPubkey(blkDeposits[0].Pubkey)
 	require.NoError(t, err)
-	val, err := beaconState.ValidatorByIndex(idx)
+	extraVal, err := bs.ValidatorByIndex(extraValIdx)
 	require.NoError(t, err)
-	require.Equal(t, blkDeposits[0].Pubkey, val.Pubkey)
-	require.Equal(t, blkDeposits[0].Amount, val.EffectiveBalance)
-	require.Equal(t, math.Slot(0), val.WithdrawableEpoch)
+	require.Equal(t, blkDeposits[0].Pubkey, extraVal.Pubkey)
+	require.Equal(t, blkDeposits[0].Amount, extraVal.EffectiveBalance)
+	require.Equal(t, math.Slot(0), extraVal.WithdrawableEpoch)
 
 	// TODO: Add next block and show withdrawals for extra validator are added
+	blk1Header := updateStateRootForLatestBlock(t, bs)
+	blk2 := &types.BeaconBlock{
+		Slot:          blk1Header.GetSlot() + 1,
+		ProposerIndex: blk1Header.GetProposerIndex(),
+		ParentRoot:    blk1Header.HashTreeRoot(),
+		StateRoot:     common.Root{},
+		Body: &types.BeaconBlockBody{
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:    blk1.Body.ExecutionPayload.Timestamp + 1,
+				ExtraData:    []byte("testing"),
+				Transactions: [][]byte{},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					{
+						Index:     0,
+						Validator: extraValIdx,
+						Address:   extraValAddr,
+						Amount:    extraVal.EffectiveBalance,
+					},
+				},
+				BaseFeePerGas: math.NewU256(0),
+			},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: blkDeposits,
+		},
+	}
+
+	// run the test
+	vals2, err := sp.Transition(ctx, bs, blk2)
+	require.NoError(t, err)
+	require.Zero(t, vals2) // no new validators
 }
 
-func generateTestPK(t *testing.T, valPKSeed int) (bytes.B48, int) {
+func updateStateRootForLatestBlock(
+	t *testing.T,
+	bs *TestBeaconStateT,
+) *types.BeaconBlockHeader {
 	t.Helper()
-	keyStr := strconv.Itoa(valPKSeed)
+
+	// here we duly update state root, similarly to what we do in processSlot
+	latestBlkHeader, err := bs.GetLatestBlockHeader()
+	require.NoError(t, err)
+	root := bs.HashTreeRoot()
+	latestBlkHeader.SetStateRoot(root)
+	return latestBlkHeader
+}
+
+func generateTestExecutionAddress(
+	t *testing.T,
+	rndSeed int,
+) (types.WithdrawalCredentials, common.ExecutionAddress, int) {
+	t.Helper()
+
+	addrStr := strconv.Itoa(rndSeed)
+	addrBytes := bytes.ExtendToSize([]byte(addrStr), bytes.B20Size)
+	execAddr, err := bytes.ToBytes20(addrBytes)
+	require.NoError(t, err)
+	rndSeed++
+	return types.NewCredentialsFromExecutionAddress(
+		common.ExecutionAddress(execAddr),
+	), common.ExecutionAddress(execAddr), rndSeed
+}
+
+func generateTestPK(t *testing.T, rndSeed int) (bytes.B48, int) {
+	t.Helper()
+	keyStr := strconv.Itoa(rndSeed)
 	keyBytes := bytes.ExtendToSize([]byte(keyStr), bytes.B48Size)
 	key, err := bytes.ToBytes48(keyBytes)
 	require.NoError(t, err)
-	valPKSeed++
-	return key, valPKSeed
+	rndSeed++
+	return key, rndSeed
 }
