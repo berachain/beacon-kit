@@ -23,6 +23,10 @@ package core
 import "github.com/berachain/beacon-kit/mod/errors"
 
 var (
+	// ErrBlockSlotTooLow is returned when we try and add a validator
+	// that would breach validator set size cap.
+	ErrHitValidatorsSetCap = errors.New("hit validator set size cap")
+
 	// ErrBlockSlotTooLow is returned when the block slot is too low.
 	ErrBlockSlotTooLow = errors.New("block slot too low")
 
