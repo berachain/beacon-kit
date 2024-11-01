@@ -146,4 +146,7 @@ type SpecData[
 
 	// CometValues
 	CometValues CometBFTConfigT `mapstructure:"comet-bft-config"`
+
+	// Validators Set config
+	ValidatorSetCapSize uint32 `mapstructure:"validator-set-cap-size"`
 }

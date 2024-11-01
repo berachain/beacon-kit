@@ -183,6 +183,8 @@ type Spec[
 	// GetCometBFTConfigForSlot retrieves the CometBFT config for a specific
 	// slot.
 	GetCometBFTConfigForSlot(slot SlotT) CometBFTConfigT
+
+	GetValidatorsSetCapSize() uint32
 }
 
 // chainSpec is a concrete implementation of the ChainSpec interface, holding
@@ -475,4 +477,10 @@ func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) GetCometBFTConfigForSlot(_ SlotT) CometBFTConfigT {
 	return c.Data.CometValues
+}
+
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
+]) GetValidatorsSetCapSize() uint32 {
+	return c.Data.ValidatorSetCapSize
 }
