@@ -82,11 +82,8 @@ func (s *Service[
 	// TODO: this is hood as fuck.
 	// We won't send an fcu if the block is bad, should be addressed
 	// via ticker later.
-	if err = s.dispatcher.Publish(
-		async.NewEvent(
-			ctx, async.BeaconBlockFinalized, blk,
-		),
-	); err != nil {
+	event := async.NewEvent(ctx, async.BeaconBlockFinalized, blk)
+	if err = s.dispatcher.Publish(event); err != nil {
 		return nil, err
 	}
 
