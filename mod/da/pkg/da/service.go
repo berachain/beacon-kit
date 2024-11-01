@@ -136,6 +136,14 @@ func (s *Service[_, BlobSidecarsT]) handleFinalSidecarsReceived(
 			err,
 		)
 	}
+
+	event := async.NewEvent(msg.Context(), async.BlobSidecarsFinalized, struct{}{})
+	if err := s.dispatcher.Publish(event); err != nil {
+		s.logger.Error(
+			"Failed to publish blob finalized event",
+			"error", err,
+		)
+	}
 }
 
 // handleSidecarsReceived handles the SidecarsVerifyRequest event.
