@@ -23,7 +23,6 @@ package blob
 import (
 	"context"
 	"fmt"
-	"reflect"
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
@@ -34,7 +33,7 @@ import (
 // verifier is responsible for verifying blobs, including their
 // inclusion and KZG proofs.
 type verifier[
-	BeaconBlockHeaderT BeaconBlockHeader,
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BlobSidecarT Sidecar[BeaconBlockHeaderT],
 	BlobSidecarsT Sidecars[BlobSidecarT],
 ] struct {
@@ -46,7 +45,7 @@ type verifier[
 
 // newVerifier creates a new Verifier with the given proof verifier.
 func newVerifier[
-	BeaconBlockHeaderT BeaconBlockHeader,
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BlobSidecarT Sidecar[BeaconBlockHeaderT],
 	BlobSidecarsT Sidecars[BlobSidecarT],
 ](
@@ -61,10 +60,10 @@ func newVerifier[
 
 // verifySidecars verifies the blobs for both inclusion as well
 // as the KZG proofs.
-func (bv *verifier[_, _, BlobSidecarsT]) verifySidecars(
+func (bv *verifier[BeaconBlockHeaderT, _, BlobSidecarsT]) verifySidecars(
 	sidecars BlobSidecarsT,
 	kzgOffset uint64,
-	blkHeader BeaconBlockHeader,
+	blkHeader BeaconBlockHeaderT,
 ) error {
 	defer bv.metrics.measureVerifySidecarsDuration(
 		time.Now(), math.U64(sidecars.Len()),
@@ -74,7 +73,7 @@ func (bv *verifier[_, _, BlobSidecarsT]) verifySidecars(
 	// check that sideracs block headers match with header of the
 	// corresponding block
 	for i, s := range sidecars.GetSidecars() {
-		if !reflect.DeepEqual(s.GetBeaconBlockHeader(), blkHeader) {
+		if !s.GetBeaconBlockHeader().Equals(blkHeader) {
 			return fmt.Errorf("unequal block header: idx: %d", i)
 		}
 	}

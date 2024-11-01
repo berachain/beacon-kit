@@ -189,6 +189,7 @@ type (
 		SetStateRoot(common.Root)
 		GetBodyRoot() common.Root
 		GetTree() (*fastssz.Node, error)
+		Equals(T) bool
 	}
 
 	// BeaconStateMarshallable represents an interface for a beacon state
