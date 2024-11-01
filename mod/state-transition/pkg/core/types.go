@@ -232,6 +232,8 @@ type Validator[
 	SetEffectiveBalance(math.Gwei)
 	// GetWithdrawableEpoch returns the epoch when the validator can withdraw.
 	GetWithdrawableEpoch() math.Epoch
+
+	SetWithdrawableEpoch(math.Epoch)
 }
 
 type Validators interface {
