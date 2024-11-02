@@ -21,10 +21,13 @@
 package core
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
+	storageerrors "github.com/berachain/beacon-kit/mod/storage/pkg/errors"
 	"github.com/davecgh/go-spew/spew"
 )
 
@@ -105,8 +108,9 @@ func (sp *StateProcessor[
 	dep DepositT,
 ) error {
 	idx, err := st.ValidatorIndexByPubkey(dep.GetPubkey())
-	// If the validator already exists, we update the balance.
-	if err == nil {
+	switch {
+	case err == nil:
+		// If the validator already exists, we update the balance.
 		var val ValidatorT
 		val, err = st.ValidatorByIndex(idx)
 		if err != nil {
@@ -114,14 +118,16 @@ func (sp *StateProcessor[
 		}
 
 		// TODO: Modify balance here and then effective balance once per epoch.
-		val.SetEffectiveBalance(min(val.GetEffectiveBalance()+dep.GetAmount(),
-			math.Gwei(sp.cs.MaxEffectiveBalance())))
+		maxBalance := math.Gwei(sp.cs.MaxEffectiveBalance())
+		newBalance := min(val.GetEffectiveBalance()+dep.GetAmount(), maxBalance)
+		val.SetEffectiveBalance(newBalance)
 		return st.UpdateValidatorAtIndex(idx, val)
+	case errors.Is(err, storageerrors.ErrNotFound):
+		// If the validator does not exist, we add the validator.
+		return sp.createValidator(st, dep)
+	default:
+		return fmt.Errorf("failed retrieving validator by PubKey: %w", err)
 	}
-
-	// If the validator does not exist, we add the validator.
-	// Add the validator to the registry.
-	return sp.createValidator(st, dep)
 }
 
 // createValidator creates a validator if the deposit is valid.
