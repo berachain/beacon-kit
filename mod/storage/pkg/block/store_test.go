@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/block"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/errors"
 	"github.com/stretchr/testify/require"
 )
 
@@ -39,7 +40,7 @@ func (m MockBeaconBlock) GetSlot() math.Slot {
 }
 
 func (m MockBeaconBlock) HashTreeRoot() common.Root {
-	return [32]byte{byte(m.slot)}
+	return common.Root{byte(m.slot)}
 }
 
 func (m MockBeaconBlock) GetTimestamp() math.U64 {
@@ -47,7 +48,7 @@ func (m MockBeaconBlock) GetTimestamp() math.U64 {
 }
 
 func (m MockBeaconBlock) GetStateRoot() common.Root {
-	return [32]byte{byte(m.slot)}
+	return common.Root{byte(m.slot)}
 }
 
 func TestBlockStore(t *testing.T) {
@@ -81,8 +82,10 @@ func TestBlockStore(t *testing.T) {
 	}
 
 	// Try getting a slot that doesn't exist.
-	_, err = blockStore.GetSlotByBlockRoot([32]byte{byte(8)})
-	require.ErrorContains(t, err, "not found")
+	_, err = blockStore.GetSlotByBlockRoot(common.Root{byte(8)})
+	require.ErrorIs(t, err, errors.ErrNotFound)
 	_, err = blockStore.GetParentSlotByTimestamp(2)
-	require.ErrorContains(t, err, "not found")
+	require.ErrorIs(t, err, errors.ErrNotFound)
+	_, err = blockStore.GetSlotByStateRoot(common.Root{byte(8)})
+	require.ErrorIs(t, err, errors.ErrNotFound)
 }

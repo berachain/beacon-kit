@@ -21,9 +21,11 @@
 package beacondb
 
 import (
-	"cosmossdk.io/collections"
-	"github.com/berachain/beacon-kit/mod/errors"
+	stderrors "errors"
+	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/errors"
 )
 
 func (kv *KVStore[
@@ -32,11 +34,15 @@ func (kv *KVStore[
 ]) GetSlashings() ([]math.Gwei, error) {
 	var slashings []math.Gwei
 	iter, err := kv.slashings.Iterate(kv.ctx, nil)
+	err = errors.MapError(err)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf(
+			"failed iterating slashings: %w",
+			err,
+		)
 	}
 	defer func() {
-		err = errors.Join(err, iter.Close())
+		err = stderrors.Join(err, iter.Close())
 	}()
 
 	for ; iter.Valid(); iter.Next() {
@@ -58,9 +64,8 @@ func (kv *KVStore[
 	index uint64,
 ) (math.Gwei, error) {
 	amount, err := kv.slashings.Get(kv.ctx, index)
-	if errors.Is(err, collections.ErrNotFound) {
-		return 0, nil
-	} else if err != nil {
+	err = errors.MapError(err)
+	if err != nil {
 		return 0, err
 	}
 	return math.Gwei(amount), nil
@@ -83,9 +88,8 @@ func (kv *KVStore[
 	ForkT, ValidatorT, ValidatorsT,
 ]) GetTotalSlashing() (math.Gwei, error) {
 	total, err := kv.totalSlashing.Get(kv.ctx)
-	if errors.Is(err, collections.ErrNotFound) {
-		return 0, nil
-	} else if err != nil {
+	err = errors.MapError(err)
+	if err != nil {
 		return 0, err
 	}
 	return math.Gwei(total), nil
