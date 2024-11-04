@@ -24,6 +24,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -70,36 +71,39 @@ func SlotFromBlockID[StorageBackendT interface {
 	return storage.GetSlotByBlockRoot(root)
 }
 
-// SlotFromExecutionID returns a slot from the execution number ID.
+// ParentSlotFromTimestampID returns the parent slot corresponding to the
+// timestamp ID.
 //
-// NOTE: `executionID` shares the same semantics as `stateID`, with the
-// modification of being able to query by beacon block <executionNumber>
-// instead of <stateRoot>.
+// NOTE: `timestampID` shares the same semantics as `stateID`, with the
+// modification of being able to query by next block's <timestamp> instead of
+// the current block's <stateRoot>.
 //
-// The <executionNumber> must be prefixed by the 'n', followed by the execution
-// number in decimal notation. For example 'n1722463215' corresponds to
-// the slot with execution number 1722463215. Providing just the string
-// '1722463215' (without the prefix 'n') will query for the beacon block with
-// slot 1722463215.
-func SlotFromExecutionID[StorageBackendT interface {
-	GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error)
-}](executionID string, storage StorageBackendT) (math.Slot, error) {
-	if !IsExecutionNumberPrefix(executionID) {
-		return slotFromStateID(executionID)
+// The <timestamp> must be prefixed by the 't', followed by the timestamp
+// in decimal UNIX notation. For example 't1728681738' corresponds to the slot
+// which has the next block with a timestamp of 1728681738. Providing just the
+// string '1728681738' (without the prefix 't') will query for the beacon block
+// for slot 1728681738.
+func ParentSlotFromTimestampID[StorageBackendT interface {
+	GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
+}](timestampID string, storage StorageBackendT) (math.Slot, error) {
+	if !IsTimestampIDPrefix(timestampID) {
+		return slotFromStateID(timestampID)
 	}
 
-	// Parse the execution number from the executionID.
-	executionNumber, err := U64FromString(executionID[1:])
+	// Parse the timestamp from the timestampID.
+	timestamp, err := U64FromString(timestampID[1:])
 	if err != nil {
-		return 0, err
+		return 0, errors.Wrapf(
+			err, "failed to parse timestamp from timestampID: %s", timestampID,
+		)
 	}
-	return storage.GetSlotByExecutionNumber(executionNumber)
+	return storage.GetParentSlotByTimestamp(timestamp)
 }
 
-// IsExecutionNumberPrefix checks if the given executionID is prefixed
-// with the execution number prefix.
-func IsExecutionNumberPrefix(executionID string) bool {
-	return strings.HasPrefix(executionID, ExecutionIDPrefix)
+// IsTimestampIDPrefix checks if the given timestampID is prefixed with the
+// correct prefix 't'.
+func IsTimestampIDPrefix(timestampID string) bool {
+	return strings.HasPrefix(timestampID, TimestampIDPrefix)
 }
 
 // U64FromString returns a math.U64 from the given string. Errors if the given

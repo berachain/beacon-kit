@@ -63,7 +63,7 @@ func (b *BeaconBlockBody) Empty(forkVersion uint32) *BeaconBlockBody {
 			},
 		}
 	default:
-		panic("unsupported fork version")
+		panic(ErrForkVersionNotSupported)
 	}
 }
 
@@ -78,7 +78,7 @@ func BlockBodyKZGOffset(
 	case version.Deneb:
 		return KZGMerkleIndexDeneb * cs.MaxBlobCommitmentsPerBlock()
 	default:
-		panic("unsupported fork version")
+		panic(ErrForkVersionNotSupported)
 	}
 }
 

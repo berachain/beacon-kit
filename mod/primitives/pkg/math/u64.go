@@ -24,6 +24,7 @@ import (
 	"math/big"
 	"strconv"
 
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math/pow"
@@ -67,7 +68,11 @@ func (u U64) MarshalText() ([]byte, error) {
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (u *U64) UnmarshalJSON(input []byte) error {
-	return hex.UnmarshalJSONText(input, u)
+	strippedInput, err := hex.ValidateQuotedString(input)
+	if err != nil {
+		return err
+	}
+	return u.UnmarshalText(strippedInput)
 }
 
 // ---------------------------------- Hex ----------------------------------
@@ -136,11 +141,19 @@ func (u U64) ILog2Floor() uint8 {
 
 // ---------------------------- Gwei Methods ----------------------------
 
+var ErrGweiOverflow = errors.New("gwei from big.Int overflows")
+
 // GweiFromWei returns the value of Wei in Gwei.
-func GweiFromWei(i *big.Int) Gwei {
+func GweiFromWei(i *big.Int) (Gwei, error) {
 	intToGwei := big.NewInt(0).SetUint64(GweiPerWei)
 	i.Div(i, intToGwei)
-	return Gwei(i.Uint64())
+	if !i.IsUint64() {
+		// a Gwei amount >= (2**64) * (10**9) or negative would not
+		// be representable as uint64. This should not happen but
+		// we still guard against a serialization bug or other mishap.
+		return 0, ErrGweiOverflow
+	}
+	return Gwei(i.Uint64()), nil
 }
 
 // ToWei converts a value from Gwei to Wei.

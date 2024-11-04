@@ -25,71 +25,58 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/proof/merkle"
-	"github.com/berachain/beacon-kit/mod/node-api/handlers/proof/merkle/mock"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/stretchr/testify/require"
 )
 
-// TestBlockProposerProof tests the ProveProposerInBlock function and
-// that the generated proof correctly verifies.
-func TestBlockProposerProof(t *testing.T) {
+// TestBlockProposerIndexProof tests the ProveProposerIndexInBlock function
+// and that the generated proof correctly verifies.
+func TestBlockProposerIndexProof(t *testing.T) {
 	testCases := []struct {
 		name              string
-		numValidators     int
 		slot              math.Slot
 		proposerIndex     math.ValidatorIndex
 		parentBlockRoot   common.Root
+		stateRoot         common.Root
 		bodyRoot          common.Root
-		pubKey            crypto.BLSPubkey
 		expectedProofFile string
 	}{
 		{
 			name:              "1 Validator Set",
-			numValidators:     1,
-			slot:              4,
+			slot:              69,
 			proposerIndex:     0,
 			parentBlockRoot:   common.Root{1, 2, 3},
-			bodyRoot:          common.Root{3, 2, 1},
-			pubKey:            [48]byte{9, 8, 7, 6, 5, 4, 3, 2, 1},
-			expectedProofFile: "one_validator_proposer_proof.json",
+			stateRoot:         common.Root{4, 5, 6},
+			bodyRoot:          common.Root{7, 8, 9},
+			expectedProofFile: "one_validator_proposer_index_proof.json",
 		},
 		{
 			name:              "Many Validator Set",
-			numValidators:     100,
-			slot:              5,
-			proposerIndex:     95,
-			parentBlockRoot:   common.Root{1, 2, 3, 4, 5, 6},
-			bodyRoot:          common.Root{3, 2, 1, 9, 8, 7},
-			pubKey:            [48]byte{9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2},
-			expectedProofFile: "many_validators_proposer_proof.json",
+			slot:              420,
+			proposerIndex:     69,
+			parentBlockRoot:   common.Root{1, 2, 3},
+			stateRoot:         common.Root{4, 5, 6},
+			bodyRoot:          common.Root{7, 8, 9},
+			expectedProofFile: "many_validators_proposer_index_proof.json",
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			vals := make(types.Validators, tc.numValidators)
-			for i := range vals {
-				vals[i] = &types.Validator{}
-			}
-			vals[tc.proposerIndex] = &types.Validator{Pubkey: tc.pubKey}
-
-			bs, err := mock.NewBeaconState(
-				tc.slot, vals, 0, common.ExecutionAddress{},
-			)
-			require.NoError(t, err)
-
 			bbh := (&types.BeaconBlockHeader{}).New(
 				tc.slot,
 				tc.proposerIndex,
 				tc.parentBlockRoot,
-				bs.HashTreeRoot(),
+				tc.stateRoot,
 				tc.bodyRoot,
 			)
 
-			proof, _, err := merkle.ProveProposerInBlock(bbh, bs)
+			proof, beaconRoot, err := merkle.ProveProposerIndexInBlock(bbh)
 			require.NoError(t, err)
+
+			require.Equal(t, bbh.HashTreeRoot(), beaconRoot)
+
 			expectedProof := ReadProofFromFile(t, tc.expectedProofFile)
 			require.Equal(t, expectedProof, proof)
 		})

@@ -68,13 +68,13 @@ func (v *ReportingService) Start(ctx context.Context) error {
 	ticker := time.NewTicker(v.reportingInterval)
 	v.metrics.reportVersion(v.version)
 	go func() {
+		defer ticker.Stop()
 		for {
 			select {
 			case <-ticker.C:
 				v.metrics.reportVersion(v.version)
 				continue
 			case <-ctx.Done():
-				ticker.Stop()
 				return
 			}
 		}
