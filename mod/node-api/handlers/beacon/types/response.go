@@ -197,3 +197,9 @@ func (fr ForkData) MarshalJSON() ([]byte, error) {
 		Epoch:           strconv.FormatUint(fr.GetEpoch().Unwrap(), 10),
 	})
 }
+
+type FinalityCheckpointsData struct {
+	PreviousJustified common.Checkpoint `json:"previous_justified"`
+	CurrentJustified  common.Checkpoint `json:"current_justified"`
+	Finalized         common.Checkpoint `json:"finalized"`
+}

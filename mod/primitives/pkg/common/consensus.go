@@ -21,6 +21,9 @@
 package common
 
 import (
+	encodinghex "encoding/hex"
+	"strconv"
+
 	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
@@ -117,4 +120,24 @@ func (r Root) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON parses a root in hex syntax.
 func (r *Root) UnmarshalJSON(input []byte) error {
 	return r.UnmarshalText(input[1 : len(input)-1])
+}
+
+// Checkpoint provides information about a checkpoint.
+type Checkpoint struct {
+	Epoch math.Epoch
+	Root  Root `ssz-size:"32"`
+}
+
+// checkpointJSON is an internal representation of the struct.
+type checkpointJSON struct {
+	Epoch string `json:"epoch"`
+	Root  string `json:"root"`
+}
+
+// MarshalJSON implements json.Marshaler.
+func (c Checkpoint) MarshalJSON() ([]byte, error) {
+	return json.Marshal(&checkpointJSON{
+		Epoch: strconv.FormatUint(uint64(c.Epoch), 10),
+		Root:  "0x" + encodinghex.EncodeToString(c.Root[:]),
+	})
 }
