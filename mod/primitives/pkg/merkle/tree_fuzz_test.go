@@ -45,16 +45,22 @@ func FuzzTree_IsValidMerkleBranch(f *testing.F) {
 		return proofs
 	}
 
-	items := [][32]byte{
-		byteslib.ToBytes32([]byte("A")),
-		byteslib.ToBytes32([]byte("B")),
-		byteslib.ToBytes32([]byte("C")),
-		byteslib.ToBytes32([]byte("D")),
-		byteslib.ToBytes32([]byte("E")),
-		byteslib.ToBytes32([]byte("F")),
-		byteslib.ToBytes32([]byte("G")),
-		byteslib.ToBytes32([]byte("H")),
+	items := make([][32]byte, 0)
+	for _, v := range [][]byte{
+		byteslib.ExtendToSize([]byte("A"), byteslib.B32Size),
+		byteslib.ExtendToSize([]byte("B"), byteslib.B32Size),
+		byteslib.ExtendToSize([]byte("C"), byteslib.B32Size),
+		byteslib.ExtendToSize([]byte("D"), byteslib.B32Size),
+		byteslib.ExtendToSize([]byte("E"), byteslib.B32Size),
+		byteslib.ExtendToSize([]byte("F"), byteslib.B32Size),
+		byteslib.ExtendToSize([]byte("G"), byteslib.B32Size),
+	} {
+		item, err := byteslib.ToBytes32(v)
+		require.NoError(f, err)
+		items = append(items, item)
 	}
+	require.NotEmpty(f, items) // appease nilaway
+
 	m, err := merkle.NewTreeFromLeavesWithDepth(items, depth)
 	require.NoError(f, err)
 	proof, err := m.MerkleProofWithMixin(0)
@@ -68,16 +74,26 @@ func FuzzTree_IsValidMerkleBranch(f *testing.F) {
 	f.Add(root[:], items[0][:], uint64(0), proofRaw, depth)
 
 	f.Fuzz(
-		func(_ *testing.T,
+		func(t *testing.T,
 			root, item []byte, merkleIndex uint64,
 			proofRaw []byte, depth uint8,
 		) {
+			var r, leaf byteslib.B32
+
+			item = byteslib.ExtendToSize(item, byteslib.B32Size)[:byteslib.B32Size]
+			leaf, err = byteslib.ToBytes32(item)
+			require.NoError(t, err)
+
+			root = byteslib.ExtendToSize(root, byteslib.B32Size)[:byteslib.B32Size]
+			r, err = byteslib.ToBytes32(root)
+			require.NoError(t, err)
+
 			merkle.IsValidMerkleBranch(
-				byteslib.ToBytes32(item),
+				leaf,
 				splitProofs(proofRaw),
 				depth,
 				merkleIndex,
-				byteslib.ToBytes32(root),
+				r,
 			)
 		},
 	)

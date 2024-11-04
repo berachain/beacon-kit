@@ -27,7 +27,7 @@ import (
 )
 
 // GetExecutionNumber returns the block number from the latest execution
-// payload header for the given block id, along with the proof that can be
+// payload header for the given timestamp id, along with the proof that can be
 // verified against the beacon block root.
 func (h *Handler[
 	BeaconBlockHeaderT, _, _, ContextT, _, _,
@@ -38,8 +38,8 @@ func (h *Handler[
 	if err != nil {
 		return nil, err
 	}
-	slot, beaconState, blockHeader, err := h.resolveExecutionID(
-		params.ExecutionID,
+	slot, beaconState, blockHeader, err := h.resolveTimestampID(
+		params.TimestampID,
 	)
 	if err != nil {
 		return nil, err

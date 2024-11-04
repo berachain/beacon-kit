@@ -21,6 +21,7 @@
 package math
 
 import (
+	"fmt"
 	"math/big"
 
 	"github.com/holiman/uint256"
@@ -35,8 +36,17 @@ func NewU256(v uint64) *U256 {
 }
 
 // NewU256FromBigInt creates a new U256 from a big.Int.
-func NewU256FromBigInt(b *big.Int) *U256 {
-	return uint256.MustFromBig(b)
+func NewU256FromBigInt(b *big.Int) (*U256, error) {
+	// Negative integers ought to be rejected by math.NewU256FromBigInt(b)
+	// since they cannot be expressed in the U256 type. However this does
+	// not seem to happen (see holiman/uint256#115), so guarding here.
+	if b.Sign() < 0 {
+		return nil, fmt.Errorf(
+			"cannot convert negative big.Int %s to uint256",
+			b.String(),
+		)
+	}
+	return uint256.MustFromBig(b), nil
 }
 
 // U256Hex represents a 256-bit unsigned integer that is marshaled to JSON

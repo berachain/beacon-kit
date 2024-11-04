@@ -51,7 +51,7 @@ type kvStoreService struct {
 }
 
 func (k kvStoreService) OpenKVStore(ctx context.Context) store.KVStore {
-	return newKVStore(sdk.UnwrapSDKContext(ctx).KVStore(k.key))
+	return NewKVStore(sdk.UnwrapSDKContext(ctx).KVStore(k.key))
 }
 
 // CoreKVStore is a wrapper of Core/Store kvstore interface
@@ -62,7 +62,7 @@ type coreKVStore struct {
 
 // NewKVStore returns a wrapper of Core/Store kvstore interface
 // Remove once store migrates to core/store kvstore interface.
-func newKVStore(store storetypes.KVStore) store.KVStore {
+func NewKVStore(store storetypes.KVStore) store.KVStore {
 	return coreKVStore{kvStore: store}
 }
 
