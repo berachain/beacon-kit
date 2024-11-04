@@ -46,7 +46,7 @@ type BeaconBlockHeader struct {
 	// ProposerIndex is the index of the validator who proposed the block.
 	ProposerIndex math.ValidatorIndex `json:"proposer_index"`
 	// ParentBlockRoot is the hash of the parent block
-	ParentBlockRoot common.Root `json:"parent_root"`
+	ParentBlockRoot common.Root `json:"parent_block_root"`
 	// StateRoot is the hash of the state at the block.
 	StateRoot common.Root `json:"state_root"`
 	// BodyRoot is the root of the block body.

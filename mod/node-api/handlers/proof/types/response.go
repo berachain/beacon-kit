@@ -27,7 +27,7 @@ import (
 )
 
 // BlockProposerResponse is the response for the
-// `/proof/block_proposer/{execution_id}` endpoint.
+// `/proof/block_proposer/{timestamp_id}` endpoint.
 type BlockProposerResponse[BeaconBlockHeaderT any] struct {
 	// BeaconBlockHeader is the block header of which the hash tree root is the
 	// beacon block root to verify against.
@@ -44,10 +44,14 @@ type BlockProposerResponse[BeaconBlockHeaderT any] struct {
 	// Generalized Index of the 0 validator pubkey in the beacon block. In
 	// the Deneb fork, z is 3254554418216960.
 	ValidatorPubkeyProof []common.Root `json:"validator_pubkey_proof"`
+
+	// ProposerIndexProof can be verified against the beacon block root. Use
+	// a Generalized Index of 9 in the Deneb fork.
+	ProposerIndexProof []common.Root `json:"proposer_index_proof"`
 }
 
 // ExecutionNumberResponse is the response for the
-// `/proof/execution_number/{execution_id}` endpoint.
+// `/proof/execution_number/{timestamp_id}` endpoint.
 type ExecutionNumberResponse[BeaconBlockHeaderT any] struct {
 	// BeaconBlockHeader is the block header of which the hash tree root is the
 	// beacon block root to verify against.
@@ -65,7 +69,7 @@ type ExecutionNumberResponse[BeaconBlockHeaderT any] struct {
 }
 
 // ExecutionFeeRecipientResponse is the response for the
-// `/proof/execution_fee_recipient/{execution_id}` endpoint.
+// `/proof/execution_fee_recipient/{timestamp_id}` endpoint.
 type ExecutionFeeRecipientResponse[BeaconBlockHeaderT any] struct {
 	// BeaconBlockHeader is the block header of which the hash tree root is the
 	// beacon block root to verify against.
