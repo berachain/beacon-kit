@@ -148,6 +148,7 @@ func NewService[
 		metrics:                 newChainMetrics(telemetrySink),
 		optimisticPayloadBuilds: optimisticPayloadBuilds,
 		forceStartupSyncOnce:    new(sync.Once),
+		blobFinalized:           make(chan struct{}),
 		subBlobFinalized:        make(chan async.Event[struct{}]),
 		subFinalBlkReceived:     make(chan async.Event[BeaconBlockT]),
 		subBlockReceived:        make(chan async.Event[BeaconBlockT]),
@@ -335,7 +336,12 @@ func (s *Service[
 	_, BeaconBlockT, _, _, _, _, _, _, _, _,
 ]) verifyFinalBlobAvailability(ctx context.Context, blk BeaconBlockT) error {
 	// wait for blob sidecar to be finalized
-	<-s.blobFinalized
+	select {
+	case <-s.blobFinalized:
+		// Proceed with verification
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 
 	// If the blobs needed to process the block are not available, we
 	// return an error. It is safe to use the slot off of the beacon block

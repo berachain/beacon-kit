@@ -132,9 +132,9 @@ func (s *Service[_, BlobSidecarsT]) handleFinalSidecarsReceived(
 	if err := s.processSidecars(msg.Context(), msg.Data()); err != nil {
 		s.logger.Error(
 			"Failed to process blob sidecars",
-			"error",
-			err,
+			"error", err,
 		)
+		return
 	}
 
 	event := async.NewEvent(msg.Context(), async.BlobSidecarsFinalized, struct{}{})

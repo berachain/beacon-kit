@@ -72,7 +72,7 @@ func (s *Service[
 		return s.verifyFinalBlobAvailability(ctx, blk)
 	})
 
-	// Wait the sidecar to be finalized and its availability checked
+	// Wait for the sidecar to be finalized and its availability checked
 	if err = g.Wait(); err != nil {
 		return nil, err
 	}
