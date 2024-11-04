@@ -109,6 +109,21 @@ var (
 	)
 )
 
+// TestGIndexProposerIndexDeneb tests the generalized index of the proposer
+// index in the beacon block on the Deneb fork.
+func TestGIndexProposerIndexDeneb(t *testing.T) {
+	// GIndex of the proposer index in the beacon block.
+	_, proposerIndexGIndexDenebBlock, _, err := mlib.ObjectPath[
+		mlib.GeneralizedIndex, [32]byte,
+	]("ProposerIndex").GetGeneralizedIndex(beaconHeaderSchema)
+	require.NoError(t, err)
+	require.Equal(
+		t,
+		merkle.ProposerIndexGIndexDenebBlock,
+		int(proposerIndexGIndexDenebBlock),
+	)
+}
+
 // TestGIndicesValidatorPubkeyDeneb tests the generalized indices used by
 // beacon state proofs for validator pubkeys on the Deneb fork.
 func TestGIndicesValidatorPubkeyDeneb(t *testing.T) {

@@ -348,7 +348,9 @@ func TestGweiFromWei(t *testing.T) {
 			name: "invalid huge gwei",
 			input: func(t *testing.T) *big.Int {
 				t.Helper()
-				b, _ := new(big.Int).SetString("18446744073709551616000000000", 10)
+				b, _ := new(
+					big.Int,
+				).SetString("18446744073709551616000000000", 10)
 				return b
 			},
 			expectedErr: math.ErrGweiOverflow,

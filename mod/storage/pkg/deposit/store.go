@@ -28,6 +28,7 @@ import (
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 )
 
 const KeyDepositPrefix = "deposit"
@@ -104,6 +105,10 @@ func (kv *KVStore[DepositT]) setDeposit(deposit DepositT) error {
 
 // Prune removes the [start, end) deposits from the store.
 func (kv *KVStore[DepositT]) Prune(start, end uint64) error {
+	if start > end {
+		return pruner.ErrInvalidRange
+	}
+
 	var ctx = context.TODO()
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
