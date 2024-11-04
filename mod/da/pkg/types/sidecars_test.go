@@ -21,6 +21,7 @@
 package types_test
 
 import (
+	"strconv"
 	"testing"
 
 	ctypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -34,22 +35,21 @@ import (
 
 func TestEmptySidecarMarshalling(t *testing.T) {
 	// Create an empty BlobSidecar
+	inclusionProof := make([]common.Root, 0)
+	for i := int(1); i <= 8; i++ {
+		it := byteslib.ExtendToSize([]byte(strconv.Itoa(i)), byteslib.B32Size)
+		proof, err := byteslib.ToBytes32(it)
+		require.NoError(t, err)
+		inclusionProof = append(inclusionProof, common.Root(proof))
+	}
+
 	sidecar := types.BuildBlobSidecar(
 		math.U64(0),
 		&ctypes.BeaconBlockHeader{},
 		&eip4844.Blob{},
 		eip4844.KZGCommitment{},
 		[48]byte{},
-		[]common.Root{
-			common.Root(byteslib.ToBytes32([]byte("1"))),
-			common.Root(byteslib.ToBytes32([]byte("2"))),
-			common.Root(byteslib.ToBytes32([]byte("3"))),
-			common.Root(byteslib.ToBytes32([]byte("4"))),
-			common.Root(byteslib.ToBytes32([]byte("5"))),
-			common.Root(byteslib.ToBytes32([]byte("6"))),
-			common.Root(byteslib.ToBytes32([]byte("7"))),
-			common.Root(byteslib.ToBytes32([]byte("8"))),
-		},
+		inclusionProof,
 	)
 
 	// Marshal the empty sidecar
@@ -85,6 +85,14 @@ func TestEmptySidecarMarshalling(t *testing.T) {
 
 func TestValidateBlockRoots(t *testing.T) {
 	// Create a sample BlobSidecar with valid roots
+	inclusionProof := make([]common.Root, 0)
+	for i := int(1); i <= 8; i++ {
+		it := byteslib.ExtendToSize([]byte(strconv.Itoa(i)), byteslib.B32Size)
+		proof, err := byteslib.ToBytes32(it)
+		require.NoError(t, err)
+		inclusionProof = append(inclusionProof, common.Root(proof))
+	}
+
 	validSidecar := types.BuildBlobSidecar(
 		math.U64(0),
 		&ctypes.BeaconBlockHeader{
@@ -95,16 +103,7 @@ func TestValidateBlockRoots(t *testing.T) {
 		&eip4844.Blob{},
 		[48]byte{},
 		[48]byte{},
-		[]common.Root{
-			common.Root(byteslib.ToBytes32([]byte("1"))),
-			common.Root(byteslib.ToBytes32([]byte("2"))),
-			common.Root(byteslib.ToBytes32([]byte("3"))),
-			common.Root(byteslib.ToBytes32([]byte("4"))),
-			common.Root(byteslib.ToBytes32([]byte("5"))),
-			common.Root(byteslib.ToBytes32([]byte("6"))),
-			common.Root(byteslib.ToBytes32([]byte("7"))),
-			common.Root(byteslib.ToBytes32([]byte("8"))),
-		},
+		inclusionProof,
 	)
 
 	// Validate the sidecar with valid roots
@@ -128,16 +127,7 @@ func TestValidateBlockRoots(t *testing.T) {
 		&eip4844.Blob{},
 		eip4844.KZGCommitment{},
 		eip4844.KZGProof{},
-		[]common.Root{
-			common.Root(byteslib.ToBytes32([]byte("1"))),
-			common.Root(byteslib.ToBytes32([]byte("2"))),
-			common.Root(byteslib.ToBytes32([]byte("3"))),
-			common.Root(byteslib.ToBytes32([]byte("4"))),
-			common.Root(byteslib.ToBytes32([]byte("5"))),
-			common.Root(byteslib.ToBytes32([]byte("6"))),
-			common.Root(byteslib.ToBytes32([]byte("7"))),
-			common.Root(byteslib.ToBytes32([]byte("8"))),
-		},
+		inclusionProof,
 	)
 	// Validate the sidecar with invalid roots
 	sidecarsInvalid := types.BlobSidecars{

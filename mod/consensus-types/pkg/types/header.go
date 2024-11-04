@@ -42,15 +42,15 @@ var (
 // BeaconBlockHeader represents the base of a beacon block header.
 type BeaconBlockHeader struct {
 	// Slot represents the position of the block in the chain.
-	Slot math.Slot
+	Slot math.Slot `json:"slot"`
 	// ProposerIndex is the index of the validator who proposed the block.
-	ProposerIndex math.ValidatorIndex
+	ProposerIndex math.ValidatorIndex `json:"proposer_index"`
 	// ParentBlockRoot is the hash of the parent block
-	ParentBlockRoot common.Root
+	ParentBlockRoot common.Root `json:"parent_block_root"`
 	// StateRoot is the hash of the state at the block.
-	StateRoot common.Root
+	StateRoot common.Root `json:"state_root"`
 	// BodyRoot is the root of the block body.
-	BodyRoot common.Root
+	BodyRoot common.Root `json:"body_root"`
 }
 
 /* -------------------------------------------------------------------------- */

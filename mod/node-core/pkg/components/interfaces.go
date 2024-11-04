@@ -113,7 +113,9 @@ type (
 		GetParentBlockRoot() common.Root
 		// GetStateRoot returns the state root of the block.
 		GetStateRoot() common.Root
-		GetExecutionNumber() math.U64
+		// GetTimestamp returns the timestamp of the block from the execution
+		// payload.
+		GetTimestamp() math.U64
 	}
 
 	// BeaconBlockBody represents a generic interface for the body of a beacon
@@ -207,7 +209,7 @@ type (
 			randaoMixes []common.Bytes32,
 			nextWithdrawalIndex uint64,
 			nextWithdrawalValidatorIndex math.U64,
-			slashings []uint64, totalSlashing math.U64,
+			slashings []math.U64, totalSlashing math.U64,
 		) (T, error)
 	}
 
@@ -293,10 +295,9 @@ type (
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		// GetSlotByStateRoot retrieves the slot by a given root from the store.
 		GetSlotByStateRoot(root common.Root) (math.Slot, error)
-		// GetSlotByExecutionNumber retrieves the slot by a given execution
-		// number
-		// from the store.
-		GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error)
+		// GetParentSlotByTimestamp retrieves the parent slot by a given
+		// timestamp from the store.
+		GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
 	}
 
 	ConsensusEngine interface {
@@ -894,7 +895,7 @@ type (
 		// GetRandaoMixAtIndex retrieves the randao mix at the given index.
 		GetRandaoMixAtIndex(index uint64) (common.Bytes32, error)
 		// GetSlashings retrieves all slashings.
-		GetSlashings() ([]uint64, error)
+		GetSlashings() ([]math.Gwei, error)
 		// SetSlashingAtIndex sets the slashing at the given index.
 		SetSlashingAtIndex(index uint64, amount math.Gwei) error
 		// GetSlashingAtIndex retrieves the slashing at the given index.
@@ -1090,7 +1091,7 @@ type (
 		ChainSpec() common.ChainSpec
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		GetSlotByStateRoot(root common.Root) (math.Slot, error)
-		GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error)
+		GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
 
 		NodeAPIBeaconBackend[
 			BeaconStateT, BeaconBlockHeaderT, ForkT, ValidatorT,
@@ -1122,7 +1123,7 @@ type (
 	] interface {
 		BlockBackend[BeaconBlockHeaderT]
 		StateBackend[BeaconStateT, ForkT]
-		GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error)
+		GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
 	}
 
 	GenesisBackend interface {

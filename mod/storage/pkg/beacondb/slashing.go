@@ -29,22 +29,25 @@ import (
 func (kv *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
-]) GetSlashings() ([]uint64, error) {
-	var slashings []uint64
+]) GetSlashings() ([]math.Gwei, error) {
+	var slashings []math.Gwei
 	iter, err := kv.slashings.Iterate(kv.ctx, nil)
 	if err != nil {
 		return nil, err
 	}
-	for iter.Valid() {
+	defer func() {
+		err = errors.Join(err, iter.Close())
+	}()
+
+	for ; iter.Valid(); iter.Next() {
 		var slashing uint64
 		slashing, err = iter.Value()
 		if err != nil {
 			return nil, err
 		}
-		slashings = append(slashings, slashing)
-		iter.Next()
+		slashings = append(slashings, math.Gwei(slashing))
 	}
-	return slashings, nil
+	return slashings, err
 }
 
 // GetSlashingAtIndex retrieves the slashing amount by index from the store.

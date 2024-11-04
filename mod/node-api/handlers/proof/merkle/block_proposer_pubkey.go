@@ -28,11 +28,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// ProveProposerInBlock generates a proof for the proposer pubkey in the
+// ProveProposerPubkeyInBlock generates a proof for the proposer pubkey in the
 // beacon block. The proof is then verified against the beacon block root as a
 // sanity check. Returns the proof along with the beacon block root. It uses
 // the fastssz library to generate the proof.
-func ProveProposerInBlock[
+func ProveProposerPubkeyInBlock[
 	BeaconBlockHeaderT types.BeaconBlockHeader,
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
 	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,

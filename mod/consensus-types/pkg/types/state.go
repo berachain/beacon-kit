@@ -69,7 +69,7 @@ type BeaconState[
 	NextWithdrawalValidatorIndex math.ValidatorIndex
 
 	// Slashing
-	Slashings     []uint64
+	Slashings     []math.Gwei
 	TotalSlashing math.Gwei
 }
 
@@ -97,7 +97,7 @@ func (st *BeaconState[
 	randaoMixes []common.Bytes32,
 	nextWithdrawalIndex uint64,
 	nextWithdrawalValidatorIndex math.ValidatorIndex,
-	slashings []uint64,
+	slashings []math.Gwei,
 	totalSlashing math.Gwei,
 ) (*BeaconState[
 	BeaconBlockHeaderT,
@@ -378,7 +378,7 @@ func (st *BeaconState[
 	}
 	subIndx = hh.Index()
 	for _, i := range st.Slashings {
-		hh.AppendUint64(i)
+		hh.AppendUint64(uint64(i))
 	}
 	hh.FillUpTo32()
 	numItems = uint64(len(st.Slashings))
