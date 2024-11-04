@@ -30,7 +30,6 @@ import (
 )
 
 func TestExecutionAddressMarshalling(t *testing.T) {
-	//nolint:lll // some test data may be long
 	tests := []struct {
 		name        string
 		input       []byte
@@ -47,8 +46,10 @@ func TestExecutionAddressMarshalling(t *testing.T) {
 			expectedErr: hex.ErrMissingPrefix,
 		},
 		{
-			name:        "address too long",
-			input:       []byte("\"0x000102030405060708090a0b0c0d0e0f101112131415161718\""),
+			name: "address too long",
+			input: []byte(
+				"\"0x000102030405060708090a0b0c0d0e0f101112131415161718\"",
+			),
 			expectedErr: hex.ErrInvalidHexStringLength,
 		},
 	}
