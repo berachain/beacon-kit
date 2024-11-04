@@ -134,7 +134,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 				Pubkey:      genDeposits[0].Pubkey,
 				Credentials: emptyCredentials,
 				Amount:      minBalance, // avoid breaching maxBalance
-				Index:       genDeposits[0].Index,
+				Index:       uint64(len(genDeposits)),
 			},
 		}
 	)
@@ -150,13 +150,16 @@ func TestTransitionUpdateValidators(t *testing.T) {
 				Timestamp:     10,
 				ExtraData:     []byte("testing"),
 				Transactions:  [][]byte{},
-				Withdrawals:   []*engineprimitives.Withdrawal{}, // no withdrawals
+				Withdrawals:   []*engineprimitives.Withdrawal{},
 				BaseFeePerGas: math.NewU256(0),
 			},
 			Eth1Data: &types.Eth1Data{},
 			Deposits: blkDeposits,
 		},
 	}
+
+	// make sure included deposit is already available in deposit store
+	require.NoError(t, depositStore.EnqueueDeposits(blkDeposits))
 
 	// run the test
 	vals, err := sp.Transition(ctx, beaconState, blk)
@@ -175,6 +178,11 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, genDeposits[0].Pubkey, val.Pubkey)
 	require.Equal(t, expectedValBalance, val.EffectiveBalance)
+
+	// check validator balance is updated
+	valBal, err := beaconState.GetBalance(idx)
+	require.NoError(t, err)
+	require.Equal(t, expectedValBalance, valBal)
 
 	// check that validator index is duly set (1-indexed here, to be fixed)
 	latestValIdx, err := beaconState.GetEth1DepositIndex()
@@ -283,7 +291,7 @@ func TestTransitionHittingValidatorsCap(t *testing.T) {
 				Pubkey:      extraValKey,
 				Credentials: extraValCreds,
 				Amount:      minBalance, // avoid breaching maxBalance
-				Index:       genDeposits[0].Index,
+				Index:       uint64(len(genDeposits)),
 			},
 		}
 	)
@@ -306,6 +314,9 @@ func TestTransitionHittingValidatorsCap(t *testing.T) {
 			Deposits: blkDeposits,
 		},
 	}
+
+	// make sure included deposit is already available in deposit store
+	require.NoError(t, depositStore.EnqueueDeposits(blkDeposits))
 
 	// run the test
 	vals1, err := sp.Transition(ctx, bs, blk1)
@@ -346,7 +357,6 @@ func TestTransitionHittingValidatorsCap(t *testing.T) {
 				BaseFeePerGas: math.NewU256(0),
 			},
 			Eth1Data: &types.Eth1Data{},
-			Deposits: blkDeposits,
 		},
 	}
 
