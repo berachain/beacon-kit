@@ -142,6 +142,15 @@ type Deposit[
 	) error
 }
 
+// DepositStore defines the interface for deposit storage.
+type DepositStore[DepositT any] interface {
+	// GetDepositsByIndex returns `numView` expected deposits.
+	GetDepositsByIndex(
+		startIndex uint64,
+		numView uint64,
+	) ([]DepositT, error)
+}
+
 type ExecutionPayload[
 	ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT any,
 ] interface {

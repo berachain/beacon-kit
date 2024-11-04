@@ -51,6 +51,10 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	](t)
 	mocksSigner := &cryptomocks.BLSSigner{}
 
+	kvStore, depositStore, err := initTestStores()
+	require.NoError(t, err)
+	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
+
 	sp := core.NewStateProcessor[
 		*types.BeaconBlock,
 		*types.BeaconBlockBody,
@@ -72,12 +76,9 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	](
 		cs,
 		execEngine,
+		depositStore,
 		mocksSigner,
 	)
-
-	kvStore, err := initTestStore()
-	require.NoError(t, err)
-	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
 
 	var (
 		maxBalance       = math.Gwei(cs.MaxEffectiveBalance())
@@ -194,6 +195,10 @@ func TestTransitionHittingValidatorsCap(t *testing.T) {
 	](t)
 	mocksSigner := &cryptomocks.BLSSigner{}
 
+	kvStore, depositStore, err := initTestStores()
+	require.NoError(t, err)
+	bs := new(TestBeaconStateT).NewFromDB(kvStore, cs)
+
 	sp := core.NewStateProcessor[
 		*types.BeaconBlock,
 		*types.BeaconBlockBody,
@@ -215,12 +220,9 @@ func TestTransitionHittingValidatorsCap(t *testing.T) {
 	](
 		cs,
 		execEngine,
+		depositStore,
 		mocksSigner,
 	)
-
-	kvStore, err := initTestStore()
-	require.NoError(t, err)
-	bs := new(TestBeaconStateT).NewFromDB(kvStore, cs)
 
 	var (
 		maxBalance = math.Gwei(cs.MaxEffectiveBalance())

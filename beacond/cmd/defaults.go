@@ -119,8 +119,8 @@ func DefaultComponents() []any {
 		],
 		components.ProvideStateProcessor[
 			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader,
-			*BeaconState, *BeaconStateMarshallable, *Deposit, *ExecutionPayload,
-			*ExecutionPayloadHeader, *KVStore,
+			*BeaconState, *BeaconStateMarshallable, *Deposit, *DepositStore,
+			*ExecutionPayload, *ExecutionPayloadHeader, *KVStore,
 		],
 		components.ProvideKVStore[*BeaconBlockHeader, *ExecutionPayloadHeader],
 		components.ProvideStorageBackend[

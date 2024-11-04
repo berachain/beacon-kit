@@ -85,6 +85,8 @@ type StateProcessor[
 	executionEngine ExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	]
+	// ds allows checking payload deposits against the deposit contract
+	ds DepositStore[DepositT]
 
 	// processingGenesis allows initializing correctly
 	// eth1 deposit index upon genesis
@@ -140,6 +142,7 @@ func NewStateProcessor[
 	executionEngine ExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
+	ds DepositStore[DepositT],
 	signer crypto.BLSSigner,
 ) *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
@@ -156,6 +159,7 @@ func NewStateProcessor[
 		cs:              cs,
 		executionEngine: executionEngine,
 		signer:          signer,
+		ds:              ds,
 	}
 }
 

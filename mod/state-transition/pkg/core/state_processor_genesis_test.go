@@ -49,6 +49,9 @@ func TestInitialize(t *testing.T) {
 	](t)
 	mocksSigner := &cryptomocks.BLSSigner{}
 
+	kvStore, depositStore, err := initTestStores()
+	require.NoError(t, err)
+
 	sp := core.NewStateProcessor[
 		*types.BeaconBlock,
 		*types.BeaconBlockBody,
@@ -70,13 +73,11 @@ func TestInitialize(t *testing.T) {
 	](
 		cs,
 		execEngine,
+		depositStore,
 		mocksSigner,
 	)
 
 	// create test inputs
-	kvStore, err := initTestStore()
-	require.NoError(t, err)
-
 	var (
 		beaconState = new(TestBeaconStateT).NewFromDB(kvStore, cs)
 		deposits    = []*types.Deposit{

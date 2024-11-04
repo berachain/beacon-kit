@@ -32,6 +32,91 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestDeposit_Equals(t *testing.T) {
+	var (
+		pubkey      = crypto.BLSPubkey{0x01}
+		credentials = types.WithdrawalCredentials{0xff}
+		amount      = math.Gwei(123)
+		signature   = crypto.BLSSignature{0xff, 0x09}
+		index       = uint64(89)
+
+		lhs = types.NewDeposit(
+			pubkey, credentials, amount, signature, index,
+		)
+	)
+
+	tests := []struct {
+		name string
+		rhs  *types.Deposit
+		want bool
+	}{
+		{
+			name: "equal",
+			rhs: types.NewDeposit(
+				pubkey, credentials, amount, signature, index,
+			),
+			want: true,
+		},
+		{
+			name: "pub key differs",
+			rhs: types.NewDeposit(
+				crypto.BLSPubkey{0x02},
+				credentials, amount, signature, index,
+			),
+			want: false,
+		},
+		{
+			name: "cred differs",
+			rhs: types.NewDeposit(
+				pubkey, types.WithdrawalCredentials{0xaa},
+				amount, signature, index,
+			),
+			want: false,
+		},
+		{
+			name: "amount differs",
+			rhs: types.NewDeposit(
+				pubkey, credentials, 2*amount,
+				signature, index,
+			),
+			want: false,
+		},
+		{
+			name: "signature differs",
+			rhs: types.NewDeposit(
+				pubkey, credentials, amount,
+				crypto.BLSSignature{0xff, 0xaa}, index,
+			),
+			want: false,
+		},
+		{
+			name: "index differs",
+			rhs: types.NewDeposit(
+				pubkey, credentials, amount, signature,
+				10*index,
+			),
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got1 := lhs.Equals(tt.rhs)
+			require.Equal(t, tt.want, got1)
+
+			// check commutativity as well
+			got2 := tt.rhs.Equals(lhs)
+			require.Equal(t, got1, got2)
+
+			// copies stays equal/disequal
+			rhsCopy := &types.Deposit{}
+			*rhsCopy = *tt.rhs
+			got3 := rhsCopy.Equals(lhs)
+			require.Equal(t, got1, got3)
+		})
+	}
+}
+
 // generateValidDeposit generates a valid deposit for testing purposes.
 func generateValidDeposit() *types.Deposit {
 	var pubKey crypto.BLSPubkey
