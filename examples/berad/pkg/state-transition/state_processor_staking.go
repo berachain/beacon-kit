@@ -172,7 +172,7 @@ func (sp *StateProcessor[
 	_ BeaconStateT,
 	_ BeaconBlockBodyT,
 ) error {
-	// TODO: implement
+	// TODO: implement by calling ExpectedWithdrawals and then applying them.
 	return nil
 }
 
@@ -190,7 +190,20 @@ func (sp *StateProcessor[
 // ExpectedWithdrawals retrieves the expected withdrawals.
 func (sp *StateProcessor[
 	_, _, _, BeaconStateT, _, _, _,
-	_, _, _, _, _, _, _, WithdrawalsT, _,
+	_, _, _, _, _, _, WithdrawalT, WithdrawalsT, _,
 ]) ExpectedWithdrawals(st BeaconStateT) (WithdrawalsT, error) {
-	return st.GetWithdrawals()
+	withdrawals, err := st.GetWithdrawals()
+	if err != nil {
+		return nil, err
+	}
+
+	var bgtWithdrawal WithdrawalT
+	bgtWithdrawal = bgtWithdrawal.New(
+		math.U64(len(withdrawals)),
+		math.ValidatorIndex(0), // TODO: replace with validator set cap.
+		sp.cs.BGTContractAddress,
+		math.U64(sp.cs.BeraMintAmount),
+	)
+
+	return append(withdrawals, bgtWithdrawal), nil
 }
