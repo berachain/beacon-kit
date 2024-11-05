@@ -149,6 +149,7 @@ ARG APP_NAME
 
 # Copy over built executable into a fresh container
 COPY --from=builder /workdir/build/bin/${APP_NAME} /usr/bin/${APP_NAME}
+COPY --from=grafana/promtail:3.0.0 /usr/bin/promtail /usr/local/bin
 
 # TODO: We should un hood this part, its very specific 
 # to our kurtosis setup.
