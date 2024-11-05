@@ -121,7 +121,8 @@ func (pb *PayloadBuilder[
 	)
 	if err != nil {
 		return nil, err
-	} else if payloadID == nil {
+	}
+	if payloadID == nil {
 		return nil, ErrNilPayloadID
 	}
 
@@ -140,13 +141,7 @@ func (pb *PayloadBuilder[
 	}
 
 	// Get the payload from the execution client.
-	return pb.ee.GetPayload(
-		ctx,
-		&engineprimitives.GetPayloadRequest[PayloadIDT]{
-			PayloadID:   *payloadID,
-			ForkVersion: pb.chainSpec.ActiveForkVersionForSlot(slot),
-		},
-	)
+	return pb.getPayload(ctx, *payloadID, slot)
 }
 
 // RetrievePayload attempts to pull a previously built payload
@@ -172,17 +167,10 @@ func (pb *PayloadBuilder[
 		return nil, ErrPayloadIDNotFound
 	}
 
-	envelope, err := pb.ee.GetPayload(
-		ctx,
-		&engineprimitives.GetPayloadRequest[PayloadIDT]{
-			PayloadID:   payloadID,
-			ForkVersion: pb.chainSpec.ActiveForkVersionForSlot(slot),
-		},
-	)
+	// Get the payload from the execution client.
+	envelope, err := pb.getPayload(ctx, payloadID, slot)
 	if err != nil {
 		return nil, err
-	} else if envelope == nil {
-		return nil, ErrNilPayloadEnvelope
 	}
 
 	overrideBuilder := envelope.ShouldOverrideBuilder()
@@ -259,4 +247,28 @@ func (pb *PayloadBuilder[
 		},
 	)
 	return err
+}
+
+func (pb *PayloadBuilder[
+	_, ExecutionPayloadT, _,
+	_, PayloadIDT, _,
+]) getPayload(
+	ctx context.Context,
+	payloadID PayloadIDT,
+	slot math.U64,
+) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
+	envelope, err := pb.ee.GetPayload(
+		ctx,
+		&engineprimitives.GetPayloadRequest[PayloadIDT]{
+			PayloadID:   payloadID,
+			ForkVersion: pb.chainSpec.ActiveForkVersionForSlot(slot),
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	if envelope == nil {
+		return nil, ErrNilPayloadEnvelope
+	}
+	return envelope, nil
 }

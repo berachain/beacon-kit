@@ -22,8 +22,8 @@ package blockchain
 
 import (
 	"context"
-	"time"
 
+	payloadtime "github.com/berachain/beacon-kit/mod/beacon/payload-time"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 )
 
@@ -75,11 +75,12 @@ func (s *Service[
 	}
 
 	prevBlockRoot := blk.HashTreeRoot()
+	payloadTime := blk.GetBody().GetExecutionPayload().GetTimestamp()
 	if _, err = s.localBuilder.RequestPayloadAsync(
 		ctx,
 		stCopy,
 		blk.GetSlot()+1,
-		s.calculateNextTimestamp(blk),
+		payloadtime.Next(s.chainSpec, payloadTime),
 		prevBlockRoot,
 		lph.GetBlockHash(),
 		lph.GetParentHash(),
@@ -120,19 +121,4 @@ func (s *Service[
 			"error", err,
 		)
 	}
-}
-
-// calculateNextTimestamp calculates the next timestamp for an execution
-// payload.
-//
-// TODO: This is hood and needs to be improved.
-func (s *Service[
-	_, BeaconBlockT, _, _, _, _, _, _, _, _,
-]) calculateNextTimestamp(blk BeaconBlockT) uint64 {
-	//#nosec:G701 // not an issue in practice.
-	return max(
-		uint64(time.Now().Unix()+
-			int64(s.chainSpec.TargetSecondsPerEth1Block())),
-		uint64(blk.GetBody().GetExecutionPayload().GetTimestamp()+1),
-	)
 }

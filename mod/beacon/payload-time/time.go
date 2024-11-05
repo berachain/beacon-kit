@@ -18,52 +18,26 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package common_test
+package payloadtime
 
 import (
-	"encoding/json"
-	"testing"
+	"time"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
-	"github.com/stretchr/testify/require"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-func TestExecutionAddressMarshalling(t *testing.T) {
-	tests := []struct {
-		name        string
-		input       []byte
-		expectedErr error
-	}{
-		{
-			name:        "address too short",
-			input:       []byte("\"0xab\""),
-			expectedErr: hex.ErrInvalidHexStringLength,
-		},
-		{
-			name:        "address missing hex prefix",
-			input:       []byte("\"abc\""),
-			expectedErr: hex.ErrMissingPrefix,
-		},
-		{
-			name: "address too long",
-			input: []byte(
-				"\"0x000102030405060708090a0b0c0d0e0f101112131415161718\"",
-			),
-			expectedErr: hex.ErrInvalidHexStringLength,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			var (
-				v   common.ExecutionAddress
-				err error
-			)
-			require.NotPanics(t, func() {
-				err = json.Unmarshal(tt.input, &v)
-			})
-			require.ErrorIs(t, err, tt.expectedErr)
-		})
-	}
+// Next calculates the
+// next timestamp for an execution payload
+//
+// TODO: This is hood and needs to be improved.
+func Next(
+	chainSpec common.ChainSpec,
+	parentPayloadTime math.U64,
+) uint64 {
+	//#nosec:G701 // not an issue in practice.
+	return max(
+		uint64(time.Now().Unix())+chainSpec.TargetSecondsPerEth1Block(),
+		uint64(parentPayloadTime+1),
+	)
 }
