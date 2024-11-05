@@ -202,6 +202,29 @@ func (sp *StateProcessor[
 		math.Gwei(sp.cs.MaxEffectiveBalance()),
 	)
 
+	if !sp.processingGenesis {
+		// BeaconKit enforces a cap on the validator set size. If a deposit is made
+		// that would breach the cap, we mark the validator as immediately
+		// withdrawable, so that it will be evicted in the next block along with
+		// the amount deposited.
+		validators, err := st.GetValidators()
+		if err != nil {
+			return err
+		}
+
+		//#nosec:G701 // can't overflow.
+		if uint32(len(validators)) >= sp.cs.GetValidatorsSetCapSize() {
+			var slot math.Slot
+			slot, err = st.GetSlot()
+			if err != nil {
+				return err
+			}
+
+			epoch := sp.cs.SlotToEpoch(slot)
+			val.SetWithdrawableEpoch(epoch)
+		}
+	}
+
 	// TODO: This is a bug that lives on bArtio. Delete this eventually.
 	if sp.cs.DepositEth1ChainID() == bArtioChainID {
 		// Note in AddValidatorBartio we implicitly increase

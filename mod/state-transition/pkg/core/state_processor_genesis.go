@@ -21,6 +21,8 @@
 package core
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
@@ -104,6 +106,17 @@ func (sp *StateProcessor[
 		); err != nil {
 			return nil, err
 		}
+	}
+
+	// BeaconKit enforces a cap on the validator set size.
+	// If genesis deposits breaches the cap we return an error.
+	//#nosec:G701 // can't overflow.
+	if uint32(len(deposits)) > sp.cs.GetValidatorsSetCapSize() {
+		return nil, fmt.Errorf("validator set cap %d, deposits count %d: %w",
+			sp.cs.GetValidatorsSetCapSize(),
+			len(deposits),
+			ErrHitValidatorsSetCap,
+		)
 	}
 
 	for _, deposit := range deposits {

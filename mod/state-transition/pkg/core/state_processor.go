@@ -282,17 +282,14 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
-	// process the freshly created header.
 	if err := sp.processBlockHeader(st, blk); err != nil {
 		return err
 	}
 
-	// process the execution payload.
 	if err := sp.processExecutionPayload(ctx, st, blk); err != nil {
 		return err
 	}
 
-	// process the withdrawals.
 	if err := sp.processWithdrawals(st, blk.GetBody()); err != nil {
 		return err
 	}

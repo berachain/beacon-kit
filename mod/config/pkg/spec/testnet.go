@@ -123,5 +123,6 @@ func BaseSpec() chain.SpecData[
 		BytesPerBlob:                     131072,
 		KZGCommitmentInclusionProofDepth: 17,
 		CometValues:                      cmtConsensusParams,
+		ValidatorSetCapSize:              256,
 	}
 }
