@@ -44,6 +44,10 @@ type BlockProposerResponse[BeaconBlockHeaderT any] struct {
 	// Generalized Index of the 0 validator pubkey in the beacon block. In
 	// the Deneb fork, z is 3254554418216960.
 	ValidatorPubkeyProof []common.Root `json:"validator_pubkey_proof"`
+
+	// ProposerIndexProof can be verified against the beacon block root. Use
+	// a Generalized Index of 9 in the Deneb fork.
+	ProposerIndexProof []common.Root `json:"proposer_index_proof"`
 }
 
 // ExecutionNumberResponse is the response for the

@@ -22,9 +22,8 @@ package blockchain
 
 import (
 	"context"
-	"time"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	payloadtime "github.com/berachain/beacon-kit/mod/beacon/payload-time"
 )
 
 // forceStartupHead sends a force head FCU to the execution client.
@@ -62,12 +61,10 @@ func (s *Service[
 	ctx context.Context,
 	st BeaconStateT,
 ) {
-	if pErr := s.rebuildPayloadForRejectedBlock(
-		ctx, st,
-	); pErr != nil {
+	if err := s.rebuildPayloadForRejectedBlock(ctx, st); err != nil {
 		s.logger.Error(
 			"failed to rebuild payload for nil block",
-			"error", pErr,
+			"error", err,
 		)
 	}
 }
@@ -85,11 +82,6 @@ func (s *Service[
 	ctx context.Context,
 	st BeaconStateT,
 ) error {
-	var (
-		lph  ExecutionPayloadHeaderT
-		slot math.Slot
-	)
-
 	s.logger.Info("Rebuilding payload for rejected block ⏳ ")
 
 	// In order to rebuild a payload for the current slot, we need to know the
@@ -111,7 +103,7 @@ func (s *Service[
 
 	// We need to get the *last* finalized execution payload, thus
 	// the BeaconState that was passed in must be `unmodified`.
-	lph, err = st.GetLatestExecutionPayloadHeader()
+	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return err
 	}
@@ -122,12 +114,7 @@ func (s *Service[
 		st,
 		// We are rebuilding for the current slot.
 		stateSlot,
-		// TODO: this is hood as fuck.
-		max(
-			//#nosec:G701
-			uint64(time.Now().Unix()+1),
-			uint64((lph.GetTimestamp()+1)),
-		),
+		payloadtime.Next(s.chainSpec, lph.GetTimestamp()),
 		// We set the parent root to the previous block root.
 		latestHeader.HashTreeRoot(),
 		// We set the head of our chain to the previous finalized block.
@@ -137,10 +124,10 @@ func (s *Service[
 		// and possibly should be made more explicit later on.
 		lph.GetParentHash(),
 	); err != nil {
-		s.metrics.markRebuildPayloadForRejectedBlockFailure(slot, err)
+		s.metrics.markRebuildPayloadForRejectedBlockFailure(stateSlot, err)
 		return err
 	}
-	s.metrics.markRebuildPayloadForRejectedBlockSuccess(slot)
+	s.metrics.markRebuildPayloadForRejectedBlockSuccess(stateSlot)
 	return nil
 }
 
@@ -180,9 +167,7 @@ func (s *Service[
 	)
 
 	// We process the slot to update any RANDAO values.
-	if _, err := s.stateProcessor.ProcessSlots(
-		st, slot,
-	); err != nil {
+	if _, err := s.stateProcessor.ProcessSlots(st, slot); err != nil {
 		return err
 	}
 
@@ -191,12 +176,7 @@ func (s *Service[
 	if _, err := s.localBuilder.RequestPayloadAsync(
 		ctx, st,
 		slot,
-		// TODO: this is hood as fuck.
-		max(
-			//#nosec:G701
-			uint64(time.Now().Unix()+int64(s.chainSpec.TargetSecondsPerEth1Block())),
-			uint64((payload.GetTimestamp()+1)),
-		),
+		payloadtime.Next(s.chainSpec, payload.GetTimestamp()),
 		// The previous block root is simply the root of the block we just
 		// processed.
 		blk.HashTreeRoot(),
