@@ -28,7 +28,7 @@ import (
 
 // GetBlockProposer returns the block proposer pubkey for the given timestamp
 // id along with a merkle proof that can be verified against the beacon block
-// root.
+// root. It also returns the merkle proof of the proposer index.
 func (h *Handler[
 	BeaconBlockHeaderT, _, _, ContextT, _, _,
 ]) GetBlockProposer(c ContextT) (any, error) {
@@ -45,11 +45,20 @@ func (h *Handler[
 		return nil, err
 	}
 
+	h.Logger().Info("Generating block proposer proofs", "slot", slot)
+
 	// Generate the proof (along with the "correct" beacon block root to
 	// verify against) for the proposer validator pubkey.
-	h.Logger().Info("Generating block proposer proof", "slot", slot)
-	proof, beaconBlockRoot, err := merkle.ProveProposerInBlock(
+	pubkeyProof, beaconBlockRoot, err := merkle.ProveProposerPubkeyInBlock(
 		blockHeader, beaconState,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// Generate the proof for the proposer index.
+	proposerIndexProof, _, err := merkle.ProveProposerIndexInBlock(
+		blockHeader,
 	)
 	if err != nil {
 		return nil, err
@@ -67,6 +76,7 @@ func (h *Handler[
 		BeaconBlockHeader:    blockHeader,
 		BeaconBlockRoot:      beaconBlockRoot,
 		ValidatorPubkey:      proposerValidator.GetPubkey(),
-		ValidatorPubkeyProof: proof,
+		ValidatorPubkeyProof: pubkeyProof,
+		ProposerIndexProof:   proposerIndexProof,
 	}, nil
 }

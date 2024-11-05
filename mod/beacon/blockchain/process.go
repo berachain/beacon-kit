@@ -57,11 +57,6 @@ func (s *Service[
 		return nil, ErrNilBlk
 	}
 
-	// We set `OptimisticEngine` to true since this is called during
-	// FinalizeBlock. We want to assume the payload is valid. If it
-	// ends up not being valid later, the node will simply AppHash,
-	// which is completely fine. This means we were syncing from a
-	// bad peer, and we would likely AppHash anyways.
 	st := s.storageBackend.StateFromContext(ctx)
 	valUpdates, err := s.executeStateTransition(ctx, st, blk)
 	if err != nil {
@@ -107,8 +102,15 @@ func (s *Service[
 	defer s.metrics.measureStateTransitionDuration(startTime)
 	valUpdates, err := s.stateProcessor.Transition(
 		&transition.Context{
-			Context:          ctx,
+			Context: ctx,
+
+			// We set `OptimisticEngine` to true since this is called during
+			// FinalizeBlock. We want to assume the payload is valid. If it
+			// ends up not being valid later, the node will simply AppHash,
+			// which is completely fine. This means we were syncing from a
+			// bad peer, and we would likely AppHash anyways.
 			OptimisticEngine: true,
+
 			// When we are NOT synced to the tip, process proposal
 			// does NOT get called and thus we must ensure that
 			// NewPayload is called to get the execution
