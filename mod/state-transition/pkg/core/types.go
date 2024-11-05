@@ -122,9 +122,12 @@ type Context interface {
 
 // Deposit is the interface for a deposit.
 type Deposit[
+	DepositT any,
 	ForkDataT any,
 	WithdrawlCredentialsT ~[32]byte,
 ] interface {
+	// Equals returns true if the withdrawal is equal to the other.
+	Equals(DepositT) bool
 	// GetAmount returns the amount of the deposit.
 	GetAmount() math.Gwei
 	// GetPubkey returns the public key of the validator.

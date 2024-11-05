@@ -22,7 +22,6 @@ package core
 
 import (
 	"fmt"
-	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -63,7 +62,7 @@ func (sp *StateProcessor[
 	}
 
 	for i, sd := range stateDeposits {
-		if !reflect.DeepEqual(sd, deposits[i]) {
+		if !sd.Equals(deposits[i]) {
 			return fmt.Errorf("deposits mismatched, idx %d state: %v, payload: %v",
 				i, sd, deposits[i],
 			)

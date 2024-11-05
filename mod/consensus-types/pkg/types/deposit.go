@@ -187,6 +187,14 @@ func (d *Deposit) GetTree() (*fastssz.Node, error) {
 /*                             Getters and Setters                            */
 /* -------------------------------------------------------------------------- */
 
+func (d *Deposit) Equals(rhs *Deposit) bool {
+	return d.Pubkey == rhs.Pubkey &&
+		d.Credentials == rhs.Credentials &&
+		d.Amount == rhs.Amount &&
+		d.Signature == rhs.Signature &&
+		d.Index == rhs.Index
+}
+
 // GetAmount returns the deposit amount in gwei.
 func (d *Deposit) GetAmount() math.Gwei {
 	return d.Amount

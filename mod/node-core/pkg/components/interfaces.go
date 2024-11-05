@@ -358,6 +358,7 @@ type (
 			crypto.BLSSignature,
 			uint64,
 		) T
+		Equals(T) bool
 		// GetIndex returns the index of the deposit.
 		GetIndex() math.U64
 		// GetAmount returns the amount of the deposit.

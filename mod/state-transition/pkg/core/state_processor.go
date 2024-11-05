@@ -50,7 +50,7 @@ type StateProcessor[
 		ValidatorT, ValidatorsT, WithdrawalT,
 	],
 	ContextT Context,
-	DepositT Deposit[ForkDataT, WithdrawalCredentialsT],
+	DepositT Deposit[DepositT, ForkDataT, WithdrawalCredentialsT],
 	Eth1DataT interface {
 		New(common.Root, math.U64, common.ExecutionHash) Eth1DataT
 		GetDepositCount() math.U64
@@ -111,7 +111,7 @@ func NewStateProcessor[
 		KVStoreT, ValidatorT, ValidatorsT, WithdrawalT,
 	],
 	ContextT Context,
-	DepositT Deposit[ForkDataT, WithdrawalCredentialsT],
+	DepositT Deposit[DepositT, ForkDataT, WithdrawalCredentialsT],
 	Eth1DataT interface {
 		New(common.Root, math.U64, common.ExecutionHash) Eth1DataT
 		GetDepositCount() math.U64
