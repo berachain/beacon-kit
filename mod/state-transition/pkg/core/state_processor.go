@@ -24,6 +24,7 @@ import (
 	"bytes"
 
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -77,6 +78,8 @@ type StateProcessor[
 	},
 	WithdrawalCredentialsT ~[32]byte,
 ] struct {
+	// logger is used for logging information and errors.
+	logger log.Logger
 	// cs is the chain specification for the beacon chain.
 	cs common.ChainSpec
 	// signer is the BLS signer used for cryptographic operations.
@@ -138,6 +141,7 @@ func NewStateProcessor[
 	},
 	WithdrawalCredentialsT ~[32]byte,
 ](
+	logger log.Logger,
 	cs common.ChainSpec,
 	executionEngine ExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
@@ -156,6 +160,7 @@ func NewStateProcessor[
 		ExecutionPayloadHeaderT, ForkT, ForkDataT, KVStoreT, ValidatorT,
 		ValidatorsT, WithdrawalT, WithdrawalsT, WithdrawalCredentialsT,
 	]{
+		logger:          logger,
 		cs:              cs,
 		executionEngine: executionEngine,
 		signer:          signer,

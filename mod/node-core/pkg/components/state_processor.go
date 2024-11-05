@@ -24,6 +24,7 @@ import (
 	"cosmossdk.io/depinject"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/engine"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
@@ -32,6 +33,7 @@ import (
 // StateProcessorInput is the input for the state processor for the depinject
 // framework.
 type StateProcessorInput[
+	LoggerT any,
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
@@ -41,6 +43,7 @@ type StateProcessorInput[
 	WithdrawalsT Withdrawals[WithdrawalT],
 ] struct {
 	depinject.In
+	Logger          LoggerT
 	ChainSpec       common.ChainSpec
 	ExecutionEngine *engine.Engine[
 		ExecutionPayloadT,
@@ -55,6 +58,7 @@ type StateProcessorInput[
 // ProvideStateProcessor provides the state processor to the depinject
 // framework.
 func ProvideStateProcessor[
+	LoggerT log.AdvancedLogger[LoggerT],
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT],
 	BeaconBlockBodyT BeaconBlockBody[
 		BeaconBlockBodyT, *AttestationData, DepositT,
@@ -81,7 +85,7 @@ func ProvideStateProcessor[
 	WithdrawalT Withdrawal[WithdrawalT],
 ](
 	in StateProcessorInput[
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
+		LoggerT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 		DepositT, WithdrawalT, WithdrawalsT,
 	],
 ) *core.StateProcessor[
@@ -109,6 +113,7 @@ func ProvideStateProcessor[
 		WithdrawalsT,
 		WithdrawalCredentials,
 	](
+		in.Logger.With("service", "state-processor"),
 		in.ChainSpec,
 		in.ExecutionEngine,
 		in.DepositStore,

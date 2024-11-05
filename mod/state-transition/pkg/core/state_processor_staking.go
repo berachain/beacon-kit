@@ -63,7 +63,7 @@ func (sp *StateProcessor[
 
 	for i, sd := range stateDeposits {
 		if !sd.Equals(deposits[i]) {
-			return fmt.Errorf("deposits mismatched, idx %d state: %v, payload: %v",
+			return fmt.Errorf("deposits mismatched, idx %d state: %#v, payload: %#v",
 				i, sd, deposits[i],
 			)
 		}

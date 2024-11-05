@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/log/pkg/noop"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	cryptomocks "github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/mocks"
@@ -48,6 +49,7 @@ func TestInitialize(t *testing.T) {
 		engineprimitives.Withdrawals,
 	](t)
 	mocksSigner := &cryptomocks.BLSSigner{}
+	noLog := noop.NewLogger[any]()
 
 	kvStore, depositStore, err := initTestStores()
 	require.NoError(t, err)
@@ -71,6 +73,7 @@ func TestInitialize(t *testing.T) {
 		engineprimitives.Withdrawals,
 		types.WithdrawalCredentials,
 	](
+		noLog,
 		cs,
 		execEngine,
 		depositStore,
