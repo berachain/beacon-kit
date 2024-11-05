@@ -85,6 +85,10 @@ type StateProcessor[
 	executionEngine ExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	]
+
+	// processingGenesis allows initializing correctly
+	// eth1 deposit index upon genesis
+	processingGenesis bool
 }
 
 // NewStateProcessor creates a new state processor.

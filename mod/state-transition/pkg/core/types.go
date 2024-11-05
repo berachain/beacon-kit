@@ -177,15 +177,18 @@ type ExecutionPayloadHeader interface {
 	GetBlockHash() common.ExecutionHash
 }
 
+// Withdrawals defines the interface for managing withdrawal operations.
+type Withdrawals interface {
+	Len() int
+	EncodeIndex(int, *stdbytes.Buffer)
+}
+
 // ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine[
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT],
 	ExecutionPayloadHeaderT any,
-	WithdrawalsT interface {
-		Len() int
-		EncodeIndex(int, *stdbytes.Buffer)
-	},
+	WithdrawalsT Withdrawals,
 ] interface {
 	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
 	// execution client.
