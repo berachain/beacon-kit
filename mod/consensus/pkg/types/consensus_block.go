@@ -18,26 +18,39 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package payloadtime
+package types
 
 import (
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// Next calculates the
-// next timestamp for an execution payload
-//
-// TODO: This is hood and needs to be improved.
-func Next(
-	chainSpec common.ChainSpec,
-	parentPayloadTime math.U64,
-) uint64 {
-	//#nosec:G701 // not an issue in practice.
-	return max(
-		uint64(time.Now().Unix())+chainSpec.TargetSecondsPerEth1Block(),
-		uint64(parentPayloadTime+1),
-	)
+type ConsensusBlock[BeaconBlockT any] struct {
+	blk BeaconBlockT
+
+	nextPayloadTimestamp math.U64
+}
+
+// New creates a new ConsensusBlock instance.
+func (b *ConsensusBlock[BeaconBlockT]) New(
+	beaconBlock BeaconBlockT,
+	nextPayloadTimestamp time.Time,
+) *ConsensusBlock[BeaconBlockT] {
+	b = &ConsensusBlock[BeaconBlockT]{
+		blk:                  beaconBlock,
+		nextPayloadTimestamp: math.U64(nextPayloadTimestamp.Unix()),
+	}
+	return b
+}
+
+func (b *ConsensusBlock[BeaconBlockT]) GetBeaconBlock() BeaconBlockT {
+	return b.blk
+}
+
+// GetNextPayloadTimestamp returns the timestamp proposed by consensus
+// for the next payload to be proposed. It is also used to bound
+// current payload upon validation.
+func (b *ConsensusBlock[_]) GetNextPayloadTimestamp() math.U64 {
+	return b.nextPayloadTimestamp
 }
