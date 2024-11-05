@@ -279,6 +279,7 @@ func (s *Service[
 	if err != nil {
 		return ErrNilDepositIndexStart
 	}
+	depositIndex++
 
 	// Dequeue deposits from the state.
 	deposits, err := s.sb.DepositStore().GetDepositsByIndex(

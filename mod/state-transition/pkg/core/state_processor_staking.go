@@ -54,6 +54,11 @@ func (sp *StateProcessor[
 	}
 
 	deposits := blk.GetBody().GetDeposits()
+	sp.logger.Info(
+		"Expected deposit index from payload", depositIndex,
+		"deposits withdrawals length", len(deposits),
+	)
+
 	if len(stateDeposits) != len(deposits) {
 		return fmt.Errorf("deposits mismatched lengths, state: %d, payload: %d",
 			len(stateDeposits),
@@ -63,8 +68,8 @@ func (sp *StateProcessor[
 
 	for i, sd := range stateDeposits {
 		if !sd.Equals(deposits[i]) {
-			return fmt.Errorf("deposits mismatched, idx %d state: %#v, payload: %#v",
-				i, sd, deposits[i],
+			return fmt.Errorf("deposits mismatched, state: %#v, payload: %#v",
+				sd, deposits[i],
 			)
 		}
 	}
