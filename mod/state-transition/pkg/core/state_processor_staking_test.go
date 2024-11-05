@@ -147,23 +147,10 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		StateRoot:     common.Root{},
 		Body: &types.BeaconBlockBody{
 			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    10,
-				ExtraData:    []byte("testing"),
-				Transactions: [][]byte{},
-				Withdrawals: []*engineprimitives.Withdrawal{
-					{ // fill empty withdrawals
-						Index:     0,
-						Validator: 0,
-						Address:   emptyAddress,
-						Amount:    0,
-					},
-					{
-						Index:     1,
-						Validator: 1,
-						Address:   emptyAddress,
-						Amount:    0,
-					},
-				},
+				Timestamp:     10,
+				ExtraData:     []byte("testing"),
+				Transactions:  [][]byte{},
+				Withdrawals:   []*engineprimitives.Withdrawal{}, // no withdrawals
 				BaseFeePerGas: math.NewU256(0),
 			},
 			Eth1Data: &types.Eth1Data{},

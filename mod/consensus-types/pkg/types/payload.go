@@ -128,6 +128,11 @@ func (p *ExecutionPayload) DefineSSZ(codec *ssz.Codec) {
 		constants.MaxBytesPerTx,
 	)
 	ssz.DefineSliceOfStaticObjectsContent(codec, &p.Withdrawals, 16)
+
+	// TODO: hack to avoid failure of EL checks on withdrawals
+	if p.Withdrawals == nil {
+		p.Withdrawals = make([]*engineprimitives.Withdrawal, 0)
+	}
 }
 
 // MarshalSSZ serializes the ExecutionPayload object into a slice of bytes.
