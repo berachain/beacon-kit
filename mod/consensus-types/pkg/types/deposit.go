@@ -186,7 +186,7 @@ func (d *Deposit) GetTree() (*fastssz.Node, error) {
 /* -------------------------------------------------------------------------- */
 /*                             Getters and Setters                            */
 /* -------------------------------------------------------------------------- */
-
+// Equals returns true if the Deposit is equal to the other.
 func (d *Deposit) Equals(rhs *Deposit) bool {
 	return d.Pubkey == rhs.Pubkey &&
 		d.Credentials == rhs.Credentials &&
