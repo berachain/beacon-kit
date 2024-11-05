@@ -23,6 +23,7 @@ package deposit
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 
 	sdkcollections "cosmossdk.io/collections"
@@ -106,7 +107,10 @@ func (kv *KVStore[DepositT]) setDeposit(deposit DepositT) error {
 // Prune removes the [start, end) deposits from the store.
 func (kv *KVStore[DepositT]) Prune(start, end uint64) error {
 	if start > end {
-		return pruner.ErrInvalidRange
+		return fmt.Errorf(
+			"DepositKVStore Prune start: %d, end: %d: %w",
+			start, end, pruner.ErrInvalidRange,
+		)
 	}
 
 	var ctx = context.TODO()
