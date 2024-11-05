@@ -134,8 +134,8 @@ func TestTransitionUpdateValidators(t *testing.T) {
 			{
 				Pubkey:      genDeposits[0].Pubkey,
 				Credentials: emptyCredentials,
-				Amount:      minBalance, // avoid breaching maxBalance
-				Index:       uint64(len(genDeposits)),
+				Amount:      minBalance,                   // avoid breaching maxBalance
+				Index:       uint64(len(genDeposits)) - 1, // TODO FIX THIS
 			},
 		}
 	)

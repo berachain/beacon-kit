@@ -43,7 +43,6 @@ func (sp *StateProcessor[
 	if err != nil {
 		return err
 	}
-	depositIndex++
 
 	stateDeposits, err := sp.ds.GetDepositsByIndex(
 		depositIndex,
