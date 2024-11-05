@@ -50,6 +50,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		engineprimitives.Withdrawals,
 	](t)
 	mocksSigner := &cryptomocks.BLSSigner{}
+	proposerAddress := []byte{0xff}
 
 	sp := core.NewStateProcessor[
 		*types.BeaconBlock,
@@ -73,6 +74,9 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		cs,
 		execEngine,
 		mocksSigner,
+		func(bytes.B48) ([]byte, error) {
+			return proposerAddress, nil
+		},
 	)
 
 	kvStore, err := initTestStore()
@@ -127,6 +131,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		ctx = &transition.Context{
 			SkipPayloadVerification: true,
 			SkipValidateResult:      true,
+			ProposerAddress:         proposerAddress,
 		}
 		blkDeposits = []*types.Deposit{
 			{
@@ -198,6 +203,7 @@ func TestTransitionHittingValidatorsCap(t *testing.T) {
 		engineprimitives.Withdrawals,
 	](t)
 	mocksSigner := &cryptomocks.BLSSigner{}
+	proposerAddress := []byte{0xff}
 
 	sp := core.NewStateProcessor[
 		*types.BeaconBlock,
@@ -221,6 +227,9 @@ func TestTransitionHittingValidatorsCap(t *testing.T) {
 		cs,
 		execEngine,
 		mocksSigner,
+		func(bytes.B48) ([]byte, error) {
+			return proposerAddress, nil
+		},
 	)
 
 	kvStore, err := initTestStore()
@@ -280,6 +289,7 @@ func TestTransitionHittingValidatorsCap(t *testing.T) {
 		ctx = &transition.Context{
 			SkipPayloadVerification: true,
 			SkipValidateResult:      true,
+			ProposerAddress:         proposerAddress,
 		}
 		blkDeposits = []*types.Deposit{
 			{

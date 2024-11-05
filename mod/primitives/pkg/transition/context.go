@@ -42,6 +42,8 @@ type Context struct {
 	// SkipValidateResult indicates whether to validate the result of
 	// the state transition.
 	SkipValidateResult bool
+	// Address of current block proposer
+	ProposerAddress []byte
 	// NextPayloadTimestamp is the timestamp proposed by
 	// consensus for the next payload to be proposed. It is also
 	// used to bound current payload upon validation
@@ -71,6 +73,10 @@ func (c *Context) GetSkipValidateRandao() bool {
 // transition.
 func (c *Context) GetSkipValidateResult() bool {
 	return c.SkipValidateResult
+}
+
+func (c *Context) GetProposerAddress() []byte {
+	return c.ProposerAddress
 }
 
 // GetNextPayloadTimestamp returns the timestamp proposed by consensus

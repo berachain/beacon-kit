@@ -34,6 +34,8 @@ var (
 	// match the expected value.
 	ErrSlotMismatch = errors.New("slot mismatch")
 
+	ErrProposerMismatch = errors.New("proposer key mismatch")
+
 	// ErrParentRootMismatch is returned when the parent root in an execution
 	// payload does not match the expected value.
 	ErrParentRootMismatch = errors.New("parent root mismatch")
