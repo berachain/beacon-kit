@@ -108,5 +108,6 @@ func ProvideStateProcessor[
 		in.ChainSpec,
 		in.ExecutionEngine,
 		in.Signer,
+		crypto.GetAddressFromPubKey,
 	)
 }

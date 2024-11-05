@@ -81,6 +81,10 @@ type StateProcessor[
 	cs common.ChainSpec
 	// signer is the BLS signer used for cryptographic operations.
 	signer crypto.BLSSigner
+	// fGetAddressFromPubKey verifies that a validator public key
+	// matches with the proposer address passed by the consensus
+	// Injected via ctor to simplify testing.
+	fGetAddressFromPubKey func(crypto.BLSPubkey) ([]byte, error)
 	// executionEngine is the engine responsible for executing transactions.
 	executionEngine ExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
@@ -137,6 +141,7 @@ func NewStateProcessor[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
 	signer crypto.BLSSigner,
+	fGetAddressFromPubKey func(crypto.BLSPubkey) ([]byte, error),
 ) *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, ContextT, DepositT, Eth1DataT, ExecutionPayloadT,
@@ -149,9 +154,10 @@ func NewStateProcessor[
 		ExecutionPayloadHeaderT, ForkT, ForkDataT, KVStoreT, ValidatorT,
 		ValidatorsT, WithdrawalT, WithdrawalsT, WithdrawalCredentialsT,
 	]{
-		cs:              cs,
-		executionEngine: executionEngine,
-		signer:          signer,
+		cs:                    cs,
+		executionEngine:       executionEngine,
+		signer:                signer,
+		fGetAddressFromPubKey: fGetAddressFromPubKey,
 	}
 }
 
@@ -383,7 +389,7 @@ func (sp *StateProcessor[
 	if err != nil {
 		return err
 	}
-	stateProposerAddress, err := crypto.GetAddressFromPubKey(proposer.GetPubkey())
+	stateProposerAddress, err := sp.fGetAddressFromPubKey(proposer.GetPubkey())
 	if err != nil {
 		return err
 	}
