@@ -68,7 +68,7 @@ func ConvertWithdrawalCredentials(credentials string) (
 func ConvertAmount(amount string) (math.Gwei, error) {
 	// Convert the amount to a Gwei.
 	amountBigInt, ok := new(big.Int).SetString(amount, 10)
-	if !ok {
+	if !ok || !amountBigInt.IsUint64() {
 		return 0, ErrInvalidAmount
 	}
 	return math.Gwei(amountBigInt.Uint64()), nil

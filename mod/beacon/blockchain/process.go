@@ -32,7 +32,7 @@ import (
 // ProcessGenesisData processes the genesis state and initializes the beacon
 // state.
 func (s *Service[
-	_, _, _, _, _, _, _, _, GenesisT, _,
+	_, _, _, _, _, _, _, _, _, GenesisT, _,
 ]) ProcessGenesisData(
 	ctx context.Context,
 	genesisData GenesisT,
@@ -48,13 +48,15 @@ func (s *Service[
 // ProcessBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
 func (s *Service[
-	_, BeaconBlockT, _, _, _, _, _, _, _, _,
+	_, ConsensusBlockT, _, _, _, _, _, _, _, _, _,
 ]) ProcessBeaconBlock(
 	ctx context.Context,
-	blk BeaconBlockT,
+	blk ConsensusBlockT,
 ) (transition.ValidatorUpdates, error) {
+	beaconBlk := blk.GetBeaconBlock()
+
 	// If the block is nil, exit early.
-	if blk.IsNil() {
+	if beaconBlk.IsNil() {
 		return nil, ErrNilBlk
 	}
 
@@ -67,9 +69,9 @@ func (s *Service[
 	// To complete block finalization, we wait for the associated blob
 	// to be persisted and verify it's available. Once that is done we
 	// complete block finalization.
-	g, _ := errgroup.WithContext(ctx)
+	g, gCtx := errgroup.WithContext(ctx)
 	g.Go(func() error {
-		return s.verifyFinalBlobAvailability(ctx, blk)
+		return s.verifyFinalBlobAvailability(gCtx, beaconBlk)
 	})
 
 	// Wait for the sidecar to be finalized and its availability checked
@@ -82,8 +84,11 @@ func (s *Service[
 	// TODO: this is hood as fuck.
 	// We won't send an fcu if the block is bad, should be addressed
 	// via ticker later.
-	event := async.NewEvent(ctx, async.BeaconBlockFinalized, blk)
-	if err = s.dispatcher.Publish(event); err != nil {
+	if err = s.dispatcher.Publish(
+		async.NewEvent(
+			ctx, async.BeaconBlockFinalized, beaconBlk,
+		),
+	); err != nil {
 		return nil, err
 	}
 
@@ -94,11 +99,11 @@ func (s *Service[
 
 // executeStateTransition runs the stf.
 func (s *Service[
-	_, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _,
+	_, ConsensusBlockT, _, _, _, BeaconStateT, _, _, _, _, _,
 ]) executeStateTransition(
 	ctx context.Context,
 	st BeaconStateT,
-	blk BeaconBlockT,
+	blk ConsensusBlockT,
 ) (transition.ValidatorUpdates, error) {
 	startTime := time.Now()
 	defer s.metrics.measureStateTransitionDuration(startTime)
@@ -127,9 +132,12 @@ func (s *Service[
 			// the "verification aspect" of this NewPayload call is
 			// actually irrelevant at this point.
 			SkipPayloadVerification: false,
+
+			ProposerAddress:      blk.GetProposerAddress(),
+			NextPayloadTimestamp: blk.GetNextPayloadTimestamp(),
 		},
 		st,
-		blk,
+		blk.GetBeaconBlock(),
 	)
 	return valUpdates, err
 }

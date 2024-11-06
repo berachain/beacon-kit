@@ -37,6 +37,7 @@ type DispatcherInput[
 
 // ProvideDispatcher provides a new Dispatcher.
 func ProvideDispatcher[
+	ConsensusBlockT any,
 	BeaconBlockT any,
 	BlobSidecarsT any,
 	GenesisT any,
@@ -51,11 +52,11 @@ func ProvideDispatcher[
 		dp.WithEvent[SlotEvent](async.NewSlot),
 		dp.WithEvent[async.Event[BeaconBlockT]](async.BuiltBeaconBlock),
 		dp.WithEvent[async.Event[BlobSidecarsT]](async.BuiltSidecars),
-		dp.WithEvent[async.Event[BeaconBlockT]](async.BeaconBlockReceived),
+		dp.WithEvent[async.Event[ConsensusBlockT]](async.BeaconBlockReceived),
 		dp.WithEvent[async.Event[BlobSidecarsT]](async.SidecarsReceived),
 		dp.WithEvent[async.Event[BeaconBlockT]](async.BeaconBlockVerified),
 		dp.WithEvent[async.Event[BlobSidecarsT]](async.SidecarsVerified),
-		dp.WithEvent[async.Event[BeaconBlockT]](async.FinalBeaconBlockReceived),
+		dp.WithEvent[async.Event[ConsensusBlockT]](async.FinalBeaconBlockReceived),
 		dp.WithEvent[async.Event[BlobSidecarsT]](async.FinalSidecarsReceived),
 		dp.WithEvent[async.Event[struct{}]](async.BlobSidecarsFinalized),
 		dp.WithEvent[ValidatorUpdateEvent](
