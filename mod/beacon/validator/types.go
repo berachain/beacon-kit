@@ -190,6 +190,8 @@ type SlotData[AttestationDataT, SlashingInfoT any] interface {
 	GetAttestationData() []AttestationDataT
 	// GetSlashingInfo returns the slashing info of the incoming slot.
 	GetSlashingInfo() []SlashingInfoT
+	// GetProposerAddress returns the address of the validator
+	// selected by consensus to propose the block
 	GetProposerAddress() []byte
 	// GetNextPayloadTimestamp returns the timestamp proposed by
 	// consensus for the next payload to be proposed. It is also

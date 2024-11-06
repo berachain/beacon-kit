@@ -29,6 +29,7 @@ import (
 type ConsensusBlock[BeaconBlockT any] struct {
 	blk BeaconBlockT
 
+	// some consensus data useful to build and verify the block
 	*commonConsensusData
 }
 

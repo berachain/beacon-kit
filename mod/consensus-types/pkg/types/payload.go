@@ -273,7 +273,7 @@ func (p *ExecutionPayload) GetTree() (*fastssz.Node, error) {
 /* -------------------------------------------------------------------------- */
 
 // MarshalJSON marshals as JSON.
-func (p *ExecutionPayload) MarshalJSON() ([]byte, error) {
+func (p ExecutionPayload) MarshalJSON() ([]byte, error) {
 	type ExecutionPayload struct {
 		ParentHash    common.ExecutionHash           `json:"parentHash"`
 		FeeRecipient  common.ExecutionAddress        `json:"feeRecipient"`

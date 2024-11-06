@@ -23,6 +23,7 @@ package blob
 import (
 	"time"
 
+	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -44,7 +45,7 @@ type Processor[
 	// chainSpec defines the specifications of the blockchain.
 	chainSpec common.ChainSpec
 	// verifier is responsible for verifying the blobs.
-	verifier BlobVerifier[BlobSidecarsT]
+	verifier *verifier[BeaconBlockHeaderT, BlobSidecarT, BlobSidecarsT]
 	// blockBodyOffsetFn is a function that calculates the block body offset
 	// based on the slot and chain specifications.
 	blockBodyOffsetFn func(math.Slot, common.ChainSpec) uint64
@@ -64,13 +65,18 @@ func NewProcessor[
 ](
 	logger log.Logger,
 	chainSpec common.ChainSpec,
-	verifier BlobVerifier[BlobSidecarsT],
+	proofVerifier kzg.BlobProofVerifier,
 	blockBodyOffsetFn func(math.Slot, common.ChainSpec) uint64,
 	telemetrySink TelemetrySink,
 ) *Processor[
 	AvailabilityStoreT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BlobSidecarT, BlobSidecarsT,
 ] {
+	verifier := newVerifier[
+		BeaconBlockHeaderT,
+		BlobSidecarT,
+		BlobSidecarsT,
+	](proofVerifier, telemetrySink)
 	return &Processor[
 		AvailabilityStoreT, BeaconBlockBodyT, BeaconBlockHeaderT,
 		BlobSidecarT, BlobSidecarsT,
@@ -98,7 +104,7 @@ func (sp *Processor[AvailabilityStoreT, _, _, _, BlobSidecarsT]) VerifySidecars(
 	}
 
 	// Verify the blobs and ensure they match the local state.
-	return sp.verifier.VerifySidecars(
+	return sp.verifier.verifySidecars(
 		sidecars,
 		sp.blockBodyOffsetFn(
 			sidecars.Get(0).GetBeaconBlockHeader().GetSlot(),

@@ -338,7 +338,6 @@ func (h *ABCIMiddleware[
 	}
 
 	// notify that the final beacon block has been received.
-	// notify that the beacon block has been received.
 	var enrichedBlk *types.ConsensusBlock[BeaconBlockT]
 	enrichedBlk = enrichedBlk.New(
 		blk,
