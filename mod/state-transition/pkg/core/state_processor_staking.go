@@ -21,6 +21,8 @@
 package core
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -84,14 +86,24 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	dep DepositT,
 ) error {
-	depositIndex, err := st.GetEth1DepositIndex()
-	if err != nil {
-		return err
+	var nextDepositIndex uint64
+	switch depositIndex, err := st.GetEth1DepositIndex(); {
+	case err == nil:
+		// just increment the deposit index if no error
+		nextDepositIndex = depositIndex + 1
+	case sp.processingGenesis && err != nil:
+		// If errored and still processing genesis,
+		// Eth1DepositIndex may have not been set yet.
+		nextDepositIndex = 0
+	default:
+		// Failed retrieving Eth1DepositIndex outside genesis is an error
+		return fmt.Errorf(
+			"failed retrieving eth1 deposit index outside of processing genesis: %w",
+			err,
+		)
 	}
 
-	if err = st.SetEth1DepositIndex(
-		depositIndex + 1,
-	); err != nil {
+	if err := st.SetEth1DepositIndex(nextDepositIndex); err != nil {
 		return err
 	}
 
@@ -136,12 +148,6 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	dep DepositT,
 ) error {
-	var (
-		genesisValidatorsRoot common.Root
-		epoch                 math.Epoch
-		err                   error
-	)
-
 	// Get the current slot.
 	slot, err := st.GetSlot()
 	if err != nil {
@@ -149,9 +155,8 @@ func (sp *StateProcessor[
 	}
 
 	// At genesis, the validators sign over an empty root.
-	if slot == 0 {
-		genesisValidatorsRoot = common.Root{}
-	} else {
+	genesisValidatorsRoot := common.Root{}
+	if slot != 0 {
 		// Get the genesis validators root to be used to find fork data later.
 		genesisValidatorsRoot, err = st.GetGenesisValidatorsRoot()
 		if err != nil {
@@ -160,7 +165,7 @@ func (sp *StateProcessor[
 	}
 
 	// Get the current epoch.
-	epoch = sp.cs.SlotToEpoch(slot)
+	epoch := sp.cs.SlotToEpoch(slot)
 
 	// Verify that the message was signed correctly.
 	var d ForkDataT
@@ -197,7 +202,6 @@ func (sp *StateProcessor[
 	)
 
 	// TODO: This is a bug that lives on bArtio. Delete this eventually.
-	const bArtioChainID = 80084
 	if sp.cs.DepositEth1ChainID() == bArtioChainID {
 		if err := st.AddValidatorBartio(val); err != nil {
 			return err
