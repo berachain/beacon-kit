@@ -54,7 +54,7 @@ func DefaultComponents() []any {
 		components.ProvideBlsSigner,
 		components.ProvideBlobProcessor[
 			*AvailabilityStore, *BeaconBlockBody, *BeaconBlockHeader,
-			*BlobSidecar, *BlobSidecars, *Logger,
+			*ConsensusSidecars, *BlobSidecar, *BlobSidecars, *Logger,
 		],
 		components.ProvideBlobProofVerifier,
 		components.ProvideChainService[
@@ -74,8 +74,8 @@ func DefaultComponents() []any {
 		// 	*BeaconStateMarshallable, *BlockStore, *KVStore, *StorageBackend,
 		// ],
 		components.ProvideDAService[
-			*AvailabilityStore, *BeaconBlockBody, *BlobSidecar,
-			*BlobSidecars, *Logger,
+			*AvailabilityStore, *BeaconBlockBody, *BeaconBlockHeader,
+			*ConsensusSidecars, *BlobSidecar, *BlobSidecars, *Logger,
 		],
 		components.ProvideDBManager[*AvailabilityStore, *DepositStore, *Logger],
 		components.ProvideDepositPruner[
@@ -89,7 +89,9 @@ func DefaultComponents() []any {
 		],
 		components.ProvideDepositStore[*Deposit],
 		components.ProvideDispatcher[
-			*ConsensusBlock, *BeaconBlock, *BlobSidecars, *Genesis, *Logger,
+			*ConsensusBlock, *BeaconBlock,
+			*ConsensusSidecars, *BlobSidecars,
+			*Genesis, *Logger,
 		],
 		components.ProvideEngineClient[
 			*ExecutionPayload, *ExecutionPayloadHeader, *Logger,
@@ -108,7 +110,8 @@ func DefaultComponents() []any {
 			*AvailabilityStore,
 			*ConsensusBlock, *BeaconBlock, *BeaconBlockBody,
 			*BeaconBlockHeader, *BlockStore, *BeaconState,
-			*BeaconStateMarshallable, *BlobSidecar, *BlobSidecars,
+			*BeaconStateMarshallable,
+			*ConsensusSidecars, *BlobSidecar, *BlobSidecars,
 			*Deposit, *DepositStore, *ExecutionPayload, *ExecutionPayloadHeader,
 			*Genesis, *KVStore, *Logger,
 			NodeAPIContext,
