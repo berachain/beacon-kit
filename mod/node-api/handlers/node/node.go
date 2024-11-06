@@ -21,38 +21,38 @@
 package node
 
 import (
-	"context"
-
 	"github.com/berachain/beacon-kit/mod/errors"
 	nodetypes "github.com/berachain/beacon-kit/mod/node-api/handlers/node/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
-	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 )
 
 // Syncing returns the syncing status of the beacon node.
 func (h *Handler[ContextT]) Syncing(_ ContextT) (any, error) {
-	if h.clientCtx.Client == nil {
-		return nil, errors.New("RPC client not initialized")
+	node := h.backend.GetNode()
+	if node == nil {
+		return nil, errors.New("node is nil")
 	}
-	// Query node status from the cometBFT node
-	status, err := cmtservice.GetNodeStatus(context.Background(), h.clientCtx)
-	if err != nil {
-		return nil, errors.Wrapf(err, "err in getting node status")
-	}
+
+	// Get blockStore for heights
+	blockStore := node.BlockStore()
+	latestHeight := blockStore.Height()
+	baseHeight := blockStore.Base()
+
+	// Get consensus reactor for sync status
+	consensusReactor := node.ConsensusReactor()
+
 	response := nodetypes.SyncingData{
-		HeadSlot:     status.SyncInfo.LatestBlockHeight,
+		HeadSlot:     latestHeight,
 		IsOptimistic: true,
 		ELOffline:    false,
 	}
 
-	// Calculate sync distance
-	if status.SyncInfo.CatchingUp {
-		// If we're catching up, the sync distance is the difference between
-		// the latest block height and the earliest block height
-		response.SyncDistance = status.SyncInfo.LatestBlockHeight -
-			status.SyncInfo.EarliestBlockHeight
-		response.IsSyncing = true
+	// Check if we're catching up by comparing heights
+	if consensusReactor != nil {
+		response.SyncDistance = latestHeight - baseHeight
 	}
+	response.IsSyncing = response.SyncDistance > 0
+
 	return types.Wrap(&response), nil
 }
 

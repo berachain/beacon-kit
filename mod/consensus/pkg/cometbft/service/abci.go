@@ -36,6 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	math "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/node"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	sdkversion "github.com/cosmos/cosmos-sdk/version"
@@ -614,4 +615,9 @@ func (s *Service[_]) GetBlockRetentionHeight(commitHeight int64) int64 {
 // GetBeaconVersion returns the current version of the beacon node.
 func (s *Service[_]) GetBeaconVersion() (string, error) {
 	return sdkversion.Version, nil
+}
+
+// GetCometNode returns the concrete CometBFT node.
+func (s *Service[_]) GetCometNode() *node.Node {
+	return s.node
 }

@@ -23,35 +23,21 @@ package node
 import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 	"github.com/berachain/beacon-kit/mod/node-api/server/context"
-	cmtclient "github.com/cometbft/cometbft/rpc/client/http"
-	"github.com/cosmos/cosmos-sdk/client"
 )
-
-const RPCEndpoint = "tcp://localhost:26657"
 
 // Handler is the handler for the node API.
 type Handler[ContextT context.Context] struct {
 	*handlers.BaseHandler[ContextT]
-	backend   Backend
-	rpcClient *cmtclient.HTTP
-	clientCtx client.Context
+	backend Backend
 }
 
-func NewHandler[ContextT context.Context](backend Backend) *Handler[ContextT] {
-	rpcClient, err := cmtclient.New(RPCEndpoint)
-	if err != nil {
-		// Not returning error to keep the pattern same across all handlers.
-		rpcClient = nil
-	}
-	clientCtx := client.Context{}.WithClient(rpcClient)
-
+func NewHandler[ContextT context.Context](backend Backend,
+) *Handler[ContextT] {
 	h := &Handler[ContextT]{
 		BaseHandler: handlers.NewBaseHandler(
 			handlers.NewRouteSet[ContextT](""),
 		),
-		backend:   backend,
-		rpcClient: rpcClient,
-		clientCtx: clientCtx,
+		backend: backend,
 	}
 	return h
 }

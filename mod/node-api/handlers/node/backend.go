@@ -20,6 +20,9 @@
 
 package node
 
+import "github.com/cometbft/cometbft/node"
+
 type Backend interface {
 	GetNodeVersion() (string, error)
+	GetNode() *node.Node
 }
