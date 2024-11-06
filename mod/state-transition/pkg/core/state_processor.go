@@ -288,16 +288,12 @@ func (sp *StateProcessor[
 	}
 
 	// process the execution payload.
-	if err := sp.processExecutionPayload(
-		ctx, st, blk,
-	); err != nil {
+	if err := sp.processExecutionPayload(ctx, st, blk); err != nil {
 		return err
 	}
 
 	// process the withdrawals.
-	if err := sp.processWithdrawals(
-		st, blk.GetBody(),
-	); err != nil {
+	if err := sp.processWithdrawals(st, blk.GetBody()); err != nil {
 		return err
 	}
 
