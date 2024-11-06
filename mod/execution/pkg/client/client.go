@@ -167,7 +167,16 @@ func (s *EngineClient[
 		return err
 	}
 
-	if !s.eth1ChainID.IsUint64() || chainID.Unwrap() != s.eth1ChainID.Uint64() {
+	// TODO: consider validating once when config is set or
+	// client is initialized
+	if !s.eth1ChainID.IsUint64() {
+		err = errors.Wrapf(
+			errors.New("provided chain ID is not uint64"),
+			s.eth1ChainID.String(),
+		)
+		return err
+	}
+	if chainID.Unwrap() != s.eth1ChainID.Uint64() {
 		err = errors.Wrapf(
 			ErrMismatchedEth1ChainID,
 			"wanted chain ID %d, got %d",
