@@ -267,6 +267,8 @@ func (sp *StateProcessor[
 	if err != nil {
 		return false, err
 	}
+
+	//#nosec:G701 // no overflow risk here
 	return uint32(len(validators)) >= sp.cs.GetValidatorSetCapSize(), nil
 }
 
