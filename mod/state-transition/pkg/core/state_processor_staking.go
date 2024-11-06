@@ -23,7 +23,6 @@ package core
 import (
 	"fmt"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -118,27 +117,29 @@ func (sp *StateProcessor[
 	dep DepositT,
 ) error {
 	idx, err := st.ValidatorIndexByPubkey(dep.GetPubkey())
-	// If the validator already exists, we update the balance.
-	if err == nil {
-		var val ValidatorT
-		val, err = st.ValidatorByIndex(idx)
-		if err != nil {
-			return err
-		}
-
-		// TODO: Modify balance here and then effective balance once per epoch.
-		updatedBalance := types.ComputeEffectiveBalance(
-			dep.GetAmount(),
-			math.Gwei(sp.cs.EffectiveBalanceIncrement()),
-			math.Gwei(sp.cs.MaxEffectiveBalance()),
-		)
-		val.SetEffectiveBalance(updatedBalance)
-		return st.UpdateValidatorAtIndex(idx, val)
+	if err != nil {
+		// If the validator does not exist, we add the validator.
+		// Add the validator to the registry.
+		return sp.createValidator(st, dep)
 	}
 
-	// If the validator does not exist, we add the validator.
-	// Add the validator to the registry.
-	return sp.createValidator(st, dep)
+	// If the validator already exists, we update the balance.
+	var val ValidatorT
+	val, err = st.ValidatorByIndex(idx)
+	if err != nil {
+		return err
+	}
+
+	// TODO: Modify balance here and then effective balance once per epoch.
+	newBalance := min(
+		val.GetEffectiveBalance()+dep.GetAmount(),
+		math.Gwei(sp.cs.MaxEffectiveBalance()),
+	)
+	val.SetEffectiveBalance(newBalance)
+	if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
+		return err
+	}
+	return st.IncreaseBalance(idx, dep.GetAmount())
 }
 
 // createValidator creates a validator if the deposit is valid.
@@ -203,18 +204,18 @@ func (sp *StateProcessor[
 
 	// TODO: This is a bug that lives on bArtio. Delete this eventually.
 	if sp.cs.DepositEth1ChainID() == bArtioChainID {
-		if err := st.AddValidatorBartio(val); err != nil {
-			return err
-		}
-	} else if err := st.AddValidator(val); err != nil {
-		return err
+		// Note in AddValidatorBartio we implicitly increase
+		// the balance from state st. This is unlike AddValidator.
+		return st.AddValidatorBartio(val)
 	}
 
+	if err := st.AddValidator(val); err != nil {
+		return err
+	}
 	idx, err := st.ValidatorIndexByPubkey(val.GetPubkey())
 	if err != nil {
 		return err
 	}
-
 	return st.IncreaseBalance(idx, dep.GetAmount())
 }
 
