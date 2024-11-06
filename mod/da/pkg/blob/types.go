@@ -55,8 +55,14 @@ type BeaconBlockBody interface {
 	Length() uint64
 }
 
-type BeaconBlockHeader interface {
+type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
 	GetSlot() math.Slot
+	Equals(BeaconBlockHeaderT) bool
+}
+
+type ConsensusSidecars[BlobSidecarsT any, BeaconBlockHeaderT any] interface {
+	GetSidecars() BlobSidecarsT
+	GetHeader() BeaconBlockHeaderT
 }
 
 type Sidecar[BeaconBlockHeaderT any] interface {

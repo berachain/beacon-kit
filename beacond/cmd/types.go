@@ -74,6 +74,7 @@ type (
 		*AvailabilityStore,
 		*BeaconBlockBody,
 		*BeaconBlockHeader,
+		*ConsensusSidecars,
 		*BlobSidecar,
 		*BlobSidecars,
 	]
@@ -100,7 +101,10 @@ type (
 	CometBFTService = cometbft.Service[*Logger]
 
 	// DAService is a type alias for the DA service.
-	DAService = da.Service[*AvailabilityStore, *BlobSidecars]
+	DAService = da.Service[
+		*AvailabilityStore,
+		*ConsensusSidecars, *BlobSidecars, *BeaconBlockHeader,
+	]
 
 	// DBManager is a type alias for the database manager.
 	DBManager = manager.DBManager
@@ -260,10 +264,12 @@ type (
 		Validator,
 	]
 
-	// BlobSidecar is a type alias for the blob sidecar.
-	BlobSidecar = datypes.BlobSidecar
-
-	// BlobSidecars is a type alias for the blob sidecars.
+	// BlobSidecars type aliases.
+	ConsensusSidecars = consruntimetypes.ConsensusSidecars[
+		*BlobSidecars,
+		*BeaconBlockHeader,
+	]
+	BlobSidecar  = datypes.BlobSidecar
 	BlobSidecars = datypes.BlobSidecars
 
 	// BlockStore is a type alias for the block store.

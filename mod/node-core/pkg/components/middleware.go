@@ -58,10 +58,11 @@ func ProvideABCIMiddleware[
 ](
 	in ABCIMiddlewareInput[BeaconBlockT, BlobSidecarsT, LoggerT],
 ) (*middleware.ABCIMiddleware[
-	BeaconBlockT, BlobSidecarsT, GenesisT, *SlotData,
+	BeaconBlockT, BeaconBlockHeaderT, BlobSidecarsT, GenesisT, *SlotData,
 ], error) {
 	return middleware.NewABCIMiddleware[
 		BeaconBlockT,
+		BeaconBlockHeaderT,
 		BlobSidecarsT,
 		GenesisT,
 		*SlotData,
