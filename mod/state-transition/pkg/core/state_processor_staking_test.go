@@ -242,7 +242,7 @@ func TestTransitionHittingValidatorsCap(t *testing.T) {
 		rndSeed    = 2024 // seed used to generate unique random value
 	)
 
-	// Setup initial state via genesis
+	// STEP 1: Setup genesis with GetValidatorSetCapSize validators
 	// TODO: consider instead setting state artificially
 	var (
 		genDeposits      = make([]*types.Deposit, 0, cs.GetValidatorSetCapSize())
@@ -282,7 +282,7 @@ func TestTransitionHittingValidatorsCap(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	// create test inputs
+	// STEP 2: Try and add an extra validator
 	extraValKey, rndSeed := generateTestPK(t, rndSeed)
 	extraValCreds, extraValAddr, _ := generateTestExecutionAddress(t, rndSeed)
 	var (
@@ -336,7 +336,8 @@ func TestTransitionHittingValidatorsCap(t *testing.T) {
 	require.Equal(t, blkDeposits[0].Amount, extraVal.EffectiveBalance)
 	require.Equal(t, math.Slot(0), extraVal.WithdrawableEpoch)
 
-	// TODO: Add next block and show withdrawals for extra validator are added
+	// STEP 3: show that following block must contain withdrawals for
+	// the rejected validator
 	blk1Header := updateStateRootForLatestBlock(t, bs)
 	blk2 := &types.BeaconBlock{
 		Slot:          blk1Header.GetSlot() + 1,
