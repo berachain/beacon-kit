@@ -72,7 +72,6 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		execEngine,
 		mocksSigner,
 		func(bytes.B48) ([]byte, error) {
-			// proposer not verified in genesis
 			return dummyProposerAddr, nil
 		},
 	)
