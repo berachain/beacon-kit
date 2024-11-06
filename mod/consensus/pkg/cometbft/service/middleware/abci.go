@@ -25,12 +25,14 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/encoding"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 /* -------------------------------------------------------------------------- */
@@ -41,22 +43,19 @@ import (
 func (h *ABCIMiddleware[
 	_, _, GenesisT, _,
 ]) InitGenesis(
-	ctx context.Context,
+	ctx sdk.Context,
 	bz []byte,
 ) (transition.ValidatorUpdates, error) {
-	var (
-		err             error
-		waitCtx, cancel = context.WithTimeout(ctx, AwaitTimeout)
-	)
+	waitCtx, cancel := context.WithTimeout(ctx, AwaitTimeout)
 	defer cancel()
 
 	data := new(GenesisT)
-	if err = json.Unmarshal(bz, data); err != nil {
+	if err := json.Unmarshal(bz, data); err != nil {
 		h.logger.Error("Failed to unmarshal genesis data", "error", err)
 		return nil, err
 	}
 
-	if err = h.dispatcher.Publish(
+	if err := h.dispatcher.Publish(
 		async.NewEvent(ctx, async.GenesisDataReceived, *data),
 	); err != nil {
 		return nil, err
@@ -87,14 +86,10 @@ func (h *ABCIMiddleware[
 func (h *ABCIMiddleware[
 	BeaconBlockT, BlobSidecarsT, _, SlotDataT,
 ]) PrepareProposal(
-	ctx context.Context,
+	ctx sdk.Context,
 	slotData SlotDataT,
 ) ([]byte, []byte, error) {
 	var (
-		err              error
-		builtBeaconBlock BeaconBlockT
-		builtSidecars    BlobSidecarsT
-		numMsgs          int
 		startTime        = time.Now()
 		awaitCtx, cancel = context.WithTimeout(ctx, AwaitTimeout)
 	)
@@ -102,18 +97,18 @@ func (h *ABCIMiddleware[
 	defer cancel()
 	defer h.metrics.measurePrepareProposalDuration(startTime)
 	// flush the channels to ensure that we are not handling old data.
-	if numMsgs = async.ClearChan(h.subBuiltBeaconBlock); numMsgs > 0 {
+	if numMsgs := async.ClearChan(h.subBuiltBeaconBlock); numMsgs > 0 {
 		h.logger.Error(
 			"WARNING: messages remaining in built beacon block channel",
 			"num_msgs", numMsgs)
 	}
-	if numMsgs = async.ClearChan(h.subBuiltSidecars); numMsgs > 0 {
+	if numMsgs := async.ClearChan(h.subBuiltSidecars); numMsgs > 0 {
 		h.logger.Error(
 			"WARNING: messages remaining in built sidecars channel",
 			"num_msgs", numMsgs)
 	}
 
-	if err = h.dispatcher.Publish(
+	if err := h.dispatcher.Publish(
 		async.NewEvent(
 			ctx, async.NewSlot, slotData,
 		),
@@ -122,13 +117,13 @@ func (h *ABCIMiddleware[
 	}
 
 	// wait for built beacon block
-	builtBeaconBlock, err = h.waitForBuiltBeaconBlock(awaitCtx)
+	builtBeaconBlock, err := h.waitForBuiltBeaconBlock(awaitCtx)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	// wait for built sidecars
-	builtSidecars, err = h.waitForBuiltSidecars(awaitCtx)
+	builtSidecars, err := h.waitForBuiltSidecars(awaitCtx)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -192,25 +187,21 @@ func (h *ABCIMiddleware[
 func (h *ABCIMiddleware[
 	BeaconBlockT, BlobSidecarsT, _, _,
 ]) ProcessProposal(
-	ctx context.Context,
+	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
 	var (
-		err              error
 		startTime        = time.Now()
-		blk              BeaconBlockT
-		numMsgs          int
-		sidecars         BlobSidecarsT
 		awaitCtx, cancel = context.WithTimeout(ctx, AwaitTimeout)
 	)
 	defer cancel()
 	// flush the channels to ensure that we are not handling old data.
-	if numMsgs = async.ClearChan(h.subBBVerified); numMsgs > 0 {
+	if numMsgs := async.ClearChan(h.subBBVerified); numMsgs > 0 {
 		h.logger.Error(
 			"WARNING: messages remaining in beacon block verification channel",
 			"num_msgs", numMsgs)
 	}
-	if numMsgs = async.ClearChan(h.subSCVerified); numMsgs > 0 {
+	if numMsgs := async.ClearChan(h.subSCVerified); numMsgs > 0 {
 		h.logger.Error(
 			"WARNING: messages remaining in sidecar verification channel",
 			"num_msgs", numMsgs)
@@ -219,32 +210,40 @@ func (h *ABCIMiddleware[
 	defer h.metrics.measureProcessProposalDuration(startTime)
 
 	// Request the beacon block.
-	if blk, err = encoding.
+	blk, err := encoding.
 		UnmarshalBeaconBlockFromABCIRequest[BeaconBlockT](
-		req, 0, h.chainSpec.ActiveForkVersionForSlot(math.U64(req.Height)),
-	); err != nil {
+		req,
+		BeaconBlockTxIndex,
+		h.chainSpec.ActiveForkVersionForSlot(math.U64(req.Height)),
+	)
+	if err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
 
 	// notify that the beacon block has been received.
-	if err = h.dispatcher.Publish(
-		async.NewEvent(ctx, async.BeaconBlockReceived, blk),
-	); err != nil {
+	var enrichedBlk *types.ConsensusBlock[BeaconBlockT]
+	enrichedBlk = enrichedBlk.New(
+		blk,
+		req.GetTime().Add(h.minPayloadDelay),
+	)
+	blkEvent := async.NewEvent(ctx, async.BeaconBlockReceived, enrichedBlk)
+	if err = h.dispatcher.Publish(blkEvent); err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
 
 	// Request the blob sidecars.
-	if sidecars, err = encoding.
+	sidecars, err := encoding.
 		UnmarshalBlobSidecarsFromABCIRequest[BlobSidecarsT](
-		req, 1,
-	); err != nil {
+		req,
+		BlobSidecarsTxIndex,
+	)
+	if err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
 
 	// notify that the sidecars have been received.
-	if err = h.dispatcher.Publish(
-		async.NewEvent(ctx, async.SidecarsReceived, sidecars),
-	); err != nil {
+	blobEvent := async.NewEvent(ctx, async.SidecarsReceived, sidecars)
+	if err = h.dispatcher.Publish(blobEvent); err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
 
@@ -312,14 +311,10 @@ func (*ABCIMiddleware[
 func (h *ABCIMiddleware[
 	BeaconBlockT, BlobSidecarsT, _, _,
 ]) FinalizeBlock(
-	ctx context.Context, req *cmtabci.FinalizeBlockRequest,
+	ctx sdk.Context,
+	req *cmtabci.FinalizeBlockRequest,
 ) (transition.ValidatorUpdates, error) {
-	var (
-		err              error
-		blk              BeaconBlockT
-		blobs            BlobSidecarsT
-		awaitCtx, cancel = context.WithTimeout(ctx, AwaitTimeout)
-	)
+	awaitCtx, cancel := context.WithTimeout(ctx, AwaitTimeout)
 	defer cancel()
 	// flush the channel to ensure that we are not handling old data.
 	if numMsgs := async.ClearChan(h.subFinalValidatorUpdates); numMsgs > 0 {
@@ -328,7 +323,7 @@ func (h *ABCIMiddleware[
 			"num_msgs", numMsgs)
 	}
 
-	blk, blobs, err = encoding.
+	blk, blobs, err := encoding.
 		ExtractBlobsAndBlockFromRequest[BeaconBlockT, BlobSidecarsT](
 		req,
 		BeaconBlockTxIndex,
@@ -342,9 +337,14 @@ func (h *ABCIMiddleware[
 	}
 
 	// notify that the final beacon block has been received.
-	if err = h.dispatcher.Publish(
-		async.NewEvent(ctx, async.FinalBeaconBlockReceived, blk),
-	); err != nil {
+	// notify that the beacon block has been received.
+	var enrichedBlk *types.ConsensusBlock[BeaconBlockT]
+	enrichedBlk = enrichedBlk.New(
+		blk,
+		req.GetTime().Add(h.minPayloadDelay),
+	)
+	blkEvent := async.NewEvent(ctx, async.FinalBeaconBlockReceived, enrichedBlk)
+	if err = h.dispatcher.Publish(blkEvent); err != nil {
 		return nil, err
 	}
 

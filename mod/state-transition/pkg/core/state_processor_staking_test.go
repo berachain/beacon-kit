@@ -176,6 +176,11 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	require.Equal(t, genDeposits[0].Pubkey, val.Pubkey)
 	require.Equal(t, expectedValBalance, val.EffectiveBalance)
 
+	// check validator balance is updated
+	valBal, err := beaconState.GetBalance(idx)
+	require.NoError(t, err)
+	require.Equal(t, expectedValBalance, valBal)
+
 	// check that validator index is duly set (1-indexed here, to be fixed)
 	latestValIdx, err := beaconState.GetEth1DepositIndex()
 	require.NoError(t, err)

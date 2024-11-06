@@ -190,6 +190,10 @@ type SlotData[AttestationDataT, SlashingInfoT any] interface {
 	GetAttestationData() []AttestationDataT
 	// GetSlashingInfo returns the slashing info of the incoming slot.
 	GetSlashingInfo() []SlashingInfoT
+	// GetNextPayloadTimestamp returns the timestamp proposed by
+	// consensus for the next payload to be proposed. It is also
+	// used to bound current payload upon validation
+	GetNextPayloadTimestamp() math.U64
 }
 
 // StateProcessor defines the interface for processing the state.

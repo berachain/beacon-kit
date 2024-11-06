@@ -20,7 +20,11 @@
 
 package transition
 
-import "context"
+import (
+	"context"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+)
 
 // Context is the context for the state transition.
 type Context struct {
@@ -38,6 +42,10 @@ type Context struct {
 	// SkipValidateResult indicates whether to validate the result of
 	// the state transition.
 	SkipValidateResult bool
+	// NextPayloadTimestamp is the timestamp proposed by
+	// consensus for the next payload to be proposed. It is also
+	// used to bound current payload upon validation
+	NextPayloadTimestamp math.U64
 }
 
 // GetOptimisticEngine returns whether to optimistically assume the execution
@@ -63,6 +71,13 @@ func (c *Context) GetSkipValidateRandao() bool {
 // transition.
 func (c *Context) GetSkipValidateResult() bool {
 	return c.SkipValidateResult
+}
+
+// GetNextPayloadTimestamp returns the timestamp proposed by consensus
+// for the next payload to be proposed. It is also used to bound
+// current payload upon validation.
+func (c *Context) GetNextPayloadTimestamp() math.U64 {
+	return c.NextPayloadTimestamp
 }
 
 // Unwrap returns the underlying standard context.

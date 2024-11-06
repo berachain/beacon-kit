@@ -23,12 +23,12 @@ package blockchain
 import (
 	"context"
 
-	payloadtime "github.com/berachain/beacon-kit/mod/beacon/payload-time"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // forceStartupHead sends a force head FCU to the execution client.
 func (s *Service[
-	_, _, _, _, BeaconStateT, _, _, _, _, _,
+	_, _, _, _, _, BeaconStateT, _, _, _, _, _,
 ]) forceStartupHead(
 	ctx context.Context,
 	st BeaconStateT,
@@ -56,12 +56,17 @@ func (s *Service[
 // handleRebuildPayloadForRejectedBlock handles the case where the incoming
 // block was rejected and we need to rebuild the payload for the current slot.
 func (s *Service[
-	_, _, _, _, BeaconStateT, _, _, _, _, _,
+	_, _, _, _, _, BeaconStateT, _, _, _, _, _,
 ]) handleRebuildPayloadForRejectedBlock(
 	ctx context.Context,
 	st BeaconStateT,
+	nextPayloadTimestamp math.U64,
 ) {
-	if err := s.rebuildPayloadForRejectedBlock(ctx, st); err != nil {
+	if err := s.rebuildPayloadForRejectedBlock(
+		ctx,
+		st,
+		nextPayloadTimestamp,
+	); err != nil {
 		s.logger.Error(
 			"failed to rebuild payload for nil block",
 			"error", err,
@@ -77,10 +82,11 @@ func (s *Service[
 // rejected the incoming block and it would be unsafe to use any
 // information from it.
 func (s *Service[
-	_, _, _, _, BeaconStateT, _, _, ExecutionPayloadHeaderT, _, _,
+	_, _, _, _, _, BeaconStateT, _, _, ExecutionPayloadHeaderT, _, _,
 ]) rebuildPayloadForRejectedBlock(
 	ctx context.Context,
 	st BeaconStateT,
+	nextPayloadTimestamp math.U64,
 ) error {
 	s.logger.Info("Rebuilding payload for rejected block ⏳ ")
 
@@ -114,7 +120,7 @@ func (s *Service[
 		st,
 		// We are rebuilding for the current slot.
 		stateSlot,
-		payloadtime.Next(s.chainSpec, lph.GetTimestamp()),
+		nextPayloadTimestamp.Unwrap(),
 		// We set the parent root to the previous block root.
 		latestHeader.HashTreeRoot(),
 		// We set the head of our chain to the previous finalized block.
@@ -134,13 +140,19 @@ func (s *Service[
 // handleOptimisticPayloadBuild handles optimistically
 // building for the next slot.
 func (s *Service[
-	_, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _,
+	_, _, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _,
 ]) handleOptimisticPayloadBuild(
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
+	nextPayloadTimestamp math.U64,
 ) {
-	if err := s.optimisticPayloadBuild(ctx, st, blk); err != nil {
+	if err := s.optimisticPayloadBuild(
+		ctx,
+		st,
+		blk,
+		nextPayloadTimestamp,
+	); err != nil {
 		s.logger.Error(
 			"Failed to build optimistic payload",
 			"for_slot", (blk.GetSlot() + 1).Base10(),
@@ -151,11 +163,12 @@ func (s *Service[
 
 // optimisticPayloadBuild builds a payload for the next slot.
 func (s *Service[
-	_, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _,
+	_, _, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _,
 ]) optimisticPayloadBuild(
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
+	nextPayloadTimestamp math.U64,
 ) error {
 	// We are building for the next slot, so we increment the slot relative
 	// to the block we just processed.
@@ -176,7 +189,7 @@ func (s *Service[
 	if _, err := s.localBuilder.RequestPayloadAsync(
 		ctx, st,
 		slot,
-		payloadtime.Next(s.chainSpec, payload.GetTimestamp()),
+		nextPayloadTimestamp.Unwrap(),
 		// The previous block root is simply the root of the block we just
 		// processed.
 		blk.HashTreeRoot(),
