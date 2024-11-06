@@ -21,7 +21,7 @@
 package server
 
 const (
-	defaultAddress = "0.0.0.0:3500"
+	defaultAddress = "127.0.0.1:3500"
 )
 
 // Config is the configuration for the node API server.
