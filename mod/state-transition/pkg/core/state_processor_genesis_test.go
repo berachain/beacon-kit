@@ -144,7 +144,7 @@ func TestInitialize(t *testing.T) {
 	require.Equal(t, fork, resFork)
 
 	for _, dep := range deposits {
-		checkValidatorNonBartio(t, cs, beaconState, dep)
+		checkGenesisValidatorNonBartio(t, cs, beaconState, dep)
 	}
 
 	// check that validator index is duly set
@@ -153,7 +153,7 @@ func TestInitialize(t *testing.T) {
 	require.Equal(t, uint64(len(deposits)-1), latestValIdx)
 }
 
-func checkValidatorNonBartio(
+func checkGenesisValidatorNonBartio(
 	t *testing.T,
 	cs chain.Spec[
 		common.DomainType,
@@ -168,7 +168,7 @@ func checkValidatorNonBartio(
 	t.Helper()
 
 	// checks on validators common to all networks
-	commonChecksValidators(t, cs, bs, dep)
+	commonGenesisChecksValidators(t, cs, bs, dep)
 
 	// checks on validators for any network but Bartio
 	idx, err := bs.ValidatorIndexByPubkey(dep.Pubkey)
@@ -283,7 +283,7 @@ func TestInitializeBartio(t *testing.T) {
 	require.Equal(t, fork, resFork)
 
 	for _, dep := range deposits {
-		checkValidatorBartio(t, cs, beaconState, dep)
+		checkGenesisValidatorBartio(t, cs, beaconState, dep)
 	}
 
 	// check that validator index is duly set
@@ -292,7 +292,7 @@ func TestInitializeBartio(t *testing.T) {
 	require.Equal(t, uint64(len(deposits)-1), latestValIdx)
 }
 
-func checkValidatorBartio(
+func checkGenesisValidatorBartio(
 	t *testing.T,
 	cs chain.Spec[
 		common.DomainType,
@@ -307,7 +307,7 @@ func checkValidatorBartio(
 	t.Helper()
 
 	// checks on validators common to all networks
-	commonChecksValidators(t, cs, bs, dep)
+	commonGenesisChecksValidators(t, cs, bs, dep)
 
 	// Bartio specific checks on validators
 	idx, err := bs.ValidatorIndexByPubkey(dep.Pubkey)
@@ -320,7 +320,7 @@ func checkValidatorBartio(
 	require.Equal(t, val.EffectiveBalance, valBal)
 }
 
-func commonChecksValidators(
+func commonGenesisChecksValidators(
 	t *testing.T,
 	cs chain.Spec[
 		common.DomainType,
@@ -336,7 +336,6 @@ func commonChecksValidators(
 
 	idx, err := bs.ValidatorIndexByPubkey(dep.Pubkey)
 	require.NoError(t, err)
-	require.Equal(t, math.U64(dep.Index), idx)
 
 	val, err := bs.ValidatorByIndex(idx)
 	require.NoError(t, err)

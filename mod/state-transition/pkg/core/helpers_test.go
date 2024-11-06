@@ -31,7 +31,9 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	statedb "github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/db"
@@ -136,3 +138,14 @@ func initTestStore() (
 		testCodec,
 	), nil
 }
+
+// Helpers for testing.
+var (
+	emptyAddress     = common.ExecutionAddress{}
+	emptyCredentials = types.NewCredentialsFromExecutionAddress(
+		emptyAddress,
+	)
+	ErrUnexpectedSignatureVerification = errors.New(
+		"test: unexpected signature verification",
+	)
+)
