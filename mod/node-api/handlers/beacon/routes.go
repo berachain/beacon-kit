@@ -51,7 +51,7 @@ func (h *Handler[_, ContextT, _, _, _]) RegisterRoutes(
 		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/beacon/states/:state_id/finality_checkpoints",
-			Handler: h.NotImplemented,
+			Handler: h.GetStateFinalityCheckpoints,
 		},
 		{
 			Method:  http.MethodGet,

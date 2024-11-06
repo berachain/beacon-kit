@@ -24,6 +24,7 @@ import (
 	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
 func (h *Handler[_, ContextT, _, _, _]) GetStateRoot(c ContextT) (any, error) {
@@ -70,5 +71,45 @@ func (h *Handler[_, ContextT, _, _, _]) GetStateFork(c ContextT) (any, error) {
 		ExecutionOptimistic: false, // stubbed
 		Finalized:           false, // stubbed
 		Data:                beacontypes.ForkData{Fork: fork},
+	}, nil
+}
+
+func (h *Handler[_, ContextT, _, _, _]) GetStateFinalityCheckpoints(
+	c ContextT,
+) (any, error) {
+	req, err := utils.BindAndValidate[beacontypes.GetStateForkRequest](
+		c, h.Logger(),
+	)
+	if err != nil {
+		return nil, err
+	}
+	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
+	if err != nil {
+		return nil, err
+	}
+	fork, err := h.backend.StateForkAtSlot(slot)
+	if err != nil {
+		return nil, err
+	}
+
+	return beacontypes.ValidatorResponse{
+		ExecutionOptimistic: false, // stubbed
+		Finalized:           false, // stubbed
+		Data: beacontypes.FinalityCheckpointsData{
+			// In case finality is not achieved yet, return the
+			// epoch 0 and ZERO_HASH as root.
+			PreviousJustified: common.Checkpoint{
+				Epoch: fork.GetEpoch(),
+				Root:  [32]byte{},
+			},
+			CurrentJustified: common.Checkpoint{
+				Epoch: fork.GetEpoch(),
+				Root:  [32]byte{},
+			},
+			Finalized: common.Checkpoint{
+				Epoch: 0,
+				Root:  [32]byte{},
+			},
+		},
 	}, nil
 }
