@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
+	"github.com/cometbft/cometbft/node"
 )
 
 // The AvailabilityStore interface is responsible for validating and storing
@@ -112,6 +113,8 @@ type Node[ContextT any] interface {
 	CreateQueryContext(height int64, prove bool) (ContextT, error)
 	// GetBeaconVersion returns the version of the beacon node.
 	GetBeaconVersion() (string, error)
+	// GetCometNode returns the comet node.
+	GetCometNode() *node.Node
 }
 
 type StateProcessor[BeaconStateT any] interface {

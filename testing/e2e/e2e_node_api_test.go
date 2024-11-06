@@ -22,6 +22,7 @@ package e2e_test
 
 import (
 	beaconapi "github.com/attestantio/go-eth2-client/api"
+	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
 )
@@ -51,4 +52,23 @@ func (s *BeaconKitE2ESuite) TestNodeVersion() {
 	s.Require().NotEmpty(version)
 	versionStr := version.Data
 	s.Require().NotEmpty(versionStr)
+}
+
+// TestNodeSyncing tests the node api for syncing status of the node.
+func (s *BeaconKitE2ESuite) TestNodeSyncing() {
+	client := s.initNodeTest()
+
+	syncing, err := client.NodeSyncing(s.Ctx(),
+		&beaconapi.NodeSyncingOpts{})
+	s.Require().NoError(err)
+	s.Require().NotNil(syncing)
+	syncData := syncing.Data
+	s.Require().NotEmpty(syncData.HeadSlot)
+	s.Require().Greater(syncData.HeadSlot, phase0.Slot(0))
+	s.Require().NotNil(syncData.SyncDistance)
+
+	s.Require().NotNil(syncData.IsSyncing)
+	s.Require().True(syncData.IsOptimistic)
+
+	// TODO: Add more assertions.
 }

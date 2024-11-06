@@ -21,32 +21,47 @@
 package node
 
 import (
+	"github.com/berachain/beacon-kit/mod/errors"
 	nodetypes "github.com/berachain/beacon-kit/mod/node-api/handlers/node/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 )
 
-// Syncing is a placeholder so that beacon API clients don't break.
-//
-// TODO: Implement with real data.
-func (h *Handler[ContextT]) Syncing(ContextT) (any, error) {
-	type SyncingResponse struct {
-		Data struct {
-			HeadSlot     string `json:"head_slot"`
-			SyncDistance string `json:"sync_distance"`
-			IsSyncing    bool   `json:"is_syncing"`
-			IsOptimistic bool   `json:"is_optimistic"`
-			ELOffline    bool   `json:"el_offline"`
-		} `json:"data"`
+var (
+	errNilBlockStore = errors.New("block store is nil")
+	errNilNode       = errors.New("node is nil")
+)
+
+// Syncing returns the syncing status of the beacon node.
+func (h *Handler[ContextT]) Syncing(_ ContextT) (any, error) {
+	node := h.backend.GetNode()
+	if node == nil {
+		return nil, errNilNode
 	}
 
-	response := SyncingResponse{}
-	response.Data.HeadSlot = "0"
-	response.Data.SyncDistance = "1"
-	response.Data.IsSyncing = false
-	response.Data.IsOptimistic = true
-	response.Data.ELOffline = false
+	// Get blockStore for heights
+	blockStore := node.BlockStore()
+	if blockStore == nil {
+		return nil, errNilBlockStore
+	}
 
-	return response, nil
+	latestHeight := blockStore.Height()
+	baseHeight := blockStore.Base()
+
+	response := nodetypes.SyncingData{
+		HeadSlot:     latestHeight,
+		IsOptimistic: true,
+		ELOffline:    false,
+	}
+
+	// Calculate sync distance using block heights
+	response.SyncDistance = latestHeight - baseHeight
+	// If SyncDistance is greater than 0,
+	// we consider the node to be syncing
+	if response.SyncDistance > 0 {
+		response.IsSyncing = true
+	}
+
+	return types.Wrap(&response), nil
 }
 
 // Version returns the version of the beacon node.

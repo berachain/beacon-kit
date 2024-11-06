@@ -30,6 +30,7 @@ import (
 	eventsapi "github.com/berachain/beacon-kit/mod/node-api/handlers/events"
 	nodeapi "github.com/berachain/beacon-kit/mod/node-api/handlers/node"
 	proofapi "github.com/berachain/beacon-kit/mod/node-api/handlers/proof"
+	"github.com/cometbft/cometbft/node"
 )
 
 type NodeAPIHandlersInput[
@@ -146,6 +147,7 @@ func ProvideNodeAPIEventsHandler[
 
 type Backend interface {
 	GetNodeVersion() (string, error)
+	GetNode() *node.Node
 }
 
 func ProvideNodeAPINodeHandler[

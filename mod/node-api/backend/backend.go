@@ -25,6 +25,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/cometbft/cometbft/node"
 )
 
 // Backend is the db access layer for the beacon node-api.
@@ -236,4 +237,11 @@ func (b *Backend[
 		return "", err
 	}
 	return appVersion, nil
+}
+
+// GetNode returns the comet node from the backend.
+func (b *Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) GetNode() *node.Node {
+	return b.node.GetCometNode()
 }

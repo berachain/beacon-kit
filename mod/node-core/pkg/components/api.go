@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 	"github.com/berachain/beacon-kit/mod/node-api/server"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/cometbft/cometbft/node"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -78,6 +79,7 @@ func ProvideNodeAPIBackend[
 	NodeT interface {
 		CreateQueryContext(height int64, prove bool) (sdk.Context, error)
 		GetBeaconVersion() (string, error)
+		GetCometNode() *node.Node
 	},
 	StorageBackendT StorageBackend[
 		AvailabilityStoreT, BeaconStateT, BeaconBlockStoreT, DepositStoreT,
