@@ -23,6 +23,7 @@ package core
 import (
 	"fmt"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -131,11 +132,12 @@ func (sp *StateProcessor[
 	}
 
 	// TODO: Modify balance here and then effective balance once per epoch.
-	newBalance := min(
+	updatedBalance := types.ComputeEffectiveBalance(
 		val.GetEffectiveBalance()+dep.GetAmount(),
+		math.Gwei(sp.cs.EffectiveBalanceIncrement()),
 		math.Gwei(sp.cs.MaxEffectiveBalance()),
 	)
-	val.SetEffectiveBalance(newBalance)
+	val.SetEffectiveBalance(updatedBalance)
 	if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
 		return err
 	}
