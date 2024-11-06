@@ -62,9 +62,7 @@ func ProveBeaconStateInBlock(
 //
 // TODO: verifying the proof is not absolutely necessary.
 func verifyBeaconStateInBlock(
-	bbh types.BeaconBlockHeader,
-	proof []common.Root,
-	leaf common.Root,
+	bbh types.BeaconBlockHeader, proof []common.Root, leaf common.Root,
 ) error {
 	beaconRoot := bbh.HashTreeRoot()
 	if beaconRootVerified, err := merkle.VerifyProof(

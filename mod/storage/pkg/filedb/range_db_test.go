@@ -246,6 +246,15 @@ func TestRangeDB_Prune(t *testing.T) {
 				requireExist(t, rdb, 0, 1)
 			},
 		},
+		{
+			name: "PruneWithDeleteRange-InvalidRange",
+			setupFunc: func(rdb *file.RangeDB) error {
+				return populateTestDB(rdb, 0, 50)
+			},
+			start:         7,
+			end:           2,
+			expectedError: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -253,7 +262,7 @@ func TestRangeDB_Prune(t *testing.T) {
 			rdb := file.NewRangeDB(newTestFDB("/tmp/testdb-2"))
 
 			if tt.setupFunc != nil {
-				if err := tt.setupFunc(rdb); (err != nil) != tt.expectedError {
+				if err := tt.setupFunc(rdb); err != nil {
 					t.Fatalf(
 						"setupFunc() error = %v, expectedError %v",
 						err,
