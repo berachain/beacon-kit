@@ -93,7 +93,11 @@ type BlobProcessorIn[
 // ProvideBlobProcessor is a function that provides the BlobProcessor to the
 // depinject framework.
 func ProvideBlobProcessor[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	AvailabilityStoreT AvailabilityStore[
+		BeaconBlockBodyT,
+		BlobSidecarsT,
+		BeaconBlockHeaderT,
+	],
 	BeaconBlockBodyT any,
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BlobSidecarT BlobSidecar[BeaconBlockHeaderT],
@@ -140,11 +144,16 @@ type DAServiceIn[
 // ProvideDAService is a function that provides the BlobService to the
 // depinject framework.
 func ProvideDAService[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	AvailabilityStoreT AvailabilityStore[
+		BeaconBlockBodyT,
+		BlobSidecarsT,
+		BeaconBlockHeaderT,
+	],
 	BeaconBlockBodyT any,
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	LoggerT log.AdvancedLogger[LoggerT],
+	BeaconBlockHeaderT any,
 ](
 	in DAServiceIn[
 		AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT, LoggerT,

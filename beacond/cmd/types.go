@@ -37,7 +37,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
-	"github.com/berachain/beacon-kit/mod/node-api/backend"
 	blockstore "github.com/berachain/beacon-kit/mod/node-api/block_store"
 	"github.com/berachain/beacon-kit/mod/node-api/engines/echo"
 	"github.com/berachain/beacon-kit/mod/node-api/server"
@@ -55,7 +54,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 /* -------------------------------------------------------------------------- */
@@ -76,15 +74,6 @@ type (
 		*BeaconState,
 		*PayloadAttributes,
 		*Withdrawal,
-	]
-
-	// BlobProcessor is a type alias for the blob processor.
-	BlobProcessor = dablob.Processor[
-		*AvailabilityStore,
-		*BeaconBlockBody,
-		*BeaconBlockHeader,
-		*BlobSidecar,
-		*BlobSidecars,
 	]
 
 	// BlobVerifier is a type alias for the blob verifier.
@@ -242,7 +231,7 @@ type (
 	AttestationData = types.AttestationData
 
 	// AvailabilityStore is a type alias for the availability store.
-	AvailabilityStore = dastore.Store[*BeaconBlockBody]
+	AvailabilityStore = dastore.Store[*BeaconBlockBody, *BeaconBlockHeader]
 
 	// BeaconBlock type aliases.
 	BeaconBlock       = types.BeaconBlock
@@ -334,31 +323,6 @@ type (
 
 	// LegacyKey type alias to LegacyKey used for LegacySinger construction.
 	LegacyKey = signer.LegacyKey
-
-	// NodeAPIBackend is a type alias for the node API backend.
-	NodeAPIBackend = backend.Backend[
-		*AvailabilityStore,
-		*BeaconBlock,
-		*BeaconBlockBody,
-		*BeaconBlockHeader,
-		*BeaconState,
-		*BeaconStateMarshallable,
-		*BlobSidecars,
-		*BlockStore,
-		sdk.Context,
-		*Deposit,
-		*DepositStore,
-		*Eth1Data,
-		*ExecutionPayloadHeader,
-		*Fork,
-		*CometBFTService,
-		*KVStore,
-		*StorageBackend,
-		*Validator,
-		Validators,
-		*Withdrawal,
-		WithdrawalCredentials,
-	]
 
 	// NodeAPIContext is a type alias for the node API context.
 	NodeAPIContext = echo.Context

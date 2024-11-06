@@ -32,7 +32,7 @@ import (
 // of blob sidecars.
 type Processor[
 	AvailabilityStoreT AvailabilityStore[
-		BeaconBlockBodyT, BlobSidecarsT,
+		BeaconBlockBodyT, BlobSidecarsT, BeaconBlockHeaderT,
 	],
 	BeaconBlockBodyT any,
 	BeaconBlockHeaderT BeaconBlockHeader,
@@ -55,7 +55,7 @@ type Processor[
 // NewProcessor creates a new blob processor.
 func NewProcessor[
 	AvailabilityStoreT AvailabilityStore[
-		BeaconBlockBodyT, BlobSidecarsT,
+		BeaconBlockBodyT, BlobSidecarsT, BeaconBlockHeaderT,
 	],
 	BeaconBlockBodyT any,
 	BeaconBlockHeaderT BeaconBlockHeader,
