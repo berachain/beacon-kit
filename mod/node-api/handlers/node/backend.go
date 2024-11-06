@@ -20,22 +20,6 @@
 
 package node
 
-import (
-	"github.com/berachain/beacon-kit/mod/node-api/handlers"
-	"github.com/berachain/beacon-kit/mod/node-api/server/context"
-)
-
-type Handler[ContextT context.Context] struct {
-	*handlers.BaseHandler[ContextT]
-	backend Backend
-}
-
-func NewHandler[ContextT context.Context](backend Backend) *Handler[ContextT] {
-	h := &Handler[ContextT]{
-		BaseHandler: handlers.NewBaseHandler(
-			handlers.NewRouteSet[ContextT](""),
-		),
-		backend: backend,
-	}
-	return h
+type Backend interface {
+	GetNodeVersion() (string, error)
 }
