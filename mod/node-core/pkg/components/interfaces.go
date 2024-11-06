@@ -191,12 +191,13 @@ type (
 		SetStateRoot(common.Root)
 		GetBodyRoot() common.Root
 		GetTree() (*fastssz.Node, error)
+		Equals(T) bool
 	}
 
 	// BeaconStateMarshallable represents an interface for a beacon state
 	// with generic types.
 	BeaconStateMarshallable[
-		T any,
+		T,
 		BeaconBlockHeaderT,
 		Eth1DataT,
 		ExecutionPayloadHeaderT,
@@ -229,7 +230,7 @@ type (
 	// BlobProcessor is the interface for the blobs processor.
 	BlobProcessor[
 		AvailabilityStoreT any,
-		BeaconBlockBodyT any,
+		ConsensusSidecarsT any,
 		BlobSidecarsT any,
 	] interface {
 		// ProcessSidecars processes the blobs and ensures they match the local
@@ -241,7 +242,7 @@ type (
 		// VerifySidecars verifies the blobs and ensures they match the local
 		// state.
 		VerifySidecars(
-			sidecars BlobSidecarsT,
+			sidecars ConsensusSidecarsT,
 		) error
 	}
 
@@ -250,6 +251,14 @@ type (
 		GetBlob() eip4844.Blob
 		GetKzgProof() eip4844.KZGProof
 		GetKzgCommitment() eip4844.KZGCommitment
+	}
+
+	ConsensusSidecars[
+		BlobSidecarsT any,
+		BeaconBlockHeaderT any,
+	] interface {
+		GetSidecars() BlobSidecarsT
+		GetHeader() BeaconBlockHeaderT
 	}
 
 	// BlobSidecars is the interface for blobs sidecars.
@@ -264,10 +273,14 @@ type (
 		VerifyInclusionProofs(kzgOffset uint64) error
 	}
 
-	BlobVerifier[BlobSidecarsT any] interface {
+	BlobVerifier[BlobSidecarsT, BeaconBlockHeaderT any] interface {
 		VerifyInclusionProofs(scs BlobSidecarsT, kzgOffset uint64) error
 		VerifyKZGProofs(scs BlobSidecarsT) error
-		VerifySidecars(sidecars BlobSidecarsT, kzgOffset uint64) error
+		VerifySidecars(
+			sidecars BlobSidecarsT,
+			kzgOffset uint64,
+			blkHeader BeaconBlockHeaderT,
+		) error
 	}
 
 	// 	// BlockchainService defines the interface for interacting with the

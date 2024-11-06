@@ -34,7 +34,8 @@ import (
 
 // ABCIMiddleware is a middleware between ABCI and the validator logic.
 type ABCIMiddleware[
-	BeaconBlockT BeaconBlock[BeaconBlockT],
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockHeaderT],
+	BeaconBlockHeaderT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT],
 	GenesisT json.Unmarshaler,
 	SlotDataT any,
@@ -67,7 +68,8 @@ type ABCIMiddleware[
 
 // NewABCIMiddleware creates a new instance of the Handler struct.
 func NewABCIMiddleware[
-	BeaconBlockT BeaconBlock[BeaconBlockT],
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockHeaderT],
+	BeaconBlockHeaderT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT],
 	GenesisT json.Unmarshaler,
 	SlotDataT any,
@@ -78,7 +80,7 @@ func NewABCIMiddleware[
 	logger log.Logger,
 	telemetrySink TelemetrySink,
 ) *ABCIMiddleware[
-	BeaconBlockT, BlobSidecarsT, GenesisT, SlotDataT,
+	BeaconBlockT, BeaconBlockHeaderT, BlobSidecarsT, GenesisT, SlotDataT,
 ] {
 	// We may build execution payload optimistically (i.e. build the execution
 	// payload for next block while current block is being verified and not yet
@@ -100,7 +102,7 @@ func NewABCIMiddleware[
 	)
 
 	return &ABCIMiddleware[
-		BeaconBlockT, BlobSidecarsT, GenesisT, SlotDataT,
+		BeaconBlockT, BeaconBlockHeaderT, BlobSidecarsT, GenesisT, SlotDataT,
 	]{
 		chainSpec:                chainSpec,
 		minPayloadDelay:          minPayloadDelay,
@@ -117,7 +119,7 @@ func NewABCIMiddleware[
 }
 
 // Start subscribes the middleware to the events it needs to listen for.
-func (am *ABCIMiddleware[_, _, _, _]) Start(
+func (am *ABCIMiddleware[_, _, _, _, _]) Start(
 	_ context.Context,
 ) error {
 	var err error
@@ -155,8 +157,6 @@ func (am *ABCIMiddleware[_, _, _, _]) Start(
 }
 
 // Name returns the name of the middleware.
-func (am *ABCIMiddleware[
-	_, _, _, _,
-]) Name() string {
+func (am *ABCIMiddleware[_, _, _, _, _]) Name() string {
 	return "abci-middleware"
 }
