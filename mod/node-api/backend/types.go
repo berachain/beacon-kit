@@ -83,6 +83,8 @@ type BlockStore[BeaconBlockT any] interface {
 	GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 	// GetSlotByStateRoot retrieves the slot by a given state root.
 	GetSlotByStateRoot(root common.Root) (math.Slot, error)
+	// GetSlotByParentRoot retrieves the slot by a given parent root.
+	GetSlotByParentRoot(root common.Root) (math.Slot, error)
 	// GetParentSlotByTimestamp retrieves the parent slot by a given timestamp.
 	GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
 }
@@ -151,6 +153,10 @@ type Withdrawal[T any] interface {
 		address common.ExecutionAddress,
 		amount math.Gwei,
 	) T
+}
+
+type Fork[ForkT any] interface {
+	GetPreviousVersion() common.Version
 }
 
 // WithdrawalCredentials represents an interface for withdrawal credentials.

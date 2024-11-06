@@ -25,8 +25,8 @@ import (
 	"encoding/json"
 	"strconv"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 )
 
 type ValidatorResponse struct {
@@ -35,15 +35,49 @@ type ValidatorResponse struct {
 	Data                any  `json:"data"`
 }
 
-type BlockHeaderResponse[BlockHeaderT any] struct {
+// BlockHeader contains the block header details
+// that resides in BlockHeaderResponse.
+type BlockHeader[BlockHeaderT BeaconBlockHeader] struct {
+	Message   BlockHeaderT        `json:"message"`
+	Signature crypto.BLSSignature `json:"signature"`
+}
+
+// BlockHeaderResponse contains the block header response for the Beacon API.
+type BlockHeaderResponse[BlockHeaderT BeaconBlockHeader] struct {
 	Root      common.Root                `json:"root"`
 	Canonical bool                       `json:"canonical"`
 	Header    *BlockHeader[BlockHeaderT] `json:"header"`
 }
 
-type BlockHeader[BlockHeaderT any] struct {
-	Message   BlockHeaderT `json:"message"`
-	Signature bytes.B48    `json:"signature"`
+type messageJSON struct {
+	Slot          string      `json:"slot"`
+	ProposerIndex string      `json:"proposer_index"`
+	ParentRoot    common.Root `json:"parent_root"`
+	StateRoot     common.Root `json:"state_root"`
+	BodyRoot      common.Root `json:"body_root"`
+}
+
+type blockHeaderResponseJSON struct {
+	Message   messageJSON         `json:"message"`
+	Signature crypto.BLSSignature `json:"signature"`
+}
+
+// MarshalJSON implements custom JSON marshaling for BlockHeader.
+func (bh *BlockHeader[BlockHeaderT]) MarshalJSON() ([]byte, error) {
+	return json.Marshal(&blockHeaderResponseJSON{
+		Message: messageJSON{
+			Slot: strconv.FormatUint(
+				bh.Message.GetSlot().Unwrap(), 10,
+			),
+			ProposerIndex: strconv.FormatUint(
+				bh.Message.GetProposerIndex().Unwrap(), 10,
+			),
+			ParentRoot: bh.Message.GetParentBlockRoot(),
+			StateRoot:  bh.Message.GetStateRoot(),
+			BodyRoot:   bh.Message.GetBodyRoot(),
+		},
+		Signature: bh.Signature,
+	})
 }
 
 type GenesisData struct {
