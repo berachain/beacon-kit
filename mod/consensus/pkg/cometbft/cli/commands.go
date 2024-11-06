@@ -22,6 +22,8 @@ package server
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
 	"cosmossdk.io/store"
 	types "github.com/berachain/beacon-kit/mod/cli/pkg/commands/server/types"
@@ -31,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/db"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	cmtcfg "github.com/cometbft/cometbft/config"
+	cmtcrypto "github.com/cometbft/cometbft/crypto"
 	cmtjson "github.com/cometbft/cometbft/libs/json"
 	"github.com/cometbft/cometbft/node"
 	"github.com/cometbft/cometbft/p2p"
@@ -40,7 +43,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
-	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
@@ -143,32 +145,40 @@ func ShowValidatorCmd() *cobra.Command {
 		Short: "Show this node's CometBFT validator info",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg := clicontext.GetConfigFromCmd(cmd)
-			privValidator := pvm.LoadFilePV(
+
+			pk := pvm.LoadFilePV(
 				cfg.PrivValidatorKeyFile(),
 				cfg.PrivValidatorStateFile(),
-			)
-			pk, err := privValidator.GetPubKey()
+			).Key.PubKey
+
+			pubKeyJSON, err := marshalPublicKey(pk)
 			if err != nil {
 				return err
 			}
 
-			sdkPK, err := cryptocodec.FromCmtPubKeyInterface(pk)
-			if err != nil {
-				return err
-			}
-
-			clientCtx := client.GetClientContextFromCmd(cmd)
-			bz, err := clientCtx.Codec.MarshalInterfaceJSON(sdkPK)
-			if err != nil {
-				return err
-			}
-
-			cmd.Println(string(bz))
+			cmd.Println(pubKeyJSON)
 			return nil
 		},
 	}
 
 	return &cmd
+}
+
+func marshalPublicKey(pk cmtcrypto.PubKey) (string, error) {
+	data := struct {
+		Type  string           `json:"type"`
+		Value cmtcrypto.PubKey `json:"value"`
+	}{
+		Type:  pk.Type(),
+		Value: pk,
+	}
+
+	info, err := json.Marshal(data)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal public key: %w", err)
+	}
+
+	return string(info), nil
 }
 
 // ShowAddressCmd - show this node's validator address.
