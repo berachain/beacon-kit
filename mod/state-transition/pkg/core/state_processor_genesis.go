@@ -47,6 +47,11 @@ func (sp *StateProcessor[
 	executionPayloadHeader ExecutionPayloadHeaderT,
 	genesisVersion common.Version,
 ) (transition.ValidatorUpdates, error) {
+	sp.processingGenesis = true
+	defer func() {
+		sp.processingGenesis = false
+	}()
+
 	var (
 		blkHeader BeaconBlockHeaderT
 		blkBody   BeaconBlockBodyT
@@ -67,25 +72,28 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	if err := st.SetEth1DepositIndex(0); err != nil {
-		return nil, err
-	}
+	// Eth1DepositIndex will be set in processDeposit
 
-	if err := st.SetEth1Data(eth1Data.New(
-		common.Root{},
-		0,
-		executionPayloadHeader.GetBlockHash(),
-	)); err != nil {
+	if err := st.SetEth1Data(
+		eth1Data.New(
+			common.Root{},
+			0,
+			executionPayloadHeader.GetBlockHash(),
+		)); err != nil {
 		return nil, err
 	}
 
 	// TODO: we need to handle common.Version vs
 	// uint32 better.
-	bodyRoot := blkBody.Empty(
-		version.ToUint32(genesisVersion)).HashTreeRoot()
-	if err := st.SetLatestBlockHeader(blkHeader.New(
-		0, 0, common.Root{}, common.Root{}, bodyRoot,
-	)); err != nil {
+	bodyRoot := blkBody.Empty(version.ToUint32(genesisVersion)).HashTreeRoot()
+	if err := st.SetLatestBlockHeader(
+		blkHeader.New(
+			0,             // slot
+			0,             // proposer index
+			common.Root{}, // parent block root
+			common.Root{}, // state root
+			bodyRoot,
+		)); err != nil {
 		return nil, err
 	}
 

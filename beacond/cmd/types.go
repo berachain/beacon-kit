@@ -87,13 +87,6 @@ type (
 		*BlobSidecars,
 	]
 
-	// BlobVerifier is a type alias for the blob verifier.
-	BlobVerifier = dablob.Verifier[
-		*BeaconBlockHeader,
-		*BlobSidecar,
-		*BlobSidecars,
-	]
-
 	// BlockStoreService is a type alias for the block store service.
 	BlockStoreService = blockstore.Service[*BeaconBlock, *BlockStore]
 
