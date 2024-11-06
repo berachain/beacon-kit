@@ -108,7 +108,7 @@ slither:
 	docker run \
 	-t \
 	--platform linux/amd64 \
-	-v ./contracts:/contracts \
+	-v ./contracts:/contracts:rw \
 	trailofbits/eth-security-toolbox:edge \
 	/bin/bash -c "cd /contracts && slither ./."
 
