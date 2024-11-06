@@ -245,13 +245,13 @@ func TestTransitionHittingValidatorsCap(t *testing.T) {
 	// Setup initial state via genesis
 	// TODO: consider instead setting state artificially
 	var (
-		genDeposits      = make([]*types.Deposit, 0, cs.GetValidatorsSetCapSize())
+		genDeposits      = make([]*types.Deposit, 0, cs.GetValidatorSetCapSize())
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		genVersion       = version.FromUint32[common.Version](version.Deneb)
 	)
 
 	// let genesis define all available validators
-	for idx := range cs.GetValidatorsSetCapSize() {
+	for idx := range cs.GetValidatorSetCapSize() {
 		var (
 			key   bytes.B48
 			creds types.WithdrawalCredentials

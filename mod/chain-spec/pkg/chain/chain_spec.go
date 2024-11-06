@@ -184,9 +184,9 @@ type Spec[
 	// slot.
 	GetCometBFTConfigForSlot(slot SlotT) CometBFTConfigT
 
-	// GetValidatorsSetCapSize retrieves the maximum number of validators
+	// GetValidatorSetCapSize retrieves the maximum number of validators
 	// allowed in the active set.
-	GetValidatorsSetCapSize() uint32
+	GetValidatorSetCapSize() uint32
 }
 
 // chainSpec is a concrete implementation of the ChainSpec interface, holding
@@ -481,10 +481,10 @@ func (c chainSpec[
 	return c.Data.CometValues
 }
 
-// GetValidatorsSetCapSize retrieves the maximum number of validators
+// GetValidatorSetCapSize retrieves the maximum number of validators
 // allowed in the active set.
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetValidatorsSetCapSize() uint32 {
+]) GetValidatorSetCapSize() uint32 {
 	return c.Data.ValidatorSetCapSize
 }

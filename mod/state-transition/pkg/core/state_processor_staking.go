@@ -215,7 +215,7 @@ func (sp *StateProcessor[
 		}
 
 		//#nosec:G701 // can't overflow.
-		if uint32(len(validators)) >= sp.cs.GetValidatorsSetCapSize() {
+		if uint32(len(validators)) >= sp.cs.GetValidatorSetCapSize() {
 			var slot math.Slot
 			slot, err = st.GetSlot()
 			if err != nil {
