@@ -51,3 +51,14 @@ func (b Backend[
 	}
 	return fork.GetPreviousVersion(), nil
 }
+
+// GetGenesisTime returns the genesis time of the beacon chain.
+func (b Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) GetGenesisTime(slot math.Slot) (uint64, error) {
+	st, _, err := b.stateFromSlot(slot)
+	if err != nil {
+		return 0, err
+	}
+	return st.GetGenesisTime()
+}

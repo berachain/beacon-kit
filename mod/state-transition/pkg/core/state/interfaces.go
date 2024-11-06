@@ -75,6 +75,10 @@ type KVStore[
 	GetGenesisValidatorsRoot() (common.Root, error)
 	// SetGenesisValidatorsRoot sets the genesis validators root.
 	SetGenesisValidatorsRoot(root common.Root) error
+	// GetGenesisTime retrieves the genesis time.
+	GetGenesisTime() (uint64, error)
+	// SetGenesisTime sets the genesis time.
+	SetGenesisTime(time uint64) error
 	// GetLatestBlockHeader retrieves the latest block header.
 	GetLatestBlockHeader() (BeaconBlockHeaderT, error)
 	// SetLatestBlockHeader sets the latest block header.
