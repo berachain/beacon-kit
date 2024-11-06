@@ -117,13 +117,13 @@ func (sp *StateProcessor[
 	dep DepositT,
 ) error {
 	idx, err := st.ValidatorIndexByPubkey(dep.GetPubkey())
-	// If the validator already exists, we update the balance.
 	if err != nil {
 		// If the validator does not exist, we add the validator.
 		// Add the validator to the registry.
 		return sp.createValidator(st, dep)
 	}
 
+	// If the validator already exists, we update the balance.
 	var val ValidatorT
 	val, err = st.ValidatorByIndex(idx)
 	if err != nil {
