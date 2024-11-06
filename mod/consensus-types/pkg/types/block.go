@@ -21,6 +21,9 @@
 package types
 
 import (
+	"fmt"
+
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
@@ -34,7 +37,7 @@ type BeaconBlock struct {
 	// Slot represents the position of the block in the chain.
 	Slot math.Slot `json:"slot"`
 	// ProposerIndex is the index of the validator who proposed the block.
-	ProposerIndex math.Slot `json:"proposer_index"`
+	ProposerIndex math.ValidatorIndex `json:"proposer_index"`
 	// ParentRoot is the hash of the parent block
 	ParentRoot common.Root `json:"parent_root"`
 	// StateRoot is the hash of the state at the block.
@@ -56,24 +59,20 @@ func (b *BeaconBlock) NewWithVersion(
 	parentBlockRoot common.Root,
 	forkVersion uint32,
 ) (*BeaconBlock, error) {
-	var (
-		block *BeaconBlock
-	)
-
-	switch forkVersion {
-	case version.Deneb:
-		block = &BeaconBlock{
+	if forkVersion == version.Deneb {
+		return &BeaconBlock{
 			Slot:          slot,
 			ProposerIndex: proposerIndex,
 			ParentRoot:    parentBlockRoot,
 			StateRoot:     common.Root{},
 			Body:          &BeaconBlockBody{},
-		}
-	default:
-		return &BeaconBlock{}, ErrForkVersionNotSupported
+		}, nil
 	}
 
-	return block, nil
+	return nil, errors.Wrap(
+		ErrForkVersionNotSupported,
+		fmt.Sprintf("fork %d", forkVersion),
+	)
 }
 
 // NewFromSSZ creates a new beacon block from the given SSZ bytes.
@@ -81,16 +80,15 @@ func (b *BeaconBlock) NewFromSSZ(
 	bz []byte,
 	forkVersion uint32,
 ) (*BeaconBlock, error) {
-	var block *BeaconBlock
-	switch forkVersion {
-	case version.Deneb:
-		block = &BeaconBlock{}
+	if forkVersion == version.Deneb {
+		block := &BeaconBlock{}
 		return block, block.UnmarshalSSZ(bz)
-	case version.DenebPlus:
-		panic("unsupported fork version")
-	default:
-		return block, ErrForkVersionNotSupported
 	}
+
+	return nil, errors.Wrap(
+		ErrForkVersionNotSupported,
+		fmt.Sprintf("fork %d", forkVersion),
+	)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -192,7 +190,7 @@ func (b *BeaconBlock) GetSlot() math.Slot {
 	return b.Slot
 }
 
-// GetSlot retrieves the slot of the BeaconBlockBase.
+// GetProposerIndex retrieves the proposer index.
 func (b *BeaconBlock) GetProposerIndex() math.ValidatorIndex {
 	return b.ProposerIndex
 }
@@ -233,8 +231,8 @@ func (b *BeaconBlock) GetHeader() *BeaconBlockHeader {
 	}
 }
 
-// GetExecutionNumber retrieves the execution number of the BeaconBlock from
+// GetTimestamp retrieves the timestamp of the BeaconBlock from
 // the ExecutionPayload.
-func (b *BeaconBlock) GetExecutionNumber() math.U64 {
-	return b.Body.ExecutionPayload.Number
+func (b *BeaconBlock) GetTimestamp() math.U64 {
+	return b.Body.ExecutionPayload.Timestamp
 }

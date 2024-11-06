@@ -40,6 +40,8 @@ type BlockEvent[BeaconBlockT BeaconBlock] interface {
 type IndexDB interface {
 	Has(index uint64, key []byte) (bool, error)
 	Set(index uint64, key []byte, value []byte) error
+
+	// Prune returns error if start > end
 	Prune(start uint64, end uint64) error
 	Get(index uint64, key []byte) ([]byte, error)
 }

@@ -21,49 +21,64 @@
 package common_test
 
 import (
-	"encoding/json"
+	"strings"
 	"testing"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/stretchr/testify/require"
 )
 
-func TestExecutionAddressMarshalling(t *testing.T) {
+func TestNewRootFromHex(t *testing.T) {
 	tests := []struct {
 		name        string
-		input       []byte
+		input       func() string
 		expectedErr error
 	}{
 		{
-			name:        "address too short",
-			input:       []byte("\"0xab\""),
-			expectedErr: hex.ErrInvalidHexStringLength,
+			name: "EmptyString",
+			input: func() string {
+				return ""
+			},
+			expectedErr: hex.ErrEmptyString,
 		},
 		{
-			name:        "address missing hex prefix",
-			input:       []byte("\"abc\""),
-			expectedErr: hex.ErrMissingPrefix,
+			name: "ShortSize",
+			input: func() string {
+				return hex.Prefix + strings.Repeat("f", 2*common.RootSize-2)
+			},
+			expectedErr: bytes.ErrIncorrectLength,
 		},
 		{
-			name: "address too long",
-			input: []byte(
-				"\"0x000102030405060708090a0b0c0d0e0f101112131415161718\"",
-			),
-			expectedErr: hex.ErrInvalidHexStringLength,
+			name: "RightSize",
+			input: func() string {
+				return hex.Prefix + strings.Repeat("f", 2*common.RootSize)
+			},
+			expectedErr: nil,
+		},
+		{
+			name: "LongSize",
+			input: func() string {
+				return hex.Prefix + strings.Repeat("f", 2*common.RootSize+2)
+			},
+			expectedErr: bytes.ErrIncorrectLength,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var (
-				v   common.ExecutionAddress
-				err error
-			)
-			require.NotPanics(t, func() {
-				err = json.Unmarshal(tt.input, &v)
-			})
-			require.ErrorIs(t, err, tt.expectedErr)
+			var err error
+			f := func() {
+				input := tt.input()
+				_, err = common.NewRootFromHex(input)
+			}
+			require.NotPanics(t, f)
+			if tt.expectedErr != nil {
+				require.ErrorIs(t, err, tt.expectedErr)
+			} else {
+				require.NoError(t, err)
+			}
 		})
 	}
 }

@@ -23,6 +23,7 @@ package block
 import (
 	"fmt"
 
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -32,11 +33,20 @@ import (
 // KVStore is a simple memory store based implementation that stores metadata of
 // beacon blocks.
 type KVStore[BeaconBlockT BeaconBlock] struct {
-	blockRoots       *lru.Cache[common.Root, math.Slot]
-	executionNumbers *lru.Cache[math.U64, math.Slot]
-	stateRoots       *lru.Cache[common.Root, math.Slot]
-	parentRoots      *lru.Cache[common.Root, math.Slot]
+	// Beacon block root to slot mapping is injective for finalized blocks.
+	blockRoots *lru.Cache[common.Root, math.Slot]
 
+	// Timestamp to slot mapping is injective for finalized blocks. This is
+	// guaranteed by CometBFT consensus. So each slot will be associated with a
+	// different timestamp (no overwriting) as we store only finalized blocks.
+	timestamps *lru.Cache[math.U64, math.Slot]
+
+	// Beacon state root to slot mapping is injective for finalized blocks.
+	stateRoots *lru.Cache[common.Root, math.Slot]
+
+  parentRoots      *lru.Cache[common.Root, math.Slot]
+
+	// Logger for the store.
 	logger log.Logger
 }
 
@@ -49,7 +59,7 @@ func NewStore[BeaconBlockT BeaconBlock](
 	if err != nil {
 		panic(err)
 	}
-	executionNumbers, err := lru.New[math.U64, math.Slot](availabilityWindow)
+	timestamps, err := lru.New[math.U64, math.Slot](availabilityWindow)
 	if err != nil {
 		panic(err)
 	}
@@ -63,21 +73,21 @@ func NewStore[BeaconBlockT BeaconBlock](
 		panic(err)
 	}
 	return &KVStore[BeaconBlockT]{
-		blockRoots:       blockRoots,
-		executionNumbers: executionNumbers,
-		stateRoots:       stateRoots,
-		logger:           logger,
-		parentRoots:      parentRoots,
+		blockRoots:   blockRoots,
+		timestamps:   timestamps,
+		stateRoots:   stateRoots,
+    parentRoots:  parentRoots,
+		logger:       logger,
 	}
 }
 
 // Set sets the block by a given index in the store, storing the block root,
-// execution number, and state root. Only this function may potentially evict
+// timestamp, and state root. Only this function may potentially evict
 // entries from the store if the availability window is reached.
 func (kv *KVStore[BeaconBlockT]) Set(blk BeaconBlockT) error {
 	slot := blk.GetSlot()
 	kv.blockRoots.Add(blk.HashTreeRoot(), slot)
-	kv.executionNumbers.Add(blk.GetExecutionNumber(), slot)
+	kv.timestamps.Add(blk.GetTimestamp(), slot)
 	kv.stateRoots.Add(blk.GetStateRoot(), slot)
 	kv.parentRoots.Add(blk.GetParentBlockRoot(), slot)
 	return nil
@@ -94,19 +104,20 @@ func (kv *KVStore[BeaconBlockT]) GetSlotByBlockRoot(
 	return slot, nil
 }
 
-// GetSlotByExecutionNumber retrieves the slot by a given execution number from
+// GetParentSlotByTimestamp retrieves the parent slot by a given timestamp from
 // the store.
-func (kv *KVStore[BeaconBlockT]) GetSlotByExecutionNumber(
-	executionNumber math.U64,
+func (kv *KVStore[BeaconBlockT]) GetParentSlotByTimestamp(
+	timestamp math.U64,
 ) (math.Slot, error) {
-	slot, ok := kv.executionNumbers.Peek(executionNumber)
+	slot, ok := kv.timestamps.Peek(timestamp)
 	if !ok {
-		return 0, fmt.Errorf(
-			"slot not found at execution number: %d",
-			executionNumber,
-		)
+		return slot, fmt.Errorf("slot not found at timestamp: %d", timestamp)
 	}
-	return slot, nil
+	if slot == 0 {
+		return slot, errors.New("parent slot not supported for genesis slot 0")
+	}
+
+	return slot - 1, nil
 }
 
 // GetSlotByStateRoot retrieves the slot by a given state root from the store.
