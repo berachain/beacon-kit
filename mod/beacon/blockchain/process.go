@@ -128,6 +128,7 @@ func (s *Service[
 			// actually irrelevant at this point.
 			SkipPayloadVerification: false,
 
+			ProposerAddress:      blk.GetProposerAddress(),
 			NextPayloadTimestamp: blk.GetNextPayloadTimestamp(),
 		},
 		st,

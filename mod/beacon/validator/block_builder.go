@@ -114,6 +114,7 @@ func (s *Service[
 	g.Go(func() error {
 		return s.computeAndSetStateRoot(
 			ctx,
+			slotData.GetProposerAddress(),
 			slotData.GetNextPayloadTimestamp(),
 			st,
 			blk,
@@ -336,11 +337,18 @@ func (s *Service[
 	_, BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
 ]) computeAndSetStateRoot(
 	ctx context.Context,
+	proposerAddress []byte,
 	nextPayloadTimestamp math.U64,
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
-	stateRoot, err := s.computeStateRoot(ctx, nextPayloadTimestamp, st, blk)
+	stateRoot, err := s.computeStateRoot(
+		ctx,
+		proposerAddress,
+		nextPayloadTimestamp,
+		st,
+		blk,
+	)
 	if err != nil {
 		s.logger.Error(
 			"failed to compute state root while building block ❗️ ",
@@ -358,6 +366,7 @@ func (s *Service[
 	_, BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
 ]) computeStateRoot(
 	ctx context.Context,
+	proposerAddress []byte,
 	nextPayloadTimestamp math.U64,
 	st BeaconStateT,
 	blk BeaconBlockT,
@@ -374,6 +383,7 @@ func (s *Service[
 			SkipPayloadVerification: true,
 			SkipValidateResult:      true,
 			SkipValidateRandao:      true,
+			ProposerAddress:         proposerAddress,
 			NextPayloadTimestamp:    nextPayloadTimestamp,
 		},
 		st, blk,

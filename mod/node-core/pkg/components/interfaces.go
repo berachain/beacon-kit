@@ -83,6 +83,10 @@ type (
 	ConsensusBlock[BeaconBlockT any] interface {
 		GetBeaconBlock() BeaconBlockT
 
+		// GetProposerAddress returns the address of the validator
+		// selected by consensus to propose the block
+		GetProposerAddress() []byte
+
 		// GetNextPayloadTimestamp returns the timestamp proposed by
 		// consensus for the next payload to be proposed. It is also
 		// used to bound current payload upon validation

@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	cryptomocks "github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/mocks"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -46,6 +47,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		engineprimitives.Withdrawals,
 	](t)
 	mocksSigner := &cryptomocks.BLSSigner{}
+	dummyProposerAddr := []byte{0xff}
 
 	sp := core.NewStateProcessor[
 		*types.BeaconBlock,
@@ -69,6 +71,9 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		cs,
 		execEngine,
 		mocksSigner,
+		func(bytes.B48) ([]byte, error) {
+			return dummyProposerAddr, nil
+		},
 	)
 
 	kvStore, err := initTestStore()
@@ -123,6 +128,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		ctx = &transition.Context{
 			SkipPayloadVerification: true,
 			SkipValidateResult:      true,
+			ProposerAddress:         dummyProposerAddr,
 		}
 		blkDeposits = []*types.Deposit{
 			{

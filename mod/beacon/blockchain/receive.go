@@ -128,6 +128,7 @@ func (s *Service[
 			SkipPayloadVerification: false,
 			SkipValidateResult:      false,
 			SkipValidateRandao:      false,
+			ProposerAddress:         blk.GetProposerAddress(),
 			NextPayloadTimestamp:    blk.GetNextPayloadTimestamp(),
 		},
 		st, blk.GetBeaconBlock(),
