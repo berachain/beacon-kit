@@ -18,20 +18,26 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package hex
+package payloadtime
 
 import (
-	"encoding"
+	"time"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// UnmarshalJSONText unmarshals a JSON string with a 0x prefix into a given
-// TextUnmarshaler. It validates the input and then removes the surrounding
-// quotes before passing the inner content to the UnmarshalText method.
-func UnmarshalJSONText(input []byte,
-	u encoding.TextUnmarshaler,
-) error {
-	if err := ValidateUnmarshalInput(input); err != nil {
-		return err
-	}
-	return u.UnmarshalText(input[1 : len(input)-1])
+// Next calculates the
+// next timestamp for an execution payload
+//
+// TODO: This is hood and needs to be improved.
+func Next(
+	chainSpec common.ChainSpec,
+	parentPayloadTime math.U64,
+) uint64 {
+	//#nosec:G701 // not an issue in practice.
+	return max(
+		uint64(time.Now().Unix())+chainSpec.TargetSecondsPerEth1Block(),
+		uint64(parentPayloadTime+1),
+	)
 }

@@ -21,6 +21,10 @@
 package merkle
 
 const (
+	// ProposerIndexGIndexDenebBlock is the generalized index of the proposer
+	// index in the beacon block in the Deneb fork.
+	ProposerIndexGIndexDenebBlock = 9
+
 	// StateGIndexDenebBlock is the generalized index of the beacon state in
 	// the beacon block in the Deneb fork.
 	StateGIndexDenebBlock = 11

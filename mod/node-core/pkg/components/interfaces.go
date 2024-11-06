@@ -114,7 +114,9 @@ type (
 		GetParentBlockRoot() common.Root
 		// GetStateRoot returns the state root of the block.
 		GetStateRoot() common.Root
-		GetExecutionNumber() math.U64
+		// GetTimestamp returns the timestamp of the block from the execution
+		// payload.
+		GetTimestamp() math.U64
 	}
 
 	// BeaconBlockBody represents a generic interface for the body of a beacon
@@ -294,13 +296,12 @@ type (
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		// GetSlotByStateRoot retrieves the slot by a given root from the store.
 		GetSlotByStateRoot(root common.Root) (math.Slot, error)
-		// GetSlotByExecutionNumber retrieves the slot by a given execution
-		// number
-		// from the store.
-		GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error)
 		// GetSlotByParentRoot retrieves the slot by a given parent root from the
 		// store.
 		GetSlotByParentRoot(root common.Root) (math.Slot, error)
+		// GetParentSlotByTimestamp retrieves the parent slot by a given
+		// timestamp from the store.
+		GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
 	}
 
 	ConsensusEngine interface {
@@ -1101,9 +1102,9 @@ type (
 		ChainSpec() common.ChainSpec
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		GetSlotByStateRoot(root common.Root) (math.Slot, error)
-		GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error)
 		GetHeadSlot() (math.Slot, error)
 		GetSlotByParentRoot(root common.Root) (math.Slot, error)
+		GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
 
 		NodeAPIBeaconBackend[
 			BeaconStateT, BeaconBlockHeaderT, ForkT, ValidatorT, WithdrawalCredentialsT,
@@ -1139,7 +1140,7 @@ type (
 	] interface {
 		BlockBackend[BeaconBlockHeaderT]
 		StateBackend[BeaconStateT, ForkT]
-		GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error)
+		GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
 	}
 
 	// NodeAPIConfigBackend is the interface for the config backend of the API.
