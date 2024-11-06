@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	cryptomocks "github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/mocks"
@@ -41,7 +42,7 @@ import (
 
 func TestInitialize(t *testing.T) {
 	// Create state processor to test
-	cs := spec.TestnetChainSpec()
+	cs := spec.BetnetChainSpec()
 	execEngine := mocks.NewExecutionEngine[
 		*types.ExecutionPayload,
 		*types.ExecutionPayloadHeader,
@@ -71,6 +72,7 @@ func TestInitialize(t *testing.T) {
 		cs,
 		execEngine,
 		mocksSigner,
+		dummyProposerAddressVerifier,
 	)
 
 	// create test inputs
@@ -142,7 +144,7 @@ func TestInitialize(t *testing.T) {
 	require.Equal(t, fork, resFork)
 
 	for _, dep := range deposits {
-		checkValidator(t, cs, beaconState, dep)
+		checkValidatorNonBartio(t, cs, beaconState, dep)
 	}
 
 	// check that validator index is duly set
@@ -151,7 +153,174 @@ func TestInitialize(t *testing.T) {
 	require.Equal(t, uint64(len(deposits)-1), latestValIdx)
 }
 
-func checkValidator(
+func checkValidatorNonBartio(
+	t *testing.T,
+	cs chain.Spec[
+		common.DomainType,
+		math.Epoch,
+		common.ExecutionAddress,
+		math.Slot,
+		any,
+	],
+	bs *TestBeaconStateT,
+	dep *types.Deposit,
+) {
+	t.Helper()
+
+	// checks on validators common to all networks
+	commonChecksValidators(t, cs, bs, dep)
+
+	// checks on validators for any network but Bartio
+	idx, err := bs.ValidatorIndexByPubkey(dep.Pubkey)
+	require.NoError(t, err)
+
+	valBal, err := bs.GetBalance(idx)
+	require.NoError(t, err)
+	require.Equal(t, dep.Amount, valBal)
+}
+
+func TestInitializeBartio(t *testing.T) {
+	// Create state processor to test
+	cs := spec.TestnetChainSpec()
+	execEngine := mocks.NewExecutionEngine[
+		*types.ExecutionPayload,
+		*types.ExecutionPayloadHeader,
+		engineprimitives.Withdrawals,
+	](t)
+	mocksSigner := &cryptomocks.BLSSigner{}
+
+	sp := core.NewStateProcessor[
+		*types.BeaconBlock,
+		*types.BeaconBlockBody,
+		*types.BeaconBlockHeader,
+		*TestBeaconStateT,
+		*transition.Context,
+		*types.Deposit,
+		*types.Eth1Data,
+		*types.ExecutionPayload,
+		*types.ExecutionPayloadHeader,
+		*types.Fork,
+		*types.ForkData,
+		*TestKVStoreT,
+		*types.Validator,
+		types.Validators,
+		*engineprimitives.Withdrawal,
+		engineprimitives.Withdrawals,
+		types.WithdrawalCredentials,
+	](
+		cs,
+		execEngine,
+		mocksSigner,
+		dummyProposerAddressVerifier,
+	)
+
+	// create test inputs
+	kvStore, err := initTestStore()
+	require.NoError(t, err)
+
+	var (
+		beaconState = new(TestBeaconStateT).NewFromDB(kvStore, cs)
+		deposits    = []*types.Deposit{
+			{
+				Pubkey: [48]byte{0x01},
+				Amount: math.Gwei(cs.MaxEffectiveBalance()),
+				Index:  uint64(0),
+			},
+			{
+				Pubkey: [48]byte{0x02},
+				Amount: math.Gwei(cs.MaxEffectiveBalance() / 2),
+				Index:  uint64(1),
+			},
+			{
+				Pubkey: [48]byte{0x03},
+				Amount: math.Gwei(cs.EffectiveBalanceIncrement()),
+				Index:  uint64(2),
+			},
+			{
+				Pubkey: [48]byte{0x04},
+				Amount: math.Gwei(2 * cs.MaxEffectiveBalance()),
+				Index:  uint64(3),
+			},
+			{
+				Pubkey: [48]byte{0x05},
+				Amount: math.Gwei(cs.EffectiveBalanceIncrement() * 2 / 3),
+				Index:  uint64(4),
+			},
+		}
+		executionPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		fork                   = &types.Fork{
+			PreviousVersion: version.FromUint32[common.Version](version.Deneb),
+			CurrentVersion:  version.FromUint32[common.Version](version.Deneb),
+			Epoch:           math.Epoch(constants.GenesisEpoch),
+		}
+	)
+
+	// define mocks expectations
+	mocksSigner.On(
+		"VerifySignature",
+		mock.Anything, mock.Anything, mock.Anything,
+	).Return(nil)
+
+	// run test
+	vals, err := sp.InitializePreminedBeaconStateFromEth1(
+		beaconState,
+		deposits,
+		executionPayloadHeader,
+		fork.CurrentVersion,
+	)
+
+	// check outputs
+	require.NoError(t, err)
+	require.Len(t, vals, len(deposits))
+
+	// check beacon state changes
+	resSlot, err := beaconState.GetSlot()
+	require.NoError(t, err)
+	require.Equal(t, math.Slot(0), resSlot)
+
+	resFork, err := beaconState.GetFork()
+	require.NoError(t, err)
+	require.Equal(t, fork, resFork)
+
+	for _, dep := range deposits {
+		checkValidatorBartio(t, cs, beaconState, dep)
+	}
+
+	// check that validator index is duly set
+	latestValIdx, err := beaconState.GetEth1DepositIndex()
+	require.NoError(t, err)
+	require.Equal(t, uint64(len(deposits)-1), latestValIdx)
+}
+
+func checkValidatorBartio(
+	t *testing.T,
+	cs chain.Spec[
+		common.DomainType,
+		math.Epoch,
+		common.ExecutionAddress,
+		math.Slot,
+		any,
+	],
+	bs *TestBeaconStateT,
+	dep *types.Deposit,
+) {
+	t.Helper()
+
+	// checks on validators common to all networks
+	commonChecksValidators(t, cs, bs, dep)
+
+	// Bartio specific checks on validators
+	idx, err := bs.ValidatorIndexByPubkey(dep.Pubkey)
+	require.NoError(t, err)
+	val, err := bs.ValidatorByIndex(idx)
+	require.NoError(t, err)
+
+	valBal, err := bs.GetBalance(idx)
+	require.NoError(t, err)
+	require.Equal(t, val.EffectiveBalance, valBal)
+}
+
+func commonChecksValidators(
 	t *testing.T,
 	cs chain.Spec[
 		common.DomainType,
@@ -188,4 +357,10 @@ func checkValidator(
 	case dep.Amount < minBalance:
 		require.Equal(t, math.Gwei(0), val.EffectiveBalance)
 	}
+}
+
+// in genesis UTs we don't need to verify proposer address
+// (no one proposes genesis), hence the dummy implementation.
+func dummyProposerAddressVerifier(bytes.B48) ([]byte, error) {
+	return nil, nil
 }

@@ -18,27 +18,25 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package server
+package types
 
-const (
-	defaultAddress = "127.0.0.1:3500"
-)
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 
-// Config is the configuration for the node API server.
-type Config struct {
-	// Enabled is the flag to enable the node API server.
-	Enabled bool `mapstructure:"enabled"`
-	// Address is the address to bind the node API server to.
-	Address string `mapstructure:"address"`
-	// Logging is the flag to enable API logging.
-	Logging bool `mapstructure:"logging"`
+type commonConsensusData struct {
+	proposerAddress []byte
+
+	nextPayloadTimestamp math.U64
 }
 
-// DefaultConfig returns the default configuration for the node API server.
-func DefaultConfig() Config {
-	return Config{
-		Enabled: false,
-		Address: defaultAddress,
-		Logging: false,
-	}
+// GetProposerAddress returns the address of the validator
+// selected by consensus to propose the block.
+func (c *commonConsensusData) GetProposerAddress() []byte {
+	return c.proposerAddress
+}
+
+// GetNextPayloadTimestamp returns the timestamp proposed by consensus
+// for the next payload to be proposed. It is also used to bound
+// current payload upon validation.
+func (c *commonConsensusData) GetNextPayloadTimestamp() math.U64 {
+	return c.nextPayloadTimestamp
 }

@@ -34,6 +34,8 @@ var (
 	// match the expected value.
 	ErrSlotMismatch = errors.New("slot mismatch")
 
+	ErrProposerMismatch = errors.New("proposer key mismatch")
+
 	// ErrParentRootMismatch is returned when the parent root in an execution
 	// payload does not match the expected value.
 	ErrParentRootMismatch = errors.New("parent root mismatch")
@@ -70,6 +72,10 @@ var (
 	// ErrStateRootMismatch is returned when the state root in a block header
 	// does not match the expected value.
 	ErrStateRootMismatch = errors.New("state root mismatch")
+
+	// ErrTooFarInTheFuture is returned when the payload timestamp
+	// in a block exceeds the time bound.
+	ErrTooFarInTheFuture = errors.New("timestamp too far in the future")
 
 	// ErrExceedMaximumWithdrawals is returned when the number of withdrawals
 	// in a block exceeds the maximum allowed.

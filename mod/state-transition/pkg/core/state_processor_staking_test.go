@@ -50,6 +50,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		engineprimitives.Withdrawals,
 	](t)
 	mocksSigner := &cryptomocks.BLSSigner{}
+	dummyProposerAddr := []byte{0xff}
 
 	sp := core.NewStateProcessor[
 		*types.BeaconBlock,
@@ -73,6 +74,9 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		cs,
 		execEngine,
 		mocksSigner,
+		func(bytes.B48) ([]byte, error) {
+			return dummyProposerAddr, nil
+		},
 	)
 
 	kvStore, err := initTestStore()
@@ -127,6 +131,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		ctx = &transition.Context{
 			SkipPayloadVerification: true,
 			SkipValidateResult:      true,
+			ProposerAddress:         dummyProposerAddr,
 		}
 		blkDeposits = []*types.Deposit{
 			{
@@ -175,6 +180,11 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	require.Equal(t, genDeposits[0].Pubkey, val.Pubkey)
 	require.Equal(t, expectedValBalance, val.EffectiveBalance)
 
+	// check validator balance is updated
+	valBal, err := beaconState.GetBalance(idx)
+	require.NoError(t, err)
+	require.Equal(t, expectedValBalance, valBal)
+
 	// check that validator index is duly set (1-indexed here, to be fixed)
 	latestValIdx, err := beaconState.GetEth1DepositIndex()
 	require.NoError(t, err)
@@ -193,6 +203,7 @@ func TestTransitionHittingValidatorsCap(t *testing.T) {
 		engineprimitives.Withdrawals,
 	](t)
 	mocksSigner := &cryptomocks.BLSSigner{}
+	dummyProposerAddr := []byte{0xff}
 
 	sp := core.NewStateProcessor[
 		*types.BeaconBlock,
@@ -216,6 +227,9 @@ func TestTransitionHittingValidatorsCap(t *testing.T) {
 		cs,
 		execEngine,
 		mocksSigner,
+		func(bytes.B48) ([]byte, error) {
+			return dummyProposerAddr, nil
+		},
 	)
 
 	kvStore, err := initTestStore()
@@ -275,6 +289,7 @@ func TestTransitionHittingValidatorsCap(t *testing.T) {
 		ctx = &transition.Context{
 			SkipPayloadVerification: true,
 			SkipValidateResult:      true,
+			ProposerAddress:         dummyProposerAddr,
 		}
 		blkDeposits = []*types.Deposit{
 			{

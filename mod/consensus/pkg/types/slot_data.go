@@ -20,16 +20,23 @@
 
 package types
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+import (
+	"time"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+)
 
 // SlotData represents the data to be used to propose a block.
 type SlotData[AttestationDataT, SlashingInfoT any] struct {
-	// Slot is the slot number of the incoming slot.
-	math.Slot
-	// AttestationData is the attestation data of the incoming slot.
-	AttestationData []AttestationDataT
-	// SlashingInfo is the slashing info of the incoming slot.
-	SlashingInfo []SlashingInfoT
+	// slot is the slot number of the incoming slot.
+	slot math.Slot
+	// attestationData is the attestation data of the incoming slot.
+	attestationData []AttestationDataT
+	// slashingInfo is the slashing info of the incoming slot.
+	slashingInfo []SlashingInfoT
+
+	// some consensus data useful to build and verify the block
+	*commonConsensusData
 }
 
 // New creates a new SlotData instance.
@@ -37,18 +44,24 @@ func (b *SlotData[AttestationDataT, SlashingInfoT]) New(
 	slot math.Slot,
 	attestationData []AttestationDataT,
 	slashingInfo []SlashingInfoT,
+	proposerAddress []byte,
+	nextPayloadTimestamp time.Time,
 ) *SlotData[AttestationDataT, SlashingInfoT] {
 	b = &SlotData[AttestationDataT, SlashingInfoT]{
-		Slot:            slot,
-		AttestationData: attestationData,
-		SlashingInfo:    slashingInfo,
+		slot:            slot,
+		attestationData: attestationData,
+		slashingInfo:    slashingInfo,
+		commonConsensusData: &commonConsensusData{
+			proposerAddress:      proposerAddress,
+			nextPayloadTimestamp: math.U64(nextPayloadTimestamp.Unix()),
+		},
 	}
 	return b
 }
 
 // GetSlot retrieves the slot of the SlotData.
 func (b *SlotData[AttestationDataT, SlashingInfoT]) GetSlot() math.Slot {
-	return b.Slot
+	return b.slot
 }
 
 // GetAttestationData retrieves the attestation data of the SlotData.
@@ -56,7 +69,7 @@ func (b *SlotData[
 	AttestationDataT,
 	SlashingInfoT,
 ]) GetAttestationData() []AttestationDataT {
-	return b.AttestationData
+	return b.attestationData
 }
 
 // GetSlashingInfo retrieves the slashing info of the SlotData.
@@ -64,19 +77,19 @@ func (b *SlotData[
 	AttestationDataT,
 	SlashingInfoT,
 ]) GetSlashingInfo() []SlashingInfoT {
-	return b.SlashingInfo
+	return b.slashingInfo
 }
 
 // SetAttestationData sets the attestation data of the SlotData.
 func (b *SlotData[AttestationDataT, SlashingInfoT]) SetAttestationData(
 	attestationData []AttestationDataT,
 ) {
-	b.AttestationData = attestationData
+	b.attestationData = attestationData
 }
 
 // SetSlashingInfo sets the slashing info of the SlotData.
 func (b *SlotData[AttestationDataT, SlashingInfoT]) SetSlashingInfo(
 	slashingInfo []SlashingInfoT,
 ) {
-	b.SlashingInfo = slashingInfo
+	b.slashingInfo = slashingInfo
 }

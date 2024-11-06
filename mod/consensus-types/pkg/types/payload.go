@@ -129,7 +129,12 @@ func (p *ExecutionPayload) DefineSSZ(codec *ssz.Codec) {
 	)
 	ssz.DefineSliceOfStaticObjectsContent(codec, &p.Withdrawals, 16)
 
-	// TODO: hack to avoid failure of EL checks on withdrawals
+	// Post Shangai an EL explicitly check that Withdrawals are not nil
+	// (instead empty slices are fine). Currently BeaconKit duly builds
+	// a block with Withdrawals set to empty slice if there are no
+	// withdrawals) but as soon as the block is returned by CometBFT
+	// for verification, the SSZ decoding sets the empty slice to nil.
+	// This code change solves the issue.
 	if p.Withdrawals == nil {
 		p.Withdrawals = make([]*engineprimitives.Withdrawal, 0)
 	}
@@ -278,7 +283,7 @@ func (p *ExecutionPayload) GetTree() (*fastssz.Node, error) {
 /* -------------------------------------------------------------------------- */
 
 // MarshalJSON marshals as JSON.
-func (p *ExecutionPayload) MarshalJSON() ([]byte, error) {
+func (p ExecutionPayload) MarshalJSON() ([]byte, error) {
 	type ExecutionPayload struct {
 		ParentHash    common.ExecutionHash           `json:"parentHash"`
 		FeeRecipient  common.ExecutionAddress        `json:"feeRecipient"`
