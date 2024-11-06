@@ -25,14 +25,12 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/server/context"
 )
 
-// Handler is the handler for the node API.
 type Handler[ContextT context.Context] struct {
 	*handlers.BaseHandler[ContextT]
 	backend Backend
 }
 
-func NewHandler[ContextT context.Context](backend Backend,
-) *Handler[ContextT] {
+func NewHandler[ContextT context.Context](backend Backend) *Handler[ContextT] {
 	h := &Handler[ContextT]{
 		BaseHandler: handlers.NewBaseHandler(
 			handlers.NewRouteSet[ContextT](""),
