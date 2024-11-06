@@ -35,11 +35,12 @@ func (h *Handler[ContextT]) Syncing(_ ContextT) (any, error) {
 
 	// Get blockStore for heights
 	blockStore := node.BlockStore()
+	if blockStore == nil {
+		return nil, errors.New("block store is nil")
+	}
+
 	latestHeight := blockStore.Height()
 	baseHeight := blockStore.Base()
-
-	// Get consensus reactor for sync status
-	consensusReactor := node.ConsensusReactor()
 
 	response := nodetypes.SyncingData{
 		HeadSlot:     latestHeight,
@@ -47,11 +48,13 @@ func (h *Handler[ContextT]) Syncing(_ ContextT) (any, error) {
 		ELOffline:    false,
 	}
 
-	// Check if we're catching up by comparing heights
-	if consensusReactor != nil {
-		response.SyncDistance = latestHeight - baseHeight
+	// Calculate sync distance using block heights
+	response.SyncDistance = latestHeight - baseHeight
+	// If SyncDistance is greater than 0,
+	// we consider the node to be syncing
+	if response.SyncDistance > 0 {
+		response.IsSyncing = true
 	}
-	response.IsSyncing = response.SyncDistance > 0
 
 	return types.Wrap(&response), nil
 }
