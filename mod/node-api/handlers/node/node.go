@@ -26,17 +26,22 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 )
 
+var (
+	errNilBlockStore = errors.New("block store is nil")
+	errNilNode       = errors.New("node is nil")
+)
+
 // Syncing returns the syncing status of the beacon node.
 func (h *Handler[ContextT]) Syncing(_ ContextT) (any, error) {
 	node := h.backend.GetNode()
 	if node == nil {
-		return nil, errors.New("node is nil")
+		return nil, errNilNode
 	}
 
 	// Get blockStore for heights
 	blockStore := node.BlockStore()
 	if blockStore == nil {
-		return nil, errors.New("block store is nil")
+		return nil, errNilBlockStore
 	}
 
 	latestHeight := blockStore.Height()
