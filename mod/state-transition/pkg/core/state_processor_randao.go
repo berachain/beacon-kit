@@ -33,11 +33,11 @@ import (
 // ensures it matches the local state.
 func (sp *StateProcessor[
 	BeaconBlockT, _, _, BeaconStateT,
-	_, _, _, _, _, _, ForkDataT, _, _, _, _, _, _,
+	ContextT, _, _, _, _, _, ForkDataT, _, _, _, _, _, _,
 ]) processRandaoReveal(
+	ctx ContextT,
 	st BeaconStateT,
 	blk BeaconBlockT,
-	skipVerification bool,
 ) error {
 	slot, err := st.GetSlot()
 	if err != nil {
@@ -65,7 +65,7 @@ func (sp *StateProcessor[
 		), genesisValidatorsRoot,
 	)
 
-	if !skipVerification {
+	if !ctx.GetSkipValidateRandao() {
 		signingRoot := fd.ComputeRandaoSigningRoot(
 			sp.cs.DomainTypeRandao(), epoch,
 		)

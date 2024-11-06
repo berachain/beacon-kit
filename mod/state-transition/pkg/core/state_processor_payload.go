@@ -25,6 +25,7 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -49,7 +50,9 @@ func (sp *StateProcessor[
 	if !ctx.GetSkipPayloadVerification() {
 		g.Go(func() error {
 			return sp.validateExecutionPayload(
-				gCtx, st, blk, ctx.GetOptimisticEngine(),
+				gCtx, st, blk,
+				ctx.GetNextPayloadTimestamp(),
+				ctx.GetOptimisticEngine(),
 			)
 		})
 	}
@@ -84,9 +87,10 @@ func (sp *StateProcessor[
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
+	nextPayloadTimestamp math.U64,
 	optimisticEngine bool,
 ) error {
-	if err := sp.validateStatelessPayload(blk); err != nil {
+	if err := sp.validateStatelessPayload(blk, nextPayloadTimestamp); err != nil {
 		return err
 	}
 	return sp.validateStatefulPayload(ctx, st, blk, optimisticEngine)
@@ -96,14 +100,24 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	BeaconBlockT, _, _, _,
 	_, _, _, _, _, _, _, _, _, _, _, _, _,
-]) validateStatelessPayload(blk BeaconBlockT) error {
+]) validateStatelessPayload(
+	blk BeaconBlockT,
+	nextPayloadTimestamp math.U64,
+) error {
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
 
+	if pt := payload.GetTimestamp(); pt >= nextPayloadTimestamp {
+		return errors.Wrapf(
+			ErrTooFarInTheFuture,
+			"payload timestamp, max: %d, got: %d",
+			nextPayloadTimestamp, pt,
+		)
+	}
+
 	// Verify the number of withdrawals.
-	if withdrawals := payload.GetWithdrawals(); uint64(
-		len(withdrawals),
-	) > sp.cs.MaxWithdrawalsPerPayload() {
+	withdrawals := payload.GetWithdrawals()
+	if uint64(len(withdrawals)) > sp.cs.MaxWithdrawalsPerPayload() {
 		return errors.Wrapf(
 			ErrExceedMaximumWithdrawals,
 			"too many withdrawals, expected: %d, got: %d",
@@ -143,7 +157,8 @@ func (sp *StateProcessor[
 	}
 
 	// Check chain canonicity
-	if safeHash := lph.GetBlockHash(); safeHash != payload.GetParentHash() {
+	safeHash := lph.GetBlockHash()
+	if safeHash != payload.GetParentHash() {
 		return errors.Wrapf(
 			ErrParentPayloadHashMismatch,
 			"parent block with hash %x is not finalized, expected finalized hash %x",

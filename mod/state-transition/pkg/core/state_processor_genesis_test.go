@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	cryptomocks "github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/mocks"
@@ -71,6 +72,7 @@ func TestInitialize(t *testing.T) {
 		cs,
 		execEngine,
 		mocksSigner,
+		dummyProposerAddressVerifier,
 	)
 
 	// create test inputs
@@ -209,6 +211,7 @@ func TestInitializeBartio(t *testing.T) {
 		cs,
 		execEngine,
 		mocksSigner,
+		dummyProposerAddressVerifier,
 	)
 
 	// create test inputs
@@ -354,4 +357,10 @@ func commonChecksValidators(
 	case dep.Amount < minBalance:
 		require.Equal(t, math.Gwei(0), val.EffectiveBalance)
 	}
+}
+
+// in genesis UTs we don't need to verify proposer address
+// (no one proposes genesis), hence the dummy implementation.
+func dummyProposerAddressVerifier(bytes.B48) ([]byte, error) {
+	return nil, nil
 }

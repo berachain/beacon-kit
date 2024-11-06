@@ -32,11 +32,16 @@ import (
 // VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
 func (s *Service[
-	_, BeaconBlockT, _, _, _, _, _, _, _, _,
+	_, ConsensusBlockT, BeaconBlockT, _, _, _, _, _, _, _, _,
 ]) VerifyIncomingBlock(
 	ctx context.Context,
-	blk BeaconBlockT,
+	blk ConsensusBlockT,
 ) error {
+	var (
+		beaconBlk            = blk.GetBeaconBlock()
+		nextPayloadTimestamp = blk.GetNextPayloadTimestamp()
+	)
+
 	// Grab a copy of the state to verify the incoming block.
 	preState := s.storageBackend.StateFromContext(ctx)
 
@@ -47,7 +52,7 @@ func (s *Service[
 	s.forceStartupSyncOnce.Do(func() { s.forceStartupHead(ctx, preState) })
 
 	// If the block is nil or a nil pointer, exit early.
-	if blk.IsNil() {
+	if beaconBlk.IsNil() {
 		s.logger.Warn(
 			"Aborting block verification - beacon block not found in proposal",
 		)
@@ -56,7 +61,7 @@ func (s *Service[
 
 	s.logger.Info(
 		"Received incoming beacon block",
-		"state_root", blk.GetStateRoot(), "slot", blk.GetSlot(),
+		"state_root", beaconBlk.GetStateRoot(), "slot", beaconBlk.GetSlot(),
 	)
 
 	// We purposefully make a copy of the BeaconState in order
@@ -70,13 +75,17 @@ func (s *Service[
 		s.logger.Error(
 			"Rejecting incoming beacon block ❌ ",
 			"state_root",
-			blk.GetStateRoot(),
+			beaconBlk.GetStateRoot(),
 			"reason",
 			err,
 		)
 
 		if s.shouldBuildOptimisticPayloads() {
-			go s.handleRebuildPayloadForRejectedBlock(ctx, preState)
+			go s.handleRebuildPayloadForRejectedBlock(
+				ctx,
+				preState,
+				nextPayloadTimestamp,
+			)
 		}
 
 		return err
@@ -85,11 +94,16 @@ func (s *Service[
 	s.logger.Info(
 		"State root verification succeeded - accepting incoming beacon block",
 		"state_root",
-		blk.GetStateRoot(),
+		beaconBlk.GetStateRoot(),
 	)
 
 	if s.shouldBuildOptimisticPayloads() {
-		go s.handleOptimisticPayloadBuild(ctx, postState, blk)
+		go s.handleOptimisticPayloadBuild(
+			ctx,
+			postState,
+			beaconBlk,
+			nextPayloadTimestamp,
+		)
 	}
 
 	return nil
@@ -97,15 +111,15 @@ func (s *Service[
 
 // verifyStateRoot verifies the state root of an incoming block.
 func (s *Service[
-	_, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _,
+	_, ConsensusBlockT, _, _, _, BeaconStateT, _, _, _, _, _,
 ]) verifyStateRoot(
 	ctx context.Context,
 	st BeaconStateT,
-	blk BeaconBlockT,
+	blk ConsensusBlockT,
 ) error {
 	startTime := time.Now()
 	defer s.metrics.measureStateRootVerificationTime(startTime)
-	if _, err := s.stateProcessor.Transition(
+	_, err := s.stateProcessor.Transition(
 		// We run with a non-optimistic engine here to ensure
 		// that the proposer does not try to push through a bad block.
 		&transition.Context{
@@ -114,26 +128,27 @@ func (s *Service[
 			SkipPayloadVerification: false,
 			SkipValidateResult:      false,
 			SkipValidateRandao:      false,
+			ProposerAddress:         blk.GetProposerAddress(),
+			NextPayloadTimestamp:    blk.GetNextPayloadTimestamp(),
 		},
-		st, blk,
-	); errors.Is(err, engineerrors.ErrAcceptedPayloadStatus) {
+		st, blk.GetBeaconBlock(),
+	)
+	if errors.Is(err, engineerrors.ErrAcceptedPayloadStatus) {
 		// It is safe for the validator to ignore this error since
 		// the state transition will enforce that the block is part
 		// of the canonical chain.
 		//
 		// TODO: this is only true because we are assuming SSF.
 		return nil
-	} else if err != nil {
-		return err
 	}
 
-	return nil
+	return err
 }
 
 // shouldBuildOptimisticPayloads returns true if optimistic
 // payload builds are enabled.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _,
 ]) shouldBuildOptimisticPayloads() bool {
 	return s.optimisticPayloadBuilds && s.localBuilder.Enabled()
 }

@@ -18,33 +18,25 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package cometbft
+package types
 
-import (
-	ctypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-	cmtabci "github.com/cometbft/cometbft/abci/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-)
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 
-type MiddlewareI interface {
-	InitGenesis(
-		sdk.Context,
-		[]byte,
-	) (transition.ValidatorUpdates, error)
-	PrepareProposal(
-		sdk.Context,
-		*types.SlotData[
-			*ctypes.AttestationData,
-			*ctypes.SlashingInfo],
-	) ([]byte, []byte, error)
-	ProcessProposal(
-		sdk.Context,
-		*cmtabci.ProcessProposalRequest,
-	) (*cmtabci.ProcessProposalResponse, error)
-	FinalizeBlock(
-		sdk.Context,
-		*cmtabci.FinalizeBlockRequest,
-	) (transition.ValidatorUpdates, error)
+type commonConsensusData struct {
+	proposerAddress []byte
+
+	nextPayloadTimestamp math.U64
+}
+
+// GetProposerAddress returns the address of the validator
+// selected by consensus to propose the block.
+func (c *commonConsensusData) GetProposerAddress() []byte {
+	return c.proposerAddress
+}
+
+// GetNextPayloadTimestamp returns the timestamp proposed by consensus
+// for the next payload to be proposed. It is also used to bound
+// current payload upon validation.
+func (c *commonConsensusData) GetNextPayloadTimestamp() math.U64 {
+	return c.nextPayloadTimestamp
 }
