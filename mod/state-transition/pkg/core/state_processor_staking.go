@@ -21,7 +21,9 @@
 package core
 
 import (
+	"bytes"
 	"fmt"
+	"slices"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -204,29 +206,116 @@ func (sp *StateProcessor[
 		math.Gwei(sp.cs.MaxEffectiveBalance()),
 	)
 
-	if !sp.processingGenesis {
-		// BeaconKit enforces a cap on the validator set size. If a deposit is made
-		// that would breach the cap, we mark the validator as immediately
-		// withdrawable, so that it will be evicted in the next block along with
-		// the amount deposited.
-		validators, err := st.GetValidators()
-		if err != nil {
-			return err
-		}
-
-		//#nosec:G701 // can't overflow.
-		if uint32(len(validators)) >= sp.cs.GetValidatorSetCapSize() {
-			var slot math.Slot
-			slot, err = st.GetSlot()
-			if err != nil {
-				return err
-			}
-
-			epoch := sp.cs.SlotToEpoch(slot)
-			val.SetWithdrawableEpoch(epoch)
-		}
+	// BeaconKit enforces a cap on the validator set size. If the deposit
+	// breaches the cap, we find the validator with the smallest stake and
+	// mark it as withdrawable so that it will be eventually evicted and
+	// its deposits returned.
+	capHit, err := sp.isValidatorCapHit(st)
+	if err != nil {
+		return err
+	}
+	if !capHit {
+		return sp.addValidatorInternal(st, val, dep.GetAmount())
 	}
 
+	// Adding the validator would breach the cap. Find the validator
+	// with the smallest stake among current and candidate validators
+	// and kit it out.
+	var currSmallestVal ValidatorT
+	currSmallestVal, err = sp.findSmallestValidator(st)
+	if err != nil {
+		return err
+	}
+
+	var slot math.Slot
+	slot, err = st.GetSlot()
+	if err != nil {
+		return err
+	}
+	epoch := sp.cs.SlotToEpoch(slot)
+
+	if val.GetEffectiveBalance() <= currSmallestVal.GetEffectiveBalance() {
+		// in case of tie-break among candidate validator we prefer
+		// existing one so we mark candidate as withdrawable
+		val.SetWithdrawableEpoch(epoch)
+		return sp.addValidatorInternal(st, val, dep.GetAmount())
+	}
+
+	// mark exiting validator for eviction and add candidate
+	currSmallestVal.SetWithdrawableEpoch(epoch)
+	var idx math.U64
+	idx, err = st.ValidatorIndexByPubkey(currSmallestVal.GetPubkey())
+	if err != nil {
+		return err
+	}
+	if err = st.UpdateValidatorAtIndex(idx, currSmallestVal); err != nil {
+		return err
+	}
+	return sp.addValidatorInternal(st, val, dep.GetAmount())
+}
+
+func (sp *StateProcessor[
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) isValidatorCapHit(st BeaconStateT) (bool, error) {
+	if sp.processingGenesis {
+		// minor optimization: we do check in Genesis that
+		// validators do no exceed cap. So hitting cap here
+		// should never happen
+		return false, nil
+	}
+	validators, err := st.GetValidators()
+	if err != nil {
+		return false, err
+	}
+	return uint32(len(validators)) >= sp.cs.GetValidatorSetCapSize(), nil
+}
+
+// TODO: consider moving this to BeaconState directly
+func (sp *StateProcessor[
+	_, _, _, BeaconStateT, _, DepositT, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+]) findSmallestValidator(st BeaconStateT) (
+	ValidatorT,
+	error,
+) {
+	var smallestVal ValidatorT
+
+	// candidateVal would breach the cap. Find the validator with the
+	// smallest stake among current and candidate validators.
+	currentVals, err := st.GetValidatorsByEffectiveBalance()
+	if err != nil {
+		return smallestVal, err
+	}
+
+	// TODO: consider heapifying slice instead. We only care about the smallest
+	slices.SortFunc(currentVals, func(lhs, rhs ValidatorT) int {
+		var (
+			val1Stake = lhs.GetEffectiveBalance()
+			val2Stake = rhs.GetEffectiveBalance()
+		)
+		switch {
+		case val1Stake < val2Stake:
+			return -1
+		case val1Stake > val2Stake:
+			return 1
+		default:
+			// validators pks are guaranteed to be different
+			var (
+				val1Pk = lhs.GetPubkey()
+				val2Pk = rhs.GetPubkey()
+			)
+			return bytes.Compare(val1Pk[:], val2Pk[:])
+		}
+	})
+	return currentVals[0], nil
+}
+
+func (sp *StateProcessor[
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+]) addValidatorInternal(
+	st BeaconStateT,
+	val ValidatorT,
+	depositAmount math.Gwei,
+) error {
 	// TODO: This is a bug that lives on bArtio. Delete this eventually.
 	if sp.cs.DepositEth1ChainID() == bArtioChainID {
 		// Note in AddValidatorBartio we implicitly increase
@@ -241,7 +330,7 @@ func (sp *StateProcessor[
 	if err != nil {
 		return err
 	}
-	return st.IncreaseBalance(idx, dep.GetAmount())
+	return st.IncreaseBalance(idx, depositAmount)
 }
 
 // processWithdrawals as per the Ethereum 2.0 specification.
