@@ -75,6 +75,8 @@ func (c *Context) GetSkipValidateResult() bool {
 	return c.SkipValidateResult
 }
 
+// GetProposerAddress returns the address of the validator
+// selected by consensus to propose the block.
 func (c *Context) GetProposerAddress() []byte {
 	return c.ProposerAddress
 }

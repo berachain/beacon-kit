@@ -28,6 +28,8 @@ type commonConsensusData struct {
 	nextPayloadTimestamp math.U64
 }
 
+// GetProposerAddress returns the address of the validator
+// selected by consensus to propose the block.
 func (c *commonConsensusData) GetProposerAddress() []byte {
 	return c.proposerAddress
 }

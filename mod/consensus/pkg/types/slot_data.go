@@ -35,6 +35,7 @@ type SlotData[AttestationDataT, SlashingInfoT any] struct {
 	// slashingInfo is the slashing info of the incoming slot.
 	slashingInfo []SlashingInfoT
 
+	// some consensus data useful to build and verify the block
 	*commonConsensusData
 }
 
