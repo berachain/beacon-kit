@@ -202,7 +202,7 @@ start-erigon: ## start an ephemeral `erigon` node
 	docker run \
     --rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
     -v $(PWD)/.tmp:/.tmp \
-    thorax/erigon:latest init \
+    erigontech/erigon:latest init \
     --datadir .tmp/erigon \
     ${ETH_GENESIS_PATH}
 
@@ -212,7 +212,7 @@ start-erigon: ## start an ephemeral `erigon` node
 	-p 8551:8551 \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	thorax/erigon:latest \
+	erigontech/erigon:latest \
 	--http \
 	--http.addr 0.0.0.0 \
 	--http.api eth,net \
