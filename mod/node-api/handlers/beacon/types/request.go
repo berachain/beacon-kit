@@ -162,7 +162,7 @@ type EpochRequest struct {
 }
 
 type CommitteeIndexRequest struct {
-	CommitteeIndex string `query:"committee_index" validate:"committee_index"`
+	Index string `query:"index" validate:"index"`
 }
 
 type SlotRequest struct {

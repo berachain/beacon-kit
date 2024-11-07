@@ -68,6 +68,7 @@ func ConstructValidator() *validator.Validate {
 		"slot":             ValidateUint64,
 		"validator_status": ValidateValidatorStatus,
 		"parent_root":      ValidateRoot,
+		"index":            ValidateUint64,
 	}
 	validate := validator.New()
 	for tag, fn := range validators {
