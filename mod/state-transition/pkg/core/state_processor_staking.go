@@ -221,14 +221,12 @@ func (sp *StateProcessor[
 	// Adding the validator would breach the cap. Find the validator
 	// with the smallest stake among current and candidate validators
 	// and kit it out.
-	var currSmallestVal ValidatorT
-	currSmallestVal, err = sp.findSmallestValidator(st)
+	currSmallestVal, err := sp.findSmallestValidator(st)
 	if err != nil {
 		return err
 	}
 
-	var slot math.Slot
-	slot, err = st.GetSlot()
+	slot, err := st.GetSlot()
 	if err != nil {
 		return err
 	}
@@ -243,8 +241,7 @@ func (sp *StateProcessor[
 
 	// mark exiting validator for eviction and add candidate
 	currSmallestVal.SetWithdrawableEpoch(epoch)
-	var idx math.U64
-	idx, err = st.ValidatorIndexByPubkey(currSmallestVal.GetPubkey())
+	idx, err := st.ValidatorIndexByPubkey(currSmallestVal.GetPubkey())
 	if err != nil {
 		return err
 	}
