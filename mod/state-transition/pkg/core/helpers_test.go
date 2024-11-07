@@ -219,3 +219,20 @@ func buildNextBlock(
 		Body:          nextBlkBody,
 	}
 }
+
+// ValUpdatesDiff returns elements of slice a that are not in b.
+func ValUpdatesDiff(
+	a, b []*transition.ValidatorUpdate,
+) []*transition.ValidatorUpdate {
+	mb := make(map[string]struct{}, len(b))
+	for _, v := range b {
+		mb[v.Pubkey.String()] = struct{}{}
+	}
+	var diff []*transition.ValidatorUpdate
+	for _, x := range a {
+		if _, found := mb[x.Pubkey.String()]; !found {
+			diff = append(diff, x)
+		}
+	}
+	return diff
+}

@@ -536,6 +536,16 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	require.NoError(t, err)
 	require.LessOrEqual(t, uint32(len(vals)), cs.GetValidatorSetCapSize())
 	require.Len(t, vals, len(genDeposits)) // just replaced one validator
+
+	// check that we removed the smallest validator at the epoch turn
+	removedVals := ValUpdatesDiff(genVals, vals)
+	require.Len(t, removedVals, 1)
+	require.Equal(t, smallVal.Pubkey, removedVals[0].Pubkey)
+
+	// check that we added the incoming validator at the epoch turn
+	addedVals := ValUpdatesDiff(vals, genVals)
+	require.Len(t, addedVals, 1)
+	require.Equal(t, extraVal.Pubkey, addedVals[0].Pubkey)
 }
 
 func generateTestExecutionAddress(
