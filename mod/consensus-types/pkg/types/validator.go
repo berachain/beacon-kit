@@ -84,8 +84,9 @@ func NewValidatorFromDeposit(
 	return &Validator{
 		Pubkey:                pubkey,
 		WithdrawalCredentials: withdrawalCredentials,
-		EffectiveBalance: min(
-			amount-amount%effectiveBalanceIncrement,
+		EffectiveBalance: ComputeEffectiveBalance(
+			amount,
+			effectiveBalanceIncrement,
 			maxEffectiveBalance,
 		),
 		Slashed:                    false,
@@ -94,6 +95,17 @@ func NewValidatorFromDeposit(
 		ExitEpoch:                  math.Epoch(constants.FarFutureEpoch),
 		WithdrawableEpoch:          math.Epoch(constants.FarFutureEpoch),
 	}
+}
+
+func ComputeEffectiveBalance(
+	amount math.Gwei,
+	effectiveBalanceIncrement math.Gwei,
+	maxEffectiveBalance math.Gwei,
+) math.Gwei {
+	return min(
+		amount-amount%effectiveBalanceIncrement,
+		maxEffectiveBalance,
+	)
 }
 
 // Empty creates an empty Validator.

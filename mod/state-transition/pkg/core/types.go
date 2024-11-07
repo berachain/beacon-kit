@@ -118,6 +118,13 @@ type Context interface {
 	// GetSkipValidateResult returns whether to validate the result of the state
 	// transition.
 	GetSkipValidateResult() bool
+	// GetProposerAddress returns the address of the validator
+	// selected by consensus to propose the block
+	GetProposerAddress() []byte
+	// GetNextPayloadTimestamp returns the timestamp proposed by
+	// consensus for the next payload to be proposed. It is also
+	// used to bound current payload upon validation
+	GetNextPayloadTimestamp() math.U64
 }
 
 // Deposit is the interface for a deposit.
@@ -173,15 +180,18 @@ type ExecutionPayloadHeader interface {
 	GetBlockHash() common.ExecutionHash
 }
 
+// Withdrawals defines the interface for managing withdrawal operations.
+type Withdrawals interface {
+	Len() int
+	EncodeIndex(int, *stdbytes.Buffer)
+}
+
 // ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine[
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT],
 	ExecutionPayloadHeaderT any,
-	WithdrawalsT interface {
-		Len() int
-		EncodeIndex(int, *stdbytes.Buffer)
-	},
+	WithdrawalsT Withdrawals,
 ] interface {
 	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
 	// execution client.

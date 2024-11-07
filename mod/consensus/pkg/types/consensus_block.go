@@ -18,32 +18,37 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package da
+package types
 
-// BlobProcessor is the interface for the blobs processor.
-type BlobProcessor[
-	AvailabilityStoreT,
-	ConsensusSidecarsT, BlobSidecarsT any,
-] interface {
-	// ProcessSidecars processes the blobs and ensures they match the local
-	// state.
-	ProcessSidecars(
-		avs AvailabilityStoreT,
-		sidecars BlobSidecarsT,
-	) error
-	// VerifySidecars verifies the blobs and ensures they match the local state.
-	VerifySidecars(sidecars ConsensusSidecarsT) error
+import (
+	"time"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+)
+
+type ConsensusBlock[BeaconBlockT any] struct {
+	blk BeaconBlockT
+
+	// some consensus data useful to build and verify the block
+	*commonConsensusData
 }
 
-type ConsensusSidecars[BlobSidecarsT any, BeaconBlockHeaderT any] interface {
-	GetSidecars() BlobSidecarsT
-	GetHeader() BeaconBlockHeaderT
+// New creates a new ConsensusBlock instance.
+func (b *ConsensusBlock[BeaconBlockT]) New(
+	beaconBlock BeaconBlockT,
+	proposerAddress []byte,
+	nextPayloadTimestamp time.Time,
+) *ConsensusBlock[BeaconBlockT] {
+	b = &ConsensusBlock[BeaconBlockT]{
+		blk: beaconBlock,
+		commonConsensusData: &commonConsensusData{
+			proposerAddress:      proposerAddress,
+			nextPayloadTimestamp: math.U64(nextPayloadTimestamp.Unix()),
+		},
+	}
+	return b
 }
 
-// BlobSidecar is the interface for the blob sidecar.
-type BlobSidecar interface {
-	// Len returns the length of the sidecar.
-	Len() int
-	// IsNil checks if the sidecar is nil.
-	IsNil() bool
+func (b *ConsensusBlock[BeaconBlockT]) GetBeaconBlock() BeaconBlockT {
+	return b.blk
 }
