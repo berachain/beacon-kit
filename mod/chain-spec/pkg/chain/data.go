@@ -43,6 +43,12 @@ type SpecData[
 	// EffectiveBalanceIncrement is the effective balance increment.
 	EffectiveBalanceIncrement uint64 `mapstructure:"effective-balance-increment"`
 
+	HysteresisQuotient uint64 `mapstructure:"hysteresis-quotient"`
+
+	HysteresisDownwardMultiplier uint64 `mapstructure:"hysteresis-downward-multiplier"`
+
+	HysteresisUpwardMultiplier uint64 `mapstructure:"hysteresis-upward-multiplier"`
+
 	// Time parameters constants.
 	//
 	// SlotsPerEpoch is the number of slots per epoch.

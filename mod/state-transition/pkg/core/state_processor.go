@@ -535,17 +535,10 @@ func (sp *StateProcessor[
 	if err != nil {
 		return err
 	}
-	// TODO: add to cs
-	// HYSTERESIS_QUOTIENT
-	// HYSTERESIS_DOWNWARD_MULTIPLIER
-	// HYSTERESIS_UPWARD_MULTIPLIER
-	hysteresysQuotient := math.U64(1)
-	hysteresysDownwardMultiplier := math.U64(1)
-	hysteresysUpwardMultiplier := math.U64(1)
 
-	histeresysIncrement := math.U64(sp.cs.EffectiveBalanceIncrement()) / hysteresysQuotient
-	downwardThreshold := histeresysIncrement * hysteresysDownwardMultiplier
-	upwardThreshold := histeresysIncrement * hysteresysUpwardMultiplier
+	histeresysIncrement := sp.cs.EffectiveBalanceIncrement() / sp.cs.HysteresisQuotient()
+	downwardThreshold := histeresysIncrement * sp.cs.HysteresisDownwardMultiplier()
+	upwardThreshold := histeresysIncrement * sp.cs.HysteresisUpwardMultiplier()
 
 	for _, val := range validators {
 		var idx math.U64
@@ -560,8 +553,8 @@ func (sp *StateProcessor[
 			return err
 		}
 
-		if balance+downwardThreshold < val.GetEffectiveBalance() ||
-			val.GetEffectiveBalance()+upwardThreshold < balance {
+		if balance+math.Gwei(downwardThreshold) < val.GetEffectiveBalance() ||
+			val.GetEffectiveBalance()+math.Gwei(upwardThreshold) < balance {
 			updatedBalance := types.ComputeEffectiveBalance(
 				balance,
 				math.U64(sp.cs.EffectiveBalanceIncrement()),
