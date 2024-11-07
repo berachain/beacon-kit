@@ -58,10 +58,10 @@ func TestInitialize(t *testing.T) {
 	// create test inputs
 	kvStore, err := initStore()
 	require.NoError(t, err)
+	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
 
 	var (
-		beaconState = new(TestBeaconStateT).NewFromDB(kvStore, cs)
-		deposits    = []*types.Deposit{
+		deposits = []*types.Deposit{
 			{
 				Pubkey: [48]byte{0x01},
 				Amount: math.Gwei(cs.MaxEffectiveBalance()),
@@ -179,10 +179,10 @@ func TestInitializeBartio(t *testing.T) {
 	// create test inputs
 	kvStore, err := initStore()
 	require.NoError(t, err)
+	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
 
 	var (
-		beaconState = new(TestBeaconStateT).NewFromDB(kvStore, cs)
-		deposits    = []*types.Deposit{
+		deposits = []*types.Deposit{
 			{
 				Pubkey: [48]byte{0x01},
 				Amount: math.Gwei(cs.MaxEffectiveBalance()),
