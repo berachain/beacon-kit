@@ -23,6 +23,7 @@ package core
 import (
 	"bytes"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
@@ -336,6 +337,9 @@ func (sp *StateProcessor[
 	if err := sp.processRewardsAndPenalties(st); err != nil {
 		return nil, err
 	}
+	if err := sp.processEffectiveBalanceUpdates(st); err != nil {
+		return nil, err
+	}
 	if err := sp.processSlashingsReset(st); err != nil {
 		return nil, err
 	}
@@ -514,5 +518,60 @@ func (sp *StateProcessor[
 		}
 	}
 
+	return nil
+}
+
+// processEffectiveBalanceUpdates as defined in the Ethereum 2.0 specification.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#effective-balances-updates
+//
+//nolint:lll
+func (sp *StateProcessor[
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) processEffectiveBalanceUpdates(
+	st BeaconStateT,
+) error {
+	// Update effective balances with hysteresis
+	validators, err := st.GetValidators()
+	if err != nil {
+		return err
+	}
+	// TODO: add to cs
+	// HYSTERESIS_QUOTIENT
+	// HYSTERESIS_DOWNWARD_MULTIPLIER
+	// HYSTERESIS_UPWARD_MULTIPLIER
+	hysteresysQuotient := math.U64(1)
+	hysteresysDownwardMultiplier := math.U64(1)
+	hysteresysUpwardMultiplier := math.U64(1)
+
+	histeresysIncrement := math.U64(sp.cs.EffectiveBalanceIncrement()) / hysteresysQuotient
+	downwardThreshold := histeresysIncrement * hysteresysDownwardMultiplier
+	upwardThreshold := histeresysIncrement * hysteresysUpwardMultiplier
+
+	for _, val := range validators {
+		var idx math.U64
+		idx, err = st.ValidatorIndexByPubkey(val.GetPubkey())
+		if err != nil {
+			return err
+		}
+
+		var balance math.Gwei
+		balance, err = st.GetBalance(idx)
+		if err != nil {
+			return err
+		}
+
+		if balance+downwardThreshold < val.GetEffectiveBalance() ||
+			val.GetEffectiveBalance()+upwardThreshold < balance {
+			updatedBalance := types.ComputeEffectiveBalance(
+				balance,
+				math.U64(sp.cs.EffectiveBalanceIncrement()),
+				math.U64(sp.cs.MaxEffectiveBalance()),
+			)
+			val.SetEffectiveBalance(updatedBalance)
+			if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }

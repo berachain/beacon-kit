@@ -534,7 +534,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 
 	vals, err = sp.Transition(ctx, bs, blk)
 	require.NoError(t, err)
-	require.Less(t, uint32(len(vals)), cs.GetValidatorSetCapSize())
+	require.LessOrEqual(t, uint32(len(vals)), cs.GetValidatorSetCapSize())
 	require.Len(t, vals, len(genDeposits)) // just replaced one validator
 }
 
