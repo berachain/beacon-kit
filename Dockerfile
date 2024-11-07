@@ -19,7 +19,7 @@
 #######################################################
 
 ARG GO_VERSION=1.23.0
-ARG RUNNER_IMAGE=alpine:3.20
+ARG RUNNER_IMAGE=debian:bookworm-slim
 ARG BUILD_TAGS="netgo,muslc,blst,bls12381,pebbledb"
 ARG NAME=beacond
 ARG APP_NAME=beacond
@@ -30,11 +30,11 @@ ARG CMD_PATH=./beacond/cmd
 ###         Stage 1 - Cache Go Modules              ###
 #######################################################
 
-FROM golang:${GO_VERSION}-alpine3.20 AS mod-cache
+FROM golang:${GO_VERSION} AS mod-cache
 
 WORKDIR /workdir
 
-RUN apk add --no-cache git
+RUN apt-get update && apt-get install -y git
 
 COPY ./beacond/go.mod ./beacond/go.sum ./beacond/
 COPY ./mod/async/go.mod ./mod/async/
@@ -91,7 +91,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 ###         Stage 2 - Build the Application         ###
 #######################################################
 
-FROM golang:${GO_VERSION}-alpine3.20 AS builder
+FROM golang:${GO_VERSION} AS builder
 
 ARG GIT_VERSION
 ARG GIT_COMMIT
@@ -101,9 +101,8 @@ ARG BUILD_TAGS
 WORKDIR /workdir
 
 # Consolidate RUN commands to reduce layers
-RUN apk add --no-cache --update \
-    ca-certificates \
-    build-base
+RUN apt-get update && apt-get install -y \
+    ca-certificates
 
 # Copy the dependencies from the cache stage as well as the
 # go.work file to the working directory
@@ -149,12 +148,6 @@ ARG APP_NAME
 
 # Copy over built executable into a fresh container
 COPY --from=builder /workdir/build/bin/${APP_NAME} /usr/bin/${APP_NAME}
-COPY --from=grafana/promtail:3.0.0 /usr/bin/promtail /usr/local/bin
-
-# TODO: We should un hood this part, its very specific 
-# to our kurtosis setup.
-RUN mkdir -p /root/jwt /root/kzg && \
-    apk add --no-cache bash sed curl
 
 EXPOSE 26656
 EXPOSE 26657
