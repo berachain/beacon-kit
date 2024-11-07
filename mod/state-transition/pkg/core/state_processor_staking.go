@@ -134,6 +134,7 @@ func (sp *StateProcessor[
 	}
 
 	// TODO: Modify balance here and then effective balance once per epoch.
+	// Note: balance processing per epoch done, this could be dropped
 	updatedBalance := types.ComputeEffectiveBalance(
 		val.GetEffectiveBalance()+dep.GetAmount(),
 		math.Gwei(sp.cs.EffectiveBalanceIncrement()),
