@@ -392,13 +392,15 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		mock.Anything, mock.Anything, mock.Anything,
 	).Return(nil)
 
-	_, err = sp.InitializePreminedBeaconStateFromEth1(
+	var genVals transition.ValidatorUpdates
+	genVals, err = sp.InitializePreminedBeaconStateFromEth1(
 		bs,
 		genDeposits,
 		genPayloadHeader,
 		genVersion,
 	)
 	require.NoError(t, err)
+	require.Len(t, genVals, len(genDeposits))
 
 	// STEP 2: Add an extra validator
 	extraValKey, rndSeed := generateTestPK(t, rndSeed)
@@ -434,8 +436,10 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	)
 
 	// run the test
-	_, err = sp.Transition(ctx, bs, blk1)
+	var vals transition.ValidatorUpdates
+	vals, err = sp.Transition(ctx, bs, blk1)
 	require.NoError(t, err)
+	require.Empty(t, vals) // no vals changes expected before next epoch
 
 	// check smallest validator is updated with Withdraw epoch duly set
 	smallValIdx, err := bs.ValidatorIndexByPubkey(smallestVal.Pubkey)
@@ -483,8 +487,55 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	)
 
 	// run the test
-	_, err = sp.Transition(ctx, bs, blk2)
+	vals, err = sp.Transition(ctx, bs, blk2)
 	require.NoError(t, err)
+	require.Empty(t, vals) // no vals changes expected before next epoch
+
+	// STEP 4: moving chain forward to next epoch to see extra validator
+	// be activated, just replaced
+	var blk = blk2
+	for i := 2; i < int(cs.SlotsPerEpoch())-1; i++ {
+		blk = buildNextBlock(
+			t,
+			bs,
+			&types.BeaconBlockBody{
+				ExecutionPayload: &types.ExecutionPayload{
+					Timestamp:     blk.Body.ExecutionPayload.Timestamp + 1,
+					ExtraData:     []byte("testing"),
+					Transactions:  [][]byte{},
+					Withdrawals:   []*engineprimitives.Withdrawal{},
+					BaseFeePerGas: math.NewU256(0),
+				},
+				Eth1Data: &types.Eth1Data{},
+				Deposits: []*types.Deposit{},
+			},
+		)
+
+		vals, err = sp.Transition(ctx, bs, blk)
+		require.NoError(t, err)
+		require.Empty(t, vals) // no vals changes expected before next epoch
+	}
+
+	blk = buildNextBlock(
+		t,
+		bs,
+		&types.BeaconBlockBody{
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:     blk.Body.ExecutionPayload.Timestamp + 1,
+				ExtraData:     []byte("testing"),
+				Transactions:  [][]byte{},
+				Withdrawals:   []*engineprimitives.Withdrawal{},
+				BaseFeePerGas: math.NewU256(0),
+			},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: []*types.Deposit{},
+		},
+	)
+
+	vals, err = sp.Transition(ctx, bs, blk)
+	require.NoError(t, err)
+	require.Less(t, uint32(len(vals)), cs.GetValidatorSetCapSize())
+	require.Len(t, vals, len(genDeposits)) // just replaced one validator
 }
 
 func generateTestExecutionAddress(
