@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -49,25 +48,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	mocksSigner := &cryptomocks.BLSSigner{}
 	dummyProposerAddr := []byte{0xff}
 
-	sp := core.NewStateProcessor[
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
-		*types.BeaconBlockHeader,
-		*TestBeaconStateT,
-		*transition.Context,
-		*types.Deposit,
-		*types.Eth1Data,
-		*types.ExecutionPayload,
-		*types.ExecutionPayloadHeader,
-		*types.Fork,
-		*types.ForkData,
-		*TestKVStoreT,
-		*types.Validator,
-		types.Validators,
-		*engineprimitives.Withdrawal,
-		engineprimitives.Withdrawals,
-		types.WithdrawalCredentials,
-	](
+	sp := createStateProcessor(
 		cs,
 		execEngine,
 		mocksSigner,
@@ -76,7 +57,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		},
 	)
 
-	kvStore, err := initTestStore()
+	kvStore, err := initStore()
 	require.NoError(t, err)
 	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
 
@@ -140,18 +121,10 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		}
 	)
 
-	// here we duly update state root, similarly to what we do in processSlot
-	genBlockHeader, err := beaconState.GetLatestBlockHeader()
-	require.NoError(t, err)
-	genStateRoot := beaconState.HashTreeRoot()
-	genBlockHeader.SetStateRoot(genStateRoot)
-
-	blk := &types.BeaconBlock{
-		Slot:          genBlockHeader.GetSlot() + 1,
-		ProposerIndex: genBlockHeader.GetProposerIndex(),
-		ParentRoot:    genBlockHeader.HashTreeRoot(),
-		StateRoot:     common.Root{},
-		Body: &types.BeaconBlockBody{
+	blk := buildNextBlock(
+		t,
+		beaconState,
+		&types.BeaconBlockBody{
 			ExecutionPayload: &types.ExecutionPayload{
 				Timestamp:     10,
 				ExtraData:     []byte("testing"),
@@ -162,7 +135,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 			Eth1Data: &types.Eth1Data{},
 			Deposits: blkDeposits,
 		},
-	}
+	)
 
 	// run the test
 	vals, err := sp.Transition(ctx, beaconState, blk)
