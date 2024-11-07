@@ -31,7 +31,7 @@ import (
 // ProcessGenesisData processes the genesis state and initializes the beacon
 // state.
 func (s *Service[
-	_, _, _, _, _, _, _, _, GenesisT, _,
+	_, _, _, _, _, _, _, _, _, GenesisT, _,
 ]) ProcessGenesisData(
 	ctx context.Context,
 	genesisData GenesisT,
@@ -47,13 +47,15 @@ func (s *Service[
 // ProcessBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
 func (s *Service[
-	_, BeaconBlockT, _, _, _, _, _, _, _, _,
+	_, ConsensusBlockT, _, _, _, _, _, _, _, _, _,
 ]) ProcessBeaconBlock(
 	ctx context.Context,
-	blk BeaconBlockT,
+	blk ConsensusBlockT,
 ) (transition.ValidatorUpdates, error) {
+	beaconBlk := blk.GetBeaconBlock()
+
 	// If the block is nil, exit early.
-	if blk.IsNil() {
+	if beaconBlk.IsNil() {
 		return nil, ErrNilBlk
 	}
 
@@ -67,7 +69,7 @@ func (s *Service[
 	// return an error. It is safe to use the slot off of the beacon block
 	// since it has been verified as correct already.
 	if !s.storageBackend.AvailabilityStore().IsDataAvailable(
-		ctx, blk.GetSlot(), blk.GetBody(),
+		ctx, beaconBlk.GetSlot(), beaconBlk.GetBody(),
 	) {
 		return nil, ErrDataNotAvailable
 	}
@@ -79,7 +81,7 @@ func (s *Service[
 	// via ticker later.
 	if err = s.dispatcher.Publish(
 		async.NewEvent(
-			ctx, async.BeaconBlockFinalized, blk,
+			ctx, async.BeaconBlockFinalized, beaconBlk,
 		),
 	); err != nil {
 		return nil, err
@@ -92,11 +94,11 @@ func (s *Service[
 
 // executeStateTransition runs the stf.
 func (s *Service[
-	_, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _,
+	_, ConsensusBlockT, _, _, _, BeaconStateT, _, _, _, _, _,
 ]) executeStateTransition(
 	ctx context.Context,
 	st BeaconStateT,
-	blk BeaconBlockT,
+	blk ConsensusBlockT,
 ) (transition.ValidatorUpdates, error) {
 	startTime := time.Now()
 	defer s.metrics.measureStateTransitionDuration(startTime)
@@ -125,9 +127,12 @@ func (s *Service[
 			// the "verification aspect" of this NewPayload call is
 			// actually irrelevant at this point.
 			SkipPayloadVerification: false,
+
+			ProposerAddress:      blk.GetProposerAddress(),
+			NextPayloadTimestamp: blk.GetNextPayloadTimestamp(),
 		},
 		st,
-		blk,
+		blk.GetBeaconBlock(),
 	)
 	return valUpdates, err
 }

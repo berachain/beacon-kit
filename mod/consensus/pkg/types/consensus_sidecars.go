@@ -18,26 +18,36 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package payloadtime
+package types
 
-import (
-	"time"
+type ConsensusSidecars[SidecarsT any, BeaconBlockHeaderT any] struct {
+	sidecars SidecarsT
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-)
+	blkHeader BeaconBlockHeaderT
+}
 
-// Next calculates the
-// next timestamp for an execution payload
-//
-// TODO: This is hood and needs to be improved.
-func Next(
-	chainSpec common.ChainSpec,
-	parentPayloadTime math.U64,
-) uint64 {
-	//#nosec:G701 // not an issue in practice.
-	return max(
-		uint64(time.Now().Unix())+chainSpec.TargetSecondsPerEth1Block(),
-		uint64(parentPayloadTime+1),
-	)
+// New creates a new ConsensusSidecars instance.
+func (s *ConsensusSidecars[SidecarsT, BeaconBlockHeaderT]) New(
+	sidecars SidecarsT,
+	blkHeader BeaconBlockHeaderT,
+) *ConsensusSidecars[SidecarsT, BeaconBlockHeaderT] {
+	s = &ConsensusSidecars[SidecarsT, BeaconBlockHeaderT]{
+		sidecars:  sidecars,
+		blkHeader: blkHeader,
+	}
+	return s
+}
+
+func (s *ConsensusSidecars[
+	SidecarsT,
+	_,
+]) GetSidecars() SidecarsT {
+	return s.sidecars
+}
+
+func (s *ConsensusSidecars[
+	SidecarsT,
+	BeaconBlockHeaderT,
+]) GetHeader() BeaconBlockHeaderT {
+	return s.blkHeader
 }
