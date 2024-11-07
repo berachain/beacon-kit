@@ -18,32 +18,36 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package da
+package types
 
-// BlobProcessor is the interface for the blobs processor.
-type BlobProcessor[
-	AvailabilityStoreT,
-	ConsensusSidecarsT, BlobSidecarsT any,
-] interface {
-	// ProcessSidecars processes the blobs and ensures they match the local
-	// state.
-	ProcessSidecars(
-		avs AvailabilityStoreT,
-		sidecars BlobSidecarsT,
-	) error
-	// VerifySidecars verifies the blobs and ensures they match the local state.
-	VerifySidecars(sidecars ConsensusSidecarsT) error
+type ConsensusSidecars[SidecarsT any, BeaconBlockHeaderT any] struct {
+	sidecars SidecarsT
+
+	blkHeader BeaconBlockHeaderT
 }
 
-type ConsensusSidecars[BlobSidecarsT any, BeaconBlockHeaderT any] interface {
-	GetSidecars() BlobSidecarsT
-	GetHeader() BeaconBlockHeaderT
+// New creates a new ConsensusSidecars instance.
+func (s *ConsensusSidecars[SidecarsT, BeaconBlockHeaderT]) New(
+	sidecars SidecarsT,
+	blkHeader BeaconBlockHeaderT,
+) *ConsensusSidecars[SidecarsT, BeaconBlockHeaderT] {
+	s = &ConsensusSidecars[SidecarsT, BeaconBlockHeaderT]{
+		sidecars:  sidecars,
+		blkHeader: blkHeader,
+	}
+	return s
 }
 
-// BlobSidecar is the interface for the blob sidecar.
-type BlobSidecar interface {
-	// Len returns the length of the sidecar.
-	Len() int
-	// IsNil checks if the sidecar is nil.
-	IsNil() bool
+func (s *ConsensusSidecars[
+	SidecarsT,
+	_,
+]) GetSidecars() SidecarsT {
+	return s.sidecars
+}
+
+func (s *ConsensusSidecars[
+	SidecarsT,
+	BeaconBlockHeaderT,
+]) GetHeader() BeaconBlockHeaderT {
+	return s.blkHeader
 }
