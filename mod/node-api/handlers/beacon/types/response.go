@@ -27,6 +27,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 type ValidatorResponse struct {
@@ -202,4 +203,10 @@ type FinalityCheckpointsData struct {
 	PreviousJustified common.Checkpoint `json:"previous_justified"`
 	CurrentJustified  common.Checkpoint `json:"current_justified"`
 	Finalized         common.Checkpoint `json:"finalized"`
+}
+
+type CommitteeResponseData struct {
+	Index      uint64    `json:"index,string"`
+	Slot       math.Slot `json:"slot,string"`
+	Validators []uint64  `json:"validators"`
 }

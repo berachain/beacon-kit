@@ -81,7 +81,7 @@ func (h *Handler[_, ContextT, _, _, _]) RegisterRoutes(
 		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/beacon/states/:state_id/committees",
-			Handler: h.NotImplemented,
+			Handler: h.GetStateCommittees,
 		},
 		{
 			Method:  http.MethodGet,
