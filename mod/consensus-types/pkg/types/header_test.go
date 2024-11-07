@@ -30,6 +30,86 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestBeaconBlockHeader_Equals(t *testing.T) {
+	var (
+		slot            = math.Slot(100)
+		valIdx          = math.ValidatorIndex(200)
+		parentBlockRoot = common.Root{1}
+		stateRoot       = common.Root{2}
+		bodyRoot        = common.Root{3}
+
+		lhs = types.NewBeaconBlockHeader(
+			slot, valIdx, parentBlockRoot, stateRoot, bodyRoot,
+		)
+	)
+
+	tests := []struct {
+		name string
+		rhs  *types.BeaconBlockHeader
+		want bool
+	}{
+		{
+			name: "equal",
+			rhs: types.NewBeaconBlockHeader(
+				slot, valIdx, parentBlockRoot, stateRoot, bodyRoot,
+			),
+			want: true,
+		},
+		{
+			name: "slot differs",
+			rhs: types.NewBeaconBlockHeader(
+				2*slot, valIdx, parentBlockRoot, stateRoot, bodyRoot,
+			),
+			want: false,
+		},
+		{
+			name: "validator index differs",
+			rhs: types.NewBeaconBlockHeader(
+				slot, 2*valIdx, parentBlockRoot, stateRoot, bodyRoot,
+			),
+			want: false,
+		},
+		{
+			name: "parent block root differs",
+			rhs: types.NewBeaconBlockHeader(
+				slot, valIdx, common.Root{0xff}, stateRoot, bodyRoot,
+			),
+			want: false,
+		},
+		{
+			name: "state root differs",
+			rhs: types.NewBeaconBlockHeader(
+				slot, valIdx, parentBlockRoot, common.Root{0xff}, bodyRoot,
+			),
+			want: false,
+		},
+		{
+			name: "body root differs",
+			rhs: types.NewBeaconBlockHeader(
+				slot, valIdx, parentBlockRoot, stateRoot, common.Root{0xff},
+			),
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got1 := lhs.Equals(tt.rhs)
+			require.Equal(t, tt.want, got1)
+
+			// check commutativity as well
+			got2 := tt.rhs.Equals(lhs)
+			require.Equal(t, got1, got2)
+
+			// copies stays equal/disequal
+			rhsCopy := &types.BeaconBlockHeader{}
+			*rhsCopy = *tt.rhs
+			got3 := rhsCopy.Equals(lhs)
+			require.Equal(t, got1, got3)
+		})
+	}
+}
+
 func TestBeaconBlockHeader_Serialization(t *testing.T) {
 	original := types.NewBeaconBlockHeader(
 		math.Slot(100),
