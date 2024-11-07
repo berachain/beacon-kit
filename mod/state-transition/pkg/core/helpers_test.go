@@ -23,6 +23,7 @@ package core_test
 import (
 	"context"
 	"fmt"
+	"testing"
 
 	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
@@ -32,12 +33,17 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	statedb "github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/db"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
 )
 
 type (
@@ -77,6 +83,60 @@ type (
 	]
 )
 
+func testCreateStateProcessor(
+	cs common.ChainSpec,
+	execEngine core.ExecutionEngine[
+		*types.ExecutionPayload,
+		*types.ExecutionPayloadHeader,
+		engineprimitives.Withdrawals,
+	],
+	signer crypto.BLSSigner,
+	fGetAddressFromPubKey func(crypto.BLSPubkey) ([]byte, error),
+) *core.StateProcessor[
+	*types.BeaconBlock,
+	*types.BeaconBlockBody,
+	*types.BeaconBlockHeader,
+	*TestBeaconStateT,
+	*transition.Context,
+	*types.Deposit,
+	*types.Eth1Data,
+	*types.ExecutionPayload,
+	*types.ExecutionPayloadHeader,
+	*types.Fork,
+	*types.ForkData,
+	*TestKVStoreT,
+	*types.Validator,
+	types.Validators,
+	*engineprimitives.Withdrawal,
+	engineprimitives.Withdrawals,
+	types.WithdrawalCredentials,
+] {
+	return core.NewStateProcessor[
+		*types.BeaconBlock,
+		*types.BeaconBlockBody,
+		*types.BeaconBlockHeader,
+		*TestBeaconStateT,
+		*transition.Context,
+		*types.Deposit,
+		*types.Eth1Data,
+		*types.ExecutionPayload,
+		*types.ExecutionPayloadHeader,
+		*types.Fork,
+		*types.ForkData,
+		*TestKVStoreT,
+		*types.Validator,
+		types.Validators,
+		*engineprimitives.Withdrawal,
+		engineprimitives.Withdrawals,
+		types.WithdrawalCredentials,
+	](
+		cs,
+		execEngine,
+		signer,
+		fGetAddressFromPubKey,
+	)
+}
+
 type testKVStoreService struct {
 	ctx sdk.Context
 }
@@ -93,7 +153,7 @@ var (
 	testCodec    = &encoding.SSZInterfaceCodec[*types.ExecutionPayloadHeader]{}
 )
 
-func initTestStore() (
+func testInitStore() (
 	*beacondb.KVStore[
 		*types.BeaconBlockHeader,
 		*types.Eth1Data,
@@ -135,4 +195,27 @@ func initTestStore() (
 		testStoreService,
 		testCodec,
 	), nil
+}
+
+func testBuildNextBlock(
+	t *testing.T,
+	beaconState *TestBeaconStateT,
+	nextBlkBody *types.BeaconBlockBody,
+) *types.BeaconBlock {
+	t.Helper()
+
+	// first update state root, similarly to what we do in processSlot
+	parentBlkHeader, err := beaconState.GetLatestBlockHeader()
+	require.NoError(t, err)
+	root := beaconState.HashTreeRoot()
+	parentBlkHeader.SetStateRoot(root)
+
+	// finally build the block
+	return &types.BeaconBlock{
+		Slot:          parentBlkHeader.GetSlot() + 1,
+		ProposerIndex: parentBlkHeader.GetProposerIndex(),
+		ParentRoot:    parentBlkHeader.HashTreeRoot(),
+		StateRoot:     common.Root{},
+		Body:          nextBlkBody,
+	}
 }

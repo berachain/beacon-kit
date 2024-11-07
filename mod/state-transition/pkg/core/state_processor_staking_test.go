@@ -34,7 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -53,25 +52,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	mocksSigner := &cryptomocks.BLSSigner{}
 	dummyProposerAddr := []byte{0xff}
 
-	sp := core.NewStateProcessor[
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
-		*types.BeaconBlockHeader,
-		*TestBeaconStateT,
-		*transition.Context,
-		*types.Deposit,
-		*types.Eth1Data,
-		*types.ExecutionPayload,
-		*types.ExecutionPayloadHeader,
-		*types.Fork,
-		*types.ForkData,
-		*TestKVStoreT,
-		*types.Validator,
-		types.Validators,
-		*engineprimitives.Withdrawal,
-		engineprimitives.Withdrawals,
-		types.WithdrawalCredentials,
-	](
+	sp := testCreateStateProcessor(
 		cs,
 		execEngine,
 		mocksSigner,
@@ -80,7 +61,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		},
 	)
 
-	kvStore, err := initTestStore()
+	kvStore, err := testInitStore()
 	require.NoError(t, err)
 	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
 
@@ -144,13 +125,10 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		}
 	)
 
-	genBlockHeader := updateStateRootForLatestBlock(t, beaconState)
-	blk := &types.BeaconBlock{
-		Slot:          genBlockHeader.GetSlot() + 1,
-		ProposerIndex: genBlockHeader.GetProposerIndex(),
-		ParentRoot:    genBlockHeader.HashTreeRoot(),
-		StateRoot:     common.Root{},
-		Body: &types.BeaconBlockBody{
+	blk := testBuildNextBlock(
+		t,
+		beaconState,
+		&types.BeaconBlockBody{
 			ExecutionPayload: &types.ExecutionPayload{
 				Timestamp:     10,
 				ExtraData:     []byte("testing"),
@@ -161,7 +139,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 			Eth1Data: &types.Eth1Data{},
 			Deposits: blkDeposits,
 		},
-	}
+	)
 
 	// run the test
 	_, err = sp.Transition(ctx, beaconState, blk)
@@ -204,25 +182,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	mocksSigner := &cryptomocks.BLSSigner{}
 	dummyProposerAddr := []byte{0xff}
 
-	sp := core.NewStateProcessor[
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
-		*types.BeaconBlockHeader,
-		*TestBeaconStateT,
-		*transition.Context,
-		*types.Deposit,
-		*types.Eth1Data,
-		*types.ExecutionPayload,
-		*types.ExecutionPayloadHeader,
-		*types.Fork,
-		*types.ForkData,
-		*TestKVStoreT,
-		*types.Validator,
-		types.Validators,
-		*engineprimitives.Withdrawal,
-		engineprimitives.Withdrawals,
-		types.WithdrawalCredentials,
-	](
+	sp := testCreateStateProcessor(
 		cs,
 		execEngine,
 		mocksSigner,
@@ -231,7 +191,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		},
 	)
 
-	kvStore, err := initTestStore()
+	kvStore, err := testInitStore()
 	require.NoError(t, err)
 	bs := new(TestBeaconStateT).NewFromDB(kvStore, cs)
 
@@ -297,13 +257,10 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		}
 	)
 
-	genBlockHeader := updateStateRootForLatestBlock(t, bs)
-	blk1 := &types.BeaconBlock{
-		Slot:          genBlockHeader.GetSlot() + 1,
-		ProposerIndex: genBlockHeader.GetProposerIndex(),
-		ParentRoot:    genBlockHeader.HashTreeRoot(),
-		StateRoot:     common.Root{},
-		Body: &types.BeaconBlockBody{
+	blk1 := testBuildNextBlock(
+		t,
+		bs,
+		&types.BeaconBlockBody{
 			ExecutionPayload: &types.ExecutionPayload{
 				Timestamp:     10,
 				ExtraData:     []byte("testing"),
@@ -314,7 +271,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 			Eth1Data: &types.Eth1Data{},
 			Deposits: []*types.Deposit{extraValDeposit},
 		},
-	}
+	)
 
 	// run the test
 	_, err = sp.Transition(ctx, bs, blk1)
@@ -334,13 +291,10 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 
 	// STEP 3: show that following block must contain withdrawals for
 	// the rejected validator
-	blk1Header := updateStateRootForLatestBlock(t, bs)
-	blk2 := &types.BeaconBlock{
-		Slot:          blk1Header.GetSlot() + 1,
-		ProposerIndex: blk1Header.GetProposerIndex(),
-		ParentRoot:    blk1Header.HashTreeRoot(),
-		StateRoot:     common.Root{},
-		Body: &types.BeaconBlockBody{
+	blk2 := testBuildNextBlock(
+		t,
+		bs,
+		&types.BeaconBlockBody{
 			ExecutionPayload: &types.ExecutionPayload{
 				Timestamp:    blk1.Body.ExecutionPayload.Timestamp + 1,
 				ExtraData:    []byte("testing"),
@@ -358,7 +312,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 			Eth1Data: &types.Eth1Data{},
 			Deposits: []*types.Deposit{},
 		},
-	}
+	)
 
 	// run the test
 	_, err = sp.Transition(ctx, bs, blk2)
@@ -380,25 +334,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	mocksSigner := &cryptomocks.BLSSigner{}
 	dummyProposerAddr := []byte{0xff}
 
-	sp := core.NewStateProcessor[
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
-		*types.BeaconBlockHeader,
-		*TestBeaconStateT,
-		*transition.Context,
-		*types.Deposit,
-		*types.Eth1Data,
-		*types.ExecutionPayload,
-		*types.ExecutionPayloadHeader,
-		*types.Fork,
-		*types.ForkData,
-		*TestKVStoreT,
-		*types.Validator,
-		types.Validators,
-		*engineprimitives.Withdrawal,
-		engineprimitives.Withdrawals,
-		types.WithdrawalCredentials,
-	](
+	sp := testCreateStateProcessor(
 		cs,
 		execEngine,
 		mocksSigner,
@@ -407,7 +343,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		},
 	)
 
-	kvStore, err := initTestStore()
+	kvStore, err := testInitStore()
 	require.NoError(t, err)
 	bs := new(TestBeaconStateT).NewFromDB(kvStore, cs)
 
@@ -481,13 +417,10 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		}
 	)
 
-	genBlockHeader := updateStateRootForLatestBlock(t, bs)
-	blk1 := &types.BeaconBlock{
-		Slot:          genBlockHeader.GetSlot() + 1,
-		ProposerIndex: genBlockHeader.GetProposerIndex(),
-		ParentRoot:    genBlockHeader.HashTreeRoot(),
-		StateRoot:     common.Root{},
-		Body: &types.BeaconBlockBody{
+	blk1 := testBuildNextBlock(
+		t,
+		bs,
+		&types.BeaconBlockBody{
 			ExecutionPayload: &types.ExecutionPayload{
 				Timestamp:     10,
 				ExtraData:     []byte("testing"),
@@ -498,7 +431,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 			Eth1Data: &types.Eth1Data{},
 			Deposits: []*types.Deposit{extraValDeposit},
 		},
-	}
+	)
 
 	// run the test
 	_, err = sp.Transition(ctx, bs, blk1)
@@ -526,13 +459,10 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 
 	// STEP 3: show that following block must contain withdrawals for
 	// the evicted, smallest validator
-	blk1Header := updateStateRootForLatestBlock(t, bs)
-	blk2 := &types.BeaconBlock{
-		Slot:          blk1Header.GetSlot() + 1,
-		ProposerIndex: blk1Header.GetProposerIndex(),
-		ParentRoot:    blk1Header.HashTreeRoot(),
-		StateRoot:     common.Root{},
-		Body: &types.BeaconBlockBody{
+	blk2 := testBuildNextBlock(
+		t,
+		bs,
+		&types.BeaconBlockBody{
 			ExecutionPayload: &types.ExecutionPayload{
 				Timestamp:    blk1.Body.ExecutionPayload.Timestamp + 1,
 				ExtraData:    []byte("testing"),
@@ -550,25 +480,11 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 			Eth1Data: &types.Eth1Data{},
 			Deposits: []*types.Deposit{},
 		},
-	}
+	)
 
 	// run the test
 	_, err = sp.Transition(ctx, bs, blk2)
 	require.NoError(t, err)
-}
-
-func updateStateRootForLatestBlock(
-	t *testing.T,
-	bs *TestBeaconStateT,
-) *types.BeaconBlockHeader {
-	t.Helper()
-
-	// here we duly update state root, similarly to what we do in processSlot
-	latestBlkHeader, err := bs.GetLatestBlockHeader()
-	require.NoError(t, err)
-	root := bs.HashTreeRoot()
-	latestBlkHeader.SetStateRoot(root)
-	return latestBlkHeader
 }
 
 func generateTestExecutionAddress(

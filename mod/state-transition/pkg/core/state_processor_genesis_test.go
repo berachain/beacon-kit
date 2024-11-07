@@ -32,9 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	cryptomocks "github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/mocks"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -50,25 +48,7 @@ func TestInitialize(t *testing.T) {
 	](t)
 	mocksSigner := &cryptomocks.BLSSigner{}
 
-	sp := core.NewStateProcessor[
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
-		*types.BeaconBlockHeader,
-		*TestBeaconStateT,
-		*transition.Context,
-		*types.Deposit,
-		*types.Eth1Data,
-		*types.ExecutionPayload,
-		*types.ExecutionPayloadHeader,
-		*types.Fork,
-		*types.ForkData,
-		*TestKVStoreT,
-		*types.Validator,
-		types.Validators,
-		*engineprimitives.Withdrawal,
-		engineprimitives.Withdrawals,
-		types.WithdrawalCredentials,
-	](
+	sp := testCreateStateProcessor(
 		cs,
 		execEngine,
 		mocksSigner,
@@ -76,7 +56,7 @@ func TestInitialize(t *testing.T) {
 	)
 
 	// create test inputs
-	kvStore, err := initTestStore()
+	kvStore, err := testInitStore()
 	require.NoError(t, err)
 
 	var (
@@ -189,25 +169,7 @@ func TestInitializeBartio(t *testing.T) {
 	](t)
 	mocksSigner := &cryptomocks.BLSSigner{}
 
-	sp := core.NewStateProcessor[
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
-		*types.BeaconBlockHeader,
-		*TestBeaconStateT,
-		*transition.Context,
-		*types.Deposit,
-		*types.Eth1Data,
-		*types.ExecutionPayload,
-		*types.ExecutionPayloadHeader,
-		*types.Fork,
-		*types.ForkData,
-		*TestKVStoreT,
-		*types.Validator,
-		types.Validators,
-		*engineprimitives.Withdrawal,
-		engineprimitives.Withdrawals,
-		types.WithdrawalCredentials,
-	](
+	sp := testCreateStateProcessor(
 		cs,
 		execEngine,
 		mocksSigner,
@@ -215,7 +177,7 @@ func TestInitializeBartio(t *testing.T) {
 	)
 
 	// create test inputs
-	kvStore, err := initTestStore()
+	kvStore, err := testInitStore()
 	require.NoError(t, err)
 
 	var (
