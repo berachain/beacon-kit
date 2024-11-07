@@ -83,7 +83,7 @@ type (
 	]
 )
 
-func testCreateStateProcessor(
+func createStateProcessor(
 	cs common.ChainSpec,
 	execEngine core.ExecutionEngine[
 		*types.ExecutionPayload,
@@ -153,7 +153,7 @@ var (
 	testCodec    = &encoding.SSZInterfaceCodec[*types.ExecutionPayloadHeader]{}
 )
 
-func testInitStore() (
+func initStore() (
 	*beacondb.KVStore[
 		*types.BeaconBlockHeader,
 		*types.Eth1Data,
@@ -197,7 +197,7 @@ func testInitStore() (
 	), nil
 }
 
-func testBuildNextBlock(
+func buildNextBlock(
 	t *testing.T,
 	beaconState *TestBeaconStateT,
 	nextBlkBody *types.BeaconBlockBody,

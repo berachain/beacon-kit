@@ -52,7 +52,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	mocksSigner := &cryptomocks.BLSSigner{}
 	dummyProposerAddr := []byte{0xff}
 
-	sp := testCreateStateProcessor(
+	sp := createStateProcessor(
 		cs,
 		execEngine,
 		mocksSigner,
@@ -61,7 +61,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		},
 	)
 
-	kvStore, err := testInitStore()
+	kvStore, err := initStore()
 	require.NoError(t, err)
 	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
 
@@ -125,7 +125,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		}
 	)
 
-	blk := testBuildNextBlock(
+	blk := buildNextBlock(
 		t,
 		beaconState,
 		&types.BeaconBlockBody{
@@ -182,7 +182,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	mocksSigner := &cryptomocks.BLSSigner{}
 	dummyProposerAddr := []byte{0xff}
 
-	sp := testCreateStateProcessor(
+	sp := createStateProcessor(
 		cs,
 		execEngine,
 		mocksSigner,
@@ -191,7 +191,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		},
 	)
 
-	kvStore, err := testInitStore()
+	kvStore, err := initStore()
 	require.NoError(t, err)
 	bs := new(TestBeaconStateT).NewFromDB(kvStore, cs)
 
@@ -257,7 +257,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		}
 	)
 
-	blk1 := testBuildNextBlock(
+	blk1 := buildNextBlock(
 		t,
 		bs,
 		&types.BeaconBlockBody{
@@ -291,7 +291,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 
 	// STEP 3: show that following block must contain withdrawals for
 	// the rejected validator
-	blk2 := testBuildNextBlock(
+	blk2 := buildNextBlock(
 		t,
 		bs,
 		&types.BeaconBlockBody{
@@ -334,7 +334,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	mocksSigner := &cryptomocks.BLSSigner{}
 	dummyProposerAddr := []byte{0xff}
 
-	sp := testCreateStateProcessor(
+	sp := createStateProcessor(
 		cs,
 		execEngine,
 		mocksSigner,
@@ -343,7 +343,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		},
 	)
 
-	kvStore, err := testInitStore()
+	kvStore, err := initStore()
 	require.NoError(t, err)
 	bs := new(TestBeaconStateT).NewFromDB(kvStore, cs)
 
@@ -417,7 +417,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		}
 	)
 
-	blk1 := testBuildNextBlock(
+	blk1 := buildNextBlock(
 		t,
 		bs,
 		&types.BeaconBlockBody{
@@ -459,7 +459,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 
 	// STEP 3: show that following block must contain withdrawals for
 	// the evicted, smallest validator
-	blk2 := testBuildNextBlock(
+	blk2 := buildNextBlock(
 		t,
 		bs,
 		&types.BeaconBlockBody{
