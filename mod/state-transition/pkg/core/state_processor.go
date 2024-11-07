@@ -534,9 +534,9 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	histeresysIncrement := sp.cs.EffectiveBalanceIncrement() / sp.cs.HysteresisQuotient()
-	downwardThreshold := histeresysIncrement * sp.cs.HysteresisDownwardMultiplier()
-	upwardThreshold := histeresysIncrement * sp.cs.HysteresisUpwardMultiplier()
+	hysteresisIncrement := sp.cs.EffectiveBalanceIncrement() / sp.cs.HysteresisQuotient()
+	downwardThreshold := hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier()
+	upwardThreshold := hysteresisIncrement * sp.cs.HysteresisUpwardMultiplier()
 
 	for _, val := range validators {
 		var idx math.U64
