@@ -117,6 +117,12 @@ type SpecData[
 	// base penalty.
 	ProportionalSlashingMultiplier uint64 `mapstructure:"proportional-slashing-multiplier"`
 
+	// BGTContractAddress is the address of the BGT contract.
+	BGTContractAddress [20]byte `mapstructure:"bgt-contract-address"`
+	// MaxBeraMintAmount is the amount of BERA minted per block to the BGT
+	// contract.
+	MaxBeraMintAmount uint64 `mapstructure:"max-bera-mint-amount"`
+
 	// Capella Values
 	//
 	// MaxWithdrawalsPerPayload indicates the maximum number of withdrawal

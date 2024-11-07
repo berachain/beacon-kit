@@ -33,9 +33,9 @@ type BeraChainSpec struct {
 	]
 	// BGTContractAddress is the address of the BGT contract.
 	BGTContractAddress [20]byte `mapstructure:"bgt-contract-address"`
-	// BeraMintAmount is the amount of BERA minted per block to the BGT
+	// MaxBeraMintAmount is the amount of BERA minted per block to the BGT
 	// contract.
-	BeraMintAmount uint64 `mapstructure:"bera-mint-amount"`
+	MaxBeraMintAmount uint64 `mapstructure:"max-bera-mint-amount"`
 	// MaxCommitteeSize is the maximum size of the committee.
 	MaxCommitteeSize uint64 `mapstructure:"max-committee-size"`
 }

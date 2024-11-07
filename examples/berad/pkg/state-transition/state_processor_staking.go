@@ -202,7 +202,7 @@ func (sp *StateProcessor[
 		math.U64(len(withdrawals)),
 		math.ValidatorIndex(0), // TODO: replace with validator set cap.
 		sp.cs.BGTContractAddress,
-		math.U64(sp.cs.BeraMintAmount),
+		math.U64(sp.cs.MaxBeraMintAmount),
 	)
 
 	return append(withdrawals, bgtWithdrawal), nil

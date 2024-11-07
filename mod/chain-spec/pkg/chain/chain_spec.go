@@ -416,6 +416,21 @@ func (c chainSpec[
 	return c.Data.ProportionalSlashingMultiplier
 }
 
+// BGTContractAddress is the address of the BGT contract.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
+]) BGTContractAddress() [20]byte {
+	return c.Data.BGTContractAddress
+}
+
+// MaxBeraMintAmount is the amount of BERA minted per block to the BGT
+// contract.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
+]) MaxBeraMintAmount() uint64 {
+	return c.Data.MaxBeraMintAmount
+}
+
 // MaxWithdrawalsPerPayload returns the maximum number of withdrawals per
 // payload.
 func (c chainSpec[
