@@ -48,7 +48,7 @@ func TestInitialize(t *testing.T) {
 	](t)
 	mocksSigner := &cryptomocks.BLSSigner{}
 
-	sp := testCreateStateProcessor(
+	sp := createStateProcessor(
 		cs,
 		execEngine,
 		mocksSigner,
@@ -56,7 +56,7 @@ func TestInitialize(t *testing.T) {
 	)
 
 	// create test inputs
-	kvStore, err := testInitStore()
+	kvStore, err := initStore()
 	require.NoError(t, err)
 	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
 
@@ -169,7 +169,7 @@ func TestInitializeBartio(t *testing.T) {
 	](t)
 	mocksSigner := &cryptomocks.BLSSigner{}
 
-	sp := testCreateStateProcessor(
+	sp := createStateProcessor(
 		cs,
 		execEngine,
 		mocksSigner,
@@ -177,7 +177,7 @@ func TestInitializeBartio(t *testing.T) {
 	)
 
 	// create test inputs
-	kvStore, err := testInitStore()
+	kvStore, err := initStore()
 	require.NoError(t, err)
 	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
 

@@ -48,7 +48,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	mocksSigner := &cryptomocks.BLSSigner{}
 	dummyProposerAddr := []byte{0xff}
 
-	sp := testCreateStateProcessor(
+	sp := createStateProcessor(
 		cs,
 		execEngine,
 		mocksSigner,
@@ -57,7 +57,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		},
 	)
 
-	kvStore, err := testInitStore()
+	kvStore, err := initStore()
 	require.NoError(t, err)
 	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
 
@@ -121,7 +121,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		}
 	)
 
-	blk := testBuildNextBlock(
+	blk := buildNextBlock(
 		t,
 		beaconState,
 		&types.BeaconBlockBody{
