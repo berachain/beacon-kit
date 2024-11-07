@@ -134,6 +134,13 @@ type Spec[
 	// slashing penalties.
 	ProportionalSlashingMultiplier() uint64
 
+	// BGTContractAddress is the address of the BGT contract.
+	BGTContractAddress() [20]byte
+
+	// MaxBeraMintAmount is the amount of BERA minted per block to the BGT
+	// contract.
+	MaxBeraMintAmount() uint64
+
 	// Capella Values
 
 	// MaxWithdrawalsPerPayload returns the maximum number of withdrawals per

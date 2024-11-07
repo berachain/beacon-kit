@@ -209,6 +209,23 @@ func (s *StateDB[
 		return nil, err
 	}
 
+	// Note by prepending the withdrawals for bera minting here we
+	// explicitly request for these (automatic) withdrawals to be
+	// included in a block. This feels future-proof if we ever change
+	// the amount, but may be considered wasteful as well.
+	var mintWithdrawal WithdrawalT
+	withdrawals = append(withdrawals, mintWithdrawal.New(
+		math.U64(withdrawalIndex),
+
+		// QUESTION: if we use withdrawals, what do we use here?
+		// Proposer index? 0 (which is a valid index)? MaxU64??
+		0,
+
+		s.cs.BGTContractAddress(),
+		math.Gwei(s.cs.MaxBeraMintAmount()),
+	))
+	withdrawalIndex++
+
 	validatorIndex, err := s.GetNextWithdrawalValidatorIndex()
 	if err != nil {
 		return nil, err
