@@ -40,7 +40,7 @@ func (h *Handler[ContextT]) RegisterRoutes(
 		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/config/spec",
-			Handler: h.NotImplemented,
+			Handler: h.GetSpec,
 		},
 		{
 			Method:  http.MethodGet,
