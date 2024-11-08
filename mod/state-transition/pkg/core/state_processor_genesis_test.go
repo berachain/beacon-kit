@@ -90,14 +90,28 @@ func TestInitialize(t *testing.T) {
 			},
 			{
 				Pubkey: [48]byte{0x05},
-				Amount: minBalance * 2 / 3,
+				Amount: minBalance - increment,
 				Index:  uint64(4),
+			},
+			{
+				Pubkey: [48]byte{0x06},
+				Amount: minBalance + increment*3/2,
+				Index:  uint64(5),
+			},
+			{
+				Pubkey: [48]byte{0x07},
+				Amount: maxBalance + increment/10,
+				Index:  uint64(6),
+			},
+			{
+				Pubkey: [48]byte{0x08},
+				Amount: minBalance + increment*99/100,
+				Index:  uint64(7),
 			},
 		}
 		goodDeposits = []*types.Deposit{
-			genDeposits[0],
-			genDeposits[1],
-			genDeposits[3],
+			genDeposits[0], genDeposits[1], genDeposits[3],
+			genDeposits[5], genDeposits[6],
 		}
 		executionPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		fork                   = &types.Fork{
@@ -222,14 +236,28 @@ func TestInitializeBartio(t *testing.T) {
 			},
 			{
 				Pubkey: [48]byte{0x05},
-				Amount: minBalance * 2 / 3,
+				Amount: minBalance - increment,
 				Index:  uint64(4),
+			},
+			{
+				Pubkey: [48]byte{0x06},
+				Amount: minBalance + increment*3/2,
+				Index:  uint64(5),
+			},
+			{
+				Pubkey: [48]byte{0x07},
+				Amount: maxBalance + increment/10,
+				Index:  uint64(6),
+			},
+			{
+				Pubkey: [48]byte{0x08},
+				Amount: minBalance + increment*99/100,
+				Index:  uint64(7),
 			},
 		}
 		goodDeposits = []*types.Deposit{
-			genDeposits[0],
-			genDeposits[1],
-			genDeposits[3],
+			genDeposits[0], genDeposits[1], genDeposits[3],
+			genDeposits[5], genDeposits[6],
 		}
 		executionPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		fork                   = &types.Fork{
@@ -334,10 +362,15 @@ func commonChecksValidators(
 	case dep.Amount >= maxBalance:
 		require.Equal(t, maxBalance, val.EffectiveBalance)
 	case dep.Amount > minBalance && dep.Amount < maxBalance:
-		require.Equal(t, dep.Amount, val.EffectiveBalance)
-
-		// validator balance must be multiple of EffectiveBalanceIncrement
-		require.Equal(t, math.U64(0), val.EffectiveBalance%increment)
+		// Effective balance must be a multiple of increment.
+		// If balance is not, effective balance is rounded down
+		if dep.Amount%increment == 0 {
+			require.Equal(t, dep.Amount, val.EffectiveBalance)
+		} else {
+			require.Less(t, val.EffectiveBalance, dep.Amount)
+			require.Greater(t, val.EffectiveBalance, dep.Amount-increment)
+			require.Zero(t, val.EffectiveBalance%increment)
+		}
 	case dep.Amount <= minBalance:
 		require.Equal(t, math.Gwei(0), val.EffectiveBalance)
 	}
