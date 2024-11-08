@@ -23,6 +23,7 @@ package core
 import (
 	"bytes"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
@@ -197,11 +198,7 @@ func (sp *StateProcessor[
 ]) ProcessSlots(
 	st BeaconStateT, slot math.Slot,
 ) (transition.ValidatorUpdates, error) {
-	var (
-		validatorUpdates      transition.ValidatorUpdates
-		epochValidatorUpdates transition.ValidatorUpdates
-	)
-
+	var res transition.ValidatorUpdates
 	stateSlot, err := st.GetSlot()
 	if err != nil {
 		return nil, err
@@ -209,7 +206,6 @@ func (sp *StateProcessor[
 
 	// Iterate until we are "caught up".
 	for ; stateSlot < slot; stateSlot++ {
-		// Process the slot
 		if err = sp.processSlot(st); err != nil {
 			return nil, err
 		}
@@ -217,14 +213,11 @@ func (sp *StateProcessor[
 		// Process the Epoch Boundary.
 		boundary := (stateSlot.Unwrap()+1)%sp.cs.SlotsPerEpoch() == 0
 		if boundary {
-			if epochValidatorUpdates, err =
-				sp.processEpoch(st); err != nil {
+			var epochUpdates transition.ValidatorUpdates
+			if epochUpdates, err = sp.processEpoch(st); err != nil {
 				return nil, err
 			}
-			validatorUpdates = append(
-				validatorUpdates,
-				epochValidatorUpdates...,
-			)
+			res = append(res, epochUpdates...)
 		}
 
 		// We update on the state because we need to
@@ -234,7 +227,7 @@ func (sp *StateProcessor[
 		}
 	}
 
-	return validatorUpdates, nil
+	return res, nil
 }
 
 // processSlot is run when a slot is missed.
@@ -334,6 +327,9 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 ) (transition.ValidatorUpdates, error) {
 	if err := sp.processRewardsAndPenalties(st); err != nil {
+		return nil, err
+	}
+	if err := sp.processEffectiveBalanceUpdates(st); err != nil {
 		return nil, err
 	}
 	if err := sp.processSlashingsReset(st); err != nil {
@@ -514,5 +510,53 @@ func (sp *StateProcessor[
 		}
 	}
 
+	return nil
+}
+
+// processEffectiveBalanceUpdates as defined in the Ethereum 2.0 specification.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#effective-balances-updates
+//
+//nolint:lll
+func (sp *StateProcessor[
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) processEffectiveBalanceUpdates(
+	st BeaconStateT,
+) error {
+	// Update effective balances with hysteresis
+	validators, err := st.GetValidators()
+	if err != nil {
+		return err
+	}
+
+	hysteresisIncrement := sp.cs.EffectiveBalanceIncrement() / sp.cs.HysteresisQuotient()
+	downwardThreshold := hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier()
+	upwardThreshold := hysteresisIncrement * sp.cs.HysteresisUpwardMultiplier()
+
+	for _, val := range validators {
+		var idx math.U64
+		idx, err = st.ValidatorIndexByPubkey(val.GetPubkey())
+		if err != nil {
+			return err
+		}
+
+		var balance math.Gwei
+		balance, err = st.GetBalance(idx)
+		if err != nil {
+			return err
+		}
+
+		if balance+math.Gwei(downwardThreshold) < val.GetEffectiveBalance() ||
+			val.GetEffectiveBalance()+math.Gwei(upwardThreshold) < balance {
+			updatedBalance := types.ComputeEffectiveBalance(
+				balance,
+				math.U64(sp.cs.EffectiveBalanceIncrement()),
+				math.U64(sp.cs.MaxEffectiveBalance()),
+			)
+			val.SetEffectiveBalance(updatedBalance)
+			if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }
