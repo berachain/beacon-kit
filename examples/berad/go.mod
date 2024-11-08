@@ -79,7 +79,7 @@ require (
 
 require (
 	cosmossdk.io/collections v0.4.0
-	cosmossdk.io/core v1.0.0
+	cosmossdk.io/core v1.0.0-alpha.3
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240911165923-82f71ec86570
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240815202409-3ecaa1f3f4c5
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240806094948-2c4293ef36c4
