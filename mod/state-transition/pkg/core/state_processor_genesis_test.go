@@ -55,39 +55,48 @@ func TestInitialize(t *testing.T) {
 		dummyProposerAddressVerifier,
 	)
 
-	// create test inputs
 	kvStore, err := initStore()
 	require.NoError(t, err)
 	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
 
 	var (
-		deposits = []*types.Deposit{
+		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
+		increment  = math.Gwei(cs.EffectiveBalanceIncrement())
+		minBalance = math.Gwei(cs.EjectionBalance())
+	)
+
+	// create test inputs
+	var (
+		goodDeposits = []*types.Deposit{
 			{
 				Pubkey: [48]byte{0x01},
-				Amount: math.Gwei(cs.MaxEffectiveBalance()),
+				Amount: maxBalance,
 				Index:  uint64(0),
 			},
 			{
 				Pubkey: [48]byte{0x02},
-				Amount: math.Gwei(cs.MaxEffectiveBalance() / 2),
+				Amount: minBalance + increment,
 				Index:  uint64(1),
 			},
 			{
+				Pubkey: [48]byte{0x04},
+				Amount: 2 * maxBalance,
+				Index:  uint64(3),
+			},
+		}
+		badDeposits = []*types.Deposit{
+			{
 				Pubkey: [48]byte{0x03},
-				Amount: math.Gwei(cs.EffectiveBalanceIncrement()),
+				Amount: minBalance,
 				Index:  uint64(2),
 			},
 			{
-				Pubkey: [48]byte{0x04},
-				Amount: math.Gwei(2 * cs.MaxEffectiveBalance()),
-				Index:  uint64(3),
-			},
-			{
 				Pubkey: [48]byte{0x05},
-				Amount: math.Gwei(cs.EffectiveBalanceIncrement() * 2 / 3),
+				Amount: minBalance * 2 / 3,
 				Index:  uint64(4),
 			},
 		}
+		genDeposits            = append(goodDeposits, badDeposits...)
 		executionPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		fork                   = &types.Fork{
 			PreviousVersion: version.FromUint32[common.Version](version.Deneb),
@@ -105,14 +114,14 @@ func TestInitialize(t *testing.T) {
 	// run test
 	vals, err := sp.InitializePreminedBeaconStateFromEth1(
 		beaconState,
-		deposits,
+		genDeposits,
 		executionPayloadHeader,
 		fork.CurrentVersion,
 	)
 
 	// check outputs
 	require.NoError(t, err)
-	require.Len(t, vals, len(deposits))
+	require.Len(t, vals, len(goodDeposits))
 
 	// check beacon state changes
 	resSlot, err := beaconState.GetSlot()
@@ -123,14 +132,14 @@ func TestInitialize(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, fork, resFork)
 
-	for _, dep := range deposits {
+	for _, dep := range goodDeposits {
 		checkValidatorNonBartio(t, cs, beaconState, dep)
 	}
 
 	// check that validator index is duly set
 	latestValIdx, err := beaconState.GetEth1DepositIndex()
 	require.NoError(t, err)
-	require.Equal(t, uint64(len(deposits)-1), latestValIdx)
+	require.Equal(t, uint64(len(genDeposits)-1), latestValIdx)
 }
 
 func checkValidatorNonBartio(
@@ -176,39 +185,48 @@ func TestInitializeBartio(t *testing.T) {
 		dummyProposerAddressVerifier,
 	)
 
-	// create test inputs
 	kvStore, err := initStore()
 	require.NoError(t, err)
 	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
 
 	var (
-		deposits = []*types.Deposit{
+		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
+		increment  = math.Gwei(cs.EffectiveBalanceIncrement())
+		minBalance = math.Gwei(cs.EjectionBalance())
+	)
+
+	// create test inputs
+	var (
+		goodDeposits = []*types.Deposit{
 			{
 				Pubkey: [48]byte{0x01},
-				Amount: math.Gwei(cs.MaxEffectiveBalance()),
+				Amount: maxBalance,
 				Index:  uint64(0),
 			},
 			{
 				Pubkey: [48]byte{0x02},
-				Amount: math.Gwei(cs.MaxEffectiveBalance() / 2),
+				Amount: minBalance + increment,
 				Index:  uint64(1),
 			},
 			{
+				Pubkey: [48]byte{0x04},
+				Amount: 2 * maxBalance,
+				Index:  uint64(3),
+			},
+		}
+		badDeposits = []*types.Deposit{
+			{
 				Pubkey: [48]byte{0x03},
-				Amount: math.Gwei(cs.EffectiveBalanceIncrement()),
+				Amount: minBalance,
 				Index:  uint64(2),
 			},
 			{
-				Pubkey: [48]byte{0x04},
-				Amount: math.Gwei(2 * cs.MaxEffectiveBalance()),
-				Index:  uint64(3),
-			},
-			{
 				Pubkey: [48]byte{0x05},
-				Amount: math.Gwei(cs.EffectiveBalanceIncrement() * 2 / 3),
+				Amount: minBalance * 2 / 3,
 				Index:  uint64(4),
 			},
 		}
+		genDeposits            = append(goodDeposits, badDeposits...)
 		executionPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		fork                   = &types.Fork{
 			PreviousVersion: version.FromUint32[common.Version](version.Deneb),
@@ -226,14 +244,14 @@ func TestInitializeBartio(t *testing.T) {
 	// run test
 	vals, err := sp.InitializePreminedBeaconStateFromEth1(
 		beaconState,
-		deposits,
+		genDeposits,
 		executionPayloadHeader,
 		fork.CurrentVersion,
 	)
 
 	// check outputs
 	require.NoError(t, err)
-	require.Len(t, vals, len(deposits))
+	require.Len(t, vals, len(goodDeposits))
 
 	// check beacon state changes
 	resSlot, err := beaconState.GetSlot()
@@ -244,14 +262,14 @@ func TestInitializeBartio(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, fork, resFork)
 
-	for _, dep := range deposits {
+	for _, dep := range goodDeposits {
 		checkValidatorBartio(t, cs, beaconState, dep)
 	}
 
 	// check that validator index is duly set
 	latestValIdx, err := beaconState.GetEth1DepositIndex()
 	require.NoError(t, err)
-	require.Equal(t, uint64(len(deposits)-1), latestValIdx)
+	require.Equal(t, uint64(len(genDeposits)-1), latestValIdx)
 }
 
 func checkValidatorBartio(
@@ -298,7 +316,6 @@ func commonChecksValidators(
 
 	idx, err := bs.ValidatorIndexByPubkey(dep.Pubkey)
 	require.NoError(t, err)
-	require.Equal(t, math.U64(dep.Index), idx)
 
 	val, err := bs.ValidatorByIndex(idx)
 	require.NoError(t, err)
@@ -306,7 +323,8 @@ func commonChecksValidators(
 
 	var (
 		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
-		minBalance = math.Gwei(cs.EffectiveBalanceIncrement())
+		increment  = math.Gwei(cs.EffectiveBalanceIncrement())
+		minBalance = math.Gwei(cs.EjectionBalance())
 	)
 	switch {
 	case dep.Amount >= maxBalance:
@@ -315,7 +333,7 @@ func commonChecksValidators(
 		require.Equal(t, dep.Amount, val.EffectiveBalance)
 
 		// validator balance must be multiple of EffectiveBalanceIncrement
-		require.Equal(t, math.U64(0), val.EffectiveBalance%minBalance)
+		require.Equal(t, math.U64(0), val.EffectiveBalance%increment)
 	case dep.Amount < minBalance:
 		require.Equal(t, math.Gwei(0), val.EffectiveBalance)
 	}
