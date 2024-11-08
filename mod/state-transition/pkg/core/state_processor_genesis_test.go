@@ -67,7 +67,7 @@ func TestInitialize(t *testing.T) {
 
 	// create test inputs
 	var (
-		goodDeposits = []*types.Deposit{
+		genDeposits = []*types.Deposit{
 			{
 				Pubkey: [48]byte{0x01},
 				Amount: maxBalance,
@@ -79,16 +79,14 @@ func TestInitialize(t *testing.T) {
 				Index:  uint64(1),
 			},
 			{
-				Pubkey: [48]byte{0x04},
-				Amount: 2 * maxBalance,
-				Index:  uint64(3),
-			},
-		}
-		badDeposits = []*types.Deposit{
-			{
 				Pubkey: [48]byte{0x03},
 				Amount: minBalance,
 				Index:  uint64(2),
+			},
+			{
+				Pubkey: [48]byte{0x04},
+				Amount: 2 * maxBalance,
+				Index:  uint64(3),
 			},
 			{
 				Pubkey: [48]byte{0x05},
@@ -96,7 +94,11 @@ func TestInitialize(t *testing.T) {
 				Index:  uint64(4),
 			},
 		}
-		genDeposits            = append(goodDeposits, badDeposits...)
+		goodDeposits = []*types.Deposit{
+			genDeposits[0],
+			genDeposits[1],
+			genDeposits[3],
+		}
 		executionPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		fork                   = &types.Fork{
 			PreviousVersion: version.FromUint32[common.Version](version.Deneb),
@@ -197,7 +199,7 @@ func TestInitializeBartio(t *testing.T) {
 
 	// create test inputs
 	var (
-		goodDeposits = []*types.Deposit{
+		genDeposits = []*types.Deposit{
 			{
 				Pubkey: [48]byte{0x01},
 				Amount: maxBalance,
@@ -209,16 +211,14 @@ func TestInitializeBartio(t *testing.T) {
 				Index:  uint64(1),
 			},
 			{
-				Pubkey: [48]byte{0x04},
-				Amount: 2 * maxBalance,
-				Index:  uint64(3),
-			},
-		}
-		badDeposits = []*types.Deposit{
-			{
 				Pubkey: [48]byte{0x03},
 				Amount: minBalance,
 				Index:  uint64(2),
+			},
+			{
+				Pubkey: [48]byte{0x04},
+				Amount: 2 * maxBalance,
+				Index:  uint64(3),
 			},
 			{
 				Pubkey: [48]byte{0x05},
@@ -226,7 +226,11 @@ func TestInitializeBartio(t *testing.T) {
 				Index:  uint64(4),
 			},
 		}
-		genDeposits            = append(goodDeposits, badDeposits...)
+		goodDeposits = []*types.Deposit{
+			genDeposits[0],
+			genDeposits[1],
+			genDeposits[3],
+		}
 		executionPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		fork                   = &types.Fork{
 			PreviousVersion: version.FromUint32[common.Version](version.Deneb),
@@ -329,12 +333,12 @@ func commonChecksValidators(
 	switch {
 	case dep.Amount >= maxBalance:
 		require.Equal(t, maxBalance, val.EffectiveBalance)
-	case dep.Amount >= minBalance && dep.Amount < maxBalance:
+	case dep.Amount > minBalance && dep.Amount < maxBalance:
 		require.Equal(t, dep.Amount, val.EffectiveBalance)
 
 		// validator balance must be multiple of EffectiveBalanceIncrement
 		require.Equal(t, math.U64(0), val.EffectiveBalance%increment)
-	case dep.Amount < minBalance:
+	case dep.Amount <= minBalance:
 		require.Equal(t, math.Gwei(0), val.EffectiveBalance)
 	}
 }

@@ -37,6 +37,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestTransitionUpdateValidators shows that when validator is
+// updated (increasing amount), corresponding balance is updated.
 func TestTransitionUpdateValidators(t *testing.T) {
 	// Create state processor to test
 	cs := spec.BetnetChainSpec()
@@ -63,7 +65,8 @@ func TestTransitionUpdateValidators(t *testing.T) {
 
 	var (
 		maxBalance       = math.Gwei(cs.MaxEffectiveBalance())
-		minBalance       = math.Gwei(cs.EffectiveBalanceIncrement())
+		increment        = math.Gwei(cs.EffectiveBalanceIncrement())
+		minBalance       = math.Gwei(cs.EjectionBalance())
 		emptyAddress     = common.ExecutionAddress{}
 		emptyCredentials = types.NewCredentialsFromExecutionAddress(
 			emptyAddress,
@@ -77,14 +80,20 @@ func TestTransitionUpdateValidators(t *testing.T) {
 			{
 				Pubkey:      [48]byte{0x01},
 				Credentials: emptyCredentials,
-				Amount:      maxBalance - 3*minBalance,
+				Amount:      maxBalance - 3*increment,
 				Index:       uint64(0),
 			},
 			{
 				Pubkey:      [48]byte{0x02},
 				Credentials: emptyCredentials,
-				Amount:      maxBalance - 6*minBalance,
+				Amount:      maxBalance - 6*increment,
 				Index:       uint64(1),
+			},
+			{
+				Pubkey:      [48]byte{0x03},
+				Credentials: emptyCredentials,
+				Amount:      minBalance + increment,
+				Index:       uint64(2),
 			},
 		}
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
@@ -96,13 +105,14 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		mock.Anything, mock.Anything, mock.Anything,
 	).Return(nil)
 
-	_, err = sp.InitializePreminedBeaconStateFromEth1(
+	vals, err := sp.InitializePreminedBeaconStateFromEth1(
 		beaconState,
 		genDeposits,
 		genPayloadHeader,
 		genVersion,
 	)
 	require.NoError(t, err)
+	require.Len(t, vals, len(genDeposits))
 
 	// create test inputs
 	var (
@@ -115,8 +125,8 @@ func TestTransitionUpdateValidators(t *testing.T) {
 			{
 				Pubkey:      genDeposits[0].Pubkey,
 				Credentials: emptyCredentials,
-				Amount:      minBalance, // avoid breaching maxBalance
-				Index:       genDeposits[0].Index,
+				Amount:      increment, // avoid breaching maxBalance
+				Index:       uint64(len(genDeposits)),
 			},
 		}
 	)
@@ -138,11 +148,8 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	)
 
 	// run the test
-	vals, err := sp.Transition(ctx, beaconState, blk)
-
-	// check outputs
+	_, err = sp.Transition(ctx, beaconState, blk)
 	require.NoError(t, err)
-	require.Zero(t, vals) // just update, no new validators
 
 	// check validator is duly updated
 	expectedValBalance := genDeposits[0].Amount + blkDeposits[0].Amount
