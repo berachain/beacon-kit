@@ -18,32 +18,25 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package da
+package types
 
-// BlobProcessor is the interface for the blobs processor.
-type BlobProcessor[
-	AvailabilityStoreT,
-	ConsensusSidecarsT, BlobSidecarsT any,
-] interface {
-	// ProcessSidecars processes the blobs and ensures they match the local
-	// state.
-	ProcessSidecars(
-		avs AvailabilityStoreT,
-		sidecars BlobSidecarsT,
-	) error
-	// VerifySidecars verifies the blobs and ensures they match the local state.
-	VerifySidecars(sidecars ConsensusSidecarsT) error
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+
+type commonConsensusData struct {
+	proposerAddress []byte
+
+	nextPayloadTimestamp math.U64
 }
 
-type ConsensusSidecars[BlobSidecarsT any, BeaconBlockHeaderT any] interface {
-	GetSidecars() BlobSidecarsT
-	GetHeader() BeaconBlockHeaderT
+// GetProposerAddress returns the address of the validator
+// selected by consensus to propose the block.
+func (c *commonConsensusData) GetProposerAddress() []byte {
+	return c.proposerAddress
 }
 
-// BlobSidecar is the interface for the blob sidecar.
-type BlobSidecar interface {
-	// Len returns the length of the sidecar.
-	Len() int
-	// IsNil checks if the sidecar is nil.
-	IsNil() bool
+// GetNextPayloadTimestamp returns the timestamp proposed by consensus
+// for the next payload to be proposed. It is also used to bound
+// current payload upon validation.
+func (c *commonConsensusData) GetNextPayloadTimestamp() math.U64 {
+	return c.nextPayloadTimestamp
 }

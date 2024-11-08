@@ -20,18 +20,16 @@
 
 package crypto
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+import (
+	"fmt"
 
-const (
-	// CometBLSType is the BLS curve type used in the Comet BFT consensus
-	// algorithm.
-	CometBLSType = "bls12_381"
-
-	// CometBLSPower is the voting power given to a validator when they
-	// are in the active set.
-	// TODO: Move this, it doesn't really belong here.
-	CometBLSPower = 1e10
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	cometencoding "github.com/cometbft/cometbft/crypto/encoding"
 )
+
+// CometBLSType is the BLS curve type used in the Comet BFT consensus
+// algorithm.
+const CometBLSType = "bls12_381"
 
 //nolint:lll // link.
 type (
@@ -43,6 +41,14 @@ type (
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
 	BLSSignature = bytes.B96
 )
+
+func GetAddressFromPubKey(pubKey BLSPubkey) ([]byte, error) {
+	pk, err := cometencoding.PubKeyFromTypeAndBytes(CometBLSType, pubKey[:])
+	if err != nil {
+		return nil, fmt.Errorf("failed retrieving pubKey from bytes: %w", err)
+	}
+	return pk.Address(), nil
+}
 
 // BLSSigner defines an interface for cryptographic signing operations.
 // It uses generic type parameters Signature and Pubkey, both of which are

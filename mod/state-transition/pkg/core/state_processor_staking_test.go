@@ -26,13 +26,12 @@ import (
 	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/log/pkg/noop"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	cryptomocks "github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/mocks"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -49,36 +48,20 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		engineprimitives.Withdrawals,
 	](t)
 	mocksSigner := &cryptomocks.BLSSigner{}
-	noLog := noop.NewLogger[any]()
+	dummyProposerAddr := []byte{0xff}
 
 	kvStore, depositStore, err := initTestStores()
 	require.NoError(t, err)
 	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
 
-	sp := core.NewStateProcessor[
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
-		*types.BeaconBlockHeader,
-		*TestBeaconStateT,
-		*transition.Context,
-		*types.Deposit,
-		*types.Eth1Data,
-		*types.ExecutionPayload,
-		*types.ExecutionPayloadHeader,
-		*types.Fork,
-		*types.ForkData,
-		*TestKVStoreT,
-		*types.Validator,
-		types.Validators,
-		*engineprimitives.Withdrawal,
-		engineprimitives.Withdrawals,
-		types.WithdrawalCredentials,
-	](
-		noLog,
+	sp := createStateProcessor(
 		cs,
 		execEngine,
 		depositStore,
 		mocksSigner,
+		func(bytes.B48) ([]byte, error) {
+			return dummyProposerAddr, nil
+		},
 	)
 
 	var (
@@ -129,48 +112,33 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		ctx = &transition.Context{
 			SkipPayloadVerification: true,
 			SkipValidateResult:      true,
+			ProposerAddress:         dummyProposerAddr,
 		}
 		blkDeposits = []*types.Deposit{
 			{
 				Pubkey:      genDeposits[0].Pubkey,
 				Credentials: emptyCredentials,
-				Amount:      minBalance,                   // avoid breaching maxBalance
-				Index:       uint64(len(genDeposits)) - 1, // TODO FIX THIS
+				Amount:      minBalance, // avoid breaching maxBalance
+				Index:       uint64(len(genDeposits)),
 			},
 		}
 	)
 
-	genBlockHeader := updateStateRootForLatestBlock(t, beaconState)
-	blk := &types.BeaconBlock{
-		Slot:          genBlockHeader.GetSlot() + 1,
-		ProposerIndex: genBlockHeader.GetProposerIndex(),
-		ParentRoot:    genBlockHeader.HashTreeRoot(),
-		StateRoot:     common.Root{},
-		Body: &types.BeaconBlockBody{
+	blk := buildNextBlock(
+		t,
+		beaconState,
+		&types.BeaconBlockBody{
 			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    10,
-				ExtraData:    []byte("testing"),
-				Transactions: [][]byte{},
-				Withdrawals: []*engineprimitives.Withdrawal{
-					{
-						Index:     0,
-						Validator: 0,
-						Address:   emptyAddress,
-						Amount:    0,
-					},
-					{
-						Index:     1,
-						Validator: 1,
-						Address:   emptyAddress,
-						Amount:    0,
-					},
-				},
+				Timestamp:     10,
+				ExtraData:     []byte("testing"),
+				Transactions:  [][]byte{},
+				Withdrawals:   []*engineprimitives.Withdrawal{}, // no withdrawals
 				BaseFeePerGas: math.NewU256(0),
 			},
 			Eth1Data: &types.Eth1Data{},
 			Deposits: blkDeposits,
 		},
-	}
+	)
 
 	// make sure included deposit is already available in deposit store
 	require.NoError(t, depositStore.EnqueueDeposits(blkDeposits))
@@ -193,22 +161,13 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	require.Equal(t, genDeposits[0].Pubkey, val.Pubkey)
 	require.Equal(t, expectedValBalance, val.EffectiveBalance)
 
+	// check validator balance is updated
+	valBal, err := beaconState.GetBalance(idx)
+	require.NoError(t, err)
+	require.Equal(t, expectedValBalance, valBal)
+
 	// check that validator index is duly set (1-indexed here, to be fixed)
 	latestValIdx, err := beaconState.GetEth1DepositIndex()
 	require.NoError(t, err)
 	require.Equal(t, uint64(len(genDeposits)), latestValIdx)
-}
-
-func updateStateRootForLatestBlock(
-	t *testing.T,
-	bs *TestBeaconStateT,
-) *types.BeaconBlockHeader {
-	t.Helper()
-
-	// here we duly update state root, similarly to what we do in processSlot
-	latestBlkHeader, err := bs.GetLatestBlockHeader()
-	require.NoError(t, err)
-	root := bs.HashTreeRoot()
-	latestBlkHeader.SetStateRoot(root)
-	return latestBlkHeader
 }

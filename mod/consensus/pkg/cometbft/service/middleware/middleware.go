@@ -22,23 +22,29 @@ package middleware
 
 import (
 	"context"
+	"time"
 
 	"github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
+	cmtcfg "github.com/cometbft/cometbft/config"
 )
 
 // ABCIMiddleware is a middleware between ABCI and the validator logic.
 type ABCIMiddleware[
-	BeaconBlockT BeaconBlock[BeaconBlockT],
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockHeaderT],
+	BeaconBlockHeaderT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT],
 	GenesisT json.Unmarshaler,
 	SlotDataT any,
 ] struct {
 	// chainSpec is the chain specification.
 	chainSpec common.ChainSpec
+	// minimum delay among blocks, useful to set a strictly increasing
+	// execution payload timestamp.
+	minPayloadDelay time.Duration
 	// dispatcher is the central dispatcher to
 	dispatcher types.EventDispatcher
 	// metrics is the metrics emitter.
@@ -62,22 +68,44 @@ type ABCIMiddleware[
 
 // NewABCIMiddleware creates a new instance of the Handler struct.
 func NewABCIMiddleware[
-	BeaconBlockT BeaconBlock[BeaconBlockT],
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockHeaderT],
+	BeaconBlockHeaderT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT],
 	GenesisT json.Unmarshaler,
 	SlotDataT any,
 ](
 	chainSpec common.ChainSpec,
+	cmtCfg *cmtcfg.Config,
 	dispatcher types.EventDispatcher,
 	logger log.Logger,
 	telemetrySink TelemetrySink,
 ) *ABCIMiddleware[
-	BeaconBlockT, BlobSidecarsT, GenesisT, SlotDataT,
+	BeaconBlockT, BeaconBlockHeaderT, BlobSidecarsT, GenesisT, SlotDataT,
 ] {
+	// We may build execution payload optimistically (i.e. build the execution
+	// payload for next block while current block is being verified and not yet
+	// finalized) or not (build only after parent block has been finalized).
+	// Hence we need to guarantee that we provide to the execution layer a
+	// strictly increasing timestamp for any ABCI valid call sequence of
+	// Prepare/Propose/FinalizeBlock.
+	// To this purpose, we set next payload timestamp as follows:
+	// - ProposeBlock: req.Time
+	// - Prepare/FinalizeBlock: req.Time + minPayloadDelay
+	// Monotonicity across request sequences is ensured by construction of
+	// minPayloadDelay: no block can be finalized before minPayloadDelay.
+	minPayloadDelay := min(
+		cmtCfg.Consensus.TimeoutPropose,
+		cmtCfg.Consensus.TimeoutPrevote,
+		cmtCfg.Consensus.TimeoutPrecommit,
+		// TimeoutCommit can be zero
+		max(cmtCfg.Consensus.TimeoutCommit, time.Second),
+	)
+
 	return &ABCIMiddleware[
-		BeaconBlockT, BlobSidecarsT, GenesisT, SlotDataT,
+		BeaconBlockT, BeaconBlockHeaderT, BlobSidecarsT, GenesisT, SlotDataT,
 	]{
 		chainSpec:                chainSpec,
+		minPayloadDelay:          minPayloadDelay,
 		dispatcher:               dispatcher,
 		logger:                   logger,
 		metrics:                  newABCIMiddlewareMetrics(telemetrySink),
@@ -91,7 +119,7 @@ func NewABCIMiddleware[
 }
 
 // Start subscribes the middleware to the events it needs to listen for.
-func (am *ABCIMiddleware[_, _, _, _]) Start(
+func (am *ABCIMiddleware[_, _, _, _, _]) Start(
 	_ context.Context,
 ) error {
 	var err error
@@ -129,8 +157,6 @@ func (am *ABCIMiddleware[_, _, _, _]) Start(
 }
 
 // Name returns the name of the middleware.
-func (am *ABCIMiddleware[
-	_, _, _, _,
-]) Name() string {
+func (am *ABCIMiddleware[_, _, _, _, _]) Name() string {
 	return "abci-middleware"
 }

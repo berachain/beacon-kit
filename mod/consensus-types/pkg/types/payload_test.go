@@ -159,6 +159,20 @@ func TestExecutionPayload_MarshalJSON(t *testing.T) {
 	require.Equal(t, payload, &unmarshalled)
 }
 
+func TestExecutionPayload_MarshalJSON_ValueAndPointer(t *testing.T) {
+	val := types.ExecutionPayload{}
+
+	// Marshal on raw val uses default json marshal
+	valSerialized, err := json.Marshal(val)
+	require.NoError(t, err)
+
+	// Marshal on ptr val uses implemented MarshalJSON
+	ptrSerialized, err := json.Marshal(&val)
+	require.NoError(t, err)
+
+	require.Equal(t, valSerialized, ptrSerialized)
+}
+
 func TestExecutionPayload_IsNil(t *testing.T) {
 	var payload *types.ExecutionPayload
 	require.True(t, payload.IsNil())
