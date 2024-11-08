@@ -18,7 +18,7 @@ require (
 	cosmossdk.io/log v1.4.1
 	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc
 	github.com/berachain/beacon-kit/mod/async v0.0.0-20240821213929-f32b8e2dc5c8
-	github.com/berachain/beacon-kit/mod/cli v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/cli v0.0.0-20241107170417-7905e3d59a1d
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240904192942-99aeabe6bb1f
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240806211103-d1105603bfc0
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240821000339-4d4242ba4a50
