@@ -198,8 +198,7 @@ func (sp *StateProcessor[
 ]) ProcessSlots(
 	st BeaconStateT, slot math.Slot,
 ) (transition.ValidatorUpdates, error) {
-	var validatorUpdates transition.ValidatorUpdates
-
+	var res transition.ValidatorUpdates
 	stateSlot, err := st.GetSlot()
 	if err != nil {
 		return nil, err
@@ -207,7 +206,6 @@ func (sp *StateProcessor[
 
 	// Iterate until we are "caught up".
 	for ; stateSlot < slot; stateSlot++ {
-		// Process the slot
 		if err = sp.processSlot(st); err != nil {
 			return nil, err
 		}
@@ -215,15 +213,11 @@ func (sp *StateProcessor[
 		// Process the Epoch Boundary.
 		boundary := (stateSlot.Unwrap()+1)%sp.cs.SlotsPerEpoch() == 0
 		if boundary {
-			var epochValidatorUpdates transition.ValidatorUpdates
-			if epochValidatorUpdates, err =
-				sp.processEpoch(st); err != nil {
+			var epochUpdates transition.ValidatorUpdates
+			if epochUpdates, err = sp.processEpoch(st); err != nil {
 				return nil, err
 			}
-			validatorUpdates = append(
-				validatorUpdates,
-				epochValidatorUpdates...,
-			)
+			res = append(res, epochUpdates...)
 		}
 
 		// We update on the state because we need to
@@ -233,7 +227,7 @@ func (sp *StateProcessor[
 		}
 	}
 
-	return validatorUpdates, nil
+	return res, nil
 }
 
 // processSlot is run when a slot is missed.
