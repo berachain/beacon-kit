@@ -528,18 +528,21 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	hysteresisIncrement := sp.cs.EffectiveBalanceIncrement() / sp.cs.HysteresisQuotient()
-	downwardThreshold := hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier()
-	upwardThreshold := hysteresisIncrement * sp.cs.HysteresisUpwardMultiplier()
+	var (
+		hysteresisIncrement = sp.cs.EffectiveBalanceIncrement() / sp.cs.HysteresisQuotient()
+		downwardThreshold   = hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier()
+		upwardThreshold     = hysteresisIncrement * sp.cs.HysteresisUpwardMultiplier()
+
+		idx     math.U64
+		balance math.Gwei
+	)
 
 	for _, val := range validators {
-		var idx math.U64
 		idx, err = st.ValidatorIndexByPubkey(val.GetPubkey())
 		if err != nil {
 			return err
 		}
 
-		var balance math.Gwei
 		balance, err = st.GetBalance(idx)
 		if err != nil {
 			return err
