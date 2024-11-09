@@ -128,7 +128,7 @@ func TestInitialize(t *testing.T) {
 	).Return(nil)
 
 	// run test
-	vals, err := sp.InitializePreminedBeaconStateFromEth1(
+	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
 		beaconState,
 		genDeposits,
 		executionPayloadHeader,
@@ -137,7 +137,7 @@ func TestInitialize(t *testing.T) {
 
 	// check outputs
 	require.NoError(t, err)
-	require.Len(t, vals, len(goodDeposits))
+	require.Len(t, genVals, len(goodDeposits))
 
 	// check beacon state changes
 	resSlot, err := beaconState.GetSlot()
@@ -274,7 +274,7 @@ func TestInitializeBartio(t *testing.T) {
 	).Return(nil)
 
 	// run test
-	vals, err := sp.InitializePreminedBeaconStateFromEth1(
+	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
 		beaconState,
 		genDeposits,
 		executionPayloadHeader,
@@ -283,7 +283,7 @@ func TestInitializeBartio(t *testing.T) {
 
 	// check outputs
 	require.NoError(t, err)
-	require.Len(t, vals, len(goodDeposits))
+	require.Len(t, genVals, len(goodDeposits))
 
 	// check beacon state changes
 	resSlot, err := beaconState.GetSlot()
