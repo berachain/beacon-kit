@@ -21,6 +21,7 @@
 package core_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
@@ -79,7 +80,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 			{
 				Pubkey:      [48]byte{0x01},
 				Credentials: emptyCredentials,
-				Amount:      maxBalance - 3*increment,
+				Amount:      minBalance + increment,
 				Index:       uint64(0),
 			},
 			{
@@ -91,7 +92,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 			{
 				Pubkey:      [48]byte{0x03},
 				Credentials: emptyCredentials,
-				Amount:      minBalance + increment,
+				Amount:      maxBalance - 3*increment,
 				Index:       uint64(2),
 			},
 		}
@@ -120,13 +121,11 @@ func TestTransitionUpdateValidators(t *testing.T) {
 			SkipValidateResult:      true,
 			ProposerAddress:         dummyProposerAddr,
 		}
-		blkDeposits = []*types.Deposit{
-			{
-				Pubkey:      genDeposits[0].Pubkey,
-				Credentials: emptyCredentials,
-				Amount:      2 * increment, // twice to account for hysteresis
-				Index:       uint64(len(genDeposits)),
-			},
+		blkDeposit = &types.Deposit{
+			Pubkey:      genDeposits[2].Pubkey,
+			Credentials: emptyCredentials,
+			Amount:      2 * increment, // twice to account for hysteresis
+			Index:       uint64(len(genDeposits)),
 		}
 	)
 
@@ -142,7 +141,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 				BaseFeePerGas: math.NewU256(0),
 			},
 			Eth1Data: &types.Eth1Data{},
-			Deposits: blkDeposits,
+			Deposits: []*types.Deposit{blkDeposit},
 		},
 	)
 
@@ -154,9 +153,9 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	// check validator balances are duly updated, that is:
 	// - balance is updated immediately
 	// - effective balance is updated only at the epoch turn
-	expectedBalance := genDeposits[0].Amount + blkDeposits[0].Amount
-	expectedEffectiveBalance := genDeposits[0].Amount
-	idx, err := beaconState.ValidatorIndexByPubkey(genDeposits[0].Pubkey)
+	expectedBalance := genDeposits[2].Amount + blkDeposit.Amount
+	expectedEffectiveBalance := genDeposits[2].Amount
+	idx, err := beaconState.ValidatorIndexByPubkey(genDeposits[2].Pubkey)
 	require.NoError(t, err)
 
 	balance, err := beaconState.GetBalance(idx)
@@ -213,19 +212,19 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		},
 	)
 
-	nextEpochVals, err := sp.Transition(ctx, beaconState, blk)
+	newEpochVals, err := sp.Transition(ctx, beaconState, blk)
 	require.NoError(t, err)
-	require.Len(t, nextEpochVals, len(genDeposits)) // just topped up one validator
+	require.Len(t, newEpochVals, len(genDeposits)) // just topped up one validator
 
 	// Assuming genesis order is preserved here which is not necessary
 	// TODO: remove this assumption
 
-	// all genesis validators other than the first are unchanged
-	for i := 1; i < len(genDeposits); i++ {
-		require.Equal(t, genVals[1], nextEpochVals[1])
+	// all genesis validators other than the last are unchanged
+	for i := range len(genDeposits) - 1 {
+		require.Equal(t, genVals[i], newEpochVals[i], fmt.Sprintf("idx: %d", i))
 	}
 
-	expectedBalance = genDeposits[0].Amount + blkDeposits[0].Amount
+	expectedBalance = genDeposits[2].Amount + blkDeposit.Amount
 	expectedEffectiveBalance = expectedBalance
 
 	balance, err = beaconState.GetBalance(idx)
