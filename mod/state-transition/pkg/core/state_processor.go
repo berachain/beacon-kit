@@ -519,8 +519,8 @@ func (sp *StateProcessor[
 
 	var (
 		hysteresisIncrement = sp.cs.EffectiveBalanceIncrement() / sp.cs.HysteresisQuotient()
-		downwardThreshold   = hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier()
-		upwardThreshold     = hysteresisIncrement * sp.cs.HysteresisUpwardMultiplier()
+		downwardThreshold   = math.Gwei(hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier())
+		upwardThreshold     = math.Gwei(hysteresisIncrement * sp.cs.HysteresisUpwardMultiplier())
 
 		idx     math.U64
 		balance math.Gwei
@@ -537,8 +537,8 @@ func (sp *StateProcessor[
 			return err
 		}
 
-		if balance+math.Gwei(downwardThreshold) < val.GetEffectiveBalance() ||
-			val.GetEffectiveBalance()+math.Gwei(upwardThreshold) < balance {
+		if balance+downwardThreshold < val.GetEffectiveBalance() ||
+			val.GetEffectiveBalance()+upwardThreshold < balance {
 			updatedBalance := types.ComputeEffectiveBalance(
 				balance,
 				math.U64(sp.cs.EffectiveBalanceIncrement()),
