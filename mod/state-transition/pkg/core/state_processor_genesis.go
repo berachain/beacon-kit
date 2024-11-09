@@ -45,7 +45,7 @@ func (sp *StateProcessor[
 ]) InitializePreminedBeaconStateFromEth1(
 	st BeaconStateT,
 	deposits []DepositT,
-	executionPayloadHeader ExecutionPayloadHeaderT,
+	execPayloadHeader ExecutionPayloadHeaderT,
 	genesisVersion common.Version,
 ) (transition.ValidatorUpdates, error) {
 	sp.processingGenesis = true
@@ -53,55 +53,53 @@ func (sp *StateProcessor[
 		sp.processingGenesis = false
 	}()
 
-	var (
-		blkHeader BeaconBlockHeaderT
-		blkBody   BeaconBlockBodyT
-		fork      ForkT
-		eth1Data  Eth1DataT
-	)
+	if err := st.SetSlot(0); err != nil {
+		return nil, err
+	}
+
+	var fork ForkT
 	fork = fork.New(
 		genesisVersion,
 		genesisVersion,
 		math.U64(constants.GenesisEpoch),
 	)
-
-	if err := st.SetSlot(0); err != nil {
-		return nil, err
-	}
-
 	if err := st.SetFork(fork); err != nil {
 		return nil, err
 	}
 
 	// Eth1DepositIndex will be set in processDeposit
 
-	if err := st.SetEth1Data(
-		eth1Data.New(
-			common.Root{},
-			0,
-			executionPayloadHeader.GetBlockHash(),
-		)); err != nil {
+	var eth1Data Eth1DataT
+	eth1Data = eth1Data.New(
+		common.Root{},
+		0,
+		execPayloadHeader.GetBlockHash(),
+	)
+	if err := st.SetEth1Data(eth1Data); err != nil {
 		return nil, err
 	}
 
-	// TODO: we need to handle common.Version vs
-	// uint32 better.
-	bodyRoot := blkBody.Empty(version.ToUint32(genesisVersion)).HashTreeRoot()
-	if err := st.SetLatestBlockHeader(
-		blkHeader.New(
-			0,             // slot
-			0,             // proposer index
-			common.Root{}, // parent block root
-			common.Root{}, // state root
-			bodyRoot,
-		)); err != nil {
+	// TODO: we need to handle common.Version vs uint32 better.
+	var blkBody BeaconBlockBodyT
+	blkBody = blkBody.Empty(version.ToUint32(genesisVersion))
+
+	var blkHeader BeaconBlockHeaderT
+	blkHeader = blkHeader.New(
+		0,                      // slot
+		0,                      // proposer index
+		common.Root{},          // parent block root
+		common.Root{},          // state root
+		blkBody.HashTreeRoot(), // body root
+
+	)
+	if err := st.SetLatestBlockHeader(blkHeader); err != nil {
 		return nil, err
 	}
 
 	for i := range sp.cs.EpochsPerHistoricalVector() {
 		if err := st.UpdateRandaoMixAtIndex(
 			i,
-			common.Bytes32(executionPayloadHeader.GetBlockHash()),
+			common.Bytes32(execPayloadHeader.GetBlockHash()),
 		); err != nil {
 			return nil, err
 		}
@@ -154,9 +152,7 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	if err = st.SetLatestExecutionPayloadHeader(
-		executionPayloadHeader,
-	); err != nil {
+	if err = st.SetLatestExecutionPayloadHeader(execPayloadHeader); err != nil {
 		return nil, err
 	}
 
@@ -183,10 +179,5 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	var updates transition.ValidatorUpdates
-	updates, err = sp.processSyncCommitteeUpdates(st)
-	if err != nil {
-		return nil, err
-	}
-	return updates, nil
+	return sp.processSyncCommitteeUpdates(st)
 }
