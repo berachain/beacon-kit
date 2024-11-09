@@ -21,13 +21,14 @@
 package core
 
 import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/sourcegraph/conc/iter"
 )
 
 // processValidatorsSetUpdates returns the validators set updates that
-// will be used by consensus
+// will be used by consensus.
 func (sp *StateProcessor[
 	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
 ]) processValidatorsSetUpdates(
@@ -46,10 +47,10 @@ func (sp *StateProcessor[
 		}
 	}
 
-	// TODO: a more efficient handling would be to only send back to consensus
-	// updated validators (including evicted ones), rather than the full list
-
-	return iter.MapErr(
+	// We need to inform consensus of the changes incurred by the validator set
+	// We strive to send only diffs (added,updated or removed validators) and
+	// avoid re-sending validators that have not changed.
+	currentValSet, err := iter.MapErr(
 		activeVals,
 		func(val *ValidatorT) (*transition.ValidatorUpdate, error) {
 			v := (*val)
@@ -59,4 +60,45 @@ func (sp *StateProcessor[
 			}, nil
 		},
 	)
+	if err != nil {
+		return nil, err
+	}
+
+	res := make([]*transition.ValidatorUpdate, 0)
+
+	prevValsSet := make(map[string]math.Gwei, len(sp.prevEpochValidators))
+	for _, v := range sp.prevEpochValidators {
+		prevValsSet[string(v.Pubkey[:])] = v.EffectiveBalance
+	}
+
+	for _, newVal := range currentValSet {
+		key := string(newVal.Pubkey[:])
+		oldBal, found := prevValsSet[key]
+		if !found {
+			// new validator, we add it with its weight
+			res = append(res, newVal)
+			continue
+		}
+		if oldBal != newVal.EffectiveBalance {
+			// validator updated, we add it with new weight
+			res = append(res, newVal)
+		}
+
+		// consume pre-existing validators
+		delete(prevValsSet, key)
+	}
+
+	// prevValsSet now contains all evicted validators (and only those)
+	for pkBytes := range prevValsSet {
+		//#nosec:G703 // bytes comes from a pk
+		pk, _ := bytes.ToBytes48([]byte(pkBytes))
+		res = append(res, &transition.ValidatorUpdate{
+			Pubkey:           pk,
+			EffectiveBalance: 0, // signal val eviction to consensus
+		})
+	}
+
+	// rotate validators set to new epoch ones
+	sp.prevEpochValidators = currentValSet
+	return res, nil
 }

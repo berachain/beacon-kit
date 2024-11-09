@@ -21,7 +21,6 @@
 package core_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
@@ -214,15 +213,7 @@ func TestTransitionUpdateValidator(t *testing.T) {
 
 	newEpochVals, err := sp.Transition(ctx, beaconState, blk)
 	require.NoError(t, err)
-	require.Len(t, newEpochVals, len(genDeposits)) // just topped up one validator
-
-	// Assuming genesis order is preserved here which is not necessary
-	// TODO: remove this assumption
-
-	// all genesis validators other than the last are unchanged
-	for i := range len(genDeposits) - 1 {
-		require.Equal(t, genVals[i], newEpochVals[i], fmt.Sprintf("idx: %d", i))
-	}
+	require.Len(t, newEpochVals, 1) // just topped up one validator
 
 	expectedBalance = genDeposits[2].Amount + blkDeposit.Amount
 	expectedEffectiveBalance = expectedBalance
@@ -400,15 +391,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 
 	newEpochVals, err := sp.Transition(ctx, beaconState, blk)
 	require.NoError(t, err)
-	require.Len(t, newEpochVals, len(genDeposits)+1)
-
-	// Assuming genesis order is preserved here which is not necessary
-	// TODO: remove this assumption
-
-	// all genesis validators are unchanged
-	for i := range len(genDeposits) {
-		require.Equal(t, genVals[i], newEpochVals[i], fmt.Sprintf("idx: %d", i))
-	}
+	require.Len(t, newEpochVals, 1) // just added 1 validator
 
 	expectedBalance = blkDeposit.Amount
 	expectedEffectiveBalance = expectedBalance
