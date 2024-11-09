@@ -39,38 +39,21 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
-	// Verify that outstanding deposits are processed up to the maximum number
-	// of deposits.
-	deposits := blk.GetBody().GetDeposits()
-	index, err := st.GetEth1DepositIndex()
-	if err != nil {
-		return err
-	}
-	eth1Data, err := st.GetEth1Data()
-	if err != nil {
-		return err
-	}
-	depositCount := min(
-		sp.cs.MaxDepositsPerBlock(),
-		eth1Data.GetDepositCount().Unwrap()-index,
-	)
-	_ = depositCount
-	// TODO: Update eth1data count and check this.
-	// if uint64(len(deposits)) != depositCount {
-	// 	return errors.New("deposit count mismatch")
-	// }
-	return sp.processDeposits(st, deposits)
-}
+	// Verify that outstanding deposits are processed
+	// up to the maximum number of deposits
 
-// processDeposits processes the deposits and ensures  they match the
-// local state.
-func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, DepositT, _, _, _, _, _, _, _, _, _, _, _,
-]) processDeposits(
-	st BeaconStateT,
-	deposits []DepositT,
-) error {
-	// Ensure the deposits match the local state.
+	// TODO we should assert  here that
+	// len(body.deposits) ==  min(MAX_DEPOSITS,
+	// state.eth1_data.deposit_count - state.eth1_deposit_index)
+	// Until we fix eth1Data we do a partial check
+	deposits := blk.GetBody().GetDeposits()
+	if uint64(len(deposits)) > sp.cs.MaxDepositsPerBlock() {
+		return errors.Wrapf(
+			ErrExceedsBlockDepositLimit, "expected: %d, got: %d",
+			sp.cs.MaxDepositsPerBlock(), len(deposits),
+		)
+	}
+
 	for _, dep := range deposits {
 		if err := sp.processDeposit(st, dep); err != nil {
 			return err

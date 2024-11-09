@@ -358,13 +358,12 @@ func (sp *StateProcessor[
 	}
 	if blk.GetSlot() != slot {
 		return errors.Wrapf(
-			ErrSlotMismatch,
-			"expected: %d, got: %d",
+			ErrSlotMismatch, "expected: %d, got: %d",
 			slot, blk.GetSlot(),
 		)
 	}
 
-	// Verify the parent block root is correct.
+	// Verify that the block is newer than latest block header
 	latestBlockHeader, err := st.GetLatestBlockHeader()
 	if err != nil {
 		return err
@@ -373,14 +372,6 @@ func (sp *StateProcessor[
 		return errors.Wrapf(
 			ErrBlockSlotTooLow, "expected: > %d, got: %d",
 			latestBlockHeader.GetSlot(), blk.GetSlot(),
-		)
-	}
-
-	parentBlockRoot := latestBlockHeader.HashTreeRoot()
-	if parentBlockRoot != blk.GetParentBlockRoot() {
-		return errors.Wrapf(ErrParentRootMismatch,
-			"expected: %s, got: %s",
-			parentBlockRoot.String(), blk.GetParentBlockRoot().String(),
 		)
 	}
 
@@ -400,26 +391,24 @@ func (sp *StateProcessor[
 		)
 	}
 
-	// Check to make sure the proposer isn't slashed.
+	// Verify that the parent matches
+	parentBlockRoot := latestBlockHeader.HashTreeRoot()
+	if parentBlockRoot != blk.GetParentBlockRoot() {
+		return errors.Wrapf(
+			ErrParentRootMismatch, "expected: %s, got: %s",
+			parentBlockRoot.String(), blk.GetParentBlockRoot().String(),
+		)
+	}
+
+	// Verify proposer is not slashed
 	if proposer.IsSlashed() {
 		return errors.Wrapf(
-			ErrSlashedProposer,
-			"index: %d",
+			ErrSlashedProposer, "index: %d",
 			blk.GetProposerIndex(),
 		)
 	}
 
-	// Ensure the block is within the acceptable range.
-	// TODO: move this is in the wrong spot.
-	deposits := blk.GetBody().GetDeposits()
-	if uint64(len(deposits)) > sp.cs.MaxDepositsPerBlock() {
-		return errors.Wrapf(ErrExceedsBlockDepositLimit,
-			"expected: %d, got: %d",
-			sp.cs.MaxDepositsPerBlock(), len(deposits),
-		)
-	}
-
-	// Calculate the body root to place on the header.
+	// Cache current block as the new latest block
 	bodyRoot := blk.GetBody().HashTreeRoot()
 	var lbh BeaconBlockHeaderT
 	lbh = lbh.New(
