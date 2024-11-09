@@ -23,7 +23,6 @@ package core
 import (
 	"fmt"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -103,27 +102,12 @@ func (sp *StateProcessor[
 	idx, err := st.ValidatorIndexByPubkey(dep.GetPubkey())
 	if err != nil {
 		// If the validator does not exist, we add the validator.
-		// Add the validator to the registry.
+		// TODO: improve error handling by distinguishing
+		// validator not found from other kind of errors
 		return sp.createValidator(st, dep)
 	}
 
-	// If the validator already exists, we update the balance.
-	var val ValidatorT
-	val, err = st.ValidatorByIndex(idx)
-	if err != nil {
-		return err
-	}
-
-	// TODO: Modify balance here and then effective balance once per epoch.
-	updatedBalance := types.ComputeEffectiveBalance(
-		val.GetEffectiveBalance()+dep.GetAmount(),
-		math.Gwei(sp.cs.EffectiveBalanceIncrement()),
-		math.Gwei(sp.cs.MaxEffectiveBalance()),
-	)
-	val.SetEffectiveBalance(updatedBalance)
-	if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
-		return err
-	}
+	// if validator exist, just update its balance
 	return st.IncreaseBalance(idx, dep.GetAmount())
 }
 

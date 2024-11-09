@@ -45,6 +45,9 @@ func (sp *StateProcessor[
 		}
 	}
 
+	// TODO: a more efficient handling would be to only send back to consensus
+	// updated validators (including evicted ones), rather than the full list
+
 	return iter.MapErr(
 		activeVals,
 		func(val *ValidatorT) (*transition.ValidatorUpdate, error) {

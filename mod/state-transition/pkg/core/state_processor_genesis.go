@@ -21,6 +21,7 @@
 package core
 
 import (
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
@@ -106,16 +107,40 @@ func (sp *StateProcessor[
 		}
 	}
 
+	// Process deposits
 	for _, deposit := range deposits {
 		if err := sp.processDeposit(st, deposit); err != nil {
 			return nil, err
 		}
 	}
 
-	// TODO: process activations.
+	// Process activations
 	validators, err := st.GetValidators()
 	if err != nil {
 		return nil, err
+	}
+	for _, val := range validators {
+		var idx math.ValidatorIndex
+		idx, err = st.ValidatorIndexByPubkey(val.GetPubkey())
+		if err != nil {
+			return nil, err
+		}
+
+		var balance math.Gwei
+		balance, err = st.GetBalance(idx)
+		if err != nil {
+			return nil, err
+		}
+
+		updatedBalance := types.ComputeEffectiveBalance(
+			balance,
+			math.Gwei(sp.cs.EffectiveBalanceIncrement()),
+			math.Gwei(sp.cs.MaxEffectiveBalance()),
+		)
+		val.SetEffectiveBalance(updatedBalance)
+		if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
+			return nil, err
+		}
 	}
 
 	// Handle special case bartio genesis.
@@ -150,9 +175,7 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	if err = st.SetNextWithdrawalValidatorIndex(
-		0,
-	); err != nil {
+	if err = st.SetNextWithdrawalValidatorIndex(0); err != nil {
 		return nil, err
 	}
 

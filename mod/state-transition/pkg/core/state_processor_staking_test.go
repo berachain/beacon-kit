@@ -124,7 +124,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 			{
 				Pubkey:      genDeposits[0].Pubkey,
 				Credentials: emptyCredentials,
-				Amount:      increment, // avoid breaching maxBalance
+				Amount:      2 * increment, // twice to account for hysteresis
 				Index:       uint64(len(genDeposits)),
 			},
 		}
