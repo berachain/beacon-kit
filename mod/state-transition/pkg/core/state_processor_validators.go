@@ -26,10 +26,11 @@ import (
 	"github.com/sourcegraph/conc/iter"
 )
 
-// processSyncCommitteeUpdates processes the sync committee updates.
+// processValidatorsSetUpdates returns the validators set updates that
+// will be used by consensus
 func (sp *StateProcessor[
 	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
-]) processSyncCommitteeUpdates(
+]) processValidatorsSetUpdates(
 	st BeaconStateT,
 ) (transition.ValidatorUpdates, error) {
 	vals, err := st.GetValidatorsByEffectiveBalance()

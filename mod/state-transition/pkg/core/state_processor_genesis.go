@@ -166,5 +166,5 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	return sp.processSyncCommitteeUpdates(st)
+	return sp.processValidatorsSetUpdates(st)
 }

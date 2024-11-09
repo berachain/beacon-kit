@@ -338,7 +338,7 @@ func (sp *StateProcessor[
 	if err := sp.processRandaoMixesReset(st); err != nil {
 		return nil, err
 	}
-	return sp.processSyncCommitteeUpdates(st)
+	return sp.processValidatorsSetUpdates(st)
 }
 
 // processBlockHeader processes the header and ensures it matches the local
