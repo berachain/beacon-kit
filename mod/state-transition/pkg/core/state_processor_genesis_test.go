@@ -67,7 +67,7 @@ func TestInitialize(t *testing.T) {
 
 	// create test inputs
 	var (
-		goodDeposits = []*types.Deposit{
+		genDeposits = []*types.Deposit{
 			{
 				Pubkey: [48]byte{0x01},
 				Amount: maxBalance,
@@ -79,24 +79,40 @@ func TestInitialize(t *testing.T) {
 				Index:  uint64(1),
 			},
 			{
-				Pubkey: [48]byte{0x04},
-				Amount: 2 * maxBalance,
-				Index:  uint64(3),
-			},
-		}
-		badDeposits = []*types.Deposit{
-			{
 				Pubkey: [48]byte{0x03},
 				Amount: minBalance,
 				Index:  uint64(2),
 			},
 			{
+				Pubkey: [48]byte{0x04},
+				Amount: 2 * maxBalance,
+				Index:  uint64(3),
+			},
+			{
 				Pubkey: [48]byte{0x05},
-				Amount: minBalance * 2 / 3,
+				Amount: minBalance - increment,
 				Index:  uint64(4),
 			},
+			{
+				Pubkey: [48]byte{0x06},
+				Amount: minBalance + increment*3/2,
+				Index:  uint64(5),
+			},
+			{
+				Pubkey: [48]byte{0x07},
+				Amount: maxBalance + increment/10,
+				Index:  uint64(6),
+			},
+			{
+				Pubkey: [48]byte{0x08},
+				Amount: minBalance + increment*99/100,
+				Index:  uint64(7),
+			},
 		}
-		genDeposits            = append(goodDeposits, badDeposits...)
+		goodDeposits = []*types.Deposit{
+			genDeposits[0], genDeposits[1], genDeposits[3],
+			genDeposits[5], genDeposits[6],
+		}
 		executionPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		fork                   = &types.Fork{
 			PreviousVersion: version.FromUint32[common.Version](version.Deneb),
@@ -112,7 +128,7 @@ func TestInitialize(t *testing.T) {
 	).Return(nil)
 
 	// run test
-	vals, err := sp.InitializePreminedBeaconStateFromEth1(
+	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
 		beaconState,
 		genDeposits,
 		executionPayloadHeader,
@@ -121,7 +137,7 @@ func TestInitialize(t *testing.T) {
 
 	// check outputs
 	require.NoError(t, err)
-	require.Len(t, vals, len(goodDeposits))
+	require.Len(t, genVals, len(goodDeposits))
 
 	// check beacon state changes
 	resSlot, err := beaconState.GetSlot()
@@ -197,7 +213,7 @@ func TestInitializeBartio(t *testing.T) {
 
 	// create test inputs
 	var (
-		goodDeposits = []*types.Deposit{
+		genDeposits = []*types.Deposit{
 			{
 				Pubkey: [48]byte{0x01},
 				Amount: maxBalance,
@@ -209,24 +225,40 @@ func TestInitializeBartio(t *testing.T) {
 				Index:  uint64(1),
 			},
 			{
-				Pubkey: [48]byte{0x04},
-				Amount: 2 * maxBalance,
-				Index:  uint64(3),
-			},
-		}
-		badDeposits = []*types.Deposit{
-			{
 				Pubkey: [48]byte{0x03},
 				Amount: minBalance,
 				Index:  uint64(2),
 			},
 			{
+				Pubkey: [48]byte{0x04},
+				Amount: 2 * maxBalance,
+				Index:  uint64(3),
+			},
+			{
 				Pubkey: [48]byte{0x05},
-				Amount: minBalance * 2 / 3,
+				Amount: minBalance - increment,
 				Index:  uint64(4),
 			},
+			{
+				Pubkey: [48]byte{0x06},
+				Amount: minBalance + increment*3/2,
+				Index:  uint64(5),
+			},
+			{
+				Pubkey: [48]byte{0x07},
+				Amount: maxBalance + increment/10,
+				Index:  uint64(6),
+			},
+			{
+				Pubkey: [48]byte{0x08},
+				Amount: minBalance + increment*99/100,
+				Index:  uint64(7),
+			},
 		}
-		genDeposits            = append(goodDeposits, badDeposits...)
+		goodDeposits = []*types.Deposit{
+			genDeposits[0], genDeposits[1], genDeposits[3],
+			genDeposits[5], genDeposits[6],
+		}
 		executionPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		fork                   = &types.Fork{
 			PreviousVersion: version.FromUint32[common.Version](version.Deneb),
@@ -242,7 +274,7 @@ func TestInitializeBartio(t *testing.T) {
 	).Return(nil)
 
 	// run test
-	vals, err := sp.InitializePreminedBeaconStateFromEth1(
+	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
 		beaconState,
 		genDeposits,
 		executionPayloadHeader,
@@ -251,7 +283,7 @@ func TestInitializeBartio(t *testing.T) {
 
 	// check outputs
 	require.NoError(t, err)
-	require.Len(t, vals, len(goodDeposits))
+	require.Len(t, genVals, len(goodDeposits))
 
 	// check beacon state changes
 	resSlot, err := beaconState.GetSlot()
@@ -329,12 +361,17 @@ func commonChecksValidators(
 	switch {
 	case dep.Amount >= maxBalance:
 		require.Equal(t, maxBalance, val.EffectiveBalance)
-	case dep.Amount >= minBalance && dep.Amount < maxBalance:
-		require.Equal(t, dep.Amount, val.EffectiveBalance)
-
-		// validator balance must be multiple of EffectiveBalanceIncrement
-		require.Equal(t, math.U64(0), val.EffectiveBalance%increment)
-	case dep.Amount < minBalance:
+	case dep.Amount > minBalance && dep.Amount < maxBalance:
+		// Effective balance must be a multiple of increment.
+		// If balance is not, effective balance is rounded down
+		if dep.Amount%increment == 0 {
+			require.Equal(t, dep.Amount, val.EffectiveBalance)
+		} else {
+			require.Less(t, val.EffectiveBalance, dep.Amount)
+			require.Greater(t, val.EffectiveBalance, dep.Amount-increment)
+			require.Zero(t, val.EffectiveBalance%increment)
+		}
+	case dep.Amount <= minBalance:
 		require.Equal(t, math.Gwei(0), val.EffectiveBalance)
 	}
 }

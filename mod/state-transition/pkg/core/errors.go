@@ -34,6 +34,8 @@ var (
 	// match the expected value.
 	ErrSlotMismatch = errors.New("slot mismatch")
 
+	// ErrProposerMismatch is returned when block builder does not match
+	// with the proposer reported by consensus.
 	ErrProposerMismatch = errors.New("proposer key mismatch")
 
 	// ErrParentRootMismatch is returned when the parent root in an execution
