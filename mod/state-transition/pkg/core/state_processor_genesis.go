@@ -21,7 +21,6 @@
 package core
 
 import (
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
@@ -112,70 +111,58 @@ func (sp *StateProcessor[
 		}
 	}
 
-	// Process activations
-	validators, err := st.GetValidators()
-	if err != nil {
-		return nil, err
-	}
-	for _, val := range validators {
-		var idx math.ValidatorIndex
-		idx, err = st.ValidatorIndexByPubkey(val.GetPubkey())
-		if err != nil {
-			return nil, err
-		}
-
-		var balance math.Gwei
-		balance, err = st.GetBalance(idx)
-		if err != nil {
-			return nil, err
-		}
-
-		updatedBalance := types.ComputeEffectiveBalance(
-			balance,
-			math.Gwei(sp.cs.EffectiveBalanceIncrement()),
-			math.Gwei(sp.cs.MaxEffectiveBalance()),
-		)
-		val.SetEffectiveBalance(updatedBalance)
-		if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
-			return nil, err
-		}
-	}
+	// Currently we don't really process activations for validator.
+	// We do not update ActivationEligibilityEpoch nor ActivationEpoch
+	// for validators.
+	// A validator is created with its EffectiveBalance duly set
+	// (as in Eth 2.0 specs). The EffectiveBalance is updated at the
+	// turn of the epoch, when the consensus is made aware of the
+	// validator existence as well.
+	// TODO: this is likely to change once we introduce a cap on
+	// the validators set, in which case some validators may be evicted
+	// from the validator set because the cap is reached.
 
 	// Handle special case bartio genesis.
 	if sp.cs.DepositEth1ChainID() == bArtioChainID {
-		if err = st.SetGenesisValidatorsRoot(
-			common.Root(hex.MustToBytes(bArtioValRoot))); err != nil {
+		validatorsRoot := common.Root(hex.MustToBytes(bArtioValRoot))
+		if err := st.SetGenesisValidatorsRoot(validatorsRoot); err != nil {
 			return nil, err
 		}
-	} else if err = st.
-		SetGenesisValidatorsRoot(validators.HashTreeRoot()); err != nil {
-		return nil, err
+	} else {
+		validators, err := st.GetValidators()
+		if err != nil {
+			return nil, err
+		}
+		if err = st.
+			SetGenesisValidatorsRoot(validators.HashTreeRoot()); err != nil {
+			return nil, err
+		}
 	}
 
-	if err = st.SetLatestExecutionPayloadHeader(execPayloadHeader); err != nil {
+	if err := st.SetLatestExecutionPayloadHeader(execPayloadHeader); err != nil {
 		return nil, err
 	}
 
 	// Setup a bunch of 0s to prime the DB.
 	for i := range sp.cs.HistoricalRootsLimit() {
 		//#nosec:G701 // won't overflow in practice.
-		if err = st.UpdateBlockRootAtIndex(i, common.Root{}); err != nil {
+		if err := st.UpdateBlockRootAtIndex(i, common.Root{}); err != nil {
 			return nil, err
 		}
-		if err = st.UpdateStateRootAtIndex(i, common.Root{}); err != nil {
+		if err := st.UpdateStateRootAtIndex(i, common.Root{}); err != nil {
 			return nil, err
 		}
 	}
 
-	if err = st.SetNextWithdrawalIndex(0); err != nil {
+	if err := st.SetNextWithdrawalIndex(0); err != nil {
 		return nil, err
 	}
 
-	if err = st.SetNextWithdrawalValidatorIndex(0); err != nil {
+	if err := st.SetNextWithdrawalValidatorIndex(0); err != nil {
 		return nil, err
 	}
 
-	if err = st.SetTotalSlashing(0); err != nil {
+	if err := st.SetTotalSlashing(0); err != nil {
 		return nil, err
 	}
 

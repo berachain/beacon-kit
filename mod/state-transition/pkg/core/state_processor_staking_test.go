@@ -38,9 +38,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestTransitionUpdateValidators shows that when validator is
-// updated (increasing amount), corresponding balance is updated.
-func TestTransitionUpdateValidators(t *testing.T) {
+// TestTransitionUpdateValidator shows the lifecycle
+// of a validator's balance updates.
+func TestTransitionUpdateValidator(t *testing.T) {
 	// Create state processor to test
 	cs := spec.BetnetChainSpec()
 	execEngine := mocks.NewExecutionEngine[
@@ -225,6 +225,192 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	}
 
 	expectedBalance = genDeposits[2].Amount + blkDeposit.Amount
+	expectedEffectiveBalance = expectedBalance
+
+	balance, err = beaconState.GetBalance(idx)
+	require.NoError(t, err)
+	require.Equal(t, expectedBalance, balance)
+
+	val, err = beaconState.ValidatorByIndex(idx)
+	require.NoError(t, err)
+	require.Equal(t, expectedEffectiveBalance, val.EffectiveBalance)
+}
+
+// TestTransitionCreateValidator shows the lifecycle
+// of a validator creation.
+func TestTransitionCreateValidator(t *testing.T) {
+	// Create state processor to test
+	cs := spec.BetnetChainSpec()
+	execEngine := mocks.NewExecutionEngine[
+		*types.ExecutionPayload,
+		*types.ExecutionPayloadHeader,
+		engineprimitives.Withdrawals,
+	](t)
+	mocksSigner := &cryptomocks.BLSSigner{}
+	dummyProposerAddr := []byte{0xff}
+
+	sp := createStateProcessor(
+		cs,
+		execEngine,
+		mocksSigner,
+		func(bytes.B48) ([]byte, error) {
+			return dummyProposerAddr, nil
+		},
+	)
+
+	kvStore, err := initStore()
+	require.NoError(t, err)
+	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
+
+	var (
+		maxBalance       = math.Gwei(cs.MaxEffectiveBalance())
+		increment        = math.Gwei(cs.EffectiveBalanceIncrement())
+		minBalance       = math.Gwei(cs.EjectionBalance())
+		emptyAddress     = common.ExecutionAddress{}
+		emptyCredentials = types.NewCredentialsFromExecutionAddress(
+			emptyAddress,
+		)
+	)
+
+	// STEP 0: Setup initial state via genesis
+	var (
+		genDeposits = []*types.Deposit{
+			{
+				Pubkey:      [48]byte{0x01},
+				Credentials: emptyCredentials,
+				Amount:      minBalance + increment,
+				Index:       uint64(0),
+			},
+		}
+		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genVersion       = version.FromUint32[common.Version](version.Deneb)
+	)
+
+	mocksSigner.On(
+		"VerifySignature",
+		mock.Anything, mock.Anything, mock.Anything,
+	).Return(nil)
+
+	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
+		beaconState,
+		genDeposits,
+		genPayloadHeader,
+		genVersion,
+	)
+	require.NoError(t, err)
+	require.Len(t, genVals, len(genDeposits))
+
+	// STEP 1: top up a genesis validator balance
+	var (
+		ctx = &transition.Context{
+			SkipPayloadVerification: true,
+			SkipValidateResult:      true,
+			ProposerAddress:         dummyProposerAddr,
+		}
+		blkDeposit = &types.Deposit{
+			Pubkey:      [48]byte{0xff}, // a new key for a new validator
+			Credentials: emptyCredentials,
+			Amount:      maxBalance,
+			Index:       uint64(len(genDeposits)),
+		}
+	)
+
+	blk1 := buildNextBlock(
+		t,
+		beaconState,
+		&types.BeaconBlockBody{
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:     10,
+				ExtraData:     []byte("testing"),
+				Transactions:  [][]byte{},
+				Withdrawals:   []*engineprimitives.Withdrawal{}, // no withdrawals
+				BaseFeePerGas: math.NewU256(0),
+			},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: []*types.Deposit{blkDeposit},
+		},
+	)
+
+	// run the test
+	updatedVals, err := sp.Transition(ctx, beaconState, blk1)
+	require.NoError(t, err)
+	require.Empty(t, updatedVals) // validators set updates only at epoch turn
+
+	// check validator balances are duly updated
+	var (
+		expectedBalance          = blkDeposit.Amount
+		expectedEffectiveBalance = expectedBalance
+	)
+	idx, err := beaconState.ValidatorIndexByPubkey(blkDeposit.Pubkey)
+	require.NoError(t, err)
+
+	balance, err := beaconState.GetBalance(idx)
+	require.NoError(t, err)
+	require.Equal(t, expectedBalance, balance)
+
+	val, err := beaconState.ValidatorByIndex(idx)
+	require.NoError(t, err)
+	require.Equal(t, expectedEffectiveBalance, val.EffectiveBalance)
+
+	// check that validator index is still correct
+	latestValIdx, err := beaconState.GetEth1DepositIndex()
+	require.NoError(t, err)
+	require.Equal(t, uint64(len(genDeposits)), latestValIdx)
+
+	// STEP 2: check that effective balance is updated once next epoch arrives
+	var blk = blk1
+	for i := 1; i < int(cs.SlotsPerEpoch())-1; i++ {
+		blk = buildNextBlock(
+			t,
+			beaconState,
+			&types.BeaconBlockBody{
+				ExecutionPayload: &types.ExecutionPayload{
+					Timestamp:     blk.Body.ExecutionPayload.Timestamp + 1,
+					ExtraData:     []byte("testing"),
+					Transactions:  [][]byte{},
+					Withdrawals:   []*engineprimitives.Withdrawal{},
+					BaseFeePerGas: math.NewU256(0),
+				},
+				Eth1Data: &types.Eth1Data{},
+				Deposits: []*types.Deposit{},
+			},
+		)
+
+		updatedVals, err = sp.Transition(ctx, beaconState, blk)
+		require.NoError(t, err)
+		require.Empty(t, updatedVals) // validators set updates only at epoch
+	}
+
+	// finally the block turning epoch
+	blk = buildNextBlock(
+		t,
+		beaconState,
+		&types.BeaconBlockBody{
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:     blk.Body.ExecutionPayload.Timestamp + 1,
+				ExtraData:     []byte("testing"),
+				Transactions:  [][]byte{},
+				Withdrawals:   []*engineprimitives.Withdrawal{},
+				BaseFeePerGas: math.NewU256(0),
+			},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: []*types.Deposit{},
+		},
+	)
+
+	newEpochVals, err := sp.Transition(ctx, beaconState, blk)
+	require.NoError(t, err)
+	require.Len(t, newEpochVals, len(genDeposits)+1)
+
+	// Assuming genesis order is preserved here which is not necessary
+	// TODO: remove this assumption
+
+	// all genesis validators are unchanged
+	for i := range len(genDeposits) {
+		require.Equal(t, genVals[i], newEpochVals[i], fmt.Sprintf("idx: %d", i))
+	}
+
+	expectedBalance = blkDeposit.Amount
 	expectedEffectiveBalance = expectedBalance
 
 	balance, err = beaconState.GetBalance(idx)
