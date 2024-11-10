@@ -177,18 +177,28 @@ func (sp *StateProcessor[
 	// breaches the cap, we find the validator with the smallest stake and
 	// mark it as withdrawable so that it will be eventually evicted and
 	// its deposits returned.
-	capHit, err := sp.isValidatorCapHit(st)
+
+	if sp.processingGenesis {
+		// minor optimization: we do check in Genesis that
+		// validators do no exceed cap. So hitting cap here
+		// should never happen
+		return sp.addValidatorInternal(st, val, dep.GetAmount())
+	}
+
+	candidateVals, err := sp.candidatesForEviction(st)
 	if err != nil {
 		return err
 	}
-	if !capHit {
+	//#nosec:G701 // no overflow risk here
+	if uint32(len(candidateVals)) < sp.cs.GetValidatorSetCapSize() {
+		// cap not hit, just add the validator
 		return sp.addValidatorInternal(st, val, dep.GetAmount())
 	}
 
 	// Adding the validator would breach the cap. Find the validator
 	// with the smallest stake among current and candidate validators
 	// and kit it out.
-	currSmallestVal, err := sp.findSmallestValidator(st)
+	smallestVal, err := sp.smallest(candidateVals)
 	if err != nil {
 		return err
 	}
@@ -199,7 +209,7 @@ func (sp *StateProcessor[
 	}
 	epoch := sp.cs.SlotToEpoch(slot)
 
-	if val.GetEffectiveBalance() <= currSmallestVal.GetEffectiveBalance() {
+	if val.GetEffectiveBalance() <= smallestVal.GetEffectiveBalance() {
 		// in case of tie-break among candidate validator we prefer
 		// existing one so we mark candidate as withdrawable
 		val.SetWithdrawableEpoch(epoch)
@@ -207,51 +217,51 @@ func (sp *StateProcessor[
 	}
 
 	// mark exiting validator for eviction and add candidate
-	currSmallestVal.SetWithdrawableEpoch(epoch)
-	idx, err := st.ValidatorIndexByPubkey(currSmallestVal.GetPubkey())
+	smallestVal.SetWithdrawableEpoch(epoch)
+	idx, err := st.ValidatorIndexByPubkey(smallestVal.GetPubkey())
 	if err != nil {
 		return err
 	}
-	if err = st.UpdateValidatorAtIndex(idx, currSmallestVal); err != nil {
+	if err = st.UpdateValidatorAtIndex(idx, smallestVal); err != nil {
 		return err
 	}
 	return sp.addValidatorInternal(st, val, dep.GetAmount())
 }
 
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) isValidatorCapHit(st BeaconStateT) (bool, error) {
-	if sp.processingGenesis {
-		// minor optimization: we do check in Genesis that
-		// validators do no exceed cap. So hitting cap here
-		// should never happen
-		return false, nil
-	}
-	validators, err := st.GetValidators()
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+]) candidatesForEviction(st BeaconStateT) ([]ValidatorT, error) {
+	slot, err := st.GetSlot()
 	if err != nil {
-		return false, err
+		return nil, err
+	}
+	epoch := sp.cs.SlotToEpoch(slot)
+
+	vals, err := st.GetValidators()
+	if err != nil {
+		return nil, err
+	}
+	activeVals := make([]ValidatorT, 0, len(vals))
+	for _, val := range vals {
+		if val.GetEffectiveBalance() <= math.U64(sp.cs.EjectionBalance()) {
+			continue
+		}
+		if val.GetWithdrawableEpoch() == epoch {
+			continue
+		}
+		activeVals = append(activeVals, val)
 	}
 
-	//#nosec:G701 // no overflow risk here
-	return uint32(len(validators)) >= sp.cs.GetValidatorSetCapSize(), nil
+	return activeVals, nil
 }
 
 // TODO: consider moving this to BeaconState directly
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, DepositT, _, _, _, _, _, _, ValidatorT, _, _, _, _,
-]) findSmallestValidator(st BeaconStateT) (
+	_, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+]) smallest(currentVals []ValidatorT) (
 	ValidatorT,
 	error,
 ) {
-	var smallestVal ValidatorT
-
-	// candidateVal would breach the cap. Find the validator with the
-	// smallest stake among current and candidate validators.
-	currentVals, err := st.GetValidatorsByEffectiveBalance()
-	if err != nil {
-		return smallestVal, err
-	}
-
 	// TODO: consider heapifying slice instead. We only care about the smallest
 	slices.SortFunc(currentVals, func(lhs, rhs ValidatorT) int {
 		var (

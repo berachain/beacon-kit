@@ -740,6 +740,8 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 
 // show that eviction mechanism works fine even if multiple evictions
 // happen in the same epoch.
+//
+//nolint:maintidx // will simplify
 func TestTransitionValidatorCap_DoubleEviction(t *testing.T) {
 	// Create state processor to test
 	cs := spec.BetnetChainSpec()
@@ -806,8 +808,8 @@ func TestTransitionValidatorCap_DoubleEviction(t *testing.T) {
 	smallest1ValAddr := genAddresses[0]
 
 	genDeposits[1].Amount = minBalance + 2*increment
-	smallest2Val := genDeposits[1]
-	// smallest2ValAddr := genAddresses[1]
+	smallestVal2 := genDeposits[1]
+	smallestVal2Addr := genAddresses[1]
 
 	mocksSigner.On(
 		"VerifySignature",
@@ -915,7 +917,7 @@ func TestTransitionValidatorCap_DoubleEviction(t *testing.T) {
 	require.Empty(t, vals) // no vals changes expected before next epoch
 
 	// check the second smallest validator Withdraw epoch is updated
-	smallVal2Idx, err := bs.ValidatorIndexByPubkey(smallest2Val.Pubkey)
+	smallVal2Idx, err := bs.ValidatorIndexByPubkey(smallestVal2.Pubkey)
 	require.NoError(t, err)
 	smallVal2, err := bs.ValidatorByIndex(smallVal2Idx)
 	require.NoError(t, err)
@@ -923,7 +925,7 @@ func TestTransitionValidatorCap_DoubleEviction(t *testing.T) {
 
 	smallVal2Balance, err := bs.GetBalance(smallVal2Idx)
 	require.NoError(t, err)
-	require.Equal(t, smallest2Val.Amount, smallVal2Balance)
+	require.Equal(t, smallestVal2.Amount, smallVal2Balance)
 
 	// check that extra validator is added
 	extraVal2Idx, err := bs.ValidatorIndexByPubkey(extraVal2Key)
@@ -933,6 +935,83 @@ func TestTransitionValidatorCap_DoubleEviction(t *testing.T) {
 	require.Equal(t,
 		math.Epoch(constants.FarFutureEpoch), extraVal2.WithdrawableEpoch,
 	)
+
+	// STEP 3: withdraw and move to next epoch
+	blk3 := buildNextBlock(
+		t,
+		bs,
+		&types.BeaconBlockBody{
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:    blk1.Body.ExecutionPayload.Timestamp + 1,
+				ExtraData:    []byte("testing"),
+				Transactions: [][]byte{},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					{
+						Index:     1,
+						Validator: smallVal2Idx,
+						Address:   smallestVal2Addr,
+						Amount:    smallestVal2.Amount,
+					},
+				},
+				BaseFeePerGas: math.NewU256(0),
+			},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: []*types.Deposit{},
+		},
+	)
+
+	// run the test
+	vals, err = sp.Transition(ctx, bs, blk3)
+	require.NoError(t, err)
+	require.Empty(t, vals) // no vals changes expected before next epoch
+
+	///////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////
+
+	var blk *types.BeaconBlock
+	for i := 3; i < int(cs.SlotsPerEpoch())-1; i++ {
+		blk = buildNextBlock(
+			t,
+			bs,
+			&types.BeaconBlockBody{
+				ExecutionPayload: dummyExecutionPayload,
+				Eth1Data:         &types.Eth1Data{},
+				Deposits:         []*types.Deposit{},
+			},
+		)
+
+		vals, err = sp.Transition(ctx, bs, blk)
+		require.NoError(t, err)
+		require.Empty(t, vals) // no vals changes expected before next epoch
+	}
+
+	blk = buildNextBlock(
+		t,
+		bs,
+		&types.BeaconBlockBody{
+			ExecutionPayload: dummyExecutionPayload,
+			Eth1Data:         &types.Eth1Data{},
+			Deposits:         []*types.Deposit{},
+		},
+	)
+
+	vals, err = sp.Transition(ctx, bs, blk)
+	require.NoError(t, err)
+	require.LessOrEqual(t, uint32(len(vals)), cs.GetValidatorSetCapSize())
+	require.Len(t, vals, len(genDeposits)) // just replaced two validators
+
+	// check that we removed the smallest validators at the epoch turn
+	removedVals := ValUpdatesDiff(genVals, vals)
+	require.Len(t, removedVals, 2)
+	require.Equal(t, smallVal1.Pubkey, removedVals[0].Pubkey)
+	require.Equal(t, smallVal2.Pubkey, removedVals[1].Pubkey)
+
+	// check that we added the incoming validator at the epoch turn
+	addedVals := ValUpdatesDiff(vals, genVals)
+	require.Len(t, addedVals, 2)
+	require.Equal(t, extraVal1.Pubkey, addedVals[0].Pubkey)
+	require.Equal(t, extraVal2.Pubkey, addedVals[1].Pubkey)
 }
 
 func generateTestExecutionAddress(
