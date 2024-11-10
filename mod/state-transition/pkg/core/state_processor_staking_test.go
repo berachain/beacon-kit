@@ -167,7 +167,7 @@ func TestTransitionUpdateValidator(t *testing.T) {
 	require.Equal(t, uint64(len(genDeposits)), latestValIdx)
 
 	// STEP 2: check that effective balance is updated once next epoch arrives
-	var blk = blk1
+	var blk *types.BeaconBlock
 	for i := 1; i < int(cs.SlotsPerEpoch())-1; i++ {
 		blk = buildNextBlock(
 			t,
@@ -323,7 +323,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 	require.Equal(t, uint64(len(genDeposits)), latestValIdx)
 
 	// STEP 2: check that effective balance is updated once next epoch arrives
-	var blk = blk1
+	var blk *types.BeaconBlock
 	for i := 1; i < int(cs.SlotsPerEpoch())-1; i++ {
 		blk = buildNextBlock(
 			t,
