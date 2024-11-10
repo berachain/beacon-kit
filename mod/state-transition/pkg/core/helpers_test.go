@@ -35,6 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	statedb "github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
@@ -219,3 +220,18 @@ func buildNextBlock(
 		Body:          nextBlkBody,
 	}
 }
+
+var (
+	emptyAddress     = common.ExecutionAddress{}
+	emptyCredentials = types.NewCredentialsFromExecutionAddress(
+		emptyAddress,
+	)
+
+	dummyExecutionPayload = &types.ExecutionPayload{
+		Timestamp:     0,
+		ExtraData:     []byte("testing"),
+		Transactions:  [][]byte{},
+		Withdrawals:   []*engineprimitives.Withdrawal{},
+		BaseFeePerGas: math.NewU256(0),
+	}
+)

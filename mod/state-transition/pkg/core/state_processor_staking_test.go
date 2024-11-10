@@ -64,13 +64,9 @@ func TestTransitionUpdateValidator(t *testing.T) {
 	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
 
 	var (
-		maxBalance       = math.Gwei(cs.MaxEffectiveBalance())
-		increment        = math.Gwei(cs.EffectiveBalanceIncrement())
-		minBalance       = math.Gwei(cs.EjectionBalance())
-		emptyAddress     = common.ExecutionAddress{}
-		emptyCredentials = types.NewCredentialsFromExecutionAddress(
-			emptyAddress,
-		)
+		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
+		increment  = math.Gwei(cs.EffectiveBalanceIncrement())
+		minBalance = math.Gwei(cs.EjectionBalance())
 	)
 
 	// STEP 0: Setup initial state via genesis
@@ -177,15 +173,9 @@ func TestTransitionUpdateValidator(t *testing.T) {
 			t,
 			beaconState,
 			&types.BeaconBlockBody{
-				ExecutionPayload: &types.ExecutionPayload{
-					Timestamp:     blk.Body.ExecutionPayload.Timestamp + 1,
-					ExtraData:     []byte("testing"),
-					Transactions:  [][]byte{},
-					Withdrawals:   []*engineprimitives.Withdrawal{},
-					BaseFeePerGas: math.NewU256(0),
-				},
-				Eth1Data: &types.Eth1Data{},
-				Deposits: []*types.Deposit{},
+				ExecutionPayload: dummyExecutionPayload,
+				Eth1Data:         &types.Eth1Data{},
+				Deposits:         []*types.Deposit{},
 			},
 		)
 
@@ -199,15 +189,9 @@ func TestTransitionUpdateValidator(t *testing.T) {
 		t,
 		beaconState,
 		&types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:     blk.Body.ExecutionPayload.Timestamp + 1,
-				ExtraData:     []byte("testing"),
-				Transactions:  [][]byte{},
-				Withdrawals:   []*engineprimitives.Withdrawal{},
-				BaseFeePerGas: math.NewU256(0),
-			},
-			Eth1Data: &types.Eth1Data{},
-			Deposits: []*types.Deposit{},
+			ExecutionPayload: dummyExecutionPayload,
+			Eth1Data:         &types.Eth1Data{},
+			Deposits:         []*types.Deposit{},
 		},
 	)
 
@@ -254,13 +238,9 @@ func TestTransitionCreateValidator(t *testing.T) {
 	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
 
 	var (
-		maxBalance       = math.Gwei(cs.MaxEffectiveBalance())
-		increment        = math.Gwei(cs.EffectiveBalanceIncrement())
-		minBalance       = math.Gwei(cs.EjectionBalance())
-		emptyAddress     = common.ExecutionAddress{}
-		emptyCredentials = types.NewCredentialsFromExecutionAddress(
-			emptyAddress,
-		)
+		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
+		increment  = math.Gwei(cs.EffectiveBalanceIncrement())
+		minBalance = math.Gwei(cs.EjectionBalance())
 	)
 
 	// STEP 0: Setup initial state via genesis
@@ -310,15 +290,9 @@ func TestTransitionCreateValidator(t *testing.T) {
 		t,
 		beaconState,
 		&types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:     10,
-				ExtraData:     []byte("testing"),
-				Transactions:  [][]byte{},
-				Withdrawals:   []*engineprimitives.Withdrawal{}, // no withdrawals
-				BaseFeePerGas: math.NewU256(0),
-			},
-			Eth1Data: &types.Eth1Data{},
-			Deposits: []*types.Deposit{blkDeposit},
+			ExecutionPayload: dummyExecutionPayload,
+			Eth1Data:         &types.Eth1Data{},
+			Deposits:         []*types.Deposit{blkDeposit},
 		},
 	)
 
@@ -355,15 +329,9 @@ func TestTransitionCreateValidator(t *testing.T) {
 			t,
 			beaconState,
 			&types.BeaconBlockBody{
-				ExecutionPayload: &types.ExecutionPayload{
-					Timestamp:     blk.Body.ExecutionPayload.Timestamp + 1,
-					ExtraData:     []byte("testing"),
-					Transactions:  [][]byte{},
-					Withdrawals:   []*engineprimitives.Withdrawal{},
-					BaseFeePerGas: math.NewU256(0),
-				},
-				Eth1Data: &types.Eth1Data{},
-				Deposits: []*types.Deposit{},
+				ExecutionPayload: dummyExecutionPayload,
+				Eth1Data:         &types.Eth1Data{},
+				Deposits:         []*types.Deposit{},
 			},
 		)
 
@@ -377,15 +345,9 @@ func TestTransitionCreateValidator(t *testing.T) {
 		t,
 		beaconState,
 		&types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:     blk.Body.ExecutionPayload.Timestamp + 1,
-				ExtraData:     []byte("testing"),
-				Transactions:  [][]byte{},
-				Withdrawals:   []*engineprimitives.Withdrawal{},
-				BaseFeePerGas: math.NewU256(0),
-			},
-			Eth1Data: &types.Eth1Data{},
-			Deposits: []*types.Deposit{},
+			ExecutionPayload: dummyExecutionPayload,
+			Eth1Data:         &types.Eth1Data{},
+			Deposits:         []*types.Deposit{},
 		},
 	)
 
