@@ -124,17 +124,6 @@ func (sp *StateProcessor[
 		}
 	}
 
-	// Currently we don't really process activations for validator.
-	// We do not update ActivationEligibilityEpoch nor ActivationEpoch
-	// for validators.
-	// A validator is created with its EffectiveBalance duly set
-	// (as in Eth 2.0 specs). The EffectiveBalance is updated at the
-	// turn of the epoch, when the consensus is made aware of the
-	// validator existence as well.
-	// TODO: this is likely to change once we introduce a cap on
-	// the validators set, in which case some validators may be evicted
-	// from the validator set because the cap is reached.
-
 	// Handle special case bartio genesis.
 	if sp.cs.DepositEth1ChainID() == bArtioChainID {
 		validatorsRoot := common.Root(hex.MustToBytes(bArtioValRoot))

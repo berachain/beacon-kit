@@ -45,10 +45,17 @@ type Spec[
 	// calculations.
 	EffectiveBalanceIncrement() uint64
 
+	// HysteresisQuotient returns the quotient used in effective balance
+	// calculations to create hysteresis. This provides resistance to small
+	// balance changes triggering effective balance updates.
 	HysteresisQuotient() uint64
 
+	// HysteresisDownwardMultiplier returns the multiplier used when checking
+	// if the effective balance should be decreased.
 	HysteresisDownwardMultiplier() uint64
 
+	// HysteresisUpwardMultiplier returns the multiplier used when checking
+	// if the effective balance should be increased.
 	HysteresisUpwardMultiplier() uint64
 
 	// Time parameters constants.
