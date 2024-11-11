@@ -113,7 +113,7 @@ func (s *Service[
 			// bad peer, and we would likely AppHash anyways.
 			OptimisticEngine: true,
 
-			SkipPayloadVerification: !blk.GetVerifyPayload(),
+			SkipPayloadVerification: true, // TODO: tmp debuggin
 			ProposerAddress:         blk.GetProposerAddress(),
 			NextPayloadTimestamp:    blk.GetNextPayloadTimestamp(),
 		},
