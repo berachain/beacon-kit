@@ -37,12 +37,23 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
+	slot, err := st.GetSlot()
+	if err != nil {
+		return nil, err
+	}
+	// at this state we have not yet updated the slot
+	incomingEpoch := sp.cs.SlotToEpoch(slot + 1)
+
 	// filter out validators whose effective balance is not sufficient to validate
 	activeVals := make([]ValidatorT, 0, len(vals))
 	for _, val := range vals {
-		if val.GetEffectiveBalance() > math.U64(sp.cs.EjectionBalance()) {
-			activeVals = append(activeVals, val)
+		if val.GetEffectiveBalance() <= math.U64(sp.cs.EjectionBalance()) {
+			continue
 		}
+		if val.GetWithdrawableEpoch() == incomingEpoch {
+			continue
+		}
+		activeVals = append(activeVals, val)
 	}
 
 	// TODO: a more efficient handling would be to only send back to consensus

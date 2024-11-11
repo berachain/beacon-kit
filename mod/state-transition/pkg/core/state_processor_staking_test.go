@@ -381,9 +381,8 @@ func TestTransitionCreateValidator(t *testing.T) {
 }
 
 // TestTransitionHittingValidatorsCap shows that the extra
-// validator added when validators set is at cap is immediately
-// scheduled for withdrawal along with its deposit if it does not
-// improve staked amount.
+// validator added when validators set is at cap gets never activated
+// and its deposit is returned at after next epoch starts.
 func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	// Create state processor to test
 	cs := spec.BetnetChainSpec()
@@ -490,15 +489,31 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	extraVal, err := bs.ValidatorByIndex(extraValIdx)
 	require.NoError(t, err)
 	require.Equal(t, extraValDeposit.Pubkey, extraVal.Pubkey)
-	require.Equal(t, math.Slot(0), extraVal.WithdrawableEpoch)
+	require.Equal(t, math.Slot(1), extraVal.WithdrawableEpoch)
 
 	extraValBalance, err := bs.GetBalance(extraValIdx)
 	require.NoError(t, err)
 	require.Equal(t, extraValDeposit.Amount, extraValBalance)
 
-	// STEP 2: show that following block must contain withdrawals for
-	// the rejected validator
-	blk2 := buildNextBlock(
+	// STEP 2: move the chain to the next epoch and show withdrawals
+	// for rejected validator are enqueuued then
+	var blk *types.BeaconBlock
+	for i := 2; i < int(cs.SlotsPerEpoch()); i++ {
+		blk = buildNextBlock(
+			t,
+			bs,
+			&types.BeaconBlockBody{
+				ExecutionPayload: dummyExecutionPayload,
+				Eth1Data:         &types.Eth1Data{},
+				Deposits:         []*types.Deposit{},
+			},
+		)
+
+		_, err = sp.Transition(ctx, bs, blk)
+		require.NoError(t, err)
+	}
+
+	blk = buildNextBlock(
 		t,
 		bs,
 		&types.BeaconBlockBody{
@@ -522,14 +537,13 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	)
 
 	// run the test
-	_, err = sp.Transition(ctx, bs, blk2)
+	_, err = sp.Transition(ctx, bs, blk)
 	require.NoError(t, err)
 }
 
 // TestTransitionHittingValidatorsCap shows that if the extra
 // validator added when validators set is at cap improves amount staked
-// an existing validator is immediately scheduled for withdrawal
-// along with its deposit.
+// an existing validator is removed at the beginning of next epoch.
 func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	// Create state processor to test
 	cs := spec.BetnetChainSpec()
@@ -648,7 +662,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	require.NoError(t, err)
 	smallVal, err := bs.ValidatorByIndex(smallValIdx)
 	require.NoError(t, err)
-	require.Equal(t, math.Slot(0), smallVal.WithdrawableEpoch)
+	require.Equal(t, math.Slot(1), smallVal.WithdrawableEpoch)
 
 	smallestValBalance, err := bs.GetBalance(smallValIdx)
 	require.NoError(t, err)
@@ -663,9 +677,26 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		math.Epoch(constants.FarFutureEpoch), extraVal.WithdrawableEpoch,
 	)
 
-	// STEP 2: show that following block must contain withdrawals for
-	// the evicted, smallest validator
-	blk2 := buildNextBlock(
+	// STEP 2: move chain to next epoch to see extra validator
+	// be activated and withdraws for evicted validator
+	var blk *types.BeaconBlock
+	for i := 1; i < int(cs.SlotsPerEpoch())-1; i++ {
+		blk = buildNextBlock(
+			t,
+			bs,
+			&types.BeaconBlockBody{
+				ExecutionPayload: dummyExecutionPayload,
+				Eth1Data:         &types.Eth1Data{},
+				Deposits:         []*types.Deposit{},
+			},
+		)
+
+		vals, err = sp.Transition(ctx, bs, blk)
+		require.NoError(t, err)
+		require.Empty(t, vals) // no vals changes expected before next epoch
+	}
+
+	blk = buildNextBlock(
 		t,
 		bs,
 		&types.BeaconBlockBody{
@@ -688,40 +719,6 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		},
 	)
 
-	// run the test
-	vals, err = sp.Transition(ctx, bs, blk2)
-	require.NoError(t, err)
-	require.Empty(t, vals) // no vals changes expected before next epoch
-
-	// STEP 3: moving chain forward to next epoch to see extra validator
-	// be activated, just replaced
-	var blk *types.BeaconBlock
-	for i := 2; i < int(cs.SlotsPerEpoch())-1; i++ {
-		blk = buildNextBlock(
-			t,
-			bs,
-			&types.BeaconBlockBody{
-				ExecutionPayload: dummyExecutionPayload,
-				Eth1Data:         &types.Eth1Data{},
-				Deposits:         []*types.Deposit{},
-			},
-		)
-
-		vals, err = sp.Transition(ctx, bs, blk)
-		require.NoError(t, err)
-		require.Empty(t, vals) // no vals changes expected before next epoch
-	}
-
-	blk = buildNextBlock(
-		t,
-		bs,
-		&types.BeaconBlockBody{
-			ExecutionPayload: dummyExecutionPayload,
-			Eth1Data:         &types.Eth1Data{},
-			Deposits:         []*types.Deposit{},
-		},
-	)
-
 	vals, err = sp.Transition(ctx, bs, blk)
 	require.NoError(t, err)
 	require.LessOrEqual(t, uint32(len(vals)), cs.GetValidatorSetCapSize())
@@ -740,8 +737,6 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 
 // show that eviction mechanism works fine even if multiple evictions
 // happen in the same epoch.
-//
-//nolint:maintidx // will simplify
 func TestTransitionValidatorCap_DoubleEviction(t *testing.T) {
 	// Create state processor to test
 	cs := spec.BetnetChainSpec()
@@ -863,7 +858,7 @@ func TestTransitionValidatorCap_DoubleEviction(t *testing.T) {
 	require.NoError(t, err)
 	smallVal1, err := bs.ValidatorByIndex(smallVal1Idx)
 	require.NoError(t, err)
-	require.Equal(t, math.Slot(0), smallVal1.WithdrawableEpoch)
+	require.Equal(t, math.Slot(1), smallVal1.WithdrawableEpoch)
 
 	smallVal1Balance, err := bs.GetBalance(smallVal1Idx)
 	require.NoError(t, err)
@@ -892,22 +887,9 @@ func TestTransitionValidatorCap_DoubleEviction(t *testing.T) {
 		t,
 		bs,
 		&types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    blk1.Body.ExecutionPayload.Timestamp + 1,
-				ExtraData:    []byte("testing"),
-				Transactions: [][]byte{},
-				Withdrawals: []*engineprimitives.Withdrawal{
-					{
-						Index:     0,
-						Validator: smallVal1Idx,
-						Address:   smallest1ValAddr,
-						Amount:    smallest1Val.Amount,
-					},
-				},
-				BaseFeePerGas: math.NewU256(0),
-			},
-			Eth1Data: &types.Eth1Data{},
-			Deposits: []*types.Deposit{extraVal2Deposit},
+			ExecutionPayload: dummyExecutionPayload,
+			Eth1Data:         &types.Eth1Data{},
+			Deposits:         []*types.Deposit{extraVal2Deposit},
 		},
 	)
 
@@ -921,7 +903,7 @@ func TestTransitionValidatorCap_DoubleEviction(t *testing.T) {
 	require.NoError(t, err)
 	smallVal2, err := bs.ValidatorByIndex(smallVal2Idx)
 	require.NoError(t, err)
-	require.Equal(t, math.Slot(0), smallVal2.WithdrawableEpoch)
+	require.Equal(t, math.Slot(1), smallVal2.WithdrawableEpoch)
 
 	smallVal2Balance, err := bs.GetBalance(smallVal2Idx)
 	require.NoError(t, err)
@@ -936,41 +918,9 @@ func TestTransitionValidatorCap_DoubleEviction(t *testing.T) {
 		math.Epoch(constants.FarFutureEpoch), extraVal2.WithdrawableEpoch,
 	)
 
-	// STEP 3: withdraw and move to next epoch
-	blk3 := buildNextBlock(
-		t,
-		bs,
-		&types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    blk1.Body.ExecutionPayload.Timestamp + 1,
-				ExtraData:    []byte("testing"),
-				Transactions: [][]byte{},
-				Withdrawals: []*engineprimitives.Withdrawal{
-					{
-						Index:     1,
-						Validator: smallVal2Idx,
-						Address:   smallestVal2Addr,
-						Amount:    smallestVal2.Amount,
-					},
-				},
-				BaseFeePerGas: math.NewU256(0),
-			},
-			Eth1Data: &types.Eth1Data{},
-			Deposits: []*types.Deposit{},
-		},
-	)
-
-	// run the test
-	vals, err = sp.Transition(ctx, bs, blk3)
-	require.NoError(t, err)
-	require.Empty(t, vals) // no vals changes expected before next epoch
-
-	///////////////////////////////////////////////////////////////////////////
-	///////////////////////////////////////////////////////////////////////////
-	///////////////////////////////////////////////////////////////////////////
-
+	// STEP 3: move to next epoch
 	var blk *types.BeaconBlock
-	for i := 3; i < int(cs.SlotsPerEpoch())-1; i++ {
+	for i := 2; i < int(cs.SlotsPerEpoch())-1; i++ {
 		blk = buildNextBlock(
 			t,
 			bs,
@@ -990,9 +940,28 @@ func TestTransitionValidatorCap_DoubleEviction(t *testing.T) {
 		t,
 		bs,
 		&types.BeaconBlockBody{
-			ExecutionPayload: dummyExecutionPayload,
-			Eth1Data:         &types.Eth1Data{},
-			Deposits:         []*types.Deposit{},
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:    blk1.Body.ExecutionPayload.Timestamp + 1,
+				ExtraData:    []byte("testing"),
+				Transactions: [][]byte{},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					{
+						Index:     0,
+						Validator: smallVal1Idx,
+						Address:   smallest1ValAddr,
+						Amount:    smallest1Val.Amount,
+					},
+					{
+						Index:     1,
+						Validator: smallVal2Idx,
+						Address:   smallestVal2Addr,
+						Amount:    smallestVal2.Amount,
+					},
+				},
+				BaseFeePerGas: math.NewU256(0),
+			},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: []*types.Deposit{},
 		},
 	)
 

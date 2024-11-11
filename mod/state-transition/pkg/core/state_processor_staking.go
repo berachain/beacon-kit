@@ -185,12 +185,12 @@ func (sp *StateProcessor[
 		return sp.addValidatorInternal(st, val, dep.GetAmount())
 	}
 
-	candidateVals, err := sp.candidatesForEviction(st)
+	nextEpochVals, err := sp.nextEpochValidatorSet(st)
 	if err != nil {
 		return err
 	}
 	//#nosec:G701 // no overflow risk here
-	if uint32(len(candidateVals)) < sp.cs.GetValidatorSetCapSize() {
+	if uint32(len(nextEpochVals)) < sp.cs.GetValidatorSetCapSize() {
 		// cap not hit, just add the validator
 		return sp.addValidatorInternal(st, val, dep.GetAmount())
 	}
@@ -198,7 +198,7 @@ func (sp *StateProcessor[
 	// Adding the validator would breach the cap. Find the validator
 	// with the smallest stake among current and candidate validators
 	// and kit it out.
-	smallestVal, err := sp.smallest(candidateVals)
+	smallestVal, err := sp.smallest(nextEpochVals)
 	if err != nil {
 		return err
 	}
@@ -207,17 +207,18 @@ func (sp *StateProcessor[
 	if err != nil {
 		return err
 	}
-	epoch := sp.cs.SlotToEpoch(slot)
+	nextEpoch := sp.cs.SlotToEpoch(slot) + 1
 
 	if val.GetEffectiveBalance() <= smallestVal.GetEffectiveBalance() {
 		// in case of tie-break among candidate validator we prefer
 		// existing one so we mark candidate as withdrawable
-		val.SetWithdrawableEpoch(epoch)
+		// We wait next epoch to return funds, as a way to curb spamming
+		val.SetWithdrawableEpoch(nextEpoch)
 		return sp.addValidatorInternal(st, val, dep.GetAmount())
 	}
 
 	// mark exiting validator for eviction and add candidate
-	smallestVal.SetWithdrawableEpoch(epoch)
+	smallestVal.SetWithdrawableEpoch(nextEpoch)
 	idx, err := st.ValidatorIndexByPubkey(smallestVal.GetPubkey())
 	if err != nil {
 		return err
@@ -228,14 +229,16 @@ func (sp *StateProcessor[
 	return sp.addValidatorInternal(st, val, dep.GetAmount())
 }
 
+// nextEpochValidatorSet returns the current estimation of what next epoch
+// validator set would be.
 func (sp *StateProcessor[
 	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
-]) candidatesForEviction(st BeaconStateT) ([]ValidatorT, error) {
+]) nextEpochValidatorSet(st BeaconStateT) ([]ValidatorT, error) {
 	slot, err := st.GetSlot()
 	if err != nil {
 		return nil, err
 	}
-	epoch := sp.cs.SlotToEpoch(slot)
+	withdrawEpoch := sp.cs.SlotToEpoch(slot) + 1
 
 	vals, err := st.GetValidators()
 	if err != nil {
@@ -246,7 +249,7 @@ func (sp *StateProcessor[
 		if val.GetEffectiveBalance() <= math.U64(sp.cs.EjectionBalance()) {
 			continue
 		}
-		if val.GetWithdrawableEpoch() == epoch {
+		if val.GetWithdrawableEpoch() == withdrawEpoch {
 			continue
 		}
 		activeVals = append(activeVals, val)
