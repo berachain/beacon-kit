@@ -21,7 +21,6 @@
 package core_test
 
 import (
-	"fmt"
 	"strconv"
 	"testing"
 
@@ -194,15 +193,7 @@ func TestTransitionUpdateValidator(t *testing.T) {
 
 	newEpochVals, err := sp.Transition(ctx, beaconState, blk)
 	require.NoError(t, err)
-	require.Len(t, newEpochVals, len(genDeposits)) // just topped up one validator
-
-	// Assuming genesis order is preserved here which is not necessary
-	// TODO: remove this assumption
-
-	// all genesis validators other than the last are unchanged
-	for i := range len(genDeposits) - 1 {
-		require.Equal(t, genVals[i], newEpochVals[i], fmt.Sprintf("idx: %d", i))
-	}
+	require.Len(t, newEpochVals, 1) // just topped up one validator
 
 	expectedBalance = genDeposits[2].Amount + blkDeposit.Amount
 	expectedEffectiveBalance = expectedBalance
@@ -358,15 +349,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 
 	newEpochVals, err := sp.Transition(ctx, beaconState, blk)
 	require.NoError(t, err)
-	require.Len(t, newEpochVals, len(genDeposits)+1)
-
-	// Assuming genesis order is preserved here which is not necessary
-	// TODO: remove this assumption
-
-	// all genesis validators are unchanged
-	for i := range len(genDeposits) {
-		require.Equal(t, genVals[i], newEpochVals[i], fmt.Sprintf("idx: %d", i))
-	}
+	require.Len(t, newEpochVals, 1) // just added 1 validator
 
 	expectedBalance = blkDeposit.Amount
 	expectedEffectiveBalance = expectedBalance
@@ -722,17 +705,15 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	vals, err = sp.Transition(ctx, bs, blk)
 	require.NoError(t, err)
 	require.LessOrEqual(t, uint32(len(vals)), cs.GetValidatorSetCap())
-	require.Len(t, vals, len(genDeposits)) // just replaced one validator
-
-	// check that we removed the smallest validator at the epoch turn
-	removedVals := ValUpdatesDiff(genVals, vals)
-	require.Len(t, removedVals, 1)
-	require.Equal(t, smallVal.Pubkey, removedVals[0].Pubkey)
+	require.Len(t, vals, 2) // just replaced one validator
 
 	// check that we added the incoming validator at the epoch turn
-	addedVals := ValUpdatesDiff(vals, genVals)
-	require.Len(t, addedVals, 1)
-	require.Equal(t, extraVal.Pubkey, addedVals[0].Pubkey)
+	require.Equal(t, extraVal.Pubkey, vals[0].Pubkey)
+	require.Equal(t, extraVal.EffectiveBalance, vals[0].EffectiveBalance)
+
+	// check that we removed the smallest validator at the epoch turn
+	require.Equal(t, smallVal.Pubkey, vals[1].Pubkey)
+	require.Equal(t, math.Gwei(0), vals[1].EffectiveBalance)
 }
 
 // show that eviction mechanism works fine even if multiple evictions
@@ -823,7 +804,7 @@ func TestTransitionValidatorCap_DoubleEviction(t *testing.T) {
 
 	// STEP 1: Add an extra validator
 	extraVal1Key, rndSeed := generateTestPK(t, rndSeed)
-	extraVal1Creds, _, _ := generateTestExecutionAddress(t, rndSeed)
+	extraVal1Creds, _, rndSeed := generateTestExecutionAddress(t, rndSeed)
 	var (
 		ctx = &transition.Context{
 			SkipPayloadVerification: true,
@@ -968,19 +949,19 @@ func TestTransitionValidatorCap_DoubleEviction(t *testing.T) {
 	vals, err = sp.Transition(ctx, bs, blk)
 	require.NoError(t, err)
 	require.LessOrEqual(t, uint32(len(vals)), cs.GetValidatorSetCap())
-	require.Len(t, vals, len(genDeposits)) // just replaced two validators
-
-	// check that we removed the smallest validators at the epoch turn
-	removedVals := ValUpdatesDiff(genVals, vals)
-	require.Len(t, removedVals, 2)
-	require.Equal(t, smallVal1.Pubkey, removedVals[0].Pubkey)
-	require.Equal(t, smallVal2.Pubkey, removedVals[1].Pubkey)
+	require.Len(t, vals, 4) // just replaced two validators
 
 	// check that we added the incoming validator at the epoch turn
-	addedVals := ValUpdatesDiff(vals, genVals)
-	require.Len(t, addedVals, 2)
-	require.Equal(t, extraVal1.Pubkey, addedVals[0].Pubkey)
-	require.Equal(t, extraVal2.Pubkey, addedVals[1].Pubkey)
+	require.Equal(t, extraVal1.Pubkey, vals[0].Pubkey)
+	require.Equal(t, extraVal1.EffectiveBalance, vals[0].EffectiveBalance)
+	require.Equal(t, extraVal2.Pubkey, vals[1].Pubkey)
+	require.Equal(t, extraVal2.EffectiveBalance, vals[1].EffectiveBalance)
+
+	// check that we removed the smallest validators at the epoch turn
+	require.Equal(t, smallVal1.Pubkey, vals[2].Pubkey)
+	require.Equal(t, math.Gwei(0), vals[2].EffectiveBalance)
+	require.Equal(t, smallVal2.Pubkey, vals[3].Pubkey)
+	require.Equal(t, math.Gwei(0), vals[3].EffectiveBalance)
 }
 
 func generateTestExecutionAddress(

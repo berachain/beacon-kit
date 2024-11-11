@@ -94,6 +94,11 @@ type StateProcessor[
 	// processingGenesis allows initializing correctly
 	// eth1 deposit index upon genesis
 	processingGenesis bool
+
+	// prevEpochValidators tracks the set of validators active during
+	// previous epoch. This is useful at the turn of the epoch to send to
+	// consensus only the diffs rather than the full updated validator set.
+	prevEpochValidators []*transition.ValidatorUpdate
 }
 
 // NewStateProcessor creates a new state processor.
@@ -163,6 +168,7 @@ func NewStateProcessor[
 		executionEngine:       executionEngine,
 		signer:                signer,
 		fGetAddressFromPubKey: fGetAddressFromPubKey,
+		prevEpochValidators:   make([]*transition.ValidatorUpdate, 0),
 	}
 }
 
@@ -338,7 +344,7 @@ func (sp *StateProcessor[
 	if err := sp.processRandaoMixesReset(st); err != nil {
 		return nil, err
 	}
-	return sp.processSyncCommitteeUpdates(st)
+	return sp.processValidatorsSetUpdates(st)
 }
 
 // processBlockHeader processes the header and ensures it matches the local
