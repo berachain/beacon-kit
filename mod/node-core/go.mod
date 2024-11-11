@@ -50,7 +50,6 @@ require (
 
 require (
 	cosmossdk.io/api v0.7.5 // indirect
-	cosmossdk.io/core/testing v0.0.0-unpublished // indirect
 	cosmossdk.io/errors/v2 v2.0.0-20240731132947-df72853b3ca5 // indirect
 	cosmossdk.io/log v1.4.1 // indirect
 	cosmossdk.io/x/tx v0.13.4-0.20240623110059-dec2d5583e39 // indirect
