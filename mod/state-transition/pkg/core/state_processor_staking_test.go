@@ -410,7 +410,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 			creds types.WithdrawalCredentials
 		)
 		key, rndSeed = generateTestPK(t, rndSeed)
-		creds, _, rndSeed = generateTestExecutionAddress(t, rndSeed)
+		creds, rndSeed = generateTestExecutionAddress(t, rndSeed)
 
 		genDeposits = append(genDeposits,
 			&types.Deposit{
@@ -437,7 +437,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 
 	// STEP 1: Try and add an extra validator
 	extraValKey, rndSeed := generateTestPK(t, rndSeed)
-	extraValCreds, extraValAddr, _ := generateTestExecutionAddress(t, rndSeed)
+	extraValCreds, _ := generateTestExecutionAddress(t, rndSeed)
 	var (
 		ctx = &transition.Context{
 			SkipPayloadVerification: true,
@@ -496,6 +496,8 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		require.NoError(t, err)
 	}
 
+	extraValAddr, err := extraValCreds.ToExecutionAddress()
+	require.NoError(t, err)
 	blk = buildNextBlock(
 		t,
 		bs,
@@ -567,15 +569,13 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	)
 
 	// let genesis define all available validators
-	genAddresses := make([]common.ExecutionAddress, 0)
 	for idx := range cs.GetValidatorSetCap() {
 		var (
 			key   bytes.B48
 			creds types.WithdrawalCredentials
-			addr  common.ExecutionAddress
 		)
 		key, rndSeed = generateTestPK(t, rndSeed)
-		creds, addr, rndSeed = generateTestExecutionAddress(t, rndSeed)
+		creds, rndSeed = generateTestExecutionAddress(t, rndSeed)
 
 		genDeposits = append(genDeposits,
 			&types.Deposit{
@@ -585,12 +585,12 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				Index:       uint64(idx),
 			},
 		)
-		genAddresses = append(genAddresses, addr)
 	}
 	// make a deposit small to be ready for eviction
 	genDeposits[0].Amount = minBalance + increment
 	smallestVal := genDeposits[0]
-	smallestValAddr := genAddresses[0]
+	smallestValAddr, err := genDeposits[0].Credentials.ToExecutionAddress()
+	require.NoError(t, err)
 
 	mocksSigner.On(
 		"VerifySignature",
@@ -609,7 +609,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 
 	// STEP 1: Add an extra validator
 	extraValKey, rndSeed := generateTestPK(t, rndSeed)
-	extraValCreds, _, _ := generateTestExecutionAddress(t, rndSeed)
+	extraValCreds, _ := generateTestExecutionAddress(t, rndSeed)
 	var (
 		ctx = &transition.Context{
 			SkipPayloadVerification: true,
@@ -718,6 +718,8 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 
 // show that eviction mechanism works fine even if multiple evictions
 // happen in the same epoch.
+//
+// //nolint:maintidx // TODO: simplify
 func TestTransitionValidatorCap_DoubleEviction(t *testing.T) {
 	// Create state processor to test
 	cs := spec.BetnetChainSpec()
@@ -758,15 +760,13 @@ func TestTransitionValidatorCap_DoubleEviction(t *testing.T) {
 	)
 
 	// let genesis define all available validators
-	genAddresses := make([]common.ExecutionAddress, 0)
 	for idx := range cs.GetValidatorSetCap() {
 		var (
 			key   bytes.B48
 			creds types.WithdrawalCredentials
-			addr  common.ExecutionAddress
 		)
 		key, rndSeed = generateTestPK(t, rndSeed)
-		creds, addr, rndSeed = generateTestExecutionAddress(t, rndSeed)
+		creds, rndSeed = generateTestExecutionAddress(t, rndSeed)
 
 		genDeposits = append(genDeposits,
 			&types.Deposit{
@@ -776,16 +776,17 @@ func TestTransitionValidatorCap_DoubleEviction(t *testing.T) {
 				Index:       uint64(idx),
 			},
 		)
-		genAddresses = append(genAddresses, addr)
 	}
 	// make a deposit small to be ready for eviction
 	genDeposits[0].Amount = minBalance + increment
 	smallest1Val := genDeposits[0]
-	smallest1ValAddr := genAddresses[0]
+	smallest1ValAddr, err := genDeposits[0].Credentials.ToExecutionAddress()
+	require.NoError(t, err)
 
 	genDeposits[1].Amount = minBalance + 2*increment
 	smallestVal2 := genDeposits[1]
-	smallestVal2Addr := genAddresses[1]
+	smallestVal2Addr, err := genDeposits[1].Credentials.ToExecutionAddress()
+	require.NoError(t, err)
 
 	mocksSigner.On(
 		"VerifySignature",
@@ -804,7 +805,7 @@ func TestTransitionValidatorCap_DoubleEviction(t *testing.T) {
 
 	// STEP 1: Add an extra validator
 	extraVal1Key, rndSeed := generateTestPK(t, rndSeed)
-	extraVal1Creds, _, rndSeed := generateTestExecutionAddress(t, rndSeed)
+	extraVal1Creds, rndSeed := generateTestExecutionAddress(t, rndSeed)
 	var (
 		ctx = &transition.Context{
 			SkipPayloadVerification: true,
@@ -814,7 +815,7 @@ func TestTransitionValidatorCap_DoubleEviction(t *testing.T) {
 		extraValDeposit1 = &types.Deposit{
 			Pubkey:      extraVal1Key,
 			Credentials: extraVal1Creds,
-			Amount:      maxBalance,
+			Amount:      maxBalance - increment,
 			Index:       uint64(len(genDeposits)),
 		}
 	)
@@ -856,7 +857,7 @@ func TestTransitionValidatorCap_DoubleEviction(t *testing.T) {
 
 	// STEP 2: add a second, large deposit to evict second smallest validator
 	extraVal2Key, rndSeed := generateTestPK(t, rndSeed)
-	extraVal2Creds, _, _ := generateTestExecutionAddress(t, rndSeed)
+	extraVal2Creds, _ := generateTestExecutionAddress(t, rndSeed)
 	extraVal2Deposit := &types.Deposit{
 		Pubkey:      extraVal2Key,
 		Credentials: extraVal2Creds,
@@ -951,23 +952,36 @@ func TestTransitionValidatorCap_DoubleEviction(t *testing.T) {
 	require.LessOrEqual(t, uint32(len(vals)), cs.GetValidatorSetCap())
 	require.Len(t, vals, 4) // just replaced two validators
 
+	// turn vals into map to avoid ordering issues
+	valsSet := make(map[string]*transition.ValidatorUpdate)
+	for _, v := range vals {
+		valsSet[v.Pubkey.String()] = v
+	}
+	require.Equal(t, len(vals), len(valsSet)) // no duplicates
+
 	// check that we added the incoming validator at the epoch turn
-	require.Equal(t, extraVal1.Pubkey, vals[0].Pubkey)
-	require.Equal(t, extraVal1.EffectiveBalance, vals[0].EffectiveBalance)
-	require.Equal(t, extraVal2.Pubkey, vals[1].Pubkey)
-	require.Equal(t, extraVal2.EffectiveBalance, vals[1].EffectiveBalance)
+	addedVal1, found := valsSet[extraVal1.Pubkey.String()]
+	require.True(t, found)
+	require.Equal(t, extraVal1.EffectiveBalance, addedVal1.EffectiveBalance)
+
+	addedVal2, found := valsSet[extraVal2.Pubkey.String()]
+	require.True(t, found)
+	require.Equal(t, extraVal2.EffectiveBalance, addedVal2.EffectiveBalance)
 
 	// check that we removed the smallest validators at the epoch turn
-	require.Equal(t, smallVal1.Pubkey, vals[2].Pubkey)
-	require.Equal(t, math.Gwei(0), vals[2].EffectiveBalance)
-	require.Equal(t, smallVal2.Pubkey, vals[3].Pubkey)
-	require.Equal(t, math.Gwei(0), vals[3].EffectiveBalance)
+	removedVal1, found := valsSet[smallVal1.Pubkey.String()]
+	require.True(t, found)
+	require.Equal(t, math.Gwei(0), removedVal1.EffectiveBalance)
+
+	removeldVal2, found := valsSet[smallVal2.Pubkey.String()]
+	require.True(t, found)
+	require.Equal(t, math.Gwei(0), removeldVal2.EffectiveBalance)
 }
 
 func generateTestExecutionAddress(
 	t *testing.T,
 	rndSeed int,
-) (types.WithdrawalCredentials, common.ExecutionAddress, int) {
+) (types.WithdrawalCredentials, int) {
 	t.Helper()
 
 	addrStr := strconv.Itoa(rndSeed)
@@ -977,7 +991,7 @@ func generateTestExecutionAddress(
 	rndSeed++
 	return types.NewCredentialsFromExecutionAddress(
 		common.ExecutionAddress(execAddr),
-	), common.ExecutionAddress(execAddr), rndSeed
+	), rndSeed
 }
 
 func generateTestPK(t *testing.T, rndSeed int) (bytes.B48, int) {
