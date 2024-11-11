@@ -26,7 +26,6 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-	"golang.org/x/sync/errgroup"
 )
 
 // ProcessGenesisData processes the genesis state and initializes the beacon
@@ -66,16 +65,7 @@ func (s *Service[
 		return nil, err
 	}
 
-	// To complete block finalization, we wait for the associated blob
-	// to be persisted and verify it's available. Once that is done we
-	// complete block finalization.
-	g, gCtx := errgroup.WithContext(ctx)
-	g.Go(func() error {
-		return s.verifyFinalBlobAvailability(gCtx, beaconBlk)
-	})
-
-	// Wait for the sidecar to be finalized and its availability checked
-	if err = g.Wait(); err != nil {
+	if err = s.verifyFinalBlobAvailability(ctx, beaconBlk); err != nil {
 		return nil, err
 	}
 
