@@ -91,6 +91,11 @@ type (
 		// consensus for the next payload to be proposed. It is also
 		// used to bound current payload upon validation
 		GetNextPayloadTimestamp() math.U64
+
+		// GetVerifyPayload signals whether execution payload should be
+		// verified or not. We should always verify it except when finalizing
+		// replayed blocks.
+		GetVerifyPayload() bool
 	}
 
 	// BeaconBlock represents a generic interface for a beacon block.
