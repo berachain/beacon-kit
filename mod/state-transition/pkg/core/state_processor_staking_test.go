@@ -415,13 +415,13 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	// STEP 0: Setup genesis with GetValidatorSetCapSize validators
 	// TODO: consider instead setting state artificially
 	var (
-		genDeposits      = make([]*types.Deposit, 0, cs.GetValidatorSetCapSize())
+		genDeposits      = make([]*types.Deposit, 0, cs.GetValidatorSetCap())
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		genVersion       = version.FromUint32[common.Version](version.Deneb)
 	)
 
 	// let genesis define all available validators
-	for idx := range cs.GetValidatorSetCapSize() {
+	for idx := range cs.GetValidatorSetCap() {
 		var (
 			key   bytes.B48
 			creds types.WithdrawalCredentials
@@ -578,14 +578,14 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	// STEP 0: Setup genesis with GetValidatorSetCapSize validators
 	// TODO: consider instead setting state artificially
 	var (
-		genDeposits      = make([]*types.Deposit, 0, cs.GetValidatorSetCapSize())
+		genDeposits      = make([]*types.Deposit, 0, cs.GetValidatorSetCap())
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		genVersion       = version.FromUint32[common.Version](version.Deneb)
 	)
 
 	// let genesis define all available validators
 	genAddresses := make([]common.ExecutionAddress, 0)
-	for idx := range cs.GetValidatorSetCapSize() {
+	for idx := range cs.GetValidatorSetCap() {
 		var (
 			key   bytes.B48
 			creds types.WithdrawalCredentials
@@ -721,7 +721,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 
 	vals, err = sp.Transition(ctx, bs, blk)
 	require.NoError(t, err)
-	require.LessOrEqual(t, uint32(len(vals)), cs.GetValidatorSetCapSize())
+	require.LessOrEqual(t, uint32(len(vals)), cs.GetValidatorSetCap())
 	require.Len(t, vals, len(genDeposits)) // just replaced one validator
 
 	// check that we removed the smallest validator at the epoch turn
@@ -771,14 +771,14 @@ func TestTransitionValidatorCap_DoubleEviction(t *testing.T) {
 	// STEP 0: fill genesis with validators till cap. Let two of them
 	// have smaller balance than others, so to be amenable for eviction.
 	var (
-		genDeposits      = make([]*types.Deposit, 0, cs.GetValidatorSetCapSize())
+		genDeposits      = make([]*types.Deposit, 0, cs.GetValidatorSetCap())
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		genVersion       = version.FromUint32[common.Version](version.Deneb)
 	)
 
 	// let genesis define all available validators
 	genAddresses := make([]common.ExecutionAddress, 0)
-	for idx := range cs.GetValidatorSetCapSize() {
+	for idx := range cs.GetValidatorSetCap() {
 		var (
 			key   bytes.B48
 			creds types.WithdrawalCredentials
@@ -967,7 +967,7 @@ func TestTransitionValidatorCap_DoubleEviction(t *testing.T) {
 
 	vals, err = sp.Transition(ctx, bs, blk)
 	require.NoError(t, err)
-	require.LessOrEqual(t, uint32(len(vals)), cs.GetValidatorSetCapSize())
+	require.LessOrEqual(t, uint32(len(vals)), cs.GetValidatorSetCap())
 	require.Len(t, vals, len(genDeposits)) // just replaced two validators
 
 	// check that we removed the smallest validators at the epoch turn

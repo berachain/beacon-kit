@@ -175,7 +175,7 @@ func (sp *StateProcessor[
 
 	// BeaconKit enforces a cap on the validator set size. If the deposit
 	// breaches the cap, we find the validator with the smallest stake and
-	// mark it as withdrawable so that it will be eventually evicted and
+	// mark it as withdrawable so that it will be evicted next epoch and
 	// its deposits returned.
 
 	if sp.processingGenesis {
@@ -190,14 +190,14 @@ func (sp *StateProcessor[
 		return err
 	}
 	//#nosec:G701 // no overflow risk here
-	if uint32(len(nextEpochVals)) < sp.cs.GetValidatorSetCapSize() {
+	if uint32(len(nextEpochVals)) < sp.cs.GetValidatorSetCap() {
 		// cap not hit, just add the validator
 		return sp.addValidatorInternal(st, val, dep.GetAmount())
 	}
 
 	// Adding the validator would breach the cap. Find the validator
 	// with the smallest stake among current and candidate validators
-	// and kit it out.
+	// and kick it out.
 	smallestVal, err := sp.smallest(nextEpochVals)
 	if err != nil {
 		return err

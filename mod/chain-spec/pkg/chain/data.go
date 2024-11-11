@@ -155,5 +155,8 @@ type SpecData[
 	CometValues CometBFTConfigT `mapstructure:"comet-bft-config"`
 
 	// Validators Set config
-	ValidatorSetCapSize uint32 `mapstructure:"validator-set-cap-size"`
+	// ValidatorSetCap is the maximum number of validators that can be active
+	// for a given epoch
+	// Note: ValidatorSetCap must be smaller than ValidatorRegistryLimit.
+	ValidatorSetCap uint32 `mapstructure:"validator-set-cap-size"`
 }
