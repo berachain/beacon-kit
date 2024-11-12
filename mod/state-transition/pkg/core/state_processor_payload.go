@@ -122,7 +122,8 @@ func (sp *StateProcessor[
 		"bound timestamp", nextPayloadTimestamp,
 	)
 
-	if sp.cs.DepositEth1ChainID() == spec.BartioChainID {
+	// We skip timestamp check on Bartio for backward compability reasons
+	if sp.cs.DepositEth1ChainID() != spec.BartioChainID {
 		if pt := payload.GetTimestamp(); pt >= nextPayloadTimestamp {
 			return errors.Wrapf(
 				ErrTooFarInTheFuture,
