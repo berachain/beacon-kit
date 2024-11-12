@@ -18,45 +18,13 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package spec
 
-import (
-	"time"
+// Special cased Bartio for some ad-hoc handling due to the way
+// some bugs were handled on Bartio. To be removed.
+const (
+	BartioChainID uint64 = 80084
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	//nolint:lll // temporary.
+	BArtioValRoot = "0x9147586693b6e8faa837715c0f3071c2000045b54233901c2e7871b15872bc43"
 )
-
-type ConsensusBlock[BeaconBlockT any] struct {
-	blk BeaconBlockT
-
-	// some consensus data useful to build and verify the block
-	*commonConsensusData
-
-	isConsensusSyncing bool
-}
-
-// New creates a new ConsensusBlock instance.
-func (b *ConsensusBlock[BeaconBlockT]) New(
-	beaconBlock BeaconBlockT,
-	proposerAddress []byte,
-	nextPayloadTimestamp time.Time,
-	isConsensusSyncing bool,
-) *ConsensusBlock[BeaconBlockT] {
-	b = &ConsensusBlock[BeaconBlockT]{
-		blk: beaconBlock,
-		commonConsensusData: &commonConsensusData{
-			proposerAddress:      proposerAddress,
-			nextPayloadTimestamp: math.U64(nextPayloadTimestamp.Unix()),
-		},
-		isConsensusSyncing: isConsensusSyncing,
-	}
-	return b
-}
-
-func (b *ConsensusBlock[BeaconBlockT]) GetBeaconBlock() BeaconBlockT {
-	return b.blk
-}
-
-func (b *ConsensusBlock[BeaconBlockT]) GetConsensusSyncing() bool {
-	return b.isConsensusSyncing
-}

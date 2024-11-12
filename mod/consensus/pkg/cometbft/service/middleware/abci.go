@@ -221,7 +221,7 @@ func (h *ABCIMiddleware[
 		blk,
 		req.GetProposerAddress(),
 		req.GetTime().Add(h.minPayloadDelay),
-		true, // verify payload
+		false, // ProcessProposal is not called during state sync
 	)
 	blkEvent := async.NewEvent(ctx, async.BeaconBlockReceived, consensusBlk)
 	if err = h.dispatcher.Publish(blkEvent); err != nil {
@@ -349,9 +349,9 @@ func (h *ABCIMiddleware[
 		req.GetTime().Add(h.minPayloadDelay),
 
 		// Finalize may be called while syncing. In such a case
-		// we can skip payload verification since block is guaranteed
-		// to have been accepted by a super majority of validators.
-		req.SyncingToHeight == req.Height,
+		// we must perform payload verification since block we do
+		// not verify block with ProcessBlock.
+		req.SyncingToHeight != req.Height,
 	)
 	blkEvent := async.NewEvent(
 		ctx,

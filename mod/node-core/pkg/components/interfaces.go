@@ -92,10 +92,15 @@ type (
 		// used to bound current payload upon validation
 		GetNextPayloadTimestamp() math.U64
 
-		// GetVerifyPayload signals whether execution payload should be
-		// verified or not. We should always verify it except when finalizing
-		// replayed blocks.
-		GetVerifyPayload() bool
+		// GetConsensusBlockHeight returns the height of consensus block,
+		//  which may be different from execution payload height
+		// in some networks. Currently only used for logging
+		GetConsensusBlockHeight() math.U64
+
+		// GetConsensusSyncing signals whether consensus is working normally
+		// or is still syncing. In the former case we can skip execution payload
+		// verification on finalized blocks.
+		GetConsensusSyncing() bool
 	}
 
 	// BeaconBlock represents a generic interface for a beacon block.

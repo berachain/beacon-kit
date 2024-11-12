@@ -120,7 +120,7 @@ func DefaultComponents() []any {
 			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader,
 		],
 		components.ProvideStateProcessor[
-			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader,
+			*Logger, *BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader,
 			*BeaconState, *BeaconStateMarshallable, *Deposit, *ExecutionPayload,
 			*ExecutionPayloadHeader, *KVStore,
 		],

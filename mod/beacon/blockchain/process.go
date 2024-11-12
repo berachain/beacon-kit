@@ -113,7 +113,20 @@ func (s *Service[
 			// bad peer, and we would likely AppHash anyways.
 			OptimisticEngine: true,
 
-			SkipPayloadVerification: true, // TODO: tmp debuggin
+			// When we are NOT synced to the tip, process proposal
+			// does NOT get called and thus we must ensure that
+			// NewPayload is called to get the execution
+			// client the payload.
+			//
+			// When we are synced to the tip, we can skip the
+			// NewPayload call since we already gave our execution client
+			// the payload in process proposal.
+			//
+			// In both cases the payload was already accepted by a majority
+			// of validators in their process proposal call and thus
+			// the "verification aspect" of this NewPayload call is
+			// actually irrelevant at this point.
+			SkipPayloadVerification: !blk.GetConsensusSyncing(),
 			ProposerAddress:         blk.GetProposerAddress(),
 			NextPayloadTimestamp:    blk.GetNextPayloadTimestamp(),
 		},
