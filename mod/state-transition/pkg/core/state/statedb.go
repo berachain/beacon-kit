@@ -21,7 +21,6 @@
 package state
 
 import (
-	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -279,19 +278,6 @@ func (s *StateDB[
 		validatorIndex = (validatorIndex + 1) % math.ValidatorIndex(
 			totalValidators,
 		)
-	}
-
-	// on Bartio, for backward compatibility reasons, no withdrawal case
-	// is handled via a list of empty withdrawals (rather than an empty list).
-	// TODO: drop this when we drop other Bartio special cases.
-	//
-	//#nosec:G701 // len(withdrawals) won't ever be negative.
-	if s.cs.DepositEth1ChainID() == spec.BartioChainID &&
-		len(withdrawals) < int(s.cs.MaxWithdrawalsPerPayload()) {
-		for range int(s.cs.MaxWithdrawalsPerPayload()) - len(withdrawals) {
-			var w WithdrawalT
-			withdrawals = append(withdrawals, w)
-		}
 	}
 
 	return withdrawals, nil
