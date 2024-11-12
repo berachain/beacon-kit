@@ -26,7 +26,7 @@ type commonConsensusData struct {
 	// use to verify block builder
 	proposerAddress []byte
 
-	// used to build next block and validated current payload timestamp
+	// used to build next block and validate current payload timestamp
 	nextPayloadTimestamp math.U64
 
 	// useful for logging
