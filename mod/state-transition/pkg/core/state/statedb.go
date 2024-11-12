@@ -284,8 +284,10 @@ func (s *StateDB[
 	// on Bartio, for backward compatibility reasons, no withdrawal case
 	// is handled via a list of empty withdrawals (rather than an empty list).
 	// TODO: drop this when we drop other Bartio special cases.
-	if len(withdrawals) < int(s.cs.MaxWithdrawalsPerPayload()) &&
-		s.cs.DepositEth1ChainID() == spec.BartioChainID {
+	//
+	//#nosec:G701 // len(withdrawals) won't ever be negative.
+	if s.cs.DepositEth1ChainID() == spec.BartioChainID &&
+		len(withdrawals) < int(s.cs.MaxWithdrawalsPerPayload()) {
 		for range int(s.cs.DepositEth1ChainID()) - len(withdrawals) {
 			var w WithdrawalT
 			withdrawals = append(withdrawals, w)
