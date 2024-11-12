@@ -22,7 +22,6 @@ package core
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
@@ -49,11 +48,11 @@ func (sp *StateProcessor[
 	)
 
 	sp.logger.Info("processExecutionPayload",
-		fmt.Sprintf("consensus height %d", ctx.GetConsensusBlockHeight()),
-		fmt.Sprintf("payload height %d", payload.GetNumber()),
-		fmt.Sprintf("payload timestamp %d", payload.GetTimestamp()),
-		fmt.Sprintf("bound timestamp %d", payload.GetTimestamp()),
-		fmt.Sprintf("skip verification %t", ctx.GetSkipPayloadVerification()),
+		"consensus height", ctx.GetConsensusBlockHeight().Unwrap(),
+		"payload height", payload.GetNumber().Unwrap(),
+		"payload timestamp", payload.GetTimestamp().Unwrap(),
+		"bound timestamp", ctx.GetNextPayloadTimestamp().Unwrap(),
+		"skip payload verification", ctx.GetSkipPayloadVerification(),
 	)
 
 	// Skip payload verification if the context is configured as such.
