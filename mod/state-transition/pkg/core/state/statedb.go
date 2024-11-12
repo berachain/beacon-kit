@@ -288,7 +288,7 @@ func (s *StateDB[
 	//#nosec:G701 // len(withdrawals) won't ever be negative.
 	if s.cs.DepositEth1ChainID() == spec.BartioChainID &&
 		len(withdrawals) < int(s.cs.MaxWithdrawalsPerPayload()) {
-		for range int(s.cs.DepositEth1ChainID()) - len(withdrawals) {
+		for range int(s.cs.MaxWithdrawalsPerPayload()) - len(withdrawals) {
 			var w WithdrawalT
 			withdrawals = append(withdrawals, w)
 		}
