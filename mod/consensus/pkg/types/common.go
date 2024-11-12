@@ -23,9 +23,14 @@ package types
 import "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 
 type commonConsensusData struct {
+	// use to verify block builder
 	proposerAddress []byte
 
+	// used to build next block and validated current payload timestamp
 	nextPayloadTimestamp math.U64
+
+	// useful for logging
+	consensusBlkHeight math.U64
 }
 
 // GetProposerAddress returns the address of the validator
@@ -39,4 +44,13 @@ func (c *commonConsensusData) GetProposerAddress() []byte {
 // current payload upon validation.
 func (c *commonConsensusData) GetNextPayloadTimestamp() math.U64 {
 	return c.nextPayloadTimestamp
+}
+
+// GetConsensusBlockHeight returns the height of consensus block,
+//
+//	which may be different from execution payload height
+//
+// in some networks. Currently only used for logging.
+func (c *commonConsensusData) GetConsensusBlockHeight() math.U64 {
+	return c.consensusBlkHeight
 }
