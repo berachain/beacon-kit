@@ -122,7 +122,8 @@ func (sp *StateProcessor[
 		"bound timestamp", nextPayloadTimestamp,
 	)
 
-	// We skip timestamp check on Bartio for backward compability reasons
+	// We skip timestamp check on Bartio for backward compatibility reasons
+	// TODO: enforce the check when we drop other Bartio special cases.
 	if sp.cs.DepositEth1ChainID() != spec.BartioChainID {
 		if pt := payload.GetTimestamp(); pt >= nextPayloadTimestamp {
 			return errors.Wrapf(

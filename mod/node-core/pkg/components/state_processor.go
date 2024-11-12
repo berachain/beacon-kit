@@ -33,7 +33,7 @@ import (
 // StateProcessorInput is the input for the state processor for the depinject
 // framework.
 type StateProcessorInput[
-	LoggerT any,
+	LoggerT log.AdvancedLogger[LoggerT],
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
