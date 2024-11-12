@@ -25,6 +25,7 @@ import (
 	dp "github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // DispatcherInput is the input for the Dispatcher.
@@ -59,7 +60,7 @@ func ProvideDispatcher[
 		dp.WithEvent[async.Event[BlobSidecarsT]](async.SidecarsVerified),
 		dp.WithEvent[async.Event[ConsensusBlockT]](async.FinalBeaconBlockReceived),
 		dp.WithEvent[async.Event[BlobSidecarsT]](async.FinalSidecarsReceived),
-		dp.WithEvent[async.Event[struct{}]](async.BlobSidecarsFinalized),
+		dp.WithEvent[async.Event[math.Slot]](async.BlobSidecarsFinalized),
 		dp.WithEvent[ValidatorUpdateEvent](
 			async.FinalValidatorUpdatesProcessed,
 		),

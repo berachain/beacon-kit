@@ -238,7 +238,7 @@ type (
 		ProcessSidecars(
 			avs AvailabilityStoreT,
 			sidecars BlobSidecarsT,
-		) error
+		) (math.Slot, error)
 		// VerifySidecars verifies the blobs and ensures they match the local
 		// state.
 		VerifySidecars(

@@ -127,20 +127,18 @@ func (sp *Processor[
 ]) ProcessSidecars(
 	avs AvailabilityStoreT,
 	sidecars BlobSidecarsT,
-) error {
+) (math.Slot, error) {
 	defer sp.metrics.measureProcessSidecarsDuration(
 		time.Now(), math.U64(sidecars.Len()),
 	)
 
 	// Abort if there are no blobs to store.
 	if sidecars.Len() == 0 {
-		return nil
+		return 0, nil
 	}
 
 	// If we have reached this point, we can safely assume that the blobs are
 	// valid and can be persisted, as well as that index 0 is filled.
-	return avs.Persist(
-		sidecars.Get(0).GetBeaconBlockHeader().GetSlot(),
-		sidecars,
-	)
+	slot := sidecars.Get(0).GetBeaconBlockHeader().GetSlot()
+	return slot, avs.Persist(slot, sidecars)
 }

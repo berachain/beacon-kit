@@ -26,6 +26,7 @@ import (
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // The Data Availability service is responsible for verifying and processing
@@ -135,7 +136,8 @@ func (s *Service[_, _, _, _]) eventLoop(ctx context.Context) {
 func (s *Service[_, _, BlobSidecarsT, _]) handleFinalSidecarsReceived(
 	msg async.Event[BlobSidecarsT],
 ) {
-	if err := s.processSidecars(msg.Context(), msg.Data()); err != nil {
+	slot, err := s.processSidecars(msg.Context(), msg.Data())
+	if err != nil {
 		s.logger.Error(
 			"Failed to process blob sidecars",
 			"error", err,
@@ -143,8 +145,8 @@ func (s *Service[_, _, BlobSidecarsT, _]) handleFinalSidecarsReceived(
 		return
 	}
 
-	event := async.NewEvent(msg.Context(), async.BlobSidecarsFinalized, struct{}{})
-	if err := s.dispatcher.Publish(event); err != nil {
+	event := async.NewEvent(msg.Context(), async.BlobSidecarsFinalized, slot)
+	if err = s.dispatcher.Publish(event); err != nil {
 		s.logger.Error(
 			"Failed to publish blob finalized event",
 			"error", err,
@@ -186,7 +188,7 @@ func (s *Service[_, ConsensusSidecarsT, _, _]) handleSidecarsReceived(
 func (s *Service[_, _, BlobSidecarsT, _]) processSidecars(
 	_ context.Context,
 	sidecars BlobSidecarsT,
-) error {
+) (math.Slot, error) {
 	// startTime := time.Now()
 	// defer s.metrics.measureBlobProcessingDuration(startTime)
 	return s.bp.ProcessSidecars(

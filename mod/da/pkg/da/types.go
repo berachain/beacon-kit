@@ -20,17 +20,19 @@
 
 package da
 
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+
 // BlobProcessor is the interface for the blobs processor.
 type BlobProcessor[
 	AvailabilityStoreT,
 	ConsensusSidecarsT, BlobSidecarsT any,
 ] interface {
 	// ProcessSidecars processes the blobs and ensures they match the local
-	// state.
+	// state. It returns sidecar slot as well
 	ProcessSidecars(
 		avs AvailabilityStoreT,
 		sidecars BlobSidecarsT,
-	) error
+	) (math.Slot, error)
 	// VerifySidecars verifies the blobs and ensures they match the local state.
 	VerifySidecars(sidecars ConsensusSidecarsT) error
 }

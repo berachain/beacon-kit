@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
@@ -83,10 +84,10 @@ type Service[
 
 	// blobFinalized is used to verify blob sidecar availability upon
 	// block finalization
-	blobFinalized chan struct{}
+	blobFinalized chan math.Slot
 
 	// subBlobFinalized is a channel holding BlobSidecarsFinalized events.
-	subBlobFinalized chan async.Event[struct{}]
+	subBlobFinalized chan async.Event[math.Slot]
 	// subFinalBlkReceived is a channel holding FinalBeaconBlockReceived events.
 	subFinalBlkReceived chan async.Event[ConsensusBlockT]
 	// subBlockReceived is a channel holding BeaconBlockReceived events.
@@ -152,8 +153,8 @@ func NewService[
 		metrics:                 newChainMetrics(telemetrySink),
 		optimisticPayloadBuilds: optimisticPayloadBuilds,
 		forceStartupSyncOnce:    new(sync.Once),
-		blobFinalized:           make(chan struct{}),
-		subBlobFinalized:        make(chan async.Event[struct{}]),
+		blobFinalized:           make(chan math.Slot),
+		subBlobFinalized:        make(chan async.Event[math.Slot]),
 		subFinalBlkReceived:     make(chan async.Event[ConsensusBlockT]),
 		subBlockReceived:        make(chan async.Event[ConsensusBlockT]),
 		subGenDataReceived:      make(chan async.Event[GenesisT]),
