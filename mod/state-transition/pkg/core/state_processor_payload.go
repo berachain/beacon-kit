@@ -108,6 +108,12 @@ func (sp *StateProcessor[
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
 
+	sp.logger.Info("validateStatelessPayload",
+		"payload height", payload.GetNumber(),
+		"payload timestamp", payload.GetTimestamp(),
+		"bound timestamp", nextPayloadTimestamp,
+	)
+
 	if sp.cs.DepositEth1ChainID() == spec.BartioChainID {
 		if pt := payload.GetTimestamp(); pt >= nextPayloadTimestamp {
 			return errors.Wrapf(
