@@ -23,6 +23,7 @@ package core
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -107,12 +108,14 @@ func (sp *StateProcessor[
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
 
-	if pt := payload.GetTimestamp(); pt >= nextPayloadTimestamp {
-		return errors.Wrapf(
-			ErrTooFarInTheFuture,
-			"payload timestamp, max: %d, got: %d",
-			nextPayloadTimestamp, pt,
-		)
+	if sp.cs.DepositEth1ChainID() == spec.BartioChainID {
+		if pt := payload.GetTimestamp(); pt >= nextPayloadTimestamp {
+			return errors.Wrapf(
+				ErrTooFarInTheFuture,
+				"payload timestamp, max: %d, got: %d",
+				nextPayloadTimestamp, pt,
+			)
+		}
 	}
 
 	// Verify the number of withdrawals.
