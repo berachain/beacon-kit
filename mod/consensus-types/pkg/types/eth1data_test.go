@@ -26,6 +26,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -66,7 +67,7 @@ func TestEth1Data_SizeSSZ(t *testing.T) {
 		common.ExecutionHash{},
 	)
 
-	size := eth1Data.SizeSSZ()
+	size := karalabessz.Size(eth1Data)
 	require.Equal(t, uint32(72), size)
 }
 

@@ -26,6 +26,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -38,7 +39,7 @@ func TestWithdrawals(t *testing.T) {
 		expectedSize := uint32(
 			len(withdrawals),
 		) * engineprimitives.WithdrawalSize
-		require.Equal(t, expectedSize, withdrawals.SizeSSZ())
+		require.Equal(t, expectedSize, karalabessz.Size(withdrawals))
 	})
 
 	t.Run("HashTreeRoot", func(t *testing.T) {

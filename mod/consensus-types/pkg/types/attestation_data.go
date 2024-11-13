@@ -75,7 +75,7 @@ func (a *AttestationData) New(
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the AttestationData object in SSZ encoding.
-func (*AttestationData) SizeSSZ() uint32 {
+func (*AttestationData) SizeSSZ(*ssz.Sizer) uint32 {
 	return AttestationDataSize
 }
 
@@ -93,7 +93,7 @@ func (a *AttestationData) HashTreeRoot() common.Root {
 
 // MarshalSSZ marshals the AttestationData object to SSZ format.
 func (a *AttestationData) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, a.SizeSSZ())
+	buf := make([]byte, ssz.Size(a))
 	return buf, ssz.EncodeToBytes(buf, a)
 }
 

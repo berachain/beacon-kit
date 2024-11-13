@@ -72,10 +72,7 @@ func (sp *StateProcessor[
 	// changes.
 	g.Go(func() error {
 		var err error
-		header, err = payload.ToHeader(
-			sp.cs.MaxWithdrawalsPerPayload(),
-			sp.cs.DepositEth1ChainID(),
-		)
+		header, err = payload.ToHeader()
 		return err
 	})
 
