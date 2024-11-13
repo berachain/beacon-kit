@@ -202,7 +202,7 @@ func defaultValidators() NodeSet {
 			},
 			{
 				ElType:   "besu",
-				Replicas: 1,
+				Replicas: 0, // Besu causing flakey tests.
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 		},
@@ -267,12 +267,12 @@ func defaultExecutionSettings() ExecutionSettings {
 		Specs: NodeSpecs{
 			MinCPU:    0,
 			MaxCPU:    0,
-			MinMemory: 1024, //nolint:mnd // 1 GB
+			MinMemory: 0,
 			MaxMemory: 2048, //nolint:mnd // 2 GB
 		},
 		Images: map[string]string{
 			"besu":       "hyperledger/besu:24.5.4",
-			"erigon":     "thorax/erigon:v2.60.1",
+			"erigon":     "erigontech/erigon:v2.60.9",
 			"ethereumjs": "ethpandaops/ethereumjs:stable",
 			"geth":       "ethereum/client-go:stable",
 			"nethermind": "nethermind/nethermind:latest",

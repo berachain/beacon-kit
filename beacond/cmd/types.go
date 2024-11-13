@@ -26,7 +26,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/middleware"
 	consruntimetypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	"github.com/berachain/beacon-kit/mod/da/pkg/da"
@@ -63,14 +62,6 @@ import (
 /* -------------------------------------------------------------------------- */
 
 type (
-	// ABCIMiddleware is a type alias for the ABCIMiddleware.
-	ABCIMiddleware = middleware.ABCIMiddleware[
-		*BeaconBlock,
-		*BlobSidecars,
-		*Genesis,
-		*SlotData,
-	]
-
 	// AttributesFactory is a type alias for the attributes factory.
 	AttributesFactory = attributes.Factory[
 		*BeaconState,
@@ -83,13 +74,7 @@ type (
 		*AvailabilityStore,
 		*BeaconBlockBody,
 		*BeaconBlockHeader,
-		*BlobSidecar,
-		*BlobSidecars,
-	]
-
-	// BlobVerifier is a type alias for the blob verifier.
-	BlobVerifier = dablob.Verifier[
-		*BeaconBlockHeader,
+		*ConsensusSidecars,
 		*BlobSidecar,
 		*BlobSidecars,
 	]
@@ -100,6 +85,7 @@ type (
 	// ChainService is a type alias for the chain service.
 	ChainService = blockchain.Service[
 		*AvailabilityStore,
+		*ConsensusBlock,
 		*BeaconBlock,
 		*BeaconBlockBody,
 		*BeaconBlockHeader,
@@ -114,11 +100,11 @@ type (
 	// CometBFTService is a type alias for the CometBFT service.
 	CometBFTService = cometbft.Service[*Logger]
 
-	// ConsensusMiddleware is a type alias for the consensus middleware.
-	ConsensusMiddleware = cometbft.MiddlewareI
-
 	// DAService is a type alias for the DA service.
-	DAService = da.Service[*AvailabilityStore, *BlobSidecars]
+	DAService = da.Service[
+		*AvailabilityStore,
+		*ConsensusSidecars, *BlobSidecars, *BeaconBlockHeader,
+	]
 
 	// DBManager is a type alias for the database manager.
 	DBManager = manager.DBManager
@@ -245,6 +231,7 @@ type (
 	AvailabilityStore = dastore.Store[*BeaconBlockBody]
 
 	// BeaconBlock type aliases.
+	ConsensusBlock    = consruntimetypes.ConsensusBlock[*BeaconBlock]
 	BeaconBlock       = types.BeaconBlock
 	BeaconBlockBody   = types.BeaconBlockBody
 	BeaconBlockHeader = types.BeaconBlockHeader
@@ -277,10 +264,12 @@ type (
 		Validator,
 	]
 
-	// BlobSidecar is a type alias for the blob sidecar.
-	BlobSidecar = datypes.BlobSidecar
-
-	// BlobSidecars is a type alias for the blob sidecars.
+	// BlobSidecars type aliases.
+	ConsensusSidecars = consruntimetypes.ConsensusSidecars[
+		*BlobSidecars,
+		*BeaconBlockHeader,
+	]
+	BlobSidecar  = datypes.BlobSidecar
 	BlobSidecars = datypes.BlobSidecars
 
 	// BlockStore is a type alias for the block store.

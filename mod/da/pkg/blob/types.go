@@ -55,15 +55,14 @@ type BeaconBlockBody interface {
 	Length() uint64
 }
 
-type BeaconBlockHeader interface {
+type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
 	GetSlot() math.Slot
+	Equals(BeaconBlockHeaderT) bool
 }
 
-//nolint:revive // name conflict
-type BlobVerifier[BlobSidecarsT any] interface {
-	VerifyInclusionProofs(scs BlobSidecarsT, kzgOffset uint64) error
-	VerifyKZGProofs(scs BlobSidecarsT) error
-	VerifySidecars(sidecars BlobSidecarsT, kzgOffset uint64) error
+type ConsensusSidecars[BlobSidecarsT any, BeaconBlockHeaderT any] interface {
+	GetSidecars() BlobSidecarsT
+	GetHeader() BeaconBlockHeaderT
 }
 
 type Sidecar[BeaconBlockHeaderT any] interface {

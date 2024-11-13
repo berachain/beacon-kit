@@ -21,6 +21,7 @@
 package state
 
 import (
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -225,10 +226,6 @@ func (s *StateDB[
 
 	// Iterate through indices to find the next validators to withdraw.
 	for range bound {
-		var (
-			withdrawal WithdrawalT
-			amount     math.Gwei
-		)
 		validator, err = s.ValidatorByIndex(validatorIndex)
 		if err != nil {
 			return nil, err
@@ -247,24 +244,44 @@ func (s *StateDB[
 
 		// Set the amount of the withdrawal depending on the balance of the
 		// validator.
+		var withdrawal WithdrawalT
+
+		//nolint:gocritic // ok.
 		if validator.IsFullyWithdrawable(balance, epoch) {
-			amount = balance
+			withdrawals = append(withdrawals, withdrawal.New(
+				math.U64(withdrawalIndex),
+				validatorIndex,
+				withdrawalAddress,
+				balance,
+			))
+
+			// Increment the withdrawal index to process the next withdrawal.
+			withdrawalIndex++
 		} else if validator.IsPartiallyWithdrawable(
 			balance, math.Gwei(s.cs.MaxEffectiveBalance()),
 		) {
-			amount = balance - math.Gwei(s.cs.MaxEffectiveBalance())
+			withdrawals = append(withdrawals, withdrawal.New(
+				math.U64(withdrawalIndex),
+				validatorIndex,
+				withdrawalAddress,
+				balance-math.Gwei(s.cs.MaxEffectiveBalance()),
+			))
+
+			// Increment the withdrawal index to process the next withdrawal.
+			withdrawalIndex++
+		} else if s.cs.DepositEth1ChainID() == spec.BartioChainID {
+			// Backward compatibility with Bartio
+			// TODO: Drop this when we drop other Bartio special cases.
+			withdrawal = withdrawal.New(
+				math.U64(withdrawalIndex),
+				validatorIndex,
+				withdrawalAddress,
+				0,
+			)
+
+			withdrawals = append(withdrawals, withdrawal)
+			withdrawalIndex++
 		}
-		withdrawal = withdrawal.New(
-			math.U64(withdrawalIndex),
-			validatorIndex,
-			withdrawalAddress,
-			amount,
-		)
-
-		withdrawals = append(withdrawals, withdrawal)
-
-		// Increment the withdrawal index to process the next withdrawal.
-		withdrawalIndex++
 
 		// Cap the number of withdrawals to the maximum allowed per payload.
 		//#nosec:G701 // won't overflow in practice.

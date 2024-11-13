@@ -24,6 +24,7 @@ import (
 	"bytes"
 
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -77,14 +78,24 @@ type StateProcessor[
 	},
 	WithdrawalCredentialsT ~[32]byte,
 ] struct {
+	// logger is used for logging information and errors.
+	logger log.Logger
 	// cs is the chain specification for the beacon chain.
 	cs common.ChainSpec
 	// signer is the BLS signer used for cryptographic operations.
 	signer crypto.BLSSigner
+	// fGetAddressFromPubKey verifies that a validator public key
+	// matches with the proposer address passed by the consensus
+	// Injected via ctor to simplify testing.
+	fGetAddressFromPubKey func(crypto.BLSPubkey) ([]byte, error)
 	// executionEngine is the engine responsible for executing transactions.
 	executionEngine ExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	]
+
+	// processingGenesis allows initializing correctly
+	// eth1 deposit index upon genesis
+	processingGenesis bool
 }
 
 // NewStateProcessor creates a new state processor.
@@ -132,11 +143,13 @@ func NewStateProcessor[
 	},
 	WithdrawalCredentialsT ~[32]byte,
 ](
+	logger log.Logger,
 	cs common.ChainSpec,
 	executionEngine ExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
 	signer crypto.BLSSigner,
+	fGetAddressFromPubKey func(crypto.BLSPubkey) ([]byte, error),
 ) *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, ContextT, DepositT, Eth1DataT, ExecutionPayloadT,
@@ -149,9 +162,11 @@ func NewStateProcessor[
 		ExecutionPayloadHeaderT, ForkT, ForkDataT, KVStoreT, ValidatorT,
 		ValidatorsT, WithdrawalT, WithdrawalsT, WithdrawalCredentialsT,
 	]{
-		cs:              cs,
-		executionEngine: executionEngine,
-		signer:          signer,
+		logger:                logger,
+		cs:                    cs,
+		executionEngine:       executionEngine,
+		signer:                signer,
+		fGetAddressFromPubKey: fGetAddressFromPubKey,
 	}
 }
 
@@ -278,33 +293,22 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
-	// process the freshly created header.
-	if err := sp.processBlockHeader(st, blk); err != nil {
+	if err := sp.processBlockHeader(ctx, st, blk); err != nil {
 		return err
 	}
 
-	// process the execution payload.
-	if err := sp.processExecutionPayload(
-		ctx, st, blk,
-	); err != nil {
+	if err := sp.processExecutionPayload(ctx, st, blk); err != nil {
 		return err
 	}
 
-	// process the withdrawals.
-	if err := sp.processWithdrawals(
-		st, blk.GetBody(),
-	); err != nil {
+	if err := sp.processWithdrawals(st, blk.GetBody()); err != nil {
 		return err
 	}
 
-	// process the randao reveal.
-	if err := sp.processRandaoReveal(
-		st, blk, ctx.GetSkipValidateRandao(),
-	); err != nil {
+	if err := sp.processRandaoReveal(ctx, st, blk); err != nil {
 		return err
 	}
 
-	// process the deposits and ensure they match the local state.
 	if err := sp.processOperations(st, blk); err != nil {
 		return err
 	}
@@ -336,9 +340,11 @@ func (sp *StateProcessor[
 ) (transition.ValidatorUpdates, error) {
 	if err := sp.processRewardsAndPenalties(st); err != nil {
 		return nil, err
-	} else if err = sp.processSlashingsReset(st); err != nil {
+	}
+	if err := sp.processSlashingsReset(st); err != nil {
 		return nil, err
-	} else if err = sp.processRandaoMixesReset(st); err != nil {
+	}
+	if err := sp.processRandaoMixesReset(st); err != nil {
 		return nil, err
 	}
 	return sp.processSyncCommitteeUpdates(st)
@@ -348,23 +354,18 @@ func (sp *StateProcessor[
 // state.
 func (sp *StateProcessor[
 	BeaconBlockT, _, BeaconBlockHeaderT, BeaconStateT,
-	_, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+	ContextT, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
 ]) processBlockHeader(
+	ctx ContextT,
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
-	var (
-		slot              math.Slot
-		err               error
-		latestBlockHeader BeaconBlockHeaderT
-
-		proposer ValidatorT
-	)
-
 	// Ensure the block slot matches the state slot.
-	if slot, err = st.GetSlot(); err != nil {
+	slot, err := st.GetSlot()
+	if err != nil {
 		return err
-	} else if blk.GetSlot() != slot {
+	}
+	if blk.GetSlot() != slot {
 		return errors.Wrapf(
 			ErrSlotMismatch,
 			"expected: %d, got: %d",
@@ -373,20 +374,47 @@ func (sp *StateProcessor[
 	}
 
 	// Verify the parent block root is correct.
-	if latestBlockHeader, err = st.GetLatestBlockHeader(); err != nil {
+	latestBlockHeader, err := st.GetLatestBlockHeader()
+	if err != nil {
 		return err
-	} else if blk.GetSlot() <= latestBlockHeader.GetSlot() {
+	}
+	if blk.GetSlot() <= latestBlockHeader.GetSlot() {
 		return errors.Wrapf(
 			ErrBlockSlotTooLow, "expected: > %d, got: %d",
 			latestBlockHeader.GetSlot(), blk.GetSlot(),
 		)
 	}
 
-	if parentBlockRoot := latestBlockHeader.
-		HashTreeRoot(); parentBlockRoot != blk.GetParentBlockRoot() {
+	parentBlockRoot := latestBlockHeader.HashTreeRoot()
+	if parentBlockRoot != blk.GetParentBlockRoot() {
 		return errors.Wrapf(ErrParentRootMismatch,
 			"expected: %s, got: %s",
 			parentBlockRoot.String(), blk.GetParentBlockRoot().String(),
+		)
+	}
+
+	// Verify that proposer matches with what consensus declares as proposer
+	proposer, err := st.ValidatorByIndex(blk.GetProposerIndex())
+	if err != nil {
+		return err
+	}
+	stateProposerAddress, err := sp.fGetAddressFromPubKey(proposer.GetPubkey())
+	if err != nil {
+		return err
+	}
+	if !bytes.Equal(stateProposerAddress, ctx.GetProposerAddress()) {
+		return errors.Wrapf(
+			ErrProposerMismatch, "store key: %s, consensus key: %s",
+			stateProposerAddress, ctx.GetProposerAddress(),
+		)
+	}
+
+	// Check to make sure the proposer isn't slashed.
+	if proposer.IsSlashed() {
+		return errors.Wrapf(
+			ErrSlashedProposer,
+			"index: %d",
+			blk.GetProposerIndex(),
 		)
 	}
 
@@ -401,31 +429,18 @@ func (sp *StateProcessor[
 	}
 
 	// Calculate the body root to place on the header.
-	var lbh BeaconBlockHeaderT
 	bodyRoot := blk.GetBody().HashTreeRoot()
-	if err = st.SetLatestBlockHeader(
-		lbh.New(
-			blk.GetSlot(),
-			blk.GetProposerIndex(),
-			blk.GetParentBlockRoot(),
-			// state_root is zeroed and overwritten
-			// in the next `process_slot` call.
-			common.Root{},
-			bodyRoot,
-		),
-	); err != nil {
-		return err
-	}
-
-	// Check to make sure the proposer isn't slashed.
-	if proposer, err = st.ValidatorByIndex(blk.GetProposerIndex()); err != nil {
-		return err
-	} else if proposer.IsSlashed() {
-		return errors.Wrapf(
-			ErrSlashedProposer, "index: %d", blk.GetProposerIndex(),
-		)
-	}
-	return nil
+	var lbh BeaconBlockHeaderT
+	lbh = lbh.New(
+		blk.GetSlot(),
+		blk.GetProposerIndex(),
+		blk.GetParentBlockRoot(),
+		// state_root is zeroed and overwritten
+		// in the next `process_slot` call.
+		common.Root{},
+		bodyRoot,
+	)
+	return st.SetLatestBlockHeader(lbh)
 }
 
 // getAttestationDeltas as defined in the Ethereum 2.0 specification.

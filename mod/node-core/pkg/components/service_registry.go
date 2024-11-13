@@ -41,6 +41,7 @@ import (
 // ServiceRegistryInput is the input for the service registry provider.
 type ServiceRegistryInput[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	ConsensusBlockT ConsensusBlock[BeaconBlockT],
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT],
 	BeaconBlockBodyT BeaconBlockBody[
 		BeaconBlockBodyT, *AttestationData, DepositT,
@@ -54,6 +55,7 @@ type ServiceRegistryInput[
 		*Validator, Validators, WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
+	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, BeaconBlockHeaderT],
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	DepositT Deposit[DepositT, *ForkData, WithdrawalCredentials],
@@ -71,18 +73,22 @@ type ServiceRegistryInput[
 ] struct {
 	depinject.In
 	ABCIService *middleware.ABCIMiddleware[
-		BeaconBlockT, BlobSidecarsT, GenesisT, *SlotData,
+		BeaconBlockT, BeaconBlockHeaderT, BlobSidecarsT, GenesisT, *SlotData,
 	]
 	BlockStoreService *blockstore.Service[
 		BeaconBlockT, BeaconBlockStoreT,
 	]
 	ChainService *blockchain.Service[
-		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+		AvailabilityStoreT,
+		ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
 		BeaconBlockHeaderT, BeaconStateT, DepositT, ExecutionPayloadT,
 		ExecutionPayloadHeaderT, GenesisT,
 		*engineprimitives.PayloadAttributes[WithdrawalT],
 	]
-	DAService      *da.Service[AvailabilityStoreT, BlobSidecarsT]
+	DAService *da.Service[
+		AvailabilityStoreT,
+		ConsensusSidecarsT, BlobSidecarsT, BeaconBlockHeaderT,
+	]
 	DBManager      *DBManager
 	DepositService *deposit.Service[
 		BeaconBlockT, BeaconBlockBodyT, DepositT,
@@ -110,6 +116,7 @@ type ServiceRegistryInput[
 // ProvideServiceRegistry is the depinject provider for the service registry.
 func ProvideServiceRegistry[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	ConsensusBlockT ConsensusBlock[BeaconBlockT],
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT],
 	BeaconBlockBodyT BeaconBlockBody[
 		BeaconBlockBodyT, *AttestationData, DepositT,
@@ -123,6 +130,7 @@ func ProvideServiceRegistry[
 		*Validator, Validators, WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
+	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, BeaconBlockHeaderT],
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	DepositT Deposit[DepositT, *ForkData, WithdrawalCredentials],
@@ -138,9 +146,11 @@ func ProvideServiceRegistry[
 	WithdrawalsT Withdrawals[WithdrawalT],
 ](
 	in ServiceRegistryInput[
-		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+		AvailabilityStoreT,
+		ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
 		BeaconBlockHeaderT, BeaconBlockStoreT, BeaconStateT,
-		BeaconStateMarshallableT, BlobSidecarT, BlobSidecarsT,
+		BeaconStateMarshallableT,
+		ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
 		DepositT, DepositStoreT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 		GenesisT, KVStoreT, LoggerT, NodeAPIContextT, WithdrawalT, WithdrawalsT,
 	],

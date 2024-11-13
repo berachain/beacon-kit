@@ -21,6 +21,7 @@
 package types
 
 import (
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
@@ -128,6 +129,16 @@ func (p *ExecutionPayload) DefineSSZ(codec *ssz.Codec) {
 		constants.MaxBytesPerTx,
 	)
 	ssz.DefineSliceOfStaticObjectsContent(codec, &p.Withdrawals, 16)
+
+	// Post Shangai an EL explicitly check that Withdrawals are not nil
+	// (instead empty slices are fine). Currently BeaconKit duly builds
+	// a block with Withdrawals set to empty slice if there are no
+	// withdrawals) but as soon as the block is returned by CometBFT
+	// for verification, the SSZ decoding sets the empty slice to nil.
+	// This code change solves the issue.
+	if p.Withdrawals == nil {
+		p.Withdrawals = make([]*engineprimitives.Withdrawal, 0)
+	}
 }
 
 // MarshalSSZ serializes the ExecutionPayload object into a slice of bytes.
@@ -273,7 +284,7 @@ func (p *ExecutionPayload) GetTree() (*fastssz.Node, error) {
 /* -------------------------------------------------------------------------- */
 
 // MarshalJSON marshals as JSON.
-func (p *ExecutionPayload) MarshalJSON() ([]byte, error) {
+func (p ExecutionPayload) MarshalJSON() ([]byte, error) {
 	type ExecutionPayload struct {
 		ParentHash    common.ExecutionHash           `json:"parentHash"`
 		FeeRecipient  common.ExecutionAddress        `json:"feeRecipient"`
@@ -559,8 +570,7 @@ func (p *ExecutionPayload) ToHeader(
 
 	// TODO: This is live on bArtio with a bug and needs to be hardforked
 	// off of. This is a temporary solution to avoid breaking changes.
-	//nolint:mnd // don't want the circular dep.
-	if eth1ChainID == 80084 {
+	if eth1ChainID == spec.BartioChainID {
 		txsRoot = engineprimitives.BartioTransactions(
 			p.GetTransactions(),
 		).HashTreeRoot()
