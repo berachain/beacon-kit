@@ -22,18 +22,18 @@ require (
 	cosmossdk.io/depinject v1.0.0
 	cosmossdk.io/store/v2 v2.0.0-20240821144902-e88c138760a3
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240821052951-c15422305b4e
-	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240822173558-4e2a8018ae21
-	github.com/berachain/beacon-kit/mod/config v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240821053614-036c5d2945f0
+	github.com/berachain/beacon-kit/mod/cli v0.0.0-20241107170417-7905e3d59a1d
+	github.com/berachain/beacon-kit/mod/config v0.0.0-20241107170417-7905e3d59a1d
+	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20241107170417-7905e3d59a1d
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240904192942-99aeabe6bb1f
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240820191615-398849c34954
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240809202957-3e3f169ad720
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240806211103-d1105603bfc0
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240820191615-398849c34954
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240821000339-4d4242ba4a50
-	github.com/berachain/beacon-kit/mod/node-api v0.0.0-20240806160829-cde2d1347e7e
+	github.com/berachain/beacon-kit/mod/node-api v0.0.0-20241107170417-7905e3d59a1d
 	github.com/berachain/beacon-kit/mod/node-api/engines v0.0.0-20240806160829-cde2d1347e7e
-	github.com/berachain/beacon-kit/mod/observability v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/observability v0.0.0-unpublished
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240911165923-82f71ec86570
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240717225334-64ec6650da31
@@ -78,7 +78,7 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	golang.org/x/time v0.5.0 // indirect
-	google.golang.org/protobuf v1.34.2 // indirect
+	google.golang.org/protobuf v1.35.1 // indirect
 )
 
 require (
@@ -183,7 +183,7 @@ require (
 	github.com/oasisprotocol/curve25519-voi v0.0.0-20230904125328-1f23a7beb09a // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
-	github.com/petermattis/goid v0.0.0-20240607163614-bb94eb51e7a7 // indirect
+	github.com/petermattis/goid v0.0.0-20240813172612-4fcff4a6cae7 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_golang v1.20.1 // indirect
@@ -198,7 +198,7 @@ require (
 	github.com/rs/zerolog v1.33.0 // indirect
 	github.com/sagikazarmark/locafero v0.6.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
-	github.com/sasha-s/go-deadlock v0.3.1 // indirect
+	github.com/sasha-s/go-deadlock v0.3.5 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8 // indirect
 	github.com/spf13/cobra v1.8.1 // indirect
