@@ -176,11 +176,18 @@ func (b *BeaconBlockHeader) GetTree() (*fastssz.Node, error) {
 
 // Equals returns true if the Withdrawal is equal to the other.
 func (b *BeaconBlockHeader) Equals(rhs *BeaconBlockHeader) bool {
-	return b.Slot == rhs.Slot &&
-		b.ProposerIndex == rhs.ProposerIndex &&
-		b.ParentBlockRoot == rhs.ParentBlockRoot &&
-		b.StateRoot == rhs.StateRoot &&
-		b.BodyRoot == rhs.BodyRoot
+	switch {
+	case b == nil && rhs == nil:
+		return true
+	case b != nil && rhs != nil:
+		return b.Slot == rhs.Slot &&
+			b.ProposerIndex == rhs.ProposerIndex &&
+			b.ParentBlockRoot == rhs.ParentBlockRoot &&
+			b.StateRoot == rhs.StateRoot &&
+			b.BodyRoot == rhs.BodyRoot
+	default:
+		return false
+	}
 }
 
 // GetSlot retrieves the slot of the BeaconBlockHeader.

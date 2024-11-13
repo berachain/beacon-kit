@@ -164,11 +164,18 @@ func (w Withdrawal) EncodeRLP(_w io.Writer) error {
 /* -------------------------------------------------------------------------- */
 
 // Equals returns true if the Withdrawal is equal to the other.
-func (w *Withdrawal) Equals(other *Withdrawal) bool {
-	return w.Index == other.Index &&
-		w.Validator == other.Validator &&
-		w.Address == other.Address &&
-		w.Amount == other.Amount
+func (w *Withdrawal) Equals(rhs *Withdrawal) bool {
+	switch {
+	case w == nil && rhs == nil:
+		return true
+	case w != nil && rhs != nil:
+		return w.Index == rhs.Index &&
+			w.Validator == rhs.Validator &&
+			w.Address == rhs.Address &&
+			w.Amount == rhs.Amount
+	default:
+		return false
+	}
 }
 
 // GetIndex returns the unique identifier for the withdrawal.

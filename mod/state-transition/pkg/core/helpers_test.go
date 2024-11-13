@@ -32,6 +32,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/log/pkg/noop"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -130,6 +131,7 @@ func createStateProcessor(
 		engineprimitives.Withdrawals,
 		types.WithdrawalCredentials,
 	](
+		noop.NewLogger[any](),
 		cs,
 		execEngine,
 		signer,
