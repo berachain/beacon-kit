@@ -47,9 +47,7 @@ func (c *commonConsensusData) GetNextPayloadTimestamp() math.U64 {
 }
 
 // GetConsensusBlockHeight returns the height of consensus block,
-//
-//	which may be different from execution payload height
-//
+// which may be different from execution payload height
 // in some networks. Currently only used for logging.
 func (c *commonConsensusData) GetConsensusBlockHeight() math.U64 {
 	return c.consensusBlkHeight
