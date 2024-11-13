@@ -21,6 +21,7 @@
 package state
 
 import (
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -244,6 +245,8 @@ func (s *StateDB[
 		// Set the amount of the withdrawal depending on the balance of the
 		// validator.
 		var withdrawal WithdrawalT
+
+		//nolint:gocritic // ok.
 		if validator.IsFullyWithdrawable(balance, epoch) {
 			withdrawals = append(withdrawals, withdrawal.New(
 				math.U64(withdrawalIndex),
@@ -265,6 +268,18 @@ func (s *StateDB[
 			))
 
 			// Increment the withdrawal index to process the next withdrawal.
+			withdrawalIndex++
+		} else if s.cs.DepositEth1ChainID() == spec.BartioChainID {
+			// Backward compatibility with Bartio
+			// TODO: Drop this when we drop other Bartio special cases.
+			withdrawal = withdrawal.New(
+				math.U64(withdrawalIndex),
+				validatorIndex,
+				withdrawalAddress,
+				0,
+			)
+
+			withdrawals = append(withdrawals, withdrawal)
 			withdrawalIndex++
 		}
 
