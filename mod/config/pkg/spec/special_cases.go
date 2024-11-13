@@ -18,32 +18,13 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package da
+package spec
 
-// BlobProcessor is the interface for the blobs processor.
-type BlobProcessor[
-	AvailabilityStoreT,
-	ConsensusSidecarsT, BlobSidecarsT any,
-] interface {
-	// ProcessSidecars processes the blobs and ensures they match the local
-	// state.
-	ProcessSidecars(
-		avs AvailabilityStoreT,
-		sidecars BlobSidecarsT,
-	) error
-	// VerifySidecars verifies the blobs and ensures they match the local state.
-	VerifySidecars(sidecars ConsensusSidecarsT) error
-}
+// Special cased Bartio for some ad-hoc handling due to the way
+// some bugs were handled on Bartio. To be removed.
+const (
+	BartioChainID uint64 = 80084
 
-type ConsensusSidecars[BlobSidecarsT any, BeaconBlockHeaderT any] interface {
-	GetSidecars() BlobSidecarsT
-	GetHeader() BeaconBlockHeaderT
-}
-
-// BlobSidecar is the interface for the blob sidecar.
-type BlobSidecar interface {
-	// Len returns the length of the sidecar.
-	Len() int
-	// IsNil checks if the sidecar is nil.
-	IsNil() bool
-}
+	//nolint:lll // temporary.
+	BArtioValRoot = "0x9147586693b6e8faa837715c0f3071c2000045b54233901c2e7871b15872bc43"
+)

@@ -24,6 +24,7 @@ import (
 	"os"
 
 	"cosmossdk.io/log"
+	clicontext "github.com/berachain/beacon-kit/mod/cli/pkg/context"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/parser"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
@@ -31,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 )
 
@@ -164,7 +164,7 @@ func getBLSSigner(
 
 	return components.ProvideBlsSigner(
 		components.BlsSignerInput{
-			AppOpts: client.GetViperFromCmd(cmd),
+			AppOpts: clicontext.GetViperFromCmd(cmd),
 			PrivKey: legacyKey,
 		},
 	)

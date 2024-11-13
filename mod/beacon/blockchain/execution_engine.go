@@ -22,18 +22,19 @@ package blockchain
 
 import (
 	"context"
+	"time"
 
-	payloadtime "github.com/berachain/beacon-kit/mod/beacon/payload-time"
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 )
 
 // sendPostBlockFCU sends a forkchoice update to the execution client.
 func (s *Service[
-	_, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _,
+	_, ConsensusBlockT, _, _, _, BeaconStateT, _, _, _, _, _,
 ]) sendPostBlockFCU(
 	ctx context.Context,
 	st BeaconStateT,
-	blk BeaconBlockT,
+	blk ConsensusBlockT,
 ) {
 	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
@@ -54,18 +55,19 @@ func (s *Service[
 // sendNextFCUWithAttributes sends a forkchoice update to the execution
 // client with attributes.
 func (s *Service[
-	_, BeaconBlockT, _, _, BeaconStateT,
+	_, ConsensusBlockT, _, _, _, BeaconStateT,
 	_, _, ExecutionPayloadHeaderT, _, _,
 ]) sendNextFCUWithAttributes(
 	ctx context.Context,
 	st BeaconStateT,
-	blk BeaconBlockT,
+	blk ConsensusBlockT,
 	lph ExecutionPayloadHeaderT,
 ) {
-	var err error
+	beaconBlk := blk.GetBeaconBlock()
+
 	stCopy := st.Copy()
-	if _, err = s.stateProcessor.ProcessSlots(
-		stCopy, blk.GetSlot()+1,
+	if _, err := s.stateProcessor.ProcessSlots(
+		stCopy, beaconBlk.GetSlot()+1,
 	); err != nil {
 		s.logger.Error(
 			"failed to process slots in non-optimistic payload",
@@ -74,13 +76,24 @@ func (s *Service[
 		return
 	}
 
-	prevBlockRoot := blk.HashTreeRoot()
-	payloadTime := blk.GetBody().GetExecutionPayload().GetTimestamp()
-	if _, err = s.localBuilder.RequestPayloadAsync(
+	nextPayloadTime := blk.GetNextPayloadTimestamp().Unwrap()
+
+	// We set timestamp check on Bartio for backward compatibility reasons
+	// TODO: drop this we drop other Bartio special cases.
+	if s.chainSpec.DepositEth1ChainID() == spec.BartioChainID {
+		nextPayloadTime = max(
+			//#nosec:G701
+			uint64(time.Now().Unix()+1),
+			uint64((lph.GetTimestamp() + 1)),
+		)
+	}
+
+	prevBlockRoot := beaconBlk.HashTreeRoot()
+	if _, err := s.localBuilder.RequestPayloadAsync(
 		ctx,
 		stCopy,
-		blk.GetSlot()+1,
-		payloadtime.Next(s.chainSpec, payloadTime),
+		beaconBlk.GetSlot()+1,
+		nextPayloadTime,
 		prevBlockRoot,
 		lph.GetBlockHash(),
 		lph.GetParentHash(),
@@ -96,13 +109,15 @@ func (s *Service[
 // sendNextFCUWithoutAttributes sends a forkchoice update to the
 // execution client without attributes.
 func (s *Service[
-	_, BeaconBlockT, _, _, _, _, _,
+	_, ConsensusBlockT, _, _, _, _, _, _,
 	ExecutionPayloadHeaderT, _, PayloadAttributesT,
 ]) sendNextFCUWithoutAttributes(
 	ctx context.Context,
-	blk BeaconBlockT,
+	blk ConsensusBlockT,
 	lph ExecutionPayloadHeaderT,
 ) {
+	beaconBlk := blk.GetBeaconBlock()
+
 	if _, _, err := s.executionEngine.NotifyForkchoiceUpdate(
 		ctx,
 		// TODO: Switch to New().
@@ -113,7 +128,7 @@ func (s *Service[
 				SafeBlockHash:      lph.GetParentHash(),
 				FinalizedBlockHash: lph.GetParentHash(),
 			},
-			s.chainSpec.ActiveForkVersionForSlot(blk.GetSlot()),
+			s.chainSpec.ActiveForkVersionForSlot(beaconBlk.GetSlot()),
 		),
 	); err != nil {
 		s.logger.Error(

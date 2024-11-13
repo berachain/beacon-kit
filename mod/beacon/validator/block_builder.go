@@ -25,7 +25,6 @@ import (
 	"fmt"
 	"time"
 
-	payloadtime "github.com/berachain/beacon-kit/mod/beacon/payload-time"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -76,18 +75,17 @@ func (s *Service[
 	}
 
 	// Create a new empty block from the current state.
-	blk, err = s.getEmptyBeaconBlockForSlot(
-		st, slotData.GetSlot(),
-	)
+	blk, err = s.getEmptyBeaconBlockForSlot(st, slotData.GetSlot())
 	if err != nil {
 		return blk, sidecars, err
 	}
 
 	// Get the payload for the block.
-	envelope, err := s.retrieveExecutionPayload(ctx, st, blk)
+	envelope, err := s.retrieveExecutionPayload(ctx, st, blk, slotData)
 	if err != nil {
 		return blk, sidecars, err
-	} else if envelope == nil {
+	}
+	if envelope == nil {
 		return blk, sidecars, ErrNilPayload
 	}
 
@@ -114,7 +112,13 @@ func (s *Service[
 
 	// Compute the state root for the block.
 	g.Go(func() error {
-		return s.computeAndSetStateRoot(ctx, st, blk)
+		return s.computeAndSetStateRoot(
+			ctx,
+			slotData.GetProposerAddress(),
+			slotData.GetNextPayloadTimestamp(),
+			st,
+			blk,
+		)
 	})
 
 	// Wait for all the goroutines to finish.
@@ -195,9 +199,12 @@ func (s *Service[
 // retrieveExecutionPayload retrieves the execution payload for the block.
 func (s *Service[
 	_, BeaconBlockT, _, BeaconStateT, _, _, _, _,
-	ExecutionPayloadT, ExecutionPayloadHeaderT, _, _, _,
+	ExecutionPayloadT, ExecutionPayloadHeaderT, _, _, SlotDataT,
 ]) retrieveExecutionPayload(
-	ctx context.Context, st BeaconStateT, blk BeaconBlockT,
+	ctx context.Context,
+	st BeaconStateT,
+	blk BeaconBlockT,
+	slotData SlotDataT,
 ) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
 	//
 	// TODO: Add external block builders to this flow.
@@ -235,7 +242,7 @@ func (s *Service[
 			ctx,
 			st,
 			blk.GetSlot(),
-			payloadtime.Next(s.chainSpec, lph.GetTimestamp()),
+			slotData.GetNextPayloadTimestamp().Unwrap(),
 			blk.GetParentBlockRoot(),
 			lph.GetBlockHash(),
 			lph.GetParentHash(),
@@ -330,10 +337,18 @@ func (s *Service[
 	_, BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
 ]) computeAndSetStateRoot(
 	ctx context.Context,
+	proposerAddress []byte,
+	nextPayloadTimestamp math.U64,
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
-	stateRoot, err := s.computeStateRoot(ctx, st, blk)
+	stateRoot, err := s.computeStateRoot(
+		ctx,
+		proposerAddress,
+		nextPayloadTimestamp,
+		st,
+		blk,
+	)
 	if err != nil {
 		s.logger.Error(
 			"failed to compute state root while building block ❗️ ",
@@ -351,6 +366,8 @@ func (s *Service[
 	_, BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
 ]) computeStateRoot(
 	ctx context.Context,
+	proposerAddress []byte,
+	nextPayloadTimestamp math.U64,
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) (common.Root, error) {
@@ -366,6 +383,8 @@ func (s *Service[
 			SkipPayloadVerification: true,
 			SkipValidateResult:      true,
 			SkipValidateRandao:      true,
+			ProposerAddress:         proposerAddress,
+			NextPayloadTimestamp:    nextPayloadTimestamp,
 		},
 		st, blk,
 	); err != nil {

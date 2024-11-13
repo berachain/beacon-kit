@@ -54,40 +54,18 @@ func ProvideBlobProofVerifier(
 	)
 }
 
-// BlobVerifierInput is the input for the BlobVerifier.
-type BlobVerifierInput struct {
-	depinject.In
-	BlobProofVerifier kzg.BlobProofVerifier
-	TelemetrySink     *metrics.TelemetrySink
-}
-
-// ProvideBlobVerifier is a function that provides the BlobVerifier to the
-// depinject framework.
-func ProvideBlobVerifier[
-	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
-	BlobSidecarT BlobSidecar[BeaconBlockHeaderT],
-	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
-](in BlobVerifierInput) *dablob.Verifier[
-	BeaconBlockHeaderT, BlobSidecarT, BlobSidecarsT,
-] {
-	return dablob.NewVerifier[
-		BeaconBlockHeaderT,
-		BlobSidecarT,
-		BlobSidecarsT,
-	](in.BlobProofVerifier, in.TelemetrySink)
-}
-
 // BlobProcessorIn is the input for the BlobProcessor.
 type BlobProcessorIn[
 	BlobSidecarsT any,
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	LoggerT any,
 ] struct {
 	depinject.In
 
-	BlobVerifier  BlobVerifier[BlobSidecarsT]
-	ChainSpec     common.ChainSpec
-	Logger        LoggerT
-	TelemetrySink *metrics.TelemetrySink
+	BlobProofVerifier kzg.BlobProofVerifier
+	ChainSpec         common.ChainSpec
+	Logger            LoggerT
+	TelemetrySink     *metrics.TelemetrySink
 }
 
 // ProvideBlobProcessor is a function that provides the BlobProcessor to the
@@ -96,25 +74,27 @@ func ProvideBlobProcessor[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	BeaconBlockBodyT any,
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, BeaconBlockHeaderT],
 	BlobSidecarT BlobSidecar[BeaconBlockHeaderT],
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
-	in BlobProcessorIn[BlobSidecarsT, LoggerT],
+	in BlobProcessorIn[BlobSidecarsT, BeaconBlockHeaderT, LoggerT],
 ) *dablob.Processor[
 	AvailabilityStoreT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	BlobSidecarT, BlobSidecarsT,
+	ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
 ] {
 	return dablob.NewProcessor[
 		AvailabilityStoreT,
 		BeaconBlockBodyT,
 		BeaconBlockHeaderT,
+		ConsensusSidecarsT,
 		BlobSidecarT,
 		BlobSidecarsT,
 	](
 		in.Logger.With("service", "blob-processor"),
 		in.ChainSpec,
-		in.BlobVerifier,
+		in.BlobProofVerifier,
 		types.BlockBodyKZGOffset,
 		in.TelemetrySink,
 	)
@@ -123,7 +103,7 @@ func ProvideBlobProcessor[
 // DAServiceIn is the input for the BlobService.
 type DAServiceIn[
 	AvailabilityStoreT any,
-	BeaconBlockBodyT any,
+	ConsensusSidecarsT any,
 	BlobSidecarsT any,
 	LoggerT any,
 ] struct {
@@ -131,7 +111,7 @@ type DAServiceIn[
 
 	AvailabilityStore AvailabilityStoreT
 	BlobProcessor     BlobProcessor[
-		AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT,
+		AvailabilityStoreT, ConsensusSidecarsT, BlobSidecarsT,
 	]
 	Dispatcher Dispatcher
 	Logger     LoggerT
@@ -142,17 +122,24 @@ type DAServiceIn[
 func ProvideDAService[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	BeaconBlockBodyT any,
+	BeaconBlockHeaderT any,
+	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, BeaconBlockHeaderT],
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	in DAServiceIn[
-		AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT, LoggerT,
+		AvailabilityStoreT, ConsensusSidecarsT, BlobSidecarsT, LoggerT,
 	],
-) *da.Service[AvailabilityStoreT, BlobSidecarsT] {
+) *da.Service[
+	AvailabilityStoreT,
+	ConsensusSidecarsT, BlobSidecarsT, BeaconBlockHeaderT,
+] {
 	return da.NewService[
 		AvailabilityStoreT,
+		ConsensusSidecarsT,
 		BlobSidecarsT,
+		BeaconBlockHeaderT,
 	](
 		in.AvailabilityStore,
 		in.BlobProcessor,
