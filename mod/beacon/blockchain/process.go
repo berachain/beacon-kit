@@ -130,6 +130,7 @@ func (s *Service[
 
 			ProposerAddress:      blk.GetProposerAddress(),
 			NextPayloadTimestamp: blk.GetNextPayloadTimestamp(),
+			ConsensusBlockHeight: blk.GetConsensusBlockHeight(),
 		},
 		st,
 		blk.GetBeaconBlock(),

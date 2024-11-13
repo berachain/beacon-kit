@@ -130,6 +130,7 @@ func (s *Service[
 			SkipValidateRandao:      false,
 			ProposerAddress:         blk.GetProposerAddress(),
 			NextPayloadTimestamp:    blk.GetNextPayloadTimestamp(),
+			ConsensusBlockHeight:    blk.GetConsensusBlockHeight(),
 		},
 		st, blk.GetBeaconBlock(),
 	)
