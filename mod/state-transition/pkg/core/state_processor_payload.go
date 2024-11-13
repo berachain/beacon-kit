@@ -48,7 +48,7 @@ func (sp *StateProcessor[
 	)
 
 	sp.logger.Info("processExecutionPayload",
-		"consensus height", ctx.GetConsensusBlockHeight().Unwrap(),
+		"consensus height", blk.GetSlot().Unwrap(),
 		"payload height", payload.GetNumber().Unwrap(),
 		"payload timestamp", payload.GetTimestamp().Unwrap(),
 		"bound timestamp", ctx.GetNextPayloadTimestamp().Unwrap(),

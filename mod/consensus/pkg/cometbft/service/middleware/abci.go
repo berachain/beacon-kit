@@ -216,18 +216,11 @@ func (h *ABCIMiddleware[
 	}
 
 	// notify that the beacon block has been received.
-	if req.GetHeight() < 0 {
-		return &cmtabci.ProcessProposalResponse{
-			Status: cmtabci.PROCESS_PROPOSAL_STATUS_UNKNOWN,
-		}, ErrUnexpectedNegativeHeight(nil)
-	}
-
 	var consensusBlk *types.ConsensusBlock[BeaconBlockT]
 	consensusBlk = consensusBlk.New(
 		blk,
 		req.GetProposerAddress(),
 		req.GetTime().Add(h.minPayloadDelay),
-		math.U64(req.GetHeight()),
 	)
 	blkEvent := async.NewEvent(ctx, async.BeaconBlockReceived, consensusBlk)
 	if err = h.dispatcher.Publish(blkEvent); err != nil {
@@ -348,16 +341,11 @@ func (h *ABCIMiddleware[
 	}
 
 	// notify that the final beacon block has been received.
-	if req.GetHeight() < 0 {
-		return nil, ErrUnexpectedNegativeHeight(nil)
-	}
-
 	var consensusBlk *types.ConsensusBlock[BeaconBlockT]
 	consensusBlk = consensusBlk.New(
 		blk,
 		req.GetProposerAddress(),
 		req.GetTime().Add(h.minPayloadDelay),
-		math.U64(req.GetHeight()),
 	)
 	blkEvent := async.NewEvent(
 		ctx,

@@ -33,12 +33,6 @@ var (
 		)
 	}
 
-	ErrUnexpectedNegativeHeight = func(errTimeout error) error {
-		return errors.Wrapf(errTimeout,
-			"Received consensus block with negative height",
-		)
-	}
-
 	ErrBuildBeaconBlockTimeout = func(errTimeout error) error {
 		return errors.Wrapf(errTimeout,
 			"A timeout occurred while waiting for a beacon block to be built",

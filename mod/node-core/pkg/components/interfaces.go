@@ -91,11 +91,6 @@ type (
 		// consensus for the next payload to be proposed. It is also
 		// used to bound current payload upon validation
 		GetNextPayloadTimestamp() math.U64
-
-		// GetConsensusBlockHeight returns the height of consensus block,
-		//  which may be different from execution payload height
-		// in some networks. Currently only used for logging
-		GetConsensusBlockHeight() math.U64
 	}
 
 	// BeaconBlock represents a generic interface for a beacon block.

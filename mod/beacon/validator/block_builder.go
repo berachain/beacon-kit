@@ -116,7 +116,6 @@ func (s *Service[
 			ctx,
 			slotData.GetProposerAddress(),
 			slotData.GetNextPayloadTimestamp(),
-			slotData.GetConsensusBlockHeight(),
 			st,
 			blk,
 		)
@@ -340,7 +339,6 @@ func (s *Service[
 	ctx context.Context,
 	proposerAddress []byte,
 	nextPayloadTimestamp math.U64,
-	consensusBlockHeight math.U64,
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
@@ -348,7 +346,6 @@ func (s *Service[
 		ctx,
 		proposerAddress,
 		nextPayloadTimestamp,
-		consensusBlockHeight,
 		st,
 		blk,
 	)
@@ -371,7 +368,6 @@ func (s *Service[
 	ctx context.Context,
 	proposerAddress []byte,
 	nextPayloadTimestamp math.U64,
-	consensusBlockHeight math.U64,
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) (common.Root, error) {
@@ -389,7 +385,6 @@ func (s *Service[
 			SkipValidateRandao:      true,
 			ProposerAddress:         proposerAddress,
 			NextPayloadTimestamp:    nextPayloadTimestamp,
-			ConsensusBlockHeight:    consensusBlockHeight,
 		},
 		st, blk,
 	); err != nil {

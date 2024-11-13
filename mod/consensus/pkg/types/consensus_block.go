@@ -38,14 +38,12 @@ func (b *ConsensusBlock[BeaconBlockT]) New(
 	beaconBlock BeaconBlockT,
 	proposerAddress []byte,
 	nextPayloadTimestamp time.Time,
-	consensusBlkHeight math.U64,
 ) *ConsensusBlock[BeaconBlockT] {
 	b = &ConsensusBlock[BeaconBlockT]{
 		blk: beaconBlock,
 		commonConsensusData: &commonConsensusData{
 			proposerAddress:      proposerAddress,
 			nextPayloadTimestamp: math.U64(nextPayloadTimestamp.Unix()),
-			consensusBlkHeight:   consensusBlkHeight,
 		},
 	}
 	return b
