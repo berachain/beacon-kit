@@ -46,6 +46,7 @@ func (b *SlotData[AttestationDataT, SlashingInfoT]) New(
 	slashingInfo []SlashingInfoT,
 	proposerAddress []byte,
 	nextPayloadTimestamp time.Time,
+	consensusBlkHeight math.U64,
 ) *SlotData[AttestationDataT, SlashingInfoT] {
 	b = &SlotData[AttestationDataT, SlashingInfoT]{
 		slot:            slot,
@@ -54,6 +55,7 @@ func (b *SlotData[AttestationDataT, SlashingInfoT]) New(
 		commonConsensusData: &commonConsensusData{
 			proposerAddress:      proposerAddress,
 			nextPayloadTimestamp: math.U64(nextPayloadTimestamp.Unix()),
+			consensusBlkHeight:   consensusBlkHeight,
 		},
 	}
 	return b

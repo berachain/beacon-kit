@@ -218,6 +218,9 @@ func (s *Service[LoggerT]) PrepareProposal(
 		// is guaranteed to be strictly larger than
 		// prevBlock.GetTime() + h.minPayloadDelay
 		req.GetTime(),
+
+		//#nosec:G701 // PrepareBlock height guaranteed to be non-negative
+		math.U64(req.GetHeight()),
 	)
 	blkBz, sidecarsBz, err := s.Middleware.PrepareProposal(
 		s.prepareProposalState.Context(),
