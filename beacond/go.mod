@@ -21,7 +21,7 @@ replace (
 	github.com/cometbft/cometbft => github.com/cometbft/cometbft v1.0.0-rc1.0.20240805092115-3b2c5d9e1843
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240808182639-7bdbf06a94f2
 	github.com/ferranbt/fastssz => github.com/berachain/ferrantbt-fastssz v0.0.0-20240903094032-455b54c08c81
-	github.com/karalabe/ssz => github.com/berachain/karalabe-ssz v0.2.0-alpha.9.0.20241114172027-327c6e60ecb5
+	github.com/karalabe/ssz => github.com/berachain/karalabe-ssz v0.3.0-alpha.0
 )
 
 require (

@@ -102,8 +102,8 @@ github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240808182639-7bdbf06a94f2 h1:4
 github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240808182639-7bdbf06a94f2/go.mod h1:DUyJJMMuFJ9OZAhnFMLA0KTFGoVw61p8wnqtV3Wgx3c=
 github.com/berachain/ferrantbt-fastssz v0.0.0-20240903094032-455b54c08c81 h1:evF+S4FM9gVdHCxE1AjLt9xWjmx9PpMYo3b0/ijdIKE=
 github.com/berachain/ferrantbt-fastssz v0.0.0-20240903094032-455b54c08c81/go.mod h1:Ea3+oeoRGGLGm5shYAeDgu6PGUlcvQhE2fILyD9+tGg=
-github.com/berachain/karalabe-ssz v0.2.0-alpha.9.0.20241114172027-327c6e60ecb5 h1:0UNAh2ENDyPOUHHBYZS4zpsSr/Dic2QGZQ9Rg2wlwH8=
-github.com/berachain/karalabe-ssz v0.2.0-alpha.9.0.20241114172027-327c6e60ecb5/go.mod h1:7BZG/jckt43eKw7sl/AF6gTcL0oxgFPme39m54v8rDI=
+github.com/berachain/karalabe-ssz v0.3.0-alpha.0 h1:SVMU5PSuMB2fgmFTf1rSBY9rEHpQv24DJcqxSrD7jf8=
+github.com/berachain/karalabe-ssz v0.3.0-alpha.0/go.mod h1:7BZG/jckt43eKw7sl/AF6gTcL0oxgFPme39m54v8rDI=
 github.com/bgentry/speakeasy v0.2.0 h1:tgObeVOf8WAvtuAX6DhJ4xks4CFNwPDZiqzGqIHE51E=
 github.com/bgentry/speakeasy v0.2.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
 github.com/bits-and-blooms/bitset v1.13.0 h1:bAQ9OPNFYbGHV6Nez0tmNI0RiEu7/hxlYJRUA0wFAVE=
