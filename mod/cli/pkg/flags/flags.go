@@ -64,8 +64,7 @@ const (
 	// Block Store Service Config.
 	blockStoreServiceRoot               = beaconKitRoot + "block-store-service."
 	BlockStoreServiceEnabled            = blockStoreServiceRoot + "enabled"
-	BlockStoreServiceAvailabilityWindow = blockStoreServiceRoot +
-		"availability-window"
+	BlockStoreServiceAvailabilityWindow = blockStoreServiceRoot + "availability-window"
 
 	// Node API Config.
 	nodeAPIRoot    = beaconKitRoot + "node-api."
@@ -74,7 +73,7 @@ const (
 	NodeAPILogging = nodeAPIRoot + "logging"
 )
 
-// AddBeaconKitFlags implements servertypes.ModuleInitFlags interface.
+// AddBeaconKitFlags adds Beacon Kit flags to the given command.
 func AddBeaconKitFlags(startCmd *cobra.Command) {
 	defaultCfg := config.DefaultConfig()
 	startCmd.Flags().String(
@@ -83,77 +82,77 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 		"path to the execution client secret",
 	)
 	startCmd.Flags().String(
-		RPCDialURL, defaultCfg.Engine.RPCDialURL.String(), "rpc dial url",
+		RPCDialURL, defaultCfg.Engine.RPCDialURL.String(), "RPC dial URL",
 	)
 	startCmd.Flags().Uint64(
-		RPCRetries, defaultCfg.Engine.RPCRetries, "rpc retries",
+		RPCRetries, defaultCfg.Engine.RPCRetries, "number of RPC retries",
 	)
 	startCmd.Flags().Duration(
-		RPCTimeout, defaultCfg.Engine.RPCTimeout, "rpc timeout",
+		RPCTimeout, defaultCfg.Engine.RPCTimeout, "RPC timeout duration",
 	)
 	startCmd.Flags().Duration(
 		RPCStartupCheckInterval,
 		defaultCfg.Engine.RPCStartupCheckInterval,
-		"rpc startup check interval",
+		"RPC startup check interval duration",
 	)
 	startCmd.Flags().Duration(
 		RPCJWTRefreshInterval,
 		defaultCfg.Engine.RPCJWTRefreshInterval,
-		"rpc jwt refresh interval",
+		"RPC JWT refresh interval duration",
 	)
 	startCmd.Flags().String(
 		SuggestedFeeRecipient,
 		defaultCfg.PayloadBuilder.SuggestedFeeRecipient.Hex(),
-		"suggested fee recipient",
+		"suggested fee recipient address",
 	)
 	startCmd.Flags().String(
 		KZGTrustedSetupPath,
 		defaultCfg.KZG.TrustedSetupPath,
-		"kzg trusted setup path",
+		"path to the KZG trusted setup",
 	)
 	startCmd.Flags().String(
 		KZGImplementation,
 		defaultCfg.KZG.Implementation,
-		"kzg implementation",
+		"KZG implementation type",
 	)
 	startCmd.Flags().String(
 		TimeFormat,
 		defaultCfg.Logger.TimeFormat,
-		"time format",
+		"timestamp format for logging",
 	)
 	startCmd.Flags().String(
 		LogLevel,
 		defaultCfg.Logger.LogLevel,
-		"log level",
+		"logging level",
 	)
 	startCmd.Flags().String(
 		Style,
 		defaultCfg.Logger.Style,
-		"style",
+		"logging output style",
 	)
 	startCmd.Flags().Bool(
 		BlockStoreServiceEnabled,
 		defaultCfg.BlockStoreService.Enabled,
-		"block service enabled",
+		"enable block store service",
 	)
 	startCmd.Flags().Int(
 		BlockStoreServiceAvailabilityWindow,
 		defaultCfg.BlockStoreService.AvailabilityWindow,
-		"block service availability window",
+		"block store service availability window",
 	)
 	startCmd.Flags().Bool(
 		NodeAPIEnabled,
 		defaultCfg.NodeAPI.Enabled,
-		"node api enabled",
+		"enable node API",
 	)
 	startCmd.Flags().String(
 		NodeAPIAddress,
 		defaultCfg.NodeAPI.Address,
-		"node api address",
+		"address for the node API",
 	)
 	startCmd.Flags().Bool(
 		NodeAPILogging,
 		defaultCfg.NodeAPI.Logging,
-		"node api logging",
+		"enable node API logging",
 	)
 }
