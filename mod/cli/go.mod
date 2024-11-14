@@ -23,7 +23,7 @@ replace (
 require (
 	cosmossdk.io/depinject v1.0.0
 	cosmossdk.io/log v1.4.1
-	github.com/berachain/beacon-kit/mod/config v0.0.0-20241107170417-7905e3d59a1d
+	github.com/berachain/beacon-kit/mod/config v0.0.0-20241113214258-240f617103ad
 	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20241107170417-7905e3d59a1d
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240904192942-99aeabe6bb1f
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240809202957-3e3f169ad720

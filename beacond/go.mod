@@ -73,7 +73,7 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/berachain/beacon-kit/mod/async v0.0.0-20240821213929-f32b8e2dc5c8 // indirect
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df // indirect
-	github.com/berachain/beacon-kit/mod/config v0.0.0-20241107170417-7905e3d59a1d // indirect
+	github.com/berachain/beacon-kit/mod/config v0.0.0-20241113214258-240f617103ad // indirect
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240806211103-d1105603bfc0 // indirect
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240806160829-cde2d1347e7e // indirect
 	github.com/berachain/beacon-kit/mod/observability v0.0.0-unpublished // indirect
