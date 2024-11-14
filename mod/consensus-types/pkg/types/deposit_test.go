@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	ssz "github.com/ferranbt/fastssz"
+	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -78,7 +79,7 @@ func TestDeposit_MarshalUnmarshalSSZ(t *testing.T) {
 
 func TestDeposit_MarshalSSZTo(t *testing.T) {
 	deposit := generateValidDeposit()
-	buf := make([]byte, deposit.SizeSSZ())
+	buf := make([]byte, karalabessz.Size(deposit))
 	target, err := deposit.MarshalSSZTo(buf)
 	require.NoError(t, err)
 	require.NotNil(t, target)
@@ -94,7 +95,7 @@ func TestDeposit_HashTreeRoot(t *testing.T) {
 func TestDeposit_SizeSSZ(t *testing.T) {
 	deposit := generateValidDeposit()
 
-	require.Equal(t, uint32(192), deposit.SizeSSZ())
+	require.Equal(t, uint32(192), karalabessz.Size(deposit))
 }
 
 func TestDeposit_HashTreeRootWith(t *testing.T) {

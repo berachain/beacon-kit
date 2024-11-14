@@ -75,7 +75,7 @@ func (w *Withdrawal) New(
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the Withdrawal in bytes when SSZ encoded.
-func (*Withdrawal) SizeSSZ() uint32 {
+func (*Withdrawal) SizeSSZ(*ssz.Sizer) uint32 {
 	return WithdrawalSize
 }
 
@@ -94,7 +94,7 @@ func (w *Withdrawal) HashTreeRoot() common.Root {
 
 // MarshalSSZ marshals the Withdrawal object to SSZ format.
 func (w *Withdrawal) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, w.SizeSSZ())
+	buf := make([]byte, ssz.Size(w))
 	return buf, ssz.EncodeToBytes(buf, w)
 }
 

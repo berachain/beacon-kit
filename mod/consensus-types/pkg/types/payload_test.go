@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
+	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -87,7 +88,7 @@ func TestExecutionPayload_Serialization(t *testing.T) {
 
 func TestExecutionPayload_SizeSSZ(t *testing.T) {
 	payload := generateExecutionPayload()
-	size := payload.SizeSSZ(false)
+	size := karalabessz.Size(payload)
 	require.Equal(t, uint32(578), size)
 
 	state := &types.ExecutionPayload{}
@@ -214,15 +215,13 @@ func TestExecutionPayload_ToHeader(t *testing.T) {
 		ExtraData:     []byte{},
 		BaseFeePerGas: &math.U256{},
 		BlockHash:     common.ExecutionHash{},
-		Transactions:  [][]byte{[]byte{0x01}},
+		Transactions:  [][]byte{{0x01}},
 		Withdrawals:   []*engineprimitives.Withdrawal{},
 		BlobGasUsed:   math.U64(0),
 		ExcessBlobGas: math.U64(0),
 	}
 
-	header, err := payload.ToHeader(
-		uint64(16), uint64(80087),
-	)
+	header, err := payload.ToHeader()
 	require.NoError(t, err)
 	require.NotNil(t, header)
 

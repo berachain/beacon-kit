@@ -118,7 +118,7 @@ func (b *BlobSidecar) DefineSSZ(codec *ssz.Codec) {
 }
 
 // SizeSSZ returns the size of the BlobSidecar object in SSZ encoding.
-func (b *BlobSidecar) SizeSSZ() uint32 {
+func (b *BlobSidecar) SizeSSZ(*ssz.Sizer) uint32 {
 	return 8 + // Index
 		131072 + // Blob
 		48 + // KzgCommitment
@@ -129,7 +129,7 @@ func (b *BlobSidecar) SizeSSZ() uint32 {
 
 // MarshalSSZ marshals the BlobSidecar object to SSZ format.
 func (b *BlobSidecar) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, b.SizeSSZ())
+	buf := make([]byte, ssz.Size(b))
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 
