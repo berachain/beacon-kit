@@ -48,11 +48,6 @@ type Context struct {
 	// consensus for the next payload to be proposed. It is also
 	// used to bound current payload upon validation
 	NextPayloadTimestamp math.U64
-
-	// ConsensusBlockHeight is the height of consensus block,
-	//  which may be different from execution payload height
-	// in some networks. Currently only used for logging
-	ConsensusBlockHeight math.U64
 }
 
 // GetOptimisticEngine returns whether to optimistically assume the execution
@@ -91,13 +86,6 @@ func (c *Context) GetProposerAddress() []byte {
 // current payload upon validation.
 func (c *Context) GetNextPayloadTimestamp() math.U64 {
 	return c.NextPayloadTimestamp
-}
-
-// GetConsensusBlockHeight returns the height of consensus block,
-// which may be different from execution payload height
-// in some networks. Currently only used for logging.
-func (c *Context) GetConsensusBlockHeight() math.U64 {
-	return c.ConsensusBlockHeight
 }
 
 // Unwrap returns the underlying standard context.
