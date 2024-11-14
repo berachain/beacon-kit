@@ -100,6 +100,8 @@ github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240717225334-64ec6
 github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240717225334-64ec6650da31/go.mod h1:sIzib45R7B9Q99yvsYUcj2xJZPBpe3J9JbcBDMZNp7E=
 github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240808182639-7bdbf06a94f2 h1:4qwOPga+dKeDelSJ6pseasQq6fcjd7iXhah0y7enuco=
 github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240808182639-7bdbf06a94f2/go.mod h1:DUyJJMMuFJ9OZAhnFMLA0KTFGoVw61p8wnqtV3Wgx3c=
+github.com/berachain/ferrantbt-fastssz v0.0.0-20240903094032-455b54c08c81 h1:evF+S4FM9gVdHCxE1AjLt9xWjmx9PpMYo3b0/ijdIKE=
+github.com/berachain/ferrantbt-fastssz v0.0.0-20240903094032-455b54c08c81/go.mod h1:Ea3+oeoRGGLGm5shYAeDgu6PGUlcvQhE2fILyD9+tGg=
 github.com/berachain/karalabe-ssz v0.2.0-alpha.9 h1:ewcsWxRhZ+KM4xfamF5zgmbWlgkllCZtdv0k2ivPCmM=
 github.com/berachain/karalabe-ssz v0.2.0-alpha.9/go.mod h1:7BZG/jckt43eKw7sl/AF6gTcL0oxgFPme39m54v8rDI=
 github.com/bgentry/speakeasy v0.2.0 h1:tgObeVOf8WAvtuAX6DhJ4xks4CFNwPDZiqzGqIHE51E=
@@ -420,8 +422,6 @@ github.com/iancoleman/strcase v0.3.0/go.mod h1:iwCmte+B7n89clKwxIoIXy/HfoL7AsD47
 github.com/ianlancetaylor/demangle v0.0.0-20200824232613-28f6c0f3b639/go.mod h1:aSSvb/t6k1mPoxDqO4vJh6VOCGPwU4O0C2/Eqndh1Sc=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
-github.com/itsdevbear/fastssz v0.0.0-20240731164358-a354a31813e6 h1:UZPeAqKS2AXLvFpSgPgZ2Vj3ZNl4iapFTK49wMujFMM=
-github.com/itsdevbear/fastssz v0.0.0-20240731164358-a354a31813e6/go.mod h1:Ea3+oeoRGGLGm5shYAeDgu6PGUlcvQhE2fILyD9+tGg=
 github.com/jackpal/go-nat-pmp v1.0.2 h1:KzKSgb7qkJvOUTqYl9/Hg/me3pWgBmERKrTGD7BdWus=
 github.com/jackpal/go-nat-pmp v1.0.2/go.mod h1:QPH045xvCAeXUZOxsnwmrtiCoxIr9eob+4orBN1SBKc=
 github.com/jhump/protoreflect v1.16.0 h1:54fZg+49widqXYQ0b+usAFHbMkBGR4PpXrsHc8+TBDg=
