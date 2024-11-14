@@ -20,17 +20,21 @@
 
 package spec
 
-const (
-
-	// BoonetEth1ChainID is the chain ID for the local devnet.
-	BoonetEth1ChainID uint64 = 80000
-
-	// BetnetEth1ChainID is the chain ID for the local devnet.
-	BetnetEth1ChainID uint64 = 80088
-
-	// DevnetEth1ChainID is the chain ID for the local devnet.
-	DevnetEth1ChainID uint64 = 80087
-
-	// TestnetEth1ChainID is the chain ID for the bArtio testnet.
-	TestnetEth1ChainID uint64 = 80084
+import (
+	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
+
+// BoonetChainSpec is the ChainSpec for the localnet.
+func BoonetChainSpec() chain.Spec[
+	common.DomainType,
+	math.Epoch,
+	common.ExecutionAddress,
+	math.Slot,
+	any,
+] {
+	testnetSpec := BaseSpec()
+	testnetSpec.DepositEth1ChainID = BoonetEth1ChainID
+	return chain.NewChainSpec(testnetSpec)
+}

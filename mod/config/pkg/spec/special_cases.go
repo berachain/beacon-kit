@@ -20,17 +20,11 @@
 
 package spec
 
+// Special cased Bartio for some ad-hoc handling due to the way
+// some bugs were handled on Bartio. To be removed.
 const (
+	BartioChainID uint64 = 80084
 
-	// BoonetEth1ChainID is the chain ID for the local devnet.
-	BoonetEth1ChainID uint64 = 80000
-
-	// BetnetEth1ChainID is the chain ID for the local devnet.
-	BetnetEth1ChainID uint64 = 80088
-
-	// DevnetEth1ChainID is the chain ID for the local devnet.
-	DevnetEth1ChainID uint64 = 80087
-
-	// TestnetEth1ChainID is the chain ID for the bArtio testnet.
-	TestnetEth1ChainID uint64 = 80084
+	//nolint:lll // temporary.
+	BartioValRoot = "0x9147586693b6e8faa837715c0f3071c2000045b54233901c2e7871b15872bc43"
 )

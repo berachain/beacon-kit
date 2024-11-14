@@ -23,6 +23,7 @@ package core
 import (
 	"fmt"
 
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -172,7 +173,7 @@ func (sp *StateProcessor[
 	)
 
 	// TODO: This is a bug that lives on bArtio. Delete this eventually.
-	if sp.cs.DepositEth1ChainID() == bArtioChainID {
+	if sp.cs.DepositEth1ChainID() == spec.BartioChainID {
 		// Note in AddValidatorBartio we implicitly increase
 		// the balance from state st. This is unlike AddValidator.
 		return st.AddValidatorBartio(val)

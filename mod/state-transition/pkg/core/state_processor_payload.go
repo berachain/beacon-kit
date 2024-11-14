@@ -23,6 +23,7 @@ package core
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -44,6 +45,14 @@ func (sp *StateProcessor[
 		payload = body.GetExecutionPayload()
 		header  ExecutionPayloadHeaderT
 		g, gCtx = errgroup.WithContext(context.Background())
+	)
+
+	sp.logger.Info("processExecutionPayload",
+		"consensus height", blk.GetSlot().Unwrap(),
+		"payload height", payload.GetNumber().Unwrap(),
+		"payload timestamp", payload.GetTimestamp().Unwrap(),
+		"bound timestamp", ctx.GetNextPayloadTimestamp().Unwrap(),
+		"skip payload verification", ctx.GetSkipPayloadVerification(),
 	)
 
 	// Skip payload verification if the context is configured as such.
@@ -90,7 +99,10 @@ func (sp *StateProcessor[
 	nextPayloadTimestamp math.U64,
 	optimisticEngine bool,
 ) error {
-	if err := sp.validateStatelessPayload(blk, nextPayloadTimestamp); err != nil {
+	if err := sp.validateStatelessPayload(
+		blk,
+		nextPayloadTimestamp,
+	); err != nil {
 		return err
 	}
 	return sp.validateStatefulPayload(ctx, st, blk, optimisticEngine)
@@ -107,12 +119,16 @@ func (sp *StateProcessor[
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
 
-	if pt := payload.GetTimestamp(); pt >= nextPayloadTimestamp {
-		return errors.Wrapf(
-			ErrTooFarInTheFuture,
-			"payload timestamp, max: %d, got: %d",
-			nextPayloadTimestamp, pt,
-		)
+	// We skip timestamp check on Bartio for backward compatibility reasons
+	// TODO: enforce the check when we drop other Bartio special cases.
+	if sp.cs.DepositEth1ChainID() != spec.BartioChainID {
+		if pt := payload.GetTimestamp(); pt >= nextPayloadTimestamp {
+			return errors.Wrapf(
+				ErrTooFarInTheFuture,
+				"payload timestamp, max: %d, got: %d",
+				nextPayloadTimestamp, pt,
+			)
+		}
 	}
 
 	// Verify the number of withdrawals.

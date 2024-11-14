@@ -21,18 +21,13 @@
 package core
 
 import (
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
-)
-
-//nolint:lll // temporary.
-const (
-	bArtioValRoot = "0x9147586693b6e8faa837715c0f3071c2000045b54233901c2e7871b15872bc43"
-	bArtioChainID = 80084
 )
 
 // InitializePreminedBeaconStateFromEth1 initializes the beacon state.
@@ -112,20 +107,16 @@ func (sp *StateProcessor[
 	}
 
 	// Handle special case bartio genesis.
-	if sp.cs.DepositEth1ChainID() == bArtioChainID {
-		validatorsRoot := common.Root(hex.MustToBytes(bArtioValRoot))
-		if err := st.SetGenesisValidatorsRoot(validatorsRoot); err != nil {
-			return nil, err
-		}
-	} else {
+	validatorsRoot := common.Root(hex.MustToBytes(spec.BartioValRoot))
+	if sp.cs.DepositEth1ChainID() != spec.BartioChainID {
 		validators, err := st.GetValidators()
 		if err != nil {
 			return nil, err
 		}
-		if err = st.
-			SetGenesisValidatorsRoot(validators.HashTreeRoot()); err != nil {
-			return nil, err
-		}
+		validatorsRoot = validators.HashTreeRoot()
+	}
+	if err := st.SetGenesisValidatorsRoot(validatorsRoot); err != nil {
+		return nil, err
 	}
 
 	if err := st.SetLatestExecutionPayloadHeader(execPayloadHeader); err != nil {
