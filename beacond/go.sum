@@ -100,8 +100,6 @@ github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240717225334-64ec6
 github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240717225334-64ec6650da31/go.mod h1:sIzib45R7B9Q99yvsYUcj2xJZPBpe3J9JbcBDMZNp7E=
 github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240808182639-7bdbf06a94f2 h1:4qwOPga+dKeDelSJ6pseasQq6fcjd7iXhah0y7enuco=
 github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240808182639-7bdbf06a94f2/go.mod h1:DUyJJMMuFJ9OZAhnFMLA0KTFGoVw61p8wnqtV3Wgx3c=
-github.com/berachain/ferrantbt-fastssz v0.0.0-20240903094032-455b54c08c81 h1:evF+S4FM9gVdHCxE1AjLt9xWjmx9PpMYo3b0/ijdIKE=
-github.com/berachain/ferrantbt-fastssz v0.0.0-20240903094032-455b54c08c81/go.mod h1:Ea3+oeoRGGLGm5shYAeDgu6PGUlcvQhE2fILyD9+tGg=
 github.com/berachain/karalabe-ssz v0.3.0-alpha.0 h1:SVMU5PSuMB2fgmFTf1rSBY9rEHpQv24DJcqxSrD7jf8=
 github.com/berachain/karalabe-ssz v0.3.0-alpha.0/go.mod h1:7BZG/jckt43eKw7sl/AF6gTcL0oxgFPme39m54v8rDI=
 github.com/bgentry/speakeasy v0.2.0 h1:tgObeVOf8WAvtuAX6DhJ4xks4CFNwPDZiqzGqIHE51E=
@@ -241,6 +239,8 @@ github.com/fatih/color v1.17.0 h1:GlRw1BRJxkpqUCBKzKOw098ed57fEsKeNjpTe3cSjK4=
 github.com/fatih/color v1.17.0/go.mod h1:YZ7TlrGPkiz6ku9fK3TLD/pl3CpsiFyu8N92HLgmosI=
 github.com/felixge/httpsnoop v1.0.4 h1:NFTV2Zj1bL4mc9sqWACXbQFVBBg2W3GPvqp8/ESS2Wg=
 github.com/felixge/httpsnoop v1.0.4/go.mod h1:m8KPJKqk1gH5J9DgRY2ASl2lWCfGKXixSwevea8zH2U=
+github.com/ferranbt/fastssz v0.1.5-0.20240903094032-455b54c08c81 h1:SNHNj7UyVnQV3AAi1LweOKnU6+OJ2CmxgaHpRmU7+mc=
+github.com/ferranbt/fastssz v0.1.5-0.20240903094032-455b54c08c81/go.mod h1:Ea3+oeoRGGLGm5shYAeDgu6PGUlcvQhE2fILyD9+tGg=
 github.com/fjl/memsize v0.0.2 h1:27txuSD9or+NZlnOWdKUxeBzTAUkWCVh+4Gf2dWFOzA=
 github.com/fjl/memsize v0.0.2/go.mod h1:VvhXpOYNQvB+uIk2RvXzuaQtkQJzzIx6lSBe1xv7hi0=
 github.com/fortytw2/leaktest v1.3.0 h1:u8491cBMTQ8ft8aeV+adlcytMZylmA5nnwwkRZjI8vw=
