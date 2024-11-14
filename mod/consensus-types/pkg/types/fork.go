@@ -77,7 +77,7 @@ func (f *Fork) New(
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the SSZ encoded size of the Fork object in bytes.
-func (f *Fork) SizeSSZ() uint32 {
+func (f *Fork) SizeSSZ(*ssz.Sizer) uint32 {
 	return ForkSize
 }
 
@@ -90,7 +90,7 @@ func (f *Fork) DefineSSZ(codec *ssz.Codec) {
 
 // MarshalSSZ marshals the Fork object to SSZ format.
 func (f *Fork) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, f.SizeSSZ())
+	buf := make([]byte, ssz.Size(f))
 	return buf, ssz.EncodeToBytes(buf, f)
 }
 

@@ -25,6 +25,7 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -43,7 +44,7 @@ func TestWithdrawalSSZ(t *testing.T) {
 	err = withdrawal.UnmarshalSSZ(data)
 	require.NoError(t, err)
 
-	size := withdrawal.SizeSSZ()
+	size := karalabessz.Size(withdrawal)
 	require.Equal(t, uint32(44), size)
 
 	tree := withdrawal.HashTreeRoot()

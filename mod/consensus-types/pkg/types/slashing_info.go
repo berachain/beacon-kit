@@ -72,7 +72,7 @@ func (s *SlashingInfo) New(slot, index math.U64) *SlashingInfo {
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the SlashingInfo object in SSZ encoding.
-func (*SlashingInfo) SizeSSZ() uint32 {
+func (*SlashingInfo) SizeSSZ(*ssz.Sizer) uint32 {
 	return SlashingInfoSize
 }
 
@@ -89,7 +89,7 @@ func (s *SlashingInfo) HashTreeRoot() common.Root {
 
 // MarshalSSZ marshals the SlashingInfo object to SSZ format.
 func (s *SlashingInfo) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, s.SizeSSZ())
+	buf := make([]byte, ssz.Size(s))
 	return buf, ssz.EncodeToBytes(buf, s)
 }
 

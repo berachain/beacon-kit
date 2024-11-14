@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	ssz "github.com/ferranbt/fastssz"
+	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -229,7 +230,7 @@ func TestExecutionPayloadHeader_UnmarshalSSZ_EmptyBuf(t *testing.T) {
 
 func TestExecutionPayloadHeader_SizeSSZ(t *testing.T) {
 	header := generateExecutionPayloadHeader()
-	size := header.SizeSSZ(true)
+	size := karalabessz.Size(header)
 	require.Equal(t, uint32(584), size)
 }
 

@@ -141,7 +141,7 @@ func (st *BeaconState[
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconState object.
 func (st *BeaconState[
 	_, _, _, _, _, _, _, _, _, _,
-]) SizeSSZ(fixed bool) uint32 {
+]) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 	var size uint32 = 300
 
 	if fixed {
@@ -149,13 +149,13 @@ func (st *BeaconState[
 	}
 
 	// Dynamic size fields
-	size += ssz.SizeSliceOfStaticBytes(st.BlockRoots)
-	size += ssz.SizeSliceOfStaticBytes(st.StateRoots)
-	size += ssz.SizeDynamicObject(st.LatestExecutionPayloadHeader)
-	size += ssz.SizeSliceOfStaticObjects(st.Validators)
-	size += ssz.SizeSliceOfUint64s(st.Balances)
-	size += ssz.SizeSliceOfStaticBytes(st.RandaoMixes)
-	size += ssz.SizeSliceOfUint64s(st.Slashings)
+	size += ssz.SizeSliceOfStaticBytes(siz, st.BlockRoots)
+	size += ssz.SizeSliceOfStaticBytes(siz, st.StateRoots)
+	size += ssz.SizeDynamicObject(siz, st.LatestExecutionPayloadHeader)
+	size += ssz.SizeSliceOfStaticObjects(siz, st.Validators)
+	size += ssz.SizeSliceOfUint64s(siz, st.Balances)
+	size += ssz.SizeSliceOfStaticBytes(siz, st.RandaoMixes)
+	size += ssz.SizeSliceOfUint64s(siz, st.Slashings)
 
 	return size
 }
@@ -210,7 +210,7 @@ func (st *BeaconState[
 func (st *BeaconState[
 	_, _, _, _, _, _, _, _, _, _,
 ]) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, st.SizeSSZ(false))
+	buf := make([]byte, ssz.Size(st))
 	return buf, ssz.EncodeToBytes(buf, st)
 }
 
