@@ -3,15 +3,8 @@ module github.com/berachain/beacon-kit/mod/consensus
 go 1.23.0
 
 replace (
-	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240806152830-8fb47b368cd4
-	cosmossdk.io/core => cosmossdk.io/core v0.0.0-20240806152830-8fb47b368cd4
-	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240806152830-8fb47b368cd4
-	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240806152830-8fb47b368cd4
-	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240806152830-8fb47b368cd4
-	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240806152830-8fb47b368cd4
 	github.com/berachain/beacon-kit/mod/cli => ../cli
 	github.com/berachain/beacon-kit/mod/storage => ../storage
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240808182639-7bdbf06a94f2
 )
 
 require (
@@ -27,7 +20,7 @@ require (
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240806094948-2c4293ef36c4
 	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240806094948-2c4293ef36c4
 	github.com/cosmos/cosmos-db v1.0.2
-	github.com/cosmos/cosmos-sdk v0.53.0
+	github.com/cosmos/cosmos-sdk v0.46.0-beta2
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8
 	github.com/spf13/cobra v1.8.1
 	sigs.k8s.io/yaml v1.4.0
@@ -38,15 +31,15 @@ require (
 	buf.build/gen/go/cosmos/gogo-proto/protocolbuffers/go v1.34.2-20240130113600-88ef6483f90f.2 // indirect
 	cosmossdk.io/api v0.7.5 // indirect
 	cosmossdk.io/collections v0.4.0 // indirect
-	cosmossdk.io/core v1.0.0 // indirect
+	cosmossdk.io/core v1.0.0-alpha.6 // indirect
 	cosmossdk.io/depinject v1.0.0 // indirect
 	cosmossdk.io/errors v1.0.1 // indirect
 	cosmossdk.io/math v1.3.0 // indirect
 	cosmossdk.io/schema v0.1.1 // indirect
-	cosmossdk.io/x/auth v0.0.0-20240806152830-8fb47b368cd4 // indirect
-	cosmossdk.io/x/bank v0.0.0-20240806152830-8fb47b368cd4 // indirect
-	cosmossdk.io/x/consensus v0.0.0-20240806152830-8fb47b368cd4 // indirect
-	cosmossdk.io/x/staking v0.0.0-20240806152830-8fb47b368cd4 // indirect
+	cosmossdk.io/x/auth v0.7.3-0.20240806152830-8fb47b368cd4 // indirect
+	cosmossdk.io/x/bank v0.7.3-0.20240806152830-8fb47b368cd4 // indirect
+	cosmossdk.io/x/consensus v0.7.3-0.20240806152830-8fb47b368cd4 // indirect
+	cosmossdk.io/x/staking v0.7.3-0.20240806152830-8fb47b368cd4 // indirect
 	cosmossdk.io/x/tx v0.13.4-0.20240623110059-dec2d5583e39 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect

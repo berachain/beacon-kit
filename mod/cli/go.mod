@@ -3,13 +3,6 @@ module github.com/berachain/beacon-kit/mod/cli
 go 1.23.0
 
 replace (
-	// The following are required to build with the latest version of the cosmos-sdk main branch:
-	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240806152830-8fb47b368cd4
-	cosmossdk.io/core => cosmossdk.io/core v0.0.0-20240806152830-8fb47b368cd4
-	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240806152830-8fb47b368cd4
-	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240806152830-8fb47b368cd4
-	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240806152830-8fb47b368cd4
-	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240806152830-8fb47b368cd4
 	github.com/berachain/beacon-kit/mod/beacon => ../beacon
 	github.com/berachain/beacon-kit/mod/config => ../config
 	github.com/berachain/beacon-kit/mod/consensus => ../consensus
@@ -17,7 +10,6 @@ replace (
 	github.com/berachain/beacon-kit/mod/node-api => ../node-api
 	github.com/berachain/beacon-kit/mod/node-core => ../node-core
 	github.com/berachain/beacon-kit/mod/observability => ../observability
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240808182639-7bdbf06a94f2
 )
 
 require (
@@ -33,7 +25,7 @@ require (
 	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240821225446-81f31b0aac98
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240911165923-82f71ec86570
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240806094948-2c4293ef36c4
-	github.com/cosmos/cosmos-sdk v0.53.0
+	github.com/cosmos/cosmos-sdk v0.46.0-beta2
 	github.com/ferranbt/fastssz v0.1.5-0.20240903094032-455b54c08c81
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/cobra v1.8.1
@@ -42,7 +34,7 @@ require (
 )
 
 require (
-	cosmossdk.io/core v1.0.0 // indirect
+	cosmossdk.io/core v1.0.0-alpha.6 // indirect
 	cosmossdk.io/core/testing v0.0.0-unpublished // indirect
 	cosmossdk.io/errors/v2 v2.0.0-20240731132947-df72853b3ca5 // indirect
 	cosmossdk.io/schema v0.1.1 // indirect
@@ -86,10 +78,10 @@ require (
 	cosmossdk.io/math v1.3.0 // indirect
 	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc
 	cosmossdk.io/store/v2 v2.0.0-20240821144902-e88c138760a3 // indirect
-	cosmossdk.io/x/auth v0.0.0-20240806152830-8fb47b368cd4 // indirect
-	cosmossdk.io/x/bank v0.0.0-20240806152830-8fb47b368cd4 // indirect
-	cosmossdk.io/x/consensus v0.0.0-20240806152830-8fb47b368cd4 // indirect
-	cosmossdk.io/x/staking v0.0.0-20240806152830-8fb47b368cd4 // indirect
+	cosmossdk.io/x/auth v0.7.3-0.20240806152830-8fb47b368cd4 // indirect
+	cosmossdk.io/x/bank v0.7.3-0.20240806152830-8fb47b368cd4 // indirect
+	cosmossdk.io/x/consensus v0.7.3-0.20240806152830-8fb47b368cd4 // indirect
+	cosmossdk.io/x/staking v0.7.3-0.20240806152830-8fb47b368cd4 // indirect
 	cosmossdk.io/x/tx v0.13.4-0.20240623110059-dec2d5583e39 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect

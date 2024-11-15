@@ -2,7 +2,9 @@ module github.com/berachain/beacon-kit/mod/config
 
 go 1.23.0
 
-replace github.com/berachain/beacon-kit/mod/node-api => ../node-api
+replace (
+	github.com/berachain/beacon-kit/mod/node-api => ../node-api
+)
 
 require (
 	cosmossdk.io/store v1.1.0
@@ -16,7 +18,7 @@ require (
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240624003607-df94860f8eeb
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240911165923-82f71ec86570
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240805092115-3b2c5d9e1843
-	github.com/cosmos/cosmos-sdk v0.50.9
+	github.com/cosmos/cosmos-sdk v0.46.0-beta2
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/spf13/viper v1.19.0
 )

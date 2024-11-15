@@ -2,12 +2,6 @@ module github.com/berachain/beacon-kit/examples/berad
 
 go 1.23.0
 
-replace (
-	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240806152830-8fb47b368cd4
-	cosmossdk.io/core => cosmossdk.io/core v0.0.0-20240806152830-8fb47b368cd4
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240808182639-7bdbf06a94f2
-)
-
 require (
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240801155659-1e73a37dd428
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240808171039-610759181f0a
@@ -79,11 +73,11 @@ require (
 
 require (
 	cosmossdk.io/collections v0.4.0
-	cosmossdk.io/core v1.0.0
+	cosmossdk.io/core v1.0.0-alpha.6
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240911165923-82f71ec86570
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240815202409-3ecaa1f3f4c5
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240806094948-2c4293ef36c4
-	github.com/cosmos/cosmos-sdk v0.53.0
+	github.com/cosmos/cosmos-sdk v0.46.0-beta2
 )
 
 require (
