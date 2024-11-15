@@ -21,7 +21,6 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
@@ -81,14 +80,14 @@ type ExecutionPayload struct {
 
 // SizeSSZ returns either the static size of the object if fixed == true, or
 // the total size otherwise.
-func (p *ExecutionPayload) SizeSSZ(fixed bool) uint32 {
+func (p *ExecutionPayload) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 	var size = ExecutionPayloadStaticSize
 	if fixed {
 		return size
 	}
-	size += ssz.SizeDynamicBytes(p.ExtraData)
-	size += ssz.SizeSliceOfDynamicBytes(p.Transactions)
-	size += ssz.SizeSliceOfStaticObjects(p.Withdrawals)
+	size += ssz.SizeDynamicBytes(siz, p.ExtraData)
+	size += ssz.SizeSliceOfDynamicBytes(siz, p.Transactions)
+	size += ssz.SizeSliceOfStaticObjects(siz, p.Withdrawals)
 	return size
 }
 
@@ -143,7 +142,7 @@ func (p *ExecutionPayload) DefineSSZ(codec *ssz.Codec) {
 
 // MarshalSSZ serializes the ExecutionPayload object into a slice of bytes.
 func (p *ExecutionPayload) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, p.SizeSSZ(false))
+	buf := make([]byte, ssz.Size(p))
 	return buf, ssz.EncodeToBytes(buf, p)
 }
 
@@ -562,21 +561,11 @@ func (p *ExecutionPayload) GetExcessBlobGas() math.U64 {
 }
 
 // ToHeader converts the ExecutionPayload to an ExecutionPayloadHeader.
-func (p *ExecutionPayload) ToHeader(
-	_ uint64,
-	eth1ChainID uint64,
-) (*ExecutionPayloadHeader, error) {
-	var txsRoot common.Root
-
-	// TODO: This is live on bArtio with a bug and needs to be hardforked
-	// off of. This is a temporary solution to avoid breaking changes.
-	if eth1ChainID == spec.BartioChainID {
-		txsRoot = engineprimitives.BartioTransactions(
-			p.GetTransactions(),
-		).HashTreeRoot()
-	} else {
-		txsRoot = p.GetTransactions().HashTreeRoot()
-	}
+func (p *ExecutionPayload) ToHeader() (
+	*ExecutionPayloadHeader,
+	error,
+) {
+	txsRoot := p.GetTransactions().HashTreeRoot()
 
 	switch p.Version() {
 	case version.Deneb, version.DenebPlus:

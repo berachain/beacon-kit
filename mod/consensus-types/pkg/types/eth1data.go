@@ -74,7 +74,7 @@ func (e *Eth1Data) New(
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the Eth1Data object in SSZ encoding.
-func (*Eth1Data) SizeSSZ() uint32 {
+func (*Eth1Data) SizeSSZ(*ssz.Sizer) uint32 {
 	return Eth1DataSize
 }
 
@@ -92,7 +92,7 @@ func (e *Eth1Data) HashTreeRoot() common.Root {
 
 // MarshalSSZ marshals the Eth1Data object to SSZ format.
 func (e *Eth1Data) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, e.SizeSSZ())
+	buf := make([]byte, ssz.Size(e))
 	return buf, ssz.EncodeToBytes(buf, e)
 }
 

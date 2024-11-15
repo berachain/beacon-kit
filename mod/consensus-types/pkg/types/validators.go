@@ -30,8 +30,8 @@ const MaxValidators = 1099511627776
 type Validators []*Validator
 
 // SizeSSZ returns the SSZ encoded size in bytes for the Validators.
-func (vs Validators) SizeSSZ(bool) uint32 {
-	return ssz.SizeSliceOfStaticObjects(([]*Validator)(vs))
+func (vs Validators) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {
+	return ssz.SizeSliceOfStaticObjects(siz, ([]*Validator)(vs))
 }
 
 // DefineSSZ defines the SSZ encoding for the Validators object.

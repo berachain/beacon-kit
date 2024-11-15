@@ -42,7 +42,7 @@ type Withdrawals []*Withdrawal
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the SSZ encoded size in bytes for the Withdrawals.
-func (w Withdrawals) SizeSSZ() uint32 {
+func (w Withdrawals) SizeSSZ(*ssz.Sizer) uint32 {
 	//#nosec:G701 // not an issue in practice.
 	return uint32(len(w)) * WithdrawalSize
 }

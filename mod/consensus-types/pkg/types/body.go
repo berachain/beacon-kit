@@ -104,15 +104,15 @@ type BeaconBlockBody struct {
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the BeaconBlockBody in SSZ.
-func (b *BeaconBlockBody) SizeSSZ(fixed bool) uint32 {
+func (b *BeaconBlockBody) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 	var size uint32 = 96 + 72 + 32 + 4 + 4 + 4
 	if fixed {
 		return size
 	}
 
-	size += ssz.SizeSliceOfStaticObjects(b.Deposits)
-	size += ssz.SizeDynamicObject(b.ExecutionPayload)
-	size += ssz.SizeSliceOfStaticBytes(b.BlobKzgCommitments)
+	size += ssz.SizeSliceOfStaticObjects(siz, b.Deposits)
+	size += ssz.SizeDynamicObject(siz, b.ExecutionPayload)
+	size += ssz.SizeSliceOfStaticBytes(siz, b.BlobKzgCommitments)
 	return size
 }
 
@@ -136,7 +136,7 @@ func (b *BeaconBlockBody) DefineSSZ(codec *ssz.Codec) {
 
 // MarshalSSZ serializes the BeaconBlockBody to SSZ-encoded bytes.
 func (b *BeaconBlockBody) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, b.SizeSSZ(false))
+	buf := make([]byte, ssz.Size(b))
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 

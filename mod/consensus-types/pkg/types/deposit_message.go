@@ -85,7 +85,7 @@ func (dm *DepositMessage) New(
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the DepositMessage object in SSZ encoding.
-func (*DepositMessage) SizeSSZ() uint32 {
+func (*DepositMessage) SizeSSZ(*ssz.Sizer) uint32 {
 	//nolint:mnd // 48 + 32 + 8 = 88.
 	return 88
 }
@@ -111,7 +111,7 @@ func (dm *DepositMessage) MarshalSSZTo(buf []byte) ([]byte, error) {
 
 // MarshalSSZ marshals the DepositMessage object to SSZ format.
 func (dm *DepositMessage) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, dm.SizeSSZ())
+	buf := make([]byte, ssz.Size(dm))
 	return dm.MarshalSSZTo(buf)
 }
 

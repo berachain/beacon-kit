@@ -92,11 +92,6 @@ type (
 		// used to bound current payload upon validation
 		GetNextPayloadTimestamp() math.U64
 
-		// GetConsensusBlockHeight returns the height of consensus block,
-		//  which may be different from execution payload height
-		// in some networks. Currently only used for logging
-		GetConsensusBlockHeight() math.U64
-
 		// GetConsensusSyncing signals whether consensus is working normally
 		// or is still syncing. In the former case we can skip execution payload
 		// verification on finalized blocks.
@@ -524,10 +519,7 @@ type (
 		GetBaseFeePerGas() *math.U256
 		GetBlobGasUsed() math.U64
 		GetExcessBlobGas() math.U64
-		ToHeader(
-			maxWithdrawalsPerPayload uint64,
-			eth1ChainID uint64,
-		) (ExecutionPayloadHeaderT, error)
+		ToHeader() (ExecutionPayloadHeaderT, error)
 	}
 
 	// ExecutionPayloadHeader is the interface for the execution payload

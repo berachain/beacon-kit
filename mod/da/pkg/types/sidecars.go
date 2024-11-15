@@ -99,16 +99,16 @@ func (bs *BlobSidecars) DefineSSZ(codec *ssz.Codec) {
 }
 
 // SizeSSZ returns the size of the BlobSidecars object in SSZ encoding.
-func (bs *BlobSidecars) SizeSSZ(fixed bool) uint32 {
+func (bs *BlobSidecars) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 	if fixed {
 		return 4
 	}
-	return 4 + ssz.SizeSliceOfStaticObjects(bs.Sidecars)
+	return 4 + ssz.SizeSliceOfStaticObjects(siz, bs.Sidecars)
 }
 
 // MarshalSSZ marshals the BlobSidecars object to SSZ format.
 func (bs *BlobSidecars) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, bs.SizeSSZ(false))
+	buf := make([]byte, ssz.Size(bs))
 	return bs.MarshalSSZTo(buf)
 }
 

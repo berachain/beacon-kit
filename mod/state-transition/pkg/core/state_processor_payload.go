@@ -47,12 +47,19 @@ func (sp *StateProcessor[
 		g, gCtx = errgroup.WithContext(context.Background())
 	)
 
+	sp.logger.Info("processExecutionPayload",
+		"consensus height", blk.GetSlot().Unwrap(),
+		"payload height", payload.GetNumber().Unwrap(),
+		"payload timestamp", payload.GetTimestamp().Unwrap(),
+		"bound timestamp", ctx.GetNextPayloadTimestamp().Unwrap(),
+		"skip payload verification", ctx.GetSkipPayloadVerification(),
+	)
+
 	// Skip payload verification if the context is configured as such.
 	if !ctx.GetSkipPayloadVerification() {
 		g.Go(func() error {
 			return sp.validateExecutionPayload(
 				gCtx, st, blk,
-				ctx.GetConsensusBlockHeight(),
 				ctx.GetNextPayloadTimestamp(),
 				ctx.GetOptimisticEngine(),
 			)
@@ -65,10 +72,7 @@ func (sp *StateProcessor[
 	// changes.
 	g.Go(func() error {
 		var err error
-		header, err = payload.ToHeader(
-			sp.cs.MaxWithdrawalsPerPayload(),
-			sp.cs.DepositEth1ChainID(),
-		)
+		header, err = payload.ToHeader()
 		return err
 	})
 
@@ -89,13 +93,11 @@ func (sp *StateProcessor[
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
-	consensusBlockHeight math.U64,
 	nextPayloadTimestamp math.U64,
 	optimisticEngine bool,
 ) error {
 	if err := sp.validateStatelessPayload(
 		blk,
-		consensusBlockHeight,
 		nextPayloadTimestamp,
 	); err != nil {
 		return err
@@ -109,18 +111,10 @@ func (sp *StateProcessor[
 	_, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) validateStatelessPayload(
 	blk BeaconBlockT,
-	consensusBlockHeight math.U64,
 	nextPayloadTimestamp math.U64,
 ) error {
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
-
-	sp.logger.Info("validateStatelessPayload",
-		"consensus height", consensusBlockHeight,
-		"payload height", payload.GetNumber(),
-		"payload timestamp", payload.GetTimestamp(),
-		"bound timestamp", nextPayloadTimestamp,
-	)
 
 	// We skip timestamp check on Bartio for backward compatibility reasons
 	// TODO: enforce the check when we drop other Bartio special cases.
