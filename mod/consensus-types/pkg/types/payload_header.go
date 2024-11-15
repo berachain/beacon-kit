@@ -109,13 +109,13 @@ func (h *ExecutionPayloadHeader) NewFromJSON(
 
 // SizeSSZ returns either the static size of the object if fixed == true, or
 // the total size otherwise.
-func (h *ExecutionPayloadHeader) SizeSSZ(fixed bool) uint32 {
+func (h *ExecutionPayloadHeader) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 	//nolint:mnd // todo fix.
 	var size = uint32(584)
 	if fixed {
 		return size
 	}
-	size += ssz.SizeDynamicBytes(h.ExtraData)
+	size += ssz.SizeDynamicBytes(siz, h.ExtraData)
 
 	return size
 }
@@ -150,7 +150,7 @@ func (h *ExecutionPayloadHeader) DefineSSZ(codec *ssz.Codec) {
 // MarshalSSZ serializes the ExecutionPayloadHeader object into a slice of
 // bytes.
 func (h *ExecutionPayloadHeader) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, h.SizeSSZ(false))
+	buf := make([]byte, ssz.Size(h))
 	return buf, ssz.EncodeToBytes(buf, h)
 }
 

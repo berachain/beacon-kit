@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/karalabe/ssz"
 )
 
 // BeaconBlock represents a generic interface for a beacon block.
@@ -170,10 +171,7 @@ type ExecutionPayload[
 	GetBaseFeePerGas() *math.U256
 	GetBlobGasUsed() math.U64
 	GetExcessBlobGas() math.U64
-	ToHeader(
-		maxWithdrawalsPerPayload uint64,
-		eth1ChainID uint64,
-	) (ExecutionPayloadHeaderT, error)
+	ToHeader() (ExecutionPayloadHeaderT, error)
 }
 
 type ExecutionPayloadHeader interface {
@@ -219,7 +217,7 @@ type Validator[
 	WithdrawalCredentialsT ~[32]byte,
 ] interface {
 	constraints.SSZMarshallableRootable
-	SizeSSZ() uint32
+	SizeSSZ(*ssz.Sizer) uint32
 	// New creates a new validator with the given parameters.
 	New(
 		pubkey crypto.BLSPubkey,

@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -144,7 +145,7 @@ func TestBeaconBlockHeader_SizeSSZ(t *testing.T) {
 		common.Root{},
 	)
 
-	size := header.SizeSSZ()
+	size := karalabessz.Size(header)
 	require.Equal(t, uint32(112), size)
 }
 

@@ -59,7 +59,7 @@ func (fd *ForkData) New(
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the SigningData object in SSZ encoding.
-func (*ForkData) SizeSSZ() uint32 {
+func (*ForkData) SizeSSZ(*ssz.Sizer) uint32 {
 	//nolint:mnd // 32+4 = 36.
 	return 36
 }
@@ -83,7 +83,7 @@ func (fd *ForkData) MarshalSSZTo(buf []byte) ([]byte, error) {
 
 // MarshalSSZ marshals the ForkData object to SSZ format.
 func (fd *ForkData) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, fd.SizeSSZ())
+	buf := make([]byte, ssz.Size(fd))
 	return fd.MarshalSSZTo(buf)
 }
 
