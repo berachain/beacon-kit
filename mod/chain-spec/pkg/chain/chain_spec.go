@@ -218,14 +218,27 @@ func NewChainSpec[
 	CometBFTConfigT any,
 ](data SpecData[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) Spec[
+]) (Spec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-] {
-	return &chainSpec[
+], error) {
+	c := &chainSpec[
 		DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 	]{
 		Data: data,
 	}
+	return c, c.validate()
+}
+
+// validate ensures that the chain spec is valid, returning error if it is not.
+func (c *chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
+]) validate() error {
+	if c.MaxWithdrawalsPerPayload() == 0 {
+		return ErrZeroMaxWithdrawalsPerPayload
+	}
+
+	// TODO: Add more validation rules here.
+	return nil
 }
 
 // MinDepositAmount returns the minimum deposit amount required.

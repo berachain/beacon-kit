@@ -40,7 +40,8 @@ import (
 
 func TestInitialize(t *testing.T) {
 	// Create state processor to test
-	cs := spec.BetnetChainSpec()
+	cs, err := spec.BetnetChainSpec()
+	require.NoError(t, err)
 	execEngine := mocks.NewExecutionEngine[
 		*types.ExecutionPayload,
 		*types.ExecutionPayloadHeader,
@@ -161,7 +162,8 @@ func checkValidatorNonBartio(
 
 func TestInitializeBartio(t *testing.T) {
 	// Create state processor to test
-	cs := spec.TestnetChainSpec()
+	cs, err := spec.TestnetChainSpec()
+	require.NoError(t, err)
 	execEngine := mocks.NewExecutionEngine[
 		*types.ExecutionPayload,
 		*types.ExecutionPayloadHeader,

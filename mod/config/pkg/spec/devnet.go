@@ -27,13 +27,13 @@ import (
 )
 
 // DevnetChainSpec is the ChainSpec for the localnet.
-func DevnetChainSpec() chain.Spec[
+func DevnetChainSpec() (chain.Spec[
 	common.DomainType,
 	math.Epoch,
 	common.ExecutionAddress,
 	math.Slot,
 	any,
-] {
+], error) {
 	testnetSpec := BaseSpec()
 	testnetSpec.DepositEth1ChainID = DevnetEth1ChainID
 	return chain.NewChainSpec(testnetSpec)

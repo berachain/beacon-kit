@@ -80,4 +80,14 @@ var (
 	// ErrNumWithdrawalsMismatch is returned when the number of withdrawals
 	// in a block does not match the expected value.
 	ErrNumWithdrawalsMismatch = errors.New("number of withdrawals mismatch")
+
+	// ErrNoWithdrawals is returned when a block contains no withdrawals. We
+	// expect at least the fixed withdrawal for EVM inflation.
+	ErrNoWithdrawals = errors.New(
+		"no withdrawals in block, expected at least 1 for EVM inflation")
+
+	// ErrFirstWithdrawalNotEVMInflation is returned when the first withdrawal
+	// in the block is not the EVM inflation withdrawal.
+	ErrFirstWithdrawalNotEVMInflation = errors.New(
+		"first withdrawal is not the EVM inflation withdrawal")
 )

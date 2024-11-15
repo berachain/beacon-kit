@@ -18,23 +18,14 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package spec
+package chain
 
-import (
-	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+import "github.com/berachain/beacon-kit/mod/errors"
+
+var (
+	// ErrZeroMaxWithdrawalsPerPayload is returned when the max withdrawals
+	// per payload is zero. Must allow at least one for the EVM inflation
+	// withdrawal.
+	ErrZeroMaxWithdrawalsPerPayload = errors.New(
+		"max withdrawals per payload must be greater than 0")
 )
-
-// BetnetChainSpec is the ChainSpec for the localnet.
-func BetnetChainSpec() (chain.Spec[
-	common.DomainType,
-	math.Epoch,
-	common.ExecutionAddress,
-	math.Slot,
-	any,
-], error) {
-	testnetSpec := BaseSpec()
-	testnetSpec.DepositEth1ChainID = BetnetEth1ChainID
-	return chain.NewChainSpec(testnetSpec)
-}

@@ -35,21 +35,22 @@ const (
 )
 
 // ProvideChainSpec provides the chain spec based on the environment variable.
-func ProvideChainSpec() common.ChainSpec {
+func ProvideChainSpec() (common.ChainSpec, error) {
 	// TODO: This is hood as fuck needs to be improved
 	// but for now we ball to get CI unblocked.
-	specType := os.Getenv(ChainSpecTypeEnvVar)
-	var chainSpec common.ChainSpec
-	switch specType {
+	var (
+		chainSpec common.ChainSpec
+		err       error
+	)
+	switch os.Getenv(ChainSpecTypeEnvVar) {
 	case DevnetChainSpecType:
-		chainSpec = spec.DevnetChainSpec()
+		chainSpec, err = spec.DevnetChainSpec()
 	case BetnetChainSpecType:
-		chainSpec = spec.BetnetChainSpec()
+		chainSpec, err = spec.BetnetChainSpec()
 	case BoonetChainSpecType:
-		chainSpec = spec.BoonetChainSpec()
+		chainSpec, err = spec.BoonetChainSpec()
 	default:
-		chainSpec = spec.TestnetChainSpec()
+		chainSpec, err = spec.TestnetChainSpec()
 	}
-
-	return chainSpec
+	return chainSpec, err
 }

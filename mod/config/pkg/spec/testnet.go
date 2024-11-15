@@ -29,13 +29,13 @@ import (
 )
 
 // TestnetChainSpec is the ChainSpec for the localnet.
-func TestnetChainSpec() chain.Spec[
+func TestnetChainSpec() (chain.Spec[
 	common.DomainType,
 	math.Epoch,
 	common.ExecutionAddress,
 	math.Slot,
 	any,
-] {
+], error) {
 	testnetSpec := BaseSpec()
 	testnetSpec.DepositEth1ChainID = TestnetEth1ChainID
 	return chain.NewChainSpec(testnetSpec)

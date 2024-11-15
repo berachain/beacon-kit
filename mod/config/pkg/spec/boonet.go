@@ -27,13 +27,13 @@ import (
 )
 
 // BoonetChainSpec is the ChainSpec for the localnet.
-func BoonetChainSpec() chain.Spec[
+func BoonetChainSpec() (chain.Spec[
 	common.DomainType,
 	math.Epoch,
 	common.ExecutionAddress,
 	math.Slot,
 	any,
-] {
+], error) {
 	testnetSpec := BaseSpec()
 	testnetSpec.DepositEth1ChainID = BoonetEth1ChainID
 	return chain.NewChainSpec(testnetSpec)

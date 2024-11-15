@@ -225,6 +225,9 @@ func (sp *StateProcessor[
 // processWithdrawals as per the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-process_withdrawals
 //
+// NOTE: This function is modified from the spec to allow a fixed withdrawal
+// (must be the first withdrawal) used for EVM inflation.
+//
 //nolint:lll
 func (sp *StateProcessor[
 	_, BeaconBlockBodyT, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
@@ -232,9 +235,7 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	body BeaconBlockBodyT,
 ) error {
-	// Dequeue and verify the logs.
 	var (
-		nextValidatorIndex math.ValidatorIndex
 		payload            = body.GetExecutionPayload()
 		payloadWithdrawals = payload.GetWithdrawals()
 	)
@@ -246,13 +247,26 @@ func (sp *StateProcessor[
 	}
 	numWithdrawals := len(expectedWithdrawals)
 
-	// Ensure the withdrawals have the same length
+	// Ensure the expected and payload withdrawals have the same length.
 	if numWithdrawals != len(payloadWithdrawals) {
 		return errors.Wrapf(
 			ErrNumWithdrawalsMismatch,
 			"withdrawals do not match expected length %d, got %d",
 			len(expectedWithdrawals), len(payloadWithdrawals),
 		)
+	}
+
+	// Ensure the EVM inflation withdrawal is the first withdrawal.
+	if numWithdrawals == 0 {
+		return ErrNoWithdrawals
+	}
+	if !expectedWithdrawals[0].GetAddress().Equals(
+		sp.cs.EVMInflationAddress(),
+	) ||
+		expectedWithdrawals[0].GetAmount() != math.U64(
+			sp.cs.EVMInflationPerBlock(),
+		) {
+		return ErrFirstWithdrawalNotEVMInflation
 	}
 
 	// Compare and process each withdrawal.
@@ -266,7 +280,13 @@ func (sp *StateProcessor[
 			)
 		}
 
-		// Then we process the withdrawal.
+		// The first withdrawal is the EVM inflation withdrawal. No processing
+		// is needed.
+		if i == 0 {
+			continue
+		}
+
+		// Process the validator withdrawal.
 		if err = st.DecreaseBalance(
 			wd.GetValidatorIndex(), wd.GetAmount(),
 		); err != nil {
@@ -274,9 +294,10 @@ func (sp *StateProcessor[
 		}
 	}
 
-	// Update the next withdrawal index if this block contained withdrawals.
-	if numWithdrawals != 0 {
-		// Next sweep starts after the latest withdrawal's validator index
+	// Update the next withdrawal index if this block contained withdrawals
+	// (excluding the EVM inflation withdrawal).
+	if numWithdrawals > 1 {
+		// Next sweep starts after the latest withdrawal's validator index.
 		if err = st.SetNextWithdrawalIndex(
 			(expectedWithdrawals[numWithdrawals-1].GetIndex() + 1).Unwrap(),
 		); err != nil {
@@ -290,23 +311,21 @@ func (sp *StateProcessor[
 	}
 
 	// Update the next validator index to start the next withdrawal sweep.
-	//#nosec:G701 // won't overflow in practice.
-	if numWithdrawals == int(sp.cs.MaxWithdrawalsPerPayload()) {
+	var nextValIndex math.ValidatorIndex
+	if numWithdrawals > 1 &&
+		uint64(numWithdrawals) == sp.cs.MaxWithdrawalsPerPayload() {
 		// Next sweep starts after the latest withdrawal's validator index.
-		nextValidatorIndex =
-			(expectedWithdrawals[len(expectedWithdrawals)-1].GetIndex() + 1) %
-				math.U64(totalValidators)
+		nextValIndex = expectedWithdrawals[numWithdrawals-1].GetIndex() + 1
 	} else {
-		// Advance sweep by the max length of the sweep if there was not
-		// a full set of withdrawals.
-		nextValidatorIndex, err = st.GetNextWithdrawalValidatorIndex()
+		// Advance sweep by the max length of the sweep if there was not a full
+		// set of withdrawals.
+		nextValIndex, err = st.GetNextWithdrawalValidatorIndex()
 		if err != nil {
 			return err
 		}
-		nextValidatorIndex += math.ValidatorIndex(
-			sp.cs.MaxValidatorsPerWithdrawalsSweep())
-		nextValidatorIndex %= math.ValidatorIndex(totalValidators)
+		nextValIndex += math.U64(sp.cs.MaxValidatorsPerWithdrawalsSweep())
 	}
+	nextValIndex %= math.U64(totalValidators)
 
-	return st.SetNextWithdrawalValidatorIndex(nextValidatorIndex)
+	return st.SetNextWithdrawalValidatorIndex(nextValIndex)
 }

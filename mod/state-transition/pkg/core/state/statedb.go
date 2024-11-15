@@ -187,6 +187,9 @@ func (s *StateDB[
 // ExpectedWithdrawals as defined in the Ethereum 2.0 Specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-get_expected_withdrawals
 //
+// NOTE: This function is modified from the spec to allow a fixed withdrawal
+// (as the first withdrawal) used for EVM inflation.
+//
 //nolint:lll
 func (s *StateDB[
 	_, _, _, _, _, _, ValidatorT, _, WithdrawalT, _,
@@ -196,7 +199,16 @@ func (s *StateDB[
 		balance           math.Gwei
 		withdrawalAddress common.ExecutionAddress
 		withdrawals       = make([]WithdrawalT, 0)
+		withdrawal        WithdrawalT
 	)
+
+	// The first withdrawal is fixed to be the EVM inflation withdrawal.
+	//
+	// NOTE: The withdrawal index and validator index are both set to 0 as they
+	// are not used during processing.
+	withdrawals = append(withdrawals, withdrawal.New(
+		0, 0, s.cs.EVMInflationAddress(), math.U64(s.cs.EVMInflationPerBlock()),
+	))
 
 	slot, err := s.GetSlot()
 	if err != nil {
@@ -226,6 +238,11 @@ func (s *StateDB[
 
 	// Iterate through indices to find the next validators to withdraw.
 	for range bound {
+		// Cap the number of withdrawals to the maximum allowed per payload.
+		if uint64(len(withdrawals)) == s.cs.MaxWithdrawalsPerPayload() {
+			break
+		}
+
 		validator, err = s.ValidatorByIndex(validatorIndex)
 		if err != nil {
 			return nil, err
@@ -244,8 +261,6 @@ func (s *StateDB[
 
 		// Set the amount of the withdrawal depending on the balance of the
 		// validator.
-		var withdrawal WithdrawalT
-
 		//nolint:gocritic // ok.
 		if validator.IsFullyWithdrawable(balance, epoch) {
 			withdrawals = append(withdrawals, withdrawal.New(
@@ -281,12 +296,6 @@ func (s *StateDB[
 
 			withdrawals = append(withdrawals, withdrawal)
 			withdrawalIndex++
-		}
-
-		// Cap the number of withdrawals to the maximum allowed per payload.
-		//#nosec:G701 // won't overflow in practice.
-		if len(withdrawals) == int(s.cs.MaxWithdrawalsPerPayload()) {
-			break
 		}
 
 		// Increment the validator index to process the next validator.
