@@ -131,12 +131,8 @@ func TestTransitionUpdateValidators(t *testing.T) {
 				ExtraData:    []byte("testing"),
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
-					{ // just the EVM inflation withdrawal
-						Index:     0,
-						Validator: 0,
-						Address:   cs.EVMInflationAddress(),
-						Amount:    math.U64(cs.EVMInflationPerBlock()),
-					},
+					// The first withdrawal is always for EVM inflation.
+					beaconState.EVMInflationWithdrawal(),
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},

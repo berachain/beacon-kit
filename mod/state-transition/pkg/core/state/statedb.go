@@ -203,12 +203,7 @@ func (s *StateDB[
 	)
 
 	// The first withdrawal is fixed to be the EVM inflation withdrawal.
-	//
-	// NOTE: The withdrawal index and validator index are both set to 0 as they
-	// are not used during processing.
-	withdrawals = append(withdrawals, withdrawal.New(
-		0, 0, s.cs.EVMInflationAddress(), math.U64(s.cs.EVMInflationPerBlock()),
-	))
+	withdrawals = append(withdrawals, s.EVMInflationWithdrawal())
 
 	slot, err := s.GetSlot()
 	if err != nil {
@@ -305,6 +300,19 @@ func (s *StateDB[
 	}
 
 	return withdrawals, nil
+}
+
+// EVMInflationWithdrawal returns the withdrawal used for EVM balance inflation.
+//
+// NOTE: The withdrawal index and validator index are both set to 0 as they are
+// not used during processing.
+func (s *StateDB[
+	_, _, _, _, _, _, _, _, WithdrawalT, _,
+]) EVMInflationWithdrawal() WithdrawalT {
+	var withdrawal WithdrawalT
+	return withdrawal.New(
+		0, 0, s.cs.EVMInflationAddress(), math.U64(s.cs.EVMInflationPerBlock()),
+	)
 }
 
 // GetMarshallable is the interface for the beacon store.
