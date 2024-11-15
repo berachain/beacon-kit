@@ -274,7 +274,7 @@ func (sp *StateProcessor[
 		}
 	}
 
-	// Update the next withdrawal index if this block contained withdrawals
+	// Update the next withdrawal index if this block contained withdrawals.
 	if numWithdrawals != 0 {
 		// Next sweep starts after the latest withdrawal's validator index
 		if err = st.SetNextWithdrawalIndex(
@@ -289,16 +289,16 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	// Update the next validator index to start the next withdrawal sweep
+	// Update the next validator index to start the next withdrawal sweep.
 	//#nosec:G701 // won't overflow in practice.
 	if numWithdrawals == int(sp.cs.MaxWithdrawalsPerPayload()) {
-		// Next sweep starts after the latest withdrawal's validator index
+		// Next sweep starts after the latest withdrawal's validator index.
 		nextValidatorIndex =
 			(expectedWithdrawals[len(expectedWithdrawals)-1].GetIndex() + 1) %
 				math.U64(totalValidators)
 	} else {
 		// Advance sweep by the max length of the sweep if there was not
-		// a full set of withdrawals
+		// a full set of withdrawals.
 		nextValidatorIndex, err = st.GetNextWithdrawalValidatorIndex()
 		if err != nil {
 			return err
