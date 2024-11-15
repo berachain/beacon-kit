@@ -107,14 +107,16 @@ func TestBuildPruneRangeFn(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cs := chain.NewChainSpec(
+			cs, err := chain.NewChainSpec(
 				chain.SpecData[
 					bytes.B4, math.U64, common.ExecutionAddress, math.U64, any,
 				]{
 					SlotsPerEpoch:                    tt.slotsPerEpoch,
 					MinEpochsForBlobsSidecarsRequest: tt.minEpochs,
+					MaxWithdrawalsPerPayload:         1,
 				},
 			)
+			require.NoError(t, err)
 			pruneFn := store.BuildPruneRangeFn[MockBeaconBlock](
 				cs,
 			)
