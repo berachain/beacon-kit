@@ -127,10 +127,17 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		beaconState,
 		&types.BeaconBlockBody{
 			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:     10,
-				ExtraData:     []byte("testing"),
-				Transactions:  [][]byte{},
-				Withdrawals:   []*engineprimitives.Withdrawal{}, // no withdrawals
+				Timestamp:    10,
+				ExtraData:    []byte("testing"),
+				Transactions: [][]byte{},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					{ // just the EVM inflation withdrawal
+						Index:     0,
+						Validator: 0,
+						Address:   cs.EVMInflationAddress(),
+						Amount:    math.U64(cs.EVMInflationPerBlock()),
+					},
+				},
 				BaseFeePerGas: math.NewU256(0),
 			},
 			Eth1Data: &types.Eth1Data{},
