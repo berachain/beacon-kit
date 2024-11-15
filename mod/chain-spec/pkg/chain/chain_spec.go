@@ -183,6 +183,17 @@ type Spec[
 	// GetCometBFTConfigForSlot retrieves the CometBFT config for a specific
 	// slot.
 	GetCometBFTConfigForSlot(slot SlotT) CometBFTConfigT
+
+	// Berachain Values
+
+	// EVMInflationAddress returns the address on the EVM which will receive
+	// the inflation amount of native EVM balance through a withdrawal every
+	// block.
+	EVMInflationAddress() ExecutionAddressT
+
+	// EVMInflationPerBlock returns the amount of native EVM balance to be
+	// minted to the EVMInflationAddress via a withdrawal every block.
+	EVMInflationPerBlock() uint64
 }
 
 // chainSpec is a concrete implementation of the ChainSpec interface, holding
@@ -475,4 +486,20 @@ func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) GetCometBFTConfigForSlot(_ SlotT) CometBFTConfigT {
 	return c.Data.CometValues
+}
+
+// EVMInflationAddress returns the address on the EVM which will receive the
+// inflation amount of native EVM balance through a withdrawal every block.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
+]) EVMInflationAddress() ExecutionAddressT {
+	return c.Data.EVMInflationAddress
+}
+
+// EVMInflationPerBlock returns the amount of native EVM balance to be minted to
+// the EVMInflationAddress via a withdrawal every block.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
+]) EVMInflationPerBlock() uint64 {
+	return c.Data.EVMInflationPerBlock
 }
