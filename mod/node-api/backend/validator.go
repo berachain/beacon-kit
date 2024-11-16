@@ -27,7 +27,7 @@ import (
 )
 
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _, _,
 ]) ValidatorByID(
 	slot math.Slot, id string,
 ) (*beacontypes.ValidatorData[ValidatorT], error) {
@@ -62,7 +62,7 @@ func (b Backend[
 
 // TODO: filter by status
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _, _,
 ]) ValidatorsByIDs(
 	slot math.Slot, ids []string, _ []string,
 ) ([]*beacontypes.ValidatorData[ValidatorT], error) {
@@ -81,7 +81,7 @@ func (b Backend[
 }
 
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) ValidatorBalancesByIDs(
 	slot math.Slot, ids []string,
 ) ([]*beacontypes.ValidatorBalanceData, error) {

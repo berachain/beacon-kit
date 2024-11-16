@@ -29,7 +29,7 @@ import (
 // BlockHeader returns the block header at the given slot.
 func (b Backend[
 	_, _, _, BeaconBlockHeaderT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-	_,
+	_, _,
 ]) BlockHeaderAtSlot(slot math.Slot) (BeaconBlockHeaderT, error) {
 	var blockHeader BeaconBlockHeaderT
 
@@ -44,7 +44,7 @@ func (b Backend[
 
 // GetBlockRoot returns the root of the block at the given stateID.
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) BlockRootAtSlot(slot math.Slot) (common.Root, error) {
 	st, slot, err := b.stateFromSlot(slot)
 	if err != nil {
@@ -58,7 +58,7 @@ func (b Backend[
 
 // TODO: Implement this.
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) BlockRewardsAtSlot(math.Slot) (*types.BlockRewardsData, error) {
 	return &types.BlockRewardsData{
 		ProposerIndex:     1,

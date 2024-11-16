@@ -22,14 +22,17 @@ package store
 
 import (
 	"context"
+	"sync"
 
 	"github.com/berachain/beacon-kit/mod/da/pkg/types"
-	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/sourcegraph/conc/iter"
 )
+
+// SLOT_COMMITMENTS_KEY is the key used to store the commitments for a slot
+// in the DB. We use this key to avoid conflicts with the slot index.
+const SLOT_COMMITMENTS_KEY = "slot_commitments"
 
 // Store is the default implementation of the AvailabilityStore.
 type Store[BeaconBlockBodyT BeaconBlockBody] struct {
@@ -94,21 +97,67 @@ func (s *Store[BeaconBlockT]) Persist(
 		return nil
 	}
 
-	// Store each sidecar in parallel.
-	if err := errors.Join(iter.Map(
-		sidecars.Sidecars,
-		func(sidecar **types.BlobSidecar) error {
-			if *sidecar == nil {
-				return ErrAttemptedToStoreNilSidecar
-			}
-			sc := *sidecar
+	// Create error channel and wait group for parallel processing
+	errChan := make(chan error, len(sidecars.Sidecars))
+	var wg sync.WaitGroup
+
+	// Create a list of commitments for this slot. We need to store the
+	// commitments for this slot because we key each sidecar by its
+	// commitment in the DB, and so this is necessary to retrieve the
+	// sidecars later in GetBlobsFromStore.
+	commitments := make([][]byte, len(sidecars.Sidecars))
+
+	// Process and store sidecars in parallel, and collect commitments
+	for i, sidecar := range sidecars.Sidecars {
+		if sidecar == nil {
+			return ErrAttemptedToStoreNilSidecar
+		}
+
+		wg.Add(1)
+		go func(index int, sc *types.BlobSidecar) {
+			defer wg.Done()
+
 			bz, err := sc.MarshalSSZ()
 			if err != nil {
-				return err
+				errChan <- err
+				return
 			}
-			return s.Set(slot.Unwrap(), sc.KzgCommitment[:], bz)
-		},
-	)...); err != nil {
+
+			// Store the sidecar
+			if err := s.IndexDB.Set(slot.Unwrap(), sc.KzgCommitment[:], bz); err != nil {
+				errChan <- err
+				return
+			}
+
+			// Store the commitment for the slot index. This is thread-safe
+			// since every goroutine writes to a different index in the
+			// commitments slice.
+			commitments[index] = sc.KzgCommitment[:]
+		}(i, sidecar)
+	}
+
+	// Wait for all goroutines to complete
+	wg.Wait()
+	close(errChan)
+
+	// Check for any errors
+	for err := range errChan {
+		if err != nil {
+			return err
+		}
+	}
+
+	slotCommitments := &types.SlotCommitments{
+		Commitments: commitments,
+	}
+
+	serializedCommitments, err := slotCommitments.MarshalSSZ()
+	if err != nil {
+		return err
+	}
+
+	// Store the commitments.
+	if err := s.IndexDB.Set(slot.Unwrap(), []byte(SLOT_COMMITMENTS_KEY), serializedCommitments); err != nil {
 		return err
 	}
 
@@ -116,4 +165,68 @@ func (s *Store[BeaconBlockT]) Persist(
 		"slot", slot.Base10(), "num_sidecars", sidecars.Len(),
 	)
 	return nil
+}
+
+// GetBlobsFromStore returns all blob sidecars for a given slot.
+func (s *Store[BeaconBlockT]) GetBlobsFromStore(
+	slot math.Slot,
+) (*types.BlobSidecars, error) {
+	// Get the commitment list for this slot
+	serializedCommitments, err := s.IndexDB.Get(slot.Unwrap(), []byte(SLOT_COMMITMENTS_KEY))
+	if err != nil {
+		return &types.BlobSidecars{Sidecars: make([]*types.BlobSidecar, 0)}, nil // Return empty if not found
+	}
+
+	slotCommitments := &types.SlotCommitments{}
+	if err := slotCommitments.UnmarshalSSZ(serializedCommitments); err != nil {
+		return nil, err
+	}
+	commitments := slotCommitments.Commitments
+
+	// Create error channel and wait group for parallel processing
+	errChan := make(chan error, len(commitments))
+	var wg sync.WaitGroup
+
+	// Create slice to hold all sidecars
+	sidecars := make([]*types.BlobSidecar, len(commitments))
+
+	// Retrieve and unmarshal sidecars in parallel
+	for i, commitment := range commitments {
+		wg.Add(1)
+		go func(index int, comm []byte) {
+			defer wg.Done()
+
+			// Get the sidecar bytes from the db
+			bz, err := s.IndexDB.Get(slot.Unwrap(), comm)
+			if err != nil {
+				errChan <- err
+				return
+			}
+
+			// Unmarshal the sidecar
+			sidecar := new(types.BlobSidecar)
+			if err := sidecar.UnmarshalSSZ(bz); err != nil {
+				errChan <- err
+				return
+			}
+
+			// Safely store the sidecar in the slice. This is thread-safe
+			// since every goroutine writes to a different index in the
+			// sidecars slice.
+			sidecars[index] = sidecar
+		}(i, commitment)
+	}
+
+	// Wait for all goroutines to complete
+	wg.Wait()
+	close(errChan)
+
+	// Check for any errors
+	for err := range errChan {
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &types.BlobSidecars{Sidecars: sidecars}, nil
 }

@@ -90,6 +90,10 @@ func (b *BlobSidecar) HasValidInclusionProof(
 	)
 }
 
+func (b *BlobSidecar) GetIndex() uint64 {
+	return b.Index
+}
+
 func (b *BlobSidecar) GetBlob() eip4844.Blob {
 	return b.Blob
 }
@@ -104,6 +108,10 @@ func (b *BlobSidecar) GetKzgCommitment() eip4844.KZGCommitment {
 
 func (b *BlobSidecar) GetBeaconBlockHeader() *types.BeaconBlockHeader {
 	return b.BeaconBlockHeader
+}
+
+func (b *BlobSidecar) GetInclusionProof() []common.Root {
+	return b.InclusionProof
 }
 
 // DefineSSZ defines the SSZ encoding for the BlobSidecar object.

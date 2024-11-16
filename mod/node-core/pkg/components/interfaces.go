@@ -70,7 +70,7 @@ type (
 	}
 
 	// AvailabilityStore is the interface for the availability store.
-	AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
+	AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT any] interface {
 		IndexDB
 		// IsDataAvailable ensures that all blobs referenced in the block are
 		// securely stored before it returns without an error.
@@ -78,6 +78,8 @@ type (
 		// Persist makes sure that the sidecar remains accessible for data
 		// availability checks throughout the beacon node's operation.
 		Persist(math.Slot, BlobSidecarsT) error
+		// GetBlobsFromStore returns all blob sidecars for a given slot.
+		GetBlobsFromStore(math.Slot) (BlobSidecarsT, error)
 	}
 
 	ConsensusBlock[BeaconBlockT any] interface {
@@ -246,11 +248,14 @@ type (
 		) error
 	}
 
+	// BlobSidecar is the interface for a single blob sidecar.
 	BlobSidecar[BeaconBlockHeaderT any] interface {
+		GetIndex() uint64
 		GetBeaconBlockHeader() BeaconBlockHeaderT
 		GetBlob() eip4844.Blob
 		GetKzgProof() eip4844.KZGProof
 		GetKzgCommitment() eip4844.KZGCommitment
+		GetInclusionProof() []common.Root
 	}
 
 	ConsensusSidecars[
@@ -261,7 +266,7 @@ type (
 		GetHeader() BeaconBlockHeaderT
 	}
 
-	// BlobSidecars is the interface for blobs sidecars.
+	// BlobSidecars is the interface for blob sidecars.
 	BlobSidecars[T, BlobSidecarT any] interface {
 		constraints.Nillable
 		constraints.SSZMarshallable
@@ -1129,6 +1134,7 @@ type (
 		BeaconStateT, BeaconBlockHeaderT, ForkT, ValidatorT any,
 	] interface {
 		GenesisBackend
+		BlobBackend[BeaconBlockHeaderT]
 		BlockBackend[BeaconBlockHeaderT]
 		RandaoBackend
 		StateBackend[BeaconStateT, ForkT]
@@ -1160,6 +1166,10 @@ type (
 
 	RandaoBackend interface {
 		RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes32, error)
+	}
+
+	BlobBackend[BeaconBlockHeaderT any] interface {
+		BlobSidecarsAtSlot(slot math.Slot, indices []uint64) ([]*types.BlobSidecarData[BeaconBlockHeaderT], error)
 	}
 
 	BlockBackend[BeaconBlockHeaderT any] interface {
