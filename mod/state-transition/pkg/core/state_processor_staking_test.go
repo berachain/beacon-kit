@@ -309,7 +309,9 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, maxBalance+minBalance, val1BalAfter)
 
-	// Process the next block, ensuring that validator 1 is also withdrawn from.
+	// Process the next block, ensuring that validator 1 is also withdrawn from,
+	// also ensuring that the state's next withdrawal (validator) index is
+	// appropriately incremented.
 	blk = buildNextBlock(
 		t,
 		st,
@@ -321,7 +323,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 				Withdrawals: []*engineprimitives.Withdrawal{
 					// The first withdrawal is always for EVM inflation.
 					st.EVMInflationWithdrawal(),
-					// Partially withdraw validator 0 by minBalance.
+					// Partially withdraw validator 1 by minBalance.
 					{
 						Index:     1,
 						Validator: 1,
@@ -344,6 +346,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	require.NoError(t, err)
 	require.Zero(t, vals)
 
+	// Validator 1 is now withdrawn from.
 	val1BalAfter, err = st.GetBalance(math.U64(1))
 	require.NoError(t, err)
 	require.Equal(t, maxBalance, val1BalAfter)
