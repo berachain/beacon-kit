@@ -227,9 +227,8 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 		minBalance   = math.Gwei(cs.EffectiveBalanceIncrement())
 		address0     = common.ExecutionAddress{}
 		credentials0 = types.NewCredentialsFromExecutionAddress(address0)
-		credentials1 = types.NewCredentialsFromExecutionAddress(
-			common.ExecutionAddress{0x01},
-		)
+		address1     = common.ExecutionAddress{0x01}
+		credentials1 = types.NewCredentialsFromExecutionAddress(address1)
 	)
 
 	// Setup initial state so that both validators are partially withdrawable.
@@ -309,4 +308,43 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	val1BalAfter, err := st.GetBalance(math.U64(1))
 	require.NoError(t, err)
 	require.Equal(t, maxBalance+minBalance, val1BalAfter)
+
+	// Process the next block, ensuring that validator 1 is also withdrawn from.
+	blk = buildNextBlock(
+		t,
+		st,
+		&types.BeaconBlockBody{
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:    10,
+				ExtraData:    []byte("testing"),
+				Transactions: [][]byte{},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					// The first withdrawal is always for EVM inflation.
+					st.EVMInflationWithdrawal(),
+					// Partially withdraw validator 0 by minBalance.
+					{
+						Index:     1,
+						Validator: 1,
+						Amount:    minBalance,
+						Address:   address1,
+					},
+				},
+				BaseFeePerGas: math.NewU256(0),
+			},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: []*types.Deposit{},
+		},
+	)
+
+	// Run the test.
+	vals, err = sp.Transition(ctx, st, blk)
+
+	// Check outputs and ensure withdrawals in payload is consistent with
+	// statedb expected withdrawals.
+	require.NoError(t, err)
+	require.Zero(t, vals)
+
+	val1BalAfter, err = st.GetBalance(math.U64(1))
+	require.NoError(t, err)
+	require.Equal(t, maxBalance, val1BalAfter)
 }
