@@ -49,7 +49,7 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 
 	// Check over the next 10 EVM blocks, that after every block, the balance
 	// of the EVM inflation address increases by EVMInflationPerBlockWei.
-	for i := int64(1); i <= 10; i++ {
+	for i := int64(0); i <= 10; i++ {
 		err := s.WaitForFinalizedBlockNumber(uint64(i))
 		s.Require().NoError(err)
 
@@ -59,10 +59,8 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 			big.NewInt(i),
 		)
 		s.Require().NoError(err)
-		s.Require().Equal(
-			balance.Cmp(new(big.Int).Mul(
-				evmInflationPerBlockWei, big.NewInt(i)),
-			), 0,
-		)
+		s.Require().Zero(balance.Cmp(new(big.Int).Mul(
+			evmInflationPerBlockWei, big.NewInt(i)),
+		))
 	}
 }

@@ -275,8 +275,8 @@ func (sp *StateProcessor[
 		if !wd.Equals(payloadWithdrawals[i]) {
 			return errors.Wrapf(
 				ErrWithdrawalMismatch,
-				"withdrawals do not match expected %s, got %s",
-				spew.Sdump(wd), spew.Sdump(payloadWithdrawals[i]),
+				"withdrawal at index %d does not match expected %s, got %s",
+				i, spew.Sdump(wd), spew.Sdump(payloadWithdrawals[i]),
 			)
 		}
 

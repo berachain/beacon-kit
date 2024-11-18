@@ -23,9 +23,10 @@ package chain
 import "github.com/berachain/beacon-kit/mod/errors"
 
 var (
-	// ErrZeroMaxWithdrawalsPerPayload is returned when the max withdrawals
-	// per payload is zero. Must allow at least one for the EVM inflation
-	// withdrawal, and at least one more for a validator withdrawal per block.
-	ErrZeroMaxWithdrawalsPerPayload = errors.New(
+	// ErrInsufficientMaxWithdrawalsPerPayload is returned when the max
+	// withdrawals per payload less than 2. Must allow at least one for the EVM
+	// inflation withdrawal, and at least one more for a validator withdrawal
+	// per block.
+	ErrInsufficientMaxWithdrawalsPerPayload = errors.New(
 		"max withdrawals per payload must be greater than 1")
 )

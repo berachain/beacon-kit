@@ -87,6 +87,26 @@ type (
 		*engineprimitives.Withdrawal,
 		types.WithdrawalCredentials,
 	]
+
+	TestStateProcessorT = core.StateProcessor[
+		*types.BeaconBlock,
+		*types.BeaconBlockBody,
+		*types.BeaconBlockHeader,
+		*TestBeaconStateT,
+		*transition.Context,
+		*types.Deposit,
+		*types.Eth1Data,
+		*types.ExecutionPayload,
+		*types.ExecutionPayloadHeader,
+		*types.Fork,
+		*types.ForkData,
+		*TestKVStoreT,
+		*types.Validator,
+		types.Validators,
+		*engineprimitives.Withdrawal,
+		engineprimitives.Withdrawals,
+		types.WithdrawalCredentials,
+	]
 )
 
 type testKVStoreService struct {
@@ -166,25 +186,7 @@ func setupState(
 		bytes.B4, math.U64, common.ExecutionAddress, math.U64, any,
 	],
 ) (
-	*core.StateProcessor[
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
-		*types.BeaconBlockHeader,
-		*TestBeaconStateT,
-		*transition.Context,
-		*types.Deposit,
-		*types.Eth1Data,
-		*types.ExecutionPayload,
-		*types.ExecutionPayloadHeader,
-		*types.Fork,
-		*types.ForkData,
-		*TestKVStoreT,
-		*types.Validator,
-		types.Validators,
-		*engineprimitives.Withdrawal,
-		engineprimitives.Withdrawals,
-		types.WithdrawalCredentials,
-	],
+	*TestStateProcessorT,
 	*TestBeaconStateT,
 	*transition.Context,
 ) {

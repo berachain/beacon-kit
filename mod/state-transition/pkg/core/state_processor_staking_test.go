@@ -317,7 +317,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 		st,
 		&types.BeaconBlockBody{
 			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    10,
+				Timestamp:    11,
 				ExtraData:    []byte("testing"),
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{

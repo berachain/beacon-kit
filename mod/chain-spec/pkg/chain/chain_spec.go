@@ -234,7 +234,7 @@ func (c *chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) validate() error {
 	if c.MaxWithdrawalsPerPayload() <= 1 {
-		return ErrZeroMaxWithdrawalsPerPayload
+		return ErrInsufficientMaxWithdrawalsPerPayload
 	}
 
 	// TODO: Add more validation rules here.
