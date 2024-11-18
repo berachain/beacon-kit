@@ -31,3 +31,9 @@ const (
 	DepositContractAddress = "0x4242424242424242424242424242424242424242"
 	NumDepositsLoad        = 500
 )
+
+// EVM Inflation.
+const (
+	EVMInflationAddress     = "0x6942069420694206942069420694206942069420"
+	EVMInflationPerBlockWei = 10e18
+)
