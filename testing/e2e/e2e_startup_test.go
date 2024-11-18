@@ -56,7 +56,7 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 		balance, err := s.JSONRPCBalancer().BalanceAt(
 			s.Ctx(),
 			gethcommon.HexToAddress(config.EVMInflationAddress),
-			big.NewInt(int64(i)),
+			big.NewInt(i),
 		)
 		s.Require().NoError(err)
 		s.Require().Equal(
