@@ -32,14 +32,14 @@ import (
 // VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
 func (s *Service[
-	_, ConsensusBlockT, BeaconBlockT, _, _, _, _, _, _, _, _,
+	_, ConsensusBlockT, BeaconBlockT, _, _, _, _, _, ExecutionPayloadHeaderT, _, _,
 ]) VerifyIncomingBlock(
 	ctx context.Context,
 	blk ConsensusBlockT,
 ) error {
 	var (
-		beaconBlk            = blk.GetBeaconBlock()
-		nextPayloadTimestamp = blk.GetNextPayloadTimestamp()
+		beaconBlk     = blk.GetBeaconBlock()
+		consensusTime = blk.GetConsensusTime()
 	)
 
 	// Grab a copy of the state to verify the incoming block.
@@ -81,10 +81,17 @@ func (s *Service[
 		)
 
 		if s.shouldBuildOptimisticPayloads() {
+			var lph ExecutionPayloadHeaderT
+			lph, err = preState.GetLatestExecutionPayloadHeader()
+			if err != nil {
+				return err
+			}
+			nextPayload := max(consensusTime+1, lph.GetTimestamp()+1)
+
 			go s.handleRebuildPayloadForRejectedBlock(
 				ctx,
 				preState,
-				nextPayloadTimestamp,
+				nextPayload,
 			)
 		}
 
@@ -98,11 +105,17 @@ func (s *Service[
 	)
 
 	if s.shouldBuildOptimisticPayloads() {
+		lph, err := postState.GetLatestExecutionPayloadHeader()
+		if err != nil {
+			return err
+		}
+		nextPayload := max(consensusTime+1, lph.GetTimestamp()+1)
+
 		go s.handleOptimisticPayloadBuild(
 			ctx,
 			postState,
 			beaconBlk,
-			nextPayloadTimestamp,
+			nextPayload,
 		)
 	}
 
@@ -129,7 +142,7 @@ func (s *Service[
 			SkipValidateResult:      false,
 			SkipValidateRandao:      false,
 			ProposerAddress:         blk.GetProposerAddress(),
-			NextPayloadTimestamp:    blk.GetNextPayloadTimestamp(),
+			ConsensusTime:           blk.GetConsensusTime(),
 		},
 		st, blk.GetBeaconBlock(),
 	)

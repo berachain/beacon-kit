@@ -44,10 +44,9 @@ type Context struct {
 	SkipValidateResult bool
 	// Address of current block proposer
 	ProposerAddress []byte
-	// NextPayloadTimestamp is the timestamp proposed by
-	// consensus for the next payload to be proposed. It is also
-	// used to bound current payload upon validation
-	NextPayloadTimestamp math.U64
+	// ConsensusTime returns the timestamp of current consensus request.
+	// It is used to build next payload and to validate currentpayload.
+	ConsensusTime math.U64
 }
 
 // GetOptimisticEngine returns whether to optimistically assume the execution
@@ -81,11 +80,10 @@ func (c *Context) GetProposerAddress() []byte {
 	return c.ProposerAddress
 }
 
-// GetNextPayloadTimestamp returns the timestamp proposed by consensus
-// for the next payload to be proposed. It is also used to bound
-// current payload upon validation.
-func (c *Context) GetNextPayloadTimestamp() math.U64 {
-	return c.NextPayloadTimestamp
+// GetConsensusTime returns the timestamp of current consensus request.
+// It is used to build next payload and to validate currentpayload.
+func (c *Context) GetConsensusTime() math.U64 {
+	return c.ConsensusTime
 }
 
 // Unwrap returns the underlying standard context.

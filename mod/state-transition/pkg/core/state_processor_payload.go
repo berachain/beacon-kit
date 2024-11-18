@@ -51,7 +51,7 @@ func (sp *StateProcessor[
 		"consensus height", blk.GetSlot().Unwrap(),
 		"payload height", payload.GetNumber().Unwrap(),
 		"payload timestamp", payload.GetTimestamp().Unwrap(),
-		"bound timestamp", ctx.GetNextPayloadTimestamp().Unwrap(),
+		"consensus timestamp", ctx.GetConsensusTime().Unwrap(),
 		"skip payload verification", ctx.GetSkipPayloadVerification(),
 	)
 
@@ -60,7 +60,7 @@ func (sp *StateProcessor[
 		g.Go(func() error {
 			return sp.validateExecutionPayload(
 				gCtx, st, blk,
-				ctx.GetNextPayloadTimestamp(),
+				ctx.GetConsensusTime(),
 				ctx.GetOptimisticEngine(),
 			)
 		})

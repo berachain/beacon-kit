@@ -76,7 +76,10 @@ func (s *Service[
 		return
 	}
 
-	nextPayloadTime := blk.GetNextPayloadTimestamp().Unwrap()
+	nextPayloadTime := max(
+		blk.GetConsensusTime()+1,
+		lph.GetTimestamp()+1,
+	).Unwrap()
 
 	// We set timestamp check on Bartio for backward compatibility reasons
 	// TODO: drop this we drop other Bartio special cases.

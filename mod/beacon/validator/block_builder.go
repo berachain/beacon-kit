@@ -115,7 +115,7 @@ func (s *Service[
 		return s.computeAndSetStateRoot(
 			ctx,
 			slotData.GetProposerAddress(),
-			slotData.GetNextPayloadTimestamp(),
+			slotData.GetConsensusTime(),
 			st,
 			blk,
 		)
@@ -216,39 +216,45 @@ func (s *Service[
 			blk.GetSlot(),
 			blk.GetParentBlockRoot(),
 		)
-	if err != nil {
-		s.metrics.failedToRetrievePayload(
-			blk.GetSlot(),
-			err,
-		)
-
-		// The latest execution payload header will be from the previous block
-		// during the block building phase.
-		var lph ExecutionPayloadHeaderT
-		lph, err = st.GetLatestExecutionPayloadHeader()
-		if err != nil {
-			return nil, err
-		}
-
-		// If we failed to retrieve the payload, request a synchronous payload.
-		//
-		// NOTE: The state here is properly configured by the
-		// prepareStateForBuilding
-		//
-		// call that needs to be called before requesting the Payload.
-		// TODO: We should decouple the PayloadBuilder from BeaconState to make
-		// this less confusing.
-		return s.localPayloadBuilder.RequestPayloadSync(
-			ctx,
-			st,
-			blk.GetSlot(),
-			slotData.GetNextPayloadTimestamp().Unwrap(),
-			blk.GetParentBlockRoot(),
-			lph.GetBlockHash(),
-			lph.GetParentHash(),
-		)
+	if err == nil {
+		return envelope, nil
 	}
-	return envelope, nil
+
+	// If we failed to retrieve the payload, request a synchronous payload.
+	//
+	// NOTE: The state here is properly configured by the
+	// prepareStateForBuilding
+	//
+	// call that needs to be called before requesting the Payload.
+	// TODO: We should decouple the PayloadBuilder from BeaconState to make
+	// this less confusing.
+
+	s.metrics.failedToRetrievePayload(
+		blk.GetSlot(),
+		err,
+	)
+
+	// The latest execution payload header will be from the previous block
+	// during the block building phase.
+	var lph ExecutionPayloadHeaderT
+	lph, err = st.GetLatestExecutionPayloadHeader()
+	if err != nil {
+		return nil, err
+	}
+
+	nextPayloadTimestamp := max(
+		slotData.GetConsensusTime()+1,
+		lph.GetTimestamp()+1,
+	)
+	return s.localPayloadBuilder.RequestPayloadSync(
+		ctx,
+		st,
+		blk.GetSlot(),
+		nextPayloadTimestamp.Unwrap(),
+		blk.GetParentBlockRoot(),
+		lph.GetBlockHash(),
+		lph.GetParentHash(),
+	)
 }
 
 // BuildBlockBody assembles the block body with necessary components.
@@ -384,7 +390,7 @@ func (s *Service[
 			SkipValidateResult:      true,
 			SkipValidateRandao:      true,
 			ProposerAddress:         proposerAddress,
-			NextPayloadTimestamp:    nextPayloadTimestamp,
+			ConsensusTime:           nextPayloadTimestamp,
 		},
 		st, blk,
 	); err != nil {
