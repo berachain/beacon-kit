@@ -310,7 +310,10 @@ func (s *StateDB[
 ]) EVMInflationWithdrawal() WithdrawalT {
 	var withdrawal WithdrawalT
 	return withdrawal.New(
-		0, 0, s.cs.EVMInflationAddress(), math.U64(s.cs.EVMInflationPerBlock()),
+		0,
+		0,
+		s.cs.EVMInflationAddress(),
+		math.Gwei(s.cs.EVMInflationPerBlock()),
 	)
 }
 

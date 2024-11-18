@@ -263,7 +263,7 @@ func (sp *StateProcessor[
 	if !expectedWithdrawals[0].GetAddress().Equals(
 		sp.cs.EVMInflationAddress(),
 	) ||
-		expectedWithdrawals[0].GetAmount() != math.U64(
+		expectedWithdrawals[0].GetAmount() != math.Gwei(
 			sp.cs.EVMInflationPerBlock(),
 		) {
 		return ErrFirstWithdrawalNotEVMInflation

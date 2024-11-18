@@ -191,8 +191,8 @@ type Spec[
 	// block.
 	EVMInflationAddress() ExecutionAddressT
 
-	// EVMInflationPerBlock returns the amount of native EVM balance to be
-	// minted to the EVMInflationAddress via a withdrawal every block.
+	// EVMInflationPerBlock returns the amount of native EVM balance (in Gwei)
+	// to be minted to the EVMInflationAddress via a withdrawal every block.
 	EVMInflationPerBlock() uint64
 }
 
@@ -509,8 +509,8 @@ func (c chainSpec[
 	return c.Data.EVMInflationAddress
 }
 
-// EVMInflationPerBlock returns the amount of native EVM balance to be minted to
-// the EVMInflationAddress via a withdrawal every block.
+// EVMInflationPerBlock returns the amount of native EVM balance (in Gwei) to
+// be minted to the EVMInflationAddress via a withdrawal every block.
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) EVMInflationPerBlock() uint64 {
