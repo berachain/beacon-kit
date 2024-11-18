@@ -24,42 +24,17 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
-	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
-	cryptomocks "github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/mocks"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/mocks"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
 func TestInitialize(t *testing.T) {
-	// Create state processor to test
-	cs, err := spec.BetnetChainSpec()
-	require.NoError(t, err)
-	execEngine := mocks.NewExecutionEngine[
-		*types.ExecutionPayload,
-		*types.ExecutionPayloadHeader,
-		engineprimitives.Withdrawals,
-	](t)
-	mocksSigner := &cryptomocks.BLSSigner{}
-
-	sp := createStateProcessor(
-		cs,
-		execEngine,
-		mocksSigner,
-		dummyProposerAddressVerifier,
-	)
-
-	// create test inputs
-	kvStore, err := initStore()
-	require.NoError(t, err)
-	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
+	cs, sp, beaconState, _ := setupState(t, components.BetnetChainSpecType)
 
 	var (
 		deposits = []*types.Deposit{
@@ -96,12 +71,6 @@ func TestInitialize(t *testing.T) {
 			Epoch:           math.Epoch(constants.GenesisEpoch),
 		}
 	)
-
-	// define mocks expectations
-	mocksSigner.On(
-		"VerifySignature",
-		mock.Anything, mock.Anything, mock.Anything,
-	).Return(nil)
 
 	// run test
 	vals, err := sp.InitializePreminedBeaconStateFromEth1(
@@ -161,27 +130,7 @@ func checkValidatorNonBartio(
 }
 
 func TestInitializeBartio(t *testing.T) {
-	// Create state processor to test
-	cs, err := spec.TestnetChainSpec()
-	require.NoError(t, err)
-	execEngine := mocks.NewExecutionEngine[
-		*types.ExecutionPayload,
-		*types.ExecutionPayloadHeader,
-		engineprimitives.Withdrawals,
-	](t)
-	mocksSigner := &cryptomocks.BLSSigner{}
-
-	sp := createStateProcessor(
-		cs,
-		execEngine,
-		mocksSigner,
-		dummyProposerAddressVerifier,
-	)
-
-	// create test inputs
-	kvStore, err := initStore()
-	require.NoError(t, err)
-	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
+	cs, sp, beaconState, _ := setupState(t, "testnet")
 
 	var (
 		deposits = []*types.Deposit{
@@ -218,12 +167,6 @@ func TestInitializeBartio(t *testing.T) {
 			Epoch:           math.Epoch(constants.GenesisEpoch),
 		}
 	)
-
-	// define mocks expectations
-	mocksSigner.On(
-		"VerifySignature",
-		mock.Anything, mock.Anything, mock.Anything,
-	).Return(nil)
 
 	// run test
 	vals, err := sp.InitializePreminedBeaconStateFromEth1(
@@ -321,10 +264,4 @@ func commonChecksValidators(
 	case dep.Amount < minBalance:
 		require.Equal(t, math.Gwei(0), val.EffectiveBalance)
 	}
-}
-
-// in genesis UTs we don't need to verify proposer address
-// (no one proposes genesis), hence the dummy implementation.
-func dummyProposerAddressVerifier(bytes.B48) ([]byte, error) {
-	return nil, nil
 }

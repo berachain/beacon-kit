@@ -23,44 +23,17 @@ package core_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	cryptomocks "github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/mocks"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/mocks"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
 func TestTransitionUpdateValidators(t *testing.T) {
-	// Create state processor to test
-	cs, err := spec.BetnetChainSpec()
-	require.NoError(t, err)
-	execEngine := mocks.NewExecutionEngine[
-		*types.ExecutionPayload,
-		*types.ExecutionPayloadHeader,
-		engineprimitives.Withdrawals,
-	](t)
-	mocksSigner := &cryptomocks.BLSSigner{}
-	dummyProposerAddr := []byte{0xff}
-
-	sp := createStateProcessor(
-		cs,
-		execEngine,
-		mocksSigner,
-		func(bytes.B48) ([]byte, error) {
-			return dummyProposerAddr, nil
-		},
-	)
-
-	kvStore, err := initStore()
-	require.NoError(t, err)
-	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
+	cs, sp, beaconState, ctx := setupState(t, components.BetnetChainSpecType)
 
 	var (
 		maxBalance       = math.Gwei(cs.MaxEffectiveBalance())
@@ -91,13 +64,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		genVersion       = version.FromUint32[common.Version](version.Deneb)
 	)
-
-	mocksSigner.On(
-		"VerifySignature",
-		mock.Anything, mock.Anything, mock.Anything,
-	).Return(nil)
-
-	_, err = sp.InitializePreminedBeaconStateFromEth1(
+	_, err := sp.InitializePreminedBeaconStateFromEth1(
 		beaconState,
 		genDeposits,
 		genPayloadHeader,
@@ -106,22 +73,14 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	require.NoError(t, err)
 
 	// create test inputs
-	var (
-		ctx = &transition.Context{
-			SkipPayloadVerification: true,
-			SkipValidateResult:      true,
-			ProposerAddress:         dummyProposerAddr,
-		}
-		blkDeposits = []*types.Deposit{
-			{
-				Pubkey:      genDeposits[0].Pubkey,
-				Credentials: emptyCredentials,
-				Amount:      minBalance, // avoid breaching maxBalance
-				Index:       genDeposits[0].Index,
-			},
-		}
-	)
-
+	blkDeposits := []*types.Deposit{
+		{
+			Pubkey:      genDeposits[0].Pubkey,
+			Credentials: emptyCredentials,
+			Amount:      minBalance, // avoid breaching maxBalance
+			Index:       genDeposits[0].Index,
+		},
+	}
 	blk := buildNextBlock(
 		t,
 		beaconState,
