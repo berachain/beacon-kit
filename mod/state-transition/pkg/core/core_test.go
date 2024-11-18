@@ -150,12 +150,6 @@ func initStore() (
 	), nil
 }
 
-// in genesis UTs we don't need to verify proposer address
-// (no one proposes genesis), hence the dummy implementation.
-func dummyProposerAddressVerifier(bytes.B48) ([]byte, error) {
-	return nil, nil
-}
-
 func setupState(t *testing.T, chainSpecType string) (
 	chain.Spec[bytes.B4, math.U64, common.ExecutionAddress, math.U64, any],
 	*core.StateProcessor[
@@ -221,7 +215,9 @@ func setupState(t *testing.T, chainSpecType string) (
 		cs,
 		execEngine,
 		mocksSigner,
-		dummyProposerAddressVerifier,
+		func(bytes.B48) ([]byte, error) {
+			return dummyProposerAddr, nil
+		},
 	)
 
 	kvStore, err := initStore()
