@@ -24,6 +24,7 @@ import (
 	"context"
 	"time"
 
+	payloadtime "github.com/berachain/beacon-kit/mod/beacon/payload-time"
 	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
@@ -86,12 +87,15 @@ func (s *Service[
 			if err != nil {
 				return err
 			}
-			nextPayload := max(consensusTime+1, lph.GetTimestamp()+1)
 
 			go s.handleRebuildPayloadForRejectedBlock(
 				ctx,
 				preState,
-				nextPayload,
+				payloadtime.Next(
+					consensusTime,
+					lph.GetTimestamp(),
+					true, // buildOptimistically
+				),
 			)
 		}
 
@@ -109,13 +113,16 @@ func (s *Service[
 		if err != nil {
 			return err
 		}
-		nextPayload := max(consensusTime+1, lph.GetTimestamp()+1)
 
 		go s.handleOptimisticPayloadBuild(
 			ctx,
 			postState,
 			beaconBlk,
-			nextPayload,
+			payloadtime.Next(
+				consensusTime,
+				lph.GetTimestamp(),
+				true, // buildOptimistically
+			),
 		)
 	}
 

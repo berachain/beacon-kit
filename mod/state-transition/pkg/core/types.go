@@ -175,6 +175,7 @@ type ExecutionPayload[
 
 type ExecutionPayloadHeader interface {
 	GetBlockHash() common.ExecutionHash
+	GetTimestamp() math.U64
 }
 
 // Withdrawals defines the interface for managing withdrawal operations.

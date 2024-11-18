@@ -23,6 +23,7 @@ package core
 import (
 	"context"
 
+	payloadtime "github.com/berachain/beacon-kit/mod/beacon/payload-time"
 	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -93,16 +94,19 @@ func (sp *StateProcessor[
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
-	nextPayloadTimestamp math.U64,
+	consensusTime math.U64,
 	optimisticEngine bool,
 ) error {
-	if err := sp.validateStatelessPayload(
-		blk,
-		nextPayloadTimestamp,
-	); err != nil {
+	if err := sp.validateStatelessPayload(blk); err != nil {
 		return err
 	}
-	return sp.validateStatefulPayload(ctx, st, blk, optimisticEngine)
+	return sp.validateStatefulPayload(
+		ctx,
+		st,
+		blk,
+		consensusTime,
+		optimisticEngine,
+	)
 }
 
 // validateStatelessPayload performs stateless checks on the execution payload.
@@ -111,22 +115,9 @@ func (sp *StateProcessor[
 	_, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) validateStatelessPayload(
 	blk BeaconBlockT,
-	nextPayloadTimestamp math.U64,
 ) error {
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
-
-	// We skip timestamp check on Bartio for backward compatibility reasons
-	// TODO: enforce the check when we drop other Bartio special cases.
-	if sp.cs.DepositEth1ChainID() != spec.BartioChainID {
-		if pt := payload.GetTimestamp(); pt >= nextPayloadTimestamp {
-			return errors.Wrapf(
-				ErrTooFarInTheFuture,
-				"payload timestamp, max: %d, got: %d",
-				nextPayloadTimestamp, pt,
-			)
-		}
-	}
 
 	// Verify the number of withdrawals.
 	withdrawals := payload.GetWithdrawals()
@@ -159,6 +150,7 @@ func (sp *StateProcessor[
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
+	consensusTime math.U64,
 	optimisticEngine bool,
 ) error {
 	body := blk.GetBody()
@@ -167,6 +159,18 @@ func (sp *StateProcessor[
 	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return err
+	}
+
+	// We skip timestamp check on Bartio for backward compatibility reasons
+	// TODO: enforce the check when we drop other Bartio special cases.
+	if sp.cs.DepositEth1ChainID() != spec.BartioChainID {
+		if err = payloadtime.Verify(
+			consensusTime,
+			lph.GetTimestamp(),
+			payload.GetTimestamp(),
+		); err != nil {
+			return err
+		}
 	}
 
 	// Check chain canonicity

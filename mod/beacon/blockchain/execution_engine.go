@@ -24,6 +24,7 @@ import (
 	"context"
 	"time"
 
+	payloadtime "github.com/berachain/beacon-kit/mod/beacon/payload-time"
 	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 )
@@ -76,9 +77,10 @@ func (s *Service[
 		return
 	}
 
-	nextPayloadTime := max(
-		blk.GetConsensusTime()+1,
-		lph.GetTimestamp()+1,
+	nextPayloadTime := payloadtime.Next(
+		blk.GetConsensusTime(),
+		lph.GetTimestamp(),
+		true, // buildOptimistically
 	).Unwrap()
 
 	// We set timestamp check on Bartio for backward compatibility reasons
