@@ -294,9 +294,8 @@ func (s *StateDB[
 		}
 
 		// Increment the validator index to process the next validator.
-		validatorIndex = (validatorIndex + 1) % math.ValidatorIndex(
-			totalValidators,
-		)
+		validatorIndex++
+		validatorIndex %= math.ValidatorIndex(totalValidators)
 	}
 
 	return withdrawals, nil

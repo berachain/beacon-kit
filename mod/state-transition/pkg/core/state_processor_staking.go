@@ -316,7 +316,8 @@ func (sp *StateProcessor[
 		//#nosec:G701 // won't overflow in practice.
 		numWithdrawals == int(sp.cs.MaxWithdrawalsPerPayload()) {
 		// Next sweep starts after the latest withdrawal's validator index.
-		nextValIndex = expectedWithdrawals[numWithdrawals-1].GetIndex() + 1
+		nextValIndex =
+			expectedWithdrawals[numWithdrawals-1].GetValidatorIndex() + 1
 	} else {
 		// Advance sweep by the max length of the sweep if there was not a full
 		// set of withdrawals.
@@ -327,6 +328,5 @@ func (sp *StateProcessor[
 		nextValIndex += math.U64(sp.cs.MaxValidatorsPerWithdrawalsSweep())
 	}
 	nextValIndex %= math.U64(totalValidators)
-
 	return st.SetNextWithdrawalValidatorIndex(nextValIndex)
 }

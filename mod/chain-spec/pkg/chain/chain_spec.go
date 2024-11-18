@@ -233,7 +233,7 @@ func NewChainSpec[
 func (c *chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) validate() error {
-	if c.MaxWithdrawalsPerPayload() == 0 {
+	if c.MaxWithdrawalsPerPayload() <= 1 {
 		return ErrZeroMaxWithdrawalsPerPayload
 	}
 
