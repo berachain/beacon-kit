@@ -23,7 +23,6 @@ package core_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	corestore "cosmossdk.io/core/store"
@@ -150,8 +149,23 @@ func initStore() (
 	), nil
 }
 
-func setupState(t *testing.T, chainSpecType string) (
-	chain.Spec[bytes.B4, math.U64, common.ExecutionAddress, math.U64, any],
+func setupChain(t *testing.T, chainSpecType string) chain.Spec[
+	bytes.B4, math.U64, common.ExecutionAddress, math.U64, any,
+] {
+	t.Helper()
+
+	t.Setenv(components.ChainSpecTypeEnvVar, chainSpecType)
+	cs, err := components.ProvideChainSpec()
+	require.NoError(t, err)
+
+	return cs
+}
+
+func setupState(
+	t *testing.T, cs chain.Spec[
+		bytes.B4, math.U64, common.ExecutionAddress, math.U64, any,
+	],
+) (
 	*core.StateProcessor[
 		*types.BeaconBlock,
 		*types.BeaconBlockBody,
@@ -174,9 +188,7 @@ func setupState(t *testing.T, chainSpecType string) (
 	*TestBeaconStateT,
 	*transition.Context,
 ) {
-	os.Setenv(components.ChainSpecTypeEnvVar, chainSpecType)
-	cs, err := components.ProvideChainSpec()
-	require.NoError(t, err)
+	t.Helper()
 
 	execEngine := mocks.NewExecutionEngine[
 		*types.ExecutionPayload,
@@ -230,7 +242,7 @@ func setupState(t *testing.T, chainSpecType string) (
 		ProposerAddress:         dummyProposerAddr,
 	}
 
-	return cs, sp, beaconState, ctx
+	return sp, beaconState, ctx
 }
 
 func buildNextBlock(

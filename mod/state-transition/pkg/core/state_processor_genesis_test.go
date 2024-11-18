@@ -34,32 +34,33 @@ import (
 )
 
 func TestInitialize(t *testing.T) {
-	cs, sp, st, _ := setupState(t, components.BetnetChainSpecType)
+	cs := setupChain(t, components.BetnetChainSpecType)
+	sp, st, _ := setupState(t, cs)
 
 	var (
 		deposits = []*types.Deposit{
 			{
-				Pubkey: [48]byte{0x01},
+				Pubkey: [48]byte{0x00},
 				Amount: math.Gwei(cs.MaxEffectiveBalance()),
 				Index:  0,
 			},
 			{
-				Pubkey: [48]byte{0x02},
+				Pubkey: [48]byte{0x01},
 				Amount: math.Gwei(cs.MaxEffectiveBalance() / 2),
 				Index:  1,
 			},
 			{
-				Pubkey: [48]byte{0x03},
+				Pubkey: [48]byte{0x02},
 				Amount: math.Gwei(cs.EffectiveBalanceIncrement()),
 				Index:  2,
 			},
 			{
-				Pubkey: [48]byte{0x04},
+				Pubkey: [48]byte{0x03},
 				Amount: math.Gwei(2 * cs.MaxEffectiveBalance()),
 				Index:  3,
 			},
 			{
-				Pubkey: [48]byte{0x05},
+				Pubkey: [48]byte{0x04},
 				Amount: math.Gwei(cs.EffectiveBalanceIncrement() * 2 / 3),
 				Index:  4,
 			},
@@ -127,32 +128,33 @@ func checkValidatorNonBartio(
 }
 
 func TestInitializeBartio(t *testing.T) {
-	cs, sp, st, _ := setupState(t, "testnet")
+	cs := setupChain(t, "testnet")
+	sp, st, _ := setupState(t, cs)
 
 	var (
 		deposits = []*types.Deposit{
 			{
-				Pubkey: [48]byte{0x01},
+				Pubkey: [48]byte{0x00},
 				Amount: math.Gwei(cs.MaxEffectiveBalance()),
 				Index:  0,
 			},
 			{
-				Pubkey: [48]byte{0x02},
+				Pubkey: [48]byte{0x01},
 				Amount: math.Gwei(cs.MaxEffectiveBalance() / 2),
 				Index:  1,
 			},
 			{
-				Pubkey: [48]byte{0x03},
+				Pubkey: [48]byte{0x02},
 				Amount: math.Gwei(cs.EffectiveBalanceIncrement()),
 				Index:  2,
 			},
 			{
-				Pubkey: [48]byte{0x04},
+				Pubkey: [48]byte{0x03},
 				Amount: math.Gwei(2 * cs.MaxEffectiveBalance()),
 				Index:  3,
 			},
 			{
-				Pubkey: [48]byte{0x05},
+				Pubkey: [48]byte{0x04},
 				Amount: math.Gwei(cs.EffectiveBalanceIncrement() * 2 / 3),
 				Index:  4,
 			},

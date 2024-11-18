@@ -48,7 +48,7 @@ var spec, _ = chain.NewChainSpec(
 		ElectraForkEpoch:                 10,
 		SlotsPerEpoch:                    32,
 		MinEpochsForBlobsSidecarsRequest: 5,
-		MaxWithdrawalsPerPayload:         1,
+		MaxWithdrawalsPerPayload:         2,
 	},
 )
 

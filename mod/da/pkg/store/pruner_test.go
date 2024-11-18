@@ -113,14 +113,14 @@ func TestBuildPruneRangeFn(t *testing.T) {
 				]{
 					SlotsPerEpoch:                    tt.slotsPerEpoch,
 					MinEpochsForBlobsSidecarsRequest: tt.minEpochs,
-					MaxWithdrawalsPerPayload:         1,
+					MaxWithdrawalsPerPayload:         2,
 				},
 			)
 			require.NoError(t, err)
 			pruneFn := store.BuildPruneRangeFn[MockBeaconBlock](
 				cs,
 			)
-			event := async.NewEvent[MockBeaconBlock](
+			event := async.NewEvent(
 				context.Background(),
 				async.EventID("mock"),
 				MockBeaconBlock{

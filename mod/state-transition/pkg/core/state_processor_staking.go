@@ -274,7 +274,7 @@ func (sp *StateProcessor[
 		// Ensure the withdrawals match the local state.
 		if !wd.Equals(payloadWithdrawals[i]) {
 			return errors.Wrapf(
-				ErrNumWithdrawalsMismatch,
+				ErrWithdrawalMismatch,
 				"withdrawals do not match expected %s, got %s",
 				spew.Sdump(wd), spew.Sdump(payloadWithdrawals[i]),
 			)

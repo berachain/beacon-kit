@@ -90,4 +90,9 @@ var (
 	// in the block is not the EVM inflation withdrawal.
 	ErrFirstWithdrawalNotEVMInflation = errors.New(
 		"first withdrawal is not the EVM inflation withdrawal")
+
+	// ErrWithdrawalMismatch is returned when the withdrawals in a payload do
+	// not match the local state's expected value.
+	ErrWithdrawalMismatch = errors.New(
+		"withdrawal mismatch between local state and payload")
 )
