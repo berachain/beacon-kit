@@ -40,14 +40,14 @@ func Verify(
 		consensusTime+1,
 		parentPayloadTimestamp+1,
 	)
-	if payloadTimestamp <= bound {
-		return nil
+	if payloadTimestamp > bound {
+		return fmt.Errorf(
+			"%w: timestamp bound: %d, got: %d",
+			ErrTooFarInTheFuture,
+			bound, payloadTimestamp,
+		)
 	}
-	return fmt.Errorf(
-		"%w: timestamp bound: %d, got: %d",
-		ErrTooFarInTheFuture,
-		bound, payloadTimestamp,
-	)
+	return nil
 }
 
 func Next(
