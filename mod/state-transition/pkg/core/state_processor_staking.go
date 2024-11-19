@@ -256,19 +256,6 @@ func (sp *StateProcessor[
 		)
 	}
 
-	// Ensure the EVM inflation withdrawal is the first withdrawal.
-	if numWithdrawals == 0 {
-		return ErrNoWithdrawals
-	}
-	if !expectedWithdrawals[0].GetAddress().Equals(
-		sp.cs.EVMInflationAddress(),
-	) ||
-		expectedWithdrawals[0].GetAmount() != math.Gwei(
-			sp.cs.EVMInflationPerBlock(),
-		) {
-		return ErrFirstWithdrawalNotEVMInflation
-	}
-
 	// Compare and process each withdrawal.
 	for i, wd := range expectedWithdrawals {
 		// Ensure the withdrawals match the local state.
@@ -317,7 +304,8 @@ func (sp *StateProcessor[
 		numWithdrawals == int(sp.cs.MaxWithdrawalsPerPayload()) {
 		// Next sweep starts after the latest withdrawal's validator index.
 		nextValIndex =
-			expectedWithdrawals[numWithdrawals-1].GetValidatorIndex() + 1
+			(expectedWithdrawals[numWithdrawals-1].GetValidatorIndex() + 1) %
+				math.ValidatorIndex(totalValidators)
 	} else {
 		// Advance sweep by the max length of the sweep if there was not a full
 		// set of withdrawals.
@@ -325,8 +313,10 @@ func (sp *StateProcessor[
 		if err != nil {
 			return err
 		}
-		nextValIndex += math.U64(sp.cs.MaxValidatorsPerWithdrawalsSweep())
+		nextValIndex += math.ValidatorIndex(
+			sp.cs.MaxValidatorsPerWithdrawalsSweep())
+		nextValIndex %= math.ValidatorIndex(totalValidators)
 	}
-	nextValIndex %= math.U64(totalValidators)
+
 	return st.SetNextWithdrawalValidatorIndex(nextValIndex)
 }
