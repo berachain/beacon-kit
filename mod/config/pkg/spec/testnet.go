@@ -131,7 +131,8 @@ func BaseSpec() chain.SpecData[
 			"0x289274787bAF083C15A45a174b7a8e44F0720660",
 		),
 		// EVM inflation of 10 BERA per block minting to back potential BGT
-		// token redemptions for BERA (sets the upper bound on )
+		// token redemptions for BERA (sets the upper bound on amount of BGT
+		// that can be redeemed for BERA).
 		EVMInflationPerBlock: 10e9,
 	}
 }
