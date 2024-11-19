@@ -213,10 +213,6 @@ func (s *Service[LoggerT]) PrepareProposal(
 		nil,
 		nil,
 		req.GetProposerAddress(),
-
-		// we do not add h.minPayloadDelay here since req.GetTime()
-		// is guaranteed to be strictly larger than
-		// prevBlock.GetTime() + h.minPayloadDelay
 		req.GetTime(),
 	)
 	blkBz, sidecarsBz, err := s.Middleware.PrepareProposal(
