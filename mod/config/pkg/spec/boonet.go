@@ -18,37 +18,23 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package spec
 
 import (
-	"time"
-
+	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-type ConsensusBlock[BeaconBlockT any] struct {
-	blk BeaconBlockT
-
-	// some consensus data useful to build and verify the block
-	*commonConsensusData
-}
-
-// New creates a new ConsensusBlock instance.
-func (b *ConsensusBlock[BeaconBlockT]) New(
-	beaconBlock BeaconBlockT,
-	proposerAddress []byte,
-	consensusTime time.Time,
-) *ConsensusBlock[BeaconBlockT] {
-	b = &ConsensusBlock[BeaconBlockT]{
-		blk: beaconBlock,
-		commonConsensusData: &commonConsensusData{
-			proposerAddress: proposerAddress,
-			consensusTime:   math.U64(consensusTime.Unix()),
-		},
-	}
-	return b
-}
-
-func (b *ConsensusBlock[BeaconBlockT]) GetBeaconBlock() BeaconBlockT {
-	return b.blk
+// BoonetChainSpec is the ChainSpec for the localnet.
+func BoonetChainSpec() chain.Spec[
+	common.DomainType,
+	math.Epoch,
+	common.ExecutionAddress,
+	math.Slot,
+	any,
+] {
+	testnetSpec := BaseSpec()
+	testnetSpec.DepositEth1ChainID = BoonetEth1ChainID
+	return chain.NewChainSpec(testnetSpec)
 }

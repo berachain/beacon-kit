@@ -75,7 +75,7 @@ func (w *Withdrawal) New(
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the Withdrawal in bytes when SSZ encoded.
-func (*Withdrawal) SizeSSZ() uint32 {
+func (*Withdrawal) SizeSSZ(*ssz.Sizer) uint32 {
 	return WithdrawalSize
 }
 
@@ -94,7 +94,7 @@ func (w *Withdrawal) HashTreeRoot() common.Root {
 
 // MarshalSSZ marshals the Withdrawal object to SSZ format.
 func (w *Withdrawal) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, w.SizeSSZ())
+	buf := make([]byte, ssz.Size(w))
 	return buf, ssz.EncodeToBytes(buf, w)
 }
 
@@ -164,11 +164,18 @@ func (w Withdrawal) EncodeRLP(_w io.Writer) error {
 /* -------------------------------------------------------------------------- */
 
 // Equals returns true if the Withdrawal is equal to the other.
-func (w *Withdrawal) Equals(other *Withdrawal) bool {
-	return w.Index == other.Index &&
-		w.Validator == other.Validator &&
-		w.Address == other.Address &&
-		w.Amount == other.Amount
+func (w *Withdrawal) Equals(rhs *Withdrawal) bool {
+	switch {
+	case w == nil && rhs == nil:
+		return true
+	case w != nil && rhs != nil:
+		return w.Index == rhs.Index &&
+			w.Validator == rhs.Validator &&
+			w.Address == rhs.Address &&
+			w.Amount == rhs.Amount
+	default:
+		return false
+	}
 }
 
 // GetIndex returns the unique identifier for the withdrawal.

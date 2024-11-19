@@ -33,7 +33,7 @@ import (
 // StateProcessorInput is the input for the state processor for the depinject
 // framework.
 type StateProcessorInput[
-	LoggerT any,
+	LoggerT log.AdvancedLogger[LoggerT],
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
@@ -85,7 +85,8 @@ func ProvideStateProcessor[
 	WithdrawalT Withdrawal[WithdrawalT],
 ](
 	in StateProcessorInput[
-		LoggerT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+		LoggerT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 		DepositT, WithdrawalT, WithdrawalsT,
 	],
 ) *core.StateProcessor[

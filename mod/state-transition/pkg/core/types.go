@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/karalabe/ssz"
 )
 
 // BeaconBlock represents a generic interface for a beacon block.
@@ -121,10 +122,9 @@ type Context interface {
 	// GetProposerAddress returns the address of the validator
 	// selected by consensus to propose the block
 	GetProposerAddress() []byte
-	// GetNextPayloadTimestamp returns the timestamp proposed by
-	// consensus for the next payload to be proposed. It is also
-	// used to bound current payload upon validation
-	GetNextPayloadTimestamp() math.U64
+	// GetConsensusTime returns the timestamp of current consensus request.
+	// It is used to build next payload and to validate currentpayload.
+	GetConsensusTime() math.U64
 }
 
 // Deposit is the interface for a deposit.
@@ -182,14 +182,12 @@ type ExecutionPayload[
 	GetBaseFeePerGas() *math.U256
 	GetBlobGasUsed() math.U64
 	GetExcessBlobGas() math.U64
-	ToHeader(
-		maxWithdrawalsPerPayload uint64,
-		eth1ChainID uint64,
-	) (ExecutionPayloadHeaderT, error)
+	ToHeader() (ExecutionPayloadHeaderT, error)
 }
 
 type ExecutionPayloadHeader interface {
 	GetBlockHash() common.ExecutionHash
+	GetTimestamp() math.U64
 }
 
 // Withdrawals defines the interface for managing withdrawal operations.
@@ -231,7 +229,7 @@ type Validator[
 	WithdrawalCredentialsT ~[32]byte,
 ] interface {
 	constraints.SSZMarshallableRootable
-	SizeSSZ() uint32
+	SizeSSZ(*ssz.Sizer) uint32
 	// New creates a new validator with the given parameters.
 	New(
 		pubkey crypto.BLSPubkey,

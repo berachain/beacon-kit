@@ -22,6 +22,9 @@ package spec
 
 const (
 
+	// BoonetEth1ChainID is the chain ID for the local devnet.
+	BoonetEth1ChainID uint64 = 80000
+
 	// BetnetEth1ChainID is the chain ID for the local devnet.
 	BetnetEth1ChainID uint64 = 80088
 

@@ -179,13 +179,12 @@ func executableDataToExecutionPayloadHeader(
 			ExtraData:     data.ExtraData,
 			BaseFeePerGas: baseFeePerGas,
 			BlockHash:     common.ExecutionHash(data.BlockHash),
-			// TODO: Decouple from broken bArtio.
-			TransactionsRoot: engineprimitives.
-				BartioTransactions(
-					data.Transactions,
-				).HashTreeRoot(),
-			WithdrawalsRoot: engineprimitives.Withdrawals(withdrawals).
-				HashTreeRoot(),
+			TransactionsRoot: engineprimitives.Transactions(
+				data.Transactions,
+			).HashTreeRoot(),
+			WithdrawalsRoot: engineprimitives.Withdrawals(
+				withdrawals,
+			).HashTreeRoot(),
 			BlobGasUsed:   math.U64(blobGasUsed),
 			ExcessBlobGas: math.U64(excessBlobGas),
 		}

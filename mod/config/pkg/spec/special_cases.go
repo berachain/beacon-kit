@@ -18,37 +18,13 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package spec
 
-import (
-	"time"
+// Special cased Bartio for some ad-hoc handling due to the way
+// some bugs were handled on Bartio. To be removed.
+const (
+	BartioChainID uint64 = 80084
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	//nolint:lll // temporary.
+	BArtioValRoot = "0x9147586693b6e8faa837715c0f3071c2000045b54233901c2e7871b15872bc43"
 )
-
-type ConsensusBlock[BeaconBlockT any] struct {
-	blk BeaconBlockT
-
-	// some consensus data useful to build and verify the block
-	*commonConsensusData
-}
-
-// New creates a new ConsensusBlock instance.
-func (b *ConsensusBlock[BeaconBlockT]) New(
-	beaconBlock BeaconBlockT,
-	proposerAddress []byte,
-	consensusTime time.Time,
-) *ConsensusBlock[BeaconBlockT] {
-	b = &ConsensusBlock[BeaconBlockT]{
-		blk: beaconBlock,
-		commonConsensusData: &commonConsensusData{
-			proposerAddress: proposerAddress,
-			consensusTime:   math.U64(consensusTime.Unix()),
-		},
-	}
-	return b
-}
-
-func (b *ConsensusBlock[BeaconBlockT]) GetBeaconBlock() BeaconBlockT {
-	return b.blk
-}

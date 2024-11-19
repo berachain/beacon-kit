@@ -24,6 +24,7 @@ import (
 	"context"
 	"time"
 
+	payloadtime "github.com/berachain/beacon-kit/mod/beacon/payload-time"
 	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
@@ -32,14 +33,14 @@ import (
 // VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
 func (s *Service[
-	_, ConsensusBlockT, BeaconBlockT, _, _, _, _, _, _, _, _,
+	_, ConsensusBlockT, BeaconBlockT, _, _, _, _, _, ExecutionPayloadHeaderT, _, _,
 ]) VerifyIncomingBlock(
 	ctx context.Context,
 	blk ConsensusBlockT,
 ) error {
 	var (
-		beaconBlk            = blk.GetBeaconBlock()
-		nextPayloadTimestamp = blk.GetNextPayloadTimestamp()
+		beaconBlk     = blk.GetBeaconBlock()
+		consensusTime = blk.GetConsensusTime()
 	)
 
 	// Grab a copy of the state to verify the incoming block.
@@ -81,10 +82,20 @@ func (s *Service[
 		)
 
 		if s.shouldBuildOptimisticPayloads() {
+			var lph ExecutionPayloadHeaderT
+			lph, err = preState.GetLatestExecutionPayloadHeader()
+			if err != nil {
+				return err
+			}
+
 			go s.handleRebuildPayloadForRejectedBlock(
 				ctx,
 				preState,
-				nextPayloadTimestamp,
+				payloadtime.Next(
+					consensusTime,
+					lph.GetTimestamp(),
+					true, // buildOptimistically
+				),
 			)
 		}
 
@@ -98,11 +109,20 @@ func (s *Service[
 	)
 
 	if s.shouldBuildOptimisticPayloads() {
+		lph, err := postState.GetLatestExecutionPayloadHeader()
+		if err != nil {
+			return err
+		}
+
 		go s.handleOptimisticPayloadBuild(
 			ctx,
 			postState,
 			beaconBlk,
-			nextPayloadTimestamp,
+			payloadtime.Next(
+				consensusTime,
+				lph.GetTimestamp(),
+				true, // buildOptimistically
+			),
 		)
 	}
 
@@ -129,7 +149,7 @@ func (s *Service[
 			SkipValidateResult:      false,
 			SkipValidateRandao:      false,
 			ProposerAddress:         blk.GetProposerAddress(),
-			NextPayloadTimestamp:    blk.GetNextPayloadTimestamp(),
+			ConsensusTime:           blk.GetConsensusTime(),
 		},
 		st, blk.GetBeaconBlock(),
 	)

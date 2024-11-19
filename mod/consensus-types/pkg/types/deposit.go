@@ -122,7 +122,7 @@ func (d *Deposit) DefineSSZ(c *ssz.Codec) {
 
 // MarshalSSZ marshals the Deposit object to SSZ format.
 func (d *Deposit) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, d.SizeSSZ())
+	buf := make([]byte, ssz.Size(d))
 	return buf, ssz.EncodeToBytes(buf, d)
 }
 
@@ -132,7 +132,7 @@ func (d *Deposit) UnmarshalSSZ(buf []byte) error {
 }
 
 // SizeSSZ returns the SSZ encoded size of the Deposit object.
-func (d *Deposit) SizeSSZ() uint32 {
+func (d *Deposit) SizeSSZ(*ssz.Sizer) uint32 {
 	return DepositSize
 }
 
