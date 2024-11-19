@@ -233,11 +233,6 @@ func (s *StateDB[
 
 	// Iterate through indices to find the next validators to withdraw.
 	for range bound {
-		// Cap the number of withdrawals to the maximum allowed per payload.
-		if uint64(len(withdrawals)) == s.cs.MaxWithdrawalsPerPayload() {
-			break
-		}
-
 		validator, err = s.ValidatorByIndex(validatorIndex)
 		if err != nil {
 			return nil, err
@@ -293,9 +288,15 @@ func (s *StateDB[
 			withdrawalIndex++
 		}
 
+		// Cap the number of withdrawals to the maximum allowed per payload.
+		if uint64(len(withdrawals)) == s.cs.MaxWithdrawalsPerPayload() {
+			break
+		}
+
 		// Increment the validator index to process the next validator.
-		validatorIndex++
-		validatorIndex %= math.ValidatorIndex(totalValidators)
+		validatorIndex = (validatorIndex + 1) % math.ValidatorIndex(
+			totalValidators,
+		)
 	}
 
 	return withdrawals, nil
