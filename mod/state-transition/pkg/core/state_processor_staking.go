@@ -236,6 +236,7 @@ func (sp *StateProcessor[
 	body BeaconBlockBodyT,
 ) error {
 	var (
+		nextValidatorIndex math.ValidatorIndex
 		payload            = body.GetExecutionPayload()
 		payloadWithdrawals = payload.GetWithdrawals()
 	)
@@ -298,25 +299,23 @@ func (sp *StateProcessor[
 	}
 
 	// Update the next validator index to start the next withdrawal sweep.
-	var nextValIndex math.ValidatorIndex
-	if numWithdrawals > 1 &&
-		//#nosec:G701 // won't overflow in practice.
-		numWithdrawals == int(sp.cs.MaxWithdrawalsPerPayload()) {
+	//#nosec:G701 // won't overflow in practice.
+	if numWithdrawals == int(sp.cs.MaxWithdrawalsPerPayload()) {
 		// Next sweep starts after the latest withdrawal's validator index.
-		nextValIndex =
+		nextValidatorIndex =
 			(expectedWithdrawals[numWithdrawals-1].GetValidatorIndex() + 1) %
 				math.ValidatorIndex(totalValidators)
 	} else {
 		// Advance sweep by the max length of the sweep if there was not a full
 		// set of withdrawals.
-		nextValIndex, err = st.GetNextWithdrawalValidatorIndex()
+		nextValidatorIndex, err = st.GetNextWithdrawalValidatorIndex()
 		if err != nil {
 			return err
 		}
-		nextValIndex += math.ValidatorIndex(
+		nextValidatorIndex += math.ValidatorIndex(
 			sp.cs.MaxValidatorsPerWithdrawalsSweep())
-		nextValIndex %= math.ValidatorIndex(totalValidators)
+		nextValidatorIndex %= math.ValidatorIndex(totalValidators)
 	}
 
-	return st.SetNextWithdrawalValidatorIndex(nextValIndex)
+	return st.SetNextWithdrawalValidatorIndex(nextValidatorIndex)
 }
