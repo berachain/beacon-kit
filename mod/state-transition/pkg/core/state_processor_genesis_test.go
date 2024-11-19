@@ -128,7 +128,7 @@ func checkValidatorNonBartio(
 }
 
 func TestInitializeBartio(t *testing.T) {
-	cs := setupChain(t, "testnet")
+	cs := setupChain(t, components.TestnetChainSpecType)
 	sp, st, _ := setupState(t, cs)
 
 	var (

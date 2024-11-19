@@ -28,7 +28,7 @@ import (
 	cmttypes "github.com/cometbft/cometbft/types"
 )
 
-// TestnetChainSpec is the ChainSpec for the localnet.
+// TestnetChainSpec is the ChainSpec for the bArtio testnet.
 func TestnetChainSpec() (chain.Spec[
 	common.DomainType,
 	math.Epoch,
