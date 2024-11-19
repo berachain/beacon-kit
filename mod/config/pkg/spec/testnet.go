@@ -125,9 +125,13 @@ func BaseSpec() chain.SpecData[
 		// Comet values.
 		CometValues: cmtConsensusParams,
 		// Berachain values.
+		//
+		// Expected address of the BGT contract on the bArtio testnet.
 		EVMInflationAddress: common.NewExecutionAddressFromHex(
-			"0x6942069420694206942069420694206942069420",
+			"0x289274787bAF083C15A45a174b7a8e44F0720660",
 		),
+		// EVM inflation of 10 BERA per block minting to back potential BGT
+		// token redemptions for BERA (sets the upper bound on )
 		EVMInflationPerBlock: 10e9,
 	}
 }
