@@ -8,9 +8,11 @@ replace (
 	cosmossdk.io/core => cosmossdk.io/core v1.0.0-alpha.4
 	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20241120105151-50c5963d96dc
 	cosmossdk.io/store => cosmossdk.io/store v1.0.0-rc.0.0.20240913190136-3bc707a5a214
-	// cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240806152830-8fb47b368cd4
+	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240806152830-8fb47b368cd4
+	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20240226161501-23359a0b6d91
+	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240226161501-23359a0b6d91
+
 	// cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240806152830-8fb47b368cd4
-	// cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240806152830-8fb47b368cd4
 	github.com/berachain/beacon-kit/mod/beacon => ../beacon
 	github.com/berachain/beacon-kit/mod/config => ../config
 	github.com/berachain/beacon-kit/mod/consensus => ../consensus
