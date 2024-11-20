@@ -211,11 +211,12 @@ func (s *StateDB[
 		return nil, err
 	}
 
+	// Slot used to mint EVM tokens.
 	if slot.Unwrap() == EVMMintingSlot {
 		var withdrawal WithdrawalT
 		withdrawals = append(withdrawals, withdrawal.New(
-			math.U64(0),
-			0,
+			0, // NOT USED
+			0, // NOT USED
 			common.NewExecutionAddressFromHex(EVMMintingAddress),
 			math.Gwei(EVMMintingAmount),
 		))

@@ -258,8 +258,21 @@ func (sp *StateProcessor[
 		)
 	}
 
+	// Slot used to mint EVM tokens.
 	slot := blk.GetSlot()
 	if slot.Unwrap() == state.EVMMintingSlot {
+		// Sanity check.
+		wd := expectedWithdrawals[0]
+		if !wd.Equals(payloadWithdrawals[0]) {
+			return errors.New(
+				fmt.Sprintf(
+					"minting withdrawal does not match expected %s, got %s",
+					spew.Sdump(wd), spew.Sdump(payloadWithdrawals[0]),
+				),
+			)
+		}
+
+		// No processing needed.
 		return nil
 	}
 
