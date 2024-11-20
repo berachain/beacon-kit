@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/davecgh/go-spew/spew"
 )
 
@@ -227,11 +228,13 @@ func (sp *StateProcessor[
 //
 //nolint:lll
 func (sp *StateProcessor[
-	_, BeaconBlockBodyT, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) processWithdrawals(
 	st BeaconStateT,
-	body BeaconBlockBodyT,
+	blk BeaconBlockT,
 ) error {
+	body := blk.GetBody()
+
 	// Dequeue and verify the logs.
 	var (
 		nextValidatorIndex math.ValidatorIndex
@@ -253,6 +256,11 @@ func (sp *StateProcessor[
 			"withdrawals do not match expected length %d, got %d",
 			len(expectedWithdrawals), len(payloadWithdrawals),
 		)
+	}
+
+	slot := blk.GetSlot()
+	if slot.Unwrap() == state.EVMMintingSlot {
+		return nil
 	}
 
 	// Compare and process each withdrawal.

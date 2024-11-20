@@ -27,6 +27,14 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
+const (
+	EVMMintingSlot uint64 = 1
+
+	EVMMintingAddress = "0x8a73D1380345942F1cb32541F1b19C40D8e6C94B"
+
+	EVMMintingAmount uint64 = 10
+)
+
 // StateDB is the underlying struct behind the BeaconState interface.
 //
 //nolint:revive // todo fix somehow
@@ -201,6 +209,17 @@ func (s *StateDB[
 	slot, err := s.GetSlot()
 	if err != nil {
 		return nil, err
+	}
+
+	if slot.Unwrap() == EVMMintingSlot {
+		var withdrawal WithdrawalT
+		withdrawals = append(withdrawals, withdrawal.New(
+			math.U64(0),
+			0,
+			common.NewExecutionAddressFromHex(EVMMintingAddress),
+			math.Gwei(EVMMintingAmount),
+		))
+		return withdrawals, nil
 	}
 
 	epoch := math.Epoch(slot.Unwrap() / s.cs.SlotsPerEpoch())
