@@ -3,9 +3,9 @@ module github.com/berachain/beacon-kit/examples/berad
 go 1.23.0
 
 replace (
-	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240806152830-8fb47b368cd4
-	cosmossdk.io/core => cosmossdk.io/core v0.0.0-20240806152830-8fb47b368cd4
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240808182639-7bdbf06a94f2
+	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240924065902-eb7653cfecdf
+	cosmossdk.io/core => cosmossdk.io/core v1.0.0-alpha.4
+	cosmossdk.io/store => cosmossdk.io/store v1.0.0-rc.0.0.20240913190136-3bc707a5a214
 )
 
 require (
@@ -83,7 +83,7 @@ require (
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240911165923-82f71ec86570
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240815202409-3ecaa1f3f4c5
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240806094948-2c4293ef36c4
-	github.com/cosmos/cosmos-sdk v0.53.0
+	github.com/cosmos/cosmos-sdk v0.52.0-beta.2
 )
 
 require (

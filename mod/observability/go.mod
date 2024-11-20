@@ -2,7 +2,7 @@ module github.com/berachain/beacon-kit/mod/observability
 
 go 1.23.0
 
-require github.com/cosmos/cosmos-sdk v0.50.9
+require github.com/cosmos/cosmos-sdk v0.52.0-beta.2
 
 require (
 	github.com/DataDog/datadog-go v3.2.0+incompatible // indirect
