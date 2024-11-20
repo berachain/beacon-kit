@@ -21,6 +21,8 @@
 package state
 
 import (
+	libmath "math"
+
 	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -28,11 +30,11 @@ import (
 )
 
 const (
-	EVMMintingSlot uint64 = 1
+	EVMMintingSlot uint64 = libmath.MaxUint64
 
 	EVMMintingAddress = "0x8a73D1380345942F1cb32541F1b19C40D8e6C94B"
 
-	EVMMintingAmount uint64 = 10
+	EVMMintingAmount uint64 = 530000000000000000
 )
 
 // StateDB is the underlying struct behind the BeaconState interface.
