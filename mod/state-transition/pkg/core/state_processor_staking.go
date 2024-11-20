@@ -235,6 +235,7 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	body BeaconBlockBodyT,
 ) error {
+	// Dequeue and verify the logs.
 	var (
 		nextValidatorIndex math.ValidatorIndex
 		payload            = body.GetExecutionPayload()
