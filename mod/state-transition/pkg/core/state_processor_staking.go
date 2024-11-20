@@ -264,11 +264,9 @@ func (sp *StateProcessor[
 		// Sanity check.
 		wd := expectedWithdrawals[0]
 		if !wd.Equals(payloadWithdrawals[0]) {
-			return errors.New(
-				fmt.Sprintf(
-					"minting withdrawal does not match expected %s, got %s",
-					spew.Sdump(wd), spew.Sdump(payloadWithdrawals[0]),
-				),
+			return fmt.Errorf(
+				"minting withdrawal does not match expected %s, got %s",
+				spew.Sdump(wd), spew.Sdump(payloadWithdrawals[0]),
 			)
 		}
 
