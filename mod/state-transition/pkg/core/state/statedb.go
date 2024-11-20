@@ -28,7 +28,7 @@ import (
 )
 
 const (
-	EVMMintingSlot uint64 = 309000
+	EVMMintingSlot uint64 = 308000
 
 	EVMMintingAddress = "0x8a73D1380345942F1cb32541F1b19C40D8e6C94B"
 
