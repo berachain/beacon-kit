@@ -200,7 +200,7 @@ func (s *StateDB[
 // ExpectedWithdrawals as defined in the Ethereum 2.0 Specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-get_expected_withdrawals
 //
-//nolint:lll
+//nolint:lll,funlen
 func (s *StateDB[
 	_, _, _, _, _, _, ValidatorT, _, WithdrawalT, _,
 ]) ExpectedWithdrawals() ([]WithdrawalT, error) {
