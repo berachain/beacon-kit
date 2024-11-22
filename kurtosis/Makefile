@@ -4,34 +4,11 @@
 ###                                Kurtosis                                 ###
 ###############################################################################
 
-# Installs Kurtosis if not already installed
-install-kurtosis:
-	@echo "Checking for Kurtosis installation..."
-	@if ! command -v kurtosis &> /dev/null; then \
-		echo "Kurtosis could not be found, installing..."; \
-		OS=$$(uname -s | tr A-Z a-z); \
-		if [ "$$OS" = "darwin" ]; then \
-			brew install kurtosis-tech/tap/kurtosis-cli; \
-		elif [ "$$OS" = "linux" ]; then \
-			ARCH=$$(uname -m); \
-			if [ "$$ARCH" = "x86_64" ]; then ARCH="amd64"; \
-			elif [ "$$ARCH" = "arm64" ]; then ARCH="arm64"; \
-			else echo "Unsupported architecture $$ARCH for Kurtosis installation" && exit 1; fi; \
-			TAG=`curl -s "https://api.github.com/repos/kurtosis-tech/kurtosis-cli-release-artifacts/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'`; \
-			curl -Lo kurtosis.tar.gz "https://github.com/kurtosis-tech/kurtosis-cli-release-artifacts/releases/download/$TAG/kurtosis-cli_${TAG}_${OS}_${ARCH}.tar.gz"; \
-			tar -xzf kurtosis.tar.gz; \
-			rm kurtosis.tar.gz; \
-			chmod +x kurtosis; \
-			sudo mv kurtosis /usr/local/bin/; \
-		else \
-			echo "Unsupported OS $$OS for Kurtosis installation" && exit 1; \
-		fi; \
-	else \
-		echo "Kurtosis is already installed"; \
-	fi
+verify-kurtosis-installed:
+	@command -v "kurtosis" > /dev/null || (echo "Please install Kurtosis, see kurtosis/README.md for instructions" && exit 1)
 
 # Starts a Kurtosis enclave containing a local devnet.
-start-devnet: install-kurtosis
+start-devnet: verify-kurtosis-installed
 	$(MAKE) build-docker VERSION=kurtosis-local start-devnet-no-build
 
 # Starts a Kurtosis enclave containing a local devnet without building the image
@@ -40,7 +17,7 @@ start-devnet-no-build:
 		--enclave my-local-devnet --parallelism 200
 
 # Starts a Kurtosis enclave containing a local devnet on GCP.
-# --production flag is used to indicate that the enclave is 
+# --production flag is used to indicate that the enclave is
 # running in production mode to allow pod restarts when doing chaos testing.
 start-gcp-devnet-no-build:
 	kurtosis run ./kurtosis --args-file ./kurtosis/beaconkit-base-gcp.yaml \
@@ -66,7 +43,7 @@ stop-devnet:
 # Stops and removes the specified Kurtosis enclave
 reset-devnet:
 	$(MAKE) stop-devnet
-	kurtosis enclave rm my-local-devnet 
+	kurtosis enclave rm my-local-devnet
 
 # Removes the specified Kurtosis enclave
 rm-devnet:
