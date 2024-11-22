@@ -294,7 +294,7 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	if err := sp.processWithdrawals(st, blk.GetBody()); err != nil {
+	if err := sp.processWithdrawals(st, blk); err != nil {
 		return err
 	}
 

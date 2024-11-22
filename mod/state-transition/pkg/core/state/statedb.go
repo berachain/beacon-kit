@@ -27,6 +27,19 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
+const (
+	// EVMMintingSlot is the slot at which we force a single withdrawal to
+	// mint EVMMintingAmount EVM tokens to EVMMintingAddress. No other
+	// withdrawals are inserted at this slot.
+	EVMMintingSlot uint64 = 69420
+
+	// EVMMintingAddress is the address at which we mint EVM tokens to.
+	EVMMintingAddress = "0x8a73D1380345942F1cb32541F1b19C40D8e6C94B"
+
+	// EVMMintingAmount is the amount of EVM tokens to mint.
+	EVMMintingAmount uint64 = 530000000000000000
+)
+
 // StateDB is the underlying struct behind the BeaconState interface.
 //
 //nolint:revive // todo fix somehow
@@ -187,7 +200,7 @@ func (s *StateDB[
 // ExpectedWithdrawals as defined in the Ethereum 2.0 Specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-get_expected_withdrawals
 //
-//nolint:lll
+//nolint:lll,funlen
 func (s *StateDB[
 	_, _, _, _, _, _, ValidatorT, _, WithdrawalT, _,
 ]) ExpectedWithdrawals() ([]WithdrawalT, error) {
@@ -201,6 +214,18 @@ func (s *StateDB[
 	slot, err := s.GetSlot()
 	if err != nil {
 		return nil, err
+	}
+
+	// Slot used to mint EVM tokens.
+	if slot.Unwrap() == EVMMintingSlot {
+		var withdrawal WithdrawalT
+		withdrawals = append(withdrawals, withdrawal.New(
+			0, // NOT USED
+			0, // NOT USED
+			common.NewExecutionAddressFromHex(EVMMintingAddress),
+			math.Gwei(EVMMintingAmount),
+		))
+		return withdrawals, nil
 	}
 
 	epoch := math.Epoch(slot.Unwrap() / s.cs.SlotsPerEpoch())

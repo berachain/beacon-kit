@@ -220,7 +220,7 @@ func (h *ABCIMiddleware[
 	consensusBlk = consensusBlk.New(
 		blk,
 		req.GetProposerAddress(),
-		req.GetTime().Add(h.minPayloadDelay),
+		req.GetTime(),
 	)
 	blkEvent := async.NewEvent(ctx, async.BeaconBlockReceived, consensusBlk)
 	if err = h.dispatcher.Publish(blkEvent); err != nil {
@@ -345,7 +345,7 @@ func (h *ABCIMiddleware[
 	consensusBlk = consensusBlk.New(
 		blk,
 		req.GetProposerAddress(),
-		req.GetTime().Add(h.minPayloadDelay),
+		req.GetTime(),
 	)
 	blkEvent := async.NewEvent(
 		ctx,
