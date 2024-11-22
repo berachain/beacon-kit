@@ -21,11 +21,9 @@
 package core_test
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
-	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
 	"cosmossdk.io/store"
 	"cosmossdk.io/store/metrics"
@@ -33,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/log/pkg/noop"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
@@ -43,7 +40,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/db"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
 	dbm "github.com/cosmos/cosmos-db"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/stretchr/testify/require"
 )
 
@@ -139,17 +136,6 @@ func createStateProcessor(
 	)
 }
 
-type testKVStoreService struct {
-	ctx sdk.Context
-}
-
-func (kvs *testKVStoreService) OpenKVStore(context.Context) corestore.KVStore {
-	//nolint:contextcheck // fine with tests
-	return components.NewKVStore(
-		sdk.UnwrapSDKContext(kvs.ctx).KVStore(testStoreKey),
-	)
-}
-
 var (
 	testStoreKey = storetypes.NewKVStoreKey("state-transition-tests")
 	testCodec    = &encoding.SSZInterfaceCodec[*types.ExecutionPayloadHeader]{}
@@ -179,12 +165,10 @@ func initStore() (
 		nopMetrics,
 	)
 
-	ctx := sdk.NewContext(cms, true, nopLog)
 	cms.MountStoreWithDB(testStoreKey, storetypes.StoreTypeIAVL, nil)
 	if err = cms.LoadLatestVersion(); err != nil {
 		return nil, fmt.Errorf("failed to load latest version: %w", err)
 	}
-	testStoreService := &testKVStoreService{ctx: ctx}
 
 	return beacondb.New[
 		*types.BeaconBlockHeader,
@@ -194,7 +178,7 @@ func initStore() (
 		*types.Validator,
 		types.Validators,
 	](
-		testStoreService,
+		runtime.NewKVStoreService(testStoreKey),
 		testCodec,
 	), nil
 }

@@ -30,7 +30,7 @@ import (
 
 // LegacySigner is a BLS12-381 signer that uses a bls.PrivKey for signing.
 type LegacySigner struct {
-	*bls12381.PrivKey
+	bls12381.PrivKey
 }
 
 // NewLegacySigner creates a new Signer instance given a secret key.
@@ -41,7 +41,7 @@ func NewLegacySigner(
 	if err != nil {
 		return nil, err
 	}
-	return &LegacySigner{PrivKey: &pk}, nil
+	return &LegacySigner{PrivKey: pk}, nil
 }
 
 // PublicKey returns the public key of the signer.
@@ -66,8 +66,11 @@ func (LegacySigner) VerifySignature(
 	msg []byte,
 	signature crypto.BLSSignature,
 ) error {
-	if ok := bls12381.PubKey(pubKey[:]).
-		VerifySignature(msg, signature[:]); !ok {
+	pk, err := bls12381.NewPublicKeyFromBytes(pubKey[:])
+	if err != nil {
+		return err
+	}
+	if !pk.VerifySignature(msg, signature[:]) {
 		return ErrInvalidSignature
 	}
 	return nil

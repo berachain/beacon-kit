@@ -75,8 +75,11 @@ func (f BLSSigner) VerifySignature(
 	msg []byte,
 	signature crypto.BLSSignature,
 ) error {
-	if ok := bls12381.PubKey(pubKey[:]).
-		VerifySignature(msg, signature[:]); !ok {
+	pk, err := bls12381.NewPublicKeyFromBytes(pubKey[:])
+	if err != nil {
+		return err
+	}
+	if !pk.VerifySignature(msg, signature[:]) {
 		return ErrInvalidSignature
 	}
 	return nil
