@@ -41,7 +41,7 @@ func NewLegacySigner(
 	if err != nil {
 		return nil, err
 	}
-	return &LegacySigner{PrivKey: pk}, nil
+	return &LegacySigner{PrivKey: *pk}, nil
 }
 
 // PublicKey returns the public key of the signer.
