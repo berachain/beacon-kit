@@ -10,6 +10,9 @@ replace (
 	cosmossdk.io/api => ../../../cosmos-sdk/api
 	cosmossdk.io/core => ../../../cosmos-sdk/core
 	cosmossdk.io/core/testing => ../../../cosmos-sdk/core/testing
+
+	cosmossdk.io/store => ../../../cosmos-sdk/store
+	cosmossdk.io/store/v2 => ../../../cosmos-sdk/store/v2
 	cosmossdk.io/x/bank => ../../../cosmos-sdk/x/bank
 	cosmossdk.io/x/staking => ../../../cosmos-sdk/x/staking
 
@@ -26,6 +29,7 @@ replace (
 require (
 	cosmossdk.io/core v1.0.0
 	cosmossdk.io/depinject v1.1.0
+	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc
 	cosmossdk.io/store/v2 v2.0.0-20240821144902-e88c138760a3
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240821052951-c15422305b4e
 	github.com/berachain/beacon-kit/mod/cli v0.0.0-20241107170417-7905e3d59a1d
@@ -56,7 +60,7 @@ require (
 
 require (
 	cosmossdk.io/api v0.7.6 // indirect
-	cosmossdk.io/errors/v2 v2.0.0-20240731132947-df72853b3ca5 // indirect
+	cosmossdk.io/core/testing v0.0.0-unpublished // indirect
 	cosmossdk.io/log v1.5.0 // indirect
 	cosmossdk.io/schema v0.3.1-0.20240930054013-7c6e0388a3f9 // indirect
 	cosmossdk.io/x/tx v1.0.0-alpha.1 // indirect
@@ -114,7 +118,6 @@ require (
 	cosmossdk.io/collections v0.4.0 // indirect
 	cosmossdk.io/errors v1.0.1 // indirect
 	cosmossdk.io/math v1.4.0 // indirect
-	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc
 	cosmossdk.io/x/bank v0.0.0-20240806152830-8fb47b368cd4 // indirect
 	cosmossdk.io/x/staking v0.0.0-20240806152830-8fb47b368cd4 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect

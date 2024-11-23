@@ -10,6 +10,9 @@ replace (
 	cosmossdk.io/api => ../../../cosmos-sdk/api
 	cosmossdk.io/core => ../../../cosmos-sdk/core
 	cosmossdk.io/core/testing => ../../../cosmos-sdk/core/testing
+
+	cosmossdk.io/store => ../../../cosmos-sdk/store
+	cosmossdk.io/store/v2 => ../../../cosmos-sdk/store/v2
 	cosmossdk.io/x/bank => ../../../cosmos-sdk/x/bank
 	cosmossdk.io/x/consensus => ../../../cosmos-sdk/x/consensus
 	cosmossdk.io/x/staking => ../../../cosmos-sdk/x/staking
@@ -48,14 +51,13 @@ require (
 require (
 	cosmossdk.io/core v1.0.0 // indirect
 	cosmossdk.io/core/testing v0.0.0-unpublished // indirect
-	cosmossdk.io/errors/v2 v2.0.0-20240731132947-df72853b3ca5 // indirect
 	cosmossdk.io/schema v0.3.1-0.20240930054013-7c6e0388a3f9 // indirect
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240821052951-c15422305b4e // indirect
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df // indirect
 	github.com/berachain/beacon-kit/mod/node-api v0.0.0-20241107170417-7905e3d59a1d // indirect
 	github.com/berachain/beacon-kit/mod/node-api/engines v0.0.0-20240806160829-cde2d1347e7e // indirect
 	github.com/berachain/beacon-kit/mod/observability v0.0.0-unpublished // indirect
-	github.com/bufbuild/protocompile v0.14.0 // indirect
+	github.com/bufbuild/protocompile v0.14.1 // indirect
 	github.com/bytedance/sonic v1.12.4 // indirect
 	github.com/bytedance/sonic/loader v0.2.1 // indirect
 	github.com/cloudwego/base64x v0.1.4 // indirect
@@ -72,7 +74,6 @@ require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.1 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
-	github.com/jhump/protoreflect v1.16.0 // indirect
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/karalabe/ssz v0.2.1-0.20240724074312-3d1ff7a6f7c4 // indirect
 	github.com/labstack/echo/v4 v4.12.0 // indirect

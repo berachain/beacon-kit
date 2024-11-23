@@ -9,6 +9,9 @@ replace (
 	// This is a temporary measure
 	cosmossdk.io/api => ../../../cosmos-sdk/api
 	cosmossdk.io/core => ../../../cosmos-sdk/core
+
+	cosmossdk.io/store => ../../../cosmos-sdk/store
+	cosmossdk.io/store/v2 => ../../../cosmos-sdk/store/v2
 	github.com/cosmos/cosmos-sdk => ../../../cosmos-sdk
 )
 
@@ -38,7 +41,6 @@ require (
 	github.com/cometbft/cometbft-db v0.15.0 // indirect
 	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240806094948-2c4293ef36c4 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
-	github.com/cosmos/cosmos-db v1.0.3-0.20240911104526-ddc3f09bfc22 // indirect
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5 // indirect
 	github.com/cosmos/gogoproto v1.7.0 // indirect
 	github.com/cosmos/ics23/go v0.11.0 // indirect
@@ -66,7 +68,6 @@ require (
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/rs/zerolog v1.33.0 // indirect
 	github.com/sasha-s/go-deadlock v0.3.5 // indirect
-	github.com/spf13/cast v1.7.0 // indirect
 	github.com/spf13/cobra v1.8.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/testify v1.9.0 // indirect

@@ -10,6 +10,9 @@ replace (
 	cosmossdk.io/api => ../../../cosmos-sdk/api
 	cosmossdk.io/core => ../../../cosmos-sdk/core
 	cosmossdk.io/core/testing => ../../../cosmos-sdk/core/testing
+
+	cosmossdk.io/store => ../../../cosmos-sdk/store
+	cosmossdk.io/store/v2 => ../../../cosmos-sdk/store/v2
 	cosmossdk.io/x/bank => ../../../cosmos-sdk/x/bank
 	cosmossdk.io/x/consensus => ../../../cosmos-sdk/x/consensus
 	cosmossdk.io/x/staking => ../../../cosmos-sdk/x/staking
@@ -44,6 +47,7 @@ require (
 	cosmossdk.io/api v0.7.6 // indirect
 	cosmossdk.io/collections v0.4.0 // indirect
 	cosmossdk.io/core v1.0.0 // indirect
+	cosmossdk.io/core/testing v0.0.0-unpublished // indirect
 	cosmossdk.io/depinject v1.1.0 // indirect
 	cosmossdk.io/errors v1.0.1 // indirect
 	cosmossdk.io/math v1.4.0 // indirect

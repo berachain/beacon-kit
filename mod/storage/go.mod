@@ -10,6 +10,9 @@ replace (
 	cosmossdk.io/api => ../../../cosmos-sdk/api
 	cosmossdk.io/core => ../../../cosmos-sdk/core
 	cosmossdk.io/core/testing => ../../../cosmos-sdk/core/testing
+
+	cosmossdk.io/store => ../../../cosmos-sdk/store
+	cosmossdk.io/store/v2 => ../../../cosmos-sdk/store/v2
 	cosmossdk.io/x/bank => ../../../cosmos-sdk/x/bank
 	cosmossdk.io/x/staking => ../../../cosmos-sdk/x/staking
 
@@ -22,6 +25,7 @@ require (
 	cosmossdk.io/collections v0.4.0
 	cosmossdk.io/core v1.0.0
 	cosmossdk.io/log v1.5.0
+	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240904192942-99aeabe6bb1f
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240806211103-d1105603bfc0
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240821000339-4d4242ba4a50
@@ -50,7 +54,7 @@ require (
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240806160829-cde2d1347e7e // indirect
 	github.com/bgentry/speakeasy v0.2.0 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
-	github.com/bufbuild/protocompile v0.14.0 // indirect
+	github.com/bufbuild/protocompile v0.14.1 // indirect
 	github.com/bytedance/sonic v1.12.4 // indirect
 	github.com/bytedance/sonic/loader v0.2.1 // indirect
 	github.com/cloudwego/base64x v0.1.4 // indirect
@@ -98,7 +102,6 @@ require (
 	github.com/hdevalence/ed25519consensus v0.2.0 // indirect
 	github.com/holiman/bloomfilter/v2 v2.0.3 // indirect
 	github.com/huandu/skiplist v1.2.1 // indirect
-	github.com/jhump/protoreflect v1.16.0 // indirect
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/karalabe/ssz v0.2.1-0.20240724074312-3d1ff7a6f7c4 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.9 // indirect
@@ -155,7 +158,6 @@ require (
 	cosmossdk.io/depinject v1.1.0 // indirect
 	cosmossdk.io/errors v1.0.1 // indirect
 	cosmossdk.io/math v1.4.0 // indirect
-	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc
 	cosmossdk.io/x/tx v1.0.0-alpha.1 // indirect
 	github.com/DataDog/zstd v1.5.6 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
