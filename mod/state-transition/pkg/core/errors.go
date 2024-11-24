@@ -38,8 +38,8 @@ var (
 	// listed in block is different from deposits from store.
 	ErrDepositsLengthMismatch = errors.New("deposits lengths mismatched")
 
-	// ErrDepositsLengthMismatch is returned when a specific deposit
-	// listed in block is different from the corrispondent one from store.
+	// ErrDepositMismatch is returned when a specific deposit listed in
+	// block is different from the corrispondent one from store.
 	ErrDepositMismatch = errors.New("deposit mismatched")
 
 	// ErrParentRootMismatch is returned when the parent root in an execution
