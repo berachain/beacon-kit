@@ -22,6 +22,10 @@ package genesis
 
 const (
 	depositAmountFlag    = "deposit-amount"
+	// TODO: set this to the min stake amount
 	defaultDepositAmount = "32000000000" // 32e9
 	depositAmountFlagMsg = "The amount of deposit to be made"
+
+	withdrawalAddressFlag = "withdrawal-address"
+	withdrawalAddressFlagMsg = "The address to withdraw funds to"
 )

@@ -4,6 +4,8 @@ pragma solidity 0.8.26;
 import { IDepositContract } from "./IDepositContract.sol";
 import { ERC165 } from "./IERC165.sol";
 
+// TODO: make this the berachain PoL version.
+
 /**
  * @title DepositContract
  * @author Berachain Team

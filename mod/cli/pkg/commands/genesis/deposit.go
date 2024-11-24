@@ -92,13 +92,23 @@ func AddGenesisDepositCmd(cs common.ChainSpec) *cobra.Command {
 				version.Deneb,
 			)
 
+			// Get the withdrawal address.
+			withdrawalAddress, err := cmd.Flags().GetString(
+				withdrawalAddressFlag,
+			)
+			if err != nil {
+				return err
+			}
+			if withdrawalAddress == "" {
+				return errors.New("non zero withdrawal address is required")
+			}
+
 			depositMsg, signature, err := types.CreateAndSignDepositMessage(
 				types.NewForkData(currentVersion, common.Root{}),
 				cs.DomainTypeDeposit(),
 				blsSigner,
-				// TODO: configurable.
 				types.NewCredentialsFromExecutionAddress(
-					common.ExecutionAddress{},
+					common.NewExecutionAddressFromHex(withdrawalAddress),
 				),
 				depositAmount,
 			)
@@ -143,6 +153,8 @@ func AddGenesisDepositCmd(cs common.ChainSpec) *cobra.Command {
 
 	cmd.Flags().
 		String(depositAmountFlag, defaultDepositAmount, depositAmountFlagMsg)
+	cmd.Flags().
+		String(withdrawalAddressFlag, "", withdrawalAddressFlagMsg)
 
 	return cmd
 }
