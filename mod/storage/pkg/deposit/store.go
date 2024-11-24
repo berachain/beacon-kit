@@ -28,6 +28,7 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 )
@@ -38,12 +39,18 @@ const KeyDepositPrefix = "deposit"
 // the deposit indexes are tracked outside of the kv store.
 type KVStore[DepositT Deposit[DepositT]] struct {
 	store sdkcollections.Map[uint64, DepositT]
-	mu    sync.RWMutex
+
+	// mu protects store for concurrent access
+	mu sync.RWMutex
+
+	// logger is used for logging information and errors.
+	logger log.Logger
 }
 
 // NewStore creates a new deposit store.
 func NewStore[DepositT Deposit[DepositT]](
 	kvsp store.KVStoreService,
+	logger log.Logger,
 ) *KVStore[DepositT] {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kvsp)
 	return &KVStore[DepositT]{
@@ -54,6 +61,7 @@ func NewStore[DepositT Deposit[DepositT]](
 			sdkcollections.Uint64Key,
 			encoding.SSZValueCodec[DepositT]{},
 		),
+		logger: logger,
 	}
 }
 
@@ -62,50 +70,93 @@ func NewStore[DepositT Deposit[DepositT]](
 // last deposit.
 func (kv *KVStore[DepositT]) GetDepositsByIndex(
 	startIndex uint64,
-	numView uint64,
+	depRange uint64,
 ) ([]DepositT, error) {
 	kv.mu.RLock()
 	defer kv.mu.RUnlock()
-	deposits := []DepositT{}
-	for i := startIndex; i < startIndex+numView; i++ {
+	var (
+		deposits = []DepositT{}
+		endIdx   = startIndex + depRange
+	)
+
+	kv.logger.Info(
+		"GetDepositsByIndex request",
+		"start", startIndex,
+		"end", endIdx,
+	)
+	for i := startIndex; i < endIdx; i++ {
 		deposit, err := kv.store.Get(context.TODO(), i)
-		if errors.Is(err, sdkcollections.ErrNotFound) {
+		switch {
+		case err == nil:
+			deposits = append(deposits, deposit)
+		case errors.Is(err, sdkcollections.ErrNotFound):
+			kv.logger.Info(
+				"GetDepositsByIndex response",
+				"start", startIndex,
+				"end", i,
+			)
 			return deposits, nil
-		}
-		if err != nil {
+		default:
+			kv.logger.Error(
+				"GetDepositsByIndex response",
+				"start", startIndex,
+				"end", i,
+				"error", err,
+			)
 			return deposits, err
 		}
-		deposits = append(deposits, deposit)
 	}
-	return deposits, nil
-}
 
-// EnqueueDeposit pushes the deposit to the queue.
-func (kv *KVStore[DepositT]) EnqueueDeposit(deposit DepositT) error {
-	kv.mu.Lock()
-	defer kv.mu.Unlock()
-	return kv.setDeposit(deposit)
+	kv.logger.Info(
+		"GetDepositsByIndex response",
+		"start", startIndex,
+		"end", endIdx,
+	)
+	return deposits, nil
 }
 
 // EnqueueDeposits pushes multiple deposits to the queue.
 func (kv *KVStore[DepositT]) EnqueueDeposits(deposits []DepositT) error {
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
-	for _, deposit := range deposits {
-		if err := kv.setDeposit(deposit); err != nil {
+	kv.logger.Info(
+		"EnqueueDeposits request",
+		"to enqueue", len(deposits),
+	)
+	for i, deposit := range deposits {
+		idx := deposit.GetIndex().Unwrap()
+		kv.logger.Debug(
+			"EnqueueDeposit response",
+			"index", idx,
+		)
+		if err := kv.store.Set(
+			context.TODO(),
+			idx,
+			deposit,
+		); err != nil {
+			kv.logger.Error(
+				"EnqueueDeposit response",
+				"enqueued", i,
+				"err", err,
+			)
 			return err
 		}
 	}
-	return nil
-}
 
-// setDeposit sets the deposit in the store.
-func (kv *KVStore[DepositT]) setDeposit(deposit DepositT) error {
-	return kv.store.Set(context.TODO(), deposit.GetIndex().Unwrap(), deposit)
+	kv.logger.Info(
+		"EnqueueDeposit response",
+		"enqueued", len(deposits),
+	)
+	return nil
 }
 
 // Prune removes the [start, end) deposits from the store.
 func (kv *KVStore[DepositT]) Prune(start, end uint64) error {
+	kv.logger.Info(
+		"Prune request",
+		"start", start,
+		"end", end,
+	)
 	if start > end {
 		return fmt.Errorf(
 			"DepositKVStore Prune start: %d, end: %d: %w",
@@ -119,8 +170,20 @@ func (kv *KVStore[DepositT]) Prune(start, end uint64) error {
 	for i := range end {
 		// This only errors if the key passed in cannot be encoded.
 		if err := kv.store.Remove(ctx, start+i); err != nil {
+			kv.logger.Error(
+				"Prune response",
+				"start", start,
+				"end", i,
+				"err", err,
+			)
 			return err
 		}
 	}
+
+	kv.logger.Info(
+		"Prune response",
+		"start", start,
+		"end", end,
+	)
 	return nil
 }

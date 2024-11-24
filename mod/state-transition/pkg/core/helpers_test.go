@@ -202,7 +202,7 @@ func initTestStores() (
 			testStoreService,
 			testCodec,
 		),
-		depositstore.NewStore[*types.Deposit](testStoreService),
+		depositstore.NewStore[*types.Deposit](testStoreService, nopLog),
 		nil
 }
 

@@ -87,7 +87,7 @@ func DefaultComponents() []any {
 			*DepositContract, *DepositStore, *ExecutionPayload,
 			*ExecutionPayloadHeader, *Logger,
 		],
-		components.ProvideDepositStore[*Deposit],
+		components.ProvideDepositStore[*Deposit, *Logger],
 		components.ProvideDispatcher[
 			*ConsensusBlock, *BeaconBlock,
 			*ConsensusSidecars, *BlobSidecars,
