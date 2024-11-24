@@ -27,7 +27,7 @@ type commonConsensusData struct {
 	proposerAddress []byte
 
 	// used to build next block and validate current payload timestamp
-	nextPayloadTimestamp math.U64
+	consensusTime math.U64
 }
 
 // GetProposerAddress returns the address of the validator
@@ -36,9 +36,8 @@ func (c *commonConsensusData) GetProposerAddress() []byte {
 	return c.proposerAddress
 }
 
-// GetNextPayloadTimestamp returns the timestamp proposed by consensus
-// for the next payload to be proposed. It is also used to bound
-// current payload upon validation.
-func (c *commonConsensusData) GetNextPayloadTimestamp() math.U64 {
-	return c.nextPayloadTimestamp
+// GetConsensusTime returns the timestamp of current consensus request.
+// It is used to build next payload and to validate currentpayload.
+func (c *commonConsensusData) GetConsensusTime() math.U64 {
+	return c.consensusTime
 }

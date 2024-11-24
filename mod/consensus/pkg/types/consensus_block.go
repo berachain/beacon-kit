@@ -39,14 +39,14 @@ type ConsensusBlock[BeaconBlockT any] struct {
 func (b *ConsensusBlock[BeaconBlockT]) New(
 	beaconBlock BeaconBlockT,
 	proposerAddress []byte,
-	nextPayloadTimestamp time.Time,
+	consensusTime time.Time,
 	isConsensusSyncing bool,
 ) *ConsensusBlock[BeaconBlockT] {
 	b = &ConsensusBlock[BeaconBlockT]{
 		blk: beaconBlock,
 		commonConsensusData: &commonConsensusData{
-			proposerAddress:      proposerAddress,
-			nextPayloadTimestamp: math.U64(nextPayloadTimestamp.Unix()),
+			proposerAddress: proposerAddress,
+			consensusTime:   math.U64(consensusTime.Unix()),
 		},
 		isConsensusSyncing: isConsensusSyncing,
 	}

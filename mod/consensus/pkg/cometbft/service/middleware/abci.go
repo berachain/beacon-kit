@@ -220,7 +220,7 @@ func (h *ABCIMiddleware[
 	consensusBlk = consensusBlk.New(
 		blk,
 		req.GetProposerAddress(),
-		req.GetTime().Add(h.minPayloadDelay),
+		req.GetTime(),
 		false, // ProcessProposal is not called during state sync
 	)
 	blkEvent := async.NewEvent(ctx, async.BeaconBlockReceived, consensusBlk)
@@ -346,7 +346,7 @@ func (h *ABCIMiddleware[
 	consensusBlk = consensusBlk.New(
 		blk,
 		req.GetProposerAddress(),
-		req.GetTime().Add(h.minPayloadDelay),
+		req.GetTime(),
 
 		// Finalize may be called while syncing. In such a case
 		// we must perform payload verification since block we do
