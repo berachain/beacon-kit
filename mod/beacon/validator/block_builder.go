@@ -295,7 +295,7 @@ func (s *Service[
 
 	// Dequeue deposits from the state.
 	deposits, err := s.sb.DepositStore().GetDepositsByIndex(
-		depositIndex,
+		depositIndex+1, // pick expected next deposit index
 		s.chainSpec.MaxDepositsPerBlock(),
 	)
 	if err != nil {

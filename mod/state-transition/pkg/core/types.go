@@ -141,6 +141,8 @@ type Deposit[
 	GetPubkey() crypto.BLSPubkey
 	// GetWithdrawalCredentials returns the withdrawal credentials.
 	GetWithdrawalCredentials() WithdrawlCredentialsT
+	// GetIndex returns deposit index
+	GetIndex() math.U64
 	// VerifySignature verifies the deposit and creates a validator.
 	VerifySignature(
 		forkData ForkDataT,

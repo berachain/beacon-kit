@@ -42,11 +42,6 @@ func (sp *StateProcessor[
 	executionPayloadHeader ExecutionPayloadHeaderT,
 	genesisVersion common.Version,
 ) (transition.ValidatorUpdates, error) {
-	sp.processingGenesis = true
-	defer func() {
-		sp.processingGenesis = false
-	}()
-
 	var (
 		blkHeader BeaconBlockHeaderT
 		blkBody   BeaconBlockBodyT
@@ -102,7 +97,18 @@ func (sp *StateProcessor[
 	}
 
 	for _, deposit := range deposits {
-		if err := sp.processDeposit(st, deposit); err != nil {
+		prevDepositIndex, err := st.GetEth1DepositIndex()
+		if err != nil {
+			// currently this only happen on the first genesis deposit
+			if deposit.GetIndex() != 0 {
+				return nil, ErrDepositMismatch
+			}
+		} else {
+			if deposit.GetIndex() != math.U64(prevDepositIndex+1) {
+				return nil, ErrDepositMismatch
+			}
+		}
+		if err = sp.processDeposit(st, deposit); err != nil {
 			return nil, err
 		}
 	}

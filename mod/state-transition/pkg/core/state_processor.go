@@ -94,10 +94,6 @@ type StateProcessor[
 	]
 	// ds allows checking payload deposits against the deposit contract
 	ds DepositStore[DepositT]
-
-	// processingGenesis allows initializing correctly
-	// eth1 deposit index upon genesis
-	processingGenesis bool
 }
 
 // NewStateProcessor creates a new state processor.
