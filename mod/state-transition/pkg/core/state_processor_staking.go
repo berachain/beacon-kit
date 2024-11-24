@@ -45,22 +45,23 @@ func (sp *StateProcessor[
 	if err != nil {
 		return err
 	}
+	expectedStartIdx := depositIndex + 1
 
 	stateDeposits, err := sp.ds.GetDepositsByIndex(
-		depositIndex+1, // pick expected next deposit index
+		expectedStartIdx,
 		sp.cs.MaxDepositsPerBlock(),
 	)
 	if err != nil {
 		return err
 	}
 
-	deposits := blk.GetBody().GetDeposits()
 	sp.logger.Info(
 		"processOperations",
-		"Expected deposit index from payload", depositIndex,
-		"deposits withdrawals length", len(deposits),
+		"Expected deposit start index", expectedStartIdx,
+		"Expected deposits length", len(stateDeposits),
 	)
 
+	deposits := blk.GetBody().GetDeposits()
 	if len(stateDeposits) != len(deposits) {
 		return fmt.Errorf("%w, state: %d, payload: %d",
 			ErrDepositsLengthMismatch,
