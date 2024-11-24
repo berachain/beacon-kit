@@ -61,7 +61,8 @@ func (sp *StateProcessor[
 	)
 
 	if len(stateDeposits) != len(deposits) {
-		return fmt.Errorf("deposits mismatched lengths, state: %d, payload: %d",
+		return fmt.Errorf("%w, state: %d, payload: %d",
+			ErrDepositsLengthMismatch,
 			len(stateDeposits),
 			len(deposits),
 		)
@@ -69,9 +70,11 @@ func (sp *StateProcessor[
 
 	for i, sd := range stateDeposits {
 		if !sd.Equals(deposits[i]) {
-			return fmt.Errorf("deposits mismatched, state: %#v, payload: %#v",
-				sd, deposits[i],
+			sp.logger.Error(ErrDepositMismatch.Error(),
+				"state deposit", sd,
+				"payload deposit", deposits[i],
 			)
+			return ErrDepositMismatch
 		}
 	}
 
