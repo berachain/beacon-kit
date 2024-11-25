@@ -29,8 +29,6 @@ import (
 
 // ErrUnauthenticatedConnection indicates that the connection is not
 // authenticated.
-//
-//nolint:lll
 const (
 	UnauthenticatedConnectionErrorStr = `could not verify execution chain ID as your
 	connection is not authenticated. If connecting to your execution client via HTTP, you

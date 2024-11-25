@@ -190,7 +190,7 @@ func (s *StateDB[
 // NOTE: This function is modified from the spec to allow a fixed withdrawal
 // (as the first withdrawal) used for EVM inflation.
 //
-//nolint:lll,funlen,gocognit // TODO: Simplify when dropping special cases.
+//nolint:funlen,gocognit // TODO: Simplify when dropping special cases.
 func (s *StateDB[
 	_, _, _, _, _, _, ValidatorT, _, WithdrawalT, _,
 ]) ExpectedWithdrawals() ([]WithdrawalT, error) {

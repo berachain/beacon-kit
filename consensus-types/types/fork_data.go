@@ -28,8 +28,6 @@ import (
 
 // ForkData as defined in the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#forkdata
-//
-//nolint:lll
 type ForkData struct {
 	// CurrentVersion is the current version of the fork.
 	CurrentVersion common.Version
@@ -94,8 +92,6 @@ func (fd *ForkData) UnmarshalSSZ(buf []byte) error {
 
 // ComputeDomain as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#compute_domain
-//
-//nolint:lll
 func (fd *ForkData) ComputeDomain(
 	domainType common.DomainType,
 ) common.Domain {
