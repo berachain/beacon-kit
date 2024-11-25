@@ -181,7 +181,9 @@ func defaultValidators() NodeSet {
 		Type: "validator",
 		Nodes: []Node{
 			{
-				ElType:   "nethermind",
+				ElType: "nethermind",
+				// TODO: restore once we solve
+				//  https://github.com/berachain/beacon-kit/issues/2177
 				Replicas: 0, // nethermind cannot keep up with deposits checks
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
