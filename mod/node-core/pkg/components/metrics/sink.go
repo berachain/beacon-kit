@@ -78,3 +78,20 @@ func argsToLabels(args ...string) []metrics.Label {
 	}
 	return labels
 }
+
+// NoOpTelemetrySink is a no-op implementation of the TelemetrySink interface.
+type NoOpTelemetrySink struct{}
+
+// NewNoOpMetricsSink creates a new NoOpTelemetrySink.
+func NewNoOpMetricsSink() NoOpTelemetrySink {
+	return NoOpTelemetrySink{}
+}
+
+// IncrementCounter is a no-op implementation of the TelemetrySink interface.
+func (NoOpTelemetrySink) IncrementCounter(key string, args ...string) {}
+
+// SetGauge is a no-op implementation of the TelemetrySink interface.
+func (NoOpTelemetrySink) SetGauge(key string, value int64, args ...string) {}
+
+// MeasureSince is a no-op implementation of the TelemetrySink interface.
+func (NoOpTelemetrySink) MeasureSince(key string, start time.Time, args ...string) {}
