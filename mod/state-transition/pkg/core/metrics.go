@@ -41,5 +41,5 @@ func (s *stateProcessorMetrics) gaugeTimestamps(
 	// the diff can be positive or negative depending on whether the payload timestamp is
 	// ahead or behind the consensus timestamp
 	diff := int64(payloadTimestamp) - int64(consensusTimestamp)
-	s.sink.SetGauge("beacon_kit.state.paylod_consensus_timestamp_diff", diff)
+	s.sink.SetGauge("beacon_kit.state.payload_consensus_timestamp_diff", diff)
 }

@@ -140,7 +140,7 @@ func createStateProcessor(
 		ds,
 		signer,
 		fGetAddressFromPubKey,
-		nodemetrics.NewNoOpMetricsSink(),
+		nodemetrics.NewNoOpTelemetrySink(),
 	)
 }
 

@@ -82,8 +82,8 @@ func argsToLabels(args ...string) []metrics.Label {
 // NoOpTelemetrySink is a no-op implementation of the TelemetrySink interface.
 type NoOpTelemetrySink struct{}
 
-// NewNoOpMetricsSink creates a new NoOpTelemetrySink.
-func NewNoOpMetricsSink() NoOpTelemetrySink {
+// NewNoOpTelemetrySink creates a new NoOpTelemetrySink.
+func NewNoOpTelemetrySink() NoOpTelemetrySink {
 	return NoOpTelemetrySink{}
 }
 
