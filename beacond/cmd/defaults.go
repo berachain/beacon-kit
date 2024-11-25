@@ -104,7 +104,9 @@ func DefaultComponents() []any {
 			*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
 			*ExecutionPayload, *ExecutionPayloadHeader, *KVStore, *Logger,
 		],
-		components.ProvideReportingService[*ExecutionPayload, *PayloadAttributes, *Logger],
+		components.ProvideReportingService[
+			*ExecutionPayload, *PayloadAttributes, *Logger,
+		],
 		components.ProvideCometBFTService[*Logger],
 		components.ProvideServiceRegistry[
 			*AvailabilityStore,

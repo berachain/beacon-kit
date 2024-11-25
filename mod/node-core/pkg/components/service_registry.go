@@ -102,7 +102,10 @@ type ServiceRegistryInput[
 	]
 	Logger           LoggerT
 	NodeAPIServer    *server.Server[NodeAPIContextT]
-	ReportingService *version.ReportingService[ExecutionPayloadT, *engineprimitives.PayloadAttributes[WithdrawalT]]
+	ReportingService *version.ReportingService[
+		ExecutionPayloadT,
+		*engineprimitives.PayloadAttributes[WithdrawalT],
+	]
 	TelemetrySink    *metrics.TelemetrySink
 	TelemetryService *telemetry.Service
 	ValidatorService *validator.Service[
