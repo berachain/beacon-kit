@@ -97,6 +97,15 @@ func (sp *StateProcessor[
 	}
 
 	for _, deposit := range deposits {
+		// Bartio does not properly validate deposits index
+		// Special casing checks for backward compatibility
+		if sp.cs.DepositEth1ChainID() == spec.BartioChainID {
+			if err := sp.processDeposit(st, deposit); err != nil {
+				return nil, err
+			}
+			continue
+		}
+
 		prevDepositIndex, err := st.GetEth1DepositIndex()
 		if err != nil {
 			// currently this only happen on the first genesis deposit

@@ -41,6 +41,14 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
+	deposits := blk.GetBody().GetDeposits()
+
+	// Bartio does not properly validate deposits index
+	// Special casing checks for backward compatibility
+	if sp.cs.DepositEth1ChainID() == spec.BartioChainID {
+		return sp.processDeposits(st, deposits)
+	}
+
 	// Verify that outstanding deposits matches those listed by contract
 	depositIndex, err := st.GetEth1DepositIndex()
 	if err != nil {
@@ -62,7 +70,6 @@ func (sp *StateProcessor[
 		"Expected deposits length", len(stateDeposits),
 	)
 
-	deposits := blk.GetBody().GetDeposits()
 	if len(stateDeposits) != len(deposits) {
 		return fmt.Errorf("%w, state: %d, payload: %d",
 			ErrDepositsLengthMismatch,
