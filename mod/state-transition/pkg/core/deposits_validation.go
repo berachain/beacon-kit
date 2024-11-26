@@ -37,7 +37,7 @@ func (sp *StateProcessor[
 	switch {
 	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
 		// Bartio does not properly validate deposits index
-		// Special casing checks for backward compatibility
+		// We skip checksfor backward compatibility
 		return nil
 
 	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID:
@@ -50,7 +50,7 @@ func (sp *StateProcessor[
 		// verify that deposits index are ordered and contiguous
 		prevDepositIndex, err := st.GetEth1DepositIndex()
 		if err != nil {
-			// currently this only happen on the first genesis deposit
+			// currently this only happens on the first genesis deposit
 			if deposit.GetIndex() != 0 {
 				return ErrDepositMismatch
 			}
@@ -80,7 +80,7 @@ func (sp *StateProcessor[
 	switch {
 	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
 		// Bartio does not properly validate deposits index
-		// Special casing checks for backward compatibility
+		// We skip checksfor backward compatibility
 		return nil
 
 	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
@@ -91,7 +91,7 @@ func (sp *StateProcessor[
 		return nil
 
 	default:
-		// Verify that outstanding deposits matches those listed by contract
+		// Verify that outstanding deposits match those listed by contract
 		var depositIndex uint64
 		depositIndex, err = st.GetEth1DepositIndex()
 		if err != nil {

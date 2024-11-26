@@ -222,7 +222,8 @@ func (sp *StateProcessor[
 		}
 
 		// Handle special cases
-		if slot == math.U64(spec.BoonetFork2Height) {
+		if sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
+			slot == math.U64(spec.BoonetFork2Height) {
 			var idx uint64
 			idx, err = st.GetEth1DepositIndex()
 			if err != nil {
