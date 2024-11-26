@@ -57,7 +57,7 @@ func (sp *StateProcessor[
 			return ErrDepositsLengthMismatch
 		}
 		for i, deposit := range deposits {
-			// deposits indexes should be contiguous
+			// deposit indices should be contiguous
 			if deposit.GetIndex() != math.U64(i) {
 				return ErrDepositMismatch
 			}
