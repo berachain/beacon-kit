@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/davecgh/go-spew/spew"
 )
 
@@ -249,8 +250,11 @@ func (sp *StateProcessor[
 		return err
 	}
 	numWithdrawals := len(expectedWithdrawals)
-	if numWithdrawals == 0 {
-		return ErrZeroWithdrawals
+	if sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID {
+		// Enforce that there is at least one withdrawal for EVM inflation.
+		if numWithdrawals == 0 {
+			return ErrZeroWithdrawals
+		}
 	}
 
 	// Ensure the expected and payload withdrawals have the same length.
@@ -260,6 +264,24 @@ func (sp *StateProcessor[
 			"withdrawals do not match expected length %d, got %d",
 			numWithdrawals, len(payloadWithdrawals),
 		)
+	}
+
+	if sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID {
+		// Slot used to emergency mint EVM tokens.
+		slot := blk.GetSlot()
+		if slot.Unwrap() == state.EVMMintingSlot {
+			// Sanity check.
+			wd := expectedWithdrawals[0]
+			if !wd.Equals(payloadWithdrawals[0]) {
+				return fmt.Errorf(
+					"minting withdrawal does not match expected %s, got %s",
+					spew.Sdump(wd), spew.Sdump(payloadWithdrawals[0]),
+				)
+			}
+
+			// No processing needed.
+			return nil
+		}
 	}
 
 	// Compare and process each withdrawal.
@@ -273,13 +295,15 @@ func (sp *StateProcessor[
 			)
 		}
 
-		// The first withdrawal is the EVM inflation withdrawal. Aside from
-		// simple validation, no processing to the state is needed.
-		if i == 0 {
-			if !wd.Equals(st.EVMInflationWithdrawal()) {
-				return ErrFirstWithdrawalNotEVMInflation
+		if sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID {
+			// The first withdrawal is the EVM inflation withdrawal. Aside from
+			// simple validation, no processing to the state is needed.
+			if i == 0 {
+				if !wd.Equals(st.EVMInflationWithdrawal()) {
+					return ErrFirstWithdrawalNotEVMInflation
+				}
+				continue
 			}
-			continue
 		}
 
 		// Process the validator withdrawal.
@@ -290,9 +314,12 @@ func (sp *StateProcessor[
 		}
 	}
 
-	// If there is only the EVM inflation withdrawal, no state update is needed.
-	if numWithdrawals == 1 {
-		return nil
+	if sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID {
+		// If there is only the EVM inflation withdrawal, no state update is
+		// needed.
+		if numWithdrawals == 1 {
+			return nil
+		}
 	}
 
 	// Next sweep starts after the latest withdrawal's validator index.
@@ -311,9 +338,15 @@ func (sp *StateProcessor[
 	//#nosec:G701 // won't overflow in practice.
 	if numWithdrawals == int(sp.cs.MaxWithdrawalsPerPayload()) {
 		// Next sweep starts after the latest withdrawal's validator index.
-		nextValidatorIndex =
-			(expectedWithdrawals[numWithdrawals-1].GetValidatorIndex() + 1) %
-				math.ValidatorIndex(totalValidators)
+		if sp.cs.DepositEth1ChainID() == spec.BartioChainID {
+			// For backwards compatibility with bArtio.
+			nextValidatorIndex =
+				(expectedWithdrawals[numWithdrawals-1].GetIndex() + 1) %
+					math.ValidatorIndex(totalValidators)
+		} else {
+			nextValidatorIndex = (expectedWithdrawals[numWithdrawals-1].
+				GetValidatorIndex() + 1) % math.ValidatorIndex(totalValidators)
+		}
 	} else {
 		// Advance sweep by the max length of the sweep if there was not a full
 		// set of withdrawals.
