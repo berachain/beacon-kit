@@ -41,6 +41,8 @@ func TestnetChainSpec() (chain.Spec[
 	return chain.NewChainSpec(testnetSpec)
 }
 
+// BaseSpec returns a chain spec with default values.
+//
 //nolint:mnd // bet.
 func BaseSpec() chain.SpecData[
 	common.DomainType,
@@ -126,13 +128,11 @@ func BaseSpec() chain.SpecData[
 		CometValues: cmtConsensusParams,
 		// Berachain values.
 		//
-		// Expected address of the BGT contract on the bArtio testnet.
+		// EVM inflation per block will be minted to this address.
 		EVMInflationAddress: common.NewExecutionAddressFromHex(
-			"0x289274787bAF083C15A45a174b7a8e44F0720660",
+			"0x6942069420694206942069420694206942069420",
 		),
-		// EVM inflation of 10 BERA per block minting to back potential BGT
-		// token redemptions for BERA (sets the upper bound on amount of BGT
-		// that can be redeemed for BERA).
+		// EVM inflation of 10 BERA per block minting.
 		EVMInflationPerBlock: 10e9,
 	}
 }

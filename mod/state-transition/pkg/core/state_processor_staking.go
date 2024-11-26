@@ -248,13 +248,16 @@ func (sp *StateProcessor[
 		return err
 	}
 	numWithdrawals := len(expectedWithdrawals)
+	if numWithdrawals == 0 {
+		return ErrZeroWithdrawals
+	}
 
 	// Ensure the expected and payload withdrawals have the same length.
 	if numWithdrawals != len(payloadWithdrawals) {
 		return errors.Wrapf(
 			ErrNumWithdrawalsMismatch,
 			"withdrawals do not match expected length %d, got %d",
-			len(expectedWithdrawals), len(payloadWithdrawals),
+			numWithdrawals, len(payloadWithdrawals),
 		)
 	}
 
@@ -283,15 +286,16 @@ func (sp *StateProcessor[
 		}
 	}
 
-	// Update the next withdrawal index if this block contained withdrawals
-	// (excluding the EVM inflation withdrawal).
-	if numWithdrawals > 1 {
-		// Next sweep starts after the latest withdrawal's validator index.
-		if err = st.SetNextWithdrawalIndex(
-			(expectedWithdrawals[numWithdrawals-1].GetIndex() + 1).Unwrap(),
-		); err != nil {
-			return err
-		}
+	// If there is only the EVM inflation withdrawal, no state update is needed.
+	if numWithdrawals == 1 {
+		return nil
+	}
+
+	// Next sweep starts after the latest withdrawal's validator index.
+	if err = st.SetNextWithdrawalIndex(
+		(expectedWithdrawals[numWithdrawals-1].GetIndex() + 1).Unwrap(),
+	); err != nil {
+		return err
 	}
 
 	totalValidators, err := st.GetTotalValidators()
@@ -306,8 +310,7 @@ func (sp *StateProcessor[
 		nextValidatorIndex =
 			(expectedWithdrawals[numWithdrawals-1].GetValidatorIndex() + 1) %
 				math.ValidatorIndex(totalValidators)
-		return st.SetNextWithdrawalValidatorIndex(nextValidatorIndex)
-	} else if numWithdrawals > 1 {
+	} else {
 		// Advance sweep by the max length of the sweep if there was not a full
 		// set of withdrawals.
 		nextValidatorIndex, err = st.GetNextWithdrawalValidatorIndex()
@@ -317,8 +320,7 @@ func (sp *StateProcessor[
 		nextValidatorIndex += math.ValidatorIndex(
 			sp.cs.MaxValidatorsPerWithdrawalsSweep())
 		nextValidatorIndex %= math.ValidatorIndex(totalValidators)
-		return st.SetNextWithdrawalValidatorIndex(nextValidatorIndex)
 	}
 
-	return nil
+	return st.SetNextWithdrawalValidatorIndex(nextValidatorIndex)
 }

@@ -73,6 +73,10 @@ var (
 	// in a block exceeds the maximum allowed.
 	ErrExceedMaximumWithdrawals = errors.New("exceeds maximum withdrawals")
 
+	// ErrZeroWithdrawals is returned when the number of withdrawals in a
+	// block is zero. The EVM inflation withdrawal is always expected.
+	ErrZeroWithdrawals = errors.New("zero withdrawals")
+
 	// ErrNumWithdrawalsMismatch is returned when the number of withdrawals
 	// in a block does not match the expected value.
 	ErrNumWithdrawalsMismatch = errors.New("number of withdrawals mismatch")
