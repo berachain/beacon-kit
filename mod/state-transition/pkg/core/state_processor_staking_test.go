@@ -35,7 +35,7 @@ import (
 )
 
 func TestTransitionUpdateValidators(t *testing.T) {
-	cs := setupChain(t, components.BetnetChainSpecType)
+	cs := setupChain(t, components.BoonetChainSpecType)
 	sp, st, ctx := setupState(t, cs)
 
 	var (
@@ -129,7 +129,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 }
 
 func TestTransitionWithdrawals(t *testing.T) {
-	cs := setupChain(t, components.BetnetChainSpecType)
+	cs := setupChain(t, components.BoonetChainSpecType)
 	sp, st, ctx := setupState(t, cs)
 
 	var (
@@ -215,7 +215,7 @@ func TestTransitionWithdrawals(t *testing.T) {
 func TestTransitionMaxWithdrawals(t *testing.T) {
 	// Use custom chain spec with max withdrawals set to 2.
 	csData := spec.BaseSpec()
-	csData.DepositEth1ChainID = spec.BetnetEth1ChainID
+	csData.DepositEth1ChainID = spec.BoonetEth1ChainID
 	csData.MaxWithdrawalsPerPayload = 2
 	cs, err := chain.NewChainSpec(csData)
 	require.NoError(t, err)
