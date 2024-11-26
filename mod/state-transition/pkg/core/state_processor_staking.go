@@ -276,7 +276,7 @@ func (sp *StateProcessor[
 		// simple validation, no processing to the state is needed.
 		if i == 0 {
 			if !wd.Equals(st.EVMInflationWithdrawal()) {
-				return ErrFirstWithdrawlNotEVMInflation
+				return ErrFirstWithdrawalNotEVMInflation
 			}
 			continue
 		}

@@ -81,9 +81,9 @@ var (
 	// in a block does not match the expected value.
 	ErrNumWithdrawalsMismatch = errors.New("number of withdrawals mismatch")
 
-	// ErrFirstWithdrawlNotEVMInflation is returned when the first withdrawal
+	// ErrFirstWithdrawalNotEVMInflation is returned when the first withdrawal
 	// in a block is not the EVM inflation withdrawal.
-	ErrFirstWithdrawlNotEVMInflation = errors.New(
+	ErrFirstWithdrawalNotEVMInflation = errors.New(
 		"first withdrawal is not the EVM inflation withdrawal",
 	)
 
