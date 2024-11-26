@@ -35,13 +35,18 @@ func BoonetChainSpec() (chain.Spec[
 	any,
 ], error) {
 	testnetSpec := BaseSpec()
+
+	// Chain ID is 80000.
 	testnetSpec.DepositEth1ChainID = BoonetEth1ChainID
 
-	// BGT contract address
+	// BGT contract address.
 	testnetSpec.EVMInflationAddress = common.NewExecutionAddressFromHex(
 		"0x289274787bAF083C15A45a174b7a8e44F0720660",
 	)
-	// 2.5 BERA per block minting
+
+	// 2.5 BERA per block minting.
+	//
+	// TODO: determine correct value for boonet upgrade.
 	testnetSpec.EVMInflationPerBlock = 2.5e9
 
 	return chain.NewChainSpec(testnetSpec)

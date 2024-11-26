@@ -272,9 +272,12 @@ func (sp *StateProcessor[
 			)
 		}
 
-		// The first withdrawal is the EVM inflation withdrawal. No processing
-		// is needed.
+		// The first withdrawal is the EVM inflation withdrawal. Aside from
+		// simple validation, no processing to the state is needed.
 		if i == 0 {
+			if !wd.Equals(st.EVMInflationWithdrawal()) {
+				return ErrFirstWithdrawlNotEVMInflation
+			}
 			continue
 		}
 
