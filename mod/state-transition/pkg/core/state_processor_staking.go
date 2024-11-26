@@ -306,7 +306,8 @@ func (sp *StateProcessor[
 		nextValidatorIndex =
 			(expectedWithdrawals[numWithdrawals-1].GetValidatorIndex() + 1) %
 				math.ValidatorIndex(totalValidators)
-	} else {
+		return st.SetNextWithdrawalValidatorIndex(nextValidatorIndex)
+	} else if numWithdrawals > 1 {
 		// Advance sweep by the max length of the sweep if there was not a full
 		// set of withdrawals.
 		nextValidatorIndex, err = st.GetNextWithdrawalValidatorIndex()
@@ -316,7 +317,8 @@ func (sp *StateProcessor[
 		nextValidatorIndex += math.ValidatorIndex(
 			sp.cs.MaxValidatorsPerWithdrawalsSweep())
 		nextValidatorIndex %= math.ValidatorIndex(totalValidators)
+		return st.SetNextWithdrawalValidatorIndex(nextValidatorIndex)
 	}
 
-	return st.SetNextWithdrawalValidatorIndex(nextValidatorIndex)
+	return nil
 }

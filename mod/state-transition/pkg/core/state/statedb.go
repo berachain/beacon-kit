@@ -233,7 +233,7 @@ func (s *StateDB[
 
 	// Iterate through indices to find the next validators to withdraw.
 	for range bound {
-		validator, err = s.ValidatorByIndex(validatorIndex)
+		validator, err = s.ValidatorByIndex(validatorIndex) // 0
 		if err != nil {
 			return nil, err
 		}
