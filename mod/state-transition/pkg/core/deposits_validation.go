@@ -83,7 +83,7 @@ func (sp *StateProcessor[
 	switch {
 	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
 		// Bartio does not properly validate deposits index
-		// We skip checksfor backward compatibility
+		// We skip checks for backward compatibility
 		return nil
 
 	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
