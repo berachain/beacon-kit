@@ -22,7 +22,9 @@ package core
 
 import (
 	"bytes"
+	"fmt"
 
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -217,6 +219,22 @@ func (sp *StateProcessor[
 		// Process the slot
 		if err = sp.processSlot(st); err != nil {
 			return nil, err
+		}
+
+		// Handle special cases
+		if slot == math.U64(spec.BoonetFork2Height) {
+			var idx uint64
+			idx, err = st.GetEth1DepositIndex()
+			if err != nil {
+				return nil, fmt.Errorf(
+					"failed retrieving deposit index at slot %d: %w",
+					slot, err,
+				)
+			}
+			fixedDepositIdx := idx - 1
+			if err = st.SetEth1DepositIndex(fixedDepositIdx); err != nil {
+				return nil, err
+			}
 		}
 
 		// Process the Epoch Boundary.

@@ -42,65 +42,9 @@ func (sp *StateProcessor[
 	blk BeaconBlockT,
 ) error {
 	deposits := blk.GetBody().GetDeposits()
-
-	// Bartio does not properly validate deposits index
-	// Special casing checks for backward compatibility
-	if sp.cs.DepositEth1ChainID() == spec.BartioChainID {
-		return sp.processDeposits(st, deposits)
-	}
-
-	// Verify that outstanding deposits matches those listed by contract
-	depositIndex, err := st.GetEth1DepositIndex()
-	if err != nil {
+	if err := sp.validateNonGenesisDeposits(st, deposits); err != nil {
 		return err
 	}
-	expectedStartIdx := depositIndex + 1
-
-	stateDeposits, err := sp.ds.GetDepositsByIndex(
-		expectedStartIdx,
-		sp.cs.MaxDepositsPerBlock(),
-	)
-	if err != nil {
-		return err
-	}
-
-	sp.logger.Info(
-		"processOperations",
-		"Expected deposit start index", expectedStartIdx,
-		"Expected deposits length", len(stateDeposits),
-	)
-
-	if len(stateDeposits) != len(deposits) {
-		return fmt.Errorf("%w, state: %d, payload: %d",
-			ErrDepositsLengthMismatch,
-			len(stateDeposits),
-			len(deposits),
-		)
-	}
-
-	for i, sd := range stateDeposits {
-		if !sd.Equals(deposits[i]) {
-			sp.logger.Error(
-				ErrDepositMismatch.Error(),
-				"state deposit", sd,
-				"payload deposit", deposits[i],
-			)
-			return ErrDepositMismatch
-		}
-	}
-
-	return sp.processDeposits(st, deposits)
-}
-
-// processDeposits processes the deposits and ensures  they match the
-// local state.
-func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, DepositT, _, _, _, _, _, _, _, _, _, _, _,
-]) processDeposits(
-	st BeaconStateT,
-	deposits []DepositT,
-) error {
-	// Ensure the deposits match the local state.
 	for _, dep := range deposits {
 		if err := sp.processDeposit(st, dep); err != nil {
 			return err

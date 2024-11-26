@@ -97,27 +97,10 @@ func (sp *StateProcessor[
 	}
 
 	for _, deposit := range deposits {
-		// Bartio does not properly validate deposits index
-		// Special casing checks for backward compatibility
-		if sp.cs.DepositEth1ChainID() == spec.BartioChainID {
-			if err := sp.processDeposit(st, deposit); err != nil {
-				return nil, err
-			}
-			continue
+		if err := sp.validateGenesisDeposit(st, deposit); err != nil {
+			return nil, err
 		}
-
-		prevDepositIndex, err := st.GetEth1DepositIndex()
-		if err != nil {
-			// currently this only happen on the first genesis deposit
-			if deposit.GetIndex() != 0 {
-				return nil, ErrDepositMismatch
-			}
-		} else {
-			if deposit.GetIndex() != math.U64(prevDepositIndex+1) {
-				return nil, ErrDepositMismatch
-			}
-		}
-		if err = sp.processDeposit(st, deposit); err != nil {
+		if err := sp.processDeposit(st, deposit); err != nil {
 			return nil, err
 		}
 	}
