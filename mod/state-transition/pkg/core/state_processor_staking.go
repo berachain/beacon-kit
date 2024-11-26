@@ -226,8 +226,10 @@ func (sp *StateProcessor[
 // processWithdrawals as per the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-process_withdrawals
 //
-// NOTE: This function is modified from the spec to allow a fixed withdrawal
-// (must be the first withdrawal) used for EVM inflation.
+// NOTE: Modified from the Ethereum 2.0 specification to support EVM inflation:
+// 1. The first withdrawal MUST be a fixed EVM inflation withdrawal
+// 2. Subsequent withdrawals (if any) are processed as validator withdrawals
+// 3. This modification reduces the maximum validator withdrawals per block by one
 //
 //nolint:lll
 func (sp *StateProcessor[
