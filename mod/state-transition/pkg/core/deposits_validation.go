@@ -30,9 +30,9 @@ import (
 func (sp *StateProcessor[
 	_, _, _, BeaconStateT, _, DepositT,
 	_, _, _, _, _, _, _, _, _, _, _,
-]) validateGenesisDeposit(
+]) validateGenesisDeposits(
 	st BeaconStateT,
-	deposit DepositT,
+	deposits []DepositT,
 ) error {
 	switch {
 	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
@@ -47,15 +47,18 @@ func (sp *StateProcessor[
 		return nil
 
 	default:
-		// verify that deposits index are ordered and contiguous
-		prevDepositIndex, err := st.GetEth1DepositIndex()
-		if err != nil {
-			// currently this only happens on the first genesis deposit
-			if deposit.GetIndex() != 0 {
-				return ErrDepositMismatch
-			}
-		} else {
-			if deposit.GetIndex() != math.U64(prevDepositIndex+1) {
+		if _, err := st.GetEth1DepositIndex(); err == nil {
+			// there should not be Eth1DepositIndex stored before
+			// genesis first deposit
+			return ErrDepositMismatch
+		}
+		if len(deposits) == 0 {
+			// there should be at least a validator in genesis
+			return ErrDepositsLengthMismatch
+		}
+		for i, deposit := range deposits {
+			// deposits indexes should be contiguous
+			if deposit.GetIndex() != math.U64(i) {
 				return ErrDepositMismatch
 			}
 		}

@@ -96,10 +96,10 @@ func (sp *StateProcessor[
 		}
 	}
 
+	if err := sp.validateGenesisDeposits(st, deposits); err != nil {
+		return nil, err
+	}
 	for _, deposit := range deposits {
-		if err := sp.validateGenesisDeposit(st, deposit); err != nil {
-			return nil, err
-		}
 		if err := sp.processDeposit(st, deposit); err != nil {
 			return nil, err
 		}
