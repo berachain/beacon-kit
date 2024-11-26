@@ -230,13 +230,14 @@ func (sp *StateProcessor[
 //
 //nolint:lll
 func (sp *StateProcessor[
-	_, BeaconBlockBodyT, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) processWithdrawals(
 	st BeaconStateT,
-	body BeaconBlockBodyT,
+	blk BeaconBlockT,
 ) error {
 	// Dequeue and verify the logs.
 	var (
+		body               = blk.GetBody()
 		nextValidatorIndex math.ValidatorIndex
 		payload            = body.GetExecutionPayload()
 		payloadWithdrawals = payload.GetWithdrawals()
