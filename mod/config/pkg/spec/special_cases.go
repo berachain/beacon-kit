@@ -31,7 +31,7 @@ const (
 	BArtioValRoot = "0x9147586693b6e8faa837715c0f3071c2000045b54233901c2e7871b15872bc43"
 )
 
-const (
+const ( // Planned hard-fork upgrades on boonet.
 	BoonetFork1Height uint64 = 69420
 
 	BoonetFork2Height uint64 = math.MaxUint64
