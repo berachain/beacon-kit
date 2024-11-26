@@ -34,7 +34,8 @@ const (
 	EVMInflationWithdrawalValidatorIndex = math.MaxUint64
 )
 
-// Boonet special case for emergency minting of EVM tokens.
+// Boonet special case for emergency minting of EVM tokens. TODO: remove with
+// other special cases.
 const (
 	// EVMMintingSlot is the slot at which we force a single withdrawal to
 	// mint EVMMintingAmount EVM tokens to EVMMintingAddress. No other

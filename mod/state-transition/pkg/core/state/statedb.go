@@ -190,7 +190,7 @@ func (s *StateDB[
 // NOTE: This function is modified from the spec to allow a fixed withdrawal
 // (as the first withdrawal) used for EVM inflation.
 //
-//nolint:lll
+//nolint:lll,funlen,gocognit // TODO: Simplify when dropping special cases.
 func (s *StateDB[
 	_, _, _, _, _, _, ValidatorT, _, WithdrawalT, _,
 ]) ExpectedWithdrawals() ([]WithdrawalT, error) {
@@ -215,7 +215,6 @@ func (s *StateDB[
 	if s.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID {
 		// Slot used to emergency mint EVM tokens.
 		if slot.Unwrap() == EVMMintingSlot {
-			var withdrawal WithdrawalT
 			withdrawals = append(withdrawals, withdrawal.New(
 				0, // NOT USED
 				0, // NOT USED

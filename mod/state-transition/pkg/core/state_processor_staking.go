@@ -229,9 +229,10 @@ func (sp *StateProcessor[
 // NOTE: Modified from the Ethereum 2.0 specification to support EVM inflation:
 // 1. The first withdrawal MUST be a fixed EVM inflation withdrawal
 // 2. Subsequent withdrawals (if any) are processed as validator withdrawals
-// 3. This modification reduces the maximum validator withdrawals per block by one
+// 3. This modification reduces the maximum validator withdrawals per block by
+// one
 //
-//nolint:lll
+//nolint:lll,funlen,gocognit // TODO: Simplify when dropping special cases.
 func (sp *StateProcessor[
 	BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) processWithdrawals(
