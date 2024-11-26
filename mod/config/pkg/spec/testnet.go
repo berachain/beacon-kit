@@ -126,13 +126,5 @@ func BaseSpec() chain.SpecData[
 		KZGCommitmentInclusionProofDepth: 17,
 		// Comet values.
 		CometValues: cmtConsensusParams,
-		// Berachain values.
-		//
-		// EVM inflation per block will be minted to this address.
-		EVMInflationAddress: common.NewExecutionAddressFromHex(
-			"0x6942069420694206942069420694206942069420",
-		),
-		// EVM inflation of 10 BERA per block minting.
-		EVMInflationPerBlock: 10e9,
 	}
 }
