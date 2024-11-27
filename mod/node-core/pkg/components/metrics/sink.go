@@ -88,10 +88,10 @@ func NewNoOpTelemetrySink() NoOpTelemetrySink {
 }
 
 // IncrementCounter is a no-op implementation of the TelemetrySink interface.
-func (NoOpTelemetrySink) IncrementCounter(key string, args ...string) {}
+func (NoOpTelemetrySink) IncrementCounter(string, ...string) {}
 
 // SetGauge is a no-op implementation of the TelemetrySink interface.
-func (NoOpTelemetrySink) SetGauge(key string, value int64, args ...string) {}
+func (NoOpTelemetrySink) SetGauge(string, int64, ...string) {}
 
 // MeasureSince is a no-op implementation of the TelemetrySink interface.
-func (NoOpTelemetrySink) MeasureSince(key string, start time.Time, args ...string) {}
+func (NoOpTelemetrySink) MeasureSince(string, time.Time, ...string) {}
