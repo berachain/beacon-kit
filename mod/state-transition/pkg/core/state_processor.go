@@ -22,7 +22,9 @@ package core
 
 import (
 	"bytes"
+	"fmt"
 
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -52,7 +54,7 @@ type StateProcessor[
 		ValidatorT, ValidatorsT, WithdrawalT,
 	],
 	ContextT Context,
-	DepositT Deposit[ForkDataT, WithdrawalCredentialsT],
+	DepositT Deposit[DepositT, ForkDataT, WithdrawalCredentialsT],
 	Eth1DataT interface {
 		New(common.Root, math.U64, common.ExecutionHash) Eth1DataT
 		GetDepositCount() math.U64
@@ -93,10 +95,8 @@ type StateProcessor[
 	executionEngine ExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	]
-
-	// processingGenesis allows initializing correctly
-	// eth1 deposit index upon genesis
-	processingGenesis bool
+	// ds allows checking payload deposits against the deposit contract
+	ds DepositStore[DepositT]
 }
 
 // NewStateProcessor creates a new state processor.
@@ -117,7 +117,7 @@ func NewStateProcessor[
 		KVStoreT, ValidatorT, ValidatorsT, WithdrawalT,
 	],
 	ContextT Context,
-	DepositT Deposit[ForkDataT, WithdrawalCredentialsT],
+	DepositT Deposit[DepositT, ForkDataT, WithdrawalCredentialsT],
 	Eth1DataT interface {
 		New(common.Root, math.U64, common.ExecutionHash) Eth1DataT
 		GetDepositCount() math.U64
@@ -149,6 +149,7 @@ func NewStateProcessor[
 	executionEngine ExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
+	ds DepositStore[DepositT],
 	signer crypto.BLSSigner,
 	fGetAddressFromPubKey func(crypto.BLSPubkey) ([]byte, error),
 ) *StateProcessor[
@@ -168,6 +169,7 @@ func NewStateProcessor[
 		executionEngine:       executionEngine,
 		signer:                signer,
 		fGetAddressFromPubKey: fGetAddressFromPubKey,
+		ds:                    ds,
 	}
 }
 
@@ -213,6 +215,23 @@ func (sp *StateProcessor[
 	for ; stateSlot < slot; stateSlot++ {
 		if err = sp.processSlot(st); err != nil {
 			return nil, err
+		}
+
+		// Handle special cases
+		if sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
+			slot == math.U64(spec.BoonetFork2Height) {
+			var idx uint64
+			idx, err = st.GetEth1DepositIndex()
+			if err != nil {
+				return nil, fmt.Errorf(
+					"failed retrieving deposit index at slot %d: %w",
+					slot, err,
+				)
+			}
+			fixedDepositIdx := idx - 1
+			if err = st.SetEth1DepositIndex(fixedDepositIdx); err != nil {
+				return nil, err
+			}
 		}
 
 		// Process the Epoch Boundary.

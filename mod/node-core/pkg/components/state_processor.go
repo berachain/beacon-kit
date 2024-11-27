@@ -38,6 +38,7 @@ type StateProcessorInput[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	DepositT Deposit[DepositT, *ForkData, WithdrawalCredentials],
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalsT Withdrawals[WithdrawalT],
 ] struct {
@@ -50,7 +51,8 @@ type StateProcessorInput[
 		PayloadID,
 		WithdrawalsT,
 	]
-	Signer crypto.BLSSigner
+	DepositStore DepositStore[DepositT]
+	Signer       crypto.BLSSigner
 }
 
 // ProvideStateProcessor provides the state processor to the depinject
@@ -70,6 +72,7 @@ func ProvideStateProcessor[
 	],
 	BeaconStateMarshallableT any,
 	DepositT Deposit[DepositT, *ForkData, WithdrawalCredentials],
+	DepositStoreT DepositStore[DepositT],
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
@@ -84,7 +87,7 @@ func ProvideStateProcessor[
 	in StateProcessorInput[
 		LoggerT,
 		ExecutionPayloadT, ExecutionPayloadHeaderT,
-		WithdrawalT, WithdrawalsT,
+		DepositT, WithdrawalT, WithdrawalsT,
 	],
 ) *core.StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
@@ -114,6 +117,7 @@ func ProvideStateProcessor[
 		in.Logger.With("service", "state-processor"),
 		in.ChainSpec,
 		in.ExecutionEngine,
+		in.DepositStore,
 		in.Signer,
 		crypto.GetAddressFromPubKey,
 	)

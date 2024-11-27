@@ -55,6 +55,9 @@ func (sp *StateProcessor[
 		)
 	}
 
+	if err := sp.validateNonGenesisDeposits(st, deposits); err != nil {
+		return err
+	}
 	for _, dep := range deposits {
 		if err := sp.processDeposit(st, dep); err != nil {
 			return err
@@ -70,24 +73,7 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	dep DepositT,
 ) error {
-	var nextDepositIndex uint64
-	switch depositIndex, err := st.GetEth1DepositIndex(); {
-	case err == nil:
-		// just increment the deposit index if no error
-		nextDepositIndex = depositIndex + 1
-	case sp.processingGenesis && err != nil:
-		// If errored and still processing genesis,
-		// Eth1DepositIndex may have not been set yet.
-		nextDepositIndex = 0
-	default:
-		// Failed retrieving Eth1DepositIndex outside genesis is an error
-		return fmt.Errorf(
-			"failed retrieving eth1 deposit index outside of processing genesis: %w",
-			err,
-		)
-	}
-
-	if err := st.SetEth1DepositIndex(nextDepositIndex); err != nil {
+	if err := st.SetEth1DepositIndex(dep.GetIndex().Unwrap()); err != nil {
 		return err
 	}
 

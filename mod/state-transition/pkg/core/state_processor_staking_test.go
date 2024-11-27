@@ -38,9 +38,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestTransitionUpdateValidator shows the lifecycle
-// of a validator's balance updates.
-func TestTransitionUpdateValidator(t *testing.T) {
+// TestTransitionUpdateValidators shows that when validator is
+// updated (increasing amount), corrensponding balance is updated.
+func TestTransitionUpdateValidators(t *testing.T) {
 	// Create state processor to test
 	cs := spec.BetnetChainSpec()
 	execEngine := mocks.NewExecutionEngine[
@@ -51,18 +51,19 @@ func TestTransitionUpdateValidator(t *testing.T) {
 	mocksSigner := &cryptomocks.BLSSigner{}
 	dummyProposerAddr := []byte{0xff}
 
+	kvStore, depositStore, err := initTestStores()
+	require.NoError(t, err)
+	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
+
 	sp := createStateProcessor(
 		cs,
 		execEngine,
+		depositStore,
 		mocksSigner,
 		func(bytes.B48) ([]byte, error) {
 			return dummyProposerAddr, nil
 		},
 	)
-
-	kvStore, err := initStore()
-	require.NoError(t, err)
-	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
 
 	var (
 		maxBalance       = math.Gwei(cs.MaxEffectiveBalance())
@@ -143,6 +144,11 @@ func TestTransitionUpdateValidator(t *testing.T) {
 			Eth1Data: &types.Eth1Data{},
 			Deposits: []*types.Deposit{blkDeposit},
 		},
+	)
+
+	// make sure included deposit is already available in deposit store
+	require.NoError(t, depositStore.EnqueueDeposits(
+		[]*types.Deposit{blkDeposit}),
 	)
 
 	// run the test
@@ -249,18 +255,19 @@ func TestTransitionCreateValidator(t *testing.T) {
 	mocksSigner := &cryptomocks.BLSSigner{}
 	dummyProposerAddr := []byte{0xff}
 
+	kvStore, depositStore, err := initTestStores()
+	require.NoError(t, err)
+	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
+
 	sp := createStateProcessor(
 		cs,
 		execEngine,
+		depositStore,
 		mocksSigner,
 		func(bytes.B48) ([]byte, error) {
 			return dummyProposerAddr, nil
 		},
 	)
-
-	kvStore, err := initStore()
-	require.NoError(t, err)
-	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
 
 	var (
 		maxBalance       = math.Gwei(cs.MaxEffectiveBalance())

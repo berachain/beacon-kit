@@ -48,16 +48,17 @@ func TestInitialize(t *testing.T) {
 	](t)
 	mocksSigner := &cryptomocks.BLSSigner{}
 
+	kvStore, depositStore, err := initTestStores()
+	require.NoError(t, err)
+	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
+
 	sp := createStateProcessor(
 		cs,
 		execEngine,
+		depositStore,
 		mocksSigner,
 		dummyProposerAddressVerifier,
 	)
-
-	kvStore, err := initStore()
-	require.NoError(t, err)
-	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
 
 	var (
 		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
@@ -194,16 +195,17 @@ func TestInitializeBartio(t *testing.T) {
 	](t)
 	mocksSigner := &cryptomocks.BLSSigner{}
 
+	kvStore, depositStore, err := initTestStores()
+	require.NoError(t, err)
+	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
+
 	sp := createStateProcessor(
 		cs,
 		execEngine,
+		depositStore,
 		mocksSigner,
 		dummyProposerAddressVerifier,
 	)
-
-	kvStore, err := initStore()
-	require.NoError(t, err)
-	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
 
 	var (
 		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
