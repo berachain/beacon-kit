@@ -68,7 +68,7 @@ func (sp *StateProcessor[
 			if deposit.GetIndex() != math.U64(i) {
 				return errors.Wrapf(
 					ErrDepositIndexOutOfOrder,
-					"deposit index: %d, expected index: %d",
+					"genesis deposit index: %d, expected index: %d",
 					deposit.GetIndex().Unwrap(), i,
 				)
 			}
@@ -112,8 +112,8 @@ func (sp *StateProcessor[
 		}
 		expectedStartIdx := depositIndex + 1
 
-		var stateDeposits []DepositT
-		stateDeposits, err = sp.ds.GetDepositsByIndex(
+		var localDeposits []DepositT
+		localDeposits, err = sp.ds.GetDepositsByIndex(
 			expectedStartIdx,
 			sp.cs.MaxDepositsPerBlock(),
 		)
@@ -124,22 +124,22 @@ func (sp *StateProcessor[
 		sp.logger.Info(
 			"processOperations",
 			"Expected deposit start index", expectedStartIdx,
-			"Expected deposits length", len(stateDeposits),
+			"Expected deposits length", len(localDeposits),
 		)
 
-		if len(stateDeposits) != len(deposits) {
+		if len(localDeposits) != len(deposits) {
 			return errors.Wrapf(
 				ErrDepositsLengthMismatch,
-				"state: %d, payload: %d", len(stateDeposits), len(deposits),
+				"local: %d, payload: %d", len(localDeposits), len(deposits),
 			)
 		}
 
-		for i, sd := range stateDeposits {
+		for i, sd := range localDeposits {
 			// Deposit indices should be contiguous.
 			if sd.GetIndex().Unwrap() != expectedStartIdx+uint64(i) {
 				return errors.Wrapf(
 					ErrDepositIndexOutOfOrder,
-					"state deposit: %d, expected index: %d",
+					"local deposit index: %d, expected index: %d",
 					sd.GetIndex().Unwrap(), expectedStartIdx+uint64(i),
 				)
 			}
@@ -147,7 +147,7 @@ func (sp *StateProcessor[
 			if !sd.Equals(deposits[i]) {
 				return errors.Wrapf(
 					ErrDepositMismatch,
-					"state deposit: %d, payload deposit: %d",
+					"local deposit: %d, payload deposit: %d",
 					sd, deposits[i],
 				)
 			}
