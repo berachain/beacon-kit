@@ -34,9 +34,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestTransitionUpdateValidators shows that when validator is
+// updated (increasing amount), corrensponding balance is updated.
 func TestTransitionUpdateValidators(t *testing.T) {
 	cs := setupChain(t, components.BoonetChainSpecType)
-	sp, st, ctx := setupState(t, cs)
+	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
 		maxBalance       = math.Gwei(cs.MaxEffectiveBalance())
@@ -77,7 +79,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 			Pubkey:      genDeposits[0].Pubkey,
 			Credentials: emptyCredentials,
 			Amount:      minBalance, // avoid breaching maxBalance
-			Index:       genDeposits[0].Index,
+			Index:       uint64(len(genDeposits)),
 		},
 	}
 	blk := buildNextBlock(
@@ -98,6 +100,9 @@ func TestTransitionUpdateValidators(t *testing.T) {
 			Deposits: blkDeposits,
 		},
 	)
+
+	// make sure included deposit is already available in deposit store
+	require.NoError(t, ds.EnqueueDeposits(blkDeposits))
 
 	// run the test
 	vals, err := sp.Transition(ctx, st, blk)
@@ -130,7 +135,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 
 func TestTransitionWithdrawals(t *testing.T) {
 	cs := setupChain(t, components.BoonetChainSpecType)
-	sp, st, ctx := setupState(t, cs)
+	sp, st, _, ctx := setupState(t, cs)
 
 	var (
 		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
@@ -220,7 +225,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	cs, err := chain.NewChainSpec(csData)
 	require.NoError(t, err)
 
-	sp, st, ctx := setupState(t, cs)
+	sp, st, _, ctx := setupState(t, cs)
 
 	var (
 		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())

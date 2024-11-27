@@ -30,7 +30,21 @@ var (
 	// match the expected value.
 	ErrSlotMismatch = errors.New("slot mismatch")
 
+	// ErrProposerMismatch is returned when proposer referenced in block does
+	// not match with proposer reported by consensus.
 	ErrProposerMismatch = errors.New("proposer key mismatch")
+
+	// ErrDepositsLengthMismatch is returned when length of deposits
+	// listed in block is different from deposits from store.
+	ErrDepositsLengthMismatch = errors.New("deposits lengths mismatched")
+
+	// ErrDepositMismatch is returned when a specific deposit listed in
+	// block is different from the corrispondent one from store.
+	ErrDepositMismatch = errors.New("deposit mismatched")
+
+	// ErrDepositIndexOutOfOrder is returned when deposits are not in
+	// contiguous order.
+	ErrDepositIndexOutOfOrder = errors.New("deposit index out of order")
 
 	// ErrParentRootMismatch is returned when the parent root in an execution
 	// payload does not match the expected value.

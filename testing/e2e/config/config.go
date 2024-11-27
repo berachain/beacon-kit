@@ -181,18 +181,20 @@ func defaultValidators() NodeSet {
 		Type: "validator",
 		Nodes: []Node{
 			{
-				ElType:   "nethermind",
-				Replicas: 1,
+				ElType: "nethermind",
+				// TODO: restore once we solve
+				//  https://github.com/berachain/beacon-kit/issues/2177
+				Replicas: 0, // nethermind cannot keep up with deposits checks
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
 				ElType:   "geth",
-				Replicas: 2, //nolint:mnd // bet.
+				Replicas: 2, //nolint:mnd // we want two replicas here
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
 				ElType:   "reth",
-				Replicas: 1,
+				Replicas: 2, //nolint:mnd // we want two replicas here
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{

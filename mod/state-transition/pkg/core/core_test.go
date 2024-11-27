@@ -45,6 +45,7 @@ import (
 	statedb "github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/db"
+	depositstore "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -125,7 +126,7 @@ var (
 	testCodec    = &encoding.SSZInterfaceCodec[*types.ExecutionPayloadHeader]{}
 )
 
-func initStore() (
+func initTestStores() (
 	*beacondb.KVStore[
 		*types.BeaconBlockHeader,
 		*types.Eth1Data,
@@ -133,10 +134,12 @@ func initStore() (
 		*types.Fork,
 		*types.Validator,
 		types.Validators,
-	], error) {
+	],
+	*depositstore.KVStore[*types.Deposit],
+	error) {
 	db, err := db.OpenDB("", dbm.MemDBBackend)
 	if err != nil {
-		return nil, fmt.Errorf("failed opening mem db: %w", err)
+		return nil, nil, fmt.Errorf("failed opening mem db: %w", err)
 	}
 	var (
 		nopLog     = log.NewNopLogger()
@@ -152,21 +155,23 @@ func initStore() (
 	ctx := sdk.NewContext(cms, true, nopLog)
 	cms.MountStoreWithDB(testStoreKey, storetypes.StoreTypeIAVL, nil)
 	if err = cms.LoadLatestVersion(); err != nil {
-		return nil, fmt.Errorf("failed to load latest version: %w", err)
+		return nil, nil, fmt.Errorf("failed to load latest version: %w", err)
 	}
 	testStoreService := &testKVStoreService{ctx: ctx}
 
 	return beacondb.New[
-		*types.BeaconBlockHeader,
-		*types.Eth1Data,
-		*types.ExecutionPayloadHeader,
-		*types.Fork,
-		*types.Validator,
-		types.Validators,
-	](
-		testStoreService,
-		testCodec,
-	), nil
+			*types.BeaconBlockHeader,
+			*types.Eth1Data,
+			*types.ExecutionPayloadHeader,
+			*types.Fork,
+			*types.Validator,
+			types.Validators,
+		](
+			testStoreService,
+			testCodec,
+		),
+		depositstore.NewStore[*types.Deposit](testStoreService, nopLog),
+		nil
 }
 
 func setupChain(t *testing.T, chainSpecType string) chain.Spec[
@@ -188,6 +193,7 @@ func setupState(
 ) (
 	*TestStateProcessorT,
 	*TestBeaconStateT,
+	*depositstore.KVStore[*types.Deposit],
 	*transition.Context,
 ) {
 	t.Helper()
@@ -205,6 +211,10 @@ func setupState(
 	).Return(nil)
 
 	dummyProposerAddr := []byte{0xff}
+
+	kvStore, depositStore, err := initTestStores()
+	require.NoError(t, err)
+	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
 
 	sp := core.NewStateProcessor[
 		*types.BeaconBlock,
@@ -228,15 +238,12 @@ func setupState(
 		noop.NewLogger[any](),
 		cs,
 		execEngine,
+		depositStore,
 		mocksSigner,
 		func(bytes.B48) ([]byte, error) {
 			return dummyProposerAddr, nil
 		},
 	)
-
-	kvStore, err := initStore()
-	require.NoError(t, err)
-	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
 
 	ctx := &transition.Context{
 		SkipPayloadVerification: true,
@@ -244,7 +251,7 @@ func setupState(
 		ProposerAddress:         dummyProposerAddr,
 	}
 
-	return sp, beaconState, ctx
+	return sp, beaconState, depositStore, ctx
 }
 
 func buildNextBlock(

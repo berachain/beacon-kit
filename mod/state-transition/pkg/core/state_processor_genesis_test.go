@@ -35,7 +35,7 @@ import (
 
 func TestInitialize(t *testing.T) {
 	cs := setupChain(t, components.BetnetChainSpecType)
-	sp, st, _ := setupState(t, cs)
+	sp, st, _, _ := setupState(t, cs)
 
 	var (
 		deposits = []*types.Deposit{
@@ -129,7 +129,7 @@ func checkValidatorNonBartio(
 
 func TestInitializeBartio(t *testing.T) {
 	cs := setupChain(t, components.TestnetChainSpecType)
-	sp, st, _ := setupState(t, cs)
+	sp, st, _, _ := setupState(t, cs)
 
 	var (
 		deposits = []*types.Deposit{

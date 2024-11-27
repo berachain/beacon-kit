@@ -42,11 +42,6 @@ func (sp *StateProcessor[
 	executionPayloadHeader ExecutionPayloadHeaderT,
 	genesisVersion common.Version,
 ) (transition.ValidatorUpdates, error) {
-	sp.processingGenesis = true
-	defer func() {
-		sp.processingGenesis = false
-	}()
-
 	var (
 		blkHeader BeaconBlockHeaderT
 		blkBody   BeaconBlockBodyT
@@ -100,6 +95,9 @@ func (sp *StateProcessor[
 		}
 	}
 
+	if err := sp.validateGenesisDeposits(st, deposits); err != nil {
+		return nil, err
+	}
 	for _, deposit := range deposits {
 		if err := sp.processDeposit(st, deposit); err != nil {
 			return nil, err
