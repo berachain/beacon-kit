@@ -135,12 +135,14 @@ func (sp *StateProcessor[
 		}
 
 		for i, sd := range localDeposits {
-			// Deposit indices should be contiguous.
-			if sd.GetIndex().Unwrap() != expectedStartIdx+uint64(i) {
+			// Deposit indices should be contiguous
+			//#nosec:G701 // i never negative
+			expectedIdx := expectedStartIdx + uint64(i)
+			if sd.GetIndex().Unwrap() != expectedIdx {
 				return errors.Wrapf(
 					ErrDepositIndexOutOfOrder,
 					"local deposit index: %d, expected index: %d",
-					sd.GetIndex().Unwrap(), expectedStartIdx+uint64(i),
+					sd.GetIndex().Unwrap(), expectedIdx,
 				)
 			}
 
