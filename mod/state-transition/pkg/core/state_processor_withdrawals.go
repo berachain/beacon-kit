@@ -59,7 +59,7 @@ func (sp *StateProcessor[
 	}
 
 	return sp.processWithdrawalsByFork(
-		st, expectedWithdrawals, payloadWithdrawals,)
+		st, expectedWithdrawals, payloadWithdrawals)
 }
 
 func (sp *StateProcessor[
