@@ -29,6 +29,39 @@ import (
 	"github.com/davecgh/go-spew/spew"
 )
 
+// processWithdrawals as per the Ethereum 2.0 specification.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-process_withdrawals
+//
+// NOTE: Modified from the Ethereum 2.0 specification to support EVM inflation:
+// 1. The first withdrawal MUST be a fixed EVM inflation withdrawal
+// 2. Subsequent withdrawals (if any) are processed as validator withdrawals
+// 3. This modification reduces the maximum validator withdrawals per block by
+// one
+//
+//nolint:lll // TODO: Simplify when dropping special cases.
+func (sp *StateProcessor[
+	BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) processWithdrawals(
+	st BeaconStateT,
+	blk BeaconBlockT,
+) error {
+	// Dequeue and verify the logs.
+	var (
+		body               = blk.GetBody()
+		payload            = body.GetExecutionPayload()
+		payloadWithdrawals = payload.GetWithdrawals()
+	)
+
+	// Get the expected withdrawals.
+	expectedWithdrawals, err := st.ExpectedWithdrawals()
+	if err != nil {
+		return err
+	}
+
+	return sp.processWithdrawalsByFork(
+		st, expectedWithdrawals, payloadWithdrawals,)
+}
+
 func (sp *StateProcessor[
 	_, _, _, BeaconStateT, _, _, _, _, _, _,
 	_, _, _, _, WithdrawalT, WithdrawalsT, _,
@@ -120,10 +153,10 @@ func (sp *StateProcessor[
 		}
 	}
 
-	// Next sweep starts after the latest withdrawal's validator index.
 	if len(expectedWithdrawals) != 0 {
 		if err := st.SetNextWithdrawalIndex(
-			(expectedWithdrawals[len(expectedWithdrawals)-1].GetIndex() + 1).Unwrap(),
+			(expectedWithdrawals[len(expectedWithdrawals)-1].
+				GetIndex() + 1).Unwrap(),
 		); err != nil {
 			return err
 		}
@@ -176,6 +209,7 @@ func (sp *StateProcessor[
 	}
 	numWithdrawals := len(expectedWithdrawals)
 
+	// Process all subsequent validator withdrawals.
 	for i := 1; i < numWithdrawals; i++ {
 		// Ensure the withdrawals match the local state.
 		if !expectedWithdrawals[i].Equals(payloadWithdrawals[i]) {
@@ -188,7 +222,6 @@ func (sp *StateProcessor[
 			)
 		}
 
-		// Process the validator withdrawal.
 		if err := st.DecreaseBalance(
 			expectedWithdrawals[i].GetValidatorIndex(),
 			expectedWithdrawals[i].GetAmount(),
@@ -197,10 +230,12 @@ func (sp *StateProcessor[
 		}
 	}
 
-	if err := st.SetNextWithdrawalIndex(
-		(expectedWithdrawals[numWithdrawals-1].GetIndex() + 1).Unwrap(),
-	); err != nil {
-		return err
+	if numWithdrawals > 1 {
+		if err := st.SetNextWithdrawalIndex(
+			(expectedWithdrawals[numWithdrawals-1].GetIndex() + 1).Unwrap(),
+		); err != nil {
+			return err
+		}
 	}
 
 	totalValidators, err := st.GetTotalValidators()

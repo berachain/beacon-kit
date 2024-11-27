@@ -172,35 +172,3 @@ func (sp *StateProcessor[
 	}
 	return st.IncreaseBalance(idx, dep.GetAmount())
 }
-
-// processWithdrawals as per the Ethereum 2.0 specification.
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-process_withdrawals
-//
-// NOTE: Modified from the Ethereum 2.0 specification to support EVM inflation:
-// 1. The first withdrawal MUST be a fixed EVM inflation withdrawal
-// 2. Subsequent withdrawals (if any) are processed as validator withdrawals
-// 3. This modification reduces the maximum validator withdrawals per block by
-// one
-//
-//nolint:lll // TODO: Simplify when dropping special cases.
-func (sp *StateProcessor[
-	BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) processWithdrawals(
-	st BeaconStateT,
-	blk BeaconBlockT,
-) error {
-	// Dequeue and verify the logs.
-	var (
-		body               = blk.GetBody()
-		payload            = body.GetExecutionPayload()
-		payloadWithdrawals = payload.GetWithdrawals()
-	)
-
-	// Get the expected withdrawals.
-	expectedWithdrawals, err := st.ExpectedWithdrawals()
-	if err != nil {
-		return err
-	}
-
-	return sp.processWithdrawalsByFork(st, expectedWithdrawals, payloadWithdrawals)
-}
