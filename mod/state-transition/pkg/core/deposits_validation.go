@@ -24,6 +24,7 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -50,16 +51,26 @@ func (sp *StateProcessor[
 		if _, err := st.GetEth1DepositIndex(); err == nil {
 			// there should not be Eth1DepositIndex stored before
 			// genesis first deposit
-			return ErrDepositMismatch
+			return errors.Wrap(
+				ErrDepositMismatch,
+				"Eth1DepositIndex should be unset at genesis",
+			)
 		}
 		if len(deposits) == 0 {
 			// there should be at least a validator in genesis
-			return ErrDepositsLengthMismatch
+			return errors.Wrap(
+				ErrDepositsLengthMismatch,
+				"at least one validator should be in genesis",
+			)
 		}
 		for i, deposit := range deposits {
 			// deposit indices should be contiguous
 			if deposit.GetIndex() != math.U64(i) {
-				return ErrDepositMismatch
+				return errors.Wrapf(
+					ErrDepositIndexOutOfOrder,
+					"deposit index: %d, expected index: %d",
+					deposit.GetIndex().Unwrap(), i,
+				)
 			}
 		}
 		return nil
@@ -76,8 +87,7 @@ func (sp *StateProcessor[
 	slot, err := st.GetSlot()
 	if err != nil {
 		return fmt.Errorf(
-			"failed loading slot while processing deposits: %w",
-			err,
+			"failed loading slot while processing deposits: %w", err,
 		)
 	}
 	switch {
@@ -118,23 +128,31 @@ func (sp *StateProcessor[
 		)
 
 		if len(stateDeposits) != len(deposits) {
-			return fmt.Errorf("%w, state: %d, payload: %d",
+			return errors.Wrapf(
 				ErrDepositsLengthMismatch,
-				len(stateDeposits),
-				len(deposits),
+				"state: %d, payload: %d", len(stateDeposits), len(deposits),
 			)
 		}
 
 		for i, sd := range stateDeposits {
-			if !sd.Equals(deposits[i]) {
-				sp.logger.Error(
-					ErrDepositMismatch.Error(),
-					"state deposit", sd,
-					"payload deposit", deposits[i],
+			// Deposit indices should be contiguous.
+			if sd.GetIndex().Unwrap() != expectedStartIdx+uint64(i) {
+				return errors.Wrapf(
+					ErrDepositIndexOutOfOrder,
+					"state deposit: %d, expected index: %d",
+					sd.GetIndex().Unwrap(), expectedStartIdx+uint64(i),
 				)
-				return ErrDepositMismatch
+			}
+
+			if !sd.Equals(deposits[i]) {
+				return errors.Wrapf(
+					ErrDepositMismatch,
+					"state deposit: %d, payload deposit: %d",
+					sd, deposits[i],
+				)
 			}
 		}
+
 		return nil
 	}
 }
