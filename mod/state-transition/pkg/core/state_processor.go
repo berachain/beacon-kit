@@ -200,8 +200,6 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	fmt.Println("val0", *validatorUpdates[0], "val1", *validatorUpdates[1])
-
 	return validatorUpdates, nil
 }
 

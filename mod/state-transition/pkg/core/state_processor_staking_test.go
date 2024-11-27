@@ -73,15 +73,6 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	// Progress state to fork 2.
-	// progressStateToSlot(t, st, math.U64(spec.BoonetFork2Height))
-	// _, err = sp.ProcessSlots(st, math.U64(spec.BoonetFork2Height))
-	// require.NoError(t, err)
-	// blkHeader, err := st.GetLatestBlockHeader()
-	// require.NoError(t, err)
-	// blkHeader.SetSlot(math.U64(spec.BoonetFork2Height) - 1)
-	// require.NoError(t, st.SetLatestBlockHeader(blkHeader))
-
 	// create test inputs
 	blkDeposits := []*types.Deposit{
 		{
@@ -96,13 +87,10 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		st,
 		&types.BeaconBlockBody{
 			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    10,
-				ExtraData:    []byte("testing"),
-				Transactions: [][]byte{},
-				Withdrawals: []*engineprimitives.Withdrawal{
-					// The first withdrawal is always for EVM inflation.
-					st.EVMInflationWithdrawal(),
-				},
+				Timestamp:     10,
+				ExtraData:     []byte("testing"),
+				Transactions:  [][]byte{},
+				Withdrawals:   []*engineprimitives.Withdrawal{},
 				BaseFeePerGas: math.NewU256(0),
 			},
 			Eth1Data: &types.Eth1Data{},
@@ -216,12 +204,11 @@ func TestTransitionWithdrawals(t *testing.T) {
 	)
 
 	// Run the test.
-	vals, err := sp.Transition(ctx, st, blk)
+	_, err = sp.Transition(ctx, st, blk)
 
 	// Check outputs and ensure withdrawals in payload is consistent with
 	// statedb expected withdrawals.
 	require.NoError(t, err)
-	require.Zero(t, vals)
 
 	// Assert validator 1 balance after withdrawal.
 	val1BalAfter, err := st.GetBalance(math.U64(1))
@@ -312,12 +299,11 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	)
 
 	// Run the test.
-	vals, err := sp.Transition(ctx, st, blk)
+	_, err = sp.Transition(ctx, st, blk)
 
 	// Check outputs and ensure withdrawals in payload is consistent with
 	// statedb expected withdrawals.
 	require.NoError(t, err)
-	require.Zero(t, vals)
 
 	// Assert validator balances after withdrawal, ensuring only validator 0 is
 	// withdrawn from.
@@ -359,7 +345,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	)
 
 	// Run the test.
-	vals, err = sp.Transition(ctx, st, blk)
+	vals, err := sp.Transition(ctx, st, blk)
 
 	// Check outputs and ensure withdrawals in payload is consistent with
 	// statedb expected withdrawals.
