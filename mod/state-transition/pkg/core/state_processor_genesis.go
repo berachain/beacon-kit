@@ -42,6 +42,10 @@ func (sp *StateProcessor[
 	execPayloadHeader ExecutionPayloadHeaderT,
 	genesisVersion common.Version,
 ) (transition.ValidatorUpdates, error) {
+	if err := st.SetSlot(0); err != nil {
+		return nil, err
+	}
+
 	var fork ForkT
 	fork = fork.New(
 		genesisVersion,

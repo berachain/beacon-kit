@@ -43,10 +43,10 @@ func (sp *StateProcessor[
 	// Verify that outstanding deposits are processed
 	// up to the maximum number of deposits
 
-	// TODO we should assert  here that
+	// Unlike Eth 2.0 specs we don't check that
 	// len(body.deposits) ==  min(MAX_DEPOSITS,
 	// state.eth1_data.deposit_count - state.eth1_deposit_index)
-	// Until we fix eth1Data we do a partial check
+	// Instead we directly compare block deposits with store ones.
 	deposits := blk.GetBody().GetDeposits()
 	if uint64(len(deposits)) > sp.cs.MaxDepositsPerBlock() {
 		return errors.Wrapf(
@@ -54,7 +54,6 @@ func (sp *StateProcessor[
 			sp.cs.MaxDepositsPerBlock(), len(deposits),
 		)
 	}
-
 	if err := sp.validateNonGenesisDeposits(st, deposits); err != nil {
 		return err
 	}
@@ -91,7 +90,7 @@ func (sp *StateProcessor[
 	if err != nil {
 		// If the validator does not exist, we add the validator.
 		// TODO: improve error handling by distinguishing
-		// validator not found from other kind of errors
+		// ErrNotFound from other kind of errors
 		return sp.createValidator(st, dep)
 	}
 

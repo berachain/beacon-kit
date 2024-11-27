@@ -48,6 +48,8 @@ func (sp *StateProcessor[
 		return nil
 
 	default:
+		// TODO: improve error handling by distinguishing
+		// ErrNotFound from other kind of errors
 		if _, err := st.GetEth1DepositIndex(); err == nil {
 			// there should not be Eth1DepositIndex stored before
 			// genesis first deposit

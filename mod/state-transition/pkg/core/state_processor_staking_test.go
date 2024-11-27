@@ -338,6 +338,11 @@ func TestTransitionCreateValidator(t *testing.T) {
 		},
 	)
 
+	// make sure included deposit is already available in deposit store
+	require.NoError(t, depositStore.EnqueueDeposits(
+		[]*types.Deposit{blkDeposit}),
+	)
+
 	// run the test
 	updatedVals, err := sp.Transition(ctx, beaconState, blk1)
 	require.NoError(t, err)
