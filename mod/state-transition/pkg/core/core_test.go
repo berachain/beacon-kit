@@ -35,6 +35,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/log/pkg/noop"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
+	nodemetrics "github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	cryptomocks "github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/mocks"
@@ -243,6 +244,7 @@ func setupState(
 		func(bytes.B48) ([]byte, error) {
 			return dummyProposerAddr, nil
 		},
+		nodemetrics.NewNoOpTelemetrySink(),
 	)
 
 	ctx := &transition.Context{
