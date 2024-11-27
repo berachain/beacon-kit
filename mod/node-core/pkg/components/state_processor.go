@@ -25,6 +25,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
@@ -51,8 +52,9 @@ type StateProcessorInput[
 		PayloadID,
 		WithdrawalsT,
 	]
-	DepositStore DepositStore[DepositT]
-	Signer       crypto.BLSSigner
+	DepositStore  DepositStore[DepositT]
+	Signer        crypto.BLSSigner
+	TelemetrySink *metrics.TelemetrySink
 }
 
 // ProvideStateProcessor provides the state processor to the depinject
@@ -120,5 +122,6 @@ func ProvideStateProcessor[
 		in.DepositStore,
 		in.Signer,
 		crypto.GetAddressFromPubKey,
+		in.TelemetrySink,
 	)
 }
