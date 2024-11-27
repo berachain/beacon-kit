@@ -103,9 +103,6 @@ func (sp *StateProcessor[
 			return nil, err
 		}
 	}
-	// if err := st.SetEth1DepositIndex(uint64(len(deposits))); err != nil {
-	// 	return nil, err
-	// }
 
 	// TODO: process activations.
 	validators, err := st.GetValidators()
