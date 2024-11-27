@@ -548,3 +548,68 @@ func TestU64_UnwrapPtr(t *testing.T) {
 		})
 	}
 }
+
+func TestU64_Int64Diff(t *testing.T) {
+	tests := []struct {
+		name     string
+		a        math.U64
+		b        math.U64
+		expected int64
+		err      error
+	}{
+		{
+			name:     "a > b",
+			a:        math.U64(10),
+			b:        math.U64(5),
+			expected: 5,
+			err:      nil,
+		},
+		{
+			name:     "a < b",
+			a:        math.U64(5),
+			b:        math.U64(10),
+			expected: -5,
+			err:      nil,
+		},
+		{
+			name:     "a = b",
+			a:        math.U64(5),
+			b:        math.U64(5),
+			expected: 0,
+			err:      nil,
+		},
+		{
+			name:     "large a = b should no overflow",
+			a:        math.U64(1<<64 - 1),
+			b:        math.U64(1<<64 - 1),
+			expected: 0,
+			err:      nil,
+		},
+		{
+			name:     "a > b, overflow",
+			a:        math.U64(1<<64 - 1),
+			b:        0,
+			expected: 0,
+			err:      math.ErrDiffOverflow,
+		},
+		{
+			name:     "a < b, overflow",
+			a:        0,
+			b:        math.U64(1<<64 - 1),
+			expected: 0,
+			err:      math.ErrDiffOverflow,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			diff, err := math.DiffUint64(tt.a, tt.b)
+			if tt.err != nil {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, tt.expected, diff)
+			}
+		})
+	}
+}

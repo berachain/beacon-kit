@@ -20,6 +20,8 @@
 
 package core
 
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+
 type stateProcessorMetrics struct {
 	// sink is the sink for the metrics.
 	sink TelemetrySink
@@ -34,12 +36,21 @@ func newStateProcessorMetrics(
 	}
 }
 
-func (s *stateProcessorMetrics) gaugeTimestamps(
+func (s *stateProcessorMetrics) gaugePayloadConsensusTimestampDiff(
 	payloadTimestamp uint64,
 	consensusTimestamp uint64,
-) {
+) error {
 	// the diff can be positive or negative depending on whether the payload
 	// timestamp is ahead or behind the consensus timestamp
-	diff := int64(payloadTimestamp) - int64(consensusTimestamp) //#nosec:G701
+	diff, err := math.DiffUint64(
+		math.U64(payloadTimestamp),
+		math.U64(consensusTimestamp),
+	)
+	if err != nil {
+		return err
+	}
+
 	s.sink.SetGauge("beacon_kit.state.payload_consensus_timestamp_diff", diff)
+
+	return nil
 }

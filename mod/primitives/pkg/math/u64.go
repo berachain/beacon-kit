@@ -21,6 +21,7 @@
 package math
 
 import (
+	"math"
 	"math/big"
 	"strconv"
 
@@ -159,4 +160,30 @@ func GweiFromWei(i *big.Int) (Gwei, error) {
 // ToWei converts a value from Gwei to Wei.
 func (u Gwei) ToWei() *U256 {
 	return (&U256{}).Mul(NewU256(uint64(u)), NewU256(GweiPerWei))
+}
+
+// ---------------------------- Diff ----------------------------
+
+var ErrDiffOverflow = errors.New("diff overflows int64")
+
+// DiffUint64 returns the difference between two U64 values as int64
+// and returns an error if the difference overflows int64.
+func DiffUint64(a, b U64) (int64, error) {
+	var diff U64
+	if a > b {
+		diff = a - b
+	} else {
+		diff = b - a
+	}
+
+	if diff > math.MaxInt64 {
+		return 0, ErrDiffOverflow
+	}
+
+	//#nosec:G701 // should be safe as we checked for overflow above.
+	signedDiff := int64(diff)
+	if a < b {
+		return -signedDiff, nil
+	}
+	return signedDiff, nil
 }
