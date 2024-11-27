@@ -41,38 +41,10 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
-	// Verify that outstanding deposits are processed up to the maximum number
-	// of deposits.
 	deposits := blk.GetBody().GetDeposits()
-	index, err := st.GetEth1DepositIndex()
-	if err != nil {
+	if err := sp.validateNonGenesisDeposits(st, deposits); err != nil {
 		return err
 	}
-	eth1Data, err := st.GetEth1Data()
-	if err != nil {
-		return err
-	}
-	depositCount := min(
-		sp.cs.MaxDepositsPerBlock(),
-		eth1Data.GetDepositCount().Unwrap()-index,
-	)
-	_ = depositCount
-	// TODO: Update eth1data count and check this.
-	// if uint64(len(deposits)) != depositCount {
-	// 	return errors.New("deposit count mismatch")
-	// }
-	return sp.processDeposits(st, deposits)
-}
-
-// processDeposits processes the deposits and ensures  they match the
-// local state.
-func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, DepositT, _, _, _, _, _, _, _, _, _, _, _,
-]) processDeposits(
-	st BeaconStateT,
-	deposits []DepositT,
-) error {
-	// Ensure the deposits match the local state.
 	for _, dep := range deposits {
 		if err := sp.processDeposit(st, dep); err != nil {
 			return err
@@ -88,24 +60,7 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	dep DepositT,
 ) error {
-	var nextDepositIndex uint64
-	switch depositIndex, err := st.GetEth1DepositIndex(); {
-	case err == nil:
-		// just increment the deposit index if no error
-		nextDepositIndex = depositIndex + 1
-	case sp.processingGenesis && err != nil:
-		// If errored and still processing genesis,
-		// Eth1DepositIndex may have not been set yet.
-		nextDepositIndex = 0
-	default:
-		// Failed retrieving Eth1DepositIndex outside genesis is an error
-		return fmt.Errorf(
-			"failed retrieving eth1 deposit index outside of processing genesis: %w",
-			err,
-		)
-	}
-
-	if err := st.SetEth1DepositIndex(nextDepositIndex); err != nil {
+	if err := st.SetEth1DepositIndex(dep.GetIndex().Unwrap()); err != nil {
 		return err
 	}
 

@@ -37,8 +37,11 @@ import (
 )
 
 // DepositStoreInput is the input for the dep inject framework.
-type DepositStoreInput struct {
+type DepositStoreInput[
+	LoggerT log.AdvancedLogger[LoggerT],
+] struct {
 	depinject.In
+	Logger  LoggerT
 	AppOpts config.AppOptions
 }
 
@@ -48,8 +51,9 @@ func ProvideDepositStore[
 	DepositT Deposit[
 		DepositT, *ForkData, WithdrawalCredentials,
 	],
+	LoggerT log.AdvancedLogger[LoggerT],
 ](
-	in DepositStoreInput,
+	in DepositStoreInput[LoggerT],
 ) (*depositstore.KVStore[DepositT], error) {
 	name := "deposits"
 	dir := cast.ToString(in.AppOpts.Get(flags.FlagHome)) + "/data"
@@ -58,7 +62,10 @@ func ProvideDepositStore[
 		return nil, err
 	}
 
-	return depositstore.NewStore[DepositT](storage.NewKVStoreProvider(kvp)), nil
+	return depositstore.NewStore[DepositT](
+		storage.NewKVStoreProvider(kvp),
+		in.Logger.With("service", "deposit-store"),
+	), nil
 }
 
 // DepositPrunerInput is the input for the deposit pruner.

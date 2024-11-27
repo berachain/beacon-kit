@@ -26,6 +26,7 @@ import (
 	"time"
 
 	payloadtime "github.com/berachain/beacon-kit/mod/beacon/payload-time"
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -288,12 +289,19 @@ func (s *Service[
 	// Set the KZG commitments on the block body.
 	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
 
+	// Dequeue deposits from the state.
 	depositIndex, err := st.GetEth1DepositIndex()
 	if err != nil {
 		return ErrNilDepositIndexStart
 	}
 
-	// Dequeue deposits from the state.
+	// Bartio and Boonet pre Fork2 have deposit broken and undervalidated
+	// Any other network should build deposits the right way
+	if !(s.chainSpec.DepositEth1ChainID() == spec.BartioChainID ||
+		(s.chainSpec.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
+			blk.GetSlot() < math.U64(spec.BoonetFork2Height))) {
+		depositIndex++
+	}
 	deposits, err := s.sb.DepositStore().GetDepositsByIndex(
 		depositIndex,
 		s.chainSpec.MaxDepositsPerBlock(),

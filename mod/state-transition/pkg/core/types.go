@@ -129,15 +129,20 @@ type Context interface {
 
 // Deposit is the interface for a deposit.
 type Deposit[
+	DepositT any,
 	ForkDataT any,
 	WithdrawlCredentialsT ~[32]byte,
 ] interface {
+	// Equals returns true if the Deposit is equal to the other.
+	Equals(DepositT) bool
 	// GetAmount returns the amount of the deposit.
 	GetAmount() math.Gwei
 	// GetPubkey returns the public key of the validator.
 	GetPubkey() crypto.BLSPubkey
 	// GetWithdrawalCredentials returns the withdrawal credentials.
 	GetWithdrawalCredentials() WithdrawlCredentialsT
+	// GetIndex returns deposit index
+	GetIndex() math.U64
 	// VerifySignature verifies the deposit and creates a validator.
 	VerifySignature(
 		forkData ForkDataT,
@@ -147,6 +152,15 @@ type Deposit[
 			message []byte, signature crypto.BLSSignature,
 		) error,
 	) error
+}
+
+// DepositStore defines the interface for deposit storage.
+type DepositStore[DepositT any] interface {
+	// GetDepositsByIndex returns `numView` expected deposits.
+	GetDepositsByIndex(
+		startIndex uint64,
+		numView uint64,
+	) ([]DepositT, error)
 }
 
 type ExecutionPayload[
