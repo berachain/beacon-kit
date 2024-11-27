@@ -22,8 +22,6 @@ package state
 
 import (
 	"math"
-
-	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 )
 
 const (
@@ -41,11 +39,6 @@ const (
 // Boonet special case for emergency minting of EVM tokens. TODO: remove with
 // other special cases.
 const (
-	// EVMMintingSlot is the slot at which we force a single withdrawal to
-	// mint EVMMintingAmount EVM tokens to EVMMintingAddress. No other
-	// withdrawals are inserted at this slot.
-	EVMMintingSlot uint64 = spec.BoonetFork1Height
-
 	// EVMMintingAddress is the address at which we mint EVM tokens to.
 	EVMMintingAddress = "0x8a73D1380345942F1cb32541F1b19C40D8e6C94B"
 

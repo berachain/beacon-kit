@@ -202,27 +202,27 @@ func (s *StateDB[
 		withdrawal        WithdrawalT
 	)
 
-	if s.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID {
-		// The first withdrawal is fixed to be the EVM inflation withdrawal.
-		withdrawals = append(withdrawals, s.EVMInflationWithdrawal())
-	}
-
 	slot, err := s.GetSlot()
 	if err != nil {
 		return nil, err
 	}
 
-	if s.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID {
-		// Slot used to emergency mint EVM tokens.
-		if slot.Unwrap() == EVMMintingSlot {
-			withdrawals = append(withdrawals, withdrawal.New(
-				0, // NOT USED
-				0, // NOT USED
-				common.NewExecutionAddressFromHex(EVMMintingAddress),
-				math.Gwei(EVMMintingAmount),
-			))
-			return withdrawals, nil
-		}
+	if s.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
+		slot.Unwrap() == spec.BoonetFork1Height {
+		// Slot used to emergency mint EVM tokens on Boonet.
+		withdrawals = append(withdrawals, withdrawal.New(
+			0, // NOT USED
+			0, // NOT USED
+			common.NewExecutionAddressFromHex(EVMMintingAddress),
+			math.Gwei(EVMMintingAmount),
+		))
+		return withdrawals, nil
+	}
+
+	if s.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
+		slot.Unwrap() >= spec.BoonetFork2Height {
+		// The first withdrawal is fixed to be the EVM inflation withdrawal.
+		withdrawals = append(withdrawals, s.EVMInflationWithdrawal())
 	}
 
 	epoch := math.Epoch(slot.Unwrap() / s.cs.SlotsPerEpoch())
