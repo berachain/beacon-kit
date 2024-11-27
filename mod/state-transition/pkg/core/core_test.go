@@ -267,14 +267,16 @@ func progressStateToSlot(
 		t.Fatal("for genesis slot, use InitializePreminedBeaconStateFromEth1")
 	}
 
-	beaconState.SetSlot(slot)
-	beaconState.SetLatestBlockHeader(types.NewBeaconBlockHeader(
+	err := beaconState.SetSlot(slot)
+	require.NoError(t, err)
+	err = beaconState.SetLatestBlockHeader(types.NewBeaconBlockHeader(
 		slot,
 		math.U64(0),
 		common.Root{},
 		common.Root{},
 		common.Root{},
 	))
+	require.NoError(t, err)
 }
 
 func buildNextBlock(
