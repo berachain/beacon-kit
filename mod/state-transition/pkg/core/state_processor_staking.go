@@ -295,7 +295,6 @@ func (sp *StateProcessor[
 	// Update the next validator index to start the next withdrawal sweep.
 	//#nosec:G701 // won't overflow in practice.
 	if numWithdrawals == int(sp.cs.MaxWithdrawalsPerPayload()) {
-		
 		if (sp.cs.DepositEth1ChainID() == spec.BartioChainID) ||
 			(sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
 				slot < spec.BoonetFork2Height) {
