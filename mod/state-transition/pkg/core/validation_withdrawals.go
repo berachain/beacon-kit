@@ -53,7 +53,7 @@ func (sp *StateProcessor[
 		)
 	}
 
-	// Chain/Fork specific validations
+	// Chain/Fork specific processing
 	switch {
 	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
 		return sp.processWithdrawalsBartio(
@@ -135,8 +135,9 @@ func (sp *StateProcessor[
 	}
 
 	// Update the next validator index to start the next withdrawal sweep.
-	//#nosec:G701 // won't overflow in practice.
 	var nextValidatorIndex math.ValidatorIndex
+
+	//#nosec:G701 // won't overflow in practice.
 	if len(expectedWithdrawals) == int(sp.cs.MaxWithdrawalsPerPayload()) {
 		nextValidatorIndex =
 			(expectedWithdrawals[len(expectedWithdrawals)-1].GetIndex() + 1) %
@@ -208,8 +209,9 @@ func (sp *StateProcessor[
 	}
 
 	// Update the next validator index to start the next withdrawal sweep.
-	//#nosec:G701 // won't overflow in practice.
 	var nextValidatorIndex math.ValidatorIndex
+
+	//#nosec:G701 // won't overflow in practice.
 	if numWithdrawals == int(sp.cs.MaxWithdrawalsPerPayload()) {
 		// Next sweep starts after the latest withdrawal's validator index.
 		nextValidatorIndex = (expectedWithdrawals[numWithdrawals-1].
