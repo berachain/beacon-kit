@@ -149,7 +149,7 @@ func (sp *StateProcessor[
 			if !sd.Equals(deposits[i]) {
 				return errors.Wrapf(
 					ErrDepositMismatch,
-					"local deposit: %d, payload deposit: %d",
+					"local deposit: %+v, payload deposit: %+v",
 					sd, deposits[i],
 				)
 			}
