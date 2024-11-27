@@ -237,6 +237,8 @@ func (c *chainSpec[
 		return ErrInsufficientMaxWithdrawalsPerPayload
 	}
 
+	// The values can be zero or non-zero, n
+
 	// TODO: Add more validation rules here.
 	return nil
 }
