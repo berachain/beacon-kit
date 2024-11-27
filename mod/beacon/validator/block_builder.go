@@ -295,8 +295,11 @@ func (s *Service[
 		return ErrNilDepositIndexStart
 	}
 
-	if s.chainSpec.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-		blk.GetSlot() > math.U64(spec.BoonetFork2Height) {
+	// Bartio and Boonet pre Fork2 have deposit broken and undervalidated
+	// Any other network should build deposits the right way
+	if !(s.chainSpec.DepositEth1ChainID() == spec.BartioChainID ||
+		(s.chainSpec.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
+			blk.GetSlot() < math.U64(spec.BoonetFork2Height))) {
 		depositIndex++
 	}
 	deposits, err := s.sb.DepositStore().GetDepositsByIndex(
