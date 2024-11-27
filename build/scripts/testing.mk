@@ -200,7 +200,7 @@ start-besu: ## start an ephemeral `besu` node
 start-erigon: ## start an ephemeral `erigon` node
 	rm -rf .tmp/erigon
 	docker run \
-    --rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+    --rm -v $(PWD)/${TESTAPP_FILES_DIR}:/home/erigon/${TESTAPP_FILES_DIR} \
     -v $(PWD)/.tmp:/.tmp \
     erigontech/erigon:latest init \
     --datadir .tmp/erigon \
@@ -210,7 +210,7 @@ start-erigon: ## start an ephemeral `erigon` node
 	-p 30303:30303 \
 	-p 8545:8545 \
 	-p 8551:8551 \
-	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/home/erigon/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
 	erigontech/erigon:latest \
 	--http \
