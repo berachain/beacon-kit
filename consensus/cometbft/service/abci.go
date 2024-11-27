@@ -47,10 +47,19 @@ var (
 	errNilFinalizeBlockState = errors.New("finalizeBlockState is nil")
 )
 
+//nolint:gocognit // this is fine.
 func (s *Service[LoggerT]) InitChain(
 	_ context.Context,
 	req *cmtabci.InitChainRequest,
 ) (*cmtabci.InitChainResponse, error) {
+	// Validate the genesis state.
+	err := s.validateGenesisState(req.AppStateBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	s.logger.Info("genesis state validation successful")
+
 	if req.ChainId != s.chainID {
 		return nil, fmt.Errorf(
 			"invalid chain-id on InitChain; expected: %s, got: %s",
@@ -78,7 +87,7 @@ func (s *Service[LoggerT]) InitChain(
 	// if req.InitialHeight is > 1, then we set the initial version on all
 	// stores
 	if req.InitialHeight > 1 {
-		if err := s.sm.CommitMultiStore().
+		if err = s.sm.CommitMultiStore().
 			SetInitialVersion(req.InitialHeight); err != nil {
 			return nil, err
 		}

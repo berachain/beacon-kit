@@ -21,14 +21,21 @@
 package cometbft
 
 import (
+	"bytes"
 	"crypto/sha256"
+	"fmt"
+	"strings"
 
-	"github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/primitives/encoding/json"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cometbft/cometbft/node"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 )
+
+const maxExtraDataSize = 32
 
 // DefaultGenesis returns the default genesis state for the application.
 func (s *Service[_]) DefaultGenesis() map[string]json.RawMessage {
@@ -44,13 +51,194 @@ func (s *Service[_]) DefaultGenesis() map[string]json.RawMessage {
 	return gen
 }
 
+// validateGenesisState unmarshal and validates the genesis state.
+func (s *Service[LoggerT]) validateGenesisState(
+	appStateBytes []byte,
+) error {
+	var genesisState map[string]json.RawMessage
+	if err := json.Unmarshal(appStateBytes, &genesisState); err != nil {
+		return err
+	}
+
+	if err := s.ValidateGenesis(genesisState); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// BeaconGenesisState represents the structure of the
+// beacon module's genesis state.
+//
+//nolint:lll
+type BeaconGenesisState struct {
+	ForkVersion            string                       `json:"fork_version"`
+	Deposits               []types.Deposit              `json:"deposits"`
+	ExecutionPayloadHeader types.ExecutionPayloadHeader `json:"execution_payload_header"`
+}
+
 // ValidateGenesis validates the provided genesis state.
 func (s *Service[_]) ValidateGenesis(
-	_ map[string]json.RawMessage,
+	genesisState map[string]json.RawMessage,
 ) error {
 	// Implement the validation logic for the provided genesis state.
 	// This should validate the genesis state for each module in the
 	// application.
+
+	// Validate that required modules are present in genesis
+	beaconGenesisBz, ok := genesisState["beacon"]
+	if !ok {
+		return errors.New(
+			"beacon module genesis state is required but was not found",
+		)
+	}
+
+	// Unmarshal and validate beacon module genesis state
+	var beaconGenesis BeaconGenesisState
+	if err := json.Unmarshal(beaconGenesisBz, &beaconGenesis); err != nil {
+		return fmt.Errorf(
+			"failed to unmarshal beacon genesis state: %w",
+			err,
+		)
+	}
+
+	// Validate fork version format (should be 0x followed by 8 hex characters)
+	if !strings.HasPrefix(beaconGenesis.ForkVersion, "0x") ||
+		len(beaconGenesis.ForkVersion) != 10 {
+		return fmt.Errorf("invalid fork version format: %s",
+			beaconGenesis.ForkVersion,
+		)
+	}
+
+	if err := validateDeposits(beaconGenesis.Deposits); err != nil {
+		return fmt.Errorf("invalid deposits: %w", err)
+	}
+
+	if err := validateExecutionHeader(
+		beaconGenesis.ExecutionPayloadHeader,
+	); err != nil {
+		return fmt.Errorf("invalid execution payload header: %w", err)
+	}
+
+	return nil
+}
+
+func validateDeposits(deposits []types.Deposit) error {
+	if len(deposits) == 0 {
+		return errors.New("at least one deposit is required")
+	}
+
+	seenPubkeys := make(map[string]bool)
+
+	for i, deposit := range deposits {
+		// Validate BLS public key is not zero
+		if isZeroBytes(deposit.Pubkey[:]) {
+			return fmt.Errorf("deposit %d has zero public key", i)
+		}
+		// Check for duplicate pubkeys
+		pubkeyStr := string(deposit.Pubkey[:])
+		if seenPubkeys[pubkeyStr] {
+			return fmt.Errorf("duplicate pubkey found in deposit %d", i)
+		}
+		seenPubkeys[pubkeyStr] = true
+
+		// Validate withdrawal credentials
+		if isZeroBytes(deposit.Credentials[:]) {
+			return fmt.Errorf(
+				"invalid withdrawal credentials length for deposit %d",
+				i,
+			)
+		}
+
+		// Validate amount is non-zero
+		if deposit.Amount == 0 {
+			return fmt.Errorf("deposit %d has zero amount", i)
+		}
+
+		// Validate signature is not empty
+		if isZeroBytes(deposit.Signature[:]) {
+			return fmt.Errorf("invalid signature length for deposit %d", i)
+		}
+
+		// Validate index matches position
+		if uint64(deposit.GetIndex()) != uint64(i) {
+			return fmt.Errorf(
+				"deposit index %d does not match position %d",
+				deposit.GetIndex(),
+				i,
+			)
+		}
+	}
+
+	return nil
+}
+
+func isZeroBytes(b []byte) bool {
+	for _, byte2 := range b {
+		if byte2 != 0 {
+			return false
+		}
+	}
+	return true
+}
+
+func validateExecutionHeader(header types.ExecutionPayloadHeader) error {
+	// Validate hash fields are not zero
+	zeroHash := common.ExecutionHash{}
+	// For genesis block (when block number is 0), ParentHash must be zero
+	// For non-genesis blocks, ParentHash cannot be zero
+	if header.Number == 0 {
+		if !bytes.Equal(header.ParentHash[:], zeroHash[:]) {
+			return errors.New("parent hash must be zero for genesis block")
+		}
+	} else {
+		if bytes.Equal(header.ParentHash[:], zeroHash[:]) {
+			return errors.New("parent hash cannot be zero for non-genesis block")
+		}
+	}
+
+	if bytes.Equal(header.StateRoot[:], zeroHash[:]) {
+		return errors.New("state root cannot be zero")
+	}
+	if bytes.Equal(header.ReceiptsRoot[:], zeroHash[:]) {
+		return errors.New("receipts root cannot be zero")
+	}
+	if bytes.Equal(header.BlockHash[:], zeroHash[:]) {
+		return errors.New("block hash cannot be zero")
+	}
+	if bytes.Equal(header.TransactionsRoot[:], zeroHash[:]) {
+		return errors.New("transactions root cannot be zero")
+	}
+
+	// Fee recipient can be zero in genesis block
+	// No need to validate fee recipient for genesis
+
+	// We don't validate LogsBloom as it can legitimately be
+	// all zeros in a genesis block or in blocks with no logs
+
+	// Validate numeric fields
+	if header.GasLimit == 0 {
+		return errors.New("gas limit cannot be zero")
+	}
+
+	// Extra data length check (max 32 bytes as per SSZ definition)
+	if len(header.ExtraData) > maxExtraDataSize {
+		return fmt.Errorf(
+			"extra data too long: got %d bytes, max 32 bytes",
+			len(header.ExtraData),
+		)
+	}
+
+	// Validate base fee per gas
+	if header.BaseFeePerGas == nil {
+		return errors.New("base fee per gas cannot be nil")
+	}
+
+	// Additional Deneb-specific validations for blob gas
+	if header.BlobGasUsed > header.GetGasLimit() {
+		return errors.New("blob gas used exceeds gas limit")
+	}
+
 	return nil
 }
 
