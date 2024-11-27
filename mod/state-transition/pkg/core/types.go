@@ -270,3 +270,8 @@ type Withdrawal[WithdrawalT any] interface {
 	// GetAddress returns the address of the withdrawal.
 	GetAddress() common.ExecutionAddress
 }
+
+// TelemetrySink is an interface for sending metrics to a telemetry backend.
+type TelemetrySink interface {
+	SetGauge(key string, value int64, args ...string)
+}
