@@ -97,6 +97,8 @@ type StateProcessor[
 	]
 	// ds allows checking payload deposits against the deposit contract
 	ds DepositStore[DepositT]
+	// metrics is the metrics for the service.
+	metrics *stateProcessorMetrics
 }
 
 // NewStateProcessor creates a new state processor.
@@ -152,6 +154,7 @@ func NewStateProcessor[
 	ds DepositStore[DepositT],
 	signer crypto.BLSSigner,
 	fGetAddressFromPubKey func(crypto.BLSPubkey) ([]byte, error),
+	telemetrySink TelemetrySink,
 ) *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, ContextT, DepositT, Eth1DataT, ExecutionPayloadT,
@@ -170,6 +173,7 @@ func NewStateProcessor[
 		signer:                signer,
 		fGetAddressFromPubKey: fGetAddressFromPubKey,
 		ds:                    ds,
+		metrics:               newStateProcessorMetrics(telemetrySink),
 	}
 }
 
