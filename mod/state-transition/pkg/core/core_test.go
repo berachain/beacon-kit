@@ -254,6 +254,27 @@ func setupState(
 	return sp, beaconState, depositStore, ctx
 }
 
+func progressStateToSlot(
+	t *testing.T,
+	beaconState *TestBeaconStateT,
+	slot math.U64,
+) {
+	t.Helper()
+
+	if slot == math.U64(0) {
+		t.Fatal("for genesis slot, use InitializePreminedBeaconStateFromEth1")
+	}
+
+	beaconState.SetSlot(slot)
+	beaconState.SetLatestBlockHeader(types.NewBeaconBlockHeader(
+		slot,
+		math.U64(0),
+		common.Root{},
+		common.Root{},
+		common.Root{},
+	))
+}
+
 func buildNextBlock(
 	t *testing.T,
 	beaconState *TestBeaconStateT,

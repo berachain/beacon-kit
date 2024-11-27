@@ -73,6 +73,15 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	)
 	require.NoError(t, err)
 
+	// Progress state to fork 2.
+	// progressStateToSlot(t, st, math.U64(spec.BoonetFork2Height))
+	// _, err = sp.ProcessSlots(st, math.U64(spec.BoonetFork2Height))
+	// require.NoError(t, err)
+	// blkHeader, err := st.GetLatestBlockHeader()
+	// require.NoError(t, err)
+	// blkHeader.SetSlot(math.U64(spec.BoonetFork2Height) - 1)
+	// require.NoError(t, st.SetLatestBlockHeader(blkHeader))
+
 	// create test inputs
 	blkDeposits := []*types.Deposit{
 		{
@@ -171,6 +180,9 @@ func TestTransitionWithdrawals(t *testing.T) {
 	)
 	require.NoError(t, err)
 
+	// Progress state to fork 2.
+	progressStateToSlot(t, st, math.U64(spec.BoonetFork2Height))
+
 	// Assert validator 1 balance before withdrawal.
 	val1Bal, err := st.GetBalance(math.U64(1))
 	require.NoError(t, err)
@@ -259,6 +271,9 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 		st, genDeposits, genPayloadHeader, genVersion,
 	)
 	require.NoError(t, err)
+
+	// Progress state to fork 2.
+	progressStateToSlot(t, st, math.U64(spec.BoonetFork2Height))
 
 	// Assert validator balances before withdrawal.
 	val0Bal, err := st.GetBalance(math.U64(0))

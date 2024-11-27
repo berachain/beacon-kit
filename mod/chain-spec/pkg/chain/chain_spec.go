@@ -237,7 +237,7 @@ func (c *chainSpec[
 		return ErrInsufficientMaxWithdrawalsPerPayload
 	}
 
-	// The values can be zero or non-zero, n
+	// EVM Inflation values can be zero or non-zero, no validation needed.
 
 	// TODO: Add more validation rules here.
 	return nil
