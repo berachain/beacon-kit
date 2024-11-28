@@ -37,6 +37,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestTransitionUpdateValidators shows that when validator is
+// updated (increasing amount), corrensponding balance is updated.
 func TestTransitionUpdateValidators(t *testing.T) {
 	// Create state processor to test
 	cs := spec.BetnetChainSpec()
@@ -48,18 +50,19 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	mocksSigner := &cryptomocks.BLSSigner{}
 	dummyProposerAddr := []byte{0xff}
 
+	kvStore, depositStore, err := initTestStores()
+	require.NoError(t, err)
+	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
+
 	sp := createStateProcessor(
 		cs,
 		execEngine,
+		depositStore,
 		mocksSigner,
 		func(bytes.B48) ([]byte, error) {
 			return dummyProposerAddr, nil
 		},
 	)
-
-	kvStore, err := initStore()
-	require.NoError(t, err)
-	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
 
 	var (
 		maxBalance       = math.Gwei(cs.MaxEffectiveBalance())
@@ -111,13 +114,11 @@ func TestTransitionUpdateValidators(t *testing.T) {
 			SkipValidateResult:      true,
 			ProposerAddress:         dummyProposerAddr,
 		}
-		blkDeposits = []*types.Deposit{
-			{
-				Pubkey:      genDeposits[0].Pubkey,
-				Credentials: emptyCredentials,
-				Amount:      minBalance, // avoid breaching maxBalance
-				Index:       genDeposits[0].Index,
-			},
+		blkDeposit = &types.Deposit{
+			Pubkey:      genDeposits[0].Pubkey,
+			Credentials: emptyCredentials,
+			Amount:      minBalance, // avoid breaching maxBalance
+			Index:       uint64(len(genDeposits)),
 		}
 	)
 
@@ -133,8 +134,13 @@ func TestTransitionUpdateValidators(t *testing.T) {
 				BaseFeePerGas: math.NewU256(0),
 			},
 			Eth1Data: &types.Eth1Data{},
-			Deposits: blkDeposits,
+			Deposits: []*types.Deposit{blkDeposit},
 		},
+	)
+
+	// make sure included deposit is already available in deposit store
+	require.NoError(t, depositStore.EnqueueDeposits(
+		[]*types.Deposit{blkDeposit}),
 	)
 
 	// run the test
@@ -145,7 +151,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	require.Zero(t, vals) // just update, no new validators
 
 	// check validator is duly updated
-	expectedValBalance := genDeposits[0].Amount + blkDeposits[0].Amount
+	expectedValBalance := genDeposits[0].Amount + blkDeposit.Amount
 	idx, err := beaconState.ValidatorIndexByPubkey(genDeposits[0].Pubkey)
 	require.NoError(t, err)
 	require.Equal(t, math.U64(genDeposits[0].Index), idx)
@@ -160,7 +166,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, expectedValBalance, valBal)
 
-	// check that validator index is duly set (1-indexed here, to be fixed)
+	// check that validator index is duly set
 	latestValIdx, err := beaconState.GetEth1DepositIndex()
 	require.NoError(t, err)
 	require.Equal(t, uint64(len(genDeposits)), latestValIdx)

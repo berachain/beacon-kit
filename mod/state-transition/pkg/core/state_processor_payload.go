@@ -48,11 +48,16 @@ func (sp *StateProcessor[
 		g, gCtx = errgroup.WithContext(context.Background())
 	)
 
+	payloadTimestamp := payload.GetTimestamp().Unwrap()
+	consensusTimestamp := ctx.GetConsensusTime().Unwrap()
+
+	sp.metrics.gaugeTimestamps(payloadTimestamp, consensusTimestamp)
+
 	sp.logger.Info("processExecutionPayload",
 		"consensus height", blk.GetSlot().Unwrap(),
 		"payload height", payload.GetNumber().Unwrap(),
-		"payload timestamp", payload.GetTimestamp().Unwrap(),
-		"consensus timestamp", ctx.GetConsensusTime().Unwrap(),
+		"payload timestamp", payloadTimestamp,
+		"consensus timestamp", consensusTimestamp,
 		"skip payload verification", ctx.GetSkipPayloadVerification(),
 	)
 

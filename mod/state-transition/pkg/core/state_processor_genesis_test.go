@@ -48,18 +48,19 @@ func TestInitialize(t *testing.T) {
 	](t)
 	mocksSigner := &cryptomocks.BLSSigner{}
 
+	kvStore, depositStore, err := initTestStores()
+	require.NoError(t, err)
+	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
+
 	sp := createStateProcessor(
 		cs,
 		execEngine,
+		depositStore,
 		mocksSigner,
 		dummyProposerAddressVerifier,
 	)
 
-	// create test inputs
-	kvStore, err := initStore()
-	require.NoError(t, err)
-	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
-
+	// create test input
 	var (
 		deposits = []*types.Deposit{
 			{
@@ -169,18 +170,19 @@ func TestInitializeBartio(t *testing.T) {
 	](t)
 	mocksSigner := &cryptomocks.BLSSigner{}
 
+	kvStore, depositStore, err := initTestStores()
+	require.NoError(t, err)
+	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
+
 	sp := createStateProcessor(
 		cs,
 		execEngine,
+		depositStore,
 		mocksSigner,
 		dummyProposerAddressVerifier,
 	)
 
 	// create test inputs
-	kvStore, err := initStore()
-	require.NoError(t, err)
-	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
-
 	var (
 		deposits = []*types.Deposit{
 			{

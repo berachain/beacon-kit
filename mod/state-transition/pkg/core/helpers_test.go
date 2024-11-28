@@ -34,6 +34,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/log/pkg/noop"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
+	nodemetrics "github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
@@ -41,6 +42,7 @@ import (
 	statedb "github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/db"
+	depositstore "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -91,6 +93,7 @@ func createStateProcessor(
 		*types.ExecutionPayloadHeader,
 		engineprimitives.Withdrawals,
 	],
+	ds *depositstore.KVStore[*types.Deposit],
 	signer crypto.BLSSigner,
 	fGetAddressFromPubKey func(crypto.BLSPubkey) ([]byte, error),
 ) *core.StateProcessor[
@@ -134,8 +137,10 @@ func createStateProcessor(
 		noop.NewLogger[any](),
 		cs,
 		execEngine,
+		ds,
 		signer,
 		fGetAddressFromPubKey,
+		nodemetrics.NewNoOpTelemetrySink(),
 	)
 }
 
@@ -155,7 +160,7 @@ var (
 	testCodec    = &encoding.SSZInterfaceCodec[*types.ExecutionPayloadHeader]{}
 )
 
-func initStore() (
+func initTestStores() (
 	*beacondb.KVStore[
 		*types.BeaconBlockHeader,
 		*types.Eth1Data,
@@ -163,10 +168,12 @@ func initStore() (
 		*types.Fork,
 		*types.Validator,
 		types.Validators,
-	], error) {
+	],
+	*depositstore.KVStore[*types.Deposit],
+	error) {
 	db, err := db.OpenDB("", dbm.MemDBBackend)
 	if err != nil {
-		return nil, fmt.Errorf("failed opening mem db: %w", err)
+		return nil, nil, fmt.Errorf("failed opening mem db: %w", err)
 	}
 	var (
 		nopLog     = log.NewNopLogger()
@@ -182,21 +189,23 @@ func initStore() (
 	ctx := sdk.NewContext(cms, true, nopLog)
 	cms.MountStoreWithDB(testStoreKey, storetypes.StoreTypeIAVL, nil)
 	if err = cms.LoadLatestVersion(); err != nil {
-		return nil, fmt.Errorf("failed to load latest version: %w", err)
+		return nil, nil, fmt.Errorf("failed to load latest version: %w", err)
 	}
 	testStoreService := &testKVStoreService{ctx: ctx}
 
 	return beacondb.New[
-		*types.BeaconBlockHeader,
-		*types.Eth1Data,
-		*types.ExecutionPayloadHeader,
-		*types.Fork,
-		*types.Validator,
-		types.Validators,
-	](
-		testStoreService,
-		testCodec,
-	), nil
+			*types.BeaconBlockHeader,
+			*types.Eth1Data,
+			*types.ExecutionPayloadHeader,
+			*types.Fork,
+			*types.Validator,
+			types.Validators,
+		](
+			testStoreService,
+			testCodec,
+		),
+		depositstore.NewStore[*types.Deposit](testStoreService, nopLog),
+		nil
 }
 
 func buildNextBlock(

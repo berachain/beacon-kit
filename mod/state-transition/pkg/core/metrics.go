@@ -18,32 +18,28 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package suite
+package core
 
-import (
-	"time"
+type stateProcessorMetrics struct {
+	// sink is the sink for the metrics.
+	sink TelemetrySink
+}
 
-	"github.com/ethereum/go-ethereum/params"
-)
+// newStateProcessorMetrics creates a new stateProcessorMetrics.
+func newStateProcessorMetrics(
+	sink TelemetrySink,
+) *stateProcessorMetrics {
+	return &stateProcessorMetrics{
+		sink: sink,
+	}
+}
 
-// Ether represents the number of wei in one ether, used for Ethereum
-// transactions.
-const (
-	Ether   = params.Ether
-	OneGwei = uint64(params.GWei) // 1 Gwei = 1e9 wei
-	TenGwei = 10 * OneGwei        // 10 Gwei = 1e10 wei
-)
-
-// EtherTransferGasLimit specifies the gas limit for a standard Ethereum
-// transfer.
-// This is the amount of gas required to perform a basic ether transfer.
-const (
-	EtherTransferGasLimit uint64 = 21000 // Standard gas limit for ether transfer
-)
-
-// DefaultE2ETestTimeout defines the default timeout duration for end-to-end
-// tests. This is used to specify how long to wait for a test before considering
-// it failed.
-const (
-	DefaultE2ETestTimeout = 60 * 10 * time.Second // timeout for E2E tests
-)
+func (s *stateProcessorMetrics) gaugeTimestamps(
+	payloadTimestamp uint64,
+	consensusTimestamp uint64,
+) {
+	// the diff can be positive or negative depending on whether the payload
+	// timestamp is ahead or behind the consensus timestamp
+	diff := int64(payloadTimestamp) - int64(consensusTimestamp) //#nosec:G701
+	s.sink.SetGauge("beacon_kit.state.payload_consensus_timestamp_diff", diff)
+}
