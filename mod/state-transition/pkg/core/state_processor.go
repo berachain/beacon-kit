@@ -101,6 +101,9 @@ type StateProcessor[
 	// metrics is the metrics for the service.
 	metrics *stateProcessorMetrics
 
+	// valSetMu protects valSetByEpoch from concurrent accesses
+	valSetMu sync.RWMutex
+
 	// valSetByEpoch tracks the set of validators active at the latest epochs.
 	// This is useful to optimize validators set updates.
 	// Note: Transition may be called multiple times on different,
@@ -110,9 +113,6 @@ type StateProcessor[
 	// ones.
 	// We prune the map to preserve only current and previous epoch
 	valSetByEpoch map[math.Epoch][]ValidatorT
-
-	// valSetMu protects valSetByEpoch from concurrent accesses
-	valSetMu sync.RWMutex
 }
 
 // NewStateProcessor creates a new state processor.
