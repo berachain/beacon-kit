@@ -24,7 +24,6 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"fmt"
-	"math"
 	"strings"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -116,17 +115,6 @@ func validateDeposits(deposits []types.Deposit) error {
 
 	for i, deposit := range deposits {
 		depositIndex := deposit.GetIndex()
-
-		// Validate deposit index bounds
-		if depositIndex < 0 {
-			return fmt.Errorf("deposit has invalid negative index: %d", depositIndex)
-		}
-
-		// Check depositIndex bounds before conversion
-		if depositIndex > math.MaxInt64 {
-			return fmt.Errorf("deposit index %d exceeds maximum allowed value", depositIndex)
-		}
-
 		//#nosec:G701 // realistically fine in practice.
 		// Validate index matches position
 		if int64(depositIndex) != int64(i) {
@@ -201,6 +189,11 @@ func validateExecutionHeader(header types.ExecutionPayloadHeader) error {
 	}
 	if bytes.Equal(header.TransactionsRoot[:], zeroHash[:]) {
 		return errors.New("transactions root cannot be zero")
+	}
+
+	// Check block number to be 0
+	if header.Number != 0 {
+		return errors.New("block number must be 0 for genesis block")
 	}
 
 	// Fee recipient can be zero in genesis block
