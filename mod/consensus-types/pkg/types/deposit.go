@@ -122,7 +122,7 @@ func (d *Deposit) DefineSSZ(c *ssz.Codec) {
 
 // MarshalSSZ marshals the Deposit object to SSZ format.
 func (d *Deposit) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, d.SizeSSZ())
+	buf := make([]byte, ssz.Size(d))
 	return buf, ssz.EncodeToBytes(buf, d)
 }
 
@@ -132,7 +132,7 @@ func (d *Deposit) UnmarshalSSZ(buf []byte) error {
 }
 
 // SizeSSZ returns the SSZ encoded size of the Deposit object.
-func (d *Deposit) SizeSSZ() uint32 {
+func (d *Deposit) SizeSSZ(*ssz.Sizer) uint32 {
 	return DepositSize
 }
 
@@ -186,6 +186,14 @@ func (d *Deposit) GetTree() (*fastssz.Node, error) {
 /* -------------------------------------------------------------------------- */
 /*                             Getters and Setters                            */
 /* -------------------------------------------------------------------------- */
+// Equals returns true if the Deposit is equal to the other.
+func (d *Deposit) Equals(rhs *Deposit) bool {
+	return d.Pubkey == rhs.Pubkey &&
+		d.Credentials == rhs.Credentials &&
+		d.Amount == rhs.Amount &&
+		d.Signature == rhs.Signature &&
+		d.Index == rhs.Index
+}
 
 // GetAmount returns the deposit amount in gwei.
 func (d *Deposit) GetAmount() math.Gwei {

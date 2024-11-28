@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/karalabe/ssz"
 )
 
 // BeaconBlock represents a generic interface for a beacon block.
@@ -121,23 +122,27 @@ type Context interface {
 	// GetProposerAddress returns the address of the validator
 	// selected by consensus to propose the block
 	GetProposerAddress() []byte
-	// GetNextPayloadTimestamp returns the timestamp proposed by
-	// consensus for the next payload to be proposed. It is also
-	// used to bound current payload upon validation
-	GetNextPayloadTimestamp() math.U64
+	// GetConsensusTime returns the timestamp of current consensus request.
+	// It is used to build next payload and to validate currentpayload.
+	GetConsensusTime() math.U64
 }
 
 // Deposit is the interface for a deposit.
 type Deposit[
+	DepositT any,
 	ForkDataT any,
 	WithdrawlCredentialsT ~[32]byte,
 ] interface {
+	// Equals returns true if the Deposit is equal to the other.
+	Equals(DepositT) bool
 	// GetAmount returns the amount of the deposit.
 	GetAmount() math.Gwei
 	// GetPubkey returns the public key of the validator.
 	GetPubkey() crypto.BLSPubkey
 	// GetWithdrawalCredentials returns the withdrawal credentials.
 	GetWithdrawalCredentials() WithdrawlCredentialsT
+	// GetIndex returns deposit index
+	GetIndex() math.U64
 	// VerifySignature verifies the deposit and creates a validator.
 	VerifySignature(
 		forkData ForkDataT,
@@ -147,6 +152,15 @@ type Deposit[
 			message []byte, signature crypto.BLSSignature,
 		) error,
 	) error
+}
+
+// DepositStore defines the interface for deposit storage.
+type DepositStore[DepositT any] interface {
+	// GetDepositsByIndex returns `numView` expected deposits.
+	GetDepositsByIndex(
+		startIndex uint64,
+		numView uint64,
+	) ([]DepositT, error)
 }
 
 type ExecutionPayload[
@@ -170,14 +184,12 @@ type ExecutionPayload[
 	GetBaseFeePerGas() *math.U256
 	GetBlobGasUsed() math.U64
 	GetExcessBlobGas() math.U64
-	ToHeader(
-		maxWithdrawalsPerPayload uint64,
-		eth1ChainID uint64,
-	) (ExecutionPayloadHeaderT, error)
+	ToHeader() (ExecutionPayloadHeaderT, error)
 }
 
 type ExecutionPayloadHeader interface {
 	GetBlockHash() common.ExecutionHash
+	GetTimestamp() math.U64
 }
 
 // Withdrawals defines the interface for managing withdrawal operations.
@@ -219,7 +231,7 @@ type Validator[
 	WithdrawalCredentialsT ~[32]byte,
 ] interface {
 	constraints.SSZMarshallableRootable
-	SizeSSZ() uint32
+	SizeSSZ(*ssz.Sizer) uint32
 	// New creates a new validator with the given parameters.
 	New(
 		pubkey crypto.BLSPubkey,
@@ -259,4 +271,9 @@ type Withdrawal[WithdrawalT any] interface {
 	GetValidatorIndex() math.ValidatorIndex
 	// GetAddress returns the address of the withdrawal.
 	GetAddress() common.ExecutionAddress
+}
+
+// TelemetrySink is an interface for sending metrics to a telemetry backend.
+type TelemetrySink interface {
+	SetGauge(key string, value int64, args ...string)
 }

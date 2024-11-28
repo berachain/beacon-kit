@@ -339,6 +339,13 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 	defer ticker.Stop()
 	var finalBlockNum uint64
 	for finalBlockNum < target {
+		// check if cctx deadline is exceeded to prevent endless loop
+		select {
+		case <-cctx.Done():
+			return cctx.Err()
+		default:
+		}
+
 		var err error
 		finalBlockNum, err = s.JSONRPCBalancer().BlockNumber(cctx)
 		if err != nil {

@@ -97,7 +97,7 @@ func (b *BeaconBlockHeader) New(
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the BeaconBlockHeader object in SSZ encoding.
-func (b *BeaconBlockHeader) SizeSSZ() uint32 {
+func (b *BeaconBlockHeader) SizeSSZ(*ssz.Sizer) uint32 {
 	return BeaconBlockHeaderSize
 }
 
@@ -112,7 +112,7 @@ func (b *BeaconBlockHeader) DefineSSZ(codec *ssz.Codec) {
 
 // MarshalSSZ marshals the BeaconBlockBody object to SSZ format.
 func (b *BeaconBlockHeader) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, b.SizeSSZ())
+	buf := make([]byte, ssz.Size(b))
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 
@@ -176,11 +176,18 @@ func (b *BeaconBlockHeader) GetTree() (*fastssz.Node, error) {
 
 // Equals returns true if the Withdrawal is equal to the other.
 func (b *BeaconBlockHeader) Equals(rhs *BeaconBlockHeader) bool {
-	return b.Slot == rhs.Slot &&
-		b.ProposerIndex == rhs.ProposerIndex &&
-		b.ParentBlockRoot == rhs.ParentBlockRoot &&
-		b.StateRoot == rhs.StateRoot &&
-		b.BodyRoot == rhs.BodyRoot
+	switch {
+	case b == nil && rhs == nil:
+		return true
+	case b != nil && rhs != nil:
+		return b.Slot == rhs.Slot &&
+			b.ProposerIndex == rhs.ProposerIndex &&
+			b.ParentBlockRoot == rhs.ParentBlockRoot &&
+			b.StateRoot == rhs.StateRoot &&
+			b.BodyRoot == rhs.BodyRoot
+	default:
+		return false
+	}
 }
 
 // GetSlot retrieves the slot of the BeaconBlockHeader.

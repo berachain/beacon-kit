@@ -22,9 +22,13 @@ package core
 
 import (
 	"bytes"
+	"fmt"
+	"sync"
 
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -51,7 +55,7 @@ type StateProcessor[
 		ValidatorT, ValidatorsT, WithdrawalT,
 	],
 	ContextT Context,
-	DepositT Deposit[ForkDataT, WithdrawalCredentialsT],
+	DepositT Deposit[DepositT, ForkDataT, WithdrawalCredentialsT],
 	Eth1DataT interface {
 		New(common.Root, math.U64, common.ExecutionHash) Eth1DataT
 		GetDepositCount() math.U64
@@ -78,6 +82,8 @@ type StateProcessor[
 	},
 	WithdrawalCredentialsT ~[32]byte,
 ] struct {
+	// logger is used for logging information and errors.
+	logger log.Logger
 	// cs is the chain specification for the beacon chain.
 	cs common.ChainSpec
 	// signer is the BLS signer used for cryptographic operations.
@@ -90,15 +96,23 @@ type StateProcessor[
 	executionEngine ExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	]
+	// ds allows checking payload deposits against the deposit contract
+	ds DepositStore[DepositT]
+	// metrics is the metrics for the service.
+	metrics *stateProcessorMetrics
 
-	// processingGenesis allows initializing correctly
-	// eth1 deposit index upon genesis
-	processingGenesis bool
+	// valSetMu protects valSetByEpoch from concurrent accesses
+	valSetMu sync.RWMutex
 
-	// prevEpochValidators tracks the set of validators active during
-	// previous epoch. This is useful at the turn of the epoch to send to
-	// consensus only the diffs rather than the full updated validator set.
-	prevEpochValidators []*transition.ValidatorUpdate
+	// valSetByEpoch tracks the set of validators active at the latest epochs.
+	// This is useful to optimize validators set updates.
+	// Note: Transition may be called multiple times on different,
+	// non/finalized blocks, so at some point valSetByEpoch may contain
+	// informations from blocks not finalized. This should be fine as long
+	// as a block is finalized eventually, and its changes will be the last
+	// ones.
+	// We prune the map to preserve only current and previous epoch
+	valSetByEpoch map[math.Epoch][]ValidatorT
 }
 
 // NewStateProcessor creates a new state processor.
@@ -119,7 +133,7 @@ func NewStateProcessor[
 		KVStoreT, ValidatorT, ValidatorsT, WithdrawalT,
 	],
 	ContextT Context,
-	DepositT Deposit[ForkDataT, WithdrawalCredentialsT],
+	DepositT Deposit[DepositT, ForkDataT, WithdrawalCredentialsT],
 	Eth1DataT interface {
 		New(common.Root, math.U64, common.ExecutionHash) Eth1DataT
 		GetDepositCount() math.U64
@@ -146,12 +160,15 @@ func NewStateProcessor[
 	},
 	WithdrawalCredentialsT ~[32]byte,
 ](
+	logger log.Logger,
 	cs common.ChainSpec,
 	executionEngine ExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
+	ds DepositStore[DepositT],
 	signer crypto.BLSSigner,
 	fGetAddressFromPubKey func(crypto.BLSPubkey) ([]byte, error),
+	telemetrySink TelemetrySink,
 ) *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, ContextT, DepositT, Eth1DataT, ExecutionPayloadT,
@@ -164,11 +181,14 @@ func NewStateProcessor[
 		ExecutionPayloadHeaderT, ForkT, ForkDataT, KVStoreT, ValidatorT,
 		ValidatorsT, WithdrawalT, WithdrawalsT, WithdrawalCredentialsT,
 	]{
+		logger:                logger,
 		cs:                    cs,
 		executionEngine:       executionEngine,
 		signer:                signer,
 		fGetAddressFromPubKey: fGetAddressFromPubKey,
-		prevEpochValidators:   make([]*transition.ValidatorUpdate, 0),
+		ds:                    ds,
+		metrics:               newStateProcessorMetrics(telemetrySink),
+		valSetByEpoch:         make(map[math.Epoch][]ValidatorT, 0),
 	}
 }
 
@@ -205,6 +225,7 @@ func (sp *StateProcessor[
 	st BeaconStateT, slot math.Slot,
 ) (transition.ValidatorUpdates, error) {
 	var res transition.ValidatorUpdates
+
 	stateSlot, err := st.GetSlot()
 	if err != nil {
 		return nil, err
@@ -214,6 +235,23 @@ func (sp *StateProcessor[
 	for ; stateSlot < slot; stateSlot++ {
 		if err = sp.processSlot(st); err != nil {
 			return nil, err
+		}
+
+		// Handle special cases
+		if sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
+			slot == math.U64(spec.BoonetFork2Height) {
+			var idx uint64
+			idx, err = st.GetEth1DepositIndex()
+			if err != nil {
+				return nil, fmt.Errorf(
+					"failed retrieving deposit index at slot %d: %w",
+					slot, err,
+				)
+			}
+			fixedDepositIdx := idx - 1
+			if err = st.SetEth1DepositIndex(fixedDepositIdx); err != nil {
+				return nil, err
+			}
 		}
 
 		// Process the Epoch Boundary.
@@ -295,7 +333,7 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	if err := sp.processWithdrawals(st, blk.GetBody()); err != nil {
+	if err := sp.processWithdrawals(st, blk); err != nil {
 		return err
 	}
 

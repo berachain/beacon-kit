@@ -24,6 +24,8 @@ import (
 	"cosmossdk.io/depinject"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/engine"
+	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
@@ -32,14 +34,17 @@ import (
 // StateProcessorInput is the input for the state processor for the depinject
 // framework.
 type StateProcessorInput[
+	LoggerT log.AdvancedLogger[LoggerT],
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	DepositT Deposit[DepositT, *ForkData, WithdrawalCredentials],
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalsT Withdrawals[WithdrawalT],
 ] struct {
 	depinject.In
+	Logger          LoggerT
 	ChainSpec       common.ChainSpec
 	ExecutionEngine *engine.Engine[
 		ExecutionPayloadT,
@@ -47,12 +52,15 @@ type StateProcessorInput[
 		PayloadID,
 		WithdrawalsT,
 	]
-	Signer crypto.BLSSigner
+	DepositStore  DepositStore[DepositT]
+	Signer        crypto.BLSSigner
+	TelemetrySink *metrics.TelemetrySink
 }
 
 // ProvideStateProcessor provides the state processor to the depinject
 // framework.
 func ProvideStateProcessor[
+	LoggerT log.AdvancedLogger[LoggerT],
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT],
 	BeaconBlockBodyT BeaconBlockBody[
 		BeaconBlockBodyT, *AttestationData, DepositT,
@@ -66,6 +74,7 @@ func ProvideStateProcessor[
 	],
 	BeaconStateMarshallableT any,
 	DepositT Deposit[DepositT, *ForkData, WithdrawalCredentials],
+	DepositStoreT DepositStore[DepositT],
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
@@ -78,7 +87,9 @@ func ProvideStateProcessor[
 	WithdrawalT Withdrawal[WithdrawalT],
 ](
 	in StateProcessorInput[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT, WithdrawalsT,
+		LoggerT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
+		DepositT, WithdrawalT, WithdrawalsT,
 	],
 ) *core.StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
@@ -105,9 +116,12 @@ func ProvideStateProcessor[
 		WithdrawalsT,
 		WithdrawalCredentials,
 	](
+		in.Logger.With("service", "state-processor"),
 		in.ChainSpec,
 		in.ExecutionEngine,
+		in.DepositStore,
 		in.Signer,
 		crypto.GetAddressFromPubKey,
+		in.TelemetrySink,
 	)
 }

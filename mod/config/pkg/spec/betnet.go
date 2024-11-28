@@ -27,13 +27,13 @@ import (
 )
 
 // BetnetChainSpec is the ChainSpec for the localnet.
-func BetnetChainSpec() chain.Spec[
+func BetnetChainSpec() (chain.Spec[
 	common.DomainType,
 	math.Epoch,
 	common.ExecutionAddress,
 	math.Slot,
 	any,
-] {
+], error) {
 	testnetSpec := BaseSpec()
 	testnetSpec.DepositEth1ChainID = BetnetEth1ChainID
 	return chain.NewChainSpec(testnetSpec)

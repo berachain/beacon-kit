@@ -197,9 +197,20 @@ type Spec[
 	// slot.
 	GetCometBFTConfigForSlot(slot SlotT) CometBFTConfigT
 
+	// Berachain Values
+
 	// GetValidatorSetCap retrieves the maximum number of
 	// validators allowed in the active set.
 	GetValidatorSetCap() uint32
+
+	// EVMInflationAddress returns the address on the EVM which will receive
+	// the inflation amount of native EVM balance through a withdrawal every
+	// block.
+	EVMInflationAddress() ExecutionAddressT
+
+	// EVMInflationPerBlock returns the amount of native EVM balance (in Gwei)
+	// to be minted to the EVMInflationAddress via a withdrawal every block.
+	EVMInflationPerBlock() uint64
 }
 
 // chainSpec is a concrete implementation of the ChainSpec interface, holding
@@ -224,14 +235,29 @@ func NewChainSpec[
 	CometBFTConfigT any,
 ](data SpecData[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) Spec[
+]) (Spec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-] {
-	return &chainSpec[
+], error) {
+	c := &chainSpec[
 		DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 	]{
 		Data: data,
 	}
+	return c, c.validate()
+}
+
+// validate ensures that the chain spec is valid, returning error if it is not.
+func (c *chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
+]) validate() error {
+	if c.MaxWithdrawalsPerPayload() <= 1 {
+		return ErrInsufficientMaxWithdrawalsPerPayload
+	}
+
+	// EVM Inflation values can be zero or non-zero, no validation needed.
+
+	// TODO: Add more validation rules here.
+	return nil
 }
 
 // MinDepositAmount returns the minimum deposit amount required.
@@ -518,4 +544,20 @@ func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) GetValidatorSetCap() uint32 {
 	return c.Data.ValidatorSetCap
+}
+
+// EVMInflationAddress returns the address on the EVM which will receive the
+// inflation amount of native EVM balance through a withdrawal every block.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
+]) EVMInflationAddress() ExecutionAddressT {
+	return c.Data.EVMInflationAddress
+}
+
+// EVMInflationPerBlock returns the amount of native EVM balance (in Gwei) to
+// be minted to the EVMInflationAddress via a withdrawal every block.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
+]) EVMInflationPerBlock() uint64 {
+	return c.Data.EVMInflationPerBlock
 }

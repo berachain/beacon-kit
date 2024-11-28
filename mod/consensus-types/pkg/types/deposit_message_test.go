@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/mocks"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -94,7 +95,7 @@ func TestDepositMessage_MarshalSSZTo(t *testing.T) {
 		Amount:      math.Gwei(1000),
 	}
 
-	buf := make([]byte, original.SizeSSZ())
+	buf := make([]byte, karalabessz.Size(original))
 	data, err := original.MarshalSSZTo(buf)
 	require.NoError(t, err)
 

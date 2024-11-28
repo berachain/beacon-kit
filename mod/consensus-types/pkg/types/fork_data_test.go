@@ -27,6 +27,7 @@ import (
 	types "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -59,8 +60,7 @@ func TestForkData_SizeSSZ(t *testing.T) {
 		GenesisValidatorsRoot: common.Root{},
 	}
 
-	size := forkData.SizeSSZ()
-
+	size := karalabessz.Size(forkData)
 	require.Equal(t, uint32(36), size)
 }
 

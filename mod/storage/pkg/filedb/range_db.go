@@ -94,7 +94,10 @@ func (db *RangeDB) DeleteRange(from, to uint64) error {
 		return errors.New("rangedb: delete range not supported for this db")
 	}
 	if from > to {
-		return pruner.ErrInvalidRange
+		return fmt.Errorf(
+			"RangeDB DeleteRange start: %d, end: %d: %w",
+			from, to, pruner.ErrInvalidRange,
+		)
 	}
 	for ; from < to; from++ {
 		path := strconv.FormatUint(from, 10) + "/"
@@ -109,7 +112,10 @@ func (db *RangeDB) DeleteRange(from, to uint64) error {
 func (db *RangeDB) Prune(start, end uint64) error {
 	start = max(start, db.firstNonNilIndex)
 	if start > end {
-		return pruner.ErrInvalidRange
+		return fmt.Errorf(
+			"RangeDB Prune start: %d, end: %d: %w",
+			start, end, pruner.ErrInvalidRange,
+		)
 	}
 
 	if err := db.DeleteRange(start, end); err != nil {

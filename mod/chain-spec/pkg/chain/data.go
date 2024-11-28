@@ -49,7 +49,6 @@ type SpecData[
 	HysteresisDownwardMultiplier uint64 `mapstructure:"hysteresis-downward-multiplier"`
 	// HysteresisUpwardMultiplier is the multiplier for upward balance adjustments.
 	HysteresisUpwardMultiplier uint64 `mapstructure:"hysteresis-upward-multiplier"`
-
 	// Time parameters constants.
 	//
 	// SlotsPerEpoch is the number of slots per epoch.
@@ -151,12 +150,19 @@ type SpecData[
 	// KZGCommitmentInclusionProofDepth is the depth of the KZG inclusion proof.
 	KZGCommitmentInclusionProofDepth uint64 `mapstructure:"kzg-commitment-inclusion-proof-depth"`
 
-	// CometValues
+	// Comet Values
 	CometValues CometBFTConfigT `mapstructure:"comet-bft-config"`
 
-	// Validators Set config
+	// Berachain Values
+	//
 	// ValidatorSetCap is the maximum number of validators that can be active
 	// for a given epoch
 	// Note: ValidatorSetCap must be smaller than ValidatorRegistryLimit.
 	ValidatorSetCap uint32 `mapstructure:"validator-set-cap-size"`
+	// EVMInflationAddress is the address on the EVM which will receive the
+	// inflation amount of native EVM balance through a withdrawal every block.
+	EVMInflationAddress ExecutionAddressT `mapstructure:"evm-inflation-address"`
+	// EVMInflationPerBlock is the amount of native EVM balance (in Gwei) to be
+	// minted to the EVMInflationAddress via a withdrawal every block.
+	EVMInflationPerBlock uint64 `mapstructure:"evm-inflation-per-block"`
 }

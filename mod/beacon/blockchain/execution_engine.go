@@ -22,7 +22,10 @@ package blockchain
 
 import (
 	"context"
+	"time"
 
+	payloadtime "github.com/berachain/beacon-kit/mod/beacon/payload-time"
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 )
 
@@ -74,12 +77,28 @@ func (s *Service[
 		return
 	}
 
+	nextPayloadTime := payloadtime.Next(
+		blk.GetConsensusTime(),
+		lph.GetTimestamp(),
+		true, // buildOptimistically
+	).Unwrap()
+
+	// We set timestamp check on Bartio for backward compatibility reasons
+	// TODO: drop this we drop other Bartio special cases.
+	if s.chainSpec.DepositEth1ChainID() == spec.BartioChainID {
+		nextPayloadTime = max(
+			//#nosec:G701
+			uint64(time.Now().Unix()+1),
+			uint64((lph.GetTimestamp() + 1)),
+		)
+	}
+
 	prevBlockRoot := beaconBlk.HashTreeRoot()
 	if _, err := s.localBuilder.RequestPayloadAsync(
 		ctx,
 		stCopy,
 		beaconBlk.GetSlot()+1,
-		blk.GetNextPayloadTimestamp().Unwrap(),
+		nextPayloadTime,
 		prevBlockRoot,
 		lph.GetBlockHash(),
 		lph.GetParentHash(),
