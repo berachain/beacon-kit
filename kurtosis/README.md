@@ -22,7 +22,7 @@ beacon-kit repo:
 make start-devnet
 ```
 
-This will automatically build your beacond docker image from the local source
+This will automatically build your beacon docker image from the local source
 code, and spin up a Kurtosis network based on the config file in
 `kurtosis/beaconkit-all.yaml`. Once complete, this will output all the
 network information for your nodes like so:
