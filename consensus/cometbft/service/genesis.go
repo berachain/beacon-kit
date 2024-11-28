@@ -147,6 +147,11 @@ func validateExecutionHeader(header types.ExecutionPayloadHeader) error {
 		return errors.New("block number must be 0 for genesis block")
 	}
 
+	// Validate prevRandao is zero for genesis
+	if !bytes.Equal(header.Random[:], zeroHash[:]) {
+		return errors.New("prevRandao must be zero for genesis block")
+	}
+
 	// Fee recipient can be zero in genesis block
 	// No need to validate fee recipient for genesis
 
