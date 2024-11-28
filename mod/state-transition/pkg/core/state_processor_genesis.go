@@ -21,8 +21,7 @@
 package core
 
 import (
-	"fmt"
-
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
@@ -31,15 +30,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
-//nolint:lll // temporary.
-const (
-	bArtioValRoot = "0x9147586693b6e8faa837715c0f3071c2000045b54233901c2e7871b15872bc43"
-	bArtioChainID = 80084
-)
-
 // InitializePreminedBeaconStateFromEth1 initializes the beacon state.
 //
-//nolint:gocognit,funlen // todo fix.
+//nolint:gocognit // todo fix.
 func (sp *StateProcessor[
 	_, BeaconBlockBodyT, BeaconBlockHeaderT, BeaconStateT, _, DepositT,
 	Eth1DataT, _, ExecutionPayloadHeaderT, ForkT, _, _, ValidatorT, _, _, _, _,
@@ -49,11 +42,6 @@ func (sp *StateProcessor[
 	execPayloadHeader ExecutionPayloadHeaderT,
 	genesisVersion common.Version,
 ) (transition.ValidatorUpdates, error) {
-	sp.processingGenesis = true
-	defer func() {
-		sp.processingGenesis = false
-	}()
-
 	if err := st.SetSlot(0); err != nil {
 		return nil, err
 	}
@@ -106,18 +94,9 @@ func (sp *StateProcessor[
 		}
 	}
 
-	// BeaconKit enforces a cap on the validator set size.
-	// If genesis deposits breaches the cap we return an error.
-	//#nosec:G701 // can't overflow.
-	if uint32(len(deposits)) > sp.cs.GetValidatorSetCap() {
-		return nil, fmt.Errorf("validator set cap %d, deposits count %d: %w",
-			sp.cs.GetValidatorSetCap(),
-			len(deposits),
-			ErrHitValidatorsSetCap,
-		)
+	if err := sp.validateGenesisDeposits(st, deposits); err != nil {
+		return nil, err
 	}
-
-	// Process deposits
 	for _, deposit := range deposits {
 		if err := sp.processDeposit(st, deposit); err != nil {
 			return nil, err
@@ -125,20 +104,16 @@ func (sp *StateProcessor[
 	}
 
 	// Handle special case bartio genesis.
-	if sp.cs.DepositEth1ChainID() == bArtioChainID {
-		validatorsRoot := common.Root(hex.MustToBytes(bArtioValRoot))
-		if err := st.SetGenesisValidatorsRoot(validatorsRoot); err != nil {
-			return nil, err
-		}
-	} else {
+	validatorsRoot := common.Root(hex.MustToBytes(spec.BartioValRoot))
+	if sp.cs.DepositEth1ChainID() != spec.BartioChainID {
 		validators, err := st.GetValidators()
 		if err != nil {
 			return nil, err
 		}
-		if err = st.
-			SetGenesisValidatorsRoot(validators.HashTreeRoot()); err != nil {
-			return nil, err
-		}
+		validatorsRoot = validators.HashTreeRoot()
+	}
+	if err := st.SetGenesisValidatorsRoot(validatorsRoot); err != nil {
+		return nil, err
 	}
 
 	if err := st.SetLatestExecutionPayloadHeader(execPayloadHeader); err != nil {

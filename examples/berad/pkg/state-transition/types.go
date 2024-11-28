@@ -163,10 +163,7 @@ type ExecutionPayload[
 	GetBaseFeePerGas() *math.U256
 	GetBlobGasUsed() math.U64
 	GetExcessBlobGas() math.U64
-	ToHeader(
-		maxWithdrawalsPerPayload uint64,
-		eth1ChainID uint64,
-	) (ExecutionPayloadHeaderT, error)
+	ToHeader() (ExecutionPayloadHeaderT, error)
 }
 
 type ExecutionPayloadHeader interface {

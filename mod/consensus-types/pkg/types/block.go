@@ -96,13 +96,13 @@ func (b *BeaconBlock) NewFromSSZ(
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the BeaconBlock object in SSZ encoding.
-func (b *BeaconBlock) SizeSSZ(fixed bool) uint32 {
+func (b *BeaconBlock) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 	//nolint:mnd // todo fix.
 	var size = uint32(8 + 8 + 32 + 32 + 4)
 	if fixed {
 		return size
 	}
-	size += ssz.SizeDynamicObject(b.Body)
+	size += ssz.SizeDynamicObject(siz, b.Body)
 	return size
 }
 
@@ -121,7 +121,7 @@ func (b *BeaconBlock) DefineSSZ(codec *ssz.Codec) {
 
 // MarshalSSZ marshals the BeaconBlock object to SSZ format.
 func (b *BeaconBlock) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, b.SizeSSZ(false))
+	buf := make([]byte, ssz.Size(b))
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 

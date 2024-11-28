@@ -44,7 +44,7 @@ type SigningData struct {
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the SigningData object in SSZ encoding.
-func (*SigningData) SizeSSZ() uint32 {
+func (*SigningData) SizeSSZ(_ *ssz.Sizer) uint32 {
 	//nolint:mnd // 32*2 = 64.
 	return 64
 }
@@ -68,7 +68,7 @@ func (s *SigningData) MarshalSSZTo(buf []byte) ([]byte, error) {
 
 // MarshalSSZ marshals the SigningData object to SSZ format.
 func (s *SigningData) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, s.SizeSSZ())
+	buf := make([]byte, ssz.Size(s))
 	return s.MarshalSSZTo(buf)
 }
 

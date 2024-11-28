@@ -41,31 +41,62 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	// We need to inform consensus of the changes incurred by the validator set
-	// We strive to send only diffs (added,updated or removed validators) and
-	// avoid re-sending validators that have not changed.
-	valSet, err := iter.MapErr(
-		activeVals,
-		func(val *ValidatorT) (*transition.ValidatorUpdate, error) {
-			v := (*val)
-			return &transition.ValidatorUpdate{
-				Pubkey:           v.GetPubkey(),
-				EffectiveBalance: v.GetEffectiveBalance(),
-			}, nil
-		},
-	)
+	// pick prev epoch validators
+	slot, err := st.GetSlot()
 	if err != nil {
 		return nil, err
 	}
 
-	res := make([]*transition.ValidatorUpdate, 0)
+	sp.valSetMu.Lock()
+	defer sp.valSetMu.Unlock()
 
-	prevValsSet := make(map[string]math.Gwei, len(sp.prevEpochValidators))
-	for _, v := range sp.prevEpochValidators {
-		prevValsSet[string(v.Pubkey[:])] = v.EffectiveBalance
+	// prevEpoch is calculated assuming current block
+	// will turn epoch but we have not update slot yet
+	prevEpoch := sp.cs.SlotToEpoch(slot)
+	currEpoch := prevEpoch + 1
+	if slot == 0 {
+		currEpoch = 0 // prevEpoch for genesis is zero
+	}
+	prevEpochVals := sp.valSetByEpoch[prevEpoch] // picks nil if it's genesis
+
+	// calculate diff
+	res := sp.validatorSetsDiffs(prevEpochVals, activeVals)
+
+	// clear up sets we won't lookup to anymore
+	sp.valSetByEpoch[currEpoch] = activeVals
+	if prevEpoch >= 1 {
+		delete(sp.valSetByEpoch, prevEpoch-1)
+	}
+	return res, nil
+}
+
+// Note: validatorSetsDiffs does not need to be a StateProcessor method
+// but it helps simplifying generic instantiation.
+func (*StateProcessor[
+	_, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+]) validatorSetsDiffs(
+	prevEpochValidators []ValidatorT,
+	currEpochValidator []ValidatorT,
+) transition.ValidatorUpdates {
+	currentValSet := iter.Map(
+		currEpochValidator,
+		func(val *ValidatorT) *transition.ValidatorUpdate {
+			v := (*val)
+			return &transition.ValidatorUpdate{
+				Pubkey:           v.GetPubkey(),
+				EffectiveBalance: v.GetEffectiveBalance(),
+			}
+		},
+	)
+
+	res := make([]*transition.ValidatorUpdate, 0)
+	prevValsSet := make(map[string]math.Gwei, len(prevEpochValidators))
+	for _, v := range prevEpochValidators {
+		pk := v.GetPubkey()
+		prevValsSet[string(pk[:])] = v.GetEffectiveBalance()
 	}
 
-	for _, newVal := range valSet {
+	for _, newVal := range currentValSet {
 		key := string(newVal.Pubkey[:])
 		oldBal, found := prevValsSet[key]
 		if !found {
@@ -91,8 +122,5 @@ func (sp *StateProcessor[
 			EffectiveBalance: 0, // signal val eviction to consensus
 		})
 	}
-
-	// rotate validators set to new epoch ones
-	sp.prevEpochValidators = valSet
-	return res, nil
+	return res
 }
