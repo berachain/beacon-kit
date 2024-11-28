@@ -18,37 +18,28 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package core
 
-import (
-	"time"
-
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-)
-
-type ConsensusBlock[BeaconBlockT any] struct {
-	blk BeaconBlockT
-
-	// some consensus data useful to build and verify the block
-	*commonConsensusData
+type stateProcessorMetrics struct {
+	// sink is the sink for the metrics.
+	sink TelemetrySink
 }
 
-// New creates a new ConsensusBlock instance.
-func (b *ConsensusBlock[BeaconBlockT]) New(
-	beaconBlock BeaconBlockT,
-	proposerAddress []byte,
-	consensusTime time.Time,
-) *ConsensusBlock[BeaconBlockT] {
-	b = &ConsensusBlock[BeaconBlockT]{
-		blk: beaconBlock,
-		commonConsensusData: &commonConsensusData{
-			proposerAddress: proposerAddress,
-			consensusTime:   math.U64(consensusTime.Unix()),
-		},
+// newStateProcessorMetrics creates a new stateProcessorMetrics.
+func newStateProcessorMetrics(
+	sink TelemetrySink,
+) *stateProcessorMetrics {
+	return &stateProcessorMetrics{
+		sink: sink,
 	}
-	return b
 }
 
-func (b *ConsensusBlock[BeaconBlockT]) GetBeaconBlock() BeaconBlockT {
-	return b.blk
+func (s *stateProcessorMetrics) gaugeTimestamps(
+	payloadTimestamp uint64,
+	consensusTimestamp uint64,
+) {
+	// the diff can be positive or negative depending on whether the payload
+	// timestamp is ahead or behind the consensus timestamp
+	diff := int64(payloadTimestamp) - int64(consensusTimestamp) //#nosec:G701
+	s.sink.SetGauge("beacon_kit.state.payload_consensus_timestamp_diff", diff)
 }

@@ -18,37 +18,19 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package spec
 
-import (
-	"time"
+const (
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	// BoonetEth1ChainID is the chain ID for a local devnet.
+	BoonetEth1ChainID uint64 = 80000
+
+	// BetnetEth1ChainID is the chain ID for a local devnet.
+	BetnetEth1ChainID uint64 = 80088
+
+	// DevnetEth1ChainID is the chain ID for a local devnet.
+	DevnetEth1ChainID uint64 = 80087
+
+	// TestnetEth1ChainID is the chain ID for the bArtio testnet.
+	TestnetEth1ChainID uint64 = 80084
 )
-
-type ConsensusBlock[BeaconBlockT any] struct {
-	blk BeaconBlockT
-
-	// some consensus data useful to build and verify the block
-	*commonConsensusData
-}
-
-// New creates a new ConsensusBlock instance.
-func (b *ConsensusBlock[BeaconBlockT]) New(
-	beaconBlock BeaconBlockT,
-	proposerAddress []byte,
-	consensusTime time.Time,
-) *ConsensusBlock[BeaconBlockT] {
-	b = &ConsensusBlock[BeaconBlockT]{
-		blk: beaconBlock,
-		commonConsensusData: &commonConsensusData{
-			proposerAddress: proposerAddress,
-			consensusTime:   math.U64(consensusTime.Unix()),
-		},
-	}
-	return b
-}
-
-func (b *ConsensusBlock[BeaconBlockT]) GetBeaconBlock() BeaconBlockT {
-	return b.blk
-}

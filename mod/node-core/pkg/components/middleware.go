@@ -26,7 +26,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	cmtcfg "github.com/cometbft/cometbft/config"
 )
 
 // ABCIMiddlewareInput is the input for the validator middleware provider.
@@ -37,7 +36,6 @@ type ABCIMiddlewareInput[
 ] struct {
 	depinject.In
 	ChainSpec     common.ChainSpec
-	CmtCfg        *cmtcfg.Config
 	Dispatcher    Dispatcher
 	Logger        LoggerT
 	TelemetrySink *metrics.TelemetrySink
@@ -68,7 +66,6 @@ func ProvideABCIMiddleware[
 		*SlotData,
 	](
 		in.ChainSpec,
-		in.CmtCfg,
 		in.Dispatcher,
 		in.Logger,
 		in.TelemetrySink,

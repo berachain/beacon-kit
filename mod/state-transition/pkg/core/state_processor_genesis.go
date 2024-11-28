@@ -32,7 +32,7 @@ import (
 
 // InitializePreminedBeaconStateFromEth1 initializes the beacon state.
 //
-//nolint:gocognit,funlen // todo fix.
+//nolint:gocognit // todo fix.
 func (sp *StateProcessor[
 	_, BeaconBlockBodyT, BeaconBlockHeaderT, BeaconStateT, _, DepositT,
 	Eth1DataT, _, ExecutionPayloadHeaderT, ForkT, _, _, ValidatorT, _, _, _, _,
@@ -42,11 +42,6 @@ func (sp *StateProcessor[
 	execPayloadHeader ExecutionPayloadHeaderT,
 	genesisVersion common.Version,
 ) (transition.ValidatorUpdates, error) {
-	sp.processingGenesis = true
-	defer func() {
-		sp.processingGenesis = false
-	}()
-
 	if err := st.SetSlot(0); err != nil {
 		return nil, err
 	}
@@ -99,7 +94,9 @@ func (sp *StateProcessor[
 		}
 	}
 
-	// Process deposits
+	if err := sp.validateGenesisDeposits(st, deposits); err != nil {
+		return nil, err
+	}
 	for _, deposit := range deposits {
 		if err := sp.processDeposit(st, deposit); err != nil {
 			return nil, err

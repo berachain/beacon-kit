@@ -18,37 +18,15 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package chain
 
-import (
-	"time"
+import "github.com/berachain/beacon-kit/mod/errors"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+var (
+	// ErrInsufficientMaxWithdrawalsPerPayload is returned when the max
+	// withdrawals per payload less than 2. Must allow at least one for the EVM
+	// inflation withdrawal, and at least one more for a validator withdrawal
+	// per block.
+	ErrInsufficientMaxWithdrawalsPerPayload = errors.New(
+		"max withdrawals per payload must be greater than 1")
 )
-
-type ConsensusBlock[BeaconBlockT any] struct {
-	blk BeaconBlockT
-
-	// some consensus data useful to build and verify the block
-	*commonConsensusData
-}
-
-// New creates a new ConsensusBlock instance.
-func (b *ConsensusBlock[BeaconBlockT]) New(
-	beaconBlock BeaconBlockT,
-	proposerAddress []byte,
-	consensusTime time.Time,
-) *ConsensusBlock[BeaconBlockT] {
-	b = &ConsensusBlock[BeaconBlockT]{
-		blk: beaconBlock,
-		commonConsensusData: &commonConsensusData{
-			proposerAddress: proposerAddress,
-			consensusTime:   math.U64(consensusTime.Unix()),
-		},
-	}
-	return b
-}
-
-func (b *ConsensusBlock[BeaconBlockT]) GetBeaconBlock() BeaconBlockT {
-	return b.blk
-}

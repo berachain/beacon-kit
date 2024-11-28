@@ -25,6 +25,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
@@ -38,6 +39,7 @@ type StateProcessorInput[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	DepositT Deposit[DepositT, *ForkData, WithdrawalCredentials],
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalsT Withdrawals[WithdrawalT],
 ] struct {
@@ -50,7 +52,9 @@ type StateProcessorInput[
 		PayloadID,
 		WithdrawalsT,
 	]
-	Signer crypto.BLSSigner
+	DepositStore  DepositStore[DepositT]
+	Signer        crypto.BLSSigner
+	TelemetrySink *metrics.TelemetrySink
 }
 
 // ProvideStateProcessor provides the state processor to the depinject
@@ -70,6 +74,7 @@ func ProvideStateProcessor[
 	],
 	BeaconStateMarshallableT any,
 	DepositT Deposit[DepositT, *ForkData, WithdrawalCredentials],
+	DepositStoreT DepositStore[DepositT],
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
@@ -84,7 +89,7 @@ func ProvideStateProcessor[
 	in StateProcessorInput[
 		LoggerT,
 		ExecutionPayloadT, ExecutionPayloadHeaderT,
-		WithdrawalT, WithdrawalsT,
+		DepositT, WithdrawalT, WithdrawalsT,
 	],
 ) *core.StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
@@ -114,7 +119,9 @@ func ProvideStateProcessor[
 		in.Logger.With("service", "state-processor"),
 		in.ChainSpec,
 		in.ExecutionEngine,
+		in.DepositStore,
 		in.Signer,
 		crypto.GetAddressFromPubKey,
+		in.TelemetrySink,
 	)
 }

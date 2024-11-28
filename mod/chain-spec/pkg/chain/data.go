@@ -150,6 +150,15 @@ type SpecData[
 	// KZGCommitmentInclusionProofDepth is the depth of the KZG inclusion proof.
 	KZGCommitmentInclusionProofDepth uint64 `mapstructure:"kzg-commitment-inclusion-proof-depth"`
 
-	// CometValues
+	// Comet Values
 	CometValues CometBFTConfigT `mapstructure:"comet-bft-config"`
+
+	// Berachain Values
+	//
+	// EVMInflationAddress is the address on the EVM which will receive the
+	// inflation amount of native EVM balance through a withdrawal every block.
+	EVMInflationAddress ExecutionAddressT `mapstructure:"evm-inflation-address"`
+	// EVMInflationPerBlock is the amount of native EVM balance (in Gwei) to be
+	// minted to the EVMInflationAddress via a withdrawal every block.
+	EVMInflationPerBlock uint64 `mapstructure:"evm-inflation-per-block"`
 }

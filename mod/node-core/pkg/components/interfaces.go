@@ -87,10 +87,9 @@ type (
 		// selected by consensus to propose the block
 		GetProposerAddress() []byte
 
-		// GetNextPayloadTimestamp returns the timestamp proposed by
-		// consensus for the next payload to be proposed. It is also
-		// used to bound current payload upon validation
-		GetNextPayloadTimestamp() math.U64
+		// GetConsensusTime returns the timestamp of current consensus request.
+		// It is used to build next payload and to validate currentpayload.
+		GetConsensusTime() math.U64
 	}
 
 	// BeaconBlock represents a generic interface for a beacon block.
@@ -384,6 +383,8 @@ type (
 			crypto.BLSSignature,
 			uint64,
 		) T
+		// Equals returns true if the Deposit is equal to the other.
+		Equals(T) bool
 		// GetIndex returns the index of the deposit.
 		GetIndex() math.U64
 		// GetAmount returns the amount of the deposit.
@@ -1082,6 +1083,7 @@ type (
 
 	// ReadOnlyWithdrawals only has read access to withdrawal methods.
 	ReadOnlyWithdrawals[WithdrawalT any] interface {
+		EVMInflationWithdrawal() WithdrawalT
 		ExpectedWithdrawals() ([]WithdrawalT, error)
 	}
 )

@@ -23,6 +23,7 @@ package e2e_test
 import (
 	"math/big"
 
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -31,6 +32,12 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
+)
+
+const (
+	// NumDepositsLoad is the number of deposits to load in the Deposit
+	// Robustness e2e test.
+	NumDepositsLoad = 500
 )
 
 func (s *BeaconKitE2ESuite) TestDepositRobustness() {
@@ -73,7 +80,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 
 	// Bind the deposit contract.
 	dc, err := deposit.NewBeaconDepositContract(
-		gethcommon.HexToAddress(config.DepositContractAddress),
+		gethcommon.HexToAddress(spec.DefaultDepositContractAddress),
 		s.JSONRPCBalancer(),
 	)
 	s.Require().NoError(err)
@@ -81,7 +88,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	tx, err := dc.AllowDeposit(&bind.TransactOpts{
 		From:   genesisAccount.Address(),
 		Signer: genesisAccount.SignerFunc(chainID),
-	}, sender.Address(), config.NumDepositsLoad)
+	}, sender.Address(), NumDepositsLoad)
 	s.Require().NoError(err)
 
 	// Wait for the transaction to be mined.
@@ -97,7 +104,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	)
 	s.Require().NoError(err)
 
-	for i := range config.NumDepositsLoad {
+	for i := range NumDepositsLoad {
 		// Create a deposit transaction.
 		tx, err = s.generateNewDepositTx(
 			dc,
@@ -108,7 +115,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 		s.Require().NoError(err)
 		s.Logger().
 			Info("Deposit transaction created", "txHash", tx.Hash().Hex())
-		if i == config.NumDepositsLoad-1 {
+		if i == NumDepositsLoad-1 {
 			s.Logger().Info(
 				"Waiting for deposit transaction to be mined", "txHash",
 				tx.Hash().Hex(),
@@ -141,7 +148,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	// lower bound: 32ether * 500
 	oneEther := big.NewInt(1e18)
 	totalAmt := new(big.Int).Mul(
-		oneEther, big.NewInt(config.NumDepositsLoad*32),
+		oneEther, big.NewInt(NumDepositsLoad*32),
 	)
 	upperBound := new(big.Int).Add(totalAmt, oneEther)
 	amtSpent := new(big.Int).Sub(balance, postDepositBalance)

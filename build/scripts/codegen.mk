@@ -12,7 +12,7 @@ generate: ## generate all the code
 		(cd $$module && \
 			GETH_PKG_INCLUDE=$(GETH_PKG_INCLUDE) go generate ./...) || exit 1; \
 	done
-	@go run github.com/vektra/mockery/v2@latest
+	@go run github.com/vektra/mockery/v2@v2.49.0
 
 generate-check:
 	@$(MAKE) forge-build

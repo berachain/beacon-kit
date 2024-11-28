@@ -23,8 +23,16 @@ package spec
 // Special cased Bartio for some ad-hoc handling due to the way
 // some bugs were handled on Bartio. To be removed.
 const (
-	BartioChainID uint64 = 80084
+	BartioChainID = TestnetEth1ChainID
 
 	//nolint:lll // temporary.
 	BartioValRoot = "0x9147586693b6e8faa837715c0f3071c2000045b54233901c2e7871b15872bc43"
+)
+
+// Planned hard-fork upgrades on boonet. To be removed.
+const (
+	BoonetFork1Height uint64 = 69420
+
+	// TODO: modify this to be the actual fork height. Avoid overflow.
+	BoonetFork2Height uint64 = 99999999999999
 )

@@ -37,6 +37,15 @@ func (s *Service[
 	BeaconBlockT, _, _, _, _,
 ]) depositFetcher(ctx context.Context, event async.Event[BeaconBlockT]) {
 	blockNum := event.Data().GetBody().GetExecutionPayload().GetNumber()
+	if blockNum < s.eth1FollowDistance {
+		s.logger.Info(
+			"depositFetcher, nothing to fetch",
+			"block num", blockNum,
+			"eth1FollowDistance", s.eth1FollowDistance,
+		)
+		return
+	}
+
 	s.fetchAndStoreDeposits(ctx, blockNum-s.eth1FollowDistance)
 }
 
