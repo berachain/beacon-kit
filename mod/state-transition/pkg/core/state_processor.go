@@ -23,6 +23,7 @@ package core
 import (
 	"bytes"
 	"fmt"
+	"sync"
 
 	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -109,6 +110,9 @@ type StateProcessor[
 	// ones.
 	// We prune the map to preserve only current and previous epoch
 	valSetByEpoch map[math.Epoch][]ValidatorT
+
+	// valSetMu protects valSetByEpoch from concurrent accesses
+	valSetMu sync.RWMutex
 }
 
 // NewStateProcessor creates a new state processor.
