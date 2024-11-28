@@ -52,22 +52,22 @@ func (s *Service[LoggerT]) InitChain(
 	_ context.Context,
 	req *cmtabci.InitChainRequest,
 ) (*cmtabci.InitChainResponse, error) {
-	var genesisState map[string]json.RawMessage
-	if err := json.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
-		return nil, err
-	}
-	// Validate the genesis state.
-	err := s.ValidateGenesis(genesisState)
-	if err != nil {
-		return nil, err
-	}
-
 	if req.ChainId != s.chainID {
 		return nil, fmt.Errorf(
 			"invalid chain-id on InitChain; expected: %s, got: %s",
 			s.chainID,
 			req.ChainId,
 		)
+	}
+
+	var genesisState map[string]json.RawMessage
+	if err := json.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal genesis state: %w", err)
+	}
+	// Validate the genesis state.
+	err := s.ValidateGenesis(genesisState)
+	if err != nil {
+		return nil, err
 	}
 
 	s.logger.Info(

@@ -23,6 +23,7 @@ package cometbft
 import (
 	"bytes"
 	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"strings"
 
@@ -61,6 +62,27 @@ func (s *Service[_]) DefaultGenesis() map[string]json.RawMessage {
 	return gen
 }
 
+// isZeroBytes returns true if the provided byte slice is all zeros.
+func isZeroBytes(b []byte) bool {
+	for _, byteValue := range b {
+		if byteValue != 0 {
+			return false
+		}
+	}
+	return true
+}
+
+// isValidForkVersion returns true if the provided fork version is valid.
+// Validate fork version format (should be 0x followed by 8 hex characters)
+func isValidForkVersion(forkVersion string) bool {
+	if !strings.HasPrefix(forkVersion, "0x") || len(forkVersion) != 10 {
+		return false
+	}
+	_, err := hex.DecodeString(forkVersion[2:])
+	return err == nil
+
+}
+
 // validateDeposits validates the provided deposits.
 func validateDeposits(deposits []types.Deposit) error {
 	if len(deposits) == 0 {
@@ -85,11 +107,11 @@ func validateDeposits(deposits []types.Deposit) error {
 			return fmt.Errorf("deposit %d has zero public key", i)
 		}
 		// Check for duplicate pubkeys
-		pubkeyStr := string(deposit.Pubkey[:])
-		if seenPubkeys[pubkeyStr] {
+		pubkeyHex := hex.EncodeToString(deposit.Pubkey[:])
+		if seenPubkeys[pubkeyHex] {
 			return fmt.Errorf("duplicate pubkey found in deposit %d", i)
 		}
-		seenPubkeys[pubkeyStr] = true
+		seenPubkeys[pubkeyHex] = true
 
 		if isZeroBytes(deposit.Credentials[:]) {
 			return fmt.Errorf(
@@ -108,16 +130,6 @@ func validateDeposits(deposits []types.Deposit) error {
 	}
 
 	return nil
-}
-
-// isZeroBytes returns true if the provided byte slice is all zeros.
-func isZeroBytes(b []byte) bool {
-	for _, byte2 := range b {
-		if byte2 != 0 {
-			return false
-		}
-	}
-	return true
 }
 
 // validateExecutionHeader validates the provided execution payload header.
@@ -209,6 +221,11 @@ func (s *Service[_]) ValidateGenesis(
 		)
 	}
 
+	if !isValidForkVersion(beaconGenesis.ForkVersion) {
+		return fmt.Errorf("invalid fork version format: %s",
+			beaconGenesis.ForkVersion,
+		)
+	}
 	// Validate fork version format (should be 0x followed by 8 hex characters)
 	if !strings.HasPrefix(beaconGenesis.ForkVersion, "0x") ||
 		len(beaconGenesis.ForkVersion) != 10 {
