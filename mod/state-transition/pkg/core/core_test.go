@@ -30,15 +30,19 @@ import (
 	"cosmossdk.io/store"
 	"cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
+	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/log/pkg/noop"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	nodemetrics "github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	cryptomocks "github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/mocks"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/mocks"
 	statedb "github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/db"
@@ -46,6 +50,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -84,38 +89,8 @@ type (
 		*engineprimitives.Withdrawal,
 		types.WithdrawalCredentials,
 	]
-)
 
-func createStateProcessor(
-	cs common.ChainSpec,
-	execEngine core.ExecutionEngine[
-		*types.ExecutionPayload,
-		*types.ExecutionPayloadHeader,
-		engineprimitives.Withdrawals,
-	],
-	ds *depositstore.KVStore[*types.Deposit],
-	signer crypto.BLSSigner,
-	fGetAddressFromPubKey func(crypto.BLSPubkey) ([]byte, error),
-) *core.StateProcessor[
-	*types.BeaconBlock,
-	*types.BeaconBlockBody,
-	*types.BeaconBlockHeader,
-	*TestBeaconStateT,
-	*transition.Context,
-	*types.Deposit,
-	*types.Eth1Data,
-	*types.ExecutionPayload,
-	*types.ExecutionPayloadHeader,
-	*types.Fork,
-	*types.ForkData,
-	*TestKVStoreT,
-	*types.Validator,
-	types.Validators,
-	*engineprimitives.Withdrawal,
-	engineprimitives.Withdrawals,
-	types.WithdrawalCredentials,
-] {
-	return core.NewStateProcessor[
+	TestStateProcessorT = core.StateProcessor[
 		*types.BeaconBlock,
 		*types.BeaconBlockBody,
 		*types.BeaconBlockHeader,
@@ -133,16 +108,8 @@ func createStateProcessor(
 		*engineprimitives.Withdrawal,
 		engineprimitives.Withdrawals,
 		types.WithdrawalCredentials,
-	](
-		noop.NewLogger[any](),
-		cs,
-		execEngine,
-		ds,
-		signer,
-		fGetAddressFromPubKey,
-		nodemetrics.NewNoOpTelemetrySink(),
-	)
-}
+	]
+)
 
 type testKVStoreService struct {
 	ctx sdk.Context
@@ -206,6 +173,110 @@ func initTestStores() (
 		),
 		depositstore.NewStore[*types.Deposit](testStoreService, nopLog),
 		nil
+}
+
+func setupChain(t *testing.T, chainSpecType string) chain.Spec[
+	bytes.B4, math.U64, common.ExecutionAddress, math.U64, any,
+] {
+	t.Helper()
+
+	t.Setenv(components.ChainSpecTypeEnvVar, chainSpecType)
+	cs, err := components.ProvideChainSpec()
+	require.NoError(t, err)
+
+	return cs
+}
+
+func setupState(
+	t *testing.T, cs chain.Spec[
+		bytes.B4, math.U64, common.ExecutionAddress, math.U64, any,
+	],
+) (
+	*TestStateProcessorT,
+	*TestBeaconStateT,
+	*depositstore.KVStore[*types.Deposit],
+	*transition.Context,
+) {
+	t.Helper()
+
+	execEngine := mocks.NewExecutionEngine[
+		*types.ExecutionPayload,
+		*types.ExecutionPayloadHeader,
+		engineprimitives.Withdrawals,
+	](t)
+
+	mocksSigner := &cryptomocks.BLSSigner{}
+	mocksSigner.On(
+		"VerifySignature",
+		mock.Anything, mock.Anything, mock.Anything,
+	).Return(nil)
+
+	dummyProposerAddr := []byte{0xff}
+
+	kvStore, depositStore, err := initTestStores()
+	require.NoError(t, err)
+	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
+
+	sp := core.NewStateProcessor[
+		*types.BeaconBlock,
+		*types.BeaconBlockBody,
+		*types.BeaconBlockHeader,
+		*TestBeaconStateT,
+		*transition.Context,
+		*types.Deposit,
+		*types.Eth1Data,
+		*types.ExecutionPayload,
+		*types.ExecutionPayloadHeader,
+		*types.Fork,
+		*types.ForkData,
+		*TestKVStoreT,
+		*types.Validator,
+		types.Validators,
+		*engineprimitives.Withdrawal,
+		engineprimitives.Withdrawals,
+		types.WithdrawalCredentials,
+	](
+		noop.NewLogger[any](),
+		cs,
+		execEngine,
+		depositStore,
+		mocksSigner,
+		func(bytes.B48) ([]byte, error) {
+			return dummyProposerAddr, nil
+		},
+		nodemetrics.NewNoOpTelemetrySink(),
+	)
+
+	ctx := &transition.Context{
+		SkipPayloadVerification: true,
+		SkipValidateResult:      true,
+		ProposerAddress:         dummyProposerAddr,
+	}
+
+	return sp, beaconState, depositStore, ctx
+}
+
+func progressStateToSlot(
+	t *testing.T,
+	beaconState *TestBeaconStateT,
+	slot math.U64,
+) {
+	t.Helper()
+
+	if slot == math.U64(0) {
+		t.Fatal("for genesis slot, use InitializePreminedBeaconStateFromEth1")
+	}
+
+	err := beaconState.SetSlot(slot)
+	require.NoError(t, err)
+	err = beaconState.SetLatestBlockHeader(types.NewBeaconBlockHeader(
+		slot,
+		math.U64(0),
+		common.Root{},
+		common.Root{},
+		common.Root{},
+	))
+	require.NoError(t, err)
 }
 
 func buildNextBlock(
