@@ -210,6 +210,7 @@ func (sp *StateProcessor[
 	st BeaconStateT, slot math.Slot,
 ) (transition.ValidatorUpdates, error) {
 	var res transition.ValidatorUpdates
+
 	stateSlot, err := st.GetSlot()
 	if err != nil {
 		return nil, err
