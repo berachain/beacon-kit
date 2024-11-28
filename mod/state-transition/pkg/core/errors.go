@@ -30,8 +30,8 @@ var (
 	// match the expected value.
 	ErrSlotMismatch = errors.New("slot mismatch")
 
-	// ErrProposerMismatch is returned when proposer referenced in block does
-	// not match with proposer reported by consensus.
+	// ErrProposerMismatch is returned when block builder does not match
+	// with the proposer reported by consensus.
 	ErrProposerMismatch = errors.New("proposer key mismatch")
 
 	// ErrDepositsLengthMismatch is returned when length of deposits
