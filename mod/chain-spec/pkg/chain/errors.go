@@ -18,21 +18,15 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package spec
+package chain
 
-// Special cased Bartio for some ad-hoc handling due to the way
-// some bugs were handled on Bartio. To be removed.
-const (
-	BartioChainID = TestnetEth1ChainID
+import "github.com/berachain/beacon-kit/mod/errors"
 
-	//nolint:lll // temporary.
-	BArtioValRoot = "0x9147586693b6e8faa837715c0f3071c2000045b54233901c2e7871b15872bc43"
-)
-
-// Planned hard-fork upgrades on boonet. To be removed.
-const (
-	BoonetFork1Height uint64 = 69420
-
-	// TODO: modify this to be the actual fork height. Avoid overflow.
-	BoonetFork2Height uint64 = 99999999999999
+var (
+	// ErrInsufficientMaxWithdrawalsPerPayload is returned when the max
+	// withdrawals per payload less than 2. Must allow at least one for the EVM
+	// inflation withdrawal, and at least one more for a validator withdrawal
+	// per block.
+	ErrInsufficientMaxWithdrawalsPerPayload = errors.New(
+		"max withdrawals per payload must be greater than 1")
 )

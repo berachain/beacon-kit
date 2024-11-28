@@ -5,6 +5,7 @@ go 1.23.0
 require (
 	cosmossdk.io/log v1.4.1
 	github.com/attestantio/go-eth2-client v0.21.10
+	github.com/berachain/beacon-kit/mod/config v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240806160829-cde2d1347e7e
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240806160829-cde2d1347e7e
@@ -30,7 +31,6 @@ require (
 	github.com/adrg/xdg v0.4.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df // indirect
-	github.com/berachain/beacon-kit/mod/config v0.0.0-20240705193247-d464364483df // indirect
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240808194557-e72e74f58197 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect

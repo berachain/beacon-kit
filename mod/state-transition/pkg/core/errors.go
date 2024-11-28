@@ -87,7 +87,22 @@ var (
 	// in a block exceeds the maximum allowed.
 	ErrExceedMaximumWithdrawals = errors.New("exceeds maximum withdrawals")
 
+	// ErrZeroWithdrawals is returned when the number of withdrawals in a
+	// block is zero. At least the EVM inflation withdrawal is always expected.
+	ErrZeroWithdrawals = errors.New("zero withdrawals")
+
 	// ErrNumWithdrawalsMismatch is returned when the number of withdrawals
 	// in a block does not match the expected value.
 	ErrNumWithdrawalsMismatch = errors.New("number of withdrawals mismatch")
+
+	// ErrFirstWithdrawalNotEVMInflation is returned when the first withdrawal
+	// in a block is not the EVM inflation withdrawal.
+	ErrFirstWithdrawalNotEVMInflation = errors.New(
+		"first withdrawal is not the EVM inflation withdrawal",
+	)
+
+	// ErrWithdrawalMismatch is returned when the withdrawals in a payload do
+	// not match the local state's expected value.
+	ErrWithdrawalMismatch = errors.New(
+		"withdrawal mismatch between local state and payload")
 )

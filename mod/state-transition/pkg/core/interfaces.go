@@ -177,5 +177,6 @@ type ReadOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT any] interface {
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.
 type ReadOnlyWithdrawals[WithdrawalT any] interface {
+	EVMInflationWithdrawal() WithdrawalT
 	ExpectedWithdrawals() ([]WithdrawalT, error)
 }

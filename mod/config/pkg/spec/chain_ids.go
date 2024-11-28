@@ -20,19 +20,17 @@
 
 package spec
 
-// Special cased Bartio for some ad-hoc handling due to the way
-// some bugs were handled on Bartio. To be removed.
 const (
-	BartioChainID = TestnetEth1ChainID
 
-	//nolint:lll // temporary.
-	BArtioValRoot = "0x9147586693b6e8faa837715c0f3071c2000045b54233901c2e7871b15872bc43"
-)
+	// BoonetEth1ChainID is the chain ID for a local devnet.
+	BoonetEth1ChainID uint64 = 80000
 
-// Planned hard-fork upgrades on boonet. To be removed.
-const (
-	BoonetFork1Height uint64 = 69420
+	// BetnetEth1ChainID is the chain ID for a local devnet.
+	BetnetEth1ChainID uint64 = 80088
 
-	// TODO: modify this to be the actual fork height. Avoid overflow.
-	BoonetFork2Height uint64 = 99999999999999
+	// DevnetEth1ChainID is the chain ID for a local devnet.
+	DevnetEth1ChainID uint64 = 80087
+
+	// TestnetEth1ChainID is the chain ID for the bArtio testnet.
+	TestnetEth1ChainID uint64 = 80084
 )

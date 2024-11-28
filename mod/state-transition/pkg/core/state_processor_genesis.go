@@ -63,7 +63,6 @@ func (sp *StateProcessor[
 	}
 
 	// Eth1DepositIndex will be set in processDeposit
-
 	if err := st.SetEth1Data(
 		eth1Data.New(
 			common.Root{},
@@ -143,9 +142,7 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	if err = st.SetNextWithdrawalValidatorIndex(
-		0,
-	); err != nil {
+	if err = st.SetNextWithdrawalValidatorIndex(0); err != nil {
 		return nil, err
 	}
 
