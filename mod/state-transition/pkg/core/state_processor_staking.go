@@ -21,15 +21,11 @@
 package core
 
 import (
-	"fmt"
-
 	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
-	"github.com/davecgh/go-spew/spew"
 )
 
 // processOperations processes the operations and ensures they match the
@@ -175,150 +171,4 @@ func (sp *StateProcessor[
 		return err
 	}
 	return st.IncreaseBalance(idx, dep.GetAmount())
-}
-
-// processWithdrawals as per the Ethereum 2.0 specification.
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-process_withdrawals
-//
-// NOTE: Modified from the Ethereum 2.0 specification to support EVM inflation:
-// 1. The first withdrawal MUST be a fixed EVM inflation withdrawal
-// 2. Subsequent withdrawals (if any) are processed as validator withdrawals
-// 3. This modification reduces the maximum validator withdrawals per block by
-// one
-//
-//nolint:lll,funlen,gocognit // TODO: Simplify when dropping special cases.
-func (sp *StateProcessor[
-	BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) processWithdrawals(
-	st BeaconStateT,
-	blk BeaconBlockT,
-) error {
-	// Dequeue and verify the logs.
-	var (
-		body               = blk.GetBody()
-		slot               = blk.GetSlot().Unwrap()
-		nextValidatorIndex math.ValidatorIndex
-		payload            = body.GetExecutionPayload()
-		payloadWithdrawals = payload.GetWithdrawals()
-	)
-
-	// Get the expected withdrawals.
-	expectedWithdrawals, err := st.ExpectedWithdrawals()
-	if err != nil {
-		return err
-	}
-	numWithdrawals := len(expectedWithdrawals)
-	if sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-		slot >= spec.BoonetFork2Height {
-		// Enforce that there is at least one withdrawal for EVM inflation.
-		if numWithdrawals == 0 {
-			return ErrZeroWithdrawals
-		}
-	}
-
-	// Ensure the expected and payload withdrawals have the same length.
-	if numWithdrawals != len(payloadWithdrawals) {
-		return errors.Wrapf(
-			ErrNumWithdrawalsMismatch,
-			"withdrawals do not match expected length %d, got %d",
-			numWithdrawals, len(payloadWithdrawals),
-		)
-	}
-
-	if sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-		slot == spec.BoonetFork1Height {
-		// Slot used to emergency mint EVM tokens on Boonet.
-		if !expectedWithdrawals[0].Equals(payloadWithdrawals[0]) {
-			return fmt.Errorf(
-				"minting withdrawal does not match expected %s, got %s",
-				spew.Sdump(expectedWithdrawals[0]),
-				spew.Sdump(payloadWithdrawals[0]),
-			)
-		}
-
-		// No processing needed.
-		return nil
-	}
-
-	// Compare and process each withdrawal.
-	for i, wd := range expectedWithdrawals {
-		// Ensure the withdrawals match the local state.
-		if !wd.Equals(payloadWithdrawals[i]) {
-			return errors.Wrapf(
-				ErrWithdrawalMismatch,
-				"withdrawal at index %d does not match expected %s, got %s",
-				i, spew.Sdump(wd), spew.Sdump(payloadWithdrawals[i]),
-			)
-		}
-
-		if sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-			slot >= spec.BoonetFork2Height {
-			// The first withdrawal is the EVM inflation withdrawal. Aside from
-			// simple validation, no processing to the state is needed.
-			if i == 0 {
-				if !wd.Equals(st.EVMInflationWithdrawal()) {
-					return ErrFirstWithdrawalNotEVMInflation
-				}
-				continue
-			}
-		}
-
-		// Process the validator withdrawal.
-		if err = st.DecreaseBalance(
-			wd.GetValidatorIndex(), wd.GetAmount(),
-		); err != nil {
-			return err
-		}
-	}
-
-	if sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-		slot >= spec.BoonetFork2Height {
-		// If there is only the EVM inflation withdrawal, no state update is
-		// needed.
-		if numWithdrawals == 1 {
-			return nil
-		}
-	}
-
-	// Next sweep starts after the latest withdrawal's validator index.
-	if numWithdrawals != 0 {
-		if err = st.SetNextWithdrawalIndex(
-			(expectedWithdrawals[numWithdrawals-1].GetIndex() + 1).Unwrap(),
-		); err != nil {
-			return err
-		}
-	}
-
-	totalValidators, err := st.GetTotalValidators()
-	if err != nil {
-		return err
-	}
-
-	// Update the next validator index to start the next withdrawal sweep.
-	//#nosec:G701 // won't overflow in practice.
-	if numWithdrawals == int(sp.cs.MaxWithdrawalsPerPayload()) {
-		if (sp.cs.DepositEth1ChainID() == spec.BartioChainID) ||
-			(sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-				slot < spec.BoonetFork2Height) {
-			nextValidatorIndex =
-				(expectedWithdrawals[numWithdrawals-1].GetIndex() + 1) %
-					math.ValidatorIndex(totalValidators)
-		} else {
-			// Next sweep starts after the latest withdrawal's validator index.
-			nextValidatorIndex = (expectedWithdrawals[numWithdrawals-1].
-				GetValidatorIndex() + 1) % math.ValidatorIndex(totalValidators)
-		}
-	} else {
-		// Advance sweep by the max length of the sweep if there was not a full
-		// set of withdrawals.
-		nextValidatorIndex, err = st.GetNextWithdrawalValidatorIndex()
-		if err != nil {
-			return err
-		}
-		nextValidatorIndex += math.ValidatorIndex(
-			sp.cs.MaxValidatorsPerWithdrawalsSweep())
-		nextValidatorIndex %= math.ValidatorIndex(totalValidators)
-	}
-
-	return st.SetNextWithdrawalValidatorIndex(nextValidatorIndex)
 }

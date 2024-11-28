@@ -190,7 +190,7 @@ func (s *StateDB[
 // NOTE: This function is modified from the spec to allow a fixed withdrawal
 // (as the first withdrawal) used for EVM inflation.
 //
-//nolint:lll,funlen,gocognit // TODO: Simplify when dropping special cases.
+//nolint:lll,funlen // TODO: Simplify when dropping special cases.
 func (s *StateDB[
 	_, _, _, _, _, _, ValidatorT, _, WithdrawalT, _,
 ]) ExpectedWithdrawals() ([]WithdrawalT, error) {
@@ -207,8 +207,13 @@ func (s *StateDB[
 		return nil, err
 	}
 
-	if s.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-		slot.Unwrap() == spec.BoonetFork1Height {
+	// Handle special cases wherever it's necessary
+	switch {
+	case s.cs.DepositEth1ChainID() == spec.BartioChainID:
+		// nothing special to do
+
+	case s.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
+		slot == math.U64(spec.BoonetFork1Height):
 		// Slot used to emergency mint EVM tokens on Boonet.
 		withdrawals = append(withdrawals, withdrawal.New(
 			0, // NOT USED
@@ -217,10 +222,13 @@ func (s *StateDB[
 			math.Gwei(EVMMintingAmount),
 		))
 		return withdrawals, nil
-	}
 
-	if s.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-		slot.Unwrap() >= spec.BoonetFork2Height {
+	case s.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
+		slot < math.U64(spec.BoonetFork2Height):
+		// Boonet inherited the Bartio behaviour pre BoonetFork2Height
+		// nothing specific to do
+
+	default:
 		// The first withdrawal is fixed to be the EVM inflation withdrawal.
 		withdrawals = append(withdrawals, s.EVMInflationWithdrawal())
 	}
