@@ -33,7 +33,8 @@ import (
 // - At least one deposit is present
 // - Deposit indices match their position in the slice
 // - No duplicate public keys
-// - Non-zero values for required fields (pubkey, credentials, amount, signature)
+// - Non-zero values for required fields
+// (pubkey, credentials, amount, signature)
 // Returns an error with details if any validation fails.
 func validateDeposits(deposits []types.Deposit) error {
 	if len(deposits) == 0 {
