@@ -52,13 +52,15 @@ func (s *Service[LoggerT]) InitChain(
 	_ context.Context,
 	req *cmtabci.InitChainRequest,
 ) (*cmtabci.InitChainResponse, error) {
+	var genesisState map[string]json.RawMessage
+	if err := json.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
+		return nil, err
+	}
 	// Validate the genesis state.
-	err := s.validateGenesisState(req.AppStateBytes)
+	err := s.ValidateGenesis(genesisState)
 	if err != nil {
 		return nil, err
 	}
-
-	s.logger.Info("genesis state validation successful")
 
 	if req.ChainId != s.chainID {
 		return nil, fmt.Errorf(

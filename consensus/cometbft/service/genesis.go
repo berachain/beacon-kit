@@ -24,6 +24,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -49,22 +50,6 @@ func (s *Service[_]) DefaultGenesis() map[string]json.RawMessage {
 		panic(err)
 	}
 	return gen
-}
-
-// validateGenesisState unmarshal and validates the genesis state.
-func (s *Service[LoggerT]) validateGenesisState(
-	appStateBytes []byte,
-) error {
-	var genesisState map[string]json.RawMessage
-	if err := json.Unmarshal(appStateBytes, &genesisState); err != nil {
-		return err
-	}
-
-	if err := s.ValidateGenesis(genesisState); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // BeaconGenesisState represents the structure of the
@@ -93,7 +78,6 @@ func (s *Service[_]) ValidateGenesis(
 		)
 	}
 
-	// Unmarshal and validate beacon module genesis state
 	var beaconGenesis BeaconGenesisState
 	if err := json.Unmarshal(beaconGenesisBz, &beaconGenesis); err != nil {
 		return fmt.Errorf(
@@ -131,7 +115,28 @@ func validateDeposits(deposits []types.Deposit) error {
 	seenPubkeys := make(map[string]bool)
 
 	for i, deposit := range deposits {
-		// Validate BLS public key is not zero
+		depositIndex := deposit.GetIndex()
+
+		// Validate deposit index bounds
+		if depositIndex < 0 {
+			return fmt.Errorf("deposit has invalid negative index: %d", depositIndex)
+		}
+
+		// Check depositIndex bounds before conversion
+		if depositIndex > math.MaxInt64 {
+			return fmt.Errorf("deposit index %d exceeds maximum allowed value", depositIndex)
+		}
+
+		//#nosec:G701 // realistically fine in practice.
+		// Validate index matches position
+		if int64(depositIndex) != int64(i) {
+			return fmt.Errorf(
+				"deposit index %d does not match position %d",
+				depositIndex,
+				i,
+			)
+		}
+
 		if isZeroBytes(deposit.Pubkey[:]) {
 			return fmt.Errorf("deposit %d has zero public key", i)
 		}
@@ -142,7 +147,6 @@ func validateDeposits(deposits []types.Deposit) error {
 		}
 		seenPubkeys[pubkeyStr] = true
 
-		// Validate withdrawal credentials
 		if isZeroBytes(deposit.Credentials[:]) {
 			return fmt.Errorf(
 				"invalid withdrawal credentials length for deposit %d",
@@ -150,23 +154,12 @@ func validateDeposits(deposits []types.Deposit) error {
 			)
 		}
 
-		// Validate amount is non-zero
 		if deposit.Amount == 0 {
 			return fmt.Errorf("deposit %d has zero amount", i)
 		}
 
-		// Validate signature is not empty
 		if isZeroBytes(deposit.Signature[:]) {
 			return fmt.Errorf("invalid signature length for deposit %d", i)
-		}
-
-		// Validate index matches position
-		if uint64(deposit.GetIndex()) != uint64(i) {
-			return fmt.Errorf(
-				"deposit index %d does not match position %d",
-				deposit.GetIndex(),
-				i,
-			)
 		}
 	}
 
