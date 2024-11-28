@@ -57,15 +57,12 @@ func (sp *StateProcessor[
 	prevEpoch := sp.cs.SlotToEpoch(slot)
 	currEpoch := prevEpoch + 1
 	if slot == 0 {
-		currEpoch = 0 // we special case genesis
+		currEpoch = 0 // prevEpoch for genesis is zero
 	}
 	prevEpochVals := sp.valSetByEpoch[prevEpoch] // picks nil if it's genesis
 
 	// calculate diff
-	res, err := sp.validatorSetsDiffs(prevEpochVals, activeVals)
-	if err != nil {
-		return nil, err
-	}
+	res := sp.validatorSetsDiffs(prevEpochVals, activeVals)
 
 	// clear up sets we won't lookup to anymore
 	sp.valSetByEpoch[currEpoch] = activeVals
@@ -82,20 +79,17 @@ func (*StateProcessor[
 ]) validatorSetsDiffs(
 	prevEpochValidators []ValidatorT,
 	currEpochValidator []ValidatorT,
-) (transition.ValidatorUpdates, error) {
-	currentValSet, err := iter.MapErr(
+) transition.ValidatorUpdates {
+	currentValSet := iter.Map(
 		currEpochValidator,
-		func(val *ValidatorT) (*transition.ValidatorUpdate, error) {
+		func(val *ValidatorT) *transition.ValidatorUpdate {
 			v := (*val)
 			return &transition.ValidatorUpdate{
 				Pubkey:           v.GetPubkey(),
 				EffectiveBalance: v.GetEffectiveBalance(),
-			}, nil
+			}
 		},
 	)
-	if err != nil {
-		return nil, err
-	}
 
 	res := make([]*transition.ValidatorUpdate, 0)
 	prevValsSet := make(map[string]math.Gwei, len(prevEpochValidators))
@@ -130,5 +124,5 @@ func (*StateProcessor[
 			EffectiveBalance: 0, // signal val eviction to consensus
 		})
 	}
-	return res, nil
+	return res
 }
