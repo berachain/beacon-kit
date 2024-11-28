@@ -80,7 +80,6 @@ func isValidForkVersion(forkVersion string) bool {
 	}
 	_, err := hex.DecodeString(forkVersion[2:])
 	return err == nil
-
 }
 
 // validateDeposits validates the provided deposits.
