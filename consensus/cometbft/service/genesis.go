@@ -21,22 +21,16 @@
 package cometbft
 
 import (
-	"bytes"
 	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
-	"strings"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cometbft/cometbft/node"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 )
-
-const maxExtraDataSize = 32
 
 // BeaconGenesisState represents the structure of the
 // beacon module's genesis state.
@@ -70,129 +64,6 @@ func isZeroBytes(b []byte) bool {
 		}
 	}
 	return true
-}
-
-// isValidForkVersion returns true if the provided fork version is valid.
-// Validate fork version format (should be 0x followed by 8 hex characters).
-func isValidForkVersion(forkVersion string) bool {
-	if !strings.HasPrefix(forkVersion, "0x") || len(forkVersion) != 10 {
-		return false
-	}
-	_, err := hex.DecodeString(forkVersion[2:])
-	return err == nil
-}
-
-// validateDeposits validates the provided deposits.
-func validateDeposits(deposits []types.Deposit) error {
-	if len(deposits) == 0 {
-		return errors.New("at least one deposit is required")
-	}
-
-	seenPubkeys := make(map[string]bool)
-
-	for i, deposit := range deposits {
-		depositIndex := deposit.GetIndex()
-		//#nosec:G701 // realistically fine in practice.
-		// Validate index matches position
-		if depositIndex.Unwrap() != uint64(i) {
-			return fmt.Errorf(
-				"deposit index %d does not match position %d",
-				depositIndex,
-				i,
-			)
-		}
-
-		if isZeroBytes(deposit.Pubkey[:]) {
-			return fmt.Errorf("deposit %d has zero public key", i)
-		}
-		// Check for duplicate pubkeys
-		pubkeyHex := hex.EncodeToString(deposit.Pubkey[:])
-		if seenPubkeys[pubkeyHex] {
-			return fmt.Errorf("duplicate pubkey found in deposit %d", i)
-		}
-		seenPubkeys[pubkeyHex] = true
-
-		if isZeroBytes(deposit.Credentials[:]) {
-			return fmt.Errorf(
-				"invalid withdrawal credentials length for deposit %d",
-				i,
-			)
-		}
-
-		if deposit.Amount == 0 {
-			return fmt.Errorf("deposit %d has zero amount", i)
-		}
-
-		if isZeroBytes(deposit.Signature[:]) {
-			return fmt.Errorf("invalid signature length for deposit %d", i)
-		}
-	}
-
-	return nil
-}
-
-// validateExecutionHeader validates the provided execution payload header.
-func validateExecutionHeader(header types.ExecutionPayloadHeader) error {
-	// Validate hash fields are not zero
-	zeroHash := common.ExecutionHash{}
-	// For genesis block (when block number is 0), ParentHash must be zero
-	if !bytes.Equal(header.ParentHash[:], zeroHash[:]) {
-		return errors.New("parent hash must be zero for genesis block")
-	}
-
-	if bytes.Equal(header.StateRoot[:], zeroHash[:]) {
-		return errors.New("state root cannot be zero")
-	}
-	if bytes.Equal(header.ReceiptsRoot[:], zeroHash[:]) {
-		return errors.New("receipts root cannot be zero")
-	}
-	if bytes.Equal(header.BlockHash[:], zeroHash[:]) {
-		return errors.New("block hash cannot be zero")
-	}
-	if bytes.Equal(header.TransactionsRoot[:], zeroHash[:]) {
-		return errors.New("transactions root cannot be zero")
-	}
-
-	// Check block number to be 0
-	if header.Number != 0 {
-		return errors.New("block number must be 0 for genesis block")
-	}
-
-	// Validate prevRandao is zero for genesis
-	if !bytes.Equal(header.Random[:], zeroHash[:]) {
-		return errors.New("prevRandao must be zero for genesis block")
-	}
-
-	// Fee recipient can be zero in genesis block
-	// No need to validate fee recipient for genesis
-
-	// We don't validate LogsBloom as it can legitimately be
-	// all zeros in a genesis block or in blocks with no logs
-
-	// Validate numeric fields
-	if header.GasLimit == 0 {
-		return errors.New("gas limit cannot be zero")
-	}
-
-	// Extra data length check (max 32 bytes)
-	if len(header.ExtraData) > maxExtraDataSize {
-		return fmt.Errorf(
-			"extra data too long: got %d bytes, max 32 bytes",
-			len(header.ExtraData),
-		)
-	}
-
-	// Validate base fee per gas
-	if header.BaseFeePerGas == nil {
-		return errors.New("base fee per gas cannot be nil")
-	}
-
-	// Additional Deneb-specific validations for blob gas
-	if header.BlobGasUsed > header.GetGasLimit() {
-		return errors.New("blob gas used exceeds gas limit")
-	}
-
-	return nil
 }
 
 // ValidateGenesis validates the provided genesis state.
