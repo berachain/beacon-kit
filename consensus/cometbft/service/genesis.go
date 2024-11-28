@@ -73,7 +73,7 @@ func isZeroBytes(b []byte) bool {
 }
 
 // isValidForkVersion returns true if the provided fork version is valid.
-// Validate fork version format (should be 0x followed by 8 hex characters)
+// Validate fork version format (should be 0x followed by 8 hex characters).
 func isValidForkVersion(forkVersion string) bool {
 	if !strings.HasPrefix(forkVersion, "0x") || len(forkVersion) != 10 {
 		return false
@@ -95,7 +95,7 @@ func validateDeposits(deposits []types.Deposit) error {
 		depositIndex := deposit.GetIndex()
 		//#nosec:G701 // realistically fine in practice.
 		// Validate index matches position
-		if int64(depositIndex) != int64(i) {
+		if depositIndex.Unwrap() != uint64(i) {
 			return fmt.Errorf(
 				"deposit index %d does not match position %d",
 				depositIndex,
@@ -222,13 +222,6 @@ func (s *Service[_]) ValidateGenesis(
 	}
 
 	if !isValidForkVersion(beaconGenesis.ForkVersion) {
-		return fmt.Errorf("invalid fork version format: %s",
-			beaconGenesis.ForkVersion,
-		)
-	}
-	// Validate fork version format (should be 0x followed by 8 hex characters)
-	if !strings.HasPrefix(beaconGenesis.ForkVersion, "0x") ||
-		len(beaconGenesis.ForkVersion) != 10 {
 		return fmt.Errorf("invalid fork version format: %s",
 			beaconGenesis.ForkVersion,
 		)
