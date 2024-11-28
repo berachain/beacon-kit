@@ -23,6 +23,7 @@ package core
 import (
 	"bytes"
 	"fmt"
+	"sync"
 
 	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -99,6 +100,9 @@ type StateProcessor[
 	ds DepositStore[DepositT]
 	// metrics is the metrics for the service.
 	metrics *stateProcessorMetrics
+
+	// valSetMu protects valSetByEpoch from concurrent accesses
+	valSetMu sync.RWMutex
 
 	// valSetByEpoch tracks the set of validators active at the latest epochs.
 	// This is useful to optimize validators set updates.

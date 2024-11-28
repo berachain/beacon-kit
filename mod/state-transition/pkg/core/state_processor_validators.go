@@ -52,6 +52,9 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
+	sp.valSetMu.Lock()
+	defer sp.valSetMu.Unlock()
+
 	// prevEpoch is calculated assuming current block
 	// will turn epoch but we have not update slot yet
 	prevEpoch := sp.cs.SlotToEpoch(slot)
