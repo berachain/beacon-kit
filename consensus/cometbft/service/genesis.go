@@ -37,6 +37,16 @@ import (
 
 const maxExtraDataSize = 32
 
+// BeaconGenesisState represents the structure of the
+// beacon module's genesis state.
+//
+//nolint:lll // JSON tags are long.
+type BeaconGenesisState struct {
+	ForkVersion            string                       `json:"fork_version"`
+	Deposits               []types.Deposit              `json:"deposits"`
+	ExecutionPayloadHeader types.ExecutionPayloadHeader `json:"execution_payload_header"`
+}
+
 // DefaultGenesis returns the default genesis state for the application.
 func (s *Service[_]) DefaultGenesis() map[string]json.RawMessage {
 	// Implement the default genesis state for the application.
@@ -51,61 +61,7 @@ func (s *Service[_]) DefaultGenesis() map[string]json.RawMessage {
 	return gen
 }
 
-// BeaconGenesisState represents the structure of the
-// beacon module's genesis state.
-//
-//nolint:lll
-type BeaconGenesisState struct {
-	ForkVersion            string                       `json:"fork_version"`
-	Deposits               []types.Deposit              `json:"deposits"`
-	ExecutionPayloadHeader types.ExecutionPayloadHeader `json:"execution_payload_header"`
-}
-
-// ValidateGenesis validates the provided genesis state.
-func (s *Service[_]) ValidateGenesis(
-	genesisState map[string]json.RawMessage,
-) error {
-	// Implement the validation logic for the provided genesis state.
-	// This should validate the genesis state for each module in the
-	// application.
-
-	// Validate that required modules are present in genesis
-	beaconGenesisBz, ok := genesisState["beacon"]
-	if !ok {
-		return errors.New(
-			"beacon module genesis state is required but was not found",
-		)
-	}
-
-	var beaconGenesis BeaconGenesisState
-	if err := json.Unmarshal(beaconGenesisBz, &beaconGenesis); err != nil {
-		return fmt.Errorf(
-			"failed to unmarshal beacon genesis state: %w",
-			err,
-		)
-	}
-
-	// Validate fork version format (should be 0x followed by 8 hex characters)
-	if !strings.HasPrefix(beaconGenesis.ForkVersion, "0x") ||
-		len(beaconGenesis.ForkVersion) != 10 {
-		return fmt.Errorf("invalid fork version format: %s",
-			beaconGenesis.ForkVersion,
-		)
-	}
-
-	if err := validateDeposits(beaconGenesis.Deposits); err != nil {
-		return fmt.Errorf("invalid deposits: %w", err)
-	}
-
-	if err := validateExecutionHeader(
-		beaconGenesis.ExecutionPayloadHeader,
-	); err != nil {
-		return fmt.Errorf("invalid execution payload header: %w", err)
-	}
-
-	return nil
-}
-
+// validateDeposits validates the provided deposits.
 func validateDeposits(deposits []types.Deposit) error {
 	if len(deposits) == 0 {
 		return errors.New("at least one deposit is required")
@@ -154,6 +110,7 @@ func validateDeposits(deposits []types.Deposit) error {
 	return nil
 }
 
+// isZeroBytes returns true if the provided byte slice is all zeros.
 func isZeroBytes(b []byte) bool {
 	for _, byte2 := range b {
 		if byte2 != 0 {
@@ -163,19 +120,13 @@ func isZeroBytes(b []byte) bool {
 	return true
 }
 
+// validateExecutionHeader validates the provided execution payload header.
 func validateExecutionHeader(header types.ExecutionPayloadHeader) error {
 	// Validate hash fields are not zero
 	zeroHash := common.ExecutionHash{}
 	// For genesis block (when block number is 0), ParentHash must be zero
-	// For non-genesis blocks, ParentHash cannot be zero
-	if header.Number == 0 {
-		if !bytes.Equal(header.ParentHash[:], zeroHash[:]) {
-			return errors.New("parent hash must be zero for genesis block")
-		}
-	} else {
-		if bytes.Equal(header.ParentHash[:], zeroHash[:]) {
-			return errors.New("parent hash cannot be zero for non-genesis block")
-		}
+	if !bytes.Equal(header.ParentHash[:], zeroHash[:]) {
+		return errors.New("parent hash must be zero for genesis block")
 	}
 
 	if bytes.Equal(header.StateRoot[:], zeroHash[:]) {
@@ -207,7 +158,7 @@ func validateExecutionHeader(header types.ExecutionPayloadHeader) error {
 		return errors.New("gas limit cannot be zero")
 	}
 
-	// Extra data length check (max 32 bytes as per SSZ definition)
+	// Extra data length check (max 32 bytes)
 	if len(header.ExtraData) > maxExtraDataSize {
 		return fmt.Errorf(
 			"extra data too long: got %d bytes, max 32 bytes",
@@ -223,6 +174,52 @@ func validateExecutionHeader(header types.ExecutionPayloadHeader) error {
 	// Additional Deneb-specific validations for blob gas
 	if header.BlobGasUsed > header.GetGasLimit() {
 		return errors.New("blob gas used exceeds gas limit")
+	}
+
+	return nil
+}
+
+// ValidateGenesis validates the provided genesis state.
+func (s *Service[_]) ValidateGenesis(
+	genesisState map[string]json.RawMessage,
+) error {
+	// Implemented the validation logic for the provided genesis state.
+	// This should validate the genesis state for each module in the
+	// application.
+
+	// Validate that required modules are present in genesis. Currently,
+	// only the beacon module is required.
+	beaconGenesisBz, ok := genesisState["beacon"]
+	if !ok {
+		return errors.New(
+			"beacon module genesis state is required but was not found",
+		)
+	}
+
+	var beaconGenesis BeaconGenesisState
+	if err := json.Unmarshal(beaconGenesisBz, &beaconGenesis); err != nil {
+		return fmt.Errorf(
+			"failed to unmarshal beacon genesis state: %w",
+			err,
+		)
+	}
+
+	// Validate fork version format (should be 0x followed by 8 hex characters)
+	if !strings.HasPrefix(beaconGenesis.ForkVersion, "0x") ||
+		len(beaconGenesis.ForkVersion) != 10 {
+		return fmt.Errorf("invalid fork version format: %s",
+			beaconGenesis.ForkVersion,
+		)
+	}
+
+	if err := validateDeposits(beaconGenesis.Deposits); err != nil {
+		return fmt.Errorf("invalid deposits: %w", err)
+	}
+
+	if err := validateExecutionHeader(
+		beaconGenesis.ExecutionPayloadHeader,
+	); err != nil {
+		return fmt.Errorf("invalid execution payload header: %w", err)
 	}
 
 	return nil
