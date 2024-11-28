@@ -26,8 +26,8 @@ import (
 )
 
 // isValidForkVersion returns true if the provided fork version is valid.
-// Validate fork version format (should be 0x followed by 8 hex characters).
 func isValidForkVersion(forkVersion string) bool {
+	// Validate fork version format (should be 0x followed by 8 hex characters).
 	if !strings.HasPrefix(forkVersion, "0x") || len(forkVersion) != 10 {
 		return false
 	}

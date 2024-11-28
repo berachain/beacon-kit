@@ -28,7 +28,13 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 )
 
-// validateDeposits validates the provided deposits.
+// validateDeposits performs validation of the provided deposits.
+// It ensures:
+// - At least one deposit is present
+// - Deposit indices match their position in the slice
+// - No duplicate public keys
+// - Non-zero values for required fields (pubkey, credentials, amount, signature)
+// Returns an error with details if any validation fails.
 func validateDeposits(deposits []types.Deposit) error {
 	if len(deposits) == 0 {
 		return errors.New("at least one deposit is required")
@@ -40,7 +46,7 @@ func validateDeposits(deposits []types.Deposit) error {
 		depositIndex := deposit.GetIndex()
 		//#nosec:G701 // realistically fine in practice.
 		// Validate index matches position
-		if depositIndex.Unwrap() != uint64(i) {
+		if i < 0 || depositIndex.Unwrap() != uint64(i) {
 			return fmt.Errorf(
 				"deposit index %d does not match position %d",
 				depositIndex,

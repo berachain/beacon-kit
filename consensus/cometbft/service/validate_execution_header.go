@@ -29,9 +29,12 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
+// maxExtraDataSize defines the maximum allowed size in bytes for the ExtraData
+// field in the execution payload header.
 const maxExtraDataSize = 32
 
-// validateExecutionHeader validates the provided execution payload header.
+// validateExecutionHeader validates the provided execution payload header
+// for the genesis block.
 func validateExecutionHeader(header types.ExecutionPayloadHeader) error {
 	// Validate hash fields are not zero
 	zeroHash := common.ExecutionHash{}
@@ -89,7 +92,9 @@ func validateExecutionHeader(header types.ExecutionPayloadHeader) error {
 
 	// Additional Deneb-specific validations for blob gas
 	if header.BlobGasUsed > header.GetGasLimit() {
-		return errors.New("blob gas used exceeds gas limit")
+		return fmt.Errorf("blob gas used (%d) exceeds gas limit (%d)",
+			header.BlobGasUsed, header.GetGasLimit(),
+		)
 	}
 
 	return nil
