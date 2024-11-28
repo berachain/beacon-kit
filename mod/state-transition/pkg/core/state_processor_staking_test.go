@@ -35,7 +35,7 @@ import (
 )
 
 // TestTransitionUpdateValidators shows that when validator is
-// updated (increasing amount), corrensponding balance is updated.
+// updated (increasing amount), corresponding balance is updated.
 func TestTransitionUpdateValidators(t *testing.T) {
 	cs := setupChain(t, components.BoonetChainSpecType)
 	sp, st, ds, ctx := setupState(t, cs)
