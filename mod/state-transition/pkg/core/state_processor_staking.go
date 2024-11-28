@@ -22,7 +22,7 @@ package core
 
 import (
 	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
@@ -36,7 +36,20 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
+	// Verify that outstanding deposits are processed
+	// up to the maximum number of deposits
+
+	// Unlike Eth 2.0 specs we don't check that
+	// len(body.deposits) ==  min(MAX_DEPOSITS,
+	// state.eth1_data.deposit_count - state.eth1_deposit_index)
+	// Instead we directly compare block deposits with store ones.
 	deposits := blk.GetBody().GetDeposits()
+	if uint64(len(deposits)) > sp.cs.MaxDepositsPerBlock() {
+		return errors.Wrapf(
+			ErrExceedsBlockDepositLimit, "expected: %d, got: %d",
+			sp.cs.MaxDepositsPerBlock(), len(deposits),
+		)
+	}
 	if err := sp.validateNonGenesisDeposits(st, deposits); err != nil {
 		return err
 	}
@@ -72,27 +85,12 @@ func (sp *StateProcessor[
 	idx, err := st.ValidatorIndexByPubkey(dep.GetPubkey())
 	if err != nil {
 		// If the validator does not exist, we add the validator.
-		// Add the validator to the registry.
+		// TODO: improve error handling by distinguishing
+		// ErrNotFound from other kind of errors
 		return sp.createValidator(st, dep)
 	}
 
-	// If the validator already exists, we update the balance.
-	var val ValidatorT
-	val, err = st.ValidatorByIndex(idx)
-	if err != nil {
-		return err
-	}
-
-	// TODO: Modify balance here and then effective balance once per epoch.
-	updatedBalance := types.ComputeEffectiveBalance(
-		val.GetEffectiveBalance()+dep.GetAmount(),
-		math.Gwei(sp.cs.EffectiveBalanceIncrement()),
-		math.Gwei(sp.cs.MaxEffectiveBalance()),
-	)
-	val.SetEffectiveBalance(updatedBalance)
-	if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
-		return err
-	}
+	// if validator exist, just update its balance
 	return st.IncreaseBalance(idx, dep.GetAmount())
 }
 

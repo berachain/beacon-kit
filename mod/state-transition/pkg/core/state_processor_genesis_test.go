@@ -38,32 +38,58 @@ func TestInitialize(t *testing.T) {
 	sp, st, _, _ := setupState(t, cs)
 
 	var (
-		deposits = []*types.Deposit{
-			{
-				Pubkey: [48]byte{0x00},
-				Amount: math.Gwei(cs.MaxEffectiveBalance()),
-				Index:  0,
-			},
+		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
+		increment  = math.Gwei(cs.EffectiveBalanceIncrement())
+		minBalance = math.Gwei(cs.EjectionBalance())
+	)
+
+	// create test inputs
+	var (
+		genDeposits = []*types.Deposit{
 			{
 				Pubkey: [48]byte{0x01},
-				Amount: math.Gwei(cs.MaxEffectiveBalance() / 2),
-				Index:  1,
+				Amount: maxBalance,
+				Index:  uint64(0),
 			},
 			{
 				Pubkey: [48]byte{0x02},
-				Amount: math.Gwei(cs.EffectiveBalanceIncrement()),
-				Index:  2,
+				Amount: minBalance + increment,
+				Index:  uint64(1),
 			},
 			{
 				Pubkey: [48]byte{0x03},
-				Amount: math.Gwei(2 * cs.MaxEffectiveBalance()),
-				Index:  3,
+				Amount: minBalance,
+				Index:  uint64(2),
 			},
 			{
 				Pubkey: [48]byte{0x04},
-				Amount: math.Gwei(cs.EffectiveBalanceIncrement() * 2 / 3),
-				Index:  4,
+				Amount: 2 * maxBalance,
+				Index:  uint64(3),
 			},
+			{
+				Pubkey: [48]byte{0x05},
+				Amount: minBalance - increment,
+				Index:  uint64(4),
+			},
+			{
+				Pubkey: [48]byte{0x06},
+				Amount: minBalance + increment*3/2,
+				Index:  uint64(5),
+			},
+			{
+				Pubkey: [48]byte{0x07},
+				Amount: maxBalance + increment/10,
+				Index:  uint64(6),
+			},
+			{
+				Pubkey: [48]byte{0x08},
+				Amount: minBalance + increment*99/100,
+				Index:  uint64(7),
+			},
+		}
+		goodDeposits = []*types.Deposit{
+			genDeposits[0], genDeposits[1], genDeposits[3],
+			genDeposits[5], genDeposits[6],
 		}
 		executionPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		fork                   = &types.Fork{
@@ -74,13 +100,16 @@ func TestInitialize(t *testing.T) {
 	)
 
 	// run test
-	vals, err := sp.InitializePreminedBeaconStateFromEth1(
-		st, deposits, executionPayloadHeader, fork.CurrentVersion,
+	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
+		st,
+		genDeposits,
+		executionPayloadHeader,
+		fork.CurrentVersion,
 	)
 
 	// check outputs
 	require.NoError(t, err)
-	require.Len(t, vals, len(deposits))
+	require.Len(t, genVals, len(goodDeposits))
 
 	// check beacon state changes
 	resSlot, err := st.GetSlot()
@@ -91,14 +120,14 @@ func TestInitialize(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, fork, resFork)
 
-	for _, dep := range deposits {
+	for _, dep := range goodDeposits {
 		checkValidatorNonBartio(t, cs, st, dep)
 	}
 
 	// check that validator index is duly set
 	latestValIdx, err := st.GetEth1DepositIndex()
 	require.NoError(t, err)
-	require.Equal(t, uint64(len(deposits)-1), latestValIdx)
+	require.Equal(t, uint64(len(genDeposits)-1), latestValIdx)
 }
 
 func checkValidatorNonBartio(
@@ -132,32 +161,57 @@ func TestInitializeBartio(t *testing.T) {
 	sp, st, _, _ := setupState(t, cs)
 
 	var (
-		deposits = []*types.Deposit{
-			{
-				Pubkey: [48]byte{0x00},
-				Amount: math.Gwei(cs.MaxEffectiveBalance()),
-				Index:  0,
-			},
+		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
+		increment  = math.Gwei(cs.EffectiveBalanceIncrement())
+		minBalance = math.Gwei(cs.EjectionBalance())
+	)
+
+	var (
+		genDeposits = []*types.Deposit{
 			{
 				Pubkey: [48]byte{0x01},
-				Amount: math.Gwei(cs.MaxEffectiveBalance() / 2),
-				Index:  1,
+				Amount: maxBalance,
+				Index:  uint64(0),
 			},
 			{
 				Pubkey: [48]byte{0x02},
-				Amount: math.Gwei(cs.EffectiveBalanceIncrement()),
-				Index:  2,
+				Amount: minBalance + increment,
+				Index:  uint64(1),
 			},
 			{
 				Pubkey: [48]byte{0x03},
-				Amount: math.Gwei(2 * cs.MaxEffectiveBalance()),
-				Index:  3,
+				Amount: minBalance,
+				Index:  uint64(2),
 			},
 			{
 				Pubkey: [48]byte{0x04},
-				Amount: math.Gwei(cs.EffectiveBalanceIncrement() * 2 / 3),
-				Index:  4,
+				Amount: 2 * maxBalance,
+				Index:  uint64(3),
 			},
+			{
+				Pubkey: [48]byte{0x05},
+				Amount: minBalance - increment,
+				Index:  uint64(4),
+			},
+			{
+				Pubkey: [48]byte{0x06},
+				Amount: minBalance + increment*3/2,
+				Index:  uint64(5),
+			},
+			{
+				Pubkey: [48]byte{0x07},
+				Amount: maxBalance + increment/10,
+				Index:  uint64(6),
+			},
+			{
+				Pubkey: [48]byte{0x08},
+				Amount: minBalance + increment*99/100,
+				Index:  uint64(7),
+			},
+		}
+		goodDeposits = []*types.Deposit{
+			genDeposits[0], genDeposits[1], genDeposits[3],
+			genDeposits[5], genDeposits[6],
 		}
 		executionPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		fork                   = &types.Fork{
@@ -168,13 +222,16 @@ func TestInitializeBartio(t *testing.T) {
 	)
 
 	// run test
-	vals, err := sp.InitializePreminedBeaconStateFromEth1(
-		st, deposits, executionPayloadHeader, fork.CurrentVersion,
+	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
+		st,
+		genDeposits,
+		executionPayloadHeader,
+		fork.CurrentVersion,
 	)
 
 	// check outputs
 	require.NoError(t, err)
-	require.Len(t, vals, len(deposits))
+	require.Len(t, genVals, len(goodDeposits))
 
 	// check beacon state changes
 	resSlot, err := st.GetSlot()
@@ -185,14 +242,14 @@ func TestInitializeBartio(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, fork, resFork)
 
-	for _, dep := range deposits {
+	for _, dep := range goodDeposits {
 		checkValidatorBartio(t, cs, st, dep)
 	}
 
 	// check that validator index is duly set
 	latestValIdx, err := st.GetEth1DepositIndex()
 	require.NoError(t, err)
-	require.Equal(t, uint64(len(deposits)-1), latestValIdx)
+	require.Equal(t, uint64(len(genDeposits)-1), latestValIdx)
 }
 
 func checkValidatorBartio(
@@ -239,7 +296,6 @@ func commonChecksValidators(
 
 	idx, err := bs.ValidatorIndexByPubkey(dep.Pubkey)
 	require.NoError(t, err)
-	require.Equal(t, math.U64(dep.Index), idx)
 
 	val, err := bs.ValidatorByIndex(idx)
 	require.NoError(t, err)
@@ -247,17 +303,23 @@ func commonChecksValidators(
 
 	var (
 		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
-		minBalance = math.Gwei(cs.EffectiveBalanceIncrement())
+		increment  = math.Gwei(cs.EffectiveBalanceIncrement())
+		minBalance = math.Gwei(cs.EjectionBalance())
 	)
 	switch {
 	case dep.Amount >= maxBalance:
 		require.Equal(t, maxBalance, val.EffectiveBalance)
-	case dep.Amount >= minBalance && dep.Amount < maxBalance:
-		require.Equal(t, dep.Amount, val.EffectiveBalance)
-
-		// validator balance must be multiple of EffectiveBalanceIncrement
-		require.Equal(t, math.U64(0), val.EffectiveBalance%minBalance)
-	case dep.Amount < minBalance:
+	case dep.Amount > minBalance && dep.Amount < maxBalance:
+		// Effective balance must be a multiple of increment.
+		// If balance is not, effective balance is rounded down
+		if dep.Amount%increment == 0 {
+			require.Equal(t, dep.Amount, val.EffectiveBalance)
+		} else {
+			require.Less(t, val.EffectiveBalance, dep.Amount)
+			require.Greater(t, val.EffectiveBalance, dep.Amount-increment)
+			require.Zero(t, val.EffectiveBalance%increment)
+		}
+	case dep.Amount <= minBalance:
 		require.Equal(t, math.Gwei(0), val.EffectiveBalance)
 	}
 }

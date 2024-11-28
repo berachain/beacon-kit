@@ -45,6 +45,19 @@ type Spec[
 	// calculations.
 	EffectiveBalanceIncrement() uint64
 
+	// HysteresisQuotient returns the quotient used in effective balance
+	// calculations to create hysteresis. This provides resistance to small
+	// balance changes triggering effective balance updates.
+	HysteresisQuotient() uint64
+
+	// HysteresisDownwardMultiplier returns the multiplier used when checking
+	// if the effective balance should be decreased.
+	HysteresisDownwardMultiplier() uint64
+
+	// HysteresisUpwardMultiplier returns the multiplier used when checking
+	// if the effective balance should be increased.
+	HysteresisUpwardMultiplier() uint64
+
 	// Time parameters constants.
 
 	// SlotsPerEpoch returns the number of slots in an epoch.
@@ -269,6 +282,24 @@ func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) EffectiveBalanceIncrement() uint64 {
 	return c.Data.EffectiveBalanceIncrement
+}
+
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
+]) HysteresisQuotient() uint64 {
+	return c.Data.HysteresisQuotient
+}
+
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
+]) HysteresisDownwardMultiplier() uint64 {
+	return c.Data.HysteresisDownwardMultiplier
+}
+
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
+]) HysteresisUpwardMultiplier() uint64 {
+	return c.Data.HysteresisUpwardMultiplier
 }
 
 // SlotsPerEpoch returns the number of slots per epoch.

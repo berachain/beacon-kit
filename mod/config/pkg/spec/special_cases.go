@@ -26,7 +26,7 @@ const (
 	BartioChainID = TestnetEth1ChainID
 
 	//nolint:lll // temporary.
-	BArtioValRoot = "0x9147586693b6e8faa837715c0f3071c2000045b54233901c2e7871b15872bc43"
+	BartioValRoot = "0x9147586693b6e8faa837715c0f3071c2000045b54233901c2e7871b15872bc43"
 )
 
 // Planned hard-fork upgrades on boonet. To be removed.

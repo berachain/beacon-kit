@@ -21,6 +21,7 @@
 package core_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
@@ -42,47 +43,56 @@ func TestTransitionUpdateValidators(t *testing.T) {
 
 	var (
 		maxBalance       = math.Gwei(cs.MaxEffectiveBalance())
-		minBalance       = math.Gwei(cs.EffectiveBalanceIncrement())
+		increment        = math.Gwei(cs.EffectiveBalanceIncrement())
+		minBalance       = math.Gwei(cs.EjectionBalance())
 		emptyCredentials = types.NewCredentialsFromExecutionAddress(
 			common.ExecutionAddress{},
 		)
 	)
 
-	// Setup initial state via genesis
-	// TODO: consider instead setting state artificially
+	// STEP 0: Setup initial state via genesis
 	var (
 		genDeposits = []*types.Deposit{
 			{
 				Pubkey:      [48]byte{0x00},
 				Credentials: emptyCredentials,
-				Amount:      maxBalance - 3*minBalance,
-				Index:       0,
+				Amount:      minBalance + increment,
+				Index:       uint64(0),
 			},
 			{
 				Pubkey:      [48]byte{0x01},
 				Credentials: emptyCredentials,
-				Amount:      maxBalance - 6*minBalance,
-				Index:       1,
+				Amount:      maxBalance - 6*increment,
+				Index:       uint64(1),
+			},
+			{
+				Pubkey:      [48]byte{0x03},
+				Credentials: emptyCredentials,
+				Amount:      maxBalance - 3*increment,
+				Index:       uint64(2),
 			},
 		}
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		genVersion       = version.FromUint32[common.Version](version.Deneb)
 	)
-	_, err := sp.InitializePreminedBeaconStateFromEth1(
-		st, genDeposits, genPayloadHeader, genVersion,
+	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
+		st,
+		genDeposits,
+		genPayloadHeader,
+		genVersion,
 	)
 	require.NoError(t, err)
+	require.Len(t, genVals, len(genDeposits))
 
-	// create test inputs
-	blkDeposits := []*types.Deposit{
-		{
-			Pubkey:      genDeposits[0].Pubkey,
-			Credentials: emptyCredentials,
-			Amount:      minBalance, // avoid breaching maxBalance
-			Index:       uint64(len(genDeposits)),
-		},
+	// STEP 1: top up a genesis validator balance
+	blkDeposit := &types.Deposit{
+		Pubkey:      genDeposits[2].Pubkey,
+		Credentials: emptyCredentials,
+		Amount:      2 * increment, // twice to account for hysteresis
+		Index:       uint64(len(genDeposits)),
 	}
-	blk := buildNextBlock(
+
+	blk1 := buildNextBlock(
 		t,
 		st,
 		&types.BeaconBlockBody{
@@ -94,40 +104,260 @@ func TestTransitionUpdateValidators(t *testing.T) {
 				BaseFeePerGas: math.NewU256(0),
 			},
 			Eth1Data: &types.Eth1Data{},
-			Deposits: blkDeposits,
+			Deposits: []*types.Deposit{blkDeposit},
 		},
 	)
 
 	// make sure included deposit is already available in deposit store
-	require.NoError(t, ds.EnqueueDeposits(blkDeposits))
+	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits))
 
 	// run the test
-	vals, err := sp.Transition(ctx, st, blk)
-
-	// check outputs
+	updatedVals, err := sp.Transition(ctx, st, blk1)
 	require.NoError(t, err)
-	require.Zero(t, vals) // just update, no new validators
+	require.Empty(t, updatedVals) // validators set updates only at epoch turn
 
-	// check validator is duly updated
-	expectedValBalance := genDeposits[0].Amount + blkDeposits[0].Amount
-	idx, err := st.ValidatorIndexByPubkey(genDeposits[0].Pubkey)
+	// check validator balances are duly updated, that is:
+	// - balance is updated immediately
+	// - effective balance is updated only at the epoch turn
+	expectedBalance := genDeposits[2].Amount + blkDeposit.Amount
+	expectedEffectiveBalance := genDeposits[2].Amount
+	idx, err := st.ValidatorIndexByPubkey(genDeposits[2].Pubkey)
 	require.NoError(t, err)
-	require.Equal(t, math.U64(genDeposits[0].Index), idx)
+
+	balance, err := st.GetBalance(idx)
+	require.NoError(t, err)
+	require.Equal(t, expectedBalance, balance)
 
 	val, err := st.ValidatorByIndex(idx)
 	require.NoError(t, err)
-	require.Equal(t, genDeposits[0].Pubkey, val.Pubkey)
-	require.Equal(t, expectedValBalance, val.EffectiveBalance)
+	require.Equal(t, expectedEffectiveBalance, val.EffectiveBalance)
 
-	// check validator balance is updated
-	valBal, err := st.GetBalance(idx)
-	require.NoError(t, err)
-	require.Equal(t, expectedValBalance, valBal)
-
-	// check that validator index is duly set (1-indexed here, to be fixed)
+	// check that validator index is still correct
 	latestValIdx, err := st.GetEth1DepositIndex()
 	require.NoError(t, err)
 	require.Equal(t, uint64(len(genDeposits)), latestValIdx)
+
+	// STEP 2: check that effective balance is updated once next epoch arrives
+	var blk = blk1
+	for i := 1; i < int(cs.SlotsPerEpoch())-1; i++ {
+		blk = buildNextBlock(
+			t,
+			st,
+			&types.BeaconBlockBody{
+				ExecutionPayload: &types.ExecutionPayload{
+					Timestamp:     blk.Body.ExecutionPayload.Timestamp + 1,
+					ExtraData:     []byte("testing"),
+					Transactions:  [][]byte{},
+					Withdrawals:   []*engineprimitives.Withdrawal{},
+					BaseFeePerGas: math.NewU256(0),
+				},
+				Eth1Data: &types.Eth1Data{},
+				Deposits: []*types.Deposit{},
+			},
+		)
+
+		updatedVals, err = sp.Transition(ctx, st, blk)
+		require.NoError(t, err)
+		require.Empty(t, updatedVals) // validators set updates only at epoch
+	}
+
+	// finally the block turning epoch
+	blk = buildNextBlock(
+		t,
+		st,
+		&types.BeaconBlockBody{
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:     blk.Body.ExecutionPayload.Timestamp + 1,
+				ExtraData:     []byte("testing"),
+				Transactions:  [][]byte{},
+				Withdrawals:   []*engineprimitives.Withdrawal{},
+				BaseFeePerGas: math.NewU256(0),
+			},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: []*types.Deposit{},
+		},
+	)
+
+	newEpochVals, err := sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+	require.Len(t, newEpochVals, len(genDeposits)) // just topped up one validator
+
+	// Assuming genesis order is preserved here which is not necessary
+	// TODO: remove this assumption
+
+	// all genesis validators other than the last are unchanged
+	for i := range len(genDeposits) - 1 {
+		require.Equal(t, genVals[i], newEpochVals[i], fmt.Sprintf("idx: %d", i))
+	}
+
+	expectedBalance = genDeposits[2].Amount + blkDeposit.Amount
+	expectedEffectiveBalance = expectedBalance
+
+	balance, err = st.GetBalance(idx)
+	require.NoError(t, err)
+	require.Equal(t, expectedBalance, balance)
+
+	val, err = st.ValidatorByIndex(idx)
+	require.NoError(t, err)
+	require.Equal(t, expectedEffectiveBalance, val.EffectiveBalance)
+}
+
+// TestTransitionCreateValidator shows the lifecycle
+// of a validator creation.
+func TestTransitionCreateValidator(t *testing.T) {
+	// Create state processor to test
+	cs := setupChain(t, components.BoonetChainSpecType)
+	sp, st, ds, ctx := setupState(t, cs)
+
+	var (
+		maxBalance       = math.Gwei(cs.MaxEffectiveBalance())
+		increment        = math.Gwei(cs.EffectiveBalanceIncrement())
+		minBalance       = math.Gwei(cs.EjectionBalance())
+		emptyAddress     = common.ExecutionAddress{}
+		emptyCredentials = types.NewCredentialsFromExecutionAddress(
+			emptyAddress,
+		)
+	)
+
+	// STEP 0: Setup initial state via genesis
+	var (
+		genDeposits = []*types.Deposit{
+			{
+				Pubkey:      [48]byte{0x01},
+				Credentials: emptyCredentials,
+				Amount:      minBalance + increment,
+				Index:       uint64(0),
+			},
+		}
+		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genVersion       = version.FromUint32[common.Version](version.Deneb)
+	)
+
+	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
+		st,
+		genDeposits,
+		genPayloadHeader,
+		genVersion,
+	)
+	require.NoError(t, err)
+	require.Len(t, genVals, len(genDeposits))
+
+	// STEP 1: top up a genesis validator balance
+	blkDeposit := &types.Deposit{
+		Pubkey:      [48]byte{0xff}, // a new key for a new validator
+		Credentials: emptyCredentials,
+		Amount:      maxBalance,
+		Index:       uint64(len(genDeposits)),
+	}
+
+	blk1 := buildNextBlock(
+		t,
+		st,
+		&types.BeaconBlockBody{
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:     10,
+				ExtraData:     []byte("testing"),
+				Transactions:  [][]byte{},
+				Withdrawals:   []*engineprimitives.Withdrawal{}, // no withdrawals
+				BaseFeePerGas: math.NewU256(0),
+			},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: []*types.Deposit{blkDeposit},
+		},
+	)
+
+	// make sure included deposit is already available in deposit store
+	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits))
+
+	// run the test
+	updatedVals, err := sp.Transition(ctx, st, blk1)
+	require.NoError(t, err)
+	require.Empty(t, updatedVals) // validators set updates only at epoch turn
+
+	// check validator balances are duly updated
+	var (
+		expectedBalance          = blkDeposit.Amount
+		expectedEffectiveBalance = expectedBalance
+	)
+	idx, err := st.ValidatorIndexByPubkey(blkDeposit.Pubkey)
+	require.NoError(t, err)
+
+	balance, err := st.GetBalance(idx)
+	require.NoError(t, err)
+	require.Equal(t, expectedBalance, balance)
+
+	val, err := st.ValidatorByIndex(idx)
+	require.NoError(t, err)
+	require.Equal(t, expectedEffectiveBalance, val.EffectiveBalance)
+
+	// check that validator index is still correct
+	latestValIdx, err := st.GetEth1DepositIndex()
+	require.NoError(t, err)
+	require.Equal(t, uint64(len(genDeposits)), latestValIdx)
+
+	// STEP 2: check that effective balance is updated once next epoch arrives
+	var blk = blk1
+	for i := 1; i < int(cs.SlotsPerEpoch())-1; i++ {
+		blk = buildNextBlock(
+			t,
+			st,
+			&types.BeaconBlockBody{
+				ExecutionPayload: &types.ExecutionPayload{
+					Timestamp:     blk.Body.ExecutionPayload.Timestamp + 1,
+					ExtraData:     []byte("testing"),
+					Transactions:  [][]byte{},
+					Withdrawals:   []*engineprimitives.Withdrawal{},
+					BaseFeePerGas: math.NewU256(0),
+				},
+				Eth1Data: &types.Eth1Data{},
+				Deposits: []*types.Deposit{},
+			},
+		)
+
+		updatedVals, err = sp.Transition(ctx, st, blk)
+		require.NoError(t, err)
+		require.Empty(t, updatedVals) // validators set updates only at epoch
+	}
+
+	// finally the block turning epoch
+	blk = buildNextBlock(
+		t,
+		st,
+		&types.BeaconBlockBody{
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:     blk.Body.ExecutionPayload.Timestamp + 1,
+				ExtraData:     []byte("testing"),
+				Transactions:  [][]byte{},
+				Withdrawals:   []*engineprimitives.Withdrawal{},
+				BaseFeePerGas: math.NewU256(0),
+			},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: []*types.Deposit{},
+		},
+	)
+
+	newEpochVals, err := sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+	require.Len(t, newEpochVals, len(genDeposits)+1)
+
+	// Assuming genesis order is preserved here which is not necessary
+	// TODO: remove this assumption
+
+	// all genesis validators are unchanged
+	for i := range len(genDeposits) {
+		require.Equal(t, genVals[i], newEpochVals[i], fmt.Sprintf("idx: %d", i))
+	}
+
+	expectedBalance = blkDeposit.Amount
+	expectedEffectiveBalance = expectedBalance
+
+	balance, err = st.GetBalance(idx)
+	require.NoError(t, err)
+	require.Equal(t, expectedBalance, balance)
+
+	val, err = st.ValidatorByIndex(idx)
+	require.NoError(t, err)
+	require.Equal(t, expectedEffectiveBalance, val.EffectiveBalance)
 }
 
 func TestTransitionWithdrawals(t *testing.T) {
