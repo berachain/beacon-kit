@@ -30,7 +30,21 @@ var (
 	// match the expected value.
 	ErrSlotMismatch = errors.New("slot mismatch")
 
+	// ErrProposerMismatch is returned when block builder does not match
+	// with the proposer reported by consensus.
 	ErrProposerMismatch = errors.New("proposer key mismatch")
+
+	// ErrDepositsLengthMismatch is returned when length of deposits
+	// listed in block is different from deposits from store.
+	ErrDepositsLengthMismatch = errors.New("deposits lengths mismatched")
+
+	// ErrDepositMismatch is returned when a specific deposit listed in
+	// block is different from the correspondent one from store.
+	ErrDepositMismatch = errors.New("deposit mismatched")
+
+	// ErrDepositIndexOutOfOrder is returned when deposits are not in
+	// contiguous order.
+	ErrDepositIndexOutOfOrder = errors.New("deposit index out of order")
 
 	// ErrParentRootMismatch is returned when the parent root in an execution
 	// payload does not match the expected value.
@@ -73,7 +87,22 @@ var (
 	// in a block exceeds the maximum allowed.
 	ErrExceedMaximumWithdrawals = errors.New("exceeds maximum withdrawals")
 
+	// ErrZeroWithdrawals is returned when the number of withdrawals in a
+	// block is zero. At least the EVM inflation withdrawal is always expected.
+	ErrZeroWithdrawals = errors.New("zero withdrawals")
+
 	// ErrNumWithdrawalsMismatch is returned when the number of withdrawals
 	// in a block does not match the expected value.
 	ErrNumWithdrawalsMismatch = errors.New("number of withdrawals mismatch")
+
+	// ErrFirstWithdrawalNotEVMInflation is returned when the first withdrawal
+	// in a block is not the EVM inflation withdrawal.
+	ErrFirstWithdrawalNotEVMInflation = errors.New(
+		"first withdrawal is not the EVM inflation withdrawal",
+	)
+
+	// ErrWithdrawalMismatch is returned when the withdrawals in a payload do
+	// not match the local state's expected value.
+	ErrWithdrawalMismatch = errors.New(
+		"withdrawal mismatch between local state and payload")
 )

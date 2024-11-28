@@ -18,32 +18,30 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package core
+package state
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-	"github.com/sourcegraph/conc/iter"
+	"math"
 )
 
-// processSyncCommitteeUpdates processes the sync committee updates.
-func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
-]) processSyncCommitteeUpdates(
-	st BeaconStateT,
-) (transition.ValidatorUpdates, error) {
-	vals, err := st.GetValidatorsByEffectiveBalance()
-	if err != nil {
-		return nil, err
-	}
+const (
+	// EVMInflationWithdrawalIndex is the fixed withdrawal index to be used for
+	// the EVM inflation withdrawal in every block. It should remain unused
+	// during processing.
+	EVMInflationWithdrawalIndex = math.MaxUint64
 
-	return iter.MapErr(
-		vals,
-		func(val *ValidatorT) (*transition.ValidatorUpdate, error) {
-			v := (*val)
-			return &transition.ValidatorUpdate{
-				Pubkey:           v.GetPubkey(),
-				EffectiveBalance: v.GetEffectiveBalance(),
-			}, nil
-		},
-	)
-}
+	// EVMInflationWithdrawalValidatorIndex is the fixed validator index to be
+	// used for the EVM inflation withdrawal in every block. It should remain
+	// unused during processing.
+	EVMInflationWithdrawalValidatorIndex = math.MaxUint64
+)
+
+// Boonet special case for emergency minting of EVM tokens. TODO: remove with
+// other special cases.
+const (
+	// EVMMintingAddress is the address at which we mint EVM tokens to.
+	EVMMintingAddress = "0x8a73D1380345942F1cb32541F1b19C40D8e6C94B"
+
+	// EVMMintingAmount is the amount of EVM tokens to mint.
+	EVMMintingAmount uint64 = 530000000000000000
+)
