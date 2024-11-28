@@ -72,8 +72,8 @@ func (sp *StateProcessor[
 ) error {
 	slot, err := st.GetSlot()
 	if err != nil {
-		return fmt.Errorf(
-			"failed loading slot while processing deposits: %w", err,
+		return errors.Wrap(
+			err, "failed loading slot while processing withdrawals",
 		)
 	}
 
