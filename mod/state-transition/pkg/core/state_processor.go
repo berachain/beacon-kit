@@ -100,10 +100,15 @@ type StateProcessor[
 	// metrics is the metrics for the service.
 	metrics *stateProcessorMetrics
 
-	// prevEpochValidators tracks the set of validators active during
-	// previous epoch. This is useful at the turn of the epoch to send to
-	// consensus only the diffs rather than the full updated validator set.
-	prevEpochValidators []*transition.ValidatorUpdate
+	// valSetByEpoch tracks the set of validators active at the latest epochs.
+	// This is useful to optimize validators set updates.
+	// Note: Transition may be called multiple times on different,
+	// non/finalized blocks, so at some point valSetByEpoch may contain
+	// informations from blocks not finalized. This should be fine as long
+	// as a block is finalized eventually, and its changes will be the last
+	// ones.
+	// We prune the map to preserve only current and previous epoch
+	valSetByEpoch map[math.Epoch][]ValidatorT
 }
 
 // NewStateProcessor creates a new state processor.
@@ -179,7 +184,7 @@ func NewStateProcessor[
 		fGetAddressFromPubKey: fGetAddressFromPubKey,
 		ds:                    ds,
 		metrics:               newStateProcessorMetrics(telemetrySink),
-		prevEpochValidators:   make([]*transition.ValidatorUpdate, 0),
+		valSetByEpoch:         make(map[math.Epoch][]ValidatorT, 0),
 	}
 }
 
