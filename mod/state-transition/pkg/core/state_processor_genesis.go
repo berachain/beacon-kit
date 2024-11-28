@@ -32,65 +32,63 @@ import (
 
 // InitializePreminedBeaconStateFromEth1 initializes the beacon state.
 //
-//nolint:gocognit,funlen // todo fix.
+//nolint:gocognit // todo fix.
 func (sp *StateProcessor[
 	_, BeaconBlockBodyT, BeaconBlockHeaderT, BeaconStateT, _, DepositT,
 	Eth1DataT, _, ExecutionPayloadHeaderT, ForkT, _, _, ValidatorT, _, _, _, _,
 ]) InitializePreminedBeaconStateFromEth1(
 	st BeaconStateT,
 	deposits []DepositT,
-	executionPayloadHeader ExecutionPayloadHeaderT,
+	execPayloadHeader ExecutionPayloadHeaderT,
 	genesisVersion common.Version,
 ) (transition.ValidatorUpdates, error) {
-	var (
-		blkHeader BeaconBlockHeaderT
-		blkBody   BeaconBlockBodyT
-		fork      ForkT
-		eth1Data  Eth1DataT
-	)
+	if err := st.SetSlot(0); err != nil {
+		return nil, err
+	}
+
+	var fork ForkT
 	fork = fork.New(
 		genesisVersion,
 		genesisVersion,
 		math.U64(constants.GenesisEpoch),
 	)
-
-	if err := st.SetSlot(0); err != nil {
-		return nil, err
-	}
-
 	if err := st.SetFork(fork); err != nil {
 		return nil, err
 	}
 
 	// Eth1DepositIndex will be set in processDeposit
 
-	if err := st.SetEth1Data(
-		eth1Data.New(
-			common.Root{},
-			0,
-			executionPayloadHeader.GetBlockHash(),
-		)); err != nil {
+	var eth1Data Eth1DataT
+	eth1Data = eth1Data.New(
+		common.Root{},
+		0,
+		execPayloadHeader.GetBlockHash(),
+	)
+	if err := st.SetEth1Data(eth1Data); err != nil {
 		return nil, err
 	}
 
-	// TODO: we need to handle common.Version vs
-	// uint32 better.
-	bodyRoot := blkBody.Empty(version.ToUint32(genesisVersion)).HashTreeRoot()
-	if err := st.SetLatestBlockHeader(
-		blkHeader.New(
-			0,             // slot
-			0,             // proposer index
-			common.Root{}, // parent block root
-			common.Root{}, // state root
-			bodyRoot,
-		)); err != nil {
+	// TODO: we need to handle common.Version vs uint32 better.
+	var blkBody BeaconBlockBodyT
+	blkBody = blkBody.Empty(version.ToUint32(genesisVersion))
+
+	var blkHeader BeaconBlockHeaderT
+	blkHeader = blkHeader.New(
+		0,                      // slot
+		0,                      // proposer index
+		common.Root{},          // parent block root
+		common.Root{},          // state root
+		blkBody.HashTreeRoot(), // body root
+
+	)
+	if err := st.SetLatestBlockHeader(blkHeader); err != nil {
 		return nil, err
 	}
 
 	for i := range sp.cs.EpochsPerHistoricalVector() {
 		if err := st.UpdateRandaoMixAtIndex(
 			i,
-			common.Bytes32(executionPayloadHeader.GetBlockHash()),
+			common.Bytes32(execPayloadHeader.GetBlockHash()),
 		); err != nil {
 			return nil, err
 		}
@@ -105,58 +103,45 @@ func (sp *StateProcessor[
 		}
 	}
 
-	// TODO: process activations.
-	validators, err := st.GetValidators()
-	if err != nil {
-		return nil, err
-	}
-
 	// Handle special case bartio genesis.
-	if sp.cs.DepositEth1ChainID() == spec.BartioChainID {
-		if err = st.SetGenesisValidatorsRoot(
-			common.Root(hex.MustToBytes(spec.BArtioValRoot))); err != nil {
+	validatorsRoot := common.Root(hex.MustToBytes(spec.BartioValRoot))
+	if sp.cs.DepositEth1ChainID() != spec.BartioChainID {
+		validators, err := st.GetValidators()
+		if err != nil {
 			return nil, err
 		}
-	} else if err = st.
-		SetGenesisValidatorsRoot(validators.HashTreeRoot()); err != nil {
+		validatorsRoot = validators.HashTreeRoot()
+	}
+	if err := st.SetGenesisValidatorsRoot(validatorsRoot); err != nil {
 		return nil, err
 	}
 
-	if err = st.SetLatestExecutionPayloadHeader(
-		executionPayloadHeader,
-	); err != nil {
+	if err := st.SetLatestExecutionPayloadHeader(execPayloadHeader); err != nil {
 		return nil, err
 	}
 
 	// Setup a bunch of 0s to prime the DB.
 	for i := range sp.cs.HistoricalRootsLimit() {
 		//#nosec:G701 // won't overflow in practice.
-		if err = st.UpdateBlockRootAtIndex(i, common.Root{}); err != nil {
+		if err := st.UpdateBlockRootAtIndex(i, common.Root{}); err != nil {
 			return nil, err
 		}
-		if err = st.UpdateStateRootAtIndex(i, common.Root{}); err != nil {
+		if err := st.UpdateStateRootAtIndex(i, common.Root{}); err != nil {
 			return nil, err
 		}
 	}
 
-	if err = st.SetNextWithdrawalIndex(0); err != nil {
+	if err := st.SetNextWithdrawalIndex(0); err != nil {
 		return nil, err
 	}
 
-	if err = st.SetNextWithdrawalValidatorIndex(
-		0,
-	); err != nil {
+	if err := st.SetNextWithdrawalValidatorIndex(0); err != nil {
 		return nil, err
 	}
 
-	if err = st.SetTotalSlashing(0); err != nil {
+	if err := st.SetTotalSlashing(0); err != nil {
 		return nil, err
 	}
 
-	var updates transition.ValidatorUpdates
-	updates, err = sp.processSyncCommitteeUpdates(st)
-	if err != nil {
-		return nil, err
-	}
-	return updates, nil
+	return sp.processSyncCommitteeUpdates(st)
 }
