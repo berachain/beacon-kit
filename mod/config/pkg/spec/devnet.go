@@ -26,6 +26,15 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
+const (
+	// DevnetEVMInflationAddress is the address of the EVM inflation contract.
+	DevnetEVMInflationAddress = "0x6942069420694206942069420694206942069420"
+
+	// DevnetEVMInflationPerBlock is the amount of native EVM balance (in units
+	// of Gwei) to be minted per EL block.
+	DevnetEVMInflationPerBlock = 10e9
+)
+
 // DevnetChainSpec is the ChainSpec for the localnet. Also used for e2e tests
 // in the kurtosis network.
 func DevnetChainSpec() (chain.Spec[
@@ -38,8 +47,8 @@ func DevnetChainSpec() (chain.Spec[
 	devnetSpec := BaseSpec()
 	devnetSpec.DepositEth1ChainID = DevnetEth1ChainID
 	devnetSpec.EVMInflationAddress = common.NewExecutionAddressFromHex(
-		"0x6942069420694206942069420694206942069420",
+		DevnetEVMInflationAddress,
 	)
-	devnetSpec.EVMInflationPerBlock = 10e9 // 10e9 Bwei => 10 BERA per block.
+	devnetSpec.EVMInflationPerBlock = DevnetEVMInflationPerBlock
 	return chain.NewChainSpec(devnetSpec)
 }

@@ -23,7 +23,8 @@ package e2e_test
 import (
 	"math/big"
 
-	"github.com/berachain/beacon-kit/testing/e2e/config"
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/testing/e2e/suite"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 )
@@ -45,17 +46,18 @@ func (s *BeaconKitE2ESuite) TestBasicStartup() {
 // amount of EVM inflation per block.
 func (s *BeaconKitE2ESuite) TestEVMInflation() {
 	evmInflationPerBlockWei, _ := big.NewFloat(
-		config.EVMInflationPerBlockWei).Int(nil)
+		spec.DevnetEVMInflationPerBlock * math.GweiPerWei,
+	).Int(nil)
 
 	// Check over the next 10 EVM blocks, that after every block, the balance
-	// of the EVM inflation address increases by EVMInflationPerBlockWei.
+	// of the EVM inflation address increases by DevnetEVMInflationPerBlock.
 	for i := int64(0); i <= 10; i++ {
 		err := s.WaitForFinalizedBlockNumber(uint64(i))
 		s.Require().NoError(err)
 
 		balance, err := s.JSONRPCBalancer().BalanceAt(
 			s.Ctx(),
-			gethcommon.HexToAddress(config.EVMInflationAddress),
+			gethcommon.HexToAddress(spec.DevnetEVMInflationAddress),
 			big.NewInt(i),
 		)
 		s.Require().NoError(err)
