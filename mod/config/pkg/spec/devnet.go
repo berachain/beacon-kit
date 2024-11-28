@@ -26,7 +26,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// DevnetChainSpec is the ChainSpec for the localnet.
+// DevnetChainSpec is the ChainSpec for the localnet. Also used for e2e tests
+// in the kurtosis network.
 func DevnetChainSpec() (chain.Spec[
 	common.DomainType,
 	math.Epoch,
@@ -34,7 +35,11 @@ func DevnetChainSpec() (chain.Spec[
 	math.Slot,
 	any,
 ], error) {
-	testnetSpec := BaseSpec()
-	testnetSpec.DepositEth1ChainID = DevnetEth1ChainID
-	return chain.NewChainSpec(testnetSpec)
+	devnetSpec := BaseSpec()
+	devnetSpec.DepositEth1ChainID = DevnetEth1ChainID
+	devnetSpec.EVMInflationAddress = common.NewExecutionAddressFromHex(
+		"0x6942069420694206942069420694206942069420",
+	)
+	devnetSpec.EVMInflationPerBlock = 10e9 // 10e9 Bwei => 10 BERA per block.
+	return chain.NewChainSpec(devnetSpec)
 }
