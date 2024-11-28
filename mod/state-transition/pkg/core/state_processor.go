@@ -101,18 +101,17 @@ type StateProcessor[
 	// metrics is the metrics for the service.
 	metrics *stateProcessorMetrics
 
-	// valSetMu protects valSetByEpoch from concurrent accesses
-	valSetMu sync.RWMutex
+	// valSetMu protects valSetPrevEpoch from concurrent accesses
+	valSetMu sync.Mutex
 
-	// valSetByEpoch tracks the set of validators active at the latest epochs.
+	// valSetByEpoch tracks the set of validators active at the curr epoch.
 	// This is useful to optimize validators set updates.
 	// Note: Transition may be called multiple times on different,
 	// non/finalized blocks, so at some point valSetByEpoch may contain
 	// informations from blocks not finalized. This should be fine as long
 	// as a block is finalized eventually, and its changes will be the last
 	// ones.
-	// We prune the map to preserve only current and previous epoch
-	valSetByEpoch map[math.Epoch][]ValidatorT
+	valSetPrevEpoch []ValidatorT
 }
 
 // NewStateProcessor creates a new state processor.
@@ -188,7 +187,7 @@ func NewStateProcessor[
 		fGetAddressFromPubKey: fGetAddressFromPubKey,
 		ds:                    ds,
 		metrics:               newStateProcessorMetrics(telemetrySink),
-		valSetByEpoch:         make(map[math.Epoch][]ValidatorT, 0),
+		valSetPrevEpoch:       make([]ValidatorT, 0),
 	}
 }
 
