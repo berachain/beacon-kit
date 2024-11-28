@@ -21,6 +21,7 @@
 package core
 
 import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/sourcegraph/conc/iter"
 )
@@ -36,8 +37,19 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
+	// filter out validators whose effective balance is not sufficient to validate
+	activeVals := make([]ValidatorT, 0, len(vals))
+	for _, val := range vals {
+		if val.GetEffectiveBalance() > math.U64(sp.cs.EjectionBalance()) {
+			activeVals = append(activeVals, val)
+		}
+	}
+
+	// TODO: a more efficient handling would be to only send back to consensus
+	// updated validators (including evicted ones), rather than the full list
+
 	return iter.MapErr(
-		vals,
+		activeVals,
 		func(val *ValidatorT) (*transition.ValidatorUpdate, error) {
 			v := (*val)
 			return &transition.ValidatorUpdate{

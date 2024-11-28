@@ -18,19 +18,30 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package spec
+package state
+
+import (
+	"math"
+)
 
 const (
+	// EVMInflationWithdrawalIndex is the fixed withdrawal index to be used for
+	// the EVM inflation withdrawal in every block. It should remain unused
+	// during processing.
+	EVMInflationWithdrawalIndex = math.MaxUint64
 
-	// BoonetEth1ChainID is the chain ID for the local devnet.
-	BoonetEth1ChainID uint64 = 80000
+	// EVMInflationWithdrawalValidatorIndex is the fixed validator index to be
+	// used for the EVM inflation withdrawal in every block. It should remain
+	// unused during processing.
+	EVMInflationWithdrawalValidatorIndex = math.MaxUint64
+)
 
-	// BetnetEth1ChainID is the chain ID for the local devnet.
-	BetnetEth1ChainID uint64 = 80088
+// Boonet special case for emergency minting of EVM tokens. TODO: remove with
+// other special cases.
+const (
+	// EVMMintingAddress is the address at which we mint EVM tokens to.
+	EVMMintingAddress = "0x8a73D1380345942F1cb32541F1b19C40D8e6C94B"
 
-	// DevnetEth1ChainID is the chain ID for the local devnet.
-	DevnetEth1ChainID uint64 = 80087
-
-	// TestnetEth1ChainID is the chain ID for the bArtio testnet.
-	TestnetEth1ChainID uint64 = 80084
+	// EVMMintingAmount is the amount of EVM tokens to mint.
+	EVMMintingAmount uint64 = 530000000000000000
 )

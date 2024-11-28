@@ -1083,6 +1083,7 @@ type (
 
 	// ReadOnlyWithdrawals only has read access to withdrawal methods.
 	ReadOnlyWithdrawals[WithdrawalT any] interface {
+		EVMInflationWithdrawal() WithdrawalT
 		ExpectedWithdrawals() ([]WithdrawalT, error)
 	}
 )
