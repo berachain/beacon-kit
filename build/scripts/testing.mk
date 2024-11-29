@@ -205,7 +205,7 @@ start-erigon: ## start an ephemeral `erigon` node
 	-v $(PWD)/.tmp:/.tmp \
 	erigontech/erigon:latest init \
 	--datadir /.tmp/erigon \
-	/${TESTAPP_FILES_DIR}/eth-genesis.json
+	/${ETH_GENESIS_PATH}
 
 	docker run \
 	-p 30303:30303 \
