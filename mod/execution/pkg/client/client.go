@@ -54,8 +54,8 @@ type EngineClient[
 	Capabilities map[string]struct{}
 	// connected will be set to true when we have successfully connected
 	// to the execution client.
-	mutex     sync.RWMutex
-	connected bool
+	connectedMu sync.RWMutex
+	connected   bool
 }
 
 // New creates a new engine client EngineClient.
@@ -136,17 +136,17 @@ func (s *EngineClient[
 				}
 				continue
 			}
-			s.mutex.Lock()
+			s.connectedMu.Lock()
 			s.connected = true
-			s.mutex.Unlock()
+			s.connectedMu.Unlock()
 			return nil
 		}
 	}
 }
 
 func (s *EngineClient[_, _]) IsConnected() bool {
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
+	s.connectedMu.RLock()
+	defer s.connectedMu.RUnlock()
 	return s.connected
 }
 
