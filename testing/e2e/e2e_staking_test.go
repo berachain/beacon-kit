@@ -28,7 +28,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
-	"github.com/berachain/beacon-kit/testing/e2e/suite"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
@@ -211,5 +210,5 @@ func (s *BeaconKitE2ESuite) generateNewDepositTx(
 		Signer:   signer,
 		Nonce:    nonce,
 		GasLimit: 600000,
-	}, pubkey, credentials[:], 32*suite.OneGwei, signature[:])
+	}, pubkey, credentials[:], signature[:], sender)
 }
