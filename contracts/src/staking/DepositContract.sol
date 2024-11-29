@@ -50,6 +50,7 @@ contract DepositContract is IDepositContract, ERC165 {
 
     /// @dev The hash tree root of the genesis deposits.
     /// @dev Should be set in deployment (predeploy state or constructor).
+    // slither-disable-next-line constable-states
     bytes32 public genesisDepositsRoot;
 
     /// @dev The mapping of public keys to operator addresses.
