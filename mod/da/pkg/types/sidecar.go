@@ -44,7 +44,7 @@ type BlobSidecar struct {
 	KzgProof eip4844.KZGProof
 	// BeaconBlockHeader represents the beacon block header for which this blob
 	// is being included.
-	BeaconBlockHeader *types.BeaconBlockHeader
+	SignedBeaconBlockHeader *types.SignedBeaconBlockHeader
 	// InclusionProof is the inclusion proof of the blob in the beacon block
 	// body.
 	InclusionProof []common.Root
@@ -52,23 +52,21 @@ type BlobSidecar struct {
 
 // BuildBlobSidecar creates a blob sidecar from the given blobs and
 // beacon block.
-func BuildBlobSidecar[
-	BeaconBlockHeaderT any,
-](
+func BuildBlobSidecar(
 	index math.U64,
-	header BeaconBlockHeaderT,
+	header *types.SignedBeaconBlockHeader,
 	blob *eip4844.Blob,
 	commitment eip4844.KZGCommitment,
 	proof eip4844.KZGProof,
 	inclusionProof []common.Root,
 ) *BlobSidecar {
 	return &BlobSidecar{
-		Index:             index.Unwrap(),
-		Blob:              *blob,
-		KzgCommitment:     commitment,
-		KzgProof:          proof,
-		BeaconBlockHeader: any(header).(*types.BeaconBlockHeader),
-		InclusionProof:    inclusionProof,
+		Index:                   index.Unwrap(),
+		Blob:                    *blob,
+		KzgCommitment:           commitment,
+		KzgProof:                proof,
+		SignedBeaconBlockHeader: header,
+		InclusionProof:          inclusionProof,
 	}
 }
 
@@ -86,7 +84,7 @@ func (b *BlobSidecar) HasValidInclusionProof(
 			len(b.InclusionProof),
 		), // TODO: use KZG_INCLUSION_PROOF_DEPTH calculation.
 		kzgOffset+b.Index,
-		b.BeaconBlockHeader.BodyRoot,
+		b.SignedBeaconBlockHeader.Header.BodyRoot,
 	)
 }
 
@@ -103,7 +101,7 @@ func (b *BlobSidecar) GetKzgCommitment() eip4844.KZGCommitment {
 }
 
 func (b *BlobSidecar) GetBeaconBlockHeader() *types.BeaconBlockHeader {
-	return b.BeaconBlockHeader
+	return b.SignedBeaconBlockHeader.Header
 }
 
 // DefineSSZ defines the SSZ encoding for the BlobSidecar object.
@@ -112,7 +110,7 @@ func (b *BlobSidecar) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineStaticBytes(codec, &b.Blob)
 	ssz.DefineStaticBytes(codec, &b.KzgCommitment)
 	ssz.DefineStaticBytes(codec, &b.KzgProof)
-	ssz.DefineStaticObject(codec, &b.BeaconBlockHeader)
+	ssz.DefineStaticObject(codec, &b.SignedBeaconBlockHeader)
 	//nolint:mnd // depth of 8
 	ssz.DefineCheckedArrayOfStaticBytes(codec, &b.InclusionProof, 8)
 }

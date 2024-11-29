@@ -676,11 +676,13 @@ type (
 		) (transition.ValidatorUpdates, error)
 	}
 
-	SidecarFactory[BeaconBlockT any, BlobSidecarsT any] interface {
+	SidecarFactory[BeaconBlockT any, BlobSidecarsT any, ForkDataT any] interface {
 		// BuildSidecars builds sidecars for a given block and blobs bundle.
 		BuildSidecars(
 			blk BeaconBlockT,
 			blobs engineprimitives.BlobsBundle,
+			signer crypto.BLSSigner,
+			forkData ForkDataT,
 		) (BlobSidecarsT, error)
 	}
 

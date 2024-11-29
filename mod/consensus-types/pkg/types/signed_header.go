@@ -66,9 +66,9 @@ func (b *SignedBeaconBlockHeader) New(
 	header *BeaconBlockHeader,
 	signature crypto.BLSSignature,
 ) *SignedBeaconBlockHeader {
-	return &SignedBeaconBlockHeader{
+	return NewSignedBeaconBlockHeader(
 		header, signature,
-	}
+	)
 }
 
 /* -------------------------------------------------------------------------- */

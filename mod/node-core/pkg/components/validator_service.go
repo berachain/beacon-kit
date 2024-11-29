@@ -45,6 +45,7 @@ type ValidatorServiceInput[
 	StorageBackendT any,
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalsT Withdrawals[WithdrawalT],
+	// ForkDataT any,
 ] struct {
 	depinject.In
 	Cfg            *config.Config
@@ -57,7 +58,7 @@ type ValidatorServiceInput[
 	]
 	StorageBackend StorageBackendT
 	Signer         crypto.BLSSigner
-	SidecarFactory SidecarFactory[BeaconBlockT, BlobSidecarsT]
+	SidecarFactory SidecarFactory[BeaconBlockT, BlobSidecarsT, *ForkData]
 	TelemetrySink  *metrics.TelemetrySink
 }
 

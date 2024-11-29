@@ -39,7 +39,7 @@ import (
 
 // buildBlockAndSidecars builds a new beacon block.
 func (s *Service[
-	_, BeaconBlockT, _, _, BlobSidecarsT, _, _, _, _, _, _, _, SlotDataT,
+	_, BeaconBlockT, _, _, BlobSidecarsT, _, _, _, _, _, ForkDataT, _, SlotDataT,
 ]) buildBlockAndSidecars(
 	ctx context.Context,
 	slotData SlotDataT,
@@ -47,6 +47,7 @@ func (s *Service[
 	var (
 		blk       BeaconBlockT
 		sidecars  BlobSidecarsT
+		forkData  ForkDataT
 		startTime = time.Now()
 		g, _      = errgroup.WithContext(ctx)
 	)
@@ -69,9 +70,15 @@ func (s *Service[
 		return blk, sidecars, err
 	}
 
+	// Build forkdata used for the signing root of the reveal and the sidecars
+	forkData, err := s.buildForkData(st, slotData.GetSlot())
+	if err != nil {
+		return blk, sidecars, err
+	}
+
 	// Build the reveal for the current slot.
 	// TODO: We can optimize to pre-compute this in parallel?
-	reveal, err := s.buildRandaoReveal(st, slotData.GetSlot())
+	reveal, err := s.buildRandaoReveal(forkData, slotData.GetSlot())
 	if err != nil {
 		return blk, sidecars, err
 	}
@@ -107,7 +114,10 @@ func (s *Service[
 	// without giving up the parallelization benefits.
 	g.Go(func() error {
 		sidecars, err = s.blobFactory.BuildSidecars(
-			blk, envelope.GetBlobsBundle(),
+			blk,
+			envelope.GetBlobsBundle(),
+			s.signer,
+			forkData,
 		)
 		return err
 	})
@@ -170,13 +180,12 @@ func (s *Service[
 	)
 }
 
-// buildRandaoReveal builds a randao reveal for the given slot.
 func (s *Service[
 	_, _, _, BeaconStateT, _, _, _, _, _, _, ForkDataT, _, _,
-]) buildRandaoReveal(
+]) buildForkData(
 	st BeaconStateT,
 	slot math.Slot,
-) (crypto.BLSSignature, error) {
+) (ForkDataT, error) {
 	var (
 		forkData ForkDataT
 		epoch    = s.chainSpec.SlotToEpoch(slot)
@@ -184,14 +193,26 @@ func (s *Service[
 
 	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
 	if err != nil {
-		return crypto.BLSSignature{}, err
+		return forkData, err
 	}
 
-	signingRoot := forkData.New(
+	return forkData.New(
 		version.FromUint32[common.Version](
 			s.chainSpec.ActiveForkVersionForEpoch(epoch),
-		), genesisValidatorsRoot,
-	).ComputeRandaoSigningRoot(
+		),
+		genesisValidatorsRoot,
+	), nil
+}
+
+// buildRandaoReveal builds a randao reveal for the given slot.
+func (s *Service[
+	_, _, _, BeaconStateT, _, _, _, _, _, _, ForkDataT, _, _,
+]) buildRandaoReveal(
+	forkData ForkDataT,
+	slot math.Slot,
+) (crypto.BLSSignature, error) {
+	var epoch = s.chainSpec.SlotToEpoch(slot)
+	signingRoot := forkData.ComputeRandaoSigningRoot(
 		s.chainSpec.DomainTypeRandao(),
 		epoch,
 	)

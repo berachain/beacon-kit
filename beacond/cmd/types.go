@@ -169,6 +169,7 @@ type (
 		*BeaconBlock,
 		*BeaconBlockBody,
 		*BeaconBlockHeader,
+		*ForkData,
 	]
 
 	// StateProcessor is the type alias for the state processor interface.

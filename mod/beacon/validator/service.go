@@ -58,7 +58,7 @@ type Service[
 	// signer is used to retrieve the public key of this node.
 	signer crypto.BLSSigner
 	// blobFactory is used to create blob sidecars for blocks.
-	blobFactory BlobFactory[BeaconBlockT, BlobSidecarsT]
+	blobFactory BlobFactory[BeaconBlockT, BlobSidecarsT, ForkDataT]
 	// sb is the beacon state backend.
 	sb StorageBackend[BeaconStateT, DepositStoreT]
 	// dispatcher is the dispatcher.
@@ -113,7 +113,7 @@ func NewService[
 		ExecutionPayloadHeaderT,
 	],
 	signer crypto.BLSSigner,
-	blobFactory BlobFactory[BeaconBlockT, BlobSidecarsT],
+	blobFactory BlobFactory[BeaconBlockT, BlobSidecarsT, ForkDataT],
 	localPayloadBuilder PayloadBuilder[BeaconStateT, ExecutionPayloadT],
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT],
 	ts TelemetrySink,

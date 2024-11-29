@@ -51,12 +51,13 @@ func ProvideSidecarFactory[
 	WithdrawalsT Withdrawals[WithdrawalT],
 	WithdrawalT Withdrawal[WithdrawalT],
 ](in SidecarFactoryInput) *dablob.SidecarFactory[
-	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT, *ForkData,
 ] {
 	return dablob.NewSidecarFactory[
 		BeaconBlockT,
 		BeaconBlockBodyT,
 		BeaconBlockHeaderT,
+		*ForkData,
 	](
 		in.ChainSpec,
 		types.KZGPositionDeneb,
