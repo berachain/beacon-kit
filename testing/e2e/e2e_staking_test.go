@@ -48,7 +48,6 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	s.Require().NotNil(client2)
 
 	// Sender account
-	genesisAccount := s.GenesisAccount()
 	sender := s.TestAccounts()[1]
 
 	// Get the public key.
@@ -84,17 +83,6 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	)
 	s.Require().NoError(err)
 
-	tx, err := dc.AllowDeposit(&bind.TransactOpts{
-		From:   genesisAccount.Address(),
-		Signer: genesisAccount.SignerFunc(chainID),
-	}, sender.Address(), NumDepositsLoad)
-	s.Require().NoError(err)
-
-	// Wait for the transaction to be mined.
-	receipt, err := bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
-	s.Require().NoError(err)
-	s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
-
 	// Get the nonce.
 	nonce, err := s.JSONRPCBalancer().NonceAt(
 		s.Ctx(),
@@ -103,6 +91,10 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	)
 	s.Require().NoError(err)
 
+	var (
+		tx      *coretypes.Transaction
+		receipt *coretypes.Receipt
+	)
 	for i := range NumDepositsLoad {
 		// Create a deposit transaction.
 		tx, err = s.generateNewDepositTx(
