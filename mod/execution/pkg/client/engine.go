@@ -188,7 +188,7 @@ func (s *EngineClient[
 
 	// Log the capabilities that the execution client does not have.
 	for _, capability := range ethclient.BeaconKitSupportedCapabilities() {
-		if _, exists := s.capabilities[capability]; !exists {
+		if !s.HasCapability(capability) {
 			s.logger.Warn(
 				"Your execution client may require an update 🚸",
 				"unsupported_capability", capability,
