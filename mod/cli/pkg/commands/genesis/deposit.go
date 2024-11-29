@@ -44,6 +44,8 @@ import (
 
 // AddGenesisDepositCmd - returns the cobra command to
 // add a premined deposit to the genesis file.
+//
+//nolint:funlen,gocognit // required for this command.
 func AddGenesisDepositCmd(cs common.ChainSpec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add-premined-deposit",
