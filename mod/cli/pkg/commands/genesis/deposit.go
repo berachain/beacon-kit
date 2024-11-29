@@ -101,9 +101,6 @@ func AddGenesisDepositCmd(cs common.ChainSpec) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if withdrawalAddress == "" {
-				return errors.New("non zero withdrawal address is required")
-			}
 
 			depositMsg, signature, err := types.CreateAndSignDepositMessage(
 				types.NewForkData(currentVersion, common.Root{}),
@@ -156,7 +153,11 @@ func AddGenesisDepositCmd(cs common.ChainSpec) *cobra.Command {
 	cmd.Flags().
 		String(depositAmountFlag, defaultDepositAmount, depositAmountFlagMsg)
 	cmd.Flags().
-		String(withdrawalAddressFlag, "", withdrawalAddressFlagMsg)
+		String(
+			withdrawalAddressFlag,
+			defaultWithdrawalAddress,
+			withdrawalAddressFlagMsg,
+		)
 
 	return cmd
 }

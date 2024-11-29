@@ -27,5 +27,6 @@ const (
 	depositAmountFlagMsg = "The amount of deposit to be made"
 
 	withdrawalAddressFlag    = "withdrawal-address"
+	defaultWithdrawalAddress = "0x0000000000000000000000000000000000000000"
 	withdrawalAddressFlagMsg = "The address to withdraw funds to"
 )
