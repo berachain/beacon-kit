@@ -46,15 +46,32 @@ func (sp *StateProcessor[
 		}
 	}
 
+	// pick prev epoch validators
+	slot, err := st.GetSlot()
+	if err != nil {
+		return nil, err
+	}
+
 	sp.valSetMu.Lock()
 	defer sp.valSetMu.Unlock()
 
+	// prevEpoch is calculated assuming current block
+	// will turn epoch but we have not update slot yet
+	prevEpoch := sp.cs.SlotToEpoch(slot)
+	currEpoch := prevEpoch + 1
+	if slot == 0 {
+		currEpoch = 0 // prevEpoch for genesis is zero
+	}
+	prevEpochVals := sp.valSetByEpoch[prevEpoch] // picks nil if it's genesis
+
 	// calculate diff
-	res := sp.validatorSetsDiffs(sp.valSetPrevEpoch, activeVals)
+	res := sp.validatorSetsDiffs(prevEpochVals, activeVals)
 
-	// update prev epoch set
-	sp.valSetPrevEpoch = activeVals
-
+	// clear up sets we won't lookup to anymore
+	sp.valSetByEpoch[currEpoch] = activeVals
+	if prevEpoch >= 1 {
+		delete(sp.valSetByEpoch, prevEpoch-1)
+	}
 	return res, nil
 }
 
