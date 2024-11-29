@@ -50,8 +50,8 @@ type EngineClient[
 	eth1ChainID *big.Int
 	// clientMetrics is the metrics for the engine client.
 	metrics *clientMetrics
-	// Capabilities is a map of capabilities that the execution client has.
-	Capabilities map[string]struct{}
+	// capabilities is a map of capabilities that the execution client has.
+	capabilities map[string]struct{}
 	// connected will be set to true when we have successfully connected
 	// to the execution client.
 	connectedMu sync.RWMutex
@@ -84,7 +84,7 @@ func New[
 					cfg.RPCJWTRefreshInterval,
 				),
 			)),
-		Capabilities: make(map[string]struct{}),
+		capabilities: make(map[string]struct{}),
 		eth1ChainID:  eth1ChainID,
 		metrics:      newClientMetrics(telemetrySink, logger),
 		connected:    false,
@@ -148,6 +148,11 @@ func (s *EngineClient[_, _]) IsConnected() bool {
 	s.connectedMu.RLock()
 	defer s.connectedMu.RUnlock()
 	return s.connected
+}
+
+func (s *EngineClient[_, _]) HasCapability(capability string) bool {
+	_, ok := s.capabilities[capability]
+	return ok
 }
 
 /* -------------------------------------------------------------------------- */

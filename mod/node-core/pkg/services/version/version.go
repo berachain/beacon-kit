@@ -171,7 +171,7 @@ func (rs *ReportingService[_, _]) GetEthVersion(
 		Name:    "unknown",
 	}
 
-	if _, ok := rs.client.Capabilities[ethclient.GetClientVersionV1]; ok {
+	if rs.client.HasCapability(ethclient.GetClientVersionV1) {
 		// Get the client version from the execution layer.
 		info, err := rs.client.GetClientVersionV1(ctx)
 		if err != nil {

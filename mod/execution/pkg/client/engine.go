@@ -183,12 +183,12 @@ func (s *EngineClient[
 	// Capture and log the capabilities that the execution client has.
 	for _, capability := range result {
 		s.logger.Info("Exchanged capability", "capability", capability)
-		s.Capabilities[capability] = struct{}{}
+		s.capabilities[capability] = struct{}{}
 	}
 
 	// Log the capabilities that the execution client does not have.
 	for _, capability := range ethclient.BeaconKitSupportedCapabilities() {
-		if _, exists := s.Capabilities[capability]; !exists {
+		if !s.HasCapability(capability) {
 			s.logger.Warn(
 				"Your execution client may require an update 🚸",
 				"unsupported_capability", capability,
