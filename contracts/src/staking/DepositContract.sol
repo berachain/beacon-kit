@@ -63,12 +63,22 @@ contract DepositContract is IDepositContract, ERC165 {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @inheritdoc ERC165
-    function supportsInterface(bytes4 interfaceId) external pure override returns (bool) {
-        return interfaceId == type(ERC165).interfaceId || interfaceId == type(IDepositContract).interfaceId;
+    function supportsInterface(bytes4 interfaceId)
+        external
+        pure
+        override
+        returns (bool)
+    {
+        return interfaceId == type(ERC165).interfaceId
+            || interfaceId == type(IDepositContract).interfaceId;
     }
 
     /// @inheritdoc IDepositContract
-    function getOperator(bytes calldata pubkey) external view returns (address) {
+    function getOperator(bytes calldata pubkey)
+        external
+        view
+        returns (address)
+    {
         return _operatorByPubKey[pubkey];
     }
 
@@ -84,8 +94,8 @@ contract DepositContract is IDepositContract, ERC165 {
         address operator
     )
         public
-        virtual
         payable
+        virtual
     {
         if (pubkey.length != PUBLIC_KEY_LENGTH) {
             revert InvalidPubKeyLength();
@@ -121,7 +131,9 @@ contract DepositContract is IDepositContract, ERC165 {
         }
 
         // slither-disable-next-line reentrancy-benign,reentrancy-events
-        emit Deposit(pubkey, credentials, amountInGwei, signature, depositCount++);
+        emit Deposit(
+            pubkey, credentials, amountInGwei, signature, depositCount++
+        );
     }
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -129,7 +141,12 @@ contract DepositContract is IDepositContract, ERC165 {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @inheritdoc IDepositContract
-    function requestOperatorChange(bytes calldata pubkey, address newOperator) external {
+    function requestOperatorChange(
+        bytes calldata pubkey,
+        address newOperator
+    )
+        external
+    {
         // Cache the current operator.
         address currentOperator = _operatorByPubKey[pubkey];
         // Only the current operator can request a change.
@@ -144,7 +161,9 @@ contract DepositContract is IDepositContract, ERC165 {
         QueuedOperator storage qO = queuedOperator[pubkey];
         qO.newOperator = newOperator;
         qO.queuedTimestamp = uint96(block.timestamp);
-        emit OperatorChangeQueued(pubkey, newOperator, currentOperator, block.timestamp);
+        emit OperatorChangeQueued(
+            pubkey, newOperator, currentOperator, block.timestamp
+        );
     }
 
     /// @inheritdoc IDepositContract
@@ -160,7 +179,8 @@ contract DepositContract is IDepositContract, ERC165 {
     /// @inheritdoc IDepositContract
     function acceptOperatorChange(bytes calldata pubkey) external {
         QueuedOperator storage qO = queuedOperator[pubkey];
-        (address newOperator, uint96 queuedTimestamp) = (qO.newOperator, qO.queuedTimestamp);
+        (address newOperator, uint96 queuedTimestamp) =
+            (qO.newOperator, qO.queuedTimestamp);
 
         // Only the new operator can accept the change.
         // This will revert if nothing is queued as newOperator will be zero address.
@@ -207,7 +227,9 @@ contract DepositContract is IDepositContract, ERC165 {
     function _safeTransferETH(address to, uint256 amount) internal {
         /// @solidity memory-safe-assembly
         assembly {
-            if iszero(call(gas(), to, amount, codesize(), 0x00, codesize(), 0x00)) {
+            if iszero(
+                call(gas(), to, amount, codesize(), 0x00, codesize(), 0x00)
+            ) {
                 mstore(0x00, 0xb12d13eb) // `ETHTransferFailed()`.
                 revert(0x1c, 0x04)
             }

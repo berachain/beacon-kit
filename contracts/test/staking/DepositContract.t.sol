@@ -1,13 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
+import "forge-std/Test.sol";
+
 import { SoladyTest } from "@solady/test/utils/SoladyTest.sol";
 import { IDepositContract } from "@src/staking/IDepositContract.sol";
 import { PermissionedDepositContract } from "./PermissionedDepositContract.sol";
 
-contract DepositContractTest is SoladyTest {
+contract DepositContractTest is SoladyTest, StdCheats {
     /// @dev The depositor address.
     address internal depositor = 0x20f33CE90A13a4b5E7697E3544c3083B8F8A51D4;
+
+    /// @dev The owner address.
+    address owner = 0x6969696969696969696969696969696969696969;
 
     /// @dev The validator public key.
     bytes internal VALIDATOR_PUBKEY = _create48Byte();
@@ -24,7 +29,7 @@ contract DepositContractTest is SoladyTest {
     PermissionedDepositContract internal depositContract;
 
     function setUp() public virtual {
-        address owner = 0x6969696969696969696969696969696969696969;
+        
         depositContract = new PermissionedDepositContract(owner);
         vm.prank(owner);
         depositContract.allowDeposit(depositor, 100);
@@ -73,20 +78,20 @@ contract DepositContractTest is SoladyTest {
         vm.deal(depositor, 32 ether);
         vm.prank(depositor);
         depositContract.deposit{ value: 32 ether }(
-            VALIDATOR_PUBKEY, bytes("wrong_credentials"), _create96Byte(), depositor
+            VALIDATOR_PUBKEY,
+            bytes("wrong_credentials"),
+            _create96Byte(),
+            depositor
         );
     }
 
     function testFuzz_DepositWrongAmount(uint256 amount) public {
-        amount = _bound(amount, 1, 32e9 - 1);
+        amount = _bound(amount, 32e9 + 1, 64e9 - 1);
         vm.deal(depositor, amount);
         vm.prank(depositor);
-        vm.expectRevert(IDepositContract.InsufficientDeposit.selector);
+        vm.expectRevert(IDepositContract.DepositNotMultipleOfGwei.selector);
         depositContract.deposit{ value: amount }(
-            VALIDATOR_PUBKEY,
-            STAKING_CREDENTIALS,
-            _create96Byte(),
-            depositor
+            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte(), depositor
         );
     }
 
@@ -166,22 +171,31 @@ contract DepositContractTest is SoladyTest {
 
     function testFuzz_DepositCount(uint256 count) public {
         count = _bound(count, 1, 100);
-        vm.deal(depositor, 32 ether * count);
-        vm.startPrank(depositor);
         uint64 depositCount;
         for (uint256 i; i < count; ++i) {
+            depositor = makeAddr(vm.toString(i));
+            vm.deal(depositor, 32 ether);
+
+            vm.startPrank(owner);
+            depositContract.allowDeposit(depositor, 1);
+            vm.stopPrank();
+
+            vm.startPrank(depositor);
             vm.expectEmit(true, true, true, true);
             emit IDepositContract.Deposit(
-                VALIDATOR_PUBKEY,
+                _newPubkey(i),
                 STAKING_CREDENTIALS,
                 32 gwei,
                 _create96Byte(),
-                depositCount
+                depositCount++
             );
             depositContract.deposit{ value: 32 ether }(
-                VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte(), depositor
+                _newPubkey(i),
+                STAKING_CREDENTIALS,
+                _create96Byte(),
+                depositor
             );
-            ++depositCount;
+            vm.stopPrank();
         }
         assertEq(depositContract.depositCount(), depositCount);
     }
@@ -196,5 +210,9 @@ contract DepositContractTest is SoladyTest {
 
     function _create48Byte() internal pure returns (bytes memory) {
         return abi.encodePacked(bytes32("32"), bytes16("16"));
+    }
+
+    function _newPubkey(uint256 i) internal pure returns (bytes memory) {
+        return abi.encodePacked(bytes32(i), bytes16("16"));
     }
 }

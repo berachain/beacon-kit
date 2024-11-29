@@ -563,8 +563,12 @@ func (sp *StateProcessor[
 
 	var (
 		hysteresisIncrement = sp.cs.EffectiveBalanceIncrement() / sp.cs.HysteresisQuotient()
-		downwardThreshold   = math.Gwei(hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier())
-		upwardThreshold     = math.Gwei(hysteresisIncrement * sp.cs.HysteresisUpwardMultiplier())
+		downwardThreshold   = math.Gwei(
+			hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier(),
+		)
+		upwardThreshold = math.Gwei(
+			hysteresisIncrement * sp.cs.HysteresisUpwardMultiplier(),
+		)
 
 		idx     math.U64
 		balance math.Gwei

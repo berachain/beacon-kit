@@ -7,7 +7,7 @@ interface IDepositContract {
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                           ERRORS                           */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
-    
+
     // Signature: 0xe8966d7a
     error NotEnoughTime();
     // Signature: 0xd92e233d
@@ -63,7 +63,13 @@ interface IDepositContract {
      * @param signature the signature of the deposit message, only checked when creating a new validator.
      * @param index the index of the deposit.
      */
-    event Deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature, uint64 index);
+    event Deposit(
+        bytes pubkey,
+        bytes credentials,
+        uint64 amount,
+        bytes signature,
+        uint64 index
+    );
 
     /**
      * @notice Emitted when the operator change of a validator is queued.
@@ -73,7 +79,10 @@ interface IDepositContract {
      * @param queuedTimestamp The timestamp when the change was queued.
      */
     event OperatorChangeQueued(
-        bytes indexed pubkey, address queuedOperator, address currentOperator, uint256 queuedTimestamp
+        bytes indexed pubkey,
+        address queuedOperator,
+        address currentOperator,
+        uint256 queuedTimestamp
     );
 
     /**
@@ -88,7 +97,9 @@ interface IDepositContract {
      * @param newOperator The new operator address.
      * @param previousOperator The previous operator address.
      */
-    event OperatorUpdated(bytes indexed pubkey, address newOperator, address previousOperator);
+    event OperatorUpdated(
+        bytes indexed pubkey, address newOperator, address previousOperator
+    );
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                            VIEWS                           */
@@ -100,7 +111,10 @@ interface IDepositContract {
      * @param pubkey The pubkey of the validator.
      * @return The operator address for the given pubkey.
      */
-    function getOperator(bytes calldata pubkey) external view returns (address);
+    function getOperator(bytes calldata pubkey)
+        external
+        view
+        returns (address);
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                            WRITES                          */
@@ -132,7 +146,11 @@ interface IDepositContract {
      * @param pubkey The pubkey of the validator.
      * @param newOperator The new operator address.
      */
-    function requestOperatorChange(bytes calldata pubkey, address newOperator) external;
+    function requestOperatorChange(
+        bytes calldata pubkey,
+        address newOperator
+    )
+        external;
 
     /**
      * @notice Cancel the operator change of a validator.

@@ -45,9 +45,11 @@ type SpecData[
 
 	// HysteresisQuotient is the quotient used in effective balance calculations
 	HysteresisQuotient uint64 `mapstructure:"hysteresis-quotient"`
-	// HysteresisDownwardMultiplier is the multiplier for downward balance adjustments.
+	// HysteresisDownwardMultiplier is the multiplier for downward balance
+	// adjustments.
 	HysteresisDownwardMultiplier uint64 `mapstructure:"hysteresis-downward-multiplier"`
-	// HysteresisUpwardMultiplier is the multiplier for upward balance adjustments.
+	// HysteresisUpwardMultiplier is the multiplier for upward balance
+	// adjustments.
 	HysteresisUpwardMultiplier uint64 `mapstructure:"hysteresis-upward-multiplier"`
 	// Time parameters constants.
 	//
