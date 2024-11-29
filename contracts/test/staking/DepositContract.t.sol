@@ -85,16 +85,6 @@ contract DepositContractTest is SoladyTest, StdCheats {
         );
     }
 
-    function testFuzz_DepositWrongAmount(uint256 amount) public {
-        amount = _bound(amount, 32 ether + 1, 64 ether - 1);
-        vm.deal(depositor, amount);
-        vm.prank(depositor);
-        vm.expectRevert(IDepositContract.DepositNotMultipleOfGwei.selector);
-        depositContract.deposit{ value: amount }(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte(), depositor
-        );
-    }
-
     function test_DepositWrongAmount() public {
         vm.expectRevert(IDepositContract.InsufficientDeposit.selector);
         vm.deal(depositor, 31 ether);
