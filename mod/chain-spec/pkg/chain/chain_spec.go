@@ -155,7 +155,11 @@ type Spec[
 
 	// MaxValidatorsPerWithdrawalsSweep returns the maximum number of validators
 	// per withdrawal sweep.
-	MaxValidatorsPerWithdrawalsSweep() uint64
+	MaxValidatorsPerWithdrawalsSweep(
+		isPostUpgrade func(uint64, SlotT) bool,
+		chainID uint64,
+		slot SlotT,
+	) uint64
 
 	// Deneb Values
 
@@ -485,8 +489,15 @@ func (c chainSpec[
 // withdrawals sweep.
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) MaxValidatorsPerWithdrawalsSweep() uint64 {
-	return c.Data.MaxValidatorsPerWithdrawalsSweep
+]) MaxValidatorsPerWithdrawalsSweep(
+	isPostUpgrade func(uint64, SlotT) bool,
+	chainID uint64, slot SlotT,
+) uint64 {
+	if isPostUpgrade(chainID, slot) {
+		return c.Data.MaxValidatorsPerWithdrawalsSweepPostUpgrade
+	} else {
+		return c.Data.MaxValidatorsPerWithdrawalsSweepPreUpgrade
+	}
 }
 
 // MinEpochsForBlobsSidecarsRequest returns the minimum number of epochs for
