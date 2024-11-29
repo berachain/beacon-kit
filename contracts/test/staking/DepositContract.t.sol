@@ -29,7 +29,6 @@ contract DepositContractTest is SoladyTest, StdCheats {
     PermissionedDepositContract internal depositContract;
 
     function setUp() public virtual {
-        
         depositContract = new PermissionedDepositContract(owner);
         vm.prank(owner);
         depositContract.allowDeposit(depositor, 100);
@@ -180,10 +179,7 @@ contract DepositContractTest is SoladyTest, StdCheats {
                 depositCount++
             );
             depositContract.deposit{ value: 32 ether }(
-                _newPubkey(i),
-                STAKING_CREDENTIALS,
-                _create96Byte(),
-                depositor
+                _newPubkey(i), STAKING_CREDENTIALS, _create96Byte(), depositor
             );
             vm.stopPrank();
         }
