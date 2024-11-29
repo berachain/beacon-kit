@@ -586,7 +586,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		rndSeed    = 2024 // seed used to generate unique random value
 	)
 
-	// STEP 0: Setup genesis with GetValidatorSetCapSize validators
+	// STEP 0: Setup genesis with GetValidatorSetCap validators
 	// TODO: consider instead setting state artificially
 	var (
 		genDeposits      = make([]*types.Deposit, 0, cs.GetValidatorSetCap())
@@ -721,7 +721,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		rndSeed    = 2024 // seed used to generate unique random value
 	)
 
-	// STEP 0: Setup genesis with GetValidatorSetCapSize validators
+	// STEP 0: Setup genesis with GetValidatorSetCap validators
 	// TODO: consider instead setting state artificially
 	var (
 		genDeposits      = make([]*types.Deposit, 0, cs.GetValidatorSetCap())

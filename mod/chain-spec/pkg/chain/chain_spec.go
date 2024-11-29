@@ -538,7 +538,7 @@ func (c chainSpec[
 	return c.Data.CometValues
 }
 
-// GetValidatorSetCapS retrieves the maximum number of
+// GetValidatorSetCap retrieves the maximum number of
 // validators allowed in the active set.
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,

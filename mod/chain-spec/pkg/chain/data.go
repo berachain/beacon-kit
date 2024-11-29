@@ -129,8 +129,9 @@ type SpecData[
 	// operations allowed in a single payload.
 	MaxWithdrawalsPerPayload uint64 `mapstructure:"max-withdrawals-per-payload"`
 	// MaxValidatorsPerWithdrawalsSweep specifies the maximum number of
-	// validator
-	// withdrawals allowed per sweep.
+	// validator withdrawals allowed per sweep.
+	// Note: it should be prime with ValidatorSetCap to ensure every validator
+	// is visited eventually.
 	MaxValidatorsPerWithdrawalsSweep uint64 `mapstructure:"max-validators-per-withdrawals-sweep"`
 
 	// Deneb Values
