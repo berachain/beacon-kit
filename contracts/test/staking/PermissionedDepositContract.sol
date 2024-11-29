@@ -39,8 +39,8 @@ contract PermissionedDepositContract is DepositContract, Ownable {
     function deposit(
         bytes calldata pubkey,
         bytes calldata withdrawal_credentials,
-        uint64 amount,
-        bytes calldata signature
+        bytes calldata signature,
+        address operator
     )
         public
         payable
@@ -49,7 +49,7 @@ contract PermissionedDepositContract is DepositContract, Ownable {
         if (depositAuth[msg.sender] == 0) revert UnauthorizedDeposit();
         --depositAuth[msg.sender];
 
-        super.deposit(pubkey, withdrawal_credentials, amount, signature);
+        super.deposit(pubkey, withdrawal_credentials, signature, operator);
     }
 
     function allowDeposit(

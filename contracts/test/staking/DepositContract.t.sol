@@ -33,23 +33,25 @@ contract DepositContractTest is SoladyTest {
     function testFuzz_DepositsWrongPubKey(bytes calldata pubKey) public {
         vm.assume(pubKey.length != 96);
         vm.expectRevert(IDepositContract.InvalidPubKeyLength.selector);
+        vm.deal(depositor, 32 ether);
         vm.prank(depositor);
-        depositContract.deposit(
+        depositContract.deposit{ value: 32 ether }(
             bytes("wrong_public_key"),
             STAKING_CREDENTIALS,
-            32e9,
-            _create96Byte()
+            _create96Byte(),
+            depositor
         );
     }
 
     function test_DepositWrongPubKey() public {
         vm.expectRevert(IDepositContract.InvalidPubKeyLength.selector);
+        vm.deal(depositor, 32 ether);
         vm.prank(depositor);
-        depositContract.deposit(
+        depositContract.deposit{ value: 32 ether }(
             bytes("wrong_public_key"),
             STAKING_CREDENTIALS,
-            32e9,
-            _create96Byte()
+            _create96Byte(),
+            depositor
         );
     }
 
@@ -58,18 +60,20 @@ contract DepositContractTest is SoladyTest {
     {
         vm.assume(credentials.length != 32);
 
+        vm.deal(depositor, 32 ether);
         vm.expectRevert(IDepositContract.InvalidCredentialsLength.selector);
         vm.prank(depositor);
-        depositContract.deposit(
-            _create48Byte(), credentials, 32e9, _create96Byte()
+        depositContract.deposit{ value: 32 ether }(
+            _create48Byte(), credentials, _create96Byte(), depositor
         );
     }
 
     function test_DepositWrongCredentials() public {
         vm.expectRevert(IDepositContract.InvalidCredentialsLength.selector);
+        vm.deal(depositor, 32 ether);
         vm.prank(depositor);
-        depositContract.deposit(
-            VALIDATOR_PUBKEY, bytes("wrong_credentials"), 32e9, _create96Byte()
+        depositContract.deposit{ value: 32 ether }(
+            VALIDATOR_PUBKEY, bytes("wrong_credentials"), _create96Byte(), depositor
         );
     }
 
@@ -78,31 +82,20 @@ contract DepositContractTest is SoladyTest {
         vm.deal(depositor, amount);
         vm.prank(depositor);
         vm.expectRevert(IDepositContract.InsufficientDeposit.selector);
-        depositContract.deposit(
+        depositContract.deposit{ value: amount }(
             VALIDATOR_PUBKEY,
             STAKING_CREDENTIALS,
-            uint64(amount),
-            _create96Byte()
+            _create96Byte(),
+            depositor
         );
     }
 
     function test_DepositWrongAmount() public {
         vm.expectRevert(IDepositContract.InsufficientDeposit.selector);
+        vm.deal(depositor, 31 ether);
         vm.prank(depositor);
-        depositContract.deposit(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32e9 - 1, _create96Byte()
-        );
-    }
-
-    function test_Deposit() public {
-        vm.deal(depositor, 32 ether);
-        vm.prank(depositor);
-        vm.expectEmit(true, true, true, true);
-        emit IDepositContract.Deposit(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32e9, _create96Byte(), 0
-        );
-        depositContract.deposit{ value: 32 ether }(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32e9, _create96Byte()
+        depositContract.deposit{ value: 31 ether }(
+            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte(), depositor
         );
     }
 
@@ -115,7 +108,7 @@ contract DepositContractTest is SoladyTest {
         vm.prank(depositor);
         vm.expectRevert(IDepositContract.InsufficientDeposit.selector);
         depositContract.deposit{ value: amountInGwei }(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
+            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte(), depositor
         );
     }
 
@@ -125,7 +118,7 @@ contract DepositContractTest is SoladyTest {
         vm.prank(depositor);
         vm.expectRevert(IDepositContract.InsufficientDeposit.selector);
         depositContract.deposit{ value: amount }(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
+            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte(), depositor
         );
     }
 
@@ -137,7 +130,7 @@ contract DepositContractTest is SoladyTest {
         vm.prank(depositor);
         vm.expectRevert(IDepositContract.DepositNotMultipleOfGwei.selector);
         depositContract.deposit{ value: amount }(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
+            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte(), depositor
         );
     }
 
@@ -147,7 +140,7 @@ contract DepositContractTest is SoladyTest {
         vm.expectRevert(IDepositContract.DepositNotMultipleOfGwei.selector);
         vm.prank(depositor);
         depositContract.deposit{ value: amount }(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
+            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte(), depositor
         );
 
         amount = 32e9 - 1;
@@ -155,7 +148,7 @@ contract DepositContractTest is SoladyTest {
         vm.expectRevert(IDepositContract.DepositNotMultipleOfGwei.selector);
         vm.prank(depositor);
         depositContract.deposit{ value: amount }(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
+            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte(), depositor
         );
     }
 
@@ -167,7 +160,7 @@ contract DepositContractTest is SoladyTest {
             VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32 gwei, _create96Byte(), 0
         );
         depositContract.deposit{ value: 32 ether }(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
+            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte(), depositor
         );
     }
 
@@ -186,7 +179,7 @@ contract DepositContractTest is SoladyTest {
                 depositCount
             );
             depositContract.deposit{ value: 32 ether }(
-                VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
+                VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte(), depositor
             );
             ++depositCount;
         }
