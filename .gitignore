@@ -231,3 +231,6 @@ coverage-test-unit-cover.txt
 
 # server dev env for Air
 .air.toml
+
+# nix
+result
