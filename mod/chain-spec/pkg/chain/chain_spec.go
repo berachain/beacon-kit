@@ -495,9 +495,9 @@ func (c chainSpec[
 ) uint64 {
 	if isPostUpgrade(chainID, slot) {
 		return c.Data.MaxValidatorsPerWithdrawalsSweepPostUpgrade
-	} else {
-		return c.Data.MaxValidatorsPerWithdrawalsSweepPreUpgrade
 	}
+
+	return c.Data.MaxValidatorsPerWithdrawalsSweepPreUpgrade
 }
 
 // MinEpochsForBlobsSidecarsRequest returns the minimum number of epochs for

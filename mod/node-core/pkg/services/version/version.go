@@ -122,7 +122,8 @@ func (rs *ReportingService[_, _]) Start(ctx context.Context) error {
 		for {
 			select {
 			case <-ticker.C:
-				// since the eth client can be updated separately for beacon node
+				// since the eth client can be updated separately for beacon
+				// node
 				// we need to fetch the version every time
 				ethVersion, err = rs.GetEthVersion(ctx)
 				if err != nil {
@@ -175,7 +176,10 @@ func (rs *ReportingService[_, _]) GetEthVersion(
 		// Get the client version from the execution layer.
 		info, err := rs.client.GetClientVersionV1(ctx)
 		if err != nil {
-			return ethVersion, fmt.Errorf("failed to get client version: %w", err)
+			return ethVersion, fmt.Errorf(
+				"failed to get client version: %w",
+				err,
+			)
 		}
 
 		// the spec says we should have at least one client version
