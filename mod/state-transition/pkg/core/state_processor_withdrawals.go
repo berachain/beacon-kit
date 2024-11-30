@@ -80,6 +80,13 @@ func (sp *StateProcessor[
 
 	// Common validations
 	if len(expectedWithdrawals) != len(payloadWithdrawals) {
+		for i, wd := range expectedWithdrawals {
+			fmt.Printf("expectedWithdrawal %d: %s\n", i, spew.Sdump(wd))
+		}
+		for i, wd := range payloadWithdrawals {
+			fmt.Printf("payloadWithdrawal %d: %s\n", i, spew.Sdump(wd))
+		}
+
 		return errors.Wrapf(
 			ErrNumWithdrawalsMismatch,
 			"withdrawals do not match expected length %d, got %d",
