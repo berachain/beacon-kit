@@ -55,19 +55,19 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	epoch := sp.cs.SlotToEpoch(slot)
+	epoch := sp.cs.GetSlotToEpoch(slot)
 	body := blk.GetBody()
 
 	var fd ForkDataT
 	fd = fd.New(
 		version.FromUint32[common.Version](
-			sp.cs.ActiveForkVersionForEpoch(epoch),
+			sp.cs.GetActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,
 	)
 
 	if !ctx.GetSkipValidateRandao() {
 		signingRoot := fd.ComputeRandaoSigningRoot(
-			sp.cs.DomainTypeRandao(), epoch,
+			sp.cs.GetDomainTypeRandao(), epoch,
 		)
 		reveal := body.GetRandaoReveal()
 		if err = sp.signer.VerifySignature(
@@ -80,14 +80,14 @@ func (sp *StateProcessor[
 	}
 
 	prevMix, err := st.GetRandaoMixAtIndex(
-		epoch.Unwrap() % sp.cs.EpochsPerHistoricalVector(),
+		epoch.Unwrap() % sp.cs.GetEpochsPerHistoricalVector(),
 	)
 	if err != nil {
 		return err
 	}
 
 	return st.UpdateRandaoMixAtIndex(
-		epoch.Unwrap()%sp.cs.EpochsPerHistoricalVector(),
+		epoch.Unwrap()%sp.cs.GetEpochsPerHistoricalVector(),
 		sp.buildRandaoMix(prevMix, body.GetRandaoReveal()),
 	)
 }
@@ -106,15 +106,15 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	epoch := sp.cs.SlotToEpoch(slot)
+	epoch := sp.cs.GetSlotToEpoch(slot)
 	mix, err := st.GetRandaoMixAtIndex(
-		epoch.Unwrap() % sp.cs.EpochsPerHistoricalVector(),
+		epoch.Unwrap() % sp.cs.GetEpochsPerHistoricalVector(),
 	)
 	if err != nil {
 		return err
 	}
 	return st.UpdateRandaoMixAtIndex(
-		(epoch.Unwrap()+1)%sp.cs.EpochsPerHistoricalVector(),
+		(epoch.Unwrap()+1)%sp.cs.GetEpochsPerHistoricalVector(),
 		mix,
 	)
 }

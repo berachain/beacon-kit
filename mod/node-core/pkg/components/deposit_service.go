@@ -97,7 +97,7 @@ func ProvideDepositService[
 		ExecutionPayloadT,
 	](
 		in.Logger.With("service", "deposit"),
-		math.U64(in.ChainSpec.Eth1FollowDistance()),
+		math.U64(in.ChainSpec.GetEth1FollowDistance()),
 		in.TelemetrySink,
 		in.DepositStore,
 		in.BeaconDepositContract,

@@ -36,16 +36,16 @@ func BuildPruneRangeFn[
 ](cs common.ChainSpec) func(async.Event[BeaconBlockT]) (uint64, uint64) {
 	return func(event async.Event[BeaconBlockT]) (uint64, uint64) {
 		deposits := event.Data().GetBody().GetDeposits()
-		if len(deposits) == 0 || cs.MaxDepositsPerBlock() == 0 {
+		if len(deposits) == 0 || cs.GetMaxDepositsPerBlock() == 0 {
 			return 0, 0
 		}
 		index := deposits[len(deposits)-1].GetIndex()
 
-		end := min(index.Unwrap(), cs.MaxDepositsPerBlock())
-		if index < math.U64(cs.MaxDepositsPerBlock()) {
+		end := min(index.Unwrap(), cs.GetMaxDepositsPerBlock())
+		if index < math.U64(cs.GetMaxDepositsPerBlock()) {
 			return 0, end
 		}
 
-		return index.Unwrap() - cs.MaxDepositsPerBlock(), end
+		return index.Unwrap() - cs.GetMaxDepositsPerBlock(), end
 	}
 }

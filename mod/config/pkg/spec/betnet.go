@@ -34,7 +34,7 @@ func BetnetChainSpec() (chain.Spec[
 	math.Slot,
 	any,
 ], error) {
-	testnetSpec := BaseSpec()
-	testnetSpec.DepositEth1ChainID = BetnetEth1ChainID
-	return chain.NewChainSpec(testnetSpec)
+	betnetSpec := CommonSpec()
+	betnetSpec.DepositEth1ChainID = BetnetEth1ChainID
+	return betnetSpec, betnetSpec.Validate()
 }

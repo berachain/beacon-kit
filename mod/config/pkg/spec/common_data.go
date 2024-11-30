@@ -21,7 +21,6 @@
 package spec
 
 import (
-	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -34,10 +33,10 @@ const (
 	DefaultDepositContractAddress = "0x4242424242424242424242424242424242424242"
 )
 
-// BaseSpec returns a chain spec with default values.
+// CommonSpec returns a chain spec with default values.
 //
 //nolint:mnd // bet.
-func BaseSpec() chain.SpecData[
+func CommonSpec() Common[
 	common.DomainType,
 	math.Epoch,
 	common.ExecutionAddress,
@@ -47,7 +46,7 @@ func BaseSpec() chain.SpecData[
 	cmtConsensusParams := cmttypes.DefaultConsensusParams()
 	cmtConsensusParams.Validator.PubKeyTypes = []string{crypto.CometBLSType}
 
-	return chain.SpecData[
+	return Common[
 		common.DomainType,
 		math.Epoch,
 		common.ExecutionAddress,

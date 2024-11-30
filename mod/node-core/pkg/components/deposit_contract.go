@@ -70,7 +70,7 @@ func ProvideBeaconDepositContract[
 		DepositT,
 		WithdrawalCredentials,
 	](
-		in.ChainSpec.DepositContractAddress(),
+		in.ChainSpec.GetDepositContractAddress(),
 		in.EngineClient,
 	)
 }

@@ -75,7 +75,7 @@ func (pb *PayloadBuilder[
 				FinalizedBlockHash: finalEth1BlockHash,
 			},
 			PayloadAttributes: attrs,
-			ForkVersion:       pb.chainSpec.ActiveForkVersionForSlot(slot),
+			ForkVersion:       pb.chainSpec.GetActiveForkVersionForSlot(slot),
 		},
 	)
 	if err != nil {
@@ -247,7 +247,7 @@ func (pb *PayloadBuilder[
 				FinalizedBlockHash: lph.GetParentHash(),
 			},
 			PayloadAttributes: attrs,
-			ForkVersion:       pb.chainSpec.ActiveForkVersionForSlot(slot),
+			ForkVersion:       pb.chainSpec.GetActiveForkVersionForSlot(slot),
 		},
 	)
 	return err
@@ -265,7 +265,7 @@ func (pb *PayloadBuilder[
 		ctx,
 		&engineprimitives.GetPayloadRequest[PayloadIDT]{
 			PayloadID:   payloadID,
-			ForkVersion: pb.chainSpec.ActiveForkVersionForSlot(slot),
+			ForkVersion: pb.chainSpec.GetActiveForkVersionForSlot(slot),
 		},
 	)
 	if err != nil {

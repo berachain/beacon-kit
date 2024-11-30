@@ -68,7 +68,7 @@ func ProvideEngineClient[
 		in.Logger.With("service", "engine.client"),
 		in.JWTSecret,
 		in.TelemetrySink,
-		new(big.Int).SetUint64(in.ChainSpec.DepositEth1ChainID()),
+		new(big.Int).SetUint64(in.ChainSpec.GetDepositEth1ChainID()),
 	)
 }
 

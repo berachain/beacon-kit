@@ -209,7 +209,7 @@ func (h *ABCIMiddleware[
 		UnmarshalBeaconBlockFromABCIRequest[BeaconBlockT](
 		req,
 		BeaconBlockTxIndex,
-		h.chainSpec.ActiveForkVersionForSlot(math.U64(req.Height)),
+		h.chainSpec.GetActiveForkVersionForSlot(math.U64(req.Height)),
 	)
 	if err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
@@ -332,7 +332,7 @@ func (h *ABCIMiddleware[
 		req,
 		BeaconBlockTxIndex,
 		BlobSidecarsTxIndex,
-		h.chainSpec.ActiveForkVersionForSlot(
+		h.chainSpec.GetActiveForkVersionForSlot(
 			math.Slot(req.Height),
 		))
 	if err != nil {

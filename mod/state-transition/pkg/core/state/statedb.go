@@ -209,10 +209,10 @@ func (s *StateDB[
 
 	// Handle special cases wherever it's necessary
 	switch {
-	case s.cs.DepositEth1ChainID() == spec.BartioChainID:
+	case s.cs.GetDepositEth1ChainID() == spec.BartioChainID:
 		// nothing special to do
 
-	case s.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
+	case s.cs.GetDepositEth1ChainID() == spec.BoonetEth1ChainID &&
 		slot == math.U64(spec.BoonetFork1Height):
 		// Slot used to emergency mint EVM tokens on Boonet.
 		withdrawals = append(withdrawals, withdrawal.New(
@@ -223,7 +223,7 @@ func (s *StateDB[
 		))
 		return withdrawals, nil
 
-	case s.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
+	case s.cs.GetDepositEth1ChainID() == spec.BoonetEth1ChainID &&
 		slot < math.U64(spec.BoonetFork2Height):
 		// Boonet inherited the Bartio behaviour pre BoonetFork2Height
 		// nothing specific to do
@@ -233,7 +233,7 @@ func (s *StateDB[
 		withdrawals = append(withdrawals, s.EVMInflationWithdrawal())
 	}
 
-	epoch := math.Epoch(slot.Unwrap() / s.cs.SlotsPerEpoch())
+	epoch := math.Epoch(slot.Unwrap() / s.cs.GetSlotsPerEpoch())
 
 	withdrawalIndex, err := s.GetNextWithdrawalIndex()
 	if err != nil {
@@ -251,7 +251,7 @@ func (s *StateDB[
 	}
 
 	bound := min(
-		totalValidators, s.cs.MaxValidatorsPerWithdrawalsSweep(),
+		totalValidators, s.cs.GetMaxValidatorsPerWithdrawalsSweep(),
 	)
 
 	// Iterate through indices to find the next validators to withdraw.
@@ -286,18 +286,18 @@ func (s *StateDB[
 			// Increment the withdrawal index to process the next withdrawal.
 			withdrawalIndex++
 		} else if validator.IsPartiallyWithdrawable(
-			balance, math.Gwei(s.cs.MaxEffectiveBalance()),
+			balance, math.Gwei(s.cs.GetMaxEffectiveBalance()),
 		) {
 			withdrawals = append(withdrawals, withdrawal.New(
 				math.U64(withdrawalIndex),
 				validatorIndex,
 				withdrawalAddress,
-				balance-math.Gwei(s.cs.MaxEffectiveBalance()),
+				balance-math.Gwei(s.cs.GetMaxEffectiveBalance()),
 			))
 
 			// Increment the withdrawal index to process the next withdrawal.
 			withdrawalIndex++
-		} else if s.cs.DepositEth1ChainID() == spec.BartioChainID {
+		} else if s.cs.GetDepositEth1ChainID() == spec.BartioChainID {
 			// Backward compatibility with Bartio
 			// TODO: Drop this when we drop other Bartio special cases.
 			withdrawal = withdrawal.New(
@@ -312,7 +312,7 @@ func (s *StateDB[
 		}
 
 		// Cap the number of withdrawals to the maximum allowed per payload.
-		if uint64(len(withdrawals)) == s.cs.MaxWithdrawalsPerPayload() {
+		if uint64(len(withdrawals)) == s.cs.GetMaxWithdrawalsPerPayload() {
 			break
 		}
 
@@ -336,8 +336,8 @@ func (s *StateDB[
 	return withdrawal.New(
 		EVMInflationWithdrawalIndex,
 		EVMInflationWithdrawalValidatorIndex,
-		s.cs.EVMInflationAddress(),
-		math.Gwei(s.cs.EVMInflationPerBlock()),
+		s.cs.GetEVMInflationAddress(),
+		math.Gwei(s.cs.GetEVMInflationPerBlock()),
 	)
 }
 
@@ -369,16 +369,16 @@ func (s *StateDB[
 		return empty, err
 	}
 
-	blockRoots := make([]common.Root, s.cs.SlotsPerHistoricalRoot())
-	for i := range s.cs.SlotsPerHistoricalRoot() {
+	blockRoots := make([]common.Root, s.cs.GetSlotsPerHistoricalRoot())
+	for i := range s.cs.GetSlotsPerHistoricalRoot() {
 		blockRoots[i], err = s.GetBlockRootAtIndex(i)
 		if err != nil {
 			return empty, err
 		}
 	}
 
-	stateRoots := make([]common.Root, s.cs.SlotsPerHistoricalRoot())
-	for i := range s.cs.SlotsPerHistoricalRoot() {
+	stateRoots := make([]common.Root, s.cs.GetSlotsPerHistoricalRoot())
+	for i := range s.cs.GetSlotsPerHistoricalRoot() {
 		stateRoots[i], err = s.StateRootAtIndex(i)
 		if err != nil {
 			return empty, err
@@ -410,8 +410,8 @@ func (s *StateDB[
 		return empty, err
 	}
 
-	randaoMixes := make([]common.Bytes32, s.cs.EpochsPerHistoricalVector())
-	for i := range s.cs.EpochsPerHistoricalVector() {
+	randaoMixes := make([]common.Bytes32, s.cs.GetEpochsPerHistoricalVector())
+	for i := range s.cs.GetEpochsPerHistoricalVector() {
 		randaoMixes[i], err = s.GetRandaoMixAtIndex(i)
 		if err != nil {
 			return empty, err
@@ -440,7 +440,7 @@ func (s *StateDB[
 
 	// TODO: Properly move BeaconState into full generics.
 	return (*new(BeaconStateMarshallableT)).New(
-		s.cs.ActiveForkVersionForSlot(slot),
+		s.cs.GetActiveForkVersionForSlot(slot),
 		genesisValidatorsRoot,
 		slot,
 		fork,

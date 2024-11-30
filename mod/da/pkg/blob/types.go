@@ -82,7 +82,7 @@ type Sidecars[SidecarT any] interface {
 
 // ChainSpec represents a chain spec.
 type ChainSpec interface {
-	MaxBlobCommitmentsPerBlock() uint64
+	GetMaxBlobCommitmentsPerBlock() uint64
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.

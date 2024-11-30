@@ -128,7 +128,7 @@ func (sp *StateProcessor[
 	// When we are verifying a payload we expect that it was produced by
 	// the proposer for the slot that it is for.
 	expectedMix, err := st.GetRandaoMixAtIndex(
-		sp.cs.SlotToEpoch(slot.Unwrap()) % sp.cs.EpochsPerHistoricalVector())
+		sp.cs.GetSlotToEpoch(slot.Unwrap()) % sp.cs.GetEpochsPerHistoricalVector())
 	if err != nil {
 		return err
 	}
@@ -156,11 +156,11 @@ func (sp *StateProcessor[
 
 	// Verify the number of blobs.
 	blobKzgCommitments := body.GetBlobKzgCommitments()
-	if uint64(len(blobKzgCommitments)) > sp.cs.MaxBlobsPerBlock() {
+	if uint64(len(blobKzgCommitments)) > sp.cs.GetMaxBlobsPerBlock() {
 		return errors.Wrapf(
 			ErrExceedsBlockBlobLimit,
 			"expected: %d, got: %d",
-			sp.cs.MaxBlobsPerBlock(), len(blobKzgCommitments),
+			sp.cs.GetMaxBlobsPerBlock(), len(blobKzgCommitments),
 		)
 	}
 
@@ -168,11 +168,11 @@ func (sp *StateProcessor[
 	// TODO: This is in the wrong spot I think.
 	if withdrawals := payload.GetWithdrawals(); uint64(
 		len(payload.GetWithdrawals()),
-	) > sp.cs.MaxWithdrawalsPerPayload() {
+	) > sp.cs.GetMaxWithdrawalsPerPayload() {
 		return errors.Wrapf(
 			ErrExceedMaximumWithdrawals,
 			"too many withdrawals, expected: %d, got: %d",
-			sp.cs.MaxWithdrawalsPerPayload(), len(withdrawals),
+			sp.cs.GetMaxWithdrawalsPerPayload(), len(withdrawals),
 		)
 	}
 	return nil

@@ -29,7 +29,7 @@ func BuildPruneRangeFn[BeaconBlockT BeaconBlock](
 	cs common.ChainSpec,
 ) func(async.Event[BeaconBlockT]) (uint64, uint64) {
 	return func(event async.Event[BeaconBlockT]) (uint64, uint64) {
-		window := cs.MinEpochsForBlobsSidecarsRequest() * cs.SlotsPerEpoch()
+		window := cs.GetMinEpochsForBlobsSidecarsRequest() * cs.GetSlotsPerEpoch()
 		if event.Data().GetSlot().Unwrap() < window {
 			return 0, 0
 		}

@@ -103,7 +103,7 @@ func createValidatorCmd[
 		// Create and sign the deposit message.
 		depositMsg, signature, err := types.CreateAndSignDepositMessage(
 			types.NewForkData(currentVersion, genesisValidatorRoot),
-			chainSpec.DomainTypeDeposit(),
+			chainSpec.GetDomainTypeDeposit(),
 			blsSigner,
 			credentials,
 			amount,
@@ -116,7 +116,7 @@ func createValidatorCmd[
 		if err = depositMsg.VerifyCreateValidator(
 			types.NewForkData(currentVersion, genesisValidatorRoot),
 			signature,
-			chainSpec.DomainTypeDeposit(),
+			chainSpec.GetDomainTypeDeposit(),
 			signer.BLSSigner{}.VerifySignature,
 		); err != nil {
 			return err

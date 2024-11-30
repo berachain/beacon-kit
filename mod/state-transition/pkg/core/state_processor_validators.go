@@ -41,7 +41,7 @@ func (sp *StateProcessor[
 	}
 	activeVals := make([]ValidatorT, 0, len(vals))
 	for _, val := range vals {
-		if val.GetEffectiveBalance() > math.U64(sp.cs.EjectionBalance()) {
+		if val.GetEffectiveBalance() > math.U64(sp.cs.GetEjectionBalance()) {
 			activeVals = append(activeVals, val)
 		}
 	}
@@ -57,7 +57,7 @@ func (sp *StateProcessor[
 
 	// prevEpoch is calculated assuming current block
 	// will turn epoch but we have not update slot yet
-	prevEpoch := sp.cs.SlotToEpoch(slot)
+	prevEpoch := sp.cs.GetSlotToEpoch(slot)
 	currEpoch := prevEpoch + 1
 	if slot == 0 {
 		currEpoch = 0 // prevEpoch for genesis is zero

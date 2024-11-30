@@ -18,12 +18,12 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package chain_test
+package spec_test
 
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/stretchr/testify/require"
 )
@@ -40,17 +40,15 @@ type (
 // TODO: Add setupValid, setupInvalid functions and use in each test.
 
 // Create an instance of chainSpec with test data.
-var spec, _ = chain.NewChainSpec(
-	chain.SpecData[
-		domainType, epoch, executionAddress, slot, cometBFTConfig,
-	]{
-		DenebPlusForkEpoch:               9,
-		ElectraForkEpoch:                 10,
-		SlotsPerEpoch:                    32,
-		MinEpochsForBlobsSidecarsRequest: 5,
-		MaxWithdrawalsPerPayload:         2,
-	},
-)
+var testSpec = spec.Common[
+	domainType, epoch, executionAddress, slot, cometBFTConfig,
+]{
+	DenebPlusForkEpoch:               9,
+	ElectraForkEpoch:                 10,
+	SlotsPerEpoch:                    32,
+	MinEpochsForBlobsSidecarsRequest: 5,
+	MaxWithdrawalsPerPayload:         2,
+}
 
 // TestActiveForkVersionForEpoch tests the ActiveForkVersionForEpoch method.
 func TestActiveForkVersionForEpoch(t *testing.T) {
@@ -68,7 +66,7 @@ func TestActiveForkVersionForEpoch(t *testing.T) {
 	// Run test cases
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := spec.ActiveForkVersionForEpoch(tt.epoch)
+			result := testSpec.GetActiveForkVersionForEpoch(tt.epoch)
 			require.Equal(t, tt.expected, result, "Test case : %s", tt.name)
 		})
 	}
@@ -93,7 +91,7 @@ func TestSlotToEpoch(t *testing.T) {
 	// Run test cases
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := spec.SlotToEpoch(tt.slot)
+			result := testSpec.GetSlotToEpoch(tt.slot)
 			require.Equal(t, tt.expected, result, "Test case : %s", tt.name)
 		})
 	}
@@ -120,7 +118,7 @@ func TestActiveForkVersionForSlot(t *testing.T) {
 	// Run test cases
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := spec.ActiveForkVersionForSlot(tt.slot)
+			result := testSpec.GetActiveForkVersionForSlot(tt.slot)
 			require.Equal(t, tt.expected, result, "Test case : %s", tt.name)
 		})
 	}
@@ -153,7 +151,7 @@ func TestWithinDAPeriod(t *testing.T) {
 	// Run test cases
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := spec.WithinDAPeriod(tt.block, tt.current)
+			result := testSpec.GetWithinDAPeriod(tt.block, tt.current)
 			require.Equal(t, tt.expected, result, "Test case : %s", tt.name)
 		})
 	}

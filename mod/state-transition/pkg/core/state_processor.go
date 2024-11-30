@@ -238,7 +238,7 @@ func (sp *StateProcessor[
 		}
 
 		// Handle special cases
-		if sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
+		if sp.cs.GetDepositEth1ChainID() == spec.BoonetEth1ChainID &&
 			slot == math.U64(spec.BoonetFork2Height) {
 			var idx uint64
 			idx, err = st.GetEth1DepositIndex()
@@ -255,7 +255,7 @@ func (sp *StateProcessor[
 		}
 
 		// Process the Epoch Boundary.
-		boundary := (stateSlot.Unwrap()+1)%sp.cs.SlotsPerEpoch() == 0
+		boundary := (stateSlot.Unwrap()+1)%sp.cs.GetSlotsPerEpoch() == 0
 		if boundary {
 			var epochUpdates transition.ValidatorUpdates
 			if epochUpdates, err = sp.processEpoch(st); err != nil {
@@ -288,7 +288,7 @@ func (sp *StateProcessor[
 	// Before we make any changes, we calculate the previous state root.
 	prevStateRoot := st.HashTreeRoot()
 	if err = st.UpdateStateRootAtIndex(
-		stateSlot.Unwrap()%sp.cs.SlotsPerHistoricalRoot(), prevStateRoot,
+		stateSlot.Unwrap()%sp.cs.GetSlotsPerHistoricalRoot(), prevStateRoot,
 	); err != nil {
 		return err
 	}
@@ -311,7 +311,7 @@ func (sp *StateProcessor[
 
 	// We update the block root.
 	return st.UpdateBlockRootAtIndex(
-		stateSlot.Unwrap()%sp.cs.SlotsPerHistoricalRoot(),
+		stateSlot.Unwrap()%sp.cs.GetSlotsPerHistoricalRoot(),
 		latestHeader.HashTreeRoot(),
 	)
 }
@@ -499,7 +499,7 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	if sp.cs.SlotToEpoch(slot) == math.U64(constants.GenesisEpoch) {
+	if sp.cs.GetSlotToEpoch(slot) == math.U64(constants.GenesisEpoch) {
 		return nil
 	}
 
@@ -562,9 +562,9 @@ func (sp *StateProcessor[
 	}
 
 	var (
-		hysteresisIncrement = sp.cs.EffectiveBalanceIncrement() / sp.cs.HysteresisQuotient()
-		downwardThreshold   = math.Gwei(hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier())
-		upwardThreshold     = math.Gwei(hysteresisIncrement * sp.cs.HysteresisUpwardMultiplier())
+		hysteresisIncrement = sp.cs.GetEffectiveBalanceIncrement() / sp.cs.GetHysteresisQuotient()
+		downwardThreshold   = math.Gwei(hysteresisIncrement * sp.cs.GetHysteresisDownwardMultiplier())
+		upwardThreshold     = math.Gwei(hysteresisIncrement * sp.cs.GetHysteresisUpwardMultiplier())
 
 		idx     math.U64
 		balance math.Gwei
@@ -585,8 +585,8 @@ func (sp *StateProcessor[
 			val.GetEffectiveBalance()+upwardThreshold < balance {
 			updatedBalance := types.ComputeEffectiveBalance(
 				balance,
-				math.U64(sp.cs.EffectiveBalanceIncrement()),
-				math.U64(sp.cs.MaxEffectiveBalance()),
+				math.U64(sp.cs.GetEffectiveBalanceIncrement()),
+				math.U64(sp.cs.GetMaxEffectiveBalance()),
 			)
 			val.SetEffectiveBalance(updatedBalance)
 			if err = st.UpdateValidatorAtIndex(idx, val); err != nil {

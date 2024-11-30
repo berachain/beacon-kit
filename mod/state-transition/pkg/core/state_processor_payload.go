@@ -126,21 +126,21 @@ func (sp *StateProcessor[
 
 	// Verify the number of withdrawals.
 	withdrawals := payload.GetWithdrawals()
-	if uint64(len(withdrawals)) > sp.cs.MaxWithdrawalsPerPayload() {
+	if uint64(len(withdrawals)) > sp.cs.GetMaxWithdrawalsPerPayload() {
 		return errors.Wrapf(
 			ErrExceedMaximumWithdrawals,
 			"too many withdrawals, expected: %d, got: %d",
-			sp.cs.MaxWithdrawalsPerPayload(), len(withdrawals),
+			sp.cs.GetMaxWithdrawalsPerPayload(), len(withdrawals),
 		)
 	}
 
 	// Verify the number of blobs.
 	blobKzgCommitments := body.GetBlobKzgCommitments()
-	if uint64(len(blobKzgCommitments)) > sp.cs.MaxBlobsPerBlock() {
+	if uint64(len(blobKzgCommitments)) > sp.cs.GetMaxBlobsPerBlock() {
 		return errors.Wrapf(
 			ErrExceedsBlockBlobLimit,
 			"expected: %d, got: %d",
-			sp.cs.MaxBlobsPerBlock(), len(blobKzgCommitments),
+			sp.cs.GetMaxBlobsPerBlock(), len(blobKzgCommitments),
 		)
 	}
 
@@ -168,7 +168,7 @@ func (sp *StateProcessor[
 
 	// We skip timestamp check on Bartio for backward compatibility reasons
 	// TODO: enforce the check when we drop other Bartio special cases.
-	if sp.cs.DepositEth1ChainID() != spec.BartioChainID {
+	if sp.cs.GetDepositEth1ChainID() != spec.BartioChainID {
 		if err = payloadtime.Verify(
 			consensusTime,
 			lph.GetTimestamp(),
@@ -208,7 +208,7 @@ func (sp *StateProcessor[
 	}
 
 	expectedMix, err := st.GetRandaoMixAtIndex(
-		sp.cs.SlotToEpoch(slot).Unwrap() % sp.cs.EpochsPerHistoricalVector())
+		sp.cs.GetSlotToEpoch(slot).Unwrap() % sp.cs.GetEpochsPerHistoricalVector())
 	if err != nil {
 		return err
 	}

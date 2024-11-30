@@ -72,7 +72,7 @@ func (f *Factory[
 	var (
 		prevRandao [32]byte
 		attributes PayloadAttributesT
-		epoch      = f.chainSpec.SlotToEpoch(slot)
+		epoch      = f.chainSpec.GetSlotToEpoch(slot)
 	)
 
 	// Get the expected withdrawals to include in this payload.
@@ -88,13 +88,13 @@ func (f *Factory[
 
 	// Get the previous randao mix.
 	if prevRandao, err = st.GetRandaoMixAtIndex(
-		epoch.Unwrap() % f.chainSpec.EpochsPerHistoricalVector(),
+		epoch.Unwrap() % f.chainSpec.GetEpochsPerHistoricalVector(),
 	); err != nil {
 		return attributes, err
 	}
 
 	return attributes.New(
-		f.chainSpec.ActiveForkVersionForEpoch(epoch),
+		f.chainSpec.GetActiveForkVersionForEpoch(epoch),
 		timestamp,
 		prevRandao,
 		f.suggestedFeeRecipient,

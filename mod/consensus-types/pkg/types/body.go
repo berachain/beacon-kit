@@ -74,9 +74,9 @@ func BlockBodyKZGOffset(
 	slot math.Slot,
 	cs common.ChainSpec,
 ) uint64 {
-	switch cs.ActiveForkVersionForSlot(slot) {
+	switch cs.GetActiveForkVersionForSlot(slot) {
 	case version.Deneb:
-		return KZGMerkleIndexDeneb * cs.MaxBlobCommitmentsPerBlock()
+		return KZGMerkleIndexDeneb * cs.GetMaxBlobCommitmentsPerBlock()
 	default:
 		panic(ErrForkVersionNotSupported)
 	}

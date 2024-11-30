@@ -85,7 +85,7 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	for i := range sp.cs.EpochsPerHistoricalVector() {
+	for i := range sp.cs.GetEpochsPerHistoricalVector() {
 		if err := st.UpdateRandaoMixAtIndex(
 			i,
 			common.Bytes32(execPayloadHeader.GetBlockHash()),
@@ -105,7 +105,7 @@ func (sp *StateProcessor[
 
 	// Handle special case bartio genesis.
 	validatorsRoot := common.Root(hex.MustToBytes(spec.BartioValRoot))
-	if sp.cs.DepositEth1ChainID() != spec.BartioChainID {
+	if sp.cs.GetDepositEth1ChainID() != spec.BartioChainID {
 		validators, err := st.GetValidators()
 		if err != nil {
 			return nil, err
@@ -121,7 +121,7 @@ func (sp *StateProcessor[
 	}
 
 	// Setup a bunch of 0s to prime the DB.
-	for i := range sp.cs.HistoricalRootsLimit() {
+	for i := range sp.cs.GetHistoricalRootsLimit() {
 		//#nosec:G701 // won't overflow in practice.
 		if err := st.UpdateBlockRootAtIndex(i, common.Root{}); err != nil {
 			return nil, err

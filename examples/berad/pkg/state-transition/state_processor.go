@@ -242,7 +242,7 @@ func (sp *StateProcessor[
 	// Before we make any changes, we calculate the previous state root.
 	prevStateRoot := st.HashTreeRoot()
 	if err = st.UpdateStateRootAtIndex(
-		stateSlot.Unwrap()%sp.cs.SlotsPerHistoricalRoot(), prevStateRoot,
+		stateSlot.Unwrap()%sp.cs.GetSlotsPerHistoricalRoot(), prevStateRoot,
 	); err != nil {
 		return err
 	}
@@ -265,7 +265,7 @@ func (sp *StateProcessor[
 
 	// We update the block root.
 	return st.UpdateBlockRootAtIndex(
-		stateSlot.Unwrap()%sp.cs.SlotsPerHistoricalRoot(),
+		stateSlot.Unwrap()%sp.cs.GetSlotsPerHistoricalRoot(),
 		latestHeader.HashTreeRoot(),
 	)
 }
@@ -401,10 +401,10 @@ func (sp *StateProcessor[
 	// Ensure the block is within the acceptable range.
 	// TODO: move this is in the wrong spot.
 	deposits := blk.GetBody().GetDeposits()
-	if uint64(len(deposits)) > sp.cs.MaxDepositsPerBlock() {
+	if uint64(len(deposits)) > sp.cs.GetMaxDepositsPerBlock() {
 		return errors.Wrapf(ErrExceedsBlockDepositLimit,
 			"expected: %d, got: %d",
-			sp.cs.MaxDepositsPerBlock(), len(deposits),
+			sp.cs.GetMaxDepositsPerBlock(), len(deposits),
 		)
 	}
 
@@ -481,7 +481,7 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	if sp.cs.SlotToEpoch(slot.Unwrap()) == constants.GenesisEpoch {
+	if sp.cs.GetSlotToEpoch(slot.Unwrap()) == constants.GenesisEpoch {
 		return nil
 	}
 

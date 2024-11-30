@@ -34,8 +34,8 @@ func (b Backend[
 	}
 	// Infer the epoch if not provided.
 	if epoch == 0 {
-		epoch = b.cs.SlotToEpoch(slot)
+		epoch = b.cs.GetSlotToEpoch(slot)
 	}
-	index := epoch.Unwrap() % b.cs.EpochsPerHistoricalVector()
+	index := epoch.Unwrap() % b.cs.GetEpochsPerHistoricalVector()
 	return st.GetRandaoMixAtIndex(index)
 }

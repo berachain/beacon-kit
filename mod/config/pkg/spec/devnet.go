@@ -44,11 +44,11 @@ func DevnetChainSpec() (chain.Spec[
 	math.Slot,
 	any,
 ], error) {
-	devnetSpec := BaseSpec()
+	devnetSpec := CommonSpec()
 	devnetSpec.DepositEth1ChainID = DevnetEth1ChainID
 	devnetSpec.EVMInflationAddress = common.NewExecutionAddressFromHex(
 		DevnetEVMInflationAddress,
 	)
 	devnetSpec.EVMInflationPerBlock = DevnetEVMInflationPerBlock
-	return chain.NewChainSpec(devnetSpec)
+	return devnetSpec, devnetSpec.Validate()
 }

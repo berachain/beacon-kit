@@ -44,10 +44,10 @@ func (sp *StateProcessor[
 	// state.eth1_data.deposit_count - state.eth1_deposit_index)
 	// Instead we directly compare block deposits with store ones.
 	deposits := blk.GetBody().GetDeposits()
-	if uint64(len(deposits)) > sp.cs.MaxDepositsPerBlock() {
+	if uint64(len(deposits)) > sp.cs.GetMaxDepositsPerBlock() {
 		return errors.Wrapf(
 			ErrExceedsBlockDepositLimit, "expected: %d, got: %d",
-			sp.cs.MaxDepositsPerBlock(), len(deposits),
+			sp.cs.GetMaxDepositsPerBlock(), len(deposits),
 		)
 	}
 	if err := sp.validateNonGenesisDeposits(st, deposits); err != nil {
@@ -118,17 +118,17 @@ func (sp *StateProcessor[
 	}
 
 	// Get the current epoch.
-	epoch := sp.cs.SlotToEpoch(slot)
+	epoch := sp.cs.GetSlotToEpoch(slot)
 
 	// Verify that the message was signed correctly.
 	var d ForkDataT
 	if err = dep.VerifySignature(
 		d.New(
 			version.FromUint32[common.Version](
-				sp.cs.ActiveForkVersionForEpoch(epoch),
+				sp.cs.GetActiveForkVersionForEpoch(epoch),
 			), genesisValidatorsRoot,
 		),
-		sp.cs.DomainTypeDeposit(),
+		sp.cs.GetDomainTypeDeposit(),
 		sp.signer.VerifySignature,
 	); err != nil {
 		return err
@@ -150,12 +150,12 @@ func (sp *StateProcessor[
 		dep.GetPubkey(),
 		dep.GetWithdrawalCredentials(),
 		dep.GetAmount(),
-		math.Gwei(sp.cs.EffectiveBalanceIncrement()),
-		math.Gwei(sp.cs.MaxEffectiveBalance()),
+		math.Gwei(sp.cs.GetEffectiveBalanceIncrement()),
+		math.Gwei(sp.cs.GetMaxEffectiveBalance()),
 	)
 
 	// TODO: This is a bug that lives on bArtio. Delete this eventually.
-	if sp.cs.DepositEth1ChainID() == spec.BartioChainID {
+	if sp.cs.GetDepositEth1ChainID() == spec.BartioChainID {
 		// Note in AddValidatorBartio we implicitly increase
 		// the balance from state st. This is unlike AddValidator.
 		return st.AddValidatorBartio(val)

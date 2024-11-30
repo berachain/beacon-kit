@@ -83,7 +83,7 @@ func (sp *StateProcessor[
 
 		// TODO: Modify balance here and then effective balance once per epoch.
 		val.SetEffectiveBalance(min(val.GetEffectiveBalance()+dep.GetAmount(),
-			math.Gwei(sp.cs.MaxEffectiveBalance())))
+			math.Gwei(sp.cs.GetMaxEffectiveBalance())))
 		return st.UpdateValidatorAtIndex(idx, val)
 	}
 
@@ -123,17 +123,17 @@ func (sp *StateProcessor[
 	}
 
 	// Get the current epoch.
-	epoch = sp.cs.SlotToEpoch(slot.Unwrap())
+	epoch = sp.cs.GetSlotToEpoch(slot.Unwrap())
 
 	// Verify that the message was signed correctly.
 	var d ForkDataT
 	if err = dep.VerifySignature(
 		d.New(
 			version.FromUint32[common.Version](
-				sp.cs.ActiveForkVersionForEpoch(epoch),
+				sp.cs.GetActiveForkVersionForEpoch(epoch),
 			), genesisValidatorsRoot,
 		),
-		sp.cs.DomainTypeDeposit(),
+		sp.cs.GetDomainTypeDeposit(),
 		sp.signer.VerifySignature,
 	); err != nil {
 		return err
@@ -155,8 +155,8 @@ func (sp *StateProcessor[
 		dep.GetPubkey(),
 		dep.GetWithdrawalCredentials(),
 		dep.GetAmount(),
-		math.Gwei(sp.cs.EffectiveBalanceIncrement()),
-		math.Gwei(sp.cs.MaxEffectiveBalance()),
+		math.Gwei(sp.cs.GetEffectiveBalanceIncrement()),
+		math.Gwei(sp.cs.GetMaxEffectiveBalance()),
 	)
 
 	return st.AddValidator(val)

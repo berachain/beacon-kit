@@ -34,7 +34,7 @@ func TestnetChainSpec() (chain.Spec[
 	math.Slot,
 	any,
 ], error) {
-	testnetSpec := BaseSpec()
-	testnetSpec.DepositEth1ChainID = TestnetEth1ChainID
-	return chain.NewChainSpec(testnetSpec)
+	bartioSpec := CommonSpec()
+	bartioSpec.DepositEth1ChainID = TestnetEth1ChainID
+	return bartioSpec, bartioSpec.Validate()
 }

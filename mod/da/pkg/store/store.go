@@ -84,7 +84,7 @@ func (s *Store[BeaconBlockT]) Persist(
 
 	// Check to see if we are required to store the sidecar anymore, if
 	// this sidecar is from outside the required DA period, we can skip it.
-	if !s.chainSpec.WithinDAPeriod(
+	if !s.chainSpec.GetWithinDAPeriod(
 		// slot in which the sidecar was included.
 		// (Safe to assume all sidecars are in same slot at this point).
 		sidecars.Sidecars[0].BeaconBlockHeader.GetSlot(),
