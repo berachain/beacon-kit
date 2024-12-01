@@ -18,19 +18,15 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package spec
+package chain
 
-const (
+import "github.com/berachain/beacon-kit/mod/errors"
 
-	// BoonetEth1ChainID is the chain ID for the local devnet.
-	BoonetEth1ChainID uint64 = 80000
-
-	// BetnetEth1ChainID is the chain ID for the local devnet.
-	BetnetEth1ChainID uint64 = 80088
-
-	// DevnetEth1ChainID is the chain ID for the local devnet.
-	DevnetEth1ChainID uint64 = 80087
-
-	// TestnetEth1ChainID is the chain ID for the bArtio testnet.
-	TestnetEth1ChainID uint64 = 80084
+var (
+	// ErrInsufficientMaxWithdrawalsPerPayload is returned when the max
+	// withdrawals per payload less than 2. Must allow at least one for the EVM
+	// inflation withdrawal, and at least one more for a validator withdrawal
+	// per block.
+	ErrInsufficientMaxWithdrawalsPerPayload = errors.New(
+		"max withdrawals per payload must be greater than 1")
 )

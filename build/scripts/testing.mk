@@ -200,16 +200,18 @@ start-besu: ## start an ephemeral `besu` node
 start-erigon: ## start an ephemeral `erigon` node
 	rm -rf .tmp/erigon
 	docker run \
-    --rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
-    -v $(PWD)/.tmp:/.tmp \
-    erigontech/erigon:latest init \
-    --datadir .tmp/erigon \
-    ${ETH_GENESIS_PATH}
+	--user 1000:1000 \
+	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	-v $(PWD)/.tmp:/.tmp \
+	erigontech/erigon:latest init \
+	--datadir /.tmp/erigon \
+	/${ETH_GENESIS_PATH}
 
 	docker run \
 	-p 30303:30303 \
 	-p 8545:8545 \
 	-p 8551:8551 \
+	--user 1000:1000 \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
 	erigontech/erigon:latest \
@@ -221,11 +223,11 @@ start-erigon: ## start an ephemeral `erigon` node
 	--http.corsdomain "*" \
 	--http.port 8545 \
 	--authrpc.addr	0.0.0.0 \
-	--authrpc.jwtsecret $(JWT_PATH) \
+	--authrpc.jwtsecret /$(JWT_PATH) \
 	--authrpc.vhosts "*" \
 	--networkid 80087 \
 	--db.size.limit	3000MB \
-	--datadir .tmp/erigon
+	--datadir /.tmp/erigon
 
 start-ethereumjs:
 	rm -rf .tmp/ethereumjs
