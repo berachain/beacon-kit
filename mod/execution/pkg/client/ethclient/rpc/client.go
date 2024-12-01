@@ -43,7 +43,7 @@ type Client struct {
 	reqPool *sync.Pool
 	// jwtSecret is the JWT secret used for authentication.
 	jwtSecret *jwt.Secret
-	// jwtRefershInterval is the interval at which the JWT token should be
+	// jwtRefreshInterval is the interval at which the JWT token should be
 	// refreshed.
 	jwtRefreshInterval time.Duration
 
@@ -54,7 +54,7 @@ type Client struct {
 	header http.Header
 }
 
-// New create new rpc client with given url.
+// New creates new rpc client with given url.
 func NewClient(url string, options ...func(rpc *Client)) *Client {
 	rpc := &Client{
 		url:    url,
@@ -120,7 +120,7 @@ func (rpc *Client) Call(
 	return json.Unmarshal(result, target)
 }
 
-// Call returns raw response of method call.
+// CallRaw returns response of method call.
 func (rpc *Client) CallRaw(
 	ctx context.Context, method string, params ...any,
 ) (json.RawMessage, error) {
