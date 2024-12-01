@@ -7,7 +7,6 @@ replace github.com/berachain/beacon-kit/mod/node-api => ../node-api
 require (
 	cosmossdk.io/store v1.1.0
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240821052951-c15422305b4e
-	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240610210054-bfdc14c4013c
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240806211103-d1105603bfc0
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240624003607-df94860f8eeb
@@ -23,6 +22,7 @@ require (
 
 require (
 	github.com/DataDog/datadog-go v3.2.0+incompatible // indirect
+	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df // indirect
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240806160829-cde2d1347e7e // indirect
 	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240806094948-2c4293ef36c4 // indirect
 	github.com/cosmos/crypto v0.1.2 // indirect

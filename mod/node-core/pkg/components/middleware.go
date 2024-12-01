@@ -22,10 +22,10 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/middleware"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
 // ABCIMiddlewareInput is the input for the validator middleware provider.
@@ -35,7 +35,7 @@ type ABCIMiddlewareInput[
 	LoggerT log.Logger,
 ] struct {
 	depinject.In
-	ChainSpec     common.ChainSpec
+	ChainSpec     spec.Chain[any]
 	Dispatcher    Dispatcher
 	Logger        LoggerT
 	TelemetrySink *metrics.TelemetrySink

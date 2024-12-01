@@ -23,7 +23,7 @@ package storage
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 )
 
 // Backend is a struct that holds the storage backend. It provides a simple
@@ -35,7 +35,7 @@ type Backend[
 	DepositStoreT any,
 	KVStoreT KVStore[KVStoreT],
 ] struct {
-	chainSpec         common.ChainSpec
+	chainSpec         spec.Chain[any]
 	availabilityStore AvailabilityStoreT
 	kvStore           KVStoreT
 	depositStore      DepositStoreT
@@ -49,7 +49,7 @@ func NewBackend[
 	DepositStoreT any,
 	KVStoreT KVStore[KVStoreT],
 ](
-	chainSpec common.ChainSpec,
+	chainSpec spec.Chain[any],
 	availabilityStore AvailabilityStoreT,
 	kvStore KVStoreT,
 	depositStore DepositStoreT,

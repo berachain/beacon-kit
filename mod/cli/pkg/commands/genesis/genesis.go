@@ -21,7 +21,7 @@
 package genesis
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 )
@@ -29,7 +29,7 @@ import (
 // Commands builds the genesis-related command. Users may
 // provide application specific commands as a parameter.
 func Commands(
-	cs common.ChainSpec,
+	cs spec.Chain[any],
 	cmds ...*cobra.Command,
 ) *cobra.Command {
 	cmd := &cobra.Command{

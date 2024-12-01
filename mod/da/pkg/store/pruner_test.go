@@ -27,8 +27,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/da/pkg/store"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/stretchr/testify/require"
 )
@@ -107,9 +105,7 @@ func TestBuildPruneRangeFn(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cs := spec.Common[
-				bytes.B4, math.U64, common.ExecutionAddress, math.U64, any,
-			]{
+			cs := spec.Common[any]{
 				SlotsPerEpoch:                    tt.slotsPerEpoch,
 				MinEpochsForBlobsSidecarsRequest: tt.minEpochs,
 				MaxWithdrawalsPerPayload:         2,

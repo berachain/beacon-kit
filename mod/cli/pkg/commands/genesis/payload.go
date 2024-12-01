@@ -25,6 +25,7 @@ import (
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/cli/pkg/context"
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -40,7 +41,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func AddExecutionPayloadCmd(chainSpec common.ChainSpec) *cobra.Command {
+func AddExecutionPayloadCmd(chainSpec spec.Chain[any]) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "execution-payload [eth/genesis/file.json]",
 		Short: "adds the eth1 genesis execution payload to the genesis file",

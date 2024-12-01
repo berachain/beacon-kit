@@ -22,10 +22,10 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
 // BeaconDepositContractInput is the input for the beacon deposit contract
@@ -39,7 +39,7 @@ type BeaconDepositContractInput[
 	WithdrawalsT Withdrawals[WithdrawalT],
 ] struct {
 	depinject.In
-	ChainSpec    common.ChainSpec
+	ChainSpec    spec.Chain[any]
 	EngineClient *client.EngineClient[
 		ExecutionPayloadT,
 		*engineprimitives.PayloadAttributes[WithdrawalT],

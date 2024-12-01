@@ -20,17 +20,11 @@
 
 package chainspec
 
-import "github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
+import "github.com/berachain/beacon-kit/mod/config/pkg/spec"
 
 type BeraChainSpec struct {
 	// SpecData is the underlying data structure for chain-specific parameters.
-	chain.Spec[
-		[4]byte,
-		uint64,
-		[20]byte,
-		uint64,
-		any,
-	]
+	spec.Chain[any]
 	// BGTContractAddress is the address of the BGT contract.
 	BGTContractAddress [20]byte `mapstructure:"bgt-contract-address"`
 	// MaxCommitteeSize is the maximum size of the committee.

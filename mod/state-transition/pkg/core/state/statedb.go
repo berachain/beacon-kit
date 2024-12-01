@@ -66,7 +66,7 @@ type StateDB[
 		ValidatorT,
 		ValidatorsT,
 	]
-	cs common.ChainSpec
+	cs spec.Chain[any]
 }
 
 // NewBeaconStateFromDB creates a new beacon state from an underlying state db.
@@ -76,7 +76,7 @@ func (s *StateDB[
 	ValidatorT, ValidatorsT, WithdrawalT, WithdrawalCredentialsT,
 ]) NewFromDB(
 	bdb KVStoreT,
-	cs common.ChainSpec,
+	cs spec.Chain[any],
 ) *StateDB[
 	BeaconBlockHeaderT,
 	BeaconStateMarshallableT,

@@ -21,19 +21,11 @@
 package spec
 
 import (
-	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // BoonetChainSpec is the ChainSpec for the localnet.
-func BoonetChainSpec() (chain.Spec[
-	common.DomainType,
-	math.Epoch,
-	common.ExecutionAddress,
-	math.Slot,
-	any,
-], error) {
+func BoonetChainSpec() (Chain[any], error) {
 	boonetSpec := CommonSpec()
 
 	// Chain ID is 80000.

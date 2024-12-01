@@ -25,6 +25,7 @@ import (
 
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/config"
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
@@ -42,7 +43,7 @@ import (
 type AvailabilityStoreInput[LoggerT any] struct {
 	depinject.In
 	AppOpts   config.AppOptions
-	ChainSpec common.ChainSpec
+	ChainSpec spec.Chain[any]
 	Logger    LoggerT
 }
 
@@ -82,7 +83,7 @@ type AvailabilityPrunerInput[
 ] struct {
 	depinject.In
 	AvailabilityStore AvailabilityStoreT
-	ChainSpec         common.ChainSpec
+	ChainSpec         spec.Chain[any]
 	Dispatcher        Dispatcher
 	Logger            LoggerT
 }

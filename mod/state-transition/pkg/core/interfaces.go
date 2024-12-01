@@ -23,6 +23,7 @@ package core
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -43,7 +44,7 @@ type BeaconState[
 ] interface {
 	NewFromDB(
 		bdb KVStoreT,
-		cs common.ChainSpec,
+		cs spec.Chain[any],
 	) T
 	Copy() T
 	Context() context.Context

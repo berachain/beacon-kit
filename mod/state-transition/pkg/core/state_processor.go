@@ -85,7 +85,7 @@ type StateProcessor[
 	// logger is used for logging information and errors.
 	logger log.Logger
 	// cs is the chain specification for the beacon chain.
-	cs common.ChainSpec
+	cs spec.Chain[any]
 	// signer is the BLS signer used for cryptographic operations.
 	signer crypto.BLSSigner
 	// fGetAddressFromPubKey verifies that a validator public key
@@ -161,7 +161,7 @@ func NewStateProcessor[
 	WithdrawalCredentialsT ~[32]byte,
 ](
 	logger log.Logger,
-	cs common.ChainSpec,
+	cs spec.Chain[any],
 	executionEngine ExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],

@@ -20,20 +20,8 @@
 
 package spec
 
-import (
-	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-)
-
 // BetnetChainSpec is the ChainSpec for the localnet.
-func BetnetChainSpec() (chain.Spec[
-	common.DomainType,
-	math.Epoch,
-	common.ExecutionAddress,
-	math.Slot,
-	any,
-], error) {
+func BetnetChainSpec() (Chain[any], error) {
 	betnetSpec := CommonSpec()
 	betnetSpec.DepositEth1ChainID = BetnetEth1ChainID
 	return betnetSpec, betnetSpec.Validate()

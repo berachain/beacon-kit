@@ -30,7 +30,7 @@ import (
 	"cosmossdk.io/store"
 	"cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
-	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/log/pkg/noop"
@@ -175,9 +175,7 @@ func initTestStores() (
 		nil
 }
 
-func setupChain(t *testing.T, chainSpecType string) chain.Spec[
-	bytes.B4, math.U64, common.ExecutionAddress, math.U64, any,
-] {
+func setupChain(t *testing.T, chainSpecType string) spec.Chain[any] {
 	t.Helper()
 
 	t.Setenv(components.ChainSpecTypeEnvVar, chainSpecType)
@@ -187,11 +185,7 @@ func setupChain(t *testing.T, chainSpecType string) chain.Spec[
 	return cs
 }
 
-func setupState(
-	t *testing.T, cs chain.Spec[
-		bytes.B4, math.U64, common.ExecutionAddress, math.U64, any,
-	],
-) (
+func setupState(t *testing.T, cs spec.Chain[any]) (
 	*TestStateProcessorT,
 	*TestBeaconStateT,
 	*depositstore.KVStore[*types.Deposit],

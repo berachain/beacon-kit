@@ -23,10 +23,10 @@ package components
 import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/mod/config"
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	dbm "github.com/cosmos/cosmos-db"
 )
@@ -41,7 +41,7 @@ func ProvideCometBFTService[
 	db dbm.DB,
 	cmtCfg *cmtcfg.Config,
 	appOpts config.AppOptions,
-	chainSpec common.ChainSpec,
+	chainSpec spec.Chain[any],
 ) *cometbft.Service[LoggerT] {
 	return cometbft.NewService(
 		storeKey,

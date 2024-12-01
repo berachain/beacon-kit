@@ -23,10 +23,10 @@ package store
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/sourcegraph/conc/iter"
 )
@@ -38,14 +38,14 @@ type Store[BeaconBlockBodyT BeaconBlockBody] struct {
 	// logger is used for logging.
 	logger log.Logger
 	// chainSpec contains the chain specification.
-	chainSpec common.ChainSpec
+	chainSpec spec.Chain[any]
 }
 
 // New creates a new instance of the AvailabilityStore.
 func New[BeaconBlockT BeaconBlockBody](
 	db IndexDB,
 	logger log.Logger,
-	chainSpec common.ChainSpec,
+	chainSpec spec.Chain[any],
 ) *Store[BeaconBlockT] {
 	return &Store[BeaconBlockT]{
 		IndexDB:   db,

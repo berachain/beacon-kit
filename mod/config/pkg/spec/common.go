@@ -18,20 +18,17 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
+//nolint:lll // struct tags may create long lines.
 package spec
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/version"
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
+)
 
 // Common is the underlying data structure for chain-specific parameters.
-//
-//nolint:lll // struct tags may create long lines.
-type Common[
-	DomainTypeT ~[4]byte,
-	EpochT ~uint64,
-	ExecutionAddressT ~[20]byte,
-	SlotT ~uint64,
-	CometBFTConfigT any,
-] struct {
+type Common[CometBFTConfigT any] struct {
 	// Gwei value constants.
 	//
 	// MinDepositAmount is the minimum deposit amount per deposit
@@ -65,27 +62,27 @@ type Common[
 	//
 	// DomainDomainTypeProposerProposer is the domain for beacon proposer
 	// signatures.
-	DomainTypeProposer DomainTypeT `mapstructure:"domain-type-beacon-proposer"`
+	DomainTypeProposer common.DomainType `mapstructure:"domain-type-beacon-proposer"`
 	// DomainTypeAttester is the domain for beacon attester signatures.
-	DomainTypeAttester DomainTypeT `mapstructure:"domain-type-beacon-attester"`
+	DomainTypeAttester common.DomainType `mapstructure:"domain-type-beacon-attester"`
 	// DomainTypeRandao is the domain for RANDAO reveal signatures.
-	DomainTypeRandao DomainTypeT `mapstructure:"domain-type-randao"`
+	DomainTypeRandao common.DomainType `mapstructure:"domain-type-randao"`
 	// DomainTypeDeposit is the domain for deposit contract signatures.
-	DomainTypeDeposit DomainTypeT `mapstructure:"domain-type-deposit"`
+	DomainTypeDeposit common.DomainType `mapstructure:"domain-type-deposit"`
 	// DomainTypeVoluntaryExit is the domain for voluntary exit signatures.
-	DomainTypeVoluntaryExit DomainTypeT `mapstructure:"domain-type-voluntary-exit"`
+	DomainTypeVoluntaryExit common.DomainType `mapstructure:"domain-type-voluntary-exit"`
 	// DomainTypeSelectionProof is the domain for selection proof signatures.
-	DomainTypeSelectionProof DomainTypeT `mapstructure:"domain-type-selection-proof"`
+	DomainTypeSelectionProof common.DomainType `mapstructure:"domain-type-selection-proof"`
 	// DomainTypeAggregateAndProof is the domain for aggregate and proof
 	// signatures.
-	DomainTypeAggregateAndProof DomainTypeT `mapstructure:"domain-type-aggregate-and-proof"`
+	DomainTypeAggregateAndProof common.DomainType `mapstructure:"domain-type-aggregate-and-proof"`
 	// DomainTypeApplicationMask is the domain for the application mask.
-	DomainTypeApplicationMask DomainTypeT `mapstructure:"domain-type-application-mask"`
+	DomainTypeApplicationMask common.DomainType `mapstructure:"domain-type-application-mask"`
 
 	// Eth1-related values.
 	//
 	// DepositContractAddress is the address of the deposit contract.
-	DepositContractAddress ExecutionAddressT `mapstructure:"deposit-contract-address"`
+	DepositContractAddress common.ExecutionAddress `mapstructure:"deposit-contract-address"`
 	// MaxDepositsPerBlock specifies the maximum number of deposit operations
 	// allowed per block.
 	MaxDepositsPerBlock uint64 `mapstructure:"max-deposits-per-block"`
@@ -100,9 +97,9 @@ type Common[
 	// Fork-related values.
 	//
 	// DenebPlus is the epoch at which the Deneb+ fork is activated.
-	DenebPlusForkEpoch EpochT `mapstructure:"deneb-plus-fork-epoch"`
+	DenebPlusForkEpoch math.Epoch `mapstructure:"deneb-plus-fork-epoch"`
 	// ElectraForkEpoch is the epoch at which the Electra fork is activated.
-	ElectraForkEpoch EpochT `mapstructure:"electra-fork-epoch"`
+	ElectraForkEpoch math.Epoch `mapstructure:"electra-fork-epoch"`
 
 	// State list lengths
 	//
@@ -159,16 +156,14 @@ type Common[
 	//
 	// EVMInflationAddress is the address on the EVM which will receive the
 	// inflation amount of native EVM balance through a withdrawal every block.
-	EVMInflationAddress ExecutionAddressT `mapstructure:"evm-inflation-address"`
+	EVMInflationAddress common.ExecutionAddress `mapstructure:"evm-inflation-address"`
 	// EVMInflationPerBlock is the amount of native EVM balance (in Gwei) to be
 	// minted to the EVMInflationAddress via a withdrawal every block.
 	EVMInflationPerBlock uint64 `mapstructure:"evm-inflation-per-block"`
 }
 
 // Validate ensures that the chain spec is valid, returning error if it is not.
-func (c *Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) Validate() error {
+func (c *Common[CometBFTConfigT]) Validate() error {
 	if c.GetMaxWithdrawalsPerPayload() <= 1 {
 		return ErrInsufficientMaxWithdrawalsPerPayload
 	}
@@ -180,313 +175,227 @@ func (c *Common[
 }
 
 // MinDepositAmount returns the minimum deposit amount required.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetMinDepositAmount() uint64 {
+func (c Common[CometBFTConfigT]) GetMinDepositAmount() uint64 {
 	return c.MinDepositAmount
 }
 
 // MaxEffectiveBalance returns the maximum effective balance.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetMaxEffectiveBalance() uint64 {
+func (c Common[CometBFTConfigT]) GetMaxEffectiveBalance() uint64 {
 	return c.MaxEffectiveBalance
 }
 
 // EjectionBalance returns the balance below which a validator is ejected.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetEjectionBalance() uint64 {
+func (c Common[CometBFTConfigT]) GetEjectionBalance() uint64 {
 	return c.EjectionBalance
 }
 
 // EffectiveBalanceIncrement returns the increment of effective balance.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetEffectiveBalanceIncrement() uint64 {
+func (c Common[CometBFTConfigT]) GetEffectiveBalanceIncrement() uint64 {
 	return c.EffectiveBalanceIncrement
 }
 
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetHysteresisQuotient() uint64 {
+func (c Common[CometBFTConfigT]) GetHysteresisQuotient() uint64 {
 	return c.HysteresisQuotient
 }
 
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetHysteresisDownwardMultiplier() uint64 {
+func (c Common[CometBFTConfigT]) GetHysteresisDownwardMultiplier() uint64 {
 	return c.HysteresisDownwardMultiplier
 }
 
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetHysteresisUpwardMultiplier() uint64 {
+func (c Common[CometBFTConfigT]) GetHysteresisUpwardMultiplier() uint64 {
 	return c.HysteresisUpwardMultiplier
 }
 
 // SlotsPerEpoch returns the number of slots per epoch.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetSlotsPerEpoch() uint64 {
+func (c Common[CometBFTConfigT]) GetSlotsPerEpoch() uint64 {
 	return c.SlotsPerEpoch
 }
 
 // SlotsPerHistoricalRoot returns the number of slots per historical root.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetSlotsPerHistoricalRoot() uint64 {
+func (c Common[CometBFTConfigT]) GetSlotsPerHistoricalRoot() uint64 {
 	return c.SlotsPerHistoricalRoot
 }
 
 // MinEpochsToInactivityPenalty returns the minimum number of epochs before an
 // inactivity penalty is applied.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetMinEpochsToInactivityPenalty() uint64 {
+func (c Common[CometBFTConfigT]) GetMinEpochsToInactivityPenalty() uint64 {
 	return c.MinEpochsToInactivityPenalty
 }
 
 // DomainTypeProposer returns the domain for beacon proposer signatures.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetDomainTypeProposer() DomainTypeT {
+func (c Common[CometBFTConfigT]) GetDomainTypeProposer() common.DomainType {
 	return c.DomainTypeProposer
 }
 
 // DomainTypeAttester returns the domain for beacon attester signatures.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetDomainTypeAttester() DomainTypeT {
+func (c Common[CometBFTConfigT]) GetDomainTypeAttester() common.DomainType {
 	return c.DomainTypeAttester
 }
 
 // DomainTypeRandao returns the domain for RANDAO reveal signatures.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetDomainTypeRandao() DomainTypeT {
+func (c Common[CometBFTConfigT]) GetDomainTypeRandao() common.DomainType {
 	return c.DomainTypeRandao
 }
 
 // DomainTypeDeposit returns the domain for deposit contract signatures.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetDomainTypeDeposit() DomainTypeT {
+func (c Common[CometBFTConfigT]) GetDomainTypeDeposit() common.DomainType {
 	return c.DomainTypeDeposit
 }
 
 // DomainTypeVoluntaryExit returns the domain for voluntary exit signatures.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetDomainTypeVoluntaryExit() DomainTypeT {
+func (c Common[CometBFTConfigT]) GetDomainTypeVoluntaryExit() common.DomainType {
 	return c.DomainTypeVoluntaryExit
 }
 
 // DomainTypeSelectionProof returns the domain for selection proof signatures.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetDomainTypeSelectionProof() DomainTypeT {
+func (c Common[CometBFTConfigT]) GetDomainTypeSelectionProof() common.DomainType {
 	return c.DomainTypeSelectionProof
 }
 
 // DomainTypeAggregateAndProof returns the domain for aggregate and proof
 // signatures.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetDomainTypeAggregateAndProof() DomainTypeT {
+func (c Common[CometBFTConfigT]) GetDomainTypeAggregateAndProof() common.DomainType {
 	return c.DomainTypeAggregateAndProof
 }
 
 // DomainTypeApplicationMask returns the domain for the application mask.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetDomainTypeApplicationMask() DomainTypeT {
+func (c Common[CometBFTConfigT]) GetDomainTypeApplicationMask() common.DomainType {
 	return c.DomainTypeApplicationMask
 }
 
 // DepositContractAddress returns the address of the deposit contract.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetDepositContractAddress() ExecutionAddressT {
+func (c Common[CometBFTConfigT]) GetDepositContractAddress() common.ExecutionAddress {
 	return c.DepositContractAddress
 }
 
 // MaxDepositsPerBlock returns the maximum number of deposits per block.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetMaxDepositsPerBlock() uint64 {
+func (c Common[CometBFTConfigT]) GetMaxDepositsPerBlock() uint64 {
 	return c.MaxDepositsPerBlock
 }
 
 // DepositEth1ChainID returns the chain ID of the execution chain.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetDepositEth1ChainID() uint64 {
+func (c Common[CometBFTConfigT]) GetDepositEth1ChainID() uint64 {
 	return c.DepositEth1ChainID
 }
 
 // Eth1FollowDistance returns the distance between the eth1 chain and the beacon
 // chain.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetEth1FollowDistance() uint64 {
+func (c Common[CometBFTConfigT]) GetEth1FollowDistance() uint64 {
 	return c.Eth1FollowDistance
 }
 
 // TargetSecondsPerEth1Block returns the target time between eth1 blocks.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetTargetSecondsPerEth1Block() uint64 {
+func (c Common[CometBFTConfigT]) GetTargetSecondsPerEth1Block() uint64 {
 	return c.TargetSecondsPerEth1Block
 }
 
 // DenebPlusForEpoch returns the epoch of the Deneb+ fork.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetDenebPlusForkEpoch() EpochT {
+func (c Common[CometBFTConfigT]) GetDenebPlusForkEpoch() math.Epoch {
 	return c.DenebPlusForkEpoch
 }
 
 // ElectraForkEpoch returns the epoch of the Electra fork.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetElectraForkEpoch() EpochT {
+func (c Common[CometBFTConfigT]) GetElectraForkEpoch() math.Epoch {
 	return c.ElectraForkEpoch
 }
 
 // EpochsPerHistoricalVector returns the number of epochs per historical vector.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetEpochsPerHistoricalVector() uint64 {
+func (c Common[CometBFTConfigT]) GetEpochsPerHistoricalVector() uint64 {
 	return c.EpochsPerHistoricalVector
 }
 
 // EpochsPerSlashingsVector returns the number of epochs per slashings vector.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetEpochsPerSlashingsVector() uint64 {
+func (c Common[CometBFTConfigT]) GetEpochsPerSlashingsVector() uint64 {
 	return c.EpochsPerSlashingsVector
 }
 
 // HistoricalRootsLimit returns the limit of historical roots.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetHistoricalRootsLimit() uint64 {
+func (c Common[CometBFTConfigT]) GetHistoricalRootsLimit() uint64 {
 	return c.HistoricalRootsLimit
 }
 
 // ValidatorRegistryLimit returns the limit of the validator registry.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetValidatorRegistryLimit() uint64 {
+func (c Common[CometBFTConfigT]) GetValidatorRegistryLimit() uint64 {
 	return c.ValidatorRegistryLimit
 }
 
 // InactivityPenaltyQuotient returns the inactivity penalty quotient.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetInactivityPenaltyQuotient() uint64 {
+func (c Common[CometBFTConfigT]) GetInactivityPenaltyQuotient() uint64 {
 	return c.InactivityPenaltyQuotient
 }
 
 // ProportionalSlashingMultiplier returns the proportional slashing multiplier.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetProportionalSlashingMultiplier() uint64 {
+func (c Common[CometBFTConfigT]) GetProportionalSlashingMultiplier() uint64 {
 	return c.ProportionalSlashingMultiplier
 }
 
 // MaxWithdrawalsPerPayload returns the maximum number of withdrawals per
 // payload.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetMaxWithdrawalsPerPayload() uint64 {
+func (c Common[CometBFTConfigT]) GetMaxWithdrawalsPerPayload() uint64 {
 	return c.MaxWithdrawalsPerPayload
 }
 
 // MaxValidatorsPerWithdrawalsSweep returns the maximum number of validators per
 // withdrawals sweep.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetMaxValidatorsPerWithdrawalsSweep() uint64 {
+func (c Common[CometBFTConfigT]) GetMaxValidatorsPerWithdrawalsSweep() uint64 {
 	return c.MaxValidatorsPerWithdrawalsSweep
 }
 
 // MinEpochsForBlobsSidecarsRequest returns the minimum number of epochs for
 // blobs sidecars request.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetMinEpochsForBlobsSidecarsRequest() uint64 {
+func (c Common[CometBFTConfigT]) GetMinEpochsForBlobsSidecarsRequest() uint64 {
 	return c.MinEpochsForBlobsSidecarsRequest
 }
 
 // MaxBlobCommitmentsPerBlock returns the maximum number of blob commitments per
 // block.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetMaxBlobCommitmentsPerBlock() uint64 {
+func (c Common[CometBFTConfigT]) GetMaxBlobCommitmentsPerBlock() uint64 {
 	return c.MaxBlobCommitmentsPerBlock
 }
 
 // MaxBlobsPerBlock returns the maximum number of blobs per block.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetMaxBlobsPerBlock() uint64 {
+func (c Common[CometBFTConfigT]) GetMaxBlobsPerBlock() uint64 {
 	return c.MaxBlobsPerBlock
 }
 
 // FieldElementsPerBlob returns the number of field elements per blob.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetFieldElementsPerBlob() uint64 {
+func (c Common[CometBFTConfigT]) GetFieldElementsPerBlob() uint64 {
 	return c.FieldElementsPerBlob
 }
 
 // BytesPerBlob returns the number of bytes per blob.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetBytesPerBlob() uint64 {
+func (c Common[CometBFTConfigT]) GetBytesPerBlob() uint64 {
 	return c.BytesPerBlob
 }
 
 // GetCometBFTConfigForSlot returns the CometBFT configuration for the given
 // slot.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetCometBFTConfigForSlot(_ SlotT) CometBFTConfigT {
+func (c Common[CometBFTConfigT]) GetCometBFTConfigForSlot(_ math.Slot) CometBFTConfigT {
 	return c.CometValues
 }
 
 // EVMInflationAddress returns the address on the EVM which will receive the
 // inflation amount of native EVM balance through a withdrawal every block.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetEVMInflationAddress() ExecutionAddressT {
+func (c Common[CometBFTConfigT]) GetEVMInflationAddress() common.ExecutionAddress {
 	return c.EVMInflationAddress
 }
 
 // EVMInflationPerBlock returns the amount of native EVM balance (in Gwei) to
 // be minted to the EVMInflationAddress via a withdrawal every block.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetEVMInflationPerBlock() uint64 {
+func (c Common[CometBFTConfigT]) GetEVMInflationPerBlock() uint64 {
 	return c.EVMInflationPerBlock
 }
 
 // ActiveForkVersionForSlot returns the active fork version for a given slot.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetActiveForkVersionForSlot(
-	slot SlotT,
+func (c Common[CometBFTConfigT]) GetActiveForkVersionForSlot(
+	slot math.Slot,
 ) uint32 {
 	return c.GetActiveForkVersionForEpoch(c.GetSlotToEpoch(slot))
 }
 
 // ActiveForkVersionForEpoch returns the active fork version for a given epoch.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetActiveForkVersionForEpoch(
-	epoch EpochT,
+func (c Common[CometBFTConfigT]) GetActiveForkVersionForEpoch(
+	epoch math.Epoch,
 ) uint32 {
 	switch {
 	case epoch >= c.ElectraForkEpoch:
@@ -499,22 +408,18 @@ func (c Common[
 }
 
 // SlotToEpoch converts a slot to an epoch.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetSlotToEpoch(slot SlotT) EpochT {
+func (c Common[CometBFTConfigT]) GetSlotToEpoch(slot math.Slot) math.Epoch {
 	//#nosec:G701 // realistically fine in practice.
-	return EpochT(uint64(slot) / c.GetSlotsPerEpoch())
+	return math.Epoch(uint64(slot) / c.GetSlotsPerEpoch())
 }
 
 // WithinDAPeriod checks if the block epoch is within
 // MIN_EPOCHS_FOR_BLOB_SIDECARS_REQUESTS
 // of the given current epoch.
-func (c Common[
-	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetWithinDAPeriod(
-	block, current SlotT,
+func (c Common[CometBFTConfigT]) GetWithinDAPeriod(
+	block, current math.Slot,
 ) bool {
 	return c.GetSlotToEpoch(block)+
-		EpochT(c.GetMinEpochsForBlobsSidecarsRequest()) >=
+		math.Epoch(c.GetMinEpochsForBlobsSidecarsRequest()) >=
 		c.GetSlotToEpoch(current)
 }

@@ -101,7 +101,7 @@ func (sp *StateProcessor[
 ) error {
 	var (
 		genesisValidatorsRoot common.Root
-		epoch                 uint64
+		epoch                 math.Epoch
 		err                   error
 	)
 
@@ -123,7 +123,7 @@ func (sp *StateProcessor[
 	}
 
 	// Get the current epoch.
-	epoch = sp.cs.GetSlotToEpoch(slot.Unwrap())
+	epoch = sp.cs.GetSlotToEpoch(slot)
 
 	// Verify that the message was signed correctly.
 	var d ForkDataT

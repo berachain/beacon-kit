@@ -20,20 +20,8 @@
 
 package spec
 
-import (
-	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-)
-
 // TestnetChainSpec is the ChainSpec for the bArtio testnet.
-func TestnetChainSpec() (chain.Spec[
-	common.DomainType,
-	math.Epoch,
-	common.ExecutionAddress,
-	math.Slot,
-	any,
-], error) {
+func TestnetChainSpec() (Chain[any], error) {
 	bartioSpec := CommonSpec()
 	bartioSpec.DepositEth1ChainID = TestnetEth1ChainID
 	return bartioSpec, bartioSpec.Validate()

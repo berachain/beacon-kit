@@ -481,7 +481,7 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	if sp.cs.GetSlotToEpoch(slot.Unwrap()) == constants.GenesisEpoch {
+	if sp.cs.GetSlotToEpoch(slot) == math.Epoch(constants.GenesisEpoch) {
 		return nil
 	}
 

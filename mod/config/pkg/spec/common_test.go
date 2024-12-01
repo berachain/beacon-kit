@@ -24,25 +24,18 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/stretchr/testify/require"
 )
 
 // Define concrete types for the generic parameters.
-type (
-	domainType       [4]byte
-	epoch            uint64
-	executionAddress [20]byte
-	slot             uint64
-	cometBFTConfig   struct{}
-)
+type cometBFTConfig struct{}
 
 // TODO: Add setupValid, setupInvalid functions and use in each test.
 
 // Create an instance of chainSpec with test data.
-var testSpec = spec.Common[
-	domainType, epoch, executionAddress, slot, cometBFTConfig,
-]{
+var testSpec = spec.Common[cometBFTConfig]{
 	DenebPlusForkEpoch:               9,
 	ElectraForkEpoch:                 10,
 	SlotsPerEpoch:                    32,
@@ -55,7 +48,7 @@ func TestActiveForkVersionForEpoch(t *testing.T) {
 	// Define test cases
 	tests := []struct {
 		name     string
-		epoch    epoch
+		epoch    math.Epoch
 		expected uint32
 	}{
 		{name: "Before Electra Fork", epoch: 9, expected: version.DenebPlus},
@@ -77,8 +70,8 @@ func TestSlotToEpoch(t *testing.T) {
 	// Define test cases
 	tests := []struct {
 		name     string
-		slot     slot
-		expected epoch
+		slot     math.Slot
+		expected math.Epoch
 	}{
 		{name: "Epoch 0, Slot 0", slot: 0, expected: 0},
 		{name: "Epoch 0, Slot 31", slot: 31, expected: 0},
@@ -102,7 +95,7 @@ func TestActiveForkVersionForSlot(t *testing.T) {
 	// Define test cases
 	tests := []struct {
 		name     string
-		slot     slot
+		slot     math.Slot
 		expected uint32
 	}{
 		{name: "Before Electra Fork", slot: 0, expected: version.Deneb},
@@ -129,8 +122,8 @@ func TestWithinDAPeriod(t *testing.T) {
 	// Define test cases
 	tests := []struct {
 		name     string
-		block    slot
-		current  slot
+		block    math.Slot
+		current  math.Slot
 		expected bool
 	}{
 		// Block is within DA period (5 epochs).

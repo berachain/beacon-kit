@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
@@ -71,12 +70,12 @@ func (b *BeaconBlockBody) Empty(forkVersion uint32) *BeaconBlockBody {
 // body.
 // TODO: I still feel like we need to clean this up somehow.
 func BlockBodyKZGOffset(
-	slot math.Slot,
-	cs common.ChainSpec,
+	activeFork uint32,
+	maxBlobCommitmentsPerBlock uint64,
 ) uint64 {
-	switch cs.GetActiveForkVersionForSlot(slot) {
+	switch activeFork {
 	case version.Deneb:
-		return KZGMerkleIndexDeneb * cs.GetMaxBlobCommitmentsPerBlock()
+		return KZGMerkleIndexDeneb * maxBlobCommitmentsPerBlock
 	default:
 		panic(ErrForkVersionNotSupported)
 	}

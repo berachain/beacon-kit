@@ -22,15 +22,15 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
 type SidecarFactoryInput struct {
 	depinject.In
-	ChainSpec     common.ChainSpec
+	ChainSpec     spec.Chain[any]
 	TelemetrySink *metrics.TelemetrySink
 }
 
