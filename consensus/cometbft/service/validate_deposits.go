@@ -28,6 +28,16 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 )
 
+// isZeroBytes returns true if the provided byte slice is all zeros.
+func isZeroBytes(b []byte) bool {
+	for _, byteValue := range b {
+		if byteValue != 0 {
+			return false
+		}
+	}
+	return true
+}
+
 // validateDeposits performs validation of the provided deposits.
 // It ensures:
 // - At least one deposit is present

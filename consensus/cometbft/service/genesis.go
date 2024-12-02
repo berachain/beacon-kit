@@ -56,16 +56,6 @@ func (s *Service[_]) DefaultGenesis() map[string]json.RawMessage {
 	return gen
 }
 
-// isZeroBytes returns true if the provided byte slice is all zeros.
-func isZeroBytes(b []byte) bool {
-	for _, byteValue := range b {
-		if byteValue != 0 {
-			return false
-		}
-	}
-	return true
-}
-
 // ValidateGenesis validates the provided genesis state.
 func (s *Service[_]) ValidateGenesis(
 	genesisState map[string]json.RawMessage,
