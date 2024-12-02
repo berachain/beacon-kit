@@ -27,10 +27,12 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
+const expectedHexLength = 8
+
 // isValidForkVersion returns true if the provided fork version is valid.
 // A valid fork version must:
 // - Start with "0x"
-// - Be followed by exactly 8 hexadecimal characters
+// - Be followed by exactly 8 hexadecimal characters.
 func isValidForkVersion(forkVersion common.Version) bool {
 	forkVersionStr := forkVersion.String()
 	if !strings.HasPrefix(forkVersionStr, "0x") {
@@ -41,15 +43,11 @@ func isValidForkVersion(forkVersion common.Version) bool {
 	hexPart := strings.TrimPrefix(forkVersionStr, "0x")
 
 	// Should have exactly 8 characters after 0x prefix
-	if len(hexPart) != 8 {
+	if len(hexPart) != expectedHexLength {
 		return false
 	}
 
 	// Verify it's a valid hex number
 	_, err := hex.DecodeString(hexPart)
-	if err != nil {
-		return false
-	}
-
-	return true
+	return err == nil
 }
