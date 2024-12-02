@@ -46,34 +46,28 @@ func isZeroBytes(b []byte) bool {
 // - Non-zero values for required fields
 // (pubkey, credentials, amount, signature)
 // Returns an error with details if any validation fails.
-func validateDeposits(deposits []types.Deposit) error {
+func validateDeposits(deposits []*types.Deposit) error {
 	if len(deposits) == 0 {
 		return errors.New("at least one deposit is required")
 	}
 
-	seenPubkeys := make(map[string]bool)
+	seenPubkeys := make(map[string]struct{})
 
+	// In genesis, we have 1:1 mapping between deposits and validators. Hence,
+	// we check for duplicate public key.
 	for i, deposit := range deposits {
-		depositIndex := deposit.GetIndex()
-		//#nosec:G701 // realistically fine in practice.
-		// Validate index matches position
-		if depositIndex.Unwrap() != uint64(i) {
-			return fmt.Errorf(
-				"deposit index %d does not match position %d",
-				depositIndex,
-				i,
-			)
+		if deposit == nil {
+			return fmt.Errorf("deposit %d is nil", i)
 		}
-
 		if isZeroBytes(deposit.Pubkey[:]) {
 			return fmt.Errorf("deposit %d has a zeroed public key", i)
 		}
 		// Check for duplicate pubkeys
 		pubkeyHex := hex.EncodeToString(deposit.Pubkey[:])
-		if seenPubkeys[pubkeyHex] {
+		if _, seen := seenPubkeys[pubkeyHex]; seen {
 			return fmt.Errorf("duplicate pubkey found in deposit %d", i)
 		}
-		seenPubkeys[pubkeyHex] = true
+		seenPubkeys[pubkeyHex] = struct{}{}
 
 		if isZeroBytes(deposit.Credentials[:]) {
 			return fmt.Errorf(

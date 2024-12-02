@@ -35,7 +35,10 @@ const maxExtraDataSize = 32
 
 // validateExecutionHeader validates the provided execution payload header
 // for the genesis block.
-func validateExecutionHeader(header types.ExecutionPayloadHeader) error {
+func validateExecutionHeader(header *types.ExecutionPayloadHeader) error {
+	if header == nil {
+		return errors.New("execution payload header cannot be nil")
+	}
 	// Validate hash fields are not zero
 	zeroHash := common.ExecutionHash{}
 	// For genesis block (when block number is 0), ParentHash must be zero

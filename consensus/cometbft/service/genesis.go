@@ -73,7 +73,11 @@ func (s *Service[_]) ValidateGenesis(
 		)
 	}
 
-	var beaconGenesis BeaconGenesisState
+	beaconGenesis := &types.Genesis[
+		*types.Deposit,
+		*types.ExecutionPayloadHeader,
+	]{}
+
 	if err := json.Unmarshal(beaconGenesisBz, &beaconGenesis); err != nil {
 		return fmt.Errorf(
 			"failed to unmarshal beacon genesis state: %w",
@@ -81,18 +85,18 @@ func (s *Service[_]) ValidateGenesis(
 		)
 	}
 
-	if !isValidForkVersion(beaconGenesis.ForkVersion) {
+	if !isValidForkVersion(beaconGenesis.GetForkVersion()) {
 		return fmt.Errorf("invalid fork version format: %s",
 			beaconGenesis.ForkVersion,
 		)
 	}
 
-	if err := validateDeposits(beaconGenesis.Deposits); err != nil {
+	if err := validateDeposits(beaconGenesis.GetDeposits()); err != nil {
 		return fmt.Errorf("invalid deposits: %w", err)
 	}
 
 	if err := validateExecutionHeader(
-		beaconGenesis.ExecutionPayloadHeader,
+		beaconGenesis.GetExecutionPayloadHeader(),
 	); err != nil {
 		return fmt.Errorf("invalid execution payload header: %w", err)
 	}

@@ -23,14 +23,33 @@ package cometbft
 import (
 	"encoding/hex"
 	"strings"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
 // isValidForkVersion returns true if the provided fork version is valid.
-func isValidForkVersion(forkVersion string) bool {
-	// Validate fork version format (should be 0x followed by 8 hex characters).
-	if !strings.HasPrefix(forkVersion, "0x") || len(forkVersion) != 10 {
+// A valid fork version must:
+// - Start with "0x"
+// - Be followed by exactly 8 hexadecimal characters
+func isValidForkVersion(forkVersion common.Version) bool {
+	forkVersionStr := forkVersion.String()
+	if !strings.HasPrefix(forkVersionStr, "0x") {
 		return false
 	}
-	_, err := hex.DecodeString(forkVersion[2:])
-	return err == nil
+
+	// Remove "0x" prefix and verify remaining characters
+	hexPart := strings.TrimPrefix(forkVersionStr, "0x")
+
+	// Should have exactly 8 characters after 0x prefix
+	if len(hexPart) != 8 {
+		return false
+	}
+
+	// Verify it's a valid hex number
+	_, err := hex.DecodeString(hexPart)
+	if err != nil {
+		return false
+	}
+
+	return true
 }
