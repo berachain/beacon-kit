@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
+	"github.com/ethereum/go-ethereum/beacon/engine"
 )
 
 /* -------------------------------------------------------------------------- */
@@ -180,8 +181,12 @@ func (s *Client[ExecutionPayloadT]) GetClientVersionV1(
 	ctx context.Context,
 ) ([]engineprimitives.ClientVersionV1, error) {
 	result := make([]engineprimitives.ClientVersionV1, 0)
+
+	// NOTE: although the ethereum spec does not require us passing a
+	// clientversion as param, it seems some clients require it and even
+	// enforce a valid Code.
 	if err := s.Call(
-		ctx, &result, GetClientVersionV1, nil,
+		ctx, &result, GetClientVersionV1, engine.ClientVersionV1{Code: "GE"},
 	); err != nil {
 		return nil, err
 	}

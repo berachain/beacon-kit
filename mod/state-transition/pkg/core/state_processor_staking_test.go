@@ -39,7 +39,7 @@ import (
 )
 
 // TestTransitionUpdateValidators shows that when validator is
-// updated (increasing amount), corrensponding balance is updated.
+// updated (increasing amount), corresponding balance is updated.
 func TestTransitionUpdateValidators(t *testing.T) {
 	cs := setupChain(t, components.BoonetChainSpecType)
 	sp, st, ds, ctx := setupState(t, cs)
@@ -438,6 +438,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	csData := spec.BaseSpec()
 	csData.DepositEth1ChainID = spec.BoonetEth1ChainID
 	csData.MaxWithdrawalsPerPayload = 2
+	csData.MaxValidatorsPerWithdrawalsSweepPostUpgrade = 2
 	cs, err := chain.NewChainSpec(csData)
 	require.NoError(t, err)
 

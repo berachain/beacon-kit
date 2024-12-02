@@ -45,10 +45,13 @@ type SpecData[
 
 	// HysteresisQuotient is the quotient used in effective balance calculations
 	HysteresisQuotient uint64 `mapstructure:"hysteresis-quotient"`
-	// HysteresisDownwardMultiplier is the multiplier for downward balance adjustments.
+	// HysteresisDownwardMultiplier is the multiplier for downward balance
+	// adjustments.
 	HysteresisDownwardMultiplier uint64 `mapstructure:"hysteresis-downward-multiplier"`
-	// HysteresisUpwardMultiplier is the multiplier for upward balance adjustments.
+	// HysteresisUpwardMultiplier is the multiplier for upward balance
+	// adjustments.
 	HysteresisUpwardMultiplier uint64 `mapstructure:"hysteresis-upward-multiplier"`
+
 	// Time parameters constants.
 	//
 	// SlotsPerEpoch is the number of slots per epoch.
@@ -128,11 +131,15 @@ type SpecData[
 	// MaxWithdrawalsPerPayload indicates the maximum number of withdrawal
 	// operations allowed in a single payload.
 	MaxWithdrawalsPerPayload uint64 `mapstructure:"max-withdrawals-per-payload"`
-	// MaxValidatorsPerWithdrawalsSweep specifies the maximum number of
-	// validator withdrawals allowed per sweep.
-	// Note: it should be prime with ValidatorSetCap to ensure every validator
-	// is visited eventually.
-	MaxValidatorsPerWithdrawalsSweep uint64 `mapstructure:"max-validators-per-withdrawals-sweep"`
+	// MaxValidatorsPerWithdrawalsSweepPreUpgrade specifies the maximum number
+	// of validator withdrawals allowed per sweep. Before the upgrade, this
+	// value is consistent with ETH2.0 spec, set to 2^14.
+	MaxValidatorsPerWithdrawalsSweepPreUpgrade uint64 `mapstructure:"max-validators-per-withdrawals-sweep-pre-upgrade"`
+	// MaxValidatorsPerWithdrawalsSweepPostUpgrade specifies the maximum number
+	// of validator withdrawals allowed per sweep. After the upgrade, this value
+	// is set to the largest prime number smaller than the minimum possible
+	// amount of total validators.
+	MaxValidatorsPerWithdrawalsSweepPostUpgrade uint64 `mapstructure:"max-validators-per-withdrawals-sweep-post-upgrade"`
 
 	// Deneb Values
 	//

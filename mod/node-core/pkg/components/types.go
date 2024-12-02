@@ -27,7 +27,6 @@ import (
 	consruntimetypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/services/version"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
@@ -40,9 +39,6 @@ import (
 type (
 	// DBManager is a type alias for the database manager.
 	DBManager = manager.DBManager
-
-	// ReportingService is a type alias for the reporting service.
-	ReportingService = version.ReportingService
 )
 
 /* -------------------------------------------------------------------------- */

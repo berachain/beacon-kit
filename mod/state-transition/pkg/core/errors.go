@@ -43,7 +43,7 @@ var (
 	ErrDepositsLengthMismatch = errors.New("deposits lengths mismatched")
 
 	// ErrDepositMismatch is returned when a specific deposit listed in
-	// block is different from the corrispondent one from store.
+	// block is different from the correspondent one from store.
 	ErrDepositMismatch = errors.New("deposit mismatched")
 
 	// ErrDepositIndexOutOfOrder is returned when deposits are not in

@@ -30,7 +30,7 @@ import (
 
 var _ types.Dispatcher = (*Dispatcher)(nil)
 
-// Dispatcher faciliates asynchronous communication between components,
+// Dispatcher facilitates asynchronous communication between components,
 // typically services.
 type Dispatcher struct {
 	brokers map[async.EventID]types.Broker
