@@ -15,28 +15,14 @@ lint: ## run all configured linters
 # TODO: Remove GODEBUG override once: https://github.com/golang/go/issues/68877 is resolved.
 golangci:
 	@echo "--> Running linter on all modules"
-	@dirs=$$(find . -name 'go.mod' -exec dirname {} \;); \
-	total=$$(echo "$$dirs" | wc -l); \
-	count=0; \
-	for dir in $$dirs; do \
-		printf "[%d/%d modules complete] Running linter in %s\n" $$count $$total $$dir && \
-		(cd $$dir && GODEBUG=gotypesalias=0 go run github.com/golangci/golangci-lint/cmd/golangci-lint run --config $(ROOT_DIR)/.golangci.yaml --timeout=10m --concurrency 8) || exit 1; \
-		count=$$((count + 1)); \
-	done
+	(GODEBUG=gotypesalias=0 go run github.com/golangci/golangci-lint/cmd/golangci-lint run --config $(ROOT_DIR)/.golangci.yaml --timeout=10m --concurrency 8) || exit 1;
 	@printf "All modules complete\n"
 
 
 # TODO: Remove GODEBUG override once: https://github.com/golang/go/issues/68877 is resolved.
 golangci-fix:
 	@echo "--> Running linter with fixes on all modules"
-	@dirs=$$(find . -name 'go.mod' -exec dirname {} \;); \
-	total=$$(echo "$$dirs" | wc -l); \
-	count=0; \
-	for dir in $$dirs; do \
-		printf "[%d/%d modules complete] Running formatter in %s\n" $$count $$total $$dir && \
-		(cd $$dir && GODEBUG=gotypesalias=0 go run github.com/golangci/golangci-lint/cmd/golangci-lint run --config $(ROOT_DIR)/.golangci.yaml --timeout=10m --fix --concurrency 8) || exit 1; \
-		count=$$((count + 1)); \
-	done
+	(GODEBUG=gotypesalias=0 go run github.com/golangci/golangci-lint/cmd/golangci-lint run --config $(ROOT_DIR)/.golangci.yaml --timeout=10m --fix --concurrency 8) || exit 1;
 	@printf "All modules complete\n"
 
 #################
