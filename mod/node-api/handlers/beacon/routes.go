@@ -28,7 +28,7 @@ import (
 )
 
 //nolint:funlen // routes are long
-func (h *Handler[_, ContextT, _, _]) RegisterRoutes(
+func (h *Handler[_, ContextT, _, _, _]) RegisterRoutes(
 	logger log.Logger,
 ) {
 	h.SetLogger(logger)
@@ -152,6 +152,11 @@ func (h *Handler[_, ContextT, _, _]) RegisterRoutes(
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/beacon/deposit_snapshot",
 			Handler: h.NotImplemented,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/eth/v1/beacon/rewards/blocks/:block_id",
+			Handler: h.GetBlockRewards,
 		},
 		{
 			Method:  http.MethodPost,

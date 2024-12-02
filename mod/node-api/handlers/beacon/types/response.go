@@ -21,6 +21,10 @@
 package types
 
 import (
+	"encoding/hex"
+	"encoding/json"
+	"strconv"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
@@ -29,11 +33,6 @@ type ValidatorResponse struct {
 	ExecutionOptimistic bool `json:"execution_optimistic"`
 	Finalized           bool `json:"finalized"`
 	Data                any  `json:"data"`
-}
-
-type BlockResponse struct {
-	Version string `json:"version"`
-	ValidatorResponse
 }
 
 type BlockHeaderResponse[BlockHeaderT any] struct {
@@ -57,22 +56,81 @@ type RootData struct {
 	Root common.Root `json:"root"`
 }
 
-type ValidatorData[ValidatorT any] struct {
+type ValidatorBalanceData struct {
+	Index   uint64 `json:"index"`
+	Balance uint64 `json:"balance"`
+}
+
+func (vbd ValidatorBalanceData) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Index   string `json:"index"`
+		Balance string `json:"balance"`
+	}{
+		Index:   strconv.FormatUint(vbd.Index, 10),
+		Balance: strconv.FormatUint(vbd.Balance, 10),
+	})
+}
+
+type ValidatorData[
+	ValidatorT Validator[WithdrawalCredentialsT],
+	WithdrawalCredentialsT WithdrawalCredentials,
+] struct {
 	ValidatorBalanceData
 	Status    string     `json:"status"`
 	Validator ValidatorT `json:"validator"`
 }
 
-type ValidatorBalanceData struct {
-	Index   uint64 `json:"index,string"`
-	Balance uint64 `json:"balance,string"`
+type validatorJSON struct {
+	PublicKey                  string `json:"pubkey"`
+	WithdrawalCredentials      string `json:"withdrawal_credentials"`
+	EffectiveBalance           string `json:"effective_balance"`
+	Slashed                    bool   `json:"slashed"`
+	ActivationEligibilityEpoch string `json:"activation_eligibility_epoch"`
+	ActivationEpoch            string `json:"activation_epoch"`
+	ExitEpoch                  string `json:"exit_epoch"`
+	WithdrawableEpoch          string `json:"withdrawable_epoch"`
 }
 
-//nolint:staticcheck // todo: figure this out.
-type CommitteeData struct {
-	Index      uint64   `json:"index,string"`
-	Slot       uint64   `json:"slot,string"`
-	Validators []uint64 `json:"validators,string"`
+type responseJSON struct {
+	Index     string        `json:"index"`
+	Balance   string        `json:"balance"`
+	Status    string        `json:"status"`
+	Validator validatorJSON `json:"validator"`
+}
+
+func (vd ValidatorData[
+	ValidatorT, WithdrawalCredentialsT,
+]) MarshalJSON() ([]byte, error) {
+	withdrawalCredentials := vd.Validator.GetWithdrawalCredentials()
+	withdrawalCredentialsBytes := withdrawalCredentials.Bytes()
+
+	return json.Marshal(responseJSON{
+		Index:   strconv.FormatUint(vd.Index, 10),
+		Balance: strconv.FormatUint(vd.Balance, 10),
+		Status:  vd.Status,
+		Validator: validatorJSON{
+			PublicKey: vd.Validator.GetPubkey().String(),
+			WithdrawalCredentials: "0x" + hex.EncodeToString(
+				withdrawalCredentialsBytes,
+			),
+			EffectiveBalance: strconv.FormatUint(
+				vd.Validator.GetEffectiveBalance().Unwrap(), 10,
+			),
+			Slashed: vd.Validator.IsSlashed(),
+			ActivationEligibilityEpoch: strconv.FormatUint(
+				vd.Validator.GetActivationEligibilityEpoch().Unwrap(), 10,
+			),
+			ActivationEpoch: strconv.FormatUint(
+				vd.Validator.GetActivationEpoch().Unwrap(), 10,
+			),
+			ExitEpoch: strconv.FormatUint(
+				vd.Validator.GetExitEpoch().Unwrap(), 10,
+			),
+			WithdrawableEpoch: strconv.FormatUint(
+				vd.Validator.GetWithdrawableEpoch().Unwrap(), 10,
+			),
+		},
+	})
 }
 
 type BlockRewardsData struct {
@@ -82,4 +140,26 @@ type BlockRewardsData struct {
 	SyncAggregate     uint64 `json:"sync_aggregate,string"`
 	ProposerSlashings uint64 `json:"proposer_slashings,string"`
 	AttesterSlashings uint64 `json:"attester_slashings,string"`
+}
+
+type RandaoData struct {
+	Randao common.Bytes32 `json:"randao"`
+}
+
+type ForkData struct {
+	Fork
+}
+
+type forkJSON struct {
+	PreviousVersion string `json:"previous_version"`
+	CurrentVersion  string `json:"current_version"`
+	Epoch           string `json:"epoch"`
+}
+
+func (fr ForkData) MarshalJSON() ([]byte, error) {
+	return json.Marshal(forkJSON{
+		PreviousVersion: fr.GetPreviousVersion().String(),
+		CurrentVersion:  fr.GetCurrentVersion().String(),
+		Epoch:           strconv.FormatUint(fr.GetEpoch().Unwrap(), 10),
+	})
 }

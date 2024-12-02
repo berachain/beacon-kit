@@ -60,7 +60,9 @@ type GetValidatorBalancesRequest struct {
 
 type PostValidatorBalancesRequest struct {
 	types.StateIDRequest
-	IDs []string `validate:"dive,validator_id"`
+	// IDs are meant to be sent as array in the body rather than a
+	// field in the JSON object in the request body.
+	IDs []string `json:"-" validate:"dive,validator_id"`
 }
 
 type GetStateCommitteesRequest struct {

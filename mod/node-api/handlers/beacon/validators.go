@@ -21,12 +21,13 @@
 package beacon
 
 import (
+	"github.com/berachain/beacon-kit/mod/errors"
 	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 )
 
-func (h *Handler[_, ContextT, _, _]) GetStateValidators(
+func (h *Handler[_, ContextT, _, _, _]) GetStateValidators(
 	c ContextT,
 ) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetStateValidatorsRequest](
@@ -61,7 +62,7 @@ func (h *Handler[_, ContextT, _, _]) GetStateValidators(
 	}, nil
 }
 
-func (h *Handler[_, ContextT, _, _]) PostStateValidators(
+func (h *Handler[_, ContextT, _, _, _]) PostStateValidators(
 	c ContextT,
 ) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.PostStateValidatorsRequest](
@@ -93,7 +94,7 @@ func (h *Handler[_, ContextT, _, _]) PostStateValidators(
 	}, nil
 }
 
-func (h *Handler[_, ContextT, _, _]) GetStateValidator(
+func (h *Handler[_, ContextT, _, _, _]) GetStateValidator(
 	c ContextT,
 ) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetStateValidatorRequest](
@@ -116,7 +117,7 @@ func (h *Handler[_, ContextT, _, _]) GetStateValidator(
 	return validator, nil
 }
 
-func (h *Handler[_, ContextT, _, _]) GetStateValidatorBalances(
+func (h *Handler[_, ContextT, _, _, _]) GetStateValidatorBalances(
 	c ContextT,
 ) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetValidatorBalancesRequest](
@@ -143,25 +144,35 @@ func (h *Handler[_, ContextT, _, _]) GetStateValidatorBalances(
 	}, nil
 }
 
-func (h *Handler[_, ContextT, _, _]) PostStateValidatorBalances(
+func (h *Handler[_, ContextT, _, _, _]) PostStateValidatorBalances(
 	c ContextT,
 ) (any, error) {
-	req, err := utils.BindAndValidate[beacontypes.PostValidatorBalancesRequest](
-		c, h.Logger(),
-	)
-	if err != nil {
-		return nil, err
+	var ids []string
+	if err := c.Bind(&ids); err != nil {
+		return nil, types.ErrInvalidRequest
 	}
+
+	// TODO: Find a way to pass the state_id from request.
+	// Currently only head is supported.
+	req := beacontypes.PostValidatorBalancesRequest{
+		StateIDRequest: types.StateIDRequest{StateID: "head"},
+		IDs:            ids,
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return nil, types.ErrInvalidRequest
+	}
+
 	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "err getting slot for req %v ", req)
 	}
-	balances, err := h.backend.ValidatorBalancesByIDs(
-		slot,
-		req.IDs,
-	)
+
+	h.Logger().Info("PostStateValidatorBalances", "slot", slot, "req", req)
+
+	balances, err := h.backend.ValidatorBalancesByIDs(slot, req.IDs)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "err in backend")
 	}
 	return beacontypes.ValidatorResponse{
 		ExecutionOptimistic: false, // stubbed

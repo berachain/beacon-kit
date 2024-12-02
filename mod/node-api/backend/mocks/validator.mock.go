@@ -4,6 +4,8 @@ package mocks
 
 import (
 	backend "github.com/berachain/beacon-kit/mod/node-api/backend"
+	crypto "github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+
 	math "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 
 	mock "github.com/stretchr/testify/mock"
@@ -20,6 +22,278 @@ type Validator_Expecter[WithdrawalCredentialsT backend.WithdrawalCredentials] st
 
 func (_m *Validator[WithdrawalCredentialsT]) EXPECT() *Validator_Expecter[WithdrawalCredentialsT] {
 	return &Validator_Expecter[WithdrawalCredentialsT]{mock: &_m.Mock}
+}
+
+// GetActivationEligibilityEpoch provides a mock function with given fields:
+func (_m *Validator[WithdrawalCredentialsT]) GetActivationEligibilityEpoch() math.U64 {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetActivationEligibilityEpoch")
+	}
+
+	var r0 math.U64
+	if rf, ok := ret.Get(0).(func() math.U64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(math.U64)
+	}
+
+	return r0
+}
+
+// Validator_GetActivationEligibilityEpoch_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetActivationEligibilityEpoch'
+type Validator_GetActivationEligibilityEpoch_Call[WithdrawalCredentialsT backend.WithdrawalCredentials] struct {
+	*mock.Call
+}
+
+// GetActivationEligibilityEpoch is a helper method to define mock.On call
+func (_e *Validator_Expecter[WithdrawalCredentialsT]) GetActivationEligibilityEpoch() *Validator_GetActivationEligibilityEpoch_Call[WithdrawalCredentialsT] {
+	return &Validator_GetActivationEligibilityEpoch_Call[WithdrawalCredentialsT]{Call: _e.mock.On("GetActivationEligibilityEpoch")}
+}
+
+func (_c *Validator_GetActivationEligibilityEpoch_Call[WithdrawalCredentialsT]) Run(run func()) *Validator_GetActivationEligibilityEpoch_Call[WithdrawalCredentialsT] {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *Validator_GetActivationEligibilityEpoch_Call[WithdrawalCredentialsT]) Return(_a0 math.U64) *Validator_GetActivationEligibilityEpoch_Call[WithdrawalCredentialsT] {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Validator_GetActivationEligibilityEpoch_Call[WithdrawalCredentialsT]) RunAndReturn(run func() math.U64) *Validator_GetActivationEligibilityEpoch_Call[WithdrawalCredentialsT] {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetActivationEpoch provides a mock function with given fields:
+func (_m *Validator[WithdrawalCredentialsT]) GetActivationEpoch() math.U64 {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetActivationEpoch")
+	}
+
+	var r0 math.U64
+	if rf, ok := ret.Get(0).(func() math.U64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(math.U64)
+	}
+
+	return r0
+}
+
+// Validator_GetActivationEpoch_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetActivationEpoch'
+type Validator_GetActivationEpoch_Call[WithdrawalCredentialsT backend.WithdrawalCredentials] struct {
+	*mock.Call
+}
+
+// GetActivationEpoch is a helper method to define mock.On call
+func (_e *Validator_Expecter[WithdrawalCredentialsT]) GetActivationEpoch() *Validator_GetActivationEpoch_Call[WithdrawalCredentialsT] {
+	return &Validator_GetActivationEpoch_Call[WithdrawalCredentialsT]{Call: _e.mock.On("GetActivationEpoch")}
+}
+
+func (_c *Validator_GetActivationEpoch_Call[WithdrawalCredentialsT]) Run(run func()) *Validator_GetActivationEpoch_Call[WithdrawalCredentialsT] {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *Validator_GetActivationEpoch_Call[WithdrawalCredentialsT]) Return(_a0 math.U64) *Validator_GetActivationEpoch_Call[WithdrawalCredentialsT] {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Validator_GetActivationEpoch_Call[WithdrawalCredentialsT]) RunAndReturn(run func() math.U64) *Validator_GetActivationEpoch_Call[WithdrawalCredentialsT] {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetEffectiveBalance provides a mock function with given fields:
+func (_m *Validator[WithdrawalCredentialsT]) GetEffectiveBalance() math.U64 {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetEffectiveBalance")
+	}
+
+	var r0 math.U64
+	if rf, ok := ret.Get(0).(func() math.U64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(math.U64)
+	}
+
+	return r0
+}
+
+// Validator_GetEffectiveBalance_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetEffectiveBalance'
+type Validator_GetEffectiveBalance_Call[WithdrawalCredentialsT backend.WithdrawalCredentials] struct {
+	*mock.Call
+}
+
+// GetEffectiveBalance is a helper method to define mock.On call
+func (_e *Validator_Expecter[WithdrawalCredentialsT]) GetEffectiveBalance() *Validator_GetEffectiveBalance_Call[WithdrawalCredentialsT] {
+	return &Validator_GetEffectiveBalance_Call[WithdrawalCredentialsT]{Call: _e.mock.On("GetEffectiveBalance")}
+}
+
+func (_c *Validator_GetEffectiveBalance_Call[WithdrawalCredentialsT]) Run(run func()) *Validator_GetEffectiveBalance_Call[WithdrawalCredentialsT] {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *Validator_GetEffectiveBalance_Call[WithdrawalCredentialsT]) Return(_a0 math.U64) *Validator_GetEffectiveBalance_Call[WithdrawalCredentialsT] {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Validator_GetEffectiveBalance_Call[WithdrawalCredentialsT]) RunAndReturn(run func() math.U64) *Validator_GetEffectiveBalance_Call[WithdrawalCredentialsT] {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetExitEpoch provides a mock function with given fields:
+func (_m *Validator[WithdrawalCredentialsT]) GetExitEpoch() math.U64 {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetExitEpoch")
+	}
+
+	var r0 math.U64
+	if rf, ok := ret.Get(0).(func() math.U64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(math.U64)
+	}
+
+	return r0
+}
+
+// Validator_GetExitEpoch_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetExitEpoch'
+type Validator_GetExitEpoch_Call[WithdrawalCredentialsT backend.WithdrawalCredentials] struct {
+	*mock.Call
+}
+
+// GetExitEpoch is a helper method to define mock.On call
+func (_e *Validator_Expecter[WithdrawalCredentialsT]) GetExitEpoch() *Validator_GetExitEpoch_Call[WithdrawalCredentialsT] {
+	return &Validator_GetExitEpoch_Call[WithdrawalCredentialsT]{Call: _e.mock.On("GetExitEpoch")}
+}
+
+func (_c *Validator_GetExitEpoch_Call[WithdrawalCredentialsT]) Run(run func()) *Validator_GetExitEpoch_Call[WithdrawalCredentialsT] {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *Validator_GetExitEpoch_Call[WithdrawalCredentialsT]) Return(_a0 math.U64) *Validator_GetExitEpoch_Call[WithdrawalCredentialsT] {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Validator_GetExitEpoch_Call[WithdrawalCredentialsT]) RunAndReturn(run func() math.U64) *Validator_GetExitEpoch_Call[WithdrawalCredentialsT] {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetPubkey provides a mock function with given fields:
+func (_m *Validator[WithdrawalCredentialsT]) GetPubkey() crypto.BLSPubkey {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPubkey")
+	}
+
+	var r0 crypto.BLSPubkey
+	if rf, ok := ret.Get(0).(func() crypto.BLSPubkey); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(crypto.BLSPubkey)
+		}
+	}
+
+	return r0
+}
+
+// Validator_GetPubkey_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPubkey'
+type Validator_GetPubkey_Call[WithdrawalCredentialsT backend.WithdrawalCredentials] struct {
+	*mock.Call
+}
+
+// GetPubkey is a helper method to define mock.On call
+func (_e *Validator_Expecter[WithdrawalCredentialsT]) GetPubkey() *Validator_GetPubkey_Call[WithdrawalCredentialsT] {
+	return &Validator_GetPubkey_Call[WithdrawalCredentialsT]{Call: _e.mock.On("GetPubkey")}
+}
+
+func (_c *Validator_GetPubkey_Call[WithdrawalCredentialsT]) Run(run func()) *Validator_GetPubkey_Call[WithdrawalCredentialsT] {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *Validator_GetPubkey_Call[WithdrawalCredentialsT]) Return(_a0 crypto.BLSPubkey) *Validator_GetPubkey_Call[WithdrawalCredentialsT] {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Validator_GetPubkey_Call[WithdrawalCredentialsT]) RunAndReturn(run func() crypto.BLSPubkey) *Validator_GetPubkey_Call[WithdrawalCredentialsT] {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetWithdrawableEpoch provides a mock function with given fields:
+func (_m *Validator[WithdrawalCredentialsT]) GetWithdrawableEpoch() math.U64 {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetWithdrawableEpoch")
+	}
+
+	var r0 math.U64
+	if rf, ok := ret.Get(0).(func() math.U64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(math.U64)
+	}
+
+	return r0
+}
+
+// Validator_GetWithdrawableEpoch_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetWithdrawableEpoch'
+type Validator_GetWithdrawableEpoch_Call[WithdrawalCredentialsT backend.WithdrawalCredentials] struct {
+	*mock.Call
+}
+
+// GetWithdrawableEpoch is a helper method to define mock.On call
+func (_e *Validator_Expecter[WithdrawalCredentialsT]) GetWithdrawableEpoch() *Validator_GetWithdrawableEpoch_Call[WithdrawalCredentialsT] {
+	return &Validator_GetWithdrawableEpoch_Call[WithdrawalCredentialsT]{Call: _e.mock.On("GetWithdrawableEpoch")}
+}
+
+func (_c *Validator_GetWithdrawableEpoch_Call[WithdrawalCredentialsT]) Run(run func()) *Validator_GetWithdrawableEpoch_Call[WithdrawalCredentialsT] {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *Validator_GetWithdrawableEpoch_Call[WithdrawalCredentialsT]) Return(_a0 math.U64) *Validator_GetWithdrawableEpoch_Call[WithdrawalCredentialsT] {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Validator_GetWithdrawableEpoch_Call[WithdrawalCredentialsT]) RunAndReturn(run func() math.U64) *Validator_GetWithdrawableEpoch_Call[WithdrawalCredentialsT] {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetWithdrawalCredentials provides a mock function with given fields:
@@ -69,17 +343,17 @@ func (_c *Validator_GetWithdrawalCredentials_Call[WithdrawalCredentialsT]) RunAn
 	return _c
 }
 
-// IsFullyWithdrawable provides a mock function with given fields: amount, epoch
-func (_m *Validator[WithdrawalCredentialsT]) IsFullyWithdrawable(amount math.U64, epoch math.U64) bool {
-	ret := _m.Called(amount, epoch)
+// IsSlashed provides a mock function with given fields:
+func (_m *Validator[WithdrawalCredentialsT]) IsSlashed() bool {
+	ret := _m.Called()
 
 	if len(ret) == 0 {
-		panic("no return value specified for IsFullyWithdrawable")
+		panic("no return value specified for IsSlashed")
 	}
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func(math.U64, math.U64) bool); ok {
-		r0 = rf(amount, epoch)
+	if rf, ok := ret.Get(0).(func() bool); ok {
+		r0 = rf()
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
@@ -87,78 +361,29 @@ func (_m *Validator[WithdrawalCredentialsT]) IsFullyWithdrawable(amount math.U64
 	return r0
 }
 
-// Validator_IsFullyWithdrawable_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsFullyWithdrawable'
-type Validator_IsFullyWithdrawable_Call[WithdrawalCredentialsT backend.WithdrawalCredentials] struct {
+// Validator_IsSlashed_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsSlashed'
+type Validator_IsSlashed_Call[WithdrawalCredentialsT backend.WithdrawalCredentials] struct {
 	*mock.Call
 }
 
-// IsFullyWithdrawable is a helper method to define mock.On call
-//   - amount math.U64
-//   - epoch math.U64
-func (_e *Validator_Expecter[WithdrawalCredentialsT]) IsFullyWithdrawable(amount interface{}, epoch interface{}) *Validator_IsFullyWithdrawable_Call[WithdrawalCredentialsT] {
-	return &Validator_IsFullyWithdrawable_Call[WithdrawalCredentialsT]{Call: _e.mock.On("IsFullyWithdrawable", amount, epoch)}
+// IsSlashed is a helper method to define mock.On call
+func (_e *Validator_Expecter[WithdrawalCredentialsT]) IsSlashed() *Validator_IsSlashed_Call[WithdrawalCredentialsT] {
+	return &Validator_IsSlashed_Call[WithdrawalCredentialsT]{Call: _e.mock.On("IsSlashed")}
 }
 
-func (_c *Validator_IsFullyWithdrawable_Call[WithdrawalCredentialsT]) Run(run func(amount math.U64, epoch math.U64)) *Validator_IsFullyWithdrawable_Call[WithdrawalCredentialsT] {
+func (_c *Validator_IsSlashed_Call[WithdrawalCredentialsT]) Run(run func()) *Validator_IsSlashed_Call[WithdrawalCredentialsT] {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(math.U64), args[1].(math.U64))
+		run()
 	})
 	return _c
 }
 
-func (_c *Validator_IsFullyWithdrawable_Call[WithdrawalCredentialsT]) Return(_a0 bool) *Validator_IsFullyWithdrawable_Call[WithdrawalCredentialsT] {
+func (_c *Validator_IsSlashed_Call[WithdrawalCredentialsT]) Return(_a0 bool) *Validator_IsSlashed_Call[WithdrawalCredentialsT] {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *Validator_IsFullyWithdrawable_Call[WithdrawalCredentialsT]) RunAndReturn(run func(math.U64, math.U64) bool) *Validator_IsFullyWithdrawable_Call[WithdrawalCredentialsT] {
-	_c.Call.Return(run)
-	return _c
-}
-
-// IsPartiallyWithdrawable provides a mock function with given fields: amount1, amount2
-func (_m *Validator[WithdrawalCredentialsT]) IsPartiallyWithdrawable(amount1 math.U64, amount2 math.U64) bool {
-	ret := _m.Called(amount1, amount2)
-
-	if len(ret) == 0 {
-		panic("no return value specified for IsPartiallyWithdrawable")
-	}
-
-	var r0 bool
-	if rf, ok := ret.Get(0).(func(math.U64, math.U64) bool); ok {
-		r0 = rf(amount1, amount2)
-	} else {
-		r0 = ret.Get(0).(bool)
-	}
-
-	return r0
-}
-
-// Validator_IsPartiallyWithdrawable_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsPartiallyWithdrawable'
-type Validator_IsPartiallyWithdrawable_Call[WithdrawalCredentialsT backend.WithdrawalCredentials] struct {
-	*mock.Call
-}
-
-// IsPartiallyWithdrawable is a helper method to define mock.On call
-//   - amount1 math.U64
-//   - amount2 math.U64
-func (_e *Validator_Expecter[WithdrawalCredentialsT]) IsPartiallyWithdrawable(amount1 interface{}, amount2 interface{}) *Validator_IsPartiallyWithdrawable_Call[WithdrawalCredentialsT] {
-	return &Validator_IsPartiallyWithdrawable_Call[WithdrawalCredentialsT]{Call: _e.mock.On("IsPartiallyWithdrawable", amount1, amount2)}
-}
-
-func (_c *Validator_IsPartiallyWithdrawable_Call[WithdrawalCredentialsT]) Run(run func(amount1 math.U64, amount2 math.U64)) *Validator_IsPartiallyWithdrawable_Call[WithdrawalCredentialsT] {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(math.U64), args[1].(math.U64))
-	})
-	return _c
-}
-
-func (_c *Validator_IsPartiallyWithdrawable_Call[WithdrawalCredentialsT]) Return(_a0 bool) *Validator_IsPartiallyWithdrawable_Call[WithdrawalCredentialsT] {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Validator_IsPartiallyWithdrawable_Call[WithdrawalCredentialsT]) RunAndReturn(run func(math.U64, math.U64) bool) *Validator_IsPartiallyWithdrawable_Call[WithdrawalCredentialsT] {
+func (_c *Validator_IsSlashed_Call[WithdrawalCredentialsT]) RunAndReturn(run func() bool) *Validator_IsSlashed_Call[WithdrawalCredentialsT] {
 	_c.Call.Return(run)
 	return _c
 }

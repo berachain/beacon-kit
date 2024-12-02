@@ -47,20 +47,20 @@ type Validator struct {
 	// Pubkey is the validator's 48-byte BLS public key.
 	Pubkey crypto.BLSPubkey `json:"pubkey"`
 	// WithdrawalCredentials are an address that controls the validator.
-	WithdrawalCredentials WithdrawalCredentials `json:"withdrawalCredentials"`
+	WithdrawalCredentials WithdrawalCredentials `json:"withdrawal_credentials"`
 	// EffectiveBalance is the validator's current effective balance in gwei.
-	EffectiveBalance math.Gwei `json:"effectiveBalance"`
+	EffectiveBalance math.Gwei `json:"effective_balance"`
 	// Slashed indicates whether the validator has been slashed.
 	Slashed bool `json:"slashed"`
 	// ActivationEligibilityEpoch is the epoch in which the validator became
 	// eligible for activation.
-	ActivationEligibilityEpoch math.Epoch `json:"activationEligibilityEpoch"`
+	ActivationEligibilityEpoch math.Epoch `json:"activation_eligibility_epoch"`
 	// ActivationEpoch is the epoch in which the validator activated.
-	ActivationEpoch math.Epoch `json:"activationEpoch"`
+	ActivationEpoch math.Epoch `json:"activation_epoch"`
 	// ExitEpoch is the epoch in which the validator exited.
-	ExitEpoch math.Epoch `json:"exitEpoch"`
+	ExitEpoch math.Epoch `json:"exit_epoch"`
 	// WithdrawableEpoch is the epoch in which the validator can withdraw.
-	WithdrawableEpoch math.Epoch `json:"withdrawableEpoch"`
+	WithdrawableEpoch math.Epoch `json:"withdrawable_epoch"`
 }
 
 /* -------------------------------------------------------------------------- */
@@ -238,7 +238,7 @@ func (v *Validator) GetEffectiveBalance() math.Gwei {
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#is_active_validator
 //
 //nolint:lll
-func (v Validator) IsActive(epoch math.Epoch) bool {
+func (v *Validator) IsActive(epoch math.Epoch) bool {
 	return v.ActivationEpoch <= epoch && epoch < v.ExitEpoch
 }
 
@@ -246,7 +246,7 @@ func (v Validator) IsActive(epoch math.Epoch) bool {
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#is_eligible_for_activation_queue
 //
 //nolint:lll
-func (v Validator) IsEligibleForActivation(
+func (v *Validator) IsEligibleForActivation(
 	finalizedEpoch math.Epoch,
 ) bool {
 	return v.ActivationEligibilityEpoch <= finalizedEpoch &&
@@ -257,7 +257,7 @@ func (v Validator) IsEligibleForActivation(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#is_eligible_for_activation_queue
 //
 //nolint:lll
-func (v Validator) IsEligibleForActivationQueue(
+func (v *Validator) IsEligibleForActivationQueue(
 	maxEffectiveBalance math.Gwei,
 ) bool {
 	return v.ActivationEligibilityEpoch == math.Epoch(
@@ -270,13 +270,13 @@ func (v Validator) IsEligibleForActivationQueue(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#is_slashable_validator
 //
 //nolint:lll
-func (v Validator) IsSlashable(epoch math.Epoch) bool {
+func (v *Validator) IsSlashable(epoch math.Epoch) bool {
 	return !v.Slashed && v.ActivationEpoch <= epoch &&
 		epoch < v.WithdrawableEpoch
 }
 
 // IsSlashed returns whether the validator has been slashed.
-func (v Validator) IsSlashed() bool {
+func (v *Validator) IsSlashed() bool {
 	return v.Slashed
 }
 
@@ -284,7 +284,7 @@ func (v Validator) IsSlashed() bool {
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#is_fully_withdrawable_validator
 //
 //nolint:lll
-func (v Validator) IsFullyWithdrawable(
+func (v *Validator) IsFullyWithdrawable(
 	balance math.Gwei,
 	epoch math.Epoch,
 ) bool {
@@ -296,7 +296,7 @@ func (v Validator) IsFullyWithdrawable(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#is_partially_withdrawable_validator
 //
 //nolint:lll
-func (v Validator) IsPartiallyWithdrawable(
+func (v *Validator) IsPartiallyWithdrawable(
 	balance, maxEffectiveBalance math.Gwei,
 ) bool {
 	hasExcessBalance := balance > maxEffectiveBalance
@@ -308,13 +308,13 @@ func (v Validator) IsPartiallyWithdrawable(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#has_eth1_withdrawal_credential
 //
 //nolint:lll
-func (v Validator) HasEth1WithdrawalCredentials() bool {
+func (v *Validator) HasEth1WithdrawalCredentials() bool {
 	return v.WithdrawalCredentials[0] == EthSecp256k1CredentialPrefix
 }
 
 // HasMaxEffectiveBalance determines if the validator has the maximum effective
 // balance.
-func (v Validator) HasMaxEffectiveBalance(
+func (v *Validator) HasMaxEffectiveBalance(
 	maxEffectiveBalance math.Gwei,
 ) bool {
 	return v.EffectiveBalance == maxEffectiveBalance
@@ -331,11 +331,27 @@ func (v *Validator) SetWithdrawableEpoch(e math.Epoch) {
 }
 
 // GetWithdrawableEpoch returns the epoch when the validator can withdraw.
-func (v Validator) GetWithdrawableEpoch() math.Epoch {
+func (v *Validator) GetWithdrawableEpoch() math.Epoch {
 	return v.WithdrawableEpoch
 }
 
 // GetWithdrawalCredentials returns the withdrawal credentials of the validator.
-func (v Validator) GetWithdrawalCredentials() WithdrawalCredentials {
+func (v *Validator) GetWithdrawalCredentials() WithdrawalCredentials {
 	return v.WithdrawalCredentials
+}
+
+// GetActivationEligibilityEpoch returns the activation eligibility
+// epoch of the validator.
+func (v *Validator) GetActivationEligibilityEpoch() math.Epoch {
+	return v.ActivationEligibilityEpoch
+}
+
+// GetActivationEpoch returns the activation epoch of the validator.
+func (v *Validator) GetActivationEpoch() math.Epoch {
+	return v.ActivationEpoch
+}
+
+// GetExitEpoch returns the exit epoch of the validator.
+func (v *Validator) GetExitEpoch() math.Epoch {
+	return v.ExitEpoch
 }
