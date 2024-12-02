@@ -1,6 +1,6 @@
-#!usr/bin/make -f 
+#!usr/bin/make -f
 
-GETH_GO_GENERATE_VERSION := $(shell grep 'github.com/ethereum/go-ethereum' beacond/go.mod | awk '{print $$2}')
+GETH_GO_GENERATE_VERSION := $(shell grep 'github.com/ethereum/go-ethereum' go.mod | awk '{print $$2}')
 GOPATH = $(shell go env GOPATH)
 GETH_PKG_INCLUDE := $(GOPATH)/pkg/mod/github.com/ethereum/go-ethereum@$(GETH_GO_GENERATE_VERSION)
 
