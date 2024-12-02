@@ -45,16 +45,13 @@ func BoonetChainSpec() (chain.Spec[
 	)
 
 	// BERA per block minting.
-	//
-	// TODO: determine correct value for boonet upgrade.
 	boonetSpec.EVMInflationPerBlock = 2.5e9
 
 	boonetSpec.ValidatorSetCap = 256
 
-	// MaxValidatorsPerWithdrawalsSweep is 43 to be smaller than
-	// the validator set cap. We choose a prime number smaller
+	// MaxValidatorsPerWithdrawalsSweep is 43 because we expect at least 46
+	// validators in the total validators set. We choose a prime number smaller
 	// than the minimum amount of total validators possible.
-	// TODO: Determine correct value for boonet upgrade.
 	boonetSpec.MaxValidatorsPerWithdrawalsSweepPostUpgrade = 43
 
 	return chain.NewChainSpec(boonetSpec)
