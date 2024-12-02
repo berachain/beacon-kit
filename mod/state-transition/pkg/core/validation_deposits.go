@@ -50,7 +50,7 @@ func (sp *StateProcessor[
 			return fmt.Errorf("validator set cap %d, deposits count %d: %w",
 				sp.cs.ValidatorSetCap(),
 				len(deposits),
-				ErrHitValidatorsSetCap,
+				ErrValSetCapExceeded,
 			)
 		}
 		return nil
@@ -91,7 +91,7 @@ func (sp *StateProcessor[
 			return fmt.Errorf("validator set cap %d, deposits count %d: %w",
 				sp.cs.ValidatorSetCap(),
 				len(deposits),
-				ErrHitValidatorsSetCap,
+				ErrValSetCapExceeded,
 			)
 		}
 		return nil

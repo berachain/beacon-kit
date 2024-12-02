@@ -23,9 +23,9 @@ package core
 import "github.com/berachain/beacon-kit/mod/errors"
 
 var (
-	// ErrValidatorSetCapHit is returned when we try and add a validator
-	// that would breach validator set size cap.
-	ErrHitValidatorsSetCap = errors.New("hit validator set size cap")
+	// ErrValSetCapExceeded is returned when the number of genesis deposits
+	// exceeds the validator set cap.
+	ErrValSetCapExceeded = errors.New("validator set cap exceeded at genesis")
 
 	// ErrBlockSlotTooLow is returned when the block slot is too low.
 	ErrBlockSlotTooLow = errors.New("block slot too low")
