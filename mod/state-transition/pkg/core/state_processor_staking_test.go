@@ -434,6 +434,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	csData := spec.BaseSpec()
 	csData.DepositEth1ChainID = spec.BoonetEth1ChainID
 	csData.MaxWithdrawalsPerPayload = 2
+	csData.MaxValidatorsPerWithdrawalsSweepPostUpgrade = 2
 	cs, err := chain.NewChainSpec(csData)
 	require.NoError(t, err)
 
