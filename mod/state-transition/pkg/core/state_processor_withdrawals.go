@@ -283,10 +283,11 @@ func (sp *StateProcessor[
 
 	sp.logger.Info(
 		"Processed withdrawals",
-		"slot", slot,
 		"num_withdrawals", numWithdrawals,
 		"bera_inflation", float64(
 			payloadWithdrawals[0].GetAmount().Unwrap())/math.GweiPerWei,
+		"withdrawals", spew.Sdump(expectedWithdrawals),
+		"next_withdrawal_validator_index", nextValidatorIndex,
 	)
 
 	return nil
