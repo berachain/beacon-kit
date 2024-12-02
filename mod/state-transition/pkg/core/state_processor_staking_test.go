@@ -609,7 +609,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				Pubkey:      key,
 				Credentials: creds,
 				Amount:      maxBalance,
-				Index:       uint64(idx),
+				Index:       idx,
 			},
 		)
 	}
@@ -744,7 +744,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				Pubkey:      key,
 				Credentials: creds,
 				Amount:      maxBalance,
-				Index:       uint64(idx),
+				Index:       idx,
 			},
 		)
 	}
@@ -856,7 +856,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 
 	vals, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
-	require.LessOrEqual(t, uint32(len(vals)), cs.ValidatorSetCap())
+	require.LessOrEqual(t, uint64(len(vals)), cs.ValidatorSetCap())
 	require.Len(t, vals, 2) // just replaced one validator
 
 	// check that we added the incoming validator at the epoch turn
@@ -905,7 +905,7 @@ func TestTransitionValidatorCap_DoubleEviction(t *testing.T) {
 				Pubkey:      key,
 				Credentials: creds,
 				Amount:      maxBalance,
-				Index:       uint64(idx),
+				Index:       idx,
 			},
 		)
 	}
@@ -1069,7 +1069,7 @@ func TestTransitionValidatorCap_DoubleEviction(t *testing.T) {
 
 	vals, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
-	require.LessOrEqual(t, uint32(len(vals)), cs.ValidatorSetCap())
+	require.LessOrEqual(t, uint64(len(vals)), cs.ValidatorSetCap())
 	require.Len(t, vals, 4) // just replaced two validators
 
 	// turn vals into map to avoid ordering issues
