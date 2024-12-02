@@ -24,6 +24,7 @@ import (
 	"context"
 	"math/big"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -51,6 +52,10 @@ type EngineClient[
 	metrics *clientMetrics
 	// capabilities is a map of capabilities that the execution client has.
 	capabilities map[string]struct{}
+	// connected will be set to true when we have successfully connected
+	// to the execution client.
+	connectedMu sync.RWMutex
+	connected   bool
 }
 
 // New creates a new engine client EngineClient.
@@ -82,6 +87,7 @@ func New[
 		capabilities: make(map[string]struct{}),
 		eth1ChainID:  eth1ChainID,
 		metrics:      newClientMetrics(telemetrySink, logger),
+		connected:    false,
 	}
 }
 
@@ -130,9 +136,23 @@ func (s *EngineClient[
 				}
 				continue
 			}
+			s.connectedMu.Lock()
+			s.connected = true
+			s.connectedMu.Unlock()
 			return nil
 		}
 	}
+}
+
+func (s *EngineClient[_, _]) IsConnected() bool {
+	s.connectedMu.RLock()
+	defer s.connectedMu.RUnlock()
+	return s.connected
+}
+
+func (s *EngineClient[_, _]) HasCapability(capability string) bool {
+	_, ok := s.capabilities[capability]
+	return ok
 }
 
 /* -------------------------------------------------------------------------- */

@@ -162,7 +162,10 @@ type (
 	NodeAPIServer = server.Server[NodeAPIContext]
 
 	// ReportingService is a type alias for the reporting service.
-	ReportingService = version.ReportingService
+	ReportingService = version.ReportingService[
+		*ExecutionPayload,
+		*PayloadAttributes,
+	]
 
 	// SidecarFactory is a type alias for the sidecar factory.
 	SidecarFactory = dablob.SidecarFactory[
