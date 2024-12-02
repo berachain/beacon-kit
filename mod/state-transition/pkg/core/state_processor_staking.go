@@ -75,6 +75,11 @@ func (sp *StateProcessor[
 		return err
 	}
 
+	sp.logger.Info(
+		"Processed deposit to set Eth 1 deposit index",
+		"deposit_index", dep.GetIndex().Unwrap(),
+	)
+
 	return sp.applyDeposit(st, dep)
 }
 
