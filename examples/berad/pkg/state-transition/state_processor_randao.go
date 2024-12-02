@@ -25,7 +25,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/go-faster/xor"
 )
@@ -56,19 +55,19 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	epoch := sp.cs.SlotToEpoch(slot.Unwrap())
+	epoch := sp.cs.GetSlotToEpoch(slot)
 	body := blk.GetBody()
 
 	var fd ForkDataT
 	fd = fd.New(
 		version.FromUint32[common.Version](
-			sp.cs.ActiveForkVersionForEpoch(epoch),
+			sp.cs.GetActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,
 	)
 
 	if !skipVerification {
 		signingRoot := fd.ComputeRandaoSigningRoot(
-			sp.cs.DomainTypeRandao(), math.U64(epoch),
+			sp.cs.GetDomainTypeRandao(), epoch,
 		)
 		reveal := body.GetRandaoReveal()
 		if err = sp.signer.VerifySignature(
@@ -81,14 +80,14 @@ func (sp *StateProcessor[
 	}
 
 	prevMix, err := st.GetRandaoMixAtIndex(
-		epoch % sp.cs.EpochsPerHistoricalVector(),
+		epoch.Unwrap() % sp.cs.GetEpochsPerHistoricalVector(),
 	)
 	if err != nil {
 		return err
 	}
 
 	return st.UpdateRandaoMixAtIndex(
-		epoch%sp.cs.EpochsPerHistoricalVector(),
+		epoch.Unwrap()%sp.cs.GetEpochsPerHistoricalVector(),
 		sp.buildRandaoMix(prevMix, body.GetRandaoReveal()),
 	)
 }
@@ -107,15 +106,15 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	epoch := sp.cs.SlotToEpoch(slot.Unwrap())
+	epoch := sp.cs.GetSlotToEpoch(slot).Unwrap()
 	mix, err := st.GetRandaoMixAtIndex(
-		epoch % sp.cs.EpochsPerHistoricalVector(),
+		epoch % sp.cs.GetEpochsPerHistoricalVector(),
 	)
 	if err != nil {
 		return err
 	}
 	return st.UpdateRandaoMixAtIndex(
-		(epoch+1)%sp.cs.EpochsPerHistoricalVector(),
+		(epoch+1)%sp.cs.GetEpochsPerHistoricalVector(),
 		mix,
 	)
 }

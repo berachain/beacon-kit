@@ -25,6 +25,7 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
@@ -816,7 +817,7 @@ type (
 	] interface {
 		NewFromDB(
 			bdb KVStoreT,
-			cs common.ChainSpec,
+			cs spec.Chain[any],
 		) T
 		Copy() T
 		Context() context.Context
@@ -1113,7 +1114,7 @@ type (
 		ValidatorT any,
 	] interface {
 		AttachQueryBackend(node NodeT)
-		ChainSpec() common.ChainSpec
+		ChainSpec() spec.Chain[any]
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		GetSlotByStateRoot(root common.Root) (math.Slot, error)
 		GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)

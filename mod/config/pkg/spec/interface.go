@@ -18,16 +18,15 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package chain
+package spec
+
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+)
 
 // Spec defines an interface for accessing chain-specific parameters.
-type Spec[
-	DomainTypeT ~[4]byte,
-	EpochT ~uint64,
-	ExecutionAddressT ~[20]byte,
-	SlotT ~uint64,
-	CometBFTConfigT any,
-] interface {
+type Chain[CometBFTConfigT any] interface {
 	// Gwei value constants.
 
 	// MinDepositAmount returns the minimum amount of Gwei required for a
@@ -73,33 +72,33 @@ type Spec[
 	// Signature Domains
 
 	// DomainTypeProposer returns the domain for proposer signatures.
-	GetDomainTypeProposer() DomainTypeT
+	GetDomainTypeProposer() common.DomainType
 
 	// DomainTypeAttester returns the domain for attester signatures.
-	GetDomainTypeAttester() DomainTypeT
+	GetDomainTypeAttester() common.DomainType
 
 	// DomainTypeRandao returns the domain for RANDAO reveal signatures.
-	GetDomainTypeRandao() DomainTypeT
+	GetDomainTypeRandao() common.DomainType
 
 	// DomainTypeDeposit returns the domain for deposit signatures.
-	GetDomainTypeDeposit() DomainTypeT
+	GetDomainTypeDeposit() common.DomainType
 
 	// DomainTypeVoluntaryExit returns the domain for voluntary exit signatures.
-	GetDomainTypeVoluntaryExit() DomainTypeT
+	GetDomainTypeVoluntaryExit() common.DomainType
 
 	// DomainTypeSelectionProof returns the domain for selection proof
-	GetDomainTypeSelectionProof() DomainTypeT
+	GetDomainTypeSelectionProof() common.DomainType
 
 	// DomainTypeAggregateAndProof returns the domain for aggregate and proof
-	GetDomainTypeAggregateAndProof() DomainTypeT
+	GetDomainTypeAggregateAndProof() common.DomainType
 
 	// DomainTypeApplicationMask returns the domain for application signatures.
-	GetDomainTypeApplicationMask() DomainTypeT
+	GetDomainTypeApplicationMask() common.DomainType
 
 	// Eth1-related values.
 
 	// DepositContractAddress returns the deposit contract address.
-	GetDepositContractAddress() ExecutionAddressT
+	GetDepositContractAddress() common.ExecutionAddress
 
 	// MaxDepositsPerBlock returns the maximum number of deposit operations per
 	// block.
@@ -117,10 +116,10 @@ type Spec[
 
 	// Fork-related values.
 	// DenebPlusForkEpoch returns the epoch at which the Deneb+ fork takes
-	GetDenebPlusForkEpoch() EpochT
+	GetDenebPlusForkEpoch() math.Epoch
 	// ElectraForkEpoch returns the epoch at which the Electra fork takes
 	// effect.
-	GetElectraForkEpoch() EpochT
+	GetElectraForkEpoch() math.Epoch
 
 	// State list lengths
 
@@ -180,29 +179,29 @@ type Spec[
 
 	// ActiveForkVersionForSlot returns the active fork version for a given
 	// slot.
-	GetActiveForkVersionForSlot(slot SlotT) uint32
+	GetActiveForkVersionForSlot(slot math.Slot) uint32
 
 	// ActiveForkVersionForEpoch returns the active fork version for a given
 	// epoch.
-	GetActiveForkVersionForEpoch(epoch EpochT) uint32
+	GetActiveForkVersionForEpoch(epoch math.Epoch) uint32
 
-	// SlotToEpoch converts a slot number to an epoch number.
-	GetSlotToEpoch(slot SlotT) EpochT
+	// GetSlotToEpoch converts a slot number to an epoch number.
+	GetSlotToEpoch(slot math.Slot) math.Epoch
 
 	// WithinDAPeriod checks if a given block slot is within the data
 	// availability period relative to the current slot.
-	GetWithinDAPeriod(block, current SlotT) bool
+	GetWithinDAPeriod(block, current math.Slot) bool
 
 	// GetCometBFTConfigForSlot retrieves the CometBFT config for a specific
 	// slot.
-	GetCometBFTConfigForSlot(slot SlotT) CometBFTConfigT
+	GetCometBFTConfigForSlot(slot math.Slot) CometBFTConfigT
 
 	// Berachain Values
 
 	// EVMInflationAddress returns the address on the EVM which will receive
 	// the inflation amount of native EVM balance through a withdrawal every
 	// block.
-	GetEVMInflationAddress() ExecutionAddressT
+	GetEVMInflationAddress() common.ExecutionAddress
 
 	// EVMInflationPerBlock returns the amount of native EVM balance (in Gwei)
 	// to be minted to the EVMInflationAddress via a withdrawal every block.

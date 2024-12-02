@@ -23,10 +23,10 @@ package store
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/sourcegraph/conc/iter"
 )
@@ -38,14 +38,14 @@ type Store[BeaconBlockBodyT BeaconBlockBody] struct {
 	// logger is used for logging.
 	logger log.Logger
 	// chainSpec contains the chain specification.
-	chainSpec common.ChainSpec
+	chainSpec spec.Chain[any]
 }
 
 // New creates a new instance of the AvailabilityStore.
 func New[BeaconBlockT BeaconBlockBody](
 	db IndexDB,
 	logger log.Logger,
-	chainSpec common.ChainSpec,
+	chainSpec spec.Chain[any],
 ) *Store[BeaconBlockT] {
 	return &Store[BeaconBlockT]{
 		IndexDB:   db,
@@ -84,7 +84,7 @@ func (s *Store[BeaconBlockT]) Persist(
 
 	// Check to see if we are required to store the sidecar anymore, if
 	// this sidecar is from outside the required DA period, we can skip it.
-	if !s.chainSpec.WithinDAPeriod(
+	if !s.chainSpec.GetWithinDAPeriod(
 		// slot in which the sidecar was included.
 		// (Safe to assume all sidecars are in same slot at this point).
 		sidecars.Sidecars[0].BeaconBlockHeader.GetSlot(),

@@ -21,10 +21,8 @@
 package spec
 
 import (
-	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	cmttypes "github.com/cometbft/cometbft/types"
 )
 
@@ -34,26 +32,14 @@ const (
 	DefaultDepositContractAddress = "0x4242424242424242424242424242424242424242"
 )
 
-// BaseSpec returns a chain spec with default values.
+// CommonSpec returns a chain spec with default values.
 //
 //nolint:mnd // bet.
-func BaseSpec() chain.SpecData[
-	common.DomainType,
-	math.Epoch,
-	common.ExecutionAddress,
-	math.Slot,
-	any,
-] {
+func CommonSpec() Common[any] {
 	cmtConsensusParams := cmttypes.DefaultConsensusParams()
 	cmtConsensusParams.Validator.PubKeyTypes = []string{crypto.CometBLSType}
 
-	return chain.SpecData[
-		common.DomainType,
-		math.Epoch,
-		common.ExecutionAddress,
-		math.Slot,
-		any,
-	]{
+	return Common[any]{
 		// Gwei value constants.
 		MinDepositAmount:             1e9,
 		MaxEffectiveBalance:          32e9,

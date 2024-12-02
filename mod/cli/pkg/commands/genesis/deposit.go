@@ -27,6 +27,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/cli/pkg/context"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/parser"
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
@@ -44,7 +45,7 @@ import (
 
 // AddGenesisDepositCmd - returns the cobra command to
 // add a premined deposit to the genesis file.
-func AddGenesisDepositCmd(cs common.ChainSpec) *cobra.Command {
+func AddGenesisDepositCmd(cs spec.Chain[any]) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add-premined-deposit",
 		Short: "adds a validator to the genesis file",
@@ -94,7 +95,7 @@ func AddGenesisDepositCmd(cs common.ChainSpec) *cobra.Command {
 
 			depositMsg, signature, err := types.CreateAndSignDepositMessage(
 				types.NewForkData(currentVersion, common.Root{}),
-				cs.DomainTypeDeposit(),
+				cs.GetDomainTypeDeposit(),
 				blsSigner,
 				// TODO: configurable.
 				types.NewCredentialsFromExecutionAddress(
@@ -110,7 +111,7 @@ func AddGenesisDepositCmd(cs common.ChainSpec) *cobra.Command {
 			if err = depositMsg.VerifyCreateValidator(
 				types.NewForkData(currentVersion, common.Root{}),
 				signature,
-				cs.DomainTypeDeposit(),
+				cs.GetDomainTypeDeposit(),
 				signer.BLSSigner{}.VerifySignature,
 			); err != nil {
 				return err

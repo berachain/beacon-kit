@@ -24,9 +24,9 @@ import (
 	"context"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
@@ -54,7 +54,7 @@ type Service[
 	// logger is a logger.
 	logger log.Logger
 	// chainSpec is the chain spec.
-	chainSpec common.ChainSpec
+	chainSpec spec.Chain[any]
 	// signer is used to retrieve the public key of this node.
 	signer crypto.BLSSigner
 	// blobFactory is used to create blob sidecars for blocks.
@@ -104,7 +104,7 @@ func NewService[
 ](
 	cfg *Config,
 	logger log.Logger,
-	chainSpec common.ChainSpec,
+	chainSpec spec.Chain[any],
 	sb StorageBackend[BeaconStateT, DepositStoreT],
 	stateProcessor StateProcessor[
 		BeaconBlockT,

@@ -24,9 +24,9 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 )
 
@@ -39,7 +39,7 @@ type ABCIMiddleware[
 	SlotDataT any,
 ] struct {
 	// chainSpec is the chain specification.
-	chainSpec common.ChainSpec
+	chainSpec spec.Chain[any]
 	// dispatcher is the central dispatcher to
 	dispatcher types.EventDispatcher
 	// metrics is the metrics emitter.
@@ -69,7 +69,7 @@ func NewABCIMiddleware[
 	GenesisT json.Unmarshaler,
 	SlotDataT any,
 ](
-	chainSpec common.ChainSpec,
+	chainSpec spec.Chain[any],
 	dispatcher types.EventDispatcher,
 	logger log.Logger,
 	telemetrySink TelemetrySink,

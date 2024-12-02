@@ -23,16 +23,16 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/config"
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
 type AttributesFactoryInput[LoggerT any] struct {
 	depinject.In
 
-	ChainSpec common.ChainSpec
+	ChainSpec spec.Chain[any]
 	Config    *config.Config
 	Logger    LoggerT
 }

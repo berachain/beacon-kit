@@ -23,7 +23,7 @@ package core_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -38,9 +38,9 @@ func TestInitialize(t *testing.T) {
 	sp, st, _, _ := setupState(t, cs)
 
 	var (
-		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
-		increment  = math.Gwei(cs.EffectiveBalanceIncrement())
-		minBalance = math.Gwei(cs.EjectionBalance())
+		maxBalance = math.Gwei(cs.GetMaxEffectiveBalance())
+		increment  = math.Gwei(cs.GetEffectiveBalanceIncrement())
+		minBalance = math.Gwei(cs.GetEjectionBalance())
 	)
 
 	// create test inputs
@@ -132,13 +132,7 @@ func TestInitialize(t *testing.T) {
 
 func checkValidatorNonBartio(
 	t *testing.T,
-	cs chain.Spec[
-		common.DomainType,
-		math.Epoch,
-		common.ExecutionAddress,
-		math.Slot,
-		any,
-	],
+	cs spec.Chain[any],
 	bs *TestBeaconStateT,
 	dep *types.Deposit,
 ) {
@@ -161,9 +155,9 @@ func TestInitializeBartio(t *testing.T) {
 	sp, st, _, _ := setupState(t, cs)
 
 	var (
-		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
-		increment  = math.Gwei(cs.EffectiveBalanceIncrement())
-		minBalance = math.Gwei(cs.EjectionBalance())
+		maxBalance = math.Gwei(cs.GetMaxEffectiveBalance())
+		increment  = math.Gwei(cs.GetEffectiveBalanceIncrement())
+		minBalance = math.Gwei(cs.GetEjectionBalance())
 	)
 
 	var (
@@ -254,13 +248,7 @@ func TestInitializeBartio(t *testing.T) {
 
 func checkValidatorBartio(
 	t *testing.T,
-	cs chain.Spec[
-		common.DomainType,
-		math.Epoch,
-		common.ExecutionAddress,
-		math.Slot,
-		any,
-	],
+	cs spec.Chain[any],
 	bs *TestBeaconStateT,
 	dep *types.Deposit,
 ) {
@@ -282,13 +270,7 @@ func checkValidatorBartio(
 
 func commonChecksValidators(
 	t *testing.T,
-	cs chain.Spec[
-		common.DomainType,
-		math.Epoch,
-		common.ExecutionAddress,
-		math.Slot,
-		any,
-	],
+	cs spec.Chain[any],
 	bs *TestBeaconStateT,
 	dep *types.Deposit,
 ) {
@@ -302,9 +284,9 @@ func commonChecksValidators(
 	require.Equal(t, dep.Pubkey, val.Pubkey)
 
 	var (
-		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
-		increment  = math.Gwei(cs.EffectiveBalanceIncrement())
-		minBalance = math.Gwei(cs.EjectionBalance())
+		maxBalance = math.Gwei(cs.GetMaxEffectiveBalance())
+		increment  = math.Gwei(cs.GetEffectiveBalanceIncrement())
+		minBalance = math.Gwei(cs.GetEjectionBalance())
 	)
 	switch {
 	case dep.Amount >= maxBalance:

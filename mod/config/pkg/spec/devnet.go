@@ -21,9 +21,7 @@
 package spec
 
 import (
-	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 const (
@@ -37,18 +35,12 @@ const (
 
 // DevnetChainSpec is the ChainSpec for the localnet. Also used for e2e tests
 // in the kurtosis network.
-func DevnetChainSpec() (chain.Spec[
-	common.DomainType,
-	math.Epoch,
-	common.ExecutionAddress,
-	math.Slot,
-	any,
-], error) {
-	devnetSpec := BaseSpec()
+func DevnetChainSpec() (Chain[any], error) {
+	devnetSpec := CommonSpec()
 	devnetSpec.DepositEth1ChainID = DevnetEth1ChainID
 	devnetSpec.EVMInflationAddress = common.NewExecutionAddressFromHex(
 		DevnetEVMInflationAddress,
 	)
 	devnetSpec.EVMInflationPerBlock = DevnetEVMInflationPerBlock
-	return chain.NewChainSpec(devnetSpec)
+	return devnetSpec, devnetSpec.Validate()
 }

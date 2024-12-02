@@ -147,7 +147,7 @@ func (s *Service[
 	var blk BeaconBlockT
 	// Create a new block.
 	parentBlockRoot, err := st.GetBlockRootAtIndex(
-		(requestedSlot.Unwrap() - 1) % s.chainSpec.SlotsPerHistoricalRoot(),
+		(requestedSlot.Unwrap() - 1) % s.chainSpec.GetSlotsPerHistoricalRoot(),
 	)
 
 	if err != nil {
@@ -166,7 +166,7 @@ func (s *Service[
 		requestedSlot,
 		proposerIndex,
 		parentBlockRoot,
-		s.chainSpec.ActiveForkVersionForSlot(requestedSlot),
+		s.chainSpec.GetActiveForkVersionForSlot(requestedSlot),
 	)
 }
 
@@ -179,7 +179,7 @@ func (s *Service[
 ) (crypto.BLSSignature, error) {
 	var (
 		forkData ForkDataT
-		epoch    = s.chainSpec.SlotToEpoch(slot)
+		epoch    = s.chainSpec.GetSlotToEpoch(slot)
 	)
 
 	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
@@ -189,10 +189,10 @@ func (s *Service[
 
 	signingRoot := forkData.New(
 		version.FromUint32[common.Version](
-			s.chainSpec.ActiveForkVersionForEpoch(epoch),
+			s.chainSpec.GetActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,
 	).ComputeRandaoSigningRoot(
-		s.chainSpec.DomainTypeRandao(),
+		s.chainSpec.GetDomainTypeRandao(),
 		epoch,
 	)
 	return s.signer.Sign(signingRoot[:])
@@ -297,14 +297,14 @@ func (s *Service[
 
 	// Bartio and Boonet pre Fork2 have deposit broken and undervalidated
 	// Any other network should build deposits the right way
-	if !(s.chainSpec.DepositEth1ChainID() == spec.BartioChainID ||
-		(s.chainSpec.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
+	if !(s.chainSpec.GetDepositEth1ChainID() == spec.BartioChainID ||
+		(s.chainSpec.GetDepositEth1ChainID() == spec.BoonetEth1ChainID &&
 			blk.GetSlot() < math.U64(spec.BoonetFork2Height))) {
 		depositIndex++
 	}
 	deposits, err := s.sb.DepositStore().GetDepositsByIndex(
 		depositIndex,
-		s.chainSpec.MaxDepositsPerBlock(),
+		s.chainSpec.GetMaxDepositsPerBlock(),
 	)
 	if err != nil {
 		return err
@@ -330,8 +330,8 @@ func (s *Service[
 	body.SetGraffiti(graffiti)
 
 	// Get the epoch to find the active fork version.
-	epoch := s.chainSpec.SlotToEpoch(blk.GetSlot())
-	activeForkVersion := s.chainSpec.ActiveForkVersionForEpoch(
+	epoch := s.chainSpec.GetSlotToEpoch(blk.GetSlot())
+	activeForkVersion := s.chainSpec.GetActiveForkVersionForEpoch(
 		epoch,
 	)
 	if activeForkVersion >= version.DenebPlus {

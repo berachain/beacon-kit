@@ -26,10 +26,10 @@ import (
 	"cosmossdk.io/log"
 	clicontext "github.com/berachain/beacon-kit/mod/cli/pkg/context"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/parser"
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/spf13/cobra"
@@ -39,7 +39,7 @@ import (
 func NewCreateValidator[
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 ](
-	chainSpec common.ChainSpec,
+	chainSpec spec.Chain[any],
 ) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-validator",
@@ -69,7 +69,7 @@ func NewCreateValidator[
 func createValidatorCmd[
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 ](
-	chainSpec common.ChainSpec,
+	chainSpec spec.Chain[any],
 ) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		logger := log.NewLogger(os.Stdout)
@@ -103,7 +103,7 @@ func createValidatorCmd[
 		// Create and sign the deposit message.
 		depositMsg, signature, err := types.CreateAndSignDepositMessage(
 			types.NewForkData(currentVersion, genesisValidatorRoot),
-			chainSpec.DomainTypeDeposit(),
+			chainSpec.GetDomainTypeDeposit(),
 			blsSigner,
 			credentials,
 			amount,
@@ -116,7 +116,7 @@ func createValidatorCmd[
 		if err = depositMsg.VerifyCreateValidator(
 			types.NewForkData(currentVersion, genesisValidatorRoot),
 			signature,
-			chainSpec.DomainTypeDeposit(),
+			chainSpec.GetDomainTypeDeposit(),
 			signer.BLSSigner{}.VerifySignature,
 		); err != nil {
 			return err

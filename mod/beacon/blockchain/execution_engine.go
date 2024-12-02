@@ -85,7 +85,7 @@ func (s *Service[
 
 	// We set timestamp check on Bartio for backward compatibility reasons
 	// TODO: drop this we drop other Bartio special cases.
-	if s.chainSpec.DepositEth1ChainID() == spec.BartioChainID {
+	if s.chainSpec.GetDepositEth1ChainID() == spec.BartioChainID {
 		nextPayloadTime = max(
 			//#nosec:G701
 			uint64(time.Now().Unix()+1),
@@ -133,7 +133,7 @@ func (s *Service[
 				SafeBlockHash:      lph.GetParentHash(),
 				FinalizedBlockHash: lph.GetParentHash(),
 			},
-			s.chainSpec.ActiveForkVersionForSlot(beaconBlk.GetSlot()),
+			s.chainSpec.GetActiveForkVersionForSlot(beaconBlk.GetSlot()),
 		),
 	); err != nil {
 		s.logger.Error(

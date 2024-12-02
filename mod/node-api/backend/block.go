@@ -53,7 +53,7 @@ func (b Backend[
 
 	// As calculated by the beacon chain. Ideally, this logic
 	// should be abstracted by the beacon chain.
-	return st.GetBlockRootAtIndex(slot.Unwrap() % b.cs.SlotsPerHistoricalRoot())
+	return st.GetBlockRootAtIndex(slot.Unwrap() % b.cs.GetSlotsPerHistoricalRoot())
 }
 
 // TODO: Implement this.

@@ -25,11 +25,11 @@ import (
 	"errors"
 
 	storetypes "cosmossdk.io/store/types"
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	servercmtlog "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/log"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/params"
 	statem "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/state"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
@@ -93,7 +93,7 @@ func NewService[
 	db dbm.DB,
 	middleware MiddlewareI,
 	cmtCfg *cmtcfg.Config,
-	cs common.ChainSpec,
+	cs spec.Chain[any],
 	options ...func(*Service[LoggerT]),
 ) *Service[LoggerT] {
 	s := &Service[LoggerT]{

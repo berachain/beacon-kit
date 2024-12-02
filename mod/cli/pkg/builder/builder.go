@@ -27,10 +27,10 @@ import (
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
 	servertypes "github.com/berachain/beacon-kit/mod/cli/pkg/commands/server/types"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/config"
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -81,7 +81,7 @@ func (cb *CLIBuilder[
 	// allocate memory to hold the dependencies
 	var (
 		clientCtx client.Context
-		chainSpec common.ChainSpec
+		chainSpec spec.Chain[any]
 		logger    LoggerT
 	)
 

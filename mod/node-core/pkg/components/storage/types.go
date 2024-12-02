@@ -23,11 +23,11 @@ package storage
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 )
 
 type BeaconState[T, KVStoreT any] interface {
-	NewFromDB(KVStoreT, common.ChainSpec) T
+	NewFromDB(KVStoreT, spec.Chain[any]) T
 }
 
 // KVStore is the interface for the key-value store holding the beacon state.

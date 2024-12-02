@@ -21,6 +21,7 @@
 package attributes
 
 import (
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -33,7 +34,7 @@ type Factory[
 	WithdrawalT any,
 ] struct {
 	// chainSpec is the chain spec for the attributes factory.
-	chainSpec common.ChainSpec
+	chainSpec spec.Chain[any]
 	// logger is the logger for the attributes factory.
 	logger log.Logger
 	// suggestedFeeRecipient is the suggested fee recipient sent to
@@ -47,7 +48,7 @@ func NewAttributesFactory[
 	PayloadAttributesT PayloadAttributes[PayloadAttributesT, WithdrawalT],
 	WithdrawalT any,
 ](
-	chainSpec common.ChainSpec,
+	chainSpec spec.Chain[any],
 	logger log.Logger,
 	suggestedFeeRecipient common.ExecutionAddress,
 ) *Factory[BeaconStateT, PayloadAttributesT, WithdrawalT] {
@@ -72,7 +73,7 @@ func (f *Factory[
 	var (
 		prevRandao [32]byte
 		attributes PayloadAttributesT
-		epoch      = f.chainSpec.SlotToEpoch(slot)
+		epoch      = f.chainSpec.GetSlotToEpoch(slot)
 	)
 
 	// Get the expected withdrawals to include in this payload.
@@ -88,13 +89,13 @@ func (f *Factory[
 
 	// Get the previous randao mix.
 	if prevRandao, err = st.GetRandaoMixAtIndex(
-		epoch.Unwrap() % f.chainSpec.EpochsPerHistoricalVector(),
+		epoch.Unwrap() % f.chainSpec.GetEpochsPerHistoricalVector(),
 	); err != nil {
 		return attributes, err
 	}
 
 	return attributes.New(
-		f.chainSpec.ActiveForkVersionForEpoch(epoch),
+		f.chainSpec.GetActiveForkVersionForEpoch(epoch),
 		timestamp,
 		prevRandao,
 		f.suggestedFeeRecipient,

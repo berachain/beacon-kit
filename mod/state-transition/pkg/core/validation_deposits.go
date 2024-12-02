@@ -36,12 +36,12 @@ func (sp *StateProcessor[
 	deposits []DepositT,
 ) error {
 	switch {
-	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
+	case sp.cs.GetDepositEth1ChainID() == spec.BartioChainID:
 		// Bartio does not properly validate deposits index
 		// We skip checks for backward compatibility
 		return nil
 
-	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID:
+	case sp.cs.GetDepositEth1ChainID() == spec.BoonetEth1ChainID:
 		// Boonet inherited the bug from Bartio and it may have added some
 		// validators before we activate the fork. So we skip validation
 		// before fork activation
@@ -93,12 +93,12 @@ func (sp *StateProcessor[
 		)
 	}
 	switch {
-	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
+	case sp.cs.GetDepositEth1ChainID() == spec.BartioChainID:
 		// Bartio does not properly validate deposits index
 		// We skip checks for backward compatibility
 		return nil
 
-	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
+	case sp.cs.GetDepositEth1ChainID() == spec.BoonetEth1ChainID &&
 		slot < math.U64(spec.BoonetFork2Height):
 		// Boonet inherited the bug from Bartio and it may have added some
 		// validators before we activate the fork. So we skip validation
@@ -117,7 +117,7 @@ func (sp *StateProcessor[
 		var localDeposits []DepositT
 		localDeposits, err = sp.ds.GetDepositsByIndex(
 			expectedStartIdx,
-			sp.cs.MaxDepositsPerBlock(),
+			sp.cs.GetMaxDepositsPerBlock(),
 		)
 		if err != nil {
 			return err

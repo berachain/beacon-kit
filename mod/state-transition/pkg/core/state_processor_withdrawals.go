@@ -88,14 +88,14 @@ func (sp *StateProcessor[
 
 	// Chain/Fork specific processing
 	switch {
-	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
+	case sp.cs.GetDepositEth1ChainID() == spec.BartioChainID:
 		return sp.processWithdrawalsBartio(
 			st,
 			expectedWithdrawals,
 			payloadWithdrawals,
 		)
 
-	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
+	case sp.cs.GetDepositEth1ChainID() == spec.BoonetEth1ChainID &&
 		slot == math.U64(spec.BoonetFork1Height):
 		// Slot used to emergency mint EVM tokens on Boonet.
 		if !expectedWithdrawals[0].Equals(payloadWithdrawals[0]) {
@@ -108,7 +108,7 @@ func (sp *StateProcessor[
 
 		return nil // No processing needed.
 
-	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
+	case sp.cs.GetDepositEth1ChainID() == spec.BoonetEth1ChainID &&
 		slot < math.U64(spec.BoonetFork2Height):
 		// Boonet inherited the Bartio behaviour pre BoonetFork2Height
 		// nothing specific to do
@@ -171,7 +171,7 @@ func (sp *StateProcessor[
 	var nextValidatorIndex math.ValidatorIndex
 
 	//#nosec:G701 // won't overflow in practice.
-	if len(expectedWithdrawals) == int(sp.cs.MaxWithdrawalsPerPayload()) {
+	if len(expectedWithdrawals) == int(sp.cs.GetMaxWithdrawalsPerPayload()) {
 		nextValidatorIndex =
 			(expectedWithdrawals[len(expectedWithdrawals)-1].GetIndex() + 1) %
 				math.ValidatorIndex(totalValidators)
@@ -185,7 +185,7 @@ func (sp *StateProcessor[
 			return err
 		}
 		nextValidatorIndex += math.ValidatorIndex(
-			sp.cs.MaxValidatorsPerWithdrawalsSweep())
+			sp.cs.GetMaxValidatorsPerWithdrawalsSweep())
 		nextValidatorIndex %= math.ValidatorIndex(totalValidators)
 	}
 
@@ -247,7 +247,7 @@ func (sp *StateProcessor[
 	var nextValidatorIndex math.ValidatorIndex
 
 	//#nosec:G701 // won't overflow in practice.
-	if numWithdrawals == int(sp.cs.MaxWithdrawalsPerPayload()) {
+	if numWithdrawals == int(sp.cs.GetMaxWithdrawalsPerPayload()) {
 		// Next sweep starts after the latest withdrawal's validator index.
 		nextValidatorIndex = (expectedWithdrawals[numWithdrawals-1].
 			GetValidatorIndex() + 1) % math.ValidatorIndex(totalValidators)
@@ -259,7 +259,7 @@ func (sp *StateProcessor[
 			return err
 		}
 		nextValidatorIndex += math.ValidatorIndex(
-			sp.cs.MaxValidatorsPerWithdrawalsSweep())
+			sp.cs.GetMaxValidatorsPerWithdrawalsSweep())
 		nextValidatorIndex %= math.ValidatorIndex(totalValidators)
 	}
 
