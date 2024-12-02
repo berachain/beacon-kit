@@ -120,8 +120,9 @@ func BaseSpec() chain.SpecData[
 		ProportionalSlashingMultiplier: 1,
 
 		// Capella values.
-		MaxWithdrawalsPerPayload:                   16,
-		MaxValidatorsPerWithdrawalsSweepPreUpgrade: 1 << 14,
+		MaxWithdrawalsPerPayload:                    16,
+		MaxValidatorsPerWithdrawalsSweepPreUpgrade:  1 << 14,
+		MaxValidatorsPerWithdrawalsSweepPostUpgrade: 1 << 14,
 
 		// Deneb values.
 		MinEpochsForBlobsSidecarsRequest: 4096,
