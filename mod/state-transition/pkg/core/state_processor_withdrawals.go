@@ -273,5 +273,20 @@ func (sp *StateProcessor[
 		nextValidatorIndex %= math.ValidatorIndex(totalValidators)
 	}
 
-	return st.SetNextWithdrawalValidatorIndex(nextValidatorIndex)
+	if err := st.SetNextWithdrawalValidatorIndex(
+		nextValidatorIndex,
+	); err != nil {
+		return errors.Wrap(
+			err, "failed to set next withdrawal validator index",
+		)
+	}
+
+	sp.logger.Info(
+		"Processed withdrawals",
+		"slot", slot,
+		"num_withdrawals", numWithdrawals,
+		"bera_inflation", payloadWithdrawals[0].GetAmount()/math.GweiPerWei,
+	)
+
+	return nil
 }
