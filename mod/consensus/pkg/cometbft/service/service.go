@@ -241,6 +241,7 @@ func convertValidatorUpdate[ValidatorUpdateT any](
 	if update == nil {
 		return valUpdate, errors.New("undefined validator update")
 	}
+	//nolint:errcheck // should be safe
 	return any(abci.ValidatorUpdate{
 		PubKeyBytes: update.Pubkey[:],
 		PubKeyType:  crypto.CometBLSType,

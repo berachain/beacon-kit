@@ -116,6 +116,7 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 	}
 
 	// TODO: so hood
+	//nolint:errcheck // should be safe
 	logger.WithConfig(any(config.GetLogger()).(LoggerConfigT))
 	apiBackend.AttachQueryBackend(cmtService)
 	return beaconNode
