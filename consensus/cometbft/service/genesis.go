@@ -32,16 +32,6 @@ import (
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 )
 
-// BeaconGenesisState represents the structure of the
-// beacon module's genesis state.
-//
-//nolint:lll // JSON tags are long.
-type BeaconGenesisState struct {
-	ForkVersion            string                       `json:"fork_version"`
-	Deposits               []types.Deposit              `json:"deposits"`
-	ExecutionPayloadHeader types.ExecutionPayloadHeader `json:"execution_payload_header"`
-}
-
 // DefaultGenesis returns the default genesis state for the application.
 func (s *Service[_]) DefaultGenesis() map[string]json.RawMessage {
 	// Implement the default genesis state for the application.
