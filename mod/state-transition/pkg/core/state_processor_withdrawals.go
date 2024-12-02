@@ -285,7 +285,8 @@ func (sp *StateProcessor[
 		"Processed withdrawals",
 		"slot", slot,
 		"num_withdrawals", numWithdrawals,
-		"bera_inflation", payloadWithdrawals[0].GetAmount()/math.GweiPerWei,
+		"bera_inflation", float64(
+			payloadWithdrawals[0].GetAmount().Unwrap())/math.GweiPerWei,
 	)
 
 	return nil
