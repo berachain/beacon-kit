@@ -191,7 +191,7 @@ func (sp *StateProcessor[
 		}
 		nextValidatorIndex += math.ValidatorIndex(
 			sp.cs.MaxValidatorsPerWithdrawalsSweep(
-				state.IsPostUpgrade, spec.BartioChainID, slot,
+				state.IsPostUpgrade, sp.cs.DepositEth1ChainID(), slot,
 			))
 		nextValidatorIndex %= math.ValidatorIndex(totalValidators)
 	}
