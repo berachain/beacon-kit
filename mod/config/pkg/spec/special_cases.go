@@ -31,8 +31,8 @@ const (
 
 // Planned hard-fork upgrades on boonet. To be removed.
 const (
-	BoonetFork1Height uint64 = 69420
+	BoonetFork1Height uint64 = 308000
 
 	// TODO: modify this to be the actual fork height. Avoid overflow.
-	BoonetFork2Height uint64 = 99999999999999
+	BoonetFork2Height uint64 = 1302777 + 1200
 )
