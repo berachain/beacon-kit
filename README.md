@@ -8,7 +8,7 @@
     </picture>
   </a>
 </div>
-<h2 >
+<h2>
   A modular framework for building EVM consensus clients ⛵️✨
 </h2>
 
@@ -38,7 +38,7 @@ BeaconKit is able to support all 6 major Ethereum execution clients:
 - [**Nethermind**](https://www.nethermind.io/): .NET based client with full support for Ethereum protocols.
 - [**Besu**](https://www.lfdecentralizedtrust.org/projects/besu): Enterprise-grade client, Apache 2.0 licensed, written in Java.
 - [**Reth**](https://reth.rs/): Rust-based client focusing on performance and reliability.
-- [**Ethereumjs**](https://ethereumjs.readthedocs.io/en/latest/#): Javascript based client managed by the Ethereum Foundation.
+- [**EthereumJs**](https://ethereumjs.readthedocs.io/en/latest/#): Javascript-based client managed by the Ethereum Foundation.
 
 ## Running a Local Development Network
 
