@@ -134,5 +134,8 @@ func BaseSpec() chain.SpecData[
 
 		// Comet values.
 		CometValues: cmtConsensusParams,
+
+		// Berachain Values
+		ValidatorSetCap: 256,
 	}
 }

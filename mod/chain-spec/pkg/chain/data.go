@@ -163,6 +163,10 @@ type SpecData[
 
 	// Berachain Values
 	//
+	// ValidatorSetCap is the maximum number of validators that can be active
+	// for a given epoch
+	// Note: ValidatorSetCap must be smaller than ValidatorRegistryLimit.
+	ValidatorSetCap uint64 `mapstructure:"validator-set-cap-size"`
 	// EVMInflationAddress is the address on the EVM which will receive the
 	// inflation amount of native EVM balance through a withdrawal every block.
 	EVMInflationAddress ExecutionAddressT `mapstructure:"evm-inflation-address"`
