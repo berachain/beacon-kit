@@ -47,7 +47,7 @@ func validateDeposits(deposits []types.Deposit) error {
 		depositIndex := deposit.GetIndex()
 		//#nosec:G701 // realistically fine in practice.
 		// Validate index matches position
-		if i < 0 || depositIndex.Unwrap() != uint64(i) {
+		if depositIndex.Unwrap() != uint64(i) {
 			return fmt.Errorf(
 				"deposit index %d does not match position %d",
 				depositIndex,
