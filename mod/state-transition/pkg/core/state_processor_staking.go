@@ -167,7 +167,7 @@ func (sp *StateProcessor[
 		return err
 	}
 	//#nosec:G701 // no overflow risk here
-	if uint32(len(nextEpochVals)) < sp.cs.GetValidatorSetCap() {
+	if uint64(len(nextEpochVals)) < sp.cs.ValidatorSetCap() {
 		// cap not hit, just add the validator
 		return sp.addValidatorInternal(st, candidateVal, dep.GetAmount())
 	}

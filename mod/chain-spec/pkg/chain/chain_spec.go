@@ -203,9 +203,9 @@ type Spec[
 
 	// Berachain Values
 
-	// GetValidatorSetCap retrieves the maximum number of
+	// ValidatorSetCap retrieves the maximum number of
 	// validators allowed in the active set.
-	GetValidatorSetCap() uint32
+	ValidatorSetCap() uint64
 
 	// EVMInflationAddress returns the address on the EVM which will receive
 	// the inflation amount of native EVM balance through a withdrawal every
@@ -256,6 +256,10 @@ func (c *chainSpec[
 ]) validate() error {
 	if c.MaxWithdrawalsPerPayload() <= 1 {
 		return ErrInsufficientMaxWithdrawalsPerPayload
+	}
+
+	if c.ValidatorSetCap() > c.ValidatorRegistryLimit() {
+		return ErrInvalidValidatorSetCap
 	}
 
 	// EVM Inflation values can be zero or non-zero, no validation needed.
@@ -549,11 +553,11 @@ func (c chainSpec[
 	return c.Data.CometValues
 }
 
-// GetValidatorSetCap retrieves the maximum number of
+// ValidatorSetCap retrieves the maximum number of
 // validators allowed in the active set.
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) GetValidatorSetCap() uint32 {
+]) ValidatorSetCap() uint64 {
 	return c.Data.ValidatorSetCap
 }
 
