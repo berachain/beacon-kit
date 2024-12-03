@@ -33,6 +33,5 @@ const (
 const (
 	BoonetFork1Height uint64 = 69420
 
-	// TODO: modify this to be the actual fork height. Avoid overflow.
-	BoonetFork2Height uint64 = 99999999999999
+	BoonetFork2Height uint64 = 1722000
 )
