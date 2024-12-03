@@ -22,6 +22,7 @@ package hex
 
 import (
 	"encoding/hex"
+	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/errors"
 )
@@ -39,7 +40,13 @@ func EncodeBytes(b []byte) string {
 
 // MustToBytes returns the bytes represented by the given hex string.
 // It panics if the input is not a valid hex string.
-func MustToBytes(input string) []byte {
+func MustToBytes(input string) (bz []byte) {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Errorf("failed to decode hex string: %v", r)
+			bz = []byte{}
+		}
+	}()
 	bz, err := ToBytes(input)
 	if err != nil {
 		panic(err)
