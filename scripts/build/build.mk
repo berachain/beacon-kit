@@ -5,7 +5,7 @@ endif
 
 COMMIT = $(shell git log -1 --format='%H')
 CURRENT_DIR = $(shell pwd)
-OUT_DIR ?= $(CURDIR)/build
+OUT_DIR ?= $(CURDIR)/build/bin
 TESTNAME = beacon
 TESTAPP = beacond
 TESTAPP_FILES_DIR = testing/files
