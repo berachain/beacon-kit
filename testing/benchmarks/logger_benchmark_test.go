@@ -24,7 +24,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
+	"github.com/berachain/beacon-kit/log/pkg/phuslu"
 )
 
 /* -------------------------------------------------------------------------- */

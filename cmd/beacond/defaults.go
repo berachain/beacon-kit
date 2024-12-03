@@ -21,7 +21,7 @@
 package main
 
 import (
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
+	"github.com/berachain/beacon-kit/node-core/pkg/components"
 )
 
 //nolint:funlen // happens
