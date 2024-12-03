@@ -32,7 +32,7 @@ import (
 
 func TestNewFromHex(t *testing.T) {
 	wantValid := jwt.Secret(
-		hex.MustToBytes(
+		hex.ToBytesSafe(
 			"0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
 		),
 	)
@@ -91,7 +91,7 @@ func TestSecretString(t *testing.T) {
 		{
 			name: "mask secret correctly",
 			secret: jwt.Secret(
-				hex.MustToBytes(
+				hex.ToBytesSafe(
 					"0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
 				),
 			),

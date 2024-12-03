@@ -74,7 +74,7 @@ func TestEncodeAndDecodeBytes(t *testing.T) {
 			require.Equal(t, tt.input, decoded)
 
 			require.NotPanics(t, func() {
-				decoded = hex.MustToBytes(result)
+				decoded = hex.ToBytesSafe(result)
 			})
 			require.Equal(t, tt.input, decoded)
 		})

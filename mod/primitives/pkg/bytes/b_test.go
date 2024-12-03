@@ -120,7 +120,7 @@ func TestMustFromHex(t *testing.T) {
 			var (
 				res []byte
 				f   = func() {
-					res = hex.MustToBytes(tt.input)
+					res = hex.ToBytesSafe(tt.input)
 				}
 			)
 			if tt.shouldPanic {

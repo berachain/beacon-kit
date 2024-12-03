@@ -104,7 +104,7 @@ func (sp *StateProcessor[
 	}
 
 	// Handle special case bartio genesis.
-	validatorsRoot := common.Root(hex.MustToBytes(spec.BartioValRoot))
+	validatorsRoot := common.Root(hex.ToBytesSafe(spec.BartioValRoot))
 	if sp.cs.DepositEth1ChainID() != spec.BartioChainID {
 		validators, err := st.GetValidators()
 		if err != nil {

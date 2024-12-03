@@ -22,7 +22,6 @@ package hex
 
 import (
 	"encoding/hex"
-	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/errors"
 )
@@ -30,7 +29,7 @@ import (
 var ErrInvalidHexStringLength = errors.New("invalid hex string length")
 
 // EncodeBytes creates a hex string with 0x prefix.
-// Inverse operation is ToBytes or MustToBytes.
+// Inverse operation is ToBytes or ToBytesSafe.
 func EncodeBytes(b []byte) string {
 	hexStr := make([]byte, len(b)*2+prefixLen)
 	copy(hexStr, Prefix)
@@ -38,12 +37,12 @@ func EncodeBytes(b []byte) string {
 	return string(hexStr)
 }
 
-// MustToBytes returns the bytes represented by the given hex string.
-// It panics if the input is not a valid hex string.
-func MustToBytes(input string) (bz []byte) {
+// ToBytesSafe returns the bytes represented by the given hex string.
+// If the input is not a valid hex string, it returns an empty byte slice.
+func ToBytesSafe(input string) []byte {
+	var bz []byte
 	defer func() {
 		if r := recover(); r != nil {
-			fmt.Errorf("failed to decode hex string: %v", r)
 			bz = []byte{}
 		}
 	}()

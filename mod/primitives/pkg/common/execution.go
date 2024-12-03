@@ -52,7 +52,7 @@ type ExecutionHash [32]byte
 
 // NewExecutionHashFromHex creates a new hash from a hex string.
 func NewExecutionHashFromHex(input string) ExecutionHash {
-	return ExecutionHash(hex.MustToBytes(input))
+	return ExecutionHash(hex.ToBytesSafe(input))
 }
 
 // Hex converts a hash to a hex string.
@@ -95,7 +95,7 @@ type ExecutionAddress [20]byte
 
 // NewExecutionAddressFromHex creates a new address from a hex string.
 func NewExecutionAddressFromHex(input string) ExecutionAddress {
-	return ExecutionAddress(hex.MustToBytes(input))
+	return ExecutionAddress(hex.ToBytesSafe(input))
 }
 
 // Equals returns true if the two addresses are the same.

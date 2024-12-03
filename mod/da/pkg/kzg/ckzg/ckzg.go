@@ -49,11 +49,11 @@ func NewVerifier(ts *gokzg4844.JSONTrustedSetup) (*Verifier, error) {
 		len(ts.SetupG1Lagrange)*(len(ts.SetupG1Lagrange[0])-2)/2,
 	)
 	for i, g1 := range ts.SetupG1Lagrange {
-		copy(g1s[i*(len(g1)-2)/2:], hex.MustToBytes(g1))
+		copy(g1s[i*(len(g1)-2)/2:], hex.ToBytesSafe(g1))
 	}
 	g2s := make([]byte, len(ts.SetupG2)*(len(ts.SetupG2[0])-2)/2)
 	for i, g2 := range ts.SetupG2 {
-		copy(g2s[i*(len(g2)-2)/2:], hex.MustToBytes(g2))
+		copy(g2s[i*(len(g2)-2)/2:], hex.ToBytesSafe(g2))
 	}
 	if err := ckzg4844.LoadTrustedSetup(g1s, g2s); err != nil {
 		return nil, err
