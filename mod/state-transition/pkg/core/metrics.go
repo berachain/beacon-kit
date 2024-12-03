@@ -18,23 +18,28 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package spec
+package core
 
-import (
-	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-)
+type stateProcessorMetrics struct {
+	// sink is the sink for the metrics.
+	sink TelemetrySink
+}
 
-// BetnetChainSpec is the ChainSpec for the localnet.
-func BetnetChainSpec() (chain.Spec[
-	common.DomainType,
-	math.Epoch,
-	common.ExecutionAddress,
-	math.Slot,
-	any,
-], error) {
-	testnetSpec := BaseSpec()
-	testnetSpec.DepositEth1ChainID = BetnetEth1ChainID
-	return chain.NewChainSpec(testnetSpec)
+// newStateProcessorMetrics creates a new stateProcessorMetrics.
+func newStateProcessorMetrics(
+	sink TelemetrySink,
+) *stateProcessorMetrics {
+	return &stateProcessorMetrics{
+		sink: sink,
+	}
+}
+
+func (s *stateProcessorMetrics) gaugeTimestamps(
+	payloadTimestamp uint64,
+	consensusTimestamp uint64,
+) {
+	// the diff can be positive or negative depending on whether the payload
+	// timestamp is ahead or behind the consensus timestamp
+	diff := int64(payloadTimestamp) - int64(consensusTimestamp) //#nosec:G701
+	s.sink.SetGauge("beacon_kit.state.payload_consensus_timestamp_diff", diff)
 }

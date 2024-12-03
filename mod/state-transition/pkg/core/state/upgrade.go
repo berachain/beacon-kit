@@ -18,23 +18,27 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package spec
+package state
 
 import (
-	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// BetnetChainSpec is the ChainSpec for the localnet.
-func BetnetChainSpec() (chain.Spec[
-	common.DomainType,
-	math.Epoch,
-	common.ExecutionAddress,
-	math.Slot,
-	any,
-], error) {
-	testnetSpec := BaseSpec()
-	testnetSpec.DepositEth1ChainID = BetnetEth1ChainID
-	return chain.NewChainSpec(testnetSpec)
+// IsPostUpgrade returns true if the chain is post-upgrade (Fork2 on Boonet).
+//
+// TODO: Jank. Refactor into better fork version management.
+func IsPostUpgrade(chainID uint64, slot math.Slot) bool {
+	switch chainID {
+	case spec.BartioChainID:
+		return false
+	case spec.BoonetEth1ChainID:
+		if slot < math.U64(spec.BoonetFork2Height) {
+			return false
+		}
+
+		return true
+	default:
+		return true
+	}
 }

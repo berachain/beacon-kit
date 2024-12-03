@@ -27,14 +27,39 @@ import (
 )
 
 // BoonetChainSpec is the ChainSpec for the localnet.
-func BoonetChainSpec() chain.Spec[
+func BoonetChainSpec() (chain.Spec[
 	common.DomainType,
 	math.Epoch,
 	common.ExecutionAddress,
 	math.Slot,
 	any,
-] {
-	testnetSpec := BaseSpec()
-	testnetSpec.DepositEth1ChainID = BoonetEth1ChainID
-	return chain.NewChainSpec(testnetSpec)
+], error) {
+	boonetSpec := BaseSpec()
+
+	// Chain ID is 80000.
+	boonetSpec.DepositEth1ChainID = BoonetEth1ChainID
+
+	// BGT contract address.
+	boonetSpec.EVMInflationAddress = common.NewExecutionAddressFromHex(
+		"0x289274787bAF083C15A45a174b7a8e44F0720660",
+	)
+
+	// BERA per block minting.
+	//
+	// TODO: Determine correct value for boonet upgrade.
+	boonetSpec.EVMInflationPerBlock = 2.5e9
+
+	// ValidatorSetCap is 256 on the Boonet chain.
+	//
+	// TODO: Determine correct value for boonet upgrade.
+	boonetSpec.ValidatorSetCap = 256
+
+	// MaxValidatorsPerWithdrawalsSweep is 43 because we expect at least 46
+	// validators in the total validators set. We choose a prime number smaller
+	// than the minimum amount of total validators possible.
+	//
+	// TODO: Determine correct value for boonet upgrade.
+	boonetSpec.MaxValidatorsPerWithdrawalsSweepPostUpgrade = 43
+
+	return chain.NewChainSpec(boonetSpec)
 }

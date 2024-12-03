@@ -27,19 +27,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-const (
-	// EVMMintingSlot is the slot at which we force a single withdrawal to
-	// mint EVMMintingAmount EVM tokens to EVMMintingAddress. No other
-	// withdrawals are inserted at this slot.
-	EVMMintingSlot uint64 = 69420
-
-	// EVMMintingAddress is the address at which we mint EVM tokens to.
-	EVMMintingAddress = "0x8a73D1380345942F1cb32541F1b19C40D8e6C94B"
-
-	// EVMMintingAmount is the amount of EVM tokens to mint.
-	EVMMintingAmount uint64 = 530000000000000000
-)
-
 // StateDB is the underlying struct behind the BeaconState interface.
 //
 //nolint:revive // todo fix somehow
@@ -200,7 +187,10 @@ func (s *StateDB[
 // ExpectedWithdrawals as defined in the Ethereum 2.0 Specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-get_expected_withdrawals
 //
-//nolint:lll,funlen
+// NOTE: This function is modified from the spec to allow a fixed withdrawal
+// (as the first withdrawal) used for EVM inflation.
+//
+//nolint:lll,funlen // TODO: Simplify when dropping special cases.
 func (s *StateDB[
 	_, _, _, _, _, _, ValidatorT, _, WithdrawalT, _,
 ]) ExpectedWithdrawals() ([]WithdrawalT, error) {
@@ -209,6 +199,7 @@ func (s *StateDB[
 		balance           math.Gwei
 		withdrawalAddress common.ExecutionAddress
 		withdrawals       = make([]WithdrawalT, 0)
+		withdrawal        WithdrawalT
 	)
 
 	slot, err := s.GetSlot()
@@ -216,9 +207,14 @@ func (s *StateDB[
 		return nil, err
 	}
 
-	// Slot used to mint EVM tokens.
-	if slot.Unwrap() == EVMMintingSlot {
-		var withdrawal WithdrawalT
+	// Handle special cases wherever it's necessary
+	switch {
+	case s.cs.DepositEth1ChainID() == spec.BartioChainID:
+		// nothing special to do
+
+	case s.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
+		slot == math.U64(spec.BoonetFork1Height):
+		// Slot used to emergency mint EVM tokens on Boonet.
 		withdrawals = append(withdrawals, withdrawal.New(
 			0, // NOT USED
 			0, // NOT USED
@@ -226,6 +222,15 @@ func (s *StateDB[
 			math.Gwei(EVMMintingAmount),
 		))
 		return withdrawals, nil
+
+	case s.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
+		slot < math.U64(spec.BoonetFork2Height):
+		// Boonet inherited the Bartio behaviour pre BoonetFork2Height
+		// nothing specific to do
+
+	default:
+		// The first withdrawal is fixed to be the EVM inflation withdrawal.
+		withdrawals = append(withdrawals, s.EVMInflationWithdrawal())
 	}
 
 	epoch := math.Epoch(slot.Unwrap() / s.cs.SlotsPerEpoch())
@@ -246,7 +251,9 @@ func (s *StateDB[
 	}
 
 	bound := min(
-		totalValidators, s.cs.MaxValidatorsPerWithdrawalsSweep(),
+		totalValidators, s.cs.MaxValidatorsPerWithdrawalsSweep(
+			IsPostUpgrade, s.cs.DepositEth1ChainID(), slot,
+		),
 	)
 
 	// Iterate through indices to find the next validators to withdraw.
@@ -269,8 +276,6 @@ func (s *StateDB[
 
 		// Set the amount of the withdrawal depending on the balance of the
 		// validator.
-		var withdrawal WithdrawalT
-
 		//nolint:gocritic // ok.
 		if validator.IsFullyWithdrawable(balance, epoch) {
 			withdrawals = append(withdrawals, withdrawal.New(
@@ -309,8 +314,7 @@ func (s *StateDB[
 		}
 
 		// Cap the number of withdrawals to the maximum allowed per payload.
-		//#nosec:G701 // won't overflow in practice.
-		if len(withdrawals) == int(s.cs.MaxWithdrawalsPerPayload()) {
+		if uint64(len(withdrawals)) == s.cs.MaxWithdrawalsPerPayload() {
 			break
 		}
 
@@ -321,6 +325,22 @@ func (s *StateDB[
 	}
 
 	return withdrawals, nil
+}
+
+// EVMInflationWithdrawal returns the withdrawal used for EVM balance inflation.
+//
+// NOTE: The withdrawal index and validator index are both set to 0 as they are
+// not used during processing.
+func (s *StateDB[
+	_, _, _, _, _, _, _, _, WithdrawalT, _,
+]) EVMInflationWithdrawal() WithdrawalT {
+	var withdrawal WithdrawalT
+	return withdrawal.New(
+		EVMInflationWithdrawalIndex,
+		EVMInflationWithdrawalValidatorIndex,
+		s.cs.EVMInflationAddress(),
+		math.Gwei(s.cs.EVMInflationPerBlock()),
+	)
 }
 
 // GetMarshallable is the interface for the beacon store.

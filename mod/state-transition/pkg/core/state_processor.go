@@ -22,7 +22,11 @@ package core
 
 import (
 	"bytes"
+	"fmt"
+	"sync"
 
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -51,7 +55,7 @@ type StateProcessor[
 		ValidatorT, ValidatorsT, WithdrawalT,
 	],
 	ContextT Context,
-	DepositT Deposit[ForkDataT, WithdrawalCredentialsT],
+	DepositT Deposit[DepositT, ForkDataT, WithdrawalCredentialsT],
 	Eth1DataT interface {
 		New(common.Root, math.U64, common.ExecutionHash) Eth1DataT
 		GetDepositCount() math.U64
@@ -92,10 +96,23 @@ type StateProcessor[
 	executionEngine ExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	]
+	// ds allows checking payload deposits against the deposit contract
+	ds DepositStore[DepositT]
+	// metrics is the metrics for the service.
+	metrics *stateProcessorMetrics
 
-	// processingGenesis allows initializing correctly
-	// eth1 deposit index upon genesis
-	processingGenesis bool
+	// valSetMu protects valSetByEpoch from concurrent accesses
+	valSetMu sync.RWMutex
+
+	// valSetByEpoch tracks the set of validators active at the latest epochs.
+	// This is useful to optimize validators set updates.
+	// Note: Transition may be called multiple times on different,
+	// non/finalized blocks, so at some point valSetByEpoch may contain
+	// informations from blocks not finalized. This should be fine as long
+	// as a block is finalized eventually, and its changes will be the last
+	// ones.
+	// We prune the map to preserve only current and previous epoch
+	valSetByEpoch map[math.Epoch][]ValidatorT
 }
 
 // NewStateProcessor creates a new state processor.
@@ -116,7 +133,7 @@ func NewStateProcessor[
 		KVStoreT, ValidatorT, ValidatorsT, WithdrawalT,
 	],
 	ContextT Context,
-	DepositT Deposit[ForkDataT, WithdrawalCredentialsT],
+	DepositT Deposit[DepositT, ForkDataT, WithdrawalCredentialsT],
 	Eth1DataT interface {
 		New(common.Root, math.U64, common.ExecutionHash) Eth1DataT
 		GetDepositCount() math.U64
@@ -148,8 +165,10 @@ func NewStateProcessor[
 	executionEngine ExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
+	ds DepositStore[DepositT],
 	signer crypto.BLSSigner,
 	fGetAddressFromPubKey func(crypto.BLSPubkey) ([]byte, error),
+	telemetrySink TelemetrySink,
 ) *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, ContextT, DepositT, Eth1DataT, ExecutionPayloadT,
@@ -167,6 +186,9 @@ func NewStateProcessor[
 		executionEngine:       executionEngine,
 		signer:                signer,
 		fGetAddressFromPubKey: fGetAddressFromPubKey,
+		ds:                    ds,
+		metrics:               newStateProcessorMetrics(telemetrySink),
+		valSetByEpoch:         make(map[math.Epoch][]ValidatorT, 0),
 	}
 }
 
@@ -202,10 +224,7 @@ func (sp *StateProcessor[
 ]) ProcessSlots(
 	st BeaconStateT, slot math.Slot,
 ) (transition.ValidatorUpdates, error) {
-	var (
-		validatorUpdates      transition.ValidatorUpdates
-		epochValidatorUpdates transition.ValidatorUpdates
-	)
+	var res transition.ValidatorUpdates
 
 	stateSlot, err := st.GetSlot()
 	if err != nil {
@@ -214,22 +233,35 @@ func (sp *StateProcessor[
 
 	// Iterate until we are "caught up".
 	for ; stateSlot < slot; stateSlot++ {
-		// Process the slot
 		if err = sp.processSlot(st); err != nil {
 			return nil, err
+		}
+
+		// Handle special cases
+		if sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
+			slot == math.U64(spec.BoonetFork2Height) {
+			var idx uint64
+			idx, err = st.GetEth1DepositIndex()
+			if err != nil {
+				return nil, fmt.Errorf(
+					"failed retrieving deposit index at slot %d: %w",
+					slot, err,
+				)
+			}
+			fixedDepositIdx := idx - 1
+			if err = st.SetEth1DepositIndex(fixedDepositIdx); err != nil {
+				return nil, err
+			}
 		}
 
 		// Process the Epoch Boundary.
 		boundary := (stateSlot.Unwrap()+1)%sp.cs.SlotsPerEpoch() == 0
 		if boundary {
-			if epochValidatorUpdates, err =
-				sp.processEpoch(st); err != nil {
+			var epochUpdates transition.ValidatorUpdates
+			if epochUpdates, err = sp.processEpoch(st); err != nil {
 				return nil, err
 			}
-			validatorUpdates = append(
-				validatorUpdates,
-				epochValidatorUpdates...,
-			)
+			res = append(res, epochUpdates...)
 		}
 
 		// We update on the state because we need to
@@ -239,7 +271,7 @@ func (sp *StateProcessor[
 		}
 	}
 
-	return validatorUpdates, nil
+	return res, nil
 }
 
 // processSlot is run when a slot is missed.
@@ -341,13 +373,16 @@ func (sp *StateProcessor[
 	if err := sp.processRewardsAndPenalties(st); err != nil {
 		return nil, err
 	}
+	if err := sp.processEffectiveBalanceUpdates(st); err != nil {
+		return nil, err
+	}
 	if err := sp.processSlashingsReset(st); err != nil {
 		return nil, err
 	}
 	if err := sp.processRandaoMixesReset(st); err != nil {
 		return nil, err
 	}
-	return sp.processSyncCommitteeUpdates(st)
+	return sp.processValidatorsSetUpdates(st)
 }
 
 // processBlockHeader processes the header and ensures it matches the local
@@ -367,13 +402,12 @@ func (sp *StateProcessor[
 	}
 	if blk.GetSlot() != slot {
 		return errors.Wrapf(
-			ErrSlotMismatch,
-			"expected: %d, got: %d",
+			ErrSlotMismatch, "expected: %d, got: %d",
 			slot, blk.GetSlot(),
 		)
 	}
 
-	// Verify the parent block root is correct.
+	// Verify that the block is newer than latest block header
 	latestBlockHeader, err := st.GetLatestBlockHeader()
 	if err != nil {
 		return err
@@ -382,14 +416,6 @@ func (sp *StateProcessor[
 		return errors.Wrapf(
 			ErrBlockSlotTooLow, "expected: > %d, got: %d",
 			latestBlockHeader.GetSlot(), blk.GetSlot(),
-		)
-	}
-
-	parentBlockRoot := latestBlockHeader.HashTreeRoot()
-	if parentBlockRoot != blk.GetParentBlockRoot() {
-		return errors.Wrapf(ErrParentRootMismatch,
-			"expected: %s, got: %s",
-			parentBlockRoot.String(), blk.GetParentBlockRoot().String(),
 		)
 	}
 
@@ -409,26 +435,24 @@ func (sp *StateProcessor[
 		)
 	}
 
-	// Check to make sure the proposer isn't slashed.
+	// Verify that the parent matches
+	parentBlockRoot := latestBlockHeader.HashTreeRoot()
+	if parentBlockRoot != blk.GetParentBlockRoot() {
+		return errors.Wrapf(
+			ErrParentRootMismatch, "expected: %s, got: %s",
+			parentBlockRoot.String(), blk.GetParentBlockRoot().String(),
+		)
+	}
+
+	// Verify proposer is not slashed
 	if proposer.IsSlashed() {
 		return errors.Wrapf(
-			ErrSlashedProposer,
-			"index: %d",
+			ErrSlashedProposer, "index: %d",
 			blk.GetProposerIndex(),
 		)
 	}
 
-	// Ensure the block is within the acceptable range.
-	// TODO: move this is in the wrong spot.
-	deposits := blk.GetBody().GetDeposits()
-	if uint64(len(deposits)) > sp.cs.MaxDepositsPerBlock() {
-		return errors.Wrapf(ErrExceedsBlockDepositLimit,
-			"expected: %d, got: %d",
-			sp.cs.MaxDepositsPerBlock(), len(deposits),
-		)
-	}
-
-	// Calculate the body root to place on the header.
+	// Cache current block as the new latest block
 	bodyRoot := blk.GetBody().HashTreeRoot()
 	var lbh BeaconBlockHeaderT
 	lbh = lbh.New(
@@ -519,5 +543,60 @@ func (sp *StateProcessor[
 		}
 	}
 
+	return nil
+}
+
+// processEffectiveBalanceUpdates as defined in the Ethereum 2.0 specification.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#effective-balances-updates
+//
+//nolint:lll
+func (sp *StateProcessor[
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) processEffectiveBalanceUpdates(
+	st BeaconStateT,
+) error {
+	// Update effective balances with hysteresis
+	validators, err := st.GetValidators()
+	if err != nil {
+		return err
+	}
+
+	var (
+		hysteresisIncrement = sp.cs.EffectiveBalanceIncrement() / sp.cs.HysteresisQuotient()
+		downwardThreshold   = math.Gwei(
+			hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier(),
+		)
+		upwardThreshold = math.Gwei(
+			hysteresisIncrement * sp.cs.HysteresisUpwardMultiplier(),
+		)
+
+		idx     math.U64
+		balance math.Gwei
+	)
+
+	for _, val := range validators {
+		idx, err = st.ValidatorIndexByPubkey(val.GetPubkey())
+		if err != nil {
+			return err
+		}
+
+		balance, err = st.GetBalance(idx)
+		if err != nil {
+			return err
+		}
+
+		if balance+downwardThreshold < val.GetEffectiveBalance() ||
+			val.GetEffectiveBalance()+upwardThreshold < balance {
+			updatedBalance := types.ComputeEffectiveBalance(
+				balance,
+				math.U64(sp.cs.EffectiveBalanceIncrement()),
+				math.U64(sp.cs.MaxEffectiveBalance()),
+			)
+			val.SetEffectiveBalance(updatedBalance)
+			if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }

@@ -87,7 +87,7 @@ func DefaultComponents() []any {
 			*DepositContract, *DepositStore, *ExecutionPayload,
 			*ExecutionPayloadHeader, *Logger,
 		],
-		components.ProvideDepositStore[*Deposit],
+		components.ProvideDepositStore[*Deposit, *Logger],
 		components.ProvideDispatcher[
 			*ConsensusBlock, *BeaconBlock,
 			*ConsensusSidecars, *BlobSidecars,
@@ -104,7 +104,9 @@ func DefaultComponents() []any {
 			*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
 			*ExecutionPayload, *ExecutionPayloadHeader, *KVStore, *Logger,
 		],
-		components.ProvideReportingService[*Logger],
+		components.ProvideReportingService[
+			*ExecutionPayload, *PayloadAttributes, *Logger,
+		],
 		components.ProvideCometBFTService[*Logger],
 		components.ProvideServiceRegistry[
 			*AvailabilityStore,
@@ -121,8 +123,8 @@ func DefaultComponents() []any {
 		],
 		components.ProvideStateProcessor[
 			*Logger, *BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader,
-			*BeaconState, *BeaconStateMarshallable, *Deposit, *ExecutionPayload,
-			*ExecutionPayloadHeader, *KVStore,
+			*BeaconState, *BeaconStateMarshallable, *Deposit, *DepositStore,
+			*ExecutionPayload, *ExecutionPayloadHeader, *KVStore,
 		],
 		components.ProvideKVStore[*BeaconBlockHeader, *ExecutionPayloadHeader],
 		components.ProvideStorageBackend[
