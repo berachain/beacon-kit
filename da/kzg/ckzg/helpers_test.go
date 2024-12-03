@@ -36,7 +36,7 @@ import (
 
 var globalVerifier *ckzg.Verifier
 
-var baseDir = "../../../../../testing/files/"
+var baseDir = "../../../testing/files/"
 
 func TestMain(m *testing.M) {
 	var err error

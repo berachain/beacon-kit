@@ -33,7 +33,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var baseDir = "../../../../../testing/files/"
+var baseDir = "../../../testing/files/"
 
 func TestVerifyBlobProof(t *testing.T) {
 	verifier, err := setupVerifier()

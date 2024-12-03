@@ -36,7 +36,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var baseDir = "../../../../testing/files/"
+var baseDir = "../../testing/files/"
 
 func TestNewBlobProofVerifier_KzgImpl(t *testing.T) {
 	ts, err := loadTrustedSetupFromFile()
