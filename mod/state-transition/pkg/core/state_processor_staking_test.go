@@ -23,6 +23,7 @@ package core_test
 import (
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
 	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
@@ -32,7 +33,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/stretchr/testify/require"
 )
 
@@ -85,6 +88,41 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, genVals, len(genDeposits))
 
+	var (
+		blk         *types.BeaconBlock
+		body        *types.BeaconBlockBody
+		updatedVals transition.ValidatorUpdates
+	)
+	for i := uint64(1); i < spec.BoonetFork2Height; i++ {
+		body = &types.BeaconBlockBody{
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:     math.U64(time.Unix(int64(i), 0).Unix()),
+				ExtraData:     []byte("testing"),
+				Transactions:  [][]byte{},
+				Withdrawals:   []*engineprimitives.Withdrawal{},
+				BaseFeePerGas: math.NewU256(0),
+			},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: []*types.Deposit{},
+		}
+		if i == spec.BoonetFork1Height {
+			body.ExecutionPayload.Withdrawals = []*engineprimitives.Withdrawal{
+				{
+					Index:     0,
+					Validator: 0,
+					Address: common.NewExecutionAddressFromHex(
+						state.EVMMintingAddress),
+					Amount: math.Gwei(state.EVMMintingAmount),
+				},
+			}
+		}
+		blk = buildNextBlock(t, st, body)
+
+		updatedVals, err = sp.Transition(ctx, st, blk)
+		require.NoError(t, err)
+		require.Empty(t, updatedVals) // validators set updates only at epoch
+	}
+
 	// STEP 1: top up a genesis validator balance
 	blkDeposit := &types.Deposit{
 		Pubkey:      genDeposits[2].Pubkey,
@@ -98,10 +136,12 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		st,
 		&types.BeaconBlockBody{
 			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:     10,
-				ExtraData:     []byte("testing"),
-				Transactions:  [][]byte{},
-				Withdrawals:   []*engineprimitives.Withdrawal{},
+				Timestamp:    10,
+				ExtraData:    []byte("testing"),
+				Transactions: [][]byte{},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					st.EVMInflationWithdrawal(),
+				},
 				BaseFeePerGas: math.NewU256(0),
 			},
 			Eth1Data: &types.Eth1Data{},
@@ -113,7 +153,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits))
 
 	// run the test
-	updatedVals, err := sp.Transition(ctx, st, blk1)
+	updatedVals, err = sp.Transition(ctx, st, blk1)
 	require.NoError(t, err)
 	require.Empty(t, updatedVals) // validators set updates only at epoch turn
 
@@ -139,17 +179,20 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	require.Equal(t, uint64(len(genDeposits)), latestValIdx)
 
 	// STEP 2: check that effective balance is updated once next epoch arrives
-	var blk = blk1
-	for i := 1; i < int(cs.SlotsPerEpoch())-1; i++ {
+	blk = blk1
+	currEpoch := cs.SlotToEpoch(blk.GetSlot())
+	for currEpoch == cs.SlotToEpoch(blk.GetSlot()+1) {
 		blk = buildNextBlock(
 			t,
 			st,
 			&types.BeaconBlockBody{
 				ExecutionPayload: &types.ExecutionPayload{
-					Timestamp:     blk.Body.ExecutionPayload.Timestamp + 1,
-					ExtraData:     []byte("testing"),
-					Transactions:  [][]byte{},
-					Withdrawals:   []*engineprimitives.Withdrawal{},
+					Timestamp:    blk.Body.ExecutionPayload.Timestamp + 1,
+					ExtraData:    []byte("testing"),
+					Transactions: [][]byte{},
+					Withdrawals: []*engineprimitives.Withdrawal{
+						st.EVMInflationWithdrawal(),
+					},
 					BaseFeePerGas: math.NewU256(0),
 				},
 				Eth1Data: &types.Eth1Data{},
@@ -168,10 +211,12 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		st,
 		&types.BeaconBlockBody{
 			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:     blk.Body.ExecutionPayload.Timestamp + 1,
-				ExtraData:     []byte("testing"),
-				Transactions:  [][]byte{},
-				Withdrawals:   []*engineprimitives.Withdrawal{},
+				Timestamp:    blk.Body.ExecutionPayload.Timestamp + 1,
+				ExtraData:    []byte("testing"),
+				Transactions: [][]byte{},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					st.EVMInflationWithdrawal(),
+				},
 				BaseFeePerGas: math.NewU256(0),
 			},
 			Eth1Data: &types.Eth1Data{},
