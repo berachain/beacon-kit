@@ -273,10 +273,10 @@ test-unit-bench: ## run golang unit benchmarks
 # use the old linker with flags -ldflags=-extldflags=-Wl,-ld_classic
 test-unit-fuzz: ## run fuzz tests
 	@echo "Running fuzz tests with coverage..."
-	go test payload/cache/... -fuzz=FuzzPayloadIDCacheBasic -fuzztime=${SHORT_FUZZ_TIME}
-	go test payload/cache/... -fuzz=FuzzPayloadIDInvalidInput -fuzztime=${SHORT_FUZZ_TIME}
-	go test payload/cache/... -fuzz=FuzzPayloadIDCacheConcurrency -fuzztime=${SHORT_FUZZ_TIME}
-	go test -fuzz=FuzzHashTreeRoot primitives/merkle -fuzztime=${MEDIUM_FUZZ_TIME}
+	go test -run ^FuzzPayloadIDCacheBasic -fuzztime=${SHORT_FUZZ_TIME} github.com/berachain/beacon-kit/payload/cache
+	go test -run ^FuzzPayloadIDInvalidInput -fuzztime=${SHORT_FUZZ_TIME} github.com/berachain/beacon-kit/payload/cache
+	go test -run ^FuzzPayloadIDCacheConcurrency -fuzztime=${SHORT_FUZZ_TIME} github.com/berachain/beacon-kit/payload/cache
+	go test -run ^FuzzHashTreeRoot -fuzztime=${MEDIUM_FUZZ_TIME} github.com/berachain/beacon-kit/primitives/merkle
 
 test-e2e: ## run e2e tests
 	@$(MAKE) build-docker VERSION=kurtosis-local test-e2e-no-build
