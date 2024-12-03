@@ -71,7 +71,30 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	dep DepositT,
 ) error {
-	if err := st.SetEth1DepositIndex(dep.GetIndex().Unwrap()); err != nil {
+	slot, err := st.GetSlot()
+	if err != nil {
+		return err
+	}
+
+	depositIndex := dep.GetIndex().Unwrap()
+
+	switch {
+	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
+		// On bartio we set the deposit index to the last processed deposit
+		// index + 1.
+		depositIndex++
+	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
+		slot < math.U64(spec.BoonetFork2Height):
+		// On boonet pre fork 2, we set the deposit index to the last processed
+		// deposit index + 1.
+		depositIndex++
+	default:
+		// Nothing to do. We correctly set the deposit index to the last
+		// processed deposit index.
+	}
+
+	// Set the deposit index in beacon state.
+	if err := st.SetEth1DepositIndex(depositIndex); err != nil {
 		return err
 	}
 

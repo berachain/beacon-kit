@@ -249,7 +249,7 @@ func TestInitializeBartio(t *testing.T) {
 	// check that validator index is duly set
 	latestValIdx, err := st.GetEth1DepositIndex()
 	require.NoError(t, err)
-	require.Equal(t, uint64(len(genDeposits)-1), latestValIdx)
+	require.Equal(t, uint64(len(genDeposits)), latestValIdx)
 }
 
 func checkValidatorBartio(
