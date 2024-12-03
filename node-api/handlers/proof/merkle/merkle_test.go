@@ -26,7 +26,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/berachain/beacon-kit/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/stretchr/testify/require"
 )
 

@@ -4,7 +4,7 @@ package mocks
 
 import (
 	backend "github.com/berachain/beacon-kit/node-api/backend"
-	math "github.com/berachain/beacon-kit/primitives/pkg/math"
+	math "github.com/berachain/beacon-kit/primitives/math"
 
 	mock "github.com/stretchr/testify/mock"
 )

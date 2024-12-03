@@ -3,12 +3,12 @@
 package mocks
 
 import (
-	bytes "github.com/berachain/beacon-kit/primitives/pkg/bytes"
-	common "github.com/berachain/beacon-kit/primitives/pkg/common"
+	bytes "github.com/berachain/beacon-kit/primitives/bytes"
+	common "github.com/berachain/beacon-kit/primitives/common"
 
-	crypto "github.com/berachain/beacon-kit/primitives/pkg/crypto"
+	crypto "github.com/berachain/beacon-kit/primitives/crypto"
 
-	math "github.com/berachain/beacon-kit/primitives/pkg/math"
+	math "github.com/berachain/beacon-kit/primitives/math"
 
 	mock "github.com/stretchr/testify/mock"
 )

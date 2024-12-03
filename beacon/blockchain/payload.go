@@ -23,7 +23,7 @@ package blockchain
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // forceStartupHead sends a force head FCU to the execution client.

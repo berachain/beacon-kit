@@ -23,7 +23,7 @@ package validator
 import (
 	"time"
 
-	"github.com/berachain/beacon-kit/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // validatorMetrics is a struct that contains metrics for the chain.

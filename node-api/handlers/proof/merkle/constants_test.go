@@ -23,16 +23,16 @@ package merkle_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/merkle"
-	mlib "github.com/berachain/beacon-kit/primitives/pkg/encoding/ssz/merkle"
-	"github.com/berachain/beacon-kit/primitives/pkg/encoding/ssz/schema"
+	mlib "github.com/berachain/beacon-kit/primitives/encoding/ssz/merkle"
+	"github.com/berachain/beacon-kit/primitives/encoding/ssz/schema"
 	"github.com/stretchr/testify/require"
 )
 
 var (
 	// beaconStateSchema is the schema for the BeaconState struct defined in
-	// beacon-kit/mod/consensus-types/pkg/types/state.go.
+	// beacon-kit/mod/consensus-types/types/state.go.
 	beaconStateSchema = schema.DefineContainer(
 		schema.NewField("GenesisValidatorsRoot", schema.B32()),
 		schema.NewField("Slot", schema.U64()),
@@ -98,7 +98,7 @@ var (
 	)
 
 	// beaconHeaderSchema is the schema for the BeaconBlockHeader struct defined
-	// in beacon-kit/mod/consensus-types/pkg/types/header.go, with the SSZ
+	// in beacon-kit/mod/consensus-types/types/header.go, with the SSZ
 	// expansion of StateRoot to use the BeaconState.
 	beaconHeaderSchema = schema.DefineContainer(
 		schema.NewField("Slot", schema.U64()),

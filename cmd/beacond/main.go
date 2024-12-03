@@ -24,11 +24,11 @@ import (
 	"log/slog"
 	"os"
 
-	clibuilder "github.com/berachain/beacon-kit/cli/pkg/builder"
-	clicomponents "github.com/berachain/beacon-kit/cli/pkg/components"
-	nodebuilder "github.com/berachain/beacon-kit/node-core/pkg/builder"
-	nodecomponents "github.com/berachain/beacon-kit/node-core/pkg/components"
-	nodetypes "github.com/berachain/beacon-kit/node-core/pkg/types"
+	clibuilder "github.com/berachain/beacon-kit/cli/builder"
+	clicomponents "github.com/berachain/beacon-kit/cli/components"
+	nodebuilder "github.com/berachain/beacon-kit/node-core/builder"
+	nodecomponents "github.com/berachain/beacon-kit/node-core/components"
+	nodetypes "github.com/berachain/beacon-kit/node-core/types"
 	"go.uber.org/automaxprocs/maxprocs"
 )
 

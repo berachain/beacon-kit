@@ -5,7 +5,7 @@ package mocks
 import (
 	context "context"
 
-	math "github.com/berachain/beacon-kit/primitives/pkg/math"
+	math "github.com/berachain/beacon-kit/primitives/math"
 	mock "github.com/stretchr/testify/mock"
 )
 

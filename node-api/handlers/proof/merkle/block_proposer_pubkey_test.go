@@ -23,12 +23,12 @@ package merkle_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/merkle"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/merkle/mock"
-	"github.com/berachain/beacon-kit/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/stretchr/testify/require"
 )
 

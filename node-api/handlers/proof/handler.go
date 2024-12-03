@@ -25,7 +25,7 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/node-api/server/context"
-	"github.com/berachain/beacon-kit/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // Handler is the handler for the proof API.

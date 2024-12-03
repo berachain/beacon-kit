@@ -25,8 +25,8 @@ import (
 	"strings"
 
 	"github.com/berachain/beacon-kit/errors"
-	"github.com/berachain/beacon-kit/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // TODO: define unique types for each of the query-able IDs (state & block from

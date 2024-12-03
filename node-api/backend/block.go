@@ -22,8 +22,8 @@ package backend
 
 import (
 	types "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	"github.com/berachain/beacon-kit/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // BlockHeader returns the block header at the given slot.

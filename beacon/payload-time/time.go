@@ -24,7 +24,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/berachain/beacon-kit/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // ErrTooFarInTheFuture is returned when the payload timestamp

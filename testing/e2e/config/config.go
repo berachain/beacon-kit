@@ -22,7 +22,7 @@
 package config
 
 import (
-	"github.com/berachain/beacon-kit/primitives/pkg/encoding/json"
+	"github.com/berachain/beacon-kit/primitives/encoding/json"
 )
 
 // E2ETestConfig defines the configuration for end-to-end tests, including any

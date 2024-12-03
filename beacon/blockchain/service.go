@@ -24,11 +24,11 @@ import (
 	"context"
 	"sync"
 
-	asynctypes "github.com/berachain/beacon-kit/async/pkg/types"
+	asynctypes "github.com/berachain/beacon-kit/async/types"
 	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/primitives/pkg/async"
-	"github.com/berachain/beacon-kit/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/primitives/pkg/transition"
+	"github.com/berachain/beacon-kit/primitives/async"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/transition"
 )
 
 // Service is the blockchain service.

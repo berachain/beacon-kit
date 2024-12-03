@@ -22,15 +22,15 @@ package config
 
 import (
 	"github.com/berachain/beacon-kit/beacon/validator"
-	"github.com/berachain/beacon-kit/config/pkg/template"
-	viperlib "github.com/berachain/beacon-kit/config/pkg/viper"
-	"github.com/berachain/beacon-kit/da/pkg/kzg"
+	"github.com/berachain/beacon-kit/config/template"
+	viperlib "github.com/berachain/beacon-kit/config/viper"
+	"github.com/berachain/beacon-kit/da/kzg"
 	"github.com/berachain/beacon-kit/errors"
-	engineclient "github.com/berachain/beacon-kit/execution/pkg/client"
-	log "github.com/berachain/beacon-kit/log/pkg/phuslu"
+	engineclient "github.com/berachain/beacon-kit/execution/client"
+	log "github.com/berachain/beacon-kit/log/phuslu"
 	blockstore "github.com/berachain/beacon-kit/node-api/block_store"
 	"github.com/berachain/beacon-kit/node-api/server"
-	"github.com/berachain/beacon-kit/payload/pkg/builder"
+	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 )

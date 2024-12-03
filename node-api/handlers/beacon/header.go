@@ -23,7 +23,7 @@ package beacon
 import (
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
-	"github.com/berachain/beacon-kit/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/primitives/bytes"
 )
 
 func (h *Handler[

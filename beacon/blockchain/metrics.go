@@ -23,7 +23,7 @@ package blockchain
 import (
 	"time"
 
-	"github.com/berachain/beacon-kit/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // chainMetrics is a struct that contains metrics for the chain.

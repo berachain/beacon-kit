@@ -23,7 +23,7 @@ package backend
 import (
 	"github.com/berachain/beacon-kit/node-api/backend/utils"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	"github.com/berachain/beacon-kit/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 func (b Backend[

@@ -27,8 +27,8 @@ import (
 	"strconv"
 
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
-	"github.com/berachain/beacon-kit/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 )

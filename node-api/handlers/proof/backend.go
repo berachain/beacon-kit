@@ -21,7 +21,7 @@
 package proof
 
 import (
-	"github.com/berachain/beacon-kit/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // Backend is the interface for backend of the proof API.

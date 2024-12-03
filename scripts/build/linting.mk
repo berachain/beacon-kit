@@ -39,12 +39,12 @@ golines:
 
 license:
 	@echo "--> Running addlicense with -check"
-	(go run github.com/google/addlicense -check -v -f $(ROOT_DIR)/LICENSE.header cmd build kurtosis mod testing) || exit 1;
+	(go run github.com/google/addlicense -check -v -f $(ROOT_DIR)/LICENSE.header -ignore contracts/ .) || exit 1;
 	@printf "License check complete\n"
 
 license-fix:
 	echo "--> Running addlicense"
-	(go run github.com/google/addlicense -v -f $(ROOT_DIR)/LICENSE.header cmd build kurtosis mod testing) || exit 1;
+	(go run github.com/google/addlicense -v -f $(ROOT_DIR)/LICENSE.header -ignore contracts/ .) || exit 1;
 	@printf "License check complete\n"
 
 #################
@@ -53,7 +53,7 @@ license-fix:
 
 nilaway:
 	@echo "--> Running nilaway"
-	(go run go.uber.org/nilaway/cmd/nilaway -exclude-errors-in-files "mod/geth-primitives/pkg/deposit/" -v ./...) || exit 1;
+	(go run go.uber.org/nilaway/cmd/nilaway -exclude-errors-in-files "geth-primitives/deposit/" -v ./...) || exit 1;
 	@printf "Nilaway check complete\n"
 
 #################

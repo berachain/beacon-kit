@@ -23,9 +23,9 @@ package merkle
 import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/types"
-	"github.com/berachain/beacon-kit/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/primitives/pkg/encoding/ssz/merkle"
-	"github.com/berachain/beacon-kit/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/encoding/ssz/merkle"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // ProveProposerPubkeyInBlock generates a proof for the proposer pubkey in the

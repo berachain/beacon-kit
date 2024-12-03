@@ -27,8 +27,8 @@ import (
 	"testing/quick"
 	"unsafe"
 
-	"github.com/berachain/beacon-kit/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/primitives/math"
 	zcommon "github.com/protolambda/zrnt/eth2/beacon/common"
 	zdeneb "github.com/protolambda/zrnt/eth2/beacon/deneb"
 	zspec "github.com/protolambda/zrnt/eth2/configs"

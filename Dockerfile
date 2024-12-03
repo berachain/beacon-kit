@@ -63,10 +63,8 @@ RUN apk add --no-cache --update \
 # Copy the dependencies from the cache stage
 COPY --from=mod-cache /go/pkg /go/pkg
 
-# Copy the rest of the source code
-COPY ./go.mod ./go.sum ./
-COPY ./mod ./mod
-COPY ./cmd ./cmd
+# Copy all the source code (this will ignore files/dirs in .dockerignore)
+COPY ./ ./
 
 # Build args
 ARG NAME

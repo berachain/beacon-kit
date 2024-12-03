@@ -23,8 +23,8 @@ package utils
 import (
 	"strconv"
 
-	"github.com/berachain/beacon-kit/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // ValidatorIndexByID parses a validator index from a string.

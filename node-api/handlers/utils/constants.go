@@ -20,7 +20,7 @@
 
 package utils
 
-import "github.com/berachain/beacon-kit/primitives/pkg/math"
+import "github.com/berachain/beacon-kit/primitives/math"
 
 const (
 	StateIDGenesis    = "genesis"

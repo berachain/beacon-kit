@@ -21,9 +21,9 @@
 package blockstore
 
 import (
-	"github.com/berachain/beacon-kit/primitives/pkg/async"
-	"github.com/berachain/beacon-kit/primitives/pkg/constraints"
-	"github.com/berachain/beacon-kit/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/primitives/async"
+	"github.com/berachain/beacon-kit/primitives/constraints"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // BeaconBlock is a generic interface for a beacon block.

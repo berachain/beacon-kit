@@ -23,8 +23,8 @@ package e2e_test
 import (
 	"math/big"
 
-	"github.com/berachain/beacon-kit/config/pkg/spec"
-	"github.com/berachain/beacon-kit/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/config/spec"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/testing/e2e/suite"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 )

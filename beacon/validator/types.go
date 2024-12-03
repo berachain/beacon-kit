@@ -24,13 +24,13 @@ import (
 	"context"
 	"time"
 
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/primitives/pkg/constraints"
-	"github.com/berachain/beacon-kit/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/primitives/pkg/eip4844"
-	"github.com/berachain/beacon-kit/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/primitives/pkg/transition"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constraints"
+	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/eip4844"
+	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/transition"
 )
 
 // BeaconBlock represents a beacon block interface.

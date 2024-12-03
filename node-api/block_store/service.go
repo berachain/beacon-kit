@@ -23,9 +23,9 @@ package blockstore
 import (
 	"context"
 
-	asynctypes "github.com/berachain/beacon-kit/async/pkg/types"
+	asynctypes "github.com/berachain/beacon-kit/async/types"
 	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/primitives/pkg/async"
+	"github.com/berachain/beacon-kit/primitives/async"
 )
 
 // Service is a Service that listens for blocks and stores them in a KVStore.

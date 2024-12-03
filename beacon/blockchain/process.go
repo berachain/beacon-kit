@@ -24,8 +24,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/primitives/pkg/async"
-	"github.com/berachain/beacon-kit/primitives/pkg/transition"
+	"github.com/berachain/beacon-kit/primitives/async"
+	"github.com/berachain/beacon-kit/primitives/transition"
 )
 
 // ProcessGenesisData processes the genesis state and initializes the beacon

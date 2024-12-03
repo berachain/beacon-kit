@@ -23,11 +23,11 @@ package backend
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/primitives/pkg/constraints"
-	"github.com/berachain/beacon-kit/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/primitives/pkg/transition"
-	"github.com/berachain/beacon-kit/state-transition/pkg/core"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constraints"
+	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/transition"
+	"github.com/berachain/beacon-kit/state-transition/core"
 )
 
 // The AvailabilityStore interface is responsible for validating and storing

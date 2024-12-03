@@ -25,9 +25,9 @@ import (
 	"time"
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
-	engineerrors "github.com/berachain/beacon-kit/engine-primitives/pkg/errors"
+	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/errors"
-	"github.com/berachain/beacon-kit/primitives/pkg/transition"
+	"github.com/berachain/beacon-kit/primitives/transition"
 )
 
 // VerifyIncomingBlock verifies the state root of an incoming block

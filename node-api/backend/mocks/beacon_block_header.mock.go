@@ -3,8 +3,8 @@
 package mocks
 
 import (
-	common "github.com/berachain/beacon-kit/primitives/pkg/common"
-	math "github.com/berachain/beacon-kit/primitives/pkg/math"
+	common "github.com/berachain/beacon-kit/primitives/common"
+	math "github.com/berachain/beacon-kit/primitives/math"
 
 	mock "github.com/stretchr/testify/mock"
 )

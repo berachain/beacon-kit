@@ -20,7 +20,7 @@
 
 package types
 
-import "github.com/berachain/beacon-kit/primitives/pkg/common"
+import "github.com/berachain/beacon-kit/primitives/common"
 
 // BeaconBlockHeader is the interface for the beacon block header.
 type BeaconBlockHeader interface {

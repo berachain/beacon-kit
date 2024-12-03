@@ -23,8 +23,8 @@ package backend
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // Backend is the db access layer for the beacon node-api.

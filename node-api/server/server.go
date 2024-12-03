@@ -24,7 +24,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/log/pkg/noop"
+	"github.com/berachain/beacon-kit/log/noop"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	apicontext "github.com/berachain/beacon-kit/node-api/server/context"
 )

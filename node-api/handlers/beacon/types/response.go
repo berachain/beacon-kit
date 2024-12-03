@@ -21,8 +21,8 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/primitives/pkg/bytes"
-	"github.com/berachain/beacon-kit/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/primitives/bytes"
+	"github.com/berachain/beacon-kit/primitives/common"
 )
 
 type ValidatorResponse struct {

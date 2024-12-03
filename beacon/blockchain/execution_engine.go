@@ -25,8 +25,8 @@ import (
 	"time"
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
-	"github.com/berachain/beacon-kit/config/pkg/spec"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/config/spec"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 )
 
 // sendPostBlockFCU sends a forkchoice update to the execution client.

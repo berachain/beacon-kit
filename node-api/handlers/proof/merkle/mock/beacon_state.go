@@ -23,10 +23,10 @@ package mock
 import (
 	"errors"
 
-	"github.com/berachain/beacon-kit/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/consensus-types/types"
 	ptypes "github.com/berachain/beacon-kit/node-api/handlers/proof/types"
-	"github.com/berachain/beacon-kit/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // Compile time check to ensure BeaconState implements the methods

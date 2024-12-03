@@ -26,14 +26,14 @@ import (
 	"time"
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
-	"github.com/berachain/beacon-kit/config/pkg/spec"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/primitives/pkg/bytes"
-	"github.com/berachain/beacon-kit/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/primitives/pkg/transition"
-	"github.com/berachain/beacon-kit/primitives/pkg/version"
+	"github.com/berachain/beacon-kit/config/spec"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	"github.com/berachain/beacon-kit/primitives/bytes"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/transition"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"golang.org/x/sync/errgroup"
 )
 
