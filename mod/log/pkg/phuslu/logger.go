@@ -144,12 +144,14 @@ func (l *Logger) WithConfig(cfg *Config) *Logger {
 
 // AddKeyColor applies a color to log entries based on their keys.
 func (l *Logger) AddKeyColor(key any, color Color) {
+	//nolint:errcheck // should be safe
 	l.formatter.AddKeyColor(key.(string), color)
 }
 
 // AddKeyValColor applies specific colors to log entries based on their keys and
 // values.
 func (l *Logger) AddKeyValColor(key any, val any, color Color) {
+	//nolint:errcheck // should be safe
 	l.formatter.AddKeyValColor(key.(string), val.(string), color)
 }
 

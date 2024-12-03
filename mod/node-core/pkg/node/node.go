@@ -50,6 +50,7 @@ type node struct {
 // New returns a new node.
 func New[NodeT types.Node](
 	registry *service.Registry, logger log.Logger) NodeT {
+	//nolint:errcheck // should be safe
 	return types.Node(&node{registry: registry, logger: logger}).(NodeT)
 }
 
