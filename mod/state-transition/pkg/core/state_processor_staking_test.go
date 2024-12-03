@@ -21,7 +21,6 @@
 package core_test
 
 import (
-	"strconv"
 	"testing"
 	"time"
 
@@ -30,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
@@ -1183,28 +1181,28 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 // 	require.Equal(t, math.Gwei(0), removeldVal2.EffectiveBalance)
 // }
 
-func generateTestExecutionAddress(
-	t *testing.T,
-	rndSeed int,
-) (types.WithdrawalCredentials, int) {
-	t.Helper()
+// func generateTestExecutionAddress(
+// 	t *testing.T,
+// 	rndSeed int,
+// ) (types.WithdrawalCredentials, int) {
+// 	t.Helper()
 
-	addrStr := strconv.Itoa(rndSeed)
-	addrBytes := bytes.ExtendToSize([]byte(addrStr), bytes.B20Size)
-	execAddr, err := bytes.ToBytes20(addrBytes)
-	require.NoError(t, err)
-	rndSeed++
-	return types.NewCredentialsFromExecutionAddress(
-		common.ExecutionAddress(execAddr),
-	), rndSeed
-}
+// 	addrStr := strconv.Itoa(rndSeed)
+// 	addrBytes := bytes.ExtendToSize([]byte(addrStr), bytes.B20Size)
+// 	execAddr, err := bytes.ToBytes20(addrBytes)
+// 	require.NoError(t, err)
+// 	rndSeed++
+// 	return types.NewCredentialsFromExecutionAddress(
+// 		common.ExecutionAddress(execAddr),
+// 	), rndSeed
+// }
 
-func generateTestPK(t *testing.T, rndSeed int) (bytes.B48, int) {
-	t.Helper()
-	keyStr := strconv.Itoa(rndSeed)
-	keyBytes := bytes.ExtendToSize([]byte(keyStr), bytes.B48Size)
-	key, err := bytes.ToBytes48(keyBytes)
-	require.NoError(t, err)
-	rndSeed++
-	return key, rndSeed
-}
+// func generateTestPK(t *testing.T, rndSeed int) (bytes.B48, int) {
+// 	t.Helper()
+// 	keyStr := strconv.Itoa(rndSeed)
+// 	keyBytes := bytes.ExtendToSize([]byte(keyStr), bytes.B48Size)
+// 	key, err := bytes.ToBytes48(keyBytes)
+// 	require.NoError(t, err)
+// 	rndSeed++
+// 	return key, rndSeed
+// }
