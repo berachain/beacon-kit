@@ -29,4 +29,10 @@ var (
 	// per block.
 	ErrInsufficientMaxWithdrawalsPerPayload = errors.New(
 		"max withdrawals per payload must be greater than 1")
+
+	// ErrInvalidValidatorSetCap is returned when the validator set cap is
+	// greater than the validator registry limit.
+	ErrInvalidValidatorSetCap = errors.New(
+		"validator set cap must be less than the validator registry limit",
+	)
 )

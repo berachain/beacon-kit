@@ -34,16 +34,11 @@ func (sp *StateProcessor[
 ]) processValidatorsSetUpdates(
 	st BeaconStateT,
 ) (transition.ValidatorUpdates, error) {
-	// get validators that will be active next epoch
-	vals, err := st.GetValidatorsByEffectiveBalance()
+	// at this state slot has not been updated yet so
+	// we pick nextEpochValidatorSet
+	activeVals, err := sp.nextEpochValidatorSet(st)
 	if err != nil {
 		return nil, err
-	}
-	activeVals := make([]ValidatorT, 0, len(vals))
-	for _, val := range vals {
-		if val.GetEffectiveBalance() > math.U64(sp.cs.EjectionBalance()) {
-			activeVals = append(activeVals, val)
-		}
 	}
 
 	// pick prev epoch validators

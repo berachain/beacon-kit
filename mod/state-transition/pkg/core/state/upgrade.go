@@ -18,38 +18,27 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package params
+package state
 
 import (
-	math "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
-	cmttypes "github.com/cometbft/cometbft/types"
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-type ChainSpec interface {
-	// GetCometBFTConfigForSlot returns the CometBFT configuration for the given
-	// slot.
-	GetCometBFTConfigForSlot(math.Slot) any
-}
+// IsPostUpgrade returns true if the chain is post-upgrade (Fork2 on Boonet).
+//
+// TODO: Jank. Refactor into better fork version management.
+func IsPostUpgrade(chainID uint64, slot math.Slot) bool {
+	switch chainID {
+	case spec.BartioChainID:
+		return false
+	case spec.BoonetEth1ChainID:
+		if slot < math.U64(spec.BoonetFork2Height) {
+			return false
+		}
 
-// ConsensusParamsStore is a store for consensus parameters.
-type ConsensusParamsStore struct {
-	cs ChainSpec
-}
-
-// NewConsensusParamsStore creates a new ConsensusParamsStore.
-func NewConsensusParamsStore(cs ChainSpec) *ConsensusParamsStore {
-	return &ConsensusParamsStore{
-		cs: cs,
+		return true
+	default:
+		return true
 	}
-}
-
-// Get retrieves the consensus parameters from the store.
-// It returns the consensus parameters and an error, if any.
-func (s *ConsensusParamsStore) Get() *cmtproto.ConsensusParams {
-	//nolint:errcheck // TODO (fridrik): Is this safe?
-	p := s.cs.
-		GetCometBFTConfigForSlot(0).(*cmttypes.ConsensusParams).
-		ToProto()
-	return &p
 }

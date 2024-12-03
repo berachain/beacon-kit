@@ -79,6 +79,7 @@ func StringTo[T any](
 		}
 
 		// Convert it by parsing
+		//nolint:errcheck // should be safe
 		return constructor(data.(string))
 	}
 }
