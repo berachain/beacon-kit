@@ -46,4 +46,5 @@ const (
 	FinalSidecarsReceived          = "final-blob-sidecars-received"
 	FinalValidatorUpdatesProcessed = "final-validator-updates"
 	BeaconBlockFinalized           = "beacon-block-finalized"
+	BlobSidecarsFinalized          = "blob-sidecars-finalized"
 )

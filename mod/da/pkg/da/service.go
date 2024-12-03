@@ -135,11 +135,26 @@ func (s *Service[_, _, _, _]) eventLoop(ctx context.Context) {
 func (s *Service[_, _, BlobSidecarsT, _]) handleFinalSidecarsReceived(
 	msg async.Event[BlobSidecarsT],
 ) {
-	if err := s.processSidecars(msg.Context(), msg.Data()); err != nil {
+	finalizeErr := s.processSidecars(msg.Context(), msg.Data())
+	if finalizeErr != nil {
 		s.logger.Error(
 			"Failed to process blob sidecars",
 			"error",
-			err,
+			finalizeErr,
+		)
+	}
+
+	// Emit the event containing the validator updates.
+	event := async.NewEvent(
+		msg.Context(),
+		async.BlobSidecarsFinalized,
+		struct{}{},
+		finalizeErr,
+	)
+	if err := s.dispatcher.Publish(event); err != nil {
+		s.logger.Error(
+			"Failed to emit event in finalize sidecar",
+			"error", err,
 		)
 	}
 }

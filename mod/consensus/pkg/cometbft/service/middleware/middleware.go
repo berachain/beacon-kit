@@ -55,7 +55,8 @@ type ABCIMiddleware[
 	// subBBVerified is the channel to hold BeaconBlockVerified events.
 	subBBVerified chan async.Event[BeaconBlockT]
 	// subSCVerified is the channel to hold SidecarsVerified events.
-	subSCVerified chan async.Event[BlobSidecarsT]
+	subSCVerified  chan async.Event[BlobSidecarsT]
+	subSCFinalized chan async.Event[struct{}]
 	// subFinalValidatorUpdates is the channel to hold
 	// FinalValidatorUpdatesProcessed events.
 	subFinalValidatorUpdates chan async.Event[validatorUpdates]
@@ -88,6 +89,7 @@ func NewABCIMiddleware[
 		subBuiltSidecars:         make(chan async.Event[BlobSidecarsT]),
 		subBBVerified:            make(chan async.Event[BeaconBlockT]),
 		subSCVerified:            make(chan async.Event[BlobSidecarsT]),
+		subSCFinalized:           make(chan async.Event[struct{}]),
 		subFinalValidatorUpdates: make(chan async.Event[validatorUpdates]),
 	}
 }
@@ -119,6 +121,11 @@ func (am *ABCIMiddleware[_, _, _, _, _]) Start(
 	}
 	if err = am.dispatcher.Subscribe(
 		async.SidecarsVerified, am.subSCVerified,
+	); err != nil {
+		return err
+	}
+	if err = am.dispatcher.Subscribe(
+		async.BlobSidecarsFinalized, am.subSCFinalized,
 	); err != nil {
 		return err
 	}

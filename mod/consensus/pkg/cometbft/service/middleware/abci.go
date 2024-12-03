@@ -321,6 +321,11 @@ func (h *ABCIMiddleware[
 	awaitCtx, cancel := context.WithTimeout(ctx, AwaitTimeout)
 	defer cancel()
 	// flush the channel to ensure that we are not handling old data.
+	if numMsgs := async.ClearChan(h.subSCFinalized); numMsgs > 0 {
+		h.logger.Error(
+			"WARNING: messages remaining in final sidecar updates channel",
+			"num_msgs", numMsgs)
+	}
 	if numMsgs := async.ClearChan(h.subFinalValidatorUpdates); numMsgs > 0 {
 		h.logger.Error(
 			"WARNING: messages remaining in final validator updates channel",
@@ -340,7 +345,20 @@ func (h *ABCIMiddleware[
 		return nil, nil
 	}
 
+	// notify that the final blob sidecars have been received.
+	if err = h.dispatcher.Publish(
+		async.NewEvent(ctx, async.FinalSidecarsReceived, blobs),
+	); err != nil {
+		return nil, err
+	}
+
+	if err = h.waitForSidecarFinalization(awaitCtx); err != nil {
+		return nil, err
+	}
+
 	// notify that the final beacon block has been received.
+	// We do it only after sidecar has been processed, since
+	// block will check for sidecar availability.
 	var consensusBlk *types.ConsensusBlock[BeaconBlockT]
 	consensusBlk = consensusBlk.New(
 		blk,
@@ -356,15 +374,23 @@ func (h *ABCIMiddleware[
 		return nil, err
 	}
 
-	// notify that the final blob sidecars have been received.
-	if err = h.dispatcher.Publish(
-		async.NewEvent(ctx, async.FinalSidecarsReceived, blobs),
-	); err != nil {
-		return nil, err
-	}
-
 	// wait for the final validator updates.
 	return h.waitForFinalValidatorUpdates(awaitCtx)
+}
+
+// waitForFinalValidatorUpdates waits for the final validator updates to be
+// received.
+func (h *ABCIMiddleware[
+	_, _, _, _, _,
+]) waitForSidecarFinalization(
+	ctx context.Context,
+) error {
+	select {
+	case <-ctx.Done():
+		return ErrFinalValidatorUpdatesTimeout(ctx.Err())
+	case event := <-h.subSCFinalized:
+		return event.Error()
+	}
 }
 
 // waitForFinalValidatorUpdates waits for the final validator updates to be
