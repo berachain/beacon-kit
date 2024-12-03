@@ -296,19 +296,17 @@ func (s *Service[
 	}
 
 	// Bartio and Boonet pre Fork2 have deposit broken and undervalidated
-	// Any other network should build deposits the right way
+	// Any other network should build deposits the right way.
+	startDepositIndex := depositIndex
 	switch {
 	case s.chainSpec.DepositEth1ChainID() == spec.BartioChainID:
-		depositIndex++
 	case s.chainSpec.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
 		blk.GetSlot() < math.U64(spec.BoonetFork2Height):
-		depositIndex++
 	default:
-		// Nothing to do. We correctly set the deposit index to the last
-		// processed deposit index.
+		startDepositIndex++
 	}
 	deposits, err := s.sb.DepositStore().GetDepositsByIndex(
-		depositIndex,
+		startDepositIndex,
 		s.chainSpec.MaxDepositsPerBlock(),
 	)
 	if err != nil {
@@ -318,7 +316,7 @@ func (s *Service[
 	// Set the deposits on the block body.
 	s.logger.Info(
 		"Building block body with local deposits",
-		"deposit_index", depositIndex, "num_deposits", len(deposits),
+		"start_index", startDepositIndex, "num_deposits", len(deposits),
 	)
 	body.SetDeposits(deposits)
 
