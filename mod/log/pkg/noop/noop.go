@@ -59,6 +59,7 @@ func (n *Logger[ImplT]) Debug(string, ...any) {
 // With returns a new AdvancedLogger with the provided key-value pairs. This
 // method does nothing.
 func (n *Logger[ImplT]) With(...any) ImplT {
+	//nolint:errcheck // should be safe
 	return any(n).(ImplT)
 }
 
