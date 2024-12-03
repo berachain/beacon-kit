@@ -82,7 +82,7 @@ func TestFromHex(t *testing.T) {
 	}
 }
 
-func TestMustFromHex(t *testing.T) {
+func TestToBytesSafe(t *testing.T) {
 	tests := []struct {
 		name        string
 		input       string
@@ -111,7 +111,7 @@ func TestMustFromHex(t *testing.T) {
 			name:        "Invalid hex string",
 			input:       "0x12345",
 			expected:    nil,
-			shouldPanic: true,
+			shouldPanic: false,
 		},
 	}
 
