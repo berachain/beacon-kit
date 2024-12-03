@@ -55,10 +55,11 @@ func BaseSpec() chain.SpecData[
 		any,
 	]{
 		// Gwei value constants.
-		MinDepositAmount:             1e9,
-		MaxEffectiveBalance:          32e9,
-		EjectionBalance:              16e9,
-		EffectiveBalanceIncrement:    1e9,
+		MinDepositAmount:          1e9,
+		MaxEffectiveBalance:       32e9,
+		EjectionBalance:           16e9,
+		EffectiveBalanceIncrement: 1e9,
+
 		HysteresisQuotient:           4,
 		HysteresisDownwardMultiplier: 1,
 		HysteresisUpwardMultiplier:   5,
@@ -67,6 +68,7 @@ func BaseSpec() chain.SpecData[
 		SlotsPerEpoch:                32,
 		MinEpochsToInactivityPenalty: 4,
 		SlotsPerHistoricalRoot:       8,
+
 		// Signature domains.
 		DomainTypeProposer: common.DomainType{
 			0x00, 0x00, 0x00, 0x00,
@@ -92,6 +94,7 @@ func BaseSpec() chain.SpecData[
 		DomainTypeApplicationMask: common.DomainType{
 			0x00, 0x00, 0x00, 0x01,
 		},
+
 		// Eth1-related values.
 		DepositContractAddress: common.NewExecutionAddressFromHex(
 			DefaultDepositContractAddress,
@@ -99,21 +102,28 @@ func BaseSpec() chain.SpecData[
 		DepositEth1ChainID:        1,
 		Eth1FollowDistance:        1,
 		TargetSecondsPerEth1Block: 3,
+
 		// Fork-related values.
 		DenebPlusForkEpoch: 9999999999999998,
 		ElectraForkEpoch:   9999999999999999,
+
 		// State list length constants.
 		EpochsPerHistoricalVector: 8,
 		EpochsPerSlashingsVector:  8,
 		HistoricalRootsLimit:      8,
 		ValidatorRegistryLimit:    1099511627776,
+
 		// Max operations per block constants.
 		MaxDepositsPerBlock: 16,
+
 		// Slashing
 		ProportionalSlashingMultiplier: 1,
+
 		// Capella values.
-		MaxWithdrawalsPerPayload:         16,
-		MaxValidatorsPerWithdrawalsSweep: 1 << 14,
+		MaxWithdrawalsPerPayload:                    16,
+		MaxValidatorsPerWithdrawalsSweepPreUpgrade:  1 << 14,
+		MaxValidatorsPerWithdrawalsSweepPostUpgrade: 1 << 14,
+
 		// Deneb values.
 		MinEpochsForBlobsSidecarsRequest: 4096,
 		MaxBlobCommitmentsPerBlock:       16,
@@ -121,7 +131,11 @@ func BaseSpec() chain.SpecData[
 		FieldElementsPerBlob:             4096,
 		BytesPerBlob:                     131072,
 		KZGCommitmentInclusionProofDepth: 17,
+
 		// Comet values.
 		CometValues: cmtConsensusParams,
+
+		// Berachain Values
+		ValidatorSetCap: 256,
 	}
 }

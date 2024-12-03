@@ -155,7 +155,11 @@ type Spec[
 
 	// MaxValidatorsPerWithdrawalsSweep returns the maximum number of validators
 	// per withdrawal sweep.
-	MaxValidatorsPerWithdrawalsSweep() uint64
+	MaxValidatorsPerWithdrawalsSweep(
+		isPostUpgrade func(uint64, SlotT) bool,
+		chainID uint64,
+		slot SlotT,
+	) uint64
 
 	// Deneb Values
 
@@ -198,6 +202,10 @@ type Spec[
 	GetCometBFTConfigForSlot(slot SlotT) CometBFTConfigT
 
 	// Berachain Values
+
+	// ValidatorSetCap retrieves the maximum number of
+	// validators allowed in the active set.
+	ValidatorSetCap() uint64
 
 	// EVMInflationAddress returns the address on the EVM which will receive
 	// the inflation amount of native EVM balance through a withdrawal every
@@ -248,6 +256,10 @@ func (c *chainSpec[
 ]) validate() error {
 	if c.MaxWithdrawalsPerPayload() <= 1 {
 		return ErrInsufficientMaxWithdrawalsPerPayload
+	}
+
+	if c.ValidatorSetCap() > c.ValidatorRegistryLimit() {
+		return ErrInvalidValidatorSetCap
 	}
 
 	// EVM Inflation values can be zero or non-zero, no validation needed.
@@ -485,8 +497,15 @@ func (c chainSpec[
 // withdrawals sweep.
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) MaxValidatorsPerWithdrawalsSweep() uint64 {
-	return c.Data.MaxValidatorsPerWithdrawalsSweep
+]) MaxValidatorsPerWithdrawalsSweep(
+	isPostUpgrade func(uint64, SlotT) bool,
+	chainID uint64, slot SlotT,
+) uint64 {
+	if isPostUpgrade(chainID, slot) {
+		return c.Data.MaxValidatorsPerWithdrawalsSweepPostUpgrade
+	}
+
+	return c.Data.MaxValidatorsPerWithdrawalsSweepPreUpgrade
 }
 
 // MinEpochsForBlobsSidecarsRequest returns the minimum number of epochs for
@@ -532,6 +551,14 @@ func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) GetCometBFTConfigForSlot(_ SlotT) CometBFTConfigT {
 	return c.Data.CometValues
+}
+
+// ValidatorSetCap retrieves the maximum number of
+// validators allowed in the active set.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
+]) ValidatorSetCap() uint64 {
+	return c.Data.ValidatorSetCap
 }
 
 // EVMInflationAddress returns the address on the EVM which will receive the

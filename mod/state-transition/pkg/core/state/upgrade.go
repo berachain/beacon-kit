@@ -18,21 +18,27 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package chain
+package state
 
-import "github.com/berachain/beacon-kit/mod/errors"
-
-var (
-	// ErrInsufficientMaxWithdrawalsPerPayload is returned when the max
-	// withdrawals per payload less than 2. Must allow at least one for the EVM
-	// inflation withdrawal, and at least one more for a validator withdrawal
-	// per block.
-	ErrInsufficientMaxWithdrawalsPerPayload = errors.New(
-		"max withdrawals per payload must be greater than 1")
-
-	// ErrInvalidValidatorSetCap is returned when the validator set cap is
-	// greater than the validator registry limit.
-	ErrInvalidValidatorSetCap = errors.New(
-		"validator set cap must be less than the validator registry limit",
-	)
+import (
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
+
+// IsPostUpgrade returns true if the chain is post-upgrade (Fork2 on Boonet).
+//
+// TODO: Jank. Refactor into better fork version management.
+func IsPostUpgrade(chainID uint64, slot math.Slot) bool {
+	switch chainID {
+	case spec.BartioChainID:
+		return false
+	case spec.BoonetEth1ChainID:
+		if slot < math.U64(spec.BoonetFork2Height) {
+			return false
+		}
+
+		return true
+	default:
+		return true
+	}
+}
