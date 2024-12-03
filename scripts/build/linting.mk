@@ -31,7 +31,7 @@ golangci-fix:
 
 golines:
 	@echo "--> Running golines"
-	@./build/scripts/golines.sh
+	@./scripts/build/golines.sh
 
 #################
 #    license    #
