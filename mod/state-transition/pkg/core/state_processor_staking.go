@@ -122,7 +122,16 @@ func (sp *StateProcessor[
 	}
 
 	// if validator exist, just update its balance
-	return st.IncreaseBalance(idx, dep.GetAmount())
+	if err = st.IncreaseBalance(idx, dep.GetAmount()); err != nil {
+		return err
+	}
+
+	sp.logger.Info(
+		"Processed deposit to increase balance",
+		"deposit_amount", float64(dep.GetAmount().Unwrap())/math.GweiPerWei,
+		"validator_index", idx,
+	)
+	return nil
 }
 
 // createValidator creates a validator if the deposit is valid.
@@ -314,5 +323,14 @@ func (sp *StateProcessor[
 	if err != nil {
 		return err
 	}
-	return st.IncreaseBalance(idx, depositAmount)
+	if err = st.IncreaseBalance(idx, depositAmount); err != nil {
+		return err
+	}
+	sp.logger.Info(
+		"Processed deposit to create new validator",
+		"deposit_amount", float64(depositAmount.Unwrap())/math.GweiPerWei,
+		"validator_index", idx,
+		"withdrawal_epoch", val.GetWithdrawableEpoch(),
+	)
+	return nil
 }
