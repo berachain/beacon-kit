@@ -36,53 +36,8 @@ WORKDIR /workdir
 
 RUN apk add --no-cache git
 
-COPY ./beacond/go.mod ./beacond/go.sum ./beacond/
-COPY ./mod/async/go.mod ./mod/async/
-COPY ./mod/beacon/go.mod ./mod/beacon/go.sum ./mod/beacon/
-COPY ./mod/cli/go.mod ./mod/cli/go.sum ./mod/cli/
-COPY ./mod/consensus/go.mod ./mod/consensus/go.sum ./mod/consensus/
-COPY ./mod/consensus-types/go.mod ./mod/consensus-types/go.sum ./mod/consensus-types/
-COPY ./mod/config/go.mod ./mod/config/go.sum ./mod/config/
-COPY ./mod/da/go.mod ./mod/da/go.sum ./mod/da/
-COPY ./mod/engine-primitives/go.mod ./mod/engine-primitives/go.sum ./mod/engine-primitives/
-COPY ./mod/execution/go.mod ./mod/execution/go.sum ./mod/execution/
-COPY ./mod/log/go.mod ./mod/log/go.sum ./mod/log/
-COPY ./mod/node-api/go.mod ./mod/node-api/go.sum ./mod/node-api/
-COPY ./mod/node-api/engines/go.mod ./mod/node-api/engines/go.sum ./mod/node-api/engines/
-COPY ./mod/node-core/go.mod ./mod/node-core/go.sum ./mod/node-core/
-COPY ./mod/observability/go.mod ./mod/observability/
-COPY ./mod/payload/go.mod ./mod/payload/go.sum ./mod/payload/
-COPY ./mod/primitives/go.mod ./mod/primitives/go.sum ./mod/primitives/
-COPY ./mod/state-transition/go.mod ./mod/state-transition/go.sum ./mod/state-transition/
-COPY ./mod/storage/go.mod ./mod/storage/go.sum ./mod/storage/
-COPY ./mod/errors/go.mod ./mod/errors/go.sum ./mod/errors/
-COPY ./mod/geth-primitives/go.mod ./mod/geth-primitives/go.sum ./mod/geth-primitives/
-COPY ./mod/chain-spec/go.mod ./mod/chain-spec/
-
-RUN go work init && \
-    go work use ./beacond && \
-    go work use ./mod/async && \
-    go work use ./mod/beacon && \
-    go work use ./mod/cli && \
-    go work use ./mod/config && \
-    go work use ./mod/consensus && \
-    go work use ./mod/consensus-types && \
-    go work use ./mod/da && \
-    go work use ./mod/engine-primitives && \
-    go work use ./mod/errors && \
-    go work use ./mod/execution && \
-    go work use ./mod/log && \
-    go work use ./mod/node-api && \
-    go work use ./mod/node-api/engines && \
-    go work use ./mod/node-core && \
-    go work use ./mod/observability && \
-    go work use ./mod/payload && \
-    go work use ./mod/primitives && \
-    go work use ./mod/state-transition && \
-    go work use ./mod/storage && \
-    go work use ./mod/geth-primitives && \
-    go work use ./mod/chain-spec
-
+# Download Go modules
+COPY ./go.mod ./go.sum ./
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/go/pkg/mod \
     go mod download
@@ -105,12 +60,11 @@ RUN apk add --no-cache --update \
     ca-certificates \
     build-base
 
-# Copy the dependencies from the cache stage as well as the
-# go.work file to the working directory
+# Copy the dependencies from the cache stage
 COPY --from=mod-cache /go/pkg /go/pkg
-COPY --from=mod-cache /workdir/go.work ./go.work
 
 # Copy the rest of the source code
+COPY ./go.mod ./go.sum ./
 COPY ./mod ./mod
 COPY ./beacond ./beacond
 
@@ -150,7 +104,7 @@ ARG APP_NAME
 # Copy over built executable into a fresh container
 COPY --from=builder /workdir/build/bin/${APP_NAME} /usr/bin/${APP_NAME}
 
-# TODO: We should un hood this part, its very specific 
+# TODO: We should un hood this part, its very specific
 # to our kurtosis setup.
 RUN mkdir -p /root/jwt /root/kzg && \
     apk add --no-cache bash sed curl
