@@ -94,7 +94,7 @@ func (sp *StateProcessor[
 	}
 
 	// Set the deposit index in beacon state.
-	if err := st.SetEth1DepositIndex(depositIndex); err != nil {
+	if err = st.SetEth1DepositIndex(depositIndex); err != nil {
 		return err
 	}
 
@@ -122,7 +122,7 @@ func (sp *StateProcessor[
 	}
 
 	// if validator exist, just update its balance
-	if err := st.IncreaseBalance(idx, dep.GetAmount()); err != nil {
+	if err = st.IncreaseBalance(idx, dep.GetAmount()); err != nil {
 		return errors.Wrap(err, "failed to increase balance")
 	}
 
@@ -325,7 +325,7 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	if err := st.IncreaseBalance(idx, depositAmount); err != nil {
+	if err = st.IncreaseBalance(idx, depositAmount); err != nil {
 		return errors.Wrap(err, "failed to increase balance")
 	}
 

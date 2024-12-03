@@ -273,7 +273,7 @@ func (sp *StateProcessor[
 		nextValidatorIndex %= math.ValidatorIndex(totalValidators)
 	}
 
-	if err := st.SetNextWithdrawalValidatorIndex(
+	if err = st.SetNextWithdrawalValidatorIndex(
 		nextValidatorIndex,
 	); err != nil {
 		return errors.Wrap(
