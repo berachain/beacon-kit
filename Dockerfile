@@ -27,7 +27,23 @@ ARG DB_BACKEND=pebbledb
 ARG CMD_PATH=./beacond/cmd
 
 #######################################################
-###         Stage 1 - Build the Application         ###
+###         Stage 1 - Cache Go Modules              ###
+#######################################################
+
+FROM golang:${GO_VERSION}-alpine3.20 AS mod-cache
+
+WORKDIR /workdir
+
+RUN apk add --no-cache git
+
+# Download Go modules
+COPY ./go.mod ./go.sum ./
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/root/go/pkg/mod \
+    go mod download
+
+#######################################################
+###         Stage 2 - Build the Application         ###
 #######################################################
 
 FROM golang:${GO_VERSION}-alpine3.20 AS builder
@@ -43,6 +59,9 @@ WORKDIR /workdir
 RUN apk add --no-cache --update \
     ca-certificates \
     build-base
+
+# Copy the dependencies from the cache stage
+COPY --from=mod-cache /go/pkg /go/pkg
 
 # Copy the rest of the source code
 COPY ./go.mod ./go.sum ./
@@ -74,7 +93,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     ${CMD_PATH}
 
 #######################################################
-###        Stage 2 - Prepare the Final Image        ###
+###        Stage 3 - Prepare the Final Image        ###
 #######################################################
 
 FROM ${RUNNER_IMAGE}

@@ -277,20 +277,11 @@ func requireGoHashTreeEquivalence(
 	}
 
 	// Ensure the lengths are the same
-	require.Equal(
-		t, len(expectedOutput), len(output),
-		fmt.Errorf("Expected output length %d, got %d",
-			len(expectedOutput), len(output)))
+	require.Equal(t, len(expectedOutput), len(output))
 
 	// Compare the outputs element by element
 	for i := range output {
-		require.Equal(
-			t, expectedOutput[i], output[i],
-			fmt.Errorf(
-				"Output mismatch at index %d: expected %x, got %x",
-				i, expectedOutput[i], output[i],
-			),
-		)
+		require.Equal(t, expectedOutput[i], output[i])
 	}
 }
 
