@@ -252,6 +252,11 @@ func (sp *StateProcessor[
 			if err = st.SetEth1DepositIndex(fixedDepositIdx); err != nil {
 				return nil, err
 			}
+
+			sp.logger.Info(
+				"Fixed Eth 1 deposit index",
+				"previous", idx, "fixed", fixedDepositIdx,
+			)
 		}
 
 		// Process the Epoch Boundary.
