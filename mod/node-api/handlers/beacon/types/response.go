@@ -83,3 +83,17 @@ type BlockRewardsData struct {
 	ProposerSlashings uint64 `json:"proposer_slashings,string"`
 	AttesterSlashings uint64 `json:"attester_slashings,string"`
 }
+
+// Type outlined here: https://www.quicknode.com/docs/ethereum/eth-v1-beacon-blob_sidecars-id
+type BlobSidecarData[BlockHeaderT any] struct {
+	Index                       uint64                     `json:"index,string"`
+	Blob                        string                     `json:"blob"`
+	KZGCommitment               string                     `json:"kzg_commitment"`
+	KZGProof                    string                     `json:"kzg_proof"`
+	SignedBlockHeader           *BlockHeader[BlockHeaderT] `json:"signed_block_header"`
+	KZGCommitmentInclusionProof []string                   `json:"kzg_commitment_inclusion_proof"`
+}
+
+type BlobSidecarsResponse[BlockHeaderT any] struct {
+	Data []*BlobSidecarData[BlockHeaderT] `json:"data"`
+}

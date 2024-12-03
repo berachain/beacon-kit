@@ -18,35 +18,45 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package store
+package beacon
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"strconv"
+
+	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 )
 
-// BeaconBlock is an interface for beacon blocks.
-type BeaconBlock interface {
-	GetSlot() math.U64
-}
+func (h *Handler[
+	BeaconBlockHeaderT, ContextT, _, _,
+]) GetBlobSidecars(c ContextT) (any, error) {
+	req, err := utils.BindAndValidate[beacontypes.GetBlobSidecarsRequest](
+		c, h.Logger(),
+	)
+	if err != nil {
+		return nil, err
+	}
 
-// BlockEvent is an interface for block events.
-type BlockEvent[BeaconBlockT BeaconBlock] interface {
-	Data() BeaconBlockT
-}
+	slot, err := utils.SlotFromBlockID(req.BlockID, h.backend)
+	if err != nil {
+		return nil, err
+	}
 
-// IndexDB is a database that allows prefixing by index.
-type IndexDB interface {
-	Has(index uint64, key []byte) (bool, error)
-	Set(index uint64, key []byte, value []byte) error
-	Get(index uint64, key []byte) ([]byte, error)
-	// Prune returns error if start > end
-	Prune(start uint64, end uint64) error
-}
+	// convert indices to uint64
+	indices := make([]uint64, len(req.Indices))
+	for i, idx := range req.Indices {
+		indices[i], err = strconv.ParseUint(idx, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+	}
 
-// BeaconBlockBody is the body of a beacon block.
-type BeaconBlockBody interface {
-	// GetBlobKzgCommitments returns the KZG commitments for the blob.
-	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
+	blobSidecars, err := h.backend.BlobSidecarsAtSlot(slot, indices)
+	if err != nil {
+		return nil, err
+	}
+
+	return beacontypes.BlobSidecarsResponse[BeaconBlockHeaderT]{
+		Data: blobSidecars,
+	}, nil
 }
