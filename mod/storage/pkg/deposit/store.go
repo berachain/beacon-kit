@@ -22,12 +22,12 @@ package deposit
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"sync"
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
@@ -79,7 +79,7 @@ func (kv *KVStore[DepositT]) GetDepositsByIndex(
 		endIdx   = startIndex + depRange
 	)
 
-	kv.logger.Info(
+	kv.logger.Debug(
 		"GetDepositsByIndex request",
 		"start", startIndex,
 		"end", endIdx,
@@ -90,24 +90,22 @@ func (kv *KVStore[DepositT]) GetDepositsByIndex(
 		case err == nil:
 			deposits = append(deposits, deposit)
 		case errors.Is(err, sdkcollections.ErrNotFound):
-			kv.logger.Info(
+			kv.logger.Debug(
 				"GetDepositsByIndex response",
 				"start", startIndex,
 				"end", i,
 			)
 			return deposits, nil
 		default:
-			kv.logger.Error(
-				"GetDepositsByIndex response",
-				"start", startIndex,
-				"end", i,
-				"error", err,
+			return deposits, errors.Wrapf(
+				err,
+				"failed to get deposit %d, start: %d, end: %d",
+				i, startIndex, endIdx,
 			)
-			return deposits, err
 		}
 	}
 
-	kv.logger.Info(
+	kv.logger.Debug(
 		"GetDepositsByIndex response",
 		"start", startIndex,
 		"end", endIdx,
@@ -119,11 +117,11 @@ func (kv *KVStore[DepositT]) GetDepositsByIndex(
 func (kv *KVStore[DepositT]) EnqueueDeposits(deposits []DepositT) error {
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
-	kv.logger.Info(
+	kv.logger.Debug(
 		"EnqueueDeposits request",
 		"to enqueue", len(deposits),
 	)
-	for i, deposit := range deposits {
+	for _, deposit := range deposits {
 		idx := deposit.GetIndex().Unwrap()
 		kv.logger.Debug(
 			"EnqueueDeposit response",
@@ -134,16 +132,11 @@ func (kv *KVStore[DepositT]) EnqueueDeposits(deposits []DepositT) error {
 			idx,
 			deposit,
 		); err != nil {
-			kv.logger.Error(
-				"EnqueueDeposit response",
-				"enqueued", i,
-				"err", err,
-			)
-			return err
+			return errors.Wrapf(err, "failed to enqueue deposit %d", idx)
 		}
 	}
 
-	kv.logger.Info(
+	kv.logger.Debug(
 		"EnqueueDeposit response",
 		"enqueued", len(deposits),
 	)
@@ -152,7 +145,7 @@ func (kv *KVStore[DepositT]) EnqueueDeposits(deposits []DepositT) error {
 
 // Prune removes the [start, end) deposits from the store.
 func (kv *KVStore[DepositT]) Prune(start, end uint64) error {
-	kv.logger.Info(
+	kv.logger.Debug(
 		"Prune request",
 		"start", start,
 		"end", end,
@@ -170,17 +163,11 @@ func (kv *KVStore[DepositT]) Prune(start, end uint64) error {
 	for i := range end {
 		// This only errors if the key passed in cannot be encoded.
 		if err := kv.store.Remove(ctx, start+i); err != nil {
-			kv.logger.Error(
-				"Prune response",
-				"start", start,
-				"end", i,
-				"err", err,
-			)
-			return err
+			return errors.Wrapf(err, "failed to prune deposit %d", start+i)
 		}
 	}
 
-	kv.logger.Info(
+	kv.logger.Debug(
 		"Prune response",
 		"start", start,
 		"end", end,
