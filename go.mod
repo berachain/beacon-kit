@@ -21,7 +21,6 @@ require (
 	cosmossdk.io/log v1.4.1
 	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc
 	cosmossdk.io/store/v2 v2.0.0-20240821144902-e88c138760a3
-	github.com/attestantio/go-eth2-client v0.21.11
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240806094948-2c4293ef36c4
 	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240806094948-2c4293ef36c4
 	github.com/cosmos/cosmos-db v1.0.2
@@ -36,23 +35,18 @@ require (
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/holiman/uint256 v1.3.1
 	github.com/karalabe/ssz v0.2.1-0.20240724074312-3d1ff7a6f7c4
-	github.com/kurtosis-tech/kurtosis/api/golang v1.1.0
 	github.com/labstack/echo/v4 v4.12.0
 	github.com/minio/sha256-simd v1.0.1
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/phuslu/log v1.0.110
 	github.com/pkg/errors v0.9.1
-	github.com/protolambda/zrnt v0.32.2
-	github.com/protolambda/ztyp v0.2.2
 	github.com/prysmaticlabs/gohashtree v0.0.4-beta.0.20240624100937-73632381301b
-	github.com/rs/zerolog v1.33.0
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/cast v1.7.0
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.19.0
-	github.com/stretchr/testify v1.10.0
 	github.com/umbracle/fastrlp v0.1.0
 	go.uber.org/automaxprocs v1.6.0
 	golang.org/x/crypto v0.29.0
@@ -60,8 +54,9 @@ require (
 	sigs.k8s.io/yaml v1.4.0
 )
 
-// build dependencies
+// build/test dependencies
 require (
+	github.com/attestantio/go-eth2-client v0.21.11
 	github.com/bazelbuild/buildtools v0.0.0-20240606140350-80f1f6802857
 	github.com/bufbuild/buf v1.34.0
 	github.com/cosmos/gosec/v2 v2.0.0-20230124142343-bf28a33fadf2
@@ -70,7 +65,12 @@ require (
 	github.com/fjl/gencodec v0.0.0-20230517082657-f9840df7b83e
 	github.com/golangci/golangci-lint v1.60.1
 	github.com/google/addlicense v1.1.1
+	github.com/kurtosis-tech/kurtosis/api/golang v1.1.0
+	github.com/protolambda/zrnt v0.32.2
+	github.com/protolambda/ztyp v0.2.2
+	github.com/rs/zerolog v1.33.0
 	github.com/segmentio/golines v0.12.2
+	github.com/stretchr/testify v1.10.0
 	github.com/vektra/mockery/v2 v2.43.2
 	go.uber.org/nilaway v0.0.0-20240726232334-4f33d8c507ab
 )
