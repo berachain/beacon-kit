@@ -21,6 +21,7 @@
 package cometbft
 
 import (
+	"bytes"
 	"encoding/hex"
 	"fmt"
 
@@ -30,12 +31,7 @@ import (
 
 // isZeroBytes returns true if the provided byte slice is all zeros.
 func isZeroBytes(b []byte) bool {
-	for _, byteValue := range b {
-		if byteValue != 0 {
-			return false
-		}
-	}
-	return true
+	return bytes.Equal(b, make([]byte, len(b)))
 }
 
 // validateDeposits performs validation of the provided deposits.
