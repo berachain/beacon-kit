@@ -53,6 +53,7 @@ require (
 	github.com/spf13/viper v1.19.0
 	github.com/umbracle/fastrlp v0.1.0
 	go.uber.org/automaxprocs v1.6.0
+	go.uber.org/nilaway v0.0.0-20241010202415-ba14292918d8
 	golang.org/x/crypto v0.29.0
 	golang.org/x/sync v0.9.0
 	sigs.k8s.io/yaml v1.4.0

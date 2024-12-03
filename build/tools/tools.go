@@ -34,4 +34,5 @@ import (
 	_ "github.com/ethereum/go-ethereum/cmd/abigen"
 	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
 	_ "github.com/google/addlicense"
+	_ "go.uber.org/nilaway/cmd/nilaway"
 )
