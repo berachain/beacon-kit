@@ -387,7 +387,7 @@ func (h *ABCIMiddleware[
 ) error {
 	select {
 	case <-ctx.Done():
-		return ErrFinalValidatorUpdatesTimeout(ctx.Err())
+		return ErrSidecarFinalizationTimeout(ctx.Err())
 	case event := <-h.subSCFinalized:
 		return event.Error()
 	}
