@@ -24,7 +24,7 @@ ARG BUILD_TAGS="netgo,muslc,blst,bls12381,pebbledb"
 ARG NAME=beacond
 ARG APP_NAME=beacond
 ARG DB_BACKEND=pebbledb
-ARG CMD_PATH=./beacond/cmd
+ARG CMD_PATH=./cmd/beacond
 
 #######################################################
 ###         Stage 1 - Cache Go Modules              ###
@@ -66,7 +66,7 @@ COPY --from=mod-cache /go/pkg /go/pkg
 # Copy the rest of the source code
 COPY ./go.mod ./go.sum ./
 COPY ./mod ./mod
-COPY ./beacond ./beacond
+COPY ./cmd ./cmd
 
 # Build args
 ARG NAME

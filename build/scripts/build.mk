@@ -10,7 +10,7 @@ BINDIR ?= $(GOPATH)/build/bin
 TESTNAME = beacon
 TESTAPP = beacond
 TESTAPP_FILES_DIR = testing/files
-TESTAPP_CMD_DIR = $(TESTAPP)/cmd
+TESTAPP_CMD_DIR = cmd/$(TESTAPP)
 PROJECT_NAME = $(shell git remote get-url origin | xargs basename -s .git)
 
 # process build tags
