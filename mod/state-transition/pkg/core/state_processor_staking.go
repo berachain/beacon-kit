@@ -21,14 +21,14 @@
 package core
 
 import (
-	"fmt"
+	"bytes"
+	"slices"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
-	"github.com/davecgh/go-spew/spew"
 )
 
 // processOperations processes the operations and ensures they match the
@@ -39,38 +39,23 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
-	// Verify that outstanding deposits are processed up to the maximum number
-	// of deposits.
-	deposits := blk.GetBody().GetDeposits()
-	index, err := st.GetEth1DepositIndex()
-	if err != nil {
-		return err
-	}
-	eth1Data, err := st.GetEth1Data()
-	if err != nil {
-		return err
-	}
-	depositCount := min(
-		sp.cs.MaxDepositsPerBlock(),
-		eth1Data.GetDepositCount().Unwrap()-index,
-	)
-	_ = depositCount
-	// TODO: Update eth1data count and check this.
-	// if uint64(len(deposits)) != depositCount {
-	// 	return errors.New("deposit count mismatch")
-	// }
-	return sp.processDeposits(st, deposits)
-}
+	// Verify that outstanding deposits are processed
+	// up to the maximum number of deposits
 
-// processDeposits processes the deposits and ensures  they match the
-// local state.
-func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, DepositT, _, _, _, _, _, _, _, _, _, _, _,
-]) processDeposits(
-	st BeaconStateT,
-	deposits []DepositT,
-) error {
-	// Ensure the deposits match the local state.
+	// Unlike Eth 2.0 specs we don't check that
+	// len(body.deposits) ==  min(MAX_DEPOSITS,
+	// state.eth1_data.deposit_count - state.eth1_deposit_index)
+	// Instead we directly compare block deposits with store ones.
+	deposits := blk.GetBody().GetDeposits()
+	if uint64(len(deposits)) > sp.cs.MaxDepositsPerBlock() {
+		return errors.Wrapf(
+			ErrExceedsBlockDepositLimit, "expected: %d, got: %d",
+			sp.cs.MaxDepositsPerBlock(), len(deposits),
+		)
+	}
+	if err := sp.validateNonGenesisDeposits(st, deposits); err != nil {
+		return err
+	}
 	for _, dep := range deposits {
 		if err := sp.processDeposit(st, dep); err != nil {
 			return err
@@ -86,24 +71,7 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	dep DepositT,
 ) error {
-	var nextDepositIndex uint64
-	switch depositIndex, err := st.GetEth1DepositIndex(); {
-	case err == nil:
-		// just increment the deposit index if no error
-		nextDepositIndex = depositIndex + 1
-	case sp.processingGenesis && err != nil:
-		// If errored and still processing genesis,
-		// Eth1DepositIndex may have not been set yet.
-		nextDepositIndex = 0
-	default:
-		// Failed retrieving Eth1DepositIndex outside genesis is an error
-		return fmt.Errorf(
-			"failed retrieving eth1 deposit index outside of processing genesis: %w",
-			err,
-		)
-	}
-
-	if err := st.SetEth1DepositIndex(nextDepositIndex); err != nil {
+	if err := st.SetEth1DepositIndex(dep.GetIndex().Unwrap()); err != nil {
 		return err
 	}
 
@@ -120,27 +88,12 @@ func (sp *StateProcessor[
 	idx, err := st.ValidatorIndexByPubkey(dep.GetPubkey())
 	if err != nil {
 		// If the validator does not exist, we add the validator.
-		// Add the validator to the registry.
+		// TODO: improve error handling by distinguishing
+		// ErrNotFound from other kind of errors
 		return sp.createValidator(st, dep)
 	}
 
-	// If the validator already exists, we update the balance.
-	var val ValidatorT
-	val, err = st.ValidatorByIndex(idx)
-	if err != nil {
-		return err
-	}
-
-	// TODO: Modify balance here and then effective balance once per epoch.
-	updatedBalance := types.ComputeEffectiveBalance(
-		val.GetEffectiveBalance()+dep.GetAmount(),
-		math.Gwei(sp.cs.EffectiveBalanceIncrement()),
-		math.Gwei(sp.cs.MaxEffectiveBalance()),
-	)
-	val.SetEffectiveBalance(updatedBalance)
-	if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
-		return err
-	}
+	// if validator exist, just update its balance
 	return st.IncreaseBalance(idx, dep.GetAmount())
 }
 
@@ -195,8 +148,8 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	dep DepositT,
 ) error {
-	var val ValidatorT
-	val = val.New(
+	var candidateVal ValidatorT
+	candidateVal = candidateVal.New(
 		dep.GetPubkey(),
 		dep.GetWithdrawalCredentials(),
 		dep.GetAmount(),
@@ -204,8 +157,123 @@ func (sp *StateProcessor[
 		math.Gwei(sp.cs.MaxEffectiveBalance()),
 	)
 
+	// BeaconKit enforces a cap on the validator set size. If the deposit
+	// breaches the cap, we find the validator with the smallest stake and
+	// mark it as withdrawable so that it will be evicted next epoch and
+	// its deposits returned.
+
+	nextEpochVals, err := sp.nextEpochValidatorSet(st)
+	if err != nil {
+		return err
+	}
+	//#nosec:G701 // no overflow risk here
+	if uint64(len(nextEpochVals)) < sp.cs.ValidatorSetCap() {
+		// cap not hit, just add the validator
+		return sp.addValidatorInternal(st, candidateVal, dep.GetAmount())
+	}
+
+	// Adding the validator would breach the cap. Find the validator
+	// with the smallest stake among current and candidate validators
+	// and kick it out.
+	lowestStakeVal, err := sp.lowestStakeVal(nextEpochVals)
+	if err != nil {
+		return err
+	}
+
+	slot, err := st.GetSlot()
+	if err != nil {
+		return err
+	}
+	nextEpoch := sp.cs.SlotToEpoch(slot) + 1
+
+	if candidateVal.GetEffectiveBalance() <= lowestStakeVal.GetEffectiveBalance() {
+		// in case of tie-break among candidate validator we prefer
+		// existing one so we mark candidate as withdrawable
+		// We wait next epoch to return funds, as a way to curb spamming
+		candidateVal.SetWithdrawableEpoch(nextEpoch)
+		return sp.addValidatorInternal(st, candidateVal, dep.GetAmount())
+	}
+
+	// mark existing validator for eviction and add candidate
+	lowestStakeVal.SetWithdrawableEpoch(nextEpoch)
+	idx, err := st.ValidatorIndexByPubkey(lowestStakeVal.GetPubkey())
+	if err != nil {
+		return err
+	}
+	if err = st.UpdateValidatorAtIndex(idx, lowestStakeVal); err != nil {
+		return err
+	}
+	return sp.addValidatorInternal(st, candidateVal, dep.GetAmount())
+}
+
+// nextEpochValidatorSet returns the current estimation of what next epoch
+// validator set would be.
+func (sp *StateProcessor[
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+]) nextEpochValidatorSet(st BeaconStateT) ([]ValidatorT, error) {
+	slot, err := st.GetSlot()
+	if err != nil {
+		return nil, err
+	}
+	nextEpoch := sp.cs.SlotToEpoch(slot) + 1
+
+	vals, err := st.GetValidators()
+	if err != nil {
+		return nil, err
+	}
+	activeVals := make([]ValidatorT, 0, len(vals))
+	for _, val := range vals {
+		if val.GetEffectiveBalance() <= math.U64(sp.cs.EjectionBalance()) {
+			continue
+		}
+		if val.GetWithdrawableEpoch() == nextEpoch {
+			continue
+		}
+		activeVals = append(activeVals, val)
+	}
+
+	return activeVals, nil
+}
+
+// TODO: consider moving this to BeaconState directly
+func (*StateProcessor[
+	_, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+]) lowestStakeVal(currentVals []ValidatorT) (
+	ValidatorT,
+	error,
+) {
+	// TODO: consider heapifying slice instead. We only care about the smallest
+	slices.SortFunc(currentVals, func(lhs, rhs ValidatorT) int {
+		var (
+			val1Stake = lhs.GetEffectiveBalance()
+			val2Stake = rhs.GetEffectiveBalance()
+		)
+		switch {
+		case val1Stake < val2Stake:
+			return -1
+		case val1Stake > val2Stake:
+			return 1
+		default:
+			// validators pks are guaranteed to be different
+			var (
+				val1Pk = lhs.GetPubkey()
+				val2Pk = rhs.GetPubkey()
+			)
+			return bytes.Compare(val1Pk[:], val2Pk[:])
+		}
+	})
+	return currentVals[0], nil
+}
+
+func (sp *StateProcessor[
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+]) addValidatorInternal(
+	st BeaconStateT,
+	val ValidatorT,
+	depositAmount math.Gwei,
+) error {
 	// TODO: This is a bug that lives on bArtio. Delete this eventually.
-	if sp.cs.DepositEth1ChainID() == bArtioChainID {
+	if sp.cs.DepositEth1ChainID() == spec.BartioChainID {
 		// Note in AddValidatorBartio we implicitly increase
 		// the balance from state st. This is unlike AddValidator.
 		return st.AddValidatorBartio(val)
@@ -218,94 +286,5 @@ func (sp *StateProcessor[
 	if err != nil {
 		return err
 	}
-	return st.IncreaseBalance(idx, dep.GetAmount())
-}
-
-// processWithdrawals as per the Ethereum 2.0 specification.
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-process_withdrawals
-//
-//nolint:lll
-func (sp *StateProcessor[
-	_, BeaconBlockBodyT, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) processWithdrawals(
-	st BeaconStateT,
-	body BeaconBlockBodyT,
-) error {
-	// Dequeue and verify the logs.
-	var (
-		nextValidatorIndex math.ValidatorIndex
-		payload            = body.GetExecutionPayload()
-		payloadWithdrawals = payload.GetWithdrawals()
-	)
-
-	// Get the expected withdrawals.
-	expectedWithdrawals, err := st.ExpectedWithdrawals()
-	if err != nil {
-		return err
-	}
-	numWithdrawals := len(expectedWithdrawals)
-
-	// Ensure the withdrawals have the same length
-	if numWithdrawals != len(payloadWithdrawals) {
-		return errors.Wrapf(
-			ErrNumWithdrawalsMismatch,
-			"withdrawals do not match expected length %d, got %d",
-			len(expectedWithdrawals), len(payloadWithdrawals),
-		)
-	}
-
-	// Compare and process each withdrawal.
-	for i, wd := range expectedWithdrawals {
-		// Ensure the withdrawals match the local state.
-		if !wd.Equals(payloadWithdrawals[i]) {
-			return errors.Wrapf(
-				ErrNumWithdrawalsMismatch,
-				"withdrawals do not match expected %s, got %s",
-				spew.Sdump(wd), spew.Sdump(payloadWithdrawals[i]),
-			)
-		}
-
-		// Then we process the withdrawal.
-		if err = st.DecreaseBalance(
-			wd.GetValidatorIndex(), wd.GetAmount(),
-		); err != nil {
-			return err
-		}
-	}
-
-	// Update the next withdrawal index if this block contained withdrawals
-	if numWithdrawals != 0 {
-		// Next sweep starts after the latest withdrawal's validator index
-		if err = st.SetNextWithdrawalIndex(
-			(expectedWithdrawals[numWithdrawals-1].GetIndex() + 1).Unwrap(),
-		); err != nil {
-			return err
-		}
-	}
-
-	totalValidators, err := st.GetTotalValidators()
-	if err != nil {
-		return err
-	}
-
-	// Update the next validator index to start the next withdrawal sweep
-	//#nosec:G701 // won't overflow in practice.
-	if numWithdrawals == int(sp.cs.MaxWithdrawalsPerPayload()) {
-		// Next sweep starts after the latest withdrawal's validator index
-		nextValidatorIndex =
-			(expectedWithdrawals[len(expectedWithdrawals)-1].GetIndex() + 1) %
-				math.U64(totalValidators)
-	} else {
-		// Advance sweep by the max length of the sweep if there was not
-		// a full set of withdrawals
-		nextValidatorIndex, err = st.GetNextWithdrawalValidatorIndex()
-		if err != nil {
-			return err
-		}
-		nextValidatorIndex += math.ValidatorIndex(
-			sp.cs.MaxValidatorsPerWithdrawalsSweep())
-		nextValidatorIndex %= math.ValidatorIndex(totalValidators)
-	}
-
-	return st.SetNextWithdrawalValidatorIndex(nextValidatorIndex)
+	return st.IncreaseBalance(idx, depositAmount)
 }

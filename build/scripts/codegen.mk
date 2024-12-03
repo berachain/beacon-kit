@@ -1,6 +1,6 @@
-#!usr/bin/make -f 
+#!usr/bin/make -f
 
-GETH_GO_GENERATE_VERSION := $(shell grep 'github.com/ethereum/go-ethereum' beacond/go.mod | awk '{print $$2}')
+GETH_GO_GENERATE_VERSION := $(shell grep 'github.com/ethereum/go-ethereum' go.mod | awk '{print $$2}')
 GOPATH = $(shell go env GOPATH)
 GETH_PKG_INCLUDE := $(GOPATH)/pkg/mod/github.com/ethereum/go-ethereum@$(GETH_GO_GENERATE_VERSION)
 
@@ -12,7 +12,7 @@ generate: ## generate all the code
 		(cd $$module && \
 			GETH_PKG_INCLUDE=$(GETH_PKG_INCLUDE) go generate ./...) || exit 1; \
 	done
-	@go run github.com/vektra/mockery/v2@latest
+	@go run github.com/vektra/mockery/v2@v2.49.0
 
 generate-check:
 	@$(MAKE) forge-build

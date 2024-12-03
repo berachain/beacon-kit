@@ -136,7 +136,7 @@ func (v *Validator) New(
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the Validator object in SSZ encoding.
-func (*Validator) SizeSSZ() uint32 {
+func (*Validator) SizeSSZ(*ssz.Sizer) uint32 {
 	return ValidatorSize
 }
 
@@ -159,7 +159,7 @@ func (v *Validator) HashTreeRoot() common.Root {
 
 // MarshalSSZ marshals the Validator object to SSZ format.
 func (v *Validator) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, v.SizeSSZ())
+	buf := make([]byte, ssz.Size(v))
 	return buf, ssz.EncodeToBytes(buf, v)
 }
 
@@ -323,6 +323,11 @@ func (v Validator) HasMaxEffectiveBalance(
 // SetEffectiveBalance sets the effective balance of the validator.
 func (v *Validator) SetEffectiveBalance(balance math.Gwei) {
 	v.EffectiveBalance = balance
+}
+
+// SetWithdrawableEpoch sets the epoch when the validator can withdraw.
+func (v *Validator) SetWithdrawableEpoch(e math.Epoch) {
+	v.WithdrawableEpoch = e
 }
 
 // GetWithdrawableEpoch returns the epoch when the validator can withdraw.

@@ -37,8 +37,10 @@ type (
 	cometBFTConfig   struct{}
 )
 
+// TODO: Add setupValid, setupInvalid functions and use in each test.
+
 // Create an instance of chainSpec with test data.
-var spec = chain.NewChainSpec(
+var spec, _ = chain.NewChainSpec(
 	chain.SpecData[
 		domainType, epoch, executionAddress, slot, cometBFTConfig,
 	]{
@@ -46,6 +48,7 @@ var spec = chain.NewChainSpec(
 		ElectraForkEpoch:                 10,
 		SlotsPerEpoch:                    32,
 		MinEpochsForBlobsSidecarsRequest: 5,
+		MaxWithdrawalsPerPayload:         2,
 	},
 )
 

@@ -21,6 +21,7 @@
 package common
 
 import (
+	"bytes"
 	"encoding"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
@@ -95,6 +96,11 @@ type ExecutionAddress [20]byte
 // NewExecutionAddressFromHex creates a new address from a hex string.
 func NewExecutionAddressFromHex(input string) ExecutionAddress {
 	return ExecutionAddress(hex.MustToBytes(input))
+}
+
+// Equals returns true if the two addresses are the same.
+func (a ExecutionAddress) Equals(other ExecutionAddress) bool {
+	return bytes.Equal(a[:], other[:])
 }
 
 // Hex converts an address to a hex string.

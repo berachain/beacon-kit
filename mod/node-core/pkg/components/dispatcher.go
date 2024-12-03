@@ -58,7 +58,9 @@ func ProvideDispatcher[
 		dp.WithEvent[async.Event[ConsensusSidecars]](async.SidecarsReceived),
 		dp.WithEvent[async.Event[BeaconBlockT]](async.BeaconBlockVerified),
 		dp.WithEvent[async.Event[BlobSidecarsT]](async.SidecarsVerified),
-		dp.WithEvent[async.Event[ConsensusBlockT]](async.FinalBeaconBlockReceived),
+		dp.WithEvent[async.Event[ConsensusBlockT]](
+			async.FinalBeaconBlockReceived,
+		),
 		dp.WithEvent[async.Event[BlobSidecarsT]](async.FinalSidecarsReceived),
 		dp.WithEvent[async.Event[math.Slot]](async.BlobSidecarsFinalized),
 		dp.WithEvent[ValidatorUpdateEvent](

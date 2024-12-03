@@ -47,6 +47,7 @@ func NewConsensusParamsStore(cs ChainSpec) *ConsensusParamsStore {
 // Get retrieves the consensus parameters from the store.
 // It returns the consensus parameters and an error, if any.
 func (s *ConsensusParamsStore) Get() *cmtproto.ConsensusParams {
+	//nolint:errcheck // TODO (fridrik): Is this safe?
 	p := s.cs.
 		GetCometBFTConfigForSlot(0).(*cmttypes.ConsensusParams).
 		ToProto()
