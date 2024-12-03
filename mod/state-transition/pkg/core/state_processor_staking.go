@@ -172,7 +172,14 @@ func (sp *StateProcessor[
 		sp.cs.DomainTypeDeposit(),
 		sp.signer.VerifySignature,
 	); err != nil {
-		return err
+		// Ignore deposits that fail the signature check.
+		sp.logger.Info(
+			"failed deposit signature verification",
+			"deposit_index", dep.GetIndex(),
+			"error", err,
+		)
+
+		return nil
 	}
 
 	// Add the validator to the registry.
