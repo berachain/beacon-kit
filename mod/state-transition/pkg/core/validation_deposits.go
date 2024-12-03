@@ -143,9 +143,9 @@ func (sp *StateProcessor[
 		}
 
 		sp.logger.Info(
-			"processOperations",
-			"Expected deposit start index", expectedStartIdx,
-			"Expected deposits length", len(localDeposits),
+			"Processing deposits in range",
+			"expected_start_index", expectedStartIdx,
+			"expected_range_length", len(localDeposits),
 		)
 
 		if len(localDeposits) != len(deposits) {

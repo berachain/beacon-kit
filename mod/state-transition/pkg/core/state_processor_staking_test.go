@@ -41,7 +41,7 @@ import (
 // TestTransitionUpdateValidators shows that when validator is
 // updated (increasing amount), corresponding balance is updated.
 func TestTransitionUpdateValidators(t *testing.T) {
-	cs := setupChain(t, components.BoonetChainSpecType)
+	cs := setupChain(t, components.BetnetChainSpecType)
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
@@ -100,10 +100,12 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		st,
 		&types.BeaconBlockBody{
 			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:     10,
-				ExtraData:     []byte("testing"),
-				Transactions:  [][]byte{},
-				Withdrawals:   []*engineprimitives.Withdrawal{},
+				Timestamp:    10,
+				ExtraData:    []byte("testing"),
+				Transactions: [][]byte{},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					st.EVMInflationWithdrawal(),
+				},
 				BaseFeePerGas: math.NewU256(0),
 			},
 			Eth1Data: &types.Eth1Data{},
@@ -142,16 +144,19 @@ func TestTransitionUpdateValidators(t *testing.T) {
 
 	// STEP 2: check that effective balance is updated once next epoch arrives
 	var blk = blk1
-	for i := 1; i < int(cs.SlotsPerEpoch())-1; i++ {
+	currEpoch := cs.SlotToEpoch(blk.GetSlot())
+	for currEpoch == cs.SlotToEpoch(blk.GetSlot()+1) {
 		blk = buildNextBlock(
 			t,
 			st,
 			&types.BeaconBlockBody{
 				ExecutionPayload: &types.ExecutionPayload{
-					Timestamp:     blk.Body.ExecutionPayload.Timestamp + 1,
-					ExtraData:     []byte("testing"),
-					Transactions:  [][]byte{},
-					Withdrawals:   []*engineprimitives.Withdrawal{},
+					Timestamp:    blk.Body.ExecutionPayload.Timestamp + 1,
+					ExtraData:    []byte("testing"),
+					Transactions: [][]byte{},
+					Withdrawals: []*engineprimitives.Withdrawal{
+						st.EVMInflationWithdrawal(),
+					},
 					BaseFeePerGas: math.NewU256(0),
 				},
 				Eth1Data: &types.Eth1Data{},
@@ -170,10 +175,12 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		st,
 		&types.BeaconBlockBody{
 			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:     blk.Body.ExecutionPayload.Timestamp + 1,
-				ExtraData:     []byte("testing"),
-				Transactions:  [][]byte{},
-				Withdrawals:   []*engineprimitives.Withdrawal{},
+				Timestamp:    blk.Body.ExecutionPayload.Timestamp + 1,
+				ExtraData:    []byte("testing"),
+				Transactions: [][]byte{},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					st.EVMInflationWithdrawal(),
+				},
 				BaseFeePerGas: math.NewU256(0),
 			},
 			Eth1Data: &types.Eth1Data{},
@@ -201,7 +208,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 // of a validator creation.
 func TestTransitionCreateValidator(t *testing.T) {
 	// Create state processor to test
-	cs := setupChain(t, components.BoonetChainSpecType)
+	cs := setupChain(t, components.BetnetChainSpecType)
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
@@ -250,10 +257,12 @@ func TestTransitionCreateValidator(t *testing.T) {
 		st,
 		&types.BeaconBlockBody{
 			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:     10,
-				ExtraData:     []byte("testing"),
-				Transactions:  [][]byte{},
-				Withdrawals:   []*engineprimitives.Withdrawal{}, // no withdrawals
+				Timestamp:    10,
+				ExtraData:    []byte("testing"),
+				Transactions: [][]byte{},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					st.EVMInflationWithdrawal(),
+				},
 				BaseFeePerGas: math.NewU256(0),
 			},
 			Eth1Data: &types.Eth1Data{},
@@ -292,16 +301,19 @@ func TestTransitionCreateValidator(t *testing.T) {
 
 	// STEP 2: check that effective balance is updated once next epoch arrives
 	var blk = blk1
-	for i := 1; i < int(cs.SlotsPerEpoch())-1; i++ {
+	currEpoch := cs.SlotToEpoch(blk.GetSlot())
+	for currEpoch == cs.SlotToEpoch(blk.GetSlot()+1) {
 		blk = buildNextBlock(
 			t,
 			st,
 			&types.BeaconBlockBody{
 				ExecutionPayload: &types.ExecutionPayload{
-					Timestamp:     blk.Body.ExecutionPayload.Timestamp + 1,
-					ExtraData:     []byte("testing"),
-					Transactions:  [][]byte{},
-					Withdrawals:   []*engineprimitives.Withdrawal{},
+					Timestamp:    blk.Body.ExecutionPayload.Timestamp + 1,
+					ExtraData:    []byte("testing"),
+					Transactions: [][]byte{},
+					Withdrawals: []*engineprimitives.Withdrawal{
+						st.EVMInflationWithdrawal(),
+					},
 					BaseFeePerGas: math.NewU256(0),
 				},
 				Eth1Data: &types.Eth1Data{},
@@ -320,10 +332,12 @@ func TestTransitionCreateValidator(t *testing.T) {
 		st,
 		&types.BeaconBlockBody{
 			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:     blk.Body.ExecutionPayload.Timestamp + 1,
-				ExtraData:     []byte("testing"),
-				Transactions:  [][]byte{},
-				Withdrawals:   []*engineprimitives.Withdrawal{},
+				Timestamp:    blk.Body.ExecutionPayload.Timestamp + 1,
+				ExtraData:    []byte("testing"),
+				Transactions: [][]byte{},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					st.EVMInflationWithdrawal(),
+				},
 				BaseFeePerGas: math.NewU256(0),
 			},
 			Eth1Data: &types.Eth1Data{},
@@ -579,8 +593,8 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 // validator added when validators set is at cap gets never activated
 // and its deposit is returned at after next epoch starts.
 func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
-	cs := setupChain(t, components.BoonetChainSpecType)
-	sp, st, _, ctx := setupState(t, cs)
+	cs := setupChain(t, components.BetnetChainSpecType)
+	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
 		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
@@ -638,11 +652,22 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		t,
 		st,
 		&types.BeaconBlockBody{
-			ExecutionPayload: dummyExecutionPayload,
-			Eth1Data:         &types.Eth1Data{},
-			Deposits:         []*types.Deposit{extraValDeposit},
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:    10,
+				ExtraData:    []byte("testing"),
+				Transactions: [][]byte{},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					st.EVMInflationWithdrawal(),
+				},
+				BaseFeePerGas: math.NewU256(0),
+			},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: []*types.Deposit{extraValDeposit},
 		},
 	)
+
+	// make sure included deposit is already available in deposit store
+	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits))
 
 	// run the test
 	_, err = sp.Transition(ctx, st, blk1)
@@ -662,15 +687,24 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 
 	// STEP 2: move the chain to the next epoch and show withdrawals
 	// for rejected validator are enqueuued then
-	var blk *types.BeaconBlock
-	for i := 2; i < int(cs.SlotsPerEpoch()); i++ {
+	blk := blk1
+	currEpoch := cs.SlotToEpoch(blk.GetSlot())
+	for currEpoch == cs.SlotToEpoch(blk.GetSlot()+1) {
 		blk = buildNextBlock(
 			t,
 			st,
 			&types.BeaconBlockBody{
-				ExecutionPayload: dummyExecutionPayload,
-				Eth1Data:         &types.Eth1Data{},
-				Deposits:         []*types.Deposit{},
+				ExecutionPayload: &types.ExecutionPayload{
+					Timestamp:    blk.Body.ExecutionPayload.Timestamp + 1,
+					ExtraData:    []byte("testing"),
+					Transactions: [][]byte{},
+					Withdrawals: []*engineprimitives.Withdrawal{
+						st.EVMInflationWithdrawal(),
+					},
+					BaseFeePerGas: math.NewU256(0),
+				},
+				Eth1Data: &types.Eth1Data{},
+				Deposits: []*types.Deposit{},
 			},
 		)
 
@@ -689,6 +723,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				ExtraData:    []byte("testing"),
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
+					st.EVMInflationWithdrawal(),
 					{
 						Index:     0,
 						Validator: extraValIdx,
@@ -712,8 +747,8 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 // validator added when validators set is at cap improves amount staked
 // an existing validator is removed at the beginning of next epoch.
 func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
-	cs := setupChain(t, components.BoonetChainSpecType)
-	sp, st, _, ctx := setupState(t, cs)
+	cs := setupChain(t, components.BetnetChainSpecType)
+	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
 		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
@@ -780,11 +815,22 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		t,
 		st,
 		&types.BeaconBlockBody{
-			ExecutionPayload: dummyExecutionPayload,
-			Eth1Data:         &types.Eth1Data{},
-			Deposits:         []*types.Deposit{extraValDeposit},
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:    10,
+				ExtraData:    []byte("testing"),
+				Transactions: [][]byte{},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					st.EVMInflationWithdrawal(),
+				},
+				BaseFeePerGas: math.NewU256(0),
+			},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: []*types.Deposit{extraValDeposit},
 		},
 	)
+
+	// make sure included deposit is already available in deposit store
+	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits))
 
 	// run the test
 	var vals transition.ValidatorUpdates
@@ -814,15 +860,24 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 
 	// STEP 2: move chain to next epoch to see extra validator
 	// be activated and withdraws for evicted validator
-	var blk *types.BeaconBlock
-	for i := 1; i < int(cs.SlotsPerEpoch())-1; i++ {
+	blk := blk1
+	currEpoch := cs.SlotToEpoch(blk.GetSlot())
+	for currEpoch == cs.SlotToEpoch(blk.GetSlot()+1) {
 		blk = buildNextBlock(
 			t,
 			st,
 			&types.BeaconBlockBody{
-				ExecutionPayload: dummyExecutionPayload,
-				Eth1Data:         &types.Eth1Data{},
-				Deposits:         []*types.Deposit{},
+				ExecutionPayload: &types.ExecutionPayload{
+					Timestamp:    blk.Body.ExecutionPayload.Timestamp + 1,
+					ExtraData:    []byte("testing"),
+					Transactions: [][]byte{},
+					Withdrawals: []*engineprimitives.Withdrawal{
+						st.EVMInflationWithdrawal(),
+					},
+					BaseFeePerGas: math.NewU256(0),
+				},
+				Eth1Data: &types.Eth1Data{},
+				Deposits: []*types.Deposit{},
 			},
 		)
 
@@ -840,6 +895,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				ExtraData:    []byte("testing"),
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
+					st.EVMInflationWithdrawal(),
 					{
 						Index:     0,
 						Validator: smallValIdx,
@@ -873,8 +929,8 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 //
 // //nolint:maintidx // TODO: simplify
 func TestTransitionValidatorCap_DoubleEviction(t *testing.T) {
-	cs := setupChain(t, components.BoonetChainSpecType)
-	sp, st, _, ctx := setupState(t, cs)
+	cs := setupChain(t, components.BetnetChainSpecType)
+	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
 		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
@@ -944,11 +1000,22 @@ func TestTransitionValidatorCap_DoubleEviction(t *testing.T) {
 		t,
 		st,
 		&types.BeaconBlockBody{
-			ExecutionPayload: dummyExecutionPayload,
-			Eth1Data:         &types.Eth1Data{},
-			Deposits:         []*types.Deposit{extraValDeposit1},
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:    10,
+				ExtraData:    []byte("testing"),
+				Transactions: [][]byte{},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					st.EVMInflationWithdrawal(),
+				},
+				BaseFeePerGas: math.NewU256(0),
+			},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: []*types.Deposit{extraValDeposit1},
 		},
 	)
+
+	// make sure included deposit is already available in deposit store
+	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits))
 
 	// run the test
 	vals, err := sp.Transition(ctx, st, blk1)
@@ -989,11 +1056,22 @@ func TestTransitionValidatorCap_DoubleEviction(t *testing.T) {
 		t,
 		st,
 		&types.BeaconBlockBody{
-			ExecutionPayload: dummyExecutionPayload,
-			Eth1Data:         &types.Eth1Data{},
-			Deposits:         []*types.Deposit{extraVal2Deposit},
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:    blk1.Body.ExecutionPayload.Timestamp + 1,
+				ExtraData:    []byte("testing"),
+				Transactions: [][]byte{},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					st.EVMInflationWithdrawal(),
+				},
+				BaseFeePerGas: math.NewU256(0),
+			},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: []*types.Deposit{extraVal2Deposit},
 		},
 	)
+
+	// make sure included deposit is already available in deposit store
+	require.NoError(t, ds.EnqueueDeposits(blk2.Body.Deposits))
 
 	// run the test
 	vals, err = sp.Transition(ctx, st, blk2)
@@ -1021,15 +1099,24 @@ func TestTransitionValidatorCap_DoubleEviction(t *testing.T) {
 	)
 
 	// STEP 3: move to next epoch
-	var blk *types.BeaconBlock
-	for i := 2; i < int(cs.SlotsPerEpoch())-1; i++ {
+	blk := blk2
+	currEpoch := cs.SlotToEpoch(blk.GetSlot())
+	for currEpoch == cs.SlotToEpoch(blk.GetSlot()+1) {
 		blk = buildNextBlock(
 			t,
 			st,
 			&types.BeaconBlockBody{
-				ExecutionPayload: dummyExecutionPayload,
-				Eth1Data:         &types.Eth1Data{},
-				Deposits:         []*types.Deposit{},
+				ExecutionPayload: &types.ExecutionPayload{
+					Timestamp:    blk.Body.ExecutionPayload.Timestamp + 1,
+					ExtraData:    []byte("testing"),
+					Transactions: [][]byte{},
+					Withdrawals: []*engineprimitives.Withdrawal{
+						st.EVMInflationWithdrawal(),
+					},
+					BaseFeePerGas: math.NewU256(0),
+				},
+				Eth1Data: &types.Eth1Data{},
+				Deposits: []*types.Deposit{},
 			},
 		)
 
@@ -1047,6 +1134,7 @@ func TestTransitionValidatorCap_DoubleEviction(t *testing.T) {
 				ExtraData:    []byte("testing"),
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
+					st.EVMInflationWithdrawal(),
 					{
 						Index:     0,
 						Validator: smallVal1Idx,
