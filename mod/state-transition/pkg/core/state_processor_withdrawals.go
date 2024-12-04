@@ -273,5 +273,18 @@ func (sp *StateProcessor[
 		nextValidatorIndex %= math.ValidatorIndex(totalValidators)
 	}
 
-	return st.SetNextWithdrawalValidatorIndex(nextValidatorIndex)
+	if err = st.SetNextWithdrawalValidatorIndex(
+		nextValidatorIndex,
+	); err != nil {
+		return err
+	}
+
+	sp.logger.Info(
+		"Processed withdrawals",
+		"num_withdrawals", numWithdrawals,
+		"bera_inflation", float64(
+			payloadWithdrawals[0].GetAmount().Unwrap())/math.GweiPerWei,
+	)
+
+	return nil
 }

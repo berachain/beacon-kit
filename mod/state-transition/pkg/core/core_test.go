@@ -301,13 +301,3 @@ func buildNextBlock(
 		Body:          nextBlkBody,
 	}
 }
-
-var (
-	dummyExecutionPayload = &types.ExecutionPayload{
-		Timestamp:     0,
-		ExtraData:     []byte("testing"),
-		Transactions:  [][]byte{},
-		Withdrawals:   []*engineprimitives.Withdrawal{},
-		BaseFeePerGas: math.NewU256(0),
-	}
-)
