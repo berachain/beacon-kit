@@ -332,6 +332,10 @@ func (s *Service[
 	}
 
 	// Set the deposits on the block body.
+	s.logger.Info(
+		"Building block body with local deposits",
+		"start_index", depositIndex, "num_deposits", len(deposits),
+	)
 	body.SetDeposits(deposits)
 
 	var eth1Data Eth1DataT

@@ -21,6 +21,9 @@
 package core
 
 import (
+	"bytes"
+	"slices"
+
 	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -68,9 +71,37 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	dep DepositT,
 ) error {
-	if err := st.SetEth1DepositIndex(dep.GetIndex().Unwrap()); err != nil {
+	slot, err := st.GetSlot()
+	if err != nil {
 		return err
 	}
+
+	depositIndex := dep.GetIndex().Unwrap()
+	switch {
+	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
+		// Bartio has a bug which makes DepositEth1ChainID point to
+		// next deposit index, not latest processed deposit index.
+		// We keep it for backward compatibility.
+		depositIndex++
+	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
+		slot < math.U64(spec.BoonetFork2Height):
+		// Boonet pre fork2 has a bug which makes DepositEth1ChainID point to
+		// next deposit index, not latest processed deposit index.
+		// We keep it for backward compatibility.
+		depositIndex++
+	default:
+		// Nothing to do. We correctly set the deposit index to the last
+		// processed deposit index.
+	}
+
+	if err = st.SetEth1DepositIndex(depositIndex); err != nil {
+		return err
+	}
+
+	sp.logger.Info(
+		"Processed deposit to set Eth 1 deposit index",
+		"deposit_index", depositIndex,
+	)
 
 	return sp.applyDeposit(st, dep)
 }
@@ -91,7 +122,16 @@ func (sp *StateProcessor[
 	}
 
 	// if validator exist, just update its balance
-	return st.IncreaseBalance(idx, dep.GetAmount())
+	if err = st.IncreaseBalance(idx, dep.GetAmount()); err != nil {
+		return err
+	}
+
+	sp.logger.Info(
+		"Processed deposit to increase balance",
+		"deposit_amount", float64(dep.GetAmount().Unwrap())/math.GweiPerWei,
+		"validator_index", idx,
+	)
+	return nil
 }
 
 // createValidator creates a validator if the deposit is valid.
@@ -131,7 +171,14 @@ func (sp *StateProcessor[
 		sp.cs.DomainTypeDeposit(),
 		sp.signer.VerifySignature,
 	); err != nil {
-		return err
+		// Ignore deposits that fail the signature check.
+		sp.logger.Info(
+			"failed deposit signature verification",
+			"deposit_index", dep.GetIndex(),
+			"error", err,
+		)
+
+		return nil
 	}
 
 	// Add the validator to the registry.
@@ -145,8 +192,8 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	dep DepositT,
 ) error {
-	var val ValidatorT
-	val = val.New(
+	var candidateVal ValidatorT
+	candidateVal = candidateVal.New(
 		dep.GetPubkey(),
 		dep.GetWithdrawalCredentials(),
 		dep.GetAmount(),
@@ -154,6 +201,121 @@ func (sp *StateProcessor[
 		math.Gwei(sp.cs.MaxEffectiveBalance()),
 	)
 
+	// BeaconKit enforces a cap on the validator set size. If the deposit
+	// breaches the cap, we find the validator with the smallest stake and
+	// mark it as withdrawable so that it will be evicted next epoch and
+	// its deposits returned.
+
+	nextEpochVals, err := sp.nextEpochValidatorSet(st)
+	if err != nil {
+		return err
+	}
+	//#nosec:G701 // no overflow risk here
+	if uint64(len(nextEpochVals)) < sp.cs.ValidatorSetCap() {
+		// cap not hit, just add the validator
+		return sp.addValidatorInternal(st, candidateVal, dep.GetAmount())
+	}
+
+	// Adding the validator would breach the cap. Find the validator
+	// with the smallest stake among current and candidate validators
+	// and kick it out.
+	lowestStakeVal, err := sp.lowestStakeVal(nextEpochVals)
+	if err != nil {
+		return err
+	}
+
+	slot, err := st.GetSlot()
+	if err != nil {
+		return err
+	}
+	nextEpoch := sp.cs.SlotToEpoch(slot) + 1
+
+	if candidateVal.GetEffectiveBalance() <= lowestStakeVal.GetEffectiveBalance() {
+		// in case of tie-break among candidate validator we prefer
+		// existing one so we mark candidate as withdrawable
+		// We wait next epoch to return funds, as a way to curb spamming
+		candidateVal.SetWithdrawableEpoch(nextEpoch)
+		return sp.addValidatorInternal(st, candidateVal, dep.GetAmount())
+	}
+
+	// mark existing validator for eviction and add candidate
+	lowestStakeVal.SetWithdrawableEpoch(nextEpoch)
+	idx, err := st.ValidatorIndexByPubkey(lowestStakeVal.GetPubkey())
+	if err != nil {
+		return err
+	}
+	if err = st.UpdateValidatorAtIndex(idx, lowestStakeVal); err != nil {
+		return err
+	}
+	return sp.addValidatorInternal(st, candidateVal, dep.GetAmount())
+}
+
+// nextEpochValidatorSet returns the current estimation of what next epoch
+// validator set would be.
+func (sp *StateProcessor[
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+]) nextEpochValidatorSet(st BeaconStateT) ([]ValidatorT, error) {
+	slot, err := st.GetSlot()
+	if err != nil {
+		return nil, err
+	}
+	nextEpoch := sp.cs.SlotToEpoch(slot) + 1
+
+	vals, err := st.GetValidators()
+	if err != nil {
+		return nil, err
+	}
+	activeVals := make([]ValidatorT, 0, len(vals))
+	for _, val := range vals {
+		if val.GetEffectiveBalance() <= math.U64(sp.cs.EjectionBalance()) {
+			continue
+		}
+		if val.GetWithdrawableEpoch() == nextEpoch {
+			continue
+		}
+		activeVals = append(activeVals, val)
+	}
+
+	return activeVals, nil
+}
+
+// TODO: consider moving this to BeaconState directly
+func (*StateProcessor[
+	_, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+]) lowestStakeVal(currentVals []ValidatorT) (
+	ValidatorT,
+	error,
+) {
+	// TODO: consider heapifying slice instead. We only care about the smallest
+	slices.SortFunc(currentVals, func(lhs, rhs ValidatorT) int {
+		var (
+			val1Stake = lhs.GetEffectiveBalance()
+			val2Stake = rhs.GetEffectiveBalance()
+		)
+		switch {
+		case val1Stake < val2Stake:
+			return -1
+		case val1Stake > val2Stake:
+			return 1
+		default:
+			// validators pks are guaranteed to be different
+			var (
+				val1Pk = lhs.GetPubkey()
+				val2Pk = rhs.GetPubkey()
+			)
+			return bytes.Compare(val1Pk[:], val2Pk[:])
+		}
+	})
+	return currentVals[0], nil
+}
+
+func (sp *StateProcessor[
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+]) addValidatorInternal(
+	st BeaconStateT,
+	val ValidatorT,
+	depositAmount math.Gwei,
+) error {
 	// TODO: This is a bug that lives on bArtio. Delete this eventually.
 	if sp.cs.DepositEth1ChainID() == spec.BartioChainID {
 		// Note in AddValidatorBartio we implicitly increase
@@ -168,5 +330,14 @@ func (sp *StateProcessor[
 	if err != nil {
 		return err
 	}
-	return st.IncreaseBalance(idx, dep.GetAmount())
+	if err = st.IncreaseBalance(idx, depositAmount); err != nil {
+		return err
+	}
+	sp.logger.Info(
+		"Processed deposit to create new validator",
+		"deposit_amount", float64(depositAmount.Unwrap())/math.GweiPerWei,
+		"validator_index", idx,
+		"withdrawal_epoch", val.GetWithdrawableEpoch(),
+	)
+	return nil
 }

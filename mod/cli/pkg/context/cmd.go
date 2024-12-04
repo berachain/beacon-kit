@@ -44,6 +44,7 @@ func GetLoggerFromCmd[
 	v := cmd.Context().Value(LoggerContextKey)
 	logger, ok := v.(LoggerT)
 	if !ok {
+		//nolint:errcheck // should be safe
 		return any(phuslu.NewLogger(cmd.OutOrStdout(), nil)).(LoggerT)
 	}
 	return logger

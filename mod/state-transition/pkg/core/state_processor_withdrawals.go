@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/davecgh/go-spew/spew"
 )
 
@@ -93,6 +94,7 @@ func (sp *StateProcessor[
 			st,
 			expectedWithdrawals,
 			payloadWithdrawals,
+			slot,
 		)
 
 	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
@@ -116,6 +118,7 @@ func (sp *StateProcessor[
 			st,
 			expectedWithdrawals,
 			payloadWithdrawals,
+			slot,
 		)
 
 	default:
@@ -123,6 +126,7 @@ func (sp *StateProcessor[
 			st,
 			expectedWithdrawals,
 			payloadWithdrawals,
+			slot,
 		)
 	}
 }
@@ -134,6 +138,7 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	expectedWithdrawals []WithdrawalT,
 	payloadWithdrawals []WithdrawalT,
+	slot math.Slot,
 ) error {
 	for i, wd := range expectedWithdrawals {
 		// Ensure the withdrawals match the local state.
@@ -185,7 +190,9 @@ func (sp *StateProcessor[
 			return err
 		}
 		nextValidatorIndex += math.ValidatorIndex(
-			sp.cs.MaxValidatorsPerWithdrawalsSweep())
+			sp.cs.MaxValidatorsPerWithdrawalsSweep(
+				state.IsPostUpgrade, sp.cs.DepositEth1ChainID(), slot,
+			))
 		nextValidatorIndex %= math.ValidatorIndex(totalValidators)
 	}
 
@@ -199,6 +206,7 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	expectedWithdrawals []WithdrawalT,
 	payloadWithdrawals []WithdrawalT,
+	slot math.Slot,
 ) error {
 	// Enforce that first withdrawal is EVM inflation
 	if len(payloadWithdrawals) == 0 {
@@ -259,9 +267,24 @@ func (sp *StateProcessor[
 			return err
 		}
 		nextValidatorIndex += math.ValidatorIndex(
-			sp.cs.MaxValidatorsPerWithdrawalsSweep())
+			sp.cs.MaxValidatorsPerWithdrawalsSweep(
+				state.IsPostUpgrade, sp.cs.DepositEth1ChainID(), slot,
+			))
 		nextValidatorIndex %= math.ValidatorIndex(totalValidators)
 	}
 
-	return st.SetNextWithdrawalValidatorIndex(nextValidatorIndex)
+	if err = st.SetNextWithdrawalValidatorIndex(
+		nextValidatorIndex,
+	); err != nil {
+		return err
+	}
+
+	sp.logger.Info(
+		"Processed withdrawals",
+		"num_withdrawals", numWithdrawals,
+		"bera_inflation", float64(
+			payloadWithdrawals[0].GetAmount().Unwrap())/math.GweiPerWei,
+	)
+
+	return nil
 }

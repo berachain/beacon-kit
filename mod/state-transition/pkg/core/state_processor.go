@@ -252,6 +252,11 @@ func (sp *StateProcessor[
 			if err = st.SetEth1DepositIndex(fixedDepositIdx); err != nil {
 				return nil, err
 			}
+
+			sp.logger.Info(
+				"Fixed Eth 1 deposit index",
+				"previous", idx, "fixed", fixedDepositIdx,
+			)
 		}
 
 		// Process the Epoch Boundary.
@@ -563,8 +568,12 @@ func (sp *StateProcessor[
 
 	var (
 		hysteresisIncrement = sp.cs.EffectiveBalanceIncrement() / sp.cs.HysteresisQuotient()
-		downwardThreshold   = math.Gwei(hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier())
-		upwardThreshold     = math.Gwei(hysteresisIncrement * sp.cs.HysteresisUpwardMultiplier())
+		downwardThreshold   = math.Gwei(
+			hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier(),
+		)
+		upwardThreshold = math.Gwei(
+			hysteresisIncrement * sp.cs.HysteresisUpwardMultiplier(),
+		)
 
 		idx     math.U64
 		balance math.Gwei

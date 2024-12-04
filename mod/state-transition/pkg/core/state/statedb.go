@@ -251,7 +251,9 @@ func (s *StateDB[
 	}
 
 	bound := min(
-		totalValidators, s.cs.MaxValidatorsPerWithdrawalsSweep(),
+		totalValidators, s.cs.MaxValidatorsPerWithdrawalsSweep(
+			IsPostUpgrade, s.cs.DepositEth1ChainID(), slot,
+		),
 	)
 
 	// Iterate through indices to find the next validators to withdraw.

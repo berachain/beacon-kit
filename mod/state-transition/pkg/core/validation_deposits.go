@@ -43,8 +43,16 @@ func (sp *StateProcessor[
 
 	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID:
 		// Boonet inherited the bug from Bartio and it may have added some
-		// validators before we activate the fork. So we skip validation
-		// before fork activation
+		// validators before we activate the fork. So we skip all validations
+		// but the validator set cap.
+		//#nosec:G701 // can't overflow.
+		if uint64(len(deposits)) > sp.cs.ValidatorSetCap() {
+			return fmt.Errorf("validator set cap %d, deposits count %d: %w",
+				sp.cs.ValidatorSetCap(),
+				len(deposits),
+				ErrValSetCapExceeded,
+			)
+		}
 		return nil
 
 	default:
@@ -74,6 +82,17 @@ func (sp *StateProcessor[
 					deposit.GetIndex().Unwrap(), i,
 				)
 			}
+		}
+
+		// BeaconKit enforces a cap on the validator set size.
+		// If genesis deposits breaches the cap we return an error.
+		//#nosec:G701 // can't overflow.
+		if uint64(len(deposits)) > sp.cs.ValidatorSetCap() {
+			return fmt.Errorf("validator set cap %d, deposits count %d: %w",
+				sp.cs.ValidatorSetCap(),
+				len(deposits),
+				ErrValSetCapExceeded,
+			)
 		}
 		return nil
 	}
@@ -124,9 +143,9 @@ func (sp *StateProcessor[
 		}
 
 		sp.logger.Info(
-			"processOperations",
-			"Expected deposit start index", expectedStartIdx,
-			"Expected deposits length", len(localDeposits),
+			"Processing deposits in range",
+			"expected_start_index", expectedStartIdx,
+			"expected_range_length", len(localDeposits),
 		)
 
 		if len(localDeposits) != len(deposits) {

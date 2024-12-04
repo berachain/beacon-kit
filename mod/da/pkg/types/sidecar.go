@@ -60,6 +60,7 @@ func BuildBlobSidecar(
 	proof eip4844.KZGProof,
 	inclusionProof []common.Root,
 ) *BlobSidecar {
+	//nolint:errcheck // should be safe
 	return &BlobSidecar{
 		Index:                   index.Unwrap(),
 		Blob:                    *blob,

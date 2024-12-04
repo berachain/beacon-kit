@@ -18,10 +18,9 @@ repo-rinse: | ## dangerous!!! make sure you know what you are doing
 	git submodule foreach --recursive git reset --hard
 	git submodule update --init --recursive
 
-sync: 
-	@echo "Running go mod download && go work sync"
+sync:
+	@echo "Running go mod download"
 	@go mod download
-	@go work sync
 
 tidy: ## run go mod tidy in all modules
 	@echo "Running go mod tidy in all modules"
