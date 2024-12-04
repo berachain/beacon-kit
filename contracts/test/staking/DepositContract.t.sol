@@ -5,7 +5,7 @@ import "forge-std/Test.sol";
 
 import { SoladyTest } from "@solady/test/utils/SoladyTest.sol";
 import { IDepositContract } from "@src/staking/IDepositContract.sol";
-import { PermissionedDepositContract } from "./PermissionedDepositContract.sol";
+import { DepositContract } from "@src/staking/DepositContract.sol";
 
 contract DepositContractTest is SoladyTest, StdCheats {
     /// @dev The depositor address.
@@ -26,12 +26,10 @@ contract DepositContractTest is SoladyTest, StdCheats {
     bytes32 internal constant STAKING_ASSET_SLOT = bytes32(0);
 
     /// @dev the deposit contract.
-    PermissionedDepositContract internal depositContract;
+    DepositContract internal depositContract;
 
     function setUp() public virtual {
-        depositContract = new PermissionedDepositContract(owner);
-        vm.prank(owner);
-        depositContract.allowDeposit(depositor, 100);
+        depositContract = new DepositContract();
     }
 
     function testFuzz_DepositsWrongPubKey(bytes calldata pubKey) public {
@@ -164,10 +162,6 @@ contract DepositContractTest is SoladyTest, StdCheats {
         for (uint256 i; i < count; ++i) {
             depositor = makeAddr(vm.toString(i));
             vm.deal(depositor, 32 ether);
-
-            vm.startPrank(owner);
-            depositContract.allowDeposit(depositor, 1);
-            vm.stopPrank();
 
             vm.startPrank(depositor);
             vm.expectEmit(true, true, true, true);
