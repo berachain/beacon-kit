@@ -38,8 +38,8 @@ var (
 )
 
 type SignedBeaconBlockHeader struct {
-	Header    *BeaconBlockHeader  `json:"header"`
-	Signature crypto.BLSSignature `json:"signature"`
+	header    *BeaconBlockHeader  `json:"header"`
+	signature crypto.BLSSignature `json:"signature"`
 }
 
 /* -------------------------------------------------------------------------- */
@@ -82,8 +82,8 @@ func (b *SignedBeaconBlockHeader) SizeSSZ(*ssz.Sizer) uint32 {
 
 // DefineSSZ defines the SSZ encoding for the SignedBeaconBlockHeader object.
 func (b *SignedBeaconBlockHeader) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineStaticObject(codec, &b.Header)
-	ssz.DefineStaticBytes(codec, &b.Signature)
+	ssz.DefineStaticObject(codec, &b.header)
+	ssz.DefineStaticBytes(codec, &b.signature)
 }
 
 // MarshalSSZ marshals the SignedBeaconBlockHeader object to SSZ format.
@@ -114,20 +114,20 @@ func (b *SignedBeaconBlockHeader) HashTreeRoot() common.Root {
 
 // Getheader retrieves the header of the SignedBeaconBlockHeader.
 func (b *SignedBeaconBlockHeader) GetHeader() *BeaconBlockHeader {
-	return b.Header
+	return b.header
 }
 
 // Setheader sets the header of the BeaconBlockHeader.
 func (b *SignedBeaconBlockHeader) SetHeader(header *BeaconBlockHeader) {
-	b.Header = header
+	b.header = header
 }
 
 // GetSignature retrieves the Signature of the SignedBeaconBlockHeader.
 func (b *SignedBeaconBlockHeader) GetSignature() crypto.BLSSignature {
-	return b.Signature
+	return b.signature
 }
 
 // SetSignature sets the Signature of the BeaconBlockHeader.
 func (b *SignedBeaconBlockHeader) SetSignature(signature crypto.BLSSignature) {
-	b.Signature = signature
+	b.signature = signature
 }
