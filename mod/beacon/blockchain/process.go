@@ -65,13 +65,8 @@ func (s *Service[
 		return nil, err
 	}
 
-	// If the blobs needed to process the block are not available, we
-	// return an error. It is safe to use the slot off of the beacon block
-	// since it has been verified as correct already.
-	if !s.storageBackend.AvailabilityStore().IsDataAvailable(
-		ctx, beaconBlk.GetSlot(), beaconBlk.GetBody(),
-	) {
-		return nil, ErrDataNotAvailable
+	if err = s.verifyFinalBlobAvailability(ctx, beaconBlk); err != nil {
+		return nil, err
 	}
 
 	// If required, we want to forkchoice at the end of post

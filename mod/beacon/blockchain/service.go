@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
@@ -81,6 +82,12 @@ type Service[
 	// forceStartupSyncOnce is used to force a sync of the startup head.
 	forceStartupSyncOnce *sync.Once
 
+	// blobFinalized is used to verify blob sidecar availability upon
+	// block finalization
+	blobFinalized chan math.Slot
+
+	// subBlobFinalized is a channel holding BlobSidecarsFinalized events.
+	subBlobFinalized chan async.Event[math.Slot]
 	// subFinalBlkReceived is a channel holding FinalBeaconBlockReceived events.
 	subFinalBlkReceived chan async.Event[ConsensusBlockT]
 	// subBlockReceived is a channel holding BeaconBlockReceived events.
@@ -146,6 +153,8 @@ func NewService[
 		metrics:                 newChainMetrics(telemetrySink),
 		optimisticPayloadBuilds: optimisticPayloadBuilds,
 		forceStartupSyncOnce:    new(sync.Once),
+		blobFinalized:           make(chan math.Slot),
+		subBlobFinalized:        make(chan async.Event[math.Slot]),
 		subFinalBlkReceived:     make(chan async.Event[ConsensusBlockT]),
 		subBlockReceived:        make(chan async.Event[ConsensusBlockT]),
 		subGenDataReceived:      make(chan async.Event[GenesisT]),
@@ -183,6 +192,12 @@ func (s *Service[
 		return err
 	}
 
+	if err := s.dispatcher.Subscribe(
+		async.BlobSidecarsFinalized, s.subBlobFinalized,
+	); err != nil {
+		return err
+	}
+
 	// start the main event loop to listen and handle events.
 	go s.eventLoop(ctx)
 	return nil
@@ -202,6 +217,8 @@ func (s *Service[
 			s.handleBeaconBlockReceived(event)
 		case event := <-s.subFinalBlkReceived:
 			s.handleBeaconBlockFinalization(event)
+		case event := <-s.subBlobFinalized:
+			s.blobFinalized <- event.Data()
 		}
 	}
 }
@@ -316,4 +333,28 @@ func (s *Service[
 			"error", err,
 		)
 	}
+}
+
+// Given the block blk, ready for finalization, verifyFinalBlobAvailability
+// waits for its blob sidecar to be available and verify it.
+func (s *Service[
+	_, _, BeaconBlockT, _, _, _, _, _, _, _, _,
+]) verifyFinalBlobAvailability(ctx context.Context, blk BeaconBlockT) error {
+	// wait for blob sidecar to be finalized
+	select {
+	case <-s.blobFinalized:
+		// Proceed with verification
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+
+	// If the blobs needed to process the block are not available, we
+	// return an error. It is safe to use the slot off of the beacon block
+	// since it has been verified as correct already.
+	if !s.storageBackend.AvailabilityStore().IsDataAvailable(
+		ctx, blk.GetSlot(), blk.GetBody(),
+	) {
+		return ErrDataNotAvailable
+	}
+	return nil
 }
