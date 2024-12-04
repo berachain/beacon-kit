@@ -28,8 +28,8 @@ cosmossdk.io/core v0.0.0-20240806152830-8fb47b368cd4 h1:dDdZ0xneWTA63vu1OOc1fEpq
 cosmossdk.io/core v0.0.0-20240806152830-8fb47b368cd4/go.mod h1:sLzMwAW9HW+Nm3GltUVHDRSRZbcXLy9+2AYgi2bwt/s=
 cosmossdk.io/core/testing v0.0.0-20240806152830-8fb47b368cd4 h1:M/Rcz6Bp6mQLgBdysfnu0ABUWWWcATQ1192/W8jBGy0=
 cosmossdk.io/core/testing v0.0.0-20240806152830-8fb47b368cd4/go.mod h1:s6VKCgPZqs+CnW+18fNQqKoQtqxZ+U9bjz9BcySgNPs=
-cosmossdk.io/depinject v1.0.0 h1:dQaTu6+O6askNXO06+jyeUAnF2/ssKwrrszP9t5q050=
-cosmossdk.io/depinject v1.0.0/go.mod h1:zxK/h3HgHoA/eJVtiSsoaRaRA2D5U4cJ5thIG4ssbB8=
+cosmossdk.io/depinject v1.1.0 h1:wLan7LG35VM7Yo6ov0jId3RHWCGRhe8E8bsuARorl5E=
+cosmossdk.io/depinject v1.1.0/go.mod h1:kkI5H9jCGHeKeYWXTqYdruogYrEeWvBQCw1Pj4/eCFI=
 cosmossdk.io/errors v1.0.1 h1:bzu+Kcr0kS/1DuPBtUFdWjzLqyUuCiyHjyJB6srBV/0=
 cosmossdk.io/errors v1.0.1/go.mod h1:MeelVSZThMi4bEakzhhhE/CKqVv3nOJDA25bIqRDu/U=
 cosmossdk.io/errors/v2 v2.0.0-20240731132947-df72853b3ca5 h1:IQNdY2kB+k+1OM2DvqFG1+UgeU1JzZrWtwuWzI3ZfwA=

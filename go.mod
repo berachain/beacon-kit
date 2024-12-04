@@ -17,7 +17,7 @@ replace (
 require (
 	cosmossdk.io/collections v0.4.0
 	cosmossdk.io/core v1.0.0
-	cosmossdk.io/depinject v1.0.0
+	cosmossdk.io/depinject v1.1.0
 	cosmossdk.io/log v1.4.1
 	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc
 	cosmossdk.io/store/v2 v2.0.0-20240821144902-e88c138760a3
