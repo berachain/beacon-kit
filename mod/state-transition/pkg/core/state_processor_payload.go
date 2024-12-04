@@ -51,7 +51,13 @@ func (sp *StateProcessor[
 	payloadTimestamp := payload.GetTimestamp().Unwrap()
 	consensusTimestamp := ctx.GetConsensusTime().Unwrap()
 
-	sp.metrics.gaugeTimestamps(payloadTimestamp, consensusTimestamp)
+	// add telemetry for the diff between payloadTimestamp and
+	// consensusTimestamp
+	err := sp.metrics.gaugePayloadConsensusTimestampDiff(
+		payloadTimestamp, consensusTimestamp)
+	if err != nil {
+		sp.logger.Error("failed to gauge timestamp diff", "error", err)
+	}
 
 	sp.logger.Info("processExecutionPayload",
 		"consensus height", blk.GetSlot().Unwrap(),
@@ -77,12 +83,11 @@ func (sp *StateProcessor[
 	// header based on that version as a temporary solution to avoid breaking
 	// changes.
 	g.Go(func() error {
-		var err error
 		header, err = payload.ToHeader()
 		return err
 	})
 
-	if err := g.Wait(); err != nil {
+	if err = g.Wait(); err != nil {
 		return err
 	}
 
