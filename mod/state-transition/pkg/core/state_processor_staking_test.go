@@ -21,26 +21,27 @@
 package core_test
 
 import (
+	"strconv"
 	"testing"
-	"time"
 
 	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
 	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/stretchr/testify/require"
 )
 
 // TestTransitionUpdateValidators shows that when validator is
 // updated (increasing amount), corresponding balance is updated.
 func TestTransitionUpdateValidators(t *testing.T) {
-	cs := setupChain(t, components.BoonetChainSpecType)
+	cs := setupChain(t, components.BetnetChainSpecType)
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
@@ -86,41 +87,6 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, genVals, len(genDeposits))
 
-	var (
-		blk         *types.BeaconBlock
-		body        *types.BeaconBlockBody
-		updatedVals transition.ValidatorUpdates
-	)
-	for i := uint64(1); i < spec.BoonetFork2Height; i++ {
-		body = &types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:     math.U64(time.Unix(int64(i), 0).Unix()),
-				ExtraData:     []byte("testing"),
-				Transactions:  [][]byte{},
-				Withdrawals:   []*engineprimitives.Withdrawal{},
-				BaseFeePerGas: math.NewU256(0),
-			},
-			Eth1Data: &types.Eth1Data{},
-			Deposits: []*types.Deposit{},
-		}
-		if i == spec.BoonetFork1Height {
-			body.ExecutionPayload.Withdrawals = []*engineprimitives.Withdrawal{
-				{
-					Index:     0,
-					Validator: 0,
-					Address: common.NewExecutionAddressFromHex(
-						state.EVMMintingAddress),
-					Amount: math.Gwei(state.EVMMintingAmount),
-				},
-			}
-		}
-		blk = buildNextBlock(t, st, body)
-
-		updatedVals, err = sp.Transition(ctx, st, blk)
-		require.NoError(t, err)
-		require.Empty(t, updatedVals) // validators set updates only at epoch
-	}
-
 	// STEP 1: top up a genesis validator balance
 	blkDeposit := &types.Deposit{
 		Pubkey:      genDeposits[2].Pubkey,
@@ -151,7 +117,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits))
 
 	// run the test
-	updatedVals, err = sp.Transition(ctx, st, blk1)
+	updatedVals, err := sp.Transition(ctx, st, blk1)
 	require.NoError(t, err)
 	require.Empty(t, updatedVals) // validators set updates only at epoch turn
 
@@ -177,7 +143,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	require.Equal(t, uint64(len(genDeposits)), latestValIdx)
 
 	// STEP 2: check that effective balance is updated once next epoch arrives
-	blk = blk1
+	var blk = blk1
 	currEpoch := cs.SlotToEpoch(blk.GetSlot())
 	for currEpoch == cs.SlotToEpoch(blk.GetSlot()+1) {
 		blk = buildNextBlock(
@@ -242,7 +208,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 // of a validator creation.
 func TestTransitionCreateValidator(t *testing.T) {
 	// Create state processor to test
-	cs := setupChain(t, components.BoonetChainSpecType)
+	cs := setupChain(t, components.BetnetChainSpecType)
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
@@ -278,41 +244,6 @@ func TestTransitionCreateValidator(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, genVals, len(genDeposits))
 
-	var (
-		blk         *types.BeaconBlock
-		body        *types.BeaconBlockBody
-		updatedVals transition.ValidatorUpdates
-	)
-	for i := uint64(1); i < spec.BoonetFork2Height; i++ {
-		body = &types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:     math.U64(time.Unix(int64(i), 0).Unix()),
-				ExtraData:     []byte("testing"),
-				Transactions:  [][]byte{},
-				Withdrawals:   []*engineprimitives.Withdrawal{},
-				BaseFeePerGas: math.NewU256(0),
-			},
-			Eth1Data: &types.Eth1Data{},
-			Deposits: []*types.Deposit{},
-		}
-		if i == spec.BoonetFork1Height {
-			body.ExecutionPayload.Withdrawals = []*engineprimitives.Withdrawal{
-				{
-					Index:     0,
-					Validator: 0,
-					Address: common.NewExecutionAddressFromHex(
-						state.EVMMintingAddress),
-					Amount: math.Gwei(state.EVMMintingAmount),
-				},
-			}
-		}
-		blk = buildNextBlock(t, st, body)
-
-		updatedVals, err = sp.Transition(ctx, st, blk)
-		require.NoError(t, err)
-		require.Empty(t, updatedVals) // validators set updates only at epoch
-	}
-
 	// STEP 1: top up a genesis validator balance
 	blkDeposit := &types.Deposit{
 		Pubkey:      [48]byte{0xff}, // a new key for a new validator
@@ -343,7 +274,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits))
 
 	// run the test
-	updatedVals, err = sp.Transition(ctx, st, blk1)
+	updatedVals, err := sp.Transition(ctx, st, blk1)
 	require.NoError(t, err)
 	require.Empty(t, updatedVals) // validators set updates only at epoch turn
 
@@ -369,7 +300,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 	require.Equal(t, uint64(len(genDeposits)), latestValIdx)
 
 	// STEP 2: check that effective balance is updated once next epoch arrives
-	blk = blk1
+	var blk = blk1
 	currEpoch := cs.SlotToEpoch(blk.GetSlot())
 	for currEpoch == cs.SlotToEpoch(blk.GetSlot()+1) {
 		blk = buildNextBlock(
@@ -658,551 +589,625 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	require.Equal(t, maxBalance, val1BalAfter)
 }
 
-// // TestTransitionHittingValidatorsCap shows that the extra
-// // validator added when validators set is at cap gets never activated
-// // and its deposit is returned at after next epoch starts.
-// func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
-// 	cs := setupChain(t, components.BoonetChainSpecType)
-// 	sp, st, _, ctx := setupState(t, cs)
+// TestTransitionHittingValidatorsCap shows that the extra
+// validator added when validators set is at cap gets never activated
+// and its deposit is returned at after next epoch starts.
+func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
+	cs := setupChain(t, components.BetnetChainSpecType)
+	sp, st, ds, ctx := setupState(t, cs)
 
-// 	var (
-// 		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
-// 		rndSeed    = 2024 // seed used to generate unique random value
-// 	)
+	var (
+		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
+		rndSeed    = 2024 // seed used to generate unique random value
+	)
 
-// 	// STEP 0: Setup genesis with GetValidatorSetCap validators
-// 	// TODO: consider instead setting state artificially
-// 	var (
-// 		genDeposits      = make([]*types.Deposit, 0, cs.ValidatorSetCap())
-// 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-// 		genVersion       = version.FromUint32[common.Version](version.Deneb)
-// 	)
+	// STEP 0: Setup genesis with GetValidatorSetCap validators
+	// TODO: consider instead setting state artificially
+	var (
+		genDeposits      = make([]*types.Deposit, 0, cs.ValidatorSetCap())
+		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genVersion       = version.FromUint32[common.Version](version.Deneb)
+	)
 
-// 	// let genesis define all available validators
-// 	for idx := range cs.ValidatorSetCap() {
-// 		var (
-// 			key   bytes.B48
-// 			creds types.WithdrawalCredentials
-// 		)
-// 		key, rndSeed = generateTestPK(t, rndSeed)
-// 		creds, rndSeed = generateTestExecutionAddress(t, rndSeed)
+	// let genesis define all available validators
+	for idx := range cs.ValidatorSetCap() {
+		var (
+			key   bytes.B48
+			creds types.WithdrawalCredentials
+		)
+		key, rndSeed = generateTestPK(t, rndSeed)
+		creds, rndSeed = generateTestExecutionAddress(t, rndSeed)
 
-// 		genDeposits = append(genDeposits,
-// 			&types.Deposit{
-// 				Pubkey:      key,
-// 				Credentials: creds,
-// 				Amount:      maxBalance,
-// 				Index:       idx,
-// 			},
-// 		)
-// 	}
+		genDeposits = append(genDeposits,
+			&types.Deposit{
+				Pubkey:      key,
+				Credentials: creds,
+				Amount:      maxBalance,
+				Index:       idx,
+			},
+		)
+	}
 
-// 	_, err := sp.InitializePreminedBeaconStateFromEth1(
-// 		st,
-// 		genDeposits,
-// 		genPayloadHeader,
-// 		genVersion,
-// 	)
-// 	require.NoError(t, err)
+	_, err := sp.InitializePreminedBeaconStateFromEth1(
+		st,
+		genDeposits,
+		genPayloadHeader,
+		genVersion,
+	)
+	require.NoError(t, err)
 
-// 	// STEP 1: Try and add an extra validator
-// 	extraValKey, rndSeed := generateTestPK(t, rndSeed)
-// 	extraValCreds, _ := generateTestExecutionAddress(t, rndSeed)
-// 	var (
-// 		extraValDeposit = &types.Deposit{
-// 			Pubkey:      extraValKey,
-// 			Credentials: extraValCreds,
-// 			Amount:      maxBalance,
-// 			Index:       uint64(len(genDeposits)),
-// 		}
-// 	)
+	// STEP 1: Try and add an extra validator
+	extraValKey, rndSeed := generateTestPK(t, rndSeed)
+	extraValCreds, _ := generateTestExecutionAddress(t, rndSeed)
+	var (
+		extraValDeposit = &types.Deposit{
+			Pubkey:      extraValKey,
+			Credentials: extraValCreds,
+			Amount:      maxBalance,
+			Index:       uint64(len(genDeposits)),
+		}
+	)
 
-// 	blk1 := buildNextBlock(
-// 		t,
-// 		st,
-// 		&types.BeaconBlockBody{
-// 			ExecutionPayload: dummyExecutionPayload,
-// 			Eth1Data:         &types.Eth1Data{},
-// 			Deposits:         []*types.Deposit{extraValDeposit},
-// 		},
-// 	)
+	blk1 := buildNextBlock(
+		t,
+		st,
+		&types.BeaconBlockBody{
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:    10,
+				ExtraData:    []byte("testing"),
+				Transactions: [][]byte{},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					st.EVMInflationWithdrawal(),
+				},
+				BaseFeePerGas: math.NewU256(0),
+			},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: []*types.Deposit{extraValDeposit},
+		},
+	)
 
-// 	// run the test
-// 	_, err = sp.Transition(ctx, st, blk1)
-// 	require.NoError(t, err)
+	// make sure included deposit is already available in deposit store
+	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits))
 
-// 	// check extra validator is added with Withdraw epoch duly set
-// 	extraValIdx, err := st.ValidatorIndexByPubkey(extraValDeposit.Pubkey)
-// 	require.NoError(t, err)
-// 	extraVal, err := st.ValidatorByIndex(extraValIdx)
-// 	require.NoError(t, err)
-// 	require.Equal(t, extraValDeposit.Pubkey, extraVal.Pubkey)
-// 	require.Equal(t, math.Slot(1), extraVal.WithdrawableEpoch)
+	// run the test
+	_, err = sp.Transition(ctx, st, blk1)
+	require.NoError(t, err)
 
-// 	extraValBalance, err := st.GetBalance(extraValIdx)
-// 	require.NoError(t, err)
-// 	require.Equal(t, extraValDeposit.Amount, extraValBalance)
+	// check extra validator is added with Withdraw epoch duly set
+	extraValIdx, err := st.ValidatorIndexByPubkey(extraValDeposit.Pubkey)
+	require.NoError(t, err)
+	extraVal, err := st.ValidatorByIndex(extraValIdx)
+	require.NoError(t, err)
+	require.Equal(t, extraValDeposit.Pubkey, extraVal.Pubkey)
+	require.Equal(t, math.Slot(1), extraVal.WithdrawableEpoch)
 
-// 	// STEP 2: move the chain to the next epoch and show withdrawals
-// 	// for rejected validator are enqueuued then
-// 	var blk *types.BeaconBlock
-// 	for i := 2; i < int(cs.SlotsPerEpoch()); i++ {
-// 		blk = buildNextBlock(
-// 			t,
-// 			st,
-// 			&types.BeaconBlockBody{
-// 				ExecutionPayload: dummyExecutionPayload,
-// 				Eth1Data:         &types.Eth1Data{},
-// 				Deposits:         []*types.Deposit{},
-// 			},
-// 		)
+	extraValBalance, err := st.GetBalance(extraValIdx)
+	require.NoError(t, err)
+	require.Equal(t, extraValDeposit.Amount, extraValBalance)
 
-// 		_, err = sp.Transition(ctx, st, blk)
-// 		require.NoError(t, err)
-// 	}
+	// STEP 2: move the chain to the next epoch and show withdrawals
+	// for rejected validator are enqueuued then
+	blk := blk1
+	currEpoch := cs.SlotToEpoch(blk.GetSlot())
+	for currEpoch == cs.SlotToEpoch(blk.GetSlot()+1) {
+		blk = buildNextBlock(
+			t,
+			st,
+			&types.BeaconBlockBody{
+				ExecutionPayload: &types.ExecutionPayload{
+					Timestamp:    blk.Body.ExecutionPayload.Timestamp + 1,
+					ExtraData:    []byte("testing"),
+					Transactions: [][]byte{},
+					Withdrawals: []*engineprimitives.Withdrawal{
+						st.EVMInflationWithdrawal(),
+					},
+					BaseFeePerGas: math.NewU256(0),
+				},
+				Eth1Data: &types.Eth1Data{},
+				Deposits: []*types.Deposit{},
+			},
+		)
 
-// 	extraValAddr, err := extraValCreds.ToExecutionAddress()
-// 	require.NoError(t, err)
-// 	blk = buildNextBlock(
-// 		t,
-// 		st,
-// 		&types.BeaconBlockBody{
-// 			ExecutionPayload: &types.ExecutionPayload{
-// 				Timestamp:    blk1.Body.ExecutionPayload.Timestamp + 1,
-// 				ExtraData:    []byte("testing"),
-// 				Transactions: [][]byte{},
-// 				Withdrawals: []*engineprimitives.Withdrawal{
-// 					{
-// 						Index:     0,
-// 						Validator: extraValIdx,
-// 						Address:   extraValAddr,
-// 						Amount:    extraValDeposit.Amount,
-// 					},
-// 				},
-// 				BaseFeePerGas: math.NewU256(0),
-// 			},
-// 			Eth1Data: &types.Eth1Data{},
-// 			Deposits: []*types.Deposit{},
-// 		},
-// 	)
+		_, err = sp.Transition(ctx, st, blk)
+		require.NoError(t, err)
+	}
 
-// 	// run the test
-// 	_, err = sp.Transition(ctx, st, blk)
-// 	require.NoError(t, err)
-// }
+	extraValAddr, err := extraValCreds.ToExecutionAddress()
+	require.NoError(t, err)
+	blk = buildNextBlock(
+		t,
+		st,
+		&types.BeaconBlockBody{
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:    blk1.Body.ExecutionPayload.Timestamp + 1,
+				ExtraData:    []byte("testing"),
+				Transactions: [][]byte{},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					st.EVMInflationWithdrawal(),
+					{
+						Index:     0,
+						Validator: extraValIdx,
+						Address:   extraValAddr,
+						Amount:    extraValDeposit.Amount,
+					},
+				},
+				BaseFeePerGas: math.NewU256(0),
+			},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: []*types.Deposit{},
+		},
+	)
 
-// // TestTransitionHittingValidatorsCap shows that if the extra
-// // validator added when validators set is at cap improves amount staked
-// // an existing validator is removed at the beginning of next epoch.
-// func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
-// 	cs := setupChain(t, components.BoonetChainSpecType)
-// 	sp, st, _, ctx := setupState(t, cs)
+	// run the test
+	_, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+}
 
-// 	var (
-// 		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
-// 		increment  = math.Gwei(cs.EffectiveBalanceIncrement())
-// 		minBalance = math.Gwei(cs.EjectionBalance())
-// 		rndSeed    = 2024 // seed used to generate unique random value
-// 	)
+// TestTransitionHittingValidatorsCap shows that if the extra
+// validator added when validators set is at cap improves amount staked
+// an existing validator is removed at the beginning of next epoch.
+func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
+	cs := setupChain(t, components.BetnetChainSpecType)
+	sp, st, ds, ctx := setupState(t, cs)
 
-// 	// STEP 0: Setup genesis with GetValidatorSetCap validators
-// 	// TODO: consider instead setting state artificially
-// 	var (
-// 		genDeposits      = make([]*types.Deposit, 0, cs.ValidatorSetCap())
-// 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-// 		genVersion       = version.FromUint32[common.Version](version.Deneb)
-// 	)
+	var (
+		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
+		increment  = math.Gwei(cs.EffectiveBalanceIncrement())
+		minBalance = math.Gwei(cs.EjectionBalance())
+		rndSeed    = 2024 // seed used to generate unique random value
+	)
 
-// 	// let genesis define all available validators
-// 	for idx := range cs.ValidatorSetCap() {
-// 		var (
-// 			key   bytes.B48
-// 			creds types.WithdrawalCredentials
-// 		)
-// 		key, rndSeed = generateTestPK(t, rndSeed)
-// 		creds, rndSeed = generateTestExecutionAddress(t, rndSeed)
+	// STEP 0: Setup genesis with GetValidatorSetCap validators
+	// TODO: consider instead setting state artificially
+	var (
+		genDeposits      = make([]*types.Deposit, 0, cs.ValidatorSetCap())
+		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genVersion       = version.FromUint32[common.Version](version.Deneb)
+	)
 
-// 		genDeposits = append(genDeposits,
-// 			&types.Deposit{
-// 				Pubkey:      key,
-// 				Credentials: creds,
-// 				Amount:      maxBalance,
-// 				Index:       idx,
-// 			},
-// 		)
-// 	}
-// 	// make a deposit small to be ready for eviction
-// 	genDeposits[0].Amount = minBalance + increment
-// 	smallestVal := genDeposits[0]
-// 	smallestValAddr, err := genDeposits[0].Credentials.ToExecutionAddress()
-// 	require.NoError(t, err)
+	// let genesis define all available validators
+	for idx := range cs.ValidatorSetCap() {
+		var (
+			key   bytes.B48
+			creds types.WithdrawalCredentials
+		)
+		key, rndSeed = generateTestPK(t, rndSeed)
+		creds, rndSeed = generateTestExecutionAddress(t, rndSeed)
 
-// 	var genVals transition.ValidatorUpdates
-// 	genVals, err = sp.InitializePreminedBeaconStateFromEth1(
-// 		st,
-// 		genDeposits,
-// 		genPayloadHeader,
-// 		genVersion,
-// 	)
-// 	require.NoError(t, err)
-// 	require.Len(t, genVals, len(genDeposits))
+		genDeposits = append(genDeposits,
+			&types.Deposit{
+				Pubkey:      key,
+				Credentials: creds,
+				Amount:      maxBalance,
+				Index:       idx,
+			},
+		)
+	}
+	// make a deposit small to be ready for eviction
+	genDeposits[0].Amount = minBalance + increment
+	smallestVal := genDeposits[0]
+	smallestValAddr, err := genDeposits[0].Credentials.ToExecutionAddress()
+	require.NoError(t, err)
 
-// 	// STEP 1: Add an extra validator
-// 	extraValKey, rndSeed := generateTestPK(t, rndSeed)
-// 	extraValCreds, _ := generateTestExecutionAddress(t, rndSeed)
-// 	var (
-// 		extraValDeposit = &types.Deposit{
-// 			Pubkey:      extraValKey,
-// 			Credentials: extraValCreds,
-// 			Amount:      maxBalance,
-// 			Index:       uint64(len(genDeposits)),
-// 		}
-// 	)
+	var genVals transition.ValidatorUpdates
+	genVals, err = sp.InitializePreminedBeaconStateFromEth1(
+		st,
+		genDeposits,
+		genPayloadHeader,
+		genVersion,
+	)
+	require.NoError(t, err)
+	require.Len(t, genVals, len(genDeposits))
 
-// 	blk1 := buildNextBlock(
-// 		t,
-// 		st,
-// 		&types.BeaconBlockBody{
-// 			ExecutionPayload: dummyExecutionPayload,
-// 			Eth1Data:         &types.Eth1Data{},
-// 			Deposits:         []*types.Deposit{extraValDeposit},
-// 		},
-// 	)
+	// STEP 1: Add an extra validator
+	extraValKey, rndSeed := generateTestPK(t, rndSeed)
+	extraValCreds, _ := generateTestExecutionAddress(t, rndSeed)
+	var (
+		extraValDeposit = &types.Deposit{
+			Pubkey:      extraValKey,
+			Credentials: extraValCreds,
+			Amount:      maxBalance,
+			Index:       uint64(len(genDeposits)),
+		}
+	)
 
-// 	// run the test
-// 	var vals transition.ValidatorUpdates
-// 	vals, err = sp.Transition(ctx, st, blk1)
-// 	require.NoError(t, err)
-// 	require.Empty(t, vals) // no vals changes expected before next epoch
+	blk1 := buildNextBlock(
+		t,
+		st,
+		&types.BeaconBlockBody{
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:    10,
+				ExtraData:    []byte("testing"),
+				Transactions: [][]byte{},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					st.EVMInflationWithdrawal(),
+				},
+				BaseFeePerGas: math.NewU256(0),
+			},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: []*types.Deposit{extraValDeposit},
+		},
+	)
 
-// 	// check smallest validator is updated with Withdraw epoch duly set
-// 	smallValIdx, err := st.ValidatorIndexByPubkey(smallestVal.Pubkey)
-// 	require.NoError(t, err)
-// 	smallVal, err := st.ValidatorByIndex(smallValIdx)
-// 	require.NoError(t, err)
-// 	require.Equal(t, math.Slot(1), smallVal.WithdrawableEpoch)
+	// make sure included deposit is already available in deposit store
+	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits))
 
-// 	smallestValBalance, err := st.GetBalance(smallValIdx)
-// 	require.NoError(t, err)
-// 	require.Equal(t, smallestVal.Amount, smallestValBalance)
+	// run the test
+	var vals transition.ValidatorUpdates
+	vals, err = sp.Transition(ctx, st, blk1)
+	require.NoError(t, err)
+	require.Empty(t, vals) // no vals changes expected before next epoch
 
-// 	// check that extra validator is added
-// 	extraValIdx, err := st.ValidatorIndexByPubkey(extraValKey)
-// 	require.NoError(t, err)
-// 	extraVal, err := st.ValidatorByIndex(extraValIdx)
-// 	require.NoError(t, err)
-// 	require.Equal(t,
-// 		math.Epoch(constants.FarFutureEpoch), extraVal.WithdrawableEpoch,
-// 	)
+	// check smallest validator is updated with Withdraw epoch duly set
+	smallValIdx, err := st.ValidatorIndexByPubkey(smallestVal.Pubkey)
+	require.NoError(t, err)
+	smallVal, err := st.ValidatorByIndex(smallValIdx)
+	require.NoError(t, err)
+	require.Equal(t, math.Slot(1), smallVal.WithdrawableEpoch)
 
-// 	// STEP 2: move chain to next epoch to see extra validator
-// 	// be activated and withdraws for evicted validator
-// 	var blk *types.BeaconBlock
-// 	for i := 1; i < int(cs.SlotsPerEpoch())-1; i++ {
-// 		blk = buildNextBlock(
-// 			t,
-// 			st,
-// 			&types.BeaconBlockBody{
-// 				ExecutionPayload: dummyExecutionPayload,
-// 				Eth1Data:         &types.Eth1Data{},
-// 				Deposits:         []*types.Deposit{},
-// 			},
-// 		)
+	smallestValBalance, err := st.GetBalance(smallValIdx)
+	require.NoError(t, err)
+	require.Equal(t, smallestVal.Amount, smallestValBalance)
 
-// 		vals, err = sp.Transition(ctx, st, blk)
-// 		require.NoError(t, err)
-// 		require.Empty(t, vals) // no vals changes expected before next epoch
-// 	}
+	// check that extra validator is added
+	extraValIdx, err := st.ValidatorIndexByPubkey(extraValKey)
+	require.NoError(t, err)
+	extraVal, err := st.ValidatorByIndex(extraValIdx)
+	require.NoError(t, err)
+	require.Equal(t,
+		math.Epoch(constants.FarFutureEpoch), extraVal.WithdrawableEpoch,
+	)
 
-// 	blk = buildNextBlock(
-// 		t,
-// 		st,
-// 		&types.BeaconBlockBody{
-// 			ExecutionPayload: &types.ExecutionPayload{
-// 				Timestamp:    blk1.Body.ExecutionPayload.Timestamp + 1,
-// 				ExtraData:    []byte("testing"),
-// 				Transactions: [][]byte{},
-// 				Withdrawals: []*engineprimitives.Withdrawal{
-// 					{
-// 						Index:     0,
-// 						Validator: smallValIdx,
-// 						Address:   smallestValAddr,
-// 						Amount:    smallestVal.Amount,
-// 					},
-// 				},
-// 				BaseFeePerGas: math.NewU256(0),
-// 			},
-// 			Eth1Data: &types.Eth1Data{},
-// 			Deposits: []*types.Deposit{},
-// 		},
-// 	)
+	// STEP 2: move chain to next epoch to see extra validator
+	// be activated and withdraws for evicted validator
+	blk := blk1
+	currEpoch := cs.SlotToEpoch(blk.GetSlot())
+	for currEpoch == cs.SlotToEpoch(blk.GetSlot()+1) {
+		blk = buildNextBlock(
+			t,
+			st,
+			&types.BeaconBlockBody{
+				ExecutionPayload: &types.ExecutionPayload{
+					Timestamp:    blk.Body.ExecutionPayload.Timestamp + 1,
+					ExtraData:    []byte("testing"),
+					Transactions: [][]byte{},
+					Withdrawals: []*engineprimitives.Withdrawal{
+						st.EVMInflationWithdrawal(),
+					},
+					BaseFeePerGas: math.NewU256(0),
+				},
+				Eth1Data: &types.Eth1Data{},
+				Deposits: []*types.Deposit{},
+			},
+		)
 
-// 	vals, err = sp.Transition(ctx, st, blk)
-// 	require.NoError(t, err)
-// 	require.LessOrEqual(t, uint64(len(vals)), cs.ValidatorSetCap())
-// 	require.Len(t, vals, 2) // just replaced one validator
+		vals, err = sp.Transition(ctx, st, blk)
+		require.NoError(t, err)
+		require.Empty(t, vals) // no vals changes expected before next epoch
+	}
 
-// 	// check that we added the incoming validator at the epoch turn
-// 	require.Equal(t, extraVal.Pubkey, vals[0].Pubkey)
-// 	require.Equal(t, extraVal.EffectiveBalance, vals[0].EffectiveBalance)
+	blk = buildNextBlock(
+		t,
+		st,
+		&types.BeaconBlockBody{
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:    blk1.Body.ExecutionPayload.Timestamp + 1,
+				ExtraData:    []byte("testing"),
+				Transactions: [][]byte{},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					st.EVMInflationWithdrawal(),
+					{
+						Index:     0,
+						Validator: smallValIdx,
+						Address:   smallestValAddr,
+						Amount:    smallestVal.Amount,
+					},
+				},
+				BaseFeePerGas: math.NewU256(0),
+			},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: []*types.Deposit{},
+		},
+	)
 
-// 	// check that we removed the smallest validator at the epoch turn
-// 	require.Equal(t, smallVal.Pubkey, vals[1].Pubkey)
-// 	require.Equal(t, math.Gwei(0), vals[1].EffectiveBalance)
-// }
+	vals, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+	require.LessOrEqual(t, uint64(len(vals)), cs.ValidatorSetCap())
+	require.Len(t, vals, 2) // just replaced one validator
 
-// // show that eviction mechanism works fine even if multiple evictions
-// // happen in the same epoch.
-// //
-// // //nolint:maintidx // TODO: simplify
-// func TestTransitionValidatorCap_DoubleEviction(t *testing.T) {
-// 	cs := setupChain(t, components.BoonetChainSpecType)
-// 	sp, st, _, ctx := setupState(t, cs)
+	// check that we added the incoming validator at the epoch turn
+	require.Equal(t, extraVal.Pubkey, vals[0].Pubkey)
+	require.Equal(t, extraVal.EffectiveBalance, vals[0].EffectiveBalance)
 
-// 	var (
-// 		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
-// 		increment  = math.Gwei(cs.EffectiveBalanceIncrement())
-// 		minBalance = math.Gwei(cs.EjectionBalance())
-// 		rndSeed    = 2024 // seed used to generate unique random value
-// 	)
+	// check that we removed the smallest validator at the epoch turn
+	require.Equal(t, smallVal.Pubkey, vals[1].Pubkey)
+	require.Equal(t, math.Gwei(0), vals[1].EffectiveBalance)
+}
 
-// 	// STEP 0: fill genesis with validators till cap. Let two of them
-// 	// have smaller balance than others, so to be amenable for eviction.
-// 	var (
-// 		genDeposits      = make([]*types.Deposit, 0, cs.ValidatorSetCap())
-// 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-// 		genVersion       = version.FromUint32[common.Version](version.Deneb)
-// 	)
+// show that eviction mechanism works fine even if multiple evictions
+// happen in the same epoch.
+//
+// //nolint:maintidx // TODO: simplify
+func TestTransitionValidatorCap_DoubleEviction(t *testing.T) {
+	cs := setupChain(t, components.BetnetChainSpecType)
+	sp, st, ds, ctx := setupState(t, cs)
 
-// 	// let genesis define all available validators
-// 	for idx := range cs.ValidatorSetCap() {
-// 		var (
-// 			key   bytes.B48
-// 			creds types.WithdrawalCredentials
-// 		)
-// 		key, rndSeed = generateTestPK(t, rndSeed)
-// 		creds, rndSeed = generateTestExecutionAddress(t, rndSeed)
+	var (
+		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
+		increment  = math.Gwei(cs.EffectiveBalanceIncrement())
+		minBalance = math.Gwei(cs.EjectionBalance())
+		rndSeed    = 2024 // seed used to generate unique random value
+	)
 
-// 		genDeposits = append(genDeposits,
-// 			&types.Deposit{
-// 				Pubkey:      key,
-// 				Credentials: creds,
-// 				Amount:      maxBalance,
-// 				Index:       idx,
-// 			},
-// 		)
-// 	}
-// 	// make a deposit small to be ready for eviction
-// 	genDeposits[0].Amount = minBalance + increment
-// 	smallest1Val := genDeposits[0]
-// 	smallest1ValAddr, err := genDeposits[0].Credentials.ToExecutionAddress()
-// 	require.NoError(t, err)
+	// STEP 0: fill genesis with validators till cap. Let two of them
+	// have smaller balance than others, so to be amenable for eviction.
+	var (
+		genDeposits      = make([]*types.Deposit, 0, cs.ValidatorSetCap())
+		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genVersion       = version.FromUint32[common.Version](version.Deneb)
+	)
 
-// 	genDeposits[1].Amount = minBalance + 2*increment
-// 	smallestVal2 := genDeposits[1]
-// 	smallestVal2Addr, err := genDeposits[1].Credentials.ToExecutionAddress()
-// 	require.NoError(t, err)
+	// let genesis define all available validators
+	for idx := range cs.ValidatorSetCap() {
+		var (
+			key   bytes.B48
+			creds types.WithdrawalCredentials
+		)
+		key, rndSeed = generateTestPK(t, rndSeed)
+		creds, rndSeed = generateTestExecutionAddress(t, rndSeed)
 
-// 	var genVals transition.ValidatorUpdates
-// 	genVals, err = sp.InitializePreminedBeaconStateFromEth1(
-// 		st,
-// 		genDeposits,
-// 		genPayloadHeader,
-// 		genVersion,
-// 	)
-// 	require.NoError(t, err)
-// 	require.Len(t, genVals, len(genDeposits))
+		genDeposits = append(genDeposits,
+			&types.Deposit{
+				Pubkey:      key,
+				Credentials: creds,
+				Amount:      maxBalance,
+				Index:       idx,
+			},
+		)
+	}
+	// make a deposit small to be ready for eviction
+	genDeposits[0].Amount = minBalance + increment
+	smallest1Val := genDeposits[0]
+	smallest1ValAddr, err := genDeposits[0].Credentials.ToExecutionAddress()
+	require.NoError(t, err)
 
-// 	// STEP 1: Add an extra validator
-// 	extraVal1Key, rndSeed := generateTestPK(t, rndSeed)
-// 	extraVal1Creds, rndSeed := generateTestExecutionAddress(t, rndSeed)
-// 	extraValDeposit1 := &types.Deposit{
-// 		Pubkey:      extraVal1Key,
-// 		Credentials: extraVal1Creds,
-// 		Amount:      maxBalance - increment,
-// 		Index:       uint64(len(genDeposits)),
-// 	}
+	genDeposits[1].Amount = minBalance + 2*increment
+	smallestVal2 := genDeposits[1]
+	smallestVal2Addr, err := genDeposits[1].Credentials.ToExecutionAddress()
+	require.NoError(t, err)
 
-// 	blk1 := buildNextBlock(
-// 		t,
-// 		st,
-// 		&types.BeaconBlockBody{
-// 			ExecutionPayload: dummyExecutionPayload,
-// 			Eth1Data:         &types.Eth1Data{},
-// 			Deposits:         []*types.Deposit{extraValDeposit1},
-// 		},
-// 	)
+	var genVals transition.ValidatorUpdates
+	genVals, err = sp.InitializePreminedBeaconStateFromEth1(
+		st,
+		genDeposits,
+		genPayloadHeader,
+		genVersion,
+	)
+	require.NoError(t, err)
+	require.Len(t, genVals, len(genDeposits))
 
-// 	// run the test
-// 	vals, err := sp.Transition(ctx, st, blk1)
-// 	require.NoError(t, err)
-// 	require.Empty(t, vals) // no vals changes expected before next epoch
+	// STEP 1: Add an extra validator
+	extraVal1Key, rndSeed := generateTestPK(t, rndSeed)
+	extraVal1Creds, rndSeed := generateTestExecutionAddress(t, rndSeed)
+	extraValDeposit1 := &types.Deposit{
+		Pubkey:      extraVal1Key,
+		Credentials: extraVal1Creds,
+		Amount:      maxBalance - increment,
+		Index:       uint64(len(genDeposits)),
+	}
 
-// 	// check the smallest validator Withdraw epoch is updated
-// 	smallVal1Idx, err := st.ValidatorIndexByPubkey(smallest1Val.Pubkey)
-// 	require.NoError(t, err)
-// 	smallVal1, err := st.ValidatorByIndex(smallVal1Idx)
-// 	require.NoError(t, err)
-// 	require.Equal(t, math.Slot(1), smallVal1.WithdrawableEpoch)
+	blk1 := buildNextBlock(
+		t,
+		st,
+		&types.BeaconBlockBody{
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:    10,
+				ExtraData:    []byte("testing"),
+				Transactions: [][]byte{},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					st.EVMInflationWithdrawal(),
+				},
+				BaseFeePerGas: math.NewU256(0),
+			},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: []*types.Deposit{extraValDeposit1},
+		},
+	)
 
-// 	smallVal1Balance, err := st.GetBalance(smallVal1Idx)
-// 	require.NoError(t, err)
-// 	require.Equal(t, smallest1Val.Amount, smallVal1Balance)
+	// make sure included deposit is already available in deposit store
+	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits))
 
-// 	// check that extra validator is added
-// 	extraVal1Idx, err := st.ValidatorIndexByPubkey(extraVal1Key)
-// 	require.NoError(t, err)
-// 	extraVal1, err := st.ValidatorByIndex(extraVal1Idx)
-// 	require.NoError(t, err)
-// 	require.Equal(t,
-// 		math.Epoch(constants.FarFutureEpoch), extraVal1.WithdrawableEpoch,
-// 	)
+	// run the test
+	vals, err := sp.Transition(ctx, st, blk1)
+	require.NoError(t, err)
+	require.Empty(t, vals) // no vals changes expected before next epoch
 
-// 	// STEP 2: add a second, large deposit to evict second smallest validator
-// 	extraVal2Key, rndSeed := generateTestPK(t, rndSeed)
-// 	extraVal2Creds, _ := generateTestExecutionAddress(t, rndSeed)
-// 	extraVal2Deposit := &types.Deposit{
-// 		Pubkey:      extraVal2Key,
-// 		Credentials: extraVal2Creds,
-// 		Amount:      maxBalance,
-// 		Index:       uint64(len(genDeposits) + 1),
-// 	}
+	// check the smallest validator Withdraw epoch is updated
+	smallVal1Idx, err := st.ValidatorIndexByPubkey(smallest1Val.Pubkey)
+	require.NoError(t, err)
+	smallVal1, err := st.ValidatorByIndex(smallVal1Idx)
+	require.NoError(t, err)
+	require.Equal(t, math.Slot(1), smallVal1.WithdrawableEpoch)
 
-// 	blk2 := buildNextBlock(
-// 		t,
-// 		st,
-// 		&types.BeaconBlockBody{
-// 			ExecutionPayload: dummyExecutionPayload,
-// 			Eth1Data:         &types.Eth1Data{},
-// 			Deposits:         []*types.Deposit{extraVal2Deposit},
-// 		},
-// 	)
+	smallVal1Balance, err := st.GetBalance(smallVal1Idx)
+	require.NoError(t, err)
+	require.Equal(t, smallest1Val.Amount, smallVal1Balance)
 
-// 	// run the test
-// 	vals, err = sp.Transition(ctx, st, blk2)
-// 	require.NoError(t, err)
-// 	require.Empty(t, vals) // no vals changes expected before next epoch
+	// check that extra validator is added
+	extraVal1Idx, err := st.ValidatorIndexByPubkey(extraVal1Key)
+	require.NoError(t, err)
+	extraVal1, err := st.ValidatorByIndex(extraVal1Idx)
+	require.NoError(t, err)
+	require.Equal(t,
+		math.Epoch(constants.FarFutureEpoch), extraVal1.WithdrawableEpoch,
+	)
 
-// 	// check the second smallest validator Withdraw epoch is updated
-// 	smallVal2Idx, err := st.ValidatorIndexByPubkey(smallestVal2.Pubkey)
-// 	require.NoError(t, err)
-// 	smallVal2, err := st.ValidatorByIndex(smallVal2Idx)
-// 	require.NoError(t, err)
-// 	require.Equal(t, math.Slot(1), smallVal2.WithdrawableEpoch)
+	// STEP 2: add a second, large deposit to evict second smallest validator
+	extraVal2Key, rndSeed := generateTestPK(t, rndSeed)
+	extraVal2Creds, _ := generateTestExecutionAddress(t, rndSeed)
+	extraVal2Deposit := &types.Deposit{
+		Pubkey:      extraVal2Key,
+		Credentials: extraVal2Creds,
+		Amount:      maxBalance,
+		Index:       uint64(len(genDeposits) + 1),
+	}
 
-// 	smallVal2Balance, err := st.GetBalance(smallVal2Idx)
-// 	require.NoError(t, err)
-// 	require.Equal(t, smallestVal2.Amount, smallVal2Balance)
+	blk2 := buildNextBlock(
+		t,
+		st,
+		&types.BeaconBlockBody{
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:    blk1.Body.ExecutionPayload.Timestamp + 1,
+				ExtraData:    []byte("testing"),
+				Transactions: [][]byte{},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					st.EVMInflationWithdrawal(),
+				},
+				BaseFeePerGas: math.NewU256(0),
+			},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: []*types.Deposit{extraVal2Deposit},
+		},
+	)
 
-// 	// check that extra validator is added
-// 	extraVal2Idx, err := st.ValidatorIndexByPubkey(extraVal2Key)
-// 	require.NoError(t, err)
-// 	extraVal2, err := st.ValidatorByIndex(extraVal2Idx)
-// 	require.NoError(t, err)
-// 	require.Equal(t,
-// 		math.Epoch(constants.FarFutureEpoch), extraVal2.WithdrawableEpoch,
-// 	)
+	// make sure included deposit is already available in deposit store
+	require.NoError(t, ds.EnqueueDeposits(blk2.Body.Deposits))
 
-// 	// STEP 3: move to next epoch
-// 	var blk *types.BeaconBlock
-// 	for i := 2; i < int(cs.SlotsPerEpoch())-1; i++ {
-// 		blk = buildNextBlock(
-// 			t,
-// 			st,
-// 			&types.BeaconBlockBody{
-// 				ExecutionPayload: dummyExecutionPayload,
-// 				Eth1Data:         &types.Eth1Data{},
-// 				Deposits:         []*types.Deposit{},
-// 			},
-// 		)
+	// run the test
+	vals, err = sp.Transition(ctx, st, blk2)
+	require.NoError(t, err)
+	require.Empty(t, vals) // no vals changes expected before next epoch
 
-// 		vals, err = sp.Transition(ctx, st, blk)
-// 		require.NoError(t, err)
-// 		require.Empty(t, vals) // no vals changes expected before next epoch
-// 	}
+	// check the second smallest validator Withdraw epoch is updated
+	smallVal2Idx, err := st.ValidatorIndexByPubkey(smallestVal2.Pubkey)
+	require.NoError(t, err)
+	smallVal2, err := st.ValidatorByIndex(smallVal2Idx)
+	require.NoError(t, err)
+	require.Equal(t, math.Slot(1), smallVal2.WithdrawableEpoch)
 
-// 	blk = buildNextBlock(
-// 		t,
-// 		st,
-// 		&types.BeaconBlockBody{
-// 			ExecutionPayload: &types.ExecutionPayload{
-// 				Timestamp:    blk1.Body.ExecutionPayload.Timestamp + 1,
-// 				ExtraData:    []byte("testing"),
-// 				Transactions: [][]byte{},
-// 				Withdrawals: []*engineprimitives.Withdrawal{
-// 					{
-// 						Index:     0,
-// 						Validator: smallVal1Idx,
-// 						Address:   smallest1ValAddr,
-// 						Amount:    smallest1Val.Amount,
-// 					},
-// 					{
-// 						Index:     1,
-// 						Validator: smallVal2Idx,
-// 						Address:   smallestVal2Addr,
-// 						Amount:    smallestVal2.Amount,
-// 					},
-// 				},
-// 				BaseFeePerGas: math.NewU256(0),
-// 			},
-// 			Eth1Data: &types.Eth1Data{},
-// 			Deposits: []*types.Deposit{},
-// 		},
-// 	)
+	smallVal2Balance, err := st.GetBalance(smallVal2Idx)
+	require.NoError(t, err)
+	require.Equal(t, smallestVal2.Amount, smallVal2Balance)
 
-// 	vals, err = sp.Transition(ctx, st, blk)
-// 	require.NoError(t, err)
-// 	require.LessOrEqual(t, uint64(len(vals)), cs.ValidatorSetCap())
-// 	require.Len(t, vals, 4) // just replaced two validators
+	// check that extra validator is added
+	extraVal2Idx, err := st.ValidatorIndexByPubkey(extraVal2Key)
+	require.NoError(t, err)
+	extraVal2, err := st.ValidatorByIndex(extraVal2Idx)
+	require.NoError(t, err)
+	require.Equal(t,
+		math.Epoch(constants.FarFutureEpoch), extraVal2.WithdrawableEpoch,
+	)
 
-// 	// turn vals into map to avoid ordering issues
-// 	valsSet := make(map[string]*transition.ValidatorUpdate)
-// 	for _, v := range vals {
-// 		valsSet[v.Pubkey.String()] = v
-// 	}
-// 	require.Equal(t, len(vals), len(valsSet)) // no duplicates
+	// STEP 3: move to next epoch
+	blk := blk2
+	currEpoch := cs.SlotToEpoch(blk.GetSlot())
+	for currEpoch == cs.SlotToEpoch(blk.GetSlot()+1) {
+		blk = buildNextBlock(
+			t,
+			st,
+			&types.BeaconBlockBody{
+				ExecutionPayload: &types.ExecutionPayload{
+					Timestamp:    blk.Body.ExecutionPayload.Timestamp + 1,
+					ExtraData:    []byte("testing"),
+					Transactions: [][]byte{},
+					Withdrawals: []*engineprimitives.Withdrawal{
+						st.EVMInflationWithdrawal(),
+					},
+					BaseFeePerGas: math.NewU256(0),
+				},
+				Eth1Data: &types.Eth1Data{},
+				Deposits: []*types.Deposit{},
+			},
+		)
 
-// 	// check that we added the incoming validator at the epoch turn
-// 	addedVal1, found := valsSet[extraVal1.Pubkey.String()]
-// 	require.True(t, found)
-// 	require.Equal(t, extraVal1.EffectiveBalance, addedVal1.EffectiveBalance)
+		vals, err = sp.Transition(ctx, st, blk)
+		require.NoError(t, err)
+		require.Empty(t, vals) // no vals changes expected before next epoch
+	}
 
-// 	addedVal2, found := valsSet[extraVal2.Pubkey.String()]
-// 	require.True(t, found)
-// 	require.Equal(t, extraVal2.EffectiveBalance, addedVal2.EffectiveBalance)
+	blk = buildNextBlock(
+		t,
+		st,
+		&types.BeaconBlockBody{
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:    blk1.Body.ExecutionPayload.Timestamp + 1,
+				ExtraData:    []byte("testing"),
+				Transactions: [][]byte{},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					st.EVMInflationWithdrawal(),
+					{
+						Index:     0,
+						Validator: smallVal1Idx,
+						Address:   smallest1ValAddr,
+						Amount:    smallest1Val.Amount,
+					},
+					{
+						Index:     1,
+						Validator: smallVal2Idx,
+						Address:   smallestVal2Addr,
+						Amount:    smallestVal2.Amount,
+					},
+				},
+				BaseFeePerGas: math.NewU256(0),
+			},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: []*types.Deposit{},
+		},
+	)
 
-// 	// check that we removed the smallest validators at the epoch turn
-// 	removedVal1, found := valsSet[smallVal1.Pubkey.String()]
-// 	require.True(t, found)
-// 	require.Equal(t, math.Gwei(0), removedVal1.EffectiveBalance)
+	vals, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+	require.LessOrEqual(t, uint64(len(vals)), cs.ValidatorSetCap())
+	require.Len(t, vals, 4) // just replaced two validators
 
-// 	removeldVal2, found := valsSet[smallVal2.Pubkey.String()]
-// 	require.True(t, found)
-// 	require.Equal(t, math.Gwei(0), removeldVal2.EffectiveBalance)
-// }
+	// turn vals into map to avoid ordering issues
+	valsSet := make(map[string]*transition.ValidatorUpdate)
+	for _, v := range vals {
+		valsSet[v.Pubkey.String()] = v
+	}
+	require.Equal(t, len(vals), len(valsSet)) // no duplicates
 
-// func generateTestExecutionAddress(
-// 	t *testing.T,
-// 	rndSeed int,
-// ) (types.WithdrawalCredentials, int) {
-// 	t.Helper()
+	// check that we added the incoming validator at the epoch turn
+	addedVal1, found := valsSet[extraVal1.Pubkey.String()]
+	require.True(t, found)
+	require.Equal(t, extraVal1.EffectiveBalance, addedVal1.EffectiveBalance)
 
-// 	addrStr := strconv.Itoa(rndSeed)
-// 	addrBytes := bytes.ExtendToSize([]byte(addrStr), bytes.B20Size)
-// 	execAddr, err := bytes.ToBytes20(addrBytes)
-// 	require.NoError(t, err)
-// 	rndSeed++
-// 	return types.NewCredentialsFromExecutionAddress(
-// 		common.ExecutionAddress(execAddr),
-// 	), rndSeed
-// }
+	addedVal2, found := valsSet[extraVal2.Pubkey.String()]
+	require.True(t, found)
+	require.Equal(t, extraVal2.EffectiveBalance, addedVal2.EffectiveBalance)
 
-// func generateTestPK(t *testing.T, rndSeed int) (bytes.B48, int) {
-// 	t.Helper()
-// 	keyStr := strconv.Itoa(rndSeed)
-// 	keyBytes := bytes.ExtendToSize([]byte(keyStr), bytes.B48Size)
-// 	key, err := bytes.ToBytes48(keyBytes)
-// 	require.NoError(t, err)
-// 	rndSeed++
-// 	return key, rndSeed
-// }
+	// check that we removed the smallest validators at the epoch turn
+	removedVal1, found := valsSet[smallVal1.Pubkey.String()]
+	require.True(t, found)
+	require.Equal(t, math.Gwei(0), removedVal1.EffectiveBalance)
+
+	removeldVal2, found := valsSet[smallVal2.Pubkey.String()]
+	require.True(t, found)
+	require.Equal(t, math.Gwei(0), removeldVal2.EffectiveBalance)
+}
+
+func generateTestExecutionAddress(
+	t *testing.T,
+	rndSeed int,
+) (types.WithdrawalCredentials, int) {
+	t.Helper()
+
+	addrStr := strconv.Itoa(rndSeed)
+	addrBytes := bytes.ExtendToSize([]byte(addrStr), bytes.B20Size)
+	execAddr, err := bytes.ToBytes20(addrBytes)
+	require.NoError(t, err)
+	rndSeed++
+	return types.NewCredentialsFromExecutionAddress(
+		common.ExecutionAddress(execAddr),
+	), rndSeed
+}
+
+func generateTestPK(t *testing.T, rndSeed int) (bytes.B48, int) {
+	t.Helper()
+	keyStr := strconv.Itoa(rndSeed)
+	keyBytes := bytes.ExtendToSize([]byte(keyStr), bytes.B48Size)
+	key, err := bytes.ToBytes48(keyBytes)
+	require.NoError(t, err)
+	rndSeed++
+	return key, rndSeed
+}

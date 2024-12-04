@@ -124,7 +124,8 @@ func TestInitialize(t *testing.T) {
 		checkValidatorNonBartio(t, cs, st, dep)
 	}
 
-	// check that validator index is duly set
+	// check that deposit index is duly set. On betnet
+	// deposit index is set to the last accepted deposit.
 	latestValIdx, err := st.GetEth1DepositIndex()
 	require.NoError(t, err)
 	require.Equal(t, uint64(len(genDeposits)-1), latestValIdx)
@@ -246,7 +247,8 @@ func TestInitializeBartio(t *testing.T) {
 		checkValidatorBartio(t, cs, st, dep)
 	}
 
-	// check that validator index is duly set
+	// check that deposit index is duly set. On Bartio
+	// deposit index is off by 1.
 	latestValIdx, err := st.GetEth1DepositIndex()
 	require.NoError(t, err)
 	require.Equal(t, uint64(len(genDeposits)), latestValIdx)

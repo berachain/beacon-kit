@@ -131,7 +131,6 @@ func (sp *StateProcessor[
 		"deposit_amount", float64(dep.GetAmount().Unwrap())/math.GweiPerWei,
 		"validator_index", idx,
 	)
-
 	return nil
 }
 
@@ -340,7 +339,7 @@ func (sp *StateProcessor[
 		"Processed deposit to create new validator",
 		"deposit_amount", float64(depositAmount.Unwrap())/math.GweiPerWei,
 		"validator_index", idx,
+		"withdrawal_epoch", val.GetWithdrawableEpoch(),
 	)
-
 	return nil
 }
