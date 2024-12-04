@@ -34,6 +34,13 @@ import (
 
 type Node = nodetypes.Node
 
+const (
+	// DefaultNodeName represents the default name for the beacon node
+	DefaultNodeName = "beacond"
+	// DefaultNodeDescription represents the default description for the beacon node
+	DefaultNodeDescription = "A basic beacon node, usable most standard networks."
+)
+
 // run runs the beacon node.
 func run() error {
 	// Set the uber max procs
@@ -53,18 +60,18 @@ func run() error {
 	cb := clibuilder.New(
 		// Set the Name to the Default.
 		clibuilder.WithName[Node, *ExecutionPayload, *Logger](
-			"beacond",
+			DefaultNodeName,
 		),
 		// Set the Description to the Default.
 		clibuilder.WithDescription[Node, *ExecutionPayload, *Logger](
-			"A basic beacon node, usable most standard networks.",
+			DefaultNodeDescription,
 		),
 		// Set the Runtime Components to the Default.
 		clibuilder.WithComponents[Node, *ExecutionPayload, *Logger](
 			append(
 				clicomponents.DefaultClientComponents(),
-				// TODO: remove these, and eventually pull cfg and chainspec
-				// from built node
+				// TODO(#issue-number): Remove these components and implement proper
+				// configuration and chain specification loading from the built node
 				nodecomponents.ProvideChainSpec,
 			),
 		),

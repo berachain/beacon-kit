@@ -28,11 +28,12 @@ import (
 )
 
 /* -------------------------------------------------------------------------- */
-/*                                   Info                                     */
+/*                                    Info                                      */
 /* -------------------------------------------------------------------------- */
 
 // Benchmark function for phuslu logger with pretty style.
 func BenchmarkPhusluLoggerPrettyInfo(b *testing.B) {
+	b.SetBytes(1) // every operation is 1 log message
 	logger := newPhusluLogger().WithConfig(configWithPretty("info"))
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
@@ -50,7 +51,7 @@ func BenchmarkPhusluLoggerJSONInfo(b *testing.B) {
 }
 
 /* -------------------------------------------------------------------------- */
-/*                                   Warn                                     */
+/*                                    Warn                                      */
 /* -------------------------------------------------------------------------- */
 
 // Benchmark function for phuslu logger Warn.
@@ -72,7 +73,7 @@ func BenchmarkPhusluLoggerJSONWarn(b *testing.B) {
 }
 
 /* -------------------------------------------------------------------------- */
-/*                                   Error                                    */
+/*                                    Error                                     */
 /* -------------------------------------------------------------------------- */
 
 // Benchmark function for phuslu logger Error.
@@ -94,7 +95,7 @@ func BenchmarkPhusluLoggerJSONError(b *testing.B) {
 }
 
 /* -------------------------------------------------------------------------- */
-/*                                   Debug                                    */
+/*                                    Debug                                     */
 /* -------------------------------------------------------------------------- */
 
 // Benchmark function for phuslu logger Debug.
@@ -132,7 +133,7 @@ func BenchmarkPhusluLoggerJSONDebugSilent(b *testing.B) {
 }
 
 /* -------------------------------------------------------------------------- */
-/*                                   With                                     */
+/*                                    With                                      */
 /* -------------------------------------------------------------------------- */
 
 // Benchmark function for phuslu logger With.
@@ -158,7 +159,7 @@ func BenchmarkPhusluLoggerJSONWith(b *testing.B) {
 }
 
 /* -------------------------------------------------------------------------- */
-/*                                   Helpers                                  */
+/*                                   Helpers                                    */
 /* -------------------------------------------------------------------------- */
 
 // setup func to create a new phuslu logger with the given log level.
