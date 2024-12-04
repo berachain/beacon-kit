@@ -221,6 +221,7 @@ func (h *ABCIMiddleware[
 		blk,
 		req.GetProposerAddress(),
 		req.GetTime(),
+		false, // ProcessProposal is not called during state sync
 	)
 	blkEvent := async.NewEvent(ctx, async.BeaconBlockReceived, consensusBlk)
 	if err = h.dispatcher.Publish(blkEvent); err != nil {
@@ -346,6 +347,11 @@ func (h *ABCIMiddleware[
 		blk,
 		req.GetProposerAddress(),
 		req.GetTime(),
+
+		// Finalize may be called while syncing. In such a case
+		// we must perform payload verification since block we do
+		// not verify block with ProcessBlock.
+		req.SyncingToHeight != req.Height,
 	)
 	blkEvent := async.NewEvent(
 		ctx,

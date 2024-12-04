@@ -126,10 +126,9 @@ func (s *Service[
 			// of validators in their process proposal call and thus
 			// the "verification aspect" of this NewPayload call is
 			// actually irrelevant at this point.
-			SkipPayloadVerification: false,
-
-			ProposerAddress: blk.GetProposerAddress(),
-			ConsensusTime:   blk.GetConsensusTime(),
+			SkipPayloadVerification: !blk.GetConsensusSyncing(),
+			ProposerAddress:         blk.GetProposerAddress(),
+			ConsensusTime:           blk.GetConsensusTime(),
 		},
 		st,
 		blk.GetBeaconBlock(),
