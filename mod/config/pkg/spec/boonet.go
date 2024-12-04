@@ -52,7 +52,7 @@ func BoonetChainSpec() (chain.Spec[
 	// ValidatorSetCap is 256 on the Boonet chain.
 	//
 	// TODO: Determine correct value for boonet upgrade.
-	boonetSpec.ValidatorSetCap = 7
+	boonetSpec.ValidatorSetCap = 5
 
 	// MaxValidatorsPerWithdrawalsSweep is 43 because we expect at least 46
 	// validators in the total validators set. We choose a prime number smaller
