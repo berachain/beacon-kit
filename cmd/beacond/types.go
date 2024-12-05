@@ -37,7 +37,6 @@ import (
 	execution "github.com/berachain/beacon-kit/execution/engine"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-api/backend"
-	blockstore "github.com/berachain/beacon-kit/node-api/block_store"
 	"github.com/berachain/beacon-kit/node-api/engines/echo"
 	"github.com/berachain/beacon-kit/node-api/server"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
@@ -78,9 +77,6 @@ type (
 		*BlobSidecar,
 		*BlobSidecars,
 	]
-
-	// BlockStoreService is a type alias for the block store service.
-	BlockStoreService = blockstore.Service[*BeaconBlock, *BlockStore]
 
 	// ChainService is a type alias for the chain service.
 	ChainService = blockchain.Service[

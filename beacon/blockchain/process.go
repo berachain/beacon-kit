@@ -87,6 +87,13 @@ func (s *Service[
 		return nil, err
 	}
 
+	slot := beaconBlk.GetSlot()
+	if err := s.store.Set(beaconBlk); err != nil {
+		s.logger.Error(
+			"failed to store block", "slot", slot, "error", err,
+		)
+	}
+
 	go s.sendPostBlockFCU(ctx, st, blk)
 
 	return valUpdates.CanonicalSort(), nil
