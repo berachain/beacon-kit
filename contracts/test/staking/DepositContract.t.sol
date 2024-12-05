@@ -84,9 +84,9 @@ contract DepositContractTest is SoladyTest, StdCheats {
 
     function test_DepositWrongAmount() public {
         vm.expectRevert(IDepositContract.InsufficientDeposit.selector);
-        vm.deal(depositor, 31 ether);
         vm.prank(depositor);
-        depositContract.deposit{ value: 31 ether }(
+        // send with 0 ether
+        depositContract.deposit(
             VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte(), depositor
         );
     }
