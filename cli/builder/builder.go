@@ -42,6 +42,7 @@ type CLIBuilder[
 	T types.Node,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 	LoggerT log.AdvancedLogger[LoggerT],
+	ChainServiceT any,
 ] struct {
 	name        string
 	description string
@@ -52,7 +53,7 @@ type CLIBuilder[
 	// nodeBuilderFunc is a function that builds the Node,
 	// eventually called by the cosmos-sdk.
 	// TODO: CLI should not know about the AppCreator
-	nodeBuilderFunc servertypes.AppCreator[T, LoggerT]
+	nodeBuilderFunc servertypes.AppCreator[T, LoggerT, ChainServiceT]
 }
 
 // New returns a new CLIBuilder with the given options.
@@ -60,10 +61,11 @@ func New[
 	T types.Node,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 	LoggerT log.AdvancedLogger[LoggerT],
+	ChainServiceT any,
 ](
-	opts ...Opt[T, ExecutionPayloadT, LoggerT],
-) *CLIBuilder[T, ExecutionPayloadT, LoggerT] {
-	cb := &CLIBuilder[T, ExecutionPayloadT, LoggerT]{
+	opts ...Opt[T, ExecutionPayloadT, LoggerT, ChainServiceT],
+) *CLIBuilder[T, ExecutionPayloadT, LoggerT, ChainServiceT] {
+	cb := &CLIBuilder[T, ExecutionPayloadT, LoggerT, ChainServiceT]{
 		suppliers: []any{
 			os.Stdout, // supply io.Writer for logger
 		},
@@ -76,7 +78,7 @@ func New[
 
 // Build builds the CLI commands.
 func (cb *CLIBuilder[
-	T, ExecutionPayloadT, LoggerT,
+	T, ExecutionPayloadT, LoggerT, ChainServiceT,
 ]) Build() (*cmdlib.Root, error) {
 	// allocate memory to hold the dependencies
 	var (
@@ -111,7 +113,7 @@ func (cb *CLIBuilder[
 	// apply default root command setup
 	cmdlib.DefaultRootCommandSetup[T, ExecutionPayloadT](
 		rootCmd,
-		&cometbft.Service[LoggerT]{},
+		&cometbft.Service[LoggerT, ChainServiceT]{},
 		cb.nodeBuilderFunc,
 		chainSpec,
 	)
@@ -120,7 +122,7 @@ func (cb *CLIBuilder[
 }
 
 // defaultRunHandler returns the default run handler for the CLIBuilder.
-func (cb *CLIBuilder[_, _, LoggerT]) defaultRunHandler(
+func (cb *CLIBuilder[_, _, LoggerT, _]) defaultRunHandler(
 	logger LoggerT,
 ) func(cmd *cobra.Command) error {
 	return func(cmd *cobra.Command) error {
@@ -134,7 +136,7 @@ func (cb *CLIBuilder[_, _, LoggerT]) defaultRunHandler(
 	}
 }
 
-func (cb *CLIBuilder[_, _, LoggerT]) InterceptConfigsPreRunHandler(
+func (cb *CLIBuilder[_, _, LoggerT, _]) InterceptConfigsPreRunHandler(
 	cmd *cobra.Command,
 	logger LoggerT,
 	customAppConfigTemplate string,

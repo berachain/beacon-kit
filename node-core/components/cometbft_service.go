@@ -34,22 +34,25 @@ import (
 // ProvideCometBFTService provides the CometBFT service component.
 func ProvideCometBFTService[
 	LoggerT log.AdvancedLogger[LoggerT],
+	ChainServiceT any,
 ](
 	logger LoggerT,
+	chainService ChainServiceT,
 	storeKey *storetypes.KVStoreKey,
 	abciMiddleware cometbft.MiddlewareI,
 	db dbm.DB,
 	cmtCfg *cmtcfg.Config,
 	appOpts config.AppOptions,
 	chainSpec common.ChainSpec,
-) *cometbft.Service[LoggerT] {
+) *cometbft.Service[LoggerT, ChainServiceT] {
 	return cometbft.NewService(
 		storeKey,
+		chainService,
 		logger,
 		db,
 		abciMiddleware,
 		cmtCfg,
 		chainSpec,
-		builder.DefaultServiceOptions[LoggerT](appOpts)...,
+		builder.DefaultServiceOptions[LoggerT, ChainServiceT](appOpts)...,
 	)
 }

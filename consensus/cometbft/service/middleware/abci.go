@@ -44,8 +44,7 @@ func (h *ABCIMiddleware[_, _, _, GenesisT, _]) InitGenesis(
 	ctx sdk.Context,
 	bz []byte,
 ) (transition.ValidatorUpdates, error) {
-	waitCtx, cancel := context.WithTimeout(ctx, AwaitTimeout)
-	defer cancel()
+	h.logger.Warn("!!!!! middleware::abci::[InitGenesis] InitGenesis invoked by cometbft")
 
 	data := new(GenesisT)
 	if err := json.Unmarshal(bz, data); err != nil {
@@ -53,25 +52,9 @@ func (h *ABCIMiddleware[_, _, _, GenesisT, _]) InitGenesis(
 		return nil, err
 	}
 
-	if err := h.dispatcher.Publish(
-		async.NewEvent(ctx, async.GenesisDataReceived, *data),
-	); err != nil {
-		return nil, err
-	}
-	return h.waitForGenesisProcessed(waitCtx)
-}
+	return nil, nil
 
-// waitForGenesisProcessed waits until the genesis data has been processed and
-// returns the validator updates, or err if the context is cancelled.
-func (h *ABCIMiddleware[_, _, _, _, _]) waitForGenesisProcessed(
-	ctx context.Context,
-) (transition.ValidatorUpdates, error) {
-	select {
-	case <-ctx.Done():
-		return nil, ErrInitGenesisTimeout(ctx.Err())
-	case gdpEvent := <-h.subGenDataProcessed:
-		return gdpEvent.Data(), gdpEvent.Error()
-	}
+	//return blockchain.ProcessGenesisData(ctx, data)
 }
 
 /* -------------------------------------------------------------------------- */

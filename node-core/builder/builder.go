@@ -45,6 +45,7 @@ type NodeBuilder[
 		log.Configurable[LoggerT, LoggerConfigT]
 	},
 	LoggerConfigT any,
+	ChainServiceT any,
 ] struct {
 	// components is a list of components to provide.
 	components []any
@@ -58,10 +59,11 @@ func New[
 		log.Configurable[LoggerT, LoggerConfigT]
 	},
 	LoggerConfigT any,
+	ChainServiceT any,
 ](
-	opts ...Opt[NodeT, LoggerT, LoggerConfigT],
-) *NodeBuilder[NodeT, LoggerT, LoggerConfigT] {
-	nb := &NodeBuilder[NodeT, LoggerT, LoggerConfigT]{}
+	opts ...Opt[NodeT, LoggerT, LoggerConfigT, ChainServiceT],
+) *NodeBuilder[NodeT, LoggerT, LoggerConfigT, ChainServiceT] {
+	nb := &NodeBuilder[NodeT, LoggerT, LoggerConfigT, ChainServiceT]{}
 	for _, opt := range opts {
 		opt(nb)
 	}
@@ -71,8 +73,9 @@ func New[
 // Build uses the node builder options and runtime parameters to
 // build a new instance of the node.
 // It is necessary to adhere to the types.AppCreator[T] interface.
-func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
+func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT, ChainServiceT]) Build(
 	logger LoggerT,
+	chainService ChainServiceT,
 	db dbm.DB,
 	_ io.Writer,
 	cmtCfg *cmtcfg.Config,
@@ -81,10 +84,10 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 	// variables to hold the components needed to set up BeaconApp
 	var (
 		apiBackend interface {
-			AttachQueryBackend(*cometbft.Service[LoggerT])
+			AttachQueryBackend(*cometbft.Service[LoggerT, ChainServiceT])
 		}
 		beaconNode NodeT
-		cmtService *cometbft.Service[LoggerT]
+		cmtService *cometbft.Service[LoggerT, ChainServiceT]
 		config     *config.Config
 	)
 
@@ -97,6 +100,7 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 			depinject.Supply(
 				appOpts,
 				logger,
+				chainService,
 				db,
 				cmtCfg,
 			),

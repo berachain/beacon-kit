@@ -71,6 +71,7 @@ type ServiceRegistryInput[
 	NodeAPIContextT NodeAPIContext,
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalsT Withdrawals[WithdrawalT],
+	ChainServiceT any,
 ] struct {
 	depinject.In
 	ABCIService *middleware.ABCIMiddleware[
@@ -114,7 +115,7 @@ type ServiceRegistryInput[
 		*Eth1Data, ExecutionPayloadT, ExecutionPayloadHeaderT,
 		*ForkData, *SlashingInfo, *SlotData,
 	]
-	CometBFTService *cometbft.Service[LoggerT]
+	CometBFTService *cometbft.Service[LoggerT, ChainServiceT]
 }
 
 // ProvideServiceRegistry is the depinject provider for the service registry.
@@ -148,6 +149,7 @@ func ProvideServiceRegistry[
 	NodeAPIContextT NodeAPIContext,
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalsT Withdrawals[WithdrawalT],
+	ChainServiceT any,
 ](
 	in ServiceRegistryInput[
 		AvailabilityStoreT,
@@ -156,7 +158,7 @@ func ProvideServiceRegistry[
 		BeaconStateMarshallableT,
 		ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
 		DepositT, DepositStoreT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-		GenesisT, KVStoreT, LoggerT, NodeAPIContextT, WithdrawalT, WithdrawalsT,
+		GenesisT, KVStoreT, LoggerT, NodeAPIContextT, WithdrawalT, WithdrawalsT, ChainServiceT,
 	],
 ) *service.Registry {
 	return service.NewRegistry(

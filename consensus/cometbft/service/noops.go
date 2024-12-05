@@ -26,56 +26,56 @@ import (
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 )
 
-func (Service[_]) Query(
+func (Service[_, _]) Query(
 	context.Context,
 	*abci.QueryRequest,
 ) (*abci.QueryResponse, error) {
 	return &abci.QueryResponse{}, nil
 }
 
-func (Service[_]) ListSnapshots(
+func (Service[_, _]) ListSnapshots(
 	context.Context,
 	*abci.ListSnapshotsRequest,
 ) (*abci.ListSnapshotsResponse, error) {
 	return &abci.ListSnapshotsResponse{}, nil
 }
 
-func (Service[_]) LoadSnapshotChunk(
+func (Service[_, _]) LoadSnapshotChunk(
 	context.Context,
 	*abci.LoadSnapshotChunkRequest,
 ) (*abci.LoadSnapshotChunkResponse, error) {
 	return &abci.LoadSnapshotChunkResponse{}, nil
 }
 
-func (Service[_]) OfferSnapshot(
+func (Service[_, _]) OfferSnapshot(
 	context.Context,
 	*abci.OfferSnapshotRequest,
 ) (*abci.OfferSnapshotResponse, error) {
 	return &abci.OfferSnapshotResponse{}, nil
 }
 
-func (Service[_]) ApplySnapshotChunk(
+func (Service[_, _]) ApplySnapshotChunk(
 	context.Context,
 	*abci.ApplySnapshotChunkRequest,
 ) (*abci.ApplySnapshotChunkResponse, error) {
 	return &abci.ApplySnapshotChunkResponse{}, nil
 }
 
-func (Service[_]) ExtendVote(
+func (Service[_, _]) ExtendVote(
 	context.Context,
 	*abci.ExtendVoteRequest,
 ) (*abci.ExtendVoteResponse, error) {
 	return &abci.ExtendVoteResponse{}, nil
 }
 
-func (Service[_]) VerifyVoteExtension(
+func (Service[_, _]) VerifyVoteExtension(
 	context.Context,
 	*abci.VerifyVoteExtensionRequest,
 ) (*abci.VerifyVoteExtensionResponse, error) {
 	return &abci.VerifyVoteExtensionResponse{}, nil
 }
 
-func (*Service[_]) CheckTx(
+func (*Service[_, _]) CheckTx(
 	context.Context,
 	*abci.CheckTxRequest,
 ) (*abci.CheckTxResponse, error) {

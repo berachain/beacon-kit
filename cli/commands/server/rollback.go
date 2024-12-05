@@ -42,8 +42,9 @@ func NewRollbackCmd[
 		CommitMultiStore() store.CommitMultiStore
 	},
 	LoggerT log.AdvancedLogger[LoggerT],
+	ChainServiceT any,
 ](
-	appCreator types.AppCreator[T, LoggerT],
+	appCreator types.AppCreator[T, LoggerT, ChainServiceT],
 ) *cobra.Command {
 	var removeBlock bool
 

@@ -42,9 +42,10 @@ func DefaultRootCommandSetup[
 	T types.Node,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 	LoggerT log.AdvancedLogger[LoggerT],
+	ChainServiceT any,
 ](
 	root *Root,
-	mm *cometbft.Service[LoggerT],
+	mm *cometbft.Service[LoggerT, ChainServiceT],
 	appCreator servertypes.AppCreator[T, LoggerT],
 	chainSpec common.ChainSpec,
 ) {

@@ -33,7 +33,8 @@ type Opt[
 		log.Configurable[LoggerT, LoggerConfigT]
 	},
 	LoggerConfigT any,
-] func(*NodeBuilder[NodeT, LoggerT, LoggerConfigT])
+	ChainServiceT any,
+] func(*NodeBuilder[NodeT, LoggerT, LoggerConfigT, ChainServiceT])
 
 // WithComponents is a function that sets the components for the NodeBuilder.
 func WithComponents[
@@ -43,8 +44,9 @@ func WithComponents[
 		log.Configurable[LoggerT, LoggerConfigT]
 	},
 	LoggerConfigT any,
-](components []any) Opt[NodeT, LoggerT, LoggerConfigT] {
-	return func(nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) {
+	ChainServiceT any,
+](components []any) Opt[NodeT, LoggerT, LoggerConfigT, ChainServiceT] {
+	return func(nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT, ChainServiceT]) {
 		nb.components = components
 	}
 }

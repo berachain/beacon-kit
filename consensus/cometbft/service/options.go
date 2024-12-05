@@ -32,8 +32,9 @@ import (
 // SetPruning sets a pruning option on the multistore associated with the s.
 func SetPruning[
 	LoggerT log.AdvancedLogger[LoggerT],
-](opts pruningtypes.PruningOptions) func(*Service[LoggerT]) {
-	return func(bs *Service[LoggerT]) { bs.sm.CommitMultiStore().SetPruning(opts) }
+	ChainServiceT any,
+](opts pruningtypes.PruningOptions) func(*Service[LoggerT, ChainServiceT]) {
+	return func(bs *Service[LoggerT, ChainServiceT]) { bs.sm.CommitMultiStore().SetPruning(opts) }
 }
 
 // SetMinRetainBlocks returns a Service option function that sets the minimum
@@ -41,16 +42,18 @@ func SetPruning[
 // ABCI Commit.
 func SetMinRetainBlocks[
 	LoggerT log.AdvancedLogger[LoggerT],
-](minRetainBlocks uint64) func(*Service[LoggerT]) {
-	return func(bs *Service[LoggerT]) { bs.setMinRetainBlocks(minRetainBlocks) }
+	ChainServiceT any,
+](minRetainBlocks uint64) func(*Service[LoggerT, ChainServiceT]) {
+	return func(bs *Service[LoggerT, ChainServiceT]) { bs.setMinRetainBlocks(minRetainBlocks) }
 }
 
 // SetIAVLCacheSize provides a Service option function that sets the size of
 // IAVL cache.
 func SetIAVLCacheSize[
 	LoggerT log.AdvancedLogger[LoggerT],
-](size int) func(*Service[LoggerT]) {
-	return func(bs *Service[LoggerT]) {
+	ChainServiceT any,
+](size int) func(*Service[LoggerT, ChainServiceT]) {
+	return func(bs *Service[LoggerT, ChainServiceT]) {
 		bs.sm.CommitMultiStore().SetIAVLCacheSize(size)
 	}
 }
@@ -59,8 +62,9 @@ func SetIAVLCacheSize[
 // IAVL store.
 func SetIAVLDisableFastNode[
 	LoggerT log.AdvancedLogger[LoggerT],
-](disable bool) func(*Service[LoggerT]) {
-	return func(bs *Service[LoggerT]) {
+	ChainServiceT any,
+](disable bool) func(*Service[LoggerT, ChainServiceT]) {
+	return func(bs *Service[LoggerT, ChainServiceT]) {
 		bs.sm.CommitMultiStore().SetIAVLDisableFastNode(disable)
 	}
 }
@@ -69,8 +73,9 @@ func SetIAVLDisableFastNode[
 // inter-block cache.
 func SetInterBlockCache[
 	LoggerT log.AdvancedLogger[LoggerT],
-](cache storetypes.MultiStorePersistentCache) func(*Service[LoggerT]) {
-	return func(s *Service[LoggerT]) {
+	ChainServiceT any,
+](cache storetypes.MultiStorePersistentCache) func(*Service[LoggerT, ChainServiceT]) {
+	return func(s *Service[LoggerT, ChainServiceT]) {
 		s.setInterBlockCache(cache)
 	}
 }
@@ -78,6 +83,7 @@ func SetInterBlockCache[
 // SetChainID sets the chain ID in cometbft.
 func SetChainID[
 	LoggerT log.AdvancedLogger[LoggerT],
-](chainID string) func(*Service[LoggerT]) {
-	return func(s *Service[LoggerT]) { s.chainID = chainID }
+	ChainServiceT any,
+](chainID string) func(*Service[LoggerT, ChainServiceT]) {
+	return func(s *Service[LoggerT, ChainServiceT]) { s.chainID = chainID }
 }

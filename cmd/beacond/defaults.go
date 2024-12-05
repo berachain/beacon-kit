@@ -107,7 +107,7 @@ func DefaultComponents() []any {
 		components.ProvideReportingService[
 			*ExecutionPayload, *PayloadAttributes, *Logger,
 		],
-		components.ProvideCometBFTService[*Logger],
+		components.ProvideCometBFTService[*Logger, *CometBFTService],
 		components.ProvideServiceRegistry[
 			*AvailabilityStore,
 			*ConsensusBlock, *BeaconBlock, *BeaconBlockBody,
