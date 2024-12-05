@@ -63,7 +63,7 @@ func DefaultComponents() []any {
 			*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
 			*BlobSidecars, *BlockStore, *Deposit, *DepositStore,
 			*ExecutionPayload, *ExecutionPayloadHeader, *Genesis,
-			*KVStore, *Logger, *StorageBackend,
+			*KVStore, *Logger, *StorageBackend, *BlockStore,
 		],
 		components.ProvideNode,
 		components.ProvideChainSpec,

@@ -46,6 +46,7 @@ type ChainServiceInput[
 	LoggerT any,
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalsT Withdrawals[WithdrawalT],
+	BeaconBlockStoreT BlockStore[BeaconBlockT],
 ] struct {
 	depinject.In
 
@@ -71,6 +72,7 @@ type ChainServiceInput[
 	]
 	StorageBackend StorageBackendT
 	TelemetrySink  *metrics.TelemetrySink
+	BlockStore     BeaconBlockStoreT
 }
 
 // ProvideChainService is a depinject provider for the blockchain service.
@@ -103,18 +105,19 @@ func ProvideChainService[
 	StorageBackendT StorageBackend[
 		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,
 	],
+	BeaconBlockStoreT BlockStore[BeaconBlockT],
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalsT Withdrawals[WithdrawalT],
 ](
 	in ChainServiceInput[
 		BeaconBlockT, BeaconStateT, DepositT, ExecutionPayloadT,
 		ExecutionPayloadHeaderT, StorageBackendT, LoggerT,
-		WithdrawalT, WithdrawalsT,
+		WithdrawalT, WithdrawalsT, BeaconBlockStoreT,
 	],
 ) *blockchain.Service[
 	AvailabilityStoreT,
 	ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
-	BeaconBlockHeaderT, BeaconStateT, DepositT, ExecutionPayloadT,
+	BeaconBlockHeaderT, BeaconStateT, BeaconBlockStoreT, DepositT, ExecutionPayloadT,
 	ExecutionPayloadHeaderT, GenesisT,
 	*engineprimitives.PayloadAttributes[WithdrawalT],
 ] {
@@ -125,6 +128,7 @@ func ProvideChainService[
 		BeaconBlockBodyT,
 		BeaconBlockHeaderT,
 		BeaconStateT,
+		BeaconBlockStoreT,
 		DepositT,
 		ExecutionPayloadT,
 		ExecutionPayloadHeaderT,
@@ -132,6 +136,7 @@ func ProvideChainService[
 		*engineprimitives.PayloadAttributes[WithdrawalT],
 	](
 		in.StorageBackend,
+		in.BlockStore,
 		in.Logger.With("service", "blockchain"),
 		in.ChainSpec,
 		in.Dispatcher,

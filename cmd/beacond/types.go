@@ -90,6 +90,7 @@ type (
 		*BeaconBlockBody,
 		*BeaconBlockHeader,
 		*BeaconState,
+		*BlockStore,
 		*Deposit,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
