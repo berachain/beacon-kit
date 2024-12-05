@@ -83,9 +83,6 @@ func AddGenesisDepositCmd(cs common.ChainSpec) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if depositAmount == 0 {
-				return errors.New("deposit amount cannot be 0")
-			}
 
 			// TODO: configurable.
 			currentVersion := version.FromUint32[common.Version](
@@ -94,9 +91,6 @@ func AddGenesisDepositCmd(cs common.ChainSpec) *cobra.Command {
 
 			// Get the withdrawal address.
 			withdrawalAddress := common.NewExecutionAddressFromHex(args[1])
-			if withdrawalAddress == (common.ExecutionAddress{}) {
-				return errors.New("withdrawal address cannot be empty")
-			}
 
 			depositMsg, signature, err := types.CreateAndSignDepositMessage(
 				types.NewForkData(currentVersion, common.Root{}),
