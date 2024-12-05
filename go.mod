@@ -66,7 +66,7 @@ require (
 	github.com/ethereum/go-ethereum v1.14.7
 	github.com/ferranbt/fastssz v0.1.5-0.20240903094032-455b54c08c81
 	github.com/kurtosis-tech/kurtosis/api/golang v1.1.0
-	github.com/protolambda/zrnt v0.32.2
+	github.com/protolambda/zrnt v0.32.3
 	github.com/protolambda/ztyp v0.2.2
 	github.com/rs/zerolog v1.33.0
 	github.com/stretchr/testify v1.10.0
