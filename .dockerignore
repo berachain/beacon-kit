@@ -11,3 +11,6 @@ testing/
 .git/
 .vscode/
 *.md
+contracts/
+docs/
+scripts/

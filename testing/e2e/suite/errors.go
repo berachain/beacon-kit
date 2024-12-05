@@ -20,7 +20,7 @@
 
 package suite
 
-import "github.com/berachain/beacon-kit/mod/errors"
+import "github.com/berachain/beacon-kit/errors"
 
 // ErrUnexpectedBalance is returned when the balance is unexpected.
 var ErrUnexpectedBalance = errors.New("unexpected balance")
