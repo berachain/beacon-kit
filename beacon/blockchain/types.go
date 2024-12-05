@@ -105,6 +105,7 @@ type ExecutionEngine[PayloadAttributesT any] interface {
 // ExecutionPayload is the interface for the execution payload.
 type ExecutionPayload interface {
 	ExecutionPayloadHeader
+	GetNumber() math.U64
 }
 
 // ExecutionPayloadHeader is the interface for the execution payload header.
