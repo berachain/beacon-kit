@@ -21,12 +21,11 @@
 package genesis
 
 const (
-	depositAmountFlag = "deposit-amount"
-	// TODO: set this to the min stake amount
-	defaultDepositAmount = "32000000000" // 32e9
-	depositAmountFlagMsg = "The amount of deposit to be made"
+	depositAmountFlag    = "deposit-amount"
+	defaultDepositAmount = "0"
+	depositAmountFlagMsg = "The amount of deposit to be made (in Bwei)"
 
 	withdrawalAddressFlag    = "withdrawal-address"
-	defaultWithdrawalAddress = "0x0000000000000000000000000000000000000000"
+	defaultWithdrawalAddress = ""
 	withdrawalAddressFlagMsg = "The address to withdraw funds to"
 )

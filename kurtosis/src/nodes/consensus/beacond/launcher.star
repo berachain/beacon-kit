@@ -69,6 +69,8 @@ def get_config(node_struct, engine_dial_url, entrypoint = [], cmd = [], persiste
             "BEACOND_PERSISTENT_PEERS": persistent_peers,
             "BEACOND_ENABLE_PROMETHEUS": "true",
             "BEACOND_CONSENSUS_KEY_ALGO": "bls12_381",
+            "WITHDRAWAL_ADDRESS": "0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4",
+            "DEPOSIT_AMOUNT": "32000000000",
         },
         ports = exposed_ports,
         labels = node_labels,
@@ -127,7 +129,7 @@ def init_consensus_nodes():
 
     # Check if genesis file exists, if not then initialize the beacond
     init_node = "if [ ! -f {} ]; then /usr/bin/beacond init --chain-id {} {} --home {}; fi".format(genesis_file, "$BEACOND_CHAIN_ID", "$BEACOND_MONIKER", "$BEACOND_HOME")
-    add_validator = "/usr/bin/beacond genesis add-premined-deposit --home {}".format("$BEACOND_HOME")
+    add_validator = "/usr/bin/beacond genesis add-premined-deposit --deposit-amount {} --withdrawal-address {} --home {}".format("$DEPOSIT_AMOUNT", "$WITHDRAWAL_ADDRESS", "$BEACOND_HOME")
     collect_gentx = "/usr/bin/beacond genesis collect-premined-deposits --home {}".format("$BEACOND_HOME")
     return "{} && {} && {}".format(init_node, add_validator, collect_gentx)
 
