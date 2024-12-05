@@ -247,6 +247,32 @@ start-ethereumjs:
 	--rpc \
 	--rpcAddr 0.0.0.0
 
+start-nimbus:
+	rm -rf .tmp/nimbus
+	docker run \
+	--rm -v $(PWD)/.tmp:/.tmp \
+	-v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	-p 30303:30303 \
+	-p 8545:8545 \
+	-p 8551:8551 \
+	ethpandaops/nimbus-eth1:master \
+    --data-dir=.tmp/nimbus \
+    --http-port=8545 \
+    --http-address=0.0.0.0 \
+    --rpc \
+    --rpc-api=eth,debug,exp \
+    --ws \
+    --ws-api=eth,debug,exp \
+    --engine-api \
+    --engine-api-address=0.0.0.0 \
+    --engine-api-port=8551 \
+    --allowed-origins="*" \
+    --engine-api-ws \
+    --tcp-port=30303 \
+    --custom-network=/${ETH_GENESIS_PATH} \
+    --jwt-secret=/${JWT_PATH} \
+    --listen-address=0.0.0.0
+
 SHORT_FUZZ_TIME=10s
 MEDIUM_FUZZ_TIME=30s
 LONG_FUZZ_TIME=3m
