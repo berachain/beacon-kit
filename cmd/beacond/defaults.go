@@ -57,7 +57,7 @@ func DefaultComponents() []any {
 			*AvailabilityStore,
 			*ConsensusBlock, *BeaconBlock, *BeaconBlockBody,
 			*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
-			*BlobSidecars, *BlockStore, *Deposit, *DepositStore,
+			*BlobSidecars, *BlockStore, *Deposit, *DepositStore, *DepositContract,
 			*ExecutionPayload, *ExecutionPayloadHeader, *Genesis,
 			*KVStore, *Logger, *StorageBackend, *BlockStore,
 		],
@@ -77,11 +77,6 @@ func DefaultComponents() []any {
 		components.ProvideDepositPruner[
 			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader,
 			*Deposit, *DepositStore, *Logger,
-		],
-		components.ProvideDepositService[
-			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader, *Deposit,
-			*DepositContract, *DepositStore, *ExecutionPayload,
-			*ExecutionPayloadHeader, *Logger,
 		],
 		components.ProvideDepositStore[*Deposit, *Logger],
 		components.ProvideDispatcher[

@@ -25,10 +25,12 @@ import (
 	"sync"
 
 	asynctypes "github.com/berachain/beacon-kit/async/types"
+	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/log"
 	blockstore "github.com/berachain/beacon-kit/node-api/block_store"
 	"github.com/berachain/beacon-kit/primitives/async"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 )
 
@@ -57,6 +59,17 @@ type Service[
 	]
 	// store is the block store for the service.
 	store BlockStoreT
+	// ds is the deposit store that stores deposits.
+	ds deposit.Store[DepositT]
+	// dc is the contract interface for interacting with the deposit contract.
+	dc deposit.Contract[DepositT]
+	// eth1FollowDistance is the follow distance for Ethereum 1.0 blocks.
+	eth1FollowDistance math.U64
+	// failedBlocksMu protects failedBlocks for concurrent access.
+	failedBlocksMu sync.RWMutex
+	// failedBlocks is a map of blocks that failed to be processed
+	// and should be retried.
+	failedBlocks map[math.U64]struct{}
 	// logger is used for logging messages in the service.
 	logger log.Logger
 	// chainSpec holds the chain specifications.
@@ -116,6 +129,9 @@ func NewService[
 		BeaconStateT,
 	],
 	store BlockStoreT,
+	ds deposit.Store[DepositT],
+	dc deposit.Contract[DepositT],
+	eth1FollowDistance math.U64,
 	logger log.Logger,
 	chainSpec common.ChainSpec,
 	dispatcher asynctypes.Dispatcher,
@@ -144,6 +160,10 @@ func NewService[
 	]{
 		storageBackend:          storageBackend,
 		store:                   store,
+		ds:                      ds,
+		dc:                      dc,
+		eth1FollowDistance:      eth1FollowDistance,
+		failedBlocks:            make(map[math.Slot]struct{}),
 		logger:                  logger,
 		chainSpec:               chainSpec,
 		dispatcher:              dispatcher,
@@ -192,6 +212,10 @@ func (s *Service[
 
 	// start the main event loop to listen and handle events.
 	go s.eventLoop(ctx)
+
+	// Catchup deposits for failed blocks.
+	go s.depositCatchupFetcher(ctx)
+
 	return nil
 }
 

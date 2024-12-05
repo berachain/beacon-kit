@@ -106,15 +106,6 @@ type (
 	// DBManager is a type alias for the database manager.
 	DBManager = manager.DBManager
 
-	// DepositService is a type alias for the deposit service.
-	DepositService = deposit.Service[
-		*BeaconBlock,
-		*BeaconBlockBody,
-		*Deposit,
-		*ExecutionPayload,
-		WithdrawalCredentials,
-	]
-
 	// EngineClient is a type alias for the engine client.
 	EngineClient = engineclient.EngineClient[
 		*ExecutionPayload,

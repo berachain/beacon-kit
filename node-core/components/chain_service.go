@@ -26,11 +26,13 @@ import (
 	"github.com/berachain/beacon-kit/config"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/execution/client"
+	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/execution/engine"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // ChainServiceInput is the input for the chain service provider.
@@ -47,6 +49,8 @@ type ChainServiceInput[
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalsT Withdrawals[WithdrawalT],
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
+	DepositStoreT any,
+	DepositContractT any,
 ] struct {
 	depinject.In
 
@@ -70,9 +74,11 @@ type ChainServiceInput[
 		BeaconBlockT, BeaconStateT, *Context,
 		DepositT, ExecutionPayloadHeaderT,
 	]
-	StorageBackend StorageBackendT
-	TelemetrySink  *metrics.TelemetrySink
-	BlockStore     BeaconBlockStoreT
+	StorageBackend        StorageBackendT
+	TelemetrySink         *metrics.TelemetrySink
+	BlockStore            BeaconBlockStoreT
+	DepositStore          DepositStoreT
+	BeaconDepositContract DepositContractT
 }
 
 // ProvideChainService is a depinject provider for the blockchain service.
@@ -94,7 +100,8 @@ func ProvideChainService[
 	BlobSidecarsT any,
 	BlockStoreT any,
 	DepositT any,
-	DepositStoreT any,
+	DepositStoreT DepositStore[DepositT],
+	DepositContractT deposit.Contract[DepositT],
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
@@ -112,7 +119,7 @@ func ProvideChainService[
 	in ChainServiceInput[
 		BeaconBlockT, BeaconStateT, DepositT, ExecutionPayloadT,
 		ExecutionPayloadHeaderT, StorageBackendT, LoggerT,
-		WithdrawalT, WithdrawalsT, BeaconBlockStoreT,
+		WithdrawalT, WithdrawalsT, BeaconBlockStoreT, DepositStoreT, DepositContractT,
 	],
 ) *blockchain.Service[
 	AvailabilityStoreT,
@@ -137,6 +144,9 @@ func ProvideChainService[
 	](
 		in.StorageBackend,
 		in.BlockStore,
+		in.DepositStore,
+		in.BeaconDepositContract,
+		math.U64(in.ChainSpec.Eth1FollowDistance()),
 		in.Logger.With("service", "blockchain"),
 		in.ChainSpec,
 		in.Dispatcher,

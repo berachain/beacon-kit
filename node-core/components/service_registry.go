@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/da/da"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/execution/client"
-	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-api/server"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
@@ -86,11 +85,7 @@ type ServiceRegistryInput[
 		AvailabilityStoreT,
 		ConsensusSidecarsT, BlobSidecarsT, BeaconBlockHeaderT,
 	]
-	DBManager      *DBManager
-	DepositService *deposit.Service[
-		BeaconBlockT, BeaconBlockBodyT, DepositT,
-		ExecutionPayloadT, WithdrawalCredentials,
-	]
+	DBManager    *DBManager
 	Dispatcher   Dispatcher
 	EngineClient *client.EngineClient[
 		ExecutionPayloadT,
@@ -162,7 +157,6 @@ func ProvideServiceRegistry[
 		service.WithService(in.ValidatorService),
 		service.WithService(in.ChainService),
 		service.WithService(in.DAService),
-		service.WithService(in.DepositService),
 		service.WithService(in.NodeAPIServer),
 		service.WithService(in.ReportingService),
 		service.WithService(in.DBManager),
