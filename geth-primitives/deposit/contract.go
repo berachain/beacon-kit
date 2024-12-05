@@ -22,4 +22,4 @@ package deposit
 
 // TODO: Remove ldflags=-checklinkname=0 override once fix is applied.
 //
-//go:generate go run -ldflags=-checklinkname=0 github.com/ethereum/go-ethereum/cmd/abigen  --abi=../../contracts/out/DepositContract.sol/DepositContract.abi.json --bin=../../contracts/out/DepositContract.sol/DepositContract.bin --pkg=deposit --type=BeaconDepositContract --out=contract.abigen.go
+//go:generate go run -ldflags=-checklinkname=0 github.com/ethereum/go-ethereum/cmd/abigen  --abi=../../contracts/out/DepositContract.sol/DepositContract.abi.json --bin=../../contracts/out/DepositContract.sol/DepositContract.bin --pkg=deposit --type=DepositContract --out=contract.abigen.go

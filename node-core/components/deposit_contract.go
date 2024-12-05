@@ -28,9 +28,9 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 )
 
-// BeaconDepositContractInput is the input for the beacon deposit contract
+// DepositContractInput is the input for the deposit contract
 // for the dep inject framework.
-type BeaconDepositContractInput[
+type DepositContractInput[
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
@@ -46,9 +46,9 @@ type BeaconDepositContractInput[
 	]
 }
 
-// ProvideBeaconDepositContract provides a beacon deposit contract through the
+// ProvideDepositContract provides a deposit contract through the
 // dep inject framework.
-func ProvideBeaconDepositContract[
+func ProvideDepositContract[
 	DepositT Deposit[
 		DepositT, *ForkData, WithdrawalCredentials,
 	],
@@ -59,14 +59,14 @@ func ProvideBeaconDepositContract[
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalsT Withdrawals[WithdrawalT],
 ](
-	in BeaconDepositContractInput[
+	in DepositContractInput[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT, WithdrawalsT,
 	],
-) (*deposit.WrappedBeaconDepositContract[
+) (*deposit.WrappedDepositContract[
 	DepositT, WithdrawalCredentials,
 ], error) {
 	// Build the deposit contract.
-	return deposit.NewWrappedBeaconDepositContract[
+	return deposit.NewWrappedDepositContract[
 		DepositT,
 		WithdrawalCredentials,
 	](

@@ -77,7 +77,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	// s.Require().NoError(err)
 
 	// Bind the deposit contract.
-	dc, err := deposit.NewBeaconDepositContract(
+	dc, err := deposit.NewDepositContract(
 		gethcommon.HexToAddress(spec.DefaultDepositContractAddress),
 		s.JSONRPCBalancer(),
 	)
@@ -173,7 +173,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 }
 
 func (s *BeaconKitE2ESuite) generateNewDepositTx(
-	dc *deposit.BeaconDepositContract,
+	dc *deposit.DepositContract,
 	sender gethcommon.Address,
 	signer bind.SignerFn,
 	nonce *big.Int,
