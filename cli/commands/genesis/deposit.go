@@ -45,7 +45,7 @@ import (
 // AddGenesisDepositCmd - returns the cobra command to
 // add a premined deposit to the genesis file.
 //
-//nolint:funlen,gocognit // required for this command.
+
 func AddGenesisDepositCmd(cs common.ChainSpec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add-premined-deposit",
@@ -53,7 +53,7 @@ func AddGenesisDepositCmd(cs common.ChainSpec) *cobra.Command {
 		Long: `Adds a validator to the genesis file with the necessary 
 		credentials. The arguments are expected in the order of the deposit 
 		amount and withdrawal address.`,
-		Args: cobra.ExactArgs(2),
+		Args: cobra.ExactArgs(2), //nolint:mnd // The number of arguments.
 		RunE: func(cmd *cobra.Command, args []string) error {
 			config := context.GetConfigFromCmd(cmd)
 
