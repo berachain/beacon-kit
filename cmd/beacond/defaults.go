@@ -47,10 +47,6 @@ func DefaultComponents() []any {
 		components.ProvideBlockStore[
 			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader, *Logger,
 		],
-		components.ProvideBlockStoreService[
-			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader,
-			*BlockStore, *Logger,
-		],
 		components.ProvideBlsSigner,
 		components.ProvideBlobProcessor[
 			*AvailabilityStore, *BeaconBlockBody, *BeaconBlockHeader,

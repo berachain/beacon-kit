@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/log"
-	blockstore "github.com/berachain/beacon-kit/node-api/block_store"
 	"github.com/berachain/beacon-kit/node-api/server"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	service "github.com/berachain/beacon-kit/node-core/services/registry"
@@ -75,9 +74,6 @@ type ServiceRegistryInput[
 	depinject.In
 	ABCIService *middleware.ABCIMiddleware[
 		BeaconBlockT, BeaconBlockHeaderT, BlobSidecarsT, GenesisT, *SlotData,
-	]
-	BlockStoreService *blockstore.Service[
-		BeaconBlockT, BeaconBlockStoreT,
 	]
 	ChainService *blockchain.Service[
 		AvailabilityStoreT,
@@ -164,7 +160,6 @@ func ProvideServiceRegistry[
 		service.WithService(in.ABCIService),
 		service.WithService(in.Dispatcher),
 		service.WithService(in.ValidatorService),
-		service.WithService(in.BlockStoreService),
 		service.WithService(in.ChainService),
 		service.WithService(in.DAService),
 		service.WithService(in.DepositService),
