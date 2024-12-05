@@ -87,7 +87,7 @@ build: BUILD_ARGS=-o $(OUT_DIR)/$(TESTAPP) ## build `beacond`
 $(BUILD_TARGETS): $(OUT_DIR)/
 	@echo "Building ${TESTAPP_CMD_DIR}"
 	@cd ${CURRENT_DIR}/$(TESTAPP_CMD_DIR) && go $@ -mod=readonly $(BUILD_FLAGS) $(BUILD_ARGS) ./.
-
+#@go $@ -mod=readonly $(BUILD_FLAGS) $(BUILD_ARGS) $(TESTAPP_CMD_DIR)/main.go
 $(OUT_DIR)/:
 	mkdir -p $(OUT_DIR)/
 
