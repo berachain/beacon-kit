@@ -82,7 +82,7 @@ type ServiceRegistryInput[
 	ChainService *blockchain.Service[
 		AvailabilityStoreT,
 		ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
-		BeaconBlockHeaderT, BeaconStateT, DepositT, ExecutionPayloadT,
+		BeaconBlockHeaderT, BeaconStateT, BeaconBlockStoreT, DepositT, ExecutionPayloadT,
 		ExecutionPayloadHeaderT, GenesisT,
 		*engineprimitives.PayloadAttributes[WithdrawalT],
 	]
