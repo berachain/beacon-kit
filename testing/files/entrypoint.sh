@@ -74,8 +74,7 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 		cp -f testing/networks/80084/*.toml testing/networks/80084/genesis.json ${HOMEDIR}/config
 	else
 		./build/bin/beacond genesis add-premined-deposit --home $HOMEDIR \
-			--deposit-amount 32000000000 \
-			--withdrawal-address 0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4
+			32000000000 0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4
 		./build/bin/beacond genesis collect-premined-deposits --home $HOMEDIR
 		./build/bin/beacond genesis execution-payload "$ETH_GENESIS" --home $HOMEDIR
 	fi

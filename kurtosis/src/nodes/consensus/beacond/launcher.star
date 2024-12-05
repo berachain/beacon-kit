@@ -129,7 +129,7 @@ def init_consensus_nodes():
 
     # Check if genesis file exists, if not then initialize the beacond
     init_node = "if [ ! -f {} ]; then /usr/bin/beacond init --chain-id {} {} --home {}; fi".format(genesis_file, "$BEACOND_CHAIN_ID", "$BEACOND_MONIKER", "$BEACOND_HOME")
-    add_validator = "/usr/bin/beacond genesis add-premined-deposit --deposit-amount {} --withdrawal-address {} --home {}".format("$DEPOSIT_AMOUNT", "$WITHDRAWAL_ADDRESS", "$BEACOND_HOME")
+    add_validator = "/usr/bin/beacond genesis add-premined-deposit {} {} --home {}".format("$DEPOSIT_AMOUNT", "$WITHDRAWAL_ADDRESS", "$BEACOND_HOME")
     collect_gentx = "/usr/bin/beacond genesis collect-premined-deposits --home {}".format("$BEACOND_HOME")
     return "{} && {} && {}".format(init_node, add_validator, collect_gentx)
 
