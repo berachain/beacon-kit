@@ -30,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
@@ -375,9 +374,8 @@ func (sp *StateProcessor[
 ]) processEpoch(
 	st BeaconStateT,
 ) (transition.ValidatorUpdates, error) {
-	if err := sp.processRewardsAndPenalties(st); err != nil {
-		return nil, err
-	}
+	// currently no processRewardsAndPenalties
+
 	if err := sp.processEffectiveBalanceUpdates(st); err != nil {
 		return nil, err
 	}
@@ -470,85 +468,6 @@ func (sp *StateProcessor[
 		bodyRoot,
 	)
 	return st.SetLatestBlockHeader(lbh)
-}
-
-// getAttestationDeltas as defined in the Ethereum 2.0 specification.
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#get_attestation_deltas
-//
-//nolint:lll
-func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) getAttestationDeltas(
-	st BeaconStateT,
-) ([]math.Gwei, []math.Gwei, error) {
-	// TODO: implement this function forreal
-	validators, err := st.GetValidators()
-	if err != nil {
-		return nil, nil, err
-	}
-	placeholder := make([]math.Gwei, len(validators))
-	return placeholder, placeholder, nil
-}
-
-// processRewardsAndPenalties as defined in the Ethereum 2.0 specification.
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#process_rewards_and_penalties
-//
-//nolint:lll
-func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) processRewardsAndPenalties(
-	st BeaconStateT,
-) error {
-	slot, err := st.GetSlot()
-	if err != nil {
-		return err
-	}
-
-	if sp.cs.SlotToEpoch(slot) == math.U64(constants.GenesisEpoch) {
-		return nil
-	}
-
-	rewards, penalties, err := sp.getAttestationDeltas(st)
-	if err != nil {
-		return err
-	}
-
-	validators, err := st.GetValidators()
-	if err != nil {
-		return err
-	}
-
-	if len(validators) != len(rewards) {
-		return errors.Wrapf(
-			ErrRewardsLengthMismatch, "expected: %d, got: %d",
-			len(validators), len(rewards),
-		)
-	} else if len(validators) != len(penalties) {
-		return errors.Wrapf(
-			ErrPenaltiesLengthMismatch, "expected: %d, got: %d",
-			len(validators), len(penalties),
-		)
-	}
-
-	for i := range validators {
-		// Increase the balance of the validator.
-		if err = st.IncreaseBalance(
-			math.ValidatorIndex(i),
-			rewards[i],
-		); err != nil {
-			return err
-		}
-
-		// Decrease the balance of the validator.
-		if err = st.DecreaseBalance(
-			math.ValidatorIndex(i),
-			penalties[i],
-		); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 // processEffectiveBalanceUpdates as defined in the Ethereum 2.0 specification.
