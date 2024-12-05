@@ -26,6 +26,7 @@ import (
 
 	asynctypes "github.com/berachain/beacon-kit/async/types"
 	"github.com/berachain/beacon-kit/log"
+	blockstore "github.com/berachain/beacon-kit/node-api/block_store"
 	"github.com/berachain/beacon-kit/primitives/async"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/transition"
@@ -41,6 +42,7 @@ type Service[
 	BeaconStateT ReadOnlyBeaconState[
 		BeaconStateT, BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 	],
+	BlockStoreT blockstore.BlockStore[BeaconBlockT],
 	DepositT any,
 	ExecutionPayloadT ExecutionPayload,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
@@ -53,6 +55,8 @@ type Service[
 		AvailabilityStoreT,
 		BeaconStateT,
 	]
+	// store is the block store for the service.
+	store BlockStoreT
 	// logger is used for logging messages in the service.
 	logger log.Logger
 	// chainSpec holds the chain specifications.
@@ -100,6 +104,7 @@ func NewService[
 		BeaconStateT, BeaconBlockHeaderT,
 		ExecutionPayloadHeaderT,
 	],
+	BlockStoreT blockstore.BlockStore[BeaconBlockT],
 	DepositT any,
 	ExecutionPayloadT ExecutionPayload,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
@@ -110,6 +115,7 @@ func NewService[
 		AvailabilityStoreT,
 		BeaconStateT,
 	],
+	store BlockStoreT,
 	logger log.Logger,
 	chainSpec common.ChainSpec,
 	dispatcher asynctypes.Dispatcher,
@@ -127,16 +133,17 @@ func NewService[
 ) *Service[
 	AvailabilityStoreT,
 	ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	BeaconStateT, DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	BeaconStateT, BlockStoreT, DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 	GenesisT, PayloadAttributesT,
 ] {
 	return &Service[
 		AvailabilityStoreT,
 		ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-		BeaconStateT, DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+		BeaconStateT, BlockStoreT, DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 		GenesisT, PayloadAttributesT,
 	]{
 		storageBackend:          storageBackend,
+		store:                   store,
 		logger:                  logger,
 		chainSpec:               chainSpec,
 		dispatcher:              dispatcher,
@@ -154,7 +161,7 @@ func NewService[
 
 // Name returns the name of the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _,
 ]) Name() string {
 	return "blockchain"
 }
@@ -163,7 +170,7 @@ func (s *Service[
 // BeaconBlockReceived, and FinalBeaconBlockReceived events, and begins
 // the main event loop to handle them accordingly.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _,
 ]) Start(ctx context.Context) error {
 	if err := s.dispatcher.Subscribe(
 		async.GenesisDataReceived, s.subGenDataReceived,
@@ -190,7 +197,7 @@ func (s *Service[
 
 // eventLoop listens for events and handles them accordingly.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _,
 ]) eventLoop(ctx context.Context) {
 	for {
 		select {
@@ -213,7 +220,7 @@ func (s *Service[
 // handleGenDataReceived processes the genesis data received and emits a
 // GenesisDataProcessed event containing the resulting validator updates.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, GenesisT, _,
+	_, _, _, _, _, _, _, _, _, _, GenesisT, _,
 ]) handleGenDataReceived(msg async.Event[GenesisT]) {
 	var (
 		valUpdates transition.ValidatorUpdates
@@ -249,7 +256,7 @@ func (s *Service[
 // handleBeaconBlockReceived emits a BeaconBlockVerified event with the error
 // result from VerifyIncomingBlock.
 func (s *Service[
-	_, ConsensusBlockT, _, _, _, _, _, _, _, _, _,
+	_, ConsensusBlockT, _, _, _, _, _, _, _, _, _, _,
 ]) handleBeaconBlockReceived(
 	msg async.Event[ConsensusBlockT],
 ) {
@@ -280,7 +287,7 @@ func (s *Service[
 // a FinalValidatorUpdatesProcessed event containing the resulting validator
 // updates.
 func (s *Service[
-	_, ConsensusBlockT, _, _, _, _, _, _, _, _, _,
+	_, ConsensusBlockT, _, _, _, _, _, _, _, _, _, _,
 ]) handleBeaconBlockFinalization(
 	msg async.Event[ConsensusBlockT],
 ) {
