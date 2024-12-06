@@ -44,8 +44,8 @@ func NewCreateValidator[
 	cmd := &cobra.Command{
 		Use:   "create-validator",
 		Short: "Creates a validator deposit",
-		Long: `Creates a validator deposit with the necessary credentials. The
-		arguments are expected in the order of withdrawal credentials, deposit
+		Long: `Creates a validator deposit with the necessary credentials. The 
+		arguments are expected in the order of withdrawal address, deposit
 		amount, current version, and genesis validator root. If the broadcast
 		flag is set to true, a private key must be provided to sign the transaction.`,
 		Args: cobra.ExactArgs(4), //nolint:mnd // The number of arguments.
@@ -80,10 +80,13 @@ func createValidatorCmd[
 			return err
 		}
 
-		credentials, err := parser.ConvertWithdrawalCredentials(args[0])
+		withdrawalAddress, err := parser.ConvertWithdrawalAddress(args[0])
 		if err != nil {
 			return err
 		}
+		credentials := types.NewCredentialsFromExecutionAddress(
+			withdrawalAddress,
+		)
 
 		amount, err := parser.ConvertAmount(args[1])
 		if err != nil {

@@ -18,10 +18,36 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package genesis
+package cometbft
 
-const (
-	depositAmountFlag    = "deposit-amount"
-	defaultDepositAmount = "32000000000" // 32e9
-	depositAmountFlagMsg = "The amount of deposit to be made"
+import (
+	"encoding/hex"
+	"strings"
+
+	"github.com/berachain/beacon-kit/primitives/common"
 )
+
+const expectedHexLength = 8
+
+// isValidForkVersion returns true if the provided fork version is valid.
+// A valid fork version must:
+// - Start with "0x"
+// - Be followed by exactly 8 hexadecimal characters.
+func isValidForkVersion(forkVersion common.Version) bool {
+	forkVersionStr := forkVersion.String()
+	if !strings.HasPrefix(forkVersionStr, "0x") {
+		return false
+	}
+
+	// Remove "0x" prefix and verify remaining characters
+	hexPart := strings.TrimPrefix(forkVersionStr, "0x")
+
+	// Should have exactly 8 characters after 0x prefix
+	if len(hexPart) != expectedHexLength {
+		return false
+	}
+
+	// Verify it's a valid hex number
+	_, err := hex.DecodeString(hexPart)
+	return err == nil
+}

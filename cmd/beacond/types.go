@@ -285,7 +285,7 @@ type (
 	Deposit = types.Deposit
 
 	// DepositContract is a type alias for the deposit contract.
-	DepositContract = deposit.WrappedBeaconDepositContract[
+	DepositContract = deposit.WrappedDepositContract[
 		*Deposit,
 		WithdrawalCredentials,
 	]

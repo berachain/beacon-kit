@@ -41,7 +41,7 @@ func DefaultComponents() []any {
 			*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,
 			*BeaconBlockHeader, *BlobSidecars, *Logger,
 		],
-		components.ProvideBeaconDepositContract[
+		components.ProvideDepositContract[
 			*Deposit, *ExecutionPayload, *ExecutionPayloadHeader,
 		],
 		components.ProvideBlockStore[
