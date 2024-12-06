@@ -93,7 +93,7 @@ func (s *Service[
 
 	// run fetchAndStoreDeposits which fetches and stores the deposits for that block.
 	slot := beaconBlk.GetSlot()
-	if err := s.store.Set(beaconBlk); err != nil {
+	if err := s.blockStore.Set(beaconBlk); err != nil {
 		s.logger.Error(
 			"failed to store block", "slot", slot, "error", err,
 		)
