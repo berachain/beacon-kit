@@ -46,38 +46,17 @@ func validateExecutionHeader(header *types.ExecutionPayloadHeader) error {
 		common.NewExecutionHashFromHex(
 			"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
 		))
-	// emptyRoot := common.Root(
-	//	common.NewExecutionHashFromHex(
-	//		"0x0000000000000000000000000000000000000000000000000000000000000000",
-	//	))
 
 	// For genesis block (when block number is 0), ParentHash must be zero
 	if !bytes.Equal(header.ParentHash[:], zeroHash[:]) {
 		return errors.New("parent hash must be zero for genesis block")
 	}
 
-	// if header.StateRoot != emptyTrieRoot {
-	//	return errors.New(
-	//		"state root must be empty trie root for genesis block",
-	//	)
-	// }
-
 	if header.ReceiptsRoot != emptyTrieRoot {
 		return errors.New(
 			"receipts root must be empty trie root for genesis block",
 		)
 	}
-
-	// if header.TransactionsRoot != emptyRoot {
-	//	return errors.New(
-	//		"transactions root must be empty list root for genesis block",
-	//	)
-	// }
-	// if header.WithdrawalsRoot != emptyRoot {
-	//	return errors.New(
-	//		"withdrawals root must be empty list root for genesis block",
-	//	)
-	// }
 
 	if bytes.Equal(header.BlockHash[:], zeroHash[:]) {
 		return errors.New("block hash cannot be zero")

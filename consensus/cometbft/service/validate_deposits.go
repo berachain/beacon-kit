@@ -37,7 +37,6 @@ func isZeroBytes(b []byte) bool {
 // validateDeposits performs validation of the provided deposits.
 // It ensures:
 // - At least one deposit is present
-// - Deposit indices match their position in the slice
 // - No duplicate public keys
 // - Non-zero values for required fields
 // (pubkey, credentials, amount, signature)
