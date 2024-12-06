@@ -24,7 +24,7 @@ import (
 	"encoding/hex"
 	"strings"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/primitives/common"
 )
 
 const expectedHexLength = 8

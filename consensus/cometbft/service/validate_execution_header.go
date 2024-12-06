@@ -24,9 +24,9 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/primitives/common"
 )
 
 // maxExtraDataSize defines the maximum allowed size in bytes for the ExtraData

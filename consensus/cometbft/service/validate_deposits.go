@@ -25,8 +25,8 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/errors"
 )
 
 // isZeroBytes returns true if the provided byte slice is all zeros.
