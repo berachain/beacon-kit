@@ -326,16 +326,16 @@ func (s *Service[LoggerT]) internalFinalizeBlock(
 	//
 	// NOTE: Not all raw transactions may adhere to the sdk.Tx interface, e.g.
 	// vote extensions, so skip those.
-	txResults := make([]*cmtabci.ExecTxResult, 0, len(req.Txs))
-	for range req.Txs {
+	txResults := make([]*cmtabci.ExecTxResult, len(req.Txs))
+	for i := range req.Txs {
 		//nolint:mnd // its okay for now.
-		txResults = append(txResults, &cmtabci.ExecTxResult{
+		txResults[i] = &cmtabci.ExecTxResult{
 			Codespace: "sdk",
 			Code:      2,
 			Log:       "skip decoding",
 			GasWanted: 0,
 			GasUsed:   0,
-		})
+		}
 	}
 
 	finalizeBlock, err := s.Middleware.FinalizeBlock(

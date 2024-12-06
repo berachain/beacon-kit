@@ -21,6 +21,7 @@
 package e2e_test
 
 import (
+	"crypto/rand"
 	"math/big"
 
 	"github.com/berachain/beacon-kit/config/spec"
@@ -28,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/geth-primitives/deposit"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
-	"github.com/berachain/beacon-kit/testing/e2e/suite"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
@@ -38,6 +38,9 @@ const (
 	// NumDepositsLoad is the number of deposits to load in the Deposit
 	// Robustness e2e test.
 	NumDepositsLoad = 500
+
+	// DepositAmount is the amount of BERA to deposit.
+	DepositAmount = 32e18
 )
 
 func (s *BeaconKitE2ESuite) TestDepositRobustness() {
@@ -49,13 +52,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	s.Require().NotNil(client2)
 
 	// Sender account
-	genesisAccount := s.GenesisAccount()
 	sender := s.TestAccounts()[1]
-
-	// Get the public key.
-	pubkey, err := client.GetPubKey(s.Ctx())
-	s.Require().NoError(err)
-	s.Require().Len(pubkey, 48)
 
 	// Get the block num
 	blkNum, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
@@ -79,22 +76,11 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	// s.Require().NoError(err)
 
 	// Bind the deposit contract.
-	dc, err := deposit.NewBeaconDepositContract(
+	dc, err := deposit.NewDepositContract(
 		gethcommon.HexToAddress(spec.DefaultDepositContractAddress),
 		s.JSONRPCBalancer(),
 	)
 	s.Require().NoError(err)
-
-	tx, err := dc.AllowDeposit(&bind.TransactOpts{
-		From:   genesisAccount.Address(),
-		Signer: genesisAccount.SignerFunc(chainID),
-	}, sender.Address(), NumDepositsLoad)
-	s.Require().NoError(err)
-
-	// Wait for the transaction to be mined.
-	receipt, err := bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
-	s.Require().NoError(err)
-	s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
 
 	// Get the nonce.
 	nonce, err := s.JSONRPCBalancer().NonceAt(
@@ -104,13 +90,35 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	)
 	s.Require().NoError(err)
 
+	var (
+		tx      *coretypes.Transaction
+		receipt *coretypes.Receipt
+	)
 	for i := range NumDepositsLoad {
-		// Create a deposit transaction.
+		// Create a deposit transaction. Use the default validators' pubkeys
+		// if exists, otherwise pubkey is a random 48 byte slice.
+		var pubkey []byte
+		switch i {
+		case 0:
+			pubkey, err = client.GetPubKey(s.Ctx())
+			s.Require().NoError(err)
+			s.Require().Len(pubkey, 48)
+		case 1:
+			pubkey, err = client2.GetPubKey(s.Ctx())
+			s.Require().NoError(err)
+			s.Require().Len(pubkey, 48)
+		default:
+			pubkey = make([]byte, 48)
+			_, err = rand.Read(pubkey)
+			s.Require().NoError(err)
+		}
+
 		tx, err = s.generateNewDepositTx(
 			dc,
 			sender.Address(),
 			sender.SignerFunc(chainID),
 			big.NewInt(int64(nonce+uint64(i))),
+			pubkey,
 		)
 		s.Require().NoError(err)
 		s.Logger().
@@ -182,19 +190,12 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 }
 
 func (s *BeaconKitE2ESuite) generateNewDepositTx(
-	dc *deposit.BeaconDepositContract,
+	dc *deposit.DepositContract,
 	sender gethcommon.Address,
 	signer bind.SignerFn,
 	nonce *big.Int,
+	pubkey []byte,
 ) (*coretypes.Transaction, error) {
-	// Get the consensus client.
-	client := s.ConsensusClients()[config.DefaultClient]
-	s.Require().NotNil(client)
-
-	pubkey, err := client.GetPubKey(s.Ctx())
-	s.Require().NoError(err)
-	s.Require().Len(pubkey, 48)
-
 	// Generate the credentials.
 	credentials := types.NewCredentialsFromExecutionAddress(
 		common.ExecutionAddress(s.GenesisAccount().Address()),
@@ -204,12 +205,11 @@ func (s *BeaconKitE2ESuite) generateNewDepositTx(
 	signature := [96]byte{}
 	s.Require().Len(signature[:], 96)
 
-	val, _ := big.NewFloat(32e18).Int(nil)
+	val, _ := big.NewFloat(DepositAmount).Int(nil)
 	return dc.Deposit(&bind.TransactOpts{
-		From:     sender,
-		Value:    val,
-		Signer:   signer,
-		Nonce:    nonce,
-		GasLimit: 600000,
-	}, pubkey, credentials[:], 32*suite.OneGwei, signature[:])
+		From:   sender,
+		Value:  val,
+		Signer: signer,
+		Nonce:  nonce,
+	}, pubkey, credentials[:], signature[:], sender)
 }
