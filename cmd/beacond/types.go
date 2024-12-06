@@ -51,7 +51,6 @@ import (
 	"github.com/berachain/beacon-kit/storage/block"
 	depositdb "github.com/berachain/beacon-kit/storage/deposit"
 	"github.com/berachain/beacon-kit/storage/filedb"
-	"github.com/berachain/beacon-kit/storage/manager"
 	"github.com/berachain/beacon-kit/storage/pruner"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -81,6 +80,7 @@ type (
 	// ChainService is a type alias for the chain service.
 	ChainService = blockchain.Service[
 		*AvailabilityStore,
+		*DepositStore,
 		*ConsensusBlock,
 		*BeaconBlock,
 		*BeaconBlockBody,
@@ -88,6 +88,7 @@ type (
 		*BeaconState,
 		*BlockStore,
 		*Deposit,
+		WithdrawalCredentials,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*Genesis,
@@ -102,9 +103,6 @@ type (
 		*AvailabilityStore,
 		*ConsensusSidecars, *BlobSidecars, *BeaconBlockHeader,
 	]
-
-	// DBManager is a type alias for the database manager.
-	DBManager = manager.DBManager
 
 	// EngineClient is a type alias for the engine client.
 	EngineClient = engineclient.EngineClient[

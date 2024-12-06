@@ -45,5 +45,4 @@ const (
 	FinalBeaconBlockReceived       = "final-beacon-block-received"
 	FinalSidecarsReceived          = "final-blob-sidecars-received"
 	FinalValidatorUpdatesProcessed = "final-validator-updates"
-	BeaconBlockFinalized           = "beacon-block-finalized"
 )

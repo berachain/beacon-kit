@@ -27,12 +27,9 @@ import (
 	"github.com/berachain/beacon-kit/config"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/primitives/async"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/storage/filedb"
-	"github.com/berachain/beacon-kit/storage/manager"
-	"github.com/berachain/beacon-kit/storage/pruner"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cast"
 )
@@ -70,57 +67,5 @@ func ProvideAvailibilityStore[
 		),
 		in.Logger.With("service", "da-store"),
 		in.ChainSpec,
-	), nil
-}
-
-// AvailabilityPrunerInput is the input for the ProviderAvailabilityPruner
-// function for the depinject framework.
-type AvailabilityPrunerInput[
-	AvailabilityStoreT any,
-	BeaconBlockT any,
-	LoggerT any,
-] struct {
-	depinject.In
-	AvailabilityStore AvailabilityStoreT
-	ChainSpec         common.ChainSpec
-	Dispatcher        Dispatcher
-	Logger            LoggerT
-}
-
-// ProvideAvailabilityPruner provides a availability pruner for the depinject
-// framework.
-func ProvideAvailabilityPruner[
-	AvailabilityStoreT AvailabilityStore[
-		BeaconBlockBodyT, BlobSidecarsT,
-	],
-	BeaconBlockT BeaconBlock[
-		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	],
-	BeaconBlockBodyT any,
-	BeaconBlockHeaderT any,
-	BlobSidecarsT any,
-	LoggerT log.AdvancedLogger[LoggerT],
-](
-	in AvailabilityPrunerInput[AvailabilityStoreT, BeaconBlockT, LoggerT],
-) (pruner.Pruner[AvailabilityStoreT], error) {
-	// TODO: add dispatcher field in the pruner or something, the provider
-	// should not execute any business logic.
-	// create new subscription for finalized blocks.
-	subFinalizedBlocks := make(chan async.Event[BeaconBlockT])
-	if err := in.Dispatcher.Subscribe(
-		async.BeaconBlockFinalized, subFinalizedBlocks,
-	); err != nil {
-		in.Logger.Error("failed to subscribe to event", "event",
-			async.BeaconBlockFinalized, "err", err)
-		return nil, err
-	}
-
-	// build the availability pruner if IndexDB is available.
-	return pruner.NewPruner[BeaconBlockT, AvailabilityStoreT](
-		in.Logger.With("service", manager.AvailabilityPrunerName),
-		in.AvailabilityStore,
-		manager.AvailabilityPrunerName,
-		subFinalizedBlocks,
-		dastore.BuildPruneRangeFn[BeaconBlockT](in.ChainSpec),
 	), nil
 }

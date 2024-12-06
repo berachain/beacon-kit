@@ -40,6 +40,8 @@ type AvailabilityStore[BeaconBlockBodyT any] interface {
 	IsDataAvailable(
 		context.Context, math.Slot, BeaconBlockBodyT,
 	) bool
+	// Prune prunes the deposit store of [start, end)
+	Prune(start, end uint64) error
 }
 
 type ConsensusBlock[BeaconBlockT any] interface {
@@ -217,11 +219,14 @@ type StateProcessor[
 type StorageBackend[
 	AvailabilityStoreT any,
 	BeaconStateT any,
+	DepositStoreT any,
 ] interface {
 	// AvailabilityStore returns the availability store for the given context.
 	AvailabilityStore() AvailabilityStoreT
 	// StateFromContext retrieves the beacon state from the given context.
 	StateFromContext(context.Context) BeaconStateT
+	// DepositStore retrieves the deposit store.
+	DepositStore() DepositStoreT
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.

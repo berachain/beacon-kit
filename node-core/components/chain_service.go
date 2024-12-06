@@ -33,6 +33,8 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/spf13/cast"
 )
 
 // ChainServiceInput is the input for the chain service provider.
@@ -54,6 +56,7 @@ type ChainServiceInput[
 ] struct {
 	depinject.In
 
+	AppOpts      config.AppOptions
 	ChainSpec    common.ChainSpec
 	Cfg          *config.Config
 	EngineClient *client.EngineClient[
@@ -99,7 +102,8 @@ func ProvideChainService[
 	BeaconStateMarshallableT any,
 	BlobSidecarsT any,
 	BlockStoreT any,
-	DepositT any,
+	DepositT deposit.Deposit[DepositT, WithdrawalCredentialsT],
+	WithdrawalCredentialsT WithdrawalCredentials,
 	DepositStoreT DepositStore[DepositT],
 	DepositContractT deposit.Contract[DepositT],
 	ExecutionPayloadT ExecutionPayload[
@@ -122,14 +126,16 @@ func ProvideChainService[
 		WithdrawalT, WithdrawalsT, BeaconBlockStoreT, DepositStoreT, DepositContractT,
 	],
 ) *blockchain.Service[
-	AvailabilityStoreT,
+	AvailabilityStoreT, DepositStoreT,
 	ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
-	BeaconBlockHeaderT, BeaconStateT, BeaconBlockStoreT, DepositT, ExecutionPayloadT,
+	BeaconBlockHeaderT, BeaconStateT, BeaconBlockStoreT, DepositT,
+	WithdrawalCredentialsT, ExecutionPayloadT,
 	ExecutionPayloadHeaderT, GenesisT,
 	*engineprimitives.PayloadAttributes[WithdrawalT],
 ] {
 	return blockchain.NewService[
 		AvailabilityStoreT,
+		DepositStoreT,
 		ConsensusBlockT,
 		BeaconBlockT,
 		BeaconBlockBodyT,
@@ -137,11 +143,13 @@ func ProvideChainService[
 		BeaconStateT,
 		BeaconBlockStoreT,
 		DepositT,
+		WithdrawalCredentialsT,
 		ExecutionPayloadT,
 		ExecutionPayloadHeaderT,
 		GenesisT,
 		*engineprimitives.PayloadAttributes[WithdrawalT],
 	](
+		cast.ToString(in.AppOpts.Get(flags.FlagHome)),
 		in.StorageBackend,
 		in.BlockStore,
 		in.DepositStore,

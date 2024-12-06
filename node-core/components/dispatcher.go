@@ -64,6 +64,5 @@ func ProvideDispatcher[
 		dp.WithEvent[ValidatorUpdateEvent](
 			async.FinalValidatorUpdatesProcessed,
 		),
-		dp.WithEvent[async.Event[BeaconBlockT]](async.BeaconBlockFinalized),
 	)
 }

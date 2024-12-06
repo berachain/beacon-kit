@@ -24,14 +24,13 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/primitives/async"
 	"github.com/berachain/beacon-kit/primitives/transition"
 )
 
 // ProcessGenesisData processes the genesis state and initializes the beacon
 // state.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, GenesisT, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, GenesisT, _,
 ]) ProcessGenesisData(
 	ctx context.Context,
 	genesisData GenesisT,
@@ -47,7 +46,7 @@ func (s *Service[
 // ProcessBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
 func (s *Service[
-	_, ConsensusBlockT, _, _, _, _, _, _, _, _, _, _,
+	_, _, ConsensusBlockT, _, _, _, _, _, _, _, _, _, _, _,
 ]) ProcessBeaconBlock(
 	ctx context.Context,
 	blk ConsensusBlockT,
@@ -74,29 +73,22 @@ func (s *Service[
 		return nil, ErrDataNotAvailable
 	}
 
-	// If required, we want to forkchoice at the end of post
-	// block processing.
-	// TODO: this is hood as fuck.
-	// We won't send an fcu if the block is bad, should be addressed
-	// via ticker later.
-	if err = s.dispatcher.Publish(
-		async.NewEvent(
-			ctx, async.BeaconBlockFinalized, beaconBlk,
-		),
-	); err != nil {
-		return nil, err
-	}
-
 	// fetch and store the deposit for the block
 	blockNum := beaconBlk.GetBody().GetExecutionPayload().GetNumber()
 	s.depositFetcher(ctx, blockNum)
 
-	// run fetchAndStoreDeposits which fetches and stores the deposits for that block.
+	// store the finalized block in the KVStore.
 	slot := beaconBlk.GetSlot()
-	if err := s.blockStore.Set(beaconBlk); err != nil {
+	if err = s.blockStore.Set(beaconBlk); err != nil {
 		s.logger.Error(
 			"failed to store block", "slot", slot, "error", err,
 		)
+	}
+
+	// prune the availability and deposit store
+	err = s.processPruning(beaconBlk)
+	if err != nil {
+		s.logger.Error("failed to processPruning", "error", err)
 	}
 
 	go s.sendPostBlockFCU(ctx, st, blk)
@@ -106,7 +98,7 @@ func (s *Service[
 
 // executeStateTransition runs the stf.
 func (s *Service[
-	_, ConsensusBlockT, _, _, _, BeaconStateT, _, _, _, _, _, _,
+	_, _, ConsensusBlockT, _, _, _, BeaconStateT, _, _, _, _, _, _, _,
 ]) executeStateTransition(
 	ctx context.Context,
 	st BeaconStateT,
