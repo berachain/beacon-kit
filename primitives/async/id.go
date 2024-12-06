@@ -27,7 +27,6 @@ type EventID string
 const (
 
 	// genesis data events.
-	GenesisDataReceived  = "genesis-data-received"
 	GenesisDataProcessed = "genesis-data-processed"
 
 	// pre proposal events.

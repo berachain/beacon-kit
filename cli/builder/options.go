@@ -32,15 +32,17 @@ type Opt[
 	T types.Node,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 	LoggerT log.AdvancedLogger[LoggerT],
-] func(*CLIBuilder[T, ExecutionPayloadT, LoggerT])
+	ChainServiceT any,
+] func(*CLIBuilder[T, ExecutionPayloadT, LoggerT, ChainServiceT])
 
 // WithName sets the name for the CLIBuilder.
 func WithName[
 	T types.Node,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 	LoggerT log.AdvancedLogger[LoggerT],
-](name string) Opt[T, ExecutionPayloadT, LoggerT] {
-	return func(cb *CLIBuilder[T, ExecutionPayloadT, LoggerT]) {
+	ChainServiceT any,
+](name string) Opt[T, ExecutionPayloadT, LoggerT, ChainServiceT] {
+	return func(cb *CLIBuilder[T, ExecutionPayloadT, LoggerT, ChainServiceT]) {
 		cb.name = name
 	}
 }
@@ -50,8 +52,9 @@ func WithDescription[
 	T types.Node,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 	LoggerT log.AdvancedLogger[LoggerT],
-](description string) Opt[T, ExecutionPayloadT, LoggerT] {
-	return func(cb *CLIBuilder[T, ExecutionPayloadT, LoggerT]) {
+	ChainServiceT any,
+](description string) Opt[T, ExecutionPayloadT, LoggerT, ChainServiceT] {
+	return func(cb *CLIBuilder[T, ExecutionPayloadT, LoggerT, ChainServiceT]) {
 		cb.description = description
 	}
 }
@@ -61,8 +64,9 @@ func WithComponents[
 	T types.Node,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 	LoggerT log.AdvancedLogger[LoggerT],
-](components []any) Opt[T, ExecutionPayloadT, LoggerT] {
-	return func(cb *CLIBuilder[T, ExecutionPayloadT, LoggerT]) {
+	ChainServiceT any,
+](components []any) Opt[T, ExecutionPayloadT, LoggerT, ChainServiceT] {
+	return func(cb *CLIBuilder[T, ExecutionPayloadT, LoggerT, ChainServiceT]) {
 		cb.components = components
 	}
 }
@@ -72,10 +76,11 @@ func WithNodeBuilderFunc[
 	T types.Node,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 	LoggerT log.AdvancedLogger[LoggerT],
+	ChainServiceT any,
 ](
-	nodeBuilderFunc servertypes.AppCreator[T, LoggerT],
-) Opt[T, ExecutionPayloadT, LoggerT] {
-	return func(cb *CLIBuilder[T, ExecutionPayloadT, LoggerT]) {
+	nodeBuilderFunc servertypes.AppCreator[T, LoggerT, ChainServiceT],
+) Opt[T, ExecutionPayloadT, LoggerT, ChainServiceT] {
+	return func(cb *CLIBuilder[T, ExecutionPayloadT, LoggerT, ChainServiceT]) {
 		cb.nodeBuilderFunc = nodeBuilderFunc
 	}
 }

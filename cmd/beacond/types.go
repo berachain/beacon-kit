@@ -98,7 +98,7 @@ type (
 	]
 
 	// CometBFTService is a type alias for the CometBFT service.
-	CometBFTService = cometbft.Service[*Logger]
+	CometBFTService = cometbft.Service[*Logger, *ChainService]
 
 	// DAService is a type alias for the DA service.
 	DAService = da.Service[

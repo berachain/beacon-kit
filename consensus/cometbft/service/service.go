@@ -49,13 +49,15 @@ const (
 
 type Service[
 	LoggerT log.AdvancedLogger[LoggerT],
+	ChainServiceT any,
 ] struct {
 	node   *node.Node
 	cmtCfg *cmtcfg.Config
 
-	logger     LoggerT
-	sm         *statem.Manager
-	Middleware MiddlewareI
+	logger       LoggerT
+	sm           *statem.Manager
+	Middleware   MiddlewareI
+	chainService ChainServiceT
 
 	// prepareProposalState is used for PrepareProposal, which is set based on
 	// the previous block's state. This state is never committed. In case of
@@ -87,24 +89,27 @@ type Service[
 
 func NewService[
 	LoggerT log.AdvancedLogger[LoggerT],
+	ChainServiceT any,
 ](
 	storeKey *storetypes.KVStoreKey,
+	chainService ChainServiceT,
 	logger LoggerT,
 	db dbm.DB,
 	middleware MiddlewareI,
 	cmtCfg *cmtcfg.Config,
 	cs common.ChainSpec,
-	options ...func(*Service[LoggerT]),
-) *Service[LoggerT] {
-	s := &Service[LoggerT]{
+	options ...func(*Service[LoggerT, ChainServiceT]),
+) *Service[LoggerT, ChainServiceT] {
+	s := &Service[LoggerT, ChainServiceT]{
 		logger: logger,
 		sm: statem.NewManager(
 			db,
 			servercmtlog.WrapSDKLogger(logger),
 		),
-		Middleware: middleware,
-		cmtCfg:     cmtCfg,
-		paramStore: params.NewConsensusParamsStore(cs),
+		Middleware:   middleware,
+		cmtCfg:       cmtCfg,
+		paramStore:   params.NewConsensusParamsStore(cs),
+		chainService: chainService,
 	}
 
 	s.MountStore(storeKey, storetypes.StoreTypeIAVL)
@@ -126,7 +131,7 @@ func NewService[
 }
 
 // TODO: Move nodeKey into being created within the function.
-func (s *Service[_]) Start(
+func (s *Service[_, _]) Start(
 	ctx context.Context,
 ) error {
 	cfg := s.cmtCfg
@@ -157,7 +162,7 @@ func (s *Service[_]) Start(
 }
 
 // Close is called in start cmd to gracefully cleanup resources.
-func (s *Service[_]) Close() error {
+func (s *Service[_, _]) Close() error {
 	var errs []error
 
 	if s.node != nil && s.node.IsRunning() {
@@ -174,28 +179,28 @@ func (s *Service[_]) Close() error {
 }
 
 // Name returns the name of the cometbft.
-func (s *Service[_]) Name() string {
+func (s *Service[_, _]) Name() string {
 	return appName
 }
 
 // CommitMultiStore returns the CommitMultiStore of the cometbft.
-func (s *Service[_]) CommitMultiStore() storetypes.CommitMultiStore {
+func (s *Service[_, _]) CommitMultiStore() storetypes.CommitMultiStore {
 	return s.sm.CommitMultiStore()
 }
 
 // AppVersion returns the application's protocol version.
-func (s *Service[_]) AppVersion(_ context.Context) (uint64, error) {
+func (s *Service[_, _]) AppVersion(_ context.Context) (uint64, error) {
 	return s.appVersion()
 }
 
-func (s *Service[_]) appVersion() (uint64, error) {
+func (s *Service[_, _]) appVersion() (uint64, error) {
 	cp := s.paramStore.Get()
 	return cp.Version.App, nil
 }
 
 // MountStore mounts a store to the provided key in the Service multistore,
 // using the default DB.
-func (s *Service[_]) MountStore(
+func (s *Service[_, _]) MountStore(
 	key storetypes.StoreKey,
 	typ storetypes.StoreType,
 ) {
@@ -203,15 +208,15 @@ func (s *Service[_]) MountStore(
 }
 
 // LastBlockHeight returns the last committed block height.
-func (s *Service[_]) LastBlockHeight() int64 {
+func (s *Service[_, _]) LastBlockHeight() int64 {
 	return s.sm.CommitMultiStore().LastCommitID().Version
 }
 
-func (s *Service[_]) setMinRetainBlocks(minRetainBlocks uint64) {
+func (s *Service[_, _]) setMinRetainBlocks(minRetainBlocks uint64) {
 	s.minRetainBlocks = minRetainBlocks
 }
 
-func (s *Service[_]) setInterBlockCache(
+func (s *Service[_, _]) setInterBlockCache(
 	cache storetypes.MultiStorePersistentCache,
 ) {
 	s.interBlockCache = cache
@@ -221,7 +226,7 @@ func (s *Service[_]) setInterBlockCache(
 // prepareProposal/processProposal/finalizeBlock State.
 // A state is explicitly returned to avoid false positives from
 // nilaway tool.
-func (s *Service[LoggerT]) resetState() *state {
+func (s *Service[LoggerT, _]) resetState() *state {
 	ms := s.sm.CommitMultiStore().CacheMultiStore()
 	return &state{
 		ms:  ms,

@@ -85,8 +85,6 @@ type Service[
 	subFinalBlkReceived chan async.Event[ConsensusBlockT]
 	// subBlockReceived is a channel holding BeaconBlockReceived events.
 	subBlockReceived chan async.Event[ConsensusBlockT]
-	// subGenDataReceived is a channel holding GenesisDataReceived events.
-	subGenDataReceived chan async.Event[GenesisT]
 }
 
 // NewService creates a new validator service.
@@ -148,7 +146,6 @@ func NewService[
 		forceStartupSyncOnce:    new(sync.Once),
 		subFinalBlkReceived:     make(chan async.Event[ConsensusBlockT]),
 		subBlockReceived:        make(chan async.Event[ConsensusBlockT]),
-		subGenDataReceived:      make(chan async.Event[GenesisT]),
 	}
 }
 
@@ -159,18 +156,12 @@ func (s *Service[
 	return "blockchain"
 }
 
-// Start subscribes the Blockchain service to GenesisDataReceived,
+// Start subscribes the Blockchain service to
 // BeaconBlockReceived, and FinalBeaconBlockReceived events, and begins
 // the main event loop to handle them accordingly.
 func (s *Service[
 	_, _, _, _, _, _, _, _, _, _, _,
 ]) Start(ctx context.Context) error {
-	if err := s.dispatcher.Subscribe(
-		async.GenesisDataReceived, s.subGenDataReceived,
-	); err != nil {
-		return err
-	}
-
 	if err := s.dispatcher.Subscribe(
 		async.BeaconBlockReceived, s.subBlockReceived,
 	); err != nil {
@@ -196,8 +187,6 @@ func (s *Service[
 		select {
 		case <-ctx.Done():
 			return
-		case event := <-s.subGenDataReceived:
-			s.handleGenDataReceived(event)
 		case event := <-s.subBlockReceived:
 			s.handleBeaconBlockReceived(event)
 		case event := <-s.subFinalBlkReceived:
@@ -209,42 +198,6 @@ func (s *Service[
 /* -------------------------------------------------------------------------- */
 /*                                Event Handlers                              */
 /* -------------------------------------------------------------------------- */
-
-// handleGenDataReceived processes the genesis data received and emits a
-// GenesisDataProcessed event containing the resulting validator updates.
-func (s *Service[
-	_, _, _, _, _, _, _, _, _, GenesisT, _,
-]) handleGenDataReceived(msg async.Event[GenesisT]) {
-	var (
-		valUpdates transition.ValidatorUpdates
-		genesisErr error
-	)
-	if msg.Error() != nil {
-		s.logger.Error("Error processing genesis data", "error", msg.Error())
-	}
-
-	// Process the genesis data.
-	valUpdates, genesisErr = s.ProcessGenesisData(msg.Context(), msg.Data())
-	if genesisErr != nil {
-		s.logger.Error("Failed to process genesis data", "error", genesisErr)
-	}
-
-	// Emit the event containing the validator updates.
-	if err := s.dispatcher.Publish(
-		async.NewEvent(
-			msg.Context(),
-			async.GenesisDataProcessed,
-			valUpdates,
-			genesisErr,
-		),
-	); err != nil {
-		s.logger.Error(
-			"Failed to emit event in process genesis data",
-			"error", err,
-		)
-		panic(err)
-	}
-}
 
 // handleBeaconBlockReceived emits a BeaconBlockVerified event with the error
 // result from VerifyIncomingBlock.

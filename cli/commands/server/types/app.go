@@ -52,7 +52,8 @@ type (
 		LoggerT interface {
 			log.AdvancedLogger[LoggerT]
 		},
+		ChainServiceT any,
 	] func(
-		LoggerT, dbm.DB, io.Writer, *cmtcfg.Config, AppOptions,
+		LoggerT, ChainServiceT, dbm.DB, io.Writer, *cmtcfg.Config, AppOptions,
 	) AppT
 )

@@ -45,9 +45,10 @@ import (
 // Cosmos SDK.
 func DefaultServiceOptions[
 	LoggerT log.AdvancedLogger[LoggerT],
+	ChainServiceT any,
 ](
 	appOpts config.AppOptions,
-) []func(*cometbft.Service[LoggerT]) {
+) []func(*cometbft.Service[LoggerT, ChainServiceT]) {
 	var cache storetypes.MultiStorePersistentCache
 
 	if cast.ToBool(appOpts.Get(server.FlagInterBlockCache)) {
@@ -68,20 +69,20 @@ func DefaultServiceOptions[
 		}
 	}
 
-	return []func(*cometbft.Service[LoggerT]){
-		cometbft.SetPruning[LoggerT](pruningOpts),
-		cometbft.SetMinRetainBlocks[LoggerT](
+	return []func(*cometbft.Service[LoggerT, ChainServiceT]){
+		cometbft.SetPruning[LoggerT, ChainServiceT](pruningOpts),
+		cometbft.SetMinRetainBlocks[LoggerT, ChainServiceT](
 			cast.ToUint64(appOpts.Get(server.FlagMinRetainBlocks)),
 		),
-		cometbft.SetInterBlockCache[LoggerT](cache),
-		cometbft.SetIAVLCacheSize[LoggerT](
+		cometbft.SetInterBlockCache[LoggerT, ChainServiceT](cache),
+		cometbft.SetIAVLCacheSize[LoggerT, ChainServiceT](
 			cast.ToInt(appOpts.Get(server.FlagIAVLCacheSize)),
 		),
-		cometbft.SetIAVLDisableFastNode[LoggerT](
+		cometbft.SetIAVLDisableFastNode[LoggerT, ChainServiceT](
 			// default to true
 			true,
 		),
-		cometbft.SetChainID[LoggerT](chainID),
+		cometbft.SetChainID[LoggerT, ChainServiceT](chainID),
 	}
 }
 
