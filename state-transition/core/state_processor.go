@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
@@ -374,15 +375,36 @@ func (sp *StateProcessor[
 ]) processEpoch(
 	st BeaconStateT,
 ) (transition.ValidatorUpdates, error) {
-	// currently no processRewardsAndPenalties
+	slot, err := st.GetSlot()
+	if err != nil {
+		return nil, err
+	}
 
-	if err := sp.processEffectiveBalanceUpdates(st); err != nil {
+	switch {
+	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
+		if err = sp.hollowProcessRewardsAndPenalties(st); err != nil {
+			return nil, err
+		}
+	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
+		slot != 0 && slot < math.U64(spec.BoonetFork3Height):
+		// We cannot simply drop hollowProcessRewardsAndPenalties because
+		// appHash accounts for the list of operations carried out
+		// over the state even if the operations does not affect the state
+		// (rewards and penalties are always zero at this stage of beaconKit)
+		if err = sp.hollowProcessRewardsAndPenalties(st); err != nil {
+			return nil, err
+		}
+	default:
+		// no real need to perform hollowProcessRewardsAndPenalties
+	}
+
+	if err = sp.processEffectiveBalanceUpdates(st); err != nil {
 		return nil, err
 	}
-	if err := sp.processSlashingsReset(st); err != nil {
+	if err = sp.processSlashingsReset(st); err != nil {
 		return nil, err
 	}
-	if err := sp.processRandaoMixesReset(st); err != nil {
+	if err = sp.processRandaoMixesReset(st); err != nil {
 		return nil, err
 	}
 	return sp.processValidatorsSetUpdates(st)
@@ -468,6 +490,40 @@ func (sp *StateProcessor[
 		bodyRoot,
 	)
 	return st.SetLatestBlockHeader(lbh)
+}
+
+func (sp *StateProcessor[
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) hollowProcessRewardsAndPenalties(st BeaconStateT) error {
+	slot, err := st.GetSlot()
+	if err != nil {
+		return err
+	}
+
+	if sp.cs.SlotToEpoch(slot) == math.U64(constants.GenesisEpoch) {
+		return nil
+	}
+
+	// this has been simplified to make clear that
+	// we are not really doing anything here
+	valCount, err := st.GetTotalValidators()
+	if err != nil {
+		return err
+	}
+
+	for i := range valCount {
+		// Increase the balance of the validator.
+		if err = st.IncreaseBalance(math.ValidatorIndex(i), 0); err != nil {
+			return err
+		}
+
+		// Decrease the balance of the validator.
+		if err = st.DecreaseBalance(math.ValidatorIndex(i), 0); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // processEffectiveBalanceUpdates as defined in the Ethereum 2.0 specification.
