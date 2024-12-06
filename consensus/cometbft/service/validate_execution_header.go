@@ -56,7 +56,7 @@ func validateExecutionHeader(header *types.ExecutionPayloadHeader) error {
 		return errors.New("parent hash must be zero for genesis block")
 	}
 
-	//if header.StateRoot != emptyTrieRoot {
+	// if header.StateRoot != emptyTrieRoot {
 	//	return errors.New(
 	//		"state root must be empty trie root for genesis block",
 	//	)
