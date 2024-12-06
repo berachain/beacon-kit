@@ -21,7 +21,7 @@
 package components
 
 import (
-	"cosmossdk.io/core/appmodule/v2"
+	appmodule "cosmossdk.io/core/appmodule/v2"
 	asynctypes "github.com/berachain/beacon-kit/async/types"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	consruntimetypes "github.com/berachain/beacon-kit/consensus/types"

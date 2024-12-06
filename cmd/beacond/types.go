@@ -21,7 +21,7 @@
 package main
 
 import (
-	"cosmossdk.io/core/appmodule/v2"
+	appmodule "cosmossdk.io/core/appmodule/v2"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/validator"
 	"github.com/berachain/beacon-kit/consensus-types/types"
