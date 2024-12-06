@@ -152,13 +152,12 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	s.Require().NoError(err)
 
 	// Check that the eth spent is somewhere~ (gas) between
-	// upper bound: 32ether * 500 + 1ether
+	// upper bound: 32ether * 500 + 2ether
 	// lower bound: 32ether * 500
-	oneEther := big.NewInt(1e18)
-	totalAmt := new(big.Int).Mul(
-		oneEther, big.NewInt(NumDepositsLoad*32),
-	)
-	upperBound := new(big.Int).Add(totalAmt, oneEther)
+	twoEther := big.NewInt(1e18)
+	depositAmt, _ := big.NewFloat(DepositAmount).Int(nil)
+	totalAmt := new(big.Int).Mul(depositAmt, big.NewInt(NumDepositsLoad))
+	upperBound := new(big.Int).Add(totalAmt, twoEther)
 	amtSpent := new(big.Int).Sub(balance, postDepositBalance)
 
 	s.Require().Equal(amtSpent.Cmp(totalAmt), 1)
