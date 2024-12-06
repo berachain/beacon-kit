@@ -54,11 +54,6 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	// Sender account
 	sender := s.TestAccounts()[1]
 
-	// Get the public key.
-	pubkey, err := client.GetPubKey(s.Ctx())
-	s.Require().NoError(err)
-	s.Require().Len(pubkey, 48)
-
 	// Get the block num
 	blkNum, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
 	s.Require().NoError(err)
@@ -101,17 +96,18 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	)
 	for i := range NumDepositsLoad {
 		// Create a deposit transaction. Use the default validators' pubkeys
-		// if exists, otherwise pubkey i 48 byte slice.
+		// if exists, otherwise pubkey is a random 48 byte slice.
 		var pubkey []byte
-		if i == 0 {
+		switch i {
+		case 0:
 			pubkey, err = client.GetPubKey(s.Ctx())
 			s.Require().NoError(err)
 			s.Require().Len(pubkey, 48)
-		} else if i == 1 {
+		case 1:
 			pubkey, err = client2.GetPubKey(s.Ctx())
 			s.Require().NoError(err)
 			s.Require().Len(pubkey, 48)
-		} else {
+		default:
 			pubkey = make([]byte, 48)
 			_, err = rand.Read(pubkey)
 			s.Require().NoError(err)
