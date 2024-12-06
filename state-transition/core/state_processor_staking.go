@@ -84,7 +84,7 @@ func (sp *StateProcessor[
 		// We keep it for backward compatibility.
 		depositIndex++
 	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-		slot < math.U64(spec.BoonetFork2Height):
+		slot != 0 && slot < math.U64(spec.BoonetFork2Height):
 		// Boonet pre fork2 has a bug which makes DepositEth1ChainID point to
 		// next deposit index, not latest processed deposit index.
 		// We keep it for backward compatibility.
