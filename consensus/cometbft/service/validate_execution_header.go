@@ -134,9 +134,9 @@ func validateExecutionHeader(header *types.ExecutionPayloadHeader) error {
 		)
 	}
 
-	if header.BlobGasUsed > header.GetGasLimit() {
+	if header.BlobGasUsed > header.GasLimit {
 		return fmt.Errorf("blob gas used (%d) exceeds gas limit (%d)",
-			header.BlobGasUsed, header.GetGasLimit(),
+			header.BlobGasUsed, header.GasLimit,
 		)
 	}
 
