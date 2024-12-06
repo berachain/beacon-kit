@@ -386,7 +386,7 @@ func (sp *StateProcessor[
 			return nil, err
 		}
 	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-		slot != 0 && slot < math.U64(spec.BoonetFork3Height):
+		slot < math.U64(spec.BoonetFork3Height):
 		// We cannot simply drop hollowProcessRewardsAndPenalties because
 		// appHash accounts for the list of operations carried out
 		// over the state even if the operations does not affect the state
