@@ -94,6 +94,17 @@ func validateExecutionHeader(header *types.ExecutionPayloadHeader) error {
 	}
 
 	// Additional Deneb-specific validations for blob gas
+	if header.BlobGasUsed != 0 {
+		return errors.New(
+			"blob gas used must be zero for genesis block",
+		)
+	}
+	if header.ExcessBlobGas != 0 {
+		return errors.New(
+			"excess blob gas must be zero for genesis block",
+		)
+	}
+
 	if header.BlobGasUsed > header.GetGasLimit() {
 		return fmt.Errorf("blob gas used (%d) exceeds gas limit (%d)",
 			header.BlobGasUsed, header.GetGasLimit(),
