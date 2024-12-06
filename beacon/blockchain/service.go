@@ -58,11 +58,12 @@ type Service[
 		BeaconStateT,
 	]
 	// store is the block store for the service.
-	store BlockStoreT
-	// ds is the deposit store that stores deposits.
-	ds deposit.Store[DepositT]
-	// dc is the contract interface for interacting with the deposit contract.
-	dc deposit.Contract[DepositT]
+	blockStore BlockStoreT
+	// depositStore is the deposit store that stores deposits.
+	depositStore deposit.Store[DepositT]
+	// depositContract is the contract interface for interacting with the
+	// deposit contract.
+	depositContract deposit.Contract[DepositT]
 	// eth1FollowDistance is the follow distance for Ethereum 1.0 blocks.
 	eth1FollowDistance math.U64
 	// failedBlocksMu protects failedBlocks for concurrent access.
@@ -128,9 +129,9 @@ func NewService[
 		AvailabilityStoreT,
 		BeaconStateT,
 	],
-	store BlockStoreT,
-	ds deposit.Store[DepositT],
-	dc deposit.Contract[DepositT],
+	blockStore BlockStoreT,
+	depositStore deposit.Store[DepositT],
+	depositContract deposit.Contract[DepositT],
 	eth1FollowDistance math.U64,
 	logger log.Logger,
 	chainSpec common.ChainSpec,
@@ -159,9 +160,9 @@ func NewService[
 		GenesisT, PayloadAttributesT,
 	]{
 		storageBackend:          storageBackend,
-		store:                   store,
-		ds:                      ds,
-		dc:                      dc,
+		blockStore:              blockStore,
+		depositStore:            depositStore,
+		depositContract:         depositContract,
 		eth1FollowDistance:      eth1FollowDistance,
 		failedBlocks:            make(map[math.Slot]struct{}),
 		logger:                  logger,
