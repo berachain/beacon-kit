@@ -47,6 +47,7 @@ var (
 	errNilFinalizeBlockState = errors.New("finalizeBlockState is nil")
 )
 
+//nolint:gocognit // this is fine.
 func (s *Service[LoggerT]) InitChain(
 	_ context.Context,
 	req *cmtabci.InitChainRequest,
@@ -57,6 +58,16 @@ func (s *Service[LoggerT]) InitChain(
 			s.chainID,
 			req.ChainId,
 		)
+	}
+
+	var genesisState map[string]json.RawMessage
+	if err := json.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal genesis state: %w", err)
+	}
+	// Validate the genesis state.
+	err := s.ValidateGenesis(genesisState)
+	if err != nil {
+		return nil, err
 	}
 
 	s.logger.Info(
@@ -78,7 +89,7 @@ func (s *Service[LoggerT]) InitChain(
 	// if req.InitialHeight is > 1, then we set the initial version on all
 	// stores
 	if req.InitialHeight > 1 {
-		if err := s.sm.CommitMultiStore().
+		if err = s.sm.CommitMultiStore().
 			SetInitialVersion(req.InitialHeight); err != nil {
 			return nil, err
 		}
