@@ -40,6 +40,41 @@ func validateExecutionHeader(header *types.ExecutionPayloadHeader) error {
 		return errors.New("execution payload header cannot be nil")
 	}
 
+	// Check block number to be 0
+	if header.Number != 0 {
+		return errors.New("block number must be 0 for genesis block")
+	}
+
+	if header.GasLimit == 0 {
+		return errors.New("gas limit cannot be zero")
+	}
+
+	if header.GasUsed != 0 {
+		return errors.New("gas used must be zero for genesis block")
+	}
+
+	if header.BaseFeePerGas == nil {
+		return errors.New("base fee per gas cannot be nil")
+	}
+
+	// Additional Deneb-specific validations for blob gas
+	if header.BlobGasUsed != 0 {
+		return errors.New(
+			"blob gas used must be zero for genesis block",
+		)
+	}
+	if header.ExcessBlobGas != 0 {
+		return errors.New(
+			"excess blob gas must be zero for genesis block",
+		)
+	}
+
+	if header.BlobGasUsed > header.GasLimit {
+		return fmt.Errorf("blob gas used (%d) exceeds gas limit (%d)",
+			header.BlobGasUsed, header.GasLimit,
+		)
+	}
+
 	// Validate hash fields are not zero
 	zeroHash := common.ExecutionHash{}
 	emptyTrieRoot := common.Bytes32(
@@ -62,11 +97,6 @@ func validateExecutionHeader(header *types.ExecutionPayloadHeader) error {
 		return errors.New("block hash cannot be zero")
 	}
 
-	// Check block number to be 0
-	if header.Number != 0 {
-		return errors.New("block number must be 0 for genesis block")
-	}
-
 	// Validate prevRandao is zero for genesis
 	var zeroBytes32 common.Bytes32
 	if !bytes.Equal(header.Random[:], zeroBytes32[:]) {
@@ -79,43 +109,11 @@ func validateExecutionHeader(header *types.ExecutionPayloadHeader) error {
 	// We don't validate LogsBloom as it can legitimately be
 	// all zeros in a genesis block or in blocks with no logs
 
-	// Validate numeric fields
-	if header.GasLimit == 0 {
-		return errors.New("gas limit cannot be zero")
-	}
-
-	if header.GasUsed != 0 {
-		return errors.New("gas used must be zero for genesis block")
-	}
-
 	// Extra data length check (max 32 bytes)
 	if len(header.ExtraData) > maxExtraDataSize {
 		return fmt.Errorf(
 			"extra data too long: got %d bytes, max 32 bytes",
 			len(header.ExtraData),
-		)
-	}
-
-	// Validate base fee per gas
-	if header.BaseFeePerGas == nil {
-		return errors.New("base fee per gas cannot be nil")
-	}
-
-	// Additional Deneb-specific validations for blob gas
-	if header.BlobGasUsed != 0 {
-		return errors.New(
-			"blob gas used must be zero for genesis block",
-		)
-	}
-	if header.ExcessBlobGas != 0 {
-		return errors.New(
-			"excess blob gas must be zero for genesis block",
-		)
-	}
-
-	if header.BlobGasUsed > header.GasLimit {
-		return fmt.Errorf("blob gas used (%d) exceeds gas limit (%d)",
-			header.BlobGasUsed, header.GasLimit,
 		)
 	}
 
