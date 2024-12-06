@@ -75,9 +75,10 @@ type ServiceRegistryInput[
 		BeaconBlockT, BeaconBlockHeaderT, BlobSidecarsT, GenesisT, *SlotData,
 	]
 	ChainService *blockchain.Service[
-		AvailabilityStoreT,
+		AvailabilityStoreT, DepositStoreT,
 		ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
-		BeaconBlockHeaderT, BeaconStateT, BeaconBlockStoreT, DepositT, ExecutionPayloadT,
+		BeaconBlockHeaderT, BeaconStateT, BeaconBlockStoreT, DepositT,
+		WithdrawalCredentials, ExecutionPayloadT,
 		ExecutionPayloadHeaderT, GenesisT,
 		*engineprimitives.PayloadAttributes[WithdrawalT],
 	]
@@ -85,7 +86,6 @@ type ServiceRegistryInput[
 		AvailabilityStoreT,
 		ConsensusSidecarsT, BlobSidecarsT, BeaconBlockHeaderT,
 	]
-	DBManager    *DBManager
 	Dispatcher   Dispatcher
 	EngineClient *client.EngineClient[
 		ExecutionPayloadT,
@@ -159,7 +159,6 @@ func ProvideServiceRegistry[
 		service.WithService(in.DAService),
 		service.WithService(in.NodeAPIServer),
 		service.WithService(in.ReportingService),
-		service.WithService(in.DBManager),
 		service.WithService(in.EngineClient),
 		service.WithService(in.TelemetryService),
 		service.WithService(in.CometBFTService),
