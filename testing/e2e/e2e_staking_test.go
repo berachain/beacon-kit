@@ -21,6 +21,7 @@
 package e2e_test
 
 import (
+	"crypto/rand"
 	"math/big"
 
 	"github.com/berachain/beacon-kit/config/spec"
@@ -37,6 +38,9 @@ const (
 	// NumDepositsLoad is the number of deposits to load in the Deposit
 	// Robustness e2e test.
 	NumDepositsLoad = 500
+
+	// DepositAmount is the amount of BERA to deposit.
+	DepositAmount = 32e18
 )
 
 func (s *BeaconKitE2ESuite) TestDepositRobustness() {
@@ -96,12 +100,29 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 		receipt *coretypes.Receipt
 	)
 	for i := range NumDepositsLoad {
-		// Create a deposit transaction.
+		// Create a deposit transaction. Use the default validators' pubkeys
+		// if exists, otherwise pubkey i 48 byte slice.
+		var pubkey []byte
+		if i == 0 {
+			pubkey, err = client.GetPubKey(s.Ctx())
+			s.Require().NoError(err)
+			s.Require().Len(pubkey, 48)
+		} else if i == 1 {
+			pubkey, err = client2.GetPubKey(s.Ctx())
+			s.Require().NoError(err)
+			s.Require().Len(pubkey, 48)
+		} else {
+			pubkey = make([]byte, 48)
+			_, err = rand.Read(pubkey)
+			s.Require().NoError(err)
+		}
+
 		tx, err = s.generateNewDepositTx(
 			dc,
 			sender.Address(),
 			sender.SignerFunc(chainID),
 			big.NewInt(int64(nonce+uint64(i))),
+			pubkey,
 		)
 		s.Require().NoError(err)
 		s.Logger().
@@ -177,15 +198,8 @@ func (s *BeaconKitE2ESuite) generateNewDepositTx(
 	sender gethcommon.Address,
 	signer bind.SignerFn,
 	nonce *big.Int,
+	pubkey []byte,
 ) (*coretypes.Transaction, error) {
-	// Get the consensus client.
-	client := s.ConsensusClients()[config.DefaultClient]
-	s.Require().NotNil(client)
-
-	pubkey, err := client.GetPubKey(s.Ctx())
-	s.Require().NoError(err)
-	s.Require().Len(pubkey, 48)
-
 	// Generate the credentials.
 	credentials := types.NewCredentialsFromExecutionAddress(
 		common.ExecutionAddress(s.GenesisAccount().Address()),
@@ -195,7 +209,7 @@ func (s *BeaconKitE2ESuite) generateNewDepositTx(
 	signature := [96]byte{}
 	s.Require().Len(signature[:], 96)
 
-	val, _ := big.NewFloat(32e18).Int(nil)
+	val, _ := big.NewFloat(DepositAmount).Int(nil)
 	return dc.Deposit(&bind.TransactOpts{
 		From:   sender,
 		Value:  val,
