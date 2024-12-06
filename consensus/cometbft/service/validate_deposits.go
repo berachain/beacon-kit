@@ -21,7 +21,6 @@
 package cometbft
 
 import (
-	"bytes"
 	"encoding/hex"
 	"fmt"
 
@@ -29,17 +28,10 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 )
 
-// isZeroBytes returns true if the provided byte slice is all zeros.
-func isZeroBytes(b []byte) bool {
-	return bytes.Equal(b, make([]byte, len(b)))
-}
-
 // validateDeposits performs validation of the provided deposits.
 // It ensures:
 // - At least one deposit is present
 // - No duplicate public keys
-// - Non-zero values for required fields
-// (pubkey, credentials, amount, signature)
 // Returns an error with details if any validation fails.
 func validateDeposits(deposits []*types.Deposit) error {
 	if len(deposits) == 0 {
@@ -54,30 +46,13 @@ func validateDeposits(deposits []*types.Deposit) error {
 		if deposit == nil {
 			return fmt.Errorf("deposit %d is nil", i)
 		}
-		if isZeroBytes(deposit.Pubkey[:]) {
-			return fmt.Errorf("deposit %d has a zeroed public key", i)
-		}
+
 		// Check for duplicate pubkeys
 		pubkeyHex := hex.EncodeToString(deposit.Pubkey[:])
 		if _, seen := seenPubkeys[pubkeyHex]; seen {
 			return fmt.Errorf("duplicate pubkey found in deposit %d", i)
 		}
 		seenPubkeys[pubkeyHex] = struct{}{}
-
-		if isZeroBytes(deposit.Credentials[:]) {
-			return fmt.Errorf(
-				"deposit %d has zeroed withdrawal credentials",
-				i,
-			)
-		}
-
-		if deposit.Amount == 0 {
-			return fmt.Errorf("deposit %d has zero amount", i)
-		}
-
-		if isZeroBytes(deposit.Signature[:]) {
-			return fmt.Errorf("deposit %d has a zeroed signature", i)
-		}
 	}
 
 	return nil
