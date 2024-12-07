@@ -29,16 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/async"
 	"github.com/berachain/beacon-kit/primitives/transition"
-	"github.com/berachain/beacon-kit/storage/manager"
-)
-
-/* -------------------------------------------------------------------------- */
-/*                                  Services                                  */
-/* -------------------------------------------------------------------------- */
-
-type (
-	// DBManager is a type alias for the database manager.
-	DBManager = manager.DBManager
 )
 
 /* -------------------------------------------------------------------------- */

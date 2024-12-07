@@ -25,34 +25,64 @@ import (
 	"sync"
 
 	asynctypes "github.com/berachain/beacon-kit/async/types"
+	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/node-api/backend"
+	blockstore "github.com/berachain/beacon-kit/node-api/block_store"
 	"github.com/berachain/beacon-kit/primitives/async"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/eip4844"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 )
 
 // Service is the blockchain service.
 type Service[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT],
+	DepositStoreT backend.DepositStore[DepositT],
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
+	BeaconBlockBodyT interface {
+		BeaconBlockBody[ExecutionPayloadT]
+		GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
+		GetDeposits() []DepositT
+	},
 	BeaconBlockHeaderT BeaconBlockHeader,
 	BeaconStateT ReadOnlyBeaconState[
 		BeaconStateT, BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 	],
-	DepositT any,
+	BlockStoreT blockstore.BlockStore[BeaconBlockT],
+	DepositT deposit.Deposit[DepositT, WithdrawalCredentialsT],
+	WithdrawalCredentialsT any,
 	ExecutionPayloadT ExecutionPayload,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
 	PayloadAttributesT PayloadAttributes,
 ] struct {
+	// homeDir is the directory for config and data"
+	homeDir string
 	// storageBackend represents the backend storage for beacon states and
 	// associated sidecars.
 	storageBackend StorageBackend[
 		AvailabilityStoreT,
 		BeaconStateT,
+		DepositStoreT,
 	]
+	// store is the block store for the service.
+	// TODO: Remove this and use the block store from the storage backend.
+	blockStore BlockStoreT
+	// depositStore is the deposit store that stores deposits.
+	depositStore deposit.Store[DepositT]
+	// depositContract is the contract interface for interacting with the
+	// deposit contract.
+	depositContract deposit.Contract[DepositT]
+	// eth1FollowDistance is the follow distance for Ethereum 1.0 blocks.
+	eth1FollowDistance math.U64
+	// failedBlocksMu protects failedBlocks for concurrent access.
+	failedBlocksMu sync.RWMutex
+	// failedBlocks is a map of blocks that failed to be processed
+	// and should be retried.
+	failedBlocks map[math.U64]struct{}
 	// logger is used for logging messages in the service.
 	logger log.Logger
 	// chainSpec holds the chain specifications.
@@ -92,24 +122,37 @@ type Service[
 // NewService creates a new validator service.
 func NewService[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT],
+	DepositStoreT backend.DepositStore[DepositT],
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
+	BeaconBlockBodyT interface {
+		BeaconBlockBody[ExecutionPayloadT]
+		GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
+		GetDeposits() []DepositT
+	},
 	BeaconBlockHeaderT BeaconBlockHeader,
 	BeaconStateT ReadOnlyBeaconState[
 		BeaconStateT, BeaconBlockHeaderT,
 		ExecutionPayloadHeaderT,
 	],
-	DepositT any,
+	BlockStoreT blockstore.BlockStore[BeaconBlockT],
+	DepositT deposit.Deposit[DepositT, WithdrawalCredentialsT],
+	WithdrawalCredentialsT any,
 	ExecutionPayloadT ExecutionPayload,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
 	PayloadAttributesT PayloadAttributes,
 ](
+	homeDir string,
 	storageBackend StorageBackend[
 		AvailabilityStoreT,
 		BeaconStateT,
+		DepositStoreT,
 	],
+	blockStore BlockStoreT,
+	depositStore deposit.Store[DepositT],
+	depositContract deposit.Contract[DepositT],
+	eth1FollowDistance math.U64,
 	logger log.Logger,
 	chainSpec common.ChainSpec,
 	dispatcher asynctypes.Dispatcher,
@@ -125,18 +168,25 @@ func NewService[
 	telemetrySink TelemetrySink,
 	optimisticPayloadBuilds bool,
 ) *Service[
-	AvailabilityStoreT,
+	AvailabilityStoreT, DepositStoreT,
 	ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	BeaconStateT, DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	GenesisT, PayloadAttributesT,
+	BeaconStateT, BlockStoreT, DepositT, WithdrawalCredentialsT,
+	ExecutionPayloadT, ExecutionPayloadHeaderT, GenesisT, PayloadAttributesT,
 ] {
 	return &Service[
-		AvailabilityStoreT,
+		AvailabilityStoreT, DepositStoreT,
 		ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-		BeaconStateT, DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+		BeaconStateT, BlockStoreT, DepositT, WithdrawalCredentialsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 		GenesisT, PayloadAttributesT,
 	]{
+		homeDir:                 homeDir,
 		storageBackend:          storageBackend,
+		blockStore:              blockStore,
+		depositStore:            depositStore,
+		depositContract:         depositContract,
+		eth1FollowDistance:      eth1FollowDistance,
+		failedBlocks:            make(map[math.Slot]struct{}),
 		logger:                  logger,
 		chainSpec:               chainSpec,
 		dispatcher:              dispatcher,
@@ -154,7 +204,7 @@ func NewService[
 
 // Name returns the name of the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) Name() string {
 	return "blockchain"
 }
@@ -163,7 +213,7 @@ func (s *Service[
 // BeaconBlockReceived, and FinalBeaconBlockReceived events, and begins
 // the main event loop to handle them accordingly.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) Start(ctx context.Context) error {
 	if err := s.dispatcher.Subscribe(
 		async.GenesisDataReceived, s.subGenDataReceived,
@@ -185,12 +235,16 @@ func (s *Service[
 
 	// start the main event loop to listen and handle events.
 	go s.eventLoop(ctx)
+
+	// Catchup deposits for failed blocks.
+	go s.depositCatchupFetcher(ctx)
+
 	return nil
 }
 
 // eventLoop listens for events and handles them accordingly.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) eventLoop(ctx context.Context) {
 	for {
 		select {
@@ -213,7 +267,7 @@ func (s *Service[
 // handleGenDataReceived processes the genesis data received and emits a
 // GenesisDataProcessed event containing the resulting validator updates.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, GenesisT, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, GenesisT, _,
 ]) handleGenDataReceived(msg async.Event[GenesisT]) {
 	var (
 		valUpdates transition.ValidatorUpdates
@@ -249,7 +303,7 @@ func (s *Service[
 // handleBeaconBlockReceived emits a BeaconBlockVerified event with the error
 // result from VerifyIncomingBlock.
 func (s *Service[
-	_, ConsensusBlockT, _, _, _, _, _, _, _, _, _,
+	_, _, ConsensusBlockT, _, _, _, _, _, _, _, _, _, _, _,
 ]) handleBeaconBlockReceived(
 	msg async.Event[ConsensusBlockT],
 ) {
@@ -280,7 +334,7 @@ func (s *Service[
 // a FinalValidatorUpdatesProcessed event containing the resulting validator
 // updates.
 func (s *Service[
-	_, ConsensusBlockT, _, _, _, _, _, _, _, _, _,
+	_, _, ConsensusBlockT, _, _, _, _, _, _, _, _, _, _, _,
 ]) handleBeaconBlockFinalization(
 	msg async.Event[ConsensusBlockT],
 ) {

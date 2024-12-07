@@ -29,9 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/da/da"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/execution/client"
-	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/log"
-	blockstore "github.com/berachain/beacon-kit/node-api/block_store"
 	"github.com/berachain/beacon-kit/node-api/server"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	service "github.com/berachain/beacon-kit/node-core/services/registry"
@@ -76,24 +74,17 @@ type ServiceRegistryInput[
 	ABCIService *middleware.ABCIMiddleware[
 		BeaconBlockT, BeaconBlockHeaderT, BlobSidecarsT, GenesisT, *SlotData,
 	]
-	BlockStoreService *blockstore.Service[
-		BeaconBlockT, BeaconBlockStoreT,
-	]
 	ChainService *blockchain.Service[
-		AvailabilityStoreT,
+		AvailabilityStoreT, DepositStoreT,
 		ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
-		BeaconBlockHeaderT, BeaconStateT, DepositT, ExecutionPayloadT,
+		BeaconBlockHeaderT, BeaconStateT, BeaconBlockStoreT, DepositT,
+		WithdrawalCredentials, ExecutionPayloadT,
 		ExecutionPayloadHeaderT, GenesisT,
 		*engineprimitives.PayloadAttributes[WithdrawalT],
 	]
 	DAService *da.Service[
 		AvailabilityStoreT,
 		ConsensusSidecarsT, BlobSidecarsT, BeaconBlockHeaderT,
-	]
-	DBManager      *DBManager
-	DepositService *deposit.Service[
-		BeaconBlockT, BeaconBlockBodyT, DepositT,
-		ExecutionPayloadT, WithdrawalCredentials,
 	]
 	Dispatcher   Dispatcher
 	EngineClient *client.EngineClient[
@@ -164,13 +155,10 @@ func ProvideServiceRegistry[
 		service.WithService(in.ABCIService),
 		service.WithService(in.Dispatcher),
 		service.WithService(in.ValidatorService),
-		service.WithService(in.BlockStoreService),
 		service.WithService(in.ChainService),
 		service.WithService(in.DAService),
-		service.WithService(in.DepositService),
 		service.WithService(in.NodeAPIServer),
 		service.WithService(in.ReportingService),
-		service.WithService(in.DBManager),
 		service.WithService(in.EngineClient),
 		service.WithService(in.TelemetryService),
 		service.WithService(in.CometBFTService),
