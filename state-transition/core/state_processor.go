@@ -398,6 +398,9 @@ func (sp *StateProcessor[
 		// no real need to perform hollowProcessRewardsAndPenalties
 	}
 
+	if err = sp.processRegistryUpdates(st); err != nil {
+		return nil, err
+	}
 	if err = sp.processEffectiveBalanceUpdates(st); err != nil {
 		return nil, err
 	}

@@ -145,12 +145,18 @@ func checkValidatorNonBartio(
 ) {
 	t.Helper()
 
-	// checks on validators common to all networks
-	commonChecksValidators(t, cs, bs, dep)
-
-	// checks on validators for any network but Bartio
 	idx, err := bs.ValidatorIndexByPubkey(dep.Pubkey)
 	require.NoError(t, err)
+
+	val, err := bs.ValidatorByIndex(idx)
+	require.NoError(t, err)
+	require.Equal(t, dep.Pubkey, val.Pubkey)
+
+	// checks on validators common to all networks
+	commonChecksValidators(t, cs, val, dep)
+
+	// checks on validators for any network but Bartio
+	require.Equal(t, math.Epoch(0), val.GetActivationEligibilityEpoch())
 
 	valBal, err := bs.GetBalance(idx)
 	require.NoError(t, err)
@@ -268,15 +274,17 @@ func checkValidatorBartio(
 ) {
 	t.Helper()
 
-	// checks on validators common to all networks
-	commonChecksValidators(t, cs, bs, dep)
-
-	// Bartio specific checks on validators
 	idx, err := bs.ValidatorIndexByPubkey(dep.Pubkey)
 	require.NoError(t, err)
+
 	val, err := bs.ValidatorByIndex(idx)
 	require.NoError(t, err)
+	require.Equal(t, dep.Pubkey, val.Pubkey)
 
+	// checks on validators common to all networks
+	commonChecksValidators(t, cs, val, dep)
+
+	// Bartio specific checks on validators
 	valBal, err := bs.GetBalance(idx)
 	require.NoError(t, err)
 	require.Equal(t, val.EffectiveBalance, valBal)
@@ -291,16 +299,10 @@ func commonChecksValidators(
 		math.Slot,
 		any,
 	],
-	bs *TestBeaconStateT,
+	val *types.Validator,
 	dep *types.Deposit,
 ) {
 	t.Helper()
-
-	idx, err := bs.ValidatorIndexByPubkey(dep.Pubkey)
-	require.NoError(t, err)
-
-	val, err := bs.ValidatorByIndex(idx)
-	require.NoError(t, err)
 	require.Equal(t, dep.Pubkey, val.Pubkey)
 
 	var (

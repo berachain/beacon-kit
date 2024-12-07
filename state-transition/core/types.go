@@ -242,6 +242,8 @@ type Validator[
 	) ValidatorT
 	// IsSlashed returns true if the validator is slashed.
 	IsSlashed() bool
+
+	IsEligibleForActivationQueue(threshold math.Gwei) bool
 	// GetPubkey returns the public key of the validator.
 	GetPubkey() crypto.BLSPubkey
 	// GetEffectiveBalance returns the effective balance of the validator in
@@ -253,6 +255,9 @@ type Validator[
 	GetWithdrawableEpoch() math.Epoch
 	// SetWithdrawableEpoch sets the epoch when the validator can withdraw.
 	SetWithdrawableEpoch(math.Epoch)
+
+	GetActivationEligibilityEpoch() math.Epoch
+	SetActivationEligibilityEpoch(math.Epoch)
 }
 
 type Validators interface {

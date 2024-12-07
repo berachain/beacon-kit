@@ -21,11 +21,50 @@
 package core
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/sourcegraph/conc/iter"
 )
+
+//nolint:lll
+func (sp *StateProcessor[
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+]) processRegistryUpdates(
+	st BeaconStateT,
+) error {
+	vals, err := st.GetValidators()
+	if err != nil {
+		return fmt.Errorf("registry update, failed listing validators: %w", err)
+	}
+
+	slot, err := st.GetSlot()
+	if err != nil {
+		return fmt.Errorf("registry update, failed loading slot: %w", err)
+	}
+	currEpoch := sp.cs.SlotToEpoch(slot)
+	nextEpoch := currEpoch + 1
+
+	minEffectiveBalance := math.Gwei(sp.cs.EjectionBalance() + sp.cs.EffectiveBalanceIncrement())
+
+	var idx math.ValidatorIndex
+	for si, val := range vals {
+		if val.IsEligibleForActivationQueue(minEffectiveBalance) {
+			val.SetActivationEligibilityEpoch(nextEpoch)
+			idx, err = st.ValidatorIndexByPubkey(val.GetPubkey())
+			if err != nil {
+				return fmt.Errorf("registry update, failed loading validator index, state index %d: %w", si, err)
+			}
+			if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
+				return fmt.Errorf("registry update, failed updating validator idx %d: %w", idx, err)
+			}
+		}
+	}
+
+	return nil
+}
 
 // processValidatorsSetUpdates returns the validators set updates that
 // will be used by consensus.

@@ -21,6 +21,8 @@
 package core
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
@@ -32,7 +34,7 @@ import (
 
 // InitializePreminedBeaconStateFromEth1 initializes the beacon state.
 //
-//nolint:gocognit // todo fix.
+//nolint:gocognit,funlen,lll // todo fix.
 func (sp *StateProcessor[
 	_, BeaconBlockBodyT, BeaconBlockHeaderT, BeaconStateT, _, DepositT,
 	Eth1DataT, _, ExecutionPayloadHeaderT, ForkT, _, _, ValidatorT, _, _, _, _,
@@ -100,6 +102,31 @@ func (sp *StateProcessor[
 	for _, deposit := range deposits {
 		if err := sp.processDeposit(st, deposit); err != nil {
 			return nil, err
+		}
+	}
+
+	// process activations
+	switch {
+	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
+		// nothing to do
+	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID:
+		// nothing to do
+	default:
+		vals, err := st.GetValidators()
+		if err != nil {
+			return nil, fmt.Errorf("genesis activation, failed listing validators: %w", err)
+		}
+
+		var idx math.ValidatorIndex
+		for _, val := range vals {
+			val.SetActivationEligibilityEpoch(0)
+			idx, err = st.ValidatorIndexByPubkey(val.GetPubkey())
+			if err != nil {
+				return nil, err
+			}
+			if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
+				return nil, err
+			}
 		}
 	}
 
