@@ -29,10 +29,6 @@ import (
 )
 
 type MiddlewareI interface {
-	InitGenesis(
-		sdk.Context,
-		[]byte,
-	) (transition.ValidatorUpdates, error)
 	PrepareProposal(
 		sdk.Context,
 		*types.SlotData[
