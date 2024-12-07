@@ -1227,6 +1227,168 @@ func TestTransitionValidatorCap_IncreasingBalance_ExtraSmall(t *testing.T) {
 	require.Empty(t, valDiffs)
 }
 
+func TestTransitionValidatorCap_IncreasingBalance_ExtraBig(t *testing.T) {
+	cs := setupChain(t, components.BetnetChainSpecType)
+	sp, st, ds, ctx := setupState(t, cs)
+
+	var (
+		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
+		minBalance = math.Gwei(cs.EjectionBalance())
+		increment  = math.Gwei(cs.EffectiveBalanceIncrement())
+		rndSeed    = 2024 // seed used to generate unique random value
+	)
+
+	// STEP 0: Setup genesis with max number of validators
+	var (
+		genDeposits      = make([]*types.Deposit, 0, cs.ValidatorSetCap())
+		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genVersion       = version.FromUint32[common.Version](version.Deneb)
+	)
+
+	// let genesis define all available validators
+	for idx := range cs.ValidatorSetCap() {
+		var (
+			key   bytes.B48
+			creds types.WithdrawalCredentials
+		)
+		key, rndSeed = generateTestPK(t, rndSeed)
+		creds, rndSeed = generateTestExecutionAddress(t, rndSeed)
+
+		genDeposits = append(genDeposits,
+			&types.Deposit{
+				Pubkey:      key,
+				Credentials: creds,
+				Amount:      minBalance,
+				Index:       idx,
+			},
+		)
+	}
+	genVal0Addr, err := genDeposits[0].Credentials.ToExecutionAddress()
+	require.NoError(t, err)
+
+	_, err = sp.InitializePreminedBeaconStateFromEth1(
+		st,
+		genDeposits,
+		genPayloadHeader,
+		genVersion,
+	)
+	require.NoError(t, err)
+
+	// STEP 1: make a deposit below MinState to start
+	extraValKey, rndSeed := generateTestPK(t, rndSeed)
+	extraValCreds, _ := generateTestExecutionAddress(t, rndSeed)
+	var (
+		initialDeposit = minBalance / 2
+		deposit1       = &types.Deposit{
+			Pubkey:      extraValKey,
+			Credentials: extraValCreds,
+			Amount:      initialDeposit,
+			Index:       uint64(len(genDeposits)),
+		}
+
+		topUpDeposit = (maxBalance + increment) - initialDeposit
+		deposit2     = &types.Deposit{
+			Pubkey:      extraValKey,
+			Credentials: extraValCreds,
+			Amount:      topUpDeposit,
+			Index:       deposit1.Index + 1,
+		}
+	)
+
+	blk1 := buildNextBlock(
+		t,
+		st,
+		&types.BeaconBlockBody{
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:    10,
+				ExtraData:    []byte("testing"),
+				Transactions: [][]byte{},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					st.EVMInflationWithdrawal(),
+				},
+				BaseFeePerGas: math.NewU256(0),
+			},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: []*types.Deposit{deposit1},
+		},
+	)
+
+	// make sure included deposit is already available in deposit store
+	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits))
+
+	// run the test
+	_, err = sp.Transition(ctx, st, blk1)
+	require.NoError(t, err)
+
+	// STEP 2: top up the deposit to reach MinStake required to validate
+	// before the epoch turns
+	blk2 := buildNextBlock(
+		t,
+		st,
+		&types.BeaconBlockBody{
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:    10,
+				ExtraData:    []byte("testing"),
+				Transactions: [][]byte{},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					st.EVMInflationWithdrawal(),
+				},
+				BaseFeePerGas: math.NewU256(0),
+			},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: []*types.Deposit{deposit2},
+		},
+	)
+
+	// make sure included deposit is already available in deposit store
+	require.NoError(t, ds.EnqueueDeposits(blk2.Body.Deposits))
+
+	// run the test
+	_, err = sp.Transition(ctx, st, blk2)
+	require.NoError(t, err)
+
+	// STEP 3: check that updated validator is dropped at epoch turn
+	blk := moveToEndOfEpoch(t, blk2, cs, sp, st, ctx)
+
+	// finally the block turning epoch
+	blk = buildNextBlock(
+		t,
+		st,
+		&types.BeaconBlockBody{
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:    blk.Body.ExecutionPayload.Timestamp + 1,
+				ExtraData:    []byte("testing"),
+				Transactions: [][]byte{},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					st.EVMInflationWithdrawal(),
+					&engineprimitives.Withdrawal{
+						Index:     0,
+						Validator: math.ValidatorIndex(0), // drop first genesis validator I think
+						Address:   genVal0Addr,
+						Amount:    genDeposits[0].Amount,
+					},
+				},
+				BaseFeePerGas: math.NewU256(0),
+			},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: []*types.Deposit{},
+		},
+	)
+
+	valDiffs, err := sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+	require.Len(t, valDiffs, 2) // just replaced one validator
+
+	// check that we added the incoming validator at the epoch turn
+	extraValIdx, err := st.ValidatorIndexByPubkey(extraValKey)
+	require.NoError(t, err)
+	extraVal, err := st.ValidatorByIndex(extraValIdx)
+	require.NoError(t, err)
+	require.Equal(t, extraVal.EffectiveBalance, minBalance+topUpDeposit)
+
+	// TODO: CHECK THAT A GENESIS VALIDATOR IS DROPPED
+}
+
 func generateTestExecutionAddress(
 	t *testing.T,
 	rndSeed int,
