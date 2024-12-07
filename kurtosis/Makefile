@@ -48,16 +48,16 @@ start-gcp-devnet-no-build:
 
 # Stops the running Kurtosis enclave on GCP
 stop-gcp-devnet:
-	kurtosis enclave stop my-gcp-devnet
+	kurtosis enclave stop my-gcp-devnet2
 
 # Stops and removes the specified Kurtosis enclave
 reset-gcp-devnet:
 	$(MAKE) stop-gcp-devnet
-	kurtosis enclave rm my-gcp-devnet
+	kurtosis enclave rm my-gcp-devnet2
 
 # Removes the specified Kurtosis enclave
 rm-gcp-devnet:
-	kurtosis enclave rm my-gcp-devnet --force
+	kurtosis enclave rm my-gcp-devnet2 --force
 
 # Stops the running Kurtosis enclave
 stop-devnet:
