@@ -46,8 +46,6 @@ type ABCIMiddleware[
 	metrics *ABCIMiddlewareMetrics
 	// logger is the logger for the middleware.
 	logger log.Logger
-	// subGenDataProcessed is the channel to hold GenesisDataProcessed events.
-	subGenDataProcessed chan async.Event[validatorUpdates]
 	// subBuiltBeaconBlock is the channel to hold BuiltBeaconBlock events.
 	subBuiltBeaconBlock chan async.Event[BeaconBlockT]
 	// subBuiltSidecars is the channel to hold BuiltSidecars events.
@@ -83,7 +81,6 @@ func NewABCIMiddleware[
 		dispatcher:               dispatcher,
 		logger:                   logger,
 		metrics:                  newABCIMiddlewareMetrics(telemetrySink),
-		subGenDataProcessed:      make(chan async.Event[validatorUpdates]),
 		subBuiltBeaconBlock:      make(chan async.Event[BeaconBlockT]),
 		subBuiltSidecars:         make(chan async.Event[BlobSidecarsT]),
 		subBBVerified:            make(chan async.Event[BeaconBlockT]),
@@ -97,11 +94,6 @@ func (am *ABCIMiddleware[_, _, _, _, _]) Start(
 	_ context.Context,
 ) error {
 	var err error
-	if err = am.dispatcher.Subscribe(
-		async.GenesisDataProcessed, am.subGenDataProcessed,
-	); err != nil {
-		return err
-	}
 	if err = am.dispatcher.Subscribe(
 		async.BuiltBeaconBlock, am.subBuiltBeaconBlock,
 	); err != nil {

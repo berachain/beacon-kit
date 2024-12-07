@@ -27,12 +27,6 @@ var (
 	// ErrUnexpectedEvent is returned when an unexpected event is encountered.
 	ErrUnexpectedEvent = errors.New("unexpected event")
 
-	ErrInitGenesisTimeout = func(errTimeout error) error {
-		return errors.Wrapf(errTimeout,
-			"A timeout occurred while waiting for genesis data processing",
-		)
-	}
-
 	ErrBuildBeaconBlockTimeout = func(errTimeout error) error {
 		return errors.Wrapf(errTimeout,
 			"A timeout occurred while waiting for a beacon block to be built",

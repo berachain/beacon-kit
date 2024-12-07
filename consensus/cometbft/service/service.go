@@ -25,6 +25,7 @@ import (
 	"errors"
 
 	storetypes "cosmossdk.io/store/types"
+	"github.com/berachain/beacon-kit/beacon/blockchain"
 	servercmtlog "github.com/berachain/beacon-kit/consensus/cometbft/service/log"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/params"
 	statem "github.com/berachain/beacon-kit/consensus/cometbft/service/state"
@@ -56,6 +57,7 @@ type Service[
 	logger     LoggerT
 	sm         *statem.Manager
 	Middleware MiddlewareI
+	Blockchain blockchain.BlockchainI[any]
 
 	// prepareProposalState is used for PrepareProposal, which is set based on
 	// the previous block's state. This state is never committed. In case of
@@ -92,6 +94,7 @@ func NewService[
 	logger LoggerT,
 	db dbm.DB,
 	middleware MiddlewareI,
+	blockchain blockchain.BlockchainI[any],
 	cmtCfg *cmtcfg.Config,
 	cs common.ChainSpec,
 	options ...func(*Service[LoggerT]),
@@ -103,6 +106,7 @@ func NewService[
 			servercmtlog.WrapSDKLogger(logger),
 		),
 		Middleware: middleware,
+		Blockchain: blockchain,
 		cmtCfg:     cmtCfg,
 		paramStore: params.NewConsensusParamsStore(cs),
 	}

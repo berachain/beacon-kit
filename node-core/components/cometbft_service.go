@@ -22,6 +22,7 @@ package components
 
 import (
 	storetypes "cosmossdk.io/store/types"
+	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/config"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/log"
@@ -34,10 +35,14 @@ import (
 // ProvideCometBFTService provides the CometBFT service component.
 func ProvideCometBFTService[
 	LoggerT log.AdvancedLogger[LoggerT],
+	DepositT any,
+	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 ](
 	logger LoggerT,
 	storeKey *storetypes.KVStoreKey,
 	abciMiddleware cometbft.MiddlewareI,
+	blockchain blockchain.BlockchainI[GenesisT],
 	db dbm.DB,
 	cmtCfg *cmtcfg.Config,
 	appOpts config.AppOptions,
@@ -48,6 +53,7 @@ func ProvideCometBFTService[
 		logger,
 		db,
 		abciMiddleware,
+		blockchain,
 		cmtCfg,
 		chainSpec,
 		builder.DefaultServiceOptions[LoggerT](appOpts)...,

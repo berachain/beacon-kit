@@ -25,11 +25,6 @@ type EventID string
 
 // event ids, topologically sorted.
 const (
-
-	// genesis data events.
-	GenesisDataReceived  = "genesis-data-received"
-	GenesisDataProcessed = "genesis-data-processed"
-
 	// pre proposal events.
 	NewSlot          = "new-slot"
 	BuiltBeaconBlock = "built-beacon-block"

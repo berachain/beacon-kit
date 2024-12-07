@@ -22,6 +22,7 @@ package blockchain
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/berachain/beacon-kit/primitives/transition"
@@ -33,8 +34,13 @@ func (s *Service[
 	_, _, _, _, _, _, _, _, _, _, _, _, GenesisT, _,
 ]) ProcessGenesisData(
 	ctx context.Context,
-	genesisData GenesisT,
+	bytes []byte,
 ) (transition.ValidatorUpdates, error) {
+	genesisData := *new(GenesisT)
+	if err := json.Unmarshal(bytes, &genesisData); err != nil {
+		s.logger.Error("Failed to unmarshal genesis data", "error", err)
+		return nil, err
+	}
 	return s.stateProcessor.InitializePreminedBeaconStateFromEth1(
 		s.storageBackend.StateFromContext(ctx),
 		genesisData.GetDeposits(),
