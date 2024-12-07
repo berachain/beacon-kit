@@ -120,6 +120,7 @@ func (sp *StateProcessor[
 		var idx math.ValidatorIndex
 		for _, val := range vals {
 			val.SetActivationEligibilityEpoch(0)
+			val.SetActivationEpoch(0)
 			idx, err = st.ValidatorIndexByPubkey(val.GetPubkey())
 			if err != nil {
 				return nil, err

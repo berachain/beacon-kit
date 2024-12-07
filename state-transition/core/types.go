@@ -244,6 +244,8 @@ type Validator[
 	IsSlashed() bool
 
 	IsEligibleForActivationQueue(threshold math.Gwei) bool
+	IsEligibleForActivation(finalizedEpoch math.Epoch) bool
+
 	// GetPubkey returns the public key of the validator.
 	GetPubkey() crypto.BLSPubkey
 	// GetEffectiveBalance returns the effective balance of the validator in
@@ -258,6 +260,9 @@ type Validator[
 
 	GetActivationEligibilityEpoch() math.Epoch
 	SetActivationEligibilityEpoch(math.Epoch)
+
+	GetActivationEpoch() math.Epoch
+	SetActivationEpoch(math.Epoch)
 }
 
 type Validators interface {

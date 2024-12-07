@@ -49,10 +49,20 @@ func (sp *StateProcessor[
 
 	minEffectiveBalance := math.Gwei(sp.cs.EjectionBalance() + sp.cs.EffectiveBalanceIncrement())
 
+	// We do not currently have a cap on validator churn,
+	// so we can process validators in a single loop
 	var idx math.ValidatorIndex
 	for si, val := range vals {
+		valModified := false
 		if val.IsEligibleForActivationQueue(minEffectiveBalance) {
 			val.SetActivationEligibilityEpoch(nextEpoch)
+			valModified = true
+		}
+		if val.IsEligibleForActivation(currEpoch) {
+			val.SetActivationEpoch(nextEpoch)
+			valModified = true
+		}
+		if valModified {
 			idx, err = st.ValidatorIndexByPubkey(val.GetPubkey())
 			if err != nil {
 				return fmt.Errorf("registry update, failed loading validator index, state index %d: %w", si, err)

@@ -246,9 +246,7 @@ func (v Validator) IsActive(epoch math.Epoch) bool {
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#is_eligible_for_activation_queue
 //
 //nolint:lll
-func (v Validator) IsEligibleForActivation(
-	finalizedEpoch math.Epoch,
-) bool {
+func (v Validator) IsEligibleForActivation(finalizedEpoch math.Epoch) bool {
 	return v.ActivationEligibilityEpoch <= finalizedEpoch &&
 		v.ActivationEpoch == math.Epoch(constants.FarFutureEpoch)
 }
@@ -335,6 +333,14 @@ func (v *Validator) SetActivationEligibilityEpoch(e math.Epoch) {
 
 func (v *Validator) GetActivationEligibilityEpoch() math.Epoch {
 	return v.ActivationEligibilityEpoch
+}
+
+func (v *Validator) SetActivationEpoch(e math.Epoch) {
+	v.ActivationEpoch = e
+}
+
+func (v *Validator) GetActivationEpoch() math.Epoch {
+	return v.ActivationEpoch
 }
 
 // GetWithdrawalCredentials returns the withdrawal credentials of the validator.

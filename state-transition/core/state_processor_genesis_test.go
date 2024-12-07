@@ -157,6 +157,7 @@ func checkValidatorNonBartio(
 
 	// checks on validators for any network but Bartio
 	require.Equal(t, math.Epoch(0), val.GetActivationEligibilityEpoch())
+	require.Equal(t, math.Epoch(0), val.GetActivationEpoch())
 
 	valBal, err := bs.GetBalance(idx)
 	require.NoError(t, err)
@@ -283,6 +284,17 @@ func checkValidatorBartio(
 
 	// checks on validators common to all networks
 	commonChecksValidators(t, cs, val, dep)
+
+	require.Equal(
+		t,
+		math.Epoch(constants.FarFutureEpoch),
+		val.GetActivationEligibilityEpoch(),
+	)
+	require.Equal(
+		t,
+		math.Epoch(constants.FarFutureEpoch),
+		val.GetActivationEpoch(),
+	)
 
 	// Bartio specific checks on validators
 	valBal, err := bs.GetBalance(idx)
