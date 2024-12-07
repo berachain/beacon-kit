@@ -253,16 +253,18 @@ type Validator[
 	GetEffectiveBalance() math.Gwei
 	// SetEffectiveBalance sets the effective balance of the validator in Gwei.
 	SetEffectiveBalance(math.Gwei)
-	// GetWithdrawableEpoch returns the epoch when the validator can withdraw.
-	GetWithdrawableEpoch() math.Epoch
-	// SetWithdrawableEpoch sets the epoch when the validator can withdraw.
-	SetWithdrawableEpoch(math.Epoch)
 
 	GetActivationEligibilityEpoch() math.Epoch
 	SetActivationEligibilityEpoch(math.Epoch)
 
 	GetActivationEpoch() math.Epoch
 	SetActivationEpoch(math.Epoch)
+
+	GetExitEpoch() math.Epoch
+	SetExitEpoch(e math.Epoch)
+
+	GetWithdrawableEpoch() math.Epoch
+	SetWithdrawableEpoch(math.Epoch)
 }
 
 type Validators interface {

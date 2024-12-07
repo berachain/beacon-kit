@@ -21,7 +21,9 @@
 package core
 
 import (
+	stdbytes "bytes"
 	"fmt"
+	"slices"
 
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -29,7 +31,7 @@ import (
 	"github.com/sourcegraph/conc/iter"
 )
 
-//nolint:lll
+//nolint:lll, gocognit // TODO fix
 func (sp *StateProcessor[
 	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
 ]) processRegistryUpdates(
@@ -50,7 +52,7 @@ func (sp *StateProcessor[
 	minEffectiveBalance := math.Gwei(sp.cs.EjectionBalance() + sp.cs.EffectiveBalanceIncrement())
 
 	// We do not currently have a cap on validator churn,
-	// so we can process validators in a single loop
+	// so we can process validators activations in a single loop
 	var idx math.ValidatorIndex
 	for si, val := range vals {
 		valModified := false
@@ -62,6 +64,9 @@ func (sp *StateProcessor[
 			val.SetActivationEpoch(nextEpoch)
 			valModified = true
 		}
+		// Note: without slashing and voluntary withdrawals, there is no way
+		// for an activa validator to have its balance less or equal to EjectionBalance
+
 		if valModified {
 			idx, err = st.ValidatorIndexByPubkey(val.GetPubkey())
 			if err != nil {
@@ -73,6 +78,54 @@ func (sp *StateProcessor[
 		}
 	}
 
+	// Enforce the validator set cap by:
+	// 1- retrieve validators active next epoch
+	// 2- sort them by stake
+	// 3- drop enough validators to fulfill the cap
+	nextEpochVals, err := sp.nextEpochValidatorSet(st)
+	if err != nil {
+		return fmt.Errorf("registry update, failed retrieving next epoch vals: %w", err)
+	}
+
+	if uint64(len(nextEpochVals)) <= sp.cs.ValidatorSetCap() {
+		// nothing to eject
+		return nil
+	}
+
+	slices.SortFunc(nextEpochVals, func(lhs, rhs ValidatorT) int {
+		var (
+			val1Stake = lhs.GetEffectiveBalance()
+			val2Stake = rhs.GetEffectiveBalance()
+		)
+		switch {
+		case val1Stake < val2Stake:
+			return -1
+		case val1Stake > val2Stake:
+			return 1
+		default:
+			// validators pks are guaranteed to be different
+			var (
+				val1Pk = lhs.GetPubkey()
+				val2Pk = rhs.GetPubkey()
+			)
+			return stdbytes.Compare(val1Pk[:], val2Pk[:])
+		}
+	})
+
+	// We do not currently have a cap on validator churn, so we stop
+	// validators this epoch and we withdraw them next epoch
+	for li := range uint64(len(nextEpochVals)) - sp.cs.ValidatorSetCap() {
+		valToEject := nextEpochVals[li]
+		valToEject.SetExitEpoch(currEpoch)
+		valToEject.SetWithdrawableEpoch(nextEpoch)
+		idx, err = st.ValidatorIndexByPubkey(valToEject.GetPubkey())
+		if err != nil {
+			return fmt.Errorf("registry update, failed loading validator index: %w", err)
+		}
+		if err = st.UpdateValidatorAtIndex(idx, valToEject); err != nil {
+			return fmt.Errorf("registry update, failed ejecting validator idx %d: %w", li, err)
+		}
+	}
 	return nil
 }
 
@@ -172,4 +225,33 @@ func (*StateProcessor[
 		})
 	}
 	return res
+}
+
+// nextEpochValidatorSet returns the current estimation of what next epoch
+// validator set would be.
+func (sp *StateProcessor[
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+]) nextEpochValidatorSet(st BeaconStateT) ([]ValidatorT, error) {
+	slot, err := st.GetSlot()
+	if err != nil {
+		return nil, err
+	}
+	nextEpoch := sp.cs.SlotToEpoch(slot) + 1
+
+	vals, err := st.GetValidators()
+	if err != nil {
+		return nil, err
+	}
+	activeVals := make([]ValidatorT, 0, len(vals))
+	for _, val := range vals {
+		if val.GetEffectiveBalance() <= math.U64(sp.cs.EjectionBalance()) {
+			continue
+		}
+		if val.GetWithdrawableEpoch() == nextEpoch {
+			continue
+		}
+		activeVals = append(activeVals, val)
+	}
+
+	return activeVals, nil
 }

@@ -317,16 +317,6 @@ func (v *Validator) SetEffectiveBalance(balance math.Gwei) {
 	v.EffectiveBalance = balance
 }
 
-// SetWithdrawableEpoch sets the epoch when the validator can withdraw.
-func (v *Validator) SetWithdrawableEpoch(e math.Epoch) {
-	v.WithdrawableEpoch = e
-}
-
-// GetWithdrawableEpoch returns the epoch when the validator can withdraw.
-func (v Validator) GetWithdrawableEpoch() math.Epoch {
-	return v.WithdrawableEpoch
-}
-
 func (v *Validator) SetActivationEligibilityEpoch(e math.Epoch) {
 	v.ActivationEligibilityEpoch = e
 }
@@ -341,6 +331,22 @@ func (v *Validator) SetActivationEpoch(e math.Epoch) {
 
 func (v *Validator) GetActivationEpoch() math.Epoch {
 	return v.ActivationEpoch
+}
+
+func (v *Validator) SetExitEpoch(e math.Epoch) {
+	v.ExitEpoch = e
+}
+
+func (v Validator) GetExitEpoch() math.Epoch {
+	return v.ExitEpoch
+}
+
+func (v *Validator) SetWithdrawableEpoch(e math.Epoch) {
+	v.WithdrawableEpoch = e
+}
+
+func (v Validator) GetWithdrawableEpoch() math.Epoch {
+	return v.WithdrawableEpoch
 }
 
 // GetWithdrawalCredentials returns the withdrawal credentials of the validator.
