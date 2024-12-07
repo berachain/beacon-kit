@@ -22,11 +22,9 @@
 package cometbft
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
-	"sort"
 
 	"cosmossdk.io/store/rootmulti"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
@@ -47,101 +45,11 @@ var (
 	errNilFinalizeBlockState = errors.New("finalizeBlockState is nil")
 )
 
-//nolint:gocognit // this is fine.
 func (s *Service[LoggerT]) InitChain(
-	_ context.Context,
+	ctx context.Context,
 	req *cmtabci.InitChainRequest,
 ) (*cmtabci.InitChainResponse, error) {
-	if req.ChainId != s.chainID {
-		return nil, fmt.Errorf(
-			"invalid chain-id on InitChain; expected: %s, got: %s",
-			s.chainID,
-			req.ChainId,
-		)
-	}
-
-	var genesisState map[string]json.RawMessage
-	if err := json.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal genesis state: %w", err)
-	}
-	// Validate the genesis state.
-	err := s.ValidateGenesis(genesisState)
-	if err != nil {
-		return nil, err
-	}
-
-	s.logger.Info(
-		"InitChain",
-		"initialHeight",
-		req.InitialHeight,
-		"chainID",
-		req.ChainId,
-	)
-
-	// Set the initial height, which will be used to determine if we are
-	// proposing
-	// or processing the first block or not.
-	s.initialHeight = req.InitialHeight
-	if s.initialHeight == 0 {
-		s.initialHeight = 1
-	}
-
-	// if req.InitialHeight is > 1, then we set the initial version on all
-	// stores
-	if req.InitialHeight > 1 {
-		if err = s.sm.CommitMultiStore().
-			SetInitialVersion(req.InitialHeight); err != nil {
-			return nil, err
-		}
-	}
-
-	s.finalizeBlockState = s.resetState()
-
-	resValidators, err := s.initChainer(
-		s.finalizeBlockState.Context(),
-		req.AppStateBytes,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	// check validators
-	if len(req.Validators) > 0 {
-		if len(req.Validators) != len(resValidators) {
-			return nil, fmt.Errorf(
-				"len(RequestInitChain.Validators) != len(GenesisValidators) (%d != %d)",
-				len(req.Validators),
-				len(resValidators),
-			)
-		}
-
-		sort.Sort(cmtabci.ValidatorUpdates(req.Validators))
-
-		for i := range resValidators {
-			if req.Validators[i].Power != resValidators[i].Power {
-				return nil, errors.New("mismatched power")
-			}
-			if !bytes.Equal(
-				req.Validators[i].PubKeyBytes, resValidators[i].
-					PubKeyBytes) {
-				return nil, errors.New("mismatched pubkey bytes")
-			}
-
-			if req.Validators[i].PubKeyType !=
-				resValidators[i].PubKeyType {
-				return nil, errors.New("mismatched pubkey types")
-			}
-		}
-	}
-
-	// NOTE: We don't commit, but FinalizeBlock for block InitialHeight starts
-	// from
-	// this FinalizeBlockState.
-	return &cmtabci.InitChainResponse{
-		ConsensusParams: req.ConsensusParams,
-		Validators:      resValidators,
-		AppHash:         s.sm.CommitMultiStore().LastCommitID().Hash,
-	}, nil
+	return s.initChain(ctx, req)
 }
 
 // InitChainer initializes the chain.
@@ -153,10 +61,8 @@ func (s *Service[LoggerT]) initChainer(
 	if err := json.Unmarshal(appStateBytes, &genesisState); err != nil {
 		return nil, err
 	}
-	valUpdates, err := s.Middleware.InitGenesis(
-		ctx,
-		[]byte(genesisState["beacon"]),
-	)
+
+	valUpdates, err := s.Blockchain.ProcessGenesisData(ctx, []byte(genesisState["beacon"]))
 	if err != nil {
 		return nil, err
 	}

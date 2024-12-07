@@ -240,4 +240,8 @@ type TelemetrySink interface {
 	MeasureSince(key string, start time.Time, args ...string)
 }
 
+type BlockchainI[GenesisT any] interface {
+	ProcessGenesisData(context.Context, []byte) (transition.ValidatorUpdates, error)
+}
+
 type ValidatorUpdates = transition.ValidatorUpdates
