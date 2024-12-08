@@ -79,9 +79,9 @@ func (sp *StateProcessor[
 	}
 
 	// Enforce the validator set cap by:
-	// 1- retrieve validators active next epoch
-	// 2- sort them by stake
-	// 3- drop enough validators to fulfill the cap
+	// 1- retrieving validators active next epoch
+	// 2- sorting them by stake
+	// 3- dropping enough validators to fulfill the cap
 	nextEpochVals, err := sp.nextEpochValidatorSet(st)
 	if err != nil {
 		return fmt.Errorf("registry update, failed retrieving next epoch vals: %w", err)
@@ -112,7 +112,7 @@ func (sp *StateProcessor[
 		}
 	})
 
-	// We do not currently have a cap on validator churn, so we stop
+	// We do not currently have a cap on validators churn, so we stop
 	// validators this epoch and we withdraw them next epoch
 	for li := range uint64(len(nextEpochVals)) - sp.cs.ValidatorSetCap() {
 		valToEject := nextEpochVals[li]
