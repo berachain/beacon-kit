@@ -364,6 +364,8 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
+	// track validators set before updating it, to be able to
+	// inform consensus of the validators set changes
 	currentEpoch := sp.cs.SlotToEpoch(slot)
 	currentActiveVals, err := sp.getActiveVals(st, currentEpoch)
 	if err != nil {
@@ -385,10 +387,14 @@ func (sp *StateProcessor[
 	if err = sp.processRandaoMixesReset(st); err != nil {
 		return nil, err
 	}
+
+	// only after we have fully updated validators, we enforce
+	// a cap on the validators set
 	if err = sp.processValidatorSetCap(st); err != nil {
 		return nil, err
 	}
 
+	// finally compute diffs in validator set to duly update consensus
 	nextEpoch := currentEpoch + 1
 	nextActiveVals, err := sp.getActiveVals(st, nextEpoch)
 	if err != nil {
