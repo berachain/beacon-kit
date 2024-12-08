@@ -38,15 +38,28 @@ func (sp *StateProcessor[
 ]) processRegistryUpdates(
 	st BeaconStateT,
 ) error {
+	slot, err := st.GetSlot()
+	if err != nil {
+		return fmt.Errorf("registry update, failed loading slot: %w", err)
+	}
+
+	switch {
+	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
+		// Bartio does not properly handle validators registry
+		return nil
+	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
+		slot < math.U64(spec.BoonetFork3Height):
+		// Boonet inherits Bartio processing till fork 3
+		return nil
+	default:
+		// processing below
+	}
+
 	vals, err := st.GetValidators()
 	if err != nil {
 		return fmt.Errorf("registry update, failed listing validators: %w", err)
 	}
 
-	slot, err := st.GetSlot()
-	if err != nil {
-		return fmt.Errorf("registry update, failed loading slot: %w", err)
-	}
 	currEpoch := sp.cs.SlotToEpoch(slot)
 	nextEpoch := currEpoch + 1
 
@@ -233,7 +246,7 @@ func (sp *StateProcessor[
 		}
 	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
 		slot < math.U64(spec.BoonetFork3Height):
-		// Boonet inherits Bartio processing till for 3
+		// Boonet inherits Bartio processing till fork 3
 		for _, val := range vals {
 			if val.GetEffectiveBalance() > math.U64(sp.cs.EjectionBalance()) {
 				activeVals = append(activeVals, val)
