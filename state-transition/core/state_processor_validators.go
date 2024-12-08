@@ -247,6 +247,9 @@ func (sp *StateProcessor[
 		if val.GetEffectiveBalance() <= math.U64(sp.cs.EjectionBalance()) {
 			continue
 		}
+		if val.GetActivationEligibilityEpoch() == nextEpoch {
+			continue
+		}
 		if val.GetWithdrawableEpoch() == nextEpoch {
 			continue
 		}
