@@ -23,14 +23,12 @@ package core
 import (
 	"bytes"
 	"fmt"
-	"sync"
 
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
@@ -100,19 +98,6 @@ type StateProcessor[
 	ds DepositStore[DepositT]
 	// metrics is the metrics for the service.
 	metrics *stateProcessorMetrics
-
-	// valSetMu protects valSetByEpoch from concurrent accesses
-	valSetMu sync.RWMutex
-
-	// valSetByEpoch tracks the set of validators active at the latest epochs.
-	// This is useful to optimize validators set updates.
-	// Note: Transition may be called multiple times on different,
-	// non/finalized blocks, so at some point valSetByEpoch may contain
-	// informations from blocks not finalized. This should be fine as long
-	// as a block is finalized eventually, and its changes will be the last
-	// ones.
-	// We prune the map to preserve only current and previous epoch
-	valSetByEpoch map[math.Epoch][]ValidatorT
 }
 
 // NewStateProcessor creates a new state processor.
@@ -188,7 +173,6 @@ func NewStateProcessor[
 		fGetAddressFromPubKey: fGetAddressFromPubKey,
 		ds:                    ds,
 		metrics:               newStateProcessorMetrics(telemetrySink),
-		valSetByEpoch:         make(map[math.Epoch][]ValidatorT, 0),
 	}
 }
 
@@ -380,24 +364,20 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	switch {
-	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
-		if err = sp.hollowProcessRewardsAndPenalties(st); err != nil {
-			return nil, err
-		}
-	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-		slot < math.U64(spec.BoonetFork3Height):
-		// We cannot simply drop hollowProcessRewardsAndPenalties because
-		// appHash accounts for the list of operations carried out
-		// over the state even if the operations does not affect the state
-		// (rewards and penalties are always zero at this stage of beaconKit)
-		if err = sp.hollowProcessRewardsAndPenalties(st); err != nil {
-			return nil, err
-		}
-	default:
-		// no real need to perform hollowProcessRewardsAndPenalties
+	// track validators set before updating it, to be able to
+	// inform consensus of the validators set changes
+	currentEpoch := sp.cs.SlotToEpoch(slot)
+	currentActiveVals, err := sp.getActiveVals(st, currentEpoch)
+	if err != nil {
+		return nil, err
 	}
 
+	if err = sp.processRewardsAndPenalties(st); err != nil {
+		return nil, err
+	}
+	if err = sp.processRegistryUpdates(st); err != nil {
+		return nil, err
+	}
 	if err = sp.processEffectiveBalanceUpdates(st); err != nil {
 		return nil, err
 	}
@@ -407,7 +387,21 @@ func (sp *StateProcessor[
 	if err = sp.processRandaoMixesReset(st); err != nil {
 		return nil, err
 	}
-	return sp.processValidatorsSetUpdates(st)
+
+	// only after we have fully updated validators, we enforce
+	// a cap on the validators set
+	if err = sp.processValidatorSetCap(st); err != nil {
+		return nil, err
+	}
+
+	// finally compute diffs in validator set to duly update consensus
+	nextEpoch := currentEpoch + 1
+	nextActiveVals, err := sp.getActiveVals(st, nextEpoch)
+	if err != nil {
+		return nil, err
+	}
+
+	return sp.validatorSetsDiffs(currentActiveVals, nextActiveVals), nil
 }
 
 // processBlockHeader processes the header and ensures it matches the local
@@ -490,40 +484,6 @@ func (sp *StateProcessor[
 		bodyRoot,
 	)
 	return st.SetLatestBlockHeader(lbh)
-}
-
-func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) hollowProcessRewardsAndPenalties(st BeaconStateT) error {
-	slot, err := st.GetSlot()
-	if err != nil {
-		return err
-	}
-
-	if sp.cs.SlotToEpoch(slot) == math.U64(constants.GenesisEpoch) {
-		return nil
-	}
-
-	// this has been simplified to make clear that
-	// we are not really doing anything here
-	valCount, err := st.GetTotalValidators()
-	if err != nil {
-		return err
-	}
-
-	for i := range valCount {
-		// Increase the balance of the validator.
-		if err = st.IncreaseBalance(math.ValidatorIndex(i), 0); err != nil {
-			return err
-		}
-
-		// Decrease the balance of the validator.
-		if err = st.DecreaseBalance(math.ValidatorIndex(i), 0); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 // processEffectiveBalanceUpdates as defined in the Ethereum 2.0 specification.
