@@ -23,7 +23,6 @@ package core
 import (
 	"bytes"
 	"fmt"
-	"sync"
 
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
@@ -99,19 +98,6 @@ type StateProcessor[
 	ds DepositStore[DepositT]
 	// metrics is the metrics for the service.
 	metrics *stateProcessorMetrics
-
-	// valSetMu protects valSetByEpoch from concurrent accesses
-	valSetMu sync.RWMutex
-
-	// valSetByEpoch tracks the set of validators active at the latest epochs.
-	// This is useful to optimize validators set updates.
-	// Note: Transition may be called multiple times on different,
-	// non/finalized blocks, so at some point valSetByEpoch may contain
-	// informations from blocks not finalized. This should be fine as long
-	// as a block is finalized eventually, and its changes will be the last
-	// ones.
-	// We prune the map to preserve only current and previous epoch
-	valSetByEpoch map[math.Epoch][]ValidatorT
 }
 
 // NewStateProcessor creates a new state processor.
@@ -187,7 +173,6 @@ func NewStateProcessor[
 		fGetAddressFromPubKey: fGetAddressFromPubKey,
 		ds:                    ds,
 		metrics:               newStateProcessorMetrics(telemetrySink),
-		valSetByEpoch:         make(map[math.Epoch][]ValidatorT, 0),
 	}
 }
 
@@ -374,22 +359,43 @@ func (sp *StateProcessor[
 ]) processEpoch(
 	st BeaconStateT,
 ) (transition.ValidatorUpdates, error) {
-	if err := sp.processRewardsAndPenalties(st); err != nil {
+	slot, err := st.GetSlot()
+	if err != nil {
 		return nil, err
 	}
-	if err := sp.processRegistryUpdates(st); err != nil {
+
+	currentEpoch := sp.cs.SlotToEpoch(slot)
+	currentActiveVals, err := sp.getActiveVals(st, currentEpoch)
+	if err != nil {
 		return nil, err
 	}
-	if err := sp.processEffectiveBalanceUpdates(st); err != nil {
+
+	if err = sp.processRewardsAndPenalties(st); err != nil {
 		return nil, err
 	}
-	if err := sp.processSlashingsReset(st); err != nil {
+	if err = sp.processRegistryUpdates(st); err != nil {
 		return nil, err
 	}
-	if err := sp.processRandaoMixesReset(st); err != nil {
+	if err = sp.processEffectiveBalanceUpdates(st); err != nil {
 		return nil, err
 	}
-	return sp.processValidatorsSetUpdates(st)
+	if err = sp.processSlashingsReset(st); err != nil {
+		return nil, err
+	}
+	if err = sp.processRandaoMixesReset(st); err != nil {
+		return nil, err
+	}
+	if err = sp.processValidatorSetCap(st); err != nil {
+		return nil, err
+	}
+
+	nextEpoch := currentEpoch + 1
+	nextActiveVals, err := sp.getActiveVals(st, nextEpoch)
+	if err != nil {
+		return nil, err
+	}
+
+	return sp.validatorSetsDiffs(currentActiveVals, nextActiveVals), nil
 }
 
 // processBlockHeader processes the header and ensures it matches the local

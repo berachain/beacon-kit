@@ -31,7 +31,7 @@ import (
 	"github.com/sourcegraph/conc/iter"
 )
 
-//nolint:lll, gocognit // TODO fix
+//nolint:lll // let it be
 func (sp *StateProcessor[
 	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
 ]) processRegistryUpdates(
@@ -78,11 +78,30 @@ func (sp *StateProcessor[
 		}
 	}
 
+	// validators registry will be possibly further modified in order to enforce
+	// validators set cap. We will do that at the end of processEpoch, once all
+	// Eth 2.0 like transitions has been done (notable EffectiveBalances handling).
+	return nil
+}
+
+//nolint:lll // let it be
+func (sp *StateProcessor[
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+]) processValidatorSetCap(
+	st BeaconStateT,
+) error {
 	// Enforce the validator set cap by:
 	// 1- retrieving validators active next epoch
 	// 2- sorting them by stake
 	// 3- dropping enough validators to fulfill the cap
-	nextEpochVals, err := sp.nextEpochValidatorSet(st)
+
+	slot, err := st.GetSlot()
+	if err != nil {
+		return err
+	}
+	nextEpoch := sp.cs.SlotToEpoch(slot) + 1
+
+	nextEpochVals, err := sp.getActiveVals(st, nextEpoch)
 	if err != nil {
 		return fmt.Errorf("registry update, failed retrieving next epoch vals: %w", err)
 	}
@@ -114,6 +133,7 @@ func (sp *StateProcessor[
 
 	// We do not currently have a cap on validators churn, so we stop
 	// validators this epoch and we withdraw them next epoch
+	var idx math.ValidatorIndex
 	for li := range uint64(len(nextEpochVals)) - sp.cs.ValidatorSetCap() {
 		valToEject := nextEpochVals[li]
 		valToEject.SetExitEpoch(nextEpoch)
@@ -126,50 +146,8 @@ func (sp *StateProcessor[
 			return fmt.Errorf("registry update, failed ejecting validator idx %d: %w", li, err)
 		}
 	}
+
 	return nil
-}
-
-// processValidatorsSetUpdates returns the validators set updates that
-// will be used by consensus.
-func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
-]) processValidatorsSetUpdates(
-	st BeaconStateT,
-) (transition.ValidatorUpdates, error) {
-	// at this state slot has not been updated yet so
-	// we pick nextEpochValidatorSet
-	activeVals, err := sp.nextEpochValidatorSet(st)
-	if err != nil {
-		return nil, err
-	}
-
-	// pick prev epoch validators
-	slot, err := st.GetSlot()
-	if err != nil {
-		return nil, err
-	}
-
-	sp.valSetMu.Lock()
-	defer sp.valSetMu.Unlock()
-
-	// prevEpoch is calculated assuming current block
-	// will turn epoch but we have not update slot yet
-	prevEpoch := sp.cs.SlotToEpoch(slot)
-	currEpoch := prevEpoch + 1
-	if slot == 0 {
-		currEpoch = 0 // prevEpoch for genesis is zero
-	}
-	prevEpochVals := sp.valSetByEpoch[prevEpoch] // picks nil if it's genesis
-
-	// calculate diff
-	res := sp.validatorSetsDiffs(prevEpochVals, activeVals)
-
-	// clear up sets we won't lookup to anymore
-	sp.valSetByEpoch[currEpoch] = activeVals
-	if prevEpoch >= 1 {
-		delete(sp.valSetByEpoch, prevEpoch-1)
-	}
-	return res, nil
 }
 
 // Note: validatorSetsDiffs does not need to be a StateProcessor method
@@ -231,29 +209,16 @@ func (*StateProcessor[
 // validator set would be.
 func (sp *StateProcessor[
 	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
-]) nextEpochValidatorSet(st BeaconStateT) ([]ValidatorT, error) {
-	slot, err := st.GetSlot()
-	if err != nil {
-		return nil, err
-	}
-	nextEpoch := sp.cs.SlotToEpoch(slot) + 1
-
+]) getActiveVals(st BeaconStateT, epoch math.Epoch) ([]ValidatorT, error) {
 	vals, err := st.GetValidators()
 	if err != nil {
 		return nil, err
 	}
 	activeVals := make([]ValidatorT, 0, len(vals))
 	for _, val := range vals {
-		if val.GetEffectiveBalance() <= math.U64(sp.cs.EjectionBalance()) {
-			continue
+		if val.IsActive(epoch) {
+			activeVals = append(activeVals, val)
 		}
-		if val.GetActivationEligibilityEpoch() == nextEpoch {
-			continue
-		}
-		if val.GetWithdrawableEpoch() == nextEpoch {
-			continue
-		}
-		activeVals = append(activeVals, val)
 	}
 
 	return activeVals, nil

@@ -245,6 +245,7 @@ type Validator[
 
 	IsEligibleForActivationQueue(threshold math.Gwei) bool
 	IsEligibleForActivation(finalizedEpoch math.Epoch) bool
+	IsActive(epoch math.Epoch) bool
 
 	// GetPubkey returns the public key of the validator.
 	GetPubkey() crypto.BLSPubkey

@@ -78,14 +78,14 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		genVersion       = version.FromUint32[common.Version](version.Deneb)
 	)
-	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
+	valDiff, err := sp.InitializePreminedBeaconStateFromEth1(
 		st,
 		genDeposits,
 		genPayloadHeader,
 		genVersion,
 	)
 	require.NoError(t, err)
-	require.Len(t, genVals, len(genDeposits))
+	require.Len(t, valDiff, len(genDeposits))
 
 	// STEP 1: top up a genesis validator balance
 	blkDeposit := &types.Deposit{
@@ -117,7 +117,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits))
 
 	// run the test
-	valDiff, err := sp.Transition(ctx, st, blk1)
+	valDiff, err = sp.Transition(ctx, st, blk1)
 	require.NoError(t, err)
 	require.Empty(t, valDiff) // validators set updates only at epoch turn
 
@@ -167,8 +167,14 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	valDiff, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
 	require.Len(t, valDiff, 1) // just topped up one validator
-
-	expectedBalance = genDeposits[2].Amount + blkDeposit.Amount
+	require.Equal(
+		t,
+		&transition.ValidatorUpdate{
+			Pubkey:           blkDeposit.Pubkey,
+			EffectiveBalance: expectedBalance,
+		},
+		valDiff[0],
+	)
 	expectedEffectiveBalance = expectedBalance
 
 	balance, err = st.GetBalance(idx)
@@ -252,9 +258,9 @@ func TestTransitionCreateValidator(t *testing.T) {
 	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits))
 
 	// run the test
-	updatedVals, err := sp.Transition(ctx, st, blk1)
+	valDiff, err := sp.Transition(ctx, st, blk1)
 	require.NoError(t, err)
-	require.Empty(t, updatedVals) // validators set updates only at epoch turn
+	require.Empty(t, valDiff) // validators set updates only at epoch turn
 
 	// check validator balances are duly updated
 	var (
@@ -300,7 +306,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 		},
 	)
 
-	valDiff, err := sp.Transition(ctx, st, blk)
+	valDiff, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
 	require.Empty(t, valDiff) // new validator is only eligible for activation
 
@@ -337,8 +343,17 @@ func TestTransitionCreateValidator(t *testing.T) {
 	)
 
 	// run the test
-	_, err = sp.Transition(ctx, st, blk)
+	valDiff, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
+	require.Len(t, valDiff, 1)
+	require.Equal(
+		t,
+		&transition.ValidatorUpdate{
+			Pubkey:           blkDeposit.Pubkey,
+			EffectiveBalance: expectedBalance,
+		},
+		valDiff[0],
+	)
 
 	extraVal, err = st.ValidatorByIndex(extraValIdx)
 	require.NoError(t, err)
@@ -672,8 +687,9 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits))
 
 	// run the test
-	_, err = sp.Transition(ctx, st, blk1)
+	valDiff, err := sp.Transition(ctx, st, blk1)
 	require.NoError(t, err)
+	require.Empty(t, valDiff)
 
 	extraValIdx, err := st.ValidatorIndexByPubkey(extraValDeposit.Pubkey)
 	require.NoError(t, err)
@@ -708,8 +724,9 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	)
 
 	// run the test
-	_, err = sp.Transition(ctx, st, blk)
+	valDiff, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
+	require.Empty(t, valDiff)
 
 	// check extra validator is added with Withdraw epoch duly set
 	extraVal, err = st.ValidatorByIndex(extraValIdx)
@@ -743,8 +760,9 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	)
 
 	// run the test
-	_, err = sp.Transition(ctx, st, blk)
+	valDiff, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
+	require.Empty(t, valDiff)
 
 	extraVal, err = st.ValidatorByIndex(extraValIdx)
 	require.NoError(t, err)
@@ -878,8 +896,9 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits))
 
 	// run the test
-	_, err = sp.Transition(ctx, st, blk1)
+	valDiff, err := sp.Transition(ctx, st, blk1)
 	require.NoError(t, err)
+	require.Empty(t, valDiff)
 
 	extraValIdx, err := st.ValidatorIndexByPubkey(extraValDeposit.Pubkey)
 	require.NoError(t, err)
@@ -923,8 +942,9 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	)
 
 	// run the test
-	_, err = sp.Transition(ctx, st, blk)
+	valDiff, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
+	require.Empty(t, valDiff)
 
 	// check extra validator is added with Withdraw epoch duly set
 	extraVal, err = st.ValidatorByIndex(extraValIdx)
@@ -965,8 +985,25 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	)
 
 	// run the test
-	_, err = sp.Transition(ctx, st, blk)
+	valDiff, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
+	require.Len(t, valDiff, 2)
+	require.Equal(
+		t,
+		&transition.ValidatorUpdate{
+			Pubkey:           extraVal.Pubkey,
+			EffectiveBalance: extraVal.EffectiveBalance,
+		},
+		valDiff[0],
+	)
+	require.Equal(
+		t,
+		&transition.ValidatorUpdate{
+			Pubkey:           smallestVal.Pubkey,
+			EffectiveBalance: 0,
+		},
+		valDiff[1],
+	)
 
 	extraVal, err = st.ValidatorByIndex(extraValIdx)
 	require.NoError(t, err)
