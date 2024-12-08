@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"slices"
 
+	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
@@ -214,10 +215,21 @@ func (sp *StateProcessor[
 	if err != nil {
 		return nil, err
 	}
+
 	activeVals := make([]ValidatorT, 0, len(vals))
-	for _, val := range vals {
-		if val.IsActive(epoch) {
-			activeVals = append(activeVals, val)
+	if sp.cs.DepositEth1ChainID() == spec.BartioChainID {
+		// Bartio does not properly handle validators epochs, so
+		// we have an ad-hoc definition of active validator there
+		for _, val := range vals {
+			if val.GetEffectiveBalance() > math.U64(sp.cs.EjectionBalance()) {
+				activeVals = append(activeVals, val)
+			}
+		}
+	} else {
+		for _, val := range vals {
+			if val.IsActive(epoch) {
+				activeVals = append(activeVals, val)
+			}
 		}
 	}
 
