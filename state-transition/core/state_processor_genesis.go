@@ -34,7 +34,7 @@ import (
 
 // InitializePreminedBeaconStateFromEth1 initializes the beacon state.
 //
-//nolint:gocognit,funlen,lll // todo fix.
+//nolint:gocognit,funlen // todo fix.
 func (sp *StateProcessor[
 	_, BeaconBlockBodyT, BeaconBlockHeaderT, BeaconStateT, _, DepositT,
 	Eth1DataT, _, ExecutionPayloadHeaderT, ForkT, _, _, ValidatorT, _, _, _, _,
@@ -106,29 +106,8 @@ func (sp *StateProcessor[
 	}
 
 	// process activations
-	switch {
-	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
-		// nothing to do
-	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID:
-		// nothing to do
-	default:
-		vals, err := st.GetValidators()
-		if err != nil {
-			return nil, fmt.Errorf("genesis activation, failed listing validators: %w", err)
-		}
-
-		var idx math.ValidatorIndex
-		for _, val := range vals {
-			val.SetActivationEligibilityEpoch(0)
-			val.SetActivationEpoch(0)
-			idx, err = st.ValidatorIndexByPubkey(val.GetPubkey())
-			if err != nil {
-				return nil, err
-			}
-			if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
-				return nil, err
-			}
-		}
+	if err := sp.processGenesisActivation(st); err != nil {
+		return nil, err
 	}
 
 	// Handle special case bartio genesis.
@@ -172,4 +151,38 @@ func (sp *StateProcessor[
 	}
 
 	return sp.processValidatorsSetUpdates(st)
+}
+
+func (sp *StateProcessor[
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+]) processGenesisActivation(
+	st BeaconStateT,
+) error {
+	switch {
+	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
+		// nothing to do
+		return nil
+	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID:
+		// nothing to do
+		return nil
+	default:
+		vals, err := st.GetValidators()
+		if err != nil {
+			return fmt.Errorf("genesis activation, failed listing validators: %w", err)
+		}
+
+		var idx math.ValidatorIndex
+		for _, val := range vals {
+			val.SetActivationEligibilityEpoch(0)
+			val.SetActivationEpoch(0)
+			idx, err = st.ValidatorIndexByPubkey(val.GetPubkey())
+			if err != nil {
+				return err
+			}
+			if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
 }

@@ -116,8 +116,8 @@ func (sp *StateProcessor[
 	// validators this epoch and we withdraw them next epoch
 	for li := range uint64(len(nextEpochVals)) - sp.cs.ValidatorSetCap() {
 		valToEject := nextEpochVals[li]
-		valToEject.SetExitEpoch(currEpoch)
-		valToEject.SetWithdrawableEpoch(nextEpoch)
+		valToEject.SetExitEpoch(nextEpoch)
+		valToEject.SetWithdrawableEpoch(nextEpoch + 1)
 		idx, err = st.ValidatorIndexByPubkey(valToEject.GetPubkey())
 		if err != nil {
 			return fmt.Errorf("registry update, failed loading validator index: %w", err)
