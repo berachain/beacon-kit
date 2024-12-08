@@ -23,7 +23,7 @@ package suite
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"

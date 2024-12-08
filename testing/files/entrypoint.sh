@@ -58,7 +58,7 @@ if [ -d $HOMEDIR ]; then
 	printf "\nAn existing folder at '%s' was found. You can choose to delete this folder and start a new local node with new keys from genesis. When declined, the existing local node is started. \n" $HOMEDIR
 	echo "Overwrite the existing configuration and start a new local node? [y/n]"
 	read -r overwrite
-else	
+else
 overwrite="Y"
 fi
 
@@ -69,12 +69,13 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 		--chain-id $CHAINID \
 		--home $HOMEDIR \
 		--consensus-key-algo $CONSENSUS_KEY_ALGO
-	
+
 	if [ "$CHAIN_SPEC" == "testnet" ]; then
 		cp -f testing/networks/80084/*.toml testing/networks/80084/genesis.json ${HOMEDIR}/config
 	else
-		./build/bin/beacond genesis add-premined-deposit --home $HOMEDIR
-		./build/bin/beacond genesis collect-premined-deposits --home $HOMEDIR 
+		./build/bin/beacond genesis add-premined-deposit --home $HOMEDIR \
+			32000000000 0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4
+		./build/bin/beacond genesis collect-premined-deposits --home $HOMEDIR
 		./build/bin/beacond genesis execution-payload "$ETH_GENESIS" --home $HOMEDIR
 	fi
 fi
