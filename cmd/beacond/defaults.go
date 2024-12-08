@@ -90,7 +90,7 @@ func DefaultComponents() []any {
 		components.ProvideReportingService[
 			*ExecutionPayload, *PayloadAttributes, *Logger,
 		],
-		components.ProvideCometBFTService[*Logger, *Deposit, *Genesis, *ExecutionPayloadHeader],
+		components.ProvideCometBFTService[*Logger],
 		components.ProvideServiceRegistry[
 			*AvailabilityStore,
 			*ConsensusBlock, *BeaconBlock, *BeaconBlockBody,
@@ -120,7 +120,7 @@ func DefaultComponents() []any {
 		components.ProvideValidatorService[
 			*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,
 			*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
-			*BlockStore, *BlobSidecars, *Deposit, *DepositStore,
+			*BlockStore, *BlobSidecar, *BlobSidecars, *Deposit, *DepositStore,
 			*ExecutionPayload, *ExecutionPayloadHeader, *KVStore, *Logger,
 			*StorageBackend,
 		],

@@ -240,8 +240,10 @@ type TelemetrySink interface {
 	MeasureSince(key string, start time.Time, args ...string)
 }
 
+//nolint:revive // We will remove this once generics are cleaned up
 type BlockchainI[GenesisT any] interface {
-	ProcessGenesisData(context.Context, []byte) (transition.ValidatorUpdates, error)
+	ProcessGenesisData(
+		context.Context, []byte) (transition.ValidatorUpdates, error)
 }
 
 type ValidatorUpdates = transition.ValidatorUpdates

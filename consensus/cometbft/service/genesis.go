@@ -36,6 +36,7 @@ import (
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 )
 
+//nolint:gocognit // its fine.
 func (s *Service[LoggerT]) initChain(
 	_ context.Context,
 	req *cmtabci.InitChainRequest,

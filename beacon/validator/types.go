@@ -24,6 +24,8 @@ import (
 	"context"
 	"time"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
@@ -236,4 +238,25 @@ type TelemetrySink interface {
 	// MeasureSince measures the time since the provided start time,
 	// identified by the provided keys.
 	MeasureSince(key string, start time.Time, args ...string)
+}
+
+type BlobSidecars[T, BlobSidecarT any] interface {
+	constraints.Nillable
+	constraints.SSZMarshallable
+	constraints.Empty[T]
+	Len() int
+	Get(index int) BlobSidecarT
+	GetSidecars() []BlobSidecarT
+	ValidateBlockRoots() error
+	VerifyInclusionProofs(kzgOffset uint64) error
+}
+
+type BlockBuilderI[SlotDataT any] interface {
+	BuildBlockAndSidecars(
+		context.Context,
+		types.SlotData[
+			ctypes.AttestationData,
+			ctypes.SlashingInfo,
+		],
+	) ([]byte, []byte, error)
 }

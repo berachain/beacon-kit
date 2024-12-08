@@ -25,6 +25,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"cosmossdk.io/store/rootmulti"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
@@ -32,7 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus/types"
 	errorsmod "github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
-	math "github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/math"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -62,7 +63,8 @@ func (s *Service[LoggerT]) initChainer(
 		return nil, err
 	}
 
-	valUpdates, err := s.Blockchain.ProcessGenesisData(ctx, []byte(genesisState["beacon"]))
+	data := []byte(genesisState["beacon"])
+	valUpdates, err := s.Blockchain.ProcessGenesisData(ctx, data)
 	if err != nil {
 		return nil, err
 	}
@@ -102,6 +104,10 @@ func (s *Service[LoggerT]) PrepareProposal(
 	_ context.Context,
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
+	startTime := time.Now()
+	defer s.telemetrySink.MeasureSince(
+		"beacon_kit.runtime.prepare_proposal_duration", startTime)
+
 	// CometBFT must never call PrepareProposal with a height of 0.
 	if req.Height < 1 {
 		return nil, fmt.Errorf(
@@ -121,20 +127,22 @@ func (s *Service[LoggerT]) PrepareProposal(
 		),
 	)
 
-	var slotData *types.SlotData[
-		*ctypes.AttestationData,
-		*ctypes.SlashingInfo,
-	]
-	slotData = slotData.New(
+	var slotData = types.NewSlotData[
+		ctypes.AttestationData,
+		ctypes.SlashingInfo,
+	](
 		math.Slot(req.GetHeight()),
 		nil,
 		nil,
 		req.GetProposerAddress(),
 		req.GetTime(),
 	)
-	blkBz, sidecarsBz, err := s.Middleware.PrepareProposal(
+
+	// TODO: can we use the context from the request now that async is gone?
+	//nolint:contextcheck // see todo above
+	blkBz, sidecarsBz, err := s.BlockBuilder.BuildBlockAndSidecars(
 		s.prepareProposalState.Context(),
-		slotData,
+		*slotData,
 	)
 	if err != nil {
 		s.logger.Error(
