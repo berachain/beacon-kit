@@ -26,6 +26,7 @@ import (
 
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
+	"github.com/berachain/beacon-kit/beacon/validator"
 	servercmtlog "github.com/berachain/beacon-kit/consensus/cometbft/service/log"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/params"
 	statem "github.com/berachain/beacon-kit/consensus/cometbft/service/state"
@@ -51,13 +52,15 @@ const (
 type Service[
 	LoggerT log.AdvancedLogger[LoggerT],
 ] struct {
-	node   *node.Node
-	cmtCfg *cmtcfg.Config
+	node          *node.Node
+	cmtCfg        *cmtcfg.Config
+	telemetrySink TelemetrySink
 
-	logger     LoggerT
-	sm         *statem.Manager
-	Middleware MiddlewareI
-	Blockchain blockchain.BlockchainI[any]
+	logger       LoggerT
+	sm           *statem.Manager
+	Middleware   MiddlewareI
+	Blockchain   blockchain.BlockchainI[any]
+	BlockBuilder validator.BlockBuilderI[any]
 
 	// prepareProposalState is used for PrepareProposal, which is set based on
 	// the previous block's state. This state is never committed. In case of
@@ -95,8 +98,10 @@ func NewService[
 	db dbm.DB,
 	middleware MiddlewareI,
 	blockchain blockchain.BlockchainI[any],
+	blockBuilder validator.BlockBuilderI[any],
 	cmtCfg *cmtcfg.Config,
 	cs common.ChainSpec,
+	telemetrySink TelemetrySink,
 	options ...func(*Service[LoggerT]),
 ) *Service[LoggerT] {
 	s := &Service[LoggerT]{
@@ -105,10 +110,12 @@ func NewService[
 			db,
 			servercmtlog.WrapSDKLogger(logger),
 		),
-		Middleware: middleware,
-		Blockchain: blockchain,
-		cmtCfg:     cmtCfg,
-		paramStore: params.NewConsensusParamsStore(cs),
+		Middleware:    middleware,
+		Blockchain:    blockchain,
+		BlockBuilder:  blockBuilder,
+		cmtCfg:        cmtCfg,
+		telemetrySink: telemetrySink,
+		paramStore:    params.NewConsensusParamsStore(cs),
 	}
 
 	s.MountStore(storeKey, storetypes.StoreTypeIAVL)

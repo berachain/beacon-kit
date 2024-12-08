@@ -101,7 +101,7 @@ type ServiceRegistryInput[
 	TelemetryService *telemetry.Service
 	ValidatorService *validator.Service[
 		*AttestationData, BeaconBlockT, BeaconBlockBodyT,
-		BeaconStateT, BlobSidecarsT, DepositT, DepositStoreT,
+		BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositT, DepositStoreT,
 		*Eth1Data, ExecutionPayloadT, ExecutionPayloadHeaderT,
 		*ForkData, *SlashingInfo, *SlotData,
 	]

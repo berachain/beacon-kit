@@ -48,9 +48,6 @@ func ProvideDispatcher[
 ) (Dispatcher, error) {
 	return dp.New(
 		in.Logger.With("service", "dispatcher"),
-		dp.WithEvent[SlotEvent](async.NewSlot),
-		dp.WithEvent[async.Event[BeaconBlockT]](async.BuiltBeaconBlock),
-		dp.WithEvent[async.Event[BlobSidecarsT]](async.BuiltSidecars),
 		dp.WithEvent[async.Event[ConsensusBlockT]](async.BeaconBlockReceived),
 		dp.WithEvent[async.Event[ConsensusSidecars]](async.SidecarsReceived),
 		dp.WithEvent[async.Event[BeaconBlockT]](async.BeaconBlockVerified),

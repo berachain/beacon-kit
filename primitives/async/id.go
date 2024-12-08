@@ -25,11 +25,6 @@ type EventID string
 
 // event ids, topologically sorted.
 const (
-	// pre proposal events.
-	NewSlot          = "new-slot"
-	BuiltBeaconBlock = "built-beacon-block"
-	BuiltSidecars    = "built-sidecars"
-
 	// proposal processing events.
 	BeaconBlockReceived = "beacon-block-received"
 	SidecarsReceived    = "sidecars-received"

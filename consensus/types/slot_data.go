@@ -39,15 +39,15 @@ type SlotData[AttestationDataT, SlashingInfoT any] struct {
 	*commonConsensusData
 }
 
-// New creates a new SlotData instance.
-func (b *SlotData[AttestationDataT, SlashingInfoT]) New(
+// NewSlotData creates a new SlotData instance.
+func NewSlotData[AttestationDataT, SlashingInfoT any](
 	slot math.Slot,
 	attestationData []AttestationDataT,
 	slashingInfo []SlashingInfoT,
 	proposerAddress []byte,
 	consensusTime time.Time,
 ) *SlotData[AttestationDataT, SlashingInfoT] {
-	b = &SlotData[AttestationDataT, SlashingInfoT]{
+	return &SlotData[AttestationDataT, SlashingInfoT]{
 		slot:            slot,
 		attestationData: attestationData,
 		slashingInfo:    slashingInfo,
@@ -56,7 +56,6 @@ func (b *SlotData[AttestationDataT, SlashingInfoT]) New(
 			consensusTime:   math.U64(consensusTime.Unix()),
 		},
 	}
-	return b
 }
 
 // GetSlot retrieves the slot of the SlotData.
