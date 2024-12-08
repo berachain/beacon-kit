@@ -216,8 +216,14 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
+	slot, err := st.GetSlot()
+	if err != nil {
+		return nil, err
+	}
+
 	activeVals := make([]ValidatorT, 0, len(vals))
-	if sp.cs.DepositEth1ChainID() == spec.BartioChainID {
+	switch {
+	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
 		// Bartio does not properly handle validators epochs, so
 		// we have an ad-hoc definition of active validator there
 		for _, val := range vals {
@@ -225,13 +231,20 @@ func (sp *StateProcessor[
 				activeVals = append(activeVals, val)
 			}
 		}
-	} else {
+	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
+		slot < math.U64(spec.BoonetFork3Height):
+		// Boonet inherits Bartio processing till for 3
+		for _, val := range vals {
+			if val.GetEffectiveBalance() > math.U64(sp.cs.EjectionBalance()) {
+				activeVals = append(activeVals, val)
+			}
+		}
+	default:
 		for _, val := range vals {
 			if val.IsActive(epoch) {
 				activeVals = append(activeVals, val)
 			}
 		}
 	}
-
 	return activeVals, nil
 }
