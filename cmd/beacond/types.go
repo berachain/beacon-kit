@@ -136,7 +136,6 @@ type (
 
 	// KVStore is a type alias for the KV store.
 	KVStore = beacondb.KVStore[
-		*BeaconBlockHeader,
 		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,
