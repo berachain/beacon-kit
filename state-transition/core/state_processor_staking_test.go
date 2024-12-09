@@ -188,8 +188,6 @@ func TestTransitionUpdateValidators(t *testing.T) {
 
 // TestTransitionCreateValidator shows the lifecycle
 // of a validator creation.
-//
-
 func TestTransitionCreateValidator(t *testing.T) {
 	// Create state processor to test
 	cs := setupChain(t, components.BetnetChainSpecType)
@@ -617,8 +615,6 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 // TestTransitionHittingValidatorsCap shows that the extra
 // validator added when validators set is at cap gets never activated
 // and its deposit is returned at after next epoch starts.
-//
-
 func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	cs := setupChain(t, components.BetnetChainSpecType)
 	sp, st, ds, ctx := setupState(t, cs)
