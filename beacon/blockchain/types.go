@@ -29,6 +29,8 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	cmtabci "github.com/cometbft/cometbft/abci/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // AvailabilityStore interface is responsible for validating and storing
@@ -57,7 +59,11 @@ type ConsensusBlock[BeaconBlockT any] interface {
 }
 
 // BeaconBlock represents a beacon block interface.
-type BeaconBlock[BeaconBlockBodyT any] interface {
+type BeaconBlock[
+	BeaconBlockT any,
+	BeaconBlockBodyT any,
+	BeaconBlockHeaderT any,
+] interface {
 	constraints.SSZMarshallableRootable
 	constraints.Nillable
 	// GetSlot returns the slot of the beacon block.
@@ -66,6 +72,8 @@ type BeaconBlock[BeaconBlockBodyT any] interface {
 	GetStateRoot() common.Root
 	// GetBody returns the body of the beacon block.
 	GetBody() BeaconBlockBodyT
+	NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
+	GetHeader() BeaconBlockHeaderT
 }
 
 // BeaconBlockBody represents the interface for the beacon block body.
@@ -86,9 +94,9 @@ type BeaconBlockHeader interface {
 	GetStateRoot() common.Root
 }
 
-// BlobSidecars is the interface for blobs sidecars.
-type BlobSidecars interface {
+type BlobSidecars[T any] interface {
 	constraints.SSZMarshallable
+	constraints.Empty[T]
 	constraints.Nillable
 	// Len returns the length of the blobs sidecars.
 	Len() int
@@ -244,6 +252,10 @@ type TelemetrySink interface {
 type BlockchainI[GenesisT any] interface {
 	ProcessGenesisData(
 		context.Context, []byte) (transition.ValidatorUpdates, error)
+	ProcessProposal(
+		sdk.Context,
+		*cmtabci.ProcessProposalRequest,
+	) (*cmtabci.ProcessProposalResponse, error)
 }
 
 type ValidatorUpdates = transition.ValidatorUpdates

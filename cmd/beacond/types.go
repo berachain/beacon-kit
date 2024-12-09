@@ -92,6 +92,8 @@ type (
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*Genesis,
+		*ConsensusSidecars,
+		*BlobSidecars,
 		*PayloadAttributes,
 	]
 

@@ -46,10 +46,6 @@ type ABCIMiddleware[
 	metrics *ABCIMiddlewareMetrics
 	// logger is the logger for the middleware.
 	logger log.Logger
-	// subBBVerified is the channel to hold BeaconBlockVerified events.
-	subBBVerified chan async.Event[BeaconBlockT]
-	// subSCVerified is the channel to hold SidecarsVerified events.
-	subSCVerified chan async.Event[BlobSidecarsT]
 	// subFinalValidatorUpdates is the channel to hold
 	// FinalValidatorUpdatesProcessed events.
 	subFinalValidatorUpdates chan async.Event[validatorUpdates]
@@ -77,8 +73,6 @@ func NewABCIMiddleware[
 		dispatcher:               dispatcher,
 		logger:                   logger,
 		metrics:                  newABCIMiddlewareMetrics(telemetrySink),
-		subBBVerified:            make(chan async.Event[BeaconBlockT]),
-		subSCVerified:            make(chan async.Event[BlobSidecarsT]),
 		subFinalValidatorUpdates: make(chan async.Event[validatorUpdates]),
 	}
 }
@@ -88,16 +82,6 @@ func (am *ABCIMiddleware[_, _, _, _, _]) Start(
 	_ context.Context,
 ) error {
 	var err error
-	if err = am.dispatcher.Subscribe(
-		async.BeaconBlockVerified, am.subBBVerified,
-	); err != nil {
-		return err
-	}
-	if err = am.dispatcher.Subscribe(
-		async.SidecarsVerified, am.subSCVerified,
-	); err != nil {
-		return err
-	}
 	if err = am.dispatcher.Subscribe(
 		async.FinalValidatorUpdatesProcessed, am.subFinalValidatorUpdates,
 	); err != nil {

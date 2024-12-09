@@ -25,13 +25,28 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
+	"github.com/berachain/beacon-kit/consensus/types"
+	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	cmtabci "github.com/cometbft/cometbft/abci/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
+
+const (
+	// BeaconBlockTxIndex represents the index of the beacon block transaction.
+	// It is the first transaction in the tx list.
+	BeaconBlockTxIndex uint = iota
+	// BlobSidecarsTxIndex represents the index of the blob sidecar transaction.
+	// It follows the beacon block transaction in the tx list.
+	BlobSidecarsTxIndex
 )
 
 // ProcessGenesisData processes the genesis state and initializes the beacon
 // state.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, GenesisT, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, GenesisT, _, _, _,
 ]) ProcessGenesisData(
 	ctx context.Context,
 	bytes []byte,
@@ -49,10 +64,94 @@ func (s *Service[
 	)
 }
 
+func (s *Service[
+	_, _, ConsensusBlockT, BeaconBlockT, _, BeaconBlockHeaderT, _, _, _,
+	_, _, _, GenesisT, ConsensusSidecarsT, BlobSidecarsT, _,
+]) ProcessProposal(
+	ctx sdk.Context,
+	req *cmtabci.ProcessProposalRequest,
+) (*cmtabci.ProcessProposalResponse, error) {
+	// Decode the beacon block.
+	blk, err := encoding.
+		UnmarshalBeaconBlockFromABCIRequest[BeaconBlockT](
+		req,
+		BeaconBlockTxIndex,
+		s.chainSpec.ActiveForkVersionForSlot(math.U64(req.Height)),
+	)
+	if err != nil {
+		return createProcessProposalResponse(errors.WrapNonFatal(err))
+	}
+	var consensusBlk *types.ConsensusBlock[BeaconBlockT]
+	consensusBlk = consensusBlk.New(
+		blk,
+		req.GetProposerAddress(),
+		req.GetTime(),
+	)
+
+	// Decode the blob sidecars.
+	sidecars, err := encoding.
+		UnmarshalBlobSidecarsFromABCIRequest[BlobSidecarsT](
+		req,
+		BlobSidecarsTxIndex,
+	)
+	if err != nil {
+		return createProcessProposalResponse(errors.WrapNonFatal(err))
+	}
+
+	var consensusSidecars *types.ConsensusSidecars[
+		BlobSidecarsT,
+		BeaconBlockHeaderT,
+	]
+	consensusSidecars = consensusSidecars.New(
+		sidecars,
+		blk.GetHeader(),
+	)
+
+	if !sidecars.IsNil() && sidecars.Len() > 0 {
+		s.logger.Info("Received incoming blob sidecars")
+
+		// TODO: Clean this up once we remove generics.
+		c := convertConsensusSidecars[
+			ConsensusSidecarsT,
+			BlobSidecarsT,
+			BeaconBlockHeaderT,
+		](consensusSidecars)
+
+		// Verify the blobs and ensure they match the local state.
+		err = s.blobProcessor.VerifySidecars(c)
+		if err != nil {
+			s.logger.Error(
+				"rejecting incoming blob sidecars",
+				"reason", err,
+			)
+			return createProcessProposalResponse(errors.WrapNonFatal(err))
+		}
+
+		s.logger.Info(
+			"Blob sidecars verification succeeded - accepting incoming blob sidecars",
+			"num_blobs",
+			sidecars.Len(),
+		)
+	}
+
+	err = s.VerifyIncomingBlock(
+		ctx,
+		consensusBlk.GetBeaconBlock(),
+		consensusBlk.GetConsensusTime(),
+		consensusBlk.GetProposerAddress(),
+	)
+	if err != nil {
+		s.logger.Error("failed to verify incoming block", "error", err)
+		return createProcessProposalResponse(errors.WrapNonFatal(err))
+	}
+
+	return createProcessProposalResponse(nil)
+}
+
 // ProcessBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
 func (s *Service[
-	_, _, ConsensusBlockT, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, ConsensusBlockT, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) ProcessBeaconBlock(
 	ctx context.Context,
 	blk ConsensusBlockT,
@@ -104,7 +203,7 @@ func (s *Service[
 
 // executeStateTransition runs the stf.
 func (s *Service[
-	_, _, ConsensusBlockT, _, _, _, BeaconStateT, _, _, _, _, _, _, _,
+	_, _, ConsensusBlockT, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
 ]) executeStateTransition(
 	ctx context.Context,
 	st BeaconStateT,
@@ -145,4 +244,31 @@ func (s *Service[
 		blk.GetBeaconBlock(),
 	)
 	return valUpdates, err
+}
+
+// createResponse generates the appropriate ProcessProposalResponse based on the
+// error.
+func createProcessProposalResponse(
+	err error,
+) (*cmtabci.ProcessProposalResponse, error) {
+	status := cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
+	if !errors.IsFatal(err) {
+		status = cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
+		err = nil
+	}
+	return &cmtabci.ProcessProposalResponse{Status: status}, err
+}
+
+func convertConsensusSidecars[
+	ConsensusSidecarsT any,
+	BlobSidecarsT any,
+	BeaconBlockHeaderT any,
+](
+	cSidecars *types.ConsensusSidecars[BlobSidecarsT, BeaconBlockHeaderT],
+) ConsensusSidecarsT {
+	val, ok := any(cSidecars).(ConsensusSidecarsT)
+	if !ok {
+		panic("failed to convert conesensusSidecars to ConsensusSidecarsT")
+	}
+	return val
 }

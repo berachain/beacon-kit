@@ -80,6 +80,7 @@ type ServiceRegistryInput[
 		BeaconBlockHeaderT, BeaconStateT, BeaconBlockStoreT, DepositT,
 		WithdrawalCredentials, ExecutionPayloadT,
 		ExecutionPayloadHeaderT, GenesisT,
+		ConsensusSidecarsT, BlobSidecarsT,
 		*engineprimitives.PayloadAttributes[WithdrawalT],
 	]
 	DAService *da.Service[
