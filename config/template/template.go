@@ -33,7 +33,7 @@ rpc-dial-url = "{{ .BeaconKit.Engine.RPCDialURL }}"
 # Number of retries before shutting down consensus client.
 rpc-retries = "{{.BeaconKit.Engine.RPCRetries}}"
 
-# RPC timeout for execution client requests.
+# RPC timeout for execution of client requests.
 rpc-timeout = "{{ .BeaconKit.Engine.RPCTimeout }}"
 
 # Interval for the startup check.

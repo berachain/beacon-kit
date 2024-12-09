@@ -112,7 +112,7 @@ func CollectValidatorJSONFiles(
 	genesis *genutiltypes.AppGenesis,
 ) ([]*types.Deposit, error) {
 	// prepare a map of all balances in genesis state to then validate
-	// against the validators addresses
+	// against the validator addresses
 	var appState map[string]json.RawMessage
 	if err := json.Unmarshal(genesis.AppState, &appState); err != nil {
 		return nil, err

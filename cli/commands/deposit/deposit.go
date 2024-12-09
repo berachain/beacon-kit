@@ -30,7 +30,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Commands creates a new command for deposit related actions.
+// Commands create a new command for deposit related actions.
 func Commands[ExecutionPayloadT constraints.EngineType[ExecutionPayloadT]](
 	chainSpec common.ChainSpec,
 ) *cobra.Command {

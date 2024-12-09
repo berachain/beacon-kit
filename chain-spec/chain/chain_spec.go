@@ -262,7 +262,7 @@ func (c *chainSpec[
 		return ErrInvalidValidatorSetCap
 	}
 
-	// EVM Inflation values can be zero or non-zero, no validation needed.
+	// EVM Inflation values can be zero or non-zero, no validation is needed.
 
 	// TODO: Add more validation rules here.
 	return nil
