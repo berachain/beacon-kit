@@ -57,9 +57,9 @@ func Next(
 ) math.U64 {
 	delta := math.U64(0)
 	if buildOptimistically {
-		// we're building a payload to be included into next block.
+		// we're building a payload to be included in the next block.
 		// We estimate it to be included next second. If this estimate
-		// turns out wrong (cause consensus block are finalized faster or
+		// turns out wrong (cause consensus block is finalized faster or
 		// slower than consensusTime+1 sec), we're still fine as long as
 		// Verify pass which should always to since:
 		// Next.consensusTime <= Verify.consensusTime
