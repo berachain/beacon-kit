@@ -175,7 +175,6 @@ type (
 	StateProcessor = core.StateProcessor[
 		*BeaconBlock,
 		*BeaconBlockBody,
-		*BeaconBlockHeader,
 		*BeaconState,
 		*Context,
 		*Deposit,

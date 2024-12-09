@@ -25,7 +25,7 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/config/spec"
-	"github.com/berachain/beacon-kit/consensus-types/types"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -45,10 +45,9 @@ type StateProcessor[
 		BeaconBlockBodyT, DepositT,
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
-	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT BeaconState[
 		BeaconStateT,
-		BeaconBlockHeaderT, Eth1DataT,
+		*ctypes.BeaconBlockHeader, Eth1DataT,
 		ExecutionPayloadHeaderT, ForkT, KVStoreT,
 		ValidatorT, ValidatorsT, WithdrawalT,
 	],
@@ -112,10 +111,10 @@ func NewStateProcessor[
 		ExecutionPayloadHeaderT,
 		WithdrawalsT,
 	],
-	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT BeaconState[
-		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
-		KVStoreT, ValidatorT, ValidatorsT, WithdrawalT,
+		BeaconStateT, *ctypes.BeaconBlockHeader, Eth1DataT,
+		ExecutionPayloadHeaderT, ForkT, KVStoreT, ValidatorT,
+		ValidatorsT, WithdrawalT,
 	],
 	ContextT Context,
 	DepositT Deposit[DepositT, ForkDataT, WithdrawalCredentialsT],
@@ -155,13 +154,13 @@ func NewStateProcessor[
 	fGetAddressFromPubKey func(crypto.BLSPubkey) ([]byte, error),
 	telemetrySink TelemetrySink,
 ) *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, ContextT, DepositT, Eth1DataT, ExecutionPayloadT,
 	ExecutionPayloadHeaderT, ForkT, ForkDataT, KVStoreT, ValidatorT,
 	ValidatorsT, WithdrawalT, WithdrawalsT, WithdrawalCredentialsT,
 ] {
 	return &StateProcessor[
-		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+		BeaconBlockT, BeaconBlockBodyT,
 		BeaconStateT, ContextT, DepositT, Eth1DataT, ExecutionPayloadT,
 		ExecutionPayloadHeaderT, ForkT, ForkDataT, KVStoreT, ValidatorT,
 		ValidatorsT, WithdrawalT, WithdrawalsT, WithdrawalCredentialsT,
@@ -178,7 +177,7 @@ func NewStateProcessor[
 
 // Transition is the main function for processing a state transition.
 func (sp *StateProcessor[
-	BeaconBlockT, _, _, BeaconStateT, ContextT,
+	BeaconBlockT, _, BeaconStateT, ContextT,
 	_, _, _, _, _, _, _, _, _, _, _, _,
 ]) Transition(
 	ctx ContextT,
@@ -204,7 +203,7 @@ func (sp *StateProcessor[
 }
 
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) ProcessSlots(
 	st BeaconStateT, slot math.Slot,
 ) (transition.ValidatorUpdates, error) {
@@ -265,7 +264,7 @@ func (sp *StateProcessor[
 
 // processSlot is run when a slot is missed.
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) processSlot(
 	st BeaconStateT,
 ) error {
@@ -308,7 +307,7 @@ func (sp *StateProcessor[
 // ProcessBlock processes the block, it optionally verifies the
 // state root.
 func (sp *StateProcessor[
-	BeaconBlockT, _, _, BeaconStateT, ContextT, _, _, _, _, _, _, _, _, _, _, _, _,
+	BeaconBlockT, _, BeaconStateT, ContextT, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) ProcessBlock(
 	ctx ContextT,
 	st BeaconStateT,
@@ -355,7 +354,7 @@ func (sp *StateProcessor[
 
 // processEpoch processes the epoch and ensures it matches the local state.
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) processEpoch(
 	st BeaconStateT,
 ) (transition.ValidatorUpdates, error) {
@@ -407,7 +406,7 @@ func (sp *StateProcessor[
 // processBlockHeader processes the header and ensures it matches the local
 // state.
 func (sp *StateProcessor[
-	BeaconBlockT, _, BeaconBlockHeaderT, BeaconStateT,
+	BeaconBlockT, _, BeaconStateT,
 	ContextT, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
 ]) processBlockHeader(
 	ctx ContextT,
@@ -473,7 +472,7 @@ func (sp *StateProcessor[
 
 	// Cache current block as the new latest block
 	bodyRoot := blk.GetBody().HashTreeRoot()
-	var lbh BeaconBlockHeaderT
+	var lbh *ctypes.BeaconBlockHeader
 	lbh = lbh.New(
 		blk.GetSlot(),
 		blk.GetProposerIndex(),
@@ -491,7 +490,7 @@ func (sp *StateProcessor[
 //
 //nolint:lll
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) processEffectiveBalanceUpdates(
 	st BeaconStateT,
 ) error {
@@ -527,7 +526,7 @@ func (sp *StateProcessor[
 
 		if balance+downwardThreshold < val.GetEffectiveBalance() ||
 			val.GetEffectiveBalance()+upwardThreshold < balance {
-			updatedBalance := types.ComputeEffectiveBalance(
+			updatedBalance := ctypes.ComputeEffectiveBalance(
 				balance,
 				math.U64(sp.cs.EffectiveBalanceIncrement()),
 				math.U64(sp.cs.MaxEffectiveBalance()),

@@ -836,7 +836,6 @@ type (
 	// BeaconStore is the interface for the beacon store.
 	BeaconStore[
 		T any,
-		BeaconBlockHeaderT any,
 		Eth1DataT any,
 		ExecutionPayloadHeaderT any,
 		ForkT any,
@@ -886,9 +885,9 @@ type (
 		// SetGenesisValidatorsRoot sets the genesis validators root.
 		SetGenesisValidatorsRoot(root common.Root) error
 		// GetLatestBlockHeader retrieves the latest block header.
-		GetLatestBlockHeader() (BeaconBlockHeaderT, error)
+		GetLatestBlockHeader() (*ctypes.BeaconBlockHeader, error)
 		// SetLatestBlockHeader sets the latest block header.
-		SetLatestBlockHeader(header BeaconBlockHeaderT) error
+		SetLatestBlockHeader(header *ctypes.BeaconBlockHeader) error
 		// GetBlockRootAtIndex retrieves the block root at the given index.
 		GetBlockRootAtIndex(index uint64) (common.Root, error)
 		// StateRootAtIndex retrieves the state root at the given index.

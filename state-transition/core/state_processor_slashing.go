@@ -30,7 +30,7 @@ import (
 //
 //nolint:lll
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) processSlashingsReset(
 	st BeaconStateT,
 ) error {
