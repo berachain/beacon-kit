@@ -222,14 +222,14 @@ func (s *Service[
 		return envelope, nil
 	}
 
-	// If we failed to retrieve the payload, request a synchronous payload.
+	// If we fail to retrieve the payload, request a synchronous payload.
 	//
 	// NOTE: The state here is properly configured by the
 	// prepareStateForBuilding
 	//
 	// call that needs to be called before requesting the Payload.
 	// TODO: We should decouple the PayloadBuilder from BeaconState to make
-	// this less confusing.
+	//This is less confusing.
 
 	s.metrics.failedToRetrievePayload(
 		blk.GetSlot(),
