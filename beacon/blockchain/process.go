@@ -25,13 +25,17 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/berachain/beacon-kit/consensus-types/types"
+	consensusTypes "github.com/berachain/beacon-kit/consensus/types"
+	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
 // ProcessGenesisData processes the genesis state and initializes the beacon
 // state.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, GenesisT, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, GenesisT, _, _, _,
 ]) ProcessGenesisData(
 	ctx context.Context,
 	bytes []byte,
@@ -49,13 +53,63 @@ func (s *Service[
 	)
 }
 
+func (s *Service[
+	_, _, ConsensusBlockT, BeaconBlockT, _, _, _, _, _, _, _, _, GenesisT, ConsensusSidecarsT, _, _,
+]) ProcessProposal(
+	ctx context.Context,
+	blk consensusTypes.ConsensusBlock[*types.BeaconBlock],
+	cs *consensusTypes.ConsensusSidecars[*datypes.BlobSidecars, *types.BeaconBlockHeader],
+) (*cmtabci.ProcessProposalResponse, error) {
+	s.logger.Info("!!!!!!!! ProcessProposal called")
+	s.logger.Info("blk", blk)
+	s.logger.Info("sidecars", cs)
+
+	// verifySidecars
+	//
+	sidecars := cs.GetSidecars()
+	if !sidecars.IsNil() && sidecars.Len() > 0 {
+		s.logger.Info("Received incoming blob sidecars")
+
+		// TODO: Remove this once we cleanup generics
+		var sidecarI interface{} = cs
+		data, ok := sidecarI.(ConsensusSidecarsT)
+		if !ok {
+			panic("could not convert sidecar to ConsensusSidecarsT")
+		}
+
+		// Verify the blobs and ensure they match the local state.
+		if err := s.blobProcessor.VerifySidecars(data); err != nil {
+			s.logger.Error(
+				"rejecting incoming blob sidecars",
+				"reason", err,
+			)
+			return nil, err
+		}
+
+		s.logger.Info(
+			"Blob sidecars verification succeeded - accepting incoming blob sidecars",
+			"num_blobs",
+			sidecars.Len(),
+		)
+	}
+
+	err := s.VerifyIncomingBlock(ctx, blk)
+	if err != nil {
+		s.logger.Error("failed to verify incoming block", "error", err)
+		return nil, err
+	}
+
+	return nil, nil
+
+}
+
 // ProcessBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
 func (s *Service[
-	_, _, ConsensusBlockT, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, ConsensusBlockT, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) ProcessBeaconBlock(
 	ctx context.Context,
-	blk ConsensusBlockT,
+	blk consensusTypes.ConsensusBlock[*types.BeaconBlock],
 ) (transition.ValidatorUpdates, error) {
 	beaconBlk := blk.GetBeaconBlock()
 
@@ -104,11 +158,11 @@ func (s *Service[
 
 // executeStateTransition runs the stf.
 func (s *Service[
-	_, _, ConsensusBlockT, _, _, _, BeaconStateT, _, _, _, _, _, _, _,
+	_, _, ConsensusBlockT, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
 ]) executeStateTransition(
 	ctx context.Context,
 	st BeaconStateT,
-	blk ConsensusBlockT,
+	blk consensusTypes.ConsensusBlock[*types.BeaconBlock],
 ) (transition.ValidatorUpdates, error) {
 	startTime := time.Now()
 	defer s.metrics.measureStateTransitionDuration(startTime)
@@ -142,7 +196,7 @@ func (s *Service[
 			ConsensusTime:   blk.GetConsensusTime(),
 		},
 		st,
-		blk.GetBeaconBlock(),
+		*blk.GetBeaconBlock(),
 	)
 	return valUpdates, err
 }

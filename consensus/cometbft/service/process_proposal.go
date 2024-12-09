@@ -23,14 +23,34 @@ package cometbft
 import (
 	"context"
 	"fmt"
+	"time"
 
+	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
+	consensusTypes "github.com/berachain/beacon-kit/consensus/types"
+	datypes "github.com/berachain/beacon-kit/da/types"
+	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/primitives/math"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
+const (
+	// BeaconBlockTxIndex represents the index of the beacon block transaction.
+	// It is the first transaction in the tx list.
+	BeaconBlockTxIndex uint = iota
+	// BlobSidecarsTxIndex represents the index of the blob sidecar transaction.
+	// It follows the beacon block transaction in the tx list.
+	BlobSidecarsTxIndex
+)
+
 func (s *Service[LoggerT]) processProposal(
-	_ context.Context,
+	ctx context.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
+	startTime := time.Now()
+	defer s.telemetrySink.MeasureSince(
+		"beacon_kit.runtime.process_proposal_duration", startTime)
+
 	// CometBFT must never call ProcessProposal with a height of 0.
 	if req.Height < 1 {
 		return nil, fmt.Errorf(
@@ -59,26 +79,62 @@ func (s *Service[LoggerT]) processProposal(
 		),
 	)
 
-	resp, err := s.Middleware.ProcessProposal(
-		s.processProposalState.Context(),
+	const BeaconBlockTxIndex = 0
+
+	// Decode the beacon block.
+	blk, err := encoding.
+		UnmarshalBeaconBlockFromABCIRequest[*types.BeaconBlock](
 		req,
+		BeaconBlockTxIndex,
+		s.chainSpec.ActiveForkVersionForSlot(math.U64(req.Height)),
 	)
 	if err != nil {
-		s.logger.Error(
-			"failed to process proposal",
-			"height",
-			req.Height,
-			"time",
-			req.Time,
-			"hash",
-			fmt.Sprintf("%X", req.Hash),
-			"err",
-			err,
-		)
-		return &cmtabci.ProcessProposalResponse{
-			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
-		}, nil
+		return createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
 
-	return resp, nil
+	var consensusBlk consensusTypes.ConsensusBlock[*types.BeaconBlock]
+	consensusBlk = *consensusBlk.New(
+		blk,
+		req.GetProposerAddress(),
+		req.GetTime(),
+	)
+
+	// Decode the blob sidecars.
+	sidecars, err := encoding.
+		UnmarshalBlobSidecarsFromABCIRequest[*datypes.BlobSidecars](
+		req,
+		BlobSidecarsTxIndex,
+	)
+	if err != nil {
+		return createProcessProposalResponse(errors.WrapNonFatal(err))
+	}
+	var consensusSidecars *consensusTypes.ConsensusSidecars[
+		*datypes.BlobSidecars,
+		*types.BeaconBlockHeader,
+	]
+	consensusSidecars = consensusSidecars.New(
+		sidecars,
+		blk.GetHeader(),
+	)
+
+	_, err = s.Blockchain.ProcessProposal(ctx, consensusBlk, consensusSidecars)
+	if err != nil {
+		return nil, err
+	}
+
+	return createProcessProposalResponse(nil)
+
+}
+
+// createResponse generates the appropriate ProcessProposalResponse based on the
+// error.
+func createProcessProposalResponse(
+	err error,
+) (*cmtabci.ProcessProposalResponse, error) {
+	status := cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
+	if !errors.IsFatal(err) {
+		status = cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
+		err = nil
+	}
+	return &cmtabci.ProcessProposalResponse{Status: status}, err
 }

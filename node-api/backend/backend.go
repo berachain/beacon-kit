@@ -31,9 +31,7 @@ import (
 // It serves as a wrapper around the storage backend and provides an abstraction
 // over building the query context for a given state.
 type Backend[
-	AvailabilityStoreT AvailabilityStore[
-		BeaconBlockBodyT, BlobSidecarsT,
-	],
+	AvailabilityStoreT AvailabilityStore[BlobSidecarsT],
 	BeaconBlockT any,
 	BeaconBlockBodyT any,
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
@@ -69,9 +67,7 @@ type Backend[
 
 // New creates and returns a new Backend instance.
 func New[
-	AvailabilityStoreT AvailabilityStore[
-		BeaconBlockBodyT, BlobSidecarsT,
-	],
+	AvailabilityStoreT AvailabilityStore[BlobSidecarsT],
 	BeaconBlockT any,
 	BeaconBlockBodyT any,
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],

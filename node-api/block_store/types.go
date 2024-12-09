@@ -21,6 +21,7 @@
 package blockstore
 
 import (
+	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/async"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -34,9 +35,9 @@ type BeaconBlock interface {
 }
 
 // BlockStore is a generic interface for a block store.
-type BlockStore[BeaconBlockT BeaconBlock] interface {
+type BlockStore[BeaconBlockT any] interface {
 	// Set sets a block at a given index.
-	Set(blk BeaconBlockT) error
+	Set(blk *types.BeaconBlock) error
 }
 
 // Event is an interface for block events.

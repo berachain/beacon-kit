@@ -25,6 +25,7 @@ import (
 	"context"
 	"encoding/json"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-api/handlers"
@@ -34,6 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
+
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	v1 "github.com/cometbft/cometbft/api/cometbft/abci/v1"
@@ -70,11 +72,11 @@ type (
 	}
 
 	// AvailabilityStore is the interface for the availability store.
-	AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
+	AvailabilityStore[BlobSidecarsT any] interface {
 		IndexDB
 		// IsDataAvailable ensures that all blobs referenced in the block are
 		// securely stored before it returns without an error.
-		IsDataAvailable(context.Context, math.Slot, BeaconBlockBodyT) bool
+		IsDataAvailable(context.Context, math.Slot, *ctypes.BeaconBlockBody) bool
 		// Persist makes sure that the sidecar remains accessible for data
 		// availability checks throughout the beacon node's operation.
 		Persist(math.Slot, BlobSidecarsT) error
