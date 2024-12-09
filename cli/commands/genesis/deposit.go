@@ -44,11 +44,17 @@ import (
 
 // AddGenesisDepositCmd - returns the cobra command to
 // add a premined deposit to the genesis file.
+//
+
 func AddGenesisDepositCmd(cs common.ChainSpec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add-premined-deposit",
 		Short: "adds a validator to the genesis file",
-		RunE: func(cmd *cobra.Command, _ []string) error {
+		Long: `Adds a validator to the genesis file with the necessary 
+		credentials. The arguments are expected in the order of the deposit 
+		amount and withdrawal address.`,
+		Args: cobra.ExactArgs(2), //nolint:mnd // The number of arguments.
+		RunE: func(cmd *cobra.Command, args []string) error {
 			config := context.GetConfigFromCmd(cmd)
 
 			_, valPubKey, err := genutil.InitializeNodeValidatorFiles(
@@ -61,11 +67,6 @@ func AddGenesisDepositCmd(cs common.ChainSpec) *cobra.Command {
 				)
 			}
 
-			var (
-				depositAmountString string
-				depositAmount       math.Gwei
-			)
-
 			// Get the BLS signer.
 			blsSigner, err := components.ProvideBlsSigner(
 				components.BlsSignerInput{
@@ -77,12 +78,8 @@ func AddGenesisDepositCmd(cs common.ChainSpec) *cobra.Command {
 			}
 
 			// Get the deposit amount.
-			depositAmountString, err = cmd.Flags().GetString(depositAmountFlag)
-			if err != nil {
-				return err
-			}
-
-			depositAmount, err = parser.ConvertAmount(depositAmountString)
+			var depositAmount math.Gwei
+			depositAmount, err = parser.ConvertAmount(args[0])
 			if err != nil {
 				return err
 			}
@@ -92,14 +89,14 @@ func AddGenesisDepositCmd(cs common.ChainSpec) *cobra.Command {
 				version.Deneb,
 			)
 
+			// Get the withdrawal address.
+			withdrawalAddress := common.NewExecutionAddressFromHex(args[1])
+
 			depositMsg, signature, err := types.CreateAndSignDepositMessage(
 				types.NewForkData(currentVersion, common.Root{}),
 				cs.DomainTypeDeposit(),
 				blsSigner,
-				// TODO: configurable.
-				types.NewCredentialsFromExecutionAddress(
-					common.ExecutionAddress{},
-				),
+				types.NewCredentialsFromExecutionAddress(withdrawalAddress),
 				depositAmount,
 			)
 			if err != nil {
@@ -140,9 +137,6 @@ func AddGenesisDepositCmd(cs common.ChainSpec) *cobra.Command {
 			return nil
 		},
 	}
-
-	cmd.Flags().
-		String(depositAmountFlag, defaultDepositAmount, depositAmountFlagMsg)
 
 	return cmd
 }

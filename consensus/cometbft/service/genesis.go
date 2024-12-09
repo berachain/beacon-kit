@@ -22,8 +22,10 @@ package cometbft
 
 import (
 	"crypto/sha256"
+	"fmt"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cometbft/cometbft/node"
@@ -46,11 +48,49 @@ func (s *Service[_]) DefaultGenesis() map[string]json.RawMessage {
 
 // ValidateGenesis validates the provided genesis state.
 func (s *Service[_]) ValidateGenesis(
-	_ map[string]json.RawMessage,
+	genesisState map[string]json.RawMessage,
 ) error {
-	// Implement the validation logic for the provided genesis state.
+	// Implemented the validation logic for the provided genesis state.
 	// This should validate the genesis state for each module in the
 	// application.
+
+	// Validate that required modules are present in genesis. Currently,
+	// only the beacon module is required.
+	beaconGenesisBz, ok := genesisState["beacon"]
+	if !ok {
+		return errors.New(
+			"beacon module genesis state is required but was not found",
+		)
+	}
+
+	beaconGenesis := &types.Genesis[
+		*types.Deposit,
+		*types.ExecutionPayloadHeader,
+	]{}
+
+	if err := json.Unmarshal(beaconGenesisBz, &beaconGenesis); err != nil {
+		return fmt.Errorf(
+			"failed to unmarshal beacon genesis state: %w",
+			err,
+		)
+	}
+
+	if !isValidForkVersion(beaconGenesis.GetForkVersion()) {
+		return fmt.Errorf("invalid fork version format: %s",
+			beaconGenesis.ForkVersion,
+		)
+	}
+
+	if err := validateDeposits(beaconGenesis.GetDeposits()); err != nil {
+		return fmt.Errorf("invalid deposits: %w", err)
+	}
+
+	if err := validateExecutionHeader(
+		beaconGenesis.GetExecutionPayloadHeader(),
+	); err != nil {
+		return fmt.Errorf("invalid execution payload header: %w", err)
+	}
+
 	return nil
 }
 

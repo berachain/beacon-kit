@@ -33,27 +33,27 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-// WrappedBeaconDepositContract is a struct that holds a pointer to an ABI.
-type WrappedBeaconDepositContract[
+// WrappedDepositContract is a struct that holds a pointer to an ABI.
+type WrappedDepositContract[
 	DepositT Deposit[DepositT, WithdrawalCredentialsT],
 	WithdrawalCredentialsT ~[32]byte,
 ] struct {
-	// BeaconDepositContractFilterer is a pointer to the codegen ABI binding.
-	deposit.BeaconDepositContractFilterer
+	// DepositContractFilterer is a pointer to the codegen ABI binding.
+	deposit.DepositContractFilterer
 }
 
-// NewWrappedBeaconDepositContract creates a new BeaconDepositContract.
-func NewWrappedBeaconDepositContract[
+// NewWrappedDepositContract creates a new DepositContract.
+func NewWrappedDepositContract[
 	DepositT Deposit[DepositT, WithdrawalCredentialsT],
 	WithdrawalCredentialsT ~[32]byte,
 ](
 	address common.ExecutionAddress,
 	client bind.ContractFilterer,
-) (*WrappedBeaconDepositContract[
+) (*WrappedDepositContract[
 	DepositT,
 	WithdrawalCredentialsT,
 ], error) {
-	contract, err := deposit.NewBeaconDepositContractFilterer(
+	contract, err := deposit.NewDepositContractFilterer(
 		gethprimitives.ExecutionAddress(address), client,
 	)
 
@@ -63,16 +63,16 @@ func NewWrappedBeaconDepositContract[
 		return nil, errors.New("contract must not be nil")
 	}
 
-	return &WrappedBeaconDepositContract[
+	return &WrappedDepositContract[
 		DepositT,
 		WithdrawalCredentialsT,
 	]{
-		BeaconDepositContractFilterer: *contract,
+		DepositContractFilterer: *contract,
 	}, nil
 }
 
 // ReadDeposits reads deposits from the deposit contract.
-func (dc *WrappedBeaconDepositContract[
+func (dc *WrappedDepositContract[
 	DepositT,
 	WithdrawalCredentialsT,
 ]) ReadDeposits(

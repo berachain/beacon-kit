@@ -23,14 +23,12 @@ package core
 import (
 	"bytes"
 	"fmt"
-	"sync"
 
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
@@ -100,19 +98,6 @@ type StateProcessor[
 	ds DepositStore[DepositT]
 	// metrics is the metrics for the service.
 	metrics *stateProcessorMetrics
-
-	// valSetMu protects valSetByEpoch from concurrent accesses
-	valSetMu sync.RWMutex
-
-	// valSetByEpoch tracks the set of validators active at the latest epochs.
-	// This is useful to optimize validators set updates.
-	// Note: Transition may be called multiple times on different,
-	// non/finalized blocks, so at some point valSetByEpoch may contain
-	// informations from blocks not finalized. This should be fine as long
-	// as a block is finalized eventually, and its changes will be the last
-	// ones.
-	// We prune the map to preserve only current and previous epoch
-	valSetByEpoch map[math.Epoch][]ValidatorT
 }
 
 // NewStateProcessor creates a new state processor.
@@ -188,7 +173,6 @@ func NewStateProcessor[
 		fGetAddressFromPubKey: fGetAddressFromPubKey,
 		ds:                    ds,
 		metrics:               newStateProcessorMetrics(telemetrySink),
-		valSetByEpoch:         make(map[math.Epoch][]ValidatorT, 0),
 	}
 }
 
@@ -375,19 +359,49 @@ func (sp *StateProcessor[
 ]) processEpoch(
 	st BeaconStateT,
 ) (transition.ValidatorUpdates, error) {
-	if err := sp.processRewardsAndPenalties(st); err != nil {
+	slot, err := st.GetSlot()
+	if err != nil {
 		return nil, err
 	}
-	if err := sp.processEffectiveBalanceUpdates(st); err != nil {
+
+	// track validators set before updating it, to be able to
+	// inform consensus of the validators set changes
+	currentEpoch := sp.cs.SlotToEpoch(slot)
+	currentActiveVals, err := sp.getActiveVals(st, currentEpoch)
+	if err != nil {
 		return nil, err
 	}
-	if err := sp.processSlashingsReset(st); err != nil {
+
+	if err = sp.processRewardsAndPenalties(st); err != nil {
 		return nil, err
 	}
-	if err := sp.processRandaoMixesReset(st); err != nil {
+	if err = sp.processRegistryUpdates(st); err != nil {
 		return nil, err
 	}
-	return sp.processValidatorsSetUpdates(st)
+	if err = sp.processEffectiveBalanceUpdates(st); err != nil {
+		return nil, err
+	}
+	if err = sp.processSlashingsReset(st); err != nil {
+		return nil, err
+	}
+	if err = sp.processRandaoMixesReset(st); err != nil {
+		return nil, err
+	}
+
+	// only after we have fully updated validators, we enforce
+	// a cap on the validators set
+	if err = sp.processValidatorSetCap(st); err != nil {
+		return nil, err
+	}
+
+	// finally compute diffs in validator set to duly update consensus
+	nextEpoch := currentEpoch + 1
+	nextActiveVals, err := sp.getActiveVals(st, nextEpoch)
+	if err != nil {
+		return nil, err
+	}
+
+	return sp.validatorSetsDiffs(currentActiveVals, nextActiveVals), nil
 }
 
 // processBlockHeader processes the header and ensures it matches the local
@@ -470,85 +484,6 @@ func (sp *StateProcessor[
 		bodyRoot,
 	)
 	return st.SetLatestBlockHeader(lbh)
-}
-
-// getAttestationDeltas as defined in the Ethereum 2.0 specification.
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#get_attestation_deltas
-//
-//nolint:lll
-func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) getAttestationDeltas(
-	st BeaconStateT,
-) ([]math.Gwei, []math.Gwei, error) {
-	// TODO: implement this function forreal
-	validators, err := st.GetValidators()
-	if err != nil {
-		return nil, nil, err
-	}
-	placeholder := make([]math.Gwei, len(validators))
-	return placeholder, placeholder, nil
-}
-
-// processRewardsAndPenalties as defined in the Ethereum 2.0 specification.
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#process_rewards_and_penalties
-//
-//nolint:lll
-func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) processRewardsAndPenalties(
-	st BeaconStateT,
-) error {
-	slot, err := st.GetSlot()
-	if err != nil {
-		return err
-	}
-
-	if sp.cs.SlotToEpoch(slot) == math.U64(constants.GenesisEpoch) {
-		return nil
-	}
-
-	rewards, penalties, err := sp.getAttestationDeltas(st)
-	if err != nil {
-		return err
-	}
-
-	validators, err := st.GetValidators()
-	if err != nil {
-		return err
-	}
-
-	if len(validators) != len(rewards) {
-		return errors.Wrapf(
-			ErrRewardsLengthMismatch, "expected: %d, got: %d",
-			len(validators), len(rewards),
-		)
-	} else if len(validators) != len(penalties) {
-		return errors.Wrapf(
-			ErrPenaltiesLengthMismatch, "expected: %d, got: %d",
-			len(validators), len(penalties),
-		)
-	}
-
-	for i := range validators {
-		// Increase the balance of the validator.
-		if err = st.IncreaseBalance(
-			math.ValidatorIndex(i),
-			rewards[i],
-		); err != nil {
-			return err
-		}
-
-		// Decrease the balance of the validator.
-		if err = st.DecreaseBalance(
-			math.ValidatorIndex(i),
-			penalties[i],
-		); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 // processEffectiveBalanceUpdates as defined in the Ethereum 2.0 specification.
