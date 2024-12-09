@@ -189,7 +189,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 // TestTransitionCreateValidator shows the lifecycle
 // of a validator creation.
 //
-//nolint:lll // let it be
+
 func TestTransitionCreateValidator(t *testing.T) {
 	// Create state processor to test
 	cs := setupChain(t, components.BetnetChainSpecType)
@@ -315,9 +315,17 @@ func TestTransitionCreateValidator(t *testing.T) {
 	extraVal, err := st.ValidatorByIndex(extraValIdx)
 	require.NoError(t, err)
 	require.Equal(t, math.Epoch(1), extraVal.ActivationEligibilityEpoch)
-	require.Equal(t, math.Epoch(constants.FarFutureEpoch), extraVal.ActivationEpoch)
+	require.Equal(
+		t,
+		math.Epoch(constants.FarFutureEpoch),
+		extraVal.ActivationEpoch,
+	)
 	require.Equal(t, math.Epoch(constants.FarFutureEpoch), extraVal.ExitEpoch)
-	require.Equal(t, math.Epoch(constants.FarFutureEpoch), extraVal.WithdrawableEpoch)
+	require.Equal(
+		t,
+		math.Epoch(constants.FarFutureEpoch),
+		extraVal.WithdrawableEpoch,
+	)
 
 	// STEP 3: move the chain to the next epoch and show that
 	// the extra validator is activate
@@ -360,7 +368,11 @@ func TestTransitionCreateValidator(t *testing.T) {
 	require.Equal(t, math.Epoch(1), extraVal.ActivationEligibilityEpoch)
 	require.Equal(t, math.Epoch(2), extraVal.ActivationEpoch)
 	require.Equal(t, math.Epoch(constants.FarFutureEpoch), extraVal.ExitEpoch)
-	require.Equal(t, math.Epoch(constants.FarFutureEpoch), extraVal.WithdrawableEpoch)
+	require.Equal(
+		t,
+		math.Epoch(constants.FarFutureEpoch),
+		extraVal.WithdrawableEpoch,
+	)
 
 	expectedBalance = blkDeposit.Amount
 	expectedEffectiveBalance = expectedBalance
@@ -606,7 +618,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 // validator added when validators set is at cap gets never activated
 // and its deposit is returned at after next epoch starts.
 //
-//nolint:lll // let it be
+
 func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	cs := setupChain(t, components.BetnetChainSpecType)
 	sp, st, ds, ctx := setupState(t, cs)
@@ -614,8 +626,10 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	var (
 		maxBalance      = math.Gwei(cs.MaxEffectiveBalance())
 		ejectionBalance = math.Gwei(cs.EjectionBalance())
-		minBalance      = ejectionBalance + math.Gwei(cs.EffectiveBalanceIncrement())
-		rndSeed         = 2024 // seed used to generate unique random value
+		minBalance      = ejectionBalance + math.Gwei(
+			cs.EffectiveBalanceIncrement(),
+		)
+		rndSeed = 2024 // seed used to generate unique random value
 	)
 
 	// STEP 0: Setup genesis with GetValidatorSetCap validators
@@ -695,10 +709,22 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	require.NoError(t, err)
 	extraVal, err := st.ValidatorByIndex(extraValIdx)
 	require.NoError(t, err)
-	require.Equal(t, math.Epoch(constants.FarFutureEpoch), extraVal.ActivationEligibilityEpoch)
-	require.Equal(t, math.Epoch(constants.FarFutureEpoch), extraVal.ActivationEpoch)
+	require.Equal(
+		t,
+		math.Epoch(constants.FarFutureEpoch),
+		extraVal.ActivationEligibilityEpoch,
+	)
+	require.Equal(
+		t,
+		math.Epoch(constants.FarFutureEpoch),
+		extraVal.ActivationEpoch,
+	)
 	require.Equal(t, math.Epoch(constants.FarFutureEpoch), extraVal.ExitEpoch)
-	require.Equal(t, math.Epoch(constants.FarFutureEpoch), extraVal.WithdrawableEpoch)
+	require.Equal(
+		t,
+		math.Epoch(constants.FarFutureEpoch),
+		extraVal.WithdrawableEpoch,
+	)
 
 	// STEP 2: move the chain to the next epoch and show that
 	// the extra validator is eligible for activation
@@ -732,11 +758,20 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	extraVal, err = st.ValidatorByIndex(extraValIdx)
 	require.NoError(t, err)
 	require.Equal(t, math.Epoch(1), extraVal.ActivationEligibilityEpoch)
-	require.Equal(t, math.Epoch(constants.FarFutureEpoch), extraVal.ActivationEpoch)
+	require.Equal(
+		t,
+		math.Epoch(constants.FarFutureEpoch),
+		extraVal.ActivationEpoch,
+	)
 	require.Equal(t, math.Epoch(constants.FarFutureEpoch), extraVal.ExitEpoch)
-	require.Equal(t, math.Epoch(constants.FarFutureEpoch), extraVal.WithdrawableEpoch)
+	require.Equal(
+		t,
+		math.Epoch(constants.FarFutureEpoch),
+		extraVal.WithdrawableEpoch,
+	)
 
-	// STEP 3: move the chain to the next epoch and show that the extra validator
+	// STEP 3: move the chain to the next epoch and show that the extra
+	// validator
 	// is activate and immediately marked for exit
 	_ = moveToEndOfEpoch(t, blk, cs, sp, st, ctx)
 
@@ -811,7 +846,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 // validator added when validators set is at cap improves amount staked
 // an existing validator is removed at the beginning of next epoch.
 //
-//nolint:lll // let it be
+//nolint:maintidx // Okay for test.
 func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	cs := setupChain(t, components.BetnetChainSpecType)
 	sp, st, ds, ctx := setupState(t, cs)
@@ -819,8 +854,10 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	var (
 		maxBalance      = math.Gwei(cs.MaxEffectiveBalance())
 		ejectionBalance = math.Gwei(cs.EjectionBalance())
-		minBalance      = ejectionBalance + math.Gwei(cs.EffectiveBalanceIncrement())
-		rndSeed         = 2024 // seed used to generate unique random value
+		minBalance      = ejectionBalance + math.Gwei(
+			cs.EffectiveBalanceIncrement(),
+		)
+		rndSeed = 2024 // seed used to generate unique random value
 	)
 
 	// STEP 0: Setup genesis with GetValidatorSetCap validators
@@ -904,10 +941,22 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	require.NoError(t, err)
 	extraVal, err := st.ValidatorByIndex(extraValIdx)
 	require.NoError(t, err)
-	require.Equal(t, math.Epoch(constants.FarFutureEpoch), extraVal.ActivationEligibilityEpoch)
-	require.Equal(t, math.Epoch(constants.FarFutureEpoch), extraVal.ActivationEpoch)
+	require.Equal(
+		t,
+		math.Epoch(constants.FarFutureEpoch),
+		extraVal.ActivationEligibilityEpoch,
+	)
+	require.Equal(
+		t,
+		math.Epoch(constants.FarFutureEpoch),
+		extraVal.ActivationEpoch,
+	)
 	require.Equal(t, math.Epoch(constants.FarFutureEpoch), extraVal.ExitEpoch)
-	require.Equal(t, math.Epoch(constants.FarFutureEpoch), extraVal.WithdrawableEpoch)
+	require.Equal(
+		t,
+		math.Epoch(constants.FarFutureEpoch),
+		extraVal.WithdrawableEpoch,
+	)
 
 	smallestValIdx, err := st.ValidatorIndexByPubkey(genDeposits[0].Pubkey)
 	require.NoError(t, err)
@@ -915,8 +964,16 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, math.Epoch(0), smallestVal.ActivationEligibilityEpoch)
 	require.Equal(t, math.Epoch(0), smallestVal.ActivationEpoch)
-	require.Equal(t, math.Epoch(constants.FarFutureEpoch), smallestVal.ExitEpoch)
-	require.Equal(t, math.Epoch(constants.FarFutureEpoch), smallestVal.WithdrawableEpoch)
+	require.Equal(
+		t,
+		math.Epoch(constants.FarFutureEpoch),
+		smallestVal.ExitEpoch,
+	)
+	require.Equal(
+		t,
+		math.Epoch(constants.FarFutureEpoch),
+		smallestVal.WithdrawableEpoch,
+	)
 
 	// STEP 2: move the chain to the next epoch and show that
 	// the extra validator is eligible for activation
@@ -950,18 +1007,35 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	extraVal, err = st.ValidatorByIndex(extraValIdx)
 	require.NoError(t, err)
 	require.Equal(t, math.Epoch(1), extraVal.ActivationEligibilityEpoch)
-	require.Equal(t, math.Epoch(constants.FarFutureEpoch), extraVal.ActivationEpoch)
+	require.Equal(
+		t,
+		math.Epoch(constants.FarFutureEpoch),
+		extraVal.ActivationEpoch,
+	)
 	require.Equal(t, math.Epoch(constants.FarFutureEpoch), extraVal.ExitEpoch)
-	require.Equal(t, math.Epoch(constants.FarFutureEpoch), extraVal.WithdrawableEpoch)
+	require.Equal(
+		t,
+		math.Epoch(constants.FarFutureEpoch),
+		extraVal.WithdrawableEpoch,
+	)
 
 	smallestVal, err = st.ValidatorByIndex(smallestValIdx)
 	require.NoError(t, err)
 	require.Equal(t, math.Epoch(0), smallestVal.ActivationEligibilityEpoch)
 	require.Equal(t, math.Epoch(0), smallestVal.ActivationEpoch)
-	require.Equal(t, math.Epoch(constants.FarFutureEpoch), smallestVal.ExitEpoch)
-	require.Equal(t, math.Epoch(constants.FarFutureEpoch), smallestVal.WithdrawableEpoch)
+	require.Equal(
+		t,
+		math.Epoch(constants.FarFutureEpoch),
+		smallestVal.ExitEpoch,
+	)
+	require.Equal(
+		t,
+		math.Epoch(constants.FarFutureEpoch),
+		smallestVal.WithdrawableEpoch,
+	)
 
-	// STEP 3: move the chain to the next epoch and show that the extra validator
+	// STEP 3: move the chain to the next epoch and show that the extra
+	// validator
 	// is activate and genesis validator immediately marked for exit
 	_ = moveToEndOfEpoch(t, blk, cs, sp, st, ctx)
 
@@ -1010,7 +1084,11 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	require.Equal(t, math.Epoch(1), extraVal.ActivationEligibilityEpoch)
 	require.Equal(t, math.Epoch(2), extraVal.ActivationEpoch)
 	require.Equal(t, math.Epoch(constants.FarFutureEpoch), extraVal.ExitEpoch)
-	require.Equal(t, math.Epoch(constants.FarFutureEpoch), extraVal.WithdrawableEpoch)
+	require.Equal(
+		t,
+		math.Epoch(constants.FarFutureEpoch),
+		extraVal.WithdrawableEpoch,
+	)
 
 	smallestVal, err = st.ValidatorByIndex(smallestValIdx)
 	require.NoError(t, err)

@@ -157,7 +157,6 @@ func (sp *StateProcessor[
 	return sp.validatorSetsDiffs(nil, activeVals), nil
 }
 
-//nolint:lll // let it be.
 func (sp *StateProcessor[
 	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
 ]) processGenesisActivation(
@@ -173,9 +172,14 @@ func (sp *StateProcessor[
 	default:
 		vals, err := st.GetValidators()
 		if err != nil {
-			return fmt.Errorf("genesis activation, failed listing validators: %w", err)
+			return fmt.Errorf(
+				"genesis activation, failed listing validators: %w",
+				err,
+			)
 		}
-		minEffectiveBalance := math.Gwei(sp.cs.EjectionBalance() + sp.cs.EffectiveBalanceIncrement())
+		minEffectiveBalance := math.Gwei(
+			sp.cs.EjectionBalance() + sp.cs.EffectiveBalanceIncrement(),
+		)
 
 		var idx math.ValidatorIndex
 		for _, val := range vals {

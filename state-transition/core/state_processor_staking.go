@@ -160,9 +160,12 @@ func (sp *StateProcessor[
 
 	// Verify that the deposit has the ETH1 withdrawal credentials.
 	if dep.GetWithdrawalCredentials()[0] != types.EthSecp256k1CredentialPrefix {
-		return errors.New(
-			"deposit does not have ETH1 withdrawal credentials",
+		// Ignore deposits with non-ETH1 withdrawal credentials.
+		sp.logger.Info(
+			"ignoring deposit with non-ETH1 withdrawal credentials",
+			"deposit_index", dep.GetIndex(),
 		)
+		return nil
 	}
 
 	// Verify that the message was signed correctly.
@@ -182,7 +185,6 @@ func (sp *StateProcessor[
 			"deposit_index", dep.GetIndex(),
 			"error", err,
 		)
-
 		return nil
 	}
 
