@@ -85,7 +85,7 @@ func (ee *Engine[_, _, _, _]) Start(
 	ctx context.Context,
 ) error {
 	go func() {
-		// TODO: handle better
+		// TODO: Improve error handling here.
 		if err := ee.ec.Start(ctx); err != nil {
 			panic(err)
 		}
@@ -126,8 +126,7 @@ func (ee *Engine[
 	)
 
 	switch {
-	// We do not bubble the error up, since we want to handle it
-	// in the same way as the other cases.
+	// The error is not propagated, as it is handled similarly to other cases.
 	case errors.IsAny(
 		err,
 		engineerrors.ErrAcceptedPayloadStatus,
@@ -276,7 +275,7 @@ func (ee *Engine[
 		)
 	}
 
-	// Under the optimistic condition, we are fine ignoring the error. This
+	// Under optimistic conditions, the error can be safely ignored. This
 	// is mainly to allow us to safely call the execution client
 	// during abci.FinalizeBlock. If we are in abci.FinalizeBlock and
 	// we get an error here, we make the assumption that

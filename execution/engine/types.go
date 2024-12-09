@@ -53,7 +53,7 @@ type ExecutionPayload[ExecutionPayloadT, WithdrawalsT any] interface {
 // TelemetrySink is an interface for sending metrics to a telemetry backend.
 type TelemetrySink interface {
 	// IncrementCounter increments a counter metric identified by the provided
-	// keys.
+	// key and additional string arguments that represent metadata.
 	IncrementCounter(key string, args ...string)
 }
 
