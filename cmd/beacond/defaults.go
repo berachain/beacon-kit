@@ -120,7 +120,7 @@ func DefaultComponents() []any {
 		components.ProvideValidatorService[
 			*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,
 			*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
-			*BlockStore, *BlobSidecars, *Deposit, *DepositStore,
+			*BlockStore, *BlobSidecar, *BlobSidecars, *Deposit, *DepositStore,
 			*ExecutionPayload, *ExecutionPayloadHeader, *KVStore, *Logger,
 			*StorageBackend,
 		],

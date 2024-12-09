@@ -39,15 +39,6 @@ func newABCIMiddlewareMetrics(
 	}
 }
 
-// measurePrepareProposalDuration measures the time to prepare.
-func (cm *ABCIMiddlewareMetrics) measurePrepareProposalDuration(
-	start time.Time,
-) {
-	cm.sink.MeasureSince(
-		"beacon_kit.runtime.prepare_proposal_duration", start,
-	)
-}
-
 // measureProcessProposalDuration measures the time to process.
 func (cm *ABCIMiddlewareMetrics) measureProcessProposalDuration(
 	start time.Time,

@@ -196,6 +196,7 @@ type (
 		*BeaconBlock,
 		*BeaconBlockBody,
 		*BeaconState,
+		*BlobSidecar,
 		*BlobSidecars,
 		*Deposit,
 		*DepositStore,
