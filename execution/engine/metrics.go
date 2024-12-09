@@ -81,7 +81,7 @@ func (em *engineMetrics) markNewPayloadValid(
 }
 
 // markNewPayloadAcceptedSyncingPayloadStatus increments
-// the counter for accepted syncing payload status.
+// the counter for payloads with an accepted syncing status.
 func (em *engineMetrics) markNewPayloadAcceptedSyncingPayloadStatus(
 	payloadHash common.ExecutionHash,
 	parentHash common.ExecutionHash,
@@ -175,8 +175,8 @@ func (em *engineMetrics) markNotifyForkchoiceUpdateCalled(
 	)
 }
 
-// markForkchoiceUpdateValid increments the counter for valid forkchoice
-// updates.
+// markForkchoiceUpdateValid increments the counter for forkchoice
+// updates that are deemed valid.
 func (em *engineMetrics) markForkchoiceUpdateValid(
 	state *engineprimitives.ForkchoiceStateV1,
 	hasPayloadAttributes bool,
