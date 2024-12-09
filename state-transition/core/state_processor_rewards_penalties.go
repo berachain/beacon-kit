@@ -22,28 +22,23 @@ package core
 
 import (
 	"github.com/berachain/beacon-kit/config/spec"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-// processSlashingsReset as defined in the Ethereum 2.0 specification.
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#slashings-balances-updates
-//
-//nolint:lll
 func (sp *StateProcessor[
 	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) processSlashingsReset(
-	st BeaconStateT,
-) error {
-	// processSlashingsReset does not really do anything right now.
-	// However we cannot simply drop it because appHash accounts
-	// for the list of operations carried out over the state
-	// even if the operations does not affect the final state
-	// (currently no slashing on beaconKit)
-
+]) processRewardsAndPenalties(st BeaconStateT) error {
 	slot, err := st.GetSlot()
 	if err != nil {
 		return err
 	}
+
+	// processRewardsAndPenalties does not really do anything right now.
+	// However we cannot simply drop it because appHash accounts
+	// for the list of operations carried out over the state
+	// even if the operations does not affect the final state
+	// (rewards and penalties are always zero at this stage of beaconKit)
 
 	switch {
 	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
@@ -52,10 +47,32 @@ func (sp *StateProcessor[
 		slot < math.U64(spec.BoonetFork3Height):
 		// go head doing the processing
 	default:
-		// no real need to perform slashing reset
+		// no real need to perform hollowProcessRewardsAndPenalties
 		return nil
 	}
 
-	index := (sp.cs.SlotToEpoch(slot).Unwrap() + 1) % sp.cs.EpochsPerSlashingsVector()
-	return st.UpdateSlashingAtIndex(index, 0)
+	if sp.cs.SlotToEpoch(slot) == math.U64(constants.GenesisEpoch) {
+		return nil
+	}
+
+	// this has been simplified to make clear that
+	// we are not really doing anything here
+	valCount, err := st.GetTotalValidators()
+	if err != nil {
+		return err
+	}
+
+	for i := range valCount {
+		// Increase the balance of the validator.
+		if err = st.IncreaseBalance(math.ValidatorIndex(i), 0); err != nil {
+			return err
+		}
+
+		// Decrease the balance of the validator.
+		if err = st.DecreaseBalance(math.ValidatorIndex(i), 0); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
