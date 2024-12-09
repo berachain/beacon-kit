@@ -73,7 +73,6 @@ type (
 	BlobProcessor = dablob.Processor[
 		*AvailabilityStore,
 		*BeaconBlockBody,
-		*BeaconBlockHeader,
 		*ConsensusSidecars,
 		*BlobSidecar,
 		*BlobSidecars,

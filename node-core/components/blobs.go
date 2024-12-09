@@ -73,21 +73,19 @@ type BlobProcessorIn[
 func ProvideBlobProcessor[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	BeaconBlockBodyT any,
-	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
-	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, BeaconBlockHeaderT],
-	BlobSidecarT BlobSidecar[BeaconBlockHeaderT],
+	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, *types.BeaconBlockHeader],
+	BlobSidecarT BlobSidecar[*types.BeaconBlockHeader],
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
-	in BlobProcessorIn[BlobSidecarsT, BeaconBlockHeaderT, LoggerT],
+	in BlobProcessorIn[BlobSidecarsT, *types.BeaconBlockHeader, LoggerT],
 ) *dablob.Processor[
-	AvailabilityStoreT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	AvailabilityStoreT, BeaconBlockBodyT,
 	ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
 ] {
 	return dablob.NewProcessor[
 		AvailabilityStoreT,
 		BeaconBlockBodyT,
-		BeaconBlockHeaderT,
 		ConsensusSidecarsT,
 		BlobSidecarT,
 		BlobSidecarsT,

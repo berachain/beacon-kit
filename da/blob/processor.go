@@ -23,6 +23,7 @@ package blob
 import (
 	"time"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/kzg"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -36,9 +37,8 @@ type Processor[
 		BeaconBlockBodyT, BlobSidecarsT,
 	],
 	BeaconBlockBodyT any,
-	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
-	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, BeaconBlockHeaderT],
-	BlobSidecarT Sidecar[BeaconBlockHeaderT],
+	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, *ctypes.BeaconBlockHeader],
+	BlobSidecarT Sidecar[*ctypes.BeaconBlockHeader],
 	BlobSidecarsT Sidecars[BlobSidecarT],
 ] struct {
 	// logger is used to log information and errors.
@@ -46,7 +46,7 @@ type Processor[
 	// chainSpec defines the specifications of the blockchain.
 	chainSpec common.ChainSpec
 	// verifier is responsible for verifying the blobs.
-	verifier *verifier[BeaconBlockHeaderT, BlobSidecarT, BlobSidecarsT]
+	verifier *verifier[BlobSidecarT, BlobSidecarsT]
 	// blockBodyOffsetFn is a function that calculates the block body offset
 	// based on the slot and chain specifications.
 	blockBodyOffsetFn func(math.Slot, common.ChainSpec) uint64
@@ -60,9 +60,8 @@ func NewProcessor[
 		BeaconBlockBodyT, BlobSidecarsT,
 	],
 	BeaconBlockBodyT any,
-	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
-	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, BeaconBlockHeaderT],
-	BlobSidecarT Sidecar[BeaconBlockHeaderT],
+	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, *ctypes.BeaconBlockHeader],
+	BlobSidecarT Sidecar[*ctypes.BeaconBlockHeader],
 	BlobSidecarsT Sidecars[BlobSidecarT],
 ](
 	logger log.Logger,
@@ -71,16 +70,15 @@ func NewProcessor[
 	blockBodyOffsetFn func(math.Slot, common.ChainSpec) uint64,
 	telemetrySink TelemetrySink,
 ) *Processor[
-	AvailabilityStoreT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	AvailabilityStoreT, BeaconBlockBodyT,
 	ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
 ] {
 	verifier := newVerifier[
-		BeaconBlockHeaderT,
 		BlobSidecarT,
 		BlobSidecarsT,
 	](proofVerifier, telemetrySink)
 	return &Processor[
-		AvailabilityStoreT, BeaconBlockBodyT, BeaconBlockHeaderT,
+		AvailabilityStoreT, BeaconBlockBodyT,
 		ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
 	]{
 		logger:            logger,
@@ -93,7 +91,7 @@ func NewProcessor[
 
 // VerifySidecars verifies the blobs and ensures they match the local state.
 func (sp *Processor[
-	AvailabilityStoreT, _, _, ConsensusSidecarsT, _, _,
+	AvailabilityStoreT, _, ConsensusSidecarsT, _, _,
 ]) VerifySidecars(
 	cs ConsensusSidecarsT,
 ) error {
@@ -123,7 +121,7 @@ func (sp *Processor[
 
 // slot :=  processes the blobs and ensures they match the local state.
 func (sp *Processor[
-	AvailabilityStoreT, _, _, _, _, BlobSidecarsT,
+	AvailabilityStoreT, _, _, _, BlobSidecarsT,
 ]) ProcessSidecars(
 	avs AvailabilityStoreT,
 	sidecars BlobSidecarsT,
