@@ -60,7 +60,7 @@ type ServiceRegistryInput[
 		*Validator, Validators, WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
-	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, *types.BeaconBlockHeader],
+	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	DepositT Deposit[DepositT, *ForkData, WithdrawalCredentials],
@@ -78,7 +78,7 @@ type ServiceRegistryInput[
 ] struct {
 	depinject.In
 	ABCIService *middleware.ABCIMiddleware[
-		BeaconBlockT, *types.BeaconBlockHeader, BlobSidecarsT, GenesisT, *SlotData,
+		BeaconBlockT, BlobSidecarsT, GenesisT, *SlotData,
 	]
 	BlockStoreService *blockstore.Service[
 		BeaconBlockT, BeaconBlockStoreT,
@@ -141,7 +141,7 @@ func ProvideServiceRegistry[
 		*Validator, Validators, WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
-	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, *types.BeaconBlockHeader],
+	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	DepositT Deposit[DepositT, *ForkData, WithdrawalCredentials],

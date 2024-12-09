@@ -25,6 +25,7 @@ import (
 	"context"
 	"encoding/json"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-api/handlers"
@@ -254,10 +255,9 @@ type (
 
 	ConsensusSidecars[
 		BlobSidecarsT any,
-		BeaconBlockHeaderT any,
 	] interface {
 		GetSidecars() BlobSidecarsT
-		GetHeader() BeaconBlockHeaderT
+		GetHeader() *ctypes.BeaconBlockHeader
 	}
 
 	// BlobSidecars is the interface for blobs sidecars.

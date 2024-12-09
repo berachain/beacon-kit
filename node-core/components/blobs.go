@@ -73,7 +73,7 @@ type BlobProcessorIn[
 func ProvideBlobProcessor[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	BeaconBlockBodyT any,
-	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, *types.BeaconBlockHeader],
+	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
 	BlobSidecarT BlobSidecar[*types.BeaconBlockHeader],
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	LoggerT log.AdvancedLogger[LoggerT],
@@ -120,7 +120,7 @@ type DAServiceIn[
 func ProvideDAService[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	BeaconBlockBodyT any,
-	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, *types.BeaconBlockHeader],
+	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	LoggerT log.AdvancedLogger[LoggerT],

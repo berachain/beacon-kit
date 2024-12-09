@@ -24,7 +24,6 @@ import (
 	"context"
 
 	asynctypes "github.com/berachain/beacon-kit/async/types"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/async"
 )
@@ -35,7 +34,7 @@ import (
 
 type Service[
 	AvailabilityStoreT any,
-	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, *ctypes.BeaconBlockHeader],
+	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
 	BlobSidecarsT BlobSidecar,
 ] struct {
 	avs AvailabilityStoreT
@@ -54,7 +53,7 @@ type Service[
 // NewService returns a new DA service.
 func NewService[
 	AvailabilityStoreT any,
-	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, *ctypes.BeaconBlockHeader],
+	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
 	BlobSidecarsT BlobSidecar,
 ](
 	avs AvailabilityStoreT,

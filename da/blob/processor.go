@@ -37,7 +37,7 @@ type Processor[
 		BeaconBlockBodyT, BlobSidecarsT,
 	],
 	BeaconBlockBodyT any,
-	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, *ctypes.BeaconBlockHeader],
+	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
 	BlobSidecarT Sidecar[*ctypes.BeaconBlockHeader],
 	BlobSidecarsT Sidecars[BlobSidecarT],
 ] struct {
@@ -60,7 +60,7 @@ func NewProcessor[
 		BeaconBlockBodyT, BlobSidecarsT,
 	],
 	BeaconBlockBodyT any,
-	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, *ctypes.BeaconBlockHeader],
+	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
 	BlobSidecarT Sidecar[*ctypes.BeaconBlockHeader],
 	BlobSidecarsT Sidecars[BlobSidecarT],
 ](

@@ -22,6 +22,7 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/middleware"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
@@ -44,9 +45,12 @@ type ABCIMiddlewareInput[
 // ProvideABCIMiddleware is a depinject provider for the validator
 // middleware.
 func ProvideABCIMiddleware[
-	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT],
+	BeaconBlockT BeaconBlock[
+		BeaconBlockT,
+		BeaconBlockBodyT,
+		*ctypes.BeaconBlockHeader,
+	],
 	BeaconBlockBodyT any,
-	BeaconBlockHeaderT any,
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	DepositT any,
@@ -56,11 +60,10 @@ func ProvideABCIMiddleware[
 ](
 	in ABCIMiddlewareInput[BeaconBlockT, BlobSidecarsT, LoggerT],
 ) (*middleware.ABCIMiddleware[
-	BeaconBlockT, BeaconBlockHeaderT, BlobSidecarsT, GenesisT, *SlotData,
+	BeaconBlockT, BlobSidecarsT, GenesisT, *SlotData,
 ], error) {
 	return middleware.NewABCIMiddleware[
 		BeaconBlockT,
-		BeaconBlockHeaderT,
 		BlobSidecarsT,
 		GenesisT,
 		*SlotData,

@@ -28,7 +28,7 @@ import (
 func DefaultComponents() []any {
 	c := []any{
 		components.ProvideABCIMiddleware[
-			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader,
+			*BeaconBlock, *BeaconBlockBody,
 			*BlobSidecar, *BlobSidecars, *Deposit, *ExecutionPayloadHeader,
 			*Genesis, *Logger,
 		],

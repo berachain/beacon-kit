@@ -266,12 +266,9 @@ type (
 	]
 
 	// BlobSidecars type aliases.
-	ConsensusSidecars = consruntimetypes.ConsensusSidecars[
-		*BlobSidecars,
-		*BeaconBlockHeader,
-	]
-	BlobSidecar  = datypes.BlobSidecar
-	BlobSidecars = datypes.BlobSidecars
+	ConsensusSidecars = consruntimetypes.ConsensusSidecars[*BlobSidecars]
+	BlobSidecar       = datypes.BlobSidecar
+	BlobSidecars      = datypes.BlobSidecars
 
 	// BlockStore is a type alias for the block store.
 	BlockStore = block.KVStore[*BeaconBlock]

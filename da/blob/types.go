@@ -55,9 +55,9 @@ type BeaconBlockBody interface {
 	Length() uint64
 }
 
-type ConsensusSidecars[BlobSidecarsT any, BeaconBlockHeaderT any] interface {
+type ConsensusSidecars[BlobSidecarsT any] interface {
 	GetSidecars() BlobSidecarsT
-	GetHeader() BeaconBlockHeaderT
+	GetHeader() *ctypes.BeaconBlockHeader
 }
 
 type Sidecar[BeaconBlockHeaderT any] interface {
