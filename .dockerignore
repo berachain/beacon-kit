@@ -11,5 +11,6 @@ testing/
 .git/
 .vscode/
 *.md
-go.sum
-go.mod
+contracts/
+docs/
+scripts/

@@ -40,7 +40,7 @@ start-devnet-no-build:
 		--enclave my-local-devnet --parallelism 200
 
 # Starts a Kurtosis enclave containing a local devnet on GCP.
-# --production flag is used to indicate that the enclave is 
+# --production flag is used to indicate that the enclave is
 # running in production mode to allow pod restarts when doing chaos testing.
 start-gcp-devnet-no-build:
 	kurtosis run ./kurtosis --args-file ./kurtosis/beaconkit-base-gcp.yaml \
@@ -48,16 +48,16 @@ start-gcp-devnet-no-build:
 
 # Stops the running Kurtosis enclave on GCP
 stop-gcp-devnet:
-	kurtosis enclave stop my-gcp-devnet
+	kurtosis enclave stop my-gcp-devnet2
 
 # Stops and removes the specified Kurtosis enclave
 reset-gcp-devnet:
 	$(MAKE) stop-gcp-devnet
-	kurtosis enclave rm my-gcp-devnet
+	kurtosis enclave rm my-gcp-devnet2
 
 # Removes the specified Kurtosis enclave
 rm-gcp-devnet:
-	kurtosis enclave rm my-gcp-devnet --force
+	kurtosis enclave rm my-gcp-devnet2 --force
 
 # Stops the running Kurtosis enclave
 stop-devnet:
@@ -66,7 +66,7 @@ stop-devnet:
 # Stops and removes the specified Kurtosis enclave
 reset-devnet:
 	$(MAKE) stop-devnet
-	kurtosis enclave rm my-local-devnet 
+	kurtosis enclave rm my-local-devnet
 
 # Removes the specified Kurtosis enclave
 rm-devnet:

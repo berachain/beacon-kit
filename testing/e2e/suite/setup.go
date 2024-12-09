@@ -29,7 +29,7 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -339,6 +339,13 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 	defer ticker.Stop()
 	var finalBlockNum uint64
 	for finalBlockNum < target {
+		// check if cctx deadline is exceeded to prevent endless loop
+		select {
+		case <-cctx.Done():
+			return cctx.Err()
+		default:
+		}
+
 		var err error
 		finalBlockNum, err = s.JSONRPCBalancer().BlockNumber(cctx)
 		if err != nil {

@@ -25,7 +25,7 @@ import (
 	"fmt"
 
 	beaconhttp "github.com/attestantio/go-eth2-client/http"
-	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/errors"
 	rpcclient "github.com/cometbft/cometbft/rpc/client"
 	httpclient "github.com/cometbft/cometbft/rpc/client/http"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"

@@ -30,7 +30,7 @@ outpkg: "mocks"
 resolve-type-alias: False # see https://vektra.github.io/mockery/latest/deprecations/#resolve-type-alias
 issue-845-fix: True # see https://vektra.github.io/mockery/latest/deprecations/#issue-845-fix
 packages:
-  github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient:
+  github.com/berachain/beacon-kit/mod/execution/client/ethclient:
     config:
       recursive: True
       with-expecter: true
@@ -40,37 +40,37 @@ packages:
       recursive: True
       with-expecter: true
       all: True
-  github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry:
+  github.com/berachain/beacon-kit/mod/node-core/services/registry:
     config:
       recursive: True
       with-expecter: true
       all: True
-  github.com/berachain/beacon-kit/mod/storage/pkg/interfaces:
+  github.com/berachain/beacon-kit/mod/storage/interfaces:
     config:
       recursive: False
       with-expecter: true
       all: True
-  github.com/berachain/beacon-kit/mod/consensus-types/pkg/types:
+  github.com/berachain/beacon-kit/mod/consensus-types/types:
     config:
       recursive: False
       with-expecter: true
       all: True
-  github.com/berachain/beacon-kit/mod/storage/pkg/pruner:
+  github.com/berachain/beacon-kit/mod/storage/pruner:
     config:
       recursive: False
       with-expecter: true
       all: True
-  github.com/berachain/beacon-kit/mod/primitives/pkg/crypto:
+  github.com/berachain/beacon-kit/mod/primitives/crypto:
     config:
       recursive: False
       with-expecter: true
       all: True
-  github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives:
+  github.com/berachain/beacon-kit/mod/engine-primitives/engine-primitives:
     config:
       recursive: False
       with-expecter: true
       all: True
-  github.com/berachain/beacon-kit/mod/state-transition/pkg/core:
+  github.com/berachain/beacon-kit/mod/state-transition/core:
     config:
       recursive: False
       with-expecter: true

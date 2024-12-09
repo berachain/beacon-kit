@@ -28,7 +28,7 @@ name: pipeline
 on:
   push:
     branches:
-      - main 
+      - main
     tags:
       - "v*"
   pull_request:
@@ -73,7 +73,7 @@ jobs:
           - "test-unit-fuzz"
           - "test-forge-cover"
           - "test-forge-fuzz"
-        os: 
+        os:
           - ubuntu-24.04-beacon-kit
     name: ${{ matrix.args }}
     runs-on:
@@ -81,7 +81,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        with: 
+        with:
           submodules: recursive
 
       - name: Install Foundry
@@ -92,7 +92,7 @@ jobs:
         with:
           go-version: "1.23.0"
           check-latest: true
-          cache-dependency-path: "**/*.sum"    
+          cache-dependency-path: "**/*.sum"
         if: ${{ !(matrix.args == 'test-forge-cover' || matrix.args == 'test-forge-fuzz') }}
       - name: Run ${{ matrix.args }}
         run: |
@@ -116,7 +116,7 @@ jobs:
       matrix:
         args:
           - "test-e2e"
-        os: 
+        os:
           - ubuntu-24.04-e2e
     name: ${{ matrix.args }}
     runs-on:
@@ -124,14 +124,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        with: 
+        with:
           submodules: recursive
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          registry: https://index.docker.io/v1/
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
       - name: Setup Golang
         uses: actions/setup-go@v5
         with:
           go-version: "stable"
           check-latest: true
-          cache-dependency-path: "**/*.sum"    
+          cache-dependency-path: "**/*.sum"
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
@@ -140,7 +146,7 @@ jobs:
         run: |
           echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
           sudo apt update
-          sudo apt install kurtosis-cli=$(grep github.com/kurtosis-tech/kurtosis/api/golang ./testing/go.mod | awk '{print $2}' | sed 's/^v//') -y
+          sudo apt install kurtosis-cli=$(go list -m -f '{{.Version}}' github.com/kurtosis-tech/kurtosis/api/golang | sed 's/^v//') -y
           kurtosis engine start
         if: ${{ matrix.args == 'test-e2e' }}
       - name: Run ${{ matrix.args }}
@@ -194,7 +200,7 @@ jobs:
           registry: ${{ env.GHCR_REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GH_TOKEN }}
-        
+
       - if: ${{ env.PUSH_DOCKER_IMAGE == 'true' }}
         name: Authenticate to Google Cloud
         id: 'auth'
@@ -202,18 +208,17 @@ jobs:
         with:
           workload_identity_provider: ${{ env.GCP_ID_PROVIDER }}
           service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
-        
+
       - if: ${{ env.PUSH_DOCKER_IMAGE == 'true' }}
         name: 'Set up Cloud SDK'
         uses: 'google-github-actions/setup-gcloud@v2'
-       
+
       - if: ${{ env.PUSH_DOCKER_IMAGE == 'true' }}
         name: Setup Docker to use Google Cloud OIDC
         run: |
           gcloud auth configure-docker ${{ env.GCP_REGISTRY }} --quiet
-        
+
       - if: ${{ env.PUSH_DOCKER_IMAGE == 'true' }}
         name: Push Docker image
         run: |
             make push-docker-gcp push-docker-github
-        

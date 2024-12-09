@@ -20,7 +20,7 @@
 
 package types
 
-import "github.com/berachain/beacon-kit/mod/errors"
+import "github.com/berachain/beacon-kit/errors"
 
 var (
 	// ErrPublicPortNotFound is returned when the public port is not found.

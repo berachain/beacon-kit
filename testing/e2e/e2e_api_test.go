@@ -22,7 +22,7 @@ package e2e_test
 
 import (
 	beaconapi "github.com/attestantio/go-eth2-client/api"
-	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 )
 
