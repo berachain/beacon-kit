@@ -146,7 +146,7 @@ func (sp *StateProcessor[
 	})
 
 	// We do not currently have a cap on validators churn, so we stop
-	// validators this epoch and we withdraw them next epoch
+	// validators next epoch and we withdraw them the epoch after
 	var idx math.ValidatorIndex
 	for li := range uint64(len(nextEpochVals)) - sp.cs.ValidatorSetCap() {
 		valToEject := nextEpochVals[li]
@@ -154,10 +154,10 @@ func (sp *StateProcessor[
 		valToEject.SetWithdrawableEpoch(nextEpoch + 1)
 		idx, err = st.ValidatorIndexByPubkey(valToEject.GetPubkey())
 		if err != nil {
-			return fmt.Errorf("registry update, failed loading validator index: %w", err)
+			return fmt.Errorf("validators cap, failed loading validator index: %w", err)
 		}
 		if err = st.UpdateValidatorAtIndex(idx, valToEject); err != nil {
-			return fmt.Errorf("registry update, failed ejecting validator idx %d: %w", li, err)
+			return fmt.Errorf("validator cap, failed ejecting validator idx %d: %w", li, err)
 		}
 	}
 

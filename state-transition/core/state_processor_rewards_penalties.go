@@ -42,9 +42,10 @@ func (sp *StateProcessor[
 
 	switch {
 	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
-		// go head doing the processing, eve
+		// go head doing the processing
 	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
 		slot < math.U64(spec.BoonetFork3Height):
+		// go head doing the processing
 	default:
 		// no real need to perform hollowProcessRewardsAndPenalties
 		return nil
