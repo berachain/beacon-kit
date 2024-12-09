@@ -268,16 +268,16 @@ func (s *StateDB[
 			return nil, err
 		}
 
-		withdrawalAddress, err = validator.
-			GetWithdrawalCredentials().ToExecutionAddress()
-		if err != nil {
-			return nil, err
-		}
-
 		// Set the amount of the withdrawal depending on the balance of the
 		// validator.
 		//nolint:gocritic // ok.
 		if validator.IsFullyWithdrawable(balance, epoch) {
+			withdrawalAddress, err = validator.
+				GetWithdrawalCredentials().ToExecutionAddress()
+			if err != nil {
+				return nil, err
+			}
+
 			withdrawals = append(withdrawals, withdrawal.New(
 				math.U64(withdrawalIndex),
 				validatorIndex,
@@ -290,6 +290,12 @@ func (s *StateDB[
 		} else if validator.IsPartiallyWithdrawable(
 			balance, math.Gwei(s.cs.MaxEffectiveBalance()),
 		) {
+			withdrawalAddress, err = validator.
+				GetWithdrawalCredentials().ToExecutionAddress()
+			if err != nil {
+				return nil, err
+			}
+
 			withdrawals = append(withdrawals, withdrawal.New(
 				math.U64(withdrawalIndex),
 				validatorIndex,
@@ -302,6 +308,13 @@ func (s *StateDB[
 		} else if s.cs.DepositEth1ChainID() == spec.BartioChainID {
 			// Backward compatibility with Bartio
 			// TODO: Drop this when we drop other Bartio special cases.
+
+			withdrawalAddress, err = validator.
+				GetWithdrawalCredentials().ToExecutionAddress()
+			if err != nil {
+				return nil, err
+			}
+
 			withdrawal = withdrawal.New(
 				math.U64(withdrawalIndex),
 				validatorIndex,
