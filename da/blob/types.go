@@ -24,6 +24,7 @@ import (
 	"context"
 	"time"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -43,10 +44,9 @@ type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
 
 type BeaconBlock[
 	BeaconBlockBodyT any,
-	BeaconBlockHeaderT any,
 ] interface {
 	GetBody() BeaconBlockBodyT
-	GetHeader() BeaconBlockHeaderT
+	GetHeader() *ctypes.BeaconBlockHeader
 }
 
 type BeaconBlockBody interface {

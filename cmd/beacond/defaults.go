@@ -119,7 +119,7 @@ func DefaultComponents() []any {
 			NodeAPIContext,
 		],
 		components.ProvideSidecarFactory[
-			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader,
+			*BeaconBlock, *BeaconBlockBody,
 		],
 		components.ProvideStateProcessor[
 			*Logger, *BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader,

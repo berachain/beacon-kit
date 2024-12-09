@@ -170,7 +170,6 @@ type (
 	SidecarFactory = dablob.SidecarFactory[
 		*BeaconBlock,
 		*BeaconBlockBody,
-		*BeaconBlockHeader,
 	]
 
 	// StateProcessor is the type alias for the state processor interface.
