@@ -166,6 +166,7 @@ func (sp *StateProcessor[
 
 // Note: validatorSetsDiffs does not need to be a StateProcessor method
 // but it helps simplifying generic instantiation.
+// TODO: Turn this into a free function
 func (*StateProcessor[
 	_, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
 ]) validatorSetsDiffs(
