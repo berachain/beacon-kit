@@ -55,7 +55,7 @@ type Validator struct {
 	// ActivationEligibilityEpoch is the epoch in which the validator became
 	// eligible for activation.
 	ActivationEligibilityEpoch math.Epoch `json:"activationEligibilityEpoch"`
-	// ActivationEpoch is the epoch in which the validator activated.
+	// ActivationEpoch is the epoch in which the validator is activated.
 	ActivationEpoch math.Epoch `json:"activationEpoch"`
 	// ExitEpoch is the epoch in which the validator exited.
 	ExitEpoch math.Epoch `json:"exitEpoch"`
