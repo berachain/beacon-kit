@@ -22,6 +22,7 @@ package types
 
 import (
 	"context"
+	"fmt"
 
 	client "github.com/attestantio/go-eth2-client"
 	beaconhttp "github.com/attestantio/go-eth2-client/http"
@@ -95,7 +96,7 @@ func NewBeaconKitNodeClient(
 		params...,
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create beaconhttp service: %w", err)
 	}
 
 	client, ok := service.(BeaconKitNodeClient)
