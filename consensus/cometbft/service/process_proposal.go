@@ -23,6 +23,7 @@ package cometbft
 import (
 	"context"
 	"fmt"
+	"time"
 
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
@@ -31,6 +32,10 @@ func (s *Service[LoggerT]) processProposal(
 	_ context.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
+	startTime := time.Now()
+	defer s.telemetrySink.MeasureSince(
+		"beacon_kit.runtime.process_proposal_duration", startTime)
+
 	// CometBFT must never call ProcessProposal with a height of 0.
 	if req.Height < 1 {
 		return nil, fmt.Errorf(
@@ -59,7 +64,7 @@ func (s *Service[LoggerT]) processProposal(
 		),
 	)
 
-	resp, err := s.Middleware.ProcessProposal(
+	resp, err := s.Blockchain.ProcessProposal(
 		s.processProposalState.Context(),
 		req,
 	)

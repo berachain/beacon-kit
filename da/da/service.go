@@ -45,8 +45,6 @@ type Service[
 	]
 	dispatcher asynctypes.EventDispatcher
 	logger     log.Logger
-	// subSidecarsReceived is a channel holding SidecarsReceived events.
-	subSidecarsReceived chan async.Event[ConsensusSidecarsT]
 	// subFinalBlobSidecars is a channel holding FinalSidecarsReceived events.
 	subFinalBlobSidecars chan async.Event[BlobSidecarsT]
 }
@@ -76,7 +74,6 @@ func NewService[
 		bp:                   bp,
 		dispatcher:           dispatcher,
 		logger:               logger,
-		subSidecarsReceived:  make(chan async.Event[ConsensusSidecarsT]),
 		subFinalBlobSidecars: make(chan async.Event[BlobSidecarsT]),
 	}
 }
@@ -90,14 +87,6 @@ func (s *Service[_, _, _, _]) Name() string {
 // events and begins the main event loop to handle them accordingly.
 func (s *Service[_, _, _, _]) Start(ctx context.Context) error {
 	var err error
-
-	// subscribe to SidecarsReceived events
-	if err = s.dispatcher.Subscribe(
-		async.SidecarsReceived, s.subSidecarsReceived,
-	); err != nil {
-		return err
-	}
-
 	// subscribe to FinalSidecarsReceived events
 	if err = s.dispatcher.Subscribe(
 		async.FinalSidecarsReceived, s.subFinalBlobSidecars,
@@ -117,8 +106,6 @@ func (s *Service[_, _, _, _]) eventLoop(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			return
-		case event := <-s.subSidecarsReceived:
-			s.handleSidecarsReceived(event)
 		case event := <-s.subFinalBlobSidecars:
 			s.handleFinalSidecarsReceived(event)
 		}
@@ -144,32 +131,6 @@ func (s *Service[_, _, BlobSidecarsT, _]) handleFinalSidecarsReceived(
 	}
 }
 
-// handleSidecarsReceived handles the SidecarsVerifyRequest event.
-// It verifies the sidecars and publishes a SidecarsVerified event.
-func (s *Service[_, ConsensusSidecarsT, _, _]) handleSidecarsReceived(
-	cs async.Event[ConsensusSidecarsT],
-) {
-	// verify the sidecars.
-	sidecarsErr := s.verifySidecars(cs.Data())
-	if sidecarsErr != nil {
-		s.logger.Error(
-			"Failed to receive blob sidecars",
-			"error", sidecarsErr,
-		)
-	}
-
-	// emit the sidecars verification event with error from verifySidecars
-	event := async.NewEvent(
-		cs.Context(),
-		async.SidecarsVerified,
-		cs.Data().GetSidecars(),
-		sidecarsErr,
-	)
-	if err := s.dispatcher.Publish(event); err != nil {
-		s.logger.Error("failed to publish event", "err", err)
-	}
-}
-
 /* -------------------------------------------------------------------------- */
 /*                                   helpers                                  */
 /* -------------------------------------------------------------------------- */
@@ -185,34 +146,4 @@ func (s *Service[_, _, BlobSidecarsT, _]) processSidecars(
 		s.avs,
 		sidecars,
 	)
-}
-
-// VerifyIncomingBlobs receives blobs from the network and processes them.
-func (s *Service[_, ConsensusSidecarsT, _, _]) verifySidecars(
-	cs ConsensusSidecarsT,
-) error {
-	sidecars := cs.GetSidecars()
-	if sidecars.IsNil() || sidecars.Len() == 0 {
-		// nothing to verify
-		return nil
-	}
-
-	s.logger.Info("Received incoming blob sidecars")
-
-	// Verify the blobs and ensure they match the local state.
-	if err := s.bp.VerifySidecars(cs); err != nil {
-		s.logger.Error(
-			"rejecting incoming blob sidecars",
-			"reason", err,
-		)
-		return err
-	}
-
-	s.logger.Info(
-		"Blob sidecars verification succeeded - accepting incoming blob sidecars",
-		"num_blobs",
-		sidecars.Len(),
-	)
-
-	return nil
 }

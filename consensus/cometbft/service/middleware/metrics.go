@@ -20,10 +20,6 @@
 
 package middleware
 
-import (
-	"time"
-)
-
 // ABCIMiddlewareMetrics is a struct that contains metrics for the chain.
 type ABCIMiddlewareMetrics struct {
 	// sink is the sink for the metrics.
@@ -37,13 +33,4 @@ func newABCIMiddlewareMetrics(
 	return &ABCIMiddlewareMetrics{
 		sink: sink,
 	}
-}
-
-// measureProcessProposalDuration measures the time to process.
-func (cm *ABCIMiddlewareMetrics) measureProcessProposalDuration(
-	start time.Time,
-) {
-	cm.sink.MeasureSince(
-		"beacon_kit.runtime.process_proposal_duration", start,
-	)
 }

@@ -27,6 +27,7 @@ import (
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 )
 
@@ -34,16 +35,13 @@ import (
 // and logs the process.
 func (s *Service[
 	_, _, ConsensusBlockT, BeaconBlockT, _, _, _, _, _, _, _,
-	ExecutionPayloadHeaderT, _, _,
+	ExecutionPayloadHeaderT, _, _, _, _,
 ]) VerifyIncomingBlock(
 	ctx context.Context,
-	blk ConsensusBlockT,
+	beaconBlk BeaconBlockT,
+	consensusTime math.U64,
+	proposerAddress []byte,
 ) error {
-	var (
-		beaconBlk     = blk.GetBeaconBlock()
-		consensusTime = blk.GetConsensusTime()
-	)
-
 	// Grab a copy of the state to verify the incoming block.
 	preState := s.storageBackend.StateFromContext(ctx)
 
@@ -73,7 +71,13 @@ func (s *Service[
 	postState := preState.Copy()
 
 	// Verify the state root of the incoming block.
-	if err := s.verifyStateRoot(ctx, postState, blk); err != nil {
+	err := s.verifyStateRoot(
+		ctx,
+		postState,
+		beaconBlk,
+		consensusTime,
+		proposerAddress)
+	if err != nil {
 		s.logger.Error(
 			"Rejecting incoming beacon block ❌ ",
 			"state_root",
@@ -110,7 +114,8 @@ func (s *Service[
 	)
 
 	if s.shouldBuildOptimisticPayloads() {
-		lph, err := postState.GetLatestExecutionPayloadHeader()
+		var lph ExecutionPayloadHeaderT
+		lph, err = postState.GetLatestExecutionPayloadHeader()
 		if err != nil {
 			return err
 		}
@@ -132,11 +137,14 @@ func (s *Service[
 
 // verifyStateRoot verifies the state root of an incoming block.
 func (s *Service[
-	_, _, ConsensusBlockT, _, _, _, BeaconStateT, _, _, _, _, _, _, _,
+	_, _, ConsensusBlockT, BeaconBlockT, _, _, BeaconStateT,
+	_, _, _, _, _, _, _, _, _,
 ]) verifyStateRoot(
 	ctx context.Context,
 	st BeaconStateT,
-	blk ConsensusBlockT,
+	blk BeaconBlockT,
+	consensusTime math.U64,
+	proposerAddress []byte,
 ) error {
 	startTime := time.Now()
 	defer s.metrics.measureStateRootVerificationTime(startTime)
@@ -149,10 +157,10 @@ func (s *Service[
 			SkipPayloadVerification: false,
 			SkipValidateResult:      false,
 			SkipValidateRandao:      false,
-			ProposerAddress:         blk.GetProposerAddress(),
-			ConsensusTime:           blk.GetConsensusTime(),
+			ProposerAddress:         proposerAddress,
+			ConsensusTime:           consensusTime,
 		},
-		st, blk.GetBeaconBlock(),
+		st, blk,
 	)
 	if errors.Is(err, engineerrors.ErrAcceptedPayloadStatus) {
 		// It is safe for the validator to ignore this error since
@@ -169,7 +177,7 @@ func (s *Service[
 // shouldBuildOptimisticPayloads returns true if optimistic
 // payload builds are enabled.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) shouldBuildOptimisticPayloads() bool {
 	return s.optimisticPayloadBuilds && s.localBuilder.Enabled()
 }
