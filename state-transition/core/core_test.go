@@ -77,7 +77,6 @@ type (
 	]
 
 	TestBeaconStateT = statedb.StateDB[
-		*types.BeaconBlockHeader,
 		*TestBeaconStateMarshallableT,
 		*types.Eth1Data,
 		*types.ExecutionPayloadHeader,

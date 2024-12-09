@@ -23,6 +23,7 @@ package state
 import (
 	"context"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -31,7 +32,6 @@ import (
 // KVStore is the interface for the key-value store holding the beacon state.
 type KVStore[
 	T,
-	BeaconBlockHeaderT,
 	Eth1DataT,
 	ExecutionPayloadHeaderT,
 	ForkT,
@@ -76,9 +76,9 @@ type KVStore[
 	// SetGenesisValidatorsRoot sets the genesis validators root.
 	SetGenesisValidatorsRoot(root common.Root) error
 	// GetLatestBlockHeader retrieves the latest block header.
-	GetLatestBlockHeader() (BeaconBlockHeaderT, error)
+	GetLatestBlockHeader() (*ctypes.BeaconBlockHeader, error)
 	// SetLatestBlockHeader sets the latest block header.
-	SetLatestBlockHeader(header BeaconBlockHeaderT) error
+	SetLatestBlockHeader(header *ctypes.BeaconBlockHeader) error
 	// GetBlockRootAtIndex retrieves the block root at the given index.
 	GetBlockRootAtIndex(index uint64) (common.Root, error)
 	// StateRootAtIndex retrieves the state root at the given index.

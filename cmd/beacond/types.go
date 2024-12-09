@@ -237,7 +237,6 @@ type (
 
 	// BeaconState is a type alias for the BeaconState.
 	BeaconState = statedb.StateDB[
-		*BeaconBlockHeader,
 		*BeaconStateMarshallable,
 		*Eth1Data,
 		*ExecutionPayloadHeader,
