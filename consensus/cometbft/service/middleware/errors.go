@@ -58,6 +58,12 @@ var (
 		)
 	}
 
+	ErrSidecarFinalizationTimeout = func(errTimeout error) error {
+		return errors.Wrapf(errTimeout,
+			"A timeout occurred while waiting for block sidecar to be finalized",
+		)
+	}
+
 	ErrFinalValidatorUpdatesTimeout = func(errTimeout error) error {
 		return errors.Wrapf(errTimeout,
 			"A timeout occurred while waiting for final validator updates",
