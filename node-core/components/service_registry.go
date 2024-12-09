@@ -24,6 +24,7 @@ import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/validator"
+	"github.com/berachain/beacon-kit/consensus-types/types"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/middleware"
 	"github.com/berachain/beacon-kit/da/da"
@@ -43,20 +44,23 @@ import (
 type ServiceRegistryInput[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
-	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT],
+	BeaconBlockT BeaconBlock[
+		BeaconBlockT,
+		BeaconBlockBodyT,
+		*types.BeaconBlockHeader,
+	],
 	BeaconBlockBodyT BeaconBlockBody[
 		BeaconBlockBodyT, *AttestationData, DepositT,
 		*Eth1Data, ExecutionPayloadT, *SlashingInfo,
 	],
-	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
 	BeaconStateT BeaconState[
-		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
+		BeaconStateT, *types.BeaconBlockHeader, BeaconStateMarshallableT,
 		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT,
 		*Validator, Validators, WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
-	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, BeaconBlockHeaderT],
+	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, *types.BeaconBlockHeader],
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	DepositT Deposit[DepositT, *ForkData, WithdrawalCredentials],
@@ -74,7 +78,7 @@ type ServiceRegistryInput[
 ] struct {
 	depinject.In
 	ABCIService *middleware.ABCIMiddleware[
-		BeaconBlockT, BeaconBlockHeaderT, BlobSidecarsT, GenesisT, *SlotData,
+		BeaconBlockT, *types.BeaconBlockHeader, BlobSidecarsT, GenesisT, *SlotData,
 	]
 	BlockStoreService *blockstore.Service[
 		BeaconBlockT, BeaconBlockStoreT,
@@ -82,13 +86,13 @@ type ServiceRegistryInput[
 	ChainService *blockchain.Service[
 		AvailabilityStoreT,
 		ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
-		BeaconBlockHeaderT, BeaconStateT, DepositT, ExecutionPayloadT,
+		*types.BeaconBlockHeader, BeaconStateT, DepositT, ExecutionPayloadT,
 		ExecutionPayloadHeaderT, GenesisT,
 		*engineprimitives.PayloadAttributes[WithdrawalT],
 	]
 	DAService *da.Service[
 		AvailabilityStoreT,
-		ConsensusSidecarsT, BlobSidecarsT, BeaconBlockHeaderT,
+		ConsensusSidecarsT, BlobSidecarsT,
 	]
 	DBManager      *DBManager
 	DepositService *deposit.Service[
@@ -121,20 +125,23 @@ type ServiceRegistryInput[
 func ProvideServiceRegistry[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
-	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT],
+	BeaconBlockT BeaconBlock[
+		BeaconBlockT,
+		BeaconBlockBodyT,
+		*types.BeaconBlockHeader,
+	],
 	BeaconBlockBodyT BeaconBlockBody[
 		BeaconBlockBodyT, *AttestationData, DepositT,
 		*Eth1Data, ExecutionPayloadT, *SlashingInfo,
 	],
-	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
 	BeaconStateT BeaconState[
-		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
+		BeaconStateT, *types.BeaconBlockHeader, BeaconStateMarshallableT,
 		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT,
 		*Validator, Validators, WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
-	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, BeaconBlockHeaderT],
+	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, *types.BeaconBlockHeader],
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	DepositT Deposit[DepositT, *ForkData, WithdrawalCredentials],
@@ -152,7 +159,7 @@ func ProvideServiceRegistry[
 	in ServiceRegistryInput[
 		AvailabilityStoreT,
 		ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
-		BeaconBlockHeaderT, BeaconBlockStoreT, BeaconStateT,
+		BeaconBlockStoreT, BeaconStateT,
 		BeaconStateMarshallableT,
 		ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
 		DepositT, DepositStoreT, ExecutionPayloadT, ExecutionPayloadHeaderT,

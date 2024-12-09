@@ -120,8 +120,7 @@ type DAServiceIn[
 func ProvideDAService[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	BeaconBlockBodyT any,
-	BeaconBlockHeaderT any,
-	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, BeaconBlockHeaderT],
+	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, *types.BeaconBlockHeader],
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	LoggerT log.AdvancedLogger[LoggerT],
@@ -131,13 +130,12 @@ func ProvideDAService[
 	],
 ) *da.Service[
 	AvailabilityStoreT,
-	ConsensusSidecarsT, BlobSidecarsT, BeaconBlockHeaderT,
+	ConsensusSidecarsT, BlobSidecarsT,
 ] {
 	return da.NewService[
 		AvailabilityStoreT,
 		ConsensusSidecarsT,
 		BlobSidecarsT,
-		BeaconBlockHeaderT,
 	](
 		in.AvailabilityStore,
 		in.BlobProcessor,
