@@ -57,6 +57,7 @@ type Service[
 ] struct {
 	node          *node.Node
 	cmtCfg        *cmtcfg.Config
+	chainSpec     common.ChainSpec
 	telemetrySink TelemetrySink
 
 	logger       LoggerT
@@ -117,6 +118,7 @@ func NewService[
 		Blockchain:    blockchain,
 		BlockBuilder:  blockBuilder,
 		cmtCfg:        cmtCfg,
+		chainSpec:     cs,
 		telemetrySink: telemetrySink,
 		paramStore:    params.NewConsensusParamsStore(cs),
 	}

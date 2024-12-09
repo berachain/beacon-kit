@@ -24,21 +24,25 @@ import (
 	"context"
 	"time"
 
+	"github.com/berachain/beacon-kit/consensus-types/types"
+	consensusTypes "github.com/berachain/beacon-kit/consensus/types"
+	datypes "github.com/berachain/beacon-kit/da/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
 // AvailabilityStore interface is responsible for validating and storing
 // sidecars for specific blocks, as well as verifying sidecars that have already
 // been stored.
-type AvailabilityStore[BeaconBlockBodyT any] interface {
+type AvailabilityStore interface {
 	// IsDataAvailable ensures that all blobs referenced in the block are
 	// securely stored before it returns without an error.
 	IsDataAvailable(
-		context.Context, math.Slot, BeaconBlockBodyT,
+		context.Context, math.Slot, *types.BeaconBlockBody,
 	) bool
 	// Prune prunes the deposit store of [start, end)
 	Prune(start, end uint64) error
@@ -210,7 +214,7 @@ type StateProcessor[
 	Transition(
 		ContextT,
 		BeaconStateT,
-		BeaconBlockT,
+		types.BeaconBlock,
 	) (transition.ValidatorUpdates, error)
 }
 
@@ -244,6 +248,11 @@ type TelemetrySink interface {
 type BlockchainI[GenesisT any] interface {
 	ProcessGenesisData(
 		context.Context, []byte) (transition.ValidatorUpdates, error)
+	ProcessProposal(
+		context.Context,
+		consensusTypes.ConsensusBlock[*types.BeaconBlock],
+		*consensusTypes.ConsensusSidecars[*datypes.BlobSidecars, *types.BeaconBlockHeader],
+	) (*cmtabci.ProcessProposalResponse, error)
 }
 
 type ValidatorUpdates = transition.ValidatorUpdates

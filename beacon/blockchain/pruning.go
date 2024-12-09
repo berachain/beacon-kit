@@ -21,14 +21,15 @@
 package blockchain
 
 import (
+	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 func (s *Service[
-	_, _, ConsensusBlockT, BeaconBlockT, _, _, _, _, _, _, _, _, _, _,
-]) processPruning(beaconBlk BeaconBlockT) error {
+	_, _, ConsensusBlockT, BeaconBlockT, _, _, _, _, _, _, _, _, _, _, _, _,
+]) processPruning(beaconBlk *types.BeaconBlock) error {
 	// prune availability store
 	start, end := availabilityPruneRangeFn(
 		beaconBlk.GetSlot().Unwrap(), s.chainSpec)

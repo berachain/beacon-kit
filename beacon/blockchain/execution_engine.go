@@ -26,16 +26,18 @@ import (
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	"github.com/berachain/beacon-kit/config/spec"
+	"github.com/berachain/beacon-kit/consensus-types/types"
+	consensusTypes "github.com/berachain/beacon-kit/consensus/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 )
 
 // sendPostBlockFCU sends a forkchoice update to the execution client.
 func (s *Service[
-	_, _, ConsensusBlockT, _, _, _, BeaconStateT, _, _, _, _, _, _, _,
+	_, _, ConsensusBlockT, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
 ]) sendPostBlockFCU(
 	ctx context.Context,
 	st BeaconStateT,
-	blk ConsensusBlockT,
+	blk consensusTypes.ConsensusBlock[*types.BeaconBlock],
 ) {
 	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
@@ -57,11 +59,11 @@ func (s *Service[
 // client with attributes.
 func (s *Service[
 	_, _, ConsensusBlockT, _, _, _, BeaconStateT, _, _,
-	_, _, ExecutionPayloadHeaderT, _, _,
+	_, _, ExecutionPayloadHeaderT, _, _, _, _,
 ]) sendNextFCUWithAttributes(
 	ctx context.Context,
 	st BeaconStateT,
-	blk ConsensusBlockT,
+	blk consensusTypes.ConsensusBlock[*types.BeaconBlock],
 	lph ExecutionPayloadHeaderT,
 ) {
 	beaconBlk := blk.GetBeaconBlock()
@@ -115,10 +117,10 @@ func (s *Service[
 // execution client without attributes.
 func (s *Service[
 	_, _, ConsensusBlockT, _, _, _, _, _, _, _, _,
-	ExecutionPayloadHeaderT, _, PayloadAttributesT,
+	ExecutionPayloadHeaderT, _, _, _, PayloadAttributesT,
 ]) sendNextFCUWithoutAttributes(
 	ctx context.Context,
-	blk ConsensusBlockT,
+	blk consensusTypes.ConsensusBlock[*types.BeaconBlock],
 	lph ExecutionPayloadHeaderT,
 ) {
 	beaconBlk := blk.GetBeaconBlock()

@@ -22,13 +22,8 @@ package middleware
 
 import (
 	"context"
-	"time"
 
-	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
-	"github.com/berachain/beacon-kit/consensus/types"
 	"github.com/berachain/beacon-kit/errors"
-	"github.com/berachain/beacon-kit/primitives/async"
-	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -46,7 +41,7 @@ func (h *ABCIMiddleware[
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
-	var (
+	/*var (
 		startTime        = time.Now()
 		awaitCtx, cancel = context.WithTimeout(ctx, AwaitTimeout)
 	)
@@ -121,7 +116,8 @@ func (h *ABCIMiddleware[
 	if err != nil {
 		return h.createProcessProposalResponse(err)
 	}
-	return h.createProcessProposalResponse(nil)
+	return h.createProcessProposalResponse(nil)*/
+	return nil, nil
 }
 
 // waitForBeaconBlockVerification waits for the built beacon block to be
@@ -179,7 +175,7 @@ func (h *ABCIMiddleware[
 	ctx sdk.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (transition.ValidatorUpdates, error) {
-	awaitCtx, cancel := context.WithTimeout(ctx, AwaitTimeout)
+	/*awaitCtx, cancel := context.WithTimeout(ctx, AwaitTimeout)
 	defer cancel()
 	// flush the channel to ensure that we are not handling old data.
 	if numMsgs := async.ClearChan(h.subFinalValidatorUpdates); numMsgs > 0 {
@@ -225,7 +221,8 @@ func (h *ABCIMiddleware[
 	}
 
 	// wait for the final validator updates.
-	return h.waitForFinalValidatorUpdates(awaitCtx)
+	return h.waitForFinalValidatorUpdates(awaitCtx)*/
+	return nil, nil
 }
 
 // waitForFinalValidatorUpdates waits for the final validator updates to be

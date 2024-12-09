@@ -24,6 +24,7 @@ import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/validator"
+	"github.com/berachain/beacon-kit/consensus-types/types"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/middleware"
 	"github.com/berachain/beacon-kit/da/da"
@@ -39,15 +40,15 @@ import (
 
 // ServiceRegistryInput is the input for the service registry provider.
 type ServiceRegistryInput[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	AvailabilityStoreT AvailabilityStore[BlobSidecarsT],
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
-	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT],
+	BeaconBlockT BeaconBlock[*types.BeaconBlock, BeaconBlockBodyT, BeaconBlockHeaderT],
 	BeaconBlockBodyT BeaconBlockBody[
 		BeaconBlockBodyT, *AttestationData, DepositT,
 		*Eth1Data, ExecutionPayloadT, *SlashingInfo,
 	],
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
-	BeaconBlockStoreT BlockStore[BeaconBlockT],
+	BeaconBlockStoreT BlockStore[*types.BeaconBlock],
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
 		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT,
@@ -80,6 +81,7 @@ type ServiceRegistryInput[
 		BeaconBlockHeaderT, BeaconStateT, BeaconBlockStoreT, DepositT,
 		WithdrawalCredentials, ExecutionPayloadT,
 		ExecutionPayloadHeaderT, GenesisT,
+		ConsensusSidecarsT, BlobSidecarsT,
 		*engineprimitives.PayloadAttributes[WithdrawalT],
 	]
 	DAService *da.Service[
@@ -110,7 +112,7 @@ type ServiceRegistryInput[
 
 // ProvideServiceRegistry is the depinject provider for the service registry.
 func ProvideServiceRegistry[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	AvailabilityStoreT AvailabilityStore[BlobSidecarsT],
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT],
 	BeaconBlockBodyT BeaconBlockBody[
@@ -118,7 +120,7 @@ func ProvideServiceRegistry[
 		*Eth1Data, ExecutionPayloadT, *SlashingInfo,
 	],
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
-	BeaconBlockStoreT BlockStore[BeaconBlockT],
+	BeaconBlockStoreT BlockStore[*types.BeaconBlock],
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
 		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT,

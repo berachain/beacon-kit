@@ -25,6 +25,8 @@ import (
 	"time"
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
+	"github.com/berachain/beacon-kit/consensus-types/types"
+	ctypes "github.com/berachain/beacon-kit/consensus/types"
 	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/transition"
@@ -34,10 +36,10 @@ import (
 // and logs the process.
 func (s *Service[
 	_, _, ConsensusBlockT, BeaconBlockT, _, _, _, _, _, _, _,
-	ExecutionPayloadHeaderT, _, _,
+	ExecutionPayloadHeaderT, _, _, _, _,
 ]) VerifyIncomingBlock(
 	ctx context.Context,
-	blk ConsensusBlockT,
+	blk ctypes.ConsensusBlock[*types.BeaconBlock],
 ) error {
 	var (
 		beaconBlk     = blk.GetBeaconBlock()
@@ -132,15 +134,16 @@ func (s *Service[
 
 // verifyStateRoot verifies the state root of an incoming block.
 func (s *Service[
-	_, _, ConsensusBlockT, _, _, _, BeaconStateT, _, _, _, _, _, _, _,
+	_, _, ConsensusBlockT, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
 ]) verifyStateRoot(
 	ctx context.Context,
 	st BeaconStateT,
-	blk ConsensusBlockT,
+	blk ctypes.ConsensusBlock[*types.BeaconBlock],
 ) error {
 	startTime := time.Now()
 	defer s.metrics.measureStateRootVerificationTime(startTime)
 	_, err := s.stateProcessor.Transition(
+
 		// We run with a non-optimistic engine here to ensure
 		// that the proposer does not try to push through a bad block.
 		&transition.Context{
@@ -152,7 +155,7 @@ func (s *Service[
 			ProposerAddress:         blk.GetProposerAddress(),
 			ConsensusTime:           blk.GetConsensusTime(),
 		},
-		st, blk.GetBeaconBlock(),
+		st, *blk.GetBeaconBlock(),
 	)
 	if errors.Is(err, engineerrors.ErrAcceptedPayloadStatus) {
 		// It is safe for the validator to ignore this error since
@@ -169,7 +172,7 @@ func (s *Service[
 // shouldBuildOptimisticPayloads returns true if optimistic
 // payload builds are enabled.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) shouldBuildOptimisticPayloads() bool {
 	return s.optimisticPayloadBuilds && s.localBuilder.Enabled()
 }
