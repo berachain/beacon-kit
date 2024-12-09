@@ -37,19 +37,11 @@ func DefaultComponents() []any {
 			*ExecutionPayloadHeader, *KVStore, *Logger,
 		],
 		components.ProvideAvailibilityStore[*BeaconBlockBody, *Logger],
-		components.ProvideAvailabilityPruner[
-			*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,
-			*BeaconBlockHeader, *BlobSidecars, *Logger,
-		],
 		components.ProvideDepositContract[
 			*Deposit, *ExecutionPayload, *ExecutionPayloadHeader,
 		],
 		components.ProvideBlockStore[
 			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader, *Logger,
-		],
-		components.ProvideBlockStoreService[
-			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader,
-			*BlockStore, *Logger,
 		],
 		components.ProvideBlsSigner,
 		components.ProvideBlobProcessor[
@@ -61,9 +53,10 @@ func DefaultComponents() []any {
 			*AvailabilityStore,
 			*ConsensusBlock, *BeaconBlock, *BeaconBlockBody,
 			*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
-			*BlobSidecars, *BlockStore, *Deposit, *DepositStore,
+			*BlobSidecars, *BlockStore, *Deposit, WithdrawalCredentials,
+			*DepositStore, *DepositContract,
 			*ExecutionPayload, *ExecutionPayloadHeader, *Genesis,
-			*KVStore, *Logger, *StorageBackend,
+			*KVStore, *Logger, *StorageBackend, *BlockStore,
 		],
 		components.ProvideNode,
 		components.ProvideChainSpec,
@@ -76,16 +69,6 @@ func DefaultComponents() []any {
 		components.ProvideDAService[
 			*AvailabilityStore, *BeaconBlockBody, *BeaconBlockHeader,
 			*ConsensusSidecars, *BlobSidecar, *BlobSidecars, *Logger,
-		],
-		components.ProvideDBManager[*AvailabilityStore, *DepositStore, *Logger],
-		components.ProvideDepositPruner[
-			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader,
-			*Deposit, *DepositStore, *Logger,
-		],
-		components.ProvideDepositService[
-			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader, *Deposit,
-			*DepositContract, *DepositStore, *ExecutionPayload,
-			*ExecutionPayloadHeader, *Logger,
 		],
 		components.ProvideDepositStore[*Deposit, *Logger],
 		components.ProvideDispatcher[

@@ -24,6 +24,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/primitives/async"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
@@ -71,6 +72,9 @@ type Contract[DepositT any] interface {
 
 // Deposit is an interface for deposits.
 type Deposit[DepositT, WithdrawalCredentialsT any] interface {
+	constraints.Empty[DepositT]
+	constraints.SSZMarshallableRootable
+
 	// New creates a new deposit.
 	New(
 		crypto.BLSPubkey,
