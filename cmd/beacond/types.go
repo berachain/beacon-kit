@@ -330,7 +330,6 @@ type (
 		*AvailabilityStore,
 		*BeaconBlock,
 		*BeaconBlockBody,
-		*BeaconBlockHeader,
 		*BeaconState,
 		*BeaconStateMarshallable,
 		*BlobSidecars,

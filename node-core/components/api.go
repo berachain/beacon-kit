@@ -23,6 +23,7 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/config"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-api/backend"
 	"github.com/berachain/beacon-kit/node-api/engines/echo"
@@ -58,10 +59,9 @@ func ProvideNodeAPIBackend[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	BeaconBlockT any,
 	BeaconBlockBodyT any,
-	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
 	BeaconStateT BeaconState[
-		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
+		BeaconStateT, *ctypes.BeaconBlockHeader, BeaconStateMarshallableT,
 		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT,
 		*Validator, Validators, WithdrawalT,
 	],
@@ -84,7 +84,7 @@ func ProvideNodeAPIBackend[
 		StorageBackendT,
 	],
 ) *backend.Backend[
-	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BeaconBlockStoreT,
 	sdk.Context, DepositT, DepositStoreT, *Eth1Data, ExecutionPayloadHeaderT,
 	*Fork, NodeT, KVStoreT, StorageBackendT, *Validator, Validators,
@@ -94,7 +94,6 @@ func ProvideNodeAPIBackend[
 		AvailabilityStoreT,
 		BeaconBlockT,
 		BeaconBlockBodyT,
-		BeaconBlockHeaderT,
 		BeaconStateT,
 		BeaconStateMarshallableT,
 		BlobSidecarsT,

@@ -150,7 +150,7 @@ func DefaultComponents() []any {
 		components.ProvideNodeAPIEngine,
 		components.ProvideNodeAPIBackend[
 			*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,
-			*BeaconBlockHeader, *BlockStore, *BeaconState,
+			*BlockStore, *BeaconState,
 			*BeaconStateMarshallable, *BlobSidecars, *Deposit, *DepositStore,
 			*ExecutionPayloadHeader, *KVStore, *CometBFTService, *StorageBackend,
 		],

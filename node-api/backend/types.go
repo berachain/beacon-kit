@@ -24,7 +24,6 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/state-transition/core"
@@ -42,24 +41,6 @@ type AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT any] interface {
 	// Persist makes sure that the sidecar remains accessible for data
 	// availability checks throughout the beacon node's operation.
 	Persist(math.Slot, BlobSidecarsT) error
-}
-
-// BeaconBlockHeader is the interface for a beacon block header.
-type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
-	constraints.SSZMarshallableRootable
-	New(
-		slot math.Slot,
-		proposerIndex math.ValidatorIndex,
-		parentBlockRoot common.Root,
-		stateRoot common.Root,
-		bodyRoot common.Root,
-	) BeaconBlockHeaderT
-	GetSlot() math.Slot
-	GetProposerIndex() math.ValidatorIndex
-	GetParentBlockRoot() common.Root
-	GetStateRoot() common.Root
-	SetStateRoot(common.Root)
-	GetBodyRoot() common.Root
 }
 
 // BeaconState is the interface for the beacon state.
