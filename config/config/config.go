@@ -70,7 +70,7 @@ type BaseConfig struct {
 	// InterBlockCache enables inter-block caching.
 	InterBlockCache bool `mapstructure:"inter-block-cache"`
 
-	// IavlCacheSize set the size of the iavl tree cache.
+	// IavlCacheSize sets the size of the iavl tree cache.
 	IAVLCacheSize uint64 `mapstructure:"iavl-cache-size"`
 
 	// IAVLDisableFastNode enables or disables the fast sync node.
@@ -85,7 +85,7 @@ type Config struct {
 	Telemetry telemetry.Config `mapstructure:"telemetry"`
 }
 
-// DefaultConfig returns server's default configuration.
+// DefaultConfig returns the server's default configuration.
 func DefaultConfig() *Config {
 	return &Config{
 		BaseConfig: BaseConfig{
