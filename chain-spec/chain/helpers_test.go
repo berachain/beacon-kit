@@ -37,7 +37,7 @@ type (
 	cometBFTConfig   struct{}
 )
 
-// TODO: Add setupValid, setupInvalid functions and use in each test.
+// TODO: Add setupValid, setupInvalid functions and use them in each test.
 
 // Create an instance of chainSpec with test data.
 var spec, _ = chain.NewChainSpec(
