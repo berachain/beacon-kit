@@ -52,7 +52,7 @@ func NewRollbackCmd[
 		Use:   "rollback",
 		Short: "rollback Cosmos SDK and CometBFT state by one height",
 		Long: `
-A state rollback is performed to recover from an incorrect application state transition,
+A state rollback is performed to recover from an incorrect application state transition
 when CometBFT has persisted an incorrect app hash and is thus unable to make
 progress. Rollback overwrites a state at height n with the state at height n - 1.
 The application also rolls back to height n - 1. No blocks are removed, so upon
