@@ -23,6 +23,7 @@ package cometbft
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
@@ -30,6 +31,7 @@ import (
 	servercmtlog "github.com/berachain/beacon-kit/consensus/cometbft/service/log"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/params"
 	statem "github.com/berachain/beacon-kit/consensus/cometbft/service/state"
+	errorsmod "github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -42,6 +44,7 @@ import (
 	"github.com/cometbft/cometbft/proxy"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 const (
@@ -259,4 +262,80 @@ func convertValidatorUpdate[ValidatorUpdateT any](
 		//#nosec:G701 // this is safe.
 		Power: int64(update.EffectiveBalance.Unwrap()),
 	}).(ValidatorUpdateT), nil
+}
+
+// getContextForProposal returns the correct Context for PrepareProposal and
+// ProcessProposal. We use finalizeBlockState on the first block to be able to
+// access any state changes made in InitChain.
+func (s *Service[LoggerT]) getContextForProposal(
+	ctx sdk.Context,
+	height int64,
+) sdk.Context {
+	if height != s.initialHeight {
+		return ctx
+	}
+
+	if s.finalizeBlockState == nil {
+		// this is unexpected since cometBFT won't call PrepareProposal
+		// on initialHeight. Panic appeases nilaway.
+		panic(fmt.Errorf("getContextForProposal: %w", errNilFinalizeBlockState))
+	}
+	ctx, _ = s.finalizeBlockState.Context().CacheContext()
+	return ctx
+}
+
+// CreateQueryContext creates a new sdk.Context for a query, taking as args
+// the block height and whether the query needs a proof or not.
+func (s *Service[LoggerT]) CreateQueryContext(
+	height int64,
+	prove bool,
+) (sdk.Context, error) {
+	// use custom query multi-store if provided
+	lastBlockHeight := s.sm.CommitMultiStore().LatestVersion()
+	if lastBlockHeight == 0 {
+		return sdk.Context{}, errorsmod.Wrapf(
+			sdkerrors.ErrInvalidHeight,
+			"%s is not ready; please wait for first block",
+			appName,
+		)
+	}
+
+	if height > lastBlockHeight {
+		return sdk.Context{},
+			errorsmod.Wrap(
+				sdkerrors.ErrInvalidHeight,
+				"cannot query with height in the future; please provide a valid height",
+			)
+	}
+
+	// when a client did not provide a query height, manually inject the latest
+	if height == 0 {
+		height = lastBlockHeight
+	}
+
+	if height <= 1 && prove {
+		return sdk.Context{},
+			errorsmod.Wrap(
+				sdkerrors.ErrInvalidRequest,
+				"cannot query with proof when height <= 1; please provide a valid height",
+			)
+	}
+
+	cacheMS, err := s.sm.CommitMultiStore().CacheMultiStoreWithVersion(height)
+	if err != nil {
+		return sdk.Context{},
+			errorsmod.Wrapf(
+				sdkerrors.ErrNotFound,
+				"failed to load state at height %d; %s (latest height: %d)",
+				height,
+				err,
+				lastBlockHeight,
+			)
+	}
+
+	return sdk.NewContext(
+		cacheMS,
+		true,
+		servercmtlog.WrapSDKLogger(s.logger),
+	), nil
 }
