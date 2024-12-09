@@ -22,151 +22,15 @@ package middleware
 
 import (
 	"context"
-	"time"
 
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/consensus/types"
-	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/async"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
-
-/* -------------------------------------------------------------------------- */
-/*                               ProcessProposal                              */
-/* -------------------------------------------------------------------------- */
-
-// ProcessProposal processes the proposal for the ABCI middleware.
-// It handles both the beacon block and blob sidecars concurrently.
-func (h *ABCIMiddleware[
-	BeaconBlockT, BeaconBlockHeaderT, BlobSidecarsT, _, _,
-]) ProcessProposal(
-	ctx sdk.Context,
-	req *cmtabci.ProcessProposalRequest,
-) (*cmtabci.ProcessProposalResponse, error) {
-	var (
-		startTime        = time.Now()
-		awaitCtx, cancel = context.WithTimeout(ctx, AwaitTimeout)
-	)
-	defer cancel()
-	// flush the channels to ensure that we are not handling old data.
-	if numMsgs := async.ClearChan(h.subBBVerified); numMsgs > 0 {
-		h.logger.Error(
-			"WARNING: messages remaining in beacon block verification channel",
-			"num_msgs", numMsgs)
-	}
-	if numMsgs := async.ClearChan(h.subSCVerified); numMsgs > 0 {
-		h.logger.Error(
-			"WARNING: messages remaining in sidecar verification channel",
-			"num_msgs", numMsgs)
-	}
-
-	defer h.metrics.measureProcessProposalDuration(startTime)
-
-	// Decode the beacon block.
-	blk, err := encoding.
-		UnmarshalBeaconBlockFromABCIRequest[BeaconBlockT](
-		req,
-		BeaconBlockTxIndex,
-		h.chainSpec.ActiveForkVersionForSlot(math.U64(req.Height)),
-	)
-	if err != nil {
-		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
-	}
-
-	// notify that the beacon block has been received.
-	var consensusBlk *types.ConsensusBlock[BeaconBlockT]
-	consensusBlk = consensusBlk.New(
-		blk,
-		req.GetProposerAddress(),
-		req.GetTime(),
-	)
-	blkEvent := async.NewEvent(ctx, async.BeaconBlockReceived, consensusBlk)
-	if err = h.dispatcher.Publish(blkEvent); err != nil {
-		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
-	}
-
-	// Decode the blob sidecars.
-	sidecars, err := encoding.
-		UnmarshalBlobSidecarsFromABCIRequest[BlobSidecarsT](
-		req,
-		BlobSidecarsTxIndex,
-	)
-	if err != nil {
-		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
-	}
-
-	// notify that the sidecars have been received.
-	var consensusSidecars *types.ConsensusSidecars[
-		BlobSidecarsT,
-		BeaconBlockHeaderT,
-	]
-	consensusSidecars = consensusSidecars.New(
-		sidecars,
-		blk.GetHeader(),
-	)
-	blobEvent := async.NewEvent(ctx, async.SidecarsReceived, consensusSidecars)
-	if err = h.dispatcher.Publish(blobEvent); err != nil {
-		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
-	}
-
-	// err if the built beacon block or sidecars failed verification.
-	_, err = h.waitForBeaconBlockVerification(awaitCtx)
-	if err != nil {
-		return h.createProcessProposalResponse(err)
-	}
-	_, err = h.waitForSidecarVerification(awaitCtx)
-	if err != nil {
-		return h.createProcessProposalResponse(err)
-	}
-	return h.createProcessProposalResponse(nil)
-}
-
-// waitForBeaconBlockVerification waits for the built beacon block to be
-// verified.
-func (h *ABCIMiddleware[
-	BeaconBlockT, _, _, _, _,
-]) waitForBeaconBlockVerification(
-	ctx context.Context,
-) (BeaconBlockT, error) {
-	select {
-	case <-ctx.Done():
-		return *new(BeaconBlockT), ErrVerifyBeaconBlockTimeout(ctx.Err())
-	case vEvent := <-h.subBBVerified:
-		return vEvent.Data(), vEvent.Error()
-	}
-}
-
-// waitForSidecarVerification waits for the built sidecars to be verified.
-func (h *ABCIMiddleware[
-	_, _, BlobSidecarsT, _, _,
-]) waitForSidecarVerification(
-	ctx context.Context,
-) (BlobSidecarsT, error) {
-	select {
-	case <-ctx.Done():
-		return *new(BlobSidecarsT), ErrVerifySidecarsTimeout(ctx.Err())
-	case vEvent := <-h.subSCVerified:
-		return vEvent.Data(), vEvent.Error()
-	}
-}
-
-// createResponse generates the appropriate ProcessProposalResponse based on the
-// error.
-func (*ABCIMiddleware[
-	BeaconBlockT, _, _, BlobSidecarsT, _,
-]) createProcessProposalResponse(
-	err error,
-) (*cmtabci.ProcessProposalResponse, error) {
-	status := cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
-	if !errors.IsFatal(err) {
-		status = cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
-		err = nil
-	}
-	return &cmtabci.ProcessProposalResponse{Status: status}, err
-}
 
 /* -------------------------------------------------------------------------- */
 /*                                FinalizeBlock                               */

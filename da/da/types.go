@@ -46,4 +46,5 @@ type BlobSidecar interface {
 	Len() int
 	// IsNil checks if the sidecar is nil.
 	IsNil() bool
+	//Empty() BlobSidecar
 }

@@ -35,10 +35,6 @@ type TelemetrySink interface {
 }
 
 type MiddlewareI interface {
-	ProcessProposal(
-		sdk.Context,
-		*cmtabci.ProcessProposalRequest,
-	) (*cmtabci.ProcessProposalResponse, error)
 	FinalizeBlock(
 		sdk.Context,
 		*cmtabci.FinalizeBlockRequest,

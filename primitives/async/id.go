@@ -25,12 +25,6 @@ type EventID string
 
 // event ids, topologically sorted.
 const (
-	// proposal processing events.
-	BeaconBlockReceived = "beacon-block-received"
-	SidecarsReceived    = "sidecars-received"
-	BeaconBlockVerified = "beacon-block-verified"
-	SidecarsVerified    = "sidecars-verified"
-
 	// finalize block events.
 	FinalBeaconBlockReceived       = "final-beacon-block-received"
 	FinalSidecarsReceived          = "final-blob-sidecars-received"
