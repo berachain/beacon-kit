@@ -57,7 +57,7 @@ interface IDepositContract {
 
     /**
      * @dev Emitted when a deposit is made, which could mean a new validator or a top up of an existing one.
-     * @param pubkey the public key of the validator who is being deposited for if not a new validator.
+     * @param pubkey is the public key of the validator who is being deposited for if not a new validator.
      * @param credentials the public key of the operator if new validator or the depositor if top up.
      * @param amount the amount of stake being deposited, in Gwei.
      * @param signature the signature of the deposit message, only checked when creating a new validator.

@@ -24,7 +24,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constraints"
 )
 
-// ExtractBlobsAndBlockFromRequest extracts the blobs and block from an ABCI
+// ExtractBlobsAndBlockFromRequest extracts the blobs and blocks from an ABCI
 // request.
 func ExtractBlobsAndBlockFromRequest[
 	BeaconBlockT BeaconBlock[BeaconBlockT],

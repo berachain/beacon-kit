@@ -156,7 +156,7 @@ func (s *Service[_]) Start(
 	return s.node.Start()
 }
 
-// Close is called in start cmd to gracefully cleanup resources.
+// Close is called in start cmd to gracefully clean up resources.
 func (s *Service[_]) Close() error {
 	var errs []error
 
