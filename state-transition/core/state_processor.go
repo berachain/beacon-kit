@@ -215,6 +215,10 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
+	if stateSlot == 309_357-33 {
+		panic("GETTING CLOSE TO BOOTSTRAPPING ISSUE")
+	}
+
 	// Iterate until we are "caught up".
 	for ; stateSlot < slot; stateSlot++ {
 		if err = sp.processSlot(st); err != nil {
