@@ -144,11 +144,11 @@ func ProvideServiceRegistry[
 	return service.NewRegistry(
 		service.WithLogger(in.Logger),
 		service.WithService(in.ValidatorService),
-		service.WithService(in.ChainService),
 		service.WithService(in.NodeAPIServer),
 		service.WithService(in.ReportingService),
 		service.WithService(in.EngineClient),
 		service.WithService(in.TelemetryService),
+		service.WithService(in.ChainService),
 		service.WithService(in.CometBFTService),
 	)
 }
