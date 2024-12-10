@@ -251,12 +251,15 @@ func (v Validator) IsEligibleForActivation(finalizedEpoch math.Epoch) bool {
 		v.ActivationEpoch == math.Epoch(constants.FarFutureEpoch)
 }
 
-// IsEligibleForActivationQueue is defined slightly differently from Ethereum 2.0 Spec
+// IsEligibleForActivationQueue is defined slightly differently from Ethereum
+// 2.0 Spec
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#is_eligible_for_activation_queue
 //
 //nolint:lll
 func (v Validator) IsEligibleForActivationQueue(threshold math.Gwei) bool {
-	return v.ActivationEligibilityEpoch == math.Epoch(constants.FarFutureEpoch) &&
+	return v.ActivationEligibilityEpoch == math.Epoch(
+		constants.FarFutureEpoch,
+	) &&
 		v.EffectiveBalance >= threshold
 }
 
@@ -290,7 +293,9 @@ func (v Validator) IsFullyWithdrawable(
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#is_partially_withdrawable_validator
 //
 //nolint:lll
-func (v Validator) IsPartiallyWithdrawable(balance, maxEffectiveBalance math.Gwei) bool {
+func (v Validator) IsPartiallyWithdrawable(
+	balance, maxEffectiveBalance math.Gwei,
+) bool {
 	hasExcessBalance := balance > maxEffectiveBalance
 	return v.HasEth1WithdrawalCredentials() &&
 		v.HasMaxEffectiveBalance(maxEffectiveBalance) && hasExcessBalance
