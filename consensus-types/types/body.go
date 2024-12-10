@@ -290,16 +290,21 @@ func (b *BeaconBlockBody) SetSlashingInfo(_ []*SlashingInfo) {
 }
 
 // GetTopLevelRoots returns the top-level roots of the BeaconBlockBody.
-func (b *BeaconBlockBody) GetTopLevelRoots() []common.Root {
+func (b *BeaconBlockBody) GetTopLevelRoots() ([]common.Root, error) {
+	depositsRoot, err := (&Deposits{b.GetDeposits()}).HashTreeRoot()
+	if err != nil {
+		return nil, err
+	}
+
 	return []common.Root{
 		common.Root(b.GetRandaoReveal().HashTreeRoot()),
 		b.Eth1Data.HashTreeRoot(),
 		common.Root(b.GetGraffiti().HashTreeRoot()),
-		Deposits(b.GetDeposits()).HashTreeRoot(),
+		common.Root(depositsRoot),
 		b.GetExecutionPayload().HashTreeRoot(),
 		// I think this is a bug.
 		common.Root{},
-	}
+	}, nil
 }
 
 // Length returns the number of fields in the BeaconBlockBody struct.

@@ -144,7 +144,7 @@ type (
 		constraints.EmptyWithVersion[T]
 		constraints.SSZMarshallableRootable
 		Length() uint64
-		GetTopLevelRoots() []common.Root
+		GetTopLevelRoots() ([]common.Root, error)
 		// GetRandaoReveal returns the RANDAO reveal signature.
 		GetRandaoReveal() crypto.BLSSignature
 		// GetExecutionPayload returns the execution payload.
