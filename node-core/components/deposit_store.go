@@ -83,13 +83,10 @@ type DepositPrunerInput[
 
 // ProvideDepositPruner provides a deposit pruner for the depinject framework.
 func ProvideDepositPruner[
-	BeaconBlockT BeaconBlock[
-		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	],
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT interface {
 		GetDeposits() []DepositT
 	},
-	BeaconBlockHeaderT any,
 	DepositT Deposit[
 		DepositT, *ForkData, WithdrawalCredentials,
 	],

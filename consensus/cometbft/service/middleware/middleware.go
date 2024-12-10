@@ -32,8 +32,7 @@ import (
 
 // ABCIMiddleware is a middleware between ABCI and the validator logic.
 type ABCIMiddleware[
-	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockHeaderT],
-	BeaconBlockHeaderT any,
+	BeaconBlockT BeaconBlock[BeaconBlockT],
 	BlobSidecarsT BlobSidecars[BlobSidecarsT],
 	GenesisT json.Unmarshaler,
 	SlotDataT any,
@@ -63,8 +62,7 @@ type ABCIMiddleware[
 
 // NewABCIMiddleware creates a new instance of the Handler struct.
 func NewABCIMiddleware[
-	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockHeaderT],
-	BeaconBlockHeaderT any,
+	BeaconBlockT BeaconBlock[BeaconBlockT],
 	BlobSidecarsT BlobSidecars[BlobSidecarsT],
 	GenesisT json.Unmarshaler,
 	SlotDataT any,
@@ -74,10 +72,10 @@ func NewABCIMiddleware[
 	logger log.Logger,
 	telemetrySink TelemetrySink,
 ) *ABCIMiddleware[
-	BeaconBlockT, BeaconBlockHeaderT, BlobSidecarsT, GenesisT, SlotDataT,
+	BeaconBlockT, BlobSidecarsT, GenesisT, SlotDataT,
 ] {
 	return &ABCIMiddleware[
-		BeaconBlockT, BeaconBlockHeaderT, BlobSidecarsT, GenesisT, SlotDataT,
+		BeaconBlockT, BlobSidecarsT, GenesisT, SlotDataT,
 	]{
 		chainSpec:                chainSpec,
 		dispatcher:               dispatcher,
@@ -93,7 +91,7 @@ func NewABCIMiddleware[
 }
 
 // Start subscribes the middleware to the events it needs to listen for.
-func (am *ABCIMiddleware[_, _, _, _, _]) Start(
+func (am *ABCIMiddleware[_, _, _, _]) Start(
 	_ context.Context,
 ) error {
 	var err error
@@ -131,6 +129,6 @@ func (am *ABCIMiddleware[_, _, _, _, _]) Start(
 }
 
 // Name returns the name of the middleware.
-func (am *ABCIMiddleware[_, _, _, _, _]) Name() string {
+func (am *ABCIMiddleware[_, _, _, _]) Name() string {
 	return "abci-middleware"
 }

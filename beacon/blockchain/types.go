@@ -24,6 +24,7 @@ import (
 	"context"
 	"time"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
@@ -73,15 +74,6 @@ type BeaconBlockBody[ExecutionPayloadT any] interface {
 	// GetExecutionPayload returns the execution payload of the beacon block
 	// body.
 	GetExecutionPayload() ExecutionPayloadT
-}
-
-// BeaconBlockHeader represents the interface for the beacon block header.
-type BeaconBlockHeader interface {
-	constraints.SSZMarshallableRootable
-	// SetStateRoot sets the state root of the beacon block header.
-	SetStateRoot(common.Root)
-	// GetStateRoot returns the state root of the beacon block header.
-	GetStateRoot() common.Root
 }
 
 // BlobSidecars is the interface for blobs sidecars.
@@ -159,14 +151,13 @@ type PayloadAttributes interface {
 // the beacon state.
 type ReadOnlyBeaconState[
 	T any,
-	BeaconBlockHeaderT any,
 	ExecutionPayloadHeaderT any,
 ] interface {
 	// Copy creates a copy of the beacon state.
 	Copy() T
 	// GetLatestBlockHeader returns the most recent block header.
 	GetLatestBlockHeader() (
-		BeaconBlockHeaderT,
+		*ctypes.BeaconBlockHeader,
 		error,
 	)
 	// GetLatestExecutionPayloadHeader returns the most recent execution payload

@@ -37,10 +37,7 @@ type Service[
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
-	BeaconBlockHeaderT BeaconBlockHeader,
-	BeaconStateT ReadOnlyBeaconState[
-		BeaconStateT, BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	],
+	BeaconStateT ReadOnlyBeaconState[BeaconStateT, ExecutionPayloadHeaderT],
 	DepositT any,
 	ExecutionPayloadT ExecutionPayload,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
@@ -95,11 +92,7 @@ func NewService[
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
-	BeaconBlockHeaderT BeaconBlockHeader,
-	BeaconStateT ReadOnlyBeaconState[
-		BeaconStateT, BeaconBlockHeaderT,
-		ExecutionPayloadHeaderT,
-	],
+	BeaconStateT ReadOnlyBeaconState[BeaconStateT, ExecutionPayloadHeaderT],
 	DepositT any,
 	ExecutionPayloadT ExecutionPayload,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
@@ -126,13 +119,13 @@ func NewService[
 	optimisticPayloadBuilds bool,
 ) *Service[
 	AvailabilityStoreT,
-	ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 	GenesisT, PayloadAttributesT,
 ] {
 	return &Service[
 		AvailabilityStoreT,
-		ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+		ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
 		BeaconStateT, DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 		GenesisT, PayloadAttributesT,
 	]{
@@ -154,7 +147,7 @@ func NewService[
 
 // Name returns the name of the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _,
 ]) Name() string {
 	return "blockchain"
 }
@@ -163,7 +156,7 @@ func (s *Service[
 // BeaconBlockReceived, and FinalBeaconBlockReceived events, and begins
 // the main event loop to handle them accordingly.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _,
 ]) Start(ctx context.Context) error {
 	if err := s.dispatcher.Subscribe(
 		async.GenesisDataReceived, s.subGenDataReceived,
@@ -190,7 +183,7 @@ func (s *Service[
 
 // eventLoop listens for events and handles them accordingly.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _,
 ]) eventLoop(ctx context.Context) {
 	for {
 		select {
@@ -213,7 +206,7 @@ func (s *Service[
 // handleGenDataReceived processes the genesis data received and emits a
 // GenesisDataProcessed event containing the resulting validator updates.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, GenesisT, _,
+	_, _, _, _, _, _, _, _, GenesisT, _,
 ]) handleGenDataReceived(msg async.Event[GenesisT]) {
 	var (
 		valUpdates transition.ValidatorUpdates
@@ -249,7 +242,7 @@ func (s *Service[
 // handleBeaconBlockReceived emits a BeaconBlockVerified event with the error
 // result from VerifyIncomingBlock.
 func (s *Service[
-	_, ConsensusBlockT, _, _, _, _, _, _, _, _, _,
+	_, ConsensusBlockT, _, _, _, _, _, _, _, _,
 ]) handleBeaconBlockReceived(
 	msg async.Event[ConsensusBlockT],
 ) {
@@ -280,7 +273,7 @@ func (s *Service[
 // a FinalValidatorUpdatesProcessed event containing the resulting validator
 // updates.
 func (s *Service[
-	_, ConsensusBlockT, _, _, _, _, _, _, _, _, _,
+	_, ConsensusBlockT, _, _, _, _, _, _, _, _,
 ]) handleBeaconBlockFinalization(
 	msg async.Event[ConsensusBlockT],
 ) {

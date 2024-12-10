@@ -20,34 +20,30 @@
 
 package types
 
-type ConsensusSidecars[SidecarsT any, BeaconBlockHeaderT any] struct {
+import "github.com/berachain/beacon-kit/consensus-types/types"
+
+type ConsensusSidecars[SidecarsT any] struct {
 	sidecars SidecarsT
 
-	blkHeader BeaconBlockHeaderT
+	blkHeader *types.BeaconBlockHeader
 }
 
 // New creates a new ConsensusSidecars instance.
-func (s *ConsensusSidecars[SidecarsT, BeaconBlockHeaderT]) New(
+func (s *ConsensusSidecars[SidecarsT]) New(
 	sidecars SidecarsT,
-	blkHeader BeaconBlockHeaderT,
-) *ConsensusSidecars[SidecarsT, BeaconBlockHeaderT] {
-	s = &ConsensusSidecars[SidecarsT, BeaconBlockHeaderT]{
+	blkHeader *types.BeaconBlockHeader,
+) *ConsensusSidecars[SidecarsT] {
+	s = &ConsensusSidecars[SidecarsT]{
 		sidecars:  sidecars,
 		blkHeader: blkHeader,
 	}
 	return s
 }
 
-func (s *ConsensusSidecars[
-	SidecarsT,
-	_,
-]) GetSidecars() SidecarsT {
+func (s *ConsensusSidecars[SidecarsT]) GetSidecars() SidecarsT {
 	return s.sidecars
 }
 
-func (s *ConsensusSidecars[
-	SidecarsT,
-	BeaconBlockHeaderT,
-]) GetHeader() BeaconBlockHeaderT {
+func (s *ConsensusSidecars[SidecarsT]) GetHeader() *types.BeaconBlockHeader {
 	return s.blkHeader
 }
