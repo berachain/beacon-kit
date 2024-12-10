@@ -58,7 +58,7 @@ type NodeAPIHandlersInput[
 	EventsAPIHandler  *eventsapi.Handler[NodeAPIContextT]
 	NodeAPIHandler    *nodeapi.Handler[NodeAPIContextT]
 	ProofAPIHandler   *proofapi.Handler[
-		*ctypes.BeaconBlockHeader, BeaconStateT, BeaconStateMarshallableT,
+		BeaconStateT, BeaconStateMarshallableT,
 		NodeAPIContextT, ExecutionPayloadHeaderT, *Validator,
 	]
 }
@@ -168,11 +168,10 @@ func ProvideNodeAPIProofHandler[
 	NodeT,
 	*Validator,
 ]) *proofapi.Handler[
-	*ctypes.BeaconBlockHeader, BeaconStateT, BeaconStateMarshallableT,
+	BeaconStateT, BeaconStateMarshallableT,
 	NodeAPIContextT, ExecutionPayloadHeaderT, *Validator,
 ] {
 	return proofapi.NewHandler[
-		*ctypes.BeaconBlockHeader,
 		BeaconStateT,
 		BeaconStateMarshallableT,
 		NodeAPIContextT,
