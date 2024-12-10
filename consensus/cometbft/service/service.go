@@ -62,7 +62,6 @@ type Service[
 
 	logger       LoggerT
 	sm           *statem.Manager
-	Middleware   MiddlewareI
 	Blockchain   blockchain.BlockchainI[any]
 	BlockBuilder validator.BlockBuilderI[any]
 
@@ -100,7 +99,6 @@ func NewService[
 	storeKey *storetypes.KVStoreKey,
 	logger LoggerT,
 	db dbm.DB,
-	middleware MiddlewareI,
 	blockchain blockchain.BlockchainI[any],
 	blockBuilder validator.BlockBuilderI[any],
 	cmtCfg *cmtcfg.Config,
@@ -114,7 +112,6 @@ func NewService[
 			db,
 			servercmtlog.WrapSDKLogger(logger),
 		),
-		Middleware:    middleware,
 		Blockchain:    blockchain,
 		BlockBuilder:  blockBuilder,
 		cmtCfg:        cmtCfg,

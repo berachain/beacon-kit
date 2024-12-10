@@ -73,7 +73,6 @@ type ChainServiceInput[
 		PayloadID,
 		WithdrawalsT,
 	]
-	Dispatcher     Dispatcher
 	LocalBuilder   LocalBuilder[BeaconStateT, ExecutionPayloadT]
 	Logger         LoggerT
 	Signer         crypto.BLSSigner
@@ -169,7 +168,6 @@ func ProvideChainService[
 		math.U64(in.ChainSpec.Eth1FollowDistance()),
 		in.Logger.With("service", "blockchain"),
 		in.ChainSpec,
-		in.Dispatcher,
 		in.ExecutionEngine,
 		in.LocalBuilder,
 		in.StateProcessor,

@@ -24,7 +24,6 @@ import (
 	"context"
 	"sync"
 
-	asynctypes "github.com/berachain/beacon-kit/async/types"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -62,8 +61,6 @@ type Service[
 	blobFactory BlobFactory[BeaconBlockT, BlobSidecarsT]
 	// sb is the beacon state backend.
 	sb StorageBackend[BeaconStateT, DepositStoreT]
-	// dispatcher is the dispatcher.
-	dispatcher asynctypes.EventDispatcher
 	// stateProcessor is responsible for processing the state.
 	stateProcessor StateProcessor[
 		BeaconBlockT,
@@ -119,7 +116,6 @@ func NewService[
 	localPayloadBuilder PayloadBuilder[BeaconStateT, ExecutionPayloadT],
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT],
 	ts TelemetrySink,
-	dispatcher asynctypes.EventDispatcher,
 ) *Service[
 	AttestationDataT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarT, BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT,
@@ -142,7 +138,6 @@ func NewService[
 		localPayloadBuilder:   localPayloadBuilder,
 		remotePayloadBuilders: remotePayloadBuilders,
 		metrics:               newValidatorMetrics(ts),
-		dispatcher:            dispatcher,
 	}
 }
 

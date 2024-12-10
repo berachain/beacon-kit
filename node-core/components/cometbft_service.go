@@ -40,7 +40,6 @@ func ProvideCometBFTService[
 ](
 	logger LoggerT,
 	storeKey *storetypes.KVStoreKey,
-	abciMiddleware cometbft.MiddlewareI,
 	blockchain blockchain.BlockchainI[any],
 	blockBuilder validator.BlockBuilderI[any],
 	db dbm.DB,
@@ -53,7 +52,6 @@ func ProvideCometBFTService[
 		storeKey,
 		logger,
 		db,
-		abciMiddleware,
 		blockchain,
 		blockBuilder,
 		cmtCfg,

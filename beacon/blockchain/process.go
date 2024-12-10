@@ -148,11 +148,67 @@ func (s *Service[
 	return createProcessProposalResponse(nil)
 }
 
-// ProcessBeaconBlock receives an incoming beacon block, it first validates
+func (s *Service[
+	_, _, ConsensusBlockT, BeaconBlockT, _, BeaconBlockHeaderT, _, _, _,
+	_, _, _, GenesisT, ConsensusSidecarsT, BlobSidecarsT, _,
+]) FinalizeBlock(
+	ctx sdk.Context,
+	req *cmtabci.FinalizeBlockRequest,
+) (transition.ValidatorUpdates, error) {
+	var (
+		valUpdates  transition.ValidatorUpdates
+		finalizeErr error
+	)
+
+	blk, blobs, err := encoding.
+		ExtractBlobsAndBlockFromRequest[BeaconBlockT, BlobSidecarsT](
+		req,
+		BeaconBlockTxIndex,
+		BlobSidecarsTxIndex,
+		s.chainSpec.ActiveForkVersionForSlot(
+			math.Slot(req.Height),
+		))
+	if err != nil {
+		//nolint:nilerr // If we don't have a block, we can't do anything.
+		return nil, nil
+	}
+
+	// notify that the final beacon block has been received.
+	var consensusBlk *types.ConsensusBlock[BeaconBlockT]
+	consensusBlk = consensusBlk.New(
+		blk,
+		req.GetProposerAddress(),
+		req.GetTime(),
+	)
+
+	val, ok := any(consensusBlk).(ConsensusBlockT)
+	if !ok {
+		panic("failed to convert consensusBlk to ConsensusBlockT")
+	}
+
+	valUpdates, finalizeErr = s.processBeaconBlock(ctx, val)
+	if finalizeErr != nil {
+		s.logger.Error("Failed to process verified beacon block",
+			"error", finalizeErr,
+		)
+	}
+
+	err = s.blobProcessor.ProcessSidecars(
+		s.storageBackend.AvailabilityStore(),
+		blobs,
+	)
+	if err != nil {
+		s.logger.Error("Failed to process blob sidecars", "error", err)
+	}
+
+	return valUpdates, nil
+}
+
+// processBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
 func (s *Service[
 	_, _, ConsensusBlockT, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) ProcessBeaconBlock(
+]) processBeaconBlock(
 	ctx context.Context,
 	blk ConsensusBlockT,
 ) (transition.ValidatorUpdates, error) {

@@ -22,12 +22,10 @@ package components
 
 import (
 	"cosmossdk.io/core/appmodule/v2"
-	asynctypes "github.com/berachain/beacon-kit/async/types"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	consruntimetypes "github.com/berachain/beacon-kit/consensus/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
-	"github.com/berachain/beacon-kit/primitives/async"
 	"github.com/berachain/beacon-kit/primitives/transition"
 )
 
@@ -92,29 +90,4 @@ type (
 
 	// WithdrawalCredentials is a type alias for the withdrawal credentials.
 	WithdrawalCredentials = types.WithdrawalCredentials
-)
-
-/* -------------------------------------------------------------------------- */
-/*                                   Messages                                 */
-/* -------------------------------------------------------------------------- */
-
-// Events.
-//
-
-type (
-	// NewSlotEvent is a type alias for the new slot event.
-	SlotEvent = async.Event[*SlotData]
-
-	// FinalValidatorUpdatesProcessedEvent is a type alias for the final
-	// validator updates processed event.
-	ValidatorUpdateEvent = async.Event[transition.ValidatorUpdates]
-)
-
-/* -------------------------------------------------------------------------- */
-/*                                   Dispatcher                               */
-/* -------------------------------------------------------------------------- */
-
-type (
-	// Dispatcher is a type alias for the dispatcher.
-	Dispatcher = asynctypes.Dispatcher
 )

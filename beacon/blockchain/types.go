@@ -256,6 +256,10 @@ type BlockchainI[GenesisT any] interface {
 		sdk.Context,
 		*cmtabci.ProcessProposalRequest,
 	) (*cmtabci.ProcessProposalResponse, error)
+	FinalizeBlock(
+		sdk.Context,
+		*cmtabci.FinalizeBlockRequest,
+	) (transition.ValidatorUpdates, error)
 }
 
 type ValidatorUpdates = transition.ValidatorUpdates
