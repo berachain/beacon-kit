@@ -25,7 +25,6 @@ import (
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/storage/block"
-	"github.com/berachain/beacon-kit/storage/manager"
 )
 
 // BlockStoreInput is the input for the dep inject framework.
@@ -58,7 +57,7 @@ func ProvideBlockStore[
 	],
 ) (*block.KVStore[BeaconBlockT], error) {
 	return block.NewStore[BeaconBlockT](
-		in.Logger.With("service", manager.BlockStoreName),
+		in.Logger.With("service", "block-store"),
 		in.Config.BlockStoreService.AvailabilityWindow,
 	), nil
 }

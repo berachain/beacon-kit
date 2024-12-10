@@ -72,7 +72,7 @@ func (s *Service[LoggerT]) finalizeBlockInternal(
 		}
 	}
 
-	finalizeBlock, err := s.Middleware.FinalizeBlock(
+	finalizeBlock, err := s.Blockchain.FinalizeBlock(
 		s.finalizeBlockState.Context(),
 		req,
 	)

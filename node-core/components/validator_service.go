@@ -49,7 +49,6 @@ type ValidatorServiceInput[
 	depinject.In
 	Cfg            *config.Config
 	ChainSpec      common.ChainSpec
-	Dispatcher     Dispatcher
 	LocalBuilder   LocalBuilder[BeaconStateT, ExecutionPayloadT]
 	Logger         LoggerT
 	StateProcessor StateProcessor[
@@ -135,6 +134,5 @@ func ProvideValidatorService[
 			in.LocalBuilder,
 		},
 		in.TelemetrySink,
-		in.Dispatcher,
 	), nil
 }

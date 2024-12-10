@@ -24,13 +24,11 @@ import (
 	"context"
 	"sync"
 
-	asynctypes "github.com/berachain/beacon-kit/async/types"
 	"github.com/berachain/beacon-kit/da/da"
 	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-api/backend"
 	blockstore "github.com/berachain/beacon-kit/node-api/block_store"
-	"github.com/berachain/beacon-kit/primitives/async"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -95,8 +93,6 @@ type Service[
 	logger log.Logger
 	// chainSpec holds the chain specifications.
 	chainSpec common.ChainSpec
-	// dispatcher is the dispatcher for the service.
-	dispatcher asynctypes.Dispatcher
 	// executionEngine is the execution engine responsible for processing
 	//
 	// execution payloads.
@@ -118,9 +114,6 @@ type Service[
 	optimisticPayloadBuilds bool
 	// forceStartupSyncOnce is used to force a sync of the startup head.
 	forceStartupSyncOnce *sync.Once
-
-	// subFinalBlkReceived is a channel holding FinalBeaconBlockReceived events.
-	subFinalBlkReceived chan async.Event[ConsensusBlockT]
 }
 
 // NewService creates a new validator service.
@@ -165,7 +158,6 @@ func NewService[
 	eth1FollowDistance math.U64,
 	logger log.Logger,
 	chainSpec common.ChainSpec,
-	dispatcher asynctypes.Dispatcher,
 	executionEngine ExecutionEngine[PayloadAttributesT],
 	localBuilder LocalBuilder[BeaconStateT],
 	stateProcessor StateProcessor[
@@ -201,14 +193,12 @@ func NewService[
 		failedBlocks:            make(map[math.Slot]struct{}),
 		logger:                  logger,
 		chainSpec:               chainSpec,
-		dispatcher:              dispatcher,
 		executionEngine:         executionEngine,
 		localBuilder:            localBuilder,
 		stateProcessor:          stateProcessor,
 		metrics:                 newChainMetrics(telemetrySink),
 		optimisticPayloadBuilds: optimisticPayloadBuilds,
 		forceStartupSyncOnce:    new(sync.Once),
-		subFinalBlkReceived:     make(chan async.Event[ConsensusBlockT]),
 	}
 }
 
@@ -219,83 +209,11 @@ func (s *Service[
 	return "blockchain"
 }
 
-// Start subscribes the Blockchain service to
-// BeaconBlockReceived, and FinalBeaconBlockReceived events, and begins
-// the main event loop to handle them accordingly.
 func (s *Service[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) Start(ctx context.Context) error {
-	if err := s.dispatcher.Subscribe(
-		async.FinalBeaconBlockReceived, s.subFinalBlkReceived,
-	); err != nil {
-		return err
-	}
-
-	// start the main event loop to listen and handle events.
-	go s.eventLoop(ctx)
-
 	// Catchup deposits for failed blocks.
 	go s.depositCatchupFetcher(ctx)
 
 	return nil
-}
-
-// eventLoop listens for events and handles them accordingly.
-func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) eventLoop(ctx context.Context) {
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case event := <-s.subFinalBlkReceived:
-			s.handleBeaconBlockFinalization(event)
-		}
-	}
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                Event Handlers                              */
-/* -------------------------------------------------------------------------- */
-
-// handleBeaconBlockFinalization processes the finalized beacon block and emits
-// a FinalValidatorUpdatesProcessed event containing the resulting validator
-// updates.
-func (s *Service[
-	_, _, ConsensusBlockT, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) handleBeaconBlockFinalization(
-	msg async.Event[ConsensusBlockT],
-) {
-	var (
-		valUpdates  transition.ValidatorUpdates
-		finalizeErr error
-	)
-	// If there's an error in the event, log it and return
-	if msg.Error() != nil {
-		s.logger.Error("Error verifying beacon block", "error", msg.Error())
-		return
-	}
-
-	// process the verified block and get the validator updates
-	valUpdates, finalizeErr = s.ProcessBeaconBlock(msg.Context(), msg.Data())
-	if finalizeErr != nil {
-		s.logger.Error("Failed to process verified beacon block",
-			"error", finalizeErr,
-		)
-	}
-
-	// Emit the event containing the validator updates.
-	if err := s.dispatcher.Publish(
-		async.NewEvent(
-			msg.Context(),
-			async.FinalValidatorUpdatesProcessed,
-			valUpdates,
-			finalizeErr,
-		),
-	); err != nil {
-		s.logger.Error(
-			"Failed to emit event in finalize beacon block",
-			"error", err,
-		)
-	}
 }

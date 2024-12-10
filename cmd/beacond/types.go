@@ -28,7 +28,6 @@ import (
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	consruntimetypes "github.com/berachain/beacon-kit/consensus/types"
 	dablob "github.com/berachain/beacon-kit/da/blob"
-	"github.com/berachain/beacon-kit/da/da"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -99,12 +98,6 @@ type (
 
 	// CometBFTService is a type alias for the CometBFT service.
 	CometBFTService = cometbft.Service[*Logger]
-
-	// DAService is a type alias for the DA service.
-	DAService = da.Service[
-		*AvailabilityStore,
-		*ConsensusSidecars, *BlobSidecars, *BeaconBlockHeader,
-	]
 
 	// EngineClient is a type alias for the engine client.
 	EngineClient = engineclient.EngineClient[
