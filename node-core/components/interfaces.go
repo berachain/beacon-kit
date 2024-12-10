@@ -393,6 +393,8 @@ type (
 		GetPubkey() crypto.BLSPubkey
 		// GetWithdrawalCredentials returns the withdrawal credentials.
 		GetWithdrawalCredentials() WithdrawalCredentialsT
+		// HasEth1WithdrawalCredentials returns true if the deposit has eth1
+		// withdrawal credentials.
 		HasEth1WithdrawalCredentials() bool
 		// VerifySignature verifies the deposit and creates a validator.
 		VerifySignature(

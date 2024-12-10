@@ -139,10 +139,13 @@ type Deposit[
 	GetAmount() math.Gwei
 	// GetPubkey returns the public key of the validator.
 	GetPubkey() crypto.BLSPubkey
-	// GetWithdrawalCredentials returns the withdrawal credentials.
-	GetWithdrawalCredentials() WithdrawlCredentialsT
 	// GetIndex returns deposit index
 	GetIndex() math.U64
+	// GetWithdrawalCredentials returns the withdrawal credentials.
+	GetWithdrawalCredentials() WithdrawlCredentialsT
+	// HasEth1WithdrawalCredentials returns true if the deposit has eth1
+	// withdrawal credentials.
+	HasEth1WithdrawalCredentials() bool
 	// VerifySignature verifies the deposit and creates a validator.
 	VerifySignature(
 		forkData ForkDataT,
@@ -152,9 +155,6 @@ type Deposit[
 			message []byte, signature crypto.BLSSignature,
 		) error,
 	) error
-	// HasEth1WithdrawalCredentials returns true if the deposit has eth1
-	// withdrawal credentials.
-	HasEth1WithdrawalCredentials() bool
 }
 
 // DepositStore defines the interface for deposit storage.
