@@ -32,7 +32,6 @@ import (
 	"github.com/sourcegraph/conc/iter"
 )
 
-//nolint:lll // let it be
 func (sp *StateProcessor[
 	_, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
 ]) processRegistryUpdates(
@@ -63,7 +62,9 @@ func (sp *StateProcessor[
 	currEpoch := sp.cs.SlotToEpoch(slot)
 	nextEpoch := currEpoch + 1
 
-	minEffectiveBalance := math.Gwei(sp.cs.EjectionBalance() + sp.cs.EffectiveBalanceIncrement())
+	minEffectiveBalance := math.Gwei(
+		sp.cs.EjectionBalance() + sp.cs.EffectiveBalanceIncrement(),
+	)
 
 	// We do not currently have a cap on validator churn,
 	// so we can process validators activations in a single loop
@@ -79,26 +80,35 @@ func (sp *StateProcessor[
 			valModified = true
 		}
 		// Note: without slashing and voluntary withdrawals, there is no way
-		// for an activa validator to have its balance less or equal to EjectionBalance
+		// for an activa validator to have its balance less or equal to
+		// EjectionBalance
 
 		if valModified {
 			idx, err = st.ValidatorIndexByPubkey(val.GetPubkey())
 			if err != nil {
-				return fmt.Errorf("registry update, failed loading validator index, state index %d: %w", si, err)
+				return fmt.Errorf(
+					"registry update, failed loading validator index, state index %d: %w",
+					si,
+					err,
+				)
 			}
 			if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
-				return fmt.Errorf("registry update, failed updating validator idx %d: %w", idx, err)
+				return fmt.Errorf(
+					"registry update, failed updating validator idx %d: %w",
+					idx,
+					err,
+				)
 			}
 		}
 	}
 
 	// validators registry will be possibly further modified in order to enforce
 	// validators set cap. We will do that at the end of processEpoch, once all
-	// Eth 2.0 like transitions has been done (notable EffectiveBalances handling).
+	// Eth 2.0 like transitions has been done (notable EffectiveBalances
+	// handling).
 	return nil
 }
 
-//nolint:lll // let it be
 func (sp *StateProcessor[
 	_, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
 ]) processValidatorSetCap(
@@ -117,7 +127,10 @@ func (sp *StateProcessor[
 
 	nextEpochVals, err := sp.getActiveVals(st, nextEpoch)
 	if err != nil {
-		return fmt.Errorf("registry update, failed retrieving next epoch vals: %w", err)
+		return fmt.Errorf(
+			"registry update, failed retrieving next epoch vals: %w",
+			err,
+		)
 	}
 
 	if uint64(len(nextEpochVals)) <= sp.cs.ValidatorSetCap() {
@@ -154,10 +167,17 @@ func (sp *StateProcessor[
 		valToEject.SetWithdrawableEpoch(nextEpoch + 1)
 		idx, err = st.ValidatorIndexByPubkey(valToEject.GetPubkey())
 		if err != nil {
-			return fmt.Errorf("validators cap, failed loading validator index: %w", err)
+			return fmt.Errorf(
+				"validators cap, failed loading validator index: %w",
+				err,
+			)
 		}
 		if err = st.UpdateValidatorAtIndex(idx, valToEject); err != nil {
-			return fmt.Errorf("validator cap, failed ejecting validator idx %d: %w", li, err)
+			return fmt.Errorf(
+				"validator cap, failed ejecting validator idx %d: %w",
+				li,
+				err,
+			)
 		}
 	}
 

@@ -34,7 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/primitives/version"
-	"golang.org/x/sync/errgroup"
 )
 
 // buildBlockAndSidecars builds a new beacon block.
@@ -48,7 +47,6 @@ func (s *Service[
 		blk       BeaconBlockT
 		sidecars  BlobSidecarsT
 		startTime = time.Now()
-		g, _      = errgroup.WithContext(ctx)
 	)
 
 	defer s.metrics.measureRequestBlockForProposalTime(startTime)
@@ -99,32 +97,21 @@ func (s *Service[
 		return blk, sidecars, err
 	}
 
-	// Produce blob sidecars, we produce them in parallel to computing the state
-	// root as an optimization.
-	//
-	// TODO: Figure out a clean way to break "BlockAndSidecars" into two
-	// functions
-	// without giving up the parallelization benefits.
-	g.Go(func() error {
-		sidecars, err = s.blobFactory.BuildSidecars(
-			blk, envelope.GetBlobsBundle(),
-		)
-		return err
-	})
-
 	// Compute the state root for the block.
-	g.Go(func() error {
-		return s.computeAndSetStateRoot(
-			ctx,
-			slotData.GetProposerAddress(),
-			slotData.GetConsensusTime(),
-			st,
-			blk,
-		)
-	})
+	if err = s.computeAndSetStateRoot(
+		ctx,
+		slotData.GetProposerAddress(),
+		slotData.GetConsensusTime(),
+		st,
+		blk,
+	); err != nil {
+		return blk, sidecars, err
+	}
 
-	// Wait for all the goroutines to finish.
-	if err = g.Wait(); err != nil {
+	// Produce blob sidecars with new StateRoot
+	if sidecars, err = s.blobFactory.BuildSidecars(
+		blk, envelope.GetBlobsBundle(),
+	); err != nil {
 		return blk, sidecars, err
 	}
 
