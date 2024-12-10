@@ -93,13 +93,13 @@ func TestValidateBlockRoots(t *testing.T) {
 		inclusionProof = append(inclusionProof, common.Root(proof))
 	}
 
+	validBeaconBlockHeader := ctypes.BeaconBlockHeader{
+		StateRoot: [32]byte{1},
+		BodyRoot:  [32]byte{2},
+	}
 	validSidecar := types.BuildBlobSidecar(
 		math.U64(0),
-		&ctypes.BeaconBlockHeader{
-			StateRoot: [32]byte{1},
-			BodyRoot:  [32]byte{2},
-		},
-
+		&validBeaconBlockHeader,
 		&eip4844.Blob{},
 		[48]byte{},
 		[48]byte{},
@@ -110,7 +110,7 @@ func TestValidateBlockRoots(t *testing.T) {
 	sidecars := types.BlobSidecars{
 		Sidecars: []*types.BlobSidecar{validSidecar},
 	}
-	err := sidecars.ValidateBlockRoots()
+	err := sidecars.ValidateBlockRoots(&validBeaconBlockHeader)
 	require.NoError(
 		t,
 		err,
@@ -136,7 +136,7 @@ func TestValidateBlockRoots(t *testing.T) {
 			differentBlockRootSidecar,
 		},
 	}
-	err = sidecarsInvalid.ValidateBlockRoots()
+	err = sidecarsInvalid.ValidateBlockRoots(&validBeaconBlockHeader)
 	require.Error(
 		t,
 		err,

@@ -22,7 +22,6 @@ package blob
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
@@ -69,14 +68,6 @@ func (bv *verifier[_, BlobSidecarsT]) verifySidecars(
 		bv.proofVerifier.GetImplementation(),
 	)
 
-	// check that sideracs block headers match with header of the
-	// corresponding block
-	for i, s := range sidecars.GetSidecars() {
-		if !s.GetBeaconBlockHeader().Equals(blkHeader) {
-			return fmt.Errorf("unequal block header: idx: %d", i)
-		}
-	}
-
 	// Verify the inclusion proofs on the blobs concurrently.
 	g, _ := errgroup.WithContext(context.Background())
 	g.Go(func() error {
@@ -92,8 +83,10 @@ func (bv *verifier[_, BlobSidecarsT]) verifySidecars(
 		return bv.verifyKZGProofs(sidecars)
 	})
 
+	// Check that all sidecar's block header roots match with header root of
+	// the corresponding BeaconBlock
 	g.Go(func() error {
-		return sidecars.ValidateBlockRoots()
+		return sidecars.ValidateBlockRoots(blkHeader)
 	})
 
 	// Wait for all goroutines to finish and return the result.

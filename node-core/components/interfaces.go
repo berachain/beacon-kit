@@ -245,7 +245,7 @@ type (
 		Len() int
 		Get(index int) BlobSidecarT
 		GetSidecars() []BlobSidecarT
-		ValidateBlockRoots() error
+		ValidateBlockRoots(blkHeader *ctypes.BeaconBlockHeader) error
 		VerifyInclusionProofs(kzgOffset uint64) error
 	}
 

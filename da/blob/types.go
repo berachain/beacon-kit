@@ -71,7 +71,7 @@ type Sidecars[SidecarT any] interface {
 	Len() int
 	Get(index int) SidecarT
 	GetSidecars() []SidecarT
-	ValidateBlockRoots() error
+	ValidateBlockRoots(blkHeader *ctypes.BeaconBlockHeader) error
 	VerifyInclusionProofs(kzgOffset uint64) error
 }
 

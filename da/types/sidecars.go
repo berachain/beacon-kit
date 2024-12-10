@@ -22,6 +22,8 @@
 package types
 
 import (
+	"fmt"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/karalabe/ssz"
 	"github.com/sourcegraph/conc/iter"
@@ -57,15 +59,11 @@ func (bs *BlobSidecars) IsNil() bool {
 
 // ValidateBlockRoots checks to make sure that
 // all blobs in the sidecar are from the same block.
-func (bs *BlobSidecars) ValidateBlockRoots() error {
-	// We only need to check if there is more than
-	// a single blob in the sidecar.
-	if sc := bs.Sidecars; len(sc) > 1 {
-		firstHtr := sc[0].BeaconBlockHeader.HashTreeRoot()
-		for i := 1; i < len(sc); i++ {
-			if firstHtr != sc[i].BeaconBlockHeader.HashTreeRoot() {
-				return ErrSidecarContainsDifferingBlockRoots
-			}
+func (bs *BlobSidecars) ValidateBlockRoots(blkHeader *ctypes.BeaconBlockHeader) error {
+	blkHeaderRoot := blkHeader.HashTreeRoot()
+	for i, sidecar := range bs.Sidecars {
+		if sidecar.GetBeaconBlockHeader().HashTreeRoot() != blkHeaderRoot {
+			return fmt.Errorf("unequal block header: idx: %d", i)
 		}
 	}
 	return nil
