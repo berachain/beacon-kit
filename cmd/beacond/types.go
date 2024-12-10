@@ -249,12 +249,10 @@ type (
 
 	// BeaconStateMarshallable is a type alias for the BeaconState.
 	BeaconStateMarshallable = types.BeaconState[
-		*BeaconBlockHeader,
 		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,
 		*Validator,
-		BeaconBlockHeader,
 		Eth1Data,
 		ExecutionPayloadHeader,
 		Fork,

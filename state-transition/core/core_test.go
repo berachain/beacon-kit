@@ -56,12 +56,10 @@ import (
 
 type (
 	TestBeaconStateMarshallableT = types.BeaconState[
-		*types.BeaconBlockHeader,
 		*types.Eth1Data,
 		*types.ExecutionPayloadHeader,
 		*types.Fork,
 		*types.Validator,
-		types.BeaconBlockHeader,
 		types.Eth1Data,
 		types.ExecutionPayloadHeader,
 		types.Fork,
