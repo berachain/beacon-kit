@@ -37,7 +37,7 @@ type BlockResponse struct {
 	ValidatorResponse
 }
 
-type BlockHeaderResponse[BlockHeaderT any] struct {
+type BlockHeaderResponse struct {
 	Root      common.Root  `json:"root"`
 	Canonical bool         `json:"canonical"`
 	Header    *BlockHeader `json:"header"`

@@ -21,7 +21,6 @@
 package beacon
 
 import (
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/primitives/bytes"
@@ -47,7 +46,7 @@ func (h *Handler[
 	return beacontypes.ValidatorResponse{
 		ExecutionOptimistic: false, // stubbed
 		Finalized:           false, // stubbed
-		Data: &beacontypes.BlockHeaderResponse[*ctypes.BeaconBlockHeader]{
+		Data: &beacontypes.BlockHeaderResponse{
 			Root:      header.GetBodyRoot(),
 			Canonical: true,
 			Header: &beacontypes.BlockHeader{
@@ -78,7 +77,7 @@ func (h *Handler[
 	return beacontypes.ValidatorResponse{
 		ExecutionOptimistic: false, // stubbed
 		Finalized:           false, // stubbed
-		Data: &beacontypes.BlockHeaderResponse[*ctypes.BeaconBlock]{
+		Data: &beacontypes.BlockHeaderResponse{
 			Root:      header.GetBodyRoot(),
 			Canonical: true,
 			Header: &beacontypes.BlockHeader{
