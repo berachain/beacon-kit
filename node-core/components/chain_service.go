@@ -87,7 +87,7 @@ func ProvideChainService[
 		*Eth1Data, ExecutionPayloadT, *SlashingInfo,
 	],
 	BeaconStateT BeaconState[
-		BeaconStateT, *ctypes.BeaconBlockHeader, BeaconStateMarshallableT,
+		BeaconStateT, BeaconStateMarshallableT,
 		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT,
 		*Validator, Validators, WithdrawalT,
 	],

@@ -61,9 +61,8 @@ type LocalBuilderInput[
 // ProvideLocalBuilder provides a local payload builder for the
 // depinject framework.
 func ProvideLocalBuilder[
-	BeaconBlockHeaderT any,
 	BeaconStateT BeaconState[
-		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
+		BeaconStateT, BeaconStateMarshallableT,
 		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT, *Validator,
 		Validators, WithdrawalT,
 	],

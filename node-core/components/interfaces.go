@@ -783,7 +783,6 @@ type (
 	// is a combination of the read-only and write-only beacon state types.
 	BeaconState[
 		T any,
-		BeaconBlockHeaderT any,
 		BeaconStateMarshallableT any,
 		Eth1DataT,
 		ExecutionPayloadHeaderT,
@@ -803,11 +802,11 @@ type (
 		GetMarshallable() (BeaconStateMarshallableT, error)
 
 		ReadOnlyBeaconState[
-			BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+			Eth1DataT, ExecutionPayloadHeaderT,
 			ForkT, ValidatorT, ValidatorsT, WithdrawalT,
 		]
 		WriteOnlyBeaconState[
-			BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+			Eth1DataT, ExecutionPayloadHeaderT,
 			ForkT, ValidatorT,
 		]
 	}
@@ -940,7 +939,7 @@ type (
 
 	// ReadOnlyBeaconState is the interface for a read-only beacon state.
 	ReadOnlyBeaconState[
-		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+		Eth1DataT, ExecutionPayloadHeaderT, ForkT,
 		ValidatorT, ValidatorsT, WithdrawalT any,
 	] interface {
 		ReadOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT]
@@ -956,7 +955,7 @@ type (
 		GetFork() (ForkT, error)
 		GetGenesisValidatorsRoot() (common.Root, error)
 		GetBlockRootAtIndex(uint64) (common.Root, error)
-		GetLatestBlockHeader() (BeaconBlockHeaderT, error)
+		GetLatestBlockHeader() (*ctypes.BeaconBlockHeader, error)
 		GetTotalActiveBalances(uint64) (math.Gwei, error)
 		GetValidators() (ValidatorsT, error)
 		GetSlashingAtIndex(uint64) (math.Gwei, error)
@@ -972,7 +971,7 @@ type (
 
 	// WriteOnlyBeaconState is the interface for a write-only beacon state.
 	WriteOnlyBeaconState[
-		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+		Eth1DataT, ExecutionPayloadHeaderT,
 		ForkT, ValidatorT any,
 	] interface {
 		WriteOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT]
@@ -984,7 +983,7 @@ type (
 		SetFork(ForkT) error
 		SetSlot(math.Slot) error
 		UpdateBlockRootAtIndex(uint64, common.Root) error
-		SetLatestBlockHeader(BeaconBlockHeaderT) error
+		SetLatestBlockHeader(*ctypes.BeaconBlockHeader) error
 		IncreaseBalance(math.ValidatorIndex, math.Gwei) error
 		DecreaseBalance(math.ValidatorIndex, math.Gwei) error
 		UpdateSlashingAtIndex(uint64, math.Gwei) error

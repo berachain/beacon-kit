@@ -229,10 +229,9 @@ type (
 	AvailabilityStore = dastore.Store[*BeaconBlockBody]
 
 	// BeaconBlock type aliases.
-	ConsensusBlock    = consruntimetypes.ConsensusBlock[*BeaconBlock]
-	BeaconBlock       = types.BeaconBlock
-	BeaconBlockBody   = types.BeaconBlockBody
-	BeaconBlockHeader = types.BeaconBlockHeader
+	ConsensusBlock  = consruntimetypes.ConsensusBlock[*BeaconBlock]
+	BeaconBlock     = types.BeaconBlock
+	BeaconBlockBody = types.BeaconBlockBody
 
 	// BeaconState is a type alias for the BeaconState.
 	BeaconState = statedb.StateDB[

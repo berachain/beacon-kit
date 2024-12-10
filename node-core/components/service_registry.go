@@ -55,7 +55,7 @@ type ServiceRegistryInput[
 	],
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
 	BeaconStateT BeaconState[
-		BeaconStateT, *types.BeaconBlockHeader, BeaconStateMarshallableT,
+		BeaconStateT, BeaconStateMarshallableT,
 		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT,
 		*Validator, Validators, WithdrawalT,
 	],
@@ -136,7 +136,7 @@ func ProvideServiceRegistry[
 	],
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
 	BeaconStateT BeaconState[
-		BeaconStateT, *types.BeaconBlockHeader, BeaconStateMarshallableT,
+		BeaconStateT, BeaconStateMarshallableT,
 		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT,
 		*Validator, Validators, WithdrawalT,
 	],

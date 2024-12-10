@@ -33,22 +33,22 @@ func DefaultComponents() []any {
 			*Genesis, *Logger,
 		],
 		components.ProvideAttributesFactory[
-			*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
+			*BeaconState, *BeaconStateMarshallable,
 			*ExecutionPayloadHeader, *KVStore, *Logger,
 		],
 		components.ProvideAvailibilityStore[*BeaconBlockBody, *Logger],
 		components.ProvideAvailabilityPruner[
 			*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,
-			*BeaconBlockHeader, *BlobSidecars, *Logger,
+			*BlobSidecars, *Logger,
 		],
 		components.ProvideDepositContract[
 			*Deposit, *ExecutionPayload, *ExecutionPayloadHeader,
 		],
 		components.ProvideBlockStore[
-			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader, *Logger,
+			*BeaconBlock, *BeaconBlockBody, *Logger,
 		],
 		components.ProvideBlockStoreService[
-			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader,
+			*BeaconBlock, *BeaconBlockBody,
 			*BlockStore, *Logger,
 		],
 		components.ProvideBlsSigner,
@@ -79,11 +79,11 @@ func DefaultComponents() []any {
 		],
 		components.ProvideDBManager[*AvailabilityStore, *DepositStore, *Logger],
 		components.ProvideDepositPruner[
-			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader,
+			*BeaconBlock, *BeaconBlockBody,
 			*Deposit, *DepositStore, *Logger,
 		],
 		components.ProvideDepositService[
-			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader, *Deposit,
+			*BeaconBlock, *BeaconBlockBody, *Deposit,
 			*DepositContract, *DepositStore, *ExecutionPayload,
 			*ExecutionPayloadHeader, *Logger,
 		],
@@ -101,7 +101,7 @@ func DefaultComponents() []any {
 		],
 		components.ProvideJWTSecret,
 		components.ProvideLocalBuilder[
-			*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
+			*BeaconState, *BeaconStateMarshallable,
 			*ExecutionPayload, *ExecutionPayloadHeader, *KVStore, *Logger,
 		],
 		components.ProvideReportingService[
@@ -136,7 +136,7 @@ func DefaultComponents() []any {
 		components.ProvideTrustedSetup,
 		components.ProvideValidatorService[
 			*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,
-			*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
+			*BeaconState, *BeaconStateMarshallable,
 			*BlockStore, *BlobSidecars, *Deposit, *DepositStore,
 			*ExecutionPayload, *ExecutionPayloadHeader, *KVStore, *Logger,
 			*StorageBackend,

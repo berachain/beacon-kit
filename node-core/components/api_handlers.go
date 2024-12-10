@@ -35,7 +35,7 @@ import (
 
 type NodeAPIHandlersInput[
 	BeaconStateT BeaconState[
-		BeaconStateT, *ctypes.BeaconBlockHeader, BeaconStateMarshallableT,
+		BeaconStateT, BeaconStateMarshallableT,
 		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT,
 		*Validator, Validators, WithdrawalT,
 	],
@@ -65,7 +65,7 @@ type NodeAPIHandlersInput[
 
 func ProvideNodeAPIHandlers[
 	BeaconStateT BeaconState[
-		BeaconStateT, *ctypes.BeaconBlockHeader, BeaconStateMarshallableT,
+		BeaconStateT, BeaconStateMarshallableT,
 		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT,
 		*Validator, Validators, WithdrawalT,
 	],
@@ -148,7 +148,7 @@ func ProvideNodeAPINodeHandler[
 
 func ProvideNodeAPIProofHandler[
 	BeaconStateT BeaconState[
-		BeaconStateT, *ctypes.BeaconBlockHeader, BeaconStateMarshallableT,
+		BeaconStateT, BeaconStateMarshallableT,
 		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT,
 		*Validator, Validators, WithdrawalT,
 	],

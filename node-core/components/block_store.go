@@ -23,6 +23,7 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/config"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/storage/block"
 	"github.com/berachain/beacon-kit/storage/manager"
@@ -31,10 +32,9 @@ import (
 // BlockStoreInput is the input for the dep inject framework.
 type BlockStoreInput[
 	BeaconBlockT BeaconBlock[
-		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+		BeaconBlockT, BeaconBlockBodyT, *ctypes.BeaconBlockHeader,
 	],
 	BeaconBlockBodyT any,
-	BeaconBlockHeaderT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 ] struct {
 	depinject.In
@@ -47,14 +47,13 @@ type BlockStoreInput[
 // application.
 func ProvideBlockStore[
 	BeaconBlockT BeaconBlock[
-		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+		BeaconBlockT, BeaconBlockBodyT, *ctypes.BeaconBlockHeader,
 	],
 	BeaconBlockBodyT any,
-	BeaconBlockHeaderT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	in BlockStoreInput[
-		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT, LoggerT,
+		BeaconBlockT, BeaconBlockBodyT, LoggerT,
 	],
 ) (*block.KVStore[BeaconBlockT], error) {
 	return block.NewStore[BeaconBlockT](

@@ -24,6 +24,7 @@ import (
 	"cosmossdk.io/depinject"
 	storev2 "cosmossdk.io/store/v2/db"
 	"github.com/berachain/beacon-kit/config"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
@@ -84,12 +85,11 @@ type DepositPrunerInput[
 // ProvideDepositPruner provides a deposit pruner for the depinject framework.
 func ProvideDepositPruner[
 	BeaconBlockT BeaconBlock[
-		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+		BeaconBlockT, BeaconBlockBodyT, *ctypes.BeaconBlockHeader,
 	],
 	BeaconBlockBodyT interface {
 		GetDeposits() []DepositT
 	},
-	BeaconBlockHeaderT any,
 	DepositT Deposit[
 		DepositT, *ForkData, WithdrawalCredentials,
 	],
