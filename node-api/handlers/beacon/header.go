@@ -27,7 +27,7 @@ import (
 )
 
 func (h *Handler[
-	BeaconBlockHeaderT, ContextT, _, _,
+	ContextT, _, _,
 ]) GetBlockHeaders(c ContextT) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetBlockHeadersRequest](
 		c, h.Logger(),
@@ -46,10 +46,10 @@ func (h *Handler[
 	return beacontypes.ValidatorResponse{
 		ExecutionOptimistic: false, // stubbed
 		Finalized:           false, // stubbed
-		Data: &beacontypes.BlockHeaderResponse[BeaconBlockHeaderT]{
+		Data: &beacontypes.BlockHeaderResponse{
 			Root:      header.GetBodyRoot(),
 			Canonical: true,
-			Header: &beacontypes.BlockHeader[BeaconBlockHeaderT]{
+			Header: &beacontypes.BlockHeader{
 				Message:   header,
 				Signature: bytes.B48{}, // TODO: implement
 			},
@@ -58,7 +58,7 @@ func (h *Handler[
 }
 
 func (h *Handler[
-	BeaconBlockHeaderT, ContextT, _, _,
+	ContextT, _, _,
 ]) GetBlockHeaderByID(c ContextT) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetBlockHeaderRequest](
 		c, h.Logger(),
@@ -77,10 +77,10 @@ func (h *Handler[
 	return beacontypes.ValidatorResponse{
 		ExecutionOptimistic: false, // stubbed
 		Finalized:           false, // stubbed
-		Data: &beacontypes.BlockHeaderResponse[BeaconBlockHeaderT]{
+		Data: &beacontypes.BlockHeaderResponse{
 			Root:      header.GetBodyRoot(),
 			Canonical: true,
-			Header: &beacontypes.BlockHeader[BeaconBlockHeaderT]{
+			Header: &beacontypes.BlockHeader{
 				Message:   header,
 				Signature: bytes.B48{}, // TODO: implement
 			},

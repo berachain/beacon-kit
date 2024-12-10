@@ -21,15 +21,16 @@
 package beacon
 
 import (
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // Backend is the interface for backend of the beacon API.
-type Backend[BlockHeaderT, ForkT, ValidatorT any] interface {
+type Backend[ForkT, ValidatorT any] interface {
 	GenesisBackend
-	BlockBackend[BlockHeaderT]
+	BlockBackend
 	RandaoBackend
 	StateBackend[ForkT]
 	ValidatorBackend[ValidatorT]
@@ -53,10 +54,10 @@ type RandaoBackend interface {
 	RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes32, error)
 }
 
-type BlockBackend[BeaconBlockHeaderT any] interface {
+type BlockBackend interface {
 	BlockRootAtSlot(slot math.Slot) (common.Root, error)
 	BlockRewardsAtSlot(slot math.Slot) (*types.BlockRewardsData, error)
-	BlockHeaderAtSlot(slot math.Slot) (BeaconBlockHeaderT, error)
+	BlockHeaderAtSlot(slot math.Slot) (*ctypes.BeaconBlockHeader, error)
 }
 
 type StateBackend[ForkT any] interface {

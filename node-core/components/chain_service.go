@@ -77,14 +77,13 @@ type ChainServiceInput[
 func ProvideChainService[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
-	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT],
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[
 		BeaconBlockBodyT, *AttestationData, DepositT,
 		*Eth1Data, ExecutionPayloadT, *SlashingInfo,
 	],
-	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT BeaconState[
-		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
+		BeaconStateT, BeaconStateMarshallableT,
 		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT,
 		*Validator, Validators, WithdrawalT,
 	],
@@ -114,7 +113,7 @@ func ProvideChainService[
 ) *blockchain.Service[
 	AvailabilityStoreT,
 	ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
-	BeaconBlockHeaderT, BeaconStateT, DepositT, ExecutionPayloadT,
+	BeaconStateT, DepositT, ExecutionPayloadT,
 	ExecutionPayloadHeaderT, GenesisT,
 	*engineprimitives.PayloadAttributes[WithdrawalT],
 ] {
@@ -123,7 +122,6 @@ func ProvideChainService[
 		ConsensusBlockT,
 		BeaconBlockT,
 		BeaconBlockBodyT,
-		BeaconBlockHeaderT,
 		BeaconStateT,
 		DepositT,
 		ExecutionPayloadT,

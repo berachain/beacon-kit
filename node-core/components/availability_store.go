@@ -93,11 +93,8 @@ func ProvideAvailabilityPruner[
 	AvailabilityStoreT AvailabilityStore[
 		BeaconBlockBodyT, BlobSidecarsT,
 	],
-	BeaconBlockT BeaconBlock[
-		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	],
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT any,
-	BeaconBlockHeaderT any,
 	BlobSidecarsT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 ](

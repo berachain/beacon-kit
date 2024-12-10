@@ -60,14 +60,11 @@ type DepositServiceIn[
 // ProvideDepositService provides the deposit service to the depinject
 // framework.
 func ProvideDepositService[
-	BeaconBlockT BeaconBlock[
-		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	],
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[
 		BeaconBlockBodyT, *AttestationData, DepositT,
 		*Eth1Data, ExecutionPayloadT, *SlashingInfo,
 	],
-	BeaconBlockHeaderT any,
 	DepositT Deposit[
 		DepositT, *ForkData, WithdrawalCredentials,
 	],

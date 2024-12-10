@@ -20,6 +20,8 @@
 
 package da
 
+import ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+
 // BlobProcessor is the interface for the blobs processor.
 type BlobProcessor[
 	AvailabilityStoreT,
@@ -35,9 +37,9 @@ type BlobProcessor[
 	VerifySidecars(sidecars ConsensusSidecarsT) error
 }
 
-type ConsensusSidecars[BlobSidecarsT any, BeaconBlockHeaderT any] interface {
+type ConsensusSidecars[BlobSidecarsT any] interface {
 	GetSidecars() BlobSidecarsT
-	GetHeader() BeaconBlockHeaderT
+	GetHeader() *ctypes.BeaconBlockHeader
 }
 
 // BlobSidecar is the interface for the blob sidecar.

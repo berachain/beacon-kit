@@ -43,11 +43,8 @@ type BlockServiceInput[
 
 // ProvideBlockStoreService provides the block service.
 func ProvideBlockStoreService[
-	BeaconBlockT BeaconBlock[
-		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	],
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT any,
-	BeaconBlockHeaderT any,
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
 	LoggerT log.AdvancedLogger[LoggerT],
 ](

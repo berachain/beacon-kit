@@ -73,7 +73,6 @@ type (
 	BlobProcessor = dablob.Processor[
 		*AvailabilityStore,
 		*BeaconBlockBody,
-		*BeaconBlockHeader,
 		*ConsensusSidecars,
 		*BlobSidecar,
 		*BlobSidecars,
@@ -88,7 +87,6 @@ type (
 		*ConsensusBlock,
 		*BeaconBlock,
 		*BeaconBlockBody,
-		*BeaconBlockHeader,
 		*BeaconState,
 		*Deposit,
 		*ExecutionPayload,
@@ -103,7 +101,7 @@ type (
 	// DAService is a type alias for the DA service.
 	DAService = da.Service[
 		*AvailabilityStore,
-		*ConsensusSidecars, *BlobSidecars, *BeaconBlockHeader,
+		*ConsensusSidecars, *BlobSidecars,
 	]
 
 	// DBManager is a type alias for the database manager.
@@ -137,7 +135,6 @@ type (
 
 	// KVStore is a type alias for the KV store.
 	KVStore = beacondb.KVStore[
-		*BeaconBlockHeader,
 		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,
@@ -171,14 +168,12 @@ type (
 	SidecarFactory = dablob.SidecarFactory[
 		*BeaconBlock,
 		*BeaconBlockBody,
-		*BeaconBlockHeader,
 	]
 
 	// StateProcessor is the type alias for the state processor interface.
 	StateProcessor = core.StateProcessor[
 		*BeaconBlock,
 		*BeaconBlockBody,
-		*BeaconBlockHeader,
 		*BeaconState,
 		*Context,
 		*Deposit,
@@ -234,14 +229,12 @@ type (
 	AvailabilityStore = dastore.Store[*BeaconBlockBody]
 
 	// BeaconBlock type aliases.
-	ConsensusBlock    = consruntimetypes.ConsensusBlock[*BeaconBlock]
-	BeaconBlock       = types.BeaconBlock
-	BeaconBlockBody   = types.BeaconBlockBody
-	BeaconBlockHeader = types.BeaconBlockHeader
+	ConsensusBlock  = consruntimetypes.ConsensusBlock[*BeaconBlock]
+	BeaconBlock     = types.BeaconBlock
+	BeaconBlockBody = types.BeaconBlockBody
 
 	// BeaconState is a type alias for the BeaconState.
 	BeaconState = statedb.StateDB[
-		*BeaconBlockHeader,
 		*BeaconStateMarshallable,
 		*Eth1Data,
 		*ExecutionPayloadHeader,
@@ -255,12 +248,10 @@ type (
 
 	// BeaconStateMarshallable is a type alias for the BeaconState.
 	BeaconStateMarshallable = types.BeaconState[
-		*BeaconBlockHeader,
 		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,
 		*Validator,
-		BeaconBlockHeader,
 		Eth1Data,
 		ExecutionPayloadHeader,
 		Fork,
@@ -268,12 +259,9 @@ type (
 	]
 
 	// BlobSidecars type aliases.
-	ConsensusSidecars = consruntimetypes.ConsensusSidecars[
-		*BlobSidecars,
-		*BeaconBlockHeader,
-	]
-	BlobSidecar  = datypes.BlobSidecar
-	BlobSidecars = datypes.BlobSidecars
+	ConsensusSidecars = consruntimetypes.ConsensusSidecars[*BlobSidecars]
+	BlobSidecar       = datypes.BlobSidecar
+	BlobSidecars      = datypes.BlobSidecars
 
 	// BlockStore is a type alias for the block store.
 	BlockStore = block.KVStore[*BeaconBlock]
@@ -332,7 +320,6 @@ type (
 		*AvailabilityStore,
 		*BeaconBlock,
 		*BeaconBlockBody,
-		*BeaconBlockHeader,
 		*BeaconState,
 		*BeaconStateMarshallable,
 		*BlobSidecars,

@@ -34,7 +34,7 @@ import (
 
 //nolint:lll // let it be
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+	_, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
 ]) processRegistryUpdates(
 	st BeaconStateT,
 ) error {
@@ -100,7 +100,7 @@ func (sp *StateProcessor[
 
 //nolint:lll // let it be
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+	_, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
 ]) processValidatorSetCap(
 	st BeaconStateT,
 ) error {
@@ -168,7 +168,7 @@ func (sp *StateProcessor[
 // but it helps simplifying generic instantiation.
 // TODO: Turn this into a free function
 func (*StateProcessor[
-	_, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
 ]) validatorSetsDiffs(
 	prevEpochValidators []ValidatorT,
 	currEpochValidator []ValidatorT,
@@ -223,7 +223,7 @@ func (*StateProcessor[
 // nextEpochValidatorSet returns the current estimation of what next epoch
 // validator set would be.
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+	_, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
 ]) getActiveVals(st BeaconStateT, epoch math.Epoch) ([]ValidatorT, error) {
 	vals, err := st.GetValidators()
 	if err != nil {

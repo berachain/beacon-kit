@@ -34,9 +34,8 @@ import (
 
 type Service[
 	AvailabilityStoreT any,
-	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, BeaconBlockHeaderT],
+	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
 	BlobSidecarsT BlobSidecar,
-	BeaconBlockHeaderT any,
 ] struct {
 	avs AvailabilityStoreT
 	bp  BlobProcessor[
@@ -54,9 +53,8 @@ type Service[
 // NewService returns a new DA service.
 func NewService[
 	AvailabilityStoreT any,
-	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, BeaconBlockHeaderT],
+	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
 	BlobSidecarsT BlobSidecar,
-	BeaconBlockHeaderT any,
 ](
 	avs AvailabilityStoreT,
 	bp BlobProcessor[
@@ -66,11 +64,11 @@ func NewService[
 	dispatcher asynctypes.EventDispatcher,
 	logger log.Logger,
 ) *Service[
-	AvailabilityStoreT, ConsensusSidecarsT, BlobSidecarsT, BeaconBlockHeaderT,
+	AvailabilityStoreT, ConsensusSidecarsT, BlobSidecarsT,
 ] {
 	return &Service[
 		AvailabilityStoreT,
-		ConsensusSidecarsT, BlobSidecarsT, BeaconBlockHeaderT,
+		ConsensusSidecarsT, BlobSidecarsT,
 	]{
 		avs:                  avs,
 		bp:                   bp,
@@ -82,13 +80,13 @@ func NewService[
 }
 
 // Name returns the name of the service.
-func (s *Service[_, _, _, _]) Name() string {
+func (s *Service[_, _, _]) Name() string {
 	return "da"
 }
 
 // Start subscribes the DA service to SidecarsReceived and FinalSidecarsReceived
 // events and begins the main event loop to handle them accordingly.
-func (s *Service[_, _, _, _]) Start(ctx context.Context) error {
+func (s *Service[_, _, _]) Start(ctx context.Context) error {
 	var err error
 
 	// subscribe to SidecarsReceived events
@@ -112,7 +110,7 @@ func (s *Service[_, _, _, _]) Start(ctx context.Context) error {
 
 // eventLoop listens and handles SidecarsReceived and FinalSidecarsReceived
 // events.
-func (s *Service[_, _, _, _]) eventLoop(ctx context.Context) {
+func (s *Service[_, _, _]) eventLoop(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -132,7 +130,7 @@ func (s *Service[_, _, _, _]) eventLoop(ctx context.Context) {
 // handleFinalSidecarsReceived handles the BlobSidecarsProcessRequest
 // event.
 // It processes the sidecars and publishes a BlobSidecarsProcessed event.
-func (s *Service[_, _, BlobSidecarsT, _]) handleFinalSidecarsReceived(
+func (s *Service[_, _, BlobSidecarsT]) handleFinalSidecarsReceived(
 	msg async.Event[BlobSidecarsT],
 ) {
 	if err := s.processSidecars(msg.Context(), msg.Data()); err != nil {
@@ -146,7 +144,7 @@ func (s *Service[_, _, BlobSidecarsT, _]) handleFinalSidecarsReceived(
 
 // handleSidecarsReceived handles the SidecarsVerifyRequest event.
 // It verifies the sidecars and publishes a SidecarsVerified event.
-func (s *Service[_, ConsensusSidecarsT, _, _]) handleSidecarsReceived(
+func (s *Service[_, ConsensusSidecarsT, _]) handleSidecarsReceived(
 	cs async.Event[ConsensusSidecarsT],
 ) {
 	// verify the sidecars.
@@ -175,7 +173,7 @@ func (s *Service[_, ConsensusSidecarsT, _, _]) handleSidecarsReceived(
 /* -------------------------------------------------------------------------- */
 
 // ProcessSidecars processes the blob sidecars.
-func (s *Service[_, _, BlobSidecarsT, _]) processSidecars(
+func (s *Service[_, _, BlobSidecarsT]) processSidecars(
 	_ context.Context,
 	sidecars BlobSidecarsT,
 ) error {
@@ -188,7 +186,7 @@ func (s *Service[_, _, BlobSidecarsT, _]) processSidecars(
 }
 
 // VerifyIncomingBlobs receives blobs from the network and processes them.
-func (s *Service[_, ConsensusSidecarsT, _, _]) verifySidecars(
+func (s *Service[_, ConsensusSidecarsT, _]) verifySidecars(
 	cs ConsensusSidecarsT,
 ) error {
 	sidecars := cs.GetSidecars()
