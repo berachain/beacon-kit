@@ -22,7 +22,7 @@ package broker
 
 import "time"
 
-// TODO: make timeout configurable thorugh config/context
+// TODO: make timeout configurable through config/context
 const (
 	// defaultBrokerTimeout specifies the default timeout when the publisher
 	// tries to send a message to a client, a message is published to the

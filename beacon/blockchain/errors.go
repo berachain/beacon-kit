@@ -23,7 +23,7 @@ package blockchain
 import "github.com/berachain/beacon-kit/errors"
 
 var (
-	// ErrNilBlk is an error for when the beacon block is nil.
+	// ErrNilBlk is an error when the beacon block is nil.
 	ErrNilBlk = errors.New("nil beacon block")
 	// ErrDataNotAvailable indicates that the required data is not available.
 	ErrDataNotAvailable = errors.New("data not available")

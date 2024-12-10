@@ -129,8 +129,8 @@ func (p *ExecutionPayload) DefineSSZ(codec *ssz.Codec) {
 	)
 	ssz.DefineSliceOfStaticObjectsContent(codec, &p.Withdrawals, 16)
 
-	// Post Shangai an EL explicitly check that Withdrawals are not nil
-	// (instead empty slices are fine). Currently BeaconKit duly builds
+	// Post Shangai an EL explicitly checks that Withdrawals are not nil
+	// (instead empty slices are fine). Currentl,y BeaconKit duly builds
 	// a block with Withdrawals set to empty slice if there are no
 	// withdrawals) but as soon as the block is returned by CometBFT
 	// for verification, the SSZ decoding sets the empty slice to nil.

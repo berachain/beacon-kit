@@ -93,7 +93,7 @@ func (s *Service[
 	// In order to rebuild a payload for the current slot, we need to know the
 	// previous block root, since we know that this is an unmodified state.
 	// We can safely get the latest block header and then rebuild the
-	// previous block and it's root.
+	// previous block and its root.
 	latestHeader, err := st.GetLatestBlockHeader()
 	if err != nil {
 		return err
