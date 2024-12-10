@@ -87,7 +87,6 @@ type (
 		*ConsensusBlock,
 		*BeaconBlock,
 		*BeaconBlockBody,
-		*BeaconBlockHeader,
 		*BeaconState,
 		*Deposit,
 		*ExecutionPayload,

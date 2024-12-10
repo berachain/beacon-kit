@@ -57,7 +57,6 @@ func ProvideBlobProofVerifier(
 // BlobProcessorIn is the input for the BlobProcessor.
 type BlobProcessorIn[
 	BlobSidecarsT any,
-	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	LoggerT any,
 ] struct {
 	depinject.In
@@ -78,7 +77,7 @@ func ProvideBlobProcessor[
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
-	in BlobProcessorIn[BlobSidecarsT, *types.BeaconBlockHeader, LoggerT],
+	in BlobProcessorIn[BlobSidecarsT, LoggerT],
 ) *dablob.Processor[
 	AvailabilityStoreT, BeaconBlockBodyT,
 	ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,

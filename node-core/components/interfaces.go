@@ -173,27 +173,6 @@ type (
 		SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])
 	}
 
-	// BeaconBlockHeader is the interface for a beacon block header.
-	BeaconBlockHeader[T any] interface {
-		constraints.Empty[T]
-		constraints.SSZMarshallableRootable
-		New(
-			slot math.Slot,
-			proposerIndex math.ValidatorIndex,
-			parentBlockRoot common.Root,
-			stateRoot common.Root,
-			bodyRoot common.Root,
-		) T
-		GetSlot() math.Slot
-		GetProposerIndex() math.ValidatorIndex
-		GetParentBlockRoot() common.Root
-		GetStateRoot() common.Root
-		SetStateRoot(common.Root)
-		GetBodyRoot() common.Root
-		GetTree() (*fastssz.Node, error)
-		Equals(T) bool
-	}
-
 	// BeaconStateMarshallable represents an interface for a beacon state
 	// with generic types.
 	BeaconStateMarshallable[

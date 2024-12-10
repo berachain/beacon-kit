@@ -60,7 +60,7 @@ func DefaultComponents() []any {
 		components.ProvideChainService[
 			*AvailabilityStore,
 			*ConsensusBlock, *BeaconBlock, *BeaconBlockBody,
-			*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
+			*BeaconState, *BeaconStateMarshallable,
 			*BlobSidecars, *BlockStore, *Deposit, *DepositStore,
 			*ExecutionPayload, *ExecutionPayloadHeader, *Genesis,
 			*KVStore, *Logger, *StorageBackend,
@@ -158,11 +158,11 @@ func DefaultComponents() []any {
 
 	c = append(c,
 		components.ProvideNodeAPIHandlers[
-			*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
+			*BeaconState, *BeaconStateMarshallable,
 			*ExecutionPayloadHeader, *KVStore, NodeAPIContext,
 		],
 		components.ProvideNodeAPIBeaconHandler[
-			*BeaconBlockHeader, *BeaconState, *CometBFTService, NodeAPIContext,
+			*BeaconState, *CometBFTService, NodeAPIContext,
 		],
 		components.ProvideNodeAPIBuilderHandler[NodeAPIContext],
 		components.ProvideNodeAPIConfigHandler[NodeAPIContext],
@@ -170,7 +170,7 @@ func DefaultComponents() []any {
 		components.ProvideNodeAPIEventsHandler[NodeAPIContext],
 		components.ProvideNodeAPINodeHandler[NodeAPIContext],
 		components.ProvideNodeAPIProofHandler[
-			*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
+			*BeaconState, *BeaconStateMarshallable,
 			*ExecutionPayloadHeader, *KVStore, *CometBFTService, NodeAPIContext,
 		],
 	)
