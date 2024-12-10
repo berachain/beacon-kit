@@ -116,3 +116,12 @@ func (cm *chainMetrics) measureStateRootVerificationTime(start time.Time) {
 		"beacon_kit.blockchain.state_root_verification_duration", start,
 	)
 }
+
+// measureProcessProposalDuration measures the time to process.
+func (cm *chainMetrics) measureProcessProposalDuration(
+	start time.Time,
+) {
+	cm.sink.MeasureSince(
+		"beacon_kit.runtime.process_proposal_duration", start,
+	)
+}

@@ -23,14 +23,29 @@ package cometbft
 import (
 	"context"
 	"fmt"
+	"time"
 
+	"github.com/berachain/beacon-kit/errors"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
+const (
+	// BeaconBlockTxIndex represents the index of the beacon block transaction.
+	// It is the first transaction in the tx list.
+	BeaconBlockTxIndex uint = iota
+	// BlobSidecarsTxIndex represents the index of the blob sidecar transaction.
+	// It follows the beacon block transaction in the tx list.
+	BlobSidecarsTxIndex
+)
+
 func (s *Service[LoggerT]) processProposal(
-	_ context.Context,
+	ctx context.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
+	startTime := time.Now()
+	defer s.telemetrySink.MeasureSince(
+		"beacon_kit.runtime.process_proposal_duration", startTime)
+
 	// CometBFT must never call ProcessProposal with a height of 0.
 	if req.Height < 1 {
 		return nil, fmt.Errorf(
@@ -59,26 +74,24 @@ func (s *Service[LoggerT]) processProposal(
 		),
 	)
 
-	resp, err := s.Middleware.ProcessProposal(
-		s.processProposalState.Context(),
-		req,
-	)
+	_, err := s.Blockchain.ProcessProposal(s.prepareProposalState.Context(), req)
 	if err != nil {
-		s.logger.Error(
-			"failed to process proposal",
-			"height",
-			req.Height,
-			"time",
-			req.Time,
-			"hash",
-			fmt.Sprintf("%X", req.Hash),
-			"err",
-			err,
-		)
-		return &cmtabci.ProcessProposalResponse{
-			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
-		}, nil
+		return createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
 
-	return resp, nil
+	return createProcessProposalResponse(nil)
+
+}
+
+// createResponse generates the appropriate ProcessProposalResponse based on the
+// error.
+func createProcessProposalResponse(
+	err error,
+) (*cmtabci.ProcessProposalResponse, error) {
+	status := cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
+	if !errors.IsFatal(err) {
+		status = cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
+		err = nil
+	}
+	return &cmtabci.ProcessProposalResponse{Status: status}, err
 }

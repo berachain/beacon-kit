@@ -25,13 +25,18 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
+	"github.com/berachain/beacon-kit/consensus/types"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	cmtabci "github.com/cometbft/cometbft/abci/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // ProcessGenesisData processes the genesis state and initializes the beacon
 // state.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, GenesisT, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, GenesisT, _, _, _,
 ]) ProcessGenesisData(
 	ctx context.Context,
 	bytes []byte,
@@ -49,10 +54,105 @@ func (s *Service[
 	)
 }
 
+func (s *Service[
+	_, _, ConsensusBlockT, BeaconBlockT, _, BeaconBlockHeaderT, _, _, _, _, _, _, GenesisT, ConsensusSidecarsT, BlobSidecarsT, _,
+]) ProcessProposal(
+	ctx sdk.Context,
+	req *cmtabci.ProcessProposalRequest,
+) (*cmtabci.ProcessProposalResponse, error) {
+	start := time.Now()
+	defer s.metrics.measureProcessProposalDuration(start)
+
+	const (
+		// BeaconBlockTxIndex represents the index of the beacon block transaction.
+		// It is the first transaction in the tx list.
+		BeaconBlockTxIndex uint = iota
+		// BlobSidecarsTxIndex represents the index of the blob sidecar transaction.
+		// It follows the beacon block transaction in the tx list.
+		BlobSidecarsTxIndex
+	)
+
+	// Decode the beacon block.
+	blk, err := encoding.
+		UnmarshalBeaconBlockFromABCIRequest[BeaconBlockT](
+		req,
+		BeaconBlockTxIndex,
+		s.chainSpec.ActiveForkVersionForSlot(math.U64(req.Height)),
+	)
+	if err != nil {
+		return nil, err
+	}
+	var consensusBlk *types.ConsensusBlock[BeaconBlockT]
+	consensusBlk = consensusBlk.New(
+		blk,
+		req.GetProposerAddress(),
+		req.GetTime(),
+	)
+
+	// Decode the blob sidecars.
+	sidecars, err := encoding.
+		UnmarshalBlobSidecarsFromABCIRequest[BlobSidecarsT](
+		req,
+		BlobSidecarsTxIndex,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	var consensusSidecars *types.ConsensusSidecars[
+		BlobSidecarsT,
+		BeaconBlockHeaderT,
+	]
+	consensusSidecars = consensusSidecars.New(
+		sidecars,
+		blk.GetHeader(),
+	)
+
+	if !sidecars.IsNil() && sidecars.Len() > 0 {
+		s.logger.Info("Received incoming blob sidecars")
+
+		// TODO: Remove this once we cleanup generics
+		var sidecarI interface{} = consensusSidecars
+		data, ok := sidecarI.(ConsensusSidecarsT)
+		if !ok {
+			panic("could not convert sidecar to ConsensusSidecarsT")
+		}
+
+		// Verify the blobs and ensure they match the local state.
+		if err := s.blobProcessor.VerifySidecars(data); err != nil {
+			s.logger.Error(
+				"rejecting incoming blob sidecars",
+				"reason", err,
+			)
+			return nil, err
+		}
+
+		s.logger.Info(
+			"Blob sidecars verification succeeded - accepting incoming blob sidecars",
+			"num_blobs",
+			sidecars.Len(),
+		)
+	}
+
+	err = s.VerifyIncomingBlock(
+		ctx,
+		consensusBlk.GetBeaconBlock(),
+		consensusBlk.GetConsensusTime(),
+		consensusBlk.GetProposerAddress(),
+	)
+	if err != nil {
+		s.logger.Error("failed to verify incoming block", "error", err)
+		return nil, err
+	}
+
+	return nil, nil
+
+}
+
 // ProcessBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
 func (s *Service[
-	_, _, ConsensusBlockT, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, ConsensusBlockT, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) ProcessBeaconBlock(
 	ctx context.Context,
 	blk ConsensusBlockT,
@@ -104,7 +204,7 @@ func (s *Service[
 
 // executeStateTransition runs the stf.
 func (s *Service[
-	_, _, ConsensusBlockT, _, _, _, BeaconStateT, _, _, _, _, _, _, _,
+	_, _, ConsensusBlockT, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
 ]) executeStateTransition(
 	ctx context.Context,
 	st BeaconStateT,
