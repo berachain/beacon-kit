@@ -20,8 +20,6 @@
 
 package spec
 
-import "math"
-
 // Special cased Bartio for some ad-hoc handling due to the way
 // some bugs were handled on Bartio. To be removed.
 const (
@@ -33,9 +31,9 @@ const (
 
 // Planned hard-fork upgrades on boonet. To be removed.
 const (
-	BoonetFork1Height uint64 = 69420
+	BoonetFork1Height uint64 = 5
 
-	BoonetFork2Height uint64 = 1722000
+	BoonetFork2Height uint64 = 10
 
-	BoonetFork3Height uint64 = math.MaxUint64
+	BoonetFork3Height uint64 = 15
 )
