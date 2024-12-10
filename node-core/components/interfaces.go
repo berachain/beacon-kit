@@ -1083,7 +1083,6 @@ type (
 	}
 
 	NodeAPIBackend[
-		BeaconBlockHeaderT any,
 		BeaconStateT any,
 		ForkT any,
 		NodeT any,
@@ -1096,19 +1095,19 @@ type (
 		GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
 
 		NodeAPIBeaconBackend[
-			BeaconStateT, BeaconBlockHeaderT, ForkT, ValidatorT,
+			BeaconStateT, ForkT, ValidatorT,
 		]
 		NodeAPIProofBackend[
-			BeaconBlockHeaderT, BeaconStateT, ForkT, ValidatorT,
+			BeaconStateT, ForkT, ValidatorT,
 		]
 	}
 
 	// NodeAPIBackend is the interface for backend of the beacon API.
 	NodeAPIBeaconBackend[
-		BeaconStateT, BeaconBlockHeaderT, ForkT, ValidatorT any,
+		BeaconStateT, ForkT, ValidatorT any,
 	] interface {
 		GenesisBackend
-		BlockBackend[BeaconBlockHeaderT]
+		BlockBackend
 		RandaoBackend
 		StateBackend[BeaconStateT, ForkT]
 		ValidatorBackend[ValidatorT]
@@ -1121,9 +1120,9 @@ type (
 
 	// NodeAPIProofBackend is the interface for backend of the proof API.
 	NodeAPIProofBackend[
-		BeaconBlockHeaderT, BeaconStateT, ForkT, ValidatorT any,
+		BeaconStateT, ForkT, ValidatorT any,
 	] interface {
-		BlockBackend[BeaconBlockHeaderT]
+		BlockBackend
 		StateBackend[BeaconStateT, ForkT]
 		GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
 	}
@@ -1141,10 +1140,10 @@ type (
 		RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes32, error)
 	}
 
-	BlockBackend[BeaconBlockHeaderT any] interface {
+	BlockBackend interface {
 		BlockRootAtSlot(slot math.Slot) (common.Root, error)
 		BlockRewardsAtSlot(slot math.Slot) (*types.BlockRewardsData, error)
-		BlockHeaderAtSlot(slot math.Slot) (BeaconBlockHeaderT, error)
+		BlockHeaderAtSlot(slot math.Slot) (*ctypes.BeaconBlockHeader, error)
 	}
 
 	StateBackend[BeaconStateT, ForkT any] interface {
