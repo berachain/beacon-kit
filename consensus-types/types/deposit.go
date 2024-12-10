@@ -226,4 +226,3 @@ func (d *Deposit) GetWithdrawalCredentials() WithdrawalCredentials {
 func (d *Deposit) HasEth1WithdrawalCredentials() bool {
 	return d.Credentials[0] == EthSecp256k1CredentialPrefix
 }
-
