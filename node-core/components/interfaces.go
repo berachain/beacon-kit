@@ -176,7 +176,6 @@ type (
 	// with generic types.
 	BeaconStateMarshallable[
 		T,
-		BeaconBlockHeaderT,
 		Eth1DataT,
 		ExecutionPayloadHeaderT,
 		ForkT,
@@ -190,7 +189,7 @@ type (
 			genesisValidatorsRoot common.Root,
 			slot math.U64,
 			fork ForkT,
-			latestBlockHeader BeaconBlockHeaderT,
+			latestBlockHeader *ctypes.BeaconBlockHeader,
 			blockRoots []common.Root,
 			stateRoots []common.Root,
 			eth1Data Eth1DataT,

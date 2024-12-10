@@ -22,7 +22,6 @@ package state
 
 import (
 	"github.com/berachain/beacon-kit/config/spec"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -34,7 +33,6 @@ import (
 type StateDB[
 	BeaconStateMarshallableT BeaconStateMarshallable[
 		BeaconStateMarshallableT,
-		*ctypes.BeaconBlockHeader,
 		Eth1DataT,
 		ExecutionPayloadHeaderT,
 		ForkT,

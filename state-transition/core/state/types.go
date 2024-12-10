@@ -21,6 +21,7 @@
 package state
 
 import (
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -30,7 +31,6 @@ import (
 // with generic types.
 type BeaconStateMarshallable[
 	T any,
-	BeaconBlockHeaderT,
 	Eth1DataT,
 	ExecutionPayloadHeaderT,
 	ForkT,
@@ -43,7 +43,7 @@ type BeaconStateMarshallable[
 		genesisValidatorsRoot common.Root,
 		slot math.U64,
 		fork ForkT,
-		latestBlockHeader BeaconBlockHeaderT,
+		latestBlockHeader *ctypes.BeaconBlockHeader,
 		blockRoots []common.Root,
 		stateRoots []common.Root,
 		eth1Data Eth1DataT,

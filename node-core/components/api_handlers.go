@@ -22,7 +22,6 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beaconapi "github.com/berachain/beacon-kit/node-api/handlers/beacon"
 	builderapi "github.com/berachain/beacon-kit/node-api/handlers/builder"
@@ -40,7 +39,7 @@ type NodeAPIHandlersInput[
 		*Validator, Validators, WithdrawalT,
 	],
 	BeaconStateMarshallableT BeaconStateMarshallable[
-		BeaconStateMarshallableT, *ctypes.BeaconBlockHeader, *Eth1Data,
+		BeaconStateMarshallableT, *Eth1Data,
 		ExecutionPayloadHeaderT, *Fork, *Validator,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
@@ -70,7 +69,7 @@ func ProvideNodeAPIHandlers[
 		*Validator, Validators, WithdrawalT,
 	],
 	BeaconStateMarshallableT BeaconStateMarshallable[
-		BeaconStateMarshallableT, *ctypes.BeaconBlockHeader, *Eth1Data,
+		BeaconStateMarshallableT, *Eth1Data,
 		ExecutionPayloadHeaderT, *Fork, *Validator,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
@@ -151,7 +150,7 @@ func ProvideNodeAPIProofHandler[
 		*Validator, Validators, WithdrawalT,
 	],
 	BeaconStateMarshallableT BeaconStateMarshallable[
-		BeaconStateMarshallableT, *ctypes.BeaconBlockHeader, *Eth1Data,
+		BeaconStateMarshallableT, *Eth1Data,
 		ExecutionPayloadHeaderT, *Fork, *Validator,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],

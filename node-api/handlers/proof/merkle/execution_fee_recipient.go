@@ -35,12 +35,11 @@ import (
 // along with the beacon block root. It uses the fastssz library to generate the
 // proof.
 func ProveExecutionFeeRecipientInBlock[
-	BeaconBlockHeaderT *ctypes.BeaconBlockHeader,
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
 	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
 	ValidatorT any,
 ](
-	bbh BeaconBlockHeaderT,
+	bbh *ctypes.BeaconBlockHeader,
 	bs types.BeaconState[
 		BeaconStateMarshallableT, ExecutionPayloadHeaderT, ValidatorT,
 	],

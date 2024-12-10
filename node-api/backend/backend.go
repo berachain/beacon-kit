@@ -23,7 +23,6 @@ package backend
 import (
 	"context"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
@@ -38,7 +37,7 @@ type Backend[
 	BeaconBlockT any,
 	BeaconBlockBodyT any,
 	BeaconStateT BeaconState[
-		*ctypes.BeaconBlockHeader, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+		Eth1DataT, ExecutionPayloadHeaderT, ForkT,
 		ValidatorT, ValidatorsT, WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
@@ -75,7 +74,7 @@ func New[
 	BeaconBlockT any,
 	BeaconBlockBodyT any,
 	BeaconStateT BeaconState[
-		*ctypes.BeaconBlockHeader, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+		Eth1DataT, ExecutionPayloadHeaderT, ForkT,
 		ValidatorT, ValidatorsT, WithdrawalT,
 	],
 	BeaconStateMarshallableT any,

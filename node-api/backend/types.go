@@ -45,14 +45,14 @@ type AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT any] interface {
 
 // BeaconState is the interface for the beacon state.
 type BeaconState[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT, WithdrawalT any,
 ] interface {
 	// SetSlot sets the slot on the beacon state.
 	SetSlot(math.Slot) error
 
 	core.ReadOnlyBeaconState[
-		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+		Eth1DataT, ExecutionPayloadHeaderT,
 		ForkT, ValidatorT, ValidatorsT, WithdrawalT,
 	]
 }

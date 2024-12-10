@@ -31,9 +31,9 @@ import (
 // beacon block. The proof is then verified against the beacon block root as a
 // sanity check. Returns the proof along with the beacon block root. It uses
 // the fastssz library to generate the proof.
-func ProveProposerIndexInBlock[
-	BeaconBlockHeaderT *ctypes.BeaconBlockHeader,
-](bbh *ctypes.BeaconBlockHeader) ([]common.Root, common.Root, error) {
+func ProveProposerIndexInBlock(bbh *ctypes.BeaconBlockHeader) (
+	[]common.Root, common.Root, error,
+) {
 	blockProofTree, err := bbh.GetTree()
 	if err != nil {
 		return nil, common.Root{}, err

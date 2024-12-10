@@ -47,7 +47,7 @@ type StateProcessor[
 	],
 	BeaconStateT BeaconState[
 		BeaconStateT,
-		*ctypes.BeaconBlockHeader, Eth1DataT,
+		Eth1DataT,
 		ExecutionPayloadHeaderT, ForkT, KVStoreT,
 		ValidatorT, ValidatorsT, WithdrawalT,
 	],
@@ -112,7 +112,7 @@ func NewStateProcessor[
 		WithdrawalsT,
 	],
 	BeaconStateT BeaconState[
-		BeaconStateT, *ctypes.BeaconBlockHeader, Eth1DataT,
+		BeaconStateT, Eth1DataT,
 		ExecutionPayloadHeaderT, ForkT, KVStoreT, ValidatorT,
 		ValidatorsT, WithdrawalT,
 	],
