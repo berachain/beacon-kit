@@ -53,3 +53,7 @@ func (s *Service) Name() string {
 func (s *Service) Start(context.Context) error {
 	return nil
 }
+
+func (s *Service) Stop() error {
+	return nil
+}

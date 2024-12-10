@@ -73,7 +73,17 @@ func (n *node) Start(
 	}
 
 	// Wait for those aforementioned exit signals.
-	return g.Wait()
+	err := g.Wait()
+	if err != nil {
+		return err
+	}
+
+	// Stopp each service allowing them the exit gracefully.
+	if err = n.registry.StopAll(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // listenForQuitSignals listens for SIGINT and SIGTERM. When a signal is
