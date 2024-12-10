@@ -23,7 +23,6 @@ package blob
 import (
 	"time"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/kzg"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -38,7 +37,7 @@ type Processor[
 	],
 	BeaconBlockBodyT any,
 	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
-	BlobSidecarT Sidecar[*ctypes.BeaconBlockHeader],
+	BlobSidecarT Sidecar,
 	BlobSidecarsT Sidecars[BlobSidecarT],
 ] struct {
 	// logger is used to log information and errors.
@@ -61,7 +60,7 @@ func NewProcessor[
 	],
 	BeaconBlockBodyT any,
 	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
-	BlobSidecarT Sidecar[*ctypes.BeaconBlockHeader],
+	BlobSidecarT Sidecar,
 	BlobSidecarsT Sidecars[BlobSidecarT],
 ](
 	logger log.Logger,

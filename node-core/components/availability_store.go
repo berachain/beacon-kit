@@ -25,7 +25,6 @@ import (
 
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/config"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/async"
@@ -94,9 +93,7 @@ func ProvideAvailabilityPruner[
 	AvailabilityStoreT AvailabilityStore[
 		BeaconBlockBodyT, BlobSidecarsT,
 	],
-	BeaconBlockT BeaconBlock[
-		BeaconBlockT, BeaconBlockBodyT, *ctypes.BeaconBlockHeader,
-	],
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT any,
 	BlobSidecarsT any,
 	LoggerT log.AdvancedLogger[LoggerT],

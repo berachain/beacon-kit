@@ -24,6 +24,7 @@ import (
 	"context"
 	"time"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
@@ -150,14 +151,13 @@ type PayloadAttributes interface {
 // the beacon state.
 type ReadOnlyBeaconState[
 	T any,
-	BeaconBlockHeaderT any,
 	ExecutionPayloadHeaderT any,
 ] interface {
 	// Copy creates a copy of the beacon state.
 	Copy() T
 	// GetLatestBlockHeader returns the most recent block header.
 	GetLatestBlockHeader() (
-		BeaconBlockHeaderT,
+		*ctypes.BeaconBlockHeader,
 		error,
 	)
 	// GetLatestExecutionPayloadHeader returns the most recent execution payload

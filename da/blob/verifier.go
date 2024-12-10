@@ -34,7 +34,7 @@ import (
 // verifier is responsible for verifying blobs, including their
 // inclusion and KZG proofs.
 type verifier[
-	BlobSidecarT Sidecar[*ctypes.BeaconBlockHeader],
+	BlobSidecarT Sidecar,
 	BlobSidecarsT Sidecars[BlobSidecarT],
 ] struct {
 	// proofVerifier is used to verify the KZG proofs of the blobs.
@@ -45,7 +45,7 @@ type verifier[
 
 // newVerifier creates a new Verifier with the given proof verifier.
 func newVerifier[
-	BlobSidecarT Sidecar[*ctypes.BeaconBlockHeader],
+	BlobSidecarT Sidecar,
 	BlobSidecarsT Sidecars[BlobSidecarT],
 ](
 	proofVerifier kzg.BlobProofVerifier,

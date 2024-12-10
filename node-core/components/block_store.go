@@ -23,7 +23,6 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/config"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/storage/block"
 	"github.com/berachain/beacon-kit/storage/manager"
@@ -32,7 +31,7 @@ import (
 // BlockStoreInput is the input for the dep inject framework.
 type BlockStoreInput[
 	BeaconBlockT BeaconBlock[
-		BeaconBlockT, BeaconBlockBodyT, *ctypes.BeaconBlockHeader,
+		BeaconBlockT, BeaconBlockBodyT,
 	],
 	BeaconBlockBodyT any,
 	LoggerT log.AdvancedLogger[LoggerT],
@@ -47,7 +46,7 @@ type BlockStoreInput[
 // application.
 func ProvideBlockStore[
 	BeaconBlockT BeaconBlock[
-		BeaconBlockT, BeaconBlockBodyT, *ctypes.BeaconBlockHeader,
+		BeaconBlockT, BeaconBlockBodyT,
 	],
 	BeaconBlockBodyT any,
 	LoggerT log.AdvancedLogger[LoggerT],

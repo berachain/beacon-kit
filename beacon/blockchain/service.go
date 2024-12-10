@@ -25,7 +25,6 @@ import (
 	"sync"
 
 	asynctypes "github.com/berachain/beacon-kit/async/types"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/async"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -38,9 +37,7 @@ type Service[
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
-	BeaconStateT ReadOnlyBeaconState[
-		BeaconStateT, *ctypes.BeaconBlockHeader, ExecutionPayloadHeaderT,
-	],
+	BeaconStateT ReadOnlyBeaconState[BeaconStateT, ExecutionPayloadHeaderT],
 	DepositT any,
 	ExecutionPayloadT ExecutionPayload,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
@@ -95,10 +92,7 @@ func NewService[
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
-	BeaconStateT ReadOnlyBeaconState[
-		BeaconStateT, *ctypes.BeaconBlockHeader,
-		ExecutionPayloadHeaderT,
-	],
+	BeaconStateT ReadOnlyBeaconState[BeaconStateT, ExecutionPayloadHeaderT],
 	DepositT any,
 	ExecutionPayloadT ExecutionPayload,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,

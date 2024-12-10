@@ -35,9 +35,7 @@ type SidecarFactoryInput struct {
 }
 
 func ProvideSidecarFactory[
-	BeaconBlockT BeaconBlock[
-		BeaconBlockT, BeaconBlockBodyT, *types.BeaconBlockHeader,
-	],
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[
 		BeaconBlockBodyT, *AttestationData, DepositT,
 		*Eth1Data, ExecutionPayloadT, *SlashingInfo,

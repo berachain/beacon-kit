@@ -23,18 +23,19 @@ package middleware
 import (
 	"time"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/transition"
 )
 
 // BeaconBlock is an interface for accessing the beacon block.
-type BeaconBlock[BeaconBlockT any, BeaconBlockHeaderT any] interface {
+type BeaconBlock[BeaconBlockT any] interface {
 	constraints.SSZMarshallable
 	constraints.Nillable
 	constraints.Empty[BeaconBlockT]
 	NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
 
-	GetHeader() BeaconBlockHeaderT
+	GetHeader() *ctypes.BeaconBlockHeader
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.

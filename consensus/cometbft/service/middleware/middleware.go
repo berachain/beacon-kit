@@ -24,7 +24,6 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/async/types"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/async"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -33,7 +32,7 @@ import (
 
 // ABCIMiddleware is a middleware between ABCI and the validator logic.
 type ABCIMiddleware[
-	BeaconBlockT BeaconBlock[BeaconBlockT, *ctypes.BeaconBlockHeader],
+	BeaconBlockT BeaconBlock[BeaconBlockT],
 	BlobSidecarsT BlobSidecars[BlobSidecarsT],
 	GenesisT json.Unmarshaler,
 	SlotDataT any,
@@ -63,7 +62,7 @@ type ABCIMiddleware[
 
 // NewABCIMiddleware creates a new instance of the Handler struct.
 func NewABCIMiddleware[
-	BeaconBlockT BeaconBlock[BeaconBlockT, *ctypes.BeaconBlockHeader],
+	BeaconBlockT BeaconBlock[BeaconBlockT],
 	BlobSidecarsT BlobSidecars[BlobSidecarsT],
 	GenesisT json.Unmarshaler,
 	SlotDataT any,

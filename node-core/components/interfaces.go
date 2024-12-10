@@ -97,7 +97,6 @@ type (
 	BeaconBlock[
 		T any,
 		BeaconBlockBodyT any,
-		BeaconBlockHeaderT any,
 	] interface {
 		constraints.Nillable
 		constraints.Empty[T]
@@ -121,7 +120,7 @@ type (
 		// GetBody returns the body of the block.
 		GetBody() BeaconBlockBodyT
 		// GetHeader returns the header of the block.
-		GetHeader() BeaconBlockHeaderT
+		GetHeader() *ctypes.BeaconBlockHeader
 		// GetParentBlockRoot returns the root of the parent block.
 		GetParentBlockRoot() common.Root
 		// GetStateRoot returns the state root of the block.
@@ -225,8 +224,8 @@ type (
 		) error
 	}
 
-	BlobSidecar[BeaconBlockHeaderT any] interface {
-		GetBeaconBlockHeader() BeaconBlockHeaderT
+	BlobSidecar interface {
+		GetBeaconBlockHeader() *ctypes.BeaconBlockHeader
 		GetBlob() eip4844.Blob
 		GetKzgProof() eip4844.KZGProof
 		GetKzgCommitment() eip4844.KZGCommitment
@@ -249,16 +248,6 @@ type (
 		GetSidecars() []BlobSidecarT
 		ValidateBlockRoots() error
 		VerifyInclusionProofs(kzgOffset uint64) error
-	}
-
-	BlobVerifier[BlobSidecarsT, BeaconBlockHeaderT any] interface {
-		VerifyInclusionProofs(scs BlobSidecarsT, kzgOffset uint64) error
-		VerifyKZGProofs(scs BlobSidecarsT) error
-		VerifySidecars(
-			sidecars BlobSidecarsT,
-			kzgOffset uint64,
-			blkHeader BeaconBlockHeaderT,
-		) error
 	}
 
 	// 	// BlockchainService defines the interface for interacting with the

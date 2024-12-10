@@ -23,7 +23,6 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/config"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/log"
 	blockstore "github.com/berachain/beacon-kit/node-api/block_store"
 )
@@ -44,9 +43,7 @@ type BlockServiceInput[
 
 // ProvideBlockStoreService provides the block service.
 func ProvideBlockStoreService[
-	BeaconBlockT BeaconBlock[
-		BeaconBlockT, BeaconBlockBodyT, *ctypes.BeaconBlockHeader,
-	],
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT any,
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
 	LoggerT log.AdvancedLogger[LoggerT],
