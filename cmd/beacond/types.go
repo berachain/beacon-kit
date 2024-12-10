@@ -226,7 +226,7 @@ type (
 	AttestationData = types.AttestationData
 
 	// AvailabilityStore is a type alias for the availability store.
-	AvailabilityStore = dastore.Store[*BeaconBlockBody]
+	AvailabilityStore = dastore.Store
 
 	// BeaconBlock type aliases.
 	ConsensusBlock  = consruntimetypes.ConsensusBlock[*BeaconBlock]

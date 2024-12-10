@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/async"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/storage/filedb"
 	"github.com/berachain/beacon-kit/storage/manager"
 	"github.com/berachain/beacon-kit/storage/pruner"
@@ -48,14 +47,11 @@ type AvailabilityStoreInput[LoggerT any] struct {
 
 // ProvideAvailibilityStore provides the availability store.
 func ProvideAvailibilityStore[
-	BeaconBlockBodyT interface {
-		GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
-	},
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	in AvailabilityStoreInput[LoggerT],
-) (*dastore.Store[BeaconBlockBodyT], error) {
-	return dastore.New[BeaconBlockBodyT](
+) (*dastore.Store, error) {
+	return dastore.New(
 		filedb.NewRangeDB(
 			filedb.NewDB(
 				filedb.WithRootDirectory(

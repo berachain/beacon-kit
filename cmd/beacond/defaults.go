@@ -36,7 +36,7 @@ func DefaultComponents() []any {
 			*BeaconState, *BeaconStateMarshallable,
 			*ExecutionPayloadHeader, *KVStore, *Logger,
 		],
-		components.ProvideAvailibilityStore[*BeaconBlockBody, *Logger],
+		components.ProvideAvailibilityStore[*Logger],
 		components.ProvideAvailabilityPruner[
 			*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,
 			*BlobSidecars, *Logger,
