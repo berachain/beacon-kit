@@ -152,6 +152,9 @@ type Deposit[
 			message []byte, signature crypto.BLSSignature,
 		) error,
 	) error
+	// HasEth1WithdrawalCredentials returns true if the deposit has eth1
+	// withdrawal credentials.
+	HasEth1WithdrawalCredentials() bool
 }
 
 // DepositStore defines the interface for deposit storage.
