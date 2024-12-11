@@ -36,13 +36,12 @@ type SidecarFactoryInput struct {
 
 func ProvideSidecarFactory[
 	BeaconBlockT BeaconBlock[
-		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+		BeaconBlockT, BeaconBlockBodyT,
 	],
 	BeaconBlockBodyT BeaconBlockBody[
 		BeaconBlockBodyT, *AttestationData, DepositT,
 		*Eth1Data, ExecutionPayloadT, *SlashingInfo,
 	],
-	BeaconBlockHeaderT any,
 	DepositT any,
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
@@ -51,12 +50,11 @@ func ProvideSidecarFactory[
 	WithdrawalsT Withdrawals[WithdrawalT],
 	WithdrawalT Withdrawal[WithdrawalT],
 ](in SidecarFactoryInput) *dablob.SidecarFactory[
-	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BeaconBlockT, BeaconBlockBodyT,
 ] {
 	return dablob.NewSidecarFactory[
 		BeaconBlockT,
 		BeaconBlockBodyT,
-		BeaconBlockHeaderT,
 	](
 		in.ChainSpec,
 		types.KZGPositionDeneb,

@@ -21,6 +21,7 @@
 package proof
 
 import (
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
@@ -30,7 +31,6 @@ import (
 
 // Handler is the handler for the proof API.
 type Handler[
-	BeaconBlockHeaderT types.BeaconBlockHeader,
 	BeaconStateT types.BeaconState[
 		BeaconStateMarshallableT, ExecutionPayloadHeaderT, ValidatorT,
 	],
@@ -40,12 +40,11 @@ type Handler[
 	ValidatorT types.Validator,
 ] struct {
 	*handlers.BaseHandler[ContextT]
-	backend Backend[BeaconBlockHeaderT, BeaconStateT, ValidatorT]
+	backend Backend[BeaconStateT, ValidatorT]
 }
 
 // NewHandler creates a new handler for the proof API.
 func NewHandler[
-	BeaconBlockHeaderT types.BeaconBlockHeader,
 	BeaconStateT types.BeaconState[
 		BeaconStateMarshallableT, ExecutionPayloadHeaderT, ValidatorT,
 	],
@@ -54,13 +53,13 @@ func NewHandler[
 	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
 	ValidatorT types.Validator,
 ](
-	backend Backend[BeaconBlockHeaderT, BeaconStateT, ValidatorT],
+	backend Backend[BeaconStateT, ValidatorT],
 ) *Handler[
-	BeaconBlockHeaderT, BeaconStateT, BeaconStateMarshallableT,
+	BeaconStateT, BeaconStateMarshallableT,
 	ContextT, ExecutionPayloadHeaderT, ValidatorT,
 ] {
 	h := &Handler[
-		BeaconBlockHeaderT, BeaconStateT, BeaconStateMarshallableT,
+		BeaconStateT, BeaconStateMarshallableT,
 		ContextT, ExecutionPayloadHeaderT, ValidatorT,
 	]{
 		BaseHandler: handlers.NewBaseHandler(
@@ -74,13 +73,13 @@ func NewHandler[
 // Get the slot from the given input of timestamp id, beacon state, and beacon
 // block header for the resolved slot.
 func (h *Handler[
-	BeaconBlockHeaderT, BeaconStateT, _, _, _, _,
+	BeaconStateT, _, _, _, _,
 ]) resolveTimestampID(timestampID string) (
-	math.Slot, BeaconStateT, BeaconBlockHeaderT, error,
+	math.Slot, BeaconStateT, *ctypes.BeaconBlockHeader, error,
 ) {
 	var (
 		beaconState BeaconStateT
-		blockHeader BeaconBlockHeaderT
+		blockHeader *ctypes.BeaconBlockHeader
 	)
 
 	slot, err := utils.ParentSlotFromTimestampID(timestampID, h.backend)

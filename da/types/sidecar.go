@@ -21,7 +21,7 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/consensus-types/types"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -42,7 +42,7 @@ type BlobSidecar struct {
 	KzgProof eip4844.KZGProof
 	// BeaconBlockHeader represents the beacon block header for which this blob
 	// is being included.
-	BeaconBlockHeader *types.BeaconBlockHeader
+	BeaconBlockHeader *ctypes.BeaconBlockHeader
 	// InclusionProof is the inclusion proof of the blob in the beacon block
 	// body.
 	InclusionProof []common.Root
@@ -50,11 +50,9 @@ type BlobSidecar struct {
 
 // BuildBlobSidecar creates a blob sidecar from the given blobs and
 // beacon block.
-func BuildBlobSidecar[
-	BeaconBlockHeaderT any,
-](
+func BuildBlobSidecar(
 	index math.U64,
-	header BeaconBlockHeaderT,
+	header *ctypes.BeaconBlockHeader,
 	blob *eip4844.Blob,
 	commitment eip4844.KZGCommitment,
 	proof eip4844.KZGProof,
@@ -66,7 +64,7 @@ func BuildBlobSidecar[
 		Blob:              *blob,
 		KzgCommitment:     commitment,
 		KzgProof:          proof,
-		BeaconBlockHeader: any(header).(*types.BeaconBlockHeader),
+		BeaconBlockHeader: any(header).(*ctypes.BeaconBlockHeader),
 		InclusionProof:    inclusionProof,
 	}
 }
@@ -101,7 +99,7 @@ func (b *BlobSidecar) GetKzgCommitment() eip4844.KZGCommitment {
 	return b.KzgCommitment
 }
 
-func (b *BlobSidecar) GetBeaconBlockHeader() *types.BeaconBlockHeader {
+func (b *BlobSidecar) GetBeaconBlockHeader() *ctypes.BeaconBlockHeader {
 	return b.BeaconBlockHeader
 }
 
