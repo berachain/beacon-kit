@@ -49,7 +49,6 @@ type ValidatorServiceInput[
 	depinject.In
 	Cfg            *config.Config
 	ChainSpec      common.ChainSpec
-	Dispatcher     Dispatcher
 	LocalBuilder   LocalBuilder[BeaconStateT, ExecutionPayloadT]
 	Logger         LoggerT
 	StateProcessor StateProcessor[
@@ -79,7 +78,8 @@ func ProvideValidatorService[
 	],
 	BeaconStateMarshallableT any,
 	BeaconBlockStoreT any,
-	BlobSidecarsT any,
+	BlobSidecarT any,
+	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	DepositT any,
 	DepositStoreT DepositStore[DepositT],
 	ExecutionPayloadT ExecutionPayload[
@@ -101,7 +101,7 @@ func ProvideValidatorService[
 	],
 ) (*validator.Service[
 	*AttestationData, BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, BlobSidecarsT, DepositT, DepositStoreT,
+	BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositT, DepositStoreT,
 	*Eth1Data, ExecutionPayloadT, ExecutionPayloadHeaderT,
 	*ForkData, *SlashingInfo, *SlotData,
 ], error) {
@@ -111,6 +111,7 @@ func ProvideValidatorService[
 		BeaconBlockT,
 		BeaconBlockBodyT,
 		BeaconStateT,
+		BlobSidecarT,
 		BlobSidecarsT,
 		DepositT,
 		DepositStoreT,
@@ -133,6 +134,5 @@ func ProvideValidatorService[
 			in.LocalBuilder,
 		},
 		in.TelemetrySink,
-		in.Dispatcher,
 	), nil
 }

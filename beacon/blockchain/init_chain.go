@@ -18,17 +18,32 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package middleware
+package blockchain
 
-import "time"
+import (
+	"context"
+	"encoding/json"
 
-const (
-	// BeaconBlockTxIndex represents the index of the beacon block transaction.
-	// It is the first transaction in the tx list.
-	BeaconBlockTxIndex uint = iota
-	// BlobSidecarsTxIndex represents the index of the blob sidecar transaction.
-	// It follows the beacon block transaction in the tx list.
-	BlobSidecarsTxIndex
-	// AwaitTimeout is the timeout for awaiting events.
-	AwaitTimeout = 2 * time.Second
+	"github.com/berachain/beacon-kit/primitives/transition"
 )
+
+// ProcessGenesisData processes the genesis state and initializes the beacon
+// state.
+func (s *Service[
+	_, _, _, _, _, _, _, _, _, _, _, _, GenesisT, _, _, _,
+]) ProcessGenesisData(
+	ctx context.Context,
+	bytes []byte,
+) (transition.ValidatorUpdates, error) {
+	genesisData := *new(GenesisT)
+	if err := json.Unmarshal(bytes, &genesisData); err != nil {
+		s.logger.Error("Failed to unmarshal genesis data", "error", err)
+		return nil, err
+	}
+	return s.stateProcessor.InitializePreminedBeaconStateFromEth1(
+		s.storageBackend.StateFromContext(ctx),
+		genesisData.GetDeposits(),
+		genesisData.GetExecutionPayloadHeader(),
+		genesisData.GetForkVersion(),
+	)
+}

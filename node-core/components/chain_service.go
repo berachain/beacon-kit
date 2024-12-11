@@ -24,13 +24,18 @@ import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/da/da"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/execution/client"
+	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/execution/engine"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/spf13/cast"
 )
 
 // ChainServiceInput is the input for the chain service provider.
@@ -46,9 +51,16 @@ type ChainServiceInput[
 	LoggerT any,
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalsT Withdrawals[WithdrawalT],
+	BeaconBlockStoreT BlockStore[BeaconBlockT],
+	DepositStoreT any,
+	DepositContractT any,
+	AvailabilityStoreT any,
+	ConsensusSidecarsT any,
+	BlobSidecarsT any,
 ] struct {
 	depinject.In
 
+	AppOpts      config.AppOptions
 	ChainSpec    common.ChainSpec
 	Cfg          *config.Config
 	EngineClient *client.EngineClient[
@@ -61,7 +73,6 @@ type ChainServiceInput[
 		PayloadID,
 		WithdrawalsT,
 	]
-	Dispatcher     Dispatcher
 	LocalBuilder   LocalBuilder[BeaconStateT, ExecutionPayloadT]
 	Logger         LoggerT
 	Signer         crypto.BLSSigner
@@ -70,7 +81,13 @@ type ChainServiceInput[
 		DepositT, ExecutionPayloadHeaderT,
 	]
 	StorageBackend StorageBackendT
-	TelemetrySink  *metrics.TelemetrySink
+	BlobProcessor  BlobProcessor[
+		AvailabilityStoreT, ConsensusSidecarsT, BlobSidecarsT,
+	]
+	TelemetrySink         *metrics.TelemetrySink
+	BlockStore            BeaconBlockStoreT
+	DepositStore          DepositStoreT
+	BeaconDepositContract DepositContractT
 }
 
 // ProvideChainService is a depinject provider for the blockchain service.
@@ -89,10 +106,14 @@ func ProvideChainService[
 		*Validator, Validators, WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
-	BlobSidecarsT any,
+	BlobSidecarT BlobSidecar[BeaconBlockHeaderT],
+	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
+	ConsensusSidecarsT da.ConsensusSidecars[BlobSidecarsT, BeaconBlockHeaderT],
 	BlockStoreT any,
-	DepositT any,
-	DepositStoreT any,
+	DepositT deposit.Deposit[DepositT, WithdrawalCredentialsT],
+	WithdrawalCredentialsT WithdrawalCredentials,
+	DepositStoreT DepositStore[DepositT],
+	DepositContractT deposit.Contract[DepositT],
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
@@ -103,38 +124,50 @@ func ProvideChainService[
 	StorageBackendT StorageBackend[
 		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,
 	],
+	BeaconBlockStoreT BlockStore[BeaconBlockT],
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalsT Withdrawals[WithdrawalT],
 ](
 	in ChainServiceInput[
 		BeaconBlockT, BeaconStateT, DepositT, ExecutionPayloadT,
 		ExecutionPayloadHeaderT, StorageBackendT, LoggerT,
-		WithdrawalT, WithdrawalsT,
+		WithdrawalT, WithdrawalsT, BeaconBlockStoreT, DepositStoreT, DepositContractT,
+		AvailabilityStoreT, ConsensusSidecarsT, BlobSidecarsT,
 	],
 ) *blockchain.Service[
-	AvailabilityStoreT,
+	AvailabilityStoreT, DepositStoreT,
 	ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
-	BeaconBlockHeaderT, BeaconStateT, DepositT, ExecutionPayloadT,
+	BeaconBlockHeaderT, BeaconStateT, BeaconBlockStoreT, DepositT,
+	WithdrawalCredentialsT, ExecutionPayloadT,
 	ExecutionPayloadHeaderT, GenesisT,
+	ConsensusSidecarsT, BlobSidecarsT,
 	*engineprimitives.PayloadAttributes[WithdrawalT],
 ] {
 	return blockchain.NewService[
 		AvailabilityStoreT,
+		DepositStoreT,
 		ConsensusBlockT,
 		BeaconBlockT,
 		BeaconBlockBodyT,
 		BeaconBlockHeaderT,
 		BeaconStateT,
+		BeaconBlockStoreT,
 		DepositT,
+		WithdrawalCredentialsT,
 		ExecutionPayloadT,
 		ExecutionPayloadHeaderT,
 		GenesisT,
 		*engineprimitives.PayloadAttributes[WithdrawalT],
 	](
+		cast.ToString(in.AppOpts.Get(flags.FlagHome)),
 		in.StorageBackend,
+		in.BlobProcessor,
+		in.BlockStore,
+		in.DepositStore,
+		in.BeaconDepositContract,
+		math.U64(in.ChainSpec.Eth1FollowDistance()),
 		in.Logger.With("service", "blockchain"),
 		in.ChainSpec,
-		in.Dispatcher,
 		in.ExecutionEngine,
 		in.LocalBuilder,
 		in.StateProcessor,
