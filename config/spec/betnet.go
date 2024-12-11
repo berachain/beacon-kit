@@ -34,7 +34,19 @@ func BetnetChainSpec() (chain.Spec[
 	math.Slot,
 	any,
 ], error) {
-	testnetSpec := BaseSpec()
-	testnetSpec.DepositEth1ChainID = BetnetEth1ChainID
-	return chain.NewChainSpec(testnetSpec)
+	betnetSpec := BaseSpec()
+
+	betnetSpec.DepositEth1ChainID = BetnetEth1ChainID
+
+	betnetSpec.EVMInflationAddress = common.NewExecutionAddressFromHex(
+		"0x289274787bAF083C15A45a174b7a8e44F0720660",
+	)
+	betnetSpec.EVMInflationPerBlock = 2.5e9
+
+	betnetSpec.ValidatorSetCap = 5
+	betnetSpec.MaxValidatorsPerWithdrawalsSweepPostUpgrade = 3
+
+	betnetSpec.SlotsPerEpoch = 64
+
+	return chain.NewChainSpec(betnetSpec)
 }
