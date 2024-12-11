@@ -69,8 +69,7 @@ func (s *Service[LoggerT]) prepareProposal(
 		req.GetTime(),
 	)
 
-	// TODO: can we use the context from the request now that async is gone?
-	//nolint:contextcheck // see todo above
+	//nolint:contextcheck // TODO: We should look at using the passed context
 	blkBz, sidecarsBz, err := s.BlockBuilder.BuildBlockAndSidecars(
 		s.prepareProposalState.Context(),
 		*slotData,

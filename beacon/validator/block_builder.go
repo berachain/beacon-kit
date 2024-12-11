@@ -46,11 +46,6 @@ func (s *Service[
 	ctx context.Context,
 	slotData types.SlotData[ctypes.AttestationData, ctypes.SlashingInfo],
 ) ([]byte, []byte, error) {
-	// as the async approach built blocks in single thread lets keep the
-	// same approach for now
-	s.blockBuilderMu.Lock()
-	defer s.blockBuilderMu.Unlock()
-
 	startTime := time.Now()
 	defer s.metrics.measureRequestBlockForProposalTime(startTime)
 
