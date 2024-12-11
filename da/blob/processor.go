@@ -49,7 +49,7 @@ type Processor[
 	verifier *verifier[BeaconBlockHeaderT, BlobSidecarT, BlobSidecarsT]
 	// blockBodyOffsetFn is a function that calculates the block body offset
 	// based on the slot and chain specifications.
-	blockBodyOffsetFn func(math.Slot, common.ChainSpec) uint64
+	blockBodyOffsetFn func(math.Slot, common.ChainSpec) (uint64, error)
 	// metrics is used to collect and report processor metrics.
 	metrics *processorMetrics
 }
@@ -68,7 +68,7 @@ func NewProcessor[
 	logger log.Logger,
 	chainSpec common.ChainSpec,
 	proofVerifier kzg.BlobProofVerifier,
-	blockBodyOffsetFn func(math.Slot, common.ChainSpec) uint64,
+	blockBodyOffsetFn func(math.Slot, common.ChainSpec) (uint64, error),
 	telemetrySink TelemetrySink,
 ) *Processor[
 	AvailabilityStoreT, BeaconBlockBodyT, BeaconBlockHeaderT,
@@ -110,14 +110,16 @@ func (sp *Processor[
 		return nil
 	}
 
+	kzgOffset, err := sp.blockBodyOffsetFn(
+		blkHeader.GetSlot(), sp.chainSpec,
+	)
+	if err != nil {
+		return err
+	}
+
 	// Verify the blobs and ensure they match the local state.
 	return sp.verifier.verifySidecars(
-		sidecars,
-		sp.blockBodyOffsetFn(
-			sidecars.Get(0).GetBeaconBlockHeader().GetSlot(),
-			sp.chainSpec,
-		),
-		blkHeader,
+		sidecars, kzgOffset, blkHeader,
 	)
 }
 
