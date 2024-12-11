@@ -21,6 +21,8 @@
 package core
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
@@ -32,7 +34,7 @@ import (
 
 // InitializePreminedBeaconStateFromEth1 initializes the beacon state.
 //
-//nolint:gocognit // todo fix.
+//nolint:gocognit,funlen // todo fix.
 func (sp *StateProcessor[
 	_, BeaconBlockBodyT, BeaconBlockHeaderT, BeaconStateT, _, DepositT,
 	Eth1DataT, _, ExecutionPayloadHeaderT, ForkT, _, _, ValidatorT, _, _, _, _,
@@ -103,6 +105,11 @@ func (sp *StateProcessor[
 		}
 	}
 
+	// process activations
+	if err := sp.processGenesisActivation(st); err != nil {
+		return nil, err
+	}
+
 	// Handle special case bartio genesis.
 	validatorsRoot := common.Root(hex.MustToBytes(spec.BartioValRoot))
 	if sp.cs.DepositEth1ChainID() != spec.BartioChainID {
@@ -143,5 +150,52 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	return sp.processValidatorsSetUpdates(st)
+	activeVals, err := sp.getActiveVals(st, 0)
+	if err != nil {
+		return nil, err
+	}
+	return sp.validatorSetsDiffs(nil, activeVals), nil
+}
+
+func (sp *StateProcessor[
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+]) processGenesisActivation(
+	st BeaconStateT,
+) error {
+	switch {
+	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
+		// nothing to do
+		return nil
+	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID:
+		// nothing to do
+		return nil
+	default:
+		vals, err := st.GetValidators()
+		if err != nil {
+			return fmt.Errorf(
+				"genesis activation, failed listing validators: %w",
+				err,
+			)
+		}
+		minEffectiveBalance := math.Gwei(
+			sp.cs.EjectionBalance() + sp.cs.EffectiveBalanceIncrement(),
+		)
+
+		var idx math.ValidatorIndex
+		for _, val := range vals {
+			if val.GetEffectiveBalance() < minEffectiveBalance {
+				continue
+			}
+			val.SetActivationEligibilityEpoch(0)
+			val.SetActivationEpoch(0)
+			idx, err = st.ValidatorIndexByPubkey(val.GetPubkey())
+			if err != nil {
+				return err
+			}
+			if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
 }

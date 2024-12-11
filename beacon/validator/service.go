@@ -22,7 +22,6 @@ package validator
 
 import (
 	"context"
-	"sync"
 
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -78,8 +77,6 @@ type Service[
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT]
 	// metrics is a metrics collector.
 	metrics *validatorMetrics
-	// mutex for building blocks.
-	blockBuilderMu sync.Mutex
 }
 
 // NewService creates a new validator service.

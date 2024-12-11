@@ -57,13 +57,12 @@ type Service[
 ] struct {
 	node          *node.Node
 	cmtCfg        *cmtcfg.Config
-	chainSpec     common.ChainSpec
 	telemetrySink TelemetrySink
 
 	logger       LoggerT
 	sm           *statem.Manager
-	Blockchain   blockchain.BlockchainI[any]
-	BlockBuilder validator.BlockBuilderI[any]
+	Blockchain   blockchain.BlockchainI
+	BlockBuilder validator.BlockBuilderI
 
 	// prepareProposalState is used for PrepareProposal, which is set based on
 	// the previous block's state. This state is never committed. In case of
@@ -99,8 +98,8 @@ func NewService[
 	storeKey *storetypes.KVStoreKey,
 	logger LoggerT,
 	db dbm.DB,
-	blockchain blockchain.BlockchainI[any],
-	blockBuilder validator.BlockBuilderI[any],
+	blockchain blockchain.BlockchainI,
+	blockBuilder validator.BlockBuilderI,
 	cmtCfg *cmtcfg.Config,
 	cs common.ChainSpec,
 	telemetrySink TelemetrySink,
@@ -115,7 +114,6 @@ func NewService[
 		Blockchain:    blockchain,
 		BlockBuilder:  blockBuilder,
 		cmtCfg:        cmtCfg,
-		chainSpec:     cs,
 		telemetrySink: telemetrySink,
 		paramStore:    params.NewConsensusParamsStore(cs),
 	}

@@ -36,7 +36,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/primitives/version"
-	"golang.org/x/sync/errgroup"
 )
 
 // BuildBlockAndSidecars builds a new beacon block.
@@ -47,15 +46,8 @@ func (s *Service[
 	ctx context.Context,
 	slotData types.SlotData[ctypes.AttestationData, ctypes.SlashingInfo],
 ) ([]byte, []byte, error) {
-	// as the async approach built blocks in single thread lets keep the
-	// same approach for now
-	s.blockBuilderMu.Lock()
-	defer s.blockBuilderMu.Unlock()
-
 	startTime := time.Now()
 	defer s.metrics.measureRequestBlockForProposalTime(startTime)
-
-	g, _ := errgroup.WithContext(ctx)
 
 	// The goal here is to acquire a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be
@@ -103,33 +95,21 @@ func (s *Service[
 		return nil, nil, err
 	}
 
-	// Produce blob sidecars, we produce them in parallel to computing the state
-	// root as an optimization.
-	//
-	// TODO: Figure out a clean way to break "BlockAndSidecars" into two
-	// functions
-	// without giving up the parallelization benefits.
-	var sidecars BlobSidecarsT
-	g.Go(func() error {
-		sidecars, err = s.blobFactory.BuildSidecars(
-			blk, envelope.GetBlobsBundle(),
-		)
-		return err
-	})
-
 	// Compute the state root for the block.
-	g.Go(func() error {
-		return s.computeAndSetStateRoot(
-			ctx,
-			slotData.GetProposerAddress(),
-			slotData.GetConsensusTime(),
-			st,
-			blk,
-		)
-	})
+	if err = s.computeAndSetStateRoot(
+		ctx,
+		slotData.GetProposerAddress(),
+		slotData.GetConsensusTime(),
+		st,
+		blk,
+	); err != nil {
+		return nil, nil, err
+	}
 
-	// Wait for all the goroutines to finish.
-	if err = g.Wait(); err != nil {
+	// Produce blob sidecars with new StateRoot
+	sidecars, err := s.blobFactory.BuildSidecars(
+		blk, envelope.GetBlobsBundle())
+	if err != nil {
 		return nil, nil, err
 	}
 
