@@ -111,14 +111,26 @@ func (s *Service[
 		s.logger.Info("Received incoming blob sidecars")
 
 		// TODO: Clean this up once we remove generics.
-		c := convertConsensusSidecars[
+		cs := convertConsensusSidecars[
 			ConsensusSidecarsT,
 			BlobSidecarsT,
 			BeaconBlockHeaderT,
 		](consensusSidecars)
 
+		// Get the sidecar verification function from the state processor
+		sidecarVerifierFn, err := s.stateProcessor.GetSidecarVerifierFn(
+			s.storageBackend.StateFromContext(ctx),
+		)
+		if err != nil {
+			s.logger.Error(
+				"an error incurred while calculating the sidecar verifier",
+				"reason", err,
+			)
+			return createProcessProposalResponse(errors.WrapNonFatal(err))
+		}
+
 		// Verify the blobs and ensure they match the local state.
-		err = s.blobProcessor.VerifySidecars(c)
+		err = s.blobProcessor.VerifySidecars(cs, sidecarVerifierFn)
 		if err != nil {
 			s.logger.Error(
 				"rejecting incoming blob sidecars",

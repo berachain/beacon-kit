@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 )
 
 // Processor is the blob processor that handles the processing and verification
@@ -38,15 +39,16 @@ type Processor[
 	BeaconBlockBodyT any,
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, BeaconBlockHeaderT],
-	BlobSidecarT Sidecar[BeaconBlockHeaderT],
+	BlobSidecarT Sidecar[SignedBeaconBlockHeaderT],
 	BlobSidecarsT Sidecars[BlobSidecarT],
+	SignedBeaconBlockHeaderT SignedBeaconBlockHeader[BeaconBlockHeaderT],
 ] struct {
 	// logger is used to log information and errors.
 	logger log.Logger
 	// chainSpec defines the specifications of the blockchain.
 	chainSpec common.ChainSpec
 	// verifier is responsible for verifying the blobs.
-	verifier *verifier[BeaconBlockHeaderT, BlobSidecarT, BlobSidecarsT]
+	verifier *verifier[BeaconBlockHeaderT, BlobSidecarT, BlobSidecarsT, SignedBeaconBlockHeaderT]
 	// blockBodyOffsetFn is a function that calculates the block body offset
 	// based on the slot and chain specifications.
 	blockBodyOffsetFn func(math.Slot, common.ChainSpec) uint64
@@ -62,8 +64,9 @@ func NewProcessor[
 	BeaconBlockBodyT any,
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, BeaconBlockHeaderT],
-	BlobSidecarT Sidecar[BeaconBlockHeaderT],
+	BlobSidecarT Sidecar[SignedBeaconBlockHeaderT],
 	BlobSidecarsT Sidecars[BlobSidecarT],
+	SignedBeaconBlockHeaderT SignedBeaconBlockHeader[BeaconBlockHeaderT],
 ](
 	logger log.Logger,
 	chainSpec common.ChainSpec,
@@ -72,16 +75,17 @@ func NewProcessor[
 	telemetrySink TelemetrySink,
 ) *Processor[
 	AvailabilityStoreT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
+	ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT, SignedBeaconBlockHeaderT, 
 ] {
 	verifier := newVerifier[
 		BeaconBlockHeaderT,
 		BlobSidecarT,
 		BlobSidecarsT,
+		SignedBeaconBlockHeaderT,
 	](proofVerifier, telemetrySink)
 	return &Processor[
 		AvailabilityStoreT, BeaconBlockBodyT, BeaconBlockHeaderT,
-		ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
+		ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT, SignedBeaconBlockHeaderT,
 	]{
 		logger:            logger,
 		chainSpec:         chainSpec,
@@ -93,12 +97,13 @@ func NewProcessor[
 
 // VerifySidecars verifies the blobs and ensures they match the local state.
 func (sp *Processor[
-	AvailabilityStoreT, _, _, ConsensusSidecarsT, _, _,
+	AvailabilityStoreT, _, BeaconBlockHeaderT, ConsensusSidecarsT, _, BlobSidecarsT, _,
 ]) VerifySidecars(
 	cs ConsensusSidecarsT,
+	verifierFn func(blkHeader BeaconBlockHeaderT, signature crypto.BLSSignature) error,
 ) error {
 	var (
-		sidecars  = cs.GetSidecars()
+		sidecars BlobSidecarsT = cs.GetSidecars()
 		blkHeader = cs.GetHeader()
 	)
 	defer sp.metrics.measureVerifySidecarsDuration(
@@ -114,16 +119,17 @@ func (sp *Processor[
 	return sp.verifier.verifySidecars(
 		sidecars,
 		sp.blockBodyOffsetFn(
-			sidecars.Get(0).GetBeaconBlockHeader().GetSlot(),
+			sidecars.Get(0).GetSignedBeaconBlockHeader().GetHeader().GetSlot(),
 			sp.chainSpec,
 		),
 		blkHeader,
+		verifierFn,
 	)
 }
 
 // slot :=  processes the blobs and ensures they match the local state.
 func (sp *Processor[
-	AvailabilityStoreT, _, _, _, _, BlobSidecarsT,
+	AvailabilityStoreT, _, _, _, BlobSidecarT, BlobSidecarsT, _,
 ]) ProcessSidecars(
 	avs AvailabilityStoreT,
 	sidecars BlobSidecarsT,
@@ -131,6 +137,7 @@ func (sp *Processor[
 	defer sp.metrics.measureProcessSidecarsDuration(
 		time.Now(), math.U64(sidecars.Len()),
 	)
+
 
 	// Abort if there are no blobs to store.
 	if sidecars.Len() == 0 {
@@ -140,7 +147,7 @@ func (sp *Processor[
 	// If we have reached this point, we can safely assume that the blobs are
 	// valid and can be persisted, as well as that index 0 is filled.
 	return avs.Persist(
-		sidecars.Get(0).GetBeaconBlockHeader().GetSlot(),
+		sidecars.Get(0).GetSignedBeaconBlockHeader().GetHeader().GetSlot(),
 		sidecars,
 	)
 }

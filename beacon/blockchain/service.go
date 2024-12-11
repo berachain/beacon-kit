@@ -73,6 +73,7 @@ type Service[
 	blobProcessor da.BlobProcessor[
 		AvailabilityStoreT,
 		ConsensusSidecarsT, BlobSidecarsT,
+		BeaconBlockHeaderT,
 	]
 	// store is the block store for the service.
 	// TODO: Remove this and use the block store from the storage backend.
@@ -106,6 +107,7 @@ type Service[
 		*transition.Context,
 		DepositT,
 		ExecutionPayloadHeaderT,
+		BeaconBlockHeaderT,
 	]
 	// metrics is the metrics for the service.
 	metrics *chainMetrics
@@ -150,7 +152,9 @@ func NewService[
 	],
 	blobProcessor da.BlobProcessor[
 		AvailabilityStoreT,
-		ConsensusSidecarsT, BlobSidecarsT,
+		ConsensusSidecarsT,
+		BlobSidecarsT,
+		BeaconBlockHeaderT,
 	],
 	blockStore BlockStoreT,
 	depositStore deposit.Store[DepositT],
@@ -166,6 +170,7 @@ func NewService[
 		*transition.Context,
 		DepositT,
 		ExecutionPayloadHeaderT,
+		BeaconBlockHeaderT,
 	],
 	telemetrySink TelemetrySink,
 	optimisticPayloadBuilds bool,

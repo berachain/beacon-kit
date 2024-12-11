@@ -90,4 +90,6 @@ type (
 
 	// WithdrawalCredentials is a type alias for the withdrawal credentials.
 	WithdrawalCredentials = types.WithdrawalCredentials
+
+	SignedBeaconBlockHeader = types.SignedBeaconBlockHeader
 )

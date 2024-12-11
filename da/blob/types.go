@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 )
 
 // The AvailabilityStore interface is responsible for validating and storing
@@ -65,11 +66,16 @@ type ConsensusSidecars[BlobSidecarsT any, BeaconBlockHeaderT any] interface {
 	GetHeader() BeaconBlockHeaderT
 }
 
-type Sidecar[BeaconBlockHeaderT any] interface {
-	GetBeaconBlockHeader() BeaconBlockHeaderT
+type Sidecar[SignedBeaconBlockHeaderT any] interface {
 	GetBlob() eip4844.Blob
 	GetKzgProof() eip4844.KZGProof
 	GetKzgCommitment() eip4844.KZGCommitment
+	GetSignedBeaconBlockHeader() SignedBeaconBlockHeaderT
+}
+
+type SignedBeaconBlockHeader[BeaconBlockHeaderT any] interface {
+	GetHeader() BeaconBlockHeaderT
+	GetSignature() crypto.BLSSignature
 }
 
 type Sidecars[SidecarT any] interface {

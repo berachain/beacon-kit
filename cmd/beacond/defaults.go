@@ -42,6 +42,7 @@ func DefaultComponents() []any {
 		components.ProvideBlobProcessor[
 			*AvailabilityStore, *BeaconBlockBody, *BeaconBlockHeader,
 			*ConsensusSidecars, *BlobSidecar, *BlobSidecars, *Logger,
+			*SignedBeaconBlockHeader,
 		],
 		components.ProvideBlobProofVerifier,
 		components.ProvideChainService[
@@ -53,6 +54,8 @@ func DefaultComponents() []any {
 			*DepositStore, *DepositContract,
 			*ExecutionPayload, *ExecutionPayloadHeader, *Genesis,
 			*KVStore, *Logger, *StorageBackend, *BlockStore,
+			*Withdrawal, Withdrawals,
+			*SignedBeaconBlockHeader,
 		],
 		components.ProvideNode,
 		components.ProvideChainSpec,

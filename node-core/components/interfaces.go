@@ -231,6 +231,7 @@ type (
 		AvailabilityStoreT any,
 		ConsensusSidecarsT any,
 		BlobSidecarsT any,
+		BeaconBlockHeaderT any,
 	] interface {
 		// ProcessSidecars processes the blobs and ensures they match the local
 		// state.
@@ -242,14 +243,15 @@ type (
 		// state.
 		VerifySidecars(
 			sidecars ConsensusSidecarsT,
+			verifierFn func(blkHeader BeaconBlockHeaderT, signature crypto.BLSSignature) error,
 		) error
 	}
 
-	BlobSidecar[BeaconBlockHeaderT any] interface {
-		GetBeaconBlockHeader() BeaconBlockHeaderT
+	BlobSidecar[SignedBeaconBlockHeaderT any] interface {
 		GetBlob() eip4844.Blob
 		GetKzgProof() eip4844.KZGProof
 		GetKzgCommitment() eip4844.KZGCommitment
+		GetSignedBeaconBlockHeader() SignedBeaconBlockHeaderT
 	}
 
 	ConsensusSidecars[
@@ -654,6 +656,7 @@ type (
 		ContextT any,
 		DepositT any,
 		ExecutionPayloadHeaderT any,
+		BeaconBlockHeaderT any,
 	] interface {
 		// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
 		// state
@@ -674,6 +677,10 @@ type (
 			st BeaconStateT,
 			blk BeaconBlockT,
 		) (transition.ValidatorUpdates, error)
+		GetSidecarVerifierFn(BeaconStateT) (
+			func(blkHeader BeaconBlockHeaderT, signature crypto.BLSSignature) error,
+			error,
+		)
 	}
 
 	SidecarFactory[BeaconBlockT any, BlobSidecarsT any, ForkDataT any] interface {
