@@ -35,7 +35,7 @@ import (
 
 //nolint:gocognit // its fine.
 func (s *Service[LoggerT]) initChain(
-	_ context.Context,
+	ctx context.Context,
 	req *cmtabci.InitChainRequest,
 ) (*cmtabci.InitChainResponse, error) {
 	if req.ChainId != s.chainID {
@@ -81,7 +81,7 @@ func (s *Service[LoggerT]) initChain(
 		}
 	}
 
-	s.finalizeBlockState = s.resetState()
+	s.finalizeBlockState = s.resetState(ctx)
 
 	resValidators, err := s.initChainer(
 		s.finalizeBlockState.Context(),

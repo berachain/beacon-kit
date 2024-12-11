@@ -32,7 +32,7 @@ import (
 )
 
 func (s *Service[LoggerT]) prepareProposal(
-	_ context.Context,
+	ctx context.Context,
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
 	startTime := time.Now()
@@ -50,7 +50,7 @@ func (s *Service[LoggerT]) prepareProposal(
 
 	// Always reset state given that PrepareProposal can timeout
 	// and be called again in a subsequent round.
-	s.prepareProposalState = s.resetState()
+	s.prepareProposalState = s.resetState(ctx)
 	s.prepareProposalState.SetContext(
 		s.getContextForProposal(
 			s.prepareProposalState.Context(),
