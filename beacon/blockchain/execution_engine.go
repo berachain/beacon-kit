@@ -22,10 +22,7 @@ package blockchain
 
 import (
 	"context"
-	"time"
 
-	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
-	"github.com/berachain/beacon-kit/config/spec"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 )
 
@@ -46,68 +43,9 @@ func (s *Service[
 		return
 	}
 
-	if !s.shouldBuildOptimisticPayloads() && s.localBuilder.Enabled() {
-		s.sendNextFCUWithAttributes(ctx, st, blk, lph)
-	} else {
+	// Non-optimistic client does not need optimistic build.
+	if s.shouldBuildOptimisticPayloads() {
 		s.sendNextFCUWithoutAttributes(ctx, blk, lph)
-	}
-}
-
-// sendNextFCUWithAttributes sends a forkchoice update to the execution
-// client with attributes.
-func (s *Service[
-	_, ConsensusBlockT, _, _, _, BeaconStateT,
-	_, _, ExecutionPayloadHeaderT, _, _,
-]) sendNextFCUWithAttributes(
-	ctx context.Context,
-	st BeaconStateT,
-	blk ConsensusBlockT,
-	lph ExecutionPayloadHeaderT,
-) {
-	beaconBlk := blk.GetBeaconBlock()
-
-	stCopy := st.Copy()
-	if _, err := s.stateProcessor.ProcessSlots(
-		stCopy, beaconBlk.GetSlot()+1,
-	); err != nil {
-		s.logger.Error(
-			"failed to process slots in non-optimistic payload",
-			"error", err,
-		)
-		return
-	}
-
-	nextPayloadTime := payloadtime.Next(
-		blk.GetConsensusTime(),
-		lph.GetTimestamp(),
-		true, // buildOptimistically
-	).Unwrap()
-
-	// We set timestamp check on Bartio for backward compatibility reasons
-	// TODO: drop this we drop other Bartio special cases.
-	if s.chainSpec.DepositEth1ChainID() == spec.BartioChainID {
-		nextPayloadTime = max(
-			//#nosec:G701
-			uint64(time.Now().Unix()+1),
-			uint64((lph.GetTimestamp() + 1)),
-		)
-	}
-
-	prevBlockRoot := beaconBlk.HashTreeRoot()
-	if _, err := s.localBuilder.RequestPayloadAsync(
-		ctx,
-		stCopy,
-		beaconBlk.GetSlot()+1,
-		nextPayloadTime,
-		prevBlockRoot,
-		lph.GetBlockHash(),
-		lph.GetParentHash(),
-	); err != nil {
-		s.logger.Error(
-			"failed to send forkchoice update with attributes in non-optimistic payload",
-			"error",
-			err,
-		)
 	}
 }
 
