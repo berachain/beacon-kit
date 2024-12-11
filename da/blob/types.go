@@ -66,6 +66,7 @@ type ConsensusSidecars[BlobSidecarsT any, BeaconBlockHeaderT any] interface {
 }
 
 type Sidecar[BeaconBlockHeaderT any] interface {
+	GetIndex() uint64
 	GetBeaconBlockHeader() BeaconBlockHeaderT
 	GetBlob() eip4844.Blob
 	GetKzgProof() eip4844.KZGProof
@@ -83,6 +84,7 @@ type Sidecars[SidecarT any] interface {
 // ChainSpec represents a chain spec.
 type ChainSpec interface {
 	MaxBlobCommitmentsPerBlock() uint64
+	MaxBlobsPerBlock() uint64
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.

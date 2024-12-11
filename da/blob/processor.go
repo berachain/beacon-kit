@@ -118,6 +118,7 @@ func (sp *Processor[
 			sp.chainSpec,
 		),
 		blkHeader,
+		sp.chainSpec,
 	)
 }
 

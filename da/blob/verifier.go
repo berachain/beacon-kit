@@ -64,6 +64,7 @@ func (bv *verifier[BeaconBlockHeaderT, _, BlobSidecarsT]) verifySidecars(
 	sidecars BlobSidecarsT,
 	kzgOffset uint64,
 	blkHeader BeaconBlockHeaderT,
+	spec ChainSpec,
 ) error {
 	defer bv.metrics.measureVerifySidecarsDuration(
 		time.Now(), math.U64(sidecars.Len()),
@@ -75,6 +76,9 @@ func (bv *verifier[BeaconBlockHeaderT, _, BlobSidecarsT]) verifySidecars(
 	for i, s := range sidecars.GetSidecars() {
 		if !s.GetBeaconBlockHeader().Equals(blkHeader) {
 			return fmt.Errorf("unequal block header: idx: %d", i)
+		}
+		if s.GetIndex() >= spec.MaxBlobsPerBlock() {
+			return fmt.Errorf("invalid sidecar Index: %d", i)
 		}
 	}
 
