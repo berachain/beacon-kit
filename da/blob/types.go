@@ -51,7 +51,7 @@ type BeaconBlock[
 
 type BeaconBlockBody interface {
 	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
-	GetTopLevelRoots() []common.Root
+	GetTopLevelRoots() ([]common.Root, error)
 	Length() uint64
 }
 

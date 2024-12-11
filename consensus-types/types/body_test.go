@@ -151,7 +151,8 @@ func TestBeaconBlockBody_MarshalSSZTo(t *testing.T) {
 
 func TestBeaconBlockBody_GetTopLevelRoots(t *testing.T) {
 	body := generateBeaconBlockBody()
-	roots := body.GetTopLevelRoots()
+	roots, err := body.GetTopLevelRoots()
+	require.NoError(t, err)
 	require.NotNil(t, roots)
 }
 
