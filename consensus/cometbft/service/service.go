@@ -232,11 +232,18 @@ func (s *Service[_]) setInterBlockCache(
 // prepareProposal/processProposal/finalizeBlock State.
 // A state is explicitly returned to avoid false positives from
 // nilaway tool.
-func (s *Service[LoggerT]) resetState() *state {
+func (s *Service[LoggerT]) resetState(ctx context.Context) *state {
 	ms := s.sm.CommitMultiStore().CacheMultiStore()
+
+	newCtx := sdk.NewContext(
+		ms,
+		false,
+		servercmtlog.WrapSDKLogger(s.logger),
+	).WithContext(ctx)
+
 	return &state{
 		ms:  ms,
-		ctx: sdk.NewContext(ms, false, servercmtlog.WrapSDKLogger(s.logger)),
+		ctx: newCtx,
 	}
 }
 
