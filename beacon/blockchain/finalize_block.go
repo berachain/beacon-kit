@@ -44,6 +44,7 @@ func (s *Service[
 		finalizeErr error
 	)
 
+	// STEP 1: Decode blok and blobs
 	blk, blobs, err := encoding.
 		ExtractBlobsAndBlockFromRequest[BeaconBlockT, BlobSidecarsT](
 		req,
@@ -57,26 +58,8 @@ func (s *Service[
 		return nil, nil
 	}
 
-	// notify that the final beacon block has been received.
-	var consensusBlk *types.ConsensusBlock[BeaconBlockT]
-	consensusBlk = consensusBlk.New(
-		blk,
-		req.GetProposerAddress(),
-		req.GetTime(),
-	)
-
-	val, ok := any(consensusBlk).(ConsensusBlockT)
-	if !ok {
-		panic("failed to convert consensusBlk to ConsensusBlockT")
-	}
-
-	valUpdates, finalizeErr = s.finalizeBeaconBlock(ctx, val)
-	if finalizeErr != nil {
-		s.logger.Error("Failed to process verified beacon block",
-			"error", finalizeErr,
-		)
-	}
-
+	// STEP 2: Finalize sidecars first (block will check for
+	// sidecar availability)
 	err = s.blobProcessor.ProcessSidecars(
 		s.storageBackend.AvailabilityStore(),
 		blobs,
@@ -85,15 +68,59 @@ func (s *Service[
 		s.logger.Error("Failed to process blob sidecars", "error", err)
 	}
 
+	// STEP 3: finalize the block
+	var consensusBlk *types.ConsensusBlock[BeaconBlockT]
+	consensusBlk = consensusBlk.New(
+		blk,
+		req.GetProposerAddress(),
+		req.GetTime(),
+	)
+
+	cBlk, ok := any(consensusBlk).(ConsensusBlockT)
+	if !ok {
+		panic("failed to convert consensusBlk to ConsensusBlockT")
+	}
+
+	st := s.storageBackend.StateFromContext(ctx)
+	valUpdates, finalizeErr = s.finalizeBeaconBlock(ctx, st, cBlk)
+	if finalizeErr != nil {
+		s.logger.Error("Failed to process verified beacon block",
+			"error", finalizeErr,
+		)
+	}
+
+	// STEP 4: Post Finalizations cleanups
+
+	// fetch and store the deposit for the block
+	blockNum := blk.GetBody().GetExecutionPayload().GetNumber()
+	s.depositFetcher(ctx, blockNum)
+
+	// store the finalized block in the KVStore.
+	slot := blk.GetSlot()
+	if err = s.blockStore.Set(blk); err != nil {
+		s.logger.Error(
+			"failed to store block", "slot", slot, "error", err,
+		)
+	}
+
+	// prune the availability and deposit store
+	err = s.processPruning(blk)
+	if err != nil {
+		s.logger.Error("failed to processPruning", "error", err)
+	}
+
+	go s.sendPostBlockFCU(ctx, st, cBlk)
+
 	return valUpdates, nil
 }
 
 // finalizeBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
 func (s *Service[
-	_, _, ConsensusBlockT, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, ConsensusBlockT, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
 ]) finalizeBeaconBlock(
 	ctx context.Context,
+	st BeaconStateT,
 	blk ConsensusBlockT,
 ) (transition.ValidatorUpdates, error) {
 	beaconBlk := blk.GetBeaconBlock()
@@ -103,7 +130,6 @@ func (s *Service[
 		return nil, ErrNilBlk
 	}
 
-	st := s.storageBackend.StateFromContext(ctx)
 	valUpdates, err := s.executeStateTransition(ctx, st, blk)
 	if err != nil {
 		return nil, err
@@ -117,27 +143,6 @@ func (s *Service[
 	) {
 		return nil, ErrDataNotAvailable
 	}
-
-	// fetch and store the deposit for the block
-	blockNum := beaconBlk.GetBody().GetExecutionPayload().GetNumber()
-	s.depositFetcher(ctx, blockNum)
-
-	// store the finalized block in the KVStore.
-	slot := beaconBlk.GetSlot()
-	if err = s.blockStore.Set(beaconBlk); err != nil {
-		s.logger.Error(
-			"failed to store block", "slot", slot, "error", err,
-		)
-	}
-
-	// prune the availability and deposit store
-	err = s.processPruning(beaconBlk)
-	if err != nil {
-		s.logger.Error("failed to processPruning", "error", err)
-	}
-
-	go s.sendPostBlockFCU(ctx, st, blk)
-
 	return valUpdates.CanonicalSort(), nil
 }
 
