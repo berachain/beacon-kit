@@ -40,7 +40,7 @@ func (s *Service[LoggerT]) finalizeBlock(
 }
 
 func (s *Service[LoggerT]) finalizeBlockInternal(
-	_ context.Context,
+	ctx context.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (*cmtabci.FinalizeBlockResponse, error) {
 	if err := s.validateFinalizeBlockHeight(req); err != nil {
@@ -52,7 +52,7 @@ func (s *Service[LoggerT]) finalizeBlockInternal(
 	// here given that during block replay ProcessProposal is not executed by
 	// CometBFT.
 	if s.finalizeBlockState == nil {
-		s.finalizeBlockState = s.resetState()
+		s.finalizeBlockState = s.resetState(ctx)
 	}
 
 	// Iterate over all raw transactions in the proposal and attempt to execute
