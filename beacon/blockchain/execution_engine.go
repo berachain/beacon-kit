@@ -26,7 +26,10 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 )
 
-// sendPostBlockFCU sends a forkchoice update to the execution client.
+// sendPostBlockFCU sends a forkchoice update to the execution client after a
+// block is finalized. Few pointers to note here:
+// Optimistic clients already request builds in handleOptimisticPayloadBuild()
+// Non-optimistic clients should never request optimistic builds.
 func (s *Service[
 	_, ConsensusBlockT, _, _, _, BeaconStateT, _, _, _, _, _,
 ]) sendPostBlockFCU(
@@ -43,7 +46,6 @@ func (s *Service[
 		return
 	}
 
-	// Non-optimistic client does not need optimistic build.
 	if s.shouldBuildOptimisticPayloads() {
 		s.sendNextFCUWithoutAttributes(ctx, blk, lph)
 	}
