@@ -69,6 +69,11 @@ func (n *node) Start(
 
 	// Start all the registered services.
 	if err := n.registry.StartAll(gctx); err != nil {
+		// Make sure the services that were successfully started are stopped
+		// before exiting. We assume that it is safe to call Stop on a
+		// service that was never started so we can call StopAll here
+		//#nosec:G703 // ok to ignore this
+		_ = n.registry.StopAll()
 		return err
 	}
 
