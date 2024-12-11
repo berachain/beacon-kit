@@ -1,0 +1,313 @@
+[90m2024-12-11T22:07:35Z [32mINFO[0m Starting services num=7[0m
+[90m2024-12-11T22:07:35Z [32mINFO[0m Starting service type=validator[0m
+[90m2024-12-11T22:07:35Z [32mINFO[0m Starting service type=node-api-server[0m
+[90m2024-12-11T22:07:35Z [32mINFO[0m Starting service type=reporting[0m
+[90m2024-12-11T22:07:35Z [32mINFO[0m 
+
+
+	+==========================================================================+
+	+ ⭐️ Star BeaconKit on GitHub @ https://github.com/berachain/beacon-kit    +
+	+ 🧩 Your node is running version: kurtosis-local                          +
+	+ ♦ Eth client: unknown (version: unknown)                                 +
+	+ 💾 Your system: linux/arm64                                              +
+	+ 🦺 Please report issues @ https://github.com/berachain/beacon-kit/issues +
+	+==========================================================================+
+
+
+ service=reporting[0m
+[90m2024-12-11T22:07:35Z [32mINFO[0m Starting service type=engine-client[0m
+[90m2024-12-11T22:07:35Z [32mINFO[0m Initializing connection to the execution client... service=engine.client[0m dial_url=http://el-full-besu-4:8551[0m
+⇨ http server started on [::]:3500
+[90m2024-12-11T22:07:38Z [32mINFO[0m Waiting for execution client to start... 🍺🕔 service=engine.client[0m dial_url=http://el-full-besu-4:8551[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Connected to execution client 🔌 service=engine.client[0m dial_url=http://el-full-besu-4:8551[0m chain_id=80087[0m required_chain_id=80087[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Exchanged capability service=engine.client[0m capability=engine_getPayloadV1[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Exchanged capability service=engine.client[0m capability=engine_getPayloadV2[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Exchanged capability service=engine.client[0m capability=engine_getPayloadV3[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Exchanged capability service=engine.client[0m capability=engine_getPayloadV4[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Exchanged capability service=engine.client[0m capability=engine_newPayloadV1[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Exchanged capability service=engine.client[0m capability=engine_newPayloadV2[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Exchanged capability service=engine.client[0m capability=engine_newPayloadV3[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Exchanged capability service=engine.client[0m capability=engine_newPayloadV4[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Exchanged capability service=engine.client[0m capability=engine_forkchoiceUpdatedV1[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Exchanged capability service=engine.client[0m capability=engine_forkchoiceUpdatedV2[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Exchanged capability service=engine.client[0m capability=engine_forkchoiceUpdatedV3[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Exchanged capability service=engine.client[0m capability=engine_exchangeTransitionConfigurationV1[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Exchanged capability service=engine.client[0m capability=engine_getPayloadBodiesByHashV1[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Exchanged capability service=engine.client[0m capability=engine_getPayloadBodiesByRangeV1[0m
+[90m2024-12-11T22:07:38Z [33mWARN[0m Your execution client may require an update 🚸 service=engine.client[0m unsupported_capability=engine_getClientVersionV1[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Starting service type=telemetry[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Starting service type=blockchain[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Starting service type=beacond[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m State store key layout version  version=vv1[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Blockstore version version=v1[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m WARNING: deleting genesis file from database if present, the database stores a hash of the original genesis file now
+[90m2024-12-11T22:07:38Z [32mINFO[0m Starting multiAppConn service module=proxy[0m impl=multiAppConn[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Starting localClient service module=abci-client[0m connection=query[0m impl=localClient[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Starting localClient service module=abci-client[0m connection=snapshot[0m impl=localClient[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Starting localClient service module=abci-client[0m connection=mempool[0m impl=localClient[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Starting localClient service module=abci-client[0m connection=consensus[0m impl=localClient[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Starting EventBus service module=events[0m impl=EventBus[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Starting PubSub service module=pubsub[0m impl=PubSub[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Starting IndexerService service module=txindex[0m impl=IndexerService[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m ABCI Handshake App Info module=consensus[0m height=0[0m hash=E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855[0m software-version=kurtosis-local[0m protocol-version=0[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m ABCI Replay Blocks module=consensus[0m appHeight=0[0m storeHeight=0[0m stateHeight=0[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m InitChain initialHeight=1[0m chainID=beacon-kurtosis-80087[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Processed deposit to set Eth 1 deposit index service=state-processor[0m deposit_index=0[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Processed deposit to create new validator service=state-processor[0m deposit_amount=32[0m validator_index=0x0[0m withdrawal_epoch=0xffffffffffffffff[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Processed deposit to set Eth 1 deposit index service=state-processor[0m deposit_index=1[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Processed deposit to create new validator service=state-processor[0m deposit_amount=32[0m validator_index=0x1[0m withdrawal_epoch=0xffffffffffffffff[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Processed deposit to set Eth 1 deposit index service=state-processor[0m deposit_index=2[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Processed deposit to create new validator service=state-processor[0m deposit_amount=32[0m validator_index=0x2[0m withdrawal_epoch=0xffffffffffffffff[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Processed deposit to set Eth 1 deposit index service=state-processor[0m deposit_index=3[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Processed deposit to create new validator service=state-processor[0m deposit_amount=32[0m validator_index=0x3[0m withdrawal_epoch=0xffffffffffffffff[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Processed deposit to set Eth 1 deposit index service=state-processor[0m deposit_index=4[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Processed deposit to create new validator service=state-processor[0m deposit_amount=32[0m validator_index=0x4[0m withdrawal_epoch=0xffffffffffffffff[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Completed ABCI Handshake - CometBFT and App are synced module=consensus[0m appHeight=0[0m appHash=E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Version info tendermint_version=1.0.0-rc1[0m abci=2.1.0[0m block=11[0m p2p=9[0m commit_hash=[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m This node is not a validator module=consensus[0m addr=A60D76CA11E06A01671D5D776DA277D45D353BD0[0m pubKey=t0MKicdwQuKPJNk6Xh5zSLFkyExkFrpgAQX1+/TKf0F+G9JTBt9qW7A1lLskMyOB[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m P2P Node ID module=p2p[0m ID=b8e772bb09e2ce154dee02f666e0ab202b469bb2[0m file=/root/.beacond/config/node_key.json[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Adding persistent peers module=p2p[0m addrs=[][0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Adding unconditional peer ids module=p2p[0m ids=[][0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Add our address to book module=p2p[0m book=/root/.beacond/config/addrbook.json[0m addr=b8e772bb09e2ce154dee02f666e0ab202b469bb2@0.0.0.0:26656[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Starting Node service impl=Node[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Starting P2P Switch service module=p2p[0m impl=P2P Switch[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Starting Reactor service module=blocksync[0m impl=Reactor[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Starting BlockPool service module=blocksync[0m impl=BlockPool[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Starting Consensus service module=consensus[0m impl=ConsensusReactor[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Starting reactor in sync mode: consensus protocols will start once sync completes module=consensus[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Starting Evidence service module=evidence[0m impl=Evidence[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Starting StateSync service module=statesync[0m impl=StateSync[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Starting PEX service module=pex[0m impl=PEX[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Starting AddrBook service module=p2p[0m book=/root/.beacond/config/addrbook.json[0m impl=AddrBook[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Saving AddrBook to file module=p2p[0m book=/root/.beacond/config/addrbook.json[0m size=0[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Starting RPC HTTP server on [::]:26657 module=rpc-server[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Ensure peers module=pex[0m numOutPeers=0[0m numInPeers=0[0m numDialing=0[0m numToDial=10[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Starting Pruner service module=state[0m impl=Pruner[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m No addresses to dial. Falling back to seeds module=pex[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Started pruning blocks module=state[0m interval=10s[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Starting Peer service module=p2p[0m peer=7d76af9b3d046b62d2aae0a6c6aa9382846c1963@172.16.0.6:26656[0m impl=Peer{MConn{172.16.0.6:26656} 7d76af9b3d046b62d2aae0a6c6aa9382846c1963 out}[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Starting MConnection service module=p2p[0m peer=7d76af9b3d046b62d2aae0a6c6aa9382846c1963@172.16.0.6:26656[0m impl=MConn{172.16.0.6:26656}[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Connection is closed @ recvRoutine (likely by the other side) module=p2p[0m peer=7d76af9b3d046b62d2aae0a6c6aa9382846c1963@172.16.0.6:26656[0m conn=MConn{172.16.0.6:26656}[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Stopping MConnection service module=p2p[0m peer=7d76af9b3d046b62d2aae0a6c6aa9382846c1963@172.16.0.6:26656[0m impl=MConn{172.16.0.6:26656}[0m
+[90m2024-12-11T22:07:38Z [31mERRR[0m Stopping peer for error module=p2p[0m peer=Peer{MConn{172.16.0.6:26656} 7d76af9b3d046b62d2aae0a6c6aa9382846c1963 out}[0m [31merr=EOF[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Stopping Peer service module=p2p[0m peer=7d76af9b3d046b62d2aae0a6c6aa9382846c1963@172.16.0.6:26656[0m impl=Peer{MConn{172.16.0.6:26656} 7d76af9b3d046b62d2aae0a6c6aa9382846c1963 out}[0m
+[90m2024-12-11T22:07:38Z [32mINFO[0m Inbound Peer rejected module=p2p[0m [31merr=auth failure: secret conn failed: EOF[0m numPeers=0[0m
+[90m2024-12-11T22:07:39Z [32mINFO[0m Connected to execution client service=reporting[0m
+[90m2024-12-11T22:07:39Z [33mWARN[0m Client does not have capability to get client version service=reporting[0m
+[90m2024-12-11T22:07:39Z [32mINFO[0m Reporting version service=reporting[0m version=kurtosis-local[0m system=linux/arm64[0m eth_version=unknown[0m eth_name=unknown[0m
+[90m2024-12-11T22:07:50Z [32mINFO[0m Starting Peer service module=p2p[0m peer=7d76af9b3d046b62d2aae0a6c6aa9382846c1963@172.16.0.6:44954[0m impl=Peer{MConn{172.16.0.6:44954} 7d76af9b3d046b62d2aae0a6c6aa9382846c1963 in}[0m
+[90m2024-12-11T22:07:50Z [32mINFO[0m Starting MConnection service module=p2p[0m peer=7d76af9b3d046b62d2aae0a6c6aa9382846c1963@172.16.0.6:44954[0m impl=MConn{172.16.0.6:44954}[0m
+[90m2024-12-11T22:07:51Z [32mINFO[0m Time to switch to consensus mode! module=blocksync[0m height=1[0m
+[90m2024-12-11T22:07:51Z [32mINFO[0m Stopping BlockPool service module=blocksync[0m impl=BlockPool[0m
+[90m2024-12-11T22:07:51Z [32mINFO[0m SwitchToConsensus module=consensus[0m
+[90m2024-12-11T22:07:51Z [32mINFO[0m Starting State service module=consensus[0m impl=ConsensusState[0m
+[90m2024-12-11T22:07:51Z [32mINFO[0m Starting baseWAL service module=consensus[0m wal=/root/.beacond/data/cs.wal/wal[0m impl=baseWAL[0m
+[90m2024-12-11T22:07:51Z [32mINFO[0m Starting Group service module=consensus[0m wal=/root/.beacond/data/cs.wal/wal[0m impl=Group[0m
+[90m2024-12-11T22:07:51Z [32mINFO[0m Starting TimeoutTicker service module=consensus[0m impl=TimeoutTicker[0m
+[90m2024-12-11T22:07:51Z [32mINFO[0m Searching for height module=consensus[0m wal=/root/.beacond/data/cs.wal/wal[0m height=1[0m min=0[0m max=0[0m
+[90m2024-12-11T22:07:51Z [32mINFO[0m Searching for height wal=/root/.beacond/data/cs.wal/wal[0m module=consensus[0m height=0[0m min=0[0m max=0[0m
+[90m2024-12-11T22:07:51Z [32mINFO[0m Found module=consensus[0m wal=/root/.beacond/data/cs.wal/wal[0m height=0[0m index=0[0m
+[90m2024-12-11T22:07:51Z [32mINFO[0m Catchup by replaying consensus messages module=consensus[0m height=1[0m
+[90m2024-12-11T22:07:51Z [32mINFO[0m Replay: Done module=consensus[0m
+[90m2024-12-11T22:07:51Z [32mINFO[0m Timed out module=consensus[0m dur=-10003.000617[0m height=1[0m round=0[0m step=RoundStepNewHeight[0m
+[90m2024-12-11T22:07:54Z [32mINFO[0m Timed out module=consensus[0m dur=3000[0m height=1[0m round=0[0m step=RoundStepPropose[0m
+[90m2024-12-11T22:07:54Z [32mINFO[0m Received proposal module=consensus[0m proposal=Proposal{1/0 (6AA4AE5C66D0F99CC956265DCC0707DF14F5F5695EF1BA7692C5C45376CD80CB:1:52069CF1B75D, -1) 89FAE9E28200 @ 2024-12-11T22:07:13.863944969Z}[0m proposer=1DDC6F12FE175A2DD46EBC27C145BBE67592976C[0m
+[90m2024-12-11T22:07:54Z [32mINFO[0m Received complete proposal block module=consensus[0m height=1[0m hash=6AA4AE5C66D0F99CC956265DCC0707DF14F5F5695EF1BA7692C5C45376CD80CB[0m
+[90m2024-12-11T22:07:54Z [32mINFO[0m Finalizing commit of block module=consensus[0m height=1[0m hash=6AA4AE5C66D0F99CC956265DCC0707DF14F5F5695EF1BA7692C5C45376CD80CB[0m root=E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855[0m num_txs=2[0m
+[90m2024-12-11T22:07:54Z [32mINFO[0m processExecutionPayload service=state-processor[0m consensus height=1[0m payload height=1[0m payload timestamp=1733954833[0m consensus timestamp=1733954833[0m skip payload verification=false[0m
+[90m2024-12-11T22:07:54Z [32mINFO[0m Inserted new payload into execution chain service=execution-engine[0m payload_block_hash=0x2ec1beb4f34d583a299782ed82ce61ee714b54172875cf117cf828c9d6f9a850[0m payload_parent_block_hash=0x58a75de4db56aafde74e88032a55b78e518ec6fee8a5b7a542c40b94b8a24c8f[0m is_optimistic=true[0m
+[90m2024-12-11T22:07:54Z [32mINFO[0m Processed withdrawals service=state-processor[0m num_withdrawals=1[0m bera_inflation=10[0m
+[90m2024-12-11T22:07:54Z [32mINFO[0m Processing deposits in range service=state-processor[0m expected_start_index=5[0m expected_range_length=0[0m
+[90m2024-12-11T22:07:54Z [32mINFO[0m Finalized block module=state[0m height=1[0m num_txs_res=2[0m num_val_updates=0[0m block_app_hash=A72CB887DD14FB29488C1681BEC831806B7E87B1AB7FA96251D32070E34F3DAB[0m syncing_to_height=1[0m
+[90m2024-12-11T22:07:54Z [32mINFO[0m Committed state module=state[0m height=1[0m block_app_hash=E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855[0m
+[90m2024-12-11T22:07:54Z [33mWARN[0m Suggested fee recipient is not configured 🔆 service=engine.client[0m fee-recipent=0x0000000000000000000000000000000000000000[0m
+[90m2024-12-11T22:07:54Z [32mINFO[0m indexed block events module=txindex[0m height=1[0m
+[90m2024-12-11T22:07:54Z [32mINFO[0m Forkchoice updated service=execution-engine[0m head_block_hash=0x2ec1beb4f34d583a299782ed82ce61ee714b54172875cf117cf828c9d6f9a850[0m safe_block_hash=0x58a75de4db56aafde74e88032a55b78e518ec6fee8a5b7a542c40b94b8a24c8f[0m finalized_block_hash=0x58a75de4db56aafde74e88032a55b78e518ec6fee8a5b7a542c40b94b8a24c8f[0m with_attributes=true[0m payload_id=0x2687e22ca0d3764d[0m
+[90m2024-12-11T22:07:57Z [32mINFO[0m Timed out module=consensus[0m dur=2901.844834[0m height=2[0m round=0[0m step=RoundStepNewHeight[0m
+[90m2024-12-11T22:07:57Z [32mINFO[0m Received proposal module=consensus[0m proposal=Proposal{2/0 (9EDB0A3C6384778E5C9C2ACE983F28EEA5E19DE8F2CC24A78AD274D26230EF15:1:805607A7719B, -1) 8BF928E8199F @ 2024-12-11T22:07:54.461449752Z}[0m proposer=2649F6470A4044FC067E2DEE2E30F7C1B73B6A63[0m
+[90m2024-12-11T22:07:57Z [32mINFO[0m Received complete proposal block module=consensus[0m height=2[0m hash=9EDB0A3C6384778E5C9C2ACE983F28EEA5E19DE8F2CC24A78AD274D26230EF15[0m
+[90m2024-12-11T22:07:57Z [32mINFO[0m DEBUG BLOBS: Did not receive sidecar service=blockchain[0m isNil=false[0m Length=0[0m
+[90m2024-12-11T22:07:57Z [32mINFO[0m Sending startup forkchoice update to execution client service=payload-builder[0m head_eth1_hash=0x2ec1beb4f34d583a299782ed82ce61ee714b54172875cf117cf828c9d6f9a850[0m safe_eth1_hash=0x58a75de4db56aafde74e88032a55b78e518ec6fee8a5b7a542c40b94b8a24c8f[0m finalized_eth1_hash=0x58a75de4db56aafde74e88032a55b78e518ec6fee8a5b7a542c40b94b8a24c8f[0m for_slot=2[0m
+[90m2024-12-11T22:07:57Z [32mINFO[0m Forkchoice updated service=execution-engine[0m head_block_hash=0x2ec1beb4f34d583a299782ed82ce61ee714b54172875cf117cf828c9d6f9a850[0m safe_block_hash=0x58a75de4db56aafde74e88032a55b78e518ec6fee8a5b7a542c40b94b8a24c8f[0m finalized_block_hash=0x58a75de4db56aafde74e88032a55b78e518ec6fee8a5b7a542c40b94b8a24c8f[0m with_attributes=false[0m
+[90m2024-12-11T22:07:57Z [32mINFO[0m Received incoming beacon block service=blockchain[0m state_root=0xc972bbbca704f3627b46d8def3d7a5597e81c4aff65113b63c0a42d0d0170542[0m slot=0x2[0m
+[90m2024-12-11T22:07:57Z [32mINFO[0m processExecutionPayload service=state-processor[0m consensus height=2[0m payload height=2[0m payload timestamp=1733954834[0m consensus timestamp=1733954874[0m skip payload verification=false[0m
+[90m2024-12-11T22:07:57Z [32mINFO[0m Inserted new payload into execution chain service=execution-engine[0m payload_block_hash=0x8057cca9986df16858c76c6f4a234a0158a8d891c29a66b65a330e897bf3b1cd[0m payload_parent_block_hash=0x2ec1beb4f34d583a299782ed82ce61ee714b54172875cf117cf828c9d6f9a850[0m is_optimistic=false[0m
+[90m2024-12-11T22:07:57Z [32mINFO[0m Processed withdrawals service=state-processor[0m num_withdrawals=1[0m bera_inflation=10[0m
+[90m2024-12-11T22:07:57Z [32mINFO[0m Processing deposits in range service=state-processor[0m expected_start_index=5[0m expected_range_length=0[0m
+[90m2024-12-11T22:07:57Z [32mINFO[0m State root verification succeeded - accepting incoming beacon block service=blockchain[0m state_root=0xc972bbbca704f3627b46d8def3d7a5597e81c4aff65113b63c0a42d0d0170542[0m
+[90m2024-12-11T22:07:58Z [32mINFO[0m Finalizing commit of block module=consensus[0m height=2[0m hash=9EDB0A3C6384778E5C9C2ACE983F28EEA5E19DE8F2CC24A78AD274D26230EF15[0m root=A72CB887DD14FB29488C1681BEC831806B7E87B1AB7FA96251D32070E34F3DAB[0m num_txs=2[0m
+[90m2024-12-11T22:07:58Z [32mINFO[0m processExecutionPayload service=state-processor[0m consensus height=2[0m payload height=2[0m payload timestamp=1733954834[0m consensus timestamp=1733954874[0m skip payload verification=false[0m
+[90m2024-12-11T22:07:58Z [32mINFO[0m Inserted new payload into execution chain service=execution-engine[0m payload_block_hash=0x8057cca9986df16858c76c6f4a234a0158a8d891c29a66b65a330e897bf3b1cd[0m payload_parent_block_hash=0x2ec1beb4f34d583a299782ed82ce61ee714b54172875cf117cf828c9d6f9a850[0m is_optimistic=true[0m
+[90m2024-12-11T22:07:58Z [32mINFO[0m Processed withdrawals service=state-processor[0m num_withdrawals=1[0m bera_inflation=10[0m
+[90m2024-12-11T22:07:58Z [32mINFO[0m Processing deposits in range service=state-processor[0m expected_start_index=5[0m expected_range_length=0[0m
+[90m2024-12-11T22:07:58Z [32mINFO[0m Finalized block module=state[0m height=2[0m num_txs_res=2[0m num_val_updates=0[0m block_app_hash=2FC65F6E23A8CF0120F305D1AEF161B1A4C1C7546FB6FAFB98FC28F6458EAC1C[0m syncing_to_height=2[0m
+[90m2024-12-11T22:07:58Z [33mWARN[0m Suggested fee recipient is not configured 🔆 service=engine.client[0m fee-recipent=0x0000000000000000000000000000000000000000[0m
+[90m2024-12-11T22:07:58Z [32mINFO[0m Committed state module=state[0m height=2[0m block_app_hash=A72CB887DD14FB29488C1681BEC831806B7E87B1AB7FA96251D32070E34F3DAB[0m
+[90m2024-12-11T22:07:58Z [32mINFO[0m indexed block events module=txindex[0m height=2[0m
+[90m2024-12-11T22:07:58Z [32mINFO[0m Forkchoice updated service=execution-engine[0m head_block_hash=0x8057cca9986df16858c76c6f4a234a0158a8d891c29a66b65a330e897bf3b1cd[0m safe_block_hash=0x2ec1beb4f34d583a299782ed82ce61ee714b54172875cf117cf828c9d6f9a850[0m finalized_block_hash=0x2ec1beb4f34d583a299782ed82ce61ee714b54172875cf117cf828c9d6f9a850[0m with_attributes=true[0m payload_id=0x38f219efba760f64[0m
+[90m2024-12-11T22:08:01Z [32mINFO[0m Timed out module=consensus[0m dur=2977.912666[0m height=3[0m round=0[0m step=RoundStepNewHeight[0m
+[90m2024-12-11T22:08:01Z [32mINFO[0m Received proposal module=consensus[0m proposal=Proposal{3/0 (C02673BAB9C95A13AC6AE74F9C983A7AC2DE8000C1DD6E772FE26D64F3582C22:1:0098AE26E7E4, -1) B779C7882A62 @ 2024-12-11T22:07:57.860456628Z}[0m proposer=7BF2BE048A134477ABE88A1B2162CA929D081F21[0m
+[90m2024-12-11T22:08:01Z [32mINFO[0m Received complete proposal block module=consensus[0m height=3[0m hash=C02673BAB9C95A13AC6AE74F9C983A7AC2DE8000C1DD6E772FE26D64F3582C22[0m
+[90m2024-12-11T22:08:01Z [32mINFO[0m DEBUG BLOBS: Did not receive sidecar service=blockchain[0m isNil=false[0m Length=0[0m
+[90m2024-12-11T22:08:01Z [32mINFO[0m Received incoming beacon block service=blockchain[0m state_root=0xbd8c9a233bfb88c8816a3c2d540638204db3b34f1e12ab7a37c21313c4392bdc[0m slot=0x3[0m
+[90m2024-12-11T22:08:01Z [32mINFO[0m processExecutionPayload service=state-processor[0m consensus height=3[0m payload height=3[0m payload timestamp=1733954875[0m consensus timestamp=1733954877[0m skip payload verification=false[0m
+[90m2024-12-11T22:08:01Z [32mINFO[0m Inserted new payload into execution chain service=execution-engine[0m payload_block_hash=0x501a82e726be5833872d98ca2562f90971c1fb20cb4cbf71c6b251d41e94c26e[0m payload_parent_block_hash=0x8057cca9986df16858c76c6f4a234a0158a8d891c29a66b65a330e897bf3b1cd[0m is_optimistic=false[0m
+[90m2024-12-11T22:08:01Z [32mINFO[0m Processed withdrawals service=state-processor[0m num_withdrawals=1[0m bera_inflation=10[0m
+[90m2024-12-11T22:08:01Z [32mINFO[0m Processing deposits in range service=state-processor[0m expected_start_index=5[0m expected_range_length=0[0m
+[90m2024-12-11T22:08:01Z [32mINFO[0m State root verification succeeded - accepting incoming beacon block service=blockchain[0m state_root=0xbd8c9a233bfb88c8816a3c2d540638204db3b34f1e12ab7a37c21313c4392bdc[0m
+[90m2024-12-11T22:08:01Z [32mINFO[0m Finalizing commit of block module=consensus[0m height=3[0m hash=C02673BAB9C95A13AC6AE74F9C983A7AC2DE8000C1DD6E772FE26D64F3582C22[0m root=2FC65F6E23A8CF0120F305D1AEF161B1A4C1C7546FB6FAFB98FC28F6458EAC1C[0m num_txs=2[0m
+[90m2024-12-11T22:08:01Z [32mINFO[0m processExecutionPayload service=state-processor[0m consensus height=3[0m payload height=3[0m payload timestamp=1733954875[0m consensus timestamp=1733954877[0m skip payload verification=false[0m
+[90m2024-12-11T22:08:01Z [32mINFO[0m Inserted new payload into execution chain service=execution-engine[0m payload_block_hash=0x501a82e726be5833872d98ca2562f90971c1fb20cb4cbf71c6b251d41e94c26e[0m payload_parent_block_hash=0x8057cca9986df16858c76c6f4a234a0158a8d891c29a66b65a330e897bf3b1cd[0m is_optimistic=true[0m
+[90m2024-12-11T22:08:01Z [32mINFO[0m Processed withdrawals service=state-processor[0m num_withdrawals=1[0m bera_inflation=10[0m
+[90m2024-12-11T22:08:01Z [32mINFO[0m Processing deposits in range service=state-processor[0m expected_start_index=5[0m expected_range_length=0[0m
+[90m2024-12-11T22:08:01Z [32mINFO[0m Finalized block module=state[0m height=3[0m num_txs_res=2[0m num_val_updates=0[0m block_app_hash=4B5A43ED66E651124FDC9DBE31BA554F86B3A20515BECD296673D3E24D4D8955[0m syncing_to_height=3[0m
+[90m2024-12-11T22:08:01Z [33mWARN[0m Suggested fee recipient is not configured 🔆 service=engine.client[0m fee-recipent=0x0000000000000000000000000000000000000000[0m
+[90m2024-12-11T22:08:01Z [32mINFO[0m Committed state module=state[0m height=3[0m block_app_hash=2FC65F6E23A8CF0120F305D1AEF161B1A4C1C7546FB6FAFB98FC28F6458EAC1C[0m
+[90m2024-12-11T22:08:01Z [32mINFO[0m indexed block events module=txindex[0m height=3[0m
+[90m2024-12-11T22:08:01Z [32mINFO[0m Forkchoice updated service=execution-engine[0m head_block_hash=0x501a82e726be5833872d98ca2562f90971c1fb20cb4cbf71c6b251d41e94c26e[0m safe_block_hash=0x8057cca9986df16858c76c6f4a234a0158a8d891c29a66b65a330e897bf3b1cd[0m finalized_block_hash=0x8057cca9986df16858c76c6f4a234a0158a8d891c29a66b65a330e897bf3b1cd[0m with_attributes=true[0m payload_id=0x6ce714aae2010c61[0m
+[90m2024-12-11T22:08:04Z [32mINFO[0m Timed out module=consensus[0m dur=2978.876791[0m height=4[0m round=0[0m step=RoundStepNewHeight[0m
+[90m2024-12-11T22:08:04Z [32mINFO[0m Received proposal module=consensus[0m proposal=Proposal{4/0 (212402DF27A74DC355C09C9F9D76D1ADC903759CC1101EB024F148D407C1F9D0:1:4F3FDB487C2A, -1) B55A9AC07E75 @ 2024-12-11T22:08:01.32000313Z}[0m proposer=C894A0164FC07977F79EFD4B0153BFA6A9D6ECE8[0m
+[90m2024-12-11T22:08:04Z [32mINFO[0m Received complete proposal block module=consensus[0m height=4[0m hash=212402DF27A74DC355C09C9F9D76D1ADC903759CC1101EB024F148D407C1F9D0[0m
+[90m2024-12-11T22:08:04Z [32mINFO[0m DEBUG BLOBS: Did not receive sidecar service=blockchain[0m isNil=false[0m Length=0[0m
+[90m2024-12-11T22:08:04Z [32mINFO[0m Received incoming beacon block service=blockchain[0m state_root=0x31d22663fcc8a6de2cfcf64575b69d5cf07199f2c3d28a71de0401eebb65ae20[0m slot=0x4[0m
+[90m2024-12-11T22:08:04Z [32mINFO[0m processExecutionPayload service=state-processor[0m consensus height=4[0m payload height=4[0m payload timestamp=1733954878[0m consensus timestamp=1733954881[0m skip payload verification=false[0m
+[90m2024-12-11T22:08:04Z [32mINFO[0m Inserted new payload into execution chain service=execution-engine[0m payload_block_hash=0x7974cacf89e3727dcbe49e4e4102204d412875b6f49d13fb38cc1717a9a672a3[0m payload_parent_block_hash=0x501a82e726be5833872d98ca2562f90971c1fb20cb4cbf71c6b251d41e94c26e[0m is_optimistic=false[0m
+[90m2024-12-11T22:08:04Z [32mINFO[0m Processed withdrawals service=state-processor[0m num_withdrawals=1[0m bera_inflation=10[0m
+[90m2024-12-11T22:08:04Z [32mINFO[0m Processing deposits in range service=state-processor[0m expected_start_index=5[0m expected_range_length=0[0m
+[90m2024-12-11T22:08:04Z [32mINFO[0m State root verification succeeded - accepting incoming beacon block service=blockchain[0m state_root=0x31d22663fcc8a6de2cfcf64575b69d5cf07199f2c3d28a71de0401eebb65ae20[0m
+[90m2024-12-11T22:08:05Z [32mINFO[0m Finalizing commit of block height=4[0m module=consensus[0m hash=212402DF27A74DC355C09C9F9D76D1ADC903759CC1101EB024F148D407C1F9D0[0m root=4B5A43ED66E651124FDC9DBE31BA554F86B3A20515BECD296673D3E24D4D8955[0m num_txs=2[0m
+[90m2024-12-11T22:08:05Z [32mINFO[0m processExecutionPayload service=state-processor[0m consensus height=4[0m payload height=4[0m payload timestamp=1733954878[0m consensus timestamp=1733954881[0m skip payload verification=false[0m
+[90m2024-12-11T22:08:05Z [32mINFO[0m Inserted new payload into execution chain service=execution-engine[0m payload_block_hash=0x7974cacf89e3727dcbe49e4e4102204d412875b6f49d13fb38cc1717a9a672a3[0m payload_parent_block_hash=0x501a82e726be5833872d98ca2562f90971c1fb20cb4cbf71c6b251d41e94c26e[0m is_optimistic=true[0m
+[90m2024-12-11T22:08:05Z [32mINFO[0m Processed withdrawals service=state-processor[0m num_withdrawals=1[0m bera_inflation=10[0m
+[90m2024-12-11T22:08:05Z [32mINFO[0m Processing deposits in range service=state-processor[0m expected_start_index=5[0m expected_range_length=0[0m
+[90m2024-12-11T22:08:05Z [32mINFO[0m Finalized block module=state[0m height=4[0m num_txs_res=2[0m num_val_updates=0[0m block_app_hash=2F947CA97975F3299208A4CC93D95FF62271A6F2F4BB63ED838AB002AFCE6095[0m syncing_to_height=4[0m
+[90m2024-12-11T22:08:05Z [33mWARN[0m Suggested fee recipient is not configured 🔆 service=engine.client[0m fee-recipent=0x0000000000000000000000000000000000000000[0m
+[90m2024-12-11T22:08:05Z [32mINFO[0m Committed state module=state[0m height=4[0m block_app_hash=4B5A43ED66E651124FDC9DBE31BA554F86B3A20515BECD296673D3E24D4D8955[0m
+[90m2024-12-11T22:08:05Z [32mINFO[0m indexed block events module=txindex[0m height=4[0m
+[90m2024-12-11T22:08:05Z [32mINFO[0m Forkchoice updated service=execution-engine[0m head_block_hash=0x7974cacf89e3727dcbe49e4e4102204d412875b6f49d13fb38cc1717a9a672a3[0m safe_block_hash=0x501a82e726be5833872d98ca2562f90971c1fb20cb4cbf71c6b251d41e94c26e[0m finalized_block_hash=0x501a82e726be5833872d98ca2562f90971c1fb20cb4cbf71c6b251d41e94c26e[0m with_attributes=true[0m payload_id=0x25df562158ad61e3[0m
+[90m2024-12-11T22:08:08Z [32mINFO[0m Timed out module=consensus[0m dur=2983.750458[0m height=5[0m round=0[0m step=RoundStepNewHeight[0m
+[90m2024-12-11T22:08:08Z [32mINFO[0m Ensure peers module=pex[0m numOutPeers=0[0m numInPeers=1[0m numDialing=0[0m numToDial=10[0m
+[90m2024-12-11T22:08:08Z [32mINFO[0m We need more addresses. Sending pexRequest to random peer module=pex[0m peer=Peer{MConn{172.16.0.6:44954} 7d76af9b3d046b62d2aae0a6c6aa9382846c1963 in}[0m
+[90m2024-12-11T22:08:08Z [32mINFO[0m No addresses to dial. Falling back to seeds module=pex[0m
+[90m2024-12-11T22:08:09Z [32mINFO[0m Received proposal module=consensus[0m proposal=Proposal{5/0 (C9B61BCB5DCF0187F07C706E2DFAD138C91149158B4D2A00B2E10DCF934743EE:1:AA7A69668B24, -1) AFE52B56643B @ 2024-12-11T22:08:04.825893757Z}[0m proposer=CDBABF18E282335A036B7520A215948CBC11F4A9[0m
+[90m2024-12-11T22:08:09Z [32mINFO[0m Received complete proposal block module=consensus[0m height=5[0m hash=C9B61BCB5DCF0187F07C706E2DFAD138C91149158B4D2A00B2E10DCF934743EE[0m
+[90m2024-12-11T22:08:09Z [32mINFO[0m Finalizing commit of block module=consensus[0m height=5[0m hash=C9B61BCB5DCF0187F07C706E2DFAD138C91149158B4D2A00B2E10DCF934743EE[0m root=2F947CA97975F3299208A4CC93D95FF62271A6F2F4BB63ED838AB002AFCE6095[0m num_txs=0[0m
+[90m2024-12-11T22:08:09Z [32mINFO[0m Finalized block module=state[0m height=5[0m num_txs_res=0[0m num_val_updates=0[0m block_app_hash=2F947CA97975F3299208A4CC93D95FF62271A6F2F4BB63ED838AB002AFCE6095[0m syncing_to_height=5[0m
+[90m2024-12-11T22:08:09Z [32mINFO[0m Committed state module=state[0m height=5[0m block_app_hash=2F947CA97975F3299208A4CC93D95FF62271A6F2F4BB63ED838AB002AFCE6095[0m
+[90m2024-12-11T22:08:09Z [32mINFO[0m indexed block events module=txindex[0m height=5[0m
+[90m2024-12-11T22:08:12Z [32mINFO[0m Timed out module=consensus[0m dur=2993.131709[0m height=6[0m round=0[0m step=RoundStepNewHeight[0m
+[90m2024-12-11T22:08:14Z [32mINFO[0m Received proposal module=consensus[0m proposal=Proposal{6/0 (A6DD73FB6B4E43542D6FB25449CBDA880189ADDFCE54896ABC6E5FDF0FC68B7D:1:59E1CBEE6774, -1) 8BBBE5B66FC9 @ 2024-12-11T22:08:09.778019009Z}[0m proposer=1DDC6F12FE175A2DD46EBC27C145BBE67592976C[0m
+[90m2024-12-11T22:08:14Z [32mINFO[0m Received complete proposal block module=consensus[0m height=6[0m hash=A6DD73FB6B4E43542D6FB25449CBDA880189ADDFCE54896ABC6E5FDF0FC68B7D[0m
+[90m2024-12-11T22:08:14Z [32mINFO[0m DEBUG BLOBS: Did not receive sidecar service=blockchain[0m isNil=false[0m Length=0[0m
+[90m2024-12-11T22:08:14Z [32mINFO[0m Received incoming beacon block service=blockchain[0m state_root=0xc989297e964733085ae73691aeee089376d71da43bbd067701166f4382b233d6[0m slot=0x6[0m
+[90m2024-12-11T22:08:14Z [32mINFO[0m processExecutionPayload service=state-processor[0m consensus height=6[0m payload height=5[0m payload timestamp=1733954889[0m consensus timestamp=1733954889[0m skip payload verification=false[0m
+[90m2024-12-11T22:08:14Z [32mINFO[0m Inserted new payload into execution chain service=execution-engine[0m payload_block_hash=0x6425dac232463f44e7a23d6a270a4da8e095bd5de69ea48d93f8a98319080213[0m payload_parent_block_hash=0x7974cacf89e3727dcbe49e4e4102204d412875b6f49d13fb38cc1717a9a672a3[0m is_optimistic=false[0m
+[90m2024-12-11T22:08:14Z [32mINFO[0m Processed withdrawals service=state-processor[0m num_withdrawals=1[0m bera_inflation=10[0m
+[90m2024-12-11T22:08:14Z [32mINFO[0m Processing deposits in range service=state-processor[0m expected_start_index=5[0m expected_range_length=0[0m
+[90m2024-12-11T22:08:14Z [32mINFO[0m State root verification succeeded - accepting incoming beacon block service=blockchain[0m state_root=0xc989297e964733085ae73691aeee089376d71da43bbd067701166f4382b233d6[0m
+[90m2024-12-11T22:08:14Z [32mINFO[0m Finalizing commit of block height=6[0m module=consensus[0m hash=A6DD73FB6B4E43542D6FB25449CBDA880189ADDFCE54896ABC6E5FDF0FC68B7D[0m root=2F947CA97975F3299208A4CC93D95FF62271A6F2F4BB63ED838AB002AFCE6095[0m num_txs=2[0m
+[90m2024-12-11T22:08:14Z [32mINFO[0m processExecutionPayload service=state-processor[0m consensus height=6[0m payload height=5[0m payload timestamp=1733954889[0m consensus timestamp=1733954889[0m skip payload verification=false[0m
+[90m2024-12-11T22:08:14Z [32mINFO[0m Inserted new payload into execution chain service=execution-engine[0m payload_block_hash=0x6425dac232463f44e7a23d6a270a4da8e095bd5de69ea48d93f8a98319080213[0m payload_parent_block_hash=0x7974cacf89e3727dcbe49e4e4102204d412875b6f49d13fb38cc1717a9a672a3[0m is_optimistic=true[0m
+[90m2024-12-11T22:08:14Z [32mINFO[0m Processed withdrawals service=state-processor[0m num_withdrawals=1[0m bera_inflation=10[0m
+[90m2024-12-11T22:08:14Z [32mINFO[0m Processing deposits in range service=state-processor[0m expected_start_index=5[0m expected_range_length=0[0m
+[90m2024-12-11T22:08:14Z [32mINFO[0m Finalized block module=state[0m height=6[0m num_txs_res=2[0m num_val_updates=0[0m block_app_hash=69CA7FB6E3B021682A7063733BAE7984CF2303831A7D8AD4629BB14A6AE82716[0m syncing_to_height=6[0m
+[90m2024-12-11T22:08:14Z [33mWARN[0m Suggested fee recipient is not configured 🔆 service=engine.client[0m fee-recipent=0x0000000000000000000000000000000000000000[0m
+[90m2024-12-11T22:08:14Z [32mINFO[0m Committed state module=state[0m height=6[0m block_app_hash=2F947CA97975F3299208A4CC93D95FF62271A6F2F4BB63ED838AB002AFCE6095[0m
+[90m2024-12-11T22:08:14Z [32mINFO[0m indexed block events module=txindex[0m height=6[0m
+[90m2024-12-11T22:08:14Z [32mINFO[0m Forkchoice updated service=execution-engine[0m head_block_hash=0x6425dac232463f44e7a23d6a270a4da8e095bd5de69ea48d93f8a98319080213[0m safe_block_hash=0x7974cacf89e3727dcbe49e4e4102204d412875b6f49d13fb38cc1717a9a672a3[0m finalized_block_hash=0x7974cacf89e3727dcbe49e4e4102204d412875b6f49d13fb38cc1717a9a672a3[0m with_attributes=true[0m payload_id=0x45a9dd2d210063eb[0m
+[90m2024-12-11T22:08:17Z [32mINFO[0m Timed out module=consensus[0m dur=2976.536917[0m height=7[0m round=0[0m step=RoundStepNewHeight[0m
+[90m2024-12-11T22:08:18Z [32mINFO[0m Received proposal module=consensus[0m proposal=Proposal{7/0 (152F962544AB577866D2B47C310BB57E040ABC9D2BBC0D04965BE7919A0664D0:1:FFF6B0494EBA, -1) 90AA65B114DD @ 2024-12-11T22:08:14.717969637Z}[0m proposer=2649F6470A4044FC067E2DEE2E30F7C1B73B6A63[0m
+[90m2024-12-11T22:08:18Z [32mINFO[0m Received complete proposal block module=consensus[0m height=7[0m hash=152F962544AB577866D2B47C310BB57E040ABC9D2BBC0D04965BE7919A0664D0[0m
+[90m2024-12-11T22:08:18Z [32mINFO[0m DEBUG BLOBS: Did not receive sidecar service=blockchain[0m isNil=false[0m Length=0[0m
+[90m2024-12-11T22:08:18Z [32mINFO[0m Received incoming beacon block service=blockchain[0m state_root=0x116853614d527bebc2c0c9ef9d27d5cfd84ccd23b296d4745fda1b2c00ed9d95[0m slot=0x7[0m
+[90m2024-12-11T22:08:18Z [32mINFO[0m processExecutionPayload service=state-processor[0m consensus height=7[0m payload height=6[0m payload timestamp=1733954890[0m consensus timestamp=1733954894[0m skip payload verification=false[0m
+[90m2024-12-11T22:08:18Z [32mINFO[0m Inserted new payload into execution chain service=execution-engine[0m payload_block_hash=0x39e1c9406f527c084346a0844db8de27168f09461445aa775288dc6d60f8ad16[0m payload_parent_block_hash=0x6425dac232463f44e7a23d6a270a4da8e095bd5de69ea48d93f8a98319080213[0m is_optimistic=false[0m
+[90m2024-12-11T22:08:18Z [32mINFO[0m Processed withdrawals service=state-processor[0m num_withdrawals=1[0m bera_inflation=10[0m
+[90m2024-12-11T22:08:18Z [32mINFO[0m Processing deposits in range service=state-processor[0m expected_start_index=5[0m expected_range_length=0[0m
+[90m2024-12-11T22:08:18Z [32mINFO[0m State root verification succeeded - accepting incoming beacon block service=blockchain[0m state_root=0x116853614d527bebc2c0c9ef9d27d5cfd84ccd23b296d4745fda1b2c00ed9d95[0m
+[90m2024-12-11T22:08:18Z [32mINFO[0m Finalizing commit of block module=consensus[0m height=7[0m hash=152F962544AB577866D2B47C310BB57E040ABC9D2BBC0D04965BE7919A0664D0[0m root=69CA7FB6E3B021682A7063733BAE7984CF2303831A7D8AD4629BB14A6AE82716[0m num_txs=2[0m
+[90m2024-12-11T22:08:18Z [32mINFO[0m processExecutionPayload service=state-processor[0m consensus height=7[0m payload height=6[0m payload timestamp=1733954890[0m consensus timestamp=1733954894[0m skip payload verification=false[0m
+[90m2024-12-11T22:08:18Z [32mINFO[0m Inserted new payload into execution chain service=execution-engine[0m payload_block_hash=0x39e1c9406f527c084346a0844db8de27168f09461445aa775288dc6d60f8ad16[0m payload_parent_block_hash=0x6425dac232463f44e7a23d6a270a4da8e095bd5de69ea48d93f8a98319080213[0m is_optimistic=true[0m
+[90m2024-12-11T22:08:18Z [32mINFO[0m Processed withdrawals service=state-processor[0m num_withdrawals=1[0m bera_inflation=10[0m
+[90m2024-12-11T22:08:18Z [32mINFO[0m Processing deposits in range service=state-processor[0m expected_start_index=5[0m expected_range_length=0[0m
+[90m2024-12-11T22:08:18Z [32mINFO[0m Finalized block module=state[0m height=7[0m num_txs_res=2[0m num_val_updates=0[0m block_app_hash=BDF37FE5C2703F1022CCE6D7E072A6D483E3F223A3F00D9F32D57254E497A12A[0m syncing_to_height=7[0m
+[90m2024-12-11T22:08:18Z [33mWARN[0m Suggested fee recipient is not configured 🔆 service=engine.client[0m fee-recipent=0x0000000000000000000000000000000000000000[0m
+[90m2024-12-11T22:08:18Z [32mINFO[0m Committed state module=state[0m height=7[0m block_app_hash=69CA7FB6E3B021682A7063733BAE7984CF2303831A7D8AD4629BB14A6AE82716[0m
+[90m2024-12-11T22:08:18Z [32mINFO[0m indexed block events module=txindex[0m height=7[0m
+[90m2024-12-11T22:08:18Z [32mINFO[0m Forkchoice updated service=execution-engine[0m head_block_hash=0x39e1c9406f527c084346a0844db8de27168f09461445aa775288dc6d60f8ad16[0m safe_block_hash=0x6425dac232463f44e7a23d6a270a4da8e095bd5de69ea48d93f8a98319080213[0m finalized_block_hash=0x6425dac232463f44e7a23d6a270a4da8e095bd5de69ea48d93f8a98319080213[0m with_attributes=true[0m payload_id=0x08f424be44e1eaf0[0m
+[90m2024-12-11T22:08:21Z [32mINFO[0m Timed out module=consensus[0m dur=2982.877167[0m height=8[0m round=0[0m step=RoundStepNewHeight[0m
+[90m2024-12-11T22:08:21Z [32mINFO[0m Received proposal module=consensus[0m proposal=Proposal{8/0 (06CA97E96FF8A228321FBDFC51591EB55B2FAFFA7915C4B22D93AC1E388D98A4:1:CB9D4D75A8DE, -1) 84A0B2204366 @ 2024-12-11T22:08:18.209865388Z}[0m proposer=7BF2BE048A134477ABE88A1B2162CA929D081F21[0m
+[90m2024-12-11T22:08:21Z [32mINFO[0m Received complete proposal block module=consensus[0m height=8[0m hash=06CA97E96FF8A228321FBDFC51591EB55B2FAFFA7915C4B22D93AC1E388D98A4[0m
+[90m2024-12-11T22:08:21Z [32mINFO[0m DEBUG BLOBS: Did not receive sidecar service=blockchain[0m isNil=false[0m Length=0[0m
+[90m2024-12-11T22:08:21Z [32mINFO[0m Received incoming beacon block service=blockchain[0m state_root=0x8cbb09026aa01fd56e8f7d43a1f04a4b73f95cff39af855e798a37a247814a40[0m slot=0x8[0m
+[90m2024-12-11T22:08:21Z [32mINFO[0m processExecutionPayload service=state-processor[0m consensus height=8[0m payload height=7[0m payload timestamp=1733954895[0m consensus timestamp=1733954898[0m skip payload verification=false[0m
+[90m2024-12-11T22:08:21Z [32mINFO[0m Inserted new payload into execution chain service=execution-engine[0m payload_block_hash=0x42ffbd79d0a100f486a651683014bf0d4391498de8ea7c08f36ad4caeb14db30[0m payload_parent_block_hash=0x39e1c9406f527c084346a0844db8de27168f09461445aa775288dc6d60f8ad16[0m is_optimistic=false[0m
+[90m2024-12-11T22:08:21Z [32mINFO[0m Processed withdrawals service=state-processor[0m num_withdrawals=1[0m bera_inflation=10[0m
+[90m2024-12-11T22:08:21Z [32mINFO[0m Processing deposits in range service=state-processor[0m expected_start_index=5[0m expected_range_length=0[0m
+[90m2024-12-11T22:08:21Z [32mINFO[0m State root verification succeeded - accepting incoming beacon block service=blockchain[0m state_root=0x8cbb09026aa01fd56e8f7d43a1f04a4b73f95cff39af855e798a37a247814a40[0m
+[90m2024-12-11T22:08:21Z [32mINFO[0m Finalizing commit of block height=8[0m module=consensus[0m hash=06CA97E96FF8A228321FBDFC51591EB55B2FAFFA7915C4B22D93AC1E388D98A4[0m root=BDF37FE5C2703F1022CCE6D7E072A6D483E3F223A3F00D9F32D57254E497A12A[0m num_txs=2[0m
+[90m2024-12-11T22:08:21Z [32mINFO[0m processExecutionPayload service=state-processor[0m consensus height=8[0m payload height=7[0m payload timestamp=1733954895[0m consensus timestamp=1733954898[0m skip payload verification=false[0m
+[90m2024-12-11T22:08:21Z [32mINFO[0m Inserted new payload into execution chain service=execution-engine[0m payload_block_hash=0x42ffbd79d0a100f486a651683014bf0d4391498de8ea7c08f36ad4caeb14db30[0m payload_parent_block_hash=0x39e1c9406f527c084346a0844db8de27168f09461445aa775288dc6d60f8ad16[0m is_optimistic=true[0m
+[90m2024-12-11T22:08:21Z [32mINFO[0m Processed withdrawals service=state-processor[0m num_withdrawals=1[0m bera_inflation=10[0m
+[90m2024-12-11T22:08:21Z [32mINFO[0m Processing deposits in range service=state-processor[0m expected_start_index=5[0m expected_range_length=0[0m
+[90m2024-12-11T22:08:21Z [32mINFO[0m Finalized block module=state[0m height=8[0m num_txs_res=2[0m num_val_updates=0[0m block_app_hash=7ADFBAD399AE9207B2A958BFCC55A1335D27754F7E0E50CFD7FA723C105F8690[0m syncing_to_height=8[0m
+[90m2024-12-11T22:08:21Z [33mWARN[0m Suggested fee recipient is not configured 🔆 service=engine.client[0m fee-recipent=0x0000000000000000000000000000000000000000[0m
+[90m2024-12-11T22:08:21Z [32mINFO[0m Committed state module=state[0m height=8[0m block_app_hash=BDF37FE5C2703F1022CCE6D7E072A6D483E3F223A3F00D9F32D57254E497A12A[0m
+[90m2024-12-11T22:08:21Z [32mINFO[0m indexed block events module=txindex[0m height=8[0m
+[90m2024-12-11T22:08:21Z [32mINFO[0m Forkchoice updated service=execution-engine[0m head_block_hash=0x42ffbd79d0a100f486a651683014bf0d4391498de8ea7c08f36ad4caeb14db30[0m safe_block_hash=0x39e1c9406f527c084346a0844db8de27168f09461445aa775288dc6d60f8ad16[0m finalized_block_hash=0x39e1c9406f527c084346a0844db8de27168f09461445aa775288dc6d60f8ad16[0m with_attributes=true[0m payload_id=0x32a7cb44c1d9c6f4[0m
+[90m2024-12-11T22:08:24Z [32mINFO[0m Timed out module=consensus[0m dur=2983.452250[0m height=9[0m round=0[0m step=RoundStepNewHeight[0m
+[90m2024-12-11T22:08:25Z [32mINFO[0m Received proposal module=consensus[0m proposal=Proposal{9/0 (8A46125FF9509C33F0BE2637ADA31A68321891DBE8D3A790BC30A253ECA1B442:1:0DFA488F2EC5, -1) B8E121A7FF39 @ 2024-12-11T22:08:21.668092292Z}[0m proposer=C894A0164FC07977F79EFD4B0153BFA6A9D6ECE8[0m
+[90m2024-12-11T22:08:25Z [32mINFO[0m Received complete proposal block module=consensus[0m height=9[0m hash=8A46125FF9509C33F0BE2637ADA31A68321891DBE8D3A790BC30A253ECA1B442[0m
+[90m2024-12-11T22:08:25Z [32mINFO[0m Finalizing commit of block module=consensus[0m height=9[0m hash=8A46125FF9509C33F0BE2637ADA31A68321891DBE8D3A790BC30A253ECA1B442[0m root=7ADFBAD399AE9207B2A958BFCC55A1335D27754F7E0E50CFD7FA723C105F8690[0m num_txs=0[0m
+[90m2024-12-11T22:08:25Z [32mINFO[0m Finalized block module=state[0m height=9[0m num_txs_res=0[0m num_val_updates=0[0m block_app_hash=7ADFBAD399AE9207B2A958BFCC55A1335D27754F7E0E50CFD7FA723C105F8690[0m syncing_to_height=9[0m
+[90m2024-12-11T22:08:25Z [32mINFO[0m Committed state module=state[0m height=9[0m block_app_hash=7ADFBAD399AE9207B2A958BFCC55A1335D27754F7E0E50CFD7FA723C105F8690[0m
+[90m2024-12-11T22:08:25Z [32mINFO[0m indexed block events module=txindex[0m height=9[0m
+[90m2024-12-11T22:08:28Z [32mINFO[0m Timed out module=consensus[0m dur=2989.653917[0m height=10[0m round=0[0m step=RoundStepNewHeight[0m
+[90m2024-12-11T22:08:29Z [32mINFO[0m Received proposal module=consensus[0m proposal=Proposal{10/0 (0440D4B8988FC5773E1AEFEC7C6F756BF9C2CDEC6D15AF6617CB43E08549B416:1:34912B7CB2D0, -1) AA2160A93C69 @ 2024-12-11T22:08:25.109595669Z}[0m proposer=CDBABF18E282335A036B7520A215948CBC11F4A9[0m
+[90m2024-12-11T22:08:29Z [32mINFO[0m Received complete proposal block module=consensus[0m height=10[0m hash=0440D4B8988FC5773E1AEFEC7C6F756BF9C2CDEC6D15AF6617CB43E08549B416[0m
+[90m2024-12-11T22:08:30Z [32mINFO[0m Finalizing commit of block module=consensus[0m height=10[0m hash=0440D4B8988FC5773E1AEFEC7C6F756BF9C2CDEC6D15AF6617CB43E08549B416[0m root=7ADFBAD399AE9207B2A958BFCC55A1335D27754F7E0E50CFD7FA723C105F8690[0m num_txs=0[0m
+[90m2024-12-11T22:08:30Z [32mINFO[0m Finalized block module=state[0m height=10[0m num_txs_res=0[0m num_val_updates=0[0m block_app_hash=7ADFBAD399AE9207B2A958BFCC55A1335D27754F7E0E50CFD7FA723C105F8690[0m syncing_to_height=10[0m
+[90m2024-12-11T22:08:30Z [32mINFO[0m Committed state module=state[0m height=10[0m block_app_hash=7ADFBAD399AE9207B2A958BFCC55A1335D27754F7E0E50CFD7FA723C105F8690[0m
+[90m2024-12-11T22:08:30Z [32mINFO[0m indexed block events module=txindex[0m height=10[0m
+[90m2024-12-11T22:08:33Z [32mINFO[0m Timed out module=consensus[0m dur=2992.981750[0m height=11[0m round=0[0m step=RoundStepNewHeight[0m
+[90m2024-12-11T22:08:33Z [32mINFO[0m Starting Peer service module=p2p[0m peer=da673d34317b4ead2f68b52f84aec86c523a4873@172.16.0.13:48846[0m impl=Peer{MConn{172.16.0.13:48846} da673d34317b4ead2f68b52f84aec86c523a4873 in}[0m
+[90m2024-12-11T22:08:33Z [32mINFO[0m Starting MConnection service module=p2p[0m peer=da673d34317b4ead2f68b52f84aec86c523a4873@172.16.0.13:48846[0m impl=MConn{172.16.0.13:48846}[0m
+[90m2024-12-11T22:08:34Z [32mINFO[0m Received proposal module=consensus[0m proposal=Proposal{11/0 (83A13E40E2FF416BB5D04C252438A4898D2B8D2A626EB8335407F0023221EE63:1:F62CCEA7CF84, -1) 93F8FED3ED95 @ 2024-12-11T22:08:30.058720463Z}[0m proposer=1DDC6F12FE175A2DD46EBC27C145BBE67592976C[0m
+[90m2024-12-11T22:08:34Z [32mINFO[0m Received complete proposal block module=consensus[0m height=11[0m hash=83A13E40E2FF416BB5D04C252438A4898D2B8D2A626EB8335407F0023221EE63[0m
+[90m2024-12-11T22:08:35Z [32mINFO[0m Finalizing commit of block module=consensus[0m height=11[0m hash=83A13E40E2FF416BB5D04C252438A4898D2B8D2A626EB8335407F0023221EE63[0m root=7ADFBAD399AE9207B2A958BFCC55A1335D27754F7E0E50CFD7FA723C105F8690[0m num_txs=0[0m
+[90m2024-12-11T22:08:35Z [32mINFO[0m Finalized block module=state[0m height=11[0m num_txs_res=0[0m num_val_updates=0[0m block_app_hash=7ADFBAD399AE9207B2A958BFCC55A1335D27754F7E0E50CFD7FA723C105F8690[0m syncing_to_height=11[0m
+[90m2024-12-11T22:08:35Z [32mINFO[0m Committed state module=state[0m height=11[0m block_app_hash=7ADFBAD399AE9207B2A958BFCC55A1335D27754F7E0E50CFD7FA723C105F8690[0m
+[90m2024-12-11T22:08:35Z [32mINFO[0m indexed block events module=txindex[0m height=11[0m
+[90m2024-12-11T22:08:36Z [32mINFO[0m Starting Peer service module=p2p[0m peer=ca48e9627e6b9d90eb0a21d0fc38e87024b26fc1@172.16.0.15:35394[0m impl=Peer{MConn{172.16.0.15:35394} ca48e9627e6b9d90eb0a21d0fc38e87024b26fc1 in}[0m
+[90m2024-12-11T22:08:36Z [32mINFO[0m Starting MConnection service peer=ca48e9627e6b9d90eb0a21d0fc38e87024b26fc1@172.16.0.15:35394[0m module=p2p[0m impl=MConn{172.16.0.15:35394}[0m
+[90m2024-12-11T22:08:36Z [32mINFO[0m Starting Peer service module=p2p[0m peer=7894054829ce32f5ffa7178779aa1f705fb4500e@172.16.0.16:54968[0m impl=Peer{MConn{172.16.0.16:54968} 7894054829ce32f5ffa7178779aa1f705fb4500e in}[0m
+[90m2024-12-11T22:08:36Z [32mINFO[0m Starting MConnection service module=p2p[0m peer=7894054829ce32f5ffa7178779aa1f705fb4500e@172.16.0.16:54968[0m impl=MConn{172.16.0.16:54968}[0m
+[90m2024-12-11T22:08:36Z [32mINFO[0m Starting Peer service module=p2p[0m peer=b1332db114bb02f9e31e71f07b129535b4eb0789@172.16.0.14:52500[0m impl=Peer{MConn{172.16.0.14:52500} b1332db114bb02f9e31e71f07b129535b4eb0789 in}[0m
+[90m2024-12-11T22:08:36Z [32mINFO[0m Starting MConnection service peer=b1332db114bb02f9e31e71f07b129535b4eb0789@172.16.0.14:52500[0m module=p2p[0m impl=MConn{172.16.0.14:52500}[0m
+[90m2024-12-11T22:08:38Z [32mINFO[0m Timed out module=consensus[0m dur=2993.183875[0m height=12[0m round=0[0m step=RoundStepNewHeight[0m
+[90m2024-12-11T22:08:38Z [32mINFO[0m Ensure peers module=pex[0m numOutPeers=0[0m numInPeers=5[0m numDialing=0[0m numToDial=10[0m
+[90m2024-12-11T22:08:38Z [32mINFO[0m We need more addresses. Sending pexRequest to random peer module=pex[0m peer=Peer{MConn{172.16.0.15:35394} ca48e9627e6b9d90eb0a21d0fc38e87024b26fc1 in}[0m
+[90m2024-12-11T22:08:38Z [32mINFO[0m Inbound Peer rejected module=p2p[0m [31merr=filtered CONN<172.16.0.17:36552>: duplicate CONN<172.16.0.17:36552>[0m numPeers=5[0m
+[90m2024-12-11T22:08:38Z [32mINFO[0m Starting Peer service peer=49c0b029ccbd474ebb230b82fbe8a06555440a8d@172.16.0.23:26656[0m module=p2p[0m impl=Peer{MConn{172.16.0.23:26656} 49c0b029ccbd474ebb230b82fbe8a06555440a8d out}[0m
+[90m2024-12-11T22:08:38Z [32mINFO[0m Starting MConnection service module=p2p[0m peer=49c0b029ccbd474ebb230b82fbe8a06555440a8d@172.16.0.23:26656[0m impl=MConn{172.16.0.23:26656}[0m
+[90m2024-12-11T22:08:38Z [32mINFO[0m Starting Peer service module=p2p[0m peer=9e6fcab94d9ee7e8c2d0f5c9f3aea1eb813afd9a@172.16.0.24:26656[0m impl=Peer{MConn{172.16.0.24:26656} 9e6fcab94d9ee7e8c2d0f5c9f3aea1eb813afd9a out}[0m
+[90m2024-12-11T22:08:38Z [32mINFO[0m Starting MConnection service module=p2p[0m peer=9e6fcab94d9ee7e8c2d0f5c9f3aea1eb813afd9a@172.16.0.24:26656[0m impl=MConn{172.16.0.24:26656}[0m
+[90m2024-12-11T22:08:38Z [32mINFO[0m Starting Peer service peer=58a9a0ca207b251eba0a6fb017bd33607b771323@172.16.0.27:26656[0m module=p2p[0m impl=Peer{MConn{172.16.0.27:26656} 58a9a0ca207b251eba0a6fb017bd33607b771323 out}[0m
+[90m2024-12-11T22:08:38Z [32mINFO[0m Starting MConnection service module=p2p[0m peer=58a9a0ca207b251eba0a6fb017bd33607b771323@172.16.0.27:26656[0m impl=MConn{172.16.0.27:26656}[0m
+[90m2024-12-11T22:08:38Z [32mINFO[0m Starting Peer service module=p2p[0m peer=aff9c2c3504b5c0d6a39e86c6d5bc7db61e3f0c0@172.16.0.25:26656[0m impl=Peer{MConn{172.16.0.25:26656} aff9c2c3504b5c0d6a39e86c6d5bc7db61e3f0c0 out}[0m
+[90m2024-12-11T22:08:38Z [32mINFO[0m Starting MConnection service module=p2p[0m peer=aff9c2c3504b5c0d6a39e86c6d5bc7db61e3f0c0@172.16.0.25:26656[0m impl=MConn{172.16.0.25:26656}[0m
+[90m2024-12-11T22:08:38Z [32mINFO[0m Starting Peer service module=p2p[0m peer=d458185ccbff27c2d8046482483a50d7be800751@172.16.0.26:26656[0m impl=Peer{MConn{172.16.0.26:26656} d458185ccbff27c2d8046482483a50d7be800751 out}[0m
+[90m2024-12-11T22:08:38Z [32mINFO[0m Starting MConnection service module=p2p[0m peer=d458185ccbff27c2d8046482483a50d7be800751@172.16.0.26:26656[0m impl=MConn{172.16.0.26:26656}[0m
+[90m2024-12-11T22:08:39Z [32mINFO[0m Received proposal module=consensus[0m proposal=Proposal{12/0 (FFF0477139ADBEDD00F03CF46F882A5C27A76CD20335AB43BCBFF1F44BE52DB0:1:D07ED3633F24, -1) 8C4F3D309AB7 @ 2024-12-11T22:08:35.043583424Z}[0m proposer=2649F6470A4044FC067E2DEE2E30F7C1B73B6A63[0m
+[90m2024-12-11T22:08:39Z [32mINFO[0m Received complete proposal block module=consensus[0m height=12[0m hash=FFF0477139ADBEDD00F03CF46F882A5C27A76CD20335AB43BCBFF1F44BE52DB0[0m
+[90m2024-12-11T22:08:39Z [32mINFO[0m Finalizing commit of block height=12[0m module=consensus[0m hash=FFF0477139ADBEDD00F03CF46F882A5C27A76CD20335AB43BCBFF1F44BE52DB0[0m root=7ADFBAD399AE9207B2A958BFCC55A1335D27754F7E0E50CFD7FA723C105F8690[0m num_txs=0[0m
+[90m2024-12-11T22:08:39Z [32mINFO[0m Finalized block module=state[0m height=12[0m num_txs_res=0[0m num_val_updates=0[0m block_app_hash=7ADFBAD399AE9207B2A958BFCC55A1335D27754F7E0E50CFD7FA723C105F8690[0m syncing_to_height=12[0m
+[90m2024-12-11T22:08:39Z [32mINFO[0m Committed state module=state[0m height=12[0m block_app_hash=7ADFBAD399AE9207B2A958BFCC55A1335D27754F7E0E50CFD7FA723C105F8690[0m
+[90m2024-12-11T22:08:39Z [32mINFO[0m indexed block events module=txindex[0m height=12[0m
+[90m2024-12-11T22:08:42Z [32mINFO[0m Timed out module=consensus[0m dur=2994.087875[0m height=13[0m round=0[0m step=RoundStepNewHeight[0m
+[90m2024-12-11T22:08:44Z [32mINFO[0m Received proposal module=consensus[0m proposal=Proposal{13/0 (586AD62C5A018F2F90D68BBDB751F0F8A2702C894896CBE9EE1EAB80BCFA0660:1:2C8B6B8E85CF, -1) 811ED6C0CFB6 @ 2024-12-11T22:08:39.869467884Z}[0m proposer=7BF2BE048A134477ABE88A1B2162CA929D081F21[0m
+[90m2024-12-11T22:08:44Z [32mINFO[0m Received complete proposal block module=consensus[0m height=13[0m hash=586AD62C5A018F2F90D68BBDB751F0F8A2702C894896CBE9EE1EAB80BCFA0660[0m
+[90m2024-12-11T22:08:44Z [32mINFO[0m Finalizing commit of block module=consensus[0m height=13[0m hash=586AD62C5A018F2F90D68BBDB751F0F8A2702C894896CBE9EE1EAB80BCFA0660[0m root=7ADFBAD399AE9207B2A958BFCC55A1335D27754F7E0E50CFD7FA723C105F8690[0m num_txs=0[0m
+[90m2024-12-11T22:08:44Z [32mINFO[0m Finalized block module=state[0m height=13[0m num_txs_res=0[0m num_val_updates=0[0m block_app_hash=7ADFBAD399AE9207B2A958BFCC55A1335D27754F7E0E50CFD7FA723C105F8690[0m syncing_to_height=13[0m
+[90m2024-12-11T22:08:44Z [32mINFO[0m Committed state module=state[0m height=13[0m block_app_hash=7ADFBAD399AE9207B2A958BFCC55A1335D27754F7E0E50CFD7FA723C105F8690[0m
+[90m2024-12-11T22:08:44Z [32mINFO[0m indexed block events module=txindex[0m height=13[0m
