@@ -29,6 +29,8 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	cmtabci "github.com/cometbft/cometbft/abci/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // AvailabilityStore interface is responsible for validating and storing
@@ -40,6 +42,8 @@ type AvailabilityStore[BeaconBlockBodyT any] interface {
 	IsDataAvailable(
 		context.Context, math.Slot, BeaconBlockBodyT,
 	) bool
+	// Prune prunes the deposit store of [start, end)
+	Prune(start, end uint64) error
 }
 
 type ConsensusBlock[BeaconBlockT any] interface {
@@ -55,7 +59,11 @@ type ConsensusBlock[BeaconBlockT any] interface {
 }
 
 // BeaconBlock represents a beacon block interface.
-type BeaconBlock[BeaconBlockBodyT any] interface {
+type BeaconBlock[
+	BeaconBlockT any,
+	BeaconBlockBodyT any,
+	BeaconBlockHeaderT any,
+] interface {
 	constraints.SSZMarshallableRootable
 	constraints.Nillable
 	// GetSlot returns the slot of the beacon block.
@@ -64,6 +72,8 @@ type BeaconBlock[BeaconBlockBodyT any] interface {
 	GetStateRoot() common.Root
 	// GetBody returns the body of the beacon block.
 	GetBody() BeaconBlockBodyT
+	NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
+	GetHeader() BeaconBlockHeaderT
 }
 
 // BeaconBlockBody represents the interface for the beacon block body.
@@ -84,9 +94,9 @@ type BeaconBlockHeader interface {
 	GetStateRoot() common.Root
 }
 
-// BlobSidecars is the interface for blobs sidecars.
-type BlobSidecars interface {
+type BlobSidecars[T any] interface {
 	constraints.SSZMarshallable
+	constraints.Empty[T]
 	constraints.Nillable
 	// Len returns the length of the blobs sidecars.
 	Len() int
@@ -105,6 +115,7 @@ type ExecutionEngine[PayloadAttributesT any] interface {
 // ExecutionPayload is the interface for the execution payload.
 type ExecutionPayload interface {
 	ExecutionPayloadHeader
+	GetNumber() math.U64
 }
 
 // ExecutionPayloadHeader is the interface for the execution payload header.
@@ -216,11 +227,14 @@ type StateProcessor[
 type StorageBackend[
 	AvailabilityStoreT any,
 	BeaconStateT any,
+	DepositStoreT any,
 ] interface {
 	// AvailabilityStore returns the availability store for the given context.
 	AvailabilityStore() AvailabilityStoreT
 	// StateFromContext retrieves the beacon state from the given context.
 	StateFromContext(context.Context) BeaconStateT
+	// DepositStore retrieves the deposit store.
+	DepositStore() DepositStoreT
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.
@@ -232,6 +246,20 @@ type TelemetrySink interface {
 	// MeasureSince measures the time since the provided start time,
 	// identified by the provided keys.
 	MeasureSince(key string, start time.Time, args ...string)
+}
+
+//nolint:revive // its ok
+type BlockchainI interface {
+	ProcessGenesisData(
+		context.Context, []byte) (transition.ValidatorUpdates, error)
+	ProcessProposal(
+		sdk.Context,
+		*cmtabci.ProcessProposalRequest,
+	) (*cmtabci.ProcessProposalResponse, error)
+	FinalizeBlock(
+		sdk.Context,
+		*cmtabci.FinalizeBlockRequest,
+	) (transition.ValidatorUpdates, error)
 }
 
 type ValidatorUpdates = transition.ValidatorUpdates

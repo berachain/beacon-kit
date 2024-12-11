@@ -23,7 +23,7 @@ package deposit
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/primitives/async"
+	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
@@ -42,19 +42,6 @@ type BeaconBlock[BeaconBlockBodyT any] interface {
 	GetBody() BeaconBlockBodyT
 }
 
-// BlockEvent is an interface for block events.
-type BlockEvent[
-	DepositT any,
-	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
-	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
-	ExecutionPayloadT ExecutionPayload,
-] interface {
-	ID() async.EventID
-	Is(async.EventID) bool
-	Data() BeaconBlockT
-	Context() context.Context
-}
-
 // ExecutionPayload is an interface for execution payloads.
 type ExecutionPayload interface {
 	GetNumber() math.U64
@@ -71,6 +58,9 @@ type Contract[DepositT any] interface {
 
 // Deposit is an interface for deposits.
 type Deposit[DepositT, WithdrawalCredentialsT any] interface {
+	constraints.Empty[DepositT]
+	constraints.SSZMarshallableRootable
+
 	// New creates a new deposit.
 	New(
 		crypto.BLSPubkey,

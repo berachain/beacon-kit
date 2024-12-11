@@ -28,7 +28,6 @@ import (
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	consruntimetypes "github.com/berachain/beacon-kit/consensus/types"
 	dablob "github.com/berachain/beacon-kit/da/blob"
-	"github.com/berachain/beacon-kit/da/da"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -37,7 +36,6 @@ import (
 	execution "github.com/berachain/beacon-kit/execution/engine"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-api/backend"
-	blockstore "github.com/berachain/beacon-kit/node-api/block_store"
 	"github.com/berachain/beacon-kit/node-api/engines/echo"
 	"github.com/berachain/beacon-kit/node-api/server"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
@@ -52,7 +50,6 @@ import (
 	"github.com/berachain/beacon-kit/storage/block"
 	depositdb "github.com/berachain/beacon-kit/storage/deposit"
 	"github.com/berachain/beacon-kit/storage/filedb"
-	"github.com/berachain/beacon-kit/storage/manager"
 	"github.com/berachain/beacon-kit/storage/pruner"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -79,44 +76,28 @@ type (
 		*BlobSidecars,
 	]
 
-	// BlockStoreService is a type alias for the block store service.
-	BlockStoreService = blockstore.Service[*BeaconBlock, *BlockStore]
-
 	// ChainService is a type alias for the chain service.
 	ChainService = blockchain.Service[
 		*AvailabilityStore,
+		*DepositStore,
 		*ConsensusBlock,
 		*BeaconBlock,
 		*BeaconBlockBody,
 		*BeaconBlockHeader,
 		*BeaconState,
+		*BlockStore,
 		*Deposit,
+		WithdrawalCredentials,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*Genesis,
+		*ConsensusSidecars,
+		*BlobSidecars,
 		*PayloadAttributes,
 	]
 
 	// CometBFTService is a type alias for the CometBFT service.
 	CometBFTService = cometbft.Service[*Logger]
-
-	// DAService is a type alias for the DA service.
-	DAService = da.Service[
-		*AvailabilityStore,
-		*ConsensusSidecars, *BlobSidecars, *BeaconBlockHeader,
-	]
-
-	// DBManager is a type alias for the database manager.
-	DBManager = manager.DBManager
-
-	// DepositService is a type alias for the deposit service.
-	DepositService = deposit.Service[
-		*BeaconBlock,
-		*BeaconBlockBody,
-		*Deposit,
-		*ExecutionPayload,
-		WithdrawalCredentials,
-	]
 
 	// EngineClient is a type alias for the engine client.
 	EngineClient = engineclient.EngineClient[
@@ -210,6 +191,7 @@ type (
 		*BeaconBlock,
 		*BeaconBlockBody,
 		*BeaconState,
+		*BlobSidecar,
 		*BlobSidecars,
 		*Deposit,
 		*DepositStore,
