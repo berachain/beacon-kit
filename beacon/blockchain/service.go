@@ -217,3 +217,9 @@ func (s *Service[
 
 	return nil
 }
+
+func (s *Service[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) Stop() error {
+	return nil
+}

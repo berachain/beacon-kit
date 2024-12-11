@@ -167,8 +167,7 @@ func (s *Service[_]) Start(
 	return s.node.Start()
 }
 
-// Close is called in start cmd to gracefully cleanup resources.
-func (s *Service[_]) Close() error {
+func (s *Service[_]) Stop() error {
 	var errs []error
 
 	if s.node != nil && s.node.IsRunning() {
