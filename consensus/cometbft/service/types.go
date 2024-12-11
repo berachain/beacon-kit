@@ -21,30 +21,11 @@
 package cometbft
 
 import (
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/consensus/types"
-	"github.com/berachain/beacon-kit/primitives/transition"
-	cmtabci "github.com/cometbft/cometbft/abci/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"time"
 )
 
-type MiddlewareI interface {
-	InitGenesis(
-		sdk.Context,
-		[]byte,
-	) (transition.ValidatorUpdates, error)
-	PrepareProposal(
-		sdk.Context,
-		*types.SlotData[
-			*ctypes.AttestationData,
-			*ctypes.SlashingInfo],
-	) ([]byte, []byte, error)
-	ProcessProposal(
-		sdk.Context,
-		*cmtabci.ProcessProposalRequest,
-	) (*cmtabci.ProcessProposalResponse, error)
-	FinalizeBlock(
-		sdk.Context,
-		*cmtabci.FinalizeBlockRequest,
-	) (transition.ValidatorUpdates, error)
+// TelemetrySink is an interface for sending metrics to a telemetry backend.
+type TelemetrySink interface {
+	// MeasureSince measures the time since the given time.
+	MeasureSince(key string, start time.Time, args ...string)
 }

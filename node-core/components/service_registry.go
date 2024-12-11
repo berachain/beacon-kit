@@ -25,8 +25,6 @@ import (
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/validator"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
-	"github.com/berachain/beacon-kit/consensus/cometbft/service/middleware"
-	"github.com/berachain/beacon-kit/da/da"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/log"
@@ -71,22 +69,15 @@ type ServiceRegistryInput[
 	WithdrawalsT Withdrawals[WithdrawalT],
 ] struct {
 	depinject.In
-	ABCIService *middleware.ABCIMiddleware[
-		BeaconBlockT, BeaconBlockHeaderT, BlobSidecarsT, GenesisT, *SlotData,
-	]
 	ChainService *blockchain.Service[
 		AvailabilityStoreT, DepositStoreT,
 		ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
 		BeaconBlockHeaderT, BeaconStateT, BeaconBlockStoreT, DepositT,
 		WithdrawalCredentials, ExecutionPayloadT,
 		ExecutionPayloadHeaderT, GenesisT,
+		ConsensusSidecarsT, BlobSidecarsT,
 		*engineprimitives.PayloadAttributes[WithdrawalT],
 	]
-	DAService *da.Service[
-		AvailabilityStoreT,
-		ConsensusSidecarsT, BlobSidecarsT, BeaconBlockHeaderT,
-	]
-	Dispatcher   Dispatcher
 	EngineClient *client.EngineClient[
 		ExecutionPayloadT,
 		*engineprimitives.PayloadAttributes[WithdrawalT],
@@ -101,7 +92,7 @@ type ServiceRegistryInput[
 	TelemetryService *telemetry.Service
 	ValidatorService *validator.Service[
 		*AttestationData, BeaconBlockT, BeaconBlockBodyT,
-		BeaconStateT, BlobSidecarsT, DepositT, DepositStoreT,
+		BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositT, DepositStoreT,
 		*Eth1Data, ExecutionPayloadT, ExecutionPayloadHeaderT,
 		*ForkData, *SlashingInfo, *SlotData,
 	]
@@ -152,15 +143,12 @@ func ProvideServiceRegistry[
 ) *service.Registry {
 	return service.NewRegistry(
 		service.WithLogger(in.Logger),
-		service.WithService(in.ABCIService),
-		service.WithService(in.Dispatcher),
 		service.WithService(in.ValidatorService),
-		service.WithService(in.ChainService),
-		service.WithService(in.DAService),
 		service.WithService(in.NodeAPIServer),
 		service.WithService(in.ReportingService),
 		service.WithService(in.EngineClient),
 		service.WithService(in.TelemetryService),
+		service.WithService(in.ChainService),
 		service.WithService(in.CometBFTService),
 	)
 }

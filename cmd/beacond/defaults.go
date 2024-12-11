@@ -27,11 +27,6 @@ import (
 //nolint:funlen // happens
 func DefaultComponents() []any {
 	c := []any{
-		components.ProvideABCIMiddleware[
-			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader,
-			*BlobSidecar, *BlobSidecars, *Deposit, *ExecutionPayloadHeader,
-			*Genesis, *Logger,
-		],
 		components.ProvideAttributesFactory[
 			*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
 			*ExecutionPayloadHeader, *KVStore, *Logger,
@@ -53,7 +48,8 @@ func DefaultComponents() []any {
 			*AvailabilityStore,
 			*ConsensusBlock, *BeaconBlock, *BeaconBlockBody,
 			*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
-			*BlobSidecars, *BlockStore, *Deposit, WithdrawalCredentials,
+			*BlobSidecar, *BlobSidecars, *ConsensusSidecars, *BlockStore,
+			*Deposit, WithdrawalCredentials,
 			*DepositStore, *DepositContract,
 			*ExecutionPayload, *ExecutionPayloadHeader, *Genesis,
 			*KVStore, *Logger, *StorageBackend, *BlockStore,
@@ -66,16 +62,7 @@ func DefaultComponents() []any {
 		// 	*AvailabilityStore, *BeaconBlockHeader, *BeaconState,
 		// 	*BeaconStateMarshallable, *BlockStore, *KVStore, *StorageBackend,
 		// ],
-		components.ProvideDAService[
-			*AvailabilityStore, *BeaconBlockBody, *BeaconBlockHeader,
-			*ConsensusSidecars, *BlobSidecar, *BlobSidecars, *Logger,
-		],
 		components.ProvideDepositStore[*Deposit, *Logger],
-		components.ProvideDispatcher[
-			*ConsensusBlock, *BeaconBlock,
-			*ConsensusSidecars, *BlobSidecars,
-			*Genesis, *Logger,
-		],
 		components.ProvideEngineClient[
 			*ExecutionPayload, *ExecutionPayloadHeader, *Logger,
 		],
@@ -120,7 +107,7 @@ func DefaultComponents() []any {
 		components.ProvideValidatorService[
 			*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,
 			*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
-			*BlockStore, *BlobSidecars, *Deposit, *DepositStore,
+			*BlockStore, *BlobSidecar, *BlobSidecars, *Deposit, *DepositStore,
 			*ExecutionPayload, *ExecutionPayloadHeader, *KVStore, *Logger,
 			*StorageBackend,
 		],
