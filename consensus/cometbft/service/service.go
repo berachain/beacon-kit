@@ -135,13 +135,19 @@ func (s *Service[_]) Start(
 		return err
 	}
 
+	privVal, err := pvm.LoadOrGenFilePV(
+		cfg.PrivValidatorKeyFile(),
+		cfg.PrivValidatorStateFile(),
+		nil,
+	)
+	if err != nil {
+		return err
+	}
+
 	s.node, err = node.NewNode(
 		ctx,
 		cfg,
-		pvm.LoadOrGenFilePV(
-			cfg.PrivValidatorKeyFile(),
-			cfg.PrivValidatorStateFile(),
-		),
+		privVal,
 		nodeKey,
 		proxy.NewLocalClientCreator(s),
 		GetGenDocProvider(cfg),
