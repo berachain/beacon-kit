@@ -38,7 +38,7 @@ func (s *Service[
 	}
 
 	// prune deposit store
-	start, end = depositPrunRangeFn(
+	start, end = depositPruneRangeFn(
 		beaconBlk.GetBody().GetDeposits(), s.chainSpec)
 	err = s.storageBackend.DepositStore().Prune(start, end)
 
@@ -49,7 +49,7 @@ func (s *Service[
 	return nil
 }
 
-func depositPrunRangeFn[
+func depositPruneRangeFn[
 	DepositT deposit.Deposit[DepositT, WithdrawalCredentialsT],
 	WithdrawalCredentialsT any,
 ](deposits []DepositT, cs common.ChainSpec) (uint64, uint64) {
