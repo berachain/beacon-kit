@@ -188,7 +188,7 @@ func (sp *StateProcessor[
 		}
 		nextValidatorIndex += math.ValidatorIndex(
 			sp.cs.MaxValidatorsPerWithdrawalsSweep(
-				state.IsPostUpgrade, sp.cs.DepositEth1ChainID(), slot,
+				state.IsPostFork2(sp.cs.DepositEth1ChainID(), slot),
 			))
 		nextValidatorIndex %= math.ValidatorIndex(totalValidators)
 	}
@@ -265,7 +265,7 @@ func (sp *StateProcessor[
 		}
 		nextValidatorIndex += math.ValidatorIndex(
 			sp.cs.MaxValidatorsPerWithdrawalsSweep(
-				state.IsPostUpgrade, sp.cs.DepositEth1ChainID(), slot,
+				state.IsPostFork2(sp.cs.DepositEth1ChainID(), slot),
 			))
 		nextValidatorIndex %= math.ValidatorIndex(totalValidators)
 	}
