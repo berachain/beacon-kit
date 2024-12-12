@@ -31,6 +31,9 @@ import (
 type Basic interface {
 	// Start spawns any goroutines required by the service.
 	Start(ctx context.Context) error
+	// Stop stops the service. It should be safe to call
+	// Stop on a service that has not been started
+	Stop() error
 	// Name returns the name of the service.
 	Name() string
 }
@@ -79,6 +82,23 @@ func (s *Registry) StartAll(ctx context.Context) error {
 		}
 
 		if err := svc.Start(ctx); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *Registry) StopAll() error {
+	s.logger.Info("Stopping services", "num", len(s.serviceTypes))
+	for _, typeName := range s.serviceTypes {
+		s.logger.Info("Stopping service", "type", typeName)
+		svc := s.services[typeName]
+		if svc == nil {
+			s.logger.Error("service not found", "type", typeName)
+			continue
+		}
+
+		if err := svc.Stop(); err != nil {
 			return err
 		}
 	}

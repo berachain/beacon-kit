@@ -257,7 +257,7 @@ type BlobSidecars[T, BlobSidecarT any] interface {
 	VerifyInclusionProofs(kzgOffset uint64) error
 }
 
-type BlockBuilderI[SlotDataT any] interface {
+type BlockBuilderI interface {
 	BuildBlockAndSidecars(
 		context.Context,
 		types.SlotData[

@@ -32,7 +32,7 @@ import (
 )
 
 func (s *Service[LoggerT]) prepareProposal(
-	_ context.Context,
+	ctx context.Context,
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
 	startTime := time.Now()
@@ -50,7 +50,7 @@ func (s *Service[LoggerT]) prepareProposal(
 
 	// Always reset state given that PrepareProposal can timeout
 	// and be called again in a subsequent round.
-	s.prepareProposalState = s.resetState()
+	s.prepareProposalState = s.resetState(ctx)
 	s.prepareProposalState.SetContext(
 		s.getContextForProposal(
 			s.prepareProposalState.Context(),
@@ -69,8 +69,7 @@ func (s *Service[LoggerT]) prepareProposal(
 		req.GetTime(),
 	)
 
-	// TODO: can we use the context from the request now that async is gone?
-	//nolint:contextcheck // see todo above
+	//nolint:contextcheck // TODO: We should look at using the passed context
 	blkBz, sidecarsBz, err := s.BlockBuilder.BuildBlockAndSidecars(
 		s.prepareProposalState.Context(),
 		*slotData,

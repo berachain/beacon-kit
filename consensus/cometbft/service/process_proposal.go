@@ -29,7 +29,7 @@ import (
 )
 
 func (s *Service[LoggerT]) processProposal(
-	_ context.Context,
+	ctx context.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
 	startTime := time.Now()
@@ -52,9 +52,9 @@ func (s *Service[LoggerT]) processProposal(
 	// processed the first block, as we want to avoid overwriting the
 	// finalizeState
 	// after state changes during InitChain.
-	s.processProposalState = s.resetState()
+	s.processProposalState = s.resetState(ctx)
 	if req.Height > s.initialHeight {
-		s.finalizeBlockState = s.resetState()
+		s.finalizeBlockState = s.resetState(ctx)
 	}
 
 	s.processProposalState.SetContext(

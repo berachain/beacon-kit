@@ -18,36 +18,32 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package http
+package blockchain
 
-import "errors"
+import (
+	"context"
+	"encoding/json"
 
-var (
-	// ErrTimeout indicates a timeout error from http.Client.
-	ErrTimeout = errors.New("timeout from HTTP client")
-
-	// ErrUnauthorized indicates an unauthorized error from http.Client.
-	ErrUnauthorized = errors.New("401 unauthorized request")
+	"github.com/berachain/beacon-kit/primitives/transition"
 )
 
-// TimeoutError defines an interface for timeout errors.
-// It includes methods for error message retrieval and timeout status checking.
-type TimeoutError interface {
-	// Error returns the error message.
-	Error() string
-	// Timeout indicates whether the error is a timeout error.
-	Timeout() bool
-}
-
-// IsTimeoutError checks if the given error is a timeout error.
-// It asserts the error to the httpTimeoutError interface and checks its Timeout
-// status.
-// Returns true if the error is a timeout error, false otherwise.
-func IsTimeoutError(e error) bool {
-	if e == nil {
-		return false
+// ProcessGenesisData processes the genesis state and initializes the beacon
+// state.
+func (s *Service[
+	_, _, _, _, _, _, _, _, _, _, _, _, GenesisT, _, _, _,
+]) ProcessGenesisData(
+	ctx context.Context,
+	bytes []byte,
+) (transition.ValidatorUpdates, error) {
+	genesisData := *new(GenesisT)
+	if err := json.Unmarshal(bytes, &genesisData); err != nil {
+		s.logger.Error("Failed to unmarshal genesis data", "error", err)
+		return nil, err
 	}
-	//nolint:errorlint // by design.
-	t, ok := e.(TimeoutError)
-	return ok && t.Timeout()
+	return s.stateProcessor.InitializePreminedBeaconStateFromEth1(
+		s.storageBackend.StateFromContext(ctx),
+		genesisData.GetDeposits(),
+		genesisData.GetExecutionPayloadHeader(),
+		genesisData.GetForkVersion(),
+	)
 }

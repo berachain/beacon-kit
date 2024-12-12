@@ -88,6 +88,10 @@ func (s *Server[_]) start(ctx context.Context) {
 	}
 }
 
+func (s *Server[_]) Stop() error {
+	return nil
+}
+
 // Name returns the name of the API server service.
 func (s *Server[_]) Name() string {
 	return "node-api-server"

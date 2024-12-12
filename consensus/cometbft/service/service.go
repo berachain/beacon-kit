@@ -57,13 +57,12 @@ type Service[
 ] struct {
 	node          *node.Node
 	cmtCfg        *cmtcfg.Config
-	chainSpec     common.ChainSpec
 	telemetrySink TelemetrySink
 
 	logger       LoggerT
 	sm           *statem.Manager
-	Blockchain   blockchain.BlockchainI[any]
-	BlockBuilder validator.BlockBuilderI[any]
+	Blockchain   blockchain.BlockchainI
+	BlockBuilder validator.BlockBuilderI
 
 	// prepareProposalState is used for PrepareProposal, which is set based on
 	// the previous block's state. This state is never committed. In case of
@@ -99,8 +98,8 @@ func NewService[
 	storeKey *storetypes.KVStoreKey,
 	logger LoggerT,
 	db dbm.DB,
-	blockchain blockchain.BlockchainI[any],
-	blockBuilder validator.BlockBuilderI[any],
+	blockchain blockchain.BlockchainI,
+	blockBuilder validator.BlockBuilderI,
 	cmtCfg *cmtcfg.Config,
 	cs common.ChainSpec,
 	telemetrySink TelemetrySink,
@@ -115,7 +114,6 @@ func NewService[
 		Blockchain:    blockchain,
 		BlockBuilder:  blockBuilder,
 		cmtCfg:        cmtCfg,
-		chainSpec:     cs,
 		telemetrySink: telemetrySink,
 		paramStore:    params.NewConsensusParamsStore(cs),
 	}
@@ -169,8 +167,7 @@ func (s *Service[_]) Start(
 	return s.node.Start()
 }
 
-// Close is called in start cmd to gracefully cleanup resources.
-func (s *Service[_]) Close() error {
+func (s *Service[_]) Stop() error {
 	var errs []error
 
 	if s.node != nil && s.node.IsRunning() {
@@ -234,11 +231,18 @@ func (s *Service[_]) setInterBlockCache(
 // prepareProposal/processProposal/finalizeBlock State.
 // A state is explicitly returned to avoid false positives from
 // nilaway tool.
-func (s *Service[LoggerT]) resetState() *state {
+func (s *Service[LoggerT]) resetState(ctx context.Context) *state {
 	ms := s.sm.CommitMultiStore().CacheMultiStore()
+
+	newCtx := sdk.NewContext(
+		ms,
+		false,
+		servercmtlog.WrapSDKLogger(s.logger),
+	).WithContext(ctx)
+
 	return &state{
 		ms:  ms,
-		ctx: sdk.NewContext(ms, false, servercmtlog.WrapSDKLogger(s.logger)),
+		ctx: newCtx,
 	}
 }
 

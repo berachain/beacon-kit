@@ -49,42 +49,66 @@ func TestInitialize(t *testing.T) {
 			{
 				Pubkey: [48]byte{0x01},
 				Amount: maxBalance,
-				Index:  uint64(0),
+				Credentials: types.NewCredentialsFromExecutionAddress(
+					common.ExecutionAddress{0x01},
+				),
+				Index: uint64(0),
 			},
 			{
 				Pubkey: [48]byte{0x02},
 				Amount: minBalance + increment,
-				Index:  uint64(1),
+				Credentials: types.NewCredentialsFromExecutionAddress(
+					common.ExecutionAddress{0x02},
+				),
+				Index: uint64(1),
 			},
 			{
 				Pubkey: [48]byte{0x03},
 				Amount: minBalance,
-				Index:  uint64(2),
+				Credentials: types.NewCredentialsFromExecutionAddress(
+					common.ExecutionAddress{0x03},
+				),
+				Index: uint64(2),
 			},
 			{
 				Pubkey: [48]byte{0x04},
 				Amount: 2 * maxBalance,
-				Index:  uint64(3),
+				Credentials: types.NewCredentialsFromExecutionAddress(
+					common.ExecutionAddress{0x04},
+				),
+				Index: uint64(3),
 			},
 			{
 				Pubkey: [48]byte{0x05},
 				Amount: minBalance - increment,
-				Index:  uint64(4),
+				Credentials: types.NewCredentialsFromExecutionAddress(
+					common.ExecutionAddress{0x05},
+				),
+				Index: uint64(4),
 			},
 			{
 				Pubkey: [48]byte{0x06},
 				Amount: minBalance + increment*3/2,
-				Index:  uint64(5),
+				Credentials: types.NewCredentialsFromExecutionAddress(
+					common.ExecutionAddress{0x06},
+				),
+				Index: uint64(5),
 			},
 			{
 				Pubkey: [48]byte{0x07},
 				Amount: maxBalance + increment/10,
-				Index:  uint64(6),
+				Credentials: types.NewCredentialsFromExecutionAddress(
+					common.ExecutionAddress{0x07},
+				),
+				Index: uint64(6),
 			},
 			{
 				Pubkey: [48]byte{0x08},
 				Amount: minBalance + increment*99/100,
-				Index:  uint64(7),
+				Credentials: types.NewCredentialsFromExecutionAddress(
+					common.ExecutionAddress{0x08},
+				),
+				Index: uint64(7),
 			},
 		}
 		goodDeposits = []*types.Deposit{
@@ -145,12 +169,19 @@ func checkValidatorNonBartio(
 ) {
 	t.Helper()
 
-	// checks on validators common to all networks
-	commonChecksValidators(t, cs, bs, dep)
-
-	// checks on validators for any network but Bartio
 	idx, err := bs.ValidatorIndexByPubkey(dep.Pubkey)
 	require.NoError(t, err)
+
+	val, err := bs.ValidatorByIndex(idx)
+	require.NoError(t, err)
+	require.Equal(t, dep.Pubkey, val.Pubkey)
+
+	// checks on validators common to all networks
+	commonChecksValidators(t, cs, val, dep)
+
+	// checks on validators for any network but Bartio
+	require.Equal(t, math.Epoch(0), val.GetActivationEligibilityEpoch())
+	require.Equal(t, math.Epoch(0), val.GetActivationEpoch())
 
 	valBal, err := bs.GetBalance(idx)
 	require.NoError(t, err)
@@ -172,42 +203,66 @@ func TestInitializeBartio(t *testing.T) {
 			{
 				Pubkey: [48]byte{0x01},
 				Amount: maxBalance,
-				Index:  uint64(0),
+				Credentials: types.NewCredentialsFromExecutionAddress(
+					common.ExecutionAddress{0x01},
+				),
+				Index: uint64(0),
 			},
 			{
 				Pubkey: [48]byte{0x02},
 				Amount: minBalance + increment,
-				Index:  uint64(1),
+				Credentials: types.NewCredentialsFromExecutionAddress(
+					common.ExecutionAddress{0x02},
+				),
+				Index: uint64(1),
 			},
 			{
 				Pubkey: [48]byte{0x03},
 				Amount: minBalance,
-				Index:  uint64(2),
+				Credentials: types.NewCredentialsFromExecutionAddress(
+					common.ExecutionAddress{0x03},
+				),
+				Index: uint64(2),
 			},
 			{
 				Pubkey: [48]byte{0x04},
 				Amount: 2 * maxBalance,
-				Index:  uint64(3),
+				Credentials: types.NewCredentialsFromExecutionAddress(
+					common.ExecutionAddress{0x04},
+				),
+				Index: uint64(3),
 			},
 			{
 				Pubkey: [48]byte{0x05},
 				Amount: minBalance - increment,
-				Index:  uint64(4),
+				Credentials: types.NewCredentialsFromExecutionAddress(
+					common.ExecutionAddress{0x05},
+				),
+				Index: uint64(4),
 			},
 			{
 				Pubkey: [48]byte{0x06},
 				Amount: minBalance + increment*3/2,
-				Index:  uint64(5),
+				Credentials: types.NewCredentialsFromExecutionAddress(
+					common.ExecutionAddress{0x06},
+				),
+				Index: uint64(5),
 			},
 			{
 				Pubkey: [48]byte{0x07},
 				Amount: maxBalance + increment/10,
-				Index:  uint64(6),
+				Credentials: types.NewCredentialsFromExecutionAddress(
+					common.ExecutionAddress{0x07},
+				),
+				Index: uint64(6),
 			},
 			{
 				Pubkey: [48]byte{0x08},
 				Amount: minBalance + increment*99/100,
-				Index:  uint64(7),
+				Credentials: types.NewCredentialsFromExecutionAddress(
+					common.ExecutionAddress{0x08},
+				),
+				Index: uint64(7),
 			},
 		}
 		goodDeposits = []*types.Deposit{
@@ -268,15 +323,28 @@ func checkValidatorBartio(
 ) {
 	t.Helper()
 
-	// checks on validators common to all networks
-	commonChecksValidators(t, cs, bs, dep)
-
-	// Bartio specific checks on validators
 	idx, err := bs.ValidatorIndexByPubkey(dep.Pubkey)
 	require.NoError(t, err)
+
 	val, err := bs.ValidatorByIndex(idx)
 	require.NoError(t, err)
+	require.Equal(t, dep.Pubkey, val.Pubkey)
 
+	// checks on validators common to all networks
+	commonChecksValidators(t, cs, val, dep)
+
+	require.Equal(
+		t,
+		math.Epoch(constants.FarFutureEpoch),
+		val.GetActivationEligibilityEpoch(),
+	)
+	require.Equal(
+		t,
+		math.Epoch(constants.FarFutureEpoch),
+		val.GetActivationEpoch(),
+	)
+
+	// Bartio specific checks on validators
 	valBal, err := bs.GetBalance(idx)
 	require.NoError(t, err)
 	require.Equal(t, val.EffectiveBalance, valBal)
@@ -291,16 +359,10 @@ func commonChecksValidators(
 		math.Slot,
 		any,
 	],
-	bs *TestBeaconStateT,
+	val *types.Validator,
 	dep *types.Deposit,
 ) {
 	t.Helper()
-
-	idx, err := bs.ValidatorIndexByPubkey(dep.Pubkey)
-	require.NoError(t, err)
-
-	val, err := bs.ValidatorByIndex(idx)
-	require.NoError(t, err)
 	require.Equal(t, dep.Pubkey, val.Pubkey)
 
 	var (

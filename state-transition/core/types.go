@@ -139,10 +139,13 @@ type Deposit[
 	GetAmount() math.Gwei
 	// GetPubkey returns the public key of the validator.
 	GetPubkey() crypto.BLSPubkey
-	// GetWithdrawalCredentials returns the withdrawal credentials.
-	GetWithdrawalCredentials() WithdrawlCredentialsT
 	// GetIndex returns deposit index
 	GetIndex() math.U64
+	// GetWithdrawalCredentials returns the withdrawal credentials.
+	GetWithdrawalCredentials() WithdrawlCredentialsT
+	// HasEth1WithdrawalCredentials returns true if the deposit has eth1
+	// withdrawal credentials.
+	HasEth1WithdrawalCredentials() bool
 	// VerifySignature verifies the deposit and creates a validator.
 	VerifySignature(
 		forkData ForkDataT,
@@ -242,6 +245,11 @@ type Validator[
 	) ValidatorT
 	// IsSlashed returns true if the validator is slashed.
 	IsSlashed() bool
+
+	IsEligibleForActivationQueue(threshold math.Gwei) bool
+	IsEligibleForActivation(finalizedEpoch math.Epoch) bool
+	IsActive(epoch math.Epoch) bool
+
 	// GetPubkey returns the public key of the validator.
 	GetPubkey() crypto.BLSPubkey
 	// GetEffectiveBalance returns the effective balance of the validator in
@@ -249,9 +257,17 @@ type Validator[
 	GetEffectiveBalance() math.Gwei
 	// SetEffectiveBalance sets the effective balance of the validator in Gwei.
 	SetEffectiveBalance(math.Gwei)
-	// GetWithdrawableEpoch returns the epoch when the validator can withdraw.
+
+	GetActivationEligibilityEpoch() math.Epoch
+	SetActivationEligibilityEpoch(math.Epoch)
+
+	GetActivationEpoch() math.Epoch
+	SetActivationEpoch(math.Epoch)
+
+	GetExitEpoch() math.Epoch
+	SetExitEpoch(e math.Epoch)
+
 	GetWithdrawableEpoch() math.Epoch
-	// SetWithdrawableEpoch sets the epoch when the validator can withdraw.
 	SetWithdrawableEpoch(math.Epoch)
 }
 
