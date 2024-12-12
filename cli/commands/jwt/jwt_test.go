@@ -31,7 +31,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_NewGenerateJWTCommand(t *testing.T) {
+func TestNewGenerateJWTCommand(t *testing.T) {
 	t.Run(
 		"command should be available and have correct use",
 		func(t *testing.T) {
