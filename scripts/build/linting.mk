@@ -69,8 +69,9 @@ gosec:
 #################
 
 slither:
+	chmod -R o+rw ./contracts
 	docker run \
-	-t --user 1001:118 \
+	-t \
 	--platform linux/amd64 \
 	-v ./contracts:/contracts:rw \
 	trailofbits/eth-security-toolbox:edge \
