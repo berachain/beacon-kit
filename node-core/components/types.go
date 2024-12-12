@@ -86,7 +86,7 @@ type (
 	// Withdrawal = engineprimitives.Withdrawal.
 
 	// Withdrawals is a type alias for the engineprimitives withdrawals.
-	// Withdrawals = engineprimitives.Withdrawals.
+	// Withdrawals = engineprimitives.Withdrawals
 
 	// WithdrawalCredentials is a type alias for the withdrawal credentials.
 	WithdrawalCredentials = types.WithdrawalCredentials

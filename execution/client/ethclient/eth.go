@@ -34,7 +34,7 @@ import (
 )
 
 // ChainID retrieves the current chain ID.
-func (ec *Client[ExecutionPayloadT]) ChainID(
+func (ec *Client) ChainID(
 	ctx context.Context,
 ) (math.U64, error) {
 	var result math.U64
@@ -47,7 +47,7 @@ func (ec *Client[ExecutionPayloadT]) ChainID(
 // TODO: Figure out how to unhood all this.
 
 // FilterLogs executes a filter query.
-func (ec *Client[ExecutionPayloadT]) FilterLogs(
+func (ec *Client) FilterLogs(
 	ctx context.Context,
 	q ethereum.FilterQuery,
 ) ([]types.Log, error) {
@@ -62,7 +62,7 @@ func (ec *Client[ExecutionPayloadT]) FilterLogs(
 // SubscribeFilterLogs(ctx context.Context, q FilterQuery, ch chan<- types.Log)
 // (Subscription, error)
 
-func (ec *Client[ExecutionPayloadT]) SubscribeFilterLogs(
+func (ec *Client) SubscribeFilterLogs(
 	context.Context,
 	ethereum.FilterQuery,
 	chan<- types.Log,

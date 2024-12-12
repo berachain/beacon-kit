@@ -32,17 +32,11 @@ import (
 // Service is responsible for building beacon blocks and sidecars.
 type Service[
 	AttestationDataT any,
-	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody[
-		AttestationDataT, DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
-	],
+	BeaconBlockT BeaconBlock[BeaconBlockT],
 	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
-	DepositT any,
-	DepositStoreT DepositStore[DepositT],
-	Eth1DataT Eth1Data[Eth1DataT],
-	ExecutionPayloadT any,
+	DepositStoreT DepositStore,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	ForkDataT ForkData[ForkDataT],
 	SlashingInfoT any,
@@ -71,10 +65,10 @@ type Service[
 	// is connected to this nodes execution client via the EngineAPI.
 	// Building blocks are done by submitting forkchoice updates through.
 	// The local Builder.
-	localPayloadBuilder PayloadBuilder[BeaconStateT, ExecutionPayloadT]
+	localPayloadBuilder PayloadBuilder[BeaconStateT]
 	// remotePayloadBuilders represents a list of remote block builders, these
 	// builders are connected to other execution clients via the EngineAPI.
-	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT]
+	remotePayloadBuilders []PayloadBuilder[BeaconStateT]
 	// metrics is a metrics collector.
 	metrics *validatorMetrics
 }
@@ -82,17 +76,11 @@ type Service[
 // NewService creates a new validator service.
 func NewService[
 	AttestationDataT any,
-	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody[
-		AttestationDataT, DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
-	],
+	BeaconBlockT BeaconBlock[BeaconBlockT],
 	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
-	DepositT any,
-	DepositStoreT DepositStore[DepositT],
-	Eth1DataT Eth1Data[Eth1DataT],
-	ExecutionPayloadT any,
+	DepositStoreT DepositStore,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	ForkDataT ForkData[ForkDataT],
 	SlashingInfoT any,
@@ -110,19 +98,19 @@ func NewService[
 	],
 	signer crypto.BLSSigner,
 	blobFactory BlobFactory[BeaconBlockT, BlobSidecarsT],
-	localPayloadBuilder PayloadBuilder[BeaconStateT, ExecutionPayloadT],
-	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT],
+	localPayloadBuilder PayloadBuilder[BeaconStateT],
+	remotePayloadBuilders []PayloadBuilder[BeaconStateT],
 	ts TelemetrySink,
 ) *Service[
-	AttestationDataT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarT, BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT,
-	ExecutionPayloadT, ExecutionPayloadHeaderT, ForkDataT, SlashingInfoT,
+	AttestationDataT, BeaconBlockT, BeaconStateT,
+	BlobSidecarT, BlobSidecarsT, DepositStoreT,
+	ExecutionPayloadHeaderT, ForkDataT, SlashingInfoT,
 	SlotDataT,
 ] {
 	return &Service[
-		AttestationDataT, BeaconBlockT, BeaconBlockBodyT,
-		BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT,
-		ExecutionPayloadT, ExecutionPayloadHeaderT, ForkDataT, SlashingInfoT,
+		AttestationDataT, BeaconBlockT,
+		BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositStoreT,
+		ExecutionPayloadHeaderT, ForkDataT, SlashingInfoT,
 		SlotDataT,
 	]{
 		cfg:                   cfg,
@@ -140,19 +128,19 @@ func NewService[
 
 // Name returns the name of the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _,
 ]) Name() string {
 	return "validator"
 }
 
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _,
 ]) Start(
 	_ context.Context,
 ) error {
 	return nil
 }
 
-func (s *Service[_, _, _, _, _, _, _, _, _, _, _, _, _, _]) Stop() error {
+func (s *Service[_, _, _, _, _, _, _, _, _, _]) Stop() error {
 	return nil
 }

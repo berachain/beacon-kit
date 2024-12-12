@@ -69,7 +69,6 @@ type (
 	// BlobProcessor is a type alias for the blob processor.
 	BlobProcessor = dablob.Processor[
 		*AvailabilityStore,
-		*BeaconBlockBody,
 		*ConsensusSidecars,
 		*BlobSidecar,
 		*BlobSidecars,
@@ -81,12 +80,9 @@ type (
 		*DepositStore,
 		*ConsensusBlock,
 		*BeaconBlock,
-		*BeaconBlockBody,
 		*BeaconState,
 		*BlockStore,
-		*Deposit,
 		WithdrawalCredentials,
-		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*Genesis,
 		*ConsensusSidecars,
@@ -98,14 +94,10 @@ type (
 	CometBFTService = cometbft.Service[*Logger]
 
 	// EngineClient is a type alias for the engine client.
-	EngineClient = engineclient.EngineClient[
-		*ExecutionPayload,
-		*PayloadAttributes,
-	]
+	EngineClient = engineclient.EngineClient[*PayloadAttributes]
 
 	// EngineClient is a type alias for the engine client.
 	ExecutionEngine = execution.Engine[
-		*ExecutionPayload,
 		*PayloadAttributes,
 		PayloadID,
 		engineprimitives.Withdrawals,
@@ -116,7 +108,6 @@ type (
 
 	// KVStore is a type alias for the KV store.
 	KVStore = beacondb.KVStore[
-		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,
 		*Validator,
@@ -126,7 +117,6 @@ type (
 	// LocalBuilder is a type alias for the local builder.
 	LocalBuilder = payloadbuilder.PayloadBuilder[
 		*BeaconState,
-		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*PayloadAttributes,
 		PayloadID,
@@ -140,26 +130,16 @@ type (
 	NodeAPIServer = server.Server[NodeAPIContext]
 
 	// ReportingService is a type alias for the reporting service.
-	ReportingService = version.ReportingService[
-		*ExecutionPayload,
-		*PayloadAttributes,
-	]
+	ReportingService = version.ReportingService[*PayloadAttributes]
 
 	// SidecarFactory is a type alias for the sidecar factory.
-	SidecarFactory = dablob.SidecarFactory[
-		*BeaconBlock,
-		*BeaconBlockBody,
-	]
+	SidecarFactory = dablob.SidecarFactory[*BeaconBlock]
 
 	// StateProcessor is the type alias for the state processor interface.
 	StateProcessor = core.StateProcessor[
 		*BeaconBlock,
-		*BeaconBlockBody,
 		*BeaconState,
 		*Context,
-		*Deposit,
-		*Eth1Data,
-		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*Fork,
 		*ForkData,
@@ -184,14 +164,10 @@ type (
 	ValidatorService = validator.Service[
 		*AttestationData,
 		*BeaconBlock,
-		*BeaconBlockBody,
 		*BeaconState,
 		*BlobSidecar,
 		*BlobSidecars,
-		*Deposit,
 		*DepositStore,
-		*Eth1Data,
-		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*ForkData,
 		*SlashingInfo,
@@ -208,17 +184,15 @@ type (
 	AttestationData = types.AttestationData
 
 	// AvailabilityStore is a type alias for the availability store.
-	AvailabilityStore = dastore.Store[*BeaconBlockBody]
+	AvailabilityStore = dastore.Store
 
 	// BeaconBlock type aliases.
-	ConsensusBlock  = consruntimetypes.ConsensusBlock[*BeaconBlock]
-	BeaconBlock     = types.BeaconBlock
-	BeaconBlockBody = types.BeaconBlockBody
+	ConsensusBlock = consruntimetypes.ConsensusBlock[*BeaconBlock]
+	BeaconBlock    = types.BeaconBlock
 
 	// BeaconState is a type alias for the BeaconState.
 	BeaconState = statedb.StateDB[
 		*BeaconStateMarshallable,
-		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,
 		*KVStore,
@@ -230,11 +204,9 @@ type (
 
 	// BeaconStateMarshallable is a type alias for the BeaconState.
 	BeaconStateMarshallable = types.BeaconState[
-		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,
 		*Validator,
-		Eth1Data,
 		ExecutionPayloadHeader,
 		Fork,
 		Validator,
@@ -251,23 +223,13 @@ type (
 	// Context is a type alias for the transition context.
 	Context = transition.Context
 
-	// Deposit is a type alias for the deposit.
-	Deposit = types.Deposit
-
 	// DepositContract is a type alias for the deposit contract.
-	DepositContract = deposit.WrappedDepositContract[
-		*Deposit,
-		WithdrawalCredentials,
-	]
+	DepositContract = deposit.WrappedDepositContract[WithdrawalCredentials]
 
 	// DepositStore is a type alias for the deposit store.
-	DepositStore = depositdb.KVStore[*Deposit]
-
-	// Eth1Data is a type alias for the eth1 data.
-	Eth1Data = types.Eth1Data
+	DepositStore = depositdb.KVStore
 
 	// ExecutionPayload type aliases.
-	ExecutionPayload       = types.ExecutionPayload
 	ExecutionPayloadHeader = types.ExecutionPayloadHeader
 
 	// Fork is a type alias for the fork.
@@ -277,10 +239,7 @@ type (
 	ForkData = types.ForkData
 
 	// Genesis is a type alias for the Genesis type.
-	Genesis = types.Genesis[
-		*Deposit,
-		*ExecutionPayloadHeader,
-	]
+	Genesis = types.Genesis[*ExecutionPayloadHeader]
 
 	// Logger is a type alias for the logger.
 	Logger = phuslu.Logger
@@ -301,15 +260,12 @@ type (
 	NodeAPIBackend = backend.Backend[
 		*AvailabilityStore,
 		*BeaconBlock,
-		*BeaconBlockBody,
 		*BeaconState,
 		*BeaconStateMarshallable,
 		*BlobSidecars,
 		*BlockStore,
 		sdk.Context,
-		*Deposit,
 		*DepositStore,
-		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,
 		*CometBFTService,

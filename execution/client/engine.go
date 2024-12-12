@@ -24,6 +24,7 @@ import (
 	"context"
 	"time"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/errors"
@@ -36,11 +37,9 @@ import (
 /* -------------------------------------------------------------------------- */
 
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
-func (s *EngineClient[
-	ExecutionPayloadT, _,
-]) NewPayload(
+func (s *EngineClient[_]) NewPayload(
 	ctx context.Context,
-	payload ExecutionPayloadT,
+	payload *ctypes.ExecutionPayload,
 	versionedHashes []common.ExecutionHash,
 	parentBeaconBlockRoot *common.Root,
 ) (*common.ExecutionHash, error) {
@@ -83,9 +82,7 @@ func (s *EngineClient[
 /* -------------------------------------------------------------------------- */
 
 // ForkchoiceUpdated calls the engine_forkchoiceUpdatedV1 method via JSON-RPC.
-func (s *EngineClient[
-	_, PayloadAttributesT,
-]) ForkchoiceUpdated(
+func (s *EngineClient[PayloadAttributesT]) ForkchoiceUpdated(
 	ctx context.Context,
 	state *engineprimitives.ForkchoiceStateV1,
 	attrs PayloadAttributesT,
@@ -134,13 +131,11 @@ func (s *EngineClient[
 
 // GetPayload calls the engine_getPayloadVX method via JSON-RPC. It returns
 // the execution data as well as the blobs bundle.
-func (s *EngineClient[
-	ExecutionPayloadT, _,
-]) GetPayload(
+func (s *EngineClient[_]) GetPayload(
 	ctx context.Context,
 	payloadID engineprimitives.PayloadID,
 	forkVersion uint32,
-) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
+) (engineprimitives.BuiltExecutionPayloadEnv[*ctypes.ExecutionPayload], error) {
 	var (
 		startTime    = time.Now()
 		cctx, cancel = s.createContextWithTimeout(ctx)
@@ -168,9 +163,7 @@ func (s *EngineClient[
 
 // ExchangeCapabilities calls the engine_exchangeCapabilities method via
 // JSON-RPC.
-func (s *EngineClient[
-	_, _,
-]) ExchangeCapabilities(
+func (s *EngineClient[_]) ExchangeCapabilities(
 	ctx context.Context,
 ) ([]string, error) {
 	result, err := s.Client.ExchangeCapabilities(

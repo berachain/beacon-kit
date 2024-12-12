@@ -56,18 +56,15 @@ import (
 
 type (
 	TestBeaconStateMarshallableT = types.BeaconState[
-		*types.Eth1Data,
 		*types.ExecutionPayloadHeader,
 		*types.Fork,
 		*types.Validator,
-		types.Eth1Data,
 		types.ExecutionPayloadHeader,
 		types.Fork,
 		types.Validator,
 	]
 
 	TestKVStoreT = beacondb.KVStore[
-		*types.Eth1Data,
 		*types.ExecutionPayloadHeader,
 		*types.Fork,
 		*types.Validator,
@@ -76,7 +73,6 @@ type (
 
 	TestBeaconStateT = statedb.StateDB[
 		*TestBeaconStateMarshallableT,
-		*types.Eth1Data,
 		*types.ExecutionPayloadHeader,
 		*types.Fork,
 		*TestKVStoreT,
@@ -88,12 +84,8 @@ type (
 
 	TestStateProcessorT = core.StateProcessor[
 		*types.BeaconBlock,
-		*types.BeaconBlockBody,
 		*TestBeaconStateT,
 		*transition.Context,
-		*types.Deposit,
-		*types.Eth1Data,
-		*types.ExecutionPayload,
 		*types.ExecutionPayloadHeader,
 		*types.Fork,
 		*types.ForkData,
@@ -124,13 +116,12 @@ var (
 
 func initTestStores() (
 	*beacondb.KVStore[
-		*types.Eth1Data,
 		*types.ExecutionPayloadHeader,
 		*types.Fork,
 		*types.Validator,
 		types.Validators,
 	],
-	*depositstore.KVStore[*types.Deposit],
+	*depositstore.KVStore,
 	error) {
 	db, err := db.OpenDB("", dbm.MemDBBackend)
 	if err != nil {
@@ -155,7 +146,6 @@ func initTestStores() (
 	testStoreService := &testKVStoreService{ctx: ctx}
 
 	return beacondb.New[
-			*types.Eth1Data,
 			*types.ExecutionPayloadHeader,
 			*types.Fork,
 			*types.Validator,
@@ -164,7 +154,7 @@ func initTestStores() (
 			testStoreService,
 			testCodec,
 		),
-		depositstore.NewStore[*types.Deposit](testStoreService, nopLog),
+		depositstore.NewStore(testStoreService, nopLog),
 		nil
 }
 
@@ -187,13 +177,12 @@ func setupState(
 ) (
 	*TestStateProcessorT,
 	*TestBeaconStateT,
-	*depositstore.KVStore[*types.Deposit],
+	*depositstore.KVStore,
 	*transition.Context,
 ) {
 	t.Helper()
 
 	execEngine := mocks.NewExecutionEngine[
-		*types.ExecutionPayload,
 		*types.ExecutionPayloadHeader,
 		engineprimitives.Withdrawals,
 	](t)
@@ -212,12 +201,8 @@ func setupState(
 
 	sp := core.NewStateProcessor[
 		*types.BeaconBlock,
-		*types.BeaconBlockBody,
 		*TestBeaconStateT,
 		*transition.Context,
-		*types.Deposit,
-		*types.Eth1Data,
-		*types.ExecutionPayload,
 		*types.ExecutionPayloadHeader,
 		*types.Fork,
 		*types.ForkData,

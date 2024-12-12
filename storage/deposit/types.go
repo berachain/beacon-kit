@@ -19,15 +19,3 @@
 // TITLE.
 
 package deposit
-
-import (
-	"github.com/berachain/beacon-kit/primitives/constraints"
-	"github.com/berachain/beacon-kit/primitives/math"
-)
-
-// Deposit is a struct that represents a deposit.
-type Deposit[DepositT any] interface {
-	constraints.SSZMarshallable
-	constraints.Empty[DepositT]
-	GetIndex() math.U64
-}

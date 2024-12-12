@@ -37,11 +37,11 @@ import (
 // AvailabilityStore interface is responsible for validating and storing
 // sidecars for specific blocks, as well as verifying sidecars that have already
 // been stored.
-type AvailabilityStore[BeaconBlockBodyT any] interface {
+type AvailabilityStore interface {
 	// IsDataAvailable ensures that all blobs referenced in the block are
 	// securely stored before it returns without an error.
 	IsDataAvailable(
-		context.Context, math.Slot, BeaconBlockBodyT,
+		context.Context, math.Slot, *ctypes.BeaconBlockBody,
 	) bool
 	// Prune prunes the deposit store of [start, end)
 	Prune(start, end uint64) error
@@ -62,7 +62,6 @@ type ConsensusBlock[BeaconBlockT any] interface {
 // BeaconBlock represents a beacon block interface.
 type BeaconBlock[
 	BeaconBlockT any,
-	BeaconBlockBodyT any,
 ] interface {
 	constraints.SSZMarshallableRootable
 	constraints.Nillable
@@ -71,18 +70,9 @@ type BeaconBlock[
 	// GetStateRoot returns the state root of the beacon block.
 	GetStateRoot() common.Root
 	// GetBody returns the body of the beacon block.
-	GetBody() BeaconBlockBodyT
+	GetBody() *ctypes.BeaconBlockBody
 	NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
 	GetHeader() *ctypes.BeaconBlockHeader
-}
-
-// BeaconBlockBody represents the interface for the beacon block body.
-type BeaconBlockBody[ExecutionPayloadT any] interface {
-	constraints.SSZMarshallableRootable
-	constraints.Nillable
-	// GetExecutionPayload returns the execution payload of the beacon block
-	// body.
-	GetExecutionPayload() ExecutionPayloadT
 }
 
 type BlobSidecars[T any] interface {
@@ -120,11 +110,11 @@ type ExecutionPayloadHeader interface {
 }
 
 // Genesis is the interface for the genesis.
-type Genesis[DepositT any, ExecutionPayloadHeaderT any] interface {
+type Genesis[ExecutionPayloadHeaderT any] interface {
 	// GetForkVersion returns the fork version.
 	GetForkVersion() common.Version
 	// GetDeposits returns the deposits.
-	GetDeposits() []DepositT
+	GetDeposits() []*ctypes.Deposit
 	// GetExecutionPayloadHeader returns the execution payload header.
 	GetExecutionPayloadHeader() ExecutionPayloadHeaderT
 }
@@ -188,7 +178,6 @@ type StateProcessor[
 	BeaconBlockT,
 	BeaconStateT,
 	ContextT,
-	DepositT,
 	ExecutionPayloadHeaderT any,
 ] interface {
 	// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
@@ -196,7 +185,7 @@ type StateProcessor[
 	// from the eth1 deposits.
 	InitializePreminedBeaconStateFromEth1(
 		BeaconStateT,
-		[]DepositT,
+		[]*ctypes.Deposit,
 		ExecutionPayloadHeaderT,
 		common.Version,
 	) (transition.ValidatorUpdates, error)

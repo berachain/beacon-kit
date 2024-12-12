@@ -24,26 +24,17 @@ import (
 	stdbytes "bytes"
 	"context"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
-	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/karalabe/ssz"
 )
 
 // BeaconBlock represents a generic interface for a beacon block.
 type BeaconBlock[
-	DepositT any,
-	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT, DepositT,
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
-	],
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
-	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	WithdrawalsT any,
 ] interface {
@@ -53,35 +44,11 @@ type BeaconBlock[
 	// GetSlot returns the slot number of the block.
 	GetSlot() math.Slot
 	// GetBody returns the body of the block.
-	GetBody() BeaconBlockBodyT
+	GetBody() *ctypes.BeaconBlockBody
 	// GetParentBlockRoot returns the root of the parent block.
 	GetParentBlockRoot() common.Root
 	// GetStateRoot returns the state root of the block.
 	GetStateRoot() common.Root
-}
-
-// BeaconBlockBody represents a generic interface for the body of a beacon
-// block.
-type BeaconBlockBody[
-	BeaconBlockBodyT any,
-	DepositT any,
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
-	],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	WithdrawalsT any,
-] interface {
-	constraints.EmptyWithVersion[BeaconBlockBodyT]
-	// GetRandaoReveal returns the RANDAO reveal signature.
-	GetRandaoReveal() crypto.BLSSignature
-	// GetExecutionPayload returns the execution payload.
-	GetExecutionPayload() ExecutionPayloadT
-	// GetDeposits returns the list of deposits.
-	GetDeposits() []DepositT
-	// HashTreeRoot returns the hash tree root of the block body.
-	HashTreeRoot() common.Root
-	// GetBlobKzgCommitments returns the KZG commitments for the blobs.
-	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 }
 
 // Context defines an interface for managing state transition context.
@@ -111,12 +78,11 @@ type Context interface {
 
 // Deposit is the interface for a deposit.
 type Deposit[
-	DepositT any,
 	ForkDataT any,
-	WithdrawlCredentialsT ~[32]byte,
+	WithdrawlCredentialsT any,
 ] interface {
 	// Equals returns true if the Deposit is equal to the other.
-	Equals(DepositT) bool
+	Equals(*ctypes.Deposit) bool
 	// GetAmount returns the amount of the deposit.
 	GetAmount() math.Gwei
 	// GetPubkey returns the public key of the validator.
@@ -140,36 +106,12 @@ type Deposit[
 }
 
 // DepositStore defines the interface for deposit storage.
-type DepositStore[DepositT any] interface {
+type DepositStore interface {
 	// GetDepositsByIndex returns `numView` expected deposits.
 	GetDepositsByIndex(
 		startIndex uint64,
 		numView uint64,
-	) ([]DepositT, error)
-}
-
-type ExecutionPayload[
-	ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT any,
-] interface {
-	constraints.EngineType[ExecutionPayloadT]
-	GetTransactions() engineprimitives.Transactions
-	GetParentHash() common.ExecutionHash
-	GetBlockHash() common.ExecutionHash
-	GetPrevRandao() common.Bytes32
-	GetWithdrawals() WithdrawalsT
-	GetFeeRecipient() common.ExecutionAddress
-	GetStateRoot() common.Bytes32
-	GetReceiptsRoot() common.Bytes32
-	GetLogsBloom() bytes.B256
-	GetNumber() math.U64
-	GetGasLimit() math.U64
-	GetTimestamp() math.U64
-	GetGasUsed() math.U64
-	GetExtraData() []byte
-	GetBaseFeePerGas() *math.U256
-	GetBlobGasUsed() math.U64
-	GetExcessBlobGas() math.U64
-	ToHeader() (ExecutionPayloadHeaderT, error)
+	) ([]*ctypes.Deposit, error)
 }
 
 type ExecutionPayloadHeader interface {
@@ -185,8 +127,6 @@ type Withdrawals interface {
 
 // ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine[
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT],
 	ExecutionPayloadHeaderT any,
 	WithdrawalsT Withdrawals,
 ] interface {
@@ -194,7 +134,7 @@ type ExecutionEngine[
 	// execution client.
 	VerifyAndNotifyNewPayload(
 		ctx context.Context,
-		req *engineprimitives.NewPayloadRequest[ExecutionPayloadT, WithdrawalsT],
+		req *engineprimitives.NewPayloadRequest[*ctypes.ExecutionPayload, WithdrawalsT],
 	) error
 }
 
@@ -220,7 +160,7 @@ type Validator[
 	// New creates a new validator with the given parameters.
 	New(
 		pubkey crypto.BLSPubkey,
-		withdrawalCredentials WithdrawalCredentialsT,
+		withdrawalCredentials ctypes.WithdrawalCredentials,
 		amount math.Gwei,
 		effectiveBalanceIncrement math.Gwei,
 		maxEffectiveBalance math.Gwei,

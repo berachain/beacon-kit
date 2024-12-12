@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-core/types"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/cosmos/cosmos-sdk/version"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 )
@@ -40,7 +39,6 @@ import (
 // DefaultRootCommandSetup sets up the default commands for the root command.
 func DefaultRootCommandSetup[
 	T types.Node,
-	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	root *Root,
@@ -57,7 +55,7 @@ func DefaultRootCommandSetup[
 		// `genesis`
 		genesis.Commands(chainSpec),
 		// `deposit`
-		deposit.Commands[ExecutionPayloadT](chainSpec),
+		deposit.Commands(chainSpec),
 		// `jwt`
 		jwt.Commands(),
 		// `rollback`

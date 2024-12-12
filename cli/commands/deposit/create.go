@@ -30,26 +30,23 @@ import (
 	"github.com/berachain/beacon-kit/node-core/components"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/spf13/cobra"
 )
 
 // NewCreateValidator creates a new command to create a validator deposit.
-func NewCreateValidator[
-	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
-](
+func NewCreateValidator(
 	chainSpec common.ChainSpec,
 ) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-validator",
 		Short: "Creates a validator deposit",
-		Long: `Creates a validator deposit with the necessary credentials. The 
+		Long: `Creates a validator deposit with the necessary credentials. The
 		arguments are expected in the order of withdrawal address, deposit
 		amount, current version, and genesis validator root. If the broadcast
 		flag is set to true, a private key must be provided to sign the transaction.`,
 		Args: cobra.ExactArgs(4), //nolint:mnd // The number of arguments.
-		RunE: createValidatorCmd[ExecutionPayloadT](chainSpec),
+		RunE: createValidatorCmd(chainSpec),
 	}
 
 	cmd.Flags().String(privateKey, defaultPrivateKey, privateKeyMsg)
@@ -66,9 +63,7 @@ func NewCreateValidator[
 // createValidatorCmd returns a command that builds a create validator request.
 //
 
-func createValidatorCmd[
-	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
-](
+func createValidatorCmd(
 	chainSpec common.ChainSpec,
 ) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {

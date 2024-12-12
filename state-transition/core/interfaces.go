@@ -33,7 +33,6 @@ import (
 // is a combination of the read-only and write-only beacon state types.
 type BeaconState[
 	T any,
-	Eth1DataT,
 	ExecutionPayloadHeaderT,
 	ForkT,
 	KVStoreT,
@@ -49,21 +48,21 @@ type BeaconState[
 	Context() context.Context
 	HashTreeRoot() common.Root
 	ReadOnlyBeaconState[
-		Eth1DataT, ExecutionPayloadHeaderT,
+		ExecutionPayloadHeaderT,
 		ForkT, ValidatorT, ValidatorsT, WithdrawalT,
 	]
 	WriteOnlyBeaconState[
-		Eth1DataT, ExecutionPayloadHeaderT,
+		ExecutionPayloadHeaderT,
 		ForkT, ValidatorT,
 	]
 }
 
 // ReadOnlyBeaconState is the interface for a read-only beacon state.
 type ReadOnlyBeaconState[
-	Eth1DataT, ExecutionPayloadHeaderT,
+	ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT, WithdrawalT any,
 ] interface {
-	ReadOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT]
+	ReadOnlyEth1Data[ExecutionPayloadHeaderT]
 	ReadOnlyRandaoMixes
 	ReadOnlyStateRoots
 	ReadOnlyValidators[ValidatorT]
@@ -90,10 +89,10 @@ type ReadOnlyBeaconState[
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
 type WriteOnlyBeaconState[
-	Eth1DataT, ExecutionPayloadHeaderT,
+	ExecutionPayloadHeaderT,
 	ForkT, ValidatorT any,
 ] interface {
-	WriteOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT]
+	WriteOnlyEth1Data[ExecutionPayloadHeaderT]
 	WriteOnlyRandaoMixes
 	WriteOnlyStateRoots
 	WriteOnlyValidators[ValidatorT]
@@ -158,8 +157,8 @@ type ReadOnlyValidators[ValidatorT any] interface {
 }
 
 // WriteOnlyEth1Data has write access to eth1 data.
-type WriteOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT any] interface {
-	SetEth1Data(Eth1DataT) error
+type WriteOnlyEth1Data[ExecutionPayloadHeaderT any] interface {
+	SetEth1Data(*ctypes.Eth1Data) error
 	SetEth1DepositIndex(uint64) error
 	SetLatestExecutionPayloadHeader(
 		ExecutionPayloadHeaderT,
@@ -167,8 +166,8 @@ type WriteOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT any] interface {
 }
 
 // ReadOnlyEth1Data has read access to eth1 data.
-type ReadOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT any] interface {
-	GetEth1Data() (Eth1DataT, error)
+type ReadOnlyEth1Data[ExecutionPayloadHeaderT any] interface {
+	GetEth1Data() (*ctypes.Eth1Data, error)
 	GetEth1DepositIndex() (uint64, error)
 	GetLatestExecutionPayloadHeader() (
 		ExecutionPayloadHeaderT, error,

@@ -23,23 +23,16 @@ package deposit
 import (
 	"context"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-type BeaconBlockBody[
-	DepositT any,
-	ExecutionPayloadT ExecutionPayload,
-] interface {
-	GetDeposits() []DepositT
-	GetExecutionPayload() ExecutionPayloadT
-}
-
 // BeaconBlock is an interface for beacon blocks.
-type BeaconBlock[BeaconBlockBodyT any] interface {
+type BeaconBlock interface {
 	GetSlot() math.U64
-	GetBody() BeaconBlockBodyT
+	GetBody() *ctypes.BeaconBlockBody
 }
 
 // ExecutionPayload is an interface for execution payloads.
@@ -48,17 +41,16 @@ type ExecutionPayload interface {
 }
 
 // Contract is the ABI for the deposit contract.
-type Contract[DepositT any] interface {
+type Contract interface {
 	// ReadDeposits reads deposits from the deposit contract.
 	ReadDeposits(
 		ctx context.Context,
 		blockNumber math.U64,
-	) ([]DepositT, error)
+	) ([]*ctypes.Deposit, error)
 }
 
 // Deposit is an interface for deposits.
-type Deposit[DepositT, WithdrawalCredentialsT any] interface {
-	constraints.Empty[DepositT]
+type Deposit[WithdrawalCredentialsT any] interface {
 	constraints.SSZMarshallableRootable
 
 	// New creates a new deposit.
@@ -68,17 +60,17 @@ type Deposit[DepositT, WithdrawalCredentialsT any] interface {
 		math.U64,
 		crypto.BLSSignature,
 		uint64,
-	) DepositT
+	) *ctypes.Deposit
 	// GetIndex returns the index of the deposit.
 	GetIndex() math.U64
 }
 
 // Store defines the interface for managing deposit operations.
-type Store[DepositT any] interface {
+type Store interface {
 	// Prune prunes the deposit store of [start, end)
 	Prune(index uint64, numPrune uint64) error
 	// EnqueueDeposits adds a list of deposits to the deposit store.
-	EnqueueDeposits(deposits []DepositT) error
+	EnqueueDeposits(deposits []*ctypes.Deposit) error
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.

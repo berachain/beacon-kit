@@ -29,10 +29,7 @@ import (
 
 // BlockStoreInput is the input for the dep inject framework.
 type BlockStoreInput[
-	BeaconBlockT BeaconBlock[
-		BeaconBlockT, BeaconBlockBodyT,
-	],
-	BeaconBlockBodyT any,
+	BeaconBlockT BeaconBlock[BeaconBlockT],
 	LoggerT log.AdvancedLogger[LoggerT],
 ] struct {
 	depinject.In
@@ -44,14 +41,11 @@ type BlockStoreInput[
 // ProvideBlockStore is a function that provides the module to the
 // application.
 func ProvideBlockStore[
-	BeaconBlockT BeaconBlock[
-		BeaconBlockT, BeaconBlockBodyT,
-	],
-	BeaconBlockBodyT any,
+	BeaconBlockT BeaconBlock[BeaconBlockT],
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	in BlockStoreInput[
-		BeaconBlockT, BeaconBlockBodyT, LoggerT,
+		BeaconBlockT, LoggerT,
 	],
 ) (*block.KVStore[BeaconBlockT], error) {
 	return block.NewStore[BeaconBlockT](

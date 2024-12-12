@@ -30,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 )
@@ -38,7 +37,6 @@ import (
 // BeaconBlock represents a beacon block interface.
 type BeaconBlock[
 	T any,
-	BeaconBlockBodyT any,
 ] interface {
 	constraints.SSZMarshallable
 	// NewWithVersion creates a new beacon block with the given parameters.
@@ -57,32 +55,7 @@ type BeaconBlock[
 	// GetStateRoot returns the state root of the beacon block.
 	GetStateRoot() common.Root
 	// GetBody returns the body of the beacon block.
-	GetBody() BeaconBlockBodyT
-}
-
-// BeaconBlockBody represents a beacon block body interface.
-type BeaconBlockBody[
-	AttestationDataT, DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT any,
-] interface {
-	constraints.SSZMarshallable
-	constraints.Nillable
-	// SetRandaoReveal sets the Randao reveal of the beacon block body.
-	SetRandaoReveal(crypto.BLSSignature)
-	// SetEth1Data sets the Eth1 data of the beacon block body.
-	SetEth1Data(Eth1DataT)
-	// SetDeposits sets the deposits of the beacon block body.
-	SetDeposits([]DepositT)
-	// SetExecutionPayload sets the execution data of the beacon block body.
-	SetExecutionPayload(ExecutionPayloadT)
-	// SetGraffiti sets the graffiti of the beacon block body.
-	SetGraffiti(common.Bytes32)
-	// SetAttestations sets the attestations of the beacon block body.
-	SetAttestations([]AttestationDataT)
-	// SetSlashingInfo sets the slashing info of the beacon block body.
-	SetSlashingInfo([]SlashingInfoT)
-	// SetBlobKzgCommitments sets the blob KZG commitments of the beacon block
-	// body.
-	SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])
+	GetBody() *ctypes.BeaconBlockBody
 }
 
 // BeaconState represents a beacon state interface.
@@ -120,12 +93,12 @@ type BlobFactory[
 }
 
 // DepositStore defines the interface for deposit storage.
-type DepositStore[DepositT any] interface {
+type DepositStore interface {
 	// GetDepositsByIndex returns `numView` expected deposits.
 	GetDepositsByIndex(
 		startIndex uint64,
 		numView uint64,
-	) ([]DepositT, error)
+	) ([]*ctypes.Deposit, error)
 }
 
 // Eth1Data represents the eth1 data interface.
@@ -164,13 +137,13 @@ type ForkData[T any] interface {
 
 // PayloadBuilder represents a service that is responsible for
 // building eth1 blocks.
-type PayloadBuilder[BeaconStateT, ExecutionPayloadT any] interface {
+type PayloadBuilder[BeaconStateT any] interface {
 	// RetrievePayload retrieves the payload for the given slot.
 	RetrievePayload(
 		ctx context.Context,
 		slot math.Slot,
 		parentBlockRoot common.Root,
-	) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
+	) (engineprimitives.BuiltExecutionPayloadEnv[*ctypes.ExecutionPayload], error)
 	// RequestPayloadSync requests a payload for the given slot and
 	// blocks until the payload is delivered.
 	RequestPayloadSync(
@@ -181,7 +154,7 @@ type PayloadBuilder[BeaconStateT, ExecutionPayloadT any] interface {
 		parentBlockRoot common.Root,
 		headEth1BlockHash common.ExecutionHash,
 		finalEth1BlockHash common.ExecutionHash,
-	) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
+	) (engineprimitives.BuiltExecutionPayloadEnv[*ctypes.ExecutionPayload], error)
 }
 
 // SlotData represents the slot data interface.

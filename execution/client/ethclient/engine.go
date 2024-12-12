@@ -23,6 +23,7 @@ package ethclient
 import (
 	"context"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
@@ -35,9 +36,9 @@ import (
 /* -------------------------------------------------------------------------- */
 
 // NewPayload calls the engine_newPayloadV3 method via JSON-RPC.
-func (s *Client[ExecutionPayloadT]) NewPayload(
+func (s *Client) NewPayload(
 	ctx context.Context,
-	payload ExecutionPayloadT,
+	payload *ctypes.ExecutionPayload,
 	versionedHashes []common.ExecutionHash,
 	parentBlockRoot *common.Root,
 ) (*engineprimitives.PayloadStatusV1, error) {
@@ -51,9 +52,9 @@ func (s *Client[ExecutionPayloadT]) NewPayload(
 }
 
 // NewPayloadV3 is used to call the underlying JSON-RPC method for newPayload.
-func (s *Client[ExecutionPayloadT]) NewPayloadV3(
+func (s *Client) NewPayloadV3(
 	ctx context.Context,
-	payload ExecutionPayloadT,
+	payload *ctypes.ExecutionPayload,
 	versionedHashes []common.ExecutionHash,
 	parentBlockRoot *common.Root,
 ) (*engineprimitives.PayloadStatusV1, error) {
@@ -72,7 +73,7 @@ func (s *Client[ExecutionPayloadT]) NewPayloadV3(
 
 // ForkchoiceUpdated is a helper function to call the appropriate version of
 // the.
-func (s *Client[ExecutionPayloadT]) ForkchoiceUpdated(
+func (s *Client) ForkchoiceUpdated(
 	ctx context.Context,
 	state *engineprimitives.ForkchoiceStateV1,
 	attrs any,
@@ -86,7 +87,7 @@ func (s *Client[ExecutionPayloadT]) ForkchoiceUpdated(
 }
 
 // ForkchoiceUpdatedV3 calls the engine_forkchoiceUpdatedV3 method via JSON-RPC.
-func (s *Client[ExecutionPayloadT]) ForkchoiceUpdatedV3(
+func (s *Client) ForkchoiceUpdatedV3(
 	ctx context.Context,
 	state *engineprimitives.ForkchoiceStateV1,
 	attrs any,
@@ -96,7 +97,7 @@ func (s *Client[ExecutionPayloadT]) ForkchoiceUpdatedV3(
 
 // forkchoiceUpdateCall is a helper function to call to any version
 // of the forkchoiceUpdates method.
-func (s *Client[ExecutionPayloadT]) forkchoiceUpdated(
+func (s *Client) forkchoiceUpdated(
 	ctx context.Context,
 	method string,
 	state *engineprimitives.ForkchoiceStateV1,
@@ -123,11 +124,11 @@ func (s *Client[ExecutionPayloadT]) forkchoiceUpdated(
 
 // GetPayload is a helper function to call the appropriate version of the
 // engine_getPayload method.
-func (s *Client[ExecutionPayloadT]) GetPayload(
+func (s *Client) GetPayload(
 	ctx context.Context,
 	payloadID engineprimitives.PayloadID,
 	forkVersion uint32,
-) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
+) (engineprimitives.BuiltExecutionPayloadEnv[*ctypes.ExecutionPayload], error) {
 	if forkVersion < version.Deneb {
 		return nil, ErrInvalidVersion
 	}
@@ -136,16 +137,15 @@ func (s *Client[ExecutionPayloadT]) GetPayload(
 }
 
 // GetPayloadV3 calls the engine_getPayloadV3 method via JSON-RPC.
-func (s *Client[ExecutionPayloadT]) GetPayloadV3(
+func (s *Client) GetPayloadV3(
 	ctx context.Context, payloadID engineprimitives.PayloadID,
-) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
-	var t ExecutionPayloadT
+) (engineprimitives.BuiltExecutionPayloadEnv[*ctypes.ExecutionPayload], error) {
+	var t *ctypes.ExecutionPayload
 	result := &engineprimitives.ExecutionPayloadEnvelope[
-		ExecutionPayloadT,
+		*ctypes.ExecutionPayload,
 		*engineprimitives.BlobsBundleV1[
 			eip4844.KZGCommitment, eip4844.KZGProof, eip4844.Blob,
-		],
-	]{
+		]]{
 		ExecutionPayload: t.Empty(version.Deneb),
 	}
 
@@ -163,7 +163,7 @@ func (s *Client[ExecutionPayloadT]) GetPayloadV3(
 
 // ExchangeCapabilities calls the engine_exchangeCapabilities method via
 // JSON-RPC.
-func (s *Client[ExecutionPayloadT]) ExchangeCapabilities(
+func (s *Client) ExchangeCapabilities(
 	ctx context.Context,
 	capabilities []string,
 ) ([]string, error) {
@@ -177,7 +177,7 @@ func (s *Client[ExecutionPayloadT]) ExchangeCapabilities(
 }
 
 // GetClientVersionV1 calls the engine_getClientVersionV1 method via JSON-RPC.
-func (s *Client[ExecutionPayloadT]) GetClientVersionV1(
+func (s *Client) GetClientVersionV1(
 	ctx context.Context,
 ) ([]engineprimitives.ClientVersionV1, error) {
 	result := make([]engineprimitives.ClientVersionV1, 0)

@@ -30,7 +30,6 @@ import (
 // execution client.
 type PayloadBuilder[
 	BeaconStateT BeaconState[ExecutionPayloadHeaderT, WithdrawalT],
-	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	PayloadAttributesT PayloadAttributes[PayloadAttributesT, WithdrawalT],
 	PayloadIDT ~[8]byte,
@@ -43,7 +42,7 @@ type PayloadBuilder[
 	// logger is used for logging within the PayloadBuilder.
 	logger log.Logger
 	// ee is the execution engine.
-	ee ExecutionEngine[ExecutionPayloadT, PayloadAttributesT, PayloadIDT]
+	ee ExecutionEngine[PayloadAttributesT, PayloadIDT]
 	// pc is the payload ID cache, it is used to store
 	// "in-flight" payloads that are being built on
 	// the execution client.
@@ -55,7 +54,6 @@ type PayloadBuilder[
 // New creates a new service.
 func New[
 	BeaconStateT BeaconState[ExecutionPayloadHeaderT, WithdrawalT],
-	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	PayloadAttributesT PayloadAttributes[PayloadAttributesT, WithdrawalT],
 	PayloadIDT ~[8]byte,
@@ -64,15 +62,15 @@ func New[
 	cfg *Config,
 	chainSpec common.ChainSpec,
 	logger log.Logger,
-	ee ExecutionEngine[ExecutionPayloadT, PayloadAttributesT, PayloadIDT],
+	ee ExecutionEngine[PayloadAttributesT, PayloadIDT],
 	pc PayloadCache[PayloadIDT, [32]byte, math.Slot],
 	af AttributesFactory[BeaconStateT, PayloadAttributesT],
 ) *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	BeaconStateT, ExecutionPayloadHeaderT,
 	PayloadAttributesT, PayloadIDT, WithdrawalT,
 ] {
 	return &PayloadBuilder[
-		BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+		BeaconStateT, ExecutionPayloadHeaderT,
 		PayloadAttributesT, PayloadIDT, WithdrawalT,
 	]{
 		cfg:               cfg,
@@ -86,7 +84,7 @@ func New[
 
 // Enabled returns true if the payload builder is enabled.
 func (pb *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	BeaconStateT, ExecutionPayloadHeaderT,
 	PayloadAttributesT, PayloadIDT, WithdrawalT,
 ]) Enabled() bool {
 	return pb.cfg.Enabled

@@ -23,9 +23,9 @@ package builder
 import (
 	"context"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
@@ -57,17 +57,6 @@ type PayloadCache[PayloadIDT, RootT, SlotT any] interface {
 	Has(slot SlotT, stateRoot RootT) bool
 	Set(slot SlotT, stateRoot RootT, pid PayloadIDT)
 	UnsafePrunePrior(slot SlotT)
-}
-
-// ExecutionPayload is the interface for the execution payload.
-type ExecutionPayload[T any] interface {
-	constraints.ForkTyped[T]
-	// GetBlockHash returns the block hash.
-	GetBlockHash() common.ExecutionHash
-	// GetFeeRecipient returns the fee recipient.
-	GetFeeRecipient() common.ExecutionAddress
-	// GetParentHash returns the parent hash.
-	GetParentHash() common.ExecutionHash
 }
 
 // ExecutionPayloadHeader is the interface for the execution payload header.
@@ -110,13 +99,13 @@ type PayloadAttributes[
 
 // ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine[
-	ExecutionPayloadT, PayloadAttributesT any, PayloadIDT ~[8]byte,
+	PayloadAttributesT any, PayloadIDT ~[8]byte,
 ] interface {
 	// GetPayload returns the payload and blobs bundle for the given slot.
 	GetPayload(
 		ctx context.Context,
 		req *engineprimitives.GetPayloadRequest[PayloadIDT],
-	) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
+	) (engineprimitives.BuiltExecutionPayloadEnv[*ctypes.ExecutionPayload], error)
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
 	NotifyForkchoiceUpdate(

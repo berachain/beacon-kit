@@ -30,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -71,11 +70,11 @@ type (
 	}
 
 	// AvailabilityStore is the interface for the availability store.
-	AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
+	AvailabilityStore[BlobSidecarsT any] interface {
 		IndexDB
 		// IsDataAvailable ensures that all blobs referenced in the block are
 		// securely stored before it returns without an error.
-		IsDataAvailable(context.Context, math.Slot, BeaconBlockBodyT) bool
+		IsDataAvailable(context.Context, math.Slot, *ctypes.BeaconBlockBody) bool
 		// Persist makes sure that the sidecar remains accessible for data
 		// availability checks throughout the beacon node's operation.
 		Persist(math.Slot, BlobSidecarsT) error
@@ -96,7 +95,6 @@ type (
 	// BeaconBlock represents a generic interface for a beacon block.
 	BeaconBlock[
 		T any,
-		BeaconBlockBodyT any,
 	] interface {
 		constraints.Nillable
 		constraints.Empty[T]
@@ -118,7 +116,7 @@ type (
 		// GetSlot returns the slot number of the block.
 		GetSlot() math.Slot
 		// GetBody returns the body of the block.
-		GetBody() BeaconBlockBodyT
+		GetBody() *ctypes.BeaconBlockBody
 		// GetHeader returns the header of the block.
 		GetHeader() *ctypes.BeaconBlockHeader
 		// GetParentBlockRoot returns the root of the parent block.
@@ -135,9 +133,6 @@ type (
 	BeaconBlockBody[
 		T any,
 		AttestationDataT any,
-		DepositT any,
-		Eth1DataT any,
-		ExecutionPayloadT any,
 		SlashingInfoT any,
 	] interface {
 		constraints.Nillable
@@ -148,19 +143,19 @@ type (
 		// GetRandaoReveal returns the RANDAO reveal signature.
 		GetRandaoReveal() crypto.BLSSignature
 		// GetExecutionPayload returns the execution payload.
-		GetExecutionPayload() ExecutionPayloadT
+		GetExecutionPayload() *ctypes.ExecutionPayload
 		// GetDeposits returns the list of deposits.
-		GetDeposits() []DepositT
+		GetDeposits() []*ctypes.Deposit
 		// GetBlobKzgCommitments returns the KZG commitments for the blobs.
 		GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 		// SetRandaoReveal sets the Randao reveal of the beacon block body.
 		SetRandaoReveal(crypto.BLSSignature)
 		// SetEth1Data sets the Eth1 data of the beacon block body.
-		SetEth1Data(Eth1DataT)
+		SetEth1Data(*ctypes.Eth1Data)
 		// SetDeposits sets the deposits of the beacon block body.
-		SetDeposits([]DepositT)
+		SetDeposits([]*ctypes.Deposit)
 		// SetExecutionPayload sets the execution data of the beacon block body.
-		SetExecutionPayload(ExecutionPayloadT)
+		SetExecutionPayload(*ctypes.ExecutionPayload)
 		// SetGraffiti sets the graffiti of the beacon block body.
 		SetGraffiti(common.Bytes32)
 		// SetAttestations sets the attestations of the beacon block body.
@@ -176,7 +171,6 @@ type (
 	// with generic types.
 	BeaconStateMarshallable[
 		T,
-		Eth1DataT,
 		ExecutionPayloadHeaderT,
 		ForkT,
 		ValidatorT any,
@@ -192,7 +186,7 @@ type (
 			latestBlockHeader *ctypes.BeaconBlockHeader,
 			blockRoots []common.Root,
 			stateRoots []common.Root,
-			eth1Data Eth1DataT,
+			eth1Data *ctypes.Eth1Data,
 			eth1DepositIndex uint64,
 			latestExecutionPayloadHeader ExecutionPayloadHeaderT,
 			validators []ValidatorT,
@@ -384,16 +378,16 @@ type (
 		) error
 	}
 
-	DepositStore[DepositT any] interface {
+	DepositStore interface {
 		// GetDepositsByIndex returns `numView` expected deposits.
 		GetDepositsByIndex(
 			startIndex uint64,
 			numView uint64,
-		) ([]DepositT, error)
+		) ([]*ctypes.Deposit, error)
 		// Prune prunes the deposit store of [start, end)
 		Prune(start, end uint64) error
 		// EnqueueDeposits adds a list of deposits to the deposit store.
-		EnqueueDeposits(deposits []DepositT) error
+		EnqueueDeposits(deposits []*ctypes.Deposit) error
 	}
 
 	// 	Eth1Data[T any] interface {
@@ -474,30 +468,6 @@ type (
 	// 		) error
 	// 	}
 
-	ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT any,
-	] interface {
-		constraints.EngineType[ExecutionPayloadT]
-		GetTransactions() engineprimitives.Transactions
-		GetParentHash() common.ExecutionHash
-		GetBlockHash() common.ExecutionHash
-		GetPrevRandao() common.Bytes32
-		GetWithdrawals() WithdrawalsT
-		GetFeeRecipient() common.ExecutionAddress
-		GetStateRoot() common.Bytes32
-		GetReceiptsRoot() common.Bytes32
-		GetLogsBloom() bytes.B256
-		GetNumber() math.U64
-		GetGasLimit() math.U64
-		GetTimestamp() math.U64
-		GetGasUsed() math.U64
-		GetExtraData() []byte
-		GetBaseFeePerGas() *math.U256
-		GetBlobGasUsed() math.U64
-		GetExcessBlobGas() math.U64
-		ToHeader() (ExecutionPayloadHeaderT, error)
-	}
-
 	// ExecutionPayloadHeader is the interface for the execution payload
 	// header.
 	ExecutionPayloadHeader[T any] interface {
@@ -535,12 +505,12 @@ type (
 	// 	}
 
 	// Genesis is the interface for the genesis.
-	Genesis[DepositT any, ExecutionPayloadHeaderT any] interface {
+	Genesis[ExecutionPayloadHeaderT any] interface {
 		json.Unmarshaler
 		// GetForkVersion returns the fork version.
 		GetForkVersion() common.Version
 		// GetDeposits returns the deposits.
-		GetDeposits() []DepositT
+		GetDeposits() []*ctypes.Deposit
 		// GetExecutionPayloadHeader returns the execution payload header.
 		GetExecutionPayloadHeader() ExecutionPayloadHeaderT
 	}
@@ -555,7 +525,6 @@ type (
 	// LocalBuilder is the interface for the builder service.
 	LocalBuilder[
 		BeaconStateT any,
-		ExecutionPayloadT any,
 	] interface {
 		// Enabled returns true if the local builder is enabled.
 		Enabled() bool
@@ -580,7 +549,7 @@ type (
 			ctx context.Context,
 			slot math.Slot,
 			parentBlockRoot common.Root,
-		) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
+		) (engineprimitives.BuiltExecutionPayloadEnv[*ctypes.ExecutionPayload], error)
 		// RequestPayloadSync requests a payload for the given slot and
 		// blocks until the payload is delivered.
 		RequestPayloadSync(
@@ -591,7 +560,7 @@ type (
 			parentBlockRoot common.Root,
 			headEth1BlockHash common.ExecutionHash,
 			finalEth1BlockHash common.ExecutionHash,
-		) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
+		) (engineprimitives.BuiltExecutionPayloadEnv[*ctypes.ExecutionPayload], error)
 	}
 
 	// 	// PayloadAttributes is the interface for the payload attributes.
@@ -632,7 +601,6 @@ type (
 		BeaconBlockT any,
 		BeaconStateT any,
 		ContextT any,
-		DepositT any,
 		ExecutionPayloadHeaderT any,
 	] interface {
 		// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
@@ -640,7 +608,7 @@ type (
 		// from the eth1 deposits.
 		InitializePreminedBeaconStateFromEth1(
 			BeaconStateT,
-			[]DepositT,
+			[]*ctypes.Deposit,
 			ExecutionPayloadHeaderT,
 			common.Version,
 		) (transition.ValidatorUpdates, error)
@@ -785,7 +753,6 @@ type (
 	BeaconState[
 		T any,
 		BeaconStateMarshallableT any,
-		Eth1DataT,
 		ExecutionPayloadHeaderT,
 		ForkT,
 		KVStoreT,
@@ -803,11 +770,11 @@ type (
 		GetMarshallable() (BeaconStateMarshallableT, error)
 
 		ReadOnlyBeaconState[
-			Eth1DataT, ExecutionPayloadHeaderT,
+			ExecutionPayloadHeaderT,
 			ForkT, ValidatorT, ValidatorsT, WithdrawalT,
 		]
 		WriteOnlyBeaconState[
-			Eth1DataT, ExecutionPayloadHeaderT,
+			ExecutionPayloadHeaderT,
 			ForkT, ValidatorT,
 		]
 	}
@@ -815,7 +782,6 @@ type (
 	// BeaconStore is the interface for the beacon store.
 	BeaconStore[
 		T any,
-		Eth1DataT any,
 		ExecutionPayloadHeaderT any,
 		ForkT any,
 		ValidatorT any,
@@ -872,9 +838,9 @@ type (
 		// StateRootAtIndex retrieves the state root at the given index.
 		StateRootAtIndex(index uint64) (common.Root, error)
 		// GetEth1Data retrieves the eth1 data.
-		GetEth1Data() (Eth1DataT, error)
+		GetEth1Data() (*ctypes.Eth1Data, error)
 		// SetEth1Data sets the eth1 data.
-		SetEth1Data(data Eth1DataT) error
+		SetEth1Data(data *ctypes.Eth1Data) error
 		// GetValidators retrieves all validators.
 		GetValidators() (ValidatorsT, error)
 		// GetBalances retrieves all balances.
@@ -940,10 +906,10 @@ type (
 
 	// ReadOnlyBeaconState is the interface for a read-only beacon state.
 	ReadOnlyBeaconState[
-		Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+		ExecutionPayloadHeaderT, ForkT,
 		ValidatorT, ValidatorsT, WithdrawalT any,
 	] interface {
-		ReadOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT]
+		ReadOnlyEth1Data[ExecutionPayloadHeaderT]
 		ReadOnlyRandaoMixes
 		ReadOnlyStateRoots
 		ReadOnlyValidators[ValidatorT]
@@ -972,10 +938,10 @@ type (
 
 	// WriteOnlyBeaconState is the interface for a write-only beacon state.
 	WriteOnlyBeaconState[
-		Eth1DataT, ExecutionPayloadHeaderT,
+		ExecutionPayloadHeaderT,
 		ForkT, ValidatorT any,
 	] interface {
-		WriteOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT]
+		WriteOnlyEth1Data[ExecutionPayloadHeaderT]
 		WriteOnlyRandaoMixes
 		WriteOnlyStateRoots
 		WriteOnlyValidators[ValidatorT]
@@ -1042,8 +1008,8 @@ type (
 	}
 
 	// WriteOnlyEth1Data has write access to eth1 data.
-	WriteOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT any] interface {
-		SetEth1Data(Eth1DataT) error
+	WriteOnlyEth1Data[ExecutionPayloadHeaderT any] interface {
+		SetEth1Data(*ctypes.Eth1Data) error
 		SetEth1DepositIndex(uint64) error
 		SetLatestExecutionPayloadHeader(
 			ExecutionPayloadHeaderT,
@@ -1051,8 +1017,8 @@ type (
 	}
 
 	// ReadOnlyEth1Data has read access to eth1 data.
-	ReadOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT any] interface {
-		GetEth1Data() (Eth1DataT, error)
+	ReadOnlyEth1Data[ExecutionPayloadHeaderT any] interface {
+		GetEth1Data() (*ctypes.Eth1Data, error)
 		GetEth1DepositIndex() (uint64, error)
 		GetLatestExecutionPayloadHeader() (
 			ExecutionPayloadHeaderT, error,

@@ -29,8 +29,7 @@ type ForkTyped[SelfT any] interface {
 
 // EngineType represents the constraints for a type that is
 // used within the context of sending over the EngineAPI.
-type EngineType[SelfT any] interface {
-	EmptyWithVersion[SelfT]
+type EngineType interface {
 	Versionable
 	Nillable
 	JSONMarshallable

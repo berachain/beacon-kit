@@ -22,6 +22,7 @@ package core
 
 import (
 	"github.com/berachain/beacon-kit/config/spec"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -31,7 +32,7 @@ import (
 // processOperations processes the operations and ensures they match the
 // local state.
 func (sp *StateProcessor[
-	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	BeaconBlockT, BeaconStateT, _, _, _, _, _, _, _, _, _, _,
 ]) processOperations(
 	st BeaconStateT,
 	blk BeaconBlockT,
@@ -63,10 +64,10 @@ func (sp *StateProcessor[
 
 // processDeposit processes the deposit and ensures it matches the local state.
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, DepositT, _, _, _, _, _, _, _, _, _, _, _,
+	_, BeaconStateT, _, _, _, _, _, _, _, _, _, _,
 ]) processDeposit(
 	st BeaconStateT,
-	dep DepositT,
+	dep *ctypes.Deposit,
 ) error {
 	slot, err := st.GetSlot()
 	if err != nil {
@@ -105,10 +106,10 @@ func (sp *StateProcessor[
 
 // applyDeposit processes the deposit and ensures it matches the local state.
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, DepositT, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+	_, BeaconStateT, _, _, _, _, _, ValidatorT, _, _, _, _,
 ]) applyDeposit(
 	st BeaconStateT,
-	dep DepositT,
+	dep *ctypes.Deposit,
 ) error {
 	idx, err := st.ValidatorIndexByPubkey(dep.GetPubkey())
 	if err != nil {
@@ -133,10 +134,10 @@ func (sp *StateProcessor[
 
 // createValidator creates a validator if the deposit is valid.
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, DepositT, _, _, _, _, ForkDataT, _, _, _, _, _, _,
+	_, BeaconStateT, _, _, _, ForkDataT, _, _, _, _, _, _,
 ]) createValidator(
 	st BeaconStateT,
-	dep DepositT,
+	dep *ctypes.Deposit,
 ) error {
 	// Get the current slot.
 	slot, err := st.GetSlot()
@@ -193,10 +194,10 @@ func (sp *StateProcessor[
 
 // addValidatorToRegistry adds a validator to the registry.
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, DepositT, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+	_, BeaconStateT, _, _, _, _, _, ValidatorT, _, _, _, _,
 ]) addValidatorToRegistry(
 	st BeaconStateT,
-	dep DepositT,
+	dep *ctypes.Deposit,
 ) error {
 	var val ValidatorT
 	val = val.New(

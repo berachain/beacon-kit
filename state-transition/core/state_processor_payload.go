@@ -34,8 +34,8 @@ import (
 // processExecutionPayload processes the execution payload and ensures it
 // matches the local state.
 func (sp *StateProcessor[
-	BeaconBlockT, _, BeaconStateT, ContextT,
-	_, _, _, ExecutionPayloadHeaderT, _, _, _, _, _, _, _, _,
+	BeaconBlockT, BeaconStateT, ContextT,
+	ExecutionPayloadHeaderT, _, _, _, _, _, _, _, _,
 ]) processExecutionPayload(
 	ctx ContextT,
 	st BeaconStateT,
@@ -93,8 +93,8 @@ func (sp *StateProcessor[
 // validateExecutionPayload validates the execution payload against both local
 // state and the execution engine.
 func (sp *StateProcessor[
-	BeaconBlockT, _, BeaconStateT,
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
+	BeaconBlockT, BeaconStateT,
+	_, _, _, _, _, _, _, _, _, _,
 ]) validateExecutionPayload(
 	ctx context.Context,
 	st BeaconStateT,
@@ -116,8 +116,8 @@ func (sp *StateProcessor[
 
 // validateStatelessPayload performs stateless checks on the execution payload.
 func (sp *StateProcessor[
-	BeaconBlockT, _, _,
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
+	BeaconBlockT, _,
+	_, _, _, _, _, _, _, _, _, _,
 ]) validateStatelessPayload(
 	blk BeaconBlockT,
 ) error {
@@ -149,8 +149,8 @@ func (sp *StateProcessor[
 
 // validateStatefulPayload performs stateful checks on the execution payload.
 func (sp *StateProcessor[
-	BeaconBlockT, _, BeaconStateT,
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
+	BeaconBlockT, BeaconStateT,
+	_, _, _, _, _, _, _, WithdrawalT, WithdrawalsT, _,
 ]) validateStatefulPayload(
 	ctx context.Context,
 	st BeaconStateT,
@@ -191,7 +191,7 @@ func (sp *StateProcessor[
 
 	parentBeaconBlockRoot := blk.GetParentBlockRoot()
 	if err = sp.executionEngine.VerifyAndNotifyNewPayload(
-		ctx, engineprimitives.BuildNewPayloadRequest(
+		ctx, engineprimitives.BuildNewPayloadRequest[WithdrawalT, WithdrawalsT](
 			payload,
 			body.GetBlobKzgCommitments().ToVersionedHashes(),
 			&parentBeaconBlockRoot,

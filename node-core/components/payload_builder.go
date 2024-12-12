@@ -35,9 +35,6 @@ import (
 // LocalBuilderInput is an input for the dep inject framework.
 type LocalBuilderInput[
 	BeaconStateT any,
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
-	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	LoggerT log.AdvancedLogger[LoggerT],
 	WithdrawalT Withdrawal[WithdrawalT],
@@ -50,7 +47,6 @@ type LocalBuilderInput[
 	Cfg             *config.Config
 	ChainSpec       common.ChainSpec
 	ExecutionEngine *engine.Engine[
-		ExecutionPayloadT,
 		*engineprimitives.PayloadAttributes[WithdrawalT],
 		PayloadID,
 		WithdrawalsT,
@@ -63,13 +59,10 @@ type LocalBuilderInput[
 func ProvideLocalBuilder[
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconStateMarshallableT,
-		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT, *Validator,
+		ExecutionPayloadHeaderT, *Fork, KVStoreT, *Validator,
 		Validators, WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
-	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
@@ -77,15 +70,15 @@ func ProvideLocalBuilder[
 	WithdrawalsT Withdrawals[WithdrawalT],
 ](
 	in LocalBuilderInput[
-		BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT, LoggerT,
+		BeaconStateT, ExecutionPayloadHeaderT, LoggerT,
 		WithdrawalT, WithdrawalsT,
 	],
 ) *payloadbuilder.PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	BeaconStateT, ExecutionPayloadHeaderT,
 	*engineprimitives.PayloadAttributes[WithdrawalT], PayloadID, WithdrawalT,
 ] {
 	return payloadbuilder.New[
-		BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+		BeaconStateT, ExecutionPayloadHeaderT,
 		*engineprimitives.PayloadAttributes[WithdrawalT], PayloadID, WithdrawalT,
 	](
 		&in.Cfg.PayloadBuilder,

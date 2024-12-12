@@ -42,10 +42,6 @@ import (
 type ChainServiceInput[
 	BeaconBlockT any,
 	BeaconStateT any,
-	DepositT any,
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
-	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	StorageBackendT any,
 	LoggerT any,
@@ -60,25 +56,21 @@ type ChainServiceInput[
 ] struct {
 	depinject.In
 
-	AppOpts      config.AppOptions
-	ChainSpec    common.ChainSpec
-	Cfg          *config.Config
-	EngineClient *client.EngineClient[
-		ExecutionPayloadT,
-		*engineprimitives.PayloadAttributes[WithdrawalT],
-	]
+	AppOpts         config.AppOptions
+	ChainSpec       common.ChainSpec
+	Cfg             *config.Config
+	EngineClient    *client.EngineClient[*engineprimitives.PayloadAttributes[WithdrawalT]]
 	ExecutionEngine *engine.Engine[
-		ExecutionPayloadT,
 		*engineprimitives.PayloadAttributes[WithdrawalT],
 		PayloadID,
 		WithdrawalsT,
 	]
-	LocalBuilder   LocalBuilder[BeaconStateT, ExecutionPayloadT]
+	LocalBuilder   LocalBuilder[BeaconStateT]
 	Logger         LoggerT
 	Signer         crypto.BLSSigner
 	StateProcessor StateProcessor[
 		BeaconBlockT, BeaconStateT, *Context,
-		DepositT, ExecutionPayloadHeaderT,
+		ExecutionPayloadHeaderT,
 	]
 	StorageBackend StorageBackendT
 	BlobProcessor  BlobProcessor[
@@ -92,16 +84,12 @@ type ChainServiceInput[
 
 // ProvideChainService is a depinject provider for the blockchain service.
 func ProvideChainService[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	AvailabilityStoreT AvailabilityStore[BlobSidecarsT],
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
-	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT, *AttestationData, DepositT,
-		*Eth1Data, ExecutionPayloadT, *SlashingInfo,
-	],
+	BeaconBlockT BeaconBlock[BeaconBlockT],
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconStateMarshallableT,
-		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT,
+		ExecutionPayloadHeaderT, *Fork, KVStoreT,
 		*Validator, Validators, WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
@@ -109,15 +97,11 @@ func ProvideChainService[
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	ConsensusSidecarsT da.ConsensusSidecars[BlobSidecarsT],
 	BlockStoreT any,
-	DepositT deposit.Deposit[DepositT, WithdrawalCredentialsT],
 	WithdrawalCredentialsT WithdrawalCredentials,
-	DepositStoreT DepositStore[DepositT],
-	DepositContractT deposit.Contract[DepositT],
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
-	],
+	DepositStoreT DepositStore,
+	DepositContractT deposit.Contract,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
+	GenesisT Genesis[ExecutionPayloadHeaderT],
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 	StorageBackendT StorageBackend[
@@ -128,16 +112,16 @@ func ProvideChainService[
 	WithdrawalsT Withdrawals[WithdrawalT],
 ](
 	in ChainServiceInput[
-		BeaconBlockT, BeaconStateT, DepositT, ExecutionPayloadT,
+		BeaconBlockT, BeaconStateT,
 		ExecutionPayloadHeaderT, StorageBackendT, LoggerT,
 		WithdrawalT, WithdrawalsT, BeaconBlockStoreT, DepositStoreT, DepositContractT,
 		AvailabilityStoreT, ConsensusSidecarsT, BlobSidecarsT,
 	],
 ) *blockchain.Service[
 	AvailabilityStoreT, DepositStoreT,
-	ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, BeaconBlockStoreT, DepositT,
-	WithdrawalCredentialsT, ExecutionPayloadT,
+	ConsensusBlockT, BeaconBlockT,
+	BeaconStateT, BeaconBlockStoreT,
+	WithdrawalCredentialsT,
 	ExecutionPayloadHeaderT, GenesisT,
 	ConsensusSidecarsT, BlobSidecarsT,
 	*engineprimitives.PayloadAttributes[WithdrawalT],
@@ -147,12 +131,9 @@ func ProvideChainService[
 		DepositStoreT,
 		ConsensusBlockT,
 		BeaconBlockT,
-		BeaconBlockBodyT,
 		BeaconStateT,
 		BeaconBlockStoreT,
-		DepositT,
 		WithdrawalCredentialsT,
-		ExecutionPayloadT,
 		ExecutionPayloadHeaderT,
 		GenesisT,
 		*engineprimitives.PayloadAttributes[WithdrawalT],

@@ -24,6 +24,7 @@ import (
 	"context"
 	"time"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -32,7 +33,7 @@ import (
 // RequestPayloadAsync builds a payload for the given slot and
 // returns the payload ID.
 func (pb *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	BeaconStateT, ExecutionPayloadHeaderT,
 	PayloadAttributesT, PayloadIDT, WithdrawalT,
 ]) RequestPayloadAsync(
 	ctx context.Context,
@@ -93,7 +94,7 @@ func (pb *PayloadBuilder[
 // RequestPayloadSync request a payload for the given slot and
 // blocks until the payload is delivered.
 func (pb *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	BeaconStateT, ExecutionPayloadHeaderT,
 	PayloadAttributesT, PayloadIDT, WithdrawalT,
 ]) RequestPayloadSync(
 	ctx context.Context,
@@ -103,7 +104,7 @@ func (pb *PayloadBuilder[
 	parentBlockRoot common.Root,
 	parentEth1Hash common.ExecutionHash,
 	finalBlockHash common.ExecutionHash,
-) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
+) (engineprimitives.BuiltExecutionPayloadEnv[*ctypes.ExecutionPayload], error) {
 	if !pb.Enabled() {
 		return nil, ErrPayloadBuilderDisabled
 	}
@@ -149,13 +150,13 @@ func (pb *PayloadBuilder[
 // retrieve a payload, it will build a new payload and wait for the
 // execution client to return the payload.
 func (pb *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	BeaconStateT, ExecutionPayloadHeaderT,
 	PayloadAttributesT, PayloadIDT, WithdrawalT,
 ]) RetrievePayload(
 	ctx context.Context,
 	slot math.Slot,
 	parentBlockRoot common.Root,
-) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
+) (engineprimitives.BuiltExecutionPayloadEnv[*ctypes.ExecutionPayload], error) {
 	if !pb.Enabled() {
 		return nil, ErrPayloadBuilderDisabled
 	}
@@ -213,7 +214,7 @@ func (pb *PayloadBuilder[
 // TODO: This should be moved onto a "sync service"
 // of some kind.
 func (pb *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	BeaconStateT, ExecutionPayloadHeaderT,
 	PayloadAttributesT, PayloadIDT, WithdrawalT,
 ]) SendForceHeadFCU(
 	ctx context.Context,
@@ -254,13 +255,13 @@ func (pb *PayloadBuilder[
 }
 
 func (pb *PayloadBuilder[
-	_, ExecutionPayloadT, _,
+	_, _,
 	_, PayloadIDT, _,
 ]) getPayload(
 	ctx context.Context,
 	payloadID PayloadIDT,
 	slot math.U64,
-) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
+) (engineprimitives.BuiltExecutionPayloadEnv[*ctypes.ExecutionPayload], error) {
 	envelope, err := pb.ee.GetPayload(
 		ctx,
 		&engineprimitives.GetPayloadRequest[PayloadIDT]{

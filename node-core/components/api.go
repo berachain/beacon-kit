@@ -40,7 +40,6 @@ func ProvideNodeAPIEngine() *echo.Engine {
 type NodeAPIBackendInput[
 	BeaconBlockT any,
 	BeaconStateT any,
-	DepositT any,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	StorageBackendT any,
 ] struct {
@@ -49,25 +48,23 @@ type NodeAPIBackendInput[
 	ChainSpec      common.ChainSpec
 	StateProcessor StateProcessor[
 		BeaconBlockT, BeaconStateT, *Context,
-		DepositT, ExecutionPayloadHeaderT,
+		ExecutionPayloadHeaderT,
 	]
 	StorageBackend StorageBackendT
 }
 
 func ProvideNodeAPIBackend[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	AvailabilityStoreT AvailabilityStore[BlobSidecarsT],
 	BeaconBlockT any,
-	BeaconBlockBodyT any,
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconStateMarshallableT,
-		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT,
+		ExecutionPayloadHeaderT, *Fork, KVStoreT,
 		*Validator, Validators, WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
 	BlobSidecarsT any,
-	DepositT any,
-	DepositStoreT DepositStore[DepositT],
+	DepositStoreT DepositStore,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	KVStoreT any,
 	NodeT interface {
@@ -79,28 +76,25 @@ func ProvideNodeAPIBackend[
 	WithdrawalT Withdrawal[WithdrawalT],
 ](
 	in NodeAPIBackendInput[
-		BeaconBlockT, BeaconStateT, DepositT, ExecutionPayloadHeaderT,
+		BeaconBlockT, BeaconStateT, ExecutionPayloadHeaderT,
 		StorageBackendT,
 	],
 ) *backend.Backend[
-	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+	AvailabilityStoreT, BeaconBlockT,
 	BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BeaconBlockStoreT,
-	sdk.Context, DepositT, DepositStoreT, *Eth1Data, ExecutionPayloadHeaderT,
+	sdk.Context, DepositStoreT, ExecutionPayloadHeaderT,
 	*Fork, NodeT, KVStoreT, StorageBackendT, *Validator, Validators,
 	WithdrawalT, WithdrawalCredentials,
 ] {
 	return backend.New[
 		AvailabilityStoreT,
 		BeaconBlockT,
-		BeaconBlockBodyT,
 		BeaconStateT,
 		BeaconStateMarshallableT,
 		BlobSidecarsT,
 		BeaconBlockStoreT,
 		sdk.Context,
-		DepositT,
 		DepositStoreT,
-		*Eth1Data,
 		ExecutionPayloadHeaderT,
 		*Fork,
 		NodeT,

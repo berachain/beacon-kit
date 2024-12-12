@@ -36,10 +36,6 @@ type ValidatorServiceInput[
 	BeaconBlockT any,
 	BeaconStateT any,
 	BlobSidecarsT any,
-	DepositT any,
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
-	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	LoggerT any,
 	StorageBackendT any,
@@ -49,10 +45,10 @@ type ValidatorServiceInput[
 	depinject.In
 	Cfg            *config.Config
 	ChainSpec      common.ChainSpec
-	LocalBuilder   LocalBuilder[BeaconStateT, ExecutionPayloadT]
+	LocalBuilder   LocalBuilder[BeaconStateT]
 	Logger         LoggerT
 	StateProcessor StateProcessor[
-		BeaconBlockT, BeaconStateT, *Context, DepositT, ExecutionPayloadHeaderT,
+		BeaconBlockT, BeaconStateT, *Context, ExecutionPayloadHeaderT,
 	]
 	StorageBackend StorageBackendT
 	Signer         crypto.BLSSigner
@@ -63,27 +59,17 @@ type ValidatorServiceInput[
 // ProvideValidatorService is a depinject provider for the validator service.
 func ProvideValidatorService[
 	AvailabilityStoreT any,
-	BeaconBlockT BeaconBlock[
-		BeaconBlockT, BeaconBlockBodyT,
-	],
-	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT, *AttestationData, DepositT,
-		*Eth1Data, ExecutionPayloadT, *SlashingInfo,
-	],
+	BeaconBlockT BeaconBlock[BeaconBlockT],
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconStateMarshallableT,
-		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT,
+		ExecutionPayloadHeaderT, *Fork, KVStoreT,
 		*Validator, Validators, WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
 	BeaconBlockStoreT any,
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
-	DepositT any,
-	DepositStoreT DepositStore[DepositT],
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
-	],
+	DepositStoreT DepositStore,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
@@ -95,27 +81,23 @@ func ProvideValidatorService[
 ](
 	in ValidatorServiceInput[
 		AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-		BlobSidecarsT, DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+		BlobSidecarsT, ExecutionPayloadHeaderT,
 		LoggerT, StorageBackendT, WithdrawalT, WithdrawalsT,
 	],
 ) (*validator.Service[
-	*AttestationData, BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositT, DepositStoreT,
-	*Eth1Data, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	*AttestationData, BeaconBlockT,
+	BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositStoreT,
+	ExecutionPayloadHeaderT,
 	*ForkData, *SlashingInfo, *SlotData,
 ], error) {
 	// Build the builder service.
 	return validator.NewService[
 		*AttestationData,
 		BeaconBlockT,
-		BeaconBlockBodyT,
 		BeaconStateT,
 		BlobSidecarT,
 		BlobSidecarsT,
-		DepositT,
 		DepositStoreT,
-		*Eth1Data,
-		ExecutionPayloadT,
 		ExecutionPayloadHeaderT,
 		*ForkData,
 		*SlashingInfo,
@@ -129,7 +111,7 @@ func ProvideValidatorService[
 		in.Signer,
 		in.SidecarFactory,
 		in.LocalBuilder,
-		[]validator.PayloadBuilder[BeaconStateT, ExecutionPayloadT]{
+		[]validator.PayloadBuilder[BeaconStateT]{
 			in.LocalBuilder,
 		},
 		in.TelemetrySink,
