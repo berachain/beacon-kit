@@ -74,7 +74,7 @@ slither:
 	--platform linux/amd64 \
 	-v ./contracts:/tmp/contracts \
 	trailofbits/eth-security-toolbox:edge \
-	/bin/bash -c "cd /tmp/contracts && slither ./."
+	/bin/bash -c "chown -R 1001:1001 /tmp/contracts && cd /tmp/contracts && slither ./."
 
 #################
 # markdown-lint #
