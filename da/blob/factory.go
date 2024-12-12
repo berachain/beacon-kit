@@ -87,26 +87,27 @@ func (f *SidecarFactory[BeaconBlockT, _]) BuildSidecars(
 	defer f.metrics.measureBuildSidecarsDuration(
 		startTime, math.U64(numBlobs),
 	)
-	for i := range numBlobs {
+	for i := range blobs {
+		index := i
 		g.Go(func() error {
-			inclusionProof, err := f.BuildKZGInclusionProof(
-				body, math.U64(i),
-			)
+			inclusionProof, err := f.BuildKZGInclusionProof(body, math.U64(index))
 			if err != nil {
 				return err
 			}
-			sidecars[i] = types.BuildBlobSidecar(
-				math.U64(i), blk.GetHeader(),
-				blobs[i],
-				commitments[i],
-				proofs[i],
+			sidecars[index] = types.BuildBlobSidecar(
+				math.U64(index),
+				blk.GetHeader(),
+				blobs[index],
+				commitments[index],
+				proofs[index],
 				inclusionProof,
 			)
 			return nil
 		})
 	}
-
-	return &types.BlobSidecars{Sidecars: sidecars}, g.Wait()
+	return &types.BlobSidecars{
+		Sidecars: sidecars,
+	}, g.Wait()
 }
 
 // BuildKZGInclusionProof builds a KZG inclusion proof.
@@ -169,3 +170,4 @@ func (f *SidecarFactory[_, BeaconBlockBodyT]) BuildCommitmentProof(
 
 	return bodyTree.MerkleProofWithMixin(index.Unwrap())
 }
+
