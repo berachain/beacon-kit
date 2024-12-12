@@ -25,7 +25,7 @@ import (
 
 	client "github.com/attestantio/go-eth2-client"
 	beaconhttp "github.com/attestantio/go-eth2-client/http"
-	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/errors"
 )
 
 // BeaconKitNodeClient is a wrapper around the client.Service interface to add
