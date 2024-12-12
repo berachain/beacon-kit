@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
+	"github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // processOperations processes the operations and ensures they match the
@@ -188,7 +189,7 @@ func (sp *StateProcessor[
 	}
 
 	// Add the validator to the registry.
-	return sp.addValidatorToRegistry(st, dep)
+	return sp.addValidatorToRegistry(st, dep, slot)
 }
 
 // addValidatorToRegistry adds a validator to the registry.
@@ -197,6 +198,7 @@ func (sp *StateProcessor[
 ]) addValidatorToRegistry(
 	st BeaconStateT,
 	dep DepositT,
+	slot math.Slot,
 ) error {
 	var val ValidatorT
 	val = val.New(
@@ -204,7 +206,9 @@ func (sp *StateProcessor[
 		dep.GetWithdrawalCredentials(),
 		dep.GetAmount(),
 		math.Gwei(sp.cs.EffectiveBalanceIncrement()),
-		math.Gwei(sp.cs.MaxEffectiveBalance()),
+		math.Gwei(sp.cs.MaxEffectiveBalance(
+			state.IsPostFork3(sp.cs.DepositEth1ChainID(), slot),
+		)),
 	)
 
 	// TODO: This is a bug that lives on bArtio. Delete this eventually.

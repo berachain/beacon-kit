@@ -36,7 +36,8 @@ import (
 // NOTE: Modified from the Ethereum 2.0 specification to support EVM inflation:
 // 1. The first withdrawal MUST be a fixed EVM inflation withdrawal
 // 2. Subsequent withdrawals (if any) are processed as validator withdrawals
-// 3. This modification reduces the maximum validator withdrawals per block by one.
+// 3. This modification reduces the maximum validator withdrawals per block by
+// one.
 func (sp *StateProcessor[
 	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) processWithdrawals(
@@ -188,7 +189,7 @@ func (sp *StateProcessor[
 		}
 		nextValidatorIndex += math.ValidatorIndex(
 			sp.cs.MaxValidatorsPerWithdrawalsSweep(
-				state.IsPostUpgrade, sp.cs.DepositEth1ChainID(), slot,
+				state.IsPostFork2(sp.cs.DepositEth1ChainID(), slot),
 			))
 		nextValidatorIndex %= math.ValidatorIndex(totalValidators)
 	}
@@ -265,7 +266,7 @@ func (sp *StateProcessor[
 		}
 		nextValidatorIndex += math.ValidatorIndex(
 			sp.cs.MaxValidatorsPerWithdrawalsSweep(
-				state.IsPostUpgrade, sp.cs.DepositEth1ChainID(), slot,
+				state.IsPostFork2(sp.cs.DepositEth1ChainID(), slot),
 			))
 		nextValidatorIndex %= math.ValidatorIndex(totalValidators)
 	}

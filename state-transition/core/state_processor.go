@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	"github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // StateProcessor is a basic Processor, which takes care of the
@@ -367,7 +368,7 @@ func (sp *StateProcessor[
 	if err = sp.processRegistryUpdates(st); err != nil {
 		return nil, err
 	}
-	if err = sp.processEffectiveBalanceUpdates(st); err != nil {
+	if err = sp.processEffectiveBalanceUpdates(st, slot); err != nil {
 		return nil, err
 	}
 	if err = sp.processSlashingsReset(st); err != nil {
@@ -481,6 +482,7 @@ func (sp *StateProcessor[
 	_, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) processEffectiveBalanceUpdates(
 	st BeaconStateT,
+	slot math.Slot,
 ) error {
 	// Update effective balances with hysteresis
 	validators, err := st.GetValidators()
@@ -517,7 +519,9 @@ func (sp *StateProcessor[
 			updatedBalance := ctypes.ComputeEffectiveBalance(
 				balance,
 				math.U64(sp.cs.EffectiveBalanceIncrement()),
-				math.U64(sp.cs.MaxEffectiveBalance()),
+				math.U64(sp.cs.MaxEffectiveBalance(
+					state.IsPostFork3(sp.cs.DepositEth1ChainID(), slot),
+				)),
 			)
 			val.SetEffectiveBalance(updatedBalance)
 			if err = st.UpdateValidatorAtIndex(idx, val); err != nil {

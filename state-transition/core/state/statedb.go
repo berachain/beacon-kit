@@ -238,7 +238,7 @@ func (s *StateDB[
 
 	bound := min(
 		totalValidators, s.cs.MaxValidatorsPerWithdrawalsSweep(
-			IsPostUpgrade, s.cs.DepositEth1ChainID(), slot,
+			IsPostFork2(s.cs.DepositEth1ChainID(), slot),
 		),
 	)
 
@@ -274,7 +274,9 @@ func (s *StateDB[
 			// Increment the withdrawal index to process the next withdrawal.
 			withdrawalIndex++
 		} else if validator.IsPartiallyWithdrawable(
-			balance, math.Gwei(s.cs.MaxEffectiveBalance()),
+			balance, math.Gwei(s.cs.MaxEffectiveBalance(
+				IsPostFork3(s.cs.DepositEth1ChainID(), slot),
+			)),
 		) {
 			withdrawalAddress, err = validator.
 				GetWithdrawalCredentials().ToExecutionAddress()
@@ -286,7 +288,9 @@ func (s *StateDB[
 				math.U64(withdrawalIndex),
 				validatorIndex,
 				withdrawalAddress,
-				balance-math.Gwei(s.cs.MaxEffectiveBalance()),
+				balance-math.Gwei(s.cs.MaxEffectiveBalance(
+					IsPostFork3(s.cs.DepositEth1ChainID(), slot),
+				)),
 			))
 
 			// Increment the withdrawal index to process the next withdrawal.
