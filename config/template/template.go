@@ -65,7 +65,7 @@ implementation = "{{.BeaconKit.KZG.Implementation}}"
 
 [beacon-kit.payload-builder]
 # Enabled determines if the local payload builder is enabled.
-enabled = {{ .BeaconKit.PayloadBuilder.Enabled }}
+enabled = "{{ .BeaconKit.PayloadBuilder.Enabled }}"
 
 # Post bellatrix, this address will receive the transaction fees produced by any blocks
 # from this node.
