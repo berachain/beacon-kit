@@ -27,9 +27,7 @@ import (
 	"github.com/karalabe/ssz"
 )
 
-// SignedBeaconBlockHeaderSize is the size of the SignedBeaconBlockHeader object in bytes.
-//
-// Total size: Header (112) + Signature (96)
+// Total size: Header (112) + Signature (96).
 const SignedBeaconBlockHeaderSize = 208
 
 var (
@@ -75,8 +73,10 @@ func (b *SignedBeaconBlockHeader) New(
 /*                                     SSZ                                    */
 /* -------------------------------------------------------------------------- */
 
-// SizeSSZ returns the size of the SignedBeaconBlockHeader object in SSZ encoding.
+// SizeSSZ returns the size of the SignedBeaconBlockHeader object
+// in SSZ encoding.
 func (b *SignedBeaconBlockHeader) SizeSSZ(sizer *ssz.Sizer) uint32 {
+	//nolint:mnd // no magic
 	size := (*BeaconBlockHeader)(nil).SizeSSZ(sizer) + 96
 	return size
 }
@@ -98,7 +98,8 @@ func (b *SignedBeaconBlockHeader) UnmarshalSSZ(buf []byte) error {
 	return ssz.DecodeFromBytes(buf, b)
 }
 
-// HashTreeRoot computes the SSZ hash tree root of the SignedBeaconBlockHeader object.
+// HashTreeRoot computes the SSZ hash tree root of the
+// SignedBeaconBlockHeader object.
 func (b *SignedBeaconBlockHeader) HashTreeRoot() common.Root {
 	return ssz.HashSequential(b)
 }

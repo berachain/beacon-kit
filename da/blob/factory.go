@@ -75,7 +75,8 @@ func NewSidecarFactory[
 }
 
 // BuildSidecars builds a sidecar.
-func (f *SidecarFactory[BeaconBlockT, _, BeaconBlockHeaderT, ForkDataT]) BuildSidecars(
+func (f *SidecarFactory[BeaconBlockT, _, BeaconBlockHeaderT,
+	ForkDataT]) BuildSidecars(
 	blk BeaconBlockT,
 	bundle engineprimitives.BlobsBundle,
 	signer crypto.BLSSigner,
@@ -89,7 +90,8 @@ func (f *SidecarFactory[BeaconBlockT, _, BeaconBlockHeaderT, ForkDataT]) BuildSi
 		sidecars    = make([]*types.BlobSidecar, numBlobs)
 		body        = blk.GetBody()
 		g           = errgroup.Group{}
-		header      = any(blk.GetHeader()).(*constypes.BeaconBlockHeader)
+		//nolint:errcheck // should be safe
+		header = any(blk.GetHeader()).(*constypes.BeaconBlockHeader)
 	)
 
 	startTime := time.Now()
@@ -102,7 +104,10 @@ func (f *SidecarFactory[BeaconBlockT, _, BeaconBlockHeaderT, ForkDataT]) BuildSi
 	// already. We just need a bond between the block signer (already
 	// tied to CometBFT's ProposerAddress) and the sidecars.
 
-	domain := any(forkData).(*constypes.ForkData).ComputeDomain(f.chainSpec.DomainTypeProposer())
+	//nolint:errcheck // should be safe
+	domain := any(forkData).(*constypes.ForkData).ComputeDomain(
+		f.chainSpec.DomainTypeProposer(),
+	)
 	signingRoot := constypes.ComputeSigningRoot(
 		header,
 		domain,
@@ -115,6 +120,7 @@ func (f *SidecarFactory[BeaconBlockT, _, BeaconBlockHeaderT, ForkDataT]) BuildSi
 
 	for i := range numBlobs {
 		g.Go(func() error {
+			//nolint:govet // shadow
 			inclusionProof, err := f.BuildKZGInclusionProof(
 				body, math.U64(i),
 			)

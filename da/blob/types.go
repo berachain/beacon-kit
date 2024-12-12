@@ -25,9 +25,9 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/crypto"
 )
 
 // The AvailabilityStore interface is responsible for validating and storing

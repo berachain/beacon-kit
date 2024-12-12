@@ -32,30 +32,37 @@ func (sp *StateProcessor[
 	_, _, _, _, _, _, ForkDataT, _, _, _, _, _, _,
 ]) GetSidecarVerifierFn(
 	st BeaconStateT,
-)(
+) (
 	func(blkHeader BeaconBlockHeaderT, signature crypto.BLSSignature) error,
 	error,
 ) {
-        slot, err := st.GetSlot()
-        if err != nil {
-                return nil, err
-        }
+	slot, err := st.GetSlot()
+	if err != nil {
+		return nil, err
+	}
 	epoch := sp.cs.SlotToEpoch(slot)
- 
-        genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
-        if err != nil {
-                return nil, err
-        }
- 
-	var fd ForkDataT
-        fd = fd.New(
-                version.FromUint32[common.Version](
-                        sp.cs.ActiveForkVersionForEpoch(epoch),
-                ), genesisValidatorsRoot,
-        )
-        domain := any(fd).(*constypes.ForkData).ComputeDomain(sp.cs.DomainTypeProposer())
 
-	return func(blkHeader BeaconBlockHeaderT, signature crypto.BLSSignature) error {
+	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
+	if err != nil {
+		return nil, err
+	}
+
+	var fd ForkDataT
+	fd = fd.New(
+		version.FromUint32[common.Version](
+			sp.cs.ActiveForkVersionForEpoch(epoch),
+		), genesisValidatorsRoot,
+	)
+	//nolint:errcheck // safe
+	domain := any(fd).(*constypes.ForkData).ComputeDomain(
+		sp.cs.DomainTypeProposer(),
+	)
+
+	return func(
+		blkHeader BeaconBlockHeaderT,
+		signature crypto.BLSSignature,
+	) error {
+		//nolint:govet // shadow
 		proposer, err := st.ValidatorByIndex(blkHeader.GetProposerIndex())
 		if err != nil {
 			return err
@@ -65,9 +72,9 @@ func (sp *StateProcessor[
 			domain,
 		)
 		return sp.signer.VerifySignature(
-		       proposer.GetPubkey(),
-		       signingRoot[:],
-		       signature,
+			proposer.GetPubkey(),
+			signingRoot[:],
+			signature,
 		)
 	}, nil
 }

@@ -47,8 +47,8 @@ func TestEmptySidecarMarshalling(t *testing.T) {
 	sidecar := types.BuildBlobSidecar(
 		math.U64(0),
 		&ctypes.SignedBeaconBlockHeader{
-			&ctypes.BeaconBlockHeader{},
-			crypto.BLSSignature{},
+			Header:    &ctypes.BeaconBlockHeader{},
+			Signature: crypto.BLSSignature{},
 		},
 		&eip4844.Blob{},
 		eip4844.KZGCommitment{},
@@ -100,11 +100,11 @@ func TestValidateBlockRoots(t *testing.T) {
 	validSidecar := types.BuildBlobSidecar(
 		math.U64(0),
 		&ctypes.SignedBeaconBlockHeader{
-			&ctypes.BeaconBlockHeader{
+			Header: &ctypes.BeaconBlockHeader{
 				StateRoot: [32]byte{1},
 				BodyRoot:  [32]byte{2},
 			},
-			crypto.BLSSignature{},
+			Signature: crypto.BLSSignature{},
 		},
 		&eip4844.Blob{},
 		[48]byte{},
@@ -127,11 +127,11 @@ func TestValidateBlockRoots(t *testing.T) {
 	differentBlockRootSidecar := types.BuildBlobSidecar(
 		math.U64(0),
 		&ctypes.SignedBeaconBlockHeader{
-			&ctypes.BeaconBlockHeader{
+			Header: &ctypes.BeaconBlockHeader{
 				StateRoot: [32]byte{1},
 				BodyRoot:  [32]byte{3},
 			},
-			crypto.BLSSignature{},
+			Signature: crypto.BLSSignature{},
 		},
 		&eip4844.Blob{},
 		eip4844.KZGCommitment{},

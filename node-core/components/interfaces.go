@@ -243,7 +243,10 @@ type (
 		// state.
 		VerifySidecars(
 			sidecars ConsensusSidecarsT,
-			verifierFn func(blkHeader BeaconBlockHeaderT, signature crypto.BLSSignature) error,
+			verifierFn func(
+				blkHeader BeaconBlockHeaderT,
+				signature crypto.BLSSignature,
+			) error,
 		) error
 	}
 

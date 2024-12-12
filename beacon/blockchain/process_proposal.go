@@ -93,6 +93,7 @@ func (s *Service[
 		](consensusSidecars)
 
 		// Get the sidecar verification function from the state processor
+		//nolint:govet	// err shadowing
 		sidecarVerifierFn, err := s.stateProcessor.GetSidecarVerifierFn(
 			s.storageBackend.StateFromContext(ctx),
 		)

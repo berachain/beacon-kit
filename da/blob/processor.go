@@ -26,8 +26,8 @@ import (
 	"github.com/berachain/beacon-kit/da/kzg"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // Processor is the blob processor that handles the processing and verification
@@ -48,7 +48,12 @@ type Processor[
 	// chainSpec defines the specifications of the blockchain.
 	chainSpec common.ChainSpec
 	// verifier is responsible for verifying the blobs.
-	verifier *verifier[BeaconBlockHeaderT, BlobSidecarT, BlobSidecarsT, SignedBeaconBlockHeaderT]
+	verifier *verifier[
+		BeaconBlockHeaderT,
+		BlobSidecarT,
+		BlobSidecarsT,
+		SignedBeaconBlockHeaderT,
+	]
 	// blockBodyOffsetFn is a function that calculates the block body offset
 	// based on the slot and chain specifications.
 	blockBodyOffsetFn func(math.Slot, common.ChainSpec) (uint64, error)
@@ -75,7 +80,7 @@ func NewProcessor[
 	telemetrySink TelemetrySink,
 ) *Processor[
 	AvailabilityStoreT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT, SignedBeaconBlockHeaderT, 
+	ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT, SignedBeaconBlockHeaderT,
 ] {
 	verifier := newVerifier[
 		BeaconBlockHeaderT,
@@ -85,7 +90,8 @@ func NewProcessor[
 	](proofVerifier, telemetrySink)
 	return &Processor[
 		AvailabilityStoreT, BeaconBlockBodyT, BeaconBlockHeaderT,
-		ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT, SignedBeaconBlockHeaderT,
+		ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
+		SignedBeaconBlockHeaderT,
 	]{
 		logger:            logger,
 		chainSpec:         chainSpec,
@@ -97,13 +103,17 @@ func NewProcessor[
 
 // VerifySidecars verifies the blobs and ensures they match the local state.
 func (sp *Processor[
-	AvailabilityStoreT, _, BeaconBlockHeaderT, ConsensusSidecarsT, _, BlobSidecarsT, _,
+	AvailabilityStoreT, _, BeaconBlockHeaderT, ConsensusSidecarsT,
+	_, BlobSidecarsT, _,
 ]) VerifySidecars(
 	cs ConsensusSidecarsT,
-	verifierFn func(blkHeader BeaconBlockHeaderT, signature crypto.BLSSignature) error,
+	verifierFn func(
+		blkHeader BeaconBlockHeaderT,
+		signature crypto.BLSSignature,
+	) error,
 ) error {
 	var (
-		sidecars BlobSidecarsT = cs.GetSidecars()
+		sidecars  = cs.GetSidecars()
 		blkHeader = cs.GetHeader()
 	)
 	defer sp.metrics.measureVerifySidecarsDuration(
@@ -141,7 +151,6 @@ func (sp *Processor[
 	defer sp.metrics.measureProcessSidecarsDuration(
 		time.Now(), math.U64(sidecars.Len()),
 	)
-
 
 	// Abort if there are no blobs to store.
 	if sidecars.Len() == 0 {

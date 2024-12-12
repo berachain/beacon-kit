@@ -51,8 +51,8 @@ func TestSidecarMarshalling(t *testing.T) {
 	sidecar := types.BuildBlobSidecar(
 		1,
 		&ctypes.SignedBeaconBlockHeader{
-			&ctypes.BeaconBlockHeader{},
-			crypto.BLSSignature{},
+			Header:    &ctypes.BeaconBlockHeader{},
+			Signature: crypto.BLSSignature{},
 		},
 		&blob,
 		eip4844.KZGCommitment{},
@@ -103,10 +103,10 @@ func TestHasValidInclusionProof(t *testing.T) {
 				return types.BuildBlobSidecar(
 					math.U64(0),
 					&ctypes.SignedBeaconBlockHeader{
-						&ctypes.BeaconBlockHeader{
+						Header: &ctypes.BeaconBlockHeader{
 							BodyRoot: [32]byte{3},
 						},
-						crypto.BLSSignature{},
+						Signature: crypto.BLSSignature{},
 					},
 					&eip4844.Blob{},
 					eip4844.KZGCommitment{},
@@ -168,10 +168,10 @@ func TestHashTreeRoot(t *testing.T) {
 				return types.BuildBlobSidecar(
 					math.U64(1),
 					&ctypes.SignedBeaconBlockHeader{
-						&ctypes.BeaconBlockHeader{
+						Header: &ctypes.BeaconBlockHeader{
 							BodyRoot: [32]byte{7, 8, 9},
 						},
-						crypto.BLSSignature{0xde, 0xad},
+						Signature: crypto.BLSSignature{0xde, 0xad},
 					},
 					&eip4844.Blob{0, 1, 2, 3, 4, 5, 6, 7},
 					eip4844.KZGCommitment{1, 2, 3},
@@ -180,8 +180,10 @@ func TestHashTreeRoot(t *testing.T) {
 				)
 			},
 			expectedResult: [32]uint8{
-				0xd8, 0xb2, 0x91, 0x39, 0x93, 0x75, 0x38, 0x1f, 0xd4, 0xdf, 0xef, 0xa7, 0x16, 0x91, 0xd9, 0x9,
-				0x3, 0x62, 0xee, 0x3a, 0x79, 0x96, 0x57, 0xc4, 0xc4, 0x6d, 0x86, 0x79, 0x78, 0x1b, 0xb4, 0xe3,
+				0xd8, 0xb2, 0x91, 0x39, 0x93, 0x75, 0x38, 0x1f,
+				0xd4, 0xdf, 0xef, 0xa7, 0x16, 0x91, 0xd9, 0x9,
+				0x3, 0x62, 0xee, 0x3a, 0x79, 0x96, 0x57, 0xc4,
+				0xc4, 0x6d, 0x86, 0x79, 0x78, 0x1b, 0xb4, 0xe3,
 			},
 			expectError: false,
 		},
