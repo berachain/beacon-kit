@@ -47,16 +47,11 @@ type StateProcessor[
 	],
 	BeaconStateT BeaconState[
 		BeaconStateT,
-		Eth1DataT,
 		ExecutionPayloadHeaderT, ForkT, KVStoreT,
 		ValidatorT, ValidatorsT, WithdrawalT,
 	],
 	ContextT Context,
 	DepositT Deposit[DepositT, ForkDataT, WithdrawalCredentialsT],
-	Eth1DataT interface {
-		New(common.Root, math.U64, common.ExecutionHash) Eth1DataT
-		GetDepositCount() math.U64
-	},
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
@@ -112,15 +107,11 @@ func NewStateProcessor[
 		WithdrawalsT,
 	],
 	BeaconStateT BeaconState[
-		BeaconStateT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+		BeaconStateT, ExecutionPayloadHeaderT, ForkT,
 		KVStoreT, ValidatorT, ValidatorsT, WithdrawalT,
 	],
 	ContextT Context,
 	DepositT Deposit[DepositT, ForkDataT, WithdrawalCredentialsT],
-	Eth1DataT interface {
-		New(common.Root, math.U64, common.ExecutionHash) Eth1DataT
-		GetDepositCount() math.U64
-	},
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
@@ -154,13 +145,13 @@ func NewStateProcessor[
 	telemetrySink TelemetrySink,
 ) *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, ContextT, DepositT, Eth1DataT, ExecutionPayloadT,
+	BeaconStateT, ContextT, DepositT, ExecutionPayloadT,
 	ExecutionPayloadHeaderT, ForkT, ForkDataT, KVStoreT, ValidatorT,
 	ValidatorsT, WithdrawalT, WithdrawalsT, WithdrawalCredentialsT,
 ] {
 	return &StateProcessor[
 		BeaconBlockT, BeaconBlockBodyT,
-		BeaconStateT, ContextT, DepositT, Eth1DataT, ExecutionPayloadT,
+		BeaconStateT, ContextT, DepositT, ExecutionPayloadT,
 		ExecutionPayloadHeaderT, ForkT, ForkDataT, KVStoreT, ValidatorT,
 		ValidatorsT, WithdrawalT, WithdrawalsT, WithdrawalCredentialsT,
 	]{
@@ -177,7 +168,7 @@ func NewStateProcessor[
 // Transition is the main function for processing a state transition.
 func (sp *StateProcessor[
 	BeaconBlockT, _, BeaconStateT, ContextT,
-	_, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _,
 ]) Transition(
 	ctx ContextT,
 	st BeaconStateT,
@@ -202,7 +193,7 @@ func (sp *StateProcessor[
 }
 
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) ProcessSlots(
 	st BeaconStateT, slot math.Slot,
 ) (transition.ValidatorUpdates, error) {
@@ -263,7 +254,7 @@ func (sp *StateProcessor[
 
 // processSlot is run when a slot is missed.
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) processSlot(
 	st BeaconStateT,
 ) error {
@@ -306,7 +297,7 @@ func (sp *StateProcessor[
 // ProcessBlock processes the block, it optionally verifies the
 // state root.
 func (sp *StateProcessor[
-	BeaconBlockT, _, BeaconStateT, ContextT, _, _, _, _, _, _, _, _, _, _, _, _,
+	BeaconBlockT, _, BeaconStateT, ContextT, _, _, _, _, _, _, _, _, _, _, _,
 ]) ProcessBlock(
 	ctx ContextT,
 	st BeaconStateT,
@@ -353,7 +344,7 @@ func (sp *StateProcessor[
 
 // processEpoch processes the epoch and ensures it matches the local state.
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) processEpoch(
 	st BeaconStateT,
 ) (transition.ValidatorUpdates, error) {
@@ -406,7 +397,7 @@ func (sp *StateProcessor[
 // state.
 func (sp *StateProcessor[
 	BeaconBlockT, _, BeaconStateT,
-	ContextT, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+	ContextT, _, _, _, _, _, _, ValidatorT, _, _, _, _,
 ]) processBlockHeader(
 	ctx ContextT,
 	st BeaconStateT,
@@ -487,7 +478,7 @@ func (sp *StateProcessor[
 // processEffectiveBalanceUpdates as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#effective-balances-updates
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) processEffectiveBalanceUpdates(
 	st BeaconStateT,
 ) error {

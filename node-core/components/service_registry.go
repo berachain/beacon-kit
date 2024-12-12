@@ -42,12 +42,12 @@ type ServiceRegistryInput[
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[
 		BeaconBlockBodyT, *AttestationData, DepositT,
-		*Eth1Data, ExecutionPayloadT, *SlashingInfo,
+		ExecutionPayloadT, *SlashingInfo,
 	],
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconStateMarshallableT,
-		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT,
+		ExecutionPayloadHeaderT, *Fork, KVStoreT,
 		*Validator, Validators, WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
@@ -92,7 +92,7 @@ type ServiceRegistryInput[
 	ValidatorService *validator.Service[
 		*AttestationData, BeaconBlockT, BeaconBlockBodyT,
 		BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositT, DepositStoreT,
-		*Eth1Data, ExecutionPayloadT, ExecutionPayloadHeaderT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 		*ForkData, *SlashingInfo, *SlotData,
 	]
 	CometBFTService *cometbft.Service[LoggerT]
@@ -105,12 +105,12 @@ func ProvideServiceRegistry[
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[
 		BeaconBlockBodyT, *AttestationData, DepositT,
-		*Eth1Data, ExecutionPayloadT, *SlashingInfo,
+		ExecutionPayloadT, *SlashingInfo,
 	],
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconStateMarshallableT,
-		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT,
+		ExecutionPayloadHeaderT, *Fork, KVStoreT,
 		*Validator, Validators, WithdrawalT,
 	],
 	BeaconStateMarshallableT any,

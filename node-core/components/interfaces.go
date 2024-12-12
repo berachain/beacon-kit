@@ -136,7 +136,6 @@ type (
 		T any,
 		AttestationDataT any,
 		DepositT any,
-		Eth1DataT any,
 		ExecutionPayloadT any,
 		SlashingInfoT any,
 	] interface {
@@ -156,7 +155,7 @@ type (
 		// SetRandaoReveal sets the Randao reveal of the beacon block body.
 		SetRandaoReveal(crypto.BLSSignature)
 		// SetEth1Data sets the Eth1 data of the beacon block body.
-		SetEth1Data(Eth1DataT)
+		SetEth1Data(*ctypes.Eth1Data)
 		// SetDeposits sets the deposits of the beacon block body.
 		SetDeposits([]DepositT)
 		// SetExecutionPayload sets the execution data of the beacon block body.
@@ -176,7 +175,6 @@ type (
 	// with generic types.
 	BeaconStateMarshallable[
 		T,
-		Eth1DataT,
 		ExecutionPayloadHeaderT,
 		ForkT,
 		ValidatorT any,
@@ -192,7 +190,7 @@ type (
 			latestBlockHeader *ctypes.BeaconBlockHeader,
 			blockRoots []common.Root,
 			stateRoots []common.Root,
-			eth1Data Eth1DataT,
+			eth1Data *ctypes.Eth1Data,
 			eth1DepositIndex uint64,
 			latestExecutionPayloadHeader ExecutionPayloadHeaderT,
 			validators []ValidatorT,
@@ -785,7 +783,6 @@ type (
 	BeaconState[
 		T any,
 		BeaconStateMarshallableT any,
-		Eth1DataT,
 		ExecutionPayloadHeaderT,
 		ForkT,
 		KVStoreT,
@@ -803,11 +800,11 @@ type (
 		GetMarshallable() (BeaconStateMarshallableT, error)
 
 		ReadOnlyBeaconState[
-			Eth1DataT, ExecutionPayloadHeaderT,
+			ExecutionPayloadHeaderT,
 			ForkT, ValidatorT, ValidatorsT, WithdrawalT,
 		]
 		WriteOnlyBeaconState[
-			Eth1DataT, ExecutionPayloadHeaderT,
+			ExecutionPayloadHeaderT,
 			ForkT, ValidatorT,
 		]
 	}
@@ -815,7 +812,6 @@ type (
 	// BeaconStore is the interface for the beacon store.
 	BeaconStore[
 		T any,
-		Eth1DataT any,
 		ExecutionPayloadHeaderT any,
 		ForkT any,
 		ValidatorT any,
@@ -872,9 +868,9 @@ type (
 		// StateRootAtIndex retrieves the state root at the given index.
 		StateRootAtIndex(index uint64) (common.Root, error)
 		// GetEth1Data retrieves the eth1 data.
-		GetEth1Data() (Eth1DataT, error)
+		GetEth1Data() (*ctypes.Eth1Data, error)
 		// SetEth1Data sets the eth1 data.
-		SetEth1Data(data Eth1DataT) error
+		SetEth1Data(data *ctypes.Eth1Data) error
 		// GetValidators retrieves all validators.
 		GetValidators() (ValidatorsT, error)
 		// GetBalances retrieves all balances.
@@ -940,10 +936,10 @@ type (
 
 	// ReadOnlyBeaconState is the interface for a read-only beacon state.
 	ReadOnlyBeaconState[
-		Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+		ExecutionPayloadHeaderT, ForkT,
 		ValidatorT, ValidatorsT, WithdrawalT any,
 	] interface {
-		ReadOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT]
+		ReadOnlyEth1Data[ExecutionPayloadHeaderT]
 		ReadOnlyRandaoMixes
 		ReadOnlyStateRoots
 		ReadOnlyValidators[ValidatorT]
@@ -972,10 +968,10 @@ type (
 
 	// WriteOnlyBeaconState is the interface for a write-only beacon state.
 	WriteOnlyBeaconState[
-		Eth1DataT, ExecutionPayloadHeaderT,
+		ExecutionPayloadHeaderT,
 		ForkT, ValidatorT any,
 	] interface {
-		WriteOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT]
+		WriteOnlyEth1Data[ExecutionPayloadHeaderT]
 		WriteOnlyRandaoMixes
 		WriteOnlyStateRoots
 		WriteOnlyValidators[ValidatorT]
@@ -1042,8 +1038,8 @@ type (
 	}
 
 	// WriteOnlyEth1Data has write access to eth1 data.
-	WriteOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT any] interface {
-		SetEth1Data(Eth1DataT) error
+	WriteOnlyEth1Data[ExecutionPayloadHeaderT any] interface {
+		SetEth1Data(*ctypes.Eth1Data) error
 		SetEth1DepositIndex(uint64) error
 		SetLatestExecutionPayloadHeader(
 			ExecutionPayloadHeaderT,
@@ -1051,8 +1047,8 @@ type (
 	}
 
 	// ReadOnlyEth1Data has read access to eth1 data.
-	ReadOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT any] interface {
-		GetEth1Data() (Eth1DataT, error)
+	ReadOnlyEth1Data[ExecutionPayloadHeaderT any] interface {
+		GetEth1Data() (*ctypes.Eth1Data, error)
 		GetEth1DepositIndex() (uint64, error)
 		GetLatestExecutionPayloadHeader() (
 			ExecutionPayloadHeaderT, error,

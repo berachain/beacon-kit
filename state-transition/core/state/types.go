@@ -31,7 +31,6 @@ import (
 // with generic types.
 type BeaconStateMarshallable[
 	T any,
-	Eth1DataT,
 	ExecutionPayloadHeaderT,
 	ForkT,
 	ValidatorT any,
@@ -46,7 +45,7 @@ type BeaconStateMarshallable[
 		latestBlockHeader *ctypes.BeaconBlockHeader,
 		blockRoots []common.Root,
 		stateRoots []common.Root,
-		eth1Data Eth1DataT,
+		eth1Data *ctypes.Eth1Data,
 		eth1DepositIndex uint64,
 		latestExecutionPayloadHeader ExecutionPayloadHeaderT,
 		validators []ValidatorT,

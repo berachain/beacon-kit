@@ -39,21 +39,17 @@ import (
 
 // generateValidBeaconState generates a valid beacon state for the types.
 func generateValidBeaconState() *types.BeaconState[
-	*types.Eth1Data,
 	*types.ExecutionPayloadHeader,
 	*types.Fork,
 	*types.Validator,
-	types.Eth1Data,
 	types.ExecutionPayloadHeader,
 	types.Fork,
 	types.Validator,
 ] {
 	return &types.BeaconState[
-		*types.Eth1Data,
 		*types.ExecutionPayloadHeader,
 		*types.Fork,
 		*types.Validator,
-		types.Eth1Data,
 		types.ExecutionPayloadHeader,
 		types.Fork,
 		types.Validator]{
@@ -153,11 +149,9 @@ func TestBeaconStateMarshalUnmarshalSSZ(t *testing.T) {
 	require.NotNil(t, data)
 
 	newState := &types.BeaconState[
-		*types.Eth1Data,
 		*types.ExecutionPayloadHeader,
 		*types.Fork,
 		*types.Validator,
-		types.Eth1Data,
 		types.ExecutionPayloadHeader,
 		types.Fork,
 		types.Validator,
@@ -187,11 +181,9 @@ func TestGetTree(t *testing.T) {
 
 func TestBeaconState_UnmarshalSSZ_Error(t *testing.T) {
 	state := &types.BeaconState[
-		*types.Eth1Data,
 		*types.ExecutionPayloadHeader,
 		*types.Fork,
 		*types.Validator,
-		types.Eth1Data,
 		types.ExecutionPayloadHeader,
 		types.Fork,
 		types.Validator,

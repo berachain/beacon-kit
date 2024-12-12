@@ -41,11 +41,9 @@ var _ ptypes.BeaconState[
 // using the default BeaconState type that is marshallable.
 type (
 	BeaconStateMarshallable = types.BeaconState[
-		*types.Eth1Data,
 		*types.ExecutionPayloadHeader,
 		*types.Fork,
 		*types.Validator,
-		types.Eth1Data,
 		types.ExecutionPayloadHeader,
 		types.Fork,
 		types.Validator,

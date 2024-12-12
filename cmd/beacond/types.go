@@ -116,7 +116,6 @@ type (
 
 	// KVStore is a type alias for the KV store.
 	KVStore = beacondb.KVStore[
-		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,
 		*Validator,
@@ -158,7 +157,6 @@ type (
 		*BeaconState,
 		*Context,
 		*Deposit,
-		*Eth1Data,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*Fork,
@@ -190,7 +188,6 @@ type (
 		*BlobSidecars,
 		*Deposit,
 		*DepositStore,
-		*Eth1Data,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*ForkData,
@@ -218,7 +215,6 @@ type (
 	// BeaconState is a type alias for the BeaconState.
 	BeaconState = statedb.StateDB[
 		*BeaconStateMarshallable,
-		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,
 		*KVStore,
@@ -230,11 +226,9 @@ type (
 
 	// BeaconStateMarshallable is a type alias for the BeaconState.
 	BeaconStateMarshallable = types.BeaconState[
-		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,
 		*Validator,
-		Eth1Data,
 		ExecutionPayloadHeader,
 		Fork,
 		Validator,
@@ -309,7 +303,6 @@ type (
 		sdk.Context,
 		*Deposit,
 		*DepositStore,
-		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,
 		*CometBFTService,

@@ -56,18 +56,15 @@ import (
 
 type (
 	TestBeaconStateMarshallableT = types.BeaconState[
-		*types.Eth1Data,
 		*types.ExecutionPayloadHeader,
 		*types.Fork,
 		*types.Validator,
-		types.Eth1Data,
 		types.ExecutionPayloadHeader,
 		types.Fork,
 		types.Validator,
 	]
 
 	TestKVStoreT = beacondb.KVStore[
-		*types.Eth1Data,
 		*types.ExecutionPayloadHeader,
 		*types.Fork,
 		*types.Validator,
@@ -76,7 +73,6 @@ type (
 
 	TestBeaconStateT = statedb.StateDB[
 		*TestBeaconStateMarshallableT,
-		*types.Eth1Data,
 		*types.ExecutionPayloadHeader,
 		*types.Fork,
 		*TestKVStoreT,
@@ -92,7 +88,6 @@ type (
 		*TestBeaconStateT,
 		*transition.Context,
 		*types.Deposit,
-		*types.Eth1Data,
 		*types.ExecutionPayload,
 		*types.ExecutionPayloadHeader,
 		*types.Fork,
@@ -124,7 +119,6 @@ var (
 
 func initTestStores() (
 	*beacondb.KVStore[
-		*types.Eth1Data,
 		*types.ExecutionPayloadHeader,
 		*types.Fork,
 		*types.Validator,
@@ -155,7 +149,6 @@ func initTestStores() (
 	testStoreService := &testKVStoreService{ctx: ctx}
 
 	return beacondb.New[
-			*types.Eth1Data,
 			*types.ExecutionPayloadHeader,
 			*types.Fork,
 			*types.Validator,
@@ -216,7 +209,6 @@ func setupState(
 		*TestBeaconStateT,
 		*transition.Context,
 		*types.Deposit,
-		*types.Eth1Data,
 		*types.ExecutionPayload,
 		*types.ExecutionPayloadHeader,
 		*types.Fork,
