@@ -70,11 +70,11 @@ gosec:
 
 slither:
 	docker run \
-	-t --user 1001:ethsec \
+	-t \
 	--platform linux/amd64 \
-	-v ./contracts:/contracts \
+	-v ./contracts:/contracts:rw \
 	trailofbits/eth-security-toolbox:edge \
-	/bin/bash -c "cp -r /contracts ~/ && cd ~/contracts/ && slither ./."
+	/bin/bash -c "ls -ltrh / && ls -ltrh /contracts && cd /contracts/ && slither ./."
 
 #################
 # markdown-lint #
