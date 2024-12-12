@@ -23,6 +23,7 @@ package core
 import (
 	"context"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -32,7 +33,6 @@ import (
 // is a combination of the read-only and write-only beacon state types.
 type BeaconState[
 	T any,
-	BeaconBlockHeaderT,
 	Eth1DataT,
 	ExecutionPayloadHeaderT,
 	ForkT,
@@ -49,18 +49,18 @@ type BeaconState[
 	Context() context.Context
 	HashTreeRoot() common.Root
 	ReadOnlyBeaconState[
-		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+		Eth1DataT, ExecutionPayloadHeaderT,
 		ForkT, ValidatorT, ValidatorsT, WithdrawalT,
 	]
 	WriteOnlyBeaconState[
-		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+		Eth1DataT, ExecutionPayloadHeaderT,
 		ForkT, ValidatorT,
 	]
 }
 
 // ReadOnlyBeaconState is the interface for a read-only beacon state.
 type ReadOnlyBeaconState[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT, WithdrawalT any,
 ] interface {
 	ReadOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT]
@@ -74,7 +74,7 @@ type ReadOnlyBeaconState[
 	GetFork() (ForkT, error)
 	GetGenesisValidatorsRoot() (common.Root, error)
 	GetBlockRootAtIndex(uint64) (common.Root, error)
-	GetLatestBlockHeader() (BeaconBlockHeaderT, error)
+	GetLatestBlockHeader() (*ctypes.BeaconBlockHeader, error)
 	GetTotalActiveBalances(uint64) (math.Gwei, error)
 	GetValidators() (ValidatorsT, error)
 	GetSlashingAtIndex(uint64) (math.Gwei, error)
@@ -90,7 +90,7 @@ type ReadOnlyBeaconState[
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
 type WriteOnlyBeaconState[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT any,
 ] interface {
 	WriteOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT]
@@ -102,7 +102,7 @@ type WriteOnlyBeaconState[
 	SetFork(ForkT) error
 	SetSlot(math.Slot) error
 	UpdateBlockRootAtIndex(uint64, common.Root) error
-	SetLatestBlockHeader(BeaconBlockHeaderT) error
+	SetLatestBlockHeader(*ctypes.BeaconBlockHeader) error
 	IncreaseBalance(math.ValidatorIndex, math.Gwei) error
 	DecreaseBalance(math.ValidatorIndex, math.Gwei) error
 	UpdateSlashingAtIndex(uint64, math.Gwei) error

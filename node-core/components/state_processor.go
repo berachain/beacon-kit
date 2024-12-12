@@ -61,14 +61,13 @@ type StateProcessorInput[
 // framework.
 func ProvideStateProcessor[
 	LoggerT log.AdvancedLogger[LoggerT],
-	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT],
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[
 		BeaconBlockBodyT, *AttestationData, DepositT,
 		*Eth1Data, ExecutionPayloadT, *SlashingInfo,
 	],
-	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT BeaconState[
-		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
+		BeaconStateT, BeaconStateMarshallableT,
 		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT, *Validator,
 		Validators, WithdrawalT,
 	],
@@ -80,7 +79,7 @@ func ProvideStateProcessor[
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	KVStoreT BeaconStore[
-		KVStoreT, BeaconBlockHeaderT, *Eth1Data, ExecutionPayloadHeaderT,
+		KVStoreT, *Eth1Data, ExecutionPayloadHeaderT,
 		*Fork, *Validator, Validators, WithdrawalT,
 	],
 	WithdrawalsT Withdrawals[WithdrawalT],
@@ -92,7 +91,7 @@ func ProvideStateProcessor[
 		DepositT, WithdrawalT, WithdrawalsT,
 	],
 ) *core.StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, *Context, DepositT, *Eth1Data, ExecutionPayloadT,
 	ExecutionPayloadHeaderT, *Fork, *ForkData, KVStoreT, *Validator,
 	Validators, WithdrawalT, WithdrawalsT, WithdrawalCredentials,
@@ -100,7 +99,6 @@ func ProvideStateProcessor[
 	return core.NewStateProcessor[
 		BeaconBlockT,
 		BeaconBlockBodyT,
-		BeaconBlockHeaderT,
 		BeaconStateT,
 		*Context,
 		DepositT,
