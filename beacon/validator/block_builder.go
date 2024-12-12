@@ -41,11 +41,17 @@ import (
 // BuildBlockAndSidecars builds a new beacon block.
 func (s *Service[
 	AttestationDataT, BeaconBlockT, _, _, _, BlobSidecarsT,
-	_, _, _, _, _, _, SlashingInfoT, SlotDataT,
+	_, _, _, _, _, ForkDataT, SlashingInfoT, SlotDataT,
 ]) BuildBlockAndSidecars(
 	ctx context.Context,
 	slotData types.SlotData[ctypes.AttestationData, ctypes.SlashingInfo],
 ) ([]byte, []byte, error) {
+	var (
+		blk      BeaconBlockT
+		sidecars BlobSidecarsT
+		forkData ForkDataT
+	)
+
 	startTime := time.Now()
 	defer s.metrics.measureRequestBlockForProposalTime(startTime)
 
@@ -65,15 +71,21 @@ func (s *Service[
 		return nil, nil, err
 	}
 
+	// Build forkdata used for the signing root of the reveal and the sidecars
+	forkData, err := s.buildForkData(st, slotData.GetSlot())
+	if err != nil {
+		return nil, nil, err
+	}
+
 	// Build the reveal for the current slot.
 	// TODO: We can optimize to pre-compute this in parallel?
-	reveal, err := s.buildRandaoReveal(st, slotData.GetSlot())
+	reveal, err := s.buildRandaoReveal(forkData, slotData.GetSlot())
 	if err != nil {
 		return nil, nil, err
 	}
 
 	// Create a new empty block from the current state.
-	blk, err := s.getEmptyBeaconBlockForSlot(st, slotData.GetSlot())
+	blk, err = s.getEmptyBeaconBlockForSlot(st, slotData.GetSlot())
 	if err != nil {
 		return nil, nil, err
 	}
@@ -107,8 +119,12 @@ func (s *Service[
 	}
 
 	// Produce blob sidecars with new StateRoot
-	sidecars, err := s.blobFactory.BuildSidecars(
-		blk, envelope.GetBlobsBundle())
+	sidecars, err = s.blobFactory.BuildSidecars(
+		blk,
+		envelope.GetBlobsBundle(),
+		s.signer,
+		forkData,
+	)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -164,13 +180,12 @@ func (s *Service[
 	)
 }
 
-// buildRandaoReveal builds a randao reveal for the given slot.
 func (s *Service[
 	_, _, _, BeaconStateT, _, _, _, _, _, _, _, ForkDataT, _, _,
-]) buildRandaoReveal(
+]) buildForkData(
 	st BeaconStateT,
 	slot math.Slot,
-) (crypto.BLSSignature, error) {
+) (ForkDataT, error) {
 	var (
 		forkData ForkDataT
 		epoch    = s.chainSpec.SlotToEpoch(slot)
@@ -178,14 +193,26 @@ func (s *Service[
 
 	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
 	if err != nil {
-		return crypto.BLSSignature{}, err
+		return forkData, err
 	}
 
-	signingRoot := forkData.New(
+	return forkData.New(
 		version.FromUint32[common.Version](
 			s.chainSpec.ActiveForkVersionForEpoch(epoch),
-		), genesisValidatorsRoot,
-	).ComputeRandaoSigningRoot(
+		),
+		genesisValidatorsRoot,
+	), nil
+}
+
+// buildRandaoReveal builds a randao reveal for the given slot.
+func (s *Service[
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, ForkDataT, _, _,
+]) buildRandaoReveal(
+	forkData ForkDataT,
+	slot math.Slot,
+) (crypto.BLSSignature, error) {
+	var epoch = s.chainSpec.SlotToEpoch(slot)
+	signingRoot := forkData.ComputeRandaoSigningRoot(
 		s.chainSpec.DomainTypeRandao(),
 		epoch,
 	)

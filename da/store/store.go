@@ -87,7 +87,7 @@ func (s *Store[BeaconBlockT]) Persist(
 	if !s.chainSpec.WithinDAPeriod(
 		// slot in which the sidecar was included.
 		// (Safe to assume all sidecars are in same slot at this point).
-		sidecars.Sidecars[0].BeaconBlockHeader.GetSlot(),
+		sidecars.Sidecars[0].SignedBeaconBlockHeader.Header.GetSlot(),
 		// current slot
 		slot,
 	) {

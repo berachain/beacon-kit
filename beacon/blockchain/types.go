@@ -25,6 +25,7 @@ import (
 	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -200,6 +201,7 @@ type StateProcessor[
 	ContextT,
 	DepositT,
 	ExecutionPayloadHeaderT any,
+	BeaconBlockHeaderT any,
 ] interface {
 	// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
 	// state
@@ -220,6 +222,10 @@ type StateProcessor[
 		BeaconStateT,
 		BeaconBlockT,
 	) (transition.ValidatorUpdates, error)
+	GetSidecarVerifierFn(BeaconStateT) (
+		func(blkHeader BeaconBlockHeaderT, signature crypto.BLSSignature) error,
+		error,
+	)
 }
 
 // StorageBackend defines an interface for accessing various storage components

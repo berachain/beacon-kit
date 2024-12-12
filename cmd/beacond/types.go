@@ -74,6 +74,7 @@ type (
 		*ConsensusSidecars,
 		*BlobSidecar,
 		*BlobSidecars,
+		*SignedBeaconBlockHeader,
 	]
 
 	// ChainService is a type alias for the chain service.
@@ -153,6 +154,7 @@ type (
 		*BeaconBlock,
 		*BeaconBlockBody,
 		*BeaconBlockHeader,
+		*ForkData,
 	]
 
 	// StateProcessor is the type alias for the state processor interface.
@@ -369,6 +371,8 @@ type (
 
 	// WithdrawalCredentials is a type alias for the withdrawal credentials.
 	WithdrawalCredentials = types.WithdrawalCredentials
+
+	SignedBeaconBlockHeader = types.SignedBeaconBlockHeader
 )
 
 /* -------------------------------------------------------------------------- */

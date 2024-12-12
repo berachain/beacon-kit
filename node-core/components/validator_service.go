@@ -45,6 +45,7 @@ type ValidatorServiceInput[
 	StorageBackendT any,
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalsT Withdrawals[WithdrawalT],
+	BeaconBlockHeaderT any,
 ] struct {
 	depinject.In
 	Cfg            *config.Config
@@ -53,10 +54,11 @@ type ValidatorServiceInput[
 	Logger         LoggerT
 	StateProcessor StateProcessor[
 		BeaconBlockT, BeaconStateT, *Context, DepositT, ExecutionPayloadHeaderT,
+		BeaconBlockHeaderT,
 	]
 	StorageBackend StorageBackendT
 	Signer         crypto.BLSSigner
-	SidecarFactory SidecarFactory[BeaconBlockT, BlobSidecarsT]
+	SidecarFactory SidecarFactory[BeaconBlockT, BlobSidecarsT, *ForkData]
 	TelemetrySink  *metrics.TelemetrySink
 }
 
@@ -97,7 +99,7 @@ func ProvideValidatorService[
 	in ValidatorServiceInput[
 		AvailabilityStoreT, BeaconBlockT, BeaconStateT,
 		BlobSidecarsT, DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-		LoggerT, StorageBackendT, WithdrawalT, WithdrawalsT,
+		LoggerT, StorageBackendT, WithdrawalT, WithdrawalsT, BeaconBlockHeaderT,
 	],
 ) (*validator.Service[
 	*AttestationData, BeaconBlockT, BeaconBlockBodyT,

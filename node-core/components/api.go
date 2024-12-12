@@ -43,6 +43,7 @@ type NodeAPIBackendInput[
 	DepositT any,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	StorageBackendT any,
+	BeaconBlockHeaderT any,
 ] struct {
 	depinject.In
 
@@ -50,6 +51,7 @@ type NodeAPIBackendInput[
 	StateProcessor StateProcessor[
 		BeaconBlockT, BeaconStateT, *Context,
 		DepositT, ExecutionPayloadHeaderT,
+		BeaconBlockHeaderT,
 	]
 	StorageBackend StorageBackendT
 }
@@ -81,7 +83,7 @@ func ProvideNodeAPIBackend[
 ](
 	in NodeAPIBackendInput[
 		BeaconBlockT, BeaconStateT, DepositT, ExecutionPayloadHeaderT,
-		StorageBackendT,
+		StorageBackendT, BeaconBlockHeaderT,
 	],
 ) *backend.Backend[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
