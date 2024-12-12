@@ -27,7 +27,8 @@ import (
 )
 
 // sendPostBlockFCU sends a forkchoice update to the execution client after a
-// block is finalized. Few pointers to note here:
+// block is finalized.This function should only be used to notify
+// the EL client of the new head and should not request optimistic builds, as:
 // Optimistic clients already request builds in handleOptimisticPayloadBuild()
 // Non-optimistic clients should never request optimistic builds.
 func (s *Service[
@@ -46,9 +47,9 @@ func (s *Service[
 		return
 	}
 
-	if s.shouldBuildOptimisticPayloads() {
-		s.sendNextFCUWithoutAttributes(ctx, blk, lph)
-	}
+	// Send a forkchoice update without payload attributes to notify
+	// EL of the new head.
+	s.sendNextFCUWithoutAttributes(ctx, blk, lph)
 }
 
 // sendNextFCUWithoutAttributes sends a forkchoice update to the
