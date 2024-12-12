@@ -60,4 +60,3 @@ func IsPostFork3(chainID uint64, slot math.Slot) bool {
 		return true
 	}
 }
-

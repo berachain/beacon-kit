@@ -55,7 +55,10 @@ func BoonetChainSpec() (chain.Spec[
 	// than the minimum amount of total validators possible.
 	boonetSpec.MaxValidatorsPerWithdrawalsSweepPostUpgrade = 43
 
-	// MaxEffectiveBalancePostUpgrade is 5 million BERA after the boonet upgrade.
+	// MaxEffectiveBalancePostUpgrade is 5 million BERA after the boonet
+	// upgrade.
+	//
+	//nolint:mnd // ok.
 	boonetSpec.MaxEffectiveBalancePostUpgrade = 5_000_000 * 1e9
 
 	return chain.NewChainSpec(boonetSpec)

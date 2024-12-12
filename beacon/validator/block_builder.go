@@ -426,7 +426,12 @@ func convertAttestationData[
 	for i, d := range data {
 		val, ok := any(d).(AttestationDataT)
 		if !ok {
-			panic(fmt.Sprintf("failed to convert attestation data at index %d", i))
+			panic(
+				fmt.Sprintf(
+					"failed to convert attestation data at index %d",
+					i,
+				),
+			)
 		}
 		converted[i] = val
 	}
