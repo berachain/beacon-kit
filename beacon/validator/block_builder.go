@@ -41,7 +41,7 @@ import (
 // BuildBlockAndSidecars builds a new beacon block.
 func (s *Service[
 	AttestationDataT, BeaconBlockT, _, _, _, BlobSidecarsT,
-	_, _, _, _, _, SlashingInfoT, SlotDataT,
+	_, _, _, _, SlashingInfoT, SlotDataT,
 ]) BuildBlockAndSidecars(
 	ctx context.Context,
 	slotData types.SlotData[ctypes.AttestationData, ctypes.SlashingInfo],
@@ -134,7 +134,7 @@ func (s *Service[
 
 // getEmptyBeaconBlockForSlot creates a new empty block.
 func (s *Service[
-	_, BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
+	_, BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _, _,
 ]) getEmptyBeaconBlockForSlot(
 	st BeaconStateT, requestedSlot math.Slot,
 ) (BeaconBlockT, error) {
@@ -166,13 +166,13 @@ func (s *Service[
 
 // buildRandaoReveal builds a randao reveal for the given slot.
 func (s *Service[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, ForkDataT, _, _,
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _,
 ]) buildRandaoReveal(
 	st BeaconStateT,
 	slot math.Slot,
 ) (crypto.BLSSignature, error) {
 	var (
-		forkData ForkDataT
+		forkData ctypes.ForkData
 		epoch    = s.chainSpec.SlotToEpoch(slot)
 	)
 
@@ -195,7 +195,7 @@ func (s *Service[
 // retrieveExecutionPayload retrieves the execution payload for the block.
 func (s *Service[
 	AttestationDataT, BeaconBlockT, _, BeaconStateT, _, _, _, _,
-	ExecutionPayloadT, ExecutionPayloadHeaderT, _, SlashingInfoT, SlotDataT,
+	ExecutionPayloadT, ExecutionPayloadHeaderT, SlashingInfoT, SlotDataT,
 ]) retrieveExecutionPayload(
 	ctx context.Context,
 	st BeaconStateT,
@@ -256,7 +256,7 @@ func (s *Service[
 // BuildBlockBody assembles the block body with necessary components.
 func (s *Service[
 	AttestationDataT, BeaconBlockT, _, BeaconStateT, _, _, _, _,
-	ExecutionPayloadT, _, _, SlashingInfoT, SlotDataT,
+	ExecutionPayloadT, _, SlashingInfoT, SlotDataT,
 ]) buildBlockBody(
 	_ context.Context,
 	st BeaconStateT,
@@ -357,7 +357,7 @@ func (s *Service[
 // computeAndSetStateRoot computes the state root of an outgoing block
 // and sets it in the block.
 func (s *Service[
-	_, BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
+	_, BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _, _,
 ]) computeAndSetStateRoot(
 	ctx context.Context,
 	proposerAddress []byte,
@@ -386,7 +386,7 @@ func (s *Service[
 
 // computeStateRoot computes the state root of an outgoing block.
 func (s *Service[
-	_, BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
+	_, BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _, _,
 ]) computeStateRoot(
 	ctx context.Context,
 	proposerAddress []byte,

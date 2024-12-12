@@ -44,7 +44,7 @@ func NewCreateValidator[
 	cmd := &cobra.Command{
 		Use:   "create-validator",
 		Short: "Creates a validator deposit",
-		Long: `Creates a validator deposit with the necessary credentials. The 
+		Long: `Creates a validator deposit with the necessary credentials. The
 		arguments are expected in the order of withdrawal address, deposit
 		amount, current version, and genesis validator root. If the broadcast
 		flag is set to true, a private key must be provided to sign the transaction.`,

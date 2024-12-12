@@ -113,7 +113,6 @@ type Context interface {
 // Deposit is the interface for a deposit.
 type Deposit[
 	DepositT any,
-	ForkDataT any,
 ] interface {
 	// Equals returns true if the Deposit is equal to the other.
 	Equals(DepositT) bool
@@ -130,7 +129,7 @@ type Deposit[
 	HasEth1WithdrawalCredentials() bool
 	// VerifySignature verifies the deposit and creates a validator.
 	VerifySignature(
-		forkData ForkDataT,
+		forkData *ctypes.ForkData,
 		domainType common.DomainType,
 		signatureVerificationFn func(
 			pubkey crypto.BLSPubkey,
@@ -196,17 +195,6 @@ type ExecutionEngine[
 		ctx context.Context,
 		req *engineprimitives.NewPayloadRequest[ExecutionPayloadT, WithdrawalsT],
 	) error
-}
-
-// ForkData is the interface for the fork data.
-type ForkData[ForkDataT any] interface {
-	// New creates a new fork data object.
-	New(common.Version, common.Root) ForkDataT
-	// ComputeRandaoSigningRoot returns the signing root for the fork data.
-	ComputeRandaoSigningRoot(
-		domainType common.DomainType,
-		epoch math.Epoch,
-	) common.Root
 }
 
 // Validator represents an interface for a validator with generic type

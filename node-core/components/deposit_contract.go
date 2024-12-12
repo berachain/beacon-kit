@@ -49,9 +49,7 @@ type DepositContractInput[
 // ProvideDepositContract provides a deposit contract through the
 // dep inject framework.
 func ProvideDepositContract[
-	DepositT Deposit[
-		DepositT, *ForkData,
-	],
+	DepositT Deposit[DepositT],
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],

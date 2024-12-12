@@ -43,9 +43,6 @@ type (
 	// Fork is a type alias for the fork.
 	Fork = types.Fork
 
-	// ForkData is a type alias for the fork data.
-	ForkData = types.ForkData
-
 	// SlotData is a type alias for the incoming slot.
 	SlotData = consruntimetypes.SlotData[
 		*AttestationData,

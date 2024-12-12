@@ -102,7 +102,7 @@ func ProvideValidatorService[
 	*AttestationData, BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositT, DepositStoreT,
 	ExecutionPayloadT, ExecutionPayloadHeaderT,
-	*ForkData, *SlashingInfo, *SlotData,
+	*SlashingInfo, *SlotData,
 ], error) {
 	// Build the builder service.
 	return validator.NewService[
@@ -116,7 +116,6 @@ func ProvideValidatorService[
 		DepositStoreT,
 		ExecutionPayloadT,
 		ExecutionPayloadHeaderT,
-		*ForkData,
 		*SlashingInfo,
 		*SlotData,
 	](
