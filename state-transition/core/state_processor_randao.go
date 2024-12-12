@@ -94,8 +94,6 @@ func (sp *StateProcessor[
 
 // processRandaoMixesReset as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#randao-mixes-updates
-//
-//nolint:lll
 func (sp *StateProcessor[
 	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) processRandaoMixesReset(

@@ -21,8 +21,6 @@
 package chain
 
 // SpecData is the underlying data structure for chain-specific parameters.
-//
-//nolint:lll // struct tags may create long lines.
 type SpecData[
 	DomainTypeT ~[4]byte,
 	EpochT ~uint64,
