@@ -74,7 +74,7 @@ slither:
 	--platform linux/amd64 \
 	-v ./contracts:/contracts:rw \
 	trailofbits/eth-security-toolbox:edge \
-	/bin/bash -c "ls -ltrh / && ls -ltrh /contracts && cd /contracts/ && slither ./."
+	/bin/bash -c "whoami ls -ltrh / && chmod -R 777 /contracts && ls -ltrh /contracts && cd /contracts/ && slither ./."
 
 #################
 # markdown-lint #
