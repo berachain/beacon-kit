@@ -22,7 +22,6 @@ package blob
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -76,7 +75,7 @@ func (bv *verifier[BeaconBlockHeaderT, _, BlobSidecarsT, SignedBeaconBlockHeader
 
 	// check that sidecars block headers match with header of the
 	// corresponding block
-	for i, s := range sidecars.GetSidecars() {
+	for _, s := range sidecars.GetSidecars() {
 		var sigHeader SignedBeaconBlockHeaderT
 		sigHeader = s.GetSignedBeaconBlockHeader()
 		err := verifierFn(
@@ -84,7 +83,7 @@ func (bv *verifier[BeaconBlockHeaderT, _, BlobSidecarsT, SignedBeaconBlockHeader
 			sigHeader.GetSignature(),
 		)
 		if err != nil {
-			return fmt.Errorf("Unable to verify sidecar: idx: %d", i)
+			return err
 		}
 	}
 
