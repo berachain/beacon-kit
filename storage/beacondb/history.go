@@ -20,11 +20,14 @@
 
 package beacondb
 
-import "github.com/berachain/beacon-kit/primitives/common"
+import (
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/primitives/common"
+)
 
 // UpdateBlockRootAtIndex sets a block root in the BeaconStore.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) UpdateBlockRootAtIndex(
 	index uint64,
@@ -35,7 +38,7 @@ func (kv *KVStore[
 
 // GetBlockRootAtIndex retrieves the block root from the BeaconStore.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) GetBlockRootAtIndex(
 	index uint64,
@@ -49,27 +52,27 @@ func (kv *KVStore[
 
 // SetLatestBlockHeader sets the latest block header in the BeaconStore.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) SetLatestBlockHeader(
-	header BeaconBlockHeaderT,
+	header *ctypes.BeaconBlockHeader,
 ) error {
 	return kv.latestBlockHeader.Set(kv.ctx, header)
 }
 
 // GetLatestBlockHeader retrieves the latest block header from the BeaconStore.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) GetLatestBlockHeader() (
-	BeaconBlockHeaderT, error,
+	*ctypes.BeaconBlockHeader, error,
 ) {
 	return kv.latestBlockHeader.Get(kv.ctx)
 }
 
 // UpdateStateRootAtIndex updates the state root at the given slot.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) UpdateStateRootAtIndex(
 	idx uint64,
@@ -80,7 +83,7 @@ func (kv *KVStore[
 
 // StateRootAtIndex returns the state root at the given slot.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) StateRootAtIndex(
 	idx uint64,

@@ -84,24 +84,6 @@ type BeaconBlockBody[
 	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 }
 
-// BeaconBlockHeader is the interface for a beacon block header.
-type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
-	New(
-		slot math.Slot,
-		proposerIndex math.ValidatorIndex,
-		parentBlockRoot common.Root,
-		stateRoot common.Root,
-		bodyRoot common.Root,
-	) BeaconBlockHeaderT
-	HashTreeRoot() common.Root
-	GetSlot() math.Slot
-	GetProposerIndex() math.ValidatorIndex
-	GetParentBlockRoot() common.Root
-	GetStateRoot() common.Root
-	GetBodyRoot() common.Root
-	SetStateRoot(common.Root)
-}
-
 // Context defines an interface for managing state transition context.
 type Context interface {
 	context.Context

@@ -25,6 +25,7 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/storage/beacondb/index"
 	"github.com/berachain/beacon-kit/storage/beacondb/keys"
@@ -35,10 +36,6 @@ import (
 // KVStore is a wrapper around an sdk.Context
 // that provides access to all beacon related data.
 type KVStore[
-	BeaconBlockHeaderT interface {
-		constraints.Empty[BeaconBlockHeaderT]
-		constraints.SSZMarshallable
-	},
 	Eth1DataT interface {
 		constraints.Empty[Eth1DataT]
 		constraints.SSZMarshallable
@@ -65,7 +62,7 @@ type KVStore[
 	fork sdkcollections.Item[ForkT]
 	// History
 	// latestBlockHeader stores the latest beacon block header.
-	latestBlockHeader sdkcollections.Item[BeaconBlockHeaderT]
+	latestBlockHeader sdkcollections.Item[*ctypes.BeaconBlockHeader]
 	// blockRoots stores the block roots for the current epoch.
 	blockRoots sdkcollections.Map[uint64, []byte]
 	// stateRoots stores the state roots for the current epoch.
@@ -112,10 +109,6 @@ type KVStore[
 //
 //nolint:funlen // its not overly complex.
 func New[
-	BeaconBlockHeaderT interface {
-		constraints.Empty[BeaconBlockHeaderT]
-		constraints.SSZMarshallable
-	},
 	Eth1DataT interface {
 		constraints.Empty[Eth1DataT]
 		constraints.SSZMarshallable
@@ -135,12 +128,12 @@ func New[
 	kss store.KVStoreService,
 	payloadCodec *encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT],
 ) *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ] {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kss)
 	return &KVStore[
-		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+		Eth1DataT, ExecutionPayloadHeaderT,
 		ForkT, ValidatorT, ValidatorsT,
 	]{
 		ctx: nil,
@@ -265,17 +258,17 @@ func New[
 				[]byte{keys.LatestBeaconBlockHeaderPrefix},
 			),
 			keys.LatestBeaconBlockHeaderPrefixHumanReadable,
-			encoding.SSZValueCodec[BeaconBlockHeaderT]{},
+			encoding.SSZValueCodec[*ctypes.BeaconBlockHeader]{},
 		),
 	}
 }
 
 // Copy returns a copy of the Store.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) Copy() *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ] {
 	// TODO: Decouple the KVStore type from the Cosmos-SDK.
@@ -286,7 +279,7 @@ func (kv *KVStore[
 
 // Context returns the context of the Store.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) Context() context.Context {
 	return kv.ctx
@@ -294,12 +287,12 @@ func (kv *KVStore[
 
 // WithContext returns a copy of the Store with the given context.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) WithContext(
 	ctx context.Context,
 ) *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ] {
 	cpy := *kv

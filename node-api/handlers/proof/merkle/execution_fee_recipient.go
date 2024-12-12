@@ -22,6 +22,7 @@
 package merkle
 
 import (
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -34,12 +35,11 @@ import (
 // along with the beacon block root. It uses the fastssz library to generate the
 // proof.
 func ProveExecutionFeeRecipientInBlock[
-	BeaconBlockHeaderT types.BeaconBlockHeader,
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
 	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
 	ValidatorT any,
 ](
-	bbh BeaconBlockHeaderT,
+	bbh *ctypes.BeaconBlockHeader,
 	bs types.BeaconState[
 		BeaconStateMarshallableT, ExecutionPayloadHeaderT, ValidatorT,
 	],
@@ -111,7 +111,7 @@ func ProveExecutionFeeRecipientInState[
 //
 // TODO: verifying the proof is not absolutely necessary.
 func verifyExecutionFeeRecipientInBlock(
-	bbh types.BeaconBlockHeader,
+	bbh *ctypes.BeaconBlockHeader,
 	proof []common.Root,
 	leaf common.Root,
 ) (common.Root, error) {
