@@ -105,7 +105,7 @@ COPY --from=builder /workdir/build/bin/${APP_NAME} /usr/bin/${APP_NAME}
 # TODO: We should un hood this part, its very specific
 # to our kurtosis setup.
 RUN mkdir -p /root/jwt /root/kzg && \
-    apk add --no-cache bash sed curl
+    RUN apk add --no-cache bash curl sed
 
 EXPOSE 26656
 EXPOSE 26657
