@@ -22,7 +22,6 @@ package core
 
 import (
 	"github.com/berachain/beacon-kit/config/spec"
-	"github.com/berachain/beacon-kit/consensus-types/types"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -138,7 +137,7 @@ func (sp *StateProcessor[
 			return err
 		}
 
-		updatedBalance := types.ComputeEffectiveBalance(
+		updatedBalance := ctypes.ComputeEffectiveBalance(
 			val.GetEffectiveBalance()+dep.GetAmount(),
 			math.Gwei(sp.cs.EffectiveBalanceIncrement()),
 			math.Gwei(sp.cs.MaxEffectiveBalance(false)),
