@@ -30,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math/pow"
 )
 
-//nolint:lll
 type (
 	// U64 represents a 64-bit unsigned integer that is both SSZ and JSON
 	// marshallable. We marshal U64 as hex strings in JSON in order to keep the
@@ -110,8 +109,6 @@ func (u U64) UnwrapPtr() *uint64 {
 // Example: 0->1, 1->1, 2->2, 3->4, 4->4, 5->8, 6->8, 7->8, 8->8, 9->16.
 //
 // https://github.com/ethereum/consensus-specs/blob/dev/ssz/merkle-proofs.md#helper-functions
-//
-//nolint:lll // powers of 2.
 func (u U64) NextPowerOfTwo() U64 {
 	return pow.NextPowerOfTwo(u)
 }
@@ -123,8 +120,6 @@ func (u U64) NextPowerOfTwo() U64 {
 // Example: 0->1, 1->1, 2->2, 3->2, 4->4, 5->4, 6->4, 7->4, 8->8, 9->8.
 //
 // https://github.com/ethereum/consensus-specs/blob/dev/ssz/merkle-proofs.md#helper-functions
-//
-//nolint:lll // From Ethereum 2.0 spec.
 func (u U64) PrevPowerOfTwo() U64 {
 	return pow.PrevPowerOfTwo(u)
 }

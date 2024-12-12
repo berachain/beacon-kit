@@ -56,21 +56,15 @@ import (
 
 type (
 	TestBeaconStateMarshallableT = types.BeaconState[
-		*types.BeaconBlockHeader,
-		*types.Eth1Data,
 		*types.ExecutionPayloadHeader,
 		*types.Fork,
 		*types.Validator,
-		types.BeaconBlockHeader,
-		types.Eth1Data,
 		types.ExecutionPayloadHeader,
 		types.Fork,
 		types.Validator,
 	]
 
 	TestKVStoreT = beacondb.KVStore[
-		*types.BeaconBlockHeader,
-		*types.Eth1Data,
 		*types.ExecutionPayloadHeader,
 		*types.Fork,
 		*types.Validator,
@@ -78,26 +72,21 @@ type (
 	]
 
 	TestBeaconStateT = statedb.StateDB[
-		*types.BeaconBlockHeader,
 		*TestBeaconStateMarshallableT,
-		*types.Eth1Data,
 		*types.ExecutionPayloadHeader,
 		*types.Fork,
 		*TestKVStoreT,
 		*types.Validator,
 		types.Validators,
 		*engineprimitives.Withdrawal,
-		types.WithdrawalCredentials,
 	]
 
 	TestStateProcessorT = core.StateProcessor[
 		*types.BeaconBlock,
 		*types.BeaconBlockBody,
-		*types.BeaconBlockHeader,
 		*TestBeaconStateT,
 		*transition.Context,
 		*types.Deposit,
-		*types.Eth1Data,
 		*types.ExecutionPayload,
 		*types.ExecutionPayloadHeader,
 		*types.Fork,
@@ -107,7 +96,6 @@ type (
 		types.Validators,
 		*engineprimitives.Withdrawal,
 		engineprimitives.Withdrawals,
-		types.WithdrawalCredentials,
 	]
 )
 
@@ -129,8 +117,6 @@ var (
 
 func initTestStores() (
 	*beacondb.KVStore[
-		*types.BeaconBlockHeader,
-		*types.Eth1Data,
 		*types.ExecutionPayloadHeader,
 		*types.Fork,
 		*types.Validator,
@@ -161,8 +147,6 @@ func initTestStores() (
 	testStoreService := &testKVStoreService{ctx: ctx}
 
 	return beacondb.New[
-			*types.BeaconBlockHeader,
-			*types.Eth1Data,
 			*types.ExecutionPayloadHeader,
 			*types.Fork,
 			*types.Validator,
@@ -220,11 +204,9 @@ func setupState(
 	sp := core.NewStateProcessor[
 		*types.BeaconBlock,
 		*types.BeaconBlockBody,
-		*types.BeaconBlockHeader,
 		*TestBeaconStateT,
 		*transition.Context,
 		*types.Deposit,
-		*types.Eth1Data,
 		*types.ExecutionPayload,
 		*types.ExecutionPayloadHeader,
 		*types.Fork,
@@ -234,7 +216,6 @@ func setupState(
 		types.Validators,
 		*engineprimitives.Withdrawal,
 		engineprimitives.Withdrawals,
-		types.WithdrawalCredentials,
 	](
 		noop.NewLogger[any](),
 		cs,

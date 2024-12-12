@@ -73,12 +73,12 @@ func (b *BeaconBlockBody) Empty(forkVersion uint32) *BeaconBlockBody {
 func BlockBodyKZGOffset(
 	slot math.Slot,
 	cs common.ChainSpec,
-) uint64 {
+) (uint64, error) {
 	switch cs.ActiveForkVersionForSlot(slot) {
 	case version.Deneb:
-		return KZGMerkleIndexDeneb * cs.MaxBlobCommitmentsPerBlock()
+		return KZGMerkleIndexDeneb * cs.MaxBlobCommitmentsPerBlock(), nil
 	default:
-		panic(ErrForkVersionNotSupported)
+		return 0, ErrForkVersionNotSupported
 	}
 }
 

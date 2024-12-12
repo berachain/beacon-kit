@@ -70,7 +70,6 @@ type (
 	BlobProcessor = dablob.Processor[
 		*AvailabilityStore,
 		*BeaconBlockBody,
-		*BeaconBlockHeader,
 		*ConsensusSidecars,
 		*BlobSidecar,
 		*BlobSidecars,
@@ -83,11 +82,9 @@ type (
 		*ConsensusBlock,
 		*BeaconBlock,
 		*BeaconBlockBody,
-		*BeaconBlockHeader,
 		*BeaconState,
 		*BlockStore,
 		*Deposit,
-		WithdrawalCredentials,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*Genesis,
@@ -118,8 +115,6 @@ type (
 
 	// KVStore is a type alias for the KV store.
 	KVStore = beacondb.KVStore[
-		*BeaconBlockHeader,
-		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,
 		*Validator,
@@ -152,18 +147,15 @@ type (
 	SidecarFactory = dablob.SidecarFactory[
 		*BeaconBlock,
 		*BeaconBlockBody,
-		*BeaconBlockHeader,
 	]
 
 	// StateProcessor is the type alias for the state processor interface.
 	StateProcessor = core.StateProcessor[
 		*BeaconBlock,
 		*BeaconBlockBody,
-		*BeaconBlockHeader,
 		*BeaconState,
 		*Context,
 		*Deposit,
-		*Eth1Data,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*Fork,
@@ -173,7 +165,6 @@ type (
 		Validators,
 		*Withdrawal,
 		Withdrawals,
-		WithdrawalCredentials,
 	]
 
 	// StorageBackend is the type alias for the storage backend interface.
@@ -195,7 +186,6 @@ type (
 		*BlobSidecars,
 		*Deposit,
 		*DepositStore,
-		*Eth1Data,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*ForkData,
@@ -216,46 +206,35 @@ type (
 	AvailabilityStore = dastore.Store[*BeaconBlockBody]
 
 	// BeaconBlock type aliases.
-	ConsensusBlock    = consruntimetypes.ConsensusBlock[*BeaconBlock]
-	BeaconBlock       = types.BeaconBlock
-	BeaconBlockBody   = types.BeaconBlockBody
-	BeaconBlockHeader = types.BeaconBlockHeader
+	ConsensusBlock  = consruntimetypes.ConsensusBlock[*BeaconBlock]
+	BeaconBlock     = types.BeaconBlock
+	BeaconBlockBody = types.BeaconBlockBody
 
 	// BeaconState is a type alias for the BeaconState.
 	BeaconState = statedb.StateDB[
-		*BeaconBlockHeader,
 		*BeaconStateMarshallable,
-		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,
 		*KVStore,
 		*Validator,
 		Validators,
 		*Withdrawal,
-		WithdrawalCredentials,
 	]
 
 	// BeaconStateMarshallable is a type alias for the BeaconState.
 	BeaconStateMarshallable = types.BeaconState[
-		*BeaconBlockHeader,
-		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,
 		*Validator,
-		BeaconBlockHeader,
-		Eth1Data,
 		ExecutionPayloadHeader,
 		Fork,
 		Validator,
 	]
 
 	// BlobSidecars type aliases.
-	ConsensusSidecars = consruntimetypes.ConsensusSidecars[
-		*BlobSidecars,
-		*BeaconBlockHeader,
-	]
-	BlobSidecar  = datypes.BlobSidecar
-	BlobSidecars = datypes.BlobSidecars
+	ConsensusSidecars = consruntimetypes.ConsensusSidecars[*BlobSidecars]
+	BlobSidecar       = datypes.BlobSidecar
+	BlobSidecars      = datypes.BlobSidecars
 
 	// BlockStore is a type alias for the block store.
 	BlockStore = block.KVStore[*BeaconBlock]
@@ -267,10 +246,7 @@ type (
 	Deposit = types.Deposit
 
 	// DepositContract is a type alias for the deposit contract.
-	DepositContract = deposit.WrappedDepositContract[
-		*Deposit,
-		WithdrawalCredentials,
-	]
+	DepositContract = deposit.WrappedDepositContract[*Deposit]
 
 	// DepositStore is a type alias for the deposit store.
 	DepositStore = depositdb.KVStore[*Deposit]
@@ -314,7 +290,6 @@ type (
 		*AvailabilityStore,
 		*BeaconBlock,
 		*BeaconBlockBody,
-		*BeaconBlockHeader,
 		*BeaconState,
 		*BeaconStateMarshallable,
 		*BlobSidecars,
@@ -322,7 +297,6 @@ type (
 		sdk.Context,
 		*Deposit,
 		*DepositStore,
-		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,
 		*CometBFTService,
@@ -331,7 +305,6 @@ type (
 		*Validator,
 		Validators,
 		*Withdrawal,
-		WithdrawalCredentials,
 	]
 
 	// NodeAPIContext is a type alias for the node API context.
@@ -366,9 +339,6 @@ type (
 
 	// Withdrawals is a type alias for the engineprimitives withdrawals.
 	Withdrawals = engineprimitives.Withdrawals
-
-	// WithdrawalCredentials is a type alias for the withdrawal credentials.
-	WithdrawalCredentials = types.WithdrawalCredentials
 )
 
 /* -------------------------------------------------------------------------- */

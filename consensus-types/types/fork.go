@@ -39,8 +39,6 @@ var (
 
 // Fork as defined in the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#fork
-//
-//nolint:lll
 type Fork struct {
 	// PreviousVersion is the last version before the fork.
 	PreviousVersion common.Version `json:"previous_version"`

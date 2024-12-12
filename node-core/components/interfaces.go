@@ -25,6 +25,7 @@ import (
 	"context"
 	"encoding/json"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-api/handlers"
@@ -96,7 +97,6 @@ type (
 	BeaconBlock[
 		T any,
 		BeaconBlockBodyT any,
-		BeaconBlockHeaderT any,
 	] interface {
 		constraints.Nillable
 		constraints.Empty[T]
@@ -120,7 +120,7 @@ type (
 		// GetBody returns the body of the block.
 		GetBody() BeaconBlockBodyT
 		// GetHeader returns the header of the block.
-		GetHeader() BeaconBlockHeaderT
+		GetHeader() *ctypes.BeaconBlockHeader
 		// GetParentBlockRoot returns the root of the parent block.
 		GetParentBlockRoot() common.Root
 		// GetStateRoot returns the state root of the block.
@@ -136,7 +136,6 @@ type (
 		T any,
 		AttestationDataT any,
 		DepositT any,
-		Eth1DataT any,
 		ExecutionPayloadT any,
 		SlashingInfoT any,
 	] interface {
@@ -156,7 +155,7 @@ type (
 		// SetRandaoReveal sets the Randao reveal of the beacon block body.
 		SetRandaoReveal(crypto.BLSSignature)
 		// SetEth1Data sets the Eth1 data of the beacon block body.
-		SetEth1Data(Eth1DataT)
+		SetEth1Data(*ctypes.Eth1Data)
 		// SetDeposits sets the deposits of the beacon block body.
 		SetDeposits([]DepositT)
 		// SetExecutionPayload sets the execution data of the beacon block body.
@@ -172,33 +171,10 @@ type (
 		SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])
 	}
 
-	// BeaconBlockHeader is the interface for a beacon block header.
-	BeaconBlockHeader[T any] interface {
-		constraints.Empty[T]
-		constraints.SSZMarshallableRootable
-		New(
-			slot math.Slot,
-			proposerIndex math.ValidatorIndex,
-			parentBlockRoot common.Root,
-			stateRoot common.Root,
-			bodyRoot common.Root,
-		) T
-		GetSlot() math.Slot
-		GetProposerIndex() math.ValidatorIndex
-		GetParentBlockRoot() common.Root
-		GetStateRoot() common.Root
-		SetStateRoot(common.Root)
-		GetBodyRoot() common.Root
-		GetTree() (*fastssz.Node, error)
-		Equals(T) bool
-	}
-
 	// BeaconStateMarshallable represents an interface for a beacon state
 	// with generic types.
 	BeaconStateMarshallable[
 		T,
-		BeaconBlockHeaderT,
-		Eth1DataT,
 		ExecutionPayloadHeaderT,
 		ForkT,
 		ValidatorT any,
@@ -211,10 +187,10 @@ type (
 			genesisValidatorsRoot common.Root,
 			slot math.U64,
 			fork ForkT,
-			latestBlockHeader BeaconBlockHeaderT,
+			latestBlockHeader *ctypes.BeaconBlockHeader,
 			blockRoots []common.Root,
 			stateRoots []common.Root,
-			eth1Data Eth1DataT,
+			eth1Data *ctypes.Eth1Data,
 			eth1DepositIndex uint64,
 			latestExecutionPayloadHeader ExecutionPayloadHeaderT,
 			validators []ValidatorT,
@@ -245,8 +221,8 @@ type (
 		) error
 	}
 
-	BlobSidecar[BeaconBlockHeaderT any] interface {
-		GetBeaconBlockHeader() BeaconBlockHeaderT
+	BlobSidecar interface {
+		GetBeaconBlockHeader() *ctypes.BeaconBlockHeader
 		GetBlob() eip4844.Blob
 		GetKzgProof() eip4844.KZGProof
 		GetKzgCommitment() eip4844.KZGCommitment
@@ -254,10 +230,9 @@ type (
 
 	ConsensusSidecars[
 		BlobSidecarsT any,
-		BeaconBlockHeaderT any,
 	] interface {
 		GetSidecars() BlobSidecarsT
-		GetHeader() BeaconBlockHeaderT
+		GetHeader() *ctypes.BeaconBlockHeader
 	}
 
 	// BlobSidecars is the interface for blobs sidecars.
@@ -272,13 +247,13 @@ type (
 		VerifyInclusionProofs(kzgOffset uint64) error
 	}
 
-	BlobVerifier[BlobSidecarsT, BeaconBlockHeaderT any] interface {
+	BlobVerifier[BlobSidecarsT any] interface {
 		VerifyInclusionProofs(scs BlobSidecarsT, kzgOffset uint64) error
 		VerifyKZGProofs(scs BlobSidecarsT) error
 		VerifySidecars(
 			sidecars BlobSidecarsT,
 			kzgOffset uint64,
-			blkHeader BeaconBlockHeaderT,
+			blkHeader *ctypes.BeaconBlockHeader,
 		) error
 	}
 
@@ -371,14 +346,13 @@ type (
 	Deposit[
 		T any,
 		ForkDataT any,
-		WithdrawalCredentialsT any,
 	] interface {
 		constraints.Empty[T]
 		constraints.SSZMarshallableRootable
 		// New creates a new deposit.
 		New(
 			crypto.BLSPubkey,
-			WithdrawalCredentialsT,
+			ctypes.WithdrawalCredentials,
 			math.U64,
 			crypto.BLSSignature,
 			uint64,
@@ -392,7 +366,7 @@ type (
 		// GetPubkey returns the public key of the validator.
 		GetPubkey() crypto.BLSPubkey
 		// GetWithdrawalCredentials returns the withdrawal credentials.
-		GetWithdrawalCredentials() WithdrawalCredentialsT
+		GetWithdrawalCredentials() ctypes.WithdrawalCredentials
 		// HasEth1WithdrawalCredentials returns true if the deposit has eth1
 		// withdrawal credentials.
 		HasEth1WithdrawalCredentials() bool
@@ -807,9 +781,7 @@ type (
 	// is a combination of the read-only and write-only beacon state types.
 	BeaconState[
 		T any,
-		BeaconBlockHeaderT any,
 		BeaconStateMarshallableT any,
-		Eth1DataT,
 		ExecutionPayloadHeaderT,
 		ForkT,
 		KVStoreT,
@@ -827,11 +799,11 @@ type (
 		GetMarshallable() (BeaconStateMarshallableT, error)
 
 		ReadOnlyBeaconState[
-			BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+			ExecutionPayloadHeaderT,
 			ForkT, ValidatorT, ValidatorsT, WithdrawalT,
 		]
 		WriteOnlyBeaconState[
-			BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+			ExecutionPayloadHeaderT,
 			ForkT, ValidatorT,
 		]
 	}
@@ -839,8 +811,6 @@ type (
 	// BeaconStore is the interface for the beacon store.
 	BeaconStore[
 		T any,
-		BeaconBlockHeaderT any,
-		Eth1DataT any,
 		ExecutionPayloadHeaderT any,
 		ForkT any,
 		ValidatorT any,
@@ -889,17 +859,17 @@ type (
 		// SetGenesisValidatorsRoot sets the genesis validators root.
 		SetGenesisValidatorsRoot(root common.Root) error
 		// GetLatestBlockHeader retrieves the latest block header.
-		GetLatestBlockHeader() (BeaconBlockHeaderT, error)
+		GetLatestBlockHeader() (*ctypes.BeaconBlockHeader, error)
 		// SetLatestBlockHeader sets the latest block header.
-		SetLatestBlockHeader(header BeaconBlockHeaderT) error
+		SetLatestBlockHeader(header *ctypes.BeaconBlockHeader) error
 		// GetBlockRootAtIndex retrieves the block root at the given index.
 		GetBlockRootAtIndex(index uint64) (common.Root, error)
 		// StateRootAtIndex retrieves the state root at the given index.
 		StateRootAtIndex(index uint64) (common.Root, error)
 		// GetEth1Data retrieves the eth1 data.
-		GetEth1Data() (Eth1DataT, error)
+		GetEth1Data() (*ctypes.Eth1Data, error)
 		// SetEth1Data sets the eth1 data.
-		SetEth1Data(data Eth1DataT) error
+		SetEth1Data(data *ctypes.Eth1Data) error
 		// GetValidators retrieves all validators.
 		GetValidators() (ValidatorsT, error)
 		// GetBalances retrieves all balances.
@@ -965,10 +935,10 @@ type (
 
 	// ReadOnlyBeaconState is the interface for a read-only beacon state.
 	ReadOnlyBeaconState[
-		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+		ExecutionPayloadHeaderT, ForkT,
 		ValidatorT, ValidatorsT, WithdrawalT any,
 	] interface {
-		ReadOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT]
+		ReadOnlyEth1Data[ExecutionPayloadHeaderT]
 		ReadOnlyRandaoMixes
 		ReadOnlyStateRoots
 		ReadOnlyValidators[ValidatorT]
@@ -981,7 +951,7 @@ type (
 		GetFork() (ForkT, error)
 		GetGenesisValidatorsRoot() (common.Root, error)
 		GetBlockRootAtIndex(uint64) (common.Root, error)
-		GetLatestBlockHeader() (BeaconBlockHeaderT, error)
+		GetLatestBlockHeader() (*ctypes.BeaconBlockHeader, error)
 		GetTotalActiveBalances(uint64) (math.Gwei, error)
 		GetValidators() (ValidatorsT, error)
 		GetSlashingAtIndex(uint64) (math.Gwei, error)
@@ -997,10 +967,10 @@ type (
 
 	// WriteOnlyBeaconState is the interface for a write-only beacon state.
 	WriteOnlyBeaconState[
-		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+		ExecutionPayloadHeaderT,
 		ForkT, ValidatorT any,
 	] interface {
-		WriteOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT]
+		WriteOnlyEth1Data[ExecutionPayloadHeaderT]
 		WriteOnlyRandaoMixes
 		WriteOnlyStateRoots
 		WriteOnlyValidators[ValidatorT]
@@ -1009,7 +979,7 @@ type (
 		SetFork(ForkT) error
 		SetSlot(math.Slot) error
 		UpdateBlockRootAtIndex(uint64, common.Root) error
-		SetLatestBlockHeader(BeaconBlockHeaderT) error
+		SetLatestBlockHeader(*ctypes.BeaconBlockHeader) error
 		IncreaseBalance(math.ValidatorIndex, math.Gwei) error
 		DecreaseBalance(math.ValidatorIndex, math.Gwei) error
 		UpdateSlashingAtIndex(uint64, math.Gwei) error
@@ -1067,8 +1037,8 @@ type (
 	}
 
 	// WriteOnlyEth1Data has write access to eth1 data.
-	WriteOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT any] interface {
-		SetEth1Data(Eth1DataT) error
+	WriteOnlyEth1Data[ExecutionPayloadHeaderT any] interface {
+		SetEth1Data(*ctypes.Eth1Data) error
 		SetEth1DepositIndex(uint64) error
 		SetLatestExecutionPayloadHeader(
 			ExecutionPayloadHeaderT,
@@ -1076,8 +1046,8 @@ type (
 	}
 
 	// ReadOnlyEth1Data has read access to eth1 data.
-	ReadOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT any] interface {
-		GetEth1Data() (Eth1DataT, error)
+	ReadOnlyEth1Data[ExecutionPayloadHeaderT any] interface {
+		GetEth1Data() (*ctypes.Eth1Data, error)
 		GetEth1DepositIndex() (uint64, error)
 		GetLatestExecutionPayloadHeader() (
 			ExecutionPayloadHeaderT, error,
@@ -1109,7 +1079,6 @@ type (
 	}
 
 	NodeAPIBackend[
-		BeaconBlockHeaderT any,
 		BeaconStateT any,
 		ForkT any,
 		NodeT any,
@@ -1122,19 +1091,19 @@ type (
 		GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
 
 		NodeAPIBeaconBackend[
-			BeaconStateT, BeaconBlockHeaderT, ForkT, ValidatorT,
+			BeaconStateT, ForkT, ValidatorT,
 		]
 		NodeAPIProofBackend[
-			BeaconBlockHeaderT, BeaconStateT, ForkT, ValidatorT,
+			BeaconStateT, ForkT, ValidatorT,
 		]
 	}
 
 	// NodeAPIBackend is the interface for backend of the beacon API.
 	NodeAPIBeaconBackend[
-		BeaconStateT, BeaconBlockHeaderT, ForkT, ValidatorT any,
+		BeaconStateT, ForkT, ValidatorT any,
 	] interface {
 		GenesisBackend
-		BlockBackend[BeaconBlockHeaderT]
+		BlockBackend
 		RandaoBackend
 		StateBackend[BeaconStateT, ForkT]
 		ValidatorBackend[ValidatorT]
@@ -1147,9 +1116,9 @@ type (
 
 	// NodeAPIProofBackend is the interface for backend of the proof API.
 	NodeAPIProofBackend[
-		BeaconBlockHeaderT, BeaconStateT, ForkT, ValidatorT any,
+		BeaconStateT, ForkT, ValidatorT any,
 	] interface {
-		BlockBackend[BeaconBlockHeaderT]
+		BlockBackend
 		StateBackend[BeaconStateT, ForkT]
 		GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
 	}
@@ -1167,10 +1136,10 @@ type (
 		RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes32, error)
 	}
 
-	BlockBackend[BeaconBlockHeaderT any] interface {
+	BlockBackend interface {
 		BlockRootAtSlot(slot math.Slot) (common.Root, error)
 		BlockRewardsAtSlot(slot math.Slot) (*types.BlockRewardsData, error)
-		BlockHeaderAtSlot(slot math.Slot) (BeaconBlockHeaderT, error)
+		BlockHeaderAtSlot(slot math.Slot) (*ctypes.BeaconBlockHeader, error)
 	}
 
 	StateBackend[BeaconStateT, ForkT any] interface {

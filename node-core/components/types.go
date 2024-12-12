@@ -40,9 +40,6 @@ type (
 	// Context is a type alias for the transition context.
 	Context = transition.Context
 
-	// Eth1Data is a type alias for the eth1 data.
-	Eth1Data = types.Eth1Data
-
 	// Fork is a type alias for the fork.
 	Fork = types.Fork
 
