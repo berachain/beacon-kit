@@ -26,7 +26,7 @@ import ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 // header from the BeaconStore.
 func (kv *KVStore[
 	ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
+	ValidatorT, ValidatorsT,
 ]) GetLatestExecutionPayloadHeader() (
 	ExecutionPayloadHeaderT, error,
 ) {
@@ -43,7 +43,7 @@ func (kv *KVStore[
 // the BeaconStore.
 func (kv *KVStore[
 	ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
+	ValidatorT, ValidatorsT,
 ]) SetLatestExecutionPayloadHeader(
 	payloadHeader ExecutionPayloadHeaderT,
 ) error {
@@ -59,7 +59,7 @@ func (kv *KVStore[
 // GetEth1DepositIndex retrieves the eth1 deposit index from the beacon state.
 func (kv *KVStore[
 	ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
+	ValidatorT, ValidatorsT,
 ]) GetEth1DepositIndex() (uint64, error) {
 	return kv.eth1DepositIndex.Get(kv.ctx)
 }
@@ -67,7 +67,7 @@ func (kv *KVStore[
 // SetEth1DepositIndex sets the eth1 deposit index in the beacon state.
 func (kv *KVStore[
 	ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
+	ValidatorT, ValidatorsT,
 ]) SetEth1DepositIndex(
 	index uint64,
 ) error {
@@ -77,7 +77,7 @@ func (kv *KVStore[
 // GetEth1Data retrieves the eth1 data from the beacon state.
 func (kv *KVStore[
 	ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
+	ValidatorT, ValidatorsT,
 ]) GetEth1Data() (*ctypes.Eth1Data, error) {
 	return kv.eth1Data.Get(kv.ctx)
 }
@@ -85,7 +85,7 @@ func (kv *KVStore[
 // SetEth1Data sets the eth1 data in the beacon state.
 func (kv *KVStore[
 	ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
+	ValidatorT, ValidatorsT,
 ]) SetEth1Data(
 	data *ctypes.Eth1Data,
 ) error {

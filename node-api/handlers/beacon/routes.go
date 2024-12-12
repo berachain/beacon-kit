@@ -28,7 +28,7 @@ import (
 )
 
 //nolint:funlen // routes are long
-func (h *Handler[ContextT, _, _]) RegisterRoutes(
+func (h *Handler[ContextT, _]) RegisterRoutes(
 	logger log.Logger,
 ) {
 	h.SetLogger(logger)

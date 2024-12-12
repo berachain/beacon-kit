@@ -34,7 +34,6 @@ import (
 type BeaconState[
 	T any,
 	ExecutionPayloadHeaderT,
-	ForkT,
 	KVStoreT,
 	ValidatorT,
 	ValidatorsT,
@@ -49,18 +48,18 @@ type BeaconState[
 	HashTreeRoot() common.Root
 	ReadOnlyBeaconState[
 		ExecutionPayloadHeaderT,
-		ForkT, ValidatorT, ValidatorsT, WithdrawalT,
+		ValidatorT, ValidatorsT, WithdrawalT,
 	]
 	WriteOnlyBeaconState[
 		ExecutionPayloadHeaderT,
-		ForkT, ValidatorT,
+		ValidatorT,
 	]
 }
 
 // ReadOnlyBeaconState is the interface for a read-only beacon state.
 type ReadOnlyBeaconState[
 	ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT, WithdrawalT any,
+	ValidatorT, ValidatorsT, WithdrawalT any,
 ] interface {
 	ReadOnlyEth1Data[ExecutionPayloadHeaderT]
 	ReadOnlyRandaoMixes
@@ -70,7 +69,7 @@ type ReadOnlyBeaconState[
 
 	GetBalance(math.ValidatorIndex) (math.Gwei, error)
 	GetSlot() (math.Slot, error)
-	GetFork() (ForkT, error)
+	GetFork() (*ctypes.Fork, error)
 	GetGenesisValidatorsRoot() (common.Root, error)
 	GetBlockRootAtIndex(uint64) (common.Root, error)
 	GetLatestBlockHeader() (*ctypes.BeaconBlockHeader, error)
@@ -90,7 +89,7 @@ type ReadOnlyBeaconState[
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
 type WriteOnlyBeaconState[
 	ExecutionPayloadHeaderT,
-	ForkT, ValidatorT any,
+	ValidatorT any,
 ] interface {
 	WriteOnlyEth1Data[ExecutionPayloadHeaderT]
 	WriteOnlyRandaoMixes
@@ -98,7 +97,7 @@ type WriteOnlyBeaconState[
 	WriteOnlyValidators[ValidatorT]
 
 	SetGenesisValidatorsRoot(root common.Root) error
-	SetFork(ForkT) error
+	SetFork(*ctypes.Fork) error
 	SetSlot(math.Slot) error
 	UpdateBlockRootAtIndex(uint64, common.Root) error
 	SetLatestBlockHeader(*ctypes.BeaconBlockHeader) error

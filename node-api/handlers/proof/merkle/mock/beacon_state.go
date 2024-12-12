@@ -42,10 +42,8 @@ var _ ptypes.BeaconState[
 type (
 	BeaconStateMarshallable = types.BeaconState[
 		*types.ExecutionPayloadHeader,
-		*types.Fork,
 		*types.Validator,
 		types.ExecutionPayloadHeader,
-		types.Fork,
 		types.Validator,
 	]
 

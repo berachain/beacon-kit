@@ -176,7 +176,6 @@ type (
 	BeaconStateMarshallable[
 		T,
 		ExecutionPayloadHeaderT,
-		ForkT,
 		ValidatorT any,
 	] interface {
 		constraints.SSZMarshallableRootable
@@ -186,7 +185,7 @@ type (
 			forkVersion uint32,
 			genesisValidatorsRoot common.Root,
 			slot math.U64,
-			fork ForkT,
+			fork *ctypes.Fork,
 			latestBlockHeader *ctypes.BeaconBlockHeader,
 			blockRoots []common.Root,
 			stateRoots []common.Root,
@@ -782,7 +781,6 @@ type (
 		T any,
 		BeaconStateMarshallableT any,
 		ExecutionPayloadHeaderT,
-		ForkT,
 		KVStoreT,
 		ValidatorT,
 		ValidatorsT,
@@ -799,11 +797,11 @@ type (
 
 		ReadOnlyBeaconState[
 			ExecutionPayloadHeaderT,
-			ForkT, ValidatorT, ValidatorsT, WithdrawalT,
+			ValidatorT, ValidatorsT, WithdrawalT,
 		]
 		WriteOnlyBeaconState[
 			ExecutionPayloadHeaderT,
-			ForkT, ValidatorT,
+			ValidatorT,
 		]
 	}
 
@@ -811,7 +809,6 @@ type (
 	BeaconStore[
 		T any,
 		ExecutionPayloadHeaderT any,
-		ForkT any,
 		ValidatorT any,
 		ValidatorsT any,
 		WithdrawalT any,
@@ -850,9 +847,9 @@ type (
 		// SetSlot sets the current slot.
 		SetSlot(slot math.Slot) error
 		// GetFork retrieves the fork.
-		GetFork() (ForkT, error)
+		GetFork() (*ctypes.Fork, error)
 		// SetFork sets the fork.
-		SetFork(fork ForkT) error
+		SetFork(fork *ctypes.Fork) error
 		// GetGenesisValidatorsRoot retrieves the genesis validators root.
 		GetGenesisValidatorsRoot() (common.Root, error)
 		// SetGenesisValidatorsRoot sets the genesis validators root.
@@ -934,7 +931,7 @@ type (
 
 	// ReadOnlyBeaconState is the interface for a read-only beacon state.
 	ReadOnlyBeaconState[
-		ExecutionPayloadHeaderT, ForkT,
+		ExecutionPayloadHeaderT,
 		ValidatorT, ValidatorsT, WithdrawalT any,
 	] interface {
 		ReadOnlyEth1Data[ExecutionPayloadHeaderT]
@@ -947,7 +944,7 @@ type (
 		GetBalances() ([]uint64, error)
 		GetBalance(math.ValidatorIndex) (math.Gwei, error)
 		GetSlot() (math.Slot, error)
-		GetFork() (ForkT, error)
+		GetFork() (*ctypes.Fork, error)
 		GetGenesisValidatorsRoot() (common.Root, error)
 		GetBlockRootAtIndex(uint64) (common.Root, error)
 		GetLatestBlockHeader() (*ctypes.BeaconBlockHeader, error)
@@ -967,7 +964,7 @@ type (
 	// WriteOnlyBeaconState is the interface for a write-only beacon state.
 	WriteOnlyBeaconState[
 		ExecutionPayloadHeaderT,
-		ForkT, ValidatorT any,
+		ValidatorT any,
 	] interface {
 		WriteOnlyEth1Data[ExecutionPayloadHeaderT]
 		WriteOnlyRandaoMixes
@@ -975,7 +972,7 @@ type (
 		WriteOnlyValidators[ValidatorT]
 
 		SetGenesisValidatorsRoot(root common.Root) error
-		SetFork(ForkT) error
+		SetFork(*ctypes.Fork) error
 		SetSlot(math.Slot) error
 		UpdateBlockRootAtIndex(uint64, common.Root) error
 		SetLatestBlockHeader(*ctypes.BeaconBlockHeader) error
@@ -1079,7 +1076,6 @@ type (
 
 	NodeAPIBackend[
 		BeaconStateT any,
-		ForkT any,
 		NodeT any,
 		ValidatorT any,
 	] interface {
@@ -1090,23 +1086,23 @@ type (
 		GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
 
 		NodeAPIBeaconBackend[
-			BeaconStateT, ForkT, ValidatorT,
+			BeaconStateT, ValidatorT,
 		]
 		NodeAPIProofBackend[
-			BeaconStateT, ForkT, ValidatorT,
+			BeaconStateT, ValidatorT,
 		]
 	}
 
 	// NodeAPIBackend is the interface for backend of the beacon API.
 	NodeAPIBeaconBackend[
-		BeaconStateT, ForkT, ValidatorT any,
+		BeaconStateT, ValidatorT any,
 	] interface {
 		GenesisBackend
 		BlockBackend
 		RandaoBackend
-		StateBackend[BeaconStateT, ForkT]
+		StateBackend[BeaconStateT]
 		ValidatorBackend[ValidatorT]
-		HistoricalBackend[ForkT]
+		HistoricalBackend
 		// GetSlotByBlockRoot retrieves the slot by a given root from the store.
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		// GetSlotByStateRoot retrieves the slot by a given root from the store.
@@ -1115,10 +1111,10 @@ type (
 
 	// NodeAPIProofBackend is the interface for backend of the proof API.
 	NodeAPIProofBackend[
-		BeaconStateT, ForkT, ValidatorT any,
+		BeaconStateT, ValidatorT any,
 	] interface {
 		BlockBackend
-		StateBackend[BeaconStateT, ForkT]
+		StateBackend[BeaconStateT]
 		GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
 	}
 
@@ -1126,9 +1122,9 @@ type (
 		GenesisValidatorsRoot(slot math.Slot) (common.Root, error)
 	}
 
-	HistoricalBackend[ForkT any] interface {
+	HistoricalBackend interface {
 		StateRootAtSlot(slot math.Slot) (common.Root, error)
-		StateForkAtSlot(slot math.Slot) (ForkT, error)
+		StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error)
 	}
 
 	RandaoBackend interface {
@@ -1141,9 +1137,9 @@ type (
 		BlockHeaderAtSlot(slot math.Slot) (*ctypes.BeaconBlockHeader, error)
 	}
 
-	StateBackend[BeaconStateT, ForkT any] interface {
+	StateBackend[BeaconStateT any] interface {
 		StateRootAtSlot(slot math.Slot) (common.Root, error)
-		StateForkAtSlot(slot math.Slot) (ForkT, error)
+		StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error)
 		StateFromSlotForProof(slot math.Slot) (BeaconStateT, math.Slot, error)
 	}
 

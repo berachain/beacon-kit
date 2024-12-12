@@ -32,7 +32,6 @@ import (
 type BeaconStateMarshallable[
 	T any,
 	ExecutionPayloadHeaderT,
-	ForkT,
 	ValidatorT any,
 ] interface {
 	constraints.SSZMarshallableRootable
@@ -41,7 +40,7 @@ type BeaconStateMarshallable[
 		forkVersion uint32,
 		genesisValidatorsRoot common.Root,
 		slot math.U64,
-		fork ForkT,
+		fork *ctypes.Fork,
 		latestBlockHeader *ctypes.BeaconBlockHeader,
 		blockRoots []common.Root,
 		stateRoots []common.Root,
