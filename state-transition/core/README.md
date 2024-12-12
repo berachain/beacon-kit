@@ -15,7 +15,7 @@ We list below a few relevant facts.
 BeaconKit distingishes a validator `Balance` and a validator `EffectiveBalance`.
 
 - `Balance` is updated slot by slot, when a deposit in made over the deposit contract and events are subsequently processed by BeaconKit.
-- `Balance` changes in multiples of the `MinDeposit` specified in the deposit contract. There is no cap on the `Balance`.
+- `Balance` can increase only in multiples of `MinDepositAmount`, which is specified in the deposit contract. There is no cap on the `Balance`.
 - `EffectiveBalance` is updated at the turn of every epoch.
 - `EffectiveBalance` is enforced to be a multiple of `EffectiveBalanceIncrement`
 - `EffectiveBalance` is capped at `MaxEffectiveBalance`. Any `Balance` in excess of `MaxEffectiveBalance` is automatically withdrawn.
@@ -27,7 +27,7 @@ Validators are created by a deposit made to the deposit contract, as soon as the
 
 Say a deposit is made at slot `S`, epoch `N`, that creates a validator.
 
-The funds deposited will be locked and the validator will stay inactive until the a minimum staking balance is hit. The minimum staking balance is set to `EjectionBalance + EffectiveBalanceIncrement` to account for hysteresys.
+The funds deposited will be locked and the validator will stay inactive until the a minimum staking balance is hit. The minimum staking balance is set to `EjectionBalance + EffectiveBalanceIncrement` to account for hysteresys. However if the active validator set has already reached the `ValidatorSetCap`, a new prospective validator must deposit more funds than the effective balance of the active validator with the lowest stake.
 
 So let's assumed that `S`, epoch `N`, is the slot where finally the validator `Balance` equals the minimum required for staking (one or multiple deposits may have been done to get there). Then:
 
