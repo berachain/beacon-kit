@@ -23,6 +23,7 @@ package core
 import (
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -33,7 +34,7 @@ import (
 // processOperations processes the operations and ensures they match the
 // local state.
 func (sp *StateProcessor[
-	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _,
+	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _,
 ]) processOperations(
 	st BeaconStateT,
 	blk BeaconBlockT,
@@ -65,7 +66,7 @@ func (sp *StateProcessor[
 
 // processDeposit processes the deposit and ensures it matches the local state.
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, DepositT, _, _, _, _, _, _, _, _, _,
+	_, _, BeaconStateT, _, DepositT, _, _, _, _, _, _, _, _,
 ]) processDeposit(
 	st BeaconStateT,
 	dep DepositT,
@@ -107,7 +108,7 @@ func (sp *StateProcessor[
 
 // applyDeposit processes the deposit and ensures it matches the local state.
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, DepositT, _, _, _, _, _, ValidatorT, _, _, _,
+	_, _, BeaconStateT, _, DepositT, _, _, _, _, ValidatorT, _, _, _,
 ]) applyDeposit(
 	st BeaconStateT,
 	dep DepositT,
@@ -163,7 +164,7 @@ func (sp *StateProcessor[
 
 // createValidator creates a validator if the deposit is valid.
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, DepositT, _, _, _, ForkDataT, _, _, _, _, _,
+	_, _, BeaconStateT, _, DepositT, _, _, _, _, _, _, _, _,
 ]) createValidator(
 	st BeaconStateT,
 	dep DepositT,
@@ -198,7 +199,7 @@ func (sp *StateProcessor[
 	}
 
 	// Verify that the message was signed correctly.
-	var d ForkDataT
+	var d ctypes.ForkData
 	if err = dep.VerifySignature(
 		d.New(
 			version.FromUint32[common.Version](
@@ -223,7 +224,7 @@ func (sp *StateProcessor[
 
 // addValidatorToRegistry adds a validator to the registry.
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, DepositT, _, _, _, _, _, ValidatorT, _, _, _,
+	_, _, BeaconStateT, _, DepositT, _, _, _, _, ValidatorT, _, _, _,
 ]) addValidatorToRegistry(
 	st BeaconStateT,
 	dep DepositT,

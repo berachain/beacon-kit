@@ -43,9 +43,7 @@ type DepositStoreInput[
 // ProvideDepositStore is a function that provides the module to the
 // application.
 func ProvideDepositStore[
-	DepositT Deposit[
-		DepositT, *ForkData,
-	],
+	DepositT Deposit[DepositT],
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	in DepositStoreInput[LoggerT],

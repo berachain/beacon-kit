@@ -43,7 +43,6 @@ type Service[
 	DepositStoreT DepositStore[DepositT],
 	ExecutionPayloadT any,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	ForkDataT ForkData[ForkDataT],
 	SlashingInfoT any,
 	SlotDataT SlotData[AttestationDataT, SlashingInfoT],
 ] struct {
@@ -92,7 +91,6 @@ func NewService[
 	DepositStoreT DepositStore[DepositT],
 	ExecutionPayloadT any,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	ForkDataT ForkData[ForkDataT],
 	SlashingInfoT any,
 	SlotDataT SlotData[AttestationDataT, SlashingInfoT],
 ](
@@ -114,13 +112,13 @@ func NewService[
 ) *Service[
 	AttestationDataT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarT, BlobSidecarsT, DepositT, DepositStoreT,
-	ExecutionPayloadT, ExecutionPayloadHeaderT, ForkDataT, SlashingInfoT,
+	ExecutionPayloadT, ExecutionPayloadHeaderT, SlashingInfoT,
 	SlotDataT,
 ] {
 	return &Service[
 		AttestationDataT, BeaconBlockT, BeaconBlockBodyT,
 		BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositT, DepositStoreT,
-		ExecutionPayloadT, ExecutionPayloadHeaderT, ForkDataT, SlashingInfoT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT, SlashingInfoT,
 		SlotDataT,
 	]{
 		cfg:                   cfg,
@@ -138,19 +136,19 @@ func NewService[
 
 // Name returns the name of the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _,
 ]) Name() string {
 	return "validator"
 }
 
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _,
 ]) Start(
 	_ context.Context,
 ) error {
 	return nil
 }
 
-func (s *Service[_, _, _, _, _, _, _, _, _, _, _, _, _]) Stop() error {
+func (s *Service[_, _, _, _, _, _, _, _, _, _, _, _]) Stop() error {
 	return nil
 }
