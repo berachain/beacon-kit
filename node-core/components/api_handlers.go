@@ -35,11 +35,11 @@ import (
 type NodeAPIHandlersInput[
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconStateMarshallableT,
-		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT,
+		ExecutionPayloadHeaderT, *Fork, KVStoreT,
 		*Validator, Validators, WithdrawalT,
 	],
 	BeaconStateMarshallableT BeaconStateMarshallable[
-		BeaconStateMarshallableT, *Eth1Data,
+		BeaconStateMarshallableT,
 		ExecutionPayloadHeaderT, *Fork, *Validator,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
@@ -65,11 +65,11 @@ type NodeAPIHandlersInput[
 func ProvideNodeAPIHandlers[
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconStateMarshallableT,
-		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT,
+		ExecutionPayloadHeaderT, *Fork, KVStoreT,
 		*Validator, Validators, WithdrawalT,
 	],
 	BeaconStateMarshallableT BeaconStateMarshallable[
-		BeaconStateMarshallableT, *Eth1Data,
+		BeaconStateMarshallableT,
 		ExecutionPayloadHeaderT, *Fork, *Validator,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
@@ -146,11 +146,11 @@ func ProvideNodeAPINodeHandler[
 func ProvideNodeAPIProofHandler[
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconStateMarshallableT,
-		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT,
+		ExecutionPayloadHeaderT, *Fork, KVStoreT,
 		*Validator, Validators, WithdrawalT,
 	],
 	BeaconStateMarshallableT BeaconStateMarshallable[
-		BeaconStateMarshallableT, *Eth1Data,
+		BeaconStateMarshallableT,
 		ExecutionPayloadHeaderT, *Fork, *Validator,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],

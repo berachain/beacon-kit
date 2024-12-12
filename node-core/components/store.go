@@ -37,7 +37,6 @@ type KVStoreInput struct {
 func ProvideKVStore[
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 ](in KVStoreInput) *beacondb.KVStore[
-	*Eth1Data,
 	ExecutionPayloadHeaderT,
 	*Fork,
 	*Validator,
@@ -45,7 +44,6 @@ func ProvideKVStore[
 ] {
 	payloadCodec := &encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT]{}
 	return beacondb.New[
-		*Eth1Data,
 		ExecutionPayloadHeaderT,
 		*Fork,
 		*Validator,

@@ -63,7 +63,7 @@ type LocalBuilderInput[
 func ProvideLocalBuilder[
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconStateMarshallableT,
-		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT, *Validator,
+		ExecutionPayloadHeaderT, *Fork, KVStoreT, *Validator,
 		Validators, WithdrawalT,
 	],
 	BeaconStateMarshallableT any,

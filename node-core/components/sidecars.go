@@ -40,7 +40,7 @@ func ProvideSidecarFactory[
 	],
 	BeaconBlockBodyT BeaconBlockBody[
 		BeaconBlockBodyT, *AttestationData, DepositT,
-		*Eth1Data, ExecutionPayloadT, *SlashingInfo,
+		ExecutionPayloadT, *SlashingInfo,
 	],
 	DepositT any,
 	ExecutionPayloadT ExecutionPayload[
