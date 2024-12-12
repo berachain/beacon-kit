@@ -32,7 +32,7 @@ import (
 )
 
 func TestFork_Serialization(t *testing.T) {
-	original := (&types.Fork{}).New(
+	original := types.NewFork(
 		common.Version{1, 2, 3, 4},
 		common.Version{5, 6, 7, 8},
 		math.Epoch(1000),

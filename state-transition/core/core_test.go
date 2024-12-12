@@ -57,16 +57,13 @@ import (
 type (
 	TestBeaconStateMarshallableT = types.BeaconState[
 		*types.ExecutionPayloadHeader,
-		*types.Fork,
 		*types.Validator,
 		types.ExecutionPayloadHeader,
-		types.Fork,
 		types.Validator,
 	]
 
 	TestKVStoreT = beacondb.KVStore[
 		*types.ExecutionPayloadHeader,
-		*types.Fork,
 		*types.Validator,
 		types.Validators,
 	]
@@ -74,7 +71,6 @@ type (
 	TestBeaconStateT = statedb.StateDB[
 		*TestBeaconStateMarshallableT,
 		*types.ExecutionPayloadHeader,
-		*types.Fork,
 		*TestKVStoreT,
 		*types.Validator,
 		types.Validators,
@@ -89,7 +85,6 @@ type (
 		*types.Deposit,
 		*types.ExecutionPayload,
 		*types.ExecutionPayloadHeader,
-		*types.Fork,
 		*TestKVStoreT,
 		*types.Validator,
 		types.Validators,
@@ -117,7 +112,6 @@ var (
 func initTestStores() (
 	*beacondb.KVStore[
 		*types.ExecutionPayloadHeader,
-		*types.Fork,
 		*types.Validator,
 		types.Validators,
 	],
@@ -147,7 +141,6 @@ func initTestStores() (
 
 	return beacondb.New[
 			*types.ExecutionPayloadHeader,
-			*types.Fork,
 			*types.Validator,
 			types.Validators,
 		](
@@ -208,7 +201,6 @@ func setupState(
 		*types.Deposit,
 		*types.ExecutionPayload,
 		*types.ExecutionPayloadHeader,
-		*types.Fork,
 		*TestKVStoreT,
 		*types.Validator,
 		types.Validators,

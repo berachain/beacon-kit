@@ -38,7 +38,7 @@ import (
 //nolint:gocognit,funlen // todo fix.
 func (sp *StateProcessor[
 	_, BeaconBlockBodyT, BeaconStateT, _, DepositT,
-	_, ExecutionPayloadHeaderT, ForkT, _, ValidatorT, _, _, _,
+	_, ExecutionPayloadHeaderT, _, ValidatorT, _, _, _,
 ]) InitializePreminedBeaconStateFromEth1(
 	st BeaconStateT,
 	deposits []DepositT,
@@ -49,8 +49,7 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	var fork ForkT
-	fork = fork.New(
+	fork := ctypes.NewFork(
 		genesisVersion,
 		genesisVersion,
 		math.U64(constants.GenesisEpoch),
@@ -159,7 +158,7 @@ func (sp *StateProcessor[
 }
 
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _, _, _, _, _, ValidatorT, _, _, _,
+	_, _, BeaconStateT, _, _, _, _, _, ValidatorT, _, _, _,
 ]) processGenesisActivation(
 	st BeaconStateT,
 ) error {
