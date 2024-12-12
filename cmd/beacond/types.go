@@ -85,7 +85,6 @@ type (
 		*BeaconState,
 		*BlockStore,
 		*Deposit,
-		WithdrawalCredentials,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*Genesis,
@@ -166,7 +165,6 @@ type (
 		Validators,
 		*Withdrawal,
 		Withdrawals,
-		WithdrawalCredentials,
 	]
 
 	// StorageBackend is the type alias for the storage backend interface.
@@ -221,7 +219,6 @@ type (
 		*Validator,
 		Validators,
 		*Withdrawal,
-		WithdrawalCredentials,
 	]
 
 	// BeaconStateMarshallable is a type alias for the BeaconState.
@@ -249,10 +246,7 @@ type (
 	Deposit = types.Deposit
 
 	// DepositContract is a type alias for the deposit contract.
-	DepositContract = deposit.WrappedDepositContract[
-		*Deposit,
-		WithdrawalCredentials,
-	]
+	DepositContract = deposit.WrappedDepositContract[*Deposit]
 
 	// DepositStore is a type alias for the deposit store.
 	DepositStore = depositdb.KVStore[*Deposit]
@@ -311,7 +305,6 @@ type (
 		*Validator,
 		Validators,
 		*Withdrawal,
-		WithdrawalCredentials,
 	]
 
 	// NodeAPIContext is a type alias for the node API context.
@@ -346,9 +339,6 @@ type (
 
 	// Withdrawals is a type alias for the engineprimitives withdrawals.
 	Withdrawals = engineprimitives.Withdrawals
-
-	// WithdrawalCredentials is a type alias for the withdrawal credentials.
-	WithdrawalCredentials = types.WithdrawalCredentials
 )
 
 /* -------------------------------------------------------------------------- */

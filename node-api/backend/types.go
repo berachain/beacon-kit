@@ -23,6 +23,7 @@ package backend
 import (
 	"context"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
@@ -99,12 +100,11 @@ type StorageBackend[
 }
 
 // Validator represents an interface for a validator with generic withdrawal
-// credentials. WithdrawalCredentialsT is a type parameter that must implement
-// the WithdrawalCredentials interface.
-type Validator[WithdrawalCredentialsT WithdrawalCredentials] interface {
+// credentials.
+type Validator interface {
 	// GetWithdrawalCredentials returns the withdrawal credentials of the
 	// validator.
-	GetWithdrawalCredentials() WithdrawalCredentialsT
+	GetWithdrawalCredentials() ctypes.WithdrawalCredentials
 	// IsFullyWithdrawable checks if the validator is fully withdrawable given a
 	// certain Gwei amount and epoch.
 	IsFullyWithdrawable(amount math.Gwei, epoch math.Epoch) bool

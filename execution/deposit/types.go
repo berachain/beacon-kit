@@ -23,6 +23,7 @@ package deposit
 import (
 	"context"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -57,14 +58,14 @@ type Contract[DepositT any] interface {
 }
 
 // Deposit is an interface for deposits.
-type Deposit[DepositT, WithdrawalCredentialsT any] interface {
+type Deposit[DepositT any] interface {
 	constraints.Empty[DepositT]
 	constraints.SSZMarshallableRootable
 
 	// New creates a new deposit.
 	New(
 		crypto.BLSPubkey,
-		WithdrawalCredentialsT,
+		ctypes.WithdrawalCredentials,
 		math.U64,
 		crypto.BLSSignature,
 		uint64,

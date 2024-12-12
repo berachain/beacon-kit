@@ -79,7 +79,6 @@ type (
 		*types.Validator,
 		types.Validators,
 		*engineprimitives.Withdrawal,
-		types.WithdrawalCredentials,
 	]
 
 	TestStateProcessorT = core.StateProcessor[
@@ -97,7 +96,6 @@ type (
 		types.Validators,
 		*engineprimitives.Withdrawal,
 		engineprimitives.Withdrawals,
-		types.WithdrawalCredentials,
 	]
 )
 
@@ -218,7 +216,6 @@ func setupState(
 		types.Validators,
 		*engineprimitives.Withdrawal,
 		engineprimitives.Withdrawals,
-		types.WithdrawalCredentials,
 	](
 		noop.NewLogger[any](),
 		cs,

@@ -39,7 +39,7 @@ type StateProcessorInput[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-	DepositT Deposit[DepositT, *ForkData, WithdrawalCredentials],
+	DepositT Deposit[DepositT, *ForkData],
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalsT Withdrawals[WithdrawalT],
 ] struct {
@@ -72,7 +72,7 @@ func ProvideStateProcessor[
 		Validators, WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
-	DepositT Deposit[DepositT, *ForkData, WithdrawalCredentials],
+	DepositT Deposit[DepositT, *ForkData],
 	DepositStoreT DepositStore[DepositT],
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
@@ -94,7 +94,7 @@ func ProvideStateProcessor[
 	BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, *Context, DepositT, ExecutionPayloadT,
 	ExecutionPayloadHeaderT, *Fork, *ForkData, KVStoreT, *Validator,
-	Validators, WithdrawalT, WithdrawalsT, WithdrawalCredentials,
+	Validators, WithdrawalT, WithdrawalsT,
 ] {
 	return core.NewStateProcessor[
 		BeaconBlockT,
@@ -111,7 +111,6 @@ func ProvideStateProcessor[
 		Validators,
 		WithdrawalT,
 		WithdrawalsT,
-		WithdrawalCredentials,
 	](
 		in.Logger.With("service", "state-processor"),
 		in.ChainSpec,
