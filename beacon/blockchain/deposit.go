@@ -18,25 +18,27 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package deposit
+package blockchain
 
 import (
 	"context"
+	"maps"
+	"slices"
+	"strconv"
 	"time"
 
-	"github.com/berachain/beacon-kit/primitives/async"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // defaultRetryInterval processes a deposit event.
 const defaultRetryInterval = 20 * time.Second
 
-// depositFetcher returns a function that retrieves the block number from the
-// event and fetches and stores the deposits for that block.
 func (s *Service[
-	BeaconBlockT, _, _, _, _,
-]) depositFetcher(ctx context.Context, event async.Event[BeaconBlockT]) {
-	blockNum := event.Data().GetBody().GetExecutionPayload().GetNumber()
+	_, _, ConsensusBlockT, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) depositFetcher(
+	ctx context.Context,
+	blockNum math.U64,
+) {
 	if blockNum < s.eth1FollowDistance {
 		s.logger.Info(
 			"depositFetcher, nothing to fetch",
@@ -49,10 +51,48 @@ func (s *Service[
 	s.fetchAndStoreDeposits(ctx, blockNum-s.eth1FollowDistance)
 }
 
-// depositCatchupFetcher fetches deposits for blocks that failed to be
-// processed.
 func (s *Service[
-	_, _, _, _, _,
+	_, _, ConsensusBlockT, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) fetchAndStoreDeposits(
+	ctx context.Context,
+	blockNum math.U64,
+) {
+	deposits, err := s.depositContract.ReadDeposits(ctx, blockNum)
+	if err != nil {
+		s.logger.Error("Failed to read deposits", "error", err)
+		s.metrics.sink.IncrementCounter(
+			"beacon_kit.execution.deposit.failed_to_get_block_logs",
+			"block_num",
+			strconv.FormatUint(blockNum.Unwrap(), 10),
+		)
+		s.failedBlocksMu.Lock()
+		s.failedBlocks[blockNum] = struct{}{}
+		s.failedBlocksMu.Unlock()
+		return
+	}
+
+	if len(deposits) > 0 {
+		s.logger.Info(
+			"Found deposits on execution layer",
+			"block", blockNum, "deposits", len(deposits),
+		)
+	}
+
+	if err = s.depositStore.EnqueueDeposits(deposits); err != nil {
+		s.logger.Error("Failed to store deposits", "error", err)
+		s.failedBlocksMu.Lock()
+		s.failedBlocks[blockNum] = struct{}{}
+		s.failedBlocksMu.Unlock()
+		return
+	}
+
+	s.failedBlocksMu.Lock()
+	delete(s.failedBlocks, blockNum)
+	s.failedBlocksMu.Unlock()
+}
+
+func (s *Service[
+	_, _, ConsensusBlockT, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) depositCatchupFetcher(ctx context.Context) {
 	ticker := time.NewTicker(defaultRetryInterval)
 	defer ticker.Stop()
@@ -61,7 +101,9 @@ func (s *Service[
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			failedBlks := s.getFailedBlocks()
+			s.failedBlocksMu.RLock()
+			failedBlks := slices.Collect(maps.Keys(s.failedBlocks))
+			s.failedBlocksMu.RUnlock()
 			if len(failedBlks) == 0 {
 				continue
 			}
@@ -77,31 +119,4 @@ func (s *Service[
 			}
 		}
 	}
-}
-
-func (s *Service[
-	_, _, _, _, _,
-]) fetchAndStoreDeposits(ctx context.Context, blockNum math.U64) {
-	deposits, err := s.dc.ReadDeposits(ctx, blockNum)
-	if err != nil {
-		s.logger.Error("Failed to read deposits", "error", err)
-		s.metrics.markFailedToGetBlockLogs(blockNum)
-		s.markFailedBlock(blockNum)
-		return
-	}
-
-	if len(deposits) > 0 {
-		s.logger.Info(
-			"Found deposits on execution layer",
-			"block", blockNum, "deposits", len(deposits),
-		)
-	}
-
-	if err = s.ds.EnqueueDeposits(deposits); err != nil {
-		s.logger.Error("Failed to store deposits", "error", err)
-		s.markFailedBlock(blockNum)
-		return
-	}
-
-	s.clearFailedBlock(blockNum)
 }

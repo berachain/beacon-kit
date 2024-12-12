@@ -24,32 +24,103 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/primitives/async"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
+	"github.com/berachain/beacon-kit/consensus/types"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	cmtabci "github.com/cometbft/cometbft/abci/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// ProcessGenesisData processes the genesis state and initializes the beacon
-// state.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, GenesisT, _,
-]) ProcessGenesisData(
-	ctx context.Context,
-	genesisData GenesisT,
+	_, _, ConsensusBlockT, BeaconBlockT, _, BeaconBlockHeaderT, _, _, _,
+	_, _, _, GenesisT, ConsensusSidecarsT, BlobSidecarsT, _,
+]) FinalizeBlock(
+	ctx sdk.Context,
+	req *cmtabci.FinalizeBlockRequest,
 ) (transition.ValidatorUpdates, error) {
-	return s.stateProcessor.InitializePreminedBeaconStateFromEth1(
-		s.storageBackend.StateFromContext(ctx),
-		genesisData.GetDeposits(),
-		genesisData.GetExecutionPayloadHeader(),
-		genesisData.GetForkVersion(),
+	var (
+		valUpdates  transition.ValidatorUpdates
+		finalizeErr error
 	)
+
+	// STEP 1: Decode blok and blobs
+	blk, blobs, err := encoding.
+		ExtractBlobsAndBlockFromRequest[BeaconBlockT, BlobSidecarsT](
+		req,
+		BeaconBlockTxIndex,
+		BlobSidecarsTxIndex,
+		s.chainSpec.ActiveForkVersionForSlot(
+			math.Slot(req.Height),
+		))
+	if err != nil {
+		//nolint:nilerr // If we don't have a block, we can't do anything.
+		return nil, nil
+	}
+
+	// STEP 2: Finalize sidecars first (block will check for
+	// sidecar availability)
+	err = s.blobProcessor.ProcessSidecars(
+		s.storageBackend.AvailabilityStore(),
+		blobs,
+	)
+	if err != nil {
+		s.logger.Error("Failed to process blob sidecars", "error", err)
+	}
+
+	// STEP 3: finalize the block
+	var consensusBlk *types.ConsensusBlock[BeaconBlockT]
+	consensusBlk = consensusBlk.New(
+		blk,
+		req.GetProposerAddress(),
+		req.GetTime(),
+	)
+
+	cBlk, ok := any(consensusBlk).(ConsensusBlockT)
+	if !ok {
+		panic("failed to convert consensusBlk to ConsensusBlockT")
+	}
+
+	st := s.storageBackend.StateFromContext(ctx)
+	valUpdates, finalizeErr = s.finalizeBeaconBlock(ctx, st, cBlk)
+	if finalizeErr != nil {
+		s.logger.Error("Failed to process verified beacon block",
+			"error", finalizeErr,
+		)
+	}
+
+	// STEP 4: Post Finalizations cleanups
+
+	// fetch and store the deposit for the block
+	blockNum := blk.GetBody().GetExecutionPayload().GetNumber()
+	s.depositFetcher(ctx, blockNum)
+
+	// store the finalized block in the KVStore.
+	slot := blk.GetSlot()
+	if err = s.blockStore.Set(blk); err != nil {
+		s.logger.Error(
+			"failed to store block", "slot", slot, "error", err,
+		)
+	}
+
+	// prune the availability and deposit store
+	err = s.processPruning(blk)
+	if err != nil {
+		s.logger.Error("failed to processPruning", "error", err)
+	}
+
+	go s.sendPostBlockFCU(ctx, st, cBlk)
+
+	return valUpdates, nil
 }
 
-// ProcessBeaconBlock receives an incoming beacon block, it first validates
+// finalizeBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
 func (s *Service[
-	_, ConsensusBlockT, _, _, _, _, _, _, _, _, _,
-]) ProcessBeaconBlock(
+	_, _, ConsensusBlockT, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
+]) finalizeBeaconBlock(
 	ctx context.Context,
+	st BeaconStateT,
 	blk ConsensusBlockT,
 ) (transition.ValidatorUpdates, error) {
 	beaconBlk := blk.GetBeaconBlock()
@@ -59,7 +130,6 @@ func (s *Service[
 		return nil, ErrNilBlk
 	}
 
-	st := s.storageBackend.StateFromContext(ctx)
 	valUpdates, err := s.executeStateTransition(ctx, st, blk)
 	if err != nil {
 		return nil, err
@@ -73,28 +143,12 @@ func (s *Service[
 	) {
 		return nil, ErrDataNotAvailable
 	}
-
-	// If required, we want to forkchoice at the end of post
-	// block processing.
-	// TODO: this is hood as fuck.
-	// We won't send an fcu if the block is bad, should be addressed
-	// via ticker later.
-	if err = s.dispatcher.Publish(
-		async.NewEvent(
-			ctx, async.BeaconBlockFinalized, beaconBlk,
-		),
-	); err != nil {
-		return nil, err
-	}
-
-	go s.sendPostBlockFCU(ctx, st, blk)
-
 	return valUpdates.CanonicalSort(), nil
 }
 
 // executeStateTransition runs the stf.
 func (s *Service[
-	_, ConsensusBlockT, _, _, _, BeaconStateT, _, _, _, _, _,
+	_, _, ConsensusBlockT, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
 ]) executeStateTransition(
 	ctx context.Context,
 	st BeaconStateT,

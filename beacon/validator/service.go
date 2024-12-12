@@ -23,9 +23,7 @@ package validator
 import (
 	"context"
 
-	asynctypes "github.com/berachain/beacon-kit/async/types"
 	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/primitives/async"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/transition"
@@ -39,7 +37,8 @@ type Service[
 		AttestationDataT, DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
 	],
 	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
-	BlobSidecarsT any,
+	BlobSidecarT any,
+	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	DepositT any,
 	DepositStoreT DepositStore[DepositT],
 	Eth1DataT Eth1Data[Eth1DataT],
@@ -61,8 +60,6 @@ type Service[
 	blobFactory BlobFactory[BeaconBlockT, BlobSidecarsT]
 	// sb is the beacon state backend.
 	sb StorageBackend[BeaconStateT, DepositStoreT]
-	// dispatcher is the dispatcher.
-	dispatcher asynctypes.EventDispatcher
 	// stateProcessor is responsible for processing the state.
 	stateProcessor StateProcessor[
 		BeaconBlockT,
@@ -80,8 +77,6 @@ type Service[
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT]
 	// metrics is a metrics collector.
 	metrics *validatorMetrics
-	// subNewSlot is a channel to hold NewSlot events.
-	subNewSlot chan async.Event[SlotDataT]
 }
 
 // NewService creates a new validator service.
@@ -92,7 +87,8 @@ func NewService[
 		AttestationDataT, DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
 	],
 	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
-	BlobSidecarsT any,
+	BlobSidecarT any,
+	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	DepositT any,
 	DepositStoreT DepositStore[DepositT],
 	Eth1DataT Eth1Data[Eth1DataT],
@@ -117,15 +113,15 @@ func NewService[
 	localPayloadBuilder PayloadBuilder[BeaconStateT, ExecutionPayloadT],
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT],
 	ts TelemetrySink,
-	dispatcher asynctypes.EventDispatcher,
 ) *Service[
 	AttestationDataT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ForkDataT, SlashingInfoT, SlotDataT,
+	BlobSidecarT, BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT,
+	ExecutionPayloadT, ExecutionPayloadHeaderT, ForkDataT, SlashingInfoT,
+	SlotDataT,
 ] {
 	return &Service[
 		AttestationDataT, BeaconBlockT, BeaconBlockBodyT,
-		BeaconStateT, BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT,
+		BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT,
 		ExecutionPayloadT, ExecutionPayloadHeaderT, ForkDataT, SlashingInfoT,
 		SlotDataT,
 	]{
@@ -139,79 +135,24 @@ func NewService[
 		localPayloadBuilder:   localPayloadBuilder,
 		remotePayloadBuilders: remotePayloadBuilders,
 		metrics:               newValidatorMetrics(ts),
-		dispatcher:            dispatcher,
-		subNewSlot:            make(chan async.Event[SlotDataT]),
 	}
 }
 
 // Name returns the name of the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) Name() string {
 	return "validator"
 }
 
-// Start listens for NewSlot events and builds a block and sidecars for the
-// requested slot data.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) Start(
-	ctx context.Context,
+	_ context.Context,
 ) error {
-	// subscribe to NewSlot events
-	err := s.dispatcher.Subscribe(async.NewSlot, s.subNewSlot)
-	if err != nil {
-		return err
-	}
-	// start the event loop to listen and handle events.
-	go s.eventLoop(ctx)
 	return nil
 }
 
-// eventLoop is the main event loop for the validator service.
-func (s *Service[_, _, _, _, _, _, _, _, _, _, _, _, _]) eventLoop(
-	ctx context.Context,
-) {
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case event := <-s.subNewSlot:
-			s.handleNewSlot(event)
-		}
-	}
-}
-
-// handleNewSlot builds a block and sidecars for the requested slot data and
-// emits BuiltBeaconBlock and BuiltSidecars events containing the built block
-// and sidecars.
-func (s *Service[
-	_, BeaconBlockT, _, _, BlobSidecarsT, _, _, _, _, _, _, _, SlotDataT,
-]) handleNewSlot(req async.Event[SlotDataT]) {
-	var (
-		blk      BeaconBlockT
-		sidecars BlobSidecarsT
-		err      error
-	)
-	// build the block and sidecars for the requested slot data
-	blk, sidecars, err = s.buildBlockAndSidecars(
-		req.Context(), req.Data(),
-	)
-	if err != nil {
-		s.logger.Error("failed to build block", "err", err)
-	}
-
-	// emit a built block event with the built block and the error
-	if bbErr := s.dispatcher.Publish(
-		async.NewEvent(req.Context(), async.BuiltBeaconBlock, blk, err),
-	); bbErr != nil {
-		s.logger.Error("failed to dispatch built block", "err", err)
-	}
-
-	// emit a built sidecars event with the built sidecars and the error
-	if scErr := s.dispatcher.Publish(
-		async.NewEvent(req.Context(), async.BuiltSidecars, sidecars, err),
-	); scErr != nil {
-		s.logger.Error("failed to dispatch built sidecars", "err", err)
-	}
+func (s *Service[_, _, _, _, _, _, _, _, _, _, _, _, _, _]) Stop() error {
+	return nil
 }

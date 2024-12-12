@@ -26,7 +26,6 @@ import (
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	dablob "github.com/berachain/beacon-kit/da/blob"
-	"github.com/berachain/beacon-kit/da/da"
 	"github.com/berachain/beacon-kit/da/kzg"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
@@ -97,53 +96,5 @@ func ProvideBlobProcessor[
 		in.BlobProofVerifier,
 		types.BlockBodyKZGOffset,
 		in.TelemetrySink,
-	)
-}
-
-// DAServiceIn is the input for the BlobService.
-type DAServiceIn[
-	AvailabilityStoreT any,
-	ConsensusSidecarsT any,
-	BlobSidecarsT any,
-	LoggerT any,
-] struct {
-	depinject.In
-
-	AvailabilityStore AvailabilityStoreT
-	BlobProcessor     BlobProcessor[
-		AvailabilityStoreT, ConsensusSidecarsT, BlobSidecarsT,
-	]
-	Dispatcher Dispatcher
-	Logger     LoggerT
-}
-
-// ProvideDAService is a function that provides the BlobService to the
-// depinject framework.
-func ProvideDAService[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
-	BeaconBlockBodyT any,
-	BeaconBlockHeaderT any,
-	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, BeaconBlockHeaderT],
-	BlobSidecarT any,
-	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
-	LoggerT log.AdvancedLogger[LoggerT],
-](
-	in DAServiceIn[
-		AvailabilityStoreT, ConsensusSidecarsT, BlobSidecarsT, LoggerT,
-	],
-) *da.Service[
-	AvailabilityStoreT,
-	ConsensusSidecarsT, BlobSidecarsT, BeaconBlockHeaderT,
-] {
-	return da.NewService[
-		AvailabilityStoreT,
-		ConsensusSidecarsT,
-		BlobSidecarsT,
-		BeaconBlockHeaderT,
-	](
-		in.AvailabilityStore,
-		in.BlobProcessor,
-		in.Dispatcher,
-		in.Logger.With("service", "da"),
 	)
 }
