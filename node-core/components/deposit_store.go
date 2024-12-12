@@ -44,7 +44,7 @@ type DepositStoreInput[
 // application.
 func ProvideDepositStore[
 	DepositT Deposit[
-		DepositT, *ForkData, WithdrawalCredentials,
+		DepositT, *ForkData,
 	],
 	LoggerT log.AdvancedLogger[LoggerT],
 ](

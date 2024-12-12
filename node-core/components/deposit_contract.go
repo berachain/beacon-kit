@@ -50,7 +50,7 @@ type DepositContractInput[
 // dep inject framework.
 func ProvideDepositContract[
 	DepositT Deposit[
-		DepositT, *ForkData, WithdrawalCredentials,
+		DepositT, *ForkData,
 	],
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
@@ -62,14 +62,9 @@ func ProvideDepositContract[
 	in DepositContractInput[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT, WithdrawalsT,
 	],
-) (*deposit.WrappedDepositContract[
-	DepositT, WithdrawalCredentials,
-], error) {
+) (*deposit.WrappedDepositContract[DepositT], error) {
 	// Build the deposit contract.
-	return deposit.NewWrappedDepositContract[
-		DepositT,
-		WithdrawalCredentials,
-	](
+	return deposit.NewWrappedDepositContract[DepositT](
 		in.ChainSpec.DepositContractAddress(),
 		in.EngineClient,
 	)

@@ -346,14 +346,13 @@ type (
 	Deposit[
 		T any,
 		ForkDataT any,
-		WithdrawalCredentialsT any,
 	] interface {
 		constraints.Empty[T]
 		constraints.SSZMarshallableRootable
 		// New creates a new deposit.
 		New(
 			crypto.BLSPubkey,
-			WithdrawalCredentialsT,
+			ctypes.WithdrawalCredentials,
 			math.U64,
 			crypto.BLSSignature,
 			uint64,
@@ -367,7 +366,7 @@ type (
 		// GetPubkey returns the public key of the validator.
 		GetPubkey() crypto.BLSPubkey
 		// GetWithdrawalCredentials returns the withdrawal credentials.
-		GetWithdrawalCredentials() WithdrawalCredentialsT
+		GetWithdrawalCredentials() ctypes.WithdrawalCredentials
 		// HasEth1WithdrawalCredentials returns true if the deposit has eth1
 		// withdrawal credentials.
 		HasEth1WithdrawalCredentials() bool

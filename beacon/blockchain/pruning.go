@@ -27,7 +27,7 @@ import (
 )
 
 func (s *Service[
-	_, _, ConsensusBlockT, BeaconBlockT, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, ConsensusBlockT, BeaconBlockT, _, _, _, _, _, _, _, _, _, _,
 ]) processPruning(beaconBlk BeaconBlockT) error {
 	// prune availability store
 	start, end := availabilityPruneRangeFn(
@@ -50,8 +50,7 @@ func (s *Service[
 }
 
 func depositPruneRangeFn[
-	DepositT deposit.Deposit[DepositT, WithdrawalCredentialsT],
-	WithdrawalCredentialsT any,
+	DepositT deposit.Deposit[DepositT],
 ](deposits []DepositT, cs common.ChainSpec) (uint64, uint64) {
 	if len(deposits) == 0 || cs.MaxDepositsPerBlock() == 0 {
 		return 0, 0

@@ -50,8 +50,7 @@ type Service[
 		BeaconStateT, ExecutionPayloadHeaderT,
 	],
 	BlockStoreT blockstore.BlockStore[BeaconBlockT],
-	DepositT deposit.Deposit[DepositT, WithdrawalCredentialsT],
-	WithdrawalCredentialsT any,
+	DepositT deposit.Deposit[DepositT],
 	ExecutionPayloadT ExecutionPayload,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
@@ -130,8 +129,7 @@ func NewService[
 		BeaconStateT, ExecutionPayloadHeaderT,
 	],
 	BlockStoreT blockstore.BlockStore[BeaconBlockT],
-	DepositT deposit.Deposit[DepositT, WithdrawalCredentialsT],
-	WithdrawalCredentialsT any,
+	DepositT deposit.Deposit[DepositT],
 	ExecutionPayloadT ExecutionPayload,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
@@ -169,14 +167,14 @@ func NewService[
 ) *Service[
 	AvailabilityStoreT, DepositStoreT,
 	ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, BlockStoreT, DepositT, WithdrawalCredentialsT,
+	BeaconStateT, BlockStoreT, DepositT,
 	ExecutionPayloadT, ExecutionPayloadHeaderT, GenesisT,
 	ConsensusSidecarsT, BlobSidecarsT, PayloadAttributesT,
 ] {
 	return &Service[
 		AvailabilityStoreT, DepositStoreT,
 		ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
-		BeaconStateT, BlockStoreT, DepositT, WithdrawalCredentialsT,
+		BeaconStateT, BlockStoreT, DepositT,
 		ExecutionPayloadT, ExecutionPayloadHeaderT,
 		GenesisT, ConsensusSidecarsT, BlobSidecarsT, PayloadAttributesT,
 	]{
@@ -201,13 +199,13 @@ func NewService[
 
 // Name returns the name of the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) Name() string {
 	return "blockchain"
 }
 
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) Start(ctx context.Context) error {
 	// Catchup deposits for failed blocks.
 	go s.depositCatchupFetcher(ctx)
@@ -216,7 +214,7 @@ func (s *Service[
 }
 
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) Stop() error {
 	return nil
 }
