@@ -92,8 +92,8 @@ func (s *Store[BeaconBlockT]) Persist(
 		return nil
 	}
 
-	// Store each sidecar sequentially. This cannot be done in parallel due to
-	// the RangeDB not being concurrency-safe.
+	// Store each sidecar sequentially. The store's underlying RangeDB is not
+	// built to handle concurrent writes.
 	for _, sidecar := range sidecars.Sidecars {
 		sc := sidecar
 		if sc == nil {
@@ -103,7 +103,10 @@ func (s *Store[BeaconBlockT]) Persist(
 		if err != nil {
 			return err
 		}
-		return s.Set(slot.Unwrap(), sc.KzgCommitment[:], bz)
+		err = s.Set(slot.Unwrap(), sc.KzgCommitment[:], bz)
+		if err != nil {
+			return err
+		}
 	}
 
 	s.logger.Info("Successfully stored all blob sidecars 🚗",
