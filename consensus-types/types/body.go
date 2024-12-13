@@ -70,7 +70,6 @@ func (b *BeaconBlockBody) Empty(forkVersion uint32) *BeaconBlockBody {
 
 // BlockBodyKZGOffset returns the offset of the KZG commitments in the block
 // body.
-// TODO: I still feel like we need to clean this up somehow.
 func BlockBodyKZGOffset(
 	slot math.Slot,
 	cs chain.ChainSpec,

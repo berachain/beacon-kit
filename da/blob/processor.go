@@ -70,7 +70,7 @@ func NewProcessor[
 	verifier := newVerifier[
 		BlobSidecarT,
 		BlobSidecarsT,
-	](proofVerifier, telemetrySink)
+	](proofVerifier, telemetrySink, chainSpec)
 	return &Processor[
 		AvailabilityStoreT,
 		ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
@@ -105,23 +105,15 @@ func (sp *Processor[
 		return nil
 	}
 
-	kzgOffset, err := ctypes.BlockBodyKZGOffset(
-		blkHeader.GetSlot(), sp.chainSpec,
-	)
-	if err != nil {
-		return err
-	}
-
 	// Verify the blobs and ensure they match the local state.
 	return sp.verifier.verifySidecars(
 		sidecars,
-		kzgOffset,
 		blkHeader,
 		verifierFn,
 	)
 }
 
-// slot :=  processes the blobs and ensures they match the local state.
+// ProcessSidecars processes the blobs and ensures they match the local state.
 func (sp *Processor[
 	AvailabilityStoreT, _, _, BlobSidecarsT,
 ]) ProcessSidecars(
