@@ -170,16 +170,16 @@ func (sp *StateProcessor[
 	}
 
 	// Verify that the message was signed correctly.
-	var d ctypes.ForkData
-	if err = dep.VerifySignature(
-		d.New(
+	err = dep.VerifySignature(
+		ctypes.NewForkData(
 			version.FromUint32[common.Version](
 				sp.cs.ActiveForkVersionForEpoch(epoch),
 			), genesisValidatorsRoot,
 		),
 		sp.cs.DomainTypeDeposit(),
 		sp.signer.VerifySignature,
-	); err != nil {
+	)
+	if err != nil {
 		// Ignore deposits that fail the signature check.
 		sp.logger.Info(
 			"failed deposit signature verification",
