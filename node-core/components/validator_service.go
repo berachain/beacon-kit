@@ -49,7 +49,6 @@ type ValidatorServiceInput[
 	depinject.In
 	Cfg            *config.Config
 	ChainSpec      common.ChainSpec
-	Dispatcher     Dispatcher
 	LocalBuilder   LocalBuilder[BeaconStateT, ExecutionPayloadT]
 	Logger         LoggerT
 	StateProcessor StateProcessor[
@@ -65,21 +64,21 @@ type ValidatorServiceInput[
 func ProvideValidatorService[
 	AvailabilityStoreT any,
 	BeaconBlockT BeaconBlock[
-		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+		BeaconBlockT, BeaconBlockBodyT,
 	],
 	BeaconBlockBodyT BeaconBlockBody[
 		BeaconBlockBodyT, *AttestationData, DepositT,
-		*Eth1Data, ExecutionPayloadT, *SlashingInfo,
+		ExecutionPayloadT, *SlashingInfo,
 	],
-	BeaconBlockHeaderT any,
 	BeaconStateT BeaconState[
-		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
-		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT,
+		BeaconStateT, BeaconStateMarshallableT,
+		ExecutionPayloadHeaderT, *Fork, KVStoreT,
 		*Validator, Validators, WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
 	BeaconBlockStoreT any,
-	BlobSidecarsT any,
+	BlobSidecarT any,
+	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	DepositT any,
 	DepositStoreT DepositStore[DepositT],
 	ExecutionPayloadT ExecutionPayload[
@@ -101,8 +100,8 @@ func ProvideValidatorService[
 	],
 ) (*validator.Service[
 	*AttestationData, BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, BlobSidecarsT, DepositT, DepositStoreT,
-	*Eth1Data, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositT, DepositStoreT,
+	ExecutionPayloadT, ExecutionPayloadHeaderT,
 	*ForkData, *SlashingInfo, *SlotData,
 ], error) {
 	// Build the builder service.
@@ -111,10 +110,10 @@ func ProvideValidatorService[
 		BeaconBlockT,
 		BeaconBlockBodyT,
 		BeaconStateT,
+		BlobSidecarT,
 		BlobSidecarsT,
 		DepositT,
 		DepositStoreT,
-		*Eth1Data,
 		ExecutionPayloadT,
 		ExecutionPayloadHeaderT,
 		*ForkData,
@@ -133,6 +132,5 @@ func ProvideValidatorService[
 			in.LocalBuilder,
 		},
 		in.TelemetrySink,
-		in.Dispatcher,
 	), nil
 }

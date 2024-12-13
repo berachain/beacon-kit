@@ -47,7 +47,6 @@ func NewRollbackCmd[
 ) *cobra.Command {
 	var removeBlock bool
 
-	//nolint:lll // its okay.
 	cmd := &cobra.Command{
 		Use:   "rollback",
 		Short: "rollback Cosmos SDK and CometBFT state by one height",

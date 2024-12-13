@@ -22,16 +22,18 @@ package core
 
 import (
 	"github.com/berachain/beacon-kit/config/spec"
+	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
+	"github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // processOperations processes the operations and ensures they match the
 // local state.
 func (sp *StateProcessor[
-	BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _,
 ]) processOperations(
 	st BeaconStateT,
 	blk BeaconBlockT,
@@ -63,7 +65,7 @@ func (sp *StateProcessor[
 
 // processDeposit processes the deposit and ensures it matches the local state.
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, DepositT, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, BeaconStateT, _, DepositT, _, _, _, _, _, _, _, _, _,
 ]) processDeposit(
 	st BeaconStateT,
 	dep DepositT,
@@ -105,7 +107,7 @@ func (sp *StateProcessor[
 
 // applyDeposit processes the deposit and ensures it matches the local state.
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, DepositT, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+	_, _, BeaconStateT, _, DepositT, _, _, _, _, _, ValidatorT, _, _, _,
 ]) applyDeposit(
 	st BeaconStateT,
 	dep DepositT,
@@ -116,6 +118,34 @@ func (sp *StateProcessor[
 		// TODO: improve error handling by distinguishing
 		// ErrNotFound from other kind of errors
 		return sp.createValidator(st, dep)
+	}
+
+	// The validator already exist and we need to update its balance.
+	// EffectiveBalance must be updated in processEffectiveBalanceUpdates
+	// However before BoonetFork2Height we mistakenly update EffectiveBalance
+	// every slot. We must preserve backward compatibility so we special case
+	// Boonet to allow proper bootstrapping.
+	slot, err := st.GetSlot()
+	if err != nil {
+		return err
+	}
+	if sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
+		slot < math.U64(spec.BoonetFork2Height) {
+		var val ValidatorT
+		val, err = st.ValidatorByIndex(idx)
+		if err != nil {
+			return err
+		}
+
+		updatedBalance := types.ComputeEffectiveBalance(
+			val.GetEffectiveBalance()+dep.GetAmount(),
+			math.Gwei(sp.cs.EffectiveBalanceIncrement()),
+			math.Gwei(sp.cs.MaxEffectiveBalance(false)),
+		)
+		val.SetEffectiveBalance(updatedBalance)
+		if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
+			return err
+		}
 	}
 
 	// if validator exist, just update its balance
@@ -133,7 +163,7 @@ func (sp *StateProcessor[
 
 // createValidator creates a validator if the deposit is valid.
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, DepositT, _, _, _, _, ForkDataT, _, _, _, _, _, _,
+	_, _, BeaconStateT, _, DepositT, _, _, _, ForkDataT, _, _, _, _, _,
 ]) createValidator(
 	st BeaconStateT,
 	dep DepositT,
@@ -188,15 +218,16 @@ func (sp *StateProcessor[
 	}
 
 	// Add the validator to the registry.
-	return sp.addValidatorToRegistry(st, dep)
+	return sp.addValidatorToRegistry(st, dep, slot)
 }
 
 // addValidatorToRegistry adds a validator to the registry.
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, DepositT, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+	_, _, BeaconStateT, _, DepositT, _, _, _, _, _, ValidatorT, _, _, _,
 ]) addValidatorToRegistry(
 	st BeaconStateT,
 	dep DepositT,
+	slot math.Slot,
 ) error {
 	var val ValidatorT
 	val = val.New(
@@ -204,7 +235,9 @@ func (sp *StateProcessor[
 		dep.GetWithdrawalCredentials(),
 		dep.GetAmount(),
 		math.Gwei(sp.cs.EffectiveBalanceIncrement()),
-		math.Gwei(sp.cs.MaxEffectiveBalance()),
+		math.Gwei(sp.cs.MaxEffectiveBalance(
+			state.IsPostFork3(sp.cs.DepositEth1ChainID(), slot),
+		)),
 	)
 
 	// TODO: This is a bug that lives on bArtio. Delete this eventually.

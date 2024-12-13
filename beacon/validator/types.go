@@ -24,6 +24,8 @@ import (
 	"context"
 	"time"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
@@ -60,14 +62,14 @@ type BeaconBlock[
 
 // BeaconBlockBody represents a beacon block body interface.
 type BeaconBlockBody[
-	AttestationDataT, DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT any,
+	AttestationDataT, DepositT, ExecutionPayloadT, SlashingInfoT any,
 ] interface {
 	constraints.SSZMarshallable
 	constraints.Nillable
 	// SetRandaoReveal sets the Randao reveal of the beacon block body.
 	SetRandaoReveal(crypto.BLSSignature)
 	// SetEth1Data sets the Eth1 data of the beacon block body.
-	SetEth1Data(Eth1DataT)
+	SetEth1Data(*ctypes.Eth1Data)
 	// SetDeposits sets the deposits of the beacon block body.
 	SetDeposits([]DepositT)
 	// SetExecutionPayload sets the execution data of the beacon block body.
@@ -124,16 +126,6 @@ type DepositStore[DepositT any] interface {
 		startIndex uint64,
 		numView uint64,
 	) ([]DepositT, error)
-}
-
-// Eth1Data represents the eth1 data interface.
-type Eth1Data[T any] interface {
-	// New creates a new eth1 data with the given parameters.
-	New(
-		depositRoot common.Root,
-		depositCount math.U64,
-		blockHash common.ExecutionHash,
-	) T
 }
 
 // ExecutionPayloadHeader represents the execution payload header interface.
@@ -236,4 +228,25 @@ type TelemetrySink interface {
 	// MeasureSince measures the time since the provided start time,
 	// identified by the provided keys.
 	MeasureSince(key string, start time.Time, args ...string)
+}
+
+type BlobSidecars[T, BlobSidecarT any] interface {
+	constraints.Nillable
+	constraints.SSZMarshallable
+	constraints.Empty[T]
+	Len() int
+	Get(index int) BlobSidecarT
+	GetSidecars() []BlobSidecarT
+	ValidateBlockRoots() error
+	VerifyInclusionProofs(kzgOffset uint64) error
+}
+
+type BlockBuilderI interface {
+	BuildBlockAndSidecars(
+		context.Context,
+		types.SlotData[
+			ctypes.AttestationData,
+			ctypes.SlashingInfo,
+		],
+	) ([]byte, []byte, error)
 }

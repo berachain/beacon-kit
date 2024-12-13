@@ -30,7 +30,6 @@ import (
 // Inspired by the Ethereum 2.0 spec:
 // https://github.com/ethereum/consensus-specs/blob/dev/ssz/merkle-proofs.md#merkle-multiproofs
 //
-//nolint:lll // link.
 
 // CalculateRoot calculates the Merkle root from the leaf and proof.
 func CalculateRoot[RootT ~[32]byte](

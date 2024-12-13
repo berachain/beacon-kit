@@ -45,7 +45,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
-		maxBalance       = math.Gwei(cs.MaxEffectiveBalance())
+		maxBalance       = math.Gwei(cs.MaxEffectiveBalance(false))
 		increment        = math.Gwei(cs.EffectiveBalanceIncrement())
 		minBalance       = math.Gwei(cs.EjectionBalance())
 		emptyCredentials = types.NewCredentialsFromExecutionAddress(
@@ -194,7 +194,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
-		maxBalance       = math.Gwei(cs.MaxEffectiveBalance())
+		maxBalance       = math.Gwei(cs.MaxEffectiveBalance(false))
 		increment        = math.Gwei(cs.EffectiveBalanceIncrement())
 		minBalance       = math.Gwei(cs.EjectionBalance())
 		emptyAddress     = common.ExecutionAddress{}
@@ -389,7 +389,7 @@ func TestTransitionWithdrawals(t *testing.T) {
 	sp, st, _, ctx := setupState(t, cs)
 
 	var (
-		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
+		maxBalance   = math.Gwei(cs.MaxEffectiveBalance(false))
 		minBalance   = math.Gwei(cs.EffectiveBalanceIncrement())
 		credentials0 = types.NewCredentialsFromExecutionAddress(
 			common.ExecutionAddress{},
@@ -482,7 +482,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	sp, st, _, ctx := setupState(t, cs)
 
 	var (
-		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
+		maxBalance   = math.Gwei(cs.MaxEffectiveBalance(false))
 		minBalance   = math.Gwei(cs.EffectiveBalanceIncrement())
 		address0     = common.ExecutionAddress{}
 		credentials0 = types.NewCredentialsFromExecutionAddress(address0)
@@ -620,7 +620,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
-		maxBalance      = math.Gwei(cs.MaxEffectiveBalance())
+		maxBalance      = math.Gwei(cs.MaxEffectiveBalance(false))
 		ejectionBalance = math.Gwei(cs.EjectionBalance())
 		minBalance      = ejectionBalance + math.Gwei(
 			cs.EffectiveBalanceIncrement(),
@@ -848,7 +848,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
-		maxBalance      = math.Gwei(cs.MaxEffectiveBalance())
+		maxBalance      = math.Gwei(cs.MaxEffectiveBalance(false))
 		ejectionBalance = math.Gwei(cs.EjectionBalance())
 		minBalance      = ejectionBalance + math.Gwei(
 			cs.EffectiveBalanceIncrement(),

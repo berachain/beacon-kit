@@ -84,6 +84,10 @@ func (_m *Basic) Start(ctx context.Context) error {
 	return r0
 }
 
+func (_m *Basic) Stop() error {
+	return nil
+}
+
 // Basic_Start_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Start'
 type Basic_Start_Call struct {
 	*mock.Call
