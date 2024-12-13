@@ -22,6 +22,7 @@ package blob
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/berachain/beacon-kit/da/kzg"
@@ -84,21 +85,28 @@ func (bv *verifier[BeaconBlockHeaderT, _, BlobSidecarsT,
 		bv.proofVerifier.GetImplementation(),
 	)
 
+	g, _ := errgroup.WithContext(context.Background())
+
 	// check that sidecars block headers match with header of the
 	// corresponding block
-	for _, s := range sidecars.GetSidecars() {
-		var sigHeader = s.GetSignedBeaconBlockHeader()
-		err := verifierFn(
-			blkHeader,
-			sigHeader.GetSignature(),
-		)
-		if err != nil {
-			return err
+	for i, s := range sidecars.GetSidecars() {
+		if !s.GetSignedBeaconBlockHeader().GetHeader().Equals(blkHeader) {
+			return fmt.Errorf("unequal block header: idx: %d", i)
 		}
+		g.Go(func() error {
+			var sigHeader = s.GetSignedBeaconBlockHeader()
+			err := verifierFn(
+				blkHeader,
+				sigHeader.GetSignature(),
+			)
+			if err != nil {
+				return err
+			}
+			return nil
+		})
 	}
 
 	// Verify the inclusion proofs on the blobs concurrently.
-	g, _ := errgroup.WithContext(context.Background())
 	g.Go(func() error {
 		// TODO: KZGOffset needs to be configurable and not
 		// passed in.
@@ -110,10 +118,6 @@ func (bv *verifier[BeaconBlockHeaderT, _, BlobSidecarsT,
 	// Verify the KZG proofs on the blobs concurrently.
 	g.Go(func() error {
 		return bv.verifyKZGProofs(sidecars)
-	})
-
-	g.Go(func() error {
-		return sidecars.ValidateBlockRoots()
 	})
 
 	// Wait for all goroutines to finish and return the result.

@@ -44,7 +44,7 @@ type SignedBeaconBlockHeader struct {
 /*                                 Constructor                                */
 /* -------------------------------------------------------------------------- */
 
-// NewBeaconBlockHeader creates a new BeaconBlockHeader.
+// NewSignedBeaconBlockHeader creates a new BeaconBlockHeader.
 func NewSignedBeaconBlockHeader(
 	header *BeaconBlockHeader,
 	signature crypto.BLSSignature,
