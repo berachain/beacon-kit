@@ -64,7 +64,10 @@ type Sidecars[SidecarT any] interface {
 	Get(index int) SidecarT
 	GetSidecars() []SidecarT
 	ValidateBlockRoots() error
-	VerifyInclusionProofs(kzgOffset uint64) error
+	VerifyInclusionProofs(
+		kzgOffset uint64,
+		inclusionProofDepth uint8,
+	) error
 }
 
 // ChainSpec represents a chain spec.

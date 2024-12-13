@@ -121,17 +121,26 @@ func (bv *verifier[_, BlobSidecarsT]) verifyInclusionProofs(
 		startTime, math.U64(scs.Len()),
 	)
 
+	// We are guaranteed to have at least 1 BlobSidecar at this point.
+	slot := scs.Get(0).GetSignedBeaconBlockHeader().GetHeader().GetSlot()
+
 	// Grab the KZG offset for the fork version.
 	kzgOffset, err := ctypes.BlockBodyKZGOffset(
-		// We are guaranteed to have at least 1 BlobSidecar at this point.
-		scs.Get(0).GetSignedBeaconBlockHeader().GetHeader().GetSlot(),
-		bv.chainSpec,
+		slot, bv.chainSpec,
 	)
 	if err != nil {
 		return err
 	}
 
-	return scs.VerifyInclusionProofs(kzgOffset)
+	// Grab the inclusion proof depth for the fork version.
+	inclusionProofDepth, err := ctypes.KZGCommitmentInclusionProofDepth(
+		slot, bv.chainSpec,
+	)
+	if err != nil {
+		return err
+	}
+
+	return scs.VerifyInclusionProofs(kzgOffset, inclusionProofDepth)
 }
 
 // verifyKZGProofs verifies the sidecars.

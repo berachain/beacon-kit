@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/math/log"
 	"github.com/berachain/beacon-kit/primitives/version"
 	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
@@ -88,6 +89,25 @@ func BlockBodyKZGPosition(
 	switch forkVersion {
 	case version.Deneb:
 		return KZGPositionDeneb, nil
+	default:
+		return 0, ErrForkVersionNotSupported
+	}
+}
+
+// KZGCommitmentInclusionProofDepth as per the Ethereum 2.0 Specification:
+// https://ethereum.github.io/consensus-specs/specs/deneb/p2p-interface/#preset
+func KZGCommitmentInclusionProofDepth(
+	slot math.Slot,
+	cs common.ChainSpec,
+) (uint8, error) {
+	switch cs.ActiveForkVersionForSlot(slot) {
+	case version.Deneb:
+		sum := uint64(log.ILog2Floor(uint64(KZGMerkleIndexDeneb))) +
+			uint64(log.ILog2Ceil(cs.MaxBlobCommitmentsPerBlock())) + 1
+		if sum > 255 {
+			return 0, ErrInclusionProofDepthExceeded
+		}
+		return uint8(sum), nil
 	default:
 		return 0, ErrForkVersionNotSupported
 	}
