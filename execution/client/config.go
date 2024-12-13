@@ -51,8 +51,6 @@ func DefaultConfig() Config {
 }
 
 // Config is the configuration struct for the execution client.
-//
-//nolint:lll // struct tags.
 type Config struct {
 	// RPCDialURL is the HTTP url of the execution client JSON-RPC endpoint.
 	RPCDialURL *url.ConnectionURL `mapstructure:"rpc-dial-url"`

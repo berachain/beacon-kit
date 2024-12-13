@@ -22,20 +22,10 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	fastssz "github.com/ferranbt/fastssz"
 )
-
-// BeaconBlockHeader is the interface for a beacon block header.
-type BeaconBlockHeader interface {
-	constraints.SSZRootable
-	// GetTree is kept for FastSSZ compatibility.
-	GetTree() (*fastssz.Node, error)
-	// GetProposerIndex returns the proposer index.
-	GetProposerIndex() math.ValidatorIndex
-}
 
 // BeaconState is the interface for a beacon state.
 type BeaconState[

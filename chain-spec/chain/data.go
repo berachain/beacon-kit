@@ -21,8 +21,6 @@
 package chain
 
 // SpecData is the underlying data structure for chain-specific parameters.
-//
-//nolint:lll // struct tags may create long lines.
 type SpecData[
 	DomainTypeT ~[4]byte,
 	EpochT ~uint64,
@@ -36,8 +34,11 @@ type SpecData[
 	// transaction.
 	MinDepositAmount uint64 `mapstructure:"min-deposit-amount"`
 	// MaxEffectiveBalance is the maximum effective balance allowed for a
-	// validator.
-	MaxEffectiveBalance uint64 `mapstructure:"max-effective-balance"`
+	// validator before the upgrade.
+	MaxEffectiveBalancePreUpgrade uint64 `mapstructure:"max-effective-balance-pre-upgrade"`
+	// MaxEffectiveBalancePostUpgrade is the maximum effective balance allowed
+	// for a validator after the upgrade.
+	MaxEffectiveBalancePostUpgrade uint64 `mapstructure:"max-effective-balance-post-upgrade"`
 	// EjectionBalance is the balance at which a validator is ejected.
 	EjectionBalance uint64 `mapstructure:"ejection-balance"`
 	// EffectiveBalanceIncrement is the effective balance increment.

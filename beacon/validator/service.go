@@ -34,14 +34,13 @@ type Service[
 	AttestationDataT any,
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[
-		AttestationDataT, DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
+		AttestationDataT, DepositT, ExecutionPayloadT, SlashingInfoT,
 	],
 	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	DepositT any,
 	DepositStoreT DepositStore[DepositT],
-	Eth1DataT Eth1Data[Eth1DataT],
 	ExecutionPayloadT any,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	ForkDataT ForkData[ForkDataT],
@@ -84,14 +83,13 @@ func NewService[
 	AttestationDataT any,
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[
-		AttestationDataT, DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
+		AttestationDataT, DepositT, ExecutionPayloadT, SlashingInfoT,
 	],
 	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	DepositT any,
 	DepositStoreT DepositStore[DepositT],
-	Eth1DataT Eth1Data[Eth1DataT],
 	ExecutionPayloadT any,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	ForkDataT ForkData[ForkDataT],
@@ -115,13 +113,13 @@ func NewService[
 	ts TelemetrySink,
 ) *Service[
 	AttestationDataT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarT, BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT,
+	BlobSidecarT, BlobSidecarsT, DepositT, DepositStoreT,
 	ExecutionPayloadT, ExecutionPayloadHeaderT, ForkDataT, SlashingInfoT,
 	SlotDataT,
 ] {
 	return &Service[
 		AttestationDataT, BeaconBlockT, BeaconBlockBodyT,
-		BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT,
+		BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositT, DepositStoreT,
 		ExecutionPayloadT, ExecutionPayloadHeaderT, ForkDataT, SlashingInfoT,
 		SlotDataT,
 	]{
@@ -140,19 +138,19 @@ func NewService[
 
 // Name returns the name of the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) Name() string {
 	return "validator"
 }
 
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) Start(
 	_ context.Context,
 ) error {
 	return nil
 }
 
-func (s *Service[_, _, _, _, _, _, _, _, _, _, _, _, _, _]) Stop() error {
+func (s *Service[_, _, _, _, _, _, _, _, _, _, _, _, _]) Stop() error {
 	return nil
 }

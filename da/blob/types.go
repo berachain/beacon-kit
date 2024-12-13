@@ -24,8 +24,8 @@ import (
 	"context"
 	"time"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
@@ -44,10 +44,9 @@ type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
 
 type BeaconBlock[
 	BeaconBlockBodyT any,
-	BeaconBlockHeaderT any,
 ] interface {
 	GetBody() BeaconBlockBodyT
-	GetHeader() BeaconBlockHeaderT
+	GetHeader() *ctypes.BeaconBlockHeader
 }
 
 type BeaconBlockBody interface {
@@ -56,26 +55,16 @@ type BeaconBlockBody interface {
 	Length() uint64
 }
 
-type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
-	GetSlot() math.Slot
-	Equals(BeaconBlockHeaderT) bool
-}
-
-type ConsensusSidecars[BlobSidecarsT any, BeaconBlockHeaderT any] interface {
+type ConsensusSidecars[BlobSidecarsT any] interface {
 	GetSidecars() BlobSidecarsT
-	GetHeader() BeaconBlockHeaderT
+	GetHeader() *ctypes.BeaconBlockHeader
 }
 
-type Sidecar[SignedBeaconBlockHeaderT any] interface {
+type Sidecar interface {
 	GetBlob() eip4844.Blob
 	GetKzgProof() eip4844.KZGProof
 	GetKzgCommitment() eip4844.KZGCommitment
-	GetSignedBeaconBlockHeader() SignedBeaconBlockHeaderT
-}
-
-type SignedBeaconBlockHeader[BeaconBlockHeaderT any] interface {
-	GetHeader() BeaconBlockHeaderT
-	GetSignature() crypto.BLSSignature
+	GetSignedBeaconBlockHeader() *ctypes.SignedBeaconBlockHeader
 }
 
 type Sidecars[SidecarT any] interface {

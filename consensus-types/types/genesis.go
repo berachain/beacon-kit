@@ -41,8 +41,6 @@ const (
 
 // Genesis is a struct that contains the genesis information
 // need to start the beacon chain.
-//
-//nolint:lll
 type Genesis[
 	DepositT any,
 	ExecutionPayloadHeaderT interface {

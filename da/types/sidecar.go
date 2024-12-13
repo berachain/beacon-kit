@@ -21,7 +21,7 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/consensus-types/types"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -31,8 +31,6 @@ import (
 
 // BlobSidecar as per the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/p2p-interface.md#blobsidecar
-//
-//nolint:lll
 type BlobSidecar struct {
 	// Index represents the index of the blob in the block.
 	Index uint64
@@ -44,7 +42,7 @@ type BlobSidecar struct {
 	KzgProof eip4844.KZGProof
 	// BeaconBlockHeader represents the beacon block header for which this blob
 	// is being included.
-	SignedBeaconBlockHeader *types.SignedBeaconBlockHeader
+	SignedBeaconBlockHeader *ctypes.SignedBeaconBlockHeader
 	// InclusionProof is the inclusion proof of the blob in the beacon block
 	// body.
 	InclusionProof []common.Root
@@ -54,7 +52,7 @@ type BlobSidecar struct {
 // beacon block.
 func BuildBlobSidecar(
 	index math.U64,
-	header *types.SignedBeaconBlockHeader,
+	header *ctypes.SignedBeaconBlockHeader,
 	blob *eip4844.Blob,
 	commitment eip4844.KZGCommitment,
 	proof eip4844.KZGProof,
@@ -100,7 +98,7 @@ func (b *BlobSidecar) GetKzgCommitment() eip4844.KZGCommitment {
 	return b.KzgCommitment
 }
 
-func (b *BlobSidecar) GetBeaconBlockHeader() *types.BeaconBlockHeader {
+func (b *BlobSidecar) GetBeaconBlockHeader() *ctypes.BeaconBlockHeader {
 	return b.SignedBeaconBlockHeader.Header
 }
 
@@ -117,7 +115,7 @@ func (b *BlobSidecar) DefineSSZ(codec *ssz.Codec) {
 
 // SizeSSZ returns the size of the BlobSidecar object in SSZ encoding.
 func (b *BlobSidecar) SizeSSZ(sizer *ssz.Sizer) uint32 {
-	ssize := (*types.SignedBeaconBlockHeader)(nil).SizeSSZ(sizer)
+	ssize := (*ctypes.SignedBeaconBlockHeader)(nil).SizeSSZ(sizer)
 	return 8 + // Index
 		131072 + // Blob
 		48 + // KzgCommitment
@@ -149,6 +147,6 @@ func (b *BlobSidecar) HashTreeRoot() common.Root {
 }
 
 //nolint:lll //ok
-func (b *BlobSidecar) GetSignedBeaconBlockHeader() *types.SignedBeaconBlockHeader {
+func (b *BlobSidecar) GetSignedBeaconBlockHeader() *ctypes.SignedBeaconBlockHeader {
 	return b.SignedBeaconBlockHeader
 }

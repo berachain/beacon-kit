@@ -43,7 +43,6 @@ type NodeAPIBackendInput[
 	DepositT any,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	StorageBackendT any,
-	BeaconBlockHeaderT any,
 ] struct {
 	depinject.In
 
@@ -51,7 +50,6 @@ type NodeAPIBackendInput[
 	StateProcessor StateProcessor[
 		BeaconBlockT, BeaconStateT, *Context,
 		DepositT, ExecutionPayloadHeaderT,
-		BeaconBlockHeaderT,
 	]
 	StorageBackend StorageBackendT
 }
@@ -60,11 +58,10 @@ func ProvideNodeAPIBackend[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	BeaconBlockT any,
 	BeaconBlockBodyT any,
-	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
 	BeaconStateT BeaconState[
-		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
-		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT,
+		BeaconStateT, BeaconStateMarshallableT,
+		ExecutionPayloadHeaderT, *Fork, KVStoreT,
 		*Validator, Validators, WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
@@ -83,20 +80,19 @@ func ProvideNodeAPIBackend[
 ](
 	in NodeAPIBackendInput[
 		BeaconBlockT, BeaconStateT, DepositT, ExecutionPayloadHeaderT,
-		StorageBackendT, BeaconBlockHeaderT,
+		StorageBackendT,
 	],
 ) *backend.Backend[
-	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BeaconBlockStoreT,
-	sdk.Context, DepositT, DepositStoreT, *Eth1Data, ExecutionPayloadHeaderT,
+	sdk.Context, DepositT, DepositStoreT, ExecutionPayloadHeaderT,
 	*Fork, NodeT, KVStoreT, StorageBackendT, *Validator, Validators,
-	WithdrawalT, WithdrawalCredentials,
+	WithdrawalT,
 ] {
 	return backend.New[
 		AvailabilityStoreT,
 		BeaconBlockT,
 		BeaconBlockBodyT,
-		BeaconBlockHeaderT,
 		BeaconStateT,
 		BeaconStateMarshallableT,
 		BlobSidecarsT,
@@ -104,7 +100,6 @@ func ProvideNodeAPIBackend[
 		sdk.Context,
 		DepositT,
 		DepositStoreT,
-		*Eth1Data,
 		ExecutionPayloadHeaderT,
 		*Fork,
 		NodeT,
@@ -113,7 +108,6 @@ func ProvideNodeAPIBackend[
 		*Validator,
 		Validators,
 		WithdrawalT,
-		WithdrawalCredentials,
 	](
 		in.StorageBackend,
 		in.ChainSpec,

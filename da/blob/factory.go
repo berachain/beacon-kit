@@ -35,9 +35,8 @@ import (
 
 // SidecarFactory is a factory for sidecars.
 type SidecarFactory[
-	BeaconBlockT BeaconBlock[BeaconBlockBodyT, BeaconBlockHeaderT],
+	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody,
-	BeaconBlockHeaderT any,
 	ForkDataT any,
 ] struct {
 	// chainSpec defines the specifications of the blockchain.
@@ -52,9 +51,8 @@ type SidecarFactory[
 
 // NewSidecarFactory creates a new sidecar factory.
 func NewSidecarFactory[
-	BeaconBlockT BeaconBlock[BeaconBlockBodyT, BeaconBlockHeaderT],
+	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody,
-	BeaconBlockHeaderT any,
 	ForkDataT any,
 ](
 	chainSpec ChainSpec,
@@ -62,10 +60,10 @@ func NewSidecarFactory[
 	kzgPosition uint64,
 	telemetrySink TelemetrySink,
 ) *SidecarFactory[
-	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT, ForkDataT,
+	BeaconBlockT, BeaconBlockBodyT, ForkDataT,
 ] {
 	return &SidecarFactory[
-		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT, ForkDataT,
+		BeaconBlockT, BeaconBlockBodyT, ForkDataT,
 	]{
 		chainSpec: chainSpec,
 		// TODO: This should be configurable / modular.
@@ -75,8 +73,7 @@ func NewSidecarFactory[
 }
 
 // BuildSidecars builds a sidecar.
-func (f *SidecarFactory[BeaconBlockT, _, BeaconBlockHeaderT,
-	ForkDataT]) BuildSidecars(
+func (f *SidecarFactory[BeaconBlockT, _, ForkDataT]) BuildSidecars(
 	blk BeaconBlockT,
 	bundle engineprimitives.BlobsBundle,
 	signer crypto.BLSSigner,
@@ -143,7 +140,7 @@ func (f *SidecarFactory[BeaconBlockT, _, BeaconBlockHeaderT,
 }
 
 // BuildKZGInclusionProof builds a KZG inclusion proof.
-func (f *SidecarFactory[_, BeaconBlockBodyT, _, _]) BuildKZGInclusionProof(
+func (f *SidecarFactory[_, BeaconBlockBodyT, _]) BuildKZGInclusionProof(
 	body BeaconBlockBodyT,
 	index math.U64,
 ) ([]common.Root, error) {
@@ -169,7 +166,7 @@ func (f *SidecarFactory[_, BeaconBlockBodyT, _, _]) BuildKZGInclusionProof(
 }
 
 // BuildBlockBodyProof builds a block body proof.
-func (f *SidecarFactory[_, BeaconBlockBodyT, _, _]) BuildBlockBodyProof(
+func (f *SidecarFactory[_, BeaconBlockBodyT, _]) BuildBlockBodyProof(
 	body BeaconBlockBodyT,
 ) ([]common.Root, error) {
 	startTime := time.Now()
@@ -186,7 +183,7 @@ func (f *SidecarFactory[_, BeaconBlockBodyT, _, _]) BuildBlockBodyProof(
 }
 
 // BuildCommitmentProof builds a commitment proof.
-func (f *SidecarFactory[_, BeaconBlockBodyT, _, _]) BuildCommitmentProof(
+func (f *SidecarFactory[_, BeaconBlockBodyT, _]) BuildCommitmentProof(
 	body BeaconBlockBodyT,
 	index math.U64,
 ) ([]common.Root, error) {

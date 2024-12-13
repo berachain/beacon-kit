@@ -30,7 +30,7 @@ import (
 // id along with a merkle proof that can be verified against the beacon block
 // root. It also returns the merkle proof of the proposer index.
 func (h *Handler[
-	BeaconBlockHeaderT, _, _, ContextT, _, _,
+	_, _, ContextT, _, _,
 ]) GetBlockProposer(c ContextT) (any, error) {
 	params, err := utils.BindAndValidate[types.BlockProposerRequest](
 		c, h.Logger(),
@@ -72,7 +72,7 @@ func (h *Handler[
 		return nil, err
 	}
 
-	return types.BlockProposerResponse[BeaconBlockHeaderT]{
+	return types.BlockProposerResponse{
 		BeaconBlockHeader:    blockHeader,
 		BeaconBlockRoot:      beaconBlockRoot,
 		ValidatorPubkey:      proposerValidator.GetPubkey(),

@@ -56,7 +56,6 @@ func ProvideBlobProofVerifier(
 // BlobProcessorIn is the input for the BlobProcessor.
 type BlobProcessorIn[
 	BlobSidecarsT any,
-	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	LoggerT any,
 ] struct {
 	depinject.In
@@ -72,26 +71,22 @@ type BlobProcessorIn[
 func ProvideBlobProcessor[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	BeaconBlockBodyT any,
-	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
-	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, BeaconBlockHeaderT],
-	BlobSidecarT BlobSidecar[SignedBeaconBlockHeaderT],
+	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
+	BlobSidecarT BlobSidecar,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	LoggerT log.AdvancedLogger[LoggerT],
-	SignedBeaconBlockHeaderT dablob.SignedBeaconBlockHeader[BeaconBlockHeaderT],
 ](
-	in BlobProcessorIn[BlobSidecarsT, BeaconBlockHeaderT, LoggerT],
+	in BlobProcessorIn[BlobSidecarsT, LoggerT],
 ) *dablob.Processor[
-	AvailabilityStoreT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT, SignedBeaconBlockHeaderT,
+	AvailabilityStoreT, BeaconBlockBodyT,
+	ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
 ] {
 	return dablob.NewProcessor[
 		AvailabilityStoreT,
 		BeaconBlockBodyT,
-		BeaconBlockHeaderT,
 		ConsensusSidecarsT,
 		BlobSidecarT,
 		BlobSidecarsT,
-		SignedBeaconBlockHeaderT,
 	](
 		in.Logger.With("service", "blob-processor"),
 		in.ChainSpec,

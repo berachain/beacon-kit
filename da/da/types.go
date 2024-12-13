@@ -20,14 +20,16 @@
 
 package da
 
-import "github.com/berachain/beacon-kit/primitives/crypto"
+import (
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/primitives/crypto"
+)
 
 // BlobProcessor is the interface for the blobs processor.
 type BlobProcessor[
 	AvailabilityStoreT,
 	ConsensusSidecarsT,
 	BlobSidecarsT any,
-	BeaconBlockHeaderT any,
 
 ] interface {
 	// ProcessSidecars processes the blobs and ensures they match the local
@@ -40,15 +42,15 @@ type BlobProcessor[
 	VerifySidecars(
 		sidecars ConsensusSidecarsT,
 		verifierFn func(
-			blkHeader BeaconBlockHeaderT,
+			blkHeader *ctypes.BeaconBlockHeader,
 			signature crypto.BLSSignature,
 		) error,
 	) error
 }
 
-type ConsensusSidecars[BlobSidecarsT any, BeaconBlockHeaderT any] interface {
+type ConsensusSidecars[BlobSidecarsT any] interface {
 	GetSidecars() BlobSidecarsT
-	GetHeader() BeaconBlockHeaderT
+	GetHeader() *ctypes.BeaconBlockHeader
 }
 
 // BlobSidecar is the interface for the blob sidecar.

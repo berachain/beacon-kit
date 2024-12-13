@@ -57,7 +57,6 @@ type ChainServiceInput[
 	AvailabilityStoreT any,
 	ConsensusSidecarsT any,
 	BlobSidecarsT any,
-	BeaconBlockHeaderT any,
 ] struct {
 	depinject.In
 
@@ -79,11 +78,11 @@ type ChainServiceInput[
 	Signer         crypto.BLSSigner
 	StateProcessor StateProcessor[
 		BeaconBlockT, BeaconStateT, *Context,
-		DepositT, ExecutionPayloadHeaderT, BeaconBlockHeaderT,
+		DepositT, ExecutionPayloadHeaderT,
 	]
 	StorageBackend StorageBackendT
 	BlobProcessor  BlobProcessor[
-		AvailabilityStoreT, ConsensusSidecarsT, BlobSidecarsT, BeaconBlockHeaderT,
+		AvailabilityStoreT, ConsensusSidecarsT, BlobSidecarsT,
 	]
 	TelemetrySink         *metrics.TelemetrySink
 	BlockStore            BeaconBlockStoreT
@@ -95,24 +94,22 @@ type ChainServiceInput[
 func ProvideChainService[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
-	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT],
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[
 		BeaconBlockBodyT, *AttestationData, DepositT,
-		*Eth1Data, ExecutionPayloadT, *SlashingInfo,
+		ExecutionPayloadT, *SlashingInfo,
 	],
-	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT BeaconState[
-		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
-		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT,
+		BeaconStateT, BeaconStateMarshallableT,
+		ExecutionPayloadHeaderT, *Fork, KVStoreT,
 		*Validator, Validators, WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
-	BlobSidecarT BlobSidecar[SignedBeaconBlockHeaderT],
+	BlobSidecarT BlobSidecar,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
-	ConsensusSidecarsT da.ConsensusSidecars[BlobSidecarsT, BeaconBlockHeaderT],
+	ConsensusSidecarsT da.ConsensusSidecars[BlobSidecarsT],
 	BlockStoreT any,
-	DepositT deposit.Deposit[DepositT, WithdrawalCredentialsT],
-	WithdrawalCredentialsT WithdrawalCredentials,
+	DepositT deposit.Deposit[DepositT],
 	DepositStoreT DepositStore[DepositT],
 	DepositContractT deposit.Contract[DepositT],
 	ExecutionPayloadT ExecutionPayload[
@@ -128,19 +125,18 @@ func ProvideChainService[
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalsT Withdrawals[WithdrawalT],
-	SignedBeaconBlockHeaderT any,
 ](
 	in ChainServiceInput[
 		BeaconBlockT, BeaconStateT, DepositT, ExecutionPayloadT,
 		ExecutionPayloadHeaderT, StorageBackendT, LoggerT,
 		WithdrawalT, WithdrawalsT, BeaconBlockStoreT, DepositStoreT, DepositContractT,
-		AvailabilityStoreT, ConsensusSidecarsT, BlobSidecarsT, BeaconBlockHeaderT,
+		AvailabilityStoreT, ConsensusSidecarsT, BlobSidecarsT,
 	],
 ) *blockchain.Service[
 	AvailabilityStoreT, DepositStoreT,
 	ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
-	BeaconBlockHeaderT, BeaconStateT, BeaconBlockStoreT, DepositT,
-	WithdrawalCredentialsT, ExecutionPayloadT,
+	BeaconStateT, BeaconBlockStoreT, DepositT,
+	ExecutionPayloadT,
 	ExecutionPayloadHeaderT, GenesisT,
 	ConsensusSidecarsT, BlobSidecarsT,
 	*engineprimitives.PayloadAttributes[WithdrawalT],
@@ -151,11 +147,9 @@ func ProvideChainService[
 		ConsensusBlockT,
 		BeaconBlockT,
 		BeaconBlockBodyT,
-		BeaconBlockHeaderT,
 		BeaconStateT,
 		BeaconBlockStoreT,
 		DepositT,
-		WithdrawalCredentialsT,
 		ExecutionPayloadT,
 		ExecutionPayloadHeaderT,
 		GenesisT,

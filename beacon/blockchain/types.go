@@ -24,6 +24,7 @@ import (
 	"context"
 	"time"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
@@ -63,7 +64,6 @@ type ConsensusBlock[BeaconBlockT any] interface {
 type BeaconBlock[
 	BeaconBlockT any,
 	BeaconBlockBodyT any,
-	BeaconBlockHeaderT any,
 ] interface {
 	constraints.SSZMarshallableRootable
 	constraints.Nillable
@@ -74,7 +74,7 @@ type BeaconBlock[
 	// GetBody returns the body of the beacon block.
 	GetBody() BeaconBlockBodyT
 	NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
-	GetHeader() BeaconBlockHeaderT
+	GetHeader() *ctypes.BeaconBlockHeader
 }
 
 // BeaconBlockBody represents the interface for the beacon block body.
@@ -84,15 +84,6 @@ type BeaconBlockBody[ExecutionPayloadT any] interface {
 	// GetExecutionPayload returns the execution payload of the beacon block
 	// body.
 	GetExecutionPayload() ExecutionPayloadT
-}
-
-// BeaconBlockHeader represents the interface for the beacon block header.
-type BeaconBlockHeader interface {
-	constraints.SSZMarshallableRootable
-	// SetStateRoot sets the state root of the beacon block header.
-	SetStateRoot(common.Root)
-	// GetStateRoot returns the state root of the beacon block header.
-	GetStateRoot() common.Root
 }
 
 type BlobSidecars[T any] interface {
@@ -171,14 +162,13 @@ type PayloadAttributes interface {
 // the beacon state.
 type ReadOnlyBeaconState[
 	T any,
-	BeaconBlockHeaderT any,
 	ExecutionPayloadHeaderT any,
 ] interface {
 	// Copy creates a copy of the beacon state.
 	Copy() T
 	// GetLatestBlockHeader returns the most recent block header.
 	GetLatestBlockHeader() (
-		BeaconBlockHeaderT,
+		*ctypes.BeaconBlockHeader,
 		error,
 	)
 	// GetLatestExecutionPayloadHeader returns the most recent execution payload
@@ -201,7 +191,6 @@ type StateProcessor[
 	ContextT,
 	DepositT,
 	ExecutionPayloadHeaderT any,
-	BeaconBlockHeaderT any,
 ] interface {
 	// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
 	// state
@@ -223,7 +212,9 @@ type StateProcessor[
 		BeaconBlockT,
 	) (transition.ValidatorUpdates, error)
 	GetSidecarVerifierFn(BeaconStateT) (
-		func(blkHeader BeaconBlockHeaderT, signature crypto.BLSSignature) error,
+		func(
+			blkHeader *ctypes.BeaconBlockHeader,
+			signature crypto.BLSSignature) error,
 		error,
 	)
 }

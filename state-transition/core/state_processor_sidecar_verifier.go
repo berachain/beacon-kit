@@ -21,19 +21,19 @@
 package core
 
 import (
-	constypes "github.com/berachain/beacon-kit/consensus-types/types"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/version"
 )
 
 func (sp *StateProcessor[
-	_, _, BeaconBlockHeaderT, BeaconStateT,
-	_, _, _, _, _, _, ForkDataT, _, _, _, _, _, _,
+	_, _, BeaconStateT, _, _, _, _,
+	_, ForkDataT, _, _, _, _, _,
 ]) GetSidecarVerifierFn(
 	st BeaconStateT,
 ) (
-	func(blkHeader BeaconBlockHeaderT, signature crypto.BLSSignature) error,
+	func(blkHeader *ctypes.BeaconBlockHeader, signature crypto.BLSSignature) error,
 	error,
 ) {
 	slot, err := st.GetSlot()
@@ -54,12 +54,12 @@ func (sp *StateProcessor[
 		), genesisValidatorsRoot,
 	)
 	//nolint:errcheck // safe
-	domain := any(fd).(*constypes.ForkData).ComputeDomain(
+	domain := any(fd).(*ctypes.ForkData).ComputeDomain(
 		sp.cs.DomainTypeProposer(),
 	)
 
 	return func(
-		blkHeader BeaconBlockHeaderT,
+		blkHeader *ctypes.BeaconBlockHeader,
 		signature crypto.BLSSignature,
 	) error {
 		//nolint:govet // shadow
@@ -67,7 +67,7 @@ func (sp *StateProcessor[
 		if err != nil {
 			return err
 		}
-		signingRoot := constypes.ComputeSigningRoot(
+		signingRoot := ctypes.ComputeSigningRoot(
 			blkHeader,
 			domain,
 		)

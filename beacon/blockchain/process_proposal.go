@@ -45,7 +45,7 @@ const (
 )
 
 func (s *Service[
-	_, _, ConsensusBlockT, BeaconBlockT, _, BeaconBlockHeaderT, _, _, _,
+	_, _, ConsensusBlockT, BeaconBlockT, _, _, _,
 	_, _, _, GenesisT, ConsensusSidecarsT, BlobSidecarsT, _,
 ]) ProcessProposal(
 	ctx sdk.Context,
@@ -74,10 +74,7 @@ func (s *Service[
 
 	// Process the blob sidecars, if any
 	if !sidecars.IsNil() && sidecars.Len() > 0 {
-		var consensusSidecars *types.ConsensusSidecars[
-			BlobSidecarsT,
-			BeaconBlockHeaderT,
-		]
+		var consensusSidecars *types.ConsensusSidecars[BlobSidecarsT]
 		consensusSidecars = consensusSidecars.New(
 			sidecars,
 			blk.GetHeader(),
@@ -89,7 +86,6 @@ func (s *Service[
 		cs := convertConsensusSidecars[
 			ConsensusSidecarsT,
 			BlobSidecarsT,
-			BeaconBlockHeaderT,
 		](consensusSidecars)
 
 		// Get the sidecar verification function from the state processor
@@ -146,7 +142,7 @@ func (s *Service[
 // VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
 func (s *Service[
-	_, _, ConsensusBlockT, BeaconBlockT, _, _, _, _, _, _, _,
+	_, _, ConsensusBlockT, BeaconBlockT, _, _, _, _, _,
 	ExecutionPayloadHeaderT, _, _, _, _,
 ]) VerifyIncomingBlock(
 	ctx context.Context,
@@ -249,8 +245,8 @@ func (s *Service[
 
 // verifyStateRoot verifies the state root of an incoming block.
 func (s *Service[
-	_, _, ConsensusBlockT, BeaconBlockT, _, _, BeaconStateT,
-	_, _, _, _, _, _, _, _, _,
+	_, _, ConsensusBlockT, BeaconBlockT, _, BeaconStateT,
+	_, _, _, _, _, _, _, _,
 ]) verifyStateRoot(
 	ctx context.Context,
 	st BeaconStateT,
@@ -289,7 +285,7 @@ func (s *Service[
 // shouldBuildOptimisticPayloads returns true if optimistic
 // payload builds are enabled.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) shouldBuildOptimisticPayloads() bool {
 	return s.optimisticPayloadBuilds && s.localBuilder.Enabled()
 }
@@ -310,9 +306,8 @@ func createProcessProposalResponse(
 func convertConsensusSidecars[
 	ConsensusSidecarsT any,
 	BlobSidecarsT any,
-	BeaconBlockHeaderT any,
 ](
-	cSidecars *types.ConsensusSidecars[BlobSidecarsT, BeaconBlockHeaderT],
+	cSidecars *types.ConsensusSidecars[BlobSidecarsT],
 ) ConsensusSidecarsT {
 	val, ok := any(cSidecars).(ConsensusSidecarsT)
 	if !ok {
