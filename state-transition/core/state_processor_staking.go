@@ -22,6 +22,7 @@ package core
 
 import (
 	"github.com/berachain/beacon-kit/config/spec"
+	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -117,6 +118,31 @@ func (sp *StateProcessor[
 		// TODO: improve error handling by distinguishing
 		// ErrNotFound from other kind of errors
 		return sp.createValidator(st, dep)
+	}
+
+	slot, err := st.GetSlot()
+	if err != nil {
+		return err
+	}
+	// BEFORE FORK <DON'T KNOW WHICH> WE UPDATE EFFECTIVE BALANCE
+	// EVERY EPOCH. WHICH IS WRONG
+	if sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
+		slot < math.U64(spec.BoonetFork3Height) {
+		var val ValidatorT
+		val, err = st.ValidatorByIndex(idx)
+		if err != nil {
+			return err
+		}
+
+		updatedBalance := types.ComputeEffectiveBalance(
+			val.GetEffectiveBalance()+dep.GetAmount(),
+			math.Gwei(sp.cs.EffectiveBalanceIncrement()),
+			math.Gwei(sp.cs.MaxEffectiveBalance(false)),
+		)
+		val.SetEffectiveBalance(updatedBalance)
+		if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
+			return err
+		}
 	}
 
 	// if validator exist, just update its balance
