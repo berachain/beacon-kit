@@ -53,7 +53,7 @@ func BoonetChainSpec() (chain.Spec[
 	boonetSpec.ValidatorSetCap = 5
 
 	// Increased for ease of testing in-epoch behavior.
-	boonetSpec.SlotsPerEpoch = 64
+	boonetSpec.SlotsPerEpoch = 16
 
 	// MaxValidatorsPerWithdrawalsSweep is 43 because we expect at least 46
 	// validators in the total validators set. We choose a prime number smaller
