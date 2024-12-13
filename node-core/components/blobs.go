@@ -25,7 +25,6 @@ import (
 	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/cli/flags"
 	"github.com/berachain/beacon-kit/config"
-	"github.com/berachain/beacon-kit/consensus-types/types"
 	dablob "github.com/berachain/beacon-kit/da/blob"
 	"github.com/berachain/beacon-kit/da/kzg"
 	"github.com/berachain/beacon-kit/log"
@@ -89,7 +88,6 @@ func ProvideBlobProcessor[
 		in.Logger.With("service", "blob-processor"),
 		in.ChainSpec,
 		in.BlobProofVerifier,
-		types.BlockBodyKZGOffset,
 		in.TelemetrySink,
 	)
 }

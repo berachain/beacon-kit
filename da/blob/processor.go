@@ -48,9 +48,6 @@ type Processor[
 		BlobSidecarT,
 		BlobSidecarsT,
 	]
-	// blockBodyOffsetFn is a function that calculates the block body offset
-	// based on the slot and chain specifications.
-	blockBodyOffsetFn func(math.Slot, chain.ChainSpec) (uint64, error)
 	// metrics is used to collect and report processor metrics.
 	metrics *processorMetrics
 }
@@ -65,7 +62,6 @@ func NewProcessor[
 	logger log.Logger,
 	chainSpec chain.ChainSpec,
 	proofVerifier kzg.BlobProofVerifier,
-	blockBodyOffsetFn func(math.Slot, chain.ChainSpec) (uint64, error),
 	telemetrySink TelemetrySink,
 ) *Processor[
 	AvailabilityStoreT,
@@ -79,11 +75,10 @@ func NewProcessor[
 		AvailabilityStoreT,
 		ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
 	]{
-		logger:            logger,
-		chainSpec:         chainSpec,
-		verifier:          verifier,
-		blockBodyOffsetFn: blockBodyOffsetFn,
-		metrics:           newProcessorMetrics(telemetrySink),
+		logger:    logger,
+		chainSpec: chainSpec,
+		verifier:  verifier,
+		metrics:   newProcessorMetrics(telemetrySink),
 	}
 }
 
@@ -110,7 +105,7 @@ func (sp *Processor[
 		return nil
 	}
 
-	kzgOffset, err := sp.blockBodyOffsetFn(
+	kzgOffset, err := ctypes.BlockBodyKZGOffset(
 		blkHeader.GetSlot(), sp.chainSpec,
 	)
 	if err != nil {
