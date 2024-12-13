@@ -146,7 +146,6 @@ func (b *BlobSidecar) HashTreeRoot() common.Root {
 	return ssz.HashSequential(b)
 }
 
-//nolint:lll //ok
 func (b *BlobSidecar) GetSignedBeaconBlockHeader() *ctypes.SignedBeaconBlockHeader {
 	return b.SignedBeaconBlockHeader
 }

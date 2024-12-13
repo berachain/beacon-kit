@@ -659,7 +659,7 @@ type (
 			st BeaconStateT,
 			blk BeaconBlockT,
 		) (transition.ValidatorUpdates, error)
-		GetSidecarVerifierFn(st BeaconStateT)(
+		GetSidecarVerifierFn(st BeaconStateT) (
 			func(blkHeader *ctypes.BeaconBlockHeader, signature crypto.BLSSignature) error,
 			error,
 		)

@@ -74,7 +74,7 @@ func NewProcessor[
 	blockBodyOffsetFn func(math.Slot, common.ChainSpec) (uint64, error),
 	telemetrySink TelemetrySink,
 ) *Processor[
-	AvailabilityStoreT, BeaconBlockBodyT, 
+	AvailabilityStoreT, BeaconBlockBodyT,
 	ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
 ] {
 	verifier := newVerifier[
@@ -104,7 +104,7 @@ func (sp *Processor[
 	) error,
 ) error {
 	var (
-		sidecars = cs.GetSidecars()
+		sidecars  = cs.GetSidecars()
 		blkHeader = cs.GetHeader()
 	)
 	defer sp.metrics.measureVerifySidecarsDuration(
