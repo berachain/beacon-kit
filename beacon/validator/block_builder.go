@@ -172,8 +172,7 @@ func (s *Service[
 	slot math.Slot,
 ) (crypto.BLSSignature, error) {
 	var (
-		forkData ctypes.ForkData
-		epoch    = s.chainSpec.SlotToEpoch(slot)
+		epoch = s.chainSpec.SlotToEpoch(slot)
 	)
 
 	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
@@ -181,7 +180,7 @@ func (s *Service[
 		return crypto.BLSSignature{}, err
 	}
 
-	signingRoot := forkData.New(
+	signingRoot := ctypes.NewForkData(
 		version.FromUint32[common.Version](
 			s.chainSpec.ActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,
