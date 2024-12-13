@@ -120,14 +120,17 @@ func (sp *StateProcessor[
 		return sp.createValidator(st, dep)
 	}
 
+	// The validator already exist and we need to update its balance.
+	// EffectiveBalance must be updated in processEffectiveBalanceUpdates
+	// However before BoonetFork2Height we mistakenly update EffectiveBalance
+	// every slot. We must preserve backward compatibility so we special case
+	// Boonet to allow proper bootstrapping.
 	slot, err := st.GetSlot()
 	if err != nil {
 		return err
 	}
-	// BEFORE FORK <DON'T KNOW WHICH> WE UPDATE EFFECTIVE BALANCE
-	// EVERY EPOCH. WHICH IS WRONG
 	if sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-		slot < math.U64(spec.BoonetFork3Height) {
+		slot < math.U64(spec.BoonetFork2Height) {
 		var val ValidatorT
 		val, err = st.ValidatorByIndex(idx)
 		if err != nil {
