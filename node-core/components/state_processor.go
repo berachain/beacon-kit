@@ -63,7 +63,7 @@ func ProvideStateProcessor[
 	LoggerT log.AdvancedLogger[LoggerT],
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT, *AttestationData, DepositT,
+		BeaconBlockBodyT, DepositT,
 		ExecutionPayloadT, *SlashingInfo,
 	],
 	BeaconStateT BeaconState[

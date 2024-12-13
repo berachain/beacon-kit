@@ -58,10 +58,7 @@ func (s *Service[LoggerT]) prepareProposal(
 		),
 	)
 
-	var slotData = types.NewSlotData[
-		ctypes.AttestationData,
-		ctypes.SlashingInfo,
-	](
+	var slotData = types.NewSlotData[ctypes.SlashingInfo](
 		math.Slot(req.GetHeight()),
 		nil,
 		nil,

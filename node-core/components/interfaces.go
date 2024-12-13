@@ -43,20 +43,6 @@ import (
 )
 
 type (
-	// 	// AttestationData is an interface for accessing the attestation data.
-	// 	AttestationData[AttestationDataT any] interface {
-	// 		constraints.SSZMarshallableRootable
-	// 		// New creates a new attestation data instance.
-	// 		New(math.U64, math.U64, common.Root) AttestationDataT
-	// 		// GetSlot returns the slot of the attestation data.
-	// 		GetSlot() math.U64
-	// 		// GetIndex returns the index of the attestation data.
-	// 		GetIndex() math.U64
-	// 		// GetBeaconBlockRoot returns the beacon block root of the attestation
-	// 		// data.
-	// 		GetBeaconBlockRoot() common.Root
-	// 	}
-
 	// AttributesFactory is the interface for the attributes factory.
 	AttributesFactory[
 		BeaconStateT any,
@@ -134,7 +120,6 @@ type (
 	// block.
 	BeaconBlockBody[
 		T any,
-		AttestationDataT any,
 		DepositT any,
 		ExecutionPayloadT any,
 		SlashingInfoT any,
@@ -163,7 +148,7 @@ type (
 		// SetGraffiti sets the graffiti of the beacon block body.
 		SetGraffiti(common.Bytes32)
 		// SetAttestations sets the attestations of the beacon block body.
-		SetAttestations([]AttestationDataT)
+		SetAttestations([]*ctypes.AttestationData)
 		// SetSlashingInfo sets the slashing info of the beacon block body.
 		SetSlashingInfo([]SlashingInfoT)
 		// SetBlobKzgCommitments sets the blob KZG commitments of the beacon
@@ -607,19 +592,6 @@ type (
 	// 	SlashingInfo[SlashingInfoT any] interface {
 	// 		// New creates a new slashing info instance.
 	// 		New(math.U64, math.U64) SlashingInfoT
-	// 	}
-
-	// 	// SlotData is an interface for accessing the slot data.
-	// 	SlotData[T, AttestationDataT, SlashingInfoT any] interface {
-	// 		// New creates a new slot data instance.
-	// 		New(math.Slot, []AttestationDataT, []SlashingInfoT) T
-	// 		// GetSlot returns the slot of the incoming slot.
-	// 		GetSlot() math.Slot
-	// 		// GetAttestationData returns the attestation data of the incoming
-	// slot.
-	// 		GetAttestationData() []AttestationDataT
-	// 		// GetSlashingInfo returns the slashing info of the incoming slot.
-	// 		GetSlashingInfo() []SlashingInfoT
 	// 	}
 
 	// StateProcessor defines the interface for processing the state.

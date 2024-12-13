@@ -44,10 +44,7 @@ type (
 	Fork = types.Fork
 
 	// SlotData is a type alias for the incoming slot.
-	SlotData = consruntimetypes.SlotData[
-		*AttestationData,
-		*SlashingInfo,
-	]
+	SlotData = consruntimetypes.SlotData[*SlashingInfo]
 
 	// LegacyKey type alias to LegacyKey used for LegacySinger construction.
 	LegacyKey = signer.LegacyKey
