@@ -21,6 +21,8 @@
 package core
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -39,6 +41,7 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
+	fmt.Printf("processRandaoReveal BEGIN\n")
 	slot, err := st.GetSlot()
 	if err != nil {
 		return err
@@ -86,10 +89,14 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	return st.UpdateRandaoMixAtIndex(
+	err = st.UpdateRandaoMixAtIndex(
 		epoch.Unwrap()%sp.cs.EpochsPerHistoricalVector(),
 		sp.buildRandaoMix(prevMix, body.GetRandaoReveal()),
 	)
+
+	fmt.Printf("processRandaoReveal END\n")
+
+	return err
 }
 
 // processRandaoMixesReset as defined in the Ethereum 2.0 specification.

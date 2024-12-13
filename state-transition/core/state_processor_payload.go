@@ -22,6 +22,7 @@ package core
 
 import (
 	"context"
+	"fmt"
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	"github.com/berachain/beacon-kit/config/spec"
@@ -41,6 +42,7 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
+	fmt.Printf("processExecutionPayload BEGIN\n")
 	var (
 		body    = blk.GetBody()
 		payload = body.GetExecutionPayload()
@@ -87,7 +89,11 @@ func (sp *StateProcessor[
 	}
 
 	// Set the latest execution payload header.
-	return st.SetLatestExecutionPayloadHeader(header)
+	err := st.SetLatestExecutionPayloadHeader(header)
+
+	fmt.Printf("processExecutionPayload END\n")
+
+	return err
 }
 
 // validateExecutionPayload validates the execution payload against both local

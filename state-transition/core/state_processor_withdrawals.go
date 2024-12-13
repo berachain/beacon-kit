@@ -44,6 +44,7 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
+	fmt.Printf("processWithdrawals BEGIN\n")
 	// Dequeue and verify the logs.
 	var (
 		body               = blk.GetBody()
@@ -57,8 +58,13 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	return sp.processWithdrawalsByFork(
+	err = sp.processWithdrawalsByFork(
 		st, expectedWithdrawals, payloadWithdrawals)
+
+	fmt.Printf("processWithdrawals END\n")
+
+	return err
+
 }
 
 func (sp *StateProcessor[
@@ -69,6 +75,7 @@ func (sp *StateProcessor[
 	expectedWithdrawals []WithdrawalT,
 	payloadWithdrawals []WithdrawalT,
 ) error {
+	fmt.Printf("processWithdrawalsByFork BEGIN\n")
 	slot, err := st.GetSlot()
 	if err != nil {
 		return errors.Wrap(
@@ -88,6 +95,7 @@ func (sp *StateProcessor[
 	// Chain/Fork specific processing
 	switch {
 	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
+		fmt.Printf("processWithdrawalsByFork END1\n")
 		return sp.processWithdrawalsBartio(
 			st,
 			expectedWithdrawals,
@@ -97,6 +105,7 @@ func (sp *StateProcessor[
 
 	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
 		slot == math.U64(spec.BoonetFork1Height):
+		fmt.Printf("processWithdrawalsByFork END2\n")
 		// Slot used to emergency mint EVM tokens on Boonet.
 		if !expectedWithdrawals[0].Equals(payloadWithdrawals[0]) {
 			return fmt.Errorf(
@@ -110,6 +119,7 @@ func (sp *StateProcessor[
 
 	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
 		slot < math.U64(spec.BoonetFork2Height):
+		fmt.Printf("processWithdrawalsByFork END3\n")
 		// Boonet inherited the Bartio behaviour pre BoonetFork2Height
 		// nothing specific to do
 		return sp.processWithdrawalsBartio(
@@ -120,6 +130,7 @@ func (sp *StateProcessor[
 		)
 
 	default:
+		fmt.Printf("processWithdrawalsByFork END4\n")
 		return sp.processWithdrawalsDefault(
 			st,
 			expectedWithdrawals,

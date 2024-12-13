@@ -21,6 +21,8 @@
 package core
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -37,6 +39,7 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
+	fmt.Printf("processOperations BEGIN\n")
 	// Verify that outstanding deposits are processed
 	// up to the maximum number of deposits
 
@@ -59,6 +62,9 @@ func (sp *StateProcessor[
 			return err
 		}
 	}
+
+	fmt.Printf("processOperations END\n")
+
 	return nil
 }
 
@@ -69,6 +75,7 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	dep DepositT,
 ) error {
+	fmt.Printf("processDeposit BEGIN\n")
 	slot, err := st.GetSlot()
 	if err != nil {
 		return err
@@ -101,7 +108,11 @@ func (sp *StateProcessor[
 		"deposit_index", depositIndex,
 	)
 
-	return sp.applyDeposit(st, dep)
+	err = sp.applyDeposit(st, dep)
+
+	fmt.Printf("processDeposit END, depositIndex: %d\n", depositIndex)
+
+	return err
 }
 
 // applyDeposit processes the deposit and ensures it matches the local state.
@@ -111,6 +122,7 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	dep DepositT,
 ) error {
+	fmt.Printf("applyDeposit BEGIN\n")
 	idx, err := st.ValidatorIndexByPubkey(dep.GetPubkey())
 	if err != nil {
 		// If the validator does not exist, we add the validator.
@@ -129,6 +141,9 @@ func (sp *StateProcessor[
 		"deposit_amount", float64(dep.GetAmount().Unwrap())/math.GweiPerWei,
 		"validator_index", idx,
 	)
+
+	fmt.Printf("applyDeposit END\n")
+
 	return nil
 }
 

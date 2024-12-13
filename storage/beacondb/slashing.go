@@ -21,6 +21,8 @@
 package beacondb
 
 import (
+	"fmt"
+
 	"cosmossdk.io/collections"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -74,6 +76,7 @@ func (kv *KVStore[
 	index uint64,
 	amount math.Gwei,
 ) error {
+	fmt.Printf("SetSlashingAtIndex: %d, %v\n", index, amount)
 	return kv.slashings.Set(kv.ctx, index, amount.Unwrap())
 }
 
@@ -98,5 +101,6 @@ func (kv *KVStore[
 ]) SetTotalSlashing(
 	amount math.Gwei,
 ) error {
+	fmt.Printf("SetTotalSlashing: %v\n", amount)
 	return kv.totalSlashing.Set(kv.ctx, amount.Unwrap())
 }

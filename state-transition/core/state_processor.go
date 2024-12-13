@@ -196,6 +196,7 @@ func (sp *StateProcessor[
 ]) ProcessSlots(
 	st BeaconStateT, slot math.Slot,
 ) (transition.ValidatorUpdates, error) {
+	fmt.Printf("ProcessSlots BEGIN, slot: %d\n", slot)
 	var res transition.ValidatorUpdates
 
 	stateSlot, err := st.GetSlot()
@@ -248,6 +249,8 @@ func (sp *StateProcessor[
 		}
 	}
 
+	fmt.Println("ProcessSlots END")
+
 	return res, nil
 }
 
@@ -257,6 +260,7 @@ func (sp *StateProcessor[
 ]) processSlot(
 	st BeaconStateT,
 ) error {
+	fmt.Printf("processSlot BEGIN\n")
 	stateSlot, err := st.GetSlot()
 	if err != nil {
 		return err
@@ -287,10 +291,14 @@ func (sp *StateProcessor[
 	}
 
 	// We update the block root.
-	return st.UpdateBlockRootAtIndex(
+	err = st.UpdateBlockRootAtIndex(
 		stateSlot.Unwrap()%sp.cs.SlotsPerHistoricalRoot(),
 		latestHeader.HashTreeRoot(),
 	)
+
+	fmt.Printf("processSlot END\n")
+
+	return err
 }
 
 // ProcessBlock processes the block, it optionally verifies the
@@ -302,6 +310,7 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
+	fmt.Printf("ProcessBlock BEGIN\n")
 	if err := sp.processBlockHeader(ctx, st, blk); err != nil {
 		return err
 	}
@@ -338,6 +347,8 @@ func (sp *StateProcessor[
 		)
 	}
 
+	fmt.Printf("ProcessBlock END\n")
+
 	return nil
 }
 
@@ -347,6 +358,7 @@ func (sp *StateProcessor[
 ]) processEpoch(
 	st BeaconStateT,
 ) (transition.ValidatorUpdates, error) {
+	fmt.Printf("processEpoch BEGIN\n")
 	slot, err := st.GetSlot()
 	if err != nil {
 		return nil, err
@@ -389,7 +401,11 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	return sp.validatorSetsDiffs(currentActiveVals, nextActiveVals), nil
+	valUdates, err := sp.validatorSetsDiffs(currentActiveVals, nextActiveVals), nil
+
+	fmt.Printf("processEpoch END\n")
+
+	return valUdates, err
 }
 
 // processBlockHeader processes the header and ensures it matches the local
@@ -402,6 +418,7 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
+	fmt.Printf("processBlockHeader BEGIN\n")
 	// Ensure the block slot matches the state slot.
 	slot, err := st.GetSlot()
 	if err != nil {
@@ -471,7 +488,12 @@ func (sp *StateProcessor[
 		common.Root{},
 		bodyRoot,
 	)
-	return st.SetLatestBlockHeader(lbh)
+
+	err = st.SetLatestBlockHeader(lbh)
+
+	fmt.Printf("processBlockHeader END\n")
+
+	return err
 }
 
 // processEffectiveBalanceUpdates as defined in the Ethereum 2.0 specification.

@@ -21,6 +21,8 @@
 package types
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
@@ -301,6 +303,7 @@ func (v Validator) HasMaxEffectiveBalance(
 
 // SetEffectiveBalance sets the effective balance of the validator.
 func (v *Validator) SetEffectiveBalance(balance math.Gwei) {
+	fmt.Printf("SetEffectiveBalance: %d\n", balance)
 	v.EffectiveBalance = balance
 }
 

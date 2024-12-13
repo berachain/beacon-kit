@@ -21,6 +21,8 @@
 package beacondb
 
 import (
+	"fmt"
+
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 )
@@ -33,6 +35,7 @@ func (kv *KVStore[
 	index uint64,
 	root common.Root,
 ) error {
+	fmt.Printf("UpdateBlockRootAtIndex index: %d, root:%s\n", index, root[:])
 	return kv.blockRoots.Set(kv.ctx, index, root[:])
 }
 
@@ -57,6 +60,7 @@ func (kv *KVStore[
 ]) SetLatestBlockHeader(
 	header *ctypes.BeaconBlockHeader,
 ) error {
+	fmt.Printf("SetLatestBlockHeader header:%+v\n", *header)
 	return kv.latestBlockHeader.Set(kv.ctx, header)
 }
 
@@ -78,6 +82,7 @@ func (kv *KVStore[
 	idx uint64,
 	stateRoot common.Root,
 ) error {
+	fmt.Printf("UpdateStateRootAtIndex idx: %d, stateRoot:%s\n", idx, stateRoot[:])
 	return kv.stateRoots.Set(kv.ctx, idx, stateRoot[:])
 }
 

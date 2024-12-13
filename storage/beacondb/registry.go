@@ -22,6 +22,7 @@ package beacondb
 
 import (
 	"errors"
+	"fmt"
 
 	"cosmossdk.io/collections/indexes"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -75,6 +76,7 @@ func (kv *KVStore[
 	index math.ValidatorIndex,
 	val ValidatorT,
 ) error {
+	fmt.Printf("UpdateValidatorAtIndex index: %d, val: %+v\n", index, val)
 	return kv.validators.Set(kv.ctx, index.Unwrap(), val)
 }
 
@@ -233,6 +235,7 @@ func (kv *KVStore[
 	idx math.ValidatorIndex,
 	balance math.Gwei,
 ) error {
+	fmt.Printf("SetBalance BEGIN, idx: %d, balance: %d\n", idx, balance)
 	return kv.balances.Set(kv.ctx, idx.Unwrap(), balance.Unwrap())
 }
 

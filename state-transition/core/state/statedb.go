@@ -21,6 +21,8 @@
 package state
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -115,6 +117,7 @@ func (s *StateDB[
 	idx math.ValidatorIndex,
 	delta math.Gwei,
 ) error {
+	fmt.Printf("IncreaseBalance BEGIN, idx: %d, delta: %d\n", idx, delta)
 	balance, err := s.GetBalance(idx)
 	if err != nil {
 		return err
@@ -129,6 +132,7 @@ func (s *StateDB[
 	idx math.ValidatorIndex,
 	delta math.Gwei,
 ) error {
+	fmt.Printf("DecreaseBalance BEGIN, idx: %d, delta: %d\n", idx, delta)
 	balance, err := s.GetBalance(idx)
 	if err != nil {
 		return err
@@ -143,6 +147,7 @@ func (s *StateDB[
 	index uint64,
 	amount math.Gwei,
 ) error {
+	fmt.Printf("UpdateSlashingAtIndex BEGIN, index: %d, amount: %d\n", index, amount)
 	// Update the total slashing amount before overwriting the old amount.
 	total, err := s.GetTotalSlashing()
 	if err != nil {
@@ -163,7 +168,8 @@ func (s *StateDB[
 		return err
 	}
 
-	return s.SetSlashingAtIndex(index, amount)
+	err = s.SetSlashingAtIndex(index, amount)
+	return err
 }
 
 // ExpectedWithdrawals as defined in the Ethereum 2.0 Specification:

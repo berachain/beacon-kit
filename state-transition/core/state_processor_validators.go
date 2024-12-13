@@ -37,6 +37,7 @@ func (sp *StateProcessor[
 ]) processRegistryUpdates(
 	st BeaconStateT,
 ) error {
+	fmt.Printf("processRegistryUpdates BEGIN\n")
 	slot, err := st.GetSlot()
 	if err != nil {
 		return fmt.Errorf("registry update, failed loading slot: %w", err)
@@ -101,6 +102,8 @@ func (sp *StateProcessor[
 			}
 		}
 	}
+
+	fmt.Printf("processRegistryUpdates END\n")
 
 	// validators registry will be possibly further modified in order to enforce
 	// validators set cap. We will do that at the end of processEpoch, once all
@@ -193,6 +196,7 @@ func (*StateProcessor[
 	prevEpochValidators []ValidatorT,
 	currEpochValidator []ValidatorT,
 ) transition.ValidatorUpdates {
+	fmt.Printf("validatorSetsDiffs BEGIN\n")
 	currentValSet := iter.Map(
 		currEpochValidator,
 		func(val *ValidatorT) *transition.ValidatorUpdate {
@@ -237,6 +241,9 @@ func (*StateProcessor[
 			EffectiveBalance: 0, // signal val eviction to consensus
 		})
 	}
+
+	fmt.Printf("validatorSetsDiffs END\n")
+
 	return res
 }
 
