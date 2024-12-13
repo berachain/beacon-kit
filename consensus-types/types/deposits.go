@@ -20,10 +20,48 @@
 
 package types
 
+import (
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/karalabe/ssz"
+)
+
 // Deposits represents a list of Deposits, using the fastssz library for the
 // correct HashTreeRoot implementation according to spec.
 //
 //go:generate go run github.com/ferranbt/fastssz/sszgen --path deposits.go -include ../../primitives/common,../../primitives/crypto,../../primitives/math,..,./withdrawal_credentials.go,./deposit.go,../../primitives/bytes,../../primitives/math,../../primitives/common,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deposits.ssz.go
 type Deposits struct {
 	Elems []*Deposit `ssz-max:"4294967296"`
+}
+
+// DepositsSlice is a typealias for a list of Deposits.
+type DepositsSlice []*Deposit
+
+/* -------------------------------------------------------------------------- */
+/*                                     SSZ                                    */
+/* -------------------------------------------------------------------------- */
+
+// SizeSSZ returns the SSZ encoded size in bytes for the Deposits.
+func (ds DepositsSlice) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {
+	return ssz.SizeSliceOfStaticObjects(siz, ([]*Deposit)(ds))
+}
+
+// DefineSSZ defines the SSZ encoding for the Deposits object.
+func (ds DepositsSlice) DefineSSZ(c *ssz.Codec) {
+	c.DefineDecoder(func(*ssz.Decoder) {
+		ssz.DefineSliceOfStaticObjectsContent(
+			c, (*[]*Deposit)(&ds), 4294967296)
+	})
+	c.DefineEncoder(func(*ssz.Encoder) {
+		ssz.DefineSliceOfStaticObjectsContent(
+			c, (*[]*Deposit)(&ds), 4294967296)
+	})
+	c.DefineHasher(func(*ssz.Hasher) {
+		ssz.DefineSliceOfStaticObjectsOffset(
+			c, (*[]*Deposit)(&ds), 4294967296)
+	})
+}
+
+// HashTreeRoot returns the hash tree root of the Deposits.
+func (ds DepositsSlice) HashTreeRoot() common.Root {
+	return ssz.HashSequential(ds)
 }

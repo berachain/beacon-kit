@@ -65,22 +65,41 @@ func GetGenesisValidatorRootCmd(cs common.ChainSpec) *cobra.Command {
 			}
 
 			depositCount := uint64(len(genesis.AppState.Beacon.Deposits))
-			validators := make(
-				types.Validators,
-				depositCount,
-			)
+			depositsSlice := make(types.DepositsSlice, depositCount)
+			elems := make([]*types.Deposit, depositCount)
+
 			for i, deposit := range genesis.AppState.Beacon.Deposits {
-				var val *types.Validator
-				validators[i] = val.New(
-					deposit.Pubkey,
-					types.WithdrawalCredentials(deposit.Credentials),
-					deposit.Amount,
-					math.Gwei(cs.EffectiveBalanceIncrement()),
-					math.Gwei(cs.MaxEffectiveBalance(false)),
-				)
+				sig := bytes.B96{}
+				err := sig.UnmarshalText([]byte(deposit.Signature))
+				if err != nil {
+					return errors.Wrap(err, "failed to convert signature to bytes96")
+				}
+
+				elems[i] = &types.Deposit{
+					Pubkey:      deposit.Pubkey,
+					Credentials: types.WithdrawalCredentials(deposit.Credentials),
+					Amount:      math.U64(deposit.Amount),
+					Signature:   sig,
+					Index:       uint64(deposit.Index),
+				}
+				depositsSlice[i] = &types.Deposit{
+					Pubkey:      deposit.Pubkey,
+					Credentials: types.WithdrawalCredentials(deposit.Credentials),
+					Amount:      math.U64(deposit.Amount),
+					Signature:   sig,
+					Index:       uint64(deposit.Index),
+				}
 			}
 
-			cmd.Printf("%s\n", validators.HashTreeRoot())
+			deposits := &types.Deposits{Elems: elems}
+			depositsRoot, err := deposits.HashTreeRoot()
+			if err != nil {
+				return errors.Wrap(err, "failed to get hash tree root")
+			}
+			cmd.Printf("deposits fastssz root: %s\n", bytes.B32(depositsRoot))
+
+			cmd.Printf("deposits karalabe root: %s\n", depositsSlice.HashTreeRoot())
+
 			return nil
 		},
 	}
