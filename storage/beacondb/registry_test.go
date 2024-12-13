@@ -199,8 +199,6 @@ func TestValidators(t *testing.T) {
 
 func initTestStore() (
 	*beacondb.KVStore[
-		*types.BeaconBlockHeader,
-		*types.Eth1Data,
 		*types.ExecutionPayloadHeader,
 		*types.Fork,
 		*types.Validator,
@@ -231,8 +229,6 @@ func initTestStore() (
 	}
 
 	return beacondb.New[
-		*types.BeaconBlockHeader,
-		*types.Eth1Data,
 		*types.ExecutionPayloadHeader,
 		*types.Fork,
 		*types.Validator,

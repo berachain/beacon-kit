@@ -29,8 +29,8 @@ import (
 )
 
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, DepositT,
-	_, _, _, _, _, _, _, _, _, _, _,
+	_, _, BeaconStateT, _, DepositT,
+	_, _, _, _, _, _, _, _, _,
 ]) validateGenesisDeposits(
 	st BeaconStateT,
 	deposits []DepositT,
@@ -99,8 +99,8 @@ func (sp *StateProcessor[
 }
 
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, DepositT,
-	_, _, _, _, _, _, _, _, _, _, _,
+	_, _, BeaconStateT, _, DepositT,
+	_, _, _, _, _, _, _, _, _,
 ]) validateNonGenesisDeposits(
 	st BeaconStateT,
 	deposits []DepositT,

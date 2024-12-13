@@ -35,8 +35,6 @@ import (
 
 // NewPayloadRequest as per the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/beacon-chain.md#modified-newpayloadrequest
-//
-//nolint:lll
 type NewPayloadRequest[
 	ExecutionPayloadT interface {
 		constraints.ForkTyped[ExecutionPayloadT]
@@ -126,8 +124,6 @@ func BuildNewPayloadRequest[
 // As per the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/v1.4.0-beta.2/specs/deneb/beacon-chain.md#is_valid_block_hash
 // https://github.com/ethereum/consensus-specs/blob/v1.4.0-beta.2/specs/deneb/beacon-chain.md#is_valid_versioned_hashes
-//
-//nolint:lll
 func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalsT]) HasValidVersionedAndBlockHashes() error {
 	var (
 		blobHashes = make([]gethprimitives.ExecutionHash, 0)

@@ -45,21 +45,21 @@ func BoonetChainSpec() (chain.Spec[
 	)
 
 	// BERA per block minting.
-	//
-	// TODO: Determine correct value for boonet upgrade.
 	boonetSpec.EVMInflationPerBlock = 2.5e9
 
 	// ValidatorSetCap is 256 on the Boonet chain.
-	//
-	// TODO: Determine correct value for boonet upgrade.
 	boonetSpec.ValidatorSetCap = 256
 
 	// MaxValidatorsPerWithdrawalsSweep is 43 because we expect at least 46
 	// validators in the total validators set. We choose a prime number smaller
 	// than the minimum amount of total validators possible.
-	//
-	// TODO: Determine correct value for boonet upgrade.
 	boonetSpec.MaxValidatorsPerWithdrawalsSweepPostUpgrade = 43
+
+	// MaxEffectiveBalancePostUpgrade is 5 million BERA after the boonet
+	// upgrade.
+	//
+	//nolint:mnd // ok.
+	boonetSpec.MaxEffectiveBalancePostUpgrade = 5_000_000 * 1e9
 
 	return chain.NewChainSpec(boonetSpec)
 }

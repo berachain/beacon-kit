@@ -24,6 +24,7 @@ import (
 	stdbytes "bytes"
 	"context"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -84,24 +85,6 @@ type BeaconBlockBody[
 	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 }
 
-// BeaconBlockHeader is the interface for a beacon block header.
-type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
-	New(
-		slot math.Slot,
-		proposerIndex math.ValidatorIndex,
-		parentBlockRoot common.Root,
-		stateRoot common.Root,
-		bodyRoot common.Root,
-	) BeaconBlockHeaderT
-	HashTreeRoot() common.Root
-	GetSlot() math.Slot
-	GetProposerIndex() math.ValidatorIndex
-	GetParentBlockRoot() common.Root
-	GetStateRoot() common.Root
-	GetBodyRoot() common.Root
-	SetStateRoot(common.Root)
-}
-
 // Context defines an interface for managing state transition context.
 type Context interface {
 	context.Context
@@ -131,7 +114,6 @@ type Context interface {
 type Deposit[
 	DepositT any,
 	ForkDataT any,
-	WithdrawlCredentialsT ~[32]byte,
 ] interface {
 	// Equals returns true if the Deposit is equal to the other.
 	Equals(DepositT) bool
@@ -142,7 +124,7 @@ type Deposit[
 	// GetIndex returns deposit index
 	GetIndex() math.U64
 	// GetWithdrawalCredentials returns the withdrawal credentials.
-	GetWithdrawalCredentials() WithdrawlCredentialsT
+	GetWithdrawalCredentials() ctypes.WithdrawalCredentials
 	// HasEth1WithdrawalCredentials returns true if the deposit has eth1
 	// withdrawal credentials.
 	HasEth1WithdrawalCredentials() bool
@@ -231,14 +213,13 @@ type ForkData[ForkDataT any] interface {
 // ValidatorT.
 type Validator[
 	ValidatorT any,
-	WithdrawalCredentialsT ~[32]byte,
 ] interface {
 	constraints.SSZMarshallableRootable
 	SizeSSZ(*ssz.Sizer) uint32
 	// New creates a new validator with the given parameters.
 	New(
 		pubkey crypto.BLSPubkey,
-		withdrawalCredentials WithdrawalCredentialsT,
+		withdrawalCredentials ctypes.WithdrawalCredentials,
 		amount math.Gwei,
 		effectiveBalanceIncrement math.Gwei,
 		maxEffectiveBalance math.Gwei,

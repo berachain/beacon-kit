@@ -23,8 +23,8 @@ package backend
 import (
 	"context"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/state-transition/core"
@@ -44,34 +44,16 @@ type AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT any] interface {
 	Persist(math.Slot, BlobSidecarsT) error
 }
 
-// BeaconBlockHeader is the interface for a beacon block header.
-type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
-	constraints.SSZMarshallableRootable
-	New(
-		slot math.Slot,
-		proposerIndex math.ValidatorIndex,
-		parentBlockRoot common.Root,
-		stateRoot common.Root,
-		bodyRoot common.Root,
-	) BeaconBlockHeaderT
-	GetSlot() math.Slot
-	GetProposerIndex() math.ValidatorIndex
-	GetParentBlockRoot() common.Root
-	GetStateRoot() common.Root
-	SetStateRoot(common.Root)
-	GetBodyRoot() common.Root
-}
-
 // BeaconState is the interface for the beacon state.
 type BeaconState[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT, WithdrawalT any,
 ] interface {
 	// SetSlot sets the slot on the beacon state.
 	SetSlot(math.Slot) error
 
 	core.ReadOnlyBeaconState[
-		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+		ExecutionPayloadHeaderT,
 		ForkT, ValidatorT, ValidatorsT, WithdrawalT,
 	]
 }
@@ -118,12 +100,11 @@ type StorageBackend[
 }
 
 // Validator represents an interface for a validator with generic withdrawal
-// credentials. WithdrawalCredentialsT is a type parameter that must implement
-// the WithdrawalCredentials interface.
-type Validator[WithdrawalCredentialsT WithdrawalCredentials] interface {
+// credentials.
+type Validator interface {
 	// GetWithdrawalCredentials returns the withdrawal credentials of the
 	// validator.
-	GetWithdrawalCredentials() WithdrawalCredentialsT
+	GetWithdrawalCredentials() ctypes.WithdrawalCredentials
 	// IsFullyWithdrawable checks if the validator is fully withdrawable given a
 	// certain Gwei amount and epoch.
 	IsFullyWithdrawable(amount math.Gwei, epoch math.Epoch) bool

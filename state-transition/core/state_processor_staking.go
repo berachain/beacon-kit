@@ -26,12 +26,13 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
+	"github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // processOperations processes the operations and ensures they match the
 // local state.
 func (sp *StateProcessor[
-	BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _,
 ]) processOperations(
 	st BeaconStateT,
 	blk BeaconBlockT,
@@ -63,7 +64,7 @@ func (sp *StateProcessor[
 
 // processDeposit processes the deposit and ensures it matches the local state.
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, DepositT, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, BeaconStateT, _, DepositT, _, _, _, _, _, _, _, _, _,
 ]) processDeposit(
 	st BeaconStateT,
 	dep DepositT,
@@ -105,7 +106,7 @@ func (sp *StateProcessor[
 
 // applyDeposit processes the deposit and ensures it matches the local state.
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, DepositT, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+	_, _, BeaconStateT, _, DepositT, _, _, _, _, _, ValidatorT, _, _, _,
 ]) applyDeposit(
 	st BeaconStateT,
 	dep DepositT,
@@ -133,7 +134,7 @@ func (sp *StateProcessor[
 
 // createValidator creates a validator if the deposit is valid.
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, DepositT, _, _, _, _, ForkDataT, _, _, _, _, _, _,
+	_, _, BeaconStateT, _, DepositT, _, _, _, ForkDataT, _, _, _, _, _,
 ]) createValidator(
 	st BeaconStateT,
 	dep DepositT,
@@ -188,15 +189,16 @@ func (sp *StateProcessor[
 	}
 
 	// Add the validator to the registry.
-	return sp.addValidatorToRegistry(st, dep)
+	return sp.addValidatorToRegistry(st, dep, slot)
 }
 
 // addValidatorToRegistry adds a validator to the registry.
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, DepositT, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+	_, _, BeaconStateT, _, DepositT, _, _, _, _, _, ValidatorT, _, _, _,
 ]) addValidatorToRegistry(
 	st BeaconStateT,
 	dep DepositT,
+	slot math.Slot,
 ) error {
 	var val ValidatorT
 	val = val.New(
@@ -204,7 +206,9 @@ func (sp *StateProcessor[
 		dep.GetWithdrawalCredentials(),
 		dep.GetAmount(),
 		math.Gwei(sp.cs.EffectiveBalanceIncrement()),
-		math.Gwei(sp.cs.MaxEffectiveBalance()),
+		math.Gwei(sp.cs.MaxEffectiveBalance(
+			state.IsPostFork3(sp.cs.DepositEth1ChainID(), slot),
+		)),
 	)
 
 	// TODO: This is a bug that lives on bArtio. Delete this eventually.
