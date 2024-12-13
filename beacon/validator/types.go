@@ -112,7 +112,6 @@ type BlobFactory[
 		blobs ctypes.BlobsBundle,
 		signer crypto.BLSSigner,
 		forkData *ctypes.ForkData,
-
 	) (BlobSidecarsT, error)
 }
 

@@ -83,6 +83,17 @@ func BlockBodyKZGOffset(
 	}
 }
 
+func BlockBodyKZGPosition(
+	forkVersion uint32,
+) (uint64, error) {
+	switch forkVersion {
+	case version.Deneb:
+		return KZGPositionDeneb, nil
+	default:
+		return 0, ErrForkVersionNotSupported
+	}
+}
+
 // BeaconBlockBody represents the body of a beacon block in the Deneb
 // chain.
 type BeaconBlockBody struct {
