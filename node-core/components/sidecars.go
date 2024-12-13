@@ -39,10 +39,9 @@ func ProvideSidecarFactory[
 		BeaconBlockT, BeaconBlockBodyT,
 	],
 	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT, DepositT,
+		BeaconBlockBodyT,
 		ExecutionPayloadT, *SlashingInfo,
 	],
-	DepositT any,
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],

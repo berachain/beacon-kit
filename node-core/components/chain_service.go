@@ -42,7 +42,6 @@ import (
 type ChainServiceInput[
 	BeaconBlockT any,
 	BeaconStateT any,
-	DepositT any,
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
@@ -78,7 +77,7 @@ type ChainServiceInput[
 	Signer         crypto.BLSSigner
 	StateProcessor StateProcessor[
 		BeaconBlockT, BeaconStateT, *Context,
-		DepositT, ExecutionPayloadHeaderT,
+		ExecutionPayloadHeaderT,
 	]
 	StorageBackend StorageBackendT
 	BlobProcessor  BlobProcessor[
@@ -96,7 +95,7 @@ func ProvideChainService[
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT, DepositT,
+		BeaconBlockBodyT,
 		ExecutionPayloadT, *SlashingInfo,
 	],
 	BeaconStateT BeaconState[
@@ -109,14 +108,13 @@ func ProvideChainService[
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	ConsensusSidecarsT da.ConsensusSidecars[BlobSidecarsT],
 	BlockStoreT any,
-	DepositT deposit.Deposit[DepositT],
-	DepositStoreT DepositStore[DepositT],
-	DepositContractT deposit.Contract[DepositT],
+	DepositStoreT DepositStore,
+	DepositContractT deposit.Contract,
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
+	GenesisT Genesis[ExecutionPayloadHeaderT],
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 	StorageBackendT StorageBackend[
@@ -127,7 +125,7 @@ func ProvideChainService[
 	WithdrawalsT Withdrawals[WithdrawalT],
 ](
 	in ChainServiceInput[
-		BeaconBlockT, BeaconStateT, DepositT, ExecutionPayloadT,
+		BeaconBlockT, BeaconStateT, ExecutionPayloadT,
 		ExecutionPayloadHeaderT, StorageBackendT, LoggerT,
 		WithdrawalT, WithdrawalsT, BeaconBlockStoreT, DepositStoreT, DepositContractT,
 		AvailabilityStoreT, ConsensusSidecarsT, BlobSidecarsT,
@@ -135,7 +133,7 @@ func ProvideChainService[
 ) *blockchain.Service[
 	AvailabilityStoreT, DepositStoreT,
 	ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, BeaconBlockStoreT, DepositT,
+	BeaconStateT, BeaconBlockStoreT,
 	ExecutionPayloadT,
 	ExecutionPayloadHeaderT, GenesisT,
 	ConsensusSidecarsT, BlobSidecarsT,
@@ -149,7 +147,6 @@ func ProvideChainService[
 		BeaconBlockBodyT,
 		BeaconStateT,
 		BeaconBlockStoreT,
-		DepositT,
 		ExecutionPayloadT,
 		ExecutionPayloadHeaderT,
 		GenesisT,

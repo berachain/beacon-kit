@@ -62,7 +62,7 @@ type BeaconBlock[
 
 // BeaconBlockBody represents a beacon block body interface.
 type BeaconBlockBody[
-	DepositT, ExecutionPayloadT, SlashingInfoT any,
+	ExecutionPayloadT, SlashingInfoT any,
 ] interface {
 	constraints.SSZMarshallable
 	constraints.Nillable
@@ -71,7 +71,7 @@ type BeaconBlockBody[
 	// SetEth1Data sets the Eth1 data of the beacon block body.
 	SetEth1Data(*ctypes.Eth1Data)
 	// SetDeposits sets the deposits of the beacon block body.
-	SetDeposits([]DepositT)
+	SetDeposits([]*ctypes.Deposit)
 	// SetExecutionPayload sets the execution data of the beacon block body.
 	SetExecutionPayload(ExecutionPayloadT)
 	// SetGraffiti sets the graffiti of the beacon block body.
@@ -120,12 +120,12 @@ type BlobFactory[
 }
 
 // DepositStore defines the interface for deposit storage.
-type DepositStore[DepositT any] interface {
+type DepositStore interface {
 	// GetDepositsByIndex returns `numView` expected deposits.
 	GetDepositsByIndex(
 		startIndex uint64,
 		numView uint64,
-	) ([]DepositT, error)
+	) ([]*ctypes.Deposit, error)
 }
 
 // ExecutionPayloadHeader represents the execution payload header interface.

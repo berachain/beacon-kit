@@ -27,7 +27,7 @@ import (
 )
 
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
+	_, _, BeaconStateT, _, _, _, _, _, _, _, _,
 ]) processRewardsAndPenalties(st BeaconStateT) error {
 	slot, err := st.GetSlot()
 	if err != nil {

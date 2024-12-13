@@ -24,16 +24,17 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/config/spec"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, DepositT,
+	_, _, BeaconStateT, _,
 	_, _, _, _, _, _, _,
 ]) validateGenesisDeposits(
 	st BeaconStateT,
-	deposits []DepositT,
+	deposits []*ctypes.Deposit,
 ) error {
 	switch {
 	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
@@ -99,11 +100,11 @@ func (sp *StateProcessor[
 }
 
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, DepositT,
+	_, _, BeaconStateT, _,
 	_, _, _, _, _, _, _,
 ]) validateNonGenesisDeposits(
 	st BeaconStateT,
-	deposits []DepositT,
+	deposits []*ctypes.Deposit,
 ) error {
 	slot, err := st.GetSlot()
 	if err != nil {
@@ -133,7 +134,7 @@ func (sp *StateProcessor[
 		}
 		expectedStartIdx := depositIndex + 1
 
-		var localDeposits []DepositT
+		var localDeposits []*ctypes.Deposit
 		localDeposits, err = sp.ds.GetDepositsByIndex(
 			expectedStartIdx,
 			sp.cs.MaxDepositsPerBlock(),

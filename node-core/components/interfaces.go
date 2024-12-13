@@ -120,7 +120,6 @@ type (
 	// block.
 	BeaconBlockBody[
 		T any,
-		DepositT any,
 		ExecutionPayloadT any,
 		SlashingInfoT any,
 	] interface {
@@ -134,7 +133,7 @@ type (
 		// GetExecutionPayload returns the execution payload.
 		GetExecutionPayload() ExecutionPayloadT
 		// GetDeposits returns the list of deposits.
-		GetDeposits() []DepositT
+		GetDeposits() []*ctypes.Deposit
 		// GetBlobKzgCommitments returns the KZG commitments for the blobs.
 		GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 		// SetRandaoReveal sets the Randao reveal of the beacon block body.
@@ -142,7 +141,7 @@ type (
 		// SetEth1Data sets the Eth1 data of the beacon block body.
 		SetEth1Data(*ctypes.Eth1Data)
 		// SetDeposits sets the deposits of the beacon block body.
-		SetDeposits([]DepositT)
+		SetDeposits([]*ctypes.Deposit)
 		// SetExecutionPayload sets the execution data of the beacon block body.
 		SetExecutionPayload(ExecutionPayloadT)
 		// SetGraffiti sets the graffiti of the beacon block body.
@@ -364,16 +363,16 @@ type (
 		) error
 	}
 
-	DepositStore[DepositT any] interface {
+	DepositStore interface {
 		// GetDepositsByIndex returns `numView` expected deposits.
 		GetDepositsByIndex(
 			startIndex uint64,
 			numView uint64,
-		) ([]DepositT, error)
+		) ([]*ctypes.Deposit, error)
 		// Prune prunes the deposit store of [start, end)
 		Prune(start, end uint64) error
 		// EnqueueDeposits adds a list of deposits to the deposit store.
-		EnqueueDeposits(deposits []DepositT) error
+		EnqueueDeposits(deposits []*ctypes.Deposit) error
 	}
 
 	// 	Eth1Data[T any] interface {
@@ -515,12 +514,12 @@ type (
 	// 	}
 
 	// Genesis is the interface for the genesis.
-	Genesis[DepositT any, ExecutionPayloadHeaderT any] interface {
+	Genesis[ExecutionPayloadHeaderT any] interface {
 		json.Unmarshaler
 		// GetForkVersion returns the fork version.
 		GetForkVersion() common.Version
 		// GetDeposits returns the deposits.
-		GetDeposits() []DepositT
+		GetDeposits() []*ctypes.Deposit
 		// GetExecutionPayloadHeader returns the execution payload header.
 		GetExecutionPayloadHeader() ExecutionPayloadHeaderT
 	}
@@ -599,7 +598,6 @@ type (
 		BeaconBlockT any,
 		BeaconStateT any,
 		ContextT any,
-		DepositT any,
 		ExecutionPayloadHeaderT any,
 	] interface {
 		// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
@@ -607,7 +605,7 @@ type (
 		// from the eth1 deposits.
 		InitializePreminedBeaconStateFromEth1(
 			BeaconStateT,
-			[]DepositT,
+			[]*ctypes.Deposit,
 			ExecutionPayloadHeaderT,
 			common.Version,
 		) (transition.ValidatorUpdates, error)

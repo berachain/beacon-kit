@@ -39,7 +39,6 @@ type StateProcessorInput[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-	DepositT Deposit[DepositT],
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalsT Withdrawals[WithdrawalT],
 ] struct {
@@ -52,7 +51,7 @@ type StateProcessorInput[
 		PayloadID,
 		WithdrawalsT,
 	]
-	DepositStore  DepositStore[DepositT]
+	DepositStore  DepositStore
 	Signer        crypto.BLSSigner
 	TelemetrySink *metrics.TelemetrySink
 }
@@ -63,7 +62,7 @@ func ProvideStateProcessor[
 	LoggerT log.AdvancedLogger[LoggerT],
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT, DepositT,
+		BeaconBlockBodyT,
 		ExecutionPayloadT, *SlashingInfo,
 	],
 	BeaconStateT BeaconState[
@@ -72,8 +71,7 @@ func ProvideStateProcessor[
 		Validators, WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
-	DepositT Deposit[DepositT],
-	DepositStoreT DepositStore[DepositT],
+	DepositStoreT DepositStore,
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
@@ -88,11 +86,11 @@ func ProvideStateProcessor[
 	in StateProcessorInput[
 		LoggerT,
 		ExecutionPayloadT, ExecutionPayloadHeaderT,
-		DepositT, WithdrawalT, WithdrawalsT,
+		WithdrawalT, WithdrawalsT,
 	],
 ) *core.StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, *Context, DepositT, ExecutionPayloadT,
+	BeaconStateT, *Context, ExecutionPayloadT,
 	ExecutionPayloadHeaderT, KVStoreT, *Validator,
 	Validators, WithdrawalT, WithdrawalsT,
 ] {
@@ -101,7 +99,6 @@ func ProvideStateProcessor[
 		BeaconBlockBodyT,
 		BeaconStateT,
 		*Context,
-		DepositT,
 		ExecutionPayloadT,
 		ExecutionPayloadHeaderT,
 		KVStoreT,

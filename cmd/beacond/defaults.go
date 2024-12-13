@@ -33,7 +33,7 @@ func DefaultComponents() []any {
 		],
 		components.ProvideAvailibilityStore[*BeaconBlockBody, *Logger],
 		components.ProvideDepositContract[
-			*Deposit, *ExecutionPayload, *ExecutionPayloadHeader,
+			*ExecutionPayload, *ExecutionPayloadHeader,
 		],
 		components.ProvideBlockStore[
 			*BeaconBlock, *BeaconBlockBody, *Logger,
@@ -49,7 +49,6 @@ func DefaultComponents() []any {
 			*ConsensusBlock, *BeaconBlock, *BeaconBlockBody,
 			*BeaconState, *BeaconStateMarshallable,
 			*BlobSidecar, *BlobSidecars, *ConsensusSidecars, *BlockStore,
-			*Deposit,
 			*DepositStore, *DepositContract,
 			*ExecutionPayload, *ExecutionPayloadHeader, *Genesis,
 			*KVStore, *Logger, *StorageBackend, *BlockStore,
@@ -62,7 +61,7 @@ func DefaultComponents() []any {
 		// 	*AvailabilityStore, *BeaconBlockHeader, *BeaconState,
 		// 	*BeaconStateMarshallable, *BlockStore, *KVStore, *StorageBackend,
 		// ],
-		components.ProvideDepositStore[*Deposit, *Logger],
+		components.ProvideDepositStore[*Logger],
 		components.ProvideEngineClient[
 			*ExecutionPayload, *ExecutionPayloadHeader, *Logger,
 		],
@@ -84,7 +83,7 @@ func DefaultComponents() []any {
 			*BlockStore, *BeaconState,
 			*BeaconStateMarshallable,
 			*ConsensusSidecars, *BlobSidecar, *BlobSidecars,
-			*Deposit, *DepositStore, *ExecutionPayload, *ExecutionPayloadHeader,
+			*DepositStore, *ExecutionPayload, *ExecutionPayloadHeader,
 			*Genesis, *KVStore, *Logger,
 			NodeAPIContext,
 		],
@@ -93,7 +92,7 @@ func DefaultComponents() []any {
 		],
 		components.ProvideStateProcessor[
 			*Logger, *BeaconBlock, *BeaconBlockBody,
-			*BeaconState, *BeaconStateMarshallable, *Deposit, *DepositStore,
+			*BeaconState, *BeaconStateMarshallable, *DepositStore,
 			*ExecutionPayload, *ExecutionPayloadHeader, *KVStore,
 		],
 		components.ProvideKVStore[*ExecutionPayloadHeader],
@@ -107,7 +106,7 @@ func DefaultComponents() []any {
 		components.ProvideValidatorService[
 			*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,
 			*BeaconState, *BeaconStateMarshallable,
-			*BlockStore, *BlobSidecar, *BlobSidecars, *Deposit, *DepositStore,
+			*BlockStore, *BlobSidecar, *BlobSidecars, *DepositStore,
 			*ExecutionPayload, *ExecutionPayloadHeader, *KVStore, *Logger,
 			*StorageBackend,
 		],
@@ -121,7 +120,7 @@ func DefaultComponents() []any {
 		components.ProvideNodeAPIBackend[
 			*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,
 			*BlockStore, *BeaconState,
-			*BeaconStateMarshallable, *BlobSidecars, *Deposit, *DepositStore,
+			*BeaconStateMarshallable, *BlobSidecars, *DepositStore,
 			*ExecutionPayloadHeader, *KVStore, *CometBFTService, *StorageBackend,
 		],
 	)
