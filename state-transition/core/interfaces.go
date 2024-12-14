@@ -24,6 +24,7 @@ import (
 	"context"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -33,9 +34,8 @@ import (
 // is a combination of the read-only and write-only beacon state types.
 type BeaconState[
 	T any,
-	ExecutionPayloadHeaderT,
-	KVStoreT,
-	WithdrawalT any,
+	ExecutionPayloadHeaderT any,
+	KVStoreT any,
 ] interface {
 	NewFromDB(
 		bdb KVStoreT,
@@ -44,23 +44,19 @@ type BeaconState[
 	Copy() T
 	Context() context.Context
 	HashTreeRoot() common.Root
-	ReadOnlyBeaconState[
-		ExecutionPayloadHeaderT,
-		WithdrawalT,
-	]
+	ReadOnlyBeaconState[ExecutionPayloadHeaderT]
 	WriteOnlyBeaconState[ExecutionPayloadHeaderT]
 }
 
 // ReadOnlyBeaconState is the interface for a read-only beacon state.
 type ReadOnlyBeaconState[
-	ExecutionPayloadHeaderT,
-	WithdrawalT any,
+	ExecutionPayloadHeaderT any,
 ] interface {
 	ReadOnlyEth1Data[ExecutionPayloadHeaderT]
 	ReadOnlyRandaoMixes
 	ReadOnlyStateRoots
 	ReadOnlyValidators
-	ReadOnlyWithdrawals[WithdrawalT]
+	ReadOnlyWithdrawals
 
 	GetBalance(math.ValidatorIndex) (math.Gwei, error)
 	GetSlot() (math.Slot, error)
@@ -168,7 +164,7 @@ type ReadOnlyEth1Data[ExecutionPayloadHeaderT any] interface {
 }
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.
-type ReadOnlyWithdrawals[WithdrawalT any] interface {
-	EVMInflationWithdrawal() WithdrawalT
-	ExpectedWithdrawals() ([]WithdrawalT, error)
+type ReadOnlyWithdrawals interface {
+	EVMInflationWithdrawal() *engineprimitives.Withdrawal
+	ExpectedWithdrawals() (engineprimitives.Withdrawals, error)
 }

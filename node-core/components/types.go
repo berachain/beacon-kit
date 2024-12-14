@@ -49,9 +49,6 @@ type (
 	// LegacyKey type alias to LegacyKey used for LegacySinger construction.
 	LegacyKey = signer.LegacyKey
 
-	// PayloadAttributes is a type alias for the payload attributes.
-	// PayloadAttributes = engineprimitives.PayloadAttributes[*Withdrawal].
-
 	// PayloadID is a type alias for the payload ID.
 	PayloadID = engineprimitives.PayloadID
 

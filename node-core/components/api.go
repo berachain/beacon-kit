@@ -61,7 +61,6 @@ func ProvideNodeAPIBackend[
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconStateMarshallableT,
 		ExecutionPayloadHeaderT, KVStoreT,
-		WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
 	BlobSidecarsT any,
@@ -74,7 +73,6 @@ func ProvideNodeAPIBackend[
 	StorageBackendT StorageBackend[
 		AvailabilityStoreT, BeaconStateT, BeaconBlockStoreT, DepositStoreT,
 	],
-	WithdrawalT Withdrawal[WithdrawalT],
 ](
 	in NodeAPIBackendInput[
 		BeaconBlockT, BeaconStateT, ExecutionPayloadHeaderT,
@@ -85,7 +83,6 @@ func ProvideNodeAPIBackend[
 	BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BeaconBlockStoreT,
 	sdk.Context, DepositStoreT, ExecutionPayloadHeaderT,
 	NodeT, KVStoreT, StorageBackendT,
-	WithdrawalT,
 ] {
 	return backend.New[
 		AvailabilityStoreT,
@@ -101,7 +98,6 @@ func ProvideNodeAPIBackend[
 		NodeT,
 		KVStoreT,
 		StorageBackendT,
-		WithdrawalT,
 	](
 		in.StorageBackend,
 		in.ChainSpec,

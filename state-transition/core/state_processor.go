@@ -40,29 +40,22 @@ import (
 type StateProcessor[
 	BeaconBlockT BeaconBlock[
 		BeaconBlockBodyT,
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
 	BeaconBlockBodyT BeaconBlockBody[
 		BeaconBlockBodyT,
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
 	BeaconStateT BeaconState[
 		BeaconStateT,
 		ExecutionPayloadHeaderT, KVStoreT,
-		WithdrawalT,
 	],
 	ContextT Context,
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	KVStoreT any,
-	WithdrawalT Withdrawal[WithdrawalT],
-	WithdrawalsT interface {
-		~[]WithdrawalT
-		Len() int
-		EncodeIndex(int, *bytes.Buffer)
-	},
 ] struct {
 	// logger is used for logging information and errors.
 	logger log.Logger
@@ -76,7 +69,7 @@ type StateProcessor[
 	fGetAddressFromPubKey func(crypto.BLSPubkey) ([]byte, error)
 	// executionEngine is the engine responsible for executing transactions.
 	executionEngine ExecutionEngine[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	]
 	// ds allows checking payload deposits against the deposit contract
 	ds DepositStore
@@ -88,35 +81,28 @@ type StateProcessor[
 func NewStateProcessor[
 	BeaconBlockT BeaconBlock[
 		BeaconBlockBodyT,
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
 	BeaconBlockBodyT BeaconBlockBody[
 		BeaconBlockBodyT,
 		ExecutionPayloadT,
 		ExecutionPayloadHeaderT,
-		WithdrawalsT,
 	],
 	BeaconStateT BeaconState[
 		BeaconStateT, ExecutionPayloadHeaderT,
-		KVStoreT, WithdrawalT,
+		KVStoreT,
 	],
 	ContextT Context,
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	KVStoreT any,
-	WithdrawalT Withdrawal[WithdrawalT],
-	WithdrawalsT interface {
-		~[]WithdrawalT
-		Len() int
-		EncodeIndex(int, *bytes.Buffer)
-	},
 ](
 	logger log.Logger,
 	cs common.ChainSpec,
 	executionEngine ExecutionEngine[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
 	ds DepositStore,
 	signer crypto.BLSSigner,
@@ -126,13 +112,11 @@ func NewStateProcessor[
 	BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, ContextT, ExecutionPayloadT,
 	ExecutionPayloadHeaderT, KVStoreT,
-	WithdrawalT, WithdrawalsT,
 ] {
 	return &StateProcessor[
 		BeaconBlockT, BeaconBlockBodyT,
 		BeaconStateT, ContextT, ExecutionPayloadT,
 		ExecutionPayloadHeaderT, KVStoreT,
-		WithdrawalT, WithdrawalsT,
 	]{
 		logger:                logger,
 		cs:                    cs,
@@ -147,7 +131,7 @@ func NewStateProcessor[
 // Transition is the main function for processing a state transition.
 func (sp *StateProcessor[
 	BeaconBlockT, _, BeaconStateT, ContextT,
-	_, _, _, _, _,
+	_, _, _,
 ]) Transition(
 	ctx ContextT,
 	st BeaconStateT,
@@ -172,7 +156,7 @@ func (sp *StateProcessor[
 }
 
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _, _, _, _, _,
+	_, _, BeaconStateT, _, _, _, _,
 ]) ProcessSlots(
 	st BeaconStateT, slot math.Slot,
 ) (transition.ValidatorUpdates, error) {
@@ -233,7 +217,7 @@ func (sp *StateProcessor[
 
 // processSlot is run when a slot is missed.
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _, _, _, _, _,
+	_, _, BeaconStateT, _, _, _, _,
 ]) processSlot(
 	st BeaconStateT,
 ) error {
@@ -276,7 +260,7 @@ func (sp *StateProcessor[
 // ProcessBlock processes the block, it optionally verifies the
 // state root.
 func (sp *StateProcessor[
-	BeaconBlockT, _, BeaconStateT, ContextT, _, _, _, _, _,
+	BeaconBlockT, _, BeaconStateT, ContextT, _, _, _,
 ]) ProcessBlock(
 	ctx ContextT,
 	st BeaconStateT,
@@ -323,7 +307,7 @@ func (sp *StateProcessor[
 
 // processEpoch processes the epoch and ensures it matches the local state.
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _, _, _, _, _,
+	_, _, BeaconStateT, _, _, _, _,
 ]) processEpoch(
 	st BeaconStateT,
 ) (transition.ValidatorUpdates, error) {
@@ -376,7 +360,7 @@ func (sp *StateProcessor[
 // state.
 func (sp *StateProcessor[
 	BeaconBlockT, _, BeaconStateT,
-	ContextT, _, _, _, _, _,
+	ContextT, _, _, _,
 ]) processBlockHeader(
 	ctx ContextT,
 	st BeaconStateT,
@@ -457,7 +441,7 @@ func (sp *StateProcessor[
 // processEffectiveBalanceUpdates as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#effective-balances-updates
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _, _, _, _, _,
+	_, _, BeaconStateT, _, _, _, _,
 ]) processEffectiveBalanceUpdates(
 	st BeaconStateT,
 	slot math.Slot,

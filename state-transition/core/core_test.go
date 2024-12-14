@@ -32,7 +32,6 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/consensus-types/types"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/log/noop"
 	"github.com/berachain/beacon-kit/node-core/components"
 	nodemetrics "github.com/berachain/beacon-kit/node-core/components/metrics"
@@ -66,7 +65,6 @@ type (
 		*TestBeaconStateMarshallableT,
 		*types.ExecutionPayloadHeader,
 		*TestKVStoreT,
-		*engineprimitives.Withdrawal,
 	]
 
 	TestStateProcessorT = core.StateProcessor[
@@ -77,8 +75,6 @@ type (
 		*types.ExecutionPayload,
 		*types.ExecutionPayloadHeader,
 		*TestKVStoreT,
-		*engineprimitives.Withdrawal,
-		engineprimitives.Withdrawals,
 	]
 )
 
@@ -159,7 +155,6 @@ func setupState(
 	execEngine := mocks.NewExecutionEngine[
 		*types.ExecutionPayload,
 		*types.ExecutionPayloadHeader,
-		engineprimitives.Withdrawals,
 	](t)
 
 	mocksSigner := &cryptomocks.BLSSigner{}
@@ -182,8 +177,6 @@ func setupState(
 		*types.ExecutionPayload,
 		*types.ExecutionPayloadHeader,
 		*TestKVStoreT,
-		*engineprimitives.Withdrawal,
-		engineprimitives.Withdrawals,
 	](
 		noop.NewLogger[any](),
 		cs,
