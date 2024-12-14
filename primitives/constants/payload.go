@@ -31,8 +31,9 @@ const (
 	// payload.
 	MaxTxsPerPayload uint64 = 1048576
 
-	// MaxDepositsPerBlock is the maximum number of deposits per block.
-	MaxDepositsPerBlock uint64 = 16
+	// MaximumDeposits is the maximum number of deposits supported by the
+	// deposit tree.
+	MaximumDeposits uint64 = 4294967296
 
 	// MaxWithdrawalsPerPayload is the maximum number of withdrawals in a
 	// execution payload.
