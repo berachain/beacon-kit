@@ -31,8 +31,7 @@ import (
 // with generic types.
 type BeaconStateMarshallable[
 	T any,
-	ExecutionPayloadHeaderT,
-	ValidatorT any,
+	ExecutionPayloadHeaderT any,
 ] interface {
 	constraints.SSZMarshallableRootable
 	// New returns a new instance of the BeaconStateMarshallable.
@@ -47,7 +46,7 @@ type BeaconStateMarshallable[
 		eth1Data *ctypes.Eth1Data,
 		eth1DepositIndex uint64,
 		latestExecutionPayloadHeader ExecutionPayloadHeaderT,
-		validators []ValidatorT,
+		validators []*ctypes.Validator,
 		balances []uint64,
 		randaoMixes []common.Bytes32,
 		nextWithdrawalIndex uint64,

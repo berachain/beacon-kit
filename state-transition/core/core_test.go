@@ -57,23 +57,15 @@ import (
 type (
 	TestBeaconStateMarshallableT = types.BeaconState[
 		*types.ExecutionPayloadHeader,
-		*types.Validator,
 		types.ExecutionPayloadHeader,
-		types.Validator,
 	]
 
-	TestKVStoreT = beacondb.KVStore[
-		*types.ExecutionPayloadHeader,
-		*types.Validator,
-		types.Validators,
-	]
+	TestKVStoreT = beacondb.KVStore[*types.ExecutionPayloadHeader]
 
 	TestBeaconStateT = statedb.StateDB[
 		*TestBeaconStateMarshallableT,
 		*types.ExecutionPayloadHeader,
 		*TestKVStoreT,
-		*types.Validator,
-		types.Validators,
 		*engineprimitives.Withdrawal,
 	]
 
@@ -85,8 +77,6 @@ type (
 		*types.ExecutionPayload,
 		*types.ExecutionPayloadHeader,
 		*TestKVStoreT,
-		*types.Validator,
-		types.Validators,
 		*engineprimitives.Withdrawal,
 		engineprimitives.Withdrawals,
 	]
@@ -109,11 +99,7 @@ var (
 )
 
 func initTestStores() (
-	*beacondb.KVStore[
-		*types.ExecutionPayloadHeader,
-		*types.Validator,
-		types.Validators,
-	],
+	*beacondb.KVStore[*types.ExecutionPayloadHeader],
 	*depositstore.KVStore,
 	error) {
 	db, err := db.OpenDB("", dbm.MemDBBackend)
@@ -138,11 +124,7 @@ func initTestStores() (
 	}
 	testStoreService := &testKVStoreService{ctx: ctx}
 
-	return beacondb.New[
-			*types.ExecutionPayloadHeader,
-			*types.Validator,
-			types.Validators,
-		](
+	return beacondb.New[*types.ExecutionPayloadHeader](
 			testStoreService,
 			testCodec,
 		),
@@ -200,8 +182,6 @@ func setupState(
 		*types.ExecutionPayload,
 		*types.ExecutionPayloadHeader,
 		*TestKVStoreT,
-		*types.Validator,
-		types.Validators,
 		*engineprimitives.Withdrawal,
 		engineprimitives.Withdrawals,
 	](

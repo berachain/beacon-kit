@@ -22,6 +22,7 @@ package state
 
 import (
 	"github.com/berachain/beacon-kit/config/spec"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -34,24 +35,17 @@ type StateDB[
 	BeaconStateMarshallableT BeaconStateMarshallable[
 		BeaconStateMarshallableT,
 		ExecutionPayloadHeaderT,
-		ValidatorT,
 	],
 	ExecutionPayloadHeaderT any,
 	KVStoreT KVStore[
 		KVStoreT,
 		ExecutionPayloadHeaderT,
-		ValidatorT,
-		ValidatorsT,
 	],
-	ValidatorT Validator,
-	ValidatorsT ~[]ValidatorT,
 	WithdrawalT Withdrawal[WithdrawalT],
 ] struct {
 	KVStore[
 		KVStoreT,
 		ExecutionPayloadHeaderT,
-		ValidatorT,
-		ValidatorsT,
 	]
 	cs common.ChainSpec
 }
@@ -60,7 +54,7 @@ type StateDB[
 func (s *StateDB[
 	BeaconStateMarshallableT,
 	ExecutionPayloadHeaderT, KVStoreT,
-	ValidatorT, ValidatorsT, WithdrawalT,
+	WithdrawalT,
 ]) NewFromDB(
 	bdb KVStoreT,
 	cs common.ChainSpec,
@@ -68,16 +62,12 @@ func (s *StateDB[
 	BeaconStateMarshallableT,
 	ExecutionPayloadHeaderT,
 	KVStoreT,
-	ValidatorT,
-	ValidatorsT,
 	WithdrawalT,
 ] {
 	return &StateDB[
 		BeaconStateMarshallableT,
 		ExecutionPayloadHeaderT,
 		KVStoreT,
-		ValidatorT,
-		ValidatorsT,
 		WithdrawalT,
 	]{
 		KVStore: bdb,
@@ -89,13 +79,11 @@ func (s *StateDB[
 func (s *StateDB[
 	BeaconStateMarshallableT,
 	ExecutionPayloadHeaderT, KVStoreT,
-	ValidatorT, ValidatorsT, WithdrawalT,
+	WithdrawalT,
 ]) Copy() *StateDB[
 	BeaconStateMarshallableT,
 	ExecutionPayloadHeaderT,
 	KVStoreT,
-	ValidatorT,
-	ValidatorsT,
 	WithdrawalT,
 ] {
 	return s.NewFromDB(s.KVStore.Copy(), s.cs)
@@ -103,7 +91,7 @@ func (s *StateDB[
 
 // IncreaseBalance increases the balance of a validator.
 func (s *StateDB[
-	_, _, _, _, _, _,
+	_, _, _, _,
 ]) IncreaseBalance(
 	idx math.ValidatorIndex,
 	delta math.Gwei,
@@ -117,7 +105,7 @@ func (s *StateDB[
 
 // DecreaseBalance decreases the balance of a validator.
 func (s *StateDB[
-	_, _, _, _, _, _,
+	_, _, _, _,
 ]) DecreaseBalance(
 	idx math.ValidatorIndex,
 	delta math.Gwei,
@@ -131,7 +119,7 @@ func (s *StateDB[
 
 // UpdateSlashingAtIndex sets the slashing amount in the store.
 func (s *StateDB[
-	_, _, _, _, _, _,
+	_, _, _, _,
 ]) UpdateSlashingAtIndex(
 	index uint64,
 	amount math.Gwei,
@@ -167,10 +155,10 @@ func (s *StateDB[
 //
 //nolint:funlen,gocognit // TODO: Simplify when dropping special cases.
 func (s *StateDB[
-	_, _, _, ValidatorT, _, WithdrawalT,
+	_, _, _, WithdrawalT,
 ]) ExpectedWithdrawals() ([]WithdrawalT, error) {
 	var (
-		validator         ValidatorT
+		validator         *ctypes.Validator
 		balance           math.Gwei
 		withdrawalAddress common.ExecutionAddress
 		withdrawals       = make([]WithdrawalT, 0)
@@ -324,7 +312,7 @@ func (s *StateDB[
 // NOTE: The withdrawal index and validator index are both set to 0 as they are
 // not used during processing.
 func (s *StateDB[
-	_, _, _, _, _, WithdrawalT,
+	_, _, _, WithdrawalT,
 ]) EVMInflationWithdrawal() WithdrawalT {
 	var withdrawal WithdrawalT
 	return withdrawal.New(
@@ -339,7 +327,7 @@ func (s *StateDB[
 //
 //nolint:funlen,gocognit // todo fix somehow
 func (s *StateDB[
-	BeaconStateMarshallableT, _, _, _, _, _,
+	BeaconStateMarshallableT, _, _, _,
 ]) GetMarshallable() (BeaconStateMarshallableT, error) {
 	var empty BeaconStateMarshallableT
 
@@ -456,7 +444,7 @@ func (s *StateDB[
 
 // HashTreeRoot is the interface for the beacon store.
 func (s *StateDB[
-	_, _, _, _, _, _,
+	_, _, _, _,
 ]) HashTreeRoot() common.Root {
 	st, err := s.GetMarshallable()
 	if err != nil {

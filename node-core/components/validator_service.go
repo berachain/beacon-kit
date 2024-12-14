@@ -72,7 +72,7 @@ func ProvideValidatorService[
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconStateMarshallableT,
 		ExecutionPayloadHeaderT, KVStoreT,
-		*Validator, Validators, WithdrawalT,
+		WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
 	BeaconBlockStoreT any,

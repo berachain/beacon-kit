@@ -101,7 +101,7 @@ func ProvideChainService[
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconStateMarshallableT,
 		ExecutionPayloadHeaderT, KVStoreT,
-		*Validator, Validators, WithdrawalT,
+		WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
 	BlobSidecarT BlobSidecar,

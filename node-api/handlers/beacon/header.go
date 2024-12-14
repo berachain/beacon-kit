@@ -26,9 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/bytes"
 )
 
-func (h *Handler[
-	ContextT, _,
-]) GetBlockHeaders(c ContextT) (any, error) {
+func (h *Handler[ContextT]) GetBlockHeaders(c ContextT) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetBlockHeadersRequest](
 		c, h.Logger(),
 	)
@@ -57,9 +55,7 @@ func (h *Handler[
 	}, nil
 }
 
-func (h *Handler[
-	ContextT, _,
-]) GetBlockHeaderByID(c ContextT) (any, error) {
+func (h *Handler[ContextT]) GetBlockHeaderByID(c ContextT) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetBlockHeaderRequest](
 		c, h.Logger(),
 	)

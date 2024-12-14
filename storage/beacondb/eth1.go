@@ -24,10 +24,7 @@ import ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 
 // GetLatestExecutionPayloadHeader retrieves the latest execution payload
 // header from the BeaconStore.
-func (kv *KVStore[
-	ExecutionPayloadHeaderT,
-	ValidatorT, ValidatorsT,
-]) GetLatestExecutionPayloadHeader() (
+func (kv *KVStore[ExecutionPayloadHeaderT]) GetLatestExecutionPayloadHeader() (
 	ExecutionPayloadHeaderT, error,
 ) {
 	forkVersion, err := kv.latestExecutionPayloadVersion.Get(kv.ctx)
@@ -41,10 +38,7 @@ func (kv *KVStore[
 
 // SetLatestExecutionPayloadHeader sets the latest execution payload header in
 // the BeaconStore.
-func (kv *KVStore[
-	ExecutionPayloadHeaderT,
-	ValidatorT, ValidatorsT,
-]) SetLatestExecutionPayloadHeader(
+func (kv *KVStore[ExecutionPayloadHeaderT]) SetLatestExecutionPayloadHeader(
 	payloadHeader ExecutionPayloadHeaderT,
 ) error {
 	if err := kv.latestExecutionPayloadVersion.Set(
@@ -57,36 +51,24 @@ func (kv *KVStore[
 }
 
 // GetEth1DepositIndex retrieves the eth1 deposit index from the beacon state.
-func (kv *KVStore[
-	ExecutionPayloadHeaderT,
-	ValidatorT, ValidatorsT,
-]) GetEth1DepositIndex() (uint64, error) {
+func (kv *KVStore[ExecutionPayloadHeaderT]) GetEth1DepositIndex() (uint64, error) {
 	return kv.eth1DepositIndex.Get(kv.ctx)
 }
 
 // SetEth1DepositIndex sets the eth1 deposit index in the beacon state.
-func (kv *KVStore[
-	ExecutionPayloadHeaderT,
-	ValidatorT, ValidatorsT,
-]) SetEth1DepositIndex(
+func (kv *KVStore[ExecutionPayloadHeaderT]) SetEth1DepositIndex(
 	index uint64,
 ) error {
 	return kv.eth1DepositIndex.Set(kv.ctx, index)
 }
 
 // GetEth1Data retrieves the eth1 data from the beacon state.
-func (kv *KVStore[
-	ExecutionPayloadHeaderT,
-	ValidatorT, ValidatorsT,
-]) GetEth1Data() (*ctypes.Eth1Data, error) {
+func (kv *KVStore[ExecutionPayloadHeaderT]) GetEth1Data() (*ctypes.Eth1Data, error) {
 	return kv.eth1Data.Get(kv.ctx)
 }
 
 // SetEth1Data sets the eth1 data in the beacon state.
-func (kv *KVStore[
-	ExecutionPayloadHeaderT,
-	ValidatorT, ValidatorsT,
-]) SetEth1Data(
+func (kv *KVStore[ExecutionPayloadHeaderT]) SetEth1Data(
 	data *ctypes.Eth1Data,
 ) error {
 	return kv.eth1Data.Set(kv.ctx, data)

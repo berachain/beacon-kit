@@ -36,11 +36,11 @@ type NodeAPIHandlersInput[
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconStateMarshallableT,
 		ExecutionPayloadHeaderT, KVStoreT,
-		*Validator, Validators, WithdrawalT,
+		WithdrawalT,
 	],
 	BeaconStateMarshallableT BeaconStateMarshallable[
 		BeaconStateMarshallableT,
-		ExecutionPayloadHeaderT, *Validator,
+		ExecutionPayloadHeaderT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	KVStoreT any,
@@ -48,9 +48,7 @@ type NodeAPIHandlersInput[
 	WithdrawalT Withdrawal[WithdrawalT],
 ] struct {
 	depinject.In
-	BeaconAPIHandler *beaconapi.Handler[
-		NodeAPIContextT, *Validator,
-	]
+	BeaconAPIHandler  *beaconapi.Handler[NodeAPIContextT]
 	BuilderAPIHandler *builderapi.Handler[NodeAPIContextT]
 	ConfigAPIHandler  *configapi.Handler[NodeAPIContextT]
 	DebugAPIHandler   *debugapi.Handler[NodeAPIContextT]
@@ -58,7 +56,7 @@ type NodeAPIHandlersInput[
 	NodeAPIHandler    *nodeapi.Handler[NodeAPIContextT]
 	ProofAPIHandler   *proofapi.Handler[
 		BeaconStateT, BeaconStateMarshallableT,
-		NodeAPIContextT, ExecutionPayloadHeaderT, *Validator,
+		NodeAPIContextT, ExecutionPayloadHeaderT,
 	]
 }
 
@@ -66,11 +64,11 @@ func ProvideNodeAPIHandlers[
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconStateMarshallableT,
 		ExecutionPayloadHeaderT, KVStoreT,
-		*Validator, Validators, WithdrawalT,
+		WithdrawalT,
 	],
 	BeaconStateMarshallableT BeaconStateMarshallable[
 		BeaconStateMarshallableT,
-		ExecutionPayloadHeaderT, *Validator,
+		ExecutionPayloadHeaderT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	KVStoreT any,
@@ -101,14 +99,8 @@ func ProvideNodeAPIBeaconHandler[
 ](b NodeAPIBackend[
 	BeaconStateT,
 	NodeT,
-	*Validator,
-]) *beaconapi.Handler[
-	NodeAPIContextT, *Validator,
-] {
-	return beaconapi.NewHandler[
-		NodeAPIContextT,
-		*Validator,
-	](b)
+]) *beaconapi.Handler[NodeAPIContextT] {
+	return beaconapi.NewHandler[NodeAPIContextT](b)
 }
 
 func ProvideNodeAPIBuilderHandler[
@@ -145,11 +137,11 @@ func ProvideNodeAPIProofHandler[
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconStateMarshallableT,
 		ExecutionPayloadHeaderT, KVStoreT,
-		*Validator, Validators, WithdrawalT,
+		WithdrawalT,
 	],
 	BeaconStateMarshallableT BeaconStateMarshallable[
 		BeaconStateMarshallableT,
-		ExecutionPayloadHeaderT, *Validator,
+		ExecutionPayloadHeaderT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	KVStoreT any,
@@ -159,16 +151,14 @@ func ProvideNodeAPIProofHandler[
 ](b NodeAPIBackend[
 	BeaconStateT,
 	NodeT,
-	*Validator,
 ]) *proofapi.Handler[
 	BeaconStateT, BeaconStateMarshallableT,
-	NodeAPIContextT, ExecutionPayloadHeaderT, *Validator,
+	NodeAPIContextT, ExecutionPayloadHeaderT,
 ] {
 	return proofapi.NewHandler[
 		BeaconStateT,
 		BeaconStateMarshallableT,
 		NodeAPIContextT,
 		ExecutionPayloadHeaderT,
-		*Validator,
 	](b)
 }
