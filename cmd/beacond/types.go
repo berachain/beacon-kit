@@ -159,7 +159,6 @@ type (
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*Fork,
-		*ForkData,
 		*KVStore,
 		*Validator,
 		Validators,
@@ -188,7 +187,6 @@ type (
 		*DepositStore,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
-		*ForkData,
 		*SlashingInfo,
 		*SlotData,
 	]

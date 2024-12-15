@@ -345,7 +345,6 @@ type (
 	// Deposit is the interface for a deposit.
 	Deposit[
 		T any,
-		ForkDataT any,
 	] interface {
 		constraints.Empty[T]
 		constraints.SSZMarshallableRootable
@@ -372,7 +371,7 @@ type (
 		HasEth1WithdrawalCredentials() bool
 		// VerifySignature verifies the deposit and creates a validator.
 		VerifySignature(
-			forkData ForkDataT,
+			forkData *ctypes.ForkData,
 			domainType common.DomainType,
 			signatureVerificationFn func(
 				pubkey crypto.BLSPubkey,

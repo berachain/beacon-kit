@@ -54,7 +54,7 @@ type ServiceRegistryInput[
 	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
-	DepositT Deposit[DepositT, *ForkData],
+	DepositT Deposit[DepositT],
 	DepositStoreT DepositStore[DepositT],
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
@@ -93,7 +93,7 @@ type ServiceRegistryInput[
 		*AttestationData, BeaconBlockT, BeaconBlockBodyT,
 		BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositT, DepositStoreT,
 		ExecutionPayloadT, ExecutionPayloadHeaderT,
-		*ForkData, *SlashingInfo, *SlotData,
+		*SlashingInfo, *SlotData,
 	]
 	CometBFTService *cometbft.Service[LoggerT]
 }
@@ -117,7 +117,7 @@ func ProvideServiceRegistry[
 	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
-	DepositT Deposit[DepositT, *ForkData],
+	DepositT Deposit[DepositT],
 	DepositStoreT DepositStore[DepositT],
 	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT,
 		ExecutionPayloadHeaderT, WithdrawalsT],
