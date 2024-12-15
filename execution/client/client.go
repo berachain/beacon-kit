@@ -144,6 +144,10 @@ func (s *EngineClient[
 	}
 }
 
+func (s *EngineClient[_, _]) Stop() error {
+	return nil
+}
+
 func (s *EngineClient[_, _]) IsConnected() bool {
 	s.connectedMu.RLock()
 	defer s.connectedMu.RUnlock()

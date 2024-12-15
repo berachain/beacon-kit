@@ -38,7 +38,7 @@ import (
 func generateExecutionPayload() *types.ExecutionPayload {
 	transactions := make([][]byte, 1)
 	transactions[0] = []byte{0x07}
-	withdrawals := make([]*engineprimitives.Withdrawal, 1)
+	withdrawals := make(engineprimitives.Withdrawals, 1)
 	withdrawals[0] = &engineprimitives.Withdrawal{
 		Index:     0,
 		Validator: 0,
@@ -216,7 +216,7 @@ func TestExecutionPayload_ToHeader(t *testing.T) {
 		BaseFeePerGas: &math.U256{},
 		BlockHash:     common.ExecutionHash{},
 		Transactions:  [][]byte{{0x01}},
-		Withdrawals:   []*engineprimitives.Withdrawal{},
+		Withdrawals:   engineprimitives.Withdrawals{},
 		BlobGasUsed:   math.U64(0),
 		ExcessBlobGas: math.U64(0),
 	}

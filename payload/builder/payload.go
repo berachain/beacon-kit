@@ -33,7 +33,7 @@ import (
 // returns the payload ID.
 func (pb *PayloadBuilder[
 	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	PayloadAttributesT, PayloadIDT, WithdrawalT,
+	PayloadAttributesT, PayloadIDT,
 ]) RequestPayloadAsync(
 	ctx context.Context,
 	st BeaconStateT,
@@ -94,7 +94,7 @@ func (pb *PayloadBuilder[
 // blocks until the payload is delivered.
 func (pb *PayloadBuilder[
 	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	PayloadAttributesT, PayloadIDT, WithdrawalT,
+	PayloadAttributesT, PayloadIDT,
 ]) RequestPayloadSync(
 	ctx context.Context,
 	st BeaconStateT,
@@ -150,7 +150,7 @@ func (pb *PayloadBuilder[
 // execution client to return the payload.
 func (pb *PayloadBuilder[
 	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	PayloadAttributesT, PayloadIDT, WithdrawalT,
+	PayloadAttributesT, PayloadIDT,
 ]) RetrievePayload(
 	ctx context.Context,
 	slot math.Slot,
@@ -214,7 +214,7 @@ func (pb *PayloadBuilder[
 // of some kind.
 func (pb *PayloadBuilder[
 	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	PayloadAttributesT, PayloadIDT, WithdrawalT,
+	PayloadAttributesT, PayloadIDT,
 ]) SendForceHeadFCU(
 	ctx context.Context,
 	st BeaconStateT,
@@ -255,7 +255,7 @@ func (pb *PayloadBuilder[
 
 func (pb *PayloadBuilder[
 	_, ExecutionPayloadT, _,
-	_, PayloadIDT, _,
+	_, PayloadIDT,
 ]) getPayload(
 	ctx context.Context,
 	payloadID PayloadIDT,

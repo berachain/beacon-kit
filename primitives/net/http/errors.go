@@ -39,7 +39,7 @@ type TimeoutError interface {
 	Timeout() bool
 }
 
-// isTimeout checks if the given error is a timeout error.
+// IsTimeoutError checks if the given error is a timeout error.
 // It asserts the error to the httpTimeoutError interface and checks its Timeout
 // status.
 // Returns true if the error is a timeout error, false otherwise.

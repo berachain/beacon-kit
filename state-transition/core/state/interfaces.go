@@ -23,6 +23,7 @@ package state
 import (
 	"context"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -31,12 +32,7 @@ import (
 // KVStore is the interface for the key-value store holding the beacon state.
 type KVStore[
 	T,
-	BeaconBlockHeaderT,
-	Eth1DataT,
-	ExecutionPayloadHeaderT,
-	ForkT,
-	ValidatorT any,
-	ValidatorsT ~[]ValidatorT,
+	ExecutionPayloadHeaderT any,
 ] interface {
 	// Context returns the context of the key-value store.
 	Context() context.Context
@@ -68,27 +64,27 @@ type KVStore[
 	// SetSlot sets the current slot.
 	SetSlot(slot math.Slot) error
 	// GetFork retrieves the fork.
-	GetFork() (ForkT, error)
+	GetFork() (*ctypes.Fork, error)
 	// SetFork sets the fork.
-	SetFork(fork ForkT) error
+	SetFork(fork *ctypes.Fork) error
 	// GetGenesisValidatorsRoot retrieves the genesis validators root.
 	GetGenesisValidatorsRoot() (common.Root, error)
 	// SetGenesisValidatorsRoot sets the genesis validators root.
 	SetGenesisValidatorsRoot(root common.Root) error
 	// GetLatestBlockHeader retrieves the latest block header.
-	GetLatestBlockHeader() (BeaconBlockHeaderT, error)
+	GetLatestBlockHeader() (*ctypes.BeaconBlockHeader, error)
 	// SetLatestBlockHeader sets the latest block header.
-	SetLatestBlockHeader(header BeaconBlockHeaderT) error
+	SetLatestBlockHeader(header *ctypes.BeaconBlockHeader) error
 	// GetBlockRootAtIndex retrieves the block root at the given index.
 	GetBlockRootAtIndex(index uint64) (common.Root, error)
 	// StateRootAtIndex retrieves the state root at the given index.
 	StateRootAtIndex(index uint64) (common.Root, error)
 	// GetEth1Data retrieves the eth1 data.
-	GetEth1Data() (Eth1DataT, error)
+	GetEth1Data() (*ctypes.Eth1Data, error)
 	// SetEth1Data sets the eth1 data.
-	SetEth1Data(data Eth1DataT) error
+	SetEth1Data(data *ctypes.Eth1Data) error
 	// GetValidators retrieves all validators.
-	GetValidators() (ValidatorsT, error)
+	GetValidators() (ctypes.Validators, error)
 	// GetBalances retrieves all balances.
 	GetBalances() ([]uint64, error)
 	// GetNextWithdrawalIndex retrieves the next withdrawal index.
@@ -117,7 +113,7 @@ type KVStore[
 	// GetTotalActiveBalances retrieves the total active balances.
 	GetTotalActiveBalances(uint64) (math.Gwei, error)
 	// ValidatorByIndex retrieves the validator at the given index.
-	ValidatorByIndex(index math.ValidatorIndex) (ValidatorT, error)
+	ValidatorByIndex(index math.ValidatorIndex) (*ctypes.Validator, error)
 	// UpdateBlockRootAtIndex updates the block root at the given index.
 	UpdateBlockRootAtIndex(index uint64, root common.Root) error
 	// UpdateStateRootAtIndex updates the state root at the given index.
@@ -127,14 +123,14 @@ type KVStore[
 	// UpdateValidatorAtIndex updates the validator at the given index.
 	UpdateValidatorAtIndex(
 		index math.ValidatorIndex,
-		validator ValidatorT,
+		validator *ctypes.Validator,
 	) error
 	// ValidatorIndexByPubkey retrieves the validator index by the given pubkey.
 	ValidatorIndexByPubkey(pubkey crypto.BLSPubkey) (math.ValidatorIndex, error)
 	// AddValidator adds a validator.
-	AddValidator(val ValidatorT) error
+	AddValidator(val *ctypes.Validator) error
 	// AddValidatorBartio adds a validator to the Bartio chain.
-	AddValidatorBartio(val ValidatorT) error
+	AddValidatorBartio(val *ctypes.Validator) error
 	// ValidatorIndexByCometBFTAddress retrieves the validator index by the
 	// given comet BFT address.
 	ValidatorIndexByCometBFTAddress(
@@ -142,5 +138,5 @@ type KVStore[
 	) (math.ValidatorIndex, error)
 	// GetValidatorsByEffectiveBalance retrieves validators by effective
 	// balance.
-	GetValidatorsByEffectiveBalance() ([]ValidatorT, error)
+	GetValidatorsByEffectiveBalance() ([]*ctypes.Validator, error)
 }
