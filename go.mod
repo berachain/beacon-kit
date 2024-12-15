@@ -43,7 +43,7 @@ require (
 	github.com/labstack/echo/v4 v4.12.0
 	github.com/minio/sha256-simd v1.0.1
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/phuslu/log v1.0.110
+	github.com/phuslu/log v1.0.113
 	github.com/pkg/errors v0.9.1
 	github.com/prysmaticlabs/gohashtree v0.0.4-beta.0.20240624100937-73632381301b
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8
@@ -66,7 +66,7 @@ require (
 	github.com/ethereum/go-ethereum v1.14.7
 	github.com/ferranbt/fastssz v0.1.5-0.20240903094032-455b54c08c81
 	github.com/kurtosis-tech/kurtosis/api/golang v1.1.0
-	github.com/protolambda/zrnt v0.32.2
+	github.com/protolambda/zrnt v0.32.3
 	github.com/protolambda/ztyp v0.2.2
 	github.com/rs/zerolog v1.33.0
 	github.com/stretchr/testify v1.10.0

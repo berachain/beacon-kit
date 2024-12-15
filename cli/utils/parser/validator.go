@@ -21,6 +21,7 @@
 package parser
 
 import (
+	"fmt"
 	"math/big"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
@@ -43,6 +44,24 @@ func ConvertPubkey(pubkey string) (crypto.BLSPubkey, error) {
 	}
 
 	return crypto.BLSPubkey(pubkeyBytes), nil
+}
+
+// ConvertWithdrawalAddress converts a string to a withdrawal address.
+func ConvertWithdrawalAddress(address string) (common.ExecutionAddress, error) {
+	// Wrap the call in a recover to handle potential panics from invalid
+	// addresses.
+	var (
+		addr common.ExecutionAddress
+		err  error
+	)
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("invalid withdrawal address: %v", r)
+		}
+	}()
+
+	addr = common.NewExecutionAddressFromHex(address)
+	return addr, err
 }
 
 // ConvertWithdrawalCredentials converts a string to a withdrawal credentials.

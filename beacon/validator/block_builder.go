@@ -27,6 +27,8 @@ import (
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	"github.com/berachain/beacon-kit/config/spec"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -34,23 +36,17 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/primitives/version"
-	"golang.org/x/sync/errgroup"
 )
 
-// buildBlockAndSidecars builds a new beacon block.
+// BuildBlockAndSidecars builds a new beacon block.
 func (s *Service[
-	_, BeaconBlockT, _, _, BlobSidecarsT, _, _, _, _, _, _, _, SlotDataT,
-]) buildBlockAndSidecars(
+	BeaconBlockT, _, _, _, BlobSidecarsT,
+	_, _, _, SlashingInfoT, SlotDataT,
+]) BuildBlockAndSidecars(
 	ctx context.Context,
-	slotData SlotDataT,
-) (BeaconBlockT, BlobSidecarsT, error) {
-	var (
-		blk       BeaconBlockT
-		sidecars  BlobSidecarsT
-		startTime = time.Now()
-		g, _      = errgroup.WithContext(ctx)
-	)
-
+	slotData types.SlotData[ctypes.SlashingInfo],
+) ([]byte, []byte, error) {
+	startTime := time.Now()
 	defer s.metrics.measureRequestBlockForProposalTime(startTime)
 
 	// The goal here is to acquire a payload whose parent is the previously
@@ -66,29 +62,29 @@ func (s *Service[
 		st,
 		slotData.GetSlot(),
 	); err != nil {
-		return blk, sidecars, err
+		return nil, nil, err
 	}
 
 	// Build the reveal for the current slot.
 	// TODO: We can optimize to pre-compute this in parallel?
 	reveal, err := s.buildRandaoReveal(st, slotData.GetSlot())
 	if err != nil {
-		return blk, sidecars, err
+		return nil, nil, err
 	}
 
 	// Create a new empty block from the current state.
-	blk, err = s.getEmptyBeaconBlockForSlot(st, slotData.GetSlot())
+	blk, err := s.getEmptyBeaconBlockForSlot(st, slotData.GetSlot())
 	if err != nil {
-		return blk, sidecars, err
+		return nil, nil, err
 	}
 
 	// Get the payload for the block.
 	envelope, err := s.retrieveExecutionPayload(ctx, st, blk, slotData)
 	if err != nil {
-		return blk, sidecars, err
+		return nil, nil, err
 	}
 	if envelope == nil {
-		return blk, sidecars, ErrNilPayload
+		return nil, nil, ErrNilPayload
 	}
 
 	// We have to assemble the block body prior to producing the sidecars
@@ -96,36 +92,25 @@ func (s *Service[
 	if err = s.buildBlockBody(
 		ctx, st, blk, reveal, envelope, slotData,
 	); err != nil {
-		return blk, sidecars, err
+		return nil, nil, err
 	}
 
-	// Produce blob sidecars, we produce them in parallel to computing the state
-	// root as an optimization.
-	//
-	// TODO: Figure out a clean way to break "BlockAndSidecars" into two
-	// functions
-	// without giving up the parallelization benefits.
-	g.Go(func() error {
-		sidecars, err = s.blobFactory.BuildSidecars(
-			blk, envelope.GetBlobsBundle(),
-		)
-		return err
-	})
-
 	// Compute the state root for the block.
-	g.Go(func() error {
-		return s.computeAndSetStateRoot(
-			ctx,
-			slotData.GetProposerAddress(),
-			slotData.GetConsensusTime(),
-			st,
-			blk,
-		)
-	})
+	if err = s.computeAndSetStateRoot(
+		ctx,
+		slotData.GetProposerAddress(),
+		slotData.GetConsensusTime(),
+		st,
+		blk,
+	); err != nil {
+		return nil, nil, err
+	}
 
-	// Wait for all the goroutines to finish.
-	if err = g.Wait(); err != nil {
-		return blk, sidecars, err
+	// Produce blob sidecars with new StateRoot
+	sidecars, err := s.blobFactory.BuildSidecars(
+		blk, envelope.GetBlobsBundle())
+	if err != nil {
+		return nil, nil, err
 	}
 
 	s.logger.Info(
@@ -135,12 +120,21 @@ func (s *Service[
 		"duration", time.Since(startTime).String(),
 	)
 
-	return blk, sidecars, nil
+	blkBytes, bbErr := blk.MarshalSSZ()
+	if bbErr != nil {
+		return nil, nil, bbErr
+	}
+	sidecarsBytes, scErr := sidecars.MarshalSSZ()
+	if scErr != nil {
+		return nil, nil, scErr
+	}
+
+	return blkBytes, sidecarsBytes, nil
 }
 
 // getEmptyBeaconBlockForSlot creates a new empty block.
 func (s *Service[
-	_, BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
+	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _,
 ]) getEmptyBeaconBlockForSlot(
 	st BeaconStateT, requestedSlot math.Slot,
 ) (BeaconBlockT, error) {
@@ -172,14 +166,13 @@ func (s *Service[
 
 // buildRandaoReveal builds a randao reveal for the given slot.
 func (s *Service[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, ForkDataT, _, _,
+	_, _, BeaconStateT, _, _, _, _, _, _, _,
 ]) buildRandaoReveal(
 	st BeaconStateT,
 	slot math.Slot,
 ) (crypto.BLSSignature, error) {
 	var (
-		forkData ForkDataT
-		epoch    = s.chainSpec.SlotToEpoch(slot)
+		epoch = s.chainSpec.SlotToEpoch(slot)
 	)
 
 	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
@@ -187,7 +180,7 @@ func (s *Service[
 		return crypto.BLSSignature{}, err
 	}
 
-	signingRoot := forkData.New(
+	signingRoot := ctypes.NewForkData(
 		version.FromUint32[common.Version](
 			s.chainSpec.ActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,
@@ -200,13 +193,13 @@ func (s *Service[
 
 // retrieveExecutionPayload retrieves the execution payload for the block.
 func (s *Service[
-	_, BeaconBlockT, _, BeaconStateT, _, _, _, _,
-	ExecutionPayloadT, ExecutionPayloadHeaderT, _, _, SlotDataT,
+	BeaconBlockT, _, BeaconStateT, _, _, _,
+	ExecutionPayloadT, ExecutionPayloadHeaderT, SlashingInfoT, SlotDataT,
 ]) retrieveExecutionPayload(
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
-	slotData SlotDataT,
+	slotData types.SlotData[ctypes.SlashingInfo],
 ) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
 	//
 	// TODO: Add external block builders to this flow.
@@ -261,15 +254,15 @@ func (s *Service[
 
 // BuildBlockBody assembles the block body with necessary components.
 func (s *Service[
-	_, BeaconBlockT, _, BeaconStateT, _, _, _, Eth1DataT, ExecutionPayloadT, _,
-	_, _, SlotDataT,
+	BeaconBlockT, _, BeaconStateT, _, _, _,
+	ExecutionPayloadT, _, SlashingInfoT, SlotDataT,
 ]) buildBlockBody(
 	_ context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
 	reveal crypto.BLSSignature,
 	envelope engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT],
-	slotData SlotDataT,
+	slotData types.SlotData[ctypes.SlashingInfo],
 ) error {
 	// Assemble a new block with the payload.
 	body := blk.GetBody()
@@ -317,7 +310,7 @@ func (s *Service[
 	)
 	body.SetDeposits(deposits)
 
-	var eth1Data Eth1DataT
+	var eth1Data *ctypes.Eth1Data
 	// TODO: assemble real eth1data.
 	body.SetEth1Data(eth1Data.New(
 		common.Root{},
@@ -339,11 +332,15 @@ func (s *Service[
 		epoch,
 	)
 	if activeForkVersion >= version.DenebPlus {
-		// Set the attestations on the block body.
 		body.SetAttestations(slotData.GetAttestationData())
 
 		// Set the slashing info on the block body.
-		body.SetSlashingInfo(slotData.GetSlashingInfo())
+		// TODO: Remove conversion once generics have been replaced with
+		// concrete types.
+		slashingInfo := slotData.GetSlashingInfo()
+		body.SetSlashingInfo(convertSlashingInfo[SlashingInfoT](
+			slashingInfo,
+		))
 	}
 
 	body.SetExecutionPayload(envelope.GetExecutionPayload())
@@ -353,7 +350,7 @@ func (s *Service[
 // computeAndSetStateRoot computes the state root of an outgoing block
 // and sets it in the block.
 func (s *Service[
-	_, BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
+	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _,
 ]) computeAndSetStateRoot(
 	ctx context.Context,
 	proposerAddress []byte,
@@ -382,7 +379,7 @@ func (s *Service[
 
 // computeStateRoot computes the state root of an outgoing block.
 func (s *Service[
-	_, BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
+	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _,
 ]) computeStateRoot(
 	ctx context.Context,
 	proposerAddress []byte,
@@ -411,4 +408,20 @@ func (s *Service[
 	}
 
 	return st.HashTreeRoot(), nil
+}
+
+func convertSlashingInfo[
+	SlashingInfoT any,
+](
+	data []ctypes.SlashingInfo,
+) []SlashingInfoT {
+	converted := make([]SlashingInfoT, len(data))
+	for i, d := range data {
+		val, ok := any(d).(SlashingInfoT)
+		if !ok {
+			panic(fmt.Sprintf("failed to convert slashing info at index %d", i))
+		}
+		converted[i] = val
+	}
+	return converted
 }

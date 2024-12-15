@@ -21,6 +21,7 @@
 package types
 
 import (
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 )
@@ -36,15 +37,15 @@ type BlockResponse struct {
 	ValidatorResponse
 }
 
-type BlockHeaderResponse[BlockHeaderT any] struct {
-	Root      common.Root                `json:"root"`
-	Canonical bool                       `json:"canonical"`
-	Header    *BlockHeader[BlockHeaderT] `json:"header"`
+type BlockHeaderResponse struct {
+	Root      common.Root  `json:"root"`
+	Canonical bool         `json:"canonical"`
+	Header    *BlockHeader `json:"header"`
 }
 
-type BlockHeader[BlockHeaderT any] struct {
-	Message   BlockHeaderT `json:"message"`
-	Signature bytes.B48    `json:"signature"`
+type BlockHeader struct {
+	Message   *ctypes.BeaconBlockHeader `json:"message"`
+	Signature bytes.B48                 `json:"signature"`
 }
 
 type GenesisData struct {
@@ -57,10 +58,10 @@ type RootData struct {
 	Root common.Root `json:"root"`
 }
 
-type ValidatorData[ValidatorT any] struct {
+type ValidatorData struct {
 	ValidatorBalanceData
-	Status    string     `json:"status"`
-	Validator ValidatorT `json:"validator"`
+	Status    string            `json:"status"`
+	Validator *ctypes.Validator `json:"validator"`
 }
 
 type ValidatorBalanceData struct {
