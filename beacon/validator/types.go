@@ -62,7 +62,7 @@ type BeaconBlock[
 
 // BeaconBlockBody represents a beacon block body interface.
 type BeaconBlockBody[
-	AttestationDataT, DepositT, ExecutionPayloadT, SlashingInfoT any,
+	ExecutionPayloadT, SlashingInfoT any,
 ] interface {
 	constraints.SSZMarshallable
 	constraints.Nillable
@@ -71,13 +71,13 @@ type BeaconBlockBody[
 	// SetEth1Data sets the Eth1 data of the beacon block body.
 	SetEth1Data(*ctypes.Eth1Data)
 	// SetDeposits sets the deposits of the beacon block body.
-	SetDeposits([]DepositT)
+	SetDeposits([]*ctypes.Deposit)
 	// SetExecutionPayload sets the execution data of the beacon block body.
 	SetExecutionPayload(ExecutionPayloadT)
 	// SetGraffiti sets the graffiti of the beacon block body.
 	SetGraffiti(common.Bytes32)
 	// SetAttestations sets the attestations of the beacon block body.
-	SetAttestations([]AttestationDataT)
+	SetAttestations([]*ctypes.AttestationData)
 	// SetSlashingInfo sets the slashing info of the beacon block body.
 	SetSlashingInfo([]SlashingInfoT)
 	// SetBlobKzgCommitments sets the blob KZG commitments of the beacon block
@@ -111,25 +111,24 @@ type BeaconState[ExecutionPayloadHeaderT any] interface {
 type BlobFactory[
 	BeaconBlockT any,
 	BlobSidecarsT any,
-	ForkDataT any,
 ] interface {
 	// BuildSidecars builds sidecars for a given block and blobs bundle.
 	BuildSidecars(
 		blk BeaconBlockT,
 		blobs engineprimitives.BlobsBundle,
 		signer crypto.BLSSigner,
-		forkData ForkDataT,
+		forkData *ctypes.ForkData,
 
 	) (BlobSidecarsT, error)
 }
 
 // DepositStore defines the interface for deposit storage.
-type DepositStore[DepositT any] interface {
+type DepositStore interface {
 	// GetDepositsByIndex returns `numView` expected deposits.
 	GetDepositsByIndex(
 		startIndex uint64,
 		numView uint64,
-	) ([]DepositT, error)
+	) ([]*ctypes.Deposit, error)
 }
 
 // ExecutionPayloadHeader represents the execution payload header interface.
@@ -181,11 +180,11 @@ type PayloadBuilder[BeaconStateT, ExecutionPayloadT any] interface {
 }
 
 // SlotData represents the slot data interface.
-type SlotData[AttestationDataT, SlashingInfoT any] interface {
+type SlotData[SlashingInfoT any] interface {
 	// GetSlot returns the slot of the incoming slot.
 	GetSlot() math.Slot
 	// GetAttestationData returns the attestation data of the incoming slot.
-	GetAttestationData() []AttestationDataT
+	GetAttestationData() []*ctypes.AttestationData
 	// GetSlashingInfo returns the slashing info of the incoming slot.
 	GetSlashingInfo() []SlashingInfoT
 	// GetProposerAddress returns the address of the validator
@@ -250,9 +249,6 @@ type BlobSidecars[T, BlobSidecarT any] interface {
 type BlockBuilderI interface {
 	BuildBlockAndSidecars(
 		context.Context,
-		types.SlotData[
-			ctypes.AttestationData,
-			ctypes.SlashingInfo,
-		],
+		types.SlotData[ctypes.SlashingInfo],
 	) ([]byte, []byte, error)
 }

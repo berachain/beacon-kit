@@ -121,11 +121,11 @@ type ExecutionPayloadHeader interface {
 }
 
 // Genesis is the interface for the genesis.
-type Genesis[DepositT any, ExecutionPayloadHeaderT any] interface {
+type Genesis[ExecutionPayloadHeaderT any] interface {
 	// GetForkVersion returns the fork version.
 	GetForkVersion() common.Version
 	// GetDeposits returns the deposits.
-	GetDeposits() []DepositT
+	GetDeposits() []*ctypes.Deposit
 	// GetExecutionPayloadHeader returns the execution payload header.
 	GetExecutionPayloadHeader() ExecutionPayloadHeaderT
 }
@@ -189,7 +189,6 @@ type StateProcessor[
 	BeaconBlockT,
 	BeaconStateT,
 	ContextT,
-	DepositT,
 	ExecutionPayloadHeaderT any,
 ] interface {
 	// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
@@ -197,7 +196,7 @@ type StateProcessor[
 	// from the eth1 deposits.
 	InitializePreminedBeaconStateFromEth1(
 		BeaconStateT,
-		[]DepositT,
+		[]*ctypes.Deposit,
 		ExecutionPayloadHeaderT,
 		common.Version,
 	) (transition.ValidatorUpdates, error)

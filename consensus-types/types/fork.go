@@ -58,7 +58,7 @@ func (f *Fork) Empty() *Fork {
 }
 
 // New creates a new fork.
-func (f *Fork) New(
+func NewFork(
 	previousVersion common.Version,
 	currentVersion common.Version,
 	epoch math.Epoch,

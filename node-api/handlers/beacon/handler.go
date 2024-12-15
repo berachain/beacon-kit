@@ -28,22 +28,18 @@ import (
 // Handler is the handler for the beacon API.
 type Handler[
 	ContextT context.Context,
-	ForkT any,
-	ValidatorT any,
 ] struct {
 	*handlers.BaseHandler[ContextT]
-	backend Backend[ForkT, ValidatorT]
+	backend Backend
 }
 
 // NewHandler creates a new handler for the beacon API.
 func NewHandler[
 	ContextT context.Context,
-	ForkT any,
-	ValidatorT any,
 ](
-	backend Backend[ForkT, ValidatorT],
-) *Handler[ContextT, ForkT, ValidatorT] {
-	h := &Handler[ContextT, ForkT, ValidatorT]{
+	backend Backend,
+) *Handler[ContextT] {
+	h := &Handler[ContextT]{
 		BaseHandler: handlers.NewBaseHandler(
 			handlers.NewRouteSet[ContextT](""),
 		),

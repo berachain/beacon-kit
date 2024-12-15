@@ -24,6 +24,7 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/config/spec"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/state-transition/core/state"
@@ -39,7 +40,7 @@ import (
 // 3. This modification reduces the maximum validator withdrawals per block by
 // one.
 func (sp *StateProcessor[
-	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _,
+	BeaconBlockT, _, BeaconStateT, _, _, _, _,
 ]) processWithdrawals(
 	st BeaconStateT,
 	blk BeaconBlockT,
@@ -62,12 +63,11 @@ func (sp *StateProcessor[
 }
 
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _, _, _, _,
-	_, _, _, _, WithdrawalT, WithdrawalsT,
+	_, _, BeaconStateT, _, _, _, _,
 ]) processWithdrawalsByFork(
 	st BeaconStateT,
-	expectedWithdrawals []WithdrawalT,
-	payloadWithdrawals []WithdrawalT,
+	expectedWithdrawals engineprimitives.Withdrawals,
+	payloadWithdrawals engineprimitives.Withdrawals,
 ) error {
 	slot, err := st.GetSlot()
 	if err != nil {
@@ -130,12 +130,11 @@ func (sp *StateProcessor[
 }
 
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _, _, _, _,
-	_, _, _, _, WithdrawalT, WithdrawalsT,
+	_, _, BeaconStateT, _, _, _, _,
 ]) processWithdrawalsBartio(
 	st BeaconStateT,
-	expectedWithdrawals []WithdrawalT,
-	payloadWithdrawals []WithdrawalT,
+	expectedWithdrawals engineprimitives.Withdrawals,
+	payloadWithdrawals engineprimitives.Withdrawals,
 	slot math.Slot,
 ) error {
 	for i, wd := range expectedWithdrawals {
@@ -198,12 +197,11 @@ func (sp *StateProcessor[
 }
 
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _, _, _, _,
-	_, _, _, _, WithdrawalT, WithdrawalsT,
+	_, _, BeaconStateT, _, _, _, _,
 ]) processWithdrawalsDefault(
 	st BeaconStateT,
-	expectedWithdrawals []WithdrawalT,
-	payloadWithdrawals []WithdrawalT,
+	expectedWithdrawals engineprimitives.Withdrawals,
+	payloadWithdrawals engineprimitives.Withdrawals,
 	slot math.Slot,
 ) error {
 	// Enforce that first withdrawal is EVM inflation

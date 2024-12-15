@@ -40,7 +40,6 @@ func ProvideNodeAPIEngine() *echo.Engine {
 type NodeAPIBackendInput[
 	BeaconBlockT any,
 	BeaconStateT any,
-	DepositT any,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	StorageBackendT any,
 ] struct {
@@ -49,7 +48,7 @@ type NodeAPIBackendInput[
 	ChainSpec      common.ChainSpec
 	StateProcessor StateProcessor[
 		BeaconBlockT, BeaconStateT, *Context,
-		DepositT, ExecutionPayloadHeaderT,
+		ExecutionPayloadHeaderT,
 	]
 	StorageBackend StorageBackendT
 }
@@ -61,13 +60,11 @@ func ProvideNodeAPIBackend[
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconStateMarshallableT,
-		ExecutionPayloadHeaderT, *Fork, KVStoreT,
-		*Validator, Validators, WithdrawalT,
+		ExecutionPayloadHeaderT, KVStoreT,
 	],
 	BeaconStateMarshallableT any,
 	BlobSidecarsT any,
-	DepositT any,
-	DepositStoreT DepositStore[DepositT],
+	DepositStoreT DepositStore,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	KVStoreT any,
 	NodeT interface {
@@ -76,18 +73,16 @@ func ProvideNodeAPIBackend[
 	StorageBackendT StorageBackend[
 		AvailabilityStoreT, BeaconStateT, BeaconBlockStoreT, DepositStoreT,
 	],
-	WithdrawalT Withdrawal[WithdrawalT],
 ](
 	in NodeAPIBackendInput[
-		BeaconBlockT, BeaconStateT, DepositT, ExecutionPayloadHeaderT,
+		BeaconBlockT, BeaconStateT, ExecutionPayloadHeaderT,
 		StorageBackendT,
 	],
 ) *backend.Backend[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BeaconBlockStoreT,
-	sdk.Context, DepositT, DepositStoreT, ExecutionPayloadHeaderT,
-	*Fork, NodeT, KVStoreT, StorageBackendT, *Validator, Validators,
-	WithdrawalT,
+	sdk.Context, DepositStoreT, ExecutionPayloadHeaderT,
+	NodeT, KVStoreT, StorageBackendT,
 ] {
 	return backend.New[
 		AvailabilityStoreT,
@@ -98,16 +93,11 @@ func ProvideNodeAPIBackend[
 		BlobSidecarsT,
 		BeaconBlockStoreT,
 		sdk.Context,
-		DepositT,
 		DepositStoreT,
 		ExecutionPayloadHeaderT,
-		*Fork,
 		NodeT,
 		KVStoreT,
 		StorageBackendT,
-		*Validator,
-		Validators,
-		WithdrawalT,
 	](
 		in.StorageBackend,
 		in.ChainSpec,

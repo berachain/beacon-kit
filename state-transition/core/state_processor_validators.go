@@ -26,6 +26,7 @@ import (
 	"slices"
 
 	"github.com/berachain/beacon-kit/config/spec"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
@@ -33,7 +34,7 @@ import (
 )
 
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _, _, _, _, _, _, ValidatorT, _, _, _,
+	_, _, BeaconStateT, _, _, _, _,
 ]) processRegistryUpdates(
 	st BeaconStateT,
 ) error {
@@ -110,7 +111,7 @@ func (sp *StateProcessor[
 }
 
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _, _, _, _, _, _, ValidatorT, _, _, _,
+	_, _, BeaconStateT, _, _, _, _,
 ]) processValidatorSetCap(
 	st BeaconStateT,
 ) error {
@@ -138,7 +139,7 @@ func (sp *StateProcessor[
 		return nil
 	}
 
-	slices.SortFunc(nextEpochVals, func(lhs, rhs ValidatorT) int {
+	slices.SortFunc(nextEpochVals, func(lhs, rhs *ctypes.Validator) int {
 		var (
 			val1Stake = lhs.GetEffectiveBalance()
 			val2Stake = rhs.GetEffectiveBalance()
@@ -188,14 +189,14 @@ func (sp *StateProcessor[
 // but it helps simplifying generic instantiation.
 // TODO: Turn this into a free function
 func (*StateProcessor[
-	_, _, _, _, _, _, _, _, _, _, ValidatorT, _, _, _,
+	_, _, _, _, _, _, _,
 ]) validatorSetsDiffs(
-	prevEpochValidators []ValidatorT,
-	currEpochValidator []ValidatorT,
+	prevEpochValidators []*ctypes.Validator,
+	currEpochValidator []*ctypes.Validator,
 ) transition.ValidatorUpdates {
 	currentValSet := iter.Map(
 		currEpochValidator,
-		func(val *ValidatorT) *transition.ValidatorUpdate {
+		func(val **ctypes.Validator) *transition.ValidatorUpdate {
 			v := (*val)
 			return &transition.ValidatorUpdate{
 				Pubkey:           v.GetPubkey(),
@@ -243,8 +244,8 @@ func (*StateProcessor[
 // nextEpochValidatorSet returns the current estimation of what next epoch
 // validator set would be.
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _, _, _, _, _, _, ValidatorT, _, _, _,
-]) getActiveVals(st BeaconStateT, epoch math.Epoch) ([]ValidatorT, error) {
+	_, _, BeaconStateT, _, _, _, _,
+]) getActiveVals(st BeaconStateT, epoch math.Epoch) ([]*ctypes.Validator, error) {
 	vals, err := st.GetValidators()
 	if err != nil {
 		return nil, err
@@ -255,7 +256,7 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	activeVals := make([]ValidatorT, 0, len(vals))
+	activeVals := make([]*ctypes.Validator, 0, len(vals))
 	switch {
 	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
 		// Bartio does not properly handle validators epochs, so

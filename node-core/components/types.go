@@ -43,32 +43,17 @@ type (
 	// Fork is a type alias for the fork.
 	Fork = types.Fork
 
-	// ForkData is a type alias for the fork data.
-	ForkData = types.ForkData
-
 	// SlotData is a type alias for the incoming slot.
-	SlotData = consruntimetypes.SlotData[
-		*AttestationData,
-		*SlashingInfo,
-	]
+	SlotData = consruntimetypes.SlotData[*SlashingInfo]
 
 	// LegacyKey type alias to LegacyKey used for LegacySinger construction.
 	LegacyKey = signer.LegacyKey
-
-	// PayloadAttributes is a type alias for the payload attributes.
-	// PayloadAttributes = engineprimitives.PayloadAttributes[*Withdrawal].
 
 	// PayloadID is a type alias for the payload ID.
 	PayloadID = engineprimitives.PayloadID
 
 	// SlashingInfo is a type alias for the slashing info.
 	SlashingInfo = types.SlashingInfo
-
-	// Validator is a type alias for the validator.
-	Validator = types.Validator
-
-	// Validators is a type alias for the validators.
-	Validators = types.Validators
 
 	// ValidatorUpdate is a type alias for the validator update.
 	ABCIValidatorUpdate = appmodule.ValidatorUpdate

@@ -67,10 +67,7 @@ func (s *Service[_]) ValidateGenesis(
 		)
 	}
 
-	beaconGenesis := &types.Genesis[
-		*types.Deposit,
-		*types.ExecutionPayloadHeader,
-	]{}
+	beaconGenesis := &types.Genesis[*types.ExecutionPayloadHeader]{}
 
 	if err := json.Unmarshal(beaconGenesisBz, &beaconGenesis); err != nil {
 		return fmt.Errorf(

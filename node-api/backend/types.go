@@ -46,16 +46,12 @@ type AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT any] interface {
 
 // BeaconState is the interface for the beacon state.
 type BeaconState[
-	ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT, WithdrawalT any,
+	ExecutionPayloadHeaderT any,
 ] interface {
 	// SetSlot sets the slot on the beacon state.
 	SetSlot(math.Slot) error
 
-	core.ReadOnlyBeaconState[
-		ExecutionPayloadHeaderT,
-		ForkT, ValidatorT, ValidatorsT, WithdrawalT,
-	]
+	core.ReadOnlyBeaconState[ExecutionPayloadHeaderT]
 }
 
 // BlockStore is the interface for block storage.
@@ -69,13 +65,13 @@ type BlockStore[BeaconBlockT any] interface {
 }
 
 // DepositStore defines the interface for deposit storage.
-type DepositStore[DepositT any] interface {
+type DepositStore interface {
 	// GetDepositsByIndex returns `numView` expected deposits.
-	GetDepositsByIndex(startIndex uint64, numView uint64) ([]DepositT, error)
+	GetDepositsByIndex(startIndex uint64, numView uint64) ([]*ctypes.Deposit, error)
 	// Prune prunes the deposit store of [start, end)
 	Prune(start, end uint64) error
 	// EnqueueDeposits adds a list of deposits to the deposit store.
-	EnqueueDeposits(deposits []DepositT) error
+	EnqueueDeposits(deposits []*ctypes.Deposit) error
 }
 
 // Node is the interface for a node.

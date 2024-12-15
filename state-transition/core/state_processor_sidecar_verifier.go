@@ -29,7 +29,6 @@ import (
 
 func (sp *StateProcessor[
 	_, _, BeaconStateT, _, _, _, _,
-	_, ForkDataT, _, _, _, _, _,
 ]) GetSidecarVerifierFn(
 	st BeaconStateT,
 ) (
@@ -47,16 +46,12 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	var fd ForkDataT
-	fd = fd.New(
+	fd := *ctypes.NewForkData(
 		version.FromUint32[common.Version](
 			sp.cs.ActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,
 	)
-	//nolint:errcheck // safe
-	domain := any(fd).(*ctypes.ForkData).ComputeDomain(
-		sp.cs.DomainTypeProposer(),
-	)
+	domain := fd.ComputeDomain(sp.cs.DomainTypeProposer())
 
 	return func(
 		blkHeader *ctypes.BeaconBlockHeader,

@@ -24,15 +24,13 @@ import (
 	"errors"
 
 	"cosmossdk.io/collections/indexes"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // AddValidator registers a new validator in the beacon state.
-func (kv *KVStore[
-	ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
-]) AddValidator(val ValidatorT) error {
+func (kv *KVStore[ExecutionPayloadHeaderT]) AddValidator(val *ctypes.Validator) error {
 	// Get the next validator index from the sequence.
 	idx, err := kv.validatorIndex.Next(kv.ctx)
 	if err != nil {
@@ -48,10 +46,7 @@ func (kv *KVStore[
 }
 
 // AddValidator registers a new validator in the beacon state.
-func (kv *KVStore[
-	ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
-]) AddValidatorBartio(val ValidatorT) error {
+func (kv *KVStore[ExecutionPayloadHeaderT]) AddValidatorBartio(val *ctypes.Validator) error {
 	// Get the ne
 	idx, err := kv.validatorIndex.Next(kv.ctx)
 	if err != nil {
@@ -68,21 +63,15 @@ func (kv *KVStore[
 }
 
 // UpdateValidatorAtIndex updates a validator at a specific index.
-func (kv *KVStore[
-	ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
-]) UpdateValidatorAtIndex(
+func (kv *KVStore[ExecutionPayloadHeaderT]) UpdateValidatorAtIndex(
 	index math.ValidatorIndex,
-	val ValidatorT,
+	val *ctypes.Validator,
 ) error {
 	return kv.validators.Set(kv.ctx, index.Unwrap(), val)
 }
 
 // ValidatorIndexByPubkey returns the validator address by index.
-func (kv *KVStore[
-	ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
-]) ValidatorIndexByPubkey(
+func (kv *KVStore[ExecutionPayloadHeaderT]) ValidatorIndexByPubkey(
 	pubkey crypto.BLSPubkey,
 ) (math.ValidatorIndex, error) {
 	idx, err := kv.validators.Indexes.Pubkey.MatchExact(
@@ -96,10 +85,7 @@ func (kv *KVStore[
 }
 
 // ValidatorIndexByCometBFTAddress returns the validator address by index.
-func (kv *KVStore[
-	ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
-]) ValidatorIndexByCometBFTAddress(
+func (kv *KVStore[ExecutionPayloadHeaderT]) ValidatorIndexByCometBFTAddress(
 	cometBFTAddress []byte,
 ) (math.ValidatorIndex, error) {
 	idx, err := kv.validators.Indexes.CometBFTAddress.MatchExact(
@@ -113,26 +99,20 @@ func (kv *KVStore[
 }
 
 // ValidatorByIndex returns the validator address by index.
-func (kv *KVStore[
-	ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
-]) ValidatorByIndex(
+func (kv *KVStore[ExecutionPayloadHeaderT]) ValidatorByIndex(
 	index math.ValidatorIndex,
-) (ValidatorT, error) {
+) (*ctypes.Validator, error) {
 	val, err := kv.validators.Get(kv.ctx, index.Unwrap())
 	if err != nil {
-		var t ValidatorT
+		var t *ctypes.Validator
 		return t, err
 	}
 	return val, err
 }
 
 // GetValidators retrieves all validators from the beacon state.
-func (kv *KVStore[
-	ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
-]) GetValidators() (
-	ValidatorsT, error,
+func (kv *KVStore[ExecutionPayloadHeaderT]) GetValidators() (
+	ctypes.Validators, error,
 ) {
 	registrySize, err := kv.validatorIndex.Peek(kv.ctx)
 	if err != nil {
@@ -140,8 +120,8 @@ func (kv *KVStore[
 	}
 
 	var (
-		vals = make([]ValidatorT, 0, registrySize)
-		val  ValidatorT
+		vals = make([]*ctypes.Validator, 0, registrySize)
+		val  *ctypes.Validator
 	)
 
 	iter, err := kv.validators.Iterate(kv.ctx, nil)
@@ -164,10 +144,7 @@ func (kv *KVStore[
 }
 
 // GetTotalValidators returns the total number of validators.
-func (kv *KVStore[
-	ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
-]) GetTotalValidators() (uint64, error) {
+func (kv *KVStore[ExecutionPayloadHeaderT]) GetTotalValidators() (uint64, error) {
 	validators, err := kv.GetValidators()
 	if err != nil {
 		return 0, err
@@ -177,15 +154,12 @@ func (kv *KVStore[
 
 // GetValidatorsByEffectiveBalance retrieves all validators sorted by
 // effective balance from the beacon state.
-func (kv *KVStore[
-	ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
-]) GetValidatorsByEffectiveBalance() (
-	[]ValidatorT, error,
+func (kv *KVStore[ExecutionPayloadHeaderT]) GetValidatorsByEffectiveBalance() (
+	[]*ctypes.Validator, error,
 ) {
 	var (
-		vals []ValidatorT
-		v    ValidatorT
+		vals []*ctypes.Validator
+		v    *ctypes.Validator
 		idx  uint64
 	)
 
@@ -215,10 +189,7 @@ func (kv *KVStore[
 }
 
 // GetBalance returns the balance of a validator.
-func (kv *KVStore[
-	ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
-]) GetBalance(
+func (kv *KVStore[ExecutionPayloadHeaderT]) GetBalance(
 	idx math.ValidatorIndex,
 ) (math.Gwei, error) {
 	balance, err := kv.balances.Get(kv.ctx, idx.Unwrap())
@@ -226,10 +197,7 @@ func (kv *KVStore[
 }
 
 // SetBalance sets the balance of a validator.
-func (kv *KVStore[
-	ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
-]) SetBalance(
+func (kv *KVStore[ExecutionPayloadHeaderT]) SetBalance(
 	idx math.ValidatorIndex,
 	balance math.Gwei,
 ) error {
@@ -237,10 +205,7 @@ func (kv *KVStore[
 }
 
 // GetBalances returns the balancse of all validator.
-func (kv *KVStore[
-	ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
-]) GetBalances() ([]uint64, error) {
+func (kv *KVStore[ExecutionPayloadHeaderT]) GetBalances() ([]uint64, error) {
 	var balances []uint64
 	iter, err := kv.balances.Iterate(kv.ctx, nil)
 	if err != nil {
@@ -264,10 +229,7 @@ func (kv *KVStore[
 // GetTotalActiveBalances returns the total active balances of all validatorkv.
 // TODO: unhood this and probably store this as just a value changed on writekv.
 // TODO: this shouldn't live in KVStore
-func (kv *KVStore[
-	ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
-]) GetTotalActiveBalances(
+func (kv *KVStore[ExecutionPayloadHeaderT]) GetTotalActiveBalances(
 	slotsPerEpoch uint64,
 ) (math.Gwei, error) {
 	slot, err := kv.slot.Get(kv.ctx)
@@ -287,7 +249,7 @@ func (kv *KVStore[
 	}()
 
 	err = indexes.ScanValues(
-		kv.ctx, kv.validators, iter, func(v ValidatorT,
+		kv.ctx, kv.validators, iter, func(v *ctypes.Validator,
 		) bool {
 			if v.IsActive(epoch) {
 				totalActiveBalances += v.GetEffectiveBalance()
