@@ -58,4 +58,6 @@ def get_genesis_env_vars(cl_service_name):
         "BEACOND_ENABLE_PROMETHEUS": "true",
         "BEACOND_CONSENSUS_KEY_ALGO": "bls12_381",
         "ETH_GENESIS": "/root/eth_genesis/genesis.json",
+        "WITHDRAWAL_ADDRESS": "0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4",
+        "DEPOSIT_AMOUNT": "32000000000",
     }
