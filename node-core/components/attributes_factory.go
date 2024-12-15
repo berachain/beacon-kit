@@ -42,7 +42,7 @@ func ProvideAttributesFactory[
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconStateMarshallableT,
 		ExecutionPayloadHeaderT, KVStoreT,
-		*Validator, Validators, WithdrawalT,
+		WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],

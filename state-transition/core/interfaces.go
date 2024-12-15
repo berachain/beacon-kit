@@ -35,8 +35,6 @@ type BeaconState[
 	T any,
 	ExecutionPayloadHeaderT,
 	KVStoreT,
-	ValidatorT,
-	ValidatorsT,
 	WithdrawalT any,
 ] interface {
 	NewFromDB(
@@ -48,23 +46,20 @@ type BeaconState[
 	HashTreeRoot() common.Root
 	ReadOnlyBeaconState[
 		ExecutionPayloadHeaderT,
-		ValidatorT, ValidatorsT, WithdrawalT,
+		WithdrawalT,
 	]
-	WriteOnlyBeaconState[
-		ExecutionPayloadHeaderT,
-		ValidatorT,
-	]
+	WriteOnlyBeaconState[ExecutionPayloadHeaderT]
 }
 
 // ReadOnlyBeaconState is the interface for a read-only beacon state.
 type ReadOnlyBeaconState[
 	ExecutionPayloadHeaderT,
-	ValidatorT, ValidatorsT, WithdrawalT any,
+	WithdrawalT any,
 ] interface {
 	ReadOnlyEth1Data[ExecutionPayloadHeaderT]
 	ReadOnlyRandaoMixes
 	ReadOnlyStateRoots
-	ReadOnlyValidators[ValidatorT]
+	ReadOnlyValidators
 	ReadOnlyWithdrawals[WithdrawalT]
 
 	GetBalance(math.ValidatorIndex) (math.Gwei, error)
@@ -74,13 +69,13 @@ type ReadOnlyBeaconState[
 	GetBlockRootAtIndex(uint64) (common.Root, error)
 	GetLatestBlockHeader() (*ctypes.BeaconBlockHeader, error)
 	GetTotalActiveBalances(uint64) (math.Gwei, error)
-	GetValidators() (ValidatorsT, error)
+	GetValidators() (ctypes.Validators, error)
 	GetSlashingAtIndex(uint64) (math.Gwei, error)
 	GetTotalSlashing() (math.Gwei, error)
 	GetNextWithdrawalIndex() (uint64, error)
 	GetNextWithdrawalValidatorIndex() (math.ValidatorIndex, error)
 	GetTotalValidators() (uint64, error)
-	GetValidatorsByEffectiveBalance() ([]ValidatorT, error)
+	GetValidatorsByEffectiveBalance() ([]*ctypes.Validator, error)
 	ValidatorIndexByCometBFTAddress(
 		cometBFTAddress []byte,
 	) (math.ValidatorIndex, error)
@@ -88,13 +83,12 @@ type ReadOnlyBeaconState[
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
 type WriteOnlyBeaconState[
-	ExecutionPayloadHeaderT,
-	ValidatorT any,
+	ExecutionPayloadHeaderT any,
 ] interface {
 	WriteOnlyEth1Data[ExecutionPayloadHeaderT]
 	WriteOnlyRandaoMixes
 	WriteOnlyStateRoots
-	WriteOnlyValidators[ValidatorT]
+	WriteOnlyValidators
 
 	SetGenesisValidatorsRoot(root common.Root) error
 	SetFork(*ctypes.Fork) error
@@ -134,25 +128,25 @@ type ReadOnlyRandaoMixes interface {
 }
 
 // WriteOnlyValidators has write access to validator methods.
-type WriteOnlyValidators[ValidatorT any] interface {
+type WriteOnlyValidators interface {
 	UpdateValidatorAtIndex(
 		math.ValidatorIndex,
-		ValidatorT,
+		*ctypes.Validator,
 	) error
 
-	AddValidator(ValidatorT) error
-	AddValidatorBartio(ValidatorT) error
+	AddValidator(*ctypes.Validator) error
+	AddValidatorBartio(*ctypes.Validator) error
 }
 
 // ReadOnlyValidators has read access to validator methods.
-type ReadOnlyValidators[ValidatorT any] interface {
+type ReadOnlyValidators interface {
 	ValidatorIndexByPubkey(
 		crypto.BLSPubkey,
 	) (math.ValidatorIndex, error)
 
 	ValidatorByIndex(
 		math.ValidatorIndex,
-	) (ValidatorT, error)
+	) (*ctypes.Validator, error)
 }
 
 // WriteOnlyEth1Data has write access to eth1 data.

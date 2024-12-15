@@ -159,8 +159,7 @@ type (
 	// with generic types.
 	BeaconStateMarshallable[
 		T,
-		ExecutionPayloadHeaderT,
-		ValidatorT any,
+		ExecutionPayloadHeaderT any,
 	] interface {
 		constraints.SSZMarshallableRootable
 		GetTree() (*fastssz.Node, error)
@@ -176,7 +175,7 @@ type (
 			eth1Data *ctypes.Eth1Data,
 			eth1DepositIndex uint64,
 			latestExecutionPayloadHeader ExecutionPayloadHeaderT,
-			validators []ValidatorT,
+			validators []*ctypes.Validator,
 			balances []uint64,
 			randaoMixes []common.Bytes32,
 			nextWithdrawalIndex uint64,
@@ -752,8 +751,6 @@ type (
 		BeaconStateMarshallableT any,
 		ExecutionPayloadHeaderT,
 		KVStoreT,
-		ValidatorT,
-		ValidatorsT,
 		WithdrawalT any,
 	] interface {
 		NewFromDB(
@@ -767,20 +764,15 @@ type (
 
 		ReadOnlyBeaconState[
 			ExecutionPayloadHeaderT,
-			ValidatorT, ValidatorsT, WithdrawalT,
+			WithdrawalT,
 		]
-		WriteOnlyBeaconState[
-			ExecutionPayloadHeaderT,
-			ValidatorT,
-		]
+		WriteOnlyBeaconState[ExecutionPayloadHeaderT]
 	}
 
 	// BeaconStore is the interface for the beacon store.
 	BeaconStore[
 		T any,
 		ExecutionPayloadHeaderT any,
-		ValidatorT any,
-		ValidatorsT any,
 		WithdrawalT any,
 	] interface {
 		// Context returns the context of the key-value store.
@@ -837,7 +829,7 @@ type (
 		// SetEth1Data sets the eth1 data.
 		SetEth1Data(data *ctypes.Eth1Data) error
 		// GetValidators retrieves all validators.
-		GetValidators() (ValidatorsT, error)
+		GetValidators() (ctypes.Validators, error)
 		// GetBalances retrieves all balances.
 		GetBalances() ([]uint64, error)
 		// GetNextWithdrawalIndex retrieves the next withdrawal index.
@@ -868,7 +860,7 @@ type (
 		// GetTotalActiveBalances retrieves the total active balances.
 		GetTotalActiveBalances(uint64) (math.Gwei, error)
 		// ValidatorByIndex retrieves the validator at the given index.
-		ValidatorByIndex(index math.ValidatorIndex) (ValidatorT, error)
+		ValidatorByIndex(index math.ValidatorIndex) (*ctypes.Validator, error)
 		// UpdateBlockRootAtIndex updates the block root at the given index.
 		UpdateBlockRootAtIndex(index uint64, root common.Root) error
 		// UpdateStateRootAtIndex updates the state root at the given index.
@@ -878,7 +870,7 @@ type (
 		// UpdateValidatorAtIndex updates the validator at the given index.
 		UpdateValidatorAtIndex(
 			index math.ValidatorIndex,
-			validator ValidatorT,
+			validator *ctypes.Validator,
 		) error
 		// ValidatorIndexByPubkey retrieves the validator index by the given
 		// pubkey.
@@ -886,9 +878,9 @@ type (
 			pubkey crypto.BLSPubkey,
 		) (math.ValidatorIndex, error)
 		// AddValidator adds a validator.
-		AddValidator(val ValidatorT) error
+		AddValidator(val *ctypes.Validator) error
 		// AddValidatorBartio adds a validator to the Bartio chain.
-		AddValidatorBartio(val ValidatorT) error
+		AddValidatorBartio(val *ctypes.Validator) error
 		// ValidatorIndexByCometBFTAddress retrieves the validator index by the
 		// given comet BFT address.
 		ValidatorIndexByCometBFTAddress(
@@ -896,18 +888,18 @@ type (
 		) (math.ValidatorIndex, error)
 		// GetValidatorsByEffectiveBalance retrieves validators by effective
 		// balance.
-		GetValidatorsByEffectiveBalance() ([]ValidatorT, error)
+		GetValidatorsByEffectiveBalance() ([]*ctypes.Validator, error)
 	}
 
 	// ReadOnlyBeaconState is the interface for a read-only beacon state.
 	ReadOnlyBeaconState[
 		ExecutionPayloadHeaderT,
-		ValidatorT, ValidatorsT, WithdrawalT any,
+		WithdrawalT any,
 	] interface {
 		ReadOnlyEth1Data[ExecutionPayloadHeaderT]
 		ReadOnlyRandaoMixes
 		ReadOnlyStateRoots
-		ReadOnlyValidators[ValidatorT]
+		ReadOnlyValidators
 		ReadOnlyWithdrawals[WithdrawalT]
 
 		// GetBalances retrieves all balances.
@@ -919,13 +911,13 @@ type (
 		GetBlockRootAtIndex(uint64) (common.Root, error)
 		GetLatestBlockHeader() (*ctypes.BeaconBlockHeader, error)
 		GetTotalActiveBalances(uint64) (math.Gwei, error)
-		GetValidators() (ValidatorsT, error)
+		GetValidators() (ctypes.Validators, error)
 		GetSlashingAtIndex(uint64) (math.Gwei, error)
 		GetTotalSlashing() (math.Gwei, error)
 		GetNextWithdrawalIndex() (uint64, error)
 		GetNextWithdrawalValidatorIndex() (math.ValidatorIndex, error)
 		GetTotalValidators() (uint64, error)
-		GetValidatorsByEffectiveBalance() ([]ValidatorT, error)
+		GetValidatorsByEffectiveBalance() ([]*ctypes.Validator, error)
 		ValidatorIndexByCometBFTAddress(
 			cometBFTAddress []byte,
 		) (math.ValidatorIndex, error)
@@ -933,13 +925,12 @@ type (
 
 	// WriteOnlyBeaconState is the interface for a write-only beacon state.
 	WriteOnlyBeaconState[
-		ExecutionPayloadHeaderT,
-		ValidatorT any,
+		ExecutionPayloadHeaderT any,
 	] interface {
 		WriteOnlyEth1Data[ExecutionPayloadHeaderT]
 		WriteOnlyRandaoMixes
 		WriteOnlyStateRoots
-		WriteOnlyValidators[ValidatorT]
+		WriteOnlyValidators
 
 		SetGenesisValidatorsRoot(root common.Root) error
 		SetFork(*ctypes.Fork) error
@@ -981,25 +972,25 @@ type (
 	}
 
 	// WriteOnlyValidators has write access to validator methods.
-	WriteOnlyValidators[ValidatorT any] interface {
+	WriteOnlyValidators interface {
 		UpdateValidatorAtIndex(
 			math.ValidatorIndex,
-			ValidatorT,
+			*ctypes.Validator,
 		) error
 
-		AddValidator(ValidatorT) error
-		AddValidatorBartio(ValidatorT) error
+		AddValidator(*ctypes.Validator) error
+		AddValidatorBartio(*ctypes.Validator) error
 	}
 
 	// ReadOnlyValidators has read access to validator methods.
-	ReadOnlyValidators[ValidatorT any] interface {
+	ReadOnlyValidators interface {
 		ValidatorIndexByPubkey(
 			crypto.BLSPubkey,
 		) (math.ValidatorIndex, error)
 
 		ValidatorByIndex(
 			math.ValidatorIndex,
-		) (ValidatorT, error)
+		) (*ctypes.Validator, error)
 	}
 
 	// WriteOnlyEth1Data has write access to eth1 data.
@@ -1047,7 +1038,6 @@ type (
 	NodeAPIBackend[
 		BeaconStateT any,
 		NodeT any,
-		ValidatorT any,
 	] interface {
 		AttachQueryBackend(node NodeT)
 		ChainSpec() common.ChainSpec
@@ -1055,23 +1045,19 @@ type (
 		GetSlotByStateRoot(root common.Root) (math.Slot, error)
 		GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
 
-		NodeAPIBeaconBackend[
-			BeaconStateT, ValidatorT,
-		]
-		NodeAPIProofBackend[
-			BeaconStateT, ValidatorT,
-		]
+		NodeAPIBeaconBackend[BeaconStateT]
+		NodeAPIProofBackend[BeaconStateT]
 	}
 
 	// NodeAPIBackend is the interface for backend of the beacon API.
 	NodeAPIBeaconBackend[
-		BeaconStateT, ValidatorT any,
+		BeaconStateT any,
 	] interface {
 		GenesisBackend
 		BlockBackend
 		RandaoBackend
 		StateBackend[BeaconStateT]
-		ValidatorBackend[ValidatorT]
+		ValidatorBackend
 		HistoricalBackend
 		// GetSlotByBlockRoot retrieves the slot by a given root from the store.
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
@@ -1081,7 +1067,7 @@ type (
 
 	// NodeAPIProofBackend is the interface for backend of the proof API.
 	NodeAPIProofBackend[
-		BeaconStateT, ValidatorT any,
+		BeaconStateT any,
 	] interface {
 		BlockBackend
 		StateBackend[BeaconStateT]
@@ -1113,15 +1099,15 @@ type (
 		StateFromSlotForProof(slot math.Slot) (BeaconStateT, math.Slot, error)
 	}
 
-	ValidatorBackend[ValidatorT any] interface {
+	ValidatorBackend interface {
 		ValidatorByID(
 			slot math.Slot, id string,
-		) (*types.ValidatorData[ValidatorT], error)
+		) (*types.ValidatorData, error)
 		ValidatorsByIDs(
 			slot math.Slot,
 			ids []string,
 			statuses []string,
-		) ([]*types.ValidatorData[ValidatorT], error)
+		) ([]*types.ValidatorData, error)
 		ValidatorBalancesByIDs(
 			slot math.Slot,
 			ids []string,

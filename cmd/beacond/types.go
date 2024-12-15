@@ -113,11 +113,7 @@ type (
 	IndexDB = filedb.RangeDB
 
 	// KVStore is a type alias for the KV store.
-	KVStore = beacondb.KVStore[
-		*ExecutionPayloadHeader,
-		*Validator,
-		Validators,
-	]
+	KVStore = beacondb.KVStore[*ExecutionPayloadHeader]
 
 	// LocalBuilder is a type alias for the local builder.
 	LocalBuilder = payloadbuilder.PayloadBuilder[
@@ -156,8 +152,6 @@ type (
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*KVStore,
-		*Validator,
-		Validators,
 		*Withdrawal,
 		Withdrawals,
 	]
@@ -204,17 +198,13 @@ type (
 		*BeaconStateMarshallable,
 		*ExecutionPayloadHeader,
 		*KVStore,
-		*Validator,
-		Validators,
 		*Withdrawal,
 	]
 
 	// BeaconStateMarshallable is a type alias for the BeaconState.
 	BeaconStateMarshallable = types.BeaconState[
 		*ExecutionPayloadHeader,
-		*Validator,
 		ExecutionPayloadHeader,
-		Validator,
 	]
 
 	// BlobSidecars type aliases.
@@ -277,8 +267,6 @@ type (
 		*CometBFTService,
 		*KVStore,
 		*StorageBackend,
-		*Validator,
-		Validators,
 		*Withdrawal,
 	]
 
@@ -293,12 +281,6 @@ type (
 
 	// SlashingInfo is a type alias for the slashing info.
 	SlashingInfo = types.SlashingInfo
-
-	// Validator is a type alias for the validator.
-	Validator = types.Validator
-
-	// Validators is a type alias for the validators.
-	Validators = types.Validators
 
 	// ValidatorUpdate is a type alias for the validator update.
 	ABCIValidatorUpdate = appmodule.ValidatorUpdate
