@@ -21,6 +21,7 @@
 package backend
 
 import (
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
@@ -29,14 +30,14 @@ import (
 // to calculate the parent beacon block root, which has the empty state root in
 // the latest block header. Hence we do not process the next slot.
 func (b *Backend[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
 ]) StateFromSlotForProof(slot math.Slot) (BeaconStateT, math.Slot, error) {
 	return b.stateFromSlotRaw(slot)
 }
 
 // GetStateRoot returns the root of the state at the given slot.
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) StateRootAtSlot(slot math.Slot) (common.Root, error) {
 	st, slot, err := b.stateFromSlot(slot)
 	if err != nil {
@@ -50,9 +51,9 @@ func (b Backend[
 
 // GetStateFork returns the fork of the state at the given stateID.
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, ForkT, _, _, _, _, _, _,
-]) StateForkAtSlot(slot math.Slot) (ForkT, error) {
-	var fork ForkT
+	_, _, _, _, _, _, _, _, _, _, _, _, _,
+]) StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error) {
+	var fork *ctypes.Fork
 	st, _, err := b.stateFromSlot(slot)
 	if err != nil {
 		return fork, err

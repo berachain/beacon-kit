@@ -39,9 +39,7 @@ type PayloadAttributer interface {
 // PayloadAttributes is the attributes of a block payload.
 //
 
-type PayloadAttributes[
-	WithdrawalT any,
-] struct {
+type PayloadAttributes struct {
 	// version is the version of the payload attributes.
 	version uint32 `json:"-"`
 	// Timestamp is the timestamp at which the block will be built at.
@@ -55,7 +53,7 @@ type PayloadAttributes[
 	SuggestedFeeRecipient common.ExecutionAddress `json:"suggestedFeeRecipient"`
 	// Withdrawals is the list of withdrawals to be included in the block as per
 	// EIP-4895
-	Withdrawals []WithdrawalT `json:"withdrawals"`
+	Withdrawals Withdrawals `json:"withdrawals"`
 	// ParentBeaconBlockRoot is the root of the parent beacon block. (The block
 	// prior)
 	// to the block currently being processed. This field was added for
@@ -64,15 +62,15 @@ type PayloadAttributes[
 }
 
 // New empty PayloadAttributes.
-func (p *PayloadAttributes[WithdrawalT]) New(
+func (p *PayloadAttributes) New(
 	forkVersion uint32,
 	timestamp uint64,
 	prevRandao common.Bytes32,
 	suggestedFeeRecipient common.ExecutionAddress,
-	withdrawals []WithdrawalT,
+	withdrawals Withdrawals,
 	parentBeaconBlockRoot common.Root,
-) (*PayloadAttributes[WithdrawalT], error) {
-	p = &PayloadAttributes[WithdrawalT]{
+) (*PayloadAttributes, error) {
+	p = &PayloadAttributes{
 		version:               forkVersion,
 		Timestamp:             math.U64(timestamp),
 		PrevRandao:            prevRandao,
@@ -89,24 +87,24 @@ func (p *PayloadAttributes[WithdrawalT]) New(
 }
 
 // IsNil returns true if the PayloadAttributes is nil.
-func (p *PayloadAttributes[WithdrawalT]) IsNil() bool {
+func (p *PayloadAttributes) IsNil() bool {
 	return p == nil
 }
 
 // GetSuggestedFeeRecipient returns the suggested fee recipient.
 func (
-	p *PayloadAttributes[WithdrawalT],
+	p *PayloadAttributes,
 ) GetSuggestedFeeRecipient() common.ExecutionAddress {
 	return p.SuggestedFeeRecipient
 }
 
 // Version returns the version of the PayloadAttributes.
-func (p *PayloadAttributes[WithdrawalT]) Version() uint32 {
+func (p *PayloadAttributes) Version() uint32 {
 	return p.version
 }
 
 // Validate validates the PayloadAttributes.
-func (p *PayloadAttributes[WithdrawalT]) Validate() error {
+func (p *PayloadAttributes) Validate() error {
 	if p.Timestamp == 0 {
 		return ErrInvalidTimestamp
 	}

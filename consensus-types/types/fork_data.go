@@ -45,13 +45,6 @@ func NewForkData(
 	}
 }
 
-// New creates a new ForkData struct.
-func (fd *ForkData) New(
-	currentVersion common.Version, genesisValidatorsRoot common.Root,
-) *ForkData {
-	return NewForkData(currentVersion, genesisValidatorsRoot)
-}
-
 /* -------------------------------------------------------------------------- */
 /*                                     SSZ                                    */
 /* -------------------------------------------------------------------------- */

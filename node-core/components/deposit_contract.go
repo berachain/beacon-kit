@@ -32,39 +32,32 @@ import (
 // for the dep inject framework.
 type DepositContractInput[
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-	WithdrawalT Withdrawal[WithdrawalT],
-	WithdrawalsT Withdrawals[WithdrawalT],
 ] struct {
 	depinject.In
 	ChainSpec    common.ChainSpec
 	EngineClient *client.EngineClient[
 		ExecutionPayloadT,
-		*engineprimitives.PayloadAttributes[WithdrawalT],
+		*engineprimitives.PayloadAttributes,
 	]
 }
 
 // ProvideDepositContract provides a deposit contract through the
 // dep inject framework.
 func ProvideDepositContract[
-	DepositT Deposit[
-		DepositT, *ForkData,
-	],
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-	WithdrawalT Withdrawal[WithdrawalT],
-	WithdrawalsT Withdrawals[WithdrawalT],
 ](
 	in DepositContractInput[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
-) (*deposit.WrappedDepositContract[DepositT], error) {
+) (*deposit.WrappedDepositContract, error) {
 	// Build the deposit contract.
-	return deposit.NewWrappedDepositContract[DepositT](
+	return deposit.NewWrappedDepositContract(
 		in.ChainSpec.DepositContractAddress(),
 		in.EngineClient,
 	)

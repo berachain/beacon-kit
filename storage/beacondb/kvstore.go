@@ -41,12 +41,6 @@ type KVStore[
 		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
 		Version() uint32
 	},
-	ForkT interface {
-		constraints.Empty[ForkT]
-		constraints.SSZMarshallable
-	},
-	ValidatorT Validator[ValidatorT],
-	ValidatorsT ~[]ValidatorT,
 ] struct {
 	ctx context.Context
 	// Versioning
@@ -55,7 +49,7 @@ type KVStore[
 	// slot is the current slot.
 	slot sdkcollections.Item[uint64]
 	// fork is the current fork
-	fork sdkcollections.Item[ForkT]
+	fork sdkcollections.Item[*ctypes.Fork]
 	// History
 	// latestBlockHeader stores the latest beacon block header.
 	latestBlockHeader sdkcollections.Item[*ctypes.BeaconBlockHeader]
@@ -82,7 +76,7 @@ type KVStore[
 	validatorIndex sdkcollections.Sequence
 	// validators stores the list of validators.
 	validators *sdkcollections.IndexedMap[
-		uint64, ValidatorT, index.ValidatorsIndex[ValidatorT],
+		uint64, *ctypes.Validator, index.ValidatorsIndex[*ctypes.Validator],
 	]
 	// balances stores the list of balances.
 	balances sdkcollections.Map[uint64, uint64]
@@ -110,24 +104,12 @@ func New[
 		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
 		Version() uint32
 	},
-	ForkT interface {
-		constraints.Empty[ForkT]
-		constraints.SSZMarshallable
-	},
-	ValidatorT Validator[ValidatorT],
-	ValidatorsT ~[]ValidatorT,
 ](
 	kss store.KVStoreService,
 	payloadCodec *encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT],
-) *KVStore[
-	ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
-] {
+) *KVStore[ExecutionPayloadHeaderT] {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kss)
-	return &KVStore[
-		ExecutionPayloadHeaderT,
-		ForkT, ValidatorT, ValidatorsT,
-	]{
+	return &KVStore[ExecutionPayloadHeaderT]{
 		ctx: nil,
 		genesisValidatorsRoot: sdkcollections.NewItem(
 			schemaBuilder,
@@ -145,7 +127,7 @@ func New[
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.ForkPrefix}),
 			keys.ForkPrefixHumanReadable,
-			encoding.SSZValueCodec[ForkT]{},
+			encoding.SSZValueCodec[*ctypes.Fork]{},
 		),
 		blockRoots: sdkcollections.NewMap(
 			schemaBuilder,
@@ -200,8 +182,8 @@ func New[
 			sdkcollections.NewPrefix([]byte{keys.ValidatorByIndexPrefix}),
 			keys.ValidatorByIndexPrefixHumanReadable,
 			sdkcollections.Uint64Key,
-			encoding.SSZValueCodec[ValidatorT]{},
-			index.NewValidatorsIndex[ValidatorT](schemaBuilder),
+			encoding.SSZValueCodec[*ctypes.Validator]{},
+			index.NewValidatorsIndex[*ctypes.Validator](schemaBuilder),
 		),
 		balances: sdkcollections.NewMap(
 			schemaBuilder,
@@ -256,13 +238,7 @@ func New[
 }
 
 // Copy returns a copy of the Store.
-func (kv *KVStore[
-	ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
-]) Copy() *KVStore[
-	ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
-] {
+func (kv *KVStore[ExecutionPayloadHeaderT]) Copy() *KVStore[ExecutionPayloadHeaderT] {
 	// TODO: Decouple the KVStore type from the Cosmos-SDK.
 	cctx, _ := sdk.UnwrapSDKContext(kv.ctx).CacheContext()
 	ss := kv.WithContext(cctx)
@@ -270,23 +246,14 @@ func (kv *KVStore[
 }
 
 // Context returns the context of the Store.
-func (kv *KVStore[
-	ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
-]) Context() context.Context {
+func (kv *KVStore[ExecutionPayloadHeaderT]) Context() context.Context {
 	return kv.ctx
 }
 
 // WithContext returns a copy of the Store with the given context.
-func (kv *KVStore[
-	ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
-]) WithContext(
+func (kv *KVStore[ExecutionPayloadHeaderT]) WithContext(
 	ctx context.Context,
-) *KVStore[
-	ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
-] {
+) *KVStore[ExecutionPayloadHeaderT] {
 	cpy := *kv
 	cpy.ctx = ctx
 	return &cpy

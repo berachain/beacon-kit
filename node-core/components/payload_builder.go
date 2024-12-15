@@ -36,24 +36,21 @@ import (
 type LocalBuilderInput[
 	BeaconStateT any,
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	LoggerT log.AdvancedLogger[LoggerT],
-	WithdrawalT Withdrawal[WithdrawalT],
-	WithdrawalsT Withdrawals[WithdrawalT],
 ] struct {
 	depinject.In
 	AttributesFactory AttributesFactory[
-		BeaconStateT, *engineprimitives.PayloadAttributes[WithdrawalT],
+		BeaconStateT, *engineprimitives.PayloadAttributes,
 	]
 	Cfg             *config.Config
 	ChainSpec       common.ChainSpec
 	ExecutionEngine *engine.Engine[
 		ExecutionPayloadT,
-		*engineprimitives.PayloadAttributes[WithdrawalT],
+		*engineprimitives.PayloadAttributes,
 		PayloadID,
-		WithdrawalsT,
 	]
 	Logger LoggerT
 }
@@ -63,30 +60,26 @@ type LocalBuilderInput[
 func ProvideLocalBuilder[
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconStateMarshallableT,
-		ExecutionPayloadHeaderT, *Fork, KVStoreT, *Validator,
-		Validators, WithdrawalT,
+		ExecutionPayloadHeaderT, KVStoreT,
 	],
 	BeaconStateMarshallableT any,
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
-	WithdrawalT Withdrawal[WithdrawalT],
-	WithdrawalsT Withdrawals[WithdrawalT],
 ](
 	in LocalBuilderInput[
 		BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT, LoggerT,
-		WithdrawalT, WithdrawalsT,
 	],
 ) *payloadbuilder.PayloadBuilder[
 	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	*engineprimitives.PayloadAttributes[WithdrawalT], PayloadID, WithdrawalT,
+	*engineprimitives.PayloadAttributes, PayloadID,
 ] {
 	return payloadbuilder.New[
 		BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-		*engineprimitives.PayloadAttributes[WithdrawalT], PayloadID, WithdrawalT,
+		*engineprimitives.PayloadAttributes, PayloadID,
 	](
 		&in.Cfg.PayloadBuilder,
 		in.ChainSpec,
