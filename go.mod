@@ -32,7 +32,7 @@ require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/ethereum/c-kzg-4844 v1.0.3
 	github.com/go-faster/xor v1.0.0
-	github.com/go-playground/validator/v10 v10.22.0
+	github.com/go-playground/validator/v10 v10.23.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/golangci/golangci-lint v1.60.1
 	github.com/google/addlicense v1.1.1
