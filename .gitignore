@@ -30,7 +30,7 @@ tmp/
 *.out
 
 # Dependency directories (remove the comment below to include it)
-go.work.sum 
+go.work.sum
 
 ##########
 # Linux  #
