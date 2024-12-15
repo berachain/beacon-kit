@@ -38,14 +38,12 @@ func ProvideKVStore[
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 ](in KVStoreInput) *beacondb.KVStore[
 	ExecutionPayloadHeaderT,
-	*Fork,
 	*Validator,
 	Validators,
 ] {
 	payloadCodec := &encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT]{}
 	return beacondb.New[
 		ExecutionPayloadHeaderT,
-		*Fork,
 		*Validator,
 		Validators,
 	](in.KVStoreService, payloadCodec)

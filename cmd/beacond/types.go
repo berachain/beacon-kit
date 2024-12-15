@@ -116,7 +116,6 @@ type (
 	// KVStore is a type alias for the KV store.
 	KVStore = beacondb.KVStore[
 		*ExecutionPayloadHeader,
-		*Fork,
 		*Validator,
 		Validators,
 	]
@@ -158,7 +157,6 @@ type (
 		*Deposit,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
-		*Fork,
 		*KVStore,
 		*Validator,
 		Validators,
@@ -212,7 +210,6 @@ type (
 	BeaconState = statedb.StateDB[
 		*BeaconStateMarshallable,
 		*ExecutionPayloadHeader,
-		*Fork,
 		*KVStore,
 		*Validator,
 		Validators,
@@ -222,10 +219,8 @@ type (
 	// BeaconStateMarshallable is a type alias for the BeaconState.
 	BeaconStateMarshallable = types.BeaconState[
 		*ExecutionPayloadHeader,
-		*Fork,
 		*Validator,
 		ExecutionPayloadHeader,
-		Fork,
 		Validator,
 	]
 
@@ -296,7 +291,6 @@ type (
 		*Deposit,
 		*DepositStore,
 		*ExecutionPayloadHeader,
-		*Fork,
 		*CometBFTService,
 		*KVStore,
 		*StorageBackend,

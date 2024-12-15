@@ -68,7 +68,7 @@ func ProvideStateProcessor[
 	],
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconStateMarshallableT,
-		ExecutionPayloadHeaderT, *Fork, KVStoreT, *Validator,
+		ExecutionPayloadHeaderT, KVStoreT, *Validator,
 		Validators, WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
@@ -80,7 +80,7 @@ func ProvideStateProcessor[
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	KVStoreT BeaconStore[
 		KVStoreT, ExecutionPayloadHeaderT,
-		*Fork, *Validator, Validators, WithdrawalT,
+		*Validator, Validators, WithdrawalT,
 	],
 	WithdrawalsT Withdrawals[WithdrawalT],
 	WithdrawalT Withdrawal[WithdrawalT],
@@ -93,7 +93,7 @@ func ProvideStateProcessor[
 ) *core.StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, *Context, DepositT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, *Fork, KVStoreT, *Validator,
+	ExecutionPayloadHeaderT, KVStoreT, *Validator,
 	Validators, WithdrawalT, WithdrawalsT,
 ] {
 	return core.NewStateProcessor[
@@ -104,7 +104,6 @@ func ProvideStateProcessor[
 		DepositT,
 		ExecutionPayloadT,
 		ExecutionPayloadHeaderT,
-		*Fork,
 		KVStoreT,
 		*Validator,
 		Validators,

@@ -33,7 +33,6 @@ import (
 type KVStore[
 	T,
 	ExecutionPayloadHeaderT,
-	ForkT,
 	ValidatorT any,
 	ValidatorsT ~[]ValidatorT,
 ] interface {
@@ -67,9 +66,9 @@ type KVStore[
 	// SetSlot sets the current slot.
 	SetSlot(slot math.Slot) error
 	// GetFork retrieves the fork.
-	GetFork() (ForkT, error)
+	GetFork() (*ctypes.Fork, error)
 	// SetFork sets the fork.
-	SetFork(fork ForkT) error
+	SetFork(fork *ctypes.Fork) error
 	// GetGenesisValidatorsRoot retrieves the genesis validators root.
 	GetGenesisValidatorsRoot() (common.Root, error)
 	// SetGenesisValidatorsRoot sets the genesis validators root.

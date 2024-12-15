@@ -200,7 +200,6 @@ func TestValidators(t *testing.T) {
 func initTestStore() (
 	*beacondb.KVStore[
 		*types.ExecutionPayloadHeader,
-		*types.Fork,
 		*types.Validator,
 		[]*types.Validator,
 	], error) {
@@ -230,7 +229,6 @@ func initTestStore() (
 
 	return beacondb.New[
 		*types.ExecutionPayloadHeader,
-		*types.Fork,
 		*types.Validator,
 		[]*types.Validator,
 	](

@@ -28,13 +28,13 @@ import (
 )
 
 // Backend is the interface for backend of the beacon API.
-type Backend[ForkT, ValidatorT any] interface {
+type Backend[ValidatorT any] interface {
 	GenesisBackend
 	BlockBackend
 	RandaoBackend
-	StateBackend[ForkT]
+	StateBackend
 	ValidatorBackend[ValidatorT]
-	HistoricalBackend[ForkT]
+	HistoricalBackend
 	// GetSlotByBlockRoot retrieves the slot by a given root from the store.
 	GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 	// GetSlotByStateRoot retrieves the slot by a given root from the store.
@@ -45,9 +45,9 @@ type GenesisBackend interface {
 	GenesisValidatorsRoot(slot math.Slot) (common.Root, error)
 }
 
-type HistoricalBackend[ForkT any] interface {
+type HistoricalBackend interface {
 	StateRootAtSlot(slot math.Slot) (common.Root, error)
-	StateForkAtSlot(slot math.Slot) (ForkT, error)
+	StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error)
 }
 
 type RandaoBackend interface {
@@ -60,9 +60,9 @@ type BlockBackend interface {
 	BlockHeaderAtSlot(slot math.Slot) (*ctypes.BeaconBlockHeader, error)
 }
 
-type StateBackend[ForkT any] interface {
+type StateBackend interface {
 	StateRootAtSlot(slot math.Slot) (common.Root, error)
-	StateForkAtSlot(slot math.Slot) (ForkT, error)
+	StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error)
 }
 
 type ValidatorBackend[ValidatorT any] interface {
