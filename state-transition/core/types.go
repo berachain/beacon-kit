@@ -24,6 +24,7 @@ import (
 	stdbytes "bytes"
 	"context"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -36,16 +37,14 @@ import (
 
 // BeaconBlock represents a generic interface for a beacon block.
 type BeaconBlock[
-	DepositT any,
 	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT, DepositT,
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		BeaconBlockBodyT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	WithdrawalsT any,
 ] interface {
 	IsNil() bool
 	// GetProposerIndex returns the index of the proposer.
@@ -64,12 +63,10 @@ type BeaconBlock[
 // block.
 type BeaconBlockBody[
 	BeaconBlockBodyT any,
-	DepositT any,
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	WithdrawalsT any,
 ] interface {
 	constraints.EmptyWithVersion[BeaconBlockBodyT]
 	// GetRandaoReveal returns the RANDAO reveal signature.
@@ -77,29 +74,11 @@ type BeaconBlockBody[
 	// GetExecutionPayload returns the execution payload.
 	GetExecutionPayload() ExecutionPayloadT
 	// GetDeposits returns the list of deposits.
-	GetDeposits() []DepositT
+	GetDeposits() []*ctypes.Deposit
 	// HashTreeRoot returns the hash tree root of the block body.
 	HashTreeRoot() common.Root
 	// GetBlobKzgCommitments returns the KZG commitments for the blobs.
 	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
-}
-
-// BeaconBlockHeader is the interface for a beacon block header.
-type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
-	New(
-		slot math.Slot,
-		proposerIndex math.ValidatorIndex,
-		parentBlockRoot common.Root,
-		stateRoot common.Root,
-		bodyRoot common.Root,
-	) BeaconBlockHeaderT
-	HashTreeRoot() common.Root
-	GetSlot() math.Slot
-	GetProposerIndex() math.ValidatorIndex
-	GetParentBlockRoot() common.Root
-	GetStateRoot() common.Root
-	GetBodyRoot() common.Root
-	SetStateRoot(common.Root)
 }
 
 // Context defines an interface for managing state transition context.
@@ -127,51 +106,24 @@ type Context interface {
 	GetConsensusTime() math.U64
 }
 
-// Deposit is the interface for a deposit.
-type Deposit[
-	DepositT any,
-	ForkDataT any,
-	WithdrawlCredentialsT ~[32]byte,
-] interface {
-	// Equals returns true if the Deposit is equal to the other.
-	Equals(DepositT) bool
-	// GetAmount returns the amount of the deposit.
-	GetAmount() math.Gwei
-	// GetPubkey returns the public key of the validator.
-	GetPubkey() crypto.BLSPubkey
-	// GetWithdrawalCredentials returns the withdrawal credentials.
-	GetWithdrawalCredentials() WithdrawlCredentialsT
-	// GetIndex returns deposit index
-	GetIndex() math.U64
-	// VerifySignature verifies the deposit and creates a validator.
-	VerifySignature(
-		forkData ForkDataT,
-		domainType common.DomainType,
-		signatureVerificationFn func(
-			pubkey crypto.BLSPubkey,
-			message []byte, signature crypto.BLSSignature,
-		) error,
-	) error
-}
-
 // DepositStore defines the interface for deposit storage.
-type DepositStore[DepositT any] interface {
+type DepositStore interface {
 	// GetDepositsByIndex returns `numView` expected deposits.
 	GetDepositsByIndex(
 		startIndex uint64,
 		numView uint64,
-	) ([]DepositT, error)
+	) ([]*ctypes.Deposit, error)
 }
 
 type ExecutionPayload[
-	ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT any,
+	ExecutionPayloadT, ExecutionPayloadHeaderT any,
 ] interface {
 	constraints.EngineType[ExecutionPayloadT]
 	GetTransactions() engineprimitives.Transactions
 	GetParentHash() common.ExecutionHash
 	GetBlockHash() common.ExecutionHash
 	GetPrevRandao() common.Bytes32
-	GetWithdrawals() WithdrawalsT
+	GetWithdrawals() engineprimitives.Withdrawals
 	GetFeeRecipient() common.ExecutionAddress
 	GetStateRoot() common.Bytes32
 	GetReceiptsRoot() common.Bytes32
@@ -201,41 +153,28 @@ type Withdrawals interface {
 // ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine[
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT],
+		ExecutionPayloadT, ExecutionPayloadHeaderT],
 	ExecutionPayloadHeaderT any,
-	WithdrawalsT Withdrawals,
 ] interface {
 	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
 	// execution client.
 	VerifyAndNotifyNewPayload(
 		ctx context.Context,
-		req *engineprimitives.NewPayloadRequest[ExecutionPayloadT, WithdrawalsT],
+		req *engineprimitives.NewPayloadRequest[ExecutionPayloadT],
 	) error
-}
-
-// ForkData is the interface for the fork data.
-type ForkData[ForkDataT any] interface {
-	// New creates a new fork data object.
-	New(common.Version, common.Root) ForkDataT
-	// ComputeRandaoSigningRoot returns the signing root for the fork data.
-	ComputeRandaoSigningRoot(
-		domainType common.DomainType,
-		epoch math.Epoch,
-	) common.Root
 }
 
 // Validator represents an interface for a validator with generic type
 // ValidatorT.
 type Validator[
 	ValidatorT any,
-	WithdrawalCredentialsT ~[32]byte,
 ] interface {
 	constraints.SSZMarshallableRootable
 	SizeSSZ(*ssz.Sizer) uint32
 	// New creates a new validator with the given parameters.
 	New(
 		pubkey crypto.BLSPubkey,
-		withdrawalCredentials WithdrawalCredentialsT,
+		withdrawalCredentials ctypes.WithdrawalCredentials,
 		amount math.Gwei,
 		effectiveBalanceIncrement math.Gwei,
 		maxEffectiveBalance math.Gwei,
@@ -273,9 +212,9 @@ type Validators interface {
 }
 
 // Withdrawal is the interface for a withdrawal.
-type Withdrawal[WithdrawalT any] interface {
+type Withdrawal interface {
 	// Equals returns true if the withdrawal is equal to the other.
-	Equals(WithdrawalT) bool
+	Equals(*engineprimitives.Withdrawal) bool
 	// GetAmount returns the amount of the withdrawal.
 	GetAmount() math.Gwei
 	// GetIndex returns the public key of the validator.

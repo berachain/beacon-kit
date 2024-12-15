@@ -38,7 +38,7 @@ func TestInitialize(t *testing.T) {
 	sp, st, _, _ := setupState(t, cs)
 
 	var (
-		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
+		maxBalance = math.Gwei(cs.MaxEffectiveBalance(false))
 		increment  = math.Gwei(cs.EffectiveBalanceIncrement())
 		minBalance = math.Gwei(cs.EjectionBalance())
 	)
@@ -49,42 +49,66 @@ func TestInitialize(t *testing.T) {
 			{
 				Pubkey: [48]byte{0x01},
 				Amount: maxBalance,
-				Index:  uint64(0),
+				Credentials: types.NewCredentialsFromExecutionAddress(
+					common.ExecutionAddress{0x01},
+				),
+				Index: uint64(0),
 			},
 			{
 				Pubkey: [48]byte{0x02},
 				Amount: minBalance + increment,
-				Index:  uint64(1),
+				Credentials: types.NewCredentialsFromExecutionAddress(
+					common.ExecutionAddress{0x02},
+				),
+				Index: uint64(1),
 			},
 			{
 				Pubkey: [48]byte{0x03},
 				Amount: minBalance,
-				Index:  uint64(2),
+				Credentials: types.NewCredentialsFromExecutionAddress(
+					common.ExecutionAddress{0x03},
+				),
+				Index: uint64(2),
 			},
 			{
 				Pubkey: [48]byte{0x04},
 				Amount: 2 * maxBalance,
-				Index:  uint64(3),
+				Credentials: types.NewCredentialsFromExecutionAddress(
+					common.ExecutionAddress{0x04},
+				),
+				Index: uint64(3),
 			},
 			{
 				Pubkey: [48]byte{0x05},
 				Amount: minBalance - increment,
-				Index:  uint64(4),
+				Credentials: types.NewCredentialsFromExecutionAddress(
+					common.ExecutionAddress{0x05},
+				),
+				Index: uint64(4),
 			},
 			{
 				Pubkey: [48]byte{0x06},
 				Amount: minBalance + increment*3/2,
-				Index:  uint64(5),
+				Credentials: types.NewCredentialsFromExecutionAddress(
+					common.ExecutionAddress{0x06},
+				),
+				Index: uint64(5),
 			},
 			{
 				Pubkey: [48]byte{0x07},
 				Amount: maxBalance + increment/10,
-				Index:  uint64(6),
+				Credentials: types.NewCredentialsFromExecutionAddress(
+					common.ExecutionAddress{0x07},
+				),
+				Index: uint64(6),
 			},
 			{
 				Pubkey: [48]byte{0x08},
 				Amount: minBalance + increment*99/100,
-				Index:  uint64(7),
+				Credentials: types.NewCredentialsFromExecutionAddress(
+					common.ExecutionAddress{0x08},
+				),
+				Index: uint64(7),
 			},
 		}
 		goodDeposits = []*types.Deposit{
@@ -169,7 +193,7 @@ func TestInitializeBartio(t *testing.T) {
 	sp, st, _, _ := setupState(t, cs)
 
 	var (
-		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
+		maxBalance = math.Gwei(cs.MaxEffectiveBalance(false))
 		increment  = math.Gwei(cs.EffectiveBalanceIncrement())
 		minBalance = math.Gwei(cs.EjectionBalance())
 	)
@@ -179,42 +203,66 @@ func TestInitializeBartio(t *testing.T) {
 			{
 				Pubkey: [48]byte{0x01},
 				Amount: maxBalance,
-				Index:  uint64(0),
+				Credentials: types.NewCredentialsFromExecutionAddress(
+					common.ExecutionAddress{0x01},
+				),
+				Index: uint64(0),
 			},
 			{
 				Pubkey: [48]byte{0x02},
 				Amount: minBalance + increment,
-				Index:  uint64(1),
+				Credentials: types.NewCredentialsFromExecutionAddress(
+					common.ExecutionAddress{0x02},
+				),
+				Index: uint64(1),
 			},
 			{
 				Pubkey: [48]byte{0x03},
 				Amount: minBalance,
-				Index:  uint64(2),
+				Credentials: types.NewCredentialsFromExecutionAddress(
+					common.ExecutionAddress{0x03},
+				),
+				Index: uint64(2),
 			},
 			{
 				Pubkey: [48]byte{0x04},
 				Amount: 2 * maxBalance,
-				Index:  uint64(3),
+				Credentials: types.NewCredentialsFromExecutionAddress(
+					common.ExecutionAddress{0x04},
+				),
+				Index: uint64(3),
 			},
 			{
 				Pubkey: [48]byte{0x05},
 				Amount: minBalance - increment,
-				Index:  uint64(4),
+				Credentials: types.NewCredentialsFromExecutionAddress(
+					common.ExecutionAddress{0x05},
+				),
+				Index: uint64(4),
 			},
 			{
 				Pubkey: [48]byte{0x06},
 				Amount: minBalance + increment*3/2,
-				Index:  uint64(5),
+				Credentials: types.NewCredentialsFromExecutionAddress(
+					common.ExecutionAddress{0x06},
+				),
+				Index: uint64(5),
 			},
 			{
 				Pubkey: [48]byte{0x07},
 				Amount: maxBalance + increment/10,
-				Index:  uint64(6),
+				Credentials: types.NewCredentialsFromExecutionAddress(
+					common.ExecutionAddress{0x07},
+				),
+				Index: uint64(6),
 			},
 			{
 				Pubkey: [48]byte{0x08},
 				Amount: minBalance + increment*99/100,
-				Index:  uint64(7),
+				Credentials: types.NewCredentialsFromExecutionAddress(
+					common.ExecutionAddress{0x08},
+				),
+				Index: uint64(7),
 			},
 		}
 		goodDeposits = []*types.Deposit{
@@ -318,7 +366,7 @@ func commonChecksValidators(
 	require.Equal(t, dep.Pubkey, val.Pubkey)
 
 	var (
-		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
+		maxBalance = math.Gwei(cs.MaxEffectiveBalance(false))
 		increment  = math.Gwei(cs.EffectiveBalanceIncrement())
 		minBalance = math.Gwei(cs.EjectionBalance())
 	)

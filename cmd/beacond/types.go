@@ -28,7 +28,6 @@ import (
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	consruntimetypes "github.com/berachain/beacon-kit/consensus/types"
 	dablob "github.com/berachain/beacon-kit/da/blob"
-	"github.com/berachain/beacon-kit/da/da"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -37,7 +36,6 @@ import (
 	execution "github.com/berachain/beacon-kit/execution/engine"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-api/backend"
-	blockstore "github.com/berachain/beacon-kit/node-api/block_store"
 	"github.com/berachain/beacon-kit/node-api/engines/echo"
 	"github.com/berachain/beacon-kit/node-api/server"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
@@ -52,7 +50,6 @@ import (
 	"github.com/berachain/beacon-kit/storage/block"
 	depositdb "github.com/berachain/beacon-kit/storage/deposit"
 	"github.com/berachain/beacon-kit/storage/filedb"
-	"github.com/berachain/beacon-kit/storage/manager"
 	"github.com/berachain/beacon-kit/storage/pruner"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -66,57 +63,36 @@ type (
 	AttributesFactory = attributes.Factory[
 		*BeaconState,
 		*PayloadAttributes,
-		*Withdrawal,
 	]
 
 	// BlobProcessor is a type alias for the blob processor.
 	BlobProcessor = dablob.Processor[
 		*AvailabilityStore,
 		*BeaconBlockBody,
-		*BeaconBlockHeader,
 		*ConsensusSidecars,
 		*BlobSidecar,
 		*BlobSidecars,
 	]
 
-	// BlockStoreService is a type alias for the block store service.
-	BlockStoreService = blockstore.Service[*BeaconBlock, *BlockStore]
-
 	// ChainService is a type alias for the chain service.
 	ChainService = blockchain.Service[
 		*AvailabilityStore,
+		*DepositStore,
 		*ConsensusBlock,
 		*BeaconBlock,
 		*BeaconBlockBody,
-		*BeaconBlockHeader,
 		*BeaconState,
-		*Deposit,
+		*BlockStore,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*Genesis,
+		*ConsensusSidecars,
+		*BlobSidecars,
 		*PayloadAttributes,
 	]
 
 	// CometBFTService is a type alias for the CometBFT service.
 	CometBFTService = cometbft.Service[*Logger]
-
-	// DAService is a type alias for the DA service.
-	DAService = da.Service[
-		*AvailabilityStore,
-		*ConsensusSidecars, *BlobSidecars, *BeaconBlockHeader,
-	]
-
-	// DBManager is a type alias for the database manager.
-	DBManager = manager.DBManager
-
-	// DepositService is a type alias for the deposit service.
-	DepositService = deposit.Service[
-		*BeaconBlock,
-		*BeaconBlockBody,
-		*Deposit,
-		*ExecutionPayload,
-		WithdrawalCredentials,
-	]
 
 	// EngineClient is a type alias for the engine client.
 	EngineClient = engineclient.EngineClient[
@@ -129,21 +105,13 @@ type (
 		*ExecutionPayload,
 		*PayloadAttributes,
 		PayloadID,
-		engineprimitives.Withdrawals,
 	]
 
 	// IndexDB is a type alias for the range DB.
 	IndexDB = filedb.RangeDB
 
 	// KVStore is a type alias for the KV store.
-	KVStore = beacondb.KVStore[
-		*BeaconBlockHeader,
-		*Eth1Data,
-		*ExecutionPayloadHeader,
-		*Fork,
-		*Validator,
-		Validators,
-	]
+	KVStore = beacondb.KVStore[*ExecutionPayloadHeader]
 
 	// LocalBuilder is a type alias for the local builder.
 	LocalBuilder = payloadbuilder.PayloadBuilder[
@@ -152,7 +120,6 @@ type (
 		*ExecutionPayloadHeader,
 		*PayloadAttributes,
 		PayloadID,
-		*Withdrawal,
 	]
 
 	// NodeAPIEngine is a type alias for the node API engine.
@@ -171,28 +138,17 @@ type (
 	SidecarFactory = dablob.SidecarFactory[
 		*BeaconBlock,
 		*BeaconBlockBody,
-		*BeaconBlockHeader,
 	]
 
 	// StateProcessor is the type alias for the state processor interface.
 	StateProcessor = core.StateProcessor[
 		*BeaconBlock,
 		*BeaconBlockBody,
-		*BeaconBlockHeader,
 		*BeaconState,
 		*Context,
-		*Deposit,
-		*Eth1Data,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
-		*Fork,
-		*ForkData,
 		*KVStore,
-		*Validator,
-		Validators,
-		*Withdrawal,
-		Withdrawals,
-		WithdrawalCredentials,
 	]
 
 	// StorageBackend is the type alias for the storage backend interface.
@@ -206,17 +162,14 @@ type (
 
 	// ValidatorService is a type alias for the validator service.
 	ValidatorService = validator.Service[
-		*AttestationData,
 		*BeaconBlock,
 		*BeaconBlockBody,
 		*BeaconState,
+		*BlobSidecar,
 		*BlobSidecars,
-		*Deposit,
 		*DepositStore,
-		*Eth1Data,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
-		*ForkData,
 		*SlashingInfo,
 		*SlotData,
 	]
@@ -227,53 +180,31 @@ type (
 /* -------------------------------------------------------------------------- */
 
 type (
-	// AttestationData is a type alias for the attestation data.
-	AttestationData = types.AttestationData
-
 	// AvailabilityStore is a type alias for the availability store.
 	AvailabilityStore = dastore.Store[*BeaconBlockBody]
 
 	// BeaconBlock type aliases.
-	ConsensusBlock    = consruntimetypes.ConsensusBlock[*BeaconBlock]
-	BeaconBlock       = types.BeaconBlock
-	BeaconBlockBody   = types.BeaconBlockBody
-	BeaconBlockHeader = types.BeaconBlockHeader
+	ConsensusBlock  = consruntimetypes.ConsensusBlock[*BeaconBlock]
+	BeaconBlock     = types.BeaconBlock
+	BeaconBlockBody = types.BeaconBlockBody
 
 	// BeaconState is a type alias for the BeaconState.
 	BeaconState = statedb.StateDB[
-		*BeaconBlockHeader,
 		*BeaconStateMarshallable,
-		*Eth1Data,
 		*ExecutionPayloadHeader,
-		*Fork,
 		*KVStore,
-		*Validator,
-		Validators,
-		*Withdrawal,
-		WithdrawalCredentials,
 	]
 
 	// BeaconStateMarshallable is a type alias for the BeaconState.
 	BeaconStateMarshallable = types.BeaconState[
-		*BeaconBlockHeader,
-		*Eth1Data,
 		*ExecutionPayloadHeader,
-		*Fork,
-		*Validator,
-		BeaconBlockHeader,
-		Eth1Data,
 		ExecutionPayloadHeader,
-		Fork,
-		Validator,
 	]
 
 	// BlobSidecars type aliases.
-	ConsensusSidecars = consruntimetypes.ConsensusSidecars[
-		*BlobSidecars,
-		*BeaconBlockHeader,
-	]
-	BlobSidecar  = datypes.BlobSidecar
-	BlobSidecars = datypes.BlobSidecars
+	ConsensusSidecars = consruntimetypes.ConsensusSidecars[*BlobSidecars]
+	BlobSidecar       = datypes.BlobSidecar
+	BlobSidecars      = datypes.BlobSidecars
 
 	// BlockStore is a type alias for the block store.
 	BlockStore = block.KVStore[*BeaconBlock]
@@ -281,17 +212,11 @@ type (
 	// Context is a type alias for the transition context.
 	Context = transition.Context
 
-	// Deposit is a type alias for the deposit.
-	Deposit = types.Deposit
-
 	// DepositContract is a type alias for the deposit contract.
-	DepositContract = deposit.WrappedDepositContract[
-		*Deposit,
-		WithdrawalCredentials,
-	]
+	DepositContract = deposit.WrappedDepositContract
 
 	// DepositStore is a type alias for the deposit store.
-	DepositStore = depositdb.KVStore[*Deposit]
+	DepositStore = depositdb.KVStore
 
 	// Eth1Data is a type alias for the eth1 data.
 	Eth1Data = types.Eth1Data
@@ -307,10 +232,7 @@ type (
 	ForkData = types.ForkData
 
 	// Genesis is a type alias for the Genesis type.
-	Genesis = types.Genesis[
-		*Deposit,
-		*ExecutionPayloadHeader,
-	]
+	Genesis = types.Genesis[*ExecutionPayloadHeader]
 
 	// Logger is a type alias for the logger.
 	Logger = phuslu.Logger
@@ -319,10 +241,7 @@ type (
 	LoggerConfig = phuslu.Config
 
 	// SlotData is a type alias for the incoming slot.
-	SlotData = consruntimetypes.SlotData[
-		*AttestationData,
-		*SlashingInfo,
-	]
+	SlotData = consruntimetypes.SlotData[*SlashingInfo]
 
 	// LegacyKey type alias to LegacyKey used for LegacySinger construction.
 	LegacyKey = signer.LegacyKey
@@ -332,43 +251,29 @@ type (
 		*AvailabilityStore,
 		*BeaconBlock,
 		*BeaconBlockBody,
-		*BeaconBlockHeader,
 		*BeaconState,
 		*BeaconStateMarshallable,
 		*BlobSidecars,
 		*BlockStore,
 		sdk.Context,
-		*Deposit,
 		*DepositStore,
-		*Eth1Data,
 		*ExecutionPayloadHeader,
-		*Fork,
 		*CometBFTService,
 		*KVStore,
 		*StorageBackend,
-		*Validator,
-		Validators,
-		*Withdrawal,
-		WithdrawalCredentials,
 	]
 
 	// NodeAPIContext is a type alias for the node API context.
 	NodeAPIContext = echo.Context
 
 	// PayloadAttributes is a type alias for the payload attributes.
-	PayloadAttributes = engineprimitives.PayloadAttributes[*Withdrawal]
+	PayloadAttributes = engineprimitives.PayloadAttributes
 
 	// PayloadID is a type alias for the payload ID.
 	PayloadID = engineprimitives.PayloadID
 
 	// SlashingInfo is a type alias for the slashing info.
 	SlashingInfo = types.SlashingInfo
-
-	// Validator is a type alias for the validator.
-	Validator = types.Validator
-
-	// Validators is a type alias for the validators.
-	Validators = types.Validators
 
 	// ValidatorUpdate is a type alias for the validator update.
 	ABCIValidatorUpdate = appmodule.ValidatorUpdate
@@ -378,15 +283,6 @@ type (
 
 	// ValidatorUpdates is a type alias for the validator updates.
 	ValidatorUpdates = transition.ValidatorUpdates
-
-	// Withdrawal is a type alias for the engineprimitives withdrawal.
-	Withdrawal = engineprimitives.Withdrawal
-
-	// Withdrawals is a type alias for the engineprimitives withdrawals.
-	Withdrawals = engineprimitives.Withdrawals
-
-	// WithdrawalCredentials is a type alias for the withdrawal credentials.
-	WithdrawalCredentials = types.WithdrawalCredentials
 )
 
 /* -------------------------------------------------------------------------- */

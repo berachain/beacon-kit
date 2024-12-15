@@ -26,15 +26,15 @@ import (
 	"slices"
 
 	"github.com/berachain/beacon-kit/config/spec"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/sourcegraph/conc/iter"
 )
 
-//nolint:lll // let it be
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+	_, _, BeaconStateT, _, _, _, _,
 ]) processRegistryUpdates(
 	st BeaconStateT,
 ) error {
@@ -63,7 +63,9 @@ func (sp *StateProcessor[
 	currEpoch := sp.cs.SlotToEpoch(slot)
 	nextEpoch := currEpoch + 1
 
-	minEffectiveBalance := math.Gwei(sp.cs.EjectionBalance() + sp.cs.EffectiveBalanceIncrement())
+	minEffectiveBalance := math.Gwei(
+		sp.cs.EjectionBalance() + sp.cs.EffectiveBalanceIncrement(),
+	)
 
 	// We do not currently have a cap on validator churn,
 	// so we can process validators activations in a single loop
@@ -79,28 +81,37 @@ func (sp *StateProcessor[
 			valModified = true
 		}
 		// Note: without slashing and voluntary withdrawals, there is no way
-		// for an activa validator to have its balance less or equal to EjectionBalance
+		// for an activa validator to have its balance less or equal to
+		// EjectionBalance
 
 		if valModified {
 			idx, err = st.ValidatorIndexByPubkey(val.GetPubkey())
 			if err != nil {
-				return fmt.Errorf("registry update, failed loading validator index, state index %d: %w", si, err)
+				return fmt.Errorf(
+					"registry update, failed loading validator index, state index %d: %w",
+					si,
+					err,
+				)
 			}
 			if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
-				return fmt.Errorf("registry update, failed updating validator idx %d: %w", idx, err)
+				return fmt.Errorf(
+					"registry update, failed updating validator idx %d: %w",
+					idx,
+					err,
+				)
 			}
 		}
 	}
 
 	// validators registry will be possibly further modified in order to enforce
 	// validators set cap. We will do that at the end of processEpoch, once all
-	// Eth 2.0 like transitions has been done (notable EffectiveBalances handling).
+	// Eth 2.0 like transitions has been done (notable EffectiveBalances
+	// handling).
 	return nil
 }
 
-//nolint:lll // let it be
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+	_, _, BeaconStateT, _, _, _, _,
 ]) processValidatorSetCap(
 	st BeaconStateT,
 ) error {
@@ -117,7 +128,10 @@ func (sp *StateProcessor[
 
 	nextEpochVals, err := sp.getActiveVals(st, nextEpoch)
 	if err != nil {
-		return fmt.Errorf("registry update, failed retrieving next epoch vals: %w", err)
+		return fmt.Errorf(
+			"registry update, failed retrieving next epoch vals: %w",
+			err,
+		)
 	}
 
 	if uint64(len(nextEpochVals)) <= sp.cs.ValidatorSetCap() {
@@ -125,7 +139,7 @@ func (sp *StateProcessor[
 		return nil
 	}
 
-	slices.SortFunc(nextEpochVals, func(lhs, rhs ValidatorT) int {
+	slices.SortFunc(nextEpochVals, func(lhs, rhs *ctypes.Validator) int {
 		var (
 			val1Stake = lhs.GetEffectiveBalance()
 			val2Stake = rhs.GetEffectiveBalance()
@@ -154,10 +168,17 @@ func (sp *StateProcessor[
 		valToEject.SetWithdrawableEpoch(nextEpoch + 1)
 		idx, err = st.ValidatorIndexByPubkey(valToEject.GetPubkey())
 		if err != nil {
-			return fmt.Errorf("validators cap, failed loading validator index: %w", err)
+			return fmt.Errorf(
+				"validators cap, failed loading validator index: %w",
+				err,
+			)
 		}
 		if err = st.UpdateValidatorAtIndex(idx, valToEject); err != nil {
-			return fmt.Errorf("validator cap, failed ejecting validator idx %d: %w", li, err)
+			return fmt.Errorf(
+				"validator cap, failed ejecting validator idx %d: %w",
+				li,
+				err,
+			)
 		}
 	}
 
@@ -168,14 +189,14 @@ func (sp *StateProcessor[
 // but it helps simplifying generic instantiation.
 // TODO: Turn this into a free function
 func (*StateProcessor[
-	_, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+	_, _, _, _, _, _, _,
 ]) validatorSetsDiffs(
-	prevEpochValidators []ValidatorT,
-	currEpochValidator []ValidatorT,
+	prevEpochValidators []*ctypes.Validator,
+	currEpochValidator []*ctypes.Validator,
 ) transition.ValidatorUpdates {
 	currentValSet := iter.Map(
 		currEpochValidator,
-		func(val *ValidatorT) *transition.ValidatorUpdate {
+		func(val **ctypes.Validator) *transition.ValidatorUpdate {
 			v := (*val)
 			return &transition.ValidatorUpdate{
 				Pubkey:           v.GetPubkey(),
@@ -223,8 +244,8 @@ func (*StateProcessor[
 // nextEpochValidatorSet returns the current estimation of what next epoch
 // validator set would be.
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
-]) getActiveVals(st BeaconStateT, epoch math.Epoch) ([]ValidatorT, error) {
+	_, _, BeaconStateT, _, _, _, _,
+]) getActiveVals(st BeaconStateT, epoch math.Epoch) ([]*ctypes.Validator, error) {
 	vals, err := st.GetValidators()
 	if err != nil {
 		return nil, err
@@ -235,7 +256,7 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	activeVals := make([]ValidatorT, 0, len(vals))
+	activeVals := make([]*ctypes.Validator, 0, len(vals))
 	switch {
 	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
 		// Bartio does not properly handle validators epochs, so

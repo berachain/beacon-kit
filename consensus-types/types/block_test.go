@@ -49,7 +49,7 @@ func generateValidBeaconBlock() *types.BeaconBlock {
 					[]byte("tx2"),
 					[]byte("tx3"),
 				},
-				Withdrawals: []*engineprimitives.Withdrawal{
+				Withdrawals: engineprimitives.Withdrawals{
 					{Index: 0, Amount: 100},
 					{Index: 1, Amount: 200},
 				},

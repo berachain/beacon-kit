@@ -21,8 +21,8 @@
 package merkle
 
 import (
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
-	"github.com/berachain/beacon-kit/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/encoding/ssz/merkle"
 )
@@ -31,9 +31,9 @@ import (
 // beacon block. The proof is then verified against the beacon block root as a
 // sanity check. Returns the proof along with the beacon block root. It uses
 // the fastssz library to generate the proof.
-func ProveProposerIndexInBlock[
-	BeaconBlockHeaderT types.BeaconBlockHeader,
-](bbh BeaconBlockHeaderT) ([]common.Root, common.Root, error) {
+func ProveProposerIndexInBlock(
+	bbh *ctypes.BeaconBlockHeader,
+) ([]common.Root, common.Root, error) {
 	blockProofTree, err := bbh.GetTree()
 	if err != nil {
 		return nil, common.Root{}, err
@@ -65,7 +65,7 @@ func ProveProposerIndexInBlock[
 //
 // TODO: verifying the proof is not absolutely necessary.
 func verifyProposerIndexInBlock(
-	bbh types.BeaconBlockHeader, proof []common.Root, leaf common.Root,
+	bbh *ctypes.BeaconBlockHeader, proof []common.Root, leaf common.Root,
 ) (common.Root, error) {
 	beaconRoot := bbh.HashTreeRoot()
 	if beaconRootVerified, err := merkle.VerifyProof(

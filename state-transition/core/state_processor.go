@@ -25,60 +25,37 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/config/spec"
-	"github.com/berachain/beacon-kit/consensus-types/types"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	"github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // StateProcessor is a basic Processor, which takes care of the
 // main state transition for the beacon chain.
 type StateProcessor[
 	BeaconBlockT BeaconBlock[
-		DepositT, BeaconBlockBodyT,
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		BeaconBlockBodyT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
 	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT, DepositT,
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		BeaconBlockBodyT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
-	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT BeaconState[
 		BeaconStateT,
-		BeaconBlockHeaderT, Eth1DataT,
-		ExecutionPayloadHeaderT, ForkT, KVStoreT,
-		ValidatorT, ValidatorsT, WithdrawalT,
+		ExecutionPayloadHeaderT, KVStoreT,
 	],
 	ContextT Context,
-	DepositT Deposit[DepositT, ForkDataT, WithdrawalCredentialsT],
-	Eth1DataT interface {
-		New(common.Root, math.U64, common.ExecutionHash) Eth1DataT
-		GetDepositCount() math.U64
-	},
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	ForkT interface {
-		New(common.Version, common.Version, math.Epoch) ForkT
-	},
-	ForkDataT ForkData[ForkDataT],
 	KVStoreT any,
-	ValidatorT Validator[ValidatorT, WithdrawalCredentialsT],
-	ValidatorsT interface {
-		~[]ValidatorT
-		HashTreeRoot() common.Root
-	},
-	WithdrawalT Withdrawal[WithdrawalT],
-	WithdrawalsT interface {
-		~[]WithdrawalT
-		Len() int
-		EncodeIndex(int, *bytes.Buffer)
-	},
-	WithdrawalCredentialsT ~[32]byte,
 ] struct {
 	// logger is used for logging information and errors.
 	logger log.Logger
@@ -92,10 +69,10 @@ type StateProcessor[
 	fGetAddressFromPubKey func(crypto.BLSPubkey) ([]byte, error)
 	// executionEngine is the engine responsible for executing transactions.
 	executionEngine ExecutionEngine[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	]
 	// ds allows checking payload deposits against the deposit contract
-	ds DepositStore[DepositT]
+	ds DepositStore
 	// metrics is the metrics for the service.
 	metrics *stateProcessorMetrics
 }
@@ -103,68 +80,43 @@ type StateProcessor[
 // NewStateProcessor creates a new state processor.
 func NewStateProcessor[
 	BeaconBlockT BeaconBlock[
-		DepositT, BeaconBlockBodyT,
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		BeaconBlockBodyT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
 	BeaconBlockBodyT BeaconBlockBody[
 		BeaconBlockBodyT,
-		DepositT, ExecutionPayloadT,
+		ExecutionPayloadT,
 		ExecutionPayloadHeaderT,
-		WithdrawalsT,
 	],
-	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT BeaconState[
-		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
-		KVStoreT, ValidatorT, ValidatorsT, WithdrawalT,
+		BeaconStateT, ExecutionPayloadHeaderT,
+		KVStoreT,
 	],
 	ContextT Context,
-	DepositT Deposit[DepositT, ForkDataT, WithdrawalCredentialsT],
-	Eth1DataT interface {
-		New(common.Root, math.U64, common.ExecutionHash) Eth1DataT
-		GetDepositCount() math.U64
-	},
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	ForkT interface {
-		New(common.Version, common.Version, math.Epoch) ForkT
-	},
-	ForkDataT ForkData[ForkDataT],
 	KVStoreT any,
-	ValidatorT Validator[ValidatorT, WithdrawalCredentialsT],
-	ValidatorsT interface {
-		~[]ValidatorT
-		HashTreeRoot() common.Root
-	},
-	WithdrawalT Withdrawal[WithdrawalT],
-	WithdrawalsT interface {
-		~[]WithdrawalT
-		Len() int
-		EncodeIndex(int, *bytes.Buffer)
-	},
-	WithdrawalCredentialsT ~[32]byte,
 ](
 	logger log.Logger,
 	cs common.ChainSpec,
 	executionEngine ExecutionEngine[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
-	ds DepositStore[DepositT],
+	ds DepositStore,
 	signer crypto.BLSSigner,
 	fGetAddressFromPubKey func(crypto.BLSPubkey) ([]byte, error),
 	telemetrySink TelemetrySink,
 ) *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	BeaconStateT, ContextT, DepositT, Eth1DataT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ForkT, ForkDataT, KVStoreT, ValidatorT,
-	ValidatorsT, WithdrawalT, WithdrawalsT, WithdrawalCredentialsT,
+	BeaconBlockT, BeaconBlockBodyT,
+	BeaconStateT, ContextT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, KVStoreT,
 ] {
 	return &StateProcessor[
-		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-		BeaconStateT, ContextT, DepositT, Eth1DataT, ExecutionPayloadT,
-		ExecutionPayloadHeaderT, ForkT, ForkDataT, KVStoreT, ValidatorT,
-		ValidatorsT, WithdrawalT, WithdrawalsT, WithdrawalCredentialsT,
+		BeaconBlockT, BeaconBlockBodyT,
+		BeaconStateT, ContextT, ExecutionPayloadT,
+		ExecutionPayloadHeaderT, KVStoreT,
 	]{
 		logger:                logger,
 		cs:                    cs,
@@ -178,8 +130,8 @@ func NewStateProcessor[
 
 // Transition is the main function for processing a state transition.
 func (sp *StateProcessor[
-	BeaconBlockT, _, _, BeaconStateT, ContextT,
-	_, _, _, _, _, _, _, _, _, _, _, _,
+	BeaconBlockT, _, BeaconStateT, ContextT,
+	_, _, _,
 ]) Transition(
 	ctx ContextT,
 	st BeaconStateT,
@@ -204,7 +156,7 @@ func (sp *StateProcessor[
 }
 
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, BeaconStateT, _, _, _, _,
 ]) ProcessSlots(
 	st BeaconStateT, slot math.Slot,
 ) (transition.ValidatorUpdates, error) {
@@ -265,7 +217,7 @@ func (sp *StateProcessor[
 
 // processSlot is run when a slot is missed.
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, BeaconStateT, _, _, _, _,
 ]) processSlot(
 	st BeaconStateT,
 ) error {
@@ -308,7 +260,7 @@ func (sp *StateProcessor[
 // ProcessBlock processes the block, it optionally verifies the
 // state root.
 func (sp *StateProcessor[
-	BeaconBlockT, _, _, BeaconStateT, ContextT, _, _, _, _, _, _, _, _, _, _, _, _,
+	BeaconBlockT, _, BeaconStateT, ContextT, _, _, _,
 ]) ProcessBlock(
 	ctx ContextT,
 	st BeaconStateT,
@@ -355,7 +307,7 @@ func (sp *StateProcessor[
 
 // processEpoch processes the epoch and ensures it matches the local state.
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, BeaconStateT, _, _, _, _,
 ]) processEpoch(
 	st BeaconStateT,
 ) (transition.ValidatorUpdates, error) {
@@ -378,7 +330,7 @@ func (sp *StateProcessor[
 	if err = sp.processRegistryUpdates(st); err != nil {
 		return nil, err
 	}
-	if err = sp.processEffectiveBalanceUpdates(st); err != nil {
+	if err = sp.processEffectiveBalanceUpdates(st, slot); err != nil {
 		return nil, err
 	}
 	if err = sp.processSlashingsReset(st); err != nil {
@@ -407,8 +359,8 @@ func (sp *StateProcessor[
 // processBlockHeader processes the header and ensures it matches the local
 // state.
 func (sp *StateProcessor[
-	BeaconBlockT, _, BeaconBlockHeaderT, BeaconStateT,
-	ContextT, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+	BeaconBlockT, _, BeaconStateT,
+	ContextT, _, _, _,
 ]) processBlockHeader(
 	ctx ContextT,
 	st BeaconStateT,
@@ -473,7 +425,7 @@ func (sp *StateProcessor[
 
 	// Cache current block as the new latest block
 	bodyRoot := blk.GetBody().HashTreeRoot()
-	var lbh BeaconBlockHeaderT
+	var lbh *ctypes.BeaconBlockHeader
 	lbh = lbh.New(
 		blk.GetSlot(),
 		blk.GetProposerIndex(),
@@ -488,12 +440,11 @@ func (sp *StateProcessor[
 
 // processEffectiveBalanceUpdates as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#effective-balances-updates
-//
-//nolint:lll
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, BeaconStateT, _, _, _, _,
 ]) processEffectiveBalanceUpdates(
 	st BeaconStateT,
+	slot math.Slot,
 ) error {
 	// Update effective balances with hysteresis
 	validators, err := st.GetValidators()
@@ -527,10 +478,12 @@ func (sp *StateProcessor[
 
 		if balance+downwardThreshold < val.GetEffectiveBalance() ||
 			val.GetEffectiveBalance()+upwardThreshold < balance {
-			updatedBalance := types.ComputeEffectiveBalance(
+			updatedBalance := ctypes.ComputeEffectiveBalance(
 				balance,
 				math.U64(sp.cs.EffectiveBalanceIncrement()),
-				math.U64(sp.cs.MaxEffectiveBalance()),
+				math.U64(sp.cs.MaxEffectiveBalance(
+					state.IsPostFork3(sp.cs.DepositEth1ChainID(), slot),
+				)),
 			)
 			val.SetEffectiveBalance(updatedBalance)
 			if err = st.UpdateValidatorAtIndex(idx, val); err != nil {

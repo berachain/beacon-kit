@@ -25,13 +25,9 @@ import (
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/validator"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
-	"github.com/berachain/beacon-kit/consensus/cometbft/service/middleware"
-	"github.com/berachain/beacon-kit/da/da"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/execution/client"
-	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/log"
-	blockstore "github.com/berachain/beacon-kit/node-api/block_store"
 	"github.com/berachain/beacon-kit/node-api/server"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	service "github.com/berachain/beacon-kit/node-core/services/registry"
@@ -43,76 +39,57 @@ import (
 type ServiceRegistryInput[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
-	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT],
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT, *AttestationData, DepositT,
-		*Eth1Data, ExecutionPayloadT, *SlashingInfo,
+		BeaconBlockBodyT,
+		ExecutionPayloadT, *SlashingInfo,
 	],
-	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
 	BeaconStateT BeaconState[
-		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
-		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT,
-		*Validator, Validators, WithdrawalT,
+		BeaconStateT, BeaconStateMarshallableT,
+		ExecutionPayloadHeaderT, KVStoreT,
 	],
 	BeaconStateMarshallableT any,
-	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, BeaconBlockHeaderT],
+	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
-	DepositT Deposit[DepositT, *ForkData, WithdrawalCredentials],
-	DepositStoreT DepositStore[DepositT],
+	DepositStoreT DepositStore,
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
+	GenesisT Genesis[ExecutionPayloadHeaderT],
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 	NodeAPIContextT NodeAPIContext,
-	WithdrawalT Withdrawal[WithdrawalT],
-	WithdrawalsT Withdrawals[WithdrawalT],
 ] struct {
 	depinject.In
-	ABCIService *middleware.ABCIMiddleware[
-		BeaconBlockT, BeaconBlockHeaderT, BlobSidecarsT, GenesisT, *SlotData,
-	]
-	BlockStoreService *blockstore.Service[
-		BeaconBlockT, BeaconBlockStoreT,
-	]
 	ChainService *blockchain.Service[
-		AvailabilityStoreT,
+		AvailabilityStoreT, DepositStoreT,
 		ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
-		BeaconBlockHeaderT, BeaconStateT, DepositT, ExecutionPayloadT,
+		BeaconStateT, BeaconBlockStoreT,
+		ExecutionPayloadT,
 		ExecutionPayloadHeaderT, GenesisT,
-		*engineprimitives.PayloadAttributes[WithdrawalT],
+		ConsensusSidecarsT, BlobSidecarsT,
+		*engineprimitives.PayloadAttributes,
 	]
-	DAService *da.Service[
-		AvailabilityStoreT,
-		ConsensusSidecarsT, BlobSidecarsT, BeaconBlockHeaderT,
-	]
-	DBManager      *DBManager
-	DepositService *deposit.Service[
-		BeaconBlockT, BeaconBlockBodyT, DepositT,
-		ExecutionPayloadT, WithdrawalCredentials,
-	]
-	Dispatcher   Dispatcher
 	EngineClient *client.EngineClient[
 		ExecutionPayloadT,
-		*engineprimitives.PayloadAttributes[WithdrawalT],
+		*engineprimitives.PayloadAttributes,
 	]
 	Logger           LoggerT
 	NodeAPIServer    *server.Server[NodeAPIContextT]
 	ReportingService *version.ReportingService[
 		ExecutionPayloadT,
-		*engineprimitives.PayloadAttributes[WithdrawalT],
+		*engineprimitives.PayloadAttributes,
 	]
 	TelemetrySink    *metrics.TelemetrySink
 	TelemetryService *telemetry.Service
 	ValidatorService *validator.Service[
-		*AttestationData, BeaconBlockT, BeaconBlockBodyT,
-		BeaconStateT, BlobSidecarsT, DepositT, DepositStoreT,
-		*Eth1Data, ExecutionPayloadT, ExecutionPayloadHeaderT,
-		*ForkData, *SlashingInfo, *SlotData,
+		BeaconBlockT, BeaconBlockBodyT,
+		BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositStoreT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
+		*SlashingInfo, *SlotData,
 	]
 	CometBFTService *cometbft.Service[LoggerT]
 }
@@ -121,58 +98,47 @@ type ServiceRegistryInput[
 func ProvideServiceRegistry[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
-	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT],
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT, *AttestationData, DepositT,
-		*Eth1Data, ExecutionPayloadT, *SlashingInfo,
+		BeaconBlockBodyT,
+		ExecutionPayloadT, *SlashingInfo,
 	],
-	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
 	BeaconStateT BeaconState[
-		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
-		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT,
-		*Validator, Validators, WithdrawalT,
+		BeaconStateT, BeaconStateMarshallableT,
+		ExecutionPayloadHeaderT, KVStoreT,
 	],
 	BeaconStateMarshallableT any,
-	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT, BeaconBlockHeaderT],
+	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
-	DepositT Deposit[DepositT, *ForkData, WithdrawalCredentials],
-	DepositStoreT DepositStore[DepositT],
+	DepositStoreT DepositStore,
 	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT,
-		ExecutionPayloadHeaderT, WithdrawalsT],
+		ExecutionPayloadHeaderT],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
+	GenesisT Genesis[ExecutionPayloadHeaderT],
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 	NodeAPIContextT NodeAPIContext,
-	WithdrawalT Withdrawal[WithdrawalT],
-	WithdrawalsT Withdrawals[WithdrawalT],
 ](
 	in ServiceRegistryInput[
 		AvailabilityStoreT,
 		ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
-		BeaconBlockHeaderT, BeaconBlockStoreT, BeaconStateT,
+		BeaconBlockStoreT, BeaconStateT,
 		BeaconStateMarshallableT,
 		ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
-		DepositT, DepositStoreT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-		GenesisT, KVStoreT, LoggerT, NodeAPIContextT, WithdrawalT, WithdrawalsT,
+		DepositStoreT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+		GenesisT, KVStoreT, LoggerT, NodeAPIContextT,
 	],
 ) *service.Registry {
 	return service.NewRegistry(
 		service.WithLogger(in.Logger),
-		service.WithService(in.ABCIService),
-		service.WithService(in.Dispatcher),
 		service.WithService(in.ValidatorService),
-		service.WithService(in.BlockStoreService),
-		service.WithService(in.ChainService),
-		service.WithService(in.DAService),
-		service.WithService(in.DepositService),
 		service.WithService(in.NodeAPIServer),
 		service.WithService(in.ReportingService),
-		service.WithService(in.DBManager),
 		service.WithService(in.EngineClient),
 		service.WithService(in.TelemetryService),
+		service.WithService(in.ChainService),
 		service.WithService(in.CometBFTService),
 	)
 }

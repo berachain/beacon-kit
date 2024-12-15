@@ -144,6 +144,10 @@ func (rs *ReportingService[_, _]) Start(ctx context.Context) error {
 	return nil
 }
 
+func (rs *ReportingService[_, _]) Stop() error {
+	return nil
+}
+
 func (rs *ReportingService[_, _]) printToConsole(
 	ethClient engineprimitives.ClientVersionV1) {
 	rs.logger.Info(fmt.Sprintf(`

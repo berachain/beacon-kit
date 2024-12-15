@@ -69,11 +69,26 @@ func (n *node) Start(
 
 	// Start all the registered services.
 	if err := n.registry.StartAll(gctx); err != nil {
+		// Make sure the services that were successfully started are stopped
+		// before exiting. We assume that it is safe to call Stop on a
+		// service that was never started so we can call StopAll here
+		//#nosec:G703 // ok to ignore this
+		_ = n.registry.StopAll()
 		return err
 	}
 
 	// Wait for those aforementioned exit signals.
-	return g.Wait()
+	err := g.Wait()
+	if err != nil {
+		return err
+	}
+
+	// Stopp each service allowing them the exit gracefully.
+	if err = n.registry.StopAll(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // listenForQuitSignals listens for SIGINT and SIGTERM. When a signal is

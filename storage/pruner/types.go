@@ -29,7 +29,6 @@ import (
 	"context"
 	"errors"
 
-	"github.com/berachain/beacon-kit/primitives/async"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
@@ -38,14 +37,6 @@ var ErrInvalidRange = errors.New("range start greater than end")
 // BeaconBlock is an interface for beacon blocks.
 type BeaconBlock interface {
 	GetSlot() math.U64
-}
-
-// BlockEvent is an interface for block events.
-type BlockEvent[BeaconBlockT BeaconBlock] interface {
-	Is(async.EventID) bool
-	Data() BeaconBlockT
-	Context() context.Context
-	ID() async.EventID
 }
 
 // Prunable is an interface representing a store that can be pruned.
