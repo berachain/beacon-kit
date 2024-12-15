@@ -175,7 +175,6 @@ type (
 
 	// ValidatorService is a type alias for the validator service.
 	ValidatorService = validator.Service[
-		*AttestationData,
 		*BeaconBlock,
 		*BeaconBlockBody,
 		*BeaconState,
@@ -195,9 +194,6 @@ type (
 /* -------------------------------------------------------------------------- */
 
 type (
-	// AttestationData is a type alias for the attestation data.
-	AttestationData = types.AttestationData
-
 	// AvailabilityStore is a type alias for the availability store.
 	AvailabilityStore = dastore.Store[*BeaconBlockBody]
 
@@ -270,10 +266,7 @@ type (
 	LoggerConfig = phuslu.Config
 
 	// SlotData is a type alias for the incoming slot.
-	SlotData = consruntimetypes.SlotData[
-		*AttestationData,
-		*SlashingInfo,
-	]
+	SlotData = consruntimetypes.SlotData[*SlashingInfo]
 
 	// LegacyKey type alias to LegacyKey used for LegacySinger construction.
 	LegacyKey = signer.LegacyKey

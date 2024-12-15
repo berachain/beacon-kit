@@ -41,7 +41,7 @@ type ServiceRegistryInput[
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT, *AttestationData, DepositT,
+		BeaconBlockBodyT, DepositT,
 		ExecutionPayloadT, *SlashingInfo,
 	],
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
@@ -90,7 +90,7 @@ type ServiceRegistryInput[
 	TelemetrySink    *metrics.TelemetrySink
 	TelemetryService *telemetry.Service
 	ValidatorService *validator.Service[
-		*AttestationData, BeaconBlockT, BeaconBlockBodyT,
+		BeaconBlockT, BeaconBlockBodyT,
 		BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositT, DepositStoreT,
 		ExecutionPayloadT, ExecutionPayloadHeaderT,
 		*SlashingInfo, *SlotData,
@@ -104,7 +104,7 @@ func ProvideServiceRegistry[
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT, *AttestationData, DepositT,
+		BeaconBlockBodyT, DepositT,
 		ExecutionPayloadT, *SlashingInfo,
 	],
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
