@@ -21,19 +21,20 @@
 package beacon
 
 import (
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // Backend is the interface for backend of the beacon API.
-type Backend[BlockHeaderT, ForkT, ValidatorT any] interface {
+type Backend interface {
 	GenesisBackend
-	BlockBackend[BlockHeaderT]
+	BlockBackend
 	RandaoBackend
-	StateBackend[ForkT]
-	ValidatorBackend[ValidatorT]
-	HistoricalBackend[ForkT]
+	StateBackend
+	ValidatorBackend
+	HistoricalBackend
 	// GetSlotByBlockRoot retrieves the slot by a given root from the store.
 	GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 	// GetSlotByStateRoot retrieves the slot by a given root from the store.
@@ -44,35 +45,35 @@ type GenesisBackend interface {
 	GenesisValidatorsRoot(slot math.Slot) (common.Root, error)
 }
 
-type HistoricalBackend[ForkT any] interface {
+type HistoricalBackend interface {
 	StateRootAtSlot(slot math.Slot) (common.Root, error)
-	StateForkAtSlot(slot math.Slot) (ForkT, error)
+	StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error)
 }
 
 type RandaoBackend interface {
 	RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes32, error)
 }
 
-type BlockBackend[BeaconBlockHeaderT any] interface {
+type BlockBackend interface {
 	BlockRootAtSlot(slot math.Slot) (common.Root, error)
 	BlockRewardsAtSlot(slot math.Slot) (*types.BlockRewardsData, error)
-	BlockHeaderAtSlot(slot math.Slot) (BeaconBlockHeaderT, error)
+	BlockHeaderAtSlot(slot math.Slot) (*ctypes.BeaconBlockHeader, error)
 }
 
-type StateBackend[ForkT any] interface {
+type StateBackend interface {
 	StateRootAtSlot(slot math.Slot) (common.Root, error)
-	StateForkAtSlot(slot math.Slot) (ForkT, error)
+	StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error)
 }
 
-type ValidatorBackend[ValidatorT any] interface {
+type ValidatorBackend interface {
 	ValidatorByID(
 		slot math.Slot, id string,
-	) (*types.ValidatorData[ValidatorT], error)
+	) (*types.ValidatorData, error)
 	ValidatorsByIDs(
 		slot math.Slot,
 		ids []string,
 		statuses []string,
-	) ([]*types.ValidatorData[ValidatorT], error)
+	) ([]*types.ValidatorData, error)
 	ValidatorBalancesByIDs(
 		slot math.Slot,
 		ids []string,

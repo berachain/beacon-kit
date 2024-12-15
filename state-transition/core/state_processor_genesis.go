@@ -21,7 +21,10 @@
 package core
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/config/spec"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
@@ -32,13 +35,13 @@ import (
 
 // InitializePreminedBeaconStateFromEth1 initializes the beacon state.
 //
-//nolint:gocognit // todo fix.
+//nolint:gocognit,funlen // todo fix.
 func (sp *StateProcessor[
-	_, BeaconBlockBodyT, BeaconBlockHeaderT, BeaconStateT, _, DepositT,
-	Eth1DataT, _, ExecutionPayloadHeaderT, ForkT, _, _, ValidatorT, _, _, _, _,
+	_, BeaconBlockBodyT, BeaconStateT, _,
+	_, ExecutionPayloadHeaderT, _,
 ]) InitializePreminedBeaconStateFromEth1(
 	st BeaconStateT,
-	deposits []DepositT,
+	deposits []*ctypes.Deposit,
 	execPayloadHeader ExecutionPayloadHeaderT,
 	genesisVersion common.Version,
 ) (transition.ValidatorUpdates, error) {
@@ -46,8 +49,7 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	var fork ForkT
-	fork = fork.New(
+	fork := ctypes.NewFork(
 		genesisVersion,
 		genesisVersion,
 		math.U64(constants.GenesisEpoch),
@@ -58,7 +60,7 @@ func (sp *StateProcessor[
 
 	// Eth1DepositIndex will be set in processDeposit
 
-	var eth1Data Eth1DataT
+	var eth1Data *ctypes.Eth1Data
 	eth1Data = eth1Data.New(
 		common.Root{},
 		0,
@@ -72,7 +74,7 @@ func (sp *StateProcessor[
 	var blkBody BeaconBlockBodyT
 	blkBody = blkBody.Empty(version.ToUint32(genesisVersion))
 
-	var blkHeader BeaconBlockHeaderT
+	var blkHeader *ctypes.BeaconBlockHeader
 	blkHeader = blkHeader.New(
 		0,                      // slot
 		0,                      // proposer index
@@ -101,6 +103,11 @@ func (sp *StateProcessor[
 		if err := sp.processDeposit(st, deposit); err != nil {
 			return nil, err
 		}
+	}
+
+	// process activations
+	if err := sp.processGenesisActivation(st); err != nil {
+		return nil, err
 	}
 
 	// Handle special case bartio genesis.
@@ -143,5 +150,52 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	return sp.processValidatorsSetUpdates(st)
+	activeVals, err := sp.getActiveVals(st, 0)
+	if err != nil {
+		return nil, err
+	}
+	return sp.validatorSetsDiffs(nil, activeVals), nil
+}
+
+func (sp *StateProcessor[
+	_, _, BeaconStateT, _, _, _, _,
+]) processGenesisActivation(
+	st BeaconStateT,
+) error {
+	switch {
+	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
+		// nothing to do
+		return nil
+	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID:
+		// nothing to do
+		return nil
+	default:
+		vals, err := st.GetValidators()
+		if err != nil {
+			return fmt.Errorf(
+				"genesis activation, failed listing validators: %w",
+				err,
+			)
+		}
+		minEffectiveBalance := math.Gwei(
+			sp.cs.EjectionBalance() + sp.cs.EffectiveBalanceIncrement(),
+		)
+
+		var idx math.ValidatorIndex
+		for _, val := range vals {
+			if val.GetEffectiveBalance() < minEffectiveBalance {
+				continue
+			}
+			val.SetActivationEligibilityEpoch(0)
+			val.SetActivationEpoch(0)
+			idx, err = st.ValidatorIndexByPubkey(val.GetPubkey())
+			if err != nil {
+				return err
+			}
+			if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
 }

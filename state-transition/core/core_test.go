@@ -32,7 +32,6 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/consensus-types/types"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/log/noop"
 	"github.com/berachain/beacon-kit/node-core/components"
 	nodemetrics "github.com/berachain/beacon-kit/node-core/components/metrics"
@@ -56,58 +55,26 @@ import (
 
 type (
 	TestBeaconStateMarshallableT = types.BeaconState[
-		*types.BeaconBlockHeader,
-		*types.Eth1Data,
 		*types.ExecutionPayloadHeader,
-		*types.Fork,
-		*types.Validator,
-		types.BeaconBlockHeader,
-		types.Eth1Data,
 		types.ExecutionPayloadHeader,
-		types.Fork,
-		types.Validator,
 	]
 
-	TestKVStoreT = beacondb.KVStore[
-		*types.BeaconBlockHeader,
-		*types.Eth1Data,
-		*types.ExecutionPayloadHeader,
-		*types.Fork,
-		*types.Validator,
-		types.Validators,
-	]
+	TestKVStoreT = beacondb.KVStore[*types.ExecutionPayloadHeader]
 
 	TestBeaconStateT = statedb.StateDB[
-		*types.BeaconBlockHeader,
 		*TestBeaconStateMarshallableT,
-		*types.Eth1Data,
 		*types.ExecutionPayloadHeader,
-		*types.Fork,
 		*TestKVStoreT,
-		*types.Validator,
-		types.Validators,
-		*engineprimitives.Withdrawal,
-		types.WithdrawalCredentials,
 	]
 
 	TestStateProcessorT = core.StateProcessor[
 		*types.BeaconBlock,
 		*types.BeaconBlockBody,
-		*types.BeaconBlockHeader,
 		*TestBeaconStateT,
 		*transition.Context,
-		*types.Deposit,
-		*types.Eth1Data,
 		*types.ExecutionPayload,
 		*types.ExecutionPayloadHeader,
-		*types.Fork,
-		*types.ForkData,
 		*TestKVStoreT,
-		*types.Validator,
-		types.Validators,
-		*engineprimitives.Withdrawal,
-		engineprimitives.Withdrawals,
-		types.WithdrawalCredentials,
 	]
 )
 
@@ -128,15 +95,8 @@ var (
 )
 
 func initTestStores() (
-	*beacondb.KVStore[
-		*types.BeaconBlockHeader,
-		*types.Eth1Data,
-		*types.ExecutionPayloadHeader,
-		*types.Fork,
-		*types.Validator,
-		types.Validators,
-	],
-	*depositstore.KVStore[*types.Deposit],
+	*beacondb.KVStore[*types.ExecutionPayloadHeader],
+	*depositstore.KVStore,
 	error) {
 	db, err := db.OpenDB("", dbm.MemDBBackend)
 	if err != nil {
@@ -160,18 +120,11 @@ func initTestStores() (
 	}
 	testStoreService := &testKVStoreService{ctx: ctx}
 
-	return beacondb.New[
-			*types.BeaconBlockHeader,
-			*types.Eth1Data,
-			*types.ExecutionPayloadHeader,
-			*types.Fork,
-			*types.Validator,
-			types.Validators,
-		](
+	return beacondb.New[*types.ExecutionPayloadHeader](
 			testStoreService,
 			testCodec,
 		),
-		depositstore.NewStore[*types.Deposit](testStoreService, nopLog),
+		depositstore.NewStore(testStoreService, nopLog),
 		nil
 }
 
@@ -194,7 +147,7 @@ func setupState(
 ) (
 	*TestStateProcessorT,
 	*TestBeaconStateT,
-	*depositstore.KVStore[*types.Deposit],
+	*depositstore.KVStore,
 	*transition.Context,
 ) {
 	t.Helper()
@@ -202,7 +155,6 @@ func setupState(
 	execEngine := mocks.NewExecutionEngine[
 		*types.ExecutionPayload,
 		*types.ExecutionPayloadHeader,
-		engineprimitives.Withdrawals,
 	](t)
 
 	mocksSigner := &cryptomocks.BLSSigner{}
@@ -220,21 +172,11 @@ func setupState(
 	sp := core.NewStateProcessor[
 		*types.BeaconBlock,
 		*types.BeaconBlockBody,
-		*types.BeaconBlockHeader,
 		*TestBeaconStateT,
 		*transition.Context,
-		*types.Deposit,
-		*types.Eth1Data,
 		*types.ExecutionPayload,
 		*types.ExecutionPayloadHeader,
-		*types.Fork,
-		*types.ForkData,
 		*TestKVStoreT,
-		*types.Validator,
-		types.Validators,
-		*engineprimitives.Withdrawal,
-		engineprimitives.Withdrawals,
-		types.WithdrawalCredentials,
 	](
 		noop.NewLogger[any](),
 		cs,

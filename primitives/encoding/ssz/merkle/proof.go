@@ -45,8 +45,6 @@ func BuildProofFromLeaves[RootT ~[32]byte](
 //
 // As defined in the Ethereum 2.0 Spec:
 // https://github.com/ethereum/consensus-specs/blob/dev/ssz/merkle-proofs.md#generalized-merkle-tree-index
-//
-//nolint:lll // link.
 func newTree[RootT ~[32]byte](leaves []RootT) ([]RootT, uint8) {
 	bottomLength := pow.NextPowerOfTwo(uint64(len(leaves)))
 	//nolint:mnd // 2 is okay.
@@ -71,8 +69,6 @@ func newTree[RootT ~[32]byte](leaves []RootT) ([]RootT, uint8) {
 //
 // Inspired by the Ethereum 2.0 Spec:
 // https://github.com/ethereum/consensus-specs/blob/dev/tests/core/pyspec/eth2spec/test/helpers/merkle.py
-//
-//nolint:lll // link.
 func buildSingleProofFromTree[RootT ~[32]byte](
 	tree []RootT,
 	index GeneralizedIndex,

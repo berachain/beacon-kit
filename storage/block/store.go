@@ -84,7 +84,7 @@ func (kv *KVStore[BeaconBlockT]) Set(blk BeaconBlockT) error {
 	return nil
 }
 
-// GetSlotByRoot retrieves the slot by a given block root from the store.
+// GetSlotByBlockRoot retrieves the slot by a given block root from the store.
 func (kv *KVStore[BeaconBlockT]) GetSlotByBlockRoot(
 	blockRoot common.Root,
 ) (math.Slot, error) {

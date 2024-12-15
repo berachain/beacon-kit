@@ -186,6 +186,7 @@ func (d *Deposit) GetTree() (*fastssz.Node, error) {
 /* -------------------------------------------------------------------------- */
 /*                             Getters and Setters                            */
 /* -------------------------------------------------------------------------- */
+
 // Equals returns true if the Deposit is equal to the other.
 func (d *Deposit) Equals(rhs *Deposit) bool {
 	return d.Pubkey == rhs.Pubkey &&
@@ -218,4 +219,10 @@ func (d *Deposit) GetSignature() crypto.BLSSignature {
 // GetWithdrawalCredentials returns the staking credentials of the deposit.
 func (d *Deposit) GetWithdrawalCredentials() WithdrawalCredentials {
 	return d.Credentials
+}
+
+// HasEth1WithdrawalCredentials returns true if the deposit has eth1 withdrawal
+// credentials.
+func (d *Deposit) HasEth1WithdrawalCredentials() bool {
+	return d.Credentials[0] == EthSecp256k1CredentialPrefix
 }

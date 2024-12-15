@@ -40,7 +40,6 @@ func ProvideNodeAPIEngine() *echo.Engine {
 type NodeAPIBackendInput[
 	BeaconBlockT any,
 	BeaconStateT any,
-	DepositT any,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	StorageBackendT any,
 ] struct {
@@ -49,7 +48,7 @@ type NodeAPIBackendInput[
 	ChainSpec      common.ChainSpec
 	StateProcessor StateProcessor[
 		BeaconBlockT, BeaconStateT, *Context,
-		DepositT, ExecutionPayloadHeaderT,
+		ExecutionPayloadHeaderT,
 	]
 	StorageBackend StorageBackendT
 }
@@ -58,17 +57,14 @@ func ProvideNodeAPIBackend[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	BeaconBlockT any,
 	BeaconBlockBodyT any,
-	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
 	BeaconStateT BeaconState[
-		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
-		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT,
-		*Validator, Validators, WithdrawalT,
+		BeaconStateT, BeaconStateMarshallableT,
+		ExecutionPayloadHeaderT, KVStoreT,
 	],
 	BeaconStateMarshallableT any,
 	BlobSidecarsT any,
-	DepositT any,
-	DepositStoreT DepositStore[DepositT],
+	DepositStoreT DepositStore,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	KVStoreT any,
 	NodeT interface {
@@ -77,41 +73,31 @@ func ProvideNodeAPIBackend[
 	StorageBackendT StorageBackend[
 		AvailabilityStoreT, BeaconStateT, BeaconBlockStoreT, DepositStoreT,
 	],
-	WithdrawalT Withdrawal[WithdrawalT],
 ](
 	in NodeAPIBackendInput[
-		BeaconBlockT, BeaconStateT, DepositT, ExecutionPayloadHeaderT,
+		BeaconBlockT, BeaconStateT, ExecutionPayloadHeaderT,
 		StorageBackendT,
 	],
 ) *backend.Backend[
-	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BeaconBlockStoreT,
-	sdk.Context, DepositT, DepositStoreT, *Eth1Data, ExecutionPayloadHeaderT,
-	*Fork, NodeT, KVStoreT, StorageBackendT, *Validator, Validators,
-	WithdrawalT, WithdrawalCredentials,
+	sdk.Context, DepositStoreT, ExecutionPayloadHeaderT,
+	NodeT, KVStoreT, StorageBackendT,
 ] {
 	return backend.New[
 		AvailabilityStoreT,
 		BeaconBlockT,
 		BeaconBlockBodyT,
-		BeaconBlockHeaderT,
 		BeaconStateT,
 		BeaconStateMarshallableT,
 		BlobSidecarsT,
 		BeaconBlockStoreT,
 		sdk.Context,
-		DepositT,
 		DepositStoreT,
-		*Eth1Data,
 		ExecutionPayloadHeaderT,
-		*Fork,
 		NodeT,
 		KVStoreT,
 		StorageBackendT,
-		*Validator,
-		Validators,
-		WithdrawalT,
-		WithdrawalCredentials,
 	](
 		in.StorageBackend,
 		in.ChainSpec,

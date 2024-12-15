@@ -20,7 +20,6 @@
 
 package template
 
-//nolint:lll // template.
 const TomlTemplate = `
 ###############################################################################
 ###                                BeaconKit                                ###
@@ -49,7 +48,7 @@ jwt-secret-path = "{{.BeaconKit.Engine.JWTSecretPath}}"
 # TimeFormat is a string that defines the format of the time in the logger.
 time-format = "{{.BeaconKit.Logger.TimeFormat}}"
 
-# LogLevel is the level of logging. Logger will log messages with verbosity up 
+# LogLevel is the level of logging. Logger will log messages with verbosity up
 # to LogLevel.
 log-level = "{{.BeaconKit.Logger.LogLevel}}"
 
@@ -68,7 +67,7 @@ implementation = "{{.BeaconKit.KZG.Implementation}}"
 # Enabled determines if the local payload builder is enabled.
 enabled = {{ .BeaconKit.PayloadBuilder.Enabled }}
 
-# Post bellatrix, this address will receive the transaction fees produced by any blocks 
+# Post bellatrix, this address will receive the transaction fees produced by any blocks
 # from this node.
 suggested-fee-recipient = "{{.BeaconKit.PayloadBuilder.SuggestedFeeRecipient}}"
 

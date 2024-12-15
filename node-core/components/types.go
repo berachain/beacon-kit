@@ -22,23 +22,11 @@ package components
 
 import (
 	"cosmossdk.io/core/appmodule/v2"
-	asynctypes "github.com/berachain/beacon-kit/async/types"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	consruntimetypes "github.com/berachain/beacon-kit/consensus/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
-	"github.com/berachain/beacon-kit/primitives/async"
 	"github.com/berachain/beacon-kit/primitives/transition"
-	"github.com/berachain/beacon-kit/storage/manager"
-)
-
-/* -------------------------------------------------------------------------- */
-/*                                  Services                                  */
-/* -------------------------------------------------------------------------- */
-
-type (
-	// DBManager is a type alias for the database manager.
-	DBManager = manager.DBManager
 )
 
 /* -------------------------------------------------------------------------- */
@@ -52,38 +40,20 @@ type (
 	// Context is a type alias for the transition context.
 	Context = transition.Context
 
-	// Eth1Data is a type alias for the eth1 data.
-	Eth1Data = types.Eth1Data
-
 	// Fork is a type alias for the fork.
 	Fork = types.Fork
 
-	// ForkData is a type alias for the fork data.
-	ForkData = types.ForkData
-
 	// SlotData is a type alias for the incoming slot.
-	SlotData = consruntimetypes.SlotData[
-		*AttestationData,
-		*SlashingInfo,
-	]
+	SlotData = consruntimetypes.SlotData[*SlashingInfo]
 
 	// LegacyKey type alias to LegacyKey used for LegacySinger construction.
 	LegacyKey = signer.LegacyKey
-
-	// PayloadAttributes is a type alias for the payload attributes.
-	// PayloadAttributes = engineprimitives.PayloadAttributes[*Withdrawal].
 
 	// PayloadID is a type alias for the payload ID.
 	PayloadID = engineprimitives.PayloadID
 
 	// SlashingInfo is a type alias for the slashing info.
 	SlashingInfo = types.SlashingInfo
-
-	// Validator is a type alias for the validator.
-	Validator = types.Validator
-
-	// Validators is a type alias for the validators.
-	Validators = types.Validators
 
 	// ValidatorUpdate is a type alias for the validator update.
 	ABCIValidatorUpdate = appmodule.ValidatorUpdate
@@ -102,29 +72,4 @@ type (
 
 	// WithdrawalCredentials is a type alias for the withdrawal credentials.
 	WithdrawalCredentials = types.WithdrawalCredentials
-)
-
-/* -------------------------------------------------------------------------- */
-/*                                   Messages                                 */
-/* -------------------------------------------------------------------------- */
-
-// Events.
-//
-
-type (
-	// NewSlotEvent is a type alias for the new slot event.
-	SlotEvent = async.Event[*SlotData]
-
-	// FinalValidatorUpdatesProcessedEvent is a type alias for the final
-	// validator updates processed event.
-	ValidatorUpdateEvent = async.Event[transition.ValidatorUpdates]
-)
-
-/* -------------------------------------------------------------------------- */
-/*                                   Dispatcher                               */
-/* -------------------------------------------------------------------------- */
-
-type (
-	// Dispatcher is a type alias for the dispatcher.
-	Dispatcher = asynctypes.Dispatcher
 )
