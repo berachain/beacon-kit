@@ -29,7 +29,7 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
