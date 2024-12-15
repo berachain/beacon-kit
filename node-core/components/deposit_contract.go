@@ -28,48 +28,36 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 )
 
-// BeaconDepositContractInput is the input for the beacon deposit contract
+// DepositContractInput is the input for the deposit contract
 // for the dep inject framework.
-type BeaconDepositContractInput[
+type DepositContractInput[
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-	WithdrawalT Withdrawal[WithdrawalT],
-	WithdrawalsT Withdrawals[WithdrawalT],
 ] struct {
 	depinject.In
 	ChainSpec    common.ChainSpec
 	EngineClient *client.EngineClient[
 		ExecutionPayloadT,
-		*engineprimitives.PayloadAttributes[WithdrawalT],
+		*engineprimitives.PayloadAttributes,
 	]
 }
 
-// ProvideBeaconDepositContract provides a beacon deposit contract through the
+// ProvideDepositContract provides a deposit contract through the
 // dep inject framework.
-func ProvideBeaconDepositContract[
-	DepositT Deposit[
-		DepositT, *ForkData, WithdrawalCredentials,
-	],
+func ProvideDepositContract[
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-	WithdrawalT Withdrawal[WithdrawalT],
-	WithdrawalsT Withdrawals[WithdrawalT],
 ](
-	in BeaconDepositContractInput[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT, WithdrawalsT,
+	in DepositContractInput[
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
-) (*deposit.WrappedBeaconDepositContract[
-	DepositT, WithdrawalCredentials,
-], error) {
+) (*deposit.WrappedDepositContract, error) {
 	// Build the deposit contract.
-	return deposit.NewWrappedBeaconDepositContract[
-		DepositT,
-		WithdrawalCredentials,
-	](
+	return deposit.NewWrappedDepositContract(
 		in.ChainSpec.DepositContractAddress(),
 		in.EngineClient,
 	)

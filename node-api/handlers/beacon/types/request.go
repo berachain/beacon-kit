@@ -89,26 +89,20 @@ type GetBlockHeaderRequest struct {
 	types.BlockIDRequest
 }
 
-// TODO: body is big
-//
-//nolint:lll // tags get long
 type PostBlindedBlocksV1Request struct {
 	EthConsensusVersion string `json:"eth_consensus_version" validate:"required,eth_consensus_version"`
 }
 
-//nolint:lll // tags get long
 type PostBlindedBlocksV2Request struct {
 	PostBlindedBlocksV1Request
 	BroadcastValidation string `json:"broadcast_validation" validate:"required,broadcast_validation"`
 }
 
-//nolint:lll // tags get long
 type PostBlocksV1Request[BeaconBlockT any] struct {
 	EthConsensusVersion string       `json:"eth_consensus_version" validate:"required,eth_consensus_version"`
 	BeaconBlock         BeaconBlockT `json:"beacon_block"`
 }
 
-//nolint:lll // tags get long
 type PostBlocksV2Request[BeaconBlockT any] struct {
 	PostBlocksV1Request[BeaconBlockT]
 	BroadcastValidation string `json:"broadcast_validation" validate:"required,broadcast_validation"`

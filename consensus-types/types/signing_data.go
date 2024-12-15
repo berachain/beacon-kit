@@ -30,8 +30,6 @@ import (
 
 // SigningData as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#signingdata
-//
-//nolint:lll // link.
 type SigningData struct {
 	// ObjectRoot is the hash tree root of the object being signed.
 	ObjectRoot common.Root
@@ -79,8 +77,6 @@ func (s *SigningData) UnmarshalSSZ(buf []byte) error {
 
 // ComputeSigningRoot as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#compute_signing_root
-//
-//nolint:lll // link.
 func ComputeSigningRoot(
 	sszObject interface{ HashTreeRoot() common.Root },
 	domain common.Domain,

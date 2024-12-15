@@ -25,7 +25,6 @@ package spec
 const (
 	BartioChainID = TestnetEth1ChainID
 
-	//nolint:lll // temporary.
 	BartioValRoot = "0x9147586693b6e8faa837715c0f3071c2000045b54233901c2e7871b15872bc43"
 )
 
@@ -34,4 +33,6 @@ const (
 	BoonetFork1Height uint64 = 69420
 
 	BoonetFork2Height uint64 = 1722000
+
+	BoonetFork3Height uint64 = 2230000
 )

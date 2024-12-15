@@ -30,7 +30,7 @@ import (
 // payload header for the given timestamp id, along with the proof that can be
 // verified against the beacon block root.
 func (h *Handler[
-	BeaconBlockHeaderT, _, _, ContextT, _, _,
+	_, _, ContextT, _,
 ]) GetExecutionNumber(c ContextT) (any, error) {
 	params, err := utils.BindAndValidate[types.ExecutionNumberRequest](
 		c, h.Logger(),
@@ -61,7 +61,7 @@ func (h *Handler[
 		return nil, err
 	}
 
-	return types.ExecutionNumberResponse[BeaconBlockHeaderT]{
+	return types.ExecutionNumberResponse{
 		BeaconBlockHeader:    blockHeader,
 		BeaconBlockRoot:      beaconBlockRoot,
 		ExecutionNumber:      leph.GetNumber(),

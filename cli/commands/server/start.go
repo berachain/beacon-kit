@@ -86,7 +86,6 @@ func StartCmdWithOptions[
 	appCreator types.AppCreator[T, LoggerT],
 	opts StartCmdOptions[T],
 ) *cobra.Command {
-	//nolint:lll // its okay.
 	cmd := &cobra.Command{
 		Use:   "start",
 		Short: "Run the node",
@@ -130,8 +129,6 @@ custom: allow pruning options to be manually specified through 'pruning-keep-rec
 }
 
 // addStartNodeFlags should be added to any CLI commands that start the network.
-//
-//nolint:lll // todo fix.
 func addStartNodeFlags[
 	T interface {
 		Start(context.Context) error

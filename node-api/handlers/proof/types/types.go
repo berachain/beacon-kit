@@ -21,25 +21,16 @@
 package types
 
 import (
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	fastssz "github.com/ferranbt/fastssz"
 )
 
-// BeaconBlockHeader is the interface for a beacon block header.
-type BeaconBlockHeader interface {
-	constraints.SSZRootable
-	// GetTree is kept for FastSSZ compatibility.
-	GetTree() (*fastssz.Node, error)
-	// GetProposerIndex returns the proposer index.
-	GetProposerIndex() math.ValidatorIndex
-}
-
 // BeaconState is the interface for a beacon state.
 type BeaconState[
-	BeaconStateMarshallableT, ExecutionPayloadHeaderT, ValidatorT any,
+	BeaconStateMarshallableT, ExecutionPayloadHeaderT any,
 ] interface {
 	// GetLatestExecutionPayloadHeader returns the latest execution payload
 	// header.
@@ -47,7 +38,7 @@ type BeaconState[
 	// GetMarshallable returns the marshallable version of the beacon state.
 	GetMarshallable() (BeaconStateMarshallableT, error)
 	// ValidatorByIndex retrieves the validator at the given index.
-	ValidatorByIndex(index math.ValidatorIndex) (ValidatorT, error)
+	ValidatorByIndex(index math.ValidatorIndex) (*ctypes.Validator, error)
 }
 
 // BeaconStateMarshallable is the interface for a beacon state that can be
