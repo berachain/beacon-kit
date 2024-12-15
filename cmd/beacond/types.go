@@ -63,7 +63,6 @@ type (
 	AttributesFactory = attributes.Factory[
 		*BeaconState,
 		*PayloadAttributes,
-		*Withdrawal,
 	]
 
 	// BlobProcessor is a type alias for the blob processor.
@@ -106,7 +105,6 @@ type (
 		*ExecutionPayload,
 		*PayloadAttributes,
 		PayloadID,
-		engineprimitives.Withdrawals,
 	]
 
 	// IndexDB is a type alias for the range DB.
@@ -122,7 +120,6 @@ type (
 		*ExecutionPayloadHeader,
 		*PayloadAttributes,
 		PayloadID,
-		*Withdrawal,
 	]
 
 	// NodeAPIEngine is a type alias for the node API engine.
@@ -152,8 +149,6 @@ type (
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*KVStore,
-		*Withdrawal,
-		Withdrawals,
 	]
 
 	// StorageBackend is the type alias for the storage backend interface.
@@ -198,7 +193,6 @@ type (
 		*BeaconStateMarshallable,
 		*ExecutionPayloadHeader,
 		*KVStore,
-		*Withdrawal,
 	]
 
 	// BeaconStateMarshallable is a type alias for the BeaconState.
@@ -267,14 +261,13 @@ type (
 		*CometBFTService,
 		*KVStore,
 		*StorageBackend,
-		*Withdrawal,
 	]
 
 	// NodeAPIContext is a type alias for the node API context.
 	NodeAPIContext = echo.Context
 
 	// PayloadAttributes is a type alias for the payload attributes.
-	PayloadAttributes = engineprimitives.PayloadAttributes[*Withdrawal]
+	PayloadAttributes = engineprimitives.PayloadAttributes
 
 	// PayloadID is a type alias for the payload ID.
 	PayloadID = engineprimitives.PayloadID
@@ -290,12 +283,6 @@ type (
 
 	// ValidatorUpdates is a type alias for the validator updates.
 	ValidatorUpdates = transition.ValidatorUpdates
-
-	// Withdrawal is a type alias for the engineprimitives withdrawal.
-	Withdrawal = engineprimitives.Withdrawal
-
-	// Withdrawals is a type alias for the engineprimitives withdrawals.
-	Withdrawals = engineprimitives.Withdrawals
 )
 
 /* -------------------------------------------------------------------------- */

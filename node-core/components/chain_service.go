@@ -43,13 +43,11 @@ type ChainServiceInput[
 	BeaconBlockT any,
 	BeaconStateT any,
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	StorageBackendT any,
 	LoggerT any,
-	WithdrawalT Withdrawal[WithdrawalT],
-	WithdrawalsT Withdrawals[WithdrawalT],
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
 	DepositStoreT any,
 	DepositContractT any,
@@ -64,13 +62,12 @@ type ChainServiceInput[
 	Cfg          *config.Config
 	EngineClient *client.EngineClient[
 		ExecutionPayloadT,
-		*engineprimitives.PayloadAttributes[WithdrawalT],
+		*engineprimitives.PayloadAttributes,
 	]
 	ExecutionEngine *engine.Engine[
 		ExecutionPayloadT,
-		*engineprimitives.PayloadAttributes[WithdrawalT],
+		*engineprimitives.PayloadAttributes,
 		PayloadID,
-		WithdrawalsT,
 	]
 	LocalBuilder   LocalBuilder[BeaconStateT, ExecutionPayloadT]
 	Logger         LoggerT
@@ -101,7 +98,6 @@ func ProvideChainService[
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconStateMarshallableT,
 		ExecutionPayloadHeaderT, KVStoreT,
-		WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
 	BlobSidecarT BlobSidecar,
@@ -111,7 +107,7 @@ func ProvideChainService[
 	DepositStoreT DepositStore,
 	DepositContractT deposit.Contract,
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	GenesisT Genesis[ExecutionPayloadHeaderT],
@@ -121,13 +117,11 @@ func ProvideChainService[
 		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,
 	],
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
-	WithdrawalT Withdrawal[WithdrawalT],
-	WithdrawalsT Withdrawals[WithdrawalT],
 ](
 	in ChainServiceInput[
 		BeaconBlockT, BeaconStateT, ExecutionPayloadT,
 		ExecutionPayloadHeaderT, StorageBackendT, LoggerT,
-		WithdrawalT, WithdrawalsT, BeaconBlockStoreT, DepositStoreT, DepositContractT,
+		BeaconBlockStoreT, DepositStoreT, DepositContractT,
 		AvailabilityStoreT, ConsensusSidecarsT, BlobSidecarsT,
 	],
 ) *blockchain.Service[
@@ -137,7 +131,7 @@ func ProvideChainService[
 	ExecutionPayloadT,
 	ExecutionPayloadHeaderT, GenesisT,
 	ConsensusSidecarsT, BlobSidecarsT,
-	*engineprimitives.PayloadAttributes[WithdrawalT],
+	*engineprimitives.PayloadAttributes,
 ] {
 	return blockchain.NewService[
 		AvailabilityStoreT,
@@ -150,7 +144,7 @@ func ProvideChainService[
 		ExecutionPayloadT,
 		ExecutionPayloadHeaderT,
 		GenesisT,
-		*engineprimitives.PayloadAttributes[WithdrawalT],
+		*engineprimitives.PayloadAttributes,
 	](
 		cast.ToString(in.AppOpts.Get(flags.FlagHome)),
 		in.StorageBackend,

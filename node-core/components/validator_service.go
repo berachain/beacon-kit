@@ -37,13 +37,11 @@ type ValidatorServiceInput[
 	BeaconStateT any,
 	BlobSidecarsT any,
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	LoggerT any,
 	StorageBackendT any,
-	WithdrawalT Withdrawal[WithdrawalT],
-	WithdrawalsT Withdrawals[WithdrawalT],
 ] struct {
 	depinject.In
 	Cfg            *config.Config
@@ -72,7 +70,6 @@ func ProvideValidatorService[
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconStateMarshallableT,
 		ExecutionPayloadHeaderT, KVStoreT,
-		WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
 	BeaconBlockStoreT any,
@@ -80,7 +77,7 @@ func ProvideValidatorService[
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	DepositStoreT DepositStore,
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	KVStoreT any,
@@ -88,13 +85,11 @@ func ProvideValidatorService[
 	StorageBackendT StorageBackend[
 		AvailabilityStoreT, BeaconStateT, BeaconBlockStoreT, DepositStoreT,
 	],
-	WithdrawalT Withdrawal[WithdrawalT],
-	WithdrawalsT Withdrawals[WithdrawalT],
 ](
 	in ValidatorServiceInput[
 		AvailabilityStoreT, BeaconBlockT, BeaconStateT,
 		BlobSidecarsT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-		LoggerT, StorageBackendT, WithdrawalT, WithdrawalsT,
+		LoggerT, StorageBackendT,
 	],
 ) (*validator.Service[
 	BeaconBlockT, BeaconBlockBodyT,

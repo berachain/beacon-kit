@@ -39,13 +39,12 @@ import (
 type BeaconBlock[
 	BeaconBlockBodyT BeaconBlockBody[
 		BeaconBlockBodyT,
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	WithdrawalsT any,
 ] interface {
 	IsNil() bool
 	// GetProposerIndex returns the index of the proposer.
@@ -65,10 +64,9 @@ type BeaconBlock[
 type BeaconBlockBody[
 	BeaconBlockBodyT any,
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	WithdrawalsT any,
 ] interface {
 	constraints.EmptyWithVersion[BeaconBlockBodyT]
 	// GetRandaoReveal returns the RANDAO reveal signature.
@@ -118,14 +116,14 @@ type DepositStore interface {
 }
 
 type ExecutionPayload[
-	ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT any,
+	ExecutionPayloadT, ExecutionPayloadHeaderT any,
 ] interface {
 	constraints.EngineType[ExecutionPayloadT]
 	GetTransactions() engineprimitives.Transactions
 	GetParentHash() common.ExecutionHash
 	GetBlockHash() common.ExecutionHash
 	GetPrevRandao() common.Bytes32
-	GetWithdrawals() WithdrawalsT
+	GetWithdrawals() engineprimitives.Withdrawals
 	GetFeeRecipient() common.ExecutionAddress
 	GetStateRoot() common.Bytes32
 	GetReceiptsRoot() common.Bytes32
@@ -155,15 +153,14 @@ type Withdrawals interface {
 // ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine[
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT],
+		ExecutionPayloadT, ExecutionPayloadHeaderT],
 	ExecutionPayloadHeaderT any,
-	WithdrawalsT Withdrawals,
 ] interface {
 	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
 	// execution client.
 	VerifyAndNotifyNewPayload(
 		ctx context.Context,
-		req *engineprimitives.NewPayloadRequest[ExecutionPayloadT, WithdrawalsT],
+		req *engineprimitives.NewPayloadRequest[ExecutionPayloadT],
 	) error
 }
 
@@ -215,9 +212,9 @@ type Validators interface {
 }
 
 // Withdrawal is the interface for a withdrawal.
-type Withdrawal[WithdrawalT any] interface {
+type Withdrawal interface {
 	// Equals returns true if the withdrawal is equal to the other.
-	Equals(WithdrawalT) bool
+	Equals(*engineprimitives.Withdrawal) bool
 	// GetAmount returns the amount of the withdrawal.
 	GetAmount() math.Gwei
 	// GetIndex returns the public key of the validator.

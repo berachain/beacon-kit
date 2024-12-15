@@ -48,21 +48,19 @@ type EngineClientInputs[LoggerT any] struct {
 // ProvideEngineClient creates a new EngineClient.
 func ProvideEngineClient[
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	LoggerT log.AdvancedLogger[LoggerT],
-	WithdrawalT Withdrawal[WithdrawalT],
-	WithdrawalsT Withdrawals[WithdrawalT],
 ](
 	in EngineClientInputs[LoggerT],
 ) *client.EngineClient[
 	ExecutionPayloadT,
-	*engineprimitives.PayloadAttributes[WithdrawalT],
+	*engineprimitives.PayloadAttributes,
 ] {
 	return client.New[
 		ExecutionPayloadT,
-		*engineprimitives.PayloadAttributes[WithdrawalT],
+		*engineprimitives.PayloadAttributes,
 	](
 		in.Config.GetEngine(),
 		in.Logger.With("service", "engine.client"),
@@ -75,17 +73,15 @@ func ProvideEngineClient[
 // EngineClientInputs is the input for the EngineClient.
 type ExecutionEngineInputs[
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	LoggerT any,
-	WithdrawalT Withdrawal[WithdrawalT],
-	WithdrawalsT Withdrawals[WithdrawalT],
 ] struct {
 	depinject.In
 	EngineClient *client.EngineClient[
 		ExecutionPayloadT,
-		*engineprimitives.PayloadAttributes[WithdrawalT],
+		*engineprimitives.PayloadAttributes,
 	]
 	Logger        LoggerT
 	TelemetrySink *metrics.TelemetrySink
@@ -95,28 +91,23 @@ type ExecutionEngineInputs[
 // framework.
 func ProvideExecutionEngine[
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	LoggerT log.AdvancedLogger[LoggerT],
-	WithdrawalT Withdrawal[WithdrawalT],
-	WithdrawalsT Withdrawals[WithdrawalT],
 ](
 	in ExecutionEngineInputs[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, LoggerT, WithdrawalT,
-		WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT, LoggerT,
 	],
 ) *engine.Engine[
 	ExecutionPayloadT,
-	*engineprimitives.PayloadAttributes[WithdrawalT],
+	*engineprimitives.PayloadAttributes,
 	PayloadID,
-	WithdrawalsT,
 ] {
 	return engine.New[
 		ExecutionPayloadT,
-		*engineprimitives.PayloadAttributes[WithdrawalT],
+		*engineprimitives.PayloadAttributes,
 		PayloadID,
-		WithdrawalsT,
 	](
 		in.EngineClient,
 		in.Logger.With("service", "execution-engine"),

@@ -48,7 +48,6 @@ type ServiceRegistryInput[
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconStateMarshallableT,
 		ExecutionPayloadHeaderT, KVStoreT,
-		WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
 	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
@@ -56,15 +55,13 @@ type ServiceRegistryInput[
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	DepositStoreT DepositStore,
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	GenesisT Genesis[ExecutionPayloadHeaderT],
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 	NodeAPIContextT NodeAPIContext,
-	WithdrawalT Withdrawal[WithdrawalT],
-	WithdrawalsT Withdrawals[WithdrawalT],
 ] struct {
 	depinject.In
 	ChainService *blockchain.Service[
@@ -74,17 +71,17 @@ type ServiceRegistryInput[
 		ExecutionPayloadT,
 		ExecutionPayloadHeaderT, GenesisT,
 		ConsensusSidecarsT, BlobSidecarsT,
-		*engineprimitives.PayloadAttributes[WithdrawalT],
+		*engineprimitives.PayloadAttributes,
 	]
 	EngineClient *client.EngineClient[
 		ExecutionPayloadT,
-		*engineprimitives.PayloadAttributes[WithdrawalT],
+		*engineprimitives.PayloadAttributes,
 	]
 	Logger           LoggerT
 	NodeAPIServer    *server.Server[NodeAPIContextT]
 	ReportingService *version.ReportingService[
 		ExecutionPayloadT,
-		*engineprimitives.PayloadAttributes[WithdrawalT],
+		*engineprimitives.PayloadAttributes,
 	]
 	TelemetrySink    *metrics.TelemetrySink
 	TelemetryService *telemetry.Service
@@ -110,7 +107,6 @@ func ProvideServiceRegistry[
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconStateMarshallableT,
 		ExecutionPayloadHeaderT, KVStoreT,
-		WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
 	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
@@ -118,14 +114,12 @@ func ProvideServiceRegistry[
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	DepositStoreT DepositStore,
 	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT,
-		ExecutionPayloadHeaderT, WithdrawalsT],
+		ExecutionPayloadHeaderT],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	GenesisT Genesis[ExecutionPayloadHeaderT],
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 	NodeAPIContextT NodeAPIContext,
-	WithdrawalT Withdrawal[WithdrawalT],
-	WithdrawalsT Withdrawals[WithdrawalT],
 ](
 	in ServiceRegistryInput[
 		AvailabilityStoreT,
@@ -134,7 +128,7 @@ func ProvideServiceRegistry[
 		BeaconStateMarshallableT,
 		ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
 		DepositStoreT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-		GenesisT, KVStoreT, LoggerT, NodeAPIContextT, WithdrawalT, WithdrawalsT,
+		GenesisT, KVStoreT, LoggerT, NodeAPIContextT,
 	],
 ) *service.Registry {
 	return service.NewRegistry(

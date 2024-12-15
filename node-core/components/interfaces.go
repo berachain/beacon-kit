@@ -21,7 +21,6 @@
 package components
 
 import (
-	stdbytes "bytes"
 	"context"
 	"encoding/json"
 
@@ -453,14 +452,14 @@ type (
 	// 	}
 
 	ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT any,
+		ExecutionPayloadT, ExecutionPayloadHeaderT any,
 	] interface {
 		constraints.EngineType[ExecutionPayloadT]
 		GetTransactions() engineprimitives.Transactions
 		GetParentHash() common.ExecutionHash
 		GetBlockHash() common.ExecutionHash
 		GetPrevRandao() common.Bytes32
-		GetWithdrawals() WithdrawalsT
+		GetWithdrawals() engineprimitives.Withdrawals
 		GetFeeRecipient() common.ExecutionAddress
 		GetStateRoot() common.Bytes32
 		GetReceiptsRoot() common.Bytes32
@@ -721,12 +720,6 @@ type (
 		GetAddress() common.ExecutionAddress
 	}
 
-	Withdrawals[WithdrawalT any] interface {
-		~[]WithdrawalT
-		Len() int
-		EncodeIndex(int, *stdbytes.Buffer)
-	}
-
 	// // WithdrawalCredentials represents an interface for withdrawal
 	// credentials.
 	//
@@ -749,9 +742,8 @@ type (
 	BeaconState[
 		T any,
 		BeaconStateMarshallableT any,
-		ExecutionPayloadHeaderT,
-		KVStoreT,
-		WithdrawalT any,
+		ExecutionPayloadHeaderT any,
+		KVStoreT any,
 	] interface {
 		NewFromDB(
 			bdb KVStoreT,
@@ -762,10 +754,7 @@ type (
 		HashTreeRoot() common.Root
 		GetMarshallable() (BeaconStateMarshallableT, error)
 
-		ReadOnlyBeaconState[
-			ExecutionPayloadHeaderT,
-			WithdrawalT,
-		]
+		ReadOnlyBeaconState[ExecutionPayloadHeaderT]
 		WriteOnlyBeaconState[ExecutionPayloadHeaderT]
 	}
 
@@ -773,7 +762,6 @@ type (
 	BeaconStore[
 		T any,
 		ExecutionPayloadHeaderT any,
-		WithdrawalT any,
 	] interface {
 		// Context returns the context of the key-value store.
 		Context() context.Context
@@ -893,14 +881,13 @@ type (
 
 	// ReadOnlyBeaconState is the interface for a read-only beacon state.
 	ReadOnlyBeaconState[
-		ExecutionPayloadHeaderT,
-		WithdrawalT any,
+		ExecutionPayloadHeaderT any,
 	] interface {
 		ReadOnlyEth1Data[ExecutionPayloadHeaderT]
 		ReadOnlyRandaoMixes
 		ReadOnlyStateRoots
 		ReadOnlyValidators
-		ReadOnlyWithdrawals[WithdrawalT]
+		ReadOnlyWithdrawals
 
 		// GetBalances retrieves all balances.
 		GetBalances() ([]uint64, error)
@@ -1012,9 +999,9 @@ type (
 	}
 
 	// ReadOnlyWithdrawals only has read access to withdrawal methods.
-	ReadOnlyWithdrawals[WithdrawalT any] interface {
-		EVMInflationWithdrawal() WithdrawalT
-		ExpectedWithdrawals() ([]WithdrawalT, error)
+	ReadOnlyWithdrawals interface {
+		EVMInflationWithdrawal() *engineprimitives.Withdrawal
+		ExpectedWithdrawals() (engineprimitives.Withdrawals, error)
 	}
 )
 
