@@ -24,13 +24,13 @@ import (
 	"os"
 
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	cmdlib "github.com/berachain/beacon-kit/cli/commands"
 	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	"github.com/berachain/beacon-kit/cli/config"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-core/types"
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -81,7 +81,7 @@ func (cb *CLIBuilder[
 	// allocate memory to hold the dependencies
 	var (
 		clientCtx client.Context
-		chainSpec common.ChainSpec
+		chainSpec chain.ChainSpec
 		logger    LoggerT
 	)
 

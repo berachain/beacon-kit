@@ -24,6 +24,7 @@ import (
 	"context"
 	"sync"
 
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/da"
 	"github.com/berachain/beacon-kit/execution/deposit"
@@ -90,7 +91,7 @@ type Service[
 	// logger is used for logging messages in the service.
 	logger log.Logger
 	// chainSpec holds the chain specifications.
-	chainSpec common.ChainSpec
+	chainSpec chain.ChainSpec
 	// executionEngine is the execution engine responsible for processing
 	//
 	// execution payloads.
@@ -150,7 +151,7 @@ func NewService[
 	depositContract deposit.Contract,
 	eth1FollowDistance math.U64,
 	logger log.Logger,
-	chainSpec common.ChainSpec,
+	chainSpec chain.ChainSpec,
 	executionEngine ExecutionEngine[PayloadAttributesT],
 	localBuilder LocalBuilder[BeaconStateT],
 	stateProcessor StateProcessor[

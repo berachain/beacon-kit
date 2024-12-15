@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	byteslib "github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -47,7 +48,7 @@ type Genesis[
 	},
 ] struct {
 	// ForkVersion is the fork version of the genesis slot.
-	ForkVersion common.Version `json:"fork_version"`
+	ForkVersion chain.Version `json:"fork_version"`
 
 	// Deposits represents the deposits in the genesis. Deposits are
 	// used to initialize the validator set.
@@ -59,7 +60,7 @@ type Genesis[
 }
 
 // GetForkVersion returns the fork version in the genesis.
-func (g *Genesis[ExecutionPayloadHeaderT]) GetForkVersion() common.Version {
+func (g *Genesis[ExecutionPayloadHeaderT]) GetForkVersion() chain.Version {
 	return g.ForkVersion
 }
 
@@ -78,7 +79,7 @@ func (g *Genesis[ExecutionPayloadHeaderT]) UnmarshalJSON(
 	data []byte,
 ) error {
 	type genesisMarshalable[Deposit any] struct {
-		ForkVersion            common.Version  `json:"fork_version"`
+		ForkVersion            chain.Version   `json:"fork_version"`
 		Deposits               []*Deposit      `json:"deposits"`
 		ExecutionPayloadHeader json.RawMessage `json:"execution_payload_header"`
 	}
@@ -115,7 +116,7 @@ func DefaultGenesisDeneb() *Genesis[*ExecutionPayloadHeader] {
 
 	// TODO: Uncouple from deneb.
 	return &Genesis[*ExecutionPayloadHeader]{
-		ForkVersion: version.FromUint32[common.Version](
+		ForkVersion: version.FromUint32[chain.Version](
 			version.Deneb,
 		),
 		Deposits:               make([]*Deposit, 0),
@@ -159,7 +160,7 @@ func DefaultGenesisExecutionPayloadHeaderDeneb() (
 		StateRoot:     stateRoot,
 		ReceiptsRoot:  receiptsRoot,
 		LogsBloom:     [256]byte{},
-		Random:        common.Bytes32{},
+		Random:        chain.Bytes32{},
 		Number:        0,
 		GasLimit:      defaultGasLimit,
 		GasUsed:       0,

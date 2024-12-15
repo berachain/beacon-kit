@@ -24,6 +24,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -75,7 +76,7 @@ type BeaconBlockBody[
 	// SetExecutionPayload sets the execution data of the beacon block body.
 	SetExecutionPayload(ExecutionPayloadT)
 	// SetGraffiti sets the graffiti of the beacon block body.
-	SetGraffiti(common.Bytes32)
+	SetGraffiti(chain.Bytes32)
 	// SetAttestations sets the attestations of the beacon block body.
 	SetAttestations([]*ctypes.AttestationData)
 	// SetSlashingInfo sets the slashing info of the beacon block body.
@@ -142,12 +143,12 @@ type ExecutionPayloadHeader interface {
 type ForkData[T any] interface {
 	// New creates a new fork data with the given parameters.
 	New(
-		common.Version,
+		chain.Version,
 		common.Root,
 	) T
 	// ComputeRandaoSigningRoot computes the Randao signing root.
 	ComputeRandaoSigningRoot(
-		common.DomainType,
+		chain.DomainType,
 		math.Epoch,
 	) common.Root
 }

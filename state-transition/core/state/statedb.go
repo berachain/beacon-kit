@@ -21,6 +21,7 @@
 package state
 
 import (
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -47,7 +48,7 @@ type StateDB[
 		KVStoreT,
 		ExecutionPayloadHeaderT,
 	]
-	cs common.ChainSpec
+	cs chain.ChainSpec
 }
 
 // NewBeaconStateFromDB creates a new beacon state from an underlying state db.
@@ -56,7 +57,7 @@ func (s *StateDB[
 	ExecutionPayloadHeaderT, KVStoreT,
 ]) NewFromDB(
 	bdb KVStoreT,
-	cs common.ChainSpec,
+	cs chain.ChainSpec,
 ) *StateDB[
 	BeaconStateMarshallableT,
 	ExecutionPayloadHeaderT,
@@ -387,7 +388,7 @@ func (s *StateDB[
 		return empty, err
 	}
 
-	randaoMixes := make([]common.Bytes32, s.cs.EpochsPerHistoricalVector())
+	randaoMixes := make([]chain.Bytes32, s.cs.EpochsPerHistoricalVector())
 	for i := range s.cs.EpochsPerHistoricalVector() {
 		randaoMixes[i], err = s.GetRandaoMixAtIndex(i)
 		if err != nil {

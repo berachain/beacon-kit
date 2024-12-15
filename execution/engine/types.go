@@ -21,6 +21,7 @@
 package engine
 
 import (
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -31,7 +32,7 @@ import (
 // ExecutionPayload represents the payload of an execution block.
 type ExecutionPayload[ExecutionPayloadT any] interface {
 	constraints.EngineType[ExecutionPayloadT]
-	GetPrevRandao() common.Bytes32
+	GetPrevRandao() chain.Bytes32
 	GetBlockHash() common.ExecutionHash
 	GetParentHash() common.ExecutionHash
 	GetNumber() math.U64
@@ -41,8 +42,8 @@ type ExecutionPayload[ExecutionPayloadT any] interface {
 	GetExtraData() []byte
 	GetBaseFeePerGas() *math.U256
 	GetFeeRecipient() common.ExecutionAddress
-	GetStateRoot() common.Bytes32
-	GetReceiptsRoot() common.Bytes32
+	GetStateRoot() chain.Bytes32
+	GetReceiptsRoot() chain.Bytes32
 	GetLogsBloom() bytes.B256
 	GetBlobGasUsed() math.U64
 	GetExcessBlobGas() math.U64

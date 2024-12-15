@@ -24,6 +24,7 @@ import (
 	"math/big"
 	"unsafe"
 
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/errors"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/primitives/bytes"
@@ -37,7 +38,7 @@ import (
 type NewPayloadRequest[
 	ExecutionPayloadT interface {
 		constraints.ForkTyped[ExecutionPayloadT]
-		GetPrevRandao() common.Bytes32
+		GetPrevRandao() chain.Bytes32
 		GetBlockHash() common.ExecutionHash
 		GetParentHash() common.ExecutionHash
 		GetNumber() math.U64
@@ -47,8 +48,8 @@ type NewPayloadRequest[
 		GetExtraData() []byte
 		GetBaseFeePerGas() *math.U256
 		GetFeeRecipient() common.ExecutionAddress
-		GetStateRoot() common.Bytes32
-		GetReceiptsRoot() common.Bytes32
+		GetStateRoot() chain.Bytes32
+		GetReceiptsRoot() chain.Bytes32
 		GetLogsBloom() bytes.B256
 		GetBlobGasUsed() math.U64
 		GetExcessBlobGas() math.U64
@@ -71,7 +72,7 @@ type NewPayloadRequest[
 func BuildNewPayloadRequest[
 	ExecutionPayloadT interface {
 		constraints.ForkTyped[ExecutionPayloadT]
-		GetPrevRandao() common.Bytes32
+		GetPrevRandao() chain.Bytes32
 		GetBlockHash() common.ExecutionHash
 		GetParentHash() common.ExecutionHash
 		GetNumber() math.U64
@@ -81,8 +82,8 @@ func BuildNewPayloadRequest[
 		GetExtraData() []byte
 		GetBaseFeePerGas() *math.U256
 		GetFeeRecipient() common.ExecutionAddress
-		GetStateRoot() common.Bytes32
-		GetReceiptsRoot() common.Bytes32
+		GetStateRoot() chain.Bytes32
+		GetReceiptsRoot() chain.Bytes32
 		GetLogsBloom() bytes.B256
 		GetBlobGasUsed() math.U64
 		GetExcessBlobGas() math.U64

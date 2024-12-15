@@ -22,13 +22,13 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-api/backend"
 	"github.com/berachain/beacon-kit/node-api/engines/echo"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/server"
-	"github.com/berachain/beacon-kit/primitives/common"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -45,7 +45,7 @@ type NodeAPIBackendInput[
 ] struct {
 	depinject.In
 
-	ChainSpec      common.ChainSpec
+	ChainSpec      chain.ChainSpec
 	StateProcessor StateProcessor[
 		BeaconBlockT, BeaconStateT, *Context,
 		ExecutionPayloadHeaderT,

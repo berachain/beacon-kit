@@ -23,10 +23,10 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/beacon/validator"
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 )
 
@@ -45,7 +45,7 @@ type ValidatorServiceInput[
 ] struct {
 	depinject.In
 	Cfg            *config.Config
-	ChainSpec      common.ChainSpec
+	ChainSpec      chain.ChainSpec
 	LocalBuilder   LocalBuilder[BeaconStateT, ExecutionPayloadT]
 	Logger         LoggerT
 	StateProcessor StateProcessor[

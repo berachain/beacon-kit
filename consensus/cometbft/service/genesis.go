@@ -27,6 +27,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -173,7 +174,7 @@ func validateExecutionHeader(header *types.ExecutionPayloadHeader) error {
 
 	// Validate hash fields are not zero
 	zeroHash := common.ExecutionHash{}
-	emptyTrieRoot := common.Bytes32(
+	emptyTrieRoot := chain.Bytes32(
 		common.NewExecutionHashFromHex(
 			"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
 		))
@@ -194,7 +195,7 @@ func validateExecutionHeader(header *types.ExecutionPayloadHeader) error {
 	}
 
 	// Validate prevRandao is zero for genesis
-	var zeroBytes32 common.Bytes32
+	var zeroBytes32 chain.Bytes32
 	if !bytes.Equal(header.Random[:], zeroBytes32[:]) {
 		return errors.New("prevRandao must be zero for genesis block")
 	}
@@ -222,7 +223,7 @@ const expectedHexLength = 8
 // A valid fork version must:
 // - Start with "0x"
 // - Be followed by exactly 8 hexadecimal characters.
-func isValidForkVersion(forkVersion common.Version) bool {
+func isValidForkVersion(forkVersion chain.Version) bool {
 	forkVersionStr := forkVersion.String()
 	if !strings.HasPrefix(forkVersionStr, "0x") {
 		return false

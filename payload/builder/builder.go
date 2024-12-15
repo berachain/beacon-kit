@@ -21,8 +21,8 @@
 package builder
 
 import (
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
@@ -38,7 +38,7 @@ type PayloadBuilder[
 	// cfg holds the configuration settings for the PayloadBuilder.
 	cfg *Config
 	// chainSpec holds the chain specifications for the PayloadBuilder.
-	chainSpec common.ChainSpec
+	chainSpec chain.ChainSpec
 	// logger is used for logging within the PayloadBuilder.
 	logger log.Logger
 	// ee is the execution engine.
@@ -60,7 +60,7 @@ func New[
 	PayloadIDT ~[8]byte,
 ](
 	cfg *Config,
-	chainSpec common.ChainSpec,
+	chainSpec chain.ChainSpec,
 	logger log.Logger,
 	ee ExecutionEngine[ExecutionPayloadT, PayloadAttributesT, PayloadIDT],
 	pc PayloadCache[PayloadIDT, [32]byte, math.Slot],
