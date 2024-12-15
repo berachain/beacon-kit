@@ -39,26 +39,22 @@ type AttributesFactoryInput[LoggerT any] struct {
 
 // ProvideAttributesFactory provides an AttributesFactory for the client.
 func ProvideAttributesFactory[
-	BeaconBlockHeaderT any,
 	BeaconStateT BeaconState[
-		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
-		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT,
-		*Validator, Validators, WithdrawalT,
+		BeaconStateT, BeaconStateMarshallableT,
+		ExecutionPayloadHeaderT, KVStoreT,
 	],
 	BeaconStateMarshallableT any,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	KVStoreT any,
 	LoggerT log.Logger,
-	WithdrawalT Withdrawal[WithdrawalT],
 ](
 	in AttributesFactoryInput[LoggerT],
 ) (*attributes.Factory[
-	BeaconStateT, *engineprimitives.PayloadAttributes[WithdrawalT], WithdrawalT,
+	BeaconStateT, *engineprimitives.PayloadAttributes,
 ], error) {
 	return attributes.NewAttributesFactory[
 		BeaconStateT,
-		*engineprimitives.PayloadAttributes[WithdrawalT],
-		WithdrawalT,
+		*engineprimitives.PayloadAttributes,
 	](
 		in.ChainSpec,
 		in.Logger,

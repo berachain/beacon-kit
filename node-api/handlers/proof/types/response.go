@@ -21,6 +21,7 @@
 package types
 
 import (
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -28,10 +29,10 @@ import (
 
 // BlockProposerResponse is the response for the
 // `/proof/block_proposer/{timestamp_id}` endpoint.
-type BlockProposerResponse[BeaconBlockHeaderT any] struct {
+type BlockProposerResponse struct {
 	// BeaconBlockHeader is the block header of which the hash tree root is the
 	// beacon block root to verify against.
-	BeaconBlockHeader BeaconBlockHeaderT `json:"beacon_block_header"`
+	BeaconBlockHeader *ctypes.BeaconBlockHeader `json:"beacon_block_header"`
 
 	// BeaconBlockRoot is the beacon block root for this slot.
 	BeaconBlockRoot common.Root `json:"beacon_block_root"`
@@ -52,10 +53,10 @@ type BlockProposerResponse[BeaconBlockHeaderT any] struct {
 
 // ExecutionNumberResponse is the response for the
 // `/proof/execution_number/{timestamp_id}` endpoint.
-type ExecutionNumberResponse[BeaconBlockHeaderT any] struct {
+type ExecutionNumberResponse struct {
 	// BeaconBlockHeader is the block header of which the hash tree root is the
 	// beacon block root to verify against.
-	BeaconBlockHeader BeaconBlockHeaderT `json:"beacon_block_header"`
+	BeaconBlockHeader *ctypes.BeaconBlockHeader `json:"beacon_block_header"`
 
 	// BeaconBlockRoot is the beacon block root for this slot.
 	BeaconBlockRoot common.Root `json:"beacon_block_root"`
@@ -70,10 +71,10 @@ type ExecutionNumberResponse[BeaconBlockHeaderT any] struct {
 
 // ExecutionFeeRecipientResponse is the response for the
 // `/proof/execution_fee_recipient/{timestamp_id}` endpoint.
-type ExecutionFeeRecipientResponse[BeaconBlockHeaderT any] struct {
+type ExecutionFeeRecipientResponse struct {
 	// BeaconBlockHeader is the block header of which the hash tree root is the
 	// beacon block root to verify against.
-	BeaconBlockHeader BeaconBlockHeaderT `json:"beacon_block_header"`
+	BeaconBlockHeader *ctypes.BeaconBlockHeader `json:"beacon_block_header"`
 
 	// BeaconBlockRoot is the beacon block root for this slot.
 	BeaconBlockRoot common.Root `json:"beacon_block_root"`

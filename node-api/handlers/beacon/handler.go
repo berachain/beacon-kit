@@ -22,31 +22,24 @@ package beacon
 
 import (
 	"github.com/berachain/beacon-kit/node-api/handlers"
-	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/server/context"
 )
 
 // Handler is the handler for the beacon API.
 type Handler[
-	BeaconBlockHeaderT types.BeaconBlockHeader,
 	ContextT context.Context,
-	ForkT any,
-	ValidatorT any,
 ] struct {
 	*handlers.BaseHandler[ContextT]
-	backend Backend[BeaconBlockHeaderT, ForkT, ValidatorT]
+	backend Backend
 }
 
 // NewHandler creates a new handler for the beacon API.
 func NewHandler[
-	BeaconBlockHeaderT types.BeaconBlockHeader,
 	ContextT context.Context,
-	ForkT any,
-	ValidatorT any,
 ](
-	backend Backend[BeaconBlockHeaderT, ForkT, ValidatorT],
-) *Handler[BeaconBlockHeaderT, ContextT, ForkT, ValidatorT] {
-	h := &Handler[BeaconBlockHeaderT, ContextT, ForkT, ValidatorT]{
+	backend Backend,
+) *Handler[ContextT] {
+	h := &Handler[ContextT]{
 		BaseHandler: handlers.NewBaseHandler(
 			handlers.NewRouteSet[ContextT](""),
 		),

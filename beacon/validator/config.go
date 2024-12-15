@@ -30,8 +30,6 @@ const (
 )
 
 // Config is the validator configuration.
-//
-//nolint:lll // struct tags.
 type Config struct {
 	// Graffiti is the string that will be included in the
 	// graffiti field of the beacon block.

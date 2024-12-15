@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"time"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/kzg"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"golang.org/x/sync/errgroup"
@@ -33,8 +34,7 @@ import (
 // verifier is responsible for verifying blobs, including their
 // inclusion and KZG proofs.
 type verifier[
-	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
-	BlobSidecarT Sidecar[BeaconBlockHeaderT],
+	BlobSidecarT Sidecar,
 	BlobSidecarsT Sidecars[BlobSidecarT],
 ] struct {
 	// proofVerifier is used to verify the KZG proofs of the blobs.
@@ -45,14 +45,13 @@ type verifier[
 
 // newVerifier creates a new Verifier with the given proof verifier.
 func newVerifier[
-	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
-	BlobSidecarT Sidecar[BeaconBlockHeaderT],
+	BlobSidecarT Sidecar,
 	BlobSidecarsT Sidecars[BlobSidecarT],
 ](
 	proofVerifier kzg.BlobProofVerifier,
 	telemetrySink TelemetrySink,
-) *verifier[BeaconBlockHeaderT, BlobSidecarT, BlobSidecarsT] {
-	return &verifier[BeaconBlockHeaderT, BlobSidecarT, BlobSidecarsT]{
+) *verifier[BlobSidecarT, BlobSidecarsT] {
+	return &verifier[BlobSidecarT, BlobSidecarsT]{
 		proofVerifier: proofVerifier,
 		metrics:       newVerifierMetrics(telemetrySink),
 	}
@@ -60,10 +59,10 @@ func newVerifier[
 
 // verifySidecars verifies the blobs for both inclusion as well
 // as the KZG proofs.
-func (bv *verifier[BeaconBlockHeaderT, _, BlobSidecarsT]) verifySidecars(
+func (bv *verifier[_, BlobSidecarsT]) verifySidecars(
 	sidecars BlobSidecarsT,
 	kzgOffset uint64,
-	blkHeader BeaconBlockHeaderT,
+	blkHeader *ctypes.BeaconBlockHeader,
 ) error {
 	defer bv.metrics.measureVerifySidecarsDuration(
 		time.Now(), math.U64(sidecars.Len()),
@@ -101,7 +100,7 @@ func (bv *verifier[BeaconBlockHeaderT, _, BlobSidecarsT]) verifySidecars(
 	return g.Wait()
 }
 
-func (bv *verifier[_, _, BlobSidecarsT]) verifyInclusionProofs(
+func (bv *verifier[_, BlobSidecarsT]) verifyInclusionProofs(
 	scs BlobSidecarsT,
 	kzgOffset uint64,
 ) error {
@@ -113,7 +112,7 @@ func (bv *verifier[_, _, BlobSidecarsT]) verifyInclusionProofs(
 }
 
 // verifyKZGProofs verifies the sidecars.
-func (bv *verifier[_, _, BlobSidecarsT]) verifyKZGProofs(
+func (bv *verifier[_, BlobSidecarsT]) verifyKZGProofs(
 	scs BlobSidecarsT,
 ) error {
 	start := time.Now()

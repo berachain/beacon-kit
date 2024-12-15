@@ -37,8 +37,6 @@ var HexRegexp = regexp.MustCompile(`^(?:0x)?[0-9a-fA-F]*$`)
 // EthereumJWTLength defines the length of the JWT byte array to be 32 bytes as
 // defined the Engine API specification.
 // https://github.com/ethereum/execution-apis/blob/main/src/engine/authentication.md
-//
-//nolint:lll // link.
 const EthereumJWTLength = 32
 
 // Secret represents a JSON Web Token as a fixed-size byte array.

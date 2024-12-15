@@ -28,7 +28,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-//nolint:lll
 type (
 	// Bytes32 defines the commonly used 32-byte array.
 	Bytes32 = bytes.B32
@@ -38,12 +37,10 @@ type (
 
 	// Domain as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	//nolint:lll
 	Domain = bytes.B32
 
 	// DomainType as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	//nolint:lll
 	DomainType = bytes.B4
 
 	// Hash32 as per the Ethereum 2.0 Specification:

@@ -18,16 +18,32 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package deposit
+package blockchain
 
 import (
-	"github.com/berachain/beacon-kit/primitives/constraints"
-	"github.com/berachain/beacon-kit/primitives/math"
+	"context"
+	"encoding/json"
+
+	"github.com/berachain/beacon-kit/primitives/transition"
 )
 
-// Deposit is a struct that represents a deposit.
-type Deposit[DepositT any] interface {
-	constraints.SSZMarshallable
-	constraints.Empty[DepositT]
-	GetIndex() math.U64
+// ProcessGenesisData processes the genesis state and initializes the beacon
+// state.
+func (s *Service[
+	_, _, _, _, _, _, _, _, _, GenesisT, _, _, _,
+]) ProcessGenesisData(
+	ctx context.Context,
+	bytes []byte,
+) (transition.ValidatorUpdates, error) {
+	genesisData := *new(GenesisT)
+	if err := json.Unmarshal(bytes, &genesisData); err != nil {
+		s.logger.Error("Failed to unmarshal genesis data", "error", err)
+		return nil, err
+	}
+	return s.stateProcessor.InitializePreminedBeaconStateFromEth1(
+		s.storageBackend.StateFromContext(ctx),
+		genesisData.GetDeposits(),
+		genesisData.GetExecutionPayloadHeader(),
+		genesisData.GetForkVersion(),
+	)
 }

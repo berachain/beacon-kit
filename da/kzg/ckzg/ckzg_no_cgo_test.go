@@ -64,7 +64,6 @@ func TestVerifyBlobKZGProof(t *testing.T) {
 				require.Error(
 					t,
 					err,
-					//nolint:lll
 					"github.com/ethereum/c-kzg-4844 requires an executable built with CGO_ENABLED=1",
 				)
 			} else {
@@ -119,7 +118,6 @@ func TestVerifyBlobProofBatch(t *testing.T) {
 	}
 
 	err = globalVerifier.VerifyBlobProofBatch(args)
-	//nolint:lll
 	require.Error(
 		t,
 		err,

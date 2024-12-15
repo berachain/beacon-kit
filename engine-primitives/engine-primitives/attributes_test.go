@@ -29,14 +29,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type testWithdrawal struct{}
-
 type payloadAttributesInput struct {
 	forkVersion           uint32
 	timestamp             uint64
 	prevRandao            common.Bytes32
 	suggestedFeeRecipient common.ExecutionAddress
-	withdrawals           []testWithdrawal
+	withdrawals           engineprimitives.Withdrawals
 	parentBeaconBlockRoot common.Root
 }
 
@@ -47,7 +45,7 @@ func TestPayloadAttributes(t *testing.T) {
 		timestamp:             uint64(123456789),
 		prevRandao:            common.Bytes32{1, 2, 3},
 		suggestedFeeRecipient: common.ExecutionAddress{},
-		withdrawals:           []testWithdrawal{},
+		withdrawals:           engineprimitives.Withdrawals{},
 		parentBeaconBlockRoot: common.Root{},
 	}
 	tests := []struct {
@@ -95,7 +93,7 @@ func TestPayloadAttributes(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			in := tt.input()
-			p := &engineprimitives.PayloadAttributes[testWithdrawal]{}
+			p := &engineprimitives.PayloadAttributes{}
 			got, err := p.New(
 				in.forkVersion,
 				in.timestamp,

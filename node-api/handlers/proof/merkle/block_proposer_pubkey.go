@@ -21,6 +21,7 @@
 package merkle
 
 import (
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -33,14 +34,12 @@ import (
 // sanity check. Returns the proof along with the beacon block root. It uses
 // the fastssz library to generate the proof.
 func ProveProposerPubkeyInBlock[
-	BeaconBlockHeaderT types.BeaconBlockHeader,
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
 	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
-	ValidatorT any,
 ](
-	bbh BeaconBlockHeaderT,
+	bbh *ctypes.BeaconBlockHeader,
 	bs types.BeaconState[
-		BeaconStateMarshallableT, ExecutionPayloadHeaderT, ValidatorT,
+		BeaconStateMarshallableT, ExecutionPayloadHeaderT,
 	],
 ) ([]common.Root, common.Root, error) {
 	// Get the proof of the proposer pubkey in the beacon state.
@@ -77,10 +76,9 @@ func ProveProposerPubkeyInBlock[
 func ProveProposerPubkeyInState[
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
 	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
-	ValidatorT any,
 ](
 	bs types.BeaconState[
-		BeaconStateMarshallableT, ExecutionPayloadHeaderT, ValidatorT,
+		BeaconStateMarshallableT, ExecutionPayloadHeaderT,
 	],
 	proposerOffset math.U64,
 ) ([]common.Root, common.Root, error) {
@@ -112,7 +110,7 @@ func ProveProposerPubkeyInState[
 //
 // TODO: verifying the proof is not absolutely necessary.
 func verifyProposerInBlock(
-	bbh types.BeaconBlockHeader,
+	bbh *ctypes.BeaconBlockHeader,
 	valOffset math.U64,
 	proof []common.Root,
 	leaf common.Root,
