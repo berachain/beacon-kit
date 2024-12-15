@@ -41,7 +41,7 @@ type ServiceRegistryInput[
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT, DepositT,
+		BeaconBlockBodyT,
 		ExecutionPayloadT, *SlashingInfo,
 	],
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
@@ -54,13 +54,12 @@ type ServiceRegistryInput[
 	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
-	DepositT Deposit[DepositT],
-	DepositStoreT DepositStore[DepositT],
+	DepositStoreT DepositStore,
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
+	GenesisT Genesis[ExecutionPayloadHeaderT],
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 	NodeAPIContextT NodeAPIContext,
@@ -71,7 +70,7 @@ type ServiceRegistryInput[
 	ChainService *blockchain.Service[
 		AvailabilityStoreT, DepositStoreT,
 		ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
-		BeaconStateT, BeaconBlockStoreT, DepositT,
+		BeaconStateT, BeaconBlockStoreT,
 		ExecutionPayloadT,
 		ExecutionPayloadHeaderT, GenesisT,
 		ConsensusSidecarsT, BlobSidecarsT,
@@ -91,7 +90,7 @@ type ServiceRegistryInput[
 	TelemetryService *telemetry.Service
 	ValidatorService *validator.Service[
 		BeaconBlockT, BeaconBlockBodyT,
-		BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositT, DepositStoreT,
+		BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositStoreT,
 		ExecutionPayloadT, ExecutionPayloadHeaderT,
 		*SlashingInfo, *SlotData,
 	]
@@ -104,7 +103,7 @@ func ProvideServiceRegistry[
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT, DepositT,
+		BeaconBlockBodyT,
 		ExecutionPayloadT, *SlashingInfo,
 	],
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
@@ -117,12 +116,11 @@ func ProvideServiceRegistry[
 	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
-	DepositT Deposit[DepositT],
-	DepositStoreT DepositStore[DepositT],
+	DepositStoreT DepositStore,
 	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT,
 		ExecutionPayloadHeaderT, WithdrawalsT],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
+	GenesisT Genesis[ExecutionPayloadHeaderT],
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 	NodeAPIContextT NodeAPIContext,
@@ -135,7 +133,7 @@ func ProvideServiceRegistry[
 		BeaconBlockStoreT, BeaconStateT,
 		BeaconStateMarshallableT,
 		ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
-		DepositT, DepositStoreT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+		DepositStoreT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 		GenesisT, KVStoreT, LoggerT, NodeAPIContextT, WithdrawalT, WithdrawalsT,
 	],
 ) *service.Registry {

@@ -33,13 +33,12 @@ import (
 type Service[
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[
-		DepositT, ExecutionPayloadT, SlashingInfoT,
+		ExecutionPayloadT, SlashingInfoT,
 	],
 	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
-	DepositT any,
-	DepositStoreT DepositStore[DepositT],
+	DepositStoreT DepositStore,
 	ExecutionPayloadT any,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	SlashingInfoT any,
@@ -80,13 +79,12 @@ type Service[
 func NewService[
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[
-		DepositT, ExecutionPayloadT, SlashingInfoT,
+		ExecutionPayloadT, SlashingInfoT,
 	],
 	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
-	DepositT any,
-	DepositStoreT DepositStore[DepositT],
+	DepositStoreT DepositStore,
 	ExecutionPayloadT any,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	SlashingInfoT any,
@@ -109,13 +107,13 @@ func NewService[
 	ts TelemetrySink,
 ) *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarT, BlobSidecarsT, DepositT, DepositStoreT,
+	BlobSidecarT, BlobSidecarsT, DepositStoreT,
 	ExecutionPayloadT, ExecutionPayloadHeaderT, SlashingInfoT,
 	SlotDataT,
 ] {
 	return &Service[
 		BeaconBlockT, BeaconBlockBodyT,
-		BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositT, DepositStoreT,
+		BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositStoreT,
 		ExecutionPayloadT, ExecutionPayloadHeaderT, SlashingInfoT,
 		SlotDataT,
 	]{
@@ -134,19 +132,19 @@ func NewService[
 
 // Name returns the name of the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _,
 ]) Name() string {
 	return "validator"
 }
 
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _,
 ]) Start(
 	_ context.Context,
 ) error {
 	return nil
 }
 
-func (s *Service[_, _, _, _, _, _, _, _, _, _, _]) Stop() error {
+func (s *Service[_, _, _, _, _, _, _, _, _, _]) Stop() error {
 	return nil
 }

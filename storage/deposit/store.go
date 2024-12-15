@@ -27,6 +27,7 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/storage/encoding"
@@ -37,8 +38,8 @@ const KeyDepositPrefix = "deposit"
 
 // KVStore is a simple KV store based implementation that assumes
 // the deposit indexes are tracked outside of the kv store.
-type KVStore[DepositT Deposit[DepositT]] struct {
-	store sdkcollections.Map[uint64, DepositT]
+type KVStore struct {
+	store sdkcollections.Map[uint64, *ctypes.Deposit]
 
 	// mu protects store for concurrent access
 	mu sync.RWMutex
@@ -48,18 +49,18 @@ type KVStore[DepositT Deposit[DepositT]] struct {
 }
 
 // NewStore creates a new deposit store.
-func NewStore[DepositT Deposit[DepositT]](
+func NewStore(
 	kvsp store.KVStoreService,
 	logger log.Logger,
-) *KVStore[DepositT] {
+) *KVStore {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kvsp)
-	return &KVStore[DepositT]{
+	return &KVStore{
 		store: sdkcollections.NewMap(
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte(KeyDepositPrefix)),
 			KeyDepositPrefix,
 			sdkcollections.Uint64Key,
-			encoding.SSZValueCodec[DepositT]{},
+			encoding.SSZValueCodec[*ctypes.Deposit]{},
 		),
 		logger: logger,
 	}
@@ -68,14 +69,14 @@ func NewStore[DepositT Deposit[DepositT]](
 // GetDepositsByIndex returns the first N deposits starting from the given
 // index. If N is greater than the number of deposits, it returns up to the
 // last deposit.
-func (kv *KVStore[DepositT]) GetDepositsByIndex(
+func (kv *KVStore) GetDepositsByIndex(
 	startIndex uint64,
 	depRange uint64,
-) ([]DepositT, error) {
+) ([]*ctypes.Deposit, error) {
 	kv.mu.RLock()
 	defer kv.mu.RUnlock()
 	var (
-		deposits = []DepositT{}
+		deposits = []*ctypes.Deposit{}
 		endIdx   = startIndex + depRange
 	)
 
@@ -114,7 +115,7 @@ func (kv *KVStore[DepositT]) GetDepositsByIndex(
 }
 
 // EnqueueDeposits pushes multiple deposits to the queue.
-func (kv *KVStore[DepositT]) EnqueueDeposits(deposits []DepositT) error {
+func (kv *KVStore) EnqueueDeposits(deposits []*ctypes.Deposit) error {
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
 	kv.logger.Debug(
@@ -144,7 +145,7 @@ func (kv *KVStore[DepositT]) EnqueueDeposits(deposits []DepositT) error {
 }
 
 // Prune removes the [start, end) deposits from the store.
-func (kv *KVStore[DepositT]) Prune(start, end uint64) error {
+func (kv *KVStore) Prune(start, end uint64) error {
 	kv.logger.Debug(
 		"Prune request",
 		"start", start,

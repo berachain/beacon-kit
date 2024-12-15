@@ -82,7 +82,6 @@ type (
 		*types.BeaconBlockBody,
 		*TestBeaconStateT,
 		*transition.Context,
-		*types.Deposit,
 		*types.ExecutionPayload,
 		*types.ExecutionPayloadHeader,
 		*TestKVStoreT,
@@ -115,7 +114,7 @@ func initTestStores() (
 		*types.Validator,
 		types.Validators,
 	],
-	*depositstore.KVStore[*types.Deposit],
+	*depositstore.KVStore,
 	error) {
 	db, err := db.OpenDB("", dbm.MemDBBackend)
 	if err != nil {
@@ -147,7 +146,7 @@ func initTestStores() (
 			testStoreService,
 			testCodec,
 		),
-		depositstore.NewStore[*types.Deposit](testStoreService, nopLog),
+		depositstore.NewStore(testStoreService, nopLog),
 		nil
 }
 
@@ -170,7 +169,7 @@ func setupState(
 ) (
 	*TestStateProcessorT,
 	*TestBeaconStateT,
-	*depositstore.KVStore[*types.Deposit],
+	*depositstore.KVStore,
 	*transition.Context,
 ) {
 	t.Helper()
@@ -198,7 +197,6 @@ func setupState(
 		*types.BeaconBlockBody,
 		*TestBeaconStateT,
 		*transition.Context,
-		*types.Deposit,
 		*types.ExecutionPayload,
 		*types.ExecutionPayloadHeader,
 		*TestKVStoreT,

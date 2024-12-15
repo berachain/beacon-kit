@@ -37,9 +37,8 @@ import (
 
 // BeaconBlock represents a generic interface for a beacon block.
 type BeaconBlock[
-	DepositT any,
 	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT, DepositT,
+		BeaconBlockBodyT,
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
 	ExecutionPayloadT ExecutionPayload[
@@ -65,7 +64,6 @@ type BeaconBlock[
 // block.
 type BeaconBlockBody[
 	BeaconBlockBodyT any,
-	DepositT any,
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
@@ -78,7 +76,7 @@ type BeaconBlockBody[
 	// GetExecutionPayload returns the execution payload.
 	GetExecutionPayload() ExecutionPayloadT
 	// GetDeposits returns the list of deposits.
-	GetDeposits() []DepositT
+	GetDeposits() []*ctypes.Deposit
 	// HashTreeRoot returns the hash tree root of the block body.
 	HashTreeRoot() common.Root
 	// GetBlobKzgCommitments returns the KZG commitments for the blobs.
@@ -110,41 +108,13 @@ type Context interface {
 	GetConsensusTime() math.U64
 }
 
-// Deposit is the interface for a deposit.
-type Deposit[
-	DepositT any,
-] interface {
-	// Equals returns true if the Deposit is equal to the other.
-	Equals(DepositT) bool
-	// GetAmount returns the amount of the deposit.
-	GetAmount() math.Gwei
-	// GetPubkey returns the public key of the validator.
-	GetPubkey() crypto.BLSPubkey
-	// GetIndex returns deposit index
-	GetIndex() math.U64
-	// GetWithdrawalCredentials returns the withdrawal credentials.
-	GetWithdrawalCredentials() ctypes.WithdrawalCredentials
-	// HasEth1WithdrawalCredentials returns true if the deposit has eth1
-	// withdrawal credentials.
-	HasEth1WithdrawalCredentials() bool
-	// VerifySignature verifies the deposit and creates a validator.
-	VerifySignature(
-		forkData *ctypes.ForkData,
-		domainType common.DomainType,
-		signatureVerificationFn func(
-			pubkey crypto.BLSPubkey,
-			message []byte, signature crypto.BLSSignature,
-		) error,
-	) error
-}
-
 // DepositStore defines the interface for deposit storage.
-type DepositStore[DepositT any] interface {
+type DepositStore interface {
 	// GetDepositsByIndex returns `numView` expected deposits.
 	GetDepositsByIndex(
 		startIndex uint64,
 		numView uint64,
-	) ([]DepositT, error)
+	) ([]*ctypes.Deposit, error)
 }
 
 type ExecutionPayload[

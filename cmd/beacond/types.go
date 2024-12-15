@@ -84,7 +84,6 @@ type (
 		*BeaconBlockBody,
 		*BeaconState,
 		*BlockStore,
-		*Deposit,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*Genesis,
@@ -154,7 +153,6 @@ type (
 		*BeaconBlockBody,
 		*BeaconState,
 		*Context,
-		*Deposit,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*KVStore,
@@ -180,7 +178,6 @@ type (
 		*BeaconState,
 		*BlobSidecar,
 		*BlobSidecars,
-		*Deposit,
 		*DepositStore,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
@@ -231,14 +228,11 @@ type (
 	// Context is a type alias for the transition context.
 	Context = transition.Context
 
-	// Deposit is a type alias for the deposit.
-	Deposit = types.Deposit
-
 	// DepositContract is a type alias for the deposit contract.
-	DepositContract = deposit.WrappedDepositContract[*Deposit]
+	DepositContract = deposit.WrappedDepositContract
 
 	// DepositStore is a type alias for the deposit store.
-	DepositStore = depositdb.KVStore[*Deposit]
+	DepositStore = depositdb.KVStore
 
 	// Eth1Data is a type alias for the eth1 data.
 	Eth1Data = types.Eth1Data
@@ -254,10 +248,7 @@ type (
 	ForkData = types.ForkData
 
 	// Genesis is a type alias for the Genesis type.
-	Genesis = types.Genesis[
-		*Deposit,
-		*ExecutionPayloadHeader,
-	]
+	Genesis = types.Genesis[*ExecutionPayloadHeader]
 
 	// Logger is a type alias for the logger.
 	Logger = phuslu.Logger
@@ -281,7 +272,6 @@ type (
 		*BlobSidecars,
 		*BlockStore,
 		sdk.Context,
-		*Deposit,
 		*DepositStore,
 		*ExecutionPayloadHeader,
 		*CometBFTService,

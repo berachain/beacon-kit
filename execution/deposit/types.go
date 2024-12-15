@@ -24,16 +24,13 @@ import (
 	"context"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/primitives/constraints"
-	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 type BeaconBlockBody[
-	DepositT any,
 	ExecutionPayloadT ExecutionPayload,
 ] interface {
-	GetDeposits() []DepositT
+	GetDeposits() []*ctypes.Deposit
 	GetExecutionPayload() ExecutionPayloadT
 }
 
@@ -49,37 +46,20 @@ type ExecutionPayload interface {
 }
 
 // Contract is the ABI for the deposit contract.
-type Contract[DepositT any] interface {
+type Contract interface {
 	// ReadDeposits reads deposits from the deposit contract.
 	ReadDeposits(
 		ctx context.Context,
 		blockNumber math.U64,
-	) ([]DepositT, error)
-}
-
-// Deposit is an interface for deposits.
-type Deposit[DepositT any] interface {
-	constraints.Empty[DepositT]
-	constraints.SSZMarshallableRootable
-
-	// New creates a new deposit.
-	New(
-		crypto.BLSPubkey,
-		ctypes.WithdrawalCredentials,
-		math.U64,
-		crypto.BLSSignature,
-		uint64,
-	) DepositT
-	// GetIndex returns the index of the deposit.
-	GetIndex() math.U64
+	) ([]*ctypes.Deposit, error)
 }
 
 // Store defines the interface for managing deposit operations.
-type Store[DepositT any] interface {
+type Store interface {
 	// Prune prunes the deposit store of [start, end)
 	Prune(index uint64, numPrune uint64) error
 	// EnqueueDeposits adds a list of deposits to the deposit store.
-	EnqueueDeposits(deposits []DepositT) error
+	EnqueueDeposits(deposits []*ctypes.Deposit) error
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.
