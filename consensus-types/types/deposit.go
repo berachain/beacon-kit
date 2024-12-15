@@ -21,6 +21,7 @@
 package types
 
 import (
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -92,7 +93,7 @@ func (d *Deposit) New(
 // VerifySignature verifies the deposit data and signature.
 func (d *Deposit) VerifySignature(
 	forkData *ForkData,
-	domainType common.DomainType,
+	domainType chain.DomainType,
 	signatureVerificationFn func(
 		pubkey crypto.BLSPubkey, message []byte, signature crypto.BLSSignature,
 	) error,

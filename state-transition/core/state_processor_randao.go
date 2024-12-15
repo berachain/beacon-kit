@@ -21,8 +21,8 @@
 package core
 
 import (
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/crypto/sha256"
@@ -60,7 +60,7 @@ func (sp *StateProcessor[
 	body := blk.GetBody()
 
 	fd := ctypes.NewForkData(
-		version.FromUint32[common.Version](
+		version.FromUint32[chain.Version](
 			sp.cs.ActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,
 	)
@@ -121,9 +121,9 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	_, _, _, _, _, _, _,
 ]) buildRandaoMix(
-	mix common.Bytes32,
+	mix chain.Bytes32,
 	reveal crypto.BLSSignature,
-) common.Bytes32 {
+) chain.Bytes32 {
 	newMix := make([]byte, constants.RootLength)
 	revealHash := sha256.Hash(reveal[:])
 	// Apparently this library giga fast? Good project? lmeow.
@@ -132,5 +132,5 @@ func (sp *StateProcessor[
 	_ = xor.Bytes(
 		newMix, mix[:], revealHash[:],
 	)
-	return common.Bytes32(newMix)
+	return chain.Bytes32(newMix)
 }

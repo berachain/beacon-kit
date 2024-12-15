@@ -23,6 +23,7 @@ package state
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -101,7 +102,7 @@ type KVStore[
 	// SetTotalSlashing sets the total slashing.
 	SetTotalSlashing(total math.Gwei) error
 	// GetRandaoMixAtIndex retrieves the randao mix at the given index.
-	GetRandaoMixAtIndex(index uint64) (common.Bytes32, error)
+	GetRandaoMixAtIndex(index uint64) (chain.Bytes32, error)
 	// GetSlashings retrieves all slashings.
 	GetSlashings() ([]math.Gwei, error)
 	// SetSlashingAtIndex sets the slashing at the given index.
@@ -119,7 +120,7 @@ type KVStore[
 	// UpdateStateRootAtIndex updates the state root at the given index.
 	UpdateStateRootAtIndex(index uint64, root common.Root) error
 	// UpdateRandaoMixAtIndex updates the randao mix at the given index.
-	UpdateRandaoMixAtIndex(index uint64, mix common.Bytes32) error
+	UpdateRandaoMixAtIndex(index uint64, mix chain.Bytes32) error
 	// UpdateValidatorAtIndex updates the validator at the given index.
 	UpdateValidatorAtIndex(
 		index math.ValidatorIndex,

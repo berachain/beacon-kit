@@ -30,6 +30,7 @@ import (
 	"io"
 	"testing"
 
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -123,8 +124,8 @@ func generateValidBeaconState() *types.BeaconState[
 	}
 }
 
-func generateRandomBytes32(count int) []common.Bytes32 {
-	result := make([]common.Bytes32, count)
+func generateRandomBytes32(count int) []chain.Bytes32 {
+	result := make([]chain.Bytes32, count)
 	for i := range result {
 		var randomBytes [32]byte
 		for j := range randomBytes {

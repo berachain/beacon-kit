@@ -24,12 +24,12 @@ import (
 	"os"
 
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	clicontext "github.com/berachain/beacon-kit/cli/context"
 	"github.com/berachain/beacon-kit/cli/utils/parser"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-core/components"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/spf13/cobra"
@@ -39,7 +39,7 @@ import (
 func NewCreateValidator[
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 ](
-	chainSpec common.ChainSpec,
+	chainSpec chain.ChainSpec,
 ) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-validator",
@@ -69,7 +69,7 @@ func NewCreateValidator[
 func createValidatorCmd[
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 ](
-	chainSpec common.ChainSpec,
+	chainSpec chain.ChainSpec,
 ) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		logger := log.NewLogger(os.Stdout)

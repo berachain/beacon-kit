@@ -26,6 +26,7 @@
 package types
 
 import (
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/primitives/common"
 )
 
@@ -34,7 +35,7 @@ const EthSecp256k1CredentialPrefix = byte(iota + 1)
 
 // WithdrawalCredentials is a staking credential that is used to identify a
 // validator.
-type WithdrawalCredentials common.Bytes32
+type WithdrawalCredentials chain.Bytes32
 
 // NewCredentialsFromExecutionAddress creates a new WithdrawalCredentials from
 // an.
@@ -61,23 +62,23 @@ func (wc WithdrawalCredentials) ToExecutionAddress() (
 // UnmarshalJSON implements the json.Unmarshaler interface for Bytes32.
 // TODO: Figure out how to not have to do this.
 func (wc *WithdrawalCredentials) UnmarshalJSON(input []byte) error {
-	return (*common.Bytes32)(wc).UnmarshalJSON(input)
+	return (*chain.Bytes32)(wc).UnmarshalJSON(input)
 }
 
 // String returns the hex string representation of Bytes32.
 // TODO: Figure out how to not have to do this.
 func (wc WithdrawalCredentials) String() string {
-	return common.Bytes32(wc).String()
+	return chain.Bytes32(wc).String()
 }
 
 // MarshalText implements the encoding.TextMarshaler interface for Bytes32.
 // TODO: Figure out how to not have to do this.
 func (wc WithdrawalCredentials) MarshalText() ([]byte, error) {
-	return common.Bytes32(wc).MarshalText()
+	return chain.Bytes32(wc).MarshalText()
 }
 
 // UnmarshalText implements the encoding.TextUnmarshaler interface for Bytes32.
 // TODO: Figure out how to not have to do this.
 func (wc *WithdrawalCredentials) UnmarshalText(text []byte) error {
-	return (*common.Bytes32)(wc).UnmarshalText(text)
+	return (*chain.Bytes32)(wc).UnmarshalText(text)
 }

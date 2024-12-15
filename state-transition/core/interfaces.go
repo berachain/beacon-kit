@@ -23,6 +23,7 @@ package core
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -39,7 +40,7 @@ type BeaconState[
 ] interface {
 	NewFromDB(
 		bdb KVStoreT,
-		cs common.ChainSpec,
+		cs chain.ChainSpec,
 	) T
 	Copy() T
 	Context() context.Context
@@ -114,13 +115,13 @@ type ReadOnlyStateRoots interface {
 // WriteOnlyRandaoMixes defines a struct which only has write access to randao
 // mixes methods.
 type WriteOnlyRandaoMixes interface {
-	UpdateRandaoMixAtIndex(uint64, common.Bytes32) error
+	UpdateRandaoMixAtIndex(uint64, chain.Bytes32) error
 }
 
 // ReadOnlyRandaoMixes defines a struct which only has read access to randao
 // mixes methods.
 type ReadOnlyRandaoMixes interface {
-	GetRandaoMixAtIndex(uint64) (common.Bytes32, error)
+	GetRandaoMixAtIndex(uint64) (chain.Bytes32, error)
 }
 
 // WriteOnlyValidators has write access to validator methods.

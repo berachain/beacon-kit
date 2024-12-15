@@ -23,10 +23,10 @@ package blob
 import (
 	"time"
 
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/kzg"
 	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
@@ -45,7 +45,7 @@ type Processor[
 	// logger is used to log information and errors.
 	logger log.Logger
 	// chainSpec defines the specifications of the blockchain.
-	chainSpec common.ChainSpec
+	chainSpec chain.ChainSpec
 	// verifier is responsible for verifying the blobs.
 	verifier *verifier[
 		BlobSidecarT,
@@ -53,7 +53,7 @@ type Processor[
 	]
 	// blockBodyOffsetFn is a function that calculates the block body offset
 	// based on the slot and chain specifications.
-	blockBodyOffsetFn func(math.Slot, common.ChainSpec) (uint64, error)
+	blockBodyOffsetFn func(math.Slot, chain.ChainSpec) (uint64, error)
 	// metrics is used to collect and report processor metrics.
 	metrics *processorMetrics
 }
@@ -69,9 +69,9 @@ func NewProcessor[
 	BlobSidecarsT Sidecars[BlobSidecarT],
 ](
 	logger log.Logger,
-	chainSpec common.ChainSpec,
+	chainSpec chain.ChainSpec,
 	proofVerifier kzg.BlobProofVerifier,
-	blockBodyOffsetFn func(math.Slot, common.ChainSpec) (uint64, error),
+	blockBodyOffsetFn func(math.Slot, chain.ChainSpec) (uint64, error),
 	telemetrySink TelemetrySink,
 ) *Processor[
 	AvailabilityStoreT, BeaconBlockBodyT,

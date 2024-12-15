@@ -21,6 +21,7 @@
 package types
 
 import (
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -44,7 +45,7 @@ type DepositMessage struct {
 // CreateAndSignDepositMessage constructs and signs a deposit message.
 func CreateAndSignDepositMessage(
 	forkData *ForkData,
-	domainType common.DomainType,
+	domainType chain.DomainType,
 	signer crypto.BLSSigner,
 	credentials WithdrawalCredentials,
 	amount math.Gwei,
@@ -123,7 +124,7 @@ func (dm *DepositMessage) UnmarshalSSZ(buf []byte) error {
 func (dm *DepositMessage) VerifyCreateValidator(
 	forkData *ForkData,
 	signature crypto.BLSSignature,
-	domainType common.DomainType,
+	domainType chain.DomainType,
 	signatureVerificationFn func(
 		pubkey crypto.BLSPubkey, message []byte, signature crypto.BLSSignature,
 	) error,

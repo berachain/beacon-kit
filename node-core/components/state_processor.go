@@ -22,11 +22,11 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/execution/engine"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/state-transition/core"
 )
@@ -42,7 +42,7 @@ type StateProcessorInput[
 ] struct {
 	depinject.In
 	Logger          LoggerT
-	ChainSpec       common.ChainSpec
+	ChainSpec       chain.ChainSpec
 	ExecutionEngine *engine.Engine[
 		ExecutionPayloadT,
 		*engineprimitives.PayloadAttributes,

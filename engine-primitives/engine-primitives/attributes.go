@@ -21,6 +21,7 @@
 package engineprimitives
 
 import (
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -46,7 +47,7 @@ type PayloadAttributes struct {
 	Timestamp math.U64 `json:"timestamp"`
 	// PrevRandao is the previous Randao value from the beacon chain as
 	// per EIP-4399.
-	PrevRandao common.Bytes32 `json:"prevRandao"`
+	PrevRandao chain.Bytes32 `json:"prevRandao"`
 	// SuggestedFeeRecipient is the suggested fee recipient for the block. If
 	// the execution client has a different fee recipient, it will typically
 	// ignore this value.
@@ -65,7 +66,7 @@ type PayloadAttributes struct {
 func (p *PayloadAttributes) New(
 	forkVersion uint32,
 	timestamp uint64,
-	prevRandao common.Bytes32,
+	prevRandao chain.Bytes32,
 	suggestedFeeRecipient common.ExecutionAddress,
 	withdrawals Withdrawals,
 	parentBeaconBlockRoot common.Root,
