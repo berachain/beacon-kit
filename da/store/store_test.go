@@ -21,16 +21,16 @@
 package store_test
 
 import (
+	"os"
+	"testing"
+
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/store"
-	"github.com/stretchr/testify/require"
-	"os"
-
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/storage/filedb"
-	"testing"
+	"github.com/stretchr/testify/require"
 )
 
 func TestStore_PersistRace(t *testing.T) {
