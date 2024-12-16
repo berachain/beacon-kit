@@ -92,14 +92,12 @@ func (s *Service[
 	// STEP 4: Post Finalizations cleanups
 
 	// fetch and store the deposit for the block
-	blockNum := blk.GetBody().GetExecutionPayload().GetNumber()
-	s.depositFetcher(ctx, blockNum)
+	s.depositFetcher(ctx, blk.GetBody().GetExecutionPayload().GetNumber())
 
 	// store the finalized block in the KVStore.
-	slot := blk.GetSlot()
 	if err = s.blockStore.Set(blk); err != nil {
 		s.logger.Error(
-			"failed to store block", "slot", slot, "error", err,
+			"failed to store block", "slot", blk.GetSlot(), "error", err,
 		)
 	}
 
