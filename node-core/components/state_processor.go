@@ -36,23 +36,19 @@ import (
 type StateProcessorInput[
 	LoggerT log.AdvancedLogger[LoggerT],
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-	DepositT Deposit[DepositT, *ForkData],
-	WithdrawalT Withdrawal[WithdrawalT],
-	WithdrawalsT Withdrawals[WithdrawalT],
 ] struct {
 	depinject.In
 	Logger          LoggerT
 	ChainSpec       common.ChainSpec
 	ExecutionEngine *engine.Engine[
 		ExecutionPayloadT,
-		*engineprimitives.PayloadAttributes[WithdrawalT],
+		*engineprimitives.PayloadAttributes,
 		PayloadID,
-		WithdrawalsT,
 	]
-	DepositStore  DepositStore[DepositT]
+	DepositStore  DepositStore
 	Signer        crypto.BLSSigner
 	TelemetrySink *metrics.TelemetrySink
 }
@@ -63,54 +59,40 @@ func ProvideStateProcessor[
 	LoggerT log.AdvancedLogger[LoggerT],
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT, *AttestationData, DepositT,
+		BeaconBlockBodyT,
 		ExecutionPayloadT, *SlashingInfo,
 	],
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconStateMarshallableT,
-		ExecutionPayloadHeaderT, *Fork, KVStoreT, *Validator,
-		Validators, WithdrawalT,
+		ExecutionPayloadHeaderT, KVStoreT,
 	],
 	BeaconStateMarshallableT any,
-	DepositT Deposit[DepositT, *ForkData],
-	DepositStoreT DepositStore[DepositT],
+	DepositStoreT DepositStore,
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	KVStoreT BeaconStore[
 		KVStoreT, ExecutionPayloadHeaderT,
-		*Fork, *Validator, Validators, WithdrawalT,
 	],
-	WithdrawalsT Withdrawals[WithdrawalT],
-	WithdrawalT Withdrawal[WithdrawalT],
 ](
 	in StateProcessorInput[
 		LoggerT,
 		ExecutionPayloadT, ExecutionPayloadHeaderT,
-		DepositT, WithdrawalT, WithdrawalsT,
 	],
 ) *core.StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, *Context, DepositT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, *Fork, *ForkData, KVStoreT, *Validator,
-	Validators, WithdrawalT, WithdrawalsT,
+	BeaconStateT, *Context, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, KVStoreT,
 ] {
 	return core.NewStateProcessor[
 		BeaconBlockT,
 		BeaconBlockBodyT,
 		BeaconStateT,
 		*Context,
-		DepositT,
 		ExecutionPayloadT,
 		ExecutionPayloadHeaderT,
-		*Fork,
-		*ForkData,
 		KVStoreT,
-		*Validator,
-		Validators,
-		WithdrawalT,
-		WithdrawalsT,
 	](
 		in.Logger.With("service", "state-processor"),
 		in.ChainSpec,

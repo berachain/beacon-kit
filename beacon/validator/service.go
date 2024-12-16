@@ -31,21 +31,18 @@ import (
 
 // Service is responsible for building beacon blocks and sidecars.
 type Service[
-	AttestationDataT any,
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[
-		AttestationDataT, DepositT, ExecutionPayloadT, SlashingInfoT,
+		ExecutionPayloadT, SlashingInfoT,
 	],
 	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
-	DepositT any,
-	DepositStoreT DepositStore[DepositT],
+	DepositStoreT DepositStore,
 	ExecutionPayloadT any,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	ForkDataT ForkData[ForkDataT],
 	SlashingInfoT any,
-	SlotDataT SlotData[AttestationDataT, SlashingInfoT],
+	SlotDataT SlotData[SlashingInfoT],
 ] struct {
 	// cfg is the validator config.
 	cfg *Config
@@ -80,21 +77,18 @@ type Service[
 
 // NewService creates a new validator service.
 func NewService[
-	AttestationDataT any,
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[
-		AttestationDataT, DepositT, ExecutionPayloadT, SlashingInfoT,
+		ExecutionPayloadT, SlashingInfoT,
 	],
 	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
-	DepositT any,
-	DepositStoreT DepositStore[DepositT],
+	DepositStoreT DepositStore,
 	ExecutionPayloadT any,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	ForkDataT ForkData[ForkDataT],
 	SlashingInfoT any,
-	SlotDataT SlotData[AttestationDataT, SlashingInfoT],
+	SlotDataT SlotData[SlashingInfoT],
 ](
 	cfg *Config,
 	logger log.Logger,
@@ -112,15 +106,15 @@ func NewService[
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT],
 	ts TelemetrySink,
 ) *Service[
-	AttestationDataT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarT, BlobSidecarsT, DepositT, DepositStoreT,
-	ExecutionPayloadT, ExecutionPayloadHeaderT, ForkDataT, SlashingInfoT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarT, BlobSidecarsT, DepositStoreT,
+	ExecutionPayloadT, ExecutionPayloadHeaderT, SlashingInfoT,
 	SlotDataT,
 ] {
 	return &Service[
-		AttestationDataT, BeaconBlockT, BeaconBlockBodyT,
-		BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositT, DepositStoreT,
-		ExecutionPayloadT, ExecutionPayloadHeaderT, ForkDataT, SlashingInfoT,
+		BeaconBlockT, BeaconBlockBodyT,
+		BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositStoreT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT, SlashingInfoT,
 		SlotDataT,
 	]{
 		cfg:                   cfg,
@@ -138,19 +132,19 @@ func NewService[
 
 // Name returns the name of the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _,
 ]) Name() string {
 	return "validator"
 }
 
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _,
 ]) Start(
 	_ context.Context,
 ) error {
 	return nil
 }
 
-func (s *Service[_, _, _, _, _, _, _, _, _, _, _, _, _]) Stop() error {
+func (s *Service[_, _, _, _, _, _, _, _, _, _]) Stop() error {
 	return nil
 }

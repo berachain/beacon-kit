@@ -39,16 +39,13 @@ func ProvideSidecarFactory[
 		BeaconBlockT, BeaconBlockBodyT,
 	],
 	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT, *AttestationData, DepositT,
+		BeaconBlockBodyT,
 		ExecutionPayloadT, *SlashingInfo,
 	],
-	DepositT any,
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-	WithdrawalsT Withdrawals[WithdrawalT],
-	WithdrawalT Withdrawal[WithdrawalT],
 ](in SidecarFactoryInput) *dablob.SidecarFactory[
 	BeaconBlockT, BeaconBlockBodyT,
 ] {

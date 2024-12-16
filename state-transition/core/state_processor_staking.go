@@ -22,6 +22,7 @@ package core
 
 import (
 	"github.com/berachain/beacon-kit/config/spec"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -32,7 +33,7 @@ import (
 // processOperations processes the operations and ensures they match the
 // local state.
 func (sp *StateProcessor[
-	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _,
+	BeaconBlockT, _, BeaconStateT, _, _, _, _,
 ]) processOperations(
 	st BeaconStateT,
 	blk BeaconBlockT,
@@ -64,10 +65,10 @@ func (sp *StateProcessor[
 
 // processDeposit processes the deposit and ensures it matches the local state.
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, DepositT, _, _, _, _, _, _, _, _, _,
+	_, _, BeaconStateT, _, _, _, _,
 ]) processDeposit(
 	st BeaconStateT,
-	dep DepositT,
+	dep *ctypes.Deposit,
 ) error {
 	slot, err := st.GetSlot()
 	if err != nil {
@@ -106,10 +107,10 @@ func (sp *StateProcessor[
 
 // applyDeposit processes the deposit and ensures it matches the local state.
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, DepositT, _, _, _, _, _, ValidatorT, _, _, _,
+	_, _, BeaconStateT, _, _, _, _,
 ]) applyDeposit(
 	st BeaconStateT,
-	dep DepositT,
+	dep *ctypes.Deposit,
 ) error {
 	idx, err := st.ValidatorIndexByPubkey(dep.GetPubkey())
 	if err != nil {
@@ -117,6 +118,34 @@ func (sp *StateProcessor[
 		// TODO: improve error handling by distinguishing
 		// ErrNotFound from other kind of errors
 		return sp.createValidator(st, dep)
+	}
+
+	// The validator already exist and we need to update its balance.
+	// EffectiveBalance must be updated in processEffectiveBalanceUpdates
+	// However before BoonetFork2Height we mistakenly update EffectiveBalance
+	// every slot. We must preserve backward compatibility so we special case
+	// Boonet to allow proper bootstrapping.
+	slot, err := st.GetSlot()
+	if err != nil {
+		return err
+	}
+	if sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
+		slot < math.U64(spec.BoonetFork2Height) {
+		var val *ctypes.Validator
+		val, err = st.ValidatorByIndex(idx)
+		if err != nil {
+			return err
+		}
+
+		updatedBalance := ctypes.ComputeEffectiveBalance(
+			val.GetEffectiveBalance()+dep.GetAmount(),
+			math.Gwei(sp.cs.EffectiveBalanceIncrement()),
+			math.Gwei(sp.cs.MaxEffectiveBalance(false)),
+		)
+		val.SetEffectiveBalance(updatedBalance)
+		if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
+			return err
+		}
 	}
 
 	// if validator exist, just update its balance
@@ -134,10 +163,10 @@ func (sp *StateProcessor[
 
 // createValidator creates a validator if the deposit is valid.
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, DepositT, _, _, _, ForkDataT, _, _, _, _, _,
+	_, _, BeaconStateT, _, _, _, _,
 ]) createValidator(
 	st BeaconStateT,
-	dep DepositT,
+	dep *ctypes.Deposit,
 ) error {
 	// Get the current slot.
 	slot, err := st.GetSlot()
@@ -169,16 +198,16 @@ func (sp *StateProcessor[
 	}
 
 	// Verify that the message was signed correctly.
-	var d ForkDataT
-	if err = dep.VerifySignature(
-		d.New(
+	err = dep.VerifySignature(
+		ctypes.NewForkData(
 			version.FromUint32[common.Version](
 				sp.cs.ActiveForkVersionForEpoch(epoch),
 			), genesisValidatorsRoot,
 		),
 		sp.cs.DomainTypeDeposit(),
 		sp.signer.VerifySignature,
-	); err != nil {
+	)
+	if err != nil {
 		// Ignore deposits that fail the signature check.
 		sp.logger.Info(
 			"failed deposit signature verification",
@@ -194,13 +223,13 @@ func (sp *StateProcessor[
 
 // addValidatorToRegistry adds a validator to the registry.
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, DepositT, _, _, _, _, _, ValidatorT, _, _, _,
+	_, _, BeaconStateT, _, _, _, _,
 ]) addValidatorToRegistry(
 	st BeaconStateT,
-	dep DepositT,
+	dep *ctypes.Deposit,
 	slot math.Slot,
 ) error {
-	var val ValidatorT
+	var val *ctypes.Validator
 	val = val.New(
 		dep.GetPubkey(),
 		dep.GetWithdrawalCredentials(),

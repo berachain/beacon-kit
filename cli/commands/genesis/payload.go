@@ -83,9 +83,7 @@ func AddExecutionPayloadCmd(chainSpec common.ChainSpec) *cobra.Command {
 				return err
 			}
 
-			genesisInfo := &types.Genesis[
-				*types.Deposit, *types.ExecutionPayloadHeader,
-			]{}
+			genesisInfo := &types.Genesis[*types.ExecutionPayloadHeader]{}
 
 			if err = json.Unmarshal(
 				appGenesisState["beacon"], genesisInfo,
@@ -134,7 +132,7 @@ func executableDataToExecutionPayloadHeader(
 	switch forkVersion {
 	case version.Deneb, version.DenebPlus:
 		withdrawals := make(
-			[]*engineprimitives.Withdrawal,
+			engineprimitives.Withdrawals,
 			len(data.Withdrawals),
 		)
 		for i, withdrawal := range data.Withdrawals {
@@ -182,11 +180,9 @@ func executableDataToExecutionPayloadHeader(
 			TransactionsRoot: engineprimitives.Transactions(
 				data.Transactions,
 			).HashTreeRoot(),
-			WithdrawalsRoot: engineprimitives.Withdrawals(
-				withdrawals,
-			).HashTreeRoot(),
-			BlobGasUsed:   math.U64(blobGasUsed),
-			ExcessBlobGas: math.U64(excessBlobGas),
+			WithdrawalsRoot: withdrawals.HashTreeRoot(),
+			BlobGasUsed:     math.U64(blobGasUsed),
+			ExcessBlobGas:   math.U64(excessBlobGas),
 		}
 	default:
 		return nil, types.ErrForkVersionNotSupported

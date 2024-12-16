@@ -29,7 +29,7 @@ import (
 )
 
 // ExecutionPayload represents the payload of an execution block.
-type ExecutionPayload[ExecutionPayloadT, WithdrawalsT any] interface {
+type ExecutionPayload[ExecutionPayloadT any] interface {
 	constraints.EngineType[ExecutionPayloadT]
 	GetPrevRandao() common.Bytes32
 	GetBlockHash() common.ExecutionHash
@@ -46,7 +46,7 @@ type ExecutionPayload[ExecutionPayloadT, WithdrawalsT any] interface {
 	GetLogsBloom() bytes.B256
 	GetBlobGasUsed() math.U64
 	GetExcessBlobGas() math.U64
-	GetWithdrawals() WithdrawalsT
+	GetWithdrawals() engineprimitives.Withdrawals
 	GetTransactions() engineprimitives.Transactions
 }
 
@@ -58,7 +58,7 @@ type TelemetrySink interface {
 }
 
 // Withdrawal is the interface for a withdrawal.
-type Withdrawal[WithdrawalT any] interface {
+type Withdrawal interface {
 	// GetAmount returns the amount of the withdrawal.
 	GetAmount() math.Gwei
 	// GetIndex returns the public key of the validator.

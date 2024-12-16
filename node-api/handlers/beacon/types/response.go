@@ -58,10 +58,10 @@ type RootData struct {
 	Root common.Root `json:"root"`
 }
 
-type ValidatorData[ValidatorT any] struct {
+type ValidatorData struct {
 	ValidatorBalanceData
-	Status    string     `json:"status"`
-	Validator ValidatorT `json:"validator"`
+	Status    string            `json:"status"`
+	Validator *ctypes.Validator `json:"validator"`
 }
 
 type ValidatorBalanceData struct {
