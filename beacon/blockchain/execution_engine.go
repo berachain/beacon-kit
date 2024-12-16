@@ -50,7 +50,7 @@ func (s *Service[
 	// Send a forkchoice update without payload attributes to notify
 	// EL of the new head.
 	beaconBlk := blk.GetBeaconBlock()
-	if _, _, err := s.executionEngine.NotifyForkchoiceUpdate(
+	if _, _, err = s.executionEngine.NotifyForkchoiceUpdate(
 		ctx,
 		// TODO: Switch to New().
 		engineprimitives.
