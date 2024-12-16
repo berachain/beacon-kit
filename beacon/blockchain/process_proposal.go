@@ -72,6 +72,13 @@ func (s *Service[
 		return createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
 
+	// In theory, swapping the order of verification between the sidecars
+	// and the incoming block should not introduce any inconsistencies
+	// in the state on which the sidecar verification depends on (notably
+	// the currently active fork). ProcessProposal should only
+	// keep the state changes as candidates (which is what we do in
+	// VerifyIncomingBlock).
+
 	// Process the blob sidecars, if any
 	if !sidecars.IsNil() && sidecars.Len() > 0 {
 		var consensusSidecars *types.ConsensusSidecars[BlobSidecarsT]

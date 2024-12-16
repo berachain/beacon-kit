@@ -27,9 +27,6 @@ import (
 	"github.com/karalabe/ssz"
 )
 
-// Total size: Header (112) + Signature (96).
-const SignedBeaconBlockHeaderSize = 208
-
 var (
 	_ ssz.StaticObject                    = (*SignedBeaconBlockHeader)(nil)
 	_ constraints.SSZMarshallableRootable = (*SignedBeaconBlockHeader)(nil)
@@ -74,7 +71,7 @@ func (b *SignedBeaconBlockHeader) New(
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the SignedBeaconBlockHeader object
-// in SSZ encoding.
+// in SSZ encoding. Total size: Header (112) + Signature (96).
 func (b *SignedBeaconBlockHeader) SizeSSZ(sizer *ssz.Sizer) uint32 {
 	//nolint:mnd // no magic
 	size := (*BeaconBlockHeader)(nil).SizeSSZ(sizer) + 96
