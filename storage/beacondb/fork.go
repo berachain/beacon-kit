@@ -20,20 +20,16 @@
 
 package beacondb
 
+import ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+
 // SetFork sets the fork version for the given epoch.
-func (kv *KVStore[
-	ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
-]) SetFork(
-	fork ForkT,
+func (kv *KVStore[ExecutionPayloadHeaderT]) SetFork(
+	fork *ctypes.Fork,
 ) error {
 	return kv.fork.Set(kv.ctx, fork)
 }
 
 // GetFork gets the fork version for the given epoch.
-func (kv *KVStore[
-	ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
-]) GetFork() (ForkT, error) {
+func (kv *KVStore[ExecutionPayloadHeaderT]) GetFork() (*ctypes.Fork, error) {
 	return kv.fork.Get(kv.ctx)
 }

@@ -43,13 +43,10 @@ type DepositStoreInput[
 // ProvideDepositStore is a function that provides the module to the
 // application.
 func ProvideDepositStore[
-	DepositT Deposit[
-		DepositT, *ForkData,
-	],
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	in DepositStoreInput[LoggerT],
-) (*depositstore.KVStore[DepositT], error) {
+) (*depositstore.KVStore, error) {
 	name := "deposits"
 	dir := cast.ToString(in.AppOpts.Get(flags.FlagHome)) + "/data"
 	kvp, err := storev2.NewDB(storev2.DBTypePebbleDB, name, dir, nil)
@@ -57,7 +54,7 @@ func ProvideDepositStore[
 		return nil, err
 	}
 
-	return depositstore.NewStore[DepositT](
+	return depositstore.NewStore(
 		storage.NewKVStoreProvider(kvp),
 		in.Logger.With("service", "deposit-store"),
 	), nil

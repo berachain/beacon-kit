@@ -40,11 +40,11 @@ import (
 
 // BuildBlockAndSidecars builds a new beacon block.
 func (s *Service[
-	AttestationDataT, BeaconBlockT, _, _, _, BlobSidecarsT,
-	_, _, _, _, _, SlashingInfoT, SlotDataT,
+	BeaconBlockT, _, _, _, BlobSidecarsT,
+	_, _, _, SlashingInfoT, SlotDataT,
 ]) BuildBlockAndSidecars(
 	ctx context.Context,
-	slotData types.SlotData[ctypes.AttestationData, ctypes.SlashingInfo],
+	slotData types.SlotData[ctypes.SlashingInfo],
 ) ([]byte, []byte, error) {
 	startTime := time.Now()
 	defer s.metrics.measureRequestBlockForProposalTime(startTime)
@@ -134,7 +134,7 @@ func (s *Service[
 
 // getEmptyBeaconBlockForSlot creates a new empty block.
 func (s *Service[
-	_, BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
+	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _,
 ]) getEmptyBeaconBlockForSlot(
 	st BeaconStateT, requestedSlot math.Slot,
 ) (BeaconBlockT, error) {
@@ -166,14 +166,13 @@ func (s *Service[
 
 // buildRandaoReveal builds a randao reveal for the given slot.
 func (s *Service[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, ForkDataT, _, _,
+	_, _, BeaconStateT, _, _, _, _, _, _, _,
 ]) buildRandaoReveal(
 	st BeaconStateT,
 	slot math.Slot,
 ) (crypto.BLSSignature, error) {
 	var (
-		forkData ForkDataT
-		epoch    = s.chainSpec.SlotToEpoch(slot)
+		epoch = s.chainSpec.SlotToEpoch(slot)
 	)
 
 	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
@@ -181,7 +180,7 @@ func (s *Service[
 		return crypto.BLSSignature{}, err
 	}
 
-	signingRoot := forkData.New(
+	signingRoot := ctypes.NewForkData(
 		version.FromUint32[common.Version](
 			s.chainSpec.ActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,
@@ -194,13 +193,13 @@ func (s *Service[
 
 // retrieveExecutionPayload retrieves the execution payload for the block.
 func (s *Service[
-	AttestationDataT, BeaconBlockT, _, BeaconStateT, _, _, _, _,
-	ExecutionPayloadT, ExecutionPayloadHeaderT, _, SlashingInfoT, SlotDataT,
+	BeaconBlockT, _, BeaconStateT, _, _, _,
+	ExecutionPayloadT, ExecutionPayloadHeaderT, SlashingInfoT, SlotDataT,
 ]) retrieveExecutionPayload(
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
-	slotData types.SlotData[ctypes.AttestationData, ctypes.SlashingInfo],
+	slotData types.SlotData[ctypes.SlashingInfo],
 ) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
 	//
 	// TODO: Add external block builders to this flow.
@@ -255,15 +254,15 @@ func (s *Service[
 
 // BuildBlockBody assembles the block body with necessary components.
 func (s *Service[
-	AttestationDataT, BeaconBlockT, _, BeaconStateT, _, _, _, _,
-	ExecutionPayloadT, _, _, SlashingInfoT, SlotDataT,
+	BeaconBlockT, _, BeaconStateT, _, _, _,
+	ExecutionPayloadT, _, SlashingInfoT, SlotDataT,
 ]) buildBlockBody(
 	_ context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
 	reveal crypto.BLSSignature,
 	envelope engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT],
-	slotData types.SlotData[ctypes.AttestationData, ctypes.SlashingInfo],
+	slotData types.SlotData[ctypes.SlashingInfo],
 ) error {
 	// Assemble a new block with the payload.
 	body := blk.GetBody()
@@ -333,13 +332,7 @@ func (s *Service[
 		epoch,
 	)
 	if activeForkVersion >= version.DenebPlus {
-		// Set the attestations on the block body.
-		// TODO: Remove conversion once generics have been replaced with
-		// concrete types.
-		attestions := convertAttestationData[AttestationDataT](
-			slotData.GetAttestationData(),
-		)
-		body.SetAttestations(attestions)
+		body.SetAttestations(slotData.GetAttestationData())
 
 		// Set the slashing info on the block body.
 		// TODO: Remove conversion once generics have been replaced with
@@ -357,7 +350,7 @@ func (s *Service[
 // computeAndSetStateRoot computes the state root of an outgoing block
 // and sets it in the block.
 func (s *Service[
-	_, BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
+	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _,
 ]) computeAndSetStateRoot(
 	ctx context.Context,
 	proposerAddress []byte,
@@ -386,7 +379,7 @@ func (s *Service[
 
 // computeStateRoot computes the state root of an outgoing block.
 func (s *Service[
-	_, BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
+	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _,
 ]) computeStateRoot(
 	ctx context.Context,
 	proposerAddress []byte,
@@ -415,27 +408,6 @@ func (s *Service[
 	}
 
 	return st.HashTreeRoot(), nil
-}
-
-func convertAttestationData[
-	AttestationDataT any,
-](
-	data []ctypes.AttestationData,
-) []AttestationDataT {
-	converted := make([]AttestationDataT, len(data))
-	for i, d := range data {
-		val, ok := any(d).(AttestationDataT)
-		if !ok {
-			panic(
-				fmt.Sprintf(
-					"failed to convert attestation data at index %d",
-					i,
-				),
-			)
-		}
-		converted[i] = val
-	}
-	return converted
 }
 
 func convertSlashingInfo[

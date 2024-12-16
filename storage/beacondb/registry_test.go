@@ -198,12 +198,7 @@ func TestValidators(t *testing.T) {
 }
 
 func initTestStore() (
-	*beacondb.KVStore[
-		*types.ExecutionPayloadHeader,
-		*types.Fork,
-		*types.Validator,
-		[]*types.Validator,
-	], error) {
+	*beacondb.KVStore[*types.ExecutionPayloadHeader], error) {
 	db, err := db.OpenDB("", dbm.MemDBBackend)
 	if err != nil {
 		return nil, fmt.Errorf("failed opening mem db: %w", err)
@@ -228,12 +223,7 @@ func initTestStore() (
 		ctx: ctx,
 	}
 
-	return beacondb.New[
-		*types.ExecutionPayloadHeader,
-		*types.Fork,
-		*types.Validator,
-		[]*types.Validator,
-	](
+	return beacondb.New[*types.ExecutionPayloadHeader](
 		testStoreService,
 		testCodec,
 	), nil

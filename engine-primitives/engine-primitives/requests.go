@@ -21,7 +21,6 @@
 package engineprimitives
 
 import (
-	stdbytes "bytes"
 	"math/big"
 	"unsafe"
 
@@ -53,12 +52,8 @@ type NewPayloadRequest[
 		GetLogsBloom() bytes.B256
 		GetBlobGasUsed() math.U64
 		GetExcessBlobGas() math.U64
-		GetWithdrawals() WithdrawalsT
+		GetWithdrawals() Withdrawals
 		GetTransactions() Transactions
-	},
-	WithdrawalsT interface {
-		Len() int
-		EncodeIndex(int, *stdbytes.Buffer)
 	},
 ] struct {
 	// ExecutionPayload is the payload to the execution client.
@@ -91,27 +86,16 @@ func BuildNewPayloadRequest[
 		GetLogsBloom() bytes.B256
 		GetBlobGasUsed() math.U64
 		GetExcessBlobGas() math.U64
-		GetWithdrawals() WithdrawalsT
+		GetWithdrawals() Withdrawals
 		GetTransactions() Transactions
-	},
-	WithdrawalT interface {
-		GetIndex() math.U64
-		GetAmount() math.U64
-		GetAddress() common.ExecutionAddress
-		GetValidatorIndex() math.U64
-	},
-	WithdrawalsT interface {
-		~[]WithdrawalT
-		Len() int
-		EncodeIndex(int, *stdbytes.Buffer)
 	},
 ](
 	executionPayload ExecutionPayloadT,
 	versionedHashes []common.ExecutionHash,
 	parentBeaconBlockRoot *common.Root,
 	optimistic bool,
-) *NewPayloadRequest[ExecutionPayloadT, WithdrawalsT] {
-	return &NewPayloadRequest[ExecutionPayloadT, WithdrawalsT]{
+) *NewPayloadRequest[ExecutionPayloadT] {
+	return &NewPayloadRequest[ExecutionPayloadT]{
 		ExecutionPayload:      executionPayload,
 		VersionedHashes:       versionedHashes,
 		ParentBeaconBlockRoot: parentBeaconBlockRoot,
@@ -124,7 +108,7 @@ func BuildNewPayloadRequest[
 // As per the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/v1.4.0-beta.2/specs/deneb/beacon-chain.md#is_valid_block_hash
 // https://github.com/ethereum/consensus-specs/blob/v1.4.0-beta.2/specs/deneb/beacon-chain.md#is_valid_versioned_hashes
-func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalsT]) HasValidVersionedAndBlockHashes() error {
+func (n *NewPayloadRequest[ExecutionPayloadT]) HasValidVersionedAndBlockHashes() error {
 	var (
 		blobHashes = make([]gethprimitives.ExecutionHash, 0)
 		payload    = n.ExecutionPayload

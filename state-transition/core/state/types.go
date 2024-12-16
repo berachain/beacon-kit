@@ -31,9 +31,7 @@ import (
 // with generic types.
 type BeaconStateMarshallable[
 	T any,
-	ExecutionPayloadHeaderT,
-	ForkT,
-	ValidatorT any,
+	ExecutionPayloadHeaderT any,
 ] interface {
 	constraints.SSZMarshallableRootable
 	// New returns a new instance of the BeaconStateMarshallable.
@@ -41,14 +39,14 @@ type BeaconStateMarshallable[
 		forkVersion uint32,
 		genesisValidatorsRoot common.Root,
 		slot math.U64,
-		fork ForkT,
+		fork *ctypes.Fork,
 		latestBlockHeader *ctypes.BeaconBlockHeader,
 		blockRoots []common.Root,
 		stateRoots []common.Root,
 		eth1Data *ctypes.Eth1Data,
 		eth1DepositIndex uint64,
 		latestExecutionPayloadHeader ExecutionPayloadHeaderT,
-		validators []ValidatorT,
+		validators []*ctypes.Validator,
 		balances []uint64,
 		randaoMixes []common.Bytes32,
 		nextWithdrawalIndex uint64,

@@ -41,23 +41,20 @@ type AttributesFactoryInput[LoggerT any] struct {
 func ProvideAttributesFactory[
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconStateMarshallableT,
-		ExecutionPayloadHeaderT, *Fork, KVStoreT,
-		*Validator, Validators, WithdrawalT,
+		ExecutionPayloadHeaderT, KVStoreT,
 	],
 	BeaconStateMarshallableT any,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	KVStoreT any,
 	LoggerT log.Logger,
-	WithdrawalT Withdrawal[WithdrawalT],
 ](
 	in AttributesFactoryInput[LoggerT],
 ) (*attributes.Factory[
-	BeaconStateT, *engineprimitives.PayloadAttributes[WithdrawalT], WithdrawalT,
+	BeaconStateT, *engineprimitives.PayloadAttributes,
 ], error) {
 	return attributes.NewAttributesFactory[
 		BeaconStateT,
-		*engineprimitives.PayloadAttributes[WithdrawalT],
-		WithdrawalT,
+		*engineprimitives.PayloadAttributes,
 	](
 		in.ChainSpec,
 		in.Logger,

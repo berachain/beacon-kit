@@ -37,11 +37,10 @@ import (
 func ProveExecutionNumberInBlock[
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
 	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
-	ValidatorT any,
 ](
 	bbh *ctypes.BeaconBlockHeader,
 	bs types.BeaconState[
-		BeaconStateMarshallableT, ExecutionPayloadHeaderT, ValidatorT,
+		BeaconStateMarshallableT, ExecutionPayloadHeaderT,
 	],
 ) ([]common.Root, common.Root, error) {
 	// Get the proof of the execution number in the beacon state.
@@ -73,10 +72,9 @@ func ProveExecutionNumberInBlock[
 func ProveExecutionNumberInState[
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
 	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
-	ValidatorT any,
 ](
 	bs types.BeaconState[
-		BeaconStateMarshallableT, ExecutionPayloadHeaderT, ValidatorT,
+		BeaconStateMarshallableT, ExecutionPayloadHeaderT,
 	],
 ) ([]common.Root, common.Root, error) {
 	bsm, err := bs.GetMarshallable()

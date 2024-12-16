@@ -32,16 +32,12 @@ import (
 type BeaconState[
 	ExecutionPayloadHeaderT constraints.
 		DynamicSSZField[ExecutionPayloadHeaderT, P],
-	ForkT constraints.
-		StaticSSZField[ForkT, F],
-	ValidatorT constraints.
-		StaticSSZField[ValidatorT, V],
-	P, F, V any,
+	P any,
 ] struct {
 	// Versioning
 	GenesisValidatorsRoot common.Root
 	Slot                  math.Slot
-	Fork                  ForkT
+	Fork                  *Fork
 
 	// History
 	LatestBlockHeader *BeaconBlockHeader
@@ -54,7 +50,7 @@ type BeaconState[
 	LatestExecutionPayloadHeader ExecutionPayloadHeaderT
 
 	// Registry
-	Validators []ValidatorT
+	Validators []*Validator
 	Balances   []uint64
 
 	// Randomness
@@ -72,21 +68,19 @@ type BeaconState[
 // New creates a new BeaconState.
 func (st *BeaconState[
 	ExecutionPayloadHeaderT,
-	ForkT,
-	ValidatorT,
-	P, F, V,
+	P,
 ]) New(
 	_ uint32,
 	genesisValidatorsRoot common.Root,
 	slot math.Slot,
-	fork ForkT,
+	fork *Fork,
 	latestBlockHeader *BeaconBlockHeader,
 	blockRoots []common.Root,
 	stateRoots []common.Root,
 	eth1Data *Eth1Data,
 	eth1DepositIndex uint64,
 	latestExecutionPayloadHeader ExecutionPayloadHeaderT,
-	validators []ValidatorT,
+	validators []*Validator,
 	balances []uint64,
 	randaoMixes []common.Bytes32,
 	nextWithdrawalIndex uint64,
@@ -95,15 +89,11 @@ func (st *BeaconState[
 	totalSlashing math.Gwei,
 ) (*BeaconState[
 	ExecutionPayloadHeaderT,
-	ForkT,
-	ValidatorT,
-	P, F, V,
+	P,
 ], error) {
 	return &BeaconState[
 		ExecutionPayloadHeaderT,
-		ForkT,
-		ValidatorT,
-		P, F, V,
+		P,
 	]{
 		Slot:                         slot,
 		GenesisValidatorsRoot:        genesisValidatorsRoot,
@@ -130,7 +120,7 @@ func (st *BeaconState[
 
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconState object.
 func (st *BeaconState[
-	_, _, _, _, _, _,
+	_, _,
 ]) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 	var size uint32 = 300
 
@@ -154,7 +144,7 @@ func (st *BeaconState[
 //
 //nolint:mnd // todo fix.
 func (st *BeaconState[
-	_, _, _, _, _, _,
+	_, _,
 ]) DefineSSZ(codec *ssz.Codec) {
 	// Versioning
 	ssz.DefineStaticBytes(codec, &st.GenesisValidatorsRoot)
@@ -198,7 +188,7 @@ func (st *BeaconState[
 
 // MarshalSSZ marshals the BeaconState into SSZ format.
 func (st *BeaconState[
-	_, _, _, _, _, _,
+	_, _,
 ]) MarshalSSZ() ([]byte, error) {
 	buf := make([]byte, ssz.Size(st))
 	return buf, ssz.EncodeToBytes(buf, st)
@@ -206,14 +196,14 @@ func (st *BeaconState[
 
 // UnmarshalSSZ unmarshals the BeaconState from SSZ format.
 func (st *BeaconState[
-	_, _, _, _, _, _,
+	_, _,
 ]) UnmarshalSSZ(buf []byte) error {
 	return ssz.DecodeFromBytes(buf, st)
 }
 
 // HashTreeRoot computes the Merkleization of the BeaconState.
 func (st *BeaconState[
-	_, _, _, _, _, _,
+	_, _,
 ]) HashTreeRoot() common.Root {
 	return ssz.HashConcurrent(st)
 }
@@ -223,7 +213,7 @@ func (st *BeaconState[
 /* -------------------------------------------------------------------------- */
 
 func (st *BeaconState[
-	_, _, _, _, _, _,
+	_, _,
 ]) MarshalSSZTo(
 	dst []byte,
 ) ([]byte, error) {
@@ -239,7 +229,7 @@ func (st *BeaconState[
 //
 //nolint:mnd,funlen,gocognit // todo fix.
 func (st *BeaconState[
-	_, _, _, _, _, _,
+	_, _,
 ]) HashTreeRootWith(
 	hh fastssz.HashWalker,
 ) error {
@@ -387,7 +377,7 @@ func (st *BeaconState[
 
 // GetTree ssz hashes the BeaconState object.
 func (st *BeaconState[
-	_, _, _, _, _, _,
+	_, _,
 ]) GetTree() (*fastssz.Node, error) {
 	return fastssz.ProofTree(st)
 }

@@ -26,7 +26,7 @@ import (
 )
 
 // Backend is the interface for backend of the proof API.
-type Backend[BeaconStateT, ValidatorT any] interface {
+type Backend[BeaconStateT any] interface {
 	BlockBackend
 	StateBackend[BeaconStateT]
 	GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)

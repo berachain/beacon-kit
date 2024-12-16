@@ -29,12 +29,11 @@ import (
 // PayloadBuilder is used to build payloads on the
 // execution client.
 type PayloadBuilder[
-	BeaconStateT BeaconState[ExecutionPayloadHeaderT, WithdrawalT],
+	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
 	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	PayloadAttributesT PayloadAttributes[PayloadAttributesT, WithdrawalT],
+	PayloadAttributesT PayloadAttributes[PayloadAttributesT],
 	PayloadIDT ~[8]byte,
-	WithdrawalT any,
 ] struct {
 	// cfg holds the configuration settings for the PayloadBuilder.
 	cfg *Config
@@ -54,12 +53,11 @@ type PayloadBuilder[
 
 // New creates a new service.
 func New[
-	BeaconStateT BeaconState[ExecutionPayloadHeaderT, WithdrawalT],
+	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
 	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	PayloadAttributesT PayloadAttributes[PayloadAttributesT, WithdrawalT],
+	PayloadAttributesT PayloadAttributes[PayloadAttributesT],
 	PayloadIDT ~[8]byte,
-	WithdrawalT any,
 ](
 	cfg *Config,
 	chainSpec common.ChainSpec,
@@ -69,11 +67,11 @@ func New[
 	af AttributesFactory[BeaconStateT, PayloadAttributesT],
 ) *PayloadBuilder[
 	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	PayloadAttributesT, PayloadIDT, WithdrawalT,
+	PayloadAttributesT, PayloadIDT,
 ] {
 	return &PayloadBuilder[
 		BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-		PayloadAttributesT, PayloadIDT, WithdrawalT,
+		PayloadAttributesT, PayloadIDT,
 	]{
 		cfg:               cfg,
 		chainSpec:         chainSpec,
@@ -87,7 +85,7 @@ func New[
 // Enabled returns true if the payload builder is enabled.
 func (pb *PayloadBuilder[
 	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	PayloadAttributesT, PayloadIDT, WithdrawalT,
+	PayloadAttributesT, PayloadIDT,
 ]) Enabled() bool {
 	return pb.cfg.Enabled
 }
