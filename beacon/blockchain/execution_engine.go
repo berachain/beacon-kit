@@ -32,7 +32,7 @@ import (
 // Optimistic clients already request builds in handleOptimisticPayloadBuild()
 // Non-optimistic clients should never request optimistic builds.
 func (s *Service[
-	_, _, ConsensusBlockT, _, _, BeaconStateT, _, _, _, _, _, _, _,
+	_, _, ConsensusBlockT, _, _, BeaconStateT, _, _, _, _, _, _, PayloadAttributesT,
 ]) sendPostBlockFCU(
 	ctx context.Context,
 	st BeaconStateT,
@@ -49,21 +49,7 @@ func (s *Service[
 
 	// Send a forkchoice update without payload attributes to notify
 	// EL of the new head.
-	s.sendNextFCUWithoutAttributes(ctx, blk, lph)
-}
-
-// sendNextFCUWithoutAttributes sends a forkchoice update to the
-// execution client without attributes.
-func (s *Service[
-	_, _, ConsensusBlockT, _, _, _, _, _,
-	ExecutionPayloadHeaderT, _, _, _, PayloadAttributesT,
-]) sendNextFCUWithoutAttributes(
-	ctx context.Context,
-	blk ConsensusBlockT,
-	lph ExecutionPayloadHeaderT,
-) {
 	beaconBlk := blk.GetBeaconBlock()
-
 	if _, _, err := s.executionEngine.NotifyForkchoiceUpdate(
 		ctx,
 		// TODO: Switch to New().
