@@ -21,6 +21,8 @@
 package cometbft
 
 import (
+	"time"
+
 	pruningtypes "cosmossdk.io/store/pruning/types"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/log"
@@ -80,4 +82,14 @@ func SetChainID[
 	LoggerT log.AdvancedLogger[LoggerT],
 ](chainID string) func(*Service[LoggerT]) {
 	return func(s *Service[LoggerT]) { s.chainID = chainID }
+}
+
+// SetTargetBlockTime returns a Service option function that sets the desired
+// block time (e.g., 2s). Note that it CAN'T be lower than the minimal (floor)
+// block time in the network, which is comprised of the time to a) propose a
+// new block b) gather 2/3+ prevotes c) gather 2/3+ precommits.
+func SetTargetBlockTime[
+	LoggerT log.AdvancedLogger[LoggerT],
+](t time.Duration) func(*Service[LoggerT]) {
+	return func(bs *Service[LoggerT]) { bs.setTargetBlockTime(t) }
 }

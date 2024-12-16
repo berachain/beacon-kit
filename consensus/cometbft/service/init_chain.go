@@ -72,6 +72,8 @@ func (s *Service[LoggerT]) initChain(
 		s.initialHeight = 1
 	}
 
+	s.initialTime = req.Time
+
 	// if req.InitialHeight is > 1, then we set the initial version on all
 	// stores
 	if req.InitialHeight > 1 {
