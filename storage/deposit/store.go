@@ -54,7 +54,7 @@ func NewStore(
 	logger log.Logger,
 ) *KVStore {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kvsp)
-	return &KVStore{
+	res := &KVStore{
 		store: sdkcollections.NewMap(
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte(KeyDepositPrefix)),
@@ -64,6 +64,10 @@ func NewStore(
 		),
 		logger: logger,
 	}
+	if _, err := schemaBuilder.Build(); err != nil {
+		panic(fmt.Errorf("failed building KVStore schema: %w", err))
+	}
+	return res
 }
 
 // GetDepositsByIndex returns the first N deposits starting from the given
