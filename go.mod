@@ -40,7 +40,7 @@ require (
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/holiman/uint256 v1.3.1
 	github.com/karalabe/ssz v0.2.1-0.20240724074312-3d1ff7a6f7c4
-	github.com/labstack/echo/v4 v4.12.0
+	github.com/labstack/echo/v4 v4.13.2
 	github.com/minio/sha256-simd v1.0.1
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/phuslu/log v1.0.113
@@ -55,8 +55,8 @@ require (
 	github.com/umbracle/fastrlp v0.1.0
 	go.uber.org/automaxprocs v1.6.0
 	go.uber.org/nilaway v0.0.0-20241010202415-ba14292918d8
-	golang.org/x/crypto v0.29.0
-	golang.org/x/sync v0.9.0
+	golang.org/x/crypto v0.31.0
+	golang.org/x/sync v0.10.0
 	sigs.k8s.io/yaml v1.4.0
 )
 
@@ -240,7 +240,6 @@ require (
 	github.com/gofrs/uuid v4.4.0+incompatible // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.1 // indirect
 	github.com/golang/glog v1.2.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
@@ -477,11 +476,11 @@ require (
 	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f // indirect
 	golang.org/x/exp/typeparams v0.0.0-20241108190413-2d47ceb2692f // indirect
 	golang.org/x/mod v0.22.0 // indirect
-	golang.org/x/net v0.31.0 // indirect
-	golang.org/x/sys v0.27.0 // indirect
-	golang.org/x/term v0.26.0 // indirect
-	golang.org/x/text v0.20.0 // indirect
-	golang.org/x/time v0.6.0 // indirect
+	golang.org/x/net v0.32.0 // indirect
+	golang.org/x/sys v0.28.0 // indirect
+	golang.org/x/term v0.27.0 // indirect
+	golang.org/x/text v0.21.0 // indirect
+	golang.org/x/time v0.8.0 // indirect
 	golang.org/x/tools v0.27.0 // indirect
 	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
 	google.golang.org/genproto v0.0.0-20240624140628-dc46fd24d27d // indirect
