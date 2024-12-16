@@ -18,12 +18,13 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package store
+package store_test
 
 import (
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/da/store"
 	"github.com/stretchr/testify/require"
 	"os"
 
@@ -44,7 +45,7 @@ func TestStore_PersistRace(t *testing.T) {
 	defer os.RemoveAll(tmpFilePath)
 
 	// Create the DB
-	s := New[*types.BeaconBlockBody](
+	s := store.New[*types.BeaconBlockBody](
 		filedb.NewRangeDB(
 			filedb.NewDB(filedb.WithRootDirectory(tmpFilePath),
 				filedb.WithFileExtension("ssz"),
