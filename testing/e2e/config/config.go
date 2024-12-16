@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -83,13 +83,14 @@ type NodeSettings struct {
 	ExecutionSettings ExecutionSettings `json:"execution_settings"`
 }
 
-// ExecutionSettings holds the configuration for the execution layer
-// clients.
+// ExecutionSettings holds the configuration for the execution layer clients.
 type ExecutionSettings struct {
 	// Specs holds the node specs for all nodes in the execution layer.
 	Specs NodeSpecs `json:"specs"`
 	// Images specifies the images available for the execution layer.
 	Images map[string]string `json:"images"`
+	// NethermindConfig holds specific configuration for Nethermind client
+	NethermindConfig *NethermindConfig `json:"nethermind_config,omitempty"`
 }
 
 // ConsensusSettings holds the configuration for the consensus layer
@@ -156,12 +157,70 @@ type AdditionalService struct {
 	Replicas int `json:"replicas"`
 }
 
+// NethermindConfig holds specific configuration for Nethermind client
+type NethermindConfig struct {
+	// Specific settings for Nethermind
+	SyncConfig struct {
+		FastSync                  bool `json:"FastSync"`
+		DownloadBodiesInFastSync bool `json:"DownloadBodiesInFastSync"`
+		DownloadReceiptsInFastSync bool `json:"DownloadReceiptsInFastSync"`
+	} `json:"SyncConfig"`
+	
+	// Settings to improve finalization
+	ConsensusConfig struct {
+		ForceSealing bool `json:"ForceSealing"`
+		TargetBlockGasLimit int64 `json:"TargetBlockGasLimit"`
+	} `json:"ConsensusConfig"`
+}
+
+// DefaultNethermindConfig returns the default configuration for Nethermind
+func DefaultNethermindConfig() *NethermindConfig {
+	return &NethermindConfig{
+		SyncConfig: struct {
+			FastSync                  bool
+			DownloadBodiesInFastSync bool
+			DownloadReceiptsInFastSync bool
+		}{
+			FastSync:                  true,
+			DownloadBodiesInFastSync: true,
+			DownloadReceiptsInFastSync: true,
+		},
+		ConsensusConfig: struct {
+			ForceSealing bool
+			TargetBlockGasLimit int64
+		}{
+			ForceSealing: true,
+			TargetBlockGasLimit: 30000000,
+		},
+	}
+}
+
 // MustMarshalJSON marshals the E2ETestConfig to JSON, panicking if an error.
 func (c *E2ETestConfig) MustMarshalJSON() []byte {
+	// Check if we're using Nethermind and need to set default configuration
+	for _, nodeSet := range []NodeSet{
+		c.NetworkConfiguration.Validators,
+		c.NetworkConfiguration.FullNodes,
+		c.NetworkConfiguration.SeedNodes,
+	} {
+		for _, node := range nodeSet.Nodes {
+			if node.ElType == "nethermind" && node.Replicas > 0 {
+				if c.NodeSettings.ExecutionSettings.NethermindConfig == nil {
+					c.NodeSettings.ExecutionSettings.NethermindConfig = DefaultNethermindConfig()
+				}
+				break
+			}
+		}
+	}
+
 	jsonBytes, err := json.Marshal(c)
 	if err != nil {
 		panic(err)
 	}
-
 	return jsonBytes
+}
+
+// ValidateNethermindConfig validates the Nethermind configuration
+func (c *E2ETestConfig) ValidateNethermindConfig() error {
+	return nil
 }
