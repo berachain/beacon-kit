@@ -15,6 +15,8 @@ replace (
 	cosmossdk.io/x/accounts => ../cosmos-sdk/x/accounts
 	cosmossdk.io/x/bank => ../cosmos-sdk/x/bank
 	cosmossdk.io/x/staking => ../cosmos-sdk/x/staking
+	github.com/cometbft/cometbft => ../cometbft-berachain
+	github.com/cometbft/cometbft/api => ../cometbft-berachain/api
 	github.com/cosmos/cosmos-sdk => ../cosmos-sdk
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
 	github.com/karalabe/ssz => github.com/berachain/karalabe-ssz v0.3.0-alpha.0
@@ -61,7 +63,7 @@ require (
 	github.com/umbracle/fastrlp v0.1.0
 	go.uber.org/automaxprocs v1.6.0
 	go.uber.org/nilaway v0.0.0-20241010202415-ba14292918d8
-	golang.org/x/crypto v0.30.0
+	golang.org/x/crypto v0.31.0
 	golang.org/x/sync v0.10.0
 	sigs.k8s.io/yaml v1.4.0
 )
@@ -94,14 +96,14 @@ require (
 	cel.dev/expr v0.18.0 // indirect
 	connectrpc.com/connect v1.17.0 // indirect
 	connectrpc.com/otelconnect v0.7.1 // indirect
-	cosmossdk.io/api v0.7.6 // indirect
+	cosmossdk.io/api v0.8.0-rc.2 // indirect
 	cosmossdk.io/core/testing v0.0.0-20241108153815-606544c7be7e // indirect
 	cosmossdk.io/errors v1.0.1 // indirect
 	cosmossdk.io/math v1.4.0 // indirect
-	cosmossdk.io/schema v0.3.1-0.20241128094659-bd76b47e1d8b // indirect
+	cosmossdk.io/schema v0.4.0 // indirect
 	cosmossdk.io/x/bank v0.0.0-20240806152830-8fb47b368cd4 // indirect
 	cosmossdk.io/x/staking v0.0.0-20240806152830-8fb47b368cd4 // indirect
-	cosmossdk.io/x/tx v1.0.0-alpha.1 // indirect
+	cosmossdk.io/x/tx v1.0.0-alpha.2 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/4meepo/tagalign v1.3.4 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
@@ -191,7 +193,7 @@ require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
 	github.com/deepmap/oapi-codegen v1.6.0 // indirect
 	github.com/denis-tingaikin/go-header v0.5.0 // indirect
-	github.com/dgraph-io/badger/v4 v4.4.0 // indirect
+	github.com/dgraph-io/badger/v4 v4.5.0 // indirect
 	github.com/dgraph-io/ristretto/v2 v2.0.0 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
 	github.com/docker/cli v27.3.1+incompatible // indirect
