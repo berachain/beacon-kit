@@ -69,8 +69,7 @@ type BlobProcessorIn[
 // ProvideBlobProcessor is a function that provides the BlobProcessor to the
 // depinject framework.
 func ProvideBlobProcessor[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
-	BeaconBlockBodyT any,
+	AvailabilityStoreT AvailabilityStore[BlobSidecarsT],
 	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
 	BlobSidecarT BlobSidecar,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
@@ -78,12 +77,11 @@ func ProvideBlobProcessor[
 ](
 	in BlobProcessorIn[BlobSidecarsT, LoggerT],
 ) *dablob.Processor[
-	AvailabilityStoreT, BeaconBlockBodyT,
+	AvailabilityStoreT,
 	ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
 ] {
 	return dablob.NewProcessor[
 		AvailabilityStoreT,
-		BeaconBlockBodyT,
 		ConsensusSidecarsT,
 		BlobSidecarT,
 		BlobSidecarsT,

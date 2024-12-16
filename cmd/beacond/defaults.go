@@ -31,20 +31,17 @@ func DefaultComponents() []any {
 			*BeaconState, *BeaconStateMarshallable,
 			*KVStore, *Logger,
 		],
-		components.ProvideAvailibilityStore[*BeaconBlockBody, *Logger],
+		components.ProvideAvailibilityStore[*Logger],
 		components.ProvideDepositContract,
-		components.ProvideBlockStore[
-			*BeaconBlock, *BeaconBlockBody, *Logger,
-		],
+		components.ProvideBlockStore[*BeaconBlock, *Logger],
 		components.ProvideBlsSigner,
 		components.ProvideBlobProcessor[
-			*AvailabilityStore, *BeaconBlockBody,
-			*ConsensusSidecars, *BlobSidecar, *BlobSidecars, *Logger,
+			*AvailabilityStore, *ConsensusSidecars, *BlobSidecar, *BlobSidecars, *Logger,
 		],
 		components.ProvideBlobProofVerifier,
 		components.ProvideChainService[
 			*AvailabilityStore,
-			*ConsensusBlock, *BeaconBlock, *BeaconBlockBody,
+			*ConsensusBlock, *BeaconBlock,
 			*BeaconState, *BeaconStateMarshallable,
 			*BlobSidecar, *BlobSidecars, *ConsensusSidecars, *BlockStore,
 			*DepositStore, *DepositContract,
@@ -71,7 +68,7 @@ func DefaultComponents() []any {
 		components.ProvideCometBFTService[*Logger],
 		components.ProvideServiceRegistry[
 			*AvailabilityStore,
-			*ConsensusBlock, *BeaconBlock, *BeaconBlockBody,
+			*ConsensusBlock, *BeaconBlock,
 			*BlockStore, *BeaconState,
 			*BeaconStateMarshallable,
 			*ConsensusSidecars, *BlobSidecar, *BlobSidecars,
@@ -79,11 +76,9 @@ func DefaultComponents() []any {
 			*Genesis, *KVStore, *Logger,
 			NodeAPIContext,
 		],
-		components.ProvideSidecarFactory[
-			*BeaconBlock, *BeaconBlockBody,
-		],
+		components.ProvideSidecarFactory[*BeaconBlock],
 		components.ProvideStateProcessor[
-			*Logger, *BeaconBlock, *BeaconBlockBody,
+			*Logger, *BeaconBlock,
 			*BeaconState, *BeaconStateMarshallable, *DepositStore,
 			*KVStore,
 		],
@@ -96,7 +91,7 @@ func DefaultComponents() []any {
 		components.ProvideTelemetryService,
 		components.ProvideTrustedSetup,
 		components.ProvideValidatorService[
-			*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,
+			*AvailabilityStore, *BeaconBlock,
 			*BeaconState, *BeaconStateMarshallable,
 			*BlockStore, *BlobSidecar, *BlobSidecars, *DepositStore,
 			*KVStore, *Logger,
@@ -110,7 +105,7 @@ func DefaultComponents() []any {
 		components.ProvideNodeAPIServer[*Logger, NodeAPIContext],
 		components.ProvideNodeAPIEngine,
 		components.ProvideNodeAPIBackend[
-			*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,
+			*AvailabilityStore, *BeaconBlock,
 			*BlockStore, *BeaconState,
 			*BeaconStateMarshallable, *BlobSidecars, *DepositStore,
 			*KVStore, *CometBFTService, *StorageBackend,

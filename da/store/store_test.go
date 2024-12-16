@@ -45,7 +45,7 @@ func TestStore_PersistRace(t *testing.T) {
 	defer os.RemoveAll(tmpFilePath)
 
 	// Create the DB
-	s := store.New[*types.BeaconBlockBody](
+	s := store.New(
 		filedb.NewRangeDB(
 			filedb.NewDB(filedb.WithRootDirectory(tmpFilePath),
 				filedb.WithFileExtension("ssz"),

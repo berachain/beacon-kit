@@ -38,7 +38,6 @@ import (
 // BeaconBlock represents a beacon block interface.
 type BeaconBlock[
 	T any,
-	BeaconBlockBodyT any,
 ] interface {
 	constraints.SSZMarshallable
 	// NewWithVersion creates a new beacon block with the given parameters.
@@ -57,7 +56,7 @@ type BeaconBlock[
 	// GetStateRoot returns the state root of the beacon block.
 	GetStateRoot() common.Root
 	// GetBody returns the body of the beacon block.
-	GetBody() BeaconBlockBodyT
+	GetBody() *ctypes.BeaconBlockBody
 }
 
 // BeaconBlockBody represents a beacon block body interface.

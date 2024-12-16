@@ -31,8 +31,7 @@ import (
 
 // Service is responsible for building beacon blocks and sidecars.
 type Service[
-	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody[SlashingInfoT],
+	BeaconBlockT BeaconBlock[BeaconBlockT],
 	BeaconStateT BeaconState,
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
@@ -72,8 +71,7 @@ type Service[
 
 // NewService creates a new validator service.
 func NewService[
-	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody[SlashingInfoT],
+	BeaconBlockT BeaconBlock[BeaconBlockT],
 	BeaconStateT BeaconState,
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
@@ -96,13 +94,13 @@ func NewService[
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT],
 	ts TelemetrySink,
 ) *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BeaconBlockT, BeaconStateT,
 	BlobSidecarT, BlobSidecarsT, DepositStoreT,
 	SlashingInfoT,
 	SlotDataT,
 ] {
 	return &Service[
-		BeaconBlockT, BeaconBlockBodyT,
+		BeaconBlockT,
 		BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositStoreT,
 		SlashingInfoT,
 		SlotDataT,
@@ -122,19 +120,19 @@ func NewService[
 
 // Name returns the name of the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _,
 ]) Name() string {
 	return "validator"
 }
 
 func (s *Service[
-	_, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _,
 ]) Start(
 	_ context.Context,
 ) error {
 	return nil
 }
 
-func (s *Service[_, _, _, _, _, _, _, _]) Stop() error {
+func (s *Service[_, _, _, _, _, _, _]) Stop() error {
 	return nil
 }
