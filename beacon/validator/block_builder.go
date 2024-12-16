@@ -30,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -42,7 +41,7 @@ import (
 // BuildBlockAndSidecars builds a new beacon block.
 func (s *Service[
 	BeaconBlockT, _, _, _, BlobSidecarsT,
-	_, _, _, SlashingInfoT, SlotDataT,
+	_, _, SlashingInfoT, SlotDataT,
 ]) BuildBlockAndSidecars(
 	ctx context.Context,
 	slotData types.SlotData[ctypes.SlashingInfo],
@@ -135,7 +134,7 @@ func (s *Service[
 
 // getEmptyBeaconBlockForSlot creates a new empty block.
 func (s *Service[
-	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _,
+	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _,
 ]) getEmptyBeaconBlockForSlot(
 	st BeaconStateT, requestedSlot math.Slot,
 ) (BeaconBlockT, error) {
@@ -167,7 +166,7 @@ func (s *Service[
 
 // buildRandaoReveal builds a randao reveal for the given slot.
 func (s *Service[
-	_, _, BeaconStateT, _, _, _, _, _, _, _,
+	_, _, BeaconStateT, _, _, _, _, _, _,
 ]) buildRandaoReveal(
 	st BeaconStateT,
 	slot math.Slot,
@@ -195,13 +194,13 @@ func (s *Service[
 // retrieveExecutionPayload retrieves the execution payload for the block.
 func (s *Service[
 	BeaconBlockT, _, BeaconStateT, _, _, _,
-	ExecutionPayloadT, ExecutionPayloadHeaderT, SlashingInfoT, SlotDataT,
+	ExecutionPayloadHeaderT, SlashingInfoT, SlotDataT,
 ]) retrieveExecutionPayload(
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
 	slotData types.SlotData[ctypes.SlashingInfo],
-) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
+) (ctypes.BuiltExecutionPayloadEnv, error) {
 	//
 	// TODO: Add external block builders to this flow.
 	//
@@ -256,13 +255,13 @@ func (s *Service[
 // BuildBlockBody assembles the block body with necessary components.
 func (s *Service[
 	BeaconBlockT, _, BeaconStateT, _, _, _,
-	ExecutionPayloadT, _, SlashingInfoT, SlotDataT,
+	_, SlashingInfoT, SlotDataT,
 ]) buildBlockBody(
 	_ context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
 	reveal crypto.BLSSignature,
-	envelope engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT],
+	envelope ctypes.BuiltExecutionPayloadEnv,
 	slotData types.SlotData[ctypes.SlashingInfo],
 ) error {
 	// Assemble a new block with the payload.
@@ -351,7 +350,7 @@ func (s *Service[
 // computeAndSetStateRoot computes the state root of an outgoing block
 // and sets it in the block.
 func (s *Service[
-	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _,
+	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _,
 ]) computeAndSetStateRoot(
 	ctx context.Context,
 	proposerAddress []byte,
@@ -380,7 +379,7 @@ func (s *Service[
 
 // computeStateRoot computes the state root of an outgoing block.
 func (s *Service[
-	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _,
+	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _,
 ]) computeStateRoot(
 	ctx context.Context,
 	proposerAddress []byte,

@@ -78,12 +78,12 @@ type BeaconBlock[
 }
 
 // BeaconBlockBody represents the interface for the beacon block body.
-type BeaconBlockBody[ExecutionPayloadT any] interface {
+type BeaconBlockBody interface {
 	constraints.SSZMarshallableRootable
 	constraints.Nillable
 	// GetExecutionPayload returns the execution payload of the beacon block
 	// body.
-	GetExecutionPayload() ExecutionPayloadT
+	GetExecutionPayload() *ctypes.ExecutionPayload
 }
 
 type BlobSidecars[T any] interface {
@@ -100,7 +100,7 @@ type ExecutionEngine[PayloadAttributesT any] interface {
 	// update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
-		req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
+		req *ctypes.ForkchoiceUpdateRequest[PayloadAttributesT],
 	) (*engineprimitives.PayloadID, *common.ExecutionHash, error)
 }
 

@@ -26,12 +26,13 @@ import (
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	"github.com/berachain/beacon-kit/config/spec"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 )
 
 // sendPostBlockFCU sends a forkchoice update to the execution client.
 func (s *Service[
-	_, _, ConsensusBlockT, _, _, BeaconStateT, _, _, _, _, _, _, _,
+	_, _, ConsensusBlockT, _, _, BeaconStateT, _, _, _, _, _, _,
 ]) sendPostBlockFCU(
 	ctx context.Context,
 	st BeaconStateT,
@@ -57,7 +58,7 @@ func (s *Service[
 // client with attributes.
 func (s *Service[
 	_, _, ConsensusBlockT, _, _, BeaconStateT, _,
-	_, ExecutionPayloadHeaderT, _, _, _, _,
+	ExecutionPayloadHeaderT, _, _, _, _,
 ]) sendNextFCUWithAttributes(
 	ctx context.Context,
 	st BeaconStateT,
@@ -114,7 +115,7 @@ func (s *Service[
 // sendNextFCUWithoutAttributes sends a forkchoice update to the
 // execution client without attributes.
 func (s *Service[
-	_, _, ConsensusBlockT, _, _, _, _, _,
+	_, _, ConsensusBlockT, _, _, _, _,
 	ExecutionPayloadHeaderT, _, _, _, PayloadAttributesT,
 ]) sendNextFCUWithoutAttributes(
 	ctx context.Context,
@@ -126,7 +127,7 @@ func (s *Service[
 	if _, _, err := s.executionEngine.NotifyForkchoiceUpdate(
 		ctx,
 		// TODO: Switch to New().
-		engineprimitives.
+		ctypes.
 			BuildForkchoiceUpdateRequestNoAttrs[PayloadAttributesT](
 			&engineprimitives.ForkchoiceStateV1{
 				HeadBlockHash:      lph.GetBlockHash(),

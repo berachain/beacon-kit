@@ -44,7 +44,7 @@ type Service[
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT interface {
-		BeaconBlockBody[ExecutionPayloadT]
+		BeaconBlockBody
 		GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 		GetDeposits() []*ctypes.Deposit
 	},
@@ -52,7 +52,6 @@ type Service[
 		BeaconStateT, ExecutionPayloadHeaderT,
 	],
 	BlockStoreT blockstore.BlockStore[BeaconBlockT],
-	ExecutionPayloadT ExecutionPayload,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	GenesisT Genesis[ExecutionPayloadHeaderT],
 	ConsensusSidecarsT da.ConsensusSidecars[BlobSidecarsT],
@@ -121,7 +120,7 @@ func NewService[
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT interface {
-		BeaconBlockBody[ExecutionPayloadT]
+		BeaconBlockBody
 		GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 		GetDeposits() []*ctypes.Deposit
 	},
@@ -129,7 +128,6 @@ func NewService[
 		BeaconStateT, ExecutionPayloadHeaderT,
 	],
 	BlockStoreT blockstore.BlockStore[BeaconBlockT],
-	ExecutionPayloadT ExecutionPayload,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	GenesisT Genesis[ExecutionPayloadHeaderT],
 	PayloadAttributesT PayloadAttributes,
@@ -166,14 +164,14 @@ func NewService[
 	AvailabilityStoreT, DepositStoreT,
 	ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, BlockStoreT,
-	ExecutionPayloadT, ExecutionPayloadHeaderT, GenesisT,
+	ExecutionPayloadHeaderT, GenesisT,
 	ConsensusSidecarsT, BlobSidecarsT, PayloadAttributesT,
 ] {
 	return &Service[
 		AvailabilityStoreT, DepositStoreT,
 		ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
 		BeaconStateT, BlockStoreT,
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
+		ExecutionPayloadHeaderT,
 		GenesisT, ConsensusSidecarsT, BlobSidecarsT, PayloadAttributesT,
 	]{
 		homeDir:                 homeDir,
@@ -197,13 +195,13 @@ func NewService[
 
 // Name returns the name of the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _,
 ]) Name() string {
 	return "blockchain"
 }
 
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _,
 ]) Start(ctx context.Context) error {
 	// Catchup deposits for failed blocks.
 	go s.depositCatchupFetcher(ctx)
@@ -212,7 +210,7 @@ func (s *Service[
 }
 
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _,
 ]) Stop() error {
 	return nil
 }

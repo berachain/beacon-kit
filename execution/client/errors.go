@@ -54,9 +54,7 @@ var (
 )
 
 // Handles errors received from the RPC server according to the specification.
-func (s *EngineClient[
-	_, _,
-]) handleRPCError(
+func (s *EngineClient[_]) handleRPCError(
 	err error,
 ) error {
 	// Exit early if there is no error.

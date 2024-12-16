@@ -27,7 +27,6 @@ import (
 	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -63,7 +62,7 @@ type BeaconBlock[
 
 // BeaconBlockBody represents a beacon block body interface.
 type BeaconBlockBody[
-	ExecutionPayloadT, SlashingInfoT any,
+	SlashingInfoT any,
 ] interface {
 	constraints.SSZMarshallable
 	constraints.Nillable
@@ -74,7 +73,7 @@ type BeaconBlockBody[
 	// SetDeposits sets the deposits of the beacon block body.
 	SetDeposits([]*ctypes.Deposit)
 	// SetExecutionPayload sets the execution data of the beacon block body.
-	SetExecutionPayload(ExecutionPayloadT)
+	SetExecutionPayload(*ctypes.ExecutionPayload)
 	// SetGraffiti sets the graffiti of the beacon block body.
 	SetGraffiti(chain.Bytes32)
 	// SetAttestations sets the attestations of the beacon block body.
@@ -116,7 +115,7 @@ type BlobFactory[
 	// BuildSidecars builds sidecars for a given block and blobs bundle.
 	BuildSidecars(
 		blk BeaconBlockT,
-		blobs engineprimitives.BlobsBundle,
+		blobs ctypes.BlobsBundle,
 	) (BlobSidecarsT, error)
 }
 
@@ -155,13 +154,13 @@ type ForkData[T any] interface {
 
 // PayloadBuilder represents a service that is responsible for
 // building eth1 blocks.
-type PayloadBuilder[BeaconStateT, ExecutionPayloadT any] interface {
+type PayloadBuilder[BeaconStateT any] interface {
 	// RetrievePayload retrieves the payload for the given slot.
 	RetrievePayload(
 		ctx context.Context,
 		slot math.Slot,
 		parentBlockRoot common.Root,
-	) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
+	) (ctypes.BuiltExecutionPayloadEnv, error)
 	// RequestPayloadSync requests a payload for the given slot and
 	// blocks until the payload is delivered.
 	RequestPayloadSync(
@@ -172,7 +171,7 @@ type PayloadBuilder[BeaconStateT, ExecutionPayloadT any] interface {
 		parentBlockRoot common.Root,
 		headEth1BlockHash common.ExecutionHash,
 		finalEth1BlockHash common.ExecutionHash,
-	) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
+	) (ctypes.BuiltExecutionPayloadEnv, error)
 }
 
 // SlotData represents the slot data interface.

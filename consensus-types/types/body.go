@@ -298,8 +298,7 @@ func (b *BeaconBlockBody) GetTopLevelRoots() []common.Root {
 		common.Root(b.GetGraffiti().HashTreeRoot()),
 		Deposits(b.GetDeposits()).HashTreeRoot(),
 		b.GetExecutionPayload().HashTreeRoot(),
-		// I think this is a bug.
-		common.Root{},
+		{},
 	}
 }
 

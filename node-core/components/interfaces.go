@@ -30,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -120,7 +119,6 @@ type (
 	// block.
 	BeaconBlockBody[
 		T any,
-		ExecutionPayloadT any,
 		SlashingInfoT any,
 	] interface {
 		constraints.Nillable
@@ -131,7 +129,7 @@ type (
 		// GetRandaoReveal returns the RANDAO reveal signature.
 		GetRandaoReveal() crypto.BLSSignature
 		// GetExecutionPayload returns the execution payload.
-		GetExecutionPayload() ExecutionPayloadT
+		GetExecutionPayload() *ctypes.ExecutionPayload
 		// GetDeposits returns the list of deposits.
 		GetDeposits() []*ctypes.Deposit
 		// GetBlobKzgCommitments returns the KZG commitments for the blobs.
@@ -143,7 +141,7 @@ type (
 		// SetDeposits sets the deposits of the beacon block body.
 		SetDeposits([]*ctypes.Deposit)
 		// SetExecutionPayload sets the execution data of the beacon block body.
-		SetExecutionPayload(ExecutionPayloadT)
+		SetExecutionPayload(*ctypes.ExecutionPayload)
 		// SetGraffiti sets the graffiti of the beacon block body.
 		SetGraffiti(chain.Bytes32)
 		// SetAttestations sets the attestations of the beacon block body.
@@ -397,7 +395,7 @@ type (
 	// 			ctx context.Context,
 	// 			payloadID engineprimitives.PayloadID,
 	// 			forkVersion uint32,
-	// 		) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
+	// 		) (ctypes.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
 	// 		NewPayload(
 	// 			ctx context.Context,
 	// 			payload ExecutionPayloadT,
@@ -435,46 +433,22 @@ type (
 	// 		// GetPayload returns the payload and blobs bundle for the given slot.
 	// 		GetPayload(
 	// 			ctx context.Context,
-	// 			req *engineprimitives.GetPayloadRequest[PayloadIDT],
-	// 		) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
+	// 			req *ctypes.GetPayloadRequest[PayloadIDT],
+	// 		) (ctypes.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
 	// 		// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// 		// update.
 	// 		NotifyForkchoiceUpdate(
 	// 			ctx context.Context,
-	// 			req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
+	// 			req *ctypes.ForkchoiceUpdateRequest[PayloadAttributesT],
 	// 		) (*PayloadIDT, *common.ExecutionHash, error)
 	// 		// VerifyAndNotifyNewPayload verifies the new payload and notifies the
 	// 		// execution client.
 	// 		VerifyAndNotifyNewPayload(
 	// 			ctx context.Context,
-	// 			req *engineprimitives.NewPayloadRequest[ExecutionPayloadT,
+	// 			req *ctypes.NewPayloadRequest[ExecutionPayloadT,
 	// WithdrawalsT],
 	// 		) error
 	// 	}
-
-	ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT any,
-	] interface {
-		constraints.EngineType[ExecutionPayloadT]
-		GetTransactions() engineprimitives.Transactions
-		GetParentHash() common.ExecutionHash
-		GetBlockHash() common.ExecutionHash
-		GetPrevRandao() chain.Bytes32
-		GetWithdrawals() engineprimitives.Withdrawals
-		GetFeeRecipient() common.ExecutionAddress
-		GetStateRoot() chain.Bytes32
-		GetReceiptsRoot() chain.Bytes32
-		GetLogsBloom() bytes.B256
-		GetNumber() math.U64
-		GetGasLimit() math.U64
-		GetTimestamp() math.U64
-		GetGasUsed() math.U64
-		GetExtraData() []byte
-		GetBaseFeePerGas() *math.U256
-		GetBlobGasUsed() math.U64
-		GetExcessBlobGas() math.U64
-		ToHeader() (ExecutionPayloadHeaderT, error)
-	}
 
 	// ExecutionPayloadHeader is the interface for the execution payload
 	// header.
@@ -533,7 +507,6 @@ type (
 	// LocalBuilder is the interface for the builder service.
 	LocalBuilder[
 		BeaconStateT any,
-		ExecutionPayloadT any,
 	] interface {
 		// Enabled returns true if the local builder is enabled.
 		Enabled() bool
@@ -558,7 +531,7 @@ type (
 			ctx context.Context,
 			slot math.Slot,
 			parentBlockRoot common.Root,
-		) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
+		) (ctypes.BuiltExecutionPayloadEnv, error)
 		// RequestPayloadSync requests a payload for the given slot and
 		// blocks until the payload is delivered.
 		RequestPayloadSync(
@@ -569,7 +542,7 @@ type (
 			parentBlockRoot common.Root,
 			headEth1BlockHash common.ExecutionHash,
 			finalEth1BlockHash common.ExecutionHash,
-		) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
+		) (ctypes.BuiltExecutionPayloadEnv, error)
 	}
 
 	// 	// PayloadAttributes is the interface for the payload attributes.
@@ -624,7 +597,7 @@ type (
 		// BuildSidecars builds sidecars for a given block and blobs bundle.
 		BuildSidecars(
 			blk BeaconBlockT,
-			blobs engineprimitives.BlobsBundle,
+			blobs ctypes.BlobsBundle,
 		) (BlobSidecarsT, error)
 	}
 

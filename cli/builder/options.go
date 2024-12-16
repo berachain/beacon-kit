@@ -24,23 +24,20 @@ import (
 	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-core/types"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 )
 
 // Opt is a type that defines a function that modifies CLIBuilder.
 type Opt[
 	T types.Node,
-	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 	LoggerT log.AdvancedLogger[LoggerT],
-] func(*CLIBuilder[T, ExecutionPayloadT, LoggerT])
+] func(*CLIBuilder[T, LoggerT])
 
 // WithName sets the name for the CLIBuilder.
 func WithName[
 	T types.Node,
-	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 	LoggerT log.AdvancedLogger[LoggerT],
-](name string) Opt[T, ExecutionPayloadT, LoggerT] {
-	return func(cb *CLIBuilder[T, ExecutionPayloadT, LoggerT]) {
+](name string) Opt[T, LoggerT] {
+	return func(cb *CLIBuilder[T, LoggerT]) {
 		cb.name = name
 	}
 }
@@ -48,10 +45,9 @@ func WithName[
 // WithDescription sets the description for the CLIBuilder.
 func WithDescription[
 	T types.Node,
-	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 	LoggerT log.AdvancedLogger[LoggerT],
-](description string) Opt[T, ExecutionPayloadT, LoggerT] {
-	return func(cb *CLIBuilder[T, ExecutionPayloadT, LoggerT]) {
+](description string) Opt[T, LoggerT] {
+	return func(cb *CLIBuilder[T, LoggerT]) {
 		cb.description = description
 	}
 }
@@ -59,10 +55,9 @@ func WithDescription[
 // WithComponents sets the components for the CLIBuilder.
 func WithComponents[
 	T types.Node,
-	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 	LoggerT log.AdvancedLogger[LoggerT],
-](components []any) Opt[T, ExecutionPayloadT, LoggerT] {
-	return func(cb *CLIBuilder[T, ExecutionPayloadT, LoggerT]) {
+](components []any) Opt[T, LoggerT] {
+	return func(cb *CLIBuilder[T, LoggerT]) {
 		cb.components = components
 	}
 }
@@ -70,12 +65,11 @@ func WithComponents[
 // WithNodeBuilderFunc sets the cosmos app creator for the CLIBuilder.
 func WithNodeBuilderFunc[
 	T types.Node,
-	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	nodeBuilderFunc servertypes.AppCreator[T, LoggerT],
-) Opt[T, ExecutionPayloadT, LoggerT] {
-	return func(cb *CLIBuilder[T, ExecutionPayloadT, LoggerT]) {
+) Opt[T, LoggerT] {
+	return func(cb *CLIBuilder[T, LoggerT]) {
 		cb.nodeBuilderFunc = nodeBuilderFunc
 	}
 }

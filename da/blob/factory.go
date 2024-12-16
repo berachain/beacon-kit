@@ -23,8 +23,8 @@ package blob
 import (
 	"time"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/types"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/merkle"
@@ -71,7 +71,7 @@ func NewSidecarFactory[
 // BuildSidecars builds a sidecar.
 func (f *SidecarFactory[BeaconBlockT, _]) BuildSidecars(
 	blk BeaconBlockT,
-	bundle engineprimitives.BlobsBundle,
+	bundle ctypes.BlobsBundle,
 ) (*types.BlobSidecars, error) {
 	var (
 		blobs       = bundle.GetBlobs()

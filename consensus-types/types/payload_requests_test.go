@@ -18,101 +18,33 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package engineprimitives_test
+package types_test
 
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/engine-primitives/engine-primitives/mocks"
-	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/stretchr/testify/require"
 )
 
-type MockExecutionPayload struct{}
-
-func (m MockExecutionPayload) Empty(uint32) MockExecutionPayload {
-	return m
-}
-func (m MockExecutionPayload) IsNil() bool {
-	return false
-}
-func (m MockExecutionPayload) Version() uint32 {
-	return 0
-}
-func (m MockExecutionPayload) GetPrevRandao() chain.Bytes32 {
-	return chain.Bytes32{}
-}
-func (m MockExecutionPayload) GetBlockHash() common.ExecutionHash {
-	return common.ExecutionHash{}
-}
-func (m MockExecutionPayload) GetParentHash() common.ExecutionHash {
-	return common.ExecutionHash{}
-}
-func (m MockExecutionPayload) GetNumber() math.U64 {
-	return math.U64(0)
-}
-func (m MockExecutionPayload) GetGasLimit() math.U64 {
-	return math.U64(0)
-}
-func (m MockExecutionPayload) GetGasUsed() math.U64 {
-	return math.U64(0)
-}
-func (m MockExecutionPayload) GetTimestamp() math.U64 {
-	return math.U64(0)
-}
-func (m MockExecutionPayload) GetExtraData() []byte {
-	return []byte{}
-}
-func (m MockExecutionPayload) GetBaseFeePerGas() *math.U256 {
-	return &math.U256{}
-}
-
-func (
-	m MockExecutionPayload,
-) GetFeeRecipient() common.ExecutionAddress {
-	return common.ExecutionAddress{}
-}
-func (m MockExecutionPayload) GetStateRoot() chain.Bytes32 {
-	return chain.Bytes32{}
-}
-func (m MockExecutionPayload) GetReceiptsRoot() chain.Bytes32 {
-	return chain.Bytes32{}
-}
-func (m MockExecutionPayload) GetLogsBloom() bytes.B256 {
-	return [256]byte{}
-}
-func (m MockExecutionPayload) GetBlobGasUsed() math.U64 {
-	return math.U64(0)
-}
-func (m MockExecutionPayload) GetExcessBlobGas() math.U64 {
-	return math.U64(0)
-}
-func (m MockExecutionPayload) GetWithdrawals() engineprimitives.Withdrawals {
-	return engineprimitives.Withdrawals{}
-}
-func (m MockExecutionPayload) GetTransactions() engineprimitives.Transactions {
-	return [][]byte{}
-}
-
 func TestBuildNewPayloadRequest(t *testing.T) {
-	executionPayload := MockExecutionPayload{}
+	executionPayload := types.ExecutionPayload{}
 	var versionedHashes []common.ExecutionHash
 	parentBeaconBlockRoot := common.Root{}
 	optimistic := false
 
-	request := engineprimitives.BuildNewPayloadRequest(
-		executionPayload,
+	request := types.BuildNewPayloadRequest(
+		&executionPayload,
 		versionedHashes,
 		&parentBeaconBlockRoot,
 		optimistic,
 	)
 
 	require.NotNil(t, request)
-	require.Equal(t, executionPayload, request.ExecutionPayload)
+	require.Equal(t, executionPayload, *request.ExecutionPayload)
 	require.Equal(t, versionedHashes, request.VersionedHashes)
 	require.Equal(t, &parentBeaconBlockRoot, request.ParentBeaconBlockRoot)
 	require.Equal(t, optimistic, request.Optimistic)
@@ -123,7 +55,7 @@ func TestBuildForkchoiceUpdateRequest(t *testing.T) {
 	payloadAttributes := &mocks.PayloadAttributer{}
 	forkVersion := uint32(1)
 
-	request := engineprimitives.BuildForkchoiceUpdateRequest(
+	request := types.BuildForkchoiceUpdateRequest(
 		state,
 		payloadAttributes,
 		forkVersion,
@@ -139,7 +71,7 @@ func TestBuildGetPayloadRequest(t *testing.T) {
 	payloadID := engineprimitives.PayloadID{}
 	forkVersion := uint32(1)
 
-	request := engineprimitives.BuildGetPayloadRequest(payloadID, forkVersion)
+	request := types.BuildGetPayloadRequest(payloadID, forkVersion)
 
 	require.NotNil(t, request)
 	require.Equal(t, payloadID, request.PayloadID)
@@ -147,13 +79,13 @@ func TestBuildGetPayloadRequest(t *testing.T) {
 }
 
 func TestHasValidVersionedAndBlockHashesPayloadError(t *testing.T) {
-	executionPayload := MockExecutionPayload{}
+	executionPayload := types.ExecutionPayload{}
 	versionedHashes := []common.ExecutionHash{}
 	parentBeaconBlockRoot := common.Root{}
 	optimistic := false
 
-	request := engineprimitives.BuildNewPayloadRequest(
-		executionPayload,
+	request := types.BuildNewPayloadRequest(
+		&executionPayload,
 		versionedHashes,
 		&parentBeaconBlockRoot,
 		optimistic,
@@ -164,15 +96,15 @@ func TestHasValidVersionedAndBlockHashesPayloadError(t *testing.T) {
 }
 
 func TestHasValidVersionedAndBlockHashesMismatchedHashes(t *testing.T) {
-	executionPayload := MockExecutionPayload{}
+	executionPayload := types.ExecutionPayload{}
 	versionedHashes := []common.ExecutionHash{
-		common.ExecutionHash{},
+		{},
 	}
 	parentBeaconBlockRoot := common.Root{}
 	optimistic := false
 
-	request := engineprimitives.BuildNewPayloadRequest(
-		executionPayload,
+	request := types.BuildNewPayloadRequest(
+		&executionPayload,
 		versionedHashes,
 		&parentBeaconBlockRoot,
 		optimistic,

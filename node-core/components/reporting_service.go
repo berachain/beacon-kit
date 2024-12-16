@@ -26,34 +26,26 @@ import (
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/node-core/services/version"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	sdkversion "github.com/cosmos/cosmos-sdk/version"
 )
 
 type ReportingServiceInput[
-	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 	PayloadAttributesT client.PayloadAttributes,
 	LoggerT log.AdvancedLogger[LoggerT],
 ] struct {
 	depinject.In
 	Logger        LoggerT
 	TelemetrySink *metrics.TelemetrySink
-	EngineClient  *client.EngineClient[
-		ExecutionPayloadT,
-		PayloadAttributesT,
-	]
+	EngineClient  *client.EngineClient[PayloadAttributesT]
 }
 
 func ProvideReportingService[
-	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 	PayloadAttributesT client.PayloadAttributes,
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
-	in ReportingServiceInput[ExecutionPayloadT, PayloadAttributesT, LoggerT],
-) *version.ReportingService[ExecutionPayloadT, PayloadAttributesT] {
-	return version.NewReportingService[
-		ExecutionPayloadT, PayloadAttributesT,
-	](
+	in ReportingServiceInput[PayloadAttributesT, LoggerT],
+) *version.ReportingService[PayloadAttributesT] {
+	return version.NewReportingService[PayloadAttributesT](
 		in.Logger.With("service", "reporting"),
 		in.TelemetrySink,
 		sdkversion.Version,
