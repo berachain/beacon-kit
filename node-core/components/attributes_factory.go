@@ -41,10 +41,9 @@ type AttributesFactoryInput[LoggerT any] struct {
 func ProvideAttributesFactory[
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconStateMarshallableT,
-		ExecutionPayloadHeaderT, KVStoreT,
+		KVStoreT,
 	],
 	BeaconStateMarshallableT any,
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	KVStoreT any,
 	LoggerT log.Logger,
 ](

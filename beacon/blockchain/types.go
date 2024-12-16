@@ -122,13 +122,13 @@ type ExecutionPayloadHeader interface {
 }
 
 // Genesis is the interface for the genesis.
-type Genesis[ExecutionPayloadHeaderT any] interface {
+type Genesis interface {
 	// GetForkVersion returns the fork version.
 	GetForkVersion() chain.Version
 	// GetDeposits returns the deposits.
 	GetDeposits() []*ctypes.Deposit
 	// GetExecutionPayloadHeader returns the execution payload header.
-	GetExecutionPayloadHeader() ExecutionPayloadHeaderT
+	GetExecutionPayloadHeader() *ctypes.ExecutionPayloadHeader
 }
 
 // LocalBuilder is the interface for the builder service.
@@ -163,7 +163,6 @@ type PayloadAttributes interface {
 // the beacon state.
 type ReadOnlyBeaconState[
 	T any,
-	ExecutionPayloadHeaderT any,
 ] interface {
 	// Copy creates a copy of the beacon state.
 	Copy() T
@@ -174,10 +173,7 @@ type ReadOnlyBeaconState[
 	)
 	// GetLatestExecutionPayloadHeader returns the most recent execution payload
 	// header.
-	GetLatestExecutionPayloadHeader() (
-		ExecutionPayloadHeaderT,
-		error,
-	)
+	GetLatestExecutionPayloadHeader() (*ctypes.ExecutionPayloadHeader, error)
 	// GetSlot retrieves the current slot of the beacon state.
 	GetSlot() (math.Slot, error)
 	// HashTreeRoot returns the hash tree root of the beacon state.
@@ -189,8 +185,7 @@ type ReadOnlyBeaconState[
 type StateProcessor[
 	BeaconBlockT,
 	BeaconStateT,
-	ContextT,
-	ExecutionPayloadHeaderT any,
+	ContextT any,
 ] interface {
 	// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
 	// state
@@ -198,7 +193,7 @@ type StateProcessor[
 	InitializePreminedBeaconStateFromEth1(
 		BeaconStateT,
 		[]*ctypes.Deposit,
-		ExecutionPayloadHeaderT,
+		*ctypes.ExecutionPayloadHeader,
 		chain.Version,
 	) (transition.ValidatorUpdates, error)
 	// ProcessSlots processes the state transition for a range of slots.

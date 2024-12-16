@@ -33,7 +33,7 @@ import (
 // RequestPayloadAsync builds a payload for the given slot and
 // returns the payload ID.
 func (pb *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadHeaderT,
+	BeaconStateT,
 	PayloadAttributesT, PayloadIDT,
 ]) RequestPayloadAsync(
 	ctx context.Context,
@@ -94,7 +94,7 @@ func (pb *PayloadBuilder[
 // RequestPayloadSync request a payload for the given slot and
 // blocks until the payload is delivered.
 func (pb *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadHeaderT,
+	BeaconStateT,
 	PayloadAttributesT, PayloadIDT,
 ]) RequestPayloadSync(
 	ctx context.Context,
@@ -150,7 +150,7 @@ func (pb *PayloadBuilder[
 // retrieve a payload, it will build a new payload and wait for the
 // execution client to return the payload.
 func (pb *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadHeaderT,
+	BeaconStateT,
 	PayloadAttributesT, PayloadIDT,
 ]) RetrievePayload(
 	ctx context.Context,
@@ -214,7 +214,7 @@ func (pb *PayloadBuilder[
 // TODO: This should be moved onto a "sync service"
 // of some kind.
 func (pb *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadHeaderT,
+	BeaconStateT,
 	PayloadAttributesT, PayloadIDT,
 ]) SendForceHeadFCU(
 	ctx context.Context,
@@ -255,7 +255,7 @@ func (pb *PayloadBuilder[
 }
 
 func (pb *PayloadBuilder[
-	_, _, _, PayloadIDT,
+	_, _, PayloadIDT,
 ]) getPayload(
 	ctx context.Context,
 	payloadID PayloadIDT,

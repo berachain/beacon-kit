@@ -33,11 +33,10 @@ import (
 type Service[
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[SlashingInfoT],
-	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
+	BeaconStateT BeaconState,
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	DepositStoreT DepositStore,
-	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	SlashingInfoT any,
 	SlotDataT SlotData[SlashingInfoT],
 ] struct {
@@ -58,7 +57,6 @@ type Service[
 		BeaconBlockT,
 		BeaconStateT,
 		*transition.Context,
-		ExecutionPayloadHeaderT,
 	]
 	// localPayloadBuilder represents the local block builder, this builder
 	// is connected to this nodes execution client via the EngineAPI.
@@ -76,11 +74,10 @@ type Service[
 func NewService[
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[SlashingInfoT],
-	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
+	BeaconStateT BeaconState,
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	DepositStoreT DepositStore,
-	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	SlashingInfoT any,
 	SlotDataT SlotData[SlashingInfoT],
 ](
@@ -92,7 +89,6 @@ func NewService[
 		BeaconBlockT,
 		BeaconStateT,
 		*transition.Context,
-		ExecutionPayloadHeaderT,
 	],
 	signer crypto.BLSSigner,
 	blobFactory BlobFactory[BeaconBlockT, BlobSidecarsT],
@@ -102,13 +98,13 @@ func NewService[
 ) *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarT, BlobSidecarsT, DepositStoreT,
-	ExecutionPayloadHeaderT, SlashingInfoT,
+	SlashingInfoT,
 	SlotDataT,
 ] {
 	return &Service[
 		BeaconBlockT, BeaconBlockBodyT,
 		BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositStoreT,
-		ExecutionPayloadHeaderT, SlashingInfoT,
+		SlashingInfoT,
 		SlotDataT,
 	]{
 		cfg:                   cfg,
@@ -126,19 +122,19 @@ func NewService[
 
 // Name returns the name of the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _,
 ]) Name() string {
 	return "validator"
 }
 
 func (s *Service[
-	_, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _,
 ]) Start(
 	_ context.Context,
 ) error {
 	return nil
 }
 
-func (s *Service[_, _, _, _, _, _, _, _, _]) Stop() error {
+func (s *Service[_, _, _, _, _, _, _, _]) Stop() error {
 	return nil
 }

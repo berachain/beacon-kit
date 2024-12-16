@@ -30,9 +30,7 @@ import (
 
 // DepositContractInput is the input for the deposit contract
 // for the dep inject framework.
-type DepositContractInput[
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-] struct {
+type DepositContractInput struct {
 	depinject.In
 	ChainSpec    chain.ChainSpec
 	EngineClient *client.EngineClient[*engineprimitives.PayloadAttributes]
@@ -40,10 +38,8 @@ type DepositContractInput[
 
 // ProvideDepositContract provides a deposit contract through the
 // dep inject framework.
-func ProvideDepositContract[
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-](
-	in DepositContractInput[ExecutionPayloadHeaderT],
+func ProvideDepositContract(
+	in DepositContractInput,
 ) (*deposit.WrappedDepositContract, error) {
 	// Build the deposit contract.
 	return deposit.NewWrappedDepositContract(

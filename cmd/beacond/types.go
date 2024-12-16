@@ -83,7 +83,6 @@ type (
 		*BeaconBlockBody,
 		*BeaconState,
 		*BlockStore,
-		*ExecutionPayloadHeader,
 		*Genesis,
 		*ConsensusSidecars,
 		*BlobSidecars,
@@ -103,12 +102,11 @@ type (
 	IndexDB = filedb.RangeDB
 
 	// KVStore is a type alias for the KV store.
-	KVStore = beacondb.KVStore[*ExecutionPayloadHeader]
+	KVStore = beacondb.KVStore
 
 	// LocalBuilder is a type alias for the local builder.
 	LocalBuilder = payloadbuilder.PayloadBuilder[
 		*BeaconState,
-		*ExecutionPayloadHeader,
 		*PayloadAttributes,
 		PayloadID,
 	]
@@ -134,7 +132,6 @@ type (
 		*BeaconBlockBody,
 		*BeaconState,
 		*Context,
-		*ExecutionPayloadHeader,
 		*KVStore,
 	]
 
@@ -155,7 +152,6 @@ type (
 		*BlobSidecar,
 		*BlobSidecars,
 		*DepositStore,
-		*ExecutionPayloadHeader,
 		*SlashingInfo,
 		*SlotData,
 	]
@@ -177,15 +173,11 @@ type (
 	// BeaconState is a type alias for the BeaconState.
 	BeaconState = statedb.StateDB[
 		*BeaconStateMarshallable,
-		*ExecutionPayloadHeader,
 		*KVStore,
 	]
 
 	// BeaconStateMarshallable is a type alias for the BeaconState.
-	BeaconStateMarshallable = types.BeaconState[
-		*ExecutionPayloadHeader,
-		ExecutionPayloadHeader,
-	]
+	BeaconStateMarshallable = types.BeaconState
 
 	// BlobSidecars type aliases.
 	ConsensusSidecars = consruntimetypes.ConsensusSidecars[*BlobSidecars]
@@ -207,9 +199,6 @@ type (
 	// Eth1Data is a type alias for the eth1 data.
 	Eth1Data = types.Eth1Data
 
-	// ExecutionPayload type aliases.
-	ExecutionPayloadHeader = types.ExecutionPayloadHeader
-
 	// Fork is a type alias for the fork.
 	Fork = types.Fork
 
@@ -217,7 +206,7 @@ type (
 	ForkData = types.ForkData
 
 	// Genesis is a type alias for the Genesis type.
-	Genesis = types.Genesis[*ExecutionPayloadHeader]
+	Genesis = types.Genesis
 
 	// Logger is a type alias for the logger.
 	Logger = phuslu.Logger
@@ -242,7 +231,6 @@ type (
 		*BlockStore,
 		sdk.Context,
 		*DepositStore,
-		*ExecutionPayloadHeader,
 		*CometBFTService,
 		*KVStore,
 		*StorageBackend,

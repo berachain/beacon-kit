@@ -42,17 +42,13 @@ type ServiceRegistryInput[
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[BeaconBlockBodyT, *SlashingInfo],
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
-	BeaconStateT BeaconState[
-		BeaconStateT, BeaconStateMarshallableT,
-		ExecutionPayloadHeaderT, KVStoreT,
-	],
+	BeaconStateT BeaconState[BeaconStateT, BeaconStateMarshallableT, KVStoreT],
 	BeaconStateMarshallableT any,
 	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	DepositStoreT DepositStore,
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-	GenesisT Genesis[ExecutionPayloadHeaderT],
+	GenesisT Genesis,
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 	NodeAPIContextT NodeAPIContext,
@@ -62,7 +58,7 @@ type ServiceRegistryInput[
 		AvailabilityStoreT, DepositStoreT,
 		ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
 		BeaconStateT, BeaconBlockStoreT,
-		ExecutionPayloadHeaderT, GenesisT,
+		GenesisT,
 		ConsensusSidecarsT, BlobSidecarsT,
 		*engineprimitives.PayloadAttributes,
 	]
@@ -75,7 +71,6 @@ type ServiceRegistryInput[
 	ValidatorService *validator.Service[
 		BeaconBlockT, BeaconBlockBodyT,
 		BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositStoreT,
-		ExecutionPayloadHeaderT,
 		*SlashingInfo, *SlotData,
 	]
 	CometBFTService *cometbft.Service[LoggerT]
@@ -90,15 +85,14 @@ func ProvideServiceRegistry[
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconStateMarshallableT,
-		ExecutionPayloadHeaderT, KVStoreT,
+		KVStoreT,
 	],
 	BeaconStateMarshallableT any,
 	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	DepositStoreT DepositStore,
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-	GenesisT Genesis[ExecutionPayloadHeaderT],
+	GenesisT Genesis,
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 	NodeAPIContextT NodeAPIContext,
@@ -109,7 +103,7 @@ func ProvideServiceRegistry[
 		BeaconBlockStoreT, BeaconStateT,
 		BeaconStateMarshallableT,
 		ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
-		DepositStoreT, ExecutionPayloadHeaderT,
+		DepositStoreT,
 		GenesisT, KVStoreT, LoggerT, NodeAPIContextT,
 	],
 ) *service.Registry {

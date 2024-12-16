@@ -115,7 +115,7 @@ func TestInitialize(t *testing.T) {
 			genDeposits[0], genDeposits[1], genDeposits[3],
 			genDeposits[5], genDeposits[6],
 		}
-		executionPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		executionPayloadHeader = &types.ExecutionPayloadHeader{}
 		fork                   = &types.Fork{
 			PreviousVersion: version.FromUint32[chain.Version](version.Deneb),
 			CurrentVersion:  version.FromUint32[chain.Version](version.Deneb),

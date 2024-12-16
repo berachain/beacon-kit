@@ -42,7 +42,6 @@ import (
 type ChainServiceInput[
 	BeaconBlockT any,
 	BeaconStateT any,
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	StorageBackendT any,
 	LoggerT any,
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
@@ -67,7 +66,6 @@ type ChainServiceInput[
 	Signer         crypto.BLSSigner
 	StateProcessor StateProcessor[
 		BeaconBlockT, BeaconStateT, *Context,
-		ExecutionPayloadHeaderT,
 	]
 	StorageBackend StorageBackendT
 	BlobProcessor  BlobProcessor[
@@ -88,10 +86,7 @@ func ProvideChainService[
 		BeaconBlockBodyT,
 		*SlashingInfo,
 	],
-	BeaconStateT BeaconState[
-		BeaconStateT, BeaconStateMarshallableT,
-		ExecutionPayloadHeaderT, KVStoreT,
-	],
+	BeaconStateT BeaconState[BeaconStateT, BeaconStateMarshallableT, KVStoreT],
 	BeaconStateMarshallableT any,
 	BlobSidecarT BlobSidecar,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
@@ -99,8 +94,7 @@ func ProvideChainService[
 	BlockStoreT any,
 	DepositStoreT DepositStore,
 	DepositContractT deposit.Contract,
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-	GenesisT Genesis[ExecutionPayloadHeaderT],
+	GenesisT Genesis,
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 	StorageBackendT StorageBackend[
@@ -110,7 +104,7 @@ func ProvideChainService[
 ](
 	in ChainServiceInput[
 		BeaconBlockT, BeaconStateT,
-		ExecutionPayloadHeaderT, StorageBackendT, LoggerT,
+		StorageBackendT, LoggerT,
 		BeaconBlockStoreT, DepositStoreT, DepositContractT,
 		AvailabilityStoreT, ConsensusSidecarsT, BlobSidecarsT,
 	],
@@ -118,7 +112,7 @@ func ProvideChainService[
 	AvailabilityStoreT, DepositStoreT,
 	ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, BeaconBlockStoreT,
-	ExecutionPayloadHeaderT, GenesisT,
+	GenesisT,
 	ConsensusSidecarsT, BlobSidecarsT,
 	*engineprimitives.PayloadAttributes,
 ] {
@@ -130,7 +124,6 @@ func ProvideChainService[
 		BeaconBlockBodyT,
 		BeaconStateT,
 		BeaconBlockStoreT,
-		ExecutionPayloadHeaderT,
 		GenesisT,
 		*engineprimitives.PayloadAttributes,
 	](

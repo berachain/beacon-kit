@@ -86,14 +86,12 @@ type BeaconBlockBody[
 }
 
 // BeaconState represents a beacon state interface.
-type BeaconState[ExecutionPayloadHeaderT any] interface {
+type BeaconState interface {
 	// GetBlockRootAtIndex returns the block root at the given index.
 	GetBlockRootAtIndex(uint64) (common.Root, error)
 	// GetLatestExecutionPayloadHeader returns the latest execution payload
 	// header.
-	GetLatestExecutionPayloadHeader() (
-		ExecutionPayloadHeaderT, error,
-	)
+	GetLatestExecutionPayloadHeader() (*ctypes.ExecutionPayloadHeader, error)
 	// GetSlot returns the current slot of the beacon state.
 	GetSlot() (math.Slot, error)
 	// HashTreeRoot returns the hash tree root of the beacon state.
@@ -129,16 +127,6 @@ type DepositStore interface {
 		startIndex uint64,
 		numView uint64,
 	) ([]*ctypes.Deposit, error)
-}
-
-// ExecutionPayloadHeader represents the execution payload header interface.
-type ExecutionPayloadHeader interface {
-	// GetTimestamp returns the timestamp of the execution payload header.
-	GetTimestamp() math.U64
-	// GetBlockHash returns the block hash of the execution payload header.
-	GetBlockHash() common.ExecutionHash
-	// GetParentHash returns the parent hash of the execution payload header.
-	GetParentHash() common.ExecutionHash
 }
 
 // ForkData represents the fork data interface.
@@ -200,7 +188,6 @@ type StateProcessor[
 	BeaconBlockT any,
 	BeaconStateT any,
 	ContextT any,
-	ExecutionPayloadHeaderT any,
 ] interface {
 	// ProcessSlot processes the slot.
 	ProcessSlots(

@@ -156,8 +156,7 @@ type (
 	// BeaconStateMarshallable represents an interface for a beacon state
 	// with generic types.
 	BeaconStateMarshallable[
-		T,
-		ExecutionPayloadHeaderT any,
+		T any,
 	] interface {
 		constraints.SSZMarshallableRootable
 		GetTree() (*fastssz.Node, error)
@@ -172,7 +171,7 @@ type (
 			stateRoots []common.Root,
 			eth1Data *ctypes.Eth1Data,
 			eth1DepositIndex uint64,
-			latestExecutionPayloadHeader ExecutionPayloadHeaderT,
+			latestExecutionPayloadHeader *ctypes.ExecutionPayloadHeader,
 			validators []*ctypes.Validator,
 			balances []uint64,
 			randaoMixes []chain.Bytes32,
@@ -380,129 +379,15 @@ type (
 		EnqueueDeposits(deposits []*ctypes.Deposit) error
 	}
 
-	// 	Eth1Data[T any] interface {
-	// 		constraints.Empty[T]
-	// 		constraints.SSZMarshallableRootable
-	// 		// New creates a new eth1 data with the given parameters.
-	// 		New(
-	// 			depositRoot common.Root,
-	// 			depositCount math.U64,
-	// 			blockHash common.ExecutionHash,
-	// 		) T
-	// 		GetDepositCount() math.U64
-	// 	}
-
-	// 	EngineClient[
-	// 		ExecutionPayloadT any,
-	// 		PayloadAttributesT any,
-	// 		PayloadIDT any,
-	// 	] interface {
-	// 		service.Basic
-	// 		bind.ContractFilterer
-	// 		GetPayload(
-	// 			ctx context.Context,
-	// 			payloadID engineprimitives.PayloadID,
-	// 			forkVersion uint32,
-	// 		) (ctypes.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
-	// 		NewPayload(
-	// 			ctx context.Context,
-	// 			payload ExecutionPayloadT,
-	// 			versionedHashes []common.ExecutionHash,
-	// 			parentBeaconBlockRoot *common.Root,
-	// 		) (*common.ExecutionHash, error)
-	// 		ForkchoiceUpdated(
-	// 			ctx context.Context,
-	// 			state *engineprimitives.ForkchoiceStateV1,
-	// 			attrs PayloadAttributesT,
-	// 			forkVersion uint32,
-	// 		) (*PayloadIDT, *common.ExecutionHash, error)
-	// 	}
-
-	// 	Event[DataT any] interface {
-	// 		Type() asynctypes.EventID
-	// 		Is(eventType asynctypes.EventID) bool
-	// 		Context() context.Context
-	// 		Data() DataT
-	// 		Error() error
-	// 	}
-
-	// 	// ExecutionEngine is the interface for the execution engine.
-	// 	ExecutionEngine[
-	// 		ExecutionPayloadT ExecutionPayload[
-	// 			ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
-	// 		],
-	// 		ExecutionPayloadHeaderT
-	// ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-	// 		PayloadAttributesT any,
-	// 		PayloadIDT ~[8]byte,
-	// 		WithdrawalT any,
-	// 		WithdrawalsT Withdrawals[WithdrawalT],
-	// 	] interface {
-	// 		// GetPayload returns the payload and blobs bundle for the given slot.
-	// 		GetPayload(
-	// 			ctx context.Context,
-	// 			req *ctypes.GetPayloadRequest[PayloadIDT],
-	// 		) (ctypes.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
-	// 		// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
-	// 		// update.
-	// 		NotifyForkchoiceUpdate(
-	// 			ctx context.Context,
-	// 			req *ctypes.ForkchoiceUpdateRequest[PayloadAttributesT],
-	// 		) (*PayloadIDT, *common.ExecutionHash, error)
-	// 		// VerifyAndNotifyNewPayload verifies the new payload and notifies the
-	// 		// execution client.
-	// 		VerifyAndNotifyNewPayload(
-	// 			ctx context.Context,
-	// 			req *ctypes.NewPayloadRequest[ExecutionPayloadT,
-	// WithdrawalsT],
-	// 		) error
-	// 	}
-
-	// ExecutionPayloadHeader is the interface for the execution payload
-	// header.
-	ExecutionPayloadHeader[T any] interface {
-		constraints.SSZMarshallable
-		constraints.Versionable
-		NewFromSSZ([]byte, uint32) (T, error)
-		// GetNumber returns the block number of the ExecutionPayloadHeader.
-		GetNumber() math.U64
-		// GetFeeRecipient returns the fee recipient address of the
-		// ExecutionPayloadHeader.
-		GetFeeRecipient() common.ExecutionAddress
-		// GetTimestamp returns the timestamp.
-		GetTimestamp() math.U64
-		// GetBlockHash returns the block hash.
-		GetBlockHash() common.ExecutionHash
-		// GetParentHash returns the parent hash.
-		GetParentHash() common.ExecutionHash
-	}
-
-	// 	Fork[T any] interface {
-	// 		constraints.Empty[T]
-	// 		constraints.SSZMarshallable
-	// 		New(chain.Version, chain.Version, math.Epoch) T
-	// 	}
-
-	// 	// ForkData is the interface for the fork data.
-	// 	ForkData[T any] interface {
-	// 		// New creates a new fork data object.
-	// 		New(chain.Version, common.Root) T
-	// 		// ComputeRandaoSigningRoot returns the signing root for the fork data.
-	// 		ComputeRandaoSigningRoot(
-	// 			domainType chain.DomainType,
-	// 			epoch math.Epoch,
-	// 		) common.Root
-	// 	}
-
 	// Genesis is the interface for the genesis.
-	Genesis[ExecutionPayloadHeaderT any] interface {
+	Genesis interface {
 		json.Unmarshaler
 		// GetForkVersion returns the fork version.
 		GetForkVersion() chain.Version
 		// GetDeposits returns the deposits.
 		GetDeposits() []*ctypes.Deposit
 		// GetExecutionPayloadHeader returns the execution payload header.
-		GetExecutionPayloadHeader() ExecutionPayloadHeaderT
+		GetExecutionPayloadHeader() *ctypes.ExecutionPayloadHeader
 	}
 
 	// IndexDB is the interface for the range DB.
@@ -578,7 +463,6 @@ type (
 		BeaconBlockT any,
 		BeaconStateT any,
 		ContextT any,
-		ExecutionPayloadHeaderT any,
 	] interface {
 		// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
 		// state
@@ -586,7 +470,7 @@ type (
 		InitializePreminedBeaconStateFromEth1(
 			BeaconStateT,
 			[]*ctypes.Deposit,
-			ExecutionPayloadHeaderT,
+			*ctypes.ExecutionPayloadHeader,
 			chain.Version,
 		) (transition.ValidatorUpdates, error)
 		// ProcessSlot processes the slot.
@@ -730,7 +614,6 @@ type (
 	BeaconState[
 		T any,
 		BeaconStateMarshallableT any,
-		ExecutionPayloadHeaderT any,
 		KVStoreT any,
 	] interface {
 		NewFromDB(
@@ -742,14 +625,13 @@ type (
 		HashTreeRoot() common.Root
 		GetMarshallable() (BeaconStateMarshallableT, error)
 
-		ReadOnlyBeaconState[ExecutionPayloadHeaderT]
-		WriteOnlyBeaconState[ExecutionPayloadHeaderT]
+		ReadOnlyBeaconState
+		WriteOnlyBeaconState
 	}
 
 	// BeaconStore is the interface for the beacon store.
 	BeaconStore[
 		T any,
-		ExecutionPayloadHeaderT any,
 	] interface {
 		// Context returns the context of the key-value store.
 		Context() context.Context
@@ -762,14 +644,10 @@ type (
 		// GetLatestExecutionPayloadHeader retrieves the latest execution
 		// payload
 		// header.
-		GetLatestExecutionPayloadHeader() (
-			ExecutionPayloadHeaderT, error,
-		)
+		GetLatestExecutionPayloadHeader() (*ctypes.ExecutionPayloadHeader, error)
 		// SetLatestExecutionPayloadHeader sets the latest execution payload
 		// header.
-		SetLatestExecutionPayloadHeader(
-			payloadHeader ExecutionPayloadHeaderT,
-		) error
+		SetLatestExecutionPayloadHeader(payloadHeader *ctypes.ExecutionPayloadHeader) error
 		// GetEth1DepositIndex retrieves the eth1 deposit index.
 		GetEth1DepositIndex() (uint64, error)
 		// SetEth1DepositIndex sets the eth1 deposit index.
@@ -868,10 +746,8 @@ type (
 	}
 
 	// ReadOnlyBeaconState is the interface for a read-only beacon state.
-	ReadOnlyBeaconState[
-		ExecutionPayloadHeaderT any,
-	] interface {
-		ReadOnlyEth1Data[ExecutionPayloadHeaderT]
+	ReadOnlyBeaconState interface {
+		ReadOnlyEth1Data
 		ReadOnlyRandaoMixes
 		ReadOnlyStateRoots
 		ReadOnlyValidators
@@ -899,10 +775,8 @@ type (
 	}
 
 	// WriteOnlyBeaconState is the interface for a write-only beacon state.
-	WriteOnlyBeaconState[
-		ExecutionPayloadHeaderT any,
-	] interface {
-		WriteOnlyEth1Data[ExecutionPayloadHeaderT]
+	WriteOnlyBeaconState interface {
+		WriteOnlyEth1Data
 		WriteOnlyRandaoMixes
 		WriteOnlyStateRoots
 		WriteOnlyValidators
@@ -969,21 +843,17 @@ type (
 	}
 
 	// WriteOnlyEth1Data has write access to eth1 data.
-	WriteOnlyEth1Data[ExecutionPayloadHeaderT any] interface {
+	WriteOnlyEth1Data interface {
 		SetEth1Data(*ctypes.Eth1Data) error
 		SetEth1DepositIndex(uint64) error
-		SetLatestExecutionPayloadHeader(
-			ExecutionPayloadHeaderT,
-		) error
+		SetLatestExecutionPayloadHeader(*ctypes.ExecutionPayloadHeader) error
 	}
 
 	// ReadOnlyEth1Data has read access to eth1 data.
-	ReadOnlyEth1Data[ExecutionPayloadHeaderT any] interface {
+	ReadOnlyEth1Data interface {
 		GetEth1Data() (*ctypes.Eth1Data, error)
 		GetEth1DepositIndex() (uint64, error)
-		GetLatestExecutionPayloadHeader() (
-			ExecutionPayloadHeaderT, error,
-		)
+		GetLatestExecutionPayloadHeader() (*ctypes.ExecutionPayloadHeader, error)
 	}
 
 	// ReadOnlyWithdrawals only has read access to withdrawal methods.

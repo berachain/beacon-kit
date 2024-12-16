@@ -84,7 +84,7 @@ func AddExecutionPayloadCmd(chainSpec chain.ChainSpec) *cobra.Command {
 				return err
 			}
 
-			genesisInfo := &types.Genesis[*types.ExecutionPayloadHeader]{}
+			genesisInfo := &types.Genesis{}
 
 			if err = json.Unmarshal(
 				appGenesisState["beacon"], genesisInfo,

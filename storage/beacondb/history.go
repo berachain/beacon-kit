@@ -26,7 +26,7 @@ import (
 )
 
 // UpdateBlockRootAtIndex sets a block root in the BeaconStore.
-func (kv *KVStore[ExecutionPayloadHeaderT]) UpdateBlockRootAtIndex(
+func (kv *KVStore) UpdateBlockRootAtIndex(
 	index uint64,
 	root common.Root,
 ) error {
@@ -34,7 +34,7 @@ func (kv *KVStore[ExecutionPayloadHeaderT]) UpdateBlockRootAtIndex(
 }
 
 // GetBlockRootAtIndex retrieves the block root from the BeaconStore.
-func (kv *KVStore[ExecutionPayloadHeaderT]) GetBlockRootAtIndex(
+func (kv *KVStore) GetBlockRootAtIndex(
 	index uint64,
 ) (common.Root, error) {
 	bz, err := kv.blockRoots.Get(kv.ctx, index)
@@ -45,21 +45,21 @@ func (kv *KVStore[ExecutionPayloadHeaderT]) GetBlockRootAtIndex(
 }
 
 // SetLatestBlockHeader sets the latest block header in the BeaconStore.
-func (kv *KVStore[ExecutionPayloadHeaderT]) SetLatestBlockHeader(
+func (kv *KVStore) SetLatestBlockHeader(
 	header *ctypes.BeaconBlockHeader,
 ) error {
 	return kv.latestBlockHeader.Set(kv.ctx, header)
 }
 
 // GetLatestBlockHeader retrieves the latest block header from the BeaconStore.
-func (kv *KVStore[ExecutionPayloadHeaderT]) GetLatestBlockHeader() (
+func (kv *KVStore) GetLatestBlockHeader() (
 	*ctypes.BeaconBlockHeader, error,
 ) {
 	return kv.latestBlockHeader.Get(kv.ctx)
 }
 
 // UpdateStateRootAtIndex updates the state root at the given slot.
-func (kv *KVStore[ExecutionPayloadHeaderT]) UpdateStateRootAtIndex(
+func (kv *KVStore) UpdateStateRootAtIndex(
 	idx uint64,
 	stateRoot common.Root,
 ) error {
@@ -67,7 +67,7 @@ func (kv *KVStore[ExecutionPayloadHeaderT]) UpdateStateRootAtIndex(
 }
 
 // StateRootAtIndex returns the state root at the given slot.
-func (kv *KVStore[ExecutionPayloadHeaderT]) StateRootAtIndex(
+func (kv *KVStore) StateRootAtIndex(
 	idx uint64,
 ) (common.Root, error) {
 	bz, err := kv.stateRoots.Get(kv.ctx, idx)
