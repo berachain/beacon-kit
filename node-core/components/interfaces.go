@@ -56,11 +56,11 @@ type (
 	}
 
 	// AvailabilityStore is the interface for the availability store.
-	AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
+	AvailabilityStore[BlobSidecarsT any] interface {
 		IndexDB
 		// IsDataAvailable ensures that all blobs referenced in the block are
 		// securely stored before it returns without an error.
-		IsDataAvailable(context.Context, math.Slot, BeaconBlockBodyT) bool
+		IsDataAvailable(context.Context, math.Slot, *ctypes.BeaconBlockBody) bool
 		// Persist makes sure that the sidecar remains accessible for data
 		// availability checks throughout the beacon node's operation.
 		Persist(math.Slot, BlobSidecarsT) error
@@ -81,7 +81,6 @@ type (
 	// BeaconBlock represents a generic interface for a beacon block.
 	BeaconBlock[
 		T any,
-		BeaconBlockBodyT any,
 	] interface {
 		constraints.Nillable
 		constraints.Empty[T]
@@ -103,7 +102,7 @@ type (
 		// GetSlot returns the slot number of the block.
 		GetSlot() math.Slot
 		// GetBody returns the body of the block.
-		GetBody() BeaconBlockBodyT
+		GetBody() *ctypes.BeaconBlockBody
 		// GetHeader returns the header of the block.
 		GetHeader() *ctypes.BeaconBlockHeader
 		// GetParentBlockRoot returns the root of the parent block.

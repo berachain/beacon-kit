@@ -29,44 +29,23 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/karalabe/ssz"
 )
 
 // BeaconBlock represents a generic interface for a beacon block.
-type BeaconBlock[
-	BeaconBlockBodyT BeaconBlockBody[BeaconBlockBodyT],
-] interface {
+type BeaconBlock interface {
 	IsNil() bool
 	// GetProposerIndex returns the index of the proposer.
 	GetProposerIndex() math.ValidatorIndex
 	// GetSlot returns the slot number of the block.
 	GetSlot() math.Slot
 	// GetBody returns the body of the block.
-	GetBody() BeaconBlockBodyT
+	GetBody() *ctypes.BeaconBlockBody
 	// GetParentBlockRoot returns the root of the parent block.
 	GetParentBlockRoot() common.Root
 	// GetStateRoot returns the state root of the block.
 	GetStateRoot() common.Root
-}
-
-// BeaconBlockBody represents a generic interface for the body of a beacon
-// block.
-type BeaconBlockBody[
-	BeaconBlockBodyT any,
-] interface {
-	constraints.EmptyWithVersion[BeaconBlockBodyT]
-	// GetRandaoReveal returns the RANDAO reveal signature.
-	GetRandaoReveal() crypto.BLSSignature
-	// GetExecutionPayload returns the execution payload.
-	GetExecutionPayload() *ctypes.ExecutionPayload
-	// GetDeposits returns the list of deposits.
-	GetDeposits() []*ctypes.Deposit
-	// HashTreeRoot returns the hash tree root of the block body.
-	HashTreeRoot() common.Root
-	// GetBlobKzgCommitments returns the KZG commitments for the blobs.
-	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 }
 
 // Context defines an interface for managing state transition context.

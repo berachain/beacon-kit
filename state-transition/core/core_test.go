@@ -65,7 +65,6 @@ type (
 
 	TestStateProcessorT = core.StateProcessor[
 		*types.BeaconBlock,
-		*types.BeaconBlockBody,
 		*TestBeaconStateT,
 		*transition.Context,
 		*TestKVStoreT,
@@ -159,7 +158,6 @@ func setupState(
 
 	sp := core.NewStateProcessor[
 		*types.BeaconBlock,
-		*types.BeaconBlockBody,
 		*TestBeaconStateT,
 		*transition.Context,
 		*TestKVStoreT,
