@@ -24,6 +24,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/chain-spec/chain"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
@@ -109,17 +110,17 @@ type PayloadAttributes[
 
 // ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine[
-	ExecutionPayloadT, PayloadAttributesT any, PayloadIDT ~[8]byte,
+	PayloadAttributesT any, PayloadIDT ~[8]byte,
 ] interface {
 	// GetPayload returns the payload and blobs bundle for the given slot.
 	GetPayload(
 		ctx context.Context,
-		req *engineprimitives.GetPayloadRequest[PayloadIDT],
-	) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
+		req *ctypes.GetPayloadRequest[PayloadIDT],
+	) (ctypes.BuiltExecutionPayloadEnv, error)
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
-		req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
+		req *ctypes.ForkchoiceUpdateRequest[PayloadAttributesT],
 	) (*PayloadIDT, *common.ExecutionHash, error)
 }

@@ -40,10 +40,7 @@ type ServiceRegistryInput[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT,
-		ExecutionPayloadT, *SlashingInfo,
-	],
+	BeaconBlockBodyT BeaconBlockBody[BeaconBlockBodyT, *SlashingInfo],
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconStateMarshallableT,
@@ -54,9 +51,6 @@ type ServiceRegistryInput[
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	DepositStoreT DepositStore,
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	GenesisT Genesis[ExecutionPayloadHeaderT],
 	KVStoreT any,
@@ -68,27 +62,20 @@ type ServiceRegistryInput[
 		AvailabilityStoreT, DepositStoreT,
 		ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
 		BeaconStateT, BeaconBlockStoreT,
-		ExecutionPayloadT,
 		ExecutionPayloadHeaderT, GenesisT,
 		ConsensusSidecarsT, BlobSidecarsT,
 		*engineprimitives.PayloadAttributes,
 	]
-	EngineClient *client.EngineClient[
-		ExecutionPayloadT,
-		*engineprimitives.PayloadAttributes,
-	]
+	EngineClient     *client.EngineClient[*engineprimitives.PayloadAttributes]
 	Logger           LoggerT
 	NodeAPIServer    *server.Server[NodeAPIContextT]
-	ReportingService *version.ReportingService[
-		ExecutionPayloadT,
-		*engineprimitives.PayloadAttributes,
-	]
+	ReportingService *version.ReportingService[*engineprimitives.PayloadAttributes]
 	TelemetrySink    *metrics.TelemetrySink
 	TelemetryService *telemetry.Service
 	ValidatorService *validator.Service[
 		BeaconBlockT, BeaconBlockBodyT,
 		BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositStoreT,
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
+		ExecutionPayloadHeaderT,
 		*SlashingInfo, *SlotData,
 	]
 	CometBFTService *cometbft.Service[LoggerT]
@@ -99,10 +86,7 @@ func ProvideServiceRegistry[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT,
-		ExecutionPayloadT, *SlashingInfo,
-	],
+	BeaconBlockBodyT BeaconBlockBody[BeaconBlockBodyT, *SlashingInfo],
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconStateMarshallableT,
@@ -113,8 +97,6 @@ func ProvideServiceRegistry[
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	DepositStoreT DepositStore,
-	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT,
-		ExecutionPayloadHeaderT],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	GenesisT Genesis[ExecutionPayloadHeaderT],
 	KVStoreT any,
@@ -127,7 +109,7 @@ func ProvideServiceRegistry[
 		BeaconBlockStoreT, BeaconStateT,
 		BeaconStateMarshallableT,
 		ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
-		DepositStoreT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+		DepositStoreT, ExecutionPayloadHeaderT,
 		GenesisT, KVStoreT, LoggerT, NodeAPIContextT,
 	],
 ) *service.Registry {

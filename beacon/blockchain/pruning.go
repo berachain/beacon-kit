@@ -27,7 +27,7 @@ import (
 )
 
 func (s *Service[
-	_, _, ConsensusBlockT, BeaconBlockT, _, _, _, _, _, _, _, _, _,
+	_, _, ConsensusBlockT, BeaconBlockT, _, _, _, _, _, _, _, _,
 ]) processPruning(beaconBlk BeaconBlockT) error {
 	// prune availability store
 	start, end := availabilityPruneRangeFn(

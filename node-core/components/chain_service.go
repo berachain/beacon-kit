@@ -42,9 +42,6 @@ import (
 type ChainServiceInput[
 	BeaconBlockT any,
 	BeaconStateT any,
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	StorageBackendT any,
 	LoggerT any,
@@ -57,19 +54,15 @@ type ChainServiceInput[
 ] struct {
 	depinject.In
 
-	AppOpts      config.AppOptions
-	ChainSpec    chain.ChainSpec
-	Cfg          *config.Config
-	EngineClient *client.EngineClient[
-		ExecutionPayloadT,
-		*engineprimitives.PayloadAttributes,
-	]
+	AppOpts         config.AppOptions
+	ChainSpec       chain.ChainSpec
+	Cfg             *config.Config
+	EngineClient    *client.EngineClient[*engineprimitives.PayloadAttributes]
 	ExecutionEngine *engine.Engine[
-		ExecutionPayloadT,
 		*engineprimitives.PayloadAttributes,
 		PayloadID,
 	]
-	LocalBuilder   LocalBuilder[BeaconStateT, ExecutionPayloadT]
+	LocalBuilder   LocalBuilder[BeaconStateT]
 	Logger         LoggerT
 	Signer         crypto.BLSSigner
 	StateProcessor StateProcessor[
@@ -93,7 +86,7 @@ func ProvideChainService[
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[
 		BeaconBlockBodyT,
-		ExecutionPayloadT, *SlashingInfo,
+		*SlashingInfo,
 	],
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconStateMarshallableT,
@@ -106,9 +99,6 @@ func ProvideChainService[
 	BlockStoreT any,
 	DepositStoreT DepositStore,
 	DepositContractT deposit.Contract,
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	GenesisT Genesis[ExecutionPayloadHeaderT],
 	KVStoreT any,
@@ -119,7 +109,7 @@ func ProvideChainService[
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
 ](
 	in ChainServiceInput[
-		BeaconBlockT, BeaconStateT, ExecutionPayloadT,
+		BeaconBlockT, BeaconStateT,
 		ExecutionPayloadHeaderT, StorageBackendT, LoggerT,
 		BeaconBlockStoreT, DepositStoreT, DepositContractT,
 		AvailabilityStoreT, ConsensusSidecarsT, BlobSidecarsT,
@@ -128,7 +118,6 @@ func ProvideChainService[
 	AvailabilityStoreT, DepositStoreT,
 	ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, BeaconBlockStoreT,
-	ExecutionPayloadT,
 	ExecutionPayloadHeaderT, GenesisT,
 	ConsensusSidecarsT, BlobSidecarsT,
 	*engineprimitives.PayloadAttributes,
@@ -141,7 +130,6 @@ func ProvideChainService[
 		BeaconBlockBodyT,
 		BeaconStateT,
 		BeaconBlockStoreT,
-		ExecutionPayloadT,
 		ExecutionPayloadHeaderT,
 		GenesisT,
 		*engineprimitives.PayloadAttributes,

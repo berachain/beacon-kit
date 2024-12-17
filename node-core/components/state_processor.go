@@ -35,16 +35,12 @@ import (
 // framework.
 type StateProcessorInput[
 	LoggerT log.AdvancedLogger[LoggerT],
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 ] struct {
 	depinject.In
 	Logger          LoggerT
 	ChainSpec       chain.ChainSpec
 	ExecutionEngine *engine.Engine[
-		ExecutionPayloadT,
 		*engineprimitives.PayloadAttributes,
 		PayloadID,
 	]
@@ -60,7 +56,7 @@ func ProvideStateProcessor[
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[
 		BeaconBlockBodyT,
-		ExecutionPayloadT, *SlashingInfo,
+		*SlashingInfo,
 	],
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconStateMarshallableT,
@@ -68,9 +64,6 @@ func ProvideStateProcessor[
 	],
 	BeaconStateMarshallableT any,
 	DepositStoreT DepositStore,
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	KVStoreT BeaconStore[
 		KVStoreT, ExecutionPayloadHeaderT,
@@ -78,11 +71,11 @@ func ProvideStateProcessor[
 ](
 	in StateProcessorInput[
 		LoggerT,
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
+		ExecutionPayloadHeaderT,
 	],
 ) *core.StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, *Context, ExecutionPayloadT,
+	BeaconStateT, *Context,
 	ExecutionPayloadHeaderT, KVStoreT,
 ] {
 	return core.NewStateProcessor[
@@ -90,7 +83,6 @@ func ProvideStateProcessor[
 		BeaconBlockBodyT,
 		BeaconStateT,
 		*Context,
-		ExecutionPayloadT,
 		ExecutionPayloadHeaderT,
 		KVStoreT,
 	](

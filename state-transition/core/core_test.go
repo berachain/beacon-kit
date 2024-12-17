@@ -72,7 +72,6 @@ type (
 		*types.BeaconBlockBody,
 		*TestBeaconStateT,
 		*transition.Context,
-		*types.ExecutionPayload,
 		*types.ExecutionPayloadHeader,
 		*TestKVStoreT,
 	]
@@ -152,10 +151,7 @@ func setupState(
 ) {
 	t.Helper()
 
-	execEngine := mocks.NewExecutionEngine[
-		*types.ExecutionPayload,
-		*types.ExecutionPayloadHeader,
-	](t)
+	execEngine := mocks.NewExecutionEngine[*types.ExecutionPayloadHeader](t)
 
 	mocksSigner := &cryptomocks.BLSSigner{}
 	mocksSigner.On(
@@ -174,7 +170,6 @@ func setupState(
 		*types.BeaconBlockBody,
 		*TestBeaconStateT,
 		*transition.Context,
-		*types.ExecutionPayload,
 		*types.ExecutionPayloadHeader,
 		*TestKVStoreT,
 	](

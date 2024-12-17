@@ -32,9 +32,7 @@ func DefaultComponents() []any {
 			*ExecutionPayloadHeader, *KVStore, *Logger,
 		],
 		components.ProvideAvailibilityStore[*BeaconBlockBody, *Logger],
-		components.ProvideDepositContract[
-			*ExecutionPayload, *ExecutionPayloadHeader,
-		],
+		components.ProvideDepositContract[*ExecutionPayloadHeader],
 		components.ProvideBlockStore[
 			*BeaconBlock, *BeaconBlockBody, *Logger,
 		],
@@ -50,7 +48,7 @@ func DefaultComponents() []any {
 			*BeaconState, *BeaconStateMarshallable,
 			*BlobSidecar, *BlobSidecars, *ConsensusSidecars, *BlockStore,
 			*DepositStore, *DepositContract,
-			*ExecutionPayload, *ExecutionPayloadHeader, *Genesis,
+			*ExecutionPayloadHeader, *Genesis,
 			*KVStore, *Logger, *StorageBackend, *BlockStore,
 		],
 		components.ProvideNode,
@@ -62,20 +60,14 @@ func DefaultComponents() []any {
 		// 	*BeaconStateMarshallable, *BlockStore, *KVStore, *StorageBackend,
 		// ],
 		components.ProvideDepositStore[*Logger],
-		components.ProvideEngineClient[
-			*ExecutionPayload, *ExecutionPayloadHeader, *Logger,
-		],
-		components.ProvideExecutionEngine[
-			*ExecutionPayload, *ExecutionPayloadHeader, *Logger,
-		],
+		components.ProvideEngineClient[*ExecutionPayloadHeader, *Logger],
+		components.ProvideExecutionEngine[*ExecutionPayloadHeader, *Logger],
 		components.ProvideJWTSecret,
 		components.ProvideLocalBuilder[
 			*BeaconState, *BeaconStateMarshallable,
-			*ExecutionPayload, *ExecutionPayloadHeader, *KVStore, *Logger,
+			*ExecutionPayloadHeader, *KVStore, *Logger,
 		],
-		components.ProvideReportingService[
-			*ExecutionPayload, *PayloadAttributes, *Logger,
-		],
+		components.ProvideReportingService[*PayloadAttributes, *Logger],
 		components.ProvideCometBFTService[*Logger],
 		components.ProvideServiceRegistry[
 			*AvailabilityStore,
@@ -83,17 +75,17 @@ func DefaultComponents() []any {
 			*BlockStore, *BeaconState,
 			*BeaconStateMarshallable,
 			*ConsensusSidecars, *BlobSidecar, *BlobSidecars,
-			*DepositStore, *ExecutionPayload, *ExecutionPayloadHeader,
+			*DepositStore, *ExecutionPayloadHeader,
 			*Genesis, *KVStore, *Logger,
 			NodeAPIContext,
 		],
 		components.ProvideSidecarFactory[
-			*BeaconBlock, *BeaconBlockBody,
+			*BeaconBlock, *BeaconBlockBody, *ExecutionPayloadHeader,
 		],
 		components.ProvideStateProcessor[
 			*Logger, *BeaconBlock, *BeaconBlockBody,
 			*BeaconState, *BeaconStateMarshallable, *DepositStore,
-			*ExecutionPayload, *ExecutionPayloadHeader, *KVStore,
+			*ExecutionPayloadHeader, *KVStore,
 		],
 		components.ProvideKVStore[*ExecutionPayloadHeader],
 		components.ProvideStorageBackend[
@@ -107,7 +99,7 @@ func DefaultComponents() []any {
 			*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,
 			*BeaconState, *BeaconStateMarshallable,
 			*BlockStore, *BlobSidecar, *BlobSidecars, *DepositStore,
-			*ExecutionPayload, *ExecutionPayloadHeader, *KVStore, *Logger,
+			*ExecutionPayloadHeader, *KVStore, *Logger,
 			*StorageBackend,
 		],
 		// TODO Hacks

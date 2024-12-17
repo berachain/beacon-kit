@@ -27,11 +27,9 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-type BeaconBlockBody[
-	ExecutionPayloadT ExecutionPayload,
-] interface {
+type BeaconBlockBody interface {
 	GetDeposits() []*ctypes.Deposit
-	GetExecutionPayload() ExecutionPayloadT
+	GetExecutionPayload() *ctypes.ExecutionPayload
 }
 
 // BeaconBlock is an interface for beacon blocks.

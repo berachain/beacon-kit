@@ -38,13 +38,7 @@ func ProvideSidecarFactory[
 	BeaconBlockT BeaconBlock[
 		BeaconBlockT, BeaconBlockBodyT,
 	],
-	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT,
-		ExecutionPayloadT, *SlashingInfo,
-	],
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
+	BeaconBlockBodyT BeaconBlockBody[BeaconBlockBodyT, *SlashingInfo],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 ](in SidecarFactoryInput) *dablob.SidecarFactory[
 	BeaconBlockT, BeaconBlockBodyT,

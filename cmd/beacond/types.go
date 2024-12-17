@@ -83,7 +83,6 @@ type (
 		*BeaconBlockBody,
 		*BeaconState,
 		*BlockStore,
-		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*Genesis,
 		*ConsensusSidecars,
@@ -95,17 +94,10 @@ type (
 	CometBFTService = cometbft.Service[*Logger]
 
 	// EngineClient is a type alias for the engine client.
-	EngineClient = engineclient.EngineClient[
-		*ExecutionPayload,
-		*PayloadAttributes,
-	]
+	EngineClient = engineclient.EngineClient[*PayloadAttributes]
 
 	// EngineClient is a type alias for the engine client.
-	ExecutionEngine = execution.Engine[
-		*ExecutionPayload,
-		*PayloadAttributes,
-		PayloadID,
-	]
+	ExecutionEngine = execution.Engine[*PayloadAttributes, PayloadID]
 
 	// IndexDB is a type alias for the range DB.
 	IndexDB = filedb.RangeDB
@@ -116,7 +108,6 @@ type (
 	// LocalBuilder is a type alias for the local builder.
 	LocalBuilder = payloadbuilder.PayloadBuilder[
 		*BeaconState,
-		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*PayloadAttributes,
 		PayloadID,
@@ -129,10 +120,7 @@ type (
 	NodeAPIServer = server.Server[NodeAPIContext]
 
 	// ReportingService is a type alias for the reporting service.
-	ReportingService = version.ReportingService[
-		*ExecutionPayload,
-		*PayloadAttributes,
-	]
+	ReportingService = version.ReportingService[*PayloadAttributes]
 
 	// SidecarFactory is a type alias for the sidecar factory.
 	SidecarFactory = dablob.SidecarFactory[
@@ -146,7 +134,6 @@ type (
 		*BeaconBlockBody,
 		*BeaconState,
 		*Context,
-		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*KVStore,
 	]
@@ -168,7 +155,6 @@ type (
 		*BlobSidecar,
 		*BlobSidecars,
 		*DepositStore,
-		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*SlashingInfo,
 		*SlotData,
@@ -222,7 +208,6 @@ type (
 	Eth1Data = types.Eth1Data
 
 	// ExecutionPayload type aliases.
-	ExecutionPayload       = types.ExecutionPayload
 	ExecutionPayloadHeader = types.ExecutionPayloadHeader
 
 	// Fork is a type alias for the fork.
