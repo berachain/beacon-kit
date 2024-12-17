@@ -77,7 +77,6 @@ func ProvideValidatorService[
 ) (*validator.Service[
 	BeaconBlockT,
 	BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositStoreT,
-	*SlashingInfo, *SlotData,
 ], error) {
 	// Build the builder service.
 	return validator.NewService[
@@ -86,8 +85,6 @@ func ProvideValidatorService[
 		BlobSidecarT,
 		BlobSidecarsT,
 		DepositStoreT,
-		*SlashingInfo,
-		*SlotData,
 	](
 		&in.Cfg.Validator,
 		in.Logger.With("service", "validator"),
