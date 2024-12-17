@@ -68,7 +68,7 @@ func (d *Deposit) UnmarshalSSZ(buf []byte) error {
 
 // SizeSSZ returns the SSZ encoded size of the Deposit object.
 func (d *Deposit) SizeSSZ(*ssz.Sizer) uint32 {
-	return 1248 // (32 + 1) * 32 + 192 = 1248
+	return 1248 //nolint:mnd // (32 + 1) * 32 + 192 = 1248.
 }
 
 // HashTreeRoot computes the Merkleization of the Deposit object.

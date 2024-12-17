@@ -27,7 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
-	// fastssz "github.com/ferranbt/fastssz"
+	// fastssz "github.com/ferranbt/fastssz".
 	"github.com/karalabe/ssz"
 )
 

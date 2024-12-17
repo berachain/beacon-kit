@@ -32,8 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
-
-	// fastssz "github.com/ferranbt/fastssz"
+	// fastssz "github.com/ferranbt/fastssz".
 	"github.com/karalabe/ssz"
 )
 
@@ -297,7 +296,7 @@ func (b *BeaconBlockBody) GetTopLevelRoots() []common.Root {
 		common.Root(b.GetRandaoReveal().HashTreeRoot()),
 		b.Eth1Data.HashTreeRoot(),
 		common.Root(b.GetGraffiti().HashTreeRoot()),
-		Deposits(b.GetDeposits()).HashTreeRoot(),
+		b.GetDeposits().HashTreeRoot(),
 		b.GetExecutionPayload().HashTreeRoot(),
 		{},
 	}
