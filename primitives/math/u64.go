@@ -21,6 +21,7 @@
 package math
 
 import (
+	"math"
 	"math/big"
 	"strconv"
 
@@ -155,3 +156,16 @@ func GweiFromWei(i *big.Int) (Gwei, error) {
 func (u Gwei) ToWei() *U256 {
 	return (&U256{}).Mul(NewU256(uint64(u)), NewU256(GweiPerWei))
 }
+
+// ---------------------------- Helper Methods ----------------------------
+
+// Int returns the integer value of the uint64 argument. If there is an overflow, then an error is
+// returned.
+func Int(u uint64) (int, error) {
+	if u > math.MaxInt {
+		return 0, ErrOverflow
+	}
+
+	return int(u), nil
+}
+

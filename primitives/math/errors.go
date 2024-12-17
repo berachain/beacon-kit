@@ -28,6 +28,9 @@ var (
 	// ErrUnexpectedInputLengthBase is the base error for unexpected input
 	// length errors.
 	ErrUnexpectedInputLengthBase = errors.New("unexpected input length")
+
+	// ErrOverflow is the base error for overflow errors.
+	ErrOverflow = errors.New("integer overflow")
 )
 
 // ErrUnexpectedInputLength returns an error indicating that the input length.
