@@ -25,8 +25,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
-	"os"
-	"path/filepath"
+	"net/http"
 	"strconv"
 	"strings"
 	"testing"
@@ -40,6 +39,30 @@ import (
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 )
+
+const url = "https://raw.githubusercontent.com/ethereum/EIPs/master/assets/eip-4881/test_cases.yaml"
+
+// EIP 4881 spec test cases from:
+// https://github.com/ethereum/EIPs/blob/master/assets/eip-4881/test_cases.yaml.
+//
+// NOTE: these test cases must be downloaded from Github. If no internet access
+// is available, the test cases can be manually downloaded and added to the
+// `testdata` with filename `eip4881_test_cases.yaml`.
+func readTestCases(t *testing.T) []testCase {
+	t.Helper()
+
+	resp, err := http.Get(url)
+	if err != nil {
+		t.Skipf("skipping, failed to download test cases: %v", err)
+	}
+	defer resp.Body.Close()
+
+	var testCases []testCase
+	err = yaml.NewDecoder(resp.Body).Decode(&testCases)
+	require.NoError(t, err)
+	require.NotEmpty(t, testCases)
+	return testCases
+}
 
 type testCase struct {
 	DepositData     depositData `yaml:"deposit_data"`
@@ -184,22 +207,6 @@ func (sd *snapshot) UnmarshalYAML(value *yaml.Node) error {
 	}
 	sd.hasher = merkle.NewHasher[[32]byte](sha256.Hash)
 	return nil
-}
-
-// Test cases from:
-// https://github.com/ethereum/EIPs/blob/master/assets/eip-4881/test_cases.yaml.
-func readTestCases(t *testing.T) []testCase {
-	t.Helper()
-
-	path := filepath.Join("testdata", "eip4881_test_cases.yaml")
-	enc, err := os.ReadFile(path)
-	require.NoError(t, err)
-
-	var testCases []testCase
-	err = yaml.Unmarshal(enc, &testCases)
-	require.NoError(t, err)
-	require.NotEmpty(t, testCases)
-	return testCases
 }
 
 func hexStringToByteArray(s string) ([32]byte, error) {
