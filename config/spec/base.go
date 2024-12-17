@@ -38,7 +38,7 @@ const (
 //
 //nolint:mnd // bet.
 func BaseSpec() chain.SpecData[
-	chain.DomainType,
+	common.DomainType,
 	math.Epoch,
 	math.Slot,
 	any,
@@ -47,7 +47,7 @@ func BaseSpec() chain.SpecData[
 	cmtConsensusParams.Validator.PubKeyTypes = []string{crypto.CometBLSType}
 
 	return chain.SpecData[
-		chain.DomainType,
+		common.DomainType,
 		math.Epoch,
 		math.Slot,
 		any,
@@ -69,28 +69,28 @@ func BaseSpec() chain.SpecData[
 		SlotsPerHistoricalRoot:       8,
 
 		// Signature domains.
-		DomainTypeProposer: chain.DomainType{
+		DomainTypeProposer: common.DomainType{
 			0x00, 0x00, 0x00, 0x00,
 		},
-		DomainTypeAttester: chain.DomainType{
+		DomainTypeAttester: common.DomainType{
 			0x01, 0x00, 0x00, 0x00,
 		},
-		DomainTypeRandao: chain.DomainType{
+		DomainTypeRandao: common.DomainType{
 			0x02, 0x00, 0x00, 0x00,
 		},
-		DomainTypeDeposit: chain.DomainType{
+		DomainTypeDeposit: common.DomainType{
 			0x03, 0x00, 0x00, 0x00,
 		},
-		DomainTypeVoluntaryExit: chain.DomainType{
+		DomainTypeVoluntaryExit: common.DomainType{
 			0x04, 0x00, 0x00, 0x00,
 		},
-		DomainTypeSelectionProof: chain.DomainType{
+		DomainTypeSelectionProof: common.DomainType{
 			0x05, 0x00, 0x00, 0x00,
 		},
-		DomainTypeAggregateAndProof: chain.DomainType{
+		DomainTypeAggregateAndProof: common.DomainType{
 			0x06, 0x00, 0x00, 0x00,
 		},
-		DomainTypeApplicationMask: chain.DomainType{
+		DomainTypeApplicationMask: common.DomainType{
 			0x00, 0x00, 0x00, 0x01,
 		},
 

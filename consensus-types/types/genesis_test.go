@@ -24,7 +24,6 @@ package types_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -35,10 +34,10 @@ import (
 
 func TestDefaultGenesisDeneb(t *testing.T) {
 	g := types.DefaultGenesisDeneb()
-	if g.ForkVersion != version.FromUint32[chain.Version](version.Deneb) {
+	if g.ForkVersion != version.FromUint32[common.Version](version.Deneb) {
 		t.Errorf(
 			"Expected fork version %v, but got %v",
-			version.FromUint32[chain.Version](
+			version.FromUint32[common.Version](
 				version.Deneb,
 			),
 			g.ForkVersion,
@@ -79,7 +78,7 @@ func TestGenesisGetForkVersion(t *testing.T) {
 	forkVersion := g.GetForkVersion()
 	require.Equal(
 		t,
-		version.FromUint32[chain.Version](version.Deneb),
+		version.FromUint32[common.Version](version.Deneb),
 		forkVersion,
 	)
 }

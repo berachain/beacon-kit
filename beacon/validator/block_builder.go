@@ -26,7 +26,6 @@ import (
 	"time"
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
@@ -40,7 +39,7 @@ import (
 
 // BuildBlockAndSidecars builds a new beacon block.
 func (s *Service[
-	BeaconBlockT, _, _, _, BlobSidecarsT,
+	BeaconBlockT, _, _, BlobSidecarsT,
 	_, SlashingInfoT, SlotDataT,
 ]) BuildBlockAndSidecars(
 	ctx context.Context,
@@ -150,7 +149,7 @@ func (s *Service[
 
 // getEmptyBeaconBlockForSlot creates a new empty block.
 func (s *Service[
-	BeaconBlockT, _, BeaconStateT, _, _, _, _, _,
+	BeaconBlockT, BeaconStateT, _, _, _, _, _,
 ]) getEmptyBeaconBlockForSlot(
 	st BeaconStateT, requestedSlot math.Slot,
 ) (BeaconBlockT, error) {
@@ -181,7 +180,7 @@ func (s *Service[
 }
 
 func (s *Service[
-	_, _, BeaconStateT, _, _, _, _, _,
+	_, BeaconStateT, _, _, _, _, _,
 ]) buildForkData(
 	st BeaconStateT,
 	slot math.Slot,
@@ -196,7 +195,7 @@ func (s *Service[
 	}
 
 	return ctypes.NewForkData(
-		version.FromUint32[chain.Version](
+		version.FromUint32[common.Version](
 			s.chainSpec.ActiveForkVersionForEpoch(epoch),
 		),
 		genesisValidatorsRoot,
@@ -205,7 +204,7 @@ func (s *Service[
 
 // buildRandaoReveal builds a randao reveal for the given slot.
 func (s *Service[
-	_, _, BeaconStateT, _, _, _, _, _,
+	_, BeaconStateT, _, _, _, _, _,
 ]) buildRandaoReveal(
 	forkData *ctypes.ForkData,
 	slot math.Slot,
@@ -220,7 +219,7 @@ func (s *Service[
 
 // retrieveExecutionPayload retrieves the execution payload for the block.
 func (s *Service[
-	BeaconBlockT, _, BeaconStateT, _, _, _,
+	BeaconBlockT, BeaconStateT, _, _, _,
 	SlashingInfoT, SlotDataT,
 ]) retrieveExecutionPayload(
 	ctx context.Context,
@@ -281,7 +280,7 @@ func (s *Service[
 
 // BuildBlockBody assembles the block body with necessary components.
 func (s *Service[
-	BeaconBlockT, _, BeaconStateT, _, _, _,
+	BeaconBlockT, BeaconStateT, _, _, _,
 	SlashingInfoT, SlotDataT,
 ]) buildBlockBody(
 	_ context.Context,
@@ -377,7 +376,7 @@ func (s *Service[
 // computeAndSetStateRoot computes the state root of an outgoing block
 // and sets it in the block.
 func (s *Service[
-	BeaconBlockT, _, BeaconStateT, _, _, _, _, _,
+	BeaconBlockT, BeaconStateT, _, _, _, _, _,
 ]) computeAndSetStateRoot(
 	ctx context.Context,
 	proposerAddress []byte,
@@ -406,7 +405,7 @@ func (s *Service[
 
 // computeStateRoot computes the state root of an outgoing block.
 func (s *Service[
-	BeaconBlockT, _, BeaconStateT, _, _, _, _, _,
+	BeaconBlockT, BeaconStateT, _, _, _, _, _,
 ]) computeStateRoot(
 	ctx context.Context,
 	proposerAddress []byte,
@@ -441,10 +440,11 @@ func convertSlashingInfo[
 	SlashingInfoT any,
 ](
 	data []ctypes.SlashingInfo,
-) []SlashingInfoT {
-	converted := make([]SlashingInfoT, len(data))
+) []*ctypes.SlashingInfo {
+	converted := make([]*ctypes.SlashingInfo, len(data))
 	for i, d := range data {
-		val, ok := any(d).(SlashingInfoT)
+		// #nosec G601 // TODO remove once we remove the SlashingInfoT generic type
+		val, ok := any(&d).(*ctypes.SlashingInfo)
 		if !ok {
 			panic(fmt.Sprintf("failed to convert slashing info at index %d", i))
 		}

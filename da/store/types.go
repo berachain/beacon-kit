@@ -21,8 +21,6 @@
 package store
 
 import (
-	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
@@ -43,10 +41,4 @@ type IndexDB interface {
 
 	// Prune returns error if start > end
 	Prune(start uint64, end uint64) error
-}
-
-// BeaconBlockBody is the body of a beacon block.
-type BeaconBlockBody interface {
-	// GetBlobKzgCommitments returns the KZG commitments for the blob.
-	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 }

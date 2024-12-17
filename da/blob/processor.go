@@ -34,10 +34,7 @@ import (
 // Processor is the blob processor that handles the processing and verification
 // of blob sidecars.
 type Processor[
-	AvailabilityStoreT AvailabilityStore[
-		BeaconBlockBodyT, BlobSidecarsT,
-	],
-	BeaconBlockBodyT any,
+	AvailabilityStoreT AvailabilityStore[BlobSidecarsT],
 	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
 	BlobSidecarT Sidecar,
 	BlobSidecarsT Sidecars[BlobSidecarT],
@@ -60,10 +57,7 @@ type Processor[
 
 // NewProcessor creates a new blob processor.
 func NewProcessor[
-	AvailabilityStoreT AvailabilityStore[
-		BeaconBlockBodyT, BlobSidecarsT,
-	],
-	BeaconBlockBodyT any,
+	AvailabilityStoreT AvailabilityStore[BlobSidecarsT],
 	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
 	BlobSidecarT Sidecar,
 	BlobSidecarsT Sidecars[BlobSidecarT],
@@ -74,7 +68,7 @@ func NewProcessor[
 	blockBodyOffsetFn func(math.Slot, chain.ChainSpec) (uint64, error),
 	telemetrySink TelemetrySink,
 ) *Processor[
-	AvailabilityStoreT, BeaconBlockBodyT,
+	AvailabilityStoreT,
 	ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
 ] {
 	verifier := newVerifier[
@@ -82,7 +76,7 @@ func NewProcessor[
 		BlobSidecarsT,
 	](proofVerifier, telemetrySink)
 	return &Processor[
-		AvailabilityStoreT, BeaconBlockBodyT,
+		AvailabilityStoreT,
 		ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
 	]{
 		logger:            logger,
@@ -95,7 +89,7 @@ func NewProcessor[
 
 // VerifySidecars verifies the blobs and ensures they match the local state.
 func (sp *Processor[
-	AvailabilityStoreT, _, ConsensusSidecarsT, _, BlobSidecarsT,
+	AvailabilityStoreT, ConsensusSidecarsT, _, BlobSidecarsT,
 ]) VerifySidecars(
 	cs ConsensusSidecarsT,
 	verifierFn func(
@@ -134,7 +128,7 @@ func (sp *Processor[
 
 // slot :=  processes the blobs and ensures they match the local state.
 func (sp *Processor[
-	AvailabilityStoreT, _, _, _, BlobSidecarsT,
+	AvailabilityStoreT, _, _, BlobSidecarsT,
 ]) ProcessSidecars(
 	avs AvailabilityStoreT,
 	sidecars BlobSidecarsT,

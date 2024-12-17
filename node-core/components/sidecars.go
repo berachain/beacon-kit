@@ -35,17 +35,9 @@ type SidecarFactoryInput struct {
 }
 
 func ProvideSidecarFactory[
-	BeaconBlockT BeaconBlock[
-		BeaconBlockT, BeaconBlockBodyT,
-	],
-	BeaconBlockBodyT BeaconBlockBody[BeaconBlockBodyT, *SlashingInfo],
-](in SidecarFactoryInput) *dablob.SidecarFactory[
-	BeaconBlockT, BeaconBlockBodyT,
-] {
-	return dablob.NewSidecarFactory[
-		BeaconBlockT,
-		BeaconBlockBodyT,
-	](
+	BeaconBlockT BeaconBlock[BeaconBlockT],
+](in SidecarFactoryInput) *dablob.SidecarFactory[BeaconBlockT] {
+	return dablob.NewSidecarFactory[BeaconBlockT](
 		in.ChainSpec,
 		types.KZGPositionDeneb,
 		in.TelemetrySink,

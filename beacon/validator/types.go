@@ -24,7 +24,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -38,7 +37,6 @@ import (
 // BeaconBlock represents a beacon block interface.
 type BeaconBlock[
 	T any,
-	BeaconBlockBodyT any,
 ] interface {
 	constraints.SSZMarshallable
 	// NewWithVersion creates a new beacon block with the given parameters.
@@ -57,7 +55,7 @@ type BeaconBlock[
 	// GetStateRoot returns the state root of the beacon block.
 	GetStateRoot() common.Root
 	// GetBody returns the body of the beacon block.
-	GetBody() BeaconBlockBodyT
+	GetBody() *ctypes.BeaconBlockBody
 }
 
 // BeaconBlockBody represents a beacon block body interface.
@@ -75,7 +73,7 @@ type BeaconBlockBody[
 	// SetExecutionPayload sets the execution data of the beacon block body.
 	SetExecutionPayload(*ctypes.ExecutionPayload)
 	// SetGraffiti sets the graffiti of the beacon block body.
-	SetGraffiti(chain.Bytes32)
+	SetGraffiti(common.Bytes32)
 	// SetAttestations sets the attestations of the beacon block body.
 	SetAttestations([]*ctypes.AttestationData)
 	// SetSlashingInfo sets the slashing info of the beacon block body.
@@ -133,16 +131,16 @@ type DepositStore interface {
 type ForkData[T any] interface {
 	// New creates a new fork data with the given parameters.
 	New(
-		chain.Version,
+		common.Version,
 		common.Root,
 	) T
 	// ComputeRandaoSigningRoot computes the Randao signing root.
 	ComputeRandaoSigningRoot(
-		chain.DomainType,
+		common.DomainType,
 		math.Epoch,
 	) common.Root
 	// ComputeDomain computes the fork data domain for a given domain type.
-	ComputeDomain(chain.DomainType) chain.Domain
+	ComputeDomain(common.DomainType) common.Domain
 }
 
 // PayloadBuilder represents a service that is responsible for

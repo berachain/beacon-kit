@@ -23,7 +23,6 @@ package core
 import (
 	"fmt"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -38,12 +37,12 @@ import (
 //
 //nolint:gocognit,funlen // todo fix.
 func (sp *StateProcessor[
-	_, BeaconBlockBodyT, BeaconStateT, _, _,
+	_, BeaconStateT, _, _,
 ]) InitializePreminedBeaconStateFromEth1(
 	st BeaconStateT,
 	deposits []*ctypes.Deposit,
 	execPayloadHeader *ctypes.ExecutionPayloadHeader,
-	genesisVersion chain.Version,
+	genesisVersion common.Version,
 ) (transition.ValidatorUpdates, error) {
 	if err := st.SetSlot(0); err != nil {
 		return nil, err
@@ -70,8 +69,8 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	// TODO: we need to handle chain.Version vs uint32 better.
-	var blkBody BeaconBlockBodyT
+	// TODO: we need to handle common.Version vs uint32 better.
+	var blkBody *ctypes.BeaconBlockBody
 	blkBody = blkBody.Empty(version.ToUint32(genesisVersion))
 
 	var blkHeader *ctypes.BeaconBlockHeader
@@ -90,7 +89,7 @@ func (sp *StateProcessor[
 	for i := range sp.cs.EpochsPerHistoricalVector() {
 		if err := st.UpdateRandaoMixAtIndex(
 			i,
-			chain.Bytes32(execPayloadHeader.GetBlockHash()),
+			common.Bytes32(execPayloadHeader.GetBlockHash()),
 		); err != nil {
 			return nil, err
 		}
@@ -158,7 +157,7 @@ func (sp *StateProcessor[
 }
 
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _,
+	_, BeaconStateT, _, _,
 ]) processGenesisActivation(
 	st BeaconStateT,
 ) error {

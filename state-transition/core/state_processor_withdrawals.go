@@ -40,7 +40,7 @@ import (
 // 3. This modification reduces the maximum validator withdrawals per block by
 // one.
 func (sp *StateProcessor[
-	BeaconBlockT, _, BeaconStateT, _, _,
+	BeaconBlockT, BeaconStateT, _, _,
 ]) processWithdrawals(
 	st BeaconStateT,
 	blk BeaconBlockT,
@@ -63,7 +63,7 @@ func (sp *StateProcessor[
 }
 
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _,
+	_, BeaconStateT, _, _,
 ]) processWithdrawalsByFork(
 	st BeaconStateT,
 	expectedWithdrawals engineprimitives.Withdrawals,
@@ -130,7 +130,7 @@ func (sp *StateProcessor[
 }
 
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _,
+	_, BeaconStateT, _, _,
 ]) processWithdrawalsBartio(
 	st BeaconStateT,
 	expectedWithdrawals engineprimitives.Withdrawals,
@@ -197,7 +197,7 @@ func (sp *StateProcessor[
 }
 
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _,
+	_, BeaconStateT, _, _,
 ]) processWithdrawalsDefault(
 	st BeaconStateT,
 	expectedWithdrawals engineprimitives.Withdrawals,

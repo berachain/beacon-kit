@@ -24,7 +24,6 @@ import (
 	"io"
 	"testing"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	types "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -38,11 +37,11 @@ import (
 
 func TestCreateAndSignDepositMessage(t *testing.T) {
 	forkData := &types.ForkData{
-		CurrentVersion:        chain.Version{0x00, 0x00, 0x00, 0x04},
+		CurrentVersion:        common.Version{0x00, 0x00, 0x00, 0x04},
 		GenesisValidatorsRoot: common.Root{0x00, 0x00, 0x00, 0x00},
 	}
 
-	domainType := chain.DomainType{
+	domainType := common.DomainType{
 		0x01, 0x00, 0x00, 0x00,
 	}
 
@@ -123,7 +122,7 @@ func TestDepositMessage_VerifyCreateValidator_Error(t *testing.T) {
 	}
 
 	forkData := &types.ForkData{
-		CurrentVersion:        chain.Version{0, 0, 0, 0},
+		CurrentVersion:        common.Version{0, 0, 0, 0},
 		GenesisValidatorsRoot: common.Root{},
 	}
 
@@ -135,7 +134,7 @@ func TestDepositMessage_VerifyCreateValidator_Error(t *testing.T) {
 	) error {
 		return errors.New("signature verification failed")
 	}
-	domainType := chain.DomainType{
+	domainType := common.DomainType{
 		0x01, 0x00, 0x00, 0x00,
 	}
 

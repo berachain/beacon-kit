@@ -21,8 +21,8 @@
 package core
 
 import (
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/crypto/sha256"
@@ -33,7 +33,7 @@ import (
 // processRandaoReveal processes the randao reveal and
 // ensures it matches the local state.
 func (sp *StateProcessor[
-	BeaconBlockT, _, BeaconStateT, ContextT, _,
+	BeaconBlockT, BeaconStateT, ContextT, _,
 ]) processRandaoReveal(
 	ctx ContextT,
 	st BeaconStateT,
@@ -59,7 +59,7 @@ func (sp *StateProcessor[
 	body := blk.GetBody()
 
 	fd := ctypes.NewForkData(
-		version.FromUint32[chain.Version](
+		version.FromUint32[common.Version](
 			sp.cs.ActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,
 	)
@@ -94,7 +94,7 @@ func (sp *StateProcessor[
 // processRandaoMixesReset as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#randao-mixes-updates
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _,
+	_, BeaconStateT, _, _,
 ]) processRandaoMixesReset(
 	st BeaconStateT,
 ) error {
@@ -118,11 +118,11 @@ func (sp *StateProcessor[
 
 // buildRandaoMix as defined in the Ethereum 2.0 specification.
 func (sp *StateProcessor[
-	_, _, _, _, _,
+	_, _, _, _,
 ]) buildRandaoMix(
-	mix chain.Bytes32,
+	mix common.Bytes32,
 	reveal crypto.BLSSignature,
-) chain.Bytes32 {
+) common.Bytes32 {
 	newMix := make([]byte, constants.RootLength)
 	revealHash := sha256.Hash(reveal[:])
 	// Apparently this library giga fast? Good project? lmeow.
@@ -131,5 +131,5 @@ func (sp *StateProcessor[
 	_ = xor.Bytes(
 		newMix, mix[:], revealHash[:],
 	)
-	return chain.Bytes32(newMix)
+	return common.Bytes32(newMix)
 }
