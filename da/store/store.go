@@ -86,7 +86,7 @@ func (s *Store) Persist(
 	if !s.chainSpec.WithinDAPeriod(
 		// slot in which the sidecar was included.
 		// (Safe to assume all sidecars are in same slot at this point).
-		sidecars.Sidecars[0].SignedBeaconBlockHeader.Header.GetSlot(),
+		sidecars.Get(0).SignedBeaconBlockHeader.Header.GetSlot(),
 		// current slot
 		slot,
 	) {
@@ -95,7 +95,7 @@ func (s *Store) Persist(
 
 	// Store each sidecar sequentially. The store's underlying RangeDB is not
 	// built to handle concurrent writes.
-	for _, sidecar := range sidecars.Sidecars {
+	for _, sidecar := range sidecars.GetSidecars() {
 		sc := sidecar
 		if sc == nil {
 			return ErrAttemptedToStoreNilSidecar

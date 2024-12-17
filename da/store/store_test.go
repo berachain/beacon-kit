@@ -67,9 +67,7 @@ func TestStore_PersistRace(t *testing.T) {
 			},
 		}
 	}
-	sidecars := datypes.BlobSidecars{
-		Sidecars: sc,
-	}
+	var sidecars datypes.BlobSidecars = sc
 
 	// Multiple writes to DB
 	err = s.Persist(0, &sidecars)

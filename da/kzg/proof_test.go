@@ -104,12 +104,10 @@ func TestArgsFromSidecars(t *testing.T) {
 	require.NoError(t, err)
 
 	scs := &types.BlobSidecars{
-		Sidecars: []*types.BlobSidecar{
-			{
-				Blob:          eip4844.Blob{data.Input.Blob[0]},
-				KzgProof:      eip4844.KZGProof{data.Input.Proof[0]},
-				KzgCommitment: eip4844.KZGCommitment{data.Input.Commitment[0]},
-			},
+		{
+			Blob:          eip4844.Blob{data.Input.Blob[0]},
+			KzgProof:      eip4844.KZGProof{data.Input.Proof[0]},
+			KzgCommitment: eip4844.KZGCommitment{data.Input.Commitment[0]},
 		},
 	}
 
