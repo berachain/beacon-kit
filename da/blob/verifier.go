@@ -76,19 +76,22 @@ func (bv *verifier[_, BlobSidecarsT]) verifySidecars(
 
 	g, _ := errgroup.WithContext(context.Background())
 
-	// check that sidecars block headers match with header of the
-	// corresponding block
+	// Verifying that sidecars block headers match with header of the
+	// corresponding block concurrently.
 	for i, s := range sidecars.GetSidecars() {
-		if !s.GetSignedBeaconBlockHeader().GetHeader().Equals(blkHeader) {
-			return fmt.Errorf("unequal block header: idx: %d", i)
-		}
 		g.Go(func() error {
 			var sigHeader = s.GetSignedBeaconBlockHeader()
-			err := verifierFn(
+
+			// Check BlobSidecar.Header equality with BeaconBlockHeader
+			if !sigHeader.GetHeader().Equals(blkHeader) {
+				return fmt.Errorf("unequal block header: idx: %d", i)
+			}
+
+			// Verify BeaconBlockHeader with signature
+			if err := verifierFn(
 				blkHeader,
 				sigHeader.GetSignature(),
-			)
-			if err != nil {
+			); err != nil {
 				return err
 			}
 			return nil
