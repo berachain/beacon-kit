@@ -31,6 +31,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+
 func TestDepositTreeSnapshot_CalculateRoot(t *testing.T) {
 	hasher := merkle.NewHasher[[32]byte](sha256.Hash)
 	tests := []struct {
@@ -43,12 +44,14 @@ func TestDepositTreeSnapshot_CalculateRoot(t *testing.T) {
 			name:         "empty",
 			finalized:    0,
 			depositCount: 0,
+			//nolint:lll // test case.
 			want:         [32]byte{215, 10, 35, 71, 49, 40, 92, 104, 4, 194, 164, 245, 103, 17, 221, 184, 200, 44, 153, 116, 15, 32, 120, 84, 137, 16, 40, 175, 52, 226, 126, 94},
 		},
 		{
 			name:         "1 Finalized",
 			finalized:    1,
 			depositCount: 2,
+			//nolint:lll // test case.
 			want:         [32]byte{36, 118, 154, 57, 217, 109, 145, 116, 238, 1, 207, 59, 187, 28, 69, 187, 70, 55, 153, 180, 15, 150, 37, 72, 140, 36, 109, 154, 212, 202, 47, 59},
 		},
 		{
