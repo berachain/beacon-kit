@@ -95,7 +95,7 @@ func (dc *WrappedDepositContract) ReadDeposits(
 		if err != nil {
 			return nil, fmt.Errorf("failed reading signature: %w", err)
 		}
-		deposits = append(deposits, ctypes.NewDeposit(
+		deposits = append(deposits, ctypes.NewDepositData(
 			pubKey,
 			ctypes.WithdrawalCredentials(cred),
 			math.U64(logs.Event.Amount),

@@ -29,8 +29,8 @@ import (
 	"github.com/karalabe/ssz"
 )
 
-// DepositSize is the size of the SSZ encoding of a Deposit.
-const DepositSize = 192 // 48 + 32 + 8 + 96 + 8
+// DepositDataSize is the size of the SSZ encoding of a DepositData.
+const DepositDataSize = 192 // 48 + 32 + 8 + 96 + 8
 
 // Compile-time assertions to ensure Deposit implements necessary interfaces.
 var (
@@ -54,8 +54,8 @@ type DepositData struct {
 	Index uint64 `json:"index"`
 }
 
-// NewDeposit creates a new Deposit instance.
-func NewDeposit(
+// NewDepositData creates a new DepositData instance.
+func NewDepositData(
 	pubkey crypto.BLSPubkey,
 	credentials WithdrawalCredentials,
 	amount math.Gwei,
@@ -84,7 +84,7 @@ func (d *DepositData) New(
 	signature crypto.BLSSignature,
 	index uint64,
 ) *DepositData {
-	return NewDeposit(
+	return NewDepositData(
 		pubkey, credentials, amount, signature, index,
 	)
 }
@@ -133,7 +133,7 @@ func (d *DepositData) UnmarshalSSZ(buf []byte) error {
 
 // SizeSSZ returns the SSZ encoded size of the DepositData object.
 func (d *DepositData) SizeSSZ(*ssz.Sizer) uint32 {
-	return DepositSize
+	return DepositDataSize
 }
 
 // HashTreeRoot computes the Merkleization of the DepositData object.
