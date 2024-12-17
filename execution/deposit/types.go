@@ -45,8 +45,8 @@ type Contract interface {
 type Store interface {
 	// Prune prunes the deposit store of [start, end)
 	Prune(index uint64, numPrune uint64) error
-	// EnqueueDeposits adds a list of deposits to the deposit store.
-	EnqueueDeposits(deposits []*ctypes.DepositData) error
+	// EnqueueDepositDatas adds a list of deposits to the deposit store.
+	EnqueueDepositDatas(deposits []*ctypes.DepositData) error
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.

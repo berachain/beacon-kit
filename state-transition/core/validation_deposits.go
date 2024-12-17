@@ -132,7 +132,7 @@ func (sp *StateProcessor[
 		}
 		expectedStartIdx := depositIndex + 1
 
-		var localDeposits []*ctypes.DepositData
+		var localDeposits ctypes.Deposits
 		localDeposits, err = sp.ds.GetDepositsByIndex(
 			expectedStartIdx,
 			sp.cs.MaxDepositsPerBlock(),
@@ -158,15 +158,15 @@ func (sp *StateProcessor[
 			// DepositData indices should be contiguous
 			//#nosec:G701 // i never negative
 			expectedIdx := expectedStartIdx + uint64(i)
-			if sd.GetIndex().Unwrap() != expectedIdx {
+			if sd.Data.GetIndex().Unwrap() != expectedIdx {
 				return errors.Wrapf(
 					ErrDepositIndexOutOfOrder,
 					"local deposit index: %d, expected index: %d",
-					sd.GetIndex().Unwrap(), expectedIdx,
+					sd.Data.GetIndex().Unwrap(), expectedIdx,
 				)
 			}
 
-			if !sd.Equals(deposits[i]) {
+			if !sd.Data.Equals(deposits[i]) {
 				return errors.Wrapf(
 					ErrDepositMismatch,
 					"local deposit: %+v, payload deposit: %+v",

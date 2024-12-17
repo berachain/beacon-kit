@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/node-core/components"
+
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
@@ -95,6 +96,11 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		Index:       uint64(len(genDeposits)),
 	}
 
+	// make sure included deposit is already available in deposit store
+	depositDatas := []*types.DepositData{blkDeposit}
+	require.NoError(t, ds.EnqueueDepositDatas(depositDatas))
+	deposits, err := ds.GetDepositsByIndex(uint64(len(genDeposits)), 1)
+	require.NoError(t, err)
 	blk1 := buildNextBlock(
 		t,
 		st,
@@ -108,13 +114,10 @@ func TestTransitionUpdateValidators(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data:     &types.Eth1Data{},
-			DepositDatas: []*types.DepositData{blkDeposit},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: deposits,
 		},
 	)
-
-	// make sure included deposit is already available in deposit store
-	require.NoError(t, ds.EnqueueDeposits(blk1.Body.DepositDatas))
 
 	// run the test
 	valDiff, err = sp.Transition(ctx, st, blk1)
@@ -159,8 +162,8 @@ func TestTransitionUpdateValidators(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data:     &types.Eth1Data{},
-			DepositDatas: []*types.DepositData{},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: types.Deposits{},
 		},
 	)
 
@@ -234,6 +237,12 @@ func TestTransitionCreateValidator(t *testing.T) {
 		Index:       uint64(len(genDeposits)),
 	}
 
+	// make sure included deposit is already available in deposit store
+	depositDatas := []*types.DepositData{blkDeposit}
+	require.NoError(t, ds.EnqueueDepositDatas(depositDatas))
+	deposits, err := ds.GetDepositsByIndex(uint64(len(genDeposits)), 1)
+	require.NoError(t, err)
+
 	blk1 := buildNextBlock(
 		t,
 		st,
@@ -247,13 +256,10 @@ func TestTransitionCreateValidator(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data:     &types.Eth1Data{},
-			DepositDatas: []*types.DepositData{blkDeposit},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: deposits,
 		},
 	)
-
-	// make sure included deposit is already available in deposit store
-	require.NoError(t, ds.EnqueueDeposits(blk1.Body.DepositDatas))
 
 	// run the test
 	valDiff, err := sp.Transition(ctx, st, blk1)
@@ -299,8 +305,8 @@ func TestTransitionCreateValidator(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data:     &types.Eth1Data{},
-			DepositDatas: []*types.DepositData{},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: types.Deposits{},
 		},
 	)
 
@@ -343,8 +349,8 @@ func TestTransitionCreateValidator(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data:     &types.Eth1Data{},
-			DepositDatas: []*types.DepositData{},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: types.Deposits{},
 		},
 	)
 
@@ -452,8 +458,8 @@ func TestTransitionWithdrawals(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data:     &types.Eth1Data{},
-			DepositDatas: []*types.DepositData{},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: types.Deposits{},
 		},
 	)
 
@@ -548,8 +554,8 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data:     &types.Eth1Data{},
-			DepositDatas: []*types.DepositData{},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: types.Deposits{},
 		},
 	)
 
@@ -594,8 +600,8 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data:     &types.Eth1Data{},
-			DepositDatas: []*types.DepositData{},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: types.Deposits{},
 		},
 	)
 	// Run the test.
@@ -666,14 +672,18 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	// STEP 1: Try and add an extra validator
 	extraValKey, rndSeed := generateTestPK(t, rndSeed)
 	extraValCreds, _ := generateTestExecutionAddress(t, rndSeed)
-	var (
-		extraValDeposit = &types.DepositData{
-			Pubkey:      extraValKey,
-			Credentials: extraValCreds,
-			Amount:      minBalance,
-			Index:       uint64(len(genDeposits)),
-		}
-	)
+
+	extraValDeposit := &types.DepositData{
+		Pubkey:      extraValKey,
+		Credentials: extraValCreds,
+		Amount:      minBalance,
+		Index:       uint64(len(genDeposits)),
+	}
+	depositDatas := []*types.DepositData{extraValDeposit}
+	// make sure included deposit is already available in deposit store
+	require.NoError(t, ds.EnqueueDepositDatas(depositDatas))
+	deposits, err := ds.GetDepositsByIndex(uint64(len(genDeposits)), 1)
+	require.NoError(t, err)
 
 	blk1 := buildNextBlock(
 		t,
@@ -688,13 +698,10 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data:     &types.Eth1Data{},
-			DepositDatas: []*types.DepositData{extraValDeposit},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: deposits,
 		},
 	)
-
-	// make sure included deposit is already available in deposit store
-	require.NoError(t, ds.EnqueueDeposits(blk1.Body.DepositDatas))
 
 	// run the test
 	valDiff, err := sp.Transition(ctx, st, blk1)
@@ -740,8 +747,8 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data:     &types.Eth1Data{},
-			DepositDatas: []*types.DepositData{},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: types.Deposits{},
 		},
 	)
 
@@ -785,8 +792,8 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data:     &types.Eth1Data{},
-			DepositDatas: []*types.DepositData{},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: types.Deposits{},
 		},
 	)
 
@@ -828,8 +835,8 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data:     &types.Eth1Data{},
-			DepositDatas: []*types.DepositData{},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: types.Deposits{},
 		},
 	)
 
@@ -898,14 +905,18 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	// STEP 1: Add an extra validator
 	extraValKey, rndSeed := generateTestPK(t, rndSeed)
 	extraValCreds, _ := generateTestExecutionAddress(t, rndSeed)
-	var (
-		extraValDeposit = &types.DepositData{
-			Pubkey:      extraValKey,
-			Credentials: extraValCreds,
-			Amount:      maxBalance,
-			Index:       uint64(len(genDeposits)),
-		}
-	)
+	extraValDeposit := &types.DepositData{
+		Pubkey:      extraValKey,
+		Credentials: extraValCreds,
+		Amount:      maxBalance,
+		Index:       uint64(len(genDeposits)),
+	}
+
+	// make sure included deposit is already available in deposit store
+	depositDatas := []*types.DepositData{extraValDeposit}
+	require.NoError(t, ds.EnqueueDepositDatas(depositDatas))
+	deposits, err := ds.GetDepositsByIndex(uint64(len(genDeposits)), 1)
+	require.NoError(t, err)
 
 	blk1 := buildNextBlock(
 		t,
@@ -920,13 +931,10 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data:     &types.Eth1Data{},
-			DepositDatas: []*types.DepositData{extraValDeposit},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: deposits,
 		},
 	)
-
-	// make sure included deposit is already available in deposit store
-	require.NoError(t, ds.EnqueueDeposits(blk1.Body.DepositDatas))
 
 	// run the test
 	valDiff, err := sp.Transition(ctx, st, blk1)
@@ -989,8 +997,8 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data:     &types.Eth1Data{},
-			DepositDatas: []*types.DepositData{},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: types.Deposits{},
 		},
 	)
 
@@ -1049,8 +1057,8 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data:     &types.Eth1Data{},
-			DepositDatas: []*types.DepositData{},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: types.Deposits{},
 		},
 	)
 
@@ -1121,8 +1129,8 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data:     &types.Eth1Data{},
-			DepositDatas: []*types.DepositData{},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: types.Deposits{},
 		},
 	)
 
@@ -1155,41 +1163,4 @@ func generateTestPK(t *testing.T, rndSeed int) (bytes.B48, int) {
 	require.NoError(t, err)
 	rndSeed++
 	return key, rndSeed
-}
-
-func moveToEndOfEpoch(
-	t *testing.T,
-	tip *types.BeaconBlock,
-	cs chain.Spec[bytes.B4, math.U64, math.U64, any],
-	sp *TestStateProcessorT,
-	st *TestBeaconStateT,
-	ctx *transition.Context,
-) *types.BeaconBlock {
-	t.Helper()
-	blk := tip
-	currEpoch := cs.SlotToEpoch(blk.GetSlot())
-	for currEpoch == cs.SlotToEpoch(blk.GetSlot()+1) {
-		blk = buildNextBlock(
-			t,
-			st,
-			&types.BeaconBlockBody{
-				ExecutionPayload: &types.ExecutionPayload{
-					Timestamp:    blk.Body.ExecutionPayload.Timestamp + 1,
-					ExtraData:    []byte("testing"),
-					Transactions: [][]byte{},
-					Withdrawals: []*engineprimitives.Withdrawal{
-						st.EVMInflationWithdrawal(),
-					},
-					BaseFeePerGas: math.NewU256(0),
-				},
-				Eth1Data:     &types.Eth1Data{},
-				DepositDatas: []*types.DepositData{},
-			},
-		)
-
-		vals, err := sp.Transition(ctx, st, blk)
-		require.NoError(t, err)
-		require.Empty(t, vals) // no vals changes expected before next epoch
-	}
-	return blk
 }

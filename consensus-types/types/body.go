@@ -32,7 +32,8 @@ import (
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
-	fastssz "github.com/ferranbt/fastssz"
+
+	// fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
 )
 
@@ -92,8 +93,8 @@ type BeaconBlockBody struct {
 	Eth1Data *Eth1Data
 	// Graffiti is for a fun message or meme.
 	Graffiti [32]byte
-	// DepositDatas is the list of deposits included in the body.
-	DepositDatas []*DepositData
+	// Deposit is the list of deposits included in the body.
+	Deposits []*Deposit
 	// ExecutionPayload is the execution payload of the body.
 	ExecutionPayload *ExecutionPayload
 	// BlobKzgCommitments is the list of KZG commitments for the EIP-4844 blobs.
@@ -111,7 +112,7 @@ func (b *BeaconBlockBody) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 		return size
 	}
 
-	size += ssz.SizeSliceOfStaticObjects(siz, b.DepositDatas)
+	size += ssz.SizeSliceOfStaticObjects(siz, b.Deposits)
 	size += ssz.SizeDynamicObject(siz, b.ExecutionPayload)
 	size += ssz.SizeSliceOfStaticBytes(siz, b.BlobKzgCommitments)
 	return size
@@ -125,12 +126,12 @@ func (b *BeaconBlockBody) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineStaticBytes(codec, &b.RandaoReveal)
 	ssz.DefineStaticObject(codec, &b.Eth1Data)
 	ssz.DefineStaticBytes(codec, &b.Graffiti)
-	ssz.DefineSliceOfStaticObjectsOffset(codec, &b.DepositDatas, 16)
+	ssz.DefineSliceOfStaticObjectsOffset(codec, &b.Deposits, 16)
 	ssz.DefineDynamicObjectOffset(codec, &b.ExecutionPayload)
 	ssz.DefineSliceOfStaticBytesOffset(codec, &b.BlobKzgCommitments, 16)
 
 	// Define the dynamic data (fields)
-	ssz.DefineSliceOfStaticObjectsContent(codec, &b.DepositDatas, 16)
+	ssz.DefineSliceOfStaticObjectsContent(codec, &b.Deposits, 16)
 	ssz.DefineDynamicObjectContent(codec, &b.ExecutionPayload)
 	ssz.DefineSliceOfStaticBytesContent(codec, &b.BlobKzgCommitments, 16)
 }
@@ -151,85 +152,85 @@ func (b *BeaconBlockBody) HashTreeRoot() common.Root {
 	return ssz.HashConcurrent(b)
 }
 
-/* -------------------------------------------------------------------------- */
-/*                                   FastSSZ                                  */
-/* -------------------------------------------------------------------------- */
+// /* -------------------------------------------------------------------------- */
+// /*                                   FastSSZ                                  */
+// /* -------------------------------------------------------------------------- */
 
-// MarshalSSZTo serializes the BeaconBlockBody into a writer.
-func (b *BeaconBlockBody) MarshalSSZTo(dst []byte) ([]byte, error) {
-	bz, err := b.MarshalSSZ()
-	if err != nil {
-		return nil, err
-	}
-	dst = append(dst, bz...)
-	return dst, nil
-}
+// // MarshalSSZTo serializes the BeaconBlockBody into a writer.
+// func (b *BeaconBlockBody) MarshalSSZTo(dst []byte) ([]byte, error) {
+// 	bz, err := b.MarshalSSZ()
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	dst = append(dst, bz...)
+// 	return dst, nil
+// }
 
-// HashTreeRootWith ssz hashes the BeaconBlockBody object with a hasher.
-//
-//nolint:mnd // todo fix.
-func (b *BeaconBlockBody) HashTreeRootWith(hh fastssz.HashWalker) error {
-	indx := hh.Index()
+// // HashTreeRootWith ssz hashes the BeaconBlockBody object with a hasher.
+// //
+// //nolint:mnd // todo fix.
+// func (b *BeaconBlockBody) HashTreeRootWith(hh fastssz.HashWalker) error {
+// 	indx := hh.Index()
 
-	// Field (0) 'RandaoReveal'
-	hh.PutBytes(b.RandaoReveal[:])
+// 	// Field (0) 'RandaoReveal'
+// 	hh.PutBytes(b.RandaoReveal[:])
 
-	// Field (1) 'Eth1Data'
-	if b.Eth1Data == nil {
-		b.Eth1Data = new(Eth1Data)
-	}
-	if err := b.Eth1Data.HashTreeRootWith(hh); err != nil {
-		return err
-	}
+// 	// Field (1) 'Eth1Data'
+// 	if b.Eth1Data == nil {
+// 		b.Eth1Data = new(Eth1Data)
+// 	}
+// 	if err := b.Eth1Data.HashTreeRootWith(hh); err != nil {
+// 		return err
+// 	}
 
-	// Field (2) 'Graffiti'
-	hh.PutBytes(b.Graffiti[:])
+// 	// Field (2) 'Graffiti'
+// 	hh.PutBytes(b.Graffiti[:])
 
-	// Field (3) 'DepositDatas'
-	{
-		subIndx := hh.Index()
-		num := uint64(len(b.DepositDatas))
-		if num > 16 {
-			return fastssz.ErrIncorrectListSize
-		}
-		for _, elem := range b.DepositDatas {
-			if err := elem.HashTreeRootWith(hh); err != nil {
-				return err
-			}
-		}
-		hh.MerkleizeWithMixin(subIndx, num, 16)
-	}
+// 	// Field (3) 'Deposits'
+// 	{
+// 		subIndx := hh.Index()
+// 		num := uint64(len(b.Deposits))
+// 		if num > 16 {
+// 			return fastssz.ErrIncorrectListSize
+// 		}
+// 		for _, elem := range b.Deposits {
+// 			if err := elem.HashTreeRootWith(hh); err != nil {
+// 				return err
+// 			}
+// 		}
+// 		hh.MerkleizeWithMixin(subIndx, num, 16)
+// 	}
 
-	// Field (4) 'ExecutionPayload'
-	if err := b.ExecutionPayload.HashTreeRootWith(hh); err != nil {
-		return err
-	}
+// 	// Field (4) 'ExecutionPayload'
+// 	if err := b.ExecutionPayload.HashTreeRootWith(hh); err != nil {
+// 		return err
+// 	}
 
-	// Field (5) 'BlobKzgCommitments'
-	{
-		if size := len(b.BlobKzgCommitments); size > 16 {
-			return fastssz.ErrListTooBigFn(
-				"BeaconBlockBody.BlobKzgCommitments",
-				size,
-				16,
-			)
-		}
-		subIndx := hh.Index()
-		for _, i := range b.BlobKzgCommitments {
-			hh.PutBytes(i[:])
-		}
-		numItems := uint64(len(b.BlobKzgCommitments))
-		hh.MerkleizeWithMixin(subIndx, numItems, 16)
-	}
+// 	// Field (5) 'BlobKzgCommitments'
+// 	{
+// 		if size := len(b.BlobKzgCommitments); size > 16 {
+// 			return fastssz.ErrListTooBigFn(
+// 				"BeaconBlockBody.BlobKzgCommitments",
+// 				size,
+// 				16,
+// 			)
+// 		}
+// 		subIndx := hh.Index()
+// 		for _, i := range b.BlobKzgCommitments {
+// 			hh.PutBytes(i[:])
+// 		}
+// 		numItems := uint64(len(b.BlobKzgCommitments))
+// 		hh.MerkleizeWithMixin(subIndx, numItems, 16)
+// 	}
 
-	hh.Merkleize(indx)
-	return nil
-}
+// 	hh.Merkleize(indx)
+// 	return nil
+// }
 
-// GetTree ssz hashes the BeaconBlockBody object.
-func (b *BeaconBlockBody) GetTree() (*fastssz.Node, error) {
-	return fastssz.ProofTree(b)
-}
+// // GetTree ssz hashes the BeaconBlockBody object.
+// func (b *BeaconBlockBody) GetTree() (*fastssz.Node, error) {
+// 	return fastssz.ProofTree(b)
+// }
 
 // IsNil checks if the BeaconBlockBody is nil.
 func (b *BeaconBlockBody) IsNil() bool {
@@ -296,7 +297,7 @@ func (b *BeaconBlockBody) GetTopLevelRoots() []common.Root {
 		common.Root(b.GetRandaoReveal().HashTreeRoot()),
 		b.Eth1Data.HashTreeRoot(),
 		common.Root(b.GetGraffiti().HashTreeRoot()),
-		DepositDatas(b.GetDepositDatas()).HashTreeRoot(),
+		Deposits(b.GetDeposits()).HashTreeRoot(),
 		b.GetExecutionPayload().HashTreeRoot(),
 		{},
 	}
@@ -332,12 +333,21 @@ func (b *BeaconBlockBody) SetGraffiti(graffiti common.Bytes32) {
 	b.Graffiti = graffiti
 }
 
-// GetDeposits returns the DepositDatas of the BeaconBlockBody.
-func (b *BeaconBlockBody) GetDepositDatas() []*DepositData {
-	return b.DepositDatas
+// GetDeposits returns the Deposits of the BeaconBlockBody.
+func (b *BeaconBlockBody) GetDeposits() Deposits {
+	return b.Deposits
 }
 
 // SetDeposits sets the DepositDatas of the BeaconBlockBody.
-func (b *BeaconBlockBody) SetDepositDatas(deposits []*DepositData) {
-	b.DepositDatas = deposits
+func (b *BeaconBlockBody) SetDeposits(deposits Deposits) {
+	b.Deposits = deposits
+}
+
+// GetDepositDatas returns the DepositDatas of the BeaconBlockBody.
+func (b *BeaconBlockBody) GetDepositDatas() []*DepositData {
+	depositDatas := make([]*DepositData, len(b.Deposits))
+	for i, deposit := range b.Deposits {
+		depositDatas[i] = deposit.Data
+	}
+	return depositDatas
 }

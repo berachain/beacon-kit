@@ -112,17 +112,13 @@ type BlobFactory[
 		blobs ctypes.BlobsBundle,
 		signer crypto.BLSSigner,
 		forkData *ctypes.ForkData,
-
 	) (BlobSidecarsT, error)
 }
 
 // DepositStore defines the interface for deposit storage.
 type DepositStore interface {
 	// GetDepositsByIndex returns `numView` expected deposits.
-	GetDepositsByIndex(
-		startIndex uint64,
-		numView uint64,
-	) ([]*ctypes.DepositData, error)
+	GetDepositsByIndex(startIndex, numView uint64) (ctypes.Deposits, error)
 }
 
 // ForkData represents the fork data interface.

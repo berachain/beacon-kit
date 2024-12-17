@@ -56,9 +56,11 @@ func generateValidBeaconBlock() *types.BeaconBlock {
 				BaseFeePerGas: math.NewU256(0),
 			},
 			Eth1Data: &types.Eth1Data{},
-			DepositDatas: []*types.DepositData{
+			Deposits: []*types.Deposit{
 				{
-					Index: 1,
+					Data: &types.DepositData{
+						Index: 1,
+					},
 				},
 			},
 			BlobKzgCommitments: []eip4844.KZGCommitment{
@@ -132,13 +134,6 @@ func TestBeaconBlock_MarshalUnmarshalSSZ(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, block, unmarshalledBlock)
-
-	var buf []byte
-	buf, err = block.MarshalSSZTo(buf)
-	require.NoError(t, err)
-
-	// The two byte slices should be equal
-	require.Equal(t, sszBlock, buf)
 }
 
 func TestBeaconBlock_HashTreeRoot(t *testing.T) {
@@ -190,11 +185,4 @@ func TestNewWithVersionInvalidForkVersion(t *testing.T) {
 		100,
 	) // 100 is an invalid fork version
 	require.ErrorIs(t, err, types.ErrForkVersionNotSupported)
-}
-
-func TestBeaconBlock_GetTree(t *testing.T) {
-	block := generateValidBeaconBlock()
-	tree, err := block.GetTree()
-	require.NoError(t, err)
-	require.NotNil(t, tree)
 }

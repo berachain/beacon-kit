@@ -38,6 +38,9 @@ const (
 	// deposit tree (2**32).
 	MaxDeposits uint64 = 1 << DepositContractDepth
 
+	// MaxDepositsPerBlock is the maximum number of deposits in a beacon block body.
+	MaxDepositsPerBlock uint64 = 16
+
 	// MaxWithdrawalsPerPayload is the maximum number of withdrawals in a
 	// execution payload.
 	MaxWithdrawalsPerPayload uint64 = 16

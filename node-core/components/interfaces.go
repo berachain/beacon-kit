@@ -367,14 +367,11 @@ type (
 
 	DepositStore interface {
 		// GetDepositsByIndex returns `numView` expected deposits.
-		GetDepositsByIndex(
-			startIndex uint64,
-			numView uint64,
-		) ([]*ctypes.DepositData, error)
+		GetDepositsByIndex(startIndex, numView uint64) (ctypes.Deposits, error)
 		// Prune prunes the deposit store of [start, end)
 		Prune(start, end uint64) error
-		// EnqueueDeposits adds a list of deposits to the deposit store.
-		EnqueueDeposits(deposits []*ctypes.DepositData) error
+		// EnqueueDepositDatas adds a list of deposits to the deposit store.
+		EnqueueDepositDatas(deposits []*ctypes.DepositData) error
 	}
 
 	// Genesis is the interface for the genesis.

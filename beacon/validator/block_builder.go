@@ -332,7 +332,7 @@ func (s *Service[
 		"Building block body with local deposits",
 		"start_index", depositIndex, "num_deposits", len(deposits),
 	)
-	body.SetDepositDatas(deposits)
+	body.SetDeposits(deposits)
 
 	var eth1Data *ctypes.Eth1Data
 	// TODO: assemble real eth1data.

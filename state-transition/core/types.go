@@ -76,10 +76,7 @@ type Context interface {
 // DepositStore defines the interface for deposit storage.
 type DepositStore interface {
 	// GetDepositsByIndex returns `numView` expected deposits.
-	GetDepositsByIndex(
-		startIndex uint64,
-		numView uint64,
-	) ([]*ctypes.DepositData, error)
+	GetDepositsByIndex(startIndex, numView uint64) (ctypes.Deposits, error)
 }
 
 // Withdrawals defines the interface for managing withdrawal operations.

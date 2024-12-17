@@ -38,7 +38,7 @@ func generateBeaconBlockBody() types.BeaconBlockBody {
 		RandaoReveal: [96]byte{1, 2, 3},
 		Eth1Data:     &types.Eth1Data{},
 		Graffiti:     [32]byte{4, 5, 6},
-		DepositDatas: []*types.DepositData{},
+		Deposits:     []*types.Deposit{},
 		ExecutionPayload: &types.ExecutionPayload{
 			BaseFeePerGas: math.NewU256(0),
 		},
@@ -51,7 +51,7 @@ func TestBeaconBlockBodyBase(t *testing.T) {
 		RandaoReveal: [96]byte{1, 2, 3},
 		Eth1Data:     &types.Eth1Data{},
 		Graffiti:     [32]byte{4, 5, 6},
-		DepositDatas: []*types.DepositData{},
+		Deposits:     []*types.Deposit{},
 	}
 
 	require.Equal(t, bytes.B96{1, 2, 3}, body.GetRandaoReveal())
@@ -69,7 +69,7 @@ func TestBeaconBlockBody(t *testing.T) {
 		RandaoReveal:       [96]byte{1, 2, 3},
 		Eth1Data:           &types.Eth1Data{},
 		Graffiti:           [32]byte{4, 5, 6},
-		DepositDatas:       []*types.DepositData{},
+		Deposits:           []*types.Deposit{},
 		ExecutionPayload:   &types.ExecutionPayload{},
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
@@ -78,13 +78,6 @@ func TestBeaconBlockBody(t *testing.T) {
 	require.NotNil(t, body.GetExecutionPayload())
 	require.NotNil(t, body.GetBlobKzgCommitments())
 	require.Equal(t, types.BodyLengthDeneb, body.Length())
-}
-
-func TestBeaconBlockBody_GetTree(t *testing.T) {
-	body := generateBeaconBlockBody()
-	tree, err := body.GetTree()
-	require.NoError(t, err)
-	require.NotNil(t, tree)
 }
 
 func TestBeaconBlockBody_SetBlobKzgCommitments(t *testing.T) {
@@ -113,8 +106,8 @@ func TestBeaconBlockBody_SetEth1Data(t *testing.T) {
 
 func TestBeaconBlockBody_SetDeposits(t *testing.T) {
 	body := types.BeaconBlockBody{}
-	deposits := []*types.DepositData{}
-	body.SetDepositDatas(deposits)
+	deposits := []*types.Deposit{}
+	body.SetDeposits(deposits)
 
 	require.Equal(t, deposits, body.GetDepositDatas())
 }
@@ -124,7 +117,7 @@ func TestBeaconBlockBody_MarshalSSZ(t *testing.T) {
 		RandaoReveal:       [96]byte{1, 2, 3},
 		Eth1Data:           &types.Eth1Data{},
 		Graffiti:           [32]byte{4, 5, 6},
-		DepositDatas:       []*types.DepositData{},
+		Deposits:           []*types.Deposit{},
 		ExecutionPayload:   &types.ExecutionPayload{},
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
@@ -132,21 +125,6 @@ func TestBeaconBlockBody_MarshalSSZ(t *testing.T) {
 
 	require.NoError(t, err)
 	require.NotNil(t, data)
-}
-
-func TestBeaconBlockBody_MarshalSSZTo(t *testing.T) {
-	body := generateBeaconBlockBody()
-
-	data, err := body.MarshalSSZ()
-	require.NoError(t, err)
-	require.NotNil(t, data)
-
-	var buf []byte
-	buf, err = body.MarshalSSZTo(buf)
-	require.NoError(t, err)
-
-	// The two byte slices should be equal
-	require.Equal(t, data, buf)
 }
 
 func TestBeaconBlockBody_GetTopLevelRoots(t *testing.T) {
