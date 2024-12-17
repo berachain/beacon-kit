@@ -110,6 +110,7 @@ func KZGCommitmentInclusionProofDepth(
 		if sum > maxUint8 {
 			return 0, ErrInclusionProofDepthExceeded
 		}
+		//#nosec:G701 // we handle the overflow above, so this is safe
 		return uint8(sum), nil
 	default:
 		return 0, ErrForkVersionNotSupported
