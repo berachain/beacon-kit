@@ -1,3 +1,23 @@
+// SPDX-License-Identifier: BUSL-1.1
+//
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is governed by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
+//
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
+//
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
+//
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
+
 package merkle
 
 import (
@@ -8,8 +28,12 @@ import (
 	"github.com/berachain/beacon-kit/primitives/merkle/zero"
 )
 
-// create builds a new merkle tree
-func create(hasher merkle.Hasher[[32]byte], leaves [][32]byte, depth uint64) TreeNode {
+// create builds a new merkle tree.
+func create(
+	hasher merkle.Hasher[[32]byte],
+	leaves [][32]byte,
+	depth uint64,
+) TreeNode {
 	length := uint64(len(leaves))
 	if length == 0 {
 		return &ZeroNode{
@@ -32,9 +56,13 @@ func create(hasher merkle.Hasher[[32]byte], leaves [][32]byte, depth uint64) Tre
 	}
 }
 
-// fromSnapshotParts creates a new Merkle tree from a list of finalized leaves, number of deposits and specified depth.
+// fromSnapshotParts creates a new Merkle tree from a list of finalized leaves,
+// number of deposits and specified depth.
 func fromSnapshotParts(
-	hasher merkle.Hasher[[32]byte], finalized [][32]byte, deposits uint64, level uint64,
+	hasher merkle.Hasher[[32]byte],
+	finalized [][32]byte,
+	deposits uint64,
+	level uint64,
 ) (TreeNode, error) {
 	var err error
 
@@ -78,12 +106,16 @@ func fromSnapshotParts(
 	return &node, nil
 }
 
-// generateProof returns a merkle proof and root
-func generateProof(tree TreeNode, index uint64, depth uint64) ([32]byte, [][32]byte) {
+// generateProof returns a merkle proof and root.
+func generateProof(
+	tree TreeNode,
+	index uint64,
+	depth uint64,
+) ([32]byte, [][32]byte) {
 	var proof [][32]byte
 	node := tree
 	for depth > 0 {
-		ithBit := (index >> (depth - 1)) & 0x1
+		ithBit := (index >> (depth - 1)) & 0x1 //nolint:mnd // spec.
 		if ithBit == 1 {
 			proof = append(proof, node.Left().GetRoot())
 			node = node.Right()
@@ -98,7 +130,8 @@ func generateProof(tree TreeNode, index uint64, depth uint64) ([32]byte, [][32]b
 	return node.GetRoot(), proof
 }
 
-// FinalizedNode represents a finalized node and satisfies the TreeNode interface.
+// FinalizedNode represents a finalized node and satisfies the TreeNode
+// interface.
 type FinalizedNode struct {
 	depositCount uint64
 	hash         [32]byte
@@ -117,11 +150,12 @@ func (*FinalizedNode) IsFull() bool {
 }
 
 // Finalize marks deposits of the Merkle tree as finalized.
-func (f *FinalizedNode) Finalize(depositsToFinalize uint64, depth uint64) (TreeNode, error) {
+func (f *FinalizedNode) Finalize(_, _ uint64) (TreeNode, error) {
 	return f, nil
 }
 
-// GetFinalized returns a list of hashes of all the finalized nodes and the number of deposits.
+// GetFinalized returns a list of hashes of all the finalized nodes and the
+// number of deposits.
 func (f *FinalizedNode) GetFinalized(result [][32]byte) (uint64, [][32]byte) {
 	return f.depositCount, append(result, f.hash)
 }
@@ -141,7 +175,8 @@ func (*FinalizedNode) Left() TreeNode {
 	return nil
 }
 
-// LeafNode represents a leaf node holding a deposit and satisfies the TreeNode interface.
+// LeafNode represents a leaf node holding a deposit and satisfies the TreeNode
+// interface.
 type LeafNode struct {
 	hash [32]byte
 }
@@ -159,11 +194,12 @@ func (*LeafNode) IsFull() bool {
 }
 
 // Finalize marks deposits of the Merkle tree as finalized.
-func (l *LeafNode) Finalize(depositsToFinalize uint64, depth uint64) (TreeNode, error) {
+func (l *LeafNode) Finalize(_, _ uint64) (TreeNode, error) {
 	return &FinalizedNode{1, l.hash}, nil
 }
 
-// GetFinalized returns a list of hashes of all the finalized nodes and the number of deposits.
+// GetFinalized returns a list of hashes of all the finalized nodes and the
+// number of deposits.
 func (*LeafNode) GetFinalized(result [][32]byte) (uint64, [][32]byte) {
 	return 0, result
 }
@@ -173,7 +209,8 @@ func (*LeafNode) PushLeaf([32]byte, uint64) (TreeNode, error) {
 	return nil, ErrLeafNodeCannotPushLeaf
 }
 
-// Right returns nil as a leaf node is the last node and can't have any children.
+// Right returns nil as a leaf node is the last node and can't have any
+// children.
 func (*LeafNode) Right() TreeNode {
 	return nil
 }
@@ -183,7 +220,8 @@ func (*LeafNode) Left() TreeNode {
 	return nil
 }
 
-// InnerNode represents an inner node with two children and satisfies the TreeNode interface.
+// InnerNode represents an inner node with two children and satisfies the
+// TreeNode interface.
 type InnerNode struct {
 	left, right TreeNode
 	hasher      merkle.Hasher[[32]byte]
@@ -202,7 +240,10 @@ func (n *InnerNode) IsFull() bool {
 }
 
 // Finalize marks deposits of the Merkle tree as finalized.
-func (n *InnerNode) Finalize(depositsToFinalize uint64, depth uint64) (TreeNode, error) {
+func (n *InnerNode) Finalize(
+	depositsToFinalize uint64,
+	depth uint64,
+) (TreeNode, error) {
 	var err error
 	deposits := pow.TwoToThePowerOf(depth)
 	if deposits <= depositsToFinalize {
@@ -215,6 +256,8 @@ func (n *InnerNode) Finalize(depositsToFinalize uint64, depth uint64) (TreeNode,
 	if err != nil {
 		return nil, err
 	}
+
+	//nolint:mnd // spec.
 	if depositsToFinalize > deposits/2 {
 		remaining := depositsToFinalize - deposits/2
 		n.right, err = n.right.Finalize(remaining, depth-1)
@@ -225,7 +268,8 @@ func (n *InnerNode) Finalize(depositsToFinalize uint64, depth uint64) (TreeNode,
 	return n, nil
 }
 
-// GetFinalized returns a list of hashes of all the finalized nodes and the number of deposits.
+// GetFinalized returns a list of hashes of all the finalized nodes and the
+// number of deposits.
 func (n *InnerNode) GetFinalized(result [][32]byte) (uint64, [][32]byte) {
 	leftDeposits, result := n.left.GetFinalized(result)
 	rightDeposits, result := n.right.GetFinalized(result)
@@ -233,6 +277,8 @@ func (n *InnerNode) GetFinalized(result [][32]byte) (uint64, [][32]byte) {
 }
 
 // PushLeaf adds a new leaf node at the next available zero node.
+//
+//nolint:nestif // recursion.
 func (n *InnerNode) PushLeaf(leaf [32]byte, depth uint64) (TreeNode, error) {
 	if !n.left.IsFull() {
 		left, err := n.left.PushLeaf(leaf, depth-1)
@@ -262,7 +308,8 @@ func (n *InnerNode) Left() TreeNode {
 	return n.left
 }
 
-// ZeroNode represents an empty node without a deposit and satisfies the TreeNode interface.
+// ZeroNode represents an empty node without a deposit and satisfies the
+// TreeNode interface.
 type ZeroNode struct {
 	depth  uint64
 	hasher merkle.Hasher[[32]byte]
@@ -284,11 +331,12 @@ func (*ZeroNode) IsFull() bool {
 }
 
 // Finalize marks deposits of the Merkle tree as finalized.
-func (*ZeroNode) Finalize(depositsToFinalize uint64, depth uint64) (TreeNode, error) {
-	return nil, nil
+func (*ZeroNode) Finalize(_, _ uint64) (TreeNode, error) {
+	return nil, nil //nolint:nilnil // spec.
 }
 
-// GetFinalized returns a list of hashes of all the finalized nodes and the number of deposits.
+// GetFinalized returns a list of hashes of all the finalized nodes and the
+// number of deposits.
 func (*ZeroNode) GetFinalized(result [][32]byte) (uint64, [][32]byte) {
 	return 0, result
 }

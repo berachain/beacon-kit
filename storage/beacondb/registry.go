@@ -30,7 +30,9 @@ import (
 )
 
 // AddValidator registers a new validator in the beacon state.
-func (kv *KVStore[ExecutionPayloadHeaderT]) AddValidator(val *ctypes.Validator) error {
+func (kv *KVStore[ExecutionPayloadHeaderT]) AddValidator(
+	val *ctypes.Validator,
+) error {
 	// Get the next validator index from the sequence.
 	idx, err := kv.validatorIndex.Next(kv.ctx)
 	if err != nil {
@@ -46,7 +48,9 @@ func (kv *KVStore[ExecutionPayloadHeaderT]) AddValidator(val *ctypes.Validator) 
 }
 
 // AddValidator registers a new validator in the beacon state.
-func (kv *KVStore[ExecutionPayloadHeaderT]) AddValidatorBartio(val *ctypes.Validator) error {
+func (kv *KVStore[ExecutionPayloadHeaderT]) AddValidatorBartio(
+	val *ctypes.Validator,
+) error {
 	// Get the ne
 	idx, err := kv.validatorIndex.Next(kv.ctx)
 	if err != nil {

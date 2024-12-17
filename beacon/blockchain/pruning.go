@@ -49,7 +49,10 @@ func (s *Service[
 	return nil
 }
 
-func depositPruneRangeFn(deposits []*ctypes.Deposit, cs common.ChainSpec) (uint64, uint64) {
+func depositPruneRangeFn(
+	deposits []*ctypes.Deposit,
+	cs common.ChainSpec,
+) (uint64, uint64) {
 	if len(deposits) == 0 || cs.MaxDepositsPerBlock() == 0 {
 		return 0, 0
 	}

@@ -159,7 +159,8 @@ func (u Gwei) ToWei() *U256 {
 
 // ---------------------------- Helper Methods ----------------------------
 
-// Int returns the integer value of the uint64 argument. If there is an overflow, then an error is
+// Int returns the integer value of the uint64 argument. If there is an
+// overflow, then an error is
 // returned.
 func Int(u uint64) (int, error) {
 	if u > math.MaxInt {
@@ -168,4 +169,3 @@ func Int(u uint64) (int, error) {
 
 	return int(u), nil
 }
-

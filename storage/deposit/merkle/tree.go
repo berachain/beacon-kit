@@ -1,3 +1,23 @@
+// SPDX-License-Identifier: BUSL-1.1
+//
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is governed by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
+//
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
+//
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
+//
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
+
 package merkle
 
 import (
@@ -46,14 +66,18 @@ func (d *DepositTree) GetSnapshot() (DepositTreeSnapshot, error) {
 }
 
 // Finalize marks a deposit as finalized.
-func (d *DepositTree) Finalize(eth1DepositIndex int64, executionHash common.Hash, executionNumber uint64) error {
+func (d *DepositTree) Finalize(
+	eth1DepositIndex uint64,
+	executionHash common.Hash,
+	executionNumber uint64,
+) error {
 	var blockHash [32]byte
 	copy(blockHash[:], executionHash[:])
 	d.finalizedExecutionBlock = executionBlock{
 		Hash:  blockHash,
 		Depth: executionNumber,
 	}
-	mixInLength := uint64(eth1DepositIndex + 1)
+	mixInLength := eth1DepositIndex + 1
 	_, err := d.tree.Finalize(mixInLength, DepositContractDepth)
 	if err != nil {
 		return err
@@ -113,14 +137,16 @@ func (d *DepositTree) pushLeaf(leaf [32]byte) error {
 	return nil
 }
 
-// Insert is defined as part of MerkleTree interface and adds a new leaf to the tree.
+// Insert is defined as part of MerkleTree interface and adds a new leaf to the
+// tree.
 func (d *DepositTree) Insert(item []byte, _ int) error {
 	var leaf [32]byte
 	copy(leaf[:], item[:32])
 	return d.pushLeaf(leaf)
 }
 
-// HashTreeRoot is defined as part of MerkleTree interface and calculates the hash tree root.
+// HashTreeRoot is defined as part of MerkleTree interface and calculates the
+// hash tree root.
 func (d *DepositTree) HashTreeRoot() ([32]byte, error) {
 	root := d.getRoot()
 	if root == [32]byte{} {
@@ -129,12 +155,14 @@ func (d *DepositTree) HashTreeRoot() ([32]byte, error) {
 	return root, nil
 }
 
-// NumOfItems is defined as part of MerkleTree interface and returns the number of deposits in the tree.
+// NumOfItems is defined as part of MerkleTree interface and returns the number
+// of deposits in the tree.
 func (d *DepositTree) NumOfItems() int {
 	return int(d.mixInLength)
 }
 
-// MerkleProof is defined as part of MerkleTree interface and generates a merkle proof.
+// MerkleProof is defined as part of MerkleTree interface and generates a merkle
+// proof.
 func (d *DepositTree) MerkleProof(index int) ([][]byte, error) {
 	_, proof, err := d.getProof(uint64(index))
 	if err != nil {
