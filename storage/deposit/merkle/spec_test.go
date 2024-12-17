@@ -34,6 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto/sha256"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/merkle"
 	"github.com/berachain/beacon-kit/primitives/merkle/zero"
 	"github.com/stretchr/testify/require"
@@ -152,9 +153,9 @@ func (dd *depositData) UnmarshalYAML(value *yaml.Node) error {
 }
 
 type eth1Data struct {
-	DepositRoot  common.Root `yaml:"deposit_root"`
-	DepositCount uint64      `yaml:"deposit_count"`
-	BlockHash    common.Root `yaml:"block_hash"`
+	DepositRoot  common.Root          `yaml:"deposit_root"`
+	DepositCount uint64               `yaml:"deposit_count"`
+	BlockHash    common.ExecutionHash `yaml:"block_hash"`
 }
 
 func (ed *eth1Data) UnmarshalYAML(value *yaml.Node) error {
@@ -175,10 +176,12 @@ func (ed *eth1Data) UnmarshalYAML(value *yaml.Node) error {
 	if err != nil {
 		return err
 	}
-	ed.BlockHash, err = hexStringToByteArray(raw.BlockHash)
+	var blockHash common.Root
+	blockHash, err = hexStringToByteArray(raw.BlockHash)
 	if err != nil {
 		return err
 	}
+	ed.BlockHash = common.ExecutionHash(blockHash)
 	return nil
 }
 
@@ -213,14 +216,18 @@ func (sd *snapshot) UnmarshalYAML(value *yaml.Node) error {
 	if err != nil {
 		return err
 	}
-	sd.executionBlock.Hash, err = hexStringToByteArray(raw.ExecutionBlockHash)
+	var executionHash common.Root
+	executionHash, err = hexStringToByteArray(raw.ExecutionBlockHash)
 	if err != nil {
 		return err
 	}
-	sd.executionBlock.Depth, err = stringToUint64(raw.ExecutionBlockHeight)
+	sd.executionBlock.Hash = common.ExecutionHash(executionHash)
+	var depth uint64
+	depth, err = stringToUint64(raw.ExecutionBlockHeight)
 	if err != nil {
 		return err
 	}
+	sd.executionBlock.Depth = math.U64(depth)
 	sd.hasher = merkle.NewHasher[common.Root](sha256.Hash)
 	return nil
 }
@@ -351,7 +358,7 @@ func TestFinalization(t *testing.T) {
 	err = tree.Finalize(
 		testCases[100].Eth1Data.DepositCount-1,
 		testCases[100].Eth1Data.BlockHash,
-		testCases[100].BlockHeight,
+		math.U64(testCases[100].BlockHeight),
 	)
 	require.NoError(t, err)
 	// ensure finalization doesn't change root
@@ -370,7 +377,7 @@ func TestFinalization(t *testing.T) {
 	err = tree.Finalize(
 		testCases[105].Eth1Data.DepositCount-1,
 		testCases[105].Eth1Data.BlockHash,
-		testCases[105].BlockHeight,
+		math.U64(testCases[105].BlockHeight),
 	)
 	require.NoError(t, err)
 	//	root should still be the same
@@ -402,7 +409,7 @@ func TestSnapshotCases(t *testing.T) {
 		err = tree.Finalize(
 			c.Eth1Data.DepositCount-1,
 			c.Eth1Data.BlockHash,
-			c.BlockHeight,
+			math.U64(c.BlockHeight),
 		)
 		require.NoError(t, err)
 		s := tree.GetSnapshot()

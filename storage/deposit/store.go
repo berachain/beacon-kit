@@ -29,7 +29,8 @@ import (
 	"cosmossdk.io/core/store"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
-	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/storage/deposit/merkle"
 	"github.com/berachain/beacon-kit/storage/encoding"
 	"github.com/berachain/beacon-kit/storage/pruner"
@@ -42,22 +43,21 @@ const KeyDepositPrefix = "deposit"
 // It also maintains a merkle tree of the deposits for verification,
 // which will remove the need for indexed based tracking.
 type Store struct {
-	*merkle.DepositTree
+	// tree is the EIP-4881 compliant deposit merkle tree.
+	tree *merkle.DepositTree
 
+	// store is the KV store that holds the deposits.
 	store sdkcollections.Map[uint64, *ctypes.Deposit]
 
-	// mu protects store for concurrent access
+	// mu protects store for concurrent access.
 	mu sync.RWMutex
-
-	// logger is used for logging information and errors.
-	logger log.Logger
 }
 
 // NewStore creates a new deposit store.
-func NewStore(kvsp store.KVStoreService, logger log.Logger) *Store {
+func NewStore(kvsp store.KVStoreService) *Store {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kvsp)
 	res := &Store{
-		DepositTree: merkle.NewDepositTree(),
+		tree: merkle.NewDepositTree(),
 		store: sdkcollections.NewMap(
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte(KeyDepositPrefix)),
@@ -65,7 +65,6 @@ func NewStore(kvsp store.KVStoreService, logger log.Logger) *Store {
 			sdkcollections.Uint64Key,
 			encoding.SSZValueCodec[*ctypes.Deposit]{},
 		),
-		logger: logger,
 	}
 	if _, err := schemaBuilder.Build(); err != nil {
 		panic(fmt.Errorf("failed building Store schema: %w", err))
@@ -79,22 +78,20 @@ func NewStore(kvsp store.KVStoreService, logger log.Logger) *Store {
 func (s *Store) GetDepositsByIndex(
 	startIndex uint64,
 	depRange uint64,
-) ([]*ctypes.Deposit, error) {
+) (ctypes.Deposits, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	var (
-		deposits = []*ctypes.Deposit{}
+		deposits = ctypes.Deposits{}
 		endIdx   = startIndex + depRange
 	)
 
-	s.logger.Debug("GetDepositsByIndex request", "start", startIndex, "end", endIdx)
 	for i := startIndex; i < endIdx; i++ {
 		deposit, err := s.store.Get(context.TODO(), i)
 		switch {
 		case err == nil:
 			deposits = append(deposits, deposit)
 		case errors.Is(err, sdkcollections.ErrNotFound):
-			s.logger.Debug("GetDepositsByIndex response", "start", startIndex, "end", i)
 			return deposits, nil
 		default:
 			return deposits, errors.Wrapf(
@@ -103,30 +100,38 @@ func (s *Store) GetDepositsByIndex(
 		}
 	}
 
-	s.logger.Debug("GetDepositsByIndex response", "start", startIndex, "end", endIdx)
 	return deposits, nil
 }
 
 // EnqueueDeposits pushes multiple deposits to the queue.
-func (s *Store) EnqueueDeposits(deposits []*ctypes.Deposit) error {
+func (s *Store) EnqueueDeposits(
+	deposits []*ctypes.Deposit,
+	executionBlockHash common.ExecutionHash,
+	executionBlockNumber math.U64,
+) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.logger.Debug("EnqueueDeposits request", "to enqueue", len(deposits))
+
 	for _, deposit := range deposits {
 		idx := deposit.GetIndex().Unwrap()
-		s.logger.Debug("EnqueueDeposit response", "index", idx)
 		if err := s.store.Set(context.TODO(), idx, deposit); err != nil {
-			return errors.Wrapf(err, "failed to enqueue deposit %d", idx)
+			return errors.Wrapf(err, "failed to set deposit %d in KVStore", idx)
+		}
+
+		if err := s.tree.Insert(deposit.HashTreeRoot()); err != nil {
+			return errors.Wrapf(err, "failed to insert deposit %d into merkle tree", idx)
+		}
+
+		if err := s.tree.Finalize(idx, executionBlockHash, executionBlockNumber); err != nil {
+			return errors.Wrapf(err, "failed to finalize deposit %d in merkle tree", idx)
 		}
 	}
 
-	s.logger.Debug("EnqueueDeposit response", "enqueued", len(deposits))
 	return nil
 }
 
 // Prune removes the [start, end) deposits from the store.
 func (s *Store) Prune(start, end uint64) error {
-	s.logger.Debug("Prune request", "start", start, "end", end)
 	if start > end {
 		return fmt.Errorf(
 			"DepositKVStore Prune start: %d, end: %d: %w", start, end, pruner.ErrInvalidRange,
@@ -143,6 +148,5 @@ func (s *Store) Prune(start, end uint64) error {
 		}
 	}
 
-	s.logger.Debug("Prune response", "start", start, "end", end)
 	return nil
 }

@@ -114,7 +114,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	)
 
 	// make sure included deposit is already available in deposit store
-	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits))
+	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits, common.ExecutionHash{}, 0))
 
 	// run the test
 	valDiff, err = sp.Transition(ctx, st, blk1)
@@ -253,7 +253,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 	)
 
 	// make sure included deposit is already available in deposit store
-	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits))
+	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits, common.ExecutionHash{}, 0))
 
 	// run the test
 	valDiff, err := sp.Transition(ctx, st, blk1)
@@ -694,7 +694,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	)
 
 	// make sure included deposit is already available in deposit store
-	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits))
+	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits, common.ExecutionHash{}, 0))
 
 	// run the test
 	valDiff, err := sp.Transition(ctx, st, blk1)
@@ -926,7 +926,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	)
 
 	// make sure included deposit is already available in deposit store
-	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits))
+	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits, common.ExecutionHash{}, 0))
 
 	// run the test
 	valDiff, err := sp.Transition(ctx, st, blk1)

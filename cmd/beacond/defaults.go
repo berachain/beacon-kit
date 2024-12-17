@@ -56,7 +56,7 @@ func DefaultComponents() []any {
 		// 	*AvailabilityStore, *BeaconBlockHeader, *BeaconState,
 		// 	*BeaconStateMarshallable, *BlockStore, *KVStore, *StorageBackend,
 		// ],
-		components.ProvideDepositStore[*Logger],
+		components.ProvideDepositStore,
 		components.ProvideEngineClient[*Logger],
 		components.ProvideExecutionEngine[*Logger],
 		components.ProvideJWTSecret,

@@ -296,7 +296,7 @@ func (b *BeaconBlockBody) GetTopLevelRoots() []common.Root {
 		common.Root(b.GetRandaoReveal().HashTreeRoot()),
 		b.Eth1Data.HashTreeRoot(),
 		common.Root(b.GetGraffiti().HashTreeRoot()),
-		Deposits(b.GetDeposits()).HashTreeRoot(),
+		b.GetDeposits().HashTreeRoot(),
 		b.GetExecutionPayload().HashTreeRoot(),
 		{},
 	}
@@ -333,11 +333,11 @@ func (b *BeaconBlockBody) SetGraffiti(graffiti common.Bytes32) {
 }
 
 // GetDeposits returns the Deposits of the BeaconBlockBody.
-func (b *BeaconBlockBody) GetDeposits() []*Deposit {
+func (b *BeaconBlockBody) GetDeposits() Deposits {
 	return b.Deposits
 }
 
 // SetDeposits sets the Deposits of the BeaconBlockBody.
-func (b *BeaconBlockBody) SetDeposits(deposits []*Deposit) {
+func (b *BeaconBlockBody) SetDeposits(deposits Deposits) {
 	b.Deposits = deposits
 }

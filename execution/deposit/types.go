@@ -24,13 +24,14 @@ import (
 	"context"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // Contract is the ABI for the deposit contract.
 type Contract interface {
 	// ReadDeposits reads deposits from the deposit contract.
-	ReadDeposits(ctx context.Context, blockNumber math.U64) ([]*ctypes.Deposit, error)
+	ReadDeposits(ctx context.Context, blockNumber math.U64) ([]*ctypes.Deposit, common.ExecutionHash, error)
 }
 
 // Store defines the interface for managing deposit operations.
@@ -38,5 +39,9 @@ type Store interface {
 	// Prune prunes the deposit store of [start, end)
 	Prune(index uint64, numPrune uint64) error
 	// EnqueueDeposits adds a list of deposits to the deposit store.
-	EnqueueDeposits(deposits []*ctypes.Deposit) error
+	EnqueueDeposits(
+		deposits []*ctypes.Deposit,
+		executionBlockHash common.ExecutionHash,
+		executionBlockNumber math.U64,
+	) error
 }

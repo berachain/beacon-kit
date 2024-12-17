@@ -39,8 +39,8 @@ type DepositTree struct {
 }
 
 type executionBlock struct {
-	Hash  common.Root
-	Depth uint64
+	Hash  common.ExecutionHash
+	Depth math.U64
 }
 
 // NewDepositTree creates an empty deposit tree.
@@ -73,13 +73,11 @@ func (d *DepositTree) GetSnapshot() DepositTreeSnapshot {
 // Finalize marks a deposit as finalized.
 func (d *DepositTree) Finalize(
 	eth1DepositIndex uint64,
-	executionHash common.Root,
-	executionNumber uint64,
+	executionHash common.ExecutionHash,
+	executionNumber math.U64,
 ) error {
-	var blockHash common.Root
-	copy(blockHash[:], executionHash[:])
 	d.finalizedExecutionBlock = executionBlock{
-		Hash:  blockHash,
+		Hash:  executionHash,
 		Depth: executionNumber,
 	}
 	mixInLength := eth1DepositIndex + 1

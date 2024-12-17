@@ -132,7 +132,7 @@ func (sp *StateProcessor[
 		}
 		expectedStartIdx := depositIndex + 1
 
-		var localDeposits []*ctypes.Deposit
+		var localDeposits ctypes.Deposits
 		localDeposits, err = sp.ds.GetDepositsByIndex(
 			expectedStartIdx,
 			sp.cs.MaxDepositsPerBlock(),

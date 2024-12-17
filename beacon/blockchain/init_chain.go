@@ -42,7 +42,12 @@ func (s *Service[
 	}
 
 	genesisDeposits := genesisData.GetDeposits()
-	if err := s.depositStore.EnqueueDeposits(genesisDeposits); err != nil {
+	genesisExecutionPayloadHeader := genesisData.GetExecutionPayloadHeader()
+	if err := s.depositStore.EnqueueDeposits(
+		genesisDeposits,
+		genesisExecutionPayloadHeader.BlockHash,
+		genesisExecutionPayloadHeader.Number,
+	); err != nil {
 		s.logger.Error("Failed to store genesis deposits", "error", err)
 		return nil, err
 	}
@@ -50,7 +55,7 @@ func (s *Service[
 	return s.stateProcessor.InitializePreminedBeaconStateFromEth1(
 		s.storageBackend.StateFromContext(ctx),
 		genesisDeposits,
-		genesisData.GetExecutionPayloadHeader(),
+		genesisExecutionPayloadHeader,
 		genesisData.GetForkVersion(),
 	)
 }

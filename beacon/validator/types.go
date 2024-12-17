@@ -122,7 +122,7 @@ type DepositStore interface {
 	GetDepositsByIndex(
 		startIndex uint64,
 		numView uint64,
-	) ([]*ctypes.Deposit, error)
+	) (ctypes.Deposits, error)
 }
 
 // ForkData represents the fork data interface.

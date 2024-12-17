@@ -97,12 +97,7 @@ func initTestStores() (*beacondb.KVStore, *deposit.Store, error) {
 		nopMetrics = metrics.NewNoOpMetrics()
 	)
 
-	cms := store.NewCommitMultiStore(
-		db,
-		nopLog,
-		nopMetrics,
-	)
-
+	cms := store.NewCommitMultiStore(db, nopLog, nopMetrics)
 	ctx := sdk.NewContext(cms, true, nopLog)
 	cms.MountStoreWithDB(testStoreKey, storetypes.StoreTypeIAVL, nil)
 	if err = cms.LoadLatestVersion(); err != nil {
@@ -114,7 +109,7 @@ func initTestStores() (*beacondb.KVStore, *deposit.Store, error) {
 			testStoreService,
 			testCodec,
 		),
-		deposit.NewStore(testStoreService, nopLog),
+		deposit.NewStore(testStoreService),
 		nil
 }
 

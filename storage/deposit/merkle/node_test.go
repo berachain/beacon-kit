@@ -111,7 +111,7 @@ func Test_fromSnapshotParts(t *testing.T) {
 
 			// Test finalization
 			for i := range uint64(len(tt.finalized)) {
-				err = test.Finalize(i, tt.finalized[i], 0)
+				err = test.Finalize(i, common.ExecutionHash(tt.finalized[i]), 0)
 				require.NoError(t, err)
 			}
 

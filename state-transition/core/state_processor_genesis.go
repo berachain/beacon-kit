@@ -48,11 +48,7 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	fork := ctypes.NewFork(
-		genesisVersion,
-		genesisVersion,
-		math.U64(constants.GenesisEpoch),
-	)
+	fork := ctypes.NewFork(genesisVersion, genesisVersion, math.U64(constants.GenesisEpoch))
 	if err := st.SetFork(fork); err != nil {
 		return nil, err
 	}

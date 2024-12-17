@@ -24,7 +24,6 @@ import (
 	"cosmossdk.io/depinject"
 	storev2 "cosmossdk.io/store/v2/db"
 	"github.com/berachain/beacon-kit/config"
-	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/berachain/beacon-kit/storage/deposit"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -32,15 +31,14 @@ import (
 )
 
 // DepositStoreInput is the input for the dep inject framework.
-type DepositStoreInput[LoggerT log.AdvancedLogger[LoggerT]] struct {
+type DepositStoreInput struct {
 	depinject.In
-	Logger  LoggerT
 	AppOpts config.AppOptions
 }
 
 // ProvideDepositStore is a function that provides the module to the
 // application.
-func ProvideDepositStore[LoggerT log.AdvancedLogger[LoggerT]](in DepositStoreInput[LoggerT]) (*deposit.Store, error) {
+func ProvideDepositStore(in DepositStoreInput) (*deposit.Store, error) {
 	name := "deposits"
 	dir := cast.ToString(in.AppOpts.Get(flags.FlagHome)) + "/data"
 	kvp, err := storev2.NewDB(storev2.DBTypePebbleDB, name, dir, nil)
@@ -48,5 +46,5 @@ func ProvideDepositStore[LoggerT log.AdvancedLogger[LoggerT]](in DepositStoreInp
 		return nil, err
 	}
 
-	return deposit.NewStore(storage.NewKVStoreProvider(kvp), in.Logger.With("service", "deposit-store")), nil
+	return deposit.NewStore(storage.NewKVStoreProvider(kvp)), nil
 }
