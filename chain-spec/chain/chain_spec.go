@@ -21,7 +21,6 @@
 package chain
 
 import (
-	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
@@ -30,10 +29,6 @@ type (
 	// ChainSpec defines an interface for chain-specific parameters.
 	//nolint:revive // We can remove this once we have cleaned up generics.
 	ChainSpec = Spec[common.DomainType, math.Epoch, math.Slot, any]
-
-	// ForkDigest as per the Ethereum 2.0 Specification:
-	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	ForkDigest = bytes.B4
 )
 
 // Spec defines an interface for accessing chain-specific parameters.
