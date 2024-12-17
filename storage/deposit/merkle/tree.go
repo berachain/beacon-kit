@@ -179,5 +179,5 @@ func (d *DepositTree) MerkleProof(index uint64) ([][]byte, error) {
 
 // Copy performs a deep copy of the tree.
 func (d *DepositTree) Copy() (*DepositTree, error) {
-	return fromSnapshot(d.hasher, d.GetSnapshot())
+	return fromSnapshot(d.GetSnapshot())
 }

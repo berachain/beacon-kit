@@ -80,8 +80,6 @@ func Test_create(t *testing.T) {
 }
 
 func Test_fromSnapshotParts(t *testing.T) {
-	hasher := merkle.NewHasher[[32]byte](sha256.Hash)
-
 	tests := []struct {
 		name      string
 		finalized [][32]byte
@@ -124,7 +122,7 @@ func Test_fromSnapshotParts(t *testing.T) {
 			require.True(t, want.Equals(common.NewRootFromBytes(got[:])))
 
 			// Build from the snapshot once more
-			recovered, err := fromSnapshot(hasher, sShot)
+			recovered, err := fromSnapshot(sShot)
 			require.NoError(t, err)
 			got = recovered.HashTreeRoot()
 			require.True(t, want.Equals(common.NewRootFromBytes(got[:])))
