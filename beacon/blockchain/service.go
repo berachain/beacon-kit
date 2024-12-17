@@ -70,7 +70,8 @@ type Service[
 	]
 	blobProcessor da.BlobProcessor[
 		AvailabilityStoreT,
-		ConsensusSidecarsT, BlobSidecarsT,
+		ConsensusSidecarsT,
+		BlobSidecarsT,
 	]
 	// store is the block store for the service.
 	// TODO: Remove this and use the block store from the storage backend.
@@ -143,7 +144,8 @@ func NewService[
 	],
 	blobProcessor da.BlobProcessor[
 		AvailabilityStoreT,
-		ConsensusSidecarsT, BlobSidecarsT,
+		ConsensusSidecarsT,
+		BlobSidecarsT,
 	],
 	blockStore BlockStoreT,
 	depositStore deposit.Store,

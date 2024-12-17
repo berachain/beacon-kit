@@ -23,9 +23,11 @@ package blob
 import (
 	"time"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/kzg"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
@@ -45,7 +47,10 @@ type Processor[
 	// chainSpec defines the specifications of the blockchain.
 	chainSpec common.ChainSpec
 	// verifier is responsible for verifying the blobs.
-	verifier *verifier[BlobSidecarT, BlobSidecarsT]
+	verifier *verifier[
+		BlobSidecarT,
+		BlobSidecarsT,
+	]
 	// blockBodyOffsetFn is a function that calculates the block body offset
 	// based on the slot and chain specifications.
 	blockBodyOffsetFn func(math.Slot, common.ChainSpec) (uint64, error)
@@ -90,9 +95,13 @@ func NewProcessor[
 
 // VerifySidecars verifies the blobs and ensures they match the local state.
 func (sp *Processor[
-	AvailabilityStoreT, _, ConsensusSidecarsT, _, _,
+	AvailabilityStoreT, _, ConsensusSidecarsT, _, BlobSidecarsT,
 ]) VerifySidecars(
 	cs ConsensusSidecarsT,
+	verifierFn func(
+		blkHeader *ctypes.BeaconBlockHeader,
+		signature crypto.BLSSignature,
+	) error,
 ) error {
 	var (
 		sidecars  = cs.GetSidecars()
@@ -116,7 +125,10 @@ func (sp *Processor[
 
 	// Verify the blobs and ensure they match the local state.
 	return sp.verifier.verifySidecars(
-		sidecars, kzgOffset, blkHeader,
+		sidecars,
+		kzgOffset,
+		blkHeader,
+		verifierFn,
 	)
 }
 
@@ -139,7 +151,7 @@ func (sp *Processor[
 	// If we have reached this point, we can safely assume that the blobs are
 	// valid and can be persisted, as well as that index 0 is filled.
 	return avs.Persist(
-		sidecars.Get(0).GetBeaconBlockHeader().GetSlot(),
+		sidecars.Get(0).GetSignedBeaconBlockHeader().GetHeader().GetSlot(),
 		sidecars,
 	)
 }

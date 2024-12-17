@@ -72,6 +72,13 @@ func (s *Service[
 		return createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
 
+	// In theory, swapping the order of verification between the sidecars
+	// and the incoming block should not introduce any inconsistencies
+	// in the state on which the sidecar verification depends on (notably
+	// the currently active fork). ProcessProposal should only
+	// keep the state changes as candidates (which is what we do in
+	// VerifyIncomingBlock).
+
 	// Process the blob sidecars, if any
 	if !sidecars.IsNil() && sidecars.Len() > 0 {
 		var consensusSidecars *types.ConsensusSidecars[BlobSidecarsT]
@@ -83,13 +90,26 @@ func (s *Service[
 		s.logger.Info("Received incoming blob sidecars")
 
 		// TODO: Clean this up once we remove generics.
-		c := convertConsensusSidecars[
+		cs := convertConsensusSidecars[
 			ConsensusSidecarsT,
 			BlobSidecarsT,
 		](consensusSidecars)
 
+		// Get the sidecar verification function from the state processor
+		//nolint:govet	// err shadowing
+		sidecarVerifierFn, err := s.stateProcessor.GetSidecarVerifierFn(
+			s.storageBackend.StateFromContext(ctx),
+		)
+		if err != nil {
+			s.logger.Error(
+				"an error incurred while calculating the sidecar verifier",
+				"reason", err,
+			)
+			return createProcessProposalResponse(errors.WrapNonFatal(err))
+		}
+
 		// Verify the blobs and ensure they match the local state.
-		err = s.blobProcessor.VerifySidecars(c)
+		err = s.blobProcessor.VerifySidecars(cs, sidecarVerifierFn)
 		if err != nil {
 			s.logger.Error(
 				"rejecting incoming blob sidecars",

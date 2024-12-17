@@ -116,6 +116,9 @@ type BlobFactory[
 	BuildSidecars(
 		blk BeaconBlockT,
 		blobs engineprimitives.BlobsBundle,
+		signer crypto.BLSSigner,
+		forkData *ctypes.ForkData,
+
 	) (BlobSidecarsT, error)
 }
 
@@ -150,6 +153,8 @@ type ForkData[T any] interface {
 		common.DomainType,
 		math.Epoch,
 	) common.Root
+	// ComputeDomain computes the fork data domain for a given domain type.
+	ComputeDomain(common.DomainType) common.Domain
 }
 
 // PayloadBuilder represents a service that is responsible for
