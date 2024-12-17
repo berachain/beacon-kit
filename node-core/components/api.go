@@ -50,12 +50,11 @@ type NodeAPIBackendInput[
 }
 
 func ProvideNodeAPIBackend[
-	AvailabilityStoreT AvailabilityStore[BlobSidecarsT],
+	AvailabilityStoreT AvailabilityStore,
 	BeaconBlockT any,
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
 	BeaconStateT BeaconState[BeaconStateT, BeaconStateMarshallableT, KVStoreT],
 	BeaconStateMarshallableT any,
-	BlobSidecarsT any,
 	DepositStoreT DepositStore,
 	KVStoreT any,
 	NodeT interface {
@@ -68,7 +67,7 @@ func ProvideNodeAPIBackend[
 	in NodeAPIBackendInput[BeaconBlockT, BeaconStateT, StorageBackendT],
 ) *backend.Backend[
 	AvailabilityStoreT, BeaconBlockT,
-	BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BeaconBlockStoreT,
+	BeaconStateT, BeaconStateMarshallableT, BeaconBlockStoreT,
 	sdk.Context, DepositStoreT,
 	NodeT, KVStoreT, StorageBackendT,
 ] {
@@ -77,7 +76,6 @@ func ProvideNodeAPIBackend[
 		BeaconBlockT,
 		BeaconStateT,
 		BeaconStateMarshallableT,
-		BlobSidecarsT,
 		BeaconBlockStoreT,
 		sdk.Context,
 		DepositStoreT,

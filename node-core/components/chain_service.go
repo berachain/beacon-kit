@@ -48,7 +48,6 @@ type ChainServiceInput[
 	DepositContractT any,
 	AvailabilityStoreT any,
 	ConsensusSidecarsT any,
-	BlobSidecarsT any,
 ] struct {
 	depinject.In
 
@@ -65,7 +64,7 @@ type ChainServiceInput[
 	]
 	StorageBackend StorageBackendT
 	BlobProcessor  BlobProcessor[
-		AvailabilityStoreT, ConsensusSidecarsT, BlobSidecarsT,
+		AvailabilityStoreT, ConsensusSidecarsT,
 	]
 	TelemetrySink         *metrics.TelemetrySink
 	BlockStore            BeaconBlockStoreT
@@ -75,14 +74,12 @@ type ChainServiceInput[
 
 // ProvideChainService is a depinject provider for the blockchain service.
 func ProvideChainService[
-	AvailabilityStoreT AvailabilityStore[BlobSidecarsT],
+	AvailabilityStoreT AvailabilityStore,
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
 	BeaconBlockT BeaconBlock[BeaconBlockT],
 	BeaconStateT BeaconState[BeaconStateT, BeaconStateMarshallableT, KVStoreT],
 	BeaconStateMarshallableT any,
-	BlobSidecarT BlobSidecar,
-	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
-	ConsensusSidecarsT da.ConsensusSidecars[BlobSidecarsT],
+	ConsensusSidecarsT da.ConsensusSidecars,
 	BlockStoreT any,
 	DepositStoreT DepositStore,
 	DepositContractT deposit.Contract,
@@ -98,14 +95,14 @@ func ProvideChainService[
 		BeaconBlockT, BeaconStateT,
 		StorageBackendT, LoggerT,
 		BeaconBlockStoreT, DepositStoreT, DepositContractT,
-		AvailabilityStoreT, ConsensusSidecarsT, BlobSidecarsT,
+		AvailabilityStoreT, ConsensusSidecarsT,
 	],
 ) *blockchain.Service[
 	AvailabilityStoreT, DepositStoreT,
 	ConsensusBlockT, BeaconBlockT,
 	BeaconStateT, BeaconBlockStoreT,
 	GenesisT,
-	ConsensusSidecarsT, BlobSidecarsT,
+	ConsensusSidecarsT,
 ] {
 	return blockchain.NewService[
 		AvailabilityStoreT,

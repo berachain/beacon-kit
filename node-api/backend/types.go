@@ -24,6 +24,7 @@ import (
 	"context"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
@@ -33,13 +34,13 @@ import (
 // The AvailabilityStore interface is responsible for validating and storing
 // sidecars for specific blocks, as well as verifying sidecars that have already
 // been stored.
-type AvailabilityStore[BlobSidecarsT any] interface {
+type AvailabilityStore interface {
 	// IsDataAvailable ensures that all blobs referenced in the block are
 	// securely stored before it returns without an error.
 	IsDataAvailable(context.Context, math.Slot, *ctypes.BeaconBlockBody) bool
 	// Persist makes sure that the sidecar remains accessible for data
 	// availability checks throughout the beacon node's operation.
-	Persist(math.Slot, BlobSidecarsT) error
+	Persist(math.Slot, datypes.BlobSidecars) error
 }
 
 // BeaconState is the interface for the beacon state.

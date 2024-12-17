@@ -103,7 +103,7 @@ func TestArgsFromSidecars(t *testing.T) {
 	err = json.Unmarshal(file, &data)
 	require.NoError(t, err)
 
-	scs := &types.BlobSidecars{
+	scs := types.BlobSidecars{
 		{
 			Blob:          eip4844.Blob{data.Input.Blob[0]},
 			KzgProof:      eip4844.KZGProof{data.Input.Proof[0]},
@@ -111,10 +111,7 @@ func TestArgsFromSidecars(t *testing.T) {
 		},
 	}
 
-	args := kzg.ArgsFromSidecars[
-		*types.BlobSidecar,
-		*types.BlobSidecars,
-	](scs)
+	args := kzg.ArgsFromSidecars(scs)
 
 	require.Len(t, args.Blobs, 1)
 	require.Len(t, args.Proofs, 1)

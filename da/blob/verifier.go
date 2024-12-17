@@ -27,6 +27,7 @@ import (
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/kzg"
+	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"golang.org/x/sync/errgroup"
@@ -34,10 +35,7 @@ import (
 
 // verifier is responsible for verifying blobs, including their
 // inclusion and KZG proofs.
-type verifier[
-	BlobSidecarT Sidecar,
-	BlobSidecarsT Sidecars[BlobSidecarT],
-] struct {
+type verifier struct {
 	// proofVerifier is used to verify the KZG proofs of the blobs.
 	proofVerifier kzg.BlobProofVerifier
 	// metrics collects and reports metrics related to the verification process.
@@ -45,14 +43,11 @@ type verifier[
 }
 
 // newVerifier creates a new Verifier with the given proof verifier.
-func newVerifier[
-	BlobSidecarT Sidecar,
-	BlobSidecarsT Sidecars[BlobSidecarT],
-](
+func newVerifier(
 	proofVerifier kzg.BlobProofVerifier,
 	telemetrySink TelemetrySink,
-) *verifier[BlobSidecarT, BlobSidecarsT] {
-	return &verifier[BlobSidecarT, BlobSidecarsT]{
+) *verifier {
+	return &verifier{
 		proofVerifier: proofVerifier,
 		metrics:       newVerifierMetrics(telemetrySink),
 	}
@@ -60,8 +55,8 @@ func newVerifier[
 
 // verifySidecars verifies the blobs for both inclusion as well
 // as the KZG proofs.
-func (bv *verifier[_, BlobSidecarsT]) verifySidecars(
-	sidecars BlobSidecarsT,
+func (bv *verifier) verifySidecars(
+	sidecars datypes.BlobSidecars,
 	kzgOffset uint64,
 	blkHeader *ctypes.BeaconBlockHeader,
 	verifierFn func(
@@ -113,8 +108,8 @@ func (bv *verifier[_, BlobSidecarsT]) verifySidecars(
 	return g.Wait()
 }
 
-func (bv *verifier[_, BlobSidecarsT]) verifyInclusionProofs(
-	scs BlobSidecarsT,
+func (bv *verifier) verifyInclusionProofs(
+	scs datypes.BlobSidecars,
 	kzgOffset uint64,
 ) error {
 	startTime := time.Now()
@@ -125,8 +120,8 @@ func (bv *verifier[_, BlobSidecarsT]) verifyInclusionProofs(
 }
 
 // verifyKZGProofs verifies the sidecars.
-func (bv *verifier[_, BlobSidecarsT]) verifyKZGProofs(
-	scs BlobSidecarsT,
+func (bv *verifier) verifyKZGProofs(
+	scs datypes.BlobSidecars,
 ) error {
 	start := time.Now()
 	defer bv.metrics.measureVerifyKZGProofsDuration(

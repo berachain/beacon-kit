@@ -55,7 +55,6 @@ func ProvideBlobProofVerifier(
 
 // BlobProcessorIn is the input for the BlobProcessor.
 type BlobProcessorIn[
-	BlobSidecarsT any,
 	LoggerT any,
 ] struct {
 	depinject.In
@@ -69,22 +68,18 @@ type BlobProcessorIn[
 // ProvideBlobProcessor is a function that provides the BlobProcessor to the
 // depinject framework.
 func ProvideBlobProcessor[
-	AvailabilityStoreT AvailabilityStore[BlobSidecarsT],
-	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
-	BlobSidecarT BlobSidecar,
-	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
+	AvailabilityStoreT AvailabilityStore,
+	ConsensusSidecarsT ConsensusSidecars,
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
-	in BlobProcessorIn[BlobSidecarsT, LoggerT],
+	in BlobProcessorIn[LoggerT],
 ) *dablob.Processor[
 	AvailabilityStoreT,
-	ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
+	ConsensusSidecarsT,
 ] {
 	return dablob.NewProcessor[
 		AvailabilityStoreT,
 		ConsensusSidecarsT,
-		BlobSidecarT,
-		BlobSidecarsT,
 	](
 		in.Logger.With("service", "blob-processor"),
 		in.ChainSpec,

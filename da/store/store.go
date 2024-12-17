@@ -74,7 +74,7 @@ func (s *Store) IsDataAvailable(
 // processing for efficiency.
 func (s *Store) Persist(
 	slot math.Slot,
-	sidecars *types.BlobSidecars,
+	sidecars types.BlobSidecars,
 ) error {
 	// Exit early if there are no sidecars to store.
 	if sidecars.IsNil() || sidecars.Len() == 0 {

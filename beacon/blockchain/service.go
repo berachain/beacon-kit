@@ -43,8 +43,7 @@ type Service[
 	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
 	BlockStoreT blockstore.BlockStore[BeaconBlockT],
 	GenesisT Genesis,
-	ConsensusSidecarsT da.ConsensusSidecars[BlobSidecarsT],
-	BlobSidecarsT BlobSidecars[BlobSidecarsT],
+	ConsensusSidecarsT da.ConsensusSidecars,
 ] struct {
 	// homeDir is the directory for config and data"
 	homeDir string
@@ -58,7 +57,6 @@ type Service[
 	blobProcessor da.BlobProcessor[
 		AvailabilityStoreT,
 		ConsensusSidecarsT,
-		BlobSidecarsT,
 	]
 	// store is the block store for the service.
 	// TODO: Remove this and use the block store from the storage backend.
@@ -109,8 +107,7 @@ func NewService[
 	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
 	BlockStoreT blockstore.BlockStore[BeaconBlockT],
 	GenesisT Genesis,
-	ConsensusSidecarsT da.ConsensusSidecars[BlobSidecarsT],
-	BlobSidecarsT BlobSidecars[BlobSidecarsT],
+	ConsensusSidecarsT da.ConsensusSidecars,
 ](
 	homeDir string,
 	storageBackend StorageBackend[
@@ -121,7 +118,6 @@ func NewService[
 	blobProcessor da.BlobProcessor[
 		AvailabilityStoreT,
 		ConsensusSidecarsT,
-		BlobSidecarsT,
 	],
 	blockStore BlockStoreT,
 	depositStore deposit.Store,
@@ -143,13 +139,13 @@ func NewService[
 	ConsensusBlockT, BeaconBlockT,
 	BeaconStateT, BlockStoreT,
 	GenesisT,
-	ConsensusSidecarsT, BlobSidecarsT,
+	ConsensusSidecarsT,
 ] {
 	return &Service[
 		AvailabilityStoreT, DepositStoreT,
 		ConsensusBlockT, BeaconBlockT,
 		BeaconStateT, BlockStoreT,
-		GenesisT, ConsensusSidecarsT, BlobSidecarsT,
+		GenesisT, ConsensusSidecarsT,
 	]{
 		homeDir:                 homeDir,
 		storageBackend:          storageBackend,
@@ -172,13 +168,13 @@ func NewService[
 
 // Name returns the name of the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _,
 ]) Name() string {
 	return "blockchain"
 }
 
 func (s *Service[
-	_, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _,
 ]) Start(ctx context.Context) error {
 	// Catchup deposits for failed blocks.
 	go s.depositCatchupFetcher(ctx)
@@ -187,7 +183,7 @@ func (s *Service[
 }
 
 func (s *Service[
-	_, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _,
 ]) Stop() error {
 	return nil
 }

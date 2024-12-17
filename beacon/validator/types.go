@@ -26,6 +26,7 @@ import (
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
+	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -104,7 +105,6 @@ type BeaconState interface {
 // BlobFactory represents a blob factory interface.
 type BlobFactory[
 	BeaconBlockT any,
-	BlobSidecarsT any,
 ] interface {
 	// BuildSidecars builds sidecars for a given block and blobs bundle.
 	BuildSidecars(
@@ -112,8 +112,7 @@ type BlobFactory[
 		blobs ctypes.BlobsBundle,
 		signer crypto.BLSSigner,
 		forkData *ctypes.ForkData,
-
-	) (BlobSidecarsT, error)
+	) (datypes.BlobSidecars, error)
 }
 
 // DepositStore defines the interface for deposit storage.
@@ -216,17 +215,6 @@ type TelemetrySink interface {
 	// MeasureSince measures the time since the provided start time,
 	// identified by the provided keys.
 	MeasureSince(key string, start time.Time, args ...string)
-}
-
-type BlobSidecars[T, BlobSidecarT any] interface {
-	constraints.Nillable
-	constraints.SSZMarshallable
-	constraints.Empty[T]
-	Len() int
-	Get(index int) BlobSidecarT
-	GetSidecars() []BlobSidecarT
-	ValidateBlockRoots() error
-	VerifyInclusionProofs(kzgOffset uint64) error
 }
 
 type BlockBuilderI interface {
