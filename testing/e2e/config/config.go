@@ -167,11 +167,6 @@ type NethermindConfig struct {
         DownloadBodiesInFastSync bool `json:"DownloadBodiesInFastSync"`
         DownloadReceiptsInFastSync bool `json:"DownloadReceiptsInFastSync"`
     } `json:"SyncConfig"`
-    
-    // Mining and block production settings
-    MiningConfig struct {
-        TargetBlockGasLimit int64 `json:"TargetBlockGasLimit"`
-    } `json:"MiningConfig"`
 }
 
 // DefaultNethermindConfig returns the default configuration for Nethermind
@@ -186,38 +181,7 @@ func DefaultNethermindConfig() *NethermindConfig {
             DownloadBodiesInFastSync: true,
             DownloadReceiptsInFastSync: true,
         },
-        MiningConfig: struct {
-            TargetBlockGasLimit int64
-        }{
-            TargetBlockGasLimit: 30000000,
-        },
     }
-}
-
-
-// MustMarshalJSON marshals the E2ETestConfig to JSON, panicking if an error.
-func (c *E2ETestConfig) MustMarshalJSON() []byte {
-	// Check if we're using Nethermind and need to set default configuration
-	for _, nodeSet := range []NodeSet{
-		c.NetworkConfiguration.Validators,
-		c.NetworkConfiguration.FullNodes,
-		c.NetworkConfiguration.SeedNodes,
-	} {
-		for _, node := range nodeSet.Nodes {
-			if node.ElType == "nethermind" && node.Replicas > 0 {
-				if c.NodeSettings.ExecutionSettings.NethermindConfig == nil {
-					c.NodeSettings.ExecutionSettings.NethermindConfig = DefaultNethermindConfig()
-				}
-				break
-			}
-		}
-	}
-
-	jsonBytes, err := json.Marshal(c)
-	if err != nil {
-		panic(err)
-	}
-	return jsonBytes
 }
 
 // ValidateNethermindConfig validates the Nethermind configuration
@@ -235,11 +199,6 @@ func (c *E2ETestConfig) ValidateNethermindConfig() error {
         if config.SyncConfig.DownloadBodiesInFastSync || config.SyncConfig.DownloadReceiptsInFastSync {
             return fmt.Errorf("sync options are inconsistent: FastSync is disabled but download options are enabled")
         }
-    }
-
-    // Validate ConsensusConfig
-    if config.ConsensusConfig.TargetBlockGasLimit <= 0 {
-        return fmt.Errorf("invalid TargetBlockGasLimit: must be greater than 0")
     }
 
     // Validate if Nethermind is actually used in the configuration
