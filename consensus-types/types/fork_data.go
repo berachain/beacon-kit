@@ -88,9 +88,9 @@ func (fd *ForkData) UnmarshalSSZ(buf []byte) error {
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#compute_domain
 func (fd *ForkData) ComputeDomain(
 	domainType chain.DomainType,
-) chain.Domain {
+) common.Domain {
 	forkDataRoot := fd.HashTreeRoot()
-	return chain.Domain(
+	return common.Domain(
 		append(
 			domainType[:],
 			forkDataRoot[:28]...),

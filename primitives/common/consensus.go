@@ -30,8 +30,14 @@ import (
 /*                                    Root                                    */
 /* -------------------------------------------------------------------------- */
 
-// Bytes32 defines the commonly used 32-byte array.
-type Bytes32 = bytes.B32
+type (
+	// Bytes32 defines the commonly used 32-byte array.
+	Bytes32 = bytes.B32
+
+	// Domain as per the Ethereum 2.0 Specification:
+	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
+	Domain = bytes.B32
+)
 
 // Root represents a 32-byte Merkle root.
 // We use this type to represent roots that come from the consensus layer.
