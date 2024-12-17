@@ -159,42 +159,41 @@ type AdditionalService struct {
 }
 
 // NethermindConfig holds specific configuration for Nethermind client
+// NethermindConfig holds specific configuration for Nethermind client
 type NethermindConfig struct {
-	// Specific settings for Nethermind
-	SyncConfig struct {
-		FastSync                  bool `json:"FastSync"`
-		DownloadBodiesInFastSync bool `json:"DownloadBodiesInFastSync"`
-		DownloadReceiptsInFastSync bool `json:"DownloadReceiptsInFastSync"`
-	} `json:"SyncConfig"`
-	
-	// Settings to improve finalization
-	ConsensusConfig struct {
-		ForceSealing bool `json:"ForceSealing"`
-		TargetBlockGasLimit int64 `json:"TargetBlockGasLimit"`
-	} `json:"ConsensusConfig"`
+    // Specific settings for Nethermind
+    SyncConfig struct {
+        FastSync                  bool `json:"FastSync"`
+        DownloadBodiesInFastSync bool `json:"DownloadBodiesInFastSync"`
+        DownloadReceiptsInFastSync bool `json:"DownloadReceiptsInFastSync"`
+    } `json:"SyncConfig"`
+    
+    // Mining and block production settings
+    MiningConfig struct {
+        TargetBlockGasLimit int64 `json:"TargetBlockGasLimit"`
+    } `json:"MiningConfig"`
 }
 
 // DefaultNethermindConfig returns the default configuration for Nethermind
 func DefaultNethermindConfig() *NethermindConfig {
-	return &NethermindConfig{
-		SyncConfig: struct {
-			FastSync                  bool
-			DownloadBodiesInFastSync bool
-			DownloadReceiptsInFastSync bool
-		}{
-			FastSync:                  true,
-			DownloadBodiesInFastSync: true,
-			DownloadReceiptsInFastSync: true,
-		},
-		ConsensusConfig: struct {
-			ForceSealing bool
-			TargetBlockGasLimit int64
-		}{
-			ForceSealing: true,
-			TargetBlockGasLimit: 30000000,
-		},
-	}
+    return &NethermindConfig{
+        SyncConfig: struct {
+            FastSync                  bool
+            DownloadBodiesInFastSync bool
+            DownloadReceiptsInFastSync bool
+        }{
+            FastSync:                  true,
+            DownloadBodiesInFastSync: true,
+            DownloadReceiptsInFastSync: true,
+        },
+        MiningConfig: struct {
+            TargetBlockGasLimit int64
+        }{
+            TargetBlockGasLimit: 30000000,
+        },
+    }
 }
+
 
 // MustMarshalJSON marshals the E2ETestConfig to JSON, panicking if an error.
 func (c *E2ETestConfig) MustMarshalJSON() []byte {
