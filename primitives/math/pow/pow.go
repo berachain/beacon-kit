@@ -20,6 +20,17 @@
 
 package pow
 
+// TwoToThePowerOf returns 2^n. panics if n >= 64.
+//
+//nolint:mnd // todo fix.
+func TwoToThePowerOf[U64T ~uint64](n U64T) U64T {
+	if n >= 64 {
+		panic("integer overflow")
+	}
+
+	return 1 << n
+}
+
 // PrevPowerOfTwo returns the previous power of 2 for the given input.
 //
 //nolint:mnd // todo fix.
