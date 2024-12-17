@@ -198,11 +198,15 @@ type (
 		// state.
 		VerifySidecars(
 			sidecars ConsensusSidecarsT,
+			verifierFn func(
+				blkHeader *ctypes.BeaconBlockHeader,
+				signature crypto.BLSSignature,
+			) error,
 		) error
 	}
 
 	BlobSidecar interface {
-		GetBeaconBlockHeader() *ctypes.BeaconBlockHeader
+		GetSignedBeaconBlockHeader() *ctypes.SignedBeaconBlockHeader
 		GetBlob() eip4844.Blob
 		GetKzgProof() eip4844.KZGProof
 		GetKzgCommitment() eip4844.KZGCommitment
@@ -234,6 +238,10 @@ type (
 			sidecars BlobSidecarsT,
 			kzgOffset uint64,
 			blkHeader *ctypes.BeaconBlockHeader,
+			verifierFn func(
+				blkHeader *ctypes.BeaconBlockHeader,
+				signature crypto.BLSSignature,
+			) error,
 		) error
 	}
 
@@ -591,6 +599,10 @@ type (
 			st BeaconStateT,
 			blk BeaconBlockT,
 		) (transition.ValidatorUpdates, error)
+		GetSidecarVerifierFn(st BeaconStateT) (
+			func(blkHeader *ctypes.BeaconBlockHeader, signature crypto.BLSSignature) error,
+			error,
+		)
 	}
 
 	SidecarFactory[BeaconBlockT any, BlobSidecarsT any] interface {
@@ -598,6 +610,8 @@ type (
 		BuildSidecars(
 			blk BeaconBlockT,
 			blobs ctypes.BlobsBundle,
+			signer crypto.BLSSigner,
+			forkData *ctypes.ForkData,
 		) (BlobSidecarsT, error)
 	}
 

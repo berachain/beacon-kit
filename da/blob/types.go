@@ -24,6 +24,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
@@ -61,10 +62,10 @@ type ConsensusSidecars[BlobSidecarsT any] interface {
 }
 
 type Sidecar interface {
-	GetBeaconBlockHeader() *ctypes.BeaconBlockHeader
 	GetBlob() eip4844.Blob
 	GetKzgProof() eip4844.KZGProof
 	GetKzgCommitment() eip4844.KZGCommitment
+	GetSignedBeaconBlockHeader() *ctypes.SignedBeaconBlockHeader
 }
 
 type Sidecars[SidecarT any] interface {
@@ -78,6 +79,7 @@ type Sidecars[SidecarT any] interface {
 // ChainSpec represents a chain spec.
 type ChainSpec interface {
 	MaxBlobCommitmentsPerBlock() uint64
+	DomainTypeProposer() chain.DomainType
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.

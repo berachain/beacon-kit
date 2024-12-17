@@ -29,6 +29,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
@@ -210,6 +211,12 @@ type StateProcessor[
 		BeaconStateT,
 		BeaconBlockT,
 	) (transition.ValidatorUpdates, error)
+	GetSidecarVerifierFn(BeaconStateT) (
+		func(
+			blkHeader *ctypes.BeaconBlockHeader,
+			signature crypto.BLSSignature) error,
+		error,
+	)
 }
 
 // StorageBackend defines an interface for accessing various storage components

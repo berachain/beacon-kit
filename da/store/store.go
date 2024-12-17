@@ -25,10 +25,8 @@ import (
 
 	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/da/types"
-	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/sourcegraph/conc/iter"
 )
 
 // Store is the default implementation of the AvailabilityStore.
@@ -87,29 +85,28 @@ func (s *Store[BeaconBlockT]) Persist(
 	if !s.chainSpec.WithinDAPeriod(
 		// slot in which the sidecar was included.
 		// (Safe to assume all sidecars are in same slot at this point).
-		sidecars.Sidecars[0].BeaconBlockHeader.GetSlot(),
+		sidecars.Sidecars[0].SignedBeaconBlockHeader.Header.GetSlot(),
 		// current slot
 		slot,
 	) {
 		return nil
 	}
 
-	// Store each sidecar in parallel.
-	if err := errors.Join(iter.Map(
-		sidecars.Sidecars,
-		func(sidecar **types.BlobSidecar) error {
-			if *sidecar == nil {
-				return ErrAttemptedToStoreNilSidecar
-			}
-			sc := *sidecar
-			bz, err := sc.MarshalSSZ()
-			if err != nil {
-				return err
-			}
-			return s.Set(slot.Unwrap(), sc.KzgCommitment[:], bz)
-		},
-	)...); err != nil {
-		return err
+	// Store each sidecar sequentially. The store's underlying RangeDB is not
+	// built to handle concurrent writes.
+	for _, sidecar := range sidecars.Sidecars {
+		sc := sidecar
+		if sc == nil {
+			return ErrAttemptedToStoreNilSidecar
+		}
+		bz, err := sc.MarshalSSZ()
+		if err != nil {
+			return err
+		}
+		err = s.Set(slot.Unwrap(), sc.KzgCommitment[:], bz)
+		if err != nil {
+			return err
+		}
 	}
 
 	s.logger.Info("Successfully stored all blob sidecars 🚗",
