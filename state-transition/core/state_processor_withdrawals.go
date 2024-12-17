@@ -24,6 +24,7 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/config/spec"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/state-transition/core/state"
@@ -37,11 +38,9 @@ import (
 // 1. The first withdrawal MUST be a fixed EVM inflation withdrawal
 // 2. Subsequent withdrawals (if any) are processed as validator withdrawals
 // 3. This modification reduces the maximum validator withdrawals per block by
-// one
-//
-//nolint:lll // TODO: Simplify when dropping special cases.
+// one.
 func (sp *StateProcessor[
-	BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	BeaconBlockT, _, BeaconStateT, _, _, _, _,
 ]) processWithdrawals(
 	st BeaconStateT,
 	blk BeaconBlockT,
@@ -64,12 +63,11 @@ func (sp *StateProcessor[
 }
 
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _,
-	_, _, _, _, WithdrawalT, WithdrawalsT, _,
+	_, _, BeaconStateT, _, _, _, _,
 ]) processWithdrawalsByFork(
 	st BeaconStateT,
-	expectedWithdrawals []WithdrawalT,
-	payloadWithdrawals []WithdrawalT,
+	expectedWithdrawals engineprimitives.Withdrawals,
+	payloadWithdrawals engineprimitives.Withdrawals,
 ) error {
 	slot, err := st.GetSlot()
 	if err != nil {
@@ -132,12 +130,11 @@ func (sp *StateProcessor[
 }
 
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _,
-	_, _, _, _, WithdrawalT, WithdrawalsT, _,
+	_, _, BeaconStateT, _, _, _, _,
 ]) processWithdrawalsBartio(
 	st BeaconStateT,
-	expectedWithdrawals []WithdrawalT,
-	payloadWithdrawals []WithdrawalT,
+	expectedWithdrawals engineprimitives.Withdrawals,
+	payloadWithdrawals engineprimitives.Withdrawals,
 	slot math.Slot,
 ) error {
 	for i, wd := range expectedWithdrawals {
@@ -191,7 +188,7 @@ func (sp *StateProcessor[
 		}
 		nextValidatorIndex += math.ValidatorIndex(
 			sp.cs.MaxValidatorsPerWithdrawalsSweep(
-				state.IsPostUpgrade, sp.cs.DepositEth1ChainID(), slot,
+				state.IsPostFork2(sp.cs.DepositEth1ChainID(), slot),
 			))
 		nextValidatorIndex %= math.ValidatorIndex(totalValidators)
 	}
@@ -200,12 +197,11 @@ func (sp *StateProcessor[
 }
 
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _,
-	_, _, _, _, WithdrawalT, WithdrawalsT, _,
+	_, _, BeaconStateT, _, _, _, _,
 ]) processWithdrawalsDefault(
 	st BeaconStateT,
-	expectedWithdrawals []WithdrawalT,
-	payloadWithdrawals []WithdrawalT,
+	expectedWithdrawals engineprimitives.Withdrawals,
+	payloadWithdrawals engineprimitives.Withdrawals,
 	slot math.Slot,
 ) error {
 	// Enforce that first withdrawal is EVM inflation
@@ -268,7 +264,7 @@ func (sp *StateProcessor[
 		}
 		nextValidatorIndex += math.ValidatorIndex(
 			sp.cs.MaxValidatorsPerWithdrawalsSweep(
-				state.IsPostUpgrade, sp.cs.DepositEth1ChainID(), slot,
+				state.IsPostFork2(sp.cs.DepositEth1ChainID(), slot),
 			))
 		nextValidatorIndex %= math.ValidatorIndex(totalValidators)
 	}

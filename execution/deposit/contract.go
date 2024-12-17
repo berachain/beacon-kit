@@ -25,6 +25,7 @@ import (
 	"errors"
 	"fmt"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/geth-primitives/bind"
 	"github.com/berachain/beacon-kit/geth-primitives/deposit"
@@ -34,25 +35,16 @@ import (
 )
 
 // WrappedDepositContract is a struct that holds a pointer to an ABI.
-type WrappedDepositContract[
-	DepositT Deposit[DepositT, WithdrawalCredentialsT],
-	WithdrawalCredentialsT ~[32]byte,
-] struct {
+type WrappedDepositContract struct {
 	// DepositContractFilterer is a pointer to the codegen ABI binding.
 	deposit.DepositContractFilterer
 }
 
 // NewWrappedDepositContract creates a new DepositContract.
-func NewWrappedDepositContract[
-	DepositT Deposit[DepositT, WithdrawalCredentialsT],
-	WithdrawalCredentialsT ~[32]byte,
-](
+func NewWrappedDepositContract(
 	address common.ExecutionAddress,
 	client bind.ContractFilterer,
-) (*WrappedDepositContract[
-	DepositT,
-	WithdrawalCredentialsT,
-], error) {
+) (*WrappedDepositContract, error) {
 	contract, err := deposit.NewDepositContractFilterer(
 		gethprimitives.ExecutionAddress(address), client,
 	)
@@ -63,22 +55,16 @@ func NewWrappedDepositContract[
 		return nil, errors.New("contract must not be nil")
 	}
 
-	return &WrappedDepositContract[
-		DepositT,
-		WithdrawalCredentialsT,
-	]{
+	return &WrappedDepositContract{
 		DepositContractFilterer: *contract,
 	}, nil
 }
 
 // ReadDeposits reads deposits from the deposit contract.
-func (dc *WrappedDepositContract[
-	DepositT,
-	WithdrawalCredentialsT,
-]) ReadDeposits(
+func (dc *WrappedDepositContract) ReadDeposits(
 	ctx context.Context,
 	blkNum math.U64,
-) ([]DepositT, error) {
+) ([]*ctypes.Deposit, error) {
 	logs, err := dc.FilterDeposit(
 		&bind.FilterOpts{
 			Context: ctx,
@@ -90,12 +76,11 @@ func (dc *WrappedDepositContract[
 		return nil, err
 	}
 
-	deposits := make([]DepositT, 0)
+	deposits := make([]*ctypes.Deposit, 0)
 	for logs.Next() {
 		var (
 			cred   bytes.B32
 			pubKey bytes.B48
-			d      DepositT
 			sign   bytes.B96
 		)
 		pubKey, err = bytes.ToBytes48(logs.Event.Pubkey)
@@ -110,9 +95,9 @@ func (dc *WrappedDepositContract[
 		if err != nil {
 			return nil, fmt.Errorf("failed reading signature: %w", err)
 		}
-		deposits = append(deposits, d.New(
+		deposits = append(deposits, ctypes.NewDeposit(
 			pubKey,
-			WithdrawalCredentialsT(cred),
+			ctypes.WithdrawalCredentials(cred),
 			math.U64(logs.Event.Amount),
 			sign,
 			logs.Event.Index,

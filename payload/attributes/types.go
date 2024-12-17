@@ -26,15 +26,15 @@ import (
 )
 
 // BeaconState is an interface for accessing the beacon state.
-type BeaconState[WithdrawalT any] interface {
+type BeaconState interface {
 	// ExpectedWithdrawals returns the expected withdrawals.
-	ExpectedWithdrawals() ([]WithdrawalT, error)
+	ExpectedWithdrawals() (engineprimitives.Withdrawals, error)
 	// GetRandaoMixAtIndex returns the randao mix at the given index.
 	GetRandaoMixAtIndex(index uint64) (common.Bytes32, error)
 }
 
 // PayloadAttributes is the interface for the payload attributes.
-type PayloadAttributes[SelfT any, WithdrawalT any] interface {
+type PayloadAttributes[SelfT any] interface {
 	engineprimitives.PayloadAttributer
 	// New creates a new payload attributes instance.
 	New(
@@ -42,7 +42,7 @@ type PayloadAttributes[SelfT any, WithdrawalT any] interface {
 		uint64,
 		common.Bytes32,
 		common.ExecutionAddress,
-		[]WithdrawalT,
+		engineprimitives.Withdrawals,
 		common.Root,
 	) (SelfT, error)
 }

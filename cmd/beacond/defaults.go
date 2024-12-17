@@ -27,43 +27,31 @@ import (
 //nolint:funlen // happens
 func DefaultComponents() []any {
 	c := []any{
-		components.ProvideABCIMiddleware[
-			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader,
-			*BlobSidecar, *BlobSidecars, *Deposit, *ExecutionPayloadHeader,
-			*Genesis, *Logger,
-		],
 		components.ProvideAttributesFactory[
-			*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
+			*BeaconState, *BeaconStateMarshallable,
 			*ExecutionPayloadHeader, *KVStore, *Logger,
 		],
 		components.ProvideAvailibilityStore[*BeaconBlockBody, *Logger],
-		components.ProvideAvailabilityPruner[
-			*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,
-			*BeaconBlockHeader, *BlobSidecars, *Logger,
-		],
 		components.ProvideDepositContract[
-			*Deposit, *ExecutionPayload, *ExecutionPayloadHeader,
+			*ExecutionPayload, *ExecutionPayloadHeader,
 		],
 		components.ProvideBlockStore[
-			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader, *Logger,
-		],
-		components.ProvideBlockStoreService[
-			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader,
-			*BlockStore, *Logger,
+			*BeaconBlock, *BeaconBlockBody, *Logger,
 		],
 		components.ProvideBlsSigner,
 		components.ProvideBlobProcessor[
-			*AvailabilityStore, *BeaconBlockBody, *BeaconBlockHeader,
+			*AvailabilityStore, *BeaconBlockBody,
 			*ConsensusSidecars, *BlobSidecar, *BlobSidecars, *Logger,
 		],
 		components.ProvideBlobProofVerifier,
 		components.ProvideChainService[
 			*AvailabilityStore,
 			*ConsensusBlock, *BeaconBlock, *BeaconBlockBody,
-			*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
-			*BlobSidecars, *BlockStore, *Deposit, *DepositStore,
+			*BeaconState, *BeaconStateMarshallable,
+			*BlobSidecar, *BlobSidecars, *ConsensusSidecars, *BlockStore,
+			*DepositStore, *DepositContract,
 			*ExecutionPayload, *ExecutionPayloadHeader, *Genesis,
-			*KVStore, *Logger, *StorageBackend,
+			*KVStore, *Logger, *StorageBackend, *BlockStore,
 		],
 		components.ProvideNode,
 		components.ProvideChainSpec,
@@ -73,26 +61,7 @@ func DefaultComponents() []any {
 		// 	*AvailabilityStore, *BeaconBlockHeader, *BeaconState,
 		// 	*BeaconStateMarshallable, *BlockStore, *KVStore, *StorageBackend,
 		// ],
-		components.ProvideDAService[
-			*AvailabilityStore, *BeaconBlockBody, *BeaconBlockHeader,
-			*ConsensusSidecars, *BlobSidecar, *BlobSidecars, *Logger,
-		],
-		components.ProvideDBManager[*AvailabilityStore, *DepositStore, *Logger],
-		components.ProvideDepositPruner[
-			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader,
-			*Deposit, *DepositStore, *Logger,
-		],
-		components.ProvideDepositService[
-			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader, *Deposit,
-			*DepositContract, *DepositStore, *ExecutionPayload,
-			*ExecutionPayloadHeader, *Logger,
-		],
-		components.ProvideDepositStore[*Deposit, *Logger],
-		components.ProvideDispatcher[
-			*ConsensusBlock, *BeaconBlock,
-			*ConsensusSidecars, *BlobSidecars,
-			*Genesis, *Logger,
-		],
+		components.ProvideDepositStore[*Logger],
 		components.ProvideEngineClient[
 			*ExecutionPayload, *ExecutionPayloadHeader, *Logger,
 		],
@@ -101,7 +70,7 @@ func DefaultComponents() []any {
 		],
 		components.ProvideJWTSecret,
 		components.ProvideLocalBuilder[
-			*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
+			*BeaconState, *BeaconStateMarshallable,
 			*ExecutionPayload, *ExecutionPayloadHeader, *KVStore, *Logger,
 		],
 		components.ProvideReportingService[
@@ -111,22 +80,22 @@ func DefaultComponents() []any {
 		components.ProvideServiceRegistry[
 			*AvailabilityStore,
 			*ConsensusBlock, *BeaconBlock, *BeaconBlockBody,
-			*BeaconBlockHeader, *BlockStore, *BeaconState,
+			*BlockStore, *BeaconState,
 			*BeaconStateMarshallable,
 			*ConsensusSidecars, *BlobSidecar, *BlobSidecars,
-			*Deposit, *DepositStore, *ExecutionPayload, *ExecutionPayloadHeader,
+			*DepositStore, *ExecutionPayload, *ExecutionPayloadHeader,
 			*Genesis, *KVStore, *Logger,
 			NodeAPIContext,
 		],
 		components.ProvideSidecarFactory[
-			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader,
+			*BeaconBlock, *BeaconBlockBody,
 		],
 		components.ProvideStateProcessor[
-			*Logger, *BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader,
-			*BeaconState, *BeaconStateMarshallable, *Deposit, *DepositStore,
+			*Logger, *BeaconBlock, *BeaconBlockBody,
+			*BeaconState, *BeaconStateMarshallable, *DepositStore,
 			*ExecutionPayload, *ExecutionPayloadHeader, *KVStore,
 		],
-		components.ProvideKVStore[*BeaconBlockHeader, *ExecutionPayloadHeader],
+		components.ProvideKVStore[*ExecutionPayloadHeader],
 		components.ProvideStorageBackend[
 			*AvailabilityStore, *BlockStore, *BeaconState,
 			*KVStore, *DepositStore,
@@ -136,8 +105,8 @@ func DefaultComponents() []any {
 		components.ProvideTrustedSetup,
 		components.ProvideValidatorService[
 			*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,
-			*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
-			*BlockStore, *BlobSidecars, *Deposit, *DepositStore,
+			*BeaconState, *BeaconStateMarshallable,
+			*BlockStore, *BlobSidecar, *BlobSidecars, *DepositStore,
 			*ExecutionPayload, *ExecutionPayloadHeader, *KVStore, *Logger,
 			*StorageBackend,
 		],
@@ -150,19 +119,19 @@ func DefaultComponents() []any {
 		components.ProvideNodeAPIEngine,
 		components.ProvideNodeAPIBackend[
 			*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,
-			*BeaconBlockHeader, *BlockStore, *BeaconState,
-			*BeaconStateMarshallable, *BlobSidecars, *Deposit, *DepositStore,
+			*BlockStore, *BeaconState,
+			*BeaconStateMarshallable, *BlobSidecars, *DepositStore,
 			*ExecutionPayloadHeader, *KVStore, *CometBFTService, *StorageBackend,
 		],
 	)
 
 	c = append(c,
 		components.ProvideNodeAPIHandlers[
-			*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
+			*BeaconState, *BeaconStateMarshallable,
 			*ExecutionPayloadHeader, *KVStore, NodeAPIContext,
 		],
 		components.ProvideNodeAPIBeaconHandler[
-			*BeaconBlockHeader, *BeaconState, *CometBFTService, NodeAPIContext,
+			*BeaconState, *CometBFTService, NodeAPIContext,
 		],
 		components.ProvideNodeAPIBuilderHandler[NodeAPIContext],
 		components.ProvideNodeAPIConfigHandler[NodeAPIContext],
@@ -170,7 +139,7 @@ func DefaultComponents() []any {
 		components.ProvideNodeAPIEventsHandler[NodeAPIContext],
 		components.ProvideNodeAPINodeHandler[NodeAPIContext],
 		components.ProvideNodeAPIProofHandler[
-			*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
+			*BeaconState, *BeaconStateMarshallable,
 			*ExecutionPayloadHeader, *KVStore, *CometBFTService, NodeAPIContext,
 		],
 	)

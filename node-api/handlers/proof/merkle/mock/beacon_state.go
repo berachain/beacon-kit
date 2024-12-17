@@ -34,23 +34,14 @@ import (
 var _ ptypes.BeaconState[
 	*BeaconStateMarshallable,
 	*types.ExecutionPayloadHeader,
-	*types.Validator,
 ] = (*BeaconState)(nil)
 
 // BeaconState is a mock implementation of the proof BeaconState interface
 // using the default BeaconState type that is marshallable.
 type (
 	BeaconStateMarshallable = types.BeaconState[
-		*types.BeaconBlockHeader,
-		*types.Eth1Data,
 		*types.ExecutionPayloadHeader,
-		*types.Fork,
-		*types.Validator,
-		types.BeaconBlockHeader,
-		types.Eth1Data,
 		types.ExecutionPayloadHeader,
-		types.Fork,
-		types.Validator,
 	]
 
 	BeaconState struct {

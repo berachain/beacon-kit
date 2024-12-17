@@ -24,6 +24,8 @@ import (
 	"context"
 	"time"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
@@ -60,22 +62,22 @@ type BeaconBlock[
 
 // BeaconBlockBody represents a beacon block body interface.
 type BeaconBlockBody[
-	AttestationDataT, DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT any,
+	ExecutionPayloadT, SlashingInfoT any,
 ] interface {
 	constraints.SSZMarshallable
 	constraints.Nillable
 	// SetRandaoReveal sets the Randao reveal of the beacon block body.
 	SetRandaoReveal(crypto.BLSSignature)
 	// SetEth1Data sets the Eth1 data of the beacon block body.
-	SetEth1Data(Eth1DataT)
+	SetEth1Data(*ctypes.Eth1Data)
 	// SetDeposits sets the deposits of the beacon block body.
-	SetDeposits([]DepositT)
+	SetDeposits([]*ctypes.Deposit)
 	// SetExecutionPayload sets the execution data of the beacon block body.
 	SetExecutionPayload(ExecutionPayloadT)
 	// SetGraffiti sets the graffiti of the beacon block body.
 	SetGraffiti(common.Bytes32)
 	// SetAttestations sets the attestations of the beacon block body.
-	SetAttestations([]AttestationDataT)
+	SetAttestations([]*ctypes.AttestationData)
 	// SetSlashingInfo sets the slashing info of the beacon block body.
 	SetSlashingInfo([]SlashingInfoT)
 	// SetBlobKzgCommitments sets the blob KZG commitments of the beacon block
@@ -114,26 +116,19 @@ type BlobFactory[
 	BuildSidecars(
 		blk BeaconBlockT,
 		blobs engineprimitives.BlobsBundle,
+		signer crypto.BLSSigner,
+		forkData *ctypes.ForkData,
+
 	) (BlobSidecarsT, error)
 }
 
 // DepositStore defines the interface for deposit storage.
-type DepositStore[DepositT any] interface {
+type DepositStore interface {
 	// GetDepositsByIndex returns `numView` expected deposits.
 	GetDepositsByIndex(
 		startIndex uint64,
 		numView uint64,
-	) ([]DepositT, error)
-}
-
-// Eth1Data represents the eth1 data interface.
-type Eth1Data[T any] interface {
-	// New creates a new eth1 data with the given parameters.
-	New(
-		depositRoot common.Root,
-		depositCount math.U64,
-		blockHash common.ExecutionHash,
-	) T
+	) ([]*ctypes.Deposit, error)
 }
 
 // ExecutionPayloadHeader represents the execution payload header interface.
@@ -158,6 +153,8 @@ type ForkData[T any] interface {
 		common.DomainType,
 		math.Epoch,
 	) common.Root
+	// ComputeDomain computes the fork data domain for a given domain type.
+	ComputeDomain(common.DomainType) common.Domain
 }
 
 // PayloadBuilder represents a service that is responsible for
@@ -183,11 +180,11 @@ type PayloadBuilder[BeaconStateT, ExecutionPayloadT any] interface {
 }
 
 // SlotData represents the slot data interface.
-type SlotData[AttestationDataT, SlashingInfoT any] interface {
+type SlotData[SlashingInfoT any] interface {
 	// GetSlot returns the slot of the incoming slot.
 	GetSlot() math.Slot
 	// GetAttestationData returns the attestation data of the incoming slot.
-	GetAttestationData() []AttestationDataT
+	GetAttestationData() []*ctypes.AttestationData
 	// GetSlashingInfo returns the slashing info of the incoming slot.
 	GetSlashingInfo() []SlashingInfoT
 	// GetProposerAddress returns the address of the validator
@@ -236,4 +233,22 @@ type TelemetrySink interface {
 	// MeasureSince measures the time since the provided start time,
 	// identified by the provided keys.
 	MeasureSince(key string, start time.Time, args ...string)
+}
+
+type BlobSidecars[T, BlobSidecarT any] interface {
+	constraints.Nillable
+	constraints.SSZMarshallable
+	constraints.Empty[T]
+	Len() int
+	Get(index int) BlobSidecarT
+	GetSidecars() []BlobSidecarT
+	ValidateBlockRoots() error
+	VerifyInclusionProofs(kzgOffset uint64) error
+}
+
+type BlockBuilderI interface {
+	BuildBlockAndSidecars(
+		context.Context,
+		types.SlotData[ctypes.SlashingInfo],
+	) ([]byte, []byte, error)
 }

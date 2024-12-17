@@ -21,6 +21,7 @@
 package core
 
 import (
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -32,8 +33,8 @@ import (
 // processRandaoReveal processes the randao reveal and
 // ensures it matches the local state.
 func (sp *StateProcessor[
-	BeaconBlockT, _, _, BeaconStateT,
-	ContextT, _, _, _, _, _, ForkDataT, _, _, _, _, _, _,
+	BeaconBlockT, _, BeaconStateT,
+	ContextT, _, _, _,
 ]) processRandaoReveal(
 	ctx ContextT,
 	st BeaconStateT,
@@ -58,8 +59,7 @@ func (sp *StateProcessor[
 	epoch := sp.cs.SlotToEpoch(slot)
 	body := blk.GetBody()
 
-	var fd ForkDataT
-	fd = fd.New(
+	fd := ctypes.NewForkData(
 		version.FromUint32[common.Version](
 			sp.cs.ActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,
@@ -94,10 +94,8 @@ func (sp *StateProcessor[
 
 // processRandaoMixesReset as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#randao-mixes-updates
-//
-//nolint:lll
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, BeaconStateT, _, _, _, _,
 ]) processRandaoMixesReset(
 	st BeaconStateT,
 ) error {
@@ -121,7 +119,7 @@ func (sp *StateProcessor[
 
 // buildRandaoMix as defined in the Ethereum 2.0 specification.
 func (sp *StateProcessor[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _,
 ]) buildRandaoMix(
 	mix common.Bytes32,
 	reveal crypto.BLSSignature,

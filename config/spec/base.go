@@ -55,10 +55,11 @@ func BaseSpec() chain.SpecData[
 		any,
 	]{
 		// Gwei value constants.
-		MinDepositAmount:          1e9,
-		MaxEffectiveBalance:       32e9,
-		EjectionBalance:           16e9,
-		EffectiveBalanceIncrement: 1e9,
+		MinDepositAmount:               1e9,
+		MaxEffectiveBalancePreUpgrade:  32e9,
+		MaxEffectiveBalancePostUpgrade: 32e9,
+		EjectionBalance:                16e9,
+		EffectiveBalanceIncrement:      1e9,
 
 		HysteresisQuotient:           4,
 		HysteresisDownwardMultiplier: 1,

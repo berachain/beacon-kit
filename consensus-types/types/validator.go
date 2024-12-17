@@ -41,8 +41,6 @@ var (
 
 // Validator as defined in the Ethereum 2.0 Spec
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#validator
-//
-//nolint:lll
 type Validator struct {
 	// Pubkey is the validator's 48-byte BLS public key.
 	Pubkey crypto.BLSPubkey `json:"pubkey"`
@@ -72,8 +70,6 @@ type Validator struct {
 //
 // As defined in the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#deposits
-//
-//nolint:lll
 func NewValidatorFromDeposit(
 	pubkey crypto.BLSPubkey,
 	withdrawalCredentials WithdrawalCredentials,
@@ -236,40 +232,29 @@ func (v *Validator) GetEffectiveBalance() math.Gwei {
 
 // IsActive as defined in the Ethereum 2.0 Spec
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#is_active_validator
-//
-//nolint:lll
 func (v Validator) IsActive(epoch math.Epoch) bool {
 	return v.ActivationEpoch <= epoch && epoch < v.ExitEpoch
 }
 
 // IsEligibleForActivation as defined in the Ethereum 2.0 Spec
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#is_eligible_for_activation_queue
-//
-//nolint:lll
-func (v Validator) IsEligibleForActivation(
-	finalizedEpoch math.Epoch,
-) bool {
+func (v Validator) IsEligibleForActivation(finalizedEpoch math.Epoch) bool {
 	return v.ActivationEligibilityEpoch <= finalizedEpoch &&
 		v.ActivationEpoch == math.Epoch(constants.FarFutureEpoch)
 }
 
-// IsEligibleForActivationQueue as defined in the Ethereum 2.0 Spec
+// IsEligibleForActivationQueue is defined slightly differently from Ethereum
+// 2.0 Spec
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#is_eligible_for_activation_queue
-//
-//nolint:lll
-func (v Validator) IsEligibleForActivationQueue(
-	maxEffectiveBalance math.Gwei,
-) bool {
+func (v Validator) IsEligibleForActivationQueue(threshold math.Gwei) bool {
 	return v.ActivationEligibilityEpoch == math.Epoch(
 		constants.FarFutureEpoch,
 	) &&
-		v.EffectiveBalance == maxEffectiveBalance
+		v.EffectiveBalance >= threshold
 }
 
 // IsSlashable as defined in the Ethereum 2.0 Spec
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#is_slashable_validator
-//
-//nolint:lll
 func (v Validator) IsSlashable(epoch math.Epoch) bool {
 	return !v.Slashed && v.ActivationEpoch <= epoch &&
 		epoch < v.WithdrawableEpoch
@@ -282,8 +267,6 @@ func (v Validator) IsSlashed() bool {
 
 // IsFullyWithdrawable as defined in the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#is_fully_withdrawable_validator
-//
-//nolint:lll
 func (v Validator) IsFullyWithdrawable(
 	balance math.Gwei,
 	epoch math.Epoch,
@@ -294,8 +277,6 @@ func (v Validator) IsFullyWithdrawable(
 
 // IsPartiallyWithdrawable as defined in the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#is_partially_withdrawable_validator
-//
-//nolint:lll
 func (v Validator) IsPartiallyWithdrawable(
 	balance, maxEffectiveBalance math.Gwei,
 ) bool {
@@ -306,8 +287,6 @@ func (v Validator) IsPartiallyWithdrawable(
 
 // HasEth1WithdrawalCredentials as defined in the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#has_eth1_withdrawal_credential
-//
-//nolint:lll
 func (v Validator) HasEth1WithdrawalCredentials() bool {
 	return v.WithdrawalCredentials[0] == EthSecp256k1CredentialPrefix
 }
@@ -325,12 +304,34 @@ func (v *Validator) SetEffectiveBalance(balance math.Gwei) {
 	v.EffectiveBalance = balance
 }
 
-// SetWithdrawableEpoch sets the epoch when the validator can withdraw.
+func (v *Validator) SetActivationEligibilityEpoch(e math.Epoch) {
+	v.ActivationEligibilityEpoch = e
+}
+
+func (v *Validator) GetActivationEligibilityEpoch() math.Epoch {
+	return v.ActivationEligibilityEpoch
+}
+
+func (v *Validator) SetActivationEpoch(e math.Epoch) {
+	v.ActivationEpoch = e
+}
+
+func (v *Validator) GetActivationEpoch() math.Epoch {
+	return v.ActivationEpoch
+}
+
+func (v *Validator) SetExitEpoch(e math.Epoch) {
+	v.ExitEpoch = e
+}
+
+func (v Validator) GetExitEpoch() math.Epoch {
+	return v.ExitEpoch
+}
+
 func (v *Validator) SetWithdrawableEpoch(e math.Epoch) {
 	v.WithdrawableEpoch = e
 }
 
-// GetWithdrawableEpoch returns the epoch when the validator can withdraw.
 func (v Validator) GetWithdrawableEpoch() math.Epoch {
 	return v.WithdrawableEpoch
 }
