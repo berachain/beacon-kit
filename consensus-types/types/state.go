@@ -21,7 +21,6 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	fastssz "github.com/ferranbt/fastssz"
@@ -50,7 +49,7 @@ type BeaconState struct {
 	Balances   []uint64
 
 	// Randomness
-	RandaoMixes []chain.Bytes32
+	RandaoMixes []common.Bytes32
 
 	// Withdrawals
 	NextWithdrawalIndex          uint64
@@ -75,7 +74,7 @@ func (st *BeaconState) New(
 	latestExecutionPayloadHeader *ExecutionPayloadHeader,
 	validators []*Validator,
 	balances []uint64,
-	randaoMixes []chain.Bytes32,
+	randaoMixes []common.Bytes32,
 	nextWithdrawalIndex uint64,
 	nextWithdrawalValidatorIndex math.ValidatorIndex,
 	slashings []math.Gwei,

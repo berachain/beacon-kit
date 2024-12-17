@@ -26,7 +26,6 @@ import (
 	"time"
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
@@ -196,7 +195,7 @@ func (s *Service[
 	}
 
 	return ctypes.NewForkData(
-		version.FromUint32[chain.Version](
+		version.FromUint32[common.Version](
 			s.chainSpec.ActiveForkVersionForEpoch(epoch),
 		),
 		genesisValidatorsRoot,
