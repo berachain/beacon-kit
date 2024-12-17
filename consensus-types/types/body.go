@@ -69,8 +69,8 @@ func (b *BeaconBlockBody) Empty(forkVersion uint32) *BeaconBlockBody {
 	}
 }
 
-// BlockBodyKZGOffset returns the offset of the KZG commitments in the block
-// body.
+// BlockBodyKZGOffset returns the offset of the KZG commitments in the
+// serialized block body.
 func BlockBodyKZGOffset(
 	slot math.Slot,
 	cs chain.ChainSpec,
@@ -83,6 +83,8 @@ func BlockBodyKZGOffset(
 	}
 }
 
+// BlockBodyKZGPosition returns the index of the KZG Commitments in the
+// block body.
 func BlockBodyKZGPosition(
 	forkVersion uint32,
 ) (uint64, error) {
@@ -98,7 +100,7 @@ func BlockBodyKZGPosition(
 // https://ethereum.github.io/consensus-specs/specs/deneb/p2p-interface/#preset
 func KZGCommitmentInclusionProofDepth(
 	slot math.Slot,
-	cs common.ChainSpec,
+	cs chain.ChainSpec,
 ) (uint8, error) {
 	switch cs.ActiveForkVersionForSlot(slot) {
 	case version.Deneb:

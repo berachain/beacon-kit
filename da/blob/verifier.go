@@ -23,7 +23,7 @@ package blob
 import (
 	"context"
 	"fmt"
-	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"time"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
@@ -44,7 +44,7 @@ type verifier[
 	// metrics collects and reports metrics related to the verification process.
 	metrics *verifierMetrics
 	// chainSpec contains the chain specification
-	chainSpec common.ChainSpec
+	chainSpec chain.ChainSpec
 }
 
 // newVerifier creates a new Verifier with the given proof verifier.
@@ -54,7 +54,7 @@ func newVerifier[
 ](
 	proofVerifier kzg.BlobProofVerifier,
 	telemetrySink TelemetrySink,
-	chainSpec common.ChainSpec,
+	chainSpec chain.ChainSpec,
 ) *verifier[BlobSidecarT, BlobSidecarsT] {
 	return &verifier[BlobSidecarT, BlobSidecarsT]{
 		proofVerifier: proofVerifier,
@@ -101,7 +101,7 @@ func (bv *verifier[_, BlobSidecarsT]) verifySidecars(
 
 	// Verify the inclusion proofs on the blobs concurrently.
 	g.Go(func() error {
-		return bv.verifyInclusionProofs(sidecars)
+		return bv.verifyInclusionProofs(sidecars, blkHeader.GetSlot())
 	})
 
 	// Verify the KZG proofs on the blobs concurrently.
@@ -115,14 +115,12 @@ func (bv *verifier[_, BlobSidecarsT]) verifySidecars(
 
 func (bv *verifier[_, BlobSidecarsT]) verifyInclusionProofs(
 	scs BlobSidecarsT,
+	slot math.Slot,
 ) error {
 	startTime := time.Now()
 	defer bv.metrics.measureVerifyInclusionProofsDuration(
 		startTime, math.U64(scs.Len()),
 	)
-
-	// We are guaranteed to have at least 1 BlobSidecar at this point.
-	slot := scs.Get(0).GetSignedBeaconBlockHeader().GetHeader().GetSlot()
 
 	// Grab the KZG offset for the fork version.
 	kzgOffset, err := ctypes.BlockBodyKZGOffset(
