@@ -25,7 +25,6 @@ import (
 	"fmt"
 	"time"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
 	"github.com/berachain/beacon-kit/primitives/math"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
@@ -58,7 +57,7 @@ func (s *Service[LoggerT]) prepareProposal(
 		),
 	)
 
-	var slotData = types.NewSlotData[ctypes.SlashingInfo](
+	var slotData = types.NewSlotData(
 		math.Slot(req.GetHeight()),
 		nil,
 		nil,

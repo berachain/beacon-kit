@@ -28,27 +28,27 @@ import (
 )
 
 // SlotData represents the data to be used to propose a block.
-type SlotData[SlashingInfoT any] struct {
+type SlotData struct {
 	// slot is the slot number of the incoming slot.
 	slot math.Slot
 	// attestationData is the attestation data of the incoming slot.
 	attestationData []*ctypes.AttestationData
 	// slashingInfo is the slashing info of the incoming slot.
-	slashingInfo []SlashingInfoT
+	slashingInfo []*ctypes.SlashingInfo
 
 	// some consensus data useful to build and verify the block
 	*commonConsensusData
 }
 
 // NewSlotData creates a new SlotData instance.
-func NewSlotData[SlashingInfoT any](
+func NewSlotData(
 	slot math.Slot,
 	attestationData []*ctypes.AttestationData,
-	slashingInfo []SlashingInfoT,
+	slashingInfo []*ctypes.SlashingInfo,
 	proposerAddress []byte,
 	consensusTime time.Time,
-) *SlotData[SlashingInfoT] {
-	return &SlotData[SlashingInfoT]{
+) *SlotData {
+	return &SlotData{
 		slot:            slot,
 		attestationData: attestationData,
 		slashingInfo:    slashingInfo,
@@ -60,30 +60,30 @@ func NewSlotData[SlashingInfoT any](
 }
 
 // GetSlot retrieves the slot of the SlotData.
-func (b *SlotData[SlashingInfoT]) GetSlot() math.Slot {
+func (b *SlotData) GetSlot() math.Slot {
 	return b.slot
 }
 
 // GetAttestationData retrieves the attestation data of the SlotData.
-func (b *SlotData[SlashingInfoT]) GetAttestationData() []*ctypes.AttestationData {
+func (b *SlotData) GetAttestationData() []*ctypes.AttestationData {
 	return b.attestationData
 }
 
 // GetSlashingInfo retrieves the slashing info of the SlotData.
-func (b *SlotData[SlashingInfoT]) GetSlashingInfo() []SlashingInfoT {
+func (b *SlotData) GetSlashingInfo() []*ctypes.SlashingInfo {
 	return b.slashingInfo
 }
 
 // SetAttestationData sets the attestation data of the SlotData.
-func (b *SlotData[SlashingInfoT]) SetAttestationData(
+func (b *SlotData) SetAttestationData(
 	attestationData []*ctypes.AttestationData,
 ) {
 	b.attestationData = attestationData
 }
 
 // SetSlashingInfo sets the slashing info of the SlotData.
-func (b *SlotData[SlashingInfoT]) SetSlashingInfo(
-	slashingInfo []SlashingInfoT,
+func (b *SlotData) SetSlashingInfo(
+	slashingInfo []*ctypes.SlashingInfo,
 ) {
 	b.slashingInfo = slashingInfo
 }

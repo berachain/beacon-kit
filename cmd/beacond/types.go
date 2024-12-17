@@ -145,8 +145,6 @@ type (
 		*BlobSidecar,
 		*BlobSidecars,
 		*DepositStore,
-		*SlashingInfo,
-		*SlotData,
 	]
 )
 
@@ -207,7 +205,7 @@ type (
 	LoggerConfig = phuslu.Config
 
 	// SlotData is a type alias for the incoming slot.
-	SlotData = consruntimetypes.SlotData[*SlashingInfo]
+	SlotData = consruntimetypes.SlotData
 
 	// LegacyKey type alias to LegacyKey used for LegacySinger construction.
 	LegacyKey = signer.LegacyKey
