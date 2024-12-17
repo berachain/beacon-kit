@@ -26,7 +26,6 @@ import (
 	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/da/da"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/execution/engine"
@@ -56,15 +55,12 @@ type ChainServiceInput[
 	AppOpts         config.AppOptions
 	ChainSpec       chain.ChainSpec
 	Cfg             *config.Config
-	EngineClient    *client.EngineClient[*engineprimitives.PayloadAttributes]
-	ExecutionEngine *engine.Engine[
-		*engineprimitives.PayloadAttributes,
-		PayloadID,
-	]
-	LocalBuilder   LocalBuilder[BeaconStateT]
-	Logger         LoggerT
-	Signer         crypto.BLSSigner
-	StateProcessor StateProcessor[
+	EngineClient    *client.EngineClient
+	ExecutionEngine *engine.Engine[PayloadID]
+	LocalBuilder    LocalBuilder[BeaconStateT]
+	Logger          LoggerT
+	Signer          crypto.BLSSigner
+	StateProcessor  StateProcessor[
 		BeaconBlockT, BeaconStateT, *Context,
 	]
 	StorageBackend StorageBackendT
@@ -110,7 +106,6 @@ func ProvideChainService[
 	BeaconStateT, BeaconBlockStoreT,
 	GenesisT,
 	ConsensusSidecarsT, BlobSidecarsT,
-	*engineprimitives.PayloadAttributes,
 ] {
 	return blockchain.NewService[
 		AvailabilityStoreT,
@@ -120,7 +115,6 @@ func ProvideChainService[
 		BeaconStateT,
 		BeaconBlockStoreT,
 		GenesisT,
-		*engineprimitives.PayloadAttributes,
 	](
 		cast.ToString(in.AppOpts.Get(flags.FlagHome)),
 		in.StorageBackend,

@@ -24,7 +24,6 @@ import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/config"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/execution/engine"
 	"github.com/berachain/beacon-kit/log"
 	payloadbuilder "github.com/berachain/beacon-kit/payload/builder"
@@ -38,16 +37,11 @@ type LocalBuilderInput[
 	LoggerT log.AdvancedLogger[LoggerT],
 ] struct {
 	depinject.In
-	AttributesFactory AttributesFactory[
-		BeaconStateT, *engineprimitives.PayloadAttributes,
-	]
-	Cfg             *config.Config
-	ChainSpec       chain.ChainSpec
-	ExecutionEngine *engine.Engine[
-		*engineprimitives.PayloadAttributes,
-		PayloadID,
-	]
-	Logger LoggerT
+	AttributesFactory AttributesFactory[BeaconStateT]
+	Cfg               *config.Config
+	ChainSpec         chain.ChainSpec
+	ExecutionEngine   *engine.Engine[PayloadID]
+	Logger            LoggerT
 }
 
 // ProvideLocalBuilder provides a local payload builder for the
@@ -66,11 +60,11 @@ func ProvideLocalBuilder[
 	],
 ) *payloadbuilder.PayloadBuilder[
 	BeaconStateT,
-	*engineprimitives.PayloadAttributes, PayloadID,
+	PayloadID,
 ] {
 	return payloadbuilder.New[
 		BeaconStateT,
-		*engineprimitives.PayloadAttributes, PayloadID,
+		PayloadID,
 	](
 		&in.Cfg.PayloadBuilder,
 		in.ChainSpec,

@@ -39,9 +39,7 @@ const defaultReportingInterval = 5 * time.Minute
 
 // ReportingService is a service that periodically logs the running chain
 // version.
-type ReportingService[
-	PayloadAttributesT client.PayloadAttributes,
-] struct {
+type ReportingService struct {
 	// logger is used to log information about the running chain version.
 	logger log.Logger
 	// version represents the current version of the running chain.
@@ -51,19 +49,17 @@ type ReportingService[
 	// sink is the telemetry sink used to report metrics.
 	sink TelemetrySink
 	// client to query the execution layer
-	client *client.EngineClient[PayloadAttributesT]
+	client *client.EngineClient
 }
 
 // NewReportingService creates a new VersionReporterService.
-func NewReportingService[
-	PayloadAttributesT client.PayloadAttributes,
-](
+func NewReportingService(
 	logger log.Logger,
 	telemetrySink TelemetrySink,
 	version string,
-	engineClient *client.EngineClient[PayloadAttributesT],
-) *ReportingService[PayloadAttributesT] {
-	return &ReportingService[PayloadAttributesT]{
+	engineClient *client.EngineClient,
+) *ReportingService {
+	return &ReportingService{
 		logger:            logger,
 		version:           version,
 		reportingInterval: defaultReportingInterval,
@@ -73,12 +69,12 @@ func NewReportingService[
 }
 
 // Name returns the name of the service.
-func (*ReportingService[_]) Name() string {
+func (*ReportingService) Name() string {
 	return "reporting"
 }
 
 // Start begins the periodic logging of the chain version.
-func (rs *ReportingService[_]) Start(ctx context.Context) error {
+func (rs *ReportingService) Start(ctx context.Context) error {
 	// we print to console always at the beginning
 	rs.printToConsole(engineprimitives.ClientVersionV1{
 		Version: "unknown",
@@ -137,11 +133,11 @@ func (rs *ReportingService[_]) Start(ctx context.Context) error {
 	return nil
 }
 
-func (rs *ReportingService[_]) Stop() error {
+func (rs *ReportingService) Stop() error {
 	return nil
 }
 
-func (rs *ReportingService[_]) printToConsole(
+func (rs *ReportingService) printToConsole(
 	ethClient engineprimitives.ClientVersionV1) {
 	rs.logger.Info(fmt.Sprintf(`
 
@@ -162,7 +158,7 @@ func (rs *ReportingService[_]) printToConsole(
 	))
 }
 
-func (rs *ReportingService[_]) GetEthVersion(
+func (rs *ReportingService) GetEthVersion(
 	ctx context.Context) (engineprimitives.ClientVersionV1, error) {
 	ethVersion := engineprimitives.ClientVersionV1{
 		Version: "unknown",
@@ -193,7 +189,7 @@ func (rs *ReportingService[_]) GetEthVersion(
 	return ethVersion, nil
 }
 
-func (rs *ReportingService[_]) logTelemetry(
+func (rs *ReportingService) logTelemetry(
 	ethVersion engineprimitives.ClientVersionV1) {
 	systemInfo := runtime.GOOS + "/" + runtime.GOARCH
 

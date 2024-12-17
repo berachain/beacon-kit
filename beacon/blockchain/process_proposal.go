@@ -47,7 +47,7 @@ const (
 
 func (s *Service[
 	_, _, ConsensusBlockT, BeaconBlockT, _,
-	_, GenesisT, ConsensusSidecarsT, BlobSidecarsT, _,
+	_, GenesisT, ConsensusSidecarsT, BlobSidecarsT,
 ]) ProcessProposal(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
@@ -151,7 +151,7 @@ func (s *Service[
 // and logs the process.
 func (s *Service[
 	_, _, ConsensusBlockT, BeaconBlockT, _, _,
-	_, _, _, _,
+	_, _, _,
 ]) VerifyIncomingBlock(
 	ctx context.Context,
 	beaconBlk BeaconBlockT,
@@ -254,7 +254,7 @@ func (s *Service[
 // verifyStateRoot verifies the state root of an incoming block.
 func (s *Service[
 	_, _, ConsensusBlockT, BeaconBlockT, BeaconStateT,
-	_, _, _, _, _,
+	_, _, _, _,
 ]) verifyStateRoot(
 	ctx context.Context,
 	st BeaconStateT,
@@ -293,7 +293,7 @@ func (s *Service[
 // shouldBuildOptimisticPayloads returns true if optimistic
 // payload builds are enabled.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _,
 ]) shouldBuildOptimisticPayloads() bool {
 	return s.optimisticPayloadBuilds && s.localBuilder.Enabled()
 }

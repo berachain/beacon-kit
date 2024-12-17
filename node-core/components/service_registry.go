@@ -25,7 +25,6 @@ import (
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/validator"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-api/server"
@@ -59,12 +58,11 @@ type ServiceRegistryInput[
 		BeaconStateT, BeaconBlockStoreT,
 		GenesisT,
 		ConsensusSidecarsT, BlobSidecarsT,
-		*engineprimitives.PayloadAttributes,
 	]
-	EngineClient     *client.EngineClient[*engineprimitives.PayloadAttributes]
+	EngineClient     *client.EngineClient
 	Logger           LoggerT
 	NodeAPIServer    *server.Server[NodeAPIContextT]
-	ReportingService *version.ReportingService[*engineprimitives.PayloadAttributes]
+	ReportingService *version.ReportingService
 	TelemetrySink    *metrics.TelemetrySink
 	TelemetryService *telemetry.Service
 	ValidatorService *validator.Service[

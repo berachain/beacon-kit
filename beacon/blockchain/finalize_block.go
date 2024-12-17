@@ -34,7 +34,7 @@ import (
 
 func (s *Service[
 	_, _, ConsensusBlockT, BeaconBlockT, _,
-	_, GenesisT, ConsensusSidecarsT, BlobSidecarsT, _,
+	_, GenesisT, ConsensusSidecarsT, BlobSidecarsT,
 ]) FinalizeBlock(
 	ctx sdk.Context,
 	req *cmtabci.FinalizeBlockRequest,
@@ -117,7 +117,7 @@ func (s *Service[
 // finalizeBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
 func (s *Service[
-	_, _, ConsensusBlockT, _, BeaconStateT, _, _, _, _, _,
+	_, _, ConsensusBlockT, _, BeaconStateT, _, _, _, _,
 ]) finalizeBeaconBlock(
 	ctx context.Context,
 	st BeaconStateT,
@@ -148,7 +148,7 @@ func (s *Service[
 
 // executeStateTransition runs the stf.
 func (s *Service[
-	_, _, ConsensusBlockT, _, BeaconStateT, _, _, _, _, _,
+	_, _, ConsensusBlockT, _, BeaconStateT, _, _, _, _,
 ]) executeStateTransition(
 	ctx context.Context,
 	st BeaconStateT,

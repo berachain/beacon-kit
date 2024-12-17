@@ -36,9 +36,7 @@ import (
 )
 
 // EngineClient is a struct that holds a pointer to an Eth1Client.
-type EngineClient[
-	PayloadAttributesT PayloadAttributes,
-] struct {
+type EngineClient struct {
 	*ethclient.Client
 	// cfg is the supplied configuration for the engine client.
 	cfg *Config
@@ -59,16 +57,14 @@ type EngineClient[
 // New creates a new engine client EngineClient.
 // It takes an Eth1Client as an argument and returns a pointer  to an
 // EngineClient.
-func New[
-	PayloadAttributesT PayloadAttributes,
-](
+func New(
 	cfg *Config,
 	logger log.Logger,
 	jwtSecret *jwt.Secret,
 	telemetrySink TelemetrySink,
 	eth1ChainID *big.Int,
-) *EngineClient[PayloadAttributesT] {
-	return &EngineClient[PayloadAttributesT]{
+) *EngineClient {
+	return &EngineClient{
 		cfg:    cfg,
 		logger: logger,
 		Client: ethclient.New(
@@ -87,12 +83,12 @@ func New[
 }
 
 // Name returns the name of the engine client.
-func (s *EngineClient[_]) Name() string {
+func (s *EngineClient) Name() string {
 	return "engine-client"
 }
 
 // Start the engine client.
-func (s *EngineClient[_]) Start(
+func (s *EngineClient) Start(
 	ctx context.Context,
 ) error {
 	// Start the Client.
@@ -135,17 +131,17 @@ func (s *EngineClient[_]) Start(
 	}
 }
 
-func (s *EngineClient[_]) Stop() error {
+func (s *EngineClient) Stop() error {
 	return nil
 }
 
-func (s *EngineClient[_]) IsConnected() bool {
+func (s *EngineClient) IsConnected() bool {
 	s.connectedMu.RLock()
 	defer s.connectedMu.RUnlock()
 	return s.connected
 }
 
-func (s *EngineClient[_]) HasCapability(capability string) bool {
+func (s *EngineClient) HasCapability(capability string) bool {
 	_, ok := s.capabilities[capability]
 	return ok
 }
@@ -156,7 +152,7 @@ func (s *EngineClient[_]) HasCapability(capability string) bool {
 
 // verifyChainID dials the execution client and
 // ensures the chain ID is correct.
-func (s *EngineClient[_]) verifyChainIDAndConnection(
+func (s *EngineClient) verifyChainIDAndConnection(
 	ctx context.Context,
 ) error {
 	var (

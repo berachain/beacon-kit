@@ -30,22 +30,20 @@ import (
 )
 
 type ReportingServiceInput[
-	PayloadAttributesT client.PayloadAttributes,
 	LoggerT log.AdvancedLogger[LoggerT],
 ] struct {
 	depinject.In
 	Logger        LoggerT
 	TelemetrySink *metrics.TelemetrySink
-	EngineClient  *client.EngineClient[PayloadAttributesT]
+	EngineClient  *client.EngineClient
 }
 
 func ProvideReportingService[
-	PayloadAttributesT client.PayloadAttributes,
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
-	in ReportingServiceInput[PayloadAttributesT, LoggerT],
-) *version.ReportingService[PayloadAttributesT] {
-	return version.NewReportingService[PayloadAttributesT](
+	in ReportingServiceInput[LoggerT],
+) *version.ReportingService {
+	return version.NewReportingService(
 		in.Logger.With("service", "reporting"),
 		in.TelemetrySink,
 		sdkversion.Version,

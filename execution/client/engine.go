@@ -37,7 +37,7 @@ import (
 /* -------------------------------------------------------------------------- */
 
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
-func (s *EngineClient[_]) NewPayload(
+func (s *EngineClient) NewPayload(
 	ctx context.Context,
 	payload *ctypes.ExecutionPayload,
 	versionedHashes []common.ExecutionHash,
@@ -82,10 +82,10 @@ func (s *EngineClient[_]) NewPayload(
 /* -------------------------------------------------------------------------- */
 
 // ForkchoiceUpdated calls the engine_forkchoiceUpdatedV1 method via JSON-RPC.
-func (s *EngineClient[PayloadAttributesT]) ForkchoiceUpdated(
+func (s *EngineClient) ForkchoiceUpdated(
 	ctx context.Context,
 	state *engineprimitives.ForkchoiceStateV1,
-	attrs PayloadAttributesT,
+	attrs *engineprimitives.PayloadAttributes,
 	forkVersion uint32,
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
 	var (
@@ -131,7 +131,7 @@ func (s *EngineClient[PayloadAttributesT]) ForkchoiceUpdated(
 
 // GetPayload calls the engine_getPayloadVX method via JSON-RPC. It returns
 // the execution data as well as the blobs bundle.
-func (s *EngineClient[_]) GetPayload(
+func (s *EngineClient) GetPayload(
 	ctx context.Context,
 	payloadID engineprimitives.PayloadID,
 	forkVersion uint32,
@@ -163,7 +163,7 @@ func (s *EngineClient[_]) GetPayload(
 
 // ExchangeCapabilities calls the engine_exchangeCapabilities method via
 // JSON-RPC.
-func (s *EngineClient[_]) ExchangeCapabilities(
+func (s *EngineClient) ExchangeCapabilities(
 	ctx context.Context,
 ) ([]string, error) {
 	result, err := s.Client.ExchangeCapabilities(
