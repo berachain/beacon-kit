@@ -167,5 +167,5 @@ func Int(u uint64) (int, error) {
 		return 0, ErrOverflow
 	}
 
-	return int(u), nil
+	return int(u), nil //#nosec:G701 // already checked for overflow.
 }

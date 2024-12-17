@@ -158,14 +158,14 @@ func (d *DepositTree) HashTreeRoot() [32]byte {
 
 // NumOfItems is defined as part of MerkleTree interface and returns the number
 // of deposits in the tree.
-func (d *DepositTree) NumOfItems() int {
-	return int(d.mixInLength)
+func (d *DepositTree) NumOfItems() uint64 {
+	return d.mixInLength
 }
 
 // MerkleProof is defined as part of MerkleTree interface and generates a merkle
 // proof.
-func (d *DepositTree) MerkleProof(index int) ([][]byte, error) {
-	_, proof, err := d.getProof(uint64(index))
+func (d *DepositTree) MerkleProof(index uint64) ([][]byte, error) {
+	_, proof, err := d.getProof(index)
 	if err != nil {
 		return nil, err
 	}
