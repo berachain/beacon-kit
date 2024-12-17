@@ -25,29 +25,21 @@ import (
 	"sync"
 
 	"github.com/berachain/beacon-kit/chain-spec/chain"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/da"
 	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-api/backend"
 	blockstore "github.com/berachain/beacon-kit/node-api/block_store"
-	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 )
 
 // Service is the blockchain service.
 type Service[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT],
+	AvailabilityStoreT AvailabilityStore,
 	DepositStoreT backend.DepositStore,
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
-	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
-	BeaconBlockBodyT interface {
-		BeaconBlockBody
-		GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
-		GetDeposits() []*ctypes.Deposit
-	},
+	BeaconBlockT BeaconBlock[BeaconBlockT],
 	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
 	BlockStoreT blockstore.BlockStore[BeaconBlockT],
 	GenesisT Genesis,
@@ -112,15 +104,10 @@ type Service[
 
 // NewService creates a new validator service.
 func NewService[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT],
+	AvailabilityStoreT AvailabilityStore,
 	DepositStoreT backend.DepositStore,
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
-	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
-	BeaconBlockBodyT interface {
-		BeaconBlockBody
-		GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
-		GetDeposits() []*ctypes.Deposit
-	},
+	BeaconBlockT BeaconBlock[BeaconBlockT],
 	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
 	BlockStoreT blockstore.BlockStore[BeaconBlockT],
 	GenesisT Genesis,
@@ -156,14 +143,14 @@ func NewService[
 	optimisticPayloadBuilds bool,
 ) *Service[
 	AvailabilityStoreT, DepositStoreT,
-	ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
+	ConsensusBlockT, BeaconBlockT,
 	BeaconStateT, BlockStoreT,
 	GenesisT,
 	ConsensusSidecarsT, BlobSidecarsT, PayloadAttributesT,
 ] {
 	return &Service[
 		AvailabilityStoreT, DepositStoreT,
-		ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
+		ConsensusBlockT, BeaconBlockT,
 		BeaconStateT, BlockStoreT,
 		GenesisT, ConsensusSidecarsT, BlobSidecarsT, PayloadAttributesT,
 	]{
@@ -188,13 +175,13 @@ func NewService[
 
 // Name returns the name of the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _,
 ]) Name() string {
 	return "blockchain"
 }
 
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _,
 ]) Start(ctx context.Context) error {
 	// Catchup deposits for failed blocks.
 	go s.depositCatchupFetcher(ctx)
@@ -203,7 +190,7 @@ func (s *Service[
 }
 
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _,
 ]) Stop() error {
 	return nil
 }

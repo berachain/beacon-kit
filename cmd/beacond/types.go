@@ -68,7 +68,6 @@ type (
 	// BlobProcessor is a type alias for the blob processor.
 	BlobProcessor = dablob.Processor[
 		*AvailabilityStore,
-		*BeaconBlockBody,
 		*ConsensusSidecars,
 		*BlobSidecar,
 		*BlobSidecars,
@@ -80,7 +79,6 @@ type (
 		*DepositStore,
 		*ConsensusBlock,
 		*BeaconBlock,
-		*BeaconBlockBody,
 		*BeaconState,
 		*BlockStore,
 		*Genesis,
@@ -121,15 +119,11 @@ type (
 	ReportingService = version.ReportingService[*PayloadAttributes]
 
 	// SidecarFactory is a type alias for the sidecar factory.
-	SidecarFactory = dablob.SidecarFactory[
-		*BeaconBlock,
-		*BeaconBlockBody,
-	]
+	SidecarFactory = dablob.SidecarFactory[*BeaconBlock]
 
 	// StateProcessor is the type alias for the state processor interface.
 	StateProcessor = core.StateProcessor[
 		*BeaconBlock,
-		*BeaconBlockBody,
 		*BeaconState,
 		*Context,
 		*KVStore,
@@ -147,7 +141,6 @@ type (
 	// ValidatorService is a type alias for the validator service.
 	ValidatorService = validator.Service[
 		*BeaconBlock,
-		*BeaconBlockBody,
 		*BeaconState,
 		*BlobSidecar,
 		*BlobSidecars,
@@ -163,12 +156,11 @@ type (
 
 type (
 	// AvailabilityStore is a type alias for the availability store.
-	AvailabilityStore = dastore.Store[*BeaconBlockBody]
+	AvailabilityStore = dastore.Store
 
 	// BeaconBlock type aliases.
-	ConsensusBlock  = consruntimetypes.ConsensusBlock[*BeaconBlock]
-	BeaconBlock     = types.BeaconBlock
-	BeaconBlockBody = types.BeaconBlockBody
+	ConsensusBlock = consruntimetypes.ConsensusBlock[*BeaconBlock]
+	BeaconBlock    = types.BeaconBlock
 
 	// BeaconState is a type alias for the BeaconState.
 	BeaconState = statedb.StateDB[
@@ -224,7 +216,6 @@ type (
 	NodeAPIBackend = backend.Backend[
 		*AvailabilityStore,
 		*BeaconBlock,
-		*BeaconBlockBody,
 		*BeaconState,
 		*BeaconStateMarshallable,
 		*BlobSidecars,

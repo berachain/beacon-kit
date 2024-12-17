@@ -79,13 +79,9 @@ type ChainServiceInput[
 
 // ProvideChainService is a depinject provider for the blockchain service.
 func ProvideChainService[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	AvailabilityStoreT AvailabilityStore[BlobSidecarsT],
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
-	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT,
-		*SlashingInfo,
-	],
+	BeaconBlockT BeaconBlock[BeaconBlockT],
 	BeaconStateT BeaconState[BeaconStateT, BeaconStateMarshallableT, KVStoreT],
 	BeaconStateMarshallableT any,
 	BlobSidecarT BlobSidecar,
@@ -110,7 +106,7 @@ func ProvideChainService[
 	],
 ) *blockchain.Service[
 	AvailabilityStoreT, DepositStoreT,
-	ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
+	ConsensusBlockT, BeaconBlockT,
 	BeaconStateT, BeaconBlockStoreT,
 	GenesisT,
 	ConsensusSidecarsT, BlobSidecarsT,
@@ -121,7 +117,6 @@ func ProvideChainService[
 		DepositStoreT,
 		ConsensusBlockT,
 		BeaconBlockT,
-		BeaconBlockBodyT,
 		BeaconStateT,
 		BeaconBlockStoreT,
 		GenesisT,

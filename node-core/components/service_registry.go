@@ -37,10 +37,9 @@ import (
 
 // ServiceRegistryInput is the input for the service registry provider.
 type ServiceRegistryInput[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	AvailabilityStoreT AvailabilityStore[BlobSidecarsT],
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
-	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody[BeaconBlockBodyT, *SlashingInfo],
+	BeaconBlockT BeaconBlock[BeaconBlockT],
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
 	BeaconStateT BeaconState[BeaconStateT, BeaconStateMarshallableT, KVStoreT],
 	BeaconStateMarshallableT any,
@@ -56,7 +55,7 @@ type ServiceRegistryInput[
 	depinject.In
 	ChainService *blockchain.Service[
 		AvailabilityStoreT, DepositStoreT,
-		ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
+		ConsensusBlockT, BeaconBlockT,
 		BeaconStateT, BeaconBlockStoreT,
 		GenesisT,
 		ConsensusSidecarsT, BlobSidecarsT,
@@ -69,7 +68,7 @@ type ServiceRegistryInput[
 	TelemetrySink    *metrics.TelemetrySink
 	TelemetryService *telemetry.Service
 	ValidatorService *validator.Service[
-		BeaconBlockT, BeaconBlockBodyT,
+		BeaconBlockT,
 		BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositStoreT,
 		*SlashingInfo, *SlotData,
 	]
@@ -78,10 +77,10 @@ type ServiceRegistryInput[
 
 // ProvideServiceRegistry is the depinject provider for the service registry.
 func ProvideServiceRegistry[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	AvailabilityStoreT AvailabilityStore[BlobSidecarsT],
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
-	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody[BeaconBlockBodyT, *SlashingInfo],
+	BeaconBlockT BeaconBlock[BeaconBlockT],
+
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconStateMarshallableT,
@@ -99,7 +98,7 @@ func ProvideServiceRegistry[
 ](
 	in ServiceRegistryInput[
 		AvailabilityStoreT,
-		ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
+		ConsensusBlockT, BeaconBlockT,
 		BeaconBlockStoreT, BeaconStateT,
 		BeaconStateMarshallableT,
 		ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
