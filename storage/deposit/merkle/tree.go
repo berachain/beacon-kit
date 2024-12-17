@@ -23,7 +23,6 @@ package merkle
 import (
 	"encoding/binary"
 
-	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto/sha256"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -60,10 +59,10 @@ func NewDepositTree() *DepositTree {
 }
 
 // GetSnapshot returns a deposit tree snapshot.
-func (d *DepositTree) GetSnapshot() (DepositTreeSnapshot, error) {
+func (d *DepositTree) GetSnapshot() DepositTreeSnapshot {
 	var finalized [][32]byte
 	mixInLength, finalized := d.tree.GetFinalized(finalized)
-	return fromTreeParts(finalized, mixInLength, d.finalizedExecutionBlock)
+	return fromTreeParts(d.hasher, finalized, mixInLength, d.finalizedExecutionBlock)
 }
 
 // Finalize marks a deposit as finalized.
@@ -148,12 +147,8 @@ func (d *DepositTree) Insert(item []byte, _ int) error {
 
 // HashTreeRoot is defined as part of MerkleTree interface and calculates the
 // hash tree root.
-func (d *DepositTree) HashTreeRoot() ([32]byte, error) {
-	root := d.getRoot()
-	if root == [32]byte{} {
-		return [32]byte{}, errors.New("could not retrieve hash tree root")
-	}
-	return root, nil
+func (d *DepositTree) HashTreeRoot() [32]byte {
+	return d.getRoot()
 }
 
 // NumOfItems is defined as part of MerkleTree interface and returns the number
@@ -179,9 +174,5 @@ func (d *DepositTree) MerkleProof(index int) ([][]byte, error) {
 
 // Copy performs a deep copy of the tree.
 func (d *DepositTree) Copy() (*DepositTree, error) {
-	snapshot, err := d.GetSnapshot()
-	if err != nil {
-		return nil, err
-	}
-	return fromSnapshot(d.hasher, snapshot)
+	return fromSnapshot(d.hasher, d.GetSnapshot())
 }

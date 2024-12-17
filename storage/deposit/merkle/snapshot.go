@@ -37,7 +37,7 @@ type DepositTreeSnapshot struct {
 }
 
 // CalculateRoot returns the root of a deposit tree snapshot.
-func (ds *DepositTreeSnapshot) CalculateRoot() ([32]byte, error) {
+func (ds *DepositTreeSnapshot) CalculateRoot() [32]byte {
 	size := ds.depositCount
 	index := len(ds.finalized)
 	root := zero.Hashes[0]
@@ -53,7 +53,7 @@ func (ds *DepositTreeSnapshot) CalculateRoot() ([32]byte, error) {
 		}
 		size >>= 1
 	}
-	return ds.hasher.MixIn(root, ds.depositCount), nil
+	return ds.hasher.MixIn(root, ds.depositCount)
 }
 
 // fromSnapshot returns a deposit tree from a deposit tree snapshot.
@@ -61,10 +61,7 @@ func fromSnapshot(
 	hasher merkle.Hasher[[32]byte],
 	snapshot DepositTreeSnapshot,
 ) (*DepositTree, error) {
-	root, err := snapshot.CalculateRoot()
-	if err != nil {
-		return nil, err
-	}
+	root := snapshot.CalculateRoot()
 	if snapshot.depositRoot != root {
 		return nil, ErrInvalidSnapshotRoot
 	}
@@ -84,25 +81,24 @@ func fromSnapshot(
 		tree:                    tree,
 		mixInLength:             snapshot.depositCount,
 		finalizedExecutionBlock: snapshot.executionBlock,
+		hasher:                  hasher,
 	}, nil
 }
 
 // fromTreeParts constructs the deposit tree from pre-existing data.
 func fromTreeParts(
+	hasher merkle.Hasher[[32]byte],
 	finalised [][32]byte,
 	depositCount uint64,
 	executionBlock executionBlock,
-) (DepositTreeSnapshot, error) {
+) DepositTreeSnapshot {
 	snapshot := DepositTreeSnapshot{
 		finalized:      finalised,
 		depositRoot:    zero.Hashes[0],
 		depositCount:   depositCount,
 		executionBlock: executionBlock,
+		hasher:         hasher,
 	}
-	root, err := snapshot.CalculateRoot()
-	if err != nil {
-		return snapshot, ErrInvalidSnapshotRoot
-	}
-	snapshot.depositRoot = root
-	return snapshot, nil
+	snapshot.depositRoot = snapshot.CalculateRoot()
+	return snapshot
 }

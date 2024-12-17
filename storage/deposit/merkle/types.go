@@ -38,4 +38,7 @@ type TreeNode interface {
 	Right() TreeNode
 	// Left represents the left child of a node.
 	Left() TreeNode
+
+	// Equals returns true if this node is equal to the other node.
+	Equals(other TreeNode) bool
 }

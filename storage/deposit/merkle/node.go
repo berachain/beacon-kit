@@ -21,115 +21,11 @@
 package merkle
 
 import (
-	"slices"
-
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math/pow"
 	"github.com/berachain/beacon-kit/primitives/merkle"
 	"github.com/berachain/beacon-kit/primitives/merkle/zero"
 )
-
-// create builds a new merkle tree.
-func create(
-	hasher merkle.Hasher[[32]byte],
-	leaves [][32]byte,
-	depth uint64,
-) TreeNode {
-	length := uint64(len(leaves))
-	if length == 0 {
-		return &ZeroNode{
-			depth:  depth,
-			hasher: hasher,
-		}
-	}
-
-	if depth == 0 {
-		return &LeafNode{hash: leaves[0]}
-	}
-
-	split := min(pow.TwoToThePowerOf(depth-1), length)
-	left := create(hasher, leaves[0:split], depth-1)
-	right := create(hasher, leaves[split:], depth-1)
-	return &InnerNode{
-		left:   left,
-		right:  right,
-		hasher: hasher,
-	}
-}
-
-// fromSnapshotParts creates a new Merkle tree from a list of finalized leaves,
-// number of deposits and specified depth.
-func fromSnapshotParts(
-	hasher merkle.Hasher[[32]byte],
-	finalized [][32]byte,
-	deposits uint64,
-	level uint64,
-) (TreeNode, error) {
-	var err error
-
-	if len(finalized) < 1 || deposits == 0 {
-		return &ZeroNode{
-			depth:  level,
-			hasher: hasher,
-		}, nil
-	}
-	if deposits == pow.TwoToThePowerOf(level) {
-		return &FinalizedNode{
-			depositCount: deposits,
-			hash:         finalized[0],
-		}, nil
-	}
-	if level == 0 {
-		return nil, ErrZeroLevel
-	}
-	node := InnerNode{
-		hasher: hasher,
-	}
-	if leftSubtree := pow.TwoToThePowerOf(level - 1); deposits <= leftSubtree {
-		node.left, err = fromSnapshotParts(hasher, finalized, deposits, level-1)
-		if err != nil {
-			return nil, err
-		}
-		node.right = &ZeroNode{
-			depth:  level - 1,
-			hasher: hasher,
-		}
-	} else {
-		node.left = &FinalizedNode{
-			depositCount: leftSubtree,
-			hash:         finalized[0],
-		}
-		node.right, err = fromSnapshotParts(hasher, finalized[1:], deposits-leftSubtree, level-1)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return &node, nil
-}
-
-// generateProof returns a merkle proof and root.
-func generateProof(
-	tree TreeNode,
-	index uint64,
-	depth uint64,
-) ([32]byte, [][32]byte) {
-	var proof [][32]byte
-	node := tree
-	for depth > 0 {
-		ithBit := (index >> (depth - 1)) & 0x1 //nolint:mnd // spec.
-		if ithBit == 1 {
-			proof = append(proof, node.Left().GetRoot())
-			node = node.Right()
-		} else {
-			proof = append(proof, node.Right().GetRoot())
-			node = node.Left()
-		}
-		depth--
-	}
-
-	slices.Reverse(proof)
-	return node.GetRoot(), proof
-}
 
 // FinalizedNode represents a finalized node and satisfies the TreeNode
 // interface.
@@ -176,6 +72,21 @@ func (*FinalizedNode) Left() TreeNode {
 	return nil
 }
 
+// Equals returns true if this finalized node is equal to the other node.
+func (f *FinalizedNode) Equals(other TreeNode) bool {
+	if f == nil && other == nil {
+		return true
+	}
+	if f == nil || other == nil {
+		return false
+	}
+	fn, ok := other.(*FinalizedNode)
+	if !ok {
+		return false
+	}
+	return f.depositCount == fn.depositCount && f.hash == fn.hash
+}
+
 // LeafNode represents a leaf node holding a deposit and satisfies the TreeNode
 // interface.
 type LeafNode struct {
@@ -219,6 +130,21 @@ func (*LeafNode) Right() TreeNode {
 // Left returns nil as a leaf node is the last node and can't have any children.
 func (*LeafNode) Left() TreeNode {
 	return nil
+}
+
+// Equals returns true if this leaf node is equal to the other node.
+func (l *LeafNode) Equals(other TreeNode) bool {
+	if l == nil && other == nil {
+		return true
+	}
+	if l == nil || other == nil {
+		return false
+	}
+	ln, ok := other.(*LeafNode)
+	if !ok {
+		return false
+	}
+	return l.hash == ln.hash
 }
 
 // InnerNode represents an inner node with two children and satisfies the
@@ -309,6 +235,21 @@ func (n *InnerNode) Left() TreeNode {
 	return n.left
 }
 
+// Equals returns true if this inner node is equal to the other node.
+func (n *InnerNode) Equals(other TreeNode) bool {
+	if n == nil && other == nil {
+		return true
+	}
+	if n == nil || other == nil {
+		return false
+	}
+	in, ok := other.(*InnerNode)
+	if !ok {
+		return false
+	}
+	return n.left.Equals(in.left) && n.right.Equals(in.right)
+}
+
 // ZeroNode represents an empty node without a deposit and satisfies the
 // TreeNode interface.
 type ZeroNode struct {
@@ -355,4 +296,19 @@ func (*ZeroNode) Right() TreeNode {
 // Left returns nil as a zero node can't have any children.
 func (*ZeroNode) Left() TreeNode {
 	return nil
+}
+
+// Equals returns true if this zero node is equal to the other node.
+func (z *ZeroNode) Equals(other TreeNode) bool {
+	if z == nil && other == nil {
+		return true
+	}
+	if z == nil || other == nil {
+		return false
+	}
+	zn, ok := other.(*ZeroNode)
+	if !ok {
+		return false
+	}
+	return z.depth == zn.depth
 }

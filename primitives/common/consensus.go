@@ -21,6 +21,8 @@
 package common
 
 import (
+	stdbytes "bytes"
+
 	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
@@ -114,4 +116,9 @@ func (r Root) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON parses a root in hex syntax.
 func (r *Root) UnmarshalJSON(input []byte) error {
 	return r.UnmarshalText(input[1 : len(input)-1])
+}
+
+// Equals returns true if the root is equal to the other root.
+func (r Root) Equals(other Root) bool {
+	return stdbytes.Equal(r[:], other[:])
 }
