@@ -21,7 +21,6 @@
 package core
 
 import (
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
@@ -61,7 +60,7 @@ func (sp *StateProcessor[
 	body := blk.GetBody()
 
 	fd := ctypes.NewForkData(
-		version.FromUint32[chain.Version](
+		version.FromUint32[common.Version](
 			sp.cs.ActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,
 	)

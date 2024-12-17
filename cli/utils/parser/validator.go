@@ -24,7 +24,6 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
@@ -108,15 +107,15 @@ func ConvertSignature(signature string) (crypto.BLSSignature, error) {
 }
 
 // ConvertVersion converts a string to a version.
-func ConvertVersion(version string) (chain.Version, error) {
+func ConvertVersion(version string) (common.Version, error) {
 	versionBytes, err := hex.ToBytes(version)
 	if err != nil {
-		return chain.Version{}, err
+		return common.Version{}, err
 	}
 	if len(versionBytes) != constants.DomainTypeLength {
-		return chain.Version{}, ErrInvalidVersionLength
+		return common.Version{}, ErrInvalidVersionLength
 	}
-	return chain.Version(versionBytes), nil
+	return common.Version(versionBytes), nil
 }
 
 // ConvertGenesisValidatorRoot converts a string to a genesis validator root.

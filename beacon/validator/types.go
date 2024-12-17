@@ -24,7 +24,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -146,7 +145,7 @@ type ExecutionPayloadHeader interface {
 type ForkData[T any] interface {
 	// New creates a new fork data with the given parameters.
 	New(
-		chain.Version,
+		common.Version,
 		common.Root,
 	) T
 	// ComputeRandaoSigningRoot computes the Randao signing root.

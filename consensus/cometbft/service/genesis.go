@@ -27,7 +27,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -223,7 +222,7 @@ const expectedHexLength = 8
 // A valid fork version must:
 // - Start with "0x"
 // - Be followed by exactly 8 hexadecimal characters.
-func isValidForkVersion(forkVersion chain.Version) bool {
+func isValidForkVersion(forkVersion common.Version) bool {
 	forkVersionStr := forkVersion.String()
 	if !strings.HasPrefix(forkVersionStr, "0x") {
 		return false

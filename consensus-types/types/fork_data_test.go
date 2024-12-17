@@ -24,7 +24,6 @@ import (
 	"io"
 	"testing"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	types "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -34,7 +33,7 @@ import (
 
 func TestForkData_Serialization(t *testing.T) {
 	original := &types.ForkData{
-		CurrentVersion:        chain.Version{},
+		CurrentVersion:        common.Version{},
 		GenesisValidatorsRoot: common.Root{},
 	}
 
@@ -57,7 +56,7 @@ func TestForkData_Unmarshal(t *testing.T) {
 
 func TestForkData_SizeSSZ(t *testing.T) {
 	forkData := &types.ForkData{
-		CurrentVersion:        chain.Version{},
+		CurrentVersion:        common.Version{},
 		GenesisValidatorsRoot: common.Root{},
 	}
 
@@ -67,7 +66,7 @@ func TestForkData_SizeSSZ(t *testing.T) {
 
 func TestForkData_HashTreeRoot(t *testing.T) {
 	forkData := &types.ForkData{
-		CurrentVersion:        chain.Version{},
+		CurrentVersion:        common.Version{},
 		GenesisValidatorsRoot: common.Root{},
 	}
 	require.NotPanics(t, func() {
@@ -77,7 +76,7 @@ func TestForkData_HashTreeRoot(t *testing.T) {
 
 func TestForkData_ComputeDomain(t *testing.T) {
 	forkData := &types.ForkData{
-		CurrentVersion:        chain.Version{},
+		CurrentVersion:        common.Version{},
 		GenesisValidatorsRoot: common.Root{},
 	}
 	domainType := common.DomainType{
@@ -90,7 +89,7 @@ func TestForkData_ComputeDomain(t *testing.T) {
 
 func TestForkData_ComputeRandaoSigningRoot(t *testing.T) {
 	fd := &types.ForkData{
-		CurrentVersion:        chain.Version{},
+		CurrentVersion:        common.Version{},
 		GenesisValidatorsRoot: common.Root{},
 	}
 
@@ -103,7 +102,7 @@ func TestForkData_ComputeRandaoSigningRoot(t *testing.T) {
 }
 
 func TestNewForkData(t *testing.T) {
-	currentVersion := chain.Version{}
+	currentVersion := common.Version{}
 	genesisValidatorsRoot := common.Root{}
 
 	forkData := types.NewForkData(currentVersion, genesisValidatorsRoot)
@@ -113,7 +112,7 @@ func TestNewForkData(t *testing.T) {
 }
 
 func TestNew(t *testing.T) {
-	currentVersion := chain.Version{}
+	currentVersion := common.Version{}
 	genesisValidatorsRoot := common.Root{}
 
 	newForkData := types.NewForkData(currentVersion, genesisValidatorsRoot)

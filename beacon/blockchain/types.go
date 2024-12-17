@@ -24,7 +24,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -124,7 +123,7 @@ type ExecutionPayloadHeader interface {
 // Genesis is the interface for the genesis.
 type Genesis[ExecutionPayloadHeaderT any] interface {
 	// GetForkVersion returns the fork version.
-	GetForkVersion() chain.Version
+	GetForkVersion() common.Version
 	// GetDeposits returns the deposits.
 	GetDeposits() []*ctypes.Deposit
 	// GetExecutionPayloadHeader returns the execution payload header.
@@ -199,7 +198,7 @@ type StateProcessor[
 		BeaconStateT,
 		[]*ctypes.Deposit,
 		ExecutionPayloadHeaderT,
-		chain.Version,
+		common.Version,
 	) (transition.ValidatorUpdates, error)
 	// ProcessSlots processes the state transition for a range of slots.
 	ProcessSlots(

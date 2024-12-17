@@ -45,6 +45,10 @@ type (
 	// Hash32 as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
 	Hash32 = bytes.B32
+
+	// Version as per the Ethereum 2.0 specification.
+	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
+	Version = bytes.B4
 )
 
 // Root represents a 32-byte Merkle root.

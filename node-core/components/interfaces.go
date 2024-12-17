@@ -506,13 +506,13 @@ type (
 	// 	Fork[T any] interface {
 	// 		constraints.Empty[T]
 	// 		constraints.SSZMarshallable
-	// 		New(chain.Version, chain.Version, math.Epoch) T
+	// 		New(common.Version, common.Version, math.Epoch) T
 	// 	}
 
 	// 	// ForkData is the interface for the fork data.
 	// 	ForkData[T any] interface {
 	// 		// New creates a new fork data object.
-	// 		New(chain.Version, common.Root) T
+	// 		New(common.Version, common.Root) T
 	// 		// ComputeRandaoSigningRoot returns the signing root for the fork data.
 	// 		ComputeRandaoSigningRoot(
 	// 			domainType chain.DomainType,
@@ -524,7 +524,7 @@ type (
 	Genesis[ExecutionPayloadHeaderT any] interface {
 		json.Unmarshaler
 		// GetForkVersion returns the fork version.
-		GetForkVersion() chain.Version
+		GetForkVersion() common.Version
 		// GetDeposits returns the deposits.
 		GetDeposits() []*ctypes.Deposit
 		// GetExecutionPayloadHeader returns the execution payload header.
@@ -614,7 +614,7 @@ type (
 			BeaconStateT,
 			[]*ctypes.Deposit,
 			ExecutionPayloadHeaderT,
-			chain.Version,
+			common.Version,
 		) (transition.ValidatorUpdates, error)
 		// ProcessSlot processes the slot.
 		ProcessSlots(
