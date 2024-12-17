@@ -102,11 +102,12 @@ func KZGCommitmentInclusionProofDepth(
 	slot math.Slot,
 	cs chain.ChainSpec,
 ) (uint8, error) {
+	const maxUint8 = 255
 	switch cs.ActiveForkVersionForSlot(slot) {
 	case version.Deneb:
 		sum := uint64(log.ILog2Floor(uint64(KZGMerkleIndexDeneb))) +
 			uint64(log.ILog2Ceil(cs.MaxBlobCommitmentsPerBlock())) + 1
-		if sum > 255 {
+		if sum > maxUint8 {
 			return 0, ErrInclusionProofDepthExceeded
 		}
 		return uint8(sum), nil

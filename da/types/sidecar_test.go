@@ -81,7 +81,7 @@ func TestSidecarMarshalling(t *testing.T) {
 
 func TestHasValidInclusionProof(t *testing.T) {
 	// Equates to KZG_COMMITMENT_INCLUSION_PROOF_DEPTH
-	const InclusionProofDepth = 17
+	const inclusionProofDepth = 17
 	tests := []struct {
 		name           string
 		sidecar        func(t *testing.T) *types.BlobSidecar
@@ -139,7 +139,7 @@ func TestHasValidInclusionProof(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			sidecar := tt.sidecar(t)
-			result := sidecar.HasValidInclusionProof(tt.kzgOffset, InclusionProofDepth)
+			result := sidecar.HasValidInclusionProof(tt.kzgOffset, inclusionProofDepth)
 			require.Equal(t, tt.expectedResult, result,
 				"Result should match expected value")
 		})

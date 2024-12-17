@@ -23,9 +23,9 @@ package blob
 import (
 	"context"
 	"fmt"
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"time"
 
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/kzg"
 	"github.com/berachain/beacon-kit/primitives/crypto"

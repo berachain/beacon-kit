@@ -34,7 +34,7 @@ type SidecarFactoryInput struct {
 }
 
 func ProvideSidecarFactory[
-BeaconBlockT BeaconBlock[BeaconBlockT],
+	BeaconBlockT BeaconBlock[BeaconBlockT],
 ](in SidecarFactoryInput) *dablob.SidecarFactory[BeaconBlockT] {
 	return dablob.NewSidecarFactory[BeaconBlockT](
 		in.ChainSpec,
