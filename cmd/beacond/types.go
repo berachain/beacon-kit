@@ -184,7 +184,7 @@ type (
 	DepositContract = deposit.WrappedDepositContract
 
 	// DepositStore is a type alias for the deposit store.
-	DepositStore = depositdb.KVStore
+	DepositStore = depositdb.Store
 
 	// Eth1Data is a type alias for the eth1 data.
 	Eth1Data = types.Eth1Data
