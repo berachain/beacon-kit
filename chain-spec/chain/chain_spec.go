@@ -31,10 +31,6 @@ type (
 	//nolint:revive // We can remove this once we have cleaned up generics.
 	ChainSpec = Spec[common.DomainType, math.Epoch, math.Slot, any]
 
-	// Hash32 as per the Ethereum 2.0 Specification:
-	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	Hash32 = bytes.B32
-
 	// Version as per the Ethereum 2.0 specification.
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
 	Version = bytes.B4

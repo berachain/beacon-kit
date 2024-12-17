@@ -41,6 +41,10 @@ type (
 	// DomainType as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
 	DomainType = bytes.B4
+
+	// Hash32 as per the Ethereum 2.0 Specification:
+	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
+	Hash32 = bytes.B32
 )
 
 // Root represents a 32-byte Merkle root.
