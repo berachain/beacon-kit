@@ -23,14 +23,15 @@ package merkle
 import (
 	"slices"
 
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math/pow"
 	"github.com/berachain/beacon-kit/primitives/merkle"
 )
 
 // create builds a new merkle tree.
 func create(
-	hasher merkle.Hasher[[32]byte],
-	leaves [][32]byte,
+	hasher merkle.Hasher[common.Root],
+	leaves []common.Root,
 	depth uint64,
 ) TreeNode {
 	length := uint64(len(leaves))
@@ -58,8 +59,8 @@ func create(
 // fromSnapshotParts creates a new Merkle tree from a list of finalized leaves,
 // number of deposits and specified depth.
 func fromSnapshotParts(
-	hasher merkle.Hasher[[32]byte],
-	finalized [][32]byte,
+	hasher merkle.Hasher[common.Root],
+	finalized []common.Root,
 	deposits uint64,
 	level uint64,
 ) (TreeNode, error) {
@@ -110,8 +111,8 @@ func generateProof(
 	tree TreeNode,
 	index uint64,
 	depth uint64,
-) ([32]byte, [][32]byte) {
-	var proof [][32]byte
+) (common.Root, []common.Root) {
+	var proof []common.Root
 	node := tree
 	for depth > 0 {
 		ithBit := (index >> (depth - 1)) & 0x1 //nolint:mnd // spec.

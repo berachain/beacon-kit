@@ -150,17 +150,15 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 		big.NewInt(int64(targetBlkNum)),
 	)
 	s.Require().NoError(err)
+	amtSpent := new(big.Int).Sub(balance, postDepositBalance)
 
 	// Check that the eth spent is somewhere~ (gas) between
 	// lower bound: 32ether * 500 AND
 	// upper bound: 32ether * 500 + 2ether
-	twoEther := big.NewInt(2e18)
 	depositAmt, _ := big.NewFloat(DepositAmount).Int(nil)
-	totalAmt := new(big.Int).Mul(depositAmt, big.NewInt(NumDepositsLoad))
-	upperBound := new(big.Int).Add(totalAmt, twoEther)
-	amtSpent := new(big.Int).Sub(balance, postDepositBalance)
-
-	s.Require().Equal(1, amtSpent.Cmp(totalAmt))
+	lowerBound := new(big.Int).Mul(depositAmt, big.NewInt(NumDepositsLoad))
+	upperBound := new(big.Int).Add(lowerBound, big.NewInt(2e18))
+	s.Require().Equal(1, amtSpent.Cmp(lowerBound))
 	s.Require().Equal(-1, amtSpent.Cmp(upperBound))
 
 	// TODO: FIX KURTOSIS BUG

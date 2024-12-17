@@ -21,6 +21,9 @@
 package merkle
 
 import (
+	"bytes"
+
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/merkle"
 	"github.com/berachain/beacon-kit/primitives/merkle/zero"
@@ -29,15 +32,15 @@ import (
 // DepositTreeSnapshot represents the data used to create a deposit tree given a
 // snapshot.
 type DepositTreeSnapshot struct {
-	finalized      [][32]byte
-	depositRoot    [32]byte
+	finalized      []common.Root
+	depositRoot    common.Root
 	depositCount   uint64
 	executionBlock executionBlock
-	hasher         merkle.Hasher[[32]byte]
+	hasher         merkle.Hasher[common.Root]
 }
 
 // CalculateRoot returns the root of a deposit tree snapshot.
-func (ds *DepositTreeSnapshot) CalculateRoot() [32]byte {
+func (ds *DepositTreeSnapshot) CalculateRoot() common.Root {
 	size := ds.depositCount
 	index := len(ds.finalized)
 	root := zero.Hashes[0]
@@ -56,11 +59,28 @@ func (ds *DepositTreeSnapshot) CalculateRoot() [32]byte {
 	return ds.hasher.MixIn(root, ds.depositCount)
 }
 
+// Equals returns true if two deposit tree snapshots are equal.
+func (ds *DepositTreeSnapshot) Equals(other *DepositTreeSnapshot) bool {
+	if ds == nil && other == nil {
+		return true
+	}
+	if ds == nil || other == nil {
+		return false
+	}
+
+	for i := range ds.finalized {
+		if !bytes.Equal(ds.finalized[i][:], other.finalized[i][:]) {
+			return false
+		}
+	}
+	return bytes.Equal(ds.depositRoot[:], other.depositRoot[:]) &&
+		ds.depositCount == other.depositCount &&
+		bytes.Equal(ds.executionBlock.Hash[:], other.executionBlock.Hash[:]) &&
+		ds.executionBlock.Depth == other.executionBlock.Depth
+}
+
 // fromSnapshot returns a deposit tree from a deposit tree snapshot.
-func fromSnapshot(
-	hasher merkle.Hasher[[32]byte],
-	snapshot DepositTreeSnapshot,
-) (*DepositTree, error) {
+func fromSnapshot(snapshot DepositTreeSnapshot) (*DepositTree, error) {
 	root := snapshot.CalculateRoot()
 	if snapshot.depositRoot != root {
 		return nil, ErrInvalidSnapshotRoot
@@ -69,7 +89,7 @@ func fromSnapshot(
 		return nil, ErrTooManyDeposits
 	}
 	tree, err := fromSnapshotParts(
-		hasher,
+		snapshot.hasher,
 		snapshot.finalized,
 		snapshot.depositCount,
 		constants.DepositContractDepth,
@@ -81,14 +101,14 @@ func fromSnapshot(
 		tree:                    tree,
 		mixInLength:             snapshot.depositCount,
 		finalizedExecutionBlock: snapshot.executionBlock,
-		hasher:                  hasher,
+		hasher:                  snapshot.hasher,
 	}, nil
 }
 
 // fromTreeParts constructs the deposit tree from pre-existing data.
 func fromTreeParts(
-	hasher merkle.Hasher[[32]byte],
-	finalised [][32]byte,
+	hasher merkle.Hasher[common.Root],
+	finalised []common.Root,
 	depositCount uint64,
 	executionBlock executionBlock,
 ) DepositTreeSnapshot {
