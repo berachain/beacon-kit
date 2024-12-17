@@ -27,7 +27,7 @@ import (
 )
 
 func (s *Service[
-	_, _, ConsensusBlockT, BeaconBlockT, _, _, _, _, _, _,
+	_, ConsensusBlockT, BeaconBlockT, _, _, _, _, _, _,
 ]) processPruning(beaconBlk BeaconBlockT) error {
 	// prune availability store
 	start, end := availabilityPruneRangeFn(
@@ -40,7 +40,7 @@ func (s *Service[
 	// prune deposit store
 	start, end = depositPruneRangeFn(
 		beaconBlk.GetBody().GetDeposits(), s.chainSpec)
-	err = s.storageBackend.DepositStore().Prune(start, end)
+	err = s.depositStore.Prune(start, end)
 
 	if err != nil {
 		return err

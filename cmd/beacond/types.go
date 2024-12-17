@@ -76,7 +76,6 @@ type (
 	// ChainService is a type alias for the chain service.
 	ChainService = blockchain.Service[
 		*AvailabilityStore,
-		*DepositStore,
 		*ConsensusBlock,
 		*BeaconBlock,
 		*BeaconState,

@@ -54,12 +54,8 @@ type ServiceRegistryInput[
 ] struct {
 	depinject.In
 	ChainService *blockchain.Service[
-		AvailabilityStoreT, DepositStoreT,
-		ConsensusBlockT, BeaconBlockT,
-		BeaconStateT, BeaconBlockStoreT,
-		GenesisT,
-		ConsensusSidecarsT, BlobSidecarsT,
-		*engineprimitives.PayloadAttributes,
+		AvailabilityStoreT, ConsensusBlockT, BeaconBlockT, BeaconStateT, BeaconBlockStoreT,
+		GenesisT, ConsensusSidecarsT, BlobSidecarsT, *engineprimitives.PayloadAttributes,
 	]
 	EngineClient     *client.EngineClient[*engineprimitives.PayloadAttributes]
 	Logger           LoggerT
@@ -68,8 +64,7 @@ type ServiceRegistryInput[
 	TelemetrySink    *metrics.TelemetrySink
 	TelemetryService *telemetry.Service
 	ValidatorService *validator.Service[
-		BeaconBlockT,
-		BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositStoreT,
+		BeaconBlockT, BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositStoreT,
 	]
 	CometBFTService *cometbft.Service[LoggerT]
 }
@@ -79,12 +74,8 @@ func ProvideServiceRegistry[
 	AvailabilityStoreT AvailabilityStore[BlobSidecarsT],
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
 	BeaconBlockT BeaconBlock[BeaconBlockT],
-
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
-	BeaconStateT BeaconState[
-		BeaconStateT, BeaconStateMarshallableT,
-		KVStoreT,
-	],
+	BeaconStateT BeaconState[BeaconStateT, BeaconStateMarshallableT, KVStoreT],
 	BeaconStateMarshallableT any,
 	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
 	BlobSidecarT any,
@@ -96,13 +87,9 @@ func ProvideServiceRegistry[
 	NodeAPIContextT NodeAPIContext,
 ](
 	in ServiceRegistryInput[
-		AvailabilityStoreT,
-		ConsensusBlockT, BeaconBlockT,
-		BeaconBlockStoreT, BeaconStateT,
-		BeaconStateMarshallableT,
-		ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
-		DepositStoreT,
-		GenesisT, KVStoreT, LoggerT, NodeAPIContextT,
+		AvailabilityStoreT, ConsensusBlockT, BeaconBlockT, BeaconBlockStoreT, BeaconStateT,
+		BeaconStateMarshallableT, ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
+		DepositStoreT, GenesisT, KVStoreT, LoggerT, NodeAPIContextT,
 	],
 ) *service.Registry {
 	return service.NewRegistry(

@@ -28,7 +28,6 @@ import (
 	"github.com/berachain/beacon-kit/da/da"
 	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/node-api/backend"
 	blockstore "github.com/berachain/beacon-kit/node-api/block_store"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
@@ -37,7 +36,6 @@ import (
 // Service is the blockchain service.
 type Service[
 	AvailabilityStoreT AvailabilityStore,
-	DepositStoreT backend.DepositStore,
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
 	BeaconBlockT BeaconBlock[BeaconBlockT],
 	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
@@ -45,23 +43,14 @@ type Service[
 	GenesisT Genesis,
 	ConsensusSidecarsT da.ConsensusSidecars[BlobSidecarsT],
 	BlobSidecarsT BlobSidecars[BlobSidecarsT],
-
 	PayloadAttributesT PayloadAttributes,
 ] struct {
 	// homeDir is the directory for config and data"
 	homeDir string
 	// storageBackend represents the backend storage for beacon states and
 	// associated sidecars.
-	storageBackend StorageBackend[
-		AvailabilityStoreT,
-		BeaconStateT,
-		DepositStoreT,
-	]
-	blobProcessor da.BlobProcessor[
-		AvailabilityStoreT,
-		ConsensusSidecarsT,
-		BlobSidecarsT,
-	]
+	storageBackend StorageBackend[AvailabilityStoreT, BeaconStateT]
+	blobProcessor  da.BlobProcessor[AvailabilityStoreT, ConsensusSidecarsT, BlobSidecarsT]
 	// store is the block store for the service.
 	// TODO: Remove this and use the block store from the storage backend.
 	blockStore BlockStoreT
@@ -88,11 +77,7 @@ type Service[
 	// localBuilder is a local builder for constructing new beacon states.
 	localBuilder LocalBuilder[BeaconStateT]
 	// stateProcessor is the state processor for beacon blocks and states.
-	stateProcessor StateProcessor[
-		BeaconBlockT,
-		BeaconStateT,
-		*transition.Context,
-	]
+	stateProcessor StateProcessor[BeaconBlockT, BeaconStateT, *transition.Context]
 	// metrics is the metrics for the service.
 	metrics *chainMetrics
 	// optimisticPayloadBuilds is a flag used when the optimistic payload
@@ -105,7 +90,6 @@ type Service[
 // NewService creates a new validator service.
 func NewService[
 	AvailabilityStoreT AvailabilityStore,
-	DepositStoreT backend.DepositStore,
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
 	BeaconBlockT BeaconBlock[BeaconBlockT],
 	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
@@ -116,16 +100,8 @@ func NewService[
 	BlobSidecarsT BlobSidecars[BlobSidecarsT],
 ](
 	homeDir string,
-	storageBackend StorageBackend[
-		AvailabilityStoreT,
-		BeaconStateT,
-		DepositStoreT,
-	],
-	blobProcessor da.BlobProcessor[
-		AvailabilityStoreT,
-		ConsensusSidecarsT,
-		BlobSidecarsT,
-	],
+	storageBackend StorageBackend[AvailabilityStoreT, BeaconStateT],
+	blobProcessor da.BlobProcessor[AvailabilityStoreT, ConsensusSidecarsT, BlobSidecarsT],
 	blockStore BlockStoreT,
 	depositStore deposit.Store,
 	depositContract deposit.Contract,
@@ -134,24 +110,15 @@ func NewService[
 	chainSpec chain.ChainSpec,
 	executionEngine ExecutionEngine[PayloadAttributesT],
 	localBuilder LocalBuilder[BeaconStateT],
-	stateProcessor StateProcessor[
-		BeaconBlockT,
-		BeaconStateT,
-		*transition.Context,
-	],
+	stateProcessor StateProcessor[BeaconBlockT, BeaconStateT, *transition.Context],
 	telemetrySink TelemetrySink,
 	optimisticPayloadBuilds bool,
 ) *Service[
-	AvailabilityStoreT, DepositStoreT,
-	ConsensusBlockT, BeaconBlockT,
-	BeaconStateT, BlockStoreT,
-	GenesisT,
-	ConsensusSidecarsT, BlobSidecarsT, PayloadAttributesT,
+	AvailabilityStoreT, ConsensusBlockT, BeaconBlockT, BeaconStateT, BlockStoreT,
+	GenesisT, ConsensusSidecarsT, BlobSidecarsT, PayloadAttributesT,
 ] {
 	return &Service[
-		AvailabilityStoreT, DepositStoreT,
-		ConsensusBlockT, BeaconBlockT,
-		BeaconStateT, BlockStoreT,
+		AvailabilityStoreT, ConsensusBlockT, BeaconBlockT, BeaconStateT, BlockStoreT,
 		GenesisT, ConsensusSidecarsT, BlobSidecarsT, PayloadAttributesT,
 	]{
 		homeDir:                 homeDir,
@@ -175,13 +142,13 @@ func NewService[
 
 // Name returns the name of the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _,
 ]) Name() string {
 	return "blockchain"
 }
 
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _,
 ]) Start(ctx context.Context) error {
 	// Catchup deposits for failed blocks.
 	go s.depositCatchupFetcher(ctx)
@@ -190,7 +157,7 @@ func (s *Service[
 }
 
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _,
 ]) Stop() error {
 	return nil
 }

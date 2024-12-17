@@ -33,16 +33,12 @@ import (
 const defaultRetryInterval = 20 * time.Second
 
 func (s *Service[
-	_, _, ConsensusBlockT, _, _, _, _, _, _, _,
-]) depositFetcher(
-	ctx context.Context,
-	blockNum math.U64,
-) {
+	_, _, _, _, _, _, _, _, _,
+]) depositFetcher(ctx context.Context, blockNum math.U64) {
 	if blockNum <= s.eth1FollowDistance {
 		s.logger.Info(
 			"depositFetcher, nothing to fetch",
-			"block num", blockNum,
-			"eth1FollowDistance", s.eth1FollowDistance,
+			"block num", blockNum, "eth1FollowDistance", s.eth1FollowDistance,
 		)
 		return
 	}
@@ -51,12 +47,9 @@ func (s *Service[
 }
 
 func (s *Service[
-	_, _, ConsensusBlockT, _, _, _, _, _, _, _,
-]) fetchAndStoreDeposits(
-	ctx context.Context,
-	blockNum math.U64,
-) {
-	deposits, blockHash,err := s.depositContract.ReadDeposits(ctx, blockNum)
+	_, _, _, _, _, _, _, _, _,
+]) fetchAndStoreDeposits(ctx context.Context, blockNum math.U64) {
+	deposits, blockHash, err := s.depositContract.ReadDeposits(ctx, blockNum)
 	if err != nil {
 		s.logger.Error("Failed to read deposits", "error", err)
 		s.metrics.sink.IncrementCounter(
@@ -69,10 +62,7 @@ func (s *Service[
 	}
 
 	if len(deposits) > 0 {
-		s.logger.Info(
-			"Found deposits on execution layer",
-			"block", blockNum, "deposits", len(deposits),
-		)
+		s.logger.Info("Found deposits on execution layer", "block", blockNum, "deposits", len(deposits))
 	}
 
 	if err = s.depositStore.EnqueueDeposits(deposits, blockHash, blockNum); err != nil {
@@ -89,7 +79,7 @@ func (s *Service[
 }
 
 func (s *Service[
-	_, _, ConsensusBlockT, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _,
 ]) depositCatchupFetcher(ctx context.Context) {
 	ticker := time.NewTicker(defaultRetryInterval)
 	defer ticker.Stop()
@@ -104,11 +94,7 @@ func (s *Service[
 			if len(failedBlks) == 0 {
 				continue
 			}
-			s.logger.Warn(
-				"Failed to get deposits from block(s), retrying...",
-				"num_blocks",
-				failedBlks,
-			)
+			s.logger.Warn("Failed to get deposits from block(s), retrying...", "num_blocks", failedBlks)
 
 			// Fetch deposits for blocks that failed to be processed.
 			for _, blockNum := range failedBlks {

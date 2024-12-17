@@ -33,7 +33,7 @@ import (
 // Optimistic clients already request builds in handleOptimisticPayloadBuild()
 // Non-optimistic clients should never request optimistic builds.
 func (s *Service[
-	_, _, ConsensusBlockT, _, BeaconStateT, _, _, _, _, PayloadAttributesT,
+	_, ConsensusBlockT, _, BeaconStateT, _, _, _, _, PayloadAttributesT,
 ]) sendPostBlockFCU(
 	ctx context.Context,
 	st BeaconStateT,

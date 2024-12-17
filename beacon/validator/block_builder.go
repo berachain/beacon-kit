@@ -320,8 +320,7 @@ func (s *Service[
 		depositIndex++
 	}
 	deposits, err := s.sb.DepositStore().GetDepositsByIndex(
-		depositIndex,
-		s.chainSpec.MaxDepositsPerBlock(),
+		depositIndex, s.chainSpec.MaxDepositsPerBlock(),
 	)
 	if err != nil {
 		return err
