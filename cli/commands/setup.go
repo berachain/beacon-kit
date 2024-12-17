@@ -21,6 +21,7 @@
 package commands
 
 import (
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/cli/commands/deposit"
 	"github.com/berachain/beacon-kit/cli/commands/genesis"
 	"github.com/berachain/beacon-kit/cli/commands/jwt"
@@ -31,7 +32,6 @@ import (
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-core/types"
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/cosmos/cosmos-sdk/version"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
@@ -46,7 +46,7 @@ func DefaultRootCommandSetup[
 	root *Root,
 	mm *cometbft.Service[LoggerT],
 	appCreator servertypes.AppCreator[T, LoggerT],
-	chainSpec common.ChainSpec,
+	chainSpec chain.ChainSpec,
 ) {
 	// Add all the commands to the root command.
 	root.cmd.AddCommand(

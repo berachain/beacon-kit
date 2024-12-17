@@ -24,6 +24,7 @@ import (
 	"bytes"
 	"fmt"
 
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
@@ -60,7 +61,7 @@ type StateProcessor[
 	// logger is used for logging information and errors.
 	logger log.Logger
 	// cs is the chain specification for the beacon chain.
-	cs common.ChainSpec
+	cs chain.ChainSpec
 	// signer is the BLS signer used for cryptographic operations.
 	signer crypto.BLSSigner
 	// fGetAddressFromPubKey verifies that a validator public key
@@ -100,7 +101,7 @@ func NewStateProcessor[
 	KVStoreT any,
 ](
 	logger log.Logger,
-	cs common.ChainSpec,
+	cs chain.ChainSpec,
 	executionEngine ExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT,
 	],

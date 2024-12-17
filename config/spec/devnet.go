@@ -38,9 +38,8 @@ const (
 // DevnetChainSpec is the ChainSpec for the localnet. Also used for e2e tests
 // in the kurtosis network.
 func DevnetChainSpec() (chain.Spec[
-	common.DomainType,
+	chain.DomainType,
 	math.Epoch,
-	common.ExecutionAddress,
 	math.Slot,
 	any,
 ], error) {

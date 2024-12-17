@@ -23,6 +23,7 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/da/da"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -31,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/execution/engine"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -58,7 +58,7 @@ type ChainServiceInput[
 	depinject.In
 
 	AppOpts      config.AppOptions
-	ChainSpec    common.ChainSpec
+	ChainSpec    chain.ChainSpec
 	Cfg          *config.Config
 	EngineClient *client.EngineClient[
 		ExecutionPayloadT,

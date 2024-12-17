@@ -23,6 +23,7 @@ package backend
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
@@ -50,7 +51,7 @@ type Backend[
 	],
 ] struct {
 	sb   StorageBackendT
-	cs   common.ChainSpec
+	cs   chain.ChainSpec
 	node NodeT
 
 	sp StateProcessor[BeaconStateT]
@@ -77,7 +78,7 @@ func New[
 	],
 ](
 	storageBackend StorageBackendT,
-	cs common.ChainSpec,
+	cs chain.ChainSpec,
 	sp StateProcessor[BeaconStateT],
 ) *Backend[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
@@ -108,7 +109,7 @@ func (b *Backend[
 // ChainSpec returns the chain spec from the backend.
 func (b *Backend[
 	_, _, _, _, _, _, _, _, _, _, NodeT, _, _,
-]) ChainSpec() common.ChainSpec {
+]) ChainSpec() chain.ChainSpec {
 	return b.cs
 }
 

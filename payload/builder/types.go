@@ -23,6 +23,7 @@ package builder
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
@@ -36,7 +37,7 @@ type BeaconState[
 	ExecutionPayloadHeaderT any,
 ] interface {
 	// GetRandaoMixAtIndex retrieves the RANDAO mix at a specified index.
-	GetRandaoMixAtIndex(uint64) (common.Bytes32, error)
+	GetRandaoMixAtIndex(uint64) (chain.Bytes32, error)
 	// ExpectedWithdrawals lists the expected withdrawals in the current state.
 	ExpectedWithdrawals() (engineprimitives.Withdrawals, error)
 	// GetLatestExecutionPayloadHeader fetches the most recent execution payload
@@ -99,7 +100,7 @@ type PayloadAttributes[
 	New(
 		uint32,
 		uint64,
-		common.Bytes32,
+		chain.Bytes32,
 		common.ExecutionAddress,
 		engineprimitives.Withdrawals,
 		common.Root,

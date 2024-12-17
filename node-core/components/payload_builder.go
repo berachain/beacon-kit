@@ -22,13 +22,13 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/config"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/execution/engine"
 	"github.com/berachain/beacon-kit/log"
 	payloadbuilder "github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/payload/cache"
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
@@ -46,7 +46,7 @@ type LocalBuilderInput[
 		BeaconStateT, *engineprimitives.PayloadAttributes,
 	]
 	Cfg             *config.Config
-	ChainSpec       common.ChainSpec
+	ChainSpec       chain.ChainSpec
 	ExecutionEngine *engine.Engine[
 		ExecutionPayloadT,
 		*engineprimitives.PayloadAttributes,

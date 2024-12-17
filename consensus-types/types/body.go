@@ -26,6 +26,7 @@
 package types
 
 import (
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
@@ -72,7 +73,7 @@ func (b *BeaconBlockBody) Empty(forkVersion uint32) *BeaconBlockBody {
 // TODO: I still feel like we need to clean this up somehow.
 func BlockBodyKZGOffset(
 	slot math.Slot,
-	cs common.ChainSpec,
+	cs chain.ChainSpec,
 ) (uint64, error) {
 	switch cs.ActiveForkVersionForSlot(slot) {
 	case version.Deneb:
@@ -323,12 +324,12 @@ func (b *BeaconBlockBody) GetEth1Data() *Eth1Data {
 }
 
 // GetGraffiti returns the Graffiti of the Body.
-func (b *BeaconBlockBody) GetGraffiti() common.Bytes32 {
+func (b *BeaconBlockBody) GetGraffiti() chain.Bytes32 {
 	return b.Graffiti
 }
 
 // SetGraffiti sets the Graffiti of the Body.
-func (b *BeaconBlockBody) SetGraffiti(graffiti common.Bytes32) {
+func (b *BeaconBlockBody) SetGraffiti(graffiti chain.Bytes32) {
 	b.Graffiti = graffiti
 }
 

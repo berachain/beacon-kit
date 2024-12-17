@@ -129,7 +129,7 @@ func initTestStores() (
 }
 
 func setupChain(t *testing.T, chainSpecType string) chain.Spec[
-	bytes.B4, math.U64, common.ExecutionAddress, math.U64, any,
+	bytes.B4, math.U64, math.U64, any,
 ] {
 	t.Helper()
 
@@ -142,7 +142,7 @@ func setupChain(t *testing.T, chainSpecType string) chain.Spec[
 
 func setupState(
 	t *testing.T, cs chain.Spec[
-		bytes.B4, math.U64, common.ExecutionAddress, math.U64, any,
+		bytes.B4, math.U64, math.U64, any,
 	],
 ) (
 	*TestStateProcessorT,

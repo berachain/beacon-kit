@@ -24,6 +24,7 @@ import (
 	stdbytes "bytes"
 	"context"
 
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/bytes"
@@ -122,11 +123,11 @@ type ExecutionPayload[
 	GetTransactions() engineprimitives.Transactions
 	GetParentHash() common.ExecutionHash
 	GetBlockHash() common.ExecutionHash
-	GetPrevRandao() common.Bytes32
+	GetPrevRandao() chain.Bytes32
 	GetWithdrawals() engineprimitives.Withdrawals
 	GetFeeRecipient() common.ExecutionAddress
-	GetStateRoot() common.Bytes32
-	GetReceiptsRoot() common.Bytes32
+	GetStateRoot() chain.Bytes32
+	GetReceiptsRoot() chain.Bytes32
 	GetLogsBloom() bytes.B256
 	GetNumber() math.U64
 	GetGasLimit() math.U64

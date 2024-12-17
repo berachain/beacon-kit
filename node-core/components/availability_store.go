@@ -24,6 +24,7 @@ import (
 	"os"
 
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/config"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	"github.com/berachain/beacon-kit/log"
@@ -39,7 +40,7 @@ import (
 type AvailabilityStoreInput[LoggerT any] struct {
 	depinject.In
 	AppOpts   config.AppOptions
-	ChainSpec common.ChainSpec
+	ChainSpec chain.ChainSpec
 	Logger    LoggerT
 }
 

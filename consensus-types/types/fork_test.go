@@ -24,8 +24,8 @@ import (
 	"io"
 	"testing"
 
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
@@ -33,8 +33,8 @@ import (
 
 func TestFork_Serialization(t *testing.T) {
 	original := types.NewFork(
-		common.Version{1, 2, 3, 4},
-		common.Version{5, 6, 7, 8},
+		chain.Version{1, 2, 3, 4},
+		chain.Version{5, 6, 7, 8},
 		math.Epoch(1000),
 	)
 
@@ -57,8 +57,8 @@ func TestFork_Serialization(t *testing.T) {
 
 func TestFork_SizeSSZ(t *testing.T) {
 	fork := &types.Fork{
-		PreviousVersion: common.Version{1, 2, 3, 4},
-		CurrentVersion:  common.Version{5, 6, 7, 8},
+		PreviousVersion: chain.Version{1, 2, 3, 4},
+		CurrentVersion:  chain.Version{5, 6, 7, 8},
 		Epoch:           math.Epoch(1000),
 	}
 
@@ -68,8 +68,8 @@ func TestFork_SizeSSZ(t *testing.T) {
 
 func TestFork_HashTreeRoot(t *testing.T) {
 	fork := &types.Fork{
-		PreviousVersion: common.Version{1, 2, 3, 4},
-		CurrentVersion:  common.Version{5, 6, 7, 8},
+		PreviousVersion: chain.Version{1, 2, 3, 4},
+		CurrentVersion:  chain.Version{5, 6, 7, 8},
 		Epoch:           math.Epoch(1000),
 	}
 
@@ -80,8 +80,8 @@ func TestFork_HashTreeRoot(t *testing.T) {
 
 func TestFork_GetTree(t *testing.T) {
 	fork := &types.Fork{
-		PreviousVersion: common.Version{1, 2, 3, 4},
-		CurrentVersion:  common.Version{5, 6, 7, 8},
+		PreviousVersion: chain.Version{1, 2, 3, 4},
+		CurrentVersion:  chain.Version{5, 6, 7, 8},
 		Epoch:           math.Epoch(1000),
 	}
 
