@@ -31,9 +31,12 @@ const (
 	// payload.
 	MaxTxsPerPayload uint64 = 1048576
 
-	// MaximumDeposits is the maximum number of deposits supported by the
-	// deposit tree.
-	MaximumDeposits uint64 = 4294967296
+	// DepositContractDepth is the depth of the deposit contract merkle tree.
+	DepositContractDepth uint64 = 32
+
+	// MaxDeposits is the maximum number of deposits supported by the
+	// deposit tree (2**32).
+	MaxDeposits uint64 = 1 << DepositContractDepth
 
 	// MaxWithdrawalsPerPayload is the maximum number of withdrawals in a
 	// execution payload.

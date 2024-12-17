@@ -23,6 +23,7 @@ package merkle
 import (
 	"slices"
 
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math/pow"
 	"github.com/berachain/beacon-kit/primitives/merkle"
 	"github.com/berachain/beacon-kit/primitives/merkle/zero"
@@ -317,7 +318,7 @@ type ZeroNode struct {
 
 // GetRoot returns the root of the Merkle tree.
 func (z *ZeroNode) GetRoot() [32]byte {
-	if z.depth == DepositContractDepth {
+	if z.depth == constants.DepositContractDepth {
 		return z.hasher.Combi(zero.Hashes[z.depth-1], zero.Hashes[z.depth-1])
 	}
 	return zero.Hashes[z.depth]

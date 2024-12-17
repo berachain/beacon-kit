@@ -24,6 +24,7 @@ import (
 	"encoding/binary"
 
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto/sha256"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/merkle"
@@ -49,7 +50,7 @@ func NewDepositTree() *DepositTree {
 		hasher = merkle.NewHasher[[32]byte](sha256.Hash)
 		leaves [][32]byte
 	)
-	merkle := create(hasher, leaves, DepositContractDepth)
+	merkle := create(hasher, leaves, constants.DepositContractDepth)
 	return &DepositTree{
 		tree:                    merkle,
 		mixInLength:             0,
@@ -78,7 +79,7 @@ func (d *DepositTree) Finalize(
 		Depth: executionNumber,
 	}
 	mixInLength := eth1DepositIndex + 1
-	_, err := d.tree.Finalize(mixInLength, DepositContractDepth)
+	_, err := d.tree.Finalize(mixInLength, constants.DepositContractDepth)
 	if err != nil {
 		return err
 	}
@@ -109,7 +110,7 @@ func (d *DepositTree) getProof(index uint64) ([32]byte, [][32]byte, error) {
 	if finalizedDeposits > 0 && i <= finalizedIdx {
 		return [32]byte{}, nil, ErrInvalidIndex
 	}
-	leaf, proof := generateProof(d.tree, index, DepositContractDepth)
+	leaf, proof := generateProof(d.tree, index, constants.DepositContractDepth)
 
 	mixInLength := [32]byte{}
 	binary.LittleEndian.PutUint64(mixInLength[:], d.mixInLength)
@@ -129,7 +130,7 @@ func (d *DepositTree) getRoot() [32]byte {
 // pushLeaf adds a new leaf to the tree.
 func (d *DepositTree) pushLeaf(leaf [32]byte) error {
 	var err error
-	d.tree, err = d.tree.PushLeaf(leaf, DepositContractDepth)
+	d.tree, err = d.tree.PushLeaf(leaf, constants.DepositContractDepth)
 	if err != nil {
 		return err
 	}

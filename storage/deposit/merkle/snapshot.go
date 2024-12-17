@@ -21,7 +21,7 @@
 package merkle
 
 import (
-	"github.com/berachain/beacon-kit/primitives/math/pow"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/merkle"
 	"github.com/berachain/beacon-kit/primitives/merkle/zero"
 )
@@ -41,7 +41,7 @@ func (ds *DepositTreeSnapshot) CalculateRoot() ([32]byte, error) {
 	size := ds.depositCount
 	index := len(ds.finalized)
 	root := zero.Hashes[0]
-	for i := range DepositContractDepth {
+	for i := range constants.DepositContractDepth {
 		if (size & 1) == 1 {
 			if index == 0 {
 				break
@@ -68,14 +68,14 @@ func fromSnapshot(
 	if snapshot.depositRoot != root {
 		return nil, ErrInvalidSnapshotRoot
 	}
-	if snapshot.depositCount >= pow.TwoToThePowerOf(DepositContractDepth) {
+	if snapshot.depositCount >= constants.MaxDeposits {
 		return nil, ErrTooManyDeposits
 	}
 	tree, err := fromSnapshotParts(
 		hasher,
 		snapshot.finalized,
 		snapshot.depositCount,
-		DepositContractDepth,
+		constants.DepositContractDepth,
 	)
 	if err != nil {
 		return nil, err
