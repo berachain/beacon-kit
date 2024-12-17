@@ -29,6 +29,7 @@ import (
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/geth-primitives/bind"
 	"github.com/berachain/beacon-kit/geth-primitives/deposit"
+	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -38,12 +39,15 @@ import (
 type WrappedDepositContract struct {
 	// DepositContractFilterer is a pointer to the codegen ABI binding.
 	deposit.DepositContractFilterer
+	// telemetrySink is the telemetry sink for the deposit contract.
+	telemetrySink *metrics.TelemetrySink
 }
 
 // NewWrappedDepositContract creates a new DepositContract.
 func NewWrappedDepositContract(
 	address common.ExecutionAddress,
 	client bind.ContractFilterer,
+	telemetrySink *metrics.TelemetrySink,
 ) (*WrappedDepositContract, error) {
 	contract, err := deposit.NewDepositContractFilterer(
 		gethprimitives.ExecutionAddress(address), client,
@@ -57,6 +61,7 @@ func NewWrappedDepositContract(
 
 	return &WrappedDepositContract{
 		DepositContractFilterer: *contract,
+		telemetrySink:           telemetrySink,
 	}, nil
 }
 
@@ -69,13 +74,14 @@ func (dc *WrappedDepositContract) ReadDeposits(
 		&bind.FilterOpts{
 			Context: ctx,
 			Start:   blkNum.Unwrap(),
-			End:     (*uint64)(&blkNum),
+			End:     blkNum.UnwrapPtr(),
 		},
 	)
 	if err != nil {
 		return nil, err
 	}
 
+	blockNumStr := blkNum.Base10()
 	deposits := make([]*ctypes.Deposit, 0)
 	for logs.Next() {
 		var (
@@ -102,6 +108,8 @@ func (dc *WrappedDepositContract) ReadDeposits(
 			sign,
 			logs.Event.Index,
 		))
+
+		dc.telemetrySink.IncrementCounter("beacon_kit.execution.deposits_read", "block_num", blockNumStr)
 	}
 
 	return deposits, nil

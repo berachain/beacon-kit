@@ -26,14 +26,16 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/execution/deposit"
+	"github.com/berachain/beacon-kit/node-core/components/metrics"
 )
 
 // DepositContractInput is the input for the deposit contract
 // for the dep inject framework.
 type DepositContractInput struct {
 	depinject.In
-	ChainSpec    chain.ChainSpec
-	EngineClient *client.EngineClient[*engineprimitives.PayloadAttributes]
+	ChainSpec     chain.ChainSpec
+	EngineClient  *client.EngineClient[*engineprimitives.PayloadAttributes]
+	TelemetrySink *metrics.TelemetrySink
 }
 
 // ProvideDepositContract provides a deposit contract through the
@@ -45,5 +47,6 @@ func ProvideDepositContract(
 	return deposit.NewWrappedDepositContract(
 		in.ChainSpec.DepositContractAddress(),
 		in.EngineClient,
+		in.TelemetrySink,
 	)
 }

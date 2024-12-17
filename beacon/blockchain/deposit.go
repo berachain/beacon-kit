@@ -24,7 +24,6 @@ import (
 	"context"
 	"maps"
 	"slices"
-	"strconv"
 	"time"
 
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -61,9 +60,7 @@ func (s *Service[
 	if err != nil {
 		s.logger.Error("Failed to read deposits", "error", err)
 		s.metrics.sink.IncrementCounter(
-			"beacon_kit.execution.deposit.failed_to_get_block_logs",
-			"block_num",
-			strconv.FormatUint(blockNum.Unwrap(), 10),
+			"beacon_kit.execution.deposit.failed_to_get_block_logs", "block_num", blockNum.Base10(),
 		)
 		s.failedBlocksMu.Lock()
 		s.failedBlocks[blockNum] = struct{}{}
