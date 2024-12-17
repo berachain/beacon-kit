@@ -23,7 +23,6 @@ package engineprimitives_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/engine-primitives/engine-primitives/mocks"
 	"github.com/berachain/beacon-kit/primitives/bytes"
@@ -43,8 +42,8 @@ func (m MockExecutionPayload) IsNil() bool {
 func (m MockExecutionPayload) Version() uint32 {
 	return 0
 }
-func (m MockExecutionPayload) GetPrevRandao() chain.Bytes32 {
-	return chain.Bytes32{}
+func (m MockExecutionPayload) GetPrevRandao() common.Bytes32 {
+	return common.Bytes32{}
 }
 func (m MockExecutionPayload) GetBlockHash() common.ExecutionHash {
 	return common.ExecutionHash{}
@@ -76,11 +75,11 @@ func (
 ) GetFeeRecipient() common.ExecutionAddress {
 	return common.ExecutionAddress{}
 }
-func (m MockExecutionPayload) GetStateRoot() chain.Bytes32 {
-	return chain.Bytes32{}
+func (m MockExecutionPayload) GetStateRoot() common.Bytes32 {
+	return common.Bytes32{}
 }
-func (m MockExecutionPayload) GetReceiptsRoot() chain.Bytes32 {
-	return chain.Bytes32{}
+func (m MockExecutionPayload) GetReceiptsRoot() common.Bytes32 {
+	return common.Bytes32{}
 }
 func (m MockExecutionPayload) GetLogsBloom() bytes.B256 {
 	return [256]byte{}

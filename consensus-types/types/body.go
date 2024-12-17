@@ -324,12 +324,12 @@ func (b *BeaconBlockBody) GetEth1Data() *Eth1Data {
 }
 
 // GetGraffiti returns the Graffiti of the Body.
-func (b *BeaconBlockBody) GetGraffiti() chain.Bytes32 {
+func (b *BeaconBlockBody) GetGraffiti() common.Bytes32 {
 	return b.Graffiti
 }
 
 // SetGraffiti sets the Graffiti of the Body.
-func (b *BeaconBlockBody) SetGraffiti(graffiti chain.Bytes32) {
+func (b *BeaconBlockBody) SetGraffiti(graffiti common.Bytes32) {
 	b.Graffiti = graffiti
 }
 

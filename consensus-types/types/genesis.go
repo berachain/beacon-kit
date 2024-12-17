@@ -160,7 +160,7 @@ func DefaultGenesisExecutionPayloadHeaderDeneb() (
 		StateRoot:     stateRoot,
 		ReceiptsRoot:  receiptsRoot,
 		LogsBloom:     [256]byte{},
-		Random:        chain.Bytes32{},
+		Random:        common.Bytes32{},
 		Number:        0,
 		GasLimit:      defaultGasLimit,
 		GasUsed:       0,

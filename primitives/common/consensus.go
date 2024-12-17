@@ -30,6 +30,9 @@ import (
 /*                                    Root                                    */
 /* -------------------------------------------------------------------------- */
 
+// Bytes32 defines the commonly used 32-byte array.
+type Bytes32 = bytes.B32
+
 // Root represents a 32-byte Merkle root.
 // We use this type to represent roots that come from the consensus layer.
 type Root [RootSize]byte

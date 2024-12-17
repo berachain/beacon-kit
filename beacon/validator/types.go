@@ -76,7 +76,7 @@ type BeaconBlockBody[
 	// SetExecutionPayload sets the execution data of the beacon block body.
 	SetExecutionPayload(ExecutionPayloadT)
 	// SetGraffiti sets the graffiti of the beacon block body.
-	SetGraffiti(chain.Bytes32)
+	SetGraffiti(common.Bytes32)
 	// SetAttestations sets the attestations of the beacon block body.
 	SetAttestations([]*ctypes.AttestationData)
 	// SetSlashingInfo sets the slashing info of the beacon block body.

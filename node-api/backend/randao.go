@@ -21,16 +21,16 @@
 package backend
 
 import (
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _,
-]) RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (chain.Bytes32, error) {
+]) RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes32, error) {
 	st, slot, err := b.stateFromSlot(slot)
 	if err != nil {
-		return chain.Bytes32{}, err
+		return common.Bytes32{}, err
 	}
 	// Infer the epoch if not provided.
 	if epoch == 0 {

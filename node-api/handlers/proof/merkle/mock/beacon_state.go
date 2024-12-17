@@ -23,7 +23,6 @@ package mock
 import (
 	"errors"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	ptypes "github.com/berachain/beacon-kit/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -86,7 +85,7 @@ func NewBeaconState(
 		execPayloadHeader,
 		vals,
 		[]uint64{},
-		[]chain.Bytes32{},
+		[]common.Bytes32{},
 		0,
 		0,
 		[]math.Gwei{},

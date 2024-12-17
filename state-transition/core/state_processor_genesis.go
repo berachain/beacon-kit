@@ -91,7 +91,7 @@ func (sp *StateProcessor[
 	for i := range sp.cs.EpochsPerHistoricalVector() {
 		if err := st.UpdateRandaoMixAtIndex(
 			i,
-			chain.Bytes32(execPayloadHeader.GetBlockHash()),
+			common.Bytes32(execPayloadHeader.GetBlockHash()),
 		); err != nil {
 			return nil, err
 		}

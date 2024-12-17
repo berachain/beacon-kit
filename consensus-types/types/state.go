@@ -21,7 +21,6 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -55,7 +54,7 @@ type BeaconState[
 	Balances   []uint64
 
 	// Randomness
-	RandaoMixes []chain.Bytes32
+	RandaoMixes []common.Bytes32
 
 	// Withdrawals
 	NextWithdrawalIndex          uint64
@@ -83,7 +82,7 @@ func (st *BeaconState[
 	latestExecutionPayloadHeader ExecutionPayloadHeaderT,
 	validators []*Validator,
 	balances []uint64,
-	randaoMixes []chain.Bytes32,
+	randaoMixes []common.Bytes32,
 	nextWithdrawalIndex uint64,
 	nextWithdrawalValidatorIndex math.ValidatorIndex,
 	slashings []math.Gwei,

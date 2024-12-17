@@ -27,9 +27,6 @@ import (
 )
 
 type (
-	// Bytes32 defines the commonly used 32-byte array.
-	Bytes32 = bytes.B32
-
 	// ChainSpec defines an interface for chain-specific parameters.
 	//nolint:revive // We can remove this once we have cleaned up generics.
 	ChainSpec = Spec[DomainType, math.Epoch, math.Slot, any]
