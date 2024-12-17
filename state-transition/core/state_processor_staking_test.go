@@ -55,7 +55,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 
 	// STEP 0: Setup initial state via genesis
 	var (
-		genDeposits = []*types.Deposit{
+		genDeposits = types.Deposits{
 			{
 				Pubkey:      [48]byte{0x00},
 				Credentials: emptyCredentials,
@@ -400,7 +400,7 @@ func TestTransitionWithdrawals(t *testing.T) {
 
 	// Setup initial state so that validator 1 is partially withdrawable.
 	var (
-		genDeposits = []*types.Deposit{
+		genDeposits = types.Deposits{
 			{
 				Pubkey:      [48]byte{0x00},
 				Credentials: credentials0,
@@ -492,7 +492,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 
 	// Setup initial state so that both validators are partially withdrawable.
 	var (
-		genDeposits = []*types.Deposit{
+		genDeposits = types.Deposits{
 			{
 				Pubkey:      [48]byte{0x00},
 				Credentials: credentials0,
@@ -631,7 +631,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	// STEP 0: Setup genesis with GetValidatorSetCap validators
 	// TODO: consider instead setting state artificially
 	var (
-		genDeposits      = make([]*types.Deposit, 0, cs.ValidatorSetCap())
+		genDeposits      = make(types.Deposits, 0, cs.ValidatorSetCap())
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		genVersion       = version.FromUint32[common.Version](version.Deneb)
 	)
@@ -859,7 +859,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	// STEP 0: Setup genesis with GetValidatorSetCap validators
 	// TODO: consider instead setting state artificially
 	var (
-		genDeposits      = make([]*types.Deposit, 0, cs.ValidatorSetCap())
+		genDeposits      = make(types.Deposits, 0, cs.ValidatorSetCap())
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		genVersion       = version.FromUint32[common.Version](version.Deneb)
 	)

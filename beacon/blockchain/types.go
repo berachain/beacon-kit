@@ -181,7 +181,7 @@ type StateProcessor[
 	// from the eth1 deposits.
 	InitializePreminedBeaconStateFromEth1(
 		BeaconStateT,
-		[]*ctypes.Deposit,
+		ctypes.Deposits,
 		*ctypes.ExecutionPayloadHeader,
 		common.Version,
 	) (transition.ValidatorUpdates, error)

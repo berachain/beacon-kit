@@ -40,9 +40,16 @@ func (s *Service[
 		s.logger.Error("Failed to unmarshal genesis data", "error", err)
 		return nil, err
 	}
+
+	genesisDeposits := genesisData.GetDeposits()
+	if err := s.depositStore.EnqueueDeposits(genesisDeposits); err != nil {
+		s.logger.Error("Failed to store genesis deposits", "error", err)
+		return nil, err
+	}
+
 	return s.stateProcessor.InitializePreminedBeaconStateFromEth1(
 		s.storageBackend.StateFromContext(ctx),
-		genesisData.GetDeposits(),
+		genesisDeposits,
 		genesisData.GetExecutionPayloadHeader(),
 		genesisData.GetForkVersion(),
 	)

@@ -111,7 +111,7 @@ func TestInitialize(t *testing.T) {
 				Index: uint64(7),
 			},
 		}
-		goodDeposits = []*types.Deposit{
+		goodDeposits = types.Deposits{
 			genDeposits[0], genDeposits[1], genDeposits[3],
 			genDeposits[5], genDeposits[6],
 		}
@@ -264,7 +264,7 @@ func TestInitializeBartio(t *testing.T) {
 				Index: uint64(7),
 			},
 		}
-		goodDeposits = []*types.Deposit{
+		goodDeposits = types.Deposits{
 			genDeposits[0], genDeposits[1], genDeposits[3],
 			genDeposits[5], genDeposits[6],
 		}
