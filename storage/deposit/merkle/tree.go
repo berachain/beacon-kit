@@ -142,39 +142,25 @@ func (d *DepositTree) pushLeaf(leaf common.Root) error {
 	return nil
 }
 
-// Insert is defined as part of MerkleTree interface and adds a new leaf to the
-// tree.
-func (d *DepositTree) Insert(item []byte, _ int) error {
-	var leaf common.Root
-	copy(leaf[:], item[:32])
-	return d.pushLeaf(leaf)
+// Insert is defined as part of MerkleTree interface and adds a new leaf to the tree.
+func (d *DepositTree) Insert(item common.Root) error {
+	return d.pushLeaf(item)
 }
 
-// HashTreeRoot is defined as part of MerkleTree interface and calculates the
-// hash tree root.
+// HashTreeRoot is defined as part of MerkleTree interface and calculates the hash tree root.
 func (d *DepositTree) HashTreeRoot() common.Root {
 	return d.getRoot()
 }
 
-// NumOfItems is defined as part of MerkleTree interface and returns the number
-// of deposits in the tree.
+// NumOfItems is defined as part of MerkleTree interface and returns the number of deposits in the tree.
 func (d *DepositTree) NumOfItems() uint64 {
 	return d.mixInLength
 }
 
-// MerkleProof is defined as part of MerkleTree interface and generates a merkle
-// proof.
-func (d *DepositTree) MerkleProof(index uint64) ([][]byte, error) {
+// MerkleProof is defined as part of MerkleTree interface and generates a merkle proof.
+func (d *DepositTree) MerkleProof(index uint64) ([]common.Root, error) {
 	_, proof, err := d.getProof(index)
-	if err != nil {
-		return nil, err
-	}
-	byteSlices := make([][]byte, len(proof))
-	for i, p := range proof {
-		copied := p
-		byteSlices[i] = copied[:]
-	}
-	return byteSlices, nil
+	return proof, err
 }
 
 // Copy performs a deep copy of the tree.

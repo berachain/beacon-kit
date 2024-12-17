@@ -45,7 +45,7 @@ import (
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/berachain/beacon-kit/storage/beacondb"
 	"github.com/berachain/beacon-kit/storage/db"
-	depositstore "github.com/berachain/beacon-kit/storage/deposit"
+	"github.com/berachain/beacon-kit/storage/deposit"
 	"github.com/berachain/beacon-kit/storage/encoding"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -87,7 +87,7 @@ var (
 	testCodec    = &encoding.SSZInterfaceCodec[*types.ExecutionPayloadHeader]{}
 )
 
-func initTestStores() (*beacondb.KVStore, *depositstore.KVStore, error) {
+func initTestStores() (*beacondb.KVStore, *deposit.Store, error) {
 	db, err := db.OpenDB("", dbm.MemDBBackend)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed opening mem db: %w", err)
@@ -114,7 +114,7 @@ func initTestStores() (*beacondb.KVStore, *depositstore.KVStore, error) {
 			testStoreService,
 			testCodec,
 		),
-		depositstore.NewStore(testStoreService, nopLog),
+		deposit.NewStore(testStoreService, nopLog),
 		nil
 }
 
@@ -137,7 +137,7 @@ func setupState(
 ) (
 	*TestStateProcessorT,
 	*TestBeaconStateT,
-	*depositstore.KVStore,
+	*deposit.Store,
 	*transition.Context,
 ) {
 	t.Helper()
