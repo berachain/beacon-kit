@@ -24,10 +24,12 @@ import (
 	"context"
 	"time"
 
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
@@ -77,12 +79,12 @@ type BeaconBlock[
 }
 
 // BeaconBlockBody represents the interface for the beacon block body.
-type BeaconBlockBody[ExecutionPayloadT any] interface {
+type BeaconBlockBody interface {
 	constraints.SSZMarshallableRootable
 	constraints.Nillable
 	// GetExecutionPayload returns the execution payload of the beacon block
 	// body.
-	GetExecutionPayload() ExecutionPayloadT
+	GetExecutionPayload() *ctypes.ExecutionPayload
 }
 
 type BlobSidecars[T any] interface {
@@ -99,7 +101,7 @@ type ExecutionEngine[PayloadAttributesT any] interface {
 	// update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
-		req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
+		req *ctypes.ForkchoiceUpdateRequest[PayloadAttributesT],
 	) (*engineprimitives.PayloadID, *common.ExecutionHash, error)
 }
 
@@ -120,13 +122,13 @@ type ExecutionPayloadHeader interface {
 }
 
 // Genesis is the interface for the genesis.
-type Genesis[ExecutionPayloadHeaderT any] interface {
+type Genesis interface {
 	// GetForkVersion returns the fork version.
-	GetForkVersion() common.Version
+	GetForkVersion() chain.Version
 	// GetDeposits returns the deposits.
 	GetDeposits() []*ctypes.Deposit
 	// GetExecutionPayloadHeader returns the execution payload header.
-	GetExecutionPayloadHeader() ExecutionPayloadHeaderT
+	GetExecutionPayloadHeader() *ctypes.ExecutionPayloadHeader
 }
 
 // LocalBuilder is the interface for the builder service.
@@ -161,7 +163,6 @@ type PayloadAttributes interface {
 // the beacon state.
 type ReadOnlyBeaconState[
 	T any,
-	ExecutionPayloadHeaderT any,
 ] interface {
 	// Copy creates a copy of the beacon state.
 	Copy() T
@@ -172,10 +173,7 @@ type ReadOnlyBeaconState[
 	)
 	// GetLatestExecutionPayloadHeader returns the most recent execution payload
 	// header.
-	GetLatestExecutionPayloadHeader() (
-		ExecutionPayloadHeaderT,
-		error,
-	)
+	GetLatestExecutionPayloadHeader() (*ctypes.ExecutionPayloadHeader, error)
 	// GetSlot retrieves the current slot of the beacon state.
 	GetSlot() (math.Slot, error)
 	// HashTreeRoot returns the hash tree root of the beacon state.
@@ -187,8 +185,7 @@ type ReadOnlyBeaconState[
 type StateProcessor[
 	BeaconBlockT,
 	BeaconStateT,
-	ContextT,
-	ExecutionPayloadHeaderT any,
+	ContextT any,
 ] interface {
 	// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
 	// state
@@ -196,8 +193,8 @@ type StateProcessor[
 	InitializePreminedBeaconStateFromEth1(
 		BeaconStateT,
 		[]*ctypes.Deposit,
-		ExecutionPayloadHeaderT,
-		common.Version,
+		*ctypes.ExecutionPayloadHeader,
+		chain.Version,
 	) (transition.ValidatorUpdates, error)
 	// ProcessSlots processes the state transition for a range of slots.
 	ProcessSlots(
@@ -209,6 +206,12 @@ type StateProcessor[
 		BeaconStateT,
 		BeaconBlockT,
 	) (transition.ValidatorUpdates, error)
+	GetSidecarVerifierFn(BeaconStateT) (
+		func(
+			blkHeader *ctypes.BeaconBlockHeader,
+			signature crypto.BLSSignature) error,
+		error,
+	)
 }
 
 // StorageBackend defines an interface for accessing various storage components

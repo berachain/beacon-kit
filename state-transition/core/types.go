@@ -26,7 +26,6 @@ import (
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
-	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -37,14 +36,7 @@ import (
 
 // BeaconBlock represents a generic interface for a beacon block.
 type BeaconBlock[
-	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT,
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader,
+	BeaconBlockBodyT BeaconBlockBody[BeaconBlockBodyT],
 ] interface {
 	IsNil() bool
 	// GetProposerIndex returns the index of the proposer.
@@ -63,16 +55,12 @@ type BeaconBlock[
 // block.
 type BeaconBlockBody[
 	BeaconBlockBodyT any,
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 ] interface {
 	constraints.EmptyWithVersion[BeaconBlockBodyT]
 	// GetRandaoReveal returns the RANDAO reveal signature.
 	GetRandaoReveal() crypto.BLSSignature
 	// GetExecutionPayload returns the execution payload.
-	GetExecutionPayload() ExecutionPayloadT
+	GetExecutionPayload() *ctypes.ExecutionPayload
 	// GetDeposits returns the list of deposits.
 	GetDeposits() []*ctypes.Deposit
 	// HashTreeRoot returns the hash tree root of the block body.
@@ -115,35 +103,6 @@ type DepositStore interface {
 	) ([]*ctypes.Deposit, error)
 }
 
-type ExecutionPayload[
-	ExecutionPayloadT, ExecutionPayloadHeaderT any,
-] interface {
-	constraints.EngineType[ExecutionPayloadT]
-	GetTransactions() engineprimitives.Transactions
-	GetParentHash() common.ExecutionHash
-	GetBlockHash() common.ExecutionHash
-	GetPrevRandao() common.Bytes32
-	GetWithdrawals() engineprimitives.Withdrawals
-	GetFeeRecipient() common.ExecutionAddress
-	GetStateRoot() common.Bytes32
-	GetReceiptsRoot() common.Bytes32
-	GetLogsBloom() bytes.B256
-	GetNumber() math.U64
-	GetGasLimit() math.U64
-	GetTimestamp() math.U64
-	GetGasUsed() math.U64
-	GetExtraData() []byte
-	GetBaseFeePerGas() *math.U256
-	GetBlobGasUsed() math.U64
-	GetExcessBlobGas() math.U64
-	ToHeader() (ExecutionPayloadHeaderT, error)
-}
-
-type ExecutionPayloadHeader interface {
-	GetBlockHash() common.ExecutionHash
-	GetTimestamp() math.U64
-}
-
 // Withdrawals defines the interface for managing withdrawal operations.
 type Withdrawals interface {
 	Len() int
@@ -151,16 +110,12 @@ type Withdrawals interface {
 }
 
 // ExecutionEngine is the interface for the execution engine.
-type ExecutionEngine[
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT],
-	ExecutionPayloadHeaderT any,
-] interface {
+type ExecutionEngine interface {
 	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
 	// execution client.
 	VerifyAndNotifyNewPayload(
 		ctx context.Context,
-		req *engineprimitives.NewPayloadRequest[ExecutionPayloadT],
+		req *ctypes.NewPayloadRequest,
 	) error
 }
 

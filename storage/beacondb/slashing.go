@@ -26,7 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-func (kv *KVStore[ExecutionPayloadHeaderT]) GetSlashings() ([]math.Gwei, error) {
+func (kv *KVStore) GetSlashings() ([]math.Gwei, error) {
 	var slashings []math.Gwei
 	iter, err := kv.slashings.Iterate(kv.ctx, nil)
 	if err != nil {
@@ -48,7 +48,7 @@ func (kv *KVStore[ExecutionPayloadHeaderT]) GetSlashings() ([]math.Gwei, error) 
 }
 
 // GetSlashingAtIndex retrieves the slashing amount by index from the store.
-func (kv *KVStore[ExecutionPayloadHeaderT]) GetSlashingAtIndex(
+func (kv *KVStore) GetSlashingAtIndex(
 	index uint64,
 ) (math.Gwei, error) {
 	amount, err := kv.slashings.Get(kv.ctx, index)
@@ -61,7 +61,7 @@ func (kv *KVStore[ExecutionPayloadHeaderT]) GetSlashingAtIndex(
 }
 
 // SetSlashingAtIndex sets the slashing amount in the store.
-func (kv *KVStore[ExecutionPayloadHeaderT]) SetSlashingAtIndex(
+func (kv *KVStore) SetSlashingAtIndex(
 	index uint64,
 	amount math.Gwei,
 ) error {
@@ -69,7 +69,7 @@ func (kv *KVStore[ExecutionPayloadHeaderT]) SetSlashingAtIndex(
 }
 
 // GetTotalSlashing retrieves the total slashing amount from the store.
-func (kv *KVStore[ExecutionPayloadHeaderT]) GetTotalSlashing() (math.Gwei, error) {
+func (kv *KVStore) GetTotalSlashing() (math.Gwei, error) {
 	total, err := kv.totalSlashing.Get(kv.ctx)
 	if errors.Is(err, collections.ErrNotFound) {
 		return 0, nil
@@ -80,7 +80,7 @@ func (kv *KVStore[ExecutionPayloadHeaderT]) GetTotalSlashing() (math.Gwei, error
 }
 
 // SetTotalSlashing sets the total slashing amount in the store.
-func (kv *KVStore[ExecutionPayloadHeaderT]) SetTotalSlashing(
+func (kv *KVStore) SetTotalSlashing(
 	amount math.Gwei,
 ) error {
 	return kv.totalSlashing.Set(kv.ctx, amount.Unwrap())

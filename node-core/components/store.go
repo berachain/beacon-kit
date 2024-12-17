@@ -23,6 +23,7 @@ package components
 import (
 	"cosmossdk.io/core/store"
 	"cosmossdk.io/depinject"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/storage/beacondb"
 	"github.com/berachain/beacon-kit/storage/encoding"
 )
@@ -34,12 +35,7 @@ type KVStoreInput struct {
 }
 
 // ProvideKVStore is the depinject provider that returns a beacon KV store.
-func ProvideKVStore[
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-](in KVStoreInput) *beacondb.KVStore[ExecutionPayloadHeaderT] {
-	payloadCodec := &encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT]{}
-	return beacondb.New[ExecutionPayloadHeaderT](
-		in.KVStoreService,
-		payloadCodec,
-	)
+func ProvideKVStore(in KVStoreInput) *beacondb.KVStore {
+	payloadCodec := &encoding.SSZInterfaceCodec[*ctypes.ExecutionPayloadHeader]{}
+	return beacondb.New(in.KVStoreService, payloadCodec)
 }

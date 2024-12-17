@@ -23,6 +23,8 @@ package builder
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/chain-spec/chain"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
@@ -32,18 +34,14 @@ import (
 
 // BeaconState defines the interface for accessing various state-related data
 // required for block processing.
-type BeaconState[
-	ExecutionPayloadHeaderT any,
-] interface {
+type BeaconState interface {
 	// GetRandaoMixAtIndex retrieves the RANDAO mix at a specified index.
-	GetRandaoMixAtIndex(uint64) (common.Bytes32, error)
+	GetRandaoMixAtIndex(uint64) (chain.Bytes32, error)
 	// ExpectedWithdrawals lists the expected withdrawals in the current state.
 	ExpectedWithdrawals() (engineprimitives.Withdrawals, error)
 	// GetLatestExecutionPayloadHeader fetches the most recent execution payload
 	// header.
-	GetLatestExecutionPayloadHeader() (
-		ExecutionPayloadHeaderT, error,
-	)
+	GetLatestExecutionPayloadHeader() (*ctypes.ExecutionPayloadHeader, error)
 	// ValidatorIndexByPubkey finds the validator index associated with a given
 	// BLS public key.
 	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
@@ -65,14 +63,6 @@ type ExecutionPayload[T any] interface {
 	GetBlockHash() common.ExecutionHash
 	// GetFeeRecipient returns the fee recipient.
 	GetFeeRecipient() common.ExecutionAddress
-	// GetParentHash returns the parent hash.
-	GetParentHash() common.ExecutionHash
-}
-
-// ExecutionPayloadHeader is the interface for the execution payload header.
-type ExecutionPayloadHeader interface {
-	// GetBlockHash returns the block hash.
-	GetBlockHash() common.ExecutionHash
 	// GetParentHash returns the parent hash.
 	GetParentHash() common.ExecutionHash
 }
@@ -99,7 +89,7 @@ type PayloadAttributes[
 	New(
 		uint32,
 		uint64,
-		common.Bytes32,
+		chain.Bytes32,
 		common.ExecutionAddress,
 		engineprimitives.Withdrawals,
 		common.Root,
@@ -108,17 +98,17 @@ type PayloadAttributes[
 
 // ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine[
-	ExecutionPayloadT, PayloadAttributesT any, PayloadIDT ~[8]byte,
+	PayloadAttributesT any, PayloadIDT ~[8]byte,
 ] interface {
 	// GetPayload returns the payload and blobs bundle for the given slot.
 	GetPayload(
 		ctx context.Context,
-		req *engineprimitives.GetPayloadRequest[PayloadIDT],
-	) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
+		req *ctypes.GetPayloadRequest[PayloadIDT],
+	) (ctypes.BuiltExecutionPayloadEnv, error)
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
-		req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
+		req *ctypes.ForkchoiceUpdateRequest[PayloadAttributesT],
 	) (*PayloadIDT, *common.ExecutionHash, error)
 }

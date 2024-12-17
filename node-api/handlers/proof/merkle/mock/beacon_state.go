@@ -23,6 +23,7 @@ package mock
 import (
 	"errors"
 
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	ptypes "github.com/berachain/beacon-kit/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -31,18 +32,12 @@ import (
 
 // Compile time check to ensure BeaconState implements the methods
 // required by the BeaconState for proofs.
-var _ ptypes.BeaconState[
-	*BeaconStateMarshallable,
-	*types.ExecutionPayloadHeader,
-] = (*BeaconState)(nil)
+var _ ptypes.BeaconState[*BeaconStateMarshallable] = (*BeaconState)(nil)
 
 // BeaconState is a mock implementation of the proof BeaconState interface
 // using the default BeaconState type that is marshallable.
 type (
-	BeaconStateMarshallable = types.BeaconState[
-		*types.ExecutionPayloadHeader,
-		types.ExecutionPayloadHeader,
-	]
+	BeaconStateMarshallable = types.BeaconState
 
 	BeaconState struct {
 		*BeaconStateMarshallable
@@ -85,7 +80,7 @@ func NewBeaconState(
 		execPayloadHeader,
 		vals,
 		[]uint64{},
-		[]common.Bytes32{},
+		[]chain.Bytes32{},
 		0,
 		0,
 		[]math.Gwei{},

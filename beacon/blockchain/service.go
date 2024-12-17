@@ -24,6 +24,7 @@ import (
 	"context"
 	"sync"
 
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/da"
 	"github.com/berachain/beacon-kit/execution/deposit"
@@ -43,17 +44,13 @@ type Service[
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT interface {
-		BeaconBlockBody[ExecutionPayloadT]
+		BeaconBlockBody
 		GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 		GetDeposits() []*ctypes.Deposit
 	},
-	BeaconStateT ReadOnlyBeaconState[
-		BeaconStateT, ExecutionPayloadHeaderT,
-	],
+	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
 	BlockStoreT blockstore.BlockStore[BeaconBlockT],
-	ExecutionPayloadT ExecutionPayload,
-	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	GenesisT Genesis[ExecutionPayloadHeaderT],
+	GenesisT Genesis,
 	ConsensusSidecarsT da.ConsensusSidecars[BlobSidecarsT],
 	BlobSidecarsT BlobSidecars[BlobSidecarsT],
 
@@ -70,7 +67,8 @@ type Service[
 	]
 	blobProcessor da.BlobProcessor[
 		AvailabilityStoreT,
-		ConsensusSidecarsT, BlobSidecarsT,
+		ConsensusSidecarsT,
+		BlobSidecarsT,
 	]
 	// store is the block store for the service.
 	// TODO: Remove this and use the block store from the storage backend.
@@ -90,7 +88,7 @@ type Service[
 	// logger is used for logging messages in the service.
 	logger log.Logger
 	// chainSpec holds the chain specifications.
-	chainSpec common.ChainSpec
+	chainSpec chain.ChainSpec
 	// executionEngine is the execution engine responsible for processing
 	//
 	// execution payloads.
@@ -102,7 +100,6 @@ type Service[
 		BeaconBlockT,
 		BeaconStateT,
 		*transition.Context,
-		ExecutionPayloadHeaderT,
 	]
 	// metrics is the metrics for the service.
 	metrics *chainMetrics
@@ -120,17 +117,13 @@ func NewService[
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT interface {
-		BeaconBlockBody[ExecutionPayloadT]
+		BeaconBlockBody
 		GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 		GetDeposits() []*ctypes.Deposit
 	},
-	BeaconStateT ReadOnlyBeaconState[
-		BeaconStateT, ExecutionPayloadHeaderT,
-	],
+	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
 	BlockStoreT blockstore.BlockStore[BeaconBlockT],
-	ExecutionPayloadT ExecutionPayload,
-	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	GenesisT Genesis[ExecutionPayloadHeaderT],
+	GenesisT Genesis,
 	PayloadAttributesT PayloadAttributes,
 	ConsensusSidecarsT da.ConsensusSidecars[BlobSidecarsT],
 	BlobSidecarsT BlobSidecars[BlobSidecarsT],
@@ -143,21 +136,21 @@ func NewService[
 	],
 	blobProcessor da.BlobProcessor[
 		AvailabilityStoreT,
-		ConsensusSidecarsT, BlobSidecarsT,
+		ConsensusSidecarsT,
+		BlobSidecarsT,
 	],
 	blockStore BlockStoreT,
 	depositStore deposit.Store,
 	depositContract deposit.Contract,
 	eth1FollowDistance math.U64,
 	logger log.Logger,
-	chainSpec common.ChainSpec,
+	chainSpec chain.ChainSpec,
 	executionEngine ExecutionEngine[PayloadAttributesT],
 	localBuilder LocalBuilder[BeaconStateT],
 	stateProcessor StateProcessor[
 		BeaconBlockT,
 		BeaconStateT,
 		*transition.Context,
-		ExecutionPayloadHeaderT,
 	],
 	telemetrySink TelemetrySink,
 	optimisticPayloadBuilds bool,
@@ -165,14 +158,13 @@ func NewService[
 	AvailabilityStoreT, DepositStoreT,
 	ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, BlockStoreT,
-	ExecutionPayloadT, ExecutionPayloadHeaderT, GenesisT,
+	GenesisT,
 	ConsensusSidecarsT, BlobSidecarsT, PayloadAttributesT,
 ] {
 	return &Service[
 		AvailabilityStoreT, DepositStoreT,
 		ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
 		BeaconStateT, BlockStoreT,
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
 		GenesisT, ConsensusSidecarsT, BlobSidecarsT, PayloadAttributesT,
 	]{
 		homeDir:                 homeDir,
@@ -196,13 +188,13 @@ func NewService[
 
 // Name returns the name of the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _,
 ]) Name() string {
 	return "blockchain"
 }
 
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _,
 ]) Start(ctx context.Context) error {
 	// Catchup deposits for failed blocks.
 	go s.depositCatchupFetcher(ctx)
@@ -211,7 +203,7 @@ func (s *Service[
 }
 
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _,
 ]) Stop() error {
 	return nil
 }

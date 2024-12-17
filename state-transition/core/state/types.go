@@ -21,6 +21,7 @@
 package state
 
 import (
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
@@ -31,7 +32,6 @@ import (
 // with generic types.
 type BeaconStateMarshallable[
 	T any,
-	ExecutionPayloadHeaderT any,
 ] interface {
 	constraints.SSZMarshallableRootable
 	// New returns a new instance of the BeaconStateMarshallable.
@@ -45,10 +45,10 @@ type BeaconStateMarshallable[
 		stateRoots []common.Root,
 		eth1Data *ctypes.Eth1Data,
 		eth1DepositIndex uint64,
-		latestExecutionPayloadHeader ExecutionPayloadHeaderT,
+		latestExecutionPayloadHeader *ctypes.ExecutionPayloadHeader,
 		validators []*ctypes.Validator,
 		balances []uint64,
-		randaoMixes []common.Bytes32,
+		randaoMixes []chain.Bytes32,
 		nextWithdrawalIndex uint64,
 		nextWithdrawalValidatorIndex math.U64,
 		slashings []math.U64, totalSlashing math.U64,

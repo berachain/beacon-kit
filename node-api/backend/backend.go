@@ -23,6 +23,7 @@ package backend
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
@@ -36,13 +37,12 @@ type Backend[
 	],
 	BeaconBlockT any,
 	BeaconBlockBodyT any,
-	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
+	BeaconStateT BeaconState,
 	BeaconStateMarshallableT any,
 	BlobSidecarsT any,
 	BlockStoreT BlockStore[BeaconBlockT],
 	ContextT context.Context,
 	DepositStoreT DepositStore,
-	ExecutionPayloadHeaderT any,
 	NodeT Node[ContextT],
 	StateStoreT any,
 	StorageBackendT StorageBackend[
@@ -50,7 +50,7 @@ type Backend[
 	],
 ] struct {
 	sb   StorageBackendT
-	cs   common.ChainSpec
+	cs   chain.ChainSpec
 	node NodeT
 
 	sp StateProcessor[BeaconStateT]
@@ -63,13 +63,12 @@ func New[
 	],
 	BeaconBlockT any,
 	BeaconBlockBodyT any,
-	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
+	BeaconStateT BeaconState,
 	BeaconStateMarshallableT any,
 	BlobSidecarsT any,
 	BlockStoreT BlockStore[BeaconBlockT],
 	ContextT context.Context,
 	DepositStoreT DepositStore,
-	ExecutionPayloadHeaderT any,
 	NodeT Node[ContextT],
 	StateStoreT any,
 	StorageBackendT StorageBackend[
@@ -77,18 +76,18 @@ func New[
 	],
 ](
 	storageBackend StorageBackendT,
-	cs common.ChainSpec,
+	cs chain.ChainSpec,
 	sp StateProcessor[BeaconStateT],
 ) *Backend[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BlockStoreT,
-	ContextT, DepositStoreT, ExecutionPayloadHeaderT,
+	ContextT, DepositStoreT,
 	NodeT, StateStoreT, StorageBackendT,
 ] {
 	return &Backend[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 		BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BlockStoreT,
-		ContextT, DepositStoreT, ExecutionPayloadHeaderT,
+		ContextT, DepositStoreT,
 		NodeT, StateStoreT, StorageBackendT,
 	]{
 		sb: storageBackend,
@@ -100,28 +99,28 @@ func New[
 // AttachQueryBackend sets the node on the backend for
 // querying historical heights.
 func (b *Backend[
-	_, _, _, _, _, _, _, _, _, _, NodeT, _, _,
+	_, _, _, _, _, _, _, _, _, NodeT, _, _,
 ]) AttachQueryBackend(node NodeT) {
 	b.node = node
 }
 
 // ChainSpec returns the chain spec from the backend.
 func (b *Backend[
-	_, _, _, _, _, _, _, _, _, _, NodeT, _, _,
-]) ChainSpec() common.ChainSpec {
+	_, _, _, _, _, _, _, _, _, NodeT, _, _,
+]) ChainSpec() chain.ChainSpec {
 	return b.cs
 }
 
 // GetSlotByBlockRoot retrieves the slot by a block root from the block store.
 func (b *Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _,
 ]) GetSlotByBlockRoot(root common.Root) (math.Slot, error) {
 	return b.sb.BlockStore().GetSlotByBlockRoot(root)
 }
 
 // GetSlotByStateRoot retrieves the slot by a state root from the block store.
 func (b *Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _,
 ]) GetSlotByStateRoot(root common.Root) (math.Slot, error) {
 	return b.sb.BlockStore().GetSlotByStateRoot(root)
 }
@@ -129,7 +128,7 @@ func (b *Backend[
 // GetParentSlotByTimestamp retrieves the parent slot by a given timestamp from
 // the block store.
 func (b *Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _,
 ]) GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error) {
 	return b.sb.BlockStore().GetParentSlotByTimestamp(timestamp)
 }
@@ -137,7 +136,7 @@ func (b *Backend[
 // stateFromSlot returns the state at the given slot, after also processing the
 // next slot to ensure the returned beacon state is up to date.
 func (b *Backend[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _,
 ]) stateFromSlot(slot math.Slot) (BeaconStateT, math.Slot, error) {
 	var (
 		st  BeaconStateT
@@ -162,7 +161,7 @@ func (b *Backend[
 // resolving an input slot of 0 to the latest slot. It does not process the
 // next slot on the beacon state.
 func (b *Backend[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _,
 ]) stateFromSlotRaw(slot math.Slot) (BeaconStateT, math.Slot, error) {
 	var st BeaconStateT
 	//#nosec:G701 // not an issue in practice.

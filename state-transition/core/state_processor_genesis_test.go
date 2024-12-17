@@ -115,10 +115,10 @@ func TestInitialize(t *testing.T) {
 			genDeposits[0], genDeposits[1], genDeposits[3],
 			genDeposits[5], genDeposits[6],
 		}
-		executionPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		executionPayloadHeader = &types.ExecutionPayloadHeader{}
 		fork                   = &types.Fork{
-			PreviousVersion: version.FromUint32[common.Version](version.Deneb),
-			CurrentVersion:  version.FromUint32[common.Version](version.Deneb),
+			PreviousVersion: version.FromUint32[chain.Version](version.Deneb),
+			CurrentVersion:  version.FromUint32[chain.Version](version.Deneb),
 			Epoch:           math.Epoch(constants.GenesisEpoch),
 		}
 	)
@@ -158,9 +158,8 @@ func TestInitialize(t *testing.T) {
 func checkValidatorNonBartio(
 	t *testing.T,
 	cs chain.Spec[
-		common.DomainType,
+		chain.DomainType,
 		math.Epoch,
-		common.ExecutionAddress,
 		math.Slot,
 		any,
 	],
@@ -271,8 +270,8 @@ func TestInitializeBartio(t *testing.T) {
 		}
 		executionPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		fork                   = &types.Fork{
-			PreviousVersion: version.FromUint32[common.Version](version.Deneb),
-			CurrentVersion:  version.FromUint32[common.Version](version.Deneb),
+			PreviousVersion: version.FromUint32[chain.Version](version.Deneb),
+			CurrentVersion:  version.FromUint32[chain.Version](version.Deneb),
 			Epoch:           math.Epoch(constants.GenesisEpoch),
 		}
 	)
@@ -312,9 +311,8 @@ func TestInitializeBartio(t *testing.T) {
 func checkValidatorBartio(
 	t *testing.T,
 	cs chain.Spec[
-		common.DomainType,
+		chain.DomainType,
 		math.Epoch,
-		common.ExecutionAddress,
 		math.Slot,
 		any,
 	],
@@ -353,9 +351,8 @@ func checkValidatorBartio(
 func commonChecksValidators(
 	t *testing.T,
 	cs chain.Spec[
-		common.DomainType,
+		chain.DomainType,
 		math.Epoch,
-		common.ExecutionAddress,
 		math.Slot,
 		any,
 	],

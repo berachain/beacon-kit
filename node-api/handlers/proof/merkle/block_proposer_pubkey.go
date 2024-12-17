@@ -35,12 +35,9 @@ import (
 // the fastssz library to generate the proof.
 func ProveProposerPubkeyInBlock[
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
-	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
 ](
 	bbh *ctypes.BeaconBlockHeader,
-	bs types.BeaconState[
-		BeaconStateMarshallableT, ExecutionPayloadHeaderT,
-	],
+	bs types.BeaconState[BeaconStateMarshallableT],
 ) ([]common.Root, common.Root, error) {
 	// Get the proof of the proposer pubkey in the beacon state.
 	proposerOffset := ValidatorPubkeyGIndexOffset * bbh.GetProposerIndex()
@@ -75,11 +72,8 @@ func ProveProposerPubkeyInBlock[
 // in the beacon state. It uses the fastssz library to generate the proof.
 func ProveProposerPubkeyInState[
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
-	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
 ](
-	bs types.BeaconState[
-		BeaconStateMarshallableT, ExecutionPayloadHeaderT,
-	],
+	bs types.BeaconState[BeaconStateMarshallableT],
 	proposerOffset math.U64,
 ) ([]common.Root, common.Root, error) {
 	bsm, err := bs.GetMarshallable()

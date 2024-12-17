@@ -21,13 +21,13 @@
 package blockchain
 
 import (
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 func (s *Service[
-	_, _, ConsensusBlockT, BeaconBlockT, _, _, _, _, _, _, _, _, _,
+	_, _, ConsensusBlockT, BeaconBlockT, _, _, _, _, _, _, _,
 ]) processPruning(beaconBlk BeaconBlockT) error {
 	// prune availability store
 	start, end := availabilityPruneRangeFn(
@@ -49,10 +49,7 @@ func (s *Service[
 	return nil
 }
 
-func depositPruneRangeFn(
-	deposits []*ctypes.Deposit,
-	cs common.ChainSpec,
-) (uint64, uint64) {
+func depositPruneRangeFn(deposits []*ctypes.Deposit, cs chain.ChainSpec) (uint64, uint64) {
 	if len(deposits) == 0 || cs.MaxDepositsPerBlock() == 0 {
 		return 0, 0
 	}
@@ -68,7 +65,7 @@ func depositPruneRangeFn(
 
 //nolint:unparam // this is ok
 func availabilityPruneRangeFn(
-	slot uint64, cs common.ChainSpec) (uint64, uint64) {
+	slot uint64, cs chain.ChainSpec) (uint64, uint64) {
 	window := cs.MinEpochsForBlobsSidecarsRequest() * cs.SlotsPerEpoch()
 	if slot < window {
 		return 0, 0

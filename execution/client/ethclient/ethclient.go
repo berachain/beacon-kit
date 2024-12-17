@@ -22,27 +22,16 @@ package ethclient
 
 import (
 	"github.com/berachain/beacon-kit/execution/client/ethclient/rpc"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 )
 
 // Client - Ethereum rpc client.
-type Client[ExecutionPayloadT interface {
-	constraints.JSONMarshallable
-	Empty(uint32) ExecutionPayloadT
-	Version() uint32
-}] struct {
+type Client struct {
 	*rpc.Client
 }
 
 // New create new rpc client with given url.
-func New[
-	ExecutionPayloadT interface {
-		constraints.JSONMarshallable
-		Empty(uint32) ExecutionPayloadT
-		Version() uint32
-	},
-](client *rpc.Client) *Client[ExecutionPayloadT] {
-	rpc := &Client[ExecutionPayloadT]{
+func New(client *rpc.Client) *Client {
+	rpc := &Client{
 		Client: client,
 	}
 

@@ -21,6 +21,7 @@
 package attributes
 
 import (
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -32,7 +33,7 @@ type Factory[
 	PayloadAttributesT PayloadAttributes[PayloadAttributesT],
 ] struct {
 	// chainSpec is the chain spec for the attributes factory.
-	chainSpec common.ChainSpec
+	chainSpec chain.ChainSpec
 	// logger is the logger for the attributes factory.
 	logger log.Logger
 	// suggestedFeeRecipient is the suggested fee recipient sent to
@@ -45,7 +46,7 @@ func NewAttributesFactory[
 	BeaconStateT BeaconState,
 	PayloadAttributesT PayloadAttributes[PayloadAttributesT],
 ](
-	chainSpec common.ChainSpec,
+	chainSpec chain.ChainSpec,
 	logger log.Logger,
 	suggestedFeeRecipient common.ExecutionAddress,
 ) *Factory[BeaconStateT, PayloadAttributesT] {

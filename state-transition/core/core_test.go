@@ -54,16 +54,12 @@ import (
 )
 
 type (
-	TestBeaconStateMarshallableT = types.BeaconState[
-		*types.ExecutionPayloadHeader,
-		types.ExecutionPayloadHeader,
-	]
+	TestBeaconStateMarshallableT = types.BeaconState
 
-	TestKVStoreT = beacondb.KVStore[*types.ExecutionPayloadHeader]
+	TestKVStoreT = beacondb.KVStore
 
 	TestBeaconStateT = statedb.StateDB[
 		*TestBeaconStateMarshallableT,
-		*types.ExecutionPayloadHeader,
 		*TestKVStoreT,
 	]
 
@@ -72,8 +68,6 @@ type (
 		*types.BeaconBlockBody,
 		*TestBeaconStateT,
 		*transition.Context,
-		*types.ExecutionPayload,
-		*types.ExecutionPayloadHeader,
 		*TestKVStoreT,
 	]
 )
@@ -94,10 +88,7 @@ var (
 	testCodec    = &encoding.SSZInterfaceCodec[*types.ExecutionPayloadHeader]{}
 )
 
-func initTestStores() (
-	*beacondb.KVStore[*types.ExecutionPayloadHeader],
-	*depositstore.KVStore,
-	error) {
+func initTestStores() (*beacondb.KVStore, *depositstore.KVStore, error) {
 	db, err := db.OpenDB("", dbm.MemDBBackend)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed opening mem db: %w", err)
@@ -120,7 +111,7 @@ func initTestStores() (
 	}
 	testStoreService := &testKVStoreService{ctx: ctx}
 
-	return beacondb.New[*types.ExecutionPayloadHeader](
+	return beacondb.New(
 			testStoreService,
 			testCodec,
 		),
@@ -129,7 +120,7 @@ func initTestStores() (
 }
 
 func setupChain(t *testing.T, chainSpecType string) chain.Spec[
-	bytes.B4, math.U64, common.ExecutionAddress, math.U64, any,
+	bytes.B4, math.U64, math.U64, any,
 ] {
 	t.Helper()
 
@@ -142,7 +133,7 @@ func setupChain(t *testing.T, chainSpecType string) chain.Spec[
 
 func setupState(
 	t *testing.T, cs chain.Spec[
-		bytes.B4, math.U64, common.ExecutionAddress, math.U64, any,
+		bytes.B4, math.U64, math.U64, any,
 	],
 ) (
 	*TestStateProcessorT,
@@ -152,10 +143,7 @@ func setupState(
 ) {
 	t.Helper()
 
-	execEngine := mocks.NewExecutionEngine[
-		*types.ExecutionPayload,
-		*types.ExecutionPayloadHeader,
-	](t)
+	execEngine := mocks.NewExecutionEngine(t)
 
 	mocksSigner := &cryptomocks.BLSSigner{}
 	mocksSigner.On(
@@ -174,8 +162,6 @@ func setupState(
 		*types.BeaconBlockBody,
 		*TestBeaconStateT,
 		*transition.Context,
-		*types.ExecutionPayload,
-		*types.ExecutionPayloadHeader,
 		*TestKVStoreT,
 	](
 		noop.NewLogger[any](),

@@ -25,7 +25,7 @@ import (
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	"github.com/berachain/beacon-kit/config/spec"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"golang.org/x/sync/errgroup"
@@ -34,8 +34,7 @@ import (
 // processExecutionPayload processes the execution payload and ensures it
 // matches the local state.
 func (sp *StateProcessor[
-	BeaconBlockT, _, BeaconStateT, ContextT,
-	_, ExecutionPayloadHeaderT, _,
+	BeaconBlockT, _, BeaconStateT, ContextT, _,
 ]) processExecutionPayload(
 	ctx ContextT,
 	st BeaconStateT,
@@ -44,7 +43,7 @@ func (sp *StateProcessor[
 	var (
 		body    = blk.GetBody()
 		payload = body.GetExecutionPayload()
-		header  ExecutionPayloadHeaderT
+		header  *ctypes.ExecutionPayloadHeader
 		g, gCtx = errgroup.WithContext(context.Background())
 	)
 
@@ -93,8 +92,7 @@ func (sp *StateProcessor[
 // validateExecutionPayload validates the execution payload against both local
 // state and the execution engine.
 func (sp *StateProcessor[
-	BeaconBlockT, _, BeaconStateT,
-	_, _, _, _,
+	BeaconBlockT, _, BeaconStateT, _, _,
 ]) validateExecutionPayload(
 	ctx context.Context,
 	st BeaconStateT,
@@ -116,8 +114,7 @@ func (sp *StateProcessor[
 
 // validateStatelessPayload performs stateless checks on the execution payload.
 func (sp *StateProcessor[
-	BeaconBlockT, _, _,
-	_, _, _, _,
+	BeaconBlockT, _, _, _, _,
 ]) validateStatelessPayload(
 	blk BeaconBlockT,
 ) error {
@@ -149,8 +146,7 @@ func (sp *StateProcessor[
 
 // validateStatefulPayload performs stateful checks on the execution payload.
 func (sp *StateProcessor[
-	BeaconBlockT, _, BeaconStateT,
-	_, _, _, _,
+	BeaconBlockT, _, BeaconStateT, _, _,
 ]) validateStatefulPayload(
 	ctx context.Context,
 	st BeaconStateT,
@@ -191,7 +187,7 @@ func (sp *StateProcessor[
 
 	parentBeaconBlockRoot := blk.GetParentBlockRoot()
 	if err = sp.executionEngine.VerifyAndNotifyNewPayload(
-		ctx, engineprimitives.BuildNewPayloadRequest(
+		ctx, ctypes.BuildNewPayloadRequest(
 			payload,
 			body.GetBlobKzgCommitments().ToVersionedHashes(),
 			&parentBeaconBlockRoot,

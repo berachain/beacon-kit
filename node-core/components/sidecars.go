@@ -22,15 +22,15 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	dablob "github.com/berachain/beacon-kit/da/blob"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
-	"github.com/berachain/beacon-kit/primitives/common"
 )
 
 type SidecarFactoryInput struct {
 	depinject.In
-	ChainSpec     common.ChainSpec
+	ChainSpec     chain.ChainSpec
 	TelemetrySink *metrics.TelemetrySink
 }
 
@@ -38,14 +38,7 @@ func ProvideSidecarFactory[
 	BeaconBlockT BeaconBlock[
 		BeaconBlockT, BeaconBlockBodyT,
 	],
-	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT,
-		ExecutionPayloadT, *SlashingInfo,
-	],
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	BeaconBlockBodyT BeaconBlockBody[BeaconBlockBodyT, *SlashingInfo],
 ](in SidecarFactoryInput) *dablob.SidecarFactory[
 	BeaconBlockT, BeaconBlockBodyT,
 ] {

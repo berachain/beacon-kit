@@ -21,28 +21,26 @@
 package builder
 
 import (
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // PayloadBuilder is used to build payloads on the
 // execution client.
 type PayloadBuilder[
-	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
-	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader,
+	BeaconStateT BeaconState,
 	PayloadAttributesT PayloadAttributes[PayloadAttributesT],
 	PayloadIDT ~[8]byte,
 ] struct {
 	// cfg holds the configuration settings for the PayloadBuilder.
 	cfg *Config
 	// chainSpec holds the chain specifications for the PayloadBuilder.
-	chainSpec common.ChainSpec
+	chainSpec chain.ChainSpec
 	// logger is used for logging within the PayloadBuilder.
 	logger log.Logger
 	// ee is the execution engine.
-	ee ExecutionEngine[ExecutionPayloadT, PayloadAttributesT, PayloadIDT]
+	ee ExecutionEngine[PayloadAttributesT, PayloadIDT]
 	// pc is the payload ID cache, it is used to store
 	// "in-flight" payloads that are being built on
 	// the execution client.
@@ -53,24 +51,22 @@ type PayloadBuilder[
 
 // New creates a new service.
 func New[
-	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
-	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader,
+	BeaconStateT BeaconState,
 	PayloadAttributesT PayloadAttributes[PayloadAttributesT],
 	PayloadIDT ~[8]byte,
 ](
 	cfg *Config,
-	chainSpec common.ChainSpec,
+	chainSpec chain.ChainSpec,
 	logger log.Logger,
-	ee ExecutionEngine[ExecutionPayloadT, PayloadAttributesT, PayloadIDT],
+	ee ExecutionEngine[PayloadAttributesT, PayloadIDT],
 	pc PayloadCache[PayloadIDT, [32]byte, math.Slot],
 	af AttributesFactory[BeaconStateT, PayloadAttributesT],
 ) *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	BeaconStateT,
 	PayloadAttributesT, PayloadIDT,
 ] {
 	return &PayloadBuilder[
-		BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+		BeaconStateT,
 		PayloadAttributesT, PayloadIDT,
 	]{
 		cfg:               cfg,
@@ -84,7 +80,7 @@ func New[
 
 // Enabled returns true if the payload builder is enabled.
 func (pb *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	BeaconStateT,
 	PayloadAttributesT, PayloadIDT,
 ]) Enabled() bool {
 	return pb.cfg.Enabled

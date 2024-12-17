@@ -23,39 +23,9 @@ package common
 import (
 	stdbytes "bytes"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
-	"github.com/berachain/beacon-kit/primitives/math"
-)
-
-type (
-	// Bytes32 defines the commonly used 32-byte array.
-	Bytes32 = bytes.B32
-
-	// ChainSpec defines an interface for chain-specific parameters.
-	ChainSpec = chain.Spec[DomainType, math.Epoch, ExecutionAddress, math.Slot, any]
-
-	// Domain as per the Ethereum 2.0 Specification:
-	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	Domain = bytes.B32
-
-	// DomainType as per the Ethereum 2.0 Specification:
-	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	DomainType = bytes.B4
-
-	// Hash32 as per the Ethereum 2.0 Specification:
-	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	Hash32 = bytes.B32
-
-	// Version as per the Ethereum 2.0 specification.
-	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	Version = bytes.B4
-
-	// ForkDigest as per the Ethereum 2.0 Specification:
-	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
-	ForkDigest = bytes.B4
 )
 
 /* -------------------------------------------------------------------------- */

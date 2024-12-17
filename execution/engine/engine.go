@@ -23,6 +23,7 @@ package engine
 import (
 	"context"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/errors"
@@ -35,13 +36,12 @@ import (
 // Engine is Beacon-Kit's implementation of the `ExecutionEngine`
 // from the Ethereum 2.0 Specification.
 type Engine[
-	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT],
 	PayloadAttributesT engineprimitives.PayloadAttributer,
 	PayloadIDT ~[8]byte,
 ] struct {
 	// ec is the engine client that the engine will use to
 	// interact with the execution layer.
-	ec *client.EngineClient[ExecutionPayloadT, PayloadAttributesT]
+	ec *client.EngineClient[PayloadAttributesT]
 	// logger is the logger for the engine.
 	logger log.Logger
 	// metrics is the metrics for the engine.
@@ -50,19 +50,18 @@ type Engine[
 
 // New creates a new Engine.
 func New[
-	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT],
 	PayloadAttributesT engineprimitives.PayloadAttributer,
 	PayloadIDT ~[8]byte,
 ](
-	engineClient *client.EngineClient[ExecutionPayloadT, PayloadAttributesT],
+	engineClient *client.EngineClient[PayloadAttributesT],
 	logger log.Logger,
 	telemtrySink TelemetrySink,
 ) *Engine[
-	ExecutionPayloadT, PayloadAttributesT,
+	PayloadAttributesT,
 	PayloadIDT,
 ] {
 	return &Engine[
-		ExecutionPayloadT, PayloadAttributesT, PayloadIDT,
+		PayloadAttributesT, PayloadIDT,
 	]{
 		ec:      engineClient,
 		logger:  logger,
@@ -71,7 +70,7 @@ func New[
 }
 
 // Start spawns any goroutines required by the service.
-func (ee *Engine[_, _, _]) Start(
+func (ee *Engine[_, _]) Start(
 	ctx context.Context,
 ) error {
 	go func() {
@@ -85,11 +84,11 @@ func (ee *Engine[_, _, _]) Start(
 
 // GetPayload returns the payload and blobs bundle for the given slot.
 func (ee *Engine[
-	ExecutionPayloadT, _, _,
+	_, _,
 ]) GetPayload(
 	ctx context.Context,
-	req *engineprimitives.GetPayloadRequest[engineprimitives.PayloadID],
-) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
+	req *ctypes.GetPayloadRequest[engineprimitives.PayloadID],
+) (ctypes.BuiltExecutionPayloadEnv, error) {
 	return ee.ec.GetPayload(
 		ctx, req.PayloadID,
 		req.ForkVersion,
@@ -98,10 +97,10 @@ func (ee *Engine[
 
 // NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
 func (ee *Engine[
-	_, PayloadAttributesT, _,
+	PayloadAttributesT, _,
 ]) NotifyForkchoiceUpdate(
 	ctx context.Context,
-	req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
+	req *ctypes.ForkchoiceUpdateRequest[PayloadAttributesT],
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
 	// Log the forkchoice update attempt.
 	hasPayloadAttributes := !req.PayloadAttributes.IsNil()
@@ -172,10 +171,10 @@ func (ee *Engine[
 // VerifyAndNotifyNewPayload verifies the new payload and notifies the
 // execution client.
 func (ee *Engine[
-	ExecutionPayloadT, _, _,
+	_, _,
 ]) VerifyAndNotifyNewPayload(
 	ctx context.Context,
-	req *engineprimitives.NewPayloadRequest[ExecutionPayloadT],
+	req *ctypes.NewPayloadRequest,
 ) error {
 	// Log the new payload attempt.
 	ee.metrics.markNewPayloadCalled(

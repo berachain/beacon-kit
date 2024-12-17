@@ -22,6 +22,7 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/cli/flags"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/consensus-types/types"
@@ -29,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/da/kzg"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
-	"github.com/berachain/beacon-kit/primitives/common"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/spf13/cast"
 )
@@ -61,7 +61,7 @@ type BlobProcessorIn[
 	depinject.In
 
 	BlobProofVerifier kzg.BlobProofVerifier
-	ChainSpec         common.ChainSpec
+	ChainSpec         chain.ChainSpec
 	Logger            LoggerT
 	TelemetrySink     *metrics.TelemetrySink
 }

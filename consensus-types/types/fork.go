@@ -21,6 +21,7 @@
 package types
 
 import (
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -41,9 +42,9 @@ var (
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#fork
 type Fork struct {
 	// PreviousVersion is the last version before the fork.
-	PreviousVersion common.Version `json:"previous_version"`
+	PreviousVersion chain.Version `json:"previous_version"`
 	// CurrentVersion is the first version after the fork.
-	CurrentVersion common.Version `json:"current_version"`
+	CurrentVersion chain.Version `json:"current_version"`
 	// Epoch is the epoch at which the fork occurred.
 	Epoch math.Epoch `json:"epoch"`
 }
@@ -59,8 +60,8 @@ func (f *Fork) Empty() *Fork {
 
 // New creates a new fork.
 func NewFork(
-	previousVersion common.Version,
-	currentVersion common.Version,
+	previousVersion chain.Version,
+	currentVersion chain.Version,
 	epoch math.Epoch,
 ) *Fork {
 	return &Fork{

@@ -23,10 +23,10 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/beacon/validator"
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 )
 
@@ -36,20 +36,16 @@ type ValidatorServiceInput[
 	BeaconBlockT any,
 	BeaconStateT any,
 	BlobSidecarsT any,
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	LoggerT any,
 	StorageBackendT any,
 ] struct {
 	depinject.In
 	Cfg            *config.Config
-	ChainSpec      common.ChainSpec
-	LocalBuilder   LocalBuilder[BeaconStateT, ExecutionPayloadT]
+	ChainSpec      chain.ChainSpec
+	LocalBuilder   LocalBuilder[BeaconStateT]
 	Logger         LoggerT
 	StateProcessor StateProcessor[
-		BeaconBlockT, BeaconStateT, *Context, ExecutionPayloadHeaderT,
+		BeaconBlockT, BeaconStateT, *Context,
 	]
 	StorageBackend StorageBackendT
 	Signer         crypto.BLSSigner
@@ -63,23 +59,13 @@ func ProvideValidatorService[
 	BeaconBlockT BeaconBlock[
 		BeaconBlockT, BeaconBlockBodyT,
 	],
-	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT,
-		ExecutionPayloadT, *SlashingInfo,
-	],
-	BeaconStateT BeaconState[
-		BeaconStateT, BeaconStateMarshallableT,
-		ExecutionPayloadHeaderT, KVStoreT,
-	],
+	BeaconBlockBodyT BeaconBlockBody[BeaconBlockBodyT, *SlashingInfo],
+	BeaconStateT BeaconState[BeaconStateT, BeaconStateMarshallableT, KVStoreT],
 	BeaconStateMarshallableT any,
 	BeaconBlockStoreT any,
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	DepositStoreT DepositStore,
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 	StorageBackendT StorageBackend[
@@ -88,13 +74,12 @@ func ProvideValidatorService[
 ](
 	in ValidatorServiceInput[
 		AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-		BlobSidecarsT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+		BlobSidecarsT,
 		LoggerT, StorageBackendT,
 	],
 ) (*validator.Service[
 	BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositStoreT,
-	ExecutionPayloadT, ExecutionPayloadHeaderT,
 	*SlashingInfo, *SlotData,
 ], error) {
 	// Build the builder service.
@@ -105,8 +90,6 @@ func ProvideValidatorService[
 		BlobSidecarT,
 		BlobSidecarsT,
 		DepositStoreT,
-		ExecutionPayloadT,
-		ExecutionPayloadHeaderT,
 		*SlashingInfo,
 		*SlotData,
 	](
@@ -118,7 +101,7 @@ func ProvideValidatorService[
 		in.Signer,
 		in.SidecarFactory,
 		in.LocalBuilder,
-		[]validator.PayloadBuilder[BeaconStateT, ExecutionPayloadT]{
+		[]validator.PayloadBuilder[BeaconStateT]{
 			in.LocalBuilder,
 		},
 		in.TelemetrySink,

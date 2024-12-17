@@ -25,6 +25,7 @@ import (
 	"time"
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/consensus/types"
 	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
@@ -46,7 +47,7 @@ const (
 
 func (s *Service[
 	_, _, ConsensusBlockT, BeaconBlockT, _, _,
-	_, _, _, GenesisT, ConsensusSidecarsT, BlobSidecarsT, _,
+	_, GenesisT, ConsensusSidecarsT, BlobSidecarsT, _,
 ]) ProcessProposal(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
@@ -72,6 +73,13 @@ func (s *Service[
 		return createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
 
+	// In theory, swapping the order of verification between the sidecars
+	// and the incoming block should not introduce any inconsistencies
+	// in the state on which the sidecar verification depends on (notably
+	// the currently active fork). ProcessProposal should only
+	// keep the state changes as candidates (which is what we do in
+	// VerifyIncomingBlock).
+
 	// Process the blob sidecars, if any
 	if !sidecars.IsNil() && sidecars.Len() > 0 {
 		var consensusSidecars *types.ConsensusSidecars[BlobSidecarsT]
@@ -83,13 +91,26 @@ func (s *Service[
 		s.logger.Info("Received incoming blob sidecars")
 
 		// TODO: Clean this up once we remove generics.
-		c := convertConsensusSidecars[
+		cs := convertConsensusSidecars[
 			ConsensusSidecarsT,
 			BlobSidecarsT,
 		](consensusSidecars)
 
+		// Get the sidecar verification function from the state processor
+		//nolint:govet	// err shadowing
+		sidecarVerifierFn, err := s.stateProcessor.GetSidecarVerifierFn(
+			s.storageBackend.StateFromContext(ctx),
+		)
+		if err != nil {
+			s.logger.Error(
+				"an error incurred while calculating the sidecar verifier",
+				"reason", err,
+			)
+			return createProcessProposalResponse(errors.WrapNonFatal(err))
+		}
+
 		// Verify the blobs and ensure they match the local state.
-		err = s.blobProcessor.VerifySidecars(c)
+		err = s.blobProcessor.VerifySidecars(cs, sidecarVerifierFn)
 		if err != nil {
 			s.logger.Error(
 				"rejecting incoming blob sidecars",
@@ -129,8 +150,8 @@ func (s *Service[
 // VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
 func (s *Service[
-	_, _, ConsensusBlockT, BeaconBlockT, _, _, _, _,
-	ExecutionPayloadHeaderT, _, _, _, _,
+	_, _, ConsensusBlockT, BeaconBlockT, _, _, _,
+	_, _, _, _,
 ]) VerifyIncomingBlock(
 	ctx context.Context,
 	beaconBlk BeaconBlockT,
@@ -182,7 +203,7 @@ func (s *Service[
 		)
 
 		if s.shouldBuildOptimisticPayloads() {
-			var lph ExecutionPayloadHeaderT
+			var lph *ctypes.ExecutionPayloadHeader
 			lph, err = preState.GetLatestExecutionPayloadHeader()
 			if err != nil {
 				return err
@@ -209,7 +230,7 @@ func (s *Service[
 	)
 
 	if s.shouldBuildOptimisticPayloads() {
-		var lph ExecutionPayloadHeaderT
+		var lph *ctypes.ExecutionPayloadHeader
 		lph, err = postState.GetLatestExecutionPayloadHeader()
 		if err != nil {
 			return err
@@ -233,7 +254,7 @@ func (s *Service[
 // verifyStateRoot verifies the state root of an incoming block.
 func (s *Service[
 	_, _, ConsensusBlockT, BeaconBlockT, _, BeaconStateT,
-	_, _, _, _, _, _, _,
+	_, _, _, _, _,
 ]) verifyStateRoot(
 	ctx context.Context,
 	st BeaconStateT,
@@ -272,7 +293,7 @@ func (s *Service[
 // shouldBuildOptimisticPayloads returns true if optimistic
 // payload builds are enabled.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _,
 ]) shouldBuildOptimisticPayloads() bool {
 	return s.optimisticPayloadBuilds && s.localBuilder.Enabled()
 }
