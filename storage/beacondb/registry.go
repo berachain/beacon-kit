@@ -46,13 +46,13 @@ func (kv *KVStore) AddValidator(val *ctypes.Validator) error {
 }
 
 // AddValidator registers a new validator in the beacon state.
-<<<<<<< HEAD
-func (kv *KVStore[ExecutionPayloadHeaderT]) AddValidatorBartio(
-	val *ctypes.Validator,
-) error {
-=======
 func (kv *KVStore) AddValidatorBartio(val *ctypes.Validator) error {
+	// Get the ne
+	idx, err := kv.validatorIndex.Next(kv.ctx)
+	if err != nil {
+		return err
 	}
+
 	// Push onto the validators list.
 	if err = kv.validators.Set(kv.ctx, idx, val); err != nil {
 		return err
