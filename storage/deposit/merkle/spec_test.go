@@ -26,6 +26,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -40,24 +41,36 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const url = "https://raw.githubusercontent.com/ethereum/EIPs/master/assets/eip-4881/test_cases.yaml"
+const (
+	url      = "https://raw.githubusercontent.com/ethereum/EIPs/master/assets/eip-4881/test_cases.yaml"
+	filePath = "testdata/eip4881_test_cases.yaml"
+)
 
 // EIP 4881 spec test cases from:
 // https://github.com/ethereum/EIPs/blob/master/assets/eip-4881/test_cases.yaml.
 //
 // NOTE: these test cases must be downloaded from Github. If no internet access
 // is available, the test cases can be manually downloaded and added to the
-// `testdata` with filename `eip4881_test_cases.yaml`.
+// `testdata` folder with filename `eip4881_test_cases.yaml`.
 func readTestCases(t *testing.T) []testCase {
 	t.Helper()
 
+	var testCases []testCase
+
 	resp, err := http.Get(url)
 	if err != nil {
-		t.Skipf("skipping, failed to download test cases: %v", err)
+		t.Logf("failed to download test cases (%v), trying local file...", err)
+		if enc, err := os.ReadFile(filePath); err == nil {
+			err = yaml.Unmarshal(enc, &testCases)
+			require.NoError(t, err)
+			require.NotEmpty(t, testCases)
+			return testCases
+		} else {
+			t.Skipf("skipping, local file %s is missing (%v)", filePath, err)
+		}
 	}
 	defer resp.Body.Close()
 
-	var testCases []testCase
 	err = yaml.NewDecoder(resp.Body).Decode(&testCases)
 	require.NoError(t, err)
 	require.NotEmpty(t, testCases)
