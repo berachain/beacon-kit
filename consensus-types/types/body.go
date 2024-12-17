@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
-	// fastssz "github.com/ferranbt/fastssz".
 	"github.com/karalabe/ssz"
 )
 
@@ -151,102 +150,18 @@ func (b *BeaconBlockBody) HashTreeRoot() common.Root {
 	return ssz.HashConcurrent(b)
 }
 
-// /* -------------------------------------------------------------------------- */
-// /*                                   FastSSZ                                  */
-// /* -------------------------------------------------------------------------- */
-
-// // MarshalSSZTo serializes the BeaconBlockBody into a writer.
-// func (b *BeaconBlockBody) MarshalSSZTo(dst []byte) ([]byte, error) {
-// 	bz, err := b.MarshalSSZ()
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	dst = append(dst, bz...)
-// 	return dst, nil
-// }
-
-// // HashTreeRootWith ssz hashes the BeaconBlockBody object with a hasher.
-// //
-// //nolint:mnd // todo fix.
-// func (b *BeaconBlockBody) HashTreeRootWith(hh fastssz.HashWalker) error {
-// 	indx := hh.Index()
-
-// 	// Field (0) 'RandaoReveal'
-// 	hh.PutBytes(b.RandaoReveal[:])
-
-// 	// Field (1) 'Eth1Data'
-// 	if b.Eth1Data == nil {
-// 		b.Eth1Data = new(Eth1Data)
-// 	}
-// 	if err := b.Eth1Data.HashTreeRootWith(hh); err != nil {
-// 		return err
-// 	}
-
-// 	// Field (2) 'Graffiti'
-// 	hh.PutBytes(b.Graffiti[:])
-
-// 	// Field (3) 'Deposits'
-// 	{
-// 		subIndx := hh.Index()
-// 		num := uint64(len(b.Deposits))
-// 		if num > 16 {
-// 			return fastssz.ErrIncorrectListSize
-// 		}
-// 		for _, elem := range b.Deposits {
-// 			if err := elem.HashTreeRootWith(hh); err != nil {
-// 				return err
-// 			}
-// 		}
-// 		hh.MerkleizeWithMixin(subIndx, num, 16)
-// 	}
-
-// 	// Field (4) 'ExecutionPayload'
-// 	if err := b.ExecutionPayload.HashTreeRootWith(hh); err != nil {
-// 		return err
-// 	}
-
-// 	// Field (5) 'BlobKzgCommitments'
-// 	{
-// 		if size := len(b.BlobKzgCommitments); size > 16 {
-// 			return fastssz.ErrListTooBigFn(
-// 				"BeaconBlockBody.BlobKzgCommitments",
-// 				size,
-// 				16,
-// 			)
-// 		}
-// 		subIndx := hh.Index()
-// 		for _, i := range b.BlobKzgCommitments {
-// 			hh.PutBytes(i[:])
-// 		}
-// 		numItems := uint64(len(b.BlobKzgCommitments))
-// 		hh.MerkleizeWithMixin(subIndx, numItems, 16)
-// 	}
-
-// 	hh.Merkleize(indx)
-// 	return nil
-// }
-
-// // GetTree ssz hashes the BeaconBlockBody object.
-// func (b *BeaconBlockBody) GetTree() (*fastssz.Node, error) {
-// 	return fastssz.ProofTree(b)
-// }
-
 // IsNil checks if the BeaconBlockBody is nil.
 func (b *BeaconBlockBody) IsNil() bool {
 	return b == nil
 }
 
 // GetExecutionPayload returns the ExecutionPayload of the Body.
-func (
-	b *BeaconBlockBody,
-) GetExecutionPayload() *ExecutionPayload {
+func (b *BeaconBlockBody) GetExecutionPayload() *ExecutionPayload {
 	return b.ExecutionPayload
 }
 
 // SetExecutionPayload sets the ExecutionData of the BeaconBlockBody.
-func (b *BeaconBlockBody) SetExecutionPayload(
-	executionData *ExecutionPayload,
-) {
+func (b *BeaconBlockBody) SetExecutionPayload(executionData *ExecutionPayload) {
 	b.ExecutionPayload = executionData
 }
 
