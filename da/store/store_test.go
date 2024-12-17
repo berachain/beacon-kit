@@ -61,8 +61,10 @@ func TestStore_PersistRace(t *testing.T) {
 	sc := make([]*datypes.BlobSidecar, 20)
 	for i := range sc {
 		sc[i] = &datypes.BlobSidecar{
-			Index:             uint64(i),
-			BeaconBlockHeader: &types.BeaconBlockHeader{},
+			Index: uint64(i),
+			SignedBeaconBlockHeader: &types.SignedBeaconBlockHeader{
+				Header: &types.BeaconBlockHeader{},
+			},
 		}
 	}
 	sidecars := datypes.BlobSidecars{
