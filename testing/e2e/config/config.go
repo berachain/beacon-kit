@@ -22,6 +22,7 @@
 package config
 
 import (
+	"fmt"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 )
 
@@ -222,5 +223,47 @@ func (c *E2ETestConfig) MustMarshalJSON() []byte {
 
 // ValidateNethermindConfig validates the Nethermind configuration
 func (c *E2ETestConfig) ValidateNethermindConfig() error {
-	return nil
+    // Check if Nethermind config exists
+    if c.NodeSettings.ExecutionSettings.NethermindConfig == nil {
+        return fmt.Errorf("nethermind configuration is missing")
+    }
+
+    config := c.NodeSettings.ExecutionSettings.NethermindConfig
+
+    // Validate SyncConfig
+    if !config.SyncConfig.FastSync {
+        // Check if other sync options are consistent
+        if config.SyncConfig.DownloadBodiesInFastSync || config.SyncConfig.DownloadReceiptsInFastSync {
+            return fmt.Errorf("sync options are inconsistent: FastSync is disabled but download options are enabled")
+        }
+    }
+
+    // Validate ConsensusConfig
+    if config.ConsensusConfig.TargetBlockGasLimit <= 0 {
+        return fmt.Errorf("invalid TargetBlockGasLimit: must be greater than 0")
+    }
+
+    // Validate if Nethermind is actually used in the configuration
+    nethermindUsed := false
+    for _, nodeSet := range []NodeSet{
+        c.NetworkConfiguration.Validators,
+        c.NetworkConfiguration.FullNodes,
+        c.NetworkConfiguration.SeedNodes,
+    } {
+        for _, node := range nodeSet.Nodes {
+            if node.ElType == "nethermind" && node.Replicas > 0 {
+                nethermindUsed = true
+                break
+            }
+        }
+        if nethermindUsed {
+            break
+        }
+    }
+
+    if !nethermindUsed {
+        return fmt.Errorf("nethermind configuration present but Nethermind is not used in the network")
+    }
+
+    return nil
 }
