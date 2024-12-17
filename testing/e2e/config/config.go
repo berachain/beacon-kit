@@ -159,7 +159,6 @@ type AdditionalService struct {
 }
 
 // NethermindConfig holds specific configuration for Nethermind client
-// NethermindConfig holds specific configuration for Nethermind client
 type NethermindConfig struct {
     // Specific settings for Nethermind
     SyncConfig struct {
