@@ -26,7 +26,6 @@ import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/config"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/execution/engine"
 	"github.com/berachain/beacon-kit/log"
@@ -50,8 +49,8 @@ func ProvideEngineClient[
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	in EngineClientInputs[LoggerT],
-) *client.EngineClient[*engineprimitives.PayloadAttributes] {
-	return client.New[*engineprimitives.PayloadAttributes](
+) *client.EngineClient {
+	return client.New(
 		in.Config.GetEngine(),
 		in.Logger.With("service", "engine.client"),
 		in.JWTSecret,
@@ -65,7 +64,7 @@ type ExecutionEngineInputs[
 	LoggerT any,
 ] struct {
 	depinject.In
-	EngineClient  *client.EngineClient[*engineprimitives.PayloadAttributes]
+	EngineClient  *client.EngineClient
 	Logger        LoggerT
 	TelemetrySink *metrics.TelemetrySink
 }
@@ -76,14 +75,8 @@ func ProvideExecutionEngine[
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	in ExecutionEngineInputs[LoggerT],
-) *engine.Engine[
-	*engineprimitives.PayloadAttributes,
-	PayloadID,
-] {
-	return engine.New[
-		*engineprimitives.PayloadAttributes,
-		PayloadID,
-	](
+) *engine.Engine[PayloadID] {
+	return engine.New[PayloadID](
 		in.EngineClient,
 		in.Logger.With("service", "execution-engine"),
 		in.TelemetrySink,

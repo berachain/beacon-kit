@@ -85,12 +85,12 @@ type BlobSidecars[T any] interface {
 }
 
 // ExecutionEngine is the interface for the execution engine.
-type ExecutionEngine[PayloadAttributesT any] interface {
+type ExecutionEngine interface {
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
-		req *ctypes.ForkchoiceUpdateRequest[PayloadAttributesT],
+		req *ctypes.ForkchoiceUpdateRequest,
 	) (*engineprimitives.PayloadID, *common.ExecutionHash, error)
 }
 
@@ -140,12 +140,6 @@ type LocalBuilder[BeaconStateT any] interface {
 		st BeaconStateT,
 		slot math.Slot,
 	) error
-}
-
-type PayloadAttributes interface {
-	IsNil() bool
-	Version() uint32
-	GetSuggestedFeeRecipient() common.ExecutionAddress
 }
 
 // ReadOnlyBeaconState defines the interface for accessing various components of

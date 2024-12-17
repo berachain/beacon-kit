@@ -36,12 +36,11 @@ import (
 // Engine is Beacon-Kit's implementation of the `ExecutionEngine`
 // from the Ethereum 2.0 Specification.
 type Engine[
-	PayloadAttributesT engineprimitives.PayloadAttributer,
 	PayloadIDT ~[8]byte,
 ] struct {
 	// ec is the engine client that the engine will use to
 	// interact with the execution layer.
-	ec *client.EngineClient[PayloadAttributesT]
+	ec *client.EngineClient
 	// logger is the logger for the engine.
 	logger log.Logger
 	// metrics is the metrics for the engine.
@@ -50,19 +49,13 @@ type Engine[
 
 // New creates a new Engine.
 func New[
-	PayloadAttributesT engineprimitives.PayloadAttributer,
 	PayloadIDT ~[8]byte,
 ](
-	engineClient *client.EngineClient[PayloadAttributesT],
+	engineClient *client.EngineClient,
 	logger log.Logger,
 	telemtrySink TelemetrySink,
-) *Engine[
-	PayloadAttributesT,
-	PayloadIDT,
-] {
-	return &Engine[
-		PayloadAttributesT, PayloadIDT,
-	]{
+) *Engine[PayloadIDT] {
+	return &Engine[PayloadIDT]{
 		ec:      engineClient,
 		logger:  logger,
 		metrics: newEngineMetrics(telemtrySink, logger),
@@ -70,7 +63,7 @@ func New[
 }
 
 // Start spawns any goroutines required by the service.
-func (ee *Engine[_, _]) Start(
+func (ee *Engine[_]) Start(
 	ctx context.Context,
 ) error {
 	go func() {
@@ -83,9 +76,7 @@ func (ee *Engine[_, _]) Start(
 }
 
 // GetPayload returns the payload and blobs bundle for the given slot.
-func (ee *Engine[
-	_, _,
-]) GetPayload(
+func (ee *Engine[_]) GetPayload(
 	ctx context.Context,
 	req *ctypes.GetPayloadRequest[engineprimitives.PayloadID],
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
@@ -96,11 +87,9 @@ func (ee *Engine[
 }
 
 // NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
-func (ee *Engine[
-	PayloadAttributesT, _,
-]) NotifyForkchoiceUpdate(
+func (ee *Engine[_]) NotifyForkchoiceUpdate(
 	ctx context.Context,
-	req *ctypes.ForkchoiceUpdateRequest[PayloadAttributesT],
+	req *ctypes.ForkchoiceUpdateRequest,
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
 	// Log the forkchoice update attempt.
 	hasPayloadAttributes := !req.PayloadAttributes.IsNil()
@@ -170,9 +159,7 @@ func (ee *Engine[
 
 // VerifyAndNotifyNewPayload verifies the new payload and notifies the
 // execution client.
-func (ee *Engine[
-	_, _,
-]) VerifyAndNotifyNewPayload(
+func (ee *Engine[_]) VerifyAndNotifyNewPayload(
 	ctx context.Context,
 	req *ctypes.NewPayloadRequest,
 ) error {

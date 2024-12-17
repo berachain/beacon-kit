@@ -45,8 +45,6 @@ type Service[
 	GenesisT Genesis,
 	ConsensusSidecarsT da.ConsensusSidecars[BlobSidecarsT],
 	BlobSidecarsT BlobSidecars[BlobSidecarsT],
-
-	PayloadAttributesT PayloadAttributes,
 ] struct {
 	// homeDir is the directory for config and data"
 	homeDir string
@@ -84,7 +82,7 @@ type Service[
 	// executionEngine is the execution engine responsible for processing
 	//
 	// execution payloads.
-	executionEngine ExecutionEngine[PayloadAttributesT]
+	executionEngine ExecutionEngine
 	// localBuilder is a local builder for constructing new beacon states.
 	localBuilder LocalBuilder[BeaconStateT]
 	// stateProcessor is the state processor for beacon blocks and states.
@@ -111,7 +109,6 @@ func NewService[
 	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
 	BlockStoreT blockstore.BlockStore[BeaconBlockT],
 	GenesisT Genesis,
-	PayloadAttributesT PayloadAttributes,
 	ConsensusSidecarsT da.ConsensusSidecars[BlobSidecarsT],
 	BlobSidecarsT BlobSidecars[BlobSidecarsT],
 ](
@@ -132,7 +129,7 @@ func NewService[
 	eth1FollowDistance math.U64,
 	logger log.Logger,
 	chainSpec chain.ChainSpec,
-	executionEngine ExecutionEngine[PayloadAttributesT],
+	executionEngine ExecutionEngine,
 	localBuilder LocalBuilder[BeaconStateT],
 	stateProcessor StateProcessor[
 		BeaconBlockT,
@@ -146,13 +143,13 @@ func NewService[
 	ConsensusBlockT, BeaconBlockT,
 	BeaconStateT, BlockStoreT,
 	GenesisT,
-	ConsensusSidecarsT, BlobSidecarsT, PayloadAttributesT,
+	ConsensusSidecarsT, BlobSidecarsT,
 ] {
 	return &Service[
 		AvailabilityStoreT, DepositStoreT,
 		ConsensusBlockT, BeaconBlockT,
 		BeaconStateT, BlockStoreT,
-		GenesisT, ConsensusSidecarsT, BlobSidecarsT, PayloadAttributesT,
+		GenesisT, ConsensusSidecarsT, BlobSidecarsT,
 	]{
 		homeDir:                 homeDir,
 		storageBackend:          storageBackend,
@@ -175,13 +172,13 @@ func NewService[
 
 // Name returns the name of the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _,
 ]) Name() string {
 	return "blockchain"
 }
 
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _,
 ]) Start(ctx context.Context) error {
 	// Catchup deposits for failed blocks.
 	go s.depositCatchupFetcher(ctx)
@@ -190,7 +187,7 @@ func (s *Service[
 }
 
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _,
 ]) Stop() error {
 	return nil
 }

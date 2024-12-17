@@ -60,10 +60,7 @@ import (
 
 type (
 	// AttributesFactory is a type alias for the attributes factory.
-	AttributesFactory = attributes.Factory[
-		*BeaconState,
-		*PayloadAttributes,
-	]
+	AttributesFactory = attributes.Factory[*BeaconState]
 
 	// BlobProcessor is a type alias for the blob processor.
 	BlobProcessor = dablob.Processor[
@@ -84,17 +81,16 @@ type (
 		*Genesis,
 		*ConsensusSidecars,
 		*BlobSidecars,
-		*PayloadAttributes,
 	]
 
 	// CometBFTService is a type alias for the CometBFT service.
 	CometBFTService = cometbft.Service[*Logger]
 
 	// EngineClient is a type alias for the engine client.
-	EngineClient = engineclient.EngineClient[*PayloadAttributes]
+	EngineClient = engineclient.EngineClient
 
 	// EngineClient is a type alias for the engine client.
-	ExecutionEngine = execution.Engine[*PayloadAttributes, PayloadID]
+	ExecutionEngine = execution.Engine[PayloadID]
 
 	// IndexDB is a type alias for the range DB.
 	IndexDB = filedb.RangeDB
@@ -105,7 +101,6 @@ type (
 	// LocalBuilder is a type alias for the local builder.
 	LocalBuilder = payloadbuilder.PayloadBuilder[
 		*BeaconState,
-		*PayloadAttributes,
 		PayloadID,
 	]
 
@@ -116,7 +111,7 @@ type (
 	NodeAPIServer = server.Server[NodeAPIContext]
 
 	// ReportingService is a type alias for the reporting service.
-	ReportingService = version.ReportingService[*PayloadAttributes]
+	ReportingService = version.ReportingService
 
 	// SidecarFactory is a type alias for the sidecar factory.
 	SidecarFactory = dablob.SidecarFactory[*BeaconBlock]
@@ -227,9 +222,6 @@ type (
 
 	// NodeAPIContext is a type alias for the node API context.
 	NodeAPIContext = echo.Context
-
-	// PayloadAttributes is a type alias for the payload attributes.
-	PayloadAttributes = engineprimitives.PayloadAttributes
 
 	// PayloadID is a type alias for the payload ID.
 	PayloadID = engineprimitives.PayloadID

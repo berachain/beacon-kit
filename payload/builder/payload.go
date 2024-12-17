@@ -34,7 +34,7 @@ import (
 // returns the payload ID.
 func (pb *PayloadBuilder[
 	BeaconStateT,
-	PayloadAttributesT, PayloadIDT,
+	PayloadIDT,
 ]) RequestPayloadAsync(
 	ctx context.Context,
 	st BeaconStateT,
@@ -69,7 +69,7 @@ func (pb *PayloadBuilder[
 	// Submit the forkchoice update to the execution client.
 	var payloadID *PayloadIDT
 	payloadID, _, err = pb.ee.NotifyForkchoiceUpdate(
-		ctx, &ctypes.ForkchoiceUpdateRequest[PayloadAttributesT]{
+		ctx, &ctypes.ForkchoiceUpdateRequest{
 			State: &engineprimitives.ForkchoiceStateV1{
 				HeadBlockHash:      headEth1BlockHash,
 				SafeBlockHash:      finalEth1BlockHash,
@@ -95,7 +95,7 @@ func (pb *PayloadBuilder[
 // blocks until the payload is delivered.
 func (pb *PayloadBuilder[
 	BeaconStateT,
-	PayloadAttributesT, PayloadIDT,
+	PayloadIDT,
 ]) RequestPayloadSync(
 	ctx context.Context,
 	st BeaconStateT,
@@ -151,7 +151,7 @@ func (pb *PayloadBuilder[
 // execution client to return the payload.
 func (pb *PayloadBuilder[
 	BeaconStateT,
-	PayloadAttributesT, PayloadIDT,
+	PayloadIDT,
 ]) RetrievePayload(
 	ctx context.Context,
 	slot math.Slot,
@@ -215,7 +215,7 @@ func (pb *PayloadBuilder[
 // of some kind.
 func (pb *PayloadBuilder[
 	BeaconStateT,
-	PayloadAttributesT, PayloadIDT,
+	PayloadIDT,
 ]) SendForceHeadFCU(
 	ctx context.Context,
 	st BeaconStateT,
@@ -239,9 +239,9 @@ func (pb *PayloadBuilder[
 	)
 
 	// Submit the forkchoice update to the execution client.
-	var attrs PayloadAttributesT
+	var attrs *engineprimitives.PayloadAttributes
 	_, _, err = pb.ee.NotifyForkchoiceUpdate(
-		ctx, &ctypes.ForkchoiceUpdateRequest[PayloadAttributesT]{
+		ctx, &ctypes.ForkchoiceUpdateRequest{
 			State: &engineprimitives.ForkchoiceStateV1{
 				HeadBlockHash:      lph.GetBlockHash(),
 				SafeBlockHash:      lph.GetParentHash(),
@@ -255,7 +255,7 @@ func (pb *PayloadBuilder[
 }
 
 func (pb *PayloadBuilder[
-	_, _, PayloadIDT,
+	_, PayloadIDT,
 ]) getPayload(
 	ctx context.Context,
 	payloadID PayloadIDT,

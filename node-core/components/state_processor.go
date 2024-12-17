@@ -23,7 +23,6 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/chain-spec/chain"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/execution/engine"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
@@ -39,13 +38,10 @@ type StateProcessorInput[
 	depinject.In
 	Logger          LoggerT
 	ChainSpec       chain.ChainSpec
-	ExecutionEngine *engine.Engine[
-		*engineprimitives.PayloadAttributes,
-		PayloadID,
-	]
-	DepositStore  DepositStore
-	Signer        crypto.BLSSigner
-	TelemetrySink *metrics.TelemetrySink
+	ExecutionEngine *engine.Engine[PayloadID]
+	DepositStore    DepositStore
+	Signer          crypto.BLSSigner
+	TelemetrySink   *metrics.TelemetrySink
 }
 
 // ProvideStateProcessor provides the state processor to the depinject

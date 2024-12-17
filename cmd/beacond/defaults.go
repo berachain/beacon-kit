@@ -64,7 +64,7 @@ func DefaultComponents() []any {
 			*BeaconState, *BeaconStateMarshallable,
 			*KVStore, *Logger,
 		],
-		components.ProvideReportingService[*PayloadAttributes, *Logger],
+		components.ProvideReportingService[*Logger],
 		components.ProvideCometBFTService[*Logger],
 		components.ProvideServiceRegistry[
 			*AvailabilityStore,

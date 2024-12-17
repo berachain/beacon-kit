@@ -45,14 +45,13 @@ type (
 	// AttributesFactory is the interface for the attributes factory.
 	AttributesFactory[
 		BeaconStateT any,
-		PayloadAttributesT any,
 	] interface {
 		BuildPayloadAttributes(
 			st BeaconStateT,
 			slot math.Slot,
 			timestamp uint64,
 			prevHeadRoot [32]byte,
-		) (PayloadAttributesT, error)
+		) (*engineprimitives.PayloadAttributes, error)
 	}
 
 	// AvailabilityStore is the interface for the availability store.

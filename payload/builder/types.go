@@ -69,14 +69,13 @@ type ExecutionPayload[T any] interface {
 // AttributesFactory is the interface for the attributes factory.
 type AttributesFactory[
 	BeaconStateT any,
-	PayloadAttributesT any,
 ] interface {
 	BuildPayloadAttributes(
 		st BeaconStateT,
 		slot math.U64,
 		timestamp uint64,
 		prevHeadRoot [32]byte,
-	) (PayloadAttributesT, error)
+	) (*engineprimitives.PayloadAttributes, error)
 }
 
 // PayloadAttributes is the interface for the payload attributes.
@@ -97,7 +96,7 @@ type PayloadAttributes[
 
 // ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine[
-	PayloadAttributesT any, PayloadIDT ~[8]byte,
+	PayloadIDT ~[8]byte,
 ] interface {
 	// GetPayload returns the payload and blobs bundle for the given slot.
 	GetPayload(
@@ -108,6 +107,6 @@ type ExecutionEngine[
 	// update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
-		req *ctypes.ForkchoiceUpdateRequest[PayloadAttributesT],
+		req *ctypes.ForkchoiceUpdateRequest,
 	) (*PayloadIDT, *common.ExecutionHash, error)
 }
