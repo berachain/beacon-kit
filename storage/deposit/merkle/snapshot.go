@@ -23,6 +23,7 @@ package merkle
 import (
 	"bytes"
 
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/merkle"
 	"github.com/berachain/beacon-kit/primitives/merkle/zero"
@@ -31,15 +32,15 @@ import (
 // DepositTreeSnapshot represents the data used to create a deposit tree given a
 // snapshot.
 type DepositTreeSnapshot struct {
-	finalized      [][32]byte
-	depositRoot    [32]byte
+	finalized      []common.Root
+	depositRoot    common.Root
 	depositCount   uint64
 	executionBlock executionBlock
-	hasher         merkle.Hasher[[32]byte]
+	hasher         merkle.Hasher[common.Root]
 }
 
 // CalculateRoot returns the root of a deposit tree snapshot.
-func (ds *DepositTreeSnapshot) CalculateRoot() [32]byte {
+func (ds *DepositTreeSnapshot) CalculateRoot() common.Root {
 	size := ds.depositCount
 	index := len(ds.finalized)
 	root := zero.Hashes[0]
@@ -106,8 +107,8 @@ func fromSnapshot(snapshot DepositTreeSnapshot) (*DepositTree, error) {
 
 // fromTreeParts constructs the deposit tree from pre-existing data.
 func fromTreeParts(
-	hasher merkle.Hasher[[32]byte],
-	finalised [][32]byte,
+	hasher merkle.Hasher[common.Root],
+	finalised []common.Root,
 	depositCount uint64,
 	executionBlock executionBlock,
 ) DepositTreeSnapshot {

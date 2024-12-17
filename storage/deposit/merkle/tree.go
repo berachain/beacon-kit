@@ -23,11 +23,11 @@ package merkle
 import (
 	"encoding/binary"
 
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto/sha256"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/merkle"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 // DepositTree is the Merkle tree representation of deposits.
@@ -35,19 +35,19 @@ type DepositTree struct {
 	tree                    TreeNode
 	mixInLength             uint64
 	finalizedExecutionBlock executionBlock
-	hasher                  merkle.Hasher[[32]byte]
+	hasher                  merkle.Hasher[common.Root]
 }
 
 type executionBlock struct {
-	Hash  [32]byte
+	Hash  common.Root
 	Depth uint64
 }
 
 // NewDepositTree creates an empty deposit tree.
 func NewDepositTree() *DepositTree {
 	var (
-		hasher = merkle.NewHasher[[32]byte](sha256.Hash)
-		leaves [][32]byte
+		hasher = merkle.NewHasher[common.Root](sha256.Hash)
+		leaves []common.Root
 	)
 	merkle := create(hasher, leaves, constants.DepositContractDepth)
 	return &DepositTree{
@@ -60,7 +60,7 @@ func NewDepositTree() *DepositTree {
 
 // GetSnapshot returns a deposit tree snapshot.
 func (d *DepositTree) GetSnapshot() DepositTreeSnapshot {
-	var finalized [][32]byte
+	var finalized []common.Root
 	mixInLength, finalized := d.tree.GetFinalized(finalized)
 	return fromTreeParts(
 		d.hasher,
@@ -73,10 +73,10 @@ func (d *DepositTree) GetSnapshot() DepositTreeSnapshot {
 // Finalize marks a deposit as finalized.
 func (d *DepositTree) Finalize(
 	eth1DepositIndex uint64,
-	executionHash common.Hash,
+	executionHash common.Root,
 	executionNumber uint64,
 ) error {
-	var blockHash [32]byte
+	var blockHash common.Root
 	copy(blockHash[:], executionHash[:])
 	d.finalizedExecutionBlock = executionBlock{
 		Hash:  blockHash,
@@ -91,40 +91,40 @@ func (d *DepositTree) Finalize(
 }
 
 // getProof returns the deposit tree proof.
-func (d *DepositTree) getProof(index uint64) ([32]byte, [][32]byte, error) {
+func (d *DepositTree) getProof(index uint64) (common.Root, []common.Root, error) {
 	if d.mixInLength <= 0 {
-		return [32]byte{}, nil, ErrInvalidDepositCount
+		return common.Root{}, nil, ErrInvalidDepositCount
 	}
 	if index >= d.mixInLength {
-		return [32]byte{}, nil, ErrInvalidIndex
+		return common.Root{}, nil, ErrInvalidIndex
 	}
-	finalizedDeposits, _ := d.tree.GetFinalized([][32]byte{})
+	finalizedDeposits, _ := d.tree.GetFinalized([]common.Root{})
 	finalizedIdx := -1
 	if finalizedDeposits != 0 {
 		fd, err := math.Int(finalizedDeposits)
 		if err != nil {
-			return [32]byte{}, nil, err
+			return common.Root{}, nil, err
 		}
 		finalizedIdx = fd - 1
 	}
 	i, err := math.Int(index)
 	if err != nil {
-		return [32]byte{}, nil, err
+		return common.Root{}, nil, err
 	}
 	if finalizedDeposits > 0 && i <= finalizedIdx {
-		return [32]byte{}, nil, ErrInvalidIndex
+		return common.Root{}, nil, ErrInvalidIndex
 	}
 	leaf, proof := generateProof(d.tree, index, constants.DepositContractDepth)
 
-	mixInLength := [32]byte{}
+	mixInLength := common.Root{}
 	binary.LittleEndian.PutUint64(mixInLength[:], d.mixInLength)
 	proof = append(proof, mixInLength)
 	return leaf, proof, nil
 }
 
 // getRoot returns the root of the deposit tree.
-func (d *DepositTree) getRoot() [32]byte {
-	var enc [32]byte
+func (d *DepositTree) getRoot() common.Root {
+	var enc common.Root
 	binary.LittleEndian.PutUint64(enc[:], d.mixInLength)
 
 	root := d.tree.GetRoot()
@@ -132,7 +132,7 @@ func (d *DepositTree) getRoot() [32]byte {
 }
 
 // pushLeaf adds a new leaf to the tree.
-func (d *DepositTree) pushLeaf(leaf [32]byte) error {
+func (d *DepositTree) pushLeaf(leaf common.Root) error {
 	var err error
 	d.tree, err = d.tree.PushLeaf(leaf, constants.DepositContractDepth)
 	if err != nil {
@@ -145,14 +145,14 @@ func (d *DepositTree) pushLeaf(leaf [32]byte) error {
 // Insert is defined as part of MerkleTree interface and adds a new leaf to the
 // tree.
 func (d *DepositTree) Insert(item []byte, _ int) error {
-	var leaf [32]byte
+	var leaf common.Root
 	copy(leaf[:], item[:32])
 	return d.pushLeaf(leaf)
 }
 
 // HashTreeRoot is defined as part of MerkleTree interface and calculates the
 // hash tree root.
-func (d *DepositTree) HashTreeRoot() [32]byte {
+func (d *DepositTree) HashTreeRoot() common.Root {
 	return d.getRoot()
 }
 

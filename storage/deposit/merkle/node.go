@@ -21,6 +21,7 @@
 package merkle
 
 import (
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math/pow"
 	"github.com/berachain/beacon-kit/primitives/merkle"
@@ -31,11 +32,11 @@ import (
 // interface.
 type FinalizedNode struct {
 	depositCount uint64
-	hash         [32]byte
+	hash         common.Root
 }
 
 // GetRoot returns the root of the Merkle tree.
-func (f *FinalizedNode) GetRoot() [32]byte {
+func (f *FinalizedNode) GetRoot() common.Root {
 	return f.hash
 }
 
@@ -53,12 +54,12 @@ func (f *FinalizedNode) Finalize(_, _ uint64) (TreeNode, error) {
 
 // GetFinalized returns a list of hashes of all the finalized nodes and the
 // number of deposits.
-func (f *FinalizedNode) GetFinalized(result [][32]byte) (uint64, [][32]byte) {
+func (f *FinalizedNode) GetFinalized(result []common.Root) (uint64, []common.Root) {
 	return f.depositCount, append(result, f.hash)
 }
 
 // PushLeaf adds a new leaf node at the next available zero node.
-func (*FinalizedNode) PushLeaf([32]byte, uint64) (TreeNode, error) {
+func (*FinalizedNode) PushLeaf(common.Root, uint64) (TreeNode, error) {
 	return nil, ErrFinalizedNodeCannotPushLeaf
 }
 
@@ -90,11 +91,11 @@ func (f *FinalizedNode) Equals(other TreeNode) bool {
 // LeafNode represents a leaf node holding a deposit and satisfies the TreeNode
 // interface.
 type LeafNode struct {
-	hash [32]byte
+	hash common.Root
 }
 
 // GetRoot returns the root of the Merkle tree.
-func (l *LeafNode) GetRoot() [32]byte {
+func (l *LeafNode) GetRoot() common.Root {
 	return l.hash
 }
 
@@ -112,12 +113,12 @@ func (l *LeafNode) Finalize(_, _ uint64) (TreeNode, error) {
 
 // GetFinalized returns a list of hashes of all the finalized nodes and the
 // number of deposits.
-func (*LeafNode) GetFinalized(result [][32]byte) (uint64, [][32]byte) {
+func (*LeafNode) GetFinalized(result []common.Root) (uint64, []common.Root) {
 	return 0, result
 }
 
 // PushLeaf adds a new leaf node at the next available zero node.
-func (*LeafNode) PushLeaf([32]byte, uint64) (TreeNode, error) {
+func (*LeafNode) PushLeaf(common.Root, uint64) (TreeNode, error) {
 	return nil, ErrLeafNodeCannotPushLeaf
 }
 
@@ -151,11 +152,11 @@ func (l *LeafNode) Equals(other TreeNode) bool {
 // TreeNode interface.
 type InnerNode struct {
 	left, right TreeNode
-	hasher      merkle.Hasher[[32]byte]
+	hasher      merkle.Hasher[common.Root]
 }
 
 // GetRoot returns the root of the Merkle tree.
-func (n *InnerNode) GetRoot() [32]byte {
+func (n *InnerNode) GetRoot() common.Root {
 	left := n.left.GetRoot()
 	right := n.right.GetRoot()
 	return n.hasher.Combi(left, right)
@@ -197,7 +198,7 @@ func (n *InnerNode) Finalize(
 
 // GetFinalized returns a list of hashes of all the finalized nodes and the
 // number of deposits.
-func (n *InnerNode) GetFinalized(result [][32]byte) (uint64, [][32]byte) {
+func (n *InnerNode) GetFinalized(result []common.Root) (uint64, []common.Root) {
 	leftDeposits, result := n.left.GetFinalized(result)
 	rightDeposits, result := n.right.GetFinalized(result)
 	return leftDeposits + rightDeposits, result
@@ -206,7 +207,7 @@ func (n *InnerNode) GetFinalized(result [][32]byte) (uint64, [][32]byte) {
 // PushLeaf adds a new leaf node at the next available zero node.
 //
 //nolint:nestif // recursion.
-func (n *InnerNode) PushLeaf(leaf [32]byte, depth uint64) (TreeNode, error) {
+func (n *InnerNode) PushLeaf(leaf common.Root, depth uint64) (TreeNode, error) {
 	if !n.left.IsFull() {
 		left, err := n.left.PushLeaf(leaf, depth-1)
 		if err == nil {
@@ -254,11 +255,11 @@ func (n *InnerNode) Equals(other TreeNode) bool {
 // TreeNode interface.
 type ZeroNode struct {
 	depth  uint64
-	hasher merkle.Hasher[[32]byte]
+	hasher merkle.Hasher[common.Root]
 }
 
 // GetRoot returns the root of the Merkle tree.
-func (z *ZeroNode) GetRoot() [32]byte {
+func (z *ZeroNode) GetRoot() common.Root {
 	if z.depth == constants.DepositContractDepth {
 		return z.hasher.Combi(zero.Hashes[z.depth-1], zero.Hashes[z.depth-1])
 	}
@@ -279,13 +280,13 @@ func (*ZeroNode) Finalize(_, _ uint64) (TreeNode, error) {
 
 // GetFinalized returns a list of hashes of all the finalized nodes and the
 // number of deposits.
-func (*ZeroNode) GetFinalized(result [][32]byte) (uint64, [][32]byte) {
+func (*ZeroNode) GetFinalized(result []common.Root) (uint64, []common.Root) {
 	return 0, result
 }
 
 // PushLeaf adds a new leaf node at the next available zero node.
-func (z *ZeroNode) PushLeaf(leaf [32]byte, depth uint64) (TreeNode, error) {
-	return create(z.hasher, [][32]byte{leaf}, depth), nil
+func (z *ZeroNode) PushLeaf(leaf common.Root, depth uint64) (TreeNode, error) {
+	return create(z.hasher, []common.Root{leaf}, depth), nil
 }
 
 // Right returns nil as a zero node can't have any children.

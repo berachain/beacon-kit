@@ -35,11 +35,11 @@ import (
 )
 
 func Test_create(t *testing.T) {
-	hasher := merkle.NewHasher[[32]byte](sha256.Hash)
+	hasher := merkle.NewHasher[common.Root](sha256.Hash)
 
 	tests := []struct {
 		name   string
-		leaves [][32]byte
+		leaves []common.Root
 		depth  uint64
 		want   TreeNode
 	}{
@@ -51,13 +51,13 @@ func Test_create(t *testing.T) {
 		},
 		{
 			name:   "zero depth",
-			leaves: [][32]byte{hexString(t, fmt.Sprintf("%064d", 0))},
+			leaves: []common.Root{hexString(t, fmt.Sprintf("%064d", 0))},
 			depth:  0,
 			want:   &LeafNode{},
 		},
 		{
 			name:   "depth of 1",
-			leaves: [][32]byte{hexString(t, fmt.Sprintf("%064d", 0))},
+			leaves: []common.Root{hexString(t, fmt.Sprintf("%064d", 0))},
 			depth:  1,
 			want: &InnerNode{
 				left:   &LeafNode{},
@@ -82,11 +82,11 @@ func Test_create(t *testing.T) {
 func Test_fromSnapshotParts(t *testing.T) {
 	tests := []struct {
 		name      string
-		finalized [][32]byte
+		finalized []common.Root
 	}{
 		{
 			name: "multiple deposits and multiple Finalized",
-			finalized: [][32]byte{
+			finalized: []common.Root{
 				hexString(t, fmt.Sprintf("%064d", 1)),
 				hexString(t, fmt.Sprintf("%064d", 2)),
 			},
@@ -132,13 +132,13 @@ func Test_fromSnapshotParts(t *testing.T) {
 
 // TODO: add tests against spec for generateProof.
 
-func hexString(t *testing.T, hexStr string) [32]byte {
+func hexString(t *testing.T, hexStr string) common.Root {
 	t.Helper()
 	b, err := hex.DecodeString(hexStr)
 	require.NoError(t, err)
 	if len(b) != 32 {
 		require.Len(t, b, 32, "bad hash length, expected 32")
 	}
-	x := (*[32]byte)(b)
+	x := (*common.Root)(b)
 	return *x
 }

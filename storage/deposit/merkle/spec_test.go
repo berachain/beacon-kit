@@ -24,7 +24,6 @@ package merkle
 import (
 	"bytes"
 	"encoding/hex"
-	"fmt"
 	"net/http"
 	"os"
 	"strconv"
@@ -83,7 +82,7 @@ func readTestCases(t *testing.T) []testCase {
 
 type testCase struct {
 	DepositData     depositData `yaml:"deposit_data"`
-	DepositDataRoot [32]byte    `yaml:"deposit_data_root"`
+	DepositDataRoot common.Root `yaml:"deposit_data_root"`
 	Eth1Data        *eth1Data   `yaml:"eth1_data"`
 	BlockHeight     uint64      `yaml:"block_height"`
 	Snapshot        snapshot    `yaml:"snapshot"`
@@ -153,9 +152,9 @@ func (dd *depositData) UnmarshalYAML(value *yaml.Node) error {
 }
 
 type eth1Data struct {
-	DepositRoot  [32]byte `yaml:"deposit_root"`
-	DepositCount uint64   `yaml:"deposit_count"`
-	BlockHash    [32]byte `yaml:"block_hash"`
+	DepositRoot  common.Root `yaml:"deposit_root"`
+	DepositCount uint64      `yaml:"deposit_count"`
+	BlockHash    common.Root `yaml:"block_hash"`
 }
 
 func (ed *eth1Data) UnmarshalYAML(value *yaml.Node) error {
@@ -199,7 +198,7 @@ func (sd *snapshot) UnmarshalYAML(value *yaml.Node) error {
 	if err != nil {
 		return err
 	}
-	sd.finalized = make([][32]byte, len(raw.Finalized))
+	sd.finalized = make([]common.Root, len(raw.Finalized))
 	for i, finalized := range raw.Finalized {
 		sd.finalized[i], err = hexStringToByteArray(finalized)
 		if err != nil {
@@ -222,19 +221,19 @@ func (sd *snapshot) UnmarshalYAML(value *yaml.Node) error {
 	if err != nil {
 		return err
 	}
-	sd.hasher = merkle.NewHasher[[32]byte](sha256.Hash)
+	sd.hasher = merkle.NewHasher[common.Root](sha256.Hash)
 	return nil
 }
 
-func hexStringToByteArray(s string) ([32]byte, error) {
+func hexStringToByteArray(s string) (common.Root, error) {
 	raw, err := hexStringToBytes(s)
 	if err != nil {
-		return [32]byte{}, err
+		return common.Root{}, err
 	}
 	if len(raw) != 32 {
-		return [32]byte{}, errors.New("invalid hex string length")
+		return common.Root{}, errors.New("invalid hex string length")
 	}
-	b := [32]byte{}
+	b := common.Root{}
 	copy(b[:], raw[:32])
 	return b, nil
 }
@@ -252,11 +251,11 @@ func stringToUint64(s string) (uint64, error) {
 }
 
 func merkleRootFromBranch(
-	hasher merkle.Hasher[[32]byte],
-	leaf [32]byte,
-	branch [][32]byte,
+	hasher merkle.Hasher[common.Root],
+	leaf common.Root,
+	branch []common.Root,
 	index uint64,
-) [32]byte {
+) common.Root {
 	root := leaf
 	for i, l := range branch {
 		ithBit := (index >> i) & 0x1
@@ -310,7 +309,7 @@ func TestDepositCases(t *testing.T) {
 }
 
 type Test struct {
-	DepositDataRoot [32]byte
+	DepositDataRoot common.Root
 }
 
 func TestRootEquivalence(t *testing.T) {
@@ -318,7 +317,7 @@ func TestRootEquivalence(t *testing.T) {
 	tree := NewDepositTree()
 	testCases := readTestCases(t)
 
-	depositRoots := make([][32]byte, len(testCases[:128]))
+	depositRoots := make([]common.Root, len(testCases[:128]))
 	for i, c := range testCases[:128] {
 		err = tree.pushLeaf(c.DepositDataRoot)
 		require.NoError(t, err)
@@ -420,7 +419,7 @@ func TestInvalidSnapshot(t *testing.T) {
 			Hash:  zero.Hashes[0],
 			Depth: 0,
 		},
-		hasher: merkle.NewHasher[[32]byte](sha256.Hash),
+		hasher: merkle.NewHasher[common.Root](sha256.Hash),
 	}
 	_, err := fromSnapshot(invalidSnapshot)
 	require.ErrorContains(t, err, "snapshot root is invalid")
@@ -430,7 +429,7 @@ func TestEmptyTree(t *testing.T) {
 	tree := NewDepositTree()
 	require.Equal(
 		t,
-		"d70a234731285c6804c2a4f56711ddb8c82c99740f207854891028af34e27e5e",
-		fmt.Sprintf("%x", tree.getRoot()),
+		"0xd70a234731285c6804c2a4f56711ddb8c82c99740f207854891028af34e27e5e",
+		tree.getRoot().Hex(),
 	)
 }
