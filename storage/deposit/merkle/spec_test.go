@@ -60,14 +60,18 @@ func readTestCases(t *testing.T) []testCase {
 	resp, err := http.Get(url)
 	if err != nil {
 		t.Logf("failed to download test cases (%v), trying local file...", err)
-		if enc, err := os.ReadFile(filePath); err == nil {
-			err = yaml.Unmarshal(enc, &testCases)
-			require.NoError(t, err)
-			require.NotEmpty(t, testCases)
-			return testCases
-		} else {
+
+		var enc []byte
+		enc, err = os.ReadFile(filePath)
+		if err != nil {
 			t.Skipf("skipping, local file %s is missing (%v)", filePath, err)
+			return nil
 		}
+
+		err = yaml.Unmarshal(enc, &testCases)
+		require.NoError(t, err)
+		require.NotEmpty(t, testCases)
+		return testCases
 	}
 	defer resp.Body.Close()
 
