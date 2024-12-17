@@ -67,8 +67,7 @@ func NewWrappedDepositContract(
 
 // ReadDeposits reads deposits from the deposit contract.
 func (dc *WrappedDepositContract) ReadDeposits(
-	ctx context.Context,
-	blkNum math.U64,
+	ctx context.Context, blkNum math.U64,
 ) ([]*ctypes.Deposit, common.ExecutionHash, error) {
 	logs, err := dc.FilterDeposit(
 		&bind.FilterOpts{
@@ -84,7 +83,7 @@ func (dc *WrappedDepositContract) ReadDeposits(
 	var (
 		blockNumStr = blkNum.Base10()
 		deposits    = make([]*ctypes.Deposit, 0)
-		blockHash   *common.ExecutionHash
+		blockHash   common.ExecutionHash
 	)
 	for logs.Next() {
 		var (
@@ -94,28 +93,29 @@ func (dc *WrappedDepositContract) ReadDeposits(
 		)
 		pubKey, err = bytes.ToBytes48(logs.Event.Pubkey)
 		if err != nil {
-			return nil, common.ExecutionHash{}, fmt.Errorf("failed reading pub key: %w", err)
+			return nil, blockHash, fmt.Errorf("failed reading pub key: %w", err)
 		}
 		cred, err = bytes.ToBytes32(logs.Event.Credentials)
 		if err != nil {
-			return nil, common.ExecutionHash{}, fmt.Errorf("failed reading credentials: %w", err)
+			return nil, blockHash, fmt.Errorf("failed reading credentials: %w", err)
 		}
 		sign, err = bytes.ToBytes96(logs.Event.Signature)
 		if err != nil {
-			return nil, common.ExecutionHash{}, fmt.Errorf("failed reading signature: %w", err)
+			return nil, blockHash, fmt.Errorf("failed reading signature: %w", err)
 		}
 
 		deposits = append(deposits, ctypes.NewDeposit(
 			pubKey, ctypes.WithdrawalCredentials(cred), math.U64(logs.Event.Amount), sign, logs.Event.Index,
 		))
 
-		if blockHash == nil {
-			blockHash = &common.ExecutionHash{}
-			*blockHash = common.ExecutionHash(logs.Event.Raw.BlockHash)
+		if blockHash == (common.ExecutionHash{}) {
+			blockHash = common.ExecutionHash(logs.Event.Raw.BlockHash)
 		}
 
-		dc.telemetrySink.IncrementCounter("beacon_kit.execution.deposits_read", "block_num", blockNumStr)
+		dc.telemetrySink.IncrementCounter(
+			"beacon_kit.execution.deposits_read", "block_num", blockNumStr, "block_hash", blockHash.Hex(),
+		)
 	}
 
-	return deposits, *blockHash, nil
+	return deposits, blockHash, nil
 }
