@@ -202,6 +202,7 @@ type (
 	}
 
 	BlobSidecar interface {
+		GetIndex() uint64
 		GetSignedBeaconBlockHeader() *ctypes.SignedBeaconBlockHeader
 		GetBlob() eip4844.Blob
 		GetKzgProof() eip4844.KZGProof
