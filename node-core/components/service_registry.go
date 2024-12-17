@@ -70,7 +70,6 @@ type ServiceRegistryInput[
 	ValidatorService *validator.Service[
 		BeaconBlockT,
 		BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositStoreT,
-		*SlashingInfo, *SlotData,
 	]
 	CometBFTService *cometbft.Service[LoggerT]
 }

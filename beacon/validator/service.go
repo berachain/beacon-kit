@@ -36,8 +36,6 @@ type Service[
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	DepositStoreT DepositStore,
-	SlashingInfoT any,
-	SlotDataT SlotData[SlashingInfoT],
 ] struct {
 	// cfg is the validator config.
 	cfg *Config
@@ -76,8 +74,6 @@ func NewService[
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	DepositStoreT DepositStore,
-	SlashingInfoT any,
-	SlotDataT SlotData[SlashingInfoT],
 ](
 	cfg *Config,
 	logger log.Logger,
@@ -96,14 +92,10 @@ func NewService[
 ) *Service[
 	BeaconBlockT, BeaconStateT,
 	BlobSidecarT, BlobSidecarsT, DepositStoreT,
-	SlashingInfoT,
-	SlotDataT,
 ] {
 	return &Service[
 		BeaconBlockT,
 		BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositStoreT,
-		SlashingInfoT,
-		SlotDataT,
 	]{
 		cfg:                   cfg,
 		logger:                logger,
@@ -120,19 +112,19 @@ func NewService[
 
 // Name returns the name of the service.
 func (s *Service[
-	_, _, _, _, _, _, _,
+	_, _, _, _, _,
 ]) Name() string {
 	return "validator"
 }
 
 func (s *Service[
-	_, _, _, _, _, _, _,
+	_, _, _, _, _,
 ]) Start(
 	_ context.Context,
 ) error {
 	return nil
 }
 
-func (s *Service[_, _, _, _, _, _, _]) Stop() error {
+func (s *Service[_, _, _, _, _]) Stop() error {
 	return nil
 }

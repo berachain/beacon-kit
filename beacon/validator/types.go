@@ -59,9 +59,7 @@ type BeaconBlock[
 }
 
 // BeaconBlockBody represents a beacon block body interface.
-type BeaconBlockBody[
-	SlashingInfoT any,
-] interface {
+type BeaconBlockBody interface {
 	constraints.SSZMarshallable
 	constraints.Nillable
 	// SetRandaoReveal sets the Randao reveal of the beacon block body.
@@ -77,7 +75,7 @@ type BeaconBlockBody[
 	// SetAttestations sets the attestations of the beacon block body.
 	SetAttestations([]*ctypes.AttestationData)
 	// SetSlashingInfo sets the slashing info of the beacon block body.
-	SetSlashingInfo([]SlashingInfoT)
+	SetSlashingInfo([]*ctypes.SlashingInfo)
 	// SetBlobKzgCommitments sets the blob KZG commitments of the beacon block
 	// body.
 	SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])
@@ -166,13 +164,13 @@ type PayloadBuilder[BeaconStateT any] interface {
 }
 
 // SlotData represents the slot data interface.
-type SlotData[SlashingInfoT any] interface {
+type SlotData interface {
 	// GetSlot returns the slot of the incoming slot.
 	GetSlot() math.Slot
 	// GetAttestationData returns the attestation data of the incoming slot.
 	GetAttestationData() []*ctypes.AttestationData
 	// GetSlashingInfo returns the slashing info of the incoming slot.
-	GetSlashingInfo() []SlashingInfoT
+	GetSlashingInfo() []*ctypes.SlashingInfo
 	// GetProposerAddress returns the address of the validator
 	// selected by consensus to propose the block
 	GetProposerAddress() []byte
@@ -234,6 +232,6 @@ type BlobSidecars[T, BlobSidecarT any] interface {
 type BlockBuilderI interface {
 	BuildBlockAndSidecars(
 		context.Context,
-		types.SlotData[ctypes.SlashingInfo],
+		types.SlotData,
 	) ([]byte, []byte, error)
 }
