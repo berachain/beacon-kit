@@ -38,11 +38,11 @@ import (
 //
 //nolint:gocognit,funlen // todo fix.
 func (sp *StateProcessor[
-	_, BeaconBlockBodyT, BeaconStateT, _, ExecutionPayloadHeaderT, _,
+	_, BeaconBlockBodyT, BeaconStateT, _, _,
 ]) InitializePreminedBeaconStateFromEth1(
 	st BeaconStateT,
 	deposits []*ctypes.Deposit,
-	execPayloadHeader ExecutionPayloadHeaderT,
+	execPayloadHeader *ctypes.ExecutionPayloadHeader,
 	genesisVersion chain.Version,
 ) (transition.ValidatorUpdates, error) {
 	if err := st.SetSlot(0); err != nil {
@@ -158,7 +158,7 @@ func (sp *StateProcessor[
 }
 
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _, _,
+	_, _, BeaconStateT, _, _,
 ]) processGenesisActivation(
 	st BeaconStateT,
 ) error {

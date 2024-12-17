@@ -34,7 +34,7 @@ import (
 // processExecutionPayload processes the execution payload and ensures it
 // matches the local state.
 func (sp *StateProcessor[
-	BeaconBlockT, _, BeaconStateT, ContextT, ExecutionPayloadHeaderT, _,
+	BeaconBlockT, _, BeaconStateT, ContextT, _,
 ]) processExecutionPayload(
 	ctx ContextT,
 	st BeaconStateT,
@@ -43,7 +43,7 @@ func (sp *StateProcessor[
 	var (
 		body    = blk.GetBody()
 		payload = body.GetExecutionPayload()
-		header  ExecutionPayloadHeaderT
+		header  *ctypes.ExecutionPayloadHeader
 		g, gCtx = errgroup.WithContext(context.Background())
 	)
 
@@ -76,18 +76,8 @@ func (sp *StateProcessor[
 	// header based on that version as a temporary solution to avoid breaking
 	// changes.
 	g.Go(func() error {
-		h, err := payload.ToHeader()
-		if err != nil {
-			return err
-		}
-
-		// TODO: Remove this once we remove ExecutionPayloadHeaderT generic type
-		var ok bool
-		header, ok = any(h).(ExecutionPayloadHeaderT)
-		if !ok {
-			panic("failed to convert ExecutionPayloadHeader to ExecutionPayloadHeaderT")
-		}
-
+		var err error
+		header, err = payload.ToHeader()
 		return err
 	})
 
@@ -102,7 +92,7 @@ func (sp *StateProcessor[
 // validateExecutionPayload validates the execution payload against both local
 // state and the execution engine.
 func (sp *StateProcessor[
-	BeaconBlockT, _, BeaconStateT, _, _, _,
+	BeaconBlockT, _, BeaconStateT, _, _,
 ]) validateExecutionPayload(
 	ctx context.Context,
 	st BeaconStateT,
@@ -124,7 +114,7 @@ func (sp *StateProcessor[
 
 // validateStatelessPayload performs stateless checks on the execution payload.
 func (sp *StateProcessor[
-	BeaconBlockT, _, _, _, _, _,
+	BeaconBlockT, _, _, _, _,
 ]) validateStatelessPayload(
 	blk BeaconBlockT,
 ) error {
@@ -156,7 +146,7 @@ func (sp *StateProcessor[
 
 // validateStatefulPayload performs stateful checks on the execution payload.
 func (sp *StateProcessor[
-	BeaconBlockT, _, BeaconStateT, _, _, _,
+	BeaconBlockT, _, BeaconStateT, _, _,
 ]) validateStatefulPayload(
 	ctx context.Context,
 	st BeaconStateT,

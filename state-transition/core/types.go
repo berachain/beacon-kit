@@ -36,11 +36,7 @@ import (
 
 // BeaconBlock represents a generic interface for a beacon block.
 type BeaconBlock[
-	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT,
-		ExecutionPayloadHeaderT,
-	],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader,
+	BeaconBlockBodyT BeaconBlockBody[BeaconBlockBodyT],
 ] interface {
 	IsNil() bool
 	// GetProposerIndex returns the index of the proposer.
@@ -59,7 +55,6 @@ type BeaconBlock[
 // block.
 type BeaconBlockBody[
 	BeaconBlockBodyT any,
-	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 ] interface {
 	constraints.EmptyWithVersion[BeaconBlockBodyT]
 	// GetRandaoReveal returns the RANDAO reveal signature.
@@ -108,11 +103,6 @@ type DepositStore interface {
 	) ([]*ctypes.Deposit, error)
 }
 
-type ExecutionPayloadHeader interface {
-	GetBlockHash() common.ExecutionHash
-	GetTimestamp() math.U64
-}
-
 // Withdrawals defines the interface for managing withdrawal operations.
 type Withdrawals interface {
 	Len() int
@@ -120,9 +110,7 @@ type Withdrawals interface {
 }
 
 // ExecutionEngine is the interface for the execution engine.
-type ExecutionEngine[
-	ExecutionPayloadHeaderT any,
-] interface {
+type ExecutionEngine interface {
 	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
 	// execution client.
 	VerifyAndNotifyNewPayload(

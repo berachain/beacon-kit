@@ -29,8 +29,7 @@ import (
 // PayloadBuilder is used to build payloads on the
 // execution client.
 type PayloadBuilder[
-	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader,
+	BeaconStateT BeaconState,
 	PayloadAttributesT PayloadAttributes[PayloadAttributesT],
 	PayloadIDT ~[8]byte,
 ] struct {
@@ -52,8 +51,7 @@ type PayloadBuilder[
 
 // New creates a new service.
 func New[
-	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader,
+	BeaconStateT BeaconState,
 	PayloadAttributesT PayloadAttributes[PayloadAttributesT],
 	PayloadIDT ~[8]byte,
 ](
@@ -64,11 +62,11 @@ func New[
 	pc PayloadCache[PayloadIDT, [32]byte, math.Slot],
 	af AttributesFactory[BeaconStateT, PayloadAttributesT],
 ) *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadHeaderT,
+	BeaconStateT,
 	PayloadAttributesT, PayloadIDT,
 ] {
 	return &PayloadBuilder[
-		BeaconStateT, ExecutionPayloadHeaderT,
+		BeaconStateT,
 		PayloadAttributesT, PayloadIDT,
 	]{
 		cfg:               cfg,
@@ -82,7 +80,7 @@ func New[
 
 // Enabled returns true if the payload builder is enabled.
 func (pb *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadHeaderT,
+	BeaconStateT,
 	PayloadAttributesT, PayloadIDT,
 ]) Enabled() bool {
 	return pb.cfg.Enabled

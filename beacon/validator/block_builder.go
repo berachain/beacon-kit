@@ -41,7 +41,7 @@ import (
 // BuildBlockAndSidecars builds a new beacon block.
 func (s *Service[
 	BeaconBlockT, _, _, _, BlobSidecarsT,
-	_, _, SlashingInfoT, SlotDataT,
+	_, SlashingInfoT, SlotDataT,
 ]) BuildBlockAndSidecars(
 	ctx context.Context,
 	slotData types.SlotData[ctypes.SlashingInfo],
@@ -150,7 +150,7 @@ func (s *Service[
 
 // getEmptyBeaconBlockForSlot creates a new empty block.
 func (s *Service[
-	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _,
+	BeaconBlockT, _, BeaconStateT, _, _, _, _, _,
 ]) getEmptyBeaconBlockForSlot(
 	st BeaconStateT, requestedSlot math.Slot,
 ) (BeaconBlockT, error) {
@@ -181,7 +181,7 @@ func (s *Service[
 }
 
 func (s *Service[
-	_, _, BeaconStateT, _, _, _, _, _, _,
+	_, _, BeaconStateT, _, _, _, _, _,
 ]) buildForkData(
 	st BeaconStateT,
 	slot math.Slot,
@@ -205,7 +205,7 @@ func (s *Service[
 
 // buildRandaoReveal builds a randao reveal for the given slot.
 func (s *Service[
-	_, _, BeaconStateT, _, _, _, _, _, _,
+	_, _, BeaconStateT, _, _, _, _, _,
 ]) buildRandaoReveal(
 	forkData *ctypes.ForkData,
 	slot math.Slot,
@@ -221,7 +221,7 @@ func (s *Service[
 // retrieveExecutionPayload retrieves the execution payload for the block.
 func (s *Service[
 	BeaconBlockT, _, BeaconStateT, _, _, _,
-	ExecutionPayloadHeaderT, SlashingInfoT, SlotDataT,
+	SlashingInfoT, SlotDataT,
 ]) retrieveExecutionPayload(
 	ctx context.Context,
 	st BeaconStateT,
@@ -258,7 +258,7 @@ func (s *Service[
 
 	// The latest execution payload header will be from the previous block
 	// during the block building phase.
-	var lph ExecutionPayloadHeaderT
+	var lph *ctypes.ExecutionPayloadHeader
 	lph, err = st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return nil, err
@@ -282,7 +282,7 @@ func (s *Service[
 // BuildBlockBody assembles the block body with necessary components.
 func (s *Service[
 	BeaconBlockT, _, BeaconStateT, _, _, _,
-	_, SlashingInfoT, SlotDataT,
+	SlashingInfoT, SlotDataT,
 ]) buildBlockBody(
 	_ context.Context,
 	st BeaconStateT,
@@ -377,7 +377,7 @@ func (s *Service[
 // computeAndSetStateRoot computes the state root of an outgoing block
 // and sets it in the block.
 func (s *Service[
-	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _,
+	BeaconBlockT, _, BeaconStateT, _, _, _, _, _,
 ]) computeAndSetStateRoot(
 	ctx context.Context,
 	proposerAddress []byte,
@@ -406,7 +406,7 @@ func (s *Service[
 
 // computeStateRoot computes the state root of an outgoing block.
 func (s *Service[
-	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _,
+	BeaconBlockT, _, BeaconStateT, _, _, _, _, _,
 ]) computeStateRoot(
 	ctx context.Context,
 	proposerAddress []byte,

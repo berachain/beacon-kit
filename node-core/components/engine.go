@@ -47,7 +47,6 @@ type EngineClientInputs[LoggerT any] struct {
 
 // ProvideEngineClient creates a new EngineClient.
 func ProvideEngineClient[
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	in EngineClientInputs[LoggerT],
@@ -63,7 +62,6 @@ func ProvideEngineClient[
 
 // EngineClientInputs is the input for the EngineClient.
 type ExecutionEngineInputs[
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	LoggerT any,
 ] struct {
 	depinject.In
@@ -75,12 +73,9 @@ type ExecutionEngineInputs[
 // ProvideExecutionEngine provides the execution engine to the depinject
 // framework.
 func ProvideExecutionEngine[
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
-	in ExecutionEngineInputs[
-		ExecutionPayloadHeaderT, LoggerT,
-	],
+	in ExecutionEngineInputs[LoggerT],
 ) *engine.Engine[
 	*engineprimitives.PayloadAttributes,
 	PayloadID,

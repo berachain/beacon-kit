@@ -35,7 +35,6 @@ import (
 // framework.
 type StateProcessorInput[
 	LoggerT log.AdvancedLogger[LoggerT],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 ] struct {
 	depinject.In
 	Logger          LoggerT
@@ -58,32 +57,22 @@ func ProvideStateProcessor[
 		BeaconBlockBodyT,
 		*SlashingInfo,
 	],
-	BeaconStateT BeaconState[
-		BeaconStateT, BeaconStateMarshallableT,
-		ExecutionPayloadHeaderT, KVStoreT,
-	],
+	BeaconStateT BeaconState[BeaconStateT, BeaconStateMarshallableT, KVStoreT],
 	BeaconStateMarshallableT any,
 	DepositStoreT DepositStore,
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-	KVStoreT BeaconStore[
-		KVStoreT, ExecutionPayloadHeaderT,
-	],
+	KVStoreT BeaconStore[KVStoreT],
 ](
-	in StateProcessorInput[
-		LoggerT,
-		ExecutionPayloadHeaderT,
-	],
+	in StateProcessorInput[LoggerT],
 ) *core.StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT,
 	BeaconStateT, *Context,
-	ExecutionPayloadHeaderT, KVStoreT,
+	KVStoreT,
 ] {
 	return core.NewStateProcessor[
 		BeaconBlockT,
 		BeaconBlockBodyT,
 		BeaconStateT,
 		*Context,
-		ExecutionPayloadHeaderT,
 		KVStoreT,
 	](
 		in.Logger.With("service", "state-processor"),

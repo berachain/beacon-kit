@@ -29,9 +29,7 @@ import (
 // GetExecutionNumber returns the block number from the latest execution
 // payload header for the given timestamp id, along with the proof that can be
 // verified against the beacon block root.
-func (h *Handler[
-	_, _, ContextT, _,
-]) GetExecutionNumber(c ContextT) (any, error) {
+func (h *Handler[_, _, ContextT]) GetExecutionNumber(c ContextT) (any, error) {
 	params, err := utils.BindAndValidate[types.ExecutionNumberRequest](
 		c, h.Logger(),
 	)

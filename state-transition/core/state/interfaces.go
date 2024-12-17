@@ -31,10 +31,7 @@ import (
 )
 
 // KVStore is the interface for the key-value store holding the beacon state.
-type KVStore[
-	T,
-	ExecutionPayloadHeaderT any,
-] interface {
+type KVStore[T any] interface {
 	// Context returns the context of the key-value store.
 	Context() context.Context
 	// WithContext returns a new key-value store with the given context.
@@ -44,11 +41,11 @@ type KVStore[
 	// GetLatestExecutionPayloadHeader retrieves the latest execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (
-		ExecutionPayloadHeaderT, error,
+		*ctypes.ExecutionPayloadHeader, error,
 	)
 	// SetLatestExecutionPayloadHeader sets the latest execution payload header.
 	SetLatestExecutionPayloadHeader(
-		payloadHeader ExecutionPayloadHeaderT,
+		payloadHeader *ctypes.ExecutionPayloadHeader,
 	) error
 	// GetEth1DepositIndex retrieves the eth1 deposit index.
 	GetEth1DepositIndex() (uint64, error)
