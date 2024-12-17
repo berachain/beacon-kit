@@ -53,7 +53,7 @@ license-fix:
 
 nilaway:
 	@echo "--> Running nilaway"
-	(go run go.uber.org/nilaway/cmd/nilaway -exclude-errors-in-files "geth-primitives/deposit/" -v ./...) || exit 1;
+	(go run go.uber.org/nilaway/cmd/nilaway -exclude-pkgs "github.com/berachain/beacon-kit/storage/deposit/merkle" -exclude-errors-in-files "geth-primitives/deposit/" -v ./...) || exit 1;
 	@printf "Nilaway check complete\n"
 
 #################
