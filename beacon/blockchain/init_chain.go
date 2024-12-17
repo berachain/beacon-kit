@@ -42,7 +42,7 @@ func (s *Service[
 	}
 	return s.stateProcessor.InitializePreminedBeaconStateFromEth1(
 		s.storageBackend.StateFromContext(ctx),
-		genesisData.GetDeposits(),
+		genesisData.GetDepositDatas(),
 		genesisData.GetExecutionPayloadHeader(),
 		genesisData.GetForkVersion(),
 	)

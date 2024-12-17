@@ -45,7 +45,7 @@ func (sp *StateProcessor[
 	// len(body.deposits) ==  min(MAX_DEPOSITS,
 	// state.eth1_data.deposit_count - state.eth1_deposit_index)
 	// Instead we directly compare block deposits with store ones.
-	deposits := blk.GetBody().GetDeposits()
+	deposits := blk.GetBody().GetDepositDatas()
 	if uint64(len(deposits)) > sp.cs.MaxDepositsPerBlock() {
 		return errors.Wrapf(
 			ErrExceedsBlockDepositLimit, "expected: %d, got: %d",
@@ -68,7 +68,7 @@ func (sp *StateProcessor[
 	_, BeaconStateT, _, _,
 ]) processDeposit(
 	st BeaconStateT,
-	dep *ctypes.Deposit,
+	dep *ctypes.DepositData,
 ) error {
 	slot, err := st.GetSlot()
 	if err != nil {
@@ -110,7 +110,7 @@ func (sp *StateProcessor[
 	_, BeaconStateT, _, _,
 ]) applyDeposit(
 	st BeaconStateT,
-	dep *ctypes.Deposit,
+	dep *ctypes.DepositData,
 ) error {
 	idx, err := st.ValidatorIndexByPubkey(dep.GetPubkey())
 	if err != nil {
@@ -166,7 +166,7 @@ func (sp *StateProcessor[
 	_, BeaconStateT, _, _,
 ]) createValidator(
 	st BeaconStateT,
-	dep *ctypes.Deposit,
+	dep *ctypes.DepositData,
 ) error {
 	// Get the current slot.
 	slot, err := st.GetSlot()
@@ -226,7 +226,7 @@ func (sp *StateProcessor[
 	_, BeaconStateT, _, _,
 ]) addValidatorToRegistry(
 	st BeaconStateT,
-	dep *ctypes.Deposit,
+	dep *ctypes.DepositData,
 	slot math.Slot,
 ) error {
 	var val *ctypes.Validator

@@ -55,7 +55,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 
 	// STEP 0: Setup initial state via genesis
 	var (
-		genDeposits = []*types.Deposit{
+		genDeposits = []*types.DepositData{
 			{
 				Pubkey:      [48]byte{0x00},
 				Credentials: emptyCredentials,
@@ -88,7 +88,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	require.Len(t, valDiff, len(genDeposits))
 
 	// STEP 1: top up a genesis validator balance
-	blkDeposit := &types.Deposit{
+	blkDeposit := &types.DepositData{
 		Pubkey:      genDeposits[2].Pubkey,
 		Credentials: emptyCredentials,
 		Amount:      2 * increment, // twice to account for hysteresis
@@ -108,13 +108,13 @@ func TestTransitionUpdateValidators(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
-			Deposits: []*types.Deposit{blkDeposit},
+			Eth1Data:     &types.Eth1Data{},
+			DepositDatas: []*types.DepositData{blkDeposit},
 		},
 	)
 
 	// make sure included deposit is already available in deposit store
-	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits))
+	require.NoError(t, ds.EnqueueDeposits(blk1.Body.DepositDatas))
 
 	// run the test
 	valDiff, err = sp.Transition(ctx, st, blk1)
@@ -159,8 +159,8 @@ func TestTransitionUpdateValidators(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
-			Deposits: []*types.Deposit{},
+			Eth1Data:     &types.Eth1Data{},
+			DepositDatas: []*types.DepositData{},
 		},
 	)
 
@@ -205,7 +205,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 
 	// STEP 0: Setup initial state via genesis
 	var (
-		genDeposits = []*types.Deposit{
+		genDeposits = []*types.DepositData{
 			{
 				Pubkey:      [48]byte{0x01},
 				Credentials: emptyCredentials,
@@ -227,7 +227,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 	require.Len(t, genVals, len(genDeposits))
 
 	// STEP 1: top up a genesis validator balance
-	blkDeposit := &types.Deposit{
+	blkDeposit := &types.DepositData{
 		Pubkey:      [48]byte{0xff}, // a new key for a new validator
 		Credentials: emptyCredentials,
 		Amount:      maxBalance,
@@ -247,13 +247,13 @@ func TestTransitionCreateValidator(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
-			Deposits: []*types.Deposit{blkDeposit},
+			Eth1Data:     &types.Eth1Data{},
+			DepositDatas: []*types.DepositData{blkDeposit},
 		},
 	)
 
 	// make sure included deposit is already available in deposit store
-	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits))
+	require.NoError(t, ds.EnqueueDeposits(blk1.Body.DepositDatas))
 
 	// run the test
 	valDiff, err := sp.Transition(ctx, st, blk1)
@@ -299,8 +299,8 @@ func TestTransitionCreateValidator(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
-			Deposits: []*types.Deposit{},
+			Eth1Data:     &types.Eth1Data{},
+			DepositDatas: []*types.DepositData{},
 		},
 	)
 
@@ -343,8 +343,8 @@ func TestTransitionCreateValidator(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
-			Deposits: []*types.Deposit{},
+			Eth1Data:     &types.Eth1Data{},
+			DepositDatas: []*types.DepositData{},
 		},
 	)
 
@@ -400,7 +400,7 @@ func TestTransitionWithdrawals(t *testing.T) {
 
 	// Setup initial state so that validator 1 is partially withdrawable.
 	var (
-		genDeposits = []*types.Deposit{
+		genDeposits = []*types.DepositData{
 			{
 				Pubkey:      [48]byte{0x00},
 				Credentials: credentials0,
@@ -452,8 +452,8 @@ func TestTransitionWithdrawals(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
-			Deposits: []*types.Deposit{},
+			Eth1Data:     &types.Eth1Data{},
+			DepositDatas: []*types.DepositData{},
 		},
 	)
 
@@ -492,7 +492,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 
 	// Setup initial state so that both validators are partially withdrawable.
 	var (
-		genDeposits = []*types.Deposit{
+		genDeposits = []*types.DepositData{
 			{
 				Pubkey:      [48]byte{0x00},
 				Credentials: credentials0,
@@ -548,8 +548,8 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
-			Deposits: []*types.Deposit{},
+			Eth1Data:     &types.Eth1Data{},
+			DepositDatas: []*types.DepositData{},
 		},
 	)
 
@@ -594,8 +594,8 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
-			Deposits: []*types.Deposit{},
+			Eth1Data:     &types.Eth1Data{},
+			DepositDatas: []*types.DepositData{},
 		},
 	)
 	// Run the test.
@@ -631,7 +631,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	// STEP 0: Setup genesis with GetValidatorSetCap validators
 	// TODO: consider instead setting state artificially
 	var (
-		genDeposits      = make([]*types.Deposit, 0, cs.ValidatorSetCap())
+		genDeposits      = make([]*types.DepositData, 0, cs.ValidatorSetCap())
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		genVersion       = version.FromUint32[common.Version](version.Deneb)
 	)
@@ -646,7 +646,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		creds, rndSeed = generateTestExecutionAddress(t, rndSeed)
 
 		genDeposits = append(genDeposits,
-			&types.Deposit{
+			&types.DepositData{
 				Pubkey:      key,
 				Credentials: creds,
 				Amount:      maxBalance,
@@ -667,7 +667,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	extraValKey, rndSeed := generateTestPK(t, rndSeed)
 	extraValCreds, _ := generateTestExecutionAddress(t, rndSeed)
 	var (
-		extraValDeposit = &types.Deposit{
+		extraValDeposit = &types.DepositData{
 			Pubkey:      extraValKey,
 			Credentials: extraValCreds,
 			Amount:      minBalance,
@@ -688,13 +688,13 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
-			Deposits: []*types.Deposit{extraValDeposit},
+			Eth1Data:     &types.Eth1Data{},
+			DepositDatas: []*types.DepositData{extraValDeposit},
 		},
 	)
 
 	// make sure included deposit is already available in deposit store
-	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits))
+	require.NoError(t, ds.EnqueueDeposits(blk1.Body.DepositDatas))
 
 	// run the test
 	valDiff, err := sp.Transition(ctx, st, blk1)
@@ -740,8 +740,8 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
-			Deposits: []*types.Deposit{},
+			Eth1Data:     &types.Eth1Data{},
+			DepositDatas: []*types.DepositData{},
 		},
 	)
 
@@ -785,8 +785,8 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
-			Deposits: []*types.Deposit{},
+			Eth1Data:     &types.Eth1Data{},
+			DepositDatas: []*types.DepositData{},
 		},
 	)
 
@@ -828,8 +828,8 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
-			Deposits: []*types.Deposit{},
+			Eth1Data:     &types.Eth1Data{},
+			DepositDatas: []*types.DepositData{},
 		},
 	)
 
@@ -859,7 +859,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	// STEP 0: Setup genesis with GetValidatorSetCap validators
 	// TODO: consider instead setting state artificially
 	var (
-		genDeposits      = make([]*types.Deposit, 0, cs.ValidatorSetCap())
+		genDeposits      = make([]*types.DepositData, 0, cs.ValidatorSetCap())
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		genVersion       = version.FromUint32[common.Version](version.Deneb)
 	)
@@ -874,7 +874,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		creds, rndSeed = generateTestExecutionAddress(t, rndSeed)
 
 		genDeposits = append(genDeposits,
-			&types.Deposit{
+			&types.DepositData{
 				Pubkey:      key,
 				Credentials: creds,
 				Amount:      maxBalance,
@@ -899,7 +899,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	extraValKey, rndSeed := generateTestPK(t, rndSeed)
 	extraValCreds, _ := generateTestExecutionAddress(t, rndSeed)
 	var (
-		extraValDeposit = &types.Deposit{
+		extraValDeposit = &types.DepositData{
 			Pubkey:      extraValKey,
 			Credentials: extraValCreds,
 			Amount:      maxBalance,
@@ -920,13 +920,13 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
-			Deposits: []*types.Deposit{extraValDeposit},
+			Eth1Data:     &types.Eth1Data{},
+			DepositDatas: []*types.DepositData{extraValDeposit},
 		},
 	)
 
 	// make sure included deposit is already available in deposit store
-	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits))
+	require.NoError(t, ds.EnqueueDeposits(blk1.Body.DepositDatas))
 
 	// run the test
 	valDiff, err := sp.Transition(ctx, st, blk1)
@@ -989,8 +989,8 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
-			Deposits: []*types.Deposit{},
+			Eth1Data:     &types.Eth1Data{},
+			DepositDatas: []*types.DepositData{},
 		},
 	)
 
@@ -1049,8 +1049,8 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
-			Deposits: []*types.Deposit{},
+			Eth1Data:     &types.Eth1Data{},
+			DepositDatas: []*types.DepositData{},
 		},
 	)
 
@@ -1121,8 +1121,8 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
-			Deposits: []*types.Deposit{},
+			Eth1Data:     &types.Eth1Data{},
+			DepositDatas: []*types.DepositData{},
 		},
 	)
 
@@ -1182,8 +1182,8 @@ func moveToEndOfEpoch(
 					},
 					BaseFeePerGas: math.NewU256(0),
 				},
-				Eth1Data: &types.Eth1Data{},
-				Deposits: []*types.Deposit{},
+				Eth1Data:     &types.Eth1Data{},
+				DepositDatas: []*types.DepositData{},
 			},
 		)
 

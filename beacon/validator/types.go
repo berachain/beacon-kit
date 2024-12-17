@@ -67,7 +67,7 @@ type BeaconBlockBody interface {
 	// SetEth1Data sets the Eth1 data of the beacon block body.
 	SetEth1Data(*ctypes.Eth1Data)
 	// SetDeposits sets the deposits of the beacon block body.
-	SetDeposits([]*ctypes.Deposit)
+	SetDepositDatas([]*ctypes.DepositData)
 	// SetExecutionPayload sets the execution data of the beacon block body.
 	SetExecutionPayload(*ctypes.ExecutionPayload)
 	// SetGraffiti sets the graffiti of the beacon block body.
@@ -122,7 +122,7 @@ type DepositStore interface {
 	GetDepositsByIndex(
 		startIndex uint64,
 		numView uint64,
-	) ([]*ctypes.Deposit, error)
+	) ([]*ctypes.DepositData, error)
 }
 
 // ForkData represents the fork data interface.

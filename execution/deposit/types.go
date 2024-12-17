@@ -38,7 +38,7 @@ type Contract interface {
 	ReadDeposits(
 		ctx context.Context,
 		blockNumber math.U64,
-	) ([]*ctypes.Deposit, error)
+	) ([]*ctypes.DepositData, error)
 }
 
 // Store defines the interface for managing deposit operations.
@@ -46,7 +46,7 @@ type Store interface {
 	// Prune prunes the deposit store of [start, end)
 	Prune(index uint64, numPrune uint64) error
 	// EnqueueDeposits adds a list of deposits to the deposit store.
-	EnqueueDeposits(deposits []*ctypes.Deposit) error
+	EnqueueDeposits(deposits []*ctypes.DepositData) error
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.

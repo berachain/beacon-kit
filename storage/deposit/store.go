@@ -39,7 +39,7 @@ const KeyDepositPrefix = "deposit"
 // KVStore is a simple KV store based implementation that assumes
 // the deposit indexes are tracked outside of the kv store.
 type KVStore struct {
-	store sdkcollections.Map[uint64, *ctypes.Deposit]
+	store sdkcollections.Map[uint64, *ctypes.DepositData]
 
 	// mu protects store for concurrent access
 	mu sync.RWMutex
@@ -60,7 +60,7 @@ func NewStore(
 			sdkcollections.NewPrefix([]byte(KeyDepositPrefix)),
 			KeyDepositPrefix,
 			sdkcollections.Uint64Key,
-			encoding.SSZValueCodec[*ctypes.Deposit]{},
+			encoding.SSZValueCodec[*ctypes.DepositData]{},
 		),
 		logger: logger,
 	}
@@ -76,11 +76,11 @@ func NewStore(
 func (kv *KVStore) GetDepositsByIndex(
 	startIndex uint64,
 	depRange uint64,
-) ([]*ctypes.Deposit, error) {
+) ([]*ctypes.DepositData, error) {
 	kv.mu.RLock()
 	defer kv.mu.RUnlock()
 	var (
-		deposits = []*ctypes.Deposit{}
+		deposits = []*ctypes.DepositData{}
 		endIdx   = startIndex + depRange
 	)
 
@@ -119,7 +119,7 @@ func (kv *KVStore) GetDepositsByIndex(
 }
 
 // EnqueueDeposits pushes multiple deposits to the queue.
-func (kv *KVStore) EnqueueDeposits(deposits []*ctypes.Deposit) error {
+func (kv *KVStore) EnqueueDeposits(deposits []*ctypes.DepositData) error {
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
 	kv.logger.Debug(

@@ -44,8 +44,8 @@ func TestDefaultGenesisDeneb(t *testing.T) {
 		)
 	}
 
-	if len(g.Deposits) != 0 {
-		t.Errorf("Expected no deposits, but got %v", len(g.Deposits))
+	if len(g.DepositDatas) != 0 {
+		t.Errorf("Expected no deposits, but got %v", len(g.DepositDatas))
 	}
 	// add assertions for ExecutionPayloadHeader
 	require.NotNil(t, g.ExecutionPayloadHeader,
@@ -85,7 +85,7 @@ func TestGenesisGetForkVersion(t *testing.T) {
 
 func TestGenesisGetDeposits(t *testing.T) {
 	g := types.DefaultGenesisDeneb()
-	deposits := g.GetDeposits()
+	deposits := g.GetDepositDatas()
 	require.Empty(t, deposits)
 }
 
@@ -215,7 +215,7 @@ func TestGenesisUnmarshalJSON(t *testing.T) {
 			} else {
 				require.NoError(t, err, "Unexpected error")
 				require.Equal(t, tc.expectedFork, g.ForkVersion, "Unexpected ForkVersion")
-				require.Len(t, g.Deposits, tc.expectedDepositsLen, "Unexpected number of deposits")
+				require.Len(t, g.DepositDatas, tc.expectedDepositsLen, "Unexpected number of deposits")
 				require.NotNil(t, g.ExecutionPayloadHeader, "Expected ExecutionPayloadHeader to be non-nil")
 			}
 		})

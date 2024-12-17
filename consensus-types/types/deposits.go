@@ -26,35 +26,32 @@ import (
 	"github.com/karalabe/ssz"
 )
 
-// Deposits is a typealias for a list of Deposits.
-type Deposits []*Deposit
+// DepositDatas is a typealias for a list of DepositDatas.
+type DepositDatas []*DepositData
 
 /* -------------------------------------------------------------------------- */
 /*                                     SSZ                                    */
 /* -------------------------------------------------------------------------- */
 
-// SizeSSZ returns the SSZ encoded size in bytes for the Deposits.
-func (ds Deposits) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {
-	return ssz.SizeSliceOfStaticObjects(siz, ([]*Deposit)(ds))
+// SizeSSZ returns the SSZ encoded size in bytes for the DepositDatas.
+func (ds DepositDatas) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {
+	return ssz.SizeSliceOfStaticObjects(siz, ([]*DepositData)(ds))
 }
 
-// DefineSSZ defines the SSZ encoding for the Deposits object.
-func (ds Deposits) DefineSSZ(c *ssz.Codec) {
+// DefineSSZ defines the SSZ encoding for the DepositDatas object.
+func (ds DepositDatas) DefineSSZ(c *ssz.Codec) {
 	c.DefineDecoder(func(*ssz.Decoder) {
-		ssz.DefineSliceOfStaticObjectsContent(
-			c, (*[]*Deposit)(&ds), constants.MaxDeposits)
+		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*DepositData)(&ds), constants.MaxDeposits)
 	})
 	c.DefineEncoder(func(*ssz.Encoder) {
-		ssz.DefineSliceOfStaticObjectsContent(
-			c, (*[]*Deposit)(&ds), constants.MaxDeposits)
+		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*DepositData)(&ds), constants.MaxDeposits)
 	})
 	c.DefineHasher(func(*ssz.Hasher) {
-		ssz.DefineSliceOfStaticObjectsOffset(
-			c, (*[]*Deposit)(&ds), constants.MaxDeposits)
+		ssz.DefineSliceOfStaticObjectsOffset(c, (*[]*DepositData)(&ds), constants.MaxDeposits)
 	})
 }
 
-// HashTreeRoot returns the hash tree root of the Deposits.
-func (ds Deposits) HashTreeRoot() common.Root {
+// HashTreeRoot returns the hash tree root of the DepositDatas.
+func (ds DepositDatas) HashTreeRoot() common.Root {
 	return ssz.HashSequential(ds)
 }

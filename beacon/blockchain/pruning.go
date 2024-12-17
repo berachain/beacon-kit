@@ -39,7 +39,7 @@ func (s *Service[
 
 	// prune deposit store
 	start, end = depositPruneRangeFn(
-		beaconBlk.GetBody().GetDeposits(), s.chainSpec)
+		beaconBlk.GetBody().GetDepositDatas(), s.chainSpec)
 	err = s.storageBackend.DepositStore().Prune(start, end)
 
 	if err != nil {
@@ -49,7 +49,7 @@ func (s *Service[
 	return nil
 }
 
-func depositPruneRangeFn(deposits []*ctypes.Deposit, cs chain.ChainSpec) (uint64, uint64) {
+func depositPruneRangeFn(deposits []*ctypes.DepositData, cs chain.ChainSpec) (uint64, uint64) {
 	if len(deposits) == 0 || cs.MaxDepositsPerBlock() == 0 {
 		return 0, 0
 	}

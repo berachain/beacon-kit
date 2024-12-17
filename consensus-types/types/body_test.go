@@ -38,7 +38,7 @@ func generateBeaconBlockBody() types.BeaconBlockBody {
 		RandaoReveal: [96]byte{1, 2, 3},
 		Eth1Data:     &types.Eth1Data{},
 		Graffiti:     [32]byte{4, 5, 6},
-		Deposits:     []*types.Deposit{},
+		DepositDatas: []*types.DepositData{},
 		ExecutionPayload: &types.ExecutionPayload{
 			BaseFeePerGas: math.NewU256(0),
 		},
@@ -51,7 +51,7 @@ func TestBeaconBlockBodyBase(t *testing.T) {
 		RandaoReveal: [96]byte{1, 2, 3},
 		Eth1Data:     &types.Eth1Data{},
 		Graffiti:     [32]byte{4, 5, 6},
-		Deposits:     []*types.Deposit{},
+		DepositDatas: []*types.DepositData{},
 	}
 
 	require.Equal(t, bytes.B96{1, 2, 3}, body.GetRandaoReveal())
@@ -61,7 +61,7 @@ func TestBeaconBlockBodyBase(t *testing.T) {
 	body.SetGraffiti(newGraffiti)
 
 	require.Equal(t, newGraffiti, [32]byte(body.GetGraffiti()))
-	require.NotNil(t, body.GetDeposits())
+	require.NotNil(t, body.GetDepositDatas())
 }
 
 func TestBeaconBlockBody(t *testing.T) {
@@ -69,7 +69,7 @@ func TestBeaconBlockBody(t *testing.T) {
 		RandaoReveal:       [96]byte{1, 2, 3},
 		Eth1Data:           &types.Eth1Data{},
 		Graffiti:           [32]byte{4, 5, 6},
-		Deposits:           []*types.Deposit{},
+		DepositDatas:       []*types.DepositData{},
 		ExecutionPayload:   &types.ExecutionPayload{},
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
@@ -113,10 +113,10 @@ func TestBeaconBlockBody_SetEth1Data(t *testing.T) {
 
 func TestBeaconBlockBody_SetDeposits(t *testing.T) {
 	body := types.BeaconBlockBody{}
-	deposits := []*types.Deposit{}
-	body.SetDeposits(deposits)
+	deposits := []*types.DepositData{}
+	body.SetDepositDatas(deposits)
 
-	require.Equal(t, deposits, body.GetDeposits())
+	require.Equal(t, deposits, body.GetDepositDatas())
 }
 
 func TestBeaconBlockBody_MarshalSSZ(t *testing.T) {
@@ -124,7 +124,7 @@ func TestBeaconBlockBody_MarshalSSZ(t *testing.T) {
 		RandaoReveal:       [96]byte{1, 2, 3},
 		Eth1Data:           &types.Eth1Data{},
 		Graffiti:           [32]byte{4, 5, 6},
-		Deposits:           []*types.Deposit{},
+		DepositDatas:       []*types.DepositData{},
 		ExecutionPayload:   &types.ExecutionPayload{},
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}

@@ -129,7 +129,7 @@ type (
 		// GetExecutionPayload returns the execution payload.
 		GetExecutionPayload() *ctypes.ExecutionPayload
 		// GetDeposits returns the list of deposits.
-		GetDeposits() []*ctypes.Deposit
+		GetDepositDatas() []*ctypes.DepositData
 		// GetBlobKzgCommitments returns the KZG commitments for the blobs.
 		GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 		// SetRandaoReveal sets the Randao reveal of the beacon block body.
@@ -137,7 +137,7 @@ type (
 		// SetEth1Data sets the Eth1 data of the beacon block body.
 		SetEth1Data(*ctypes.Eth1Data)
 		// SetDeposits sets the deposits of the beacon block body.
-		SetDeposits([]*ctypes.Deposit)
+		SetDepositDatas([]*ctypes.DepositData)
 		// SetExecutionPayload sets the execution data of the beacon block body.
 		SetExecutionPayload(*ctypes.ExecutionPayload)
 		// SetGraffiti sets the graffiti of the beacon block body.
@@ -327,8 +327,8 @@ type (
 	// 		GetSkipValidateResult() bool
 	// 	}
 
-	// Deposit is the interface for a deposit.
-	Deposit[
+	// DepositData is the interface for a deposit.
+	DepositData[
 		T any,
 	] interface {
 		constraints.Empty[T]
@@ -341,7 +341,7 @@ type (
 			crypto.BLSSignature,
 			uint64,
 		) T
-		// Equals returns true if the Deposit is equal to the other.
+		// Equals returns true if the DepositData is equal to the other.
 		Equals(T) bool
 		// GetIndex returns the index of the deposit.
 		GetIndex() math.U64
@@ -370,11 +370,11 @@ type (
 		GetDepositsByIndex(
 			startIndex uint64,
 			numView uint64,
-		) ([]*ctypes.Deposit, error)
+		) ([]*ctypes.DepositData, error)
 		// Prune prunes the deposit store of [start, end)
 		Prune(start, end uint64) error
 		// EnqueueDeposits adds a list of deposits to the deposit store.
-		EnqueueDeposits(deposits []*ctypes.Deposit) error
+		EnqueueDeposits(deposits []*ctypes.DepositData) error
 	}
 
 	// Genesis is the interface for the genesis.
@@ -383,7 +383,7 @@ type (
 		// GetForkVersion returns the fork version.
 		GetForkVersion() common.Version
 		// GetDeposits returns the deposits.
-		GetDeposits() []*ctypes.Deposit
+		GetDepositDatas() []*ctypes.DepositData
 		// GetExecutionPayloadHeader returns the execution payload header.
 		GetExecutionPayloadHeader() *ctypes.ExecutionPayloadHeader
 	}
@@ -461,7 +461,7 @@ type (
 		// from the eth1 deposits.
 		InitializePreminedBeaconStateFromEth1(
 			BeaconStateT,
-			[]*ctypes.Deposit,
+			[]*ctypes.DepositData,
 			*ctypes.ExecutionPayloadHeader,
 			common.Version,
 		) (transition.ValidatorUpdates, error)

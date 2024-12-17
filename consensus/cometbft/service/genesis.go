@@ -82,7 +82,7 @@ func (s *Service[_]) ValidateGenesis(
 		)
 	}
 
-	if err := validateDeposits(beaconGenesis.GetDeposits()); err != nil {
+	if err := validateDeposits(beaconGenesis.GetDepositDatas()); err != nil {
 		return fmt.Errorf("invalid deposits: %w", err)
 	}
 
@@ -100,7 +100,7 @@ func (s *Service[_]) ValidateGenesis(
 // - At least one deposit is present
 // - No duplicate public keys
 // Returns an error with details if any validation fails.
-func validateDeposits(deposits []*types.Deposit) error {
+func validateDeposits(deposits []*types.DepositData) error {
 	if len(deposits) == 0 {
 		return errors.New("at least one deposit is required")
 	}

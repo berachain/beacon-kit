@@ -92,8 +92,8 @@ type BeaconBlockBody struct {
 	Eth1Data *Eth1Data
 	// Graffiti is for a fun message or meme.
 	Graffiti [32]byte
-	// Deposits is the list of deposits included in the body.
-	Deposits []*Deposit
+	// DepositDatas is the list of deposits included in the body.
+	DepositDatas []*DepositData
 	// ExecutionPayload is the execution payload of the body.
 	ExecutionPayload *ExecutionPayload
 	// BlobKzgCommitments is the list of KZG commitments for the EIP-4844 blobs.
@@ -111,7 +111,7 @@ func (b *BeaconBlockBody) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 		return size
 	}
 
-	size += ssz.SizeSliceOfStaticObjects(siz, b.Deposits)
+	size += ssz.SizeSliceOfStaticObjects(siz, b.DepositDatas)
 	size += ssz.SizeDynamicObject(siz, b.ExecutionPayload)
 	size += ssz.SizeSliceOfStaticBytes(siz, b.BlobKzgCommitments)
 	return size
@@ -125,12 +125,12 @@ func (b *BeaconBlockBody) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineStaticBytes(codec, &b.RandaoReveal)
 	ssz.DefineStaticObject(codec, &b.Eth1Data)
 	ssz.DefineStaticBytes(codec, &b.Graffiti)
-	ssz.DefineSliceOfStaticObjectsOffset(codec, &b.Deposits, 16)
+	ssz.DefineSliceOfStaticObjectsOffset(codec, &b.DepositDatas, 16)
 	ssz.DefineDynamicObjectOffset(codec, &b.ExecutionPayload)
 	ssz.DefineSliceOfStaticBytesOffset(codec, &b.BlobKzgCommitments, 16)
 
 	// Define the dynamic data (fields)
-	ssz.DefineSliceOfStaticObjectsContent(codec, &b.Deposits, 16)
+	ssz.DefineSliceOfStaticObjectsContent(codec, &b.DepositDatas, 16)
 	ssz.DefineDynamicObjectContent(codec, &b.ExecutionPayload)
 	ssz.DefineSliceOfStaticBytesContent(codec, &b.BlobKzgCommitments, 16)
 }
@@ -185,14 +185,14 @@ func (b *BeaconBlockBody) HashTreeRootWith(hh fastssz.HashWalker) error {
 	// Field (2) 'Graffiti'
 	hh.PutBytes(b.Graffiti[:])
 
-	// Field (3) 'Deposits'
+	// Field (3) 'DepositDatas'
 	{
 		subIndx := hh.Index()
-		num := uint64(len(b.Deposits))
+		num := uint64(len(b.DepositDatas))
 		if num > 16 {
 			return fastssz.ErrIncorrectListSize
 		}
-		for _, elem := range b.Deposits {
+		for _, elem := range b.DepositDatas {
 			if err := elem.HashTreeRootWith(hh); err != nil {
 				return err
 			}
@@ -296,7 +296,7 @@ func (b *BeaconBlockBody) GetTopLevelRoots() []common.Root {
 		common.Root(b.GetRandaoReveal().HashTreeRoot()),
 		b.Eth1Data.HashTreeRoot(),
 		common.Root(b.GetGraffiti().HashTreeRoot()),
-		Deposits(b.GetDeposits()).HashTreeRoot(),
+		DepositDatas(b.GetDepositDatas()).HashTreeRoot(),
 		b.GetExecutionPayload().HashTreeRoot(),
 		{},
 	}
@@ -332,12 +332,12 @@ func (b *BeaconBlockBody) SetGraffiti(graffiti common.Bytes32) {
 	b.Graffiti = graffiti
 }
 
-// GetDeposits returns the Deposits of the BeaconBlockBody.
-func (b *BeaconBlockBody) GetDeposits() []*Deposit {
-	return b.Deposits
+// GetDeposits returns the DepositDatas of the BeaconBlockBody.
+func (b *BeaconBlockBody) GetDepositDatas() []*DepositData {
+	return b.DepositDatas
 }
 
-// SetDeposits sets the Deposits of the BeaconBlockBody.
-func (b *BeaconBlockBody) SetDeposits(deposits []*Deposit) {
-	b.Deposits = deposits
+// SetDeposits sets the DepositDatas of the BeaconBlockBody.
+func (b *BeaconBlockBody) SetDepositDatas(deposits []*DepositData) {
+	b.DepositDatas = deposits
 }

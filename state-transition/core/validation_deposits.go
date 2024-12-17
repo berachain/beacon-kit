@@ -33,7 +33,7 @@ func (sp *StateProcessor[
 	_, BeaconStateT, _, _,
 ]) validateGenesisDeposits(
 	st BeaconStateT,
-	deposits []*ctypes.Deposit,
+	deposits []*ctypes.DepositData,
 ) error {
 	switch {
 	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
@@ -102,7 +102,7 @@ func (sp *StateProcessor[
 	_, BeaconStateT, _, _,
 ]) validateNonGenesisDeposits(
 	st BeaconStateT,
-	deposits []*ctypes.Deposit,
+	deposits []*ctypes.DepositData,
 ) error {
 	slot, err := st.GetSlot()
 	if err != nil {
@@ -132,7 +132,7 @@ func (sp *StateProcessor[
 		}
 		expectedStartIdx := depositIndex + 1
 
-		var localDeposits []*ctypes.Deposit
+		var localDeposits []*ctypes.DepositData
 		localDeposits, err = sp.ds.GetDepositsByIndex(
 			expectedStartIdx,
 			sp.cs.MaxDepositsPerBlock(),
@@ -155,7 +155,7 @@ func (sp *StateProcessor[
 		}
 
 		for i, sd := range localDeposits {
-			// Deposit indices should be contiguous
+			// DepositData indices should be contiguous
 			//#nosec:G701 // i never negative
 			expectedIdx := expectedStartIdx + uint64(i)
 			if sd.GetIndex().Unwrap() != expectedIdx {

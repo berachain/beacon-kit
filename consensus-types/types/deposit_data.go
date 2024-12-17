@@ -34,13 +34,13 @@ const DepositSize = 192 // 48 + 32 + 8 + 96 + 8
 
 // Compile-time assertions to ensure Deposit implements necessary interfaces.
 var (
-	_ ssz.StaticObject                    = (*Deposit)(nil)
-	_ constraints.SSZMarshallableRootable = (*Deposit)(nil)
+	_ ssz.StaticObject                    = (*DepositData)(nil)
+	_ constraints.SSZMarshallableRootable = (*DepositData)(nil)
 )
 
 // Deposit into the consensus layer from the deposit contract in the execution
 // layer.
-type Deposit struct {
+type DepositData struct {
 	// Public key of the validator specified in the deposit.
 	Pubkey crypto.BLSPubkey `json:"pubkey"`
 	// A staking credentials with
@@ -61,8 +61,8 @@ func NewDeposit(
 	amount math.Gwei,
 	signature crypto.BLSSignature,
 	index uint64,
-) *Deposit {
-	return &Deposit{
+) *DepositData {
+	return &DepositData{
 		Pubkey:      pubkey,
 		Credentials: credentials,
 		Amount:      amount,
@@ -72,25 +72,25 @@ func NewDeposit(
 }
 
 // Empty creates an empty Deposit instance.
-func (d *Deposit) Empty() *Deposit {
-	return &Deposit{}
+func (d *DepositData) Empty() *DepositData {
+	return &DepositData{}
 }
 
 // New creates a new Deposit instance.
-func (d *Deposit) New(
+func (d *DepositData) New(
 	pubkey crypto.BLSPubkey,
 	credentials WithdrawalCredentials,
 	amount math.Gwei,
 	signature crypto.BLSSignature,
 	index uint64,
-) *Deposit {
+) *DepositData {
 	return NewDeposit(
 		pubkey, credentials, amount, signature, index,
 	)
 }
 
 // VerifySignature verifies the deposit data and signature.
-func (d *Deposit) VerifySignature(
+func (d *DepositData) VerifySignature(
 	forkData *ForkData,
 	domainType common.DomainType,
 	signatureVerificationFn func(
@@ -112,7 +112,7 @@ func (d *Deposit) VerifySignature(
 /* -------------------------------------------------------------------------- */
 
 // DefineSSZ defines the SSZ encoding for the Deposit object.
-func (d *Deposit) DefineSSZ(c *ssz.Codec) {
+func (d *DepositData) DefineSSZ(c *ssz.Codec) {
 	ssz.DefineStaticBytes(c, &d.Pubkey)
 	ssz.DefineStaticBytes(c, &d.Credentials)
 	ssz.DefineUint64(c, &d.Amount)
@@ -120,24 +120,24 @@ func (d *Deposit) DefineSSZ(c *ssz.Codec) {
 	ssz.DefineUint64(c, &d.Index)
 }
 
-// MarshalSSZ marshals the Deposit object to SSZ format.
-func (d *Deposit) MarshalSSZ() ([]byte, error) {
+// MarshalSSZ marshals the DepositData object to SSZ format.
+func (d *DepositData) MarshalSSZ() ([]byte, error) {
 	buf := make([]byte, ssz.Size(d))
 	return buf, ssz.EncodeToBytes(buf, d)
 }
 
-// UnmarshalSSZ unmarshals the Deposit object from SSZ format.
-func (d *Deposit) UnmarshalSSZ(buf []byte) error {
+// UnmarshalSSZ unmarshals the DepositData object from SSZ format.
+func (d *DepositData) UnmarshalSSZ(buf []byte) error {
 	return ssz.DecodeFromBytes(buf, d)
 }
 
-// SizeSSZ returns the SSZ encoded size of the Deposit object.
-func (d *Deposit) SizeSSZ(*ssz.Sizer) uint32 {
+// SizeSSZ returns the SSZ encoded size of the DepositData object.
+func (d *DepositData) SizeSSZ(*ssz.Sizer) uint32 {
 	return DepositSize
 }
 
-// HashTreeRoot computes the Merkleization of the Deposit object.
-func (d *Deposit) HashTreeRoot() common.Root {
+// HashTreeRoot computes the Merkleization of the DepositData object.
+func (d *DepositData) HashTreeRoot() common.Root {
 	return ssz.HashSequential(d)
 }
 
@@ -145,8 +145,8 @@ func (d *Deposit) HashTreeRoot() common.Root {
 /*                                   FastSSZ                                  */
 /* -------------------------------------------------------------------------- */
 
-// MarshalSSZTo marshals the Deposit object into a pre-allocated byte slice.
-func (d *Deposit) MarshalSSZTo(dst []byte) ([]byte, error) {
+// MarshalSSZTo marshals the DepositData object into a pre-allocated byte slice.
+func (d *DepositData) MarshalSSZTo(dst []byte) ([]byte, error) {
 	bz, err := d.MarshalSSZ()
 	if err != nil {
 		return nil, err
@@ -155,8 +155,8 @@ func (d *Deposit) MarshalSSZTo(dst []byte) ([]byte, error) {
 	return dst, nil
 }
 
-// HashTreeRootWith ssz hashes the Deposit object with a hasher.
-func (d *Deposit) HashTreeRootWith(hh fastssz.HashWalker) error {
+// HashTreeRootWith ssz hashes the DepositData object with a hasher.
+func (d *DepositData) HashTreeRootWith(hh fastssz.HashWalker) error {
 	indx := hh.Index()
 
 	// Field (0) 'Pubkey'
@@ -178,8 +178,8 @@ func (d *Deposit) HashTreeRootWith(hh fastssz.HashWalker) error {
 	return nil
 }
 
-// GetTree ssz hashes the Deposit object.
-func (d *Deposit) GetTree() (*fastssz.Node, error) {
+// GetTree ssz hashes the DepositData object.
+func (d *DepositData) GetTree() (*fastssz.Node, error) {
 	return fastssz.ProofTree(d)
 }
 
@@ -187,8 +187,8 @@ func (d *Deposit) GetTree() (*fastssz.Node, error) {
 /*                             Getters and Setters                            */
 /* -------------------------------------------------------------------------- */
 
-// Equals returns true if the Deposit is equal to the other.
-func (d *Deposit) Equals(rhs *Deposit) bool {
+// Equals returns true if the DepositData is equal to the other.
+func (d *DepositData) Equals(rhs *DepositData) bool {
 	return d.Pubkey == rhs.Pubkey &&
 		d.Credentials == rhs.Credentials &&
 		d.Amount == rhs.Amount &&
@@ -197,32 +197,32 @@ func (d *Deposit) Equals(rhs *Deposit) bool {
 }
 
 // GetAmount returns the deposit amount in gwei.
-func (d *Deposit) GetAmount() math.Gwei {
+func (d *DepositData) GetAmount() math.Gwei {
 	return d.Amount
 }
 
 // GetPubkey returns the public key of the validator specified in the deposit.
-func (d *Deposit) GetPubkey() crypto.BLSPubkey {
+func (d *DepositData) GetPubkey() crypto.BLSPubkey {
 	return d.Pubkey
 }
 
 // GetIndex returns the index of the deposit in the deposit contract.
-func (d *Deposit) GetIndex() math.U64 {
+func (d *DepositData) GetIndex() math.U64 {
 	return math.U64(d.Index)
 }
 
 // GetSignature returns the signature of the deposit data.
-func (d *Deposit) GetSignature() crypto.BLSSignature {
+func (d *DepositData) GetSignature() crypto.BLSSignature {
 	return d.Signature
 }
 
 // GetWithdrawalCredentials returns the staking credentials of the deposit.
-func (d *Deposit) GetWithdrawalCredentials() WithdrawalCredentials {
+func (d *DepositData) GetWithdrawalCredentials() WithdrawalCredentials {
 	return d.Credentials
 }
 
 // HasEth1WithdrawalCredentials returns true if the deposit has eth1 withdrawal
 // credentials.
-func (d *Deposit) HasEth1WithdrawalCredentials() bool {
+func (d *DepositData) HasEth1WithdrawalCredentials() bool {
 	return d.Credentials[0] == EthSecp256k1CredentialPrefix
 }
