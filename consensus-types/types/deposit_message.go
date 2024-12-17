@@ -31,8 +31,6 @@ import (
 // DepositMessage represents a deposit message as defined in the Ethereum 2.0
 // specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#depositmessage
-//
-//nolint:lll
 type DepositMessage struct {
 	// Public key of the validator specified in the deposit.
 	Pubkey crypto.BLSPubkey `json:"pubkey"`

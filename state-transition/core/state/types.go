@@ -21,6 +21,7 @@
 package state
 
 import (
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -30,11 +31,7 @@ import (
 // with generic types.
 type BeaconStateMarshallable[
 	T any,
-	BeaconBlockHeaderT,
-	Eth1DataT,
-	ExecutionPayloadHeaderT,
-	ForkT,
-	ValidatorT any,
+	ExecutionPayloadHeaderT any,
 ] interface {
 	constraints.SSZMarshallableRootable
 	// New returns a new instance of the BeaconStateMarshallable.
@@ -42,14 +39,14 @@ type BeaconStateMarshallable[
 		forkVersion uint32,
 		genesisValidatorsRoot common.Root,
 		slot math.U64,
-		fork ForkT,
-		latestBlockHeader BeaconBlockHeaderT,
+		fork *ctypes.Fork,
+		latestBlockHeader *ctypes.BeaconBlockHeader,
 		blockRoots []common.Root,
 		stateRoots []common.Root,
-		eth1Data Eth1DataT,
+		eth1Data *ctypes.Eth1Data,
 		eth1DepositIndex uint64,
 		latestExecutionPayloadHeader ExecutionPayloadHeaderT,
-		validators []ValidatorT,
+		validators []*ctypes.Validator,
 		balances []uint64,
 		randaoMixes []common.Bytes32,
 		nextWithdrawalIndex uint64,
@@ -59,12 +56,11 @@ type BeaconStateMarshallable[
 }
 
 // Validator represents an interface for a validator with generic withdrawal
-// credentials. WithdrawalCredentialsT is a type parameter that must implement
-// the WithdrawalCredentials interface.
-type Validator[WithdrawalCredentialsT WithdrawalCredentials] interface {
+// credentials.
+type Validator interface {
 	// GetWithdrawalCredentials returns the withdrawal credentials of the
 	// validator.
-	GetWithdrawalCredentials() WithdrawalCredentialsT
+	GetWithdrawalCredentials() ctypes.WithdrawalCredentials
 	// IsFullyWithdrawable checks if the validator is fully withdrawable given a
 	// certain Gwei amount and epoch.
 	IsFullyWithdrawable(amount math.Gwei, epoch math.Epoch) bool
@@ -81,11 +77,4 @@ type Withdrawal[T any] interface {
 		address common.ExecutionAddress,
 		amount math.Gwei,
 	) T
-}
-
-// WithdrawalCredentials represents an interface for withdrawal credentials.
-type WithdrawalCredentials interface {
-	// ToExecutionAddress converts the withdrawal credentials to an execution
-	// address.
-	ToExecutionAddress() (common.ExecutionAddress, error)
 }

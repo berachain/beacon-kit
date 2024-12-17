@@ -114,9 +114,8 @@ func TestNewForkData(t *testing.T) {
 func TestNew(t *testing.T) {
 	currentVersion := common.Version{}
 	genesisValidatorsRoot := common.Root{}
-	forkData := &types.ForkData{}
 
-	newForkData := forkData.New(currentVersion, genesisValidatorsRoot)
+	newForkData := types.NewForkData(currentVersion, genesisValidatorsRoot)
 
 	require.Equal(t, currentVersion, newForkData.CurrentVersion)
 	require.Equal(t, genesisValidatorsRoot, newForkData.GenesisValidatorsRoot)

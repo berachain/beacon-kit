@@ -21,7 +21,6 @@
 package blockstore
 
 import (
-	"github.com/berachain/beacon-kit/primitives/async"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
@@ -37,20 +36,4 @@ type BeaconBlock interface {
 type BlockStore[BeaconBlockT BeaconBlock] interface {
 	// Set sets a block at a given index.
 	Set(blk BeaconBlockT) error
-}
-
-// Event is an interface for block events.
-type Event[BeaconBlockT BeaconBlock] interface {
-	// ID returns the id of the event.
-	ID() async.EventID
-	// Is returns true if the event is of the given id.
-	Is(async.EventID) bool
-	// Data returns the data of the event.
-	Data() BeaconBlockT
-}
-
-// EventFeed is a generic interface for sending events.
-type EventFeed[EventT any] interface {
-	// Subscribe returns a channel that will receive events.
-	Subscribe() (chan EventT, error)
 }

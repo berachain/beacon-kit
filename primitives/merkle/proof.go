@@ -46,8 +46,6 @@ func VerifyProof[RootT, ProofT ~[32]byte](
 
 // IsValidMerkleBranch as per the Ethereum 2.0 spec:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#is_valid_merkle_branch
-//
-//nolint:lll // link.
 func IsValidMerkleBranch[RootT, BranchT ~[32]byte](
 	leaf RootT, branch []BranchT, depth uint8, index uint64, root RootT,
 ) bool {
@@ -62,8 +60,6 @@ func IsValidMerkleBranch[RootT, BranchT ~[32]byte](
 // RootFromBranch calculates the Merkle root from a leaf and a branch.
 // Inspired by:
 // https://github.com/sigp/lighthouse/blob/stable/consensus/merkle_proof/src/lib.rs#L372
-//
-//nolint:lll
 func RootFromBranch[RootT, BranchT ~[32]byte](
 	leaf RootT,
 	branch []BranchT,
