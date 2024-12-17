@@ -40,7 +40,6 @@ const (
 func BaseSpec() chain.SpecData[
 	common.DomainType,
 	math.Epoch,
-	common.ExecutionAddress,
 	math.Slot,
 	any,
 ] {
@@ -50,7 +49,6 @@ func BaseSpec() chain.SpecData[
 	return chain.SpecData[
 		common.DomainType,
 		math.Epoch,
-		common.ExecutionAddress,
 		math.Slot,
 		any,
 	]{

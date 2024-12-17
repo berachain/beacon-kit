@@ -37,12 +37,11 @@ import (
 //
 //nolint:gocognit,funlen // todo fix.
 func (sp *StateProcessor[
-	_, BeaconBlockBodyT, BeaconStateT, _,
-	_, ExecutionPayloadHeaderT, _,
+	_, BeaconStateT, _, _,
 ]) InitializePreminedBeaconStateFromEth1(
 	st BeaconStateT,
 	deposits []*ctypes.Deposit,
-	execPayloadHeader ExecutionPayloadHeaderT,
+	execPayloadHeader *ctypes.ExecutionPayloadHeader,
 	genesisVersion common.Version,
 ) (transition.ValidatorUpdates, error) {
 	if err := st.SetSlot(0); err != nil {
@@ -71,7 +70,7 @@ func (sp *StateProcessor[
 	}
 
 	// TODO: we need to handle common.Version vs uint32 better.
-	var blkBody BeaconBlockBodyT
+	var blkBody *ctypes.BeaconBlockBody
 	blkBody = blkBody.Empty(version.ToUint32(genesisVersion))
 
 	var blkHeader *ctypes.BeaconBlockHeader
@@ -158,7 +157,7 @@ func (sp *StateProcessor[
 }
 
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _, _, _,
+	_, BeaconStateT, _, _,
 ]) processGenesisActivation(
 	st BeaconStateT,
 ) error {

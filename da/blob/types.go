@@ -33,26 +33,18 @@ import (
 // The AvailabilityStore interface is responsible for validating and storing
 // sidecars for specific blocks, as well as verifying sidecars that have already
 // been stored.
-type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
+type AvailabilityStore[BlobSidecarsT any] interface {
 	// IsDataAvailable ensures that all blobs referenced in the block are
 	// securely stored before it returns without an error.
-	IsDataAvailable(context.Context, math.Slot, BeaconBlockBodyT) bool
+	IsDataAvailable(context.Context, math.Slot, *ctypes.BeaconBlockBody) bool
 	// Persist makes sure that the sidecar remains accessible for data
 	// availability checks throughout the beacon node's operation.
 	Persist(math.Slot, BlobSidecarsT) error
 }
 
-type BeaconBlock[
-	BeaconBlockBodyT any,
-] interface {
-	GetBody() BeaconBlockBodyT
+type BeaconBlock interface {
+	GetBody() *ctypes.BeaconBlockBody
 	GetHeader() *ctypes.BeaconBlockHeader
-}
-
-type BeaconBlockBody interface {
-	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
-	GetTopLevelRoots() []common.Root
-	Length() uint64
 }
 
 type ConsensusSidecars[BlobSidecarsT any] interface {
@@ -61,10 +53,10 @@ type ConsensusSidecars[BlobSidecarsT any] interface {
 }
 
 type Sidecar interface {
-	GetBeaconBlockHeader() *ctypes.BeaconBlockHeader
 	GetBlob() eip4844.Blob
 	GetKzgProof() eip4844.KZGProof
 	GetKzgCommitment() eip4844.KZGCommitment
+	GetSignedBeaconBlockHeader() *ctypes.SignedBeaconBlockHeader
 }
 
 type Sidecars[SidecarT any] interface {
@@ -78,6 +70,7 @@ type Sidecars[SidecarT any] interface {
 // ChainSpec represents a chain spec.
 type ChainSpec interface {
 	MaxBlobCommitmentsPerBlock() uint64
+	DomainTypeProposer() common.DomainType
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.

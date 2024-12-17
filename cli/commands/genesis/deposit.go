@@ -25,6 +25,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/cli/context"
 	"github.com/berachain/beacon-kit/cli/utils/parser"
 	"github.com/berachain/beacon-kit/consensus-types/types"
@@ -46,12 +47,12 @@ import (
 // add a premined deposit to the genesis file.
 //
 
-func AddGenesisDepositCmd(cs common.ChainSpec) *cobra.Command {
+func AddGenesisDepositCmd(cs chain.ChainSpec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add-premined-deposit",
 		Short: "adds a validator to the genesis file",
-		Long: `Adds a validator to the genesis file with the necessary 
-		credentials. The arguments are expected in the order of the deposit 
+		Long: `Adds a validator to the genesis file with the necessary
+		credentials. The arguments are expected in the order of the deposit
 		amount and withdrawal address.`,
 		Args: cobra.ExactArgs(2), //nolint:mnd // The number of arguments.
 		RunE: func(cmd *cobra.Command, args []string) error {

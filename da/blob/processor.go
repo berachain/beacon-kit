@@ -23,19 +23,18 @@ package blob
 import (
 	"time"
 
+	"github.com/berachain/beacon-kit/chain-spec/chain"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/kzg"
 	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // Processor is the blob processor that handles the processing and verification
 // of blob sidecars.
 type Processor[
-	AvailabilityStoreT AvailabilityStore[
-		BeaconBlockBodyT, BlobSidecarsT,
-	],
-	BeaconBlockBodyT any,
+	AvailabilityStoreT AvailabilityStore[BlobSidecarsT],
 	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
 	BlobSidecarT Sidecar,
 	BlobSidecarsT Sidecars[BlobSidecarT],
@@ -43,33 +42,33 @@ type Processor[
 	// logger is used to log information and errors.
 	logger log.Logger
 	// chainSpec defines the specifications of the blockchain.
-	chainSpec common.ChainSpec
+	chainSpec chain.ChainSpec
 	// verifier is responsible for verifying the blobs.
-	verifier *verifier[BlobSidecarT, BlobSidecarsT]
+	verifier *verifier[
+		BlobSidecarT,
+		BlobSidecarsT,
+	]
 	// blockBodyOffsetFn is a function that calculates the block body offset
 	// based on the slot and chain specifications.
-	blockBodyOffsetFn func(math.Slot, common.ChainSpec) (uint64, error)
+	blockBodyOffsetFn func(math.Slot, chain.ChainSpec) (uint64, error)
 	// metrics is used to collect and report processor metrics.
 	metrics *processorMetrics
 }
 
 // NewProcessor creates a new blob processor.
 func NewProcessor[
-	AvailabilityStoreT AvailabilityStore[
-		BeaconBlockBodyT, BlobSidecarsT,
-	],
-	BeaconBlockBodyT any,
+	AvailabilityStoreT AvailabilityStore[BlobSidecarsT],
 	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
 	BlobSidecarT Sidecar,
 	BlobSidecarsT Sidecars[BlobSidecarT],
 ](
 	logger log.Logger,
-	chainSpec common.ChainSpec,
+	chainSpec chain.ChainSpec,
 	proofVerifier kzg.BlobProofVerifier,
-	blockBodyOffsetFn func(math.Slot, common.ChainSpec) (uint64, error),
+	blockBodyOffsetFn func(math.Slot, chain.ChainSpec) (uint64, error),
 	telemetrySink TelemetrySink,
 ) *Processor[
-	AvailabilityStoreT, BeaconBlockBodyT,
+	AvailabilityStoreT,
 	ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
 ] {
 	verifier := newVerifier[
@@ -77,7 +76,7 @@ func NewProcessor[
 		BlobSidecarsT,
 	](proofVerifier, telemetrySink)
 	return &Processor[
-		AvailabilityStoreT, BeaconBlockBodyT,
+		AvailabilityStoreT,
 		ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
 	]{
 		logger:            logger,
@@ -90,9 +89,13 @@ func NewProcessor[
 
 // VerifySidecars verifies the blobs and ensures they match the local state.
 func (sp *Processor[
-	AvailabilityStoreT, _, ConsensusSidecarsT, _, _,
+	AvailabilityStoreT, ConsensusSidecarsT, _, BlobSidecarsT,
 ]) VerifySidecars(
 	cs ConsensusSidecarsT,
+	verifierFn func(
+		blkHeader *ctypes.BeaconBlockHeader,
+		signature crypto.BLSSignature,
+	) error,
 ) error {
 	var (
 		sidecars  = cs.GetSidecars()
@@ -116,13 +119,16 @@ func (sp *Processor[
 
 	// Verify the blobs and ensure they match the local state.
 	return sp.verifier.verifySidecars(
-		sidecars, kzgOffset, blkHeader,
+		sidecars,
+		kzgOffset,
+		blkHeader,
+		verifierFn,
 	)
 }
 
 // slot :=  processes the blobs and ensures they match the local state.
 func (sp *Processor[
-	AvailabilityStoreT, _, _, _, BlobSidecarsT,
+	AvailabilityStoreT, _, _, BlobSidecarsT,
 ]) ProcessSidecars(
 	avs AvailabilityStoreT,
 	sidecars BlobSidecarsT,
@@ -139,7 +145,7 @@ func (sp *Processor[
 	// If we have reached this point, we can safely assume that the blobs are
 	// valid and can be persisted, as well as that index 0 is filled.
 	return avs.Persist(
-		sidecars.Get(0).GetBeaconBlockHeader().GetSlot(),
+		sidecars.Get(0).GetSignedBeaconBlockHeader().GetHeader().GetSlot(),
 		sidecars,
 	)
 }

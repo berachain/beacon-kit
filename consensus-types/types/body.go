@@ -26,6 +26,7 @@
 package types
 
 import (
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
@@ -72,7 +73,7 @@ func (b *BeaconBlockBody) Empty(forkVersion uint32) *BeaconBlockBody {
 // TODO: I still feel like we need to clean this up somehow.
 func BlockBodyKZGOffset(
 	slot math.Slot,
-	cs common.ChainSpec,
+	cs chain.ChainSpec,
 ) (uint64, error) {
 	switch cs.ActiveForkVersionForSlot(slot) {
 	case version.Deneb:
@@ -297,8 +298,7 @@ func (b *BeaconBlockBody) GetTopLevelRoots() []common.Root {
 		common.Root(b.GetGraffiti().HashTreeRoot()),
 		Deposits(b.GetDeposits()).HashTreeRoot(),
 		b.GetExecutionPayload().HashTreeRoot(),
-		// I think this is a bug.
-		common.Root{},
+		{},
 	}
 }
 

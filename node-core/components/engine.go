@@ -24,20 +24,20 @@ import (
 	"math/big"
 
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/config"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/execution/engine"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/net/jwt"
 )
 
 // EngineClientInputs is the input for the EngineClient.
 type EngineClientInputs[LoggerT any] struct {
 	depinject.In
-	ChainSpec common.ChainSpec
+	ChainSpec chain.ChainSpec
 	Config    *config.Config
 	// TODO: this feels like a hood way to handle it.
 	JWTSecret     *jwt.Secret `optional:"true"`
@@ -47,21 +47,11 @@ type EngineClientInputs[LoggerT any] struct {
 
 // ProvideEngineClient creates a new EngineClient.
 func ProvideEngineClient[
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	in EngineClientInputs[LoggerT],
-) *client.EngineClient[
-	ExecutionPayloadT,
-	*engineprimitives.PayloadAttributes,
-] {
-	return client.New[
-		ExecutionPayloadT,
-		*engineprimitives.PayloadAttributes,
-	](
+) *client.EngineClient[*engineprimitives.PayloadAttributes] {
+	return client.New[*engineprimitives.PayloadAttributes](
 		in.Config.GetEngine(),
 		in.Logger.With("service", "engine.client"),
 		in.JWTSecret,
@@ -72,17 +62,10 @@ func ProvideEngineClient[
 
 // EngineClientInputs is the input for the EngineClient.
 type ExecutionEngineInputs[
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	LoggerT any,
 ] struct {
 	depinject.In
-	EngineClient *client.EngineClient[
-		ExecutionPayloadT,
-		*engineprimitives.PayloadAttributes,
-	]
+	EngineClient  *client.EngineClient[*engineprimitives.PayloadAttributes]
 	Logger        LoggerT
 	TelemetrySink *metrics.TelemetrySink
 }
@@ -90,22 +73,14 @@ type ExecutionEngineInputs[
 // ProvideExecutionEngine provides the execution engine to the depinject
 // framework.
 func ProvideExecutionEngine[
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
-	in ExecutionEngineInputs[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, LoggerT,
-	],
+	in ExecutionEngineInputs[LoggerT],
 ) *engine.Engine[
-	ExecutionPayloadT,
 	*engineprimitives.PayloadAttributes,
 	PayloadID,
 ] {
 	return engine.New[
-		ExecutionPayloadT,
 		*engineprimitives.PayloadAttributes,
 		PayloadID,
 	](

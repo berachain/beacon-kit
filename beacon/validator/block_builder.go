@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -40,12 +39,18 @@ import (
 
 // BuildBlockAndSidecars builds a new beacon block.
 func (s *Service[
-	BeaconBlockT, _, _, _, BlobSidecarsT,
-	_, _, _, SlashingInfoT, SlotDataT,
+	BeaconBlockT, _, _, BlobSidecarsT,
+	_, SlashingInfoT, SlotDataT,
 ]) BuildBlockAndSidecars(
 	ctx context.Context,
 	slotData types.SlotData[ctypes.SlashingInfo],
 ) ([]byte, []byte, error) {
+	var (
+		blk      BeaconBlockT
+		sidecars BlobSidecarsT
+		forkData *ctypes.ForkData
+	)
+
 	startTime := time.Now()
 	defer s.metrics.measureRequestBlockForProposalTime(startTime)
 
@@ -65,15 +70,21 @@ func (s *Service[
 		return nil, nil, err
 	}
 
+	// Build forkdata used for the signing root of the reveal and the sidecars
+	forkData, err := s.buildForkData(st, slotData.GetSlot())
+	if err != nil {
+		return nil, nil, err
+	}
+
 	// Build the reveal for the current slot.
 	// TODO: We can optimize to pre-compute this in parallel?
-	reveal, err := s.buildRandaoReveal(st, slotData.GetSlot())
+	reveal, err := s.buildRandaoReveal(forkData, slotData.GetSlot())
 	if err != nil {
 		return nil, nil, err
 	}
 
 	// Create a new empty block from the current state.
-	blk, err := s.getEmptyBeaconBlockForSlot(st, slotData.GetSlot())
+	blk, err = s.getEmptyBeaconBlockForSlot(st, slotData.GetSlot())
 	if err != nil {
 		return nil, nil, err
 	}
@@ -107,8 +118,12 @@ func (s *Service[
 	}
 
 	// Produce blob sidecars with new StateRoot
-	sidecars, err := s.blobFactory.BuildSidecars(
-		blk, envelope.GetBlobsBundle())
+	sidecars, err = s.blobFactory.BuildSidecars(
+		blk,
+		envelope.GetBlobsBundle(),
+		s.signer,
+		forkData,
+	)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -134,7 +149,7 @@ func (s *Service[
 
 // getEmptyBeaconBlockForSlot creates a new empty block.
 func (s *Service[
-	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _,
+	BeaconBlockT, BeaconStateT, _, _, _, _, _,
 ]) getEmptyBeaconBlockForSlot(
 	st BeaconStateT, requestedSlot math.Slot,
 ) (BeaconBlockT, error) {
@@ -164,27 +179,38 @@ func (s *Service[
 	)
 }
 
-// buildRandaoReveal builds a randao reveal for the given slot.
 func (s *Service[
-	_, _, BeaconStateT, _, _, _, _, _, _, _,
-]) buildRandaoReveal(
+	_, BeaconStateT, _, _, _, _, _,
+]) buildForkData(
 	st BeaconStateT,
 	slot math.Slot,
-) (crypto.BLSSignature, error) {
+) (*ctypes.ForkData, error) {
 	var (
 		epoch = s.chainSpec.SlotToEpoch(slot)
 	)
 
 	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
 	if err != nil {
-		return crypto.BLSSignature{}, err
+		return nil, err
 	}
 
-	signingRoot := ctypes.NewForkData(
+	return ctypes.NewForkData(
 		version.FromUint32[common.Version](
 			s.chainSpec.ActiveForkVersionForEpoch(epoch),
-		), genesisValidatorsRoot,
-	).ComputeRandaoSigningRoot(
+		),
+		genesisValidatorsRoot,
+	), nil
+}
+
+// buildRandaoReveal builds a randao reveal for the given slot.
+func (s *Service[
+	_, BeaconStateT, _, _, _, _, _,
+]) buildRandaoReveal(
+	forkData *ctypes.ForkData,
+	slot math.Slot,
+) (crypto.BLSSignature, error) {
+	var epoch = s.chainSpec.SlotToEpoch(slot)
+	signingRoot := forkData.ComputeRandaoSigningRoot(
 		s.chainSpec.DomainTypeRandao(),
 		epoch,
 	)
@@ -193,14 +219,14 @@ func (s *Service[
 
 // retrieveExecutionPayload retrieves the execution payload for the block.
 func (s *Service[
-	BeaconBlockT, _, BeaconStateT, _, _, _,
-	ExecutionPayloadT, ExecutionPayloadHeaderT, SlashingInfoT, SlotDataT,
+	BeaconBlockT, BeaconStateT, _, _, _,
+	SlashingInfoT, SlotDataT,
 ]) retrieveExecutionPayload(
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
 	slotData types.SlotData[ctypes.SlashingInfo],
-) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
+) (ctypes.BuiltExecutionPayloadEnv, error) {
 	//
 	// TODO: Add external block builders to this flow.
 	//
@@ -231,7 +257,7 @@ func (s *Service[
 
 	// The latest execution payload header will be from the previous block
 	// during the block building phase.
-	var lph ExecutionPayloadHeaderT
+	var lph *ctypes.ExecutionPayloadHeader
 	lph, err = st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return nil, err
@@ -254,14 +280,14 @@ func (s *Service[
 
 // BuildBlockBody assembles the block body with necessary components.
 func (s *Service[
-	BeaconBlockT, _, BeaconStateT, _, _, _,
-	ExecutionPayloadT, _, SlashingInfoT, SlotDataT,
+	BeaconBlockT, BeaconStateT, _, _, _,
+	SlashingInfoT, SlotDataT,
 ]) buildBlockBody(
 	_ context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
 	reveal crypto.BLSSignature,
-	envelope engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT],
+	envelope ctypes.BuiltExecutionPayloadEnv,
 	slotData types.SlotData[ctypes.SlashingInfo],
 ) error {
 	// Assemble a new block with the payload.
@@ -350,7 +376,7 @@ func (s *Service[
 // computeAndSetStateRoot computes the state root of an outgoing block
 // and sets it in the block.
 func (s *Service[
-	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _,
+	BeaconBlockT, BeaconStateT, _, _, _, _, _,
 ]) computeAndSetStateRoot(
 	ctx context.Context,
 	proposerAddress []byte,
@@ -379,7 +405,7 @@ func (s *Service[
 
 // computeStateRoot computes the state root of an outgoing block.
 func (s *Service[
-	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _,
+	BeaconBlockT, BeaconStateT, _, _, _, _, _,
 ]) computeStateRoot(
 	ctx context.Context,
 	proposerAddress []byte,
@@ -414,10 +440,11 @@ func convertSlashingInfo[
 	SlashingInfoT any,
 ](
 	data []ctypes.SlashingInfo,
-) []SlashingInfoT {
-	converted := make([]SlashingInfoT, len(data))
+) []*ctypes.SlashingInfo {
+	converted := make([]*ctypes.SlashingInfo, len(data))
 	for i, d := range data {
-		val, ok := any(d).(SlashingInfoT)
+		// #nosec G601 // TODO remove once we remove the SlashingInfoT generic type
+		val, ok := any(&d).(*ctypes.SlashingInfo)
 		if !ok {
 			panic(fmt.Sprintf("failed to convert slashing info at index %d", i))
 		}

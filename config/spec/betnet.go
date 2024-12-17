@@ -30,7 +30,6 @@ import (
 func BetnetChainSpec() (chain.Spec[
 	common.DomainType,
 	math.Epoch,
-	common.ExecutionAddress,
 	math.Slot,
 	any,
 ], error) {

@@ -24,11 +24,10 @@ import (
 	"os"
 
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/config"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/storage/filedb"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cast"
@@ -39,20 +38,17 @@ import (
 type AvailabilityStoreInput[LoggerT any] struct {
 	depinject.In
 	AppOpts   config.AppOptions
-	ChainSpec common.ChainSpec
+	ChainSpec chain.ChainSpec
 	Logger    LoggerT
 }
 
 // ProvideAvailibilityStore provides the availability store.
 func ProvideAvailibilityStore[
-	BeaconBlockBodyT interface {
-		GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
-	},
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	in AvailabilityStoreInput[LoggerT],
-) (*dastore.Store[BeaconBlockBodyT], error) {
-	return dastore.New[BeaconBlockBodyT](
+) (*dastore.Store, error) {
+	return dastore.New(
 		filedb.NewRangeDB(
 			filedb.NewDB(
 				filedb.WithRootDirectory(

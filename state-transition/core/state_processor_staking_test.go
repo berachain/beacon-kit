@@ -1160,7 +1160,7 @@ func generateTestPK(t *testing.T, rndSeed int) (bytes.B48, int) {
 func moveToEndOfEpoch(
 	t *testing.T,
 	tip *types.BeaconBlock,
-	cs chain.Spec[bytes.B4, math.U64, common.ExecutionAddress, math.U64, any],
+	cs chain.Spec[bytes.B4, math.U64, math.U64, any],
 	sp *TestStateProcessorT,
 	st *TestBeaconStateT,
 	ctx *transition.Context,

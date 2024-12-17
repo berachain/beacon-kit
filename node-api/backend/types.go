@@ -33,25 +33,21 @@ import (
 // The AvailabilityStore interface is responsible for validating and storing
 // sidecars for specific blocks, as well as verifying sidecars that have already
 // been stored.
-type AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT any] interface {
+type AvailabilityStore[BlobSidecarsT any] interface {
 	// IsDataAvailable ensures that all blobs referenced in the block are
 	// securely stored before it returns without an error.
-	IsDataAvailable(
-		context.Context, math.Slot, BeaconBlockBodyT,
-	) bool
+	IsDataAvailable(context.Context, math.Slot, *ctypes.BeaconBlockBody) bool
 	// Persist makes sure that the sidecar remains accessible for data
 	// availability checks throughout the beacon node's operation.
 	Persist(math.Slot, BlobSidecarsT) error
 }
 
 // BeaconState is the interface for the beacon state.
-type BeaconState[
-	ExecutionPayloadHeaderT any,
-] interface {
+type BeaconState interface {
 	// SetSlot sets the slot on the beacon state.
 	SetSlot(math.Slot) error
 
-	core.ReadOnlyBeaconState[ExecutionPayloadHeaderT]
+	core.ReadOnlyBeaconState
 }
 
 // BlockStore is the interface for block storage.
@@ -67,10 +63,7 @@ type BlockStore[BeaconBlockT any] interface {
 // DepositStore defines the interface for deposit storage.
 type DepositStore interface {
 	// GetDepositsByIndex returns `numView` expected deposits.
-	GetDepositsByIndex(
-		startIndex uint64,
-		numView uint64,
-	) ([]*ctypes.Deposit, error)
+	GetDepositsByIndex(startIndex uint64, numView uint64) ([]*ctypes.Deposit, error)
 	// Prune prunes the deposit store of [start, end)
 	Prune(start, end uint64) error
 	// EnqueueDeposits adds a list of deposits to the deposit store.

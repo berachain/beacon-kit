@@ -31,17 +31,15 @@ import (
 	ethclient "github.com/berachain/beacon-kit/execution/client/ethclient"
 	ethclientrpc "github.com/berachain/beacon-kit/execution/client/ethclient/rpc"
 	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/net/jwt"
 )
 
 // EngineClient is a struct that holds a pointer to an Eth1Client.
 type EngineClient[
-	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 	PayloadAttributesT PayloadAttributes,
 ] struct {
-	*ethclient.Client[ExecutionPayloadT]
+	*ethclient.Client
 	// cfg is the supplied configuration for the engine client.
 	cfg *Config
 	// logger is the logger for the engine client.
@@ -62,7 +60,6 @@ type EngineClient[
 // It takes an Eth1Client as an argument and returns a pointer  to an
 // EngineClient.
 func New[
-	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 	PayloadAttributesT PayloadAttributes,
 ](
 	cfg *Config,
@@ -70,13 +67,11 @@ func New[
 	jwtSecret *jwt.Secret,
 	telemetrySink TelemetrySink,
 	eth1ChainID *big.Int,
-) *EngineClient[
-	ExecutionPayloadT, PayloadAttributesT,
-] {
-	return &EngineClient[ExecutionPayloadT, PayloadAttributesT]{
+) *EngineClient[PayloadAttributesT] {
+	return &EngineClient[PayloadAttributesT]{
 		cfg:    cfg,
 		logger: logger,
-		Client: ethclient.New[ExecutionPayloadT](
+		Client: ethclient.New(
 			ethclientrpc.NewClient(
 				cfg.RPCDialURL.String(),
 				ethclientrpc.WithJWTSecret(jwtSecret),
@@ -92,16 +87,12 @@ func New[
 }
 
 // Name returns the name of the engine client.
-func (s *EngineClient[
-	_, _,
-]) Name() string {
+func (s *EngineClient[_]) Name() string {
 	return "engine-client"
 }
 
 // Start the engine client.
-func (s *EngineClient[
-	_, _,
-]) Start(
+func (s *EngineClient[_]) Start(
 	ctx context.Context,
 ) error {
 	// Start the Client.
@@ -144,17 +135,17 @@ func (s *EngineClient[
 	}
 }
 
-func (s *EngineClient[_, _]) Stop() error {
+func (s *EngineClient[_]) Stop() error {
 	return nil
 }
 
-func (s *EngineClient[_, _]) IsConnected() bool {
+func (s *EngineClient[_]) IsConnected() bool {
 	s.connectedMu.RLock()
 	defer s.connectedMu.RUnlock()
 	return s.connected
 }
 
-func (s *EngineClient[_, _]) HasCapability(capability string) bool {
+func (s *EngineClient[_]) HasCapability(capability string) bool {
 	_, ok := s.capabilities[capability]
 	return ok
 }
@@ -165,9 +156,7 @@ func (s *EngineClient[_, _]) HasCapability(capability string) bool {
 
 // verifyChainID dials the execution client and
 // ensures the chain ID is correct.
-func (s *EngineClient[
-	_, _,
-]) verifyChainIDAndConnection(
+func (s *EngineClient[_]) verifyChainIDAndConnection(
 	ctx context.Context,
 ) error {
 	var (

@@ -52,15 +52,15 @@ func run() error {
 	// Build the root command using the builder
 	cb := clibuilder.New(
 		// Set the Name to the Default.
-		clibuilder.WithName[Node, *ExecutionPayload, *Logger](
+		clibuilder.WithName[Node, *Logger](
 			"beacond",
 		),
 		// Set the Description to the Default.
-		clibuilder.WithDescription[Node, *ExecutionPayload, *Logger](
+		clibuilder.WithDescription[Node, *Logger](
 			"A basic beacon node, usable most standard networks.",
 		),
 		// Set the Runtime Components to the Default.
-		clibuilder.WithComponents[Node, *ExecutionPayload, *Logger](
+		clibuilder.WithComponents[Node, *Logger](
 			append(
 				clicomponents.DefaultClientComponents(),
 				// TODO: remove these, and eventually pull cfg and chainspec
@@ -70,7 +70,7 @@ func run() error {
 		),
 		// Set the NodeBuilderFunc to the NodeBuilder Build.
 		clibuilder.WithNodeBuilderFunc[
-			Node, *ExecutionPayload, *Logger,
+			Node, *Logger,
 		](nb.Build),
 	)
 
