@@ -151,11 +151,11 @@ type ForkData[T any] interface {
 	) T
 	// ComputeRandaoSigningRoot computes the Randao signing root.
 	ComputeRandaoSigningRoot(
-		chain.DomainType,
+		common.DomainType,
 		math.Epoch,
 	) common.Root
 	// ComputeDomain computes the fork data domain for a given domain type.
-	ComputeDomain(chain.DomainType) common.Domain
+	ComputeDomain(common.DomainType) common.Domain
 }
 
 // PayloadBuilder represents a service that is responsible for

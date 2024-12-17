@@ -22,12 +22,13 @@ package spec
 
 import (
 	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // TestnetChainSpec is the ChainSpec for the bArtio testnet.
 func TestnetChainSpec() (chain.Spec[
-	chain.DomainType,
+	common.DomainType,
 	math.Epoch,
 	math.Slot,
 	any,

@@ -362,7 +362,7 @@ type (
 		// VerifySignature verifies the deposit and creates a validator.
 		VerifySignature(
 			forkData *ctypes.ForkData,
-			domainType chain.DomainType,
+			domainType common.DomainType,
 			signatureVerificationFn func(
 				pubkey crypto.BLSPubkey,
 				message []byte, signature crypto.BLSSignature,

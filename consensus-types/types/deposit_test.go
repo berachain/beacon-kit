@@ -138,7 +138,7 @@ func TestDeposit_VerifySignature(t *testing.T) {
 		return nil
 	}
 
-	errVerify := deposit.VerifySignature(forkData, chain.DomainType{
+	errVerify := deposit.VerifySignature(forkData, common.DomainType{
 		0x01, 0x00, 0x00, 0x00,
 	}, signatureVerificationFn)
 	require.NoError(t, errVerify)

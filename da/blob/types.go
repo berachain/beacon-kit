@@ -24,7 +24,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
@@ -79,7 +78,7 @@ type Sidecars[SidecarT any] interface {
 // ChainSpec represents a chain spec.
 type ChainSpec interface {
 	MaxBlobCommitmentsPerBlock() uint64
-	DomainTypeProposer() chain.DomainType
+	DomainTypeProposer() common.DomainType
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.

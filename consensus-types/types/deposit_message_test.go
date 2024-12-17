@@ -42,7 +42,7 @@ func TestCreateAndSignDepositMessage(t *testing.T) {
 		GenesisValidatorsRoot: common.Root{0x00, 0x00, 0x00, 0x00},
 	}
 
-	domainType := chain.DomainType{
+	domainType := common.DomainType{
 		0x01, 0x00, 0x00, 0x00,
 	}
 
@@ -135,7 +135,7 @@ func TestDepositMessage_VerifyCreateValidator_Error(t *testing.T) {
 	) error {
 		return errors.New("signature verification failed")
 	}
-	domainType := chain.DomainType{
+	domainType := common.DomainType{
 		0x01, 0x00, 0x00, 0x00,
 	}
 

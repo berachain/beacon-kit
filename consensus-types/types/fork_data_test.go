@@ -80,7 +80,7 @@ func TestForkData_ComputeDomain(t *testing.T) {
 		CurrentVersion:        chain.Version{},
 		GenesisValidatorsRoot: common.Root{},
 	}
-	domainType := chain.DomainType{
+	domainType := common.DomainType{
 		0x01, 0x00, 0x00, 0x00,
 	}
 	require.NotPanics(t, func() {
@@ -94,7 +94,7 @@ func TestForkData_ComputeRandaoSigningRoot(t *testing.T) {
 		GenesisValidatorsRoot: common.Root{},
 	}
 
-	domainType := chain.DomainType{0, 0, 0, 0}
+	domainType := common.DomainType{0, 0, 0, 0}
 	epoch := math.Epoch(1)
 
 	require.NotPanics(t, func() {

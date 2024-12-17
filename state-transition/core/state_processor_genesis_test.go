@@ -158,7 +158,7 @@ func TestInitialize(t *testing.T) {
 func checkValidatorNonBartio(
 	t *testing.T,
 	cs chain.Spec[
-		chain.DomainType,
+		common.DomainType,
 		math.Epoch,
 		math.Slot,
 		any,
@@ -311,7 +311,7 @@ func TestInitializeBartio(t *testing.T) {
 func checkValidatorBartio(
 	t *testing.T,
 	cs chain.Spec[
-		chain.DomainType,
+		common.DomainType,
 		math.Epoch,
 		math.Slot,
 		any,
@@ -351,7 +351,7 @@ func checkValidatorBartio(
 func commonChecksValidators(
 	t *testing.T,
 	cs chain.Spec[
-		chain.DomainType,
+		common.DomainType,
 		math.Epoch,
 		math.Slot,
 		any,

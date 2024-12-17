@@ -87,7 +87,7 @@ func (fd *ForkData) UnmarshalSSZ(buf []byte) error {
 // ComputeDomain as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#compute_domain
 func (fd *ForkData) ComputeDomain(
-	domainType chain.DomainType,
+	domainType common.DomainType,
 ) common.Domain {
 	forkDataRoot := fd.HashTreeRoot()
 	return common.Domain(
@@ -99,7 +99,7 @@ func (fd *ForkData) ComputeDomain(
 
 // ComputeRandaoSigningRoot computes the randao signing root.
 func (fd *ForkData) ComputeRandaoSigningRoot(
-	domainType chain.DomainType,
+	domainType common.DomainType,
 	epoch math.Epoch,
 ) common.Root {
 	return ComputeSigningRootUInt64(
