@@ -23,6 +23,7 @@ package cometbft
 import (
 	"context"
 	"fmt"
+	"time"
 
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/sourcegraph/conc/iter"
@@ -92,6 +93,11 @@ func (s *Service[LoggerT]) finalizeBlockInternal(
 		TxResults:             txResults,
 		ValidatorUpdates:      valUpdates,
 		ConsensusParamUpdates: s.paramStore.Get(),
+		NextBlockDelay: nextBlockDelay(
+			s.initialTime,
+			req.Time,
+			req.Height,
+			s.targetBlockTime),
 	}, nil
 }
 
@@ -164,4 +170,20 @@ func (s *Service[_]) validateFinalizeBlockHeight(
 	}
 
 	return nil
+}
+
+func nextBlockDelay(initialTime, curBlockTime time.Time, curBlockHeight int64,
+	targetBlockTime time.Duration) time.Duration {
+	// Until `timeout_commit` is removed from the CometBFT config,
+	// `NextBlockDelay` can't be exactly 0. If it's set to 0, then
+	// `timeout_commit` from the config will be used, which is not what we want
+	// since we're trying to control the block time.
+	const noDelay = 1 * time.Microsecond
+
+	t := initialTime.Add(targetBlockTime * time.Duration(curBlockHeight))
+	if curBlockTime.Before(t) {
+		return t.Sub(curBlockTime)
+	}
+
+	return noDelay
 }

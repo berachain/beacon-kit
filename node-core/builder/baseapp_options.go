@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"cosmossdk.io/store"
 	storetypes "cosmossdk.io/store/types"
@@ -82,6 +83,10 @@ func DefaultServiceOptions[
 			true,
 		),
 		cometbft.SetChainID[LoggerT](chainID),
+		cometbft.SetTargetBlockTime[LoggerT](
+			// default to 2 seconds
+			2 * time.Second,
+		),
 	}
 }
 

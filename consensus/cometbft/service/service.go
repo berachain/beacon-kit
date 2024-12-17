@@ -24,6 +24,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
@@ -88,6 +89,11 @@ type Service[
 	// initialHeight is the initial height at which we start the node
 	initialHeight   int64
 	minRetainBlocks uint64
+
+	// genesis time
+	initialTime time.Time
+	// targetBlockTime is the desired block time. Doesn't change after start.
+	targetBlockTime time.Duration
 
 	chainID string
 }
@@ -221,6 +227,11 @@ func (s *Service[_]) MountStore(
 // LastBlockHeight returns the last committed block height.
 func (s *Service[_]) LastBlockHeight() int64 {
 	return s.sm.CommitMultiStore().LastCommitID().Version
+}
+
+// setTargetBlockTime sets the desired block time.
+func (s *Service[_]) setTargetBlockTime(t time.Duration) {
+	s.targetBlockTime = t
 }
 
 func (s *Service[_]) setMinRetainBlocks(minRetainBlocks uint64) {
