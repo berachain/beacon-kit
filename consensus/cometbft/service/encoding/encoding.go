@@ -21,25 +21,21 @@
 package encoding
 
 import (
-	"github.com/berachain/beacon-kit/primitives/constraints"
+	datypes "github.com/berachain/beacon-kit/da/types"
 )
 
 // ExtractBlobsAndBlockFromRequest extracts the blobs and block from an ABCI
 // request.
 func ExtractBlobsAndBlockFromRequest[
 	BeaconBlockT BeaconBlock[BeaconBlockT],
-	BlobSidecarsT interface {
-		constraints.SSZUnmarshaler
-		Empty() BlobSidecarsT
-	},
 ](
 	req ABCIRequest,
 	beaconBlkIndex uint,
 	blobSidecarsIndex uint,
 	forkVersion uint32,
-) (BeaconBlockT, BlobSidecarsT, error) {
+) (BeaconBlockT, datypes.BlobSidecars, error) {
 	var (
-		blobs BlobSidecarsT
+		blobs datypes.BlobSidecars
 		blk   BeaconBlockT
 	)
 
@@ -56,7 +52,7 @@ func ExtractBlobsAndBlockFromRequest[
 		return blk, blobs, err
 	}
 
-	blobs, err = UnmarshalBlobSidecarsFromABCIRequest[BlobSidecarsT](
+	blobs, err = UnmarshalBlobSidecarsFromABCIRequest(
 		req,
 		blobSidecarsIndex,
 	)
@@ -104,16 +100,11 @@ func UnmarshalBeaconBlockFromABCIRequest[
 
 // UnmarshalBlobSidecarsFromABCIRequest extracts blob sidecars from an ABCI
 // request.
-func UnmarshalBlobSidecarsFromABCIRequest[
-	BlobSidecarsT interface {
-		constraints.SSZUnmarshaler
-		Empty() BlobSidecarsT
-	},
-](
+func UnmarshalBlobSidecarsFromABCIRequest(
 	req ABCIRequest,
 	bzIndex uint,
-) (BlobSidecarsT, error) {
-	var sidecars BlobSidecarsT
+) (datypes.BlobSidecars, error) {
+	var sidecars datypes.BlobSidecars
 	if req == nil {
 		return sidecars, ErrNilABCIRequest
 	}
@@ -130,6 +121,6 @@ func UnmarshalBlobSidecarsFromABCIRequest[
 
 	// TODO: Do some research to figure out how to make this more
 	// elegant.
-	sidecars = sidecars.Empty()
+	sidecars = datypes.BlobSidecars{}
 	return sidecars, sidecars.UnmarshalSSZ(sidecarBz)
 }
