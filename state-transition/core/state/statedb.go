@@ -361,7 +361,7 @@ func (s *StateDB[BeaconStateMarshallableT, _]) GetMarshallable() (BeaconStateMar
 		return empty, err
 	}
 
-	randaoMixes := make([]chain.Bytes32, s.cs.EpochsPerHistoricalVector())
+	randaoMixes := make([]common.Bytes32, s.cs.EpochsPerHistoricalVector())
 	for i := range s.cs.EpochsPerHistoricalVector() {
 		randaoMixes[i], err = s.GetRandaoMixAtIndex(i)
 		if err != nil {

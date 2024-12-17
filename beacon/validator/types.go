@@ -24,7 +24,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -74,7 +73,7 @@ type BeaconBlockBody[
 	// SetExecutionPayload sets the execution data of the beacon block body.
 	SetExecutionPayload(*ctypes.ExecutionPayload)
 	// SetGraffiti sets the graffiti of the beacon block body.
-	SetGraffiti(chain.Bytes32)
+	SetGraffiti(common.Bytes32)
 	// SetAttestations sets the attestations of the beacon block body.
 	SetAttestations([]*ctypes.AttestationData)
 	// SetSlashingInfo sets the slashing info of the beacon block body.
@@ -132,16 +131,16 @@ type DepositStore interface {
 type ForkData[T any] interface {
 	// New creates a new fork data with the given parameters.
 	New(
-		chain.Version,
+		common.Version,
 		common.Root,
 	) T
 	// ComputeRandaoSigningRoot computes the Randao signing root.
 	ComputeRandaoSigningRoot(
-		chain.DomainType,
+		common.DomainType,
 		math.Epoch,
 	) common.Root
 	// ComputeDomain computes the fork data domain for a given domain type.
-	ComputeDomain(chain.DomainType) chain.Domain
+	ComputeDomain(common.DomainType) common.Domain
 }
 
 // PayloadBuilder represents a service that is responsible for

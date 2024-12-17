@@ -110,13 +110,13 @@ type ReadOnlyStateRoots interface {
 // WriteOnlyRandaoMixes defines a struct which only has write access to randao
 // mixes methods.
 type WriteOnlyRandaoMixes interface {
-	UpdateRandaoMixAtIndex(uint64, chain.Bytes32) error
+	UpdateRandaoMixAtIndex(uint64, common.Bytes32) error
 }
 
 // ReadOnlyRandaoMixes defines a struct which only has read access to randao
 // mixes methods.
 type ReadOnlyRandaoMixes interface {
-	GetRandaoMixAtIndex(uint64) (chain.Bytes32, error)
+	GetRandaoMixAtIndex(uint64) (common.Bytes32, error)
 }
 
 // WriteOnlyValidators has write access to validator methods.

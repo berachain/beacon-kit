@@ -23,7 +23,6 @@ package engineprimitives_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -33,7 +32,7 @@ import (
 type payloadAttributesInput struct {
 	forkVersion           uint32
 	timestamp             uint64
-	prevRandao            chain.Bytes32
+	prevRandao            common.Bytes32
 	suggestedFeeRecipient common.ExecutionAddress
 	withdrawals           engineprimitives.Withdrawals
 	parentBeaconBlockRoot common.Root
@@ -44,7 +43,7 @@ func TestPayloadAttributes(t *testing.T) {
 	validInput := payloadAttributesInput{
 		forkVersion:           uint32(1),
 		timestamp:             uint64(123456789),
-		prevRandao:            chain.Bytes32{1, 2, 3},
+		prevRandao:            common.Bytes32{1, 2, 3},
 		suggestedFeeRecipient: common.ExecutionAddress{},
 		withdrawals:           engineprimitives.Withdrawals{},
 		parentBeaconBlockRoot: common.Root{},
@@ -74,7 +73,7 @@ func TestPayloadAttributes(t *testing.T) {
 			name: "Invalid PreRandao",
 			input: func() payloadAttributesInput {
 				res := validInput
-				res.prevRandao = chain.Bytes32{}
+				res.prevRandao = common.Bytes32{}
 				return res
 			},
 			wantErr: engineprimitives.ErrEmptyPrevRandao,
