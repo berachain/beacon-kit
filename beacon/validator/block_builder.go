@@ -40,7 +40,7 @@ import (
 // BuildBlockAndSidecars builds a new beacon block.
 func (s *Service[
 	BeaconBlockT, _, _, BlobSidecarsT,
-	_, SlotDataT,
+	_,
 ]) BuildBlockAndSidecars(
 	ctx context.Context,
 	slotData types.SlotData,
@@ -149,7 +149,7 @@ func (s *Service[
 
 // getEmptyBeaconBlockForSlot creates a new empty block.
 func (s *Service[
-	BeaconBlockT, BeaconStateT, _, _, _, _,
+	BeaconBlockT, BeaconStateT, _, _, _,
 ]) getEmptyBeaconBlockForSlot(
 	st BeaconStateT, requestedSlot math.Slot,
 ) (BeaconBlockT, error) {
@@ -180,7 +180,7 @@ func (s *Service[
 }
 
 func (s *Service[
-	_, BeaconStateT, _, _, _, _,
+	_, BeaconStateT, _, _, _,
 ]) buildForkData(
 	st BeaconStateT,
 	slot math.Slot,
@@ -204,7 +204,7 @@ func (s *Service[
 
 // buildRandaoReveal builds a randao reveal for the given slot.
 func (s *Service[
-	_, BeaconStateT, _, _, _, _,
+	_, BeaconStateT, _, _, _,
 ]) buildRandaoReveal(
 	forkData *ctypes.ForkData,
 	slot math.Slot,
@@ -220,7 +220,6 @@ func (s *Service[
 // retrieveExecutionPayload retrieves the execution payload for the block.
 func (s *Service[
 	BeaconBlockT, BeaconStateT, _, _, _,
-	SlotDataT,
 ]) retrieveExecutionPayload(
 	ctx context.Context,
 	st BeaconStateT,
@@ -281,7 +280,6 @@ func (s *Service[
 // BuildBlockBody assembles the block body with necessary components.
 func (s *Service[
 	BeaconBlockT, BeaconStateT, _, _, _,
-	SlotDataT,
 ]) buildBlockBody(
 	_ context.Context,
 	st BeaconStateT,
@@ -371,7 +369,7 @@ func (s *Service[
 // computeAndSetStateRoot computes the state root of an outgoing block
 // and sets it in the block.
 func (s *Service[
-	BeaconBlockT, BeaconStateT, _, _, _, _,
+	BeaconBlockT, BeaconStateT, _, _, _,
 ]) computeAndSetStateRoot(
 	ctx context.Context,
 	proposerAddress []byte,
@@ -400,7 +398,7 @@ func (s *Service[
 
 // computeStateRoot computes the state root of an outgoing block.
 func (s *Service[
-	BeaconBlockT, BeaconStateT, _, _, _, _,
+	BeaconBlockT, BeaconStateT, _, _, _,
 ]) computeStateRoot(
 	ctx context.Context,
 	proposerAddress []byte,

@@ -145,7 +145,6 @@ type (
 		*BlobSidecar,
 		*BlobSidecars,
 		*DepositStore,
-		*SlotData,
 	]
 )
 
