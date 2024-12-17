@@ -40,10 +40,10 @@ import (
 // BuildBlockAndSidecars builds a new beacon block.
 func (s *Service[
 	BeaconBlockT, _, _, BlobSidecarsT,
-	_, SlashingInfoT, SlotDataT,
+	_, SlotDataT,
 ]) BuildBlockAndSidecars(
 	ctx context.Context,
-	slotData types.SlotData[ctypes.SlashingInfo],
+	slotData types.SlotData,
 ) ([]byte, []byte, error) {
 	var (
 		blk      BeaconBlockT
@@ -149,7 +149,7 @@ func (s *Service[
 
 // getEmptyBeaconBlockForSlot creates a new empty block.
 func (s *Service[
-	BeaconBlockT, BeaconStateT, _, _, _, _, _,
+	BeaconBlockT, BeaconStateT, _, _, _, _,
 ]) getEmptyBeaconBlockForSlot(
 	st BeaconStateT, requestedSlot math.Slot,
 ) (BeaconBlockT, error) {
@@ -180,7 +180,7 @@ func (s *Service[
 }
 
 func (s *Service[
-	_, BeaconStateT, _, _, _, _, _,
+	_, BeaconStateT, _, _, _, _,
 ]) buildForkData(
 	st BeaconStateT,
 	slot math.Slot,
@@ -204,7 +204,7 @@ func (s *Service[
 
 // buildRandaoReveal builds a randao reveal for the given slot.
 func (s *Service[
-	_, BeaconStateT, _, _, _, _, _,
+	_, BeaconStateT, _, _, _, _,
 ]) buildRandaoReveal(
 	forkData *ctypes.ForkData,
 	slot math.Slot,
@@ -220,12 +220,12 @@ func (s *Service[
 // retrieveExecutionPayload retrieves the execution payload for the block.
 func (s *Service[
 	BeaconBlockT, BeaconStateT, _, _, _,
-	SlashingInfoT, SlotDataT,
+	SlotDataT,
 ]) retrieveExecutionPayload(
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
-	slotData types.SlotData[ctypes.SlashingInfo],
+	slotData types.SlotData,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
 	//
 	// TODO: Add external block builders to this flow.
@@ -281,14 +281,14 @@ func (s *Service[
 // BuildBlockBody assembles the block body with necessary components.
 func (s *Service[
 	BeaconBlockT, BeaconStateT, _, _, _,
-	SlashingInfoT, SlotDataT,
+	SlotDataT,
 ]) buildBlockBody(
 	_ context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
 	reveal crypto.BLSSignature,
 	envelope ctypes.BuiltExecutionPayloadEnv,
-	slotData types.SlotData[ctypes.SlashingInfo],
+	slotData types.SlotData,
 ) error {
 	// Assemble a new block with the payload.
 	body := blk.GetBody()
@@ -361,12 +361,7 @@ func (s *Service[
 		body.SetAttestations(slotData.GetAttestationData())
 
 		// Set the slashing info on the block body.
-		// TODO: Remove conversion once generics have been replaced with
-		// concrete types.
-		slashingInfo := slotData.GetSlashingInfo()
-		body.SetSlashingInfo(convertSlashingInfo[SlashingInfoT](
-			slashingInfo,
-		))
+		body.SetSlashingInfo(slotData.GetSlashingInfo())
 	}
 
 	body.SetExecutionPayload(envelope.GetExecutionPayload())
@@ -376,7 +371,7 @@ func (s *Service[
 // computeAndSetStateRoot computes the state root of an outgoing block
 // and sets it in the block.
 func (s *Service[
-	BeaconBlockT, BeaconStateT, _, _, _, _, _,
+	BeaconBlockT, BeaconStateT, _, _, _, _,
 ]) computeAndSetStateRoot(
 	ctx context.Context,
 	proposerAddress []byte,
@@ -405,7 +400,7 @@ func (s *Service[
 
 // computeStateRoot computes the state root of an outgoing block.
 func (s *Service[
-	BeaconBlockT, BeaconStateT, _, _, _, _, _,
+	BeaconBlockT, BeaconStateT, _, _, _, _,
 ]) computeStateRoot(
 	ctx context.Context,
 	proposerAddress []byte,
@@ -434,21 +429,4 @@ func (s *Service[
 	}
 
 	return st.HashTreeRoot(), nil
-}
-
-func convertSlashingInfo[
-	SlashingInfoT any,
-](
-	data []ctypes.SlashingInfo,
-) []*ctypes.SlashingInfo {
-	converted := make([]*ctypes.SlashingInfo, len(data))
-	for i, d := range data {
-		// #nosec G601 // TODO remove once we remove the SlashingInfoT generic type
-		val, ok := any(&d).(*ctypes.SlashingInfo)
-		if !ok {
-			panic(fmt.Sprintf("failed to convert slashing info at index %d", i))
-		}
-		converted[i] = val
-	}
-	return converted
 }

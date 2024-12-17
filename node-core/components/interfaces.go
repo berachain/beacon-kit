@@ -118,7 +118,6 @@ type (
 	// block.
 	BeaconBlockBody[
 		T any,
-		SlashingInfoT any,
 	] interface {
 		constraints.Nillable
 		constraints.EmptyWithVersion[T]
@@ -146,7 +145,7 @@ type (
 		// SetAttestations sets the attestations of the beacon block body.
 		SetAttestations([]*ctypes.AttestationData)
 		// SetSlashingInfo sets the slashing info of the beacon block body.
-		SetSlashingInfo([]SlashingInfoT)
+		SetSlashingInfo([]*ctypes.SlashingInfo)
 		// SetBlobKzgCommitments sets the blob KZG commitments of the beacon
 		// block body.
 		SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])
@@ -450,12 +449,6 @@ type (
 	// 		common.Root,
 	// 	) (T, error)
 	// }.
-
-	// 	// SlashingInfo is an interface for accessing the slashing info.
-	// 	SlashingInfo[SlashingInfoT any] interface {
-	// 		// New creates a new slashing info instance.
-	// 		New(math.U64, math.U64) SlashingInfoT
-	// 	}
 
 	// StateProcessor defines the interface for processing the state.
 	StateProcessor[
