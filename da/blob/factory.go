@@ -127,7 +127,8 @@ func (f *SidecarFactory[BeaconBlockT]) BuildSidecars(
 		})
 	}
 
-	return &types.BlobSidecars{Sidecars: sidecars}, g.Wait()
+	var sc types.BlobSidecars = sidecars
+	return &sc, g.Wait()
 }
 
 // BuildKZGInclusionProof builds a KZG inclusion proof.
