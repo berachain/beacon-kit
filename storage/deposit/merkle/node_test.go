@@ -18,6 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
+//nolint:testpackage // private functions.
 package merkle
 
 import (
@@ -68,7 +69,10 @@ func Test_create(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := create(hasher, tt.leaves, tt.depth); !reflect.DeepEqual(got, tt.want) {
+			if got := create(hasher, tt.leaves, tt.depth); !reflect.DeepEqual(
+				got,
+				tt.want,
+			) {
 				require.True(t, tt.want.Equals(got))
 			}
 		})
@@ -83,8 +87,11 @@ func Test_fromSnapshotParts(t *testing.T) {
 		finalized [][32]byte
 	}{
 		{
-			name:      "multiple deposits and multiple Finalized",
-			finalized: [][32]byte{hexString(t, fmt.Sprintf("%064d", 1)), hexString(t, fmt.Sprintf("%064d", 2))},
+			name: "multiple deposits and multiple Finalized",
+			finalized: [][32]byte{
+				hexString(t, fmt.Sprintf("%064d", 1)),
+				hexString(t, fmt.Sprintf("%064d", 2)),
+			},
 		},
 	}
 	for _, tt := range tests {
@@ -96,13 +103,16 @@ func Test_fromSnapshotParts(t *testing.T) {
 			}
 			got := test.HashTreeRoot()
 
-			generatedTree, err := merkle.NewTreeFromLeavesWithDepth(tt.finalized, uint8(constants.DepositContractDepth))
+			generatedTree, err := merkle.NewTreeFromLeavesWithDepth(
+				tt.finalized,
+				uint8(constants.DepositContractDepth),
+			)
 			require.NoError(t, err)
 			want := generatedTree.HashTreeRoot()
 			require.True(t, want.Equals(common.NewRootFromBytes(got[:])))
 
 			// Test finalization
-			for i := uint64(0); i < uint64(len(tt.finalized)); i++ {
+			for i := range uint64(len(tt.finalized)) {
 				err = test.Finalize(i, tt.finalized[i], 0)
 				require.NoError(t, err)
 			}
@@ -110,7 +120,7 @@ func Test_fromSnapshotParts(t *testing.T) {
 			sShot := test.GetSnapshot()
 			got = sShot.CalculateRoot()
 
-			require.Equal(t, 1, len(sShot.finalized))
+			require.Len(t, sShot.finalized, 1)
 			require.True(t, want.Equals(common.NewRootFromBytes(got[:])))
 
 			// Build from the snapshot once more
@@ -129,7 +139,7 @@ func hexString(t *testing.T, hexStr string) [32]byte {
 	b, err := hex.DecodeString(hexStr)
 	require.NoError(t, err)
 	if len(b) != 32 {
-		require.Equal(t, 32, len(b), "bad hash length, expected 32")
+		require.Len(t, b, 32, "bad hash length, expected 32")
 	}
 	x := (*[32]byte)(b)
 	return *x

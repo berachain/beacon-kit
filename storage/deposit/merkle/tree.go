@@ -62,7 +62,12 @@ func NewDepositTree() *DepositTree {
 func (d *DepositTree) GetSnapshot() DepositTreeSnapshot {
 	var finalized [][32]byte
 	mixInLength, finalized := d.tree.GetFinalized(finalized)
-	return fromTreeParts(d.hasher, finalized, mixInLength, d.finalizedExecutionBlock)
+	return fromTreeParts(
+		d.hasher,
+		finalized,
+		mixInLength,
+		d.finalizedExecutionBlock,
+	)
 }
 
 // Finalize marks a deposit as finalized.
