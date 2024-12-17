@@ -86,7 +86,7 @@ func AddGenesisDepositCmd(cs chain.ChainSpec) *cobra.Command {
 			}
 
 			// TODO: configurable.
-			currentVersion := version.FromUint32[common.Version](
+			currentVersion := version.FromUint32[chain.Version](
 				version.Deneb,
 			)
 

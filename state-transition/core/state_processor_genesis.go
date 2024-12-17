@@ -23,6 +23,7 @@ package core
 import (
 	"fmt"
 
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -43,7 +44,7 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	deposits []*ctypes.Deposit,
 	execPayloadHeader ExecutionPayloadHeaderT,
-	genesisVersion common.Version,
+	genesisVersion chain.Version,
 ) (transition.ValidatorUpdates, error) {
 	if err := st.SetSlot(0); err != nil {
 		return nil, err
@@ -70,7 +71,7 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	// TODO: we need to handle common.Version vs uint32 better.
+	// TODO: we need to handle chain.Version vs uint32 better.
 	var blkBody BeaconBlockBodyT
 	blkBody = blkBody.Empty(version.ToUint32(genesisVersion))
 
@@ -90,7 +91,7 @@ func (sp *StateProcessor[
 	for i := range sp.cs.EpochsPerHistoricalVector() {
 		if err := st.UpdateRandaoMixAtIndex(
 			i,
-			common.Bytes32(execPayloadHeader.GetBlockHash()),
+			chain.Bytes32(execPayloadHeader.GetBlockHash()),
 		); err != nil {
 			return nil, err
 		}

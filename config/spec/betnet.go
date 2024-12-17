@@ -22,13 +22,12 @@ package spec
 
 import (
 	"github.com/berachain/beacon-kit/chain-spec/chain"
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // BetnetChainSpec is the ChainSpec for the localnet.
 func BetnetChainSpec() (chain.Spec[
-	common.DomainType,
+	chain.DomainType,
 	math.Epoch,
 	math.Slot,
 	any,

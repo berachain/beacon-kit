@@ -145,7 +145,7 @@ type (
 		// SetExecutionPayload sets the execution data of the beacon block body.
 		SetExecutionPayload(ExecutionPayloadT)
 		// SetGraffiti sets the graffiti of the beacon block body.
-		SetGraffiti(common.Bytes32)
+		SetGraffiti(chain.Bytes32)
 		// SetAttestations sets the attestations of the beacon block body.
 		SetAttestations([]*ctypes.AttestationData)
 		// SetSlashingInfo sets the slashing info of the beacon block body.
@@ -177,7 +177,7 @@ type (
 			latestExecutionPayloadHeader ExecutionPayloadHeaderT,
 			validators []*ctypes.Validator,
 			balances []uint64,
-			randaoMixes []common.Bytes32,
+			randaoMixes []chain.Bytes32,
 			nextWithdrawalIndex uint64,
 			nextWithdrawalValidatorIndex math.U64,
 			slashings []math.U64, totalSlashing math.U64,
@@ -362,7 +362,7 @@ type (
 		// VerifySignature verifies the deposit and creates a validator.
 		VerifySignature(
 			forkData *ctypes.ForkData,
-			domainType common.DomainType,
+			domainType chain.DomainType,
 			signatureVerificationFn func(
 				pubkey crypto.BLSPubkey,
 				message []byte, signature crypto.BLSSignature,
@@ -467,11 +467,11 @@ type (
 		GetTransactions() engineprimitives.Transactions
 		GetParentHash() common.ExecutionHash
 		GetBlockHash() common.ExecutionHash
-		GetPrevRandao() common.Bytes32
+		GetPrevRandao() chain.Bytes32
 		GetWithdrawals() engineprimitives.Withdrawals
 		GetFeeRecipient() common.ExecutionAddress
-		GetStateRoot() common.Bytes32
-		GetReceiptsRoot() common.Bytes32
+		GetStateRoot() chain.Bytes32
+		GetReceiptsRoot() chain.Bytes32
 		GetLogsBloom() bytes.B256
 		GetNumber() math.U64
 		GetGasLimit() math.U64
@@ -506,13 +506,13 @@ type (
 	// 	Fork[T any] interface {
 	// 		constraints.Empty[T]
 	// 		constraints.SSZMarshallable
-	// 		New(common.Version, common.Version, math.Epoch) T
+	// 		New(chain.Version, chain.Version, math.Epoch) T
 	// 	}
 
 	// 	// ForkData is the interface for the fork data.
 	// 	ForkData[T any] interface {
 	// 		// New creates a new fork data object.
-	// 		New(common.Version, common.Root) T
+	// 		New(chain.Version, common.Root) T
 	// 		// ComputeRandaoSigningRoot returns the signing root for the fork data.
 	// 		ComputeRandaoSigningRoot(
 	// 			domainType chain.DomainType,
@@ -524,7 +524,7 @@ type (
 	Genesis[ExecutionPayloadHeaderT any] interface {
 		json.Unmarshaler
 		// GetForkVersion returns the fork version.
-		GetForkVersion() common.Version
+		GetForkVersion() chain.Version
 		// GetDeposits returns the deposits.
 		GetDeposits() []*ctypes.Deposit
 		// GetExecutionPayloadHeader returns the execution payload header.
@@ -587,7 +587,7 @@ type (
 	// 	New(
 	// 		uint32,
 	// 		uint64,
-	// 		common.Bytes32,
+	// 		chain.Bytes32,
 	// 		common.ExecutionAddress,
 	// 		[]WithdrawalT,
 	// 		common.Root,
@@ -614,7 +614,7 @@ type (
 			BeaconStateT,
 			[]*ctypes.Deposit,
 			ExecutionPayloadHeaderT,
-			common.Version,
+			chain.Version,
 		) (transition.ValidatorUpdates, error)
 		// ProcessSlot processes the slot.
 		ProcessSlots(
@@ -851,7 +851,7 @@ type (
 		// SetTotalSlashing sets the total slashing.
 		SetTotalSlashing(total math.Gwei) error
 		// GetRandaoMixAtIndex retrieves the randao mix at the given index.
-		GetRandaoMixAtIndex(index uint64) (common.Bytes32, error)
+		GetRandaoMixAtIndex(index uint64) (chain.Bytes32, error)
 		// GetSlashings retrieves all slashings.
 		GetSlashings() ([]math.Gwei, error)
 		// SetSlashingAtIndex sets the slashing at the given index.
@@ -869,7 +869,7 @@ type (
 		// UpdateStateRootAtIndex updates the state root at the given index.
 		UpdateStateRootAtIndex(index uint64, root common.Root) error
 		// UpdateRandaoMixAtIndex updates the randao mix at the given index.
-		UpdateRandaoMixAtIndex(index uint64, mix common.Bytes32) error
+		UpdateRandaoMixAtIndex(index uint64, mix chain.Bytes32) error
 		// UpdateValidatorAtIndex updates the validator at the given index.
 		UpdateValidatorAtIndex(
 			index math.ValidatorIndex,
@@ -964,13 +964,13 @@ type (
 	// randao
 	// mixes methods.
 	WriteOnlyRandaoMixes interface {
-		UpdateRandaoMixAtIndex(uint64, common.Bytes32) error
+		UpdateRandaoMixAtIndex(uint64, chain.Bytes32) error
 	}
 
 	// ReadOnlyRandaoMixes defines a struct which only has read access to randao
 	// mixes methods.
 	ReadOnlyRandaoMixes interface {
-		GetRandaoMixAtIndex(uint64) (common.Bytes32, error)
+		GetRandaoMixAtIndex(uint64) (chain.Bytes32, error)
 	}
 
 	// WriteOnlyValidators has write access to validator methods.
@@ -1086,7 +1086,7 @@ type (
 	}
 
 	RandaoBackend interface {
-		RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes32, error)
+		RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (chain.Bytes32, error)
 	}
 
 	BlockBackend interface {

@@ -388,7 +388,7 @@ func (s *StateDB[
 		return empty, err
 	}
 
-	randaoMixes := make([]common.Bytes32, s.cs.EpochsPerHistoricalVector())
+	randaoMixes := make([]chain.Bytes32, s.cs.EpochsPerHistoricalVector())
 	for i := range s.cs.EpochsPerHistoricalVector() {
 		randaoMixes[i], err = s.GetRandaoMixAtIndex(i)
 		if err != nil {

@@ -28,7 +28,7 @@ import (
 
 // BoonetChainSpec is the ChainSpec for the localnet.
 func BoonetChainSpec() (chain.Spec[
-	common.DomainType,
+	chain.DomainType,
 	math.Epoch,
 	math.Slot,
 	any,

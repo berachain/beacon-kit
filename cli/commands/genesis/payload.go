@@ -167,10 +167,10 @@ func executableDataToExecutionPayloadHeader(
 		executionPayloadHeader = &types.ExecutionPayloadHeader{
 			ParentHash:    common.ExecutionHash(data.ParentHash),
 			FeeRecipient:  common.ExecutionAddress(data.FeeRecipient),
-			StateRoot:     common.Bytes32(data.StateRoot),
-			ReceiptsRoot:  common.Bytes32(data.ReceiptsRoot),
+			StateRoot:     chain.Bytes32(data.StateRoot),
+			ReceiptsRoot:  chain.Bytes32(data.ReceiptsRoot),
 			LogsBloom:     [256]byte(data.LogsBloom),
-			Random:        common.Bytes32(data.Random),
+			Random:        chain.Bytes32(data.Random),
 			Number:        math.U64(data.Number),
 			GasLimit:      math.U64(data.GasLimit),
 			GasUsed:       math.U64(data.GasUsed),
