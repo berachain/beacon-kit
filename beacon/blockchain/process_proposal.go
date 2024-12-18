@@ -145,7 +145,7 @@ func (s *Service[
 // proposal and logs the process.
 func (s *Service[
 	_, _, _, _, _, _,
-	_, ConsensusSidecarsT, BlobSidecarsT, _,
+	_, ConsensusSidecarsT, BlobSidecarsT,
 ]) VerifyIncomingBlobSidecars(
 	ctx context.Context,
 	cSidecars *types.ConsensusSidecars[BlobSidecarsT],
