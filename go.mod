@@ -5,7 +5,7 @@ go 1.23.4
 replace (
 	// The following make this repo point to a local version of cosmos-sdk
 	// This is a temporary measure
-	cosmossdk.io/api => ../cosmos-sdk/api
+	// cosmossdk.io/api => ../cosmos-sdk/api
 	cosmossdk.io/core => ../cosmos-sdk/core
 	cosmossdk.io/core/testing => ../cosmos-sdk/core/testing
 	cosmossdk.io/store => ../cosmos-sdk/store
