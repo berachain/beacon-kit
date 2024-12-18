@@ -187,20 +187,20 @@ func BuildForkchoiceUpdateRequestNoAttrs(
 }
 
 // GetPayloadRequest represents a request to get a payload.
-type GetPayloadRequest[PayloadIDT ~[8]byte] struct {
+type GetPayloadRequest struct {
 	// PayloadID is the payload ID.
-	PayloadID PayloadIDT
+	PayloadID engineprimitives.PayloadID
 	// ForkVersion is the fork version that we are
 	// currently on.
 	ForkVersion uint32
 }
 
 // BuildGetPayloadRequest builds a get payload request.
-func BuildGetPayloadRequest[PayloadIDT ~[8]byte](
-	payloadID PayloadIDT,
+func BuildGetPayloadRequest(
+	payloadID engineprimitives.PayloadID,
 	forkVersion uint32,
-) *GetPayloadRequest[PayloadIDT] {
-	return &GetPayloadRequest[PayloadIDT]{
+) *GetPayloadRequest {
+	return &GetPayloadRequest{
 		PayloadID:   payloadID,
 		ForkVersion: forkVersion,
 	}

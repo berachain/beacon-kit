@@ -55,7 +55,7 @@ type ChainServiceInput[
 	ChainSpec       chain.ChainSpec
 	Cfg             *config.Config
 	EngineClient    *client.EngineClient
-	ExecutionEngine *engine.Engine[PayloadID]
+	ExecutionEngine *engine.Engine
 	LocalBuilder    LocalBuilder[BeaconStateT]
 	Logger          LoggerT
 	Signer          crypto.BLSSigner

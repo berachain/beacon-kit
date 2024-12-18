@@ -21,7 +21,6 @@
 package main
 
 import (
-	"cosmossdk.io/core/appmodule/v2"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/validator"
 	"github.com/berachain/beacon-kit/consensus-types/types"
@@ -30,7 +29,6 @@ import (
 	dablob "github.com/berachain/beacon-kit/da/blob"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	engineclient "github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/execution/deposit"
 	execution "github.com/berachain/beacon-kit/execution/engine"
@@ -50,7 +48,6 @@ import (
 	"github.com/berachain/beacon-kit/storage/block"
 	depositdb "github.com/berachain/beacon-kit/storage/deposit"
 	"github.com/berachain/beacon-kit/storage/filedb"
-	"github.com/berachain/beacon-kit/storage/pruner"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -87,7 +84,7 @@ type (
 	EngineClient = engineclient.EngineClient
 
 	// EngineClient is a type alias for the engine client.
-	ExecutionEngine = execution.Engine[PayloadID]
+	ExecutionEngine = execution.Engine
 
 	// IndexDB is a type alias for the range DB.
 	IndexDB = filedb.RangeDB
@@ -96,10 +93,7 @@ type (
 	KVStore = beacondb.KVStore
 
 	// LocalBuilder is a type alias for the local builder.
-	LocalBuilder = payloadbuilder.PayloadBuilder[
-		*BeaconState,
-		PayloadID,
-	]
+	LocalBuilder = payloadbuilder.PayloadBuilder[*BeaconState]
 
 	// NodeAPIEngine is a type alias for the node API engine.
 	NodeAPIEngine = echo.Engine
@@ -216,31 +210,4 @@ type (
 
 	// NodeAPIContext is a type alias for the node API context.
 	NodeAPIContext = echo.Context
-
-	// PayloadID is a type alias for the payload ID.
-	PayloadID = engineprimitives.PayloadID
-
-	// SlashingInfo is a type alias for the slashing info.
-	SlashingInfo = types.SlashingInfo
-
-	// ValidatorUpdate is a type alias for the validator update.
-	ABCIValidatorUpdate = appmodule.ValidatorUpdate
-
-	// ValidatorUpdate is a type alias for the validator update.
-	ValidatorUpdate = transition.ValidatorUpdate
-
-	// ValidatorUpdates is a type alias for the validator updates.
-	ValidatorUpdates = transition.ValidatorUpdates
-)
-
-/* -------------------------------------------------------------------------- */
-/*                                  Pruners                                   */
-/* -------------------------------------------------------------------------- */
-
-type (
-	// DAPruner is a type alias for the DA pruner.
-	DAPruner = pruner.Pruner[*IndexDB]
-
-	// DepositPruner is a type alias for the deposit pruner.
-	DepositPruner = pruner.Pruner[*DepositStore]
 )
