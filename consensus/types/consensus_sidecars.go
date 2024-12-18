@@ -22,25 +22,21 @@ package types
 
 import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/primitives/eip4844"
 )
 
 type ConsensusSidecars[SidecarsT any] struct {
-	sidecars       SidecarsT
-	blkHeader      *ctypes.BeaconBlockHeader
-	kzgCommitments []eip4844.KZGCommitment
+	sidecars  SidecarsT
+	blkHeader *ctypes.BeaconBlockHeader
 }
 
 // New creates a new ConsensusSidecars instance.
 func (s *ConsensusSidecars[SidecarsT]) New(
 	sidecars SidecarsT,
 	blkHeader *ctypes.BeaconBlockHeader,
-	kzgCommitments []eip4844.KZGCommitment,
 ) *ConsensusSidecars[SidecarsT] {
 	return &ConsensusSidecars[SidecarsT]{
-		sidecars:       sidecars,
-		blkHeader:      blkHeader,
-		kzgCommitments: kzgCommitments,
+		sidecars:  sidecars,
+		blkHeader: blkHeader,
 	}
 }
 
@@ -50,8 +46,4 @@ func (s *ConsensusSidecars[SidecarsT]) GetSidecars() SidecarsT {
 
 func (s *ConsensusSidecars[SidecarsT]) GetHeader() *ctypes.BeaconBlockHeader {
 	return s.blkHeader
-}
-
-func (s *ConsensusSidecars[SidecarsT]) GetKzgCommitments() []eip4844.KZGCommitment {
-	return s.kzgCommitments
 }

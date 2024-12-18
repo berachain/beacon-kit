@@ -74,7 +74,6 @@ func (bv *verifier[_, BlobSidecarsT]) verifySidecars(
 		blkHeader *ctypes.BeaconBlockHeader,
 		signature crypto.BLSSignature,
 	) error,
-	kzgCommitments []eip4844.KZGCommitment,
 ) error {
 	defer bv.metrics.measureVerifySidecarsDuration(
 		time.Now(), math.U64(sidecars.Len()),
@@ -83,17 +82,8 @@ func (bv *verifier[_, BlobSidecarsT]) verifySidecars(
 
 	g, _ := errgroup.WithContext(context.Background())
 
-	// Ensure we have the same number of blobSidecars as we do KzgCommitments
-	// in the BeaconBlock.
-	numCommitments := len(kzgCommitments)
-	if numCommitments != sidecars.Len() {
-		return fmt.Errorf("expected %d sidecars, got %d",
-			numCommitments, sidecars.Len(),
-		)
-	}
-
 	// create lookup table to check for duplicate commitments
-	duplicateCommitment := make(map[eip4844.KZGCommitment]struct{}, numCommitments)
+	duplicateCommitment := make(map[eip4844.KZGCommitment]struct{})
 
 	// Validate sidecar fields against data from the BeaconBlock.
 	for i, s := range sidecars.GetSidecars() {

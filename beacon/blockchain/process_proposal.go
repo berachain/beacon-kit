@@ -22,6 +22,7 @@ package blockchain
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
@@ -83,21 +84,28 @@ func (s *Service[
 		return createProcessProposalResponse(errors.WrapNonFatal(ErrNilBlob))
 	}
 
-	// Process the blob sidecars
-	//
-	// In theory, swapping the order of verification between the sidecars
-	// and the incoming block should not introduce any inconsistencies
-	// in the state on which the sidecar verification depends on (notably
-	// the currently active fork). ProcessProposal should only
-	// keep the state changes as candidates (which is what we do in
-	// VerifyIncomingBlock).
+	// Make sure we have the right number of BlobSidecars
 	kzgCommitments := blk.GetBody().GetBlobKzgCommitments()
+	if len(kzgCommitments) != sidecars.Len() {
+		err = fmt.Errorf("expected %d sidecars, got %d",
+			len(kzgCommitments), sidecars.Len(),
+		)
+		return createProcessProposalResponse(errors.WrapNonFatal(err))
+	}
+
 	if len(kzgCommitments) > 0 {
+		// Process the blob sidecars
+		//
+		// In theory, swapping the order of verification between the sidecars
+		// and the incoming block should not introduce any inconsistencies
+		// in the state on which the sidecar verification depends on (notably
+		// the currently active fork). ProcessProposal should only
+		// keep the state changes as candidates (which is what we do in
+		// VerifyIncomingBlock).
 		var consensusSidecars *types.ConsensusSidecars[BlobSidecarsT]
 		consensusSidecars = consensusSidecars.New(
 			sidecars,
 			blk.GetHeader(),
-			kzgCommitments,
 		)
 		err = s.VerifyIncomingBlobSidecars(
 			ctx,
