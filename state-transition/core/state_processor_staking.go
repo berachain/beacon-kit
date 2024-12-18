@@ -55,6 +55,17 @@ func (sp *StateProcessor[
 		)
 	}
 
+	// Verify that the local view of deposit tree is consistent with the provided deposits.
+	_, localDepositsRoot, err := sp.ds.GetDepositsByIndex(
+		depositIndex, uint64(len(deposits)),
+	)
+	if err != nil {
+		return err
+	}
+	if eth1Data.DepositRoot != localDepositsRoot {
+		return errors.New("local deposit tree root does not match the block deposit tree root")
+	}
+
 	// Process each deposit.
 	for _, dep := range deposits {
 		if err = sp.processDeposit(st, dep); err != nil {
