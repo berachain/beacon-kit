@@ -7,7 +7,7 @@ replace (
 	// This is a temporary measure
 	// cosmossdk.io/api => ../cosmos-sdk/api
 	// cosmossdk.io/core => ../cosmos-sdk/core
-	cosmossdk.io/core/testing => ../cosmos-sdk/core/testing
+	// cosmossdk.io/core/testing => ../cosmos-sdk/core/testing
 	cosmossdk.io/store => ../cosmos-sdk/store
 	cosmossdk.io/store/v2 => ../cosmos-sdk/store/v2
 	cosmossdk.io/x/accounts => ../cosmos-sdk/x/accounts
