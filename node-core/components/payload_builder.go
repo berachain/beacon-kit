@@ -40,7 +40,7 @@ type LocalBuilderInput[
 	AttributesFactory AttributesFactory[BeaconStateT]
 	Cfg               *config.Config
 	ChainSpec         chain.ChainSpec
-	ExecutionEngine   *engine.Engine[PayloadID]
+	ExecutionEngine   *engine.Engine
 	Logger            LoggerT
 }
 
@@ -58,20 +58,13 @@ func ProvideLocalBuilder[
 	in LocalBuilderInput[
 		BeaconStateT, LoggerT,
 	],
-) *payloadbuilder.PayloadBuilder[
-	BeaconStateT,
-	PayloadID,
-] {
-	return payloadbuilder.New[
-		BeaconStateT,
-		PayloadID,
-	](
+) *payloadbuilder.PayloadBuilder[BeaconStateT] {
+	return payloadbuilder.New[BeaconStateT](
 		&in.Cfg.PayloadBuilder,
 		in.ChainSpec,
 		in.Logger.With("service", "payload-builder"),
 		in.ExecutionEngine,
 		cache.NewPayloadIDCache[
-			PayloadID,
 			[32]byte, math.Slot,
 		](),
 		in.AttributesFactory,

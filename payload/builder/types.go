@@ -48,10 +48,10 @@ type BeaconState interface {
 	GetBlockRootAtIndex(uint64) (common.Root, error)
 }
 
-type PayloadCache[PayloadIDT, RootT, SlotT any] interface {
-	Get(slot SlotT, stateRoot RootT) (PayloadIDT, bool)
+type PayloadCache[RootT, SlotT any] interface {
+	Get(slot SlotT, stateRoot RootT) (engineprimitives.PayloadID, bool)
 	Has(slot SlotT, stateRoot RootT) bool
-	Set(slot SlotT, stateRoot RootT, pid PayloadIDT)
+	Set(slot SlotT, stateRoot RootT, pid engineprimitives.PayloadID)
 	UnsafePrunePrior(slot SlotT)
 }
 
@@ -95,18 +95,16 @@ type PayloadAttributes[
 }
 
 // ExecutionEngine is the interface for the execution engine.
-type ExecutionEngine[
-	PayloadIDT ~[8]byte,
-] interface {
+type ExecutionEngine interface {
 	// GetPayload returns the payload and blobs bundle for the given slot.
 	GetPayload(
 		ctx context.Context,
-		req *ctypes.GetPayloadRequest[PayloadIDT],
+		req *ctypes.GetPayloadRequest,
 	) (ctypes.BuiltExecutionPayloadEnv, error)
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
 		req *ctypes.ForkchoiceUpdateRequest,
-	) (*PayloadIDT, *common.ExecutionHash, error)
+	) (*engineprimitives.PayloadID, *common.ExecutionHash, error)
 }

@@ -35,9 +35,7 @@ import (
 
 // Engine is Beacon-Kit's implementation of the `ExecutionEngine`
 // from the Ethereum 2.0 Specification.
-type Engine[
-	PayloadIDT ~[8]byte,
-] struct {
+type Engine struct {
 	// ec is the engine client that the engine will use to
 	// interact with the execution layer.
 	ec *client.EngineClient
@@ -48,14 +46,12 @@ type Engine[
 }
 
 // New creates a new Engine.
-func New[
-	PayloadIDT ~[8]byte,
-](
+func New(
 	engineClient *client.EngineClient,
 	logger log.Logger,
 	telemtrySink TelemetrySink,
-) *Engine[PayloadIDT] {
-	return &Engine[PayloadIDT]{
+) *Engine {
+	return &Engine{
 		ec:      engineClient,
 		logger:  logger,
 		metrics: newEngineMetrics(telemtrySink, logger),
@@ -63,7 +59,7 @@ func New[
 }
 
 // Start spawns any goroutines required by the service.
-func (ee *Engine[_]) Start(
+func (ee *Engine) Start(
 	ctx context.Context,
 ) error {
 	go func() {
@@ -76,9 +72,9 @@ func (ee *Engine[_]) Start(
 }
 
 // GetPayload returns the payload and blobs bundle for the given slot.
-func (ee *Engine[_]) GetPayload(
+func (ee *Engine) GetPayload(
 	ctx context.Context,
-	req *ctypes.GetPayloadRequest[engineprimitives.PayloadID],
+	req *ctypes.GetPayloadRequest,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
 	return ee.ec.GetPayload(
 		ctx, req.PayloadID,
@@ -87,7 +83,7 @@ func (ee *Engine[_]) GetPayload(
 }
 
 // NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
-func (ee *Engine[_]) NotifyForkchoiceUpdate(
+func (ee *Engine) NotifyForkchoiceUpdate(
 	ctx context.Context,
 	req *ctypes.ForkchoiceUpdateRequest,
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
@@ -159,7 +155,7 @@ func (ee *Engine[_]) NotifyForkchoiceUpdate(
 
 // VerifyAndNotifyNewPayload verifies the new payload and notifies the
 // execution client.
-func (ee *Engine[_]) VerifyAndNotifyNewPayload(
+func (ee *Engine) VerifyAndNotifyNewPayload(
 	ctx context.Context,
 	req *ctypes.NewPayloadRequest,
 ) error {

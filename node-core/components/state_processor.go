@@ -38,7 +38,7 @@ type StateProcessorInput[
 	depinject.In
 	Logger          LoggerT
 	ChainSpec       chain.ChainSpec
-	ExecutionEngine *engine.Engine[PayloadID]
+	ExecutionEngine *engine.Engine
 	DepositStore    DepositStore
 	Signer          crypto.BLSSigner
 	TelemetrySink   *metrics.TelemetrySink

@@ -75,8 +75,8 @@ func ProvideExecutionEngine[
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	in ExecutionEngineInputs[LoggerT],
-) *engine.Engine[PayloadID] {
-	return engine.New[PayloadID](
+) *engine.Engine {
+	return engine.New(
 		in.EngineClient,
 		in.Logger.With("service", "execution-engine"),
 		in.TelemetrySink,
