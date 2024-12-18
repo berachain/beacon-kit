@@ -64,7 +64,7 @@ func (sp *StateProcessor[
 	eth1Data = eth1Data.New(
 		sp.ds.GetDepositsRoot(), math.U64(depositsCount), execPayloadHeader.GetBlockHash(),
 	)
-	if err := st.SetEth1Data(eth1Data); err != nil {
+	if err = st.SetEth1Data(eth1Data); err != nil {
 		return nil, err
 	}
 
@@ -81,70 +81,70 @@ func (sp *StateProcessor[
 		blkBody.HashTreeRoot(), // body root
 
 	)
-	if err := st.SetLatestBlockHeader(blkHeader); err != nil {
+	if err = st.SetLatestBlockHeader(blkHeader); err != nil {
 		return nil, err
 	}
 
 	for i := range sp.cs.EpochsPerHistoricalVector() {
-		if err := st.UpdateRandaoMixAtIndex(
-			i,
-			common.Bytes32(execPayloadHeader.GetBlockHash()),
+		if err = st.UpdateRandaoMixAtIndex(
+			i, common.Bytes32(execPayloadHeader.GetBlockHash()),
 		); err != nil {
 			return nil, err
 		}
 	}
 
-	if err := sp.validateGenesisDeposits(st, deposits); err != nil {
+	if err = sp.validateGenesisDeposits(st, deposits); err != nil {
 		return nil, err
 	}
 	for _, deposit := range deposits {
-		if err := sp.processDeposit(st, deposit); err != nil {
+		if err = sp.processDeposit(st, deposit); err != nil {
 			return nil, err
 		}
 	}
 
 	// process activations
-	if err := sp.processGenesisActivation(st); err != nil {
+	if err = sp.processGenesisActivation(st); err != nil {
 		return nil, err
 	}
 
 	// Handle special case bartio genesis.
 	validatorsRoot := common.Root(hex.MustToBytes(spec.BartioValRoot))
 	if sp.cs.DepositEth1ChainID() != spec.BartioChainID {
-		validators, err := st.GetValidators()
+		var validators ctypes.Validators
+		validators, err = st.GetValidators()
 		if err != nil {
 			return nil, err
 		}
 		validatorsRoot = validators.HashTreeRoot()
 	}
-	if err := st.SetGenesisValidatorsRoot(validatorsRoot); err != nil {
+	if err = st.SetGenesisValidatorsRoot(validatorsRoot); err != nil {
 		return nil, err
 	}
 
-	if err := st.SetLatestExecutionPayloadHeader(execPayloadHeader); err != nil {
+	if err = st.SetLatestExecutionPayloadHeader(execPayloadHeader); err != nil {
 		return nil, err
 	}
 
 	// Setup a bunch of 0s to prime the DB.
 	for i := range sp.cs.HistoricalRootsLimit() {
 		//#nosec:G701 // won't overflow in practice.
-		if err := st.UpdateBlockRootAtIndex(i, common.Root{}); err != nil {
+		if err = st.UpdateBlockRootAtIndex(i, common.Root{}); err != nil {
 			return nil, err
 		}
-		if err := st.UpdateStateRootAtIndex(i, common.Root{}); err != nil {
+		if err = st.UpdateStateRootAtIndex(i, common.Root{}); err != nil {
 			return nil, err
 		}
 	}
 
-	if err := st.SetNextWithdrawalIndex(0); err != nil {
+	if err = st.SetNextWithdrawalIndex(0); err != nil {
 		return nil, err
 	}
 
-	if err := st.SetNextWithdrawalValidatorIndex(0); err != nil {
+	if err = st.SetNextWithdrawalValidatorIndex(0); err != nil {
 		return nil, err
 	}
 
-	if err := st.SetTotalSlashing(0); err != nil {
+	if err = st.SetTotalSlashing(0); err != nil {
 		return nil, err
 	}
 

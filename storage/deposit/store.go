@@ -91,10 +91,12 @@ func (s *Store) GetDepositsByIndex(
 		deposit, err := s.store.Get(context.TODO(), i)
 		switch {
 		case err == nil:
-			deposits = append(deposits, ctypes.NewDeposit(
-				[constants.DepositContractDepth + 1]common.Root{}, // TODO: get proof.
-				deposit,
-			))
+			var proof [constants.DepositContractDepth + 1]common.Root
+			proof, err = s.tree.MerkleProof(i)
+			if err != nil {
+				return deposits, errors.Wrapf(err, "failed to get merkle proof for deposit %d", i)
+			}
+			deposits = append(deposits, ctypes.NewDeposit(proof, deposit))
 		case errors.Is(err, sdkcollections.ErrNotFound):
 			return deposits, nil
 		default:
