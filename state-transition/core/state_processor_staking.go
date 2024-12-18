@@ -43,12 +43,10 @@ func (sp *StateProcessor[
 		return err
 	}
 	depositCount := eth1Data.GetDepositCount().Unwrap()
-
 	depositIndex, err := st.GetEth1DepositIndex()
 	if err != nil {
 		return err
 	}
-
 	deposits := blk.GetBody().GetDeposits()
 	if uint64(len(deposits)) != min(sp.cs.MaxDepositsPerBlock(), depositCount-depositIndex) {
 		return errors.Wrapf(
@@ -57,15 +55,12 @@ func (sp *StateProcessor[
 		)
 	}
 
-	if err := sp.validateNonGenesisDeposits(st, deposits); err != nil {
-		return err
-	}
+	// Process each deposit.
 	for _, dep := range deposits {
-		if err := sp.processDeposit(st, dep); err != nil {
+		if err = sp.processDeposit(st, dep); err != nil {
 			return err
 		}
 	}
-
 	return nil
 }
 

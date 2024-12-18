@@ -122,9 +122,7 @@ func TestInitialize(t *testing.T) {
 		}
 	)
 
-	require.NoError(t, ds.EnqueueDepositDatas(
-		genDeposits, executionPayloadHeader.GetBlockHash(), executionPayloadHeader.GetNumber(),
-	))
+	require.NoError(t, ds.EnqueueDepositDatas(genDeposits))
 
 	// run test
 	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
@@ -274,9 +272,7 @@ func TestInitializeBartio(t *testing.T) {
 		}
 	)
 
-	require.NoError(t, ds.EnqueueDepositDatas(
-		genDeposits, executionPayloadHeader.GetBlockHash(), executionPayloadHeader.GetNumber(),
-	))
+	require.NoError(t, ds.EnqueueDepositDatas(genDeposits))
 
 	// run test
 	genVals, err := sp.InitializePreminedBeaconStateFromEth1(

@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
-	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/storage/deposit/merkle"
 	"github.com/berachain/beacon-kit/storage/encoding"
 	"github.com/berachain/beacon-kit/storage/pruner"
@@ -81,6 +80,8 @@ func NewStore(kvsp store.KVStoreService) *Store {
 // index. If N is greater than the number of deposits, it returns up to the
 // last deposit available. It also returns the deposit tree root at the end of
 // the range.
+//
+// TODO: figure out when to finalize. Need to do after proof has been generated.
 func (s *Store) GetDepositsByIndex(
 	startIndex, numView uint64,
 ) (ctypes.Deposits, common.Root, error) {
@@ -124,11 +125,9 @@ func (s *Store) GetDepositsByIndex(
 }
 
 // EnqueueDepositDatas pushes multiple deposits to the queue.
-func (s *Store) EnqueueDepositDatas(
-	deposits []*ctypes.DepositData,
-	executionBlockHash common.ExecutionHash,
-	executionBlockNumber math.U64,
-) error {
+//
+// TODO: ensure that in-order is maintained. i.e. ignore any deposits we've already seen.
+func (s *Store) EnqueueDepositDatas(deposits []*ctypes.DepositData) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -143,12 +142,6 @@ func (s *Store) EnqueueDepositDatas(
 		}
 
 		s.pendingDepositsToRoots[idx] = s.tree.HashTreeRoot()
-
-		// TODO: figure out when to finalize. Can't mark it here because proof has not been
-		// generated and returned via GetDepositsByIndex.
-		// if err := s.tree.Finalize(idx, executionBlockHash, executionBlockNumber); err != nil {
-		// 	return errors.Wrapf(err, "failed to finalize deposit %d in merkle tree", idx)
-		// }
 	}
 
 	return nil
@@ -166,6 +159,8 @@ func (s *Store) Prune(start, end uint64) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	for i := range end {
+		delete(s.pendingDepositsToRoots, start+i)
+
 		// This only errors if the key passed in cannot be encoded.
 		if err := s.store.Remove(ctx, start+i); err != nil {
 			return errors.Wrapf(err, "failed to prune deposit %d", start+i)

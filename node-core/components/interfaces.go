@@ -371,11 +371,7 @@ type (
 		// Prune prunes the deposit store of [start, end)
 		Prune(start, end uint64) error
 		// EnqueueDepositDatas adds a list of deposits to the deposit store.
-		EnqueueDepositDatas(
-			deposits []*ctypes.DepositData,
-			executionBlockHash common.ExecutionHash,
-			executionBlockNumber math.U64,
-		) error
+		EnqueueDepositDatas(deposits []*ctypes.DepositData) error
 	}
 
 	// Genesis is the interface for the genesis.

@@ -49,7 +49,7 @@ func (s *Service[
 func (s *Service[
 	_, _, _, _, _, _, _, _, _,
 ]) fetchAndStoreDeposits(ctx context.Context, blockNum math.U64) {
-	deposits, blockHash, err := s.depositContract.ReadDeposits(ctx, blockNum)
+	deposits, _, err := s.depositContract.ReadDeposits(ctx, blockNum)
 	if err != nil {
 		s.logger.Error("Failed to read deposits", "error", err)
 		s.metrics.sink.IncrementCounter(
@@ -62,10 +62,12 @@ func (s *Service[
 	}
 
 	if len(deposits) > 0 {
-		s.logger.Info("Found deposits on execution layer", "block", blockNum, "deposits", len(deposits))
+		s.logger.Info(
+			"Found deposits on execution layer", "block", blockNum, "deposits", len(deposits),
+		)
 	}
 
-	if err = s.depositStore.EnqueueDepositDatas(deposits, blockHash, blockNum); err != nil {
+	if err = s.depositStore.EnqueueDepositDatas(deposits); err != nil {
 		s.logger.Error("Failed to store deposits", "error", err)
 		s.failedBlocksMu.Lock()
 		s.failedBlocks[blockNum] = struct{}{}
@@ -94,7 +96,9 @@ func (s *Service[
 			if len(failedBlks) == 0 {
 				continue
 			}
-			s.logger.Warn("Failed to get deposits from block(s), retrying...", "num_blocks", failedBlks)
+			s.logger.Warn(
+				"Failed to get deposits from block(s), retrying...", "num_blocks", failedBlks,
+			)
 
 			// Fetch deposits for blocks that failed to be processed.
 			for _, blockNum := range failedBlks {

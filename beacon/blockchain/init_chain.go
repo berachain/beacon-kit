@@ -43,11 +43,7 @@ func (s *Service[
 
 	genesisDeposits := genesisData.GetDepositDatas()
 	genesisExecutionPayloadHeader := genesisData.GetExecutionPayloadHeader()
-	if err := s.depositStore.EnqueueDepositDatas(
-		genesisDeposits,
-		genesisExecutionPayloadHeader.BlockHash,
-		genesisExecutionPayloadHeader.Number,
-	); err != nil {
+	if err := s.depositStore.EnqueueDepositDatas(genesisDeposits); err != nil {
 		s.logger.Error("Failed to store genesis deposits", "error", err)
 		return nil, err
 	}

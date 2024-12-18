@@ -46,7 +46,7 @@ func (s *Service[
 	return nil
 }
 
-// depositPruneRangeFn effectively prunes at most the max deposits per block 
+// depositPruneRangeFn effectively prunes at most the max deposits per block
 // behind the last included deposit.
 func depositPruneRangeFn(deposits []*ctypes.DepositData, cs chain.ChainSpec) (uint64, uint64) {
 	if len(deposits) == 0 || cs.MaxDepositsPerBlock() == 0 {
