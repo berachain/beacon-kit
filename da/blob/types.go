@@ -64,13 +64,17 @@ type Sidecars[SidecarT any] interface {
 	Get(index int) SidecarT
 	GetSidecars() []SidecarT
 	ValidateBlockRoots() error
-	VerifyInclusionProofs(kzgOffset uint64) error
+	VerifyInclusionProofs(
+		kzgOffset uint64,
+		inclusionProofDepth uint8,
+	) error
 }
 
 // ChainSpec represents a chain spec.
 type ChainSpec interface {
 	MaxBlobCommitmentsPerBlock() uint64
 	DomainTypeProposer() common.DomainType
+	ActiveForkVersionForSlot(slot math.Slot) uint32
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.
