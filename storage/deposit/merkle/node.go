@@ -168,10 +168,7 @@ func (n *InnerNode) IsFull() bool {
 }
 
 // Finalize marks deposits of the Merkle tree as finalized.
-func (n *InnerNode) Finalize(
-	depositsToFinalize uint64,
-	depth uint64,
-) (TreeNode, error) {
+func (n *InnerNode) Finalize(depositsToFinalize uint64, depth uint64) (TreeNode, error) {
 	var err error
 	deposits := pow.TwoToThePowerOf(depth)
 	if deposits <= depositsToFinalize {

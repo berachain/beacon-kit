@@ -107,20 +107,19 @@ func fromSnapshotParts(
 
 // generateProof returns a merkle proof and root.
 func generateProof(
-	tree TreeNode, index uint64, depth uint64,
+	tree TreeNode, index uint64,
 ) (common.Root, [constants.DepositContractDepth]common.Root) {
 	var proof [constants.DepositContractDepth]common.Root
 	node := tree
-	for depth > 0 {
-		ithBit := (index >> (depth - 1)) & 0x1 //nolint:mnd // spec.
+	for layer := constants.DepositContractDepth; layer > 0; layer-- {
+		ithBit := (index >> (layer - 1)) & 0x1 //nolint:mnd // spec.
 		if ithBit == 1 {
-			proof[depth-1] = node.Left().GetRoot()
+			proof[layer-1] = node.Left().GetRoot()
 			node = node.Right()
 		} else {
-			proof[depth-1] = node.Right().GetRoot()
+			proof[layer-1] = node.Right().GetRoot()
 			node = node.Left()
 		}
-		depth--
 	}
 
 	return node.GetRoot(), proof

@@ -30,7 +30,6 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/storage/deposit/merkle"
 	"github.com/berachain/beacon-kit/storage/encoding"
 	"github.com/berachain/beacon-kit/storage/pruner"
@@ -50,7 +49,7 @@ type Store struct {
 	pendingDepositsToRoots map[uint64]common.Root
 
 	// store is the KV store that holds the deposits.
-	store sdkcollections.Map[uint64, *ctypes.DepositData]
+	store sdkcollections.Map[uint64, *ctypes.Deposit]
 
 	// mu protects store for concurrent access.
 	mu sync.Mutex
@@ -67,7 +66,7 @@ func NewStore(kvsp store.KVStoreService) *Store {
 			sdkcollections.NewPrefix([]byte(KeyDepositPrefix)),
 			KeyDepositPrefix,
 			sdkcollections.Uint64Key,
-			encoding.SSZValueCodec[*ctypes.DepositData]{},
+			encoding.SSZValueCodec[*ctypes.Deposit]{},
 		),
 	}
 	if _, err := schemaBuilder.Build(); err != nil {
@@ -106,14 +105,7 @@ func (s *Store) GetDepositsByIndex(
 			)
 		}
 
-		var proof [constants.DepositContractDepth + 1]common.Root
-		proof, err = s.tree.MerkleProof(i)
-		if err != nil {
-			return nil, common.Root{}, errors.Wrapf(
-				err, "failed to get merkle proof for deposit %d", i,
-			)
-		}
-		deposits = append(deposits, ctypes.NewDeposit(proof, deposit))
+		deposits = append(deposits, deposit)
 		delete(s.pendingDepositsToRoots, i-1)
 	}
 
@@ -121,24 +113,31 @@ func (s *Store) GetDepositsByIndex(
 		depTreeRoot = s.pendingDepositsToRoots[maxIndex-1]
 		delete(s.pendingDepositsToRoots, maxIndex-1)
 	}
+
 	return deposits, depTreeRoot, nil
 }
 
 // EnqueueDepositDatas pushes multiple deposits to the queue.
 //
 // TODO: ensure that in-order is maintained. i.e. ignore any deposits we've already seen.
-func (s *Store) EnqueueDepositDatas(deposits []*ctypes.DepositData) error {
+func (s *Store) EnqueueDepositDatas(depositDatas []*ctypes.DepositData) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	for _, deposit := range deposits {
-		idx := deposit.GetIndex().Unwrap()
-		if err := s.store.Set(context.TODO(), idx, deposit); err != nil {
-			return errors.Wrapf(err, "failed to set deposit %d in KVStore", idx)
+	for _, depositData := range depositDatas {
+		idx := depositData.GetIndex().Unwrap()
+
+		if err := s.tree.Insert(depositData.HashTreeRoot()); err != nil {
+			return errors.Wrapf(err, "failed to insert deposit %d into merkle tree", idx)
 		}
 
-		if err := s.tree.Insert(deposit.HashTreeRoot()); err != nil {
-			return errors.Wrapf(err, "failed to insert deposit %d into merkle tree", idx)
+		proof, err := s.tree.MerkleProof(idx)
+		if err != nil {
+			return errors.Wrapf(err, "failed to get merkle proof for deposit %d", idx)
+		}
+		deposit := ctypes.NewDeposit(proof, depositData)
+		if err := s.store.Set(context.TODO(), idx, deposit); err != nil {
+			return errors.Wrapf(err, "failed to set deposit %d in KVStore", idx)
 		}
 
 		s.pendingDepositsToRoots[idx] = s.tree.HashTreeRoot()

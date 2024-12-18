@@ -120,7 +120,7 @@ func (d *DepositTree) getProof(index uint64) (
 		return common.Root{}, proof, ErrInvalidIndex
 	}
 
-	leaf, proofWithoutMixin := generateProof(d.tree, index, constants.DepositContractDepth)
+	leaf, proofWithoutMixin := generateProof(d.tree, index)
 	copy(proof[:constants.DepositContractDepth], proofWithoutMixin[:])
 
 	mixInLength := common.Root{}
@@ -131,11 +131,7 @@ func (d *DepositTree) getProof(index uint64) (
 
 // getRoot returns the root of the deposit tree.
 func (d *DepositTree) getRoot() common.Root {
-	var enc common.Root
-	binary.LittleEndian.PutUint64(enc[:], d.mixInLength)
-
-	root := d.tree.GetRoot()
-	return d.hasher.Combi(root, enc)
+	return d.hasher.MixIn(d.tree.GetRoot(), d.mixInLength)
 }
 
 // pushLeaf adds a new leaf to the tree.

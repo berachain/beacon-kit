@@ -43,6 +43,11 @@ func NewDeposit(
 	return &Deposit{Proof: proof, Data: depositData}
 }
 
+// Empty creates an empty Deposit instance.
+func (d *Deposit) Empty() *Deposit {
+	return &Deposit{}
+}
+
 // GetProof returns the proof as a slice of common.Root.
 func (d *Deposit) GetProof() []common.Root {
 	return d.Proof[:]
