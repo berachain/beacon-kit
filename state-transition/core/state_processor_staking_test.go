@@ -21,7 +21,6 @@
 package core_test
 
 import (
-	"strconv"
 	"testing"
 
 	"github.com/berachain/beacon-kit/chain-spec/chain"
@@ -1126,30 +1125,4 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	// run the test
 	_, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
-}
-
-func generateTestExecutionAddress(
-	t *testing.T,
-	rndSeed int,
-) (types.WithdrawalCredentials, int) {
-	t.Helper()
-
-	addrStr := strconv.Itoa(rndSeed)
-	addrBytes := bytes.ExtendToSize([]byte(addrStr), bytes.B20Size)
-	execAddr, err := bytes.ToBytes20(addrBytes)
-	require.NoError(t, err)
-	rndSeed++
-	return types.NewCredentialsFromExecutionAddress(
-		common.ExecutionAddress(execAddr),
-	), rndSeed
-}
-
-func generateTestPK(t *testing.T, rndSeed int) (bytes.B48, int) {
-	t.Helper()
-	keyStr := strconv.Itoa(rndSeed)
-	keyBytes := bytes.ExtendToSize([]byte(keyStr), bytes.B48Size)
-	key, err := bytes.ToBytes48(keyBytes)
-	require.NoError(t, err)
-	rndSeed++
-	return key, rndSeed
 }

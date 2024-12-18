@@ -130,8 +130,6 @@ func TestInitialize(t *testing.T) {
 	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
 		st, executionPayloadHeader, fork.CurrentVersion,
 	)
-
-	// check outputs
 	require.NoError(t, err)
 	require.Len(t, genVals, len(goodDeposits))
 
@@ -284,8 +282,6 @@ func TestInitializeBartio(t *testing.T) {
 	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
 		st, executionPayloadHeader, fork.CurrentVersion,
 	)
-
-	// check outputs
 	require.NoError(t, err)
 	require.Len(t, genVals, len(goodDeposits))
 

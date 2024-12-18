@@ -76,31 +76,30 @@ func NewStore(kvsp store.KVStoreService) *Store {
 // GetDepositsByIndex returns the first N deposits starting from the given
 // index. If N is greater than the number of deposits, it returns up to the
 // last deposit.
-func (s *Store) GetDepositsByIndex(
-	startIndex uint64,
-	numView uint64,
-) (ctypes.Deposits, error) {
+func (s *Store) GetDepositsByIndex(startIndex, numView uint64) (ctypes.Deposits, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	var (
 		deposits = ctypes.Deposits{}
+		err      error
 		endIdx   = startIndex + numView
 	)
 
 	for i := startIndex; i < endIdx; i++ {
-		deposit, err := s.store.Get(context.TODO(), i)
+		var deposit *ctypes.DepositData
+		deposit, err = s.store.Get(context.TODO(), i)
 		switch {
 		case err == nil:
 			var proof [constants.DepositContractDepth + 1]common.Root
 			proof, err = s.tree.MerkleProof(i)
 			if err != nil {
-				return deposits, errors.Wrapf(err, "failed to get merkle proof for deposit %d", i)
+				return nil, errors.Wrapf(err, "failed to get merkle proof for deposit %d", i)
 			}
 			deposits = append(deposits, ctypes.NewDeposit(proof, deposit))
 		case errors.Is(err, sdkcollections.ErrNotFound):
 			return deposits, nil
 		default:
-			return deposits, errors.Wrapf(
+			return nil, errors.Wrapf(
 				err, "failed to get deposit %d, start: %d, end: %d", i, startIndex, endIdx,
 			)
 		}
@@ -139,9 +138,9 @@ func (s *Store) EnqueueDepositDatas(
 			return errors.Wrapf(err, "failed to insert deposit %d into merkle tree", idx)
 		}
 
-		if err := s.tree.Finalize(idx, executionBlockHash, executionBlockNumber); err != nil {
-			return errors.Wrapf(err, "failed to finalize deposit %d in merkle tree", idx)
-		}
+		// if err := s.tree.Finalize(idx, executionBlockHash, executionBlockNumber); err != nil {
+		// 	return errors.Wrapf(err, "failed to finalize deposit %d in merkle tree", idx)
+		// }
 	}
 
 	return nil

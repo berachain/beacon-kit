@@ -54,15 +54,14 @@ func (sp *StateProcessor[
 	}
 
 	// Get the deposits from the deposit store, with their proofs.
-	depositsCount := sp.ds.GetDepositsCount()
-	deposits, err := sp.ds.GetDepositsByIndex(0, depositsCount)
+	deposits, err := sp.ds.GetDepositsByIndex(0, sp.cs.ValidatorSetCap())
 	if err != nil {
 		return nil, err
 	}
 
 	var eth1Data *ctypes.Eth1Data
 	eth1Data = eth1Data.New(
-		sp.ds.GetDepositsRoot(), math.U64(depositsCount), execPayloadHeader.GetBlockHash(),
+		sp.ds.GetDepositsRoot(), math.U64(len(deposits)), execPayloadHeader.GetBlockHash(),
 	)
 	if err = st.SetEth1Data(eth1Data); err != nil {
 		return nil, err

@@ -75,7 +75,7 @@ type Context interface {
 
 // DepositStore defines the interface for deposit storage.
 type DepositStore interface {
-	// GetDepositsByIndex returns `numView` expected deposits.
+	// GetDepositsByIndex returns `numView` or less deposits.
 	GetDepositsByIndex(startIndex, numView uint64) (ctypes.Deposits, error)
 	// GetDepositsRoot returns the root of the deposit merkle tree. This is the
 	// hash tree root of the deposit datas.
