@@ -66,8 +66,13 @@ type DepositStore interface {
 	GetDepositsByIndex(startIndex uint64, numView uint64) (ctypes.Deposits, common.Root, error)
 	// Prune prunes the deposit store of the given height.
 	Prune(height uint64) error
-	// EnqueueDepositDatas adds a list of deposits to the deposit store.
-	EnqueueDepositDatas(deposits []*ctypes.DepositData) error
+	// EnqueueDepositDatas adds a list of deposits to the deposit store for a given EL block.
+	EnqueueDepositDatas(
+		depositDatas []*ctypes.DepositData,
+		indexes []uint64,
+		executionHash common.ExecutionHash,
+		executionNumber math.U64,
+	) error
 }
 
 // Node is the interface for a node.

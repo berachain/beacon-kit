@@ -26,21 +26,24 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-// Block holds the necessary information of pending deposits in a block.
-type Block struct {
-	// the deposits included in the block.
-	deposits ctypes.Deposits
-
-	// the index of the last deposit in the block.
-	lastDepositIndex uint64
-
-	// the root of the deposit tree at the end of the block (i.e. after all deposits
-	// from this block are inserted in the tree).
-	root common.Root
-
-	// the number of the finalized execution block.
+// block holds the necessary information of pending deposits in a block.
+type block struct {
+	// the number of the finalized execution block, provided by EL.
 	executionNumber math.U64
 
-	// the hash of the finalized execution block.
+	// the hash of the finalized execution block, provided by EL.
 	executionHash common.ExecutionHash
+
+	// the deposits (with the proofs) included in the block, determined by CL merkle tree.
+	deposits ctypes.Deposits
+
+	// the root of the deposit tree at the end of processing each deposit in
+	// the tree, determined by CL merkle tree.
+	root []common.Root
+}
+
+// retrievalInfo holds the necessary information to retrieve deposits for the next CL
+// block request.
+type retrievalInfo struct {
+	// the index of the block that should be searched from.
 }

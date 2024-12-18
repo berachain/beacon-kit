@@ -57,6 +57,13 @@ func (sp *StateProcessor[
 
 	// Verify that the provided deposit count is consistent with our local view of the
 	// deposit tree.
+	blockDeposits := blk.GetBody().GetDeposits()
+	if len(blockDeposits) != len(localDeposits) {
+		return errors.Wrapf(
+			ErrDepositCountMismatch, "expected: %d, got: %d",
+			len(localDeposits), len(blockDeposits),
+		)
+	}
 	if uint64(len(localDeposits)) != min(
 		sp.cs.MaxDepositsPerBlock(), eth1Data.DepositCount.Unwrap()-depositIndex,
 	) {

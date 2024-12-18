@@ -67,7 +67,7 @@ func NewWrappedDepositContract(
 // ReadDeposits reads deposits from the deposit contract.
 func (dc *WrappedDepositContract) ReadDeposits(
 	ctx context.Context, blkNum math.U64,
-) ([]*ctypes.DepositData, common.ExecutionHash, error) {
+) ([]*ctypes.DepositData, []uint64, common.ExecutionHash, error) {
 	logs, err := dc.FilterDeposit(
 		&bind.FilterOpts{
 			Context: ctx,
@@ -76,12 +76,13 @@ func (dc *WrappedDepositContract) ReadDeposits(
 		},
 	)
 	if err != nil {
-		return nil, common.ExecutionHash{}, err
+		return nil, nil, common.ExecutionHash{}, err
 	}
 
 	var (
 		blockNumStr = blkNum.Base10()
 		deposits    = make([]*ctypes.DepositData, 0)
+		indexes     = make([]uint64, 0)
 		blockHash   common.ExecutionHash
 	)
 	for logs.Next() {
@@ -92,20 +93,21 @@ func (dc *WrappedDepositContract) ReadDeposits(
 		)
 		pubKey, err = bytes.ToBytes48(logs.Event.Pubkey)
 		if err != nil {
-			return nil, blockHash, errors.Wrap(err, "failed reading pub key")
+			return nil, nil, blockHash, errors.Wrap(err, "failed reading pub key")
 		}
 		cred, err = bytes.ToBytes32(logs.Event.Credentials)
 		if err != nil {
-			return nil, blockHash, errors.Wrap(err, "failed reading credentials")
+			return nil, nil, blockHash, errors.Wrap(err, "failed reading credentials")
 		}
 		sign, err = bytes.ToBytes96(logs.Event.Signature)
 		if err != nil {
-			return nil, blockHash, errors.Wrap(err, "failed reading signature")
+			return nil, nil, blockHash, errors.Wrap(err, "failed reading signature")
 		}
 
 		deposits = append(deposits, ctypes.NewDepositData(
 			pubKey, ctypes.WithdrawalCredentials(cred), math.U64(logs.Event.Amount), sign,
 		))
+		indexes = append(indexes, logs.Event.Index)
 
 		if blockHash == (common.ExecutionHash{}) {
 			blockHash = common.ExecutionHash(logs.Event.Raw.BlockHash)
@@ -117,5 +119,5 @@ func (dc *WrappedDepositContract) ReadDeposits(
 		)
 	}
 
-	return deposits, blockHash, nil
+	return deposits, indexes, blockHash, nil
 }

@@ -43,8 +43,17 @@ func (s *Service[
 
 	// Store the genesis deposits.
 	genesisDepositDatas := genesisData.GetDepositDatas()
+	genesisDepositIndexes := make([]uint64, len(genesisDepositDatas))
+	for i := range genesisDepositDatas {
+		genesisDepositIndexes[i] = uint64(i)
+	}
 	genesisExecutionPayloadHeader := genesisData.GetExecutionPayloadHeader()
-	if err := s.depositStore.EnqueueDepositDatas(genesisDepositDatas); err != nil {
+	if err := s.depositStore.EnqueueDepositDatas(
+		genesisDepositDatas,
+		genesisDepositIndexes,
+		genesisExecutionPayloadHeader.BlockHash,
+		genesisExecutionPayloadHeader.Number,
+	); err != nil {
 		s.logger.Error("Failed to store genesis deposits", "error", err)
 		return nil, err
 	}

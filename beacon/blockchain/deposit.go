@@ -50,7 +50,7 @@ func (s *Service[
 func (s *Service[
 	_, _, _, _, _, _, _, _, _,
 ]) fetchAndStoreDeposits(ctx context.Context, blockNum math.U64) {
-	deposits, _, err := s.depositContract.ReadDeposits(ctx, blockNum)
+	deposits, indexes, executionHash, err := s.depositContract.ReadDeposits(ctx, blockNum)
 	if err != nil {
 		s.logger.Error("Failed to read deposits", "error", err)
 		s.metrics.sink.IncrementCounter(
@@ -68,7 +68,9 @@ func (s *Service[
 		)
 	}
 
-	if err = s.depositStore.EnqueueDepositDatas(deposits); err != nil {
+	if err = s.depositStore.EnqueueDepositDatas(
+		deposits, indexes, executionHash, blockNum,
+	); err != nil {
 		s.logger.Error("Failed to store deposits", "error", err)
 		s.failedBlocksMu.Lock()
 		s.failedBlocks[blockNum] = struct{}{}

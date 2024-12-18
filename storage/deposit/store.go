@@ -26,6 +26,7 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/storage/deposit/merkle"
 )
 
@@ -37,7 +38,10 @@ type Store struct {
 
 	// pendingDeposits holds the pending deposits for blocks that have yet to be
 	// processed by the CL.
-	pendingDeposits map[uint64]*Block
+	pendingDeposits []*Block
+
+	// lastUsedIndex is the index of the last deposit included in CL blocks.
+	lastUsedIndex uint64
 
 	// mu protects store for concurrent access.
 	mu sync.RWMutex
@@ -47,7 +51,7 @@ type Store struct {
 func NewStore() *Store {
 	res := &Store{
 		tree:            merkle.NewDepositTree(),
-		pendingDeposits: make(map[uint64]*Block),
+		pendingDeposits: make([]*Block, 0),
 	}
 	return res
 }
@@ -91,55 +95,63 @@ func (s *Store) GetDepositsByIndex(
 	return deposits, depTreeRoot, nil
 }
 
-// EnqueueDepositDatas pushes multiple deposits to the queue.
+// EnqueueDepositDatas pushes multiple deposits to the queue for a given EL block.
 //
 // TODO: ensure that in-order is maintained. i.e. ignore any deposits we've already seen.
-func (s *Store) EnqueueDepositDatas(depositDatas []*ctypes.DepositData) error {
+func (s *Store) EnqueueDepositDatas(
+	depositDatas []*ctypes.DepositData,
+	indexes []uint64,
+	executionHash common.ExecutionHash,
+	executionNumber math.U64,
+) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	for _, depositData := range depositDatas {
-		// idx := depositData.GetIndex().Unwrap()
-
+	// Build the deposits information for the block while inserting into the deposit tree.
+	block := &Block{
+		executionHash:   executionHash,
+		executionNumber: executionNumber,
+		deposits:        make(ctypes.Deposits, len(depositDatas)),
+		root:            make([]common.Root, len(depositDatas)),
+	}
+	for i, depositData := range depositDatas {
 		if err := s.tree.Insert(depositData.HashTreeRoot()); err != nil {
-			return errors.Wrapf(err, "failed to insert deposit %d into merkle tree", 0)
+			return errors.Wrapf(err,
+				"failed to insert deposit %d into merkle tree, execution number: %d",
+				indexes[i], executionNumber,
+			)
 		}
 
-		// proof, err := s.tree.MerkleProof(0)
-		// if err != nil {
-		// 	return errors.Wrapf(err, "failed to get merkle proof for deposit %d", 0)
-		// }
-		// deposit := ctypes.NewDeposit(proof, depositData)
-		// if err := s.store.Set(context.TODO(), idx, deposit); err != nil {
-		// 	return errors.Wrapf(err, "failed to set deposit %d in KVStore", idx)
-		// }
+		proof, err := s.tree.MerkleProof(indexes[i])
+		if err != nil {
+			return errors.Wrapf(err,
+				"failed to get merkle proof for deposit %d, execution number: %d",
+				indexes[i], executionNumber,
+			)
+		}
+		block.deposits[i] = ctypes.NewDeposit(proof, depositData)
+		block.root[i] = s.tree.HashTreeRoot()
+	}
+	s.pendingDeposits = append(s.pendingDeposits, block)
 
-		// s.endOfBlockDepositTreeRoots[idx] = s.tree.HashTreeRoot()
+	// Finalize the block's deposits in the tree. Error returned here means the
+	// EIP 4881 merkle library is broken. // TODO: could move this to when we delete block.
+	lastDepositIndex := indexes[len(indexes)-1]
+	if err := s.tree.Finalize(lastDepositIndex, executionHash, executionNumber); err != nil {
+		return errors.Wrapf(
+			err, "failed to finalize deposits in tree for block %d, index %d",
+			executionNumber, lastDepositIndex,
+		)
 	}
 
 	return nil
 }
 
 // Prune removes the deposits from the given height.
+// NO-OP for now since the pruning call is not at the right time.
 func (s *Store) Prune(height uint64) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-
-	block, ok := s.pendingDeposits[height]
-	if !ok {
-		return nil
-	}
-
-	// Remove the block from the pending deposits.
-	delete(s.pendingDeposits, height)
-
-	// Finalize the block's deposits in the tree. Error returned here means the
-	// EIP 4881 merkle library is broken.
-	if err := s.tree.Finalize(
-		block.lastDepositIndex, block.executionHash, block.executionNumber,
-	); err != nil {
-		return errors.Wrapf(err, "failed to finalize deposits in tree for block %d", height)
-	}
 
 	return nil
 }

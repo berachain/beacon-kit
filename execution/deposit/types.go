@@ -33,15 +33,20 @@ type Contract interface {
 	// ReadDeposits reads deposits from the deposit contract.
 	ReadDeposits(
 		ctx context.Context, blockNumber math.U64,
-	) ([]*ctypes.DepositData, common.ExecutionHash, error)
+	) ([]*ctypes.DepositData, []uint64, common.ExecutionHash, error)
 }
 
 // Store defines the interface for managing deposit operations.
 type Store interface {
 	// Prune prunes the deposit store of the given height.
 	Prune(height uint64) error
-	// EnqueueDepositDatas adds a list of deposits to the deposit store.
-	EnqueueDepositDatas(deposits []*ctypes.DepositData) error
+	// EnqueueDepositDatas adds a list of deposits to the deposit store for a given EL block.
+	EnqueueDepositDatas(
+		depositDatas []*ctypes.DepositData,
+		indexes []uint64,
+		executionHash common.ExecutionHash,
+		executionNumber math.U64,
+	) error
 	// GetDepositsByIndex gets a list of deposits from the deposit store.
 	GetDepositsByIndex(startIndex, numView uint64) (ctypes.Deposits, common.Root, error)
 }
