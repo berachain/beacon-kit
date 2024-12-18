@@ -28,7 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
-	"github.com/berachain/beacon-kit/state-transition/core"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // The AvailabilityStore interface is responsible for validating and storing
@@ -43,16 +43,8 @@ type AvailabilityStore interface {
 	Persist(math.Slot, datypes.BlobSidecars) error
 }
 
-// BeaconState is the interface for the beacon state.
-type BeaconState interface {
-	// SetSlot sets the slot on the beacon state.
-	SetSlot(math.Slot) error
-
-	core.ReadOnlyBeaconState
-}
-
 // BlockStore is the interface for block storage.
-type BlockStore[BeaconBlockT any] interface {
+type BlockStore interface {
 	// GetSlotByBlockRoot retrieves the slot by a given block root.
 	GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 	// GetSlotByStateRoot retrieves the slot by a given state root.
@@ -78,18 +70,18 @@ type Node[ContextT any] interface {
 	CreateQueryContext(height int64, prove bool) (ContextT, error)
 }
 
-type StateProcessor[BeaconStateT any] interface {
-	ProcessSlots(BeaconStateT, math.Slot) (transition.ValidatorUpdates, error)
+type StateProcessor interface {
+	ProcessSlots(*statedb.StateDB, math.Slot) (transition.ValidatorUpdates, error)
 }
 
 // StorageBackend is the interface for the storage backend.
 type StorageBackend[
-	AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT any,
+	AvailabilityStoreT, BlockStoreT, DepositStoreT any,
 ] interface {
 	AvailabilityStore() AvailabilityStoreT
 	BlockStore() BlockStoreT
 	DepositStore() DepositStoreT
-	StateFromContext(context.Context) BeaconStateT
+	StateFromContext(context.Context) *statedb.StateDB
 }
 
 // Validator represents an interface for a validator with generic withdrawal

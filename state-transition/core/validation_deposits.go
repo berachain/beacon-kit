@@ -27,12 +27,13 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/math"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 func (sp *StateProcessor[
-	_, BeaconStateT, _, _,
+	_, _,
 ]) validateGenesisDeposits(
-	st BeaconStateT,
+	st *statedb.StateDB,
 	deposits []*ctypes.Deposit,
 ) error {
 	switch {
@@ -99,9 +100,9 @@ func (sp *StateProcessor[
 }
 
 func (sp *StateProcessor[
-	_, BeaconStateT, _, _,
+	_, _,
 ]) validateNonGenesisDeposits(
-	st BeaconStateT,
+	st *statedb.StateDB,
 	deposits []*ctypes.Deposit,
 ) error {
 	slot, err := st.GetSlot()

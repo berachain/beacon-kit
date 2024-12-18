@@ -25,12 +25,13 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/version"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 func (sp *StateProcessor[
-	_, BeaconStateT, _, _,
+	_, _,
 ]) GetSidecarVerifierFn(
-	st BeaconStateT,
+	st *statedb.StateDB,
 ) (
 	func(blkHeader *ctypes.BeaconBlockHeader, signature crypto.BLSSignature) error,
 	error,

@@ -43,11 +43,6 @@ type AvailabilityStore interface {
 	Persist(math.Slot, datypes.BlobSidecars) error
 }
 
-type BeaconBlock interface {
-	GetBody() *ctypes.BeaconBlockBody
-	GetHeader() *ctypes.BeaconBlockHeader
-}
-
 type ConsensusSidecars interface {
 	GetSidecars() datypes.BlobSidecars
 	GetHeader() *ctypes.BeaconBlockHeader

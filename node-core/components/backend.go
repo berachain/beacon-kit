@@ -48,9 +48,6 @@ type StorageBackendInput[
 func ProvideStorageBackend[
 	AvailabilityStoreT any,
 	BeaconBlockStoreT any,
-	BeaconStateT interface {
-		NewFromDB(BeaconStoreT, chain.ChainSpec) BeaconStateT
-	},
 	BeaconStoreT interface {
 		WithContext(context.Context) BeaconStoreT
 	},
@@ -61,12 +58,11 @@ func ProvideStorageBackend[
 		DepositStoreT,
 	],
 ) *storage.Backend[
-	AvailabilityStoreT, BeaconStateT, BeaconBlockStoreT,
+	AvailabilityStoreT, BeaconBlockStoreT,
 	DepositStoreT, BeaconStoreT,
 ] {
 	return storage.NewBackend[
 		AvailabilityStoreT,
-		BeaconStateT,
 		BeaconBlockStoreT,
 		DepositStoreT,
 		BeaconStoreT,

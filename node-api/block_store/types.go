@@ -21,19 +21,11 @@
 package blockstore
 
 import (
-	"github.com/berachain/beacon-kit/primitives/constraints"
-	"github.com/berachain/beacon-kit/primitives/math"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 )
 
-// BeaconBlock is a generic interface for a beacon block.
-type BeaconBlock interface {
-	constraints.SSZMarshaler
-	// GetSlot returns the slot of the block.
-	GetSlot() math.U64
-}
-
 // BlockStore is a generic interface for a block store.
-type BlockStore[BeaconBlockT BeaconBlock] interface {
+type BlockStore interface {
 	// Set sets a block at a given index.
-	Set(blk BeaconBlockT) error
+	Set(blk *ctypes.BeaconBlock) error
 }
