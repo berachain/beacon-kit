@@ -123,6 +123,5 @@ func generateProof(
 		depth--
 	}
 
-	// slices.Reverse(proof)
 	return node.GetRoot(), proof
 }
