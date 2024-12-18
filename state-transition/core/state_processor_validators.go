@@ -30,13 +30,14 @@ import (
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/sourcegraph/conc/iter"
 )
 
 func (sp *StateProcessor[
-	_, BeaconStateT, _, _,
+	_, _,
 ]) processRegistryUpdates(
-	st BeaconStateT,
+	st *statedb.StateDB,
 ) error {
 	slot, err := st.GetSlot()
 	if err != nil {
@@ -111,9 +112,9 @@ func (sp *StateProcessor[
 }
 
 func (sp *StateProcessor[
-	_, BeaconStateT, _, _,
+	_, _,
 ]) processValidatorSetCap(
-	st BeaconStateT,
+	st *statedb.StateDB,
 ) error {
 	// Enforce the validator set cap by:
 	// 1- retrieving validators active next epoch
@@ -189,7 +190,7 @@ func (sp *StateProcessor[
 // but it helps simplifying generic instantiation.
 // TODO: Turn this into a free function
 func (*StateProcessor[
-	_, _, _, _,
+	_, _,
 ]) validatorSetsDiffs(
 	prevEpochValidators []*ctypes.Validator,
 	currEpochValidator []*ctypes.Validator,
@@ -244,8 +245,8 @@ func (*StateProcessor[
 // nextEpochValidatorSet returns the current estimation of what next epoch
 // validator set would be.
 func (sp *StateProcessor[
-	_, BeaconStateT, _, _,
-]) getActiveVals(st BeaconStateT, epoch math.Epoch) ([]*ctypes.Validator, error) {
+	_, _,
+]) getActiveVals(st *statedb.StateDB, epoch math.Epoch) ([]*ctypes.Validator, error) {
 	vals, err := st.GetValidators()
 	if err != nil {
 		return nil, err

@@ -39,11 +39,9 @@ import (
 
 // ChainServiceInput is the input for the chain service provider.
 type ChainServiceInput[
-	BeaconBlockT any,
-	BeaconStateT any,
 	StorageBackendT any,
 	LoggerT any,
-	BeaconBlockStoreT BlockStore[BeaconBlockT],
+	BeaconBlockStoreT BlockStore,
 	DepositStoreT any,
 	DepositContractT any,
 	AvailabilityStoreT any,
@@ -56,14 +54,12 @@ type ChainServiceInput[
 	Cfg             *config.Config
 	EngineClient    *client.EngineClient
 	ExecutionEngine *engine.Engine
-	LocalBuilder    LocalBuilder[BeaconStateT]
+	LocalBuilder    LocalBuilder
 	Logger          LoggerT
 	Signer          crypto.BLSSigner
-	StateProcessor  StateProcessor[
-		BeaconBlockT, BeaconStateT, *Context,
-	]
-	StorageBackend StorageBackendT
-	BlobProcessor  BlobProcessor[
+	StateProcessor  StateProcessor[*Context]
+	StorageBackend  StorageBackendT
+	BlobProcessor   BlobProcessor[
 		AvailabilityStoreT, ConsensusSidecarsT,
 	]
 	TelemetrySink         *metrics.TelemetrySink
@@ -75,10 +71,7 @@ type ChainServiceInput[
 // ProvideChainService is a depinject provider for the blockchain service.
 func ProvideChainService[
 	AvailabilityStoreT AvailabilityStore,
-	ConsensusBlockT ConsensusBlock[BeaconBlockT],
-	BeaconBlockT BeaconBlock[BeaconBlockT],
-	BeaconStateT BeaconState[BeaconStateT, BeaconStateMarshallableT, KVStoreT],
-	BeaconStateMarshallableT any,
+	ConsensusBlockT ConsensusBlock,
 	ConsensusSidecarsT da.ConsensusSidecars,
 	BlockStoreT any,
 	DepositStoreT DepositStore,
@@ -87,20 +80,19 @@ func ProvideChainService[
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 	StorageBackendT StorageBackend[
-		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,
+		AvailabilityStoreT, BlockStoreT, DepositStoreT,
 	],
-	BeaconBlockStoreT BlockStore[BeaconBlockT],
+	BeaconBlockStoreT BlockStore,
 ](
 	in ChainServiceInput[
-		BeaconBlockT, BeaconStateT,
 		StorageBackendT, LoggerT,
 		BeaconBlockStoreT, DepositStoreT, DepositContractT,
 		AvailabilityStoreT, ConsensusSidecarsT,
 	],
 ) *blockchain.Service[
 	AvailabilityStoreT, DepositStoreT,
-	ConsensusBlockT, BeaconBlockT,
-	BeaconStateT, BeaconBlockStoreT,
+	ConsensusBlockT,
+	BeaconBlockStoreT,
 	GenesisT,
 	ConsensusSidecarsT,
 ] {
@@ -108,8 +100,6 @@ func ProvideChainService[
 		AvailabilityStoreT,
 		DepositStoreT,
 		ConsensusBlockT,
-		BeaconBlockT,
-		BeaconStateT,
 		BeaconBlockStoreT,
 		GenesisT,
 	](

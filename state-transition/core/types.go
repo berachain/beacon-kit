@@ -33,21 +33,6 @@ import (
 	"github.com/karalabe/ssz"
 )
 
-// BeaconBlock represents a generic interface for a beacon block.
-type BeaconBlock interface {
-	IsNil() bool
-	// GetProposerIndex returns the index of the proposer.
-	GetProposerIndex() math.ValidatorIndex
-	// GetSlot returns the slot number of the block.
-	GetSlot() math.Slot
-	// GetBody returns the body of the block.
-	GetBody() *ctypes.BeaconBlockBody
-	// GetParentBlockRoot returns the root of the parent block.
-	GetParentBlockRoot() common.Root
-	// GetStateRoot returns the state root of the block.
-	GetStateRoot() common.Root
-}
-
 // Context defines an interface for managing state transition context.
 type Context interface {
 	context.Context

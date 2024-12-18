@@ -58,14 +58,9 @@ type (
 
 	TestKVStoreT = beacondb.KVStore
 
-	TestBeaconStateT = statedb.StateDB[
-		*TestBeaconStateMarshallableT,
-		*TestKVStoreT,
-	]
+	TestBeaconStateT = statedb.StateDB
 
 	TestStateProcessorT = core.StateProcessor[
-		*types.BeaconBlock,
-		*TestBeaconStateT,
 		*transition.Context,
 		*TestKVStoreT,
 	]
@@ -157,8 +152,6 @@ func setupState(
 	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
 
 	sp := core.NewStateProcessor[
-		*types.BeaconBlock,
-		*TestBeaconStateT,
 		*transition.Context,
 		*TestKVStoreT,
 	](

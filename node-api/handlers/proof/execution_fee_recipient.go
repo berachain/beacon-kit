@@ -29,7 +29,7 @@ import (
 // GetExecutionFeeRecipient returns the fee recipient from the latest execution
 // payload header for the given timestamp id, along with the proof that can be
 // verified against the beacon block root.
-func (h *Handler[_, _, ContextT]) GetExecutionFeeRecipient(c ContextT) (any, error) {
+func (h *Handler[ContextT]) GetExecutionFeeRecipient(c ContextT) (any, error) {
 	params, err := utils.BindAndValidate[types.ExecutionFeeRecipientRequest](
 		c, h.Logger(),
 	)

@@ -37,11 +37,8 @@ import (
 // ServiceRegistryInput is the input for the service registry provider.
 type ServiceRegistryInput[
 	AvailabilityStoreT AvailabilityStore,
-	ConsensusBlockT ConsensusBlock[BeaconBlockT],
-	BeaconBlockT BeaconBlock[BeaconBlockT],
-	BeaconBlockStoreT BlockStore[BeaconBlockT],
-	BeaconStateT BeaconState[BeaconStateT, BeaconStateMarshallableT, KVStoreT],
-	BeaconStateMarshallableT any,
+	ConsensusBlockT ConsensusBlock,
+	BeaconBlockStoreT BlockStore,
 	ConsensusSidecarsT ConsensusSidecars,
 	DepositStoreT DepositStore,
 	GenesisT Genesis,
@@ -52,8 +49,8 @@ type ServiceRegistryInput[
 	depinject.In
 	ChainService *blockchain.Service[
 		AvailabilityStoreT, DepositStoreT,
-		ConsensusBlockT, BeaconBlockT,
-		BeaconStateT, BeaconBlockStoreT,
+		ConsensusBlockT,
+		BeaconBlockStoreT,
 		GenesisT,
 		ConsensusSidecarsT,
 	]
@@ -63,25 +60,15 @@ type ServiceRegistryInput[
 	ReportingService *version.ReportingService
 	TelemetrySink    *metrics.TelemetrySink
 	TelemetryService *telemetry.Service
-	ValidatorService *validator.Service[
-		BeaconBlockT,
-		BeaconStateT, DepositStoreT,
-	]
-	CometBFTService *cometbft.Service[LoggerT]
+	ValidatorService *validator.Service[DepositStoreT]
+	CometBFTService  *cometbft.Service[LoggerT]
 }
 
 // ProvideServiceRegistry is the depinject provider for the service registry.
 func ProvideServiceRegistry[
 	AvailabilityStoreT AvailabilityStore,
-	ConsensusBlockT ConsensusBlock[BeaconBlockT],
-	BeaconBlockT BeaconBlock[BeaconBlockT],
-
-	BeaconBlockStoreT BlockStore[BeaconBlockT],
-	BeaconStateT BeaconState[
-		BeaconStateT, BeaconStateMarshallableT,
-		KVStoreT,
-	],
-	BeaconStateMarshallableT any,
+	ConsensusBlockT ConsensusBlock,
+	BeaconBlockStoreT BlockStore,
 	ConsensusSidecarsT ConsensusSidecars,
 	DepositStoreT DepositStore,
 	GenesisT Genesis,
@@ -91,9 +78,8 @@ func ProvideServiceRegistry[
 ](
 	in ServiceRegistryInput[
 		AvailabilityStoreT,
-		ConsensusBlockT, BeaconBlockT,
-		BeaconBlockStoreT, BeaconStateT,
-		BeaconStateMarshallableT,
+		ConsensusBlockT,
+		BeaconBlockStoreT,
 		ConsensusSidecarsT,
 		DepositStoreT,
 		GenesisT, KVStoreT, LoggerT, NodeAPIContextT,

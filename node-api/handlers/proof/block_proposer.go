@@ -29,7 +29,7 @@ import (
 // GetBlockProposer returns the block proposer pubkey for the given timestamp
 // id along with a merkle proof that can be verified against the beacon block
 // root. It also returns the merkle proof of the proposer index.
-func (h *Handler[_, _, ContextT]) GetBlockProposer(c ContextT) (any, error) {
+func (h *Handler[ContextT]) GetBlockProposer(c ContextT) (any, error) {
 	params, err := utils.BindAndValidate[types.BlockProposerRequest](
 		c, h.Logger(),
 	)

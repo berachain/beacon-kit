@@ -38,17 +38,11 @@ type AttributesFactoryInput[LoggerT any] struct {
 
 // ProvideAttributesFactory provides an AttributesFactory for the client.
 func ProvideAttributesFactory[
-	BeaconStateT BeaconState[
-		BeaconStateT, BeaconStateMarshallableT,
-		KVStoreT,
-	],
-	BeaconStateMarshallableT any,
-	KVStoreT any,
 	LoggerT log.Logger,
 ](
 	in AttributesFactoryInput[LoggerT],
-) (*attributes.Factory[BeaconStateT], error) {
-	return attributes.NewAttributesFactory[BeaconStateT](
+) (*attributes.Factory, error) {
+	return attributes.NewAttributesFactory(
 		in.ChainSpec,
 		in.Logger,
 		in.Config.PayloadBuilder.SuggestedFeeRecipient,

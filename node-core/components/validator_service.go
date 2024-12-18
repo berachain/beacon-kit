@@ -33,53 +33,39 @@ import (
 // ValidatorServiceInput is the input for the validator service provider.
 type ValidatorServiceInput[
 	AvailabilityStoreT any,
-	BeaconBlockT any,
-	BeaconStateT any,
 	LoggerT any,
 	StorageBackendT any,
 ] struct {
 	depinject.In
 	Cfg            *config.Config
 	ChainSpec      chain.ChainSpec
-	LocalBuilder   LocalBuilder[BeaconStateT]
+	LocalBuilder   LocalBuilder
 	Logger         LoggerT
-	StateProcessor StateProcessor[
-		BeaconBlockT, BeaconStateT, *Context,
-	]
+	StateProcessor StateProcessor[*Context]
 	StorageBackend StorageBackendT
 	Signer         crypto.BLSSigner
-	SidecarFactory SidecarFactory[BeaconBlockT]
+	SidecarFactory SidecarFactory
 	TelemetrySink  *metrics.TelemetrySink
 }
 
 // ProvideValidatorService is a depinject provider for the validator service.
 func ProvideValidatorService[
 	AvailabilityStoreT any,
-	BeaconBlockT BeaconBlock[BeaconBlockT],
-	BeaconStateT BeaconState[BeaconStateT, BeaconStateMarshallableT, KVStoreT],
-	BeaconStateMarshallableT any,
 	BeaconBlockStoreT any,
 	DepositStoreT DepositStore,
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 	StorageBackendT StorageBackend[
-		AvailabilityStoreT, BeaconStateT, BeaconBlockStoreT, DepositStoreT,
+		AvailabilityStoreT, BeaconBlockStoreT, DepositStoreT,
 	],
 ](
 	in ValidatorServiceInput[
-		AvailabilityStoreT, BeaconBlockT, BeaconStateT,
+		AvailabilityStoreT,
 		LoggerT, StorageBackendT,
 	],
-) (*validator.Service[
-	BeaconBlockT,
-	BeaconStateT, DepositStoreT,
-], error) {
+) (*validator.Service[DepositStoreT], error) {
 	// Build the builder service.
-	return validator.NewService[
-		BeaconBlockT,
-		BeaconStateT,
-		DepositStoreT,
-	](
+	return validator.NewService[DepositStoreT](
 		&in.Cfg.Validator,
 		in.Logger.With("service", "validator"),
 		in.ChainSpec,
@@ -88,7 +74,7 @@ func ProvideValidatorService[
 		in.Signer,
 		in.SidecarFactory,
 		in.LocalBuilder,
-		[]validator.PayloadBuilder[BeaconStateT]{
+		[]validator.PayloadBuilder{
 			in.LocalBuilder,
 		},
 		in.TelemetrySink,
