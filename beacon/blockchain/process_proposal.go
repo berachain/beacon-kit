@@ -153,7 +153,6 @@ func (s *Service[
 	](cSidecars)
 
 	// Get the sidecar verification function from the state processor
-
 	sidecarVerifierFn, err := s.stateProcessor.GetSidecarVerifierFn(
 		s.storageBackend.StateFromContext(ctx),
 	)

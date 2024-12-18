@@ -153,7 +153,7 @@ func TestValidateBlockRoots(t *testing.T) {
 	)
 }
 
-func TestBlobSidecars_Empty(t *testing.T) {
+func TestZeroSidecarsInBlobSidecarsIsNotNil(t *testing.T) {
 	// This test exists to ensure that proposing a BlobSidecars with 0
 	// Sidecars is not considered IsNil().
 	sidecars := &types.BlobSidecars{Sidecars: make([]*types.BlobSidecar, 0)}
