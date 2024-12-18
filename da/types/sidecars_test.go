@@ -26,13 +26,144 @@ import (
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/types"
+	"github.com/berachain/beacon-kit/errors"
 	byteslib "github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/karalabe/ssz"
+	"github.com/sourcegraph/conc/iter"
 	"github.com/stretchr/testify/require"
 )
+
+// BlobSidecarsStruct is a slice of blob side cars to be included in the block.
+type BlobSidecarsStruct struct {
+	// Sidecars is a slice of blob side cars to be included in the block.
+	Sidecars []*types.BlobSidecar
+}
+
+// NewBlobSidecars creates a new BlobSidecars object.
+func (bs *BlobSidecarsStruct) Empty() *BlobSidecarsStruct {
+	return &BlobSidecarsStruct{}
+}
+
+func (bs *BlobSidecarsStruct) Len() int {
+	return len(bs.Sidecars)
+}
+
+func (bs *BlobSidecarsStruct) GetSidecars() []*types.BlobSidecar {
+	return bs.Sidecars
+}
+
+func (bs *BlobSidecarsStruct) Get(index int) *types.BlobSidecar {
+	return bs.Sidecars[index]
+}
+
+// IsNil checks to see if blobs are nil.
+func (bs *BlobSidecarsStruct) IsNil() bool {
+	return bs == nil || bs.Sidecars == nil
+}
+
+// ValidateBlockRoots checks to make sure that
+// all blobs in the sidecar are from the same block.
+func (bs *BlobSidecarsStruct) ValidateBlockRoots() error {
+	// We only need to check if there is more than
+	// a single blob in the sidecar.
+	if sc := bs.Sidecars; len(sc) > 1 {
+		firstHtr := sc[0].SignedBeaconBlockHeader.HashTreeRoot()
+		for i := 1; i < len(sc); i++ {
+			if firstHtr != sc[i].SignedBeaconBlockHeader.HashTreeRoot() {
+				return types.ErrSidecarContainsDifferingBlockRoots
+			}
+		}
+	}
+	return nil
+}
+
+// VerifyInclusionProofs verifies the inclusion proofs for all sidecars.
+func (bs *BlobSidecarsStruct) VerifyInclusionProofs(
+	kzgOffset uint64,
+) error {
+	return errors.Join(iter.Map(
+		bs.Sidecars,
+		func(sidecar **types.BlobSidecar) error {
+			sc := *sidecar
+			if sc == nil {
+				return types.ErrAttemptedToVerifyNilSidecar
+			}
+
+			// Verify the KZG inclusion proof.
+			if !sc.HasValidInclusionProof(kzgOffset) {
+				return types.ErrInvalidInclusionProof
+			}
+			return nil
+		},
+	)...)
+}
+
+// DefineSSZ defines the SSZ encoding for the BlobSidecarsStruct object.
+func (bs *BlobSidecarsStruct) DefineSSZ(codec *ssz.Codec) {
+	ssz.DefineSliceOfStaticObjectsOffset(codec, &bs.Sidecars, 6)
+	ssz.DefineSliceOfStaticObjectsContent(codec, &bs.Sidecars, 6)
+}
+
+// SizeSSZ returns the size of the BlobSidecarsStruct object in SSZ encoding.
+func (bs *BlobSidecarsStruct) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
+	if fixed {
+		return 4
+	}
+	return 4 + ssz.SizeSliceOfStaticObjects(siz, bs.Sidecars)
+}
+
+// MarshalSSZ marshals the BlobSidecarsStruct object to SSZ format.
+func (bs *BlobSidecarsStruct) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, ssz.Size(bs))
+	return bs.MarshalSSZTo(buf)
+}
+
+// MarshalSSZTo marshals the BlobSidecarsStruct object to the provided buffer in SSZ
+// format.
+func (bs *BlobSidecarsStruct) MarshalSSZTo(buf []byte) ([]byte, error) {
+	return buf, ssz.EncodeToBytes(buf, bs)
+}
+
+// UnmarshalSSZ unmarshals the BlobSidecarsStruct object from SSZ format.
+func (bs *BlobSidecarsStruct) UnmarshalSSZ(buf []byte) error {
+	return ssz.DecodeFromBytes(buf, bs)
+}
+
+func TestSidecarsMarshalling(t *testing.T) {
+	sidecar := types.BuildBlobSidecar(
+		math.U64(1),
+		&ctypes.SignedBeaconBlockHeader{
+			Header: &ctypes.BeaconBlockHeader{
+				Slot:            math.Slot(1),
+				ProposerIndex:   math.ValidatorIndex(3),
+				ParentBlockRoot: common.Root{},
+				StateRoot:       common.Root{},
+			},
+			Signature: crypto.BLSSignature{},
+		},
+		&eip4844.Blob{},
+		eip4844.KZGCommitment{},
+		[48]byte{},
+		[]common.Root{},
+	)
+
+	// marshal BlobSidecar (defined as []*types.BlobSidecars)
+	var sidecars = types.BlobSidecars{sidecar}
+	bytes, err := sidecars.MarshalSSZ()
+	require.NoError(t, err, "Marshalling BlobSidecar should not produce an error")
+
+	// marshal BlobSidecarsStruct
+	var sidecars2 = BlobSidecarsStruct{Sidecars: []*types.BlobSidecar{sidecar}}
+	bytes2, err := sidecars2.MarshalSSZ()
+	require.NoError(t, err, "Marshalling BlobSidecarsStruct should not produce an error")
+
+	// the marshalled bytes should be equal between types.BlobSidecars and BlobSidecarsStruct
+	require.Equal(t, bytes, bytes2, "The marshalled bytes should be equal between types.BlobSidecars and BlobSidecarsStruct")
+}
 
 func TestEmptySidecarMarshalling(t *testing.T) {
 	// Create an empty BlobSidecar
