@@ -213,10 +213,6 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	if err := sp.processEth1Data(st, blk); err != nil {
-		return err
-	}
-
 	if err := sp.processExecutionPayload(ctx, st, blk); err != nil {
 		return err
 	}
@@ -382,36 +378,6 @@ func (sp *StateProcessor[
 		bodyRoot,
 	)
 	return st.SetLatestBlockHeader(lbh)
-}
-
-// processEth1Data as defined in the Ethereum 2.0 specification, but without eth1 votes.
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#eth1-data
-func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, _, _,
-]) processEth1Data(st BeaconStateT, blk BeaconBlockT) error {
-	// Verify that outstanding deposits are processed up to the maximum number of deposits.
-	eth1Data, err := st.GetEth1Data()
-	if err != nil {
-		return err
-	}
-	depositCount := eth1Data.GetDepositCount().Unwrap()
-	depositIndex, err := st.GetEth1DepositIndex()
-	if err != nil {
-		return err
-	}
-
-	// Verify that the local view of deposit tree is consistent with the provided deposits.
-	_, localDepositsRoot, err := sp.ds.GetDepositsByIndex(
-		depositIndex, depositCount-depositIndex,
-	)
-	if err != nil {
-		return err
-	}
-	if eth1Data.DepositRoot != localDepositsRoot {
-		return errors.New("local deposit tree root does not match the block deposit tree root")
-	}
-
-	return st.SetEth1Data(blk.GetBody().GetEth1Data())
 }
 
 // processEffectiveBalanceUpdates as defined in the Ethereum 2.0 specification.

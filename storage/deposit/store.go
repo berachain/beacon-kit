@@ -52,7 +52,7 @@ type Store struct {
 	store sdkcollections.Map[uint64, *ctypes.Deposit]
 
 	// mu protects store for concurrent access.
-	mu sync.Mutex
+	mu sync.RWMutex
 }
 
 // NewStore creates a new deposit store.
@@ -84,8 +84,8 @@ func NewStore(kvsp store.KVStoreService) *Store {
 func (s *Store) GetDepositsByIndex(
 	startIndex, numView uint64,
 ) (ctypes.Deposits, common.Root, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	var (
 		deposits    = ctypes.Deposits{}
 		maxIndex    = startIndex + numView
@@ -94,24 +94,23 @@ func (s *Store) GetDepositsByIndex(
 
 	for i := startIndex; i < maxIndex; i++ {
 		deposit, err := s.store.Get(context.TODO(), i)
-		if err != nil {
-			if errors.Is(err, sdkcollections.ErrNotFound) {
-				depTreeRoot = s.pendingDepositsToRoots[i-1]
-				break
-			}
-
-			return nil, common.Root{}, errors.Wrapf(
-				err, "failed to get deposit %d, start: %d, end: %d", i, startIndex, maxIndex,
-			)
+		if err == nil {
+			deposits = append(deposits, deposit)
+			continue
 		}
 
-		deposits = append(deposits, deposit)
-		delete(s.pendingDepositsToRoots, i-1)
+		if errors.Is(err, sdkcollections.ErrNotFound) {
+			depTreeRoot = s.pendingDepositsToRoots[i-1]
+			break
+		}
+
+		return nil, common.Root{}, errors.Wrapf(
+			err, "failed to get deposit %d, start: %d, end: %d", i, startIndex, maxIndex,
+		)
 	}
 
 	if depTreeRoot == (common.Root{}) {
 		depTreeRoot = s.pendingDepositsToRoots[maxIndex-1]
-		delete(s.pendingDepositsToRoots, maxIndex-1)
 	}
 
 	return deposits, depTreeRoot, nil
