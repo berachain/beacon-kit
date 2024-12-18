@@ -26,9 +26,9 @@ import (
 	"time"
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
-	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -309,19 +309,11 @@ func (s *Service[
 	// Dequeue deposits from the state.
 	depositIndex, err := st.GetEth1DepositIndex()
 	if err != nil {
-		return ErrNilDepositIndexStart
+		return errors.Wrap(err, "failed to get deposit index")
 	}
 
-	// Bartio and Boonet pre Fork2 have deposit broken and undervalidated
-	// Any other network should build deposits the right way
-	if !(s.chainSpec.DepositEth1ChainID() == spec.BartioChainID ||
-		(s.chainSpec.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-			blk.GetSlot() < math.U64(spec.BoonetFork2Height))) {
-		depositIndex++
-	}
-	deposits, err := s.sb.DepositStore().GetDepositsByIndex(
-		depositIndex,
-		s.chainSpec.MaxDepositsPerBlock(),
+	deposits, depositRoot, err := s.sb.DepositStore().GetDepositsByIndex(
+		depositIndex, s.chainSpec.MaxDepositsPerBlock(),
 	)
 	if err != nil {
 		return err
@@ -334,12 +326,12 @@ func (s *Service[
 	)
 	body.SetDeposits(deposits)
 
-	var eth1Data *ctypes.Eth1Data
-	// TODO: assemble real eth1data.
+	var (
+		eth1Data         *ctypes.Eth1Data
+		executionPayload = envelope.GetExecutionPayload()
+	)
 	body.SetEth1Data(eth1Data.New(
-		common.Root{},
-		0,
-		common.ExecutionHash{},
+		depositRoot, math.U64(depositIndex+uint64(len(deposits))), executionPayload.BlockHash,
 	))
 
 	// Set the graffiti on the block body.
@@ -362,7 +354,7 @@ func (s *Service[
 		body.SetSlashingInfo(slotData.GetSlashingInfo())
 	}
 
-	body.SetExecutionPayload(envelope.GetExecutionPayload())
+	body.SetExecutionPayload(executionPayload)
 	return nil
 }
 

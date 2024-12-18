@@ -366,8 +366,8 @@ type (
 	}
 
 	DepositStore interface {
-		// GetDepositsByIndex returns `numView` expected deposits.
-		GetDepositsByIndex(startIndex, numView uint64) (ctypes.Deposits, error)
+		// GetDepositsByIndex returns `numView` or less deposits.
+		GetDepositsByIndex(startIndex, numView uint64) (ctypes.Deposits, common.Root, error)
 		// Prune prunes the deposit store of [start, end)
 		Prune(start, end uint64) error
 		// EnqueueDepositDatas adds a list of deposits to the deposit store.
@@ -454,13 +454,9 @@ type (
 		ContextT any,
 	] interface {
 		// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
-		// state
-		// from the eth1 deposits.
+		// state from the eth1 deposits.
 		InitializePreminedBeaconStateFromEth1(
-			BeaconStateT,
-			[]*ctypes.DepositData,
-			*ctypes.ExecutionPayloadHeader,
-			common.Version,
+			BeaconStateT, *ctypes.ExecutionPayloadHeader, common.Version,
 		) (transition.ValidatorUpdates, error)
 		// ProcessSlot processes the slot.
 		ProcessSlots(

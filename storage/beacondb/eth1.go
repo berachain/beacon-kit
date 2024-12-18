@@ -20,7 +20,11 @@
 
 package beacondb
 
-import ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+import (
+	"cosmossdk.io/collections"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/errors"
+)
 
 // GetLatestExecutionPayloadHeader retrieves the latest execution payload
 // header from the BeaconStore.
@@ -51,14 +55,20 @@ func (kv *KVStore) SetLatestExecutionPayloadHeader(
 }
 
 // GetEth1DepositIndex retrieves the eth1 deposit index from the beacon state.
+// If collections returns a not found error, it returns 0 as a default and no error.
 func (kv *KVStore) GetEth1DepositIndex() (uint64, error) {
-	return kv.eth1DepositIndex.Get(kv.ctx)
+	index, err := kv.eth1DepositIndex.Get(kv.ctx)
+	if err != nil {
+		if errors.Is(err, collections.ErrNotFound) {
+			return 0, nil
+		}
+		return 0, err
+	}
+	return index, nil
 }
 
 // SetEth1DepositIndex sets the eth1 deposit index in the beacon state.
-func (kv *KVStore) SetEth1DepositIndex(
-	index uint64,
-) error {
+func (kv *KVStore) SetEth1DepositIndex(index uint64) error {
 	return kv.eth1DepositIndex.Set(kv.ctx, index)
 }
 
@@ -68,8 +78,6 @@ func (kv *KVStore) GetEth1Data() (*ctypes.Eth1Data, error) {
 }
 
 // SetEth1Data sets the eth1 data in the beacon state.
-func (kv *KVStore) SetEth1Data(
-	data *ctypes.Eth1Data,
-) error {
+func (kv *KVStore) SetEth1Data(data *ctypes.Eth1Data) error {
 	return kv.eth1Data.Set(kv.ctx, data)
 }

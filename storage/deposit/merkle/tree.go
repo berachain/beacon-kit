@@ -39,11 +39,13 @@ type DepositTree struct {
 }
 
 type executionBlock struct {
-	Hash  common.Root
-	Depth uint64
+	Hash  common.ExecutionHash
+	Depth math.U64
 }
 
 // NewDepositTree creates an empty deposit tree.
+//
+// NOTE: Not safe for concurrent use as it uses a single hasher.
 func NewDepositTree() *DepositTree {
 	var (
 		hasher = merkle.NewHasher[common.Root](sha256.Hash)
@@ -73,13 +75,11 @@ func (d *DepositTree) GetSnapshot() DepositTreeSnapshot {
 // Finalize marks a deposit as finalized.
 func (d *DepositTree) Finalize(
 	eth1DepositIndex uint64,
-	executionHash common.Root,
-	executionNumber uint64,
+	executionHash common.ExecutionHash,
+	executionNumber math.U64,
 ) error {
-	var blockHash common.Root
-	copy(blockHash[:], executionHash[:])
 	d.finalizedExecutionBlock = executionBlock{
-		Hash:  blockHash,
+		Hash:  executionHash,
 		Depth: executionNumber,
 	}
 	mixInLength := eth1DepositIndex + 1
@@ -91,44 +91,47 @@ func (d *DepositTree) Finalize(
 }
 
 // getProof returns the deposit tree proof.
-func (d *DepositTree) getProof(index uint64) (common.Root, []common.Root, error) {
+func (d *DepositTree) getProof(index uint64) (
+	common.Root, [constants.DepositContractDepth + 1]common.Root, error,
+) {
+	var proof [constants.DepositContractDepth + 1]common.Root
+
 	if d.mixInLength <= 0 {
-		return common.Root{}, nil, ErrInvalidDepositCount
+		return common.Root{}, proof, ErrInvalidDepositCount
 	}
 	if index >= d.mixInLength {
-		return common.Root{}, nil, ErrInvalidIndex
+		return common.Root{}, proof, ErrInvalidIndex
 	}
+
 	finalizedDeposits, _ := d.tree.GetFinalized([]common.Root{})
 	finalizedIdx := -1
 	if finalizedDeposits != 0 {
 		fd, err := math.Int(finalizedDeposits)
 		if err != nil {
-			return common.Root{}, nil, err
+			return common.Root{}, proof, err
 		}
 		finalizedIdx = fd - 1
 	}
 	i, err := math.Int(index)
 	if err != nil {
-		return common.Root{}, nil, err
+		return common.Root{}, proof, err
 	}
 	if finalizedDeposits > 0 && i <= finalizedIdx {
-		return common.Root{}, nil, ErrInvalidIndex
+		return common.Root{}, proof, ErrInvalidIndex
 	}
-	leaf, proof := generateProof(d.tree, index, constants.DepositContractDepth)
+
+	leaf, proofWithoutMixin := generateProof(d.tree, index)
+	copy(proof[:constants.DepositContractDepth], proofWithoutMixin[:])
 
 	mixInLength := common.Root{}
 	binary.LittleEndian.PutUint64(mixInLength[:], d.mixInLength)
-	proof = append(proof, mixInLength)
+	proof[constants.DepositContractDepth] = mixInLength
 	return leaf, proof, nil
 }
 
 // getRoot returns the root of the deposit tree.
 func (d *DepositTree) getRoot() common.Root {
-	var enc common.Root
-	binary.LittleEndian.PutUint64(enc[:], d.mixInLength)
-
-	root := d.tree.GetRoot()
-	return d.hasher.Combi(root, enc)
+	return d.hasher.MixIn(d.tree.GetRoot(), d.mixInLength)
 }
 
 // pushLeaf adds a new leaf to the tree.
@@ -142,39 +145,27 @@ func (d *DepositTree) pushLeaf(leaf common.Root) error {
 	return nil
 }
 
-// Insert is defined as part of MerkleTree interface and adds a new leaf to the
-// tree.
-func (d *DepositTree) Insert(item []byte, _ int) error {
-	var leaf common.Root
-	copy(leaf[:], item[:32])
-	return d.pushLeaf(leaf)
+// Insert is defined as part of MerkleTree interface and adds a new leaf to the tree.
+func (d *DepositTree) Insert(item common.Root) error {
+	return d.pushLeaf(item)
 }
 
-// HashTreeRoot is defined as part of MerkleTree interface and calculates the
-// hash tree root.
+// HashTreeRoot is defined as part of MerkleTree interface and calculates the hash tree root.
 func (d *DepositTree) HashTreeRoot() common.Root {
 	return d.getRoot()
 }
 
-// NumOfItems is defined as part of MerkleTree interface and returns the number
-// of deposits in the tree.
+// NumOfItems is defined as part of MerkleTree interface and returns the number of deposits in the tree.
 func (d *DepositTree) NumOfItems() uint64 {
 	return d.mixInLength
 }
 
-// MerkleProof is defined as part of MerkleTree interface and generates a merkle
-// proof.
-func (d *DepositTree) MerkleProof(index uint64) ([][]byte, error) {
+// MerkleProof is defined as part of MerkleTree interface and generates a merkle proof.
+func (d *DepositTree) MerkleProof(index uint64) (
+	[constants.DepositContractDepth + 1]common.Root, error,
+) {
 	_, proof, err := d.getProof(index)
-	if err != nil {
-		return nil, err
-	}
-	byteSlices := make([][]byte, len(proof))
-	for i, p := range proof {
-		copied := p
-		byteSlices[i] = copied[:]
-	}
-	return byteSlices, nil
+	return proof, err
 }
 
 // Copy performs a deep copy of the tree.

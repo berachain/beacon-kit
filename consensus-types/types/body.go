@@ -252,7 +252,7 @@ func (b *BeaconBlockBody) GetDeposits() Deposits {
 	return b.Deposits
 }
 
-// SetDeposits sets the DepositDatas of the BeaconBlockBody.
+// SetDeposits sets the Deposits of the BeaconBlockBody.
 func (b *BeaconBlockBody) SetDeposits(deposits Deposits) {
 	b.Deposits = deposits
 }

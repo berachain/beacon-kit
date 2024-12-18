@@ -46,9 +46,15 @@ var (
 	// block is different from the correspondent one from store.
 	ErrDepositMismatch = errors.New("deposit mismatched")
 
+	// ErrInvalidDepositProof is returned when the deposit proof is invalid.
+	ErrInvalidDepositProof = errors.New("invalid deposit proof")
+
 	// ErrDepositIndexOutOfOrder is returned when deposits are not in
 	// contiguous order.
 	ErrDepositIndexOutOfOrder = errors.New("deposit index out of order")
+
+	// ErrEth1DepositIndexSetAtGenesis is returned when the eth1 deposit index is set at genesis.
+	ErrEth1DepositIndexSetAtGenesis = errors.New("eth1 deposit index should be unset at genesis")
 
 	// ErrParentRootMismatch is returned when the parent root in an execution
 	// payload does not match the expected value.
@@ -62,9 +68,9 @@ var (
 	// payload does not match the expected value.
 	ErrRandaoMixMismatch = errors.New("randao mix mismatch")
 
-	// ErrExceedsBlockDepositLimit is returned when the block exceeds the
+	// ErrDepositCountMismatch is returned when the block exceeds the
 	// deposit limit.
-	ErrExceedsBlockDepositLimit = errors.New("block exceeds deposit limit")
+	ErrDepositCountMismatch = errors.New("deposit count mismatch")
 
 	// ErrRewardsLengthMismatch is returned when the length of the rewards
 	// in a block does not match the expected value.

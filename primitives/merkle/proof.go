@@ -25,12 +25,9 @@ import "github.com/berachain/beacon-kit/primitives/crypto/sha256"
 // VerifyProof given a tree root, a leaf, the generalized merkle index
 // of the leaf in the tree, and the proof itself.
 func VerifyProof[RootT, ProofT ~[32]byte](
-	root, leaf RootT,
-	merkleIndex uint64,
-	proof []ProofT,
+	root, leaf RootT, merkleIndex uint64, proof []ProofT,
 ) bool {
-	//#nosec:G701 `int`` is at minimum 32-bits and thus a
-	// uint8 will always fit.
+	//#nosec:G701 `int` is at minimum 32-bits and thus a uint8 will always fit.
 	if len(proof) > int(^uint8(0)) {
 		return false
 	}
@@ -49,8 +46,7 @@ func VerifyProof[RootT, ProofT ~[32]byte](
 func IsValidMerkleBranch[RootT, BranchT ~[32]byte](
 	leaf RootT, branch []BranchT, depth uint8, index uint64, root RootT,
 ) bool {
-	//#nosec:G701 `int`` is at minimum 32-bits and thus a
-	// uint8 will always fit.
+	//#nosec:G701 `int` is at minimum 32-bits and thus a uint8 will always fit.
 	if len(branch) != int(depth) {
 		return false
 	}

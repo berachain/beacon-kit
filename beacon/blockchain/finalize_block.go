@@ -33,8 +33,7 @@ import (
 )
 
 func (s *Service[
-	_, _, ConsensusBlockT, BeaconBlockT, _,
-	_, GenesisT, ConsensusSidecarsT, BlobSidecarsT, _,
+	_, ConsensusBlockT, BeaconBlockT, _, _, GenesisT, ConsensusSidecarsT, BlobSidecarsT, _,
 ]) FinalizeBlock(
 	ctx sdk.Context,
 	req *cmtabci.FinalizeBlockRequest,
@@ -84,9 +83,7 @@ func (s *Service[
 	st := s.storageBackend.StateFromContext(ctx)
 	valUpdates, finalizeErr = s.finalizeBeaconBlock(ctx, st, cBlk)
 	if finalizeErr != nil {
-		s.logger.Error("Failed to process verified beacon block",
-			"error", finalizeErr,
-		)
+		s.logger.Error("Failed to process verified beacon block", "error", finalizeErr)
 	}
 
 	// STEP 4: Post Finalizations cleanups
@@ -96,9 +93,7 @@ func (s *Service[
 
 	// store the finalized block in the KVStore.
 	if err = s.blockStore.Set(blk); err != nil {
-		s.logger.Error(
-			"failed to store block", "slot", blk.GetSlot(), "error", err,
-		)
+		s.logger.Error("failed to store block", "slot", blk.GetSlot(), "error", err)
 	}
 
 	// prune the availability and deposit store
@@ -115,7 +110,7 @@ func (s *Service[
 // finalizeBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
 func (s *Service[
-	_, _, ConsensusBlockT, _, BeaconStateT, _, _, _, _, _,
+	_, ConsensusBlockT, _, BeaconStateT, _, _, _, _, _,
 ]) finalizeBeaconBlock(
 	ctx context.Context,
 	st BeaconStateT,
@@ -146,7 +141,7 @@ func (s *Service[
 
 // executeStateTransition runs the stf.
 func (s *Service[
-	_, _, ConsensusBlockT, _, BeaconStateT, _, _, _, _, _,
+	_, ConsensusBlockT, _, BeaconStateT, _, _, _, _, _,
 ]) executeStateTransition(
 	ctx context.Context,
 	st BeaconStateT,

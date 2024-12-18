@@ -35,7 +35,7 @@ import (
 
 func TestInitialize(t *testing.T) {
 	cs := setupChain(t, components.BetnetChainSpecType)
-	sp, st, _, _ := setupState(t, cs)
+	sp, st, ds, _ := setupState(t, cs)
 
 	var (
 		maxBalance = math.Gwei(cs.MaxEffectiveBalance(false))
@@ -112,8 +112,7 @@ func TestInitialize(t *testing.T) {
 			},
 		}
 		goodDeposits = []*types.DepositData{
-			genDeposits[0], genDeposits[1], genDeposits[3],
-			genDeposits[5], genDeposits[6],
+			genDeposits[0], genDeposits[1], genDeposits[3], genDeposits[5], genDeposits[6],
 		}
 		executionPayloadHeader = &types.ExecutionPayloadHeader{}
 		fork                   = &types.Fork{
@@ -123,15 +122,12 @@ func TestInitialize(t *testing.T) {
 		}
 	)
 
+	require.NoError(t, ds.EnqueueDepositDatas(genDeposits))
+
 	// run test
 	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
-		st,
-		genDeposits,
-		executionPayloadHeader,
-		fork.CurrentVersion,
+		st, executionPayloadHeader, fork.CurrentVersion,
 	)
-
-	// check outputs
 	require.NoError(t, err)
 	require.Len(t, genVals, len(goodDeposits))
 
@@ -152,7 +148,7 @@ func TestInitialize(t *testing.T) {
 	// deposit index is set to the last accepted deposit.
 	latestValIdx, err := st.GetEth1DepositIndex()
 	require.NoError(t, err)
-	require.Equal(t, uint64(len(genDeposits)-1), latestValIdx)
+	require.Equal(t, uint64(len(genDeposits)), latestValIdx)
 }
 
 func checkValidatorNonBartio(
@@ -189,7 +185,7 @@ func checkValidatorNonBartio(
 
 func TestInitializeBartio(t *testing.T) {
 	cs := setupChain(t, components.TestnetChainSpecType)
-	sp, st, _, _ := setupState(t, cs)
+	sp, st, ds, _ := setupState(t, cs)
 
 	var (
 		maxBalance = math.Gwei(cs.MaxEffectiveBalance(false))
@@ -276,15 +272,12 @@ func TestInitializeBartio(t *testing.T) {
 		}
 	)
 
+	require.NoError(t, ds.EnqueueDepositDatas(genDeposits))
+
 	// run test
 	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
-		st,
-		genDeposits,
-		executionPayloadHeader,
-		fork.CurrentVersion,
+		st, executionPayloadHeader, fork.CurrentVersion,
 	)
-
-	// check outputs
 	require.NoError(t, err)
 	require.Len(t, genVals, len(goodDeposits))
 

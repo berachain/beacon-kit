@@ -27,20 +27,19 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
-	"github.com/berachain/beacon-kit/primitives/encoding/hex"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/primitives/version"
 )
 
-// InitializePreminedBeaconStateFromEth1 initializes the beacon state.
+// InitializePreminedBeaconStateFromEth1 initializes the beacon state. It assumes the genesis
+// deposits are already enqueued in the deposit store to allow for proof verification.
 //
-//nolint:gocognit,funlen // todo fix.
+//nolint:gocognit // todo fix.
 func (sp *StateProcessor[
 	_, BeaconStateT, _, _,
 ]) InitializePreminedBeaconStateFromEth1(
 	st BeaconStateT,
-	deposits []*ctypes.DepositData,
 	execPayloadHeader *ctypes.ExecutionPayloadHeader,
 	genesisVersion common.Version,
 ) (transition.ValidatorUpdates, error) {
@@ -48,24 +47,8 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	fork := ctypes.NewFork(
-		genesisVersion,
-		genesisVersion,
-		math.U64(constants.GenesisEpoch),
-	)
+	fork := ctypes.NewFork(genesisVersion, genesisVersion, math.U64(constants.GenesisEpoch))
 	if err := st.SetFork(fork); err != nil {
-		return nil, err
-	}
-
-	// Eth1DepositIndex will be set in processDeposit
-
-	var eth1Data *ctypes.Eth1Data
-	eth1Data = eth1Data.New(
-		common.Root{},
-		0,
-		execPayloadHeader.GetBlockHash(),
-	)
-	if err := st.SetEth1Data(eth1Data); err != nil {
 		return nil, err
 	}
 
@@ -88,18 +71,31 @@ func (sp *StateProcessor[
 
 	for i := range sp.cs.EpochsPerHistoricalVector() {
 		if err := st.UpdateRandaoMixAtIndex(
-			i,
-			common.Bytes32(execPayloadHeader.GetBlockHash()),
+			i, common.Bytes32(execPayloadHeader.GetBlockHash()),
 		); err != nil {
 			return nil, err
 		}
 	}
 
-	if err := sp.validateGenesisDeposits(st, deposits); err != nil {
-		return nil, err
-	}
-	for _, deposit := range deposits {
-		if err := sp.processDeposit(st, deposit); err != nil {
+	// Get each genesis deposit from the deposit store, with their proofs.
+	for i := range sp.cs.ValidatorSetCap() {
+		deposits, depositRoot, err := sp.ds.GetDepositsByIndex(i, 1)
+		if err != nil {
+			return nil, err
+		}
+		if len(deposits) == 0 {
+			break
+		}
+
+		var eth1Data *ctypes.Eth1Data
+		eth1Data = eth1Data.New(
+			depositRoot, math.U64(i+1), execPayloadHeader.GetBlockHash(),
+		)
+		if err = st.SetEth1Data(eth1Data); err != nil {
+			return nil, err
+		}
+
+		if err = sp.processDeposit(st, deposits[0]); err != nil {
 			return nil, err
 		}
 	}
@@ -109,43 +105,38 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	// Handle special case bartio genesis.
-	validatorsRoot := common.Root(hex.MustToBytes(spec.BartioValRoot))
-	if sp.cs.DepositEth1ChainID() != spec.BartioChainID {
-		validators, err := st.GetValidators()
-		if err != nil {
-			return nil, err
-		}
-		validatorsRoot = validators.HashTreeRoot()
+	validators, err := st.GetValidators()
+	if err != nil {
+		return nil, err
 	}
-	if err := st.SetGenesisValidatorsRoot(validatorsRoot); err != nil {
+	if err = st.SetGenesisValidatorsRoot(validators.HashTreeRoot()); err != nil {
 		return nil, err
 	}
 
-	if err := st.SetLatestExecutionPayloadHeader(execPayloadHeader); err != nil {
+	if err = st.SetLatestExecutionPayloadHeader(execPayloadHeader); err != nil {
 		return nil, err
 	}
 
 	// Setup a bunch of 0s to prime the DB.
 	for i := range sp.cs.HistoricalRootsLimit() {
 		//#nosec:G701 // won't overflow in practice.
-		if err := st.UpdateBlockRootAtIndex(i, common.Root{}); err != nil {
+		if err = st.UpdateBlockRootAtIndex(i, common.Root{}); err != nil {
 			return nil, err
 		}
-		if err := st.UpdateStateRootAtIndex(i, common.Root{}); err != nil {
+		if err = st.UpdateStateRootAtIndex(i, common.Root{}); err != nil {
 			return nil, err
 		}
 	}
 
-	if err := st.SetNextWithdrawalIndex(0); err != nil {
+	if err = st.SetNextWithdrawalIndex(0); err != nil {
 		return nil, err
 	}
 
-	if err := st.SetNextWithdrawalValidatorIndex(0); err != nil {
+	if err = st.SetNextWithdrawalValidatorIndex(0); err != nil {
 		return nil, err
 	}
 
-	if err := st.SetTotalSlashing(0); err != nil {
+	if err = st.SetTotalSlashing(0); err != nil {
 		return nil, err
 	}
 

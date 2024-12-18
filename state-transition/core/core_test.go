@@ -23,6 +23,7 @@ package core_test
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"testing"
 
 	corestore "cosmossdk.io/core/store"
@@ -46,7 +47,7 @@ import (
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/berachain/beacon-kit/storage/beacondb"
 	"github.com/berachain/beacon-kit/storage/db"
-	depositstore "github.com/berachain/beacon-kit/storage/deposit"
+	"github.com/berachain/beacon-kit/storage/deposit"
 	"github.com/berachain/beacon-kit/storage/encoding"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -88,7 +89,7 @@ var (
 	testCodec    = &encoding.SSZInterfaceCodec[*types.ExecutionPayloadHeader]{}
 )
 
-func initTestStores() (*beacondb.KVStore, *depositstore.KVStore, error) {
+func initTestStores() (*beacondb.KVStore, *deposit.Store, error) {
 	db, err := db.OpenDB("", dbm.MemDBBackend)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed opening mem db: %w", err)
@@ -98,12 +99,7 @@ func initTestStores() (*beacondb.KVStore, *depositstore.KVStore, error) {
 		nopMetrics = metrics.NewNoOpMetrics()
 	)
 
-	cms := store.NewCommitMultiStore(
-		db,
-		nopLog,
-		nopMetrics,
-	)
-
+	cms := store.NewCommitMultiStore(db, nopLog, nopMetrics)
 	ctx := sdk.NewContext(cms, true, nopLog)
 	cms.MountStoreWithDB(testStoreKey, storetypes.StoreTypeIAVL, nil)
 	if err = cms.LoadLatestVersion(); err != nil {
@@ -115,7 +111,7 @@ func initTestStores() (*beacondb.KVStore, *depositstore.KVStore, error) {
 			testStoreService,
 			testCodec,
 		),
-		depositstore.NewStore(testStoreService, nopLog),
+		deposit.NewStore(testStoreService),
 		nil
 }
 
@@ -138,7 +134,7 @@ func setupState(
 ) (
 	*TestStateProcessorT,
 	*TestBeaconStateT,
-	*depositstore.KVStore,
+	*deposit.Store,
 	*transition.Context,
 ) {
 	t.Helper()
@@ -236,6 +232,7 @@ func moveToEndOfEpoch(
 	sp *TestStateProcessorT,
 	st *TestBeaconStateT,
 	ctx *transition.Context,
+	eth1Data *types.Eth1Data,
 ) *types.BeaconBlock {
 	t.Helper()
 	blk := tip
@@ -254,7 +251,7 @@ func moveToEndOfEpoch(
 					},
 					BaseFeePerGas: math.NewU256(0),
 				},
-				Eth1Data: &types.Eth1Data{},
+				Eth1Data: eth1Data,
 				Deposits: types.Deposits{},
 			},
 		)
@@ -264,4 +261,30 @@ func moveToEndOfEpoch(
 		require.Empty(t, vals) // no vals changes expected before next epoch
 	}
 	return blk
+}
+
+func generateTestExecutionAddress(
+	t *testing.T,
+	rndSeed int,
+) (types.WithdrawalCredentials, int) {
+	t.Helper()
+
+	addrStr := strconv.Itoa(rndSeed)
+	addrBytes := bytes.ExtendToSize([]byte(addrStr), bytes.B20Size)
+	execAddr, err := bytes.ToBytes20(addrBytes)
+	require.NoError(t, err)
+	rndSeed++
+	return types.NewCredentialsFromExecutionAddress(
+		common.ExecutionAddress(execAddr),
+	), rndSeed
+}
+
+func generateTestPK(t *testing.T, rndSeed int) (bytes.B48, int) {
+	t.Helper()
+	keyStr := strconv.Itoa(rndSeed)
+	keyBytes := bytes.ExtendToSize([]byte(keyStr), bytes.B48Size)
+	key, err := bytes.ToBytes48(keyBytes)
+	require.NoError(t, err)
+	rndSeed++
+	return key, rndSeed
 }

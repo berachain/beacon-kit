@@ -24,21 +24,16 @@ import (
 	"context"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
-
-// ExecutionPayload is an interface for execution payloads.
-type ExecutionPayload interface {
-	GetNumber() math.U64
-}
 
 // Contract is the ABI for the deposit contract.
 type Contract interface {
 	// ReadDeposits reads deposits from the deposit contract.
 	ReadDeposits(
-		ctx context.Context,
-		blockNumber math.U64,
-	) ([]*ctypes.DepositData, error)
+		ctx context.Context, blockNumber math.U64,
+	) ([]*ctypes.DepositData, common.ExecutionHash, error)
 }
 
 // Store defines the interface for managing deposit operations.
@@ -47,11 +42,6 @@ type Store interface {
 	Prune(index uint64, numPrune uint64) error
 	// EnqueueDepositDatas adds a list of deposits to the deposit store.
 	EnqueueDepositDatas(deposits []*ctypes.DepositData) error
-}
-
-// TelemetrySink is an interface for sending metrics to a telemetry backend.
-type TelemetrySink interface {
-	// IncrementCounter increments a counter metric identified by the provided
-	// keys.
-	IncrementCounter(key string, args ...string)
+	// GetDepositsByIndex gets a list of deposits from the deposit store.
+	GetDepositsByIndex(startIndex, numView uint64) (ctypes.Deposits, common.Root, error)
 }

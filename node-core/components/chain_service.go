@@ -53,24 +53,17 @@ type ChainServiceInput[
 ] struct {
 	depinject.In
 
-	AppOpts         config.AppOptions
-	ChainSpec       chain.ChainSpec
-	Cfg             *config.Config
-	EngineClient    *client.EngineClient[*engineprimitives.PayloadAttributes]
-	ExecutionEngine *engine.Engine[
-		*engineprimitives.PayloadAttributes,
-		PayloadID,
-	]
-	LocalBuilder   LocalBuilder[BeaconStateT]
-	Logger         LoggerT
-	Signer         crypto.BLSSigner
-	StateProcessor StateProcessor[
-		BeaconBlockT, BeaconStateT, *Context,
-	]
-	StorageBackend StorageBackendT
-	BlobProcessor  BlobProcessor[
-		AvailabilityStoreT, ConsensusSidecarsT, BlobSidecarsT,
-	]
+	AppOpts               config.AppOptions
+	ChainSpec             chain.ChainSpec
+	Cfg                   *config.Config
+	EngineClient          *client.EngineClient[*engineprimitives.PayloadAttributes]
+	ExecutionEngine       *engine.Engine[*engineprimitives.PayloadAttributes, PayloadID]
+	LocalBuilder          LocalBuilder[BeaconStateT]
+	Logger                LoggerT
+	Signer                crypto.BLSSigner
+	StateProcessor        StateProcessor[BeaconBlockT, BeaconStateT, *Context]
+	StorageBackend        StorageBackendT
+	BlobProcessor         BlobProcessor[AvailabilityStoreT, ConsensusSidecarsT, BlobSidecarsT]
 	TelemetrySink         *metrics.TelemetrySink
 	BlockStore            BeaconBlockStoreT
 	DepositStore          DepositStoreT
@@ -93,28 +86,19 @@ func ProvideChainService[
 	GenesisT Genesis,
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
-	StorageBackendT StorageBackend[
-		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,
-	],
+	StorageBackendT StorageBackend[AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT],
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
 ](
 	in ChainServiceInput[
-		BeaconBlockT, BeaconStateT,
-		StorageBackendT, LoggerT,
-		BeaconBlockStoreT, DepositStoreT, DepositContractT,
-		AvailabilityStoreT, ConsensusSidecarsT, BlobSidecarsT,
+		BeaconBlockT, BeaconStateT, StorageBackendT, LoggerT, BeaconBlockStoreT, DepositStoreT,
+		DepositContractT, AvailabilityStoreT, ConsensusSidecarsT, BlobSidecarsT,
 	],
 ) *blockchain.Service[
-	AvailabilityStoreT, DepositStoreT,
-	ConsensusBlockT, BeaconBlockT,
-	BeaconStateT, BeaconBlockStoreT,
-	GenesisT,
-	ConsensusSidecarsT, BlobSidecarsT,
-	*engineprimitives.PayloadAttributes,
+	AvailabilityStoreT, ConsensusBlockT, BeaconBlockT, BeaconStateT, BeaconBlockStoreT,
+	GenesisT, ConsensusSidecarsT, BlobSidecarsT, *engineprimitives.PayloadAttributes,
 ] {
 	return blockchain.NewService[
 		AvailabilityStoreT,
-		DepositStoreT,
 		ConsensusBlockT,
 		BeaconBlockT,
 		BeaconStateT,

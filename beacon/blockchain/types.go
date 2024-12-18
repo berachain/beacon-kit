@@ -180,10 +180,7 @@ type StateProcessor[
 	// state
 	// from the eth1 deposits.
 	InitializePreminedBeaconStateFromEth1(
-		BeaconStateT,
-		[]*ctypes.DepositData,
-		*ctypes.ExecutionPayloadHeader,
-		common.Version,
+		BeaconStateT, *ctypes.ExecutionPayloadHeader, common.Version,
 	) (transition.ValidatorUpdates, error)
 	// ProcessSlots processes the state transition for a range of slots.
 	ProcessSlots(
@@ -205,17 +202,11 @@ type StateProcessor[
 
 // StorageBackend defines an interface for accessing various storage components
 // required by the beacon node.
-type StorageBackend[
-	AvailabilityStoreT any,
-	BeaconStateT any,
-	DepositStoreT any,
-] interface {
+type StorageBackend[AvailabilityStoreT, BeaconStateT any] interface {
 	// AvailabilityStore returns the availability store for the given context.
 	AvailabilityStore() AvailabilityStoreT
 	// StateFromContext retrieves the beacon state from the given context.
 	StateFromContext(context.Context) BeaconStateT
-	// DepositStore retrieves the deposit store.
-	DepositStore() DepositStoreT
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.

@@ -82,7 +82,9 @@ func (s *Service[_]) ValidateGenesis(
 		)
 	}
 
-	if err := validateDeposits(beaconGenesis.GetDepositDatas()); err != nil {
+	if err := validateDeposits(
+		beaconGenesis.GetDepositDatas(), s.cs.ValidatorSetCap(),
+	); err != nil {
 		return fmt.Errorf("invalid deposits: %w", err)
 	}
 
@@ -100,9 +102,15 @@ func (s *Service[_]) ValidateGenesis(
 // - At least one deposit is present
 // - No duplicate public keys
 // Returns an error with details if any validation fails.
-func validateDeposits(deposits []*types.DepositData) error {
+func validateDeposits(deposits []*types.DepositData, validatorSetCap uint64) error {
 	if len(deposits) == 0 {
 		return errors.New("at least one deposit is required")
+	}
+	if uint64(len(deposits)) > validatorSetCap {
+		return fmt.Errorf(
+			"genesis deposits count (%d) exceeds validator set cap (%d)",
+			len(deposits), validatorSetCap,
+		)
 	}
 
 	seenPubkeys := make(map[string]struct{})

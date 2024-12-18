@@ -29,6 +29,7 @@ import (
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/geth-primitives/bind"
 	"github.com/berachain/beacon-kit/geth-primitives/deposit"
+	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -38,12 +39,15 @@ import (
 type WrappedDepositContract struct {
 	// DepositContractFilterer is a pointer to the codegen ABI binding.
 	deposit.DepositContractFilterer
+	// telemetrySink is the telemetry sink for the deposit contract.
+	telemetrySink *metrics.TelemetrySink
 }
 
 // NewWrappedDepositContract creates a new DepositContract.
 func NewWrappedDepositContract(
 	address common.ExecutionAddress,
 	client bind.ContractFilterer,
+	telemetrySink *metrics.TelemetrySink,
 ) (*WrappedDepositContract, error) {
 	contract, err := deposit.NewDepositContractFilterer(
 		gethprimitives.ExecutionAddress(address), client,
@@ -57,26 +61,30 @@ func NewWrappedDepositContract(
 
 	return &WrappedDepositContract{
 		DepositContractFilterer: *contract,
+		telemetrySink:           telemetrySink,
 	}, nil
 }
 
 // ReadDeposits reads deposits from the deposit contract.
 func (dc *WrappedDepositContract) ReadDeposits(
-	ctx context.Context,
-	blkNum math.U64,
-) ([]*ctypes.DepositData, error) {
+	ctx context.Context, blkNum math.U64,
+) ([]*ctypes.DepositData, common.ExecutionHash, error) {
 	logs, err := dc.FilterDeposit(
 		&bind.FilterOpts{
 			Context: ctx,
 			Start:   blkNum.Unwrap(),
-			End:     (*uint64)(&blkNum),
+			End:     blkNum.UnwrapPtr(),
 		},
 	)
 	if err != nil {
-		return nil, err
+		return nil, common.ExecutionHash{}, err
 	}
 
-	deposits := make([]*ctypes.DepositData, 0)
+	var (
+		blockNumStr = blkNum.Base10()
+		deposits    = make([]*ctypes.DepositData, 0)
+		blockHash   common.ExecutionHash
+	)
 	for logs.Next() {
 		var (
 			cred   bytes.B32
@@ -85,24 +93,29 @@ func (dc *WrappedDepositContract) ReadDeposits(
 		)
 		pubKey, err = bytes.ToBytes48(logs.Event.Pubkey)
 		if err != nil {
-			return nil, fmt.Errorf("failed reading pub key: %w", err)
+			return nil, blockHash, fmt.Errorf("failed reading pub key: %w", err)
 		}
 		cred, err = bytes.ToBytes32(logs.Event.Credentials)
 		if err != nil {
-			return nil, fmt.Errorf("failed reading credentials: %w", err)
+			return nil, blockHash, fmt.Errorf("failed reading credentials: %w", err)
 		}
 		sign, err = bytes.ToBytes96(logs.Event.Signature)
 		if err != nil {
-			return nil, fmt.Errorf("failed reading signature: %w", err)
+			return nil, blockHash, fmt.Errorf("failed reading signature: %w", err)
 		}
+
 		deposits = append(deposits, ctypes.NewDepositData(
-			pubKey,
-			ctypes.WithdrawalCredentials(cred),
-			math.U64(logs.Event.Amount),
-			sign,
-			logs.Event.Index,
+			pubKey, ctypes.WithdrawalCredentials(cred), math.U64(logs.Event.Amount), sign, logs.Event.Index,
 		))
+
+		if blockHash == (common.ExecutionHash{}) {
+			blockHash = common.ExecutionHash(logs.Event.Raw.BlockHash)
+		}
+
+		dc.telemetrySink.IncrementCounter(
+			"beacon_kit.execution.deposits_read", "block_num", blockNumStr, "block_hash", blockHash.Hex(),
+		)
 	}
 
-	return deposits, nil
+	return deposits, blockHash, nil
 }
