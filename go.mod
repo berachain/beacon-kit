@@ -13,7 +13,7 @@ replace (
 	// cosmossdk.io/x/accounts => ../cosmos-sdk/x/accounts
 	// cosmossdk.io/x/bank => ../cosmos-sdk/x/bank
 	// cosmossdk.io/x/staking => ../cosmos-sdk/x/staking
-	github.com/cosmos/cosmos-sdk => ../cosmos-sdk
+	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.52.0-rc.1
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
 	github.com/karalabe/ssz => github.com/berachain/karalabe-ssz v0.3.0-alpha.0
 )
