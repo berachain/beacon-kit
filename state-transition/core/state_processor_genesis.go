@@ -27,7 +27,6 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
-	"github.com/berachain/beacon-kit/primitives/encoding/hex"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -53,20 +52,6 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	// Get the deposits from the deposit store, with their proofs.
-	deposits, _, err := sp.ds.GetDepositsByIndex(0, sp.cs.ValidatorSetCap())
-	if err != nil {
-		return nil, err
-	}
-
-	var eth1Data *ctypes.Eth1Data
-	eth1Data = eth1Data.New(
-		common.Root{}, math.U64(len(deposits)), execPayloadHeader.GetBlockHash(),
-	)
-	if err = st.SetEth1Data(eth1Data); err != nil {
-		return nil, err
-	}
-
 	// TODO: we need to handle common.Version vs uint32 better.
 	var blkBody *ctypes.BeaconBlockBody
 	blkBody = blkBody.Empty(version.ToUint32(genesisVersion))
@@ -80,67 +65,78 @@ func (sp *StateProcessor[
 		blkBody.HashTreeRoot(), // body root
 
 	)
-	if err = st.SetLatestBlockHeader(blkHeader); err != nil {
+	if err := st.SetLatestBlockHeader(blkHeader); err != nil {
 		return nil, err
 	}
 
 	for i := range sp.cs.EpochsPerHistoricalVector() {
-		if err = st.UpdateRandaoMixAtIndex(
+		if err := st.UpdateRandaoMixAtIndex(
 			i, common.Bytes32(execPayloadHeader.GetBlockHash()),
 		); err != nil {
 			return nil, err
 		}
 	}
 
-	for _, deposit := range deposits {
-		if err = sp.processDeposit(st, deposit); err != nil {
+	// Get each genesis deposit from the deposit store, with their proofs.
+	for i := range sp.cs.ValidatorSetCap() {
+		deposits, depositRoot, err := sp.ds.GetDepositsByIndex(i, 1)
+		if err != nil {
+			return nil, err
+		}
+		if len(deposits) == 0 {
+			break
+		}
+
+		var eth1Data *ctypes.Eth1Data
+		eth1Data = eth1Data.New(
+			depositRoot, math.U64(i+1), execPayloadHeader.GetBlockHash(),
+		)
+		if err = st.SetEth1Data(eth1Data); err != nil {
+			return nil, err
+		}
+
+		if err = sp.processDeposit(st, deposits[0]); err != nil {
 			return nil, err
 		}
 	}
 
 	// process activations
-	if err = sp.processGenesisActivation(st); err != nil {
+	if err := sp.processGenesisActivation(st); err != nil {
 		return nil, err
 	}
 
-	// Handle special case bartio genesis.
-	validatorsRoot := common.Root(hex.MustToBytes(spec.BartioValRoot))
-	if sp.cs.DepositEth1ChainID() != spec.BartioChainID {
-		var validators ctypes.Validators
-		validators, err = st.GetValidators()
-		if err != nil {
-			return nil, err
-		}
-		validatorsRoot = validators.HashTreeRoot()
+	validators, err := st.GetValidators()
+	if err != nil {
+		return nil, err
 	}
-	if err = st.SetGenesisValidatorsRoot(validatorsRoot); err != nil {
+	if err := st.SetGenesisValidatorsRoot(validators.HashTreeRoot()); err != nil {
 		return nil, err
 	}
 
-	if err = st.SetLatestExecutionPayloadHeader(execPayloadHeader); err != nil {
+	if err := st.SetLatestExecutionPayloadHeader(execPayloadHeader); err != nil {
 		return nil, err
 	}
 
 	// Setup a bunch of 0s to prime the DB.
 	for i := range sp.cs.HistoricalRootsLimit() {
 		//#nosec:G701 // won't overflow in practice.
-		if err = st.UpdateBlockRootAtIndex(i, common.Root{}); err != nil {
+		if err := st.UpdateBlockRootAtIndex(i, common.Root{}); err != nil {
 			return nil, err
 		}
-		if err = st.UpdateStateRootAtIndex(i, common.Root{}); err != nil {
+		if err := st.UpdateStateRootAtIndex(i, common.Root{}); err != nil {
 			return nil, err
 		}
 	}
 
-	if err = st.SetNextWithdrawalIndex(0); err != nil {
+	if err := st.SetNextWithdrawalIndex(0); err != nil {
 		return nil, err
 	}
 
-	if err = st.SetNextWithdrawalValidatorIndex(0); err != nil {
+	if err := st.SetNextWithdrawalValidatorIndex(0); err != nil {
 		return nil, err
 	}
 
-	if err = st.SetTotalSlashing(0); err != nil {
+	if err := st.SetTotalSlashing(0); err != nil {
 		return nil, err
 	}
 
