@@ -8,9 +8,9 @@ replace (
 	// cosmossdk.io/api => ../cosmos-sdk/api
 	// cosmossdk.io/core => ../cosmos-sdk/core
 	// cosmossdk.io/core/testing => ../cosmos-sdk/core/testing
-	cosmossdk.io/store => ../cosmos-sdk/store
+	// cosmossdk.io/store => ../cosmos-sdk/store
 	cosmossdk.io/store/v2 => ../cosmos-sdk/store/v2
-	cosmossdk.io/x/accounts => ../cosmos-sdk/x/accounts
+	// cosmossdk.io/x/accounts => ../cosmos-sdk/x/accounts
 	cosmossdk.io/x/bank => ../cosmos-sdk/x/bank
 	cosmossdk.io/x/staking => ../cosmos-sdk/x/staking
 	github.com/cosmos/cosmos-sdk => ../cosmos-sdk
@@ -23,7 +23,7 @@ require (
 	cosmossdk.io/core v1.0.0-alpha.6
 	cosmossdk.io/depinject v1.1.0
 	cosmossdk.io/log v1.5.0
-	cosmossdk.io/store v1.10.0-rc.1
+	cosmossdk.io/store v1.10.0-rc.1.0.20241218084712-ca559989da43
 	cosmossdk.io/store/v2 v2.0.0-20240821144902-e88c138760a3
 	github.com/bazelbuild/buildtools v0.0.0-20241129155226-a0444eb13952
 	github.com/bufbuild/buf v1.47.2
