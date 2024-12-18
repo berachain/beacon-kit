@@ -152,3 +152,10 @@ func TestValidateBlockRoots(t *testing.T) {
 		"Validating sidecar with invalid roots should produce an error",
 	)
 }
+
+func TestBlobSidecars_Empty(t *testing.T) {
+	// This test exists to ensure that proposing a BlobSidecars with 0
+	// Sidecars is not considered IsNil().
+	sidecars := &types.BlobSidecars{Sidecars: make([]*types.BlobSidecar, 0)}
+	require.False(t, sidecars.IsNil())
+}

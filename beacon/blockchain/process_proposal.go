@@ -61,6 +61,11 @@ func (s *Service[
 	)
 	if err != nil {
 		return createProcessProposalResponse(errors.WrapNonFatal(err))
+	} else if blk.IsNil() {
+		s.logger.Warn(
+			"Aborting block verification - beacon block not found in proposal",
+		)
+		return createProcessProposalResponse(errors.WrapNonFatal(ErrNilBlk))
 	}
 
 	// Decode the blob sidecars.
@@ -71,6 +76,11 @@ func (s *Service[
 	)
 	if err != nil {
 		return createProcessProposalResponse(errors.WrapNonFatal(err))
+	} else if sidecars.IsNil() {
+		s.logger.Warn(
+			"Aborting block verification - blob sidecars not found in proposal",
+		)
+		return createProcessProposalResponse(errors.WrapNonFatal(ErrNilBlob))
 	}
 
 	// Process the blob sidecars
@@ -134,10 +144,6 @@ func (s *Service[
 ) error {
 	sidecars := cSidecars.GetSidecars()
 
-	if sidecars.IsNil() {
-		return errors.New("sidecars cannot be nil")
-	}
-
 	s.logger.Info("Received incoming blob sidecars")
 
 	// TODO: Clean this up once we remove generics.
@@ -196,14 +202,6 @@ func (s *Service[
 	// TODO: This is a super hacky. It should be handled better elsewhere,
 	// ideally via some broader sync service.
 	s.forceStartupSyncOnce.Do(func() { s.forceStartupHead(ctx, preState) })
-
-	// If the block is nil or a nil pointer, exit early.
-	if beaconBlk.IsNil() {
-		s.logger.Warn(
-			"Aborting block verification - beacon block not found in proposal",
-		)
-		return errors.WrapNonFatal(ErrNilBlk)
-	}
 
 	s.logger.Info(
 		"Received incoming beacon block",

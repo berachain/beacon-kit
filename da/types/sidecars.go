@@ -33,7 +33,7 @@ type BlobSidecars struct {
 	Sidecars []*BlobSidecar
 }
 
-// NewBlobSidecars creates a new BlobSidecars object.
+// Empty creates a new empty BlobSidecars object.
 func (bs *BlobSidecars) Empty() *BlobSidecars {
 	return &BlobSidecars{}
 }
