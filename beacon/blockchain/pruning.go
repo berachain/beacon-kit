@@ -34,12 +34,10 @@ func (s *Service[
 		return err
 	}
 
-	// prune deposit store
+	// Delete the deposits of the block previous to the one we just stored.
 	finalizedEthBlock := beaconBlk.GetBody().GetExecutionPayload().Number.Unwrap()
-	end = finalizedEthBlock - s.chainSpec.Eth1FollowDistance()
-	start = end - s.chainSpec.SlotsPerEpoch()
-	err = s.depositStore.Prune(start, end)
-	if err != nil {
+	height := finalizedEthBlock - s.chainSpec.Eth1FollowDistance() - 1
+	if err = s.depositStore.Prune(height); err != nil {
 		return err
 	}
 

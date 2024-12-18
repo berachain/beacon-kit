@@ -368,8 +368,8 @@ type (
 	DepositStore interface {
 		// GetDepositsByIndex returns `numView` or less deposits.
 		GetDepositsByIndex(startIndex, numView uint64) (ctypes.Deposits, common.Root, error)
-		// Prune prunes the deposit store of [start, end)
-		Prune(start, end uint64) error
+		// Prune prunes the deposit store of the given height.
+		Prune(height uint64) error
 		// EnqueueDepositDatas adds a list of deposits to the deposit store.
 		EnqueueDepositDatas(deposits []*ctypes.DepositData) error
 	}

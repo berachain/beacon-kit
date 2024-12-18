@@ -21,27 +21,26 @@
 package deposit
 
 import (
-	"context"
-
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-// Contract is the ABI for the deposit contract.
-type Contract interface {
-	// ReadDeposits reads deposits from the deposit contract.
-	ReadDeposits(
-		ctx context.Context, blockNumber math.U64,
-	) ([]*ctypes.DepositData, common.ExecutionHash, error)
-}
+// Block holds the necessary information of pending deposits in a block.
+type Block struct {
+	// the deposits included in the block.
+	deposits ctypes.Deposits
 
-// Store defines the interface for managing deposit operations.
-type Store interface {
-	// Prune prunes the deposit store of the given height.
-	Prune(height uint64) error
-	// EnqueueDepositDatas adds a list of deposits to the deposit store.
-	EnqueueDepositDatas(deposits []*ctypes.DepositData) error
-	// GetDepositsByIndex gets a list of deposits from the deposit store.
-	GetDepositsByIndex(startIndex, numView uint64) (ctypes.Deposits, common.Root, error)
+	// the index of the last deposit in the block.
+	lastDepositIndex uint64
+
+	// the root of the deposit tree at the end of the block (i.e. after all deposits
+	// from this block are inserted in the tree).
+	root common.Root
+
+	// the number of the finalized execution block.
+	executionNumber math.U64
+
+	// the hash of the finalized execution block.
+	executionHash common.ExecutionHash
 }

@@ -27,10 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/storage/deposit/merkle"
-	"github.com/berachain/beacon-kit/storage/pruner"
 )
-
-// TODO: index deposits by block height.
 
 // Store is a simple memory store based implementation that
 // maintains a merkle tree of the deposits for verification.
@@ -38,8 +35,9 @@ type Store struct {
 	// tree is the EIP-4881 compliant deposit merkle tree.
 	tree *merkle.DepositTree
 
-	// endOfBlockDepositTreeRoots maps the deposit tree root after each block.
-	endOfBlockDepositTreeRoots map[uint64]common.Root
+	// pendingDeposits holds the pending deposits for blocks that have yet to be
+	// processed by the CL.
+	pendingDeposits map[uint64]*Block
 
 	// mu protects store for concurrent access.
 	mu sync.RWMutex
@@ -48,8 +46,8 @@ type Store struct {
 // NewStore creates a new deposit store.
 func NewStore() *Store {
 	res := &Store{
-		tree:                       merkle.NewDepositTree(),
-		endOfBlockDepositTreeRoots: make(map[uint64]common.Root),
+		tree:            merkle.NewDepositTree(),
+		pendingDeposits: make(map[uint64]*Block),
 	}
 	return res
 }
@@ -58,15 +56,13 @@ func NewStore() *Store {
 // index. If N is greater than the number of deposits, it returns up to the
 // last deposit available. It also returns the deposit tree root at the end of
 // the range.
-//
-// TODO: figure out when to finalize. Need to do after proof has been generated.
 func (s *Store) GetDepositsByIndex(
 	startIndex, numView uint64,
 ) (ctypes.Deposits, common.Root, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	var (
-		deposits    = ctypes.Deposits{}
+		deposits = ctypes.Deposits{}
 		// maxIndex    = startIndex + numView
 		depTreeRoot common.Root
 	)
@@ -124,18 +120,25 @@ func (s *Store) EnqueueDepositDatas(depositDatas []*ctypes.DepositData) error {
 	return nil
 }
 
-// Prune removes the deposits from heights [start, end).
-func (s *Store) Prune(start, end uint64) error {
-	if start > end {
-		return errors.Wrapf(
-			pruner.ErrInvalidRange, "DepositStore prune start: %d, end: %d", start, end,
-		)
-	}
-
+// Prune removes the deposits from the given height.
+func (s *Store) Prune(height uint64) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	for i := range end {
-		delete(s.endOfBlockDepositTreeRoots, start+i)
+
+	block, ok := s.pendingDeposits[height]
+	if !ok {
+		return nil
+	}
+
+	// Remove the block from the pending deposits.
+	delete(s.pendingDeposits, height)
+
+	// Finalize the block's deposits in the tree. Error returned here means the
+	// EIP 4881 merkle library is broken.
+	if err := s.tree.Finalize(
+		block.lastDepositIndex, block.executionHash, block.executionNumber,
+	); err != nil {
+		return errors.Wrapf(err, "failed to finalize deposits in tree for block %d", height)
 	}
 
 	return nil

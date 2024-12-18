@@ -51,15 +51,14 @@ func (sp *StateProcessor[
 		return err
 	}
 	eth1Data := blk.GetBody().GetEth1Data()
-	if eth1Data.DepositRoot != localDepositsRoot {
+	if localDepositsRoot != eth1Data.DepositRoot {
 		return errors.New("local deposit tree root does not match the block deposit tree root")
 	}
 
 	// Verify that the provided deposit count is consistent with our local view of the
 	// deposit tree.
 	if uint64(len(localDeposits)) != min(
-		sp.cs.MaxDepositsPerBlock(),
-		eth1Data.DepositCount.Unwrap()-depositIndex,
+		sp.cs.MaxDepositsPerBlock(), eth1Data.DepositCount.Unwrap()-depositIndex,
 	) {
 		return errors.Wrapf(
 			ErrDepositCountMismatch, "expected: %d, got: %d",

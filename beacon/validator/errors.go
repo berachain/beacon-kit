@@ -23,7 +23,6 @@ package validator
 import "github.com/berachain/beacon-kit/errors"
 
 var (
-
 	// ErrNilPayload is an error for when there is no payload
 	// in a beacon block.
 	ErrNilPayload = errors.New("nil payload in beacon block")
