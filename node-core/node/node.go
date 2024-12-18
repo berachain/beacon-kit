@@ -83,7 +83,7 @@ func (n *node) Start(
 		return err
 	}
 
-	// Stopp each service allowing them the exit gracefully.
+	// Stop each service allowing them the exit gracefully.
 	if err = n.registry.StopAll(); err != nil {
 		return err
 	}
