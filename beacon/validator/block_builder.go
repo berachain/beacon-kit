@@ -331,7 +331,7 @@ func (s *Service[
 		executionPayload = envelope.GetExecutionPayload()
 	)
 	body.SetEth1Data(eth1Data.New(
-		depositRoot, math.U64(depositIndex-1+uint64(len(deposits))), executionPayload.BlockHash,
+		depositRoot, math.U64(depositIndex+uint64(len(deposits))), executionPayload.BlockHash,
 	))
 
 	// Set the graffiti on the block body.

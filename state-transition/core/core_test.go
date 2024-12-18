@@ -162,6 +162,7 @@ func setupState(
 		noop.NewLogger[any](),
 		cs,
 		execEngine,
+		depositStore,
 		mocksSigner,
 		func(bytes.B48) ([]byte, error) {
 			return dummyProposerAddr, nil
@@ -231,6 +232,7 @@ func moveToEndOfEpoch(
 	sp *TestStateProcessorT,
 	st *TestBeaconStateT,
 	ctx *transition.Context,
+	eth1Data *types.Eth1Data,
 ) *types.BeaconBlock {
 	t.Helper()
 	blk := tip
@@ -249,7 +251,7 @@ func moveToEndOfEpoch(
 					},
 					BaseFeePerGas: math.NewU256(0),
 				},
-				Eth1Data: &types.Eth1Data{},
+				Eth1Data: eth1Data,
 				Deposits: types.Deposits{},
 			},
 		)

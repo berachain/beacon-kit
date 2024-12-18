@@ -42,7 +42,7 @@ type Store struct {
 	endOfBlockDepositTreeRoots map[uint64]common.Root
 
 	// mu protects store for concurrent access.
-	mu sync.Mutex
+	mu sync.RWMutex
 }
 
 // NewStore creates a new deposit store.
@@ -63,8 +63,8 @@ func NewStore() *Store {
 func (s *Store) GetDepositsByIndex(
 	startIndex, numView uint64,
 ) (ctypes.Deposits, common.Root, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	var (
 		deposits    = ctypes.Deposits{}
 		maxIndex    = startIndex + numView
@@ -72,33 +72,50 @@ func (s *Store) GetDepositsByIndex(
 	)
 
 	for i := startIndex; i < maxIndex; i++ {
-		proof, err := s.tree.MerkleProof(i)
-		if err != nil {
-			return nil, common.Root{}, errors.Wrapf(
-				err, "failed to get merkle proof for deposit %d", i,
-			)
+		deposit, err := s.store.Get(context.TODO(), i)
+		if err == nil {
+			deposits = append(deposits, deposit)
+			continue
 		}
-		deposits = append(deposits, ctypes.NewDeposit(proof, nil))
-		delete(s.endOfBlockDepositTreeRoots, i-1)
+
+		if errors.Is(err, sdkcollections.ErrNotFound) {
+			depTreeRoot = s.pendingDepositsToRoots[i-1]
+			break
+		}
+
+		return nil, common.Root{}, errors.Wrapf(
+			err, "failed to get deposit %d, start: %d, end: %d", i, startIndex, maxIndex,
+		)
 	}
 
 	if depTreeRoot == (common.Root{}) {
-		depTreeRoot = s.endOfBlockDepositTreeRoots[maxIndex-1]
-		delete(s.endOfBlockDepositTreeRoots, maxIndex-1)
+		depTreeRoot = s.pendingDepositsToRoots[maxIndex-1]
 	}
+
 	return deposits, depTreeRoot, nil
 }
 
 // EnqueueDepositDatas pushes multiple deposits to the queue.
 //
 // TODO: ensure that in-order is maintained. i.e. ignore any deposits we've already seen.
-func (s *Store) EnqueueDepositDatas(deposits []*ctypes.DepositData) error {
+func (s *Store) EnqueueDepositDatas(depositDatas []*ctypes.DepositData) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	for _, deposit := range deposits {
-		if err := s.tree.Insert(deposit.HashTreeRoot()); err != nil {
-			return errors.Wrap(err, "failed to insert deposit into merkle tree")
+	for _, depositData := range depositDatas {
+		idx := depositData.GetIndex().Unwrap()
+
+		if err := s.tree.Insert(depositData.HashTreeRoot()); err != nil {
+			return errors.Wrapf(err, "failed to insert deposit %d into merkle tree", idx)
+		}
+
+		proof, err := s.tree.MerkleProof(idx)
+		if err != nil {
+			return errors.Wrapf(err, "failed to get merkle proof for deposit %d", idx)
+		}
+		deposit := ctypes.NewDeposit(proof, depositData)
+		if err := s.store.Set(context.TODO(), idx, deposit); err != nil {
+			return errors.Wrapf(err, "failed to set deposit %d in KVStore", idx)
 		}
 
 		// s.endOfBlockDepositTreeRoots[idx] = s.tree.HashTreeRoot()

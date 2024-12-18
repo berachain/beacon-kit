@@ -54,6 +54,8 @@ type StateProcessor[
 	fGetAddressFromPubKey func(crypto.BLSPubkey) ([]byte, error)
 	// executionEngine is the engine responsible for executing transactions.
 	executionEngine ExecutionEngine
+	// ds allows checking payload deposits against the deposit contract
+	ds DepositStore
 	// metrics is the metrics for the service.
 	metrics *stateProcessorMetrics
 }
@@ -68,6 +70,7 @@ func NewStateProcessor[
 	logger log.Logger,
 	cs chain.ChainSpec,
 	executionEngine ExecutionEngine,
+	ds DepositStore,
 	signer crypto.BLSSigner,
 	fGetAddressFromPubKey func(crypto.BLSPubkey) ([]byte, error),
 	telemetrySink TelemetrySink,
@@ -86,6 +89,7 @@ func NewStateProcessor[
 		executionEngine:       executionEngine,
 		signer:                signer,
 		fGetAddressFromPubKey: fGetAddressFromPubKey,
+		ds:                    ds,
 		metrics:               newStateProcessorMetrics(telemetrySink),
 	}
 }
@@ -206,10 +210,6 @@ func (sp *StateProcessor[
 	blk BeaconBlockT,
 ) error {
 	if err := sp.processBlockHeader(ctx, st, blk); err != nil {
-		return err
-	}
-
-	if err := sp.processEth1Data(st, blk); err != nil {
 		return err
 	}
 
@@ -378,14 +378,6 @@ func (sp *StateProcessor[
 		bodyRoot,
 	)
 	return st.SetLatestBlockHeader(lbh)
-}
-
-// processEth1Data as defined in the Ethereum 2.0 specification, but without eth1 votes.
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#eth1-data
-func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, _, _,
-]) processEth1Data(st BeaconStateT, blk BeaconBlockT) error {
-	return st.SetEth1Data(blk.GetBody().GetEth1Data())
 }
 
 // processEffectiveBalanceUpdates as defined in the Ethereum 2.0 specification.

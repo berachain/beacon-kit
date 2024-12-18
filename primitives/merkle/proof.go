@@ -34,7 +34,8 @@ func VerifyProof[RootT, ProofT ~[32]byte](
 	return IsValidMerkleBranch(
 		leaf,
 		proof,
-		uint8(len(proof)), //#nosec:G701 // we check the length of the proof above.
+		//#nosec:G701 // we check the length of the proof above.
+		uint8(len(proof)),
 		merkleIndex,
 		root,
 	)

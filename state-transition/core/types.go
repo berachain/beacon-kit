@@ -73,6 +73,12 @@ type Context interface {
 	GetConsensusTime() math.U64
 }
 
+// DepositStore defines the interface for deposit storage.
+type DepositStore interface {
+	// GetDepositsByIndex returns `numView` or less deposits.
+	GetDepositsByIndex(startIndex, numView uint64) (ctypes.Deposits, common.Root, error)
+}
+
 // Withdrawals defines the interface for managing withdrawal operations.
 type Withdrawals interface {
 	Len() int

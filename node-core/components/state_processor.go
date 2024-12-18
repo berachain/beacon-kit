@@ -43,6 +43,7 @@ type StateProcessorInput[
 		*engineprimitives.PayloadAttributes,
 		PayloadID,
 	]
+	DepositStore  DepositStore
 	Signer        crypto.BLSSigner
 	TelemetrySink *metrics.TelemetrySink
 }
@@ -54,6 +55,7 @@ func ProvideStateProcessor[
 	BeaconBlockT BeaconBlock[BeaconBlockT],
 	BeaconStateT BeaconState[BeaconStateT, BeaconStateMarshallableT, KVStoreT],
 	BeaconStateMarshallableT any,
+	DepositStoreT DepositStore,
 	KVStoreT BeaconStore[KVStoreT],
 ](
 	in StateProcessorInput[LoggerT],
@@ -71,6 +73,7 @@ func ProvideStateProcessor[
 		in.Logger.With("service", "state-processor"),
 		in.ChainSpec,
 		in.ExecutionEngine,
+		in.DepositStore,
 		in.Signer,
 		crypto.GetAddressFromPubKey,
 		in.TelemetrySink,
