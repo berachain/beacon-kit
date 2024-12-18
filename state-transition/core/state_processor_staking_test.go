@@ -94,7 +94,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	// make sure included deposit is already available in deposit store
 	depositDatas := []*types.DepositData{blkDeposit}
 	require.NoError(t, ds.EnqueueDepositDatas(depositDatas, common.ExecutionHash{}, math.U64(0)))
-	deposits, err := ds.GetDepositsByIndex(uint64(len(genDeposits)), 1)
+	deposits, _, err := ds.GetDepositsByIndex(uint64(len(genDeposits)), 1)
 	require.NoError(t, err)
 	blk1 := buildNextBlock(
 		t,
@@ -231,7 +231,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 	// make sure included deposit is already available in deposit store
 	depositDatas := []*types.DepositData{blkDeposit}
 	require.NoError(t, ds.EnqueueDepositDatas(depositDatas, common.ExecutionHash{}, math.U64(0)))
-	deposits, err := ds.GetDepositsByIndex(uint64(len(genDeposits)), 1)
+	deposits, _, err := ds.GetDepositsByIndex(uint64(len(genDeposits)), 1)
 	require.NoError(t, err)
 
 	blk1 := buildNextBlock(
@@ -671,7 +671,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	require.NoError(t, ds.EnqueueDepositDatas(
 		depositDatas, genPayloadHeader.GetBlockHash(), genPayloadHeader.GetNumber(),
 	))
-	deposits, err := ds.GetDepositsByIndex(uint64(len(genDeposits)), 1)
+	deposits, _, err := ds.GetDepositsByIndex(uint64(len(genDeposits)), 1)
 	require.NoError(t, err)
 
 	blk1 := buildNextBlock(
@@ -903,7 +903,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	// make sure included deposit is already available in deposit store
 	depositDatas := []*types.DepositData{extraValDeposit}
 	require.NoError(t, ds.EnqueueDepositDatas(depositDatas, common.ExecutionHash{}, math.U64(0)))
-	deposits, err := ds.GetDepositsByIndex(uint64(len(genDeposits)), 1)
+	deposits, _, err := ds.GetDepositsByIndex(uint64(len(genDeposits)), 1)
 	require.NoError(t, err)
 
 	blk1 := buildNextBlock(

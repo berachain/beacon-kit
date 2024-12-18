@@ -26,7 +26,6 @@ import (
 	"time"
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
-	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
 	"github.com/berachain/beacon-kit/errors"
@@ -313,14 +312,7 @@ func (s *Service[
 		return errors.Wrap(err, "failed to get deposit index")
 	}
 
-	// Bartio and Boonet pre Fork2 have deposit broken and undervalidated
-	// Any other network should build deposits the right way
-	if !(s.chainSpec.DepositEth1ChainID() == spec.BartioChainID ||
-		(s.chainSpec.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-			blk.GetSlot() < math.U64(spec.BoonetFork2Height))) {
-		depositIndex++
-	}
-	deposits, err := s.sb.DepositStore().GetDepositsByIndex(
+	deposits, depositRoot, err := s.sb.DepositStore().GetDepositsByIndex(
 		depositIndex, s.chainSpec.MaxDepositsPerBlock(),
 	)
 	if err != nil {
@@ -339,9 +331,7 @@ func (s *Service[
 		executionPayload = envelope.GetExecutionPayload()
 	)
 	body.SetEth1Data(eth1Data.New(
-		common.Root{},
-		math.U64(depositIndex+uint64(len(deposits))),
-		executionPayload.BlockHash,
+		depositRoot, math.U64(depositIndex-1+uint64(len(deposits))), executionPayload.BlockHash,
 	))
 
 	// Set the graffiti on the block body.

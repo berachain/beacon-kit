@@ -22,10 +22,8 @@ package core
 
 import (
 	"bytes"
-	"fmt"
 
 	"github.com/berachain/beacon-kit/chain-spec/chain"
-	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
@@ -140,25 +138,6 @@ func (sp *StateProcessor[
 			return nil, err
 		}
 
-		// Handle special cases
-		if sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-			slot == math.U64(spec.BoonetFork2Height) {
-			var idx uint64
-			idx, err = st.GetEth1DepositIndex()
-			if err != nil {
-				return nil, fmt.Errorf(
-					"failed retrieving deposit index at slot %d: %w",
-					slot, err,
-				)
-			}
-			fixedDepositIdx := idx - 1
-			if err = st.SetEth1DepositIndex(fixedDepositIdx); err != nil {
-				return nil, err
-			}
-
-			sp.logger.Info("Fixed Eth 1 deposit index", "previous", idx, "fixed", fixedDepositIdx)
-		}
-
 		// Process the Epoch Boundary.
 		boundary := (stateSlot.Unwrap()+1)%sp.cs.SlotsPerEpoch() == 0
 		if boundary {
@@ -231,6 +210,10 @@ func (sp *StateProcessor[
 	blk BeaconBlockT,
 ) error {
 	if err := sp.processBlockHeader(ctx, st, blk); err != nil {
+		return err
+	}
+
+	if err := sp.processEth1Data(st, blk); err != nil {
 		return err
 	}
 
@@ -399,6 +382,14 @@ func (sp *StateProcessor[
 		bodyRoot,
 	)
 	return st.SetLatestBlockHeader(lbh)
+}
+
+// processEth1Data as defined in the Ethereum 2.0 specification, but without eth1 votes.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#eth1-data
+func (sp *StateProcessor[
+	BeaconBlockT, BeaconStateT, _, _,
+]) processEth1Data(st BeaconStateT, blk BeaconBlockT) error {
+	return st.SetEth1Data(blk.GetBody().GetEth1Data())
 }
 
 // processEffectiveBalanceUpdates as defined in the Ethereum 2.0 specification.

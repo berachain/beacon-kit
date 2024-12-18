@@ -46,4 +46,6 @@ type Store interface {
 		executionBlockHash common.ExecutionHash,
 		executionBlockNumber math.U64,
 	) error
+	// GetDepositsByIndex gets a list of deposits from the deposit store.
+	GetDepositsByIndex(startIndex, numView uint64) (ctypes.Deposits, common.Root, error)
 }

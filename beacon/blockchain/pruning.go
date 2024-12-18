@@ -23,23 +23,20 @@ package blockchain
 import (
 	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 func (s *Service[
 	_, ConsensusBlockT, BeaconBlockT, _, _, _, _, _, _,
 ]) processPruning(beaconBlk BeaconBlockT) error {
 	// prune availability store
-	start, end := availabilityPruneRangeFn(
-		beaconBlk.GetSlot().Unwrap(), s.chainSpec)
+	start, end := availabilityPruneRangeFn(beaconBlk.GetSlot().Unwrap(), s.chainSpec)
 	err := s.storageBackend.AvailabilityStore().Prune(start, end)
 	if err != nil {
 		return err
 	}
 
 	// prune deposit store
-	start, end = depositPruneRangeFn(
-		beaconBlk.GetBody().GetDepositDatas(), s.chainSpec)
+	start, end = depositPruneRangeFn(beaconBlk.GetBody().GetDepositDatas(), s.chainSpec)
 	err = s.depositStore.Prune(start, end)
 
 	if err != nil {
@@ -49,18 +46,19 @@ func (s *Service[
 	return nil
 }
 
+// depositPruneRangeFn effectively prunes at most the max deposits per block 
+// behind the last included deposit.
 func depositPruneRangeFn(deposits []*ctypes.DepositData, cs chain.ChainSpec) (uint64, uint64) {
 	if len(deposits) == 0 || cs.MaxDepositsPerBlock() == 0 {
 		return 0, 0
 	}
-	index := deposits[len(deposits)-1].GetIndex()
 
-	end := min(index.Unwrap(), cs.MaxDepositsPerBlock())
-	if index < math.U64(cs.MaxDepositsPerBlock()) {
-		return 0, end
+	index := deposits[len(deposits)-1].GetIndex().Unwrap()
+
+	if index < cs.MaxDepositsPerBlock() {
+		return 0, index
 	}
-
-	return index.Unwrap() - cs.MaxDepositsPerBlock(), end
+	return index - cs.MaxDepositsPerBlock(), index
 }
 
 //nolint:unparam // this is ok

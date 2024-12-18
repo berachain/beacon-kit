@@ -26,32 +26,37 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/merkle"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-// processOperations processes the operations and ensures they match the
-// local state.
+// processOperations processes deposits with basic validation. Other features found in the
+// Ethereum 2.0 specification are not implemented currently.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#operations
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconStateT, _, _,
-]) processOperations(
-	st BeaconStateT,
-	blk BeaconBlockT,
-) error {
-	// Verify that outstanding deposits are processed
-	// up to the maximum number of deposits
+]) processOperations(st BeaconStateT, blk BeaconBlockT) error {
+	// Verify that outstanding deposits are processed up to the maximum number of deposits.
+	eth1Data, err := st.GetEth1Data()
+	if err != nil {
+		return err
+	}
+	depositCount := eth1Data.GetDepositCount().Unwrap()
 
-	// Unlike Eth 2.0 specs we don't check that
-	// len(body.deposits) ==  min(MAX_DEPOSITS,
-	// state.eth1_data.deposit_count - state.eth1_deposit_index)
-	// Instead we directly compare block deposits with store ones.
+	depositIndex, err := st.GetEth1DepositIndex()
+	if err != nil {
+		return err
+	}
+
 	deposits := blk.GetBody().GetDeposits()
-	if uint64(len(deposits)) > sp.cs.MaxDepositsPerBlock() {
+	if uint64(len(deposits)) != min(sp.cs.MaxDepositsPerBlock(), depositCount-depositIndex) {
 		return errors.Wrapf(
-			ErrExceedsBlockDepositLimit, "expected: %d, got: %d",
-			sp.cs.MaxDepositsPerBlock(), len(deposits),
+			ErrDepositCountMismatch, "expected: %d, got: %d",
+			min(sp.cs.MaxDepositsPerBlock(), depositCount-depositIndex), len(deposits),
 		)
 	}
+
 	if err := sp.validateNonGenesisDeposits(st, deposits); err != nil {
 		return err
 	}
@@ -60,58 +65,48 @@ func (sp *StateProcessor[
 			return err
 		}
 	}
+
 	return nil
 }
 
-// processDeposit processes the deposit and ensures it matches the local state.
+// processDeposit processes the deposit similarly to the Ethereum 2.0 specification.
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#deposits
 func (sp *StateProcessor[
 	_, BeaconStateT, _, _,
-]) processDeposit(
-	st BeaconStateT,
-	dep *ctypes.Deposit,
-) error {
-	slot, err := st.GetSlot()
+]) processDeposit(st BeaconStateT, dep *ctypes.Deposit) error {
+	// Verify proof of deposit inclusion.
+	eth1DepositIndex, err := st.GetEth1DepositIndex()
 	if err != nil {
 		return err
 	}
-
-	depositIndex := dep.Data.GetIndex().Unwrap()
-	switch {
-	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
-		// Bartio has a bug which makes DepositEth1ChainID point to
-		// next deposit index, not latest processed deposit index.
-		// We keep it for backward compatibility.
-		depositIndex++
-	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-		slot != 0 && slot < math.U64(spec.BoonetFork2Height):
-		// Boonet pre fork2 has a bug which makes DepositEth1ChainID point to
-		// next deposit index, not latest processed deposit index.
-		// We keep it for backward compatibility.
-		depositIndex++
-	default:
-		// Nothing to do. We correctly set the deposit index to the last
-		// processed deposit index.
-	}
-
-	if err = st.SetEth1DepositIndex(depositIndex); err != nil {
+	eth1Data, err := st.GetEth1Data()
+	if err != nil {
 		return err
 	}
+	if !merkle.VerifyProof(
+		eth1Data.DepositRoot, dep.Data.HashTreeRoot(), eth1DepositIndex, dep.GetProof(),
+	) {
+		return errors.Wrapf(ErrInvalidDepositProof, "deposit: %+v", dep.Data)
+	}
 
+	// Update the deposit index.
+	newDepositIndex := eth1DepositIndex + 1
+	if err = st.SetEth1DepositIndex(newDepositIndex); err != nil {
+		return err
+	}
 	sp.logger.Info(
-		"Processed deposit to set Eth 1 deposit index",
-		"deposit_index", depositIndex,
+		"Processed deposit to update Eth 1 deposit index",
+		"previous", eth1DepositIndex, "new", newDepositIndex,
 	)
 
+	// Apply the deposit.
 	return sp.applyDeposit(st, dep.Data)
 }
 
 // applyDeposit processes the deposit and ensures it matches the local state.
 func (sp *StateProcessor[
 	_, BeaconStateT, _, _,
-]) applyDeposit(
-	st BeaconStateT,
-	dep *ctypes.DepositData,
-) error {
+]) applyDeposit(st BeaconStateT, dep *ctypes.DepositData) error {
 	idx, err := st.ValidatorIndexByPubkey(dep.GetPubkey())
 	if err != nil {
 		// If the validator does not exist, we add the validator.
@@ -164,10 +159,7 @@ func (sp *StateProcessor[
 // createValidator creates a validator if the deposit is valid.
 func (sp *StateProcessor[
 	_, BeaconStateT, _, _,
-]) createValidator(
-	st BeaconStateT,
-	dep *ctypes.DepositData,
-) error {
+]) createValidator(st BeaconStateT, dep *ctypes.DepositData) error {
 	// Get the current slot.
 	slot, err := st.GetSlot()
 	if err != nil {
@@ -210,9 +202,7 @@ func (sp *StateProcessor[
 	if err != nil {
 		// Ignore deposits that fail the signature check.
 		sp.logger.Info(
-			"failed deposit signature verification",
-			"deposit_index", dep.GetIndex(),
-			"error", err,
+			"failed deposit signature verification", "deposit_index", dep.GetIndex(), "error", err,
 		)
 		return nil
 	}
@@ -257,11 +247,11 @@ func (sp *StateProcessor[
 	if err = st.IncreaseBalance(idx, dep.GetAmount()); err != nil {
 		return err
 	}
+
 	sp.logger.Info(
 		"Processed deposit to create new validator",
 		"deposit_amount", float64(dep.GetAmount().Unwrap())/math.GweiPerWei,
-		"validator_index", idx,
-		"withdrawal_epoch", val.GetWithdrawableEpoch(),
+		"validator_index", idx, "withdrawal_epoch", val.GetWithdrawableEpoch(),
 	)
 	return nil
 }

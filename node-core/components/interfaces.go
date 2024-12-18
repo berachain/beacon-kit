@@ -366,8 +366,8 @@ type (
 	}
 
 	DepositStore interface {
-		// GetDepositsByIndex returns `numView` expected deposits.
-		GetDepositsByIndex(startIndex, numView uint64) (ctypes.Deposits, error)
+		// GetDepositsByIndex returns `numView` or less deposits.
+		GetDepositsByIndex(startIndex, numView uint64) (ctypes.Deposits, common.Root, error)
 		// Prune prunes the deposit store of [start, end)
 		Prune(start, end uint64) error
 		// EnqueueDepositDatas adds a list of deposits to the deposit store.
@@ -376,11 +376,6 @@ type (
 			executionBlockHash common.ExecutionHash,
 			executionBlockNumber math.U64,
 		) error
-		// GetDepositsRoot returns the root of the deposit merkle tree. This is
-		// the hash tree root of the deposit datas.
-		GetDepositsRoot() common.Root
-		// GetDepositsCount returns the number of deposits in the store.
-		GetDepositsCount() uint64
 	}
 
 	// Genesis is the interface for the genesis.

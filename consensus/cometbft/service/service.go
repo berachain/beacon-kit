@@ -90,6 +90,7 @@ type Service[
 	minRetainBlocks uint64
 
 	chainID string
+	cs      chain.ChainSpec
 }
 
 func NewService[
@@ -116,6 +117,7 @@ func NewService[
 		cmtCfg:        cmtCfg,
 		telemetrySink: telemetrySink,
 		paramStore:    params.NewConsensusParamsStore(cs),
+		cs:            cs,
 	}
 
 	s.MountStore(storeKey, storetypes.StoreTypeIAVL)

@@ -62,8 +62,8 @@ type BlockStore[BeaconBlockT any] interface {
 
 // DepositStore defines the interface for deposit storage.
 type DepositStore interface {
-	// GetDepositsByIndex returns `numView` expected deposits.
-	GetDepositsByIndex(startIndex uint64, numView uint64) (ctypes.Deposits, error)
+	// GetDepositsByIndex returns `numView` or less deposits.
+	GetDepositsByIndex(startIndex uint64, numView uint64) (ctypes.Deposits, common.Root, error)
 	// Prune prunes the deposit store of [start, end)
 	Prune(start, end uint64) error
 	// EnqueueDepositDatas adds a list of deposits to the deposit store.

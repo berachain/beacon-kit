@@ -43,6 +43,11 @@ func NewDeposit(
 	return &Deposit{Proof: proof, Data: depositData}
 }
 
+// GetProof returns the proof as a slice of common.Root.
+func (d *Deposit) GetProof() []common.Root {
+	return d.Proof[:]
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                     SSZ                                    */
 /* -------------------------------------------------------------------------- */

@@ -47,18 +47,22 @@ type Store struct {
 	// tree is the EIP-4881 compliant deposit merkle tree.
 	tree *merkle.DepositTree
 
+	// pendingDepositsToRoots maps the deposit tree root after each deposit.
+	pendingDepositsToRoots map[uint64]common.Root
+
 	// store is the KV store that holds the deposits.
 	store sdkcollections.Map[uint64, *ctypes.DepositData]
 
 	// mu protects store for concurrent access.
-	mu sync.RWMutex
+	mu sync.Mutex
 }
 
 // NewStore creates a new deposit store.
 func NewStore(kvsp store.KVStoreService) *Store {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kvsp)
 	res := &Store{
-		tree: merkle.NewDepositTree(),
+		tree:                   merkle.NewDepositTree(),
+		pendingDepositsToRoots: make(map[uint64]common.Root),
 		store: sdkcollections.NewMap(
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte(KeyDepositPrefix)),
@@ -75,48 +79,48 @@ func NewStore(kvsp store.KVStoreService) *Store {
 
 // GetDepositsByIndex returns the first N deposits starting from the given
 // index. If N is greater than the number of deposits, it returns up to the
-// last deposit.
-func (s *Store) GetDepositsByIndex(startIndex, numView uint64) (ctypes.Deposits, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+// last deposit available. It also returns the deposit tree root at the end of
+// the range.
+func (s *Store) GetDepositsByIndex(
+	startIndex, numView uint64,
+) (ctypes.Deposits, common.Root, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	var (
-		deposits = ctypes.Deposits{}
-		err      error
-		endIdx   = startIndex + numView
+		deposits    = ctypes.Deposits{}
+		maxIndex    = startIndex + numView
+		depTreeRoot common.Root
 	)
 
-	for i := startIndex; i < endIdx; i++ {
-		var deposit *ctypes.DepositData
-		deposit, err = s.store.Get(context.TODO(), i)
-		switch {
-		case err == nil:
-			var proof [constants.DepositContractDepth + 1]common.Root
-			proof, err = s.tree.MerkleProof(i)
-			if err != nil {
-				return nil, errors.Wrapf(err, "failed to get merkle proof for deposit %d", i)
+	for i := startIndex; i < maxIndex; i++ {
+		deposit, err := s.store.Get(context.TODO(), i)
+		if err != nil {
+			if errors.Is(err, sdkcollections.ErrNotFound) {
+				depTreeRoot = s.pendingDepositsToRoots[i-1]
+				break
 			}
-			deposits = append(deposits, ctypes.NewDeposit(proof, deposit))
-		case errors.Is(err, sdkcollections.ErrNotFound):
-			return deposits, nil
-		default:
-			return nil, errors.Wrapf(
-				err, "failed to get deposit %d, start: %d, end: %d", i, startIndex, endIdx,
+
+			return nil, common.Root{}, errors.Wrapf(
+				err, "failed to get deposit %d, start: %d, end: %d", i, startIndex, maxIndex,
 			)
 		}
+
+		var proof [constants.DepositContractDepth + 1]common.Root
+		proof, err = s.tree.MerkleProof(i)
+		if err != nil {
+			return nil, common.Root{}, errors.Wrapf(
+				err, "failed to get merkle proof for deposit %d", i,
+			)
+		}
+		deposits = append(deposits, ctypes.NewDeposit(proof, deposit))
+		delete(s.pendingDepositsToRoots, i-1)
 	}
 
-	return deposits, nil
-}
-
-// GetDepositsRoot returns the root of the deposit merkle tree. This is the hash tree
-// root of the deposit datas.
-func (s *Store) GetDepositsRoot() common.Root {
-	return s.tree.HashTreeRoot()
-}
-
-// GetDepositsCount returns the number of deposits in the store.
-func (s *Store) GetDepositsCount() uint64 {
-	return s.tree.NumOfItems()
+	if depTreeRoot == (common.Root{}) {
+		depTreeRoot = s.pendingDepositsToRoots[maxIndex-1]
+		delete(s.pendingDepositsToRoots, maxIndex-1)
+	}
+	return deposits, depTreeRoot, nil
 }
 
 // EnqueueDepositDatas pushes multiple deposits to the queue.
@@ -138,6 +142,10 @@ func (s *Store) EnqueueDepositDatas(
 			return errors.Wrapf(err, "failed to insert deposit %d into merkle tree", idx)
 		}
 
+		s.pendingDepositsToRoots[idx] = s.tree.HashTreeRoot()
+
+		// TODO: figure out when to finalize. Can't mark it here because proof has not been
+		// generated and returned via GetDepositsByIndex.
 		// if err := s.tree.Finalize(idx, executionBlockHash, executionBlockNumber); err != nil {
 		// 	return errors.Wrapf(err, "failed to finalize deposit %d in merkle tree", idx)
 		// }
