@@ -35,7 +35,6 @@ type ValidatorServiceInput[
 	AvailabilityStoreT any,
 	BeaconBlockT any,
 	BeaconStateT any,
-	BlobSidecarsT any,
 	LoggerT any,
 	StorageBackendT any,
 ] struct {
@@ -49,7 +48,7 @@ type ValidatorServiceInput[
 	]
 	StorageBackend StorageBackendT
 	Signer         crypto.BLSSigner
-	SidecarFactory SidecarFactory[BeaconBlockT, BlobSidecarsT]
+	SidecarFactory SidecarFactory[BeaconBlockT]
 	TelemetrySink  *metrics.TelemetrySink
 }
 
@@ -60,8 +59,6 @@ func ProvideValidatorService[
 	BeaconStateT BeaconState[BeaconStateT, BeaconStateMarshallableT, KVStoreT],
 	BeaconStateMarshallableT any,
 	BeaconBlockStoreT any,
-	BlobSidecarT any,
-	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	DepositStoreT DepositStore,
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
@@ -71,19 +68,16 @@ func ProvideValidatorService[
 ](
 	in ValidatorServiceInput[
 		AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-		BlobSidecarsT,
 		LoggerT, StorageBackendT,
 	],
 ) (*validator.Service[
 	BeaconBlockT,
-	BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositStoreT,
+	BeaconStateT, DepositStoreT,
 ], error) {
 	// Build the builder service.
 	return validator.NewService[
 		BeaconBlockT,
 		BeaconStateT,
-		BlobSidecarT,
-		BlobSidecarsT,
 		DepositStoreT,
 	](
 		&in.Cfg.Validator,

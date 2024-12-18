@@ -47,7 +47,7 @@ const (
 
 func (s *Service[
 	_, _, ConsensusBlockT, BeaconBlockT, _,
-	_, GenesisT, ConsensusSidecarsT, BlobSidecarsT,
+	_, GenesisT, ConsensusSidecarsT,
 ]) ProcessProposal(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
@@ -65,10 +65,10 @@ func (s *Service[
 
 	// Decode the blob sidecars.
 	sidecars, err := encoding.
-		UnmarshalBlobSidecarsFromABCIRequest[BlobSidecarsT](
-		req,
-		BlobSidecarsTxIndex,
-	)
+		UnmarshalBlobSidecarsFromABCIRequest(
+			req,
+			BlobSidecarsTxIndex,
+		)
 	if err != nil {
 		return createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
@@ -82,7 +82,7 @@ func (s *Service[
 
 	// Process the blob sidecars, if any
 	if !sidecars.IsNil() && sidecars.Len() > 0 {
-		var consensusSidecars *types.ConsensusSidecars[BlobSidecarsT]
+		var consensusSidecars *types.ConsensusSidecars
 		consensusSidecars = consensusSidecars.New(
 			sidecars,
 			blk.GetHeader(),
@@ -91,10 +91,7 @@ func (s *Service[
 		s.logger.Info("Received incoming blob sidecars")
 
 		// TODO: Clean this up once we remove generics.
-		cs := convertConsensusSidecars[
-			ConsensusSidecarsT,
-			BlobSidecarsT,
-		](consensusSidecars)
+		cs := convertConsensusSidecars[ConsensusSidecarsT](consensusSidecars)
 
 		// Get the sidecar verification function from the state processor
 		//nolint:govet	// err shadowing
@@ -151,7 +148,7 @@ func (s *Service[
 // and logs the process.
 func (s *Service[
 	_, _, ConsensusBlockT, BeaconBlockT, _, _,
-	_, _, _,
+	_, _,
 ]) VerifyIncomingBlock(
 	ctx context.Context,
 	beaconBlk BeaconBlockT,
@@ -254,7 +251,7 @@ func (s *Service[
 // verifyStateRoot verifies the state root of an incoming block.
 func (s *Service[
 	_, _, ConsensusBlockT, BeaconBlockT, BeaconStateT,
-	_, _, _, _,
+	_, _, _,
 ]) verifyStateRoot(
 	ctx context.Context,
 	st BeaconStateT,
@@ -293,7 +290,7 @@ func (s *Service[
 // shouldBuildOptimisticPayloads returns true if optimistic
 // payload builds are enabled.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _,
 ]) shouldBuildOptimisticPayloads() bool {
 	return s.optimisticPayloadBuilds && s.localBuilder.Enabled()
 }
@@ -313,9 +310,8 @@ func createProcessProposalResponse(
 
 func convertConsensusSidecars[
 	ConsensusSidecarsT any,
-	BlobSidecarsT any,
 ](
-	cSidecars *types.ConsensusSidecars[BlobSidecarsT],
+	cSidecars *types.ConsensusSidecars,
 ) ConsensusSidecarsT {
 	val, ok := any(cSidecars).(ConsensusSidecarsT)
 	if !ok {

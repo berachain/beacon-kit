@@ -36,14 +36,14 @@ func DefaultComponents() []any {
 		components.ProvideBlockStore[*BeaconBlock, *Logger],
 		components.ProvideBlsSigner,
 		components.ProvideBlobProcessor[
-			*AvailabilityStore, *ConsensusSidecars, *BlobSidecar, *BlobSidecars, *Logger,
+			*AvailabilityStore, *ConsensusSidecars, *Logger,
 		],
 		components.ProvideBlobProofVerifier,
 		components.ProvideChainService[
 			*AvailabilityStore,
 			*ConsensusBlock, *BeaconBlock,
 			*BeaconState, *BeaconStateMarshallable,
-			*BlobSidecar, *BlobSidecars, *ConsensusSidecars, *BlockStore,
+			*ConsensusSidecars, *BlockStore,
 			*DepositStore, *DepositContract,
 			*Genesis,
 			*KVStore, *Logger, *StorageBackend, *BlockStore,
@@ -71,7 +71,7 @@ func DefaultComponents() []any {
 			*ConsensusBlock, *BeaconBlock,
 			*BlockStore, *BeaconState,
 			*BeaconStateMarshallable,
-			*ConsensusSidecars, *BlobSidecar, *BlobSidecars,
+			*ConsensusSidecars,
 			*DepositStore,
 			*Genesis, *KVStore, *Logger,
 			NodeAPIContext,
@@ -93,7 +93,7 @@ func DefaultComponents() []any {
 		components.ProvideValidatorService[
 			*AvailabilityStore, *BeaconBlock,
 			*BeaconState, *BeaconStateMarshallable,
-			*BlockStore, *BlobSidecar, *BlobSidecars, *DepositStore,
+			*BlockStore, *DepositStore,
 			*KVStore, *Logger,
 			*StorageBackend,
 		],
@@ -107,7 +107,7 @@ func DefaultComponents() []any {
 		components.ProvideNodeAPIBackend[
 			*AvailabilityStore, *BeaconBlock,
 			*BlockStore, *BeaconState,
-			*BeaconStateMarshallable, *BlobSidecars, *DepositStore,
+			*BeaconStateMarshallable, *DepositStore,
 			*KVStore, *CometBFTService, *StorageBackend,
 		],
 	)

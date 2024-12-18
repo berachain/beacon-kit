@@ -26,6 +26,7 @@ import (
 
 	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	datypes "github.com/berachain/beacon-kit/da/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-api/handlers"
@@ -55,14 +56,14 @@ type (
 	}
 
 	// AvailabilityStore is the interface for the availability store.
-	AvailabilityStore[BlobSidecarsT any] interface {
+	AvailabilityStore interface {
 		IndexDB
 		// IsDataAvailable ensures that all blobs referenced in the block are
 		// securely stored before it returns without an error.
 		IsDataAvailable(context.Context, math.Slot, *ctypes.BeaconBlockBody) bool
 		// Persist makes sure that the sidecar remains accessible for data
 		// availability checks throughout the beacon node's operation.
-		Persist(math.Slot, BlobSidecarsT) error
+		Persist(math.Slot, datypes.BlobSidecars) error
 	}
 
 	ConsensusBlock[BeaconBlockT any] interface {
@@ -182,13 +183,12 @@ type (
 	BlobProcessor[
 		AvailabilityStoreT any,
 		ConsensusSidecarsT any,
-		BlobSidecarsT any,
 	] interface {
 		// ProcessSidecars processes the blobs and ensures they match the local
 		// state.
 		ProcessSidecars(
 			avs AvailabilityStoreT,
-			sidecars BlobSidecarsT,
+			sidecars datypes.BlobSidecars,
 		) error
 		// VerifySidecars verifies the blobs and ensures they match the local
 		// state.
@@ -201,44 +201,9 @@ type (
 		) error
 	}
 
-	BlobSidecar interface {
-		GetSignedBeaconBlockHeader() *ctypes.SignedBeaconBlockHeader
-		GetBlob() eip4844.Blob
-		GetKzgProof() eip4844.KZGProof
-		GetKzgCommitment() eip4844.KZGCommitment
-	}
-
-	ConsensusSidecars[
-		BlobSidecarsT any,
-	] interface {
-		GetSidecars() BlobSidecarsT
+	ConsensusSidecars interface {
+		GetSidecars() datypes.BlobSidecars
 		GetHeader() *ctypes.BeaconBlockHeader
-	}
-
-	// BlobSidecars is the interface for blobs sidecars.
-	BlobSidecars[T, BlobSidecarT any] interface {
-		constraints.Nillable
-		constraints.SSZMarshallable
-		constraints.Empty[T]
-		Len() int
-		Get(index int) BlobSidecarT
-		GetSidecars() []BlobSidecarT
-		ValidateBlockRoots() error
-		VerifyInclusionProofs(kzgOffset uint64, inclusionProofDepth uint8) error
-	}
-
-	BlobVerifier[BlobSidecarsT any] interface {
-		VerifyInclusionProofs(scs BlobSidecarsT, kzgOffset uint64) error
-		VerifyKZGProofs(scs BlobSidecarsT) error
-		VerifySidecars(
-			sidecars BlobSidecarsT,
-			kzgOffset uint64,
-			blkHeader *ctypes.BeaconBlockHeader,
-			verifierFn func(
-				blkHeader *ctypes.BeaconBlockHeader,
-				signature crypto.BLSSignature,
-			) error,
-		) error
 	}
 
 	// 	// BlockchainService defines the interface for interacting with the
@@ -480,14 +445,14 @@ type (
 		)
 	}
 
-	SidecarFactory[BeaconBlockT any, BlobSidecarsT any] interface {
+	SidecarFactory[BeaconBlockT any] interface {
 		// BuildSidecars builds sidecars for a given block and blobs bundle.
 		BuildSidecars(
 			blk BeaconBlockT,
 			blobs ctypes.BlobsBundle,
 			signer crypto.BLSSigner,
 			forkData *ctypes.ForkData,
-		) (BlobSidecarsT, error)
+		) (datypes.BlobSidecars, error)
 	}
 
 	// StorageBackend defines an interface for accessing various storage

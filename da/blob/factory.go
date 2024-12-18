@@ -61,7 +61,7 @@ func (f *SidecarFactory[BeaconBlockT]) BuildSidecars(
 	bundle ctypes.BlobsBundle,
 	signer crypto.BLSSigner,
 	forkData *ctypes.ForkData,
-) (*types.BlobSidecars, error) {
+) (types.BlobSidecars, error) {
 	var (
 		blobs       = bundle.GetBlobs()
 		commitments = bundle.GetCommitments()
@@ -127,7 +127,7 @@ func (f *SidecarFactory[BeaconBlockT]) BuildSidecars(
 		})
 	}
 
-	return &types.BlobSidecars{Sidecars: sidecars}, g.Wait()
+	return sidecars, g.Wait()
 }
 
 // BuildKZGInclusionProof builds a KZG inclusion proof.

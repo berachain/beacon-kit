@@ -66,8 +66,6 @@ type (
 	BlobProcessor = dablob.Processor[
 		*AvailabilityStore,
 		*ConsensusSidecars,
-		*BlobSidecar,
-		*BlobSidecars,
 	]
 
 	// ChainService is a type alias for the chain service.
@@ -80,7 +78,6 @@ type (
 		*BlockStore,
 		*Genesis,
 		*ConsensusSidecars,
-		*BlobSidecars,
 	]
 
 	// CometBFTService is a type alias for the CometBFT service.
@@ -137,8 +134,6 @@ type (
 	ValidatorService = validator.Service[
 		*BeaconBlock,
 		*BeaconState,
-		*BlobSidecar,
-		*BlobSidecars,
 		*DepositStore,
 	]
 )
@@ -165,7 +160,7 @@ type (
 	BeaconStateMarshallable = types.BeaconState
 
 	// BlobSidecars type aliases.
-	ConsensusSidecars = consruntimetypes.ConsensusSidecars[*BlobSidecars]
+	ConsensusSidecars = consruntimetypes.ConsensusSidecars
 	BlobSidecar       = datypes.BlobSidecar
 	BlobSidecars      = datypes.BlobSidecars
 
@@ -211,7 +206,6 @@ type (
 		*BeaconBlock,
 		*BeaconState,
 		*BeaconStateMarshallable,
-		*BlobSidecars,
 		*BlockStore,
 		sdk.Context,
 		*DepositStore,

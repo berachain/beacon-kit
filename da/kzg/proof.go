@@ -24,6 +24,7 @@ import (
 	"github.com/berachain/beacon-kit/da/kzg/ckzg"
 	"github.com/berachain/beacon-kit/da/kzg/gokzg"
 	kzgtypes "github.com/berachain/beacon-kit/da/kzg/types"
+	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
@@ -69,11 +70,8 @@ func NewBlobProofVerifier(
 }
 
 // ArgsFromSidecars converts a BlobSidecars to a slice of BlobProofArgs.
-func ArgsFromSidecars[
-	BlobSidecarT kzgtypes.BlobSidecar,
-	BlobSidecarsT kzgtypes.BlobSidecars[BlobSidecarT],
-](
-	scs BlobSidecarsT,
+func ArgsFromSidecars(
+	scs datypes.BlobSidecars,
 ) *kzgtypes.BlobProofArgs {
 	proofArgs := &kzgtypes.BlobProofArgs{
 		Blobs:       make([]*eip4844.Blob, scs.Len()),

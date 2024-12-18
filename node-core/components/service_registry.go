@@ -36,15 +36,13 @@ import (
 
 // ServiceRegistryInput is the input for the service registry provider.
 type ServiceRegistryInput[
-	AvailabilityStoreT AvailabilityStore[BlobSidecarsT],
+	AvailabilityStoreT AvailabilityStore,
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
 	BeaconBlockT BeaconBlock[BeaconBlockT],
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
 	BeaconStateT BeaconState[BeaconStateT, BeaconStateMarshallableT, KVStoreT],
 	BeaconStateMarshallableT any,
-	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
-	BlobSidecarT any,
-	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
+	ConsensusSidecarsT ConsensusSidecars,
 	DepositStoreT DepositStore,
 	GenesisT Genesis,
 	KVStoreT any,
@@ -57,7 +55,7 @@ type ServiceRegistryInput[
 		ConsensusBlockT, BeaconBlockT,
 		BeaconStateT, BeaconBlockStoreT,
 		GenesisT,
-		ConsensusSidecarsT, BlobSidecarsT,
+		ConsensusSidecarsT,
 	]
 	EngineClient     *client.EngineClient
 	Logger           LoggerT
@@ -67,14 +65,14 @@ type ServiceRegistryInput[
 	TelemetryService *telemetry.Service
 	ValidatorService *validator.Service[
 		BeaconBlockT,
-		BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositStoreT,
+		BeaconStateT, DepositStoreT,
 	]
 	CometBFTService *cometbft.Service[LoggerT]
 }
 
 // ProvideServiceRegistry is the depinject provider for the service registry.
 func ProvideServiceRegistry[
-	AvailabilityStoreT AvailabilityStore[BlobSidecarsT],
+	AvailabilityStoreT AvailabilityStore,
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
 	BeaconBlockT BeaconBlock[BeaconBlockT],
 
@@ -84,9 +82,7 @@ func ProvideServiceRegistry[
 		KVStoreT,
 	],
 	BeaconStateMarshallableT any,
-	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
-	BlobSidecarT any,
-	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
+	ConsensusSidecarsT ConsensusSidecars,
 	DepositStoreT DepositStore,
 	GenesisT Genesis,
 	KVStoreT any,
@@ -98,7 +94,7 @@ func ProvideServiceRegistry[
 		ConsensusBlockT, BeaconBlockT,
 		BeaconBlockStoreT, BeaconStateT,
 		BeaconStateMarshallableT,
-		ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
+		ConsensusSidecarsT,
 		DepositStoreT,
 		GenesisT, KVStoreT, LoggerT, NodeAPIContextT,
 	],

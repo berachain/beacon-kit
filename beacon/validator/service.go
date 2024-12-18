@@ -33,8 +33,6 @@ import (
 type Service[
 	BeaconBlockT BeaconBlock[BeaconBlockT],
 	BeaconStateT BeaconState,
-	BlobSidecarT any,
-	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	DepositStoreT DepositStore,
 ] struct {
 	// cfg is the validator config.
@@ -46,7 +44,7 @@ type Service[
 	// signer is used to retrieve the public key of this node.
 	signer crypto.BLSSigner
 	// blobFactory is used to create blob sidecars for blocks.
-	blobFactory BlobFactory[BeaconBlockT, BlobSidecarsT]
+	blobFactory BlobFactory[BeaconBlockT]
 	// sb is the beacon state backend.
 	sb StorageBackend[BeaconStateT, DepositStoreT]
 	// stateProcessor is responsible for processing the state.
@@ -71,8 +69,6 @@ type Service[
 func NewService[
 	BeaconBlockT BeaconBlock[BeaconBlockT],
 	BeaconStateT BeaconState,
-	BlobSidecarT any,
-	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	DepositStoreT DepositStore,
 ](
 	cfg *Config,
@@ -85,17 +81,17 @@ func NewService[
 		*transition.Context,
 	],
 	signer crypto.BLSSigner,
-	blobFactory BlobFactory[BeaconBlockT, BlobSidecarsT],
+	blobFactory BlobFactory[BeaconBlockT],
 	localPayloadBuilder PayloadBuilder[BeaconStateT],
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT],
 	ts TelemetrySink,
 ) *Service[
 	BeaconBlockT, BeaconStateT,
-	BlobSidecarT, BlobSidecarsT, DepositStoreT,
+	DepositStoreT,
 ] {
 	return &Service[
 		BeaconBlockT,
-		BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositStoreT,
+		BeaconStateT, DepositStoreT,
 	]{
 		cfg:                   cfg,
 		logger:                logger,
@@ -112,19 +108,19 @@ func NewService[
 
 // Name returns the name of the service.
 func (s *Service[
-	_, _, _, _, _,
+	_, _, _,
 ]) Name() string {
 	return "validator"
 }
 
 func (s *Service[
-	_, _, _, _, _,
+	_, _, _,
 ]) Start(
 	_ context.Context,
 ) error {
 	return nil
 }
 
-func (s *Service[_, _, _, _, _]) Stop() error {
+func (s *Service[_, _, _]) Stop() error {
 	return nil
 }
