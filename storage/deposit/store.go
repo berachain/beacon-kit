@@ -135,7 +135,7 @@ func (s *Store) EnqueueDepositDatas(depositDatas []*ctypes.DepositData) error {
 			return errors.Wrapf(err, "failed to get merkle proof for deposit %d", idx)
 		}
 		deposit := ctypes.NewDeposit(proof, depositData)
-		if err := s.store.Set(context.TODO(), idx, deposit); err != nil {
+		if err = s.store.Set(context.TODO(), idx, deposit); err != nil {
 			return errors.Wrapf(err, "failed to set deposit %d in KVStore", idx)
 		}
 

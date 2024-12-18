@@ -83,9 +83,7 @@ func (s *Service[
 	st := s.storageBackend.StateFromContext(ctx)
 	valUpdates, finalizeErr = s.finalizeBeaconBlock(ctx, st, cBlk)
 	if finalizeErr != nil {
-		s.logger.Error("Failed to process verified beacon block",
-			"error", finalizeErr,
-		)
+		s.logger.Error("Failed to process verified beacon block", "error", finalizeErr)
 	}
 
 	// STEP 4: Post Finalizations cleanups
@@ -95,9 +93,7 @@ func (s *Service[
 
 	// store the finalized block in the KVStore.
 	if err = s.blockStore.Set(blk); err != nil {
-		s.logger.Error(
-			"failed to store block", "slot", blk.GetSlot(), "error", err,
-		)
+		s.logger.Error("failed to store block", "slot", blk.GetSlot(), "error", err)
 	}
 
 	// prune the availability and deposit store
