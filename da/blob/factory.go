@@ -33,9 +33,7 @@ import (
 )
 
 // SidecarFactory is a factory for sidecars.
-type SidecarFactory[
-	BeaconBlockT BeaconBlock,
-] struct {
+type SidecarFactory struct {
 	// chainSpec defines the specifications of the blockchain.
 	chainSpec ChainSpec
 	// kzgPosition is the position of the KZG commitment in the block.
@@ -47,15 +45,13 @@ type SidecarFactory[
 }
 
 // NewSidecarFactory creates a new sidecar factory.
-func NewSidecarFactory[
-	BeaconBlockT BeaconBlock,
-](
+func NewSidecarFactory(
 	chainSpec ChainSpec,
 	// todo: calculate from config.
 	kzgPosition uint64,
 	telemetrySink TelemetrySink,
-) *SidecarFactory[BeaconBlockT] {
-	return &SidecarFactory[BeaconBlockT]{
+) *SidecarFactory {
+	return &SidecarFactory{
 		chainSpec: chainSpec,
 		// TODO: This should be configurable / modular.
 		kzgPosition: kzgPosition,
@@ -64,8 +60,8 @@ func NewSidecarFactory[
 }
 
 // BuildSidecars builds a sidecar.
-func (f *SidecarFactory[BeaconBlockT]) BuildSidecars(
-	blk BeaconBlockT,
+func (f *SidecarFactory) BuildSidecars(
+	blk *ctypes.BeaconBlock,
 	bundle ctypes.BlobsBundle,
 	signer crypto.BLSSigner,
 	forkData *ctypes.ForkData,
@@ -131,7 +127,7 @@ func (f *SidecarFactory[BeaconBlockT]) BuildSidecars(
 }
 
 // BuildKZGInclusionProof builds a KZG inclusion proof.
-func (f *SidecarFactory[_]) BuildKZGInclusionProof(
+func (f *SidecarFactory) BuildKZGInclusionProof(
 	body *ctypes.BeaconBlockBody,
 	index math.U64,
 ) ([]common.Root, error) {
@@ -157,7 +153,7 @@ func (f *SidecarFactory[_]) BuildKZGInclusionProof(
 }
 
 // BuildBlockBodyProof builds a block body proof.
-func (f *SidecarFactory[_]) BuildBlockBodyProof(
+func (f *SidecarFactory) BuildBlockBodyProof(
 	body *ctypes.BeaconBlockBody,
 ) ([]common.Root, error) {
 	startTime := time.Now()
@@ -174,7 +170,7 @@ func (f *SidecarFactory[_]) BuildBlockBodyProof(
 }
 
 // BuildCommitmentProof builds a commitment proof.
-func (f *SidecarFactory[_]) BuildCommitmentProof(
+func (f *SidecarFactory) BuildCommitmentProof(
 	body *ctypes.BeaconBlockBody,
 	index math.U64,
 ) ([]common.Root, error) {

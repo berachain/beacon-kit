@@ -23,12 +23,13 @@ package blockchain
 import (
 	"context"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // forceStartupHead sends a force head FCU to the execution client.
 func (s *Service[
-	_, _, _, _, BeaconStateT, _, _, _,
+	_, _, _, BeaconStateT, _, _, _,
 ]) forceStartupHead(
 	ctx context.Context,
 	st BeaconStateT,
@@ -56,7 +57,7 @@ func (s *Service[
 // handleRebuildPayloadForRejectedBlock handles the case where the incoming
 // block was rejected and we need to rebuild the payload for the current slot.
 func (s *Service[
-	_, _, _, _, BeaconStateT, _, _, _,
+	_, _, _, BeaconStateT, _, _, _,
 ]) handleRebuildPayloadForRejectedBlock(
 	ctx context.Context,
 	st BeaconStateT,
@@ -82,7 +83,7 @@ func (s *Service[
 // rejected the incoming block and it would be unsafe to use any
 // information from it.
 func (s *Service[
-	_, _, _, _, BeaconStateT, _,
+	_, _, _, BeaconStateT, _,
 	_, _,
 ]) rebuildPayloadForRejectedBlock(
 	ctx context.Context,
@@ -141,11 +142,11 @@ func (s *Service[
 // handleOptimisticPayloadBuild handles optimistically
 // building for the next slot.
 func (s *Service[
-	_, _, _, BeaconBlockT, BeaconStateT, _, _, _,
+	_, _, _, BeaconStateT, _, _, _,
 ]) handleOptimisticPayloadBuild(
 	ctx context.Context,
 	st BeaconStateT,
-	blk BeaconBlockT,
+	blk *ctypes.BeaconBlock,
 	nextPayloadTimestamp math.U64,
 ) {
 	if err := s.optimisticPayloadBuild(
@@ -164,11 +165,11 @@ func (s *Service[
 
 // optimisticPayloadBuild builds a payload for the next slot.
 func (s *Service[
-	_, _, _, BeaconBlockT, BeaconStateT, _, _, _,
+	_, _, _, BeaconStateT, _, _, _,
 ]) optimisticPayloadBuild(
 	ctx context.Context,
 	st BeaconStateT,
-	blk BeaconBlockT,
+	blk *ctypes.BeaconBlock,
 	nextPayloadTimestamp math.U64,
 ) error {
 	// We are building for the next slot, so we increment the slot relative

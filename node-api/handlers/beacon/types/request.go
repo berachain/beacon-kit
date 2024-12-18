@@ -20,7 +20,10 @@
 
 package types
 
-import "github.com/berachain/beacon-kit/node-api/handlers/types"
+import (
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/node-api/handlers/types"
+)
 
 type GetGenesisRequest struct{}
 
@@ -98,13 +101,13 @@ type PostBlindedBlocksV2Request struct {
 	BroadcastValidation string `json:"broadcast_validation" validate:"required,broadcast_validation"`
 }
 
-type PostBlocksV1Request[BeaconBlockT any] struct {
-	EthConsensusVersion string       `json:"eth_consensus_version" validate:"required,eth_consensus_version"`
-	BeaconBlock         BeaconBlockT `json:"beacon_block"`
+type PostBlocksV1Request struct {
+	EthConsensusVersion string             `json:"eth_consensus_version" validate:"required,eth_consensus_version"`
+	BeaconBlock         ctypes.BeaconBlock `json:"beacon_block"`
 }
 
-type PostBlocksV2Request[BeaconBlockT any] struct {
-	PostBlocksV1Request[BeaconBlockT]
+type PostBlocksV2Request struct {
+	PostBlocksV1Request
 	BroadcastValidation string `json:"broadcast_validation" validate:"required,broadcast_validation"`
 }
 

@@ -39,11 +39,10 @@ import (
 
 // ChainServiceInput is the input for the chain service provider.
 type ChainServiceInput[
-	BeaconBlockT any,
 	BeaconStateT any,
 	StorageBackendT any,
 	LoggerT any,
-	BeaconBlockStoreT BlockStore[BeaconBlockT],
+	BeaconBlockStoreT BlockStore,
 	DepositStoreT any,
 	DepositContractT any,
 	AvailabilityStoreT any,
@@ -60,7 +59,7 @@ type ChainServiceInput[
 	Logger          LoggerT
 	Signer          crypto.BLSSigner
 	StateProcessor  StateProcessor[
-		BeaconBlockT, BeaconStateT, *Context,
+		BeaconStateT, *Context,
 	]
 	StorageBackend StorageBackendT
 	BlobProcessor  BlobProcessor[
@@ -75,8 +74,7 @@ type ChainServiceInput[
 // ProvideChainService is a depinject provider for the blockchain service.
 func ProvideChainService[
 	AvailabilityStoreT AvailabilityStore,
-	ConsensusBlockT ConsensusBlock[BeaconBlockT],
-	BeaconBlockT BeaconBlock[BeaconBlockT],
+	ConsensusBlockT ConsensusBlock,
 	BeaconStateT BeaconState[BeaconStateT, BeaconStateMarshallableT, KVStoreT],
 	BeaconStateMarshallableT any,
 	ConsensusSidecarsT da.ConsensusSidecars,
@@ -89,17 +87,17 @@ func ProvideChainService[
 	StorageBackendT StorageBackend[
 		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,
 	],
-	BeaconBlockStoreT BlockStore[BeaconBlockT],
+	BeaconBlockStoreT BlockStore,
 ](
 	in ChainServiceInput[
-		BeaconBlockT, BeaconStateT,
+		BeaconStateT,
 		StorageBackendT, LoggerT,
 		BeaconBlockStoreT, DepositStoreT, DepositContractT,
 		AvailabilityStoreT, ConsensusSidecarsT,
 	],
 ) *blockchain.Service[
 	AvailabilityStoreT, DepositStoreT,
-	ConsensusBlockT, BeaconBlockT,
+	ConsensusBlockT,
 	BeaconStateT, BeaconBlockStoreT,
 	GenesisT,
 	ConsensusSidecarsT,
@@ -108,7 +106,6 @@ func ProvideChainService[
 		AvailabilityStoreT,
 		DepositStoreT,
 		ConsensusBlockT,
-		BeaconBlockT,
 		BeaconStateT,
 		BeaconBlockStoreT,
 		GenesisT,

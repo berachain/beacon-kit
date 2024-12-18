@@ -33,7 +33,7 @@ func DefaultComponents() []any {
 		],
 		components.ProvideAvailibilityStore[*Logger],
 		components.ProvideDepositContract,
-		components.ProvideBlockStore[*BeaconBlock, *Logger],
+		components.ProvideBlockStore[*Logger],
 		components.ProvideBlsSigner,
 		components.ProvideBlobProcessor[
 			*AvailabilityStore, *ConsensusSidecars, *Logger,
@@ -41,7 +41,7 @@ func DefaultComponents() []any {
 		components.ProvideBlobProofVerifier,
 		components.ProvideChainService[
 			*AvailabilityStore,
-			*ConsensusBlock, *BeaconBlock,
+			*ConsensusBlock,
 			*BeaconState, *BeaconStateMarshallable,
 			*ConsensusSidecars, *BlockStore,
 			*DepositStore, *DepositContract,
@@ -68,7 +68,7 @@ func DefaultComponents() []any {
 		components.ProvideCometBFTService[*Logger],
 		components.ProvideServiceRegistry[
 			*AvailabilityStore,
-			*ConsensusBlock, *BeaconBlock,
+			*ConsensusBlock,
 			*BlockStore, *BeaconState,
 			*BeaconStateMarshallable,
 			*ConsensusSidecars,
@@ -76,9 +76,9 @@ func DefaultComponents() []any {
 			*Genesis, *KVStore, *Logger,
 			NodeAPIContext,
 		],
-		components.ProvideSidecarFactory[*BeaconBlock],
+		components.ProvideSidecarFactory,
 		components.ProvideStateProcessor[
-			*Logger, *BeaconBlock,
+			*Logger,
 			*BeaconState, *BeaconStateMarshallable, *DepositStore,
 			*KVStore,
 		],
@@ -91,7 +91,7 @@ func DefaultComponents() []any {
 		components.ProvideTelemetryService,
 		components.ProvideTrustedSetup,
 		components.ProvideValidatorService[
-			*AvailabilityStore, *BeaconBlock,
+			*AvailabilityStore,
 			*BeaconState, *BeaconStateMarshallable,
 			*BlockStore, *DepositStore,
 			*KVStore, *Logger,
@@ -105,7 +105,7 @@ func DefaultComponents() []any {
 		components.ProvideNodeAPIServer[*Logger, NodeAPIContext],
 		components.ProvideNodeAPIEngine,
 		components.ProvideNodeAPIBackend[
-			*AvailabilityStore, *BeaconBlock,
+			*AvailabilityStore,
 			*BlockStore, *BeaconState,
 			*BeaconStateMarshallable, *DepositStore,
 			*KVStore, *CometBFTService, *StorageBackend,

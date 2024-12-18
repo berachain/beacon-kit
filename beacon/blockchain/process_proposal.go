@@ -46,7 +46,7 @@ const (
 )
 
 func (s *Service[
-	_, _, ConsensusBlockT, BeaconBlockT, _,
+	_, _, ConsensusBlockT, _,
 	_, GenesisT, ConsensusSidecarsT,
 ]) ProcessProposal(
 	ctx sdk.Context,
@@ -54,11 +54,11 @@ func (s *Service[
 ) (*cmtabci.ProcessProposalResponse, error) {
 	// Decode the beacon block.
 	blk, err := encoding.
-		UnmarshalBeaconBlockFromABCIRequest[BeaconBlockT](
-		req,
-		BeaconBlockTxIndex,
-		s.chainSpec.ActiveForkVersionForSlot(math.U64(req.Height)),
-	)
+		UnmarshalBeaconBlockFromABCIRequest(
+			req,
+			BeaconBlockTxIndex,
+			s.chainSpec.ActiveForkVersionForSlot(math.U64(req.Height)),
+		)
 	if err != nil {
 		return createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
@@ -124,7 +124,7 @@ func (s *Service[
 	}
 
 	// Process the block
-	var consensusBlk *types.ConsensusBlock[BeaconBlockT]
+	var consensusBlk *types.ConsensusBlock
 	consensusBlk = consensusBlk.New(
 		blk,
 		req.GetProposerAddress(),
@@ -147,11 +147,11 @@ func (s *Service[
 // VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
 func (s *Service[
-	_, _, ConsensusBlockT, BeaconBlockT, _, _,
+	_, _, ConsensusBlockT, _, _,
 	_, _,
 ]) VerifyIncomingBlock(
 	ctx context.Context,
-	beaconBlk BeaconBlockT,
+	beaconBlk *ctypes.BeaconBlock,
 	consensusTime math.U64,
 	proposerAddress []byte,
 ) error {
@@ -250,12 +250,12 @@ func (s *Service[
 
 // verifyStateRoot verifies the state root of an incoming block.
 func (s *Service[
-	_, _, ConsensusBlockT, BeaconBlockT, BeaconStateT,
+	_, _, ConsensusBlockT, BeaconStateT,
 	_, _, _,
 ]) verifyStateRoot(
 	ctx context.Context,
 	st BeaconStateT,
-	blk BeaconBlockT,
+	blk *ctypes.BeaconBlock,
 	consensusTime math.U64,
 	proposerAddress []byte,
 ) error {
@@ -290,7 +290,7 @@ func (s *Service[
 // shouldBuildOptimisticPayloads returns true if optimistic
 // payload builds are enabled.
 func (s *Service[
-	_, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _,
 ]) shouldBuildOptimisticPayloads() bool {
 	return s.optimisticPayloadBuilds && s.localBuilder.Enabled()
 }

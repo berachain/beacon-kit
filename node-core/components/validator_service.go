@@ -33,7 +33,6 @@ import (
 // ValidatorServiceInput is the input for the validator service provider.
 type ValidatorServiceInput[
 	AvailabilityStoreT any,
-	BeaconBlockT any,
 	BeaconStateT any,
 	LoggerT any,
 	StorageBackendT any,
@@ -44,18 +43,17 @@ type ValidatorServiceInput[
 	LocalBuilder   LocalBuilder[BeaconStateT]
 	Logger         LoggerT
 	StateProcessor StateProcessor[
-		BeaconBlockT, BeaconStateT, *Context,
+		BeaconStateT, *Context,
 	]
 	StorageBackend StorageBackendT
 	Signer         crypto.BLSSigner
-	SidecarFactory SidecarFactory[BeaconBlockT]
+	SidecarFactory SidecarFactory
 	TelemetrySink  *metrics.TelemetrySink
 }
 
 // ProvideValidatorService is a depinject provider for the validator service.
 func ProvideValidatorService[
 	AvailabilityStoreT any,
-	BeaconBlockT BeaconBlock[BeaconBlockT],
 	BeaconStateT BeaconState[BeaconStateT, BeaconStateMarshallableT, KVStoreT],
 	BeaconStateMarshallableT any,
 	BeaconBlockStoreT any,
@@ -67,16 +65,14 @@ func ProvideValidatorService[
 	],
 ](
 	in ValidatorServiceInput[
-		AvailabilityStoreT, BeaconBlockT, BeaconStateT,
+		AvailabilityStoreT, BeaconStateT,
 		LoggerT, StorageBackendT,
 	],
 ) (*validator.Service[
-	BeaconBlockT,
 	BeaconStateT, DepositStoreT,
 ], error) {
 	// Build the builder service.
 	return validator.NewService[
-		BeaconBlockT,
 		BeaconStateT,
 		DepositStoreT,
 	](

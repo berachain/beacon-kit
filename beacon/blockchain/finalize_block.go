@@ -33,7 +33,7 @@ import (
 )
 
 func (s *Service[
-	_, _, ConsensusBlockT, BeaconBlockT, _,
+	_, _, ConsensusBlockT, _,
 	_, GenesisT, ConsensusSidecarsT,
 ]) FinalizeBlock(
 	ctx sdk.Context,
@@ -46,13 +46,13 @@ func (s *Service[
 
 	// STEP 1: Decode blok and blobs
 	blk, blobs, err := encoding.
-		ExtractBlobsAndBlockFromRequest[BeaconBlockT](
-		req,
-		BeaconBlockTxIndex,
-		BlobSidecarsTxIndex,
-		s.chainSpec.ActiveForkVersionForSlot(
-			math.Slot(req.Height),
-		))
+		ExtractBlobsAndBlockFromRequest(
+			req,
+			BeaconBlockTxIndex,
+			BlobSidecarsTxIndex,
+			s.chainSpec.ActiveForkVersionForSlot(
+				math.Slot(req.Height),
+			))
 	if err != nil {
 		//nolint:nilerr // If we don't have a block, we can't do anything.
 		return nil, nil
@@ -69,7 +69,7 @@ func (s *Service[
 	}
 
 	// STEP 3: finalize the block
-	var consensusBlk *types.ConsensusBlock[BeaconBlockT]
+	var consensusBlk *types.ConsensusBlock
 	consensusBlk = consensusBlk.New(
 		blk,
 		req.GetProposerAddress(),
@@ -117,7 +117,7 @@ func (s *Service[
 // finalizeBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
 func (s *Service[
-	_, _, ConsensusBlockT, _, BeaconStateT, _, _, _,
+	_, _, ConsensusBlockT, BeaconStateT, _, _, _,
 ]) finalizeBeaconBlock(
 	ctx context.Context,
 	st BeaconStateT,
@@ -148,7 +148,7 @@ func (s *Service[
 
 // executeStateTransition runs the stf.
 func (s *Service[
-	_, _, ConsensusBlockT, _, BeaconStateT, _, _, _,
+	_, _, ConsensusBlockT, BeaconStateT, _, _, _,
 ]) executeStateTransition(
 	ctx context.Context,
 	st BeaconStateT,

@@ -34,11 +34,11 @@ import (
 // processExecutionPayload processes the execution payload and ensures it
 // matches the local state.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, ContextT, _,
+	BeaconStateT, ContextT, _,
 ]) processExecutionPayload(
 	ctx ContextT,
 	st BeaconStateT,
-	blk BeaconBlockT,
+	blk *ctypes.BeaconBlock,
 ) error {
 	var (
 		body    = blk.GetBody()
@@ -92,11 +92,11 @@ func (sp *StateProcessor[
 // validateExecutionPayload validates the execution payload against both local
 // state and the execution engine.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, _, _,
+	BeaconStateT, _, _,
 ]) validateExecutionPayload(
 	ctx context.Context,
 	st BeaconStateT,
-	blk BeaconBlockT,
+	blk *ctypes.BeaconBlock,
 	consensusTime math.U64,
 	optimisticEngine bool,
 ) error {
@@ -114,9 +114,9 @@ func (sp *StateProcessor[
 
 // validateStatelessPayload performs stateless checks on the execution payload.
 func (sp *StateProcessor[
-	BeaconBlockT, _, _, _,
+	_, _, _,
 ]) validateStatelessPayload(
-	blk BeaconBlockT,
+	blk *ctypes.BeaconBlock,
 ) error {
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
@@ -146,11 +146,11 @@ func (sp *StateProcessor[
 
 // validateStatefulPayload performs stateful checks on the execution payload.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, _, _,
+	BeaconStateT, _, _,
 ]) validateStatefulPayload(
 	ctx context.Context,
 	st BeaconStateT,
-	blk BeaconBlockT,
+	blk *ctypes.BeaconBlock,
 	consensusTime math.U64,
 	optimisticEngine bool,
 ) error {

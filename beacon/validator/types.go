@@ -103,12 +103,10 @@ type BeaconState interface {
 }
 
 // BlobFactory represents a blob factory interface.
-type BlobFactory[
-	BeaconBlockT any,
-] interface {
+type BlobFactory interface {
 	// BuildSidecars builds sidecars for a given block and blobs bundle.
 	BuildSidecars(
-		blk BeaconBlockT,
+		blk *ctypes.BeaconBlock,
 		blobs ctypes.BlobsBundle,
 		signer crypto.BLSSigner,
 		forkData *ctypes.ForkData,
@@ -180,7 +178,6 @@ type SlotData interface {
 
 // StateProcessor defines the interface for processing the state.
 type StateProcessor[
-	BeaconBlockT any,
 	BeaconStateT any,
 	ContextT any,
 ] interface {
@@ -192,7 +189,7 @@ type StateProcessor[
 	Transition(
 		ctx ContextT,
 		st BeaconStateT,
-		blk BeaconBlockT,
+		blk *ctypes.BeaconBlock,
 	) (transition.ValidatorUpdates, error)
 }
 

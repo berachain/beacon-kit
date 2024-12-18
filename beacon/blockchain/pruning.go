@@ -27,8 +27,8 @@ import (
 )
 
 func (s *Service[
-	_, _, ConsensusBlockT, BeaconBlockT, _, _, _, _,
-]) processPruning(beaconBlk BeaconBlockT) error {
+	_, _, ConsensusBlockT, _, _, _, _,
+]) processPruning(beaconBlk *ctypes.BeaconBlock) error {
 	// prune availability store
 	start, end := availabilityPruneRangeFn(
 		beaconBlk.GetSlot().Unwrap(), s.chainSpec)

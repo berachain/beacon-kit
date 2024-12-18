@@ -38,21 +38,19 @@ func ProvideNodeAPIEngine() *echo.Engine {
 }
 
 type NodeAPIBackendInput[
-	BeaconBlockT any,
 	BeaconStateT any,
 	StorageBackendT any,
 ] struct {
 	depinject.In
 
 	ChainSpec      chain.ChainSpec
-	StateProcessor StateProcessor[BeaconBlockT, BeaconStateT, *Context]
+	StateProcessor StateProcessor[BeaconStateT, *Context]
 	StorageBackend StorageBackendT
 }
 
 func ProvideNodeAPIBackend[
 	AvailabilityStoreT AvailabilityStore,
-	BeaconBlockT any,
-	BeaconBlockStoreT BlockStore[BeaconBlockT],
+	BeaconBlockStoreT BlockStore,
 	BeaconStateT BeaconState[BeaconStateT, BeaconStateMarshallableT, KVStoreT],
 	BeaconStateMarshallableT any,
 	DepositStoreT DepositStore,
@@ -64,16 +62,15 @@ func ProvideNodeAPIBackend[
 		AvailabilityStoreT, BeaconStateT, BeaconBlockStoreT, DepositStoreT,
 	],
 ](
-	in NodeAPIBackendInput[BeaconBlockT, BeaconStateT, StorageBackendT],
+	in NodeAPIBackendInput[BeaconStateT, StorageBackendT],
 ) *backend.Backend[
-	AvailabilityStoreT, BeaconBlockT,
+	AvailabilityStoreT,
 	BeaconStateT, BeaconStateMarshallableT, BeaconBlockStoreT,
 	sdk.Context, DepositStoreT,
 	NodeT, KVStoreT, StorageBackendT,
 ] {
 	return backend.New[
 		AvailabilityStoreT,
-		BeaconBlockT,
 		BeaconStateT,
 		BeaconStateMarshallableT,
 		BeaconBlockStoreT,

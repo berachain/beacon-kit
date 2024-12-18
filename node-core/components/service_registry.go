@@ -37,9 +37,8 @@ import (
 // ServiceRegistryInput is the input for the service registry provider.
 type ServiceRegistryInput[
 	AvailabilityStoreT AvailabilityStore,
-	ConsensusBlockT ConsensusBlock[BeaconBlockT],
-	BeaconBlockT BeaconBlock[BeaconBlockT],
-	BeaconBlockStoreT BlockStore[BeaconBlockT],
+	ConsensusBlockT ConsensusBlock,
+	BeaconBlockStoreT BlockStore,
 	BeaconStateT BeaconState[BeaconStateT, BeaconStateMarshallableT, KVStoreT],
 	BeaconStateMarshallableT any,
 	ConsensusSidecarsT ConsensusSidecars,
@@ -52,7 +51,7 @@ type ServiceRegistryInput[
 	depinject.In
 	ChainService *blockchain.Service[
 		AvailabilityStoreT, DepositStoreT,
-		ConsensusBlockT, BeaconBlockT,
+		ConsensusBlockT,
 		BeaconStateT, BeaconBlockStoreT,
 		GenesisT,
 		ConsensusSidecarsT,
@@ -64,7 +63,6 @@ type ServiceRegistryInput[
 	TelemetrySink    *metrics.TelemetrySink
 	TelemetryService *telemetry.Service
 	ValidatorService *validator.Service[
-		BeaconBlockT,
 		BeaconStateT, DepositStoreT,
 	]
 	CometBFTService *cometbft.Service[LoggerT]
@@ -73,10 +71,8 @@ type ServiceRegistryInput[
 // ProvideServiceRegistry is the depinject provider for the service registry.
 func ProvideServiceRegistry[
 	AvailabilityStoreT AvailabilityStore,
-	ConsensusBlockT ConsensusBlock[BeaconBlockT],
-	BeaconBlockT BeaconBlock[BeaconBlockT],
-
-	BeaconBlockStoreT BlockStore[BeaconBlockT],
+	ConsensusBlockT ConsensusBlock,
+	BeaconBlockStoreT BlockStore,
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconStateMarshallableT,
 		KVStoreT,
@@ -91,7 +87,7 @@ func ProvideServiceRegistry[
 ](
 	in ServiceRegistryInput[
 		AvailabilityStoreT,
-		ConsensusBlockT, BeaconBlockT,
+		ConsensusBlockT,
 		BeaconBlockStoreT, BeaconStateT,
 		BeaconStateMarshallableT,
 		ConsensusSidecarsT,

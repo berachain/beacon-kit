@@ -70,7 +70,6 @@ type (
 		*AvailabilityStore,
 		*DepositStore,
 		*ConsensusBlock,
-		*BeaconBlock,
 		*BeaconState,
 		*BlockStore,
 		*Genesis,
@@ -105,11 +104,10 @@ type (
 	ReportingService = version.ReportingService
 
 	// SidecarFactory is a type alias for the sidecar factory.
-	SidecarFactory = dablob.SidecarFactory[*BeaconBlock]
+	SidecarFactory = dablob.SidecarFactory
 
 	// StateProcessor is the type alias for the state processor interface.
 	StateProcessor = core.StateProcessor[
-		*BeaconBlock,
 		*BeaconState,
 		*Context,
 		*KVStore,
@@ -126,7 +124,6 @@ type (
 
 	// ValidatorService is a type alias for the validator service.
 	ValidatorService = validator.Service[
-		*BeaconBlock,
 		*BeaconState,
 		*DepositStore,
 	]
@@ -141,8 +138,7 @@ type (
 	AvailabilityStore = dastore.Store
 
 	// BeaconBlock type aliases.
-	ConsensusBlock = consruntimetypes.ConsensusBlock[*BeaconBlock]
-	BeaconBlock    = types.BeaconBlock
+	ConsensusBlock = consruntimetypes.ConsensusBlock
 
 	// BeaconState is a type alias for the BeaconState.
 	BeaconState = statedb.StateDB[
@@ -159,7 +155,7 @@ type (
 	BlobSidecars      = datypes.BlobSidecars
 
 	// BlockStore is a type alias for the block store.
-	BlockStore = block.KVStore[*BeaconBlock]
+	BlockStore = block.KVStore[*types.BeaconBlock]
 
 	// Context is a type alias for the transition context.
 	Context = transition.Context
@@ -197,7 +193,6 @@ type (
 	// NodeAPIBackend is a type alias for the node API backend.
 	NodeAPIBackend = backend.Backend[
 		*AvailabilityStore,
-		*BeaconBlock,
 		*BeaconState,
 		*BeaconStateMarshallable,
 		*BlockStore,

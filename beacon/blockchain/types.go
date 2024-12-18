@@ -48,8 +48,8 @@ type AvailabilityStore interface {
 	Prune(start, end uint64) error
 }
 
-type ConsensusBlock[BeaconBlockT any] interface {
-	GetBeaconBlock() BeaconBlockT
+type ConsensusBlock interface {
+	GetBeaconBlock() *ctypes.BeaconBlock
 
 	// GetProposerAddress returns the address of the validator
 	// selected by consensus to propose the block
@@ -58,22 +58,6 @@ type ConsensusBlock[BeaconBlockT any] interface {
 	// GetConsensusTime returns the timestamp of current consensus request.
 	// It is used to build next payload and to validate currentpayload.
 	GetConsensusTime() math.U64
-}
-
-// BeaconBlock represents a beacon block interface.
-type BeaconBlock[
-	BeaconBlockT any,
-] interface {
-	constraints.SSZMarshallableRootable
-	constraints.Nillable
-	// GetSlot returns the slot of the beacon block.
-	GetSlot() math.Slot
-	// GetStateRoot returns the state root of the beacon block.
-	GetStateRoot() common.Root
-	// GetBody returns the body of the beacon block.
-	GetBody() *ctypes.BeaconBlockBody
-	NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
-	GetHeader() *ctypes.BeaconBlockHeader
 }
 
 type BlobSidecars[T any] interface {
@@ -166,7 +150,6 @@ type ReadOnlyBeaconState[
 // StateProcessor defines the interface for processing various state transitions
 // in the beacon chain.
 type StateProcessor[
-	BeaconBlockT,
 	BeaconStateT,
 	ContextT any,
 ] interface {
@@ -187,7 +170,7 @@ type StateProcessor[
 	Transition(
 		ContextT,
 		BeaconStateT,
-		BeaconBlockT,
+		*ctypes.BeaconBlock,
 	) (transition.ValidatorUpdates, error)
 	GetSidecarVerifierFn(BeaconStateT) (
 		func(

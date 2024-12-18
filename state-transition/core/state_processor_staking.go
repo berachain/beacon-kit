@@ -33,10 +33,10 @@ import (
 // processOperations processes the operations and ensures they match the
 // local state.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, _, _,
+	BeaconStateT, _, _,
 ]) processOperations(
 	st BeaconStateT,
-	blk BeaconBlockT,
+	blk *ctypes.BeaconBlock,
 ) error {
 	// Verify that outstanding deposits are processed
 	// up to the maximum number of deposits
@@ -65,7 +65,7 @@ func (sp *StateProcessor[
 
 // processDeposit processes the deposit and ensures it matches the local state.
 func (sp *StateProcessor[
-	_, BeaconStateT, _, _,
+	BeaconStateT, _, _,
 ]) processDeposit(
 	st BeaconStateT,
 	dep *ctypes.Deposit,
@@ -107,7 +107,7 @@ func (sp *StateProcessor[
 
 // applyDeposit processes the deposit and ensures it matches the local state.
 func (sp *StateProcessor[
-	_, BeaconStateT, _, _,
+	BeaconStateT, _, _,
 ]) applyDeposit(
 	st BeaconStateT,
 	dep *ctypes.Deposit,
@@ -163,7 +163,7 @@ func (sp *StateProcessor[
 
 // createValidator creates a validator if the deposit is valid.
 func (sp *StateProcessor[
-	_, BeaconStateT, _, _,
+	BeaconStateT, _, _,
 ]) createValidator(
 	st BeaconStateT,
 	dep *ctypes.Deposit,
@@ -223,7 +223,7 @@ func (sp *StateProcessor[
 
 // addValidatorToRegistry adds a validator to the registry.
 func (sp *StateProcessor[
-	_, BeaconStateT, _, _,
+	BeaconStateT, _, _,
 ]) addValidatorToRegistry(
 	st BeaconStateT,
 	dep *ctypes.Deposit,

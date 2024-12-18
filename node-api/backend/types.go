@@ -52,7 +52,7 @@ type BeaconState interface {
 }
 
 // BlockStore is the interface for block storage.
-type BlockStore[BeaconBlockT any] interface {
+type BlockStore interface {
 	// GetSlotByBlockRoot retrieves the slot by a given block root.
 	GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 	// GetSlotByStateRoot retrieves the slot by a given state root.

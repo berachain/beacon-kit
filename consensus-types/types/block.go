@@ -85,10 +85,10 @@ func (b *BeaconBlock) NewFromSSZ(
 		return block, block.UnmarshalSSZ(bz)
 	}
 
-	return nil, errors.Wrap(
-		ErrForkVersionNotSupported,
-		fmt.Sprintf("fork %d", forkVersion),
-	)
+	// assign err here to appease nilaway
+	err := errors.Wrap(ErrForkVersionNotSupported, fmt.Sprintf("fork %d", forkVersion))
+
+	return nil, err
 }
 
 /* -------------------------------------------------------------------------- */

@@ -66,8 +66,8 @@ type (
 		Persist(math.Slot, datypes.BlobSidecars) error
 	}
 
-	ConsensusBlock[BeaconBlockT any] interface {
-		GetBeaconBlock() BeaconBlockT
+	ConsensusBlock interface {
+		GetBeaconBlock() *ctypes.BeaconBlock
 
 		// GetProposerAddress returns the address of the validator
 		// selected by consensus to propose the block
@@ -206,40 +206,9 @@ type (
 		GetHeader() *ctypes.BeaconBlockHeader
 	}
 
-	// 	// BlockchainService defines the interface for interacting with the
-	// 	// blockchain
-	// 	// state and processing blocks.
-	// 	BlockchainService[
-	// 		BeaconBlockT any,
-	// 		DepositT any,
-	// 		GenesisT any,
-	// 	] interface {
-	// 		service.Basic
-	// 		// ProcessGenesisData processes the genesis data and initializes the
-	// 		// beacon
-	// 		// state.
-	// 		ProcessGenesisData(
-	// 			context.Context,
-	// 			GenesisT,
-	// 		) (transition.ValidatorUpdates, error)
-	// 		// ProcessBeaconBlock processes the given beacon block and associated
-	// 		// blobs sidecars.
-	// 		ProcessBeaconBlock(
-	// 			context.Context,
-	// 			BeaconBlockT,
-	// 		) (transition.ValidatorUpdates, error)
-	// 		// ReceiveBlock receives a beacon block and
-	// 		// associated blobs sidecars for processing.
-	// 		ReceiveBlock(
-	// 			ctx context.Context,
-	// 			blk BeaconBlockT,
-	// 		) error
-	// 		VerifyIncomingBlock(ctx context.Context, blk BeaconBlockT) error
-	// 	}
-
 	// BlockStore is the interface for block storage.
-	BlockStore[BeaconBlockT any] interface {
-		Set(blk BeaconBlockT) error
+	BlockStore interface {
+		Set(blk *ctypes.BeaconBlock) error
 		// GetSlotByBlockRoot retrieves the slot by a given root from the store.
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		// GetSlotByStateRoot retrieves the slot by a given root from the store.
@@ -416,7 +385,6 @@ type (
 
 	// StateProcessor defines the interface for processing the state.
 	StateProcessor[
-		BeaconBlockT any,
 		BeaconStateT any,
 		ContextT any,
 	] interface {
@@ -437,7 +405,7 @@ type (
 		Transition(
 			ctx ContextT,
 			st BeaconStateT,
-			blk BeaconBlockT,
+			blk *ctypes.BeaconBlock,
 		) (transition.ValidatorUpdates, error)
 		GetSidecarVerifierFn(st BeaconStateT) (
 			func(blkHeader *ctypes.BeaconBlockHeader, signature crypto.BLSSignature) error,
@@ -445,10 +413,10 @@ type (
 		)
 	}
 
-	SidecarFactory[BeaconBlockT any] interface {
+	SidecarFactory interface {
 		// BuildSidecars builds sidecars for a given block and blobs bundle.
 		BuildSidecars(
-			blk BeaconBlockT,
+			blk *ctypes.BeaconBlock,
 			blobs ctypes.BlobsBundle,
 			signer crypto.BLSSigner,
 			forkData *ctypes.ForkData,
