@@ -65,7 +65,7 @@ func (s *Service[
 		s.logger.Info("Found deposits on execution layer", "block", blockNum, "deposits", len(deposits))
 	}
 
-	if err = s.depositStore.EnqueueDeposits(deposits, blockHash, blockNum); err != nil {
+	if err = s.depositStore.EnqueueDepositDatas(deposits, blockHash, blockNum); err != nil {
 		s.logger.Error("Failed to store deposits", "error", err)
 		s.failedBlocksMu.Lock()
 		s.failedBlocks[blockNum] = struct{}{}

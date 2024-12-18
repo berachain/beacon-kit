@@ -61,7 +61,7 @@ func TestBeaconBlockBodyBase(t *testing.T) {
 	body.SetGraffiti(newGraffiti)
 
 	require.Equal(t, newGraffiti, [32]byte(body.GetGraffiti()))
-	require.NotNil(t, body.GetDeposits())
+	require.NotNil(t, body.GetDepositDatas())
 }
 
 func TestBeaconBlockBody(t *testing.T) {
@@ -78,13 +78,6 @@ func TestBeaconBlockBody(t *testing.T) {
 	require.NotNil(t, body.GetExecutionPayload())
 	require.NotNil(t, body.GetBlobKzgCommitments())
 	require.Equal(t, types.BodyLengthDeneb, body.Length())
-}
-
-func TestBeaconBlockBody_GetTree(t *testing.T) {
-	body := generateBeaconBlockBody()
-	tree, err := body.GetTree()
-	require.NoError(t, err)
-	require.NotNil(t, tree)
 }
 
 func TestBeaconBlockBody_SetBlobKzgCommitments(t *testing.T) {
@@ -116,7 +109,7 @@ func TestBeaconBlockBody_SetDeposits(t *testing.T) {
 	deposits := []*types.Deposit{}
 	body.SetDeposits(deposits)
 
-	require.Equal(t, deposits, body.GetDeposits())
+	require.Equal(t, deposits, body.GetDepositDatas())
 }
 
 func TestBeaconBlockBody_MarshalSSZ(t *testing.T) {
@@ -132,21 +125,6 @@ func TestBeaconBlockBody_MarshalSSZ(t *testing.T) {
 
 	require.NoError(t, err)
 	require.NotNil(t, data)
-}
-
-func TestBeaconBlockBody_MarshalSSZTo(t *testing.T) {
-	body := generateBeaconBlockBody()
-
-	data, err := body.MarshalSSZ()
-	require.NoError(t, err)
-	require.NotNil(t, data)
-
-	var buf []byte
-	buf, err = body.MarshalSSZTo(buf)
-	require.NoError(t, err)
-
-	// The two byte slices should be equal
-	require.Equal(t, data, buf)
 }
 
 func TestBeaconBlockBody_GetTopLevelRoots(t *testing.T) {

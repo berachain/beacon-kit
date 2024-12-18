@@ -27,7 +27,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
-	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
 )
 
@@ -133,51 +132,6 @@ func (b *BeaconBlock) UnmarshalSSZ(buf []byte) error {
 // HashTreeRoot computes the Merkleization of the BeaconBlock object.
 func (b *BeaconBlock) HashTreeRoot() common.Root {
 	return ssz.HashConcurrent(b)
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                   FastSSZ                                  */
-/* -------------------------------------------------------------------------- */
-
-// MarshalSSZTo marshals the BeaconBlock object to the provided buffer in SSZ
-// format.
-func (b *BeaconBlock) MarshalSSZTo(dst []byte) ([]byte, error) {
-	bz, err := b.MarshalSSZ()
-	if err != nil {
-		return nil, err
-	}
-	dst = append(dst, bz...)
-	return dst, nil
-}
-
-// HashTreeRootWith ssz hashes the BeaconBlock object with a hasher.
-func (b *BeaconBlock) HashTreeRootWith(hh fastssz.HashWalker) error {
-	indx := hh.Index()
-
-	// Field (0) 'Slot'
-	hh.PutUint64(uint64(b.Slot))
-
-	// Field (1) 'ProposerIndex'
-	hh.PutUint64(uint64(b.ProposerIndex))
-
-	// Field (2) 'ParentBlockRoot'
-	hh.PutBytes(b.ParentRoot[:])
-
-	// Field (3) 'StateRoot'
-	hh.PutBytes(b.StateRoot[:])
-
-	// Field (4) 'Body'
-	if err := b.Body.HashTreeRootWith(hh); err != nil {
-		return err
-	}
-
-	hh.Merkleize(indx)
-	return nil
-}
-
-// GetTree ssz hashes the BeaconBlock object.
-func (b *BeaconBlock) GetTree() (*fastssz.Node, error) {
-	return fastssz.ProofTree(b)
 }
 
 // IsNil checks if the beacon block is nil.

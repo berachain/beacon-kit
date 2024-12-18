@@ -33,7 +33,7 @@ func (sp *StateProcessor[
 	_, BeaconStateT, _, _,
 ]) validateGenesisDeposits(
 	st BeaconStateT,
-	deposits []*ctypes.Deposit,
+	deposits ctypes.Deposits,
 ) error {
 	switch {
 	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
@@ -75,11 +75,11 @@ func (sp *StateProcessor[
 		}
 		for i, deposit := range deposits {
 			// deposit indices should be contiguous
-			if deposit.GetIndex() != math.U64(i) {
+			if deposit.Data.GetIndex() != math.U64(i) {
 				return errors.Wrapf(
 					ErrDepositIndexOutOfOrder,
 					"genesis deposit index: %d, expected index: %d",
-					deposit.GetIndex().Unwrap(), i,
+					deposit.Data.GetIndex().Unwrap(), i,
 				)
 			}
 		}
@@ -152,18 +152,18 @@ func (sp *StateProcessor[
 		}
 
 		for i, sd := range localDeposits {
-			// Deposit indices should be contiguous
+			// DepositData indices should be contiguous
 			//#nosec:G701 // i never negative
 			expectedIdx := expectedStartIdx + uint64(i)
-			if sd.GetIndex().Unwrap() != expectedIdx {
+			if sd.Data.GetIndex().Unwrap() != expectedIdx {
 				return errors.Wrapf(
 					ErrDepositIndexOutOfOrder,
 					"local deposit index: %d, expected index: %d",
-					sd.GetIndex().Unwrap(), expectedIdx,
+					sd.Data.GetIndex().Unwrap(), expectedIdx,
 				)
 			}
 
-			if !sd.Equals(deposits[i]) {
+			if !sd.Data.Equals(deposits[i].Data) {
 				return errors.Wrapf(
 					ErrDepositMismatch,
 					"local deposit: %+v, payload deposit: %+v",

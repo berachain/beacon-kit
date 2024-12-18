@@ -75,7 +75,7 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	depositIndex := dep.GetIndex().Unwrap()
+	depositIndex := dep.Data.GetIndex().Unwrap()
 	switch {
 	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
 		// Bartio has a bug which makes DepositEth1ChainID point to
@@ -102,7 +102,7 @@ func (sp *StateProcessor[
 		"deposit_index", depositIndex,
 	)
 
-	return sp.applyDeposit(st, dep)
+	return sp.applyDeposit(st, dep.Data)
 }
 
 // applyDeposit processes the deposit and ensures it matches the local state.
@@ -110,7 +110,7 @@ func (sp *StateProcessor[
 	_, BeaconStateT, _, _,
 ]) applyDeposit(
 	st BeaconStateT,
-	dep *ctypes.Deposit,
+	dep *ctypes.DepositData,
 ) error {
 	idx, err := st.ValidatorIndexByPubkey(dep.GetPubkey())
 	if err != nil {
@@ -166,7 +166,7 @@ func (sp *StateProcessor[
 	_, BeaconStateT, _, _,
 ]) createValidator(
 	st BeaconStateT,
-	dep *ctypes.Deposit,
+	dep *ctypes.DepositData,
 ) error {
 	// Get the current slot.
 	slot, err := st.GetSlot()
@@ -226,7 +226,7 @@ func (sp *StateProcessor[
 	_, BeaconStateT, _, _,
 ]) addValidatorToRegistry(
 	st BeaconStateT,
-	dep *ctypes.Deposit,
+	dep *ctypes.DepositData,
 	slot math.Slot,
 ) error {
 	var val *ctypes.Validator

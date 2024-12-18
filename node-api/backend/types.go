@@ -66,9 +66,9 @@ type DepositStore interface {
 	GetDepositsByIndex(startIndex uint64, numView uint64) (ctypes.Deposits, error)
 	// Prune prunes the deposit store of [start, end)
 	Prune(start, end uint64) error
-	// EnqueueDeposits adds a list of deposits to the deposit store.
-	EnqueueDeposits(
-		deposits []*ctypes.Deposit,
+	// EnqueueDepositDatas adds a list of deposits to the deposit store.
+	EnqueueDepositDatas(
+		deposits []*ctypes.DepositData,
 		executionBlockHash common.ExecutionHash,
 		executionBlockNumber math.U64,
 	) error

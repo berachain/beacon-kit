@@ -129,7 +129,7 @@ type (
 		// GetExecutionPayload returns the execution payload.
 		GetExecutionPayload() *ctypes.ExecutionPayload
 		// GetDeposits returns the list of deposits.
-		GetDeposits() []*ctypes.Deposit
+		GetDepositDatas() []*ctypes.DepositData
 		// GetBlobKzgCommitments returns the KZG commitments for the blobs.
 		GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 		// SetRandaoReveal sets the Randao reveal of the beacon block body.
@@ -137,7 +137,7 @@ type (
 		// SetEth1Data sets the Eth1 data of the beacon block body.
 		SetEth1Data(*ctypes.Eth1Data)
 		// SetDeposits sets the deposits of the beacon block body.
-		SetDeposits([]*ctypes.Deposit)
+		SetDepositDatas([]*ctypes.DepositData)
 		// SetExecutionPayload sets the execution data of the beacon block body.
 		SetExecutionPayload(*ctypes.ExecutionPayload)
 		// SetGraffiti sets the graffiti of the beacon block body.
@@ -327,8 +327,8 @@ type (
 	// 		GetSkipValidateResult() bool
 	// 	}
 
-	// Deposit is the interface for a deposit.
-	Deposit[
+	// DepositData is the interface for a deposit.
+	DepositData[
 		T any,
 	] interface {
 		constraints.Empty[T]
@@ -341,7 +341,7 @@ type (
 			crypto.BLSSignature,
 			uint64,
 		) T
-		// Equals returns true if the Deposit is equal to the other.
+		// Equals returns true if the DepositData is equal to the other.
 		Equals(T) bool
 		// GetIndex returns the index of the deposit.
 		GetIndex() math.U64
@@ -367,18 +367,20 @@ type (
 
 	DepositStore interface {
 		// GetDepositsByIndex returns `numView` expected deposits.
-		GetDepositsByIndex(
-			startIndex uint64,
-			numView uint64,
-		) (ctypes.Deposits, error)
+		GetDepositsByIndex(startIndex, numView uint64) (ctypes.Deposits, error)
 		// Prune prunes the deposit store of [start, end)
 		Prune(start, end uint64) error
-		// EnqueueDeposits adds a list of deposits to the deposit store.
-		EnqueueDeposits(
-			deposits []*ctypes.Deposit,
+		// EnqueueDepositDatas adds a list of deposits to the deposit store.
+		EnqueueDepositDatas(
+			deposits []*ctypes.DepositData,
 			executionBlockHash common.ExecutionHash,
 			executionBlockNumber math.U64,
 		) error
+		// GetDepositsRoot returns the root of the deposit merkle tree. This is
+		// the hash tree root of the deposit datas.
+		GetDepositsRoot() common.Root
+		// GetDepositsCount returns the number of deposits in the store.
+		GetDepositsCount() uint64
 	}
 
 	// Genesis is the interface for the genesis.
@@ -387,7 +389,7 @@ type (
 		// GetForkVersion returns the fork version.
 		GetForkVersion() common.Version
 		// GetDeposits returns the deposits.
-		GetDeposits() []*ctypes.Deposit
+		GetDepositDatas() []*ctypes.DepositData
 		// GetExecutionPayloadHeader returns the execution payload header.
 		GetExecutionPayloadHeader() *ctypes.ExecutionPayloadHeader
 	}
@@ -461,13 +463,9 @@ type (
 		ContextT any,
 	] interface {
 		// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
-		// state
-		// from the eth1 deposits.
+		// state from the eth1 deposits.
 		InitializePreminedBeaconStateFromEth1(
-			BeaconStateT,
-			ctypes.Deposits,
-			*ctypes.ExecutionPayloadHeader,
-			common.Version,
+			BeaconStateT, *ctypes.ExecutionPayloadHeader, common.Version,
 		) (transition.ValidatorUpdates, error)
 		// ProcessSlot processes the slot.
 		ProcessSlots(

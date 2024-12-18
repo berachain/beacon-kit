@@ -67,7 +67,7 @@ type BeaconBlockBody interface {
 	// SetEth1Data sets the Eth1 data of the beacon block body.
 	SetEth1Data(*ctypes.Eth1Data)
 	// SetDeposits sets the deposits of the beacon block body.
-	SetDeposits([]*ctypes.Deposit)
+	SetDepositDatas([]*ctypes.DepositData)
 	// SetExecutionPayload sets the execution data of the beacon block body.
 	SetExecutionPayload(*ctypes.ExecutionPayload)
 	// SetGraffiti sets the graffiti of the beacon block body.
@@ -112,17 +112,13 @@ type BlobFactory[
 		blobs ctypes.BlobsBundle,
 		signer crypto.BLSSigner,
 		forkData *ctypes.ForkData,
-
 	) (BlobSidecarsT, error)
 }
 
 // DepositStore defines the interface for deposit storage.
 type DepositStore interface {
 	// GetDepositsByIndex returns `numView` expected deposits.
-	GetDepositsByIndex(
-		startIndex uint64,
-		numView uint64,
-	) (ctypes.Deposits, error)
+	GetDepositsByIndex(startIndex, numView uint64) (ctypes.Deposits, error)
 }
 
 // ForkData represents the fork data interface.

@@ -68,7 +68,7 @@ func NewWrappedDepositContract(
 // ReadDeposits reads deposits from the deposit contract.
 func (dc *WrappedDepositContract) ReadDeposits(
 	ctx context.Context, blkNum math.U64,
-) ([]*ctypes.Deposit, common.ExecutionHash, error) {
+) ([]*ctypes.DepositData, common.ExecutionHash, error) {
 	logs, err := dc.FilterDeposit(
 		&bind.FilterOpts{
 			Context: ctx,
@@ -82,7 +82,7 @@ func (dc *WrappedDepositContract) ReadDeposits(
 
 	var (
 		blockNumStr = blkNum.Base10()
-		deposits    = make([]*ctypes.Deposit, 0)
+		deposits    = make([]*ctypes.DepositData, 0)
 		blockHash   common.ExecutionHash
 	)
 	for logs.Next() {
@@ -104,7 +104,7 @@ func (dc *WrappedDepositContract) ReadDeposits(
 			return nil, blockHash, fmt.Errorf("failed reading signature: %w", err)
 		}
 
-		deposits = append(deposits, ctypes.NewDeposit(
+		deposits = append(deposits, ctypes.NewDepositData(
 			pubKey, ctypes.WithdrawalCredentials(cred), math.U64(logs.Event.Amount), sign, logs.Event.Index,
 		))
 

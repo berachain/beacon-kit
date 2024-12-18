@@ -30,6 +30,7 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/storage/deposit/merkle"
 	"github.com/berachain/beacon-kit/storage/encoding"
@@ -47,7 +48,7 @@ type Store struct {
 	tree *merkle.DepositTree
 
 	// store is the KV store that holds the deposits.
-	store sdkcollections.Map[uint64, *ctypes.Deposit]
+	store sdkcollections.Map[uint64, *ctypes.DepositData]
 
 	// mu protects store for concurrent access.
 	mu sync.RWMutex
@@ -63,7 +64,7 @@ func NewStore(kvsp store.KVStoreService) *Store {
 			sdkcollections.NewPrefix([]byte(KeyDepositPrefix)),
 			KeyDepositPrefix,
 			sdkcollections.Uint64Key,
-			encoding.SSZValueCodec[*ctypes.Deposit]{},
+			encoding.SSZValueCodec[*ctypes.DepositData]{},
 		),
 	}
 	if _, err := schemaBuilder.Build(); err != nil {
@@ -77,20 +78,23 @@ func NewStore(kvsp store.KVStoreService) *Store {
 // last deposit.
 func (s *Store) GetDepositsByIndex(
 	startIndex uint64,
-	depRange uint64,
+	numView uint64,
 ) (ctypes.Deposits, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	var (
 		deposits = ctypes.Deposits{}
-		endIdx   = startIndex + depRange
+		endIdx   = startIndex + numView
 	)
 
 	for i := startIndex; i < endIdx; i++ {
 		deposit, err := s.store.Get(context.TODO(), i)
 		switch {
 		case err == nil:
-			deposits = append(deposits, deposit)
+			deposits = append(deposits, ctypes.NewDeposit(
+				[constants.DepositContractDepth + 1]common.Root{}, // TODO: get proof.
+				deposit,
+			))
 		case errors.Is(err, sdkcollections.ErrNotFound):
 			return deposits, nil
 		default:
@@ -103,9 +107,20 @@ func (s *Store) GetDepositsByIndex(
 	return deposits, nil
 }
 
-// EnqueueDeposits pushes multiple deposits to the queue.
-func (s *Store) EnqueueDeposits(
-	deposits []*ctypes.Deposit,
+// GetDepositsRoot returns the root of the deposit merkle tree. This is the hash tree
+// root of the deposit datas.
+func (s *Store) GetDepositsRoot() common.Root {
+	return s.tree.HashTreeRoot()
+}
+
+// GetDepositsCount returns the number of deposits in the store.
+func (s *Store) GetDepositsCount() uint64 {
+	return s.tree.NumOfItems()
+}
+
+// EnqueueDepositDatas pushes multiple deposits to the queue.
+func (s *Store) EnqueueDepositDatas(
+	deposits []*ctypes.DepositData,
 	executionBlockHash common.ExecutionHash,
 	executionBlockNumber math.U64,
 ) error {

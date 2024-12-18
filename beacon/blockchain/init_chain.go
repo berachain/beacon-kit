@@ -41,9 +41,9 @@ func (s *Service[
 		return nil, err
 	}
 
-	genesisDeposits := genesisData.GetDeposits()
+	genesisDeposits := genesisData.GetDepositDatas()
 	genesisExecutionPayloadHeader := genesisData.GetExecutionPayloadHeader()
-	if err := s.depositStore.EnqueueDeposits(
+	if err := s.depositStore.EnqueueDepositDatas(
 		genesisDeposits,
 		genesisExecutionPayloadHeader.BlockHash,
 		genesisExecutionPayloadHeader.Number,
@@ -54,7 +54,6 @@ func (s *Service[
 
 	return s.stateProcessor.InitializePreminedBeaconStateFromEth1(
 		s.storageBackend.StateFromContext(ctx),
-		genesisDeposits,
 		genesisExecutionPayloadHeader,
 		genesisData.GetForkVersion(),
 	)

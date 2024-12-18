@@ -33,14 +33,14 @@ import (
 	"github.com/berachain/beacon-kit/primitives/version"
 )
 
-// InitializePreminedBeaconStateFromEth1 initializes the beacon state.
+// InitializePreminedBeaconStateFromEth1 initializes the beacon state. It assumes the genesis
+// deposits are already enqueued in the deposit store to allow for proof verification.
 //
 //nolint:gocognit,funlen // todo fix.
 func (sp *StateProcessor[
 	_, BeaconStateT, _, _,
 ]) InitializePreminedBeaconStateFromEth1(
 	st BeaconStateT,
-	deposits ctypes.Deposits,
 	execPayloadHeader *ctypes.ExecutionPayloadHeader,
 	genesisVersion common.Version,
 ) (transition.ValidatorUpdates, error) {
@@ -53,11 +53,16 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	// Eth1DepositIndex will be set in processDeposit
+	// Get the deposits from the deposit store, with their proofs.
+	depositsCount := sp.ds.GetDepositsCount()
+	deposits, err := sp.ds.GetDepositsByIndex(0, depositsCount)
+	if err != nil {
+		return nil, err
+	}
 
 	var eth1Data *ctypes.Eth1Data
 	eth1Data = eth1Data.New(
-		deposits.HashTreeRoot(), math.U64(len(deposits)), execPayloadHeader.GetBlockHash(),
+		sp.ds.GetDepositsRoot(), math.U64(depositsCount), execPayloadHeader.GetBlockHash(),
 	)
 	if err := st.SetEth1Data(eth1Data); err != nil {
 		return nil, err
