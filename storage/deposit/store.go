@@ -38,59 +38,41 @@ type Store struct {
 
 	// pendingDeposits holds the pending deposits for blocks that have yet to be
 	// processed by the CL.
-	pendingDeposits []*Block
+	pendingDeposits []*block
 
-	// lastUsedIndex is the index of the last deposit included in CL blocks.
-	lastUsedIndex uint64
+	// retrievalInfo holds the necessary information to retrieve deposits for the next CL
+	// block request.
+	retrievalInfo retrievalInfo
 
 	// mu protects store for concurrent access.
-	mu sync.RWMutex
+	mu sync.Mutex
 }
 
 // NewStore creates a new deposit store.
 func NewStore() *Store {
-	res := &Store{
+	return &Store{
 		tree:            merkle.NewDepositTree(),
-		pendingDeposits: make([]*Block, 0),
+		pendingDeposits: make([]*block, 0),
 	}
-	return res
 }
 
 // GetDepositsByIndex returns the first N deposits starting from the given
 // index. If N is greater than the number of deposits, it returns up to the
 // last deposit available. It also returns the deposit tree root at the end of
 // the range.
-func (s *Store) GetDepositsByIndex(
-	startIndex, numView uint64,
-) (ctypes.Deposits, common.Root, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+func (s *Store) GetDepositsByIndex(numView uint64) (ctypes.Deposits, common.Root, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	var (
-		deposits = ctypes.Deposits{}
-		// maxIndex    = startIndex + numView
+		deposits    = ctypes.Deposits{}
 		depTreeRoot common.Root
 	)
 
-	// for i := startIndex; i < maxIndex; i++ {
-	// 	deposit, err := s.store.Get(context.TODO(), i)
-	// 	if err == nil {
-	// 		deposits = append(deposits, deposit)
-	// 		continue
-	// 	}
-
-	// 	if errors.Is(err, sdkcollections.ErrNotFound) {
-	// 		depTreeRoot = s.pendingDepositsToRoots[i-1]
-	// 		break
-	// 	}
-
-	// 	return nil, common.Root{}, errors.Wrapf(
-	// 		err, "failed to get deposit %d, start: %d, end: %d", i, startIndex, maxIndex,
-	// 	)
-	// }
-
-	// if depTreeRoot == (common.Root{}) {
-	// 	depTreeRoot = s.pendingDepositsToRoots[maxIndex-1]
-	// }
+	startBlock := s.pendingDeposits[s.retrievalInfo.nextBlocksIndex]
+	for i := s.retrievalInfo.nextBlockDepositsIndex; i < len(startBlock.deposits); i++ {
+		deposits = append(deposits, startBlock.deposits[i])
+	}
 
 	return deposits, depTreeRoot, nil
 }
@@ -108,7 +90,7 @@ func (s *Store) EnqueueDepositDatas(
 	defer s.mu.Unlock()
 
 	// Build the deposits information for the block while inserting into the deposit tree.
-	block := &Block{
+	block := &block{
 		executionHash:   executionHash,
 		executionNumber: executionNumber,
 		deposits:        make(ctypes.Deposits, len(depositDatas)),

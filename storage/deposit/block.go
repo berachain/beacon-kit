@@ -26,7 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-// block holds the necessary information of pending deposits in a block.
+// block holds the necessary information of deposits in a block.
 type block struct {
 	// the number of the finalized execution block, provided by EL.
 	executionNumber math.U64
@@ -46,4 +46,5 @@ type block struct {
 // block request.
 type retrievalInfo struct {
 	// the index of the block that should be searched from.
+	nextBlocksIndex int
 }
