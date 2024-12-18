@@ -27,6 +27,7 @@ import (
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/storage/beacondb/index"
 	"github.com/berachain/beacon-kit/storage/beacondb/keys"
 	"github.com/berachain/beacon-kit/storage/encoding"
@@ -56,6 +57,9 @@ type KVStore struct {
 	eth1Data sdkcollections.Item[*ctypes.Eth1Data]
 	// eth1DepositIndex is the index of the latest eth1 deposit.
 	eth1DepositIndex sdkcollections.Item[uint64]
+
+	blockDepositRoot sdkcollections.Item[common.Root]
+
 	// latestExecutionPayloadVersion stores the latest execution payload
 	// version.
 	latestExecutionPayloadVersion sdkcollections.Item[uint32]

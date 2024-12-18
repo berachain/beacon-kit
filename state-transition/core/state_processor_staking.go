@@ -60,6 +60,10 @@ func (sp *StateProcessor[
 			return err
 		}
 	}
+
+	// Add deposits to beaconState
+	st.SetDepositRoot(deposits)
+
 	return nil
 }
 
