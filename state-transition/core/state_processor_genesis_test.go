@@ -35,7 +35,7 @@ import (
 
 func TestInitialize(t *testing.T) {
 	cs := setupChain(t, components.BetnetChainSpecType)
-	sp, st, _, _ := setupState(t, cs)
+	sp, st, ds, _ := setupState(t, cs)
 
 	var (
 		maxBalance = math.Gwei(cs.MaxEffectiveBalance(false))
@@ -112,8 +112,7 @@ func TestInitialize(t *testing.T) {
 			},
 		}
 		goodDeposits = []*types.DepositData{
-			genDeposits[0], genDeposits[1], genDeposits[3],
-			genDeposits[5], genDeposits[6],
+			genDeposits[0], genDeposits[1], genDeposits[3], genDeposits[5], genDeposits[6],
 		}
 		executionPayloadHeader = &types.ExecutionPayloadHeader{}
 		fork                   = &types.Fork{
@@ -123,12 +122,13 @@ func TestInitialize(t *testing.T) {
 		}
 	)
 
+	require.NoError(t, ds.EnqueueDepositDatas(
+		genDeposits, executionPayloadHeader.GetBlockHash(), executionPayloadHeader.GetNumber(),
+	))
+
 	// run test
 	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
-		st,
-		genDeposits,
-		executionPayloadHeader,
-		fork.CurrentVersion,
+		st, executionPayloadHeader, fork.CurrentVersion,
 	)
 
 	// check outputs
@@ -189,7 +189,7 @@ func checkValidatorNonBartio(
 
 func TestInitializeBartio(t *testing.T) {
 	cs := setupChain(t, components.TestnetChainSpecType)
-	sp, st, _, _ := setupState(t, cs)
+	sp, st, ds, _ := setupState(t, cs)
 
 	var (
 		maxBalance = math.Gwei(cs.MaxEffectiveBalance(false))
@@ -276,12 +276,13 @@ func TestInitializeBartio(t *testing.T) {
 		}
 	)
 
+	require.NoError(t, ds.EnqueueDepositDatas(
+		genDeposits, executionPayloadHeader.GetBlockHash(), executionPayloadHeader.GetNumber(),
+	))
+
 	// run test
 	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
-		st,
-		genDeposits,
-		executionPayloadHeader,
-		fork.CurrentVersion,
+		st, executionPayloadHeader, fork.CurrentVersion,
 	)
 
 	// check outputs
