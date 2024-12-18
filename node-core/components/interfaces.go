@@ -224,7 +224,7 @@ type (
 		Get(index int) BlobSidecarT
 		GetSidecars() []BlobSidecarT
 		ValidateBlockRoots() error
-		VerifyInclusionProofs(kzgOffset uint64) error
+		VerifyInclusionProofs(kzgOffset uint64, inclusionProofDepth uint8) error
 	}
 
 	BlobVerifier[BlobSidecarsT any] interface {
