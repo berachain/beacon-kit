@@ -18,52 +18,8 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package pow
+//nolint:testpackage // private functions.
+package merkle
 
-// TwoToThePowerOf returns 2^n. panics if n >= 64.
-//
-//nolint:mnd // todo fix.
-func TwoToThePowerOf[U64T ~uint64](n U64T) U64T {
-	if n >= 64 {
-		panic("integer overflow")
-	}
-
-	return 1 << n
-}
-
-// PrevPowerOfTwo returns the previous power of 2 for the given input.
-//
-//nolint:mnd // todo fix.
-func PrevPowerOfTwo[U64T ~uint64](u U64T) U64T {
-	if u <= 1 {
-		return 1
-	}
-	u |= u >> 1
-	u |= u >> 2
-	u |= u >> 4
-	u |= u >> 8
-	u |= u >> 16
-	u |= u >> 32
-	return u - (u >> 1)
-}
-
-// NextPowerOfTwo returns the next power of 2 for the given input.
-//
-//nolint:mnd // todo fix.
-func NextPowerOfTwo[U64T ~uint64](u U64T) U64T {
-	if u <= 1 {
-		return 1
-	}
-	if u > 1<<63 {
-		panic("Next power of 2 is 1 << 64.")
-	}
-	u--
-	u |= u >> 1
-	u |= u >> 2
-	u |= u >> 4
-	u |= u >> 8
-	u |= u >> 16
-	u |= u >> 32
-	u++
-	return u
-}
+// TODO: Add tests for the spec against
+// https://github.com/ethereum/EIPs/blob/master/assets/eip-4881/test_cases.yaml.

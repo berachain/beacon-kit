@@ -42,15 +42,15 @@ func (ds Deposits) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {
 func (ds Deposits) DefineSSZ(c *ssz.Codec) {
 	c.DefineDecoder(func(*ssz.Decoder) {
 		ssz.DefineSliceOfStaticObjectsContent(
-			c, (*[]*Deposit)(&ds), constants.MaxDepositsPerBlock)
+			c, (*[]*Deposit)(&ds), constants.MaxDeposits)
 	})
 	c.DefineEncoder(func(*ssz.Encoder) {
 		ssz.DefineSliceOfStaticObjectsContent(
-			c, (*[]*Deposit)(&ds), constants.MaxDepositsPerBlock)
+			c, (*[]*Deposit)(&ds), constants.MaxDeposits)
 	})
 	c.DefineHasher(func(*ssz.Hasher) {
 		ssz.DefineSliceOfStaticObjectsOffset(
-			c, (*[]*Deposit)(&ds), constants.MaxDepositsPerBlock)
+			c, (*[]*Deposit)(&ds), constants.MaxDeposits)
 	})
 }
 
