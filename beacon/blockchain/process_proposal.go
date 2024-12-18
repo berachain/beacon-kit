@@ -85,15 +85,15 @@ func (s *Service[
 	}
 
 	// Make sure we have the right number of BlobSidecars
-	kzgCommitments := blk.GetBody().GetBlobKzgCommitments()
-	if len(kzgCommitments) != sidecars.Len() {
+	numCommitments := len(blk.GetBody().GetBlobKzgCommitments())
+	if numCommitments != sidecars.Len() {
 		err = fmt.Errorf("expected %d sidecars, got %d",
-			len(kzgCommitments), sidecars.Len(),
+			numCommitments, sidecars.Len(),
 		)
 		return createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
 
-	if len(kzgCommitments) > 0 {
+	if numCommitments > 0 {
 		// Process the blob sidecars
 		//
 		// In theory, swapping the order of verification between the sidecars
