@@ -260,7 +260,7 @@ func stringToUint64(s string) (uint64, error) {
 func merkleRootFromBranch(
 	hasher merkle.Hasher[common.Root],
 	leaf common.Root,
-	branch []common.Root,
+	branch [constants.DepositContractDepth + 1]common.Root,
 	index uint64,
 ) common.Root {
 	root := leaf

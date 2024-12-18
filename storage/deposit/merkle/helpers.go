@@ -21,9 +21,8 @@
 package merkle
 
 import (
-	"slices"
-
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math/pow"
 	"github.com/berachain/beacon-kit/primitives/merkle"
 )
@@ -108,24 +107,22 @@ func fromSnapshotParts(
 
 // generateProof returns a merkle proof and root.
 func generateProof(
-	tree TreeNode,
-	index uint64,
-	depth uint64,
-) (common.Root, []common.Root) {
-	var proof []common.Root
+	tree TreeNode, index uint64, depth uint64,
+) (common.Root, [constants.DepositContractDepth]common.Root) {
+	var proof [constants.DepositContractDepth]common.Root
 	node := tree
 	for depth > 0 {
 		ithBit := (index >> (depth - 1)) & 0x1 //nolint:mnd // spec.
 		if ithBit == 1 {
-			proof = append(proof, node.Left().GetRoot())
+			proof[depth-1] = node.Left().GetRoot()
 			node = node.Right()
 		} else {
-			proof = append(proof, node.Right().GetRoot())
+			proof[depth-1] = node.Right().GetRoot()
 			node = node.Left()
 		}
 		depth--
 	}
 
-	slices.Reverse(proof)
+	// slices.Reverse(proof)
 	return node.GetRoot(), proof
 }

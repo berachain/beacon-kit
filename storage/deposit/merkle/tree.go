@@ -44,6 +44,8 @@ type executionBlock struct {
 }
 
 // NewDepositTree creates an empty deposit tree.
+//
+// NOTE: Not safe for concurrent use as it uses a single hasher.
 func NewDepositTree() *DepositTree {
 	var (
 		hasher = merkle.NewHasher[common.Root](sha256.Hash)
@@ -89,34 +91,41 @@ func (d *DepositTree) Finalize(
 }
 
 // getProof returns the deposit tree proof.
-func (d *DepositTree) getProof(index uint64) (common.Root, []common.Root, error) {
+func (d *DepositTree) getProof(index uint64) (
+	common.Root, [constants.DepositContractDepth + 1]common.Root, error,
+) {
+	var proof [constants.DepositContractDepth + 1]common.Root
+
 	if d.mixInLength <= 0 {
-		return common.Root{}, nil, ErrInvalidDepositCount
+		return common.Root{}, proof, ErrInvalidDepositCount
 	}
 	if index >= d.mixInLength {
-		return common.Root{}, nil, ErrInvalidIndex
+		return common.Root{}, proof, ErrInvalidIndex
 	}
+
 	finalizedDeposits, _ := d.tree.GetFinalized([]common.Root{})
 	finalizedIdx := -1
 	if finalizedDeposits != 0 {
 		fd, err := math.Int(finalizedDeposits)
 		if err != nil {
-			return common.Root{}, nil, err
+			return common.Root{}, proof, err
 		}
 		finalizedIdx = fd - 1
 	}
 	i, err := math.Int(index)
 	if err != nil {
-		return common.Root{}, nil, err
+		return common.Root{}, proof, err
 	}
 	if finalizedDeposits > 0 && i <= finalizedIdx {
-		return common.Root{}, nil, ErrInvalidIndex
+		return common.Root{}, proof, ErrInvalidIndex
 	}
-	leaf, proof := generateProof(d.tree, index, constants.DepositContractDepth)
+
+	leaf, proofWithoutMixin := generateProof(d.tree, index, constants.DepositContractDepth)
+	copy(proof[:constants.DepositContractDepth], proofWithoutMixin[:])
 
 	mixInLength := common.Root{}
 	binary.LittleEndian.PutUint64(mixInLength[:], d.mixInLength)
-	proof = append(proof, mixInLength)
+	proof[constants.DepositContractDepth] = mixInLength
 	return leaf, proof, nil
 }
 
@@ -156,7 +165,9 @@ func (d *DepositTree) NumOfItems() uint64 {
 }
 
 // MerkleProof is defined as part of MerkleTree interface and generates a merkle proof.
-func (d *DepositTree) MerkleProof(index uint64) ([]common.Root, error) {
+func (d *DepositTree) MerkleProof(index uint64) (
+	[constants.DepositContractDepth + 1]common.Root, error,
+) {
 	_, proof, err := d.getProof(index)
 	return proof, err
 }
