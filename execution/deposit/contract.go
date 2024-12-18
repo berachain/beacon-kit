@@ -22,10 +22,9 @@ package deposit
 
 import (
 	"context"
-	"errors"
-	"fmt"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/errors"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/geth-primitives/bind"
 	"github.com/berachain/beacon-kit/geth-primitives/deposit"
@@ -93,15 +92,15 @@ func (dc *WrappedDepositContract) ReadDeposits(
 		)
 		pubKey, err = bytes.ToBytes48(logs.Event.Pubkey)
 		if err != nil {
-			return nil, blockHash, fmt.Errorf("failed reading pub key: %w", err)
+			return nil, blockHash, errors.Wrap(err, "failed reading pub key")
 		}
 		cred, err = bytes.ToBytes32(logs.Event.Credentials)
 		if err != nil {
-			return nil, blockHash, fmt.Errorf("failed reading credentials: %w", err)
+			return nil, blockHash, errors.Wrap(err, "failed reading credentials")
 		}
 		sign, err = bytes.ToBytes96(logs.Event.Signature)
 		if err != nil {
-			return nil, blockHash, fmt.Errorf("failed reading signature: %w", err)
+			return nil, blockHash, errors.Wrap(err, "failed reading signature")
 		}
 
 		deposits = append(deposits, ctypes.NewDepositData(

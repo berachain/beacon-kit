@@ -52,7 +52,6 @@ func TestInitialize(t *testing.T) {
 				Credentials: types.NewCredentialsFromExecutionAddress(
 					common.ExecutionAddress{0x01},
 				),
-				Index: uint64(0),
 			},
 			{
 				Pubkey: [48]byte{0x02},
@@ -60,7 +59,6 @@ func TestInitialize(t *testing.T) {
 				Credentials: types.NewCredentialsFromExecutionAddress(
 					common.ExecutionAddress{0x02},
 				),
-				Index: uint64(1),
 			},
 			{
 				Pubkey: [48]byte{0x03},
@@ -68,7 +66,6 @@ func TestInitialize(t *testing.T) {
 				Credentials: types.NewCredentialsFromExecutionAddress(
 					common.ExecutionAddress{0x03},
 				),
-				Index: uint64(2),
 			},
 			{
 				Pubkey: [48]byte{0x04},
@@ -76,7 +73,6 @@ func TestInitialize(t *testing.T) {
 				Credentials: types.NewCredentialsFromExecutionAddress(
 					common.ExecutionAddress{0x04},
 				),
-				Index: uint64(3),
 			},
 			{
 				Pubkey: [48]byte{0x05},
@@ -84,7 +80,6 @@ func TestInitialize(t *testing.T) {
 				Credentials: types.NewCredentialsFromExecutionAddress(
 					common.ExecutionAddress{0x05},
 				),
-				Index: uint64(4),
 			},
 			{
 				Pubkey: [48]byte{0x06},
@@ -92,7 +87,6 @@ func TestInitialize(t *testing.T) {
 				Credentials: types.NewCredentialsFromExecutionAddress(
 					common.ExecutionAddress{0x06},
 				),
-				Index: uint64(5),
 			},
 			{
 				Pubkey: [48]byte{0x07},
@@ -100,7 +94,6 @@ func TestInitialize(t *testing.T) {
 				Credentials: types.NewCredentialsFromExecutionAddress(
 					common.ExecutionAddress{0x07},
 				),
-				Index: uint64(6),
 			},
 			{
 				Pubkey: [48]byte{0x08},
@@ -108,7 +101,6 @@ func TestInitialize(t *testing.T) {
 				Credentials: types.NewCredentialsFromExecutionAddress(
 					common.ExecutionAddress{0x08},
 				),
-				Index: uint64(7),
 			},
 		}
 		goodDeposits = []*types.DepositData{
@@ -123,10 +115,12 @@ func TestInitialize(t *testing.T) {
 	)
 
 	require.NoError(t, ds.EnqueueDepositDatas(genDeposits))
+	deposits, root, err := ds.GetDepositsByIndex(0, uint64(len(genDeposits)))
+	require.NoError(t, err)
 
 	// run test
 	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
-		st, executionPayloadHeader, fork.CurrentVersion,
+		st, deposits, root, executionPayloadHeader, fork.CurrentVersion,
 	)
 	require.NoError(t, err)
 	require.Len(t, genVals, len(goodDeposits))
@@ -201,7 +195,6 @@ func TestInitializeBartio(t *testing.T) {
 				Credentials: types.NewCredentialsFromExecutionAddress(
 					common.ExecutionAddress{0x01},
 				),
-				Index: uint64(0),
 			},
 			{
 				Pubkey: [48]byte{0x02},
@@ -209,7 +202,6 @@ func TestInitializeBartio(t *testing.T) {
 				Credentials: types.NewCredentialsFromExecutionAddress(
 					common.ExecutionAddress{0x02},
 				),
-				Index: uint64(1),
 			},
 			{
 				Pubkey: [48]byte{0x03},
@@ -217,7 +209,6 @@ func TestInitializeBartio(t *testing.T) {
 				Credentials: types.NewCredentialsFromExecutionAddress(
 					common.ExecutionAddress{0x03},
 				),
-				Index: uint64(2),
 			},
 			{
 				Pubkey: [48]byte{0x04},
@@ -225,7 +216,6 @@ func TestInitializeBartio(t *testing.T) {
 				Credentials: types.NewCredentialsFromExecutionAddress(
 					common.ExecutionAddress{0x04},
 				),
-				Index: uint64(3),
 			},
 			{
 				Pubkey: [48]byte{0x05},
@@ -233,7 +223,6 @@ func TestInitializeBartio(t *testing.T) {
 				Credentials: types.NewCredentialsFromExecutionAddress(
 					common.ExecutionAddress{0x05},
 				),
-				Index: uint64(4),
 			},
 			{
 				Pubkey: [48]byte{0x06},
@@ -241,7 +230,6 @@ func TestInitializeBartio(t *testing.T) {
 				Credentials: types.NewCredentialsFromExecutionAddress(
 					common.ExecutionAddress{0x06},
 				),
-				Index: uint64(5),
 			},
 			{
 				Pubkey: [48]byte{0x07},
@@ -249,7 +237,6 @@ func TestInitializeBartio(t *testing.T) {
 				Credentials: types.NewCredentialsFromExecutionAddress(
 					common.ExecutionAddress{0x07},
 				),
-				Index: uint64(6),
 			},
 			{
 				Pubkey: [48]byte{0x08},
@@ -257,12 +244,10 @@ func TestInitializeBartio(t *testing.T) {
 				Credentials: types.NewCredentialsFromExecutionAddress(
 					common.ExecutionAddress{0x08},
 				),
-				Index: uint64(7),
 			},
 		}
 		goodDeposits = []*types.DepositData{
-			genDeposits[0], genDeposits[1], genDeposits[3],
-			genDeposits[5], genDeposits[6],
+			genDeposits[0], genDeposits[1], genDeposits[3], genDeposits[5], genDeposits[6],
 		}
 		executionPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		fork                   = &types.Fork{
@@ -273,10 +258,12 @@ func TestInitializeBartio(t *testing.T) {
 	)
 
 	require.NoError(t, ds.EnqueueDepositDatas(genDeposits))
+	deposits, root, err := ds.GetDepositsByIndex(0, uint64(len(genDeposits)))
+	require.NoError(t, err)
 
 	// run test
 	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
-		st, executionPayloadHeader, fork.CurrentVersion,
+		st, deposits, root, executionPayloadHeader, fork.CurrentVersion,
 	)
 	require.NoError(t, err)
 	require.Len(t, genVals, len(goodDeposits))

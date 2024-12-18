@@ -59,19 +59,16 @@ func TestTransitionUpdateValidators(t *testing.T) {
 				Pubkey:      [48]byte{0x00},
 				Credentials: emptyCredentials,
 				Amount:      minBalance + increment,
-				Index:       uint64(0),
 			},
 			{
 				Pubkey:      [48]byte{0x01},
 				Credentials: emptyCredentials,
 				Amount:      maxBalance - 6*increment,
-				Index:       uint64(1),
 			},
 			{
 				Pubkey:      [48]byte{0x03},
 				Credentials: emptyCredentials,
 				Amount:      maxBalance - 3*increment,
-				Index:       uint64(2),
 			},
 		}
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
@@ -79,7 +76,10 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	)
 
 	require.NoError(t, ds.EnqueueDepositDatas(genDeposits))
-	valDiff, err := sp.InitializePreminedBeaconStateFromEth1(st, genPayloadHeader, genVersion)
+	deposits, root, err := ds.GetDepositsByIndex(0, uint64(len(genDeposits)))
+	require.NoError(t, err)
+	valDiff, err := sp.InitializePreminedBeaconStateFromEth1(
+		st, deposits, root, genPayloadHeader, genVersion)
 	require.NoError(t, err)
 	require.Len(t, valDiff, len(genDeposits))
 
@@ -88,13 +88,12 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		Pubkey:      genDeposits[2].Pubkey,
 		Credentials: emptyCredentials,
 		Amount:      2 * increment, // twice to account for hysteresis
-		Index:       uint64(len(genDeposits)),
 	}
 
 	// make sure included deposit is already available in deposit store
 	depositDatas := []*types.DepositData{blkDeposit}
 	require.NoError(t, ds.EnqueueDepositDatas(depositDatas))
-	deposits, _, err := ds.GetDepositsByIndex(uint64(len(genDeposits)), 1)
+	deposits, _, err = ds.GetDepositsByIndex(uint64(len(genDeposits)), 1)
 	require.NoError(t, err)
 	blk1 := buildNextBlock(
 		t,
@@ -208,7 +207,6 @@ func TestTransitionCreateValidator(t *testing.T) {
 				Pubkey:      [48]byte{0x01},
 				Credentials: emptyCredentials,
 				Amount:      minBalance + increment,
-				Index:       uint64(0),
 			},
 		}
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
@@ -216,7 +214,10 @@ func TestTransitionCreateValidator(t *testing.T) {
 	)
 
 	require.NoError(t, ds.EnqueueDepositDatas(genDeposits))
-	genVals, err := sp.InitializePreminedBeaconStateFromEth1(st, genPayloadHeader, genVersion)
+	deposits, root, err := ds.GetDepositsByIndex(0, uint64(len(genDeposits)))
+	require.NoError(t, err)
+	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
+		st, deposits, root, genPayloadHeader, genVersion)
 	require.NoError(t, err)
 	require.Len(t, genVals, len(genDeposits))
 
@@ -225,13 +226,12 @@ func TestTransitionCreateValidator(t *testing.T) {
 		Pubkey:      [48]byte{0xff}, // a new key for a new validator
 		Credentials: emptyCredentials,
 		Amount:      maxBalance,
-		Index:       uint64(len(genDeposits)),
 	}
 
 	// make sure included deposit is already available in deposit store
 	depositDatas := []*types.DepositData{blkDeposit}
 	require.NoError(t, ds.EnqueueDepositDatas(depositDatas))
-	deposits, _, err := ds.GetDepositsByIndex(uint64(len(genDeposits)), 1)
+	deposits, _, err = ds.GetDepositsByIndex(uint64(len(genDeposits)), 1)
 	require.NoError(t, err)
 
 	blk1 := buildNextBlock(
@@ -402,13 +402,11 @@ func TestTransitionWithdrawals(t *testing.T) {
 				Pubkey:      [48]byte{0x00},
 				Credentials: credentials0,
 				Amount:      maxBalance - 3*minBalance,
-				Index:       0,
 			},
 			{
 				Pubkey:      [48]byte{0x01},
 				Credentials: credentials1,
 				Amount:      maxBalance + minBalance,
-				Index:       1,
 			},
 		}
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
@@ -416,7 +414,10 @@ func TestTransitionWithdrawals(t *testing.T) {
 	)
 
 	require.NoError(t, ds.EnqueueDepositDatas(genDeposits))
-	_, err := sp.InitializePreminedBeaconStateFromEth1(st, genPayloadHeader, genVersion)
+	deposits, root, err := ds.GetDepositsByIndex(0, uint64(len(genDeposits)))
+	require.NoError(t, err)
+	_, err = sp.InitializePreminedBeaconStateFromEth1(
+		st, deposits, root, genPayloadHeader, genVersion)
 	require.NoError(t, err)
 
 	// Progress state to fork 2.
@@ -494,13 +495,11 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 				Pubkey:      [48]byte{0x00},
 				Credentials: credentials0,
 				Amount:      maxBalance + minBalance,
-				Index:       0,
 			},
 			{
 				Pubkey:      [48]byte{0x01},
 				Credentials: credentials1,
 				Amount:      maxBalance + minBalance,
-				Index:       1,
 			},
 		}
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
@@ -508,7 +507,10 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	)
 
 	require.NoError(t, ds.EnqueueDepositDatas(genDeposits))
-	_, err = sp.InitializePreminedBeaconStateFromEth1(st, genPayloadHeader, genVersion)
+	deposits, root, err := ds.GetDepositsByIndex(0, uint64(len(genDeposits)))
+	require.NoError(t, err)
+	_, err = sp.InitializePreminedBeaconStateFromEth1(
+		st, deposits, root, genPayloadHeader, genVersion)
 	require.NoError(t, err)
 
 	// Progress state to fork 2.
@@ -634,7 +636,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	)
 
 	// let genesis define all available validators
-	for idx := range cs.ValidatorSetCap() {
+	for range cs.ValidatorSetCap() {
 		var (
 			key   bytes.B48
 			creds types.WithdrawalCredentials
@@ -647,13 +649,15 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				Pubkey:      key,
 				Credentials: creds,
 				Amount:      maxBalance,
-				Index:       idx,
 			},
 		)
 	}
 
 	require.NoError(t, ds.EnqueueDepositDatas(genDeposits))
-	_, err := sp.InitializePreminedBeaconStateFromEth1(st, genPayloadHeader, genVersion)
+	deposits, root, err := ds.GetDepositsByIndex(0, uint64(len(genDeposits)))
+	require.NoError(t, err)
+	_, err = sp.InitializePreminedBeaconStateFromEth1(
+		st, deposits, root, genPayloadHeader, genVersion)
 	require.NoError(t, err)
 
 	// STEP 1: Try and add an extra validator
@@ -664,13 +668,12 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		Pubkey:      extraValKey,
 		Credentials: extraValCreds,
 		Amount:      minBalance,
-		Index:       uint64(len(genDeposits)),
 	}
 
 	// make sure included deposit is already available in deposit store
 	depositDatas := []*types.DepositData{extraValDeposit}
 	require.NoError(t, ds.EnqueueDepositDatas(depositDatas))
-	deposits, _, err := ds.GetDepositsByIndex(uint64(len(genDeposits)), 1)
+	deposits, _, err = ds.GetDepositsByIndex(uint64(len(genDeposits)), 1)
 	require.NoError(t, err)
 
 	blk1 := buildNextBlock(
@@ -860,7 +863,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	)
 
 	// let genesis define all available validators
-	for idx := range cs.ValidatorSetCap() {
+	for range cs.ValidatorSetCap() {
 		var (
 			key   bytes.B48
 			creds types.WithdrawalCredentials
@@ -873,17 +876,18 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				Pubkey:      key,
 				Credentials: creds,
 				Amount:      maxBalance,
-				Index:       idx,
 			},
 		)
 	}
+
 	// make a deposit small to be ready for eviction
 	genDeposits[0].Amount = minBalance
 
 	require.NoError(t, ds.EnqueueDepositDatas(genDeposits))
-
-	var genVals transition.ValidatorUpdates
-	genVals, err := sp.InitializePreminedBeaconStateFromEth1(st, genPayloadHeader, genVersion)
+	deposits, root, err := ds.GetDepositsByIndex(0, uint64(len(genDeposits)))
+	require.NoError(t, err)
+	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
+		st, deposits, root, genPayloadHeader, genVersion)
 	require.NoError(t, err)
 	require.Len(t, genVals, len(genDeposits))
 
@@ -894,13 +898,12 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		Pubkey:      extraValKey,
 		Credentials: extraValCreds,
 		Amount:      maxBalance,
-		Index:       uint64(len(genDeposits)),
 	}
 
 	// make sure included deposit is already available in deposit store
 	depositDatas := []*types.DepositData{extraValDeposit}
 	require.NoError(t, ds.EnqueueDepositDatas(depositDatas))
-	deposits, _, err := ds.GetDepositsByIndex(uint64(len(genDeposits)), 1)
+	deposits, _, err = ds.GetDepositsByIndex(uint64(len(genDeposits)), 1)
 	require.NoError(t, err)
 
 	blk1 := buildNextBlock(

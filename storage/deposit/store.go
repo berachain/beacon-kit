@@ -21,7 +21,6 @@
 package deposit
 
 import (
-	"fmt"
 	"sync"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
@@ -31,7 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/storage/pruner"
 )
 
-const KeyDepositPrefix = "deposit"
+// TODO: index deposits by block height.
 
 // Store is a simple memory store based implementation that
 // maintains a merkle tree of the deposits for verification.
@@ -39,8 +38,8 @@ type Store struct {
 	// tree is the EIP-4881 compliant deposit merkle tree.
 	tree *merkle.DepositTree
 
-	// pendingDepositsToRoots maps the deposit tree root after each deposit.
-	pendingDepositsToRoots map[uint64]common.Root
+	// endOfBlockDepositTreeRoots maps the deposit tree root after each block.
+	endOfBlockDepositTreeRoots map[uint64]common.Root
 
 	// mu protects store for concurrent access.
 	mu sync.Mutex
@@ -49,8 +48,8 @@ type Store struct {
 // NewStore creates a new deposit store.
 func NewStore() *Store {
 	res := &Store{
-		tree:                   merkle.NewDepositTree(),
-		pendingDepositsToRoots: make(map[uint64]common.Root),
+		tree:                       merkle.NewDepositTree(),
+		endOfBlockDepositTreeRoots: make(map[uint64]common.Root),
 	}
 	return res
 }
@@ -80,12 +79,12 @@ func (s *Store) GetDepositsByIndex(
 			)
 		}
 		deposits = append(deposits, ctypes.NewDeposit(proof, nil))
-		delete(s.pendingDepositsToRoots, i-1)
+		delete(s.endOfBlockDepositTreeRoots, i-1)
 	}
 
 	if depTreeRoot == (common.Root{}) {
-		depTreeRoot = s.pendingDepositsToRoots[maxIndex-1]
-		delete(s.pendingDepositsToRoots, maxIndex-1)
+		depTreeRoot = s.endOfBlockDepositTreeRoots[maxIndex-1]
+		delete(s.endOfBlockDepositTreeRoots, maxIndex-1)
 	}
 	return deposits, depTreeRoot, nil
 }
@@ -102,24 +101,24 @@ func (s *Store) EnqueueDepositDatas(deposits []*ctypes.DepositData) error {
 			return errors.Wrap(err, "failed to insert deposit into merkle tree")
 		}
 
-		// s.pendingDepositsToRoots[idx] = s.tree.HashTreeRoot()
+		// s.endOfBlockDepositTreeRoots[idx] = s.tree.HashTreeRoot()
 	}
 
 	return nil
 }
 
-// Prune removes the [start, end) deposits from the store.
+// Prune removes the deposits from heights [start, end).
 func (s *Store) Prune(start, end uint64) error {
 	if start > end {
-		return fmt.Errorf(
-			"DepositStore prune start: %d, end: %d: %w", start, end, pruner.ErrInvalidRange,
+		return errors.Wrapf(
+			pruner.ErrInvalidRange, "DepositStore prune start: %d, end: %d", start, end,
 		)
 	}
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	for i := range end {
-		delete(s.pendingDepositsToRoots, start+i)
+		delete(s.endOfBlockDepositTreeRoots, start+i)
 	}
 
 	return nil

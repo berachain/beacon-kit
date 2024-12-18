@@ -59,10 +59,10 @@ func CollectGenesisDepositsCmd() *cobra.Command {
 				return err
 			}
 
-			var deposits []*types.DepositData
-			if deposits, err = CollectValidatorJSONFiles(
-				filepath.Join(config.RootDir, "config", "premined-deposits"),
-				appGenesis,
+			genesisInfo := &types.Genesis{}
+
+			if genesisInfo.DepositDatas, err = CollectValidatorJSONFiles(
+				filepath.Join(config.RootDir, "config", "premined-deposits"), appGenesis,
 			); err != nil {
 				return errors.Wrap(
 					err,
@@ -70,18 +70,8 @@ func CollectGenesisDepositsCmd() *cobra.Command {
 				)
 			}
 
-			genesisInfo := &types.Genesis{}
-
-			if err = json.Unmarshal(
-				appGenesisState["beacon"], genesisInfo,
-			); err != nil {
+			if err = json.Unmarshal(appGenesisState["beacon"], genesisInfo); err != nil {
 				return errors.Wrap(err, "failed to unmarshal beacon genesis")
-			}
-
-			for i, deposit := range deposits {
-				//#nosec:G701 // won't realistically overflow.
-				deposit.Index = uint64(i)
-				genesisInfo.DepositDatas = append(genesisInfo.DepositDatas, deposit)
 			}
 
 			appGenesisState["beacon"], err = json.Marshal(genesisInfo)
