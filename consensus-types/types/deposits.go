@@ -26,7 +26,7 @@ import (
 	"github.com/karalabe/ssz"
 )
 
-// Deposits is a typealias for a list of Deposits.
+// Deposits is a typealias for a list of Deposit.
 type Deposits []*Deposit
 
 /* -------------------------------------------------------------------------- */
@@ -38,19 +38,16 @@ func (ds Deposits) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {
 	return ssz.SizeSliceOfStaticObjects(siz, ([]*Deposit)(ds))
 }
 
-// DefineSSZ defines the SSZ encoding for the Deposits object.
+// DefineSSZ defines the SSZ encoding for the Deposit object.
 func (ds Deposits) DefineSSZ(c *ssz.Codec) {
 	c.DefineDecoder(func(*ssz.Decoder) {
-		ssz.DefineSliceOfStaticObjectsContent(
-			c, (*[]*Deposit)(&ds), constants.MaxDeposits)
+		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*Deposit)(&ds), constants.MaxDepositsPerBlock)
 	})
 	c.DefineEncoder(func(*ssz.Encoder) {
-		ssz.DefineSliceOfStaticObjectsContent(
-			c, (*[]*Deposit)(&ds), constants.MaxDeposits)
+		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*Deposit)(&ds), constants.MaxDepositsPerBlock)
 	})
 	c.DefineHasher(func(*ssz.Hasher) {
-		ssz.DefineSliceOfStaticObjectsOffset(
-			c, (*[]*Deposit)(&ds), constants.MaxDeposits)
+		ssz.DefineSliceOfStaticObjectsOffset(c, (*[]*Deposit)(&ds), constants.MaxDepositsPerBlock)
 	})
 }
 

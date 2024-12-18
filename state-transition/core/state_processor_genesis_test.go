@@ -45,7 +45,7 @@ func TestInitialize(t *testing.T) {
 
 	// create test inputs
 	var (
-		genDeposits = []*types.Deposit{
+		genDeposits = []*types.DepositData{
 			{
 				Pubkey: [48]byte{0x01},
 				Amount: maxBalance,
@@ -111,7 +111,7 @@ func TestInitialize(t *testing.T) {
 				Index: uint64(7),
 			},
 		}
-		goodDeposits = []*types.Deposit{
+		goodDeposits = []*types.DepositData{
 			genDeposits[0], genDeposits[1], genDeposits[3],
 			genDeposits[5], genDeposits[6],
 		}
@@ -164,7 +164,7 @@ func checkValidatorNonBartio(
 		any,
 	],
 	bs *TestBeaconStateT,
-	dep *types.Deposit,
+	dep *types.DepositData,
 ) {
 	t.Helper()
 
@@ -198,7 +198,7 @@ func TestInitializeBartio(t *testing.T) {
 	)
 
 	var (
-		genDeposits = []*types.Deposit{
+		genDeposits = []*types.DepositData{
 			{
 				Pubkey: [48]byte{0x01},
 				Amount: maxBalance,
@@ -264,7 +264,7 @@ func TestInitializeBartio(t *testing.T) {
 				Index: uint64(7),
 			},
 		}
-		goodDeposits = []*types.Deposit{
+		goodDeposits = []*types.DepositData{
 			genDeposits[0], genDeposits[1], genDeposits[3],
 			genDeposits[5], genDeposits[6],
 		}
@@ -317,7 +317,7 @@ func checkValidatorBartio(
 		any,
 	],
 	bs *TestBeaconStateT,
-	dep *types.Deposit,
+	dep *types.DepositData,
 ) {
 	t.Helper()
 
@@ -357,7 +357,7 @@ func commonChecksValidators(
 		any,
 	],
 	val *types.Validator,
-	dep *types.Deposit,
+	dep *types.DepositData,
 ) {
 	t.Helper()
 	require.Equal(t, dep.Pubkey, val.Pubkey)

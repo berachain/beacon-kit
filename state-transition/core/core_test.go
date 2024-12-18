@@ -32,6 +32,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/consensus-types/types"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/log/noop"
 	"github.com/berachain/beacon-kit/node-core/components"
 	nodemetrics "github.com/berachain/beacon-kit/node-core/components/metrics"
@@ -226,4 +227,41 @@ func buildNextBlock(
 		StateRoot:     common.Root{},
 		Body:          nextBlkBody,
 	}
+}
+
+func moveToEndOfEpoch(
+	t *testing.T,
+	tip *types.BeaconBlock,
+	cs chain.Spec[bytes.B4, math.U64, math.U64, any],
+	sp *TestStateProcessorT,
+	st *TestBeaconStateT,
+	ctx *transition.Context,
+) *types.BeaconBlock {
+	t.Helper()
+	blk := tip
+	currEpoch := cs.SlotToEpoch(blk.GetSlot())
+	for currEpoch == cs.SlotToEpoch(blk.GetSlot()+1) {
+		blk = buildNextBlock(
+			t,
+			st,
+			&types.BeaconBlockBody{
+				ExecutionPayload: &types.ExecutionPayload{
+					Timestamp:    blk.Body.ExecutionPayload.Timestamp + 1,
+					ExtraData:    []byte("testing"),
+					Transactions: [][]byte{},
+					Withdrawals: []*engineprimitives.Withdrawal{
+						st.EVMInflationWithdrawal(),
+					},
+					BaseFeePerGas: math.NewU256(0),
+				},
+				Eth1Data: &types.Eth1Data{},
+				Deposits: types.Deposits{},
+			},
+		)
+
+		vals, err := sp.Transition(ctx, st, blk)
+		require.NoError(t, err)
+		require.Empty(t, vals) // no vals changes expected before next epoch
+	}
+	return blk
 }

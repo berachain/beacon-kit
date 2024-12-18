@@ -30,6 +30,8 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/storage/encoding"
 	"github.com/berachain/beacon-kit/storage/pruner"
 )
@@ -39,7 +41,7 @@ const KeyDepositPrefix = "deposit"
 // KVStore is a simple KV store based implementation that assumes
 // the deposit indexes are tracked outside of the kv store.
 type KVStore struct {
-	store sdkcollections.Map[uint64, *ctypes.Deposit]
+	store sdkcollections.Map[uint64, *ctypes.DepositData]
 
 	// mu protects store for concurrent access
 	mu sync.RWMutex
@@ -60,7 +62,7 @@ func NewStore(
 			sdkcollections.NewPrefix([]byte(KeyDepositPrefix)),
 			KeyDepositPrefix,
 			sdkcollections.Uint64Key,
-			encoding.SSZValueCodec[*ctypes.Deposit]{},
+			encoding.SSZValueCodec[*ctypes.DepositData]{},
 		),
 		logger: logger,
 	}
@@ -75,13 +77,13 @@ func NewStore(
 // last deposit.
 func (kv *KVStore) GetDepositsByIndex(
 	startIndex uint64,
-	depRange uint64,
-) ([]*ctypes.Deposit, error) {
+	numView uint64,
+) (ctypes.Deposits, error) {
 	kv.mu.RLock()
 	defer kv.mu.RUnlock()
 	var (
-		deposits = []*ctypes.Deposit{}
-		endIdx   = startIndex + depRange
+		deposits = ctypes.Deposits{}
+		endIdx   = startIndex + numView
 	)
 
 	kv.logger.Debug(
@@ -93,7 +95,10 @@ func (kv *KVStore) GetDepositsByIndex(
 		deposit, err := kv.store.Get(context.TODO(), i)
 		switch {
 		case err == nil:
-			deposits = append(deposits, deposit)
+			deposits = append(deposits, ctypes.NewDeposit(
+				[constants.DepositContractDepth + 1]common.Root{}, // TODO: get proof.
+				deposit,
+			))
 		case errors.Is(err, sdkcollections.ErrNotFound):
 			kv.logger.Debug(
 				"GetDepositsByIndex response",
@@ -118,12 +123,12 @@ func (kv *KVStore) GetDepositsByIndex(
 	return deposits, nil
 }
 
-// EnqueueDeposits pushes multiple deposits to the queue.
-func (kv *KVStore) EnqueueDeposits(deposits []*ctypes.Deposit) error {
+// EnqueueDepositDatas pushes multiple deposits to the queue.
+func (kv *KVStore) EnqueueDepositDatas(deposits []*ctypes.DepositData) error {
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
 	kv.logger.Debug(
-		"EnqueueDeposits request",
+		"EnqueueDepositDatas request",
 		"to enqueue", len(deposits),
 	)
 	for _, deposit := range deposits {

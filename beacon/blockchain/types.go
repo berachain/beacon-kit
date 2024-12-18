@@ -115,7 +115,7 @@ type Genesis interface {
 	// GetForkVersion returns the fork version.
 	GetForkVersion() common.Version
 	// GetDeposits returns the deposits.
-	GetDeposits() []*ctypes.Deposit
+	GetDepositDatas() []*ctypes.DepositData
 	// GetExecutionPayloadHeader returns the execution payload header.
 	GetExecutionPayloadHeader() *ctypes.ExecutionPayloadHeader
 }
@@ -181,7 +181,7 @@ type StateProcessor[
 	// from the eth1 deposits.
 	InitializePreminedBeaconStateFromEth1(
 		BeaconStateT,
-		[]*ctypes.Deposit,
+		[]*ctypes.DepositData,
 		*ctypes.ExecutionPayloadHeader,
 		common.Version,
 	) (transition.ValidatorUpdates, error)

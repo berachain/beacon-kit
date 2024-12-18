@@ -40,7 +40,7 @@ func (sp *StateProcessor[
 	_, BeaconStateT, _, _,
 ]) InitializePreminedBeaconStateFromEth1(
 	st BeaconStateT,
-	deposits []*ctypes.Deposit,
+	deposits []*ctypes.DepositData,
 	execPayloadHeader *ctypes.ExecutionPayloadHeader,
 	genesisVersion common.Version,
 ) (transition.ValidatorUpdates, error) {

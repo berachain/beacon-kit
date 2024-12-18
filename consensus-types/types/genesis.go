@@ -45,9 +45,9 @@ type Genesis struct {
 	// ForkVersion is the fork version of the genesis slot.
 	ForkVersion common.Version `json:"fork_version"`
 
-	// Deposits represents the deposits in the genesis. Deposits are
+	// DepositDatas represents the deposits in the genesis. DepositDatas are
 	// used to initialize the validator set.
-	Deposits []*Deposit `json:"deposits"`
+	DepositDatas []*DepositData `json:"deposits"`
 
 	// ExecutionPayloadHeader is the header of the execution payload
 	// in the genesis.
@@ -60,8 +60,8 @@ func (g *Genesis) GetForkVersion() common.Version {
 }
 
 // GetDeposits returns the deposits in the genesis.
-func (g *Genesis) GetDeposits() []*Deposit {
-	return g.Deposits
+func (g *Genesis) GetDepositDatas() []*DepositData {
+	return g.DepositDatas
 }
 
 // GetExecutionPayloadHeader returns the execution payload header.
@@ -73,12 +73,12 @@ func (g *Genesis) GetExecutionPayloadHeader() *ExecutionPayloadHeader {
 func (g *Genesis) UnmarshalJSON(
 	data []byte,
 ) error {
-	type genesisMarshalable[Deposit any] struct {
+	type genesisMarshalable[DepositData any] struct {
 		ForkVersion            common.Version  `json:"fork_version"`
-		Deposits               []*Deposit      `json:"deposits"`
+		DepositDatas           []*DepositData  `json:"deposits"`
 		ExecutionPayloadHeader json.RawMessage `json:"execution_payload_header"`
 	}
-	var g2 genesisMarshalable[Deposit]
+	var g2 genesisMarshalable[DepositData]
 	if err := json.Unmarshal(data, &g2); err != nil {
 		return err
 	}
@@ -95,7 +95,7 @@ func (g *Genesis) UnmarshalJSON(
 		return err
 	}
 
-	g.Deposits = g2.Deposits
+	g.DepositDatas = g2.DepositDatas
 	g.ForkVersion = g2.ForkVersion
 	g.ExecutionPayloadHeader = payloadHeader
 	return nil
@@ -114,7 +114,7 @@ func DefaultGenesisDeneb() *Genesis {
 		ForkVersion: version.FromUint32[common.Version](
 			version.Deneb,
 		),
-		Deposits:               make([]*Deposit, 0),
+		DepositDatas:           make([]*DepositData, 0),
 		ExecutionPayloadHeader: defaultHeader,
 	}
 }

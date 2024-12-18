@@ -64,7 +64,7 @@ func NewWrappedDepositContract(
 func (dc *WrappedDepositContract) ReadDeposits(
 	ctx context.Context,
 	blkNum math.U64,
-) ([]*ctypes.Deposit, error) {
+) ([]*ctypes.DepositData, error) {
 	logs, err := dc.FilterDeposit(
 		&bind.FilterOpts{
 			Context: ctx,
@@ -76,7 +76,7 @@ func (dc *WrappedDepositContract) ReadDeposits(
 		return nil, err
 	}
 
-	deposits := make([]*ctypes.Deposit, 0)
+	deposits := make([]*ctypes.DepositData, 0)
 	for logs.Next() {
 		var (
 			cred   bytes.B32
@@ -95,7 +95,7 @@ func (dc *WrappedDepositContract) ReadDeposits(
 		if err != nil {
 			return nil, fmt.Errorf("failed reading signature: %w", err)
 		}
-		deposits = append(deposits, ctypes.NewDeposit(
+		deposits = append(deposits, ctypes.NewDepositData(
 			pubKey,
 			ctypes.WithdrawalCredentials(cred),
 			math.U64(logs.Event.Amount),
