@@ -30,6 +30,8 @@ connectrpc.com/connect v1.17.0 h1:W0ZqMhtVzn9Zhn2yATuUokDLO5N+gIuBWMOnsQrfmZk=
 connectrpc.com/connect v1.17.0/go.mod h1:0292hj1rnx8oFrStN7cB4jjVBeqs+Yx5yDIC2prWDO8=
 connectrpc.com/otelconnect v0.7.1 h1:scO5pOb0i4yUE66CnNrHeK1x51yq0bE0ehPg6WvzXJY=
 connectrpc.com/otelconnect v0.7.1/go.mod h1:dh3bFgHBTb2bkqGCeVVOtHJreSns7uu9wwL2Tbz17ms=
+cosmossdk.io/api v0.8.0-rc.3 h1:BNVMqBO7jO20fQCLKzAYLI9RPTq9bVn30ncq9vF8SBk=
+cosmossdk.io/api v0.8.0-rc.3/go.mod h1:1hADc5N9rDJ4RTH7z3sp6+PXI+shznzk0Frf0/k3ilE=
 cosmossdk.io/collections v1.0.0-rc.1 h1:Mzv0YKZJ6aloy4oSnMnyl8b6PtM2dTdDlzRR/079TyM=
 cosmossdk.io/collections v1.0.0-rc.1/go.mod h1:nOgrEpyMFOWBy8QmSbq/T6Tgtm2IyOFvxDRWk+DI97k=
 cosmossdk.io/depinject v1.1.0 h1:wLan7LG35VM7Yo6ov0jId3RHWCGRhe8E8bsuARorl5E=
@@ -231,8 +233,6 @@ github.com/cometbft/cometbft v1.0.1-0.20241218102856-585833e1cbc4 h1:Tbazu5VWROt
 github.com/cometbft/cometbft v1.0.1-0.20241218102856-585833e1cbc4/go.mod h1:+hGB2I4vhCEwdceY35lf75XZZzMtm3VDOVt8hj7qkCs=
 github.com/cometbft/cometbft-db v1.0.1 h1:SylKuLseMLQKw3+i8y8KozZyJcQSL98qEe2CGMCGTYE=
 github.com/cometbft/cometbft-db v1.0.1/go.mod h1:EBrFs1GDRiTqrWXYi4v90Awf/gcdD5ExzdPbg4X8+mk=
-github.com/cometbft/cometbft/api v1.0.0 h1:gGBwvsJi/gnHJEtwYfjPIGs2AKg/Vfa1ZuKCPD1/Ko4=
-github.com/cometbft/cometbft/api v1.0.0/go.mod h1:EkQiqVSu/p2ebrZEnB2z6Re7r8XNe//M7ylR0qEwWm0=
 github.com/cometbft/cometbft/api v1.0.1-0.20241218102856-585833e1cbc4 h1:mtBmglh7gw/fFWFiSexyhjDknQEQYcMsIGrvkPQYEyo=
 github.com/cometbft/cometbft/api v1.0.1-0.20241218102856-585833e1cbc4/go.mod h1:EkQiqVSu/p2ebrZEnB2z6Re7r8XNe//M7ylR0qEwWm0=
 github.com/consensys/bavard v0.1.13 h1:oLhMLOFGTLdlda/kma4VOJazblc7IM5y5QPd2A/YjhQ=
