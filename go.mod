@@ -11,7 +11,7 @@ replace (
 	// cosmossdk.io/store => ../cosmos-sdk/store
 	cosmossdk.io/store/v2 => ../cosmos-sdk/store/v2
 	// cosmossdk.io/x/accounts => ../cosmos-sdk/x/accounts
-	cosmossdk.io/x/bank => ../cosmos-sdk/x/bank
+	// cosmossdk.io/x/bank => ../cosmos-sdk/x/bank
 	cosmossdk.io/x/staking => ../cosmos-sdk/x/staking
 	github.com/cosmos/cosmos-sdk => ../cosmos-sdk
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
@@ -98,7 +98,7 @@ require (
 	cosmossdk.io/errors v1.0.1 // indirect
 	cosmossdk.io/math v1.4.0 // indirect
 	cosmossdk.io/schema v1.0.0 // indirect
-	cosmossdk.io/x/bank v0.0.0-20240806152830-8fb47b368cd4 // indirect
+	cosmossdk.io/x/bank v0.0.0-20241218110910-47409028a73d // indirect
 	cosmossdk.io/x/staking v0.0.0-20240806152830-8fb47b368cd4 // indirect
 	cosmossdk.io/x/tx v1.0.0-alpha.3 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
@@ -155,7 +155,7 @@ require (
 	github.com/cloudwego/base64x v0.1.4 // indirect
 	github.com/cloudwego/iasm v0.2.0 // indirect
 	github.com/cockroachdb/errors v1.11.3 // indirect
-	github.com/cockroachdb/fifo v0.0.0-20240616162244-4768e80dfb9a // indirect
+	github.com/cockroachdb/fifo v0.0.0-20240816210425-c5d0cb0b6fc0 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect
 	github.com/cockroachdb/pebble v1.1.2 // indirect
 	github.com/cockroachdb/redact v1.1.5 // indirect
@@ -463,7 +463,7 @@ require (
 	gitlab.com/yawning/tuplehash v0.0.0-20230713102510-df83abbf9a02 // indirect
 	go-simpler.org/musttag v0.13.0 // indirect
 	go-simpler.org/sloglint v0.7.2 // indirect
-	go.etcd.io/bbolt v1.4.0-alpha.0.0.20240404170359-43604f3112c5 // indirect
+	go.etcd.io/bbolt v1.4.0-alpha.1 // indirect
 	go.lsp.dev/jsonrpc2 v0.10.0 // indirect
 	go.lsp.dev/pkg v0.0.0-20210717090340-384b27a52fb2 // indirect
 	go.lsp.dev/protocol v0.12.0 // indirect
