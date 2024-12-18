@@ -73,57 +73,33 @@ func (s *Service[
 		return createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
 
+	// Process the blob sidecars
+	//
 	// In theory, swapping the order of verification between the sidecars
 	// and the incoming block should not introduce any inconsistencies
 	// in the state on which the sidecar verification depends on (notably
 	// the currently active fork). ProcessProposal should only
 	// keep the state changes as candidates (which is what we do in
 	// VerifyIncomingBlock).
-
-	// Process the blob sidecars, if any
-	if !sidecars.IsNil() && sidecars.Len() > 0 {
+	kzgCommitments := blk.GetBody().GetBlobKzgCommitments()
+	if len(kzgCommitments) > 0 {
 		var consensusSidecars *types.ConsensusSidecars[BlobSidecarsT]
 		consensusSidecars = consensusSidecars.New(
 			sidecars,
 			blk.GetHeader(),
+			kzgCommitments,
 		)
-
-		s.logger.Info("Received incoming blob sidecars")
-
-		// TODO: Clean this up once we remove generics.
-		cs := convertConsensusSidecars[
-			ConsensusSidecarsT,
-			BlobSidecarsT,
-		](consensusSidecars)
-
-		// Get the sidecar verification function from the state processor
-		//nolint:govet	// err shadowing
-		sidecarVerifierFn, err := s.stateProcessor.GetSidecarVerifierFn(
-			s.storageBackend.StateFromContext(ctx),
+		err = s.VerifyIncomingBlobSidecars(
+			ctx,
+			consensusSidecars,
 		)
 		if err != nil {
 			s.logger.Error(
-				"an error incurred while calculating the sidecar verifier",
-				"reason", err,
+				"failed to verify incoming blob sidecars",
+				"error", err,
 			)
 			return createProcessProposalResponse(errors.WrapNonFatal(err))
 		}
-
-		// Verify the blobs and ensure they match the local state.
-		err = s.blobProcessor.VerifySidecars(cs, sidecarVerifierFn)
-		if err != nil {
-			s.logger.Error(
-				"rejecting incoming blob sidecars",
-				"reason", err,
-			)
-			return createProcessProposalResponse(errors.WrapNonFatal(err))
-		}
-
-		s.logger.Info(
-			"Blob sidecars verification succeeded - accepting incoming blob sidecars",
-			"num_blobs",
-			sidecars.Len(),
-		)
 	}
 
 	// Process the block
@@ -145,6 +121,60 @@ func (s *Service[
 	}
 
 	return createProcessProposalResponse(nil)
+}
+
+// VerifyIncomingBlobSidecars verifies the BlobSidecars of an incoming
+// proposal and logs the process.
+func (s *Service[
+	_, _, _, _, _, _,
+	_, ConsensusSidecarsT, BlobSidecarsT, _,
+]) VerifyIncomingBlobSidecars(
+	ctx context.Context,
+	cSidecars *types.ConsensusSidecars[BlobSidecarsT],
+) error {
+	sidecars := cSidecars.GetSidecars()
+
+	if sidecars.IsNil() {
+		return errors.New("sidecars cannot be nil")
+	}
+
+	s.logger.Info("Received incoming blob sidecars")
+
+	// TODO: Clean this up once we remove generics.
+	cs := convertConsensusSidecars[
+		ConsensusSidecarsT,
+		BlobSidecarsT,
+	](cSidecars)
+
+	// Get the sidecar verification function from the state processor
+
+	sidecarVerifierFn, err := s.stateProcessor.GetSidecarVerifierFn(
+		s.storageBackend.StateFromContext(ctx),
+	)
+	if err != nil {
+		s.logger.Error(
+			"an error incurred while calculating the sidecar verifier",
+			"reason", err,
+		)
+		return err
+	}
+
+	// Verify the blobs and ensure they match the local state.
+	err = s.blobProcessor.VerifySidecars(cs, sidecarVerifierFn)
+	if err != nil {
+		s.logger.Error(
+			"rejecting incoming blob sidecars",
+			"reason", err,
+		)
+		return err
+	}
+
+	s.logger.Info(
+		"Blob sidecars verification succeeded - accepting incoming blob sidecars",
+		"num_blobs",
+		sidecars.Len(),
+	)
+	return nil
 }
 
 // VerifyIncomingBlock verifies the state root of an incoming block

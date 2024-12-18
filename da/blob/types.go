@@ -50,6 +50,7 @@ type BeaconBlock interface {
 type ConsensusSidecars[BlobSidecarsT any] interface {
 	GetSidecars() BlobSidecarsT
 	GetHeader() *ctypes.BeaconBlockHeader
+	GetKzgCommitments() []eip4844.KZGCommitment
 }
 
 type Sidecar interface {

@@ -28,7 +28,9 @@ import (
 	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/kzg"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"golang.org/x/sync/errgroup"
 )
@@ -72,6 +74,7 @@ func (bv *verifier[_, BlobSidecarsT]) verifySidecars(
 		blkHeader *ctypes.BeaconBlockHeader,
 		signature crypto.BLSSignature,
 	) error,
+	kzgCommitments []eip4844.KZGCommitment,
 ) error {
 	defer bv.metrics.measureVerifySidecarsDuration(
 		time.Now(), math.U64(sidecars.Len()),
@@ -80,10 +83,33 @@ func (bv *verifier[_, BlobSidecarsT]) verifySidecars(
 
 	g, _ := errgroup.WithContext(context.Background())
 
-	// Verifying that sidecars block headers match with header of the
-	// corresponding block concurrently.
+	// Ensure we have the same number of blobSidecars as we do KzgCommitments
+	// in the BeaconBlock.
+	numCommitments := len(kzgCommitments)
+	if numCommitments != sidecars.Len() {
+		return fmt.Errorf("expected %d sidecars, got %d",
+			numCommitments, sidecars.Len(),
+		)
+	}
+
+	// create lookup table to check for duplicate commitments
+	duplicateCommitment := make(map[eip4844.KZGCommitment]struct{}, numCommitments)
+
+	// Validate sidecar fields against data from the BeaconBlock.
 	for i, s := range sidecars.GetSidecars() {
+		// Check if sidecar's kzgCommitment is duplicate. Along with the
+		// length check and the inclusion proof, this fully verifies that
+		// the KzgCommitments in the BlobSidecar are the exact same as the
+		// ones in the BeaconBlockBody without having to explicitly compare.
+		if _, exists := duplicateCommitment[s.GetKzgCommitment()]; exists {
+			return errors.New(
+				"found duplicate KzgCommitments in BlobSidecars",
+			)
+		}
+		duplicateCommitment[s.GetKzgCommitment()] = struct{}{}
+
 		g.Go(func() error {
+			// Verify the signature.
 			var sigHeader = s.GetSignedBeaconBlockHeader()
 
 			// Check BlobSidecar.Header equality with BeaconBlockHeader

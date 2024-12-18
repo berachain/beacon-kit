@@ -93,8 +93,9 @@ func (sp *Processor[
 	) error,
 ) error {
 	var (
-		sidecars  = cs.GetSidecars()
-		blkHeader = cs.GetHeader()
+		sidecars       = cs.GetSidecars()
+		blkHeader      = cs.GetHeader()
+		kzgCommitments = cs.GetKzgCommitments()
 	)
 	defer sp.metrics.measureVerifySidecarsDuration(
 		time.Now(), math.U64(sidecars.Len()),
@@ -110,6 +111,7 @@ func (sp *Processor[
 		sidecars,
 		blkHeader,
 		verifierFn,
+		kzgCommitments,
 	)
 }
 

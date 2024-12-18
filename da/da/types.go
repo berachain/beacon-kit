@@ -23,6 +23,7 @@ package da
 import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/eip4844"
 )
 
 // BlobProcessor is the interface for the blobs processor.
@@ -51,6 +52,7 @@ type BlobProcessor[
 type ConsensusSidecars[BlobSidecarsT any] interface {
 	GetSidecars() BlobSidecarsT
 	GetHeader() *ctypes.BeaconBlockHeader
+	GetKzgCommitments() []eip4844.KZGCommitment
 }
 
 // BlobSidecar is the interface for the blob sidecar.

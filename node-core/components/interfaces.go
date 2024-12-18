@@ -213,6 +213,7 @@ type (
 	] interface {
 		GetSidecars() BlobSidecarsT
 		GetHeader() *ctypes.BeaconBlockHeader
+		GetKzgCommitments() []eip4844.KZGCommitment
 	}
 
 	// BlobSidecars is the interface for blobs sidecars.
