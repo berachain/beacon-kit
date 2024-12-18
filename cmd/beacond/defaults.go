@@ -78,9 +78,7 @@ func DefaultComponents() []any {
 		],
 		components.ProvideSidecarFactory[*BeaconBlock],
 		components.ProvideStateProcessor[
-			*Logger, *BeaconBlock,
-			*BeaconState, *BeaconStateMarshallable, *DepositStore,
-			*KVStore,
+			*Logger, *BeaconBlock, *BeaconState, *BeaconStateMarshallable, *KVStore,
 		],
 		components.ProvideKVStore,
 		components.ProvideStorageBackend[

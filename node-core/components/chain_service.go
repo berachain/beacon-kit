@@ -33,7 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cast"
 )
@@ -112,7 +111,6 @@ func ProvideChainService[
 		in.BlockStore,
 		in.DepositStore,
 		in.BeaconDepositContract,
-		math.U64(in.ChainSpec.Eth1FollowDistance()),
 		in.Logger.With("service", "blockchain"),
 		in.ChainSpec,
 		in.ExecutionEngine,

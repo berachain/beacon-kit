@@ -59,8 +59,6 @@ type Service[
 	// depositContract is the contract interface for interacting with the
 	// deposit contract.
 	depositContract deposit.Contract
-	// eth1FollowDistance is the follow distance for Ethereum 1.0 blocks.
-	eth1FollowDistance math.U64
 	// failedBlocksMu protects failedBlocks for concurrent access.
 	failedBlocksMu sync.RWMutex
 	// failedBlocks is a map of blocks that failed to be processed
@@ -105,7 +103,6 @@ func NewService[
 	blockStore BlockStoreT,
 	depositStore deposit.Store,
 	depositContract deposit.Contract,
-	eth1FollowDistance math.U64,
 	logger log.Logger,
 	chainSpec chain.ChainSpec,
 	executionEngine ExecutionEngine[PayloadAttributesT],
@@ -127,7 +124,6 @@ func NewService[
 		blockStore:              blockStore,
 		depositStore:            depositStore,
 		depositContract:         depositContract,
-		eth1FollowDistance:      eth1FollowDistance,
 		failedBlocks:            make(map[math.Slot]struct{}),
 		logger:                  logger,
 		chainSpec:               chainSpec,

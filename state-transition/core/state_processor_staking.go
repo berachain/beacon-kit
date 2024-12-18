@@ -179,7 +179,7 @@ func (sp *StateProcessor[
 		// Ignore deposits with non-ETH1 withdrawal credentials.
 		sp.logger.Info(
 			"ignoring deposit with non-ETH1 withdrawal credentials",
-			"deposit_index", dep.GetIndex(),
+			// "deposit_index", dep.GetIndex(),
 		)
 		return nil
 	}
@@ -197,7 +197,7 @@ func (sp *StateProcessor[
 	if err != nil {
 		// Ignore deposits that fail the signature check.
 		sp.logger.Info(
-			"failed deposit signature verification", "deposit_index", dep.GetIndex(), "error", err,
+			"failed deposit signature verification", "error", err, // "deposit_index", dep.GetIndex(),
 		)
 		return nil
 	}

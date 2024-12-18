@@ -456,7 +456,8 @@ type (
 		// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
 		// state from the eth1 deposits.
 		InitializePreminedBeaconStateFromEth1(
-			BeaconStateT, *ctypes.ExecutionPayloadHeader, common.Version,
+			BeaconStateT, ctypes.Deposits, common.Root, 
+			*ctypes.ExecutionPayloadHeader, common.Version,
 		) (transition.ValidatorUpdates, error)
 		// ProcessSlot processes the slot.
 		ProcessSlots(

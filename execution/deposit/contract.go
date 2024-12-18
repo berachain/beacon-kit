@@ -105,7 +105,7 @@ func (dc *WrappedDepositContract) ReadDeposits(
 		}
 
 		deposits = append(deposits, ctypes.NewDepositData(
-			pubKey, ctypes.WithdrawalCredentials(cred), math.U64(logs.Event.Amount), sign, logs.Event.Index,
+			pubKey, ctypes.WithdrawalCredentials(cred), math.U64(logs.Event.Amount), sign,
 		))
 
 		if blockHash == (common.ExecutionHash{}) {
@@ -113,7 +113,8 @@ func (dc *WrappedDepositContract) ReadDeposits(
 		}
 
 		dc.telemetrySink.IncrementCounter(
-			"beacon_kit.execution.deposits_read", "block_num", blockNumStr, "block_hash", blockHash.Hex(),
+			"beacon_kit.execution.deposits_read",
+			"block_num", blockNumStr, "block_hash", blockHash.Hex(),
 		)
 	}
 

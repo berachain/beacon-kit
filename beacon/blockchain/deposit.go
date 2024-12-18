@@ -35,15 +35,16 @@ const defaultRetryInterval = 20 * time.Second
 func (s *Service[
 	_, _, _, _, _, _, _, _, _,
 ]) depositFetcher(ctx context.Context, blockNum math.U64) {
-	if blockNum <= s.eth1FollowDistance {
+	eth1FollowDistance := math.U64(s.chainSpec.Eth1FollowDistance())
+	if blockNum <= eth1FollowDistance {
 		s.logger.Info(
 			"depositFetcher, nothing to fetch",
-			"block num", blockNum, "eth1FollowDistance", s.eth1FollowDistance,
+			"block_num", blockNum, "eth1_follow_distance", eth1FollowDistance,
 		)
 		return
 	}
 
-	s.fetchAndStoreDeposits(ctx, blockNum-s.eth1FollowDistance)
+	s.fetchAndStoreDeposits(ctx, blockNum-eth1FollowDistance)
 }
 
 func (s *Service[

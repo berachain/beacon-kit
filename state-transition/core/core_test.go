@@ -111,7 +111,7 @@ func initTestStores() (*beacondb.KVStore, *deposit.Store, error) {
 			testStoreService,
 			testCodec,
 		),
-		deposit.NewStore(testStoreService),
+		deposit.NewStore(),
 		nil
 }
 
@@ -162,7 +162,6 @@ func setupState(
 		noop.NewLogger[any](),
 		cs,
 		execEngine,
-		depositStore,
 		mocksSigner,
 		func(bytes.B48) ([]byte, error) {
 			return dummyProposerAddr, nil

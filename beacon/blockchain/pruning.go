@@ -22,7 +22,6 @@ package blockchain
 
 import (
 	"github.com/berachain/beacon-kit/chain-spec/chain"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 )
 
 func (s *Service[
@@ -36,9 +35,10 @@ func (s *Service[
 	}
 
 	// prune deposit store
-	start, end = depositPruneRangeFn(beaconBlk.GetBody().GetDepositDatas(), s.chainSpec)
+	finalizedEthBlock := beaconBlk.GetBody().GetExecutionPayload().Number.Unwrap()
+	end = finalizedEthBlock - s.chainSpec.Eth1FollowDistance()
+	start = end - s.chainSpec.SlotsPerEpoch()
 	err = s.depositStore.Prune(start, end)
-
 	if err != nil {
 		return err
 	}
@@ -46,24 +46,8 @@ func (s *Service[
 	return nil
 }
 
-// depositPruneRangeFn effectively prunes at most the max deposits per block
-// behind the last included deposit.
-func depositPruneRangeFn(deposits []*ctypes.DepositData, cs chain.ChainSpec) (uint64, uint64) {
-	if len(deposits) == 0 || cs.MaxDepositsPerBlock() == 0 {
-		return 0, 0
-	}
-
-	index := deposits[len(deposits)-1].GetIndex().Unwrap()
-
-	if index < cs.MaxDepositsPerBlock() {
-		return 0, index
-	}
-	return index - cs.MaxDepositsPerBlock(), index
-}
-
 //nolint:unparam // this is ok
-func availabilityPruneRangeFn(
-	slot uint64, cs chain.ChainSpec) (uint64, uint64) {
+func availabilityPruneRangeFn(slot uint64, cs chain.ChainSpec) (uint64, uint64) {
 	window := cs.MinEpochsForBlobsSidecarsRequest() * cs.SlotsPerEpoch()
 	if slot < window {
 		return 0, 0

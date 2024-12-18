@@ -180,7 +180,7 @@ type StateProcessor[
 	// state
 	// from the eth1 deposits.
 	InitializePreminedBeaconStateFromEth1(
-		BeaconStateT, *ctypes.ExecutionPayloadHeader, common.Version,
+		BeaconStateT, ctypes.Deposits, common.Root, *ctypes.ExecutionPayloadHeader, common.Version,
 	) (transition.ValidatorUpdates, error)
 	// ProcessSlots processes the state transition for a range of slots.
 	ProcessSlots(

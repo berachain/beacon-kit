@@ -22,29 +22,15 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	storev2 "cosmossdk.io/store/v2/db"
-	"github.com/berachain/beacon-kit/config"
-	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/berachain/beacon-kit/storage/deposit"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/spf13/cast"
 )
 
 // DepositStoreInput is the input for the dep inject framework.
 type DepositStoreInput struct {
 	depinject.In
-	AppOpts config.AppOptions
 }
 
-// ProvideDepositStore is a function that provides the module to the
-// application.
-func ProvideDepositStore(in DepositStoreInput) (*deposit.Store, error) {
-	name := "deposits"
-	dir := cast.ToString(in.AppOpts.Get(flags.FlagHome)) + "/data"
-	kvp, err := storev2.NewDB(storev2.DBTypePebbleDB, name, dir, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return deposit.NewStore(storage.NewKVStoreProvider(kvp)), nil
+// ProvideDepositStore is a function that provides the module to the application.
+func ProvideDepositStore(in DepositStoreInput) *deposit.Store {
+	return deposit.NewStore()
 }

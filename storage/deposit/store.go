@@ -21,27 +21,20 @@
 package deposit
 
 import (
-	"context"
 	"fmt"
 	"sync"
 
-	sdkcollections "cosmossdk.io/collections"
-	"cosmossdk.io/core/store"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/storage/deposit/merkle"
-	"github.com/berachain/beacon-kit/storage/encoding"
 	"github.com/berachain/beacon-kit/storage/pruner"
 )
 
 const KeyDepositPrefix = "deposit"
 
-// Store is a simple KV store based implementation that assumes
-// the deposit indexes are tracked outside of the s store.
-// It also maintains a merkle tree of the deposits for verification,
-// which will remove the need for indexed based tracking.
+// Store is a simple memory store based implementation that
+// maintains a merkle tree of the deposits for verification.
 type Store struct {
 	// tree is the EIP-4881 compliant deposit merkle tree.
 	tree *merkle.DepositTree
@@ -49,29 +42,15 @@ type Store struct {
 	// pendingDepositsToRoots maps the deposit tree root after each deposit.
 	pendingDepositsToRoots map[uint64]common.Root
 
-	// store is the KV store that holds the deposits.
-	store sdkcollections.Map[uint64, *ctypes.DepositData]
-
 	// mu protects store for concurrent access.
 	mu sync.Mutex
 }
 
 // NewStore creates a new deposit store.
-func NewStore(kvsp store.KVStoreService) *Store {
-	schemaBuilder := sdkcollections.NewSchemaBuilder(kvsp)
+func NewStore() *Store {
 	res := &Store{
 		tree:                   merkle.NewDepositTree(),
 		pendingDepositsToRoots: make(map[uint64]common.Root),
-		store: sdkcollections.NewMap(
-			schemaBuilder,
-			sdkcollections.NewPrefix([]byte(KeyDepositPrefix)),
-			KeyDepositPrefix,
-			sdkcollections.Uint64Key,
-			encoding.SSZValueCodec[*ctypes.DepositData]{},
-		),
-	}
-	if _, err := schemaBuilder.Build(); err != nil {
-		panic(fmt.Errorf("failed building Store schema: %w", err))
 	}
 	return res
 }
@@ -94,26 +73,13 @@ func (s *Store) GetDepositsByIndex(
 	)
 
 	for i := startIndex; i < maxIndex; i++ {
-		deposit, err := s.store.Get(context.TODO(), i)
-		if err != nil {
-			if errors.Is(err, sdkcollections.ErrNotFound) {
-				depTreeRoot = s.pendingDepositsToRoots[i-1]
-				break
-			}
-
-			return nil, common.Root{}, errors.Wrapf(
-				err, "failed to get deposit %d, start: %d, end: %d", i, startIndex, maxIndex,
-			)
-		}
-
-		var proof [constants.DepositContractDepth + 1]common.Root
-		proof, err = s.tree.MerkleProof(i)
+		proof, err := s.tree.MerkleProof(i)
 		if err != nil {
 			return nil, common.Root{}, errors.Wrapf(
 				err, "failed to get merkle proof for deposit %d", i,
 			)
 		}
-		deposits = append(deposits, ctypes.NewDeposit(proof, deposit))
+		deposits = append(deposits, ctypes.NewDeposit(proof, nil))
 		delete(s.pendingDepositsToRoots, i-1)
 	}
 
@@ -132,16 +98,11 @@ func (s *Store) EnqueueDepositDatas(deposits []*ctypes.DepositData) error {
 	defer s.mu.Unlock()
 
 	for _, deposit := range deposits {
-		idx := deposit.GetIndex().Unwrap()
-		if err := s.store.Set(context.TODO(), idx, deposit); err != nil {
-			return errors.Wrapf(err, "failed to set deposit %d in KVStore", idx)
-		}
-
 		if err := s.tree.Insert(deposit.HashTreeRoot()); err != nil {
-			return errors.Wrapf(err, "failed to insert deposit %d into merkle tree", idx)
+			return errors.Wrap(err, "failed to insert deposit into merkle tree")
 		}
 
-		s.pendingDepositsToRoots[idx] = s.tree.HashTreeRoot()
+		// s.pendingDepositsToRoots[idx] = s.tree.HashTreeRoot()
 	}
 
 	return nil
@@ -151,20 +112,14 @@ func (s *Store) EnqueueDepositDatas(deposits []*ctypes.DepositData) error {
 func (s *Store) Prune(start, end uint64) error {
 	if start > end {
 		return fmt.Errorf(
-			"DepositKVStore Prune start: %d, end: %d: %w", start, end, pruner.ErrInvalidRange,
+			"DepositStore prune start: %d, end: %d: %w", start, end, pruner.ErrInvalidRange,
 		)
 	}
 
-	var ctx = context.TODO()
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	for i := range end {
 		delete(s.pendingDepositsToRoots, start+i)
-
-		// This only errors if the key passed in cannot be encoded.
-		if err := s.store.Remove(ctx, start+i); err != nil {
-			return errors.Wrapf(err, "failed to prune deposit %d", start+i)
-		}
 	}
 
 	return nil

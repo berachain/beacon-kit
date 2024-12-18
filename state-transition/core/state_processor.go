@@ -54,8 +54,6 @@ type StateProcessor[
 	fGetAddressFromPubKey func(crypto.BLSPubkey) ([]byte, error)
 	// executionEngine is the engine responsible for executing transactions.
 	executionEngine ExecutionEngine
-	// ds allows checking payload deposits against the deposit contract
-	ds DepositStore
 	// metrics is the metrics for the service.
 	metrics *stateProcessorMetrics
 }
@@ -70,7 +68,6 @@ func NewStateProcessor[
 	logger log.Logger,
 	cs chain.ChainSpec,
 	executionEngine ExecutionEngine,
-	ds DepositStore,
 	signer crypto.BLSSigner,
 	fGetAddressFromPubKey func(crypto.BLSPubkey) ([]byte, error),
 	telemetrySink TelemetrySink,
@@ -89,7 +86,6 @@ func NewStateProcessor[
 		executionEngine:       executionEngine,
 		signer:                signer,
 		fGetAddressFromPubKey: fGetAddressFromPubKey,
-		ds:                    ds,
 		metrics:               newStateProcessorMetrics(telemetrySink),
 	}
 }
