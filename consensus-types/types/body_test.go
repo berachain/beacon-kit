@@ -106,10 +106,10 @@ func TestBeaconBlockBody_SetEth1Data(t *testing.T) {
 
 func TestBeaconBlockBody_SetDeposits(t *testing.T) {
 	body := types.BeaconBlockBody{}
-	deposits := []*types.Deposit{}
+	deposits := types.Deposits{}
 	body.SetDeposits(deposits)
 
-	require.Equal(t, deposits, body.GetDepositDatas())
+	require.Equal(t, deposits, body.GetDeposits())
 }
 
 func TestBeaconBlockBody_MarshalSSZ(t *testing.T) {
