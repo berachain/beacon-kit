@@ -71,6 +71,7 @@ func (bs *BlobSidecars) ValidateBlockRoots() error {
 // VerifyInclusionProofs verifies the inclusion proofs for all sidecars.
 func (bs *BlobSidecars) VerifyInclusionProofs(
 	kzgOffset uint64,
+	inclusionProofDepth uint8,
 ) error {
 	return errors.Join(iter.Map(
 		*bs,
@@ -81,7 +82,7 @@ func (bs *BlobSidecars) VerifyInclusionProofs(
 			}
 
 			// Verify the KZG inclusion proof.
-			if !sc.HasValidInclusionProof(kzgOffset) {
+			if !sc.HasValidInclusionProof(kzgOffset, inclusionProofDepth) {
 				return ErrInvalidInclusionProof
 			}
 			return nil

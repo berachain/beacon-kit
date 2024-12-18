@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/math/log"
 	"github.com/berachain/beacon-kit/primitives/version"
 	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
@@ -68,9 +69,8 @@ func (b *BeaconBlockBody) Empty(forkVersion uint32) *BeaconBlockBody {
 	}
 }
 
-// BlockBodyKZGOffset returns the offset of the KZG commitments in the block
-// body.
-// TODO: I still feel like we need to clean this up somehow.
+// BlockBodyKZGOffset returns the offset of the KZG commitments in the
+// serialized block body.
 func BlockBodyKZGOffset(
 	slot math.Slot,
 	cs chain.ChainSpec,
@@ -78,6 +78,40 @@ func BlockBodyKZGOffset(
 	switch cs.ActiveForkVersionForSlot(slot) {
 	case version.Deneb:
 		return KZGMerkleIndexDeneb * cs.MaxBlobCommitmentsPerBlock(), nil
+	default:
+		return 0, ErrForkVersionNotSupported
+	}
+}
+
+// BlockBodyKZGPosition returns the index of the KZG Commitments in the
+// block body.
+func BlockBodyKZGPosition(
+	forkVersion uint32,
+) (uint64, error) {
+	switch forkVersion {
+	case version.Deneb:
+		return KZGPositionDeneb, nil
+	default:
+		return 0, ErrForkVersionNotSupported
+	}
+}
+
+// KZGCommitmentInclusionProofDepth as per the Ethereum 2.0 Specification:
+// https://ethereum.github.io/consensus-specs/specs/deneb/p2p-interface/#preset
+func KZGCommitmentInclusionProofDepth(
+	slot math.Slot,
+	cs chain.ChainSpec,
+) (uint8, error) {
+	const maxUint8 = 255
+	switch cs.ActiveForkVersionForSlot(slot) {
+	case version.Deneb:
+		sum := uint64(log.ILog2Floor(uint64(KZGMerkleIndexDeneb))) +
+			uint64(log.ILog2Ceil(cs.MaxBlobCommitmentsPerBlock())) + 1
+		if sum > maxUint8 {
+			return 0, ErrInclusionProofDepthExceeded
+		}
+		//#nosec:G701 // we handle the overflow above, so this is safe
+		return uint8(sum), nil
 	default:
 		return 0, ErrForkVersionNotSupported
 	}

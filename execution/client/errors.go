@@ -57,6 +57,11 @@ var (
 func (s *EngineClient) handleRPCError(
 	err error,
 ) error {
+	if err == nil {
+		//nolint:nilerr // appease nilaway
+		return err
+	}
+
 	// Check for timeout errors.
 	if http.IsTimeoutError(err) {
 		s.metrics.incrementHTTPTimeoutCounter()

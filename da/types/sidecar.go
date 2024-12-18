@@ -72,15 +72,13 @@ func BuildBlobSidecar(
 // blob in the beacon body.
 func (b *BlobSidecar) HasValidInclusionProof(
 	kzgOffset uint64,
+	inclusionProofDepth uint8,
 ) bool {
 	header := b.GetSignedBeaconBlockHeader().GetHeader()
 	return header != nil && merkle.IsValidMerkleBranch(
 		b.KzgCommitment.HashTreeRoot(),
 		b.InclusionProof,
-		//#nosec:G701 // safe.
-		uint8(
-			len(b.InclusionProof),
-		), // TODO: use KZG_INCLUSION_PROOF_DEPTH calculation.
+		inclusionProofDepth,
 		kzgOffset+b.Index,
 		header.BodyRoot,
 	)

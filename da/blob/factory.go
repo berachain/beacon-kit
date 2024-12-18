@@ -38,10 +38,6 @@ type SidecarFactory[
 ] struct {
 	// chainSpec defines the specifications of the blockchain.
 	chainSpec ChainSpec
-	// kzgPosition is the position of the KZG commitment in the block.
-	//
-	// TODO: This needs to be made configurable / modular.
-	kzgPosition uint64
 	// metrics is used to collect and report factory metrics.
 	metrics *factoryMetrics
 }
@@ -51,15 +47,11 @@ func NewSidecarFactory[
 	BeaconBlockT BeaconBlock,
 ](
 	chainSpec ChainSpec,
-	// todo: calculate from config.
-	kzgPosition uint64,
 	telemetrySink TelemetrySink,
 ) *SidecarFactory[BeaconBlockT] {
 	return &SidecarFactory[BeaconBlockT]{
 		chainSpec: chainSpec,
-		// TODO: This should be configurable / modular.
-		kzgPosition: kzgPosition,
-		metrics:     newFactoryMetrics(telemetrySink),
+		metrics:   newFactoryMetrics(telemetrySink),
 	}
 }
 
@@ -106,11 +98,19 @@ func (f *SidecarFactory[BeaconBlockT]) BuildSidecars(
 	}
 	sigHeader := ctypes.NewSignedBeaconBlockHeader(header, signature)
 
+	// Calculate offsets
+	kzgPosition, err := ctypes.BlockBodyKZGPosition(
+		f.chainSpec.ActiveForkVersionForSlot(header.GetSlot()),
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	for i := range numBlobs {
 		g.Go(func() error {
 			//nolint:govet // shadow
 			inclusionProof, err := f.BuildKZGInclusionProof(
-				body, math.U64(i),
+				body, math.U64(i), kzgPosition,
 			)
 			if err != nil {
 				return err
@@ -134,6 +134,7 @@ func (f *SidecarFactory[BeaconBlockT]) BuildSidecars(
 func (f *SidecarFactory[_]) BuildKZGInclusionProof(
 	body *ctypes.BeaconBlockBody,
 	index math.U64,
+	kzgPosition uint64,
 ) ([]common.Root, error) {
 	startTime := time.Now()
 	defer f.metrics.measureBuildKZGInclusionProofDuration(startTime)
@@ -146,7 +147,7 @@ func (f *SidecarFactory[_]) BuildKZGInclusionProof(
 	}
 
 	// Build the merkle proof for the body root.
-	bodyProof, err := f.BuildBlockBodyProof(body)
+	bodyProof, err := f.BuildBlockBodyProof(body, kzgPosition)
 	if err != nil {
 		return nil, err
 	}
@@ -159,6 +160,7 @@ func (f *SidecarFactory[_]) BuildKZGInclusionProof(
 // BuildBlockBodyProof builds a block body proof.
 func (f *SidecarFactory[_]) BuildBlockBodyProof(
 	body *ctypes.BeaconBlockBody,
+	kzgPosition uint64,
 ) ([]common.Root, error) {
 	startTime := time.Now()
 	defer f.metrics.measureBuildBlockBodyProofDuration(startTime)
@@ -170,7 +172,7 @@ func (f *SidecarFactory[_]) BuildBlockBodyProof(
 		return nil, err
 	}
 
-	return tree.MerkleProof(f.kzgPosition)
+	return tree.MerkleProof(kzgPosition)
 }
 
 // BuildCommitmentProof builds a commitment proof.
