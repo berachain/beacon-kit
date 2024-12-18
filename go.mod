@@ -6,7 +6,7 @@ replace (
 	// The following make this repo point to a local version of cosmos-sdk
 	// This is a temporary measure
 	// cosmossdk.io/api => ../cosmos-sdk/api
-	cosmossdk.io/core => ../cosmos-sdk/core
+	// cosmossdk.io/core => ../cosmos-sdk/core
 	cosmossdk.io/core/testing => ../cosmos-sdk/core/testing
 	cosmossdk.io/store => ../cosmos-sdk/store
 	cosmossdk.io/store/v2 => ../cosmos-sdk/store/v2
@@ -20,7 +20,7 @@ replace (
 
 require (
 	cosmossdk.io/collections v1.0.0-rc.1
-	cosmossdk.io/core v1.0.0
+	cosmossdk.io/core v1.0.0-alpha.6
 	cosmossdk.io/depinject v1.1.0
 	cosmossdk.io/log v1.5.0
 	cosmossdk.io/store v1.10.0-rc.1
