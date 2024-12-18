@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -48,8 +49,8 @@ type AvailabilityStore interface {
 	Prune(start, end uint64) error
 }
 
-type ConsensusBlock[BeaconBlockT any] interface {
-	GetBeaconBlock() BeaconBlockT
+type ConsensusBlock interface {
+	GetBeaconBlock() *ctypes.BeaconBlock
 
 	// GetProposerAddress returns the address of the validator
 	// selected by consensus to propose the block
@@ -58,22 +59,6 @@ type ConsensusBlock[BeaconBlockT any] interface {
 	// GetConsensusTime returns the timestamp of current consensus request.
 	// It is used to build next payload and to validate currentpayload.
 	GetConsensusTime() math.U64
-}
-
-// BeaconBlock represents a beacon block interface.
-type BeaconBlock[
-	BeaconBlockT any,
-] interface {
-	constraints.SSZMarshallableRootable
-	constraints.Nillable
-	// GetSlot returns the slot of the beacon block.
-	GetSlot() math.Slot
-	// GetStateRoot returns the state root of the beacon block.
-	GetStateRoot() common.Root
-	// GetBody returns the body of the beacon block.
-	GetBody() *ctypes.BeaconBlockBody
-	NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
-	GetHeader() *ctypes.BeaconBlockHeader
 }
 
 type BlobSidecars[T any] interface {
@@ -121,13 +106,13 @@ type Genesis interface {
 }
 
 // LocalBuilder is the interface for the builder service.
-type LocalBuilder[BeaconStateT any] interface {
+type LocalBuilder interface {
 	// Enabled returns true if the local builder is enabled.
 	Enabled() bool
 	// RequestPayloadAsync requests a new payload for the given slot.
 	RequestPayloadAsync(
 		ctx context.Context,
-		st BeaconStateT,
+		st *statedb.StateDB,
 		slot math.Slot,
 		timestamp uint64,
 		parentBlockRoot common.Root,
@@ -137,7 +122,7 @@ type LocalBuilder[BeaconStateT any] interface {
 	// SendForceHeadFCU sends a force head FCU request.
 	SendForceHeadFCU(
 		ctx context.Context,
-		st BeaconStateT,
+		st *statedb.StateDB,
 		slot math.Slot,
 	) error
 }
@@ -166,30 +151,28 @@ type ReadOnlyBeaconState[
 // StateProcessor defines the interface for processing various state transitions
 // in the beacon chain.
 type StateProcessor[
-	BeaconBlockT,
-	BeaconStateT,
 	ContextT any,
 ] interface {
 	// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
 	// state
 	// from the eth1 deposits.
 	InitializePreminedBeaconStateFromEth1(
-		BeaconStateT,
+		*statedb.StateDB,
 		ctypes.Deposits,
 		*ctypes.ExecutionPayloadHeader,
 		common.Version,
 	) (transition.ValidatorUpdates, error)
 	// ProcessSlots processes the state transition for a range of slots.
 	ProcessSlots(
-		BeaconStateT, math.Slot,
+		*statedb.StateDB, math.Slot,
 	) (transition.ValidatorUpdates, error)
 	// Transition processes the state transition for a given block.
 	Transition(
 		ContextT,
-		BeaconStateT,
-		BeaconBlockT,
+		*statedb.StateDB,
+		*ctypes.BeaconBlock,
 	) (transition.ValidatorUpdates, error)
-	GetSidecarVerifierFn(BeaconStateT) (
+	GetSidecarVerifierFn(*statedb.StateDB) (
 		func(
 			blkHeader *ctypes.BeaconBlockHeader,
 			signature crypto.BLSSignature) error,
@@ -201,14 +184,13 @@ type StateProcessor[
 // required by the beacon node.
 type StorageBackend[
 	AvailabilityStoreT any,
-	BeaconStateT any,
 	BlockStoreT any,
 	DepositStoreT any,
 ] interface {
 	// AvailabilityStore returns the availability store for the given context.
 	AvailabilityStore() AvailabilityStoreT
 	// StateFromContext retrieves the beacon state from the given context.
-	StateFromContext(context.Context) BeaconStateT
+	StateFromContext(context.Context) *statedb.StateDB
 	// DepositStore retrieves the deposit store.
 	DepositStore() DepositStoreT
 	// BlockStore retrieves the block store.

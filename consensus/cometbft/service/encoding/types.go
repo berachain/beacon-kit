@@ -22,8 +22,6 @@ package encoding
 
 import (
 	"time"
-
-	"github.com/berachain/beacon-kit/primitives/constraints"
 )
 
 // ABCIRequest represents the interface for an ABCI request.
@@ -34,9 +32,4 @@ type ABCIRequest interface {
 	GetTime() time.Time
 	// GetTxs returns the transactions included in the request.
 	GetTxs() [][]byte
-}
-
-type BeaconBlock[T any] interface {
-	constraints.SSZMarshallable
-	NewFromSSZ([]byte, uint32) (T, error)
 }

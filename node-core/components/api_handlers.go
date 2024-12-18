@@ -33,8 +33,6 @@ import (
 )
 
 type NodeAPIHandlersInput[
-	BeaconStateT BeaconState[BeaconStateT, BeaconStateMarshallableT, KVStoreT],
-	BeaconStateMarshallableT BeaconStateMarshallable[BeaconStateMarshallableT],
 	KVStoreT any,
 	NodeAPIContextT NodeAPIContext,
 ] struct {
@@ -45,18 +43,15 @@ type NodeAPIHandlersInput[
 	DebugAPIHandler   *debugapi.Handler[NodeAPIContextT]
 	EventsAPIHandler  *eventsapi.Handler[NodeAPIContextT]
 	NodeAPIHandler    *nodeapi.Handler[NodeAPIContextT]
-	ProofAPIHandler   *proofapi.Handler[BeaconStateT, BeaconStateMarshallableT, NodeAPIContextT]
+	ProofAPIHandler   *proofapi.Handler[NodeAPIContextT]
 }
 
 func ProvideNodeAPIHandlers[
-	BeaconStateT BeaconState[BeaconStateT, BeaconStateMarshallableT, KVStoreT],
-	BeaconStateMarshallableT BeaconStateMarshallable[BeaconStateMarshallableT],
 	KVStoreT any,
 	NodeAPIContextT NodeAPIContext,
 ](
 	in NodeAPIHandlersInput[
-		BeaconStateT,
-		BeaconStateMarshallableT, KVStoreT,
+		KVStoreT,
 		NodeAPIContextT,
 	],
 ) []handlers.Handlers[NodeAPIContextT] {
@@ -72,13 +67,9 @@ func ProvideNodeAPIHandlers[
 }
 
 func ProvideNodeAPIBeaconHandler[
-	BeaconStateT any,
 	NodeT any,
 	NodeAPIContextT NodeAPIContext,
-](b NodeAPIBackend[
-	BeaconStateT,
-	NodeT,
-]) *beaconapi.Handler[NodeAPIContextT] {
+](b NodeAPIBackend[NodeT]) *beaconapi.Handler[NodeAPIContextT] {
 	return beaconapi.NewHandler[NodeAPIContextT](b)
 }
 
@@ -113,22 +104,9 @@ func ProvideNodeAPINodeHandler[
 }
 
 func ProvideNodeAPIProofHandler[
-	BeaconStateT BeaconState[BeaconStateT, BeaconStateMarshallableT, KVStoreT],
-	BeaconStateMarshallableT BeaconStateMarshallable[BeaconStateMarshallableT],
 	KVStoreT any,
 	NodeT any,
 	NodeAPIContextT NodeAPIContext,
-](b NodeAPIBackend[
-	BeaconStateT,
-	NodeT,
-]) *proofapi.Handler[
-	BeaconStateT,
-	BeaconStateMarshallableT,
-	NodeAPIContextT,
-] {
-	return proofapi.NewHandler[
-		BeaconStateT,
-		BeaconStateMarshallableT,
-		NodeAPIContextT,
-	](b)
+](b NodeAPIBackend[NodeT]) *proofapi.Handler[NodeAPIContextT] {
+	return proofapi.NewHandler[NodeAPIContextT](b)
 }

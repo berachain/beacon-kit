@@ -27,17 +27,18 @@ import (
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/crypto/sha256"
 	"github.com/berachain/beacon-kit/primitives/version"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/go-faster/xor"
 )
 
 // processRandaoReveal processes the randao reveal and
 // ensures it matches the local state.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, ContextT, _,
+	ContextT, _,
 ]) processRandaoReveal(
 	ctx ContextT,
-	st BeaconStateT,
-	blk BeaconBlockT,
+	st *statedb.StateDB,
+	blk *ctypes.BeaconBlock,
 ) error {
 	slot, err := st.GetSlot()
 	if err != nil {
@@ -94,9 +95,9 @@ func (sp *StateProcessor[
 // processRandaoMixesReset as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#randao-mixes-updates
 func (sp *StateProcessor[
-	_, BeaconStateT, _, _,
+	_, _,
 ]) processRandaoMixesReset(
-	st BeaconStateT,
+	st *statedb.StateDB,
 ) error {
 	slot, err := st.GetSlot()
 	if err != nil {
@@ -118,7 +119,7 @@ func (sp *StateProcessor[
 
 // buildRandaoMix as defined in the Ethereum 2.0 specification.
 func (sp *StateProcessor[
-	_, _, _, _,
+	_, _,
 ]) buildRandaoMix(
 	mix common.Bytes32,
 	reveal crypto.BLSSignature,

@@ -37,8 +37,6 @@ import (
 // StateProcessor is a basic Processor, which takes care of the
 // main state transition for the beacon chain.
 type StateProcessor[
-	BeaconBlockT BeaconBlock,
-	BeaconStateT BeaconState[BeaconStateT, KVStoreT],
 	ContextT Context,
 	KVStoreT any,
 ] struct {
@@ -62,8 +60,6 @@ type StateProcessor[
 
 // NewStateProcessor creates a new state processor.
 func NewStateProcessor[
-	BeaconBlockT BeaconBlock,
-	BeaconStateT BeaconState[BeaconStateT, KVStoreT],
 	ContextT Context,
 	KVStoreT any,
 ](
@@ -75,13 +71,11 @@ func NewStateProcessor[
 	fGetAddressFromPubKey func(crypto.BLSPubkey) ([]byte, error),
 	telemetrySink TelemetrySink,
 ) *StateProcessor[
-	BeaconBlockT,
-	BeaconStateT, ContextT,
+	ContextT,
 	KVStoreT,
 ] {
 	return &StateProcessor[
-		BeaconBlockT,
-		BeaconStateT, ContextT,
+		ContextT,
 		KVStoreT,
 	]{
 		logger:                logger,
@@ -96,11 +90,11 @@ func NewStateProcessor[
 
 // Transition is the main function for processing a state transition.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, ContextT, _,
+	ContextT, _,
 ]) Transition(
 	ctx ContextT,
-	st BeaconStateT,
-	blk BeaconBlockT,
+	st *state.StateDB,
+	blk *ctypes.BeaconBlock,
 ) (transition.ValidatorUpdates, error) {
 	if blk.IsNil() {
 		return nil, nil
@@ -121,9 +115,9 @@ func (sp *StateProcessor[
 }
 
 func (sp *StateProcessor[
-	_, BeaconStateT, _, _,
+	_, _,
 ]) ProcessSlots(
-	st BeaconStateT, slot math.Slot,
+	st *state.StateDB, slot math.Slot,
 ) (transition.ValidatorUpdates, error) {
 	var res transition.ValidatorUpdates
 
@@ -160,9 +154,9 @@ func (sp *StateProcessor[
 
 // processSlot is run when a slot is missed.
 func (sp *StateProcessor[
-	_, BeaconStateT, _, _,
+	_, _,
 ]) processSlot(
-	st BeaconStateT,
+	st *state.StateDB,
 ) error {
 	stateSlot, err := st.GetSlot()
 	if err != nil {
@@ -203,11 +197,11 @@ func (sp *StateProcessor[
 // ProcessBlock processes the block, it optionally verifies the
 // state root.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, ContextT, _,
+	ContextT, _,
 ]) ProcessBlock(
 	ctx ContextT,
-	st BeaconStateT,
-	blk BeaconBlockT,
+	st *state.StateDB,
+	blk *ctypes.BeaconBlock,
 ) error {
 	if err := sp.processBlockHeader(ctx, st, blk); err != nil {
 		return err
@@ -250,9 +244,9 @@ func (sp *StateProcessor[
 
 // processEpoch processes the epoch and ensures it matches the local state.
 func (sp *StateProcessor[
-	_, BeaconStateT, _, _,
+	_, _,
 ]) processEpoch(
-	st BeaconStateT,
+	st *state.StateDB,
 ) (transition.ValidatorUpdates, error) {
 	slot, err := st.GetSlot()
 	if err != nil {
@@ -302,11 +296,11 @@ func (sp *StateProcessor[
 // processBlockHeader processes the header and ensures it matches the local
 // state.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconStateT, ContextT, _,
+	ContextT, _,
 ]) processBlockHeader(
 	ctx ContextT,
-	st BeaconStateT,
-	blk BeaconBlockT,
+	st *state.StateDB,
+	blk *ctypes.BeaconBlock,
 ) error {
 	// Ensure the block slot matches the state slot.
 	slot, err := st.GetSlot()
@@ -383,9 +377,9 @@ func (sp *StateProcessor[
 // processEffectiveBalanceUpdates as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#effective-balances-updates
 func (sp *StateProcessor[
-	_, BeaconStateT, _, _,
+	_, _,
 ]) processEffectiveBalanceUpdates(
-	st BeaconStateT,
+	st *state.StateDB,
 	slot math.Slot,
 ) error {
 	// Update effective balances with hysteresis

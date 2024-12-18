@@ -33,9 +33,7 @@ import (
 )
 
 // SidecarFactory is a factory for sidecars.
-type SidecarFactory[
-	BeaconBlockT BeaconBlock,
-] struct {
+type SidecarFactory struct {
 	// chainSpec defines the specifications of the blockchain.
 	chainSpec ChainSpec
 	// metrics is used to collect and report factory metrics.
@@ -43,21 +41,19 @@ type SidecarFactory[
 }
 
 // NewSidecarFactory creates a new sidecar factory.
-func NewSidecarFactory[
-	BeaconBlockT BeaconBlock,
-](
+func NewSidecarFactory(
 	chainSpec ChainSpec,
 	telemetrySink TelemetrySink,
-) *SidecarFactory[BeaconBlockT] {
-	return &SidecarFactory[BeaconBlockT]{
+) *SidecarFactory {
+	return &SidecarFactory{
 		chainSpec: chainSpec,
 		metrics:   newFactoryMetrics(telemetrySink),
 	}
 }
 
 // BuildSidecars builds a sidecar.
-func (f *SidecarFactory[BeaconBlockT]) BuildSidecars(
-	blk BeaconBlockT,
+func (f *SidecarFactory) BuildSidecars(
+	blk *ctypes.BeaconBlock,
 	bundle ctypes.BlobsBundle,
 	signer crypto.BLSSigner,
 	forkData *ctypes.ForkData,
@@ -131,7 +127,7 @@ func (f *SidecarFactory[BeaconBlockT]) BuildSidecars(
 }
 
 // BuildKZGInclusionProof builds a KZG inclusion proof.
-func (f *SidecarFactory[_]) BuildKZGInclusionProof(
+func (f *SidecarFactory) BuildKZGInclusionProof(
 	body *ctypes.BeaconBlockBody,
 	index math.U64,
 	kzgPosition uint64,
@@ -158,7 +154,7 @@ func (f *SidecarFactory[_]) BuildKZGInclusionProof(
 }
 
 // BuildBlockBodyProof builds a block body proof.
-func (f *SidecarFactory[_]) BuildBlockBodyProof(
+func (f *SidecarFactory) BuildBlockBodyProof(
 	body *ctypes.BeaconBlockBody,
 	kzgPosition uint64,
 ) ([]common.Root, error) {
@@ -176,7 +172,7 @@ func (f *SidecarFactory[_]) BuildBlockBodyProof(
 }
 
 // BuildCommitmentProof builds a commitment proof.
-func (f *SidecarFactory[_]) BuildCommitmentProof(
+func (f *SidecarFactory) BuildCommitmentProof(
 	body *ctypes.BeaconBlockBody,
 	index math.U64,
 ) ([]common.Root, error) {

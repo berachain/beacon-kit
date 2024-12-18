@@ -25,6 +25,7 @@ import (
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // sendPostBlockFCU sends a forkchoice update to the execution client after a
@@ -33,10 +34,10 @@ import (
 // Optimistic clients already request builds in handleOptimisticPayloadBuild()
 // Non-optimistic clients should never request optimistic builds.
 func (s *Service[
-	_, _, ConsensusBlockT, _, BeaconStateT, _, _, _,
+	_, _, ConsensusBlockT, _, _, _,
 ]) sendPostBlockFCU(
 	ctx context.Context,
-	st BeaconStateT,
+	st *statedb.StateDB,
 	blk ConsensusBlockT,
 ) {
 	lph, err := st.GetLatestExecutionPayloadHeader()

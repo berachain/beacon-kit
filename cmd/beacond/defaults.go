@@ -24,16 +24,12 @@ import (
 	"github.com/berachain/beacon-kit/node-core/components"
 )
 
-//nolint:funlen
 func DefaultComponents() []any {
 	c := []any{
-		components.ProvideAttributesFactory[
-			*BeaconState, *BeaconStateMarshallable,
-			*KVStore, *Logger,
-		],
+		components.ProvideAttributesFactory[*Logger],
 		components.ProvideAvailibilityStore[*Logger],
 		components.ProvideDepositContract,
-		components.ProvideBlockStore[*BeaconBlock, *Logger],
+		components.ProvideBlockStore[*Logger],
 		components.ProvideBlsSigner,
 		components.ProvideBlobProcessor[
 			*AvailabilityStore, *ConsensusSidecars, *Logger,
@@ -41,8 +37,7 @@ func DefaultComponents() []any {
 		components.ProvideBlobProofVerifier,
 		components.ProvideChainService[
 			*AvailabilityStore,
-			*ConsensusBlock, *BeaconBlock,
-			*BeaconState, *BeaconStateMarshallable,
+			*ConsensusBlock,
 			*ConsensusSidecars,
 			*DepositStore, *DepositContract,
 			*Genesis,
@@ -61,38 +56,35 @@ func DefaultComponents() []any {
 		components.ProvideExecutionEngine[*Logger],
 		components.ProvideJWTSecret,
 		components.ProvideLocalBuilder[
-			*BeaconState, *BeaconStateMarshallable,
 			*KVStore, *Logger,
 		],
 		components.ProvideReportingService[*Logger],
 		components.ProvideCometBFTService[*Logger],
 		components.ProvideServiceRegistry[
 			*AvailabilityStore,
-			*ConsensusBlock, *BeaconBlock,
-			*BlockStore, *BeaconState,
-			*BeaconStateMarshallable,
+			*ConsensusBlock,
+			*BlockStore,
 			*ConsensusSidecars,
 			*DepositStore,
 			*Genesis, *KVStore, *Logger,
 			NodeAPIContext,
 		],
-		components.ProvideSidecarFactory[*BeaconBlock],
+		components.ProvideSidecarFactory,
 		components.ProvideStateProcessor[
-			*Logger, *BeaconBlock,
-			*BeaconState, *BeaconStateMarshallable, *DepositStore,
+			*Logger,
+			*DepositStore,
 			*KVStore,
 		],
 		components.ProvideKVStore,
 		components.ProvideStorageBackend[
-			*AvailabilityStore, *BlockStore, *BeaconState,
+			*AvailabilityStore, *BlockStore,
 			*KVStore, *DepositStore,
 		],
 		components.ProvideTelemetrySink,
 		components.ProvideTelemetryService,
 		components.ProvideTrustedSetup,
 		components.ProvideValidatorService[
-			*AvailabilityStore, *BeaconBlock,
-			*BeaconState, *BeaconStateMarshallable,
+			*AvailabilityStore,
 			*BlockStore, *DepositStore,
 			*KVStore, *Logger,
 			*StorageBackend,
@@ -105,20 +97,18 @@ func DefaultComponents() []any {
 		components.ProvideNodeAPIServer[*Logger, NodeAPIContext],
 		components.ProvideNodeAPIEngine,
 		components.ProvideNodeAPIBackend[
-			*AvailabilityStore, *BeaconBlock,
-			*BlockStore, *BeaconState,
-			*BeaconStateMarshallable, *DepositStore,
+			*AvailabilityStore,
+			*BlockStore, *DepositStore,
 			*KVStore, *CometBFTService, *StorageBackend,
 		],
 	)
 
 	c = append(c,
 		components.ProvideNodeAPIHandlers[
-			*BeaconState, *BeaconStateMarshallable,
 			*KVStore, NodeAPIContext,
 		],
 		components.ProvideNodeAPIBeaconHandler[
-			*BeaconState, *CometBFTService, NodeAPIContext,
+			*CometBFTService, NodeAPIContext,
 		],
 		components.ProvideNodeAPIBuilderHandler[NodeAPIContext],
 		components.ProvideNodeAPIConfigHandler[NodeAPIContext],
@@ -126,7 +116,6 @@ func DefaultComponents() []any {
 		components.ProvideNodeAPIEventsHandler[NodeAPIContext],
 		components.ProvideNodeAPINodeHandler[NodeAPIContext],
 		components.ProvideNodeAPIProofHandler[
-			*BeaconState, *BeaconStateMarshallable,
 			*KVStore, *CometBFTService, NodeAPIContext,
 		],
 	)
