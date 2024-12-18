@@ -368,10 +368,15 @@ type (
 	DepositStore interface {
 		// GetDepositsByIndex returns `numView` or less deposits.
 		GetDepositsByIndex(startIndex, numView uint64) (ctypes.Deposits, common.Root, error)
-		// Prune prunes the deposit store of [start, end)
-		Prune(start, end uint64) error
-		// EnqueueDepositDatas adds a list of deposits to the deposit store.
-		EnqueueDepositDatas(deposits []*ctypes.DepositData) error
+		// Prune prunes the deposit store of the given height.
+		Prune(height uint64) error
+		// EnqueueDepositDatas adds a list of deposits to the deposit store for a given EL block.
+		EnqueueDepositDatas(
+			depositDatas []*ctypes.DepositData,
+			indexes []uint64,
+			executionHash common.ExecutionHash,
+			executionNumber math.U64,
+		) error
 	}
 
 	// Genesis is the interface for the genesis.
@@ -456,7 +461,8 @@ type (
 		// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
 		// state from the eth1 deposits.
 		InitializePreminedBeaconStateFromEth1(
-			BeaconStateT, *ctypes.ExecutionPayloadHeader, common.Version,
+			BeaconStateT, ctypes.Deposits, common.Root,
+			*ctypes.ExecutionPayloadHeader, common.Version,
 		) (transition.ValidatorUpdates, error)
 		// ProcessSlot processes the slot.
 		ProcessSlots(

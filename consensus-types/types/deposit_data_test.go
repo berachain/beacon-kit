@@ -39,14 +39,12 @@ func generateValidDeposit() *types.DepositData {
 	var signature crypto.BLSSignature
 	var credentials types.WithdrawalCredentials
 	amount := math.Gwei(32)
-	index := uint64(1)
 
 	return &types.DepositData{
 		Pubkey:      pubKey,
 		Credentials: credentials,
 		Amount:      amount,
 		Signature:   signature,
-		Index:       index,
 	}
 }
 
@@ -57,7 +55,6 @@ func TestDeposit_New(t *testing.T) {
 		deposit.Credentials,
 		deposit.Amount,
 		deposit.Signature,
-		deposit.Index,
 	)
 	require.Equal(t, deposit, newDeposit)
 }
@@ -150,5 +147,4 @@ func TestDeposit_Getters(t *testing.T) {
 	require.Equal(t, deposit.Credentials, deposit.GetWithdrawalCredentials())
 	require.Equal(t, deposit.Amount, deposit.GetAmount())
 	require.Equal(t, deposit.Signature, deposit.GetSignature())
-	require.Equal(t, math.U64(deposit.Index), deposit.GetIndex())
 }

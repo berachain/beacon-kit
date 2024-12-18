@@ -41,15 +41,36 @@ func (s *Service[
 		return nil, err
 	}
 
-	genesisDeposits := genesisData.GetDepositDatas()
+	// Store the genesis deposits.
+	genesisDepositDatas := genesisData.GetDepositDatas()
+	genesisDepositIndexes := make([]uint64, len(genesisDepositDatas))
+	for i := range genesisDepositDatas {
+		genesisDepositIndexes[i] = uint64(i)
+	}
 	genesisExecutionPayloadHeader := genesisData.GetExecutionPayloadHeader()
-	if err := s.depositStore.EnqueueDepositDatas(genesisDeposits); err != nil {
+	if err := s.depositStore.EnqueueDepositDatas(
+		genesisDepositDatas,
+		genesisDepositIndexes,
+		genesisExecutionPayloadHeader.BlockHash,
+		genesisExecutionPayloadHeader.Number,
+	); err != nil {
 		s.logger.Error("Failed to store genesis deposits", "error", err)
+		return nil, err
+	}
+
+	// Get the genesis deposits, with their proofs.
+	genesisDeposits, genesisDepositsRoot, err := s.depositStore.GetDepositsByIndex(
+		0, uint64(len(genesisDepositDatas)),
+	)
+	if err != nil {
+		s.logger.Error("Failed to retrieve genesis deposits with proofs", "error", err)
 		return nil, err
 	}
 
 	return s.stateProcessor.InitializePreminedBeaconStateFromEth1(
 		s.storageBackend.StateFromContext(ctx),
+		genesisDeposits,
+		genesisDepositsRoot,
 		genesisExecutionPayloadHeader,
 		genesisData.GetForkVersion(),
 	)

@@ -30,7 +30,7 @@ import (
 )
 
 // DepositDataSize is the size of the SSZ encoding of a DepositData.
-const DepositDataSize = 192 // 48 + 32 + 8 + 96 + 8
+const DepositDataSize = 184 // 48 + 32 + 8 + 96
 
 // Compile-time assertions to ensure Deposit implements necessary interfaces.
 var (
@@ -50,8 +50,6 @@ type DepositData struct {
 	Amount math.Gwei `json:"amount"`
 	// Signature of the deposit data.
 	Signature crypto.BLSSignature `json:"signature"`
-	// Index of the deposit in the deposit contract.
-	Index uint64 `json:"index"`
 }
 
 // NewDepositData creates a new DepositData instance.
@@ -60,14 +58,12 @@ func NewDepositData(
 	credentials WithdrawalCredentials,
 	amount math.Gwei,
 	signature crypto.BLSSignature,
-	index uint64,
 ) *DepositData {
 	return &DepositData{
 		Pubkey:      pubkey,
 		Credentials: credentials,
 		Amount:      amount,
 		Signature:   signature,
-		Index:       index,
 	}
 }
 
@@ -82,10 +78,9 @@ func (d *DepositData) New(
 	credentials WithdrawalCredentials,
 	amount math.Gwei,
 	signature crypto.BLSSignature,
-	index uint64,
 ) *DepositData {
 	return NewDepositData(
-		pubkey, credentials, amount, signature, index,
+		pubkey, credentials, amount, signature,
 	)
 }
 
@@ -117,7 +112,6 @@ func (d *DepositData) DefineSSZ(c *ssz.Codec) {
 	ssz.DefineStaticBytes(c, &d.Credentials)
 	ssz.DefineUint64(c, &d.Amount)
 	ssz.DefineStaticBytes(c, &d.Signature)
-	ssz.DefineUint64(c, &d.Index)
 }
 
 // MarshalSSZ marshals the DepositData object to SSZ format.
@@ -171,9 +165,6 @@ func (d *DepositData) HashTreeRootWith(hh fastssz.HashWalker) error {
 	// Field (3) 'Signature'
 	hh.PutBytes(d.Signature[:])
 
-	// Field (4) 'Index'
-	hh.PutUint64(d.Index)
-
 	hh.Merkleize(indx)
 	return nil
 }
@@ -187,15 +178,6 @@ func (d *DepositData) GetTree() (*fastssz.Node, error) {
 /*                             Getters and Setters                            */
 /* -------------------------------------------------------------------------- */
 
-// Equals returns true if the DepositData is equal to the other.
-func (d *DepositData) Equals(rhs *DepositData) bool {
-	return d.Pubkey == rhs.Pubkey &&
-		d.Credentials == rhs.Credentials &&
-		d.Amount == rhs.Amount &&
-		d.Signature == rhs.Signature &&
-		d.Index == rhs.Index
-}
-
 // GetAmount returns the deposit amount in gwei.
 func (d *DepositData) GetAmount() math.Gwei {
 	return d.Amount
@@ -204,11 +186,6 @@ func (d *DepositData) GetAmount() math.Gwei {
 // GetPubkey returns the public key of the validator specified in the deposit.
 func (d *DepositData) GetPubkey() crypto.BLSPubkey {
 	return d.Pubkey
-}
-
-// GetIndex returns the index of the deposit in the deposit contract.
-func (d *DepositData) GetIndex() math.U64 {
-	return math.U64(d.Index)
 }
 
 // GetSignature returns the signature of the deposit data.

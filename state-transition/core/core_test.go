@@ -111,7 +111,7 @@ func initTestStores() (*beacondb.KVStore, *deposit.Store, error) {
 			testStoreService,
 			testCodec,
 		),
-		deposit.NewStore(testStoreService),
+		deposit.NewStore(),
 		nil
 }
 

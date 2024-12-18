@@ -64,10 +64,15 @@ type BlockStore[BeaconBlockT any] interface {
 type DepositStore interface {
 	// GetDepositsByIndex returns `numView` or less deposits.
 	GetDepositsByIndex(startIndex uint64, numView uint64) (ctypes.Deposits, common.Root, error)
-	// Prune prunes the deposit store of [start, end)
-	Prune(start, end uint64) error
-	// EnqueueDepositDatas adds a list of deposits to the deposit store.
-	EnqueueDepositDatas(deposits []*ctypes.DepositData) error
+	// Prune prunes the deposit store of the given height.
+	Prune(height uint64) error
+	// EnqueueDepositDatas adds a list of deposits to the deposit store for a given EL block.
+	EnqueueDepositDatas(
+		depositDatas []*ctypes.DepositData,
+		indexes []uint64,
+		executionHash common.ExecutionHash,
+		executionNumber math.U64,
+	) error
 }
 
 // Node is the interface for a node.

@@ -18,18 +18,33 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package validator
+package deposit
 
-import "github.com/berachain/beacon-kit/errors"
-
-var (
-	// ErrNilPayload is an error for when there is no payload
-	// in a beacon block.
-	ErrNilPayload = errors.New("nil payload in beacon block")
-
-	// ErrNilBlkBody is an error for when the block body is nil.
-	ErrNilBlkBody = errors.New("nil block body")
-
-	// ErrNilBlobsBundle is an error for when the blobs bundle is nil.
-	ErrNilBlobsBundle = errors.New("nil blobs bundle")
+import (
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
+
+// block holds the necessary information of deposits in a block.
+type block struct {
+	// the number of the finalized execution block, provided by EL.
+	executionNumber math.U64
+
+	// the hash of the finalized execution block, provided by EL.
+	executionHash common.ExecutionHash
+
+	// the deposits (with the proofs) included in the block, determined by CL merkle tree.
+	deposits ctypes.Deposits
+
+	// the root of the deposit tree at the end of processing each deposit in
+	// the tree, determined by CL merkle tree.
+	root []common.Root
+}
+
+// retrievalInfo holds the necessary information to retrieve deposits for the next CL
+// block request.
+type retrievalInfo struct {
+	// the index of the block that should be searched from.
+	nextBlocksIndex int
+}

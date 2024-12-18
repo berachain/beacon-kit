@@ -253,7 +253,4 @@ type (
 type (
 	// DAPruner is a type alias for the DA pruner.
 	DAPruner = pruner.Pruner[*IndexDB]
-
-	// DepositPruner is a type alias for the deposit pruner.
-	DepositPruner = pruner.Pruner[*DepositStore]
 )

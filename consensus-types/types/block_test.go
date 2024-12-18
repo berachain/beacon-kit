@@ -58,9 +58,7 @@ func generateValidBeaconBlock() *types.BeaconBlock {
 			Eth1Data: &types.Eth1Data{},
 			Deposits: []*types.Deposit{
 				{
-					Data: &types.DepositData{
-						Index: 1,
-					},
+					Data: &types.DepositData{Amount: 1},
 				},
 			},
 			BlobKzgCommitments: []eip4844.KZGCommitment{

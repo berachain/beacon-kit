@@ -21,10 +21,8 @@
 package core
 
 import (
-	"fmt"
-
-	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -40,6 +38,8 @@ func (sp *StateProcessor[
 	_, BeaconStateT, _, _,
 ]) InitializePreminedBeaconStateFromEth1(
 	st BeaconStateT,
+	deposits ctypes.Deposits,
+	depositsRoot common.Root,
 	execPayloadHeader *ctypes.ExecutionPayloadHeader,
 	genesisVersion common.Version,
 ) (transition.ValidatorUpdates, error) {
@@ -55,6 +55,12 @@ func (sp *StateProcessor[
 	// TODO: we need to handle common.Version vs uint32 better.
 	var blkBody *ctypes.BeaconBlockBody
 	blkBody = blkBody.Empty(version.ToUint32(genesisVersion))
+
+	var eth1Data *ctypes.Eth1Data
+	eth1Data = eth1Data.New(depositsRoot, math.U64(len(deposits)), execPayloadHeader.GetBlockHash())
+	if err := st.SetEth1Data(eth1Data); err != nil {
+		return nil, err
+	}
 
 	var blkHeader *ctypes.BeaconBlockHeader
 	blkHeader = blkHeader.New(
@@ -77,25 +83,8 @@ func (sp *StateProcessor[
 		}
 	}
 
-	// Get each genesis deposit from the deposit store, with their proofs.
-	for i := range sp.cs.ValidatorSetCap() {
-		deposits, depositRoot, err := sp.ds.GetDepositsByIndex(i, 1)
-		if err != nil {
-			return nil, err
-		}
-		if len(deposits) == 0 {
-			break
-		}
-
-		var eth1Data *ctypes.Eth1Data
-		eth1Data = eth1Data.New(
-			depositRoot, math.U64(i+1), execPayloadHeader.GetBlockHash(),
-		)
-		if err = st.SetEth1Data(eth1Data); err != nil {
-			return nil, err
-		}
-
-		if err = sp.processDeposit(st, deposits[0]); err != nil {
+	for _, deposit := range deposits {
+		if err := sp.processDeposit(st, deposit); err != nil {
 			return nil, err
 		}
 	}
@@ -152,40 +141,28 @@ func (sp *StateProcessor[
 ]) processGenesisActivation(
 	st BeaconStateT,
 ) error {
-	switch {
-	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
-		// nothing to do
-		return nil
-	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID:
-		// nothing to do
-		return nil
-	default:
-		vals, err := st.GetValidators()
-		if err != nil {
-			return fmt.Errorf(
-				"genesis activation, failed listing validators: %w",
-				err,
-			)
-		}
-		minEffectiveBalance := math.Gwei(
-			sp.cs.EjectionBalance() + sp.cs.EffectiveBalanceIncrement(),
-		)
-
-		var idx math.ValidatorIndex
-		for _, val := range vals {
-			if val.GetEffectiveBalance() < minEffectiveBalance {
-				continue
-			}
-			val.SetActivationEligibilityEpoch(0)
-			val.SetActivationEpoch(0)
-			idx, err = st.ValidatorIndexByPubkey(val.GetPubkey())
-			if err != nil {
-				return err
-			}
-			if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
-				return err
-			}
-		}
-		return nil
+	vals, err := st.GetValidators()
+	if err != nil {
+		return errors.Wrap(err, "genesis activation, failed listing validators")
 	}
+	minEffectiveBalance := math.Gwei(
+		sp.cs.EjectionBalance() + sp.cs.EffectiveBalanceIncrement(),
+	)
+
+	var idx math.ValidatorIndex
+	for _, val := range vals {
+		if val.GetEffectiveBalance() < minEffectiveBalance {
+			continue
+		}
+		val.SetActivationEligibilityEpoch(0)
+		val.SetActivationEpoch(0)
+		idx, err = st.ValidatorIndexByPubkey(val.GetPubkey())
+		if err != nil {
+			return err
+		}
+		if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
+			return err
+		}
+	}
+	return nil
 }

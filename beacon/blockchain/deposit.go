@@ -35,21 +35,22 @@ const defaultRetryInterval = 20 * time.Second
 func (s *Service[
 	_, _, _, _, _, _, _, _, _,
 ]) depositFetcher(ctx context.Context, blockNum math.U64) {
-	if blockNum <= s.eth1FollowDistance {
+	eth1FollowDistance := math.U64(s.chainSpec.Eth1FollowDistance())
+	if blockNum <= eth1FollowDistance {
 		s.logger.Info(
 			"depositFetcher, nothing to fetch",
-			"block num", blockNum, "eth1FollowDistance", s.eth1FollowDistance,
+			"block_num", blockNum, "eth1_follow_distance", eth1FollowDistance,
 		)
 		return
 	}
 
-	s.fetchAndStoreDeposits(ctx, blockNum-s.eth1FollowDistance)
+	s.fetchAndStoreDeposits(ctx, blockNum-eth1FollowDistance)
 }
 
 func (s *Service[
 	_, _, _, _, _, _, _, _, _,
 ]) fetchAndStoreDeposits(ctx context.Context, blockNum math.U64) {
-	deposits, _, err := s.depositContract.ReadDeposits(ctx, blockNum)
+	deposits, indexes, executionHash, err := s.depositContract.ReadDeposits(ctx, blockNum)
 	if err != nil {
 		s.logger.Error("Failed to read deposits", "error", err)
 		s.metrics.sink.IncrementCounter(
@@ -67,7 +68,9 @@ func (s *Service[
 		)
 	}
 
-	if err = s.depositStore.EnqueueDepositDatas(deposits); err != nil {
+	if err = s.depositStore.EnqueueDepositDatas(
+		deposits, indexes, executionHash, blockNum,
+	); err != nil {
 		s.logger.Error("Failed to store deposits", "error", err)
 		s.failedBlocksMu.Lock()
 		s.failedBlocks[blockNum] = struct{}{}

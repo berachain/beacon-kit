@@ -22,10 +22,9 @@ package deposit
 
 import (
 	"context"
-	"errors"
-	"fmt"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/errors"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/geth-primitives/bind"
 	"github.com/berachain/beacon-kit/geth-primitives/deposit"
@@ -68,7 +67,7 @@ func NewWrappedDepositContract(
 // ReadDeposits reads deposits from the deposit contract.
 func (dc *WrappedDepositContract) ReadDeposits(
 	ctx context.Context, blkNum math.U64,
-) ([]*ctypes.DepositData, common.ExecutionHash, error) {
+) ([]*ctypes.DepositData, []uint64, common.ExecutionHash, error) {
 	logs, err := dc.FilterDeposit(
 		&bind.FilterOpts{
 			Context: ctx,
@@ -77,12 +76,13 @@ func (dc *WrappedDepositContract) ReadDeposits(
 		},
 	)
 	if err != nil {
-		return nil, common.ExecutionHash{}, err
+		return nil, nil, common.ExecutionHash{}, err
 	}
 
 	var (
 		blockNumStr = blkNum.Base10()
 		deposits    = make([]*ctypes.DepositData, 0)
+		indexes     = make([]uint64, 0)
 		blockHash   common.ExecutionHash
 	)
 	for logs.Next() {
@@ -93,29 +93,31 @@ func (dc *WrappedDepositContract) ReadDeposits(
 		)
 		pubKey, err = bytes.ToBytes48(logs.Event.Pubkey)
 		if err != nil {
-			return nil, blockHash, fmt.Errorf("failed reading pub key: %w", err)
+			return nil, nil, blockHash, errors.Wrap(err, "failed reading pub key")
 		}
 		cred, err = bytes.ToBytes32(logs.Event.Credentials)
 		if err != nil {
-			return nil, blockHash, fmt.Errorf("failed reading credentials: %w", err)
+			return nil, nil, blockHash, errors.Wrap(err, "failed reading credentials")
 		}
 		sign, err = bytes.ToBytes96(logs.Event.Signature)
 		if err != nil {
-			return nil, blockHash, fmt.Errorf("failed reading signature: %w", err)
+			return nil, nil, blockHash, errors.Wrap(err, "failed reading signature")
 		}
 
 		deposits = append(deposits, ctypes.NewDepositData(
-			pubKey, ctypes.WithdrawalCredentials(cred), math.U64(logs.Event.Amount), sign, logs.Event.Index,
+			pubKey, ctypes.WithdrawalCredentials(cred), math.U64(logs.Event.Amount), sign,
 		))
+		indexes = append(indexes, logs.Event.Index)
 
 		if blockHash == (common.ExecutionHash{}) {
 			blockHash = common.ExecutionHash(logs.Event.Raw.BlockHash)
 		}
 
 		dc.telemetrySink.IncrementCounter(
-			"beacon_kit.execution.deposits_read", "block_num", blockNumStr, "block_hash", blockHash.Hex(),
+			"beacon_kit.execution.deposits_read",
+			"block_num", blockNumStr, "block_hash", blockHash.Hex(),
 		)
 	}
 
-	return deposits, blockHash, nil
+	return deposits, indexes, blockHash, nil
 }

@@ -51,15 +51,21 @@ func (sp *StateProcessor[
 		return err
 	}
 	eth1Data := blk.GetBody().GetEth1Data()
-	if eth1Data.DepositRoot != localDepositsRoot {
+	if localDepositsRoot != eth1Data.DepositRoot {
 		return errors.New("local deposit tree root does not match the block deposit tree root")
 	}
 
 	// Verify that the provided deposit count is consistent with our local view of the
 	// deposit tree.
+	blockDeposits := blk.GetBody().GetDeposits()
+	if len(blockDeposits) != len(localDeposits) {
+		return errors.Wrapf(
+			ErrDepositCountMismatch, "expected: %d, got: %d",
+			len(localDeposits), len(blockDeposits),
+		)
+	}
 	if uint64(len(localDeposits)) != min(
-		sp.cs.MaxDepositsPerBlock(),
-		eth1Data.DepositCount.Unwrap()-depositIndex,
+		sp.cs.MaxDepositsPerBlock(), eth1Data.DepositCount.Unwrap()-depositIndex,
 	) {
 		return errors.Wrapf(
 			ErrDepositCountMismatch, "expected: %d, got: %d",
@@ -197,7 +203,7 @@ func (sp *StateProcessor[
 		// Ignore deposits with non-ETH1 withdrawal credentials.
 		sp.logger.Info(
 			"ignoring deposit with non-ETH1 withdrawal credentials",
-			"deposit_index", dep.GetIndex(),
+			// "deposit_index", dep.GetIndex(),
 		)
 		return nil
 	}
@@ -215,7 +221,7 @@ func (sp *StateProcessor[
 	if err != nil {
 		// Ignore deposits that fail the signature check.
 		sp.logger.Info(
-			"failed deposit signature verification", "deposit_index", dep.GetIndex(), "error", err,
+			"failed deposit signature verification", "error", err, // "deposit_index", dep.GetIndex(),
 		)
 		return nil
 	}
