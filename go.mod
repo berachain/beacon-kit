@@ -12,7 +12,7 @@ replace (
 	cosmossdk.io/store/v2 => ../cosmos-sdk/store/v2
 	// cosmossdk.io/x/accounts => ../cosmos-sdk/x/accounts
 	// cosmossdk.io/x/bank => ../cosmos-sdk/x/bank
-	cosmossdk.io/x/staking => ../cosmos-sdk/x/staking
+	// cosmossdk.io/x/staking => ../cosmos-sdk/x/staking
 	github.com/cosmos/cosmos-sdk => ../cosmos-sdk
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
 	github.com/karalabe/ssz => github.com/berachain/karalabe-ssz v0.3.0-alpha.0
@@ -99,7 +99,7 @@ require (
 	cosmossdk.io/math v1.4.0 // indirect
 	cosmossdk.io/schema v1.0.0 // indirect
 	cosmossdk.io/x/bank v0.0.0-20241218110910-47409028a73d // indirect
-	cosmossdk.io/x/staking v0.0.0-20240806152830-8fb47b368cd4 // indirect
+	cosmossdk.io/x/staking v0.0.0-20241218110910-47409028a73d // indirect
 	cosmossdk.io/x/tx v1.0.0-alpha.3 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/4meepo/tagalign v1.3.4 // indirect
