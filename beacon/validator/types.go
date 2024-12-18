@@ -112,7 +112,6 @@ type BlobFactory[
 		blobs ctypes.BlobsBundle,
 		signer crypto.BLSSigner,
 		forkData *ctypes.ForkData,
-
 	) (BlobSidecarsT, error)
 }
 
@@ -226,7 +225,7 @@ type BlobSidecars[T, BlobSidecarT any] interface {
 	Get(index int) BlobSidecarT
 	GetSidecars() []BlobSidecarT
 	ValidateBlockRoots() error
-	VerifyInclusionProofs(kzgOffset uint64) error
+	VerifyInclusionProofs(kzgOffset uint64, inclusionProofDepth uint8) error
 }
 
 type BlockBuilderI interface {

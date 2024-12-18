@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/kzg"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -42,6 +43,8 @@ type verifier[
 	proofVerifier kzg.BlobProofVerifier
 	// metrics collects and reports metrics related to the verification process.
 	metrics *verifierMetrics
+	// chainSpec contains the chain specification
+	chainSpec chain.ChainSpec
 }
 
 // newVerifier creates a new Verifier with the given proof verifier.
@@ -51,10 +54,12 @@ func newVerifier[
 ](
 	proofVerifier kzg.BlobProofVerifier,
 	telemetrySink TelemetrySink,
+	chainSpec chain.ChainSpec,
 ) *verifier[BlobSidecarT, BlobSidecarsT] {
 	return &verifier[BlobSidecarT, BlobSidecarsT]{
 		proofVerifier: proofVerifier,
 		metrics:       newVerifierMetrics(telemetrySink),
+		chainSpec:     chainSpec,
 	}
 }
 
@@ -62,7 +67,6 @@ func newVerifier[
 // as the KZG proofs.
 func (bv *verifier[_, BlobSidecarsT]) verifySidecars(
 	sidecars BlobSidecarsT,
-	kzgOffset uint64,
 	blkHeader *ctypes.BeaconBlockHeader,
 	verifierFn func(
 		blkHeader *ctypes.BeaconBlockHeader,
@@ -97,11 +101,7 @@ func (bv *verifier[_, BlobSidecarsT]) verifySidecars(
 
 	// Verify the inclusion proofs on the blobs concurrently.
 	g.Go(func() error {
-		// TODO: KZGOffset needs to be configurable and not
-		// passed in.
-		return bv.verifyInclusionProofs(
-			sidecars, kzgOffset,
-		)
+		return bv.verifyInclusionProofs(sidecars, blkHeader.GetSlot())
 	})
 
 	// Verify the KZG proofs on the blobs concurrently.
@@ -115,13 +115,30 @@ func (bv *verifier[_, BlobSidecarsT]) verifySidecars(
 
 func (bv *verifier[_, BlobSidecarsT]) verifyInclusionProofs(
 	scs BlobSidecarsT,
-	kzgOffset uint64,
+	slot math.Slot,
 ) error {
 	startTime := time.Now()
 	defer bv.metrics.measureVerifyInclusionProofsDuration(
 		startTime, math.U64(scs.Len()),
 	)
-	return scs.VerifyInclusionProofs(kzgOffset)
+
+	// Grab the KZG offset for the fork version.
+	kzgOffset, err := ctypes.BlockBodyKZGOffset(
+		slot, bv.chainSpec,
+	)
+	if err != nil {
+		return err
+	}
+
+	// Grab the inclusion proof depth for the fork version.
+	inclusionProofDepth, err := ctypes.KZGCommitmentInclusionProofDepth(
+		slot, bv.chainSpec,
+	)
+	if err != nil {
+		return err
+	}
+
+	return scs.VerifyInclusionProofs(kzgOffset, inclusionProofDepth)
 }
 
 // verifyKZGProofs verifies the sidecars.
