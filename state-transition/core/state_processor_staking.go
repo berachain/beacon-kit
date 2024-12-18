@@ -38,6 +38,7 @@ func (sp *StateProcessor[
 	BeaconBlockT, BeaconStateT, _, _,
 ]) processOperations(st BeaconStateT, blk BeaconBlockT) error {
 	// Verify that outstanding deposits are processed up to the maximum number of deposits.
+	// Technically not required since we already verify the deposit root.
 	eth1Data, err := st.GetEth1Data()
 	if err != nil {
 		return err
@@ -53,17 +54,6 @@ func (sp *StateProcessor[
 			ErrDepositCountMismatch, "expected: %d, got: %d",
 			min(sp.cs.MaxDepositsPerBlock(), depositCount-depositIndex), len(deposits),
 		)
-	}
-
-	// Verify that the local view of deposit tree is consistent with the provided deposits.
-	_, localDepositsRoot, err := sp.ds.GetDepositsByIndex(
-		depositIndex, uint64(len(deposits)),
-	)
-	if err != nil {
-		return err
-	}
-	if eth1Data.DepositRoot != localDepositsRoot {
-		return errors.New("local deposit tree root does not match the block deposit tree root")
 	}
 
 	// Process each deposit.
