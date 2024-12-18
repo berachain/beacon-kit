@@ -74,6 +74,11 @@ func (s *Service[
 		blk,
 		req.GetProposerAddress(),
 		req.GetTime(),
+
+		// Finalize may be called while syncing. In such a case
+		// we must perform payload verification since we do not
+		// verify block with ProcessBlock.
+		req.SyncingToHeight != req.Height,
 	)
 
 	cBlk, ok := any(consensusBlk).(ConsensusBlockT)
@@ -180,10 +185,9 @@ func (s *Service[
 			// of validators in their process proposal call and thus
 			// the "verification aspect" of this NewPayload call is
 			// actually irrelevant at this point.
-			SkipPayloadVerification: false,
-
-			ProposerAddress: blk.GetProposerAddress(),
-			ConsensusTime:   blk.GetConsensusTime(),
+			SkipPayloadVerification: !blk.GetConsensusSyncing(),
+			ProposerAddress:         blk.GetProposerAddress(),
+			ConsensusTime:           blk.GetConsensusTime(),
 		},
 		st,
 		blk.GetBeaconBlock(),
