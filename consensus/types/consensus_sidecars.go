@@ -25,8 +25,7 @@ import (
 )
 
 type ConsensusSidecars[SidecarsT any] struct {
-	sidecars SidecarsT
-
+	sidecars  SidecarsT
 	blkHeader *ctypes.BeaconBlockHeader
 }
 
@@ -35,11 +34,10 @@ func (s *ConsensusSidecars[SidecarsT]) New(
 	sidecars SidecarsT,
 	blkHeader *ctypes.BeaconBlockHeader,
 ) *ConsensusSidecars[SidecarsT] {
-	s = &ConsensusSidecars[SidecarsT]{
+	return &ConsensusSidecars[SidecarsT]{
 		sidecars:  sidecars,
 		blkHeader: blkHeader,
 	}
-	return s
 }
 
 func (s *ConsensusSidecars[SidecarsT]) GetSidecars() SidecarsT {
