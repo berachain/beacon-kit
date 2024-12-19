@@ -133,23 +133,17 @@ func NewService[
 }
 
 // Name returns the name of the service.
-func (s *Service[
-	_, _, _, _, _, _, _, _, _,
-]) Name() string {
+func (s *Service[_, _, _, _, _, _, _, _, _]) Name() string {
 	return "blockchain"
 }
 
-func (s *Service[
-	_, _, _, _, _, _, _, _, _,
-]) Start(ctx context.Context) error {
+func (s *Service[_, _, _, _, _, _, _, _, _]) Start(ctx context.Context) error {
 	// Catchup deposits for failed blocks.
 	go s.depositCatchupFetcher(ctx)
 
 	return nil
 }
 
-func (s *Service[
-	_, _, _, _, _, _, _, _, _,
-]) Stop() error {
+func (s *Service[_, _, _, _, _, _, _, _, _]) Stop() error {
 	return nil
 }
