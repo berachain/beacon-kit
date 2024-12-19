@@ -27,9 +27,8 @@ import (
 	"github.com/berachain/beacon-kit/primitives/transition"
 )
 
-// ProcessGenesisData processes the genesis state and initializes the beacon state.
-//
-// TODO: can verify genesis deposit count and deposit root against the EL deposit contract here.
+// ProcessGenesisData processes the genesis state and initializes the beacon
+// state.
 func (s *Service[
 	_, _, _, _, _, _, GenesisT, _, _,
 ]) ProcessGenesisData(
