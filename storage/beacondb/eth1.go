@@ -58,14 +58,10 @@ func (kv *KVStore) SetLatestExecutionPayloadHeader(
 // If the index is not found, it returns 0 and no error.
 func (kv *KVStore) GetEth1DepositIndex() (uint64, error) {
 	index, err := kv.eth1DepositIndex.Get(kv.ctx)
-	if err != nil {
-		if errors.Is(err, collections.ErrNotFound) {
-			return 0, nil
-		}
-
-		return 0, err
+	if errors.Is(err, collections.ErrNotFound) {
+		return 0, nil
 	}
-	return index, nil
+	return index, err
 }
 
 // SetEth1DepositIndex sets the eth1 deposit index in the beacon state.
