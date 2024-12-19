@@ -27,6 +27,7 @@ import (
 
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/geth-primitives/rpc"
+	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
@@ -50,14 +51,24 @@ func (s *Client) ChainID(
 func (s *Client) CodeAt(
 	ctx context.Context, account common.Address, blockNumber *big.Int,
 ) ([]byte, error) {
-	return nil, nil
+	var result bytes.Bytes
+	if err := s.Call(ctx, &result, "eth_getCode", account, toBlockNumArg(blockNumber)); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 // CallContract executes an Ethereum contract call with the specified data as the input.
 func (s *Client) CallContract(
 	ctx context.Context, call ethereum.CallMsg, blockNumber *big.Int,
 ) ([]byte, error) {
-	return nil, nil
+	var result bytes.Bytes
+	if err := s.Call(
+		ctx, &result, "eth_call", toCallArg(call), toBlockNumArg(blockNumber),
+	); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 // TODO: Figure out how to unhood all this.
@@ -75,9 +86,7 @@ func (s *Client) FilterLogs(
 	return result, s.Call(ctx, &result, "eth_getLogs", arg)
 }
 
-// SubscribeFilterLogs(ctx context.Context, q FilterQuery, ch chan<- types.Log)
-// (Subscription, error)
-
+// SubscribeFilterLogs subscribes to the filter query.
 func (s *Client) SubscribeFilterLogs(
 	context.Context,
 	ethereum.FilterQuery,
@@ -122,4 +131,39 @@ func toBlockNumArg(number *big.Int) string {
 	}
 	// It's negative and large, which is invalid.
 	return fmt.Sprintf("<invalid %d>", number)
+}
+
+func toCallArg(msg ethereum.CallMsg) interface{} {
+	arg := map[string]interface{}{
+		"from": msg.From,
+		"to":   msg.To,
+	}
+	if len(msg.Data) > 0 {
+		arg["input"] = hexutil.Bytes(msg.Data)
+	}
+	if msg.Value != nil {
+		arg["value"] = (*hexutil.Big)(msg.Value)
+	}
+	if msg.Gas != 0 {
+		arg["gas"] = hexutil.Uint64(msg.Gas)
+	}
+	if msg.GasPrice != nil {
+		arg["gasPrice"] = (*hexutil.Big)(msg.GasPrice)
+	}
+	if msg.GasFeeCap != nil {
+		arg["maxFeePerGas"] = (*hexutil.Big)(msg.GasFeeCap)
+	}
+	if msg.GasTipCap != nil {
+		arg["maxPriorityFeePerGas"] = (*hexutil.Big)(msg.GasTipCap)
+	}
+	if msg.AccessList != nil {
+		arg["accessList"] = msg.AccessList
+	}
+	if msg.BlobGasFeeCap != nil {
+		arg["maxFeePerBlobGas"] = (*hexutil.Big)(msg.BlobGasFeeCap)
+	}
+	if msg.BlobHashes != nil {
+		arg["blobVersionedHashes"] = msg.BlobHashes
+	}
+	return arg
 }
