@@ -96,6 +96,9 @@ func DefaultComponents() []any {
 			*KVStore, *Logger,
 			*StorageBackend,
 		],
+		// TODO Hacks
+		components.ProvideKVStoreService,
+		components.ProvideKVStoreKey,
 	}
 	c = append(c,
 		components.ProvideNodeAPIServer[*Logger, NodeAPIContext],
