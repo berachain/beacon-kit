@@ -94,7 +94,8 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		Amount:      2 * increment, // twice to account for hysteresis
 		Index:       3,
 	}
-
+	eth1Data, err := st.GetEth1Data()
+	require.NoError(t, err)
 	blk1 := buildNextBlock(
 		t,
 		st,
@@ -109,7 +110,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 				BaseFeePerGas: math.NewU256(0),
 			},
 			Eth1Data: &types.Eth1Data{
-				DepositRoot: types.Deposits{blkDeposit}.HashTreeRoot(),
+				DepositRoot: types.Deposits{blkDeposit}.CombiHashTreeRoot(eth1Data.DepositRoot),
 			},
 			Deposits: []*types.Deposit{blkDeposit},
 		},
@@ -148,6 +149,8 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	blk := moveToEndOfEpoch(t, blk1, cs, sp, st, ctx)
 
 	// finally the block turning epoch
+	eth1Data, err = st.GetEth1Data()
+	require.NoError(t, err)
 	blk = buildNextBlock(
 		t,
 		st,
@@ -162,7 +165,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 				BaseFeePerGas: math.NewU256(0),
 			},
 			Eth1Data: &types.Eth1Data{
-				DepositRoot: types.Deposits{}.HashTreeRoot(),
+				DepositRoot: types.Deposits{}.CombiHashTreeRoot(eth1Data.DepositRoot),
 			},
 			Deposits: []*types.Deposit{},
 		},
@@ -237,7 +240,8 @@ func TestTransitionCreateValidator(t *testing.T) {
 		Amount:      maxBalance,
 		Index:       uint64(len(genDeposits)),
 	}
-
+	eth1Data, err := st.GetEth1Data()
+	require.NoError(t, err)
 	blk1 := buildNextBlock(
 		t,
 		st,
@@ -252,7 +256,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 				BaseFeePerGas: math.NewU256(0),
 			},
 			Eth1Data: &types.Eth1Data{
-				DepositRoot: types.Deposits{blkDeposit}.HashTreeRoot(),
+				DepositRoot: types.Deposits{blkDeposit}.CombiHashTreeRoot(eth1Data.DepositRoot),
 			},
 			Deposits: []*types.Deposit{blkDeposit},
 		},
@@ -292,6 +296,8 @@ func TestTransitionCreateValidator(t *testing.T) {
 	blk := moveToEndOfEpoch(t, blk1, cs, sp, st, ctx)
 
 	// finally the block turning epoch
+	eth1Data, err = st.GetEth1Data()
+	require.NoError(t, err)
 	blk = buildNextBlock(
 		t,
 		st,
@@ -306,7 +312,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 				BaseFeePerGas: math.NewU256(0),
 			},
 			Eth1Data: &types.Eth1Data{
-				DepositRoot: types.Deposits{}.HashTreeRoot(),
+				DepositRoot: types.Deposits{}.CombiHashTreeRoot(eth1Data.DepositRoot),
 			},
 			Deposits: []*types.Deposit{},
 		},
@@ -338,6 +344,8 @@ func TestTransitionCreateValidator(t *testing.T) {
 	_ = moveToEndOfEpoch(t, blk, cs, sp, st, ctx)
 
 	// finally the block turning epoch
+	eth1Data, err = st.GetEth1Data()
+	require.NoError(t, err)
 	blk = buildNextBlock(
 		t,
 		st,
@@ -352,7 +360,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 				BaseFeePerGas: math.NewU256(0),
 			},
 			Eth1Data: &types.Eth1Data{
-				DepositRoot: types.Deposits{}.HashTreeRoot(),
+				DepositRoot: types.Deposits{}.CombiHashTreeRoot(eth1Data.DepositRoot),
 			},
 			Deposits: []*types.Deposit{},
 		},
@@ -441,6 +449,8 @@ func TestTransitionWithdrawals(t *testing.T) {
 	require.Equal(t, maxBalance+minBalance, val1Bal)
 
 	// Create test inputs.
+	eth1Data, err := st.GetEth1Data()
+	require.NoError(t, err)
 	blk := buildNextBlock(
 		t,
 		st,
@@ -463,7 +473,7 @@ func TestTransitionWithdrawals(t *testing.T) {
 				BaseFeePerGas: math.NewU256(0),
 			},
 			Eth1Data: &types.Eth1Data{
-				DepositRoot: types.Deposits{}.HashTreeRoot(),
+				DepositRoot: types.Deposits{}.CombiHashTreeRoot(eth1Data.DepositRoot),
 			},
 			Deposits: []*types.Deposit{},
 		},
@@ -691,6 +701,8 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		}
 	)
 
+	eth1Data, err := st.GetEth1Data()
+	require.NoError(t, err)
 	blk1 := buildNextBlock(
 		t,
 		st,
@@ -705,7 +717,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				BaseFeePerGas: math.NewU256(0),
 			},
 			Eth1Data: &types.Eth1Data{
-				DepositRoot: types.Deposits{extraValDeposit}.HashTreeRoot(),
+				DepositRoot: types.Deposits{extraValDeposit}.CombiHashTreeRoot(eth1Data.DepositRoot),
 			},
 			Deposits: []*types.Deposit{extraValDeposit},
 		},
@@ -745,6 +757,8 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	_ = moveToEndOfEpoch(t, blk1, cs, sp, st, ctx)
 
 	// finally the block turning epoch
+	eth1Data, err = st.GetEth1Data()
+	require.NoError(t, err)
 	blk := buildNextBlock(
 		t,
 		st,
@@ -759,7 +773,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				BaseFeePerGas: math.NewU256(0),
 			},
 			Eth1Data: &types.Eth1Data{
-				DepositRoot: types.Deposits{}.HashTreeRoot(),
+				DepositRoot: types.Deposits{}.CombiHashTreeRoot(eth1Data.DepositRoot),
 			},
 			Deposits: []*types.Deposit{},
 		},
@@ -792,6 +806,8 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	_ = moveToEndOfEpoch(t, blk, cs, sp, st, ctx)
 
 	// finally the block turning epoch
+	eth1Data, err = st.GetEth1Data()
+	require.NoError(t, err)
 	blk = buildNextBlock(
 		t,
 		st,
@@ -806,7 +822,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				BaseFeePerGas: math.NewU256(0),
 			},
 			Eth1Data: &types.Eth1Data{
-				DepositRoot: types.Deposits{}.HashTreeRoot(),
+				DepositRoot: types.Deposits{}.CombiHashTreeRoot(eth1Data.DepositRoot),
 			},
 			Deposits: []*types.Deposit{},
 		},
@@ -831,6 +847,8 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	// finally the block turning epoch
 	extraValAddr, err := extraValCreds.ToExecutionAddress()
 	require.NoError(t, err)
+	eth1Data, err = st.GetEth1Data()
+	require.NoError(t, err)
 	blk = buildNextBlock(
 		t,
 		st,
@@ -851,7 +869,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				BaseFeePerGas: math.NewU256(0),
 			},
 			Eth1Data: &types.Eth1Data{
-				DepositRoot: types.Deposits{}.HashTreeRoot(),
+				DepositRoot: types.Deposits{}.CombiHashTreeRoot(eth1Data.DepositRoot),
 			},
 			Deposits: []*types.Deposit{},
 		},
@@ -931,6 +949,8 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		}
 	)
 
+	eth1Data, err := st.GetEth1Data()
+	require.NoError(t, err)
 	blk1 := buildNextBlock(
 		t,
 		st,
@@ -945,7 +965,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				BaseFeePerGas: math.NewU256(0),
 			},
 			Eth1Data: &types.Eth1Data{
-				DepositRoot: types.Deposits{extraValDeposit}.HashTreeRoot(),
+				DepositRoot: types.Deposits{extraValDeposit}.CombiHashTreeRoot(eth1Data.DepositRoot),
 			},
 			Deposits: []*types.Deposit{extraValDeposit},
 		},
@@ -1002,6 +1022,8 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	_ = moveToEndOfEpoch(t, blk1, cs, sp, st, ctx)
 
 	// finally the block turning epoch
+	eth1Data, err = st.GetEth1Data()
+	require.NoError(t, err)
 	blk := buildNextBlock(
 		t,
 		st,
@@ -1016,7 +1038,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				BaseFeePerGas: math.NewU256(0),
 			},
 			Eth1Data: &types.Eth1Data{
-				DepositRoot: types.Deposits{}.HashTreeRoot(),
+				DepositRoot: types.Deposits{}.CombiHashTreeRoot(eth1Data.DepositRoot),
 			},
 			Deposits: []*types.Deposit{},
 		},
@@ -1064,6 +1086,8 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	_ = moveToEndOfEpoch(t, blk, cs, sp, st, ctx)
 
 	// finally the block turning epoch
+	eth1Data, err = st.GetEth1Data()
+	require.NoError(t, err)
 	blk = buildNextBlock(
 		t,
 		st,
@@ -1078,7 +1102,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				BaseFeePerGas: math.NewU256(0),
 			},
 			Eth1Data: &types.Eth1Data{
-				DepositRoot: types.Deposits{}.HashTreeRoot(),
+				DepositRoot: types.Deposits{}.CombiHashTreeRoot(eth1Data.DepositRoot),
 			},
 			Deposits: []*types.Deposit{},
 		},
@@ -1132,6 +1156,8 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	require.NoError(t, err)
 
 	// finally the block turning epoch
+	eth1Data, err = st.GetEth1Data()
+	require.NoError(t, err)
 	blk = buildNextBlock(
 		t,
 		st,
@@ -1152,7 +1178,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				BaseFeePerGas: math.NewU256(0),
 			},
 			Eth1Data: &types.Eth1Data{
-				DepositRoot: types.Deposits{}.HashTreeRoot(),
+				DepositRoot: types.Deposits{}.CombiHashTreeRoot(eth1Data.DepositRoot),
 			},
 			Deposits: []*types.Deposit{},
 		},
@@ -1201,6 +1227,8 @@ func moveToEndOfEpoch(
 	blk := tip
 	currEpoch := cs.SlotToEpoch(blk.GetSlot())
 	for currEpoch == cs.SlotToEpoch(blk.GetSlot()+1) {
+		eth1Data, err := st.GetEth1Data()
+		require.NoError(t, err)
 		blk = buildNextBlock(
 			t,
 			st,
@@ -1215,7 +1243,7 @@ func moveToEndOfEpoch(
 					BaseFeePerGas: math.NewU256(0),
 				},
 				Eth1Data: &types.Eth1Data{
-					DepositRoot: types.Deposits{}.HashTreeRoot(),
+					DepositRoot: types.Deposits{}.CombiHashTreeRoot(eth1Data.DepositRoot),
 				},
 				Deposits: []*types.Deposit{},
 			},
