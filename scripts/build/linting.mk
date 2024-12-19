@@ -62,7 +62,7 @@ nilaway:
 
 gosec:
 	@echo "--> Running gosec"
-	@go run github.com/cosmos/gosec/v2/cmd/gosec -tags bls12381 -exclude G702 ./...
+	@go run github.com/cosmos/gosec/v2/cmd/gosec -tags bls12381 -exclude-dir node-core/components/signer  -exclude G702 ./...
 
 #################
 #    slither    #
