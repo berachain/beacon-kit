@@ -549,6 +549,8 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	require.Equal(t, maxBalance+minBalance, val1Bal)
 
 	// Create test inputs.
+	eth1Data, err := st.GetEth1Data()
+	require.NoError(t, err)
 	blk := buildNextBlock(
 		t,
 		st,
@@ -571,7 +573,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 				BaseFeePerGas: math.NewU256(0),
 			},
 			Eth1Data: &types.Eth1Data{
-				DepositRoot: types.Deposits{}.HashTreeRoot(),
+				DepositRoot: types.Deposits{}.CombiHashTreeRoot(eth1Data.DepositRoot),
 			},
 			Deposits: []*types.Deposit{},
 		},
@@ -597,6 +599,8 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	// Process the next block, ensuring that validator 1 is also withdrawn from,
 	// also ensuring that the state's next withdrawal (validator) index is
 	// appropriately incremented.
+	eth1Data, err = st.GetEth1Data()
+	require.NoError(t, err)
 	blk = buildNextBlock(
 		t,
 		st,
@@ -619,7 +623,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 				BaseFeePerGas: math.NewU256(0),
 			},
 			Eth1Data: &types.Eth1Data{
-				DepositRoot: types.Deposits{}.HashTreeRoot(),
+				DepositRoot: types.Deposits{}.CombiHashTreeRoot(eth1Data.DepositRoot),
 			},
 			Deposits: []*types.Deposit{},
 		},
