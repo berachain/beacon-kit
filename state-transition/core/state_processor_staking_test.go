@@ -92,7 +92,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		Pubkey:      genDeposits[2].Pubkey,
 		Credentials: emptyCredentials,
 		Amount:      2 * increment, // twice to account for hysteresis
-		Index:       uint64(len(genDeposits)),
+		Index:       3,
 	}
 
 	blk1 := buildNextBlock(
@@ -108,7 +108,9 @@ func TestTransitionUpdateValidators(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
+			Eth1Data: &types.Eth1Data{
+				DepositRoot: types.Deposits{blkDeposit}.HashTreeRoot(),
+			},
 			Deposits: []*types.Deposit{blkDeposit},
 		},
 	)
@@ -140,7 +142,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	// check that validator index is still correct
 	latestValIdx, err := st.GetEth1DepositIndex()
 	require.NoError(t, err)
-	require.Equal(t, uint64(len(genDeposits)), latestValIdx)
+	require.Equal(t, uint64(4), latestValIdx)
 
 	// STEP 2: check that effective balance is updated once next epoch arrives
 	blk := moveToEndOfEpoch(t, blk1, cs, sp, st, ctx)
@@ -159,7 +161,9 @@ func TestTransitionUpdateValidators(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
+			Eth1Data: &types.Eth1Data{
+				DepositRoot: types.Deposits{}.HashTreeRoot(),
+			},
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -247,7 +251,9 @@ func TestTransitionCreateValidator(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
+			Eth1Data: &types.Eth1Data{
+				DepositRoot: types.Deposits{blkDeposit}.HashTreeRoot(),
+			},
 			Deposits: []*types.Deposit{blkDeposit},
 		},
 	)
@@ -279,7 +285,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 	// check that validator index is still correct
 	latestValIdx, err := st.GetEth1DepositIndex()
 	require.NoError(t, err)
-	require.Equal(t, uint64(len(genDeposits)), latestValIdx)
+	require.Equal(t, uint64(2), latestValIdx)
 
 	// STEP 2: move the chain to the next epoch and show that
 	// the extra validator is eligible for activation
@@ -299,7 +305,9 @@ func TestTransitionCreateValidator(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
+			Eth1Data: &types.Eth1Data{
+				DepositRoot: types.Deposits{}.HashTreeRoot(),
+			},
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -343,7 +351,9 @@ func TestTransitionCreateValidator(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
+			Eth1Data: &types.Eth1Data{
+				DepositRoot: types.Deposits{}.HashTreeRoot(),
+			},
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -452,7 +462,9 @@ func TestTransitionWithdrawals(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
+			Eth1Data: &types.Eth1Data{
+				DepositRoot: types.Deposits{}.HashTreeRoot(),
+			},
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -548,7 +560,9 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
+			Eth1Data: &types.Eth1Data{
+				DepositRoot: types.Deposits{}.HashTreeRoot(),
+			},
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -594,7 +608,9 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
+			Eth1Data: &types.Eth1Data{
+				DepositRoot: types.Deposits{}.HashTreeRoot(),
+			},
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -688,7 +704,9 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
+			Eth1Data: &types.Eth1Data{
+				DepositRoot: types.Deposits{extraValDeposit}.HashTreeRoot(),
+			},
 			Deposits: []*types.Deposit{extraValDeposit},
 		},
 	)
@@ -740,7 +758,9 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
+			Eth1Data: &types.Eth1Data{
+				DepositRoot: types.Deposits{}.HashTreeRoot(),
+			},
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -785,7 +805,9 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
+			Eth1Data: &types.Eth1Data{
+				DepositRoot: types.Deposits{}.HashTreeRoot(),
+			},
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -828,7 +850,9 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
+			Eth1Data: &types.Eth1Data{
+				DepositRoot: types.Deposits{}.HashTreeRoot(),
+			},
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -920,7 +944,9 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
+			Eth1Data: &types.Eth1Data{
+				DepositRoot: types.Deposits{extraValDeposit}.HashTreeRoot(),
+			},
 			Deposits: []*types.Deposit{extraValDeposit},
 		},
 	)
@@ -989,7 +1015,9 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
+			Eth1Data: &types.Eth1Data{
+				DepositRoot: types.Deposits{}.HashTreeRoot(),
+			},
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -1049,7 +1077,9 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
+			Eth1Data: &types.Eth1Data{
+				DepositRoot: types.Deposits{}.HashTreeRoot(),
+			},
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -1121,7 +1151,9 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
+			Eth1Data: &types.Eth1Data{
+				DepositRoot: types.Deposits{}.HashTreeRoot(),
+			},
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -1182,7 +1214,9 @@ func moveToEndOfEpoch(
 					},
 					BaseFeePerGas: math.NewU256(0),
 				},
-				Eth1Data: &types.Eth1Data{},
+				Eth1Data: &types.Eth1Data{
+					DepositRoot: types.Deposits{}.HashTreeRoot(),
+				},
 				Deposits: []*types.Deposit{},
 			},
 		)
