@@ -227,3 +227,10 @@ func buildNextBlock(
 		Body:          nextBlkBody,
 	}
 }
+
+// We verify DepositRoot in Eth1Data, but we don't really update
+// the store once we store deposits (it's not StateProcessor responsibility).
+// So we just keep using the dummyEth1Data most of the time.
+var dummyEth1Data = &types.Eth1Data{
+	DepositRoot: types.Deposits(nil).HashTreeRoot(),
+}

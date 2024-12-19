@@ -49,9 +49,7 @@ type KVStore[T any] interface {
 	// GetEth1DepositIndex retrieves the eth1 deposit index.
 	GetEth1DepositIndex() (uint64, error)
 	// SetEth1DepositIndex sets the eth1 deposit index.
-	SetEth1DepositIndex(
-		index uint64,
-	) error
+	SetEth1DepositIndex(index uint64) error
 	// GetBalance retrieves the balance of a validator.
 	GetBalance(idx math.ValidatorIndex) (math.Gwei, error)
 	// SetBalance sets the balance of a validator.

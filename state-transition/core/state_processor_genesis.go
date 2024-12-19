@@ -61,7 +61,7 @@ func (sp *StateProcessor[
 
 	var eth1Data *ctypes.Eth1Data
 	eth1Data = eth1Data.New(
-		common.Root{},
+		ctypes.Deposits(deposits).HashTreeRoot(),
 		0,
 		execPayloadHeader.GetBlockHash(),
 	)
