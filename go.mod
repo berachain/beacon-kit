@@ -3,16 +3,6 @@ module github.com/berachain/beacon-kit
 go 1.23.4
 
 replace (
-	// The following make this repo point to a local version of cosmos-sdk
-	// This is a temporary measure
-	// cosmossdk.io/api => ../cosmos-sdk/api
-	// cosmossdk.io/core => ../cosmos-sdk/core
-	// cosmossdk.io/core/testing => ../cosmos-sdk/core/testing
-	// cosmossdk.io/store => ../cosmos-sdk/store
-	// cosmossdk.io/store/v2 => ../cosmos-sdk/store/v2
-	// cosmossdk.io/x/accounts => ../cosmos-sdk/x/accounts
-	// cosmossdk.io/x/bank => ../cosmos-sdk/x/bank
-	// cosmossdk.io/x/staking => ../cosmos-sdk/x/staking
 	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.52.0-rc.1
 
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
