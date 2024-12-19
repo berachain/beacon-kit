@@ -41,6 +41,12 @@ func (sp *StateProcessor[
 	// Verify that outstanding deposits are processed
 	// up to the maximum number of deposits
 
+	// pulling current deposit index before updates from processDeposit
+	depositIndex, err := st.GetEth1DepositIndex()
+	if err != nil {
+		return err
+	}
+
 	// Unlike Eth 2.0 specs we don't check that
 	// len(body.deposits) ==  min(MAX_DEPOSITS,
 	// state.eth1_data.deposit_count - state.eth1_deposit_index)
@@ -61,12 +67,7 @@ func (sp *StateProcessor[
 		}
 	}
 
-	// Add deposits to beaconState
-	depositIndex, err := st.GetEth1DepositIndex()
-	if err != nil {
-		return err
-	}
-
+	// Pull all deposits from genesis and re-calculate their root
 	fullDeposits, err := sp.ds.GetDepositsByIndex(0, depositIndex+1)
 	if err != nil {
 		return err
