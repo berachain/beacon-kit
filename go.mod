@@ -3,6 +3,8 @@ module github.com/berachain/beacon-kit
 go 1.23.4
 
 replace (
+	github.com/cometbft/cometbft => github.com/cometbft/cometbft v1.0.1-0.20241218102856-585833e1cbc4
+	github.com/cometbft/cometbft/api => github.com/cometbft/cometbft/api v1.0.1-0.20241218102856-585833e1cbc4
 	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.52.0-rc.1
 
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
