@@ -9,11 +9,12 @@ replace (
 	// cosmossdk.io/core => ../cosmos-sdk/core
 	// cosmossdk.io/core/testing => ../cosmos-sdk/core/testing
 	// cosmossdk.io/store => ../cosmos-sdk/store
-	cosmossdk.io/store/v2 => ../cosmos-sdk/store/v2
+	// cosmossdk.io/store/v2 => ../cosmos-sdk/store/v2
 	// cosmossdk.io/x/accounts => ../cosmos-sdk/x/accounts
 	// cosmossdk.io/x/bank => ../cosmos-sdk/x/bank
 	// cosmossdk.io/x/staking => ../cosmos-sdk/x/staking
 	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.52.0-rc.1
+
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
 	github.com/karalabe/ssz => github.com/berachain/karalabe-ssz v0.3.0-alpha.0
 )
@@ -24,7 +25,6 @@ require (
 	cosmossdk.io/depinject v1.1.0
 	cosmossdk.io/log v1.5.0
 	cosmossdk.io/store v1.10.0-rc.1.0.20241218084712-ca559989da43
-	cosmossdk.io/store/v2 v2.0.0-20240821144902-e88c138760a3
 	github.com/bazelbuild/buildtools v0.0.0-20241129155226-a0444eb13952
 	github.com/bufbuild/buf v1.47.2
 	github.com/cometbft/cometbft v1.0.1-0.20241218102856-585833e1cbc4
