@@ -24,7 +24,7 @@ import (
 	"github.com/berachain/beacon-kit/node-core/components"
 )
 
-//nolint:funlen // happens
+//nolint:funlen
 func DefaultComponents() []any {
 	c := []any{
 		components.ProvideAttributesFactory[
