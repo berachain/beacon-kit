@@ -55,11 +55,6 @@ func ProvideDepositStore[
 		return nil, err
 	}
 
-	// kvp, err := storev2.NewDB(storev2.DBTypePebbleDB, name, dir, nil)
-	// if err != nil {
-	// return nil, err
-	// }
-
 	return depositstore.NewStore(
 		storage.NewKVStoreProvider(pdb),
 		in.Logger.With("service", "deposit-store"),
