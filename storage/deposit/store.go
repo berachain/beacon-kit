@@ -79,7 +79,7 @@ func (kv *KVStore) GetDepositsByIndex(
 	kv.mu.RLock()
 	defer kv.mu.RUnlock()
 	var (
-		deposits = ctypes.Deposits{}
+		deposits = make(ctypes.Deposits, 0, depRange)
 		endIdx   = startIndex + depRange
 	)
 
