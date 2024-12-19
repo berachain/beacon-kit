@@ -21,9 +21,11 @@
 package core_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
+	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
 	"cosmossdk.io/store"
 	"cosmossdk.io/store/metrics"
@@ -46,7 +48,6 @@ import (
 	depositstore "github.com/berachain/beacon-kit/storage/deposit"
 	"github.com/berachain/beacon-kit/storage/encoding"
 	dbm "github.com/cosmos/cosmos-db"
-	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -69,6 +70,17 @@ type (
 		*TestKVStoreT,
 	]
 )
+
+type testKVStoreService struct {
+	ctx sdk.Context
+}
+
+func (kvs *testKVStoreService) OpenKVStore(context.Context) corestore.KVStore {
+	//nolint:contextcheck // fine with tests
+	return components.NewKVStore(
+		sdk.UnwrapSDKContext(kvs.ctx).KVStore(testStoreKey),
+	)
+}
 
 var (
 	testStoreKey = storetypes.NewKVStoreKey("state-transition-tests")
@@ -96,12 +108,12 @@ func initTestStores() (*beacondb.KVStore, *depositstore.KVStore, error) {
 		return nil, nil, fmt.Errorf("failed to load latest version: %w", err)
 	}
 
-	sdkCtx := sdk.NewContext(cms, true, nopLog)
-	testStoreService := runtime.NewKVStoreService(testStoreKey)
+	ctx := sdk.NewContext(cms, true, nopLog)
+	testStoreService := &testKVStoreService{ctx: ctx}
 	return beacondb.New(
 			testStoreService,
 			testCodec,
-		).WithContext(sdkCtx),
+		),
 		depositstore.NewStore(testStoreService, nopLog),
 		nil
 }
