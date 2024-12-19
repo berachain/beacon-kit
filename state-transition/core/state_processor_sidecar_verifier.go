@@ -28,7 +28,7 @@ import (
 )
 
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _, _, _,
+	_, BeaconStateT, _, _,
 ]) GetSidecarVerifierFn(
 	st BeaconStateT,
 ) (

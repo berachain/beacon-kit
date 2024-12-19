@@ -22,16 +22,7 @@ package client
 
 import (
 	"time"
-
-	"github.com/berachain/beacon-kit/primitives/common"
 )
-
-type PayloadAttributes interface {
-	// IsNil returns true if the payload attributes are nil.
-	IsNil() bool
-	// GetSuggestedFeeRecipient returns the suggested fee recipient.
-	GetSuggestedFeeRecipient() common.ExecutionAddress
-}
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.
 type TelemetrySink interface {

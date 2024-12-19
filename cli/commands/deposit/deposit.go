@@ -21,18 +21,17 @@
 package deposit
 
 import (
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/cli/utils/parser"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
-	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 )
 
 // Commands creates a new command for deposit related actions.
-func Commands[ExecutionPayloadT constraints.EngineType[ExecutionPayloadT]](
-	chainSpec common.ChainSpec,
+func Commands(
+	chainSpec chain.ChainSpec,
 ) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "deposit",
@@ -44,7 +43,7 @@ func Commands[ExecutionPayloadT constraints.EngineType[ExecutionPayloadT]](
 
 	cmd.AddCommand(
 		NewValidateDeposit(chainSpec),
-		NewCreateValidator[ExecutionPayloadT](chainSpec),
+		NewCreateValidator(chainSpec),
 	)
 
 	return cmd
@@ -53,7 +52,7 @@ func Commands[ExecutionPayloadT constraints.EngineType[ExecutionPayloadT]](
 // NewValidateDeposit creates a new command for validating a deposit message.
 //
 //nolint:mnd // lots of magic numbers
-func NewValidateDeposit(chainSpec common.ChainSpec) *cobra.Command {
+func NewValidateDeposit(chainSpec chain.ChainSpec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "validate",
 		Short: "Validates a deposit message for creating a new validator",
@@ -71,7 +70,7 @@ func NewValidateDeposit(chainSpec common.ChainSpec) *cobra.Command {
 
 // validateDepositMessage validates a deposit message for creating a new
 // validator.
-func validateDepositMessage(chainSpec common.ChainSpec) func(
+func validateDepositMessage(chainSpec chain.ChainSpec) func(
 	_ *cobra.Command,
 	args []string,
 ) error {
