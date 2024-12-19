@@ -24,7 +24,6 @@ import (
 	"github.com/berachain/beacon-kit/node-core/components"
 )
 
-//nolint:funlen // happens
 func DefaultComponents() []any {
 	c := []any{
 		components.ProvideAttributesFactory[
@@ -97,9 +96,6 @@ func DefaultComponents() []any {
 			*KVStore, *Logger,
 			*StorageBackend,
 		],
-		// TODO Hacks
-		components.ProvideKVStoreService,
-		components.ProvideKVStoreKey,
 	}
 	c = append(c,
 		components.ProvideNodeAPIServer[*Logger, NodeAPIContext],
