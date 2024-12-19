@@ -52,22 +52,20 @@ func (sp *StateProcessor[
 			sp.cs.MaxDepositsPerBlock(), len(blkDeposits),
 		)
 	}
-	newRoot, err := sp.validateNonGenesisDeposits(
+	if err := sp.validateNonGenesisDeposits(
 		st,
 		blkDeposits,
 		blk.GetBody().GetEth1Data().DepositRoot,
-	)
-	if err != nil {
+	); err != nil {
 		return err
 	}
 	for _, dep := range blkDeposits {
-		if err = sp.processDeposit(st, dep); err != nil {
+		if err := sp.processDeposit(st, dep); err != nil {
 			return err
 		}
 	}
 
-	// Store deposit root into the Beacon State
-	return st.SetDepositRoot(newRoot)
+	return nil
 }
 
 // processDeposit processes the deposit and ensures it matches the local state.

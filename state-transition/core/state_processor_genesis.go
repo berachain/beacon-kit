@@ -61,7 +61,7 @@ func (sp *StateProcessor[
 
 	var eth1Data *ctypes.Eth1Data
 	eth1Data = eth1Data.New(
-		common.Root{},
+		ctypes.Deposits(deposits).HashTreeRoot(),
 		0,
 		execPayloadHeader.GetBlockHash(),
 	)
@@ -102,11 +102,6 @@ func (sp *StateProcessor[
 		if err := sp.processDeposit(st, deposit); err != nil {
 			return nil, err
 		}
-	}
-
-	depositsRoot := ctypes.Deposits(deposits).HashTreeRoot()
-	if err := st.SetDepositRoot(depositsRoot); err != nil {
-		return nil, err
 	}
 
 	// process activations

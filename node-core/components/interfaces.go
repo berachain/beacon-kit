@@ -837,7 +837,6 @@ type (
 	WriteOnlyEth1Data interface {
 		SetEth1Data(*ctypes.Eth1Data) error
 		SetEth1DepositIndex(uint64) error
-		SetDepositRoot(root common.Root) error
 		SetLatestExecutionPayloadHeader(*ctypes.ExecutionPayloadHeader) error
 	}
 
@@ -845,7 +844,6 @@ type (
 	ReadOnlyEth1Data interface {
 		GetEth1Data() (*ctypes.Eth1Data, error)
 		GetEth1DepositIndex() (uint64, error)
-		GetDepositRoot() (common.Root, error)
 		GetLatestExecutionPayloadHeader() (*ctypes.ExecutionPayloadHeader, error)
 	}
 

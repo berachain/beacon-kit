@@ -106,10 +106,10 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	blkDeposits []*ctypes.Deposit,
 	blkDepositRoot common.Root,
-) (common.Root, error) {
+) error {
 	slot, err := st.GetSlot()
 	if err != nil {
-		return common.Root{}, fmt.Errorf(
+		return fmt.Errorf(
 			"failed loading slot while processing deposits: %w", err,
 		)
 	}
@@ -117,20 +117,20 @@ func (sp *StateProcessor[
 	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
 		// Bartio does not properly validate deposits index
 		// We skip checks for backward compatibility
-		return common.Root{}, nil
+		return nil
 
 	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
 		slot < math.U64(spec.BoonetFork2Height):
 		// Boonet inherited the bug from Bartio and it may have added some
 		// validators before we activate the fork. So we skip validation
 		// before fork activation
-		return common.Root{}, nil
+		return nil
 
 	default:
 		var depositIndex uint64
 		depositIndex, err = st.GetEth1DepositIndex()
 		if err != nil {
-			return common.Root{}, err
+			return err
 		}
 		//#nosec:G701 // can't overflow.
 		depositIndex += uint64(len(blkDeposits) + 1)
@@ -138,13 +138,13 @@ func (sp *StateProcessor[
 		var deposits []*ctypes.Deposit
 		deposits, err = sp.ds.GetDepositsByIndex(0, depositIndex)
 		if err != nil {
-			return common.Root{}, err
+			return err
 		}
 
 		newRoot := ctypes.Deposits(deposits).HashTreeRoot()
 		if !bytes.Equal(blkDepositRoot[:], newRoot[:]) {
-			return common.Root{}, ErrDepositsRootMismatch
+			return ErrDepositsRootMismatch
 		}
-		return newRoot, nil
+		return nil
 	}
 }

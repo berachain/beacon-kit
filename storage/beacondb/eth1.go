@@ -22,7 +22,6 @@ package beacondb
 
 import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/primitives/common"
 )
 
 // GetLatestExecutionPayloadHeader retrieves the latest execution payload
@@ -63,22 +62,6 @@ func (kv *KVStore) SetEth1DepositIndex(
 	index uint64,
 ) error {
 	return kv.eth1DepositIndex.Set(kv.ctx, index)
-}
-
-// SetGenesisValidatorsRoot sets the genesis validators root in the beacon
-// state.
-func (kv *KVStore) SetDepositRoot(root common.Root) error {
-	return kv.depositsRoot.Set(kv.ctx, root[:])
-}
-
-// GetGenesisValidatorsRoot retrieves the genesis validators root from the
-// beacon state.
-func (kv *KVStore) GetDepositRoot() (common.Root, error) {
-	bz, err := kv.depositsRoot.Get(kv.ctx)
-	if err != nil {
-		return common.Root{}, err
-	}
-	return common.Root(bz), nil
 }
 
 // GetEth1Data retrieves the eth1 data from the beacon state.

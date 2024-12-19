@@ -50,10 +50,6 @@ type KVStore[T any] interface {
 	GetEth1DepositIndex() (uint64, error)
 	// SetEth1DepositIndex sets the eth1 deposit index.
 	SetEth1DepositIndex(index uint64) error
-
-	SetDepositRoot(root common.Root) error
-	GetDepositRoot() (common.Root, error)
-
 	// GetBalance retrieves the balance of a validator.
 	GetBalance(idx math.ValidatorIndex) (math.Gwei, error)
 	// SetBalance sets the balance of a validator.
