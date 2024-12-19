@@ -103,14 +103,14 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 		case 0:
 			pubkey, err = client.GetPubKey(s.Ctx())
 			s.Require().NoError(err)
-			pk, err := bls12381.NewPublicKeyFromBytes(pubkey[:])
+			pk, err := bls12381.NewPublicKeyFromBytes(pubkey)
 			s.Require().NoError(err)
 			pubkey = pk.Compress()
 			s.Require().Len(pubkey, 48)
 		case 1:
 			pubkey, err = client2.GetPubKey(s.Ctx())
 			s.Require().NoError(err)
-			pk, err := bls12381.NewPublicKeyFromBytes(pubkey[:])
+			pk, err := bls12381.NewPublicKeyFromBytes(pubkey)
 			s.Require().NoError(err)
 			pubkey = pk.Compress()
 			s.Require().Len(pubkey, 48)
