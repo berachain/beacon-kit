@@ -325,6 +325,8 @@ func (s *Service[
 	)
 	body.SetDeposits(blkDeposits)
 
+	// Grab all previous deposits from genesis up to the current index
+	// to calculate deposit root.
 	deposits, err := s.sb.DepositStore().GetDepositsByIndex(0, depositIndex)
 	if err != nil {
 		return err
