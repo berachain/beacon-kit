@@ -156,16 +156,16 @@ func (sp *StateProcessor[
 		}
 
 		// Verify that the local deposits have the same root as the block deposits.
-		eth1Data, err := st.GetEth1Data()
+		var eth1Data *ctypes.Eth1Data
+		eth1Data, err = st.GetEth1Data()
 		if err != nil {
 			return err
 		}
-		newEth1Data := blk.GetBody().GetEth1Data()
 		localDepositsRoot := ctypes.Deposits(localDeposits).CombiHashTreeRoot(eth1Data.DepositRoot)
-		if localDepositsRoot != newEth1Data.DepositRoot {
+		if localDepositsRoot != blk.GetBody().GetEth1Data().DepositRoot {
 			return errors.Wrapf(
 				ErrDepositMismatch, "deposits root mismatch, local: %s, received: %s",
-				localDepositsRoot, newEth1Data.DepositRoot,
+				localDepositsRoot, blk.GetBody().GetEth1Data().DepositRoot,
 			)
 		}
 		return nil

@@ -55,7 +55,7 @@ func (sp *StateProcessor[
 	if err := sp.validateNonGenesisDeposits(st, blk, deposits); err != nil {
 		return err
 	}
-	
+
 	for _, dep := range deposits {
 		if err := sp.processDeposit(st, dep); err != nil {
 			return err
