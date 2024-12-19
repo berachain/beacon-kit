@@ -62,9 +62,8 @@ func (sp *StateProcessor[
 	}
 
 	// Add deposits to beaconState
-	st.SetDepositRoot(deposits)
-
-	return nil
+	depositsRoot := ctypes.Deposits(deposits).HashTreeRoot()
+	return st.SetBlockDepositRoot(depositsRoot)
 }
 
 // processDeposit processes the deposit and ensures it matches the local state.

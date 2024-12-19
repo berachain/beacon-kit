@@ -146,6 +146,7 @@ type WriteOnlyEth1Data interface {
 	SetEth1Data(*ctypes.Eth1Data) error
 	SetEth1DepositIndex(uint64) error
 	SetLatestExecutionPayloadHeader(*ctypes.ExecutionPayloadHeader) error
+	SetBlockDepositRoot(root common.Root) error
 }
 
 // ReadOnlyEth1Data has read access to eth1 data.
@@ -153,6 +154,7 @@ type ReadOnlyEth1Data interface {
 	GetEth1Data() (*ctypes.Eth1Data, error)
 	GetEth1DepositIndex() (uint64, error)
 	GetLatestExecutionPayloadHeader() (*ctypes.ExecutionPayloadHeader, error)
+	GetBlockDepositRoot() (common.Root, error)
 }
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.

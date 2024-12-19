@@ -44,6 +44,7 @@ const (
 	NextWithdrawalIndexPrefix
 	NextWithdrawalValidatorIndexPrefix
 	ForkPrefix
+	DepositsRootPrefix
 )
 
 const (
@@ -70,4 +71,5 @@ const (
 	NextWithdrawalIndexPrefixHumanReadable              = "NextWithdrawalIndexPrefix"
 	NextWithdrawalValidatorIndexPrefixHumanReadable     = "NextWithdrawalValidatorIndexPrefix"
 	ForkPrefixHumanReadable                             = "ForkPrefix"
+	DepositsRootPrefixReadable                          = "DepositsRootPrefix"
 )

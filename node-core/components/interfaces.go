@@ -175,6 +175,7 @@ type (
 			nextWithdrawalIndex uint64,
 			nextWithdrawalValidatorIndex math.U64,
 			slashings []math.U64, totalSlashing math.U64,
+			blockDepositRoot common.Root,
 		) (T, error)
 	}
 
@@ -837,6 +838,7 @@ type (
 	WriteOnlyEth1Data interface {
 		SetEth1Data(*ctypes.Eth1Data) error
 		SetEth1DepositIndex(uint64) error
+		SetBlockDepositRoot(root common.Root) error
 		SetLatestExecutionPayloadHeader(*ctypes.ExecutionPayloadHeader) error
 	}
 
@@ -844,6 +846,7 @@ type (
 	ReadOnlyEth1Data interface {
 		GetEth1Data() (*ctypes.Eth1Data, error)
 		GetEth1DepositIndex() (uint64, error)
+		GetBlockDepositRoot() (common.Root, error)
 		GetLatestExecutionPayloadHeader() (*ctypes.ExecutionPayloadHeader, error)
 	}
 

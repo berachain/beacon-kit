@@ -104,6 +104,11 @@ func (sp *StateProcessor[
 		}
 	}
 
+	depositsRoot := ctypes.Deposits(deposits).HashTreeRoot()
+	if err := st.SetBlockDepositRoot(depositsRoot); err != nil {
+		return nil, err
+	}
+
 	// process activations
 	if err := sp.processGenesisActivation(st); err != nil {
 		return nil, err
