@@ -113,10 +113,12 @@ func (kv *KVStore) EnqueueDeposits(deposits []*ctypes.Deposit) error {
 		}
 	}
 
-	kv.logger.Debug(
-		"EnqueueDeposit", "enqueued", len(deposits),
-		"start", deposits[0].GetIndex(), "end", deposits[len(deposits)-1].GetIndex(),
-	)
+	if len(deposits) > 0 {
+		kv.logger.Debug(
+			"EnqueueDeposit", "enqueued", len(deposits),
+			"start", deposits[0].GetIndex(), "end", deposits[len(deposits)-1].GetIndex(),
+		)
+	}
 	return nil
 }
 
