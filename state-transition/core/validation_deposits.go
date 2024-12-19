@@ -21,11 +21,13 @@
 package core
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
@@ -102,7 +104,8 @@ func (sp *StateProcessor[
 	_, BeaconStateT, _, _,
 ]) validateNonGenesisDeposits(
 	st BeaconStateT,
-	deposits []*ctypes.Deposit,
+	blkDeposits []*ctypes.Deposit,
+	blkDepositRoot common.Root,
 ) error {
 	slot, err := st.GetSlot()
 	if err != nil {
@@ -124,57 +127,24 @@ func (sp *StateProcessor[
 		return nil
 
 	default:
-		// Verify that outstanding deposits match those listed by contract
 		var depositIndex uint64
 		depositIndex, err = st.GetEth1DepositIndex()
 		if err != nil {
 			return err
 		}
-		expectedStartIdx := depositIndex + 1
+		//#nosec:G701 // can't overflow.
+		depositIndex += uint64(len(blkDeposits) + 1)
 
-		var localDeposits []*ctypes.Deposit
-		localDeposits, err = sp.ds.GetDepositsByIndex(
-			expectedStartIdx,
-			sp.cs.MaxDepositsPerBlock(),
-		)
+		var deposits []*ctypes.Deposit
+		deposits, err = sp.ds.GetDepositsByIndex(0, depositIndex)
 		if err != nil {
 			return err
 		}
 
-		sp.logger.Info(
-			"Processing deposits in range",
-			"expected_start_index", expectedStartIdx,
-			"expected_range_length", len(localDeposits),
-		)
-
-		if len(localDeposits) != len(deposits) {
-			return errors.Wrapf(
-				ErrDepositsLengthMismatch,
-				"local: %d, payload: %d", len(localDeposits), len(deposits),
-			)
+		newRoot := ctypes.Deposits(deposits).HashTreeRoot()
+		if !bytes.Equal(blkDepositRoot[:], newRoot[:]) {
+			return ErrDepositsRootMismatch
 		}
-
-		for i, sd := range localDeposits {
-			// Deposit indices should be contiguous
-			//#nosec:G701 // i never negative
-			expectedIdx := expectedStartIdx + uint64(i)
-			if sd.GetIndex().Unwrap() != expectedIdx {
-				return errors.Wrapf(
-					ErrDepositIndexOutOfOrder,
-					"local deposit index: %d, expected index: %d",
-					sd.GetIndex().Unwrap(), expectedIdx,
-				)
-			}
-
-			if !sd.Equals(deposits[i]) {
-				return errors.Wrapf(
-					ErrDepositMismatch,
-					"local deposit: %+v, payload deposit: %+v",
-					sd, deposits[i],
-				)
-			}
-		}
-
 		return nil
 	}
 }

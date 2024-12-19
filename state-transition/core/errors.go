@@ -38,6 +38,8 @@ var (
 	// with the proposer reported by consensus.
 	ErrProposerMismatch = errors.New("proposer key mismatch")
 
+	ErrDepositsRootMismatch = errors.New("deposits root mismatch")
+
 	// ErrDepositsLengthMismatch is returned when length of deposits
 	// listed in block is different from deposits from store.
 	ErrDepositsLengthMismatch = errors.New("deposits lengths mismatched")

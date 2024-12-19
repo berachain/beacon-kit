@@ -108,7 +108,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
+			Eth1Data: dummyEth1Data,
 			Deposits: []*types.Deposit{blkDeposit},
 		},
 	)
@@ -159,7 +159,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
+			Eth1Data: dummyEth1Data,
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -247,7 +247,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
+			Eth1Data: dummyEth1Data,
 			Deposits: []*types.Deposit{blkDeposit},
 		},
 	)
@@ -299,7 +299,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
+			Eth1Data: dummyEth1Data,
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -343,7 +343,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
+			Eth1Data: dummyEth1Data,
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -452,7 +452,7 @@ func TestTransitionWithdrawals(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
+			Eth1Data: dummyEth1Data,
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -548,7 +548,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
+			Eth1Data: dummyEth1Data,
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -594,7 +594,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
+			Eth1Data: dummyEth1Data,
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -688,7 +688,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
+			Eth1Data: dummyEth1Data,
 			Deposits: []*types.Deposit{extraValDeposit},
 		},
 	)
@@ -740,7 +740,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
+			Eth1Data: dummyEth1Data,
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -785,7 +785,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
+			Eth1Data: dummyEth1Data,
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -828,7 +828,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
+			Eth1Data: dummyEth1Data,
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -920,7 +920,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
+			Eth1Data: dummyEth1Data,
 			Deposits: []*types.Deposit{extraValDeposit},
 		},
 	)
@@ -989,7 +989,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
+			Eth1Data: dummyEth1Data,
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -1049,7 +1049,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
+			Eth1Data: dummyEth1Data,
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -1121,7 +1121,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{},
+			Eth1Data: dummyEth1Data,
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -1182,7 +1182,9 @@ func moveToEndOfEpoch(
 					},
 					BaseFeePerGas: math.NewU256(0),
 				},
-				Eth1Data: &types.Eth1Data{},
+				Eth1Data: &types.Eth1Data{
+					DepositRoot: types.Deposits(nil).HashTreeRoot(),
+				},
 				Deposits: []*types.Deposit{},
 			},
 		)
