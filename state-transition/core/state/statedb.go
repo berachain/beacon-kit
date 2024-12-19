@@ -389,11 +389,6 @@ func (s *StateDB[BeaconStateMarshallableT, _]) GetMarshallable() (BeaconStateMar
 		return empty, err
 	}
 
-	depositsRoot, err := s.GetDepositRoot()
-	if err != nil {
-		return empty, err
-	}
-
 	// TODO: Properly move BeaconState into full generics.
 	return (*new(BeaconStateMarshallableT)).New(
 		s.cs.ActiveForkVersionForSlot(slot),
@@ -413,7 +408,6 @@ func (s *StateDB[BeaconStateMarshallableT, _]) GetMarshallable() (BeaconStateMar
 		nextWithdrawalValidatorIndex,
 		slashings,
 		totalSlashings,
-		depositsRoot,
 	)
 }
 

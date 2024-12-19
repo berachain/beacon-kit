@@ -175,7 +175,6 @@ type (
 			nextWithdrawalIndex uint64,
 			nextWithdrawalValidatorIndex math.U64,
 			slashings []math.U64, totalSlashing math.U64,
-			depositsRoot common.Root,
 		) (T, error)
 	}
 

@@ -84,7 +84,6 @@ func NewBeaconState(
 		0,
 		[]math.Gwei{},
 		0,
-		common.Root{},
 	)
 	return &BeaconState{BeaconStateMarshallable: bsm}, err
 }
