@@ -389,7 +389,7 @@ func (s *StateDB[BeaconStateMarshallableT, _]) GetMarshallable() (BeaconStateMar
 		return empty, err
 	}
 
-	depositsRoot, err := s.GetBlockDepositRoot()
+	depositsRoot, err := s.GetDepositRoot()
 	if err != nil {
 		return empty, err
 	}

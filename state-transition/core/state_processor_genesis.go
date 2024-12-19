@@ -105,7 +105,7 @@ func (sp *StateProcessor[
 	}
 
 	depositsRoot := ctypes.Deposits(deposits).HashTreeRoot()
-	if err := st.SetBlockDepositRoot(depositsRoot); err != nil {
+	if err := st.SetDepositRoot(depositsRoot); err != nil {
 		return nil, err
 	}
 
