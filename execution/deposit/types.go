@@ -24,6 +24,7 @@ import (
 	"context"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
@@ -35,10 +36,11 @@ type ExecutionPayload interface {
 // Contract is the ABI for the deposit contract.
 type Contract interface {
 	// ReadDeposits reads deposits from the deposit contract.
-	ReadDeposits(
-		ctx context.Context,
-		blockNumber math.U64,
-	) ([]*ctypes.Deposit, error)
+	ReadDeposits(ctx context.Context, blockNumber math.U64) ([]*ctypes.Deposit, error)
+	// GetGenesisDepositsRoot returns the genesis deposits root at the given block number.
+	GetGenesisDepositsRoot(ctx context.Context, blockNumber uint64) (common.Root, error)
+	// GetDepositsCount returns the number of deposits in the deposit contract at the given block number.
+	GetDepositsCount(ctx context.Context, blockNumber uint64) (uint64, error)
 }
 
 // Store defines the interface for managing deposit operations.
