@@ -46,7 +46,8 @@ func (s *Service[
 		genesisData.GetDeposits(),
 		genesisData.GetExecutionPayloadHeader(),
 		genesisData.GetForkVersion(),
-	); err != nil {
+	)
+	if err != nil {
 		return nil, err
 	}
 
@@ -59,4 +60,3 @@ func (s *Service[
 
 	return validatorUpdates, nil
 }
-
