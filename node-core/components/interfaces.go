@@ -369,7 +369,7 @@ type (
 		GetDepositsByIndex(
 			startIndex uint64,
 			numView uint64,
-		) ([]*ctypes.Deposit, error)
+		) (ctypes.Deposits, error)
 		// Prune prunes the deposit store of [start, end)
 		Prune(start, end uint64) error
 		// EnqueueDeposits adds a list of deposits to the deposit store.
@@ -460,7 +460,7 @@ type (
 		// from the eth1 deposits.
 		InitializePreminedBeaconStateFromEth1(
 			BeaconStateT,
-			[]*ctypes.Deposit,
+			ctypes.Deposits,
 			*ctypes.ExecutionPayloadHeader,
 			common.Version,
 		) (transition.ValidatorUpdates, error)

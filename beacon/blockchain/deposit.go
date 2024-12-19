@@ -39,7 +39,7 @@ func (s *Service[
 	ctx context.Context,
 	blockNum math.U64,
 ) {
-	if blockNum < s.eth1FollowDistance {
+	if blockNum <= s.eth1FollowDistance {
 		s.logger.Info(
 			"depositFetcher, nothing to fetch",
 			"block num", blockNum,

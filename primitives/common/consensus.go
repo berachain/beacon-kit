@@ -21,6 +21,8 @@
 package common
 
 import (
+	stdbytes "bytes"
+
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
@@ -78,6 +80,11 @@ func NewRootFromBytes(input []byte) Root {
 	var root Root
 	copy(root[:], input)
 	return root
+}
+
+// Equals returns true if the two roots are equal.
+func (r Root) Equals(other Root) bool {
+	return stdbytes.Equal(r[:], other[:])
 }
 
 // Hex converts a root to a hex string.
