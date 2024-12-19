@@ -22,11 +22,11 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	storev2 "cosmossdk.io/store/v2/db"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
 	depositstore "github.com/berachain/beacon-kit/storage/deposit"
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cast"
 )
@@ -49,13 +49,19 @@ func ProvideDepositStore[
 ) (*depositstore.KVStore, error) {
 	name := "deposits"
 	dir := cast.ToString(in.AppOpts.Get(flags.FlagHome)) + "/data"
-	kvp, err := storev2.NewDB(storev2.DBTypePebbleDB, name, dir, nil)
+
+	pdb, err := dbm.NewDB(name, dbm.PebbleDBBackend, dir)
 	if err != nil {
 		return nil, err
 	}
 
+	// kvp, err := storev2.NewDB(storev2.DBTypePebbleDB, name, dir, nil)
+	// if err != nil {
+	// return nil, err
+	// }
+
 	return depositstore.NewStore(
-		storage.NewKVStoreProvider(kvp),
+		storage.NewKVStoreProvider(pdb),
 		in.Logger.With("service", "deposit-store"),
 	), nil
 }
