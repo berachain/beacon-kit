@@ -42,24 +42,24 @@ func (sp *StateProcessor[
 	// up to the maximum number of deposits
 
 	// Unlike Eth 2.0 specs we don't check that
-	// len(body.blkDeposits) ==  min(MAX_DEPOSITS,
+	// len(body.deposits) ==  min(MAX_DEPOSITS,
 	// state.eth1_data.deposit_count - state.eth1_deposit_index)
-	// Instead we directly compare block blkDeposits with store ones.
-	blkDeposits := blk.GetBody().GetDeposits()
-	if uint64(len(blkDeposits)) > sp.cs.MaxDepositsPerBlock() {
+	// Instead we directly compare block deposits with store ones.
+	deposits := blk.GetBody().GetDeposits()
+	if uint64(len(deposits)) > sp.cs.MaxDepositsPerBlock() {
 		return errors.Wrapf(
 			ErrExceedsBlockDepositLimit, "expected: %d, got: %d",
-			sp.cs.MaxDepositsPerBlock(), len(blkDeposits),
+			sp.cs.MaxDepositsPerBlock(), len(deposits),
 		)
 	}
 	if err := sp.validateNonGenesisDeposits(
 		st,
-		blkDeposits,
+		deposits,
 		blk.GetBody().GetEth1Data().DepositRoot,
 	); err != nil {
 		return err
 	}
-	for _, dep := range blkDeposits {
+	for _, dep := range deposits {
 		if err := sp.processDeposit(st, dep); err != nil {
 			return err
 		}
