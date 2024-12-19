@@ -23,6 +23,7 @@ package types
 import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
+	"github.com/berachain/beacon-kit/primitives/crypto/sha256"
 	"github.com/karalabe/ssz"
 )
 
@@ -41,20 +42,24 @@ func (ds Deposits) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {
 // DefineSSZ defines the SSZ encoding for the Deposits object.
 func (ds Deposits) DefineSSZ(c *ssz.Codec) {
 	c.DefineDecoder(func(*ssz.Decoder) {
-		ssz.DefineSliceOfStaticObjectsContent(
-			c, (*[]*Deposit)(&ds), constants.MaxDepositsPerBlock)
+		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*Deposit)(&ds), constants.MaxDeposits)
 	})
 	c.DefineEncoder(func(*ssz.Encoder) {
-		ssz.DefineSliceOfStaticObjectsContent(
-			c, (*[]*Deposit)(&ds), constants.MaxDepositsPerBlock)
+		ssz.DefineSliceOfStaticObjectsContent(c, (*[]*Deposit)(&ds), constants.MaxDeposits)
 	})
 	c.DefineHasher(func(*ssz.Hasher) {
-		ssz.DefineSliceOfStaticObjectsOffset(
-			c, (*[]*Deposit)(&ds), constants.MaxDepositsPerBlock)
+		ssz.DefineSliceOfStaticObjectsOffset(c, (*[]*Deposit)(&ds), constants.MaxDeposits)
 	})
 }
 
 // HashTreeRoot returns the hash tree root of the Deposits.
 func (ds Deposits) HashTreeRoot() common.Root {
 	return ssz.HashSequential(ds)
+}
+
+// CombiHashTreeRoot returns the hash of the given root with and the
+// hash tree root of the Deposits.
+func (ds Deposits) CombiHashTreeRoot(root common.Root) common.Root {
+	htr := ds.HashTreeRoot()
+	return sha256.Hash(append(root[:], htr[:]...))
 }

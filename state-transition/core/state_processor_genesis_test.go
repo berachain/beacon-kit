@@ -152,7 +152,7 @@ func TestInitialize(t *testing.T) {
 	// deposit index is set to the last accepted deposit.
 	latestValIdx, err := st.GetEth1DepositIndex()
 	require.NoError(t, err)
-	require.Equal(t, uint64(len(genDeposits)-1), latestValIdx)
+	require.Equal(t, uint64(len(genDeposits)), latestValIdx)
 }
 
 func checkValidatorNonBartio(

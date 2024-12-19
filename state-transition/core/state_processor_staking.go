@@ -52,13 +52,18 @@ func (sp *StateProcessor[
 			sp.cs.MaxDepositsPerBlock(), len(deposits),
 		)
 	}
-	if err := sp.validateNonGenesisDeposits(st, deposits); err != nil {
+	if err := sp.validateNonGenesisDeposits(st, blk, deposits); err != nil {
 		return err
 	}
+
 	for _, dep := range deposits {
 		if err := sp.processDeposit(st, dep); err != nil {
 			return err
 		}
+	}
+
+	if err := st.SetEth1Data(blk.GetBody().GetEth1Data()); err != nil {
+		return err
 	}
 	return nil
 }
@@ -70,36 +75,18 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	dep *ctypes.Deposit,
 ) error {
-	slot, err := st.GetSlot()
+	eth1DepositIndex, err := st.GetEth1DepositIndex()
 	if err != nil {
 		return err
 	}
 
-	depositIndex := dep.GetIndex().Unwrap()
-	switch {
-	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
-		// Bartio has a bug which makes DepositEth1ChainID point to
-		// next deposit index, not latest processed deposit index.
-		// We keep it for backward compatibility.
-		depositIndex++
-	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-		slot != 0 && slot < math.U64(spec.BoonetFork2Height):
-		// Boonet pre fork2 has a bug which makes DepositEth1ChainID point to
-		// next deposit index, not latest processed deposit index.
-		// We keep it for backward compatibility.
-		depositIndex++
-	default:
-		// Nothing to do. We correctly set the deposit index to the last
-		// processed deposit index.
-	}
-
-	if err = st.SetEth1DepositIndex(depositIndex); err != nil {
+	if err = st.SetEth1DepositIndex(eth1DepositIndex + 1); err != nil {
 		return err
 	}
 
 	sp.logger.Info(
 		"Processed deposit to set Eth 1 deposit index",
-		"deposit_index", depositIndex,
+		"old_index", eth1DepositIndex, "new_index", eth1DepositIndex+1,
 	)
 
 	return sp.applyDeposit(st, dep)

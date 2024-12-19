@@ -97,6 +97,8 @@ type BeaconState interface {
 	// GetEth1DepositIndex returns the latest deposit index from the beacon
 	// state.
 	GetEth1DepositIndex() (uint64, error)
+	// GetEth1Data returns the eth1 data from the beacon state.
+	GetEth1Data() (*ctypes.Eth1Data, error)
 	// GetGenesisValidatorsRoot returns the genesis validators root.
 	GetGenesisValidatorsRoot() (common.Root, error)
 }
