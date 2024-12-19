@@ -40,13 +40,13 @@ func (s *Service[
 
 	genesisDepositsCL := genesisData.GetDeposits()
 	genesisDepositsRootCL := genesisDepositsCL.HashTreeRoot()
-	_, err := s.depositContract.GetGenesisDepositsRoot(ctx, 0)
+	genesisDepositsRootEL, err := s.depositContract.GetGenesisDepositsRoot(ctx, 0)
 	if err != nil {
 		s.logger.Error("Failed to get genesis deposits root", "error", err)
 		return nil, err
 	}
 	if !genesisDepositsRootCL.Equals(genesisDepositsRootEL) {
-		return nil, ErrGenesisDepositsRootMismatch,
+		return nil, ErrGenesisDepositsRootMismatch
 	}
 
 	genesisDepositsCountEL, err := s.depositContract.GetDepositsCount(ctx, 0)
