@@ -160,7 +160,6 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	upperBound := new(big.Int).Add(lowerBound, twoEther)
 	amtSpent := new(big.Int).Sub(balance, postDepositBalance)
 
-	s.Logger().Info("balances", "amtSpent", amtSpent.String())
 	s.Require().Equal(1, amtSpent.Cmp(lowerBound))
 	s.Require().Equal(-1, amtSpent.Cmp(upperBound))
 
