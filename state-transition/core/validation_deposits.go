@@ -155,7 +155,8 @@ func (sp *StateProcessor[
 		}
 
 		// Verify that the local deposits have the same root as the block deposits.
-		eth1Data, err := st.GetEth1Data()
+		var eth1Data *ctypes.Eth1Data
+		eth1Data, err = st.GetEth1Data()
 		if err != nil {
 			return err
 		}
