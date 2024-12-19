@@ -56,9 +56,11 @@ func (sp *StateProcessor[
 		return nil
 
 	default:
-		// TODO: improve error handling by distinguishing
-		// ErrNotFound from other kind of errors
-		if _, err := st.GetEth1DepositIndex(); err == nil {
+		index, err := st.GetEth1DepositIndex()
+		if err != nil {
+			return err
+		}
+		if index != 0 {
 			// there should not be Eth1DepositIndex stored before
 			// genesis first deposit
 			return errors.Wrap(
@@ -130,12 +132,10 @@ func (sp *StateProcessor[
 		if err != nil {
 			return err
 		}
-		expectedStartIdx := depositIndex + 1
 
 		var localDeposits []*ctypes.Deposit
 		localDeposits, err = sp.ds.GetDepositsByIndex(
-			expectedStartIdx,
-			sp.cs.MaxDepositsPerBlock(),
+			depositIndex, sp.cs.MaxDepositsPerBlock(),
 		)
 		if err != nil {
 			return err
@@ -143,8 +143,8 @@ func (sp *StateProcessor[
 
 		sp.logger.Info(
 			"Processing deposits in range",
-			"expected_start_index", expectedStartIdx,
-			"expected_range_length", len(localDeposits),
+			"start_index", depositIndex,
+			"range_length", len(localDeposits),
 		)
 
 		if len(localDeposits) != len(deposits) {
@@ -157,7 +157,7 @@ func (sp *StateProcessor[
 		for i, sd := range localDeposits {
 			// Deposit indices should be contiguous
 			//#nosec:G701 // i never negative
-			expectedIdx := expectedStartIdx + uint64(i)
+			expectedIdx := depositIndex + uint64(i)
 			if sd.GetIndex().Unwrap() != expectedIdx {
 				return errors.Wrapf(
 					ErrDepositIndexOutOfOrder,
@@ -175,6 +175,18 @@ func (sp *StateProcessor[
 			}
 		}
 
+		// Verify that the local deposits have the same root as the block deposits.
+		eth1Data, err := st.GetEth1Data()
+		if err != nil {
+			return err
+		}
+		localDepositsRoot := ctypes.Deposits(localDeposits).HashTreeRoot()
+		if localDepositsRoot != eth1Data.DepositRoot {
+			return errors.Wrapf(
+				ErrDepositMismatch, "deposits root mismatch, local: %s, expected: %s",
+				localDepositsRoot, eth1Data.DepositsRoot,
+			)
+		}
 		return nil
 	}
 }

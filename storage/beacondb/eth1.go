@@ -20,7 +20,11 @@
 
 package beacondb
 
-import ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+import (
+	"cosmossdk.io/collections"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/errors"
+)
 
 // GetLatestExecutionPayloadHeader retrieves the latest execution payload
 // header from the BeaconStore.
@@ -51,8 +55,17 @@ func (kv *KVStore) SetLatestExecutionPayloadHeader(
 }
 
 // GetEth1DepositIndex retrieves the eth1 deposit index from the beacon state.
+// If the index is not found, it returns 0 and no error.
 func (kv *KVStore) GetEth1DepositIndex() (uint64, error) {
-	return kv.eth1DepositIndex.Get(kv.ctx)
+	index, err := kv.eth1DepositIndex.Get(kv.ctx)
+	if err != nil {
+		if errors.Is(err, collections.ErrNotFound) {
+			return 0, nil
+		}
+
+		return 0, err
+	}
+	return index, nil
 }
 
 // SetEth1DepositIndex sets the eth1 deposit index in the beacon state.
