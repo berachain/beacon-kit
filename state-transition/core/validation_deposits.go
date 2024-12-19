@@ -184,7 +184,7 @@ func (sp *StateProcessor[
 		if localDepositsRoot != eth1Data.DepositRoot {
 			return errors.Wrapf(
 				ErrDepositMismatch, "deposits root mismatch, local: %s, expected: %s",
-				localDepositsRoot, eth1Data.DepositsRoot,
+				localDepositsRoot, eth1Data.DepositRoot,
 			)
 		}
 		return nil
