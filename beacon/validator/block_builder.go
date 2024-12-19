@@ -310,6 +310,10 @@ func (s *Service[
 	if err != nil {
 		return ErrNilDepositIndexStart
 	}
+	eth1Data, err := st.GetEth1Data()
+	if err != nil {
+		return err
+	}
 
 	deposits, err := s.sb.DepositStore().GetDepositsByIndex(
 		depositIndex, s.chainSpec.MaxDepositsPerBlock(),
@@ -325,9 +329,8 @@ func (s *Service[
 	)
 	body.SetDeposits(deposits)
 
-	var eth1Data *ctypes.Eth1Data
 	body.SetEth1Data(eth1Data.New(
-		ctypes.Deposits(deposits).HashTreeRoot(),
+		ctypes.Deposits(deposits).CombiHashTreeRoot(eth1Data.DepositRoot),
 		0,                      // Eth1 Deposit Count is not needed.
 		common.ExecutionHash{}, // Eth1 Block Hash is not needed.
 	))
