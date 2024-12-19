@@ -41,39 +41,36 @@ func (sp *StateProcessor[
 	// Verify that outstanding deposits are processed
 	// up to the maximum number of deposits
 
-	// pulling current deposit index before updates from processDeposit
-	depositIndex, err := st.GetEth1DepositIndex()
-	if err != nil {
-		return err
-	}
-
 	// Unlike Eth 2.0 specs we don't check that
-	// len(body.deposits) ==  min(MAX_DEPOSITS,
+	// len(body.blkDeposits) ==  min(MAX_DEPOSITS,
 	// state.eth1_data.deposit_count - state.eth1_deposit_index)
-	// Instead we directly compare block deposits with store ones.
-	deposits := blk.GetBody().GetDeposits()
-	if uint64(len(deposits)) > sp.cs.MaxDepositsPerBlock() {
+	// Instead we directly compare block blkDeposits with store ones.
+	blkDeposits := blk.GetBody().GetDeposits()
+	if uint64(len(blkDeposits)) > sp.cs.MaxDepositsPerBlock() {
 		return errors.Wrapf(
 			ErrExceedsBlockDepositLimit, "expected: %d, got: %d",
-			sp.cs.MaxDepositsPerBlock(), len(deposits),
+			sp.cs.MaxDepositsPerBlock(), len(blkDeposits),
 		)
 	}
-	if err := sp.validateNonGenesisDeposits(st, deposits); err != nil {
+	if err := sp.validateNonGenesisDeposits(st, blkDeposits); err != nil {
 		return err
 	}
-	for _, dep := range deposits {
+	for _, dep := range blkDeposits {
 		if err := sp.processDeposit(st, dep); err != nil {
 			return err
 		}
 	}
 
 	// Pull all deposits from genesis and re-calculate their root
-	fullDeposits, err := sp.ds.GetDepositsByIndex(0, depositIndex+1)
+	depositIndex, err := st.GetEth1DepositIndex()
 	if err != nil {
 		return err
 	}
-	fullDeposits = append(fullDeposits, deposits...)
-	newRoot := ctypes.Deposits(fullDeposits).HashTreeRoot()
+	deposits, err := sp.ds.GetDepositsByIndex(0, depositIndex+1)
+	if err != nil {
+		return err
+	}
+	newRoot := ctypes.Deposits(deposits).HashTreeRoot()
 	return st.SetDepositRoot(newRoot)
 }
 
