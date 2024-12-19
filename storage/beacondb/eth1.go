@@ -20,9 +20,7 @@
 
 package beacondb
 
-import (
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-)
+import ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 
 // GetLatestExecutionPayloadHeader retrieves the latest execution payload
 // header from the BeaconStore.

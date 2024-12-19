@@ -64,7 +64,6 @@ func (sp *StateProcessor[
 			return err
 		}
 	}
-
 	return nil
 }
 
