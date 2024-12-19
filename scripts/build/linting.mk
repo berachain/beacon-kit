@@ -53,7 +53,7 @@ license-fix:
 
 nilaway:
 	@echo "--> Running nilaway"
-	(go run go.uber.org/nilaway/cmd/nilaway -exclude-errors-in-files "geth-primitives/deposit/" -v ./...) || exit 1;
+	(go run go.uber.org/nilaway/cmd/nilaway --tags bls12381 -exclude-errors-in-files "geth-primitives/deposit/" -v ./...) || exit 1;
 	@printf "Nilaway check complete\n"
 
 #################
@@ -62,7 +62,7 @@ nilaway:
 
 gosec:
 	@echo "--> Running gosec"
-	@go run github.com/cosmos/gosec/v2/cmd/gosec -exclude G702 ./...
+	@go run github.com/cosmos/gosec/v2/cmd/gosec -tags bls12381 -exclude G702 ./...
 
 #################
 #    slither    #
