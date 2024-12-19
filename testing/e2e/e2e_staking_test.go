@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/geth-primitives/deposit"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
+	"github.com/cometbft/cometbft/crypto/bls12381"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
@@ -102,10 +103,16 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 		case 0:
 			pubkey, err = client.GetPubKey(s.Ctx())
 			s.Require().NoError(err)
+			pk, err := bls12381.NewPublicKeyFromBytes(pubkey[:])
+			s.Require().NoError(err)
+			pubkey = pk.Compress()
 			s.Require().Len(pubkey, 48)
 		case 1:
 			pubkey, err = client2.GetPubKey(s.Ctx())
 			s.Require().NoError(err)
+			pk, err := bls12381.NewPublicKeyFromBytes(pubkey[:])
+			s.Require().NoError(err)
+			pubkey = pk.Compress()
 			s.Require().Len(pubkey, 48)
 		default:
 			pubkey = make([]byte, 48)
