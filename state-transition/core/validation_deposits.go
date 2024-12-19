@@ -154,27 +154,6 @@ func (sp *StateProcessor[
 			)
 		}
 
-		for i, sd := range localDeposits {
-			// Deposit indices should be contiguous
-			//#nosec:G701 // i never negative
-			expectedIdx := depositIndex + uint64(i)
-			if sd.GetIndex().Unwrap() != expectedIdx {
-				return errors.Wrapf(
-					ErrDepositIndexOutOfOrder,
-					"local deposit index: %d, expected index: %d",
-					sd.GetIndex().Unwrap(), expectedIdx,
-				)
-			}
-
-			if !sd.Equals(deposits[i]) {
-				return errors.Wrapf(
-					ErrDepositMismatch,
-					"local deposit: %+v, payload deposit: %+v",
-					sd, deposits[i],
-				)
-			}
-		}
-
 		// Verify that the local deposits have the same root as the block deposits.
 		eth1Data, err := st.GetEth1Data()
 		if err != nil {
