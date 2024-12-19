@@ -76,11 +76,11 @@ func NewStore(
 func (kv *KVStore) GetDepositsByIndex(
 	startIndex uint64,
 	depRange uint64,
-) ([]*ctypes.Deposit, error) {
+) (ctypes.Deposits, error) {
 	kv.mu.RLock()
 	defer kv.mu.RUnlock()
 	var (
-		deposits = []*ctypes.Deposit{}
+		deposits = ctypes.Deposits{}
 		endIdx   = startIndex + depRange
 	)
 

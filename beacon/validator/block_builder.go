@@ -26,7 +26,6 @@ import (
 	"time"
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
-	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
 	"github.com/berachain/beacon-kit/primitives/bytes"
@@ -312,16 +311,8 @@ func (s *Service[
 		return ErrNilDepositIndexStart
 	}
 
-	// Bartio and Boonet pre Fork2 have deposit broken and undervalidated
-	// Any other network should build deposits the right way
-	if !(s.chainSpec.DepositEth1ChainID() == spec.BartioChainID ||
-		(s.chainSpec.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-			blk.GetSlot() < math.U64(spec.BoonetFork2Height))) {
-		depositIndex++
-	}
 	blkDeposits, err := s.sb.DepositStore().GetDepositsByIndex(
-		depositIndex,
-		s.chainSpec.MaxDepositsPerBlock(),
+		depositIndex, s.chainSpec.MaxDepositsPerBlock(),
 	)
 	if err != nil {
 		return err
@@ -345,7 +336,7 @@ func (s *Service[
 
 	var eth1Data *ctypes.Eth1Data
 	body.SetEth1Data(eth1Data.New(
-		ctypes.Deposits(deposits).HashTreeRoot(),
+		deposits.HashTreeRoot(),
 		0,
 		common.ExecutionHash{},
 	))

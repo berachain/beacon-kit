@@ -135,13 +135,13 @@ func (sp *StateProcessor[
 		//#nosec:G701 // can't overflow.
 		depositIndex += uint64(len(blkDeposits) + 1)
 
-		var deposits []*ctypes.Deposit
+		var deposits ctypes.Deposits
 		deposits, err = sp.ds.GetDepositsByIndex(0, depositIndex)
 		if err != nil {
 			return err
 		}
 
-		newRoot := ctypes.Deposits(deposits).HashTreeRoot()
+		newRoot := deposits.HashTreeRoot()
 		if !bytes.Equal(blkDepositRoot[:], newRoot[:]) {
 			return ErrDepositsRootMismatch
 		}
