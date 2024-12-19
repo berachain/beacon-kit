@@ -132,6 +132,7 @@ func (sp *StateProcessor[
 		if err != nil {
 			return common.Root{}, err
 		}
+		//#nosec:G701 // can't overflow.
 		depositIndex += uint64(len(blkDeposits) + 1)
 
 		var deposits []*ctypes.Deposit
