@@ -64,7 +64,7 @@ func (sp *StateProcessor[
 			return err
 		}
 	}
-	return nil
+	return st.SetEth1Data(blk.GetBody().Eth1Data)
 }
 
 // processDeposit processes the deposit and ensures it matches the local state.
