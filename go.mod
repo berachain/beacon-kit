@@ -28,7 +28,7 @@ require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/ethereum/c-kzg-4844 v1.0.3
 	github.com/go-faster/xor v1.0.0
-	github.com/go-playground/validator/v10 v10.22.0
+	github.com/go-playground/validator/v10 v10.23.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/golangci/golangci-lint v1.60.1
 	github.com/google/addlicense v1.1.1
@@ -39,7 +39,7 @@ require (
 	github.com/labstack/echo/v4 v4.12.0
 	github.com/minio/sha256-simd v1.0.1
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/phuslu/log v1.0.110
+	github.com/phuslu/log v1.0.113
 	github.com/pkg/errors v0.9.1
 	github.com/prysmaticlabs/gohashtree v0.0.4-beta.0.20240624100937-73632381301b
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8
@@ -48,7 +48,6 @@ require (
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.19.0
-	github.com/supranational/blst v0.3.13
 	github.com/umbracle/fastrlp v0.1.0
 	go.uber.org/automaxprocs v1.6.0
 	go.uber.org/nilaway v0.0.0-20241010202415-ba14292918d8
@@ -63,7 +62,7 @@ require (
 	github.com/ethereum/go-ethereum v1.14.7
 	github.com/ferranbt/fastssz v0.1.5-0.20240903094032-455b54c08c81
 	github.com/kurtosis-tech/kurtosis/api/golang v1.1.0
-	github.com/protolambda/zrnt v0.32.2
+	github.com/protolambda/zrnt v0.32.3
 	github.com/protolambda/ztyp v0.2.2
 	github.com/rs/zerolog v1.33.0
 	github.com/stretchr/testify v1.10.0
@@ -386,7 +385,7 @@ require (
 	github.com/quasilyte/regex/syntax v0.0.0-20210819130434-b3f0c404a727 // indirect
 	github.com/quasilyte/stdinfo v0.0.0-20220114132959-f7386bf02567 // indirect
 	github.com/quic-go/qpack v0.5.1 // indirect
-	github.com/quic-go/quic-go v0.48.1 // indirect
+	github.com/quic-go/quic-go v0.48.2 // indirect
 	github.com/r3labs/sse/v2 v2.10.0 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
@@ -418,6 +417,7 @@ require (
 	github.com/stoewer/go-strcase v1.3.0 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
+	github.com/supranational/blst v0.3.13 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d // indirect
 	github.com/tdakkota/asciicheck v0.2.0 // indirect
 	github.com/tendermint/go-amino v0.16.0 // indirect

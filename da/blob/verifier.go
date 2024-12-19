@@ -25,8 +25,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/kzg"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"golang.org/x/sync/errgroup"
 )
@@ -41,6 +43,8 @@ type verifier[
 	proofVerifier kzg.BlobProofVerifier
 	// metrics collects and reports metrics related to the verification process.
 	metrics *verifierMetrics
+	// chainSpec contains the chain specification
+	chainSpec chain.ChainSpec
 }
 
 // newVerifier creates a new Verifier with the given proof verifier.
@@ -50,10 +54,12 @@ func newVerifier[
 ](
 	proofVerifier kzg.BlobProofVerifier,
 	telemetrySink TelemetrySink,
+	chainSpec chain.ChainSpec,
 ) *verifier[BlobSidecarT, BlobSidecarsT] {
 	return &verifier[BlobSidecarT, BlobSidecarsT]{
 		proofVerifier: proofVerifier,
 		metrics:       newVerifierMetrics(telemetrySink),
+		chainSpec:     chainSpec,
 	}
 }
 
@@ -61,39 +67,49 @@ func newVerifier[
 // as the KZG proofs.
 func (bv *verifier[_, BlobSidecarsT]) verifySidecars(
 	sidecars BlobSidecarsT,
-	kzgOffset uint64,
 	blkHeader *ctypes.BeaconBlockHeader,
+	verifierFn func(
+		blkHeader *ctypes.BeaconBlockHeader,
+		signature crypto.BLSSignature,
+	) error,
 ) error {
 	defer bv.metrics.measureVerifySidecarsDuration(
 		time.Now(), math.U64(sidecars.Len()),
 		bv.proofVerifier.GetImplementation(),
 	)
 
-	// check that sideracs block headers match with header of the
-	// corresponding block
+	g, _ := errgroup.WithContext(context.Background())
+
+	// Verifying that sidecars block headers match with header of the
+	// corresponding block concurrently.
 	for i, s := range sidecars.GetSidecars() {
-		if !s.GetBeaconBlockHeader().Equals(blkHeader) {
-			return fmt.Errorf("unequal block header: idx: %d", i)
-		}
+		g.Go(func() error {
+			var sigHeader = s.GetSignedBeaconBlockHeader()
+
+			// Check BlobSidecar.Header equality with BeaconBlockHeader
+			if !sigHeader.GetHeader().Equals(blkHeader) {
+				return fmt.Errorf("unequal block header: idx: %d", i)
+			}
+
+			// Verify BeaconBlockHeader with signature
+			if err := verifierFn(
+				blkHeader,
+				sigHeader.GetSignature(),
+			); err != nil {
+				return err
+			}
+			return nil
+		})
 	}
 
 	// Verify the inclusion proofs on the blobs concurrently.
-	g, _ := errgroup.WithContext(context.Background())
 	g.Go(func() error {
-		// TODO: KZGOffset needs to be configurable and not
-		// passed in.
-		return bv.verifyInclusionProofs(
-			sidecars, kzgOffset,
-		)
+		return bv.verifyInclusionProofs(sidecars, blkHeader.GetSlot())
 	})
 
 	// Verify the KZG proofs on the blobs concurrently.
 	g.Go(func() error {
 		return bv.verifyKZGProofs(sidecars)
-	})
-
-	g.Go(func() error {
-		return sidecars.ValidateBlockRoots()
 	})
 
 	// Wait for all goroutines to finish and return the result.
@@ -102,13 +118,30 @@ func (bv *verifier[_, BlobSidecarsT]) verifySidecars(
 
 func (bv *verifier[_, BlobSidecarsT]) verifyInclusionProofs(
 	scs BlobSidecarsT,
-	kzgOffset uint64,
+	slot math.Slot,
 ) error {
 	startTime := time.Now()
 	defer bv.metrics.measureVerifyInclusionProofsDuration(
 		startTime, math.U64(scs.Len()),
 	)
-	return scs.VerifyInclusionProofs(kzgOffset)
+
+	// Grab the KZG offset for the fork version.
+	kzgOffset, err := ctypes.BlockBodyKZGOffset(
+		slot, bv.chainSpec,
+	)
+	if err != nil {
+		return err
+	}
+
+	// Grab the inclusion proof depth for the fork version.
+	inclusionProofDepth, err := ctypes.KZGCommitmentInclusionProofDepth(
+		slot, bv.chainSpec,
+	)
+	if err != nil {
+		return err
+	}
+
+	return scs.VerifyInclusionProofs(kzgOffset, inclusionProofDepth)
 }
 
 // verifyKZGProofs verifies the sidecars.

@@ -18,46 +18,23 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package engineprimitives
+package types
 
 import (
 	"math/big"
 	"unsafe"
 
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/errors"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
-	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constraints"
-	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // NewPayloadRequest as per the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/beacon-chain.md#modified-newpayloadrequest
-type NewPayloadRequest[
-	ExecutionPayloadT interface {
-		constraints.ForkTyped[ExecutionPayloadT]
-		GetPrevRandao() common.Bytes32
-		GetBlockHash() common.ExecutionHash
-		GetParentHash() common.ExecutionHash
-		GetNumber() math.U64
-		GetGasLimit() math.U64
-		GetGasUsed() math.U64
-		GetTimestamp() math.U64
-		GetExtraData() []byte
-		GetBaseFeePerGas() *math.U256
-		GetFeeRecipient() common.ExecutionAddress
-		GetStateRoot() common.Bytes32
-		GetReceiptsRoot() common.Bytes32
-		GetLogsBloom() bytes.B256
-		GetBlobGasUsed() math.U64
-		GetExcessBlobGas() math.U64
-		GetWithdrawals() Withdrawals
-		GetTransactions() Transactions
-	},
-] struct {
+type NewPayloadRequest struct {
 	// ExecutionPayload is the payload to the execution client.
-	ExecutionPayload ExecutionPayloadT
+	ExecutionPayload *ExecutionPayload
 	// VersionedHashes is the versioned hashes of the execution payload.
 	VersionedHashes []common.ExecutionHash
 	// ParentBeaconBlockRoot is the root of the parent beacon block.
@@ -68,34 +45,13 @@ type NewPayloadRequest[
 }
 
 // BuildNewPayloadRequest builds a new payload request.
-func BuildNewPayloadRequest[
-	ExecutionPayloadT interface {
-		constraints.ForkTyped[ExecutionPayloadT]
-		GetPrevRandao() common.Bytes32
-		GetBlockHash() common.ExecutionHash
-		GetParentHash() common.ExecutionHash
-		GetNumber() math.U64
-		GetGasLimit() math.U64
-		GetGasUsed() math.U64
-		GetTimestamp() math.U64
-		GetExtraData() []byte
-		GetBaseFeePerGas() *math.U256
-		GetFeeRecipient() common.ExecutionAddress
-		GetStateRoot() common.Bytes32
-		GetReceiptsRoot() common.Bytes32
-		GetLogsBloom() bytes.B256
-		GetBlobGasUsed() math.U64
-		GetExcessBlobGas() math.U64
-		GetWithdrawals() Withdrawals
-		GetTransactions() Transactions
-	},
-](
-	executionPayload ExecutionPayloadT,
+func BuildNewPayloadRequest(
+	executionPayload *ExecutionPayload,
 	versionedHashes []common.ExecutionHash,
 	parentBeaconBlockRoot *common.Root,
 	optimistic bool,
-) *NewPayloadRequest[ExecutionPayloadT] {
-	return &NewPayloadRequest[ExecutionPayloadT]{
+) *NewPayloadRequest {
+	return &NewPayloadRequest{
 		ExecutionPayload:      executionPayload,
 		VersionedHashes:       versionedHashes,
 		ParentBeaconBlockRoot: parentBeaconBlockRoot,
@@ -108,7 +64,7 @@ func BuildNewPayloadRequest[
 // As per the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/v1.4.0-beta.2/specs/deneb/beacon-chain.md#is_valid_block_hash
 // https://github.com/ethereum/consensus-specs/blob/v1.4.0-beta.2/specs/deneb/beacon-chain.md#is_valid_versioned_hashes
-func (n *NewPayloadRequest[ExecutionPayloadT]) HasValidVersionedAndBlockHashes() error {
+func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
 	var (
 		blobHashes = make([]gethprimitives.ExecutionHash, 0)
 		payload    = n.ExecutionPayload
@@ -133,7 +89,7 @@ func (n *NewPayloadRequest[ExecutionPayloadT]) HasValidVersionedAndBlockHashes()
 	// hashes.
 	if len(blobHashes) != len(n.VersionedHashes) {
 		return errors.Wrapf(
-			ErrMismatchedNumVersionedHashes,
+			engineprimitives.ErrMismatchedNumVersionedHashes,
 			"expected %d, got %d",
 			len(n.VersionedHashes),
 			len(blobHashes),
@@ -144,7 +100,7 @@ func (n *NewPayloadRequest[ExecutionPayloadT]) HasValidVersionedAndBlockHashes()
 	for i, blobHash := range blobHashes {
 		if common.ExecutionHash(blobHash) != n.VersionedHashes[i] {
 			return errors.Wrapf(
-				ErrInvalidVersionedHash,
+				engineprimitives.ErrInvalidVersionedHash,
 				"index %d: expected %v, got %v",
 				i,
 				n.VersionedHashes[i],
@@ -186,7 +142,7 @@ func (n *NewPayloadRequest[ExecutionPayloadT]) HasValidVersionedAndBlockHashes()
 	).WithBody(gethprimitives.Body{
 		Transactions: txs, Uncles: nil, Withdrawals: *(*gethprimitives.Withdrawals)(unsafe.Pointer(&wds)),
 	}); common.ExecutionHash(block.Hash()) != payload.GetBlockHash() {
-		return errors.Wrapf(ErrPayloadBlockHashMismatch,
+		return errors.Wrapf(engineprimitives.ErrPayloadBlockHashMismatch,
 			"%x, got %x",
 			payload.GetBlockHash(), block.Hash(),
 		)
@@ -194,25 +150,23 @@ func (n *NewPayloadRequest[ExecutionPayloadT]) HasValidVersionedAndBlockHashes()
 	return nil
 }
 
-type ForkchoiceUpdateRequest[PayloadAttributesT any] struct {
+type ForkchoiceUpdateRequest struct {
 	// State is the forkchoice state.
-	State *ForkchoiceStateV1
+	State *engineprimitives.ForkchoiceStateV1
 	// PayloadAttributes is the payload attributer.
-	PayloadAttributes PayloadAttributesT
+	PayloadAttributes *engineprimitives.PayloadAttributes
 	// ForkVersion is the fork version that we
 	// are going to be submitting for.
 	ForkVersion uint32
 }
 
 // BuildForkchoiceUpdateRequest builds a forkchoice update request.
-func BuildForkchoiceUpdateRequest[
-	PayloadAttributesT any,
-](
-	state *ForkchoiceStateV1,
-	payloadAttributes PayloadAttributesT,
+func BuildForkchoiceUpdateRequest(
+	state *engineprimitives.ForkchoiceStateV1,
+	payloadAttributes *engineprimitives.PayloadAttributes,
 	forkVersion uint32,
-) *ForkchoiceUpdateRequest[PayloadAttributesT] {
-	return &ForkchoiceUpdateRequest[PayloadAttributesT]{
+) *ForkchoiceUpdateRequest {
+	return &ForkchoiceUpdateRequest{
 		State:             state,
 		PayloadAttributes: payloadAttributes,
 		ForkVersion:       forkVersion,
@@ -222,13 +176,11 @@ func BuildForkchoiceUpdateRequest[
 // BuildForkchoiceUpdateRequestNoAttrs builds a forkchoice update request
 // without
 // any attributes.
-func BuildForkchoiceUpdateRequestNoAttrs[
-	PayloadAttributesT any,
-](
-	state *ForkchoiceStateV1,
+func BuildForkchoiceUpdateRequestNoAttrs(
+	state *engineprimitives.ForkchoiceStateV1,
 	forkVersion uint32,
-) *ForkchoiceUpdateRequest[PayloadAttributesT] {
-	return &ForkchoiceUpdateRequest[PayloadAttributesT]{
+) *ForkchoiceUpdateRequest {
+	return &ForkchoiceUpdateRequest{
 		State:       state,
 		ForkVersion: forkVersion,
 	}

@@ -23,8 +23,8 @@ package components
 import (
 	"os"
 
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/config/spec"
-	"github.com/berachain/beacon-kit/primitives/common"
 )
 
 const (
@@ -36,11 +36,11 @@ const (
 )
 
 // ProvideChainSpec provides the chain spec based on the environment variable.
-func ProvideChainSpec() (common.ChainSpec, error) {
+func ProvideChainSpec() (chain.ChainSpec, error) {
 	// TODO: This is hood as fuck needs to be improved
 	// but for now we ball to get CI unblocked.
 	var (
-		chainSpec common.ChainSpec
+		chainSpec chain.ChainSpec
 		err       error
 	)
 	switch os.Getenv(ChainSpecTypeEnvVar) {

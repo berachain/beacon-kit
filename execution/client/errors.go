@@ -54,14 +54,12 @@ var (
 )
 
 // Handles errors received from the RPC server according to the specification.
-func (s *EngineClient[
-	_, _,
-]) handleRPCError(
+func (s *EngineClient) handleRPCError(
 	err error,
 ) error {
-	// Exit early if there is no error.
 	if err == nil {
-		return nil
+		//nolint:nilerr // appease nilaway
+		return err
 	}
 
 	// Check for timeout errors.

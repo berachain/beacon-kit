@@ -30,11 +30,10 @@ import (
 
 // Define concrete types for the generic parameters.
 type (
-	domainType       [4]byte
-	epoch            uint64
-	executionAddress [20]byte
-	slot             uint64
-	cometBFTConfig   struct{}
+	domainType     [4]byte
+	epoch          uint64
+	slot           uint64
+	cometBFTConfig struct{}
 )
 
 // TODO: Add setupValid, setupInvalid functions and use in each test.
@@ -42,7 +41,7 @@ type (
 // Create an instance of chainSpec with test data.
 var spec, _ = chain.NewChainSpec(
 	chain.SpecData[
-		domainType, epoch, executionAddress, slot, cometBFTConfig,
+		domainType, epoch, slot, cometBFTConfig,
 	]{
 		DenebPlusForkEpoch:               9,
 		ElectraForkEpoch:                 10,

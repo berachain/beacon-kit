@@ -22,11 +22,11 @@ package beacondb
 
 import (
 	"context"
+	"fmt"
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/storage/beacondb/index"
 	"github.com/berachain/beacon-kit/storage/beacondb/keys"
 	"github.com/berachain/beacon-kit/storage/encoding"
@@ -35,13 +35,7 @@ import (
 
 // KVStore is a wrapper around an sdk.Context
 // that provides access to all beacon related data.
-type KVStore[
-	ExecutionPayloadHeaderT interface {
-		constraints.SSZMarshallable
-		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
-		Version() uint32
-	},
-] struct {
+type KVStore struct {
 	ctx context.Context
 	// Versioning
 	// genesisValidatorsRoot is the root of the genesis validators.
@@ -68,9 +62,9 @@ type KVStore[
 	// latestExecutionPayloadCodec is the codec for the latest execution
 	// payload, it allows us to update the codec with the latest version.
 	latestExecutionPayloadCodec *encoding.
-					SSZInterfaceCodec[ExecutionPayloadHeaderT]
+					SSZInterfaceCodec[*ctypes.ExecutionPayloadHeader]
 	// latestExecutionPayloadHeader stores the latest execution payload header.
-	latestExecutionPayloadHeader sdkcollections.Item[ExecutionPayloadHeaderT]
+	latestExecutionPayloadHeader sdkcollections.Item[*ctypes.ExecutionPayloadHeader]
 	// Registry
 	// validatorIndex provides the next available index for a new validator.
 	validatorIndex sdkcollections.Sequence
@@ -98,18 +92,12 @@ type KVStore[
 // New creates a new instance of Store.
 //
 //nolint:funlen // its not overly complex.
-func New[
-	ExecutionPayloadHeaderT interface {
-		constraints.SSZMarshallable
-		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
-		Version() uint32
-	},
-](
+func New(
 	kss store.KVStoreService,
-	payloadCodec *encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT],
-) *KVStore[ExecutionPayloadHeaderT] {
+	payloadCodec *encoding.SSZInterfaceCodec[*ctypes.ExecutionPayloadHeader],
+) *KVStore {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kss)
-	return &KVStore[ExecutionPayloadHeaderT]{
+	res := &KVStore{
 		ctx: nil,
 		genesisValidatorsRoot: sdkcollections.NewItem(
 			schemaBuilder,
@@ -235,10 +223,14 @@ func New[
 			encoding.SSZValueCodec[*ctypes.BeaconBlockHeader]{},
 		),
 	}
+	if _, err := schemaBuilder.Build(); err != nil {
+		panic(fmt.Errorf("failed building KVStore schema: %w", err))
+	}
+	return res
 }
 
 // Copy returns a copy of the Store.
-func (kv *KVStore[ExecutionPayloadHeaderT]) Copy() *KVStore[ExecutionPayloadHeaderT] {
+func (kv *KVStore) Copy() *KVStore {
 	// TODO: Decouple the KVStore type from the Cosmos-SDK.
 	cctx, _ := sdk.UnwrapSDKContext(kv.ctx).CacheContext()
 	ss := kv.WithContext(cctx)
@@ -246,14 +238,14 @@ func (kv *KVStore[ExecutionPayloadHeaderT]) Copy() *KVStore[ExecutionPayloadHead
 }
 
 // Context returns the context of the Store.
-func (kv *KVStore[ExecutionPayloadHeaderT]) Context() context.Context {
+func (kv *KVStore) Context() context.Context {
 	return kv.ctx
 }
 
 // WithContext returns a copy of the Store with the given context.
-func (kv *KVStore[ExecutionPayloadHeaderT]) WithContext(
+func (kv *KVStore) WithContext(
 	ctx context.Context,
-) *KVStore[ExecutionPayloadHeaderT] {
+) *KVStore {
 	cpy := *kv
 	cpy.ctx = ctx
 	return &cpy

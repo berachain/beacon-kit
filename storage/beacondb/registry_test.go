@@ -184,8 +184,7 @@ func TestValidators(t *testing.T) {
 	require.Equal(t, inUpdatedVal2, res[1])
 }
 
-func initTestStore() (
-	*beacondb.KVStore[*types.ExecutionPayloadHeader], error) {
+func initTestStore() (*beacondb.KVStore, error) {
 	db, err := db.OpenDB("", dbm.MemDBBackend)
 	if err != nil {
 		return nil, fmt.Errorf("failed opening mem db: %w", err)
@@ -207,7 +206,7 @@ func initTestStore() (
 	}
 
 	sdkCtx := sdk.NewContext(cms, true, nopLog)
-	return beacondb.New[*types.ExecutionPayloadHeader](
+	return beacondb.New(
 		runtime.NewKVStoreService(testStoreKey),
 		testCodec,
 	).WithContext(sdkCtx), nil

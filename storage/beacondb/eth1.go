@@ -24,12 +24,12 @@ import ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 
 // GetLatestExecutionPayloadHeader retrieves the latest execution payload
 // header from the BeaconStore.
-func (kv *KVStore[ExecutionPayloadHeaderT]) GetLatestExecutionPayloadHeader() (
-	ExecutionPayloadHeaderT, error,
+func (kv *KVStore) GetLatestExecutionPayloadHeader() (
+	*ctypes.ExecutionPayloadHeader, error,
 ) {
 	forkVersion, err := kv.latestExecutionPayloadVersion.Get(kv.ctx)
 	if err != nil {
-		var t ExecutionPayloadHeaderT
+		var t *ctypes.ExecutionPayloadHeader
 		return t, err
 	}
 	kv.latestExecutionPayloadCodec.SetActiveForkVersion(forkVersion)
@@ -38,8 +38,8 @@ func (kv *KVStore[ExecutionPayloadHeaderT]) GetLatestExecutionPayloadHeader() (
 
 // SetLatestExecutionPayloadHeader sets the latest execution payload header in
 // the BeaconStore.
-func (kv *KVStore[ExecutionPayloadHeaderT]) SetLatestExecutionPayloadHeader(
-	payloadHeader ExecutionPayloadHeaderT,
+func (kv *KVStore) SetLatestExecutionPayloadHeader(
+	payloadHeader *ctypes.ExecutionPayloadHeader,
 ) error {
 	if err := kv.latestExecutionPayloadVersion.Set(
 		kv.ctx, payloadHeader.Version(),
@@ -51,24 +51,24 @@ func (kv *KVStore[ExecutionPayloadHeaderT]) SetLatestExecutionPayloadHeader(
 }
 
 // GetEth1DepositIndex retrieves the eth1 deposit index from the beacon state.
-func (kv *KVStore[ExecutionPayloadHeaderT]) GetEth1DepositIndex() (uint64, error) {
+func (kv *KVStore) GetEth1DepositIndex() (uint64, error) {
 	return kv.eth1DepositIndex.Get(kv.ctx)
 }
 
 // SetEth1DepositIndex sets the eth1 deposit index in the beacon state.
-func (kv *KVStore[ExecutionPayloadHeaderT]) SetEth1DepositIndex(
+func (kv *KVStore) SetEth1DepositIndex(
 	index uint64,
 ) error {
 	return kv.eth1DepositIndex.Set(kv.ctx, index)
 }
 
 // GetEth1Data retrieves the eth1 data from the beacon state.
-func (kv *KVStore[ExecutionPayloadHeaderT]) GetEth1Data() (*ctypes.Eth1Data, error) {
+func (kv *KVStore) GetEth1Data() (*ctypes.Eth1Data, error) {
 	return kv.eth1Data.Get(kv.ctx)
 }
 
 // SetEth1Data sets the eth1 data in the beacon state.
-func (kv *KVStore[ExecutionPayloadHeaderT]) SetEth1Data(
+func (kv *KVStore) SetEth1Data(
 	data *ctypes.Eth1Data,
 ) error {
 	return kv.eth1Data.Set(kv.ctx, data)

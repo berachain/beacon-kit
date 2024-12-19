@@ -22,37 +22,26 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/config"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/execution/engine"
 	"github.com/berachain/beacon-kit/log"
 	payloadbuilder "github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/payload/cache"
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // LocalBuilderInput is an input for the dep inject framework.
 type LocalBuilderInput[
 	BeaconStateT any,
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	LoggerT log.AdvancedLogger[LoggerT],
 ] struct {
 	depinject.In
-	AttributesFactory AttributesFactory[
-		BeaconStateT, *engineprimitives.PayloadAttributes,
-	]
-	Cfg             *config.Config
-	ChainSpec       common.ChainSpec
-	ExecutionEngine *engine.Engine[
-		ExecutionPayloadT,
-		*engineprimitives.PayloadAttributes,
-		PayloadID,
-	]
-	Logger LoggerT
+	AttributesFactory AttributesFactory[BeaconStateT]
+	Cfg               *config.Config
+	ChainSpec         chain.ChainSpec
+	ExecutionEngine   *engine.Engine[PayloadID]
+	Logger            LoggerT
 }
 
 // ProvideLocalBuilder provides a local payload builder for the
@@ -60,26 +49,22 @@ type LocalBuilderInput[
 func ProvideLocalBuilder[
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconStateMarshallableT,
-		ExecutionPayloadHeaderT, KVStoreT,
+		KVStoreT,
 	],
 	BeaconStateMarshallableT any,
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	in LocalBuilderInput[
-		BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT, LoggerT,
+		BeaconStateT, LoggerT,
 	],
 ) *payloadbuilder.PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	*engineprimitives.PayloadAttributes, PayloadID,
+	BeaconStateT,
+	PayloadID,
 ] {
 	return payloadbuilder.New[
-		BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-		*engineprimitives.PayloadAttributes, PayloadID,
+		BeaconStateT,
+		PayloadID,
 	](
 		&in.Cfg.PayloadBuilder,
 		in.ChainSpec,

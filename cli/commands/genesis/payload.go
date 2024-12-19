@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"unsafe"
 
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/cli/context"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -40,7 +41,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func AddExecutionPayloadCmd(chainSpec common.ChainSpec) *cobra.Command {
+func AddExecutionPayloadCmd(chainSpec chain.ChainSpec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "execution-payload [eth/genesis/file.json]",
 		Short: "adds the eth1 genesis execution payload to the genesis file",
@@ -83,7 +84,7 @@ func AddExecutionPayloadCmd(chainSpec common.ChainSpec) *cobra.Command {
 				return err
 			}
 
-			genesisInfo := &types.Genesis[*types.ExecutionPayloadHeader]{}
+			genesisInfo := &types.Genesis{}
 
 			if err = json.Unmarshal(
 				appGenesisState["beacon"], genesisInfo,

@@ -21,19 +21,18 @@
 package common
 
 import (
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
-	"github.com/berachain/beacon-kit/primitives/math"
 )
+
+/* -------------------------------------------------------------------------- */
+/*                                    Root                                    */
+/* -------------------------------------------------------------------------- */
 
 type (
 	// Bytes32 defines the commonly used 32-byte array.
 	Bytes32 = bytes.B32
-
-	// ChainSpec defines an interface for chain-specific parameters.
-	ChainSpec = chain.Spec[DomainType, math.Epoch, ExecutionAddress, math.Slot, any]
 
 	// Domain as per the Ethereum 2.0 Specification:
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
@@ -55,10 +54,6 @@ type (
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
 	ForkDigest = bytes.B4
 )
-
-/* -------------------------------------------------------------------------- */
-/*                                    Root                                    */
-/* -------------------------------------------------------------------------- */
 
 // Root represents a 32-byte Merkle root.
 // We use this type to represent roots that come from the consensus layer.

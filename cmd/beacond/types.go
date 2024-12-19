@@ -60,15 +60,11 @@ import (
 
 type (
 	// AttributesFactory is a type alias for the attributes factory.
-	AttributesFactory = attributes.Factory[
-		*BeaconState,
-		*PayloadAttributes,
-	]
+	AttributesFactory = attributes.Factory[*BeaconState]
 
 	// BlobProcessor is a type alias for the blob processor.
 	BlobProcessor = dablob.Processor[
 		*AvailabilityStore,
-		*BeaconBlockBody,
 		*ConsensusSidecars,
 		*BlobSidecar,
 		*BlobSidecars,
@@ -80,45 +76,31 @@ type (
 		*DepositStore,
 		*ConsensusBlock,
 		*BeaconBlock,
-		*BeaconBlockBody,
 		*BeaconState,
 		*BlockStore,
-		*ExecutionPayload,
-		*ExecutionPayloadHeader,
 		*Genesis,
 		*ConsensusSidecars,
 		*BlobSidecars,
-		*PayloadAttributes,
 	]
 
 	// CometBFTService is a type alias for the CometBFT service.
 	CometBFTService = cometbft.Service[*Logger]
 
 	// EngineClient is a type alias for the engine client.
-	EngineClient = engineclient.EngineClient[
-		*ExecutionPayload,
-		*PayloadAttributes,
-	]
+	EngineClient = engineclient.EngineClient
 
 	// EngineClient is a type alias for the engine client.
-	ExecutionEngine = execution.Engine[
-		*ExecutionPayload,
-		*PayloadAttributes,
-		PayloadID,
-	]
+	ExecutionEngine = execution.Engine[PayloadID]
 
 	// IndexDB is a type alias for the range DB.
 	IndexDB = filedb.RangeDB
 
 	// KVStore is a type alias for the KV store.
-	KVStore = beacondb.KVStore[*ExecutionPayloadHeader]
+	KVStore = beacondb.KVStore
 
 	// LocalBuilder is a type alias for the local builder.
 	LocalBuilder = payloadbuilder.PayloadBuilder[
 		*BeaconState,
-		*ExecutionPayload,
-		*ExecutionPayloadHeader,
-		*PayloadAttributes,
 		PayloadID,
 	]
 
@@ -129,25 +111,16 @@ type (
 	NodeAPIServer = server.Server[NodeAPIContext]
 
 	// ReportingService is a type alias for the reporting service.
-	ReportingService = version.ReportingService[
-		*ExecutionPayload,
-		*PayloadAttributes,
-	]
+	ReportingService = version.ReportingService
 
 	// SidecarFactory is a type alias for the sidecar factory.
-	SidecarFactory = dablob.SidecarFactory[
-		*BeaconBlock,
-		*BeaconBlockBody,
-	]
+	SidecarFactory = dablob.SidecarFactory[*BeaconBlock]
 
 	// StateProcessor is the type alias for the state processor interface.
 	StateProcessor = core.StateProcessor[
 		*BeaconBlock,
-		*BeaconBlockBody,
 		*BeaconState,
 		*Context,
-		*ExecutionPayload,
-		*ExecutionPayloadHeader,
 		*KVStore,
 	]
 
@@ -163,15 +136,10 @@ type (
 	// ValidatorService is a type alias for the validator service.
 	ValidatorService = validator.Service[
 		*BeaconBlock,
-		*BeaconBlockBody,
 		*BeaconState,
 		*BlobSidecar,
 		*BlobSidecars,
 		*DepositStore,
-		*ExecutionPayload,
-		*ExecutionPayloadHeader,
-		*SlashingInfo,
-		*SlotData,
 	]
 )
 
@@ -181,25 +149,20 @@ type (
 
 type (
 	// AvailabilityStore is a type alias for the availability store.
-	AvailabilityStore = dastore.Store[*BeaconBlockBody]
+	AvailabilityStore = dastore.Store
 
 	// BeaconBlock type aliases.
-	ConsensusBlock  = consruntimetypes.ConsensusBlock[*BeaconBlock]
-	BeaconBlock     = types.BeaconBlock
-	BeaconBlockBody = types.BeaconBlockBody
+	ConsensusBlock = consruntimetypes.ConsensusBlock[*BeaconBlock]
+	BeaconBlock    = types.BeaconBlock
 
 	// BeaconState is a type alias for the BeaconState.
 	BeaconState = statedb.StateDB[
 		*BeaconStateMarshallable,
-		*ExecutionPayloadHeader,
 		*KVStore,
 	]
 
 	// BeaconStateMarshallable is a type alias for the BeaconState.
-	BeaconStateMarshallable = types.BeaconState[
-		*ExecutionPayloadHeader,
-		ExecutionPayloadHeader,
-	]
+	BeaconStateMarshallable = types.BeaconState
 
 	// BlobSidecars type aliases.
 	ConsensusSidecars = consruntimetypes.ConsensusSidecars[*BlobSidecars]
@@ -221,10 +184,6 @@ type (
 	// Eth1Data is a type alias for the eth1 data.
 	Eth1Data = types.Eth1Data
 
-	// ExecutionPayload type aliases.
-	ExecutionPayload       = types.ExecutionPayload
-	ExecutionPayloadHeader = types.ExecutionPayloadHeader
-
 	// Fork is a type alias for the fork.
 	Fork = types.Fork
 
@@ -232,7 +191,7 @@ type (
 	ForkData = types.ForkData
 
 	// Genesis is a type alias for the Genesis type.
-	Genesis = types.Genesis[*ExecutionPayloadHeader]
+	Genesis = types.Genesis
 
 	// Logger is a type alias for the logger.
 	Logger = phuslu.Logger
@@ -241,7 +200,7 @@ type (
 	LoggerConfig = phuslu.Config
 
 	// SlotData is a type alias for the incoming slot.
-	SlotData = consruntimetypes.SlotData[*SlashingInfo]
+	SlotData = consruntimetypes.SlotData
 
 	// LegacyKey type alias to LegacyKey used for LegacySinger construction.
 	LegacyKey = signer.LegacyKey
@@ -250,14 +209,12 @@ type (
 	NodeAPIBackend = backend.Backend[
 		*AvailabilityStore,
 		*BeaconBlock,
-		*BeaconBlockBody,
 		*BeaconState,
 		*BeaconStateMarshallable,
 		*BlobSidecars,
 		*BlockStore,
 		sdk.Context,
 		*DepositStore,
-		*ExecutionPayloadHeader,
 		*CometBFTService,
 		*KVStore,
 		*StorageBackend,
@@ -265,9 +222,6 @@ type (
 
 	// NodeAPIContext is a type alias for the node API context.
 	NodeAPIContext = echo.Context
-
-	// PayloadAttributes is a type alias for the payload attributes.
-	PayloadAttributes = engineprimitives.PayloadAttributes
 
 	// PayloadID is a type alias for the payload ID.
 	PayloadID = engineprimitives.PayloadID

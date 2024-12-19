@@ -21,39 +21,55 @@
 package core
 
 import (
-	"github.com/berachain/beacon-kit/config/spec"
-	"github.com/berachain/beacon-kit/primitives/math"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/version"
 )
 
-// processSlashingsReset as defined in the Ethereum 2.0 specification.
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#slashings-balances-updates
 func (sp *StateProcessor[
 	_, BeaconStateT, _, _,
-]) processSlashingsReset(
+]) GetSidecarVerifierFn(
 	st BeaconStateT,
-) error {
-	// processSlashingsReset does not really do anything right now.
-	// However we cannot simply drop it because appHash accounts
-	// for the list of operations carried out over the state
-	// even if the operations does not affect the final state
-	// (currently no slashing on beaconKit)
-
+) (
+	func(blkHeader *ctypes.BeaconBlockHeader, signature crypto.BLSSignature) error,
+	error,
+) {
 	slot, err := st.GetSlot()
 	if err != nil {
-		return err
+		return nil, err
+	}
+	epoch := sp.cs.SlotToEpoch(slot)
+
+	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
+	if err != nil {
+		return nil, err
 	}
 
-	switch {
-	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
-		// go head doing the processing
-	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-		slot < math.U64(spec.BoonetFork3Height):
-		// go head doing the processing
-	default:
-		// no real need to perform slashing reset
-		return nil
-	}
+	fd := *ctypes.NewForkData(
+		version.FromUint32[common.Version](
+			sp.cs.ActiveForkVersionForEpoch(epoch),
+		), genesisValidatorsRoot,
+	)
+	domain := fd.ComputeDomain(sp.cs.DomainTypeProposer())
 
-	index := (sp.cs.SlotToEpoch(slot).Unwrap() + 1) % sp.cs.EpochsPerSlashingsVector()
-	return st.UpdateSlashingAtIndex(index, 0)
+	return func(
+		blkHeader *ctypes.BeaconBlockHeader,
+		signature crypto.BLSSignature,
+	) error {
+		//nolint:govet // shadow
+		proposer, err := st.ValidatorByIndex(blkHeader.GetProposerIndex())
+		if err != nil {
+			return err
+		}
+		signingRoot := ctypes.ComputeSigningRoot(
+			blkHeader,
+			domain,
+		)
+		return sp.signer.VerifySignature(
+			proposer.GetPubkey(),
+			signingRoot[:],
+			signature,
+		)
+	}, nil
 }
