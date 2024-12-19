@@ -40,7 +40,7 @@ func (sp *StateProcessor[
 	_, BeaconStateT, _, _,
 ]) InitializePreminedBeaconStateFromEth1(
 	st BeaconStateT,
-	deposits []*ctypes.Deposit,
+	deposits ctypes.Deposits,
 	execPayloadHeader *ctypes.ExecutionPayloadHeader,
 	genesisVersion common.Version,
 ) (transition.ValidatorUpdates, error) {
@@ -61,7 +61,7 @@ func (sp *StateProcessor[
 
 	var eth1Data *ctypes.Eth1Data
 	eth1Data = eth1Data.New(
-		ctypes.Deposits(deposits).HashTreeRoot(),
+		deposits.HashTreeRoot(),
 		0,
 		execPayloadHeader.GetBlockHash(),
 	)
