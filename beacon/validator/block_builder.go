@@ -323,7 +323,7 @@ func (s *Service[
 	var eth1Data *ctypes.Eth1Data
 	body.SetEth1Data(eth1Data.New(deposits.HashTreeRoot(), 0, common.ExecutionHash{}))
 
-	// Set the just the block deposits (after current index) on the block body.
+	// Set just the block deposits (after current index) on the block body.
 	if uint64(len(deposits)) < depositIndex {
 		return errors.Wrapf(ErrDepositStoreIncomplete,
 			"all historical deposits not available, expected: %d, got: %d",
