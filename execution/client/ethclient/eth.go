@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/geth-primitives/rpc"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 )
@@ -42,6 +43,21 @@ func (s *Client) ChainID(
 		return 0, err
 	}
 	return result, nil
+}
+
+// CodeAt returns the contract code of the given account.
+// The block number can be nil, in which case the code is taken from the latest known block.
+func (s *Client) CodeAt(
+	ctx context.Context, account common.Address, blockNumber *big.Int,
+) ([]byte, error) {
+	return nil, nil
+}
+
+// CallContract executes an Ethereum contract call with the specified data as the input.
+func (s *Client) CallContract(
+	ctx context.Context, call ethereum.CallMsg, blockNumber *big.Int,
+) ([]byte, error) {
+	return nil, nil
 }
 
 // TODO: Figure out how to unhood all this.

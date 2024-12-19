@@ -24,8 +24,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/big"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/execution/client"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/geth-primitives/bind"
 	"github.com/berachain/beacon-kit/geth-primitives/deposit"
@@ -36,36 +38,43 @@ import (
 
 // WrappedDepositContract is a struct that holds a pointer to an ABI.
 type WrappedDepositContract struct {
-	// DepositContractFilterer is a pointer to the codegen ABI binding.
-	deposit.DepositContractFilterer
+	filterer deposit.DepositContractFilterer
+	caller   deposit.DepositContractCaller
 }
 
 // NewWrappedDepositContract creates a new DepositContract.
 func NewWrappedDepositContract(
-	address common.ExecutionAddress,
-	client bind.ContractFilterer,
+	address common.ExecutionAddress, client *client.EngineClient,
 ) (*WrappedDepositContract, error) {
-	contract, err := deposit.NewDepositContractFilterer(
+	filterer, err := deposit.NewDepositContractFilterer(
 		gethprimitives.ExecutionAddress(address), client,
 	)
-
 	if err != nil {
 		return nil, err
-	} else if contract == nil {
-		return nil, errors.New("contract must not be nil")
+	} else if filterer == nil {
+		return nil, errors.New("filterer must not be nil")
+	}
+
+	caller, err := deposit.NewDepositContractCaller(
+		gethprimitives.ExecutionAddress(address), client,
+	)
+	if err != nil {
+		return nil, err
+	} else if caller == nil {
+		return nil, errors.New("caller must not be nil")
 	}
 
 	return &WrappedDepositContract{
-		DepositContractFilterer: *contract,
+		filterer: *filterer,
+		caller:   *caller,
 	}, nil
 }
 
 // ReadDeposits reads deposits from the deposit contract.
 func (dc *WrappedDepositContract) ReadDeposits(
-	ctx context.Context,
-	blkNum math.U64,
+	ctx context.Context, blkNum math.U64,
 ) ([]*ctypes.Deposit, error) {
-	logs, err := dc.FilterDeposit(
+	logs, err := dc.filterer.FilterDeposit(
 		&bind.FilterOpts{
 			Context: ctx,
 			Start:   blkNum.Unwrap(),
@@ -105,4 +114,25 @@ func (dc *WrappedDepositContract) ReadDeposits(
 	}
 
 	return deposits, nil
+}
+
+// GetGenesisDepositsRoot returns the genesis deposits root at the given block number.
+func (dc *WrappedDepositContract) GetGenesisDepositsRoot(
+	ctx context.Context, blockNum uint64,
+) (common.Root, error) {
+	return dc.caller.GenesisDepositsRoot(&bind.CallOpts{
+		Context:     ctx,
+		BlockNumber: new(big.Int).SetUint64(blockNum),
+	})
+}
+
+// GetDepositsCount returns the number of deposits in the deposit contract
+// at the given block number.
+func (dc *WrappedDepositContract) GetDepositsCount(
+	ctx context.Context, blockNum uint64,
+) (uint64, error) {
+	return dc.caller.DepositCount(&bind.CallOpts{
+		Context:     ctx,
+		BlockNumber: new(big.Int).SetUint64(blockNum),
+	})
 }

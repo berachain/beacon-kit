@@ -26,6 +26,7 @@ type (
 	ContractBackend  = bind.ContractBackend
 	ContractFilterer = bind.ContractFilterer
 	FilterOpts       = bind.FilterOpts
+	CallOpts         = bind.CallOpts
 	TransactOpts     = bind.TransactOpts
 )
 

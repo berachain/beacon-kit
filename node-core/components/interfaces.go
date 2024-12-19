@@ -382,7 +382,7 @@ type (
 		// GetForkVersion returns the fork version.
 		GetForkVersion() common.Version
 		// GetDeposits returns the deposits.
-		GetDeposits() []*ctypes.Deposit
+		GetDeposits() ctypes.Deposits
 		// GetExecutionPayloadHeader returns the execution payload header.
 		GetExecutionPayloadHeader() *ctypes.ExecutionPayloadHeader
 	}

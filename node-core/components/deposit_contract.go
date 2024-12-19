@@ -37,12 +37,7 @@ type DepositContractInput struct {
 
 // ProvideDepositContract provides a deposit contract through the
 // dep inject framework.
-func ProvideDepositContract(
-	in DepositContractInput,
-) (*deposit.WrappedDepositContract, error) {
+func ProvideDepositContract(in DepositContractInput) (*deposit.WrappedDepositContract, error) {
 	// Build the deposit contract.
-	return deposit.NewWrappedDepositContract(
-		in.ChainSpec.DepositContractAddress(),
-		in.EngineClient,
-	)
+	return deposit.NewWrappedDepositContract(in.ChainSpec.DepositContractAddress(), in.EngineClient)
 }

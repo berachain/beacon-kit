@@ -27,4 +27,9 @@ var (
 	ErrNilBlk = errors.New("nil beacon block")
 	// ErrDataNotAvailable indicates that the required data is not available.
 	ErrDataNotAvailable = errors.New("data not available")
+	// ErrGenesisDepositsCountMismatch is an error for when the genesis deposits count mismatch.
+	ErrGenesisDepositsCountMismatch = errors.New("genesis deposits count mismatch")
+	// ErrGenesisDepositsRootMismatch is an error for when the genesis deposits root mismatch
+	// between CL and EL.
+	ErrGenesisDepositsRootMismatch = errors.New("genesis deposits root mismatch between CL and EL")
 )

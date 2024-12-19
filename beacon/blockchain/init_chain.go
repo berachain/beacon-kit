@@ -24,25 +24,47 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/transition"
 )
 
-// ProcessGenesisData processes the genesis state and initializes the beacon
-// state.
+// ProcessGenesisData processes the genesis state and initializes the beacon state.
 func (s *Service[
 	_, _, _, _, _, _, GenesisT, _, _,
-]) ProcessGenesisData(
-	ctx context.Context,
-	bytes []byte,
-) (transition.ValidatorUpdates, error) {
+]) ProcessGenesisData(ctx context.Context, bytes []byte) (transition.ValidatorUpdates, error) {
 	genesisData := *new(GenesisT)
 	if err := json.Unmarshal(bytes, &genesisData); err != nil {
 		s.logger.Error("Failed to unmarshal genesis data", "error", err)
 		return nil, err
 	}
+
+	genesisDepositsCL := genesisData.GetDeposits()
+	genesisDepositsRootCL := genesisDepositsCL.HashTreeRoot()
+	_, err := s.depositContract.GetGenesisDepositsRoot(ctx, 0)
+	if err != nil {
+		s.logger.Error("Failed to get genesis deposits root", "error", err)
+		return nil, err
+	}
+	if !genesisDepositsRootCL.Equals(genesisDepositsRootEL) {
+		return nil, ErrGenesisDepositsRootMismatch,
+	}
+
+	genesisDepositsCountEL, err := s.depositContract.GetDepositsCount(ctx, 0)
+	if err != nil {
+		s.logger.Error("Failed to get genesis deposits count", "error", err)
+		return nil, err
+	}
+	if uint64(len(genesisDepositsCL)) != genesisDepositsCountEL {
+		return nil, errors.Wrapf(
+			ErrGenesisDepositsCountMismatch,
+			"CL genesis deposits count %d mismatch EL genesis deposits count %d",
+			len(genesisDepositsCL), genesisDepositsCountEL,
+		)
+	}
+
 	return s.stateProcessor.InitializePreminedBeaconStateFromEth1(
 		s.storageBackend.StateFromContext(ctx),
-		genesisData.GetDeposits(),
+		genesisDepositsCL,
 		genesisData.GetExecutionPayloadHeader(),
 		genesisData.GetForkVersion(),
 	)
