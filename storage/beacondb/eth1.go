@@ -68,13 +68,13 @@ func (kv *KVStore) SetEth1DepositIndex(
 // SetGenesisValidatorsRoot sets the genesis validators root in the beacon
 // state.
 func (kv *KVStore) SetDepositRoot(root common.Root) error {
-	return kv.blockDepositRoot.Set(kv.ctx, root[:])
+	return kv.depositsRoot.Set(kv.ctx, root[:])
 }
 
 // GetGenesisValidatorsRoot retrieves the genesis validators root from the
 // beacon state.
 func (kv *KVStore) GetDepositRoot() (common.Root, error) {
-	bz, err := kv.blockDepositRoot.Get(kv.ctx)
+	bz, err := kv.depositsRoot.Get(kv.ctx)
 	if err != nil {
 		return common.Root{}, err
 	}

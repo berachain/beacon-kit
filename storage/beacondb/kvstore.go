@@ -56,8 +56,8 @@ type KVStore struct {
 	eth1Data sdkcollections.Item[*ctypes.Eth1Data]
 	// eth1DepositIndex is the index of the latest eth1 deposit.
 	eth1DepositIndex sdkcollections.Item[uint64]
-	// blockDepositRoot is the root hash of the deposits in the latest block
-	blockDepositRoot sdkcollections.Item[[]byte]
+	// depositsRoot is the root hash of the deposits in the latest block
+	depositsRoot sdkcollections.Item[[]byte]
 	// latestExecutionPayloadVersion stores the latest execution payload
 	// version.
 	latestExecutionPayloadVersion sdkcollections.Item[uint32]
@@ -145,7 +145,7 @@ func New(
 			keys.Eth1DepositIndexPrefixHumanReadable,
 			sdkcollections.Uint64Value,
 		),
-		blockDepositRoot: sdkcollections.NewItem(
+		depositsRoot: sdkcollections.NewItem(
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.DepositsRootPrefix}),
 			keys.DepositsRootPrefixReadable,

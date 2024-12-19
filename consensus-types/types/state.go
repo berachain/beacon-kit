@@ -60,7 +60,7 @@ type BeaconState struct {
 	TotalSlashing math.Gwei
 
 	// Deposits
-	BlockDepositRoot common.Root
+	DepositsRoot common.Root
 }
 
 // New creates a new BeaconState.
@@ -82,7 +82,7 @@ func (st *BeaconState) New(
 	nextWithdrawalValidatorIndex math.ValidatorIndex,
 	slashings []math.Gwei,
 	totalSlashing math.Gwei,
-	blockDepositRoot common.Root,
+	depositsRoot common.Root,
 ) (*BeaconState, error) {
 	return &BeaconState{
 		Slot:                         slot,
@@ -101,7 +101,7 @@ func (st *BeaconState) New(
 		NextWithdrawalValidatorIndex: nextWithdrawalValidatorIndex,
 		Slashings:                    slashings,
 		TotalSlashing:                totalSlashing,
-		BlockDepositRoot:             blockDepositRoot,
+		DepositsRoot:                 depositsRoot,
 	}, nil
 }
 
