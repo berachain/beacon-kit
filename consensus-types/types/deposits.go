@@ -21,10 +21,9 @@
 package types
 
 import (
-	"crypto/sha256"
-
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
+	"github.com/berachain/beacon-kit/primitives/crypto/sha256"
 	"github.com/karalabe/ssz"
 )
 
@@ -62,5 +61,5 @@ func (ds Deposits) HashTreeRoot() common.Root {
 // hash tree root of the Deposits.
 func (ds Deposits) CombiHashTreeRoot(root common.Root) common.Root {
 	htr := ds.HashTreeRoot()
-	return sha256.Sum256(append(root[:], htr[:]...))
+	return sha256.Hash(append(root[:], htr[:]...))
 }
