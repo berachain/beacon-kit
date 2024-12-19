@@ -23,7 +23,6 @@ package blockchain
 import (
 	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 func (s *Service[
@@ -50,17 +49,10 @@ func (s *Service[
 }
 
 func depositPruneRangeFn(deposits []*ctypes.Deposit, cs chain.ChainSpec) (uint64, uint64) {
-	if len(deposits) == 0 || cs.MaxDepositsPerBlock() == 0 {
-		return 0, 0
-	}
-	index := deposits[len(deposits)-1].GetIndex()
-
-	end := min(index.Unwrap(), cs.MaxDepositsPerBlock())
-	if index < math.U64(cs.MaxDepositsPerBlock()) {
-		return 0, end
-	}
-
-	return index.Unwrap() - cs.MaxDepositsPerBlock(), end
+	// The whole deposit list is validated in consensus and its Merkle root is part of
+	// Beacon State. Therefore every node must keep the full deposit list and deposits
+	// pruning must be turned off.
+	return 0, 0
 }
 
 //nolint:unparam // this is ok
