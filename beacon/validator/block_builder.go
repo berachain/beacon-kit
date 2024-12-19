@@ -335,11 +335,10 @@ func (s *Service[
 	body.SetDeposits(deposits)
 
 	var eth1Data *ctypes.Eth1Data
-	// TODO: assemble real eth1data.
 	body.SetEth1Data(eth1Data.New(
-		common.Root{},
-		0,
-		common.ExecutionHash{},
+		ctypes.Deposits(deposits).HashTreeRoot(),
+		0,                      // Eth1 Deposit Count is not needed.
+		common.ExecutionHash{}, // Eth1 Block Hash is not needed.
 	))
 
 	// Set the graffiti on the block body.

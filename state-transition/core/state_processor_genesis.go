@@ -61,9 +61,9 @@ func (sp *StateProcessor[
 
 	var eth1Data *ctypes.Eth1Data
 	eth1Data = eth1Data.New(
-		common.Root{},
-		0,
-		execPayloadHeader.GetBlockHash(),
+		ctypes.Deposits(deposits).HashTreeRoot(),
+		0,                      // Eth1 Deposit Count is not needed.
+		common.ExecutionHash{}, // Eth1 Block Hash is not needed.
 	)
 	if err := st.SetEth1Data(eth1Data); err != nil {
 		return nil, err
