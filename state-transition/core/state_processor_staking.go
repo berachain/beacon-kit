@@ -52,25 +52,21 @@ func (sp *StateProcessor[
 			sp.cs.MaxDepositsPerBlock(), len(blkDeposits),
 		)
 	}
-	if err := sp.validateNonGenesisDeposits(st, blkDeposits); err != nil {
+	newRoot, err := sp.validateNonGenesisDeposits(
+		st,
+		blkDeposits,
+		blk.GetBody().GetEth1Data().DepositRoot,
+	)
+	if err != nil {
 		return err
 	}
 	for _, dep := range blkDeposits {
-		if err := sp.processDeposit(st, dep); err != nil {
+		if err = sp.processDeposit(st, dep); err != nil {
 			return err
 		}
 	}
 
-	// Pull all deposits from genesis and re-calculate their root
-	depositIndex, err := st.GetEth1DepositIndex()
-	if err != nil {
-		return err
-	}
-	deposits, err := sp.ds.GetDepositsByIndex(0, depositIndex+1)
-	if err != nil {
-		return err
-	}
-	newRoot := ctypes.Deposits(deposits).HashTreeRoot()
+	// Store deposit root into the Beacon State
 	return st.SetDepositRoot(newRoot)
 }
 

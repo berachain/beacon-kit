@@ -48,7 +48,7 @@ func (s *Service[
 	return nil
 }
 
-func depositPruneRangeFn(deposits []*ctypes.Deposit, cs chain.ChainSpec) (uint64, uint64) {
+func depositPruneRangeFn([]*ctypes.Deposit, chain.ChainSpec) (uint64, uint64) {
 	// The whole deposit list is validated in consensus and its Merkle root is part of
 	// Beacon State. Therefore every node must keep the full deposit list and deposits
 	// pruning must be turned off.

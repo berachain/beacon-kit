@@ -319,7 +319,7 @@ func (s *Service[
 			blk.GetSlot() < math.U64(spec.BoonetFork2Height))) {
 		depositIndex++
 	}
-	deposits, err := s.sb.DepositStore().GetDepositsByIndex(
+	blkDeposits, err := s.sb.DepositStore().GetDepositsByIndex(
 		depositIndex,
 		s.chainSpec.MaxDepositsPerBlock(),
 	)
@@ -330,14 +330,22 @@ func (s *Service[
 	// Set the deposits on the block body.
 	s.logger.Info(
 		"Building block body with local deposits",
-		"start_index", depositIndex, "num_deposits", len(deposits),
+		"start_index", depositIndex, "num_deposits", len(blkDeposits),
 	)
-	body.SetDeposits(deposits)
+	body.SetDeposits(blkDeposits)
+
+	deposits, err := s.sb.DepositStore().GetDepositsByIndex(
+		0,
+		depositIndex,
+	)
+	if err != nil {
+		return err
+	}
+	deposits = append(deposits, blkDeposits...)
 
 	var eth1Data *ctypes.Eth1Data
-	// TODO: assemble real eth1data.
 	body.SetEth1Data(eth1Data.New(
-		common.Root{},
+		ctypes.Deposits(deposits).HashTreeRoot(),
 		0,
 		common.ExecutionHash{},
 	))
