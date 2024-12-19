@@ -325,10 +325,7 @@ func (s *Service[
 	)
 	body.SetDeposits(blkDeposits)
 
-	deposits, err := s.sb.DepositStore().GetDepositsByIndex(
-		0,
-		depositIndex,
-	)
+	deposits, err := s.sb.DepositStore().GetDepositsByIndex(0, depositIndex)
 	if err != nil {
 		return err
 	}
