@@ -52,16 +52,18 @@ func (sp *StateProcessor[
 			sp.cs.MaxDepositsPerBlock(), len(deposits),
 		)
 	}
-	if err := st.SetEth1Data(blk.GetBody().GetEth1Data()); err != nil {
+	if err := sp.validateNonGenesisDeposits(st, blk, deposits); err != nil {
 		return err
 	}
-	if err := sp.validateNonGenesisDeposits(st, deposits); err != nil {
-		return err
-	}
+	
 	for _, dep := range deposits {
 		if err := sp.processDeposit(st, dep); err != nil {
 			return err
 		}
+	}
+
+	if err := st.SetEth1Data(blk.GetBody().GetEth1Data()); err != nil {
+		return err
 	}
 	return nil
 }

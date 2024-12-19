@@ -101,9 +101,10 @@ func (sp *StateProcessor[
 }
 
 func (sp *StateProcessor[
-	_, BeaconStateT, _, _,
+	BeaconBlockT, BeaconStateT, _, _,
 ]) validateNonGenesisDeposits(
 	st BeaconStateT,
+	blk BeaconBlockT,
 	deposits []*ctypes.Deposit,
 ) error {
 	slot, err := st.GetSlot()
@@ -155,11 +156,7 @@ func (sp *StateProcessor[
 		}
 
 		// Verify that the local deposits have the same root as the block deposits.
-		var eth1Data *ctypes.Eth1Data
-		eth1Data, err = st.GetEth1Data()
-		if err != nil {
-			return err
-		}
+		eth1Data := blk.GetBody().GetEth1Data()
 		localDepositsRoot := ctypes.Deposits(localDeposits).HashTreeRoot()
 		if localDepositsRoot != eth1Data.DepositRoot {
 			return errors.Wrapf(
