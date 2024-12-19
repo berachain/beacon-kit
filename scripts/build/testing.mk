@@ -251,35 +251,36 @@ SHORT_FUZZ_TIME=10s
 MEDIUM_FUZZ_TIME=30s
 LONG_FUZZ_TIME=3m
 
+
 test:
 	@$(MAKE) test-unit test-forge-fuzz
 
 test-unit: ## run golang unit tests
 	@echo "Running unit tests..."
 	@go list -f '{{.Dir}}/...' -m | xargs \
-		go test -race
+		go test --tags bls12381 -race
 
 test-unit-cover: ## run golang unit tests with coverage
 	@echo "Running unit tests with coverage..."
 	@go list -f '{{.Dir}}/...' -m | xargs \
-		go test -race -coverprofile=test-unit-cover.txt
+		go test --tags bls12381 -race -coverprofile=test-unit-cover.txt
 
 test-unit-bench: ## run golang unit benchmarks
 	@echo "Running unit tests with benchmarks..."
 	@go list -f '{{.Dir}}/...' -m | xargs \
-		go test -bench=. -run=^$ -benchmem
+		go test --tags bls12381 -bench=. -run=^$ -benchmem
 
 # On MacOS, if there is a linking issue on the fuzz tests,
 # use the old linker with flags -ldflags=-extldflags=-Wl,-ld_classic
 test-unit-fuzz: ## run fuzz tests
 	@echo "Running fuzz tests with coverage..."
-	go test -run ^FuzzPayloadIDCacheBasic -fuzztime=${SHORT_FUZZ_TIME} github.com/berachain/beacon-kit/payload/cache
-	go test -run ^FuzzPayloadIDInvalidInput -fuzztime=${SHORT_FUZZ_TIME} github.com/berachain/beacon-kit/payload/cache
-	go test -run ^FuzzPayloadIDCacheConcurrency -fuzztime=${SHORT_FUZZ_TIME} github.com/berachain/beacon-kit/payload/cache
-	go test -run ^FuzzHashTreeRoot -fuzztime=${MEDIUM_FUZZ_TIME} github.com/berachain/beacon-kit/primitives/merkle
+	go test --tags bls12381 -run ^FuzzPayloadIDCacheBasic -fuzztime=${SHORT_FUZZ_TIME} github.com/berachain/beacon-kit/payload/cache
+	go test --tags bls12381 -run ^FuzzPayloadIDInvalidInput -fuzztime=${SHORT_FUZZ_TIME} github.com/berachain/beacon-kit/payload/cache
+	go test --tags bls12381 -run ^FuzzPayloadIDCacheConcurrency -fuzztime=${SHORT_FUZZ_TIME} github.com/berachain/beacon-kit/payload/cache
+	go test --tags bls12381 -run ^FuzzHashTreeRoot -fuzztime=${MEDIUM_FUZZ_TIME} github.com/berachain/beacon-kit/primitives/merkle
 
 test-e2e: ## run e2e tests
 	@$(MAKE) build-docker VERSION=kurtosis-local test-e2e-no-build
 
 test-e2e-no-build:
-	go test -timeout 0 -tags e2e,bls12381 ./testing/e2e/. -v
+	go test --tags bls12381  -timeout 0 -tags e2e,bls12381 ./testing/e2e/. -v
