@@ -18,6 +18,8 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
+// implementation taken from github.com/cosmos/cosmos-sdk/blob/main/x/genutil/client/cli/init.go
+// and modified to circumvent using default cometbft config which sets the timeout_commit to 0
 package initialize
 
 import (
