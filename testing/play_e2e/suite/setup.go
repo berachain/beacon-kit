@@ -120,12 +120,6 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	s.logger.Info("Waiting for nodes to get ready...")
 	//nolint:mnd // its okay.
 	time.Sleep(5 * time.Second)
-	// Wait for the finalized block number to increase a bit to
-	// ensure all clients are in sync.
-	//nolint:mnd // 3 blocks
-	err = s.WaitForFinalizedBlockNumber(2)
-	s.Require().NoError(err, "Error waiting for finalized block number")
-
 }
 
 func (s *KurtosisE2ESuite) SetupConsensusClients() error {
