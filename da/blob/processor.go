@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/kzg"
+	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -34,30 +35,23 @@ import (
 // Processor is the blob processor that handles the processing and verification
 // of blob sidecars.
 type Processor[
-	AvailabilityStoreT AvailabilityStore[BlobSidecarsT],
-	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
-	BlobSidecarT Sidecar,
-	BlobSidecarsT Sidecars[BlobSidecarT],
+	AvailabilityStoreT AvailabilityStore,
+	ConsensusSidecarsT ConsensusSidecars,
 ] struct {
 	// logger is used to log information and errors.
 	logger log.Logger
 	// chainSpec defines the specifications of the blockchain.
 	chainSpec chain.ChainSpec
 	// verifier is responsible for verifying the blobs.
-	verifier *verifier[
-		BlobSidecarT,
-		BlobSidecarsT,
-	]
+	verifier *verifier
 	// metrics is used to collect and report processor metrics.
 	metrics *processorMetrics
 }
 
 // NewProcessor creates a new blob processor.
 func NewProcessor[
-	AvailabilityStoreT AvailabilityStore[BlobSidecarsT],
-	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
-	BlobSidecarT Sidecar,
-	BlobSidecarsT Sidecars[BlobSidecarT],
+	AvailabilityStoreT AvailabilityStore,
+	ConsensusSidecarsT ConsensusSidecars,
 ](
 	logger log.Logger,
 	chainSpec chain.ChainSpec,
@@ -65,15 +59,13 @@ func NewProcessor[
 	telemetrySink TelemetrySink,
 ) *Processor[
 	AvailabilityStoreT,
-	ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
+	ConsensusSidecarsT,
 ] {
-	verifier := newVerifier[
-		BlobSidecarT,
-		BlobSidecarsT,
-	](proofVerifier, telemetrySink, chainSpec)
+	verifier := newVerifier(proofVerifier, telemetrySink, chainSpec)
+
 	return &Processor[
 		AvailabilityStoreT,
-		ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
+		ConsensusSidecarsT,
 	]{
 		logger:    logger,
 		chainSpec: chainSpec,
@@ -84,7 +76,7 @@ func NewProcessor[
 
 // VerifySidecars verifies the blobs and ensures they match the local state.
 func (sp *Processor[
-	AvailabilityStoreT, ConsensusSidecarsT, _, BlobSidecarsT,
+	AvailabilityStoreT, ConsensusSidecarsT,
 ]) VerifySidecars(
 	cs ConsensusSidecarsT,
 	verifierFn func(
@@ -115,10 +107,10 @@ func (sp *Processor[
 
 // ProcessSidecars processes the blobs and ensures they match the local state.
 func (sp *Processor[
-	AvailabilityStoreT, _, _, BlobSidecarsT,
+	AvailabilityStoreT, _,
 ]) ProcessSidecars(
 	avs AvailabilityStoreT,
-	sidecars BlobSidecarsT,
+	sidecars datypes.BlobSidecars,
 ) error {
 	defer sp.metrics.measureProcessSidecarsDuration(
 		time.Now(), math.U64(sidecars.Len()),

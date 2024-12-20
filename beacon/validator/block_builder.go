@@ -28,6 +28,7 @@ import (
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
+	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -39,7 +40,7 @@ import (
 
 // BuildBlockAndSidecars builds a new beacon block.
 func (s *Service[
-	BeaconBlockT, _, _, BlobSidecarsT,
+	BeaconBlockT, _,
 	_,
 ]) BuildBlockAndSidecars(
 	ctx context.Context,
@@ -47,7 +48,7 @@ func (s *Service[
 ) ([]byte, []byte, error) {
 	var (
 		blk      BeaconBlockT
-		sidecars BlobSidecarsT
+		sidecars datypes.BlobSidecars
 		forkData *ctypes.ForkData
 	)
 
@@ -149,7 +150,7 @@ func (s *Service[
 
 // getEmptyBeaconBlockForSlot creates a new empty block.
 func (s *Service[
-	BeaconBlockT, BeaconStateT, _, _, _,
+	BeaconBlockT, BeaconStateT, _,
 ]) getEmptyBeaconBlockForSlot(
 	st BeaconStateT, requestedSlot math.Slot,
 ) (BeaconBlockT, error) {
@@ -180,7 +181,7 @@ func (s *Service[
 }
 
 func (s *Service[
-	_, BeaconStateT, _, _, _,
+	_, BeaconStateT, _,
 ]) buildForkData(
 	st BeaconStateT,
 	slot math.Slot,
@@ -204,7 +205,7 @@ func (s *Service[
 
 // buildRandaoReveal builds a randao reveal for the given slot.
 func (s *Service[
-	_, BeaconStateT, _, _, _,
+	_, BeaconStateT, _,
 ]) buildRandaoReveal(
 	forkData *ctypes.ForkData,
 	slot math.Slot,
@@ -219,7 +220,7 @@ func (s *Service[
 
 // retrieveExecutionPayload retrieves the execution payload for the block.
 func (s *Service[
-	BeaconBlockT, BeaconStateT, _, _, _,
+	BeaconBlockT, BeaconStateT, _,
 ]) retrieveExecutionPayload(
 	ctx context.Context,
 	st BeaconStateT,
@@ -279,7 +280,7 @@ func (s *Service[
 
 // BuildBlockBody assembles the block body with necessary components.
 func (s *Service[
-	BeaconBlockT, BeaconStateT, _, _, _,
+	BeaconBlockT, BeaconStateT, _,
 ]) buildBlockBody(
 	_ context.Context,
 	st BeaconStateT,
@@ -363,7 +364,7 @@ func (s *Service[
 // computeAndSetStateRoot computes the state root of an outgoing block
 // and sets it in the block.
 func (s *Service[
-	BeaconBlockT, BeaconStateT, _, _, _,
+	BeaconBlockT, BeaconStateT, _,
 ]) computeAndSetStateRoot(
 	ctx context.Context,
 	proposerAddress []byte,
@@ -392,7 +393,7 @@ func (s *Service[
 
 // computeStateRoot computes the state root of an outgoing block.
 func (s *Service[
-	BeaconBlockT, BeaconStateT, _, _, _,
+	BeaconBlockT, BeaconStateT, _,
 ]) computeStateRoot(
 	ctx context.Context,
 	proposerAddress []byte,
