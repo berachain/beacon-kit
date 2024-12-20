@@ -15,14 +15,14 @@ lint: ## run all configured linters
 # TODO: Remove GODEBUG override once: https://github.com/golang/go/issues/68877 is resolved.
 golangci:
 	@echo "--> Running linter on all modules"
-	(GODEBUG=gotypesalias=0 go run github.com/golangci/golangci-lint/cmd/golangci-lint --build-tags bls12381 run --config $(ROOT_DIR)/.golangci.yaml --timeout=10m --concurrency 8) || exit 1;
+	(GODEBUG=gotypesalias=0 go run github.com/golangci/golangci-lint/cmd/golangci-lint run --config $(ROOT_DIR)/.golangci.yaml --timeout=10m --concurrency 8) || exit 1;
 	@printf "All modules complete\n"
 
 
 # TODO: Remove GODEBUG override once: https://github.com/golang/go/issues/68877 is resolved.
 golangci-fix:
 	@echo "--> Running linter with fixes on all modules"
-	(GODEBUG=gotypesalias=0 go run github.com/golangci/golangci-lint/cmd/golangci-lint --build-tags bls12381 run --config $(ROOT_DIR)/.golangci.yaml --timeout=10m --fix --concurrency 8) || exit 1;
+	(GODEBUG=gotypesalias=0 go run github.com/golangci/golangci-lint/cmd/golangci-lint run --config $(ROOT_DIR)/.golangci.yaml --timeout=10m --fix --concurrency 8) || exit 1;
 	@printf "All modules complete\n"
 
 #################
@@ -53,7 +53,7 @@ license-fix:
 
 nilaway:
 	@echo "--> Running nilaway"
-	(go run go.uber.org/nilaway/cmd/nilaway --tags bls12381 -exclude-errors-in-files "geth-primitives/deposit/" -v ./...) || exit 1;
+	(go run go.uber.org/nilaway/cmd/nilaway -exclude-errors-in-files "geth-primitives/deposit/" -v ./...) || exit 1;
 	@printf "Nilaway check complete\n"
 
 #################
@@ -62,7 +62,7 @@ nilaway:
 
 gosec:
 	@echo "--> Running gosec"
-	@go run github.com/cosmos/gosec/v2/cmd/gosec -tags bls12381 -exclude-dir node-core/components/signer  -exclude G702 ./...
+	@go run github.com/cosmos/gosec/v2/cmd/gosec -exclude G702 ./...
 
 #################
 #    slither    #
