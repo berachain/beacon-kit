@@ -129,6 +129,7 @@ func (s *Service[
 		blk,
 		req.GetProposerAddress(),
 		req.GetTime(),
+		false, // ProcessProposal is not called during state sync
 	)
 	err = s.VerifyIncomingBlock(
 		ctx,
