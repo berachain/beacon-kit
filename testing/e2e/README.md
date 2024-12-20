@@ -33,6 +33,8 @@ The user can specify the number of replicas they want per type.
 
 All the default configuration are listed in `testing/e2e/config/defaults.go`
 
+Note: Currently the chainID for this local network is 80087, which is our dev network configuration.
+
 ## Add your tests
 Add your tests in here like how it is done in `TestBasicStartup()`
 
