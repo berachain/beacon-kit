@@ -66,7 +66,7 @@ type SpecData[
 
 	// Signature domains.
 	//
-	// DomainDomainTypeProposerProposer is the domain for beacon proposer
+	// DomainTypeProposer is the domain for beacon proposer
 	// signatures.
 	DomainTypeProposer DomainTypeT `mapstructure:"domain-type-beacon-proposer"`
 	// DomainTypeAttester is the domain for beacon attester signatures.
