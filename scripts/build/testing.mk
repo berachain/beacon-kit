@@ -284,3 +284,21 @@ test-e2e: ## run e2e tests
 
 test-e2e-no-build:
 	go test -timeout 0 -tags e2e,bls12381 ./testing/e2e/. -v
+
+test-play: ## run test for playing around
+	@$(MAKE) build-docker VERSION=kurtosis-test test-play-no-build
+
+test-play-no-build:
+	go test -timeout 0 -tags e2e_play,bls12381 ./testing/play_e2e/. -v
+
+rm-playnet:
+	kurtosis enclave rm play-test-enclave --force
+
+# Stops the running Kurtosis enclave
+stop-playnet:
+	kurtosis enclave stop play-test-enclave
+
+# Stops and removes the specified Kurtosis enclave
+reset-playnet:
+	$(MAKE) stop-devnet
+	kurtosis enclave rm play-test-enclave

@@ -27,6 +27,7 @@ ROOT_DIR := $(shell pwd)
 	test-unit test-unit-cover test-forge-cover test-forge-fuzz \
 	forge-snapshot forge-snapshot-diff \
 	test-e2e test-e2e-no-build \
+	test-play test-play-no-build \
 	forge-lint-fix forge-lint golangci-install golangci golangci-fix \
 	license license-fix \
 	gosec golines tidy repo-rinse proto build
