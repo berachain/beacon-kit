@@ -102,7 +102,11 @@ func InitCmd(mm interface {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
 			config := client.GetConfigFromCmd(cmd)
-			chainID, _ := cmd.Flags().GetString(flags.FlagChainID)
+			chainID, err := cmd.Flags().GetString(flags.FlagChainID)
+			if err != nil {
+				return errors.New("failed to parse FlagChainID")
+			}
+
 			switch {
 			case chainID != "":
 			case clientCtx.ChainID != "":
@@ -122,10 +126,14 @@ func InitCmd(mm interface {
 
 			// Get bip39 mnemonic
 			var mnemonic string
-			shouldRecover, _ := cmd.Flags().GetBool(FlagRecover)
+			shouldRecover, err := cmd.Flags().GetBool(FlagRecover)
+			if err != nil {
+				return errors.New("failed to parse FlagRecover")
+			}
 			if shouldRecover {
 				inBuf := bufio.NewReader(cmd.InOrStdin())
-				value, err := input.GetString("Enter your bip39 mnemonic", inBuf)
+				var value string
+				value, err = input.GetString("Enter your bip39 mnemonic", inBuf)
 				if err != nil {
 					return err
 				}
@@ -137,7 +145,10 @@ func InitCmd(mm interface {
 			}
 
 			// Get initial height
-			initHeight, _ := cmd.Flags().GetInt64(flags.FlagInitHeight)
+			initHeight, err := cmd.Flags().GetInt64(flags.FlagInitHeight)
+			if err != nil {
+				return errors.New("failed to parse FlagInitHeight")
+			}
 			if initHeight < 1 {
 				initHeight = 1
 			}
@@ -155,8 +166,14 @@ func InitCmd(mm interface {
 			config.Moniker = args[0]
 
 			genFile := config.GenesisFile()
-			overwrite, _ := cmd.Flags().GetBool(FlagOverwrite)
-			defaultDenom, _ := cmd.Flags().GetString(FlagDefaultBondDenom)
+			overwrite, err := cmd.Flags().GetBool(FlagOverwrite)
+			if err != nil {
+				return errors.New("failed to parse FlagOverwrite")
+			}
+			defaultDenom, err := cmd.Flags().GetString(FlagDefaultBondDenom)
+			if err != nil {
+				return errors.New("failed to parse FlagDefaultBondDenom")
+			}
 
 			// use os.Stat to check if the file exists
 			_, err = os.Stat(genFile)
