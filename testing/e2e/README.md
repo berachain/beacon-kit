@@ -33,7 +33,7 @@ The user can specify the number of replicas they want per type.
 
 All the default configuration are listed in `testing/e2e/config/defaults.go`
 
-Note: Currently the chainID for this local network is 80087, which is our dev network configuration. To make changes to the chain spec used, modify parameters [here](https://github.com/berachain/beacon-kit/blob/main/config/spec/devnet.go#L40).
+Note: Currently the chainID for this local network is 80087, which is our dev network configuration (this is fixed in the kurtosis env setup and will be made configurable in a future version). To make changes to the 80087 chain spec used, modify parameters [here](https://github.com/berachain/beacon-kit/blob/main/config/spec/devnet.go#L40).
 
 ## Add your tests
 Add your tests in here like how it is done in `TestBasicStartup()`
