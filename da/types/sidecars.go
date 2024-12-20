@@ -30,7 +30,7 @@ import (
 // Sidecars is a slice of blob side cars to be included in the block.
 type BlobSidecars []*BlobSidecar
 
-// NewBlobSidecars creates a new BlobSidecars object.
+// Empty creates a new empty BlobSidecars object.
 func (bs *BlobSidecars) Empty() *BlobSidecars {
 	return &BlobSidecars{}
 }

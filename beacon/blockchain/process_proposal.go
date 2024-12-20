@@ -22,6 +22,7 @@ package blockchain
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
@@ -62,6 +63,11 @@ func (s *Service[
 		)
 	if err != nil {
 		return createProcessProposalResponse(errors.WrapNonFatal(err))
+	} else if blk.IsNil() {
+		s.logger.Warn(
+			"Aborting block verification - beacon block not found in proposal",
+		)
+		return createProcessProposalResponse(errors.WrapNonFatal(ErrNilBlk))
 	}
 
 	// Decode the blob sidecars.
@@ -72,56 +78,47 @@ func (s *Service[
 		)
 	if err != nil {
 		return createProcessProposalResponse(errors.WrapNonFatal(err))
+	} else if sidecars.IsNil() {
+		s.logger.Warn(
+			"Aborting block verification - blob sidecars not found in proposal",
+		)
+		return createProcessProposalResponse(errors.WrapNonFatal(ErrNilBlob))
 	}
 
-	// In theory, swapping the order of verification between the sidecars
-	// and the incoming block should not introduce any inconsistencies
-	// in the state on which the sidecar verification depends on (notably
-	// the currently active fork). ProcessProposal should only
-	// keep the state changes as candidates (which is what we do in
-	// VerifyIncomingBlock).
+	// Make sure we have the right number of BlobSidecars
+	numCommitments := len(blk.GetBody().GetBlobKzgCommitments())
+	if numCommitments != sidecars.Len() {
+		err = fmt.Errorf("expected %d sidecars, got %d",
+			numCommitments, sidecars.Len(),
+		)
+		return createProcessProposalResponse(errors.WrapNonFatal(err))
+	}
 
-	// Process the blob sidecars, if any
-	if !sidecars.IsNil() && sidecars.Len() > 0 {
+	if numCommitments > 0 {
+		// Process the blob sidecars
+		//
+		// In theory, swapping the order of verification between the sidecars
+		// and the incoming block should not introduce any inconsistencies
+		// in the state on which the sidecar verification depends on (notably
+		// the currently active fork). ProcessProposal should only
+		// keep the state changes as candidates (which is what we do in
+		// VerifyIncomingBlock).
 		var consensusSidecars *types.ConsensusSidecars
 		consensusSidecars = consensusSidecars.New(
 			sidecars,
 			blk.GetHeader(),
 		)
-
-		s.logger.Info("Received incoming blob sidecars")
-
-		// TODO: Clean this up once we remove generics.
-		cs := convertConsensusSidecars[ConsensusSidecarsT](consensusSidecars)
-
-		// Get the sidecar verification function from the state processor
-		//nolint:govet	// err shadowing
-		sidecarVerifierFn, err := s.stateProcessor.GetSidecarVerifierFn(
-			s.storageBackend.StateFromContext(ctx),
+		err = s.VerifyIncomingBlobSidecars(
+			ctx,
+			consensusSidecars,
 		)
 		if err != nil {
 			s.logger.Error(
-				"an error incurred while calculating the sidecar verifier",
-				"reason", err,
+				"failed to verify incoming blob sidecars",
+				"error", err,
 			)
 			return createProcessProposalResponse(errors.WrapNonFatal(err))
 		}
-
-		// Verify the blobs and ensure they match the local state.
-		err = s.blobProcessor.VerifySidecars(cs, sidecarVerifierFn)
-		if err != nil {
-			s.logger.Error(
-				"rejecting incoming blob sidecars",
-				"reason", err,
-			)
-			return createProcessProposalResponse(errors.WrapNonFatal(err))
-		}
-
-		s.logger.Info(
-			"Blob sidecars verification succeeded - accepting incoming blob sidecars",
-			"num_blobs",
-			sidecars.Len(),
-		)
 	}
 
 	// Process the block
@@ -145,6 +142,52 @@ func (s *Service[
 	return createProcessProposalResponse(nil)
 }
 
+// VerifyIncomingBlobSidecars verifies the BlobSidecars of an incoming
+// proposal and logs the process.
+func (s *Service[
+	_, _, ConsensusBlockT, _,
+	GenesisT, ConsensusSidecarsT,
+]) VerifyIncomingBlobSidecars(
+	ctx context.Context,
+	cSidecars *types.ConsensusSidecars,
+) error {
+	sidecars := cSidecars.GetSidecars()
+
+	s.logger.Info("Received incoming blob sidecars")
+
+	// TODO: Clean this up once we remove generics.
+	cs := convertConsensusSidecars[ConsensusSidecarsT](cSidecars)
+
+	// Get the sidecar verification function from the state processor
+	sidecarVerifierFn, err := s.stateProcessor.GetSidecarVerifierFn(
+		s.storageBackend.StateFromContext(ctx),
+	)
+	if err != nil {
+		s.logger.Error(
+			"an error incurred while calculating the sidecar verifier",
+			"reason", err,
+		)
+		return err
+	}
+
+	// Verify the blobs and ensure they match the local state.
+	err = s.blobProcessor.VerifySidecars(cs, sidecarVerifierFn)
+	if err != nil {
+		s.logger.Error(
+			"rejecting incoming blob sidecars",
+			"reason", err,
+		)
+		return err
+	}
+
+	s.logger.Info(
+		"Blob sidecars verification succeeded - accepting incoming blob sidecars",
+		"num_blobs",
+		sidecars.Len(),
+	)
+	return nil
+}
+
 // VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
 func (s *Service[
@@ -164,14 +207,6 @@ func (s *Service[
 	// TODO: This is a super hacky. It should be handled better elsewhere,
 	// ideally via some broader sync service.
 	s.forceStartupSyncOnce.Do(func() { s.forceStartupHead(ctx, preState) })
-
-	// If the block is nil or a nil pointer, exit early.
-	if beaconBlk.IsNil() {
-		s.logger.Warn(
-			"Aborting block verification - beacon block not found in proposal",
-		)
-		return errors.WrapNonFatal(ErrNilBlk)
-	}
 
 	s.logger.Info(
 		"Received incoming beacon block",

@@ -25,6 +25,8 @@ import "github.com/berachain/beacon-kit/errors"
 var (
 	// ErrNilBlk is an error for when the beacon block is nil.
 	ErrNilBlk = errors.New("nil beacon block")
+	// ErrNilBlob is an error for when the BlobSidecars is nil.
+	ErrNilBlob = errors.New("nil blob")
 	// ErrDataNotAvailable indicates that the required data is not available.
 	ErrDataNotAvailable = errors.New("data not available")
 )
