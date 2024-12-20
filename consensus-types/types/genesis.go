@@ -60,7 +60,7 @@ func (g *Genesis) GetForkVersion() common.Version {
 }
 
 // GetDeposits returns the deposits in the genesis.
-func (g *Genesis) GetDeposits() []*Deposit {
+func (g *Genesis) GetDeposits() Deposits {
 	return g.Deposits
 }
 

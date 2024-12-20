@@ -24,11 +24,11 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/transition"
 )
 
-// ProcessGenesisData processes the genesis state and initializes the beacon
-// state.
+// ProcessGenesisData processes the genesis state and initializes the beacon state.
 func (s *Service[
 	_, _, _, _, _, _, GenesisT, _, _,
 ]) ProcessGenesisData(ctx context.Context, bytes []byte) (transition.ValidatorUpdates, error) {
@@ -38,9 +38,35 @@ func (s *Service[
 		return nil, err
 	}
 
+	// Verify that the genesis deposits root are same between CL and EL.
+	genesisDepositsCL := genesisData.GetDeposits()
+	genesisDepositsRootEL, err := s.depositContract.GetGenesisDepositsRoot(ctx, 0)
+	if err != nil {
+		s.logger.Error("Failed to get genesis deposits root from EL", "error", err)
+		return nil, err
+	}
+	if !genesisDepositsCL.HashTreeRoot().Equals(genesisDepositsRootEL) {
+		return nil, ErrGenesisDepositsRootMismatch
+	}
+
+	// Verify that the genesis deposits count are same between CL and EL.
+	genesisDepositsCountEL, err := s.depositContract.GetDepositsCount(ctx, 0)
+	if err != nil {
+		s.logger.Error("Failed to get genesis deposits count from EL", "error", err)
+		return nil, err
+	}
+	if uint64(len(genesisDepositsCL)) != genesisDepositsCountEL {
+		return nil, errors.Wrapf(
+			ErrGenesisDepositsCountMismatch,
+			"CL genesis deposits count %d mismatch EL genesis deposits count %d",
+			len(genesisDepositsCL), genesisDepositsCountEL,
+		)
+	}
+
+	// Initialize the beacon state from the genesis data.
 	validatorUpdates, err := s.stateProcessor.InitializePreminedBeaconStateFromEth1(
 		s.storageBackend.StateFromContext(ctx),
-		genesisData.GetDeposits(),
+		genesisDepositsCL,
 		genesisData.GetExecutionPayloadHeader(),
 		genesisData.GetForkVersion(),
 	)
