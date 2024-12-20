@@ -141,7 +141,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	// check that validator index is still correct
 	latestValIdx, err := st.GetEth1DepositIndex()
 	require.NoError(t, err)
-	require.Equal(t, uint64(4), latestValIdx)
+	require.Equal(t, uint64(len(genDeposits)+1), latestValIdx)
 
 	// STEP 2: check that effective balance is updated once next epoch arrives
 	blk := moveToEndOfEpoch(t, blk1, cs, sp, st, ctx, depRoot)
@@ -282,7 +282,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 	// check that validator index is still correct
 	latestValIdx, err := st.GetEth1DepositIndex()
 	require.NoError(t, err)
-	require.Equal(t, uint64(2), latestValIdx)
+	require.Equal(t, uint64(len(genDeposits)+1), latestValIdx)
 
 	// STEP 2: move the chain to the next epoch and show that
 	// the extra validator is eligible for activation
