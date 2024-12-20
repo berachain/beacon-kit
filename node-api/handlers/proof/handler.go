@@ -23,33 +23,27 @@ package proof
 import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-api/handlers"
-	"github.com/berachain/beacon-kit/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/node-api/server/context"
 	"github.com/berachain/beacon-kit/primitives/math"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // Handler is the handler for the proof API.
 type Handler[
-	BeaconStateT types.BeaconState[BeaconStateMarshallableT],
-	BeaconStateMarshallableT types.BeaconStateMarshallable,
 	ContextT context.Context,
 ] struct {
 	*handlers.BaseHandler[ContextT]
-	backend Backend[BeaconStateT]
+	backend Backend
 }
 
 // NewHandler creates a new handler for the proof API.
 func NewHandler[
-	BeaconStateT types.BeaconState[BeaconStateMarshallableT],
-	BeaconStateMarshallableT types.BeaconStateMarshallable,
 	ContextT context.Context,
 ](
-	backend Backend[BeaconStateT],
-) *Handler[
-	BeaconStateT, BeaconStateMarshallableT, ContextT,
-] {
-	h := &Handler[BeaconStateT, BeaconStateMarshallableT, ContextT]{
+	backend Backend,
+) *Handler[ContextT] {
+	h := &Handler[ContextT]{
 		BaseHandler: handlers.NewBaseHandler(
 			handlers.NewRouteSet[ContextT](""),
 		),
@@ -60,13 +54,11 @@ func NewHandler[
 
 // Get the slot from the given input of timestamp id, beacon state, and beacon
 // block header for the resolved slot.
-func (h *Handler[
-	BeaconStateT, _, _,
-]) resolveTimestampID(timestampID string) (
-	math.Slot, BeaconStateT, *ctypes.BeaconBlockHeader, error,
+func (h *Handler[_]) resolveTimestampID(timestampID string) (
+	math.Slot, *statedb.StateDB, *ctypes.BeaconBlockHeader, error,
 ) {
 	var (
-		beaconState BeaconStateT
+		beaconState *statedb.StateDB
 		blockHeader *ctypes.BeaconBlockHeader
 	)
 

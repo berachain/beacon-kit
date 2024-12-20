@@ -21,29 +21,28 @@
 package encoding
 
 import (
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
 )
 
 // ExtractBlobsAndBlockFromRequest extracts the blobs and block from an ABCI
 // request.
-func ExtractBlobsAndBlockFromRequest[
-	BeaconBlockT BeaconBlock[BeaconBlockT],
-](
+func ExtractBlobsAndBlockFromRequest(
 	req ABCIRequest,
 	beaconBlkIndex uint,
 	blobSidecarsIndex uint,
 	forkVersion uint32,
-) (BeaconBlockT, datypes.BlobSidecars, error) {
+) (*ctypes.BeaconBlock, datypes.BlobSidecars, error) {
 	var (
 		blobs datypes.BlobSidecars
-		blk   BeaconBlockT
+		blk   *ctypes.BeaconBlock
 	)
 
 	if req == nil {
 		return blk, blobs, ErrNilABCIRequest
 	}
 
-	blk, err := UnmarshalBeaconBlockFromABCIRequest[BeaconBlockT](
+	blk, err := UnmarshalBeaconBlockFromABCIRequest(
 		req,
 		beaconBlkIndex,
 		forkVersion,
@@ -65,14 +64,12 @@ func ExtractBlobsAndBlockFromRequest[
 
 // UnmarshalBeaconBlockFromABCIRequest extracts a beacon block from an ABCI
 // request.
-func UnmarshalBeaconBlockFromABCIRequest[
-	BeaconBlockT BeaconBlock[BeaconBlockT],
-](
+func UnmarshalBeaconBlockFromABCIRequest(
 	req ABCIRequest,
 	bzIndex uint,
 	forkVersion uint32,
-) (BeaconBlockT, error) {
-	var blk BeaconBlockT
+) (*ctypes.BeaconBlock, error) {
+	var blk *ctypes.BeaconBlock
 	if req == nil {
 		return blk, ErrNilABCIRequest
 	}

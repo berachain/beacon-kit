@@ -31,15 +31,16 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/primitives/version"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // InitializePreminedBeaconStateFromEth1 initializes the beacon state.
 //
 //nolint:gocognit,funlen // todo fix.
 func (sp *StateProcessor[
-	_, BeaconStateT, _, _,
+	_, _,
 ]) InitializePreminedBeaconStateFromEth1(
-	st BeaconStateT,
+	st *statedb.StateDB,
 	deposits ctypes.Deposits,
 	execPayloadHeader *ctypes.ExecutionPayloadHeader,
 	genesisVersion common.Version,
@@ -151,17 +152,17 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	activeVals, err := sp.getActiveVals(st, 0)
+	activeVals, err := getActiveVals(sp.cs, st, 0)
 	if err != nil {
 		return nil, err
 	}
-	return sp.validatorSetsDiffs(nil, activeVals), nil
+	return validatorSetsDiffs(nil, activeVals), nil
 }
 
 func (sp *StateProcessor[
-	_, BeaconStateT, _, _,
+	_, _,
 ]) processGenesisActivation(
-	st BeaconStateT,
+	st *statedb.StateDB,
 ) error {
 	switch {
 	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:

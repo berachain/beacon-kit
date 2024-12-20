@@ -27,7 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers"
 )
 
-func (h *Handler[_, _, ContextT]) RegisterRoutes(logger log.Logger) {
+func (h *Handler[ContextT]) RegisterRoutes(logger log.Logger) {
 	h.SetLogger(logger)
 	h.BaseHandler.AddRoutes([]*handlers.Route[ContextT]{
 		{

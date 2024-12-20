@@ -36,18 +36,16 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/primitives/version"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // BuildBlockAndSidecars builds a new beacon block.
-func (s *Service[
-	BeaconBlockT, _,
-	_,
-]) BuildBlockAndSidecars(
+func (s *Service[_]) BuildBlockAndSidecars(
 	ctx context.Context,
 	slotData types.SlotData,
 ) ([]byte, []byte, error) {
 	var (
-		blk      BeaconBlockT
+		blk      *ctypes.BeaconBlock
 		sidecars datypes.BlobSidecars
 		forkData *ctypes.ForkData
 	)
@@ -149,12 +147,10 @@ func (s *Service[
 }
 
 // getEmptyBeaconBlockForSlot creates a new empty block.
-func (s *Service[
-	BeaconBlockT, BeaconStateT, _,
-]) getEmptyBeaconBlockForSlot(
-	st BeaconStateT, requestedSlot math.Slot,
-) (BeaconBlockT, error) {
-	var blk BeaconBlockT
+func (s *Service[_]) getEmptyBeaconBlockForSlot(
+	st *statedb.StateDB, requestedSlot math.Slot,
+) (*ctypes.BeaconBlock, error) {
+	var blk *ctypes.BeaconBlock
 	// Create a new block.
 	parentBlockRoot, err := st.GetBlockRootAtIndex(
 		(requestedSlot.Unwrap() - 1) % s.chainSpec.SlotsPerHistoricalRoot(),
@@ -180,10 +176,8 @@ func (s *Service[
 	)
 }
 
-func (s *Service[
-	_, BeaconStateT, _,
-]) buildForkData(
-	st BeaconStateT,
+func (s *Service[_]) buildForkData(
+	st *statedb.StateDB,
 	slot math.Slot,
 ) (*ctypes.ForkData, error) {
 	var (
@@ -204,9 +198,7 @@ func (s *Service[
 }
 
 // buildRandaoReveal builds a randao reveal for the given slot.
-func (s *Service[
-	_, BeaconStateT, _,
-]) buildRandaoReveal(
+func (s *Service[_]) buildRandaoReveal(
 	forkData *ctypes.ForkData,
 	slot math.Slot,
 ) (crypto.BLSSignature, error) {
@@ -219,12 +211,10 @@ func (s *Service[
 }
 
 // retrieveExecutionPayload retrieves the execution payload for the block.
-func (s *Service[
-	BeaconBlockT, BeaconStateT, _,
-]) retrieveExecutionPayload(
+func (s *Service[_]) retrieveExecutionPayload(
 	ctx context.Context,
-	st BeaconStateT,
-	blk BeaconBlockT,
+	st *statedb.StateDB,
+	blk *ctypes.BeaconBlock,
 	slotData types.SlotData,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
 	//
@@ -279,12 +269,10 @@ func (s *Service[
 }
 
 // BuildBlockBody assembles the block body with necessary components.
-func (s *Service[
-	BeaconBlockT, BeaconStateT, _,
-]) buildBlockBody(
+func (s *Service[_]) buildBlockBody(
 	_ context.Context,
-	st BeaconStateT,
-	blk BeaconBlockT,
+	st *statedb.StateDB,
+	blk *ctypes.BeaconBlock,
 	reveal crypto.BLSSignature,
 	envelope ctypes.BuiltExecutionPayloadEnv,
 	slotData types.SlotData,
@@ -363,14 +351,12 @@ func (s *Service[
 
 // computeAndSetStateRoot computes the state root of an outgoing block
 // and sets it in the block.
-func (s *Service[
-	BeaconBlockT, BeaconStateT, _,
-]) computeAndSetStateRoot(
+func (s *Service[_]) computeAndSetStateRoot(
 	ctx context.Context,
 	proposerAddress []byte,
 	consensusTime math.U64,
-	st BeaconStateT,
-	blk BeaconBlockT,
+	st *statedb.StateDB,
+	blk *ctypes.BeaconBlock,
 ) error {
 	stateRoot, err := s.computeStateRoot(
 		ctx,
@@ -392,14 +378,12 @@ func (s *Service[
 }
 
 // computeStateRoot computes the state root of an outgoing block.
-func (s *Service[
-	BeaconBlockT, BeaconStateT, _,
-]) computeStateRoot(
+func (s *Service[_]) computeStateRoot(
 	ctx context.Context,
 	proposerAddress []byte,
 	consensusTime math.U64,
-	st BeaconStateT,
-	blk BeaconBlockT,
+	st *statedb.StateDB,
+	blk *ctypes.BeaconBlock,
 ) (common.Root, error) {
 	startTime := time.Now()
 	defer s.metrics.measureStateRootComputationTime(startTime)

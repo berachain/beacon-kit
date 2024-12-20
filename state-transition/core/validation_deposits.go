@@ -25,12 +25,13 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 func (sp *StateProcessor[
-	_, BeaconStateT, _, _,
+	_, _,
 ]) validateGenesisDeposits(
-	st BeaconStateT,
+	st *statedb.StateDB,
 	deposits []*ctypes.Deposit,
 ) error {
 	eth1DepositIndex, err := st.GetEth1DepositIndex()
@@ -66,9 +67,9 @@ func (sp *StateProcessor[
 }
 
 func (sp *StateProcessor[
-	_, BeaconStateT, _, _,
+	_, _,
 ]) validateNonGenesisDeposits(
-	st BeaconStateT,
+	st *statedb.StateDB,
 	blkDeposits []*ctypes.Deposit,
 	blkDepositRoot common.Root,
 ) error {
