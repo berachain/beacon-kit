@@ -31,10 +31,7 @@ import (
 // state.
 func (s *Service[
 	_, _, _, _, _, _, GenesisT, _, _,
-]) ProcessGenesisData(
-	ctx context.Context,
-	bytes []byte,
-) (transition.ValidatorUpdates, error) {
+]) ProcessGenesisData(ctx context.Context, bytes []byte) (transition.ValidatorUpdates, error) {
 	genesisData := *new(GenesisT)
 	if err := json.Unmarshal(bytes, &genesisData); err != nil {
 		s.logger.Error("Failed to unmarshal genesis data", "error", err)

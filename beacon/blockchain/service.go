@@ -48,23 +48,10 @@ type Service[
 ] struct {
 	// homeDir is the directory for config and data"
 	homeDir string
-	// storageBackend represents the backend storage for beacon states and
-	// associated sidecars.
-	storageBackend StorageBackend[
-		AvailabilityStoreT,
-		BeaconStateT,
-		DepositStoreT,
-	]
-	blobProcessor da.BlobProcessor[
-		AvailabilityStoreT,
-		ConsensusSidecarsT,
-		BlobSidecarsT,
-	]
-	// store is the block store for the service.
-	// TODO: Remove this and use the block store from the storage backend.
-	blockStore BlockStoreT
-	// depositStore is the deposit store that stores deposits.
-	depositStore deposit.Store
+	// storageBackend represents the backend storage for not state-enforced data.
+	storageBackend StorageBackend[AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT]
+	// blobProcessor is used for processing sidecars.
+	blobProcessor da.BlobProcessor[AvailabilityStoreT, ConsensusSidecarsT, BlobSidecarsT]
 	// depositContract is the contract interface for interacting with the
 	// deposit contract.
 	depositContract deposit.Contract
@@ -86,11 +73,7 @@ type Service[
 	// localBuilder is a local builder for constructing new beacon states.
 	localBuilder LocalBuilder[BeaconStateT]
 	// stateProcessor is the state processor for beacon blocks and states.
-	stateProcessor StateProcessor[
-		BeaconBlockT,
-		BeaconStateT,
-		*transition.Context,
-	]
+	stateProcessor StateProcessor[BeaconBlockT, BeaconStateT, *transition.Context]
 	// metrics is the metrics for the service.
 	metrics *chainMetrics
 	// optimisticPayloadBuilds is a flag used when the optimistic payload
@@ -113,49 +96,28 @@ func NewService[
 	BlobSidecarsT BlobSidecars[BlobSidecarsT],
 ](
 	homeDir string,
-	storageBackend StorageBackend[
-		AvailabilityStoreT,
-		BeaconStateT,
-		DepositStoreT,
-	],
-	blobProcessor da.BlobProcessor[
-		AvailabilityStoreT,
-		ConsensusSidecarsT,
-		BlobSidecarsT,
-	],
-	blockStore BlockStoreT,
-	depositStore deposit.Store,
+	storageBackend StorageBackend[AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT],
+	blobProcessor da.BlobProcessor[AvailabilityStoreT, ConsensusSidecarsT, BlobSidecarsT],
 	depositContract deposit.Contract,
 	eth1FollowDistance math.U64,
 	logger log.Logger,
 	chainSpec chain.ChainSpec,
 	executionEngine ExecutionEngine,
 	localBuilder LocalBuilder[BeaconStateT],
-	stateProcessor StateProcessor[
-		BeaconBlockT,
-		BeaconStateT,
-		*transition.Context,
-	],
+	stateProcessor StateProcessor[BeaconBlockT, BeaconStateT, *transition.Context],
 	telemetrySink TelemetrySink,
 	optimisticPayloadBuilds bool,
 ) *Service[
-	AvailabilityStoreT, DepositStoreT,
-	ConsensusBlockT, BeaconBlockT,
-	BeaconStateT, BlockStoreT,
-	GenesisT,
-	ConsensusSidecarsT, BlobSidecarsT,
+	AvailabilityStoreT, DepositStoreT, ConsensusBlockT, BeaconBlockT, BeaconStateT,
+	BlockStoreT, GenesisT, ConsensusSidecarsT, BlobSidecarsT,
 ] {
 	return &Service[
-		AvailabilityStoreT, DepositStoreT,
-		ConsensusBlockT, BeaconBlockT,
-		BeaconStateT, BlockStoreT,
-		GenesisT, ConsensusSidecarsT, BlobSidecarsT,
+		AvailabilityStoreT, DepositStoreT, ConsensusBlockT, BeaconBlockT,
+		BeaconStateT, BlockStoreT, GenesisT, ConsensusSidecarsT, BlobSidecarsT,
 	]{
 		homeDir:                 homeDir,
 		storageBackend:          storageBackend,
 		blobProcessor:           blobProcessor,
-		blockStore:              blockStore,
-		depositStore:            depositStore,
 		depositContract:         depositContract,
 		eth1FollowDistance:      eth1FollowDistance,
 		failedBlocks:            make(map[math.Slot]struct{}),
@@ -171,23 +133,17 @@ func NewService[
 }
 
 // Name returns the name of the service.
-func (s *Service[
-	_, _, _, _, _, _, _, _, _,
-]) Name() string {
+func (s *Service[_, _, _, _, _, _, _, _, _]) Name() string {
 	return "blockchain"
 }
 
-func (s *Service[
-	_, _, _, _, _, _, _, _, _,
-]) Start(ctx context.Context) error {
+func (s *Service[_, _, _, _, _, _, _, _, _]) Start(ctx context.Context) error {
 	// Catchup deposits for failed blocks.
 	go s.depositCatchupFetcher(ctx)
 
 	return nil
 }
 
-func (s *Service[
-	_, _, _, _, _, _, _, _, _,
-]) Stop() error {
+func (s *Service[_, _, _, _, _, _, _, _, _]) Stop() error {
 	return nil
 }

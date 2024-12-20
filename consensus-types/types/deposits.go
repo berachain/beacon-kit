@@ -53,5 +53,6 @@ func (ds Deposits) DefineSSZ(c *ssz.Codec) {
 
 // HashTreeRoot returns the hash tree root of the Deposits.
 func (ds Deposits) HashTreeRoot() common.Root {
+	// TODO: determine if using HashConcurrent optimizes performance.
 	return ssz.HashSequential(ds)
 }

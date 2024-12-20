@@ -21,7 +21,6 @@
 package core_test
 
 import (
-	"strconv"
 	"testing"
 
 	"github.com/berachain/beacon-kit/chain-spec/chain"
@@ -55,7 +54,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 
 	// STEP 0: Setup initial state via genesis
 	var (
-		genDeposits = []*types.Deposit{
+		genDeposits = types.Deposits{
 			{
 				Pubkey:      [48]byte{0x00},
 				Credentials: emptyCredentials,
@@ -78,6 +77,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		genVersion       = version.FromUint32[common.Version](version.Deneb)
 	)
+	require.NoError(t, ds.EnqueueDeposits(genDeposits))
 	valDiff, err := sp.InitializePreminedBeaconStateFromEth1(
 		st,
 		genDeposits,
@@ -95,6 +95,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		Index:       uint64(len(genDeposits)),
 	}
 
+	depRoot := append(genDeposits, blkDeposit).HashTreeRoot()
 	blk1 := buildNextBlock(
 		t,
 		st,
@@ -108,7 +109,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: dummyEth1Data,
+			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
 			Deposits: []*types.Deposit{blkDeposit},
 		},
 	)
@@ -140,10 +141,10 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	// check that validator index is still correct
 	latestValIdx, err := st.GetEth1DepositIndex()
 	require.NoError(t, err)
-	require.Equal(t, uint64(len(genDeposits)), latestValIdx)
+	require.Equal(t, uint64(len(genDeposits)+1), latestValIdx)
 
 	// STEP 2: check that effective balance is updated once next epoch arrives
-	blk := moveToEndOfEpoch(t, blk1, cs, sp, st, ctx)
+	blk := moveToEndOfEpoch(t, blk1, cs, sp, st, ctx, depRoot)
 
 	// finally the block turning epoch
 	blk = buildNextBlock(
@@ -159,7 +160,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: dummyEth1Data,
+			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -205,7 +206,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 
 	// STEP 0: Setup initial state via genesis
 	var (
-		genDeposits = []*types.Deposit{
+		genDeposits = types.Deposits{
 			{
 				Pubkey:      [48]byte{0x01},
 				Credentials: emptyCredentials,
@@ -217,6 +218,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 		genVersion       = version.FromUint32[common.Version](version.Deneb)
 	)
 
+	require.NoError(t, ds.EnqueueDeposits(genDeposits))
 	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
 		st,
 		genDeposits,
@@ -234,6 +236,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 		Index:       uint64(len(genDeposits)),
 	}
 
+	depRoot := append(genDeposits, blkDeposit).HashTreeRoot()
 	blk1 := buildNextBlock(
 		t,
 		st,
@@ -247,7 +250,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: dummyEth1Data,
+			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
 			Deposits: []*types.Deposit{blkDeposit},
 		},
 	)
@@ -279,11 +282,11 @@ func TestTransitionCreateValidator(t *testing.T) {
 	// check that validator index is still correct
 	latestValIdx, err := st.GetEth1DepositIndex()
 	require.NoError(t, err)
-	require.Equal(t, uint64(len(genDeposits)), latestValIdx)
+	require.Equal(t, uint64(len(genDeposits)+1), latestValIdx)
 
 	// STEP 2: move the chain to the next epoch and show that
 	// the extra validator is eligible for activation
-	blk := moveToEndOfEpoch(t, blk1, cs, sp, st, ctx)
+	blk := moveToEndOfEpoch(t, blk1, cs, sp, st, ctx, depRoot)
 
 	// finally the block turning epoch
 	blk = buildNextBlock(
@@ -299,7 +302,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: dummyEth1Data,
+			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -327,7 +330,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 
 	// STEP 3: move the chain to the next epoch and show that
 	// the extra validator is activate
-	_ = moveToEndOfEpoch(t, blk, cs, sp, st, ctx)
+	_ = moveToEndOfEpoch(t, blk, cs, sp, st, ctx, depRoot)
 
 	// finally the block turning epoch
 	blk = buildNextBlock(
@@ -343,7 +346,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: dummyEth1Data,
+			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -386,7 +389,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 
 func TestTransitionWithdrawals(t *testing.T) {
 	cs := setupChain(t, components.BoonetChainSpecType)
-	sp, st, _, ctx := setupState(t, cs)
+	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
 		maxBalance   = math.Gwei(cs.MaxEffectiveBalance(false))
@@ -400,7 +403,7 @@ func TestTransitionWithdrawals(t *testing.T) {
 
 	// Setup initial state so that validator 1 is partially withdrawable.
 	var (
-		genDeposits = []*types.Deposit{
+		genDeposits = types.Deposits{
 			{
 				Pubkey:      [48]byte{0x00},
 				Credentials: credentials0,
@@ -417,6 +420,7 @@ func TestTransitionWithdrawals(t *testing.T) {
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		genVersion       = version.FromUint32[common.Version](version.Deneb)
 	)
+	require.NoError(t, ds.EnqueueDeposits(genDeposits))
 	_, err := sp.InitializePreminedBeaconStateFromEth1(
 		st, genDeposits, genPayloadHeader, genVersion,
 	)
@@ -452,7 +456,7 @@ func TestTransitionWithdrawals(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: dummyEth1Data,
+			Eth1Data: &types.Eth1Data{DepositRoot: genDeposits.HashTreeRoot()},
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -479,7 +483,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	cs, err := chain.NewChainSpec(csData)
 	require.NoError(t, err)
 
-	sp, st, _, ctx := setupState(t, cs)
+	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
 		maxBalance   = math.Gwei(cs.MaxEffectiveBalance(false))
@@ -492,7 +496,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 
 	// Setup initial state so that both validators are partially withdrawable.
 	var (
-		genDeposits = []*types.Deposit{
+		genDeposits = types.Deposits{
 			{
 				Pubkey:      [48]byte{0x00},
 				Credentials: credentials0,
@@ -509,6 +513,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		genVersion       = version.FromUint32[common.Version](version.Deneb)
 	)
+	require.NoError(t, ds.EnqueueDeposits(genDeposits))
 	_, err = sp.InitializePreminedBeaconStateFromEth1(
 		st, genDeposits, genPayloadHeader, genVersion,
 	)
@@ -527,6 +532,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	require.Equal(t, maxBalance+minBalance, val1Bal)
 
 	// Create test inputs.
+	depRoot := genDeposits.HashTreeRoot()
 	blk := buildNextBlock(
 		t,
 		st,
@@ -548,7 +554,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: dummyEth1Data,
+			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -594,7 +600,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: dummyEth1Data,
+			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -631,7 +637,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	// STEP 0: Setup genesis with GetValidatorSetCap validators
 	// TODO: consider instead setting state artificially
 	var (
-		genDeposits      = make([]*types.Deposit, 0, cs.ValidatorSetCap())
+		genDeposits      = make(types.Deposits, 0, cs.ValidatorSetCap())
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		genVersion       = version.FromUint32[common.Version](version.Deneb)
 	)
@@ -655,6 +661,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		)
 	}
 
+	require.NoError(t, ds.EnqueueDeposits(genDeposits))
 	_, err := sp.InitializePreminedBeaconStateFromEth1(
 		st,
 		genDeposits,
@@ -675,6 +682,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		}
 	)
 
+	depRoot := append(genDeposits, extraValDeposit).HashTreeRoot()
 	blk1 := buildNextBlock(
 		t,
 		st,
@@ -688,7 +696,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: dummyEth1Data,
+			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
 			Deposits: []*types.Deposit{extraValDeposit},
 		},
 	)
@@ -724,7 +732,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 
 	// STEP 2: move the chain to the next epoch and show that
 	// the extra validator is eligible for activation
-	_ = moveToEndOfEpoch(t, blk1, cs, sp, st, ctx)
+	_ = moveToEndOfEpoch(t, blk1, cs, sp, st, ctx, depRoot)
 
 	// finally the block turning epoch
 	blk := buildNextBlock(
@@ -740,7 +748,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: dummyEth1Data,
+			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -769,7 +777,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	// STEP 3: move the chain to the next epoch and show that the extra
 	// validator
 	// is activate and immediately marked for exit
-	_ = moveToEndOfEpoch(t, blk, cs, sp, st, ctx)
+	_ = moveToEndOfEpoch(t, blk, cs, sp, st, ctx, depRoot)
 
 	// finally the block turning epoch
 	blk = buildNextBlock(
@@ -785,7 +793,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: dummyEth1Data,
+			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -804,7 +812,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 
 	// STEP 4: move the chain to the next epoch and show withdrawals
 	// for rejected validator are enqueued then
-	_ = moveToEndOfEpoch(t, blk, cs, sp, st, ctx)
+	_ = moveToEndOfEpoch(t, blk, cs, sp, st, ctx, depRoot)
 
 	// finally the block turning epoch
 	extraValAddr, err := extraValCreds.ToExecutionAddress()
@@ -828,7 +836,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: dummyEth1Data,
+			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -859,7 +867,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	// STEP 0: Setup genesis with GetValidatorSetCap validators
 	// TODO: consider instead setting state artificially
 	var (
-		genDeposits      = make([]*types.Deposit, 0, cs.ValidatorSetCap())
+		genDeposits      = make(types.Deposits, 0, cs.ValidatorSetCap())
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		genVersion       = version.FromUint32[common.Version](version.Deneb)
 	)
@@ -885,7 +893,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	// make a deposit small to be ready for eviction
 	genDeposits[0].Amount = minBalance
 
-	var genVals transition.ValidatorUpdates
+	require.NoError(t, ds.EnqueueDeposits(genDeposits))
 	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
 		st,
 		genDeposits,
@@ -907,6 +915,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		}
 	)
 
+	depRoot := append(genDeposits, extraValDeposit).HashTreeRoot()
 	blk1 := buildNextBlock(
 		t,
 		st,
@@ -920,7 +929,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: dummyEth1Data,
+			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
 			Deposits: []*types.Deposit{extraValDeposit},
 		},
 	)
@@ -973,7 +982,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 
 	// STEP 2: move the chain to the next epoch and show that
 	// the extra validator is eligible for activation
-	_ = moveToEndOfEpoch(t, blk1, cs, sp, st, ctx)
+	_ = moveToEndOfEpoch(t, blk1, cs, sp, st, ctx, depRoot)
 
 	// finally the block turning epoch
 	blk := buildNextBlock(
@@ -989,7 +998,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: dummyEth1Data,
+			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -1033,7 +1042,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	// STEP 3: move the chain to the next epoch and show that the extra
 	// validator
 	// is activate and genesis validator immediately marked for exit
-	_ = moveToEndOfEpoch(t, blk, cs, sp, st, ctx)
+	_ = moveToEndOfEpoch(t, blk, cs, sp, st, ctx, depRoot)
 
 	// finally the block turning epoch
 	blk = buildNextBlock(
@@ -1049,7 +1058,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: dummyEth1Data,
+			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -1095,7 +1104,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 
 	// STEP 4: move the chain to the next epoch and show withdrawal
 	// for rejected validator is enqueued
-	_ = moveToEndOfEpoch(t, blk, cs, sp, st, ctx)
+	_ = moveToEndOfEpoch(t, blk, cs, sp, st, ctx, depRoot)
 
 	valToEvict := genDeposits[0]
 	valToEvictAddr, err := valToEvict.Credentials.ToExecutionAddress()
@@ -1121,7 +1130,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: dummyEth1Data,
+			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -1129,69 +1138,4 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	// run the test
 	_, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
-}
-
-func generateTestExecutionAddress(
-	t *testing.T,
-	rndSeed int,
-) (types.WithdrawalCredentials, int) {
-	t.Helper()
-
-	addrStr := strconv.Itoa(rndSeed)
-	addrBytes := bytes.ExtendToSize([]byte(addrStr), bytes.B20Size)
-	execAddr, err := bytes.ToBytes20(addrBytes)
-	require.NoError(t, err)
-	rndSeed++
-	return types.NewCredentialsFromExecutionAddress(
-		common.ExecutionAddress(execAddr),
-	), rndSeed
-}
-
-func generateTestPK(t *testing.T, rndSeed int) (bytes.B48, int) {
-	t.Helper()
-	keyStr := strconv.Itoa(rndSeed)
-	keyBytes := bytes.ExtendToSize([]byte(keyStr), bytes.B48Size)
-	key, err := bytes.ToBytes48(keyBytes)
-	require.NoError(t, err)
-	rndSeed++
-	return key, rndSeed
-}
-
-func moveToEndOfEpoch(
-	t *testing.T,
-	tip *types.BeaconBlock,
-	cs chain.Spec[bytes.B4, math.U64, math.U64, any],
-	sp *TestStateProcessorT,
-	st *TestBeaconStateT,
-	ctx *transition.Context,
-) *types.BeaconBlock {
-	t.Helper()
-	blk := tip
-	currEpoch := cs.SlotToEpoch(blk.GetSlot())
-	for currEpoch == cs.SlotToEpoch(blk.GetSlot()+1) {
-		blk = buildNextBlock(
-			t,
-			st,
-			&types.BeaconBlockBody{
-				ExecutionPayload: &types.ExecutionPayload{
-					Timestamp:    blk.Body.ExecutionPayload.Timestamp + 1,
-					ExtraData:    []byte("testing"),
-					Transactions: [][]byte{},
-					Withdrawals: []*engineprimitives.Withdrawal{
-						st.EVMInflationWithdrawal(),
-					},
-					BaseFeePerGas: math.NewU256(0),
-				},
-				Eth1Data: &types.Eth1Data{
-					DepositRoot: types.Deposits(nil).HashTreeRoot(),
-				},
-				Deposits: []*types.Deposit{},
-			},
-		)
-
-		vals, err := sp.Transition(ctx, st, blk)
-		require.NoError(t, err)
-		require.Empty(t, vals) // no vals changes expected before next epoch
-	}
-	return blk
 }

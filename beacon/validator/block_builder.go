@@ -26,9 +26,9 @@ import (
 	"time"
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
-	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -312,45 +312,29 @@ func (s *Service[
 		return ErrNilDepositIndexStart
 	}
 
-	// Bartio and Boonet pre Fork2 have deposit broken and undervalidated
-	// Any other network should build deposits the right way
-	if !(s.chainSpec.DepositEth1ChainID() == spec.BartioChainID ||
-		(s.chainSpec.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-			blk.GetSlot() < math.U64(spec.BoonetFork2Height))) {
-		depositIndex++
-	}
-	blkDeposits, err := s.sb.DepositStore().GetDepositsByIndex(
-		depositIndex,
-		s.chainSpec.MaxDepositsPerBlock(),
-	)
-	if err != nil {
-		return err
-	}
-
-	// Set the deposits on the block body.
-	s.logger.Info(
-		"Building block body with local deposits",
-		"start_index", depositIndex, "num_deposits", len(blkDeposits),
-	)
-	body.SetDeposits(blkDeposits)
-
-	// Grab all previous deposits from genesis up to the current index
-	// to calculate deposit root.
+	// Grab all previous deposits from genesis up to the current index + max deposits per block.
 	deposits, err := s.sb.DepositStore().GetDepositsByIndex(
-		0,
-		depositIndex,
+		0, depositIndex+s.chainSpec.MaxDepositsPerBlock(),
 	)
 	if err != nil {
 		return err
 	}
-	deposits = append(deposits, blkDeposits...)
 
 	var eth1Data *ctypes.Eth1Data
-	body.SetEth1Data(eth1Data.New(
-		ctypes.Deposits(deposits).HashTreeRoot(),
-		0,
-		common.ExecutionHash{},
-	))
+	body.SetEth1Data(eth1Data.New(deposits.HashTreeRoot(), 0, common.ExecutionHash{}))
+
+	// Set just the block deposits (after current index) on the block body.
+	if uint64(len(deposits)) < depositIndex {
+		return errors.Wrapf(ErrDepositStoreIncomplete,
+			"all historical deposits not available, expected: %d, got: %d",
+			depositIndex, len(deposits),
+		)
+	}
+	s.logger.Info(
+		"Building block body with local deposits",
+		"start_index", depositIndex, "num_deposits", uint64(len(deposits))-depositIndex,
+	)
+	body.SetDeposits(deposits[depositIndex:])
 
 	// Set the graffiti on the block body.
 	sizedGraffiti := bytes.ExtendToSize([]byte(s.cfg.Graffiti), bytes.B32Size)
