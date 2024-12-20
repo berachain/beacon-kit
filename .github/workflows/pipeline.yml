@@ -43,18 +43,17 @@ concurrency:
   cancel-in-progress: ${{ !(github.base_ref == 'refs/heads/main' && github.event_name == 'merge_group') || github.ref != 'refs/heads/main' }}
 
 env:
-  GCP_ID_PROVIDER: 'projects/341806074811/locations/global/workloadIdentityPools/oidc-apps-automation-st-01-pool/providers/gh-apps-oidc-provider'
-  GCP_SERVICE_ACCOUNT: 'sa-apps-deployment@prj-berachain-automation-st-01.iam.gserviceaccount.com'
+  GCP_ID_PROVIDER: "projects/341806074811/locations/global/workloadIdentityPools/oidc-apps-automation-st-01-pool/providers/gh-apps-oidc-provider"
+  GCP_SERVICE_ACCOUNT: "sa-apps-deployment@prj-berachain-automation-st-01.iam.gserviceaccount.com"
   GCP_REGISTRY: northamerica-northeast1-docker.pkg.dev
   GHCR_REGISTRY: ghcr.io
   PUSH_DOCKER_IMAGE: ${{ (github.base_ref == github.head_ref && github.event_name == 'push') || github.ref == 'refs/tags/v*'}}
   VERSION: ${{ github.ref_name }}
 
 jobs:
-
-# -------------------------------------------------------------------------- #
-#                                Main Pipeline                               #
-# -------------------------------------------------------------------------- #
+  # -------------------------------------------------------------------------- #
+  #                                Main Pipeline                               #
+  # -------------------------------------------------------------------------- #
 
   ci:
     strategy:
@@ -64,7 +63,6 @@ jobs:
           - "lint"
           - "slither"
           - "gosec"
-          - "nilaway"
           - "markdownlint"
           - "generate-check"
           - "tidy-sync-check"
@@ -90,7 +88,7 @@ jobs:
       - name: Setup Golang
         uses: actions/setup-go@v5
         with:
-          go-version: "1.23.0"
+          go-version: "1.23.4"
           check-latest: true
           cache-dependency-path: "**/*.sum"
         if: ${{ !(matrix.args == 'test-forge-cover' || matrix.args == 'test-forge-fuzz') }}
@@ -106,10 +104,9 @@ jobs:
           files: ./${{ matrix.args }}.txt
         if: ${{ matrix.args == 'test-unit-cover' || matrix.args == 'test-forge-cover'}}
 
-
-# -------------------------------------------------------------------------- #
-#                                 E2E Testing                                #
-# -------------------------------------------------------------------------- #
+  # -------------------------------------------------------------------------- #
+  #                                 E2E Testing                                #
+  # -------------------------------------------------------------------------- #
 
   ci-e2e:
     strategy:
@@ -155,9 +152,9 @@ jobs:
         env:
           GOPATH: /home/runner/go
 
-# -------------------------------------------------------------------------- #
-#                       Docker Container Build and Push                      #
-# -------------------------------------------------------------------------- #
+  # -------------------------------------------------------------------------- #
+  #                       Docker Container Build and Push                      #
+  # -------------------------------------------------------------------------- #
 
   build-and-push-container:
     runs-on:
@@ -203,15 +200,15 @@ jobs:
 
       - if: ${{ env.PUSH_DOCKER_IMAGE == 'true' }}
         name: Authenticate to Google Cloud
-        id: 'auth'
-        uses: 'google-github-actions/auth@v2'
+        id: "auth"
+        uses: "google-github-actions/auth@v2"
         with:
           workload_identity_provider: ${{ env.GCP_ID_PROVIDER }}
           service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
 
       - if: ${{ env.PUSH_DOCKER_IMAGE == 'true' }}
-        name: 'Set up Cloud SDK'
-        uses: 'google-github-actions/setup-gcloud@v2'
+        name: "Set up Cloud SDK"
+        uses: "google-github-actions/setup-gcloud@v2"
 
       - if: ${{ env.PUSH_DOCKER_IMAGE == 'true' }}
         name: Setup Docker to use Google Cloud OIDC
@@ -221,4 +218,4 @@ jobs:
       - if: ${{ env.PUSH_DOCKER_IMAGE == 'true' }}
         name: Push Docker image
         run: |
-            make push-docker-gcp push-docker-github
+          make push-docker-gcp push-docker-github

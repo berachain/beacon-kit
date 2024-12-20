@@ -213,14 +213,17 @@ func initTestStore() (*beacondb.KVStore, error) {
 		nopMetrics,
 	)
 
-	ctx := sdk.NewContext(cms, true, nopLog)
 	cms.MountStoreWithDB(testStoreKey, storetypes.StoreTypeIAVL, nil)
 	if err = cms.LoadLatestVersion(); err != nil {
 		return nil, fmt.Errorf("failed to load latest version: %w", err)
 	}
+
+	ctx := sdk.NewContext(cms, true, nopLog)
 	testStoreService := &testKVStoreService{
 		ctx: ctx,
 	}
-
-	return beacondb.New(testStoreService, testCodec), nil
+	return beacondb.New(
+		testStoreService,
+		testCodec,
+	), nil
 }
