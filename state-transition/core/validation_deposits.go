@@ -76,6 +76,14 @@ func (sp *StateProcessor[
 	if err != nil {
 		return err
 	}
+	for i, deposit := range blkDeposits {
+		// deposit indices should be contiguous
+		if deposit.GetIndex() != math.U64(depositIndex)+math.U64(i) {
+			return errors.Wrapf(ErrDepositIndexOutOfOrder,
+				"deposit index: %d, expected index: %d", deposit.GetIndex().Unwrap(), i,
+			)
+		}
+	}
 
 	var deposits ctypes.Deposits
 	deposits, err = sp.ds.GetDepositsByIndex(0, depositIndex+uint64(len(blkDeposits)))
