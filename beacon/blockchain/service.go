@@ -25,40 +25,26 @@ import (
 	"sync"
 
 	"github.com/berachain/beacon-kit/chain-spec/chain"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/da"
 	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-api/backend"
 	blockstore "github.com/berachain/beacon-kit/node-api/block_store"
-	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 )
 
 // Service is the blockchain service.
 type Service[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT],
+	AvailabilityStoreT AvailabilityStore,
 	DepositStoreT backend.DepositStore,
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
-	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
-	BeaconBlockBodyT interface {
-		BeaconBlockBody[ExecutionPayloadT]
-		GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
-		GetDeposits() []*ctypes.Deposit
-	},
-	BeaconStateT ReadOnlyBeaconState[
-		BeaconStateT, ExecutionPayloadHeaderT,
-	],
+	BeaconBlockT BeaconBlock[BeaconBlockT],
+	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
 	BlockStoreT blockstore.BlockStore[BeaconBlockT],
-	ExecutionPayloadT ExecutionPayload,
-	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	GenesisT Genesis[ExecutionPayloadHeaderT],
+	GenesisT Genesis,
 	ConsensusSidecarsT da.ConsensusSidecars[BlobSidecarsT],
 	BlobSidecarsT BlobSidecars[BlobSidecarsT],
-
-	PayloadAttributesT PayloadAttributes,
 ] struct {
 	// homeDir is the directory for config and data"
 	homeDir string
@@ -96,7 +82,7 @@ type Service[
 	// executionEngine is the execution engine responsible for processing
 	//
 	// execution payloads.
-	executionEngine ExecutionEngine[PayloadAttributesT]
+	executionEngine ExecutionEngine
 	// localBuilder is a local builder for constructing new beacon states.
 	localBuilder LocalBuilder[BeaconStateT]
 	// stateProcessor is the state processor for beacon blocks and states.
@@ -104,7 +90,6 @@ type Service[
 		BeaconBlockT,
 		BeaconStateT,
 		*transition.Context,
-		ExecutionPayloadHeaderT,
 	]
 	// metrics is the metrics for the service.
 	metrics *chainMetrics
@@ -117,23 +102,13 @@ type Service[
 
 // NewService creates a new validator service.
 func NewService[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT],
+	AvailabilityStoreT AvailabilityStore,
 	DepositStoreT backend.DepositStore,
 	ConsensusBlockT ConsensusBlock[BeaconBlockT],
-	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
-	BeaconBlockBodyT interface {
-		BeaconBlockBody[ExecutionPayloadT]
-		GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
-		GetDeposits() []*ctypes.Deposit
-	},
-	BeaconStateT ReadOnlyBeaconState[
-		BeaconStateT, ExecutionPayloadHeaderT,
-	],
+	BeaconBlockT BeaconBlock[BeaconBlockT],
+	BeaconStateT ReadOnlyBeaconState[BeaconStateT],
 	BlockStoreT blockstore.BlockStore[BeaconBlockT],
-	ExecutionPayloadT ExecutionPayload,
-	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	GenesisT Genesis[ExecutionPayloadHeaderT],
-	PayloadAttributesT PayloadAttributes,
+	GenesisT Genesis,
 	ConsensusSidecarsT da.ConsensusSidecars[BlobSidecarsT],
 	BlobSidecarsT BlobSidecars[BlobSidecarsT],
 ](
@@ -154,29 +129,27 @@ func NewService[
 	eth1FollowDistance math.U64,
 	logger log.Logger,
 	chainSpec chain.ChainSpec,
-	executionEngine ExecutionEngine[PayloadAttributesT],
+	executionEngine ExecutionEngine,
 	localBuilder LocalBuilder[BeaconStateT],
 	stateProcessor StateProcessor[
 		BeaconBlockT,
 		BeaconStateT,
 		*transition.Context,
-		ExecutionPayloadHeaderT,
 	],
 	telemetrySink TelemetrySink,
 	optimisticPayloadBuilds bool,
 ) *Service[
 	AvailabilityStoreT, DepositStoreT,
-	ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
+	ConsensusBlockT, BeaconBlockT,
 	BeaconStateT, BlockStoreT,
-	ExecutionPayloadT, ExecutionPayloadHeaderT, GenesisT,
-	ConsensusSidecarsT, BlobSidecarsT, PayloadAttributesT,
+	GenesisT,
+	ConsensusSidecarsT, BlobSidecarsT,
 ] {
 	return &Service[
 		AvailabilityStoreT, DepositStoreT,
-		ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
+		ConsensusBlockT, BeaconBlockT,
 		BeaconStateT, BlockStoreT,
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-		GenesisT, ConsensusSidecarsT, BlobSidecarsT, PayloadAttributesT,
+		GenesisT, ConsensusSidecarsT, BlobSidecarsT,
 	]{
 		homeDir:                 homeDir,
 		storageBackend:          storageBackend,
@@ -199,13 +172,13 @@ func NewService[
 
 // Name returns the name of the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _,
 ]) Name() string {
 	return "blockchain"
 }
 
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _,
 ]) Start(ctx context.Context) error {
 	// Catchup deposits for failed blocks.
 	go s.depositCatchupFetcher(ctx)
@@ -214,7 +187,7 @@ func (s *Service[
 }
 
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _,
 ]) Stop() error {
 	return nil
 }

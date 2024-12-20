@@ -21,7 +21,6 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -50,13 +49,13 @@ type ExecutionPayloadHeader struct {
 	// FeeRecipient is the address of the fee recipient.
 	FeeRecipient common.ExecutionAddress `json:"feeRecipient"`
 	// StateRoot is the root of the state trie.
-	StateRoot chain.Bytes32 `json:"stateRoot"`
+	StateRoot common.Bytes32 `json:"stateRoot"`
 	// ReceiptsRoot is the root of the receipts trie.
-	ReceiptsRoot chain.Bytes32 `json:"receiptsRoot"`
+	ReceiptsRoot common.Bytes32 `json:"receiptsRoot"`
 	// LogsBloom is the bloom filter for the logs.
 	LogsBloom bytes.B256 `json:"logsBloom"`
 	// Random is the prevRandao value.
-	Random chain.Bytes32 `json:"prevRandao"`
+	Random common.Bytes32 `json:"prevRandao"`
 	// Number is the block number.
 	Number math.U64 `json:"blockNumber"`
 	// GasLimit is the gas limit for the block.
@@ -473,12 +472,12 @@ func (h *ExecutionPayloadHeader) GetFeeRecipient() common.ExecutionAddress {
 }
 
 // GetStateRoot returns the state root of the ExecutionPayloadHeader.
-func (h *ExecutionPayloadHeader) GetStateRoot() chain.Bytes32 {
+func (h *ExecutionPayloadHeader) GetStateRoot() common.Bytes32 {
 	return h.StateRoot
 }
 
 // GetReceiptsRoot returns the receipts root of the ExecutionPayloadHeader.
-func (h *ExecutionPayloadHeader) GetReceiptsRoot() chain.Bytes32 {
+func (h *ExecutionPayloadHeader) GetReceiptsRoot() common.Bytes32 {
 	return h.ReceiptsRoot
 }
 
@@ -489,7 +488,7 @@ func (h *ExecutionPayloadHeader) GetLogsBloom() bytes.B256 {
 
 // GetPrevRandao returns the previous Randao value of the
 // ExecutionPayloadHeader.
-func (h *ExecutionPayloadHeader) GetPrevRandao() chain.Bytes32 {
+func (h *ExecutionPayloadHeader) GetPrevRandao() common.Bytes32 {
 	return h.Random
 }
 

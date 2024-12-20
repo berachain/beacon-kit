@@ -21,7 +21,6 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/karalabe/ssz"
@@ -31,14 +30,14 @@ import (
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#forkdata
 type ForkData struct {
 	// CurrentVersion is the current version of the fork.
-	CurrentVersion chain.Version
+	CurrentVersion common.Version
 	// GenesisValidatorsRoot is the root of the genesis validators.
 	GenesisValidatorsRoot common.Root
 }
 
 // NewForkData creates a new ForkData struct.
 func NewForkData(
-	currentVersion chain.Version, genesisValidatorsRoot common.Root,
+	currentVersion common.Version, genesisValidatorsRoot common.Root,
 ) *ForkData {
 	return &ForkData{
 		CurrentVersion:        currentVersion,
@@ -87,10 +86,10 @@ func (fd *ForkData) UnmarshalSSZ(buf []byte) error {
 // ComputeDomain as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#compute_domain
 func (fd *ForkData) ComputeDomain(
-	domainType chain.DomainType,
-) chain.Domain {
+	domainType common.DomainType,
+) common.Domain {
 	forkDataRoot := fd.HashTreeRoot()
-	return chain.Domain(
+	return common.Domain(
 		append(
 			domainType[:],
 			forkDataRoot[:28]...),
@@ -99,7 +98,7 @@ func (fd *ForkData) ComputeDomain(
 
 // ComputeRandaoSigningRoot computes the randao signing root.
 func (fd *ForkData) ComputeRandaoSigningRoot(
-	domainType chain.DomainType,
+	domainType common.DomainType,
 	epoch math.Epoch,
 ) common.Root {
 	return ComputeSigningRootUInt64(

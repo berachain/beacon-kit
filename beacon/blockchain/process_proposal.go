@@ -25,6 +25,7 @@ import (
 	"time"
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/consensus/types"
 	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
@@ -45,8 +46,8 @@ const (
 )
 
 func (s *Service[
-	_, _, ConsensusBlockT, BeaconBlockT, _, _,
-	_, _, _, GenesisT, ConsensusSidecarsT, BlobSidecarsT, _,
+	_, _, ConsensusBlockT, BeaconBlockT, _,
+	_, GenesisT, ConsensusSidecarsT, BlobSidecarsT,
 ]) ProcessProposal(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
@@ -149,8 +150,8 @@ func (s *Service[
 // VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
 func (s *Service[
-	_, _, ConsensusBlockT, BeaconBlockT, _, _, _, _,
-	ExecutionPayloadHeaderT, _, _, _, _,
+	_, _, ConsensusBlockT, BeaconBlockT, _, _,
+	_, _, _,
 ]) VerifyIncomingBlock(
 	ctx context.Context,
 	beaconBlk BeaconBlockT,
@@ -202,7 +203,7 @@ func (s *Service[
 		)
 
 		if s.shouldBuildOptimisticPayloads() {
-			var lph ExecutionPayloadHeaderT
+			var lph *ctypes.ExecutionPayloadHeader
 			lph, err = preState.GetLatestExecutionPayloadHeader()
 			if err != nil {
 				return err
@@ -229,7 +230,7 @@ func (s *Service[
 	)
 
 	if s.shouldBuildOptimisticPayloads() {
-		var lph ExecutionPayloadHeaderT
+		var lph *ctypes.ExecutionPayloadHeader
 		lph, err = postState.GetLatestExecutionPayloadHeader()
 		if err != nil {
 			return err
@@ -252,8 +253,8 @@ func (s *Service[
 
 // verifyStateRoot verifies the state root of an incoming block.
 func (s *Service[
-	_, _, ConsensusBlockT, BeaconBlockT, _, BeaconStateT,
-	_, _, _, _, _, _, _,
+	_, _, ConsensusBlockT, BeaconBlockT, BeaconStateT,
+	_, _, _, _,
 ]) verifyStateRoot(
 	ctx context.Context,
 	st BeaconStateT,
@@ -292,7 +293,7 @@ func (s *Service[
 // shouldBuildOptimisticPayloads returns true if optimistic
 // payload builds are enabled.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _,
 ]) shouldBuildOptimisticPayloads() bool {
 	return s.optimisticPayloadBuilds && s.localBuilder.Enabled()
 }

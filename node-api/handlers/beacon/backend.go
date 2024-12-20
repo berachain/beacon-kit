@@ -21,7 +21,6 @@
 package beacon
 
 import (
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -52,7 +51,7 @@ type HistoricalBackend interface {
 }
 
 type RandaoBackend interface {
-	RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (chain.Bytes32, error)
+	RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes32, error)
 }
 
 type BlockBackend interface {

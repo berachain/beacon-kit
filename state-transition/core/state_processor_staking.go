@@ -21,7 +21,6 @@
 package core
 
 import (
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
@@ -34,7 +33,7 @@ import (
 // processOperations processes the operations and ensures they match the
 // local state.
 func (sp *StateProcessor[
-	BeaconBlockT, _, BeaconStateT, _, _, _, _,
+	BeaconBlockT, BeaconStateT, _, _,
 ]) processOperations(
 	st BeaconStateT,
 	blk BeaconBlockT,
@@ -66,7 +65,7 @@ func (sp *StateProcessor[
 
 // processDeposit processes the deposit and ensures it matches the local state.
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _, _, _,
+	_, BeaconStateT, _, _,
 ]) processDeposit(
 	st BeaconStateT,
 	dep *ctypes.Deposit,
@@ -108,7 +107,7 @@ func (sp *StateProcessor[
 
 // applyDeposit processes the deposit and ensures it matches the local state.
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _, _, _,
+	_, BeaconStateT, _, _,
 ]) applyDeposit(
 	st BeaconStateT,
 	dep *ctypes.Deposit,
@@ -164,7 +163,7 @@ func (sp *StateProcessor[
 
 // createValidator creates a validator if the deposit is valid.
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _, _, _,
+	_, BeaconStateT, _, _,
 ]) createValidator(
 	st BeaconStateT,
 	dep *ctypes.Deposit,
@@ -201,7 +200,7 @@ func (sp *StateProcessor[
 	// Verify that the message was signed correctly.
 	err = dep.VerifySignature(
 		ctypes.NewForkData(
-			version.FromUint32[chain.Version](
+			version.FromUint32[common.Version](
 				sp.cs.ActiveForkVersionForEpoch(epoch),
 			), genesisValidatorsRoot,
 		),
@@ -224,7 +223,7 @@ func (sp *StateProcessor[
 
 // addValidatorToRegistry adds a validator to the registry.
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _, _, _,
+	_, BeaconStateT, _, _,
 ]) addValidatorToRegistry(
 	st BeaconStateT,
 	dep *ctypes.Deposit,

@@ -84,7 +84,7 @@ func AddExecutionPayloadCmd(chainSpec chain.ChainSpec) *cobra.Command {
 				return err
 			}
 
-			genesisInfo := &types.Genesis[*types.ExecutionPayloadHeader]{}
+			genesisInfo := &types.Genesis{}
 
 			if err = json.Unmarshal(
 				appGenesisState["beacon"], genesisInfo,
@@ -167,10 +167,10 @@ func executableDataToExecutionPayloadHeader(
 		executionPayloadHeader = &types.ExecutionPayloadHeader{
 			ParentHash:    common.ExecutionHash(data.ParentHash),
 			FeeRecipient:  common.ExecutionAddress(data.FeeRecipient),
-			StateRoot:     chain.Bytes32(data.StateRoot),
-			ReceiptsRoot:  chain.Bytes32(data.ReceiptsRoot),
+			StateRoot:     common.Bytes32(data.StateRoot),
+			ReceiptsRoot:  common.Bytes32(data.ReceiptsRoot),
 			LogsBloom:     [256]byte(data.LogsBloom),
-			Random:        chain.Bytes32(data.Random),
+			Random:        common.Bytes32(data.Random),
 			Number:        math.U64(data.Number),
 			GasLimit:      math.U64(data.GasLimit),
 			GasUsed:       math.U64(data.GasUsed),

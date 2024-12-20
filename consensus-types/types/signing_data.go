@@ -23,7 +23,6 @@ package types
 import (
 	"encoding/binary"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/karalabe/ssz"
@@ -35,7 +34,7 @@ type SigningData struct {
 	// ObjectRoot is the hash tree root of the object being signed.
 	ObjectRoot common.Root
 	// Domain is the domain the object is being signed in.
-	Domain chain.Domain
+	Domain common.Domain
 }
 
 /* -------------------------------------------------------------------------- */
@@ -80,7 +79,7 @@ func (s *SigningData) UnmarshalSSZ(buf []byte) error {
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#compute_signing_root
 func ComputeSigningRoot(
 	sszObject interface{ HashTreeRoot() common.Root },
-	domain chain.Domain,
+	domain common.Domain,
 ) common.Root {
 	return (&SigningData{
 		ObjectRoot: sszObject.HashTreeRoot(),
@@ -91,7 +90,7 @@ func ComputeSigningRoot(
 // ComputeSigningRootUInt64 computes the signing root of a uint64 value.
 func ComputeSigningRootUInt64(
 	value uint64,
-	domain chain.Domain,
+	domain common.Domain,
 
 ) common.Root {
 	bz := make([]byte, constants.RootLength)

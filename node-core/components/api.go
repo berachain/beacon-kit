@@ -40,32 +40,23 @@ func ProvideNodeAPIEngine() *echo.Engine {
 type NodeAPIBackendInput[
 	BeaconBlockT any,
 	BeaconStateT any,
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	StorageBackendT any,
 ] struct {
 	depinject.In
 
 	ChainSpec      chain.ChainSpec
-	StateProcessor StateProcessor[
-		BeaconBlockT, BeaconStateT, *Context,
-		ExecutionPayloadHeaderT,
-	]
+	StateProcessor StateProcessor[BeaconBlockT, BeaconStateT, *Context]
 	StorageBackend StorageBackendT
 }
 
 func ProvideNodeAPIBackend[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	AvailabilityStoreT AvailabilityStore[BlobSidecarsT],
 	BeaconBlockT any,
-	BeaconBlockBodyT any,
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
-	BeaconStateT BeaconState[
-		BeaconStateT, BeaconStateMarshallableT,
-		ExecutionPayloadHeaderT, KVStoreT,
-	],
+	BeaconStateT BeaconState[BeaconStateT, BeaconStateMarshallableT, KVStoreT],
 	BeaconStateMarshallableT any,
 	BlobSidecarsT any,
 	DepositStoreT DepositStore,
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	KVStoreT any,
 	NodeT interface {
 		CreateQueryContext(height int64, prove bool) (sdk.Context, error)
@@ -74,27 +65,22 @@ func ProvideNodeAPIBackend[
 		AvailabilityStoreT, BeaconStateT, BeaconBlockStoreT, DepositStoreT,
 	],
 ](
-	in NodeAPIBackendInput[
-		BeaconBlockT, BeaconStateT, ExecutionPayloadHeaderT,
-		StorageBackendT,
-	],
+	in NodeAPIBackendInput[BeaconBlockT, BeaconStateT, StorageBackendT],
 ) *backend.Backend[
-	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+	AvailabilityStoreT, BeaconBlockT,
 	BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BeaconBlockStoreT,
-	sdk.Context, DepositStoreT, ExecutionPayloadHeaderT,
+	sdk.Context, DepositStoreT,
 	NodeT, KVStoreT, StorageBackendT,
 ] {
 	return backend.New[
 		AvailabilityStoreT,
 		BeaconBlockT,
-		BeaconBlockBodyT,
 		BeaconStateT,
 		BeaconStateMarshallableT,
 		BlobSidecarsT,
 		BeaconBlockStoreT,
 		sdk.Context,
 		DepositStoreT,
-		ExecutionPayloadHeaderT,
 		NodeT,
 		KVStoreT,
 		StorageBackendT,

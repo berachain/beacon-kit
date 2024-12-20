@@ -34,10 +34,7 @@ import (
 // Processor is the blob processor that handles the processing and verification
 // of blob sidecars.
 type Processor[
-	AvailabilityStoreT AvailabilityStore[
-		BeaconBlockBodyT, BlobSidecarsT,
-	],
-	BeaconBlockBodyT any,
+	AvailabilityStoreT AvailabilityStore[BlobSidecarsT],
 	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
 	BlobSidecarT Sidecar,
 	BlobSidecarsT Sidecars[BlobSidecarT],
@@ -51,19 +48,13 @@ type Processor[
 		BlobSidecarT,
 		BlobSidecarsT,
 	]
-	// blockBodyOffsetFn is a function that calculates the block body offset
-	// based on the slot and chain specifications.
-	blockBodyOffsetFn func(math.Slot, chain.ChainSpec) (uint64, error)
 	// metrics is used to collect and report processor metrics.
 	metrics *processorMetrics
 }
 
 // NewProcessor creates a new blob processor.
 func NewProcessor[
-	AvailabilityStoreT AvailabilityStore[
-		BeaconBlockBodyT, BlobSidecarsT,
-	],
-	BeaconBlockBodyT any,
+	AvailabilityStoreT AvailabilityStore[BlobSidecarsT],
 	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
 	BlobSidecarT Sidecar,
 	BlobSidecarsT Sidecars[BlobSidecarT],
@@ -71,31 +62,29 @@ func NewProcessor[
 	logger log.Logger,
 	chainSpec chain.ChainSpec,
 	proofVerifier kzg.BlobProofVerifier,
-	blockBodyOffsetFn func(math.Slot, chain.ChainSpec) (uint64, error),
 	telemetrySink TelemetrySink,
 ) *Processor[
-	AvailabilityStoreT, BeaconBlockBodyT,
+	AvailabilityStoreT,
 	ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
 ] {
 	verifier := newVerifier[
 		BlobSidecarT,
 		BlobSidecarsT,
-	](proofVerifier, telemetrySink)
+	](proofVerifier, telemetrySink, chainSpec)
 	return &Processor[
-		AvailabilityStoreT, BeaconBlockBodyT,
+		AvailabilityStoreT,
 		ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
 	]{
-		logger:            logger,
-		chainSpec:         chainSpec,
-		verifier:          verifier,
-		blockBodyOffsetFn: blockBodyOffsetFn,
-		metrics:           newProcessorMetrics(telemetrySink),
+		logger:    logger,
+		chainSpec: chainSpec,
+		verifier:  verifier,
+		metrics:   newProcessorMetrics(telemetrySink),
 	}
 }
 
 // VerifySidecars verifies the blobs and ensures they match the local state.
 func (sp *Processor[
-	AvailabilityStoreT, _, ConsensusSidecarsT, _, BlobSidecarsT,
+	AvailabilityStoreT, ConsensusSidecarsT, _, BlobSidecarsT,
 ]) VerifySidecars(
 	cs ConsensusSidecarsT,
 	verifierFn func(
@@ -116,25 +105,17 @@ func (sp *Processor[
 		return nil
 	}
 
-	kzgOffset, err := sp.blockBodyOffsetFn(
-		blkHeader.GetSlot(), sp.chainSpec,
-	)
-	if err != nil {
-		return err
-	}
-
 	// Verify the blobs and ensure they match the local state.
 	return sp.verifier.verifySidecars(
 		sidecars,
-		kzgOffset,
 		blkHeader,
 		verifierFn,
 	)
 }
 
-// slot :=  processes the blobs and ensures they match the local state.
+// ProcessSidecars processes the blobs and ensures they match the local state.
 func (sp *Processor[
-	AvailabilityStoreT, _, _, _, BlobSidecarsT,
+	AvailabilityStoreT, _, _, BlobSidecarsT,
 ]) ProcessSidecars(
 	avs AvailabilityStoreT,
 	sidecars BlobSidecarsT,

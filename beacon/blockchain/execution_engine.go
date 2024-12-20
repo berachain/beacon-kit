@@ -23,6 +23,7 @@ package blockchain
 import (
 	"context"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 )
 
@@ -32,7 +33,7 @@ import (
 // Optimistic clients already request builds in handleOptimisticPayloadBuild()
 // Non-optimistic clients should never request optimistic builds.
 func (s *Service[
-	_, _, ConsensusBlockT, _, _, BeaconStateT, _, _, _, _, _, _, PayloadAttributesT,
+	_, _, ConsensusBlockT, _, BeaconStateT, _, _, _, _,
 ]) sendPostBlockFCU(
 	ctx context.Context,
 	st BeaconStateT,
@@ -53,15 +54,15 @@ func (s *Service[
 	if _, _, err = s.executionEngine.NotifyForkchoiceUpdate(
 		ctx,
 		// TODO: Switch to New().
-		engineprimitives.
-			BuildForkchoiceUpdateRequestNoAttrs[PayloadAttributesT](
-			&engineprimitives.ForkchoiceStateV1{
-				HeadBlockHash:      lph.GetBlockHash(),
-				SafeBlockHash:      lph.GetParentHash(),
-				FinalizedBlockHash: lph.GetParentHash(),
-			},
-			s.chainSpec.ActiveForkVersionForSlot(beaconBlk.GetSlot()),
-		),
+		ctypes.
+			BuildForkchoiceUpdateRequestNoAttrs(
+				&engineprimitives.ForkchoiceStateV1{
+					HeadBlockHash:      lph.GetBlockHash(),
+					SafeBlockHash:      lph.GetParentHash(),
+					FinalizedBlockHash: lph.GetParentHash(),
+				},
+				s.chainSpec.ActiveForkVersionForSlot(beaconBlk.GetSlot()),
+			),
 	); err != nil {
 		s.logger.Error(
 			"failed to send forkchoice update without attributes",

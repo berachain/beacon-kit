@@ -18,18 +18,17 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package engineprimitives
+package types
 
 import (
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // BuiltExecutionPayloadEnv is an interface for the execution payload envelope.
-type BuiltExecutionPayloadEnv[ExecutionPayloadT any] interface {
+type BuiltExecutionPayloadEnv interface {
 	// GetExecutionPayload retrieves the associated execution payload.
-	GetExecutionPayload() ExecutionPayloadT
+	GetExecutionPayload() *ExecutionPayload
 	// GetValue returns the Wei value of the block in the execution payload.
 	GetValue() *math.U256
 	// GetBlobsBundle fetches the associated BlobsBundleV1 if available.
@@ -53,10 +52,9 @@ type BlobsBundle interface {
 // It utilizes a generic type ExecutionData to allow for different types of
 // execution payloads depending on the active hard fork.
 type ExecutionPayloadEnvelope[
-	ExecutionPayloadT constraints.JSONMarshallable,
 	BlobsBundleT BlobsBundle,
 ] struct {
-	ExecutionPayload ExecutionPayloadT `json:"executionPayload"`
+	ExecutionPayload *ExecutionPayload `json:"executionPayload"`
 	BlockValue       *math.U256        `json:"blockValue"`
 	BlobsBundle      BlobsBundleT      `json:"blobsBundle"`
 	Override         bool              `json:"shouldOverrideBuilder"`
@@ -64,29 +62,21 @@ type ExecutionPayloadEnvelope[
 
 // GetExecutionPayload returns the execution payload of the
 // ExecutionPayloadEnvelope.
-func (e *ExecutionPayloadEnvelope[
-	ExecutionPayloadT, BlobsBundleT,
-]) GetExecutionPayload() ExecutionPayloadT {
+func (e *ExecutionPayloadEnvelope[BlobsBundleT]) GetExecutionPayload() *ExecutionPayload {
 	return e.ExecutionPayload
 }
 
 // GetValue returns the value of the ExecutionPayloadEnvelope.
-func (e *ExecutionPayloadEnvelope[
-	ExecutionPayloadT, BlobsBundleT,
-]) GetValue() *math.U256 {
+func (e *ExecutionPayloadEnvelope[BlobsBundleT]) GetValue() *math.U256 {
 	return e.BlockValue
 }
 
 // GetBlobsBundle returns the blobs bundle of the ExecutionPayloadEnvelope.
-func (e *ExecutionPayloadEnvelope[
-	ExecutionPayloadT, BlobsBundleT,
-]) GetBlobsBundle() BlobsBundle {
+func (e *ExecutionPayloadEnvelope[BlobsBundleT]) GetBlobsBundle() BlobsBundle {
 	return e.BlobsBundle
 }
 
 // ShouldOverrideBuilder returns whether the builder should be overridden.
-func (e *ExecutionPayloadEnvelope[
-	ExecutionPayloadT, BlobsBundleT,
-]) ShouldOverrideBuilder() bool {
+func (e *ExecutionPayloadEnvelope[BlobsBundleT]) ShouldOverrideBuilder() bool {
 	return e.Override
 }

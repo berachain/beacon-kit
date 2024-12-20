@@ -23,7 +23,6 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/chain-spec/chain"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/execution/engine"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
@@ -35,63 +34,36 @@ import (
 // framework.
 type StateProcessorInput[
 	LoggerT log.AdvancedLogger[LoggerT],
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 ] struct {
 	depinject.In
 	Logger          LoggerT
 	ChainSpec       chain.ChainSpec
-	ExecutionEngine *engine.Engine[
-		ExecutionPayloadT,
-		*engineprimitives.PayloadAttributes,
-		PayloadID,
-	]
-	DepositStore  DepositStore
-	Signer        crypto.BLSSigner
-	TelemetrySink *metrics.TelemetrySink
+	ExecutionEngine *engine.Engine[PayloadID]
+	DepositStore    DepositStore
+	Signer          crypto.BLSSigner
+	TelemetrySink   *metrics.TelemetrySink
 }
 
 // ProvideStateProcessor provides the state processor to the depinject
 // framework.
 func ProvideStateProcessor[
 	LoggerT log.AdvancedLogger[LoggerT],
-	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT,
-		ExecutionPayloadT, *SlashingInfo,
-	],
-	BeaconStateT BeaconState[
-		BeaconStateT, BeaconStateMarshallableT,
-		ExecutionPayloadHeaderT, KVStoreT,
-	],
+	BeaconBlockT BeaconBlock[BeaconBlockT],
+	BeaconStateT BeaconState[BeaconStateT, BeaconStateMarshallableT, KVStoreT],
 	BeaconStateMarshallableT any,
 	DepositStoreT DepositStore,
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-	KVStoreT BeaconStore[
-		KVStoreT, ExecutionPayloadHeaderT,
-	],
+	KVStoreT BeaconStore[KVStoreT],
 ](
-	in StateProcessorInput[
-		LoggerT,
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
+	in StateProcessorInput[LoggerT],
 ) *core.StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, *Context, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, KVStoreT,
+	BeaconBlockT,
+	BeaconStateT, *Context,
+	KVStoreT,
 ] {
 	return core.NewStateProcessor[
 		BeaconBlockT,
-		BeaconBlockBodyT,
 		BeaconStateT,
 		*Context,
-		ExecutionPayloadT,
-		ExecutionPayloadHeaderT,
 		KVStoreT,
 	](
 		in.Logger.With("service", "state-processor"),

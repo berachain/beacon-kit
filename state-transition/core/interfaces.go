@@ -35,7 +35,6 @@ import (
 // is a combination of the read-only and write-only beacon state types.
 type BeaconState[
 	T any,
-	ExecutionPayloadHeaderT any,
 	KVStoreT any,
 ] interface {
 	NewFromDB(
@@ -45,15 +44,13 @@ type BeaconState[
 	Copy() T
 	Context() context.Context
 	HashTreeRoot() common.Root
-	ReadOnlyBeaconState[ExecutionPayloadHeaderT]
-	WriteOnlyBeaconState[ExecutionPayloadHeaderT]
+	ReadOnlyBeaconState
+	WriteOnlyBeaconState
 }
 
 // ReadOnlyBeaconState is the interface for a read-only beacon state.
-type ReadOnlyBeaconState[
-	ExecutionPayloadHeaderT any,
-] interface {
-	ReadOnlyEth1Data[ExecutionPayloadHeaderT]
+type ReadOnlyBeaconState interface {
+	ReadOnlyEth1Data
 	ReadOnlyRandaoMixes
 	ReadOnlyStateRoots
 	ReadOnlyValidators
@@ -79,10 +76,8 @@ type ReadOnlyBeaconState[
 }
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
-type WriteOnlyBeaconState[
-	ExecutionPayloadHeaderT any,
-] interface {
-	WriteOnlyEth1Data[ExecutionPayloadHeaderT]
+type WriteOnlyBeaconState interface {
+	WriteOnlyEth1Data
 	WriteOnlyRandaoMixes
 	WriteOnlyStateRoots
 	WriteOnlyValidators
@@ -115,13 +110,13 @@ type ReadOnlyStateRoots interface {
 // WriteOnlyRandaoMixes defines a struct which only has write access to randao
 // mixes methods.
 type WriteOnlyRandaoMixes interface {
-	UpdateRandaoMixAtIndex(uint64, chain.Bytes32) error
+	UpdateRandaoMixAtIndex(uint64, common.Bytes32) error
 }
 
 // ReadOnlyRandaoMixes defines a struct which only has read access to randao
 // mixes methods.
 type ReadOnlyRandaoMixes interface {
-	GetRandaoMixAtIndex(uint64) (chain.Bytes32, error)
+	GetRandaoMixAtIndex(uint64) (common.Bytes32, error)
 }
 
 // WriteOnlyValidators has write access to validator methods.
@@ -147,21 +142,17 @@ type ReadOnlyValidators interface {
 }
 
 // WriteOnlyEth1Data has write access to eth1 data.
-type WriteOnlyEth1Data[ExecutionPayloadHeaderT any] interface {
+type WriteOnlyEth1Data interface {
 	SetEth1Data(*ctypes.Eth1Data) error
 	SetEth1DepositIndex(uint64) error
-	SetLatestExecutionPayloadHeader(
-		ExecutionPayloadHeaderT,
-	) error
+	SetLatestExecutionPayloadHeader(*ctypes.ExecutionPayloadHeader) error
 }
 
 // ReadOnlyEth1Data has read access to eth1 data.
-type ReadOnlyEth1Data[ExecutionPayloadHeaderT any] interface {
+type ReadOnlyEth1Data interface {
 	GetEth1Data() (*ctypes.Eth1Data, error)
 	GetEth1DepositIndex() (uint64, error)
-	GetLatestExecutionPayloadHeader() (
-		ExecutionPayloadHeaderT, error,
-	)
+	GetLatestExecutionPayloadHeader() (*ctypes.ExecutionPayloadHeader, error)
 }
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.

@@ -24,62 +24,28 @@ import (
 	stdbytes "bytes"
 	"context"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
-	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/karalabe/ssz"
 )
 
 // BeaconBlock represents a generic interface for a beacon block.
-type BeaconBlock[
-	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT,
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-] interface {
+type BeaconBlock interface {
 	IsNil() bool
 	// GetProposerIndex returns the index of the proposer.
 	GetProposerIndex() math.ValidatorIndex
 	// GetSlot returns the slot number of the block.
 	GetSlot() math.Slot
 	// GetBody returns the body of the block.
-	GetBody() BeaconBlockBodyT
+	GetBody() *ctypes.BeaconBlockBody
 	// GetParentBlockRoot returns the root of the parent block.
 	GetParentBlockRoot() common.Root
 	// GetStateRoot returns the state root of the block.
 	GetStateRoot() common.Root
-}
-
-// BeaconBlockBody represents a generic interface for the body of a beacon
-// block.
-type BeaconBlockBody[
-	BeaconBlockBodyT any,
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-] interface {
-	constraints.EmptyWithVersion[BeaconBlockBodyT]
-	// GetRandaoReveal returns the RANDAO reveal signature.
-	GetRandaoReveal() crypto.BLSSignature
-	// GetExecutionPayload returns the execution payload.
-	GetExecutionPayload() ExecutionPayloadT
-	// GetDeposits returns the list of deposits.
-	GetDeposits() []*ctypes.Deposit
-	// HashTreeRoot returns the hash tree root of the block body.
-	HashTreeRoot() common.Root
-	// GetBlobKzgCommitments returns the KZG commitments for the blobs.
-	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 }
 
 // Context defines an interface for managing state transition context.
@@ -116,35 +82,6 @@ type DepositStore interface {
 	) ([]*ctypes.Deposit, error)
 }
 
-type ExecutionPayload[
-	ExecutionPayloadT, ExecutionPayloadHeaderT any,
-] interface {
-	constraints.EngineType[ExecutionPayloadT]
-	GetTransactions() engineprimitives.Transactions
-	GetParentHash() common.ExecutionHash
-	GetBlockHash() common.ExecutionHash
-	GetPrevRandao() chain.Bytes32
-	GetWithdrawals() engineprimitives.Withdrawals
-	GetFeeRecipient() common.ExecutionAddress
-	GetStateRoot() chain.Bytes32
-	GetReceiptsRoot() chain.Bytes32
-	GetLogsBloom() bytes.B256
-	GetNumber() math.U64
-	GetGasLimit() math.U64
-	GetTimestamp() math.U64
-	GetGasUsed() math.U64
-	GetExtraData() []byte
-	GetBaseFeePerGas() *math.U256
-	GetBlobGasUsed() math.U64
-	GetExcessBlobGas() math.U64
-	ToHeader() (ExecutionPayloadHeaderT, error)
-}
-
-type ExecutionPayloadHeader interface {
-	GetBlockHash() common.ExecutionHash
-	GetTimestamp() math.U64
-}
-
 // Withdrawals defines the interface for managing withdrawal operations.
 type Withdrawals interface {
 	Len() int
@@ -152,16 +89,12 @@ type Withdrawals interface {
 }
 
 // ExecutionEngine is the interface for the execution engine.
-type ExecutionEngine[
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT],
-	ExecutionPayloadHeaderT any,
-] interface {
+type ExecutionEngine interface {
 	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
 	// execution client.
 	VerifyAndNotifyNewPayload(
 		ctx context.Context,
-		req *engineprimitives.NewPayloadRequest[ExecutionPayloadT],
+		req *ctypes.NewPayloadRequest,
 	) error
 }
 

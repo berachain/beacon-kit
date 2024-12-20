@@ -30,7 +30,6 @@ import (
 	"io"
 	"testing"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -39,15 +38,8 @@ import (
 )
 
 // generateValidBeaconState generates a valid beacon state for the types.
-func generateValidBeaconState() *types.BeaconState[
-	*types.ExecutionPayloadHeader,
-	types.ExecutionPayloadHeader,
-] {
-	return &types.BeaconState[
-		*types.ExecutionPayloadHeader,
-
-		types.ExecutionPayloadHeader,
-	]{
+func generateValidBeaconState() *types.BeaconState {
+	return &types.BeaconState{
 		GenesisValidatorsRoot: common.Root{0x01, 0x02, 0x03},
 		Slot:                  1234,
 		BlockRoots: []common.Root{
@@ -124,8 +116,8 @@ func generateValidBeaconState() *types.BeaconState[
 	}
 }
 
-func generateRandomBytes32(count int) []chain.Bytes32 {
-	result := make([]chain.Bytes32, count)
+func generateRandomBytes32(count int) []common.Bytes32 {
+	result := make([]common.Bytes32, count)
 	for i := range result {
 		var randomBytes [32]byte
 		for j := range randomBytes {
@@ -143,10 +135,7 @@ func TestBeaconStateMarshalUnmarshalSSZ(t *testing.T) {
 	require.NoError(t, fastSSZMarshalErr)
 	require.NotNil(t, data)
 
-	newState := &types.BeaconState[
-		*types.ExecutionPayloadHeader,
-		types.ExecutionPayloadHeader,
-	]{}
+	newState := &types.BeaconState{}
 	err := newState.UnmarshalSSZ(data)
 	require.NoError(t, err)
 
@@ -171,10 +160,7 @@ func TestGetTree(t *testing.T) {
 }
 
 func TestBeaconState_UnmarshalSSZ_Error(t *testing.T) {
-	state := &types.BeaconState[
-		*types.ExecutionPayloadHeader,
-		types.ExecutionPayloadHeader,
-	]{}
+	state := &types.BeaconState{}
 	err := state.UnmarshalSSZ([]byte{0x01, 0x02, 0x03}) // Invalid data
 	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }

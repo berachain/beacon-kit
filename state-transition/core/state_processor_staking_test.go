@@ -76,7 +76,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 			},
 		}
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		genVersion       = version.FromUint32[chain.Version](version.Deneb)
+		genVersion       = version.FromUint32[common.Version](version.Deneb)
 	)
 	valDiff, err := sp.InitializePreminedBeaconStateFromEth1(
 		st,
@@ -214,7 +214,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 			},
 		}
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		genVersion       = version.FromUint32[chain.Version](version.Deneb)
+		genVersion       = version.FromUint32[common.Version](version.Deneb)
 	)
 
 	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
@@ -415,7 +415,7 @@ func TestTransitionWithdrawals(t *testing.T) {
 			},
 		}
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		genVersion       = version.FromUint32[chain.Version](version.Deneb)
+		genVersion       = version.FromUint32[common.Version](version.Deneb)
 	)
 	_, err := sp.InitializePreminedBeaconStateFromEth1(
 		st, genDeposits, genPayloadHeader, genVersion,
@@ -507,7 +507,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 			},
 		}
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		genVersion       = version.FromUint32[chain.Version](version.Deneb)
+		genVersion       = version.FromUint32[common.Version](version.Deneb)
 	)
 	_, err = sp.InitializePreminedBeaconStateFromEth1(
 		st, genDeposits, genPayloadHeader, genVersion,
@@ -633,7 +633,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	var (
 		genDeposits      = make([]*types.Deposit, 0, cs.ValidatorSetCap())
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		genVersion       = version.FromUint32[chain.Version](version.Deneb)
+		genVersion       = version.FromUint32[common.Version](version.Deneb)
 	)
 
 	// let genesis define all available validators
@@ -861,7 +861,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	var (
 		genDeposits      = make([]*types.Deposit, 0, cs.ValidatorSetCap())
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		genVersion       = version.FromUint32[chain.Version](version.Deneb)
+		genVersion       = version.FromUint32[common.Version](version.Deneb)
 	)
 
 	// let genesis define all available validators

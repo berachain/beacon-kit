@@ -24,7 +24,6 @@ import (
 	"io"
 	"testing"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -128,7 +127,7 @@ func TestDeposit_VerifySignature(t *testing.T) {
 	deposit := generateValidDeposit()
 
 	forkData := &types.ForkData{
-		CurrentVersion:        chain.Version{0x00, 0x00, 0x00, 0x04},
+		CurrentVersion:        common.Version{0x00, 0x00, 0x00, 0x04},
 		GenesisValidatorsRoot: common.Root{0x00, 0x00, 0x00, 0x00},
 	}
 
@@ -138,7 +137,7 @@ func TestDeposit_VerifySignature(t *testing.T) {
 		return nil
 	}
 
-	errVerify := deposit.VerifySignature(forkData, chain.DomainType{
+	errVerify := deposit.VerifySignature(forkData, common.DomainType{
 		0x01, 0x00, 0x00, 0x00,
 	}, signatureVerificationFn)
 	require.NoError(t, errVerify)

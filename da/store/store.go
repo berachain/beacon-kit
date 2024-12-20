@@ -24,13 +24,14 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/chain-spec/chain"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // Store is the default implementation of the AvailabilityStore.
-type Store[BeaconBlockBodyT BeaconBlockBody] struct {
+type Store struct {
 	// IndexDB is a basic database interface.
 	IndexDB
 	// logger is used for logging.
@@ -40,12 +41,12 @@ type Store[BeaconBlockBodyT BeaconBlockBody] struct {
 }
 
 // New creates a new instance of the AvailabilityStore.
-func New[BeaconBlockT BeaconBlockBody](
+func New(
 	db IndexDB,
 	logger log.Logger,
 	chainSpec chain.ChainSpec,
-) *Store[BeaconBlockT] {
-	return &Store[BeaconBlockT]{
+) *Store {
+	return &Store{
 		IndexDB:   db,
 		chainSpec: chainSpec,
 		logger:    logger,
@@ -54,10 +55,10 @@ func New[BeaconBlockT BeaconBlockBody](
 
 // IsDataAvailable ensures that all blobs referenced in the block are
 // stored before it returns without an error.
-func (s *Store[BeaconBlockBodyT]) IsDataAvailable(
+func (s *Store) IsDataAvailable(
 	_ context.Context,
 	slot math.Slot,
-	body BeaconBlockBodyT,
+	body *ctypes.BeaconBlockBody,
 ) bool {
 	for _, commitment := range body.GetBlobKzgCommitments() {
 		// Check if the block data is available in the IndexDB
@@ -71,7 +72,7 @@ func (s *Store[BeaconBlockBodyT]) IsDataAvailable(
 
 // Persist ensures the sidecar data remains accessible, utilizing parallel
 // processing for efficiency.
-func (s *Store[BeaconBlockT]) Persist(
+func (s *Store) Persist(
 	slot math.Slot,
 	sidecars *types.BlobSidecars,
 ) error {

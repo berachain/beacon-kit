@@ -24,10 +24,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -39,7 +37,6 @@ import (
 // BeaconBlock represents a beacon block interface.
 type BeaconBlock[
 	T any,
-	BeaconBlockBodyT any,
 ] interface {
 	constraints.SSZMarshallable
 	// NewWithVersion creates a new beacon block with the given parameters.
@@ -58,13 +55,11 @@ type BeaconBlock[
 	// GetStateRoot returns the state root of the beacon block.
 	GetStateRoot() common.Root
 	// GetBody returns the body of the beacon block.
-	GetBody() BeaconBlockBodyT
+	GetBody() *ctypes.BeaconBlockBody
 }
 
 // BeaconBlockBody represents a beacon block body interface.
-type BeaconBlockBody[
-	ExecutionPayloadT, SlashingInfoT any,
-] interface {
+type BeaconBlockBody interface {
 	constraints.SSZMarshallable
 	constraints.Nillable
 	// SetRandaoReveal sets the Randao reveal of the beacon block body.
@@ -74,27 +69,25 @@ type BeaconBlockBody[
 	// SetDeposits sets the deposits of the beacon block body.
 	SetDeposits([]*ctypes.Deposit)
 	// SetExecutionPayload sets the execution data of the beacon block body.
-	SetExecutionPayload(ExecutionPayloadT)
+	SetExecutionPayload(*ctypes.ExecutionPayload)
 	// SetGraffiti sets the graffiti of the beacon block body.
-	SetGraffiti(chain.Bytes32)
+	SetGraffiti(common.Bytes32)
 	// SetAttestations sets the attestations of the beacon block body.
 	SetAttestations([]*ctypes.AttestationData)
 	// SetSlashingInfo sets the slashing info of the beacon block body.
-	SetSlashingInfo([]SlashingInfoT)
+	SetSlashingInfo([]*ctypes.SlashingInfo)
 	// SetBlobKzgCommitments sets the blob KZG commitments of the beacon block
 	// body.
 	SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])
 }
 
 // BeaconState represents a beacon state interface.
-type BeaconState[ExecutionPayloadHeaderT any] interface {
+type BeaconState interface {
 	// GetBlockRootAtIndex returns the block root at the given index.
 	GetBlockRootAtIndex(uint64) (common.Root, error)
 	// GetLatestExecutionPayloadHeader returns the latest execution payload
 	// header.
-	GetLatestExecutionPayloadHeader() (
-		ExecutionPayloadHeaderT, error,
-	)
+	GetLatestExecutionPayloadHeader() (*ctypes.ExecutionPayloadHeader, error)
 	// GetSlot returns the current slot of the beacon state.
 	GetSlot() (math.Slot, error)
 	// HashTreeRoot returns the hash tree root of the beacon state.
@@ -116,10 +109,9 @@ type BlobFactory[
 	// BuildSidecars builds sidecars for a given block and blobs bundle.
 	BuildSidecars(
 		blk BeaconBlockT,
-		blobs engineprimitives.BlobsBundle,
+		blobs ctypes.BlobsBundle,
 		signer crypto.BLSSigner,
 		forkData *ctypes.ForkData,
-
 	) (BlobSidecarsT, error)
 }
 
@@ -132,41 +124,31 @@ type DepositStore interface {
 	) ([]*ctypes.Deposit, error)
 }
 
-// ExecutionPayloadHeader represents the execution payload header interface.
-type ExecutionPayloadHeader interface {
-	// GetTimestamp returns the timestamp of the execution payload header.
-	GetTimestamp() math.U64
-	// GetBlockHash returns the block hash of the execution payload header.
-	GetBlockHash() common.ExecutionHash
-	// GetParentHash returns the parent hash of the execution payload header.
-	GetParentHash() common.ExecutionHash
-}
-
 // ForkData represents the fork data interface.
 type ForkData[T any] interface {
 	// New creates a new fork data with the given parameters.
 	New(
-		chain.Version,
+		common.Version,
 		common.Root,
 	) T
 	// ComputeRandaoSigningRoot computes the Randao signing root.
 	ComputeRandaoSigningRoot(
-		chain.DomainType,
+		common.DomainType,
 		math.Epoch,
 	) common.Root
 	// ComputeDomain computes the fork data domain for a given domain type.
-	ComputeDomain(chain.DomainType) chain.Domain
+	ComputeDomain(common.DomainType) common.Domain
 }
 
 // PayloadBuilder represents a service that is responsible for
 // building eth1 blocks.
-type PayloadBuilder[BeaconStateT, ExecutionPayloadT any] interface {
+type PayloadBuilder[BeaconStateT any] interface {
 	// RetrievePayload retrieves the payload for the given slot.
 	RetrievePayload(
 		ctx context.Context,
 		slot math.Slot,
 		parentBlockRoot common.Root,
-	) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
+	) (ctypes.BuiltExecutionPayloadEnv, error)
 	// RequestPayloadSync requests a payload for the given slot and
 	// blocks until the payload is delivered.
 	RequestPayloadSync(
@@ -177,17 +159,17 @@ type PayloadBuilder[BeaconStateT, ExecutionPayloadT any] interface {
 		parentBlockRoot common.Root,
 		headEth1BlockHash common.ExecutionHash,
 		finalEth1BlockHash common.ExecutionHash,
-	) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
+	) (ctypes.BuiltExecutionPayloadEnv, error)
 }
 
 // SlotData represents the slot data interface.
-type SlotData[SlashingInfoT any] interface {
+type SlotData interface {
 	// GetSlot returns the slot of the incoming slot.
 	GetSlot() math.Slot
 	// GetAttestationData returns the attestation data of the incoming slot.
 	GetAttestationData() []*ctypes.AttestationData
 	// GetSlashingInfo returns the slashing info of the incoming slot.
-	GetSlashingInfo() []SlashingInfoT
+	GetSlashingInfo() []*ctypes.SlashingInfo
 	// GetProposerAddress returns the address of the validator
 	// selected by consensus to propose the block
 	GetProposerAddress() []byte
@@ -201,7 +183,6 @@ type StateProcessor[
 	BeaconBlockT any,
 	BeaconStateT any,
 	ContextT any,
-	ExecutionPayloadHeaderT any,
 ] interface {
 	// ProcessSlot processes the slot.
 	ProcessSlots(
@@ -244,12 +225,12 @@ type BlobSidecars[T, BlobSidecarT any] interface {
 	Get(index int) BlobSidecarT
 	GetSidecars() []BlobSidecarT
 	ValidateBlockRoots() error
-	VerifyInclusionProofs(kzgOffset uint64) error
+	VerifyInclusionProofs(kzgOffset uint64, inclusionProofDepth uint8) error
 }
 
 type BlockBuilderI interface {
 	BuildBlockAndSidecars(
 		context.Context,
-		types.SlotData[ctypes.SlashingInfo],
+		types.SlotData,
 	) ([]byte, []byte, error)
 }
