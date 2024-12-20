@@ -33,10 +33,8 @@ type SidecarFactoryInput struct {
 	TelemetrySink *metrics.TelemetrySink
 }
 
-func ProvideSidecarFactory[
-	BeaconBlockT BeaconBlock[BeaconBlockT],
-](in SidecarFactoryInput) *dablob.SidecarFactory[BeaconBlockT] {
-	return dablob.NewSidecarFactory[BeaconBlockT](
+func ProvideSidecarFactory(in SidecarFactoryInput) *dablob.SidecarFactory {
+	return dablob.NewSidecarFactory(
 		in.ChainSpec,
 		in.TelemetrySink,
 	)

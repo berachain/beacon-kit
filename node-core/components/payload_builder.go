@@ -33,45 +33,30 @@ import (
 
 // LocalBuilderInput is an input for the dep inject framework.
 type LocalBuilderInput[
-	BeaconStateT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 ] struct {
 	depinject.In
-	AttributesFactory AttributesFactory[BeaconStateT]
+	AttributesFactory AttributesFactory
 	Cfg               *config.Config
 	ChainSpec         chain.ChainSpec
-	ExecutionEngine   *engine.Engine[PayloadID]
+	ExecutionEngine   *engine.Engine
 	Logger            LoggerT
 }
 
 // ProvideLocalBuilder provides a local payload builder for the
 // depinject framework.
 func ProvideLocalBuilder[
-	BeaconStateT BeaconState[
-		BeaconStateT, BeaconStateMarshallableT,
-		KVStoreT,
-	],
-	BeaconStateMarshallableT any,
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
-	in LocalBuilderInput[
-		BeaconStateT, LoggerT,
-	],
-) *payloadbuilder.PayloadBuilder[
-	BeaconStateT,
-	PayloadID,
-] {
-	return payloadbuilder.New[
-		BeaconStateT,
-		PayloadID,
-	](
+	in LocalBuilderInput[LoggerT],
+) *payloadbuilder.PayloadBuilder {
+	return payloadbuilder.New(
 		&in.Cfg.PayloadBuilder,
 		in.ChainSpec,
 		in.Logger.With("service", "payload-builder"),
 		in.ExecutionEngine,
 		cache.NewPayloadIDCache[
-			PayloadID,
 			[32]byte, math.Slot,
 		](),
 		in.AttributesFactory,

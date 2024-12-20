@@ -26,12 +26,14 @@ import (
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
+	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // BeaconBlock represents a beacon block interface.
@@ -102,17 +104,14 @@ type BeaconState interface {
 }
 
 // BlobFactory represents a blob factory interface.
-type BlobFactory[
-	BeaconBlockT any,
-	BlobSidecarsT any,
-] interface {
+type BlobFactory interface {
 	// BuildSidecars builds sidecars for a given block and blobs bundle.
 	BuildSidecars(
-		blk BeaconBlockT,
+		blk *ctypes.BeaconBlock,
 		blobs ctypes.BlobsBundle,
 		signer crypto.BLSSigner,
 		forkData *ctypes.ForkData,
-	) (BlobSidecarsT, error)
+	) (datypes.BlobSidecars, error)
 }
 
 // DepositStore defines the interface for deposit storage.
@@ -121,7 +120,7 @@ type DepositStore interface {
 	GetDepositsByIndex(
 		startIndex uint64,
 		numView uint64,
-	) ([]*ctypes.Deposit, error)
+	) (ctypes.Deposits, error)
 }
 
 // ForkData represents the fork data interface.
@@ -142,7 +141,7 @@ type ForkData[T any] interface {
 
 // PayloadBuilder represents a service that is responsible for
 // building eth1 blocks.
-type PayloadBuilder[BeaconStateT any] interface {
+type PayloadBuilder interface {
 	// RetrievePayload retrieves the payload for the given slot.
 	RetrievePayload(
 		ctx context.Context,
@@ -153,7 +152,7 @@ type PayloadBuilder[BeaconStateT any] interface {
 	// blocks until the payload is delivered.
 	RequestPayloadSync(
 		ctx context.Context,
-		st BeaconStateT,
+		st *statedb.StateDB,
 		slot math.Slot,
 		timestamp uint64,
 		parentBlockRoot common.Root,
@@ -180,31 +179,28 @@ type SlotData interface {
 
 // StateProcessor defines the interface for processing the state.
 type StateProcessor[
-	BeaconBlockT any,
-	BeaconStateT any,
 	ContextT any,
 ] interface {
 	// ProcessSlot processes the slot.
 	ProcessSlots(
-		st BeaconStateT, slot math.Slot,
+		st *statedb.StateDB, slot math.Slot,
 	) (transition.ValidatorUpdates, error)
 	// Transition performs the core state transition.
 	Transition(
 		ctx ContextT,
-		st BeaconStateT,
-		blk BeaconBlockT,
+		st *statedb.StateDB,
+		blk *ctypes.BeaconBlock,
 	) (transition.ValidatorUpdates, error)
 }
 
 // StorageBackend is the interface for the storage backend.
 type StorageBackend[
-	BeaconStateT any,
 	DepositStoreT any,
 ] interface {
 	// DepositStore retrieves the deposit store.
 	DepositStore() DepositStoreT
 	// StateFromContext retrieves the beacon state from the context.
-	StateFromContext(context.Context) BeaconStateT
+	StateFromContext(context.Context) *statedb.StateDB
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.
@@ -215,17 +211,6 @@ type TelemetrySink interface {
 	// MeasureSince measures the time since the provided start time,
 	// identified by the provided keys.
 	MeasureSince(key string, start time.Time, args ...string)
-}
-
-type BlobSidecars[T, BlobSidecarT any] interface {
-	constraints.Nillable
-	constraints.SSZMarshallable
-	constraints.Empty[T]
-	Len() int
-	Get(index int) BlobSidecarT
-	GetSidecars() []BlobSidecarT
-	ValidateBlockRoots() error
-	VerifyInclusionProofs(kzgOffset uint64, inclusionProofDepth uint8) error
 }
 
 type BlockBuilderI interface {

@@ -28,10 +28,7 @@ import (
 
 // PayloadBuilder is used to build payloads on the
 // execution client.
-type PayloadBuilder[
-	BeaconStateT BeaconState,
-	PayloadIDT ~[8]byte,
-] struct {
+type PayloadBuilder struct {
 	// cfg holds the configuration settings for the PayloadBuilder.
 	cfg *Config
 	// chainSpec holds the chain specifications for the PayloadBuilder.
@@ -39,34 +36,25 @@ type PayloadBuilder[
 	// logger is used for logging within the PayloadBuilder.
 	logger log.Logger
 	// ee is the execution engine.
-	ee ExecutionEngine[PayloadIDT]
+	ee ExecutionEngine
 	// pc is the payload ID cache, it is used to store
 	// "in-flight" payloads that are being built on
 	// the execution client.
-	pc PayloadCache[PayloadIDT, [32]byte, math.Slot]
+	pc PayloadCache[[32]byte, math.Slot]
 	// attributesFactory is used to create attributes for the
-	attributesFactory AttributesFactory[BeaconStateT]
+	attributesFactory AttributesFactory
 }
 
 // New creates a new service.
-func New[
-	BeaconStateT BeaconState,
-	PayloadIDT ~[8]byte,
-](
+func New(
 	cfg *Config,
 	chainSpec chain.ChainSpec,
 	logger log.Logger,
-	ee ExecutionEngine[PayloadIDT],
-	pc PayloadCache[PayloadIDT, [32]byte, math.Slot],
-	af AttributesFactory[BeaconStateT],
-) *PayloadBuilder[
-	BeaconStateT,
-	PayloadIDT,
-] {
-	return &PayloadBuilder[
-		BeaconStateT,
-		PayloadIDT,
-	]{
+	ee ExecutionEngine,
+	pc PayloadCache[[32]byte, math.Slot],
+	af AttributesFactory,
+) *PayloadBuilder {
+	return &PayloadBuilder{
 		cfg:               cfg,
 		chainSpec:         chainSpec,
 		logger:            logger,
@@ -77,9 +65,6 @@ func New[
 }
 
 // Enabled returns true if the payload builder is enabled.
-func (pb *PayloadBuilder[
-	BeaconStateT,
-	PayloadIDT,
-]) Enabled() bool {
+func (pb *PayloadBuilder) Enabled() bool {
 	return pb.cfg.Enabled
 }

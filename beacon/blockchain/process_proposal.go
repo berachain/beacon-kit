@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -46,29 +47,29 @@ const (
 )
 
 func (s *Service[
-	_, _, ConsensusBlockT, BeaconBlockT, _,
-	_, GenesisT, ConsensusSidecarsT, BlobSidecarsT,
+	_, _, ConsensusBlockT, _,
+	GenesisT, ConsensusSidecarsT,
 ]) ProcessProposal(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
 	// Decode the beacon block.
 	blk, err := encoding.
-		UnmarshalBeaconBlockFromABCIRequest[BeaconBlockT](
-		req,
-		BeaconBlockTxIndex,
-		s.chainSpec.ActiveForkVersionForSlot(math.U64(req.Height)),
-	)
+		UnmarshalBeaconBlockFromABCIRequest(
+			req,
+			BeaconBlockTxIndex,
+			s.chainSpec.ActiveForkVersionForSlot(math.U64(req.Height)),
+		)
 	if err != nil {
 		return createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
 
 	// Decode the blob sidecars.
 	sidecars, err := encoding.
-		UnmarshalBlobSidecarsFromABCIRequest[BlobSidecarsT](
-		req,
-		BlobSidecarsTxIndex,
-	)
+		UnmarshalBlobSidecarsFromABCIRequest(
+			req,
+			BlobSidecarsTxIndex,
+		)
 	if err != nil {
 		return createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
@@ -82,7 +83,7 @@ func (s *Service[
 
 	// Process the blob sidecars, if any
 	if !sidecars.IsNil() && sidecars.Len() > 0 {
-		var consensusSidecars *types.ConsensusSidecars[BlobSidecarsT]
+		var consensusSidecars *types.ConsensusSidecars
 		consensusSidecars = consensusSidecars.New(
 			sidecars,
 			blk.GetHeader(),
@@ -91,10 +92,7 @@ func (s *Service[
 		s.logger.Info("Received incoming blob sidecars")
 
 		// TODO: Clean this up once we remove generics.
-		cs := convertConsensusSidecars[
-			ConsensusSidecarsT,
-			BlobSidecarsT,
-		](consensusSidecars)
+		cs := convertConsensusSidecars[ConsensusSidecarsT](consensusSidecars)
 
 		// Get the sidecar verification function from the state processor
 		//nolint:govet	// err shadowing
@@ -127,7 +125,7 @@ func (s *Service[
 	}
 
 	// Process the block
-	var consensusBlk *types.ConsensusBlock[BeaconBlockT]
+	var consensusBlk *types.ConsensusBlock
 	consensusBlk = consensusBlk.New(
 		blk,
 		req.GetProposerAddress(),
@@ -150,11 +148,11 @@ func (s *Service[
 // VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
 func (s *Service[
-	_, _, ConsensusBlockT, BeaconBlockT, _, _,
-	_, _, _,
+	_, _, ConsensusBlockT, _,
+	_, _,
 ]) VerifyIncomingBlock(
 	ctx context.Context,
-	beaconBlk BeaconBlockT,
+	beaconBlk *ctypes.BeaconBlock,
 	consensusTime math.U64,
 	proposerAddress []byte,
 ) error {
@@ -184,6 +182,7 @@ func (s *Service[
 	// to avoid modifying the underlying state, for the event in which
 	// we have to rebuild a payload for this slot again, if we do not agree
 	// with the incoming block.
+	//nolint:contextcheck // TODO: We should look at using the passed context
 	postState := preState.Copy()
 
 	// Verify the state root of the incoming block.
@@ -253,12 +252,12 @@ func (s *Service[
 
 // verifyStateRoot verifies the state root of an incoming block.
 func (s *Service[
-	_, _, ConsensusBlockT, BeaconBlockT, BeaconStateT,
-	_, _, _, _,
+	_, _, ConsensusBlockT,
+	_, _, _,
 ]) verifyStateRoot(
 	ctx context.Context,
-	st BeaconStateT,
-	blk BeaconBlockT,
+	st *statedb.StateDB,
+	blk *ctypes.BeaconBlock,
 	consensusTime math.U64,
 	proposerAddress []byte,
 ) error {
@@ -293,7 +292,7 @@ func (s *Service[
 // shouldBuildOptimisticPayloads returns true if optimistic
 // payload builds are enabled.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _,
 ]) shouldBuildOptimisticPayloads() bool {
 	return s.optimisticPayloadBuilds && s.localBuilder.Enabled()
 }
@@ -313,9 +312,8 @@ func createProcessProposalResponse(
 
 func convertConsensusSidecars[
 	ConsensusSidecarsT any,
-	BlobSidecarsT any,
 ](
-	cSidecars *types.ConsensusSidecars[BlobSidecarsT],
+	cSidecars *types.ConsensusSidecars,
 ) ConsensusSidecarsT {
 	val, ok := any(cSidecars).(ConsensusSidecarsT)
 	if !ok {

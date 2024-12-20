@@ -21,6 +21,8 @@
 package signer
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -52,7 +54,13 @@ func (f BLSSigner) PublicKey() crypto.BLSPubkey {
 	if err != nil {
 		return crypto.BLSPubkey{}
 	}
-	return crypto.BLSPubkey(key.Bytes())
+
+	blsKey, err := bls12381.NewPublicKeyFromBytes(key.Bytes())
+	if err != nil {
+		return crypto.BLSPubkey{}
+	}
+
+	return crypto.BLSPubkey(blsKey.Compress())
 }
 
 // Sign generates a signature for a given message using the signer's secret key.
@@ -75,8 +83,11 @@ func (f BLSSigner) VerifySignature(
 	msg []byte,
 	signature crypto.BLSSignature,
 ) error {
-	if ok := bls12381.PubKey(pubKey[:]).
-		VerifySignature(msg, signature[:]); !ok {
+	pk, err := bls12381.NewPublicKeyFromCompressedBytes(pubKey[:])
+	if err != nil {
+		return fmt.Errorf("verifying signature: %w", err)
+	}
+	if !pk.VerifySignature(msg, signature[:]) {
 		return ErrInvalidSignature
 	}
 	return nil

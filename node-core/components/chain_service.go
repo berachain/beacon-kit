@@ -39,16 +39,13 @@ import (
 
 // ChainServiceInput is the input for the chain service provider.
 type ChainServiceInput[
-	BeaconBlockT any,
-	BeaconStateT any,
 	StorageBackendT any,
 	LoggerT any,
-	BeaconBlockStoreT BlockStore[BeaconBlockT],
+	BlockStoreT BlockStore,
 	DepositStoreT any,
 	DepositContractT any,
 	AvailabilityStoreT any,
 	ConsensusSidecarsT any,
-	BlobSidecarsT any,
 ] struct {
 	depinject.In
 
@@ -56,71 +53,51 @@ type ChainServiceInput[
 	ChainSpec       chain.ChainSpec
 	Cfg             *config.Config
 	EngineClient    *client.EngineClient
-	ExecutionEngine *engine.Engine[PayloadID]
-	LocalBuilder    LocalBuilder[BeaconStateT]
+	ExecutionEngine *engine.Engine
+	LocalBuilder    LocalBuilder
 	Logger          LoggerT
 	Signer          crypto.BLSSigner
-	StateProcessor  StateProcessor[
-		BeaconBlockT, BeaconStateT, *Context,
-	]
-	StorageBackend StorageBackendT
-	BlobProcessor  BlobProcessor[
-		AvailabilityStoreT, ConsensusSidecarsT, BlobSidecarsT,
+	StateProcessor  StateProcessor[*Context]
+	StorageBackend  StorageBackendT
+	BlobProcessor   BlobProcessor[
+		AvailabilityStoreT, ConsensusSidecarsT,
 	]
 	TelemetrySink         *metrics.TelemetrySink
-	BlockStore            BeaconBlockStoreT
-	DepositStore          DepositStoreT
 	BeaconDepositContract DepositContractT
 }
 
 // ProvideChainService is a depinject provider for the blockchain service.
 func ProvideChainService[
-	AvailabilityStoreT AvailabilityStore[BlobSidecarsT],
-	ConsensusBlockT ConsensusBlock[BeaconBlockT],
-	BeaconBlockT BeaconBlock[BeaconBlockT],
-	BeaconStateT BeaconState[BeaconStateT, BeaconStateMarshallableT, KVStoreT],
-	BeaconStateMarshallableT any,
-	BlobSidecarT BlobSidecar,
-	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
-	ConsensusSidecarsT da.ConsensusSidecars[BlobSidecarsT],
-	BlockStoreT any,
+	AvailabilityStoreT AvailabilityStore,
+	ConsensusBlockT ConsensusBlock,
+	ConsensusSidecarsT da.ConsensusSidecars,
 	DepositStoreT DepositStore,
 	DepositContractT deposit.Contract,
 	GenesisT Genesis,
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
-	StorageBackendT StorageBackend[
-		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,
-	],
-	BeaconBlockStoreT BlockStore[BeaconBlockT],
+	StorageBackendT StorageBackend[AvailabilityStoreT, BlockStoreT, DepositStoreT],
+	BlockStoreT BlockStore,
 ](
 	in ChainServiceInput[
-		BeaconBlockT, BeaconStateT,
-		StorageBackendT, LoggerT,
-		BeaconBlockStoreT, DepositStoreT, DepositContractT,
-		AvailabilityStoreT, ConsensusSidecarsT, BlobSidecarsT,
+		StorageBackendT, LoggerT, BlockStoreT, DepositStoreT,
+		DepositContractT, AvailabilityStoreT, ConsensusSidecarsT,
 	],
 ) *blockchain.Service[
-	AvailabilityStoreT, DepositStoreT,
-	ConsensusBlockT, BeaconBlockT,
-	BeaconStateT, BeaconBlockStoreT,
-	GenesisT,
-	ConsensusSidecarsT, BlobSidecarsT,
+	AvailabilityStoreT, DepositStoreT, ConsensusBlockT,
+	BlockStoreT, GenesisT, ConsensusSidecarsT,
 ] {
 	return blockchain.NewService[
 		AvailabilityStoreT,
 		DepositStoreT,
 		ConsensusBlockT,
-		BeaconBlockT,
-		BeaconStateT,
-		BeaconBlockStoreT,
+		BlockStoreT,
 		GenesisT,
+		ConsensusSidecarsT,
 	](
 		cast.ToString(in.AppOpts.Get(flags.FlagHome)),
 		in.StorageBackend,
 		in.BlobProcessor,
-		in.BlockStore,
-		in.DepositStore,
 		in.BeaconDepositContract,
 		math.U64(in.ChainSpec.Eth1FollowDistance()),
 		in.Logger.With("service", "blockchain"),

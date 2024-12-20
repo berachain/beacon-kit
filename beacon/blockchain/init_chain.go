@@ -30,7 +30,7 @@ import (
 // ProcessGenesisData processes the genesis state and initializes the beacon
 // state.
 func (s *Service[
-	_, _, _, _, _, _, GenesisT, _, _,
+	_, _, _, _, GenesisT, _,
 ]) ProcessGenesisData(
 	ctx context.Context,
 	bytes []byte,
@@ -40,10 +40,23 @@ func (s *Service[
 		s.logger.Error("Failed to unmarshal genesis data", "error", err)
 		return nil, err
 	}
-	return s.stateProcessor.InitializePreminedBeaconStateFromEth1(
+
+	validatorUpdates, err := s.stateProcessor.InitializePreminedBeaconStateFromEth1(
 		s.storageBackend.StateFromContext(ctx),
 		genesisData.GetDeposits(),
 		genesisData.GetExecutionPayloadHeader(),
 		genesisData.GetForkVersion(),
 	)
+	if err != nil {
+		return nil, err
+	}
+
+	// After deposits are validated, store the genesis deposits in the deposit store.
+	if err = s.storageBackend.DepositStore().EnqueueDeposits(
+		genesisData.GetDeposits(),
+	); err != nil {
+		return nil, err
+	}
+
+	return validatorUpdates, nil
 }
