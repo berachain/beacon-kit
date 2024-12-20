@@ -21,6 +21,8 @@
 package state
 
 import (
+	"context"
+
 	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
@@ -52,8 +54,8 @@ func (s *StateDB) NewFromDB(
 }
 
 // Copy returns a copy of the beacon state.
-func (s *StateDB) Copy() *StateDB {
-	return s.NewFromDB(s.KVStore.Copy(), s.cs)
+func (s *StateDB) Copy(ctx context.Context) *StateDB {
+	return s.NewFromDB(s.KVStore.Copy(ctx), s.cs)
 }
 
 // IncreaseBalance increases the balance of a validator.
