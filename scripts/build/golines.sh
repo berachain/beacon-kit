@@ -42,9 +42,9 @@ else
 fi
 
 # Find all .go files in the project directory and its subdirectories, ignoring .pb.go and .pb_encoding.go files
-find "${ROOT_DIR}" -type f -name "*.go" ! -name "*.pb.go" ! -name "*.pb_encoding.go" | while read -r file; do
+find "${ROOT_DIR}" -type f -name "*.go" ! -name "*.pb.go" ! -name "*_test.go" ! -name "*.pb_encoding.go" | while read -r file; do
     echo "Processing $file..."
-    golines --reformat-tags --shorten-comments --write-output --max-len=80 "$file"
+    golines --reformat-tags --shorten-comments --write-output --max-len=140 "$file"
 done
 
 echo "✅ All files processed."

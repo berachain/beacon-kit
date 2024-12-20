@@ -79,7 +79,7 @@ type DepositStore interface {
 	GetDepositsByIndex(
 		startIndex uint64,
 		numView uint64,
-	) ([]*ctypes.Deposit, error)
+	) (ctypes.Deposits, error)
 }
 
 // Withdrawals defines the interface for managing withdrawal operations.

@@ -40,7 +40,7 @@ func (sp *StateProcessor[
 	_, BeaconStateT, _, _,
 ]) InitializePreminedBeaconStateFromEth1(
 	st BeaconStateT,
-	deposits []*ctypes.Deposit,
+	deposits ctypes.Deposits,
 	execPayloadHeader *ctypes.ExecutionPayloadHeader,
 	genesisVersion common.Version,
 ) (transition.ValidatorUpdates, error) {
@@ -57,11 +57,9 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	// Eth1DepositIndex will be set in processDeposit
-
 	var eth1Data *ctypes.Eth1Data
 	eth1Data = eth1Data.New(
-		common.Root{},
+		deposits.HashTreeRoot(),
 		0,
 		execPayloadHeader.GetBlockHash(),
 	)
@@ -95,6 +93,10 @@ func (sp *StateProcessor[
 		}
 	}
 
+	// Before processing deposits, set the eth1 deposit index to 0.
+	if err := st.SetEth1DepositIndex(0); err != nil {
+		return nil, err
+	}
 	if err := sp.validateGenesisDeposits(st, deposits); err != nil {
 		return nil, err
 	}

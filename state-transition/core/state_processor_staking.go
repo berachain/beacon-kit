@@ -34,10 +34,7 @@ import (
 // local state.
 func (sp *StateProcessor[
 	BeaconBlockT, BeaconStateT, _, _,
-]) processOperations(
-	st BeaconStateT,
-	blk BeaconBlockT,
-) error {
+]) processOperations(st BeaconStateT, blk BeaconBlockT) error {
 	// Verify that outstanding deposits are processed
 	// up to the maximum number of deposits
 
@@ -52,7 +49,9 @@ func (sp *StateProcessor[
 			sp.cs.MaxDepositsPerBlock(), len(deposits),
 		)
 	}
-	if err := sp.validateNonGenesisDeposits(st, deposits); err != nil {
+	if err := sp.validateNonGenesisDeposits(
+		st, deposits, blk.GetBody().GetEth1Data().DepositRoot,
+	); err != nil {
 		return err
 	}
 	for _, dep := range deposits {
@@ -60,46 +59,25 @@ func (sp *StateProcessor[
 			return err
 		}
 	}
-	return nil
+	return st.SetEth1Data(blk.GetBody().Eth1Data)
 }
 
 // processDeposit processes the deposit and ensures it matches the local state.
 func (sp *StateProcessor[
 	_, BeaconStateT, _, _,
-]) processDeposit(
-	st BeaconStateT,
-	dep *ctypes.Deposit,
-) error {
-	slot, err := st.GetSlot()
+]) processDeposit(st BeaconStateT, dep *ctypes.Deposit) error {
+	eth1DepositIndex, err := st.GetEth1DepositIndex()
 	if err != nil {
 		return err
 	}
 
-	depositIndex := dep.GetIndex().Unwrap()
-	switch {
-	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
-		// Bartio has a bug which makes DepositEth1ChainID point to
-		// next deposit index, not latest processed deposit index.
-		// We keep it for backward compatibility.
-		depositIndex++
-	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-		slot != 0 && slot < math.U64(spec.BoonetFork2Height):
-		// Boonet pre fork2 has a bug which makes DepositEth1ChainID point to
-		// next deposit index, not latest processed deposit index.
-		// We keep it for backward compatibility.
-		depositIndex++
-	default:
-		// Nothing to do. We correctly set the deposit index to the last
-		// processed deposit index.
-	}
-
-	if err = st.SetEth1DepositIndex(depositIndex); err != nil {
+	if err = st.SetEth1DepositIndex(eth1DepositIndex + 1); err != nil {
 		return err
 	}
 
 	sp.logger.Info(
 		"Processed deposit to set Eth 1 deposit index",
-		"deposit_index", depositIndex,
+		"previous", eth1DepositIndex, "new", eth1DepositIndex+1,
 	)
 
 	return sp.applyDeposit(st, dep)
@@ -108,10 +86,7 @@ func (sp *StateProcessor[
 // applyDeposit processes the deposit and ensures it matches the local state.
 func (sp *StateProcessor[
 	_, BeaconStateT, _, _,
-]) applyDeposit(
-	st BeaconStateT,
-	dep *ctypes.Deposit,
-) error {
+]) applyDeposit(st BeaconStateT, dep *ctypes.Deposit) error {
 	idx, err := st.ValidatorIndexByPubkey(dep.GetPubkey())
 	if err != nil {
 		// If the validator does not exist, we add the validator.
@@ -164,10 +139,7 @@ func (sp *StateProcessor[
 // createValidator creates a validator if the deposit is valid.
 func (sp *StateProcessor[
 	_, BeaconStateT, _, _,
-]) createValidator(
-	st BeaconStateT,
-	dep *ctypes.Deposit,
-) error {
+]) createValidator(st BeaconStateT, dep *ctypes.Deposit) error {
 	// Get the current slot.
 	slot, err := st.GetSlot()
 	if err != nil {
@@ -224,11 +196,7 @@ func (sp *StateProcessor[
 // addValidatorToRegistry adds a validator to the registry.
 func (sp *StateProcessor[
 	_, BeaconStateT, _, _,
-]) addValidatorToRegistry(
-	st BeaconStateT,
-	dep *ctypes.Deposit,
-	slot math.Slot,
-) error {
+]) addValidatorToRegistry(st BeaconStateT, dep *ctypes.Deposit, slot math.Slot) error {
 	var val *ctypes.Validator
 	val = val.New(
 		dep.GetPubkey(),
@@ -260,8 +228,7 @@ func (sp *StateProcessor[
 	sp.logger.Info(
 		"Processed deposit to create new validator",
 		"deposit_amount", float64(dep.GetAmount().Unwrap())/math.GweiPerWei,
-		"validator_index", idx,
-		"withdrawal_epoch", val.GetWithdrawableEpoch(),
+		"validator_index", idx, "withdrawal_epoch", val.GetWithdrawableEpoch(),
 	)
 	return nil
 }

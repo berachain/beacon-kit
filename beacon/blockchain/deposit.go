@@ -39,7 +39,7 @@ func (s *Service[
 	ctx context.Context,
 	blockNum math.U64,
 ) {
-	if blockNum < s.eth1FollowDistance {
+	if blockNum <= s.eth1FollowDistance {
 		s.logger.Info(
 			"depositFetcher, nothing to fetch",
 			"block num", blockNum,
@@ -78,7 +78,7 @@ func (s *Service[
 		)
 	}
 
-	if err = s.depositStore.EnqueueDeposits(deposits); err != nil {
+	if err = s.storageBackend.DepositStore().EnqueueDeposits(deposits); err != nil {
 		s.logger.Error("Failed to store deposits", "error", err)
 		s.failedBlocksMu.Lock()
 		s.failedBlocks[blockNum] = struct{}{}

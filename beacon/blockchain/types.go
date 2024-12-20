@@ -175,7 +175,7 @@ type StateProcessor[
 	// from the eth1 deposits.
 	InitializePreminedBeaconStateFromEth1(
 		BeaconStateT,
-		[]*ctypes.Deposit,
+		ctypes.Deposits,
 		*ctypes.ExecutionPayloadHeader,
 		common.Version,
 	) (transition.ValidatorUpdates, error)
@@ -202,6 +202,7 @@ type StateProcessor[
 type StorageBackend[
 	AvailabilityStoreT any,
 	BeaconStateT any,
+	BlockStoreT any,
 	DepositStoreT any,
 ] interface {
 	// AvailabilityStore returns the availability store for the given context.
@@ -210,6 +211,8 @@ type StorageBackend[
 	StateFromContext(context.Context) BeaconStateT
 	// DepositStore retrieves the deposit store.
 	DepositStore() DepositStoreT
+	// BlockStore retrieves the block store.
+	BlockStore() BlockStoreT
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.

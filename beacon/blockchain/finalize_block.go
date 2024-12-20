@@ -97,7 +97,7 @@ func (s *Service[
 
 	// store the finalized block in the KVStore.
 	slot := blk.GetSlot()
-	if err = s.blockStore.Set(blk); err != nil {
+	if err = s.storageBackend.BlockStore().Set(blk); err != nil {
 		s.logger.Error(
 			"failed to store block", "slot", slot, "error", err,
 		)
