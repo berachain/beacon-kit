@@ -65,8 +65,6 @@ type BlobSidecars[T any] interface {
 	constraints.SSZMarshallable
 	constraints.Empty[T]
 	constraints.Nillable
-	// Len returns the length of the blobs sidecars.
-	Len() int
 }
 
 // ExecutionEngine is the interface for the execution engine.

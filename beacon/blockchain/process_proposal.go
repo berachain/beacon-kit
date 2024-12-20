@@ -87,9 +87,9 @@ func (s *Service[
 
 	// Make sure we have the right number of BlobSidecars
 	numCommitments := len(blk.GetBody().GetBlobKzgCommitments())
-	if numCommitments != sidecars.Len() {
+	if numCommitments != len(sidecars) {
 		err = fmt.Errorf("expected %d sidecars, got %d",
-			numCommitments, sidecars.Len(),
+			numCommitments, len(sidecars),
 		)
 		return createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
@@ -183,7 +183,7 @@ func (s *Service[
 	s.logger.Info(
 		"Blob sidecars verification succeeded - accepting incoming blob sidecars",
 		"num_blobs",
-		sidecars.Len(),
+		len(sidecars),
 	)
 	return nil
 }

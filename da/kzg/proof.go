@@ -74,11 +74,11 @@ func ArgsFromSidecars(
 	scs datypes.BlobSidecars,
 ) *kzgtypes.BlobProofArgs {
 	proofArgs := &kzgtypes.BlobProofArgs{
-		Blobs:       make([]*eip4844.Blob, scs.Len()),
-		Proofs:      make([]eip4844.KZGProof, scs.Len()),
-		Commitments: make([]eip4844.KZGCommitment, scs.Len()),
+		Blobs:       make([]*eip4844.Blob, len(scs)),
+		Proofs:      make([]eip4844.KZGProof, len(scs)),
+		Commitments: make([]eip4844.KZGCommitment, len(scs)),
 	}
-	for i, sidecar := range scs.GetSidecars() {
+	for i, sidecar := range scs {
 		blob := sidecar.GetBlob()
 		proofArgs.Blobs[i] = &blob
 		proofArgs.Proofs[i] = sidecar.GetKzgProof()

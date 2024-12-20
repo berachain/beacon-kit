@@ -71,7 +71,7 @@ func (bv *verifier) verifySidecars(
 	) error,
 ) error {
 	defer bv.metrics.measureVerifySidecarsDuration(
-		time.Now(), math.U64(sidecars.Len()),
+		time.Now(), math.U64(len(sidecars)),
 		bv.proofVerifier.GetImplementation(),
 	)
 
@@ -81,7 +81,7 @@ func (bv *verifier) verifySidecars(
 	duplicateCommitment := make(map[eip4844.KZGCommitment]struct{})
 
 	// Validate sidecar fields against data from the BeaconBlock.
-	for i, s := range sidecars.GetSidecars() {
+	for i, s := range sidecars {
 		// Check if sidecar's kzgCommitment is duplicate. Along with the
 		// length check and the inclusion proof, this fully verifies that
 		// the KzgCommitments in the BlobSidecar are the exact same as the
@@ -138,7 +138,7 @@ func (bv *verifier) verifyInclusionProofs(
 ) error {
 	startTime := time.Now()
 	defer bv.metrics.measureVerifyInclusionProofsDuration(
-		startTime, math.U64(scs.Len()),
+		startTime, math.U64(len(scs)),
 	)
 
 	// Grab the KZG offset for the fork version.
@@ -166,20 +166,20 @@ func (bv *verifier) verifyKZGProofs(
 ) error {
 	start := time.Now()
 	defer bv.metrics.measureVerifyKZGProofsDuration(
-		start, math.U64(scs.Len()),
+		start, math.U64(len(scs)),
 		bv.proofVerifier.GetImplementation(),
 	)
 
-	switch scs.Len() {
+	switch len(scs) {
 	case 0:
 		return nil
 	case 1:
-		blob := scs.Get(0).GetBlob()
+		blob := scs[0].GetBlob()
 		// This method is fastest for a single blob.
 		return bv.proofVerifier.VerifyBlobProof(
 			&blob,
-			scs.Get(0).GetKzgProof(),
-			scs.Get(0).GetKzgCommitment(),
+			scs[0].GetKzgProof(),
+			scs[0].GetKzgCommitment(),
 		)
 	default:
 		// For multiple blobs batch verification is more performant

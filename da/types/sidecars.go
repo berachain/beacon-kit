@@ -35,18 +35,6 @@ func (bs *BlobSidecars) Empty() *BlobSidecars {
 	return &BlobSidecars{}
 }
 
-func (bs *BlobSidecars) Len() int {
-	return len(*bs)
-}
-
-func (bs *BlobSidecars) GetSidecars() []*BlobSidecar {
-	return *bs
-}
-
-func (bs *BlobSidecars) Get(index int) *BlobSidecar {
-	return (*bs)[index]
-}
-
 // IsNil checks to see if blobs are nil.
 func (bs *BlobSidecars) IsNil() bool {
 	return bs == nil
@@ -55,12 +43,16 @@ func (bs *BlobSidecars) IsNil() bool {
 // ValidateBlockRoots checks to make sure that
 // all blobs in the sidecar are from the same block.
 func (bs *BlobSidecars) ValidateBlockRoots() error {
+	if bs.IsNil() {
+		return ErrAttemptedToVerifyNilSidecar
+	}
+	sidecars := *bs
 	// We only need to check if there is more than
 	// a single blob in the sidecar.
-	if bs.Len() > 1 {
-		firstHtr := bs.Get(0).SignedBeaconBlockHeader.HashTreeRoot()
-		for i := 1; i < bs.Len(); i++ {
-			if firstHtr != bs.Get(i).SignedBeaconBlockHeader.HashTreeRoot() {
+	if len(sidecars) > 1 {
+		firstHtr := sidecars[0].SignedBeaconBlockHeader.HashTreeRoot()
+		for i := 1; i < len(sidecars); i++ {
+			if firstHtr != sidecars[i].SignedBeaconBlockHeader.HashTreeRoot() {
 				return ErrSidecarContainsDifferingBlockRoots
 			}
 		}
