@@ -49,7 +49,7 @@ func (bs *BlobSidecars) Get(index int) *BlobSidecar {
 
 // IsNil checks to see if blobs are nil.
 func (bs *BlobSidecars) IsNil() bool {
-	return bs == nil || len(*bs) == 0
+	return bs == nil
 }
 
 // ValidateBlockRoots checks to make sure that
