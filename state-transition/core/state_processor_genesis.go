@@ -152,11 +152,11 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	activeVals, err := sp.getActiveVals(st, 0)
+	activeVals, err := getActiveVals(sp.cs, st, 0)
 	if err != nil {
 		return nil, err
 	}
-	return sp.validatorSetsDiffs(nil, activeVals), nil
+	return validatorSetsDiffs(nil, activeVals), nil
 }
 
 func (sp *StateProcessor[

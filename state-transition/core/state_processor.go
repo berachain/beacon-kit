@@ -256,7 +256,7 @@ func (sp *StateProcessor[
 	// track validators set before updating it, to be able to
 	// inform consensus of the validators set changes
 	currentEpoch := sp.cs.SlotToEpoch(slot)
-	currentActiveVals, err := sp.getActiveVals(st, currentEpoch)
+	currentActiveVals, err := getActiveVals(sp.cs, st, currentEpoch)
 	if err != nil {
 		return nil, err
 	}
@@ -285,12 +285,12 @@ func (sp *StateProcessor[
 
 	// finally compute diffs in validator set to duly update consensus
 	nextEpoch := currentEpoch + 1
-	nextActiveVals, err := sp.getActiveVals(st, nextEpoch)
+	nextActiveVals, err := getActiveVals(sp.cs, st, nextEpoch)
 	if err != nil {
 		return nil, err
 	}
 
-	return sp.validatorSetsDiffs(currentActiveVals, nextActiveVals), nil
+	return validatorSetsDiffs(currentActiveVals, nextActiveVals), nil
 }
 
 // processBlockHeader processes the header and ensures it matches the local

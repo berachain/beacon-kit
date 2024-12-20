@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"slices"
 
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/bytes"
@@ -127,7 +128,7 @@ func (sp *StateProcessor[
 	}
 	nextEpoch := sp.cs.SlotToEpoch(slot) + 1
 
-	nextEpochVals, err := sp.getActiveVals(st, nextEpoch)
+	nextEpochVals, err := getActiveVals(sp.cs, st, nextEpoch)
 	if err != nil {
 		return fmt.Errorf(
 			"registry update, failed retrieving next epoch vals: %w",
@@ -188,10 +189,7 @@ func (sp *StateProcessor[
 
 // Note: validatorSetsDiffs does not need to be a StateProcessor method
 // but it helps simplifying generic instantiation.
-// TODO: Turn this into a free function
-func (*StateProcessor[
-	_, _,
-]) validatorSetsDiffs(
+func validatorSetsDiffs(
 	prevEpochValidators []*ctypes.Validator,
 	currEpochValidator []*ctypes.Validator,
 ) transition.ValidatorUpdates {
@@ -244,9 +242,11 @@ func (*StateProcessor[
 
 // nextEpochValidatorSet returns the current estimation of what next epoch
 // validator set would be.
-func (sp *StateProcessor[
-	_, _,
-]) getActiveVals(st *statedb.StateDB, epoch math.Epoch) ([]*ctypes.Validator, error) {
+func getActiveVals(
+	cs chain.ChainSpec,
+	st *statedb.StateDB,
+	epoch math.Epoch,
+) ([]*ctypes.Validator, error) {
 	vals, err := st.GetValidators()
 	if err != nil {
 		return nil, err
@@ -259,19 +259,19 @@ func (sp *StateProcessor[
 
 	activeVals := make([]*ctypes.Validator, 0, len(vals))
 	switch {
-	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
+	case cs.DepositEth1ChainID() == spec.BartioChainID:
 		// Bartio does not properly handle validators epochs, so
 		// we have an ad-hoc definition of active validator there
 		for _, val := range vals {
-			if val.GetEffectiveBalance() > math.U64(sp.cs.EjectionBalance()) {
+			if val.GetEffectiveBalance() > math.U64(cs.EjectionBalance()) {
 				activeVals = append(activeVals, val)
 			}
 		}
-	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
+	case cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
 		slot < math.U64(spec.BoonetFork3Height):
 		// Boonet inherits Bartio processing till fork 3
 		for _, val := range vals {
-			if val.GetEffectiveBalance() > math.U64(sp.cs.EjectionBalance()) {
+			if val.GetEffectiveBalance() > math.U64(cs.EjectionBalance()) {
 				activeVals = append(activeVals, val)
 			}
 		}
