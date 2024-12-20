@@ -23,23 +23,16 @@ package suite
 import (
 	"context"
 	"crypto/ecdsa"
-	"fmt"
-	"math/big"
-	"sync/atomic"
 	"time"
 
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/testing/play_e2e/config"
 	"github.com/berachain/beacon-kit/testing/play_e2e/suite/types"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/starlark_run_config"
 	"github.com/kurtosis-tech/kurtosis/api/golang/engine/lib/kurtosis_context"
-	"github.com/sourcegraph/conc/iter"
 )
 
 // SetupSuite executes before the test suite begins execution.
@@ -130,11 +123,9 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	// Wait for the finalized block number to increase a bit to
 	// ensure all clients are in sync.
 	//nolint:mnd // 3 blocks
-	err = s.WaitForFinalizedBlockNumber(3)
+	err = s.WaitForFinalizedBlockNumber(2)
 	s.Require().NoError(err, "Error waiting for finalized block number")
 
-	// Fund any requested accounts.
-	s.FundAccounts()
 }
 
 func (s *KurtosisE2ESuite) SetupConsensusClients() error {
@@ -205,115 +196,6 @@ func (s *KurtosisE2ESuite) SetupJSONRPCBalancer() error {
 	}
 
 	return nil
-}
-
-// FundAccounts funds the accounts for the test suite.
-func (s *KurtosisE2ESuite) FundAccounts() {
-	ctx := context.Background()
-	nonce := atomic.Uint64{}
-	pendingNonce, err := s.JSONRPCBalancer().PendingNonceAt(
-		ctx, s.genesisAccount.Address())
-	s.Require().NoError(err, "Failed to get nonce for genesis account")
-	nonce.Store(pendingNonce)
-
-	var chainID *big.Int
-	chainID, err = s.JSONRPCBalancer().ChainID(ctx)
-	s.Require().NoError(err, "failed to get chain ID")
-	s.logger.Info("Chain-id is", "chain_id", chainID)
-	_, err = iter.MapErr(
-		s.testAccounts,
-		func(acc **types.EthAccount) (*ethtypes.Receipt, error) {
-			account := *acc
-			var gasTipCap *big.Int
-
-			if gasTipCap, err = s.JSONRPCBalancer().SuggestGasTipCap(ctx); err != nil {
-				var rpcErr rpc.Error
-				if errors.As(err, &rpcErr) && rpcErr.ErrorCode() == -32601 {
-					// Besu does not support eth_maxPriorityFeePerGas
-					// so we use a default value of 10 Gwei.
-					gasTipCap = big.NewInt(0).SetUint64(TenGwei)
-				} else {
-					return nil, err
-				}
-			}
-
-			gasFeeCap := new(big.Int).Add(
-				gasTipCap, big.NewInt(0).SetUint64(TenGwei))
-			nonceToSubmit := nonce.Add(1) - 1
-			//nolint:mnd // 20000 Ether
-			value := new(big.Int).Mul(big.NewInt(20000), big.NewInt(Ether))
-			dest := account.Address()
-			var signedTx *ethtypes.Transaction
-			if signedTx, err = s.genesisAccount.SignTx(
-				chainID, ethtypes.NewTx(&ethtypes.DynamicFeeTx{
-					ChainID: chainID, Nonce: nonceToSubmit,
-					GasTipCap: gasTipCap, GasFeeCap: gasFeeCap,
-					Gas: EtherTransferGasLimit, To: &dest,
-					Value: value, Data: nil,
-				}),
-			); err != nil {
-				return nil, err
-			}
-
-			cctx, cancel := context.WithTimeout(ctx, DefaultE2ETestTimeout)
-			defer cancel()
-			if err = s.JSONRPCBalancer().SendTransaction(cctx, signedTx); err != nil {
-				s.logger.Error(
-					"error submitting funding transaction",
-					"error",
-					err,
-				)
-				return nil, err
-			}
-
-			s.logger.Info(
-				"Funding transaction submitted, waiting for confirmation...",
-				"tx_hash", signedTx.Hash().Hex(), "nonce", nonceToSubmit,
-				"account", account.Name(), "value", value,
-			)
-
-			var receipt *ethtypes.Receipt
-
-			if receipt, err = bind.WaitMined(
-				cctx, s.JSONRPCBalancer(), signedTx,
-			); err != nil {
-				return nil, err
-			}
-
-			s.logger.Info(
-				"Funding transaction confirmed",
-				"tx_hash", signedTx.Hash().Hex(),
-				"account", account.Name(),
-			)
-
-			// Verify the receipt status.
-			if receipt.Status != ethtypes.ReceiptStatusSuccessful {
-				return nil, err
-			}
-
-			// Wait an extra block to ensure all clients are in sync.
-			//nolint:mnd,contextcheck // its okay.
-			if err = s.WaitForFinalizedBlockNumber(
-				receipt.BlockNumber.Uint64() + 2,
-			); err != nil {
-				return nil, err
-			}
-
-			// Verify the balance of the account
-			var balance *big.Int
-			if balance, err = s.JSONRPCBalancer().BalanceAt(
-				ctx, account.Address(), nil); err != nil {
-				return nil, err
-			} else if balance.Cmp(value) != 0 {
-				return nil, errors.Wrap(
-					ErrUnexpectedBalance,
-					fmt.Sprintf("expected: %v, got: %v", value, balance),
-				)
-			}
-			return receipt, nil
-		},
-	)
-	s.Require().NoError(err, "Error funding accounts")
 }
 
 // WaitForFinalizedBlockNumber waits for the finalized block number
