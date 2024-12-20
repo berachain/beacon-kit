@@ -182,7 +182,6 @@ func (s *Service[
 	// to avoid modifying the underlying state, for the event in which
 	// we have to rebuild a payload for this slot again, if we do not agree
 	// with the incoming block.
-	//nolint:contextcheck // TODO: We should look at using the passed context
 	postState := preState.Copy(ctx)
 
 	// Verify the state root of the incoming block.
