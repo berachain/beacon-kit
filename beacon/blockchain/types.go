@@ -133,7 +133,7 @@ type ReadOnlyBeaconState[
 	T any,
 ] interface {
 	// Copy creates a copy of the beacon state.
-	Copy() T
+	Copy(context.Context) T
 	// GetLatestBlockHeader returns the most recent block header.
 	GetLatestBlockHeader() (
 		*ctypes.BeaconBlockHeader,

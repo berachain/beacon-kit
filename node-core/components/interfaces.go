@@ -539,7 +539,7 @@ type (
 			bdb KVStoreT,
 			cs chain.ChainSpec,
 		) T
-		Copy() T
+		Copy(context.Context) T
 		Context() context.Context
 		HashTreeRoot() common.Root
 		GetMarshallable() (BeaconStateMarshallableT, error)
@@ -559,7 +559,7 @@ type (
 			ctx context.Context,
 		) T
 		// Copy returns a copy of the key-value store.
-		Copy() T
+		Copy(context.Context) T
 		// GetLatestExecutionPayloadHeader retrieves the latest execution
 		// payload
 		// header.
