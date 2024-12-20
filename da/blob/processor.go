@@ -89,11 +89,11 @@ func (sp *Processor[
 		blkHeader = cs.GetHeader()
 	)
 	defer sp.metrics.measureVerifySidecarsDuration(
-		time.Now(), math.U64(sidecars.Len()),
+		time.Now(), math.U64(len(sidecars)),
 	)
 
 	// Abort if there are no blobs to store.
-	if sidecars.Len() == 0 {
+	if len(sidecars) == 0 {
 		return nil
 	}
 
@@ -113,18 +113,18 @@ func (sp *Processor[
 	sidecars datypes.BlobSidecars,
 ) error {
 	defer sp.metrics.measureProcessSidecarsDuration(
-		time.Now(), math.U64(sidecars.Len()),
+		time.Now(), math.U64(len(sidecars)),
 	)
 
 	// Abort if there are no blobs to store.
-	if sidecars.Len() == 0 {
+	if len(sidecars) == 0 {
 		return nil
 	}
 
 	// If we have reached this point, we can safely assume that the blobs are
 	// valid and can be persisted, as well as that index 0 is filled.
 	return avs.Persist(
-		sidecars.Get(0).GetSignedBeaconBlockHeader().GetHeader().GetSlot(),
+		sidecars[0].GetSignedBeaconBlockHeader().GetHeader().GetSlot(),
 		sidecars,
 	)
 }
