@@ -38,46 +38,36 @@ func ProvideNodeAPIEngine() *echo.Engine {
 }
 
 type NodeAPIBackendInput[
-	BeaconBlockT any,
-	BeaconStateT any,
 	StorageBackendT any,
 ] struct {
 	depinject.In
 
 	ChainSpec      chain.ChainSpec
-	StateProcessor StateProcessor[BeaconBlockT, BeaconStateT, *Context]
+	StateProcessor StateProcessor[*Context]
 	StorageBackend StorageBackendT
 }
 
 func ProvideNodeAPIBackend[
-	AvailabilityStoreT AvailabilityStore[BlobSidecarsT],
-	BeaconBlockT any,
-	BeaconBlockStoreT BlockStore[BeaconBlockT],
-	BeaconStateT BeaconState[BeaconStateT, BeaconStateMarshallableT, KVStoreT],
-	BeaconStateMarshallableT any,
-	BlobSidecarsT any,
+	AvailabilityStoreT AvailabilityStore,
+	BeaconBlockStoreT BlockStore,
 	DepositStoreT DepositStore,
 	KVStoreT any,
 	NodeT interface {
 		CreateQueryContext(height int64, prove bool) (sdk.Context, error)
 	},
 	StorageBackendT StorageBackend[
-		AvailabilityStoreT, BeaconStateT, BeaconBlockStoreT, DepositStoreT,
+		AvailabilityStoreT, BeaconBlockStoreT, DepositStoreT,
 	],
 ](
-	in NodeAPIBackendInput[BeaconBlockT, BeaconStateT, StorageBackendT],
+	in NodeAPIBackendInput[StorageBackendT],
 ) *backend.Backend[
-	AvailabilityStoreT, BeaconBlockT,
-	BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BeaconBlockStoreT,
+	AvailabilityStoreT,
+	BeaconBlockStoreT,
 	sdk.Context, DepositStoreT,
 	NodeT, KVStoreT, StorageBackendT,
 ] {
 	return backend.New[
 		AvailabilityStoreT,
-		BeaconBlockT,
-		BeaconStateT,
-		BeaconStateMarshallableT,
-		BlobSidecarsT,
 		BeaconBlockStoreT,
 		sdk.Context,
 		DepositStoreT,

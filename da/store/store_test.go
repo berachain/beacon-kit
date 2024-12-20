@@ -67,19 +67,17 @@ func TestStore_PersistRace(t *testing.T) {
 			},
 		}
 	}
-	sidecars := datypes.BlobSidecars{
-		Sidecars: sc,
-	}
+	var sidecars datypes.BlobSidecars = sc
 
 	// Multiple writes to DB
-	err = s.Persist(0, &sidecars)
+	err = s.Persist(0, sidecars)
 	require.NoError(t, err)
-	err = s.Persist(1, &sidecars)
+	err = s.Persist(1, sidecars)
 	require.NoError(t, err)
 
 	// Pruning here primes the race condition for db.firstNonNilIndex
 	err = s.Prune(0, 1)
 	require.NoError(t, err)
-	err = s.Persist(0, &sidecars)
+	err = s.Persist(0, sidecars)
 	require.NoError(t, err)
 }

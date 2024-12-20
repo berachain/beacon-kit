@@ -36,15 +36,10 @@ import (
 
 // ServiceRegistryInput is the input for the service registry provider.
 type ServiceRegistryInput[
-	AvailabilityStoreT AvailabilityStore[BlobSidecarsT],
-	ConsensusBlockT ConsensusBlock[BeaconBlockT],
-	BeaconBlockT BeaconBlock[BeaconBlockT],
-	BeaconBlockStoreT BlockStore[BeaconBlockT],
-	BeaconStateT BeaconState[BeaconStateT, BeaconStateMarshallableT, KVStoreT],
-	BeaconStateMarshallableT any,
-	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
-	BlobSidecarT any,
-	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
+	AvailabilityStoreT AvailabilityStore,
+	ConsensusBlockT ConsensusBlock,
+	BeaconBlockStoreT BlockStore,
+	ConsensusSidecarsT ConsensusSidecars,
 	DepositStoreT DepositStore,
 	GenesisT Genesis,
 	KVStoreT any,
@@ -54,10 +49,10 @@ type ServiceRegistryInput[
 	depinject.In
 	ChainService *blockchain.Service[
 		AvailabilityStoreT, DepositStoreT,
-		ConsensusBlockT, BeaconBlockT,
-		BeaconStateT, BeaconBlockStoreT,
+		ConsensusBlockT,
+		BeaconBlockStoreT,
 		GenesisT,
-		ConsensusSidecarsT, BlobSidecarsT,
+		ConsensusSidecarsT,
 	]
 	EngineClient     *client.EngineClient
 	Logger           LoggerT
@@ -65,28 +60,16 @@ type ServiceRegistryInput[
 	ReportingService *version.ReportingService
 	TelemetrySink    *metrics.TelemetrySink
 	TelemetryService *telemetry.Service
-	ValidatorService *validator.Service[
-		BeaconBlockT,
-		BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositStoreT,
-	]
-	CometBFTService *cometbft.Service[LoggerT]
+	ValidatorService *validator.Service[DepositStoreT]
+	CometBFTService  *cometbft.Service[LoggerT]
 }
 
 // ProvideServiceRegistry is the depinject provider for the service registry.
 func ProvideServiceRegistry[
-	AvailabilityStoreT AvailabilityStore[BlobSidecarsT],
-	ConsensusBlockT ConsensusBlock[BeaconBlockT],
-	BeaconBlockT BeaconBlock[BeaconBlockT],
-
-	BeaconBlockStoreT BlockStore[BeaconBlockT],
-	BeaconStateT BeaconState[
-		BeaconStateT, BeaconStateMarshallableT,
-		KVStoreT,
-	],
-	BeaconStateMarshallableT any,
-	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
-	BlobSidecarT any,
-	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
+	AvailabilityStoreT AvailabilityStore,
+	ConsensusBlockT ConsensusBlock,
+	BeaconBlockStoreT BlockStore,
+	ConsensusSidecarsT ConsensusSidecars,
 	DepositStoreT DepositStore,
 	GenesisT Genesis,
 	KVStoreT any,
@@ -95,10 +78,9 @@ func ProvideServiceRegistry[
 ](
 	in ServiceRegistryInput[
 		AvailabilityStoreT,
-		ConsensusBlockT, BeaconBlockT,
-		BeaconBlockStoreT, BeaconStateT,
-		BeaconStateMarshallableT,
-		ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
+		ConsensusBlockT,
+		BeaconBlockStoreT,
+		ConsensusSidecarsT,
 		DepositStoreT,
 		GenesisT, KVStoreT, LoggerT, NodeAPIContextT,
 	],

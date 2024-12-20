@@ -38,7 +38,7 @@ type StateProcessorInput[
 	depinject.In
 	Logger          LoggerT
 	ChainSpec       chain.ChainSpec
-	ExecutionEngine *engine.Engine[PayloadID]
+	ExecutionEngine *engine.Engine
 	DepositStore    DepositStore
 	Signer          crypto.BLSSigner
 	TelemetrySink   *metrics.TelemetrySink
@@ -48,21 +48,15 @@ type StateProcessorInput[
 // framework.
 func ProvideStateProcessor[
 	LoggerT log.AdvancedLogger[LoggerT],
-	BeaconBlockT BeaconBlock[BeaconBlockT],
-	BeaconStateT BeaconState[BeaconStateT, BeaconStateMarshallableT, KVStoreT],
-	BeaconStateMarshallableT any,
 	DepositStoreT DepositStore,
 	KVStoreT BeaconStore[KVStoreT],
 ](
 	in StateProcessorInput[LoggerT],
 ) *core.StateProcessor[
-	BeaconBlockT,
-	BeaconStateT, *Context,
+	*Context,
 	KVStoreT,
 ] {
 	return core.NewStateProcessor[
-		BeaconBlockT,
-		BeaconStateT,
 		*Context,
 		KVStoreT,
 	](

@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/kzg"
+	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
@@ -37,10 +38,7 @@ import (
 
 // verifier is responsible for verifying blobs, including their
 // inclusion and KZG proofs.
-type verifier[
-	BlobSidecarT Sidecar,
-	BlobSidecarsT Sidecars[BlobSidecarT],
-] struct {
+type verifier struct {
 	// proofVerifier is used to verify the KZG proofs of the blobs.
 	proofVerifier kzg.BlobProofVerifier
 	// metrics collects and reports metrics related to the verification process.
@@ -50,15 +48,12 @@ type verifier[
 }
 
 // newVerifier creates a new Verifier with the given proof verifier.
-func newVerifier[
-	BlobSidecarT Sidecar,
-	BlobSidecarsT Sidecars[BlobSidecarT],
-](
+func newVerifier(
 	proofVerifier kzg.BlobProofVerifier,
 	telemetrySink TelemetrySink,
 	chainSpec chain.ChainSpec,
-) *verifier[BlobSidecarT, BlobSidecarsT] {
-	return &verifier[BlobSidecarT, BlobSidecarsT]{
+) *verifier {
+	return &verifier{
 		proofVerifier: proofVerifier,
 		metrics:       newVerifierMetrics(telemetrySink),
 		chainSpec:     chainSpec,
@@ -67,8 +62,8 @@ func newVerifier[
 
 // verifySidecars verifies the blobs for both inclusion as well
 // as the KZG proofs.
-func (bv *verifier[_, BlobSidecarsT]) verifySidecars(
-	sidecars BlobSidecarsT,
+func (bv *verifier) verifySidecars(
+	sidecars datypes.BlobSidecars,
 	blkHeader *ctypes.BeaconBlockHeader,
 	verifierFn func(
 		blkHeader *ctypes.BeaconBlockHeader,
@@ -98,6 +93,11 @@ func (bv *verifier[_, BlobSidecarsT]) verifySidecars(
 		}
 		duplicateCommitment[s.GetKzgCommitment()] = struct{}{}
 
+		// This check happens outside the goroutines so that we do not
+		// process the inclusion proofs before validating the index.
+		if s.GetIndex() >= bv.chainSpec.MaxBlobsPerBlock() {
+			return fmt.Errorf("invalid sidecar Index: %d", i)
+		}
 		g.Go(func() error {
 			// Verify the signature.
 			var sigHeader = s.GetSignedBeaconBlockHeader()
@@ -132,8 +132,8 @@ func (bv *verifier[_, BlobSidecarsT]) verifySidecars(
 	return g.Wait()
 }
 
-func (bv *verifier[_, BlobSidecarsT]) verifyInclusionProofs(
-	scs BlobSidecarsT,
+func (bv *verifier) verifyInclusionProofs(
+	scs datypes.BlobSidecars,
 	slot math.Slot,
 ) error {
 	startTime := time.Now()
@@ -161,8 +161,8 @@ func (bv *verifier[_, BlobSidecarsT]) verifyInclusionProofs(
 }
 
 // verifyKZGProofs verifies the sidecars.
-func (bv *verifier[_, BlobSidecarsT]) verifyKZGProofs(
-	scs BlobSidecarsT,
+func (bv *verifier) verifyKZGProofs(
+	scs datypes.BlobSidecars,
 ) error {
 	start := time.Now()
 	defer bv.metrics.measureVerifyKZGProofsDuration(

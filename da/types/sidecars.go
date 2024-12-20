@@ -27,11 +27,8 @@ import (
 	"github.com/sourcegraph/conc/iter"
 )
 
-// BlobSidecars is a slice of blob side cars to be included in the block.
-type BlobSidecars struct {
-	// Sidecars is a slice of blob side cars to be included in the block.
-	Sidecars []*BlobSidecar
-}
+// Sidecars is a slice of blob side cars to be included in the block.
+type BlobSidecars []*BlobSidecar
 
 // Empty creates a new empty BlobSidecars object.
 func (bs *BlobSidecars) Empty() *BlobSidecars {
@@ -39,20 +36,20 @@ func (bs *BlobSidecars) Empty() *BlobSidecars {
 }
 
 func (bs *BlobSidecars) Len() int {
-	return len(bs.Sidecars)
+	return len(*bs)
 }
 
 func (bs *BlobSidecars) GetSidecars() []*BlobSidecar {
-	return bs.Sidecars
+	return *bs
 }
 
 func (bs *BlobSidecars) Get(index int) *BlobSidecar {
-	return bs.Sidecars[index]
+	return (*bs)[index]
 }
 
 // IsNil checks to see if blobs are nil.
 func (bs *BlobSidecars) IsNil() bool {
-	return bs == nil || bs.Sidecars == nil
+	return bs == nil
 }
 
 // ValidateBlockRoots checks to make sure that
@@ -60,10 +57,10 @@ func (bs *BlobSidecars) IsNil() bool {
 func (bs *BlobSidecars) ValidateBlockRoots() error {
 	// We only need to check if there is more than
 	// a single blob in the sidecar.
-	if sc := bs.Sidecars; len(sc) > 1 {
-		firstHtr := sc[0].SignedBeaconBlockHeader.HashTreeRoot()
-		for i := 1; i < len(sc); i++ {
-			if firstHtr != sc[i].SignedBeaconBlockHeader.HashTreeRoot() {
+	if bs.Len() > 1 {
+		firstHtr := bs.Get(0).SignedBeaconBlockHeader.HashTreeRoot()
+		for i := 1; i < bs.Len(); i++ {
+			if firstHtr != bs.Get(i).SignedBeaconBlockHeader.HashTreeRoot() {
 				return ErrSidecarContainsDifferingBlockRoots
 			}
 		}
@@ -77,7 +74,7 @@ func (bs *BlobSidecars) VerifyInclusionProofs(
 	inclusionProofDepth uint8,
 ) error {
 	return errors.Join(iter.Map(
-		bs.Sidecars,
+		*bs,
 		func(sidecar **BlobSidecar) error {
 			sc := *sidecar
 			if sc == nil {
@@ -95,8 +92,8 @@ func (bs *BlobSidecars) VerifyInclusionProofs(
 
 // DefineSSZ defines the SSZ encoding for the BlobSidecars object.
 func (bs *BlobSidecars) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineSliceOfStaticObjectsOffset(codec, &bs.Sidecars, 6)
-	ssz.DefineSliceOfStaticObjectsContent(codec, &bs.Sidecars, 6)
+	ssz.DefineSliceOfStaticObjectsOffset(codec, (*[]*BlobSidecar)(bs), 6)
+	ssz.DefineSliceOfStaticObjectsContent(codec, (*[]*BlobSidecar)(bs), 6)
 }
 
 // SizeSSZ returns the size of the BlobSidecars object in SSZ encoding.
@@ -104,7 +101,7 @@ func (bs *BlobSidecars) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 	if fixed {
 		return 4
 	}
-	return 4 + ssz.SizeSliceOfStaticObjects(siz, bs.Sidecars)
+	return 4 + ssz.SizeSliceOfStaticObjects(siz, *bs)
 }
 
 // MarshalSSZ marshals the BlobSidecars object to SSZ format.

@@ -84,6 +84,10 @@ func (b *BlobSidecar) HasValidInclusionProof(
 	)
 }
 
+func (b *BlobSidecar) GetIndex() uint64 {
+	return b.Index
+}
+
 func (b *BlobSidecar) GetBlob() eip4844.Blob {
 	return b.Blob
 }

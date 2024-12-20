@@ -26,6 +26,7 @@ import (
 
 	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	datypes "github.com/berachain/beacon-kit/da/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-api/handlers"
@@ -36,6 +37,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	v1 "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	fastssz "github.com/ferranbt/fastssz"
@@ -43,11 +45,9 @@ import (
 
 type (
 	// AttributesFactory is the interface for the attributes factory.
-	AttributesFactory[
-		BeaconStateT any,
-	] interface {
+	AttributesFactory interface {
 		BuildPayloadAttributes(
-			st BeaconStateT,
+			st *statedb.StateDB,
 			slot math.Slot,
 			timestamp uint64,
 			prevHeadRoot [32]byte,
@@ -55,18 +55,18 @@ type (
 	}
 
 	// AvailabilityStore is the interface for the availability store.
-	AvailabilityStore[BlobSidecarsT any] interface {
+	AvailabilityStore interface {
 		IndexDB
 		// IsDataAvailable ensures that all blobs referenced in the block are
 		// securely stored before it returns without an error.
 		IsDataAvailable(context.Context, math.Slot, *ctypes.BeaconBlockBody) bool
 		// Persist makes sure that the sidecar remains accessible for data
 		// availability checks throughout the beacon node's operation.
-		Persist(math.Slot, BlobSidecarsT) error
+		Persist(math.Slot, datypes.BlobSidecars) error
 	}
 
-	ConsensusBlock[BeaconBlockT any] interface {
-		GetBeaconBlock() BeaconBlockT
+	ConsensusBlock interface {
+		GetBeaconBlock() *ctypes.BeaconBlock
 
 		// GetProposerAddress returns the address of the validator
 		// selected by consensus to propose the block
@@ -182,13 +182,12 @@ type (
 	BlobProcessor[
 		AvailabilityStoreT any,
 		ConsensusSidecarsT any,
-		BlobSidecarsT any,
 	] interface {
 		// ProcessSidecars processes the blobs and ensures they match the local
 		// state.
 		ProcessSidecars(
 			avs AvailabilityStoreT,
-			sidecars BlobSidecarsT,
+			sidecars datypes.BlobSidecars,
 		) error
 		// VerifySidecars verifies the blobs and ensures they match the local
 		// state.
@@ -201,80 +200,14 @@ type (
 		) error
 	}
 
-	BlobSidecar interface {
-		GetSignedBeaconBlockHeader() *ctypes.SignedBeaconBlockHeader
-		GetBlob() eip4844.Blob
-		GetKzgProof() eip4844.KZGProof
-		GetKzgCommitment() eip4844.KZGCommitment
-	}
-
-	ConsensusSidecars[
-		BlobSidecarsT any,
-	] interface {
-		GetSidecars() BlobSidecarsT
+	ConsensusSidecars interface {
+		GetSidecars() datypes.BlobSidecars
 		GetHeader() *ctypes.BeaconBlockHeader
 	}
 
-	// BlobSidecars is the interface for blobs sidecars.
-	BlobSidecars[T, BlobSidecarT any] interface {
-		constraints.Nillable
-		constraints.SSZMarshallable
-		constraints.Empty[T]
-		Len() int
-		Get(index int) BlobSidecarT
-		GetSidecars() []BlobSidecarT
-		ValidateBlockRoots() error
-		VerifyInclusionProofs(kzgOffset uint64, inclusionProofDepth uint8) error
-	}
-
-	BlobVerifier[BlobSidecarsT any] interface {
-		VerifyInclusionProofs(scs BlobSidecarsT, kzgOffset uint64) error
-		VerifyKZGProofs(scs BlobSidecarsT) error
-		VerifySidecars(
-			sidecars BlobSidecarsT,
-			kzgOffset uint64,
-			blkHeader *ctypes.BeaconBlockHeader,
-			verifierFn func(
-				blkHeader *ctypes.BeaconBlockHeader,
-				signature crypto.BLSSignature,
-			) error,
-		) error
-	}
-
-	// 	// BlockchainService defines the interface for interacting with the
-	// 	// blockchain
-	// 	// state and processing blocks.
-	// 	BlockchainService[
-	// 		BeaconBlockT any,
-	// 		DepositT any,
-	// 		GenesisT any,
-	// 	] interface {
-	// 		service.Basic
-	// 		// ProcessGenesisData processes the genesis data and initializes the
-	// 		// beacon
-	// 		// state.
-	// 		ProcessGenesisData(
-	// 			context.Context,
-	// 			GenesisT,
-	// 		) (transition.ValidatorUpdates, error)
-	// 		// ProcessBeaconBlock processes the given beacon block and associated
-	// 		// blobs sidecars.
-	// 		ProcessBeaconBlock(
-	// 			context.Context,
-	// 			BeaconBlockT,
-	// 		) (transition.ValidatorUpdates, error)
-	// 		// ReceiveBlock receives a beacon block and
-	// 		// associated blobs sidecars for processing.
-	// 		ReceiveBlock(
-	// 			ctx context.Context,
-	// 			blk BeaconBlockT,
-	// 		) error
-	// 		VerifyIncomingBlock(ctx context.Context, blk BeaconBlockT) error
-	// 	}
-
 	// BlockStore is the interface for block storage.
-	BlockStore[BeaconBlockT any] interface {
-		Set(blk BeaconBlockT) error
+	BlockStore interface {
+		Set(blk *ctypes.BeaconBlock) error
 		// GetSlotByBlockRoot retrieves the slot by a given root from the store.
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		// GetSlotByStateRoot retrieves the slot by a given root from the store.
@@ -369,7 +302,7 @@ type (
 		GetDepositsByIndex(
 			startIndex uint64,
 			numView uint64,
-		) ([]*ctypes.Deposit, error)
+		) (ctypes.Deposits, error)
 		// Prune prunes the deposit store of [start, end)
 		Prune(start, end uint64) error
 		// EnqueueDeposits adds a list of deposits to the deposit store.
@@ -395,15 +328,13 @@ type (
 	}
 
 	// LocalBuilder is the interface for the builder service.
-	LocalBuilder[
-		BeaconStateT any,
-	] interface {
+	LocalBuilder interface {
 		// Enabled returns true if the local builder is enabled.
 		Enabled() bool
 		// RequestPayloadAsync requests a new payload for the given slot.
 		RequestPayloadAsync(
 			ctx context.Context,
-			st BeaconStateT,
+			st *statedb.StateDB,
 			slot math.Slot,
 			timestamp uint64,
 			parentBlockRoot common.Root,
@@ -413,7 +344,7 @@ type (
 		// SendForceHeadFCU sends a force head FCU request.
 		SendForceHeadFCU(
 			ctx context.Context,
-			st BeaconStateT,
+			st *statedb.StateDB,
 			slot math.Slot,
 		) error
 		// RetrievePayload retrieves the payload for the given slot.
@@ -426,7 +357,7 @@ type (
 		// blocks until the payload is delivered.
 		RequestPayloadSync(
 			ctx context.Context,
-			st BeaconStateT,
+			st *statedb.StateDB,
 			slot math.Slot,
 			timestamp uint64,
 			parentBlockRoot common.Root,
@@ -451,50 +382,47 @@ type (
 
 	// StateProcessor defines the interface for processing the state.
 	StateProcessor[
-		BeaconBlockT any,
-		BeaconStateT any,
 		ContextT any,
 	] interface {
 		// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
 		// state
 		// from the eth1 deposits.
 		InitializePreminedBeaconStateFromEth1(
-			BeaconStateT,
-			[]*ctypes.Deposit,
+			*statedb.StateDB,
+			ctypes.Deposits,
 			*ctypes.ExecutionPayloadHeader,
 			common.Version,
 		) (transition.ValidatorUpdates, error)
 		// ProcessSlot processes the slot.
 		ProcessSlots(
-			st BeaconStateT, slot math.Slot,
+			st *statedb.StateDB, slot math.Slot,
 		) (transition.ValidatorUpdates, error)
 		// Transition performs the core state transition.
 		Transition(
 			ctx ContextT,
-			st BeaconStateT,
-			blk BeaconBlockT,
+			st *statedb.StateDB,
+			blk *ctypes.BeaconBlock,
 		) (transition.ValidatorUpdates, error)
-		GetSidecarVerifierFn(st BeaconStateT) (
+		GetSidecarVerifierFn(st *statedb.StateDB) (
 			func(blkHeader *ctypes.BeaconBlockHeader, signature crypto.BLSSignature) error,
 			error,
 		)
 	}
 
-	SidecarFactory[BeaconBlockT any, BlobSidecarsT any] interface {
+	SidecarFactory interface {
 		// BuildSidecars builds sidecars for a given block and blobs bundle.
 		BuildSidecars(
-			blk BeaconBlockT,
+			blk *ctypes.BeaconBlock,
 			blobs ctypes.BlobsBundle,
 			signer crypto.BLSSigner,
 			forkData *ctypes.ForkData,
-		) (BlobSidecarsT, error)
+		) (datypes.BlobSidecars, error)
 	}
 
 	// StorageBackend defines an interface for accessing various storage
 	// components required by the beacon node.
 	StorageBackend[
 		AvailabilityStoreT any,
-		BeaconStateT any,
 		BlockStoreT any,
 		DepositStoreT any,
 	] interface {
@@ -502,7 +430,7 @@ type (
 		BlockStore() BlockStoreT
 		DepositStore() DepositStoreT
 		// StateFromContext retrieves the beacon state from the given context.
-		StateFromContext(context.Context) BeaconStateT
+		StateFromContext(context.Context) *statedb.StateDB
 	}
 
 	// 	// TelemetrySink is an interface for sending metrics to a telemetry
@@ -872,7 +800,6 @@ type (
 	}
 
 	NodeAPIBackend[
-		BeaconStateT any,
 		NodeT any,
 	] interface {
 		AttachQueryBackend(node NodeT)
@@ -881,18 +808,16 @@ type (
 		GetSlotByStateRoot(root common.Root) (math.Slot, error)
 		GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
 
-		NodeAPIBeaconBackend[BeaconStateT]
-		NodeAPIProofBackend[BeaconStateT]
+		NodeAPIBeaconBackend
+		NodeAPIProofBackend
 	}
 
 	// NodeAPIBackend is the interface for backend of the beacon API.
-	NodeAPIBeaconBackend[
-		BeaconStateT any,
-	] interface {
+	NodeAPIBeaconBackend interface {
 		GenesisBackend
 		BlockBackend
 		RandaoBackend
-		StateBackend[BeaconStateT]
+		StateBackend
 		ValidatorBackend
 		HistoricalBackend
 		// GetSlotByBlockRoot retrieves the slot by a given root from the store.
@@ -902,11 +827,9 @@ type (
 	}
 
 	// NodeAPIProofBackend is the interface for backend of the proof API.
-	NodeAPIProofBackend[
-		BeaconStateT any,
-	] interface {
+	NodeAPIProofBackend interface {
 		BlockBackend
-		StateBackend[BeaconStateT]
+		StateBackend
 		GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
 	}
 
@@ -929,10 +852,10 @@ type (
 		BlockHeaderAtSlot(slot math.Slot) (*ctypes.BeaconBlockHeader, error)
 	}
 
-	StateBackend[BeaconStateT any] interface {
+	StateBackend interface {
 		StateRootAtSlot(slot math.Slot) (common.Root, error)
 		StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error)
-		StateFromSlotForProof(slot math.Slot) (BeaconStateT, math.Slot, error)
+		StateFromSlotForProof(slot math.Slot) (*statedb.StateDB, math.Slot, error)
 	}
 
 	ValidatorBackend interface {

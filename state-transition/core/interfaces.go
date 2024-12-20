@@ -21,32 +21,12 @@
 package core
 
 import (
-	"context"
-
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
-
-// BeaconState is the interface for the beacon state. It
-// is a combination of the read-only and write-only beacon state types.
-type BeaconState[
-	T any,
-	KVStoreT any,
-] interface {
-	NewFromDB(
-		bdb KVStoreT,
-		cs chain.ChainSpec,
-	) T
-	Copy() T
-	Context() context.Context
-	HashTreeRoot() common.Root
-	ReadOnlyBeaconState
-	WriteOnlyBeaconState
-}
 
 // ReadOnlyBeaconState is the interface for a read-only beacon state.
 type ReadOnlyBeaconState interface {

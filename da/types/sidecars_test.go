@@ -114,7 +114,7 @@ func TestValidateBlockRoots(t *testing.T) {
 
 	// Validate the sidecar with valid roots
 	sidecars := types.BlobSidecars{
-		Sidecars: []*types.BlobSidecar{validSidecar},
+		validSidecar,
 	}
 	err := sidecars.ValidateBlockRoots()
 	require.NoError(
@@ -140,10 +140,8 @@ func TestValidateBlockRoots(t *testing.T) {
 	)
 	// Validate the sidecar with invalid roots
 	sidecarsInvalid := types.BlobSidecars{
-		Sidecars: []*types.BlobSidecar{
-			validSidecar,
-			differentBlockRootSidecar,
-		},
+		validSidecar,
+		differentBlockRootSidecar,
 	}
 	err = sidecarsInvalid.ValidateBlockRoots()
 	require.Error(
@@ -156,6 +154,6 @@ func TestValidateBlockRoots(t *testing.T) {
 func TestZeroSidecarsInBlobSidecarsIsNotNil(t *testing.T) {
 	// This test exists to ensure that proposing a BlobSidecars with 0
 	// Sidecars is not considered IsNil().
-	sidecars := &types.BlobSidecars{Sidecars: make([]*types.BlobSidecar, 0)}
+	sidecars := &types.BlobSidecars{}
 	require.False(t, sidecars.IsNil())
 }
