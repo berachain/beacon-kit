@@ -63,6 +63,7 @@ jobs:
           - "lint"
           - "slither"
           - "gosec"
+          - "nilaway"
           - "markdownlint"
           - "generate-check"
           - "tidy-sync-check"
