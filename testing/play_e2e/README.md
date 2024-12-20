@@ -40,3 +40,11 @@ or
 make reset-playnet
 ```
 
+## Configuration 
+In case you want to configure(change) the validator set, consider doing changes in `defaultValidators`.
+The user can specify the number of replicas they want per type.
+
+All the default configuration are listed in `testing/config/defaults.go`
+
+
+
