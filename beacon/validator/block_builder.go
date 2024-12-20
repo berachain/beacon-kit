@@ -28,6 +28,7 @@ import (
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -311,32 +312,29 @@ func (s *Service[
 		return ErrNilDepositIndexStart
 	}
 
-	blkDeposits, err := s.sb.DepositStore().GetDepositsByIndex(
-		depositIndex, s.chainSpec.MaxDepositsPerBlock(),
+	// Grab all previous deposits from genesis up to the current index + max deposits per block.
+	deposits, err := s.sb.DepositStore().GetDepositsByIndex(
+		0, depositIndex+s.chainSpec.MaxDepositsPerBlock(),
 	)
 	if err != nil {
 		return err
 	}
-
-	// Set the deposits on the block body.
-	s.logger.Info(
-		"Building block body with local deposits",
-		"start_index", depositIndex, "num_deposits", len(blkDeposits),
-	)
-	body.SetDeposits(blkDeposits)
-
-	deposits, err := s.sb.DepositStore().GetDepositsByIndex(0, depositIndex)
-	if err != nil {
-		return err
-	}
-	deposits = append(deposits, blkDeposits...)
 
 	var eth1Data *ctypes.Eth1Data
-	body.SetEth1Data(eth1Data.New(
-		deposits.HashTreeRoot(),
-		0,
-		common.ExecutionHash{},
-	))
+	body.SetEth1Data(eth1Data.New(deposits.HashTreeRoot(), 0, common.ExecutionHash{}))
+
+	// Set just the block deposits (after current index) on the block body.
+	if uint64(len(deposits)) < depositIndex {
+		return errors.Wrapf(ErrDepositStoreIncomplete,
+			"all historical deposits not available, expected: %d, got: %d",
+			depositIndex, len(deposits),
+		)
+	}
+	s.logger.Info(
+		"Building block body with local deposits",
+		"start_index", depositIndex, "num_deposits", uint64(len(deposits))-depositIndex,
+	)
+	body.SetDeposits(deposits[depositIndex:])
 
 	// Set the graffiti on the block body.
 	sizedGraffiti := bytes.ExtendToSize([]byte(s.cfg.Graffiti), bytes.B32Size)

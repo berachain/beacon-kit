@@ -43,7 +43,7 @@ func DefaultComponents() []any {
 			*AvailabilityStore,
 			*ConsensusBlock, *BeaconBlock,
 			*BeaconState, *BeaconStateMarshallable,
-			*BlobSidecar, *BlobSidecars, *ConsensusSidecars, *BlockStore,
+			*BlobSidecar, *BlobSidecars, *ConsensusSidecars,
 			*DepositStore, *DepositContract,
 			*Genesis,
 			*KVStore, *Logger, *StorageBackend, *BlockStore,

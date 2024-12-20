@@ -38,20 +38,21 @@ func (s *Service[
 		return nil, err
 	}
 
+	// Verify that the genesis deposits root are same between CL and EL.
 	genesisDepositsCL := genesisData.GetDeposits()
-	genesisDepositsRootCL := genesisDepositsCL.HashTreeRoot()
 	genesisDepositsRootEL, err := s.depositContract.GetGenesisDepositsRoot(ctx, 0)
 	if err != nil {
-		s.logger.Error("Failed to get genesis deposits root", "error", err)
+		s.logger.Error("Failed to get genesis deposits root from EL", "error", err)
 		return nil, err
 	}
-	if !genesisDepositsRootCL.Equals(genesisDepositsRootEL) {
+	if !genesisDepositsCL.HashTreeRoot().Equals(genesisDepositsRootEL) {
 		return nil, ErrGenesisDepositsRootMismatch
 	}
 
+	// Verify that the genesis deposits count are same between CL and EL.
 	genesisDepositsCountEL, err := s.depositContract.GetDepositsCount(ctx, 0)
 	if err != nil {
-		s.logger.Error("Failed to get genesis deposits count", "error", err)
+		s.logger.Error("Failed to get genesis deposits count from EL", "error", err)
 		return nil, err
 	}
 	if uint64(len(genesisDepositsCL)) != genesisDepositsCountEL {
@@ -62,10 +63,23 @@ func (s *Service[
 		)
 	}
 
-	return s.stateProcessor.InitializePreminedBeaconStateFromEth1(
+	// Initialize the beacon state from the genesis data.
+	validatorUpdates, err := s.stateProcessor.InitializePreminedBeaconStateFromEth1(
 		s.storageBackend.StateFromContext(ctx),
 		genesisDepositsCL,
 		genesisData.GetExecutionPayloadHeader(),
 		genesisData.GetForkVersion(),
 	)
+	if err != nil {
+		return nil, err
+	}
+
+	// After deposits are validated, store the genesis deposits in the deposit store.
+	if err = s.storageBackend.DepositStore().EnqueueDeposits(
+		genesisData.GetDeposits(),
+	); err != nil {
+		return nil, err
+	}
+
+	return validatorUpdates, nil
 }

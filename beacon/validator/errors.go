@@ -37,4 +37,8 @@ var (
 	// ErrNilDepositIndexStart is an error for when the deposit index start is
 	// nil.
 	ErrNilDepositIndexStart = errors.New("nil deposit index start")
+
+	// ErrDepositStoreIncomplete is an error for when the deposit store has not returned
+	// the expected amount of deposits. Could be due to pruning when it should not be enabled.
+	ErrDepositStoreIncomplete = errors.New("deposits from deposit store incomplete")
 )

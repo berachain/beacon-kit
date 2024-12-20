@@ -22,7 +22,6 @@ package deposit
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	sdkcollections "cosmossdk.io/collections"
@@ -65,7 +64,7 @@ func NewStore(
 		logger: logger,
 	}
 	if _, err := schemaBuilder.Build(); err != nil {
-		panic(fmt.Errorf("failed building KVStore schema: %w", err))
+		panic(errors.Wrap(err, "failed building KVStore schema"))
 	}
 	return res
 }
@@ -80,41 +79,25 @@ func (kv *KVStore) GetDepositsByIndex(
 	kv.mu.RLock()
 	defer kv.mu.RUnlock()
 	var (
-		deposits = ctypes.Deposits{}
+		deposits = make(ctypes.Deposits, 0, depRange)
 		endIdx   = startIndex + depRange
 	)
 
-	kv.logger.Debug(
-		"GetDepositsByIndex request",
-		"start", startIndex,
-		"end", endIdx,
-	)
 	for i := startIndex; i < endIdx; i++ {
 		deposit, err := kv.store.Get(context.TODO(), i)
 		switch {
 		case err == nil:
 			deposits = append(deposits, deposit)
 		case errors.Is(err, sdkcollections.ErrNotFound):
-			kv.logger.Debug(
-				"GetDepositsByIndex response",
-				"start", startIndex,
-				"end", i,
-			)
 			return deposits, nil
 		default:
 			return deposits, errors.Wrapf(
-				err,
-				"failed to get deposit %d, start: %d, end: %d",
-				i, startIndex, endIdx,
+				err, "failed to get deposit %d, start: %d, end: %d", i, startIndex, endIdx,
 			)
 		}
 	}
 
-	kv.logger.Debug(
-		"GetDepositsByIndex response",
-		"start", startIndex,
-		"end", endIdx,
-	)
+	kv.logger.Debug("GetDepositsByIndex", "start", startIndex, "end", endIdx)
 	return deposits, nil
 }
 
@@ -122,44 +105,28 @@ func (kv *KVStore) GetDepositsByIndex(
 func (kv *KVStore) EnqueueDeposits(deposits []*ctypes.Deposit) error {
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
-	kv.logger.Debug(
-		"EnqueueDeposits request",
-		"to enqueue", len(deposits),
-	)
+
 	for _, deposit := range deposits {
 		idx := deposit.GetIndex().Unwrap()
-		kv.logger.Debug(
-			"EnqueueDeposit response",
-			"index", idx,
-		)
-		if err := kv.store.Set(
-			context.TODO(),
-			idx,
-			deposit,
-		); err != nil {
+		if err := kv.store.Set(context.TODO(), idx, deposit); err != nil {
 			return errors.Wrapf(err, "failed to enqueue deposit %d", idx)
 		}
 	}
 
-	kv.logger.Debug(
-		"EnqueueDeposit response",
-		"enqueued", len(deposits),
-	)
+	if len(deposits) > 0 {
+		kv.logger.Debug(
+			"EnqueueDeposit", "enqueued", len(deposits),
+			"start", deposits[0].GetIndex(), "end", deposits[len(deposits)-1].GetIndex(),
+		)
+	}
 	return nil
 }
 
 // Prune removes the [start, end) deposits from the store.
 func (kv *KVStore) Prune(start, end uint64) error {
-	kv.logger.Debug(
-		"Prune request",
-		"start", start,
-		"end", end,
-	)
 	if start > end {
-		return fmt.Errorf(
-			"DepositKVStore Prune start: %d, end: %d: %w",
-			start, end, pruner.ErrInvalidRange,
-		)
+		return errors.Wrapf(
+			pruner.ErrInvalidRange, "DepositKVStore Prune start: %d, end: %d", start, end)
 	}
 
 	var ctx = context.TODO()
@@ -172,10 +139,6 @@ func (kv *KVStore) Prune(start, end uint64) error {
 		}
 	}
 
-	kv.logger.Debug(
-		"Prune response",
-		"start", start,
-		"end", end,
-	)
+	kv.logger.Debug("Pruned deposits", "start", start, "end", end)
 	return nil
 }
