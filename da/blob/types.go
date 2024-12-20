@@ -49,6 +49,7 @@ type ConsensusSidecars interface {
 }
 
 type Sidecar interface {
+	GetIndex() uint64
 	GetBlob() eip4844.Blob
 	GetKzgProof() eip4844.KZGProof
 	GetKzgCommitment() eip4844.KZGCommitment

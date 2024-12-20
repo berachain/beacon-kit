@@ -78,6 +78,11 @@ func (bv *verifier) verifySidecars(
 	// Verifying that sidecars block headers match with header of the
 	// corresponding block concurrently.
 	for i, s := range sidecars.GetSidecars() {
+		// This check happens outside the goroutines so that we do not
+		// process the inclusion proofs before validating the index.
+		if s.GetIndex() >= bv.chainSpec.MaxBlobsPerBlock() {
+			return fmt.Errorf("invalid sidecar Index: %d", i)
+		}
 		g.Go(func() error {
 			var sigHeader = s.GetSignedBeaconBlockHeader()
 
