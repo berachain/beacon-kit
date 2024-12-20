@@ -24,6 +24,7 @@ import (
 	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/cli/commands/deposit"
 	"github.com/berachain/beacon-kit/cli/commands/genesis"
+	"github.com/berachain/beacon-kit/cli/commands/initialize"
 	"github.com/berachain/beacon-kit/cli/commands/jwt"
 	"github.com/berachain/beacon-kit/cli/commands/server"
 	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
@@ -33,7 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-core/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 )
 
 // DefaultRootCommandSetup sets up the default commands for the root command.
@@ -51,7 +51,7 @@ func DefaultRootCommandSetup[
 		// `comet`
 		cmtcli.Commands(appCreator),
 		// `init`
-		genutilcli.InitCmd(mm),
+		initialize.InitCmd(mm),
 		// `genesis`
 		genesis.Commands(chainSpec),
 		// `deposit`

@@ -15,7 +15,9 @@ require (
 	cosmossdk.io/collections v1.0.0-rc.1
 	cosmossdk.io/core v1.0.0-alpha.6
 	cosmossdk.io/depinject v1.1.0
+	cosmossdk.io/errors v1.0.1
 	cosmossdk.io/log v1.5.0
+	cosmossdk.io/math v1.4.0
 	cosmossdk.io/store v1.10.0-rc.1.0.20241218084712-ca559989da43
 	github.com/bazelbuild/buildtools v0.0.0-20241129155226-a0444eb13952
 	github.com/bufbuild/buf v1.47.2
@@ -23,6 +25,7 @@ require (
 	github.com/cometbft/cometbft/api v1.0.1-0.20241220100824-07c737de00ff
 	github.com/cosmos/cosmos-db v1.1.0
 	github.com/cosmos/cosmos-sdk v0.53.0
+	github.com/cosmos/go-bip39 v1.0.0
 	github.com/cosmos/gosec/v2 v2.0.0-20230124142343-bf28a33fadf2
 	github.com/crate-crypto/go-kzg-4844 v1.1.0
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
@@ -86,8 +89,6 @@ require (
 	connectrpc.com/otelconnect v0.7.1 // indirect
 	cosmossdk.io/api v0.8.0-rc.3 // indirect
 	cosmossdk.io/core/testing v0.0.1 // indirect
-	cosmossdk.io/errors v1.0.1 // indirect
-	cosmossdk.io/math v1.4.0 // indirect
 	cosmossdk.io/schema v1.0.0 // indirect
 	cosmossdk.io/x/bank v0.0.0-20241218110910-47409028a73d // indirect
 	cosmossdk.io/x/staking v0.0.0-20241218110910-47409028a73d // indirect
@@ -166,7 +167,6 @@ require (
 	github.com/containerd/typeurl/v2 v2.2.3 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5 // indirect
-	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
 	github.com/cosmos/gogoproto v1.7.0 // indirect
 	github.com/cosmos/iavl v1.3.4 // indirect
