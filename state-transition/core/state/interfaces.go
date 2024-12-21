@@ -36,7 +36,7 @@ type KVStore[T any] interface {
 	// WithContext returns a new key-value store with the given context.
 	WithContext(ctx context.Context) T
 	// Copy returns a copy of the key-value store.
-	Copy() T
+	Copy(context.Context) T
 	// GetLatestExecutionPayloadHeader retrieves the latest execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (

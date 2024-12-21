@@ -29,7 +29,9 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/kzg"
 	datypes "github.com/berachain/beacon-kit/da/types"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"golang.org/x/sync/errgroup"
 )
@@ -69,21 +71,35 @@ func (bv *verifier) verifySidecars(
 	) error,
 ) error {
 	defer bv.metrics.measureVerifySidecarsDuration(
-		time.Now(), math.U64(sidecars.Len()),
+		time.Now(), math.U64(len(sidecars)),
 		bv.proofVerifier.GetImplementation(),
 	)
 
 	g, _ := errgroup.WithContext(context.Background())
 
-	// Verifying that sidecars block headers match with header of the
-	// corresponding block concurrently.
-	for i, s := range sidecars.GetSidecars() {
+	// create lookup table to check for duplicate commitments
+	duplicateCommitment := make(map[eip4844.KZGCommitment]struct{})
+
+	// Validate sidecar fields against data from the BeaconBlock.
+	for i, s := range sidecars {
+		// Check if sidecar's kzgCommitment is duplicate. Along with the
+		// length check and the inclusion proof, this fully verifies that
+		// the KzgCommitments in the BlobSidecar are the exact same as the
+		// ones in the BeaconBlockBody without having to explicitly compare.
+		if _, exists := duplicateCommitment[s.GetKzgCommitment()]; exists {
+			return errors.New(
+				"found duplicate KzgCommitments in BlobSidecars",
+			)
+		}
+		duplicateCommitment[s.GetKzgCommitment()] = struct{}{}
+
 		// This check happens outside the goroutines so that we do not
 		// process the inclusion proofs before validating the index.
 		if s.GetIndex() >= bv.chainSpec.MaxBlobsPerBlock() {
 			return fmt.Errorf("invalid sidecar Index: %d", i)
 		}
 		g.Go(func() error {
+			// Verify the signature.
 			var sigHeader = s.GetSignedBeaconBlockHeader()
 
 			// Check BlobSidecar.Header equality with BeaconBlockHeader
@@ -122,7 +138,7 @@ func (bv *verifier) verifyInclusionProofs(
 ) error {
 	startTime := time.Now()
 	defer bv.metrics.measureVerifyInclusionProofsDuration(
-		startTime, math.U64(scs.Len()),
+		startTime, math.U64(len(scs)),
 	)
 
 	// Grab the KZG offset for the fork version.
@@ -150,20 +166,20 @@ func (bv *verifier) verifyKZGProofs(
 ) error {
 	start := time.Now()
 	defer bv.metrics.measureVerifyKZGProofsDuration(
-		start, math.U64(scs.Len()),
+		start, math.U64(len(scs)),
 		bv.proofVerifier.GetImplementation(),
 	)
 
-	switch scs.Len() {
+	switch len(scs) {
 	case 0:
 		return nil
 	case 1:
-		blob := scs.Get(0).GetBlob()
+		blob := scs[0].GetBlob()
 		// This method is fastest for a single blob.
 		return bv.proofVerifier.VerifyBlobProof(
 			&blob,
-			scs.Get(0).GetKzgProof(),
-			scs.Get(0).GetKzgCommitment(),
+			scs[0].GetKzgProof(),
+			scs[0].GetKzgCommitment(),
 		)
 	default:
 		// For multiple blobs batch verification is more performant

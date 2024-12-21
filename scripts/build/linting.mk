@@ -84,3 +84,11 @@ slither:
 markdownlint:
 	@echo "--> Running markdownlint"
 	@docker run --rm -v $(ROOT_DIR):/workspace -w /workspace -t markdownlint/markdownlint:latest --git-recurse **/**.md
+
+#################
+# all ci linters #
+#################
+
+lint-ci: lint slither gosec nilaway markdownlintg generate-check \
+    tidy-sync-check test-unit-cover test-unit-bench test-unit-fuzz \
+	test-forge-cover test-forge-fuzz

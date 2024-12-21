@@ -65,8 +65,6 @@ type BlobSidecars[T any] interface {
 	constraints.SSZMarshallable
 	constraints.Empty[T]
 	constraints.Nillable
-	// Len returns the length of the blobs sidecars.
-	Len() int
 }
 
 // ExecutionEngine is the interface for the execution engine.
@@ -133,7 +131,7 @@ type ReadOnlyBeaconState[
 	T any,
 ] interface {
 	// Copy creates a copy of the beacon state.
-	Copy() T
+	Copy(context.Context) T
 	// GetLatestBlockHeader returns the most recent block header.
 	GetLatestBlockHeader() (
 		*ctypes.BeaconBlockHeader,

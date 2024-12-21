@@ -230,9 +230,10 @@ func New(
 }
 
 // Copy returns a copy of the Store.
-func (kv *KVStore) Copy() *KVStore {
+func (kv *KVStore) Copy(ctx context.Context) *KVStore {
 	// TODO: Decouple the KVStore type from the Cosmos-SDK.
-	cctx, _ := sdk.UnwrapSDKContext(kv.ctx).CacheContext()
+	cctx, _ := sdk.UnwrapSDKContext(ctx).CacheContext()
+	//nolint:contextcheck // `cctx` is inherited from the parent context `ctx`.
 	ss := kv.WithContext(cctx)
 	return ss
 }
@@ -243,9 +244,7 @@ func (kv *KVStore) Context() context.Context {
 }
 
 // WithContext returns a copy of the Store with the given context.
-func (kv *KVStore) WithContext(
-	ctx context.Context,
-) *KVStore {
+func (kv *KVStore) WithContext(ctx context.Context) *KVStore {
 	cpy := *kv
 	cpy.ctx = ctx
 	return &cpy
