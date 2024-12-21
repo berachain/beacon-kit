@@ -32,7 +32,7 @@
                 "genesis",
                 "add-premined-deposit",
                 "32000000000",
-                "0x7Bf0fD21adc795901060D28854FEA83b1f07A27D",
+                "0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4",
                 "--home=${workspaceFolder}/.tmp/beacond",
             ],
             "internalConsoleOptions": "openOnSessionStart",
