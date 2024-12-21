@@ -21,16 +21,16 @@
 package types_test
 
 import (
-	"github.com/berachain/beacon-kit/chain-spec/chain"
-	spec2 "github.com/berachain/beacon-kit/config/spec"
-	"github.com/berachain/beacon-kit/da/blob"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"strconv"
 	"testing"
 	"time"
 
+	"github.com/berachain/beacon-kit/chain-spec/chain"
+	spec2 "github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/da/blob"
 	"github.com/berachain/beacon-kit/da/types"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	byteslib "github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -121,25 +121,28 @@ func generateValidBeaconBlock() *ctypes.BeaconBlock {
 
 type InclusionSink struct{}
 
-func (is InclusionSink) MeasureSince(key string, start time.Time, args ...string) {}
+func (is InclusionSink) MeasureSince(_ string, _ time.Time, _ ...string) {}
 
 func TestHasValidInclusionProof(t *testing.T) {
 	// TODO: Get updated spec?
 	specVals := spec2.BaseSpec()
-	// TODO: we currently cannot change this MaxBlobCommitmentsPerBlock value.
-	// Will likely have to change inclusionProofDepth to make any different values work.
 	specVals.MaxBlobCommitmentsPerBlock = 16
 	spec, err := chain.NewChainSpec(specVals)
 	require.NoError(t, err)
+
 	// TODO: get a good slot number that is current fork
-	inclusionProofDepth, err := ctypes.KZGCommitmentInclusionProofDepth(0, spec)
+	slot := math.Slot(0)
+
+	// Grab fork-dependent constants
+	inclusionProofDepth, err := ctypes.KZGCommitmentInclusionProofDepth(slot, spec)
+	require.NoError(t, err)
+	kzgOffset, err := ctypes.BlockBodyKZGOffset(slot, spec)
 	require.NoError(t, err)
 
 	sink := InclusionSink{}
 	tests := []struct {
 		name           string
 		sidecars       func(t *testing.T) types.BlobSidecars
-		kzgOffset      uint64
 		expectedResult bool
 	}{
 		{
@@ -152,8 +155,8 @@ func TestHasValidInclusionProof(t *testing.T) {
 						[]byte(strconv.Itoa(i)),
 						byteslib.B32Size,
 					)
-					proof, err := byteslib.ToBytes32(it)
-					require.NoError(t, err)
+					proof, err2 := byteslib.ToBytes32(it)
+					require.NoError(t, err2)
 					inclusionProof = append(inclusionProof, common.Root(proof))
 				}
 				return types.BlobSidecars{types.BuildBlobSidecar(
@@ -170,7 +173,6 @@ func TestHasValidInclusionProof(t *testing.T) {
 					inclusionProof,
 				)}
 			},
-			kzgOffset:      0,
 			expectedResult: false,
 		},
 		{
@@ -185,12 +187,12 @@ func TestHasValidInclusionProof(t *testing.T) {
 					[]common.Root{},
 				)}
 			},
-			kzgOffset:      0,
 			expectedResult: false,
 		},
 		{
 			name: "Valid inclusion proof",
 			sidecars: func(t *testing.T) types.BlobSidecars {
+				t.Helper()
 				block := generateValidBeaconBlock()
 
 				sidecarFactory := blob.NewSidecarFactory(
@@ -200,10 +202,10 @@ func TestHasValidInclusionProof(t *testing.T) {
 				numBlobs := len(block.GetBody().GetBlobKzgCommitments())
 				sidecars := make(types.BlobSidecars, numBlobs)
 				for i := range numBlobs {
-					inclusionProof, err := sidecarFactory.BuildKZGInclusionProof(
+					inclusionProof, incErr := sidecarFactory.BuildKZGInclusionProof(
 						block.GetBody(), math.U64(i), ctypes.KZGPositionDeneb,
 					)
-					require.NoError(t, err)
+					require.NoError(t, incErr)
 					sigHeader := ctypes.NewSignedBeaconBlockHeader(block.GetHeader(), crypto.BLSSignature{})
 					sidecars[i] = types.BuildBlobSidecar(
 						math.U64(i),
@@ -216,7 +218,6 @@ func TestHasValidInclusionProof(t *testing.T) {
 				}
 				return sidecars
 			},
-			kzgOffset:      ctypes.KZGMerkleIndexDeneb * spec.MaxBlobCommitmentsPerBlock(),
 			expectedResult: true,
 		},
 	}
@@ -225,7 +226,7 @@ func TestHasValidInclusionProof(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			sidecars := tt.sidecars(t)
 			for _, sidecar := range sidecars {
-				result := sidecar.HasValidInclusionProof(tt.kzgOffset, inclusionProofDepth)
+				result := sidecar.HasValidInclusionProof(kzgOffset, inclusionProofDepth)
 				require.Equal(t, tt.expectedResult, result,
 					"Result should match expected value")
 			}
