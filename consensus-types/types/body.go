@@ -28,6 +28,7 @@ package types
 import (
 	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -106,7 +107,7 @@ func KZGCommitmentInclusionProofDepth(
 	switch cs.ActiveForkVersionForSlot(slot) {
 	case version.Deneb:
 		sum := uint64(log.ILog2Floor(uint64(KZGMerkleIndexDeneb))) +
-			uint64(log.ILog2Ceil(cs.MaxBlobCommitmentsPerBlock())) + 1
+			uint64(log.ILog2Ceil(cs.MaxBlobCommitmentsPerBlock()))
 		if sum > maxUint8 {
 			return 0, ErrInclusionProofDepthExceeded
 		}
@@ -159,12 +160,12 @@ func (b *BeaconBlockBody) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineStaticBytes(codec, &b.RandaoReveal)
 	ssz.DefineStaticObject(codec, &b.Eth1Data)
 	ssz.DefineStaticBytes(codec, &b.Graffiti)
-	ssz.DefineSliceOfStaticObjectsOffset(codec, &b.Deposits, 16)
+	ssz.DefineSliceOfStaticObjectsOffset(codec, &b.Deposits, constants.MaxDeposits)
 	ssz.DefineDynamicObjectOffset(codec, &b.ExecutionPayload)
 	ssz.DefineSliceOfStaticBytesOffset(codec, &b.BlobKzgCommitments, 16)
 
 	// Define the dynamic data (fields)
-	ssz.DefineSliceOfStaticObjectsContent(codec, &b.Deposits, 16)
+	ssz.DefineSliceOfStaticObjectsContent(codec, &b.Deposits, constants.MaxDeposits)
 	ssz.DefineDynamicObjectContent(codec, &b.ExecutionPayload)
 	ssz.DefineSliceOfStaticBytesContent(codec, &b.BlobKzgCommitments, 16)
 }
