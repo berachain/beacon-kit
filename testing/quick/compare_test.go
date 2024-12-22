@@ -41,9 +41,9 @@ var hFn = ztree.GetHashFn()
 var spec = zspec.Mainnet
 
 func TestExecutionPayloadHashTreeRootZrnt(t *testing.T) {
+	t.Parallel()
+
 	f := func(payload *types.ExecutionPayload, logsBloom [256]byte) bool {
-		// skip these cases lest we trigger a
-		// nil-pointer dereference in fastssz
 		if payload == nil ||
 			payload.Withdrawals == nil ||
 			slices.Contains(payload.Withdrawals, nil) ||
@@ -53,6 +53,12 @@ func TestExecutionPayloadHashTreeRootZrnt(t *testing.T) {
 			}) {
 			return true
 		}
+
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Test panicked: %v", r)
+			}
+		}()
 
 		payload.LogsBloom = logsBloom
 		payload.BaseFeePerGas = math.NewU256(123)
@@ -88,6 +94,6 @@ func TestExecutionPayloadHashTreeRootZrnt(t *testing.T) {
 			bytes.Equal(typeRoot[:], zRoot[:])
 	}
 	if err := quick.Check(f, &c); err != nil {
-		t.Error(err)
+		t.Fatalf("Quick check failed: %v", err)
 	}
 }
