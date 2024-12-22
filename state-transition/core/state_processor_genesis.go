@@ -152,7 +152,7 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	activeVals, err := getActiveVals(sp.cs, st, 0)
+	activeVals, err := getActiveVals(st, 0)
 	if err != nil {
 		return nil, err
 	}

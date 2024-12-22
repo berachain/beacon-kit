@@ -135,11 +135,9 @@ func (sp *StateProcessor[
 		// Process the Epoch Boundary.
 		boundary := (stateSlot.Unwrap()+1)%sp.cs.SlotsPerEpoch() == 0
 		if boundary {
-			var epochUpdates transition.ValidatorUpdates
-			if epochUpdates, err = sp.processEpoch(st); err != nil {
+			if res, err = sp.processEpoch(st); err != nil {
 				return nil, err
 			}
-			res = append(res, epochUpdates...)
 		}
 
 		// We update on the state because we need to
@@ -256,7 +254,7 @@ func (sp *StateProcessor[
 	// track validators set before updating it, to be able to
 	// inform consensus of the validators set changes
 	currentEpoch := sp.cs.SlotToEpoch(slot)
-	currentActiveVals, err := getActiveVals(sp.cs, st, currentEpoch)
+	currentActiveVals, err := getActiveVals(st, currentEpoch)
 	if err != nil {
 		return nil, err
 	}
@@ -285,7 +283,7 @@ func (sp *StateProcessor[
 
 	// finally compute diffs in validator set to duly update consensus
 	nextEpoch := currentEpoch + 1
-	nextActiveVals, err := getActiveVals(sp.cs, st, nextEpoch)
+	nextActiveVals, err := getActiveVals(st, nextEpoch)
 	if err != nil {
 		return nil, err
 	}
@@ -378,10 +376,7 @@ func (sp *StateProcessor[
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#effective-balances-updates
 func (sp *StateProcessor[
 	_, _,
-]) processEffectiveBalanceUpdates(
-	st *state.StateDB,
-	slot math.Slot,
-) error {
+]) processEffectiveBalanceUpdates(st *state.StateDB, slot math.Slot) error {
 	// Update effective balances with hysteresis
 	validators, err := st.GetValidators()
 	if err != nil {

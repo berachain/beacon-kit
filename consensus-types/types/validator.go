@@ -94,14 +94,9 @@ func NewValidatorFromDeposit(
 }
 
 func ComputeEffectiveBalance(
-	amount math.Gwei,
-	effectiveBalanceIncrement math.Gwei,
-	maxEffectiveBalance math.Gwei,
+	amount, effectiveBalanceIncrement, maxEffectiveBalance math.Gwei,
 ) math.Gwei {
-	return min(
-		amount-amount%effectiveBalanceIncrement,
-		maxEffectiveBalance,
-	)
+	return min(amount-amount%effectiveBalanceIncrement, maxEffectiveBalance)
 }
 
 // Empty creates an empty Validator.
