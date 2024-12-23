@@ -28,7 +28,7 @@ import (
 )
 
 func (s *Service[
-	ConsensusBlockT, _, _, _,
+	ConsensusBlockT, _, _,
 ]) processPruning(ctx context.Context, beaconBlk *ctypes.BeaconBlock) error {
 	// prune availability store
 	start, end := availabilityPruneRangeFn(

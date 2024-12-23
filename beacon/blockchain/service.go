@@ -28,7 +28,6 @@ import (
 	"github.com/berachain/beacon-kit/da/da"
 	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/log"
-	blockstore "github.com/berachain/beacon-kit/node-api/block_store"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 )
@@ -36,14 +35,13 @@ import (
 // Service is the blockchain service.
 type Service[
 	ConsensusBlockT ConsensusBlock,
-	BlockStoreT blockstore.BlockStore,
 	GenesisT Genesis,
 	ConsensusSidecarsT da.ConsensusSidecars,
 ] struct {
 	// homeDir is the directory for config and data"
 	homeDir string
 	// storageBackend represents the backend storage for not state-enforced data.
-	storageBackend StorageBackend[BlockStoreT]
+	storageBackend StorageBackend
 	// blobProcessor is used for processing sidecars.
 	blobProcessor da.BlobProcessor[ConsensusSidecarsT]
 	// depositContract is the contract interface for interacting with the
@@ -80,12 +78,11 @@ type Service[
 // NewService creates a new validator service.
 func NewService[
 	ConsensusBlockT ConsensusBlock,
-	BlockStoreT blockstore.BlockStore,
 	GenesisT Genesis,
 	ConsensusSidecarsT da.ConsensusSidecars,
 ](
 	homeDir string,
-	storageBackend StorageBackend[BlockStoreT],
+	storageBackend StorageBackend,
 	blobProcessor da.BlobProcessor[ConsensusSidecarsT],
 	depositContract deposit.Contract,
 	eth1FollowDistance math.U64,
@@ -98,13 +95,11 @@ func NewService[
 	optimisticPayloadBuilds bool,
 ) *Service[
 	ConsensusBlockT,
-	BlockStoreT,
 	GenesisT,
 	ConsensusSidecarsT,
 ] {
 	return &Service[
 		ConsensusBlockT,
-		BlockStoreT,
 		GenesisT, ConsensusSidecarsT,
 	]{
 		homeDir:                 homeDir,
@@ -126,13 +121,13 @@ func NewService[
 
 // Name returns the name of the service.
 func (s *Service[
-	_, _, _, _,
+	_, _, _,
 ]) Name() string {
 	return "blockchain"
 }
 
 func (s *Service[
-	_, _, _, _,
+	_, _, _,
 ]) Start(ctx context.Context) error {
 	// Catchup deposits for failed blocks.
 	go s.depositCatchupFetcher(ctx)
@@ -141,7 +136,7 @@ func (s *Service[
 }
 
 func (s *Service[
-	_, _, _, _,
+	_, _, _,
 ]) Stop() error {
 	return nil
 }
