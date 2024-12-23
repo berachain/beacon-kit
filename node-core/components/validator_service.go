@@ -52,20 +52,19 @@ type ValidatorServiceInput[
 func ProvideValidatorService[
 	AvailabilityStoreT any,
 	BeaconBlockStoreT any,
-	DepositStoreT DepositStore,
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 	StorageBackendT StorageBackend[
-		AvailabilityStoreT, BeaconBlockStoreT, DepositStoreT,
+		AvailabilityStoreT, BeaconBlockStoreT,
 	],
 ](
 	in ValidatorServiceInput[
 		AvailabilityStoreT,
 		LoggerT, StorageBackendT,
 	],
-) (*validator.Service[DepositStoreT], error) {
+) (*validator.Service, error) {
 	// Build the builder service.
-	return validator.NewService[DepositStoreT](
+	return validator.NewService(
 		&in.Cfg.Validator,
 		in.Logger.With("service", "validator"),
 		in.ChainSpec,

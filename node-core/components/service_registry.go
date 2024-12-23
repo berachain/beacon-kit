@@ -40,7 +40,6 @@ type ServiceRegistryInput[
 	ConsensusBlockT ConsensusBlock,
 	BeaconBlockStoreT BlockStore,
 	ConsensusSidecarsT ConsensusSidecars,
-	DepositStoreT DepositStore,
 	GenesisT Genesis,
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
@@ -48,7 +47,7 @@ type ServiceRegistryInput[
 ] struct {
 	depinject.In
 	ChainService *blockchain.Service[
-		AvailabilityStoreT, DepositStoreT,
+		AvailabilityStoreT,
 		ConsensusBlockT,
 		BeaconBlockStoreT,
 		GenesisT,
@@ -60,7 +59,7 @@ type ServiceRegistryInput[
 	ReportingService *version.ReportingService
 	TelemetrySink    *metrics.TelemetrySink
 	TelemetryService *telemetry.Service
-	ValidatorService *validator.Service[DepositStoreT]
+	ValidatorService *validator.Service
 	CometBFTService  *cometbft.Service[LoggerT]
 }
 
@@ -70,7 +69,6 @@ func ProvideServiceRegistry[
 	ConsensusBlockT ConsensusBlock,
 	BeaconBlockStoreT BlockStore,
 	ConsensusSidecarsT ConsensusSidecars,
-	DepositStoreT DepositStore,
 	GenesisT Genesis,
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
@@ -81,7 +79,6 @@ func ProvideServiceRegistry[
 		ConsensusBlockT,
 		BeaconBlockStoreT,
 		ConsensusSidecarsT,
-		DepositStoreT,
 		GenesisT, KVStoreT, LoggerT, NodeAPIContextT,
 	],
 ) *service.Registry {

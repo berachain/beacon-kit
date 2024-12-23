@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/state-transition/core/state"
+	depositdb "github.com/berachain/beacon-kit/storage/deposit"
 )
 
 // StateProcessor is a basic Processor, which takes care of the
@@ -53,7 +54,7 @@ type StateProcessor[
 	// executionEngine is the engine responsible for executing transactions.
 	executionEngine ExecutionEngine
 	// ds allows checking payload deposits against the deposit contract
-	ds DepositStore
+	ds *depositdb.KVStore
 	// metrics is the metrics for the service.
 	metrics *stateProcessorMetrics
 }
@@ -66,7 +67,7 @@ func NewStateProcessor[
 	logger log.Logger,
 	cs chain.ChainSpec,
 	executionEngine ExecutionEngine,
-	ds DepositStore,
+	ds *depositdb.KVStore,
 	signer crypto.BLSSigner,
 	fGetAddressFromPubKey func(crypto.BLSPubkey) ([]byte, error),
 	telemetrySink TelemetrySink,

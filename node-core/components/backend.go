@@ -26,6 +26,7 @@ import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
+	depositdb "github.com/berachain/beacon-kit/storage/deposit"
 )
 
 // StorageBackendInput is the input for the ProvideStorageBackend function.
@@ -33,13 +34,12 @@ type StorageBackendInput[
 	AvailabilityStoreT any,
 	BeaconBlockStoreT any,
 	BeaconStoreT any,
-	DepositStoreT any,
 ] struct {
 	depinject.In
 	AvailabilityStore AvailabilityStoreT
 	BlockStore        BeaconBlockStoreT
 	ChainSpec         chain.ChainSpec
-	DepositStore      DepositStoreT
+	DepositStore      *depositdb.KVStore
 	BeaconStore       BeaconStoreT
 }
 
@@ -51,20 +51,17 @@ func ProvideStorageBackend[
 	BeaconStoreT interface {
 		WithContext(context.Context) BeaconStoreT
 	},
-	DepositStoreT any,
 ](
 	in StorageBackendInput[
 		AvailabilityStoreT, BeaconBlockStoreT, BeaconStoreT,
-		DepositStoreT,
 	],
 ) *storage.Backend[
 	AvailabilityStoreT, BeaconBlockStoreT,
-	DepositStoreT, BeaconStoreT,
+	BeaconStoreT,
 ] {
 	return storage.NewBackend[
 		AvailabilityStoreT,
 		BeaconBlockStoreT,
-		DepositStoreT,
 		BeaconStoreT,
 	](
 		in.ChainSpec,

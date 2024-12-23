@@ -42,7 +42,6 @@ type ChainServiceInput[
 	StorageBackendT any,
 	LoggerT any,
 	BlockStoreT BlockStore,
-	DepositStoreT any,
 	DepositContractT any,
 	AvailabilityStoreT any,
 	ConsensusSidecarsT any,
@@ -71,25 +70,23 @@ func ProvideChainService[
 	AvailabilityStoreT AvailabilityStore,
 	ConsensusBlockT ConsensusBlock,
 	ConsensusSidecarsT da.ConsensusSidecars,
-	DepositStoreT DepositStore,
 	DepositContractT deposit.Contract,
 	GenesisT Genesis,
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
-	StorageBackendT StorageBackend[AvailabilityStoreT, BlockStoreT, DepositStoreT],
+	StorageBackendT StorageBackend[AvailabilityStoreT, BlockStoreT],
 	BlockStoreT BlockStore,
 ](
 	in ChainServiceInput[
-		StorageBackendT, LoggerT, BlockStoreT, DepositStoreT,
+		StorageBackendT, LoggerT, BlockStoreT,
 		DepositContractT, AvailabilityStoreT, ConsensusSidecarsT,
 	],
 ) *blockchain.Service[
-	AvailabilityStoreT, DepositStoreT, ConsensusBlockT,
+	AvailabilityStoreT, ConsensusBlockT,
 	BlockStoreT, GenesisT, ConsensusSidecarsT,
 ] {
 	return blockchain.NewService[
 		AvailabilityStoreT,
-		DepositStoreT,
 		ConsensusBlockT,
 		BlockStoreT,
 		GenesisT,

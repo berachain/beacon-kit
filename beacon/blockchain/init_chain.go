@@ -30,7 +30,7 @@ import (
 // ProcessGenesisData processes the genesis state and initializes the beacon
 // state.
 func (s *Service[
-	_, _, _, _, GenesisT, _,
+	_, _, _, GenesisT, _,
 ]) ProcessGenesisData(
 	ctx context.Context,
 	bytes []byte,
