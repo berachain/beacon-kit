@@ -21,13 +21,15 @@
 package blockchain
 
 import (
+	"context"
+
 	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 )
 
 func (s *Service[
 	_, ConsensusBlockT, _, _, _,
-]) processPruning(beaconBlk *ctypes.BeaconBlock) error {
+]) processPruning(ctx context.Context, beaconBlk *ctypes.BeaconBlock) error {
 	// prune availability store
 	start, end := availabilityPruneRangeFn(
 		beaconBlk.GetSlot().Unwrap(), s.chainSpec)
@@ -39,7 +41,7 @@ func (s *Service[
 	// prune deposit store
 	start, end = depositPruneRangeFn(
 		beaconBlk.GetBody().GetDeposits(), s.chainSpec)
-	err = s.storageBackend.DepositStore().Prune(start, end)
+	err = s.storageBackend.DepositStore().Prune(ctx, start, end)
 
 	if err != nil {
 		return err

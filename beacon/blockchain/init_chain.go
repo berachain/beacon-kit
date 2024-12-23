@@ -53,6 +53,7 @@ func (s *Service[
 
 	// After deposits are validated, store the genesis deposits in the deposit store.
 	if err = s.storageBackend.DepositStore().EnqueueDeposits(
+		ctx,
 		genesisData.GetDeposits(),
 	); err != nil {
 		return nil, err

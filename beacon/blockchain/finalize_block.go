@@ -105,7 +105,7 @@ func (s *Service[
 	}
 
 	// prune the availability and deposit store
-	err = s.processPruning(blk)
+	err = s.processPruning(ctx, blk)
 	if err != nil {
 		s.logger.Error("failed to processPruning", "error", err)
 	}

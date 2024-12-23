@@ -220,7 +220,7 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	if err := sp.processOperations(st, blk); err != nil {
+	if err := sp.processOperations(ctx, st, blk); err != nil {
 		return err
 	}
 

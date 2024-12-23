@@ -78,7 +78,7 @@ func (s *Service[
 		)
 	}
 
-	if err = s.storageBackend.DepositStore().EnqueueDeposits(deposits); err != nil {
+	if err = s.storageBackend.DepositStore().EnqueueDeposits(ctx, deposits); err != nil {
 		s.logger.Error("Failed to store deposits", "error", err)
 		s.failedBlocksMu.Lock()
 		s.failedBlocks[blockNum] = struct{}{}

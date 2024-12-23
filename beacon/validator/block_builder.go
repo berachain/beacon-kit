@@ -270,7 +270,7 @@ func (s *Service) retrieveExecutionPayload(
 
 // BuildBlockBody assembles the block body with necessary components.
 func (s *Service) buildBlockBody(
-	_ context.Context,
+	ctx context.Context,
 	st *statedb.StateDB,
 	blk *ctypes.BeaconBlock,
 	reveal crypto.BLSSignature,
@@ -303,6 +303,7 @@ func (s *Service) buildBlockBody(
 
 	// Grab all previous deposits from genesis up to the current index + max deposits per block.
 	deposits, err := s.sb.DepositStore().GetDepositsByIndex(
+		ctx,
 		0, depositIndex+s.chainSpec.MaxDepositsPerBlock(),
 	)
 	if err != nil {
