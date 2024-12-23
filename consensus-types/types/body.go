@@ -28,6 +28,7 @@ package types
 import (
 	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -45,9 +46,14 @@ const (
 	// KZGPositionDeneb is the position of BlobKzgCommitments in the block body.
 	KZGPositionDeneb = BodyLengthDeneb - 1
 
-	// KZGMerkleIndexDeneb is the merkle index of BlobKzgCommitments' root
+	// KZGGeneralizedIndex is the index of the KZG commitment root's parent.
+	// (1 << log2ceil(KZGPositionDeneb)) | KZGPositionDeneb.
+	KZGGeneralizedIndex = 13
+
+	// KZGRootIndexDeneb is the merkle index of BlobKzgCommitments' root
 	// in the merkle tree built from the block body.
-	KZGMerkleIndexDeneb = 26
+	// 2 * KZGGeneralizedIndex.
+	KZGRootIndexDeneb = KZGGeneralizedIndex * 2
 
 	// ExtraDataSize is the size of ExtraData in bytes.
 	ExtraDataSize = 32
@@ -77,7 +83,7 @@ func BlockBodyKZGOffset(
 ) (uint64, error) {
 	switch cs.ActiveForkVersionForSlot(slot) {
 	case version.Deneb:
-		return KZGMerkleIndexDeneb * cs.MaxBlobCommitmentsPerBlock(), nil
+		return KZGRootIndexDeneb * cs.MaxBlobCommitmentsPerBlock(), nil
 	default:
 		return 0, ErrForkVersionNotSupported
 	}
@@ -105,7 +111,9 @@ func KZGCommitmentInclusionProofDepth(
 	const maxUint8 = 255
 	switch cs.ActiveForkVersionForSlot(slot) {
 	case version.Deneb:
-		sum := uint64(log.ILog2Floor(uint64(KZGMerkleIndexDeneb))) +
+		// Depth of BeaconBlockBody proof.
+		sum := uint64(log.ILog2Floor(uint64(KZGGeneralizedIndex))) +
+			// Depth of commitments proof + length mixin.
 			uint64(log.ILog2Ceil(cs.MaxBlobCommitmentsPerBlock())) + 1
 		if sum > maxUint8 {
 			return 0, ErrInclusionProofDepthExceeded
@@ -159,12 +167,12 @@ func (b *BeaconBlockBody) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineStaticBytes(codec, &b.RandaoReveal)
 	ssz.DefineStaticObject(codec, &b.Eth1Data)
 	ssz.DefineStaticBytes(codec, &b.Graffiti)
-	ssz.DefineSliceOfStaticObjectsOffset(codec, &b.Deposits, 16)
+	ssz.DefineSliceOfStaticObjectsOffset(codec, &b.Deposits, constants.MaxDeposits)
 	ssz.DefineDynamicObjectOffset(codec, &b.ExecutionPayload)
 	ssz.DefineSliceOfStaticBytesOffset(codec, &b.BlobKzgCommitments, 16)
 
 	// Define the dynamic data (fields)
-	ssz.DefineSliceOfStaticObjectsContent(codec, &b.Deposits, 16)
+	ssz.DefineSliceOfStaticObjectsContent(codec, &b.Deposits, constants.MaxDeposits)
 	ssz.DefineDynamicObjectContent(codec, &b.ExecutionPayload)
 	ssz.DefineSliceOfStaticBytesContent(codec, &b.BlobKzgCommitments, 16)
 }
