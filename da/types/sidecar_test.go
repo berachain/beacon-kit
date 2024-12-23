@@ -21,7 +21,6 @@
 package types_test
 
 import (
-	"github.com/berachain/beacon-kit/primitives/math/log"
 	"strconv"
 	"testing"
 	"time"
@@ -37,6 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/math/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -235,13 +235,14 @@ func TestHasValidInclusionProof(t *testing.T) {
 	}
 }
 
-// See Prysm test at https://github.com/prysmaticlabs/prysm/blob/6ce6b869e54c2f98fab5cc836a24e493df19ec49/consensus-types/blocks/kzg_test.go#L107-L120
+// Test taken from Prysm:
+// https://github.com/prysmaticlabs/prysm/blob/6ce6b869e54c2f98fab5cc836a24e493df19ec49/consensus-types/blocks/kzg_test.go#L107-L120
 // This test explains the calculation of the KZG commitment root's Merkle index
 // in the Body's Merkle tree based on the index of the KZG commitment list in the Body.
 func Test_KZGRootIndex(t *testing.T) {
 	// Level of the KZG commitment root's parent.
 	kzgParentRootLevel := log.ILog2Ceil(ctypes.KZGPositionDeneb)
-	require.NotEqual(t, kzgParentRootLevel, 0)
+	require.NotEqual(t, 0, kzgParentRootLevel)
 	// Merkle index of the KZG commitment root's parent.
 	// The parent's left child is the KZG commitment root,
 	// and its right child is the KZG commitment size.

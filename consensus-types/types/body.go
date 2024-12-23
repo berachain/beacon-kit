@@ -47,12 +47,12 @@ const (
 	KZGPositionDeneb = BodyLengthDeneb - 1
 
 	// KZGGeneralizedIndex is the index of the KZG commitment root's parent.
-	// Calculation is: (1 << log2ceil(KZGPositionDeneb)) | KZGPositionDeneb
+	// (1 << log2ceil(KZGPositionDeneb)) | KZGPositionDeneb.
 	KZGGeneralizedIndex = 13
 
 	// KZGRootIndexDeneb is the merkle index of BlobKzgCommitments' root
 	// in the merkle tree built from the block body.
-	// Calculation is: 2 * KZGGeneralizedIndex
+	// 2 * KZGGeneralizedIndex.
 	KZGRootIndexDeneb = KZGGeneralizedIndex * 2
 
 	// ExtraDataSize is the size of ExtraData in bytes.
@@ -111,9 +111,9 @@ func KZGCommitmentInclusionProofDepth(
 	const maxUint8 = 255
 	switch cs.ActiveForkVersionForSlot(slot) {
 	case version.Deneb:
-		// depth of BeaconBlockBody proof
+		// Depth of BeaconBlockBody proof.
 		sum := uint64(log.ILog2Floor(uint64(KZGGeneralizedIndex))) +
-			// depth of commitments proof plus length mixin
+			// Depth of commitments proof + length mixin.
 			uint64(log.ILog2Ceil(cs.MaxBlobCommitmentsPerBlock())) + 1
 		if sum > maxUint8 {
 			return 0, ErrInclusionProofDepthExceeded
