@@ -34,7 +34,7 @@ func (s *BeaconKitE2ESuite) TestBeaconAPIStartup() {
 	s.Require().NoError(err)
 
 	// Get the consensus client.
-	client := s.ConsensusClients()[config.DefaultClient]
+	client := s.ConsensusClients()[config.ClientValidator0]
 	s.Require().NotNil(client)
 
 	// Ensure the state root is not nil.

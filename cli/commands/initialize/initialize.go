@@ -62,10 +62,10 @@ const (
 )
 
 type printInfo struct {
-	Moniker    string          `json:"moniker" yaml:"moniker"`
-	ChainID    string          `json:"chain_id" yaml:"chain_id"`
-	NodeID     string          `json:"node_id" yaml:"node_id"`
-	GenTxsDir  string          `json:"gentxs_dir" yaml:"gentxs_dir"`
+	Moniker    string          `json:"moniker"     yaml:"moniker"`
+	ChainID    string          `json:"chain_id"    yaml:"chain_id"`
+	NodeID     string          `json:"node_id"     yaml:"node_id"`
+	GenTxsDir  string          `json:"gentxs_dir"  yaml:"gentxs_dir"`
 	AppMessage json.RawMessage `json:"app_message" yaml:"app_message"`
 }
 

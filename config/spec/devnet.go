@@ -33,6 +33,10 @@ const (
 	// DevnetEVMInflationPerBlock is the amount of native EVM balance (in units
 	// of Gwei) to be minted per EL block.
 	DevnetEVMInflationPerBlock = 10e9
+
+	// MaxStakeAmount is the maximum amount of native EVM balance (in units
+	// of Gwei) that can be staked.
+	MaxStakeAmount = 4000e9
 )
 
 // DevnetChainSpec is the ChainSpec for the localnet. Also used for e2e tests
@@ -49,5 +53,6 @@ func DevnetChainSpec() (chain.Spec[
 		DevnetEVMInflationAddress,
 	)
 	devnetSpec.EVMInflationPerBlock = DevnetEVMInflationPerBlock
+	devnetSpec.MaxEffectiveBalancePreUpgrade = MaxStakeAmount
 	return chain.NewChainSpec(devnetSpec)
 }
