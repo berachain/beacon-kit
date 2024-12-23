@@ -191,26 +191,9 @@ jobs:
         with:
           registry: ${{ env.GHCR_REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.GH_TOKEN }}
-
-      - if: ${{ env.PUSH_DOCKER_IMAGE == 'true' }}
-        name: Authenticate to Google Cloud
-        id: "auth"
-        uses: "google-github-actions/auth@v2"
-        with:
-          workload_identity_provider: ${{ env.GCP_ID_PROVIDER }}
-          service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
-
-      - if: ${{ env.PUSH_DOCKER_IMAGE == 'true' }}
-        name: "Set up Cloud SDK"
-        uses: "google-github-actions/setup-gcloud@v2"
-
-      - if: ${{ env.PUSH_DOCKER_IMAGE == 'true' }}
-        name: Setup Docker to use Google Cloud OIDC
-        run: |
-          gcloud auth configure-docker ${{ env.GCP_REGISTRY }} --quiet
+          password: ${{ secrets.GHCR_TOKEN }}
 
       - if: ${{ env.PUSH_DOCKER_IMAGE == 'true' }}
         name: Push Docker image
         run: |
-          make push-docker-gcp push-docker-github
+          make push-docker-github
