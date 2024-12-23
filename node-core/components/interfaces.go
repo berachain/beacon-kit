@@ -38,6 +38,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
+	depositdb "github.com/berachain/beacon-kit/storage/deposit"
 	v1 "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	fastssz "github.com/ferranbt/fastssz"
@@ -297,18 +298,6 @@ type (
 		) error
 	}
 
-	DepositStore interface {
-		// GetDepositsByIndex returns `numView` expected deposits.
-		GetDepositsByIndex(
-			startIndex uint64,
-			numView uint64,
-		) (ctypes.Deposits, error)
-		// Prune prunes the deposit store of [start, end)
-		Prune(start, end uint64) error
-		// EnqueueDeposits adds a list of deposits to the deposit store.
-		EnqueueDeposits(deposits []*ctypes.Deposit) error
-	}
-
 	// Genesis is the interface for the genesis.
 	Genesis interface {
 		json.Unmarshaler
@@ -424,11 +413,10 @@ type (
 	StorageBackend[
 		AvailabilityStoreT any,
 		BlockStoreT any,
-		DepositStoreT any,
 	] interface {
 		AvailabilityStore() AvailabilityStoreT
 		BlockStore() BlockStoreT
-		DepositStore() DepositStoreT
+		DepositStore() *depositdb.KVStore
 		// StateFromContext retrieves the beacon state from the given context.
 		StateFromContext(context.Context) *statedb.StateDB
 	}

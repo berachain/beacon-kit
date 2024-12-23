@@ -45,7 +45,6 @@ import (
 	"github.com/berachain/beacon-kit/state-transition/core"
 	"github.com/berachain/beacon-kit/storage/beacondb"
 	"github.com/berachain/beacon-kit/storage/block"
-	depositdb "github.com/berachain/beacon-kit/storage/deposit"
 	"github.com/berachain/beacon-kit/storage/filedb"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -67,7 +66,6 @@ type (
 	// ChainService is a type alias for the chain service.
 	ChainService = blockchain.Service[
 		*AvailabilityStore,
-		*DepositStore,
 		*ConsensusBlock,
 		*BlockStore,
 		*Genesis,
@@ -114,12 +112,11 @@ type (
 	StorageBackend = storage.Backend[
 		*AvailabilityStore,
 		*BlockStore,
-		*DepositStore,
 		*KVStore,
 	]
 
 	// ValidatorService is a type alias for the validator service.
-	ValidatorService = validator.Service[*DepositStore]
+	ValidatorService = validator.Service
 )
 
 /* -------------------------------------------------------------------------- */
@@ -146,9 +143,6 @@ type (
 
 	// DepositContract is a type alias for the deposit contract.
 	DepositContract = deposit.WrappedDepositContract
-
-	// DepositStore is a type alias for the deposit store.
-	DepositStore = depositdb.KVStore
 
 	// Eth1Data is a type alias for the eth1 data.
 	Eth1Data = types.Eth1Data
@@ -179,7 +173,6 @@ type (
 		*AvailabilityStore,
 		*BlockStore,
 		sdk.Context,
-		*DepositStore,
 		*CometBFTService,
 		*KVStore,
 		*StorageBackend,

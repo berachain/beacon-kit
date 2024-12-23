@@ -50,27 +50,25 @@ type NodeAPIBackendInput[
 func ProvideNodeAPIBackend[
 	AvailabilityStoreT AvailabilityStore,
 	BeaconBlockStoreT BlockStore,
-	DepositStoreT DepositStore,
 	KVStoreT any,
 	NodeT interface {
 		CreateQueryContext(height int64, prove bool) (sdk.Context, error)
 	},
 	StorageBackendT StorageBackend[
-		AvailabilityStoreT, BeaconBlockStoreT, DepositStoreT,
+		AvailabilityStoreT, BeaconBlockStoreT,
 	],
 ](
 	in NodeAPIBackendInput[StorageBackendT],
 ) *backend.Backend[
 	AvailabilityStoreT,
 	BeaconBlockStoreT,
-	sdk.Context, DepositStoreT,
+	sdk.Context,
 	NodeT, KVStoreT, StorageBackendT,
 ] {
 	return backend.New[
 		AvailabilityStoreT,
 		BeaconBlockStoreT,
 		sdk.Context,
-		DepositStoreT,
 		NodeT,
 		KVStoreT,
 		StorageBackendT,
