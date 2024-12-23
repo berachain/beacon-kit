@@ -34,7 +34,7 @@ import (
 )
 
 func (s *Service[
-	_, _, ConsensusBlockT, _,
+	_, ConsensusBlockT, _,
 	GenesisT, ConsensusSidecarsT,
 ]) FinalizeBlock(
 	ctx sdk.Context,
@@ -105,7 +105,7 @@ func (s *Service[
 	}
 
 	// prune the availability and deposit store
-	err = s.processPruning(blk)
+	err = s.processPruning(ctx, blk)
 	if err != nil {
 		s.logger.Error("failed to processPruning", "error", err)
 	}
@@ -118,7 +118,7 @@ func (s *Service[
 // finalizeBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
 func (s *Service[
-	_, _, ConsensusBlockT, _, _, _,
+	_, ConsensusBlockT, _, _, _,
 ]) finalizeBeaconBlock(
 	ctx context.Context,
 	st *statedb.StateDB,
@@ -149,7 +149,7 @@ func (s *Service[
 
 // executeStateTransition runs the stf.
 func (s *Service[
-	_, _, ConsensusBlockT, _, _, _,
+	_, ConsensusBlockT, _, _, _,
 ]) executeStateTransition(
 	ctx context.Context,
 	st *statedb.StateDB,

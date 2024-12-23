@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
+	depositdb "github.com/berachain/beacon-kit/storage/deposit"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -183,14 +184,13 @@ type StateProcessor[
 type StorageBackend[
 	AvailabilityStoreT any,
 	BlockStoreT any,
-	DepositStoreT any,
 ] interface {
 	// AvailabilityStore returns the availability store for the given context.
 	AvailabilityStore() AvailabilityStoreT
 	// StateFromContext retrieves the beacon state from the given context.
 	StateFromContext(context.Context) *statedb.StateDB
 	// DepositStore retrieves the deposit store.
-	DepositStore() DepositStoreT
+	DepositStore() *depositdb.KVStore
 	// BlockStore retrieves the block store.
 	BlockStore() BlockStoreT
 }

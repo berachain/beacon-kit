@@ -77,7 +77,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		genVersion       = version.FromUint32[common.Version](version.Deneb)
 	)
-	require.NoError(t, ds.EnqueueDeposits(genDeposits))
+	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
 	valDiff, err := sp.InitializePreminedBeaconStateFromEth1(
 		st,
 		genDeposits,
@@ -115,7 +115,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	)
 
 	// make sure included deposit is already available in deposit store
-	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits))
+	require.NoError(t, ds.EnqueueDeposits(ctx, blk1.Body.Deposits))
 
 	// run the test
 	valDiff, err = sp.Transition(ctx, st, blk1)
@@ -218,7 +218,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 		genVersion       = version.FromUint32[common.Version](version.Deneb)
 	)
 
-	require.NoError(t, ds.EnqueueDeposits(genDeposits))
+	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
 	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
 		st,
 		genDeposits,
@@ -256,7 +256,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 	)
 
 	// make sure included deposit is already available in deposit store
-	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits))
+	require.NoError(t, ds.EnqueueDeposits(ctx, blk1.Body.Deposits))
 
 	// run the test
 	valDiff, err := sp.Transition(ctx, st, blk1)
@@ -420,7 +420,7 @@ func TestTransitionWithdrawals(t *testing.T) {
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		genVersion       = version.FromUint32[common.Version](version.Deneb)
 	)
-	require.NoError(t, ds.EnqueueDeposits(genDeposits))
+	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
 	_, err := sp.InitializePreminedBeaconStateFromEth1(
 		st, genDeposits, genPayloadHeader, genVersion,
 	)
@@ -513,7 +513,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		genVersion       = version.FromUint32[common.Version](version.Deneb)
 	)
-	require.NoError(t, ds.EnqueueDeposits(genDeposits))
+	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
 	_, err = sp.InitializePreminedBeaconStateFromEth1(
 		st, genDeposits, genPayloadHeader, genVersion,
 	)
@@ -661,7 +661,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		)
 	}
 
-	require.NoError(t, ds.EnqueueDeposits(genDeposits))
+	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
 	_, err := sp.InitializePreminedBeaconStateFromEth1(
 		st,
 		genDeposits,
@@ -702,7 +702,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	)
 
 	// make sure included deposit is already available in deposit store
-	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits))
+	require.NoError(t, ds.EnqueueDeposits(ctx, blk1.Body.Deposits))
 
 	// run the test
 	valDiff, err := sp.Transition(ctx, st, blk1)
@@ -893,7 +893,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	// make a deposit small to be ready for eviction
 	genDeposits[0].Amount = minBalance
 
-	require.NoError(t, ds.EnqueueDeposits(genDeposits))
+	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
 	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
 		st,
 		genDeposits,
@@ -935,7 +935,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	)
 
 	// make sure included deposit is already available in deposit store
-	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits))
+	require.NoError(t, ds.EnqueueDeposits(ctx, blk1.Body.Deposits))
 
 	// run the test
 	valDiff, err := sp.Transition(ctx, st, blk1)

@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/chain-spec/chain"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/berachain/beacon-kit/storage/beacondb"
+	depositdb "github.com/berachain/beacon-kit/storage/deposit"
 )
 
 // Backend is a struct that holds the storage backend. It provides a simple
@@ -33,32 +34,30 @@ import (
 type Backend[
 	AvailabilityStoreT any,
 	BlockStoreT any,
-	DepositStoreT any,
 	KVStoreT KVStore[KVStoreT],
 ] struct {
 	chainSpec         chain.ChainSpec
 	availabilityStore AvailabilityStoreT
 	kvStore           KVStoreT
-	depositStore      DepositStoreT
+	depositStore      *depositdb.KVStore
 	blockStore        BlockStoreT
 }
 
 func NewBackend[
 	AvailabilityStoreT any,
 	BlockStoreT any,
-	DepositStoreT any,
 	KVStoreT KVStore[KVStoreT],
 ](
 	chainSpec chain.ChainSpec,
 	availabilityStore AvailabilityStoreT,
 	kvStore KVStoreT,
-	depositStore DepositStoreT,
+	depositStore *depositdb.KVStore,
 	blockStore BlockStoreT,
 ) *Backend[
-	AvailabilityStoreT, BlockStoreT, DepositStoreT, KVStoreT,
+	AvailabilityStoreT, BlockStoreT, KVStoreT,
 ] {
 	return &Backend[
-		AvailabilityStoreT, BlockStoreT, DepositStoreT, KVStoreT,
+		AvailabilityStoreT, BlockStoreT, KVStoreT,
 	]{
 		chainSpec:         chainSpec,
 		availabilityStore: availabilityStore,
@@ -71,7 +70,7 @@ func NewBackend[
 // AvailabilityStore returns the availability store struct initialized with a
 // given context.
 func (k Backend[
-	AvailabilityStoreT, _, _, _,
+	AvailabilityStoreT, _, _,
 ]) AvailabilityStore() AvailabilityStoreT {
 	return k.availabilityStore
 }
@@ -79,7 +78,7 @@ func (k Backend[
 // BeaconState returns the beacon state struct initialized with a given
 // context and the store key.
 func (k Backend[
-	_, _, _, KVStoreT,
+	_, _, KVStoreT,
 ]) StateFromContext(
 	ctx context.Context,
 ) *statedb.StateDB {
@@ -94,20 +93,20 @@ func (k Backend[
 
 // BeaconStore returns the beacon store struct.
 func (k Backend[
-	_, _, _, KVStoreT,
+	_, _, KVStoreT,
 ]) BeaconStore() KVStoreT {
 	return k.kvStore
 }
 
 func (k Backend[
-	_, BlockStoreT, _, _,
+	_, BlockStoreT, _,
 ]) BlockStore() BlockStoreT {
 	return k.blockStore
 }
 
 // DepositStore returns the deposit store struct initialized with a.
 func (k Backend[
-	_, _, DepositStoreT, _,
-]) DepositStore() DepositStoreT {
+	_, _, _,
+]) DepositStore() *depositdb.KVStore {
 	return k.depositStore
 }

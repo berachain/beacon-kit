@@ -40,7 +40,7 @@ import (
 )
 
 // BuildBlockAndSidecars builds a new beacon block.
-func (s *Service[_]) BuildBlockAndSidecars(
+func (s *Service) BuildBlockAndSidecars(
 	ctx context.Context,
 	slotData types.SlotData,
 ) ([]byte, []byte, error) {
@@ -147,7 +147,7 @@ func (s *Service[_]) BuildBlockAndSidecars(
 }
 
 // getEmptyBeaconBlockForSlot creates a new empty block.
-func (s *Service[_]) getEmptyBeaconBlockForSlot(
+func (s *Service) getEmptyBeaconBlockForSlot(
 	st *statedb.StateDB, requestedSlot math.Slot,
 ) (*ctypes.BeaconBlock, error) {
 	var blk *ctypes.BeaconBlock
@@ -176,7 +176,7 @@ func (s *Service[_]) getEmptyBeaconBlockForSlot(
 	)
 }
 
-func (s *Service[_]) buildForkData(
+func (s *Service) buildForkData(
 	st *statedb.StateDB,
 	slot math.Slot,
 ) (*ctypes.ForkData, error) {
@@ -198,7 +198,7 @@ func (s *Service[_]) buildForkData(
 }
 
 // buildRandaoReveal builds a randao reveal for the given slot.
-func (s *Service[_]) buildRandaoReveal(
+func (s *Service) buildRandaoReveal(
 	forkData *ctypes.ForkData,
 	slot math.Slot,
 ) (crypto.BLSSignature, error) {
@@ -211,7 +211,7 @@ func (s *Service[_]) buildRandaoReveal(
 }
 
 // retrieveExecutionPayload retrieves the execution payload for the block.
-func (s *Service[_]) retrieveExecutionPayload(
+func (s *Service) retrieveExecutionPayload(
 	ctx context.Context,
 	st *statedb.StateDB,
 	blk *ctypes.BeaconBlock,
@@ -269,8 +269,8 @@ func (s *Service[_]) retrieveExecutionPayload(
 }
 
 // BuildBlockBody assembles the block body with necessary components.
-func (s *Service[_]) buildBlockBody(
-	_ context.Context,
+func (s *Service) buildBlockBody(
+	ctx context.Context,
 	st *statedb.StateDB,
 	blk *ctypes.BeaconBlock,
 	reveal crypto.BLSSignature,
@@ -303,6 +303,7 @@ func (s *Service[_]) buildBlockBody(
 
 	// Grab all previous deposits from genesis up to the current index + max deposits per block.
 	deposits, err := s.sb.DepositStore().GetDepositsByIndex(
+		ctx,
 		0, depositIndex+s.chainSpec.MaxDepositsPerBlock(),
 	)
 	if err != nil {
@@ -351,7 +352,7 @@ func (s *Service[_]) buildBlockBody(
 
 // computeAndSetStateRoot computes the state root of an outgoing block
 // and sets it in the block.
-func (s *Service[_]) computeAndSetStateRoot(
+func (s *Service) computeAndSetStateRoot(
 	ctx context.Context,
 	proposerAddress []byte,
 	consensusTime math.U64,
@@ -378,7 +379,7 @@ func (s *Service[_]) computeAndSetStateRoot(
 }
 
 // computeStateRoot computes the state root of an outgoing block.
-func (s *Service[_]) computeStateRoot(
+func (s *Service) computeStateRoot(
 	ctx context.Context,
 	proposerAddress []byte,
 	consensusTime math.U64,

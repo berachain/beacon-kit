@@ -21,6 +21,8 @@
 package core
 
 import (
+	"context"
+
 	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
@@ -35,6 +37,7 @@ import (
 func (sp *StateProcessor[
 	_, _,
 ]) processOperations(
+	ctx context.Context,
 	st *state.StateDB,
 	blk *ctypes.BeaconBlock,
 ) error {
@@ -53,7 +56,7 @@ func (sp *StateProcessor[
 		)
 	}
 	if err := sp.validateNonGenesisDeposits(
-		st, deposits, blk.GetBody().GetEth1Data().DepositRoot,
+		ctx, st, deposits, blk.GetBody().GetEth1Data().DepositRoot,
 	); err != nil {
 		return err
 	}
