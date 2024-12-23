@@ -25,6 +25,7 @@ import (
 	"time"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	dastore "github.com/berachain/beacon-kit/da/store"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
@@ -36,19 +37,6 @@ import (
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
-
-// AvailabilityStore interface is responsible for validating and storing
-// sidecars for specific blocks, as well as verifying sidecars that have already
-// been stored.
-type AvailabilityStore interface {
-	// IsDataAvailable ensures that all blobs referenced in the block are
-	// securely stored before it returns without an error.
-	IsDataAvailable(
-		context.Context, math.Slot, *ctypes.BeaconBlockBody,
-	) bool
-	// Prune prunes the deposit store of [start, end)
-	Prune(start, end uint64) error
-}
 
 type ConsensusBlock interface {
 	GetBeaconBlock() *ctypes.BeaconBlock
@@ -182,11 +170,10 @@ type StateProcessor[
 // StorageBackend defines an interface for accessing various storage components
 // required by the beacon node.
 type StorageBackend[
-	AvailabilityStoreT any,
 	BlockStoreT any,
 ] interface {
 	// AvailabilityStore returns the availability store for the given context.
-	AvailabilityStore() AvailabilityStoreT
+	AvailabilityStore() *dastore.Store
 	// StateFromContext retrieves the beacon state from the given context.
 	StateFromContext(context.Context) *statedb.StateDB
 	// DepositStore retrieves the deposit store.

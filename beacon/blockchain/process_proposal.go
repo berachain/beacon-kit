@@ -48,7 +48,7 @@ const (
 )
 
 func (s *Service[
-	_, ConsensusBlockT, _,
+	ConsensusBlockT, _,
 	GenesisT, ConsensusSidecarsT,
 ]) ProcessProposal(
 	ctx sdk.Context,
@@ -145,7 +145,7 @@ func (s *Service[
 // VerifyIncomingBlobSidecars verifies the BlobSidecars of an incoming
 // proposal and logs the process.
 func (s *Service[
-	_, ConsensusBlockT, _,
+	ConsensusBlockT, _,
 	GenesisT, ConsensusSidecarsT,
 ]) VerifyIncomingBlobSidecars(
 	ctx context.Context,
@@ -191,7 +191,7 @@ func (s *Service[
 // VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
 func (s *Service[
-	_, ConsensusBlockT, _,
+	ConsensusBlockT, _,
 	_, _,
 ]) VerifyIncomingBlock(
 	ctx context.Context,
@@ -286,7 +286,7 @@ func (s *Service[
 
 // verifyStateRoot verifies the state root of an incoming block.
 func (s *Service[
-	_, ConsensusBlockT,
+	ConsensusBlockT,
 	_, _, _,
 ]) verifyStateRoot(
 	ctx context.Context,
@@ -326,7 +326,7 @@ func (s *Service[
 // shouldBuildOptimisticPayloads returns true if optimistic
 // payload builds are enabled.
 func (s *Service[
-	_, _, _, _, _,
+	_, _, _, _,
 ]) shouldBuildOptimisticPayloads() bool {
 	return s.optimisticPayloadBuilds && s.localBuilder.Enabled()
 }
