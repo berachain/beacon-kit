@@ -22,8 +22,13 @@ package config
 
 // Consensus clients.
 const (
-	DefaultClient   = "cl-validator-beaconkit-0"
-	AlternateClient = "cl-validator-beaconkit-1"
+	NumValidators = 5
+
+	ClientValidator0 = "cl-validator-beaconkit-0"
+	ClientValidator1 = "cl-validator-beaconkit-1"
+	ClientValidator2 = "cl-validator-beaconkit-2"
+	ClientValidator3 = "cl-validator-beaconkit-3"
+	ClientValidator4 = "cl-validator-beaconkit-4"
 )
 
 // DefaultE2ETestConfig provides a default configuration for end-to-end tests,
@@ -52,8 +57,7 @@ func defaultValidators() NodeSet {
 		Nodes: []Node{
 			{
 				ElType: "nethermind",
-				// TODO: restore once we solve
-				//  https://github.com/berachain/beacon-kit/issues/2177
+				// TODO: restore once we solve https://github.com/berachain/beacon-kit/issues/2177
 				Replicas: 0, // nethermind cannot keep up with deposits checks
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
