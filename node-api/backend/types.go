@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
+	depositdb "github.com/berachain/beacon-kit/storage/deposit"
 )
 
 // The AvailabilityStore interface is responsible for validating and storing
@@ -53,16 +54,6 @@ type BlockStore interface {
 	GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
 }
 
-// DepositStore defines the interface for deposit storage.
-type DepositStore interface {
-	// GetDepositsByIndex returns `numView` expected deposits.
-	GetDepositsByIndex(startIndex uint64, numView uint64) (ctypes.Deposits, error)
-	// Prune prunes the deposit store of [start, end)
-	Prune(start, end uint64) error
-	// EnqueueDeposits adds a list of deposits to the deposit store.
-	EnqueueDeposits(deposits []*ctypes.Deposit) error
-}
-
 // Node is the interface for a node.
 type Node[ContextT any] interface {
 	// CreateQueryContext creates a query context for a given height and proof
@@ -76,11 +67,11 @@ type StateProcessor interface {
 
 // StorageBackend is the interface for the storage backend.
 type StorageBackend[
-	AvailabilityStoreT, BlockStoreT, DepositStoreT any,
+	AvailabilityStoreT, BlockStoreT any,
 ] interface {
 	AvailabilityStore() AvailabilityStoreT
 	BlockStore() BlockStoreT
-	DepositStore() DepositStoreT
+	DepositStore() *depositdb.KVStore
 	StateFromContext(context.Context) *statedb.StateDB
 }
 

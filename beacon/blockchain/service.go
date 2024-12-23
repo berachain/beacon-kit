@@ -28,7 +28,6 @@ import (
 	"github.com/berachain/beacon-kit/da/da"
 	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/node-api/backend"
 	blockstore "github.com/berachain/beacon-kit/node-api/block_store"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
@@ -37,7 +36,6 @@ import (
 // Service is the blockchain service.
 type Service[
 	AvailabilityStoreT AvailabilityStore,
-	DepositStoreT backend.DepositStore,
 	ConsensusBlockT ConsensusBlock,
 	BlockStoreT blockstore.BlockStore,
 	GenesisT Genesis,
@@ -46,7 +44,7 @@ type Service[
 	// homeDir is the directory for config and data"
 	homeDir string
 	// storageBackend represents the backend storage for not state-enforced data.
-	storageBackend StorageBackend[AvailabilityStoreT, BlockStoreT, DepositStoreT]
+	storageBackend StorageBackend[AvailabilityStoreT, BlockStoreT]
 	// blobProcessor is used for processing sidecars.
 	blobProcessor da.BlobProcessor[AvailabilityStoreT, ConsensusSidecarsT]
 	// depositContract is the contract interface for interacting with the
@@ -83,7 +81,6 @@ type Service[
 // NewService creates a new validator service.
 func NewService[
 	AvailabilityStoreT AvailabilityStore,
-	DepositStoreT backend.DepositStore,
 	ConsensusBlockT ConsensusBlock,
 	BlockStoreT blockstore.BlockStore,
 	GenesisT Genesis,
@@ -93,7 +90,6 @@ func NewService[
 	storageBackend StorageBackend[
 		AvailabilityStoreT,
 		BlockStoreT,
-		DepositStoreT,
 	],
 	blobProcessor da.BlobProcessor[
 		AvailabilityStoreT,
@@ -109,14 +105,14 @@ func NewService[
 	telemetrySink TelemetrySink,
 	optimisticPayloadBuilds bool,
 ) *Service[
-	AvailabilityStoreT, DepositStoreT,
+	AvailabilityStoreT,
 	ConsensusBlockT,
 	BlockStoreT,
 	GenesisT,
 	ConsensusSidecarsT,
 ] {
 	return &Service[
-		AvailabilityStoreT, DepositStoreT,
+		AvailabilityStoreT,
 		ConsensusBlockT,
 		BlockStoreT,
 		GenesisT, ConsensusSidecarsT,
@@ -140,13 +136,13 @@ func NewService[
 
 // Name returns the name of the service.
 func (s *Service[
-	_, _, _, _, _, _,
+	_, _, _, _, _,
 ]) Name() string {
 	return "blockchain"
 }
 
 func (s *Service[
-	_, _, _, _, _, _,
+	_, _, _, _, _,
 ]) Start(ctx context.Context) error {
 	// Catchup deposits for failed blocks.
 	go s.depositCatchupFetcher(ctx)
@@ -155,7 +151,7 @@ func (s *Service[
 }
 
 func (s *Service[
-	_, _, _, _, _, _,
+	_, _, _, _, _,
 ]) Stop() error {
 	return nil
 }

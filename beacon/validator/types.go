@@ -34,6 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
+	depositdb "github.com/berachain/beacon-kit/storage/deposit"
 )
 
 // BeaconBlock represents a beacon block interface.
@@ -114,15 +115,6 @@ type BlobFactory interface {
 	) (datypes.BlobSidecars, error)
 }
 
-// DepositStore defines the interface for deposit storage.
-type DepositStore interface {
-	// GetDepositsByIndex returns `numView` expected deposits.
-	GetDepositsByIndex(
-		startIndex uint64,
-		numView uint64,
-	) (ctypes.Deposits, error)
-}
-
 // ForkData represents the fork data interface.
 type ForkData[T any] interface {
 	// New creates a new fork data with the given parameters.
@@ -194,11 +186,9 @@ type StateProcessor[
 }
 
 // StorageBackend is the interface for the storage backend.
-type StorageBackend[
-	DepositStoreT any,
-] interface {
+type StorageBackend interface {
 	// DepositStore retrieves the deposit store.
-	DepositStore() DepositStoreT
+	DepositStore() *depositdb.KVStore
 	// StateFromContext retrieves the beacon state from the context.
 	StateFromContext(context.Context) *statedb.StateDB
 }

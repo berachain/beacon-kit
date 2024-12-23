@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/state-transition/core"
+	depositdb "github.com/berachain/beacon-kit/storage/deposit"
 )
 
 // StateProcessorInput is the input for the state processor for the depinject
@@ -39,7 +40,7 @@ type StateProcessorInput[
 	Logger          LoggerT
 	ChainSpec       chain.ChainSpec
 	ExecutionEngine *engine.Engine
-	DepositStore    DepositStore
+	DepositStore    *depositdb.KVStore
 	Signer          crypto.BLSSigner
 	TelemetrySink   *metrics.TelemetrySink
 }
@@ -48,7 +49,6 @@ type StateProcessorInput[
 // framework.
 func ProvideStateProcessor[
 	LoggerT log.AdvancedLogger[LoggerT],
-	DepositStoreT DepositStore,
 	KVStoreT BeaconStore[KVStoreT],
 ](
 	in StateProcessorInput[LoggerT],

@@ -30,7 +30,7 @@ import (
 // ProcessGenesisData processes the genesis state and initializes the beacon
 // state.
 func (s *Service[
-	_, _, _, _, GenesisT, _,
+	_, _, _, GenesisT, _,
 ]) ProcessGenesisData(
 	ctx context.Context,
 	bytes []byte,
@@ -53,6 +53,7 @@ func (s *Service[
 
 	// After deposits are validated, store the genesis deposits in the deposit store.
 	if err = s.storageBackend.DepositStore().EnqueueDeposits(
+		ctx,
 		genesisData.GetDeposits(),
 	); err != nil {
 		return nil, err

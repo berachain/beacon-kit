@@ -21,6 +21,8 @@
 package core
 
 import (
+	"context"
+
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -69,6 +71,7 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	_, _,
 ]) validateNonGenesisDeposits(
+	ctx context.Context,
 	st *statedb.StateDB,
 	blkDeposits []*ctypes.Deposit,
 	blkDepositRoot common.Root,
@@ -87,7 +90,7 @@ func (sp *StateProcessor[
 	}
 
 	var deposits ctypes.Deposits
-	deposits, err = sp.ds.GetDepositsByIndex(0, depositIndex+uint64(len(blkDeposits)))
+	deposits, err = sp.ds.GetDepositsByIndex(ctx, 0, depositIndex+uint64(len(blkDeposits)))
 	if err != nil {
 		return err
 	}
