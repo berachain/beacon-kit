@@ -29,19 +29,19 @@ network_configuration:
     nodes:
       - el_type: besu
         kzg_impl: crate-crypto/go-kzg-4844
-        replicas: 1
+        replicas: 0
       - el_type: nethermind
         kzg_impl: crate-crypto/go-kzg-4844
-        replicas: 1
+        replicas: 0
       - el_type: reth
         kzg_impl: crate-crypto/go-kzg-4844
-        replicas: 1
+        replicas: 4
       - el_type: geth
         kzg_impl: crate-crypto/go-kzg-4844
         replicas: 1
       - el_type: erigon
         kzg_impl: crate-crypto/go-kzg-4844
-        replicas: 1
+        replicas: 0
       - el_type: ethereumjs
         replicas: 0
   full_nodes:
@@ -58,7 +58,7 @@ network_configuration:
       - el_type: besu
         replicas: 0
       - el_type: erigon
-        replicas: 1
+        replicas: 0
       - el_type: ethereumjs
         replicas: 0
   seed_nodes:
@@ -118,5 +118,3 @@ additional_services:
   - name: "pyroscope"
   - name: "blockscout"
     client: "el-full-reth-0"
-  - name: "otterscan" # otterscan supports only erigon nodes
-    client: "el-full-erigon-3"
