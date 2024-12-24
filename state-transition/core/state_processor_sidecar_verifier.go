@@ -28,9 +28,7 @@ import (
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-func (sp *StateProcessor[
-	_, _,
-]) GetSidecarVerifierFn(
+func (sp *StateProcessor[_]) GetSidecarVerifierFn(
 	st *statedb.StateDB,
 ) (
 	func(blkHeader *ctypes.BeaconBlockHeader, signature crypto.BLSSignature) error,

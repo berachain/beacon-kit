@@ -41,7 +41,6 @@ import (
 type ChainServiceInput[
 	StorageBackendT any,
 	LoggerT any,
-	BlockStoreT BlockStore,
 	DepositContractT any,
 	ConsensusSidecarsT any,
 ] struct {
@@ -68,22 +67,19 @@ func ProvideChainService[
 	ConsensusSidecarsT da.ConsensusSidecars,
 	DepositContractT deposit.Contract,
 	GenesisT Genesis,
-	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
-	StorageBackendT StorageBackend[BlockStoreT],
-	BlockStoreT BlockStore,
+	StorageBackendT StorageBackend,
 ](
 	in ChainServiceInput[
-		StorageBackendT, LoggerT, BlockStoreT,
+		StorageBackendT, LoggerT,
 		DepositContractT, ConsensusSidecarsT,
 	],
 ) *blockchain.Service[
 	ConsensusBlockT,
-	BlockStoreT, GenesisT, ConsensusSidecarsT,
+	GenesisT, ConsensusSidecarsT,
 ] {
 	return blockchain.NewService[
 		ConsensusBlockT,
-		BlockStoreT,
 		GenesisT,
 		ConsensusSidecarsT,
 	](

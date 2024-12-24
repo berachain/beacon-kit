@@ -40,9 +40,7 @@ import (
 // 2. Subsequent withdrawals (if any) are processed as validator withdrawals
 // 3. This modification reduces the maximum validator withdrawals per block by
 // one.
-func (sp *StateProcessor[
-	_, _,
-]) processWithdrawals(
+func (sp *StateProcessor[_]) processWithdrawals(
 	st *state.StateDB,
 	blk *ctypes.BeaconBlock,
 ) error {
@@ -63,9 +61,7 @@ func (sp *StateProcessor[
 		st, expectedWithdrawals, payloadWithdrawals)
 }
 
-func (sp *StateProcessor[
-	_, _,
-]) processWithdrawalsByFork(
+func (sp *StateProcessor[_]) processWithdrawalsByFork(
 	st *state.StateDB,
 	expectedWithdrawals engineprimitives.Withdrawals,
 	payloadWithdrawals engineprimitives.Withdrawals,
@@ -130,9 +126,7 @@ func (sp *StateProcessor[
 	}
 }
 
-func (sp *StateProcessor[
-	_, _,
-]) processWithdrawalsBartio(
+func (sp *StateProcessor[_]) processWithdrawalsBartio(
 	st *state.StateDB,
 	expectedWithdrawals engineprimitives.Withdrawals,
 	payloadWithdrawals engineprimitives.Withdrawals,
@@ -197,9 +191,7 @@ func (sp *StateProcessor[
 	return st.SetNextWithdrawalValidatorIndex(nextValidatorIndex)
 }
 
-func (sp *StateProcessor[
-	_, _,
-]) processWithdrawalsDefault(
+func (sp *StateProcessor[_]) processWithdrawalsDefault(
 	st *state.StateDB,
 	expectedWithdrawals engineprimitives.Withdrawals,
 	payloadWithdrawals engineprimitives.Withdrawals,

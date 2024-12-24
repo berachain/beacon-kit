@@ -42,8 +42,6 @@ import (
 	payloadbuilder "github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/state-transition/core"
-	"github.com/berachain/beacon-kit/storage/beacondb"
-	"github.com/berachain/beacon-kit/storage/block"
 	"github.com/berachain/beacon-kit/storage/filedb"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -62,7 +60,6 @@ type (
 	// ChainService is a type alias for the chain service.
 	ChainService = blockchain.Service[
 		*ConsensusBlock,
-		*BlockStore,
 		*Genesis,
 		*ConsensusSidecars,
 	]
@@ -78,9 +75,6 @@ type (
 
 	// IndexDB is a type alias for the range DB.
 	IndexDB = filedb.RangeDB
-
-	// KVStore is a type alias for the KV store.
-	KVStore = beacondb.KVStore
 
 	// LocalBuilder is a type alias for the local builder.
 	LocalBuilder = payloadbuilder.PayloadBuilder
@@ -98,16 +92,10 @@ type (
 	SidecarFactory = dablob.SidecarFactory
 
 	// StateProcessor is the type alias for the state processor interface.
-	StateProcessor = core.StateProcessor[
-		*Context,
-		*KVStore,
-	]
+	StateProcessor = core.StateProcessor[*Context]
 
 	// StorageBackend is the type alias for the storage backend interface.
-	StorageBackend = storage.Backend[
-		*BlockStore,
-		*KVStore,
-	]
+	StorageBackend = storage.Backend
 
 	// ValidatorService is a type alias for the validator service.
 	ValidatorService = validator.Service
@@ -125,9 +113,6 @@ type (
 	ConsensusSidecars = consruntimetypes.ConsensusSidecars
 	BlobSidecar       = datypes.BlobSidecar
 	BlobSidecars      = datypes.BlobSidecars
-
-	// BlockStore is a type alias for the block store.
-	BlockStore = block.KVStore[*types.BeaconBlock]
 
 	// Context is a type alias for the transition context.
 	Context = transition.Context
@@ -161,10 +146,8 @@ type (
 
 	// NodeAPIBackend is a type alias for the node API backend.
 	NodeAPIBackend = backend.Backend[
-		*BlockStore,
 		sdk.Context,
 		*CometBFTService,
-		*KVStore,
 		*StorageBackend,
 	]
 

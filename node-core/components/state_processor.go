@@ -49,17 +49,10 @@ type StateProcessorInput[
 // framework.
 func ProvideStateProcessor[
 	LoggerT log.AdvancedLogger[LoggerT],
-	KVStoreT BeaconStore[KVStoreT],
 ](
 	in StateProcessorInput[LoggerT],
-) *core.StateProcessor[
-	*Context,
-	KVStoreT,
-] {
-	return core.NewStateProcessor[
-		*Context,
-		KVStoreT,
-	](
+) *core.StateProcessor[*Context] {
+	return core.NewStateProcessor[*Context](
 		in.Logger.With("service", "state-processor"),
 		in.ChainSpec,
 		in.ExecutionEngine,

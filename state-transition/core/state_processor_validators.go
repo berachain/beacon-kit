@@ -33,9 +33,7 @@ import (
 	"github.com/sourcegraph/conc/iter"
 )
 
-func (sp *StateProcessor[
-	_, _,
-]) processRegistryUpdates(st *statedb.StateDB) error {
+func (sp *StateProcessor[_]) processRegistryUpdates(st *statedb.StateDB) error {
 	slot, err := st.GetSlot()
 	if err != nil {
 		return fmt.Errorf("registry update, failed loading slot: %w", err)
@@ -96,9 +94,7 @@ func (sp *StateProcessor[
 	return nil
 }
 
-func (sp *StateProcessor[
-	_, _,
-]) processValidatorSetCap(
+func (sp *StateProcessor[_]) processValidatorSetCap(
 	st *statedb.StateDB,
 ) error {
 	// Enforce the validator set cap by:

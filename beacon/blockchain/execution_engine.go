@@ -34,7 +34,7 @@ import (
 // Optimistic clients already request builds in handleOptimisticPayloadBuild()
 // Non-optimistic clients should never request optimistic builds.
 func (s *Service[
-	ConsensusBlockT, _, _, _,
+	ConsensusBlockT, _, _,
 ]) sendPostBlockFCU(
 	ctx context.Context,
 	st *statedb.StateDB,

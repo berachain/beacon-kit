@@ -33,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
+	"github.com/berachain/beacon-kit/storage/block"
 	depositdb "github.com/berachain/beacon-kit/storage/deposit"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -169,9 +170,7 @@ type StateProcessor[
 
 // StorageBackend defines an interface for accessing various storage components
 // required by the beacon node.
-type StorageBackend[
-	BlockStoreT any,
-] interface {
+type StorageBackend interface {
 	// AvailabilityStore returns the availability store for the given context.
 	AvailabilityStore() *dastore.Store
 	// StateFromContext retrieves the beacon state from the given context.
@@ -179,7 +178,7 @@ type StorageBackend[
 	// DepositStore retrieves the deposit store.
 	DepositStore() *depositdb.KVStore
 	// BlockStore retrieves the block store.
-	BlockStore() BlockStoreT
+	BlockStore() *block.KVStore[*ctypes.BeaconBlock]
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.

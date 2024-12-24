@@ -34,9 +34,7 @@ import (
 
 // processOperations processes the operations and ensures they match the
 // local state.
-func (sp *StateProcessor[
-	_, _,
-]) processOperations(
+func (sp *StateProcessor[_]) processOperations(
 	ctx context.Context,
 	st *state.StateDB,
 	blk *ctypes.BeaconBlock,
@@ -69,9 +67,7 @@ func (sp *StateProcessor[
 }
 
 // processDeposit processes the deposit and ensures it matches the local state.
-func (sp *StateProcessor[
-	_, _,
-]) processDeposit(
+func (sp *StateProcessor[_]) processDeposit(
 	st *state.StateDB,
 	dep *ctypes.Deposit,
 ) error {
@@ -93,9 +89,7 @@ func (sp *StateProcessor[
 }
 
 // applyDeposit processes the deposit and ensures it matches the local state.
-func (sp *StateProcessor[
-	_, _,
-]) applyDeposit(
+func (sp *StateProcessor[_]) applyDeposit(
 	st *state.StateDB,
 	dep *ctypes.Deposit,
 ) error {
@@ -121,9 +115,7 @@ func (sp *StateProcessor[
 }
 
 // createValidator creates a validator if the deposit is valid.
-func (sp *StateProcessor[
-	_, _,
-]) createValidator(
+func (sp *StateProcessor[_]) createValidator(
 	st *state.StateDB,
 	dep *ctypes.Deposit,
 ) error {
@@ -181,9 +173,7 @@ func (sp *StateProcessor[
 }
 
 // addValidatorToRegistry adds a validator to the registry.
-func (sp *StateProcessor[
-	_, _,
-]) addValidatorToRegistry(
+func (sp *StateProcessor[_]) addValidatorToRegistry(
 	st *state.StateDB,
 	dep *ctypes.Deposit,
 	slot math.Slot,

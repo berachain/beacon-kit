@@ -38,7 +38,7 @@ func DefaultComponents() []any {
 			*ConsensusSidecars,
 			*DepositContract,
 			*Genesis,
-			*KVStore, *Logger, *StorageBackend, *BlockStore,
+			*Logger, *StorageBackend,
 		],
 		components.ProvideNode,
 		components.ProvideChainSpec,
@@ -52,34 +52,24 @@ func DefaultComponents() []any {
 		components.ProvideEngineClient[*Logger],
 		components.ProvideExecutionEngine[*Logger],
 		components.ProvideJWTSecret,
-		components.ProvideLocalBuilder[
-			*KVStore, *Logger,
-		],
+		components.ProvideLocalBuilder[*Logger],
 		components.ProvideReportingService[*Logger],
 		components.ProvideCometBFTService[*Logger],
 		components.ProvideServiceRegistry[
 			*ConsensusBlock,
-			*BlockStore,
 			*ConsensusSidecars,
-			*Genesis, *KVStore, *Logger,
+			*Genesis, *Logger,
 			NodeAPIContext,
 		],
 		components.ProvideSidecarFactory,
-		components.ProvideStateProcessor[
-			*Logger,
-			*KVStore,
-		],
+		components.ProvideStateProcessor[*Logger],
 		components.ProvideKVStore,
-		components.ProvideStorageBackend[
-			*BlockStore,
-			*KVStore,
-		],
+		components.ProvideStorageBackend,
 		components.ProvideTelemetrySink,
 		components.ProvideTelemetryService,
 		components.ProvideTrustedSetup,
 		components.ProvideValidatorService[
-			*BlockStore,
-			*KVStore, *Logger,
+			*Logger,
 			*StorageBackend,
 		],
 		// TODO Hacks
@@ -90,15 +80,12 @@ func DefaultComponents() []any {
 		components.ProvideNodeAPIServer[*Logger, NodeAPIContext],
 		components.ProvideNodeAPIEngine,
 		components.ProvideNodeAPIBackend[
-			*BlockStore,
-			*KVStore, *CometBFTService, *StorageBackend,
+			*CometBFTService, *StorageBackend,
 		],
 	)
 
 	c = append(c,
-		components.ProvideNodeAPIHandlers[
-			*KVStore, NodeAPIContext,
-		],
+		components.ProvideNodeAPIHandlers[NodeAPIContext],
 		components.ProvideNodeAPIBeaconHandler[
 			*CometBFTService, NodeAPIContext,
 		],
@@ -108,7 +95,7 @@ func DefaultComponents() []any {
 		components.ProvideNodeAPIEventsHandler[NodeAPIContext],
 		components.ProvideNodeAPINodeHandler[NodeAPIContext],
 		components.ProvideNodeAPIProofHandler[
-			*KVStore, *CometBFTService, NodeAPIContext,
+			*CometBFTService, NodeAPIContext,
 		],
 	)
 
