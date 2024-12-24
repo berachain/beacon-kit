@@ -39,6 +39,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
+	"github.com/berachain/beacon-kit/storage/block"
 	depositdb "github.com/berachain/beacon-kit/storage/deposit"
 	v1 "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -193,18 +194,6 @@ type (
 	ConsensusSidecars interface {
 		GetSidecars() datypes.BlobSidecars
 		GetHeader() *ctypes.BeaconBlockHeader
-	}
-
-	// BlockStore is the interface for block storage.
-	BlockStore interface {
-		Set(blk *ctypes.BeaconBlock) error
-		// GetSlotByBlockRoot retrieves the slot by a given root from the store.
-		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
-		// GetSlotByStateRoot retrieves the slot by a given root from the store.
-		GetSlotByStateRoot(root common.Root) (math.Slot, error)
-		// GetParentSlotByTimestamp retrieves the parent slot by a given
-		// timestamp from the store.
-		GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
 	}
 
 	ConsensusEngine interface {
@@ -399,11 +388,9 @@ type (
 
 	// StorageBackend defines an interface for accessing various storage
 	// components required by the beacon node.
-	StorageBackend[
-		BlockStoreT any,
-	] interface {
+	StorageBackend interface {
 		AvailabilityStore() *dastore.Store
-		BlockStore() BlockStoreT
+		BlockStore() *block.KVStore[*ctypes.BeaconBlock]
 		DepositStore() *depositdb.KVStore
 		// StateFromContext retrieves the beacon state from the given context.
 		StateFromContext(context.Context) *statedb.StateDB
