@@ -29,18 +29,9 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
+	"github.com/berachain/beacon-kit/storage/block"
 	depositdb "github.com/berachain/beacon-kit/storage/deposit"
 )
-
-// BlockStore is the interface for block storage.
-type BlockStore interface {
-	// GetSlotByBlockRoot retrieves the slot by a given block root.
-	GetSlotByBlockRoot(root common.Root) (math.Slot, error)
-	// GetSlotByStateRoot retrieves the slot by a given state root.
-	GetSlotByStateRoot(root common.Root) (math.Slot, error)
-	// GetParentSlotByTimestamp retrieves the parent slot by a given timestamp.
-	GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
-}
 
 // Node is the interface for a node.
 type Node[ContextT any] interface {
@@ -54,11 +45,9 @@ type StateProcessor interface {
 }
 
 // StorageBackend is the interface for the storage backend.
-type StorageBackend[
-	BlockStoreT any,
-] interface {
+type StorageBackend interface {
 	AvailabilityStore() *dastore.Store
-	BlockStore() BlockStoreT
+	BlockStore() *block.KVStore[*ctypes.BeaconBlock]
 	DepositStore() *depositdb.KVStore
 	StateFromContext(context.Context) *statedb.StateDB
 }
