@@ -76,14 +76,29 @@ func (s *Store) IsDataAvailable(
 
 // GetBlobSidecars fetches the sidecars for a specific slot.
 func (s *Store) GetBlobSidecars(slot math.Slot) (types.BlobSidecars, error) {
-	// Fetch the BeaconBlockBody for the slot
-	var body ctypes.BeaconBlockBody
+	// TODO Get this from chainspec
+	maxBlobsPerBlock := 16
 
-	commitments := body.GetBlobKzgCommitments()
-	if len(commitments) == 0 {
-		return types.BlobSidecars{}, nil
+	sidecars := make(types.BlobSidecars, 0, maxBlobsPerBlock)
+	commitments, err := s.IndexDB.KeysFromIndex(slot.Unwrap())
+	if err != nil {
+		return sidecars, err
 	}
-	return types.BlobSidecars{}, nil
+
+	for _, commitment := range commitments {
+		sidecarBz, err := s.IndexDB.Get(slot.Unwrap(), commitment)
+		if err != nil {
+			return sidecars, err
+		}
+		sidecar := types.BlobSidecar{}
+		err = sidecar.UnmarshalSSZ(sidecarBz)
+		if err != nil {
+			return sidecars, err
+		}
+		sidecars = append(sidecars, &sidecar)
+	}
+
+	return sidecars, nil
 }
 
 // Persist ensures the sidecar data remains accessible, utilizing parallel

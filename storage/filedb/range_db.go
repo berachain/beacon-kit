@@ -23,7 +23,10 @@ package filedb
 import (
 	"bytes"
 	"fmt"
+	"github.com/spf13/afero"
+	"os"
 	"strconv"
+	"strings"
 
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
@@ -128,6 +131,50 @@ func (db *RangeDB) Prune(start, end uint64) error {
 	}
 	db.firstNonNilIndex = end
 	return nil
+}
+
+// KeysFromIndex takes the database index and returns all associated keys,
+// expecting database entries to follow the prefix() format.
+func (db *RangeDB) KeysFromIndex(index uint64) ([][]byte, error) {
+	var keys [][]byte
+	f, ok := db.DB.(*DB)
+	if !ok {
+		return keys, errors.New("rangedb: delete range not supported for this db")
+	}
+	entries, err := afero.ReadDir(f.fs, f.rootDir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return keys, nil
+		}
+		return keys, err
+	}
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		name := entry.Name()
+		if !strings.HasSuffix(name, f.extension) {
+			continue
+		}
+		parts := strings.Split(name, ".")
+		if len(parts) != 2 {
+			continue
+		}
+		noExtension := parts[0]
+		parts = strings.Split(noExtension, "/")
+		if len(parts) != 2 {
+			continue
+		}
+		indexStr := parts[0]
+		u, err := strconv.ParseUint(indexStr, 10, 64)
+		if err != nil {
+			return keys, errors.Wrapf(err, "rangedb unexpected directory entry breaks listing, %s", parts[0])
+		}
+		if u == index {
+			keys = append(keys, []byte(parts[1]))
+		}
+	}
+	return keys, nil
 }
 
 // prefix prefixes the given key with the index and a slash.

@@ -290,8 +290,10 @@ type (
 	// IndexDB is the interface for the range DB.
 	IndexDB interface {
 		Has(index uint64, key []byte) (bool, error)
+		Get(index uint64, key []byte) ([]byte, error)
 		Set(index uint64, key []byte, value []byte) error
 		Prune(start uint64, end uint64) error
+		KeysFromIndex(index uint64) ([][]byte, error)
 	}
 
 	// LocalBuilder is the interface for the builder service.
@@ -778,6 +780,7 @@ type (
 	// NodeAPIBackend is the interface for backend of the beacon API.
 	NodeAPIBeaconBackend interface {
 		GenesisBackend
+		BlobBackend
 		BlockBackend
 		RandaoBackend
 		StateBackend
@@ -807,6 +810,10 @@ type (
 
 	RandaoBackend interface {
 		RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes32, error)
+	}
+
+	BlobBackend interface {
+		BlobSidecarsByIndices(slot math.Slot, indices []uint64) ([]*types.BlobSidecarData, error)
 	}
 
 	BlockBackend interface {
