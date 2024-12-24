@@ -56,7 +56,7 @@ type RandaoBackend interface {
 }
 
 type BlobBackend interface {
-	BlobSidecarsByIndices(slot math.Slot, indices []uint64) ([]*types.BlobSidecarData, error)
+	BlobSidecarsByIndices(slot math.Slot, indices []uint64) ([]*types.Sidecar, error)
 }
 
 type BlockBackend interface {

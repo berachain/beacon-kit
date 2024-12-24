@@ -29,6 +29,6 @@ type IndexDB interface {
 	// Prune returns error if start > end.
 	Prune(start uint64, end uint64) error
 
-	// KeysFromIndex takes the database index and returns all associated keys.
-	KeysFromIndex(index uint64) ([][]byte, error)
+	// GetByIndex takes the database index and returns all associated keys.
+	GetByIndex(index uint64) ([][]byte, error)
 }

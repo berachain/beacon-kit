@@ -21,14 +21,16 @@
 package beacon
 
 import (
+	"fmt"
 	"github.com/berachain/beacon-kit/errors"
-	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	apitypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"strconv"
 )
 
 func (h *Handler[ContextT]) GetBlobSidecars(c ContextT) (any, error) {
-	req, err := utils.BindAndValidate[beacontypes.GetBlobSidecarsRequest](
+	fmt.Println("DEBUG REACHED GetBlobSidecars ENDPOINT!!!")
+	req, err := utils.BindAndValidate[apitypes.GetBlobSidecarsRequest](
 		c, h.Logger(),
 	)
 	if err != nil {
@@ -59,13 +61,16 @@ func (h *Handler[ContextT]) GetBlobSidecars(c ContextT) (any, error) {
 		}
 	}
 
+	fmt.Println("DEBUG Requesting indices:", indices)
+
 	// Grab the blob sidecars from the backend.
 	blobSidecars, err := h.backend.BlobSidecarsByIndices(slot, indices)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("Returning blobSidecars:", len(blobSidecars))
 
-	return beacontypes.BlobSidecarsResponse{
+	return apitypes.SidecarsResponse{
 		Data: blobSidecars,
 	}, nil
 }

@@ -22,9 +22,11 @@ package e2e_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/attestantio/go-eth2-client/api"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
+	"github.com/ethereum/go-ethereum/core/txpool"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 
@@ -39,7 +41,7 @@ const (
 	NumBlobsLoad uint64 = 1
 
 	// BlocksToWait4844 is the number of blocks to wait for the nodes to catch up.
-	BlocksToWait4844 = 10
+	BlocksToWait4844 = 1
 )
 
 // Test4844Live tests sending a large number of blob carrying txs over the
@@ -78,7 +80,7 @@ func (s *BeaconKitE2ESuite) Test4844Live() {
 		s.Require().NoError(err)
 
 		// Craft the blob-carrying transaction.
-		blobTx := tx.New4844Tx(
+		blobTx = tx.New4844Tx(
 			nonce+i, nil, 1000000,
 			chainID, tip, gasFee, big.NewInt(0),
 			[]byte{0x01, 0x02, 0x03, 0x04},
@@ -90,8 +92,15 @@ func (s *BeaconKitE2ESuite) Test4844Live() {
 		blobTx, err = sender.SignTx(chainID, blobTx)
 		s.Require().NoError(err)
 		s.Logger().Info("submitting blob transaction", "tx", blobTx.Hash().Hex())
-		s.Require().NoError(s.JSONRPCBalancer().SendTransaction(ctx, blobTx))
+
+		err = s.JSONRPCBalancer().SendTransaction(ctx, blobTx)
+		if errors.Is(err, txpool.ErrAlreadyKnown) {
+			continue
+		}
+		s.Require().NoError(err)
 	}
+	fmt.Println(blobTx)
+	s.Require().NotNil(blobTx)
 
 	// Wait for the last tx to be mined.
 	s.Logger().
@@ -107,14 +116,16 @@ func (s *BeaconKitE2ESuite) Test4844Live() {
 	client0 := s.ConsensusClients()[config.ClientValidator0]
 	s.Require().NotNil(client0)
 
+	// TODO: query and validate a sample (or all) of blob data from node-api
+	// to ensure data availability.
+	//client0.Connect()
+	err = client0.Connect(ctx)
+	s.Require().NoError(err)
+
 	opts := api.BlobSidecarsOpts{
 		Block: receipt.BlockNumber.String(),
 	}
 	response, err := client0.BlobSidecars(ctx, &opts)
 	s.Require().NoError(err)
 	fmt.Println(response)
-
-	// TODO: query and validate a sample (or all) of blob data from node-api
-	// to ensure data availability.
-	//client0.Connect()
 }

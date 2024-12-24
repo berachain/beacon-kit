@@ -293,7 +293,7 @@ type (
 		Get(index uint64, key []byte) ([]byte, error)
 		Set(index uint64, key []byte, value []byte) error
 		Prune(start uint64, end uint64) error
-		KeysFromIndex(index uint64) ([][]byte, error)
+		GetByIndex(index uint64) ([][]byte, error)
 	}
 
 	// LocalBuilder is the interface for the builder service.
@@ -813,7 +813,7 @@ type (
 	}
 
 	BlobBackend interface {
-		BlobSidecarsByIndices(slot math.Slot, indices []uint64) ([]*types.BlobSidecarData, error)
+		BlobSidecarsByIndices(slot math.Slot, indices []uint64) ([]*types.Sidecar, error)
 	}
 
 	BlockBackend interface {

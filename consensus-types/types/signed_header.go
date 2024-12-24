@@ -33,7 +33,7 @@ var (
 )
 
 type SignedBeaconBlockHeader struct {
-	Header    *BeaconBlockHeader  `json:"header"`
+	Header    *BeaconBlockHeader  `json:"message"`
 	Signature crypto.BLSSignature `json:"signature"`
 }
 

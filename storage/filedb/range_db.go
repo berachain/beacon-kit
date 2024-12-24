@@ -23,15 +23,15 @@ package filedb
 import (
 	"bytes"
 	"fmt"
-	"github.com/spf13/afero"
-	"os"
-	"strconv"
-	"strings"
-
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
 	db "github.com/berachain/beacon-kit/storage/interfaces"
 	"github.com/berachain/beacon-kit/storage/pruner"
+	"github.com/spf13/afero"
+	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
 )
 
 // two is a constant for the number 2.
@@ -60,6 +60,7 @@ func NewRangeDB(db db.DB) *RangeDB {
 // It prefixes the key with the index and a slash before querying the underlying
 // database.
 func (db *RangeDB) Get(index uint64, key []byte) ([]byte, error) {
+	fmt.Println("DEBUG GET:", string(db.prefix(index, key)))
 	return db.DB.Get(db.prefix(index, key))
 }
 
@@ -67,6 +68,7 @@ func (db *RangeDB) Get(index uint64, key []byte) ([]byte, error) {
 // It prefixes the key with the index and a slash before querying the underlying
 // database.
 func (db *RangeDB) Has(index uint64, key []byte) (bool, error) {
+	fmt.Println("DEBUG HAS:", string(db.prefix(index, key)))
 	return db.DB.Has(db.prefix(index, key))
 }
 
@@ -78,6 +80,7 @@ func (db *RangeDB) Set(index uint64, key []byte, value []byte) error {
 	if index < db.firstNonNilIndex {
 		db.firstNonNilIndex = index
 	}
+	fmt.Println("DEBUG Storing key:", string(db.prefix(index, key)))
 	return db.DB.Set(db.prefix(index, key), value)
 }
 
@@ -113,6 +116,7 @@ func (db *RangeDB) DeleteRange(from, to uint64) error {
 
 // Prune removes all values in the given range [start, end) from the db.
 func (db *RangeDB) Prune(start, end uint64) error {
+	fmt.Println("DEBUG PRUNING:", start, end)
 	start = max(start, db.firstNonNilIndex)
 	if start > end {
 		return fmt.Errorf(
@@ -133,46 +137,39 @@ func (db *RangeDB) Prune(start, end uint64) error {
 	return nil
 }
 
-// KeysFromIndex takes the database index and returns all associated keys,
+// GetByIndex takes the database index and returns all associated keys,
 // expecting database entries to follow the prefix() format.
-func (db *RangeDB) KeysFromIndex(index uint64) ([][]byte, error) {
+func (db *RangeDB) GetByIndex(index uint64) ([][]byte, error) {
 	var keys [][]byte
 	f, ok := db.DB.(*DB)
 	if !ok {
 		return keys, errors.New("rangedb: delete range not supported for this db")
 	}
-	entries, err := afero.ReadDir(f.fs, f.rootDir)
+	fmt.Println("DEBUG KEYS FROM INDEX:", index)
+	indexDir := strconv.FormatUint(index, 10)
+	entries, err := afero.ReadDir(f.fs, indexDir)
 	if err != nil {
 		if os.IsNotExist(err) {
+			fmt.Println("DEBUG rangedb: directory", f.rootDir, "does not exist:", err)
 			return keys, nil
 		}
 		return keys, err
 	}
 	for _, entry := range entries {
+		fmt.Println("DEBUG rangedb:", entry.Name(), entry.Size())
 		if entry.IsDir() {
 			continue
 		}
-		name := entry.Name()
-		if !strings.HasSuffix(name, f.extension) {
+		filename := entry.Name()
+		fmt.Println("DEBUG File:", filename)
+		if !strings.HasSuffix(filename, f.extension) {
 			continue
 		}
-		parts := strings.Split(name, ".")
-		if len(parts) != 2 {
-			continue
-		}
-		noExtension := parts[0]
-		parts = strings.Split(noExtension, "/")
-		if len(parts) != 2 {
-			continue
-		}
-		indexStr := parts[0]
-		u, err := strconv.ParseUint(indexStr, 10, 64)
+		sidecarBz, err := afero.ReadFile(f.fs, filepath.Join(indexDir, filename))
 		if err != nil {
-			return keys, errors.Wrapf(err, "rangedb unexpected directory entry breaks listing, %s", parts[0])
+			return keys, err
 		}
-		if u == index {
-			keys = append(keys, []byte(parts[1]))
-		}
+		keys = append(keys, sidecarBz)
 	}
 	return keys, nil
 }

@@ -23,7 +23,6 @@ package types
 import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/crypto"
 )
 
 type ValidatorResponse struct {
@@ -38,14 +37,22 @@ type BlockResponse struct {
 }
 
 type BlockHeaderResponse struct {
-	Root      common.Root        `json:"root"`
-	Canonical bool               `json:"canonical"`
-	Header    *SignedBlockHeader `json:"header"`
+	Root      common.Root              `json:"root"`
+	Canonical bool                     `json:"canonical"`
+	Header    *SignedBeaconBlockHeader `json:"header"`
 }
 
-type SignedBlockHeader struct {
-	Message   *ctypes.BeaconBlockHeader `json:"message"`
-	Signature crypto.BLSSignature       `json:"signature"`
+type BeaconBlockHeader struct {
+	Slot          string `json:"slot"`
+	ProposerIndex string `json:"proposer_index"`
+	ParentRoot    string `json:"parent_root"`
+	StateRoot     string `json:"state_root"`
+	BodyRoot      string `json:"body_root"`
+}
+
+type SignedBeaconBlockHeader struct {
+	Message   *BeaconBlockHeader `json:"message"`
+	Signature string             `json:"signature"`
 }
 
 type GenesisData struct {
@@ -85,15 +92,15 @@ type BlockRewardsData struct {
 	AttesterSlashings uint64 `json:"attester_slashings,string"`
 }
 
-type BlobSidecarData struct {
-	Index                       uint64             `json:"index,string"`
-	Blob                        string             `json:"blob"`
-	KZGCommitment               string             `json:"kzg_commitment"`
-	KZGProof                    string             `json:"kzg_proof"`
-	SignedBlockHeader           *SignedBlockHeader `json:"signed_block_header"`
-	KZGCommitmentInclusionProof []string           `json:"kzg_commitment_inclusion_proof"`
+type Sidecar struct {
+	Index                       string                   `json:"index"`
+	Blob                        string                   `json:"blob"`
+	KZGCommitment               string                   `json:"kzg_commitment"`
+	KZGProof                    string                   `json:"kzg_proof"`
+	SignedBlockHeader           *SignedBeaconBlockHeader `json:"signed_block_header"`
+	KZGCommitmentInclusionProof []string                 `json:"kzg_commitment_inclusion_proof"`
 }
 
-type BlobSidecarsResponse struct {
-	Data []*BlobSidecarData `json:"data"`
+type SidecarsResponse struct {
+	Data []*Sidecar `json:"data"`
 }

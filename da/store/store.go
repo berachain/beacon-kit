@@ -22,7 +22,7 @@ package store
 
 import (
 	"context"
-
+	"fmt"
 	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/types"
@@ -80,16 +80,13 @@ func (s *Store) GetBlobSidecars(slot math.Slot) (types.BlobSidecars, error) {
 	maxBlobsPerBlock := 16
 
 	sidecars := make(types.BlobSidecars, 0, maxBlobsPerBlock)
-	commitments, err := s.IndexDB.KeysFromIndex(slot.Unwrap())
+	sidecarBzs, err := s.IndexDB.GetByIndex(slot.Unwrap())
 	if err != nil {
 		return sidecars, err
 	}
+	fmt.Println("DEBUG got sidecars", len(sidecarBzs))
 
-	for _, commitment := range commitments {
-		sidecarBz, err := s.IndexDB.Get(slot.Unwrap(), commitment)
-		if err != nil {
-			return sidecars, err
-		}
+	for _, sidecarBz := range sidecarBzs {
 		sidecar := types.BlobSidecar{}
 		err = sidecar.UnmarshalSSZ(sidecarBz)
 		if err != nil {
@@ -121,6 +118,7 @@ func (s *Store) Persist(
 		// current slot
 		slot,
 	) {
+		fmt.Println("DEBUG NOT WITHIN DA PERIOD!!")
 		return nil
 	}
 
@@ -135,6 +133,7 @@ func (s *Store) Persist(
 		if err != nil {
 			return err
 		}
+		fmt.Println("DEBUG STORING SIDECAR AT SLOT:", slot)
 		err = s.IndexDB.Set(slot.Unwrap(), sc.KzgCommitment[:], bz)
 
 		if err != nil {

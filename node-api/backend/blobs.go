@@ -21,18 +21,21 @@
 package backend
 
 import (
+	"fmt"
 	datypes "github.com/berachain/beacon-kit/da/types"
-	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	apitypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 func (b *Backend[
 	_, _, _, _,
-]) BlobSidecarsByIndices(slot math.Slot, indices []uint64) ([]*beacontypes.BlobSidecarData, error) {
+]) BlobSidecarsByIndices(slot math.Slot, indices []uint64) ([]*apitypes.Sidecar, error) {
 	var blobSidecars datypes.BlobSidecars
 	// TODO: Check if we are WithinDAPeriod(). Have to get current head slot somehow.
 
+	fmt.Println("Fetcing blobs from da store at slot", slot)
 	blobSidecars, err := b.sb.AvailabilityStore().GetBlobSidecars(slot)
+	fmt.Println("Fetched", len(blobSidecars), "blobSidecars")
 	if err != nil {
 		return nil, err
 	}
@@ -51,46 +54,17 @@ func (b *Backend[
 	if len(indices) > 0 {
 		responseSize = len(indices)
 	}
-	blobSidecarsResponse := make([]*beacontypes.BlobSidecarData, 0, responseSize)
+	blobSidecarsResponse := make([]*apitypes.Sidecar, 0, responseSize)
 
 	for _, blobSidecar := range blobSidecars {
 		// Skip if indices specified and this index not requested.
 		if len(indices) > 0 && !indexMap[blobSidecar.GetIndex()] {
 			continue
 		}
-
-		// Get blobSidecar data and marshal it into hex.
-		blobHex, err := blobSidecar.GetBlob().MarshalText()
-		if err != nil {
-			return nil, err
-		}
-		kzgCommitmentHex, err := blobSidecar.GetKzgCommitment().MarshalText()
-		if err != nil {
-			return nil, err
-		}
-		kzgProofHex, err := blobSidecar.GetKzgProof().MarshalText()
-		if err != nil {
-			return nil, err
-		}
-		signedHeader := blobSidecar.GetSignedBeaconBlockHeader()
-		inclusionProof := blobSidecar.GetInclusionProof()
-		inclusionProofStrings := make([]string, len(inclusionProof))
-		for j, proof := range inclusionProof {
-			inclusionProofStrings[j] = proof.String()
-		}
-
 		// Craft and append the blob sidecar serialized data to the response.
-		blobSidecarsResponse = append(blobSidecarsResponse, &beacontypes.BlobSidecarData{
-			Index:         blobSidecar.GetIndex(),
-			Blob:          string(blobHex),
-			KZGCommitment: string(kzgCommitmentHex),
-			KZGProof:      string(kzgProofHex),
-			SignedBlockHeader: &beacontypes.SignedBlockHeader{
-				Message:   signedHeader.GetHeader(),
-				Signature: signedHeader.GetSignature(),
-			},
-			KZGCommitmentInclusionProof: inclusionProofStrings,
-		})
+		blobSidecarsResponse = append(blobSidecarsResponse,
+			apitypes.SidecarFromConsensus(blobSidecar),
+		)
 	}
 	return blobSidecarsResponse, nil
 }
