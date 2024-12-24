@@ -43,50 +43,45 @@ type ChainServiceInput[
 	LoggerT any,
 	BlockStoreT BlockStore,
 	DepositContractT any,
-	AvailabilityStoreT any,
 	ConsensusSidecarsT any,
 ] struct {
 	depinject.In
 
-	AppOpts         config.AppOptions
-	ChainSpec       chain.ChainSpec
-	Cfg             *config.Config
-	EngineClient    *client.EngineClient
-	ExecutionEngine *engine.Engine
-	LocalBuilder    LocalBuilder
-	Logger          LoggerT
-	Signer          crypto.BLSSigner
-	StateProcessor  StateProcessor[*Context]
-	StorageBackend  StorageBackendT
-	BlobProcessor   BlobProcessor[
-		AvailabilityStoreT, ConsensusSidecarsT,
-	]
+	AppOpts               config.AppOptions
+	ChainSpec             chain.ChainSpec
+	Cfg                   *config.Config
+	EngineClient          *client.EngineClient
+	ExecutionEngine       *engine.Engine
+	LocalBuilder          LocalBuilder
+	Logger                LoggerT
+	Signer                crypto.BLSSigner
+	StateProcessor        StateProcessor[*Context]
+	StorageBackend        StorageBackendT
+	BlobProcessor         BlobProcessor[ConsensusSidecarsT]
 	TelemetrySink         *metrics.TelemetrySink
 	BeaconDepositContract DepositContractT
 }
 
 // ProvideChainService is a depinject provider for the blockchain service.
 func ProvideChainService[
-	AvailabilityStoreT AvailabilityStore,
 	ConsensusBlockT ConsensusBlock,
 	ConsensusSidecarsT da.ConsensusSidecars,
 	DepositContractT deposit.Contract,
 	GenesisT Genesis,
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
-	StorageBackendT StorageBackend[AvailabilityStoreT, BlockStoreT],
+	StorageBackendT StorageBackend[BlockStoreT],
 	BlockStoreT BlockStore,
 ](
 	in ChainServiceInput[
 		StorageBackendT, LoggerT, BlockStoreT,
-		DepositContractT, AvailabilityStoreT, ConsensusSidecarsT,
+		DepositContractT, ConsensusSidecarsT,
 	],
 ) *blockchain.Service[
-	AvailabilityStoreT, ConsensusBlockT,
+	ConsensusBlockT,
 	BlockStoreT, GenesisT, ConsensusSidecarsT,
 ] {
 	return blockchain.NewService[
-		AvailabilityStoreT,
 		ConsensusBlockT,
 		BlockStoreT,
 		GenesisT,
