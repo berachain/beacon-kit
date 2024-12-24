@@ -30,6 +30,10 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
+// SLOT_COMMITMENTS_KEY is the key used to store the commitments for a slot
+// in the DB. We use this key to avoid conflicts with the slot index.
+const SLOT_COMMITMENTS_KEY = "slot_commitments"
+
 // Store is the default implementation of the AvailabilityStore.
 type Store struct {
 	// IndexDB is a basic database interface.
@@ -70,6 +74,18 @@ func (s *Store) IsDataAvailable(
 	return true
 }
 
+// GetBlobSidecars fetches the sidecars for a specific slot.
+func (s *Store) GetBlobSidecars(slot math.Slot) (types.BlobSidecars, error) {
+	// Fetch the BeaconBlockBody for the slot
+	var body ctypes.BeaconBlockBody
+
+	commitments := body.GetBlobKzgCommitments()
+	if len(commitments) == 0 {
+		return types.BlobSidecars{}, nil
+	}
+	return types.BlobSidecars{}, nil
+}
+
 // Persist ensures the sidecar data remains accessible, utilizing parallel
 // processing for efficiency.
 func (s *Store) Persist(
@@ -104,7 +120,8 @@ func (s *Store) Persist(
 		if err != nil {
 			return err
 		}
-		err = s.Set(slot.Unwrap(), sc.KzgCommitment[:], bz)
+		err = s.IndexDB.Set(slot.Unwrap(), sc.KzgCommitment[:], bz)
+
 		if err != nil {
 			return err
 		}

@@ -22,8 +22,8 @@ package types
 
 import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 )
 
 type ValidatorResponse struct {
@@ -38,14 +38,14 @@ type BlockResponse struct {
 }
 
 type BlockHeaderResponse struct {
-	Root      common.Root  `json:"root"`
-	Canonical bool         `json:"canonical"`
-	Header    *BlockHeader `json:"header"`
+	Root      common.Root        `json:"root"`
+	Canonical bool               `json:"canonical"`
+	Header    *SignedBlockHeader `json:"header"`
 }
 
-type BlockHeader struct {
+type SignedBlockHeader struct {
 	Message   *ctypes.BeaconBlockHeader `json:"message"`
-	Signature bytes.B48                 `json:"signature"`
+	Signature crypto.BLSSignature       `json:"signature"`
 }
 
 type GenesisData struct {
@@ -83,4 +83,17 @@ type BlockRewardsData struct {
 	SyncAggregate     uint64 `json:"sync_aggregate,string"`
 	ProposerSlashings uint64 `json:"proposer_slashings,string"`
 	AttesterSlashings uint64 `json:"attester_slashings,string"`
+}
+
+type BlobSidecarData struct {
+	Index                       uint64             `json:"index,string"`
+	Blob                        string             `json:"blob"`
+	KZGCommitment               string             `json:"kzg_commitment"`
+	KZGProof                    string             `json:"kzg_proof"`
+	SignedBlockHeader           *SignedBlockHeader `json:"signed_block_header"`
+	KZGCommitmentInclusionProof []string           `json:"kzg_commitment_inclusion_proof"`
+}
+
+type BlobSidecarsResponse struct {
+	Data []*BlobSidecarData `json:"data"`
 }

@@ -23,7 +23,7 @@ package beacon
 import (
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
-	"github.com/berachain/beacon-kit/primitives/bytes"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 )
 
 func (h *Handler[ContextT]) GetBlockHeaders(c ContextT) (any, error) {
@@ -47,9 +47,9 @@ func (h *Handler[ContextT]) GetBlockHeaders(c ContextT) (any, error) {
 		Data: &beacontypes.BlockHeaderResponse{
 			Root:      header.GetBodyRoot(),
 			Canonical: true,
-			Header: &beacontypes.BlockHeader{
+			Header: &beacontypes.SignedBlockHeader{
 				Message:   header,
-				Signature: bytes.B48{}, // TODO: implement
+				Signature: crypto.BLSSignature{}, // TODO: implement
 			},
 		},
 	}, nil
@@ -76,9 +76,9 @@ func (h *Handler[ContextT]) GetBlockHeaderByID(c ContextT) (any, error) {
 		Data: &beacontypes.BlockHeaderResponse{
 			Root:      header.GetBodyRoot(),
 			Canonical: true,
-			Header: &beacontypes.BlockHeader{
+			Header: &beacontypes.SignedBlockHeader{
 				Message:   header,
-				Signature: bytes.B48{}, // TODO: implement
+				Signature: crypto.BLSSignature{}, // TODO: implement
 			},
 		},
 	}, nil

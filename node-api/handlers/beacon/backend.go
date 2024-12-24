@@ -30,6 +30,7 @@ import (
 // Backend is the interface for backend of the beacon API.
 type Backend interface {
 	GenesisBackend
+	BlobBackend
 	BlockBackend
 	RandaoBackend
 	StateBackend
@@ -52,6 +53,10 @@ type HistoricalBackend interface {
 
 type RandaoBackend interface {
 	RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes32, error)
+}
+
+type BlobBackend interface {
+	BlobSidecarsByIndices(slot math.Slot, indices []uint64) ([]*types.BlobSidecarData, error)
 }
 
 type BlockBackend interface {
