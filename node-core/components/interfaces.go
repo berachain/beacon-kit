@@ -26,6 +26,7 @@ import (
 
 	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/log"
@@ -53,17 +54,6 @@ type (
 			timestamp uint64,
 			prevHeadRoot [32]byte,
 		) (*engineprimitives.PayloadAttributes, error)
-	}
-
-	// AvailabilityStore is the interface for the availability store.
-	AvailabilityStore interface {
-		IndexDB
-		// IsDataAvailable ensures that all blobs referenced in the block are
-		// securely stored before it returns without an error.
-		IsDataAvailable(context.Context, math.Slot, *ctypes.BeaconBlockBody) bool
-		// Persist makes sure that the sidecar remains accessible for data
-		// availability checks throughout the beacon node's operation.
-		Persist(math.Slot, datypes.BlobSidecars) error
 	}
 
 	ConsensusBlock interface {
@@ -181,13 +171,12 @@ type (
 
 	// BlobProcessor is the interface for the blobs processor.
 	BlobProcessor[
-		AvailabilityStoreT any,
 		ConsensusSidecarsT any,
 	] interface {
 		// ProcessSidecars processes the blobs and ensures they match the local
 		// state.
 		ProcessSidecars(
-			avs AvailabilityStoreT,
+			avs *dastore.Store,
 			sidecars datypes.BlobSidecars,
 		) error
 		// VerifySidecars verifies the blobs and ensures they match the local
@@ -411,10 +400,9 @@ type (
 	// StorageBackend defines an interface for accessing various storage
 	// components required by the beacon node.
 	StorageBackend[
-		AvailabilityStoreT any,
 		BlockStoreT any,
 	] interface {
-		AvailabilityStore() AvailabilityStoreT
+		AvailabilityStore() *dastore.Store
 		BlockStore() BlockStoreT
 		DepositStore() *depositdb.KVStore
 		// StateFromContext retrieves the beacon state from the given context.

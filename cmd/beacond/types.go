@@ -27,7 +27,6 @@ import (
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	consruntimetypes "github.com/berachain/beacon-kit/consensus/types"
 	dablob "github.com/berachain/beacon-kit/da/blob"
-	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	engineclient "github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/execution/deposit"
@@ -58,14 +57,10 @@ type (
 	AttributesFactory = attributes.Factory
 
 	// BlobProcessor is a type alias for the blob processor.
-	BlobProcessor = dablob.Processor[
-		*AvailabilityStore,
-		*ConsensusSidecars,
-	]
+	BlobProcessor = dablob.Processor[*ConsensusSidecars]
 
 	// ChainService is a type alias for the chain service.
 	ChainService = blockchain.Service[
-		*AvailabilityStore,
 		*ConsensusBlock,
 		*BlockStore,
 		*Genesis,
@@ -110,7 +105,6 @@ type (
 
 	// StorageBackend is the type alias for the storage backend interface.
 	StorageBackend = storage.Backend[
-		*AvailabilityStore,
 		*BlockStore,
 		*KVStore,
 	]
@@ -124,9 +118,6 @@ type (
 /* -------------------------------------------------------------------------- */
 
 type (
-	// AvailabilityStore is a type alias for the availability store.
-	AvailabilityStore = dastore.Store
-
 	// BeaconBlock type aliases.
 	ConsensusBlock = consruntimetypes.ConsensusBlock
 
@@ -170,7 +161,6 @@ type (
 
 	// NodeAPIBackend is a type alias for the node API backend.
 	NodeAPIBackend = backend.Backend[
-		*AvailabilityStore,
 		*BlockStore,
 		sdk.Context,
 		*CometBFTService,

@@ -31,12 +31,9 @@ func DefaultComponents() []any {
 		components.ProvideDepositContract,
 		components.ProvideBlockStore[*Logger],
 		components.ProvideBlsSigner,
-		components.ProvideBlobProcessor[
-			*AvailabilityStore, *ConsensusSidecars, *Logger,
-		],
+		components.ProvideBlobProcessor[*ConsensusSidecars, *Logger],
 		components.ProvideBlobProofVerifier,
 		components.ProvideChainService[
-			*AvailabilityStore,
 			*ConsensusBlock,
 			*ConsensusSidecars,
 			*DepositContract,
@@ -61,7 +58,6 @@ func DefaultComponents() []any {
 		components.ProvideReportingService[*Logger],
 		components.ProvideCometBFTService[*Logger],
 		components.ProvideServiceRegistry[
-			*AvailabilityStore,
 			*ConsensusBlock,
 			*BlockStore,
 			*ConsensusSidecars,
@@ -75,14 +71,13 @@ func DefaultComponents() []any {
 		],
 		components.ProvideKVStore,
 		components.ProvideStorageBackend[
-			*AvailabilityStore, *BlockStore,
+			*BlockStore,
 			*KVStore,
 		],
 		components.ProvideTelemetrySink,
 		components.ProvideTelemetryService,
 		components.ProvideTrustedSetup,
 		components.ProvideValidatorService[
-			*AvailabilityStore,
 			*BlockStore,
 			*KVStore, *Logger,
 			*StorageBackend,
@@ -95,7 +90,6 @@ func DefaultComponents() []any {
 		components.ProvideNodeAPIServer[*Logger, NodeAPIContext],
 		components.ProvideNodeAPIEngine,
 		components.ProvideNodeAPIBackend[
-			*AvailabilityStore,
 			*BlockStore,
 			*KVStore, *CometBFTService, *StorageBackend,
 		],
