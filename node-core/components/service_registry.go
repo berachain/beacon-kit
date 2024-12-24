@@ -39,7 +39,6 @@ type ServiceRegistryInput[
 	ConsensusBlockT ConsensusBlock,
 	ConsensusSidecarsT ConsensusSidecars,
 	GenesisT Genesis,
-	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 	NodeAPIContextT NodeAPIContext,
 ] struct {
@@ -64,14 +63,13 @@ func ProvideServiceRegistry[
 	ConsensusBlockT ConsensusBlock,
 	ConsensusSidecarsT ConsensusSidecars,
 	GenesisT Genesis,
-	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 	NodeAPIContextT NodeAPIContext,
 ](
 	in ServiceRegistryInput[
 		ConsensusBlockT,
 		ConsensusSidecarsT,
-		GenesisT, KVStoreT, LoggerT, NodeAPIContextT,
+		GenesisT, LoggerT, NodeAPIContextT,
 	],
 ) *service.Registry {
 	return service.NewRegistry(

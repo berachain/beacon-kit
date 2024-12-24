@@ -49,7 +49,6 @@ type ValidatorServiceInput[
 
 // ProvideValidatorService is a depinject provider for the validator service.
 func ProvideValidatorService[
-	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 	StorageBackendT StorageBackend,
 ](

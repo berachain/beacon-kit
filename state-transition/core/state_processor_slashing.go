@@ -28,9 +28,7 @@ import (
 
 // processSlashingsReset as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#slashings-balances-updates
-func (sp *StateProcessor[
-	_, _,
-]) processSlashingsReset(
+func (sp *StateProcessor[_]) processSlashingsReset(
 	st *statedb.StateDB,
 ) error {
 	// processSlashingsReset does not really do anything right now.

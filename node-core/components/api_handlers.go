@@ -33,7 +33,6 @@ import (
 )
 
 type NodeAPIHandlersInput[
-	KVStoreT any,
 	NodeAPIContextT NodeAPIContext,
 ] struct {
 	depinject.In
@@ -47,13 +46,9 @@ type NodeAPIHandlersInput[
 }
 
 func ProvideNodeAPIHandlers[
-	KVStoreT any,
 	NodeAPIContextT NodeAPIContext,
 ](
-	in NodeAPIHandlersInput[
-		KVStoreT,
-		NodeAPIContextT,
-	],
+	in NodeAPIHandlersInput[NodeAPIContextT],
 ) []handlers.Handlers[NodeAPIContextT] {
 	return []handlers.Handlers[NodeAPIContextT]{
 		in.BeaconAPIHandler,
@@ -104,7 +99,6 @@ func ProvideNodeAPINodeHandler[
 }
 
 func ProvideNodeAPIProofHandler[
-	KVStoreT any,
 	NodeT any,
 	NodeAPIContextT NodeAPIContext,
 ](b NodeAPIBackend[NodeT]) *proofapi.Handler[NodeAPIContextT] {

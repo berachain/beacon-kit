@@ -491,26 +491,6 @@ type (
 /* -------------------------------------------------------------------------- */
 
 type (
-	// BeaconState is the interface for the beacon state. It
-	// is a combination of the read-only and write-only beacon state types.
-	BeaconState[
-		T any,
-		BeaconStateMarshallableT any,
-		KVStoreT any,
-	] interface {
-		NewFromDB(
-			bdb KVStoreT,
-			cs chain.ChainSpec,
-		) T
-		Copy(context.Context) T
-		Context() context.Context
-		HashTreeRoot() common.Root
-		GetMarshallable() (BeaconStateMarshallableT, error)
-
-		ReadOnlyBeaconState
-		WriteOnlyBeaconState
-	}
-
 	// BeaconStore is the interface for the beacon store.
 	BeaconStore[
 		T any,

@@ -37,9 +37,7 @@ import (
 // InitializePreminedBeaconStateFromEth1 initializes the beacon state.
 //
 //nolint:gocognit,funlen // todo fix.
-func (sp *StateProcessor[
-	_, _,
-]) InitializePreminedBeaconStateFromEth1(
+func (sp *StateProcessor[_]) InitializePreminedBeaconStateFromEth1(
 	st *statedb.StateDB,
 	deposits ctypes.Deposits,
 	execPayloadHeader *ctypes.ExecutionPayloadHeader,
@@ -159,9 +157,7 @@ func (sp *StateProcessor[
 	return validatorSetsDiffs(nil, activeVals), nil
 }
 
-func (sp *StateProcessor[
-	_, _,
-]) processGenesisActivation(
+func (sp *StateProcessor[_]) processGenesisActivation(
 	st *statedb.StateDB,
 ) error {
 	switch {
