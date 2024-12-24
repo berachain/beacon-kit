@@ -22,19 +22,19 @@ package da
 
 import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 )
 
 // BlobProcessor is the interface for the blobs processor.
 type BlobProcessor[
-	AvailabilityStoreT,
 	ConsensusSidecarsT any,
 ] interface {
 	// ProcessSidecars processes the blobs and ensures they match the local
 	// state.
 	ProcessSidecars(
-		avs AvailabilityStoreT,
+		avs *dastore.Store,
 		sidecars datypes.BlobSidecars,
 	) error
 	// VerifySidecars verifies the blobs and ensures they match the local state.

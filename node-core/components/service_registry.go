@@ -36,7 +36,6 @@ import (
 
 // ServiceRegistryInput is the input for the service registry provider.
 type ServiceRegistryInput[
-	AvailabilityStoreT AvailabilityStore,
 	ConsensusBlockT ConsensusBlock,
 	BeaconBlockStoreT BlockStore,
 	ConsensusSidecarsT ConsensusSidecars,
@@ -47,7 +46,6 @@ type ServiceRegistryInput[
 ] struct {
 	depinject.In
 	ChainService *blockchain.Service[
-		AvailabilityStoreT,
 		ConsensusBlockT,
 		BeaconBlockStoreT,
 		GenesisT,
@@ -65,7 +63,6 @@ type ServiceRegistryInput[
 
 // ProvideServiceRegistry is the depinject provider for the service registry.
 func ProvideServiceRegistry[
-	AvailabilityStoreT AvailabilityStore,
 	ConsensusBlockT ConsensusBlock,
 	BeaconBlockStoreT BlockStore,
 	ConsensusSidecarsT ConsensusSidecars,
@@ -75,7 +72,6 @@ func ProvideServiceRegistry[
 	NodeAPIContextT NodeAPIContext,
 ](
 	in ServiceRegistryInput[
-		AvailabilityStoreT,
 		ConsensusBlockT,
 		BeaconBlockStoreT,
 		ConsensusSidecarsT,

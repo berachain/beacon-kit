@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/kzg"
+	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -35,7 +36,6 @@ import (
 // Processor is the blob processor that handles the processing and verification
 // of blob sidecars.
 type Processor[
-	AvailabilityStoreT AvailabilityStore,
 	ConsensusSidecarsT ConsensusSidecars,
 ] struct {
 	// logger is used to log information and errors.
@@ -50,23 +50,16 @@ type Processor[
 
 // NewProcessor creates a new blob processor.
 func NewProcessor[
-	AvailabilityStoreT AvailabilityStore,
 	ConsensusSidecarsT ConsensusSidecars,
 ](
 	logger log.Logger,
 	chainSpec chain.ChainSpec,
 	proofVerifier kzg.BlobProofVerifier,
 	telemetrySink TelemetrySink,
-) *Processor[
-	AvailabilityStoreT,
-	ConsensusSidecarsT,
-] {
+) *Processor[ConsensusSidecarsT] {
 	verifier := newVerifier(proofVerifier, telemetrySink, chainSpec)
 
-	return &Processor[
-		AvailabilityStoreT,
-		ConsensusSidecarsT,
-	]{
+	return &Processor[ConsensusSidecarsT]{
 		logger:    logger,
 		chainSpec: chainSpec,
 		verifier:  verifier,
@@ -75,9 +68,7 @@ func NewProcessor[
 }
 
 // VerifySidecars verifies the blobs and ensures they match the local state.
-func (sp *Processor[
-	AvailabilityStoreT, ConsensusSidecarsT,
-]) VerifySidecars(
+func (sp *Processor[ConsensusSidecarsT]) VerifySidecars(
 	cs ConsensusSidecarsT,
 	verifierFn func(
 		blkHeader *ctypes.BeaconBlockHeader,
@@ -106,10 +97,8 @@ func (sp *Processor[
 }
 
 // ProcessSidecars processes the blobs and ensures they match the local state.
-func (sp *Processor[
-	AvailabilityStoreT, _,
-]) ProcessSidecars(
-	avs AvailabilityStoreT,
+func (sp *Processor[_]) ProcessSidecars(
+	avs *dastore.Store,
 	sidecars datypes.BlobSidecars,
 ) error {
 	defer sp.metrics.measureProcessSidecarsDuration(

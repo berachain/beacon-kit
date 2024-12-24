@@ -32,7 +32,6 @@ import (
 
 // ValidatorServiceInput is the input for the validator service provider.
 type ValidatorServiceInput[
-	AvailabilityStoreT any,
 	LoggerT any,
 	StorageBackendT any,
 ] struct {
@@ -50,16 +49,12 @@ type ValidatorServiceInput[
 
 // ProvideValidatorService is a depinject provider for the validator service.
 func ProvideValidatorService[
-	AvailabilityStoreT any,
 	BeaconBlockStoreT any,
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
-	StorageBackendT StorageBackend[
-		AvailabilityStoreT, BeaconBlockStoreT,
-	],
+	StorageBackendT StorageBackend[BeaconBlockStoreT],
 ](
 	in ValidatorServiceInput[
-		AvailabilityStoreT,
 		LoggerT, StorageBackendT,
 	],
 ) (*validator.Service, error) {
