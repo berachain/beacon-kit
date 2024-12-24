@@ -35,9 +35,7 @@ import (
 	"github.com/sourcegraph/conc/iter"
 )
 
-func (sp *StateProcessor[
-	_, _,
-]) processRegistryUpdates(
+func (sp *StateProcessor[_]) processRegistryUpdates(
 	st *statedb.StateDB,
 ) error {
 	slot, err := st.GetSlot()
@@ -112,9 +110,7 @@ func (sp *StateProcessor[
 	return nil
 }
 
-func (sp *StateProcessor[
-	_, _,
-]) processValidatorSetCap(
+func (sp *StateProcessor[_]) processValidatorSetCap(
 	st *statedb.StateDB,
 ) error {
 	// Enforce the validator set cap by:

@@ -46,7 +46,6 @@ type LocalBuilderInput[
 // ProvideLocalBuilder provides a local payload builder for the
 // depinject framework.
 func ProvideLocalBuilder[
-	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	in LocalBuilderInput[LoggerT],
