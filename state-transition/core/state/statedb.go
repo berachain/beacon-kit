@@ -42,10 +42,7 @@ type StateDB struct {
 }
 
 // NewBeaconStateFromDB creates a new beacon state from an underlying state db.
-func (s *StateDB) NewFromDB(
-	bdb *beacondb.KVStore,
-	cs chain.ChainSpec,
-) *StateDB {
+func (s *StateDB) NewFromDB(bdb *beacondb.KVStore, cs chain.ChainSpec) *StateDB {
 	return &StateDB{
 		KVStore: *bdb,
 		cs:      cs,
@@ -58,10 +55,7 @@ func (s *StateDB) Copy(ctx context.Context) *StateDB {
 }
 
 // IncreaseBalance increases the balance of a validator.
-func (s *StateDB) IncreaseBalance(
-	idx math.ValidatorIndex,
-	delta math.Gwei,
-) error {
+func (s *StateDB) IncreaseBalance(idx math.ValidatorIndex, delta math.Gwei) error {
 	balance, err := s.GetBalance(idx)
 	if err != nil {
 		return err
@@ -70,10 +64,7 @@ func (s *StateDB) IncreaseBalance(
 }
 
 // DecreaseBalance decreases the balance of a validator.
-func (s *StateDB) DecreaseBalance(
-	idx math.ValidatorIndex,
-	delta math.Gwei,
-) error {
+func (s *StateDB) DecreaseBalance(idx math.ValidatorIndex, delta math.Gwei) error {
 	balance, err := s.GetBalance(idx)
 	if err != nil {
 		return err
@@ -82,10 +73,7 @@ func (s *StateDB) DecreaseBalance(
 }
 
 // UpdateSlashingAtIndex sets the slashing amount in the store.
-func (s *StateDB) UpdateSlashingAtIndex(
-	index uint64,
-	amount math.Gwei,
-) error {
+func (s *StateDB) UpdateSlashingAtIndex(index uint64, amount math.Gwei) error {
 	// Update the total slashing amount before overwriting the old amount.
 	total, err := s.GetTotalSlashing()
 	if err != nil {
@@ -114,8 +102,6 @@ func (s *StateDB) UpdateSlashingAtIndex(
 //
 // NOTE: This function is modified from the spec to allow a fixed withdrawal
 // (as the first withdrawal) used for EVM inflation.
-//
-//nolint:funlen,gocognit // TODO: Simplify when dropping special cases.
 func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 	var (
 		validator         *ctypes.Validator
@@ -168,9 +154,7 @@ func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 			return nil, err
 		}
 
-		// Set the amount of the withdrawal depending on the balance of the
-		// validator.
-		//nolint:gocritic,nestif // ok.
+		// Set the amount of the withdrawal depending on the balance of the validator.
 		if validator.IsFullyWithdrawable(balance, epoch) {
 			withdrawalAddress, err = validator.GetWithdrawalCredentials().ToExecutionAddress()
 			if err != nil {

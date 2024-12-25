@@ -112,34 +112,34 @@ func (sp *StateProcessor[_]) InitializePreminedBeaconStateFromEth1(
 	if err != nil {
 		return nil, err
 	}
-	if err := st.SetGenesisValidatorsRoot(validators.HashTreeRoot()); err != nil {
+	if err = st.SetGenesisValidatorsRoot(validators.HashTreeRoot()); err != nil {
 		return nil, err
 	}
 
-	if err := st.SetLatestExecutionPayloadHeader(execPayloadHeader); err != nil {
+	if err = st.SetLatestExecutionPayloadHeader(execPayloadHeader); err != nil {
 		return nil, err
 	}
 
 	// Setup a bunch of 0s to prime the DB.
 	for i := range sp.cs.HistoricalRootsLimit() {
 		//#nosec:G701 // won't overflow in practice.
-		if err := st.UpdateBlockRootAtIndex(i, common.Root{}); err != nil {
+		if err = st.UpdateBlockRootAtIndex(i, common.Root{}); err != nil {
 			return nil, err
 		}
-		if err := st.UpdateStateRootAtIndex(i, common.Root{}); err != nil {
+		if err = st.UpdateStateRootAtIndex(i, common.Root{}); err != nil {
 			return nil, err
 		}
 	}
 
-	if err := st.SetNextWithdrawalIndex(0); err != nil {
+	if err = st.SetNextWithdrawalIndex(0); err != nil {
 		return nil, err
 	}
 
-	if err := st.SetNextWithdrawalValidatorIndex(0); err != nil {
+	if err = st.SetNextWithdrawalValidatorIndex(0); err != nil {
 		return nil, err
 	}
 
-	if err := st.SetTotalSlashing(0); err != nil {
+	if err = st.SetTotalSlashing(0); err != nil {
 		return nil, err
 	}
 

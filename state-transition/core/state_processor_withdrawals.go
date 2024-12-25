@@ -95,7 +95,7 @@ func (sp *StateProcessor[_]) processWithdrawals(
 	}
 
 	if numWithdrawals > 1 {
-		if err := st.SetNextWithdrawalIndex(
+		if err = st.SetNextWithdrawalIndex(
 			(expectedWithdrawals[numWithdrawals-1].GetIndex() + 1).Unwrap(),
 		); err != nil {
 			return err
