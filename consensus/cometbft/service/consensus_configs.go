@@ -17,39 +17,26 @@
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
+//
 
-package params
+package cometbft
 
 import (
-	math "github.com/berachain/beacon-kit/primitives/math"
-	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
+	cmtcfg "github.com/cometbft/cometbft/config"
 	cmttypes "github.com/cometbft/cometbft/types"
 )
 
-type ChainSpec interface {
-	// GetCometBFTConfigForSlot returns the CometBFT configuration for the given
-	// slot.
-	GetCometBFTConfigForSlot(math.Slot) any
-}
+func extractConsensusParams(cmtCfg *cmtcfg.Config) (*cmttypes.ConsensusParams, error) {
+	// Consensus parameters are immutable (does not change as slots go by).
+	// So we reuse the parameters specified in genesis.
+	// Todo: add validation for genesis params by chainID
 
-// ConsensusParamsStore is a store for consensus parameters.
-type ConsensusParamsStore struct {
-	cs ChainSpec
-}
-
-// NewConsensusParamsStore creates a new ConsensusParamsStore.
-func NewConsensusParamsStore(cs ChainSpec) *ConsensusParamsStore {
-	return &ConsensusParamsStore{
-		cs: cs,
+	genFunc := GetGenDocProvider(cmtCfg)
+	genDoc, err := genFunc()
+	if err != nil {
+		return nil, err
 	}
-}
 
-// Get retrieves the consensus parameters from the store.
-// It returns the consensus parameters and an error, if any.
-func (s *ConsensusParamsStore) Get() *cmtproto.ConsensusParams {
-	//nolint:errcheck // TODO (fridrik): Is this safe?
-	p := s.cs.
-		GetCometBFTConfigForSlot(0).(*cmttypes.ConsensusParams).
-		ToProto()
-	return &p
+	cmtConsensusParams := genDoc.GenesisDoc.ConsensusParams
+	return cmtConsensusParams, nil
 }
