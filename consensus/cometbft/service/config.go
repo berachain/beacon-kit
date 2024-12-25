@@ -22,6 +22,7 @@
 package cometbft
 
 import (
+	"fmt"
 	"time"
 
 	cmtcfg "github.com/cometbft/cometbft/config"
@@ -39,6 +40,8 @@ const ( // appeases mnd
 // consensus engine. It overrides a few values based on our own measurements
 // and development level of BeaconKit. Recall that these are node-specific
 // values (although they influence consensus).
+// This should be the only place in the entire BeaconKit codebase where
+// cmtcfg.DefaultConfig() is called.
 func DefaultConfig() *cmtcfg.Config {
 	cfg := cmtcfg.DefaultConfig()
 	consensus := cfg.Consensus
@@ -61,6 +64,13 @@ func DefaultConfig() *cmtcfg.Config {
 
 	cfg.P2P.MaxNumInboundPeers = 100
 	cfg.P2P.MaxNumOutboundPeers = 40
+
+	cfg.RPC.PprofListenAddress = "localhost:6060"
+
+	if err := cfg.ValidateBasic(); err != nil {
+		panic(fmt.Errorf("invalid comet config: %w", err))
+	}
+
 	return cfg
 }
 
