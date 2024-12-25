@@ -105,6 +105,9 @@ func (sp *StateProcessor[ContextT]) Transition(
 	return validatorUpdates, nil
 }
 
+// NOTE: if process slots is called across multiple epochs (the given slot is more than 1 multiple
+// ahead of the current state slot), then validator updates will be returned in the order they are
+// processed, which may effectually override each other.
 func (sp *StateProcessor[_]) ProcessSlots(
 	st *state.StateDB, slot math.Slot,
 ) (transition.ValidatorUpdates, error) {
@@ -124,9 +127,11 @@ func (sp *StateProcessor[_]) ProcessSlots(
 		// Process the Epoch Boundary.
 		boundary := (stateSlot.Unwrap()+1)%sp.cs.SlotsPerEpoch() == 0
 		if boundary {
-			if res, err = sp.processEpoch(st); err != nil {
+			var epochUpdates transition.ValidatorUpdates
+			if epochUpdates, err = sp.processEpoch(st); err != nil {
 				return nil, err
 			}
+			res = append(res, epochUpdates...)
 		}
 
 		// We update on the state because we need to
@@ -174,8 +179,7 @@ func (sp *StateProcessor[_]) processSlot(
 
 	// We update the block root.
 	return st.UpdateBlockRootAtIndex(
-		stateSlot.Unwrap()%sp.cs.SlotsPerHistoricalRoot(),
-		latestHeader.HashTreeRoot(),
+		stateSlot.Unwrap()%sp.cs.SlotsPerHistoricalRoot(), latestHeader.HashTreeRoot(),
 	)
 }
 
@@ -277,9 +281,7 @@ func (sp *StateProcessor[_]) processEpoch(
 // processBlockHeader processes the header and ensures it matches the local
 // state.
 func (sp *StateProcessor[ContextT]) processBlockHeader(
-	ctx ContextT,
-	st *state.StateDB,
-	blk *ctypes.BeaconBlock,
+	ctx ContextT, st *state.StateDB, blk *ctypes.BeaconBlock,
 ) error {
 	// Ensure the block slot matches the state slot.
 	slot, err := st.GetSlot()
