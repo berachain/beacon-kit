@@ -21,57 +21,10 @@
 package core
 
 import (
-	"github.com/berachain/beacon-kit/config/spec"
-	"github.com/berachain/beacon-kit/primitives/constants"
-	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-func (sp *StateProcessor[_]) processRewardsAndPenalties(st *statedb.StateDB) error {
-	slot, err := st.GetSlot()
-	if err != nil {
-		return err
-	}
-
-	// processRewardsAndPenalties does not really do anything right now.
-	// However we cannot simply drop it because appHash accounts
-	// for the list of operations carried out over the state
-	// even if the operations does not affect the final state
-	// (rewards and penalties are always zero at this stage of beaconKit)
-
-	switch {
-	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
-		// go head doing the processing
-	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-		slot < math.U64(spec.BoonetFork3Height):
-		// go head doing the processing
-	default:
-		// no real need to perform hollowProcessRewardsAndPenalties
-		return nil
-	}
-
-	if sp.cs.SlotToEpoch(slot) == math.U64(constants.GenesisEpoch) {
-		return nil
-	}
-
-	// this has been simplified to make clear that
-	// we are not really doing anything here
-	valCount, err := st.GetTotalValidators()
-	if err != nil {
-		return err
-	}
-
-	for i := range valCount {
-		// Increase the balance of the validator.
-		if err = st.IncreaseBalance(math.ValidatorIndex(i), 0); err != nil {
-			return err
-		}
-
-		// Decrease the balance of the validator.
-		if err = st.DecreaseBalance(math.ValidatorIndex(i), 0); err != nil {
-			return err
-		}
-	}
-
+// processRewardsAndPenalties does not really do anything right now.
+func (sp *StateProcessor[_]) processRewardsAndPenalties(*statedb.StateDB) error {
 	return nil
 }

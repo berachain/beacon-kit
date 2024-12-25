@@ -23,11 +23,9 @@ package core
 import (
 	"fmt"
 
-	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
-	"github.com/berachain/beacon-kit/primitives/encoding/hex"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -110,16 +108,11 @@ func (sp *StateProcessor[_]) InitializePreminedBeaconStateFromEth1(
 		return nil, err
 	}
 
-	// Handle special case bartio genesis.
-	validatorsRoot := common.Root(hex.MustToBytes(spec.BartioValRoot))
-	if sp.cs.DepositEth1ChainID() != spec.BartioChainID {
-		validators, err := st.GetValidators()
-		if err != nil {
-			return nil, err
-		}
-		validatorsRoot = validators.HashTreeRoot()
+	validators, err := st.GetValidators()
+	if err != nil {
+		return nil, err
 	}
-	if err := st.SetGenesisValidatorsRoot(validatorsRoot); err != nil {
+	if err := st.SetGenesisValidatorsRoot(validators.HashTreeRoot()); err != nil {
 		return nil, err
 	}
 
@@ -157,43 +150,33 @@ func (sp *StateProcessor[_]) InitializePreminedBeaconStateFromEth1(
 	return validatorSetsDiffs(nil, activeVals), nil
 }
 
-func (sp *StateProcessor[_]) processGenesisActivation(
-	st *statedb.StateDB,
-) error {
-	switch {
-	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
-		// nothing to do
-		return nil
-	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID:
-		// nothing to do
-		return nil
-	default:
-		vals, err := st.GetValidators()
-		if err != nil {
-			return fmt.Errorf(
-				"genesis activation, failed listing validators: %w",
-				err,
-			)
-		}
-		minEffectiveBalance := math.Gwei(
-			sp.cs.EjectionBalance() + sp.cs.EffectiveBalanceIncrement(),
+func (sp *StateProcessor[_]) processGenesisActivation(st *statedb.StateDB) error {
+	vals, err := st.GetValidators()
+	if err != nil {
+		return fmt.Errorf(
+			"genesis activation, failed listing validators: %w",
+			err,
 		)
-
-		var idx math.ValidatorIndex
-		for _, val := range vals {
-			if val.GetEffectiveBalance() < minEffectiveBalance {
-				continue
-			}
-			val.SetActivationEligibilityEpoch(0)
-			val.SetActivationEpoch(0)
-			idx, err = st.ValidatorIndexByPubkey(val.GetPubkey())
-			if err != nil {
-				return err
-			}
-			if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
-				return err
-			}
-		}
-		return nil
 	}
+	minEffectiveBalance := math.Gwei(
+		sp.cs.EjectionBalance() + sp.cs.EffectiveBalanceIncrement(),
+	)
+
+	var idx math.ValidatorIndex
+	for _, val := range vals {
+		if val.GetEffectiveBalance() < minEffectiveBalance {
+			continue
+		}
+		val.SetActivationEligibilityEpoch(0)
+		val.SetActivationEpoch(0)
+		idx, err = st.ValidatorIndexByPubkey(val.GetPubkey())
+		if err != nil {
+			return err
+		}
+		if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

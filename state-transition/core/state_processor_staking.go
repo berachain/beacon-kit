@@ -23,7 +23,6 @@ package core
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -188,13 +187,6 @@ func (sp *StateProcessor[_]) addValidatorToRegistry(
 			state.IsPostFork3(sp.cs.DepositEth1ChainID(), slot),
 		)),
 	)
-
-	// TODO: This is a bug that lives on bArtio. Delete this eventually.
-	if sp.cs.DepositEth1ChainID() == spec.BartioChainID {
-		// Note in AddValidatorBartio we implicitly increase
-		// the balance from state st. This is unlike AddValidator.
-		return st.AddValidatorBartio(val)
-	}
 
 	if err := st.AddValidator(val); err != nil {
 		return err

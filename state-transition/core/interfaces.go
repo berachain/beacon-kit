@@ -107,7 +107,6 @@ type WriteOnlyValidators interface {
 	) error
 
 	AddValidator(*ctypes.Validator) error
-	AddValidatorBartio(*ctypes.Validator) error
 }
 
 // ReadOnlyValidators has read access to validator methods.

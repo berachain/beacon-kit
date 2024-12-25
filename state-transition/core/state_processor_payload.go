@@ -23,8 +23,6 @@ package core
 import (
 	"context"
 
-	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
-	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -153,18 +151,6 @@ func (sp *StateProcessor[_]) validateStatefulPayload(
 	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return err
-	}
-
-	// We skip timestamp check on Bartio for backward compatibility reasons
-	// TODO: enforce the check when we drop other Bartio special cases.
-	if sp.cs.DepositEth1ChainID() != spec.BartioChainID {
-		if err = payloadtime.Verify(
-			consensusTime,
-			lph.GetTimestamp(),
-			payload.GetTimestamp(),
-		); err != nil {
-			return err
-		}
 	}
 
 	// Check chain canonicity
