@@ -45,7 +45,6 @@ func DevnetChainSpec() (chain.Spec[
 	common.DomainType,
 	math.Epoch,
 	math.Slot,
-	any,
 ], error) {
 	devnetSpec := BaseSpec()
 	devnetSpec.DepositEth1ChainID = DevnetEth1ChainID

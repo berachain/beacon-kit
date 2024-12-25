@@ -24,7 +24,6 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/validator"
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/config"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/log"
@@ -45,7 +44,6 @@ func ProvideCometBFTService[
 	db dbm.DB,
 	cmtCfg *cmtcfg.Config,
 	appOpts config.AppOptions,
-	chainSpec chain.ChainSpec,
 	telemetrySink *metrics.TelemetrySink,
 ) *cometbft.Service[LoggerT] {
 	return cometbft.NewService(
@@ -55,7 +53,6 @@ func ProvideCometBFTService[
 		blockchain,
 		blockBuilder,
 		cmtCfg,
-		chainSpec,
 		telemetrySink,
 		builder.DefaultServiceOptions[LoggerT](appOpts)...,
 	)
