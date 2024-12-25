@@ -27,7 +27,7 @@ import (
 )
 
 func extractConsensusParams(cmtCfg *cmtcfg.Config) (*cmttypes.ConsensusParams, error) {
-	// Consensus parameters are immutable (does not change as slots go by).
+	// Consensus parameters are immutable (do not change as slots go by).
 	// So we reuse the parameters specified in genesis.
 	// Todo: add validation for genesis params by chainID
 
