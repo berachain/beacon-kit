@@ -33,9 +33,7 @@ import (
 // defaultRetryInterval processes a deposit event.
 const defaultRetryInterval = 20 * time.Second
 
-func (s *Service[
-	ConsensusBlockT, _, _,
-]) depositFetcher(
+func (s *Service) depositFetcher(
 	ctx context.Context,
 	blockNum math.U64,
 ) {
@@ -51,9 +49,7 @@ func (s *Service[
 	s.fetchAndStoreDeposits(ctx, blockNum-s.eth1FollowDistance)
 }
 
-func (s *Service[
-	ConsensusBlockT, _, _,
-]) fetchAndStoreDeposits(
+func (s *Service) fetchAndStoreDeposits(
 	ctx context.Context,
 	blockNum math.U64,
 ) {
@@ -91,9 +87,7 @@ func (s *Service[
 	s.failedBlocksMu.Unlock()
 }
 
-func (s *Service[
-	ConsensusBlockT, _, _,
-]) depositCatchupFetcher(ctx context.Context) {
+func (s *Service) depositCatchupFetcher(ctx context.Context) {
 	ticker := time.NewTicker(defaultRetryInterval)
 	defer ticker.Stop()
 	for {
