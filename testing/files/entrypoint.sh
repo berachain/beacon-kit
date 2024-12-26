@@ -39,7 +39,6 @@ resolve_path() {
 CHAINID="beacond-2061"
 MONIKER="localtestnet"
 LOGLEVEL="info"
-CONSENSUS_KEY_ALGO="bls12_381"
 HOMEDIR="./.tmp/beacond"
 
 # Path variables
@@ -67,8 +66,7 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	rm -rf $HOMEDIR
 	./build/bin/beacond init $MONIKER \
 		--chain-id $CHAINID \
-		--home $HOMEDIR \
-		--consensus-key-algo $CONSENSUS_KEY_ALGO
+		--home $HOMEDIR
 
 	if [ "$CHAIN_SPEC" == "testnet" ]; then
 		cp -f testing/networks/80084/*.toml testing/networks/80084/genesis.json ${HOMEDIR}/config
