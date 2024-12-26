@@ -217,6 +217,10 @@ func InitCmd(mm interface {
 
 			toPrint := newPrintInfo(config.Moniker, chainID, nodeID, "", appState)
 
+			// Note: the config file was already creating before execution this command
+			// by [SetupCommand], and it is being overwritten here. The only difference,
+			// post default values cleanups, should be in the moniker, which is only setup
+			// correctly here
 			cfg.WriteConfigFile(filepath.Join(config.RootDir, "config", "config.toml"), config)
 			return displayInfo(cmd.ErrOrStderr(), toPrint)
 		},
