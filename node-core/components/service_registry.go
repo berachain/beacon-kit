@@ -37,7 +37,6 @@ import (
 // ServiceRegistryInput is the input for the service registry provider.
 type ServiceRegistryInput[
 	ConsensusBlockT ConsensusBlock,
-	ConsensusSidecarsT ConsensusSidecars,
 	GenesisT Genesis,
 	LoggerT log.AdvancedLogger[LoggerT],
 	NodeAPIContextT NodeAPIContext,
@@ -57,14 +56,12 @@ type ServiceRegistryInput[
 // ProvideServiceRegistry is the depinject provider for the service registry.
 func ProvideServiceRegistry[
 	ConsensusBlockT ConsensusBlock,
-	ConsensusSidecarsT ConsensusSidecars,
 	GenesisT Genesis,
 	LoggerT log.AdvancedLogger[LoggerT],
 	NodeAPIContextT NodeAPIContext,
 ](
 	in ServiceRegistryInput[
 		ConsensusBlockT,
-		ConsensusSidecarsT,
 		GenesisT, LoggerT, NodeAPIContextT,
 	],
 ) *service.Registry {

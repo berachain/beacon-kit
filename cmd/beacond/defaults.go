@@ -31,7 +31,7 @@ func DefaultComponents() []any {
 		components.ProvideDepositContract,
 		components.ProvideBlockStore[*Logger],
 		components.ProvideBlsSigner,
-		components.ProvideBlobProcessor[*ConsensusSidecars, *Logger],
+		components.ProvideBlobProcessor[*Logger],
 		components.ProvideBlobProofVerifier,
 		components.ProvideChainService[*Logger],
 		components.ProvideNode,
@@ -51,7 +51,6 @@ func DefaultComponents() []any {
 		components.ProvideCometBFTService[*Logger],
 		components.ProvideServiceRegistry[
 			*ConsensusBlock,
-			*ConsensusSidecars,
 			*Genesis, *Logger,
 			NodeAPIContext,
 		],

@@ -54,7 +54,7 @@ type (
 	AttributesFactory = attributes.Factory
 
 	// BlobProcessor is a type alias for the blob processor.
-	BlobProcessor = dablob.Processor[*ConsensusSidecars]
+	BlobProcessor = dablob.Processor
 
 	// CometBFTService is a type alias for the CometBFT service.
 	CometBFTService = cometbft.Service[*Logger]
@@ -102,9 +102,8 @@ type (
 	ConsensusBlock = consruntimetypes.ConsensusBlock
 
 	// BlobSidecars type aliases.
-	ConsensusSidecars = consruntimetypes.ConsensusSidecars
-	BlobSidecar       = datypes.BlobSidecar
-	BlobSidecars      = datypes.BlobSidecars
+	BlobSidecar  = datypes.BlobSidecar
+	BlobSidecars = datypes.BlobSidecars
 
 	// Context is a type alias for the transition context.
 	Context = transition.Context
