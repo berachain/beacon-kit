@@ -32,6 +32,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 // two is a constant for the number 2.
@@ -45,6 +46,7 @@ var _ pruner.Prunable = (*RangeDB)(nil)
 // Invariant: No index below firstNonNilIndex should be populated.
 type RangeDB struct {
 	db.DB
+	rwMu             sync.RWMutex
 	firstNonNilIndex uint64
 }
 
@@ -60,6 +62,8 @@ func NewRangeDB(db db.DB) *RangeDB {
 // It prefixes the key with the index and a slash before querying the underlying
 // database.
 func (db *RangeDB) Get(index uint64, key []byte) ([]byte, error) {
+	db.rwMu.RLock()
+	defer db.rwMu.RUnlock()
 	return db.DB.Get(db.prefix(index, key))
 }
 
@@ -67,6 +71,8 @@ func (db *RangeDB) Get(index uint64, key []byte) ([]byte, error) {
 // It prefixes the key with the index and a slash before querying the underlying
 // database.
 func (db *RangeDB) Has(index uint64, key []byte) (bool, error) {
+	db.rwMu.RLock()
+	defer db.rwMu.RUnlock()
 	return db.DB.Has(db.prefix(index, key))
 }
 
@@ -74,6 +80,9 @@ func (db *RangeDB) Has(index uint64, key []byte) (bool, error) {
 // It prefixes the key with the index and a slash before storing it in the
 // underlying database.
 func (db *RangeDB) Set(index uint64, key []byte, value []byte) error {
+	db.rwMu.Lock()
+	defer db.rwMu.Unlock()
+
 	// enforce invariant
 	if index < db.firstNonNilIndex {
 		db.firstNonNilIndex = index
@@ -85,20 +94,22 @@ func (db *RangeDB) Set(index uint64, key []byte, value []byte) error {
 // database. It prefixes the key with the index and a slash before deleting it
 // from the underlying database.
 func (db *RangeDB) Delete(index uint64, key []byte) error {
+	db.rwMu.Lock()
+	defer db.rwMu.Unlock()
 	return db.DB.Delete(db.prefix(index, key))
 }
 
-// DeleteRange removes all values associated with the given index from the
+// deleteRange removes all values associated with the given index from the
 // filesystem. It is INCLUSIVE of the `from` index and EXCLUSIVE of
 // the `to“ index.
-func (db *RangeDB) DeleteRange(from, to uint64) error {
+func (db *RangeDB) deleteRange(from, to uint64) error {
 	f, ok := db.DB.(*DB)
 	if !ok {
 		return errors.New("rangedb: delete range not supported for this db")
 	}
 	if from > to {
 		return fmt.Errorf(
-			"RangeDB DeleteRange start: %d, end: %d: %w",
+			"RangeDB deleteRange start: %d, end: %d: %w",
 			from, to, pruner.ErrInvalidRange,
 		)
 	}
@@ -113,6 +124,8 @@ func (db *RangeDB) DeleteRange(from, to uint64) error {
 
 // Prune removes all values in the given range [start, end) from the db.
 func (db *RangeDB) Prune(start, end uint64) error {
+	db.rwMu.Lock()
+	defer db.rwMu.Unlock()
 	start = max(start, db.firstNonNilIndex)
 	if start > end {
 		return fmt.Errorf(
@@ -121,7 +134,7 @@ func (db *RangeDB) Prune(start, end uint64) error {
 		)
 	}
 
-	if err := db.DeleteRange(start, end); err != nil {
+	if err := db.deleteRange(start, end); err != nil {
 		// Resets last pruned index in case Delete somehow populates indices on
 		// err. This will cause the next prune operation is O(n), but next
 		// successful prune will set it to the correct value, so runtime is
@@ -141,6 +154,8 @@ func (db *RangeDB) GetByIndex(index uint64) ([][]byte, error) {
 	if !ok {
 		return keys, errors.New("rangedb: delete range not supported for this db")
 	}
+	db.rwMu.RLock()
+	defer db.rwMu.RUnlock()
 	indexDir := strconv.FormatUint(index, 10)
 	entries, err := afero.ReadDir(f.fs, indexDir)
 	if err != nil {

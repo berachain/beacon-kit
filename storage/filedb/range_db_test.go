@@ -27,9 +27,7 @@ import (
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/errors"
 	file "github.com/berachain/beacon-kit/storage/filedb"
-	"github.com/berachain/beacon-kit/storage/interfaces/mocks"
 	"github.com/spf13/afero"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -97,7 +95,7 @@ func TestRangeDB(t *testing.T) {
 			},
 		},
 		{
-			name: "DeleteRange",
+			name: "Prune",
 			setupFunc: func(rdb *file.RangeDB) error {
 				for index := uint64(1); index <= 5; index++ {
 					if err := rdb.Set(
@@ -110,7 +108,7 @@ func TestRangeDB(t *testing.T) {
 			},
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				t.Helper()
-				err := rdb.DeleteRange(1, 4)
+				err := rdb.Prune(1, 4)
 				require.NoError(t, err)
 
 				for index := uint64(1); index <= 3; index++ {
@@ -193,34 +191,6 @@ func TestExtractIndex(t *testing.T) {
 }
 
 // =========================== PRUNING =====================================
-
-func TestRangeDB_DeleteRange_NotSupported(t *testing.T) {
-	tests := []struct {
-		name string
-		db   *mocks.DB
-	}{
-		{
-			name: "DeleteRangeNotSupported",
-			db:   new(mocks.DB),
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Helper()
-			tt.db.On("DeleteRange", mock.Anything, mock.Anything).
-				Return(errors.New("rangedb: delete range not supported for this db"))
-
-			rdb := file.NewRangeDB(tt.db)
-
-			err := rdb.DeleteRange(1, 4)
-			require.Error(t, err)
-			require.Equal(t,
-				"rangedb: delete range not supported for this db",
-				err.Error())
-		})
-	}
-}
 
 func TestRangeDB_Prune(t *testing.T) {
 	tests := []struct {
@@ -326,17 +296,6 @@ func TestRangeDB_Invariants(t *testing.T) {
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				t.Helper()
 				_ = rdb.Prune(0, 3)
-				requireNotExist(t, rdb, 0, lastConsequetiveNilIndex(rdb))
-			},
-		},
-		{
-			name: "DeleteRange from populated",
-			setupFunc: func(rdb *file.RangeDB) error {
-				return populateTestDB(rdb, 1, 10)
-			},
-			testFunc: func(t *testing.T, rdb *file.RangeDB) {
-				t.Helper()
-				_ = rdb.DeleteRange(1, 5) // ignore error
 				requireNotExist(t, rdb, 0, lastConsequetiveNilIndex(rdb))
 			},
 		},
