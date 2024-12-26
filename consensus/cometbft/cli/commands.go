@@ -40,6 +40,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
+	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
@@ -161,8 +163,11 @@ func ShowValidatorCmd() *cobra.Command {
 				return err
 			}
 
-			clientCtx := client.GetClientContextFromCmd(cmd)
-			bz, err := clientCtx.Codec.MarshalInterfaceJSON(sdkPK)
+			registry := codectypes.NewInterfaceRegistry()
+			cryptocodec.RegisterInterfaces(registry)
+			cdc := codec.NewProtoCodec(registry)
+
+			bz, err := cdc.MarshalInterfaceJSON(sdkPK)
 			if err != nil {
 				return err
 			}
