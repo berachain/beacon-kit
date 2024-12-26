@@ -21,12 +21,12 @@
 package e2e_test
 
 import (
+	"bytes"
 	"context"
-	"errors"
+	"encoding/binary"
 	"fmt"
 	"github.com/attestantio/go-eth2-client/api"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
-	"github.com/ethereum/go-ethereum/core/txpool"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 
@@ -38,7 +38,7 @@ import (
 const (
 	// NumBlobsLoad is the number of blob-carrying transactions to submit in
 	// the Test4844Live test.
-	NumBlobsLoad uint64 = 1
+	NumBlobsLoad uint64 = 10
 
 	// BlocksToWait4844 is the number of blocks to wait for the nodes to catch up.
 	BlocksToWait4844 = 1
@@ -47,85 +47,110 @@ const (
 // Test4844Live tests sending a large number of blob carrying txs over the
 // network.
 func (s *BeaconKitE2ESuite) Test4844Live() {
-	// Sender account
-	sender := s.TestAccounts()[0]
-
 	// Set the test timeout
 	ctx, cancel := context.WithTimeout(s.Ctx(), suite.DefaultE2ETestTimeout)
 	defer cancel()
 
-	// Get the chain ID.
+	// Connect the consensus client node-api
+	client0 := s.ConsensusClients()[config.ClientValidator0]
+	s.Require().NotNil(client0)
+	s.Require().NoError(client0.Connect(ctx))
+
+	// Grab values to plug into txs
+	sender := s.TestAccounts()[0]
 	chainID, err := s.JSONRPCBalancer().ChainID(ctx)
 	s.Require().NoError(err)
-
-	// Get the gas tip.
 	tip, err := s.JSONRPCBalancer().SuggestGasTipCap(ctx)
 	s.Require().NoError(err)
-
-	// Get the gas fee
 	gasFee, err := s.JSONRPCBalancer().SuggestGasPrice(ctx)
 	s.Require().NoError(err)
+	blkNum, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
+	s.Require().NoError(err)
+	nonce, err := s.JSONRPCBalancer().NonceAt(
+		s.Ctx(), sender.Address(), new(big.Int).SetUint64(blkNum),
+	)
+	s.Require().NoError(err)
 
-	var blobTx *coretypes.Transaction
+	// TODO: Query node-api for blobs to make sure they error
+
+	// Craft and send each blob-carrying transaction.
+	var blobTxs []*coretypes.Transaction
 	for i := range NumBlobsLoad {
-		// Get the block num.
-		blkNum, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
-		s.Require().NoError(err)
-
-		// Get the nonce of our tx sender.
-		//nolint:staticcheck // used below.
-		nonce, err := s.JSONRPCBalancer().NonceAt(
-			s.Ctx(), sender.Address(), new(big.Int).SetUint64(blkNum),
-		)
-		s.Require().NoError(err)
+		blobData := make([]byte, 8)
+		binary.LittleEndian.PutUint64(blobData, nonce+i)
 
 		// Craft the blob-carrying transaction.
-		blobTx = tx.New4844Tx(
+		blobTx := tx.New4844Tx(
 			nonce+i, nil, 1000000,
 			chainID, tip, gasFee, big.NewInt(0),
 			[]byte{0x01, 0x02, 0x03, 0x04},
-			big.NewInt(1), []byte{0x01, 0x02, 0x03, 0x04},
+			big.NewInt(1), blobData,
 			coretypes.AccessList{},
 		)
 
 		// Sign and submit the transaction.
 		blobTx, err = sender.SignTx(chainID, blobTx)
 		s.Require().NoError(err)
-		s.Logger().Info("submitting blob transaction", "tx", blobTx.Hash().Hex())
+		s.Logger().Info("submitting blob transaction", "blobTx", blobTx.Hash().Hex())
+
+		blobTxs = append(blobTxs, blobTx)
 
 		err = s.JSONRPCBalancer().SendTransaction(ctx, blobTx)
-		if errors.Is(err, txpool.ErrAlreadyKnown) {
+		// TODO: Figure out why this error happens and why errors.Is(err, txpool.ErrAlreadyKnown) doesn't catch it
+		if err != nil && err.Error() == "already known" {
+			fmt.Println("FOUND ALREADY KNOWN")
 			continue
 		}
+		fmt.Println(err)
 		s.Require().NoError(err)
 	}
-	fmt.Println(blobTx)
-	s.Require().NotNil(blobTx)
 
-	// Wait for the last tx to be mined.
-	s.Logger().
-		Info("waiting for blob transaction to be mined", "tx", blobTx.Hash().Hex())
-	receipt, err := bind.WaitMined(ctx, s.JSONRPCBalancer(), blobTx)
-	s.Require().NoError(err)
-	s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
+	// TODO Make all node-api calls and verification asynchronous. node-api should be able to handle async calls
+
+	// Wait for txs to be mined and group them by the block they get mined in.
+	sidecarsByBlockNumber := make(map[string][]*coretypes.BlobTxSidecar)
+	for _, blobTx := range blobTxs {
+		s.Logger().
+			Info("waiting for blob transaction to be mined", "blobTx", blobTx.Hash().Hex())
+		receipt, err := bind.WaitMined(ctx, s.JSONRPCBalancer(), blobTx)
+		s.Require().NoError(err)
+		s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
+
+		blockNum := receipt.BlockNumber.String()
+
+		if _, exists := sidecarsByBlockNumber[blockNum]; !exists {
+			sidecarsByBlockNumber[blockNum] = []*coretypes.BlobTxSidecar{blobTx.BlobTxSidecar()}
+		} else {
+			sidecarsByBlockNumber[blockNum] = append(
+				sidecarsByBlockNumber[blockNum], blobTx.BlobTxSidecar(),
+			)
+		}
+	}
+
+	// Validate each blob via the node-api.
+	for blockNum := range sidecarsByBlockNumber {
+		sidecarsInBlock := sidecarsByBlockNumber[blockNum]
+
+		// Fetch blobs from node-api
+		response, err := client0.BlobSidecars(ctx, &api.BlobSidecarsOpts{Block: blockNum})
+		s.Require().NoError(err, "unable to fetch blob sidecars from node-api")
+
+		// Verify blob data from each transaction is published by the node-api.
+		for _, sidecar := range sidecarsInBlock {
+			for i := range sidecar.Commitments {
+				verified := false
+				for _, blob := range response.Data {
+					if bytes.Equal(blob.KZGCommitment[:], sidecar.Commitments[i][:]) {
+						s.Require().Equal(sidecar.Blobs[i][:], blob.Blob[:], "blob data not equal")
+						verified = true
+					}
+				}
+				s.Require().True(verified, "unable to find blob commitment")
+			}
+		}
+	}
 
 	// Ensure Blob Tx doesn't cause liveliness issues.
 	err = s.WaitForNBlockNumbers(BlocksToWait4844)
 	s.Require().NoError(err)
-
-	client0 := s.ConsensusClients()[config.ClientValidator0]
-	s.Require().NotNil(client0)
-
-	// TODO: query and validate a sample (or all) of blob data from node-api
-	// to ensure data availability.
-	//client0.Connect()
-	err = client0.Connect(ctx)
-	s.Require().NoError(err)
-
-	opts := api.BlobSidecarsOpts{
-		Block: receipt.BlockNumber.String(),
-	}
-	response, err := client0.BlobSidecars(ctx, &opts)
-	s.Require().NoError(err)
-	fmt.Println(response)
 }
