@@ -22,17 +22,12 @@ package store
 
 import (
 	"context"
-	"fmt"
 	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
-
-// SLOT_COMMITMENTS_KEY is the key used to store the commitments for a slot
-// in the DB. We use this key to avoid conflicts with the slot index.
-const SLOT_COMMITMENTS_KEY = "slot_commitments"
 
 // Store is the default implementation of the AvailabilityStore.
 type Store struct {
@@ -76,16 +71,12 @@ func (s *Store) IsDataAvailable(
 
 // GetBlobSidecars fetches the sidecars for a specific slot.
 func (s *Store) GetBlobSidecars(slot math.Slot) (types.BlobSidecars, error) {
-	// TODO Get this from chainspec
-	maxBlobsPerBlock := 16
-
-	sidecars := make(types.BlobSidecars, 0, maxBlobsPerBlock)
 	sidecarBzs, err := s.IndexDB.GetByIndex(slot.Unwrap())
 	if err != nil {
-		return sidecars, err
+		return nil, err
 	}
-	fmt.Println("DEBUG got sidecars", len(sidecarBzs))
 
+	sidecars := make(types.BlobSidecars, 0, len(sidecarBzs))
 	for _, sidecarBz := range sidecarBzs {
 		sidecar := types.BlobSidecar{}
 		err = sidecar.UnmarshalSSZ(sidecarBz)
@@ -118,7 +109,6 @@ func (s *Store) Persist(
 		// current slot
 		slot,
 	) {
-		fmt.Println("DEBUG NOT WITHIN DA PERIOD!!")
 		return nil
 	}
 
@@ -133,7 +123,6 @@ func (s *Store) Persist(
 		if err != nil {
 			return err
 		}
-		fmt.Println("DEBUG STORING SIDECAR AT SLOT:", slot)
 		err = s.IndexDB.Set(slot.Unwrap(), sc.KzgCommitment[:], bz)
 
 		if err != nil {

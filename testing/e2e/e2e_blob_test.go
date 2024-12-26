@@ -24,7 +24,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
-	"fmt"
 	"github.com/attestantio/go-eth2-client/api"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
@@ -98,10 +97,8 @@ func (s *BeaconKitE2ESuite) Test4844Live() {
 		err = s.JSONRPCBalancer().SendTransaction(ctx, blobTx)
 		// TODO: Figure out why this error happens and why errors.Is(err, txpool.ErrAlreadyKnown) doesn't catch it
 		if err != nil && err.Error() == "already known" {
-			fmt.Println("FOUND ALREADY KNOWN")
 			continue
 		}
-		fmt.Println(err)
 		s.Require().NoError(err)
 	}
 

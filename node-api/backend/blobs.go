@@ -21,7 +21,6 @@
 package backend
 
 import (
-	"fmt"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	apitypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -33,9 +32,7 @@ func (b *Backend[
 	var blobSidecars datypes.BlobSidecars
 	// TODO: Check if we are WithinDAPeriod(). Have to get current head slot somehow.
 
-	fmt.Println("Fetcing blobs from da store at slot", slot)
 	blobSidecars, err := b.sb.AvailabilityStore().GetBlobSidecars(slot)
-	fmt.Println("Fetched", len(blobSidecars), "blobSidecars")
 	if err != nil {
 		return nil, err
 	}
