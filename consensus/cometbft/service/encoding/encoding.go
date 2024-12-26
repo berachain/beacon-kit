@@ -33,13 +33,8 @@ func ExtractBlobsAndBlockFromRequest(
 	blobSidecarsIndex uint,
 	forkVersion uint32,
 ) (*ctypes.BeaconBlock, datypes.BlobSidecars, error) {
-	var (
-		blobs datypes.BlobSidecars
-		blk   *ctypes.BeaconBlock
-	)
-
 	if req == nil {
-		return blk, blobs, ErrNilABCIRequest
+		return nil, nil, ErrNilABCIRequest
 	}
 
 	blk, err := UnmarshalBeaconBlockFromABCIRequest(
@@ -48,18 +43,15 @@ func ExtractBlobsAndBlockFromRequest(
 		forkVersion,
 	)
 	if err != nil {
-		return blk, blobs, err
+		return nil, nil, err
 	}
 
-	blobs, err = UnmarshalBlobSidecarsFromABCIRequest(
+	blobs, err := UnmarshalBlobSidecarsFromABCIRequest(
 		req,
 		blobSidecarsIndex,
 	)
-	if err != nil {
-		return blk, blobs, err
-	}
 
-	return blk, blobs, nil
+	return blk, blobs, err
 }
 
 // UnmarshalBeaconBlockFromABCIRequest extracts a beacon block from an ABCI

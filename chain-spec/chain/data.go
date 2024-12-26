@@ -27,7 +27,6 @@ type SpecData[
 	DomainTypeT ~[4]byte,
 	EpochT ~uint64,
 	SlotT ~uint64,
-	CometBFTConfigT any,
 ] struct {
 	// Gwei value constants.
 	//
@@ -159,9 +158,6 @@ type SpecData[
 	BytesPerBlob uint64 `mapstructure:"bytes-per-blob"`
 	// KZGCommitmentInclusionProofDepth is the depth of the KZG inclusion proof.
 	KZGCommitmentInclusionProofDepth uint64 `mapstructure:"kzg-commitment-inclusion-proof-depth"`
-
-	// Comet Values
-	CometValues CometBFTConfigT `mapstructure:"comet-bft-config"`
 
 	// Berachain Values
 	//

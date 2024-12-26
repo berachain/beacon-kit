@@ -23,9 +23,7 @@ package spec
 import (
 	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
-	cmttypes "github.com/cometbft/cometbft/types"
 )
 
 const (
@@ -41,16 +39,11 @@ func BaseSpec() chain.SpecData[
 	common.DomainType,
 	math.Epoch,
 	math.Slot,
-	any,
 ] {
-	cmtConsensusParams := cmttypes.DefaultConsensusParams()
-	cmtConsensusParams.Validator.PubKeyTypes = []string{crypto.CometBLSType}
-
 	return chain.SpecData[
 		common.DomainType,
 		math.Epoch,
 		math.Slot,
-		any,
 	]{
 		// Gwei value constants.
 		MinDepositAmount:               1e9,
@@ -130,9 +123,6 @@ func BaseSpec() chain.SpecData[
 		FieldElementsPerBlob:             4096,
 		BytesPerBlob:                     131072,
 		KZGCommitmentInclusionProofDepth: 17,
-
-		// Comet values.
-		CometValues: cmtConsensusParams,
 
 		// Berachain Values
 		ValidatorSetCap: 256,
