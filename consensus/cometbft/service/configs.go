@@ -74,6 +74,20 @@ func DefaultConfig() *cmtcfg.Config {
 	return cfg
 }
 
+// DefaultConsensusParams returns the default consensus parameters
+// shared by every node in the network. Consensus parameters are
+// inscripted in genesis.
+func DefaultConsensusParams(consensusKeyAlgo string) *cmttypes.ConsensusParams {
+	res := cmttypes.DefaultConsensusParams()
+	res.Validator.PubKeyTypes = []string{consensusKeyAlgo}
+
+	if err := res.ValidateBasic(); err != nil {
+		panic(fmt.Errorf("invalid default consensus parameters: %w", err))
+	}
+
+	return res
+}
+
 // extractConsensusParams pull consensus parameters (not config) set in
 // genesis. They are mostly used to (not) update consensus parameters once
 // a block is finalized.
