@@ -28,7 +28,7 @@ import (
 )
 
 func (b *Backend[
-	_, _, _, _,
+	_, _, _,
 ]) BlobSidecarsByIndices(slot math.Slot, indices []uint64) ([]*apitypes.Sidecar, error) {
 	var blobSidecars datypes.BlobSidecars
 	// TODO: Check if we are WithinDAPeriod(). Have to get current head slot somehow.
