@@ -18,18 +18,21 @@ tx_fuzz = import_module("./src/services/tx_fuzz/launcher.star")
 blutgang = import_module("./src/services/blutgang/launcher.star")
 blockscout = import_module("./src/services/blockscout/launcher.star")
 otterscan = import_module("./src/services/otterscan/launcher.star")
+chain_spec = import_module("./src/chain_spec/config.star")
 
-def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpoints = [], additional_services = [], metrics_enabled_services = []):
+def run(plan, network_configuration = {}, node_settings = {}, chain_spec_config = {}, eth_json_rpc_endpoints = [], additional_services = [], metrics_enabled_services = []):
     """
     Initiates the execution plan with the specified number of validators and arguments.
 
     Args:
     plan: The execution plan to be run.
-    args: Additional arguments to configure the plan. Defaults to an empty dictionary.
+    network_configuration: Network configuration dictionary
+    node_settings: Node settings dictionary
+    chain_spec_config: Chain specification configuration
+    eth_json_rpc_endpoints: JSON-RPC endpoints
+    additional_services: Additional services to run
+    metrics_enabled_services: Services with metrics enabled
     """
-
-    # all_node_types = [validators["type"], full_nodes["type"], seed_nodes["type"]]
-    # all_node_settings = nodes.parse_node_settings(node_settings, all_node_types)
 
     next_free_prefunded_account = 0
     validators = nodes.parse_nodes_from_dict(network_configuration["validators"], node_settings)
@@ -37,8 +40,9 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
     seed_nodes = nodes.parse_nodes_from_dict(network_configuration["seed_nodes"], node_settings)
     num_validators = len(validators)
 
-    # 1. Initialize EVM genesis data
-    evm_genesis_data = networks.get_genesis_data(plan)
+    # 1. Initialize EVM genesis data with configurable chain spec
+    chain_specification = chain_spec.get_chain_spec(chain_spec_config)
+    evm_genesis_data = networks.get_genesis_data(plan, chain_specification)
 
     all_nodes = []
     all_nodes.extend(validators)
