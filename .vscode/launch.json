@@ -13,7 +13,6 @@
                 "localtestnet",
                 "--chain-id=beacond-2061",
                 "--home=${workspaceFolder}/.tmp/beacond",
-                "--consensus-key-algo=bls12_381",
             ],
             "internalConsoleOptions": "openOnSessionStart",
             "presentation": {
