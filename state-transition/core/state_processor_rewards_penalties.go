@@ -27,9 +27,7 @@ import (
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-func (sp *StateProcessor[
-	_, _,
-]) processRewardsAndPenalties(st *statedb.StateDB) error {
+func (sp *StateProcessor[_]) processRewardsAndPenalties(st *statedb.StateDB) error {
 	slot, err := st.GetSlot()
 	if err != nil {
 		return err

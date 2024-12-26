@@ -17,39 +17,42 @@
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
+//
 
-package params
+package cometbft
 
 import (
-	math "github.com/berachain/beacon-kit/primitives/math"
-	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
+	"fmt"
+
+	cmtcfg "github.com/cometbft/cometbft/config"
 	cmttypes "github.com/cometbft/cometbft/types"
 )
 
-type ChainSpec interface {
-	// GetCometBFTConfigForSlot returns the CometBFT configuration for the given
-	// slot.
-	GetCometBFTConfigForSlot(math.Slot) any
-}
+// DefaultConsensusParams returns the default consensus parameters
+// shared by every node in the network. Consensus parameters are
+// inscripted in genesis.
+func DefaultConsensusParams(consensusKeyAlgo string) *cmttypes.ConsensusParams {
+	res := cmttypes.DefaultConsensusParams()
+	res.Validator.PubKeyTypes = []string{consensusKeyAlgo}
 
-// ConsensusParamsStore is a store for consensus parameters.
-type ConsensusParamsStore struct {
-	cs ChainSpec
-}
-
-// NewConsensusParamsStore creates a new ConsensusParamsStore.
-func NewConsensusParamsStore(cs ChainSpec) *ConsensusParamsStore {
-	return &ConsensusParamsStore{
-		cs: cs,
+	if err := res.ValidateBasic(); err != nil {
+		panic(fmt.Errorf("invalid default consensus parameters: %w", err))
 	}
+
+	return res
 }
 
-// Get retrieves the consensus parameters from the store.
-// It returns the consensus parameters and an error, if any.
-func (s *ConsensusParamsStore) Get() *cmtproto.ConsensusParams {
-	//nolint:errcheck // TODO (fridrik): Is this safe?
-	p := s.cs.
-		GetCometBFTConfigForSlot(0).(*cmttypes.ConsensusParams).
-		ToProto()
-	return &p
+func extractConsensusParams(cmtCfg *cmtcfg.Config) (*cmttypes.ConsensusParams, error) {
+	// Consensus parameters are immutable (do not change as slots go by).
+	// So we reuse the parameters specified in genesis.
+	// Todo: add validation for genesis params by chainID
+
+	genFunc := GetGenDocProvider(cmtCfg)
+	genDoc, err := genFunc()
+	if err != nil {
+		return nil, err
+	}
+
+	cmtConsensusParams := genDoc.GenesisDoc.ConsensusParams
+	return cmtConsensusParams, nil
 }

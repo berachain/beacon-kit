@@ -34,9 +34,7 @@ import (
 
 // processExecutionPayload processes the execution payload and ensures it
 // matches the local state.
-func (sp *StateProcessor[
-	ContextT, _,
-]) processExecutionPayload(
+func (sp *StateProcessor[ContextT]) processExecutionPayload(
 	ctx ContextT,
 	st *statedb.StateDB,
 	blk *ctypes.BeaconBlock,
@@ -92,9 +90,7 @@ func (sp *StateProcessor[
 
 // validateExecutionPayload validates the execution payload against both local
 // state and the execution engine.
-func (sp *StateProcessor[
-	_, _,
-]) validateExecutionPayload(
+func (sp *StateProcessor[_]) validateExecutionPayload(
 	ctx context.Context,
 	st *statedb.StateDB,
 	blk *ctypes.BeaconBlock,
@@ -114,9 +110,7 @@ func (sp *StateProcessor[
 }
 
 // validateStatelessPayload performs stateless checks on the execution payload.
-func (sp *StateProcessor[
-	_, _,
-]) validateStatelessPayload(
+func (sp *StateProcessor[_]) validateStatelessPayload(
 	blk *ctypes.BeaconBlock,
 ) error {
 	body := blk.GetBody()
@@ -146,9 +140,7 @@ func (sp *StateProcessor[
 }
 
 // validateStatefulPayload performs stateful checks on the execution payload.
-func (sp *StateProcessor[
-	_, _,
-]) validateStatefulPayload(
+func (sp *StateProcessor[_]) validateStatefulPayload(
 	ctx context.Context,
 	st *statedb.StateDB,
 	blk *ctypes.BeaconBlock,

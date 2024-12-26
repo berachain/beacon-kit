@@ -31,7 +31,6 @@ func TestnetChainSpec() (chain.Spec[
 	common.DomainType,
 	math.Epoch,
 	math.Slot,
-	any,
 ], error) {
 	testnetSpec := BaseSpec()
 	testnetSpec.DepositEth1ChainID = TestnetEth1ChainID

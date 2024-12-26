@@ -31,7 +31,6 @@ func BoonetChainSpec() (chain.Spec[
 	common.DomainType,
 	math.Epoch,
 	math.Slot,
-	any,
 ], error) {
 	boonetSpec := BaseSpec()
 

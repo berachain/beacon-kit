@@ -35,7 +35,6 @@ import (
 type Backend[
 	ContextT context.Context,
 	NodeT Node[ContextT],
-	StateStoreT any,
 	StorageBackendT StorageBackend,
 ] struct {
 	sb   StorageBackendT
@@ -49,7 +48,6 @@ type Backend[
 func New[
 	ContextT context.Context,
 	NodeT Node[ContextT],
-	StateStoreT any,
 	StorageBackendT StorageBackend,
 ](
 	storageBackend StorageBackendT,
@@ -57,11 +55,11 @@ func New[
 	sp StateProcessor,
 ) *Backend[
 	ContextT,
-	NodeT, StateStoreT, StorageBackendT,
+	NodeT, StorageBackendT,
 ] {
 	return &Backend[
 		ContextT,
-		NodeT, StateStoreT, StorageBackendT,
+		NodeT, StorageBackendT,
 	]{
 		sb: storageBackend,
 		cs: cs,
@@ -72,28 +70,28 @@ func New[
 // AttachQueryBackend sets the node on the backend for
 // querying historical heights.
 func (b *Backend[
-	_, NodeT, _, _,
+	_, NodeT, _,
 ]) AttachQueryBackend(node NodeT) {
 	b.node = node
 }
 
 // ChainSpec returns the chain spec from the backend.
 func (b *Backend[
-	_, NodeT, _, _,
+	_, NodeT, _,
 ]) ChainSpec() chain.ChainSpec {
 	return b.cs
 }
 
 // GetSlotByBlockRoot retrieves the slot by a block root from the block store.
 func (b *Backend[
-	_, _, _, _,
+	_, _, _,
 ]) GetSlotByBlockRoot(root common.Root) (math.Slot, error) {
 	return b.sb.BlockStore().GetSlotByBlockRoot(root)
 }
 
 // GetSlotByStateRoot retrieves the slot by a state root from the block store.
 func (b *Backend[
-	_, _, _, _,
+	_, _, _,
 ]) GetSlotByStateRoot(root common.Root) (math.Slot, error) {
 	return b.sb.BlockStore().GetSlotByStateRoot(root)
 }
@@ -101,7 +99,7 @@ func (b *Backend[
 // GetParentSlotByTimestamp retrieves the parent slot by a given timestamp from
 // the block store.
 func (b *Backend[
-	_, _, _, _,
+	_, _, _,
 ]) GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error) {
 	return b.sb.BlockStore().GetParentSlotByTimestamp(timestamp)
 }
@@ -109,7 +107,7 @@ func (b *Backend[
 // stateFromSlot returns the state at the given slot, after also processing the
 // next slot to ensure the returned beacon state is up to date.
 func (b *Backend[
-	_, _, _, _,
+	_, _, _,
 ]) stateFromSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error) {
 	var (
 		st  *statedb.StateDB
@@ -134,7 +132,7 @@ func (b *Backend[
 // resolving an input slot of 0 to the latest slot. It does not process the
 // next slot on the beacon state.
 func (b *Backend[
-	_, _, _, _,
+	_, _, _,
 ]) stateFromSlotRaw(slot math.Slot) (*statedb.StateDB, math.Slot, error) {
 	var st *statedb.StateDB
 	//#nosec:G701 // not an issue in practice.

@@ -67,7 +67,6 @@ func ProvideChainService[
 	ConsensusSidecarsT da.ConsensusSidecars,
 	DepositContractT deposit.Contract,
 	GenesisT Genesis,
-	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 	StorageBackendT StorageBackend,
 ](

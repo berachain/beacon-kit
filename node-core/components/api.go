@@ -48,7 +48,6 @@ type NodeAPIBackendInput[
 }
 
 func ProvideNodeAPIBackend[
-	KVStoreT any,
 	NodeT interface {
 		CreateQueryContext(height int64, prove bool) (sdk.Context, error)
 	},
@@ -57,12 +56,11 @@ func ProvideNodeAPIBackend[
 	in NodeAPIBackendInput[StorageBackendT],
 ) *backend.Backend[
 	sdk.Context,
-	NodeT, KVStoreT, StorageBackendT,
+	NodeT, StorageBackendT,
 ] {
 	return backend.New[
 		sdk.Context,
 		NodeT,
-		KVStoreT,
 		StorageBackendT,
 	](
 		in.StorageBackend,

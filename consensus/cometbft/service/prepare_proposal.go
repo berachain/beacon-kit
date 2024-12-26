@@ -57,15 +57,15 @@ func (s *Service[LoggerT]) prepareProposal(
 		),
 	)
 
-	var slotData = types.NewSlotData(
+	slotData := types.NewSlotData(
 		math.Slot(req.GetHeight()),
-		nil,
-		nil,
+		nil, // no attestations
+		nil, // no slashings
 		req.GetProposerAddress(),
 		req.GetTime(),
 	)
 
-	//nolint:contextcheck // TODO: We should look at using the passed context
+	//nolint:contextcheck // ctx already passed via resetState
 	blkBz, sidecarsBz, err := s.BlockBuilder.BuildBlockAndSidecars(
 		s.prepareProposalState.Context(),
 		*slotData,
