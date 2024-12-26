@@ -31,8 +31,8 @@ import (
 
 const ( // appeases mnd
 	timeoutPropose   = 1750 * time.Millisecond
-	timeoutPrecommit = 1000 * time.Millisecond
 	timeoutPrevote   = 1000 * time.Millisecond
+	timeoutPrecommit = 1000 * time.Millisecond
 	timeoutCommit    = 1250 * time.Millisecond
 )
 
@@ -46,8 +46,8 @@ func DefaultConfig() *cmtcfg.Config {
 	cfg := cmtcfg.DefaultConfig()
 	consensus := cfg.Consensus
 	consensus.TimeoutPropose = timeoutPropose
-	consensus.TimeoutPrecommit = timeoutPrecommit
 	consensus.TimeoutPrevote = timeoutPrevote
+	consensus.TimeoutPrecommit = timeoutPrecommit
 	consensus.TimeoutCommit = timeoutCommit
 
 	// BeaconKit forces PebbleDB as the database backend.
