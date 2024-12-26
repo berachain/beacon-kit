@@ -22,9 +22,25 @@
 package cometbft
 
 import (
+	"fmt"
+
 	cmtcfg "github.com/cometbft/cometbft/config"
 	cmttypes "github.com/cometbft/cometbft/types"
 )
+
+// DefaultConsensusParams returns the default consensus parameters
+// shared by every node in the network. Consensus parameters are
+// inscripted in genesis.
+func DefaultConsensusParams(consensusKeyAlgo string) *cmttypes.ConsensusParams {
+	res := cmttypes.DefaultConsensusParams()
+	res.Validator.PubKeyTypes = []string{consensusKeyAlgo}
+
+	if err := res.ValidateBasic(); err != nil {
+		panic(fmt.Errorf("invalid default consensus parameters: %w", err))
+	}
+
+	return res
+}
 
 func extractConsensusParams(cmtCfg *cmtcfg.Config) (*cmttypes.ConsensusParams, error) {
 	// Consensus parameters are immutable (do not change as slots go by).
