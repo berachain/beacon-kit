@@ -27,13 +27,13 @@ import (
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
+	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 )
 
 // ValidatorServiceInput is the input for the validator service provider.
 type ValidatorServiceInput[
 	LoggerT any,
-	StorageBackendT any,
 ] struct {
 	depinject.In
 	Cfg            *config.Config
@@ -41,7 +41,7 @@ type ValidatorServiceInput[
 	LocalBuilder   LocalBuilder
 	Logger         LoggerT
 	StateProcessor StateProcessor[*Context]
-	StorageBackend StorageBackendT
+	StorageBackend *storage.Backend
 	Signer         crypto.BLSSigner
 	SidecarFactory SidecarFactory
 	TelemetrySink  *metrics.TelemetrySink
@@ -50,11 +50,8 @@ type ValidatorServiceInput[
 // ProvideValidatorService is a depinject provider for the validator service.
 func ProvideValidatorService[
 	LoggerT log.AdvancedLogger[LoggerT],
-	StorageBackendT StorageBackend,
 ](
-	in ValidatorServiceInput[
-		LoggerT, StorageBackendT,
-	],
+	in ValidatorServiceInput[LoggerT],
 ) (*validator.Service, error) {
 	// Build the builder service.
 	return validator.NewService(

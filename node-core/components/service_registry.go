@@ -27,6 +27,7 @@ import (
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/node-api/engines/echo"
 	"github.com/berachain/beacon-kit/node-api/server"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	service "github.com/berachain/beacon-kit/node-core/services/registry"
@@ -36,16 +37,13 @@ import (
 
 // ServiceRegistryInput is the input for the service registry provider.
 type ServiceRegistryInput[
-	ConsensusBlockT ConsensusBlock,
-	GenesisT Genesis,
 	LoggerT log.AdvancedLogger[LoggerT],
-	NodeAPIContextT NodeAPIContext,
 ] struct {
 	depinject.In
 	ChainService     *blockchain.Service
 	EngineClient     *client.EngineClient
 	Logger           LoggerT
-	NodeAPIServer    *server.Server[NodeAPIContextT]
+	NodeAPIServer    *server.Server[echo.Context]
 	ReportingService *version.ReportingService
 	TelemetrySink    *metrics.TelemetrySink
 	TelemetryService *telemetry.Service
@@ -55,15 +53,9 @@ type ServiceRegistryInput[
 
 // ProvideServiceRegistry is the depinject provider for the service registry.
 func ProvideServiceRegistry[
-	ConsensusBlockT ConsensusBlock,
-	GenesisT Genesis,
 	LoggerT log.AdvancedLogger[LoggerT],
-	NodeAPIContextT NodeAPIContext,
 ](
-	in ServiceRegistryInput[
-		ConsensusBlockT,
-		GenesisT, LoggerT, NodeAPIContextT,
-	],
+	in ServiceRegistryInput[LoggerT],
 ) *service.Registry {
 	return service.NewRegistry(
 		service.WithLogger(in.Logger),
