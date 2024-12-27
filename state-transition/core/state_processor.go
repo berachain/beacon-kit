@@ -37,9 +37,7 @@ import (
 
 // StateProcessor is a basic Processor, which takes care of the
 // main state transition for the beacon chain.
-type StateProcessor[
-	ContextT Context,
-] struct {
+type StateProcessor[ContextT Context] struct {
 	// logger is used for logging information and errors.
 	logger log.Logger
 	// cs is the chain specification for the beacon chain.
@@ -145,9 +143,7 @@ func (sp *StateProcessor[_]) ProcessSlots(
 }
 
 // processSlot is run when a slot is missed.
-func (sp *StateProcessor[_]) processSlot(
-	st *state.StateDB,
-) error {
+func (sp *StateProcessor[_]) processSlot(st *state.StateDB) error {
 	stateSlot, err := st.GetSlot()
 	if err != nil {
 		return err
@@ -186,9 +182,7 @@ func (sp *StateProcessor[_]) processSlot(
 // ProcessBlock processes the block, it optionally verifies the
 // state root.
 func (sp *StateProcessor[ContextT]) ProcessBlock(
-	ctx ContextT,
-	st *state.StateDB,
-	blk *ctypes.BeaconBlock,
+	ctx ContextT, st *state.StateDB, blk *ctypes.BeaconBlock,
 ) error {
 	if err := sp.processBlockHeader(ctx, st, blk); err != nil {
 		return err
@@ -229,7 +223,8 @@ func (sp *StateProcessor[ContextT]) ProcessBlock(
 	return nil
 }
 
-// processEpoch processes the epoch and ensures it matches the local state.
+// processEpoch processes the epoch and ensures it matches the local state. Currently 
+// beacon-kit does not enforce rewards, penalties, and slashing for validators.
 func (sp *StateProcessor[_]) processEpoch(
 	st *state.StateDB,
 ) (transition.ValidatorUpdates, error) {
@@ -246,24 +241,23 @@ func (sp *StateProcessor[_]) processEpoch(
 		return nil, err
 	}
 
-	if err = sp.processRewardsAndPenalties(st); err != nil {
-		return nil, err
-	}
+	// if err = sp.processRewardsAndPenalties(st); err != nil {
+	// 	return nil, err
+	// }
 	if err = sp.processRegistryUpdates(st); err != nil {
 		return nil, err
 	}
 	if err = sp.processEffectiveBalanceUpdates(st, slot); err != nil {
 		return nil, err
 	}
-	if err = sp.processSlashingsReset(st); err != nil {
-		return nil, err
-	}
+	// if err = sp.processSlashingsReset(st); err != nil {
+	// 	return nil, err
+	// }
 	if err = sp.processRandaoMixesReset(st); err != nil {
 		return nil, err
 	}
 
-	// only after we have fully updated validators, we enforce
-	// a cap on the validators set
+	// only after we have fully updated validators, we enforce a cap on the validators set
 	if err = sp.processValidatorSetCap(st); err != nil {
 		return nil, err
 	}
@@ -289,9 +283,7 @@ func (sp *StateProcessor[ContextT]) processBlockHeader(
 		return err
 	}
 	if blk.GetSlot() != slot {
-		return errors.Wrapf(
-			ErrSlotMismatch, "expected: %d, got: %d",
-			slot, blk.GetSlot(),
+		return errors.Wrapf(ErrSlotMismatch, "expected: %d, got: %d", slot, blk.GetSlot(),
 		)
 	}
 
