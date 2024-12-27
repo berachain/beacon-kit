@@ -283,4 +283,4 @@ test-e2e: ## run e2e tests
 	@$(MAKE) build-docker VERSION=kurtosis-local test-e2e-no-build
 
 test-e2e-no-build:
-	go test -timeout 0 -tags e2e,bls12381 ./testing/e2e/. -v -testify.m Test4844Live
+	go test -timeout 0 -tags e2e,bls12381 ./testing/e2e/. -v
