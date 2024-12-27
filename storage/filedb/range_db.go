@@ -23,16 +23,17 @@ package filedb
 import (
 	"bytes"
 	"fmt"
-	"github.com/berachain/beacon-kit/errors"
-	"github.com/berachain/beacon-kit/primitives/encoding/hex"
-	db "github.com/berachain/beacon-kit/storage/interfaces"
-	"github.com/berachain/beacon-kit/storage/pruner"
-	"github.com/spf13/afero"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/primitives/encoding/hex"
+	db "github.com/berachain/beacon-kit/storage/interfaces"
+	"github.com/berachain/beacon-kit/storage/pruner"
+	"github.com/spf13/afero"
 )
 
 // two is a constant for the number 2.
@@ -149,10 +150,9 @@ func (db *RangeDB) Prune(start, end uint64) error {
 // GetByIndex takes the database index and returns all associated keys,
 // expecting database entries to follow the prefix() format.
 func (db *RangeDB) GetByIndex(index uint64) ([][]byte, error) {
-	var keys [][]byte
 	f, ok := db.DB.(*DB)
 	if !ok {
-		return keys, errors.New("rangedb: delete range not supported for this db")
+		return nil, errors.New("rangedb: delete range not supported for this db")
 	}
 	db.rwMu.RLock()
 	defer db.rwMu.RUnlock()
@@ -160,10 +160,11 @@ func (db *RangeDB) GetByIndex(index uint64) ([][]byte, error) {
 	entries, err := afero.ReadDir(f.fs, indexDir)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return keys, nil
+			return [][]byte{}, nil
 		}
-		return keys, err
+		return nil, err
 	}
+	keys := make([][]byte, 0, len(entries))
 	for _, entry := range entries {
 		if entry.IsDir() {
 			continue
@@ -172,7 +173,8 @@ func (db *RangeDB) GetByIndex(index uint64) ([][]byte, error) {
 		if !strings.HasSuffix(filename, f.extension) {
 			continue
 		}
-		sidecarBz, err := afero.ReadFile(f.fs, filepath.Join(indexDir, filename))
+		var sidecarBz []byte
+		sidecarBz, err = afero.ReadFile(f.fs, filepath.Join(indexDir, filename))
 		if err != nil {
 			return keys, err
 		}

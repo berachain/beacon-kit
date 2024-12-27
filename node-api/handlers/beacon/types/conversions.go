@@ -22,10 +22,11 @@ package types
 
 import (
 	"fmt"
+	"strconv"
+
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
-	"strconv"
 )
 
 func BeaconBlockHeaderFromConsensus(h *ctypes.BeaconBlockHeader) *BeaconBlockHeader {

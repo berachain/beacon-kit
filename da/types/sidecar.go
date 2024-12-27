@@ -33,19 +33,19 @@ import (
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/p2p-interface.md#blobsidecar
 type BlobSidecar struct {
 	// Index represents the index of the blob in the block.
-	Index uint64 `json:"index"`
+	Index uint64
 	// Blob represents the blob data.
-	Blob eip4844.Blob `json:"blob"`
+	Blob eip4844.Blob
 	// KzgCommitment is the KZG commitment of the blob.
-	KzgCommitment eip4844.KZGCommitment `json:"kzg_commitment"`
+	KzgCommitment eip4844.KZGCommitment
 	// Kzg proof allows folr the verification of the KZG commitment.
-	KzgProof eip4844.KZGProof `json:"kzg_proof"`
+	KzgProof eip4844.KZGProof
 	// BeaconBlockHeader represents the beacon block header for which this blob
 	// is being included.
-	SignedBeaconBlockHeader *ctypes.SignedBeaconBlockHeader `json:"signed_block_header"`
+	SignedBeaconBlockHeader *ctypes.SignedBeaconBlockHeader
 	// InclusionProof is the inclusion proof of the blob in the beacon block
 	// body.
-	InclusionProof []common.Root `json:"kzg_commitment_inclusion_proof"`
+	InclusionProof []common.Root
 }
 
 // BuildBlobSidecar creates a blob sidecar from the given blobs and

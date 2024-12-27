@@ -21,10 +21,11 @@
 package beacon
 
 import (
+	"strconv"
+
 	"github.com/berachain/beacon-kit/errors"
 	apitypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
-	"strconv"
 )
 
 // GetBlobSidecars provides an implementation for the

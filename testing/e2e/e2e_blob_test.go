@@ -24,15 +24,15 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
-	"github.com/attestantio/go-eth2-client/api"
-	"github.com/berachain/beacon-kit/testing/e2e/config"
-	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 	"sync"
 
+	"github.com/attestantio/go-eth2-client/api"
+	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/berachain/beacon-kit/testing/e2e/suite"
 	"github.com/berachain/beacon-kit/testing/e2e/suite/types/tx"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
 const (
@@ -71,7 +71,7 @@ func (s *BeaconKitE2ESuite) Test4844Live() {
 	s.Require().NoError(err)
 
 	// Craft and send each blob-carrying transaction.
-	var blobTxs []*coretypes.Transaction
+	blobTxs := make([]*coretypes.Transaction, 0, NumBlobsLoad)
 	for i := range NumBlobsLoad {
 		blobData := make([]byte, 8)
 		binary.LittleEndian.PutUint64(blobData, nonce+i)
@@ -110,13 +110,13 @@ func (s *BeaconKitE2ESuite) Test4844Live() {
 			// Wait for the blob transaction to be mined before making request.
 			s.Logger().
 				Info("waiting for blob transaction to be mined", "blobTx", blobTx.Hash().Hex())
-			receipt, err := bind.WaitMined(ctx, s.JSONRPCBalancer(), blobTx)
-			s.Require().NoError(err)
+			receipt, errWait := bind.WaitMined(ctx, s.JSONRPCBalancer(), blobTx)
+			s.Require().NoError(errWait)
 			s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
 
 			// Fetch blobs from node-api.
-			response, err := client0.BlobSidecars(ctx, &api.BlobSidecarsOpts{Block: receipt.BlockNumber.String()})
-			s.Require().NoError(err, "unable to fetch blob sidecars from node-api")
+			response, errAPI := client0.BlobSidecars(ctx, &api.BlobSidecarsOpts{Block: receipt.BlockNumber.String()})
+			s.Require().NoError(errAPI, "unable to fetch blob sidecars from node-api")
 
 			// Verify blob data from each transaction is published by the node-api.
 			sidecar := blobTx.BlobTxSidecar()

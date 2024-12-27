@@ -381,15 +381,13 @@ func (s *KurtosisE2ESuite) WaitForNBlockNumbers(
 // this function executes after all tests executed.
 func (s *KurtosisE2ESuite) TearDownSuite() {
 	s.Logger().Info("Destroying enclave...")
-	/*
-		for _, client := range s.consensusClients {
-			res, err := client.Stop(s.ctx)
-			s.Require().NoError(err, "Error stopping consensus client")
-			s.Require().Nil(res.ExecutionError, "Error stopping consensus client")
-			s.Require().Empty(res.ValidationErrors, "Error stopping consensus client")
-		}
-		s.Require().NoError(s.kCtx.DestroyEnclave(s.ctx, "e2e-test-enclave"))
-	*/
+	for _, client := range s.consensusClients {
+		res, err := client.Stop(s.ctx)
+		s.Require().NoError(err, "Error stopping consensus client")
+		s.Require().Nil(res.ExecutionError, "Error stopping consensus client")
+		s.Require().Empty(res.ValidationErrors, "Error stopping consensus client")
+	}
+	s.Require().NoError(s.kCtx.DestroyEnclave(s.ctx, "e2e-test-enclave"))
 }
 
 // CheckForSuccessfulTx returns true if the transaction was successful.

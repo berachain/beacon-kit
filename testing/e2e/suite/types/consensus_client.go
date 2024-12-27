@@ -23,6 +23,7 @@ package types
 import (
 	"context"
 	"fmt"
+
 	beaconhttp "github.com/attestantio/go-eth2-client/http"
 	"github.com/berachain/beacon-kit/errors"
 	rpcclient "github.com/cometbft/cometbft/rpc/client"

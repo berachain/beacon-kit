@@ -3,7 +3,7 @@ module github.com/berachain/beacon-kit
 go 1.23.4
 
 replace (
-	// TODO: Temporary fork for testing
+    // Forked go-eth2-client for node-api compatibility
 	github.com/attestantio/go-eth2-client => github.com/berachain/go-eth2-client v0.0.1-alpha
 	github.com/cometbft/cometbft => github.com/cometbft/cometbft v1.0.1-0.20241220100824-07c737de00ff
 	github.com/cometbft/cometbft/api => github.com/cometbft/cometbft/api v1.0.1-0.20241220100824-07c737de00ff
