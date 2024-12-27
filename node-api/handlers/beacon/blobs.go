@@ -23,7 +23,6 @@ package beacon
 import (
 	"strconv"
 
-	"github.com/berachain/beacon-kit/errors"
 	apitypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 )
@@ -44,21 +43,12 @@ func (h *Handler[ContextT]) GetBlobSidecars(c ContextT) (any, error) {
 		return nil, err
 	}
 
-	// TODO: Grab from chainspec
-	var maxBlobsPerBlock uint64 = 16
-	if uint64(len(req.Indices)) >= maxBlobsPerBlock {
-		return nil, errors.New("too many indices requested")
-	}
-
 	// Convert indices to uint64.
 	indices := make([]uint64, len(req.Indices))
 	for i, idx := range req.Indices {
 		indices[i], err = strconv.ParseUint(idx, 10, 64)
 		if err != nil {
 			return nil, err
-		}
-		if indices[i] >= maxBlobsPerBlock {
-			return nil, errors.New("blob index out of range")
 		}
 	}
 

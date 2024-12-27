@@ -24,6 +24,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
+	"github.com/ethereum/go-ethereum/core/txpool"
 	"math/big"
 	"sync"
 
@@ -92,8 +93,9 @@ func (s *BeaconKitE2ESuite) Test4844Live() {
 		blobTxs = append(blobTxs, blobTx)
 
 		err = s.JSONRPCBalancer().SendTransaction(ctx, blobTx)
-		// TODO: Figure out why this error happens and why errors.Is(err, txpool.ErrAlreadyKnown) doesn't catch it
-		if err != nil && err.Error() == "already known" {
+		// TODO: Figure out what is causing this to happen.
+		// Also, `errors.Is(err, txpool.ErrAlreadyKnown)` doesn't catch it.
+		if err != nil && err.Error() == txpool.ErrAlreadyKnown.Error() {
 			continue
 		}
 		s.Require().NoError(err)
