@@ -111,7 +111,7 @@ func initTestStores() (*beacondb.KVStore, *depositstore.KVStore, error) {
 }
 
 func setupChain(t *testing.T, chainSpecType string) chain.Spec[
-	bytes.B4, math.U64, math.U64, any,
+	bytes.B4, math.U64, math.U64,
 ] {
 	t.Helper()
 
@@ -124,7 +124,7 @@ func setupChain(t *testing.T, chainSpecType string) chain.Spec[
 
 func setupState(
 	t *testing.T, cs chain.Spec[
-		bytes.B4, math.U64, math.U64, any,
+		bytes.B4, math.U64, math.U64,
 	],
 ) (
 	*TestStateProcessorT,
@@ -244,7 +244,7 @@ func generateTestPK(t *testing.T, rndSeed int) (bytes.B48, int) {
 func moveToEndOfEpoch(
 	t *testing.T,
 	tip *types.BeaconBlock,
-	cs chain.Spec[bytes.B4, math.U64, math.U64, any],
+	cs chain.Spec[bytes.B4, math.U64, math.U64],
 	sp *TestStateProcessorT,
 	st *TestBeaconStateT,
 	ctx *transition.Context,

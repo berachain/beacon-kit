@@ -28,9 +28,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/validator"
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	servercmtlog "github.com/berachain/beacon-kit/consensus/cometbft/service/log"
-	"github.com/berachain/beacon-kit/consensus/cometbft/service/params"
 	statem "github.com/berachain/beacon-kit/consensus/cometbft/service/state"
 	errorsmod "github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
@@ -42,6 +40,7 @@ import (
 	"github.com/cometbft/cometbft/p2p"
 	pvm "github.com/cometbft/cometbft/privval"
 	"github.com/cometbft/cometbft/proxy"
+	cmttypes "github.com/cometbft/cometbft/types"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -55,8 +54,17 @@ const (
 type Service[
 	LoggerT log.AdvancedLogger[LoggerT],
 ] struct {
-	node          *node.Node
-	cmtCfg        *cmtcfg.Config
+	node *node.Node
+
+	// cmtConsensusParams are part of the blockchain state and
+	// are agreed upon by all validators in the network.
+	cmtConsensusParams *cmttypes.ConsensusParams
+
+	// cmtCgf are node-specific settings that influence how
+	// the consensus engine operates on a particular node.
+	// Loaded from config file (config.toml), not part of state.
+	cmtCfg *cmtcfg.Config
+
 	telemetrySink TelemetrySink
 
 	logger       LoggerT
@@ -83,7 +91,6 @@ type Service[
 	finalizeBlockState *state
 
 	interBlockCache storetypes.MultiStorePersistentCache
-	paramStore      *params.ConsensusParamsStore
 
 	// initialHeight is the initial height at which we start the node
 	initialHeight   int64
@@ -101,21 +108,24 @@ func NewService[
 	blockchain blockchain.BlockchainI,
 	blockBuilder validator.BlockBuilderI,
 	cmtCfg *cmtcfg.Config,
-	cs chain.ChainSpec,
 	telemetrySink TelemetrySink,
 	options ...func(*Service[LoggerT]),
 ) *Service[LoggerT] {
+	cmtConsensusParams, err := extractConsensusParams(cmtCfg)
+	if err != nil {
+		panic(fmt.Errorf("failed pulling consensus params: %w", err))
+	}
 	s := &Service[LoggerT]{
 		logger: logger,
 		sm: statem.NewManager(
 			db,
 			servercmtlog.WrapSDKLogger(logger),
 		),
-		Blockchain:    blockchain,
-		BlockBuilder:  blockBuilder,
-		cmtCfg:        cmtCfg,
-		telemetrySink: telemetrySink,
-		paramStore:    params.NewConsensusParamsStore(cs),
+		Blockchain:         blockchain,
+		BlockBuilder:       blockBuilder,
+		cmtConsensusParams: cmtConsensusParams,
+		cmtCfg:             cmtCfg,
+		telemetrySink:      telemetrySink,
 	}
 
 	s.MountStore(storeKey, storetypes.StoreTypeIAVL)
@@ -129,8 +139,8 @@ func NewService[
 	}
 
 	// Load latest height, once all stores have been set
-	if err := s.sm.LoadLatestVersion(); err != nil {
-		panic(err)
+	if err = s.sm.LoadLatestVersion(); err != nil {
+		panic(fmt.Errorf("failed loading latest version: %w", err))
 	}
 
 	return s
@@ -205,7 +215,7 @@ func (s *Service[_]) AppVersion(_ context.Context) (uint64, error) {
 }
 
 func (s *Service[_]) appVersion() (uint64, error) {
-	cp := s.paramStore.Get()
+	cp := s.cmtConsensusParams.ToProto()
 	return cp.Version.App, nil
 }
 

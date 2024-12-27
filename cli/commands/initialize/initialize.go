@@ -32,10 +32,11 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math/unsafe"
+	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	cfg "github.com/cometbft/cometbft/config"
-	cmttypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/input"
@@ -57,8 +58,9 @@ const (
 	// FlagDefaultBondDenom defines the default denom to use in the genesis file.
 	FlagDefaultBondDenom = "default-denom"
 
-	// FlagConsensusKeyAlgo defines the algorithm to use for the consensus signing key.
-	FlagConsensusKeyAlgo = "consensus-key-algo"
+	// In BeaconKit we use crypto.CometBLSType only so we don't allow to specify
+	// any consensus key.
+	consensusKeyAlgo = crypto.CometBLSType
 )
 
 type printInfo struct {
@@ -155,12 +157,7 @@ func InitCmd(mm interface {
 				initHeight = 1
 			}
 
-			consensusKey, err := cmd.Flags().GetString(FlagConsensusKeyAlgo)
-			if err != nil {
-				return errorsmod.Wrap(err, "Failed to get consensus key algo")
-			}
-
-			nodeID, _, err := genutil.InitializeNodeValidatorFilesFromMnemonic(config, mnemonic, consensusKey)
+			nodeID, _, err := genutil.InitializeNodeValidatorFilesFromMnemonic(config, mnemonic, consensusKeyAlgo)
 			if err != nil {
 				return err
 			}
@@ -213,10 +210,8 @@ func InitCmd(mm interface {
 			appGenesis.InitialHeight = initHeight
 			appGenesis.Consensus = &types.ConsensusGenesis{
 				Validators: nil,
-				Params:     cmttypes.DefaultConsensusParams(),
+				Params:     cometbft.DefaultConsensusParams(consensusKeyAlgo),
 			}
-
-			appGenesis.Consensus.Params.Validator.PubKeyTypes = []string{consensusKey}
 
 			if err = genutil.ExportGenesisFile(appGenesis, genFile); err != nil {
 				return errorsmod.Wrap(err, "Failed to export genesis file")
@@ -234,7 +229,5 @@ func InitCmd(mm interface {
 	cmd.Flags().String(flags.FlagChainID, "", "genesis file chain-id, if left blank will be randomly created")
 	cmd.Flags().String(FlagDefaultBondDenom, "", "genesis file default denomination, if left blank default value is 'stake'")
 	cmd.Flags().Int64(flags.FlagInitHeight, 1, "specify the initial block height at genesis")
-	cmd.Flags().String(FlagConsensusKeyAlgo, "ed25519", "algorithm to use for the consensus key")
-
 	return cmd
 }
