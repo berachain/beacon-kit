@@ -45,8 +45,8 @@ func (h *Handler[ContextT]) GetBlobSidecars(c ContextT) (any, error) {
 	}
 
 	// TODO: Grab from chainspec
-	maxBlobsPerBlock := 16
-	if len(req.Indices) >= maxBlobsPerBlock {
+	var maxBlobsPerBlock uint64 = 16
+	if uint64(len(req.Indices)) >= maxBlobsPerBlock {
 		return nil, errors.New("too many indices requested")
 	}
 
@@ -57,7 +57,7 @@ func (h *Handler[ContextT]) GetBlobSidecars(c ContextT) (any, error) {
 		if err != nil {
 			return nil, err
 		}
-		if indices[i] >= uint64(maxBlobsPerBlock) {
+		if indices[i] >= maxBlobsPerBlock {
 			return nil, errors.New("blob index out of range")
 		}
 	}
