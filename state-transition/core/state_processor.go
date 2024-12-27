@@ -223,7 +223,7 @@ func (sp *StateProcessor[ContextT]) ProcessBlock(
 	return nil
 }
 
-// processEpoch processes the epoch and ensures it matches the local state. Currently 
+// processEpoch processes the epoch and ensures it matches the local state. Currently
 // beacon-kit does not enforce rewards, penalties, and slashing for validators.
 func (sp *StateProcessor[_]) processEpoch(
 	st *state.StateDB,
@@ -283,8 +283,7 @@ func (sp *StateProcessor[ContextT]) processBlockHeader(
 		return err
 	}
 	if blk.GetSlot() != slot {
-		return errors.Wrapf(ErrSlotMismatch, "expected: %d, got: %d", slot, blk.GetSlot(),
-		)
+		return errors.Wrapf(ErrSlotMismatch, "expected: %d, got: %d", slot, blk.GetSlot())
 	}
 
 	// Verify that the block is newer than latest block header
