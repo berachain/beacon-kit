@@ -26,6 +26,9 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
+// BlobSidecarsByIndices is the backend helper function that will query the
+// data availability store for all sidecars for a slot, returning only those
+// sidecars specified by the indices, or all sidecars if left unspecified.
 func (b *Backend[
 	_, _, _,
 ]) BlobSidecarsByIndices(slot math.Slot, indices []uint64) ([]*apitypes.Sidecar, error) {

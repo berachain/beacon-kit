@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"math/big"
+	"sync"
 
 	"github.com/berachain/beacon-kit/testing/e2e/suite"
 	"github.com/berachain/beacon-kit/testing/e2e/suite/types/tx"
@@ -40,13 +41,12 @@ const (
 	NumBlobsLoad uint64 = 10
 
 	// BlocksToWait4844 is the number of blocks to wait for the nodes to catch up.
-	BlocksToWait4844 = 1
+	BlocksToWait4844 = 5
 )
 
 // Test4844Live tests sending a large number of blob carrying txs over the
 // network.
 func (s *BeaconKitE2ESuite) Test4844Live() {
-	// Set the test timeout
 	ctx, cancel := context.WithTimeout(s.Ctx(), suite.DefaultE2ETestTimeout)
 	defer cancel()
 
@@ -70,8 +70,6 @@ func (s *BeaconKitE2ESuite) Test4844Live() {
 	)
 	s.Require().NoError(err)
 
-	// TODO: Query node-api for blobs to make sure they error
-
 	// Craft and send each blob-carrying transaction.
 	var blobTxs []*coretypes.Transaction
 	for i := range NumBlobsLoad {
@@ -91,7 +89,6 @@ func (s *BeaconKitE2ESuite) Test4844Live() {
 		blobTx, err = sender.SignTx(chainID, blobTx)
 		s.Require().NoError(err)
 		s.Logger().Info("submitting blob transaction", "blobTx", blobTx.Hash().Hex())
-
 		blobTxs = append(blobTxs, blobTx)
 
 		err = s.JSONRPCBalancer().SendTransaction(ctx, blobTx)
@@ -102,38 +99,27 @@ func (s *BeaconKitE2ESuite) Test4844Live() {
 		s.Require().NoError(err)
 	}
 
-	// TODO Make all node-api calls and verification asynchronous. node-api should be able to handle async calls
-
-	// Wait for txs to be mined and group them by the block they get mined in.
-	sidecarsByBlockNumber := make(map[string][]*coretypes.BlobTxSidecar)
+	// All node-api calls and verification are asynchronous. node-api should
+	// be able to handle async calls.
+	var wg sync.WaitGroup
 	for _, blobTx := range blobTxs {
-		s.Logger().
-			Info("waiting for blob transaction to be mined", "blobTx", blobTx.Hash().Hex())
-		receipt, err := bind.WaitMined(ctx, s.JSONRPCBalancer(), blobTx)
-		s.Require().NoError(err)
-		s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
+		wg.Add(1)
+		go func(blobTx *coretypes.Transaction) {
+			defer wg.Done()
 
-		blockNum := receipt.BlockNumber.String()
+			// Wait for the blob transaction to be mined before making request.
+			s.Logger().
+				Info("waiting for blob transaction to be mined", "blobTx", blobTx.Hash().Hex())
+			receipt, err := bind.WaitMined(ctx, s.JSONRPCBalancer(), blobTx)
+			s.Require().NoError(err)
+			s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
 
-		if _, exists := sidecarsByBlockNumber[blockNum]; !exists {
-			sidecarsByBlockNumber[blockNum] = []*coretypes.BlobTxSidecar{blobTx.BlobTxSidecar()}
-		} else {
-			sidecarsByBlockNumber[blockNum] = append(
-				sidecarsByBlockNumber[blockNum], blobTx.BlobTxSidecar(),
-			)
-		}
-	}
+			// Fetch blobs from node-api.
+			response, err := client0.BlobSidecars(ctx, &api.BlobSidecarsOpts{Block: receipt.BlockNumber.String()})
+			s.Require().NoError(err, "unable to fetch blob sidecars from node-api")
 
-	// Validate each blob via the node-api.
-	for blockNum := range sidecarsByBlockNumber {
-		sidecarsInBlock := sidecarsByBlockNumber[blockNum]
-
-		// Fetch blobs from node-api
-		response, err := client0.BlobSidecars(ctx, &api.BlobSidecarsOpts{Block: blockNum})
-		s.Require().NoError(err, "unable to fetch blob sidecars from node-api")
-
-		// Verify blob data from each transaction is published by the node-api.
-		for _, sidecar := range sidecarsInBlock {
+			// Verify blob data from each transaction is published by the node-api.
+			sidecar := blobTx.BlobTxSidecar()
 			for i := range sidecar.Commitments {
 				verified := false
 				for _, blob := range response.Data {
@@ -142,10 +128,13 @@ func (s *BeaconKitE2ESuite) Test4844Live() {
 						verified = true
 					}
 				}
-				s.Require().True(verified, "unable to find blob commitment")
+				s.Require().True(verified, "blob data was not made available by node-api")
 			}
-		}
+		}(blobTx)
 	}
+
+	// Wait for DA validation to finish
+	wg.Wait()
 
 	// Ensure Blob Tx doesn't cause liveliness issues.
 	err = s.WaitForNBlockNumbers(BlocksToWait4844)
