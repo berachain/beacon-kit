@@ -34,8 +34,6 @@ import (
 
 // Service is the blockchain service.
 type Service struct {
-	// homeDir is the directory for config and data"
-	homeDir string
 	// storageBackend represents the backend storage for not state-enforced data.
 	storageBackend StorageBackend
 	// blobProcessor is used for processing sidecars.
@@ -73,7 +71,6 @@ type Service struct {
 
 // NewService creates a new validator service.
 func NewService(
-	homeDir string,
 	storageBackend StorageBackend,
 	blobProcessor da.BlobProcessor,
 	depositContract deposit.Contract,
@@ -87,7 +84,6 @@ func NewService(
 	optimisticPayloadBuilds bool,
 ) *Service {
 	return &Service{
-		homeDir:                 homeDir,
 		storageBackend:          storageBackend,
 		blobProcessor:           blobProcessor,
 		depositContract:         depositContract,

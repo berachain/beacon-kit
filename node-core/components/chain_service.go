@@ -33,8 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/spf13/cast"
 )
 
 // ChainServiceInput is the input for the chain service provider.
@@ -43,7 +41,6 @@ type ChainServiceInput[
 ] struct {
 	depinject.In
 
-	AppOpts               config.AppOptions
 	ChainSpec             chain.ChainSpec
 	Cfg                   *config.Config
 	EngineClient          *client.EngineClient
@@ -65,7 +62,6 @@ func ProvideChainService[
 	in ChainServiceInput[LoggerT],
 ) *blockchain.Service {
 	return blockchain.NewService(
-		cast.ToString(in.AppOpts.Get(flags.FlagHome)),
 		in.StorageBackend,
 		in.BlobProcessor,
 		in.BeaconDepositContract,
