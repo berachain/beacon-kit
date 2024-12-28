@@ -35,13 +35,3 @@ const (
 	// unused during processing.
 	EVMInflationWithdrawalValidatorIndex = math.MaxUint64
 )
-
-// Boonet special case for emergency minting of EVM tokens. TODO: remove with
-// other special cases.
-const (
-	// EVMMintingAddress is the address at which we mint EVM tokens to.
-	EVMMintingAddress = "0x8a73D1380345942F1cb32541F1b19C40D8e6C94B"
-
-	// EVMMintingAmount is the amount of EVM tokens to mint.
-	EVMMintingAmount uint64 = 530000000000000000
-)

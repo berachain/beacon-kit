@@ -26,6 +26,7 @@ import (
 
 	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	contypes "github.com/berachain/beacon-kit/consensus/types"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -171,9 +172,7 @@ type (
 	}
 
 	// BlobProcessor is the interface for the blobs processor.
-	BlobProcessor[
-		ConsensusSidecarsT any,
-	] interface {
+	BlobProcessor interface {
 		// ProcessSidecars processes the blobs and ensures they match the local
 		// state.
 		ProcessSidecars(
@@ -183,7 +182,7 @@ type (
 		// VerifySidecars verifies the blobs and ensures they match the local
 		// state.
 		VerifySidecars(
-			sidecars ConsensusSidecarsT,
+			sidecars *contypes.ConsensusSidecars,
 			verifierFn func(
 				blkHeader *ctypes.BeaconBlockHeader,
 				signature crypto.BLSSignature,
@@ -595,8 +594,6 @@ type (
 		) (math.ValidatorIndex, error)
 		// AddValidator adds a validator.
 		AddValidator(val *ctypes.Validator) error
-		// AddValidatorBartio adds a validator to the Bartio chain.
-		AddValidatorBartio(val *ctypes.Validator) error
 		// ValidatorIndexByCometBFTAddress retrieves the validator index by the
 		// given comet BFT address.
 		ValidatorIndexByCometBFTAddress(
@@ -690,7 +687,6 @@ type (
 		) error
 
 		AddValidator(*ctypes.Validator) error
-		AddValidatorBartio(*ctypes.Validator) error
 	}
 
 	// ReadOnlyValidators has read access to validator methods.
