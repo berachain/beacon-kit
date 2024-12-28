@@ -67,8 +67,7 @@ func (s *Service) FinalizeBlock(
 	}
 
 	// STEP 3: finalize the block
-	var consensusBlk *types.ConsensusBlock
-	consensusBlk = consensusBlk.New(
+	consensusBlk := types.NewConsensusBlock(
 		blk,
 		req.GetProposerAddress(),
 		req.GetTime(),

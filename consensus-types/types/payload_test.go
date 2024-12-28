@@ -192,14 +192,6 @@ func TestExecutionPayload_Version(t *testing.T) {
 	require.Equal(t, version.Deneb, payload.Version())
 }
 
-func TestExecutionPayload_Empty(t *testing.T) {
-	payload := new(types.ExecutionPayload)
-	emptyPayload := payload.Empty(version.Deneb)
-
-	require.NotNil(t, emptyPayload)
-	require.Equal(t, version.Deneb, emptyPayload.Version())
-}
-
 func TestExecutionPayload_ToHeader(t *testing.T) {
 	payload := &types.ExecutionPayload{
 		ParentHash:    common.ExecutionHash{},

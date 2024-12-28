@@ -62,8 +62,8 @@ func (f *Factory) BuildPayloadAttributes(
 ) (*engineprimitives.PayloadAttributes, error) {
 	var (
 		prevRandao [32]byte
-		attributes *engineprimitives.PayloadAttributes
-		epoch      = f.chainSpec.SlotToEpoch(slot)
+
+		epoch = f.chainSpec.SlotToEpoch(slot)
 	)
 
 	// Get the expected withdrawals to include in this payload.
@@ -74,17 +74,17 @@ func (f *Factory) BuildPayloadAttributes(
 			"error",
 			err,
 		)
-		return attributes, err
+		return nil, err
 	}
 
 	// Get the previous randao mix.
 	if prevRandao, err = st.GetRandaoMixAtIndex(
 		epoch.Unwrap() % f.chainSpec.EpochsPerHistoricalVector(),
 	); err != nil {
-		return attributes, err
+		return nil, err
 	}
 
-	return attributes.New(
+	return engineprimitives.NewPayloadAttributes(
 		f.chainSpec.ActiveForkVersionForEpoch(epoch),
 		timestamp,
 		prevRandao,

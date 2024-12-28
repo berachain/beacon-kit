@@ -175,15 +175,12 @@ func (sp *StateProcessor[_]) addValidatorToRegistry(
 	dep *ctypes.Deposit,
 	slot math.Slot,
 ) error {
-	var val *ctypes.Validator
-	val = val.New(
+	val := ctypes.NewValidatorFromDeposit(
 		dep.GetPubkey(),
 		dep.GetWithdrawalCredentials(),
 		dep.GetAmount(),
 		math.Gwei(sp.cs.EffectiveBalanceIncrement()),
-		math.Gwei(sp.cs.MaxEffectiveBalance(
-			state.IsPostFork3(sp.cs.DepositEth1ChainID(), slot),
-		)),
+		math.Gwei(sp.cs.MaxEffectiveBalance(state.IsPostFork3(sp.cs.DepositEth1ChainID(), slot))),
 	)
 
 	if err := st.AddValidator(val); err != nil {

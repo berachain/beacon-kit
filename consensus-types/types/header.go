@@ -79,19 +79,6 @@ func (*BeaconBlockHeader) Empty() *BeaconBlockHeader {
 	return &BeaconBlockHeader{}
 }
 
-// New creates a new BeaconBlockHeader.
-func (b *BeaconBlockHeader) New(
-	slot math.Slot,
-	proposerIndex math.ValidatorIndex,
-	parentBlockRoot common.Root,
-	stateRoot common.Root,
-	bodyRoot common.Root,
-) *BeaconBlockHeader {
-	return NewBeaconBlockHeader(
-		slot, proposerIndex, parentBlockRoot, stateRoot, bodyRoot,
-	)
-}
-
 /* -------------------------------------------------------------------------- */
 /*                                     SSZ                                    */
 /* -------------------------------------------------------------------------- */

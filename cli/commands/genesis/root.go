@@ -70,14 +70,14 @@ func GetGenesisValidatorRootCmd(cs chain.ChainSpec) *cobra.Command {
 				depositCount,
 			)
 			for i, deposit := range genesis.AppState.Beacon.Deposits {
-				var val *types.Validator
-				validators[i] = val.New(
+				val := types.NewValidatorFromDeposit(
 					deposit.Pubkey,
 					types.WithdrawalCredentials(deposit.Credentials),
 					deposit.Amount,
 					math.Gwei(cs.EffectiveBalanceIncrement()),
 					math.Gwei(cs.MaxEffectiveBalance(false)),
 				)
+				validators[i] = val
 			}
 
 			cmd.Printf("%s\n", validators.HashTreeRoot())

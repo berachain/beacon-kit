@@ -64,20 +64,6 @@ func CreateAndSignDepositMessage(
 	return depositMessage, signature, nil
 }
 
-// New creates a new deposit message.
-func (dm *DepositMessage) New(
-	pubkey crypto.BLSPubkey,
-	credentials WithdrawalCredentials,
-	amount math.Gwei,
-) *DepositMessage {
-	dm = &DepositMessage{
-		Pubkey:      pubkey,
-		Credentials: credentials,
-		Amount:      amount,
-	}
-	return dm
-}
-
 /* -------------------------------------------------------------------------- */
 /*                                     SSZ                                    */
 /* -------------------------------------------------------------------------- */

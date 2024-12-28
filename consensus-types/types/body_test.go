@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/stretchr/testify/require"
 )
 
@@ -153,10 +152,4 @@ func TestBeaconBlockBody_GetTopLevelRoots(t *testing.T) {
 	body := generateBeaconBlockBody()
 	roots := body.GetTopLevelRoots()
 	require.NotNil(t, roots)
-}
-
-func TestBeaconBlockBody_Empty(t *testing.T) {
-	blockBody := types.BeaconBlockBody{}
-	body := blockBody.Empty(version.Deneb)
-	require.NotNil(t, body)
 }

@@ -267,7 +267,7 @@ func moveToEndOfEpoch(
 					},
 					BaseFeePerGas: math.NewU256(0),
 				},
-				Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
+				Eth1Data: types.NewEth1Data(depRoot),
 				Deposits: []*types.Deposit{},
 			},
 		)

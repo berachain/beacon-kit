@@ -50,18 +50,6 @@ func generateValidDeposit() *types.Deposit {
 	}
 }
 
-func TestDeposit_New(t *testing.T) {
-	deposit := generateValidDeposit()
-	newDeposit := deposit.New(
-		deposit.Pubkey,
-		deposit.Credentials,
-		deposit.Amount,
-		deposit.Signature,
-		deposit.Index,
-	)
-	require.Equal(t, deposit, newDeposit)
-}
-
 func TestDeposit_MarshalUnmarshalSSZ(t *testing.T) {
 	originalDeposit := generateValidDeposit()
 

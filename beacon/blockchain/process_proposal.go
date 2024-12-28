@@ -109,8 +109,7 @@ func (s *Service) ProcessProposal(
 	}
 
 	// Process the block
-	var consensusBlk *types.ConsensusBlock
-	consensusBlk = consensusBlk.New(
+	consensusBlk := types.NewConsensusBlock(
 		blk,
 		req.GetProposerAddress(),
 		req.GetTime(),

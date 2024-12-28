@@ -53,24 +53,6 @@ type AttestationData struct {
 }
 
 /* -------------------------------------------------------------------------- */
-/*                                 Constructor                                */
-/* -------------------------------------------------------------------------- */
-
-// New creates a new AttestationData.
-func (a *AttestationData) New(
-	slot math.U64,
-	index math.U64,
-	beaconBlockRoot common.Root,
-) *AttestationData {
-	a = &AttestationData{
-		Slot:            slot,
-		Index:           index,
-		BeaconBlockRoot: beaconBlockRoot,
-	}
-	return a
-}
-
-/* -------------------------------------------------------------------------- */
 /*                                     SSZ                                    */
 /* -------------------------------------------------------------------------- */
 

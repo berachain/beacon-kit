@@ -54,39 +54,9 @@ type Deposit struct {
 	Index uint64 `json:"index"`
 }
 
-// NewDeposit creates a new Deposit instance.
-func NewDeposit(
-	pubkey crypto.BLSPubkey,
-	credentials WithdrawalCredentials,
-	amount math.Gwei,
-	signature crypto.BLSSignature,
-	index uint64,
-) *Deposit {
-	return &Deposit{
-		Pubkey:      pubkey,
-		Credentials: credentials,
-		Amount:      amount,
-		Signature:   signature,
-		Index:       index,
-	}
-}
-
 // Empty creates an empty Deposit instance.
 func (d *Deposit) Empty() *Deposit {
 	return &Deposit{}
-}
-
-// New creates a new Deposit instance.
-func (d *Deposit) New(
-	pubkey crypto.BLSPubkey,
-	credentials WithdrawalCredentials,
-	amount math.Gwei,
-	signature crypto.BLSSignature,
-	index uint64,
-) *Deposit {
-	return NewDeposit(
-		pubkey, credentials, amount, signature, index,
-	)
 }
 
 // VerifySignature verifies the deposit data and signature.

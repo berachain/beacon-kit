@@ -104,24 +104,6 @@ func (*Validator) Empty() *Validator {
 	return &Validator{}
 }
 
-// New creates a new Validator with the given public key, withdrawal
-// credentials,.
-func (v *Validator) New(
-	pubkey crypto.BLSPubkey,
-	withdrawalCredentials WithdrawalCredentials,
-	amount math.Gwei,
-	effectiveBalanceIncrement math.Gwei,
-	maxEffectiveBalance math.Gwei,
-) *Validator {
-	return NewValidatorFromDeposit(
-		pubkey,
-		withdrawalCredentials,
-		amount,
-		effectiveBalanceIncrement,
-		maxEffectiveBalance,
-	)
-}
-
 /* -------------------------------------------------------------------------- */
 /*                                     SSZ                                    */
 /* -------------------------------------------------------------------------- */
