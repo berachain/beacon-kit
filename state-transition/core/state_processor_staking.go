@@ -23,7 +23,6 @@ package core
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -35,9 +34,7 @@ import (
 // processOperations processes the operations and ensures they match the
 // local state.
 func (sp *StateProcessor[_]) processOperations(
-	ctx context.Context,
-	st *state.StateDB,
-	blk *ctypes.BeaconBlock,
+	ctx context.Context, st *state.StateDB, blk *ctypes.BeaconBlock,
 ) error {
 	// Verify that outstanding deposits are processed
 	// up to the maximum number of deposits
@@ -99,34 +96,6 @@ func (sp *StateProcessor[_]) applyDeposit(
 		// TODO: improve error handling by distinguishing
 		// ErrNotFound from other kind of errors
 		return sp.createValidator(st, dep)
-	}
-
-	// The validator already exist and we need to update its balance.
-	// EffectiveBalance must be updated in processEffectiveBalanceUpdates
-	// However before BoonetFork2Height we mistakenly update EffectiveBalance
-	// every slot. We must preserve backward compatibility so we special case
-	// Boonet to allow proper bootstrapping.
-	slot, err := st.GetSlot()
-	if err != nil {
-		return err
-	}
-	if sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-		slot < math.U64(spec.BoonetFork2Height) {
-		var val *ctypes.Validator
-		val, err = st.ValidatorByIndex(idx)
-		if err != nil {
-			return err
-		}
-
-		updatedBalance := ctypes.ComputeEffectiveBalance(
-			val.GetEffectiveBalance()+dep.GetAmount(),
-			math.Gwei(sp.cs.EffectiveBalanceIncrement()),
-			math.Gwei(sp.cs.MaxEffectiveBalance(false)),
-		)
-		val.SetEffectiveBalance(updatedBalance)
-		if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
-			return err
-		}
 	}
 
 	// if validator exist, just update its balance
@@ -216,13 +185,6 @@ func (sp *StateProcessor[_]) addValidatorToRegistry(
 			state.IsPostFork3(sp.cs.DepositEth1ChainID(), slot),
 		)),
 	)
-
-	// TODO: This is a bug that lives on bArtio. Delete this eventually.
-	if sp.cs.DepositEth1ChainID() == spec.BartioChainID {
-		// Note in AddValidatorBartio we implicitly increase
-		// the balance from state st. This is unlike AddValidator.
-		return st.AddValidatorBartio(val)
-	}
 
 	if err := st.AddValidator(val); err != nil {
 		return err

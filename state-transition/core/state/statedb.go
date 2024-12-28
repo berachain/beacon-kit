@@ -24,7 +24,6 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/chain-spec/chain"
-	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/errors"
@@ -43,10 +42,7 @@ type StateDB struct {
 }
 
 // NewBeaconStateFromDB creates a new beacon state from an underlying state db.
-func (s *StateDB) NewFromDB(
-	bdb *beacondb.KVStore,
-	cs chain.ChainSpec,
-) *StateDB {
+func (s *StateDB) NewFromDB(bdb *beacondb.KVStore, cs chain.ChainSpec) *StateDB {
 	return &StateDB{
 		KVStore: *bdb,
 		cs:      cs,
@@ -59,10 +55,7 @@ func (s *StateDB) Copy(ctx context.Context) *StateDB {
 }
 
 // IncreaseBalance increases the balance of a validator.
-func (s *StateDB) IncreaseBalance(
-	idx math.ValidatorIndex,
-	delta math.Gwei,
-) error {
+func (s *StateDB) IncreaseBalance(idx math.ValidatorIndex, delta math.Gwei) error {
 	balance, err := s.GetBalance(idx)
 	if err != nil {
 		return err
@@ -71,10 +64,7 @@ func (s *StateDB) IncreaseBalance(
 }
 
 // DecreaseBalance decreases the balance of a validator.
-func (s *StateDB) DecreaseBalance(
-	idx math.ValidatorIndex,
-	delta math.Gwei,
-) error {
+func (s *StateDB) DecreaseBalance(idx math.ValidatorIndex, delta math.Gwei) error {
 	balance, err := s.GetBalance(idx)
 	if err != nil {
 		return err
@@ -83,10 +73,7 @@ func (s *StateDB) DecreaseBalance(
 }
 
 // UpdateSlashingAtIndex sets the slashing amount in the store.
-func (s *StateDB) UpdateSlashingAtIndex(
-	index uint64,
-	amount math.Gwei,
-) error {
+func (s *StateDB) UpdateSlashingAtIndex(index uint64, amount math.Gwei) error {
 	// Update the total slashing amount before overwriting the old amount.
 	total, err := s.GetTotalSlashing()
 	if err != nil {
@@ -115,48 +102,23 @@ func (s *StateDB) UpdateSlashingAtIndex(
 //
 // NOTE: This function is modified from the spec to allow a fixed withdrawal
 // (as the first withdrawal) used for EVM inflation.
-//
-//nolint:funlen,gocognit // TODO: Simplify when dropping special cases.
 func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 	var (
 		validator         *ctypes.Validator
 		balance           math.Gwei
 		withdrawalAddress common.ExecutionAddress
-		withdrawals       = make([]*engineprimitives.Withdrawal, 0)
+		maxWithdrawals    = s.cs.MaxWithdrawalsPerPayload()
+		withdrawals       = make([]*engineprimitives.Withdrawal, 0, maxWithdrawals)
 		withdrawal        *engineprimitives.Withdrawal
 	)
+
+	// The first withdrawal is fixed to be the EVM inflation withdrawal.
+	withdrawals = append(withdrawals, s.EVMInflationWithdrawal())
 
 	slot, err := s.GetSlot()
 	if err != nil {
 		return nil, err
 	}
-
-	// Handle special cases wherever it's necessary
-	switch {
-	case s.cs.DepositEth1ChainID() == spec.BartioChainID:
-		// nothing special to do
-
-	case s.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-		slot == math.U64(spec.BoonetFork1Height):
-		// Slot used to emergency mint EVM tokens on Boonet.
-		withdrawals = append(withdrawals, withdrawal.New(
-			0, // NOT USED
-			0, // NOT USED
-			common.NewExecutionAddressFromHex(EVMMintingAddress),
-			math.Gwei(EVMMintingAmount),
-		))
-		return withdrawals, nil
-
-	case s.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-		slot < math.U64(spec.BoonetFork2Height):
-		// Boonet inherited the Bartio behaviour pre BoonetFork2Height
-		// nothing specific to do
-
-	default:
-		// The first withdrawal is fixed to be the EVM inflation withdrawal.
-		withdrawals = append(withdrawals, s.EVMInflationWithdrawal())
-	}
-
 	epoch := math.Epoch(slot.Unwrap() / s.cs.SlotsPerEpoch())
 
 	withdrawalIndex, err := s.GetNextWithdrawalIndex()
@@ -192,12 +154,9 @@ func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 			return nil, err
 		}
 
-		// Set the amount of the withdrawal depending on the balance of the
-		// validator.
-		//nolint:gocritic,nestif // ok.
+		// Set the amount of the withdrawal depending on the balance of the validator.
 		if validator.IsFullyWithdrawable(balance, epoch) {
-			withdrawalAddress, err = validator.
-				GetWithdrawalCredentials().ToExecutionAddress()
+			withdrawalAddress, err = validator.GetWithdrawalCredentials().ToExecutionAddress()
 			if err != nil {
 				return nil, err
 			}
@@ -233,36 +192,15 @@ func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 
 			// Increment the withdrawal index to process the next withdrawal.
 			withdrawalIndex++
-		} else if s.cs.DepositEth1ChainID() == spec.BartioChainID {
-			// Backward compatibility with Bartio
-			// TODO: Drop this when we drop other Bartio special cases.
-
-			withdrawalAddress, err = validator.
-				GetWithdrawalCredentials().ToExecutionAddress()
-			if err != nil {
-				return nil, err
-			}
-
-			withdrawal = withdrawal.New(
-				math.U64(withdrawalIndex),
-				validatorIndex,
-				withdrawalAddress,
-				0,
-			)
-
-			withdrawals = append(withdrawals, withdrawal)
-			withdrawalIndex++
 		}
 
 		// Cap the number of withdrawals to the maximum allowed per payload.
-		if uint64(len(withdrawals)) == s.cs.MaxWithdrawalsPerPayload() {
+		if uint64(len(withdrawals)) == maxWithdrawals {
 			break
 		}
 
 		// Increment the validator index to process the next validator.
-		validatorIndex = (validatorIndex + 1) % math.ValidatorIndex(
-			totalValidators,
-		)
+		validatorIndex = (validatorIndex + 1) % math.ValidatorIndex(totalValidators)
 	}
 
 	return withdrawals, nil
@@ -270,8 +208,8 @@ func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 
 // EVMInflationWithdrawal returns the withdrawal used for EVM balance inflation.
 //
-// NOTE: The withdrawal index and validator index are both set to 0 as they are
-// not used during processing.
+// NOTE: The withdrawal index and validator index are both set to max(uint64) as
+// they are not used during processing.
 func (s *StateDB) EVMInflationWithdrawal() *engineprimitives.Withdrawal {
 	var withdrawal *engineprimitives.Withdrawal
 	return withdrawal.New(
