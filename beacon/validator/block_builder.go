@@ -168,7 +168,7 @@ func (s *Service[_]) getEmptyBeaconBlockForSlot(
 		return blk, err
 	}
 
-	return blk.NewWithVersion(
+	return ctypes.NewBeaconBlockWithVersion(
 		requestedSlot,
 		proposerIndex,
 		parentBlockRoot,
