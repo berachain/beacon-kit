@@ -30,10 +30,10 @@ import (
 )
 
 const ( // appeases mnd
-	timeoutPropose   = 1750 * time.Millisecond
+	timeoutPropose   = 1000 * time.Millisecond
 	timeoutPrevote   = 1000 * time.Millisecond
 	timeoutPrecommit = 1000 * time.Millisecond
-	timeoutCommit    = 1250 * time.Millisecond
+	timeoutCommit    = 500 * time.Millisecond
 )
 
 // DefaultConfig returns the default configuration for the CometBFT
@@ -58,14 +58,17 @@ func DefaultConfig() *cmtcfg.Config {
 	cfg.Mempool.Type = "nop"
 	cfg.Mempool.Size = 0
 	cfg.Mempool.Recheck = false
+	cfg.Mempool.RecheckTimeout = 0
 	cfg.Mempool.Broadcast = false
+	cfg.Mempool.CacheSize = 0
 	cfg.Storage.DiscardABCIResponses = true
 	cfg.Instrumentation.Prometheus = true
 
 	cfg.P2P.MaxNumInboundPeers = 100
 	cfg.P2P.MaxNumOutboundPeers = 40
 
-	cfg.RPC.PprofListenAddress = "localhost:6060"
+	// Disable profiling by default
+	// cfg.RPC.PprofListenAddress = "localhost:6060"
 
 	if err := cfg.ValidateBasic(); err != nil {
 		panic(fmt.Errorf("invalid comet config: %w", err))
