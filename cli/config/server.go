@@ -59,7 +59,9 @@ func SetupCommand[
 
 	if err := handleConfigs(
 		clicontext.GetViperFromCmd(cmd),
-		appTemplate, appConfig, cmtConfig,
+		appTemplate,
+		appConfig,
+		cmtConfig,
 	); err != nil {
 		return err
 	}
@@ -168,12 +170,17 @@ func handleConfigs(
 	cmtCfgFile := filepath.Join(configDirPath, "config.toml")
 
 	if err := handleCometConfig(
-		viper, cmtCfgFile, cometConfig, rootDir, configDirPath,
+		viper,
+		cmtCfgFile, cometConfig,
+		rootDir, configDirPath,
 	); err != nil {
 		return err
 	}
 
 	return handleAppConfig(
-		viper, configDirPath, customAppTemplate, customConfig,
+		viper,
+		configDirPath,
+		customAppTemplate,
+		customConfig,
 	)
 }
