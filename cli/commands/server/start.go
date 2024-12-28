@@ -23,7 +23,6 @@ package server
 
 import (
 	"context"
-	"errors"
 
 	pruningtypes "cosmossdk.io/store/pruning/types"
 	types "github.com/berachain/beacon-kit/cli/commands/server/types"
@@ -107,9 +106,6 @@ custom: allow pruning options to be manually specified through 'pruning-keep-rec
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			logger := clicontext.GetLoggerFromCmd[LoggerT](cmd)
 			cfg := clicontext.GetConfigFromCmd(cmd)
-			if cfg.Consensus.TimeoutCommit == 0 {
-				return errors.New("please edit your config.toml file and set timeout_commit to 1s")
-			}
 
 			v := clicontext.GetViperFromCmd(cmd)
 			_, err := GetPruningOptionsFromFlags(v)
