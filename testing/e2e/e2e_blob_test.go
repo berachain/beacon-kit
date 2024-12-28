@@ -24,15 +24,17 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
-	"github.com/ethereum/go-ethereum/core/txpool"
 	"math/big"
 	"sync"
+
+	"github.com/ethereum/go-ethereum/core/txpool"
 
 	"github.com/attestantio/go-eth2-client/api"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/berachain/beacon-kit/testing/e2e/suite"
 	"github.com/berachain/beacon-kit/testing/e2e/suite/types/tx"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/core/txpool"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
