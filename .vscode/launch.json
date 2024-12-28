@@ -103,30 +103,6 @@
                 "order": 1
             },
             "suppressMultipleSessionWarning": true,
-        },
-        {
-            "name": "Show-something command",
-            "type": "go",
-            "request": "launch",
-            "preLaunchTask": "build",
-            "mode": "exec",
-            "program": "${workspaceFolder}/build/bin/beacond",
-            "args": [
-                "comet",
-                "show-validator",
-                // "show-address",
-                // "show-node-id",
-                "--home=${workspaceFolder}/.tmp/beacond",
-            ],
-            "internalConsoleOptions": "openOnSessionStart",
-            "env": {
-                "CHAIN_SPEC": "devnet"
-            },
-            "presentation": {
-                "group": "commands",
-                "order": 1
-            },
-            "suppressMultipleSessionWarning": true,
         }
     ]
 }
