@@ -30,7 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-// defaultRetryInterval processes a deposit event.
+// defaultRetryInterval defines the interval between retry attempts for processing deposits.
 const defaultRetryInterval = 20 * time.Second
 
 func (s *Service[
