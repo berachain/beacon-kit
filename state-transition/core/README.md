@@ -12,7 +12,7 @@ We list below a few relevant facts.
 
 ## `Balance` and `EffectiveBalance`
 
-BeaconKit distingishes a validator `Balance` and a validator `EffectiveBalance`.
+BeaconKit distinguishes a validator `Balance` and a validator `EffectiveBalance`.
 
 - `Balance` is updated slot by slot, when a deposit in made over the deposit contract and events are subsequently processed by BeaconKit.
 - `Balance` can increase only in multiples of `MinDepositAmount`, which is specified in the deposit contract. There is no cap on the `Balance`.
@@ -33,7 +33,7 @@ So let's assumed that `S`, epoch `N`, is the slot where finally the validator `B
 
 - The validator is marked as `EligibleForActivationQueue` as soon as epoch `N+1` starts. This is guaranteed since there is no cap on the activation queue size.
 - The validator is marked as active as soon as epoch `N+2` starts. However
-  - if the size of validator set goes beyond the `ValidatorSetCap` enough validators with the lowest stake are marked for eviction, to make the cap be fullfilled. Validators are sorted by increasing `EffectiveBalance` and ties are broken ordering their pub keys alphabetically.
+  - if the size of validator set goes beyond the `ValidatorSetCap` enough validators with the lowest stake are marked for eviction, to make the cap be fulfilled. Validators are sorted by increasing `EffectiveBalance` and ties are broken ordering their pub keys alphabetically.
 - BeaconKit does not currently support voluntary withdrawals, nor slashing or inactivity leaks. Therefore a validator keeps validating indefinitely.
   - The only case in which a validator may be evicted from the validator set (and its funds returned) is when `ValidatorSetCap` is hit and a validator with greater priority is added (i.e. with larger `EffectiveBalance` or equal `EffectiveBalance` and larger PubKey in alphabetical order).
 - Once a validator is marked as active, `CometBFT` consensus will reach it out for block proposals, validations and voting. The higher a validator `EffectiveBalance`, the higher its voting power the frequency it is polled for block proposal.
