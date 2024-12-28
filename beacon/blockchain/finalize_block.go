@@ -33,10 +33,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func (s *Service[
-	ConsensusBlockT,
-	GenesisT, ConsensusSidecarsT,
-]) FinalizeBlock(
+func (s *Service) FinalizeBlock(
 	ctx sdk.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (transition.ValidatorUpdates, error) {
@@ -77,13 +74,8 @@ func (s *Service[
 		req.GetTime(),
 	)
 
-	cBlk, ok := any(consensusBlk).(ConsensusBlockT)
-	if !ok {
-		panic("failed to convert consensusBlk to ConsensusBlockT")
-	}
-
 	st := s.storageBackend.StateFromContext(ctx)
-	valUpdates, finalizeErr = s.finalizeBeaconBlock(ctx, st, cBlk)
+	valUpdates, finalizeErr = s.finalizeBeaconBlock(ctx, st, consensusBlk)
 	if finalizeErr != nil {
 		s.logger.Error("Failed to process verified beacon block",
 			"error", finalizeErr,
@@ -110,19 +102,17 @@ func (s *Service[
 		s.logger.Error("failed to processPruning", "error", err)
 	}
 
-	go s.sendPostBlockFCU(ctx, st, cBlk)
+	go s.sendPostBlockFCU(ctx, st, consensusBlk)
 
 	return valUpdates, nil
 }
 
 // finalizeBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
-func (s *Service[
-	ConsensusBlockT, _, _,
-]) finalizeBeaconBlock(
+func (s *Service) finalizeBeaconBlock(
 	ctx context.Context,
 	st *statedb.StateDB,
-	blk ConsensusBlockT,
+	blk *types.ConsensusBlock,
 ) (transition.ValidatorUpdates, error) {
 	beaconBlk := blk.GetBeaconBlock()
 
@@ -148,12 +138,10 @@ func (s *Service[
 }
 
 // executeStateTransition runs the stf.
-func (s *Service[
-	ConsensusBlockT, _, _,
-]) executeStateTransition(
+func (s *Service) executeStateTransition(
 	ctx context.Context,
 	st *statedb.StateDB,
-	blk ConsensusBlockT,
+	blk *types.ConsensusBlock,
 ) (transition.ValidatorUpdates, error) {
 	startTime := time.Now()
 	defer s.metrics.measureStateTransitionDuration(startTime)

@@ -47,10 +47,7 @@ const (
 	BlobSidecarsTxIndex
 )
 
-func (s *Service[
-	ConsensusBlockT,
-	GenesisT, ConsensusSidecarsT,
-]) ProcessProposal(
+func (s *Service) ProcessProposal(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
@@ -144,10 +141,7 @@ func (s *Service[
 
 // VerifyIncomingBlobSidecars verifies the BlobSidecars of an incoming
 // proposal and logs the process.
-func (s *Service[
-	ConsensusBlockT,
-	GenesisT, ConsensusSidecarsT,
-]) VerifyIncomingBlobSidecars(
+func (s *Service) VerifyIncomingBlobSidecars(
 	ctx context.Context,
 	cSidecars *types.ConsensusSidecars,
 ) error {
@@ -155,8 +149,8 @@ func (s *Service[
 
 	s.logger.Info("Received incoming blob sidecars")
 
-	// TODO: Clean this up once we remove generics.
-	cs := convertConsensusSidecars[ConsensusSidecarsT](cSidecars)
+	// TODO: Clean up this conversion.
+	cs := convertConsensusSidecars[*types.ConsensusSidecars](cSidecars)
 
 	// Get the sidecar verification function from the state processor
 	sidecarVerifierFn, err := s.stateProcessor.GetSidecarVerifierFn(
@@ -190,10 +184,7 @@ func (s *Service[
 
 // VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
-func (s *Service[
-	ConsensusBlockT,
-	_, _,
-]) VerifyIncomingBlock(
+func (s *Service) VerifyIncomingBlock(
 	ctx context.Context,
 	beaconBlk *ctypes.BeaconBlock,
 	consensusTime math.U64,
@@ -285,10 +276,7 @@ func (s *Service[
 }
 
 // verifyStateRoot verifies the state root of an incoming block.
-func (s *Service[
-	ConsensusBlockT,
-	_, _,
-]) verifyStateRoot(
+func (s *Service) verifyStateRoot(
 	ctx context.Context,
 	st *statedb.StateDB,
 	blk *ctypes.BeaconBlock,
@@ -325,9 +313,7 @@ func (s *Service[
 
 // shouldBuildOptimisticPayloads returns true if optimistic
 // payload builds are enabled.
-func (s *Service[
-	_, _, _,
-]) shouldBuildOptimisticPayloads() bool {
+func (s *Service) shouldBuildOptimisticPayloads() bool {
 	return s.optimisticPayloadBuilds && s.localBuilder.Enabled()
 }
 

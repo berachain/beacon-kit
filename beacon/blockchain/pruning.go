@@ -27,9 +27,7 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 )
 
-func (s *Service[
-	ConsensusBlockT, _, _,
-]) processPruning(ctx context.Context, beaconBlk *ctypes.BeaconBlock) error {
+func (s *Service) processPruning(ctx context.Context, beaconBlk *ctypes.BeaconBlock) error {
 	// prune availability store
 	start, end := availabilityPruneRangeFn(
 		beaconBlk.GetSlot().Unwrap(), s.chainSpec)

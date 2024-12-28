@@ -21,7 +21,6 @@
 package main
 
 import (
-	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/validator"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
@@ -56,13 +55,6 @@ type (
 
 	// BlobProcessor is a type alias for the blob processor.
 	BlobProcessor = dablob.Processor[*ConsensusSidecars]
-
-	// ChainService is a type alias for the chain service.
-	ChainService = blockchain.Service[
-		*ConsensusBlock,
-		*Genesis,
-		*ConsensusSidecars,
-	]
 
 	// CometBFTService is a type alias for the CometBFT service.
 	CometBFTService = cometbft.Service[*Logger]

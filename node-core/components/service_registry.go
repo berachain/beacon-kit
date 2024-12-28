@@ -43,11 +43,7 @@ type ServiceRegistryInput[
 	NodeAPIContextT NodeAPIContext,
 ] struct {
 	depinject.In
-	ChainService *blockchain.Service[
-		ConsensusBlockT,
-		GenesisT,
-		ConsensusSidecarsT,
-	]
+	ChainService     *blockchain.Service
 	EngineClient     *client.EngineClient
 	Logger           LoggerT
 	NodeAPIServer    *server.Server[NodeAPIContextT]

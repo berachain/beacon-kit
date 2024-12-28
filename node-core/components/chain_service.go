@@ -25,12 +25,12 @@ import (
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/config"
-	"github.com/berachain/beacon-kit/da/da"
 	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/execution/engine"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
+	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -39,10 +39,7 @@ import (
 
 // ChainServiceInput is the input for the chain service provider.
 type ChainServiceInput[
-	StorageBackendT any,
-	LoggerT any,
-	DepositContractT any,
-	ConsensusSidecarsT any,
+	LoggerT log.AdvancedLogger[LoggerT],
 ] struct {
 	depinject.In
 
@@ -55,34 +52,19 @@ type ChainServiceInput[
 	Logger                LoggerT
 	Signer                crypto.BLSSigner
 	StateProcessor        StateProcessor[*Context]
-	StorageBackend        StorageBackendT
-	BlobProcessor         BlobProcessor[ConsensusSidecarsT]
+	StorageBackend        *storage.Backend
+	BlobProcessor         BlobProcessor
 	TelemetrySink         *metrics.TelemetrySink
-	BeaconDepositContract DepositContractT
+	BeaconDepositContract deposit.Contract
 }
 
 // ProvideChainService is a depinject provider for the blockchain service.
 func ProvideChainService[
-	ConsensusBlockT ConsensusBlock,
-	ConsensusSidecarsT da.ConsensusSidecars,
-	DepositContractT deposit.Contract,
-	GenesisT Genesis,
 	LoggerT log.AdvancedLogger[LoggerT],
-	StorageBackendT StorageBackend,
 ](
-	in ChainServiceInput[
-		StorageBackendT, LoggerT,
-		DepositContractT, ConsensusSidecarsT,
-	],
-) *blockchain.Service[
-	ConsensusBlockT,
-	GenesisT, ConsensusSidecarsT,
-] {
-	return blockchain.NewService[
-		ConsensusBlockT,
-		GenesisT,
-		ConsensusSidecarsT,
-	](
+	in ChainServiceInput[LoggerT],
+) *blockchain.Service {
+	return blockchain.NewService(
 		cast.ToString(in.AppOpts.Get(flags.FlagHome)),
 		in.StorageBackend,
 		in.BlobProcessor,
