@@ -102,7 +102,7 @@ func (s *Service[
 			return
 		case <-ticker.C:
 			s.failedBlocksMu.RLock()
-			failedBlks := slices.Collect(maps.Keys(s.failedBlocks))
+			failedBlks := maps.Keys(s.failedBlocks)
 			s.failedBlocksMu.RUnlock()
 			if len(failedBlks) == 0 {
 				continue
