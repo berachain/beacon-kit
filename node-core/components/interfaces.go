@@ -595,8 +595,6 @@ type (
 		) (math.ValidatorIndex, error)
 		// AddValidator adds a validator.
 		AddValidator(val *ctypes.Validator) error
-		// AddValidatorBartio adds a validator to the Bartio chain.
-		AddValidatorBartio(val *ctypes.Validator) error
 		// ValidatorIndexByCometBFTAddress retrieves the validator index by the
 		// given comet BFT address.
 		ValidatorIndexByCometBFTAddress(
@@ -690,7 +688,6 @@ type (
 		) error
 
 		AddValidator(*ctypes.Validator) error
-		AddValidatorBartio(*ctypes.Validator) error
 	}
 
 	// ReadOnlyValidators has read access to validator methods.

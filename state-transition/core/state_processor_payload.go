@@ -23,11 +23,8 @@ package core
 import (
 	"context"
 
-	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
-	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
-	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"golang.org/x/sync/errgroup"
 )
@@ -35,9 +32,7 @@ import (
 // processExecutionPayload processes the execution payload and ensures it
 // matches the local state.
 func (sp *StateProcessor[ContextT]) processExecutionPayload(
-	ctx ContextT,
-	st *statedb.StateDB,
-	blk *ctypes.BeaconBlock,
+	ctx ContextT, st *statedb.StateDB, blk *ctypes.BeaconBlock,
 ) error {
 	var (
 		body    = blk.GetBody()
@@ -62,11 +57,7 @@ func (sp *StateProcessor[ContextT]) processExecutionPayload(
 	// Skip payload verification if the context is configured as such.
 	if !ctx.GetSkipPayloadVerification() {
 		g.Go(func() error {
-			return sp.validateExecutionPayload(
-				gCtx, st, blk,
-				ctx.GetConsensusTime(),
-				ctx.GetOptimisticEngine(),
-			)
+			return sp.validateExecutionPayload(gCtx, st, blk, ctx.GetOptimisticEngine())
 		})
 	}
 
@@ -94,25 +85,16 @@ func (sp *StateProcessor[_]) validateExecutionPayload(
 	ctx context.Context,
 	st *statedb.StateDB,
 	blk *ctypes.BeaconBlock,
-	consensusTime math.U64,
 	optimisticEngine bool,
 ) error {
 	if err := sp.validateStatelessPayload(blk); err != nil {
 		return err
 	}
-	return sp.validateStatefulPayload(
-		ctx,
-		st,
-		blk,
-		consensusTime,
-		optimisticEngine,
-	)
+	return sp.validateStatefulPayload(ctx, st, blk, optimisticEngine)
 }
 
 // validateStatelessPayload performs stateless checks on the execution payload.
-func (sp *StateProcessor[_]) validateStatelessPayload(
-	blk *ctypes.BeaconBlock,
-) error {
+func (sp *StateProcessor[_]) validateStatelessPayload(blk *ctypes.BeaconBlock) error {
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
 
@@ -141,11 +123,7 @@ func (sp *StateProcessor[_]) validateStatelessPayload(
 
 // validateStatefulPayload performs stateful checks on the execution payload.
 func (sp *StateProcessor[_]) validateStatefulPayload(
-	ctx context.Context,
-	st *statedb.StateDB,
-	blk *ctypes.BeaconBlock,
-	consensusTime math.U64,
-	optimisticEngine bool,
+	ctx context.Context, st *statedb.StateDB, blk *ctypes.BeaconBlock, optimisticEngine bool,
 ) error {
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
@@ -153,18 +131,6 @@ func (sp *StateProcessor[_]) validateStatefulPayload(
 	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return err
-	}
-
-	// We skip timestamp check on Bartio for backward compatibility reasons
-	// TODO: enforce the check when we drop other Bartio special cases.
-	if sp.cs.DepositEth1ChainID() != spec.BartioChainID {
-		if err = payloadtime.Verify(
-			consensusTime,
-			lph.GetTimestamp(),
-			payload.GetTimestamp(),
-		); err != nil {
-			return err
-		}
 	}
 
 	// Check chain canonicity
@@ -197,7 +163,8 @@ func (sp *StateProcessor[_]) validateStatefulPayload(
 	}
 
 	expectedMix, err := st.GetRandaoMixAtIndex(
-		sp.cs.SlotToEpoch(slot).Unwrap() % sp.cs.EpochsPerHistoricalVector())
+		sp.cs.SlotToEpoch(slot).Unwrap() % sp.cs.EpochsPerHistoricalVector(),
+	)
 	if err != nil {
 		return err
 	}
