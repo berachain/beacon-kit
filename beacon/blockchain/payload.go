@@ -29,9 +29,7 @@ import (
 )
 
 // forceStartupHead sends a force head FCU to the execution client.
-func (s *Service[
-	_, _, _,
-]) forceStartupHead(
+func (s *Service) forceStartupHead(
 	ctx context.Context,
 	st *statedb.StateDB,
 ) {
@@ -57,9 +55,7 @@ func (s *Service[
 
 // handleRebuildPayloadForRejectedBlock handles the case where the incoming
 // block was rejected and we need to rebuild the payload for the current slot.
-func (s *Service[
-	_, _, _,
-]) handleRebuildPayloadForRejectedBlock(
+func (s *Service) handleRebuildPayloadForRejectedBlock(
 	ctx context.Context,
 	st *statedb.StateDB,
 	nextPayloadTimestamp math.U64,
@@ -83,9 +79,7 @@ func (s *Service[
 // any required information from our local state. We do this since we have
 // rejected the incoming block and it would be unsafe to use any
 // information from it.
-func (s *Service[
-	_, _, _,
-]) rebuildPayloadForRejectedBlock(
+func (s *Service) rebuildPayloadForRejectedBlock(
 	ctx context.Context,
 	st *statedb.StateDB,
 	nextPayloadTimestamp math.U64,
@@ -141,9 +135,7 @@ func (s *Service[
 
 // handleOptimisticPayloadBuild handles optimistically
 // building for the next slot.
-func (s *Service[
-	_, _, _,
-]) handleOptimisticPayloadBuild(
+func (s *Service) handleOptimisticPayloadBuild(
 	ctx context.Context,
 	st *statedb.StateDB,
 	blk *ctypes.BeaconBlock,
@@ -164,9 +156,7 @@ func (s *Service[
 }
 
 // optimisticPayloadBuild builds a payload for the next slot.
-func (s *Service[
-	_, _, _,
-]) optimisticPayloadBuild(
+func (s *Service) optimisticPayloadBuild(
 	ctx context.Context,
 	st *statedb.StateDB,
 	blk *ctypes.BeaconBlock,
