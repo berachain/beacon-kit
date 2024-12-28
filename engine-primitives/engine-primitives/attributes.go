@@ -62,7 +62,7 @@ type PayloadAttributes struct {
 }
 
 // New empty PayloadAttributes.
-func (p *PayloadAttributes) New(
+func NewPayloadAttributes(
 	forkVersion uint32,
 	timestamp uint64,
 	prevRandao common.Bytes32,
@@ -70,7 +70,7 @@ func (p *PayloadAttributes) New(
 	withdrawals Withdrawals,
 	parentBeaconBlockRoot common.Root,
 ) (*PayloadAttributes, error) {
-	p = &PayloadAttributes{
+	pa := &PayloadAttributes{
 		version:               forkVersion,
 		Timestamp:             math.U64(timestamp),
 		PrevRandao:            prevRandao,
@@ -79,11 +79,11 @@ func (p *PayloadAttributes) New(
 		ParentBeaconBlockRoot: parentBeaconBlockRoot,
 	}
 
-	if err := p.Validate(); err != nil {
+	if err := pa.Validate(); err != nil {
 		return nil, err
 	}
 
-	return p, nil
+	return pa, nil
 }
 
 // IsNil returns true if the PayloadAttributes is nil.

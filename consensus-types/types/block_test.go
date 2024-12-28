@@ -147,13 +147,6 @@ func TestBeaconBlock_HashTreeRoot(t *testing.T) {
 	require.NotNil(t, hashRoot)
 }
 
-func TestBeaconBlockEmpty(t *testing.T) {
-	block := &types.BeaconBlock{}
-	emptyBlock := block.Empty()
-	require.NotNil(t, emptyBlock)
-	require.IsType(t, &types.BeaconBlock{}, emptyBlock)
-}
-
 func TestBeaconBlock_IsNil(t *testing.T) {
 	var block *types.BeaconBlock
 	require.True(t, block.IsNil())

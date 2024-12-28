@@ -29,7 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/node-api/engines/echo"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/server"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/berachain/beacon-kit/node-core/components/storage"
 )
 
 // TODO: we could make engine type configurable
@@ -37,32 +37,18 @@ func ProvideNodeAPIEngine() *echo.Engine {
 	return echo.NewDefaultEngine()
 }
 
-type NodeAPIBackendInput[
-	StorageBackendT any,
-] struct {
+type NodeAPIBackendInput struct {
 	depinject.In
 
 	ChainSpec      chain.ChainSpec
 	StateProcessor StateProcessor[*Context]
-	StorageBackend StorageBackendT
+	StorageBackend *storage.Backend
 }
 
-func ProvideNodeAPIBackend[
-	NodeT interface {
-		CreateQueryContext(height int64, prove bool) (sdk.Context, error)
-	},
-	StorageBackendT StorageBackend,
-](
-	in NodeAPIBackendInput[StorageBackendT],
-) *backend.Backend[
-	sdk.Context,
-	NodeT, StorageBackendT,
-] {
-	return backend.New[
-		sdk.Context,
-		NodeT,
-		StorageBackendT,
-	](
+func ProvideNodeAPIBackend(
+	in NodeAPIBackendInput,
+) *backend.Backend {
+	return backend.New(
 		in.StorageBackend,
 		in.ChainSpec,
 		in.StateProcessor,

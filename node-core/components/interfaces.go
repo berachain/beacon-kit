@@ -26,11 +26,12 @@ import (
 
 	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	contypes "github.com/berachain/beacon-kit/consensus/types"
+	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -182,7 +183,8 @@ type (
 		// VerifySidecars verifies the blobs and ensures they match the local
 		// state.
 		VerifySidecars(
-			sidecars *contypes.ConsensusSidecars,
+			sidecars datypes.BlobSidecars,
+			blkHeader *ctypes.BeaconBlockHeader,
 			verifierFn func(
 				blkHeader *ctypes.BeaconBlockHeader,
 				signature crypto.BLSSignature,
@@ -738,10 +740,8 @@ type (
 		RegisterRoutes(*handlers.RouteSet[ContextT], log.Logger)
 	}
 
-	NodeAPIBackend[
-		NodeT any,
-	] interface {
-		AttachQueryBackend(node NodeT)
+	NodeAPIBackend interface {
+		AttachQueryBackend(node *cometbft.Service[*phuslu.Logger])
 		ChainSpec() chain.ChainSpec
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		GetSlotByStateRoot(root common.Root) (math.Slot, error)

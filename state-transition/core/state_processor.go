@@ -333,16 +333,15 @@ func (sp *StateProcessor[ContextT]) processBlockHeader(
 
 	// Cache current block as the new latest block
 	bodyRoot := blk.GetBody().HashTreeRoot()
-	var lbh *ctypes.BeaconBlockHeader
-	lbh = lbh.New(
-		blk.GetSlot(),
-		blk.GetProposerIndex(),
-		blk.GetParentBlockRoot(),
-		// state_root is zeroed and overwritten
-		// in the next `process_slot` call.
-		common.Root{},
-		bodyRoot,
-	)
+
+	lbh := &ctypes.BeaconBlockHeader{
+		Slot:            blk.GetSlot(),
+		ProposerIndex:   blk.GetProposerIndex(),
+		ParentBlockRoot: blk.GetParentBlockRoot(),
+		// state_root is zeroed and overwritten in the next `process_slot` call.
+		StateRoot: common.Root{},
+		BodyRoot:  bodyRoot,
+	}
 	return st.SetLatestBlockHeader(lbh)
 }
 

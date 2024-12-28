@@ -26,9 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-func (b Backend[
-	_, _, _,
-]) ValidatorByID(
+func (b Backend) ValidatorByID(
 	slot math.Slot, id string,
 ) (*beacontypes.ValidatorData, error) {
 	// TODO: to adhere to the spec, this shouldn't error if the error
@@ -61,9 +59,7 @@ func (b Backend[
 }
 
 // TODO: filter by status
-func (b Backend[
-	_, _, _,
-]) ValidatorsByIDs(
+func (b Backend) ValidatorsByIDs(
 	slot math.Slot, ids []string, _ []string,
 ) ([]*beacontypes.ValidatorData, error) {
 	validatorsData := make([]*beacontypes.ValidatorData, 0)
@@ -80,9 +76,7 @@ func (b Backend[
 	return validatorsData, nil
 }
 
-func (b Backend[
-	_, _, _,
-]) ValidatorBalancesByIDs(
+func (b Backend) ValidatorBalancesByIDs(
 	slot math.Slot, ids []string,
 ) ([]*beacontypes.ValidatorBalanceData, error) {
 	var index math.U64

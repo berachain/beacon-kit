@@ -109,7 +109,6 @@ func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 		withdrawalAddress common.ExecutionAddress
 		maxWithdrawals    = s.cs.MaxWithdrawalsPerPayload()
 		withdrawals       = make([]*engineprimitives.Withdrawal, 0, maxWithdrawals)
-		withdrawal        *engineprimitives.Withdrawal
 	)
 
 	// The first withdrawal is fixed to be the EVM inflation withdrawal.
@@ -161,7 +160,7 @@ func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 				return nil, err
 			}
 
-			withdrawals = append(withdrawals, withdrawal.New(
+			withdrawals = append(withdrawals, engineprimitives.NewWithdrawal(
 				math.U64(withdrawalIndex),
 				validatorIndex,
 				withdrawalAddress,
@@ -181,7 +180,7 @@ func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 				return nil, err
 			}
 
-			withdrawals = append(withdrawals, withdrawal.New(
+			withdrawals = append(withdrawals, engineprimitives.NewWithdrawal(
 				math.U64(withdrawalIndex),
 				validatorIndex,
 				withdrawalAddress,
@@ -211,8 +210,7 @@ func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 // NOTE: The withdrawal index and validator index are both set to max(uint64) as
 // they are not used during processing.
 func (s *StateDB) EVMInflationWithdrawal() *engineprimitives.Withdrawal {
-	var withdrawal *engineprimitives.Withdrawal
-	return withdrawal.New(
+	return engineprimitives.NewWithdrawal(
 		EVMInflationWithdrawalIndex,
 		EVMInflationWithdrawalValidatorIndex,
 		s.cs.EVMInflationAddress(),
@@ -315,26 +313,24 @@ func (s *StateDB) GetMarshallable() (*ctypes.BeaconState, error) {
 		return empty, err
 	}
 
-	var bs *ctypes.BeaconState
-	return bs.New(
-		s.cs.ActiveForkVersionForSlot(slot),
-		genesisValidatorsRoot,
-		slot,
-		fork,
-		latestBlockHeader,
-		blockRoots,
-		stateRoots,
-		eth1Data,
-		eth1DepositIndex,
-		latestExecutionPayloadHeader,
-		validators,
-		balances,
-		randaoMixes,
-		nextWithdrawalIndex,
-		nextWithdrawalValidatorIndex,
-		slashings,
-		totalSlashings,
-	)
+	return &ctypes.BeaconState{
+		Slot:                         slot,
+		GenesisValidatorsRoot:        genesisValidatorsRoot,
+		Fork:                         fork,
+		LatestBlockHeader:            latestBlockHeader,
+		BlockRoots:                   blockRoots,
+		StateRoots:                   stateRoots,
+		LatestExecutionPayloadHeader: latestExecutionPayloadHeader,
+		Eth1Data:                     eth1Data,
+		Eth1DepositIndex:             eth1DepositIndex,
+		Validators:                   validators,
+		Balances:                     balances,
+		RandaoMixes:                  randaoMixes,
+		NextWithdrawalIndex:          nextWithdrawalIndex,
+		NextWithdrawalValidatorIndex: nextWithdrawalValidatorIndex,
+		Slashings:                    slashings,
+		TotalSlashing:                totalSlashings,
+	}, nil
 }
 
 // HashTreeRoot is the interface for the beacon store.

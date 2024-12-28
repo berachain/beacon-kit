@@ -30,7 +30,7 @@ import (
 )
 
 func TestWithdrawal(t *testing.T) {
-	withdrawal := (&engineprimitives.Withdrawal{}).New(
+	withdrawal := engineprimitives.NewWithdrawal(
 		math.U64(1),
 		math.ValidatorIndex(1),
 		common.ExecutionAddress{1, 2, 3, 4, 5},

@@ -50,23 +50,15 @@ type Eth1Data struct {
 /*                                 Constructor                                */
 /* -------------------------------------------------------------------------- */
 
+func NewEth1Data(depositRoot common.Root) *Eth1Data {
+	return &Eth1Data{
+		DepositRoot: depositRoot,
+	}
+}
+
 // Empty creates an empty Eth1Data.
 func (*Eth1Data) Empty() *Eth1Data {
 	return &Eth1Data{}
-}
-
-// New creates a new Eth1Data.
-func (e *Eth1Data) New(
-	depositRoot common.Root,
-	depositCount math.U64,
-	blockHash common.ExecutionHash,
-) *Eth1Data {
-	e = &Eth1Data{
-		DepositRoot:  depositRoot,
-		DepositCount: depositCount,
-		BlockHash:    blockHash,
-	}
-	return e
 }
 
 /* -------------------------------------------------------------------------- */

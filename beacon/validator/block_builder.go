@@ -316,8 +316,8 @@ func (s *Service) buildBlockBody(
 		)
 	}
 
-	var eth1Data *ctypes.Eth1Data
-	body.SetEth1Data(eth1Data.New(deposits.HashTreeRoot(), 0, common.ExecutionHash{}))
+	eth1Data := ctypes.NewEth1Data(deposits.HashTreeRoot())
+	body.SetEth1Data(eth1Data)
 
 	s.logger.Info(
 		"Building block body with local deposits",

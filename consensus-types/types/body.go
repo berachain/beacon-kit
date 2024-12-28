@@ -59,22 +59,6 @@ const (
 	ExtraDataSize = 32
 )
 
-// Empty returns a new BeaconBlockBody with empty fields
-// for the given fork version.
-func (b *BeaconBlockBody) Empty(forkVersion uint32) *BeaconBlockBody {
-	switch forkVersion {
-	case version.Deneb:
-		return &BeaconBlockBody{
-			Eth1Data: new(Eth1Data),
-			ExecutionPayload: &ExecutionPayload{
-				ExtraData: make([]byte, ExtraDataSize),
-			},
-		}
-	default:
-		panic(ErrForkVersionNotSupported)
-	}
-}
-
 // BlockBodyKZGOffset returns the offset of the KZG commitments in the
 // serialized block body.
 func BlockBodyKZGOffset(

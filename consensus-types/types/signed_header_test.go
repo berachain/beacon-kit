@@ -40,7 +40,7 @@ func TestSignedBeaconBlockHeader_Serialization(t *testing.T) {
 		common.Root{0xde, 0xad, 0xca, 0xfe},
 	)
 	sig := crypto.BLSSignature{0xde, 0xad, 0xc4, 0xc4}
-	orig := new(types.SignedBeaconBlockHeader).Empty()
+	orig := &types.SignedBeaconBlockHeader{}
 	orig.SetHeader(header)
 	orig.SetSignature(sig)
 
@@ -61,7 +61,7 @@ func TestSignedBeaconBlockHeader_Serialization(t *testing.T) {
 }
 
 func TestSignedBeaconBlockHeader_EmptySerialization(t *testing.T) {
-	orig := new(types.SignedBeaconBlockHeader)
+	orig := &types.SignedBeaconBlockHeader{}
 	data, err := orig.MarshalSSZ()
 	require.NoError(t, err)
 	require.NotNil(t, data)

@@ -31,17 +31,13 @@ func DefaultComponents() []any {
 		components.ProvideDepositContract,
 		components.ProvideBlockStore[*Logger],
 		components.ProvideBlsSigner,
-		components.ProvideBlobProcessor[*ConsensusSidecars, *Logger],
+		components.ProvideBlobProcessor[*Logger],
 		components.ProvideBlobProofVerifier,
 		components.ProvideChainService[*Logger],
 		components.ProvideNode,
 		components.ProvideChainSpec,
 		components.ProvideConfig,
 		components.ProvideServerConfig,
-		// components.ProvideConsensusEngine[
-		// 	*AvailabilityStore, *BeaconBlockHeader, *BeaconState,
-		// 	*BeaconStateMarshallable, *BlockStore, *KVStore, *StorageBackend,
-		// ],
 		components.ProvideDepositStore[*Logger],
 		components.ProvideEngineClient[*Logger],
 		components.ProvideExecutionEngine[*Logger],
@@ -49,12 +45,7 @@ func DefaultComponents() []any {
 		components.ProvideLocalBuilder[*Logger],
 		components.ProvideReportingService[*Logger],
 		components.ProvideCometBFTService[*Logger],
-		components.ProvideServiceRegistry[
-			*ConsensusBlock,
-			*ConsensusSidecars,
-			*Genesis, *Logger,
-			NodeAPIContext,
-		],
+		components.ProvideServiceRegistry[*Logger],
 		components.ProvideSidecarFactory,
 		components.ProvideStateProcessor[*Logger],
 		components.ProvideKVStore,
@@ -62,10 +53,7 @@ func DefaultComponents() []any {
 		components.ProvideTelemetrySink,
 		components.ProvideTelemetryService,
 		components.ProvideTrustedSetup,
-		components.ProvideValidatorService[
-			*Logger,
-			*StorageBackend,
-		],
+		components.ProvideValidatorService[*Logger],
 		// TODO Hacks
 		components.ProvideKVStoreService,
 		components.ProvideKVStoreKey,
@@ -73,24 +61,18 @@ func DefaultComponents() []any {
 	c = append(c,
 		components.ProvideNodeAPIServer[*Logger, NodeAPIContext],
 		components.ProvideNodeAPIEngine,
-		components.ProvideNodeAPIBackend[
-			*CometBFTService, *StorageBackend,
-		],
+		components.ProvideNodeAPIBackend,
 	)
 
 	c = append(c,
 		components.ProvideNodeAPIHandlers[NodeAPIContext],
-		components.ProvideNodeAPIBeaconHandler[
-			*CometBFTService, NodeAPIContext,
-		],
+		components.ProvideNodeAPIBeaconHandler[NodeAPIContext],
 		components.ProvideNodeAPIBuilderHandler[NodeAPIContext],
 		components.ProvideNodeAPIConfigHandler[NodeAPIContext],
 		components.ProvideNodeAPIDebugHandler[NodeAPIContext],
 		components.ProvideNodeAPIEventsHandler[NodeAPIContext],
 		components.ProvideNodeAPINodeHandler[NodeAPIContext],
-		components.ProvideNodeAPIProofHandler[
-			*CometBFTService, NodeAPIContext,
-		],
+		components.ProvideNodeAPIProofHandler[NodeAPIContext],
 	)
 
 	return c

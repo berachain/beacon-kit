@@ -62,9 +62,8 @@ func ProvideNodeAPIHandlers[
 }
 
 func ProvideNodeAPIBeaconHandler[
-	NodeT any,
 	NodeAPIContextT NodeAPIContext,
-](b NodeAPIBackend[NodeT]) *beaconapi.Handler[NodeAPIContextT] {
+](b NodeAPIBackend) *beaconapi.Handler[NodeAPIContextT] {
 	return beaconapi.NewHandler[NodeAPIContextT](b)
 }
 
@@ -99,8 +98,7 @@ func ProvideNodeAPINodeHandler[
 }
 
 func ProvideNodeAPIProofHandler[
-	NodeT any,
 	NodeAPIContextT NodeAPIContext,
-](b NodeAPIBackend[NodeT]) *proofapi.Handler[NodeAPIContextT] {
+](b NodeAPIBackend) *proofapi.Handler[NodeAPIContextT] {
 	return proofapi.NewHandler[NodeAPIContextT](b)
 }

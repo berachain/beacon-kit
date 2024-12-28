@@ -52,11 +52,7 @@ type Withdrawal struct {
 	Amount math.Gwei `json:"amount"`
 }
 
-/* -------------------------------------------------------------------------- */
-/*                                 Constructor                                */
-/* -------------------------------------------------------------------------- */
-
-func (w *Withdrawal) New(
+func NewWithdrawal(
 	index math.U64,
 	validator math.ValidatorIndex,
 	address common.ExecutionAddress,

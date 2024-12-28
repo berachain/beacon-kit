@@ -54,29 +54,32 @@ func (sp *StateProcessor[_]) InitializePreminedBeaconStateFromEth1(
 		return nil, err
 	}
 
-	var eth1Data *ctypes.Eth1Data
-	eth1Data = eth1Data.New(
-		deposits.HashTreeRoot(),
-		0,
-		execPayloadHeader.GetBlockHash(),
-	)
+	eth1Data := &ctypes.Eth1Data{
+		DepositRoot:  deposits.HashTreeRoot(),
+		DepositCount: 0,
+		BlockHash:    execPayloadHeader.GetBlockHash(),
+	}
 	if err := st.SetEth1Data(eth1Data); err != nil {
 		return nil, err
 	}
 
-	// TODO: we need to handle common.Version vs uint32 better.
-	var blkBody *ctypes.BeaconBlockBody
-	blkBody = blkBody.Empty(version.ToUint32(genesisVersion))
+	if version.ToUint32(genesisVersion) != version.Deneb {
+		return nil, fmt.Errorf("fork version not supported: %s", genesisVersion)
+	}
+	blkBody := &ctypes.BeaconBlockBody{
+		Eth1Data: &ctypes.Eth1Data{},
+		ExecutionPayload: &ctypes.ExecutionPayload{
+			ExtraData: make([]byte, ctypes.ExtraDataSize),
+		},
+	}
 
-	var blkHeader *ctypes.BeaconBlockHeader
-	blkHeader = blkHeader.New(
-		0,                      // slot
-		0,                      // proposer index
-		common.Root{},          // parent block root
-		common.Root{},          // state root
-		blkBody.HashTreeRoot(), // body root
-
-	)
+	blkHeader := &ctypes.BeaconBlockHeader{
+		Slot:            0,
+		ProposerIndex:   0,
+		ParentBlockRoot: common.Root{},
+		StateRoot:       common.Root{},
+		BodyRoot:        blkBody.HashTreeRoot(),
+	}
 	if err := st.SetLatestBlockHeader(blkHeader); err != nil {
 		return nil, err
 	}
