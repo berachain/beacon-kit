@@ -48,6 +48,7 @@ func (sp *StateProcessor[_]) validateGenesisDeposits(
 	}
 	for i, deposit := range deposits {
 		// deposit indices should be contiguous
+		// #nosec G115
 		if deposit.GetIndex() != math.U64(i) {
 			return errors.Wrapf(ErrDepositIndexOutOfOrder,
 				"genesis deposit index: %d, expected index: %d", deposit.GetIndex().Unwrap(), i,
@@ -78,6 +79,7 @@ func (sp *StateProcessor[_]) validateNonGenesisDeposits(
 	}
 	for i, deposit := range blkDeposits {
 		// deposit indices should be contiguous
+		// #nosec G115
 		if deposit.GetIndex() != math.U64(depositIndex)+math.U64(i) {
 			return errors.Wrapf(ErrDepositIndexOutOfOrder,
 				"deposit index: %d, expected index: %d", deposit.GetIndex().Unwrap(), i,

@@ -108,8 +108,7 @@ func (b *Backend) stateFromSlot(slot math.Slot) (*statedb.StateDB, math.Slot, er
 // next slot on the beacon state.
 func (b *Backend) stateFromSlotRaw(slot math.Slot) (*statedb.StateDB, math.Slot, error) {
 	var st *statedb.StateDB
-	//#nosec:G701 // not an issue in practice.
-	queryCtx, err := b.node.CreateQueryContext(int64(slot), false)
+	queryCtx, err := b.node.CreateQueryContext(int64(slot), false) // #nosec G115 -- not an issue in practice.
 	if err != nil {
 		return st, slot, err
 	}
