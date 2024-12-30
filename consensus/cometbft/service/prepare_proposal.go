@@ -58,9 +58,9 @@ func (s *Service[LoggerT]) prepareProposal(
 	)
 
 	slotData := types.NewSlotData(
-		math.Slot(req.GetHeight()),
-		nil, // no attestations
-		nil, // no slashings
+		math.Slot(req.GetHeight()), // #nosec G115
+		nil,                        // no attestations
+		nil,                        // no slashings
 		req.GetProposerAddress(),
 		req.GetTime(),
 	)

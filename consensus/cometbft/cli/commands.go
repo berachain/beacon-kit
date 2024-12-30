@@ -268,8 +268,7 @@ using a light client`,
 				cfg,
 				cmtcfg.DefaultDBProvider,
 				service.GetGenDocProvider(cfg),
-				//#nosec:G701 // bet.
-				uint64(height),
+				uint64(height), // #nosec G115
 				nil,
 			)
 		},
