@@ -278,8 +278,7 @@ func convertValidatorUpdate[ValidatorUpdateT any](
 	return any(abci.ValidatorUpdate{
 		PubKeyBytes: update.Pubkey[:],
 		PubKeyType:  crypto.CometBLSType,
-		//#nosec:G701 // this is safe.
-		Power: int64(update.EffectiveBalance.Unwrap()),
+		Power:       int64(update.EffectiveBalance.Unwrap()), // #nosec G115 -- this is safe.
 	}).(ValidatorUpdateT), nil
 }
 

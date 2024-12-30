@@ -48,9 +48,7 @@ func (s *Service) FinalizeBlock(
 			req,
 			BeaconBlockTxIndex,
 			BlobSidecarsTxIndex,
-			s.chainSpec.ActiveForkVersionForSlot(
-				math.Slot(req.Height),
-			))
+			s.chainSpec.ActiveForkVersionForSlot(math.Slot(req.Height))) // #nosec G115
 	if err != nil {
 		//nolint:nilerr // If we don't have a block, we can't do anything.
 		return nil, nil

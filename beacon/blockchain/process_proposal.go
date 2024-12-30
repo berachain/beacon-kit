@@ -57,7 +57,7 @@ func (s *Service) ProcessProposal(
 		UnmarshalBeaconBlockFromABCIRequest(
 			req,
 			BeaconBlockTxIndex,
-			s.chainSpec.ActiveForkVersionForSlot(math.U64(req.Height)),
+			s.chainSpec.ActiveForkVersionForSlot(math.U64(req.Height)), // #nosec G115
 		)
 	if err != nil {
 		return createProcessProposalResponse(errors.WrapNonFatal(err))

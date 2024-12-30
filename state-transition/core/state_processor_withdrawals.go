@@ -110,7 +110,7 @@ func (sp *StateProcessor[_]) processWithdrawals(
 	// Update the next validator index to start the next withdrawal sweep.
 	var nextValidatorIndex math.ValidatorIndex
 
-	//#nosec:G701 // won't overflow in practice.
+	// #nosec G115 -- won't overflow in practice.
 	if numWithdrawals == int(sp.cs.MaxWithdrawalsPerPayload()) {
 		// Next sweep starts after the latest withdrawal's validator index.
 		nextValidatorIndex = (expectedWithdrawals[numWithdrawals-1].
