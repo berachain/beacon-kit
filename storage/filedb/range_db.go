@@ -31,8 +31,11 @@ import (
 	"github.com/berachain/beacon-kit/storage/pruner"
 )
 
-// two is a constant for the number 2.
-const two = 2
+const (
+	keyFormat  = "%d/%s"
+	pathFormat = "%d/"
+	keyParts   = 2
+)
 
 // Compile-time assertion of prunable interface.
 var _ pruner.Prunable = (*RangeDB)(nil)
@@ -41,14 +44,18 @@ var _ pruner.Prunable = (*RangeDB)(nil)
 // It prefixes keys with an index.
 // Invariant: No index below firstNonNilIndex should be populated.
 type RangeDB struct {
-	db.DB
+	coreDB           *DB
 	firstNonNilIndex uint64
 }
 
 // NewRangeDB creates a new RangeDB.
-func NewRangeDB(db db.DB) *RangeDB {
+func NewRangeDB(coreDB db.DB) *RangeDB {
+	cDB, ok := coreDB.(*DB)
+	if !ok {
+		panic("rangedb: delete range not supported for this db")
+	}
 	return &RangeDB{
-		DB:               db,
+		coreDB:           cDB,
 		firstNonNilIndex: 0,
 	}
 }
@@ -57,42 +64,35 @@ func NewRangeDB(db db.DB) *RangeDB {
 // It prefixes the key with the index and a slash before querying the underlying
 // database.
 func (db *RangeDB) Get(index uint64, key []byte) ([]byte, error) {
-	return db.DB.Get(db.prefix(index, key))
+	return db.coreDB.Get(prefix(index, key))
 }
 
 // Has checks if the given index and key exist in the database.
 // It prefixes the key with the index and a slash before querying the underlying
 // database.
 func (db *RangeDB) Has(index uint64, key []byte) (bool, error) {
-	return db.DB.Has(db.prefix(index, key))
+	return db.coreDB.Has(prefix(index, key))
 }
 
 // Set stores the value with the given index and key in the database.
 // It prefixes the key with the index and a slash before storing it in the
 // underlying database.
 func (db *RangeDB) Set(index uint64, key []byte, value []byte) error {
-	// enforce invariant
-	if index < db.firstNonNilIndex {
-		db.firstNonNilIndex = index
-	}
-	return db.DB.Set(db.prefix(index, key), value)
+	index = max(index, db.firstNonNilIndex) // enforce invariant
+	return db.coreDB.Set(prefix(index, key), value)
 }
 
 // Delete removes the value associated with the given index and key from the
 // database. It prefixes the key with the index and a slash before deleting it
 // from the underlying database.
 func (db *RangeDB) Delete(index uint64, key []byte) error {
-	return db.DB.Delete(db.prefix(index, key))
+	return db.coreDB.Delete(prefix(index, key))
 }
 
 // DeleteRange removes all values associated with the given index from the
 // filesystem. It is INCLUSIVE of the `from` index and EXCLUSIVE of
 // the `to“ index.
 func (db *RangeDB) DeleteRange(from, to uint64) error {
-	f, ok := db.DB.(*DB)
-	if !ok {
-		return errors.New("rangedb: delete range not supported for this db")
-	}
 	if from > to {
 		return fmt.Errorf(
 			"RangeDB DeleteRange start: %d, end: %d: %w",
@@ -100,8 +100,8 @@ func (db *RangeDB) DeleteRange(from, to uint64) error {
 		)
 	}
 	for ; from < to; from++ {
-		path := strconv.FormatUint(from, 10) + "/"
-		if err := f.fs.RemoveAll(path); err != nil {
+		path := fmt.Sprintf(pathFormat, from)
+		if err := db.coreDB.fs.RemoveAll(path); err != nil {
 			return err
 		}
 	}
@@ -110,7 +110,7 @@ func (db *RangeDB) DeleteRange(from, to uint64) error {
 
 // Prune removes all values in the given range [start, end) from the db.
 func (db *RangeDB) Prune(start, end uint64) error {
-	start = max(start, db.firstNonNilIndex)
+	start = min(start, db.firstNonNilIndex)
 	if start > end {
 		return fmt.Errorf(
 			"RangeDB Prune start: %d, end: %d: %w",
@@ -119,11 +119,9 @@ func (db *RangeDB) Prune(start, end uint64) error {
 	}
 
 	if err := db.DeleteRange(start, end); err != nil {
-		// Resets last pruned index in case Delete somehow populates indices on
-		// err. This will cause the next prune operation is O(n), but next
-		// successful prune will set it to the correct value, so runtime is
-		// ammortized
-		db.firstNonNilIndex = 0
+		// DeleteRange has failed and we may not removed some of the files
+		// we should have. We leave firstNonNilIndex unchanged here, so that
+		// next iteration will we try again to remove the files left over.
 		return err
 	}
 	db.firstNonNilIndex = end
@@ -131,14 +129,14 @@ func (db *RangeDB) Prune(start, end uint64) error {
 }
 
 // prefix prefixes the given key with the index and a slash.
-func (db *RangeDB) prefix(index uint64, key []byte) []byte {
-	return []byte(fmt.Sprintf("%d/%s", index, hex.EncodeBytes(key)))
+func prefix(index uint64, key []byte) []byte {
+	return []byte(fmt.Sprintf(keyFormat, index, hex.EncodeBytes(key)))
 }
 
 // ExtractIndex extracts the index from a prefixed key.
 func ExtractIndex(prefixedKey []byte) (uint64, error) {
-	parts := bytes.SplitN(prefixedKey, []byte("/"), two)
-	if len(parts) < two {
+	parts := bytes.SplitN(prefixedKey, []byte("/"), keyParts)
+	if len(parts) < keyParts {
 		return 0, errors.New("invalid key format")
 	}
 
@@ -148,6 +146,5 @@ func ExtractIndex(prefixedKey []byte) (uint64, error) {
 		return 0, err
 	}
 
-	//#nosec:g
 	return index, nil
 }
