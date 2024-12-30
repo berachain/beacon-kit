@@ -88,10 +88,15 @@ func TestRangeDB(t *testing.T) {
 			},
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				t.Helper()
-				err := rdb.Delete(1, []byte("testKey"))
-				require.NoError(t, err)
 
 				exists, err := rdb.Has(1, []byte("testKey"))
+				require.NoError(t, err)
+				require.True(t, exists)
+
+				err = rdb.Delete(1, []byte("testKey"))
+				require.NoError(t, err)
+
+				exists, err = rdb.Has(1, []byte("testKey"))
 				require.NoError(t, err)
 				require.False(t, exists)
 			},
@@ -135,18 +140,10 @@ func TestRangeDB(t *testing.T) {
 			rdb := file.NewRangeDB(newTestFDB("/tmp/testdb-1"))
 
 			if tt.setupFunc != nil {
-				if err := tt.setupFunc(rdb); (err != nil) != tt.expectedError {
-					t.Fatalf(
-						"setupFunc() error = %v, expectedError %v",
-						err,
-						tt.expectedError,
-					)
-				}
+				require.NoError(t, tt.setupFunc(rdb))
 			}
 
-			if tt.testFunc != nil {
-				tt.testFunc(t, rdb)
-			}
+			tt.testFunc(t, rdb)
 		})
 	}
 }
@@ -209,15 +206,13 @@ func TestRangeDB_DeleteRange_NotSupported(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Helper()
 			tt.db.On("DeleteRange", mock.Anything, mock.Anything).
-				Return(errors.New("rangedb: delete range not supported for this db"))
+				Return(file.ErrRangeNotSupported)
 
 			rdb := file.NewRangeDB(tt.db)
 
 			err := rdb.DeleteRange(1, 4)
 			require.Error(t, err)
-			require.Equal(t,
-				"rangedb: delete range not supported for this db",
-				err.Error())
+			require.Equal(t, file.ErrRangeNotSupported, err)
 		})
 	}
 }
@@ -242,8 +237,8 @@ func TestRangeDB_Prune(t *testing.T) {
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				t.Helper()
 				requireNotExist(t, rdb, 2, 6)
-				requireExist(t, rdb, 7, 10)
 				requireExist(t, rdb, 0, 1)
+				requireExist(t, rdb, 7, 50)
 			},
 		},
 		{
@@ -262,13 +257,7 @@ func TestRangeDB_Prune(t *testing.T) {
 			rdb := file.NewRangeDB(newTestFDB("/tmp/testdb-2"))
 
 			if tt.setupFunc != nil {
-				if err := tt.setupFunc(rdb); err != nil {
-					t.Fatalf(
-						"setupFunc() error = %v, expectedError %v",
-						err,
-						tt.expectedError,
-					)
-				}
+				require.NoError(t, tt.setupFunc(rdb))
 			}
 			err := rdb.Prune(tt.start, tt.end)
 			if (err != nil) != tt.expectedError {
@@ -393,7 +382,7 @@ func newTestFDB(path string) *file.DB {
 }
 
 func getFirstNonNilIndex(rdb *file.RangeDB) uint64 {
-	return reflect.ValueOf(rdb).Elem().FieldByName("firstNonNilIndex").Uint()
+	return reflect.ValueOf(rdb).Elem().FieldByName("lowerBoundIndex").Uint()
 }
 
 func lastConsequetiveNilIndex(rdb *file.RangeDB) uint64 {

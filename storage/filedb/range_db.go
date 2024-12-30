@@ -38,25 +38,29 @@ const (
 )
 
 // Compile-time assertion of prunable interface.
-var _ pruner.Prunable = (*RangeDB)(nil)
+var (
+	_ pruner.Prunable = (*RangeDB)(nil)
+
+	ErrRangeNotSupported = errors.New("RangeDB DeleteRange: delete range not supported for this db")
+)
 
 // RangeDB is a database that stores versioned data.
 // It prefixes keys with an index.
 // Invariant: No index below firstNonNilIndex should be populated.
 type RangeDB struct {
-	coreDB           *DB
-	firstNonNilIndex uint64
+	coreDB db.DB
+
+	// lowerBoundIndex is used as a loose check for stored indexes
+	// monotonicity. The goal is to make sure we do not overwrite
+	// indexes which have been or will be deleted eventually via pruning.
+	lowerBoundIndex uint64
 }
 
 // NewRangeDB creates a new RangeDB.
 func NewRangeDB(coreDB db.DB) *RangeDB {
-	cDB, ok := coreDB.(*DB)
-	if !ok {
-		panic("rangedb: delete range not supported for this db")
-	}
 	return &RangeDB{
-		coreDB:           cDB,
-		firstNonNilIndex: 0,
+		coreDB:          coreDB,
+		lowerBoundIndex: 0,
 	}
 }
 
@@ -78,7 +82,7 @@ func (db *RangeDB) Has(index uint64, key []byte) (bool, error) {
 // It prefixes the key with the index and a slash before storing it in the
 // underlying database.
 func (db *RangeDB) Set(index uint64, key []byte, value []byte) error {
-	index = max(index, db.firstNonNilIndex) // enforce invariant
+	index = max(index, db.lowerBoundIndex) // enforce invariant
 	return db.coreDB.Set(prefix(index, key), value)
 }
 
@@ -93,6 +97,11 @@ func (db *RangeDB) Delete(index uint64, key []byte) error {
 // filesystem. It is INCLUSIVE of the `from` index and EXCLUSIVE of
 // the `to“ index.
 func (db *RangeDB) DeleteRange(from, to uint64) error {
+	f, ok := db.coreDB.(*DB)
+	if !ok {
+		return ErrRangeNotSupported
+	}
+
 	if from > to {
 		return fmt.Errorf(
 			"RangeDB DeleteRange start: %d, end: %d: %w",
@@ -101,8 +110,11 @@ func (db *RangeDB) DeleteRange(from, to uint64) error {
 	}
 	for ; from < to; from++ {
 		path := fmt.Sprintf(pathFormat, from)
-		if err := db.coreDB.fs.RemoveAll(path); err != nil {
-			return err
+		if err := f.fs.RemoveAll(path); err != nil {
+			return fmt.Errorf(
+				"RangeDB DeleteRange start: %d, end: %d, failed RemoveAll: %w",
+				from, to, err,
+			)
 		}
 	}
 	return nil
@@ -110,7 +122,7 @@ func (db *RangeDB) DeleteRange(from, to uint64) error {
 
 // Prune removes all values in the given range [start, end) from the db.
 func (db *RangeDB) Prune(start, end uint64) error {
-	start = min(start, db.firstNonNilIndex)
+	start = max(start, db.lowerBoundIndex)
 	if start > end {
 		return fmt.Errorf(
 			"RangeDB Prune start: %d, end: %d: %w",
@@ -118,14 +130,13 @@ func (db *RangeDB) Prune(start, end uint64) error {
 		)
 	}
 
-	if err := db.DeleteRange(start, end); err != nil {
-		// DeleteRange has failed and we may have not removed some of the files
-		// we should have. We leave firstNonNilIndex unchanged here, so that
-		// next iteration will we try again to remove the files left over.
-		return err
-	}
-	db.firstNonNilIndex = end
-	return nil
+	// DeleteRange may fail and so some files to be pruned may have not
+	// been removed. We *do not* retry to prune those files to avoid getting
+	// stuck with them. Instead we update lowerBoundIndex as if deletion
+	// was successful and we return an error.
+	err := db.DeleteRange(start, end)
+	db.lowerBoundIndex = end
+	return err
 }
 
 // prefix prefixes the given key with the index and a slash.
