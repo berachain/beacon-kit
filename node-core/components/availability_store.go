@@ -22,6 +22,7 @@ package components
 
 import (
 	"os"
+	"path/filepath"
 
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/chain-spec/chain"
@@ -48,14 +49,15 @@ func ProvideAvailibilityStore[
 ](
 	in AvailabilityStoreInput[LoggerT],
 ) (*dastore.Store, error) {
+	var (
+		rootDir  = cast.ToString(in.AppOpts.Get(flags.FlagHome))
+		blobsDir = filepath.Join(rootDir, "data", "blobs")
+	)
+
 	return dastore.New(
 		filedb.NewRangeDB(
 			filedb.NewDB(
-				filedb.WithRootDirectory(
-					cast.ToString(
-						in.AppOpts.Get(flags.FlagHome),
-					)+"/data/blobs",
-				),
+				filedb.WithRootDirectory(blobsDir),
 				filedb.WithFileExtension("ssz"),
 				filedb.WithDirectoryPermissions(os.ModePerm),
 				filedb.WithLogger(in.Logger),
