@@ -28,7 +28,7 @@ func ILog2Ceil[U64T ~uint64](u U64T) uint8 {
 	if u == 0 {
 		return 0
 	}
-	//#nosec:G701 // we handle the case of u == 0 above, so this is safe.
+	// #nosec G115 -- we handle the case of u == 0 above, so this is safe.
 	return uint8(bits.Len64(uint64(u - 1)))
 }
 
@@ -38,6 +38,6 @@ func ILog2Floor[U64T ~uint64](u U64T) uint8 {
 	if u == 0 {
 		return 0
 	}
-	//#nosec:G701 // we handle the case of u == 0 above, so this is safe.
+	// #nosec G115 -- we handle the case of u == 0 above, so this is safe.
 	return uint8(bits.Len64(uint64(u))) - 1
 }

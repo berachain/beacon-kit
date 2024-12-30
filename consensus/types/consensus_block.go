@@ -44,7 +44,7 @@ func NewConsensusBlock(
 		blk: beaconBlock,
 		commonConsensusData: &commonConsensusData{
 			proposerAddress: proposerAddress,
-			consensusTime:   math.U64(consensusTime.Unix()),
+			consensusTime:   math.U64(consensusTime.Unix()), // #nosec G115
 		},
 	}
 }

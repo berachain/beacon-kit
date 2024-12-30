@@ -119,8 +119,7 @@ func (s *Service[_]) GetBlockRetentionHeight(commitHeight int64) int64 {
 		retentionHeight = commitHeight - cp.Evidence.MaxAgeNumBlocks
 	}
 
-	//#nosec:G701 // bet.
-	v := commitHeight - int64(s.minRetainBlocks)
+	v := commitHeight - int64(s.minRetainBlocks) // #nosec G115
 	retentionHeight = minNonZero(retentionHeight, v)
 
 	if retentionHeight <= 0 {
