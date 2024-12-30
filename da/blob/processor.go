@@ -35,9 +35,7 @@ import (
 
 // Processor is the blob processor that handles the processing and verification
 // of blob sidecars.
-type Processor[
-	ConsensusSidecarsT ConsensusSidecars,
-] struct {
+type Processor struct {
 	// logger is used to log information and errors.
 	logger log.Logger
 	// chainSpec defines the specifications of the blockchain.
@@ -49,17 +47,15 @@ type Processor[
 }
 
 // NewProcessor creates a new blob processor.
-func NewProcessor[
-	ConsensusSidecarsT ConsensusSidecars,
-](
+func NewProcessor(
 	logger log.Logger,
 	chainSpec chain.ChainSpec,
 	proofVerifier kzg.BlobProofVerifier,
 	telemetrySink TelemetrySink,
-) *Processor[ConsensusSidecarsT] {
+) *Processor {
 	verifier := newVerifier(proofVerifier, telemetrySink, chainSpec)
 
-	return &Processor[ConsensusSidecarsT]{
+	return &Processor{
 		logger:    logger,
 		chainSpec: chainSpec,
 		verifier:  verifier,
@@ -68,17 +64,14 @@ func NewProcessor[
 }
 
 // VerifySidecars verifies the blobs and ensures they match the local state.
-func (sp *Processor[ConsensusSidecarsT]) VerifySidecars(
-	cs ConsensusSidecarsT,
+func (sp *Processor) VerifySidecars(
+	sidecars datypes.BlobSidecars,
+	blkHeader *ctypes.BeaconBlockHeader,
 	verifierFn func(
 		blkHeader *ctypes.BeaconBlockHeader,
 		signature crypto.BLSSignature,
 	) error,
 ) error {
-	var (
-		sidecars  = cs.GetSidecars()
-		blkHeader = cs.GetHeader()
-	)
 	defer sp.metrics.measureVerifySidecarsDuration(
 		time.Now(), math.U64(len(sidecars)),
 	)
@@ -97,7 +90,7 @@ func (sp *Processor[ConsensusSidecarsT]) VerifySidecars(
 }
 
 // ProcessSidecars processes the blobs and ensures they match the local state.
-func (sp *Processor[_]) ProcessSidecars(
+func (sp *Processor) ProcessSidecars(
 	avs *dastore.Store,
 	sidecars datypes.BlobSidecars,
 ) error {

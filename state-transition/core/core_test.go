@@ -45,10 +45,10 @@ import (
 	"github.com/berachain/beacon-kit/state-transition/core"
 	"github.com/berachain/beacon-kit/state-transition/core/mocks"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
+	"github.com/berachain/beacon-kit/storage"
 	"github.com/berachain/beacon-kit/storage/beacondb"
 	"github.com/berachain/beacon-kit/storage/db"
 	depositstore "github.com/berachain/beacon-kit/storage/deposit"
-	"github.com/berachain/beacon-kit/storage/encoding"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/mock"
@@ -69,15 +69,11 @@ type testKVStoreService struct {
 
 func (kvs *testKVStoreService) OpenKVStore(context.Context) corestore.KVStore {
 	//nolint:contextcheck // fine with tests
-	return components.NewKVStore(
-		sdk.UnwrapSDKContext(kvs.ctx).KVStore(testStoreKey),
-	)
+	store := sdk.UnwrapSDKContext(kvs.ctx).KVStore(testStoreKey)
+	return storage.NewKVStore(store)
 }
 
-var (
-	testStoreKey = storetypes.NewKVStoreKey("state-transition-tests")
-	testCodec    = &encoding.SSZInterfaceCodec[*types.ExecutionPayloadHeader]{}
-)
+var testStoreKey = storetypes.NewKVStoreKey("state-transition-tests")
 
 func initTestStores() (*beacondb.KVStore, *depositstore.KVStore, error) {
 	db, err := db.OpenDB("", dbm.MemDBBackend)
@@ -102,10 +98,7 @@ func initTestStores() (*beacondb.KVStore, *depositstore.KVStore, error) {
 
 	ctx := sdk.NewContext(cms, true, nopLog)
 	testStoreService := &testKVStoreService{ctx: ctx}
-	return beacondb.New(
-			testStoreService,
-			testCodec,
-		),
+	return beacondb.New(testStoreService),
 		depositstore.NewStore(testStoreService, nopLog),
 		nil
 }
@@ -267,7 +260,7 @@ func moveToEndOfEpoch(
 					},
 					BaseFeePerGas: math.NewU256(0),
 				},
-				Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
+				Eth1Data: types.NewEth1Data(depRoot),
 				Deposits: []*types.Deposit{},
 			},
 		)

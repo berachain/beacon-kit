@@ -886,64 +886,6 @@ func TestValidator_IsSlashed(t *testing.T) {
 	}
 }
 
-func TestValidator_New(t *testing.T) {
-	tests := []struct {
-		name                      string
-		pubkey                    crypto.BLSPubkey
-		withdrawalCredentials     types.WithdrawalCredentials
-		amount                    math.Gwei
-		effectiveBalanceIncrement math.Gwei
-		maxEffectiveBalance       math.Gwei
-		want                      *types.Validator
-	}{
-		{
-			name:   "create new validator",
-			pubkey: [48]byte{0x01},
-			withdrawalCredentials: types.
-				NewCredentialsFromExecutionAddress(
-					common.ExecutionAddress{0x01},
-				),
-			amount:                    32e9,
-			effectiveBalanceIncrement: 1e9,
-			maxEffectiveBalance:       32e9,
-			want: &types.Validator{
-				Pubkey: [48]byte{0x01},
-				WithdrawalCredentials: types.
-					NewCredentialsFromExecutionAddress(
-						common.ExecutionAddress{0x01},
-					),
-				EffectiveBalance: 32e9,
-				Slashed:          false,
-				ActivationEligibilityEpoch: math.Epoch(
-					constants.FarFutureEpoch,
-				),
-				ActivationEpoch: math.Epoch(
-					constants.FarFutureEpoch,
-				),
-				ExitEpoch: math.Epoch(
-					constants.FarFutureEpoch,
-				),
-				WithdrawableEpoch: math.Epoch(
-					constants.FarFutureEpoch,
-				),
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			v := &types.Validator{}
-			got := v.New(
-				tt.pubkey,
-				tt.withdrawalCredentials,
-				tt.amount,
-				tt.effectiveBalanceIncrement,
-				tt.maxEffectiveBalance,
-			)
-			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
-		})
-	}
-}
-
 func TestValidator_GetPubkey(t *testing.T) {
 	tests := []struct {
 		name      string

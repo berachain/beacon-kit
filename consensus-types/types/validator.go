@@ -94,37 +94,14 @@ func NewValidatorFromDeposit(
 }
 
 func ComputeEffectiveBalance(
-	amount math.Gwei,
-	effectiveBalanceIncrement math.Gwei,
-	maxEffectiveBalance math.Gwei,
+	amount, effectiveBalanceIncrement, maxEffectiveBalance math.Gwei,
 ) math.Gwei {
-	return min(
-		amount-amount%effectiveBalanceIncrement,
-		maxEffectiveBalance,
-	)
+	return min(amount-amount%effectiveBalanceIncrement, maxEffectiveBalance)
 }
 
 // Empty creates an empty Validator.
 func (*Validator) Empty() *Validator {
 	return &Validator{}
-}
-
-// New creates a new Validator with the given public key, withdrawal
-// credentials,.
-func (v *Validator) New(
-	pubkey crypto.BLSPubkey,
-	withdrawalCredentials WithdrawalCredentials,
-	amount math.Gwei,
-	effectiveBalanceIncrement math.Gwei,
-	maxEffectiveBalance math.Gwei,
-) *Validator {
-	return NewValidatorFromDeposit(
-		pubkey,
-		withdrawalCredentials,
-		amount,
-		effectiveBalanceIncrement,
-		maxEffectiveBalance,
-	)
 }
 
 /* -------------------------------------------------------------------------- */

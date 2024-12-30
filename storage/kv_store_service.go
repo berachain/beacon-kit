@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package storage
 
 import (
 	"context"
@@ -28,30 +28,19 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-//nolint:gochecknoglobals // storeKey is a singleton.
-var storeKey = storetypes.NewKVStoreKey("beacon")
+var (
+	//nolint:gochecknoglobals // storeKey is a singleton.
+	StoreKey = storetypes.NewKVStoreKey("beacon")
 
-func ProvideKVStoreKey() *storetypes.KVStoreKey {
-	return storeKey
+	_ store.KVStoreService = (*KVStoreService)(nil)
+)
+
+type KVStoreService struct {
+	Key *storetypes.KVStoreKey
 }
 
-func ProvideKVStoreService(
-	storeKey *storetypes.KVStoreKey,
-) store.KVStoreService {
-	// skips modules that have no store
-	return kvStoreService{key: storeKey}
-}
-
-func NewKVStoreService(storeKey *storetypes.KVStoreKey) store.KVStoreService {
-	return &kvStoreService{key: storeKey}
-}
-
-type kvStoreService struct {
-	key *storetypes.KVStoreKey
-}
-
-func (k kvStoreService) OpenKVStore(ctx context.Context) store.KVStore {
-	return NewKVStore(sdk.UnwrapSDKContext(ctx).KVStore(k.key))
+func (k KVStoreService) OpenKVStore(ctx context.Context) store.KVStore {
+	return NewKVStore(sdk.UnwrapSDKContext(ctx).KVStore(k.Key))
 }
 
 // CoreKVStore is a wrapper of Core/Store kvstore interface

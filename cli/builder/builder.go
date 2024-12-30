@@ -126,7 +126,7 @@ func (cb *CLIBuilder[_, LoggerT]) defaultRunHandler(
 			logger,
 			DefaultAppConfigTemplate(),
 			DefaultAppConfig(),
-			DefaultCometConfig(),
+			cometbft.DefaultConfig(),
 		)
 	}
 }

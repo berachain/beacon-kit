@@ -309,17 +309,16 @@ func (s *Service) buildBlockBody(
 	if err != nil {
 		return err
 	}
-
-	var eth1Data *ctypes.Eth1Data
-	body.SetEth1Data(eth1Data.New(deposits.HashTreeRoot(), 0, common.ExecutionHash{}))
-
-	// Set just the block deposits (after current index) on the block body.
 	if uint64(len(deposits)) < depositIndex {
 		return errors.Wrapf(ErrDepositStoreIncomplete,
 			"all historical deposits not available, expected: %d, got: %d",
 			depositIndex, len(deposits),
 		)
 	}
+
+	eth1Data := ctypes.NewEth1Data(deposits.HashTreeRoot())
+	body.SetEth1Data(eth1Data)
+
 	s.logger.Info(
 		"Building block body with local deposits",
 		"start_index", depositIndex, "num_deposits", uint64(len(deposits))-depositIndex,

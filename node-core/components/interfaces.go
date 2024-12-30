@@ -26,10 +26,12 @@ import (
 
 	"github.com/berachain/beacon-kit/chain-spec/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -171,9 +173,7 @@ type (
 	}
 
 	// BlobProcessor is the interface for the blobs processor.
-	BlobProcessor[
-		ConsensusSidecarsT any,
-	] interface {
+	BlobProcessor interface {
 		// ProcessSidecars processes the blobs and ensures they match the local
 		// state.
 		ProcessSidecars(
@@ -183,7 +183,8 @@ type (
 		// VerifySidecars verifies the blobs and ensures they match the local
 		// state.
 		VerifySidecars(
-			sidecars ConsensusSidecarsT,
+			sidecars datypes.BlobSidecars,
+			blkHeader *ctypes.BeaconBlockHeader,
 			verifierFn func(
 				blkHeader *ctypes.BeaconBlockHeader,
 				signature crypto.BLSSignature,
@@ -597,8 +598,6 @@ type (
 		) (math.ValidatorIndex, error)
 		// AddValidator adds a validator.
 		AddValidator(val *ctypes.Validator) error
-		// AddValidatorBartio adds a validator to the Bartio chain.
-		AddValidatorBartio(val *ctypes.Validator) error
 		// ValidatorIndexByCometBFTAddress retrieves the validator index by the
 		// given comet BFT address.
 		ValidatorIndexByCometBFTAddress(
@@ -692,7 +691,6 @@ type (
 		) error
 
 		AddValidator(*ctypes.Validator) error
-		AddValidatorBartio(*ctypes.Validator) error
 	}
 
 	// ReadOnlyValidators has read access to validator methods.
@@ -744,10 +742,8 @@ type (
 		RegisterRoutes(*handlers.RouteSet[ContextT], log.Logger)
 	}
 
-	NodeAPIBackend[
-		NodeT any,
-	] interface {
-		AttachQueryBackend(node NodeT)
+	NodeAPIBackend interface {
+		AttachQueryBackend(node *cometbft.Service[*phuslu.Logger])
 		ChainSpec() chain.ChainSpec
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		GetSlotByStateRoot(root common.Root) (math.Slot, error)

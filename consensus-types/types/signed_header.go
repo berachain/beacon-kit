@@ -56,16 +56,6 @@ func (*SignedBeaconBlockHeader) Empty() *SignedBeaconBlockHeader {
 	return &SignedBeaconBlockHeader{}
 }
 
-// New creates a new SignedBeaconBlockHeader.
-func (b *SignedBeaconBlockHeader) New(
-	header *BeaconBlockHeader,
-	signature crypto.BLSSignature,
-) *SignedBeaconBlockHeader {
-	return NewSignedBeaconBlockHeader(
-		header, signature,
-	)
-}
-
 /* -------------------------------------------------------------------------- */
 /*                                     SSZ                                    */
 /* -------------------------------------------------------------------------- */

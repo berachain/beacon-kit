@@ -60,46 +60,6 @@ type BeaconState struct {
 	TotalSlashing math.Gwei
 }
 
-// New creates a new BeaconState.
-func (st *BeaconState) New(
-	_ uint32,
-	genesisValidatorsRoot common.Root,
-	slot math.Slot,
-	fork *Fork,
-	latestBlockHeader *BeaconBlockHeader,
-	blockRoots []common.Root,
-	stateRoots []common.Root,
-	eth1Data *Eth1Data,
-	eth1DepositIndex uint64,
-	latestExecutionPayloadHeader *ExecutionPayloadHeader,
-	validators []*Validator,
-	balances []uint64,
-	randaoMixes []common.Bytes32,
-	nextWithdrawalIndex uint64,
-	nextWithdrawalValidatorIndex math.ValidatorIndex,
-	slashings []math.Gwei,
-	totalSlashing math.Gwei,
-) (*BeaconState, error) {
-	return &BeaconState{
-		Slot:                         slot,
-		GenesisValidatorsRoot:        genesisValidatorsRoot,
-		Fork:                         fork,
-		LatestBlockHeader:            latestBlockHeader,
-		BlockRoots:                   blockRoots,
-		StateRoots:                   stateRoots,
-		LatestExecutionPayloadHeader: latestExecutionPayloadHeader,
-		Eth1Data:                     eth1Data,
-		Eth1DepositIndex:             eth1DepositIndex,
-		Validators:                   validators,
-		Balances:                     balances,
-		RandaoMixes:                  randaoMixes,
-		NextWithdrawalIndex:          nextWithdrawalIndex,
-		NextWithdrawalValidatorIndex: nextWithdrawalValidatorIndex,
-		Slashings:                    slashings,
-		TotalSlashing:                totalSlashing,
-	}, nil
-}
-
 /* -------------------------------------------------------------------------- */
 /*                                     SSZ                                    */
 /* -------------------------------------------------------------------------- */
@@ -253,7 +213,7 @@ func (st *BeaconState) HashTreeRootWith(
 
 	// Field (6) 'Eth1Data'
 	if st.Eth1Data == nil {
-		st.Eth1Data = st.Eth1Data.Empty()
+		st.Eth1Data = &Eth1Data{}
 	}
 	if err := st.Eth1Data.HashTreeRootWith(hh); err != nil {
 		return err

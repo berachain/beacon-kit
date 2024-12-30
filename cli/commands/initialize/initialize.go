@@ -28,10 +28,10 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math/unsafe"
+	"github.com/berachain/beacon-kit/cli/context"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -105,7 +105,11 @@ func InitCmd(mm interface {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			config := client.GetConfigFromCmd(cmd)
+			// it's very important here to use `GetConfigFromCmd` as redefined
+			// in BeaconKit instead of cosmos sdk original implementation. Failure
+			// to do so, would result in cosmos sdk default configs being picked
+			// instead of BeaconKit ones
+			config := context.GetConfigFromCmd(cmd)
 			chainID, err := cmd.Flags().GetString(flags.FlagChainID)
 			if err != nil {
 				return errors.New("failed to parse FlagChainID")
@@ -120,12 +124,6 @@ func InitCmd(mm interface {
 			}
 			if config.RootDir == "" {
 				config.RootDir = clientCtx.HomeDir
-			}
-
-			// We should really cleanup how we generate the config, for example we should respect
-			// the defaults in builder.DefaultCometConfig instead  of the defaults from cometbft
-			if config.Consensus.TimeoutCommit == 0 {
-				config.Consensus.TimeoutCommit = 1000 * time.Millisecond
 			}
 
 			// Get bip39 mnemonic
@@ -219,6 +217,10 @@ func InitCmd(mm interface {
 
 			toPrint := newPrintInfo(config.Moniker, chainID, nodeID, "", appState)
 
+			// Note: the config file was already creating before execution this command
+			// by [SetupCommand], and it is being overwritten here. The only difference,
+			// post default values cleanups, should be in the moniker, which is only setup
+			// correctly here
 			cfg.WriteConfigFile(filepath.Join(config.RootDir, "config", "config.toml"), config)
 			return displayInfo(cmd.ErrOrStderr(), toPrint)
 		},

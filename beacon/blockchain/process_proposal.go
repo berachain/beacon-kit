@@ -29,6 +29,7 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/consensus/types"
+	datypes "github.com/berachain/beacon-kit/da/types"
 	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -47,10 +48,7 @@ const (
 	BlobSidecarsTxIndex
 )
 
-func (s *Service[
-	ConsensusBlockT,
-	GenesisT, ConsensusSidecarsT,
-]) ProcessProposal(
+func (s *Service) ProcessProposal(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
@@ -103,27 +101,15 @@ func (s *Service[
 		// the currently active fork). ProcessProposal should only
 		// keep the state changes as candidates (which is what we do in
 		// VerifyIncomingBlock).
-		var consensusSidecars *types.ConsensusSidecars
-		consensusSidecars = consensusSidecars.New(
-			sidecars,
-			blk.GetHeader(),
-		)
-		err = s.VerifyIncomingBlobSidecars(
-			ctx,
-			consensusSidecars,
-		)
+		err = s.VerifyIncomingBlobSidecars(ctx, sidecars, blk.GetHeader())
 		if err != nil {
-			s.logger.Error(
-				"failed to verify incoming blob sidecars",
-				"error", err,
-			)
+			s.logger.Error("failed to verify incoming blob sidecars", "error", err)
 			return createProcessProposalResponse(errors.WrapNonFatal(err))
 		}
 	}
 
 	// Process the block
-	var consensusBlk *types.ConsensusBlock
-	consensusBlk = consensusBlk.New(
+	consensusBlk := types.NewConsensusBlock(
 		blk,
 		req.GetProposerAddress(),
 		req.GetTime(),
@@ -144,19 +130,12 @@ func (s *Service[
 
 // VerifyIncomingBlobSidecars verifies the BlobSidecars of an incoming
 // proposal and logs the process.
-func (s *Service[
-	ConsensusBlockT,
-	GenesisT, ConsensusSidecarsT,
-]) VerifyIncomingBlobSidecars(
+func (s *Service) VerifyIncomingBlobSidecars(
 	ctx context.Context,
-	cSidecars *types.ConsensusSidecars,
+	sidecars datypes.BlobSidecars,
+	blkHeader *ctypes.BeaconBlockHeader,
 ) error {
-	sidecars := cSidecars.GetSidecars()
-
 	s.logger.Info("Received incoming blob sidecars")
-
-	// TODO: Clean this up once we remove generics.
-	cs := convertConsensusSidecars[ConsensusSidecarsT](cSidecars)
 
 	// Get the sidecar verification function from the state processor
 	sidecarVerifierFn, err := s.stateProcessor.GetSidecarVerifierFn(
@@ -171,7 +150,7 @@ func (s *Service[
 	}
 
 	// Verify the blobs and ensure they match the local state.
-	err = s.blobProcessor.VerifySidecars(cs, sidecarVerifierFn)
+	err = s.blobProcessor.VerifySidecars(sidecars, blkHeader, sidecarVerifierFn)
 	if err != nil {
 		s.logger.Error(
 			"rejecting incoming blob sidecars",
@@ -190,10 +169,7 @@ func (s *Service[
 
 // VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
-func (s *Service[
-	ConsensusBlockT,
-	_, _,
-]) VerifyIncomingBlock(
+func (s *Service) VerifyIncomingBlock(
 	ctx context.Context,
 	beaconBlk *ctypes.BeaconBlock,
 	consensusTime math.U64,
@@ -285,10 +261,7 @@ func (s *Service[
 }
 
 // verifyStateRoot verifies the state root of an incoming block.
-func (s *Service[
-	ConsensusBlockT,
-	_, _,
-]) verifyStateRoot(
+func (s *Service) verifyStateRoot(
 	ctx context.Context,
 	st *statedb.StateDB,
 	blk *ctypes.BeaconBlock,
@@ -325,9 +298,7 @@ func (s *Service[
 
 // shouldBuildOptimisticPayloads returns true if optimistic
 // payload builds are enabled.
-func (s *Service[
-	_, _, _,
-]) shouldBuildOptimisticPayloads() bool {
+func (s *Service) shouldBuildOptimisticPayloads() bool {
 	return s.optimisticPayloadBuilds && s.localBuilder.Enabled()
 }
 
@@ -342,16 +313,4 @@ func createProcessProposalResponse(
 		err = nil
 	}
 	return &cmtabci.ProcessProposalResponse{Status: status}, err
-}
-
-func convertConsensusSidecars[
-	ConsensusSidecarsT any,
-](
-	cSidecars *types.ConsensusSidecars,
-) ConsensusSidecarsT {
-	val, ok := any(cSidecars).(ConsensusSidecarsT)
-	if !ok {
-		panic("failed to convert conesensusSidecars to ConsensusSidecarsT")
-	}
-	return val
 }

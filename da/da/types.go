@@ -28,9 +28,7 @@ import (
 )
 
 // BlobProcessor is the interface for the blobs processor.
-type BlobProcessor[
-	ConsensusSidecarsT any,
-] interface {
+type BlobProcessor interface {
 	// ProcessSidecars processes the blobs and ensures they match the local
 	// state.
 	ProcessSidecars(
@@ -39,7 +37,8 @@ type BlobProcessor[
 	) error
 	// VerifySidecars verifies the blobs and ensures they match the local state.
 	VerifySidecars(
-		sidecars ConsensusSidecarsT,
+		sidecars datypes.BlobSidecars,
+		blkHeader *ctypes.BeaconBlockHeader,
 		verifierFn func(
 			blkHeader *ctypes.BeaconBlockHeader,
 			signature crypto.BLSSignature,

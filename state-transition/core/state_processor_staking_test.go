@@ -109,7 +109,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
+			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{blkDeposit},
 		},
 	)
@@ -160,7 +160,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
+			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -250,7 +250,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
+			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{blkDeposit},
 		},
 	)
@@ -302,7 +302,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
+			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -346,7 +346,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
+			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -456,7 +456,7 @@ func TestTransitionWithdrawals(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{DepositRoot: genDeposits.HashTreeRoot()},
+			Eth1Data: types.NewEth1Data(genDeposits.HashTreeRoot()),
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -554,7 +554,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
+			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -600,7 +600,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
+			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -696,7 +696,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
+			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{extraValDeposit},
 		},
 	)
@@ -748,7 +748,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
+			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -793,7 +793,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
+			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -836,7 +836,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
+			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -929,7 +929,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
+			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{extraValDeposit},
 		},
 	)
@@ -998,7 +998,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
+			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -1058,7 +1058,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
+			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -1130,7 +1130,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
+			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
 	)

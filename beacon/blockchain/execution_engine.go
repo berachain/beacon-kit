@@ -24,6 +24,7 @@ import (
 	"context"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	contypes "github.com/berachain/beacon-kit/consensus/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
@@ -33,12 +34,10 @@ import (
 // the EL client of the new head and should not request optimistic builds, as:
 // Optimistic clients already request builds in handleOptimisticPayloadBuild()
 // Non-optimistic clients should never request optimistic builds.
-func (s *Service[
-	ConsensusBlockT, _, _,
-]) sendPostBlockFCU(
+func (s *Service) sendPostBlockFCU(
 	ctx context.Context,
 	st *statedb.StateDB,
-	blk ConsensusBlockT,
+	blk *contypes.ConsensusBlock,
 ) {
 	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {

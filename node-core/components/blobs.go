@@ -67,12 +67,11 @@ type BlobProcessorIn[
 // ProvideBlobProcessor is a function that provides the BlobProcessor to the
 // depinject framework.
 func ProvideBlobProcessor[
-	ConsensusSidecarsT ConsensusSidecars,
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	in BlobProcessorIn[LoggerT],
-) *dablob.Processor[ConsensusSidecarsT] {
-	return dablob.NewProcessor[ConsensusSidecarsT](
+) *dablob.Processor {
+	return dablob.NewProcessor(
 		in.Logger.With("service", "blob-processor"),
 		in.ChainSpec,
 		in.BlobProofVerifier,

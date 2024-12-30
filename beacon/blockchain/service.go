@@ -33,17 +33,11 @@ import (
 )
 
 // Service is the blockchain service.
-type Service[
-	ConsensusBlockT ConsensusBlock,
-	GenesisT Genesis,
-	ConsensusSidecarsT da.ConsensusSidecars,
-] struct {
-	// homeDir is the directory for config and data"
-	homeDir string
+type Service struct {
 	// storageBackend represents the backend storage for not state-enforced data.
 	storageBackend StorageBackend
 	// blobProcessor is used for processing sidecars.
-	blobProcessor da.BlobProcessor[ConsensusSidecarsT]
+	blobProcessor da.BlobProcessor
 	// depositContract is the contract interface for interacting with the
 	// deposit contract.
 	depositContract deposit.Contract
@@ -76,14 +70,9 @@ type Service[
 }
 
 // NewService creates a new validator service.
-func NewService[
-	ConsensusBlockT ConsensusBlock,
-	GenesisT Genesis,
-	ConsensusSidecarsT da.ConsensusSidecars,
-](
-	homeDir string,
+func NewService(
 	storageBackend StorageBackend,
-	blobProcessor da.BlobProcessor[ConsensusSidecarsT],
+	blobProcessor da.BlobProcessor,
 	depositContract deposit.Contract,
 	eth1FollowDistance math.U64,
 	logger log.Logger,
@@ -93,16 +82,8 @@ func NewService[
 	stateProcessor StateProcessor[*transition.Context],
 	telemetrySink TelemetrySink,
 	optimisticPayloadBuilds bool,
-) *Service[
-	ConsensusBlockT,
-	GenesisT,
-	ConsensusSidecarsT,
-] {
-	return &Service[
-		ConsensusBlockT,
-		GenesisT, ConsensusSidecarsT,
-	]{
-		homeDir:                 homeDir,
+) *Service {
+	return &Service{
 		storageBackend:          storageBackend,
 		blobProcessor:           blobProcessor,
 		depositContract:         depositContract,
@@ -120,23 +101,17 @@ func NewService[
 }
 
 // Name returns the name of the service.
-func (s *Service[
-	_, _, _,
-]) Name() string {
+func (s *Service) Name() string {
 	return "blockchain"
 }
 
-func (s *Service[
-	_, _, _,
-]) Start(ctx context.Context) error {
+func (s *Service) Start(ctx context.Context) error {
 	// Catchup deposits for failed blocks.
 	go s.depositCatchupFetcher(ctx)
 
 	return nil
 }
 
-func (s *Service[
-	_, _, _,
-]) Stop() error {
+func (s *Service) Stop() error {
 	return nil
 }

@@ -92,13 +92,14 @@ type KVStore struct {
 // New creates a new instance of Store.
 //
 //nolint:funlen // its not overly complex.
-func New(
-	kss store.KVStoreService,
-	payloadCodec *encoding.SSZInterfaceCodec[*ctypes.ExecutionPayloadHeader],
-) *KVStore {
-	schemaBuilder := sdkcollections.NewSchemaBuilder(kss)
+func New(kss store.KVStoreService) *KVStore {
+	var (
+		schemaBuilder = sdkcollections.NewSchemaBuilder(kss)
+		payloadCodec  = &encoding.SSZInterfaceCodec[*ctypes.ExecutionPayloadHeader]{}
+	)
+
 	res := &KVStore{
-		ctx: nil,
+		ctx: nil, // set by WithContext or Copy
 		genesisValidatorsRoot: sdkcollections.NewItem(
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.GenesisValidatorsRootPrefix}),

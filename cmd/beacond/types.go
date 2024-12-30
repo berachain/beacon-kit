@@ -21,7 +21,6 @@
 package main
 
 import (
-	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/validator"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
@@ -43,7 +42,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/state-transition/core"
 	"github.com/berachain/beacon-kit/storage/filedb"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 /* -------------------------------------------------------------------------- */
@@ -55,14 +53,7 @@ type (
 	AttributesFactory = attributes.Factory
 
 	// BlobProcessor is a type alias for the blob processor.
-	BlobProcessor = dablob.Processor[*ConsensusSidecars]
-
-	// ChainService is a type alias for the chain service.
-	ChainService = blockchain.Service[
-		*ConsensusBlock,
-		*Genesis,
-		*ConsensusSidecars,
-	]
+	BlobProcessor = dablob.Processor
 
 	// CometBFTService is a type alias for the CometBFT service.
 	CometBFTService = cometbft.Service[*Logger]
@@ -110,9 +101,8 @@ type (
 	ConsensusBlock = consruntimetypes.ConsensusBlock
 
 	// BlobSidecars type aliases.
-	ConsensusSidecars = consruntimetypes.ConsensusSidecars
-	BlobSidecar       = datypes.BlobSidecar
-	BlobSidecars      = datypes.BlobSidecars
+	BlobSidecar  = datypes.BlobSidecar
+	BlobSidecars = datypes.BlobSidecars
 
 	// Context is a type alias for the transition context.
 	Context = transition.Context
@@ -145,11 +135,7 @@ type (
 	LegacyKey = signer.LegacyKey
 
 	// NodeAPIBackend is a type alias for the node API backend.
-	NodeAPIBackend = backend.Backend[
-		sdk.Context,
-		*CometBFTService,
-		*StorageBackend,
-	]
+	NodeAPIBackend = backend.Backend
 
 	// NodeAPIContext is a type alias for the node API context.
 	NodeAPIContext = echo.Context

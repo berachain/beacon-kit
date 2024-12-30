@@ -26,6 +26,8 @@ import (
 	"cosmossdk.io/core/store"
 )
 
+var _ store.KVStoreService = (*KVStoreProvider)(nil)
+
 // KVStoreProvider is a provider for a KV store.
 type KVStoreProvider struct {
 	store.KVStoreWithBatch

@@ -21,11 +21,7 @@
 package core
 
 import (
-	"fmt"
-
-	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/state-transition/core/state"
@@ -38,11 +34,9 @@ import (
 // NOTE: Modified from the Ethereum 2.0 specification to support EVM inflation:
 // 1. The first withdrawal MUST be a fixed EVM inflation withdrawal
 // 2. Subsequent withdrawals (if any) are processed as validator withdrawals
-// 3. This modification reduces the maximum validator withdrawals per block by
-// one.
+// 3. This modification reduces the maximum validator withdrawals per block by one.
 func (sp *StateProcessor[_]) processWithdrawals(
-	st *state.StateDB,
-	blk *ctypes.BeaconBlock,
+	st *state.StateDB, blk *ctypes.BeaconBlock,
 ) error {
 	// Dequeue and verify the logs.
 	var (
@@ -57,20 +51,9 @@ func (sp *StateProcessor[_]) processWithdrawals(
 		return err
 	}
 
-	return sp.processWithdrawalsByFork(
-		st, expectedWithdrawals, payloadWithdrawals)
-}
-
-func (sp *StateProcessor[_]) processWithdrawalsByFork(
-	st *state.StateDB,
-	expectedWithdrawals engineprimitives.Withdrawals,
-	payloadWithdrawals engineprimitives.Withdrawals,
-) error {
 	slot, err := st.GetSlot()
 	if err != nil {
-		return errors.Wrap(
-			err, "failed loading slot while processing withdrawals",
-		)
+		return errors.Wrap(err, "failed loading slot while processing withdrawals")
 	}
 
 	// Common validations
@@ -82,121 +65,6 @@ func (sp *StateProcessor[_]) processWithdrawalsByFork(
 		)
 	}
 
-	// Chain/Fork specific processing
-	switch {
-	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
-		return sp.processWithdrawalsBartio(
-			st,
-			expectedWithdrawals,
-			payloadWithdrawals,
-			slot,
-		)
-
-	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-		slot == math.U64(spec.BoonetFork1Height):
-		// Slot used to emergency mint EVM tokens on Boonet.
-		if !expectedWithdrawals[0].Equals(payloadWithdrawals[0]) {
-			return fmt.Errorf(
-				"minting withdrawal does not match expected %s, got %s",
-				spew.Sdump(expectedWithdrawals[0]),
-				spew.Sdump(payloadWithdrawals[0]),
-			)
-		}
-
-		return nil // No processing needed.
-
-	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-		slot < math.U64(spec.BoonetFork2Height):
-		// Boonet inherited the Bartio behaviour pre BoonetFork2Height
-		// nothing specific to do
-		return sp.processWithdrawalsBartio(
-			st,
-			expectedWithdrawals,
-			payloadWithdrawals,
-			slot,
-		)
-
-	default:
-		return sp.processWithdrawalsDefault(
-			st,
-			expectedWithdrawals,
-			payloadWithdrawals,
-			slot,
-		)
-	}
-}
-
-func (sp *StateProcessor[_]) processWithdrawalsBartio(
-	st *state.StateDB,
-	expectedWithdrawals engineprimitives.Withdrawals,
-	payloadWithdrawals engineprimitives.Withdrawals,
-	slot math.Slot,
-) error {
-	for i, wd := range expectedWithdrawals {
-		// Ensure the withdrawals match the local state.
-		if !wd.Equals(payloadWithdrawals[i]) {
-			return errors.Wrapf(
-				ErrWithdrawalMismatch,
-				"withdrawal at index %d does not match expected %s, got %s",
-				i, spew.Sdump(wd), spew.Sdump(payloadWithdrawals[i]),
-			)
-		}
-
-		// Process the validator withdrawal.
-		if err := st.DecreaseBalance(
-			wd.GetValidatorIndex(), wd.GetAmount(),
-		); err != nil {
-			return err
-		}
-	}
-
-	if len(expectedWithdrawals) != 0 {
-		if err := st.SetNextWithdrawalIndex(
-			(expectedWithdrawals[len(expectedWithdrawals)-1].
-				GetIndex() + 1).Unwrap(),
-		); err != nil {
-			return err
-		}
-	}
-
-	totalValidators, err := st.GetTotalValidators()
-	if err != nil {
-		return err
-	}
-
-	// Update the next validator index to start the next withdrawal sweep.
-	var nextValidatorIndex math.ValidatorIndex
-
-	//#nosec:G701 // won't overflow in practice.
-	if len(expectedWithdrawals) == int(sp.cs.MaxWithdrawalsPerPayload()) {
-		nextValidatorIndex =
-			(expectedWithdrawals[len(expectedWithdrawals)-1].GetIndex() + 1) %
-				math.ValidatorIndex(totalValidators)
-		// Note: this is a bug, we should have used ValidatorIndex instead of
-		// GetIndex. processWithdrawalsDefault fixes it
-	} else {
-		// Advance sweep by the max length of the sweep if there was not a full
-		// set of withdrawals.
-		nextValidatorIndex, err = st.GetNextWithdrawalValidatorIndex()
-		if err != nil {
-			return err
-		}
-		nextValidatorIndex += math.ValidatorIndex(
-			sp.cs.MaxValidatorsPerWithdrawalsSweep(
-				state.IsPostFork2(sp.cs.DepositEth1ChainID(), slot),
-			))
-		nextValidatorIndex %= math.ValidatorIndex(totalValidators)
-	}
-
-	return st.SetNextWithdrawalValidatorIndex(nextValidatorIndex)
-}
-
-func (sp *StateProcessor[_]) processWithdrawalsDefault(
-	st *state.StateDB,
-	expectedWithdrawals engineprimitives.Withdrawals,
-	payloadWithdrawals engineprimitives.Withdrawals,
-	slot math.Slot,
-) error {
 	// Enforce that first withdrawal is EVM inflation
 	if len(payloadWithdrawals) == 0 {
 		return ErrZeroWithdrawals
@@ -219,16 +87,15 @@ func (sp *StateProcessor[_]) processWithdrawalsDefault(
 			)
 		}
 
-		if err := st.DecreaseBalance(
-			expectedWithdrawals[i].GetValidatorIndex(),
-			expectedWithdrawals[i].GetAmount(),
+		if err = st.DecreaseBalance(
+			expectedWithdrawals[i].GetValidatorIndex(), expectedWithdrawals[i].GetAmount(),
 		); err != nil {
 			return err
 		}
 	}
 
 	if numWithdrawals > 1 {
-		if err := st.SetNextWithdrawalIndex(
+		if err = st.SetNextWithdrawalIndex(
 			(expectedWithdrawals[numWithdrawals-1].GetIndex() + 1).Unwrap(),
 		); err != nil {
 			return err
@@ -262,17 +129,14 @@ func (sp *StateProcessor[_]) processWithdrawalsDefault(
 		nextValidatorIndex %= math.ValidatorIndex(totalValidators)
 	}
 
-	if err = st.SetNextWithdrawalValidatorIndex(
-		nextValidatorIndex,
-	); err != nil {
+	if err = st.SetNextWithdrawalValidatorIndex(nextValidatorIndex); err != nil {
 		return err
 	}
 
 	sp.logger.Info(
 		"Processed withdrawals",
 		"num_withdrawals", numWithdrawals,
-		"bera_inflation", float64(
-			payloadWithdrawals[0].GetAmount().Unwrap())/math.GweiPerWei,
+		"evm_inflation", float64(payloadWithdrawals[0].GetAmount().Unwrap())/math.GweiPerWei,
 	)
 
 	return nil

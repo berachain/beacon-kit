@@ -61,16 +61,6 @@ func TestCreateAndSignDepositMessage(t *testing.T) {
 	require.NotNil(t, signature)
 }
 
-func TestNewDepositMessage(t *testing.T) {
-	pubKey := crypto.BLSPubkey{}
-	credentials := types.WithdrawalCredentials{}
-	amount := math.Gwei(32)
-	depositMessage := types.DepositMessage{}
-	newDepositMessage := depositMessage.New(pubKey, credentials, amount)
-
-	require.NotNil(t, newDepositMessage)
-}
-
 func TestDepositMessage_MarshalUnmarshalSSZ(t *testing.T) {
 	original := &types.DepositMessage{
 		Pubkey:      crypto.BLSPubkey{},
