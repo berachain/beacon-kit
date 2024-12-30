@@ -21,7 +21,6 @@
 package components
 
 import (
-	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/validator"
 	"github.com/berachain/beacon-kit/config"
@@ -38,7 +37,6 @@ func ProvideCometBFTService[
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	logger LoggerT,
-	storeKey *storetypes.KVStoreKey,
 	blockchain blockchain.BlockchainI,
 	blockBuilder validator.BlockBuilderI,
 	db dbm.DB,
@@ -47,7 +45,6 @@ func ProvideCometBFTService[
 	telemetrySink *metrics.TelemetrySink,
 ) *cometbft.Service[LoggerT] {
 	return cometbft.NewService(
-		storeKey,
 		logger,
 		db,
 		blockchain,

@@ -34,6 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	"github.com/berachain/beacon-kit/storage"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cometbft/cometbft/node"
@@ -102,7 +103,6 @@ type Service[
 func NewService[
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
-	storeKey *storetypes.KVStoreKey,
 	logger LoggerT,
 	db dbm.DB,
 	blockchain blockchain.BlockchainI,
@@ -128,7 +128,7 @@ func NewService[
 		telemetrySink:      telemetrySink,
 	}
 
-	s.MountStore(storeKey, storetypes.StoreTypeIAVL)
+	s.MountStore(storage.StoreKey, storetypes.StoreTypeIAVL)
 
 	for _, option := range options {
 		option(s)

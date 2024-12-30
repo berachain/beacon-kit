@@ -54,9 +54,6 @@ func DefaultComponents() []any {
 		components.ProvideTelemetryService,
 		components.ProvideTrustedSetup,
 		components.ProvideValidatorService[*Logger],
-		// TODO Hacks
-		components.ProvideKVStoreService,
-		components.ProvideKVStoreKey,
 	}
 	c = append(c,
 		components.ProvideNodeAPIServer[*Logger, NodeAPIContext],
