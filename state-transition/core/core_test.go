@@ -139,7 +139,7 @@ func setupState(
 
 	kvStore, depositStore, err := initTestStores()
 	require.NoError(t, err)
-	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
+	beaconState := statedb.NewBeaconStateFromDB(kvStore, cs)
 
 	sp := core.NewStateProcessor[*transition.Context](
 		noop.NewLogger[any](),

@@ -37,7 +37,7 @@ func (h *Handler[ContextT]) GetBlobSidecars(c ContextT) (any, error) {
 		return nil, err
 	}
 
-	// Grab the current slot.
+	// Grab the requested slot.
 	slot, err := utils.SlotFromBlockID(req.BlockID, h.backend)
 	if err != nil {
 		return nil, err
