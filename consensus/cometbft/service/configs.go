@@ -57,12 +57,16 @@ func DefaultConfig() *cmtcfg.Config {
 
 	// These settings are set by default for performance reasons.
 	cfg.TxIndex.Indexer = "null"
+
 	cfg.Mempool.Type = "nop"
-	cfg.Mempool.Size = 0
 	cfg.Mempool.Recheck = false
 	cfg.Mempool.RecheckTimeout = 0
 	cfg.Mempool.Broadcast = false
+	cfg.Mempool.Size = 0
+	cfg.Mempool.MaxTxBytes = 0
+	cfg.Mempool.MaxTxsBytes = 0
 	cfg.Mempool.CacheSize = 0
+
 	cfg.Storage.DiscardABCIResponses = true
 	cfg.Instrumentation.Prometheus = true
 
