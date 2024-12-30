@@ -107,12 +107,12 @@ func (db *RangeDB) DeleteRange(from, to uint64) error {
 			from, to, pruner.ErrInvalidRange,
 		)
 	}
-	for ; from < to; from++ {
-		path := fmt.Sprintf(pathFormat, from)
+	for i := from; i < to; i++ {
+		path := fmt.Sprintf(pathFormat, i)
 		if err := db.coreDB.fs.RemoveAll(path); err != nil {
 			return fmt.Errorf(
-				"RangeDB DeleteRange start: %d, end: %d, failed RemoveAll: %w",
-				from, to, err,
+				"RangeDB DeleteRange failed RemoveAll index %d: %w",
+				i, err,
 			)
 		}
 	}

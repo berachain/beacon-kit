@@ -120,15 +120,15 @@ func TestRangeDB(t *testing.T) {
 				for index := uint64(1); index <= 3; index++ {
 					var exists bool
 					exists, err = rdb.Has(index, []byte("testKey"))
-					require.NoError(t, err)
-					require.False(t, exists)
+					require.NoError(t, err, "index %d", index)
+					require.False(t, exists, "index %d", index)
 				}
 
 				for index := uint64(4); index <= 5; index++ {
 					var exists bool
 					exists, err = rdb.Has(index, []byte("testKey"))
-					require.NoError(t, err)
-					require.True(t, exists)
+					require.NoError(t, err, "index %d", index)
+					require.True(t, exists, "index %d", index)
 				}
 			},
 		},
