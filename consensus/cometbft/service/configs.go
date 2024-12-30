@@ -34,6 +34,8 @@ const ( // appeases mnd
 	timeoutPrevote   = 1000 * time.Millisecond
 	timeoutPrecommit = 1000 * time.Millisecond
 	timeoutCommit    = 500 * time.Millisecond
+
+	maxBlockSize = 100 * 1024 * 1024
 )
 
 // DefaultConfig returns the default configuration for the CometBFT
@@ -83,6 +85,11 @@ func DefaultConfig() *cmtcfg.Config {
 func DefaultConsensusParams(consensusKeyAlgo string) *cmttypes.ConsensusParams {
 	res := cmttypes.DefaultConsensusParams()
 	res.Validator.PubKeyTypes = []string{consensusKeyAlgo}
+
+	// set max block size in order to accommodate max blobs size
+	// This matches current cmttypes.MaxBlockSizeBytes but it's
+	// explicitly hard coded for safety across deps upgrades.
+	res.Block.MaxBytes = maxBlockSize
 
 	if err := res.ValidateBasic(); err != nil {
 		panic(fmt.Errorf("invalid default consensus parameters: %w", err))

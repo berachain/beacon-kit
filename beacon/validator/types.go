@@ -206,6 +206,6 @@ type TelemetrySink interface {
 type BlockBuilderI interface {
 	BuildBlockAndSidecars(
 		context.Context,
-		types.SlotData,
+		*types.SlotData,
 	) ([]byte, []byte, error)
 }
