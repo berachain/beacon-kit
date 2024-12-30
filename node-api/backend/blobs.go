@@ -21,7 +21,6 @@
 package backend
 
 import (
-	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/errors"
 	apitypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -31,9 +30,10 @@ import (
 // data availability store for all sidecars for a slot, returning only those
 // sidecars specified by the indices, or all sidecars if left unspecified.
 func (b *Backend) BlobSidecarsByIndices(slot math.Slot, indices []uint64) ([]*apitypes.Sidecar, error) {
-	var blobSidecars datypes.BlobSidecars
-	// TODO grab the current HEAD slot somehow
-	currentSlot := slot
+	currentSlot, err := b.sb.BeaconStore().GetSlot()
+	if err != nil {
+		return nil, err
+	}
 	if !b.cs.WithinDAPeriod(slot, currentSlot) {
 		return nil, errors.New("requested block is no longer within the Data Availability Period")
 	}
