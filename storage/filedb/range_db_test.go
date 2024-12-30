@@ -29,7 +29,6 @@ import (
 	file "github.com/berachain/beacon-kit/storage/filedb"
 	"github.com/berachain/beacon-kit/storage/interfaces/mocks"
 	"github.com/spf13/afero"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -205,14 +204,7 @@ func TestRangeDB_DeleteRange_NotSupported(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Helper()
-			tt.db.On("DeleteRange", mock.Anything, mock.Anything).
-				Return(file.ErrRangeNotSupported)
-
-			rdb := file.NewRangeDB(tt.db)
-
-			err := rdb.DeleteRange(1, 4)
-			require.Error(t, err)
-			require.Equal(t, file.ErrRangeNotSupported, err)
+			require.Panics(t, func() { _ = file.NewRangeDB(tt.db) })
 		})
 	}
 }

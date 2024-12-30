@@ -48,7 +48,7 @@ var (
 // It prefixes keys with an index.
 // Invariant: No index below firstNonNilIndex should be populated.
 type RangeDB struct {
-	coreDB db.DB
+	coreDB *DB
 
 	// lowerBoundIndex is used as a loose check for stored indexes
 	// monotonicity. The goal is to make sure we do not overwrite
@@ -58,8 +58,12 @@ type RangeDB struct {
 
 // NewRangeDB creates a new RangeDB.
 func NewRangeDB(coreDB db.DB) *RangeDB {
+	cDB, ok := coreDB.(*DB)
+	if !ok {
+		panic(ErrRangeNotSupported)
+	}
 	return &RangeDB{
-		coreDB:          coreDB,
+		coreDB:          cDB,
 		lowerBoundIndex: 0,
 	}
 }
@@ -97,11 +101,6 @@ func (db *RangeDB) Delete(index uint64, key []byte) error {
 // filesystem. It is INCLUSIVE of the `from` index and EXCLUSIVE of
 // the `to“ index.
 func (db *RangeDB) DeleteRange(from, to uint64) error {
-	f, ok := db.coreDB.(*DB)
-	if !ok {
-		return ErrRangeNotSupported
-	}
-
 	if from > to {
 		return fmt.Errorf(
 			"RangeDB DeleteRange start: %d, end: %d: %w",
@@ -110,7 +109,7 @@ func (db *RangeDB) DeleteRange(from, to uint64) error {
 	}
 	for ; from < to; from++ {
 		path := fmt.Sprintf(pathFormat, from)
-		if err := f.fs.RemoveAll(path); err != nil {
+		if err := db.coreDB.fs.RemoveAll(path); err != nil {
 			return fmt.Errorf(
 				"RangeDB DeleteRange start: %d, end: %d, failed RemoveAll: %w",
 				from, to, err,
