@@ -119,7 +119,7 @@ func (db *RangeDB) Prune(start, end uint64) error {
 	}
 
 	if err := db.DeleteRange(start, end); err != nil {
-		// DeleteRange has failed and we may not removed some of the files
+		// DeleteRange has failed and we may have not removed some of the files
 		// we should have. We leave firstNonNilIndex unchanged here, so that
 		// next iteration will we try again to remove the files left over.
 		return err
