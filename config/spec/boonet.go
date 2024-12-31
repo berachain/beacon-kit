@@ -30,7 +30,6 @@ import (
 func BoonetChainSpec() (chain.Spec[
 	common.DomainType,
 	math.Epoch,
-	common.ExecutionAddress,
 	math.Slot,
 	any,
 ], error) {
@@ -44,22 +43,46 @@ func BoonetChainSpec() (chain.Spec[
 		"0x289274787bAF083C15A45a174b7a8e44F0720660",
 	)
 
-	// BERA per block minting.
+	// Basic parameters
 	boonetSpec.EVMInflationPerBlock = 2.5e9
-
-	// ValidatorSetCap is 256 on the Boonet chain.
 	boonetSpec.ValidatorSetCap = 256
-
-	// MaxValidatorsPerWithdrawalsSweep is 43 because we expect at least 46
-	// validators in the total validators set. We choose a prime number smaller
-	// than the minimum amount of total validators possible.
 	boonetSpec.MaxValidatorsPerWithdrawalsSweepPostUpgrade = 43
-
-	// MaxEffectiveBalancePostUpgrade is 5 million BERA after the boonet
-	// upgrade.
-	//
-	//nolint:mnd // ok.
 	boonetSpec.MaxEffectiveBalancePostUpgrade = 5_000_000 * 1e9
 
-	return chain.NewChainSpec(boonetSpec)
+	spec, err := chain.NewChainSpec(boonetSpec)
+	if err != nil {
+		return nil, err
+	}
+
+	// Adding parameters for different block heights
+	heightParams := []chain.HeightDependentParams{
+		{
+			Height:               0,
+			MaxEffectiveBalance:  32e9,
+			ValidatorSetCap:      256,
+			EVMInflationPerBlock: 2.5e9,
+		},
+		{
+			Height:               BoonetFork1Height,
+			MaxEffectiveBalance:  64e9,
+			ValidatorSetCap:      512,
+			EVMInflationPerBlock: 3e9,
+		},
+		{
+			Height:               BoonetFork2Height,
+			MaxEffectiveBalance:  128e9,
+			ValidatorSetCap:      1024,
+			EVMInflationPerBlock: 3.5e9,
+		},
+		{
+			Height:               BoonetFork3Height,
+			MaxEffectiveBalance:  5_000_000 * 1e9,
+			ValidatorSetCap:      2048,
+			EVMInflationPerBlock: 4e9,
+		},
+	}
+
+	spec.(*chain.ChainSpec[common.DomainType, math.Epoch, math.Slot, any]).HeightParams = heightParams
+
+	return spec, nil
 }
