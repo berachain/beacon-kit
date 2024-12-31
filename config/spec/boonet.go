@@ -52,7 +52,8 @@ func BoonetChainSpec() (chain.Spec[
 
 	// MaxValidatorsPerWithdrawalsSweep is 43 because we expect at least 46
 	// validators in the total validators set. We choose a prime number smaller
-	// than the minimum amount of total validators possible. Effective post boonet
+	// than the minimum amount of total validators possible. Effective post
+	// boonet
 	// fork 2.
 	boonetSpec.MaxValidatorsPerWithdrawalsSweepPostUpgrade = 43
 

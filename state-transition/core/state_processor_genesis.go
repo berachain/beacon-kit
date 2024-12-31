@@ -179,7 +179,11 @@ func (sp *StateProcessor[
 			)
 		}
 		minEffectiveBalance := math.Gwei(
-			sp.cs.EjectionBalance(false) + sp.cs.EffectiveBalanceIncrement(false),
+			sp.cs.EjectionBalance(
+				false,
+			) + sp.cs.EffectiveBalanceIncrement(
+				false,
+			),
 		)
 
 		var idx math.ValidatorIndex

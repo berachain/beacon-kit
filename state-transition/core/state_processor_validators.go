@@ -65,7 +65,11 @@ func (sp *StateProcessor[
 
 	isPostUpgrade := state.IsPostFork4(sp.cs.DepositEth1ChainID(), slot)
 	minEffectiveBalance := math.Gwei(
-		sp.cs.EjectionBalance(isPostUpgrade) + sp.cs.EffectiveBalanceIncrement(isPostUpgrade),
+		sp.cs.EjectionBalance(
+			isPostUpgrade,
+		) + sp.cs.EffectiveBalanceIncrement(
+			isPostUpgrade,
+		),
 	)
 
 	// We do not currently have a cap on validator churn,
@@ -258,7 +262,9 @@ func (sp *StateProcessor[
 	}
 
 	ejectionBalance := math.U64(
-		sp.cs.EjectionBalance(state.IsPostFork4(sp.cs.DepositEth1ChainID(), slot)),
+		sp.cs.EjectionBalance(
+			state.IsPostFork4(sp.cs.DepositEth1ChainID(), slot),
+		),
 	)
 
 	activeVals := make([]ValidatorT, 0, len(vals))

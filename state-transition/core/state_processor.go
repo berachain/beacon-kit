@@ -489,9 +489,14 @@ func (sp *StateProcessor[
 	}
 
 	var (
-		isPostFork4         = state.IsPostFork4(sp.cs.DepositEth1ChainID(), slot)
-		hysteresisIncrement = sp.cs.EffectiveBalanceIncrement(isPostFork4) / sp.cs.HysteresisQuotient()
-		downwardThreshold   = math.Gwei(
+		isPostFork4 = state.IsPostFork4(
+			sp.cs.DepositEth1ChainID(),
+			slot,
+		)
+		hysteresisIncrement = sp.cs.EffectiveBalanceIncrement(
+			isPostFork4,
+		) / sp.cs.HysteresisQuotient()
+		downwardThreshold = math.Gwei(
 			hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier(),
 		)
 		upwardThreshold = math.Gwei(
