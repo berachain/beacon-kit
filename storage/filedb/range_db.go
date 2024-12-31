@@ -23,12 +23,17 @@ package filedb
 import (
 	"bytes"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
+	"sync"
 
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
 	db "github.com/berachain/beacon-kit/storage/interfaces"
 	"github.com/berachain/beacon-kit/storage/pruner"
+	"github.com/spf13/afero"
 )
 
 const (
@@ -49,6 +54,8 @@ var (
 // Invariant: No index below firstNonNilIndex should be populated.
 type RangeDB struct {
 	coreDB *DB
+
+	rwMu sync.RWMutex
 
 	// lowerBoundIndex is used as a loose check for stored indexes
 	// monotonicity. The goal is to make sure we do not overwrite
@@ -72,6 +79,8 @@ func NewRangeDB(coreDB db.DB) *RangeDB {
 // It prefixes the key with the index and a slash before querying the underlying
 // database.
 func (db *RangeDB) Get(index uint64, key []byte) ([]byte, error) {
+	db.rwMu.RLock()
+	defer db.rwMu.RUnlock()
 	return db.coreDB.Get(prefix(index, key))
 }
 
@@ -79,6 +88,8 @@ func (db *RangeDB) Get(index uint64, key []byte) ([]byte, error) {
 // It prefixes the key with the index and a slash before querying the underlying
 // database.
 func (db *RangeDB) Has(index uint64, key []byte) (bool, error) {
+	db.rwMu.RLock()
+	defer db.rwMu.RUnlock()
 	return db.coreDB.Has(prefix(index, key))
 }
 
@@ -86,6 +97,9 @@ func (db *RangeDB) Has(index uint64, key []byte) (bool, error) {
 // It prefixes the key with the index and a slash before storing it in the
 // underlying database.
 func (db *RangeDB) Set(index uint64, key []byte, value []byte) error {
+	db.rwMu.Lock()
+	defer db.rwMu.Unlock()
+
 	index = max(index, db.lowerBoundIndex) // enforce invariant
 	return db.coreDB.Set(prefix(index, key), value)
 }
@@ -94,16 +108,18 @@ func (db *RangeDB) Set(index uint64, key []byte, value []byte) error {
 // database. It prefixes the key with the index and a slash before deleting it
 // from the underlying database.
 func (db *RangeDB) Delete(index uint64, key []byte) error {
+	db.rwMu.Lock()
+	defer db.rwMu.Unlock()
 	return db.coreDB.Delete(prefix(index, key))
 }
 
-// DeleteRange removes all values associated with the given index from the
+// deleteRange removes all values associated with the given index from the
 // filesystem. It is INCLUSIVE of the `from` index and EXCLUSIVE of
 // the `to“ index.
-func (db *RangeDB) DeleteRange(from, to uint64) error {
+func (db *RangeDB) deleteRange(from, to uint64) error {
 	if from > to {
 		return fmt.Errorf(
-			"RangeDB DeleteRange start: %d, end: %d: %w",
+			"RangeDB deleteRange start: %d, end: %d: %w",
 			from, to, pruner.ErrInvalidRange,
 		)
 	}
@@ -121,6 +137,8 @@ func (db *RangeDB) DeleteRange(from, to uint64) error {
 
 // Prune removes all values in the given range [start, end) from the db.
 func (db *RangeDB) Prune(start, end uint64) error {
+	db.rwMu.Lock()
+	defer db.rwMu.Unlock()
 	start = max(start, db.lowerBoundIndex)
 	if start > end {
 		return fmt.Errorf(
@@ -133,9 +151,43 @@ func (db *RangeDB) Prune(start, end uint64) error {
 	// been removed. We *do not* retry to prune those files to avoid getting
 	// stuck with them. Instead we update lowerBoundIndex as if deletion
 	// was successful and we return an error.
-	err := db.DeleteRange(start, end)
+	err := db.deleteRange(start, end)
 	db.lowerBoundIndex = end
 	return err
+}
+
+// GetByIndex takes the database index and returns all associated entries,
+// expecting database keys to follow the prefix() format. If index does not
+// exist in the DB for any reason (pruned, invalid index), an empty list is
+// returned with no error.
+func (db *RangeDB) GetByIndex(index uint64) ([][]byte, error) {
+	db.rwMu.RLock()
+	defer db.rwMu.RUnlock()
+	indexDir := fmt.Sprintf(pathFormat, index)
+	entries, err := afero.ReadDir(db.coreDB.fs, indexDir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return [][]byte{}, nil
+		}
+		return nil, err
+	}
+	keys := make([][]byte, 0, len(entries))
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		filename := entry.Name()
+		if !strings.HasSuffix(filename, db.coreDB.extension) {
+			continue
+		}
+		var sidecarBz []byte
+		sidecarBz, err = afero.ReadFile(db.coreDB.fs, filepath.Join(indexDir, filename))
+		if err != nil {
+			return keys, err
+		}
+		keys = append(keys, sidecarBz)
+	}
+	return keys, nil
 }
 
 // prefix prefixes the given key with the index and a slash.

@@ -37,8 +37,7 @@ type Backend struct {
 	sb   *storage.Backend
 	cs   chain.ChainSpec
 	node *cometbft.Service[*phuslu.Logger]
-
-	sp StateProcessor
+	sp   StateProcessor
 }
 
 // New creates and returns a new Backend instance.
