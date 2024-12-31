@@ -30,11 +30,8 @@ import (
 // data availability store for all sidecars for a slot, returning only those
 // sidecars specified by the indices, or all sidecars if left unspecified.
 func (b *Backend) BlobSidecarsByIndices(slot math.Slot, indices []uint64) ([]*apitypes.Sidecar, error) {
-	currentSlot, err := b.sb.BeaconStore().GetSlot()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get current slot from BeaconState")
-	}
-	if !b.cs.WithinDAPeriod(slot, currentSlot) {
+
+	if !b.cs.WithinDAPeriod(slot, math.Slot(b.node.LastBlockHeight())) {
 		return nil, errors.New("requested block is no longer within the Data Availability Period")
 	}
 
