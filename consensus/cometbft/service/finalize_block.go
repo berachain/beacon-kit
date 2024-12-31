@@ -165,3 +165,15 @@ func (s *Service[_]) validateFinalizeBlockHeight(
 
 	return nil
 }
+
+func (s *Service[LoggerT]) FinalizeBlock(
+	ctx context.Context,
+	req *cmtabci.FinalizeBlockRequest,
+) (*cmtabci.FinalizeBlockResponse, error) {
+	// Updating the current block height in the chain specification
+	if spec, ok := s.Blockchain.ChainSpec().(interface{ SetCurrentHeight(uint64) }); ok {
+		spec.SetCurrentHeight(uint64(req.Height))
+	}
+
+	return s.finalizeBlock(ctx, req)
+}
