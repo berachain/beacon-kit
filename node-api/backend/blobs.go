@@ -31,7 +31,11 @@ import (
 // sidecars specified by the indices, or all sidecars if left unspecified.
 func (b *Backend) BlobSidecarsByIndices(slot math.Slot, indices []uint64) ([]*apitypes.Sidecar, error) {
 
-	if !b.cs.WithinDAPeriod(slot, math.Slot(b.node.LastBlockHeight())) {
+	currentSlot := b.node.LastBlockHeight()
+	if currentSlot < 0 {
+		return nil, errors.New("invalid negative block height")
+	}
+	if !b.cs.WithinDAPeriod(slot, math.Slot(currentSlot)) {
 		return nil, errors.New("requested block is no longer within the Data Availability Period")
 	}
 
