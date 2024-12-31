@@ -36,6 +36,9 @@ const ( // appeases mnd
 	timeoutCommit    = 500 * time.Millisecond
 
 	maxBlockSize = 100 * 1024 * 1024
+
+	precision    = 505 * time.Millisecond
+	messageDelay = 15 * time.Second
 )
 
 // DefaultConfig returns the default configuration for the CometBFT
@@ -94,6 +97,12 @@ func DefaultConsensusParams(consensusKeyAlgo string) *cmttypes.ConsensusParams {
 	// This matches current cmttypes.MaxBlockSizeBytes but it's
 	// explicitly hard coded for safety across deps upgrades.
 	res.Block.MaxBytes = maxBlockSize
+
+	// activate pbst and hard code values to
+	// be safe across dependencies upgrades
+	res.Feature.PbtsEnableHeight = 1
+	res.Synchrony.Precision = precision
+	res.Synchrony.MessageDelay = messageDelay
 
 	if err := res.ValidateBasic(); err != nil {
 		panic(fmt.Errorf("invalid default consensus parameters: %w", err))
