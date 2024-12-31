@@ -18,46 +18,47 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package handlers
+package beacon
 
 import (
-	"github.com/berachain/beacon-kit/log"
+	"strconv"
+
+	apitypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 )
 
-// Route is a route for the node API.
-type Route[ContextT any] struct {
-	Method  string
-	Path    string
-	Handler handlerFn[ContextT]
-}
+// GetBlobSidecars provides an implementation for the
+// "/eth/v1/beacon/blob_sidecars/:block_id" API endpoint.
+func (h *Handler[ContextT]) GetBlobSidecars(c ContextT) (any, error) {
+	req, err := utils.BindAndValidate[apitypes.GetBlobSidecarsRequest](
+		c, h.Logger(),
+	)
+	if err != nil {
+		return nil, err
+	}
 
-// DecorateWithLogs adds logging to the route's handler function as soon as
-// a request is received and when a response is ready.
-func (r *Route[ContextT]) DecorateWithLogs(logger log.Logger) {
-	handler := r.Handler
-	r.Handler = func(ctx ContextT) (any, error) {
-		logger.Info("received request", "method", r.Method, "path", r.Path)
-		res, err := handler(ctx)
+	// Grab the requested slot.
+	slot, err := utils.SlotFromBlockID(req.BlockID, h.backend)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert indices to uint64.
+	indices := make([]uint64, len(req.Indices))
+	for i, idx := range req.Indices {
+		indices[i], err = strconv.ParseUint(idx, 10, 64)
 		if err != nil {
-			logger.Error("error handling request", "error", err)
+			return nil, err
 		}
-		logger.Info("request handled")
-		return res, err
 	}
-}
 
-// RouteSet is a set of routes for the node API.
-type RouteSet[ContextT any] struct {
-	BasePath string
-	Routes   []*Route[ContextT]
-}
-
-// NewRouteSet creates a new route set.
-func NewRouteSet[ContextT any](
-	basePath string, routes ...*Route[ContextT],
-) *RouteSet[ContextT] {
-	return &RouteSet[ContextT]{
-		BasePath: basePath,
-		Routes:   routes,
+	// Grab the blob sidecars from the backend.
+	blobSidecars, err := h.backend.BlobSidecarsByIndices(slot, indices)
+	if err != nil {
+		return nil, err
 	}
+
+	return apitypes.SidecarsResponse{
+		Data: blobSidecars,
+	}, nil
 }

@@ -42,7 +42,7 @@ type StateDB struct {
 }
 
 // NewBeaconStateFromDB creates a new beacon state from an underlying state db.
-func (s *StateDB) NewFromDB(bdb *beacondb.KVStore, cs chain.ChainSpec) *StateDB {
+func NewBeaconStateFromDB(bdb *beacondb.KVStore, cs chain.ChainSpec) *StateDB {
 	return &StateDB{
 		KVStore: *bdb,
 		cs:      cs,
@@ -51,7 +51,7 @@ func (s *StateDB) NewFromDB(bdb *beacondb.KVStore, cs chain.ChainSpec) *StateDB 
 
 // Copy returns a copy of the beacon state.
 func (s *StateDB) Copy(ctx context.Context) *StateDB {
-	return s.NewFromDB(s.KVStore.Copy(ctx), s.cs)
+	return NewBeaconStateFromDB(s.KVStore.Copy(ctx), s.cs)
 }
 
 // IncreaseBalance increases the balance of a validator.

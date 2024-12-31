@@ -43,8 +43,8 @@ type AvailabilityStoreInput[LoggerT any] struct {
 	Logger    LoggerT
 }
 
-// ProvideAvailibilityStore provides the availability store.
-func ProvideAvailibilityStore[
+// ProvideAvailabilityStore provides the availability store.
+func ProvideAvailabilityStore[
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	in AvailabilityStoreInput[LoggerT],

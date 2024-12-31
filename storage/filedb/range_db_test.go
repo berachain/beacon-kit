@@ -101,7 +101,7 @@ func TestRangeDB(t *testing.T) {
 			},
 		},
 		{
-			name: "DeleteRange",
+			name: "Prune",
 			setupFunc: func(rdb *file.RangeDB) error {
 				for index := uint64(1); index <= 5; index++ {
 					if err := rdb.Set(
@@ -114,7 +114,7 @@ func TestRangeDB(t *testing.T) {
 			},
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				t.Helper()
-				err := rdb.DeleteRange(1, 4)
+				err := rdb.Prune(1, 4)
 				require.NoError(t, err)
 
 				for index := uint64(1); index <= 3; index++ {
@@ -307,17 +307,6 @@ func TestRangeDB_Invariants(t *testing.T) {
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				t.Helper()
 				_ = rdb.Prune(0, 3)
-				requireNotExist(t, rdb, 0, lastConsequetiveNilIndex(rdb))
-			},
-		},
-		{
-			name: "DeleteRange from populated",
-			setupFunc: func(rdb *file.RangeDB) error {
-				return populateTestDB(rdb, 1, 10)
-			},
-			testFunc: func(t *testing.T, rdb *file.RangeDB) {
-				t.Helper()
-				_ = rdb.DeleteRange(1, 5) // ignore error
 				requireNotExist(t, rdb, 0, lastConsequetiveNilIndex(rdb))
 			},
 		},
