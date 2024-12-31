@@ -68,17 +68,14 @@ func (s *Service[LoggerT]) prepareProposal(
 	//nolint:contextcheck // ctx already passed via resetState
 	blkBz, sidecarsBz, err := s.BlockBuilder.BuildBlockAndSidecars(
 		s.prepareProposalState.Context(),
-		*slotData,
+		slotData,
 	)
 	if err != nil {
 		s.logger.Error(
 			"failed to prepare proposal",
-			"height",
-			req.Height,
-			"time",
-			req.Time,
-			"err",
-			err,
+			"height", req.Height,
+			"time", req.Time,
+			"err", err,
 		)
 		return &cmtabci.PrepareProposalResponse{Txs: req.Txs}, nil
 	}

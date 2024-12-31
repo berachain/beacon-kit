@@ -42,7 +42,7 @@ import (
 // BuildBlockAndSidecars builds a new beacon block.
 func (s *Service) BuildBlockAndSidecars(
 	ctx context.Context,
-	slotData types.SlotData,
+	slotData *types.SlotData,
 ) ([]byte, []byte, error) {
 	var (
 		blk      *ctypes.BeaconBlock
@@ -215,7 +215,7 @@ func (s *Service) retrieveExecutionPayload(
 	ctx context.Context,
 	st *statedb.StateDB,
 	blk *ctypes.BeaconBlock,
-	slotData types.SlotData,
+	slotData *types.SlotData,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
 	//
 	// TODO: Add external block builders to this flow.
@@ -275,7 +275,7 @@ func (s *Service) buildBlockBody(
 	blk *ctypes.BeaconBlock,
 	reveal crypto.BLSSignature,
 	envelope ctypes.BuiltExecutionPayloadEnv,
-	slotData types.SlotData,
+	slotData *types.SlotData,
 ) error {
 	// Assemble a new block with the payload.
 	body := blk.GetBody()
