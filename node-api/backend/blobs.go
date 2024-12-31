@@ -35,6 +35,7 @@ func (b *Backend) BlobSidecarsByIndices(slot math.Slot, indices []uint64) ([]*ap
 		return nil, errors.New("requested block is no longer within the Data Availability Period")
 	}
 
+	// Validate request indices.
 	if uint64(len(indices)) >= b.cs.MaxBlobsPerBlock() {
 		return nil, errors.New("too many indices requested")
 	}
@@ -49,25 +50,23 @@ func (b *Backend) BlobSidecarsByIndices(slot math.Slot, indices []uint64) ([]*ap
 		return nil, err
 	}
 
-	// Create a map of requested indices for O(1) lookup if indices are specified.
-	indexMap := make(map[uint64]bool)
-	if len(indices) > 0 {
-		for _, idx := range indices {
-			indexMap[idx] = true
-		}
+	// Create a map of requested indices for O(1) index lookups.
+	isRequestIndex := make(map[uint64]bool)
+	for _, idx := range indices {
+		isRequestIndex[idx] = true
 	}
 
 	// Preallocate response slice - if indices specified, size will be len(indices),
-	// otherwise size will be all sidecars>
-	responseSize := len(blobSidecars)
+	// otherwise size will be all sidecars.
+	responseCap := len(blobSidecars)
 	if len(indices) > 0 {
-		responseSize = len(indices)
+		responseCap = len(indices)
 	}
-	blobSidecarsResponse := make([]*apitypes.Sidecar, 0, responseSize)
+	blobSidecarsResponse := make([]*apitypes.Sidecar, 0, responseCap)
 
 	for _, blobSidecar := range blobSidecars {
 		// Skip if indices specified and this index not requested.
-		if len(indices) > 0 && !indexMap[blobSidecar.GetIndex()] {
+		if len(indices) > 0 && !isRequestIndex[blobSidecar.GetIndex()] {
 			continue
 		}
 		// Craft and append the blob sidecar serialized data to the response.

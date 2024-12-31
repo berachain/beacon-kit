@@ -29,6 +29,9 @@ type IndexDB interface {
 	// Prune returns error if start > end.
 	Prune(start uint64, end uint64) error
 
-	// GetByIndex takes the database index and returns all associated keys.
+	// GetByIndex takes the database index and returns all associated entries,
+	// expecting database keys to follow the prefix() format. If index does not
+	// exist in the DB for any reason (pruned, invalid index), an empty list is
+	// returned with no error.
 	GetByIndex(index uint64) ([][]byte, error)
 }

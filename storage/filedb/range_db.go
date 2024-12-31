@@ -156,12 +156,14 @@ func (db *RangeDB) Prune(start, end uint64) error {
 	return err
 }
 
-// GetByIndex takes the database index and returns all associated keys,
-// expecting database entries to follow the prefix() format.
+// GetByIndex takes the database index and returns all associated entries,
+// expecting database keys to follow the prefix() format. If index does not
+// exist in the DB for any reason (pruned, invalid index), an empty list is
+// returned with no error.
 func (db *RangeDB) GetByIndex(index uint64) ([][]byte, error) {
 	db.rwMu.RLock()
 	defer db.rwMu.RUnlock()
-	indexDir := strconv.FormatUint(index, 10)
+	indexDir := fmt.Sprintf(pathFormat, index)
 	entries, err := afero.ReadDir(db.coreDB.fs, indexDir)
 	if err != nil {
 		if os.IsNotExist(err) {
