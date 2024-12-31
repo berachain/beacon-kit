@@ -39,7 +39,7 @@ type Spec[
 	MaxEffectiveBalance(isPostUpgrade bool) uint64
 
 	// EjectionBalance returns the balance below which a validator is ejected.
-	EjectionBalance() uint64
+	EjectionBalance(isPostUpgrade bool) uint64
 
 	// EffectiveBalanceIncrement returns the increment of balance used in reward
 	// calculations.
@@ -285,8 +285,12 @@ func (c chainSpec[
 // EjectionBalance returns the balance below which a validator is ejected.
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) EjectionBalance() uint64 {
-	return c.Data.EjectionBalance
+]) EjectionBalance(isPostUpgrade bool) uint64 {
+	if isPostUpgrade {
+		return c.Data.EjectionBalancePostUpgrade
+	}
+
+	return c.Data.EjectionBalancePreUpgrade
 }
 
 // EffectiveBalanceIncrement returns the increment of effective balance.

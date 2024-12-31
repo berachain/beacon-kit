@@ -58,7 +58,8 @@ func BaseSpec() chain.SpecData[
 		MinDepositAmount:               1e9,
 		MaxEffectiveBalancePreUpgrade:  32e9,
 		MaxEffectiveBalancePostUpgrade: 32e9,
-		EjectionBalance:                16e9,
+		EjectionBalancePreUpgrade:      16e9,
+		EjectionBalancePostUpgrade:     16e9,
 		EffectiveBalanceIncrement:      1e9,
 
 		HysteresisQuotient:           4,

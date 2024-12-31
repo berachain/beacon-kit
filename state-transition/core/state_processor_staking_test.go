@@ -47,7 +47,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	var (
 		maxBalance       = math.Gwei(cs.MaxEffectiveBalance(false))
 		increment        = math.Gwei(cs.EffectiveBalanceIncrement())
-		minBalance       = math.Gwei(cs.EjectionBalance())
+		minBalance       = math.Gwei(cs.EjectionBalance(false))
 		emptyCredentials = types.NewCredentialsFromExecutionAddress(
 			common.ExecutionAddress{},
 		)
@@ -196,7 +196,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 	var (
 		maxBalance       = math.Gwei(cs.MaxEffectiveBalance(false))
 		increment        = math.Gwei(cs.EffectiveBalanceIncrement())
-		minBalance       = math.Gwei(cs.EjectionBalance())
+		minBalance       = math.Gwei(cs.EjectionBalance(false))
 		emptyAddress     = common.ExecutionAddress{}
 		emptyCredentials = types.NewCredentialsFromExecutionAddress(
 			emptyAddress,
@@ -621,7 +621,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 
 	var (
 		maxBalance      = math.Gwei(cs.MaxEffectiveBalance(false))
-		ejectionBalance = math.Gwei(cs.EjectionBalance())
+		ejectionBalance = math.Gwei(cs.EjectionBalance(false))
 		minBalance      = ejectionBalance + math.Gwei(
 			cs.EffectiveBalanceIncrement(),
 		)
@@ -849,7 +849,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 
 	var (
 		maxBalance      = math.Gwei(cs.MaxEffectiveBalance(false))
-		ejectionBalance = math.Gwei(cs.EjectionBalance())
+		ejectionBalance = math.Gwei(cs.EjectionBalance(false))
 		minBalance      = ejectionBalance + math.Gwei(
 			cs.EffectiveBalanceIncrement(),
 		)

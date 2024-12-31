@@ -61,5 +61,10 @@ func BoonetChainSpec() (chain.Spec[
 	//nolint:mnd // ok.
 	boonetSpec.MaxEffectiveBalancePostUpgrade = 5_000_000 * 1e9
 
+	// Ejection balance is 250 thousand BERA after the boonet upgrade.
+	//
+	//nolint:mnd // ok.
+	boonetSpec.EjectionBalancePostUpgrade = 250_000 * 1e9
+
 	return chain.NewChainSpec(boonetSpec)
 }

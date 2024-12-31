@@ -39,8 +39,12 @@ type SpecData[
 	// MaxEffectiveBalancePostUpgrade is the maximum effective balance allowed
 	// for a validator after the upgrade.
 	MaxEffectiveBalancePostUpgrade uint64 `mapstructure:"max-effective-balance-post-upgrade"`
-	// EjectionBalance is the balance at which a validator is ejected.
-	EjectionBalance uint64 `mapstructure:"ejection-balance"`
+	// EjectionBalancePreUpgrade is the balance at which a validator is ejected
+	// before the upgrade.
+	EjectionBalancePreUpgrade uint64 `mapstructure:"ejection-balance-pre-upgrade"`
+	// EjectionBalancePostUpgrade is the balance at which a validator is ejected
+	// after the upgrade.
+	EjectionBalancePostUpgrade uint64 `mapstructure:"ejection-balance-post-upgrade"`
 	// EffectiveBalanceIncrement is the effective balance increment.
 	EffectiveBalanceIncrement uint64 `mapstructure:"effective-balance-increment"`
 

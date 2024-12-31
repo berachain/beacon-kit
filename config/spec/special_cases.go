@@ -35,4 +35,6 @@ const (
 	BoonetFork2Height uint64 = 1722000
 
 	BoonetFork3Height uint64 = 2230000
+
+	BoonetFork4Height uint64 = 3982000
 )

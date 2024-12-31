@@ -25,9 +25,9 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-// IsPostFork2 returns true if the chain is post-upgrade (Fork2 on Boonet).
-//
 // TODO: Jank. Refactor into better fork version management.
+
+// IsPostFork2 returns true if the chain is post-upgrade (Fork2 on Boonet).
 func IsPostFork2(chainID uint64, slot math.Slot) bool {
 	switch chainID {
 	case spec.BartioChainID:
@@ -44,14 +44,28 @@ func IsPostFork2(chainID uint64, slot math.Slot) bool {
 }
 
 // IsPostFork3 returns true if the chain is post-upgrade (Fork3 on Boonet).
-//
-// TODO: Jank. Refactor into better fork version management.
 func IsPostFork3(chainID uint64, slot math.Slot) bool {
 	switch chainID {
 	case spec.BartioChainID:
 		return false
 	case spec.BoonetEth1ChainID:
 		if slot < math.U64(spec.BoonetFork3Height) {
+			return false
+		}
+
+		return true
+	default:
+		return true
+	}
+}
+
+// IsPostFork4 returns true if the chain is post-upgrade (Fork4 on Boonet).
+func IsPostFork4(chainID uint64, slot math.Slot) bool {
+	switch chainID {
+	case spec.BartioChainID:
+		return false
+	case spec.BoonetEth1ChainID:
+		if slot < math.U64(spec.BoonetFork4Height) {
 			return false
 		}
 
