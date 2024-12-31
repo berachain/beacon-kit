@@ -75,7 +75,7 @@ func GetGenesisValidatorRootCmd(cs common.ChainSpec) *cobra.Command {
 					deposit.Pubkey,
 					types.WithdrawalCredentials(deposit.Credentials),
 					deposit.Amount,
-					math.Gwei(cs.EffectiveBalanceIncrement()),
+					math.Gwei(cs.EffectiveBalanceIncrement(false)),
 					math.Gwei(cs.MaxEffectiveBalance(false)),
 				)
 			}

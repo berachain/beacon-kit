@@ -489,8 +489,14 @@ func (sp *StateProcessor[
 	}
 
 	var (
-		hysteresisIncrement = sp.cs.EffectiveBalanceIncrement() / sp.cs.HysteresisQuotient()
-		downwardThreshold   = math.Gwei(
+		isPostFork4 = state.IsPostFork4(
+			sp.cs.DepositEth1ChainID(),
+			slot,
+		)
+		hysteresisIncrement = sp.cs.EffectiveBalanceIncrement(
+			isPostFork4,
+		) / sp.cs.HysteresisQuotient()
+		downwardThreshold = math.Gwei(
 			hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier(),
 		)
 		upwardThreshold = math.Gwei(
@@ -516,7 +522,7 @@ func (sp *StateProcessor[
 			val.GetEffectiveBalance()+upwardThreshold < balance {
 			updatedBalance := ctypes.ComputeEffectiveBalance(
 				balance,
-				math.U64(sp.cs.EffectiveBalanceIncrement()),
+				math.U64(sp.cs.EffectiveBalanceIncrement(isPostFork4)),
 				math.U64(sp.cs.MaxEffectiveBalance(
 					state.IsPostFork3(sp.cs.DepositEth1ChainID(), slot),
 				)),

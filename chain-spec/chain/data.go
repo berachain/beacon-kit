@@ -39,10 +39,18 @@ type SpecData[
 	// MaxEffectiveBalancePostUpgrade is the maximum effective balance allowed
 	// for a validator after the upgrade.
 	MaxEffectiveBalancePostUpgrade uint64 `mapstructure:"max-effective-balance-post-upgrade"`
-	// EjectionBalance is the balance at which a validator is ejected.
-	EjectionBalance uint64 `mapstructure:"ejection-balance"`
-	// EffectiveBalanceIncrement is the effective balance increment.
-	EffectiveBalanceIncrement uint64 `mapstructure:"effective-balance-increment"`
+	// EjectionBalancePreUpgrade is the balance at which a validator is ejected
+	// before the upgrade.
+	EjectionBalancePreUpgrade uint64 `mapstructure:"ejection-balance-pre-upgrade"`
+	// EjectionBalancePostUpgrade is the balance at which a validator is ejected
+	// after the upgrade.
+	EjectionBalancePostUpgrade uint64 `mapstructure:"ejection-balance-post-upgrade"`
+	// EffectiveBalanceIncrementPreUpgrade is the effective balance increment
+	// before the upgrade.
+	EffectiveBalanceIncrementPreUpgrade uint64 `mapstructure:"effective-balance-increment-pre-upgrade"`
+	// EffectiveBalanceIncrementPostUpgrade is the effective balance increment
+	// after the upgrade.
+	EffectiveBalanceIncrementPostUpgrade uint64 `mapstructure:"effective-balance-increment-post-upgrade"`
 
 	// HysteresisQuotient is the quotient used in effective balance calculations
 	HysteresisQuotient uint64 `mapstructure:"hysteresis-quotient"`

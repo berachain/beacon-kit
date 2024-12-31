@@ -139,7 +139,7 @@ func (sp *StateProcessor[
 
 		updatedBalance := types.ComputeEffectiveBalance(
 			val.GetEffectiveBalance()+dep.GetAmount(),
-			math.Gwei(sp.cs.EffectiveBalanceIncrement()),
+			math.Gwei(sp.cs.EffectiveBalanceIncrement(false)),
 			math.Gwei(sp.cs.MaxEffectiveBalance(false)),
 		)
 		val.SetEffectiveBalance(updatedBalance)
@@ -234,7 +234,9 @@ func (sp *StateProcessor[
 		dep.GetPubkey(),
 		dep.GetWithdrawalCredentials(),
 		dep.GetAmount(),
-		math.Gwei(sp.cs.EffectiveBalanceIncrement()),
+		math.Gwei(sp.cs.EffectiveBalanceIncrement(
+			state.IsPostFork4(sp.cs.DepositEth1ChainID(), slot),
+		)),
 		math.Gwei(sp.cs.MaxEffectiveBalance(
 			state.IsPostFork3(sp.cs.DepositEth1ChainID(), slot),
 		)),

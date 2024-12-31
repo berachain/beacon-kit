@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	"github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/sourcegraph/conc/iter"
 )
 
@@ -62,8 +63,13 @@ func (sp *StateProcessor[
 	currEpoch := sp.cs.SlotToEpoch(slot)
 	nextEpoch := currEpoch + 1
 
+	isPostUpgrade := state.IsPostFork4(sp.cs.DepositEth1ChainID(), slot)
 	minEffectiveBalance := math.Gwei(
-		sp.cs.EjectionBalance() + sp.cs.EffectiveBalanceIncrement(),
+		sp.cs.EjectionBalance(
+			isPostUpgrade,
+		) + sp.cs.EffectiveBalanceIncrement(
+			isPostUpgrade,
+		),
 	)
 
 	// We do not currently have a cap on validator churn,
@@ -255,13 +261,19 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
+	ejectionBalance := math.U64(
+		sp.cs.EjectionBalance(
+			state.IsPostFork4(sp.cs.DepositEth1ChainID(), slot),
+		),
+	)
+
 	activeVals := make([]ValidatorT, 0, len(vals))
 	switch {
 	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
 		// Bartio does not properly handle validators epochs, so
 		// we have an ad-hoc definition of active validator there
 		for _, val := range vals {
-			if val.GetEffectiveBalance() > math.U64(sp.cs.EjectionBalance()) {
+			if val.GetEffectiveBalance() > ejectionBalance {
 				activeVals = append(activeVals, val)
 			}
 		}
@@ -269,7 +281,7 @@ func (sp *StateProcessor[
 		slot < math.U64(spec.BoonetFork3Height):
 		// Boonet inherits Bartio processing till fork 3
 		for _, val := range vals {
-			if val.GetEffectiveBalance() > math.U64(sp.cs.EjectionBalance()) {
+			if val.GetEffectiveBalance() > ejectionBalance {
 				activeVals = append(activeVals, val)
 			}
 		}
