@@ -63,9 +63,9 @@ func (sp *StateProcessor[
 	currEpoch := sp.cs.SlotToEpoch(slot)
 	nextEpoch := currEpoch + 1
 
+	isPostUpgrade := state.IsPostFork4(sp.cs.DepositEth1ChainID(), slot)
 	minEffectiveBalance := math.Gwei(
-		sp.cs.EjectionBalance(state.IsPostFork4(sp.cs.DepositEth1ChainID(), slot)) +
-			sp.cs.EffectiveBalanceIncrement(),
+		sp.cs.EjectionBalance(isPostUpgrade) + sp.cs.EffectiveBalanceIncrement(isPostUpgrade),
 	)
 
 	// We do not currently have a cap on validator churn,

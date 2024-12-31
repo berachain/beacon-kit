@@ -52,19 +52,24 @@ func BoonetChainSpec() (chain.Spec[
 
 	// MaxValidatorsPerWithdrawalsSweep is 43 because we expect at least 46
 	// validators in the total validators set. We choose a prime number smaller
-	// than the minimum amount of total validators possible.
+	// than the minimum amount of total validators possible. Effective post boonet
+	// fork 2.
 	boonetSpec.MaxValidatorsPerWithdrawalsSweepPostUpgrade = 43
 
-	// MaxEffectiveBalancePostUpgrade is 5 million BERA after the boonet
-	// upgrade.
+	// MaxEffectiveBalancePostUpgrade is 5 million BERA after boonet fork 3.
 	//
 	//nolint:mnd // ok.
 	boonetSpec.MaxEffectiveBalancePostUpgrade = 5_000_000 * 1e9
 
-	// Ejection balance is 250 thousand BERA after the boonet upgrade.
+	// Ejection balance is 250 thousand BERA after boonet fork 4.
 	//
 	//nolint:mnd // ok.
 	boonetSpec.EjectionBalancePostUpgrade = 250_000 * 1e9
+
+	// Effective balance increment is 10 thousand BERA after boonet fork 4.
+	//
+	//nolint:mnd // ok.
+	boonetSpec.EffectiveBalanceIncrementPostUpgrade = 10_000 * 1e9
 
 	return chain.NewChainSpec(boonetSpec)
 }

@@ -39,7 +39,7 @@ func TestInitialize(t *testing.T) {
 
 	var (
 		maxBalance = math.Gwei(cs.MaxEffectiveBalance(false))
-		increment  = math.Gwei(cs.EffectiveBalanceIncrement())
+		increment  = math.Gwei(cs.EffectiveBalanceIncrement(false))
 		minBalance = math.Gwei(cs.EjectionBalance(false))
 	)
 
@@ -194,7 +194,7 @@ func TestInitializeBartio(t *testing.T) {
 
 	var (
 		maxBalance = math.Gwei(cs.MaxEffectiveBalance(false))
-		increment  = math.Gwei(cs.EffectiveBalanceIncrement())
+		increment  = math.Gwei(cs.EffectiveBalanceIncrement(false))
 		minBalance = math.Gwei(cs.EjectionBalance(false))
 	)
 
@@ -367,7 +367,7 @@ func commonChecksValidators(
 
 	var (
 		maxBalance = math.Gwei(cs.MaxEffectiveBalance(false))
-		increment  = math.Gwei(cs.EffectiveBalanceIncrement())
+		increment  = math.Gwei(cs.EffectiveBalanceIncrement(false))
 		minBalance = math.Gwei(cs.EjectionBalance(false))
 	)
 	switch {

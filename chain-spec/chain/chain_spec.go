@@ -43,7 +43,7 @@ type Spec[
 
 	// EffectiveBalanceIncrement returns the increment of balance used in reward
 	// calculations.
-	EffectiveBalanceIncrement() uint64
+	EffectiveBalanceIncrement(isPostUpgrade bool) uint64
 
 	// HysteresisQuotient returns the quotient used in effective balance
 	// calculations to create hysteresis. This provides resistance to small
@@ -296,8 +296,12 @@ func (c chainSpec[
 // EffectiveBalanceIncrement returns the increment of effective balance.
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) EffectiveBalanceIncrement() uint64 {
-	return c.Data.EffectiveBalanceIncrement
+]) EffectiveBalanceIncrement(isPostUpgrade bool) uint64 {
+	if isPostUpgrade {
+		return c.Data.EffectiveBalanceIncrementPostUpgrade
+	}
+
+	return c.Data.EffectiveBalanceIncrementPreUpgrade
 }
 
 func (c chainSpec[
