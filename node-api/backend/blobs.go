@@ -30,7 +30,6 @@ import (
 // data availability store for all sidecars for a slot, returning only those
 // sidecars specified by the indices, or all sidecars if left unspecified.
 func (b *Backend) BlobSidecarsByIndices(slot math.Slot, indices []uint64) ([]*apitypes.Sidecar, error) {
-
 	currentSlot := b.node.LastBlockHeight()
 	if currentSlot < 0 {
 		return nil, errors.New("invalid negative block height")
