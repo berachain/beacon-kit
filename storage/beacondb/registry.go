@@ -211,7 +211,7 @@ func (kv *KVStore) GetBalances() ([]uint64, error) {
 
 // GetTotalActiveBalances returns the total active balances of all validatorkv.
 // TODO: unhood this and probably store this as just a value changed on writekv.
-// TODO: this shouldn't live in KVStore
+// TODO: this shouldn't live in KVStore.
 func (kv *KVStore) GetTotalActiveBalances(
 	slotsPerEpoch uint64,
 ) (math.Gwei, error) {
