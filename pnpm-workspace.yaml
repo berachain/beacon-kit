@@ -1,0 +1,15 @@
+packages:
+  - packages/config/*
+  - packages/b-sdk
+  - packages/graphql
+  - packages/berajs
+  - packages/wagmi
+  - packages/proto
+  - packages/ui
+  - packages/shared-ui
+  - apps/hub
+  - apps/honey
+  - apps/lend
+  - apps/perp
+  - apps/berajs-docs
+  - apps/storybook
