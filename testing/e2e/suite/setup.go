@@ -208,6 +208,8 @@ func (s *KurtosisE2ESuite) SetupJSONRPCBalancer() error {
 }
 
 // FundAccounts funds the accounts for the test suite.
+//
+//nolint:funlen
 func (s *KurtosisE2ESuite) FundAccounts() {
 	ctx := context.Background()
 	nonce := atomic.Uint64{}

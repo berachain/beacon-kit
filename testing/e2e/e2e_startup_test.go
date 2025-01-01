@@ -51,7 +51,7 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 
 	// Check over the next 10 EVM blocks, that after every block, the balance
 	// of the EVM inflation address increases by DevnetEVMInflationPerBlock.
-	for i := int64(0); i <= 10; i++ {
+	for i := range int64(10) {
 		err := s.WaitForFinalizedBlockNumber(uint64(i))
 		s.Require().NoError(err)
 

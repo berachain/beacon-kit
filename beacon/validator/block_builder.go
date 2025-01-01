@@ -40,6 +40,8 @@ import (
 )
 
 // BuildBlockAndSidecars builds a new beacon block.
+//
+//nolint:funlen
 func (s *Service) BuildBlockAndSidecars(
 	ctx context.Context,
 	slotData *types.SlotData,

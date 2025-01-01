@@ -264,7 +264,7 @@ func TestB96_HashTreeRoot(t *testing.T) {
 func BenchmarkB96_MarshalJSON(b *testing.B) {
 	data := bytes.B96{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		_, err := json.Marshal(data)
 		require.NoError(b, err)
 	}
@@ -277,7 +277,7 @@ func BenchmarkB96_UnmarshalJSON(b *testing.B) {
 	)
 	var data bytes.B96
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		err := data.UnmarshalJSON(jsonData)
 		require.NoError(b, err)
 	}
