@@ -1,6 +1,9 @@
-[submodule "contracts/lib/solady"]
-	path = contracts/lib/solady
-	url = https://github.com/Vectorized/solady
-[submodule "contracts/lib/forge-std"]
-	path = contracts/lib/forge-std
-	url = https://github.com/foundry-rs/forge-std
+[submodule "packages/graphql/submodules/berachain-subgraph"]
+	path = packages/graphql/submodules/berachain-subgraph
+	url = https://github.com/berachain/berachain-subgraph.git
+[submodule "packages/b-sdk"]
+	path = packages/b-sdk
+	url = https://github.com/berachain/berancer-sdk.git
+[submodule "secrets"]
+	path = secrets
+	url = git@github.com:berachain/internal-dapps-env.git

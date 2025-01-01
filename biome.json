@@ -1,0 +1,85 @@
+{
+  "$schema": "https://biomejs.dev/schemas/1.5.3/schema.json",
+  "files": {
+    "ignore": [
+      ".dist/",
+      ".turbo/",
+      "**/node_modules/**",
+      "proto/",
+      "**/dist/**",
+      "**/tailwind/**",
+      ".next",
+      "**/next/**",
+      "b-sdk/*",
+      "./packages/b-sdk/*",
+      "./packages/b-sdk/biome.json",
+      "./apps/perp/public/static/**/*",
+      "**/public/**",
+      "ui/",
+      ".vscode",
+      "tsconfig.apps.base.json",
+      "out",
+      "**/types/*.d.ts",
+      "storybook-static/**"
+    ]
+  },
+  "organizeImports": {
+    "enabled": false
+  },
+  "formatter": {
+    "enabled": true,
+    "formatWithErrors": false,
+    "indentStyle": "space",
+    "indentWidth": 2
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double"
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "suspicious": {
+        "noExplicitAny": "off",
+        "noArrayIndexKey": "off",
+        "noRedeclare": "off",
+        "noAssignInExpressions": "off",
+        "noImplicitAnyLet": "off"
+      },
+      "correctness": {
+        "useExhaustiveDependencies": "off"
+      },
+      "style": {
+        "noNonNullAssertion": "off",
+        "noCommaOperator": "off"
+      },
+      "a11y": {
+        "useKeyWithClickEvents": "off",
+        "noSvgWithoutTitle": "off"
+      },
+      "complexity": {
+        "noForEach": "off"
+      },
+      "security": {
+        "noDangerouslySetInnerHtml": "off"
+      },
+      "performance": {
+        "noAccumulatingSpread": "off"
+      },
+      "recommended": true
+    }
+  },
+  "overrides": [
+    {
+      "include": ["./packages/b-sdk/**/*"],
+
+      "formatter": {
+        "enabled": true,
+        "indentStyle": "space",
+        "indentWidth": 4,
+        "lineWidth": 80
+      }
+    }
+  ]
+}

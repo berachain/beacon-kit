@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "checkJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    // "noUncheckedIndexedAccess": true,
+    // "sourceMap": true
+  },
+  "exclude": ["**/auth/*"],
+  "include": [
+    "src",
+    "index.ts",
+    "transformer.ts",
+    ".eslintrc.js",
+    ".prettierrc.js"
+  ]
+}

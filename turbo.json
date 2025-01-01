@@ -1,0 +1,38 @@
+{
+  "$schema": "https://turborepo.org/schema.json",
+  "globalDependencies": [".env", "./secrets/**"],
+  "pipeline": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [
+        "dist/**",
+        ".next/**",
+        "!.next/cache/**",
+        "storybook-static/**"
+      ]
+    },
+
+    "start": {
+      "persistent": true,
+      "cache": false
+    },
+    "lint": {},
+    "lint:fix": {},
+    "storybook": {},
+    "storybook:build": {},
+    "clean": {
+      "cache": false
+    },
+    "dev": {
+      "persistent": true,
+      "cache": false,
+      "env": [".env.bartio"]
+    },
+    "check-types": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "outputs": ["storybook-static/**"]
+    }
+  },
+  "globalEnv": ["CI", "NODE_ENV", "SKIP_ENV_VALIDATION", "VERCEL", "VERCEL_ENV"]
+}
