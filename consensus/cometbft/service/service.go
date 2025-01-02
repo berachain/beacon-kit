@@ -24,6 +24,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
@@ -91,6 +92,10 @@ type Service[
 	// on InitChain and FinalizeBlock and set to nil on Commit.
 	finalizeBlockState *state
 
+	// latestBlktime tracks latest finalized block time and helps setting
+	// NextBlockDelay once the block is finalized
+	latestBlktime time.Time
+
 	interBlockCache storetypes.MultiStorePersistentCache
 
 	// initialHeight is the initial height at which we start the node
@@ -125,6 +130,7 @@ func NewService[
 		BlockBuilder:       blockBuilder,
 		cmtConsensusParams: cmtConsensusParams,
 		cmtCfg:             cmtCfg,
+		latestBlktime:      time.Time{}, // will be init at genesis
 		telemetrySink:      telemetrySink,
 	}
 
