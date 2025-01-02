@@ -24,7 +24,6 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
-	"github.com/berachain/beacon-kit/primitives/crypto"
 )
 
 // BlobProcessor is the interface for the blobs processor.
@@ -39,10 +38,6 @@ type BlobProcessor interface {
 	VerifySidecars(
 		sidecars datypes.BlobSidecars,
 		blkHeader *ctypes.BeaconBlockHeader,
-		verifierFn func(
-			blkHeader *ctypes.BeaconBlockHeader,
-			signature crypto.BLSSignature,
-		) error,
 	) error
 }
 

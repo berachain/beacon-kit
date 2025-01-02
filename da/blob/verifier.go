@@ -30,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/da/kzg"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/errors"
-	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"golang.org/x/sync/errgroup"
@@ -65,10 +64,6 @@ func newVerifier(
 func (bv *verifier) verifySidecars(
 	sidecars datypes.BlobSidecars,
 	blkHeader *ctypes.BeaconBlockHeader,
-	verifierFn func(
-		blkHeader *ctypes.BeaconBlockHeader,
-		signature crypto.BLSSignature,
-	) error,
 ) error {
 	defer bv.metrics.measureVerifySidecarsDuration(
 		time.Now(), math.U64(len(sidecars)),
@@ -107,13 +102,6 @@ func (bv *verifier) verifySidecars(
 				return fmt.Errorf("unequal block header: idx: %d", i)
 			}
 
-			// Verify BeaconBlockHeader with signature
-			if err := verifierFn(
-				blkHeader,
-				sigHeader.GetSignature(),
-			); err != nil {
-				return err
-			}
 			return nil
 		})
 	}

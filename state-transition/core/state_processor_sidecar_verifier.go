@@ -28,8 +28,8 @@ import (
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-func (sp *StateProcessor[_]) GetSidecarVerifierFn(st *statedb.StateDB) (
-	func(blkHeader *ctypes.BeaconBlockHeader, signature crypto.BLSSignature) error,
+func (sp *StateProcessor[_]) GetSignatureVerifierFn(st *statedb.StateDB) (
+	func(blk *ctypes.BeaconBlock, signature crypto.BLSSignature) error,
 	error,
 ) {
 	slot, err := st.GetSlot()
@@ -51,16 +51,16 @@ func (sp *StateProcessor[_]) GetSidecarVerifierFn(st *statedb.StateDB) (
 	domain := fd.ComputeDomain(sp.cs.DomainTypeProposer())
 
 	return func(
-		blkHeader *ctypes.BeaconBlockHeader,
+		blk *ctypes.BeaconBlock,
 		signature crypto.BLSSignature,
 	) error {
 		//nolint:govet // shadow
-		proposer, err := st.ValidatorByIndex(blkHeader.GetProposerIndex())
+		proposer, err := st.ValidatorByIndex(blk.GetProposerIndex())
 		if err != nil {
 			return err
 		}
 		signingRoot := ctypes.ComputeSigningRoot(
-			blkHeader,
+			blk,
 			domain,
 		)
 		return sp.signer.VerifySignature(
