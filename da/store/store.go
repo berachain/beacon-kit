@@ -99,16 +99,15 @@ func (s *Store) Persist(
 	// Store each sidecar sequentially. The store's underlying RangeDB is not
 	// built to handle concurrent writes.
 	for _, sidecar := range sidecars {
-		sc := sidecar
-		if sc == nil {
+		if sidecar == nil {
 			return ErrAttemptedToStoreNilSidecar
 		}
-		bz, err := sc.MarshalSSZ()
+		bz, err := sidecar.MarshalSSZ()
 		if err != nil {
 			return err
 		}
-		slot = sc.GetSignedBeaconBlockHeader().GetHeader().GetSlot()
-		err = s.IndexDB.Set(slot.Unwrap(), sc.KzgCommitment[:], bz)
+		slot = sidecar.GetSignedBeaconBlockHeader().GetHeader().GetSlot()
+		err = s.IndexDB.Set(slot.Unwrap(), sidecar.KzgCommitment[:], bz)
 
 		if err != nil {
 			return err
