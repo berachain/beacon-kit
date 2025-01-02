@@ -92,9 +92,9 @@ type Service[
 	// on InitChain and FinalizeBlock and set to nil on Commit.
 	finalizeBlockState *state
 
-	// latestBlktime tracks latest finalized block time and helps setting
+	// prevBlktime tracks latest finalized block time and helps setting
 	// NextBlockDelay once the block is finalized
-	latestBlktime time.Time
+	prevBlktime time.Time
 
 	interBlockCache storetypes.MultiStorePersistentCache
 
@@ -130,7 +130,7 @@ func NewService[
 		BlockBuilder:       blockBuilder,
 		cmtConsensusParams: cmtConsensusParams,
 		cmtCfg:             cmtCfg,
-		latestBlktime:      time.Time{}, // will be init at genesis
+		prevBlktime:        time.Time{}, // will be init at genesis
 		telemetrySink:      telemetrySink,
 	}
 
