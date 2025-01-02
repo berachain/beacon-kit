@@ -101,18 +101,6 @@ func (s *Store) Persist(
 		return nil
 	}
 
-	// Check to see if we are required to store the sidecar anymore, if
-	// this sidecar is from outside the required DA period, we can skip it.
-	if !s.chainSpec.WithinDAPeriod(
-		// slot in which the sidecar was included.
-		// (Safe to assume all sidecars are in same slot at this point).
-		sidecars[0].SignedBeaconBlockHeader.Header.GetSlot(),
-		// current slot
-		slot,
-	) {
-		return nil
-	}
-
 	// Store each sidecar sequentially. The store's underlying RangeDB is not
 	// built to handle concurrent writes.
 	for _, sidecar := range sidecars {
