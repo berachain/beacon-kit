@@ -52,8 +52,8 @@ func (*BeaconBlock) Empty() *BeaconBlock {
 	return &BeaconBlock{}
 }
 
-// NewWithVersion assembles a new beacon block from the given.
-func (b *BeaconBlock) NewWithVersion(
+// NewBeaconBlockWithVersion assembles a new beacon block from the given.
+func NewBeaconBlockWithVersion(
 	slot math.Slot,
 	proposerIndex math.ValidatorIndex,
 	parentBlockRoot common.Root,
@@ -69,25 +69,10 @@ func (b *BeaconBlock) NewWithVersion(
 		}, nil
 	}
 
-	return nil, errors.Wrap(
+	err := errors.Wrap(
 		ErrForkVersionNotSupported,
 		fmt.Sprintf("fork %d", forkVersion),
 	)
-}
-
-// NewFromSSZ creates a new beacon block from the given SSZ bytes.
-func (b *BeaconBlock) NewFromSSZ(
-	bz []byte,
-	forkVersion uint32,
-) (*BeaconBlock, error) {
-	if forkVersion == version.Deneb {
-		block := &BeaconBlock{}
-		return block, block.UnmarshalSSZ(bz)
-	}
-
-	// assign err here to appease nilaway
-	err := errors.Wrap(ErrForkVersionNotSupported, fmt.Sprintf("fork %d", forkVersion))
-
 	return nil, err
 }
 

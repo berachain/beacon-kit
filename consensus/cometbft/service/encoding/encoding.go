@@ -32,7 +32,7 @@ func ExtractBlobsAndBlockFromRequest(
 	beaconBlkIndex uint,
 	blobSidecarsIndex uint,
 	forkVersion uint32,
-) (*ctypes.BeaconBlock, datypes.BlobSidecars, error) {
+) (*ctypes.SignedBeaconBlock, datypes.BlobSidecars, error) {
 	if req == nil {
 		return nil, nil, ErrNilABCIRequest
 	}
@@ -60,10 +60,10 @@ func UnmarshalBeaconBlockFromABCIRequest(
 	req ABCIRequest,
 	bzIndex uint,
 	forkVersion uint32,
-) (*ctypes.BeaconBlock, error) {
-	var blk *ctypes.BeaconBlock
+) (*ctypes.SignedBeaconBlock, error) {
+	var signedBlk *ctypes.SignedBeaconBlock
 	if req == nil {
-		return blk, ErrNilABCIRequest
+		return signedBlk, ErrNilABCIRequest
 	}
 
 	txs := req.GetTxs()
@@ -72,19 +72,19 @@ func UnmarshalBeaconBlockFromABCIRequest(
 	// Ensure there are transactions in the request and that the request is
 	// valid.
 	if txs == nil || lenTxs == 0 {
-		return blk, ErrNoBeaconBlockInRequest
+		return signedBlk, ErrNoBeaconBlockInRequest
 	}
 	if bzIndex >= lenTxs {
-		return blk, ErrBzIndexOutOfBounds
+		return signedBlk, ErrBzIndexOutOfBounds
 	}
 
 	// Extract the beacon block from the ABCI request.
 	blkBz := txs[bzIndex]
 	if blkBz == nil {
-		return blk, ErrNilBeaconBlockInRequest
+		return signedBlk, ErrNilBeaconBlockInRequest
 	}
 
-	return blk.NewFromSSZ(blkBz, forkVersion)
+	return ctypes.NewSignedBeaconBlockFromSSZ(blkBz, forkVersion)
 }
 
 // UnmarshalBlobSidecarsFromABCIRequest extracts blob sidecars from an ABCI

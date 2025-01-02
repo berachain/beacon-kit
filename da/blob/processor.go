@@ -29,7 +29,6 @@ import (
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
@@ -67,10 +66,6 @@ func NewProcessor(
 func (sp *Processor) VerifySidecars(
 	sidecars datypes.BlobSidecars,
 	blkHeader *ctypes.BeaconBlockHeader,
-	verifierFn func(
-		blkHeader *ctypes.BeaconBlockHeader,
-		signature crypto.BLSSignature,
-	) error,
 ) error {
 	defer sp.metrics.measureVerifySidecarsDuration(
 		time.Now(), math.U64(len(sidecars)),
@@ -85,7 +80,6 @@ func (sp *Processor) VerifySidecars(
 	return sp.verifier.verifySidecars(
 		sidecars,
 		blkHeader,
-		verifierFn,
 	)
 }
 

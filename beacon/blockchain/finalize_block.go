@@ -42,8 +42,8 @@ func (s *Service) FinalizeBlock(
 		finalizeErr error
 	)
 
-	// STEP 1: Decode blok and blobs
-	blk, blobs, err := encoding.
+	// STEP 1: Decode block and blobs
+	signedBlk, blobs, err := encoding.
 		ExtractBlobsAndBlockFromRequest(
 			req,
 			BeaconBlockTxIndex,
@@ -65,6 +65,10 @@ func (s *Service) FinalizeBlock(
 	}
 
 	// STEP 3: finalize the block
+	blk := signedBlk.GetMessage()
+	if blk == nil {
+		s.logger.Error("[BUG] SignedBeaconBlock contains nil BeaconBlock during FinalizeBlock")
+	}
 	consensusBlk := types.NewConsensusBlock(
 		blk,
 		req.GetProposerAddress(),
@@ -86,6 +90,7 @@ func (s *Service) FinalizeBlock(
 	s.depositFetcher(ctx, blockNum)
 
 	// store the finalized block in the KVStore.
+	// TODO: Store full SignedBeaconBlock with all data in storage
 	slot := blk.GetSlot()
 	if err = s.storageBackend.BlockStore().Set(blk); err != nil {
 		s.logger.Error(

@@ -77,26 +77,6 @@ func TestBeaconBlockForDeneb(t *testing.T) {
 	require.NotNil(t, block)
 }
 
-func TestBeaconBlockFromSSZ(t *testing.T) {
-	originalBlock := generateValidBeaconBlock()
-
-	sszBlock, err := originalBlock.MarshalSSZ()
-	require.NoError(t, err)
-	require.NotNil(t, sszBlock)
-
-	wrappedBlock := &types.BeaconBlock{}
-	wrappedBlock, err = wrappedBlock.NewFromSSZ(sszBlock, version.Deneb)
-	require.NoError(t, err)
-	require.NotNil(t, wrappedBlock)
-	require.Equal(t, originalBlock, wrappedBlock)
-}
-
-func TestBeaconBlockFromSSZForkVersionNotSupported(t *testing.T) {
-	wrappedBlock := &types.BeaconBlock{}
-	_, err := wrappedBlock.NewFromSSZ([]byte{}, 1)
-	require.ErrorIs(t, err, types.ErrForkVersionNotSupported)
-}
-
 func TestBeaconBlock(t *testing.T) {
 	block := generateValidBeaconBlock()
 
@@ -157,7 +137,7 @@ func TestNewWithVersion(t *testing.T) {
 	proposerIndex := math.ValidatorIndex(5)
 	parentBlockRoot := common.Root{1, 2, 3, 4, 5}
 
-	block, err := (&types.BeaconBlock{}).NewWithVersion(
+	block, err := types.NewBeaconBlockWithVersion(
 		slot, proposerIndex, parentBlockRoot, version.Deneb,
 	)
 	require.NoError(t, err)
@@ -176,7 +156,7 @@ func TestNewWithVersionInvalidForkVersion(t *testing.T) {
 	proposerIndex := math.ValidatorIndex(5)
 	parentBlockRoot := common.Root{1, 2, 3, 4, 5}
 
-	_, err := (&types.BeaconBlock{}).NewWithVersion(
+	_, err := types.NewBeaconBlockWithVersion(
 		slot,
 		proposerIndex,
 		parentBlockRoot,
