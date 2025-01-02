@@ -127,8 +127,8 @@ func extractConsensusParams(cmtCfg *cmtcfg.Config) (*cmttypes.ConsensusParams, e
 	return cmtConsensusParams, nil
 }
 
-func nextBlockDelay(latestBlkTime, currBlkTime time.Time) time.Duration {
-	expectedBlkTime := latestBlkTime.Add(targetBlockPeriod)
+func nextBlockDelay(prevBlktime, currBlkTime time.Time) time.Duration {
+	expectedBlkTime := prevBlktime.Add(targetBlockPeriod)
 	if currBlkTime.Before(expectedBlkTime) {
 		// block too fast, let's wait before issuing next
 		return expectedBlkTime.Sub(currBlkTime)
