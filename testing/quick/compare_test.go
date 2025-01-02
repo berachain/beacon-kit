@@ -44,6 +44,8 @@ func TestExecutionPayloadHashTreeRootZrnt(t *testing.T) {
 	t.Parallel()
 
 	f := func(payload *types.ExecutionPayload, logsBloom [256]byte) bool {
+		// skip these cases lest we trigger a
+		// nil-pointer dereference in fastssz
 		if payload == nil ||
 			payload.Withdrawals == nil ||
 			slices.Contains(payload.Withdrawals, nil) ||
@@ -94,6 +96,6 @@ func TestExecutionPayloadHashTreeRootZrnt(t *testing.T) {
 			bytes.Equal(typeRoot[:], zRoot[:])
 	}
 	if err := quick.Check(f, &c); err != nil {
-		t.Fatalf("Quick check failed: %v", err)
+		t.Error(err)
 	}
 }
