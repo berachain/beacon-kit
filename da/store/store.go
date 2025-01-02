@@ -93,14 +93,9 @@ func (s *Store) GetBlobSidecars(slot math.Slot) (types.BlobSidecars, error) {
 // Persist ensures the sidecar data remains accessible, utilizing parallel
 // processing for efficiency.
 func (s *Store) Persist(
-	slot math.Slot,
 	sidecars types.BlobSidecars,
 ) error {
-	// Exit early if there are no sidecars to store.
-	if sidecars.IsNil() || len(sidecars) == 0 {
-		return nil
-	}
-
+	var slot math.Slot
 	// Store each sidecar sequentially. The store's underlying RangeDB is not
 	// built to handle concurrent writes.
 	for _, sidecar := range sidecars {
@@ -112,6 +107,7 @@ func (s *Store) Persist(
 		if err != nil {
 			return err
 		}
+		slot = sc.GetSignedBeaconBlockHeader().GetHeader().GetSlot()
 		err = s.IndexDB.Set(slot.Unwrap(), sc.KzgCommitment[:], bz)
 
 		if err != nil {
@@ -119,6 +115,8 @@ func (s *Store) Persist(
 		}
 	}
 
+	// Slots should all be the same at this point. Just use the slot from the
+	// last sidecar.
 	s.logger.Info("Successfully stored all blob sidecars 🚗",
 		"slot", slot.Base10(), "num_sidecars", len(sidecars),
 	)
