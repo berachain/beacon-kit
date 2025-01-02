@@ -1,7 +1,7 @@
 {
   "app_name": "beacond",
-  "app_version": "v0.7.1",
-  "genesis_time": "2024-12-30T17:19:18.471467Z",
+  "app_version": "v0.7.2-3-g7363d657c",
+  "genesis_time": "2025-01-02T19:11:21.463788Z",
   "chain_id": "cartio-beacon-80000",
   "initial_height": 1,
   "app_hash": null,
@@ -69,7 +69,7 @@
   "consensus": {
     "params": {
       "block": {
-        "max_bytes": "4194304",
+        "max_bytes": "104857600",
         "max_gas": "10000000"
       },
       "evidence": {
@@ -86,12 +86,12 @@
         "app": "0"
       },
       "synchrony": {
-        "precision": "500000000",
-        "message_delay": "2000000000"
+        "precision": "505000000",
+        "message_delay": "15000000000"
       },
       "feature": {
         "vote_extensions_enable_height": "0",
-        "pbts_enable_height": "0"
+        "pbts_enable_height": "1"
       }
     }
   }
