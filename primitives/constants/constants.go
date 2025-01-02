@@ -23,4 +23,7 @@ package constants
 const (
 	// RootLength the length of a HashTreeRoot in bytes.
 	RootLength = 32
+
+	// SSZOffsetSize is the number of bytes that an SSZ Offset contains.
+	SSZOffsetSize = 4
 )

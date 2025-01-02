@@ -108,10 +108,8 @@ type BeaconState interface {
 type BlobFactory interface {
 	// BuildSidecars builds sidecars for a given block and blobs bundle.
 	BuildSidecars(
-		blk *ctypes.BeaconBlock,
+		signedBlk *ctypes.SignedBeaconBlock,
 		blobs ctypes.BlobsBundle,
-		signer crypto.BLSSigner,
-		forkData *ctypes.ForkData,
 	) (datypes.BlobSidecars, error)
 }
 

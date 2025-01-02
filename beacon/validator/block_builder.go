@@ -47,9 +47,10 @@ func (s *Service) BuildBlockAndSidecars(
 	slotData *types.SlotData,
 ) ([]byte, []byte, error) {
 	var (
-		blk      *ctypes.BeaconBlock
-		sidecars datypes.BlobSidecars
-		forkData *ctypes.ForkData
+		signedBlk *ctypes.SignedBeaconBlock
+		blk       *ctypes.BeaconBlock
+		sidecars  datypes.BlobSidecars
+		forkData  *ctypes.ForkData
 	)
 
 	startTime := time.Now()
@@ -101,9 +102,7 @@ func (s *Service) BuildBlockAndSidecars(
 
 	// We have to assemble the block body prior to producing the sidecars
 	// since we need to generate the inclusion proofs.
-	if err = s.buildBlockBody(
-		ctx, st, blk, reveal, envelope, slotData,
-	); err != nil {
+	if err = s.buildBlockBody(ctx, st, blk, reveal, envelope, slotData); err != nil {
 		return nil, nil, err
 	}
 
@@ -118,13 +117,14 @@ func (s *Service) BuildBlockAndSidecars(
 		return nil, nil, err
 	}
 
+	// Craft the signature and signed beacon block.
+	signedBlk, err = ctypes.NewSignedBeaconBlock(blk, forkData, s.chainSpec, s.signer)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	// Produce blob sidecars with new StateRoot
-	sidecars, err = s.blobFactory.BuildSidecars(
-		blk,
-		envelope.GetBlobsBundle(),
-		s.signer,
-		forkData,
-	)
+	sidecars, err = s.blobFactory.BuildSidecars(signedBlk, envelope.GetBlobsBundle())
 	if err != nil {
 		return nil, nil, err
 	}
@@ -136,7 +136,7 @@ func (s *Service) BuildBlockAndSidecars(
 		"duration", time.Since(startTime).String(),
 	)
 
-	blkBytes, bbErr := blk.MarshalSSZ()
+	signedBlkBytes, bbErr := signedBlk.MarshalSSZ()
 	if bbErr != nil {
 		return nil, nil, bbErr
 	}
@@ -145,21 +145,20 @@ func (s *Service) BuildBlockAndSidecars(
 		return nil, nil, scErr
 	}
 
-	return blkBytes, sidecarsBytes, nil
+	return signedBlkBytes, sidecarsBytes, nil
 }
 
 // getEmptyBeaconBlockForSlot creates a new empty block.
 func (s *Service) getEmptyBeaconBlockForSlot(
 	st *statedb.StateDB, requestedSlot math.Slot,
 ) (*ctypes.BeaconBlock, error) {
-	var blk *ctypes.BeaconBlock
 	// Create a new block.
 	parentBlockRoot, err := st.GetBlockRootAtIndex(
 		(requestedSlot.Unwrap() - 1) % s.chainSpec.SlotsPerHistoricalRoot(),
 	)
 
 	if err != nil {
-		return blk, err
+		return nil, err
 	}
 
 	// Get the proposer index for the slot.
@@ -167,10 +166,10 @@ func (s *Service) getEmptyBeaconBlockForSlot(
 		s.signer.PublicKey(),
 	)
 	if err != nil {
-		return blk, err
+		return nil, err
 	}
 
-	return blk.NewWithVersion(
+	return ctypes.NewBeaconBlockWithVersion(
 		requestedSlot,
 		proposerIndex,
 		parentBlockRoot,

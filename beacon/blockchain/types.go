@@ -160,9 +160,9 @@ type StateProcessor[
 		*statedb.StateDB,
 		*ctypes.BeaconBlock,
 	) (transition.ValidatorUpdates, error)
-	GetSidecarVerifierFn(*statedb.StateDB) (
+	GetSignatureVerifierFn(*statedb.StateDB) (
 		func(
-			blkHeader *ctypes.BeaconBlockHeader,
+			blk *ctypes.BeaconBlock,
 			signature crypto.BLSSignature) error,
 		error,
 	)

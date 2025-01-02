@@ -26,7 +26,6 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/merkle"
 	"golang.org/x/sync/errgroup"
@@ -53,10 +52,8 @@ func NewSidecarFactory(
 
 // BuildSidecars builds a sidecar.
 func (f *SidecarFactory) BuildSidecars(
-	blk *ctypes.BeaconBlock,
+	signedBlk *ctypes.SignedBeaconBlock,
 	bundle ctypes.BlobsBundle,
-	signer crypto.BLSSigner,
-	forkData *ctypes.ForkData,
 ) (types.BlobSidecars, error) {
 	var (
 		blobs       = bundle.GetBlobs()
@@ -64,10 +61,10 @@ func (f *SidecarFactory) BuildSidecars(
 		proofs      = bundle.GetProofs()
 		numBlobs    = uint64(len(blobs))
 		sidecars    = make([]*types.BlobSidecar, numBlobs)
+		blk         = signedBlk.GetMessage()
 		body        = blk.GetBody()
+		header      = blk.GetHeader()
 		g           = errgroup.Group{}
-		//nolint:errcheck // should be safe
-		header = any(blk.GetHeader()).(*ctypes.BeaconBlockHeader)
 	)
 
 	startTime := time.Now()
@@ -75,24 +72,10 @@ func (f *SidecarFactory) BuildSidecars(
 		startTime, math.U64(numBlobs),
 	)
 
-	// Contrary to the spec, we do not need to sign the full
-	// block, because the header embeds the body's hash tree root
-	// already. We just need a bond between the block signer (already
-	// tied to CometBFT's ProposerAddress) and the sidecars.
-
-	//nolint:errcheck // should be safe
-	domain := any(forkData).(*ctypes.ForkData).ComputeDomain(
-		f.chainSpec.DomainTypeProposer(),
-	)
-	signingRoot := ctypes.ComputeSigningRoot(
-		header,
-		domain,
-	)
-	signature, err := signer.Sign(signingRoot[:])
-	if err != nil {
-		return nil, err
-	}
-	sigHeader := ctypes.NewSignedBeaconBlockHeader(header, signature)
+	// We can reuse the signature from the SignedBeaconBlock. Verifying the
+	// signature will require the corresponding BeaconBlock to reconstruct the
+	// signing root.
+	sigHeader := ctypes.NewSignedBeaconBlockHeader(header, signedBlk.GetSignature())
 
 	// Calculate offsets
 	kzgPosition, err := ctypes.BlockBodyKZGPosition(
@@ -104,12 +87,11 @@ func (f *SidecarFactory) BuildSidecars(
 
 	for i := range numBlobs {
 		g.Go(func() error {
-			//nolint:govet // shadow
-			inclusionProof, err := f.BuildKZGInclusionProof(
+			inclusionProof, errProof := f.BuildKZGInclusionProof(
 				body, math.U64(i), kzgPosition,
 			)
-			if err != nil {
-				return err
+			if errProof != nil {
+				return errProof
 			}
 			sidecars[i] = types.BuildBlobSidecar(
 				math.U64(i),

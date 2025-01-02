@@ -185,10 +185,6 @@ type (
 		VerifySidecars(
 			sidecars datypes.BlobSidecars,
 			blkHeader *ctypes.BeaconBlockHeader,
-			verifierFn func(
-				blkHeader *ctypes.BeaconBlockHeader,
-				signature crypto.BLSSignature,
-			) error,
 		) error
 	}
 
@@ -373,8 +369,8 @@ type (
 			st *statedb.StateDB,
 			blk *ctypes.BeaconBlock,
 		) (transition.ValidatorUpdates, error)
-		GetSidecarVerifierFn(st *statedb.StateDB) (
-			func(blkHeader *ctypes.BeaconBlockHeader, signature crypto.BLSSignature) error,
+		GetSignatureVerifierFn(st *statedb.StateDB) (
+			func(blk *ctypes.BeaconBlock, signature crypto.BLSSignature) error,
 			error,
 		)
 	}
@@ -382,10 +378,8 @@ type (
 	SidecarFactory interface {
 		// BuildSidecars builds sidecars for a given block and blobs bundle.
 		BuildSidecars(
-			blk *ctypes.BeaconBlock,
+			signedBlk *ctypes.SignedBeaconBlock,
 			blobs ctypes.BlobsBundle,
-			signer crypto.BLSSigner,
-			forkData *ctypes.ForkData,
 		) (datypes.BlobSidecars, error)
 	}
 
