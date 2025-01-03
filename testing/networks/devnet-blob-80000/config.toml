@@ -264,7 +264,7 @@ external_address = ""
 seeds = ""
 
 # Comma separated list of nodes to keep persistent connections to
-persistent_peers = "eb7bc4bc2e30deda30f5718739a4f318a13ac0ac@devnet-blob-beacon-val-0-validator:26656,cab2fcb60f509ae161c0356be47259fde4d97007@devnet-blob-beacon-val-1-validator:26656,840ae2dc7265321d5ae8e02d1226aaa2efb448ea@devnet-blob-beacon-val-2-validator:26656,ab036b97253ad2236a7b62ee9208fe0d81be6cb3@devnet-blob-beacon-val-3-validator:26656,53f7580b8fbdd803364ef6fa92b4c6e5d99d90ad@devnet-blob-beacon-val-4-validator:26656"
+persistent_peers = ""
 
 # Path to address book
 addr_book_file = "config/addrbook.json"
@@ -310,7 +310,7 @@ seed_mode = false
 private_peer_ids = ""
 
 # Toggle to disable guard against peers connecting from the same ip.
-allow_duplicate_ip = true
+allow_duplicate_ip = false
 
 # Peer connection configuration.
 handshake_timeout = "20s"
@@ -336,7 +336,7 @@ type = "nop"
 # Since a block affects the application state, some transactions in the
 # mempool may become invalid. If this does not apply to your application,
 # you can disable rechecking.
-recheck = true
+recheck = false
 
 # recheck_timeout is the time the application has during the rechecking process
 # to return CheckTx responses, once all requests have been sent. Responses that

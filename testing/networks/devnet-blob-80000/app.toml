@@ -5,24 +5,15 @@
 ###                           Base Configuration                            ###
 ###############################################################################
 
-# The minimum gas prices a validator is willing to accept for processing a
-# transaction. A transaction's fees must meet the minimum of any denomination
-# specified in this config (e.g. 0.25token1;0.0001token2).
-minimum-gas-prices = "0stake"
-
-# The maximum gas a query coming over rest/grpc may consume.
-# If this is set to zero, the query can consume an unbounded amount of gas.
-query-gas-limit = "0"
-
 # default: the last 362880 states are kept, pruning at 10 block intervals
 # nothing: all historic states will be saved, nothing will be deleted (i.e. archiving node)
 # everything: 2 latest states will be kept; pruning at 10 block intervals.
 # custom: allow pruning options to be manually specified through 'pruning-keep-recent', and 'pruning-interval'
-pruning = "nothing"
+pruning = "everything"
 
 # These are applied if and only if the pruning strategy is custom.
-pruning-keep-recent = "1000"
-pruning-interval = "100"
+pruning-keep-recent = "0"
+pruning-interval = "0"
 
 # HaltHeight contains a non-zero block height at which a node will gracefully
 # halt and shutdown that can be used to assist upgrades and testing.
@@ -90,13 +81,13 @@ service-name = "beacond_node"
 enabled = true
 
 # Enable prefixing gauge values with hostname.
-enable-hostname = true
+enable-hostname = false
 
 # Enable adding hostname to labels.
-enable-hostname-label = true
+enable-hostname-label = false
 
 # Enable adding service to labels.
-enable-service-label = true
+enable-service-label = false
 
 # PrometheusRetentionTime, when positive, enables a Prometheus metrics sink.
 prometheus-retention-time = 60
@@ -117,7 +108,7 @@ statsd-addr = ""
 
 # DatadogHostname defines the hostname to use when emitting metrics to
 # Datadog. Only utilized if MetricsSink is set to "dogstatsd".
-datadog-hostname = "my_beacond_node"
+datadog-hostname = ""
 
 ###############################################################################
 ###                                BeaconKit                                ###
@@ -131,7 +122,7 @@ rpc-dial-url = "http://devnet-blob-eth-val-1:8551"
 rpc-retries = "3"
 
 # RPC timeout for execution client requests.
-rpc-timeout = "2s"
+rpc-timeout = "900ms"
 
 # Interval for the startup check.
 rpc-startup-check-interval = "3s"
@@ -140,7 +131,7 @@ rpc-startup-check-interval = "3s"
 rpc-jwt-refresh-interval = "30s"
 
 # Path to the execution client JWT-secret
-jwt-secret-path = "/root/app/jwt.he"
+jwt-secret-path = "/root/app/jwt.hex"
 
 [beacon-kit.logger]
 # TimeFormat is a string that defines the format of the time in the logger.
@@ -167,7 +158,7 @@ enabled = true
 
 # Post bellatrix, this address will receive the transaction fees produced by any blocks
 # from this node.
-suggested-fee-recipient = "0xd3Ae0e18e61CF9469b2d182f290bD16faF64E91D"
+suggested-fee-recipient = "0x0000000000000000000000000000000000000000"
 
 # The timeout for local build payload. This should match, or be slightly less
 # than the configured timeout on your execution client. It also must be less than
