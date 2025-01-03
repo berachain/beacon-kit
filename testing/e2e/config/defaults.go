@@ -169,15 +169,15 @@ func defaultConsensusSettings() ConsensusSettings {
 			"beaconkit": "beacond:kurtosis-local",
 		},
 		Config: ConsensusConfig{
-			TimeoutPropose:      "3s",
+			TimeoutPropose:      "1s",
 			TimeoutPrevote:      "1s",
 			TimeoutPrecommit:    "1s",
-			TimeoutCommit:       "3s",
+			TimeoutCommit:       "0s",
 			MaxNumInboundPeers:  40, //nolint:mnd // 40 inbound peers
 			MaxNumOutboundPeers: 10, //nolint:mnd // 10 outbound peers
 		},
 		AppConfig: AppConfig{
-			PayloadTimeout:                "1.5s",
+			PayloadTimeout:                "0.85s",
 			EnableOptimisticPayloadBuilds: false,
 		},
 	}
