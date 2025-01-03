@@ -29,9 +29,17 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/storage/filedb"
 	"github.com/stretchr/testify/require"
 )
+
+func setSlot(scs datypes.BlobSidecars, slot math.Slot) {
+	for _, sc := range scs {
+		hdr := sc.GetSignedBeaconBlockHeader().GetHeader()
+		hdr.SetSlot(slot)
+	}
+}
 
 func TestStore_PersistRace(t *testing.T) {
 	// This test case needs to be run with the '-race' flag
@@ -70,14 +78,17 @@ func TestStore_PersistRace(t *testing.T) {
 	var sidecars datypes.BlobSidecars = sc
 
 	// Multiple writes to DB
-	err = s.Persist(0, sidecars)
+	setSlot(sidecars, 0)
+	err = s.Persist(sidecars)
 	require.NoError(t, err)
-	err = s.Persist(1, sidecars)
+	setSlot(sidecars, 1)
+	err = s.Persist(sidecars)
 	require.NoError(t, err)
 
 	// Pruning here primes the race condition for db.firstNonNilIndex
 	err = s.Prune(0, 1)
 	require.NoError(t, err)
-	err = s.Persist(0, sidecars)
+	setSlot(sidecars, 0)
+	err = s.Persist(sidecars)
 	require.NoError(t, err)
 }

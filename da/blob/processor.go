@@ -99,8 +99,5 @@ func (sp *Processor) ProcessSidecars(
 
 	// If we have reached this point, we can safely assume that the blobs are
 	// valid and can be persisted, as well as that index 0 is filled.
-	return avs.Persist(
-		sidecars[0].GetSignedBeaconBlockHeader().GetHeader().GetSlot(),
-		sidecars,
-	)
+	return avs.Persist(sidecars)
 }
