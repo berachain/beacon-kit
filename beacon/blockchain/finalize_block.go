@@ -45,7 +45,7 @@ func (s *Service[
 		finalizeErr error
 	)
 
-	// STEP 1: Decode blok and blobs
+	// STEP 1: Decode block and blobs
 	blk, blobs, err := encoding.
 		ExtractBlobsAndBlockFromRequest(
 			req,
