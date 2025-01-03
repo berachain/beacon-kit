@@ -12,7 +12,7 @@ We list below a few relevant facts.
 
 ## `Balance` and `EffectiveBalance`
 
-BeaconKit distingishes a validator `Balance` and a validator `EffectiveBalance`.
+BeaconKit distinguishes a validator `Balance` and a validator `EffectiveBalance`.
 
 - `Balance` is updated slot by slot, when a deposit in made over the deposit contract and events are subsequently processed by BeaconKit.
 - `Balance` can increase only in multiples of `MinDepositAmount`, which is specified in the deposit contract. There is no cap on the `Balance`.
