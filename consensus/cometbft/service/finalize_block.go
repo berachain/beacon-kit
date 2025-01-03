@@ -36,8 +36,8 @@ func (s *Service[LoggerT]) finalizeBlock(
 	if res != nil {
 		res.AppHash = s.workingHash()
 
-		res.NextBlockDelay = nextBlockDelay(s.prevBlktime, req.Time)
-		s.prevBlktime = req.Time
+		res.NextBlockDelay = nextBlockDelay(s.prevBlkTime, req.Time)
+		s.prevBlkTime = req.Time
 	}
 
 	return res, err

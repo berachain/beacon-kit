@@ -92,9 +92,12 @@ type Service[
 	// on InitChain and FinalizeBlock and set to nil on Commit.
 	finalizeBlockState *state
 
-	// prevBlktime tracks latest finalized block time and helps setting
+	// prevBlkTime tracks latest finalized block time and helps setting
 	// NextBlockDelay once the block is finalized
-	prevBlktime time.Time
+	// Note: for the time being we don't store prevBlkTime for each block
+	// so it will be set to zero if the node is restored. This seems a
+	// benign edge case which should be fixed anyhow.
+	prevBlkTime time.Time
 
 	interBlockCache storetypes.MultiStorePersistentCache
 
@@ -130,7 +133,7 @@ func NewService[
 		BlockBuilder:       blockBuilder,
 		cmtConsensusParams: cmtConsensusParams,
 		cmtCfg:             cmtCfg,
-		prevBlktime:        time.Time{}, // will be init at genesis
+		prevBlkTime:        time.Time{}, // will be init at genesis
 		telemetrySink:      telemetrySink,
 	}
 
