@@ -184,7 +184,7 @@ func defaultConsensusSettings() ConsensusSettings {
 		Config: ConsensusConfig{
 			TimeoutPropose:      consensus.TimeoutPropose.String(),
 			TimeoutPrevote:      consensus.TimeoutPrevote.String(),
-			TimeoutPrecommit:    consensus.TimeoutCommit.String(),
+			TimeoutPrecommit:    consensus.TimeoutPrecommit.String(),
 			TimeoutCommit:       consensus.TimeoutCommit.String(),
 			MaxNumInboundPeers:  p2p.MaxNumInboundPeers,
 			MaxNumOutboundPeers: p2p.MaxNumOutboundPeers,
