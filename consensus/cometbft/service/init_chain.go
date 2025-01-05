@@ -119,7 +119,9 @@ func (s *Service[LoggerT]) initChain(
 			}
 		}
 	}
-	s.prevBlkTime = req.Time
+
+	// reverted nextBlockDelay in favour of timeout_commit while investigating the issue
+	// s.prevBlkTime = req.Time
 
 	// NOTE: We don't commit, but FinalizeBlock for block InitialHeight starts
 	// from
