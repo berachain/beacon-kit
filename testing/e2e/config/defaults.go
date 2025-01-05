@@ -20,6 +20,11 @@
 
 package config
 
+import (
+	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
+	"github.com/berachain/beacon-kit/payload/builder"
+)
+
 // Consensus clients.
 const (
 	NumValidators = 5
@@ -158,6 +163,14 @@ func defaultExecutionSettings() ExecutionSettings {
 }
 
 func defaultConsensusSettings() ConsensusSettings {
+	var (
+		defaultCfg = cometbft.DefaultConfig()
+		consensus  = defaultCfg.Consensus
+		p2p        = defaultCfg.P2P
+
+		builderCfg = builder.DefaultConfig()
+	)
+
 	return ConsensusSettings{
 		Specs: NodeSpecs{
 			MinCPU:    0,
@@ -169,16 +182,16 @@ func defaultConsensusSettings() ConsensusSettings {
 			"beaconkit": "beacond:kurtosis-local",
 		},
 		Config: ConsensusConfig{
-			TimeoutPropose:      "3s",
-			TimeoutPrevote:      "1s",
-			TimeoutPrecommit:    "1s",
-			TimeoutCommit:       "3s",
-			MaxNumInboundPeers:  40, //nolint:mnd // 40 inbound peers
-			MaxNumOutboundPeers: 10, //nolint:mnd // 10 outbound peers
+			TimeoutPropose:      consensus.TimeoutPropose.String(),
+			TimeoutPrevote:      consensus.TimeoutPrevote.String(),
+			TimeoutPrecommit:    consensus.TimeoutPrecommit.String(),
+			TimeoutCommit:       consensus.TimeoutCommit.String(),
+			MaxNumInboundPeers:  p2p.MaxNumInboundPeers,
+			MaxNumOutboundPeers: p2p.MaxNumOutboundPeers,
 		},
 		AppConfig: AppConfig{
-			PayloadTimeout:                "1.5s",
-			EnableOptimisticPayloadBuilds: false,
+			PayloadTimeout:                builderCfg.PayloadTimeout.String(),
+			EnableOptimisticPayloadBuilds: builderCfg.Enabled,
 		},
 	}
 }

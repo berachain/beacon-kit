@@ -50,17 +50,13 @@ const ( // appeases mnd
 // cmtcfg.DefaultConfig() is called.
 func DefaultConfig() *cmtcfg.Config {
 	cfg := cmtcfg.DefaultConfig()
-	consensus := cfg.Consensus
-	consensus.TimeoutPropose = timeoutPropose
-	consensus.TimeoutPrevote = timeoutPrevote
-	consensus.TimeoutPrecommit = timeoutPrecommit
-	consensus.TimeoutCommit = timeoutCommit
 
 	// BeaconKit forces PebbleDB as the database backend.
 	cfg.BaseConfig.DBBackend = "pebbledb"
 
 	// These settings are set by default for performance reasons.
-	cfg.TxIndex.Indexer = "null"
+	cfg.P2P.MaxNumInboundPeers = 120
+	cfg.P2P.MaxNumOutboundPeers = 40
 
 	cfg.Mempool.Type = "nop"
 	cfg.Mempool.Recheck = false
@@ -71,11 +67,18 @@ func DefaultConfig() *cmtcfg.Config {
 	cfg.Mempool.MaxTxsBytes = 0
 	cfg.Mempool.CacheSize = 0
 
-	cfg.Storage.DiscardABCIResponses = true
-	cfg.Instrumentation.Prometheus = true
+	consensus := cfg.Consensus
+	consensus.TimeoutPropose = timeoutPropose
+	consensus.TimeoutPrevote = timeoutPrevote
+	consensus.TimeoutPrecommit = timeoutPrecommit
+	consensus.TimeoutCommit = timeoutCommit
 
-	cfg.P2P.MaxNumInboundPeers = 100
-	cfg.P2P.MaxNumOutboundPeers = 40
+	cfg.Storage.DiscardABCIResponses = true
+
+	cfg.TxIndex.Indexer = "null"
+
+	cfg.Instrumentation.Prometheus = true
+	cfg.Instrumentation.MaxOpenConnections = 800
 
 	// Disable profiling by default
 	// cfg.RPC.PprofListenAddress = "localhost:6060"
