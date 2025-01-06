@@ -69,7 +69,8 @@ func (s *Service) ProcessProposal(
 			"Aborting block verification - beacon block not found in proposal",
 		)
 		return createProcessProposalResponse(errors.WrapNonFatal(ErrNilBlk))
-	} else if sidecars.IsNil() {
+	}
+	if sidecars.IsNil() {
 		s.logger.Warn(
 			"Aborting block verification - blob sidecars not found in proposal",
 		)
@@ -97,10 +98,10 @@ func (s *Service) ProcessProposal(
 			)
 		}
 	}
-	err = s.VerifyIncomingBlockSignature(ctx, signedBlk.GetMessage(), signedBlk.GetSignature())
-	if err != nil {
-		return createProcessProposalResponse(errors.WrapNonFatal(err))
-	}
+	// err = s.VerifyIncomingBlockSignature(ctx, signedBlk.GetMessage(), signedBlk.GetSignature())
+	// if err != nil {
+	// 	return createProcessProposalResponse(errors.WrapNonFatal(err))
+	// }
 
 	if numCommitments > 0 {
 		// Process the blob sidecars

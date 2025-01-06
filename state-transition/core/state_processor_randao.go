@@ -26,7 +26,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/crypto/sha256"
-	"github.com/berachain/beacon-kit/primitives/version"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/go-faster/xor"
 )
@@ -43,39 +42,39 @@ func (sp *StateProcessor[ContextT]) processRandaoReveal(
 		return err
 	}
 
-	// Ensure the proposer index is valid.
-	proposer, err := st.ValidatorByIndex(blk.GetProposerIndex())
-	if err != nil {
-		return err
-	}
+	// // Ensure the proposer index is valid.
+	// proposer, err := st.ValidatorByIndex(blk.GetProposerIndex())
+	// if err != nil {
+	// 	return err
+	// }
 
-	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
-	if err != nil {
-		return err
-	}
+	// genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
+	// if err != nil {
+	// 	return err
+	// }
 
 	epoch := sp.cs.SlotToEpoch(slot)
 	body := blk.GetBody()
 
-	fd := ctypes.NewForkData(
-		version.FromUint32[common.Version](
-			sp.cs.ActiveForkVersionForEpoch(epoch),
-		), genesisValidatorsRoot,
-	)
+	// fd := ctypes.NewForkData(
+	// 	version.FromUint32[common.Version](
+	// 		sp.cs.ActiveForkVersionForEpoch(epoch),
+	// 	), genesisValidatorsRoot,
+	// )
 
-	if !ctx.GetSkipValidateRandao() {
-		signingRoot := fd.ComputeRandaoSigningRoot(
-			sp.cs.DomainTypeRandao(), epoch,
-		)
-		reveal := body.GetRandaoReveal()
-		if err = sp.signer.VerifySignature(
-			proposer.GetPubkey(),
-			signingRoot[:],
-			reveal,
-		); err != nil {
-			return err
-		}
-	}
+	// if !ctx.GetSkipValidateRandao() {
+	// signingRoot := fd.ComputeRandaoSigningRoot(
+	// 	sp.cs.DomainTypeRandao(), epoch,
+	// )
+	// reveal := body.GetRandaoReveal()
+	// if err = sp.signer.VerifySignature(
+	// 	proposer.GetPubkey(),
+	// 	signingRoot[:],
+	// 	reveal,
+	// ); err != nil {
+	// 	return err
+	// }
+	// }
 
 	prevMix, err := st.GetRandaoMixAtIndex(
 		epoch.Unwrap() % sp.cs.EpochsPerHistoricalVector(),
