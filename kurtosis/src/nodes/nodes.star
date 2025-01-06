@@ -197,3 +197,59 @@ def get_execution_struct(execution_settings):
         labels = execution_settings["labels"],
         node_selectors = execution_settings["node_selectors"],
     )
+
+def int_to_hex(plan, n):
+    """Convert integer to hex string with '0x' prefix using shell printf"""
+    result = plan.run_sh(
+        run = 'printf "0x%x" ' + str(n),
+        description = "Converting {} to hex".format(n),
+    )
+    return str(result.output.strip())
+
+def render_genesis_template(plan, template_path, chain_id, chain_id_hex):
+    """Helper function to render a specific genesis template"""
+    genesis_template = read_file(src = template_path)
+
+    artifact = plan.render_templates(
+        config = {
+            "genesis.json": struct(
+                template = genesis_template,
+                data = {
+                    "CHAIN_ID": chain_id,
+                    "CHAIN_ID_HEX": chain_id_hex,
+                },
+            ),
+        },
+        name = template_path,
+        description = "Rendering genesis.json template",
+    )
+    return artifact
+
+def create_genesis_files(plan, chain_id):
+    """Creates genesis files for all client types and returns them as a dict"""
+
+    # Convert chain_id to hexadecimal string
+    chain_id_hex = int_to_hex(plan, int(chain_id))
+
+    genesis_files = {}
+
+    # Render Nethermind genesis
+    nethermind_artifact = render_genesis_template(
+        plan,
+        "execution/nethermind/genesis.json.template",
+        chain_id,
+        chain_id_hex,
+    )
+
+    genesis_files["nethermind"] = nethermind_artifact
+
+    # Render default genesis for other clients
+    default_artifact = render_genesis_template(
+        plan,
+        "../networks/kurtosis-devnet/network-configs/genesis.json.template",
+        chain_id,
+        chain_id_hex,
+    )
+    genesis_files["default"] = default_artifact
+
+    return genesis_files

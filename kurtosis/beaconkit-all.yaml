@@ -24,6 +24,8 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 network_configuration:
+  chain_id: 80087
+  chain_spec: "devnet"
   validators:
     type: "validator"
     nodes:

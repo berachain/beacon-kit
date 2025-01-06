@@ -1,5 +1,5 @@
 [Eth]
-NetworkId = 80087
+NetworkId = {{.CHAIN_ID}}
 SyncMode = "full"
 EthDiscoveryURLs = []
 SnapDiscoveryURLs = []

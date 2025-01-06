@@ -33,7 +33,7 @@ def start(persistent_peers, is_seed, validator_index, config_settings, app_setti
         set_config += '\nsed -i "s/^max_num_inbound_peers = 40$/max_num_inbound_peers = {}/" {}/config/config.toml'.format(config_settings.max_num_inbound_peers, "$BEACOND_HOME")
         set_config += '\nsed -i "s/^max_num_outbound_peers = 10$/max_num_outbound_peers = {}/" {}/config/config.toml'.format(config_settings.max_num_outbound_peers, "$BEACOND_HOME")
 
-    start_node = "CHAIN_SPEC=devnet /usr/bin/beacond start --rpc.laddr tcp://0.0.0.0:26657 \
+    start_node = "CHAIN_SPEC={} /usr/bin/beacond start --rpc.laddr tcp://0.0.0.0:26657 \
     --beacon-kit.engine.jwt-secret-path=/root/jwt/jwt-secret.hex \
     --beacon-kit.kzg.trusted-setup-path=/root/kzg/kzg-trusted-setup.json \
     --beacon-kit.kzg.implementation={} \
@@ -41,22 +41,23 @@ def start(persistent_peers, is_seed, validator_index, config_settings, app_setti
     --beacon-kit.block-store-service.enabled \
     --beacon-kit.node-api.enabled --beacon-kit.node-api.logging --beacon-kit.node-api.address 0.0.0.0:3500 \
     --pruning=nothing \
-    {} {}".format(kzg_impl, "$BEACOND_ENGINE_DIAL_URL", seed_option, persistent_peers_option)
+    {} {}".format("$BEACOND_CHAIN_SPEC", kzg_impl, "$BEACOND_ENGINE_DIAL_URL", seed_option, persistent_peers_option)
 
     return "{} && {} && {}".format(mv_genesis, set_config, start_node)
 
-def get_genesis_env_vars(cl_service_name):
+def get_genesis_env_vars(cl_service_name, chain_id, chain_spec):
     return {
         "BEACOND_MONIKER": cl_service_name,
         "BEACOND_NET": "VALUE_2",
         "BEACOND_HOME": "/root/.beacond",
-        "BEACOND_CHAIN_ID": "beacon-kurtosis-80087",
+        "BEACOND_CHAIN_ID": "beacon-kurtosis-{}".format(chain_id),
         "BEACOND_DEBUG": "false",
         "BEACOND_KEYRING_BACKEND": "test",
         "BEACOND_MINIMUM_GAS_PRICE": "0abgt",
-        "BEACOND_ETH_CHAIN_ID": "80087",
+        "BEACOND_ETH_CHAIN_ID": str(chain_id),
         "BEACOND_ENABLE_PROMETHEUS": "true",
         "ETH_GENESIS": "/root/eth_genesis/genesis.json",
         "WITHDRAWAL_ADDRESS": "0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4",
         "DEPOSIT_AMOUNT": "32000000000",
+        "BEACOND_CHAIN_SPEC": "{}".format(chain_spec),
     }

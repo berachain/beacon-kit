@@ -31,6 +31,12 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
     # all_node_types = [validators["type"], full_nodes["type"], seed_nodes["type"]]
     # all_node_settings = nodes.parse_node_settings(node_settings, all_node_types)
 
+    # Get chain configuration from network_configuration, if not provided, use default values
+    chain_id = network_configuration.get("chain_id", 80087)
+    chain_spec = network_configuration.get("chain_spec", "devnet")
+
+    plan.print("CHAIN_ID: {}".format(chain_id), "CHAIN_SPEC: {}".format(chain_spec))
+
     next_free_prefunded_account = 0
     validators = nodes.parse_nodes_from_dict(network_configuration["validators"], node_settings)
     full_nodes = nodes.parse_nodes_from_dict(network_configuration["full_nodes"], node_settings)
@@ -52,10 +58,13 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
             node_modules[node.el_type] = node_module
 
     # 2. Upload files
-    jwt_file, kzg_trusted_setup = execution.upload_global_files(plan, node_modules)
+    jwt_file, kzg_trusted_setup = execution.upload_global_files(plan, node_modules, chain_id)
+
+    # 2 a. Create genesis files only once and pass it to the node configs
+    genesis_files = nodes.create_genesis_files(plan, chain_id)
 
     # 3. Perform genesis ceremony
-    beacond.perform_genesis_ceremony(plan, validators, jwt_file)
+    beacond.perform_genesis_ceremony(plan, validators, jwt_file, chain_id, chain_spec, genesis_files)
 
     el_enode_addrs = []
     metrics_enabled_services = metrics_enabled_services[:]
@@ -63,29 +72,29 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
     consensus_node_peering_info = []
     all_consensus_peering_info = {}
 
+    # Execute only if geth is present
+    # This is needed as we have a geth config file which needs to be templated
+    if node_modules["geth"] != None:
+        geth_config_artifact = node_modules["geth"].process_geth_config(plan, chain_id)
+
     # Start seed nodes
     seed_node_el_client_configs = []
     for n, seed in enumerate(seed_nodes):
-        el_client_config = execution.generate_node_config(plan, node_modules, seed)
+        el_client_config = execution.generate_node_config(plan, node_modules, seed, chain_id, chain_spec, genesis_files, geth_config_artifact)
         seed_node_el_client_configs.append(el_client_config)
-
     if seed_node_el_client_configs != []:
         seed_node_el_clients = execution.deploy_nodes(plan, seed_node_el_client_configs)
-
     for n, seed in enumerate(seed_nodes):
         enode_addr = execution.get_enode_addr(plan, seed.el_service_name)
         el_enode_addrs.append(enode_addr)
         metrics_enabled_services = execution.add_metrics(metrics_enabled_services, seed, seed.el_service_name, seed_node_el_clients[seed.el_service_name], node_modules)
-
     seed_node_configs = {}
     for n, seed in enumerate(seed_nodes):
-        seed_node_config = beacond.create_node_config(plan, seed, consensus_node_peering_info, seed.el_service_name, jwt_file, kzg_trusted_setup)
+        seed_node_config = beacond.create_node_config(plan, seed, consensus_node_peering_info, seed.el_service_name, chain_id, chain_spec, jwt_file, kzg_trusted_setup)
         seed_node_configs[seed.cl_service_name] = seed_node_config
-
     seed_nodes_clients = plan.add_services(
         configs = seed_node_configs,
     )
-
     for n, seed_client in enumerate(seed_nodes):
         peer_info = beacond.get_peer_info(plan, seed_client.cl_service_name)
         consensus_node_peering_info.append(peer_info)
@@ -99,8 +108,9 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
     full_node_configs = {}
     full_node_el_client_configs = []
     full_node_el_clients = {}
+
     for n, full in enumerate(full_nodes):
-        el_client_config = execution.generate_node_config(plan, node_modules, full, el_enode_addrs)
+        el_client_config = execution.generate_node_config(plan, node_modules, full, chain_id, chain_spec, genesis_files, geth_config_artifact, el_enode_addrs)
         full_node_el_client_configs.append(el_client_config)
 
     if full_node_el_client_configs != []:
@@ -111,7 +121,7 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
 
     for n, full in enumerate(full_nodes):
         # 5b. Launch CL
-        full_node_config = beacond.create_node_config(plan, full, consensus_node_peering_info, full.el_service_name, jwt_file, kzg_trusted_setup)
+        full_node_config = beacond.create_node_config(plan, full, consensus_node_peering_info, full.el_service_name, chain_id, chain_spec, jwt_file, kzg_trusted_setup)
         full_node_configs[full.cl_service_name] = full_node_config
 
     if full_node_configs != {}:
@@ -132,7 +142,7 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
     validator_node_el_clients = []
 
     for n, validator in enumerate(validators):
-        el_client_config = execution.generate_node_config(plan, node_modules, validator, el_enode_addrs)
+        el_client_config = execution.generate_node_config(plan, node_modules, validator, chain_id, chain_spec, genesis_files, geth_config_artifact, el_enode_addrs)
         validator_node_el_clients.append(el_client_config)
 
     validator_el_clients = execution.deploy_nodes(plan, validator_node_el_clients)
@@ -142,7 +152,7 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
 
     validator_node_configs = {}
     for n, validator in enumerate(validators):
-        validator_node_config = beacond.create_node_config(plan, validator, consensus_node_peering_info, validator.el_service_name, jwt_file, kzg_trusted_setup)
+        validator_node_config = beacond.create_node_config(plan, validator, consensus_node_peering_info, validator.el_service_name, chain_id, chain_spec, jwt_file, kzg_trusted_setup)
         validator_node_configs[validator.cl_service_name] = validator_node_config
 
     cl_clients = plan.add_services(
