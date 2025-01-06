@@ -116,6 +116,15 @@ func (s *BeaconKitE2ESuite) Test4844Live() {
 			s.Require().NoError(errWait)
 			s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
 
+			// WaitMined only waits until the tx is included in a block. This
+			// gets triggered whenever beacon-kit sends a FCU including the
+			// block. In the optimistic builder, this happens before the block
+			// is finalized. Meaning the data has not yet been stored. Let's
+			// just wait 1 block.
+			//
+			//nolint:contextcheck // uses the service context.
+			s.Require().NoError(s.WaitForNBlockNumbers(1))
+
 			// Fetch blobs from node-api.
 			response, errAPI := client0.BlobSidecars(ctx, &api.BlobSidecarsOpts{Block: receipt.BlockNumber.String()})
 			s.Require().NoError(errAPI, "unable to fetch blob sidecars from node-api")
