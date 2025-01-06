@@ -50,6 +50,8 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 
 func defaultNetworkConfiguration() NetworkConfiguration {
 	return NetworkConfiguration{
+		ChainID:    80087,
+		ChainSpec:  "devnet",
 		Validators: defaultValidators(),
 		FullNodes:  defaultFullNodes(),
 		SeedNodes:  defaultSeedNodes(),
