@@ -32,11 +32,7 @@ type (
 )
 
 // Spec defines an interface for accessing chain-specific parameters.
-type Spec[
-	DomainTypeT ~[4]byte,
-	EpochT ~uint64,
-	SlotT ~uint64,
-] interface {
+type Spec[DomainTypeT ~[4]byte, EpochT ~uint64, SlotT ~uint64] interface {
 	// Gwei value constants.
 
 	// MinDepositAmount returns the minimum amount of Gwei required for a
@@ -220,25 +216,15 @@ type Spec[
 
 // chainSpec is a concrete implementation of the ChainSpec interface, holding
 // the actual data.
-type chainSpec[
-	DomainTypeT ~[4]byte,
-	EpochT ~uint64,
-	SlotT ~uint64,
-] struct {
+type chainSpec[DomainTypeT ~[4]byte, EpochT ~uint64, SlotT ~uint64] struct {
 	// Data contains the actual chain-specific parameter values.
 	Data SpecData[DomainTypeT, EpochT, SlotT]
 }
 
 // NewChainSpec creates a new instance of a ChainSpec with the provided data.
 func NewChainSpec[
-	DomainTypeT ~[4]byte,
-	EpochT ~uint64,
-	SlotT ~uint64,
-](data SpecData[
-	DomainTypeT, EpochT, SlotT,
-]) (Spec[
-	DomainTypeT, EpochT, SlotT,
-], error) {
+	DomainTypeT ~[4]byte, EpochT ~uint64, SlotT ~uint64,
+](data SpecData[DomainTypeT, EpochT, SlotT]) (Spec[DomainTypeT, EpochT, SlotT], error) {
 	c := &chainSpec[
 		DomainTypeT, EpochT, SlotT,
 	]{
@@ -248,9 +234,7 @@ func NewChainSpec[
 }
 
 // validate ensures that the chain spec is valid, returning error if it is not.
-func (c *chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) validate() error {
+func (c *chainSpec[DomainTypeT, EpochT, SlotT]) validate() error {
 	if c.MaxWithdrawalsPerPayload() <= 1 {
 		return ErrInsufficientMaxWithdrawalsPerPayload
 	}

@@ -426,9 +426,6 @@ func TestTransitionWithdrawals(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	// Progress state to fork 2.
-	progressStateToSlot(t, st, math.U64(spec.BoonetFork2Height))
-
 	// Assert validator 1 balance before withdrawal.
 	val1Bal, err := st.GetBalance(math.U64(1))
 	require.NoError(t, err)
@@ -518,9 +515,6 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 		st, genDeposits, genPayloadHeader, genVersion,
 	)
 	require.NoError(t, err)
-
-	// Progress state to fork 2.
-	progressStateToSlot(t, st, math.U64(spec.BoonetFork2Height))
 
 	// Assert validator balances before withdrawal.
 	val0Bal, err := st.GetBalance(math.U64(0))
