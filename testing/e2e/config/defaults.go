@@ -36,7 +36,9 @@ const (
 	ClientValidator4 = "cl-validator-beaconkit-4"
 )
 
-// default network configuration
+// default network configuration.
+//
+//nolint:gochecknoglobals // it's a default value
 var (
 	// defaultChainID is the default chain ID for the network.
 	defaultChainID = 80087
