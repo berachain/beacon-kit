@@ -108,7 +108,7 @@ func (bv *verifier) verifySidecars(
 
 	// Verify the inclusion proofs on the blobs concurrently.
 	g.Go(func() error {
-		return bv.verifyInclusionProofs(sidecars, blkHeader.GetSlot())
+		return bv.verifyInclusionProofs(sidecars)
 	})
 
 	// Verify the KZG proofs on the blobs concurrently.
@@ -122,30 +122,13 @@ func (bv *verifier) verifySidecars(
 
 func (bv *verifier) verifyInclusionProofs(
 	scs datypes.BlobSidecars,
-	slot math.Slot,
 ) error {
 	startTime := time.Now()
 	defer bv.metrics.measureVerifyInclusionProofsDuration(
 		startTime, math.U64(len(scs)),
 	)
 
-	// Grab the KZG offset for the fork version.
-	kzgOffset, err := ctypes.BlockBodyKZGOffset(
-		slot, bv.chainSpec,
-	)
-	if err != nil {
-		return err
-	}
-
-	// Grab the inclusion proof depth for the fork version.
-	inclusionProofDepth, err := ctypes.KZGCommitmentInclusionProofDepth(
-		slot, bv.chainSpec,
-	)
-	if err != nil {
-		return err
-	}
-
-	return scs.VerifyInclusionProofs(kzgOffset, inclusionProofDepth)
+	return scs.VerifyInclusionProofs()
 }
 
 // verifyKZGProofs verifies the sidecars.

@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/storage/filedb"
 	"github.com/stretchr/testify/require"
@@ -73,6 +74,7 @@ func TestStore_PersistRace(t *testing.T) {
 			SignedBeaconBlockHeader: &types.SignedBeaconBlockHeader{
 				Header: &types.BeaconBlockHeader{},
 			},
+			InclusionProof: make([]common.Root, types.KZGInclusionProofDepth),
 		}
 	}
 	var sidecars datypes.BlobSidecars = sc

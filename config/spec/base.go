@@ -118,7 +118,7 @@ func BaseSpec() chain.SpecData[
 
 		// Deneb values.
 		MinEpochsForBlobsSidecarsRequest: 4096,
-		MaxBlobCommitmentsPerBlock:       16,
+		MaxBlobCommitmentsPerBlock:       4096,
 		MaxBlobsPerBlock:                 6,
 		FieldElementsPerBlob:             4096,
 		BytesPerBlob:                     131072,

@@ -47,11 +47,11 @@ func TestSidecarMarshalling(t *testing.T) {
 	for i := range blob {
 		blob[i] = byte(i % 256)
 	}
-	inclusionProof := make([]common.Root, 0)
-	for i := int(1); i <= 8; i++ {
+	inclusionProof := make([]common.Root, 0, ctypes.KZGInclusionProofDepth)
+	for i := 1; i <= ctypes.KZGInclusionProofDepth; i++ {
 		it := byteslib.ExtendToSize([]byte(strconv.Itoa(i)), byteslib.B32Size)
-		proof, err := byteslib.ToBytes32(it)
-		require.NoError(t, err)
+		proof, errBytes := byteslib.ToBytes32(it)
+		require.NoError(t, errBytes)
 		inclusionProof = append(inclusionProof, common.Root(proof))
 	}
 	sidecar := types.BuildBlobSidecar(
@@ -87,7 +87,7 @@ func TestSidecarMarshalling(t *testing.T) {
 
 func generateValidBeaconBlock() *ctypes.BeaconBlock {
 	// Initialize your block here
-	return &ctypes.BeaconBlock{
+	beaconBlock := &ctypes.BeaconBlock{
 		Slot:          10,
 		ProposerIndex: 5,
 		ParentRoot:    common.Root{1, 2, 3, 4, 5},
@@ -118,6 +118,14 @@ func generateValidBeaconBlock() *ctypes.BeaconBlock {
 			},
 		},
 	}
+	body := beaconBlock.GetBody()
+	body.SetProposerSlashings(ctypes.ProposerSlashings{})
+	body.SetAttesterSlashings(ctypes.AttesterSlashings{})
+	body.SetAttestations(ctypes.Attestations{})
+	body.SetSyncAggregate(&ctypes.SyncAggregate{})
+	body.SetVoluntaryExits(ctypes.VoluntaryExits{})
+	body.SetBlsToExecutionChanges(ctypes.BlsToExecutionChanges{})
+	return beaconBlock
 }
 
 type InclusionSink struct{}
@@ -125,19 +133,8 @@ type InclusionSink struct{}
 func (is InclusionSink) MeasureSince(_ string, _ time.Time, _ ...string) {}
 
 func TestHasValidInclusionProof(t *testing.T) {
-	// TODO: Get updated spec?
 	specVals := spec2.BaseSpec()
-	specVals.MaxBlobCommitmentsPerBlock = 16
 	spec, err := chain.NewChainSpec(specVals)
-	require.NoError(t, err)
-
-	// TODO: get a good slot number that is current fork
-	slot := math.Slot(0)
-
-	// Grab fork-dependent constants
-	inclusionProofDepth, err := ctypes.KZGCommitmentInclusionProofDepth(slot, spec)
-	require.NoError(t, err)
-	kzgOffset, err := ctypes.BlockBodyKZGOffset(slot, spec)
 	require.NoError(t, err)
 
 	sink := InclusionSink{}
@@ -151,7 +148,7 @@ func TestHasValidInclusionProof(t *testing.T) {
 			sidecars: func(t *testing.T) types.BlobSidecars {
 				t.Helper()
 				inclusionProof := make([]common.Root, 0)
-				for i := int(1); i <= 8; i++ {
+				for i := 1; i <= ctypes.KZGInclusionProofDepth; i++ {
 					it := byteslib.ExtendToSize(
 						[]byte(strconv.Itoa(i)),
 						byteslib.B32Size,
@@ -204,7 +201,7 @@ func TestHasValidInclusionProof(t *testing.T) {
 				sidecars := make(types.BlobSidecars, numBlobs)
 				for i := range numBlobs {
 					inclusionProof, incErr := sidecarFactory.BuildKZGInclusionProof(
-						block.GetBody(), math.U64(i), ctypes.KZGPositionDeneb,
+						block.GetBody(), math.U64(i),
 					)
 					require.NoError(t, incErr)
 					sigHeader := ctypes.NewSignedBeaconBlockHeader(block.GetHeader(), crypto.BLSSignature{})
@@ -227,7 +224,7 @@ func TestHasValidInclusionProof(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			sidecars := tt.sidecars(t)
 			for _, sidecar := range sidecars {
-				result := sidecar.HasValidInclusionProof(kzgOffset, inclusionProofDepth)
+				result := sidecar.HasValidInclusionProof()
 				require.Equal(t, tt.expectedResult, result,
 					"Result should match expected value")
 			}
@@ -247,6 +244,7 @@ func Test_KZGRootIndex(t *testing.T) {
 	// The parent's left child is the KZG commitment root,
 	// and its right child is the KZG commitment size.
 	kzgParentRootIndex := ctypes.KZGPositionDeneb + (1 << kzgParentRootLevel)
+	require.Equal(t, uint64(ctypes.KZGGeneralizedIndex), kzgParentRootIndex)
 	// The KZG commitment root is the left child of its parent.
 	// Its Merkle index is the double of its parent's Merkle index.
 	require.Equal(t, 2*kzgParentRootIndex, uint64(ctypes.KZGRootIndexDeneb))

@@ -133,7 +133,7 @@ func (h *ExecutionPayloadHeader) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineUint64(codec, &h.GasLimit)
 	ssz.DefineUint64(codec, &h.GasUsed)
 	ssz.DefineUint64(codec, &h.Timestamp)
-	//nolint:mnd // todo fix.
+	//nolint:mnd // TODO: get from accessible chainspec field params
 	ssz.DefineDynamicBytesOffset(codec, (*[]byte)(&h.ExtraData), 32)
 	ssz.DefineUint256(codec, &h.BaseFeePerGas)
 	ssz.DefineStaticBytes(codec, &h.BlockHash)
@@ -143,7 +143,7 @@ func (h *ExecutionPayloadHeader) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineUint64(codec, &h.ExcessBlobGas)
 
 	// Define the dynamic data (fields)
-	//nolint:mnd // todo fix.
+	//nolint:mnd // TODO: get from accessible chainspec field params
 	ssz.DefineDynamicBytesContent(codec, (*[]byte)(&h.ExtraData), 32)
 }
 

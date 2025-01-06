@@ -86,7 +86,7 @@ func (st *BeaconState) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 
 // DefineSSZ defines the SSZ encoding for the BeaconState object.
 //
-//nolint:mnd // todo fix.
+//nolint:mnd // TODO: get from accessible chainspec field params
 func (st *BeaconState) DefineSSZ(codec *ssz.Codec) {
 	// Versioning
 	ssz.DefineStaticBytes(codec, &st.GenesisValidatorsRoot)

@@ -35,7 +35,8 @@ const (
 	DepositContractDepth uint64 = 32
 
 	// MaxDeposits is the maximum number of deposits supported by the
-	// deposit tree (2**32).
+	// deposit tree (2**32). This is different from the enforced
+	// MaxDepositsPerBlock.
 	MaxDeposits uint64 = 1 << DepositContractDepth
 
 	// MaxWithdrawalsPerPayload is the maximum number of withdrawals in a

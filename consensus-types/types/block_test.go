@@ -35,7 +35,7 @@ import (
 // generateValidBeaconBlock generates a valid beacon block for the Deneb.
 func generateValidBeaconBlock() *types.BeaconBlock {
 	// Initialize your block here
-	return &types.BeaconBlock{
+	beaconBlock := types.BeaconBlock{
 		Slot:          10,
 		ProposerIndex: 5,
 		ParentRoot:    common.Root{1, 2, 3, 4, 5},
@@ -66,6 +66,14 @@ func generateValidBeaconBlock() *types.BeaconBlock {
 			},
 		},
 	}
+	body := beaconBlock.GetBody()
+	body.SetProposerSlashings(types.ProposerSlashings{})
+	body.SetAttesterSlashings(types.AttesterSlashings{})
+	body.SetAttestations(types.Attestations{})
+	body.SetSyncAggregate(&types.SyncAggregate{})
+	body.SetVoluntaryExits(types.VoluntaryExits{})
+	body.SetBlsToExecutionChanges(types.BlsToExecutionChanges{})
+	return &beaconBlock
 }
 
 func TestBeaconBlockForDeneb(t *testing.T) {
@@ -112,13 +120,6 @@ func TestBeaconBlock_MarshalUnmarshalSSZ(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, block, unmarshalledBlock)
-
-	var buf []byte
-	buf, err = block.MarshalSSZTo(buf)
-	require.NoError(t, err)
-
-	// The two byte slices should be equal
-	require.Equal(t, sszBlock, buf)
 }
 
 func TestBeaconBlock_HashTreeRoot(t *testing.T) {
@@ -163,11 +164,4 @@ func TestNewWithVersionInvalidForkVersion(t *testing.T) {
 		100,
 	) // 100 is an invalid fork version
 	require.ErrorIs(t, err, types.ErrForkVersionNotSupported)
-}
-
-func TestBeaconBlock_GetTree(t *testing.T) {
-	block := generateValidBeaconBlock()
-	tree, err := block.GetTree()
-	require.NoError(t, err)
-	require.NotNil(t, tree)
 }

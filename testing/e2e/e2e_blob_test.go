@@ -28,6 +28,7 @@ import (
 	"sync"
 
 	"github.com/attestantio/go-eth2-client/api"
+	"github.com/berachain/beacon-kit/primitives/encoding/hex"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/berachain/beacon-kit/testing/e2e/suite"
 	"github.com/berachain/beacon-kit/testing/e2e/suite/types/tx"
@@ -131,15 +132,16 @@ func (s *BeaconKitE2ESuite) Test4844Live() {
 
 			// Verify blob data from each transaction is published by the node-api.
 			sidecar := blobTx.BlobTxSidecar()
-			for i := range sidecar.Commitments {
+			for i, commitment := range sidecar.Commitments {
 				verified := false
 				for _, blob := range response.Data {
-					if bytes.Equal(blob.KZGCommitment[:], sidecar.Commitments[i][:]) {
+					if bytes.Equal(blob.KZGCommitment[:], commitment[:]) {
 						s.Require().Equal(sidecar.Blobs[i][:], blob.Blob[:], "blob data not equal")
 						verified = true
 					}
 				}
 				s.Require().True(verified, "blob data was not made available by node-api")
+				s.Logger().Info("verified blob data availability", "KzgCommitment", hex.EncodeBytes(commitment[:]))
 			}
 		}(blobTx)
 	}

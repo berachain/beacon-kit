@@ -334,18 +334,20 @@ func (s *Service) buildBlockBody(
 	}
 	body.SetGraffiti(graffiti)
 
+	// Fill in unused field with non-nil value
+	body.SetSyncAggregate(&ctypes.SyncAggregate{})
+
 	// Get the epoch to find the active fork version.
 	epoch := s.chainSpec.SlotToEpoch(blk.GetSlot())
 	activeForkVersion := s.chainSpec.ActiveForkVersionForEpoch(
 		epoch,
 	)
 	if activeForkVersion >= version.DenebPlus {
-		body.SetAttestations(slotData.GetAttestationData())
+		body.SetAttestationData(slotData.GetAttestationData())
 
 		// Set the slashing info on the block body.
 		body.SetSlashingInfo(slotData.GetSlashingInfo())
 	}
-
 	body.SetExecutionPayload(envelope.GetExecutionPayload())
 	return nil
 }

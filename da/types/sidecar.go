@@ -22,6 +22,7 @@ package types
 
 import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -70,16 +71,13 @@ func BuildBlobSidecar(
 
 // HasValidInclusionProof verifies the inclusion proof of the
 // blob in the beacon body.
-func (b *BlobSidecar) HasValidInclusionProof(
-	kzgOffset uint64,
-	inclusionProofDepth uint8,
-) bool {
+func (b *BlobSidecar) HasValidInclusionProof() bool {
 	header := b.GetSignedBeaconBlockHeader().GetHeader()
 	return header != nil && merkle.IsValidMerkleBranch(
 		b.KzgCommitment.HashTreeRoot(),
 		b.InclusionProof,
-		inclusionProofDepth,
-		kzgOffset+b.Index,
+		ctypes.KZGInclusionProofDepth,
+		ctypes.KZGOffsetDeneb+b.Index,
 		header.BodyRoot,
 	)
 }
@@ -115,11 +113,11 @@ func (b *BlobSidecar) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineStaticBytes(codec, &b.KzgCommitment)
 	ssz.DefineStaticBytes(codec, &b.KzgProof)
 	ssz.DefineStaticObject(codec, &b.SignedBeaconBlockHeader)
-	//nolint:mnd // depth of 8
-	ssz.DefineCheckedArrayOfStaticBytes(codec, &b.InclusionProof, 8)
+	ssz.DefineCheckedArrayOfStaticBytes(codec, &b.InclusionProof, ctypes.KZGInclusionProofDepth)
 }
 
 // SizeSSZ returns the size of the BlobSidecar object in SSZ encoding.
+// TODO: get from accessible chainspec field params.
 func (b *BlobSidecar) SizeSSZ(sizer *ssz.Sizer) uint32 {
 	ssize := (*ctypes.SignedBeaconBlockHeader)(nil).SizeSSZ(sizer)
 	return 8 + // Index
@@ -127,18 +125,25 @@ func (b *BlobSidecar) SizeSSZ(sizer *ssz.Sizer) uint32 {
 		48 + // KzgCommitment
 		48 + // KzgProof
 		ssize + // SignedBeaconBlockHeader
-		8*32 // InclusionProof
+		ctypes.KZGInclusionProofDepth*32 // InclusionProof
 }
 
 // MarshalSSZ marshals the BlobSidecar object to SSZ format.
 func (b *BlobSidecar) MarshalSSZ() ([]byte, error) {
+	if len(b.InclusionProof) != ctypes.KZGInclusionProofDepth {
+		return []byte{}, errors.New("invalid inclusion proof length")
+	}
 	buf := make([]byte, ssz.Size(b))
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 
 // UnmarshalSSZ unmarshals the BlobSidecar object from SSZ format.
 func (b *BlobSidecar) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, b)
+	err := ssz.DecodeFromBytes(buf, b)
+	if len(b.InclusionProof) != ctypes.KZGInclusionProofDepth {
+		return errors.New("invalid inclusion proof length")
+	}
+	return err
 }
 
 // MarshalSSZTo marshals the BlobSidecar object to the provided buffer in SSZ

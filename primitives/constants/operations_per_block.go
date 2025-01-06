@@ -21,15 +21,9 @@
 package constants
 
 const (
-	// BlobCommitmentVersion is the version of the blob commitment.
-	// It is the Version byte for the point evaluation precompile as
-	// defined in EIP-4844.
-	//
-	// https://github.com/ethereum/EIPs/blob/master/EIPS/eip-4844.md
-	BlobCommitmentVersion uint8 = 0x01
-	// MaxBlobCommitmentsPerBlock is the hardfork-independent fixed
-	// theoretical limit same as TARGET_BLOB_GAS_PER_BLOCK (see EIP 4844).
-	//
-	// https://ethereum.github.io/consensus-specs/specs/deneb/beacon-chain/#execution
-	MaxBlobCommitmentsPerBlock = 4096
+	MaxProposerSlashings     = 16
+	MaxAttesterSlashings     = 2
+	MaxAttestations          = 128
+	MaxVoluntaryExits        = 16
+	MaxBlsToExecutionChanges = 16
 )

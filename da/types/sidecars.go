@@ -61,10 +61,7 @@ func (bs *BlobSidecars) ValidateBlockRoots() error {
 }
 
 // VerifyInclusionProofs verifies the inclusion proofs for all sidecars.
-func (bs *BlobSidecars) VerifyInclusionProofs(
-	kzgOffset uint64,
-	inclusionProofDepth uint8,
-) error {
+func (bs *BlobSidecars) VerifyInclusionProofs() error {
 	return errors.Join(iter.Map(
 		*bs,
 		func(sidecar **BlobSidecar) error {
@@ -74,7 +71,7 @@ func (bs *BlobSidecars) VerifyInclusionProofs(
 			}
 
 			// Verify the KZG inclusion proof.
-			if !sc.HasValidInclusionProof(kzgOffset, inclusionProofDepth) {
+			if !sc.HasValidInclusionProof() {
 				return ErrInvalidInclusionProof
 			}
 			return nil
@@ -83,6 +80,7 @@ func (bs *BlobSidecars) VerifyInclusionProofs(
 }
 
 // DefineSSZ defines the SSZ encoding for the BlobSidecars object.
+// TODO: get from accessible chainspec field params.
 func (bs *BlobSidecars) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineSliceOfStaticObjectsOffset(codec, (*[]*BlobSidecar)(bs), 6)
 	ssz.DefineSliceOfStaticObjectsContent(codec, (*[]*BlobSidecar)(bs), 6)
