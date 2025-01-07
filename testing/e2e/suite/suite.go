@@ -150,8 +150,9 @@ func (s *KurtosisE2ESuite) GetNetworkForTest() *NetworkInstance {
 }
 
 // initializeNetwork creates a new network instance for a chain spec
-func (s *KurtosisE2ESuite) initializeNetwork(chainSpec string) error {
+func (s *KurtosisE2ESuite) initializeNetwork(chainSpec string, chainID int) error {
 	s.logger.Info("Initializing network", "chainSpec", chainSpec)
+	// Create a new network instance
 	network := &NetworkInstance{
 		cfg:              config.DefaultE2ETestConfig(),
 		consensusClients: make(map[string]*types.ConsensusClient),
@@ -159,6 +160,7 @@ func (s *KurtosisE2ESuite) initializeNetwork(chainSpec string) error {
 
 	// Apply chain spec configuration
 	network.cfg.NetworkConfiguration.ChainSpec = chainSpec
+	network.cfg.NetworkConfiguration.ChainID = chainID
 
 	// Create unique enclave name for this chain spec
 	enclaveName := fmt.Sprintf("e2e-test-enclave-%s", chainSpec)
@@ -173,6 +175,8 @@ func (s *KurtosisE2ESuite) initializeNetwork(chainSpec string) error {
 	if err := s.setupNetwork(network); err != nil {
 		return err
 	}
+
+	s.Logger().Info("Network initialized", "chainSpec", chainSpec)
 
 	s.networks[chainSpec] = network
 	return nil
@@ -213,6 +217,7 @@ func (s *KurtosisE2ESuite) setupJSONRPCBalancerForNetwork(network *NetworkInstan
 }
 
 func (s *KurtosisE2ESuite) setupNetwork(network *NetworkInstance) error {
+	s.Logger().Info("Setting up network", "network", network)
 	// Run Starlark package
 	result, err := network.enclave.RunStarlarkPackageBlocking(
 		s.ctx,

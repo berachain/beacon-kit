@@ -38,6 +38,6 @@ func TestBeaconKitE2ESuite(t *testing.T) {
 	s.RegisterTest("TestBeaconKitE2ESuite/TestEVMInflation", "devnet")
 	s.RegisterTest("TestBeaconKitE2ESuite/Test4844Live", "devnet")
 	s.RegisterTest("TestBeaconKitE2ESuite/TestBeaconAPIStartup", "devnet")
-
+	s.RegisterTest("TestBeaconKitE2ESuite/TestAccounts", "devnet")
 	suite.Run(t, s)
 }

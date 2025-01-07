@@ -32,10 +32,13 @@ import (
 
 // SetupSuite executes before the test suite begins execution.
 func (s *KurtosisE2ESuite) SetupSuite() {
-	// Initialize maps for network management
-	s.networks = make(map[string]*NetworkInstance)
-	s.testSpecs = make(map[string]string)
-
+	// Initialize maps if needed
+	if s.networks == nil {
+		s.networks = make(map[string]*NetworkInstance)
+	}
+	if s.testSpecs == nil {
+		s.testSpecs = make(map[string]string)
+	}
 	// Setup basic suite configuration
 	s.ctx = context.Background()
 	s.logger = log.NewTestLogger(s.T())
@@ -44,28 +47,36 @@ func (s *KurtosisE2ESuite) SetupSuite() {
 	s.kCtx, err = kurtosis_context.NewKurtosisContextFromLocalEngine()
 	s.Require().NoError(err)
 
-	// Initialize default network with dev chain spec
-	err = s.initializeNetwork("dev")
+	// Initialize only one network for all tests (using devnet)
+	chainID, err := s.GetChainIDFromSpec("devnet")
 	s.Require().NoError(err)
+
+	s.Logger().Info("Chain ID", "chainID", chainID)
+	// Initialize the network once
+	err = s.initializeNetwork("devnet", int(chainID))
+	s.Require().NoError(err)
+
+}
+
+// Define chain spec to chain ID mapping
+var ChainSpecToID = map[string]uint64{
+	"devnet":  80087,
+	"testnet": 80084,
+}
+
+// Add a method to get chain ID from spec
+func (s *KurtosisE2ESuite) GetChainIDFromSpec(spec string) (uint64, error) {
+	chainID, exists := ChainSpecToID[spec]
+	if !exists {
+		return 0, fmt.Errorf("unknown chain spec: %s", spec)
+	}
+	return chainID, nil
 }
 
 // SetupTest runs before each test
 func (s *KurtosisE2ESuite) SetupTest() {
 	testName := s.T().Name()
 	s.Logger().Info("Setting up test", "testName", testName)
-
-	// If test hasn't been registered for a specific chain spec, use dev
-	if _, exists := s.testSpecs[testName]; !exists {
-		s.RegisterTest(testName, "dev")
-	}
-
-	// Initialize network for this test's chain spec if it doesn't exist
-	chainSpec := s.testSpecs[testName]
-	s.Logger().Info("Chain spec", "chainSpec", chainSpec)
-	if _, exists := s.networks[chainSpec]; !exists {
-		err := s.initializeNetwork(chainSpec)
-		s.Require().NoError(err)
-	}
 }
 
 // TearDownSuite cleans up resources after all tests have been executed.
