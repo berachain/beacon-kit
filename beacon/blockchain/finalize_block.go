@@ -50,8 +50,8 @@ func (s *Service) FinalizeBlock(
 			BlobSidecarsTxIndex,
 			s.chainSpec.ActiveForkVersionForSlot(math.Slot(req.Height))) // #nosec G115
 	if err != nil {
-		//nolint:nilerr // If we don't have a block, we can't do anything.
-		return nil, nil
+		s.logger.Error("Failed to decode block and blobs", "error", err)
+		return nil, err
 	}
 
 	// STEP 2: Finalize sidecars first (block will check for
@@ -62,12 +62,14 @@ func (s *Service) FinalizeBlock(
 	)
 	if err != nil {
 		s.logger.Error("Failed to process blob sidecars", "error", err)
+		return nil, err
 	}
 
 	// STEP 3: finalize the block
 	blk := signedBlk.GetMessage()
 	if blk == nil {
-		s.logger.Error("[BUG] SignedBeaconBlock contains nil BeaconBlock during FinalizeBlock")
+		s.logger.Error("SignedBeaconBlock contains nil BeaconBlock during FinalizeBlock")
+		return nil, ErrNilBlk
 	}
 	consensusBlk := types.NewConsensusBlock(
 		blk,
@@ -81,6 +83,7 @@ func (s *Service) FinalizeBlock(
 		s.logger.Error("Failed to process verified beacon block",
 			"error", finalizeErr,
 		)
+		return nil, finalizeErr
 	}
 
 	// STEP 4: Post Finalizations cleanups
@@ -96,6 +99,7 @@ func (s *Service) FinalizeBlock(
 		s.logger.Error(
 			"failed to store block", "slot", slot, "error", err,
 		)
+		return nil, err
 	}
 
 	// prune the availability and deposit store
