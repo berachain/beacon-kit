@@ -20,20 +20,7 @@
 
 package e2e_test
 
-import (
-	"github.com/berachain/beacon-kit/testing/e2e/suite"
-)
-
-// BeaconE2ESuite is a suite of tests simulating a fully function beacon-kit
-// network.
-type BeaconKitE2ESuite struct {
-	suite.KurtosisE2ESuite
-}
-
-// TestBasicStartup tests the basic startup of the beacon-kit network.
-//
-// TODO: Should check all clients, opposed to just the load balancer.
-func (s *BeaconKitE2ESuite) TestBasicStartup() {
-	err := s.WaitForFinalizedBlockNumber(10)
-	s.Require().NoError(err)
+// SetupChains assigns a chain for each of test cases to use.
+func (s *BeaconKitE2ESuite) SetupChains() {
+	// TODO: Implement.
 }
