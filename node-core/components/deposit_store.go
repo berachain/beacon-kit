@@ -60,8 +60,12 @@ func ProvideDepositStore[
 		return nil, err
 	}
 
+	// pass a closure to close the db as its not supported by the KVStoreService interface
+	closeFunc := func() error { return pdb.Close() }
+
 	return depositstore.NewStore(
 		storage.NewKVStoreProvider(pdb),
+		closeFunc,
 		in.Logger.With("service", "deposit-store"),
 	), nil
 }

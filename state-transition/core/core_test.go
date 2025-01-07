@@ -81,8 +81,9 @@ func initTestStores() (*beacondb.KVStore, *depositstore.KVStore, error) {
 		return nil, nil, fmt.Errorf("failed opening mem db: %w", err)
 	}
 	var (
-		nopLog     = log.NewNopLogger()
-		nopMetrics = metrics.NewNoOpMetrics()
+		nopLog        = log.NewNopLogger()
+		noopCloseFunc = func() error { return nil }
+		nopMetrics    = metrics.NewNoOpMetrics()
 	)
 
 	cms := store.NewCommitMultiStore(
@@ -99,7 +100,7 @@ func initTestStores() (*beacondb.KVStore, *depositstore.KVStore, error) {
 	ctx := sdk.NewContext(cms, true, nopLog)
 	testStoreService := &testKVStoreService{ctx: ctx}
 	return beacondb.New(testStoreService),
-		depositstore.NewStore(testStoreService, nopLog),
+		depositstore.NewStore(testStoreService, noopCloseFunc, nopLog),
 		nil
 }
 

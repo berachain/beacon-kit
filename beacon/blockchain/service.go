@@ -113,5 +113,12 @@ func (s *Service) Start(ctx context.Context) error {
 }
 
 func (s *Service) Stop() error {
+	s.logger.Info("Stopping blockchain service")
+
+	err := s.storageBackend.DepositStore().Close()
+	if err != nil {
+		s.logger.Error("failed to close deposit store", "err", err)
+	}
+
 	return nil
 }
