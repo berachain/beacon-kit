@@ -16,7 +16,7 @@ BeaconKit distingishes a validator `Balance` and a validator `EffectiveBalance`.
 
 - `Balance` is updated slot by slot, when a deposit in made over the deposit contract and events are subsequently processed by BeaconKit.
 - `Balance` can increase only in multiples of `MinDepositAmount`, which is specified in the deposit contract. There is no cap on the `Balance`.
-- `EffectiveBalance` is updated at the turn of every epoch.
+- `EffectiveBalance` is updated at the turn of every epoch. XXX
 - `EffectiveBalance` is enforced to be a multiple of `EffectiveBalanceIncrement`
 - `EffectiveBalance` is capped at `MaxEffectiveBalance`. Any `Balance` in excess of `MaxEffectiveBalance` is automatically withdrawn.
 - `EffectiveBalance` is aligned to `Balance`, within the constrains listed above, and accounting for hysteresys, at the turn of every epoch, via [`processEffectiveBalanceUpdates`](./state_processor.go#L491)
