@@ -40,6 +40,12 @@ const KeyDepositPrefix = "deposit"
 type KVStore struct {
 	store sdkcollections.Map[uint64, *ctypes.Deposit]
 
+	// closeFunc is a closure that closes the underlying database
+	// used by store to ensure that all writes are flushed to disk.
+	// We guarantee that closeFunc is called at maximum only once.
+	closeFunc CloseFunc
+	once      sync.Once
+
 	// mu protects store for concurrent access
 	mu sync.RWMutex
 
@@ -47,9 +53,13 @@ type KVStore struct {
 	logger log.Logger
 }
 
+// closure type for closing the store.
+type CloseFunc func() error
+
 // NewStore creates a new deposit store.
 func NewStore(
 	kvsp store.KVStoreService,
+	closeFunc CloseFunc,
 	logger log.Logger,
 ) *KVStore {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kvsp)
@@ -61,12 +71,21 @@ func NewStore(
 			sdkcollections.Uint64Key,
 			encoding.SSZValueCodec[*ctypes.Deposit]{},
 		),
-		logger: logger,
+		closeFunc: closeFunc,
+		logger:    logger,
 	}
 	if _, err := schemaBuilder.Build(); err != nil {
 		panic(errors.Wrap(err, "failed building KVStore schema"))
 	}
 	return res
+}
+
+// Close closes the store by calling the closeFunc. It ensures that the
+// closeFunc is called at most once.
+func (kv *KVStore) Close() error {
+	var err error
+	kv.once.Do(func() { err = kv.closeFunc() })
+	return err
 }
 
 // GetDepositsByIndex returns the first N deposits starting from the given

@@ -119,7 +119,6 @@ func (s *Service[LoggerT]) initChain(
 			}
 		}
 	}
-	s.prevBlkTime = req.Time
 
 	// NOTE: We don't commit, but FinalizeBlock for block InitialHeight starts
 	// from
