@@ -30,11 +30,10 @@ import (
 )
 
 const ( // appeases mnd
-	timeoutPropose    = 1000 * time.Millisecond
-	timeoutPrevote    = 1000 * time.Millisecond
-	timeoutPrecommit  = 1000 * time.Millisecond
-	timeoutCommit     = 0 // we use NextBlockDelay instead of timeoutCommit
-	targetBlockPeriod = 2 * time.Second
+	timeoutPropose   = 1000 * time.Millisecond
+	timeoutPrevote   = 1000 * time.Millisecond
+	timeoutPrecommit = 1000 * time.Millisecond
+	timeoutCommit    = 500 * time.Millisecond
 
 	maxBlockSize = 100 * 1024 * 1024
 
@@ -128,13 +127,4 @@ func extractConsensusParams(cmtCfg *cmtcfg.Config) (*cmttypes.ConsensusParams, e
 	// Todo: add validation for genesis params by chainID
 	cmtConsensusParams := genDoc.GenesisDoc.ConsensusParams
 	return cmtConsensusParams, nil
-}
-
-func nextBlockDelay(prevBlkTime, currBlkTime time.Time) time.Duration {
-	expectedBlkTime := prevBlkTime.Add(targetBlockPeriod)
-	if currBlkTime.Before(expectedBlkTime) {
-		// block too fast, let's wait before issuing next
-		return expectedBlkTime.Sub(currBlkTime)
-	}
-	return time.Duration(0) // no delay, block already slower then what's ideal
 }
