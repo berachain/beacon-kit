@@ -21,6 +21,8 @@
 package e2e_test
 
 import (
+	"fmt"
+	"github.com/ethereum/go-ethereum/params"
 	"math/big"
 
 	"github.com/berachain/beacon-kit/config/spec"
@@ -96,6 +98,44 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	client4 := s.ConsensusClients()[config.ClientValidator4]
 	s.Require().NotNil(client4)
 
+	// // Check the validators' current voting power.
+	// power0, err := client0.GetConsensusPower(s.Ctx())
+	// s.Require().NoError(err)
+	// power1, err := client1.GetConsensusPower(s.Ctx())
+	// s.Require().NoError(err)
+	// power2, err := client2.GetConsensusPower(s.Ctx())
+	// s.Require().NoError(err)
+	// power3, err := client3.GetConsensusPower(s.Ctx())
+	// s.Require().NoError(err)
+	// power4, err := client4.GetConsensusPower(s.Ctx())
+	// s.Require().NoError(err)
+
+	credentials0 := [32]byte{1, 0}
+	withdrawalAddress0 := gethcommon.Address(credentials0[12:])
+	withdrawalBalance0Before, err := s.JSONRPCBalancer().BalanceAt(s.Ctx(), withdrawalAddress0, nil)
+	s.Require().NoError(err)
+	fmt.Println(withdrawalBalance0Before)
+	credentials1 := [32]byte{1, 1}
+	withdrawalAddress1 := gethcommon.Address(credentials1[12:])
+	withdrawalBalance1Before, err := s.JSONRPCBalancer().BalanceAt(s.Ctx(), withdrawalAddress1, nil)
+	s.Require().NoError(err)
+	fmt.Println(withdrawalBalance1Before)
+	credentials2 := [32]byte{1, 2}
+	withdrawalAddress2 := gethcommon.Address(credentials2[12:])
+	withdrawalBalance2Before, err := s.JSONRPCBalancer().BalanceAt(s.Ctx(), withdrawalAddress2, nil)
+	s.Require().NoError(err)
+	fmt.Println(withdrawalBalance2Before)
+	credentials3 := [32]byte{1, 3}
+	withdrawalAddress3 := gethcommon.Address(credentials3[12:])
+	withdrawalBalance3Before, err := s.JSONRPCBalancer().BalanceAt(s.Ctx(), withdrawalAddress3, nil)
+	s.Require().NoError(err)
+	fmt.Println(withdrawalBalance3Before)
+	credentials4 := [32]byte{1, 4}
+	withdrawalAddress4 := gethcommon.Address(credentials4[12:])
+	withdrawalBalance4Before, err := s.JSONRPCBalancer().BalanceAt(s.Ctx(), withdrawalAddress4, nil)
+	s.Require().NoError(err)
+	fmt.Println(withdrawalBalance4Before)
+
 	// Sender account
 	sender := s.TestAccounts()[0]
 
@@ -130,14 +170,19 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 		switch i % config.NumValidators {
 		case 0:
 			clientPubkey, err = client0.GetPubKey(s.Ctx())
+			credentials = credentials0
 		case 1:
 			clientPubkey, err = client1.GetPubKey(s.Ctx())
+			credentials = credentials1
 		case 2:
 			clientPubkey, err = client2.GetPubKey(s.Ctx())
+			credentials = credentials2
 		case 3:
 			clientPubkey, err = client3.GetPubKey(s.Ctx())
+			credentials = credentials3
 		case 4:
 			clientPubkey, err = client4.GetPubKey(s.Ctx())
+			credentials = credentials4
 		}
 		s.Require().NoError(err)
 		pk, err = bls12381.NewPublicKeyFromBytes(clientPubkey)
@@ -197,12 +242,12 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	s.Require().Equal(-1, amtSpent.Cmp(upperBound), "amount spent is greater than upper bound")
 
 	// TODO: determine why voting power is not increasing above 32e9.
-	// // Check that all validators' voting power have increased by
-	// // (NumDepositsLoad / NumValidators) * DepositAmount
-	// // after the end of the epoch (next multiple of 32 after receipt.BlockNumber).
-	// nextEpochBlockNum := (receipt.BlockNumber.Uint64()/32 + 1) * 32
-	// err = s.WaitForFinalizedBlockNumber(nextEpochBlockNum + 1)
-	// s.Require().NoError(err)
+	// Check that all validators' voting power have increased by
+	// (NumDepositsLoad / NumValidators) * DepositAmount
+	// after the end of the epoch (next multiple of 32 after receipt.BlockNumber).
+	nextEpochBlockNum := (receipt.BlockNumber.Uint64()/32 + 1) * 32
+	err = s.WaitForFinalizedBlockNumber(nextEpochBlockNum + 1)
+	s.Require().NoError(err)
 
 	// power0After, err := client0.GetConsensusPower(s.Ctx())
 	// s.Require().NoError(err)
@@ -215,10 +260,27 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	// power4After, err := client4.GetConsensusPower(s.Ctx())
 	// s.Require().NoError(err)
 
-	// increaseAmt := NumDepositsLoad / config.NumValidators * uint64(DepositAmount/params.GWei)
+	increaseAmt := (NumDepositsLoad / config.NumValidators) * uint64(DepositAmount/params.GWei)
 	// s.Require().Equal(power0+increaseAmt, power0After)
 	// s.Require().Equal(power1+increaseAmt, power1After)
 	// s.Require().Equal(power2+increaseAmt, power2After)
 	// s.Require().Equal(power3+increaseAmt, power3After)
 	// s.Require().Equal(power4+increaseAmt, power4After)
+	fmt.Println("Increase: ", increaseAmt)
+
+	withdrawalBalance0After, err := s.JSONRPCBalancer().BalanceAt(s.Ctx(), withdrawalAddress0, nil)
+	s.Require().NoError(err)
+	fmt.Println(withdrawalBalance0After)
+	withdrawalBalance1After, err := s.JSONRPCBalancer().BalanceAt(s.Ctx(), withdrawalAddress1, nil)
+	s.Require().NoError(err)
+	fmt.Println(withdrawalBalance1After)
+	withdrawalBalance2After, err := s.JSONRPCBalancer().BalanceAt(s.Ctx(), withdrawalAddress2, nil)
+	s.Require().NoError(err)
+	fmt.Println(withdrawalBalance2After)
+	withdrawalBalance3After, err := s.JSONRPCBalancer().BalanceAt(s.Ctx(), withdrawalAddress3, nil)
+	s.Require().NoError(err)
+	fmt.Println(withdrawalBalance3After)
+	withdrawalBalance4After, err := s.JSONRPCBalancer().BalanceAt(s.Ctx(), withdrawalAddress4, nil)
+	s.Require().NoError(err)
+	fmt.Println(withdrawalBalance4After)
 }
