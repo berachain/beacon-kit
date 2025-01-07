@@ -31,13 +31,14 @@ import (
 
 // TestBeaconKitE2ESuite runs the test suite.
 func TestBeaconKitE2ESuite(t *testing.T) {
-	s := suite.NewKurtosisE2ESuite()
+	s := suite.NewBeaconKitE2ESuite()
 
-	// Register all tests to use dev chain spec
+	// Register tests that need specific chain specs
 	s.RegisterTest("TestBeaconKitE2ESuite/TestBasicStartup", "devnet")
 	s.RegisterTest("TestBeaconKitE2ESuite/TestEVMInflation", "devnet")
 	s.RegisterTest("TestBeaconKitE2ESuite/Test4844Live", "devnet")
 	s.RegisterTest("TestBeaconKitE2ESuite/TestBeaconAPIStartup", "devnet")
 	s.RegisterTest("TestBeaconKitE2ESuite/TestAccounts", "devnet")
+
 	suite.Run(t, s)
 }

@@ -85,22 +85,34 @@ func (s *KurtosisE2ESuite) TearDownSuite() {
 
 	// Clean up all networks
 	for chainSpec, network := range s.networks {
-		for _, client := range network.consensusClients {
-			res, err := client.Stop(s.ctx)
-			s.Require().NoError(err, "Error stopping consensus client")
-			s.Require().Nil(res.ExecutionError, "Error stopping consensus client")
-			s.Require().Empty(res.ValidationErrors, "Error stopping consensus client")
+		if network == nil {
+			continue
+		}
+		if network.consensusClients != nil {
+			for _, client := range network.consensusClients {
+				if client != nil {
+					// Safely try to stop client
+					if res, err := client.Stop(s.ctx); err != nil {
+						s.Logger().Error("Failed to stop consensus client", "error", err)
+					} else if res != nil && res.ExecutionError != nil {
+						s.Logger().Error("Client stop returned error", "error", res.ExecutionError)
+					}
+				}
+			}
 		}
 
-		enclaveName := fmt.Sprintf("e2e-test-enclave-%s", chainSpec)
-		s.Require().NoError(s.kCtx.DestroyEnclave(s.ctx, enclaveName))
+		// Destroy enclave if it exists
+		if network.enclave != nil {
+			enclaveName := fmt.Sprintf("e2e-test-enclave-%s", chainSpec)
+			if err := s.kCtx.DestroyEnclave(s.ctx, enclaveName); err != nil {
+				s.Logger().Error("Error destroying enclave", "error", err, "enclave", enclaveName)
+			}
+		}
 	}
 }
 
 // CheckForSuccessfulTx returns true if the transaction was successful.
-func (s *KurtosisE2ESuite) CheckForSuccessfulTx(
-	tx common.Hash,
-) bool {
+func (s *KurtosisE2ESuite) CheckForSuccessfulTx(tx common.Hash) bool {
 	ctx, cancel := context.WithTimeout(s.Ctx(), DefaultE2ETestTimeout)
 	defer cancel()
 	receipt, err := s.JSONRPCBalancer().TransactionReceipt(ctx, tx)
