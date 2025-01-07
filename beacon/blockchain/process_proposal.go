@@ -62,18 +62,18 @@ func (s *Service) ProcessProposal(
 			BlobSidecarsTxIndex,
 			s.chainSpec.ActiveForkVersionForSlot(math.Slot(req.Height))) // #nosec G115
 	if err != nil {
-		return createProcessProposalResponse(errors.WrapNonFatal(err))
+		return createProcessProposalResponse(err)
 	}
 	if signedBlk.IsNil() {
 		s.logger.Warn(
 			"Aborting block verification - beacon block not found in proposal",
 		)
-		return createProcessProposalResponse(errors.WrapNonFatal(ErrNilBlk))
+		return createProcessProposalResponse(ErrNilBlk)
 	} else if sidecars.IsNil() {
 		s.logger.Warn(
 			"Aborting block verification - blob sidecars not found in proposal",
 		)
-		return createProcessProposalResponse(errors.WrapNonFatal(ErrNilBlob))
+		return createProcessProposalResponse(ErrNilBlob)
 	}
 
 	blk := signedBlk.GetMessage()
@@ -83,7 +83,7 @@ func (s *Service) ProcessProposal(
 		err = fmt.Errorf("expected %d sidecars, got %d",
 			numCommitments, len(sidecars),
 		)
-		return createProcessProposalResponse(errors.WrapNonFatal(err))
+		return createProcessProposalResponse(err)
 	}
 
 	// Verify the block and sidecar signatures. We can simply verify the block
@@ -93,13 +93,13 @@ func (s *Service) ProcessProposal(
 		sidecarSignature := sidecar.GetSignedBeaconBlockHeader().GetSignature()
 		if !bytes.Equal(blkSignature[:], sidecarSignature[:]) {
 			return createProcessProposalResponse(
-				errors.WrapNonFatal(errors.New("sidecar signature mismatch")),
+				errors.New("sidecar signature mismatch"),
 			)
 		}
 	}
 	err = s.VerifyIncomingBlockSignature(ctx, signedBlk.GetMessage(), signedBlk.GetSignature())
 	if err != nil {
-		return createProcessProposalResponse(errors.WrapNonFatal(err))
+		return createProcessProposalResponse(err)
 	}
 
 	if numCommitments > 0 {
@@ -114,7 +114,7 @@ func (s *Service) ProcessProposal(
 		err = s.VerifyIncomingBlobSidecars(sidecars, blk.GetHeader())
 		if err != nil {
 			s.logger.Error("failed to verify incoming blob sidecars", "error", err)
-			return createProcessProposalResponse(errors.WrapNonFatal(err))
+			return createProcessProposalResponse(err)
 		}
 	}
 
@@ -132,7 +132,7 @@ func (s *Service) ProcessProposal(
 	)
 	if err != nil {
 		s.logger.Error("failed to verify incoming block", "error", err)
-		return createProcessProposalResponse(errors.WrapNonFatal(err))
+		return createProcessProposalResponse(err)
 	}
 
 	return createProcessProposalResponse(nil)
