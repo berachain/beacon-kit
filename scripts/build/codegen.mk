@@ -14,7 +14,10 @@ generate: ## generate all the code
 	done
 	@go run github.com/vektra/mockery/v2@v2.49.0
 
-generate-check:
+abigen-install:
+	@go install github.com/ethereum/go-ethereum/cmd/abigen@latest
+
+generate-check: abigen-install
 	@$(MAKE) forge-build
 	@$(MAKE) generate
 	@if [ -n "$$(git status --porcelain | grep -vE '\.ssz\.go$$')" ]; then \
