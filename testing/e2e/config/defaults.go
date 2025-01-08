@@ -108,7 +108,7 @@ func defaultFullNodes() NodeSet {
 		Nodes: []Node{
 			{
 				ElType:   "nethermind",
-				Replicas: 1,
+				Replicas: 0,
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
@@ -128,7 +128,7 @@ func defaultFullNodes() NodeSet {
 			},
 			{
 				ElType:   "besu",
-				Replicas: 1,
+				Replicas: 0,
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 		},

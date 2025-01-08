@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"reflect"
 	"sync"
+	"time"
 
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
@@ -136,6 +137,7 @@ func (
 
 // JSONRPCBalancer returns the JSON-RPC balancer for the test suite.
 func (s *KurtosisE2ESuite) JSONRPCBalancer() *types.LoadBalancer {
+	s.Logger().Info("JSONRPCBalancer", "balancer", s.loadBalancer)
 	return s.loadBalancer
 }
 
@@ -199,6 +201,7 @@ func (s *KurtosisE2ESuite) TestSpecs() map[string]e2etypes.ChainSpec {
 
 // RunTestsByChainSpec runs all tests for each chain spec
 func (s *KurtosisE2ESuite) RunTestsByChainSpec() {
+	s.Logger().Info("RunTestsByChainSpec", "testSpecs", s.testSpecs)
 	// Group tests by chain spec
 	testsBySpec := make(map[string][]string)
 	for testName, spec := range s.testSpecs {
@@ -212,15 +215,20 @@ func (s *KurtosisE2ESuite) RunTestsByChainSpec() {
 
 		// Initialize network for this chain spec
 		network := s.networks[chainKey]
-		if err := s.initializeNetwork(network); err != nil {
+		if err := s.InitializeNetwork(network); err != nil {
 			s.T().Fatalf("Failed to initialize network for %s: %v", chainKey, err)
+		}
+
+		// Wait for RPC to be ready
+		if err := s.WaitForRPCReady(network); err != nil {
+			s.T().Fatalf("Failed waiting for RPC: %v", err)
 		}
 
 		// Run all tests for this chain spec
 		for _, testName := range tests {
 			s.Logger().Info("Running test", "test", testName)
-			// Get the method by name and run it
-			method := reflect.ValueOf(s).MethodByName(testName)
+			method := reflect.ValueOf(interface{}(s)).MethodByName(testName)
+			s.Logger().Info("Method", "method", method)
 			if !method.IsValid() {
 				s.T().Errorf("Test method %s not found", testName)
 				continue
@@ -229,25 +237,35 @@ func (s *KurtosisE2ESuite) RunTestsByChainSpec() {
 				method.Call(nil)
 			})
 		}
-
-		// Cleanup network after all tests for this chain spec
-		s.Logger().Info("Cleaning up network", "chainKey", chainKey)
-		if err := s.cleanupNetwork(network); err != nil {
-			s.Logger().Error("Failed to cleanup network", "error", err)
-		}
 	}
 }
 
-// initializeNetwork sets up a network using the provided configuration
-func (s *KurtosisE2ESuite) initializeNetwork(network *NetworkInstance) error {
+// InitializeNetwork sets up a network using the provided configuration
+func (s *KurtosisE2ESuite) InitializeNetwork(network *NetworkInstance) error {
 	// Create unique enclave name for this chain spec
+	s.Logger().Info("Creating enclave", "chainSpec", network.Config.NetworkConfiguration.ChainSpec)
 	enclaveName := fmt.Sprintf("e2e-test-enclave-%s", network.Config.NetworkConfiguration.ChainSpec)
 
-	var err error
+	// Try to destroy any existing enclave with the same name
+	enclaves, err := s.kCtx.GetEnclaves(s.ctx)
+	if err != nil {
+		s.Logger().Error("Failed to get enclaves", "error", err)
+	} else {
+		for _, e := range enclaves.GetEnclavesByUuid() {
+			if e.GetName() == enclaveName {
+				s.Logger().Info("Destroying existing enclave", "name", enclaveName)
+				if err := s.kCtx.DestroyEnclave(s.ctx, string(e.GetEnclaveUuid())); err != nil {
+					s.Logger().Error("Failed to destroy existing enclave", "error", err)
+				}
+			}
+		}
+	}
+
 	network.enclave, err = s.kCtx.CreateEnclave(s.ctx, enclaveName)
 	if err != nil {
 		return fmt.Errorf("failed to create enclave: %w", err)
 	}
+	s.Logger().Info("Created enclave", "enclave", network.enclave)
 
 	// Run Starlark package
 	result, err := network.enclave.RunStarlarkPackageBlocking(
@@ -257,6 +275,7 @@ func (s *KurtosisE2ESuite) initializeNetwork(network *NetworkInstance) error {
 			starlark_run_config.WithSerializedParams(network.Config.MustMarshalJSON()),
 		),
 	)
+	s.Logger().Info("Ran starlark package")
 	if err != nil {
 		return fmt.Errorf("failed to run starlark package: %w", err)
 	}
@@ -265,6 +284,7 @@ func (s *KurtosisE2ESuite) initializeNetwork(network *NetworkInstance) error {
 	}
 
 	// Setup consensus clients
+	s.Logger().Info("Setting up validator clients", "clients", network.Config.NetworkConfiguration.Validators.Nodes)
 	for i := range network.Config.NetworkConfiguration.Validators.Nodes {
 		clientName := fmt.Sprintf("cl-validator-beaconkit-%d", i)
 		sCtx, err := network.enclave.GetServiceContext(clientName)
@@ -277,7 +297,7 @@ func (s *KurtosisE2ESuite) initializeNetwork(network *NetworkInstance) error {
 		)
 		network.consensusClients[clientName] = client
 	}
-
+	s.Logger().Info("Set up validator clients", "clients", network.consensusClients)
 	// Setup JSON-RPC balancer
 	balancerType := network.Config.EthJSONRPCEndpoints[0].Type
 	sCtx, err := network.enclave.GetServiceContext(balancerType)
@@ -288,15 +308,24 @@ func (s *KurtosisE2ESuite) initializeNetwork(network *NetworkInstance) error {
 	if err != nil {
 		return fmt.Errorf("failed to create load balancer: %w", err)
 	}
-
+	s.Logger().Info("Verifying load balancer",
+		"type", balancerType,
+		"ports", sCtx.GetPublicPorts(),
+		"balancer", network.loadBalancer,
+	)
+	// Set the suite's load balancer to match the network's
+	s.loadBalancer = network.loadBalancer
+	s.Logger().Info("Set suite's load balancer", "balancer", s.loadBalancer)
 	return nil
 }
 
 // cleanupNetwork cleans up the network resources
-func (s *KurtosisE2ESuite) cleanupNetwork(network *NetworkInstance) error {
+func (s *KurtosisE2ESuite) CleanupNetwork(network *NetworkInstance) error {
 	// Stop consensus clients
-	for _, client := range network.consensusClients {
-		if client != nil {
+	s.Logger().Info("Stopping consensus clients in cleanupNetwork", "clients", len(network.consensusClients))
+	for name, client := range network.consensusClients {
+		s.Logger().Info("Stopping consensus client", "name", name)
+		if client != nil && client.Client != nil {
 			if res, err := client.Stop(s.ctx); err != nil {
 				s.Logger().Error("Failed to stop consensus client", "error", err)
 			} else if res != nil && res.ExecutionError != nil {
@@ -307,6 +336,7 @@ func (s *KurtosisE2ESuite) cleanupNetwork(network *NetworkInstance) error {
 
 	// Destroy enclave
 	if network.enclave != nil {
+		s.Logger().Info("Destroying enclave in cleanupNetwork", "enclave", network.enclave)
 		if err := s.kCtx.DestroyEnclave(s.ctx, string(network.enclave.GetEnclaveUuid())); err != nil {
 			return fmt.Errorf("failed to destroy enclave: %w", err)
 		}
@@ -317,4 +347,20 @@ func (s *KurtosisE2ESuite) cleanupNetwork(network *NetworkInstance) error {
 
 func (s *KurtosisE2ESuite) SetKurtosisCtx(ctx *kurtosis_context.KurtosisContext) {
 	s.kCtx = ctx
+}
+
+// WaitForRPCReady waits for the RPC endpoint to be ready
+func (s *KurtosisE2ESuite) WaitForRPCReady(network *NetworkInstance) error {
+	s.Logger().Info("Waiting for RPC to be ready")
+	maxRetries := 30
+	for i := 0; i < maxRetries; i++ {
+		blockNum, err := network.loadBalancer.BlockNumber(s.ctx)
+		if err == nil {
+			s.Logger().Info("RPC is ready", "blockNum", blockNum)
+			return nil
+		}
+		s.Logger().Info("RPC not ready yet", "attempt", i+1, "error", err)
+		time.Sleep(2 * time.Second)
+	}
+	return fmt.Errorf("RPC not ready after %d retries", maxRetries)
 }

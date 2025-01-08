@@ -31,21 +31,28 @@ import (
 // TestEVMInflation checks that the EVM inflation address receives the correct
 // amount of EVM inflation per block.
 func (s *BeaconKitE2ESuite) TestEVMInflation() {
+	s.Logger().Info("Running TestEVMInflation")
 	evmInflationPerBlockWei, _ := big.NewFloat(
 		spec.DevnetEVMInflationPerBlock * math.GweiPerWei,
 	).Int(nil)
+
+	s.Logger().Info("EVM Inflation Per Block Wei", "evmInflationPerBlockWei", evmInflationPerBlockWei)
 
 	// Check over the next 10 EVM blocks, that after every block, the balance
 	// of the EVM inflation address increases by DevnetEVMInflationPerBlock.
 	for i := range int64(10) {
 		err := s.WaitForFinalizedBlockNumber(uint64(i))
 		s.Require().NoError(err)
+		s.Logger().Info("Waiting for finalized block number", "blockNumber", i)
 
+		s.Logger().Info("Balance at", "blockNumber", i, "address", spec.DevnetEVMInflationAddress)
+		s.Logger().Info("jsonrpc balancer", "jsonrpcBalancer", s.JSONRPCBalancer())
 		balance, err := s.JSONRPCBalancer().BalanceAt(
 			s.Ctx(),
 			gethcommon.HexToAddress(spec.DevnetEVMInflationAddress),
 			big.NewInt(i),
 		)
+		s.Logger().Info("Balance at", "balance", balance)
 		s.Require().NoError(err)
 		s.Require().Zero(balance.Cmp(new(big.Int).Mul(
 			evmInflationPerBlockWei, big.NewInt(i)),
