@@ -61,8 +61,8 @@ func TestFromUint32(t *testing.T) {
 		},
 		{
 			name:     "DenebPlus",
-			input:    version.DenebPlus,
-			expected: [4]byte{5, 0, 0, 0},
+			input:    260,
+			expected: [4]byte{4, 1, 0, 0},
 		},
 		{
 			name:     "Electra",

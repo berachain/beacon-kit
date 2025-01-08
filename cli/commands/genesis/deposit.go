@@ -86,9 +86,7 @@ func AddGenesisDepositCmd(cs chain.Spec) *cobra.Command {
 			}
 
 			// TODO: configurable.
-			currentVersion := version.FromUint32[common.Version](
-				version.Deneb,
-			)
+			currentVersion := version.FromUint32[common.Version](version.Deneb)
 
 			// Get the withdrawal address.
 			withdrawalAddress := common.NewExecutionAddressFromHex(args[1])
