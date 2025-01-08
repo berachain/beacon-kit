@@ -93,3 +93,8 @@ func (s *BeaconKitE2ESuite) initializeNetworks() {
 		}
 	}
 }
+
+func (s *BeaconKitE2ESuite) TestBasicStartup() {
+	err := s.WaitForFinalizedBlockNumber(10)
+	s.Require().NoError(err)
+}

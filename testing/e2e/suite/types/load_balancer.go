@@ -65,3 +65,14 @@ func NewLoadBalancer(
 func (lb *LoadBalancer) URL() string {
 	return lb.url
 }
+
+// String implements fmt.Stringer
+func (lb *LoadBalancer) String() string {
+	if lb == nil {
+		return "nil"
+	}
+	if lb.Client == nil {
+		return fmt.Sprintf("LoadBalancer{url: %s, client: nil}", lb.url)
+	}
+	return fmt.Sprintf("LoadBalancer{url: %s, client: initialized}", lb.url)
+}
