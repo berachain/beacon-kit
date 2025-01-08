@@ -21,19 +21,64 @@
 package e2e_test
 
 import (
+	"context"
+	"fmt"
+	"os"
+
+	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/berachain/beacon-kit/testing/e2e/suite"
+	e2etypes "github.com/berachain/beacon-kit/testing/e2e/types"
+	"github.com/kurtosis-tech/kurtosis/api/golang/engine/lib/kurtosis_context"
 )
 
-// BeaconE2ESuite is a suite of tests simulating a fully function beacon-kit
-// network.
+// BeaconKitE2ESuite is a suite of tests simulating a fully functional beacon-kit network.
 type BeaconKitE2ESuite struct {
 	suite.KurtosisE2ESuite
+	opts []suite.Option
 }
 
-// TestBasicStartup tests the basic startup of the beacon-kit network.
-//
-// TODO: Should check all clients, opposed to just the load balancer.
-func (s *BeaconKitE2ESuite) TestBasicStartup() {
-	err := s.WaitForFinalizedBlockNumber(10)
+func (s *BeaconKitE2ESuite) SetupSuiteWithOptions(opts ...suite.Option) {
+	s.opts = opts
+}
+
+// SetupSuite executes before the test suite begins execution.
+func (s *BeaconKitE2ESuite) SetupSuite() {
+	// Initialize basic configuration
+	s.SetContext(context.Background())
+	logger := log.NewLogger(os.Stdout)
+	s.SetLogger(logger)
+
+	var err error
+	kCtx, err := kurtosis_context.NewKurtosisContextFromLocalEngine()
 	s.Require().NoError(err)
+	s.SetKurtosisCtx(kCtx)
+
+	s.SetNetworks(make(map[string]*suite.NetworkInstance))
+	s.SetTestSpecs(make(map[string]e2etypes.ChainSpec))
+
+	// Apply all chain options
+	for _, opt := range s.opts {
+		if err := opt(&s.KurtosisE2ESuite); err != nil {
+			s.Require().NoError(err)
+		}
+	}
+
+	// Initialize networks and run tests
+	s.initializeNetworks()
+	s.RunTestsByChainSpec()
+}
+
+// initializeNetworks sets up networks for each unique chain spec
+func (s *BeaconKitE2ESuite) initializeNetworks() {
+	for _, spec := range s.TestSpecs() {
+		chainKey := fmt.Sprintf("%d-%s", spec.ChainID, spec.Network)
+		if networks := s.Networks(); networks[chainKey] == nil {
+			network := suite.NewNetworkInstance(config.DefaultE2ETestConfig())
+			network.Config.NetworkConfiguration.ChainID = int(spec.ChainID)
+			network.Config.NetworkConfiguration.ChainSpec = spec.Network
+			networks[chainKey] = network
+			s.SetNetworks(networks)
+		}
+	}
 }

@@ -21,6 +21,22 @@
 package e2e_test
 
 // SetupChains assigns a chain for each of test cases to use.
-func (s *BeaconKitE2ESuite) SetupChains() {
-	// TODO: Implement.
-}
+// func (s *BeaconKitE2ESuite) SetupChains() {
+
+// 	// Register test cases with their desired chain specs
+// 	s.RegisterTest("TestBeaconKitE2ESuite/TestBasicStartup", e2etypes.ChainSpec{
+// 		ChainID: 80087,
+// 		Network: "devnet",
+// 	})
+// 	s.RegisterTest("TestBeaconKitE2ESuite/TestEVMInflation", e2etypes.ChainSpec{
+// 		ChainID: 80087, // reusing same chain
+// 		Network: "devnet",
+// 	})
+// 	// Create chains for unique specs
+
+// }
+
+// // RegisterTest associates a test case with a chain specification
+// func (s *BeaconKitE2ESuite) RegisterTest(testName string, spec e2etypes.ChainSpec) {
+// 	s.testChainMappings[testName] = spec
+// }

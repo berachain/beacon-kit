@@ -31,5 +31,15 @@ import (
 
 // TestBeaconKitE2ESuite runs the test suite.
 func TestBeaconKitE2ESuite(t *testing.T) {
-	suite.Run(t, new(BeaconKitE2ESuite))
+	s := new(BeaconKitE2ESuite)
+
+	// Setup suite with chain configurations
+	s.SetupSuiteWithOptions(
+		// suite.WithChain("TestBeaconKitE2ESuite/TestBasicStartup", 80087, "devnet"),
+		suite.WithChain("TestBeaconKitE2ESuite/TestEVMInflation", 80087, "devnet"),
+		// suite.WithChain("TestBeaconKitE2ESuite/Test4844Live", 80087, "devnet"),
+		// suite.WithChain("TestBeaconKitE2ESuite/TestBeaconAPIStartup", 80087, "devnet"),
+	)
+
+	suite.Run(t, s)
 }

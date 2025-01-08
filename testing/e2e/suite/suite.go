@@ -22,11 +22,16 @@ package suite
 
 import (
 	"context"
+	"fmt"
+	"reflect"
+	"sync"
 
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
+	e2etypes "github.com/berachain/beacon-kit/testing/e2e/types"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
+	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/starlark_run_config"
 	"github.com/kurtosis-tech/kurtosis/api/golang/engine/lib/kurtosis_context"
 	"github.com/stretchr/testify/suite"
 )
@@ -53,6 +58,40 @@ type KurtosisE2ESuite struct {
 
 	genesisAccount *types.EthAccount
 	testAccounts   []*types.EthAccount
+
+	// Network management
+	networks  map[string]*NetworkInstance   // maps chainSpec to network
+	testSpecs map[string]e2etypes.ChainSpec // maps testName to chainSpec
+	mu        sync.RWMutex
+}
+
+// NetworkInstance represents a single network configuration
+type NetworkInstance struct {
+	Config           *config.E2ETestConfig
+	consensusClients map[string]*types.ConsensusClient
+	loadBalancer     *types.LoadBalancer
+	genesisAccount   *types.EthAccount
+	testAccounts     []*types.EthAccount
+	enclave          *enclaves.EnclaveContext
+}
+
+// NewNetworkInstance creates a new network instance
+func NewNetworkInstance(cfg *config.E2ETestConfig) *NetworkInstance {
+	return &NetworkInstance{
+		Config:           cfg,
+		consensusClients: make(map[string]*types.ConsensusClient),
+	}
+}
+
+// GetCurrentNetwork returns the network for the current test
+func (s *KurtosisE2ESuite) GetCurrentNetwork() *NetworkInstance {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	testName := s.T().Name()
+	spec := s.testSpecs[testName]
+	chainKey := fmt.Sprintf("%d-%s", spec.ChainID, spec.Network)
+	return s.networks[chainKey]
 }
 
 // ConsensusClients returns the consensus clients associated with the
@@ -119,4 +158,163 @@ func (s *KurtosisE2ESuite) GenesisAccount() *types.EthAccount {
 // TestAccounts returns the test accounts for the test suite.
 func (s *KurtosisE2ESuite) TestAccounts() []*types.EthAccount {
 	return s.testAccounts
+}
+
+// RegisterTest associates a test with its chain specification
+func (s *KurtosisE2ESuite) RegisterTest(testName string, spec e2etypes.ChainSpec) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.testSpecs[testName] = spec
+}
+
+// SetLogger sets the logger for the test suite.
+func (s *KurtosisE2ESuite) SetLogger(l log.Logger) {
+	s.logger = l
+}
+
+// SetContext sets the context for the test suite.
+func (s *KurtosisE2ESuite) SetContext(ctx context.Context) {
+	s.ctx = ctx
+}
+
+// SetNetworks sets the networks for the test suite.
+func (s *KurtosisE2ESuite) SetNetworks(networks map[string]*NetworkInstance) {
+	s.networks = networks
+}
+
+// SetTestSpecs sets the test specs for the test suite.
+func (s *KurtosisE2ESuite) SetTestSpecs(specs map[string]e2etypes.ChainSpec) {
+	s.testSpecs = specs
+}
+
+// Networks returns the networks for the test suite.
+func (s *KurtosisE2ESuite) Networks() map[string]*NetworkInstance {
+	return s.networks
+}
+
+// TestSpecs returns the test specs for the test suite.
+func (s *KurtosisE2ESuite) TestSpecs() map[string]e2etypes.ChainSpec {
+	return s.testSpecs
+}
+
+// RunTestsByChainSpec runs all tests for each chain spec
+func (s *KurtosisE2ESuite) RunTestsByChainSpec() {
+	// Group tests by chain spec
+	testsBySpec := make(map[string][]string)
+	for testName, spec := range s.testSpecs {
+		chainKey := fmt.Sprintf("%d-%s", spec.ChainID, spec.Network)
+		testsBySpec[chainKey] = append(testsBySpec[chainKey], testName)
+	}
+
+	// For each chain spec
+	for chainKey, tests := range testsBySpec {
+		s.Logger().Info("Setting up network for chain spec", "chainKey", chainKey)
+
+		// Initialize network for this chain spec
+		network := s.networks[chainKey]
+		if err := s.initializeNetwork(network); err != nil {
+			s.T().Fatalf("Failed to initialize network for %s: %v", chainKey, err)
+		}
+
+		// Run all tests for this chain spec
+		for _, testName := range tests {
+			s.Logger().Info("Running test", "test", testName)
+			// Get the method by name and run it
+			method := reflect.ValueOf(s).MethodByName(testName)
+			if !method.IsValid() {
+				s.T().Errorf("Test method %s not found", testName)
+				continue
+			}
+			s.Run(testName, func() {
+				method.Call(nil)
+			})
+		}
+
+		// Cleanup network after all tests for this chain spec
+		s.Logger().Info("Cleaning up network", "chainKey", chainKey)
+		if err := s.cleanupNetwork(network); err != nil {
+			s.Logger().Error("Failed to cleanup network", "error", err)
+		}
+	}
+}
+
+// initializeNetwork sets up a network using the provided configuration
+func (s *KurtosisE2ESuite) initializeNetwork(network *NetworkInstance) error {
+	// Create unique enclave name for this chain spec
+	enclaveName := fmt.Sprintf("e2e-test-enclave-%s", network.Config.NetworkConfiguration.ChainSpec)
+
+	var err error
+	network.enclave, err = s.kCtx.CreateEnclave(s.ctx, enclaveName)
+	if err != nil {
+		return fmt.Errorf("failed to create enclave: %w", err)
+	}
+
+	// Run Starlark package
+	result, err := network.enclave.RunStarlarkPackageBlocking(
+		s.ctx,
+		"../../kurtosis",
+		starlark_run_config.NewRunStarlarkConfig(
+			starlark_run_config.WithSerializedParams(network.Config.MustMarshalJSON()),
+		),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to run starlark package: %w", err)
+	}
+	if result.ExecutionError != nil {
+		return fmt.Errorf("starlark execution error: %s", result.ExecutionError)
+	}
+
+	// Setup consensus clients
+	for i := range network.Config.NetworkConfiguration.Validators.Nodes {
+		clientName := fmt.Sprintf("cl-validator-beaconkit-%d", i)
+		sCtx, err := network.enclave.GetServiceContext(clientName)
+		if err != nil {
+			return fmt.Errorf("failed to get service context: %w", err)
+		}
+
+		client := types.NewConsensusClient(
+			types.NewWrappedServiceContext(sCtx, network.enclave.RunStarlarkScriptBlocking),
+		)
+		network.consensusClients[clientName] = client
+	}
+
+	// Setup JSON-RPC balancer
+	balancerType := network.Config.EthJSONRPCEndpoints[0].Type
+	sCtx, err := network.enclave.GetServiceContext(balancerType)
+	if err != nil {
+		return fmt.Errorf("failed to get balancer service context: %w", err)
+	}
+	network.loadBalancer, err = types.NewLoadBalancer(sCtx)
+	if err != nil {
+		return fmt.Errorf("failed to create load balancer: %w", err)
+	}
+
+	return nil
+}
+
+// cleanupNetwork cleans up the network resources
+func (s *KurtosisE2ESuite) cleanupNetwork(network *NetworkInstance) error {
+	// Stop consensus clients
+	for _, client := range network.consensusClients {
+		if client != nil {
+			if res, err := client.Stop(s.ctx); err != nil {
+				s.Logger().Error("Failed to stop consensus client", "error", err)
+			} else if res != nil && res.ExecutionError != nil {
+				s.Logger().Error("Client stop returned error", "error", res.ExecutionError)
+			}
+		}
+	}
+
+	// Destroy enclave
+	if network.enclave != nil {
+		if err := s.kCtx.DestroyEnclave(s.ctx, string(network.enclave.GetEnclaveUuid())); err != nil {
+			return fmt.Errorf("failed to destroy enclave: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func (s *KurtosisE2ESuite) SetKurtosisCtx(ctx *kurtosis_context.KurtosisContext) {
+	s.kCtx = ctx
 }
