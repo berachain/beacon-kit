@@ -618,7 +618,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	require.Equal(t, maxBalance, val1BalAfter)
 }
 
-// TestTransitionHittingValidatorsCap shows that the extra
+// TestTransitionHittingValidatorsCap_ExtraSmall shows that the extra
 // validator added when validators set is at cap gets never activated
 // and its deposit is returned at after next epoch starts.
 func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
@@ -846,7 +846,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	require.NoError(t, err)
 }
 
-// TestTransitionHittingValidatorsCap shows that if the extra
+// TestTransitionHittingValidatorsCap_ExtraBig shows that if the extra
 // validator added when validators set is at cap improves amount staked
 // an existing validator is removed at the beginning of next epoch.
 //
