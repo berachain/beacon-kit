@@ -337,18 +337,9 @@ func (s *Service) buildBlockBody(
 	// Fill in unused field with non-nil value
 	body.SetSyncAggregate(&ctypes.SyncAggregate{})
 
-	// Get the epoch to find the active fork version.
-	epoch := s.chainSpec.SlotToEpoch(blk.GetSlot())
-	activeForkVersion := s.chainSpec.ActiveForkVersionForEpoch(
-		epoch,
-	)
-	if activeForkVersion >= version.Deneb1 {
-		body.SetAttestationData(slotData.GetAttestationData())
-
-		// Set the slashing info on the block body.
-		body.SetSlashingInfo(slotData.GetSlashingInfo())
-	}
+	// Set the execution payload on the block body.
 	body.SetExecutionPayload(envelope.GetExecutionPayload())
+
 	return nil
 }
 
