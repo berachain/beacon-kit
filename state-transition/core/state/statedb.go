@@ -135,7 +135,7 @@ func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 		return nil, err
 	}
 
-	bound := min(totalValidators, s.cs.MaxValidatorsPerWithdrawalsSweep(false))
+	bound := min(totalValidators, s.cs.MaxValidatorsPerWithdrawalsSweep())
 
 	// Iterate through indices to find the next validators to withdraw.
 	for range bound {
@@ -166,7 +166,7 @@ func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 			// Increment the withdrawal index to process the next withdrawal.
 			withdrawalIndex++
 		} else if validator.IsPartiallyWithdrawable(
-			balance, math.Gwei(s.cs.MaxEffectiveBalance(false)),
+			balance, math.Gwei(s.cs.MaxEffectiveBalance()),
 		) {
 			withdrawalAddress, err = validator.
 				GetWithdrawalCredentials().ToExecutionAddress()
@@ -178,7 +178,7 @@ func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 				math.U64(withdrawalIndex),
 				validatorIndex,
 				withdrawalAddress,
-				balance-math.Gwei(s.cs.MaxEffectiveBalance(false)),
+				balance-math.Gwei(s.cs.MaxEffectiveBalance()),
 			))
 
 			// Increment the withdrawal index to process the next withdrawal.

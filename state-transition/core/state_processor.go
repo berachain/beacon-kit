@@ -247,7 +247,7 @@ func (sp *StateProcessor[_]) processEpoch(
 	if err = sp.processRegistryUpdates(st); err != nil {
 		return nil, err
 	}
-	if err = sp.processEffectiveBalanceUpdates(st, slot); err != nil {
+	if err = sp.processEffectiveBalanceUpdates(st); err != nil {
 		return nil, err
 	}
 	// if err = sp.processSlashingsReset(st); err != nil {
@@ -347,9 +347,7 @@ func (sp *StateProcessor[ContextT]) processBlockHeader(
 
 // processEffectiveBalanceUpdates as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#effective-balances-updates
-func (sp *StateProcessor[_]) processEffectiveBalanceUpdates(
-	st *state.StateDB, slot math.Slot,
-) error {
+func (sp *StateProcessor[_]) processEffectiveBalanceUpdates(st *state.StateDB) error {
 	// Update effective balances with hysteresis
 	validators, err := st.GetValidators()
 	if err != nil {
@@ -385,7 +383,7 @@ func (sp *StateProcessor[_]) processEffectiveBalanceUpdates(
 			updatedBalance := ctypes.ComputeEffectiveBalance(
 				balance,
 				math.U64(sp.cs.EffectiveBalanceIncrement()),
-				math.U64(sp.cs.MaxEffectiveBalance(false)),
+				math.U64(sp.cs.MaxEffectiveBalance()),
 			)
 			val.SetEffectiveBalance(updatedBalance)
 			if err = st.UpdateValidatorAtIndex(idx, val); err != nil {

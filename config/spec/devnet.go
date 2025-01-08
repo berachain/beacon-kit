@@ -47,6 +47,6 @@ func DevnetChainSpec() (chain.Spec, error) {
 		DevnetEVMInflationAddress,
 	)
 	devnetSpec.EVMInflationPerBlock = DevnetEVMInflationPerBlock
-	devnetSpec.MaxEffectiveBalancePreUpgrade = MaxStakeAmount
+	devnetSpec.MaxEffectiveBalance = MaxStakeAmount
 	return chain.NewSpec(devnetSpec)
 }

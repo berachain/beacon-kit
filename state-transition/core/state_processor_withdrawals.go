@@ -119,8 +119,7 @@ func (sp *StateProcessor[_]) processWithdrawals(
 		if err != nil {
 			return err
 		}
-		nextValidatorIndex += math.ValidatorIndex(
-			sp.cs.MaxValidatorsPerWithdrawalsSweep(false))
+		nextValidatorIndex += math.ValidatorIndex(sp.cs.MaxValidatorsPerWithdrawalsSweep())
 		nextValidatorIndex %= math.ValidatorIndex(totalValidators)
 	}
 

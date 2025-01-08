@@ -29,13 +29,8 @@ import (
 type Spec interface {
 	// Gwei value constants.
 
-	// MinDepositAmount returns the minimum amount of Gwei required for a
-	// deposit.
-	MinDepositAmount() uint64
-
-	// MaxEffectiveBalance returns the maximum balance counted in rewards
-	// calculations in Gwei.
-	MaxEffectiveBalance(isPostUpgrade bool) uint64
+	// MaxEffectiveBalance returns the maximum balance counted in rewards calculations in Gwei.
+	MaxEffectiveBalance() uint64
 
 	// EjectionBalance returns the balance below which a validator is ejected.
 	EjectionBalance() uint64
@@ -154,7 +149,7 @@ type Spec interface {
 
 	// MaxValidatorsPerWithdrawalsSweep returns the maximum number of validators
 	// per withdrawal sweep.
-	MaxValidatorsPerWithdrawalsSweep(isPostUpgrade bool) uint64
+	MaxValidatorsPerWithdrawalsSweep() uint64
 
 	// Deneb Values
 
@@ -236,18 +231,9 @@ func (s spec) validate() error {
 	return nil
 }
 
-// MinDepositAmount returns the minimum deposit amount required.
-func (s spec) MinDepositAmount() uint64 {
-	return s.Data.MinDepositAmount
-}
-
 // MaxEffectiveBalance returns the maximum effective balance.
-func (s spec) MaxEffectiveBalance(isPostUpgrade bool) uint64 {
-	if isPostUpgrade {
-		return s.Data.MaxEffectiveBalancePostUpgrade
-	}
-
-	return s.Data.MaxEffectiveBalancePreUpgrade
+func (s spec) MaxEffectiveBalance() uint64 {
+	return s.Data.MaxEffectiveBalance
 }
 
 // EjectionBalance returns the balance below which a validator is ejected.
@@ -401,14 +387,9 @@ func (s spec) MaxWithdrawalsPerPayload() uint64 {
 	return s.Data.MaxWithdrawalsPerPayload
 }
 
-// MaxValidatorsPerWithdrawalsSweep returns the maximum number of validators per
-// withdrawals sweep.
-func (s spec) MaxValidatorsPerWithdrawalsSweep(isPostUpgrade bool) uint64 {
-	if isPostUpgrade {
-		return s.Data.MaxValidatorsPerWithdrawalsSweepPostUpgrade
-	}
-
-	return s.Data.MaxValidatorsPerWithdrawalsSweepPreUpgrade
+// MaxValidatorsPerWithdrawalsSweep returns the maximum number of validators per withdrawals sweep.
+func (s spec) MaxValidatorsPerWithdrawalsSweep() uint64 {
+	return s.Data.MaxValidatorsPerWithdrawalsSweep
 }
 
 // MinEpochsForBlobsSidecarsRequest returns the minimum number of epochs for

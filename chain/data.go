@@ -26,15 +26,8 @@ import "github.com/berachain/beacon-kit/primitives/common"
 type SpecData struct {
 	// Gwei value constants.
 	//
-	// MinDepositAmount is the minimum deposit amount per deposit
-	// transaction.
-	MinDepositAmount uint64 `mapstructure:"min-deposit-amount"`
-	// MaxEffectiveBalance is the maximum effective balance allowed for a
-	// validator before the upgrade.
-	MaxEffectiveBalancePreUpgrade uint64 `mapstructure:"max-effective-balance-pre-upgrade"`
-	// MaxEffectiveBalancePostUpgrade is the maximum effective balance allowed
-	// for a validator after the upgrade.
-	MaxEffectiveBalancePostUpgrade uint64 `mapstructure:"max-effective-balance-post-upgrade"`
+	// MaxEffectiveBalance is the maximum effective balance allowed for a validator.
+	MaxEffectiveBalance uint64 `mapstructure:"max-effective-balance"`
 	// EjectionBalance is the balance at which a validator is ejected.
 	EjectionBalance uint64 `mapstructure:"ejection-balance"`
 	// EffectiveBalanceIncrement is the effective balance increment.
@@ -128,15 +121,10 @@ type SpecData struct {
 	// MaxWithdrawalsPerPayload indicates the maximum number of withdrawal
 	// operations allowed in a single payload.
 	MaxWithdrawalsPerPayload uint64 `mapstructure:"max-withdrawals-per-payload"`
-	// MaxValidatorsPerWithdrawalsSweepPreUpgrade specifies the maximum number
-	// of validator withdrawals allowed per sweep. Before the upgrade, this
-	// value is consistent with ETH2.0 spec, set to 2^14.
-	MaxValidatorsPerWithdrawalsSweepPreUpgrade uint64 `mapstructure:"max-validators-per-withdrawals-sweep-pre-upgrade"`
-	// MaxValidatorsPerWithdrawalsSweepPostUpgrade specifies the maximum number
-	// of validator withdrawals allowed per sweep. After the upgrade, this value
-	// is set to the largest prime number smaller than the minimum possible
-	// amount of total validators.
-	MaxValidatorsPerWithdrawalsSweepPostUpgrade uint64 `mapstructure:"max-validators-per-withdrawals-sweep-post-upgrade"`
+	// MaxValidatorsPerWithdrawalsSweep specifies the maximum number of validator withdrawals
+	// allowed per sweep. Note that this value should ideally be smaller than the total number
+	// of validators in the registry.
+	MaxValidatorsPerWithdrawalsSweep uint64 `mapstructure:"max-validators-per-withdrawals-sweep"`
 
 	// Deneb Values
 	//

@@ -180,7 +180,7 @@ func (sp *StateProcessor[_]) addValidatorToRegistry(
 		dep.GetWithdrawalCredentials(),
 		dep.GetAmount(),
 		math.Gwei(sp.cs.EffectiveBalanceIncrement()),
-		math.Gwei(sp.cs.MaxEffectiveBalance(false)),
+		math.Gwei(sp.cs.MaxEffectiveBalance()),
 	)
 
 	if err := st.AddValidator(val); err != nil {

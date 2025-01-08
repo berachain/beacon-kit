@@ -38,7 +38,7 @@ func TestInitialize(t *testing.T) {
 	sp, st, _, _ := setupState(t, cs)
 
 	var (
-		maxBalance = math.Gwei(cs.MaxEffectiveBalance(false))
+		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
 		increment  = math.Gwei(cs.EffectiveBalanceIncrement())
 		minBalance = math.Gwei(cs.EjectionBalance())
 	)
@@ -192,7 +192,7 @@ func commonChecksValidators(
 	require.Equal(t, dep.Pubkey, val.Pubkey)
 
 	var (
-		maxBalance = math.Gwei(cs.MaxEffectiveBalance(false))
+		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
 		increment  = math.Gwei(cs.EffectiveBalanceIncrement())
 		minBalance = math.Gwei(cs.EjectionBalance())
 	)

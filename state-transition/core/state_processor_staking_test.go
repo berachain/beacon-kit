@@ -44,7 +44,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
-		maxBalance       = math.Gwei(cs.MaxEffectiveBalance(false))
+		maxBalance       = math.Gwei(cs.MaxEffectiveBalance())
 		increment        = math.Gwei(cs.EffectiveBalanceIncrement())
 		minBalance       = math.Gwei(cs.EjectionBalance())
 		emptyCredentials = types.NewCredentialsFromExecutionAddress(
@@ -195,7 +195,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
-		maxBalance       = math.Gwei(cs.MaxEffectiveBalance(false))
+		maxBalance       = math.Gwei(cs.MaxEffectiveBalance())
 		increment        = math.Gwei(cs.EffectiveBalanceIncrement())
 		minBalance       = math.Gwei(cs.EjectionBalance())
 		emptyAddress     = common.ExecutionAddress{}
@@ -392,7 +392,7 @@ func TestTransitionWithdrawals(t *testing.T) {
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
-		maxBalance   = math.Gwei(cs.MaxEffectiveBalance(false))
+		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
 		minBalance   = math.Gwei(cs.EffectiveBalanceIncrement())
 		credentials0 = types.NewCredentialsFromExecutionAddress(
 			common.ExecutionAddress{},
@@ -476,14 +476,14 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	csData := spec.BaseSpec()
 	csData.DepositEth1ChainID = spec.BoonetEth1ChainID
 	csData.MaxWithdrawalsPerPayload = 2
-	csData.MaxValidatorsPerWithdrawalsSweepPostUpgrade = 2
+	csData.MaxValidatorsPerWithdrawalsSweep = 2
 	cs, err := chain.NewSpec(csData)
 	require.NoError(t, err)
 
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
-		maxBalance   = math.Gwei(cs.MaxEffectiveBalance(false))
+		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
 		minBalance   = math.Gwei(cs.EffectiveBalanceIncrement())
 		address0     = common.ExecutionAddress{}
 		credentials0 = types.NewCredentialsFromExecutionAddress(address0)
@@ -620,7 +620,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
-		maxBalance      = math.Gwei(cs.MaxEffectiveBalance(false))
+		maxBalance      = math.Gwei(cs.MaxEffectiveBalance())
 		ejectionBalance = math.Gwei(cs.EjectionBalance())
 		minBalance      = ejectionBalance + math.Gwei(
 			cs.EffectiveBalanceIncrement(),
@@ -850,7 +850,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
-		maxBalance      = math.Gwei(cs.MaxEffectiveBalance(false))
+		maxBalance      = math.Gwei(cs.MaxEffectiveBalance())
 		ejectionBalance = math.Gwei(cs.EjectionBalance())
 		minBalance      = ejectionBalance + math.Gwei(
 			cs.EffectiveBalanceIncrement(),

@@ -75,7 +75,7 @@ func GetGenesisValidatorRootCmd(cs chain.Spec) *cobra.Command {
 					types.WithdrawalCredentials(deposit.Credentials),
 					deposit.Amount,
 					math.Gwei(cs.EffectiveBalanceIncrement()),
-					math.Gwei(cs.MaxEffectiveBalance(false)),
+					math.Gwei(cs.MaxEffectiveBalance()),
 				)
 				validators[i] = val
 			}

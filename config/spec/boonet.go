@@ -46,13 +46,12 @@ func BoonetChainSpec() (chain.Spec, error) {
 	// MaxValidatorsPerWithdrawalsSweep is 43 because we expect at least 46
 	// validators in the total validators set. We choose a prime number smaller
 	// than the minimum amount of total validators possible.
-	boonetSpec.MaxValidatorsPerWithdrawalsSweepPostUpgrade = 43
+	boonetSpec.MaxValidatorsPerWithdrawalsSweep = 43
 
-	// MaxEffectiveBalancePostUpgrade is 5 million BERA after the boonet
-	// upgrade.
+	// MaxEffectiveBalance is 5 million BERA.
 	//
 	//nolint:mnd // ok.
-	boonetSpec.MaxEffectiveBalancePostUpgrade = 5_000_000 * 1e9
+	boonetSpec.MaxEffectiveBalance = 5_000_000 * 1e9
 
 	return chain.NewSpec(boonetSpec)
 }
