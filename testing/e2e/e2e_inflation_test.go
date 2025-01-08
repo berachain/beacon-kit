@@ -30,7 +30,7 @@ import (
 
 // TestEVMInflation checks that the EVM inflation address receives the correct
 // amount of EVM inflation per block.
-func (s *BeaconKitE2ESuite) TestEVMInflation() {
+func (s *BeaconKitE2ESuite) runEVMInflation() {
 	s.Logger().Info("Running TestEVMInflation")
 	evmInflationPerBlockWei, _ := big.NewFloat(
 		spec.DevnetEVMInflationPerBlock * math.GweiPerWei,

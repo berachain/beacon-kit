@@ -35,8 +35,8 @@ func TestBeaconKitE2ESuite(t *testing.T) {
 
 	// Setup suite with chain configurations
 	s.SetupSuiteWithOptions(
-		suite.WithChain("TestBasicStartup", 80087, "devnet"),
-		suite.WithChain("TestEVMInflation", 80087, "devnet"),
+		suite.WithChain("runBasicStartup", 80087, "devnet"),
+		suite.WithChain("runEVMInflation", 80087, "devnet"),
 	// suite.WithChain("Test4844Live", 80087, "devnet"),
 	// suite.WithChain("TestBeaconAPIStartup", 80087, "devnet"),
 	)

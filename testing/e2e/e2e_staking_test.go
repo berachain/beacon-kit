@@ -81,7 +81,7 @@ package e2e_test
 // 	// s.Require().NoError(err)
 
 // 	// Sender account
-// 	sender := s.TestAccounts()[0]
+// 	sender := s.GetAccounts()[0]
 
 // 	// Get the block num
 // 	blkNum, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())

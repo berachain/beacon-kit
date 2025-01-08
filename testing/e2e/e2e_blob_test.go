@@ -58,7 +58,7 @@ package e2e_test
 // 	s.Require().NoError(client0.Connect(ctx))
 
 // 	// Grab values to plug into txs
-// 	sender := s.TestAccounts()[0]
+// 	sender := s.GetAccounts()[0]
 // 	chainID, err := s.JSONRPCBalancer().ChainID(ctx)
 // 	s.Require().NoError(err)
 // 	tip, err := s.JSONRPCBalancer().SuggestGasTipCap(ctx)

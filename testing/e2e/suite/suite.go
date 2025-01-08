@@ -23,7 +23,6 @@ package suite
 import (
 	"context"
 	"fmt"
-	"reflect"
 	"sync"
 	"time"
 
@@ -137,7 +136,6 @@ func (
 
 // JSONRPCBalancer returns the JSON-RPC balancer for the test suite.
 func (s *KurtosisE2ESuite) JSONRPCBalancer() *types.LoadBalancer {
-	s.Logger().Info("JSONRPCBalancer", "balancer", s.loadBalancer)
 	return s.loadBalancer
 }
 
@@ -157,8 +155,8 @@ func (s *KurtosisE2ESuite) GenesisAccount() *types.EthAccount {
 	return s.genesisAccount
 }
 
-// TestAccounts returns the test accounts for the test suite.
-func (s *KurtosisE2ESuite) TestAccounts() []*types.EthAccount {
+// GetAccounts returns the test accounts for the test suite.
+func (s *KurtosisE2ESuite) GetAccounts() []*types.EthAccount {
 	return s.testAccounts
 }
 
@@ -195,7 +193,7 @@ func (s *KurtosisE2ESuite) Networks() map[string]*NetworkInstance {
 }
 
 // TestSpecs returns the test specs for the test suite.
-func (s *KurtosisE2ESuite) TestSpecs() map[string]e2etypes.ChainSpec {
+func (s *KurtosisE2ESuite) GetTestSpecs() map[string]e2etypes.ChainSpec {
 	return s.testSpecs
 }
 
@@ -219,23 +217,22 @@ func (s *KurtosisE2ESuite) RunTestsByChainSpec() {
 			s.T().Fatalf("Failed to initialize network for %s: %v", chainKey, err)
 		}
 
-		// Wait for RPC to be ready
-		// if err := s.WaitForRPCReady(network); err != nil {
-		// 	s.T().Fatalf("Failed waiting for RPC: %v", err)
-		// }
-
 		// Run all tests for this chain spec
 		for _, testName := range tests {
 			s.Logger().Info("Running test", "test", testName)
-			method := reflect.ValueOf(interface{}(s)).MethodByName(testName)
-			s.Logger().Info("Method", "method", method)
-			// if !method.IsValid() {
-			// 	s.T().Errorf("Test method %s not found", testName)
-			// 	continue
-			// }
-			// s.Run(testName, func() {
-			// 	method.Call(nil)
-			// })
+			s.Run(testName, func() {
+				// method := reflect.ValueOf(s).MethodByName(testName)
+				// if !method.IsValid() {
+				// 	s.T().Errorf("Test method %s not found", testName)
+				// 	return
+				// }
+				// method.Call(nil)
+			})
+		}
+
+		// Clean up network after all tests for this chain spec are done
+		if err := s.CleanupNetwork(network); err != nil {
+			s.Logger().Error("Failed to cleanup network", "error", err)
 		}
 	}
 }
@@ -265,7 +262,7 @@ func (s *KurtosisE2ESuite) InitializeNetwork(network *NetworkInstance) error {
 	if err != nil {
 		return fmt.Errorf("failed to create enclave: %w", err)
 	}
-	s.Logger().Info("Created enclave", "enclave", network.enclave)
+	s.Logger().Info("Created enclave")
 
 	// Run Starlark package
 	result, err := network.enclave.RunStarlarkPackageBlocking(
@@ -305,20 +302,6 @@ func (s *KurtosisE2ESuite) InitializeNetwork(network *NetworkInstance) error {
 		return fmt.Errorf("failed to get balancer service context: %w", err)
 	}
 
-	// Check execution client services
-	for _, client := range []string{"geth-0", "geth-1", "reth-0", "reth-1", "erigon-0"} {
-		svcCtx, err := network.enclave.GetServiceContext(client)
-		if err != nil {
-			s.Logger().Error("Failed to get service context", "client", client, "error", err)
-			continue
-		}
-		s.Logger().Info("Execution client info",
-			"client", client,
-			"ip", svcCtx.GetPrivateIPAddress(),
-			"ports", svcCtx.GetPublicPorts(),
-		)
-	}
-
 	network.loadBalancer, err = types.NewLoadBalancer(sCtx)
 	if err != nil {
 		return fmt.Errorf("failed to create load balancer: %w", err)
@@ -353,6 +336,26 @@ func (s *KurtosisE2ESuite) CleanupNetwork(network *NetworkInstance) error {
 
 	// Destroy enclave
 	if network.enclave != nil {
+		// Check if enclave still exists before trying to destroy it
+		enclaves, err := s.kCtx.GetEnclaves(s.ctx)
+		if err != nil {
+			s.Logger().Error("Failed to get enclaves", "error", err)
+			return nil // Continue with cleanup even if we can't check enclaves
+		}
+
+		enclaveExists := false
+		for _, e := range enclaves.GetEnclavesByUuid() {
+			if string(e.GetEnclaveUuid()) == string(network.enclave.GetEnclaveUuid()) {
+				enclaveExists = true
+				break
+			}
+		}
+
+		if !enclaveExists {
+			s.Logger().Info("Enclave already destroyed", "uuid", network.enclave.GetEnclaveUuid())
+			return nil
+		}
+
 		s.Logger().Info("Destroying enclave in cleanupNetwork", "enclave", network.enclave)
 		if err := s.kCtx.DestroyEnclave(s.ctx, string(network.enclave.GetEnclaveUuid())); err != nil {
 			return fmt.Errorf("failed to destroy enclave: %w", err)

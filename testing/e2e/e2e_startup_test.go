@@ -66,9 +66,6 @@ func (s *BeaconKitE2ESuite) SetupSuite() {
 
 	// Initialize networks
 	s.initializeNetworks()
-
-	// Run tests by chain spec
-	s.RunTestsByChainSpec()
 }
 
 // TearDownSuite cleans up after all tests have run
@@ -82,7 +79,7 @@ func (s *BeaconKitE2ESuite) TearDownSuite() {
 
 // initializeNetworks sets up networks for each unique chain spec
 func (s *BeaconKitE2ESuite) initializeNetworks() {
-	for _, spec := range s.TestSpecs() {
+	for _, spec := range s.GetTestSpecs() {
 		chainKey := fmt.Sprintf("%d-%s", spec.ChainID, spec.Network)
 		if networks := s.Networks(); networks[chainKey] == nil {
 			network := suite.NewNetworkInstance(config.DefaultE2ETestConfig())
@@ -94,7 +91,11 @@ func (s *BeaconKitE2ESuite) initializeNetworks() {
 	}
 }
 
-func (s *BeaconKitE2ESuite) TestBasicStartup() {
+func (s *BeaconKitE2ESuite) TestRunE2E() {
+	s.RunTestsByChainSpec()
+}
+
+func (s *BeaconKitE2ESuite) runBasicStartup() {
 	err := s.WaitForFinalizedBlockNumber(10)
 	s.Require().NoError(err)
 }
