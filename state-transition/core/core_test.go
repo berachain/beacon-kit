@@ -31,7 +31,7 @@ import (
 	"cosmossdk.io/store"
 	"cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/log/noop"
@@ -104,9 +104,7 @@ func initTestStores() (*beacondb.KVStore, *depositstore.KVStore, error) {
 		nil
 }
 
-func setupChain(t *testing.T, chainSpecType string) chain.Spec[
-	bytes.B4, math.U64, math.U64,
-] {
+func setupChain(t *testing.T, chainSpecType string) chain.Spec {
 	t.Helper()
 
 	t.Setenv(components.ChainSpecTypeEnvVar, chainSpecType)
@@ -116,11 +114,7 @@ func setupChain(t *testing.T, chainSpecType string) chain.Spec[
 	return cs
 }
 
-func setupState(
-	t *testing.T, cs chain.Spec[
-		bytes.B4, math.U64, math.U64,
-	],
-) (
+func setupState(t *testing.T, cs chain.Spec) (
 	*TestStateProcessorT,
 	*TestBeaconStateT,
 	*depositstore.KVStore,
@@ -238,7 +232,7 @@ func generateTestPK(t *testing.T, rndSeed int) (bytes.B48, int) {
 func moveToEndOfEpoch(
 	t *testing.T,
 	tip *types.BeaconBlock,
-	cs chain.Spec[bytes.B4, math.U64, math.U64],
+	cs chain.Spec,
 	sp *TestStateProcessorT,
 	st *TestBeaconStateT,
 	ctx *transition.Context,

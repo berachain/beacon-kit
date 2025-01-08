@@ -21,7 +21,7 @@
 package genesis
 
 import (
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/bytes"
@@ -45,7 +45,7 @@ type Genesis struct {
 	} `json:"app_state"`
 }
 
-func GetGenesisValidatorRootCmd(cs chain.ChainSpec) *cobra.Command {
+func GetGenesisValidatorRootCmd(cs chain.Spec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "validator-root [beacond/genesis.json]",
 		Short: "gets and returns the genesis validator root",

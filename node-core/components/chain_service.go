@@ -23,7 +23,7 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/execution/deposit"
@@ -41,7 +41,7 @@ type ChainServiceInput[
 ] struct {
 	depinject.In
 
-	ChainSpec             chain.ChainSpec
+	ChainSpec             chain.Spec
 	Cfg                   *config.Config
 	EngineClient          *client.EngineClient
 	ExecutionEngine       *engine.Engine

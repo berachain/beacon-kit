@@ -23,7 +23,7 @@ package core_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-core/components"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -157,11 +157,7 @@ func TestInitialize(t *testing.T) {
 
 func checkValidator(
 	t *testing.T,
-	cs chain.Spec[
-		common.DomainType,
-		math.Epoch,
-		math.Slot,
-	],
+	cs chain.Spec,
 	bs *TestBeaconStateT,
 	dep *types.Deposit,
 ) {
@@ -188,11 +184,7 @@ func checkValidator(
 
 func commonChecksValidators(
 	t *testing.T,
-	cs chain.Spec[
-		common.DomainType,
-		math.Epoch,
-		math.Slot,
-	],
+	cs chain.Spec,
 	val *types.Validator,
 	dep *types.Deposit,
 ) {

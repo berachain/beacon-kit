@@ -23,7 +23,7 @@ package core_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -477,7 +477,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	csData.DepositEth1ChainID = spec.BoonetEth1ChainID
 	csData.MaxWithdrawalsPerPayload = 2
 	csData.MaxValidatorsPerWithdrawalsSweepPostUpgrade = 2
-	cs, err := chain.NewChainSpec(csData)
+	cs, err := chain.NewSpec(csData)
 	require.NoError(t, err)
 
 	sp, st, ds, ctx := setupState(t, cs)

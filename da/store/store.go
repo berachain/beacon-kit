@@ -23,7 +23,7 @@ package store
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/log"
@@ -37,14 +37,14 @@ type Store struct {
 	// logger is used for logging.
 	logger log.Logger
 	// chainSpec contains the chain specification.
-	chainSpec chain.ChainSpec
+	chainSpec chain.Spec
 }
 
 // New creates a new instance of the AvailabilityStore.
 func New(
 	db IndexDB,
 	logger log.Logger,
-	chainSpec chain.ChainSpec,
+	chainSpec chain.Spec,
 ) *Store {
 	return &Store{
 		IndexDB:   db,

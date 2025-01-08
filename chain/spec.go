@@ -25,14 +25,8 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-type (
-	// ChainSpec defines an interface for chain-specific parameters.
-	//nolint:revive // We can remove this once we have cleaned up generics.
-	ChainSpec = Spec[common.DomainType, math.Epoch, math.Slot]
-)
-
 // Spec defines an interface for accessing chain-specific parameters.
-type Spec[DomainTypeT ~[4]byte, EpochT ~uint64, SlotT ~uint64] interface {
+type Spec interface {
 	// Gwei value constants.
 
 	// MinDepositAmount returns the minimum amount of Gwei required for a
@@ -78,28 +72,28 @@ type Spec[DomainTypeT ~[4]byte, EpochT ~uint64, SlotT ~uint64] interface {
 	// Signature Domains
 
 	// DomainTypeProposer returns the domain for proposer signatures.
-	DomainTypeProposer() DomainTypeT
+	DomainTypeProposer() common.DomainType
 
 	// DomainTypeAttester returns the domain for attester signatures.
-	DomainTypeAttester() DomainTypeT
+	DomainTypeAttester() common.DomainType
 
 	// DomainTypeRandao returns the domain for RANDAO reveal signatures.
-	DomainTypeRandao() DomainTypeT
+	DomainTypeRandao() common.DomainType
 
 	// DomainTypeDeposit returns the domain for deposit signatures.
-	DomainTypeDeposit() DomainTypeT
+	DomainTypeDeposit() common.DomainType
 
 	// DomainTypeVoluntaryExit returns the domain for voluntary exit signatures.
-	DomainTypeVoluntaryExit() DomainTypeT
+	DomainTypeVoluntaryExit() common.DomainType
 
 	// DomainTypeSelectionProof returns the domain for selection proof
-	DomainTypeSelectionProof() DomainTypeT
+	DomainTypeSelectionProof() common.DomainType
 
 	// DomainTypeAggregateAndProof returns the domain for aggregate and proof
-	DomainTypeAggregateAndProof() DomainTypeT
+	DomainTypeAggregateAndProof() common.DomainType
 
 	// DomainTypeApplicationMask returns the domain for application signatures.
-	DomainTypeApplicationMask() DomainTypeT
+	DomainTypeApplicationMask() common.DomainType
 
 	// Eth1-related values.
 
@@ -122,10 +116,10 @@ type Spec[DomainTypeT ~[4]byte, EpochT ~uint64, SlotT ~uint64] interface {
 
 	// Fork-related values.
 	// DenebPlusForkEpoch returns the epoch at which the Deneb+ fork takes
-	DenebPlusForkEpoch() EpochT
+	DenebPlusForkEpoch() math.Epoch
 	// ElectraForkEpoch returns the epoch at which the Electra fork takes
 	// effect.
-	ElectraForkEpoch() EpochT
+	ElectraForkEpoch() math.Epoch
 
 	// State list lengths
 
@@ -166,7 +160,7 @@ type Spec[DomainTypeT ~[4]byte, EpochT ~uint64, SlotT ~uint64] interface {
 
 	// MinEpochsForBlobsSidecarsRequest returns the minimum number of epochs for
 	// blob sidecar requests.
-	MinEpochsForBlobsSidecarsRequest() uint64
+	MinEpochsForBlobsSidecarsRequest() math.Epoch
 
 	// MaxBlobCommitmentsPerBlock returns the maximum number of blob commitments
 	// per block.
@@ -185,18 +179,18 @@ type Spec[DomainTypeT ~[4]byte, EpochT ~uint64, SlotT ~uint64] interface {
 
 	// ActiveForkVersionForSlot returns the active fork version for a given
 	// slot.
-	ActiveForkVersionForSlot(slot SlotT) uint32
+	ActiveForkVersionForSlot(slot math.Slot) uint32
 
 	// ActiveForkVersionForEpoch returns the active fork version for a given
 	// epoch.
-	ActiveForkVersionForEpoch(epoch EpochT) uint32
+	ActiveForkVersionForEpoch(epoch math.Epoch) uint32
 
 	// SlotToEpoch converts a slot number to an epoch number.
-	SlotToEpoch(slot SlotT) EpochT
+	SlotToEpoch(slot math.Slot) math.Epoch
 
 	// WithinDAPeriod checks if a given block slot is within the data
 	// availability period relative to the current slot.
-	WithinDAPeriod(block, current SlotT) bool
+	WithinDAPeriod(block, current math.Slot) bool
 
 	// Berachain Values
 
@@ -214,32 +208,25 @@ type Spec[DomainTypeT ~[4]byte, EpochT ~uint64, SlotT ~uint64] interface {
 	EVMInflationPerBlock() uint64
 }
 
-// chainSpec is a concrete implementation of the ChainSpec interface, holding
-// the actual data.
-type chainSpec[DomainTypeT ~[4]byte, EpochT ~uint64, SlotT ~uint64] struct {
+// spec is a concrete implementation of the Spec interface, holding the actual data.
+type spec struct {
 	// Data contains the actual chain-specific parameter values.
-	Data SpecData[DomainTypeT, EpochT, SlotT]
+	Data *SpecData
 }
 
-// NewChainSpec creates a new instance of a ChainSpec with the provided data.
-func NewChainSpec[
-	DomainTypeT ~[4]byte, EpochT ~uint64, SlotT ~uint64,
-](data SpecData[DomainTypeT, EpochT, SlotT]) (Spec[DomainTypeT, EpochT, SlotT], error) {
-	c := &chainSpec[
-		DomainTypeT, EpochT, SlotT,
-	]{
-		Data: data,
-	}
-	return c, c.validate()
+// NewSpec creates a new instance of a Spec with the provided data.
+func NewSpec(data *SpecData) (Spec, error) {
+	s := spec{Data: data}
+	return s, s.validate()
 }
 
 // validate ensures that the chain spec is valid, returning error if it is not.
-func (c *chainSpec[DomainTypeT, EpochT, SlotT]) validate() error {
-	if c.MaxWithdrawalsPerPayload() <= 1 {
+func (s spec) validate() error {
+	if s.MaxWithdrawalsPerPayload() <= 1 {
 		return ErrInsufficientMaxWithdrawalsPerPayload
 	}
 
-	if c.ValidatorSetCap() > c.ValidatorRegistryLimit() {
+	if s.ValidatorSetCap() > s.ValidatorRegistryLimit() {
 		return ErrInvalidValidatorSetCap
 	}
 
@@ -250,303 +237,221 @@ func (c *chainSpec[DomainTypeT, EpochT, SlotT]) validate() error {
 }
 
 // MinDepositAmount returns the minimum deposit amount required.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) MinDepositAmount() uint64 {
-	return c.Data.MinDepositAmount
+func (s spec) MinDepositAmount() uint64 {
+	return s.Data.MinDepositAmount
 }
 
 // MaxEffectiveBalance returns the maximum effective balance.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) MaxEffectiveBalance(isPostUpgrade bool) uint64 {
+func (s spec) MaxEffectiveBalance(isPostUpgrade bool) uint64 {
 	if isPostUpgrade {
-		return c.Data.MaxEffectiveBalancePostUpgrade
+		return s.Data.MaxEffectiveBalancePostUpgrade
 	}
 
-	return c.Data.MaxEffectiveBalancePreUpgrade
+	return s.Data.MaxEffectiveBalancePreUpgrade
 }
 
 // EjectionBalance returns the balance below which a validator is ejected.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) EjectionBalance() uint64 {
-	return c.Data.EjectionBalance
+func (s spec) EjectionBalance() uint64 {
+	return s.Data.EjectionBalance
 }
 
 // EffectiveBalanceIncrement returns the increment of effective balance.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) EffectiveBalanceIncrement() uint64 {
-	return c.Data.EffectiveBalanceIncrement
+func (s spec) EffectiveBalanceIncrement() uint64 {
+	return s.Data.EffectiveBalanceIncrement
 }
 
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) HysteresisQuotient() uint64 {
-	return c.Data.HysteresisQuotient
+func (s spec) HysteresisQuotient() uint64 {
+	return s.Data.HysteresisQuotient
 }
 
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) HysteresisDownwardMultiplier() uint64 {
-	return c.Data.HysteresisDownwardMultiplier
+func (s spec) HysteresisDownwardMultiplier() uint64 {
+	return s.Data.HysteresisDownwardMultiplier
 }
 
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) HysteresisUpwardMultiplier() uint64 {
-	return c.Data.HysteresisUpwardMultiplier
+func (s spec) HysteresisUpwardMultiplier() uint64 {
+	return s.Data.HysteresisUpwardMultiplier
 }
 
 // SlotsPerEpoch returns the number of slots per epoch.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) SlotsPerEpoch() uint64 {
-	return c.Data.SlotsPerEpoch
+func (s spec) SlotsPerEpoch() uint64 {
+	return s.Data.SlotsPerEpoch
 }
 
 // SlotsPerHistoricalRoot returns the number of slots per historical root.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) SlotsPerHistoricalRoot() uint64 {
-	return c.Data.SlotsPerHistoricalRoot
+func (s spec) SlotsPerHistoricalRoot() uint64 {
+	return s.Data.SlotsPerHistoricalRoot
 }
 
 // MinEpochsToInactivityPenalty returns the minimum number of epochs before an
 // inactivity penalty is applied.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) MinEpochsToInactivityPenalty() uint64 {
-	return c.Data.MinEpochsToInactivityPenalty
+func (s spec) MinEpochsToInactivityPenalty() uint64 {
+	return s.Data.MinEpochsToInactivityPenalty
 }
 
 // DomainTypeProposer returns the domain for beacon proposer signatures.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) DomainTypeProposer() DomainTypeT {
-	return c.Data.DomainTypeProposer
+func (s spec) DomainTypeProposer() common.DomainType {
+	return s.Data.DomainTypeProposer
 }
 
 // DomainTypeAttester returns the domain for beacon attester signatures.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) DomainTypeAttester() DomainTypeT {
-	return c.Data.DomainTypeAttester
+func (s spec) DomainTypeAttester() common.DomainType {
+	return s.Data.DomainTypeAttester
 }
 
 // DomainTypeRandao returns the domain for RANDAO reveal signatures.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) DomainTypeRandao() DomainTypeT {
-	return c.Data.DomainTypeRandao
+func (s spec) DomainTypeRandao() common.DomainType {
+	return s.Data.DomainTypeRandao
 }
 
 // DomainTypeDeposit returns the domain for deposit contract signatures.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) DomainTypeDeposit() DomainTypeT {
-	return c.Data.DomainTypeDeposit
+func (s spec) DomainTypeDeposit() common.DomainType {
+	return s.Data.DomainTypeDeposit
 }
 
 // DomainTypeVoluntaryExit returns the domain for voluntary exit signatures.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) DomainTypeVoluntaryExit() DomainTypeT {
-	return c.Data.DomainTypeVoluntaryExit
+func (s spec) DomainTypeVoluntaryExit() common.DomainType {
+	return s.Data.DomainTypeVoluntaryExit
 }
 
 // DomainTypeSelectionProof returns the domain for selection proof signatures.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) DomainTypeSelectionProof() DomainTypeT {
-	return c.Data.DomainTypeSelectionProof
+func (s spec) DomainTypeSelectionProof() common.DomainType {
+	return s.Data.DomainTypeSelectionProof
 }
 
 // DomainTypeAggregateAndProof returns the domain for aggregate and proof
 // signatures.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) DomainTypeAggregateAndProof() DomainTypeT {
-	return c.Data.DomainTypeAggregateAndProof
+func (s spec) DomainTypeAggregateAndProof() common.DomainType {
+	return s.Data.DomainTypeAggregateAndProof
 }
 
 // DomainTypeApplicationMask returns the domain for the application mask.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) DomainTypeApplicationMask() DomainTypeT {
-	return c.Data.DomainTypeApplicationMask
+func (s spec) DomainTypeApplicationMask() common.DomainType {
+	return s.Data.DomainTypeApplicationMask
 }
 
 // DepositContractAddress returns the address of the deposit contract.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) DepositContractAddress() common.ExecutionAddress {
-	return c.Data.DepositContractAddress
+func (s spec) DepositContractAddress() common.ExecutionAddress {
+	return s.Data.DepositContractAddress
 }
 
 // MaxDepositsPerBlock returns the maximum number of deposits per block.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) MaxDepositsPerBlock() uint64 {
-	return c.Data.MaxDepositsPerBlock
+func (s spec) MaxDepositsPerBlock() uint64 {
+	return s.Data.MaxDepositsPerBlock
 }
 
 // DepositEth1ChainID returns the chain ID of the execution chain.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) DepositEth1ChainID() uint64 {
-	return c.Data.DepositEth1ChainID
+func (s spec) DepositEth1ChainID() uint64 {
+	return s.Data.DepositEth1ChainID
 }
 
 // Eth1FollowDistance returns the distance between the eth1 chain and the beacon
 // chain.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) Eth1FollowDistance() uint64 {
-	return c.Data.Eth1FollowDistance
+func (s spec) Eth1FollowDistance() uint64 {
+	return s.Data.Eth1FollowDistance
 }
 
 // TargetSecondsPerEth1Block returns the target time between eth1 blocks.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) TargetSecondsPerEth1Block() uint64 {
-	return c.Data.TargetSecondsPerEth1Block
+func (s spec) TargetSecondsPerEth1Block() uint64 {
+	return s.Data.TargetSecondsPerEth1Block
 }
 
 // DenebPlusForEpoch returns the epoch of the Deneb+ fork.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) DenebPlusForkEpoch() EpochT {
-	return c.Data.DenebPlusForkEpoch
+func (s spec) DenebPlusForkEpoch() math.Epoch {
+	return math.Epoch(s.Data.DenebPlusForkEpoch)
 }
 
 // ElectraForkEpoch returns the epoch of the Electra fork.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) ElectraForkEpoch() EpochT {
-	return c.Data.ElectraForkEpoch
+func (s spec) ElectraForkEpoch() math.Epoch {
+	return math.Epoch(s.Data.ElectraForkEpoch)
 }
 
 // EpochsPerHistoricalVector returns the number of epochs per historical vector.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) EpochsPerHistoricalVector() uint64 {
-	return c.Data.EpochsPerHistoricalVector
+func (s spec) EpochsPerHistoricalVector() uint64 {
+	return s.Data.EpochsPerHistoricalVector
 }
 
 // EpochsPerSlashingsVector returns the number of epochs per slashings vector.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) EpochsPerSlashingsVector() uint64 {
-	return c.Data.EpochsPerSlashingsVector
+func (s spec) EpochsPerSlashingsVector() uint64 {
+	return s.Data.EpochsPerSlashingsVector
 }
 
 // HistoricalRootsLimit returns the limit of historical roots.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) HistoricalRootsLimit() uint64 {
-	return c.Data.HistoricalRootsLimit
+func (s spec) HistoricalRootsLimit() uint64 {
+	return s.Data.HistoricalRootsLimit
 }
 
 // ValidatorRegistryLimit returns the limit of the validator registry.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) ValidatorRegistryLimit() uint64 {
-	return c.Data.ValidatorRegistryLimit
+func (s spec) ValidatorRegistryLimit() uint64 {
+	return s.Data.ValidatorRegistryLimit
 }
 
 // InactivityPenaltyQuotient returns the inactivity penalty quotient.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) InactivityPenaltyQuotient() uint64 {
-	return c.Data.InactivityPenaltyQuotient
+func (s spec) InactivityPenaltyQuotient() uint64 {
+	return s.Data.InactivityPenaltyQuotient
 }
 
 // ProportionalSlashingMultiplier returns the proportional slashing multiplier.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) ProportionalSlashingMultiplier() uint64 {
-	return c.Data.ProportionalSlashingMultiplier
+func (s spec) ProportionalSlashingMultiplier() uint64 {
+	return s.Data.ProportionalSlashingMultiplier
 }
 
 // MaxWithdrawalsPerPayload returns the maximum number of withdrawals per
 // payload.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) MaxWithdrawalsPerPayload() uint64 {
-	return c.Data.MaxWithdrawalsPerPayload
+func (s spec) MaxWithdrawalsPerPayload() uint64 {
+	return s.Data.MaxWithdrawalsPerPayload
 }
 
 // MaxValidatorsPerWithdrawalsSweep returns the maximum number of validators per
 // withdrawals sweep.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) MaxValidatorsPerWithdrawalsSweep(isPostUpgrade bool) uint64 {
+func (s spec) MaxValidatorsPerWithdrawalsSweep(isPostUpgrade bool) uint64 {
 	if isPostUpgrade {
-		return c.Data.MaxValidatorsPerWithdrawalsSweepPostUpgrade
+		return s.Data.MaxValidatorsPerWithdrawalsSweepPostUpgrade
 	}
 
-	return c.Data.MaxValidatorsPerWithdrawalsSweepPreUpgrade
+	return s.Data.MaxValidatorsPerWithdrawalsSweepPreUpgrade
 }
 
 // MinEpochsForBlobsSidecarsRequest returns the minimum number of epochs for
 // blobs sidecars request.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) MinEpochsForBlobsSidecarsRequest() uint64 {
-	return c.Data.MinEpochsForBlobsSidecarsRequest
+func (s spec) MinEpochsForBlobsSidecarsRequest() math.Epoch {
+	return math.Epoch(s.Data.MinEpochsForBlobsSidecarsRequest)
 }
 
 // MaxBlobCommitmentsPerBlock returns the maximum number of blob commitments per
 // block.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) MaxBlobCommitmentsPerBlock() uint64 {
-	return c.Data.MaxBlobCommitmentsPerBlock
+func (s spec) MaxBlobCommitmentsPerBlock() uint64 {
+	return s.Data.MaxBlobCommitmentsPerBlock
 }
 
 // MaxBlobsPerBlock returns the maximum number of blobs per block.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) MaxBlobsPerBlock() uint64 {
-	return c.Data.MaxBlobsPerBlock
+func (s spec) MaxBlobsPerBlock() uint64 {
+	return s.Data.MaxBlobsPerBlock
 }
 
 // FieldElementsPerBlob returns the number of field elements per blob.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) FieldElementsPerBlob() uint64 {
-	return c.Data.FieldElementsPerBlob
+func (s spec) FieldElementsPerBlob() uint64 {
+	return s.Data.FieldElementsPerBlob
 }
 
 // BytesPerBlob returns the number of bytes per blob.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) BytesPerBlob() uint64 {
-	return c.Data.BytesPerBlob
+func (s spec) BytesPerBlob() uint64 {
+	return s.Data.BytesPerBlob
 }
 
 // ValidatorSetCap retrieves the maximum number of
 // validators allowed in the active set.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) ValidatorSetCap() uint64 {
-	return c.Data.ValidatorSetCap
+func (s spec) ValidatorSetCap() uint64 {
+	return s.Data.ValidatorSetCap
 }
 
 // EVMInflationAddress returns the address on the EVM which will receive the
 // inflation amount of native EVM balance through a withdrawal every block.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) EVMInflationAddress() common.ExecutionAddress {
-	return c.Data.EVMInflationAddress
+func (s spec) EVMInflationAddress() common.ExecutionAddress {
+	return s.Data.EVMInflationAddress
 }
 
 // EVMInflationPerBlock returns the amount of native EVM balance (in Gwei) to
 // be minted to the EVMInflationAddress via a withdrawal every block.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) EVMInflationPerBlock() uint64 {
-	return c.Data.EVMInflationPerBlock
+func (s spec) EVMInflationPerBlock() uint64 {
+	return s.Data.EVMInflationPerBlock
 }

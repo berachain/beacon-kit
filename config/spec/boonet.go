@@ -21,17 +21,12 @@
 package spec
 
 import (
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // BoonetChainSpec is the ChainSpec for the localnet.
-func BoonetChainSpec() (chain.Spec[
-	common.DomainType,
-	math.Epoch,
-	math.Slot,
-], error) {
+func BoonetChainSpec() (chain.Spec, error) {
 	boonetSpec := BaseSpec()
 
 	// Chain ID is 80000.
@@ -59,5 +54,5 @@ func BoonetChainSpec() (chain.Spec[
 	//nolint:mnd // ok.
 	boonetSpec.MaxEffectiveBalancePostUpgrade = 5_000_000 * 1e9
 
-	return chain.NewChainSpec(boonetSpec)
+	return chain.NewSpec(boonetSpec)
 }
