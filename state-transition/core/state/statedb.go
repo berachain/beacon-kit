@@ -107,18 +107,18 @@ func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 		validator         *ctypes.Validator
 		balance           math.Gwei
 		withdrawalAddress common.ExecutionAddress
-		maxWithdrawals    = s.cs.MaxWithdrawalsPerPayload()
-		withdrawals       = make([]*engineprimitives.Withdrawal, 0, maxWithdrawals)
 	)
-
-	// The first withdrawal is fixed to be the EVM inflation withdrawal.
-	withdrawals = append(withdrawals, s.EVMInflationWithdrawal())
 
 	slot, err := s.GetSlot()
 	if err != nil {
 		return nil, err
 	}
 	epoch := s.cs.SlotToEpoch(slot)
+	maxWithdrawals := s.cs.MaxWithdrawalsPerPayload(slot)
+	withdrawals := make([]*engineprimitives.Withdrawal, 0, maxWithdrawals)
+
+	// The first withdrawal is fixed to be the EVM inflation withdrawal.
+	withdrawals = append(withdrawals, s.EVMInflationWithdrawal(slot))
 
 	withdrawalIndex, err := s.GetNextWithdrawalIndex()
 	if err != nil {
@@ -135,7 +135,7 @@ func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 		return nil, err
 	}
 
-	bound := min(totalValidators, s.cs.MaxValidatorsPerWithdrawalsSweep())
+	bound := min(totalValidators, s.cs.MaxValidatorsPerWithdrawalsSweep(slot))
 
 	// Iterate through indices to find the next validators to withdraw.
 	for range bound {
@@ -166,7 +166,7 @@ func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 			// Increment the withdrawal index to process the next withdrawal.
 			withdrawalIndex++
 		} else if validator.IsPartiallyWithdrawable(
-			balance, math.Gwei(s.cs.MaxEffectiveBalance()),
+			balance, math.Gwei(s.cs.MaxEffectiveBalance(slot)),
 		) {
 			withdrawalAddress, err = validator.
 				GetWithdrawalCredentials().ToExecutionAddress()
@@ -178,7 +178,7 @@ func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 				math.U64(withdrawalIndex),
 				validatorIndex,
 				withdrawalAddress,
-				balance-math.Gwei(s.cs.MaxEffectiveBalance()),
+				balance-math.Gwei(s.cs.MaxEffectiveBalance(slot)),
 			))
 
 			// Increment the withdrawal index to process the next withdrawal.
@@ -201,12 +201,12 @@ func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 //
 // NOTE: The withdrawal index and validator index are both set to max(uint64) as
 // they are not used during processing.
-func (s *StateDB) EVMInflationWithdrawal() *engineprimitives.Withdrawal {
+func (s *StateDB) EVMInflationWithdrawal(slot math.Slot) *engineprimitives.Withdrawal {
 	return engineprimitives.NewWithdrawal(
 		EVMInflationWithdrawalIndex,
 		EVMInflationWithdrawalValidatorIndex,
-		s.cs.EVMInflationAddress(),
-		math.Gwei(s.cs.EVMInflationPerBlock()),
+		s.cs.EVMInflationAddress(slot),
+		math.Gwei(s.cs.EVMInflationPerBlock(slot)),
 	)
 }
 
@@ -236,16 +236,16 @@ func (s *StateDB) GetMarshallable() (*ctypes.BeaconState, error) {
 		return empty, err
 	}
 
-	blockRoots := make([]common.Root, s.cs.SlotsPerHistoricalRoot())
-	for i := range s.cs.SlotsPerHistoricalRoot() {
+	blockRoots := make([]common.Root, s.cs.SlotsPerHistoricalRoot(slot))
+	for i := range s.cs.SlotsPerHistoricalRoot(slot) {
 		blockRoots[i], err = s.GetBlockRootAtIndex(i)
 		if err != nil {
 			return empty, err
 		}
 	}
 
-	stateRoots := make([]common.Root, s.cs.SlotsPerHistoricalRoot())
-	for i := range s.cs.SlotsPerHistoricalRoot() {
+	stateRoots := make([]common.Root, s.cs.SlotsPerHistoricalRoot(slot))
+	for i := range s.cs.SlotsPerHistoricalRoot(slot) {
 		stateRoots[i], err = s.StateRootAtIndex(i)
 		if err != nil {
 			return empty, err
@@ -277,8 +277,8 @@ func (s *StateDB) GetMarshallable() (*ctypes.BeaconState, error) {
 		return empty, err
 	}
 
-	randaoMixes := make([]common.Bytes32, s.cs.EpochsPerHistoricalVector())
-	for i := range s.cs.EpochsPerHistoricalVector() {
+	randaoMixes := make([]common.Bytes32, s.cs.EpochsPerHistoricalVector(slot))
+	for i := range s.cs.EpochsPerHistoricalVector(slot) {
 		randaoMixes[i], err = s.GetRandaoMixAtIndex(i)
 		if err != nil {
 			return empty, err

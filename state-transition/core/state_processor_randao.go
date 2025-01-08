@@ -57,16 +57,11 @@ func (sp *StateProcessor[ContextT]) processRandaoReveal(
 	epoch := sp.cs.SlotToEpoch(slot)
 	body := blk.GetBody()
 
-	fd := ctypes.NewForkData(
-		version.FromUint32(
-			sp.cs.ActiveForkVersionForEpoch(epoch),
-		), genesisValidatorsRoot,
-	)
+	version := version.FromUint32(sp.cs.ActiveForkVersionForEpoch(epoch))
+	fd := ctypes.NewForkData(version, genesisValidatorsRoot)
 
 	if !ctx.GetSkipValidateRandao() {
-		signingRoot := fd.ComputeRandaoSigningRoot(
-			sp.cs.DomainTypeRandao(), epoch,
-		)
+		signingRoot := fd.ComputeRandaoSigningRoot(sp.cs.DomainTypeRandao(version), epoch)
 		reveal := body.GetRandaoReveal()
 		if err = sp.signer.VerifySignature(
 			proposer.GetPubkey(),
@@ -77,15 +72,13 @@ func (sp *StateProcessor[ContextT]) processRandaoReveal(
 		}
 	}
 
-	prevMix, err := st.GetRandaoMixAtIndex(
-		epoch.Unwrap() % sp.cs.EpochsPerHistoricalVector(),
-	)
+	prevMix, err := st.GetRandaoMixAtIndex(epoch.Unwrap() % sp.cs.EpochsPerHistoricalVector(slot))
 	if err != nil {
 		return err
 	}
 
 	return st.UpdateRandaoMixAtIndex(
-		epoch.Unwrap()%sp.cs.EpochsPerHistoricalVector(),
+		epoch.Unwrap()%sp.cs.EpochsPerHistoricalVector(slot),
 		sp.buildRandaoMix(prevMix, body.GetRandaoReveal()),
 	)
 }
@@ -101,16 +94,12 @@ func (sp *StateProcessor[_]) processRandaoMixesReset(
 	}
 
 	epoch := sp.cs.SlotToEpoch(slot)
-	mix, err := st.GetRandaoMixAtIndex(
-		epoch.Unwrap() % sp.cs.EpochsPerHistoricalVector(),
-	)
+	mix, err := st.GetRandaoMixAtIndex(epoch.Unwrap() % sp.cs.EpochsPerHistoricalVector(slot))
 	if err != nil {
 		return err
 	}
-	return st.UpdateRandaoMixAtIndex(
-		(epoch.Unwrap()+1)%sp.cs.EpochsPerHistoricalVector(),
-		mix,
-	)
+
+	return st.UpdateRandaoMixAtIndex((epoch.Unwrap()+1)%sp.cs.EpochsPerHistoricalVector(slot), mix)
 }
 
 // buildRandaoMix as defined in the Ethereum 2.0 specification.

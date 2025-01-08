@@ -48,7 +48,7 @@ func (sp *StateProcessor[_]) processRegistryUpdates(st *statedb.StateDB) error {
 	nextEpoch := currEpoch + 1
 
 	minEffectiveBalance := math.Gwei(
-		sp.cs.EjectionBalance() + sp.cs.EffectiveBalanceIncrement(),
+		sp.cs.EjectionBalance(slot) + sp.cs.EffectiveBalanceIncrement(slot),
 	)
 
 	// We do not currently have a cap on validator churn,

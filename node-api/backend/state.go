@@ -43,7 +43,7 @@ func (b Backend) StateRootAtSlot(slot math.Slot) (common.Root, error) {
 
 	// As calculated by the beacon chain. Ideally, this logic
 	// should be abstracted by the beacon chain.
-	return st.StateRootAtIndex(slot.Unwrap() % b.cs.SlotsPerHistoricalRoot())
+	return st.StateRootAtIndex(slot.Unwrap() % b.cs.SlotsPerHistoricalRoot(slot))
 }
 
 // GetStateFork returns the fork of the state at the given stateID.

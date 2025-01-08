@@ -49,7 +49,7 @@ func (b Backend) BlockRootAtSlot(slot math.Slot) (common.Root, error) {
 
 	// As calculated by the beacon chain. Ideally, this logic
 	// should be abstracted by the beacon chain.
-	return st.GetBlockRootAtIndex(slot.Unwrap() % b.cs.SlotsPerHistoricalRoot())
+	return st.GetBlockRootAtIndex(slot.Unwrap() % b.cs.SlotsPerHistoricalRoot(slot))
 }
 
 // TODO: Implement this.

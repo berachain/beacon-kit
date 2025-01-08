@@ -90,7 +90,7 @@ func (bv *verifier) verifySidecars(
 
 		// This check happens outside the goroutines so that we do not
 		// process the inclusion proofs before validating the index.
-		if s.GetIndex() >= bv.chainSpec.MaxBlobsPerBlock() {
+		if s.GetIndex() >= bv.chainSpec.MaxBlobsPerBlock(blkHeader.GetSlot()) {
 			return fmt.Errorf("invalid sidecar Index: %d", i)
 		}
 		g.Go(func() error {

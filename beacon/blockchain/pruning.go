@@ -48,7 +48,7 @@ func (s *Service) processPruning(ctx context.Context, beaconBlk *ctypes.BeaconBl
 
 //nolint:unparam // this is ok
 func availabilityPruneRangeFn(slot math.Slot, cs chain.Spec) (uint64, uint64) {
-	window := cs.MinEpochsForBlobsSidecarsRequest(slot) * cs.SlotsPerEpoch()
+	window := cs.MinEpochsForBlobsSidecarsRequest(slot) * cs.SlotsPerEpoch(slot)
 	if slot < window {
 		return 0, 0
 	}

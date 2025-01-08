@@ -84,7 +84,7 @@ func (sp *StateProcessor[_]) InitializePreminedBeaconStateFromEth1(
 		return nil, err
 	}
 
-	for i := range sp.cs.EpochsPerHistoricalVector() {
+	for i := range sp.cs.EpochsPerHistoricalVector(0) {
 		if err := st.UpdateRandaoMixAtIndex(
 			i,
 			common.Bytes32(execPayloadHeader.GetBlockHash()),
@@ -101,7 +101,7 @@ func (sp *StateProcessor[_]) InitializePreminedBeaconStateFromEth1(
 		return nil, err
 	}
 	for _, deposit := range deposits {
-		if err := sp.processDeposit(st, deposit); err != nil {
+		if err := sp.processDeposit(st, deposit, 0); err != nil {
 			return nil, err
 		}
 	}
@@ -124,8 +124,7 @@ func (sp *StateProcessor[_]) InitializePreminedBeaconStateFromEth1(
 	}
 
 	// Setup a bunch of 0s to prime the DB.
-	for i := range sp.cs.HistoricalRootsLimit() {
-		//#nosec:G701 // won't overflow in practice.
+	for i := range sp.cs.HistoricalRootsLimit(0) {
 		if err = st.UpdateBlockRootAtIndex(i, common.Root{}); err != nil {
 			return nil, err
 		}
@@ -161,9 +160,7 @@ func (sp *StateProcessor[_]) processGenesisActivation(st *statedb.StateDB) error
 			err,
 		)
 	}
-	minEffectiveBalance := math.Gwei(
-		sp.cs.EjectionBalance() + sp.cs.EffectiveBalanceIncrement(),
-	)
+	minEffectiveBalance := math.Gwei(sp.cs.EjectionBalance(0) + sp.cs.EffectiveBalanceIncrement(0))
 
 	var idx math.ValidatorIndex
 	for _, val := range vals {

@@ -69,10 +69,9 @@ func NewSignedBeaconBlockFromSSZ(
 //
 // NOTE: will panic if any provided argument is nil. Only errors if signing fails.
 func NewSignedBeaconBlock(
-	blk *BeaconBlock, forkData *ForkData,
-	cs chain.Spec, signer crypto.BLSSigner,
+	blk *BeaconBlock, forkData *ForkData, cs chain.Spec, signer crypto.BLSSigner,
 ) (*SignedBeaconBlock, error) {
-	domain := forkData.ComputeDomain(cs.DomainTypeProposer())
+	domain := forkData.ComputeDomain(cs.DomainTypeProposer(forkData.CurrentVersion))
 	signingRoot := ComputeSigningRoot(blk, domain)
 	signature, err := signer.Sign(signingRoot[:])
 	if err != nil {

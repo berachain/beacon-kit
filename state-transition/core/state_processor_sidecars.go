@@ -42,30 +42,17 @@ func (sp *StateProcessor[_]) GetSignatureVerifierFn(st *statedb.StateDB) (
 		return nil, err
 	}
 
-	fd := *ctypes.NewForkData(
-		version.FromUint32(
-			sp.cs.ActiveForkVersionForEpoch(epoch),
-		), genesisValidatorsRoot,
-	)
-	domain := fd.ComputeDomain(sp.cs.DomainTypeProposer())
+	version := version.FromUint32(sp.cs.ActiveForkVersionForEpoch(epoch))
+	fd := ctypes.NewForkData(version, genesisValidatorsRoot)
+	domain := fd.ComputeDomain(sp.cs.DomainTypeProposer(version))
 
-	return func(
-		blk *ctypes.BeaconBlock,
-		signature crypto.BLSSignature,
-	) error {
+	return func(blk *ctypes.BeaconBlock, signature crypto.BLSSignature) error {
 		//nolint:govet // shadow
 		proposer, err := st.ValidatorByIndex(blk.GetProposerIndex())
 		if err != nil {
 			return err
 		}
-		signingRoot := ctypes.ComputeSigningRoot(
-			blk,
-			domain,
-		)
-		return sp.signer.VerifySignature(
-			proposer.GetPubkey(),
-			signingRoot[:],
-			signature,
-		)
+		signingRoot := ctypes.ComputeSigningRoot(blk, domain)
+		return sp.signer.VerifySignature(proposer.GetPubkey(), signingRoot[:], signature)
 	}, nil
 }

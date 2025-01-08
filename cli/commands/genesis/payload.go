@@ -97,7 +97,7 @@ func AddExecutionPayloadCmd(chainSpec chain.Spec) *cobra.Command {
 				executableDataToExecutionPayloadHeader(
 					version.ToUint32(genesisInfo.ForkVersion),
 					payload,
-					chainSpec.MaxWithdrawalsPerPayload(),
+					chainSpec.MaxWithdrawalsPerPayload(0),
 				)
 			if err != nil {
 				return errors.Wrap(err, "failed to unmarshal beacon state")

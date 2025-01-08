@@ -193,10 +193,7 @@ func TestHasValidInclusionProof(t *testing.T) {
 				t.Helper()
 				block := generateValidBeaconBlock()
 
-				sidecarFactory := blob.NewSidecarFactory(
-					spec,
-					sink,
-				)
+				sidecarFactory := blob.NewSidecarFactory(spec, sink)
 				numBlobs := len(block.GetBody().GetBlobKzgCommitments())
 				sidecars := make(types.BlobSidecars, numBlobs)
 				for i := range numBlobs {

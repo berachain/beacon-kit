@@ -123,7 +123,7 @@ func (sp *StateProcessor[_]) ProcessSlots(
 		}
 
 		// Process the Epoch Boundary.
-		boundary := (stateSlot+1)%sp.cs.SlotsPerEpoch() == 0
+		boundary := (stateSlot+1)%sp.cs.SlotsPerEpoch(stateSlot) == 0
 		if boundary {
 			var epochUpdates transition.ValidatorUpdates
 			if epochUpdates, err = sp.processEpoch(st); err != nil {
@@ -152,7 +152,7 @@ func (sp *StateProcessor[_]) processSlot(st *state.StateDB) error {
 	// Before we make any changes, we calculate the previous state root.
 	prevStateRoot := st.HashTreeRoot()
 	if err = st.UpdateStateRootAtIndex(
-		stateSlot.Unwrap()%sp.cs.SlotsPerHistoricalRoot(), prevStateRoot,
+		stateSlot.Unwrap()%sp.cs.SlotsPerHistoricalRoot(stateSlot), prevStateRoot,
 	); err != nil {
 		return err
 	}
@@ -175,7 +175,7 @@ func (sp *StateProcessor[_]) processSlot(st *state.StateDB) error {
 
 	// We update the block root.
 	return st.UpdateBlockRootAtIndex(
-		stateSlot.Unwrap()%sp.cs.SlotsPerHistoricalRoot(), latestHeader.HashTreeRoot(),
+		stateSlot.Unwrap()%sp.cs.SlotsPerHistoricalRoot(stateSlot), latestHeader.HashTreeRoot(),
 	)
 }
 
@@ -225,9 +225,7 @@ func (sp *StateProcessor[ContextT]) ProcessBlock(
 
 // processEpoch processes the epoch and ensures it matches the local state. Currently
 // beacon-kit does not enforce rewards, penalties, and slashing for validators.
-func (sp *StateProcessor[_]) processEpoch(
-	st *state.StateDB,
-) (transition.ValidatorUpdates, error) {
+func (sp *StateProcessor[_]) processEpoch(st *state.StateDB) (transition.ValidatorUpdates, error) {
 	slot, err := st.GetSlot()
 	if err != nil {
 		return nil, err
@@ -247,7 +245,7 @@ func (sp *StateProcessor[_]) processEpoch(
 	if err = sp.processRegistryUpdates(st); err != nil {
 		return nil, err
 	}
-	if err = sp.processEffectiveBalanceUpdates(st); err != nil {
+	if err = sp.processEffectiveBalanceUpdates(st, slot); err != nil {
 		return nil, err
 	}
 	// if err = sp.processSlashingsReset(st); err != nil {
@@ -347,7 +345,9 @@ func (sp *StateProcessor[ContextT]) processBlockHeader(
 
 // processEffectiveBalanceUpdates as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#effective-balances-updates
-func (sp *StateProcessor[_]) processEffectiveBalanceUpdates(st *state.StateDB) error {
+func (sp *StateProcessor[_]) processEffectiveBalanceUpdates(
+	st *state.StateDB, slot math.Slot,
+) error {
 	// Update effective balances with hysteresis
 	validators, err := st.GetValidators()
 	if err != nil {
@@ -355,9 +355,10 @@ func (sp *StateProcessor[_]) processEffectiveBalanceUpdates(st *state.StateDB) e
 	}
 
 	var (
-		hysteresisIncrement = sp.cs.EffectiveBalanceIncrement() / sp.cs.HysteresisQuotient()
-		downwardThreshold   = math.Gwei(hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier())
-		upwardThreshold     = math.Gwei(hysteresisIncrement * sp.cs.HysteresisUpwardMultiplier())
+		effectiveBalanceIncrement = sp.cs.EffectiveBalanceIncrement(slot)
+		hysteresisIncrement       = effectiveBalanceIncrement / sp.cs.HysteresisQuotient(slot)
+		downwardThreshold         = math.Gwei(hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier(slot))
+		upwardThreshold           = math.Gwei(hysteresisIncrement * sp.cs.HysteresisUpwardMultiplier(slot))
 
 		idx     math.U64
 		balance math.Gwei
@@ -378,8 +379,8 @@ func (sp *StateProcessor[_]) processEffectiveBalanceUpdates(st *state.StateDB) e
 			val.GetEffectiveBalance()+upwardThreshold < balance {
 			updatedBalance := ctypes.ComputeEffectiveBalance(
 				balance,
-				math.U64(sp.cs.EffectiveBalanceIncrement()),
-				math.U64(sp.cs.MaxEffectiveBalance()),
+				math.U64(effectiveBalanceIncrement),
+				math.U64(sp.cs.MaxEffectiveBalance(slot)),
 			)
 			val.SetEffectiveBalance(updatedBalance)
 			if err = st.UpdateValidatorAtIndex(idx, val); err != nil {

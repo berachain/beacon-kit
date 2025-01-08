@@ -35,8 +35,6 @@ import (
 // 1. The first withdrawal MUST be a fixed EVM inflation withdrawal
 // 2. Subsequent withdrawals (if any) are processed as validator withdrawals
 // 3. This modification reduces the maximum validator withdrawals per block by one.
-//
-
 func (sp *StateProcessor[_]) processWithdrawals(
 	st *state.StateDB, blk *ctypes.BeaconBlock,
 ) error {
@@ -46,6 +44,12 @@ func (sp *StateProcessor[_]) processWithdrawals(
 		payload            = body.GetExecutionPayload()
 		payloadWithdrawals = payload.GetWithdrawals()
 	)
+
+	// Get the current slot.
+	slot, err := st.GetSlot()
+	if err != nil {
+		return err
+	}
 
 	// Get the expected withdrawals.
 	expectedWithdrawals, err := st.ExpectedWithdrawals()
@@ -66,7 +70,7 @@ func (sp *StateProcessor[_]) processWithdrawals(
 	if len(payloadWithdrawals) == 0 {
 		return ErrZeroWithdrawals
 	}
-	if !payloadWithdrawals[0].Equals(st.EVMInflationWithdrawal()) {
+	if !payloadWithdrawals[0].Equals(st.EVMInflationWithdrawal(slot)) {
 		return ErrFirstWithdrawalNotEVMInflation
 	}
 	numWithdrawals := len(expectedWithdrawals)
@@ -108,7 +112,7 @@ func (sp *StateProcessor[_]) processWithdrawals(
 	var nextValidatorIndex math.ValidatorIndex
 
 	// #nosec G115 -- won't overflow in practice.
-	if numWithdrawals == int(sp.cs.MaxWithdrawalsPerPayload()) {
+	if numWithdrawals == int(sp.cs.MaxWithdrawalsPerPayload(slot)) {
 		// Next sweep starts after the latest withdrawal's validator index.
 		nextValidatorIndex = (expectedWithdrawals[numWithdrawals-1].
 			GetValidatorIndex() + 1) % math.ValidatorIndex(totalValidators)
@@ -119,7 +123,7 @@ func (sp *StateProcessor[_]) processWithdrawals(
 		if err != nil {
 			return err
 		}
-		nextValidatorIndex += math.ValidatorIndex(sp.cs.MaxValidatorsPerWithdrawalsSweep())
+		nextValidatorIndex += math.ValidatorIndex(sp.cs.MaxValidatorsPerWithdrawalsSweep(slot))
 		nextValidatorIndex %= math.ValidatorIndex(totalValidators)
 	}
 

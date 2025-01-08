@@ -79,7 +79,7 @@ func (f *Factory) BuildPayloadAttributes(
 
 	// Get the previous randao mix.
 	if prevRandao, err = st.GetRandaoMixAtIndex(
-		epoch.Unwrap() % f.chainSpec.EpochsPerHistoricalVector(),
+		epoch.Unwrap() % f.chainSpec.EpochsPerHistoricalVector(slot),
 	); err != nil {
 		return nil, err
 	}
