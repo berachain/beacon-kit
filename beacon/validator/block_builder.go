@@ -51,6 +51,7 @@ func (s *Service) BuildBlockAndSidecars(
 		blk       *ctypes.BeaconBlock
 		sidecars  datypes.BlobSidecars
 		forkData  *ctypes.ForkData
+		slot      = slotData.GetSlot()
 	)
 
 	startTime := time.Now()
@@ -65,28 +66,25 @@ func (s *Service) BuildBlockAndSidecars(
 
 	// Prepare the state such that it is ready to build a block for
 	// the requested slot
-	if _, err := s.stateProcessor.ProcessSlots(
-		st,
-		slotData.GetSlot(),
-	); err != nil {
+	if _, err := s.stateProcessor.ProcessSlots(st, slot); err != nil {
 		return nil, nil, err
 	}
 
 	// Build forkdata used for the signing root of the reveal and the sidecars
-	forkData, err := s.buildForkData(st, slotData.GetSlot())
+	forkData, err := s.buildForkData(st, slot)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	// Build the reveal for the current slot.
 	// TODO: We can optimize to pre-compute this in parallel?
-	reveal, err := s.buildRandaoReveal(forkData, slotData.GetSlot())
+	reveal, err := s.buildRandaoReveal(forkData, slot)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	// Create a new empty block from the current state.
-	blk, err = s.getEmptyBeaconBlockForSlot(st, slotData.GetSlot())
+	blk, err = s.getEmptyBeaconBlockForSlot(st, slot)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -102,7 +100,7 @@ func (s *Service) BuildBlockAndSidecars(
 
 	// We have to assemble the block body prior to producing the sidecars
 	// since we need to generate the inclusion proofs.
-	if err = s.buildBlockBody(ctx, st, blk, reveal, envelope, slotData); err != nil {
+	if err = s.buildBlockBody(ctx, st, blk, reveal, envelope); err != nil {
 		return nil, nil, err
 	}
 
@@ -131,7 +129,7 @@ func (s *Service) BuildBlockAndSidecars(
 
 	s.logger.Info(
 		"Beacon block successfully built",
-		"slot", slotData.GetSlot().Base10(),
+		"slot", slot.Base10(),
 		"state_root", blk.GetStateRoot(),
 		"duration", time.Since(startTime).String(),
 	)
@@ -276,7 +274,6 @@ func (s *Service) buildBlockBody(
 	blk *ctypes.BeaconBlock,
 	reveal crypto.BLSSignature,
 	envelope ctypes.BuiltExecutionPayloadEnv,
-	slotData *types.SlotData,
 ) error {
 	// Assemble a new block with the payload.
 	body := blk.GetBody()

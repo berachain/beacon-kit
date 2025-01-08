@@ -90,7 +90,7 @@ type SpecData struct {
 
 	// Fork-related values.
 	//
-	// Deneb1 is the epoch at which the Deneb1 fork is activated.
+	// Deneb1ForkEpoch is the epoch at which the Deneb1 fork is activated.
 	Deneb1ForkEpoch uint64 `mapstructure:"deneb-one-fork-epoch"`
 	// ElectraForkEpoch is the epoch at which the Electra fork is activated.
 	ElectraForkEpoch uint64 `mapstructure:"electra-fork-epoch"`
@@ -155,4 +155,7 @@ type SpecData struct {
 	// EVMInflationPerBlock is the amount of native EVM balance (in Gwei) to be
 	// minted to the EVMInflationAddress via a withdrawal every block.
 	EVMInflationPerBlock uint64 `mapstructure:"evm-inflation-per-block"`
+
+	// Deneb1 Value Changes
+	//
 }

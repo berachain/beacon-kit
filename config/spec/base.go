@@ -47,8 +47,8 @@ func BaseSpec() *chain.SpecData {
 
 		// Time parameters constants.
 		SlotsPerEpoch:                32,
-		MinEpochsToInactivityPenalty: 4,
 		SlotsPerHistoricalRoot:       8,
+		MinEpochsToInactivityPenalty: 4,
 
 		// Signature domains.
 		DomainTypeProposer: common.DomainType{
@@ -80,6 +80,7 @@ func BaseSpec() *chain.SpecData {
 		DepositContractAddress: common.NewExecutionAddressFromHex(
 			DefaultDepositContractAddress,
 		),
+		MaxDepositsPerBlock:       16,
 		DepositEth1ChainID:        1,
 		Eth1FollowDistance:        1,
 		TargetSecondsPerEth1Block: 3,
@@ -94,10 +95,8 @@ func BaseSpec() *chain.SpecData {
 		HistoricalRootsLimit:      8,
 		ValidatorRegistryLimit:    1099511627776,
 
-		// Max operations per block constants.
-		MaxDepositsPerBlock: 16,
-
 		// Slashing
+		InactivityPenaltyQuotient:      16777216,
 		ProportionalSlashingMultiplier: 1,
 
 		// Capella values.
