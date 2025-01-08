@@ -123,7 +123,7 @@ func (sp *StateProcessor[_]) ProcessSlots(
 		}
 
 		// Process the Epoch Boundary.
-		boundary := (stateSlot.Unwrap()+1)%sp.cs.SlotsPerEpoch() == 0
+		boundary := (stateSlot+1)%sp.cs.SlotsPerEpoch() == 0
 		if boundary {
 			var epochUpdates transition.ValidatorUpdates
 			if epochUpdates, err = sp.processEpoch(st); err != nil {

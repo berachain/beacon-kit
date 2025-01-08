@@ -118,7 +118,7 @@ func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 	if err != nil {
 		return nil, err
 	}
-	epoch := math.Epoch(slot.Unwrap() / s.cs.SlotsPerEpoch())
+	epoch := s.cs.SlotToEpoch(slot)
 
 	withdrawalIndex, err := s.GetNextWithdrawalIndex()
 	if err != nil {

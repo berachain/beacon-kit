@@ -56,7 +56,7 @@ type Spec interface {
 	// Time parameters constants.
 
 	// SlotsPerEpoch returns the number of slots in an epoch.
-	SlotsPerEpoch() uint64
+	SlotsPerEpoch() math.Slot
 
 	// SlotsPerHistoricalRoot returns the number of slots per historical root.
 	SlotsPerHistoricalRoot() uint64
@@ -156,7 +156,7 @@ type Spec interface {
 
 	// MinEpochsForBlobsSidecarsRequest returns the minimum number of epochs for
 	// blob sidecar requests.
-	MinEpochsForBlobsSidecarsRequest() math.Epoch
+	MinEpochsForBlobsSidecarsRequest(slot math.Slot) math.Epoch
 
 	// MaxBlobCommitmentsPerBlock returns the maximum number of blob commitments
 	// per block.
@@ -262,8 +262,8 @@ func (s spec) HysteresisUpwardMultiplier() uint64 {
 }
 
 // SlotsPerEpoch returns the number of slots per epoch.
-func (s spec) SlotsPerEpoch() uint64 {
-	return s.Data.SlotsPerEpoch
+func (s spec) SlotsPerEpoch() math.Slot {
+	return math.Slot(s.Data.SlotsPerEpoch)
 }
 
 // SlotsPerHistoricalRoot returns the number of slots per historical root.
@@ -397,7 +397,7 @@ func (s spec) MaxValidatorsPerWithdrawalsSweep() uint64 {
 
 // MinEpochsForBlobsSidecarsRequest returns the minimum number of epochs for
 // blobs sidecars request.
-func (s spec) MinEpochsForBlobsSidecarsRequest() math.Epoch {
+func (s spec) MinEpochsForBlobsSidecarsRequest(math.Slot) math.Epoch {
 	return math.Epoch(s.Data.MinEpochsForBlobsSidecarsRequest)
 }
 
