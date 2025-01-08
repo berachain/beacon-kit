@@ -33,7 +33,7 @@ import (
 
 // Create an instance of chainSpec with test data.
 var spec, _ = chain.NewSpec(
-	&chain.SpecData{
+	chain.SpecData{
 		DenebPlusForkEpoch:               9,
 		ElectraForkEpoch:                 10,
 		SlotsPerEpoch:                    32,

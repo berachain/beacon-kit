@@ -34,8 +34,8 @@ const (
 // BaseSpec returns a chain spec with default values.
 //
 //nolint:mnd // TODO: define defaults as constants.
-func BaseSpec() *chain.SpecData {
-	return &chain.SpecData{
+func BaseSpec() chain.SpecData {
+	return chain.SpecData{
 		// Gwei value constants.
 		MaxEffectiveBalance:       32e9,
 		EjectionBalance:           16e9,
