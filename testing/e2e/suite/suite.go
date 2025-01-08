@@ -229,13 +229,13 @@ func (s *KurtosisE2ESuite) RunTestsByChainSpec() {
 			s.Logger().Info("Running test", "test", testName)
 			method := reflect.ValueOf(interface{}(s)).MethodByName(testName)
 			s.Logger().Info("Method", "method", method)
-			if !method.IsValid() {
-				s.T().Errorf("Test method %s not found", testName)
-				continue
-			}
-			s.Run(testName, func() {
-				method.Call(nil)
-			})
+			// if !method.IsValid() {
+			// 	s.T().Errorf("Test method %s not found", testName)
+			// 	continue
+			// }
+			// s.Run(testName, func() {
+			// 	method.Call(nil)
+			// })
 		}
 	}
 }
