@@ -85,8 +85,8 @@ func BaseSpec() *chain.SpecData {
 		TargetSecondsPerEth1Block: 3,
 
 		// Fork-related values.
-		DenebPlusForkEpoch: 9999999999999998,
-		ElectraForkEpoch:   9999999999999999,
+		Deneb1ForkEpoch:  9999999999999998,
+		ElectraForkEpoch: 9999999999999999,
 
 		// State list length constants.
 		EpochsPerHistoricalVector: 8,

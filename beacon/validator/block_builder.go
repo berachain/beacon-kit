@@ -191,7 +191,7 @@ func (s *Service) buildForkData(
 	}
 
 	return ctypes.NewForkData(
-		version.FromUint32[common.Version](
+		version.FromUint32(
 			s.chainSpec.ActiveForkVersionForEpoch(epoch),
 		),
 		genesisValidatorsRoot,
@@ -342,7 +342,7 @@ func (s *Service) buildBlockBody(
 	activeForkVersion := s.chainSpec.ActiveForkVersionForEpoch(
 		epoch,
 	)
-	if activeForkVersion >= version.DenebPlus {
+	if activeForkVersion >= version.Deneb1 {
 		body.SetAttestationData(slotData.GetAttestationData())
 
 		// Set the slashing info on the block body.

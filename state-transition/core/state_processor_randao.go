@@ -58,7 +58,7 @@ func (sp *StateProcessor[ContextT]) processRandaoReveal(
 	body := blk.GetBody()
 
 	fd := ctypes.NewForkData(
-		version.FromUint32[common.Version](
+		version.FromUint32(
 			sp.cs.ActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,
 	)

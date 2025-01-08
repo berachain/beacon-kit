@@ -139,7 +139,7 @@ func (sp *StateProcessor[_]) createValidator(st *state.StateDB, dep *ctypes.Depo
 	// Verify that the message was signed correctly.
 	err = dep.VerifySignature(
 		ctypes.NewForkData(
-			version.FromUint32[common.Version](
+			version.FromUint32(
 				sp.cs.ActiveForkVersionForEpoch(epoch),
 			), genesisValidatorsRoot,
 		),

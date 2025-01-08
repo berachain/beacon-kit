@@ -111,7 +111,7 @@ func DefaultGenesisDeneb() *Genesis {
 
 	// TODO: Uncouple from deneb.
 	return &Genesis{
-		ForkVersion: version.FromUint32[common.Version](
+		ForkVersion: version.FromUint32(
 			version.Deneb,
 		),
 		Deposits:               make([]*Deposit, 0),

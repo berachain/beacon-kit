@@ -90,8 +90,8 @@ type SpecData struct {
 
 	// Fork-related values.
 	//
-	// DenebPlus is the epoch at which the Deneb+ fork is activated.
-	DenebPlusForkEpoch uint64 `mapstructure:"deneb-plus-fork-epoch"`
+	// Deneb1 is the epoch at which the Deneb1 fork is activated.
+	Deneb1ForkEpoch uint64 `mapstructure:"deneb-plus-fork-epoch"`
 	// ElectraForkEpoch is the epoch at which the Electra fork is activated.
 	ElectraForkEpoch uint64 `mapstructure:"electra-fork-epoch"`
 

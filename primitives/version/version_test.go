@@ -24,6 +24,7 @@ import (
 	"encoding/binary"
 	"testing"
 
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/stretchr/testify/require"
 )
@@ -32,103 +33,111 @@ func TestFromUint32(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    uint32
-		expected [4]byte
+		expected common.Version
 	}{
 		{
 			name:     "Phase0",
 			input:    version.Phase0,
-			expected: [4]byte{0, 0, 0, 0},
+			expected: common.Version{0, 0, 0, 0},
 		},
 		{
 			name:     "Altair",
 			input:    version.Altair,
-			expected: [4]byte{1, 0, 0, 0},
+			expected: common.Version{1, 0, 0, 0},
 		},
 		{
 			name:     "Bellatrix",
 			input:    version.Bellatrix,
-			expected: [4]byte{2, 0, 0, 0},
+			expected: common.Version{2, 0, 0, 0},
 		},
 		{
 			name:     "Capella",
 			input:    version.Capella,
-			expected: [4]byte{3, 0, 0, 0},
+			expected: common.Version{3, 0, 0, 0},
 		},
 		{
 			name:     "Deneb",
 			input:    version.Deneb,
-			expected: [4]byte{4, 0, 0, 0},
+			expected: common.Version{4, 0, 0, 0},
 		},
 		{
-			name:     "DenebPlus",
-			input:    260,
-			expected: [4]byte{4, 1, 0, 0},
+			name:     "Deneb1",
+			input:    version.Deneb1,
+			expected: common.Version{4, 1, 0, 0},
 		},
 		{
 			name:     "Electra",
 			input:    version.Electra,
-			expected: [4]byte{6, 0, 0, 0},
+			expected: common.Version{5, 0, 0, 0},
+		},
+		{
+			name:     "Electra1",
+			input:    version.Electra1,
+			expected: common.Version{5, 1, 0, 0},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := version.FromUint32[[4]byte](tt.input)
+			result := version.FromUint32(tt.input)
 			require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
 		})
 	}
 }
 func TestFromUint32_CustomType(t *testing.T) {
-	type CustomVersion [4]byte
-
 	input := uint32(123456789)
-	expected := CustomVersion{}
+	expected := common.Version{}
 	binary.LittleEndian.PutUint32(expected[:], input)
 
-	result := version.FromUint32[CustomVersion](input)
+	result := version.FromUint32(input)
 	require.Equal(t, expected, result)
 }
 
 func TestToUint32(t *testing.T) {
 	tests := []struct {
 		name     string
-		input    [4]byte
+		input    common.Version
 		expected uint32
 	}{
 		{
 			name:     "Phase0",
-			input:    [4]byte{0, 0, 0, 0},
+			input:    common.Version{0, 0, 0, 0},
 			expected: version.Phase0,
 		},
 		{
 			name:     "Altair",
-			input:    [4]byte{1, 0, 0, 0},
+			input:    common.Version{1, 0, 0, 0},
 			expected: version.Altair,
 		},
 		{
 			name:     "Bellatrix",
-			input:    [4]byte{2, 0, 0, 0},
+			input:    common.Version{2, 0, 0, 0},
 			expected: version.Bellatrix,
 		},
 		{
 			name:     "Capella",
-			input:    [4]byte{3, 0, 0, 0},
+			input:    common.Version{3, 0, 0, 0},
 			expected: version.Capella,
 		},
 		{
 			name:     "Deneb",
-			input:    [4]byte{4, 0, 0, 0},
+			input:    common.Version{4, 0, 0, 0},
 			expected: version.Deneb,
 		},
 		{
-			name:     "DenebPlus",
-			input:    [4]byte{5, 0, 0, 0},
-			expected: version.DenebPlus,
+			name:     "Deneb1",
+			input:    common.Version{4, 1, 0, 0},
+			expected: version.Deneb1,
 		},
 		{
 			name:     "Electra",
-			input:    [4]byte{6, 0, 0, 0},
+			input:    common.Version{5, 0, 0, 0},
 			expected: version.Electra,
+		},
+		{
+			name:     "Electra1",
+			input:    common.Version{5, 1, 0, 0},
+			expected: version.Electra1,
 		},
 	}
 
@@ -141,9 +150,7 @@ func TestToUint32(t *testing.T) {
 }
 
 func TestToUint32_CustomType(t *testing.T) {
-	type CustomVersion [4]byte
-
-	input := CustomVersion{0x15, 0xCD, 0x5B, 0x07}
+	input := common.Version{0x15, 0xCD, 0x5B, 0x07}
 	expected := uint32(123456789)
 
 	result := version.ToUint32(input)
