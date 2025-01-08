@@ -31,8 +31,7 @@ import (
 )
 
 func (sp *StateProcessor[_]) validateGenesisDeposits(
-	st *statedb.StateDB,
-	deposits []*ctypes.Deposit,
+	st *statedb.StateDB, deposits []*ctypes.Deposit,
 ) error {
 	eth1DepositIndex, err := st.GetEth1DepositIndex()
 	if err != nil {
@@ -59,9 +58,9 @@ func (sp *StateProcessor[_]) validateGenesisDeposits(
 	// BeaconKit enforces a cap on the validator set size.
 	// If genesis deposits breaches the cap we return an error.
 	//#nosec:G701 // can't overflow.
-	if uint64(len(deposits)) > sp.cs.ValidatorSetCap() {
+	if uint64(len(deposits)) > sp.cs.ValidatorSetCap(0) {
 		return errors.Wrapf(ErrValSetCapExceeded,
-			"validator set cap %d, deposits count %d", sp.cs.ValidatorSetCap(), len(deposits),
+			"validator set cap %d, deposits count %d", sp.cs.ValidatorSetCap(0), len(deposits),
 		)
 	}
 	return nil

@@ -21,6 +21,7 @@
 package chain
 
 import (
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
@@ -189,9 +190,8 @@ type Spec interface {
 
 	// Berachain Values
 
-	// ValidatorSetCap retrieves the maximum number of
-	// validators allowed in the active set.
-	ValidatorSetCap() uint64
+	// ValidatorSetCap retrieves the maximum number of validators allowed in the active set.
+	ValidatorSetCap(slot math.Slot) uint64
 
 	// EVMInflationAddress returns the address on the EVM which will receive
 	// the inflation amount of native EVM balance through a withdrawal every
@@ -223,6 +223,9 @@ func (s spec) validate() error {
 
 	if s.Data.ValidatorSetCap > s.Data.ValidatorRegistryLimit {
 		return ErrInvalidValidatorSetCap
+	}
+	if s.Data.ValidatorSetCapDeneb1 > s.Data.ValidatorRegistryLimit {
+		return errors.Wrap(ErrInvalidValidatorSetCap, "Deneb1")
 	}
 
 	// EVM Inflation values can be zero or non-zero, no validation needed.
@@ -419,9 +422,11 @@ func (s spec) BytesPerBlob() uint64 {
 	return s.Data.BytesPerBlob
 }
 
-// ValidatorSetCap retrieves the maximum number of
-// validators allowed in the active set.
-func (s spec) ValidatorSetCap() uint64 {
+// ValidatorSetCap retrieves the maximum number of validators allowed in the active set.
+func (s spec) ValidatorSetCap(slot math.Slot) uint64 {
+	if s.SlotToEpoch(slot) >= s.Deneb1ForkEpoch() {
+		return s.Data.ValidatorSetCapDeneb1
+	}
 	return s.Data.ValidatorSetCap
 }
 

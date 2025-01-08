@@ -94,9 +94,7 @@ func (sp *StateProcessor[_]) processRegistryUpdates(st *statedb.StateDB) error {
 	return nil
 }
 
-func (sp *StateProcessor[_]) processValidatorSetCap(
-	st *statedb.StateDB,
-) error {
+func (sp *StateProcessor[_]) processValidatorSetCap(st *statedb.StateDB) error {
 	// Enforce the validator set cap by:
 	// 1- retrieving validators active next epoch
 	// 2- sorting them by stake
@@ -116,7 +114,8 @@ func (sp *StateProcessor[_]) processValidatorSetCap(
 		)
 	}
 
-	if uint64(len(nextEpochVals)) <= sp.cs.ValidatorSetCap() {
+	validatorSetCap := sp.cs.ValidatorSetCap(slot)
+	if uint64(len(nextEpochVals)) <= validatorSetCap {
 		// nothing to eject
 		return nil
 	}
@@ -144,7 +143,7 @@ func (sp *StateProcessor[_]) processValidatorSetCap(
 	// We do not currently have a cap on validators churn, so we stop
 	// validators next epoch and we withdraw them the epoch after
 	var idx math.ValidatorIndex
-	for li := range uint64(len(nextEpochVals)) - sp.cs.ValidatorSetCap() {
+	for li := range uint64(len(nextEpochVals)) - validatorSetCap {
 		valToEject := nextEpochVals[li]
 		valToEject.SetExitEpoch(nextEpoch)
 		valToEject.SetWithdrawableEpoch(nextEpoch + 1)

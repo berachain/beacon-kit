@@ -631,13 +631,13 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	// STEP 0: Setup genesis with GetValidatorSetCap validators
 	// TODO: consider instead setting state artificially
 	var (
-		genDeposits      = make(types.Deposits, 0, cs.ValidatorSetCap())
+		genDeposits      = make(types.Deposits, 0, cs.ValidatorSetCap(0))
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		genVersion       = version.FromUint32(version.Deneb)
 	)
 
 	// let genesis define all available validators
-	for idx := range cs.ValidatorSetCap() {
+	for idx := range cs.ValidatorSetCap(0) {
 		var (
 			key   bytes.B48
 			creds types.WithdrawalCredentials
@@ -861,13 +861,13 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	// STEP 0: Setup genesis with GetValidatorSetCap validators
 	// TODO: consider instead setting state artificially
 	var (
-		genDeposits      = make(types.Deposits, 0, cs.ValidatorSetCap())
+		genDeposits      = make(types.Deposits, 0, cs.ValidatorSetCap(0))
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		genVersion       = version.FromUint32(version.Deneb)
 	)
 
 	// let genesis define all available validators
-	for idx := range cs.ValidatorSetCap() {
+	for idx := range cs.ValidatorSetCap(0) {
 		var (
 			key   bytes.B48
 			creds types.WithdrawalCredentials

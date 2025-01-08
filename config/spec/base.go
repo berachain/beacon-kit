@@ -83,7 +83,7 @@ func BaseSpec() *chain.SpecData {
 		MaxDepositsPerBlock:       16,
 		DepositEth1ChainID:        1,
 		Eth1FollowDistance:        1,
-		TargetSecondsPerEth1Block: 3,
+		TargetSecondsPerEth1Block: 2,
 
 		// Fork-related values.
 		Deneb1ForkEpoch:  9999999999999998,
@@ -112,6 +112,9 @@ func BaseSpec() *chain.SpecData {
 		KZGCommitmentInclusionProofDepth: 17,
 
 		// Berachain Values
-		ValidatorSetCap: 256,
+		ValidatorSetCap: 69,
+
+		// Deneb1 Value Changes
+		ValidatorSetCapDeneb1: 420,
 	}
 }
