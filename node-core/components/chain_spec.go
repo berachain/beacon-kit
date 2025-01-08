@@ -25,7 +25,6 @@ import (
 
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
-	// "github.com/berachain/beacon-kit/errors"
 )
 
 const (
