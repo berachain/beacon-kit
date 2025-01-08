@@ -157,6 +157,7 @@ func setupState(t *testing.T, cs chain.Spec) (
 	return sp, beaconState, depositStore, ctx
 }
 
+//nolint:unused // may be used in the future.
 func progressStateToSlot(
 	t *testing.T,
 	beaconState *TestBeaconStateT,

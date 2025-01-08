@@ -64,10 +64,7 @@ func (sp *StateProcessor[_]) processOperations(
 }
 
 // processDeposit processes the deposit and ensures it matches the local state.
-func (sp *StateProcessor[_]) processDeposit(
-	st *state.StateDB,
-	dep *ctypes.Deposit,
-) error {
+func (sp *StateProcessor[_]) processDeposit(st *state.StateDB, dep *ctypes.Deposit) error {
 	eth1DepositIndex, err := st.GetEth1DepositIndex()
 	if err != nil {
 		return err
@@ -86,10 +83,7 @@ func (sp *StateProcessor[_]) processDeposit(
 }
 
 // applyDeposit processes the deposit and ensures it matches the local state.
-func (sp *StateProcessor[_]) applyDeposit(
-	st *state.StateDB,
-	dep *ctypes.Deposit,
-) error {
+func (sp *StateProcessor[_]) applyDeposit(st *state.StateDB, dep *ctypes.Deposit) error {
 	idx, err := st.ValidatorIndexByPubkey(dep.GetPubkey())
 	if err != nil {
 		// If the validator does not exist, we add the validator.
@@ -112,10 +106,7 @@ func (sp *StateProcessor[_]) applyDeposit(
 }
 
 // createValidator creates a validator if the deposit is valid.
-func (sp *StateProcessor[_]) createValidator(
-	st *state.StateDB,
-	dep *ctypes.Deposit,
-) error {
+func (sp *StateProcessor[_]) createValidator(st *state.StateDB, dep *ctypes.Deposit) error {
 	// Get the current slot.
 	slot, err := st.GetSlot()
 	if err != nil {
@@ -166,15 +157,11 @@ func (sp *StateProcessor[_]) createValidator(
 	}
 
 	// Add the validator to the registry.
-	return sp.addValidatorToRegistry(st, dep, slot)
+	return sp.addValidatorToRegistry(st, dep)
 }
 
 // addValidatorToRegistry adds a validator to the registry.
-func (sp *StateProcessor[_]) addValidatorToRegistry(
-	st *state.StateDB,
-	dep *ctypes.Deposit,
-	slot math.Slot,
-) error {
+func (sp *StateProcessor[_]) addValidatorToRegistry(st *state.StateDB, dep *ctypes.Deposit) error {
 	val := ctypes.NewValidatorFromDeposit(
 		dep.GetPubkey(),
 		dep.GetWithdrawalCredentials(),
