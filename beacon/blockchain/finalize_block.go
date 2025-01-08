@@ -177,6 +177,12 @@ func (s *Service) executeStateTransition(
 			// actually irrelevant at this point.
 			SkipPayloadVerification: false,
 
+			// We skip randao validation in FinalizeBlock since either
+			// 1. we validated it during ProcessProposal at the head of the chain OR
+			// 2. we are bootstrapping and implicitly trust that the randao was validated by
+			//    the super majority during ProcessProposal of the given block height.
+			SkipValidateRandao: true,
+
 			ProposerAddress: blk.GetProposerAddress(),
 			ConsensusTime:   blk.GetConsensusTime(),
 		},
