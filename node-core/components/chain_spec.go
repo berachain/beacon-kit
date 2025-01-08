@@ -25,6 +25,7 @@ import (
 
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
+	// "github.com/berachain/beacon-kit/errors"
 )
 
 const (
@@ -35,7 +36,7 @@ const (
 	TestnetChainSpecType = "testnet"
 )
 
-// ProvideChainSpec provides the chain spec based on the environment variable.
+// ProvideChainSpec provides the chain spec based on the environment variable. Defaults to devnet.
 func ProvideChainSpec() (chain.Spec, error) {
 	// TODO: This is hood as fuck needs to be improved
 	// but for now we ball to get CI unblocked.
@@ -43,17 +44,25 @@ func ProvideChainSpec() (chain.Spec, error) {
 		chainSpec chain.Spec
 		err       error
 	)
+
 	switch os.Getenv(ChainSpecTypeEnvVar) {
-	case DevnetChainSpecType:
-		chainSpec, err = spec.DevnetChainSpec()
+	case TestnetChainSpecType:
+		chainSpec, err = spec.TestnetChainSpec()
 	case BetnetChainSpecType:
 		chainSpec, err = spec.BetnetChainSpec()
 	case BoonetChainSpecType:
 		chainSpec, err = spec.BoonetChainSpec()
-	case TestnetChainSpecType:
+	case DevnetChainSpecType:
 		fallthrough
 	default:
-		chainSpec, err = spec.TestnetChainSpec()
+		chainSpec, err = spec.DevnetChainSpec()
 	}
-	return chainSpec, err
+
+	if err != nil {
+		return nil, err
+	}
+	if chainSpec == nil {
+		panic("chain spec is nil")
+	}
+	return chainSpec, nil
 }

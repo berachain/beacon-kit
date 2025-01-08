@@ -206,22 +206,22 @@ type Spec interface {
 // spec is a concrete implementation of the Spec interface, holding the actual data.
 type spec struct {
 	// Data contains the actual chain-specific parameter values.
-	Data SpecData
+	Data *SpecData
 }
 
 // NewSpec creates a new instance of a Spec with the provided data.
-func NewSpec(data SpecData) (Spec, error) {
+func NewSpec(data *SpecData) (Spec, error) {
 	s := spec{Data: data}
 	return s, s.validate()
 }
 
 // validate ensures that the chain spec is valid, returning error if it is not.
 func (s spec) validate() error {
-	if s.MaxWithdrawalsPerPayload() <= 1 {
+	if s.Data.MaxWithdrawalsPerPayload <= 1 {
 		return ErrInsufficientMaxWithdrawalsPerPayload
 	}
 
-	if s.ValidatorSetCap() > s.ValidatorRegistryLimit() {
+	if s.Data.ValidatorSetCap > s.Data.ValidatorRegistryLimit {
 		return ErrInvalidValidatorSetCap
 	}
 
