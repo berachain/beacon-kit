@@ -55,13 +55,13 @@ func (sp *StateProcessor[_]) processOperations(
 			sp.cs.MaxDepositsPerBlock(slot), len(deposits),
 		)
 	}
-	if err := sp.validateNonGenesisDeposits(
+	if err = sp.validateNonGenesisDeposits(
 		ctx, st, deposits, blk.GetBody().GetEth1Data().DepositRoot,
 	); err != nil {
 		return err
 	}
 	for _, dep := range deposits {
-		if err := sp.processDeposit(st, dep, slot); err != nil {
+		if err = sp.processDeposit(st, dep, slot); err != nil {
 			return err
 		}
 	}

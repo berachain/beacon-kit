@@ -35,6 +35,8 @@ import (
 // 1. The first withdrawal MUST be a fixed EVM inflation withdrawal
 // 2. Subsequent withdrawals (if any) are processed as validator withdrawals
 // 3. This modification reduces the maximum validator withdrawals per block by one.
+//
+//nolint:funlen // okay for now.
 func (sp *StateProcessor[_]) processWithdrawals(
 	st *state.StateDB, blk *ctypes.BeaconBlock,
 ) error {

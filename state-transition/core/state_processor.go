@@ -270,8 +270,7 @@ func (sp *StateProcessor[_]) processEpoch(st *state.StateDB) (transition.Validat
 	return validatorSetsDiffs(currentActiveVals, nextActiveVals), nil
 }
 
-// processBlockHeader processes the header and ensures it matches the local
-// state.
+// processBlockHeader processes the header and ensures it matches the local state.
 func (sp *StateProcessor[ContextT]) processBlockHeader(
 	ctx ContextT, st *state.StateDB, blk *ctypes.BeaconBlock,
 ) error {
