@@ -59,10 +59,8 @@ func generateSigningRoot(blk *types.BeaconBlock) (common.Root, error) {
 	if err != nil {
 		return common.Root{}, err
 	}
-	forkData := types.ForkData{
-		CurrentVersion: version.FromUint32(cs.ActiveForkVersionForSlot(blk.GetSlot())),
-	}
-	domain := forkData.ComputeDomain(cs.DomainTypeProposer(forkData.CurrentVersion))
+	version := version.FromUint32(cs.ActiveForkVersionForSlot(blk.GetSlot()))
+	domain := (&types.ForkData{}).ComputeDomain(cs.DomainTypeProposer(version))
 	signingRoot := types.ComputeSigningRoot(blk, domain)
 	return signingRoot, nil
 }
