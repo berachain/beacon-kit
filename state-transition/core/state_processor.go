@@ -385,9 +385,7 @@ func (sp *StateProcessor[_]) processEffectiveBalanceUpdates(
 			updatedBalance := ctypes.ComputeEffectiveBalance(
 				balance,
 				math.U64(sp.cs.EffectiveBalanceIncrement()),
-				math.U64(sp.cs.MaxEffectiveBalance(
-					state.IsPostFork3(sp.cs.DepositEth1ChainID(), slot),
-				)),
+				math.U64(sp.cs.MaxEffectiveBalance(false)),
 			)
 			val.SetEffectiveBalance(updatedBalance)
 			if err = st.UpdateValidatorAtIndex(idx, val); err != nil {

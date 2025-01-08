@@ -53,11 +53,6 @@ func (sp *StateProcessor[_]) processWithdrawals(
 		return err
 	}
 
-	slot, err := st.GetSlot()
-	if err != nil {
-		return errors.Wrap(err, "failed loading slot while processing withdrawals")
-	}
-
 	// Common validations
 	if len(expectedWithdrawals) != len(payloadWithdrawals) {
 		return errors.Wrapf(
@@ -125,9 +120,7 @@ func (sp *StateProcessor[_]) processWithdrawals(
 			return err
 		}
 		nextValidatorIndex += math.ValidatorIndex(
-			sp.cs.MaxValidatorsPerWithdrawalsSweep(
-				state.IsPostFork2(sp.cs.DepositEth1ChainID(), slot),
-			))
+			sp.cs.MaxValidatorsPerWithdrawalsSweep(false))
 		nextValidatorIndex %= math.ValidatorIndex(totalValidators)
 	}
 
