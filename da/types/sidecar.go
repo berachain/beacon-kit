@@ -77,7 +77,7 @@ func (b *BlobSidecar) HasValidInclusionProof() bool {
 		b.KzgCommitment.HashTreeRoot(),
 		b.InclusionProof,
 		ctypes.KZGInclusionProofDepth,
-		ctypes.KZGOffsetDeneb,
+		ctypes.KZGOffsetDeneb+b.Index,
 		header.BodyRoot,
 	)
 }
