@@ -49,10 +49,9 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 	if payloadID, found := pb.pc.Get(slot, parentBlockRoot); found {
 		pb.logger.Warn(
 			"aborting payload build; payload already exists in cache",
-			"for_slot",
-			slot.Base10(),
-			"parent_block_root",
-			parentBlockRoot,
+			"for_slot", slot.Base10(),
+			"parent_block_root", parentBlockRoot,
+			"payloadID", payloadID.String(),
 		)
 		return &payloadID, nil
 	}
@@ -83,6 +82,13 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 
 	// Only add to cache if we received back a payload ID.
 	if payloadID != nil {
+		pb.logger.Info(
+			"RequestPayloadAsync - caching payloadID",
+			"for_slot", slot.Base10(),
+			"parent_block_root", parentBlockRoot,
+			"payloadID", payloadID.String(),
+			"attributes", attrs,
+		)
 		pb.pc.Set(slot, parentBlockRoot, *payloadID)
 	}
 
