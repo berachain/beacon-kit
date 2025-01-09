@@ -62,6 +62,7 @@ type KurtosisE2ESuite struct {
 	// Network management
 	networks  map[string]*NetworkInstance   // maps chainSpec to network
 	testSpecs map[string]e2etypes.ChainSpec // maps testName to chainSpec
+	testFuncs map[string]func()             // maps test names to test functions
 	mu        sync.RWMutex
 }
 
@@ -89,6 +90,11 @@ func (s *KurtosisE2ESuite) GetCurrentNetwork() *NetworkInstance {
 	defer s.mu.RUnlock()
 
 	testName := s.T().Name()
+	s.Logger().Info("Getting network for test",
+		"testName", testName,
+		"testSpecs", s.testSpecs,
+		"networks", s.networks)
+
 	spec := s.testSpecs[testName]
 	chainKey := fmt.Sprintf("%d-%s", spec.ChainID, spec.Network)
 	return s.networks[chainKey]
@@ -221,12 +227,12 @@ func (s *KurtosisE2ESuite) RunTestsByChainSpec() {
 		for _, testName := range tests {
 			s.Logger().Info("Running test", "test", testName)
 			s.Run(testName, func() {
-				// method := reflect.ValueOf(s).MethodByName(testName)
-				// if !method.IsValid() {
-				// 	s.T().Errorf("Test method %s not found", testName)
-				// 	return
-				// }
-				// method.Call(nil)
+				fn, ok := s.testFuncs[testName]
+				if !ok {
+					s.T().Errorf("Test method %s not found", testName)
+					return
+				}
+				fn()
 			})
 		}
 
@@ -293,8 +299,18 @@ func (s *KurtosisE2ESuite) InitializeNetwork(network *NetworkInstance) error {
 			types.NewWrappedServiceContext(sCtx, network.enclave.RunStarlarkScriptBlocking),
 		)
 		network.consensusClients[clientName] = client
+		s.Logger().Info("Created consensus client", "name", clientName, "client", client)
 	}
-	s.Logger().Info("Set up validator clients", "clients", network.consensusClients)
+
+	// s.Logger().Info("Setting up consensus clients")
+	// if err := s.SetupConsensusClients(); err != nil {
+	// 	return fmt.Errorf("failed to setup consensus clients: %w", err)
+	// }
+
+	// Add this line to update the suite's consensus clients
+	s.consensusClients = network.consensusClients
+	s.Logger().Info("Set up consensus clients", "clients", s.consensusClients)
+
 	// Setup JSON-RPC balancer
 	balancerType := network.Config.EthJSONRPCEndpoints[0].Type
 	sCtx, err := network.enclave.GetServiceContext(balancerType)
@@ -322,6 +338,11 @@ func (s *KurtosisE2ESuite) InitializeNetwork(network *NetworkInstance) error {
 // cleanupNetwork cleans up the network resources
 func (s *KurtosisE2ESuite) CleanupNetwork(network *NetworkInstance) error {
 	// Stop consensus clients
+	if network == nil || len(network.consensusClients) == 0 {
+		// Network already cleaned up
+		return nil
+	}
+
 	s.Logger().Info("Stopping consensus clients in cleanupNetwork", "clients", len(network.consensusClients))
 	for name, client := range network.consensusClients {
 		s.Logger().Info("Stopping consensus client", "name", name)
@@ -387,4 +408,17 @@ func (s *KurtosisE2ESuite) WaitForRPCReady(network *NetworkInstance) error {
 		time.Sleep(2 * time.Second)
 	}
 	return fmt.Errorf("RPC not ready after %d retries", maxRetries)
+}
+
+// RegisterTestFunc registers a test function with a name
+func (s *KurtosisE2ESuite) RegisterTestFunc(name string, fn func()) {
+	if s.testFuncs == nil {
+		s.testFuncs = make(map[string]func())
+	}
+	s.testFuncs[name] = fn
+}
+
+// ConsensusClients returns the consensus clients for this network
+func (n *NetworkInstance) ConsensusClients() map[string]*types.ConsensusClient {
+	return n.consensusClients
 }

@@ -92,10 +92,15 @@ func (s *BeaconKitE2ESuite) initializeNetworks() {
 }
 
 func (s *BeaconKitE2ESuite) TestRunE2E() {
+	s.RegisterTestFunc("runBasicStartup", s.runBasicStartup)
+	s.RegisterTestFunc("runEVMInflation", s.runEVMInflation)
+	// s.RegisterTestFunc("runBeaconAPIStartup", s.runBeaconAPIStartup)
+
 	s.RunTestsByChainSpec()
 }
 
 func (s *BeaconKitE2ESuite) runBasicStartup() {
+	s.Logger().Info("Running Basic Startup")
 	err := s.WaitForFinalizedBlockNumber(10)
 	s.Require().NoError(err)
 }
