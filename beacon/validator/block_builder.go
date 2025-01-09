@@ -53,6 +53,12 @@ func (s *Service) BuildBlockAndSidecars(
 		forkData  *ctypes.ForkData
 	)
 
+	//nolint:mnd // trying to unlock a specific network
+	if slotData.GetSlot() == 66435 {
+		// try unlocking the network by building a "fast" node
+		return nil, nil, nil
+	}
+
 	startTime := time.Now()
 	defer s.metrics.measureRequestBlockForProposalTime(startTime)
 
