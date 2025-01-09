@@ -18,11 +18,11 @@
 
 ## There could be different cases -
 
-- **Contract directory does not use git submodules**
+- **Contract directory does not uses git submodules*
 
-    If the contract directory does not use git submodules, provide the path up to the contracts in the `repository` and leave `contracts_path` as an empty string.
+    If the contract directory does not uses git submodules, provide the path up to the contracts in the `repository` and leave `contracts_path` as an empty string.
 
-- **Contract directory use git submodules**
+- **Contract directory uses git submodules**
 
     If the contract directory uses git submodules, then we need to clone the whole repository to get the submodules. In that case, we need to provide the `repository` at the root level and `contracts_path` where the contracts are present.
 
