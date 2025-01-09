@@ -23,6 +23,7 @@ package cometbft
 import (
 	"context"
 	"fmt"
+	"time"
 
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/sourcegraph/conc/iter"
@@ -89,7 +90,16 @@ func (s *Service[LoggerT]) finalizeBlockInternal(
 		return nil, err
 	}
 
-	cp := s.cmtConsensusParams.ToProto()
+	params := s.cmtConsensusParams
+
+	//nolint:mnd // trying to unlock a specific network
+	if req.Height >= 66435 {
+		// from this magic height on, keep precision looser
+
+		//nolint:mnd // trying to unlock a specific network
+		params.Synchrony.Precision = 2 * time.Second
+	}
+	cp := params.ToProto()
 	return &cmtabci.FinalizeBlockResponse{
 		TxResults:             txResults,
 		ValidatorUpdates:      valUpdates,
