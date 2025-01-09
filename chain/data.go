@@ -159,6 +159,7 @@ type SpecData struct {
 	// Deneb1 Value Changes
 	//
 	// ValidatorSetCapDeneb1 is the maximum number of validators that can be
-	// active for a given epoch.
+	// active for a given epoch. NOTE: This value is not necessarily different from
+	// ValidatorSetCap; in the case that it's NOT different, this field can be removed.
 	ValidatorSetCapDeneb1 uint64 `mapstructure:"validator-set-cap-deneb-one"`
 }
