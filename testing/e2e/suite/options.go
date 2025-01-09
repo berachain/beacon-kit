@@ -20,9 +20,10 @@
 
 package suite
 
-import (
-	e2etypes "github.com/berachain/beacon-kit/testing/e2e/types"
-)
+type ChainSpec struct {
+	ChainID uint64
+	Network string
+}
 
 // ChainOption defines a chain configuration option
 type ChainOption struct {
@@ -37,7 +38,7 @@ type Option func(*KurtosisE2ESuite) error
 // WithChain adds a chain configuration for a specific test
 func WithChain(testName string, chainID uint64, network string) Option {
 	return func(s *KurtosisE2ESuite) error {
-		s.RegisterTest(testName, e2etypes.ChainSpec{
+		s.RegisterTest(testName, ChainSpec{
 			ChainID: chainID,
 			Network: network,
 		})

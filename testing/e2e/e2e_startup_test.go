@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/berachain/beacon-kit/testing/e2e/suite"
 	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
-	e2etypes "github.com/berachain/beacon-kit/testing/e2e/types"
 	"github.com/kurtosis-tech/kurtosis/api/golang/engine/lib/kurtosis_context"
 )
 
@@ -56,7 +55,7 @@ func (s *BeaconKitE2ESuite) SetupSuite() {
 	s.SetKurtosisCtx(kCtx)
 
 	s.SetNetworks(make(map[string]*suite.NetworkInstance))
-	s.SetTestSpecs(make(map[string]e2etypes.ChainSpec))
+	s.SetTestSpecs(make(map[string]suite.ChainSpec))
 
 	// Apply all chain options
 	for _, opt := range s.opts {

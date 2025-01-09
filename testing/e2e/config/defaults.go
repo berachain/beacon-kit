@@ -123,12 +123,12 @@ func defaultFullNodes() NodeSet {
 			},
 			{
 				ElType:   "erigon",
-				Replicas: 0,
+				Replicas: 1,
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
 				ElType:   "besu",
-				Replicas: 0,
+				Replicas: 1,
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 		},

@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	types "github.com/berachain/beacon-kit/testing/e2e/suite/types"
-	e2etypes "github.com/berachain/beacon-kit/testing/e2e/types"
 	"github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -66,9 +65,9 @@ type KurtosisE2ESuite struct {
 	testAccounts   []*types.EthAccount
 
 	// Network management
-	networks  map[string]*NetworkInstance   // maps chainSpec to network
-	testSpecs map[string]e2etypes.ChainSpec // maps testName to chainSpec
-	testFuncs map[string]func()             // maps test names to test functions
+	networks  map[string]*NetworkInstance // maps chainSpec to network
+	testSpecs map[string]ChainSpec        // maps testName to chainSpec
+	testFuncs map[string]func()           // maps test names to test functions
 	mu        sync.RWMutex
 }
 
@@ -177,7 +176,7 @@ func (s *KurtosisE2ESuite) GetAccounts() []*types.EthAccount {
 }
 
 // RegisterTest associates a test with its chain specification
-func (s *KurtosisE2ESuite) RegisterTest(testName string, spec e2etypes.ChainSpec) {
+func (s *KurtosisE2ESuite) RegisterTest(testName string, spec ChainSpec) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.testSpecs[testName] = spec
@@ -199,7 +198,7 @@ func (s *KurtosisE2ESuite) SetNetworks(networks map[string]*NetworkInstance) {
 }
 
 // SetTestSpecs sets the test specs for the test suite.
-func (s *KurtosisE2ESuite) SetTestSpecs(specs map[string]e2etypes.ChainSpec) {
+func (s *KurtosisE2ESuite) SetTestSpecs(specs map[string]ChainSpec) {
 	s.testSpecs = specs
 }
 
@@ -209,7 +208,7 @@ func (s *KurtosisE2ESuite) Networks() map[string]*NetworkInstance {
 }
 
 // TestSpecs returns the test specs for the test suite.
-func (s *KurtosisE2ESuite) GetTestSpecs() map[string]e2etypes.ChainSpec {
+func (s *KurtosisE2ESuite) GetTestSpecs() map[string]ChainSpec {
 	return s.testSpecs
 }
 
@@ -372,7 +371,7 @@ func (s *KurtosisE2ESuite) InitializeNetwork(network *NetworkInstance) error {
 		return fmt.Errorf("genesis account has no funds")
 	}
 
-	s.Logger().Info("Created genesis account", "account", network.genesisAccount)
+	// s.Logger().Info("Created genesis account", "account", network.genesisAccount.AccountName)
 
 	// Wait for RPC to be ready before funding accounts
 	if err := s.WaitForRPCReady(network); err != nil {

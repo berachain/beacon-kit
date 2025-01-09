@@ -150,9 +150,9 @@ func (cc *ConsensusClient) IsActive(ctx context.Context) (bool, error) {
 // go-eth2-client types to beacon-kit consensus types).
 
 // String implements fmt.Stringer
-func (c *ConsensusClient) String() string {
-	if c == nil {
-		return "nil"
-	}
-	return fmt.Sprintf("ConsensusClient{Client: %v, BeaconKitNodeClient: %v}", c.Client, c.BeaconKitNodeClient)
-}
+// func (c *ConsensusClient) String() string {
+// 	if c == nil {
+// 		return "nil"
+// 	}
+// 	return fmt.Sprintf("ConsensusClient{Client: %v, BeaconKitNodeClient: %v}", c.Client, c.BeaconKitNodeClient)
+// }
