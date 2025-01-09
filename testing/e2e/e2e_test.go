@@ -37,7 +37,7 @@ func TestBeaconKitE2ESuite(t *testing.T) {
 	s.SetupSuiteWithOptions(
 		suite.WithChain("runBasicStartup", 80087, "devnet"),
 		suite.WithChain("runEVMInflation", 80087, "devnet"),
-		suite.WithChain("runBeaconAPIStartup", 80087, "devnet"),
+		suite.WithChain("runBeaconAPIStartup", 80084, "testnet"),
 		suite.WithChain("run4844Live", 80087, "devnet"),
 		suite.WithChain("runDepositRobustness", 80087, "devnet"),
 	)

@@ -313,7 +313,7 @@ func (s *KurtosisE2ESuite) InitializeNetwork(network *NetworkInstance) error {
 			return fmt.Errorf("failed to connect consensus client %s: %w", clientName, err)
 		}
 		network.consensusClients[clientName] = client
-		s.Logger().Info("Created consensus client", "name", clientName, "client", client)
+		s.Logger().Info("Created consensus client", "name", clientName)
 	}
 
 	// s.Logger().Info("Setting up consensus clients")
@@ -408,7 +408,6 @@ func (s *KurtosisE2ESuite) InitializeNetwork(network *NetworkInstance) error {
 		}
 	}
 
-	s.Logger().Info("Created test accounts", "accounts", network.testAccounts)
 	return nil
 }
 
@@ -517,6 +516,11 @@ func (s *KurtosisE2ESuite) FundAccount(to common.Address, amount *big.Int) error
 		return err
 	}
 
+	chainID, err := s.JSONRPCBalancer().ChainID(s.ctx)
+	if err != nil {
+		return err
+	}
+
 	// Get the latest block for fee estimation
 	header, err := s.JSONRPCBalancer().HeaderByNumber(s.ctx, nil)
 	if err != nil {
@@ -525,7 +529,7 @@ func (s *KurtosisE2ESuite) FundAccount(to common.Address, amount *big.Int) error
 	gasFeeCap := new(big.Int).Add(header.BaseFee, big.NewInt(1e9))
 
 	tx := coretypes.NewTx(&coretypes.DynamicFeeTx{
-		ChainID:   big.NewInt(80087),
+		ChainID:   chainID,
 		Nonce:     nonce,
 		To:        &to,
 		Value:     amount,
@@ -534,7 +538,7 @@ func (s *KurtosisE2ESuite) FundAccount(to common.Address, amount *big.Int) error
 		GasTipCap: big.NewInt(1e9),
 	})
 
-	signedTx, err := s.GenesisAccount().SignTx(big.NewInt(80087), tx)
+	signedTx, err := s.GenesisAccount().SignTx(chainID, tx)
 	if err != nil {
 		return err
 	}
