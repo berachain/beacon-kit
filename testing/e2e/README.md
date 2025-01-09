@@ -23,15 +23,15 @@ make test-e2e
 ```
 If required, add tests under testing/e2e folder.
 
-This will automatically build your beacond docker image from the local source
+This will automatically build your beacon docker image from the local source
 code, and spin up a Kurtosis network based on the config file in
 `testing/e2e/config/defaults.go`.
 
 ## Configuration
-In case you want to configure(change) the validator set, consider doing changes in `defaultValidators`.
+In case you want to configure (change) the validator set, consider doing changes in `defaultValidators`.
 The user can specify the number of replicas they want per type.
 
-All the default configuration are listed in `testing/e2e/config/defaults.go`
+All the default configurations are listed in `testing/e2e/config/defaults.go`
 
 Note: Currently the chainID for this local network is 80087, which is our dev network configuration (this is fixed in the kurtosis env setup and will be made configurable in a future version). To make changes to the 80087 chain spec used, modify parameters [here](https://github.com/berachain/beacon-kit/blob/main/config/spec/devnet.go#L40).
 
