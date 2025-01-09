@@ -399,7 +399,7 @@ func (s *KurtosisE2ESuite) InitializeNetwork(network *NetworkInstance) error {
 
 	// Fund test accounts using the genesis account
 	for _, account := range network.testAccounts {
-		amount, ok := new(big.Int).SetString("100000000000000000000", 10)
+		amount, ok := new(big.Int).SetString("10000000000000000000000", 10) // 10000 ETH
 		if !ok {
 			return fmt.Errorf("failed to parse amount")
 		}
@@ -506,16 +506,81 @@ func (n *NetworkInstance) TestAccounts() []*types.EthAccount {
 
 // FundAccount sends ETH to the given address
 func (s *KurtosisE2ESuite) FundAccount(to common.Address, amount *big.Int) error {
+	// Get initial balance
+	initialBalance, err := s.JSONRPCBalancer().BalanceAt(s.ctx, to, nil)
+	if err != nil {
+		return fmt.Errorf("failed to get initial balance: %w", err)
+	}
+
 	nonce, err := s.JSONRPCBalancer().PendingNonceAt(s.ctx, s.GenesisAccount().Address())
 	if err != nil {
 		return err
 	}
 
-	tx := coretypes.NewTransaction(nonce, to, amount, 21000, big.NewInt(1e9), nil)
+	// Get the latest block for fee estimation
+	header, err := s.JSONRPCBalancer().HeaderByNumber(s.ctx, nil)
+	if err != nil {
+		return err
+	}
+	gasFeeCap := new(big.Int).Add(header.BaseFee, big.NewInt(1e9))
+
+	tx := coretypes.NewTx(&coretypes.DynamicFeeTx{
+		ChainID:   big.NewInt(80087),
+		Nonce:     nonce,
+		To:        &to,
+		Value:     amount,
+		Gas:       21000,
+		GasFeeCap: gasFeeCap,
+		GasTipCap: big.NewInt(1e9),
+	})
+
 	signedTx, err := s.GenesisAccount().SignTx(big.NewInt(80087), tx)
 	if err != nil {
 		return err
 	}
 
-	return s.JSONRPCBalancer().SendTransaction(s.ctx, signedTx)
+	if err := s.JSONRPCBalancer().SendTransaction(s.ctx, signedTx); err != nil {
+		return fmt.Errorf("failed to send transaction: %w", err)
+	}
+
+	// Wait for transaction to be mined
+	receipt, err := s.WaitForTransactionReceipt(signedTx.Hash())
+	if err != nil {
+		return fmt.Errorf("failed waiting for transaction: %w", err)
+	}
+
+	// Verify transaction success
+	if receipt.Status != coretypes.ReceiptStatusSuccessful {
+		return fmt.Errorf("transaction failed with status: %d", receipt.Status)
+	}
+
+	// Verify balance increase
+	newBalance, err := s.JSONRPCBalancer().BalanceAt(s.ctx, to, nil)
+	if err != nil {
+		return fmt.Errorf("failed to get new balance: %w", err)
+	}
+
+	if newBalance.Cmp(initialBalance) <= 0 {
+		return fmt.Errorf("balance did not increase: old=%s new=%s", initialBalance, newBalance)
+	}
+
+	s.Logger().Info("Successfully funded account",
+		"address", to.Hex(),
+		"amount", amount,
+		"oldBalance", initialBalance,
+		"newBalance", newBalance,
+	)
+	return nil
+}
+
+// WaitForTransactionReceipt waits for a transaction to be mined and returns the receipt
+func (s *KurtosisE2ESuite) WaitForTransactionReceipt(hash common.Hash) (*coretypes.Receipt, error) {
+	for i := 0; i < 30; i++ {
+		receipt, err := s.JSONRPCBalancer().TransactionReceipt(s.ctx, hash)
+		if err == nil {
+			return receipt, nil
+		}
+		time.Sleep(time.Second)
+	}
+	return nil, fmt.Errorf("transaction not mined within timeout: %s", hash.Hex())
 }

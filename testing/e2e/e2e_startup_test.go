@@ -97,6 +97,7 @@ func (s *BeaconKitE2ESuite) TestRunE2E() {
 	s.RegisterTestFunc("runEVMInflation", s.runEVMInflation)
 	s.RegisterTestFunc("runBeaconAPIStartup", s.runBeaconAPIStartup)
 	s.RegisterTestFunc("run4844Live", s.run4844Live)
+	s.RegisterTestFunc("runDepositRobustness", s.runDepositRobustness)
 	s.RunTestsByChainSpec()
 }
 
