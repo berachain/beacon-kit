@@ -43,7 +43,7 @@ func (s *BeaconKitE2ESuite) runBeaconAPIStartup() {
 		"client_name", config.ClientValidator0,
 	)
 
-	s.Logger().Info("getting consensus client", "client", s.ConsensusClients())
+	// s.Logger().Info("getting consensus client", "client", s.ConsensusClients())
 	// Get the consensus client.
 	client := network.ConsensusClients()[config.ClientValidator0]
 	s.Require().NotNil(client)
