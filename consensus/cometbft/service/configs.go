@@ -30,14 +30,14 @@ import (
 )
 
 const ( // appeases mnd
-	timeoutPropose   = 1000 * time.Millisecond
-	timeoutPrevote   = 1000 * time.Millisecond
-	timeoutPrecommit = 1000 * time.Millisecond
+	timeoutPropose   = 2000 * time.Millisecond
+	timeoutPrevote   = 2000 * time.Millisecond
+	timeoutPrecommit = 2000 * time.Millisecond
 	timeoutCommit    = 500 * time.Millisecond
 
 	maxBlockSize = 100 * 1024 * 1024
 
-	precision    = 505 * time.Millisecond
+	precision    = 2 * time.Second
 	messageDelay = 15 * time.Second
 )
 

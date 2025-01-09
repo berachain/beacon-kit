@@ -86,7 +86,7 @@
         "app": "0"
       },
       "synchrony": {
-        "precision": "505000000",
+        "precision": "2000000000",
         "message_delay": "15000000000"
       },
       "feature": {
