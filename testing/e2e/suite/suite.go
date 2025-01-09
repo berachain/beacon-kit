@@ -23,6 +23,7 @@ package suite
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -90,6 +91,11 @@ func (s *KurtosisE2ESuite) GetCurrentNetwork() *NetworkInstance {
 	defer s.mu.RUnlock()
 
 	testName := s.T().Name()
+	// Extract the actual test name from the full path
+	if idx := strings.LastIndex(testName, "/"); idx != -1 {
+		testName = testName[idx+1:]
+	}
+
 	s.Logger().Info("Getting network for test",
 		"testName", testName,
 		"testSpecs", s.testSpecs,
@@ -298,6 +304,10 @@ func (s *KurtosisE2ESuite) InitializeNetwork(network *NetworkInstance) error {
 		client := types.NewConsensusClient(
 			types.NewWrappedServiceContext(sCtx, network.enclave.RunStarlarkScriptBlocking),
 		)
+		// Connect the client
+		if err := client.Connect(s.ctx); err != nil {
+			return fmt.Errorf("failed to connect consensus client %s: %w", clientName, err)
+		}
 		network.consensusClients[clientName] = client
 		s.Logger().Info("Created consensus client", "name", clientName, "client", client)
 	}

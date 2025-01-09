@@ -94,7 +94,7 @@ func (s *BeaconKitE2ESuite) initializeNetworks() {
 func (s *BeaconKitE2ESuite) TestRunE2E() {
 	s.RegisterTestFunc("runBasicStartup", s.runBasicStartup)
 	s.RegisterTestFunc("runEVMInflation", s.runEVMInflation)
-	// s.RegisterTestFunc("runBeaconAPIStartup", s.runBeaconAPIStartup)
+	s.RegisterTestFunc("runBeaconAPIStartup", s.runBeaconAPIStartup)
 
 	s.RunTestsByChainSpec()
 }
