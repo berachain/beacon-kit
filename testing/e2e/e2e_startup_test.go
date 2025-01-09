@@ -28,6 +28,7 @@ import (
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/berachain/beacon-kit/testing/e2e/suite"
+	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
 	e2etypes "github.com/berachain/beacon-kit/testing/e2e/types"
 	"github.com/kurtosis-tech/kurtosis/api/golang/engine/lib/kurtosis_context"
 )
@@ -95,7 +96,7 @@ func (s *BeaconKitE2ESuite) TestRunE2E() {
 	s.RegisterTestFunc("runBasicStartup", s.runBasicStartup)
 	s.RegisterTestFunc("runEVMInflation", s.runEVMInflation)
 	s.RegisterTestFunc("runBeaconAPIStartup", s.runBeaconAPIStartup)
-
+	s.RegisterTestFunc("run4844Live", s.run4844Live)
 	s.RunTestsByChainSpec()
 }
 
@@ -103,4 +104,10 @@ func (s *BeaconKitE2ESuite) runBasicStartup() {
 	s.Logger().Info("Running Basic Startup")
 	err := s.WaitForFinalizedBlockNumber(10)
 	s.Require().NoError(err)
+}
+
+func (s *BeaconKitE2ESuite) GetAccounts() []*types.EthAccount {
+	network := s.GetCurrentNetwork()
+	s.Require().NotNil(network, "Network instance is nil")
+	return network.TestAccounts()
 }

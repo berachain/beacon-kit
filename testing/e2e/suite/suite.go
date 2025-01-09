@@ -22,15 +22,20 @@ package suite
 
 import (
 	"context"
+	"crypto/ecdsa"
 	"fmt"
+	"math/big"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
-	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
+	types "github.com/berachain/beacon-kit/testing/e2e/suite/types"
 	e2etypes "github.com/berachain/beacon-kit/testing/e2e/types"
+	"github.com/ethereum/go-ethereum/common"
+	coretypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/starlark_run_config"
 	"github.com/kurtosis-tech/kurtosis/api/golang/engine/lib/kurtosis_context"
@@ -96,10 +101,9 @@ func (s *KurtosisE2ESuite) GetCurrentNetwork() *NetworkInstance {
 		testName = testName[idx+1:]
 	}
 
-	s.Logger().Info("Getting network for test",
-		"testName", testName,
-		"testSpecs", s.testSpecs,
-		"networks", s.networks)
+	// s.Logger().Info("Getting network for test",
+	// 	"testName", testName,
+	// 	"networks", s.networks)
 
 	spec := s.testSpecs[testName]
 	chainKey := fmt.Sprintf("%d-%s", spec.ChainID, spec.Network)
@@ -332,16 +336,79 @@ func (s *KurtosisE2ESuite) InitializeNetwork(network *NetworkInstance) error {
 	if err != nil {
 		return fmt.Errorf("failed to create load balancer: %w", err)
 	}
-	s.Logger().Info("Created load balancer", "balancer", network.loadBalancer)
+	// s.Logger().Info("Created load balancer", "balancer", network.loadBalancer)
 
-	s.Logger().Info("Verifying load balancer",
-		"type", balancerType,
-		"ports", sCtx.GetPublicPorts(),
-		"balancer", network.loadBalancer,
-	)
+	// s.Logger().Info("Verifying load balancer",
+	// 	"type", balancerType,
+	// 	"ports", sCtx.GetPublicPorts(),
+	// 	"balancer", network.loadBalancer,
+	// )
 	// Set the suite's load balancer to match the network's
 	s.loadBalancer = network.loadBalancer
-	s.Logger().Info("Set suite's load balancer", "balancer", s.loadBalancer)
+	// Wait for RPC to be ready before funding accounts
+	if err := s.WaitForRPCReady(network); err != nil {
+		return fmt.Errorf("failed waiting for RPC: %w", err)
+	}
+	// s.Logger().Info("Set suite's load balancer", "balancer", s.loadBalancer)
+
+	// Initialize genesis account
+	network.genesisAccount = types.NewEthAccountFromHex(
+		"genesisAccount", "fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306",
+	)
+	s.genesisAccount = network.genesisAccount
+
+	// Wait for a few blocks to ensure the genesis account has funds
+	if err := s.WaitForNBlockNumbers(5); err != nil {
+		return fmt.Errorf("failed waiting for blocks: %w", err)
+	}
+
+	// Verify genesis account balance
+	balance, err := s.JSONRPCBalancer().BalanceAt(s.ctx, s.genesisAccount.Address(), nil)
+	if err != nil {
+		return fmt.Errorf("failed to get genesis balance: %w", err)
+	}
+	s.Logger().Info("Genesis account balance", "balance", balance)
+	if balance.Cmp(big.NewInt(0)) == 0 {
+		return fmt.Errorf("genesis account has no funds")
+	}
+
+	s.Logger().Info("Created genesis account", "account", network.genesisAccount)
+
+	// Wait for RPC to be ready before funding accounts
+	if err := s.WaitForRPCReady(network); err != nil {
+		return fmt.Errorf("failed waiting for RPC: %w", err)
+	}
+
+	var (
+		key0, key1, key2 *ecdsa.PrivateKey
+	)
+	key0, err = crypto.GenerateKey()
+	s.Require().NoError(err, "Error generating key")
+	key1, err = crypto.GenerateKey()
+	s.Require().NoError(err, "Error generating key")
+	key2, err = crypto.GenerateKey()
+	s.Require().NoError(err, "Error generating key")
+
+	// Initialize test accounts
+	network.testAccounts = []*types.EthAccount{
+		types.NewEthAccount("testAccount0", key0),
+		types.NewEthAccount("testAccount1", key1),
+		types.NewEthAccount("testAccount2", key2),
+	}
+	s.testAccounts = network.testAccounts
+
+	// Fund test accounts using the genesis account
+	for _, account := range network.testAccounts {
+		amount, ok := new(big.Int).SetString("100000000000000000000", 10)
+		if !ok {
+			return fmt.Errorf("failed to parse amount")
+		}
+		if err := s.FundAccount(account.Address(), amount); err != nil {
+			return fmt.Errorf("failed to fund test accounts: %w", err)
+		}
+	}
+
+	s.Logger().Info("Created test accounts", "accounts", network.testAccounts)
 	return nil
 }
 
@@ -431,4 +498,24 @@ func (s *KurtosisE2ESuite) RegisterTestFunc(name string, fn func()) {
 // ConsensusClients returns the consensus clients for this network
 func (n *NetworkInstance) ConsensusClients() map[string]*types.ConsensusClient {
 	return n.consensusClients
+}
+
+func (n *NetworkInstance) TestAccounts() []*types.EthAccount {
+	return n.testAccounts
+}
+
+// FundAccount sends ETH to the given address
+func (s *KurtosisE2ESuite) FundAccount(to common.Address, amount *big.Int) error {
+	nonce, err := s.JSONRPCBalancer().PendingNonceAt(s.ctx, s.GenesisAccount().Address())
+	if err != nil {
+		return err
+	}
+
+	tx := coretypes.NewTransaction(nonce, to, amount, 21000, big.NewInt(1e9), nil)
+	signedTx, err := s.GenesisAccount().SignTx(big.NewInt(80087), tx)
+	if err != nil {
+		return err
+	}
+
+	return s.JSONRPCBalancer().SendTransaction(s.ctx, signedTx)
 }

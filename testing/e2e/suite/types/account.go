@@ -33,8 +33,8 @@ import (
 
 // EthAccount represents an Ethereum account.
 type EthAccount struct {
-	name string
-	pk   *ecdsa.PrivateKey
+	AccountName string
+	PK          *ecdsa.PrivateKey
 }
 
 // NewEthAccountFromHex creates a new Ethereum account from hex private key.
@@ -47,8 +47,8 @@ func NewEthAccountFromHex(
 		panic(err)
 	}
 	return &EthAccount{
-		name: name,
-		pk:   pk,
+		AccountName: name,
+		PK:          pk,
 	}
 }
 
@@ -58,14 +58,14 @@ func NewEthAccount(
 	pk *ecdsa.PrivateKey,
 ) *EthAccount {
 	return &EthAccount{
-		name: name,
-		pk:   pk,
+		AccountName: name,
+		PK:          pk,
 	}
 }
 
 // Name returns the name of the account.
 func (a EthAccount) Name() string {
-	return a.name
+	return a.AccountName
 }
 
 // SignTx signs a transaction with the account's private key.
@@ -73,7 +73,7 @@ func (a EthAccount) SignTx(
 	chainID *big.Int, tx *types.Transaction,
 ) (*types.Transaction, error) {
 	return types.SignTx(
-		tx, types.LatestSignerForChainID(chainID), a.pk,
+		tx, types.LatestSignerForChainID(chainID), a.PK,
 	)
 }
 
@@ -91,15 +91,23 @@ func (a EthAccount) SignerFunc(chainID *big.Int) bind.SignerFn {
 
 // PublicKey returns the public key of the account.
 func (a EthAccount) PublicKey() *ecdsa.PublicKey {
-	return &a.pk.PublicKey
+	return &a.PK.PublicKey
 }
 
 // PrivateKey returns the private key of the account.
 func (a EthAccount) PrivateKey() *ecdsa.PrivateKey {
-	return a.pk
+	return a.PK
 }
 
 // Address returns the address of the account.
 func (a EthAccount) Address() common.Address {
-	return crypto.PubkeyToAddress(a.pk.PublicKey)
+	return crypto.PubkeyToAddress(a.PK.PublicKey)
 }
+
+// String implements fmt.Stringer
+// func (a *EthAccount) String() string {
+// 	return fmt.Sprintf("{name: %s, address: %s}",
+// 		a.AccountName,
+// 		crypto.PubkeyToAddress(a.PK.PublicKey).Hex(),
+// 	)
+// }
