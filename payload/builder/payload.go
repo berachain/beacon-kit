@@ -124,20 +124,26 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 
 	// Wait for the payload to be delivered to the execution client.
 	pb.logger.Info(
-		"Waiting for local payload to be delivered to execution client",
-		"for_slot", slot.Base10(), "timeout", pb.cfg.PayloadTimeout.String(),
+		"RequestPayloadSync - Waiting for local payload to be delivered to execution client",
+		"for_slot", slot.Base10(),
+		"payloadID", payloadID.String(),
+		"timeout", pb.cfg.PayloadTimeout.String(),
 	)
 	select {
 	case <-time.After(pb.cfg.PayloadTimeout):
 		// We want to trigger delivery of the payload to the execution client
 		// before the timestamp expires.
-		break
+
+		pb.logger.Debug("payload timeout expired, getting payload")
+		return pb.getPayload(ctx, *payloadID, slot)
+
 	case <-ctx.Done():
+		pb.logger.Info(
+			"RequestPayloadSync cancelled",
+			"err", ctx.Err(),
+		)
 		return nil, ctx.Err()
 	}
-
-	// Get the payload from the execution client.
-	return pb.getPayload(ctx, *payloadID, slot)
 }
 
 // RetrievePayload attempts to pull a previously built payload
@@ -161,6 +167,11 @@ func (pb *PayloadBuilder) RetrievePayload(
 	}
 
 	// Get the payload from the execution client.
+	pb.logger.Info(
+		"RetrievePayload",
+		"for_slot", slot.Base10(),
+		"payloadID", payloadID.String(),
+	)
 	envelope, err := pb.getPayload(ctx, payloadID, slot)
 	if err != nil {
 		return nil, err
