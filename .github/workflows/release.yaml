@@ -30,12 +30,12 @@ on:
     tags:
       - "v*"
     branches:
-      - 'release/*' 
+      - 'release/*'
 
 env:
   REPO_NAME: ${{ github.repository_owner }}/beacon-kit
   IMAGE_NAME: ${{ github.repository_owner }}/beacon-kit
-  GH_TOKEN: ${{ secrets.DEV_PAT }}
+  GH_TOKEN: ${{ secrets.GHCR_TOKEN }}
 
 jobs:
   # Job to extract version
@@ -48,7 +48,7 @@ jobs:
         id: extract_version
     outputs:
       VERSION: ${{ steps.extract_version.outputs.VERSION }}
-  
+
   # Job to build release
   build:
     name: build release
@@ -81,7 +81,7 @@ jobs:
         run: |
           make build-${{ matrix.configs.target-os }}-${{ matrix.configs.arch }}-${{ needs.extract-version.outputs.VERSION }}
           tar -czvf ${{ matrix.build.binary }}-${{ needs.extract-version.outputs.VERSION }}-${{ matrix.configs.target-os }}-${{ matrix.configs.arch }}.tar.gz -C build/bin .
-      
+
       # Upload binaries
       - uses: actions/upload-artifact@v4
         with:
