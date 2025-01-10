@@ -71,5 +71,11 @@ func MainnetChainSpec() (chain.Spec, error) {
 	// TODO: FIXME!!! I really like 192 over 32 :)))
 	mainnetSpec.SlotsPerEpoch = 192
 
+	// MinEpochsForBlobsSidecarsRequest is 4096 to match Ethereum mainnet.
+	mainnetSpec.MinEpochsForBlobsSidecarsRequest = 4096
+
+	// MaxBlobCommitmentsPerBlock is 4096 to match Ethereum mainnet.
+	mainnetSpec.MaxBlobCommitmentsPerBlock = 4096
+
 	return chain.NewSpec(mainnetSpec)
 }
