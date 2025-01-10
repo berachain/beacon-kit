@@ -58,12 +58,13 @@ func MainnetChainSpec() (chain.Spec, error) {
 	// MaxEffectiveBalance (or max stake) is 10 million BERA.
 	mainnetSpec.MaxEffectiveBalance = 10_000_000 * 1e9
 
-	// Ejection balance (or min stake) is 250k BERA.
-	mainnetSpec.EjectionBalance = 250_000 * 1e9
-
 	// Effective balance increment is 10k BERA
 	// (equivalent to the Deposit Contract's MIN_DEPOSIT_AMOUNT).
 	mainnetSpec.EffectiveBalanceIncrement = 10_000 * 1e9
+
+	// Since the activation balance (min stake) is 250k BERA, we set the ejection balance be
+	// activation_balance - effective_balance_increment = 250k - 10k = 240k BERA.
+	mainnetSpec.EjectionBalance = 240_000 * 1e9
 
 	// Slots per epoch is 192 to mirror the time of epochs on Ethereum mainnet.
 	//
