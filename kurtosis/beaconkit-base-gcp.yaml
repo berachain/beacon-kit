@@ -106,10 +106,10 @@ eth_json_rpc_endpoints:
       - el-full-geth-7
       - el-full-geth-8
       - el-full-geth-9
-additional_services: 
+additional_services:
   - name: "tx-fuzz"
     replicas: 99
   - name: "prometheus"
   - name: "grafana"
-  - name: "goomy-blob"
+  - name: "spamoor"
   - name: "pyroscope"
