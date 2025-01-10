@@ -22,7 +22,6 @@ package e2e_test
 
 import (
 	"fmt"
-	"github.com/ethereum/go-ethereum/params"
 	"math/big"
 
 	"github.com/berachain/beacon-kit/config/spec"
@@ -40,6 +39,8 @@ const (
 
 	// DepositAmount is the amount of BERA to deposit.
 	DepositAmount = 32e18
+
+	MaxEffectiveBalance = 32e9
 
 	// BlocksToWait is the number of blocks to wait for the nodes to catch up.
 	BlocksToWait = 10
@@ -260,13 +261,13 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	// power4After, err := client4.GetConsensusPower(s.Ctx())
 	// s.Require().NoError(err)
 
-	increaseAmt := (NumDepositsLoad / config.NumValidators) * uint64(DepositAmount/params.GWei)
+	increaseAmt := float64(NumDepositsLoad/config.NumValidators) * DepositAmount
 	// s.Require().Equal(power0+increaseAmt, power0After)
 	// s.Require().Equal(power1+increaseAmt, power1After)
 	// s.Require().Equal(power2+increaseAmt, power2After)
 	// s.Require().Equal(power3+increaseAmt, power3After)
 	// s.Require().Equal(power4+increaseAmt, power4After)
-	fmt.Println("Increase: ", increaseAmt)
+	fmt.Println(increaseAmt)
 
 	withdrawalBalance0After, err := s.JSONRPCBalancer().BalanceAt(s.Ctx(), withdrawalAddress0, nil)
 	s.Require().NoError(err)
