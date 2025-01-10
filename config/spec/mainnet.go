@@ -65,7 +65,7 @@ func MainnetChainSpec() (chain.Spec, error) {
 	// (equivalent to the Deposit Contract's MIN_DEPOSIT_AMOUNT).
 	mainnetSpec.EffectiveBalanceIncrement = 10_000 * 1e9
 
-	// Slots per epoch is 192 to mirror the time of epochs on Ethereum mainnet. 
+	// Slots per epoch is 192 to mirror the time of epochs on Ethereum mainnet.
 	//
 	// TODO: FIXME!!! I really like 192 over 32 :)))
 	mainnetSpec.SlotsPerEpoch = 192
