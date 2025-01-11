@@ -514,8 +514,11 @@ func (c chainSpec[
 // withdrawals sweep.
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) MaxValidatorsPerWithdrawalsSweep(isPostUpgrade bool) uint64 {
-	if isPostUpgrade {
+]) MaxValidatorsPerWithdrawalsSweep(
+	isPostUpgrade func(uint64, SlotT) bool,
+	chainID uint64, slot SlotT,
+) uint64 {
+	if isPostUpgrade(chainID, slot) {
 		return c.Data.MaxValidatorsPerWithdrawalsSweepPostUpgrade
 	}
 
