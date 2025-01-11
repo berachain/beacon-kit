@@ -30,9 +30,9 @@ import (
 
 const (
 	ChainSpecTypeEnvVar  = "CHAIN_SPEC"
+	DevnetChainSpecType  = "devnet"
 	BetnetChainSpecType  = "betnet"
 	BoonetChainSpecType  = "boonet"
-	DevnetChainSpecType  = "devnet"
 	TestnetChainSpecType = "testnet"
 	MainnetChainSpecType = "mainnet"
 )
