@@ -86,15 +86,10 @@ func (sp *StateProcessor[_]) processDeposit(
 		"Processed deposit to set Eth 1 deposit index",
 		"previous", eth1DepositIndex, "new", eth1DepositIndex+1,
 	)
-<<<<<<< HEAD
-
-	return sp.applyDeposit(st, dep, slot)
-=======
-	if err = sp.applyDeposit(st, dep); err != nil {
+	if err = sp.applyDeposit(st, dep, slot); err != nil {
 		return fmt.Errorf("failed to apply deposit: %w", err)
 	}
 	return nil
->>>>>>> chain-spec-fork-versioned
 }
 
 // applyDeposit processes the deposit and ensures it matches the local state.
