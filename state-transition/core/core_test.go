@@ -104,10 +104,10 @@ func initTestStores() (*beacondb.KVStore, *depositstore.KVStore, error) {
 		nil
 }
 
-func setupChain(t *testing.T, chainSpecType string) chain.Spec {
+func setupChain(t *testing.T) chain.Spec {
 	t.Helper()
 
-	t.Setenv(components.ChainSpecTypeEnvVar, chainSpecType)
+	t.Setenv(components.ChainSpecTypeEnvVar, spec.Devnet)
 	cs, err := components.ProvideChainSpec()
 	require.NoError(t, err)
 

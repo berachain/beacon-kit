@@ -62,10 +62,7 @@ const (
 	// Activation balance is the min stake of 250k BERA for genesis version Deneb.
 	MainnetEjectionBalanceDeneb = 240_000 * 1e9
 
-	// MainnetSlotsPerEpochDeneb is 192 for genesis version Deneb
-	// to mirror the time of epochs on Ethereum mainnet.
-	//
-	// TODO: FIXME!!! I really like 192 over 32 :)))
+	// TODO: FIXME!!! I really like 192 over 32 :))).
 	MainnetSlotsPerEpochDeneb = 192
 
 	// MainnetMinEpochsForBlobsSidecarsRequestDeneb is 4096 for genesis version Deneb
@@ -79,7 +76,7 @@ const (
 
 // MainnetChainSpec is the ChainSpec for the Berachain mainnet.
 //
-//nolint:mnd // okay to specify values here.
+
 func MainnetChainSpec() (chain.Spec, error) {
 	mainnetSpec := &chain.SpecData{
 		// Gwei values constants.
