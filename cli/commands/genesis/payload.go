@@ -95,7 +95,7 @@ func AddExecutionPayloadCmd(chainSpec chain.Spec) *cobra.Command {
 			// Inject the execution payload.
 			genesisInfo.ExecutionPayloadHeader, err =
 				executableDataToExecutionPayloadHeader(
-					version.ToUint32(genesisInfo.ForkVersion),
+					genesisInfo.ForkVersion.ToUint32(),
 					payload,
 					chainSpec.MaxWithdrawalsPerPayload(0),
 				)

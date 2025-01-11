@@ -26,11 +26,76 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 )
 
-// TestnetChainSpec is the chain.Spec for the public Dartio testnet.
-//
-// TODO: adjust values before testnet genesis.
-func TestnetChainSpec() (chain.Spec, error) {
-	testnetSpecData := &chain.SpecData{
+// NOTE: Most of these default values are taken from ETH2.0 spec.
+// Some values (mentioned below) are modified to better suit Berachain's system.
+
+const (
+	// Gwei value constants.
+	DefaultMaxEffectiveBalance       = 32e9
+	DefaultEjectionBalance           = 16e9
+	DefaultEffectiveBalanceIncrement = 1e9
+
+	DefaultHysteresisQuotient           = 4
+	DefaultHysteresisDownwardMultiplier = 1
+	DefaultHysteresisUpwardMultiplier   = 5
+
+	// Time parameters constants.
+	DefaultSlotsPerEpoch                = 32
+	DefaultSlotsPerHistoricalRoot       = 8
+	DefaultMinEpochsToInactivityPenalty = 4
+
+	// Signature domains.
+	DefaultDomainTypeProposer          = 0
+	DefaultDomainTypeAttester          = 1
+	DefaultDomainTypeRandao            = 2
+	DefaultDomainTypeDeposit           = 3
+	DefaultDomainTypeVoluntaryExit     = 4
+	DefaultDomainTypeSelectionProof    = 5
+	DefaultDomainTypeAggregateAndProof = 6
+	DefaultDomainTypeApplicationMask   = 16777216 // "0x00000001" in little endian
+
+	// Eth1-related values.
+	DefaultDepositContractAddress    = "0x4242424242424242424242424242424242424242" // Berachain specific.
+	DefaultMaxDepositsPerBlock       = 16
+	DefaultDepositEth1ChainID        = 1
+	DefaultEth1FollowDistance        = 1 // Berachain specific.
+	DefaultTargetSecondsPerEth1Block = 2 // Berachain specific.
+
+	// Fork-related values.
+	DefaultDeneb1ForkEpoch  = 9999999999999998 // Set as a future epoch as not yet determined.
+	DefaultElectraForkEpoch = 9999999999999999 // Set as a future epoch as not yet determined.
+
+	// State list length constants.
+	DefaultEpochsPerHistoricalVector = 8
+	DefaultEpochsPerSlashingsVector  = 8
+	DefaultHistoricalRootsLimit      = 8
+	DefaultValidatorRegistryLimit    = 1099511627776
+
+	// Slashing.
+	DefaultInactivityPenaltyQuotient      = 16777216
+	DefaultProportionalSlashingMultiplier = 1
+
+	// Capella values.
+	DefaultMaxWithdrawalsPerPayload         = 16
+	DefaultMaxValidatorsPerWithdrawalsSweep = 1 << 14
+
+	// Deneb values.
+	DefaultMinEpochsForBlobsSidecarsRequest = 4096
+	DefaultMaxBlobCommitmentsPerBlock       = 4096
+	DefaultMaxBlobsPerBlock                 = 6
+	DefaultFieldElementsPerBlob             = 4096
+	DefaultBytesPerBlob                     = 131072
+	DefaultKZGCommitmentInclusionProofDepth = 17
+
+	// Berachain values.
+	DefaultValidatorSetCap      = 256
+	DefaultEVMInflationAddress  = "0x0000000000000000000000000000000000000000"
+	DefaultEVMInflationPerBlock = 0
+)
+
+// DefaultSpecData returns a modifiable chain.SpecData before use as chain.Spec.
+func DefaultSpecData() *chain.SpecData {
+	return &chain.SpecData{
 		// Gwei values constants.
 		MaxEffectiveBalance:       DefaultMaxEffectiveBalance,
 		EjectionBalance:           DefaultEjectionBalance,
@@ -58,7 +123,7 @@ func TestnetChainSpec() (chain.Spec, error) {
 		// Eth1-related values.
 		DepositContractAddress:    common.NewExecutionAddressFromHex(DefaultDepositContractAddress),
 		MaxDepositsPerBlock:       DefaultMaxDepositsPerBlock,
-		DepositEth1ChainID:        TestnetEth1ChainID,
+		DepositEth1ChainID:        DefaultDepositEth1ChainID,
 		Eth1FollowDistance:        DefaultEth1FollowDistance,
 		TargetSecondsPerEth1Block: DefaultTargetSecondsPerEth1Block,
 
@@ -93,6 +158,4 @@ func TestnetChainSpec() (chain.Spec, error) {
 		EVMInflationAddress:  common.NewExecutionAddressFromHex(DefaultEVMInflationAddress),
 		EVMInflationPerBlock: DefaultEVMInflationPerBlock,
 	}
-
-	return chain.NewSpec(testnetSpecData)
 }

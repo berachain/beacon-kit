@@ -20,12 +20,6 @@
 
 package version
 
-import (
-	"encoding/binary"
-
-	"github.com/berachain/beacon-kit/primitives/common"
-)
-
 const (
 	// Phase0 is the first version of the Beacon Chain.
 	Phase0 uint32 = 0
@@ -46,15 +40,3 @@ const (
 	// There may also be Electra2, Electra3, etc. hardforks.
 	Electra1 uint32 = 261
 )
-
-// FromUint32 returns a Version from a uint32.
-func FromUint32(version uint32) common.Version {
-	versionBz := common.Version{}
-	binary.LittleEndian.PutUint32(versionBz[:], version)
-	return versionBz
-}
-
-// ToUint32 returns a uint32 from a Version.
-func ToUint32(version common.Version) uint32 {
-	return binary.LittleEndian.Uint32(version[:])
-}

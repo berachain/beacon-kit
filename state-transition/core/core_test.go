@@ -32,10 +32,10 @@ import (
 	"cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/log/noop"
-	"github.com/berachain/beacon-kit/node-core/components"
 	nodemetrics "github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -104,13 +104,11 @@ func initTestStores() (*beacondb.KVStore, *depositstore.KVStore, error) {
 		nil
 }
 
-func setupChain(t *testing.T, chainSpecType string) chain.Spec {
+func setupChain(t *testing.T) chain.Spec {
 	t.Helper()
 
-	t.Setenv(components.ChainSpecTypeEnvVar, chainSpecType)
-	cs, err := components.ProvideChainSpec()
+	cs, err := spec.DevnetChainSpec()
 	require.NoError(t, err)
-
 	return cs
 }
 

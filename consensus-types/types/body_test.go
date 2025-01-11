@@ -23,7 +23,6 @@ package types_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/bytes"
@@ -253,8 +252,7 @@ func TestBeaconBlockBody_RoundTrip_HashTreeRoot(t *testing.T) {
 // This test explains the calculation of the KZG commitment' inclusion proof depth.
 func Test_KZGCommitmentInclusionProofDepth(t *testing.T) {
 	maxUint8 := uint64(^uint8(0))
-	specVals := spec.BaseSpec()
-	cs, err := chain.NewSpec(specVals)
+	cs, err := spec.DevnetChainSpec()
 	require.NoError(t, err)
 
 	// Depth of the partial BeaconBlockBody merkle tree. This is partial

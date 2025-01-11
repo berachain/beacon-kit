@@ -21,18 +21,14 @@
 package spec
 
 const (
-	// BoonetEth1ChainID is the chain ID for a local devnet.
-	BoonetEth1ChainID uint64 = 80000
-
-	// BetnetEth1ChainID is the chain ID for a local devnet.
-	BetnetEth1ChainID uint64 = 80088
-
-	// DevnetEth1ChainID is the chain ID for a local devnet.
+	// DevnetEth1ChainID is the chain ID for a local devnet. Used by `make start` and unit tests.
 	DevnetEth1ChainID uint64 = 80087
 
 	// MainnetEth1ChainID is the chain ID for the Berachain mainnet.
 	MainnetEth1ChainID uint64 = 80085 // TODO: FIXME!
 
-	// TestnetEth1ChainID is the chain ID for the bArtio testnet.
-	TestnetEth1ChainID uint64 = 80084
+	// TestnetEth1ChainID is the chain ID for the public Dartio testnet.
+	//
+	// TODO: correctly set the chain name and ID.
+	TestnetEth1ChainID uint64 = 80069
 )

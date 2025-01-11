@@ -21,11 +21,152 @@
 package bytes_test
 
 import (
+	"encoding/binary"
 	"testing"
 
+	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/primitives/bytes"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/stretchr/testify/require"
 )
+
+func TestFromUint32(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    uint32
+		expected bytes.B4
+	}{
+		{
+			name:     "Phase0",
+			input:    version.Phase0,
+			expected: bytes.B4{0, 0, 0, 0},
+		},
+		{
+			name:     "Altair",
+			input:    version.Altair,
+			expected: bytes.B4{1, 0, 0, 0},
+		},
+		{
+			name:     "Bellatrix",
+			input:    version.Bellatrix,
+			expected: bytes.B4{2, 0, 0, 0},
+		},
+		{
+			name:     "Capella",
+			input:    version.Capella,
+			expected: bytes.B4{3, 0, 0, 0},
+		},
+		{
+			name:     "Deneb",
+			input:    version.Deneb,
+			expected: bytes.B4{4, 0, 0, 0},
+		},
+		{
+			name:     "Deneb1",
+			input:    version.Deneb1,
+			expected: bytes.B4{4, 1, 0, 0},
+		},
+		{
+			name:     "Electra",
+			input:    version.Electra,
+			expected: bytes.B4{5, 0, 0, 0},
+		},
+		{
+			name:     "Electra1",
+			input:    version.Electra1,
+			expected: bytes.B4{5, 1, 0, 0},
+		},
+		{
+			name:     "DomainTypeApplicationMask",
+			input:    spec.DefaultDomainTypeApplicationMask,
+			expected: bytes.B4{0, 0, 0, 1},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := bytes.FromUint32(tt.input)
+			require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
+		})
+	}
+}
+func TestFromUint32_CustomType(t *testing.T) {
+	input := uint32(123456789)
+	expected := bytes.B4{}
+	binary.LittleEndian.PutUint32(expected[:], input)
+
+	result := bytes.FromUint32(input)
+	require.Equal(t, expected, result)
+}
+
+func TestToUint32(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    bytes.B4
+		expected uint32
+	}{
+		{
+			name:     "Phase0",
+			input:    bytes.B4{0, 0, 0, 0},
+			expected: version.Phase0,
+		},
+		{
+			name:     "Altair",
+			input:    bytes.B4{1, 0, 0, 0},
+			expected: version.Altair,
+		},
+		{
+			name:     "Bellatrix",
+			input:    bytes.B4{2, 0, 0, 0},
+			expected: version.Bellatrix,
+		},
+		{
+			name:     "Capella",
+			input:    bytes.B4{3, 0, 0, 0},
+			expected: version.Capella,
+		},
+		{
+			name:     "Deneb",
+			input:    bytes.B4{4, 0, 0, 0},
+			expected: version.Deneb,
+		},
+		{
+			name:     "Deneb1",
+			input:    bytes.B4{4, 1, 0, 0},
+			expected: version.Deneb1,
+		},
+		{
+			name:     "Electra",
+			input:    bytes.B4{5, 0, 0, 0},
+			expected: version.Electra,
+		},
+		{
+			name:     "Electra1",
+			input:    bytes.B4{5, 1, 0, 0},
+			expected: version.Electra1,
+		},
+		{
+			name:     "DomainTypeApplicationMask",
+			input:    bytes.B4{0, 0, 0, 1},
+			expected: spec.DefaultDomainTypeApplicationMask,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := tt.input.ToUint32()
+			require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
+		})
+	}
+}
+
+func TestToUint32_CustomType(t *testing.T) {
+	input := bytes.B4{0x15, 0xCD, 0x5B, 0x07}
+	expected := uint32(123456789)
+
+	result := input.ToUint32()
+	require.Equal(t, expected, result)
+}
 
 func TestBytes4UnmarshalJSON(t *testing.T) {
 	tests := []struct {

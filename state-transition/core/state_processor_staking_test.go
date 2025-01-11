@@ -27,7 +27,6 @@ import (
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
-	"github.com/berachain/beacon-kit/node-core/components"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
@@ -40,7 +39,7 @@ import (
 // TestTransitionUpdateValidators shows that when validator is
 // updated (increasing amount), corresponding balance is updated.
 func TestTransitionUpdateValidators(t *testing.T) {
-	cs := setupChain(t, components.BetnetChainSpecType)
+	cs := setupChain(t)
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
@@ -73,7 +72,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 			},
 		}
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		genVersion       = version.FromUint32(version.Deneb)
+		genVersion       = bytes.FromUint32(version.Deneb)
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
 	valDiff, err := sp.InitializePreminedBeaconStateFromEth1(
@@ -189,7 +188,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 // of a validator creation.
 func TestTransitionCreateValidator(t *testing.T) {
 	// Create state processor to test
-	cs := setupChain(t, components.BetnetChainSpecType)
+	cs := setupChain(t)
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
@@ -211,7 +210,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 			},
 		}
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		genVersion       = version.FromUint32(version.Deneb)
+		genVersion       = bytes.FromUint32(version.Deneb)
 	)
 
 	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
@@ -384,7 +383,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 }
 
 func TestTransitionWithdrawals(t *testing.T) {
-	cs := setupChain(t, components.BoonetChainSpecType)
+	cs := setupChain(t)
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
@@ -412,7 +411,7 @@ func TestTransitionWithdrawals(t *testing.T) {
 			},
 		}
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		genVersion       = version.FromUint32(version.Deneb)
+		genVersion       = bytes.FromUint32(version.Deneb)
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
 	_, err := sp.InitializePreminedBeaconStateFromEth1(
@@ -467,8 +466,8 @@ func TestTransitionWithdrawals(t *testing.T) {
 
 func TestTransitionMaxWithdrawals(t *testing.T) {
 	// Use custom chain spec with max withdrawals set to 2.
-	csData := spec.BaseSpec()
-	csData.DepositEth1ChainID = spec.BoonetEth1ChainID
+	csData := spec.DefaultSpecData()
+	csData.DepositEth1ChainID = spec.DevnetEth1ChainID
 	csData.MaxWithdrawalsPerPayload = 2
 	csData.MaxValidatorsPerWithdrawalsSweep = 2
 	cs, err := chain.NewSpec(csData)
@@ -502,7 +501,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 			},
 		}
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		genVersion       = version.FromUint32(version.Deneb)
+		genVersion       = bytes.FromUint32(version.Deneb)
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
 	_, err = sp.InitializePreminedBeaconStateFromEth1(
@@ -610,7 +609,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 // validator added when validators set is at cap gets never activated
 // and its deposit is returned at after next epoch starts.
 func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
-	cs := setupChain(t, components.BetnetChainSpecType)
+	cs := setupChain(t)
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
@@ -625,7 +624,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	var (
 		genDeposits      = make(types.Deposits, 0, cs.ValidatorSetCap(0))
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		genVersion       = version.FromUint32(version.Deneb)
+		genVersion       = bytes.FromUint32(version.Deneb)
 	)
 
 	// let genesis define all available validators
@@ -838,7 +837,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 //
 //nolint:maintidx // Okay for test.
 func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
-	cs := setupChain(t, components.BetnetChainSpecType)
+	cs := setupChain(t)
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
@@ -853,7 +852,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	var (
 		genDeposits      = make(types.Deposits, 0, cs.ValidatorSetCap(0))
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		genVersion       = version.FromUint32(version.Deneb)
+		genVersion       = bytes.FromUint32(version.Deneb)
 	)
 
 	// let genesis define all available validators

@@ -22,60 +22,125 @@ package spec
 
 import (
 	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
+)
+
+const (
+	// MainnetEVMInflationAddressDeneb is the BGT contract address for genesis version Deneb.
+	//
+	// TODO: CONFIRM WITH SC TEAM!!!
+	MainnetEVMInflationAddressDeneb = "0x289274787bAF083C15A45a174b7a8e44F0720660"
+
+	// MainnetEVMInflationPerBlock is 5.75 BERA minted to the BGT contract per block
+	// as the upper bound of redeemable BGT for genesis version Deneb.
+	//
+	// TODO: CONFIRM WITH QUANTUM TEAM!!!
+	MainnetEVMInflationPerBlockDeneb = 5.75e9
+
+	// MainnetValidatorSetCap is 69 on Mainnet for version Deneb.
+	//
+	// TODO: FIXME!!!
+	MainnetValidatorSetCapDeneb = 69
+
+	// MainnetMaxValidatorsPerWithdrawalsSweep is 31 because we expect at least 36
+	// validators in the total validators set at genesis. We choose a prime number smaller
+	// than the minimum amount of total validators possible.
+	//
+	// TODO: FIXME!!!
+	MainnetMaxValidatorsPerWithdrawalsSweep = 31
+
+	// MainnetMaxEffectiveBalance is the max stake of 10 million BERA for genesis version Deneb.
+	MainnetMaxEffectiveBalanceDeneb = 10_000_000 * 1e9
+
+	// MainnetEffectiveBalanceIncrementDeneb is 10k BERA for genesis version Deneb
+	// (equivalent to the Deposit Contract's MIN_DEPOSIT_AMOUNT).
+	MainnetEffectiveBalanceIncrementDeneb = 10_000 * 1e9
+
+	// MainnetEjectionBalance is 240k BERA, calculated as:
+	// activation_balance - effective_balance_increment = 250k - 10k = 240k BERA.
+	// Activation balance is the min stake of 250k BERA for genesis version Deneb.
+	MainnetEjectionBalanceDeneb = 240_000 * 1e9
+
+	// TODO: FIXME!!! I really like 192 over 32 :))).
+	MainnetSlotsPerEpochDeneb = 192
+
+	// MainnetMinEpochsForBlobsSidecarsRequestDeneb is 4096 for genesis version Deneb
+	// to match Ethereum mainnet.
+	MainnetMinEpochsForBlobsSidecarsRequestDeneb = 4096
+
+	// MainnetMaxBlobCommitmentsPerBlock is 4096 for genesis version Deneb
+	// to match Ethereum mainnet.
+	MainnetMaxBlobCommitmentsPerBlock = 4096
 )
 
 // MainnetChainSpec is the ChainSpec for the Berachain mainnet.
 //
-//nolint:mnd // okay to specify values here.
+
 func MainnetChainSpec() (chain.Spec, error) {
-	mainnetSpec := BaseSpec()
+	mainnetSpec := &chain.SpecData{
+		// Gwei values constants.
+		MaxEffectiveBalance:       MainnetMaxEffectiveBalanceDeneb,
+		EjectionBalance:           MainnetEjectionBalanceDeneb,
+		EffectiveBalanceIncrement: MainnetEffectiveBalanceIncrementDeneb,
 
-	// Chain ID is ???.
-	mainnetSpec.DepositEth1ChainID = MainnetEth1ChainID
+		HysteresisQuotient:           DefaultHysteresisQuotient,
+		HysteresisDownwardMultiplier: DefaultHysteresisDownwardMultiplier,
+		HysteresisUpwardMultiplier:   DefaultHysteresisUpwardMultiplier,
 
-	// Target for block time is 2 seconds on Berachain mainnet.
-	mainnetSpec.TargetSecondsPerEth1Block = 2
+		// Time parameters constants.
+		SlotsPerEpoch:                MainnetSlotsPerEpochDeneb,
+		SlotsPerHistoricalRoot:       DefaultSlotsPerHistoricalRoot,
+		MinEpochsToInactivityPenalty: DefaultMinEpochsToInactivityPenalty,
 
-	// BGT contract address. // TODO: CONFIRM WITH SC TEAM!!!
-	mainnetSpec.EVMInflationAddress = common.NewExecutionAddressFromHex(
-		"0x289274787bAF083C15A45a174b7a8e44F0720660",
-	)
+		// Signature domains.
+		DomainTypeProposer:          bytes.FromUint32(DefaultDomainTypeProposer),
+		DomainTypeAttester:          bytes.FromUint32(DefaultDomainTypeAttester),
+		DomainTypeRandao:            bytes.FromUint32(DefaultDomainTypeRandao),
+		DomainTypeDeposit:           bytes.FromUint32(DefaultDomainTypeDeposit),
+		DomainTypeVoluntaryExit:     bytes.FromUint32(DefaultDomainTypeVoluntaryExit),
+		DomainTypeSelectionProof:    bytes.FromUint32(DefaultDomainTypeSelectionProof),
+		DomainTypeAggregateAndProof: bytes.FromUint32(DefaultDomainTypeAggregateAndProof),
+		DomainTypeApplicationMask:   bytes.FromUint32(DefaultDomainTypeApplicationMask),
 
-	// 5.75 BERA is minted to the BGT contract per block as the upper bound of redeemable BGT.
-	//
-	// TODO: CONFIRM WITH QUANTUM TEAM!!!
-	mainnetSpec.EVMInflationPerBlock = 5.75e9
+		// Eth1-related values.
+		DepositContractAddress:    common.NewExecutionAddressFromHex(DefaultDepositContractAddress),
+		MaxDepositsPerBlock:       DefaultMaxDepositsPerBlock,
+		DepositEth1ChainID:        MainnetEth1ChainID,
+		Eth1FollowDistance:        DefaultEth1FollowDistance,
+		TargetSecondsPerEth1Block: DefaultTargetSecondsPerEth1Block,
 
-	// ValidatorSetCap is 69 on Mainnet for version Deneb.
-	mainnetSpec.ValidatorSetCap = 69 // TODO: FIXME!!!
+		// Fork-related values.
+		Deneb1ForkEpoch:  DefaultDeneb1ForkEpoch,
+		ElectraForkEpoch: DefaultElectraForkEpoch,
 
-	// MaxValidatorsPerWithdrawalsSweep is 31 because we expect at least 36
-	// validators in the total validators set. We choose a prime number smaller
-	// than the minimum amount of total validators possible.
-	mainnetSpec.MaxValidatorsPerWithdrawalsSweep = 31 // TODO: FIXME!!!
+		// State list length constants.
+		EpochsPerHistoricalVector: DefaultEpochsPerHistoricalVector,
+		EpochsPerSlashingsVector:  DefaultEpochsPerSlashingsVector,
+		HistoricalRootsLimit:      DefaultHistoricalRootsLimit,
+		ValidatorRegistryLimit:    DefaultValidatorRegistryLimit,
 
-	// MaxEffectiveBalance (or max stake) is 10 million BERA.
-	mainnetSpec.MaxEffectiveBalance = 10_000_000 * 1e9
+		// Slashing.
+		InactivityPenaltyQuotient:      DefaultInactivityPenaltyQuotient,
+		ProportionalSlashingMultiplier: DefaultProportionalSlashingMultiplier,
 
-	// Effective balance increment is 10k BERA
-	// (equivalent to the Deposit Contract's MIN_DEPOSIT_AMOUNT).
-	mainnetSpec.EffectiveBalanceIncrement = 10_000 * 1e9
+		// Capella values.
+		MaxWithdrawalsPerPayload:         DefaultMaxWithdrawalsPerPayload,
+		MaxValidatorsPerWithdrawalsSweep: MainnetMaxValidatorsPerWithdrawalsSweep,
 
-	// Since the activation balance (min stake) is 250k BERA, we set the ejection balance be
-	// activation_balance - effective_balance_increment = 250k - 10k = 240k BERA.
-	mainnetSpec.EjectionBalance = 240_000 * 1e9
+		// Deneb values.
+		MinEpochsForBlobsSidecarsRequest: MainnetMinEpochsForBlobsSidecarsRequestDeneb,
+		MaxBlobCommitmentsPerBlock:       MainnetMaxBlobCommitmentsPerBlock,
+		MaxBlobsPerBlock:                 DefaultMaxBlobsPerBlock,
+		FieldElementsPerBlob:             DefaultFieldElementsPerBlob,
+		BytesPerBlob:                     DefaultBytesPerBlob,
+		KZGCommitmentInclusionProofDepth: DefaultKZGCommitmentInclusionProofDepth,
 
-	// Slots per epoch is 192 to mirror the time of epochs on Ethereum mainnet.
-	//
-	// TODO: FIXME!!! I really like 192 over 32 :)))
-	mainnetSpec.SlotsPerEpoch = 192
-
-	// MinEpochsForBlobsSidecarsRequest is 4096 to match Ethereum mainnet.
-	mainnetSpec.MinEpochsForBlobsSidecarsRequest = 4096
-
-	// MaxBlobCommitmentsPerBlock is 4096 to match Ethereum mainnet.
-	mainnetSpec.MaxBlobCommitmentsPerBlock = 4096
+		// Berachain values.
+		ValidatorSetCap:      MainnetValidatorSetCapDeneb,
+		EVMInflationAddress:  common.NewExecutionAddressFromHex(MainnetEVMInflationAddressDeneb),
+		EVMInflationPerBlock: MainnetEVMInflationPerBlockDeneb,
+	}
 
 	return chain.NewSpec(mainnetSpec)
 }

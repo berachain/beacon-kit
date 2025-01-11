@@ -31,33 +31,26 @@ import (
 const (
 	ChainSpecTypeEnvVar  = "CHAIN_SPEC"
 	DevnetChainSpecType  = "devnet"
-	BetnetChainSpecType  = "betnet"
-	BoonetChainSpecType  = "boonet"
-	TestnetChainSpecType = "testnet"
 	MainnetChainSpecType = "mainnet"
+	TestnetChainSpecType = "testnet"
 )
 
 // ProvideChainSpec provides the chain spec based on the environment variable.
 // Returns error if no valid chain spec environment variable is set.
 func ProvideChainSpec() (chain.Spec, error) {
-	// TODO: This is hood as fuck needs to be improved
-	// but for now we ball to get CI unblocked.
 	var (
 		chainSpec chain.Spec
 		err       error
 	)
 
+	// TODO: replace reading env var with config value.
 	switch os.Getenv(ChainSpecTypeEnvVar) {
-	case TestnetChainSpecType:
-		chainSpec, err = spec.TestnetChainSpec()
-	case BetnetChainSpecType:
-		chainSpec, err = spec.BetnetChainSpec()
-	case BoonetChainSpecType:
-		chainSpec, err = spec.BoonetChainSpec()
-	case MainnetChainSpecType:
-		chainSpec, err = spec.MainnetChainSpec()
 	case DevnetChainSpecType:
 		chainSpec, err = spec.DevnetChainSpec()
+	case MainnetChainSpecType:
+		chainSpec, err = spec.MainnetChainSpec()
+	case TestnetChainSpecType:
+		chainSpec, err = spec.TestnetChainSpec()
 	default:
 		return nil, fmt.Errorf("invalid chain spec type: %s", os.Getenv(ChainSpecTypeEnvVar))
 	}

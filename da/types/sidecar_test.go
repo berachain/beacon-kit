@@ -25,8 +25,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/berachain/beacon-kit/chain"
-	spec2 "github.com/berachain/beacon-kit/config/spec"
+	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/blob"
 	"github.com/berachain/beacon-kit/da/types"
@@ -133,8 +132,7 @@ type InclusionSink struct{}
 func (is InclusionSink) MeasureSince(_ string, _ time.Time, _ ...string) {}
 
 func TestHasValidInclusionProof(t *testing.T) {
-	specVals := spec2.BaseSpec()
-	spec, err := chain.NewSpec(specVals)
+	spec, err := spec.DevnetChainSpec()
 	require.NoError(t, err)
 
 	sink := InclusionSink{}
