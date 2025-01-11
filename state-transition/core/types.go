@@ -138,4 +138,7 @@ type Withdrawal interface {
 // TelemetrySink is an interface for sending metrics to a telemetry backend.
 type TelemetrySink interface {
 	SetGauge(key string, value int64, args ...string)
+	// IncrementCounter increments the counter identified by
+	// the provided key.
+	IncrementCounter(key string, args ...string)
 }
