@@ -22,6 +22,7 @@ package spec
 
 import (
 	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 )
 
@@ -33,20 +34,76 @@ const (
 	// of Gwei) to be minted per EL block.
 	DevnetEVMInflationPerBlock = 10e9
 
-	// MaxStakeAmount is the maximum amount of native EVM balance (in units
+	// DevnetMaxStakeAmount is the maximum amount of native EVM balance (in units
 	// of Gwei) that can be staked.
-	MaxStakeAmount = 4000e9
+	DevnetMaxStakeAmount = 4000e9
 )
 
-// DevnetChainSpec is the ChainSpec for the localnet. Also used for e2e tests
-// in the kurtosis network.
+// DevnetChainSpec is the chain.Spec for a devnet. Used by `make start` and unit tests.
 func DevnetChainSpec() (chain.Spec, error) {
-	devnetSpec := BaseSpec()
-	devnetSpec.DepositEth1ChainID = DevnetEth1ChainID
-	devnetSpec.EVMInflationAddress = common.NewExecutionAddressFromHex(
-		DevnetEVMInflationAddress,
-	)
-	devnetSpec.EVMInflationPerBlock = DevnetEVMInflationPerBlock
-	devnetSpec.MaxEffectiveBalance = MaxStakeAmount
-	return chain.NewSpec(devnetSpec)
+	devnetSpecData := &chain.SpecData{
+		// Gwei values constants.
+		MaxEffectiveBalance:       DevnetMaxStakeAmount,
+		EjectionBalance:           DefaultEjectionBalance,
+		EffectiveBalanceIncrement: DefaultEffectiveBalanceIncrement,
+
+		HysteresisQuotient:           DefaultHysteresisQuotient,
+		HysteresisDownwardMultiplier: DefaultHysteresisDownwardMultiplier,
+		HysteresisUpwardMultiplier:   DefaultHysteresisUpwardMultiplier,
+
+		// Time parameters constants.
+		SlotsPerEpoch:                DefaultSlotsPerEpoch,
+		SlotsPerHistoricalRoot:       DefaultSlotsPerHistoricalRoot,
+		MinEpochsToInactivityPenalty: DefaultMinEpochsToInactivityPenalty,
+
+		// Signature domains.
+		DomainTypeProposer:          bytes.FromUint32(DefaultDomainTypeProposer),
+		DomainTypeAttester:          bytes.FromUint32(DefaultDomainTypeAttester),
+		DomainTypeRandao:            bytes.FromUint32(DefaultDomainTypeRandao),
+		DomainTypeDeposit:           bytes.FromUint32(DefaultDomainTypeDeposit),
+		DomainTypeVoluntaryExit:     bytes.FromUint32(DefaultDomainTypeVoluntaryExit),
+		DomainTypeSelectionProof:    bytes.FromUint32(DefaultDomainTypeSelectionProof),
+		DomainTypeAggregateAndProof: bytes.FromUint32(DefaultDomainTypeAggregateAndProof),
+		DomainTypeApplicationMask:   bytes.FromUint32(DefaultDomainTypeApplicationMask),
+
+		// Eth1-related values.
+		DepositContractAddress:    common.NewExecutionAddressFromHex(DefaultDepositContractAddress),
+		MaxDepositsPerBlock:       DefaultMaxDepositsPerBlock,
+		DepositEth1ChainID:        DevnetEth1ChainID,
+		Eth1FollowDistance:        DefaultEth1FollowDistance,
+		TargetSecondsPerEth1Block: DefaultTargetSecondsPerEth1Block,
+
+		// Fork-related values.
+		Deneb1ForkEpoch:  DefaultDeneb1ForkEpoch,
+		ElectraForkEpoch: DefaultElectraForkEpoch,
+
+		// State list length constants.
+		EpochsPerHistoricalVector: DefaultEpochsPerHistoricalVector,
+		EpochsPerSlashingsVector:  DefaultEpochsPerSlashingsVector,
+		HistoricalRootsLimit:      DefaultHistoricalRootsLimit,
+		ValidatorRegistryLimit:    DefaultValidatorRegistryLimit,
+
+		// Slashing.
+		InactivityPenaltyQuotient:      DefaultInactivityPenaltyQuotient,
+		ProportionalSlashingMultiplier: DefaultProportionalSlashingMultiplier,
+
+		// Capella values.
+		MaxWithdrawalsPerPayload:         DefaultMaxWithdrawalsPerPayload,
+		MaxValidatorsPerWithdrawalsSweep: DefaultMaxValidatorsPerWithdrawalsSweep,
+
+		// Deneb values.
+		MinEpochsForBlobsSidecarsRequest: DefaultMinEpochsForBlobsSidecarsRequest,
+		MaxBlobCommitmentsPerBlock:       DefaultMaxBlobCommitmentsPerBlock,
+		MaxBlobsPerBlock:                 DefaultMaxBlobsPerBlock,
+		FieldElementsPerBlob:             DefaultFieldElementsPerBlob,
+		BytesPerBlob:                     DefaultBytesPerBlob,
+		KZGCommitmentInclusionProofDepth: DefaultKZGCommitmentInclusionProofDepth,
+
+		// Berachain values.
+		ValidatorSetCap:      DefaultValidatorSetCap,
+		EVMInflationAddress:  common.NewExecutionAddressFromHex(DevnetEVMInflationAddress),
+		EVMInflationPerBlock: DevnetEVMInflationPerBlock,
+	}
+
+	return chain.NewSpec(devnetSpecData)
 }

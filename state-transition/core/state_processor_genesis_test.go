@@ -35,7 +35,7 @@ import (
 )
 
 func TestInitialize(t *testing.T) {
-	cs := setupChain(t, components.BetnetChainSpecType)
+	cs := setupChain(t, components.DevnetChainSpecType)
 	sp, st, _, _ := setupState(t, cs)
 
 	var (

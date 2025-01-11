@@ -20,11 +20,79 @@
 
 package spec
 
-import "github.com/berachain/beacon-kit/chain"
+import (
+	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/primitives/bytes"
+	"github.com/berachain/beacon-kit/primitives/common"
+)
 
-// TestnetChainSpec is the ChainSpec for the bArtio testnet.
+// TestnetChainSpec is the chain.Spec for the public Dartio testnet.
+//
+// TODO: adjust values before testnet genesis.
 func TestnetChainSpec() (chain.Spec, error) {
-	testnetSpec := BaseSpec()
-	testnetSpec.DepositEth1ChainID = TestnetEth1ChainID
-	return chain.NewSpec(testnetSpec)
+	testnetSpecData := &chain.SpecData{
+		// Gwei values constants.
+		MaxEffectiveBalance:       DefaultMaxEffectiveBalance,
+		EjectionBalance:           DefaultEjectionBalance,
+		EffectiveBalanceIncrement: DefaultEffectiveBalanceIncrement,
+
+		HysteresisQuotient:           DefaultHysteresisQuotient,
+		HysteresisDownwardMultiplier: DefaultHysteresisDownwardMultiplier,
+		HysteresisUpwardMultiplier:   DefaultHysteresisUpwardMultiplier,
+
+		// Time parameters constants.
+		SlotsPerEpoch:                DefaultSlotsPerEpoch,
+		SlotsPerHistoricalRoot:       DefaultSlotsPerHistoricalRoot,
+		MinEpochsToInactivityPenalty: DefaultMinEpochsToInactivityPenalty,
+
+		// Signature domains.
+		DomainTypeProposer:          bytes.FromUint32(DefaultDomainTypeProposer),
+		DomainTypeAttester:          bytes.FromUint32(DefaultDomainTypeAttester),
+		DomainTypeRandao:            bytes.FromUint32(DefaultDomainTypeRandao),
+		DomainTypeDeposit:           bytes.FromUint32(DefaultDomainTypeDeposit),
+		DomainTypeVoluntaryExit:     bytes.FromUint32(DefaultDomainTypeVoluntaryExit),
+		DomainTypeSelectionProof:    bytes.FromUint32(DefaultDomainTypeSelectionProof),
+		DomainTypeAggregateAndProof: bytes.FromUint32(DefaultDomainTypeAggregateAndProof),
+		DomainTypeApplicationMask:   bytes.FromUint32(DefaultDomainTypeApplicationMask),
+
+		// Eth1-related values.
+		DepositContractAddress:    common.NewExecutionAddressFromHex(DefaultDepositContractAddress),
+		MaxDepositsPerBlock:       DefaultMaxDepositsPerBlock,
+		DepositEth1ChainID:        TestnetEth1ChainID,
+		Eth1FollowDistance:        DefaultEth1FollowDistance,
+		TargetSecondsPerEth1Block: DefaultTargetSecondsPerEth1Block,
+
+		// Fork-related values.
+		Deneb1ForkEpoch:  DefaultDeneb1ForkEpoch,
+		ElectraForkEpoch: DefaultElectraForkEpoch,
+
+		// State list length constants.
+		EpochsPerHistoricalVector: DefaultEpochsPerHistoricalVector,
+		EpochsPerSlashingsVector:  DefaultEpochsPerSlashingsVector,
+		HistoricalRootsLimit:      DefaultHistoricalRootsLimit,
+		ValidatorRegistryLimit:    DefaultValidatorRegistryLimit,
+
+		// Slashing.
+		InactivityPenaltyQuotient:      DefaultInactivityPenaltyQuotient,
+		ProportionalSlashingMultiplier: DefaultProportionalSlashingMultiplier,
+
+		// Capella values.
+		MaxWithdrawalsPerPayload:         DefaultMaxWithdrawalsPerPayload,
+		MaxValidatorsPerWithdrawalsSweep: DefaultMaxValidatorsPerWithdrawalsSweep,
+
+		// Deneb values.
+		MinEpochsForBlobsSidecarsRequest: DefaultMinEpochsForBlobsSidecarsRequest,
+		MaxBlobCommitmentsPerBlock:       DefaultMaxBlobCommitmentsPerBlock,
+		MaxBlobsPerBlock:                 DefaultMaxBlobsPerBlock,
+		FieldElementsPerBlob:             DefaultFieldElementsPerBlob,
+		BytesPerBlob:                     DefaultBytesPerBlob,
+		KZGCommitmentInclusionProofDepth: DefaultKZGCommitmentInclusionProofDepth,
+
+		// Berachain values.
+		ValidatorSetCap:      DefaultValidatorSetCap,
+		EVMInflationAddress:  common.NewExecutionAddressFromHex(DefaultEVMInflationAddress),
+		EVMInflationPerBlock: DefaultEVMInflationPerBlock,
+	}
+
+	return chain.NewSpec(testnetSpecData)
 }
