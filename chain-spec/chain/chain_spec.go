@@ -295,12 +295,8 @@ func (c chainSpec[
 // MaxEffectiveBalance returns the maximum effective balance.
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) MaxEffectiveBalance(isPostUpgrade bool) uint64 {
-	if isPostUpgrade {
-		return c.Data.MaxEffectiveBalancePostUpgrade
-	}
-
-	return c.Data.MaxEffectiveBalancePreUpgrade
+]) MaxEffectiveBalance() uint64 {
+	return c.Data.MaxEffectiveBalance
 }
 
 // EjectionBalance returns the balance below which a validator is ejected.
