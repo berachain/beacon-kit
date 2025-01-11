@@ -25,12 +25,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 )
 
-const (
-	// Default DepositContractAddress is the default address of the pre-deployed
-	// beacon deposit contract.
-	DefaultDepositContractAddress = "0x4242424242424242424242424242424242424242"
-)
-
 // BaseSpec returns a chain spec with default values.
 //
 //nolint:mnd // TODO: define defaults as constants.
