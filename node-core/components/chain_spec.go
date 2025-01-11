@@ -48,14 +48,14 @@ func ProvideChainSpec() (chain.Spec, error) {
 	)
 
 	switch os.Getenv(ChainSpecTypeEnvVar) {
+	case TestnetChainSpecType:
+		chainSpec, err = spec.TestnetChainSpec()
 	case BetnetChainSpecType:
 		chainSpec, err = spec.BetnetChainSpec()
 	case BoonetChainSpecType:
 		chainSpec, err = spec.BoonetChainSpec()
 	case MainnetChainSpecType:
 		chainSpec, err = spec.MainnetChainSpec()
-	case TestnetChainSpecType:
-		chainSpec, err = spec.TestnetChainSpec()
 	case DevnetChainSpecType:
 		chainSpec, err = spec.DevnetChainSpec()
 	default:
