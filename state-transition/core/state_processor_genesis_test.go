@@ -25,7 +25,6 @@ import (
 
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/node-core/components"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
@@ -35,7 +34,7 @@ import (
 )
 
 func TestInitialize(t *testing.T) {
-	cs := setupChain(t, components.DevnetChainSpecType)
+	cs := setupChain(t)
 	sp, st, _, _ := setupState(t, cs)
 
 	var (
