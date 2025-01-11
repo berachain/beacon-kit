@@ -36,7 +36,7 @@ type Spec[
 
 	// MaxEffectiveBalance returns the maximum balance counted in rewards
 	// calculations in Gwei.
-	MaxEffectiveBalance() uint64
+	MaxEffectiveBalance(isPostUpgrade bool) uint64
 
 	// EjectionBalance returns the balance below which a validator is ejected.
 	EjectionBalance() uint64
@@ -155,11 +155,7 @@ type Spec[
 
 	// MaxValidatorsPerWithdrawalsSweep returns the maximum number of validators
 	// per withdrawal sweep.
-	MaxValidatorsPerWithdrawalsSweep(
-		isPostUpgrade func(uint64, SlotT) bool,
-		chainID uint64,
-		slot SlotT,
-	) uint64
+	MaxValidatorsPerWithdrawalsSweep(isPostUpgrade bool) uint64
 
 	// Deneb Values
 
@@ -264,7 +260,24 @@ func (c *chainSpec[
 
 	// EVM Inflation values can be zero or non-zero, no validation needed.
 
-	// TODO: Add more validation rules here.
+	// Validate epoch and slot parameters
+	if c.MinEpochsToInactivityPenalty() == 0 {
+		return ErrInvalidMinEpochsToInactivityPenalty
+	}
+
+	if c.SlotsPerEpoch() == 0 {
+		return ErrInvalidSlotsPerEpoch
+	}
+
+	// Validate blob parameters
+	if c.FieldElementsPerBlob() == 0 {
+		return ErrInvalidFieldElementsPerBlob
+	}
+
+	if c.BytesPerBlob() == 0 {
+		return ErrInvalidBytesPerBlob
+	}
+
 	return nil
 }
 
@@ -278,8 +291,12 @@ func (c chainSpec[
 // MaxEffectiveBalance returns the maximum effective balance.
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) MaxEffectiveBalance() uint64 {
-	return c.Data.MaxEffectiveBalance
+]) MaxEffectiveBalance(isPostUpgrade bool) uint64 {
+	if isPostUpgrade {
+		return c.Data.MaxEffectiveBalancePostUpgrade
+	}
+
+	return c.Data.MaxEffectiveBalancePreUpgrade
 }
 
 // EjectionBalance returns the balance below which a validator is ejected.
@@ -497,11 +514,8 @@ func (c chainSpec[
 // withdrawals sweep.
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) MaxValidatorsPerWithdrawalsSweep(
-	isPostUpgrade func(uint64, SlotT) bool,
-	chainID uint64, slot SlotT,
-) uint64 {
-	if isPostUpgrade(chainID, slot) {
+]) MaxValidatorsPerWithdrawalsSweep(isPostUpgrade bool) uint64 {
+	if isPostUpgrade {
 		return c.Data.MaxValidatorsPerWithdrawalsSweepPostUpgrade
 	}
 
