@@ -36,7 +36,7 @@ type Spec[
 
 	// MaxEffectiveBalance returns the maximum balance counted in rewards
 	// calculations in Gwei.
-	MaxEffectiveBalance(isPostUpgrade bool) uint64
+	MaxEffectiveBalance() uint64
 
 	// EjectionBalance returns the balance below which a validator is ejected.
 	EjectionBalance() uint64
