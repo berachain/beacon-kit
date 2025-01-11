@@ -37,7 +37,8 @@ type Contract interface {
 	// ReadDeposits reads deposits from the deposit contract.
 	ReadDeposits(
 		ctx context.Context,
-		blockNumber math.U64,
+		fromBlock math.U64,
+		toBlock math.U64,
 	) ([]*ctypes.Deposit, error)
 }
 

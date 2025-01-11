@@ -43,3 +43,7 @@ func (s *stateProcessorMetrics) gaugeTimestamps(
 	diff := int64(payloadTimestamp) - int64(consensusTimestamp) // #nosec G115
 	s.sink.SetGauge("beacon_kit.state.payload_consensus_timestamp_diff", diff)
 }
+
+func (s *stateProcessorMetrics) incrementDepositsIgnored() {
+	s.sink.IncrementCounter("beacon_kit.state.deposits_ignored")
+}
