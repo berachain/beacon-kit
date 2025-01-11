@@ -51,7 +51,7 @@ func (s *Service) FinalizeBlock(
 			s.chainSpec.ActiveForkVersionForSlot(math.Slot(req.Height))) // #nosec G115
 	if err != nil {
 		s.logger.Error("Failed to decode block and blobs", "error", err)
-		return nil, err
+		return nil, nil
 	}
 
 	// STEP 2: Finalize sidecars first (block will check for

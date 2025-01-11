@@ -10,7 +10,7 @@ port_spec_lib = import_module("./src/lib/port_spec.star")
 nodes = import_module("./src/nodes/nodes.star")
 nginx = import_module("./src/services/nginx/nginx.star")
 constants = import_module("./src/constants.star")
-goomy_blob = import_module("./src/services/goomy/launcher.star")
+spamoor = import_module("./src/services/spamoor/launcher.star")
 prometheus = import_module("./src/observability/prometheus/prometheus.star")
 grafana = import_module("./src/observability/grafana/grafana.star")
 pyroscope = import_module("./src/observability/pyroscope/pyroscope.star")
@@ -199,19 +199,17 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
     prometheus_url = ""
     for s_dict in additional_services:
         s = service_module.parse_service_from_dict(s_dict)
-        if s.name == "goomy-blob":
-            plan.print("Launching Goomy the Blob Spammer")
-            ip_goomy_blob = plan.get_service(endpoint_type).ip_address
-            port_goomy_blob = plan.get_service(endpoint_type).ports["http"].number
-            goomy_blob_args = {"goomy_blob_args": []}
-            goomy_blob.launch_goomy_blob(
+        if s.name == "spamoor":
+            plan.print("Launching spamoor")
+            ip_spamoor = plan.get_service(endpoint_type).ip_address
+            port_spamoor = plan.get_service(endpoint_type).ports["http"].number
+            spamoor.launch_spamoor(
                 plan,
                 constants.PRE_FUNDED_ACCOUNTS[next_free_prefunded_account],
-                "http://{}:{}".format(ip_goomy_blob, port_goomy_blob),
-                goomy_blob_args,
+                "http://{}:{}".format(ip_spamoor, port_spamoor),
             )
             next_free_prefunded_account += 1
-            plan.print("Successfully launched goomy the blob spammer")
+            plan.print("Successfully launched spamoor")
         elif s.name == "tx-fuzz":
             plan.print("Launching tx-fuzz")
             if "replicas" not in s_dict:

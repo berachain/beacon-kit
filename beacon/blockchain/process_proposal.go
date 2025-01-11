@@ -62,7 +62,7 @@ func (s *Service) ProcessProposal(
 			BlobSidecarsTxIndex,
 			s.chainSpec.ActiveForkVersionForSlot(math.Slot(req.Height))) // #nosec G115
 	if err != nil {
-		return createProcessProposalResponse(err)
+		return createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
 	if signedBlk.IsNil() {
 		s.logger.Warn(
