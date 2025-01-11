@@ -155,7 +155,11 @@ type Spec[
 
 	// MaxValidatorsPerWithdrawalsSweep returns the maximum number of validators
 	// per withdrawal sweep.
-	MaxValidatorsPerWithdrawalsSweep(isPostUpgrade bool) uint64
+	MaxValidatorsPerWithdrawalsSweep(
+		isPostUpgrade func(uint64, SlotT) bool,
+		chainID uint64,
+		slot SlotT,
+	) uint64
 
 	// Deneb Values
 
