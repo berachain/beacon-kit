@@ -22,6 +22,7 @@ package core
 
 import (
 	"context"
+	"fmt"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
@@ -85,8 +86,15 @@ func (sp *StateProcessor[_]) processDeposit(
 		"Processed deposit to set Eth 1 deposit index",
 		"previous", eth1DepositIndex, "new", eth1DepositIndex+1,
 	)
+<<<<<<< HEAD
 
 	return sp.applyDeposit(st, dep, slot)
+=======
+	if err = sp.applyDeposit(st, dep); err != nil {
+		return fmt.Errorf("failed to apply deposit: %w", err)
+	}
+	return nil
+>>>>>>> chain-spec-fork-versioned
 }
 
 // applyDeposit processes the deposit and ensures it matches the local state.
@@ -95,6 +103,8 @@ func (sp *StateProcessor[_]) applyDeposit(
 ) error {
 	idx, err := st.ValidatorIndexByPubkey(dep.GetPubkey())
 	if err != nil {
+		sp.logger.Info("Validator does not exist so creating",
+			"pubkey", dep.GetPubkey(), "index", dep.GetIndex(), "deposit_amount", dep.GetAmount())
 		// If the validator does not exist, we add the validator.
 		// TODO: improve error handling by distinguishing
 		// ErrNotFound from other kind of errors
@@ -135,10 +145,13 @@ func (sp *StateProcessor[_]) createValidator(
 	// Verify that the deposit has the ETH1 withdrawal credentials.
 	if !dep.HasEth1WithdrawalCredentials() {
 		// Ignore deposits with non-ETH1 withdrawal credentials.
-		sp.logger.Info(
+		sp.logger.Warn(
 			"ignoring deposit with non-ETH1 withdrawal credentials",
+			"pubkey", dep.GetPubkey().String(),
 			"deposit_index", dep.GetIndex(),
+			"amount_gwei", dep.GetAmount().Unwrap(),
 		)
+		sp.metrics.incrementDepositsIgnored()
 		return nil
 	}
 
@@ -152,9 +165,14 @@ func (sp *StateProcessor[_]) createValidator(
 		sp.signer.VerifySignature,
 	); err != nil {
 		// Ignore deposits that fail the signature check.
-		sp.logger.Info(
-			"failed deposit signature verification", "deposit_index", dep.GetIndex(), "error", err,
+		sp.logger.Warn(
+			"failed deposit signature verification",
+			"pubkey", dep.GetPubkey().String(),
+			"deposit_index", dep.GetIndex(),
+			"amount_gwei", dep.GetAmount().Unwrap(),
+			"error", err,
 		)
+		sp.metrics.incrementDepositsIgnored()
 		return nil
 	}
 
