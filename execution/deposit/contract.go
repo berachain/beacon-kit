@@ -63,13 +63,14 @@ func NewWrappedDepositContract(
 // ReadDeposits reads deposits from the deposit contract.
 func (dc *WrappedDepositContract) ReadDeposits(
 	ctx context.Context,
-	blkNum math.U64,
+	fromBlock math.U64,
+	toBlock math.U64,
 ) ([]*ctypes.Deposit, error) {
 	logs, err := dc.FilterDeposit(
 		&bind.FilterOpts{
 			Context: ctx,
-			Start:   blkNum.Unwrap(),
-			End:     (*uint64)(&blkNum),
+			Start:   fromBlock.Unwrap(),
+			End:     toBlock.UnwrapPtr(),
 		},
 	)
 	if err != nil {
