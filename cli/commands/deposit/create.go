@@ -24,7 +24,7 @@ import (
 	"os"
 
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	clicontext "github.com/berachain/beacon-kit/cli/context"
 	"github.com/berachain/beacon-kit/cli/utils/parser"
 	"github.com/berachain/beacon-kit/consensus-types/types"
@@ -36,7 +36,7 @@ import (
 
 // NewCreateValidator creates a new command to create a validator deposit.
 func NewCreateValidator(
-	chainSpec chain.ChainSpec,
+	chainSpec chain.Spec,
 ) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-validator",
@@ -64,7 +64,7 @@ func NewCreateValidator(
 //
 
 func createValidatorCmd(
-	chainSpec chain.ChainSpec,
+	chainSpec chain.Spec,
 ) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		logger := log.NewLogger(os.Stdout)

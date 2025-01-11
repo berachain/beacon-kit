@@ -23,7 +23,7 @@ package storage
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
@@ -35,7 +35,7 @@ import (
 // Backend is a struct that holds the storage backend. It provides a simple
 // interface to access all types of storage required by the runtime.
 type Backend struct {
-	chainSpec         chain.ChainSpec
+	chainSpec         chain.Spec
 	availabilityStore *dastore.Store
 	kvStore           *beacondb.KVStore
 	depositStore      *depositdb.KVStore
@@ -43,7 +43,7 @@ type Backend struct {
 }
 
 func NewBackend(
-	chainSpec chain.ChainSpec,
+	chainSpec chain.Spec,
 	availabilityStore *dastore.Store,
 	kvStore *beacondb.KVStore,
 	depositStore *depositdb.KVStore,

@@ -21,7 +21,7 @@
 package deposit
 
 import (
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/cli/utils/parser"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
@@ -31,7 +31,7 @@ import (
 
 // Commands creates a new command for deposit related actions.
 func Commands(
-	chainSpec chain.ChainSpec,
+	chainSpec chain.Spec,
 ) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "deposit",
@@ -52,7 +52,7 @@ func Commands(
 // NewValidateDeposit creates a new command for validating a deposit message.
 //
 //nolint:mnd // lots of magic numbers
-func NewValidateDeposit(chainSpec chain.ChainSpec) *cobra.Command {
+func NewValidateDeposit(chainSpec chain.Spec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "validate",
 		Short: "Validates a deposit message for creating a new validator",
@@ -70,7 +70,7 @@ func NewValidateDeposit(chainSpec chain.ChainSpec) *cobra.Command {
 
 // validateDepositMessage validates a deposit message for creating a new
 // validator.
-func validateDepositMessage(chainSpec chain.ChainSpec) func(
+func validateDepositMessage(chainSpec chain.Spec) func(
 	_ *cobra.Command,
 	args []string,
 ) error {

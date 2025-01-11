@@ -23,7 +23,7 @@ package core_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -44,7 +44,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
-		maxBalance       = math.Gwei(cs.MaxEffectiveBalance(false))
+		maxBalance       = math.Gwei(cs.MaxEffectiveBalance())
 		increment        = math.Gwei(cs.EffectiveBalanceIncrement())
 		minBalance       = math.Gwei(cs.EjectionBalance())
 		emptyCredentials = types.NewCredentialsFromExecutionAddress(
@@ -195,7 +195,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
-		maxBalance       = math.Gwei(cs.MaxEffectiveBalance(false))
+		maxBalance       = math.Gwei(cs.MaxEffectiveBalance())
 		increment        = math.Gwei(cs.EffectiveBalanceIncrement())
 		minBalance       = math.Gwei(cs.EjectionBalance())
 		emptyAddress     = common.ExecutionAddress{}
@@ -392,7 +392,7 @@ func TestTransitionWithdrawals(t *testing.T) {
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
-		maxBalance   = math.Gwei(cs.MaxEffectiveBalance(false))
+		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
 		minBalance   = math.Gwei(cs.EffectiveBalanceIncrement())
 		credentials0 = types.NewCredentialsFromExecutionAddress(
 			common.ExecutionAddress{},
@@ -425,9 +425,6 @@ func TestTransitionWithdrawals(t *testing.T) {
 		st, genDeposits, genPayloadHeader, genVersion,
 	)
 	require.NoError(t, err)
-
-	// Progress state to fork 2.
-	progressStateToSlot(t, st, math.U64(spec.BoonetFork2Height))
 
 	// Assert validator 1 balance before withdrawal.
 	val1Bal, err := st.GetBalance(math.U64(1))
@@ -479,14 +476,14 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	csData := spec.BaseSpec()
 	csData.DepositEth1ChainID = spec.BoonetEth1ChainID
 	csData.MaxWithdrawalsPerPayload = 2
-	csData.MaxValidatorsPerWithdrawalsSweepPostUpgrade = 2
-	cs, err := chain.NewChainSpec(csData)
+	csData.MaxValidatorsPerWithdrawalsSweep = 2
+	cs, err := chain.NewSpec(csData)
 	require.NoError(t, err)
 
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
-		maxBalance   = math.Gwei(cs.MaxEffectiveBalance(false))
+		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
 		minBalance   = math.Gwei(cs.EffectiveBalanceIncrement())
 		address0     = common.ExecutionAddress{}
 		credentials0 = types.NewCredentialsFromExecutionAddress(address0)
@@ -518,9 +515,6 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 		st, genDeposits, genPayloadHeader, genVersion,
 	)
 	require.NoError(t, err)
-
-	// Progress state to fork 2.
-	progressStateToSlot(t, st, math.U64(spec.BoonetFork2Height))
 
 	// Assert validator balances before withdrawal.
 	val0Bal, err := st.GetBalance(math.U64(0))
@@ -626,7 +620,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
-		maxBalance      = math.Gwei(cs.MaxEffectiveBalance(false))
+		maxBalance      = math.Gwei(cs.MaxEffectiveBalance())
 		ejectionBalance = math.Gwei(cs.EjectionBalance())
 		minBalance      = ejectionBalance + math.Gwei(
 			cs.EffectiveBalanceIncrement(),
@@ -856,7 +850,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
-		maxBalance      = math.Gwei(cs.MaxEffectiveBalance(false))
+		maxBalance      = math.Gwei(cs.MaxEffectiveBalance())
 		ejectionBalance = math.Gwei(cs.EjectionBalance())
 		minBalance      = ejectionBalance + math.Gwei(
 			cs.EffectiveBalanceIncrement(),

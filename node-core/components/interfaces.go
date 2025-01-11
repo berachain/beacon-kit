@@ -24,7 +24,7 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	dastore "github.com/berachain/beacon-kit/da/store"
@@ -738,7 +738,7 @@ type (
 
 	NodeAPIBackend interface {
 		AttachQueryBackend(node *cometbft.Service[*phuslu.Logger])
-		ChainSpec() chain.ChainSpec
+		ChainSpec() chain.Spec
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		GetSlotByStateRoot(root common.Root) (math.Slot, error)
 		GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)

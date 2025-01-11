@@ -22,7 +22,7 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/execution/engine"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
@@ -38,7 +38,7 @@ type StateProcessorInput[
 ] struct {
 	depinject.In
 	Logger          LoggerT
-	ChainSpec       chain.ChainSpec
+	ChainSpec       chain.Spec
 	ExecutionEngine *engine.Engine
 	DepositStore    *depositdb.KVStore
 	Signer          crypto.BLSSigner

@@ -23,7 +23,7 @@ package core
 import (
 	"bytes"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
@@ -41,7 +41,7 @@ type StateProcessor[ContextT Context] struct {
 	// logger is used for logging information and errors.
 	logger log.Logger
 	// cs is the chain specification for the beacon chain.
-	cs chain.ChainSpec
+	cs chain.Spec
 	// signer is the BLS signer used for cryptographic operations.
 	signer crypto.BLSSigner
 	// fGetAddressFromPubKey verifies that a validator public key
@@ -61,7 +61,7 @@ func NewStateProcessor[
 	ContextT Context,
 ](
 	logger log.Logger,
-	cs chain.ChainSpec,
+	cs chain.Spec,
 	executionEngine ExecutionEngine,
 	ds *depositdb.KVStore,
 	signer crypto.BLSSigner,
@@ -247,7 +247,7 @@ func (sp *StateProcessor[_]) processEpoch(
 	if err = sp.processRegistryUpdates(st); err != nil {
 		return nil, err
 	}
-	if err = sp.processEffectiveBalanceUpdates(st, slot); err != nil {
+	if err = sp.processEffectiveBalanceUpdates(st); err != nil {
 		return nil, err
 	}
 	// if err = sp.processSlashingsReset(st); err != nil {
@@ -347,9 +347,7 @@ func (sp *StateProcessor[ContextT]) processBlockHeader(
 
 // processEffectiveBalanceUpdates as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#effective-balances-updates
-func (sp *StateProcessor[_]) processEffectiveBalanceUpdates(
-	st *state.StateDB, slot math.Slot,
-) error {
+func (sp *StateProcessor[_]) processEffectiveBalanceUpdates(st *state.StateDB) error {
 	// Update effective balances with hysteresis
 	validators, err := st.GetValidators()
 	if err != nil {
@@ -358,12 +356,8 @@ func (sp *StateProcessor[_]) processEffectiveBalanceUpdates(
 
 	var (
 		hysteresisIncrement = sp.cs.EffectiveBalanceIncrement() / sp.cs.HysteresisQuotient()
-		downwardThreshold   = math.Gwei(
-			hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier(),
-		)
-		upwardThreshold = math.Gwei(
-			hysteresisIncrement * sp.cs.HysteresisUpwardMultiplier(),
-		)
+		downwardThreshold   = math.Gwei(hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier())
+		upwardThreshold     = math.Gwei(hysteresisIncrement * sp.cs.HysteresisUpwardMultiplier())
 
 		idx     math.U64
 		balance math.Gwei
@@ -385,9 +379,7 @@ func (sp *StateProcessor[_]) processEffectiveBalanceUpdates(
 			updatedBalance := ctypes.ComputeEffectiveBalance(
 				balance,
 				math.U64(sp.cs.EffectiveBalanceIncrement()),
-				math.U64(sp.cs.MaxEffectiveBalance(
-					state.IsPostFork3(sp.cs.DepositEth1ChainID(), slot),
-				)),
+				math.U64(sp.cs.MaxEffectiveBalance()),
 			)
 			val.SetEffectiveBalance(updatedBalance)
 			if err = st.UpdateValidatorAtIndex(idx, val); err != nil {

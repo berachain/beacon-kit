@@ -24,7 +24,7 @@ import (
 	"math/big"
 
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/execution/engine"
@@ -36,7 +36,7 @@ import (
 // EngineClientInputs is the input for the EngineClient.
 type EngineClientInputs[LoggerT any] struct {
 	depinject.In
-	ChainSpec chain.ChainSpec
+	ChainSpec chain.Spec
 	Config    *config.Config
 	// TODO: this feels like a hood way to handle it.
 	JWTSecret     *jwt.Secret `optional:"true"`

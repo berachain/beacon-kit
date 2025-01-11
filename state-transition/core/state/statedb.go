@@ -23,7 +23,7 @@ package state
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/errors"
@@ -38,11 +38,11 @@ import (
 type StateDB struct {
 	beacondb.KVStore
 
-	cs chain.ChainSpec
+	cs chain.Spec
 }
 
 // NewBeaconStateFromDB creates a new beacon state from an underlying state db.
-func NewBeaconStateFromDB(bdb *beacondb.KVStore, cs chain.ChainSpec) *StateDB {
+func NewBeaconStateFromDB(bdb *beacondb.KVStore, cs chain.Spec) *StateDB {
 	return &StateDB{
 		KVStore: *bdb,
 		cs:      cs,
@@ -135,11 +135,7 @@ func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 		return nil, err
 	}
 
-	bound := min(
-		totalValidators, s.cs.MaxValidatorsPerWithdrawalsSweep(
-			IsPostFork2(s.cs.DepositEth1ChainID(), slot),
-		),
-	)
+	bound := min(totalValidators, s.cs.MaxValidatorsPerWithdrawalsSweep())
 
 	// Iterate through indices to find the next validators to withdraw.
 	for range bound {
@@ -170,9 +166,7 @@ func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 			// Increment the withdrawal index to process the next withdrawal.
 			withdrawalIndex++
 		} else if validator.IsPartiallyWithdrawable(
-			balance, math.Gwei(s.cs.MaxEffectiveBalance(
-				IsPostFork3(s.cs.DepositEth1ChainID(), slot),
-			)),
+			balance, math.Gwei(s.cs.MaxEffectiveBalance()),
 		) {
 			withdrawalAddress, err = validator.
 				GetWithdrawalCredentials().ToExecutionAddress()
@@ -184,9 +178,7 @@ func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 				math.U64(withdrawalIndex),
 				validatorIndex,
 				withdrawalAddress,
-				balance-math.Gwei(s.cs.MaxEffectiveBalance(
-					IsPostFork3(s.cs.DepositEth1ChainID(), slot),
-				)),
+				balance-math.Gwei(s.cs.MaxEffectiveBalance()),
 			))
 
 			// Increment the withdrawal index to process the next withdrawal.

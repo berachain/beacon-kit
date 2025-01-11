@@ -23,7 +23,7 @@ package blob
 import (
 	"time"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/kzg"
 	dastore "github.com/berachain/beacon-kit/da/store"
@@ -38,7 +38,7 @@ type Processor struct {
 	// logger is used to log information and errors.
 	logger log.Logger
 	// chainSpec defines the specifications of the blockchain.
-	chainSpec chain.ChainSpec
+	chainSpec chain.Spec
 	// verifier is responsible for verifying the blobs.
 	verifier *verifier
 	// metrics is used to collect and report processor metrics.
@@ -48,7 +48,7 @@ type Processor struct {
 // NewProcessor creates a new blob processor.
 func NewProcessor(
 	logger log.Logger,
-	chainSpec chain.ChainSpec,
+	chainSpec chain.Spec,
 	proofVerifier kzg.BlobProofVerifier,
 	telemetrySink TelemetrySink,
 ) *Processor {

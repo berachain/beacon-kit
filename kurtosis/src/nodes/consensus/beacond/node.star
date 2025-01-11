@@ -59,5 +59,6 @@ def get_genesis_env_vars(cl_service_name, chain_id, chain_spec):
         "ETH_GENESIS": "/root/eth_genesis/genesis.json",
         "WITHDRAWAL_ADDRESS": "0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4",
         "DEPOSIT_AMOUNT": "32000000000",
-        "BEACOND_CHAIN_SPEC": "{}".format(chain_spec),
+        "BEACOND_CHAIN_SPEC": chain_spec,
+        "CHAIN_SPEC": chain_spec,
     }

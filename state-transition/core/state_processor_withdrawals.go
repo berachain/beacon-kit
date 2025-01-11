@@ -36,7 +36,7 @@ import (
 // 2. Subsequent withdrawals (if any) are processed as validator withdrawals
 // 3. This modification reduces the maximum validator withdrawals per block by one.
 //
-//nolint:funlen
+
 func (sp *StateProcessor[_]) processWithdrawals(
 	st *state.StateDB, blk *ctypes.BeaconBlock,
 ) error {
@@ -51,11 +51,6 @@ func (sp *StateProcessor[_]) processWithdrawals(
 	expectedWithdrawals, err := st.ExpectedWithdrawals()
 	if err != nil {
 		return err
-	}
-
-	slot, err := st.GetSlot()
-	if err != nil {
-		return errors.Wrap(err, "failed loading slot while processing withdrawals")
 	}
 
 	// Common validations
@@ -124,10 +119,7 @@ func (sp *StateProcessor[_]) processWithdrawals(
 		if err != nil {
 			return err
 		}
-		nextValidatorIndex += math.ValidatorIndex(
-			sp.cs.MaxValidatorsPerWithdrawalsSweep(
-				state.IsPostFork2(sp.cs.DepositEth1ChainID(), slot),
-			))
+		nextValidatorIndex += math.ValidatorIndex(sp.cs.MaxValidatorsPerWithdrawalsSweep())
 		nextValidatorIndex %= math.ValidatorIndex(totalValidators)
 	}
 

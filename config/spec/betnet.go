@@ -20,19 +20,11 @@
 
 package spec
 
-import (
-	"github.com/berachain/beacon-kit/chain-spec/chain"
-	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/math"
-)
+import "github.com/berachain/beacon-kit/chain"
 
 // BetnetChainSpec is the ChainSpec for the localnet.
-func BetnetChainSpec() (chain.Spec[
-	common.DomainType,
-	math.Epoch,
-	math.Slot,
-], error) {
+func BetnetChainSpec() (chain.Spec, error) {
 	testnetSpec := BaseSpec()
 	testnetSpec.DepositEth1ChainID = BetnetEth1ChainID
-	return chain.NewChainSpec(testnetSpec)
+	return chain.NewSpec(testnetSpec)
 }

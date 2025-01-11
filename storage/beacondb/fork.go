@@ -23,9 +23,7 @@ package beacondb
 import ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 
 // SetFork sets the fork version for the given epoch.
-func (kv *KVStore) SetFork(
-	fork *ctypes.Fork,
-) error {
+func (kv *KVStore) SetFork(fork *ctypes.Fork) error {
 	return kv.fork.Set(kv.ctx, fork)
 }
 
