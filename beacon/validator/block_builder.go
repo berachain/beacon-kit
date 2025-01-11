@@ -35,7 +35,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
-	"github.com/berachain/beacon-kit/primitives/version"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
@@ -189,10 +188,7 @@ func (s *Service) buildForkData(
 	}
 
 	return ctypes.NewForkData(
-		version.FromUint32(
-			s.chainSpec.ActiveForkVersionForEpoch(epoch),
-		),
-		genesisValidatorsRoot,
+		bytes.FromUint32(s.chainSpec.ActiveForkVersionForEpoch(epoch)), genesisValidatorsRoot,
 	), nil
 }
 

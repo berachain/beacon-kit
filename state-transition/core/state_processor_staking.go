@@ -26,9 +26,9 @@ import (
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
@@ -147,7 +147,7 @@ func (sp *StateProcessor[_]) createValidator(st *state.StateDB, dep *ctypes.Depo
 	// Verify that the message was signed correctly.
 	err = dep.VerifySignature(
 		ctypes.NewForkData(
-			version.FromUint32(
+			bytes.FromUint32(
 				sp.cs.ActiveForkVersionForEpoch(epoch),
 			), genesisValidatorsRoot,
 		),

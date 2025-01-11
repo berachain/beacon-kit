@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-core/components"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
+	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
@@ -86,7 +87,7 @@ func AddGenesisDepositCmd(cs chain.Spec) *cobra.Command {
 			}
 
 			// TODO: configurable.
-			currentVersion := version.FromUint32(version.Deneb)
+			currentVersion := bytes.FromUint32(version.Deneb)
 
 			// Get the withdrawal address.
 			withdrawalAddress := common.NewExecutionAddressFromHex(args[1])
