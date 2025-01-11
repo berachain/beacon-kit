@@ -68,6 +68,7 @@ def get_config(node_struct, engine_dial_url, chain_id, chain_spec, entrypoint = 
             "BEACOND_ETH_CHAIN_ID": str(chain_id),
             "BEACOND_PERSISTENT_PEERS": persistent_peers,
             "BEACOND_ENABLE_PROMETHEUS": "true",
+            "CHAIN_SPEC": chain_spec,
             "BEACOND_CHAIN_SPEC": chain_spec,
             "WITHDRAWAL_ADDRESS": "0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4",
             "DEPOSIT_AMOUNT": "32000000000",

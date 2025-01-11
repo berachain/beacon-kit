@@ -111,10 +111,14 @@ func NewService[
 	telemetrySink TelemetrySink,
 	options ...func(*Service[LoggerT]),
 ) *Service[LoggerT] {
+	if err := validateConfig(cmtCfg); err != nil {
+		panic(err)
+	}
 	cmtConsensusParams, err := extractConsensusParams(cmtCfg)
 	if err != nil {
-		panic(fmt.Errorf("failed pulling consensus params: %w", err))
+		panic(err)
 	}
+
 	s := &Service[LoggerT]{
 		logger: logger,
 		sm: statem.NewManager(

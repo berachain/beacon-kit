@@ -4,7 +4,7 @@ def start(persistent_peers, is_seed, validator_index, config_settings, app_setti
     mv_genesis = "mv root/.tmp_genesis/genesis.json /root/.beacond/config/genesis.json"
     set_config = 'sed -i "s/^prometheus = false$/prometheus = {}/" {}/config/config.toml'.format("$BEACOND_ENABLE_PROMETHEUS", "$BEACOND_HOME")
     set_config += '\nsed -i "s/^pprof_laddr = \\".*\\"/pprof_laddr = \\"0.0.0.0:6060\\"/" {}/config/config.toml'.format("$BEACOND_HOME")
-    set_config += '\nsed -i "s/:26660/0.0.0.0:26660/" {}/config/config.toml'.format("$BEACOND_HOME")
+    set_config += '\nsed -i "s/\\":26660/\\"0.0.0.0:26660/" {}/config/config.toml'.format("$BEACOND_HOME")
     set_config += '\nsed -i "s/^flush_throttle_timeout = \\".*\\"$/flush_throttle_timeout = \\"10ms\\"/" {}/config/config.toml'.format("$BEACOND_HOME")
     set_config += '\nsed -i "s/^timeout_propose = \\".*\\"$/timeout_propose = \\"{}\\"/" {}/config/config.toml'.format(config_settings.timeout_propose, "$BEACOND_HOME")
     set_config += '\nsed -i "s/^timeout_propose_delta = \\".*\\"$/timeout_propose_delta = \\"500ms\\"/" {}/config/config.toml'.format("$BEACOND_HOME")
@@ -59,5 +59,6 @@ def get_genesis_env_vars(cl_service_name, chain_id, chain_spec):
         "ETH_GENESIS": "/root/eth_genesis/genesis.json",
         "WITHDRAWAL_ADDRESS": "0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4",
         "DEPOSIT_AMOUNT": "32000000000",
-        "BEACOND_CHAIN_SPEC": "{}".format(chain_spec),
+        "BEACOND_CHAIN_SPEC": chain_spec,
+        "CHAIN_SPEC": chain_spec,
     }
