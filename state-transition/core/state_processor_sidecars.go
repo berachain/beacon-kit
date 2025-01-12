@@ -42,9 +42,10 @@ func (sp *StateProcessor[_]) GetSignatureVerifierFn(st *statedb.StateDB) (
 		return nil, err
 	}
 
-	version := bytes.FromUint32(sp.cs.ActiveForkVersionForEpoch(epoch))
-	fd := ctypes.NewForkData(version, genesisValidatorsRoot)
-	domain := fd.ComputeDomain(sp.cs.DomainTypeProposer(version))
+	fd := ctypes.NewForkData(
+		bytes.FromUint32(sp.cs.ActiveForkVersionForEpoch(epoch)), genesisValidatorsRoot,
+	)
+	domain := fd.ComputeDomain(sp.cs.DomainTypeProposer(slot))
 
 	return func(blk *ctypes.BeaconBlock, signature crypto.BLSSignature) error {
 		//nolint:govet // shadow

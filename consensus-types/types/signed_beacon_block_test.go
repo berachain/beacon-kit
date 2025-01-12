@@ -26,7 +26,6 @@ import (
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
-	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -59,8 +58,7 @@ func generateSigningRoot(blk *types.BeaconBlock) (common.Root, error) {
 	if err != nil {
 		return common.Root{}, err
 	}
-	version := bytes.FromUint32(cs.ActiveForkVersionForSlot(blk.GetSlot()))
-	domain := (&types.ForkData{}).ComputeDomain(cs.DomainTypeProposer(version))
+	domain := (&types.ForkData{}).ComputeDomain(cs.DomainTypeProposer(blk.GetSlot()))
 	signingRoot := types.ComputeSigningRoot(blk, domain)
 	return signingRoot, nil
 }

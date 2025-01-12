@@ -38,9 +38,9 @@ func TestInitialize(t *testing.T) {
 	sp, st, _, _ := setupState(t, cs)
 
 	var (
-		maxBalance = math.Gwei(cs.MaxEffectiveBalance(0))
-		increment  = math.Gwei(cs.EffectiveBalanceIncrement(0))
-		minBalance = math.Gwei(cs.EjectionBalance(0))
+		maxBalance = math.Gwei(cs.MaxEffectiveBalance(constants.GenesisSlot))
+		increment  = math.Gwei(cs.EffectiveBalanceIncrement(constants.GenesisSlot))
+		minBalance = math.Gwei(cs.EjectionBalance(constants.GenesisSlot))
 	)
 
 	// create test inputs
@@ -138,7 +138,7 @@ func TestInitialize(t *testing.T) {
 	// check beacon state changes
 	resSlot, err := st.GetSlot()
 	require.NoError(t, err)
-	require.Equal(t, math.Slot(0), resSlot)
+	require.Equal(t, constants.GenesisSlot, resSlot)
 
 	resFork, err := st.GetFork()
 	require.NoError(t, err)
@@ -174,8 +174,8 @@ func checkValidator(
 	commonChecksValidators(t, cs, val, dep)
 
 	// checks on validators for any network but Bartio
-	require.Equal(t, math.Epoch(0), val.GetActivationEligibilityEpoch())
-	require.Equal(t, math.Epoch(0), val.GetActivationEpoch())
+	require.Equal(t, constants.GenesisEpoch, val.GetActivationEligibilityEpoch())
+	require.Equal(t, constants.GenesisEpoch, val.GetActivationEpoch())
 
 	valBal, err := bs.GetBalance(idx)
 	require.NoError(t, err)

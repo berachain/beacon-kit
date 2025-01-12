@@ -71,7 +71,7 @@ func NewSignedBeaconBlockFromSSZ(
 func NewSignedBeaconBlock(
 	blk *BeaconBlock, forkData *ForkData, cs chain.Spec, signer crypto.BLSSigner,
 ) (*SignedBeaconBlock, error) {
-	domain := forkData.ComputeDomain(cs.DomainTypeProposer(forkData.CurrentVersion))
+	domain := forkData.ComputeDomain(cs.DomainTypeProposer(blk.GetSlot()))
 	signingRoot := ComputeSigningRoot(blk, domain)
 	signature, err := signer.Sign(signingRoot[:])
 	if err != nil {

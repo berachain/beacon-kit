@@ -20,13 +20,15 @@
 
 package constants
 
+import "github.com/berachain/beacon-kit/primitives/math"
+
 // This file contains various constants as defined:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#misc
 const (
 	// GenesisSlot represents the initial slot in the system.
-	GenesisSlot uint64 = 0
+	GenesisSlot math.Slot = 0
 	// GenesisEpoch represents the initial epoch in the system.
-	GenesisEpoch uint64 = 0
+	GenesisEpoch math.Epoch = 0
 	// FarFutureEpoch represents a far future epoch value.
 	FarFutureEpoch = ^uint64(0)
 )

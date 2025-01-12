@@ -67,28 +67,28 @@ type Spec interface {
 	// Signature Domains
 
 	// DomainTypeProposer returns the domain for proposer signatures.
-	DomainTypeProposer(version common.Version) common.DomainType
+	DomainTypeProposer(slot math.Slot) common.DomainType
 
 	// DomainTypeAttester returns the domain for attester signatures.
-	DomainTypeAttester(version common.Version) common.DomainType
+	DomainTypeAttester(slot math.Slot) common.DomainType
 
 	// DomainTypeRandao returns the domain for RANDAO reveal signatures.
-	DomainTypeRandao(version common.Version) common.DomainType
+	DomainTypeRandao(slot math.Slot) common.DomainType
 
 	// DomainTypeDeposit returns the domain for deposit signatures.
-	DomainTypeDeposit(version common.Version) common.DomainType
+	DomainTypeDeposit(slot math.Slot) common.DomainType
 
 	// DomainTypeVoluntaryExit returns the domain for voluntary exit signatures.
-	DomainTypeVoluntaryExit(version common.Version) common.DomainType
+	DomainTypeVoluntaryExit(slot math.Slot) common.DomainType
 
 	// DomainTypeSelectionProof returns the domain for selection proof
-	DomainTypeSelectionProof(version common.Version) common.DomainType
+	DomainTypeSelectionProof(slot math.Slot) common.DomainType
 
 	// DomainTypeAggregateAndProof returns the domain for aggregate and proof
-	DomainTypeAggregateAndProof(version common.Version) common.DomainType
+	DomainTypeAggregateAndProof(slot math.Slot) common.DomainType
 
 	// DomainTypeApplicationMask returns the domain for application signatures.
-	DomainTypeApplicationMask(version common.Version) common.DomainType
+	DomainTypeApplicationMask(slot math.Slot) common.DomainType
 
 	// Eth1-related values.
 
@@ -171,13 +171,14 @@ type Spec interface {
 
 	// Helpers for ChainSpecData
 
-	// ActiveForkVersionForSlot returns the active fork version for a given
-	// slot.
+	// ActiveForkVersionForSlot returns the active fork version for a given slot.
 	ActiveForkVersionForSlot(slot math.Slot) uint32
 
-	// ActiveForkVersionForEpoch returns the active fork version for a given
-	// epoch.
+	// ActiveForkVersionForEpoch returns the active fork version for a given epoch.
 	ActiveForkVersionForEpoch(epoch math.Epoch) uint32
+
+	// SlotInForkVersion returns the first slot of the given fork version.
+	SlotInForkVersion(version common.Version) math.Slot
 
 	// SlotToEpoch converts a slot number to an epoch number.
 	SlotToEpoch(slot math.Slot) math.Epoch
@@ -273,43 +274,43 @@ func (s spec) MinEpochsToInactivityPenalty(math.Slot) uint64 {
 }
 
 // DomainTypeProposer returns the domain for beacon proposer signatures.
-func (s spec) DomainTypeProposer(common.Version) common.DomainType {
+func (s spec) DomainTypeProposer(math.Slot) common.DomainType {
 	return s.Data.DomainTypeProposer
 }
 
 // DomainTypeAttester returns the domain for beacon attester signatures.
-func (s spec) DomainTypeAttester(common.Version) common.DomainType {
+func (s spec) DomainTypeAttester(math.Slot) common.DomainType {
 	return s.Data.DomainTypeAttester
 }
 
 // DomainTypeRandao returns the domain for RANDAO reveal signatures.
-func (s spec) DomainTypeRandao(common.Version) common.DomainType {
+func (s spec) DomainTypeRandao(math.Slot) common.DomainType {
 	return s.Data.DomainTypeRandao
 }
 
 // DomainTypeDeposit returns the domain for deposit contract signatures.
-func (s spec) DomainTypeDeposit(common.Version) common.DomainType {
+func (s spec) DomainTypeDeposit(math.Slot) common.DomainType {
 	return s.Data.DomainTypeDeposit
 }
 
 // DomainTypeVoluntaryExit returns the domain for voluntary exit signatures.
-func (s spec) DomainTypeVoluntaryExit(common.Version) common.DomainType {
+func (s spec) DomainTypeVoluntaryExit(math.Slot) common.DomainType {
 	return s.Data.DomainTypeVoluntaryExit
 }
 
 // DomainTypeSelectionProof returns the domain for selection proof signatures.
-func (s spec) DomainTypeSelectionProof(common.Version) common.DomainType {
+func (s spec) DomainTypeSelectionProof(math.Slot) common.DomainType {
 	return s.Data.DomainTypeSelectionProof
 }
 
 // DomainTypeAggregateAndProof returns the domain for aggregate and proof
 // signatures.
-func (s spec) DomainTypeAggregateAndProof(common.Version) common.DomainType {
+func (s spec) DomainTypeAggregateAndProof(math.Slot) common.DomainType {
 	return s.Data.DomainTypeAggregateAndProof
 }
 
 // DomainTypeApplicationMask returns the domain for the application mask.
-func (s spec) DomainTypeApplicationMask(common.Version) common.DomainType {
+func (s spec) DomainTypeApplicationMask(math.Slot) common.DomainType {
 	return s.Data.DomainTypeApplicationMask
 }
 

@@ -43,9 +43,9 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
-		maxBalance       = math.Gwei(cs.MaxEffectiveBalance(0))
-		increment        = math.Gwei(cs.EffectiveBalanceIncrement(0))
-		minBalance       = math.Gwei(cs.EjectionBalance(0))
+		maxBalance       = math.Gwei(cs.MaxEffectiveBalance(constants.GenesisSlot))
+		increment        = math.Gwei(cs.EffectiveBalanceIncrement(constants.GenesisSlot))
+		minBalance       = math.Gwei(cs.EjectionBalance(constants.GenesisSlot))
 		emptyCredentials = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
 	)
 
@@ -102,7 +102,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 				ExtraData:    []byte("testing"),
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(0),
+					st.EVMInflationWithdrawal(constants.GenesisSlot),
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
@@ -153,7 +153,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 				ExtraData:    []byte("testing"),
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(0),
+					st.EVMInflationWithdrawal(constants.GenesisSlot),
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
@@ -192,9 +192,9 @@ func TestTransitionCreateValidator(t *testing.T) {
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
-		maxBalance       = math.Gwei(cs.MaxEffectiveBalance(0))
-		increment        = math.Gwei(cs.EffectiveBalanceIncrement(0))
-		minBalance       = math.Gwei(cs.EjectionBalance(0))
+		maxBalance       = math.Gwei(cs.MaxEffectiveBalance(constants.GenesisSlot))
+		increment        = math.Gwei(cs.EffectiveBalanceIncrement(constants.GenesisSlot))
+		minBalance       = math.Gwei(cs.EjectionBalance(constants.GenesisSlot))
 		emptyAddress     = common.ExecutionAddress{}
 		emptyCredentials = types.NewCredentialsFromExecutionAddress(emptyAddress)
 	)
@@ -241,7 +241,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 				ExtraData:    []byte("testing"),
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(0),
+					st.EVMInflationWithdrawal(constants.GenesisSlot),
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
@@ -293,7 +293,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 				ExtraData:    []byte("testing"),
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(0),
+					st.EVMInflationWithdrawal(constants.GenesisSlot),
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
@@ -337,7 +337,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 				ExtraData:    []byte("testing"),
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(0),
+					st.EVMInflationWithdrawal(constants.GenesisSlot),
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
@@ -387,8 +387,8 @@ func TestTransitionWithdrawals(t *testing.T) {
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
-		maxBalance   = math.Gwei(cs.MaxEffectiveBalance(0))
-		minBalance   = math.Gwei(cs.EffectiveBalanceIncrement(0))
+		maxBalance   = math.Gwei(cs.MaxEffectiveBalance(constants.GenesisSlot))
+		minBalance   = math.Gwei(cs.EffectiveBalanceIncrement(constants.GenesisSlot))
 		credentials0 = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
 		address1     = common.ExecutionAddress{0x01}
 		credentials1 = types.NewCredentialsFromExecutionAddress(address1)
@@ -435,7 +435,7 @@ func TestTransitionWithdrawals(t *testing.T) {
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
 					// The first withdrawal is always for EVM inflation.
-					st.EVMInflationWithdrawal(0),
+					st.EVMInflationWithdrawal(constants.GenesisSlot),
 					// Partially withdraw validator 1 by minBalance.
 					{
 						Index:     0,
@@ -475,8 +475,8 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
-		maxBalance   = math.Gwei(cs.MaxEffectiveBalance(0))
-		minBalance   = math.Gwei(cs.EffectiveBalanceIncrement(0))
+		maxBalance   = math.Gwei(cs.MaxEffectiveBalance(constants.GenesisSlot))
+		minBalance   = math.Gwei(cs.EffectiveBalanceIncrement(constants.GenesisSlot))
 		address0     = common.ExecutionAddress{}
 		credentials0 = types.NewCredentialsFromExecutionAddress(address0)
 		address1     = common.ExecutionAddress{0x01}
@@ -529,7 +529,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
 					// The first withdrawal is always for EVM inflation.
-					st.EVMInflationWithdrawal(0),
+					st.EVMInflationWithdrawal(constants.GenesisSlot),
 					// Partially withdraw validator 0 by minBalance.
 					{
 						Index:     0,
@@ -575,7 +575,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
 					// The first withdrawal is always for EVM inflation.
-					st.EVMInflationWithdrawal(0),
+					st.EVMInflationWithdrawal(constants.GenesisSlot),
 					// Partially withdraw validator 1 by minBalance.
 					{
 						Index:     1,
@@ -612,9 +612,9 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
-		maxBalance      = math.Gwei(cs.MaxEffectiveBalance(0))
-		ejectionBalance = math.Gwei(cs.EjectionBalance(0))
-		minBalance      = ejectionBalance + math.Gwei(cs.EffectiveBalanceIncrement(0))
+		maxBalance      = math.Gwei(cs.MaxEffectiveBalance(constants.GenesisSlot))
+		ejectionBalance = math.Gwei(cs.EjectionBalance(constants.GenesisSlot))
+		minBalance      = ejectionBalance + math.Gwei(cs.EffectiveBalanceIncrement(constants.GenesisSlot))
 		rndSeed         = 2024 // seed used to generate unique random value
 	)
 
@@ -676,7 +676,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				ExtraData:    []byte("testing"),
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(0),
+					st.EVMInflationWithdrawal(constants.GenesisSlot),
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
@@ -728,7 +728,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				ExtraData:    []byte("testing"),
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(0),
+					st.EVMInflationWithdrawal(constants.GenesisSlot),
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
@@ -773,7 +773,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				ExtraData:    []byte("testing"),
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(0),
+					st.EVMInflationWithdrawal(constants.GenesisSlot),
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
@@ -789,11 +789,11 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 
 	extraVal, err = st.ValidatorByIndex(extraValIdx)
 	require.NoError(t, err)
-	require.Equal(t, math.Epoch(1), extraVal.ActivationEligibilityEpoch)
-	require.Equal(t, math.Epoch(2), extraVal.ActivationEpoch)
-	require.Equal(t, math.Epoch(2), extraVal.ExitEpoch)
-	require.Equal(t, math.Epoch(3), extraVal.WithdrawableEpoch)
-
+	require.Equal(t, constants.GenesisEpoch+1, extraVal.ActivationEligibilityEpoch)
+	require.Equal(t, constants.GenesisEpoch+2, extraVal.ActivationEpoch)
+	require.Equal(t, constants.GenesisEpoch+2, extraVal.ExitEpoch)
+	require.Equal(t, constants.GenesisEpoch+3, extraVal.WithdrawableEpoch)
+	
 	// STEP 4: move the chain to the next epoch and show withdrawals
 	// for rejected validator are enqueued then
 	_ = moveToEndOfEpoch(t, blk, cs, sp, st, ctx, depRoot)
@@ -810,7 +810,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				ExtraData:    []byte("testing"),
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(0),
+					st.EVMInflationWithdrawal(constants.GenesisSlot),
 					{
 						Index:     0,
 						Validator: extraValIdx,
@@ -840,9 +840,9 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
-		maxBalance      = math.Gwei(cs.MaxEffectiveBalance(0))
-		ejectionBalance = math.Gwei(cs.EjectionBalance(0))
-		minBalance      = ejectionBalance + math.Gwei(cs.EffectiveBalanceIncrement(0))
+		maxBalance      = math.Gwei(cs.MaxEffectiveBalance(constants.GenesisSlot))
+		ejectionBalance = math.Gwei(cs.EjectionBalance(constants.GenesisSlot))
+		minBalance      = ejectionBalance + math.Gwei(cs.EffectiveBalanceIncrement(constants.GenesisSlot))
 		rndSeed         = 2024 // seed used to generate unique random value
 	)
 
@@ -907,7 +907,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				ExtraData:    []byte("testing"),
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(0),
+					st.EVMInflationWithdrawal(constants.GenesisSlot),
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
@@ -949,8 +949,8 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	require.NoError(t, err)
 	smallestVal, err := st.ValidatorByIndex(smallestValIdx)
 	require.NoError(t, err)
-	require.Equal(t, math.Epoch(0), smallestVal.ActivationEligibilityEpoch)
-	require.Equal(t, math.Epoch(0), smallestVal.ActivationEpoch)
+	require.Equal(t, constants.GenesisEpoch, smallestVal.ActivationEligibilityEpoch)
+	require.Equal(t, constants.GenesisEpoch, smallestVal.ActivationEpoch)
 	require.Equal(
 		t,
 		math.Epoch(constants.FarFutureEpoch),
@@ -976,7 +976,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				ExtraData:    []byte("testing"),
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(0),
+					st.EVMInflationWithdrawal(constants.GenesisSlot),
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
@@ -1008,8 +1008,8 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 
 	smallestVal, err = st.ValidatorByIndex(smallestValIdx)
 	require.NoError(t, err)
-	require.Equal(t, math.Epoch(0), smallestVal.ActivationEligibilityEpoch)
-	require.Equal(t, math.Epoch(0), smallestVal.ActivationEpoch)
+	require.Equal(t, constants.GenesisEpoch, smallestVal.ActivationEligibilityEpoch)
+	require.Equal(t, constants.GenesisEpoch, smallestVal.ActivationEpoch)
 	require.Equal(
 		t,
 		math.Epoch(constants.FarFutureEpoch),
@@ -1036,7 +1036,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				ExtraData:    []byte("testing"),
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(0),
+					st.EVMInflationWithdrawal(constants.GenesisSlot),
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
@@ -1068,8 +1068,8 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 
 	extraVal, err = st.ValidatorByIndex(extraValIdx)
 	require.NoError(t, err)
-	require.Equal(t, math.Epoch(1), extraVal.ActivationEligibilityEpoch)
-	require.Equal(t, math.Epoch(2), extraVal.ActivationEpoch)
+	require.Equal(t, constants.GenesisEpoch+1, extraVal.ActivationEligibilityEpoch)
+	require.Equal(t, constants.GenesisEpoch+2, extraVal.ActivationEpoch)
 	require.Equal(t, math.Epoch(constants.FarFutureEpoch), extraVal.ExitEpoch)
 	require.Equal(
 		t,
@@ -1079,10 +1079,10 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 
 	smallestVal, err = st.ValidatorByIndex(smallestValIdx)
 	require.NoError(t, err)
-	require.Equal(t, math.Epoch(0), smallestVal.ActivationEligibilityEpoch)
-	require.Equal(t, math.Epoch(0), smallestVal.ActivationEpoch)
-	require.Equal(t, math.Epoch(2), smallestVal.ExitEpoch)
-	require.Equal(t, math.Epoch(3), smallestVal.WithdrawableEpoch)
+	require.Equal(t, constants.GenesisEpoch, smallestVal.ActivationEligibilityEpoch)
+	require.Equal(t, constants.GenesisEpoch, smallestVal.ActivationEpoch)
+	require.Equal(t, constants.GenesisEpoch+2, smallestVal.ExitEpoch)
+	require.Equal(t, constants.GenesisEpoch+3, smallestVal.WithdrawableEpoch)
 
 	// STEP 4: move the chain to the next epoch and show withdrawal
 	// for rejected validator is enqueued
@@ -1102,7 +1102,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				ExtraData:    []byte("testing"),
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(0),
+					st.EVMInflationWithdrawal(constants.GenesisSlot),
 					{
 						Index:     0,
 						Validator: smallestValIdx,

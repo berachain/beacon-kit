@@ -57,11 +57,12 @@ func (sp *StateProcessor[ContextT]) processRandaoReveal(
 	epoch := sp.cs.SlotToEpoch(slot)
 	body := blk.GetBody()
 
-	version := bytes.FromUint32(sp.cs.ActiveForkVersionForEpoch(epoch))
-	fd := ctypes.NewForkData(version, genesisValidatorsRoot)
+	fd := ctypes.NewForkData(
+		bytes.FromUint32(sp.cs.ActiveForkVersionForEpoch(epoch)), genesisValidatorsRoot,
+	)
 
 	if !ctx.GetSkipValidateRandao() {
-		signingRoot := fd.ComputeRandaoSigningRoot(sp.cs.DomainTypeRandao(version), epoch)
+		signingRoot := fd.ComputeRandaoSigningRoot(sp.cs.DomainTypeRandao(slot), epoch)
 		reveal := body.GetRandaoReveal()
 		if err = sp.signer.VerifySignature(
 			proposer.GetPubkey(),

@@ -154,7 +154,7 @@ func (sp *StateProcessor[_]) createValidator(
 	version := bytes.FromUint32(sp.cs.ActiveForkVersionForEpoch(epoch))
 	if err := dep.VerifySignature(
 		ctypes.NewForkData(version, genesisValidatorsRoot),
-		sp.cs.DomainTypeDeposit(version),
+		sp.cs.DomainTypeDeposit(slot),
 		sp.signer.VerifySignature,
 	); err != nil {
 		// Ignore deposits that fail the signature check.

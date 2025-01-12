@@ -41,15 +41,11 @@ func (sp *StateProcessor[_]) InitializePreminedBeaconStateFromEth1(
 	execPayloadHeader *ctypes.ExecutionPayloadHeader,
 	genesisVersion common.Version,
 ) (transition.ValidatorUpdates, error) {
-	if err := st.SetSlot(0); err != nil {
+	if err := st.SetSlot(constants.GenesisSlot); err != nil {
 		return nil, err
 	}
 
-	fork := ctypes.NewFork(
-		genesisVersion,
-		genesisVersion,
-		math.U64(constants.GenesisEpoch),
-	)
+	fork := ctypes.NewFork(genesisVersion, genesisVersion, constants.GenesisEpoch)
 	if err := st.SetFork(fork); err != nil {
 		return nil, err
 	}
@@ -74,7 +70,7 @@ func (sp *StateProcessor[_]) InitializePreminedBeaconStateFromEth1(
 	}
 
 	blkHeader := &ctypes.BeaconBlockHeader{
-		Slot:            0,
+		Slot:            constants.GenesisSlot,
 		ProposerIndex:   0,
 		ParentBlockRoot: common.Root{},
 		StateRoot:       common.Root{},
@@ -84,7 +80,7 @@ func (sp *StateProcessor[_]) InitializePreminedBeaconStateFromEth1(
 		return nil, err
 	}
 
-	for i := range sp.cs.EpochsPerHistoricalVector(0) {
+	for i := range sp.cs.EpochsPerHistoricalVector(constants.GenesisSlot) {
 		if err := st.UpdateRandaoMixAtIndex(
 			i,
 			common.Bytes32(execPayloadHeader.GetBlockHash()),
@@ -101,7 +97,7 @@ func (sp *StateProcessor[_]) InitializePreminedBeaconStateFromEth1(
 		return nil, err
 	}
 	for _, deposit := range deposits {
-		if err := sp.processDeposit(st, deposit, 0); err != nil {
+		if err := sp.processDeposit(st, deposit, constants.GenesisSlot); err != nil {
 			return nil, err
 		}
 	}
@@ -124,7 +120,7 @@ func (sp *StateProcessor[_]) InitializePreminedBeaconStateFromEth1(
 	}
 
 	// Setup a bunch of 0s to prime the DB.
-	for i := range sp.cs.HistoricalRootsLimit(0) {
+	for i := range sp.cs.HistoricalRootsLimit(constants.GenesisSlot) {
 		if err = st.UpdateBlockRootAtIndex(i, common.Root{}); err != nil {
 			return nil, err
 		}
@@ -145,7 +141,7 @@ func (sp *StateProcessor[_]) InitializePreminedBeaconStateFromEth1(
 		return nil, err
 	}
 
-	activeVals, err := getActiveVals(st, 0)
+	activeVals, err := getActiveVals(st, constants.GenesisEpoch)
 	if err != nil {
 		return nil, err
 	}
@@ -155,20 +151,20 @@ func (sp *StateProcessor[_]) InitializePreminedBeaconStateFromEth1(
 func (sp *StateProcessor[_]) processGenesisActivation(st *statedb.StateDB) error {
 	vals, err := st.GetValidators()
 	if err != nil {
-		return fmt.Errorf(
-			"genesis activation, failed listing validators: %w",
-			err,
-		)
+		return fmt.Errorf("genesis activation, failed listing validators: %w", err)
 	}
-	minEffectiveBalance := math.Gwei(sp.cs.EjectionBalance(0) + sp.cs.EffectiveBalanceIncrement(0))
+	minEffectiveBalance := math.Gwei(
+		sp.cs.EjectionBalance(constants.GenesisSlot) +
+			sp.cs.EffectiveBalanceIncrement(constants.GenesisSlot),
+	)
 
 	var idx math.ValidatorIndex
 	for _, val := range vals {
 		if val.GetEffectiveBalance() < minEffectiveBalance {
 			continue
 		}
-		val.SetActivationEligibilityEpoch(0)
-		val.SetActivationEpoch(0)
+		val.SetActivationEligibilityEpoch(constants.GenesisEpoch)
+		val.SetActivationEpoch(constants.GenesisEpoch)
 		idx, err = st.ValidatorIndexByPubkey(val.GetPubkey())
 		if err != nil {
 			return err

@@ -57,7 +57,7 @@ type Sidecars[SidecarT any] interface {
 // ChainSpec represents a chain spec.
 type ChainSpec interface {
 	MaxBlobCommitmentsPerBlock(slot math.Slot) uint64
-	DomainTypeProposer(version common.Version) common.DomainType
+	DomainTypeProposer(slot math.Slot) common.DomainType
 	ActiveForkVersionForSlot(slot math.Slot) uint32
 }
 

@@ -34,6 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -94,7 +95,7 @@ func AddGenesisDepositCmd(cs chain.Spec) *cobra.Command {
 
 			depositMsg, signature, err := types.CreateAndSignDepositMessage(
 				types.NewForkData(currentVersion, common.Root{}),
-				cs.DomainTypeDeposit(currentVersion),
+				cs.DomainTypeDeposit(constants.GenesisSlot),
 				blsSigner,
 				types.NewCredentialsFromExecutionAddress(withdrawalAddress),
 				depositAmount,
@@ -107,7 +108,7 @@ func AddGenesisDepositCmd(cs chain.Spec) *cobra.Command {
 			if err = depositMsg.VerifyCreateValidator(
 				types.NewForkData(currentVersion, common.Root{}),
 				signature,
-				cs.DomainTypeDeposit(currentVersion),
+				cs.DomainTypeDeposit(constants.GenesisSlot),
 				signer.BLSSigner{}.VerifySignature,
 			); err != nil {
 				return err

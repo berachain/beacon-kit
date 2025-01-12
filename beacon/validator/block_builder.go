@@ -173,21 +173,14 @@ func (s *Service) getEmptyBeaconBlockForSlot(
 	)
 }
 
-func (s *Service) buildForkData(
-	st *statedb.StateDB,
-	slot math.Slot,
-) (*ctypes.ForkData, error) {
-	var (
-		epoch = s.chainSpec.SlotToEpoch(slot)
-	)
-
+func (s *Service) buildForkData(st *statedb.StateDB, slot math.Slot) (*ctypes.ForkData, error) {
 	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
 	if err != nil {
 		return nil, err
 	}
 
 	return ctypes.NewForkData(
-		bytes.FromUint32(s.chainSpec.ActiveForkVersionForEpoch(epoch)), genesisValidatorsRoot,
+		bytes.FromUint32(s.chainSpec.ActiveForkVersionForSlot(slot)), genesisValidatorsRoot,
 	), nil
 }
 
@@ -196,7 +189,7 @@ func (s *Service) buildRandaoReveal(
 	forkData *ctypes.ForkData, slot math.Slot,
 ) (crypto.BLSSignature, error) {
 	signingRoot := forkData.ComputeRandaoSigningRoot(
-		s.chainSpec.DomainTypeRandao(forkData.CurrentVersion), s.chainSpec.SlotToEpoch(slot),
+		s.chainSpec.DomainTypeRandao(slot), s.chainSpec.SlotToEpoch(slot),
 	)
 	return s.signer.Sign(signingRoot[:])
 }
