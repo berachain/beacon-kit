@@ -467,7 +467,6 @@ func TestTransitionWithdrawals(t *testing.T) {
 func TestTransitionMaxWithdrawals(t *testing.T) {
 	// Use custom chain spec with max withdrawals set to 2.
 	csData := spec.DefaultSpecData()
-	csData.DepositEth1ChainID = spec.DevnetEth1ChainID
 	csData.MaxWithdrawalsPerPayload = 2
 	csData.MaxValidatorsPerWithdrawalsSweep = 2
 	cs, err := chain.NewSpec(csData)
