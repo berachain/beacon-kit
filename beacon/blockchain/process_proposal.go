@@ -33,7 +33,9 @@ import (
 	datypes "github.com/berachain/beacon-kit/da/types"
 	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
@@ -111,7 +113,7 @@ func (s *Service) ProcessProposal(
 		// the currently active fork). ProcessProposal should only
 		// keep the state changes as candidates (which is what we do in
 		// VerifyIncomingBlock).
-		err = s.VerifyIncomingBlobSidecars(sidecars, blk.GetHeader())
+		err = s.VerifyIncomingBlobSidecars(sidecars, blk.GetHeader(), blk.GetBody().GetBlobKzgCommitments())
 		if err != nil {
 			s.logger.Error("failed to verify incoming blob sidecars", "error", err)
 			return createProcessProposalResponse(err)
@@ -158,11 +160,12 @@ func (s *Service) VerifyIncomingBlockSignature(
 func (s *Service) VerifyIncomingBlobSidecars(
 	sidecars datypes.BlobSidecars,
 	blkHeader *ctypes.BeaconBlockHeader,
+	kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],
 ) error {
 	s.logger.Info("Received incoming blob sidecars")
 
 	// Verify the blobs and ensure they match the local state.
-	err := s.blobProcessor.VerifySidecars(sidecars, blkHeader)
+	err := s.blobProcessor.VerifySidecars(sidecars, blkHeader, kzgCommitments)
 	if err != nil {
 		s.logger.Error(
 			"rejecting incoming blob sidecars",

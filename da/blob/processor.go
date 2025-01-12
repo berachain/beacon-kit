@@ -29,6 +29,8 @@ import (
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
@@ -66,6 +68,7 @@ func NewProcessor(
 func (sp *Processor) VerifySidecars(
 	sidecars datypes.BlobSidecars,
 	blkHeader *ctypes.BeaconBlockHeader,
+	kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],
 ) error {
 	defer sp.metrics.measureVerifySidecarsDuration(
 		time.Now(), math.U64(len(sidecars)),
@@ -80,6 +83,7 @@ func (sp *Processor) VerifySidecars(
 	return sp.verifier.verifySidecars(
 		sidecars,
 		blkHeader,
+		kzgCommitments,
 	)
 }
 
