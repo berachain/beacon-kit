@@ -185,6 +185,7 @@ type (
 		VerifySidecars(
 			sidecars datypes.BlobSidecars,
 			blkHeader *ctypes.BeaconBlockHeader,
+			kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],
 		) error
 	}
 
