@@ -793,7 +793,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	require.Equal(t, constants.GenesisEpoch+2, extraVal.ActivationEpoch)
 	require.Equal(t, constants.GenesisEpoch+2, extraVal.ExitEpoch)
 	require.Equal(t, constants.GenesisEpoch+3, extraVal.WithdrawableEpoch)
-	
+
 	// STEP 4: move the chain to the next epoch and show withdrawals
 	// for rejected validator are enqueued then
 	_ = moveToEndOfEpoch(t, blk, cs, sp, st, ctx, depRoot)

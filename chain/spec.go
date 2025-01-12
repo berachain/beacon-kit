@@ -419,7 +419,7 @@ func (s spec) BytesPerBlob(math.Slot) uint64 {
 }
 
 // ValidatorSetCap retrieves the maximum number of validators allowed in the active set.
-func (s spec) ValidatorSetCap(slot math.Slot) uint64 {
+func (s spec) ValidatorSetCap(math.Slot) uint64 {
 	return s.Data.ValidatorSetCap
 }
 

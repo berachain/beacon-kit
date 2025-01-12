@@ -119,16 +119,13 @@ func TestInitialize(t *testing.T) {
 		fork                   = &types.Fork{
 			PreviousVersion: bytes.FromUint32(version.Deneb),
 			CurrentVersion:  bytes.FromUint32(version.Deneb),
-			Epoch:           math.Epoch(constants.GenesisEpoch),
+			Epoch:           constants.GenesisEpoch,
 		}
 	)
 
 	// run test
 	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
-		st,
-		genDeposits,
-		executionPayloadHeader,
-		fork.CurrentVersion,
+		st, genDeposits, executionPayloadHeader, fork.CurrentVersion,
 	)
 
 	// check outputs
