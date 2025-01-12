@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
@@ -286,7 +287,9 @@ func (s *Service) buildBlockBody(
 
 	// Grab all previous deposits from genesis up to the current index + max deposits per block.
 	deposits, err := s.sb.DepositStore().GetDepositsByIndex(
-		ctx, 0, depositIndex+s.chainSpec.MaxDepositsPerBlock(blk.GetSlot()),
+		ctx,
+		constants.FirstDepositIndex,
+		depositIndex+s.chainSpec.MaxDepositsPerBlock(blk.GetSlot()),
 	)
 	if err != nil {
 		return err

@@ -90,7 +90,7 @@ func (sp *StateProcessor[_]) InitializePreminedBeaconStateFromEth1(
 	}
 
 	// Before processing deposits, set the eth1 deposit index to 0.
-	if err := st.SetEth1DepositIndex(0); err != nil {
+	if err := st.SetEth1DepositIndex(constants.FirstDepositIndex); err != nil {
 		return nil, err
 	}
 	if err := sp.validateGenesisDeposits(st, deposits); err != nil {

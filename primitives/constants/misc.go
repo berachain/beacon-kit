@@ -32,3 +32,8 @@ const (
 	// FarFutureEpoch represents a far future epoch value.
 	FarFutureEpoch = ^uint64(0)
 )
+
+const (
+	// FirstDepositIndex represents the index of the first deposit in the system, set at genesis.
+	FirstDepositIndex uint64 = 0
+)
