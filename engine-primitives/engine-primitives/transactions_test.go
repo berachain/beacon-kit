@@ -72,7 +72,7 @@ var prysmConsistencyTests = []struct {
 		name: "max bytes per tx",
 		txs: func() [][]byte {
 			var tx []byte
-			for i := 0; i < int(constants.MaxBytesPerTx); i++ { // int dönüşümü eklendi
+			for i := 0; i < int(constants.MaxBytesPerTx); i++ {
 				tx = append(tx, byte(i))
 			}
 			return [][]byte{tx}
@@ -96,7 +96,7 @@ var prysmConsistencyTests = []struct {
 		name: "max txs",
 		txs: func() [][]byte {
 			var txs [][]byte
-			for i := 0; i < int(constants.MaxTxsPerPayload); i++ { // int dönüşümü eklendi
+			for i := 0; i < int(constants.MaxTxsPerPayload); i++ {
 				txs = append(txs, []byte{0x01})
 			}
 			return txs
