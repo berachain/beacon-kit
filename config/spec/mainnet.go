@@ -31,29 +31,28 @@ import (
 func MainnetChainSpec() (chain.Spec, error) {
 	mainnetSpec := BaseSpec()
 
-	// Chain ID is ???.
+	// Chain ID is 80094.
 	mainnetSpec.DepositEth1ChainID = MainnetEth1ChainID
 
 	// Target for block time is 2 seconds on Berachain mainnet.
 	mainnetSpec.TargetSecondsPerEth1Block = 2
 
-	// BGT contract address. // TODO: CONFIRM WITH SC TEAM!!!
+	// BGT contract address. // TODO: confirm after BGT address finalized.
 	mainnetSpec.EVMInflationAddress = common.NewExecutionAddressFromHex(
 		"0x289274787bAF083C15A45a174b7a8e44F0720660",
 	)
 
-	// 5.75 BERA is minted to the BGT contract per block as the upper bound of redeemable BGT.
-	//
-	// TODO: CONFIRM WITH QUANTUM TEAM!!!
+	// 5.75 BERA is minted to the BGT contract per block as the upper bound of redeemable BGT
+	// at the current reward rate parameters.
 	mainnetSpec.EVMInflationPerBlock = 5.75e9
 
-	// ValidatorSetCap is 69 on Mainnet for version Deneb.
-	mainnetSpec.ValidatorSetCap = 69 // TODO: FIXME!!!
+	// ValidatorSetCap is 69 on Mainnet for version Deneb at genesis.
+	mainnetSpec.ValidatorSetCap = 69
 
 	// MaxValidatorsPerWithdrawalsSweep is 31 because we expect at least 36
 	// validators in the total validators set. We choose a prime number smaller
 	// than the minimum amount of total validators possible.
-	mainnetSpec.MaxValidatorsPerWithdrawalsSweep = 31 // TODO: FIXME!!!
+	mainnetSpec.MaxValidatorsPerWithdrawalsSweep = 31 // TODO: Confirm with unit test.
 
 	// MaxEffectiveBalance (or max stake) is 10 million BERA.
 	mainnetSpec.MaxEffectiveBalance = 10_000_000 * 1e9
@@ -64,12 +63,10 @@ func MainnetChainSpec() (chain.Spec, error) {
 
 	// Since the activation balance (min stake) is 250k BERA, we set the ejection balance be
 	// activation_balance - effective_balance_increment = 250k - 10k = 240k BERA.
-	mainnetSpec.EjectionBalance = 240_000 * 1e9
+	mainnetSpec.EjectionBalance = 250_000*1e9 - mainnetSpec.EffectiveBalanceIncrement
 
 	// Slots per epoch is 192 to mirror the time of epochs on Ethereum mainnet.
-	//
-	// TODO: FIXME!!! I really like 192 over 32 :)))
-	mainnetSpec.SlotsPerEpoch = 192
+	mainnetSpec.SlotsPerEpoch = 192 // TODO: confirm after testing.
 
 	// MinEpochsForBlobsSidecarsRequest is 4096 to match Ethereum mainnet.
 	mainnetSpec.MinEpochsForBlobsSidecarsRequest = 4096
