@@ -199,7 +199,7 @@ type BlockchainI interface {
 	ProcessProposal(
 		sdk.Context,
 		*cmtabci.ProcessProposalRequest,
-	) (*cmtabci.ProcessProposalResponse, error)
+	) error
 	FinalizeBlock(
 		sdk.Context,
 		*cmtabci.FinalizeBlockRequest,

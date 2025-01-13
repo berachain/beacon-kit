@@ -22,6 +22,7 @@ package blockchain
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
@@ -51,7 +52,7 @@ func (s *Service) FinalizeBlock(
 			s.chainSpec.ActiveForkVersionForSlot(math.Slot(req.Height))) // #nosec G115
 	if err != nil {
 		s.logger.Error("Failed to decode block and blobs", "error", err)
-		return nil, nil
+		return nil, fmt.Errorf("failed to decode block and blobs: %w", err)
 	}
 
 	// STEP 2: Finalize sidecars first (block will check for
@@ -62,7 +63,7 @@ func (s *Service) FinalizeBlock(
 	)
 	if err != nil {
 		s.logger.Error("Failed to process blob sidecars", "error", err)
-		return nil, err
+		return nil, fmt.Errorf("failed to process blob sidecars: %w", err)
 	}
 
 	// STEP 3: finalize the block
