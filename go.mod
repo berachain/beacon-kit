@@ -4,8 +4,8 @@ go 1.23.4
 
 replace (
 	// testing informal's fork with BLS aggregation done.
-	github.com/cometbft/cometbft => github.com/melekes/bera-cometbft v0.0.0-20250112170350-156f344703dc
-	github.com/cometbft/cometbft/api => github.com/melekes/bera-cometbft/api v0.0.0-20250112170350-156f344703dc
+	github.com/cometbft/cometbft => github.com/melekes/bera-cometbft v0.0.0-20250113155147-235ba078f914
+	github.com/cometbft/cometbft/api => github.com/melekes/bera-cometbft/api v0.0.0-20250113155147-235ba078f914
 
 	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.52.0-rc.1
 
