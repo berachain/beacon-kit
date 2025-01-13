@@ -55,7 +55,7 @@ const (
 func (s *Service) ProcessProposal(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
-) (*cmtabci.ProcessProposalResponse, error) {
+) error {
 	// Decode signed block and sidecars.
 	signedBlk, sidecars, err := encoding.
 		ExtractBlobsAndBlockFromRequest(
@@ -64,18 +64,19 @@ func (s *Service) ProcessProposal(
 			BlobSidecarsTxIndex,
 			s.chainSpec.ActiveForkVersionForSlot(math.Slot(req.Height))) // #nosec G115
 	if err != nil {
-		return createProcessProposalResponse(errors.WrapNonFatal(err))
+		return err
 	}
 	if signedBlk.IsNil() {
 		s.logger.Warn(
 			"Aborting block verification - beacon block not found in proposal",
 		)
-		return createProcessProposalResponse(ErrNilBlk)
-	} else if sidecars.IsNil() {
+		return ErrNilBlk
+	}
+	if sidecars.IsNil() {
 		s.logger.Warn(
 			"Aborting block verification - blob sidecars not found in proposal",
 		)
-		return createProcessProposalResponse(ErrNilBlob)
+		return ErrNilBlob
 	}
 
 	blk := signedBlk.GetMessage()
@@ -85,23 +86,21 @@ func (s *Service) ProcessProposal(
 		err = fmt.Errorf("expected %d sidecars, got %d",
 			numCommitments, len(sidecars),
 		)
-		return createProcessProposalResponse(err)
+		return err
 	}
 
 	// Verify the block and sidecar signatures. We can simply verify the block
 	// signature and then make sure the sidecar signatures match the block.
 	blkSignature := signedBlk.GetSignature()
-	for _, sidecar := range sidecars {
+	for i, sidecar := range sidecars {
 		sidecarSignature := sidecar.GetSignedBeaconBlockHeader().GetSignature()
 		if !bytes.Equal(blkSignature[:], sidecarSignature[:]) {
-			return createProcessProposalResponse(
-				errors.New("sidecar signature mismatch"),
-			)
+			return fmt.Errorf("%w, idx: %d", ErrSidecarSignatureMismatch, i)
 		}
 	}
 	err = s.VerifyIncomingBlockSignature(ctx, signedBlk.GetMessage(), signedBlk.GetSignature())
 	if err != nil {
-		return createProcessProposalResponse(err)
+		return err
 	}
 
 	if numCommitments > 0 {
@@ -116,7 +115,7 @@ func (s *Service) ProcessProposal(
 		err = s.VerifyIncomingBlobSidecars(sidecars, blk.GetHeader(), blk.GetBody().GetBlobKzgCommitments())
 		if err != nil {
 			s.logger.Error("failed to verify incoming blob sidecars", "error", err)
-			return createProcessProposalResponse(err)
+			return err
 		}
 	}
 
@@ -134,10 +133,10 @@ func (s *Service) ProcessProposal(
 	)
 	if err != nil {
 		s.logger.Error("failed to verify incoming block", "error", err)
-		return createProcessProposalResponse(err)
+		return err
 	}
 
-	return createProcessProposalResponse(nil)
+	return nil
 }
 
 func (s *Service) VerifyIncomingBlockSignature(
@@ -315,17 +314,4 @@ func (s *Service) verifyStateRoot(
 // payload builds are enabled.
 func (s *Service) shouldBuildOptimisticPayloads() bool {
 	return s.optimisticPayloadBuilds && s.localBuilder.Enabled()
-}
-
-// createResponse generates the appropriate ProcessProposalResponse based on the
-// error.
-func createProcessProposalResponse(
-	err error,
-) (*cmtabci.ProcessProposalResponse, error) {
-	status := cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
-	if !errors.IsFatal(err) {
-		status = cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
-		err = nil
-	}
-	return &cmtabci.ProcessProposalResponse{Status: status}, err
 }
