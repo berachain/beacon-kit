@@ -29,4 +29,6 @@ var (
 	ErrNilBlob = errors.New("nil blob")
 	// ErrDataNotAvailable indicates that the required data is not available.
 	ErrDataNotAvailable = errors.New("data not available")
+
+	ErrSidecarSignatureMismatch = errors.New("sidecar signature mismatch")
 )
