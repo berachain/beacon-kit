@@ -496,10 +496,10 @@ github.com/mattn/go-runewidth v0.0.9/go.mod h1:H031xJmbD/WCDINGzjvQ9THkh0rPKHF+m
 github.com/mattn/go-runewidth v0.0.16 h1:E5ScNMtiwvlvB5paMFdw9p4kSQzbXFikJ5SQO6TULQc=
 github.com/mattn/go-runewidth v0.0.16/go.mod h1:Jdepj2loyihRzMpdS35Xk/zdY8IAYHsh153qUoGf23w=
 github.com/matttproud/golang_protobuf_extensions v1.0.1/go.mod h1:D8He9yQNgCq6Z5Ld7szi9bcBfOoFv/3dc6xSMkL2PC0=
-github.com/melekes/bera-cometbft v0.0.0-20250113155147-235ba078f914 h1:J1UKcQZmaduCVXvGA5Jav/FhPt7dOhFKAWf6DeH4ylE=
-github.com/melekes/bera-cometbft v0.0.0-20250113155147-235ba078f914/go.mod h1:Y2skEsnoZW+mICPx1CSICnneyU+/hK/JUySYk1keKN0=
-github.com/melekes/bera-cometbft/api v0.0.0-20250113155147-235ba078f914 h1:odOr7q9OptKStHG8e/KR0vsT6iMTBNCmKKr+3TMKJ8o=
-github.com/melekes/bera-cometbft/api v0.0.0-20250113155147-235ba078f914/go.mod h1:EkQiqVSu/p2ebrZEnB2z6Re7r8XNe//M7ylR0qEwWm0=
+github.com/melekes/bera-cometbft v0.0.0-20250113164345-b7a9fdf04e97 h1:3VRf9GBWrjSV/E39Ayeupw9Tv5gXmsN0VbmRyZkNlqA=
+github.com/melekes/bera-cometbft v0.0.0-20250113164345-b7a9fdf04e97/go.mod h1:Y2skEsnoZW+mICPx1CSICnneyU+/hK/JUySYk1keKN0=
+github.com/melekes/bera-cometbft/api v0.0.0-20250113164345-b7a9fdf04e97 h1:GD4jMrPkRXSAZmQyhjQCIcECNfhDzWbfzohIdQg8v3U=
+github.com/melekes/bera-cometbft/api v0.0.0-20250113164345-b7a9fdf04e97/go.mod h1:EkQiqVSu/p2ebrZEnB2z6Re7r8XNe//M7ylR0qEwWm0=
 github.com/mholt/archiver v3.1.1+incompatible h1:1dCVxuqs0dJseYEhi5pl7MYPH9zDa1wBi7mF09cbNkU=
 github.com/mholt/archiver v3.1.1+incompatible/go.mod h1:Dh2dOXnSdiLxRiPoVfIr/fI1TwETms9B8CTWfeh7ROU=
 github.com/minio/highwayhash v1.0.3 h1:kbnuUMoHYyVl7szWjSxJnxw11k2U709jqFPPmIUyD6Q=
