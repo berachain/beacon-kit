@@ -18,41 +18,12 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package genesis
+package types
 
-import (
-	"github.com/berachain/beacon-kit/chain"
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/spf13/cobra"
+const (
+	// DefaultAllocsKey is the key for the allocs in the default genesis file.
+	DefaultAllocsKey = "alloc"
+
+	// NethermindAllocsKey is the key for the allocs in the nethermind genesis file.
+	NethermindAllocsKey = "accounts"
 )
-
-// Commands builds the genesis-related command. Users may
-// provide application specific commands as a parameter.
-func Commands(
-	cs chain.Spec,
-	cmds ...*cobra.Command,
-) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:                        "genesis",
-		Short:                      "Application's genesis-related subcommands",
-		DisableFlagParsing:         false,
-		SuggestionsMinimumDistance: 2, //nolint:mnd // from sdk.
-		RunE:                       client.ValidateCmd,
-	}
-
-	// Adding subcommands for genesis-related operations.
-	cmd.AddCommand(
-		AddGenesisDepositCmd(cs),
-		CollectGenesisDepositsCmd(),
-		AddExecutionPayloadCmd(cs),
-		GetGenesisValidatorRootCmd(cs),
-		SetDepositStorageCmd(),
-	)
-
-	// Add additional commands
-	for _, subCmd := range cmds {
-		cmd.AddCommand(subCmd)
-	}
-
-	return cmd
-}
