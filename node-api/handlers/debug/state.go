@@ -25,8 +25,6 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 )
 
-// GetState WARNING: Further testing needs to be done to ensure this returns the correct state for post-genesis
-// and has only been properly tested querying for genesis state.
 func (h *Handler[ContextT]) GetState(c ContextT) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetStateRequest](
 		c, h.Logger(),
