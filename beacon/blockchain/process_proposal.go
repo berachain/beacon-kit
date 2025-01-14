@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/consensus/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
-	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -300,14 +299,6 @@ func (s *Service) verifyStateRoot(
 		},
 		st, blk,
 	)
-	if errors.Is(err, engineerrors.ErrAcceptedPayloadStatus) {
-		// It is safe for the validator to ignore this error since
-		// the state transition will enforce that the block is part
-		// of the canonical chain.
-		//
-		// TODO: this is only true because we are assuming SSF.
-		return nil
-	}
 
 	return err
 }
