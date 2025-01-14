@@ -81,8 +81,8 @@ func ProvideNodeAPIConfigHandler[
 
 func ProvideNodeAPIDebugHandler[
 	NodeAPIContextT NodeAPIContext,
-]() *debugapi.Handler[NodeAPIContextT] {
-	return debugapi.NewHandler[NodeAPIContextT]()
+](b NodeAPIBackend) *debugapi.Handler[NodeAPIContextT] {
+	return debugapi.NewHandler[NodeAPIContextT](b)
 }
 
 func ProvideNodeAPIEventsHandler[

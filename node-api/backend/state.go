@@ -46,6 +46,23 @@ func (b Backend) StateRootAtSlot(slot math.Slot) (common.Root, error) {
 	return st.StateRootAtIndex(slot.Unwrap() % b.cs.SlotsPerHistoricalRoot())
 }
 
+// StateAtSlot returns the beacon state at a particular slot
+func (b Backend) StateAtSlot(slot math.Slot) (*ctypes.BeaconState, error) {
+	st, slot, err := b.stateFromSlotRaw(slot)
+	if err != nil {
+		return nil, err
+	}
+	
+	beaconState, err := st.GetMarshallable()
+	if err != nil {
+		return nil, err
+	}
+
+	// As calculated by the beacon chain. Ideally, this logic
+	// should be abstracted by the beacon chain.
+	return beaconState, nil
+}
+
 // GetStateFork returns the fork of the state at the given stateID.
 func (b Backend) StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error) {
 	var fork *ctypes.Fork
