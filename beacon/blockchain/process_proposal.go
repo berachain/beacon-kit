@@ -83,9 +83,11 @@ func (s *Service) ProcessProposal(
 	// Make sure we have the right number of BlobSidecars
 	numCommitments := len(blk.GetBody().GetBlobKzgCommitments())
 	if numCommitments != len(sidecars) {
-		err = fmt.Errorf("expected %d sidecars, got %d",
+		err = fmt.Errorf("expected %d sidecars, got %d: %w",
 			numCommitments, len(sidecars),
+			ErrSidecarCommittmentMismatch,
 		)
+		s.logger.Warn(err.Error())
 		return err
 	}
 
