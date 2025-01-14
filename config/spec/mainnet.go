@@ -37,10 +37,11 @@ func MainnetChainSpec() (chain.Spec, error) {
 	// Target for block time is 2 seconds on Berachain mainnet.
 	mainnetSpec.TargetSecondsPerEth1Block = 2
 
-	// BGT contract address. // TODO: confirm after BGT address finalized.
-	mainnetSpec.EVMInflationAddress = common.NewExecutionAddressFromHex(
-		"0x289274787bAF083C15A45a174b7a8e44F0720660",
-	)
+	// BGT contract address.
+	//
+	// A hard fork will occur to set this value as the BGT contract address
+	// when BGT beings to be minted.
+	mainnetSpec.EVMInflationAddress = common.ExecutionAddress{}
 
 	// 0 BERA is minted to the BGT contract per block at genesis.
 	//
