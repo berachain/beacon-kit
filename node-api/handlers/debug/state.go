@@ -25,6 +25,8 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 )
 
+// GetState WARNING: This handler will always return the latest state as BeaconKit
+// does not track historical states.
 func (h *Handler[ContextT]) GetState(c ContextT) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetStateRequest](
 		c, h.Logger(),

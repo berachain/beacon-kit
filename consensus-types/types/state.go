@@ -40,8 +40,8 @@ type BeaconState struct {
 	StateRoots        []common.Root      `json:"state_roots,omitempty"`
 
 	// Eth1
-	Eth1Data                     *Eth1Data               `json:"eth_1_data,omitempty"`
-	Eth1DepositIndex             uint64                  `json:"eth_1_deposit_index,omitempty"`
+	Eth1Data                     *Eth1Data               `json:"eth1_data,omitempty"`
+	Eth1DepositIndex             uint64                  `json:"eth1_deposit_index,omitempty"`
 	LatestExecutionPayloadHeader *ExecutionPayloadHeader `json:"latest_execution_payload_header,omitempty"`
 
 	// Registry
