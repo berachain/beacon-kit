@@ -34,6 +34,7 @@ const (
 	BetnetChainSpecType  = "betnet"
 	BoonetChainSpecType  = "boonet"
 	TestnetChainSpecType = "testnet"
+	MainnetChainSpecType = "mainnet"
 )
 
 // ProvideChainSpec provides the chain spec based on the environment variable.
@@ -53,6 +54,8 @@ func ProvideChainSpec() (chain.Spec, error) {
 		chainSpec, err = spec.BetnetChainSpec()
 	case BoonetChainSpecType:
 		chainSpec, err = spec.BoonetChainSpec()
+	case MainnetChainSpecType:
+		chainSpec, err = spec.MainnetChainSpec()
 	case DevnetChainSpecType:
 		chainSpec, err = spec.DevnetChainSpec()
 	default:
