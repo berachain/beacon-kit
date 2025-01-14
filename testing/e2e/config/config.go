@@ -22,6 +22,7 @@
 package config
 
 import (
+	"fmt"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 )
 
@@ -83,13 +84,14 @@ type NodeSettings struct {
 	ExecutionSettings ExecutionSettings `json:"execution_settings"`
 }
 
-// ExecutionSettings holds the configuration for the execution layer
-// clients.
+// ExecutionSettings holds the configuration for the execution layer clients.
 type ExecutionSettings struct {
-	// Specs holds the node specs for all nodes in the execution layer.
-	Specs NodeSpecs `json:"specs"`
-	// Images specifies the images available for the execution layer.
-	Images map[string]string `json:"images"`
+    // Specs holds the node specs for all nodes in the execution layer.
+    Specs NodeSpecs `json:"specs"`
+    // Images specifies the images available for the execution layer.
+    Images map[string]string `json:"images"`
+    // ClientConfigs holds specific configurations for different execution clients
+    ClientConfigs map[string]interface{} `json:"client_configs,omitempty"`
 }
 
 // ConsensusSettings holds the configuration for the consensus layer
@@ -156,12 +158,102 @@ type AdditionalService struct {
 	Replicas int `json:"replicas"`
 }
 
+// NethermindConfig holds specific configuration for Nethermind client
+type NethermindConfig struct {
+    // Specific settings for Nethermind
+    SyncConfig struct {
+        FastSync                  bool `json:"FastSync"`
+        DownloadBodiesInFastSync bool `json:"DownloadBodiesInFastSync"`
+        DownloadReceiptsInFastSync bool `json:"DownloadReceiptsInFastSync"`
+    } `json:"SyncConfig"`
+}
+
+// DefaultNethermindConfig returns the default configuration for Nethermind
+func DefaultNethermindConfig() *NethermindConfig {
+    return &NethermindConfig{
+        SyncConfig: struct {
+            FastSync                  bool
+            DownloadBodiesInFastSync bool
+            DownloadReceiptsInFastSync bool
+        }{
+            FastSync:                  true,
+            DownloadBodiesInFastSync: true,
+            DownloadReceiptsInFastSync: true,
+        },
+    }
+}
+
 // MustMarshalJSON marshals the E2ETestConfig to JSON, panicking if an error.
 func (c *E2ETestConfig) MustMarshalJSON() []byte {
-	jsonBytes, err := json.Marshal(c)
-	if err != nil {
-		panic(err)
-	}
+    // Initialize client configs map if needed
+    if c.NodeSettings.ExecutionSettings.ClientConfigs == nil {
+        c.NodeSettings.ExecutionSettings.ClientConfigs = make(map[string]interface{})
+    }
 
-	return jsonBytes
+    // Check for Nethermind nodes and add configuration
+    for _, nodeSet := range []NodeSet{
+        c.NetworkConfiguration.Validators,
+        c.NetworkConfiguration.FullNodes,
+        c.NetworkConfiguration.SeedNodes,
+    } {
+        for _, node := range nodeSet.Nodes {
+            if node.ElType == "nethermind" && node.Replicas > 0 {
+                if _, exists := c.NodeSettings.ExecutionSettings.ClientConfigs["nethermind"]; !exists {
+                    c.NodeSettings.ExecutionSettings.ClientConfigs["nethermind"] = DefaultNethermindConfig()
+                }
+                break
+            }
+        }
+    }
+
+    jsonBytes, err := json.Marshal(c)
+    if err != nil {
+        panic(err)
+    }
+    return jsonBytes
+}
+
+// ValidateNethermindConfig validates the Nethermind configuration
+func (c *E2ETestConfig) ValidateNethermindConfig() error {
+    // Check if we have any Nethermind nodes
+    nethermindUsed := false
+    for _, nodeSet := range []NodeSet{
+        c.NetworkConfiguration.Validators,
+        c.NetworkConfiguration.FullNodes,
+        c.NetworkConfiguration.SeedNodes,
+    } {
+        for _, node := range nodeSet.Nodes {
+            if node.ElType == "nethermind" && node.Replicas > 0 {
+                nethermindUsed = true
+                break
+            }
+        }
+        if nethermindUsed {
+            break
+        }
+    }
+
+    if !nethermindUsed {
+        return nil // No validation needed if Nethermind is not used
+    }
+
+    // Check if we have Nethermind configuration
+    nethermindConfig, exists := c.NodeSettings.ExecutionSettings.ClientConfigs["nethermind"]
+    if !exists {
+        return fmt.Errorf("nethermind configuration is missing")
+    }
+
+    config, ok := nethermindConfig.(*NethermindConfig)
+    if !ok {
+        return fmt.Errorf("invalid nethermind configuration type")
+    }
+
+    // Validate SyncConfig
+    if !config.SyncConfig.FastSync {
+        if config.SyncConfig.DownloadBodiesInFastSync || config.SyncConfig.DownloadReceiptsInFastSync {
+            return fmt.Errorf("sync options are inconsistent: FastSync is disabled but download options are enabled")
+        }
+    }
+
+    return nil
 }
