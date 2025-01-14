@@ -46,7 +46,7 @@ func (b Backend) StateRootAtSlot(slot math.Slot) (common.Root, error) {
 	return st.StateRootAtIndex(slot.Unwrap() % b.cs.SlotsPerHistoricalRoot())
 }
 
-// StateAtSlot returns the beacon state at a particular slot
+// StateAtSlot returns the beacon state at a particular slot.
 func (b Backend) StateAtSlot(slot math.Slot) (*ctypes.BeaconState, error) {
 	st, _, err := b.stateFromSlotRaw(slot)
 	if err != nil {
