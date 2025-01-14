@@ -48,11 +48,11 @@ func (b Backend) StateRootAtSlot(slot math.Slot) (common.Root, error) {
 
 // StateAtSlot returns the beacon state at a particular slot
 func (b Backend) StateAtSlot(slot math.Slot) (*ctypes.BeaconState, error) {
-	st, slot, err := b.stateFromSlotRaw(slot)
+	st, _, err := b.stateFromSlotRaw(slot)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	beaconState, err := st.GetMarshallable()
 	if err != nil {
 		return nil, err
