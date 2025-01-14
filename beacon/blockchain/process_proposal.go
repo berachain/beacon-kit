@@ -200,7 +200,8 @@ func (s *Service) VerifyIncomingBlock(
 
 	s.logger.Info(
 		"Received incoming beacon block",
-		"state_root", beaconBlk.GetStateRoot(), "slot", beaconBlk.GetSlot(),
+		"state_root", beaconBlk.GetStateRoot(),
+		"slot", beaconBlk.GetSlot(),
 	)
 
 	// We purposefully make a copy of the BeaconState in order
@@ -219,17 +220,17 @@ func (s *Service) VerifyIncomingBlock(
 	if err != nil {
 		s.logger.Error(
 			"Rejecting incoming beacon block ❌ ",
-			"state_root",
-			beaconBlk.GetStateRoot(),
-			"reason",
-			err,
+			"state_root", beaconBlk.GetStateRoot(),
+			"reason", err,
 		)
 
 		if s.shouldBuildOptimisticPayloads() {
-			var lph *ctypes.ExecutionPayloadHeader
-			lph, err = preState.GetLatestExecutionPayloadHeader()
-			if err != nil {
-				return err
+			lph, lphErr := preState.GetLatestExecutionPayloadHeader()
+			if lphErr != nil {
+				return errors.Join(
+					err,
+					fmt.Errorf("failed getting LatestExecutionPayloadHeader: %w", lphErr),
+				)
 			}
 
 			go s.handleRebuildPayloadForRejectedBlock(
@@ -253,10 +254,9 @@ func (s *Service) VerifyIncomingBlock(
 	)
 
 	if s.shouldBuildOptimisticPayloads() {
-		var lph *ctypes.ExecutionPayloadHeader
-		lph, err = postState.GetLatestExecutionPayloadHeader()
-		if err != nil {
-			return err
+		lph, lphErr := postState.GetLatestExecutionPayloadHeader()
+		if lphErr != nil {
+			return fmt.Errorf("failed loading LatestExecutionPayloadHeader: %w", lphErr)
 		}
 
 		go s.handleOptimisticPayloadBuild(
