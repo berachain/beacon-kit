@@ -21,8 +21,9 @@ func (h *Handler[ContextT]) GetState(c ContextT) (any, error) {
 		return nil, err
 	}
 	return beacontypes.StateResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
+		Version:             "unknown", // stubbed
+		ExecutionOptimistic: false,     // stubbed
+		Finalized:           false,     // stubbed
 		Data:                stateRoot,
 	}, nil
 }
