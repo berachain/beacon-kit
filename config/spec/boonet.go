@@ -29,50 +29,29 @@ import (
 func BoonetChainSpec() (chain.Spec, error) {
 	boonetSpec := BaseSpec()
 
-	// Chain ID is 80094.
+	// Chain ID is 80000.
 	boonetSpec.DepositEth1ChainID = BoonetEth1ChainID
-
-	// Target for block time is 2 seconds on Berachain mainnet.
-	boonetSpec.TargetSecondsPerEth1Block = 2
 
 	// BGT contract address.
 	boonetSpec.EVMInflationAddress = common.NewExecutionAddressFromHex(
 		"0x289274787bAF083C15A45a174b7a8e44F0720660",
 	)
 
-	// 0 BERA is minted to the BGT contract per block at genesis.
-	//
-	// A hard fork will occur to set this value as the upper bound of redeemable BGT per
-	// block when BGT begins to be minted.
-	boonetSpec.EVMInflationPerBlock = 0
+	// BERA per block minting.
+	boonetSpec.EVMInflationPerBlock = 2.5e9
 
-	// ValidatorSetCap is 69 on Mainnet for version Deneb at genesis.
-	boonetSpec.ValidatorSetCap = 6
+	// ValidatorSetCap is 256 on the Boonet chain.
+	boonetSpec.ValidatorSetCap = 256
 
-	// MaxValidatorsPerWithdrawalsSweep is 31 because we expect at least 36
+	// MaxValidatorsPerWithdrawalsSweep is 43 because we expect at least 46
 	// validators in the total validators set. We choose a prime number smaller
 	// than the minimum amount of total validators possible.
-	boonetSpec.MaxValidatorsPerWithdrawalsSweep = 7
+	boonetSpec.MaxValidatorsPerWithdrawalsSweep = 43
 
-	// MaxEffectiveBalance (or max stake) is 10 million BERA.
-	boonetSpec.MaxEffectiveBalance = 10_000_000 * 1e9
-
-	// Effective balance increment is 10k BERA
-	// (equivalent to the Deposit Contract's MIN_DEPOSIT_AMOUNT).
-	boonetSpec.EffectiveBalanceIncrement = 10_000 * 1e9
-
-	// Since the activation balance (min stake) is 250k BERA, we set the ejection balance be
-	// activation_balance - effective_balance_increment = 250k - 10k = 240k BERA.
-	boonetSpec.EjectionBalance = 250_000*1e9 - boonetSpec.EffectiveBalanceIncrement
-
-	// Slots per epoch is 192 to mirror the time of epochs on Ethereum mainnet.
-	boonetSpec.SlotsPerEpoch = 192
-
-	// MinEpochsForBlobsSidecarsRequest is 4096 to match Ethereum mainnet.
-	boonetSpec.MinEpochsForBlobsSidecarsRequest = 4096
-
-	// MaxBlobCommitmentsPerBlock is 4096 to match Ethereum mainnet.
-	boonetSpec.MaxBlobCommitmentsPerBlock = 4096
+	// MaxEffectiveBalance is 5 million BERA.
+	//
+	//nolint:mnd // ok.
+	boonetSpec.MaxEffectiveBalance = 5_000_000 * 1e9
 
 	return chain.NewSpec(boonetSpec)
 }
