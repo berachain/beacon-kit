@@ -268,7 +268,24 @@ func (c *chainSpec[
 
 	// EVM Inflation values can be zero or non-zero, no validation needed.
 
-	// TODO: Add more validation rules here.
+	// Validate epoch and slot parameters
+	if c.MinEpochsToInactivityPenalty() == 0 {
+		return ErrInvalidMinEpochsToInactivityPenalty
+	}
+
+	if c.SlotsPerEpoch() == 0 {
+		return ErrInvalidSlotsPerEpoch
+	}
+
+	// Validate blob parameters
+	if c.FieldElementsPerBlob() == 0 {
+		return ErrInvalidFieldElementsPerBlob
+	}
+
+	if c.BytesPerBlob() == 0 {
+		return ErrInvalidBytesPerBlob
+	}
+
 	return nil
 }
 
