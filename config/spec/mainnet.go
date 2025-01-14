@@ -55,7 +55,7 @@ func MainnetChainSpec() (chain.Spec, error) {
 	// MaxValidatorsPerWithdrawalsSweep is 31 because we expect at least 36
 	// validators in the total validators set. We choose a prime number smaller
 	// than the minimum amount of total validators possible.
-	mainnetSpec.MaxValidatorsPerWithdrawalsSweep = 31 // TODO: Confirm with unit test.
+	mainnetSpec.MaxValidatorsPerWithdrawalsSweep = 31
 
 	// MaxEffectiveBalance (or max stake) is 10 million BERA.
 	mainnetSpec.MaxEffectiveBalance = 10_000_000 * 1e9
