@@ -18,14 +18,37 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package service
+package components
 
-// RegistryOption is a functional option for the Registry.
-type RegistryOption func(*Registry) error
+import (
+	"path/filepath"
 
-// WithService is an Option that registers a service with the Registry.
-func WithService(svc Basic) RegistryOption {
-	return func(r *Registry) error {
-		return r.RegisterService(svc)
-	}
+	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/node-core/services/shutdown"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/spf13/cast"
+)
+
+// ShutDownServiceInput is the input for the shuchdown service provider.
+type ShutDownServiceInput[
+	LoggerT log.AdvancedLogger[LoggerT],
+] struct {
+	depinject.In
+
+	Logger  LoggerT
+	AppOpts config.AppOptions
+}
+
+func ProvideShutDownService[
+	LoggerT log.AdvancedLogger[LoggerT],
+](
+	in ShutDownServiceInput[LoggerT],
+) *shutdown.Service {
+	pidFile := filepath.Join(cast.ToString(in.AppOpts.Get(flags.FlagHome)), "data/beacond.pid")
+
+	return shutdown.NewService(
+		in.Logger.With("service", "shutdown"),
+		pidFile)
 }

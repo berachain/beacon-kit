@@ -87,8 +87,9 @@ func StartCmdWithOptions[
 	opts StartCmdOptions[T],
 ) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "start",
-		Short: "Run the node",
+		Use:          "start",
+		SilenceUsage: true,
+		Short:        "Run the node",
 		Long: `Run the node application with CometBFT in process. By
 default, the application will run with CometBFT in process.
 

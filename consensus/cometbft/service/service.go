@@ -192,13 +192,17 @@ func (s *Service[_]) Stop() error {
 
 	if s.node != nil && s.node.IsRunning() {
 		s.logger.Info("Stopping CometBFT Node")
-		//#nosec:G703 // its a bet.
-		_ = s.node.Stop()
+		err := s.node.Stop()
+		if err != nil {
+			errs = append(errs, fmt.Errorf("failed to stop CometBFT Node: %w", err))
+		}
+		s.logger.Info("Waiting for CometBFT Node to stop")
+		s.node.Wait()
 	}
 
 	s.logger.Info("Closing application.db")
 	if err := s.sm.Close(); err != nil {
-		errs = append(errs, err)
+		errs = append(errs, fmt.Errorf("failed to close application.id: %w", err))
 	}
 	return errors.Join(errs...)
 }
