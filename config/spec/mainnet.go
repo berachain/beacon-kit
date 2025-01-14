@@ -69,7 +69,7 @@ func MainnetChainSpec() (chain.Spec, error) {
 	mainnetSpec.EjectionBalance = 250_000*1e9 - mainnetSpec.EffectiveBalanceIncrement
 
 	// Slots per epoch is 192 to mirror the time of epochs on Ethereum mainnet.
-	mainnetSpec.SlotsPerEpoch = 192 // TODO: confirm after testing.
+	mainnetSpec.SlotsPerEpoch = 192
 
 	// MinEpochsForBlobsSidecarsRequest is 4096 to match Ethereum mainnet.
 	mainnetSpec.MinEpochsForBlobsSidecarsRequest = 4096
