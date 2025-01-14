@@ -43,8 +43,9 @@ func MainnetChainSpec() (chain.Spec, error) {
 	)
 
 	// 0 BERA is minted to the BGT contract per block at genesis.
-	// A hard fork will occur to set this value as the upper bound of redeemable BGT when 
-	// BGT be
+	//
+	// A hard fork will occur to set this value as the upper bound of redeemable BGT per
+	// block when BGT begins to be minted.
 	mainnetSpec.EVMInflationPerBlock = 0
 
 	// ValidatorSetCap is 69 on Mainnet for version Deneb at genesis.
