@@ -31,6 +31,10 @@ type GetStateRootRequest struct {
 	types.StateIDRequest
 }
 
+type GetStateRequest struct {
+	types.StateIDRequest
+}
+
 type GetStateForkRequest struct {
 	types.StateIDRequest
 }
