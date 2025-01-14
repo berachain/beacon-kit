@@ -36,14 +36,16 @@ func (h *Handler[ContextT]) GetState(c ContextT) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	stateRoot, err := h.backend.StateAtSlot(slot)
+	state, err := h.backend.StateAtSlot(slot)
 	if err != nil {
 		return nil, err
 	}
 	return beacontypes.StateResponse{
-		Version:             "unknown", // stubbed
-		ExecutionOptimistic: false,     // stubbed
-		Finalized:           false,     // stubbed
-		Data:                stateRoot,
+		// TODO: The version should be retrieved based on the slot
+		Version:             "deneb", // stubbed
+		ExecutionOptimistic: false,   // stubbed
+		// TODO: We can set to finalized if this is less than the highest height
+		Finalized: false, // stubbed
+		Data:      state,
 	}, nil
 }
