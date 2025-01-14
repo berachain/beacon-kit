@@ -35,7 +35,7 @@ func (h *Handler[ContextT]) RegisterRoutes(
 		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v2/debug/beacon/states/:state_id",
-			Handler: h.NotImplemented,
+			Handler: h.GetState,
 		},
 		{
 			Method:  http.MethodGet,
