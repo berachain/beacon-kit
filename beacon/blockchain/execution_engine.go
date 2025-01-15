@@ -24,7 +24,7 @@ import (
 	"context"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
