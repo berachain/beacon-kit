@@ -182,8 +182,8 @@ func (d *Deposit) GetWithdrawalCredentials() WithdrawalCredentials {
 	return d.Credentials
 }
 
-// HasEth1WithdrawalCredentials returns true if the deposit has eth1 withdrawal
-// credentials.
+// HasEth1WithdrawalCredentials as defined in the Ethereum 2.0 specification:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/validator.md#eth1_address_withdrawal_prefix
 func (d *Deposit) HasEth1WithdrawalCredentials() bool {
-	return d.Credentials[0] == EthSecp256k1CredentialPrefix
+	return d.Credentials.IsValidEth1WithdrawalCredentials()
 }

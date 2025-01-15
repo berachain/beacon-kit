@@ -168,8 +168,7 @@ func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 		} else if validator.IsPartiallyWithdrawable(
 			balance, math.Gwei(s.cs.MaxEffectiveBalance()),
 		) {
-			withdrawalAddress, err = validator.
-				GetWithdrawalCredentials().ToExecutionAddress()
+			withdrawalAddress, err = validator.GetWithdrawalCredentials().ToExecutionAddress()
 			if err != nil {
 				return nil, err
 			}
