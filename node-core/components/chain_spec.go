@@ -33,11 +33,10 @@ const (
 	DevnetChainSpecType  = "devnet"
 	MainnetChainSpecType = "mainnet"
 	TestnetChainSpecType = "testnet"
-	MainnetChainSpecType = "mainnet"
 )
 
 // ProvideChainSpec provides the chain spec based on the environment variable.
-// Returns error if no valid chain spec environment variable is set.
+// Defaults to use Mainnet if no valid chain spec environment variable is set.
 func ProvideChainSpec() (chain.Spec, error) {
 	var (
 		chainSpec chain.Spec
@@ -48,12 +47,12 @@ func ProvideChainSpec() (chain.Spec, error) {
 	switch os.Getenv(ChainSpecTypeEnvVar) {
 	case DevnetChainSpecType:
 		chainSpec, err = spec.DevnetChainSpec()
-	case MainnetChainSpecType:
-		chainSpec, err = spec.MainnetChainSpec()
 	case TestnetChainSpecType:
 		chainSpec, err = spec.TestnetChainSpec()
+	case MainnetChainSpecType:
+		
 	default:
-		return nil, fmt.Errorf("invalid chain spec type: %s", os.Getenv(ChainSpecTypeEnvVar))
+		chainSpec, err = spec.MainnetChainSpec()
 	}
 
 	if err != nil {
