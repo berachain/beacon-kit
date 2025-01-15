@@ -37,7 +37,9 @@ import (
 
 func TestSetDepositStorageCmd(t *testing.T) {
 	t.Run("command should be available and have correct use", func(t *testing.T) {
-		cmd := genesis.SetDepositStorageCmd()
+		chainSpec, err := spec.DevnetChainSpec()
+		require.NoError(t, err)
+		cmd := genesis.SetDepositStorageCmd(chainSpec)
 		require.Equal(t, "set-deposit-storage [eth/genesis/file.json]", cmd.Use)
 	})
 
@@ -58,28 +60,37 @@ func TestSetDepositStorageCmd(t *testing.T) {
 		ctx := context.WithValue(context.Background(), client.ClientContextKey, &clientCtx)
 
 		// Create and execute the command
-		cmd := genesis.SetDepositStorageCmd()
+		chainSpec, err := spec.DevnetChainSpec()
+		require.NoError(t, err)
+		cmd := genesis.SetDepositStorageCmd(chainSpec)
 		cmd.SetContext(ctx)
 		// Change working directory to tmpDir for the test
 		currentDir, err := os.Getwd()
 		require.NoError(t, err)
 		err = os.Chdir(tmpDir)
 		require.NoError(t, err)
-		defer os.Chdir(currentDir)
+		defer func() {
+			err = os.Chdir(currentDir)
+			require.NoError(t, err)
+		}()
 
 		cmd.SetArgs([]string{mockGenesisPath})
 		require.NoError(t, cmd.Execute())
 
-		verifyStorageOutput(t, tmpDir, mockGenesisPath)
+		verifyStorageOutput(t, mockGenesisPath)
 	})
 }
 
 func setupMockGenesis(t *testing.T, tmpDir string) string {
 	t.Helper()
+	chainSpec, err := spec.DevnetChainSpec()
+	require.NoError(t, err)
+	depositAddr := common.Address(chainSpec.DepositContractAddress())
+
 	mockGenesisPath := filepath.Join(tmpDir, "genesis.json")
 	mockGenesis := map[string]interface{}{
 		"alloc": map[string]interface{}{
-			spec.DefaultDepositContractAddress: map[string]interface{}{
+			depositAddr.Hex(): map[string]interface{}{
 				"balance": "0x0",
 				"code":    "0x1234",
 			},
@@ -123,8 +134,12 @@ func setupMockCLGenesis(t *testing.T, tmpDir string) string {
 	return mockCLGenesisPath
 }
 
-func verifyStorageOutput(t *testing.T, tmpDir string, genesisPath string) {
+func verifyStorageOutput(t *testing.T, genesisPath string) {
 	t.Helper()
+	chainSpec, err := spec.DevnetChainSpec()
+	require.NoError(t, err)
+	depositAddr := common.Address(chainSpec.DepositContractAddress())
+
 	// Verify the output genesis file
 	outputBz, err := afero.ReadFile(afero.NewOsFs(), genesisPath)
 	require.NoError(t, err)
@@ -136,7 +151,7 @@ func verifyStorageOutput(t *testing.T, tmpDir string, genesisPath string) {
 	// Check that the deposit contract storage was set correctly
 	alloc, ok := output["alloc"].(map[string]interface{})
 	require.True(t, ok)
-	depositContract, ok := alloc[spec.DefaultDepositContractAddress].(map[string]interface{})
+	depositContract, ok := alloc[depositAddr.Hex()].(map[string]interface{})
 	require.True(t, ok)
 	storage, ok := depositContract["storage"].(map[string]interface{})
 	require.True(t, ok)

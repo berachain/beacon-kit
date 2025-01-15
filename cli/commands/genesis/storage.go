@@ -24,9 +24,9 @@ import (
 	"math/big"
 	"path/filepath"
 
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/cli/commands/genesis/types"
 	"github.com/berachain/beacon-kit/cli/context"
-	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
@@ -38,7 +38,7 @@ import (
 )
 
 // Set deposit contract storage in genesis alloc file.
-func SetDepositStorageCmd() *cobra.Command {
+func SetDepositStorageCmd(chainSpec chain.Spec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "set-deposit-storage [eth/genesis/file.json]",
 		Short: "sets deposit contract storage in eth genesis",
@@ -109,11 +109,11 @@ func SetDepositStorageCmd() *cobra.Command {
 			storage[slot1] = common.BytesToHash(root[:])
 
 			// Assign storage to the deposit contract address.
-			addr := common.HexToAddress(spec.DefaultDepositContractAddress)
+			depositAddr := common.Address(chainSpec.DepositContractAddress())
 			allocs := elGenesis.Alloc()
-			if entry, ok := allocs[addr]; ok {
+			if entry, ok := allocs[depositAddr]; ok {
 				entry.Storage = storage
-				allocs[addr] = entry
+				allocs[depositAddr] = entry
 			}
 
 			// Get just the filename from the path
@@ -121,7 +121,7 @@ func SetDepositStorageCmd() *cobra.Command {
 			outputPath := filepath.Join(config.RootDir, filename)
 
 			// Write to file.
-			err = writeGenesisAllocToFile(outputPath, args[0], allocs, allocsKey)
+			err = writeGenesisAllocToFile(depositAddr, outputPath, args[0], allocs, allocsKey)
 			if err != nil {
 				return errors.Wrap(err, "failed to write genesis alloc to file")
 			}
@@ -137,6 +137,7 @@ func SetDepositStorageCmd() *cobra.Command {
 	return cmd
 }
 func writeGenesisAllocToFile(
+	depositAddr common.Address,
 	outputDocument string,
 	inputDocument string,
 	genesisAlloc gethprimitives.GenesisAlloc,
@@ -161,9 +162,8 @@ func writeGenesisAllocToFile(
 	}
 
 	// Update only the deposit contract entry
-	depositAddr := spec.DefaultDepositContractAddress
-	if account, exists := genesisAlloc[common.HexToAddress(depositAddr)]; exists {
-		alloc[depositAddr] = account
+	if account, exists := genesisAlloc[depositAddr]; exists {
+		alloc[depositAddr.Hex()] = account
 	}
 
 	// Marshal back to JSON
