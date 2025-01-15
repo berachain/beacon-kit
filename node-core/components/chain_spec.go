@@ -21,7 +21,6 @@
 package components
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/berachain/beacon-kit/chain"
@@ -50,7 +49,7 @@ func ProvideChainSpec() (chain.Spec, error) {
 	case TestnetChainSpecType:
 		chainSpec, err = spec.TestnetChainSpec()
 	case MainnetChainSpecType:
-		
+		fallthrough
 	default:
 		chainSpec, err = spec.MainnetChainSpec()
 	}
