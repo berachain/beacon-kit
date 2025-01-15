@@ -149,7 +149,7 @@ contract DepositContractTest is SoladyTest, StdCheats {
         vm.prank(depositor);
         vm.expectEmit(true, true, true, true);
         emit IDepositContract.Deposit(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32 gwei, _create96Byte(), 0
+            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32 ether, _create96Byte(), 0
         );
         depositContract.deposit{ value: 32 ether }(
             VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte(), depositor
