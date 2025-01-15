@@ -217,7 +217,7 @@ start-erigon: ## start an ephemeral `erigon` node
 	erigontech/erigon:latest \
 	--http \
 	--http.addr 0.0.0.0 \
-	--http.api eth,net \
+	--http.api eth,erigon,engine,web3,net,debug,trace,txpool,admin,ots \
 	--http.vhosts "*" \
 	--port 30303 \
 	--http.corsdomain "*" \

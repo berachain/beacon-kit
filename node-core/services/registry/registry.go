@@ -55,9 +55,9 @@ type Registry struct {
 }
 
 // NewRegistry starts a registry instance for convenience.
-func NewRegistry(
-	opts ...RegistryOption) *Registry {
+func NewRegistry(logger log.Logger, opts ...RegistryOption) *Registry {
 	r := &Registry{
+		logger:   logger,
 		services: make(map[string]Basic),
 	}
 
@@ -88,9 +88,12 @@ func (s *Registry) StartAll(ctx context.Context) error {
 	return nil
 }
 
-func (s *Registry) StopAll() error {
+func (s *Registry) StopAll() {
 	s.logger.Info("Stopping services", "num", len(s.serviceTypes))
-	for _, typeName := range s.serviceTypes {
+
+	// stop all services in reverse order they were started
+	for i := len(s.serviceTypes) - 1; i >= 0; i-- {
+		typeName := s.serviceTypes[i]
 		s.logger.Info("Stopping service", "type", typeName)
 		svc := s.services[typeName]
 		if svc == nil {
@@ -99,10 +102,9 @@ func (s *Registry) StopAll() error {
 		}
 
 		if err := svc.Stop(); err != nil {
-			return err
+			s.logger.Error("error when stopping service", "type", typeName, "err", err)
 		}
 	}
-	return nil
 }
 
 // RegisterService appends a service constructor function to the service

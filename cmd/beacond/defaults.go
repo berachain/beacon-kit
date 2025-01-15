@@ -54,6 +54,7 @@ func DefaultComponents() []any {
 		components.ProvideTelemetryService,
 		components.ProvideTrustedSetup,
 		components.ProvideValidatorService[*Logger],
+		components.ProvideShutDownService[*Logger],
 	}
 	c = append(c,
 		components.ProvideNodeAPIServer[*Logger, NodeAPIContext],

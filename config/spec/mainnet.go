@@ -27,27 +27,24 @@ import (
 )
 
 const (
-	// MainnetEVMInflationAddressDeneb is the BGT contract address for genesis version Deneb.
+	// BGT contract address.
 	//
-	// TODO: CONFIRM WITH SC TEAM!!!
-	MainnetEVMInflationAddressDeneb = "0x289274787bAF083C15A45a174b7a8e44F0720660"
+	// A hard fork will occur to set this value as the BGT contract address
+	// when BGT beings to be minted.
+	MainnetEVMInflationAddressDeneb = DefaultEVMInflationAddress
 
-	// MainnetEVMInflationPerBlock is 5.75 BERA minted to the BGT contract per block
-	// as the upper bound of redeemable BGT for genesis version Deneb.
+	// 0 BERA is minted to the BGT contract per block at genesis.
 	//
-	// TODO: CONFIRM WITH QUANTUM TEAM!!!
-	MainnetEVMInflationPerBlockDeneb = 5.75e9
+	// A hard fork will occur to set this value as the upper bound of redeemable BGT per
+	// block when BGT begins to be minted.
+	MainnetEVMInflationPerBlockDeneb = DefaultEVMInflationPerBlock
 
-	// MainnetValidatorSetCap is 69 on Mainnet for version Deneb.
-	//
-	// TODO: FIXME!!!
+	// MainnetValidatorSetCap is 69 on Mainnet for genesis version Deneb.
 	MainnetValidatorSetCapDeneb = 69
 
-	// MainnetMaxValidatorsPerWithdrawalsSweep is 31 because we expect at least 36
-	// validators in the total validators set at genesis. We choose a prime number smaller
+	// MaxValidatorsPerWithdrawalsSweep is 31 because we expect at least 36
+	// validators in the total validators set. We choose a prime number smaller
 	// than the minimum amount of total validators possible.
-	//
-	// TODO: FIXME!!!
 	MainnetMaxValidatorsPerWithdrawalsSweep = 31
 
 	// MainnetMaxEffectiveBalance is the max stake of 10 million BERA for genesis version Deneb.
@@ -60,9 +57,9 @@ const (
 	// MainnetEjectionBalance is 240k BERA, calculated as:
 	// activation_balance - effective_balance_increment = 250k - 10k = 240k BERA.
 	// Activation balance is the min stake of 250k BERA for genesis version Deneb.
-	MainnetEjectionBalanceDeneb = 240_000 * 1e9
+	MainnetEjectionBalanceDeneb = 250_000*1e9 - MainnetEffectiveBalanceIncrementDeneb
 
-	// TODO: FIXME!!! I really like 192 over 32 :))).
+	// Slots per epoch is 192 to mirror the time of epochs on Ethereum mainnet.
 	MainnetSlotsPerEpochDeneb = 192
 
 	// MainnetMinEpochsForBlobsSidecarsRequestDeneb is 4096 for genesis version Deneb
@@ -72,11 +69,13 @@ const (
 	// MainnetMaxBlobCommitmentsPerBlock is 4096 for genesis version Deneb
 	// to match Ethereum mainnet.
 	MainnetMaxBlobCommitmentsPerBlock = 4096
+
+	// The deposit contract address on mainnet at Deneb is the same as the
+	// default deposit contract address.
+	MainnetDepositContractAddressDeneb = DefaultDepositContractAddress
 )
 
 // MainnetChainSpec is the ChainSpec for the Berachain mainnet.
-//
-
 func MainnetChainSpec() (chain.Spec, error) {
 	mainnetSpec := &chain.SpecData{
 		// Gwei values constants.
@@ -97,14 +96,13 @@ func MainnetChainSpec() (chain.Spec, error) {
 		DomainTypeProposer:          bytes.FromUint32(DefaultDomainTypeProposer),
 		DomainTypeAttester:          bytes.FromUint32(DefaultDomainTypeAttester),
 		DomainTypeRandao:            bytes.FromUint32(DefaultDomainTypeRandao),
-		DomainTypeDeposit:           bytes.FromUint32(DefaultDomainTypeDeposit),
 		DomainTypeVoluntaryExit:     bytes.FromUint32(DefaultDomainTypeVoluntaryExit),
 		DomainTypeSelectionProof:    bytes.FromUint32(DefaultDomainTypeSelectionProof),
 		DomainTypeAggregateAndProof: bytes.FromUint32(DefaultDomainTypeAggregateAndProof),
 		DomainTypeApplicationMask:   bytes.FromUint32(DefaultDomainTypeApplicationMask),
 
 		// Eth1-related values.
-		DepositContractAddress:    common.NewExecutionAddressFromHex(DefaultDepositContractAddress),
+		DepositContractAddress:    common.NewExecutionAddressFromHex(MainnetDepositContractAddressDeneb),
 		MaxDepositsPerBlock:       DefaultMaxDepositsPerBlock,
 		DepositEth1ChainID:        MainnetEth1ChainID,
 		Eth1FollowDistance:        DefaultEth1FollowDistance,
@@ -119,10 +117,6 @@ func MainnetChainSpec() (chain.Spec, error) {
 		EpochsPerSlashingsVector:  DefaultEpochsPerSlashingsVector,
 		HistoricalRootsLimit:      DefaultHistoricalRootsLimit,
 		ValidatorRegistryLimit:    DefaultValidatorRegistryLimit,
-
-		// Slashing.
-		InactivityPenaltyQuotient:      DefaultInactivityPenaltyQuotient,
-		ProportionalSlashingMultiplier: DefaultProportionalSlashingMultiplier,
 
 		// Capella values.
 		MaxWithdrawalsPerPayload:         DefaultMaxWithdrawalsPerPayload,

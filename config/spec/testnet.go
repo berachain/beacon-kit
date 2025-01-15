@@ -26,7 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 )
 
-// TestnetChainSpec is the chain.Spec for the public Dartio testnet.
+// TestnetChainSpec is the chain.Spec for Berachain's public testnet.
 //
 // TODO: adjust values before testnet genesis.
 func TestnetChainSpec() (chain.Spec, error) {

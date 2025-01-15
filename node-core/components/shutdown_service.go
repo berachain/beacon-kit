@@ -18,41 +18,37 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package genesis
+package components
 
 import (
-	"github.com/berachain/beacon-kit/chain"
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/spf13/cobra"
+	"path/filepath"
+
+	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/node-core/services/shutdown"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/spf13/cast"
 )
 
-// Commands builds the genesis-related command. Users may
-// provide application specific commands as a parameter.
-func Commands(
-	cs chain.Spec,
-	cmds ...*cobra.Command,
-) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:                        "genesis",
-		Short:                      "Application's genesis-related subcommands",
-		DisableFlagParsing:         false,
-		SuggestionsMinimumDistance: 2, //nolint:mnd // from sdk.
-		RunE:                       client.ValidateCmd,
-	}
+// ShutDownServiceInput is the input for the shuchdown service provider.
+type ShutDownServiceInput[
+	LoggerT log.AdvancedLogger[LoggerT],
+] struct {
+	depinject.In
 
-	// Adding subcommands for genesis-related operations.
-	cmd.AddCommand(
-		AddGenesisDepositCmd(cs),
-		CollectGenesisDepositsCmd(),
-		AddExecutionPayloadCmd(cs),
-		GetGenesisValidatorRootCmd(cs),
-		SetDepositStorageCmd(cs),
-	)
+	Logger  LoggerT
+	AppOpts config.AppOptions
+}
 
-	// Add additional commands
-	for _, subCmd := range cmds {
-		cmd.AddCommand(subCmd)
-	}
+func ProvideShutDownService[
+	LoggerT log.AdvancedLogger[LoggerT],
+](
+	in ShutDownServiceInput[LoggerT],
+) *shutdown.Service {
+	pidFile := filepath.Join(cast.ToString(in.AppOpts.Get(flags.FlagHome)), "data/beacond.pid")
 
-	return cmd
+	return shutdown.NewService(
+		in.Logger.With("service", "shutdown"),
+		pidFile)
 }

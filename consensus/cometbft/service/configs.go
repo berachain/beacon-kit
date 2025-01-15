@@ -46,7 +46,8 @@ const ( // appeases mnd
 )
 
 var (
-	ErrInvalidaConfig = errors.New("invalid comet config for BeaconKit")
+	ErrInvalidaConfig          = errors.New("invalid comet config for BeaconKit")
+	ErrInvalidaConsensusParams = errors.New("invalid comet consensus params for BeaconKit")
 )
 
 // DefaultConfig returns the default configuration for the CometBFT
@@ -170,5 +171,16 @@ func extractConsensusParams(cmtCfg *cmtcfg.Config) (*cmttypes.ConsensusParams, e
 
 	// Todo: add validation for genesis params by chainID
 	cmtConsensusParams := genDoc.GenesisDoc.ConsensusParams
-	return cmtConsensusParams, nil
+	return cmtConsensusParams, validateConsensusParams(cmtConsensusParams)
+}
+
+func validateConsensusParams(params *cmttypes.ConsensusParams) error {
+	if params.Block.MaxBytes < maxBlockSize {
+		return fmt.Errorf("%w, param max size %v, requested size %v",
+			ErrInvalidaConsensusParams,
+			params.Block.MaxBytes,
+			maxBlockSize,
+		)
+	}
+	return nil
 }
