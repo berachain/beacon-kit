@@ -21,7 +21,6 @@
 package components
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/berachain/beacon-kit/chain"
@@ -38,15 +37,14 @@ const (
 )
 
 // ProvideChainSpec provides the chain spec based on the environment variable.
-// Returns error if no valid chain spec environment variable is set.
+// Defaults to use Mainnet if no valid chain spec environment variable is set.
 func ProvideChainSpec() (chain.Spec, error) {
-	// TODO: This is hood as fuck needs to be improved
-	// but for now we ball to get CI unblocked.
 	var (
 		chainSpec chain.Spec
 		err       error
 	)
 
+	// TODO: replace reading env var with config value.
 	switch os.Getenv(ChainSpecTypeEnvVar) {
 	case TestnetChainSpecType:
 		chainSpec, err = spec.TestnetChainSpec()
@@ -54,12 +52,12 @@ func ProvideChainSpec() (chain.Spec, error) {
 		chainSpec, err = spec.BetnetChainSpec()
 	case BoonetChainSpecType:
 		chainSpec, err = spec.BoonetChainSpec()
-	case MainnetChainSpecType:
-		chainSpec, err = spec.MainnetChainSpec()
 	case DevnetChainSpecType:
 		chainSpec, err = spec.DevnetChainSpec()
+	case MainnetChainSpecType:
+		fallthrough
 	default:
-		return nil, fmt.Errorf("invalid chain spec type: %s", os.Getenv(ChainSpecTypeEnvVar))
+		chainSpec, err = spec.MainnetChainSpec()
 	}
 
 	if err != nil {
