@@ -118,7 +118,7 @@ func U64FromString(id string) (math.U64, error) {
 }
 
 // slotFromStateID returns a slot number from the given state ID.
-// TODO: This pattern does not allow us to query block 0. Genesis points to block 1
+// TODO: This pattern does not allow us to query block 0. Genesis points to block 1.
 func slotFromStateID(id string) (math.Slot, error) {
 	switch id {
 	case StateIDFinalized, StateIDJustified, StateIDHead:
