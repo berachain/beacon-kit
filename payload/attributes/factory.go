@@ -21,18 +21,18 @@
 package attributes
 
 import (
+	"github.com/berachain/beacon-kit/chain-spec/chain"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // Factory is a factory for creating payload attributes.
-type Factory[
-	BeaconStateT BeaconState,
-	PayloadAttributesT PayloadAttributes[PayloadAttributesT],
-] struct {
+type Factory struct {
 	// chainSpec is the chain spec for the attributes factory.
-	chainSpec common.ChainSpec
+	chainSpec chain.ChainSpec
 	// logger is the logger for the attributes factory.
 	logger log.Logger
 	// suggestedFeeRecipient is the suggested fee recipient sent to
@@ -41,15 +41,12 @@ type Factory[
 }
 
 // NewAttributesFactory creates a new instance of AttributesFactory.
-func NewAttributesFactory[
-	BeaconStateT BeaconState,
-	PayloadAttributesT PayloadAttributes[PayloadAttributesT],
-](
-	chainSpec common.ChainSpec,
+func NewAttributesFactory(
+	chainSpec chain.ChainSpec,
 	logger log.Logger,
 	suggestedFeeRecipient common.ExecutionAddress,
-) *Factory[BeaconStateT, PayloadAttributesT] {
-	return &Factory[BeaconStateT, PayloadAttributesT]{
+) *Factory {
+	return &Factory{
 		chainSpec:             chainSpec,
 		logger:                logger,
 		suggestedFeeRecipient: suggestedFeeRecipient,
@@ -57,18 +54,15 @@ func NewAttributesFactory[
 }
 
 // BuildPayloadAttributes creates a new instance of PayloadAttributes.
-func (f *Factory[
-	BeaconStateT,
-	PayloadAttributesT,
-]) BuildPayloadAttributes(
-	st BeaconStateT,
+func (f *Factory) BuildPayloadAttributes(
+	st *statedb.StateDB,
 	slot math.Slot,
 	timestamp uint64,
 	prevHeadRoot [32]byte,
-) (PayloadAttributesT, error) {
+) (*engineprimitives.PayloadAttributes, error) {
 	var (
 		prevRandao [32]byte
-		attributes PayloadAttributesT
+		attributes *engineprimitives.PayloadAttributes
 		epoch      = f.chainSpec.SlotToEpoch(slot)
 	)
 

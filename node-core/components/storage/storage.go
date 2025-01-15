@@ -23,19 +23,20 @@ package storage
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/chain-spec/chain"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
+	"github.com/berachain/beacon-kit/storage/beacondb"
 )
 
 // Backend is a struct that holds the storage backend. It provides a simple
 // interface to access all types of storage required by the runtime.
 type Backend[
 	AvailabilityStoreT any,
-	BeaconStateT BeaconState[BeaconStateT, KVStoreT],
 	BlockStoreT any,
 	DepositStoreT any,
 	KVStoreT KVStore[KVStoreT],
 ] struct {
-	chainSpec         common.ChainSpec
+	chainSpec         chain.ChainSpec
 	availabilityStore AvailabilityStoreT
 	kvStore           KVStoreT
 	depositStore      DepositStoreT
@@ -44,21 +45,20 @@ type Backend[
 
 func NewBackend[
 	AvailabilityStoreT any,
-	BeaconStateT BeaconState[BeaconStateT, KVStoreT],
 	BlockStoreT any,
 	DepositStoreT any,
 	KVStoreT KVStore[KVStoreT],
 ](
-	chainSpec common.ChainSpec,
+	chainSpec chain.ChainSpec,
 	availabilityStore AvailabilityStoreT,
 	kvStore KVStoreT,
 	depositStore DepositStoreT,
 	blockStore BlockStoreT,
 ) *Backend[
-	AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT, KVStoreT,
+	AvailabilityStoreT, BlockStoreT, DepositStoreT, KVStoreT,
 ] {
 	return &Backend[
-		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT, KVStoreT,
+		AvailabilityStoreT, BlockStoreT, DepositStoreT, KVStoreT,
 	]{
 		chainSpec:         chainSpec,
 		availabilityStore: availabilityStore,
@@ -71,7 +71,7 @@ func NewBackend[
 // AvailabilityStore returns the availability store struct initialized with a
 // given context.
 func (k Backend[
-	AvailabilityStoreT, _, _, _, _,
+	AvailabilityStoreT, _, _, _,
 ]) AvailabilityStore() AvailabilityStoreT {
 	return k.availabilityStore
 }
@@ -79,30 +79,35 @@ func (k Backend[
 // BeaconState returns the beacon state struct initialized with a given
 // context and the store key.
 func (k Backend[
-	_, BeaconStateT, _, _, _,
+	_, _, _, KVStoreT,
 ]) StateFromContext(
 	ctx context.Context,
-) BeaconStateT {
-	var st BeaconStateT
-	return st.NewFromDB(k.kvStore.WithContext(ctx), k.chainSpec)
+) *statedb.StateDB {
+	kvstore, ok := any(k.kvStore.WithContext(ctx)).(*beacondb.KVStore)
+	if !ok {
+		panic("failed to cast KVStoreT to beacondb.KVStore")
+	}
+
+	var st *statedb.StateDB
+	return st.NewFromDB(kvstore, k.chainSpec)
 }
 
 // BeaconStore returns the beacon store struct.
 func (k Backend[
-	_, _, _, _, KVStoreT,
+	_, _, _, KVStoreT,
 ]) BeaconStore() KVStoreT {
 	return k.kvStore
 }
 
 func (k Backend[
-	_, _, BlockStoreT, _, _,
+	_, BlockStoreT, _, _,
 ]) BlockStore() BlockStoreT {
 	return k.blockStore
 }
 
 // DepositStore returns the deposit store struct initialized with a.
 func (k Backend[
-	_, _, _, DepositStoreT, _,
+	_, _, DepositStoreT, _,
 ]) DepositStore() DepositStoreT {
 	return k.depositStore
 }

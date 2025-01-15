@@ -22,15 +22,18 @@ package blockchain
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/consensus/types"
 	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -45,68 +48,81 @@ const (
 )
 
 func (s *Service[
-	_, _, ConsensusBlockT, BeaconBlockT, _, _,
-	_, _, _, GenesisT, ConsensusSidecarsT, BlobSidecarsT, _,
+	_, _, ConsensusBlockT, _,
+	GenesisT, ConsensusSidecarsT,
 ]) ProcessProposal(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
 	// Decode the beacon block.
 	blk, err := encoding.
-		UnmarshalBeaconBlockFromABCIRequest[BeaconBlockT](
-		req,
-		BeaconBlockTxIndex,
-		s.chainSpec.ActiveForkVersionForSlot(math.U64(req.Height)),
-	)
+		UnmarshalBeaconBlockFromABCIRequest(
+			req,
+			BeaconBlockTxIndex,
+			s.chainSpec.ActiveForkVersionForSlot(math.U64(req.Height)),
+		)
 	if err != nil {
 		return createProcessProposalResponse(errors.WrapNonFatal(err))
+	} else if blk.IsNil() {
+		s.logger.Warn(
+			"Aborting block verification - beacon block not found in proposal",
+		)
+		return createProcessProposalResponse(errors.WrapNonFatal(ErrNilBlk))
 	}
 
 	// Decode the blob sidecars.
 	sidecars, err := encoding.
-		UnmarshalBlobSidecarsFromABCIRequest[BlobSidecarsT](
-		req,
-		BlobSidecarsTxIndex,
-	)
+		UnmarshalBlobSidecarsFromABCIRequest(
+			req,
+			BlobSidecarsTxIndex,
+		)
 	if err != nil {
+		return createProcessProposalResponse(errors.WrapNonFatal(err))
+	} else if sidecars.IsNil() {
+		s.logger.Warn(
+			"Aborting block verification - blob sidecars not found in proposal",
+		)
+		return createProcessProposalResponse(errors.WrapNonFatal(ErrNilBlob))
+	}
+
+	// Make sure we have the right number of BlobSidecars
+	numCommitments := len(blk.GetBody().GetBlobKzgCommitments())
+	if numCommitments != len(sidecars) {
+		err = fmt.Errorf("expected %d sidecars, got %d",
+			numCommitments, len(sidecars),
+		)
 		return createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
 
-	// Process the blob sidecars, if any
-	if !sidecars.IsNil() && sidecars.Len() > 0 {
-		var consensusSidecars *types.ConsensusSidecars[BlobSidecarsT]
+	if numCommitments > 0 {
+		// Process the blob sidecars
+		//
+		// In theory, swapping the order of verification between the sidecars
+		// and the incoming block should not introduce any inconsistencies
+		// in the state on which the sidecar verification depends on (notably
+		// the currently active fork). ProcessProposal should only
+		// keep the state changes as candidates (which is what we do in
+		// VerifyIncomingBlock).
+		var consensusSidecars *types.ConsensusSidecars
 		consensusSidecars = consensusSidecars.New(
 			sidecars,
 			blk.GetHeader(),
 		)
-
-		s.logger.Info("Received incoming blob sidecars")
-
-		// TODO: Clean this up once we remove generics.
-		c := convertConsensusSidecars[
-			ConsensusSidecarsT,
-			BlobSidecarsT,
-		](consensusSidecars)
-
-		// Verify the blobs and ensure they match the local state.
-		err = s.blobProcessor.VerifySidecars(c)
+		err = s.VerifyIncomingBlobSidecars(
+			ctx,
+			consensusSidecars,
+		)
 		if err != nil {
 			s.logger.Error(
-				"rejecting incoming blob sidecars",
-				"reason", err,
+				"failed to verify incoming blob sidecars",
+				"error", err,
 			)
 			return createProcessProposalResponse(errors.WrapNonFatal(err))
 		}
-
-		s.logger.Info(
-			"Blob sidecars verification succeeded - accepting incoming blob sidecars",
-			"num_blobs",
-			sidecars.Len(),
-		)
 	}
 
 	// Process the block
-	var consensusBlk *types.ConsensusBlock[BeaconBlockT]
+	var consensusBlk *types.ConsensusBlock
 	consensusBlk = consensusBlk.New(
 		blk,
 		req.GetProposerAddress(),
@@ -126,14 +142,60 @@ func (s *Service[
 	return createProcessProposalResponse(nil)
 }
 
+// VerifyIncomingBlobSidecars verifies the BlobSidecars of an incoming
+// proposal and logs the process.
+func (s *Service[
+	_, _, ConsensusBlockT, _,
+	GenesisT, ConsensusSidecarsT,
+]) VerifyIncomingBlobSidecars(
+	ctx context.Context,
+	cSidecars *types.ConsensusSidecars,
+) error {
+	sidecars := cSidecars.GetSidecars()
+
+	s.logger.Info("Received incoming blob sidecars")
+
+	// TODO: Clean this up once we remove generics.
+	cs := convertConsensusSidecars[ConsensusSidecarsT](cSidecars)
+
+	// Get the sidecar verification function from the state processor
+	sidecarVerifierFn, err := s.stateProcessor.GetSidecarVerifierFn(
+		s.storageBackend.StateFromContext(ctx),
+	)
+	if err != nil {
+		s.logger.Error(
+			"an error incurred while calculating the sidecar verifier",
+			"reason", err,
+		)
+		return err
+	}
+
+	// Verify the blobs and ensure they match the local state.
+	err = s.blobProcessor.VerifySidecars(cs, sidecarVerifierFn)
+	if err != nil {
+		s.logger.Error(
+			"rejecting incoming blob sidecars",
+			"reason", err,
+		)
+		return err
+	}
+
+	s.logger.Info(
+		"Blob sidecars verification succeeded - accepting incoming blob sidecars",
+		"num_blobs",
+		len(sidecars),
+	)
+	return nil
+}
+
 // VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
 func (s *Service[
-	_, _, ConsensusBlockT, BeaconBlockT, _, _, _, _,
-	ExecutionPayloadHeaderT, _, _, _, _,
+	_, _, ConsensusBlockT, _,
+	_, _,
 ]) VerifyIncomingBlock(
 	ctx context.Context,
-	beaconBlk BeaconBlockT,
+	beaconBlk *ctypes.BeaconBlock,
 	consensusTime math.U64,
 	proposerAddress []byte,
 ) error {
@@ -146,14 +208,6 @@ func (s *Service[
 	// ideally via some broader sync service.
 	s.forceStartupSyncOnce.Do(func() { s.forceStartupHead(ctx, preState) })
 
-	// If the block is nil or a nil pointer, exit early.
-	if beaconBlk.IsNil() {
-		s.logger.Warn(
-			"Aborting block verification - beacon block not found in proposal",
-		)
-		return errors.WrapNonFatal(ErrNilBlk)
-	}
-
 	s.logger.Info(
 		"Received incoming beacon block",
 		"state_root", beaconBlk.GetStateRoot(), "slot", beaconBlk.GetSlot(),
@@ -163,7 +217,7 @@ func (s *Service[
 	// to avoid modifying the underlying state, for the event in which
 	// we have to rebuild a payload for this slot again, if we do not agree
 	// with the incoming block.
-	postState := preState.Copy()
+	postState := preState.Copy(ctx)
 
 	// Verify the state root of the incoming block.
 	err := s.verifyStateRoot(
@@ -182,7 +236,7 @@ func (s *Service[
 		)
 
 		if s.shouldBuildOptimisticPayloads() {
-			var lph ExecutionPayloadHeaderT
+			var lph *ctypes.ExecutionPayloadHeader
 			lph, err = preState.GetLatestExecutionPayloadHeader()
 			if err != nil {
 				return err
@@ -209,7 +263,7 @@ func (s *Service[
 	)
 
 	if s.shouldBuildOptimisticPayloads() {
-		var lph ExecutionPayloadHeaderT
+		var lph *ctypes.ExecutionPayloadHeader
 		lph, err = postState.GetLatestExecutionPayloadHeader()
 		if err != nil {
 			return err
@@ -232,12 +286,12 @@ func (s *Service[
 
 // verifyStateRoot verifies the state root of an incoming block.
 func (s *Service[
-	_, _, ConsensusBlockT, BeaconBlockT, _, BeaconStateT,
-	_, _, _, _, _, _, _,
+	_, _, ConsensusBlockT,
+	_, _, _,
 ]) verifyStateRoot(
 	ctx context.Context,
-	st BeaconStateT,
-	blk BeaconBlockT,
+	st *statedb.StateDB,
+	blk *ctypes.BeaconBlock,
 	consensusTime math.U64,
 	proposerAddress []byte,
 ) error {
@@ -272,7 +326,7 @@ func (s *Service[
 // shouldBuildOptimisticPayloads returns true if optimistic
 // payload builds are enabled.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _,
 ]) shouldBuildOptimisticPayloads() bool {
 	return s.optimisticPayloadBuilds && s.localBuilder.Enabled()
 }
@@ -292,9 +346,8 @@ func createProcessProposalResponse(
 
 func convertConsensusSidecars[
 	ConsensusSidecarsT any,
-	BlobSidecarsT any,
 ](
-	cSidecars *types.ConsensusSidecars[BlobSidecarsT],
+	cSidecars *types.ConsensusSidecars,
 ) ConsensusSidecarsT {
 	val, ok := any(cSidecars).(ConsensusSidecarsT)
 	if !ok {

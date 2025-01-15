@@ -23,6 +23,7 @@ package core_test
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"testing"
 
 	corestore "cosmossdk.io/core/store"
@@ -32,6 +33,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/consensus-types/types"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/log/noop"
 	"github.com/berachain/beacon-kit/node-core/components"
 	nodemetrics "github.com/berachain/beacon-kit/node-core/components/metrics"
@@ -54,26 +56,14 @@ import (
 )
 
 type (
-	TestBeaconStateMarshallableT = types.BeaconState[
-		*types.ExecutionPayloadHeader,
-		types.ExecutionPayloadHeader,
-	]
+	TestBeaconStateMarshallableT = types.BeaconState
 
-	TestKVStoreT = beacondb.KVStore[*types.ExecutionPayloadHeader]
+	TestKVStoreT = beacondb.KVStore
 
-	TestBeaconStateT = statedb.StateDB[
-		*TestBeaconStateMarshallableT,
-		*types.ExecutionPayloadHeader,
-		*TestKVStoreT,
-	]
+	TestBeaconStateT = statedb.StateDB
 
 	TestStateProcessorT = core.StateProcessor[
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
-		*TestBeaconStateT,
 		*transition.Context,
-		*types.ExecutionPayload,
-		*types.ExecutionPayloadHeader,
 		*TestKVStoreT,
 	]
 )
@@ -94,10 +84,7 @@ var (
 	testCodec    = &encoding.SSZInterfaceCodec[*types.ExecutionPayloadHeader]{}
 )
 
-func initTestStores() (
-	*beacondb.KVStore[*types.ExecutionPayloadHeader],
-	*depositstore.KVStore,
-	error) {
+func initTestStores() (*beacondb.KVStore, *depositstore.KVStore, error) {
 	db, err := db.OpenDB("", dbm.MemDBBackend)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed opening mem db: %w", err)
@@ -113,14 +100,14 @@ func initTestStores() (
 		nopMetrics,
 	)
 
-	ctx := sdk.NewContext(cms, true, nopLog)
 	cms.MountStoreWithDB(testStoreKey, storetypes.StoreTypeIAVL, nil)
 	if err = cms.LoadLatestVersion(); err != nil {
 		return nil, nil, fmt.Errorf("failed to load latest version: %w", err)
 	}
-	testStoreService := &testKVStoreService{ctx: ctx}
 
-	return beacondb.New[*types.ExecutionPayloadHeader](
+	ctx := sdk.NewContext(cms, true, nopLog)
+	testStoreService := &testKVStoreService{ctx: ctx}
+	return beacondb.New(
 			testStoreService,
 			testCodec,
 		),
@@ -129,7 +116,7 @@ func initTestStores() (
 }
 
 func setupChain(t *testing.T, chainSpecType string) chain.Spec[
-	bytes.B4, math.U64, common.ExecutionAddress, math.U64, any,
+	bytes.B4, math.U64, math.U64, any,
 ] {
 	t.Helper()
 
@@ -142,7 +129,7 @@ func setupChain(t *testing.T, chainSpecType string) chain.Spec[
 
 func setupState(
 	t *testing.T, cs chain.Spec[
-		bytes.B4, math.U64, common.ExecutionAddress, math.U64, any,
+		bytes.B4, math.U64, math.U64, any,
 	],
 ) (
 	*TestStateProcessorT,
@@ -152,10 +139,7 @@ func setupState(
 ) {
 	t.Helper()
 
-	execEngine := mocks.NewExecutionEngine[
-		*types.ExecutionPayload,
-		*types.ExecutionPayloadHeader,
-	](t)
+	execEngine := mocks.NewExecutionEngine(t)
 
 	mocksSigner := &cryptomocks.BLSSigner{}
 	mocksSigner.On(
@@ -170,12 +154,7 @@ func setupState(
 	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
 
 	sp := core.NewStateProcessor[
-		*types.BeaconBlock,
-		*types.BeaconBlockBody,
-		*TestBeaconStateT,
 		*transition.Context,
-		*types.ExecutionPayload,
-		*types.ExecutionPayloadHeader,
 		*TestKVStoreT,
 	](
 		noop.NewLogger[any](),
@@ -242,4 +221,68 @@ func buildNextBlock(
 		StateRoot:     common.Root{},
 		Body:          nextBlkBody,
 	}
+}
+
+func generateTestExecutionAddress(
+	t *testing.T,
+	rndSeed int,
+) (types.WithdrawalCredentials, int) {
+	t.Helper()
+
+	addrStr := strconv.Itoa(rndSeed)
+	addrBytes := bytes.ExtendToSize([]byte(addrStr), bytes.B20Size)
+	execAddr, err := bytes.ToBytes20(addrBytes)
+	require.NoError(t, err)
+	rndSeed++
+	return types.NewCredentialsFromExecutionAddress(
+		common.ExecutionAddress(execAddr),
+	), rndSeed
+}
+
+func generateTestPK(t *testing.T, rndSeed int) (bytes.B48, int) {
+	t.Helper()
+	keyStr := strconv.Itoa(rndSeed)
+	keyBytes := bytes.ExtendToSize([]byte(keyStr), bytes.B48Size)
+	key, err := bytes.ToBytes48(keyBytes)
+	require.NoError(t, err)
+	rndSeed++
+	return key, rndSeed
+}
+
+func moveToEndOfEpoch(
+	t *testing.T,
+	tip *types.BeaconBlock,
+	cs chain.Spec[bytes.B4, math.U64, math.U64, any],
+	sp *TestStateProcessorT,
+	st *TestBeaconStateT,
+	ctx *transition.Context,
+	depRoot common.Root,
+) *types.BeaconBlock {
+	t.Helper()
+	blk := tip
+	currEpoch := cs.SlotToEpoch(blk.GetSlot())
+	for currEpoch == cs.SlotToEpoch(blk.GetSlot()+1) {
+		blk = buildNextBlock(
+			t,
+			st,
+			&types.BeaconBlockBody{
+				ExecutionPayload: &types.ExecutionPayload{
+					Timestamp:    blk.Body.ExecutionPayload.Timestamp + 1,
+					ExtraData:    []byte("testing"),
+					Transactions: [][]byte{},
+					Withdrawals: []*engineprimitives.Withdrawal{
+						st.EVMInflationWithdrawal(),
+					},
+					BaseFeePerGas: math.NewU256(0),
+				},
+				Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
+				Deposits: []*types.Deposit{},
+			},
+		)
+
+		vals, err := sp.Transition(ctx, st, blk)
+		require.NoError(t, err)
+		require.Empty(t, vals) // no vals changes expected before next epoch
+	}
+	return blk
 }

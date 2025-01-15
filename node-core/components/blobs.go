@@ -22,14 +22,13 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/cli/flags"
 	"github.com/berachain/beacon-kit/config"
-	"github.com/berachain/beacon-kit/consensus-types/types"
 	dablob "github.com/berachain/beacon-kit/da/blob"
 	"github.com/berachain/beacon-kit/da/kzg"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
-	"github.com/berachain/beacon-kit/primitives/common"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/spf13/cast"
 )
@@ -55,13 +54,12 @@ func ProvideBlobProofVerifier(
 
 // BlobProcessorIn is the input for the BlobProcessor.
 type BlobProcessorIn[
-	BlobSidecarsT any,
 	LoggerT any,
 ] struct {
 	depinject.In
 
 	BlobProofVerifier kzg.BlobProofVerifier
-	ChainSpec         common.ChainSpec
+	ChainSpec         chain.ChainSpec
 	Logger            LoggerT
 	TelemetrySink     *metrics.TelemetrySink
 }
@@ -69,29 +67,22 @@ type BlobProcessorIn[
 // ProvideBlobProcessor is a function that provides the BlobProcessor to the
 // depinject framework.
 func ProvideBlobProcessor[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
-	BeaconBlockBodyT any,
-	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
-	BlobSidecarT BlobSidecar,
-	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
+	AvailabilityStoreT AvailabilityStore,
+	ConsensusSidecarsT ConsensusSidecars,
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
-	in BlobProcessorIn[BlobSidecarsT, LoggerT],
+	in BlobProcessorIn[LoggerT],
 ) *dablob.Processor[
-	AvailabilityStoreT, BeaconBlockBodyT,
-	ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
+	AvailabilityStoreT,
+	ConsensusSidecarsT,
 ] {
 	return dablob.NewProcessor[
 		AvailabilityStoreT,
-		BeaconBlockBodyT,
 		ConsensusSidecarsT,
-		BlobSidecarT,
-		BlobSidecarsT,
 	](
 		in.Logger.With("service", "blob-processor"),
 		in.ChainSpec,
 		in.BlobProofVerifier,
-		types.BlockBodyKZGOffset,
 		in.TelemetrySink,
 	)
 }

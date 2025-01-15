@@ -23,100 +23,58 @@ package validator
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/transition"
 )
 
 // Service is responsible for building beacon blocks and sidecars.
 type Service[
-	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody[
-		ExecutionPayloadT, SlashingInfoT,
-	],
-	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
-	BlobSidecarT any,
-	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	DepositStoreT DepositStore,
-	ExecutionPayloadT any,
-	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	SlashingInfoT any,
-	SlotDataT SlotData[SlashingInfoT],
 ] struct {
 	// cfg is the validator config.
 	cfg *Config
 	// logger is a logger.
 	logger log.Logger
 	// chainSpec is the chain spec.
-	chainSpec common.ChainSpec
+	chainSpec chain.ChainSpec
 	// signer is used to retrieve the public key of this node.
 	signer crypto.BLSSigner
 	// blobFactory is used to create blob sidecars for blocks.
-	blobFactory BlobFactory[BeaconBlockT, BlobSidecarsT]
+	blobFactory BlobFactory
 	// sb is the beacon state backend.
-	sb StorageBackend[BeaconStateT, DepositStoreT]
+	sb StorageBackend[DepositStoreT]
 	// stateProcessor is responsible for processing the state.
-	stateProcessor StateProcessor[
-		BeaconBlockT,
-		BeaconStateT,
-		*transition.Context,
-		ExecutionPayloadHeaderT,
-	]
+	stateProcessor StateProcessor[*transition.Context]
 	// localPayloadBuilder represents the local block builder, this builder
 	// is connected to this nodes execution client via the EngineAPI.
 	// Building blocks are done by submitting forkchoice updates through.
 	// The local Builder.
-	localPayloadBuilder PayloadBuilder[BeaconStateT, ExecutionPayloadT]
+	localPayloadBuilder PayloadBuilder
 	// remotePayloadBuilders represents a list of remote block builders, these
 	// builders are connected to other execution clients via the EngineAPI.
-	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT]
+	remotePayloadBuilders []PayloadBuilder
 	// metrics is a metrics collector.
 	metrics *validatorMetrics
 }
 
 // NewService creates a new validator service.
 func NewService[
-	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody[
-		ExecutionPayloadT, SlashingInfoT,
-	],
-	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
-	BlobSidecarT any,
-	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	DepositStoreT DepositStore,
-	ExecutionPayloadT any,
-	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	SlashingInfoT any,
-	SlotDataT SlotData[SlashingInfoT],
 ](
 	cfg *Config,
 	logger log.Logger,
-	chainSpec common.ChainSpec,
-	sb StorageBackend[BeaconStateT, DepositStoreT],
-	stateProcessor StateProcessor[
-		BeaconBlockT,
-		BeaconStateT,
-		*transition.Context,
-		ExecutionPayloadHeaderT,
-	],
+	chainSpec chain.ChainSpec,
+	sb StorageBackend[DepositStoreT],
+	stateProcessor StateProcessor[*transition.Context],
 	signer crypto.BLSSigner,
-	blobFactory BlobFactory[BeaconBlockT, BlobSidecarsT],
-	localPayloadBuilder PayloadBuilder[BeaconStateT, ExecutionPayloadT],
-	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT],
+	blobFactory BlobFactory,
+	localPayloadBuilder PayloadBuilder,
+	remotePayloadBuilders []PayloadBuilder,
 	ts TelemetrySink,
-) *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarT, BlobSidecarsT, DepositStoreT,
-	ExecutionPayloadT, ExecutionPayloadHeaderT, SlashingInfoT,
-	SlotDataT,
-] {
-	return &Service[
-		BeaconBlockT, BeaconBlockBodyT,
-		BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositStoreT,
-		ExecutionPayloadT, ExecutionPayloadHeaderT, SlashingInfoT,
-		SlotDataT,
-	]{
+) *Service[DepositStoreT] {
+	return &Service[DepositStoreT]{
 		cfg:                   cfg,
 		logger:                logger,
 		sb:                    sb,
@@ -131,20 +89,16 @@ func NewService[
 }
 
 // Name returns the name of the service.
-func (s *Service[
-	_, _, _, _, _, _, _, _, _, _,
-]) Name() string {
+func (s *Service[_]) Name() string {
 	return "validator"
 }
 
-func (s *Service[
-	_, _, _, _, _, _, _, _, _, _,
-]) Start(
+func (s *Service[_]) Start(
 	_ context.Context,
 ) error {
 	return nil
 }
 
-func (s *Service[_, _, _, _, _, _, _, _, _, _]) Stop() error {
+func (s *Service[_]) Stop() error {
 	return nil
 }

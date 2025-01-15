@@ -251,13 +251,14 @@ SHORT_FUZZ_TIME=10s
 MEDIUM_FUZZ_TIME=30s
 LONG_FUZZ_TIME=3m
 
+
 test:
 	@$(MAKE) test-unit test-forge-fuzz
 
 test-unit: ## run golang unit tests
 	@echo "Running unit tests..."
 	@go list -f '{{.Dir}}/...' -m | xargs \
-		go test
+		go test -race
 
 test-unit-cover: ## run golang unit tests with coverage
 	@echo "Running unit tests with coverage..."

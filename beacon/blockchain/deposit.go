@@ -34,12 +34,12 @@ import (
 const defaultRetryInterval = 20 * time.Second
 
 func (s *Service[
-	_, _, ConsensusBlockT, _, _, _, _, _, _, _, _, _, _,
+	_, _, ConsensusBlockT, _, _, _,
 ]) depositFetcher(
 	ctx context.Context,
 	blockNum math.U64,
 ) {
-	if blockNum < s.eth1FollowDistance {
+	if blockNum <= s.eth1FollowDistance {
 		s.logger.Info(
 			"depositFetcher, nothing to fetch",
 			"block num", blockNum,
@@ -52,7 +52,7 @@ func (s *Service[
 }
 
 func (s *Service[
-	_, _, ConsensusBlockT, _, _, _, _, _, _, _, _, _, _,
+	_, _, ConsensusBlockT, _, _, _,
 ]) fetchAndStoreDeposits(
 	ctx context.Context,
 	blockNum math.U64,
@@ -78,7 +78,7 @@ func (s *Service[
 		)
 	}
 
-	if err = s.depositStore.EnqueueDeposits(deposits); err != nil {
+	if err = s.storageBackend.DepositStore().EnqueueDeposits(deposits); err != nil {
 		s.logger.Error("Failed to store deposits", "error", err)
 		s.failedBlocksMu.Lock()
 		s.failedBlocks[blockNum] = struct{}{}
@@ -92,7 +92,7 @@ func (s *Service[
 }
 
 func (s *Service[
-	_, _, ConsensusBlockT, _, _, _, _, _, _, _, _, _, _,
+	_, _, ConsensusBlockT, _, _, _,
 ]) depositCatchupFetcher(ctx context.Context) {
 	ticker := time.NewTicker(defaultRetryInterval)
 	defer ticker.Stop()

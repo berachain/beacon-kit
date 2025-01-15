@@ -36,6 +36,10 @@ var (
 	// version is not supported.
 	ErrForkVersionNotSupported = errors.New("fork version not supported")
 
+	// ErrInclusionProofDepthExceeded is an error for when the
+	// KZG_COMMITMENT_INCLUSION_PROOF_DEPTH calculation overflows.
+	ErrInclusionProofDepthExceeded = errors.New("inclusion proof depth exceeded")
+
 	// ErrNilPayloadHeader is an error for when the payload header is nil.
 	ErrNilPayloadHeader = errors.New("nil payload header")
 )

@@ -21,7 +21,7 @@
 package components
 
 import (
-	"cosmossdk.io/core/appmodule/v2"
+	appmodule "cosmossdk.io/core/appmodule/v2"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	consruntimetypes "github.com/berachain/beacon-kit/consensus/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -44,7 +44,7 @@ type (
 	Fork = types.Fork
 
 	// SlotData is a type alias for the incoming slot.
-	SlotData = consruntimetypes.SlotData[*SlashingInfo]
+	SlotData = consruntimetypes.SlotData
 
 	// LegacyKey type alias to LegacyKey used for LegacySinger construction.
 	LegacyKey = signer.LegacyKey

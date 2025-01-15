@@ -25,6 +25,7 @@ import (
 	"time"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -33,38 +34,26 @@ import (
 // The AvailabilityStore interface is responsible for validating and storing
 // sidecars for specific blocks, as well as verifying sidecars that have already
 // been stored.
-type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
+type AvailabilityStore interface {
 	// IsDataAvailable ensures that all blobs referenced in the block are
 	// securely stored before it returns without an error.
-	IsDataAvailable(context.Context, math.Slot, BeaconBlockBodyT) bool
+	IsDataAvailable(context.Context, math.Slot, *ctypes.BeaconBlockBody) bool
 	// Persist makes sure that the sidecar remains accessible for data
 	// availability checks throughout the beacon node's operation.
-	Persist(math.Slot, BlobSidecarsT) error
+	Persist(math.Slot, datypes.BlobSidecars) error
 }
 
-type BeaconBlock[
-	BeaconBlockBodyT any,
-] interface {
-	GetBody() BeaconBlockBodyT
-	GetHeader() *ctypes.BeaconBlockHeader
-}
-
-type BeaconBlockBody interface {
-	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
-	GetTopLevelRoots() []common.Root
-	Length() uint64
-}
-
-type ConsensusSidecars[BlobSidecarsT any] interface {
-	GetSidecars() BlobSidecarsT
+type ConsensusSidecars interface {
+	GetSidecars() datypes.BlobSidecars
 	GetHeader() *ctypes.BeaconBlockHeader
 }
 
 type Sidecar interface {
-	GetBeaconBlockHeader() *ctypes.BeaconBlockHeader
+	GetIndex() uint64
 	GetBlob() eip4844.Blob
 	GetKzgProof() eip4844.KZGProof
 	GetKzgCommitment() eip4844.KZGCommitment
+	GetSignedBeaconBlockHeader() *ctypes.SignedBeaconBlockHeader
 }
 
 type Sidecars[SidecarT any] interface {
@@ -72,12 +61,17 @@ type Sidecars[SidecarT any] interface {
 	Get(index int) SidecarT
 	GetSidecars() []SidecarT
 	ValidateBlockRoots() error
-	VerifyInclusionProofs(kzgOffset uint64) error
+	VerifyInclusionProofs(
+		kzgOffset uint64,
+		inclusionProofDepth uint8,
+	) error
 }
 
 // ChainSpec represents a chain spec.
 type ChainSpec interface {
 	MaxBlobCommitmentsPerBlock() uint64
+	DomainTypeProposer() common.DomainType
+	ActiveForkVersionForSlot(slot math.Slot) uint32
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.

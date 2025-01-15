@@ -115,7 +115,7 @@ func TestInitialize(t *testing.T) {
 			genDeposits[0], genDeposits[1], genDeposits[3],
 			genDeposits[5], genDeposits[6],
 		}
-		executionPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		executionPayloadHeader = &types.ExecutionPayloadHeader{}
 		fork                   = &types.Fork{
 			PreviousVersion: version.FromUint32[common.Version](version.Deneb),
 			CurrentVersion:  version.FromUint32[common.Version](version.Deneb),
@@ -145,22 +145,21 @@ func TestInitialize(t *testing.T) {
 	require.Equal(t, fork, resFork)
 
 	for _, dep := range goodDeposits {
-		checkValidatorNonBartio(t, cs, st, dep)
+		checkValidator(t, cs, st, dep)
 	}
 
 	// check that deposit index is duly set. On betnet
 	// deposit index is set to the last accepted deposit.
 	latestValIdx, err := st.GetEth1DepositIndex()
 	require.NoError(t, err)
-	require.Equal(t, uint64(len(genDeposits)-1), latestValIdx)
+	require.Equal(t, uint64(len(genDeposits)), latestValIdx)
 }
 
-func checkValidatorNonBartio(
+func checkValidator(
 	t *testing.T,
 	cs chain.Spec[
 		common.DomainType,
 		math.Epoch,
-		common.ExecutionAddress,
 		math.Slot,
 		any,
 	],
@@ -188,174 +187,11 @@ func checkValidatorNonBartio(
 	require.Equal(t, dep.Amount, valBal)
 }
 
-func TestInitializeBartio(t *testing.T) {
-	cs := setupChain(t, components.TestnetChainSpecType)
-	sp, st, _, _ := setupState(t, cs)
-
-	var (
-		maxBalance = math.Gwei(cs.MaxEffectiveBalance(false))
-		increment  = math.Gwei(cs.EffectiveBalanceIncrement())
-		minBalance = math.Gwei(cs.EjectionBalance())
-	)
-
-	var (
-		genDeposits = []*types.Deposit{
-			{
-				Pubkey: [48]byte{0x01},
-				Amount: maxBalance,
-				Credentials: types.NewCredentialsFromExecutionAddress(
-					common.ExecutionAddress{0x01},
-				),
-				Index: uint64(0),
-			},
-			{
-				Pubkey: [48]byte{0x02},
-				Amount: minBalance + increment,
-				Credentials: types.NewCredentialsFromExecutionAddress(
-					common.ExecutionAddress{0x02},
-				),
-				Index: uint64(1),
-			},
-			{
-				Pubkey: [48]byte{0x03},
-				Amount: minBalance,
-				Credentials: types.NewCredentialsFromExecutionAddress(
-					common.ExecutionAddress{0x03},
-				),
-				Index: uint64(2),
-			},
-			{
-				Pubkey: [48]byte{0x04},
-				Amount: 2 * maxBalance,
-				Credentials: types.NewCredentialsFromExecutionAddress(
-					common.ExecutionAddress{0x04},
-				),
-				Index: uint64(3),
-			},
-			{
-				Pubkey: [48]byte{0x05},
-				Amount: minBalance - increment,
-				Credentials: types.NewCredentialsFromExecutionAddress(
-					common.ExecutionAddress{0x05},
-				),
-				Index: uint64(4),
-			},
-			{
-				Pubkey: [48]byte{0x06},
-				Amount: minBalance + increment*3/2,
-				Credentials: types.NewCredentialsFromExecutionAddress(
-					common.ExecutionAddress{0x06},
-				),
-				Index: uint64(5),
-			},
-			{
-				Pubkey: [48]byte{0x07},
-				Amount: maxBalance + increment/10,
-				Credentials: types.NewCredentialsFromExecutionAddress(
-					common.ExecutionAddress{0x07},
-				),
-				Index: uint64(6),
-			},
-			{
-				Pubkey: [48]byte{0x08},
-				Amount: minBalance + increment*99/100,
-				Credentials: types.NewCredentialsFromExecutionAddress(
-					common.ExecutionAddress{0x08},
-				),
-				Index: uint64(7),
-			},
-		}
-		goodDeposits = []*types.Deposit{
-			genDeposits[0], genDeposits[1], genDeposits[3],
-			genDeposits[5], genDeposits[6],
-		}
-		executionPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		fork                   = &types.Fork{
-			PreviousVersion: version.FromUint32[common.Version](version.Deneb),
-			CurrentVersion:  version.FromUint32[common.Version](version.Deneb),
-			Epoch:           math.Epoch(constants.GenesisEpoch),
-		}
-	)
-
-	// run test
-	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
-		st,
-		genDeposits,
-		executionPayloadHeader,
-		fork.CurrentVersion,
-	)
-
-	// check outputs
-	require.NoError(t, err)
-	require.Len(t, genVals, len(goodDeposits))
-
-	// check beacon state changes
-	resSlot, err := st.GetSlot()
-	require.NoError(t, err)
-	require.Equal(t, math.Slot(0), resSlot)
-
-	resFork, err := st.GetFork()
-	require.NoError(t, err)
-	require.Equal(t, fork, resFork)
-
-	for _, dep := range goodDeposits {
-		checkValidatorBartio(t, cs, st, dep)
-	}
-
-	// check that deposit index is duly set. On Bartio
-	// deposit index is off by 1.
-	latestValIdx, err := st.GetEth1DepositIndex()
-	require.NoError(t, err)
-	require.Equal(t, uint64(len(genDeposits)), latestValIdx)
-}
-
-func checkValidatorBartio(
-	t *testing.T,
-	cs chain.Spec[
-		common.DomainType,
-		math.Epoch,
-		common.ExecutionAddress,
-		math.Slot,
-		any,
-	],
-	bs *TestBeaconStateT,
-	dep *types.Deposit,
-) {
-	t.Helper()
-
-	idx, err := bs.ValidatorIndexByPubkey(dep.Pubkey)
-	require.NoError(t, err)
-
-	val, err := bs.ValidatorByIndex(idx)
-	require.NoError(t, err)
-	require.Equal(t, dep.Pubkey, val.Pubkey)
-
-	// checks on validators common to all networks
-	commonChecksValidators(t, cs, val, dep)
-
-	require.Equal(
-		t,
-		math.Epoch(constants.FarFutureEpoch),
-		val.GetActivationEligibilityEpoch(),
-	)
-	require.Equal(
-		t,
-		math.Epoch(constants.FarFutureEpoch),
-		val.GetActivationEpoch(),
-	)
-
-	// Bartio specific checks on validators
-	valBal, err := bs.GetBalance(idx)
-	require.NoError(t, err)
-	require.Equal(t, val.EffectiveBalance, valBal)
-}
-
 func commonChecksValidators(
 	t *testing.T,
 	cs chain.Spec[
 		common.DomainType,
 		math.Epoch,
-		common.ExecutionAddress,
 		math.Slot,
 		any,
 	],

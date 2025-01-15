@@ -23,123 +23,108 @@ package blob
 import (
 	"time"
 
+	"github.com/berachain/beacon-kit/chain-spec/chain"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/kzg"
+	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // Processor is the blob processor that handles the processing and verification
 // of blob sidecars.
 type Processor[
-	AvailabilityStoreT AvailabilityStore[
-		BeaconBlockBodyT, BlobSidecarsT,
-	],
-	BeaconBlockBodyT any,
-	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
-	BlobSidecarT Sidecar,
-	BlobSidecarsT Sidecars[BlobSidecarT],
+	AvailabilityStoreT AvailabilityStore,
+	ConsensusSidecarsT ConsensusSidecars,
 ] struct {
 	// logger is used to log information and errors.
 	logger log.Logger
 	// chainSpec defines the specifications of the blockchain.
-	chainSpec common.ChainSpec
+	chainSpec chain.ChainSpec
 	// verifier is responsible for verifying the blobs.
-	verifier *verifier[BlobSidecarT, BlobSidecarsT]
-	// blockBodyOffsetFn is a function that calculates the block body offset
-	// based on the slot and chain specifications.
-	blockBodyOffsetFn func(math.Slot, common.ChainSpec) (uint64, error)
+	verifier *verifier
 	// metrics is used to collect and report processor metrics.
 	metrics *processorMetrics
 }
 
 // NewProcessor creates a new blob processor.
 func NewProcessor[
-	AvailabilityStoreT AvailabilityStore[
-		BeaconBlockBodyT, BlobSidecarsT,
-	],
-	BeaconBlockBodyT any,
-	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
-	BlobSidecarT Sidecar,
-	BlobSidecarsT Sidecars[BlobSidecarT],
+	AvailabilityStoreT AvailabilityStore,
+	ConsensusSidecarsT ConsensusSidecars,
 ](
 	logger log.Logger,
-	chainSpec common.ChainSpec,
+	chainSpec chain.ChainSpec,
 	proofVerifier kzg.BlobProofVerifier,
-	blockBodyOffsetFn func(math.Slot, common.ChainSpec) (uint64, error),
 	telemetrySink TelemetrySink,
 ) *Processor[
-	AvailabilityStoreT, BeaconBlockBodyT,
-	ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
+	AvailabilityStoreT,
+	ConsensusSidecarsT,
 ] {
-	verifier := newVerifier[
-		BlobSidecarT,
-		BlobSidecarsT,
-	](proofVerifier, telemetrySink)
+	verifier := newVerifier(proofVerifier, telemetrySink, chainSpec)
+
 	return &Processor[
-		AvailabilityStoreT, BeaconBlockBodyT,
-		ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
+		AvailabilityStoreT,
+		ConsensusSidecarsT,
 	]{
-		logger:            logger,
-		chainSpec:         chainSpec,
-		verifier:          verifier,
-		blockBodyOffsetFn: blockBodyOffsetFn,
-		metrics:           newProcessorMetrics(telemetrySink),
+		logger:    logger,
+		chainSpec: chainSpec,
+		verifier:  verifier,
+		metrics:   newProcessorMetrics(telemetrySink),
 	}
 }
 
 // VerifySidecars verifies the blobs and ensures they match the local state.
 func (sp *Processor[
-	AvailabilityStoreT, _, ConsensusSidecarsT, _, _,
+	AvailabilityStoreT, ConsensusSidecarsT,
 ]) VerifySidecars(
 	cs ConsensusSidecarsT,
+	verifierFn func(
+		blkHeader *ctypes.BeaconBlockHeader,
+		signature crypto.BLSSignature,
+	) error,
 ) error {
 	var (
 		sidecars  = cs.GetSidecars()
 		blkHeader = cs.GetHeader()
 	)
 	defer sp.metrics.measureVerifySidecarsDuration(
-		time.Now(), math.U64(sidecars.Len()),
+		time.Now(), math.U64(len(sidecars)),
 	)
 
 	// Abort if there are no blobs to store.
-	if sidecars.Len() == 0 {
+	if len(sidecars) == 0 {
 		return nil
-	}
-
-	kzgOffset, err := sp.blockBodyOffsetFn(
-		blkHeader.GetSlot(), sp.chainSpec,
-	)
-	if err != nil {
-		return err
 	}
 
 	// Verify the blobs and ensure they match the local state.
 	return sp.verifier.verifySidecars(
-		sidecars, kzgOffset, blkHeader,
+		sidecars,
+		blkHeader,
+		verifierFn,
 	)
 }
 
-// slot :=  processes the blobs and ensures they match the local state.
+// ProcessSidecars processes the blobs and ensures they match the local state.
 func (sp *Processor[
-	AvailabilityStoreT, _, _, _, BlobSidecarsT,
+	AvailabilityStoreT, _,
 ]) ProcessSidecars(
 	avs AvailabilityStoreT,
-	sidecars BlobSidecarsT,
+	sidecars datypes.BlobSidecars,
 ) error {
 	defer sp.metrics.measureProcessSidecarsDuration(
-		time.Now(), math.U64(sidecars.Len()),
+		time.Now(), math.U64(len(sidecars)),
 	)
 
 	// Abort if there are no blobs to store.
-	if sidecars.Len() == 0 {
+	if len(sidecars) == 0 {
 		return nil
 	}
 
 	// If we have reached this point, we can safely assume that the blobs are
 	// valid and can be persisted, as well as that index 0 is filled.
 	return avs.Persist(
-		sidecars.Get(0).GetBeaconBlockHeader().GetSlot(),
+		sidecars[0].GetSignedBeaconBlockHeader().GetHeader().GetSlot(),
 		sidecars,
 	)
 }

@@ -23,14 +23,15 @@ package core
 import (
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/primitives/math"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // processSlashingsReset as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#slashings-balances-updates
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _, _, _,
+	_, _,
 ]) processSlashingsReset(
-	st BeaconStateT,
+	st *statedb.StateDB,
 ) error {
 	// processSlashingsReset does not really do anything right now.
 	// However we cannot simply drop it because appHash accounts

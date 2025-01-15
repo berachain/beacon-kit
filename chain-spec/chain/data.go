@@ -20,11 +20,12 @@
 
 package chain
 
+import "github.com/berachain/beacon-kit/primitives/common"
+
 // SpecData is the underlying data structure for chain-specific parameters.
 type SpecData[
 	DomainTypeT ~[4]byte,
 	EpochT ~uint64,
-	ExecutionAddressT ~[20]byte,
 	SlotT ~uint64,
 	CometBFTConfigT any,
 ] struct {
@@ -87,7 +88,7 @@ type SpecData[
 	// Eth1-related values.
 	//
 	// DepositContractAddress is the address of the deposit contract.
-	DepositContractAddress ExecutionAddressT `mapstructure:"deposit-contract-address"`
+	DepositContractAddress common.ExecutionAddress `mapstructure:"deposit-contract-address"`
 	// MaxDepositsPerBlock specifies the maximum number of deposit operations
 	// allowed per block.
 	MaxDepositsPerBlock uint64 `mapstructure:"max-deposits-per-block"`
@@ -170,7 +171,7 @@ type SpecData[
 	ValidatorSetCap uint64 `mapstructure:"validator-set-cap-size"`
 	// EVMInflationAddress is the address on the EVM which will receive the
 	// inflation amount of native EVM balance through a withdrawal every block.
-	EVMInflationAddress ExecutionAddressT `mapstructure:"evm-inflation-address"`
+	EVMInflationAddress common.ExecutionAddress `mapstructure:"evm-inflation-address"`
 	// EVMInflationPerBlock is the amount of native EVM balance (in Gwei) to be
 	// minted to the EVMInflationAddress via a withdrawal every block.
 	EVMInflationPerBlock uint64 `mapstructure:"evm-inflation-per-block"`

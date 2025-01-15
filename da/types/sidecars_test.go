@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/da/types"
 	byteslib "github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/stretchr/testify/require"
@@ -45,7 +46,10 @@ func TestEmptySidecarMarshalling(t *testing.T) {
 
 	sidecar := types.BuildBlobSidecar(
 		math.U64(0),
-		&ctypes.BeaconBlockHeader{},
+		&ctypes.SignedBeaconBlockHeader{
+			Header:    &ctypes.BeaconBlockHeader{},
+			Signature: crypto.BLSSignature{},
+		},
 		&eip4844.Blob{},
 		eip4844.KZGCommitment{},
 		[48]byte{},
@@ -95,11 +99,13 @@ func TestValidateBlockRoots(t *testing.T) {
 
 	validSidecar := types.BuildBlobSidecar(
 		math.U64(0),
-		&ctypes.BeaconBlockHeader{
-			StateRoot: [32]byte{1},
-			BodyRoot:  [32]byte{2},
+		&ctypes.SignedBeaconBlockHeader{
+			Header: &ctypes.BeaconBlockHeader{
+				StateRoot: [32]byte{1},
+				BodyRoot:  [32]byte{2},
+			},
+			Signature: crypto.BLSSignature{},
 		},
-
 		&eip4844.Blob{},
 		[48]byte{},
 		[48]byte{},
@@ -108,7 +114,7 @@ func TestValidateBlockRoots(t *testing.T) {
 
 	// Validate the sidecar with valid roots
 	sidecars := types.BlobSidecars{
-		Sidecars: []*types.BlobSidecar{validSidecar},
+		validSidecar,
 	}
 	err := sidecars.ValidateBlockRoots()
 	require.NoError(
@@ -120,9 +126,12 @@ func TestValidateBlockRoots(t *testing.T) {
 	// Create a sample BlobSidecar with invalid roots
 	differentBlockRootSidecar := types.BuildBlobSidecar(
 		math.U64(0),
-		&ctypes.BeaconBlockHeader{
-			StateRoot: [32]byte{1},
-			BodyRoot:  [32]byte{3},
+		&ctypes.SignedBeaconBlockHeader{
+			Header: &ctypes.BeaconBlockHeader{
+				StateRoot: [32]byte{1},
+				BodyRoot:  [32]byte{3},
+			},
+			Signature: crypto.BLSSignature{},
 		},
 		&eip4844.Blob{},
 		eip4844.KZGCommitment{},
@@ -131,10 +140,8 @@ func TestValidateBlockRoots(t *testing.T) {
 	)
 	// Validate the sidecar with invalid roots
 	sidecarsInvalid := types.BlobSidecars{
-		Sidecars: []*types.BlobSidecar{
-			validSidecar,
-			differentBlockRootSidecar,
-		},
+		validSidecar,
+		differentBlockRootSidecar,
 	}
 	err = sidecarsInvalid.ValidateBlockRoots()
 	require.Error(
@@ -142,4 +149,11 @@ func TestValidateBlockRoots(t *testing.T) {
 		err,
 		"Validating sidecar with invalid roots should produce an error",
 	)
+}
+
+func TestZeroSidecarsInBlobSidecarsIsNotNil(t *testing.T) {
+	// This test exists to ensure that proposing a BlobSidecars with 0
+	// Sidecars is not considered IsNil().
+	sidecars := &types.BlobSidecars{}
+	require.False(t, sidecars.IsNil())
 }

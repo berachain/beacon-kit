@@ -21,8 +21,6 @@
 package core
 
 import (
-	"context"
-
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -30,29 +28,9 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-// BeaconState is the interface for the beacon state. It
-// is a combination of the read-only and write-only beacon state types.
-type BeaconState[
-	T any,
-	ExecutionPayloadHeaderT any,
-	KVStoreT any,
-] interface {
-	NewFromDB(
-		bdb KVStoreT,
-		cs common.ChainSpec,
-	) T
-	Copy() T
-	Context() context.Context
-	HashTreeRoot() common.Root
-	ReadOnlyBeaconState[ExecutionPayloadHeaderT]
-	WriteOnlyBeaconState[ExecutionPayloadHeaderT]
-}
-
 // ReadOnlyBeaconState is the interface for a read-only beacon state.
-type ReadOnlyBeaconState[
-	ExecutionPayloadHeaderT any,
-] interface {
-	ReadOnlyEth1Data[ExecutionPayloadHeaderT]
+type ReadOnlyBeaconState interface {
+	ReadOnlyEth1Data
 	ReadOnlyRandaoMixes
 	ReadOnlyStateRoots
 	ReadOnlyValidators
@@ -78,10 +56,8 @@ type ReadOnlyBeaconState[
 }
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
-type WriteOnlyBeaconState[
-	ExecutionPayloadHeaderT any,
-] interface {
-	WriteOnlyEth1Data[ExecutionPayloadHeaderT]
+type WriteOnlyBeaconState interface {
+	WriteOnlyEth1Data
 	WriteOnlyRandaoMixes
 	WriteOnlyStateRoots
 	WriteOnlyValidators
@@ -146,21 +122,17 @@ type ReadOnlyValidators interface {
 }
 
 // WriteOnlyEth1Data has write access to eth1 data.
-type WriteOnlyEth1Data[ExecutionPayloadHeaderT any] interface {
+type WriteOnlyEth1Data interface {
 	SetEth1Data(*ctypes.Eth1Data) error
 	SetEth1DepositIndex(uint64) error
-	SetLatestExecutionPayloadHeader(
-		ExecutionPayloadHeaderT,
-	) error
+	SetLatestExecutionPayloadHeader(*ctypes.ExecutionPayloadHeader) error
 }
 
 // ReadOnlyEth1Data has read access to eth1 data.
-type ReadOnlyEth1Data[ExecutionPayloadHeaderT any] interface {
+type ReadOnlyEth1Data interface {
 	GetEth1Data() (*ctypes.Eth1Data, error)
 	GetEth1DepositIndex() (uint64, error)
-	GetLatestExecutionPayloadHeader() (
-		ExecutionPayloadHeaderT, error,
-	)
+	GetLatestExecutionPayloadHeader() (*ctypes.ExecutionPayloadHeader, error)
 }
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.

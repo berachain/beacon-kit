@@ -25,7 +25,6 @@ import (
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/validator"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-api/server"
@@ -37,28 +36,12 @@ import (
 
 // ServiceRegistryInput is the input for the service registry provider.
 type ServiceRegistryInput[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
-	ConsensusBlockT ConsensusBlock[BeaconBlockT],
-	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT,
-		ExecutionPayloadT, *SlashingInfo,
-	],
-	BeaconBlockStoreT BlockStore[BeaconBlockT],
-	BeaconStateT BeaconState[
-		BeaconStateT, BeaconStateMarshallableT,
-		ExecutionPayloadHeaderT, KVStoreT,
-	],
-	BeaconStateMarshallableT any,
-	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
-	BlobSidecarT any,
-	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
+	AvailabilityStoreT AvailabilityStore,
+	ConsensusBlockT ConsensusBlock,
+	BeaconBlockStoreT BlockStore,
+	ConsensusSidecarsT ConsensusSidecars,
 	DepositStoreT DepositStore,
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-	GenesisT Genesis[ExecutionPayloadHeaderT],
+	GenesisT Genesis,
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 	NodeAPIContextT NodeAPIContext,
@@ -66,68 +49,39 @@ type ServiceRegistryInput[
 	depinject.In
 	ChainService *blockchain.Service[
 		AvailabilityStoreT, DepositStoreT,
-		ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
-		BeaconStateT, BeaconBlockStoreT,
-		ExecutionPayloadT,
-		ExecutionPayloadHeaderT, GenesisT,
-		ConsensusSidecarsT, BlobSidecarsT,
-		*engineprimitives.PayloadAttributes,
+		ConsensusBlockT,
+		BeaconBlockStoreT,
+		GenesisT,
+		ConsensusSidecarsT,
 	]
-	EngineClient *client.EngineClient[
-		ExecutionPayloadT,
-		*engineprimitives.PayloadAttributes,
-	]
+	EngineClient     *client.EngineClient
 	Logger           LoggerT
 	NodeAPIServer    *server.Server[NodeAPIContextT]
-	ReportingService *version.ReportingService[
-		ExecutionPayloadT,
-		*engineprimitives.PayloadAttributes,
-	]
+	ReportingService *version.ReportingService
 	TelemetrySink    *metrics.TelemetrySink
 	TelemetryService *telemetry.Service
-	ValidatorService *validator.Service[
-		BeaconBlockT, BeaconBlockBodyT,
-		BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositStoreT,
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-		*SlashingInfo, *SlotData,
-	]
-	CometBFTService *cometbft.Service[LoggerT]
+	ValidatorService *validator.Service[DepositStoreT]
+	CometBFTService  *cometbft.Service[LoggerT]
 }
 
 // ProvideServiceRegistry is the depinject provider for the service registry.
 func ProvideServiceRegistry[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
-	ConsensusBlockT ConsensusBlock[BeaconBlockT],
-	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT,
-		ExecutionPayloadT, *SlashingInfo,
-	],
-	BeaconBlockStoreT BlockStore[BeaconBlockT],
-	BeaconStateT BeaconState[
-		BeaconStateT, BeaconStateMarshallableT,
-		ExecutionPayloadHeaderT, KVStoreT,
-	],
-	BeaconStateMarshallableT any,
-	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
-	BlobSidecarT any,
-	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
+	AvailabilityStoreT AvailabilityStore,
+	ConsensusBlockT ConsensusBlock,
+	BeaconBlockStoreT BlockStore,
+	ConsensusSidecarsT ConsensusSidecars,
 	DepositStoreT DepositStore,
-	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT,
-		ExecutionPayloadHeaderT],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-	GenesisT Genesis[ExecutionPayloadHeaderT],
+	GenesisT Genesis,
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 	NodeAPIContextT NodeAPIContext,
 ](
 	in ServiceRegistryInput[
 		AvailabilityStoreT,
-		ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
-		BeaconBlockStoreT, BeaconStateT,
-		BeaconStateMarshallableT,
-		ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
-		DepositStoreT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+		ConsensusBlockT,
+		BeaconBlockStoreT,
+		ConsensusSidecarsT,
+		DepositStoreT,
 		GenesisT, KVStoreT, LoggerT, NodeAPIContextT,
 	],
 ) *service.Registry {

@@ -22,13 +22,13 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-api/backend"
 	"github.com/berachain/beacon-kit/node-api/engines/echo"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/server"
-	"github.com/berachain/beacon-kit/primitives/common"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -38,63 +38,39 @@ func ProvideNodeAPIEngine() *echo.Engine {
 }
 
 type NodeAPIBackendInput[
-	BeaconBlockT any,
-	BeaconStateT any,
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	StorageBackendT any,
 ] struct {
 	depinject.In
 
-	ChainSpec      common.ChainSpec
-	StateProcessor StateProcessor[
-		BeaconBlockT, BeaconStateT, *Context,
-		ExecutionPayloadHeaderT,
-	]
+	ChainSpec      chain.ChainSpec
+	StateProcessor StateProcessor[*Context]
 	StorageBackend StorageBackendT
 }
 
 func ProvideNodeAPIBackend[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
-	BeaconBlockT any,
-	BeaconBlockBodyT any,
-	BeaconBlockStoreT BlockStore[BeaconBlockT],
-	BeaconStateT BeaconState[
-		BeaconStateT, BeaconStateMarshallableT,
-		ExecutionPayloadHeaderT, KVStoreT,
-	],
-	BeaconStateMarshallableT any,
-	BlobSidecarsT any,
+	AvailabilityStoreT AvailabilityStore,
+	BeaconBlockStoreT BlockStore,
 	DepositStoreT DepositStore,
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	KVStoreT any,
 	NodeT interface {
 		CreateQueryContext(height int64, prove bool) (sdk.Context, error)
 	},
 	StorageBackendT StorageBackend[
-		AvailabilityStoreT, BeaconStateT, BeaconBlockStoreT, DepositStoreT,
+		AvailabilityStoreT, BeaconBlockStoreT, DepositStoreT,
 	],
 ](
-	in NodeAPIBackendInput[
-		BeaconBlockT, BeaconStateT, ExecutionPayloadHeaderT,
-		StorageBackendT,
-	],
+	in NodeAPIBackendInput[StorageBackendT],
 ) *backend.Backend[
-	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BeaconBlockStoreT,
-	sdk.Context, DepositStoreT, ExecutionPayloadHeaderT,
+	AvailabilityStoreT,
+	BeaconBlockStoreT,
+	sdk.Context, DepositStoreT,
 	NodeT, KVStoreT, StorageBackendT,
 ] {
 	return backend.New[
 		AvailabilityStoreT,
-		BeaconBlockT,
-		BeaconBlockBodyT,
-		BeaconStateT,
-		BeaconStateMarshallableT,
-		BlobSidecarsT,
 		BeaconBlockStoreT,
 		sdk.Context,
 		DepositStoreT,
-		ExecutionPayloadHeaderT,
 		NodeT,
 		KVStoreT,
 		StorageBackendT,

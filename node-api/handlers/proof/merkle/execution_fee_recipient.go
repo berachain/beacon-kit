@@ -36,12 +36,9 @@ import (
 // proof.
 func ProveExecutionFeeRecipientInBlock[
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
-	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
 ](
 	bbh *ctypes.BeaconBlockHeader,
-	bs types.BeaconState[
-		BeaconStateMarshallableT, ExecutionPayloadHeaderT,
-	],
+	bs types.BeaconState[BeaconStateMarshallableT],
 ) ([]common.Root, common.Root, error) {
 	// Get the proof of the execution fee recipient in the beacon state.
 	feeRecipientInStateProof, leaf, err := ProveExecutionFeeRecipientInState(bs)
@@ -74,11 +71,8 @@ func ProveExecutionFeeRecipientInBlock[
 // proof.
 func ProveExecutionFeeRecipientInState[
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
-	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
 ](
-	bs types.BeaconState[
-		BeaconStateMarshallableT, ExecutionPayloadHeaderT,
-	],
+	bs types.BeaconState[BeaconStateMarshallableT],
 ) ([]common.Root, common.Root, error) {
 	bsm, err := bs.GetMarshallable()
 	if err != nil {

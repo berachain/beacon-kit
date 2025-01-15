@@ -28,12 +28,12 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/validator"
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	servercmtlog "github.com/berachain/beacon-kit/consensus/cometbft/service/log"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/params"
 	statem "github.com/berachain/beacon-kit/consensus/cometbft/service/state"
 	errorsmod "github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
@@ -101,7 +101,7 @@ func NewService[
 	blockchain blockchain.BlockchainI,
 	blockBuilder validator.BlockBuilderI,
 	cmtCfg *cmtcfg.Config,
-	cs common.ChainSpec,
+	cs chain.ChainSpec,
 	telemetrySink TelemetrySink,
 	options ...func(*Service[LoggerT]),
 ) *Service[LoggerT] {
@@ -146,13 +146,19 @@ func (s *Service[_]) Start(
 		return err
 	}
 
+	privVal, err := pvm.LoadOrGenFilePV(
+		cfg.PrivValidatorKeyFile(),
+		cfg.PrivValidatorStateFile(),
+		nil,
+	)
+	if err != nil {
+		return err
+	}
+
 	s.node, err = node.NewNode(
 		ctx,
 		cfg,
-		pvm.LoadOrGenFilePV(
-			cfg.PrivValidatorKeyFile(),
-			cfg.PrivValidatorStateFile(),
-		),
+		privVal,
 		nodeKey,
 		proxy.NewLocalClientCreator(s),
 		GetGenDocProvider(cfg),

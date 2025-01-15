@@ -23,93 +23,49 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/beacon/validator"
+	"github.com/berachain/beacon-kit/chain-spec/chain"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 )
 
 // ValidatorServiceInput is the input for the validator service provider.
 type ValidatorServiceInput[
 	AvailabilityStoreT any,
-	BeaconBlockT any,
-	BeaconStateT any,
-	BlobSidecarsT any,
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	LoggerT any,
 	StorageBackendT any,
 ] struct {
 	depinject.In
 	Cfg            *config.Config
-	ChainSpec      common.ChainSpec
-	LocalBuilder   LocalBuilder[BeaconStateT, ExecutionPayloadT]
+	ChainSpec      chain.ChainSpec
+	LocalBuilder   LocalBuilder
 	Logger         LoggerT
-	StateProcessor StateProcessor[
-		BeaconBlockT, BeaconStateT, *Context, ExecutionPayloadHeaderT,
-	]
+	StateProcessor StateProcessor[*Context]
 	StorageBackend StorageBackendT
 	Signer         crypto.BLSSigner
-	SidecarFactory SidecarFactory[BeaconBlockT, BlobSidecarsT]
+	SidecarFactory SidecarFactory
 	TelemetrySink  *metrics.TelemetrySink
 }
 
 // ProvideValidatorService is a depinject provider for the validator service.
 func ProvideValidatorService[
 	AvailabilityStoreT any,
-	BeaconBlockT BeaconBlock[
-		BeaconBlockT, BeaconBlockBodyT,
-	],
-	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT,
-		ExecutionPayloadT, *SlashingInfo,
-	],
-	BeaconStateT BeaconState[
-		BeaconStateT, BeaconStateMarshallableT,
-		ExecutionPayloadHeaderT, KVStoreT,
-	],
-	BeaconStateMarshallableT any,
 	BeaconBlockStoreT any,
-	BlobSidecarT any,
-	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	DepositStoreT DepositStore,
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 	StorageBackendT StorageBackend[
-		AvailabilityStoreT, BeaconStateT, BeaconBlockStoreT, DepositStoreT,
+		AvailabilityStoreT, BeaconBlockStoreT, DepositStoreT,
 	],
 ](
 	in ValidatorServiceInput[
-		AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-		BlobSidecarsT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+		AvailabilityStoreT,
 		LoggerT, StorageBackendT,
 	],
-) (*validator.Service[
-	BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, BlobSidecarT, BlobSidecarsT, DepositStoreT,
-	ExecutionPayloadT, ExecutionPayloadHeaderT,
-	*SlashingInfo, *SlotData,
-], error) {
+) (*validator.Service[DepositStoreT], error) {
 	// Build the builder service.
-	return validator.NewService[
-		BeaconBlockT,
-		BeaconBlockBodyT,
-		BeaconStateT,
-		BlobSidecarT,
-		BlobSidecarsT,
-		DepositStoreT,
-		ExecutionPayloadT,
-		ExecutionPayloadHeaderT,
-		*SlashingInfo,
-		*SlotData,
-	](
+	return validator.NewService[DepositStoreT](
 		&in.Cfg.Validator,
 		in.Logger.With("service", "validator"),
 		in.ChainSpec,
@@ -118,7 +74,7 @@ func ProvideValidatorService[
 		in.Signer,
 		in.SidecarFactory,
 		in.LocalBuilder,
-		[]validator.PayloadBuilder[BeaconStateT, ExecutionPayloadT]{
+		[]validator.PayloadBuilder{
 			in.LocalBuilder,
 		},
 		in.TelemetrySink,

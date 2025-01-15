@@ -22,30 +22,31 @@ package types
 
 import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	datypes "github.com/berachain/beacon-kit/da/types"
 )
 
-type ConsensusSidecars[SidecarsT any] struct {
-	sidecars SidecarsT
+type ConsensusSidecars struct {
+	sidecars datypes.BlobSidecars
 
 	blkHeader *ctypes.BeaconBlockHeader
 }
 
 // New creates a new ConsensusSidecars instance.
-func (s *ConsensusSidecars[SidecarsT]) New(
-	sidecars SidecarsT,
+func (s *ConsensusSidecars) New(
+	sidecars datypes.BlobSidecars,
 	blkHeader *ctypes.BeaconBlockHeader,
-) *ConsensusSidecars[SidecarsT] {
-	s = &ConsensusSidecars[SidecarsT]{
+) *ConsensusSidecars {
+	s = &ConsensusSidecars{
 		sidecars:  sidecars,
 		blkHeader: blkHeader,
 	}
 	return s
 }
 
-func (s *ConsensusSidecars[SidecarsT]) GetSidecars() SidecarsT {
+func (s *ConsensusSidecars) GetSidecars() datypes.BlobSidecars {
 	return s.sidecars
 }
 
-func (s *ConsensusSidecars[SidecarsT]) GetHeader() *ctypes.BeaconBlockHeader {
+func (s *ConsensusSidecars) GetHeader() *ctypes.BeaconBlockHeader {
 	return s.blkHeader
 }

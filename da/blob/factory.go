@@ -23,56 +23,41 @@ package blob
 import (
 	"time"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/types"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/merkle"
 	"golang.org/x/sync/errgroup"
 )
 
 // SidecarFactory is a factory for sidecars.
-type SidecarFactory[
-	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody,
-] struct {
+type SidecarFactory struct {
 	// chainSpec defines the specifications of the blockchain.
 	chainSpec ChainSpec
-	// kzgPosition is the position of the KZG commitment in the block.
-	//
-	// TODO: This needs to be made configurable / modular.
-	kzgPosition uint64
 	// metrics is used to collect and report factory metrics.
 	metrics *factoryMetrics
 }
 
 // NewSidecarFactory creates a new sidecar factory.
-func NewSidecarFactory[
-	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody,
-](
+func NewSidecarFactory(
 	chainSpec ChainSpec,
-	// todo: calculate from config.
-	kzgPosition uint64,
 	telemetrySink TelemetrySink,
-) *SidecarFactory[
-	BeaconBlockT, BeaconBlockBodyT,
-] {
-	return &SidecarFactory[
-		BeaconBlockT, BeaconBlockBodyT,
-	]{
+) *SidecarFactory {
+	return &SidecarFactory{
 		chainSpec: chainSpec,
-		// TODO: This should be configurable / modular.
-		kzgPosition: kzgPosition,
-		metrics:     newFactoryMetrics(telemetrySink),
+		metrics:   newFactoryMetrics(telemetrySink),
 	}
 }
 
 // BuildSidecars builds a sidecar.
-func (f *SidecarFactory[BeaconBlockT, _]) BuildSidecars(
-	blk BeaconBlockT,
-	bundle engineprimitives.BlobsBundle,
-) (*types.BlobSidecars, error) {
+func (f *SidecarFactory) BuildSidecars(
+	blk *ctypes.BeaconBlock,
+	bundle ctypes.BlobsBundle,
+	signer crypto.BLSSigner,
+	forkData *ctypes.ForkData,
+) (types.BlobSidecars, error) {
 	var (
 		blobs       = bundle.GetBlobs()
 		commitments = bundle.GetCommitments()
@@ -81,22 +66,54 @@ func (f *SidecarFactory[BeaconBlockT, _]) BuildSidecars(
 		sidecars    = make([]*types.BlobSidecar, numBlobs)
 		body        = blk.GetBody()
 		g           = errgroup.Group{}
+		//nolint:errcheck // should be safe
+		header = any(blk.GetHeader()).(*ctypes.BeaconBlockHeader)
 	)
 
 	startTime := time.Now()
 	defer f.metrics.measureBuildSidecarsDuration(
 		startTime, math.U64(numBlobs),
 	)
+
+	// Contrary to the spec, we do not need to sign the full
+	// block, because the header embeds the body's hash tree root
+	// already. We just need a bond between the block signer (already
+	// tied to CometBFT's ProposerAddress) and the sidecars.
+
+	//nolint:errcheck // should be safe
+	domain := any(forkData).(*ctypes.ForkData).ComputeDomain(
+		f.chainSpec.DomainTypeProposer(),
+	)
+	signingRoot := ctypes.ComputeSigningRoot(
+		header,
+		domain,
+	)
+	signature, err := signer.Sign(signingRoot[:])
+	if err != nil {
+		return nil, err
+	}
+	sigHeader := ctypes.NewSignedBeaconBlockHeader(header, signature)
+
+	// Calculate offsets
+	kzgPosition, err := ctypes.BlockBodyKZGPosition(
+		f.chainSpec.ActiveForkVersionForSlot(header.GetSlot()),
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	for i := range numBlobs {
 		g.Go(func() error {
+			//nolint:govet // shadow
 			inclusionProof, err := f.BuildKZGInclusionProof(
-				body, math.U64(i),
+				body, math.U64(i), kzgPosition,
 			)
 			if err != nil {
 				return err
 			}
 			sidecars[i] = types.BuildBlobSidecar(
-				math.U64(i), blk.GetHeader(),
+				math.U64(i),
+				sigHeader,
 				blobs[i],
 				commitments[i],
 				proofs[i],
@@ -106,13 +123,14 @@ func (f *SidecarFactory[BeaconBlockT, _]) BuildSidecars(
 		})
 	}
 
-	return &types.BlobSidecars{Sidecars: sidecars}, g.Wait()
+	return sidecars, g.Wait()
 }
 
 // BuildKZGInclusionProof builds a KZG inclusion proof.
-func (f *SidecarFactory[_, BeaconBlockBodyT]) BuildKZGInclusionProof(
-	body BeaconBlockBodyT,
+func (f *SidecarFactory) BuildKZGInclusionProof(
+	body *ctypes.BeaconBlockBody,
 	index math.U64,
+	kzgPosition uint64,
 ) ([]common.Root, error) {
 	startTime := time.Now()
 	defer f.metrics.measureBuildKZGInclusionProofDuration(startTime)
@@ -125,7 +143,7 @@ func (f *SidecarFactory[_, BeaconBlockBodyT]) BuildKZGInclusionProof(
 	}
 
 	// Build the merkle proof for the body root.
-	bodyProof, err := f.BuildBlockBodyProof(body)
+	bodyProof, err := f.BuildBlockBodyProof(body, kzgPosition)
 	if err != nil {
 		return nil, err
 	}
@@ -136,8 +154,9 @@ func (f *SidecarFactory[_, BeaconBlockBodyT]) BuildKZGInclusionProof(
 }
 
 // BuildBlockBodyProof builds a block body proof.
-func (f *SidecarFactory[_, BeaconBlockBodyT]) BuildBlockBodyProof(
-	body BeaconBlockBodyT,
+func (f *SidecarFactory) BuildBlockBodyProof(
+	body *ctypes.BeaconBlockBody,
+	kzgPosition uint64,
 ) ([]common.Root, error) {
 	startTime := time.Now()
 	defer f.metrics.measureBuildBlockBodyProofDuration(startTime)
@@ -149,12 +168,12 @@ func (f *SidecarFactory[_, BeaconBlockBodyT]) BuildBlockBodyProof(
 		return nil, err
 	}
 
-	return tree.MerkleProof(f.kzgPosition)
+	return tree.MerkleProof(kzgPosition)
 }
 
 // BuildCommitmentProof builds a commitment proof.
-func (f *SidecarFactory[_, BeaconBlockBodyT]) BuildCommitmentProof(
-	body BeaconBlockBodyT,
+func (f *SidecarFactory) BuildCommitmentProof(
+	body *ctypes.BeaconBlockBody,
 	index math.U64,
 ) ([]common.Root, error) {
 	startTime := time.Now()

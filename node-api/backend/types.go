@@ -24,38 +24,27 @@ import (
 	"context"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
-	"github.com/berachain/beacon-kit/state-transition/core"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // The AvailabilityStore interface is responsible for validating and storing
 // sidecars for specific blocks, as well as verifying sidecars that have already
 // been stored.
-type AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT any] interface {
+type AvailabilityStore interface {
 	// IsDataAvailable ensures that all blobs referenced in the block are
 	// securely stored before it returns without an error.
-	IsDataAvailable(
-		context.Context, math.Slot, BeaconBlockBodyT,
-	) bool
+	IsDataAvailable(context.Context, math.Slot, *ctypes.BeaconBlockBody) bool
 	// Persist makes sure that the sidecar remains accessible for data
 	// availability checks throughout the beacon node's operation.
-	Persist(math.Slot, BlobSidecarsT) error
-}
-
-// BeaconState is the interface for the beacon state.
-type BeaconState[
-	ExecutionPayloadHeaderT any,
-] interface {
-	// SetSlot sets the slot on the beacon state.
-	SetSlot(math.Slot) error
-
-	core.ReadOnlyBeaconState[ExecutionPayloadHeaderT]
+	Persist(math.Slot, datypes.BlobSidecars) error
 }
 
 // BlockStore is the interface for block storage.
-type BlockStore[BeaconBlockT any] interface {
+type BlockStore interface {
 	// GetSlotByBlockRoot retrieves the slot by a given block root.
 	GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 	// GetSlotByStateRoot retrieves the slot by a given state root.
@@ -67,7 +56,7 @@ type BlockStore[BeaconBlockT any] interface {
 // DepositStore defines the interface for deposit storage.
 type DepositStore interface {
 	// GetDepositsByIndex returns `numView` expected deposits.
-	GetDepositsByIndex(startIndex uint64, numView uint64) ([]*ctypes.Deposit, error)
+	GetDepositsByIndex(startIndex uint64, numView uint64) (ctypes.Deposits, error)
 	// Prune prunes the deposit store of [start, end)
 	Prune(start, end uint64) error
 	// EnqueueDeposits adds a list of deposits to the deposit store.
@@ -81,18 +70,18 @@ type Node[ContextT any] interface {
 	CreateQueryContext(height int64, prove bool) (ContextT, error)
 }
 
-type StateProcessor[BeaconStateT any] interface {
-	ProcessSlots(BeaconStateT, math.Slot) (transition.ValidatorUpdates, error)
+type StateProcessor interface {
+	ProcessSlots(*statedb.StateDB, math.Slot) (transition.ValidatorUpdates, error)
 }
 
 // StorageBackend is the interface for the storage backend.
 type StorageBackend[
-	AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT any,
+	AvailabilityStoreT, BlockStoreT, DepositStoreT any,
 ] interface {
 	AvailabilityStore() AvailabilityStoreT
 	BlockStore() BlockStoreT
 	DepositStore() DepositStoreT
-	StateFromContext(context.Context) BeaconStateT
+	StateFromContext(context.Context) *statedb.StateDB
 }
 
 // Validator represents an interface for a validator with generic withdrawal

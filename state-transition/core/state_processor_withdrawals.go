@@ -24,6 +24,7 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/config/spec"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -40,10 +41,10 @@ import (
 // 3. This modification reduces the maximum validator withdrawals per block by
 // one.
 func (sp *StateProcessor[
-	BeaconBlockT, _, BeaconStateT, _, _, _, _,
+	_, _,
 ]) processWithdrawals(
-	st BeaconStateT,
-	blk BeaconBlockT,
+	st *state.StateDB,
+	blk *ctypes.BeaconBlock,
 ) error {
 	// Dequeue and verify the logs.
 	var (
@@ -63,9 +64,9 @@ func (sp *StateProcessor[
 }
 
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _, _, _,
+	_, _,
 ]) processWithdrawalsByFork(
-	st BeaconStateT,
+	st *state.StateDB,
 	expectedWithdrawals engineprimitives.Withdrawals,
 	payloadWithdrawals engineprimitives.Withdrawals,
 ) error {
@@ -130,9 +131,9 @@ func (sp *StateProcessor[
 }
 
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _, _, _,
+	_, _,
 ]) processWithdrawalsBartio(
-	st BeaconStateT,
+	st *state.StateDB,
 	expectedWithdrawals engineprimitives.Withdrawals,
 	payloadWithdrawals engineprimitives.Withdrawals,
 	slot math.Slot,
@@ -197,9 +198,9 @@ func (sp *StateProcessor[
 }
 
 func (sp *StateProcessor[
-	_, _, BeaconStateT, _, _, _, _,
+	_, _,
 ]) processWithdrawalsDefault(
-	st BeaconStateT,
+	st *state.StateDB,
 	expectedWithdrawals engineprimitives.Withdrawals,
 	payloadWithdrawals engineprimitives.Withdrawals,
 	slot math.Slot,
