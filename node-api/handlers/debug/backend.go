@@ -21,35 +21,13 @@
 package debug
 
 import (
-	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	"github.com/berachain/beacon-kit/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/math"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-func (h *Handler[ContextT]) GetState(c ContextT) (any, error) {
-	req, err := utils.BindAndValidate[beacontypes.GetStateRequest](
-		c, h.Logger(),
-	)
-	if err != nil {
-		return nil, err
-	}
-	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
-	if err != nil {
-		return nil, err
-	}
-	state, err := h.backend.StateAtSlot(slot)
-	if err != nil {
-		return nil, err
-	}
-	beaconState, err := state.GetMarshallable()
-	if err != nil {
-		return nil, err
-	}
-	return beacontypes.StateResponse{
-		// TODO: The version should be retrieved based on the slot
-		Version:             "deneb", // stubbed
-		ExecutionOptimistic: false,   // stubbed
-		// TODO: We can set to finalized if this is less than the highest height
-		Finalized: false, // stubbed
-		Data:      beaconState,
-	}, nil
+// Backend is the interface for backend of the debug API.
+type Backend interface {
+	GetSlotByStateRoot(root common.Root) (math.Slot, error)
+	StateAtSlot(slot math.Slot) (*statedb.StateDB, error)
 }

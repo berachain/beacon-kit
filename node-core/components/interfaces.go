@@ -797,7 +797,7 @@ type (
 		StateRootAtSlot(slot math.Slot) (common.Root, error)
 		StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error)
 		StateFromSlotForProof(slot math.Slot) (*statedb.StateDB, math.Slot, error)
-		StateAtSlot(slot math.Slot) (*ctypes.BeaconState, error)
+		StateAtSlot(slot math.Slot) (*statedb.StateDB, error)
 	}
 
 	ValidatorBackend interface {

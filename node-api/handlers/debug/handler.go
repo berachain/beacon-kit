@@ -22,7 +22,6 @@ package debug
 
 import (
 	"github.com/berachain/beacon-kit/node-api/handlers"
-	"github.com/berachain/beacon-kit/node-api/handlers/beacon"
 	"github.com/berachain/beacon-kit/node-api/server/context"
 )
 
@@ -31,14 +30,14 @@ type Handler[
 	ContextT context.Context,
 ] struct {
 	*handlers.BaseHandler[ContextT]
-	backend beacon.Backend
+	backend Backend
 }
 
 // NewHandler creates a new handler for the beacon API.
 func NewHandler[
 	ContextT context.Context,
 ](
-	backend beacon.Backend,
+	backend Backend,
 ) *Handler[ContextT] {
 	h := &Handler[ContextT]{
 		BaseHandler: handlers.NewBaseHandler(
