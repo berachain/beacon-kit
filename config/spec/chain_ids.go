@@ -25,7 +25,7 @@ const (
 	DevnetEth1ChainID uint64 = 80087
 
 	// MainnetEth1ChainID is the chain ID for the Berachain mainnet.
-	MainnetEth1ChainID uint64 = 80085 // TODO: FIXME!
+	MainnetEth1ChainID uint64 = 80094
 
 	// TestnetEth1ChainID is the chain ID for the public Dartio testnet.
 	//

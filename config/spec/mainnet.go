@@ -97,7 +97,6 @@ func MainnetChainSpec() (chain.Spec, error) {
 		DomainTypeProposer:          bytes.FromUint32(DefaultDomainTypeProposer),
 		DomainTypeAttester:          bytes.FromUint32(DefaultDomainTypeAttester),
 		DomainTypeRandao:            bytes.FromUint32(DefaultDomainTypeRandao),
-		DomainTypeDeposit:           bytes.FromUint32(DefaultDomainTypeDeposit),
 		DomainTypeVoluntaryExit:     bytes.FromUint32(DefaultDomainTypeVoluntaryExit),
 		DomainTypeSelectionProof:    bytes.FromUint32(DefaultDomainTypeSelectionProof),
 		DomainTypeAggregateAndProof: bytes.FromUint32(DefaultDomainTypeAggregateAndProof),
@@ -119,10 +118,6 @@ func MainnetChainSpec() (chain.Spec, error) {
 		EpochsPerSlashingsVector:  DefaultEpochsPerSlashingsVector,
 		HistoricalRootsLimit:      DefaultHistoricalRootsLimit,
 		ValidatorRegistryLimit:    DefaultValidatorRegistryLimit,
-
-		// Slashing.
-		InactivityPenaltyQuotient:      DefaultInactivityPenaltyQuotient,
-		ProportionalSlashingMultiplier: DefaultProportionalSlashingMultiplier,
 
 		// Capella values.
 		MaxWithdrawalsPerPayload:         DefaultMaxWithdrawalsPerPayload,
