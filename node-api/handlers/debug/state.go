@@ -40,12 +40,16 @@ func (h *Handler[ContextT]) GetState(c ContextT) (any, error) {
 	if err != nil {
 		return nil, err
 	}
+	beaconState, err := state.GetMarshallable()
+	if err != nil {
+		return nil, err
+	}
 	return beacontypes.StateResponse{
 		// TODO: The version should be retrieved based on the slot
 		Version:             "deneb", // stubbed
 		ExecutionOptimistic: false,   // stubbed
 		// TODO: We can set to finalized if this is less than the highest height
 		Finalized: false, // stubbed
-		Data:      state,
+		Data:      beaconState,
 	}, nil
 }
