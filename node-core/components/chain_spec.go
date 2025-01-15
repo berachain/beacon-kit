@@ -33,6 +33,7 @@ const (
 	DevnetChainSpecType  = "devnet"
 	MainnetChainSpecType = "mainnet"
 	TestnetChainSpecType = "testnet"
+	MainnetChainSpecType = "mainnet"
 )
 
 // ProvideChainSpec provides the chain spec based on the environment variable.

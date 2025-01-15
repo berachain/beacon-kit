@@ -25,6 +25,7 @@ import (
 
 	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -188,7 +189,15 @@ func (sp *StateProcessor[ContextT]) ProcessBlock(
 		return err
 	}
 
-	if err := sp.processExecutionPayload(ctx, st, blk); err != nil {
+	switch err := sp.processExecutionPayload(ctx, st, blk); {
+	case err == nil:
+		// keep going with the processing
+	case errors.Is(err, engineerrors.ErrAcceptedPayloadStatus):
+		// It is safe for the validator to ignore this error since
+		// the consensus will enforce that the block is part
+		// of the canonical chain.
+		// Keep going with the rest of the validation
+	default:
 		return err
 	}
 

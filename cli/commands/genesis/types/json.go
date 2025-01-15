@@ -20,8 +20,24 @@
 
 package types
 
-import "github.com/berachain/beacon-kit/consensus-types/types"
+import gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 
-type ValidatorsMarshaling struct {
-	Validators []*types.Validator `json:"validators" ssz-max:"1099511627776"`
+type EthGenesis interface {
+	Alloc() gethprimitives.GenesisAlloc
+}
+
+type DefaultEthGenesisJSON struct {
+	Allocs gethprimitives.GenesisAlloc `json:"alloc"`
+}
+
+func (g *DefaultEthGenesisJSON) Alloc() gethprimitives.GenesisAlloc {
+	return g.Allocs
+}
+
+type NethermindEthGenesisJSON struct {
+	Accounts gethprimitives.GenesisAlloc `json:"accounts"`
+}
+
+func (g *NethermindEthGenesisJSON) Alloc() gethprimitives.GenesisAlloc {
+	return g.Accounts
 }

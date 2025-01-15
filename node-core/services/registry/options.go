@@ -20,20 +20,8 @@
 
 package service
 
-import (
-	"github.com/berachain/beacon-kit/log"
-)
-
 // RegistryOption is a functional option for the Registry.
 type RegistryOption func(*Registry) error
-
-// WithLogger is an option to set the logger for the Registry.
-func WithLogger(logger log.Logger) RegistryOption {
-	return func(r *Registry) error {
-		r.logger = logger
-		return nil
-	}
-}
 
 // WithService is an Option that registers a service with the Registry.
 func WithService(svc Basic) RegistryOption {

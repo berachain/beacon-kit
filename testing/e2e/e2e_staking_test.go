@@ -99,12 +99,12 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 
 	// Bind the deposit contract.
 	depositContractAddress := gethcommon.HexToAddress(spec.DefaultDepositContractAddress)
-	//nolint:staticcheck // used below.
+
 	dc, err := deposit.NewDepositContract(depositContractAddress, s.JSONRPCBalancer())
 	s.Require().NoError(err)
 
 	// Get the nonce.
-	//nolint:staticcheck // used below.
+
 	nonce, err := s.JSONRPCBalancer().NonceAt(
 		s.Ctx(), sender.Address(), new(big.Int).SetUint64(blkNum),
 	)

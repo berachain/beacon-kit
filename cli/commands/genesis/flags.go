@@ -20,39 +20,16 @@
 
 package genesis
 
-import (
-	"github.com/berachain/beacon-kit/chain"
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/spf13/cobra"
+const (
+	// nethermindGenesis is the flag for the nethermind genesis file.
+	nethermindGenesis = "nethermind"
+
+	// nethermindGenesisShorthand is the shorthand flag for the nethermindGenesis flag.
+	nethermindGenesisShorthand = "n"
+
+	// nethermindGenesisDefault is the default value for the nethermindGenesis flag.
+	nethermindGenesisDefault = false
+
+	// nethermindGenesisMsg is the usage description for the nethermindGenesis flag.
+	nethermindGenesisMsg = "use the nethermind genesis file"
 )
-
-// Commands builds the genesis-related command. Users may
-// provide application specific commands as a parameter.
-func Commands(
-	cs chain.Spec,
-	cmds ...*cobra.Command,
-) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:                        "genesis",
-		Short:                      "Application's genesis-related subcommands",
-		DisableFlagParsing:         false,
-		SuggestionsMinimumDistance: 2, //nolint:mnd // from sdk.
-		RunE:                       client.ValidateCmd,
-	}
-
-	// Adding subcommands for genesis-related operations.
-	cmd.AddCommand(
-		AddGenesisDepositCmd(cs),
-		CollectGenesisDepositsCmd(),
-		AddExecutionPayloadCmd(cs),
-		GetGenesisValidatorRootCmd(cs),
-		SetDepositStorageCmd(cs),
-	)
-
-	// Add additional commands
-	for _, subCmd := range cmds {
-		cmd.AddCommand(subCmd)
-	}
-
-	return cmd
-}

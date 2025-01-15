@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/consensus/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
-	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -83,9 +82,11 @@ func (s *Service) ProcessProposal(
 	// Make sure we have the right number of BlobSidecars
 	numCommitments := len(blk.GetBody().GetBlobKzgCommitments())
 	if numCommitments != len(sidecars) {
-		err = fmt.Errorf("expected %d sidecars, got %d",
+		err = fmt.Errorf("expected %d sidecars, got %d: %w",
 			numCommitments, len(sidecars),
+			ErrSidecarCommittmentMismatch,
 		)
+		s.logger.Warn(err.Error())
 		return err
 	}
 
@@ -200,7 +201,8 @@ func (s *Service) VerifyIncomingBlock(
 
 	s.logger.Info(
 		"Received incoming beacon block",
-		"state_root", beaconBlk.GetStateRoot(), "slot", beaconBlk.GetSlot(),
+		"state_root", beaconBlk.GetStateRoot(),
+		"slot", beaconBlk.GetSlot(),
 	)
 
 	// We purposefully make a copy of the BeaconState in order
@@ -219,17 +221,17 @@ func (s *Service) VerifyIncomingBlock(
 	if err != nil {
 		s.logger.Error(
 			"Rejecting incoming beacon block ❌ ",
-			"state_root",
-			beaconBlk.GetStateRoot(),
-			"reason",
-			err,
+			"state_root", beaconBlk.GetStateRoot(),
+			"reason", err,
 		)
 
 		if s.shouldBuildOptimisticPayloads() {
-			var lph *ctypes.ExecutionPayloadHeader
-			lph, err = preState.GetLatestExecutionPayloadHeader()
-			if err != nil {
-				return err
+			lph, lphErr := preState.GetLatestExecutionPayloadHeader()
+			if lphErr != nil {
+				return errors.Join(
+					err,
+					fmt.Errorf("failed getting LatestExecutionPayloadHeader: %w", lphErr),
+				)
 			}
 
 			go s.handleRebuildPayloadForRejectedBlock(
@@ -253,10 +255,9 @@ func (s *Service) VerifyIncomingBlock(
 	)
 
 	if s.shouldBuildOptimisticPayloads() {
-		var lph *ctypes.ExecutionPayloadHeader
-		lph, err = postState.GetLatestExecutionPayloadHeader()
-		if err != nil {
-			return err
+		lph, lphErr := postState.GetLatestExecutionPayloadHeader()
+		if lphErr != nil {
+			return fmt.Errorf("failed loading LatestExecutionPayloadHeader: %w", lphErr)
 		}
 
 		go s.handleOptimisticPayloadBuild(
@@ -298,14 +299,6 @@ func (s *Service) verifyStateRoot(
 		},
 		st, blk,
 	)
-	if errors.Is(err, engineerrors.ErrAcceptedPayloadStatus) {
-		// It is safe for the validator to ignore this error since
-		// the state transition will enforce that the block is part
-		// of the canonical chain.
-		//
-		// TODO: this is only true because we are assuming SSF.
-		return nil
-	}
 
 	return err
 }

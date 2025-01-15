@@ -39,6 +39,7 @@ type (
 	ExecutionHash  = common.Hash
 	ExecutableData = engine.ExecutableData
 	Genesis        = core.Genesis
+	GenesisAlloc   = coretypes.GenesisAlloc
 	Block          = coretypes.Block
 	Body           = coretypes.Body
 	Log            = coretypes.Log

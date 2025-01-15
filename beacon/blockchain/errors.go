@@ -30,5 +30,7 @@ var (
 	// ErrDataNotAvailable indicates that the required data is not available.
 	ErrDataNotAvailable = errors.New("data not available")
 
+	ErrSidecarCommittmentMismatch = errors.New("sidecars commitments mismatch")
+
 	ErrSidecarSignatureMismatch = errors.New("sidecar signature mismatch")
 )
