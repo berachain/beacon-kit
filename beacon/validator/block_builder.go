@@ -396,6 +396,7 @@ func (s *Service) computeStateRoot(
 		// the payload in their block has come from a remote builder.
 		&transition.Context{
 			Context:                 ctx,
+			MeterGas:                false,
 			OptimisticEngine:        true,
 			SkipPayloadVerification: true,
 			SkipValidateResult:      true,

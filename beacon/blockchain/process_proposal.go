@@ -290,6 +290,7 @@ func (s *Service) verifyStateRoot(
 		// that the proposer does not try to push through a bad block.
 		&transition.Context{
 			Context:                 ctx,
+			MeterGas:                false,
 			OptimisticEngine:        false,
 			SkipPayloadVerification: false,
 			SkipValidateResult:      false,

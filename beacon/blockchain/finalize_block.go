@@ -156,6 +156,8 @@ func (s *Service) executeStateTransition(
 		&transition.Context{
 			Context: ctx,
 
+			MeterGas: true,
+
 			// We set `OptimisticEngine` to true since this is called during
 			// FinalizeBlock. We want to assume the payload is valid. If it
 			// ends up not being valid later, the node will simply AppHash,

@@ -29,6 +29,8 @@ import (
 // Context is the context for the state transition.
 type Context struct {
 	context.Context
+
+	MeterGas bool
 	// OptimisticEngine indicates whether to optimistically assume
 	// the execution client has the correct state certain errors
 	// are returned by the execution engine.
@@ -47,6 +49,10 @@ type Context struct {
 	// ConsensusTime returns the timestamp of current consensus request.
 	// It is used to build next payload and to validate currentpayload.
 	ConsensusTime math.U64
+}
+
+func (c *Context) GetMeterGas() bool {
+	return c.MeterGas
 }
 
 // GetOptimisticEngine returns whether to optimistically assume the execution

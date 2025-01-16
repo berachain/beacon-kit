@@ -36,6 +36,7 @@ import (
 // Context defines an interface for managing state transition context.
 type Context interface {
 	context.Context
+	GetMeterGas() bool
 	// GetOptimisticEngine returns whether to optimistically assume the
 	// execution client has the correct state when certain errors are returned
 	// by the execution engine.
