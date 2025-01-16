@@ -52,7 +52,7 @@ func (b *ReusableBuffer[RootT]) grow(delta int) {
 	b.internal = append(b.internal, make([]RootT, delta)...)
 }
 
-// singleuseBuffer is a buffer for a single use case. Allocates new
+// SingleUseBuffer is a buffer for a single use case. Allocates new
 // memory for each use (call to `Get`).
 //
 // NOTE: this buffer is only used for testing.
