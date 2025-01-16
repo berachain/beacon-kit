@@ -84,15 +84,15 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	sender := s.TestAccounts()[0]
 
 	// Get the block num
-	blkNum, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
+	blkNum, err := s.RandomExecutionClient().BlockNumber(s.Ctx())
 	s.Require().NoError(err)
 
 	// Get the chain ID.
-	chainID, err := s.JSONRPCBalancer().ChainID(s.Ctx())
+	chainID, err := s.RandomExecutionClient().ChainID(s.Ctx())
 	s.Require().NoError(err)
 
 	// Get original evm balance
-	balance, err := s.JSONRPCBalancer().BalanceAt(
+	balance, err := s.RandomExecutionClient().BalanceAt(
 		s.Ctx(), sender.Address(), new(big.Int).SetUint64(blkNum),
 	)
 	s.Require().NoError(err)
@@ -100,12 +100,12 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	// Bind the deposit contract.
 	depositContractAddress := gethcommon.HexToAddress(spec.DefaultDepositContractAddress)
 
-	dc, err := deposit.NewDepositContract(depositContractAddress, s.JSONRPCBalancer())
+	dc, err := deposit.NewDepositContract(depositContractAddress, s.RandomExecutionClient())
 	s.Require().NoError(err)
 
 	// Get the nonce.
 
-	nonce, err := s.JSONRPCBalancer().NonceAt(
+	nonce, err := s.RandomExecutionClient().NonceAt(
 		s.Ctx(), sender.Address(), new(big.Int).SetUint64(blkNum),
 	)
 	s.Require().NoError(err)
@@ -162,7 +162,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 		"Waiting for the final deposit tx to be mined",
 		"num", NumDepositsLoad, "hash", tx.Hash().Hex(),
 	)
-	receipt, err := bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
+	receipt, err := bind.WaitMined(s.Ctx(), s.RandomExecutionClient(), tx)
 	s.Require().NoError(err)
 	s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
 	s.Logger().Info("Final deposit tx mined successfully", "hash", receipt.TxHash.Hex())
@@ -179,7 +179,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	s.Require().InDelta(height.Response.LastBlockHeight, height2.Response.LastBlockHeight, 1)
 
 	// Check to see if evm balance decreased.
-	postDepositBalance, err := s.JSONRPCBalancer().BalanceAt(s.Ctx(), sender.Address(), nil)
+	postDepositBalance, err := s.RandomExecutionClient().BalanceAt(s.Ctx(), sender.Address(), nil)
 	s.Require().NoError(err)
 
 	// Check that the eth spent is somewhere~ (gas) between

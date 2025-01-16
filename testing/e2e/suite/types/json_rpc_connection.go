@@ -21,7 +21,7 @@
 package types
 
 import (
-	"fmt"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/services"
@@ -38,23 +38,39 @@ type JSONRPCConnection struct {
 func NewJSONRPCConnection(
 	serviceCtx *services.ServiceContext,
 ) (*JSONRPCConnection, error) {
-	var (
-		err  error
-		conn = &JSONRPCConnection{}
-	)
+	conn := &JSONRPCConnection{
+		isWebSocket: true,
+	}
 
-	// If the WebSocket port isn't available, try the HTTP port
-	port, ok := serviceCtx.GetPublicPorts()["eth-json-rpc"]
+	// Start by trying to get the public port for the JSON-RPC WebSocket
+	jsonRPC, ok := serviceCtx.GetPublicPorts()["eth-json-rpc-ws"]
 	if !ok {
+		// If the WebSocket port isn't available, try the HTTP port
+		jsonRPC, ok = serviceCtx.GetPublicPorts()["eth-json-rpc"]
+		if !ok {
+			return nil, ErrPublicPortNotFound
+		}
+		conn.isWebSocket = false
+	}
+	// Split the string to get the port
+	str := strings.Split(jsonRPC.String(), "/")
+	if len(str) == 0 {
 		return nil, ErrPublicPortNotFound
 	}
+	port := str[0]
 
-	if conn.Client, err = ethclient.Dial(
-		fmt.Sprintf("http://://0.0.0.0:%d", port.GetNumber()),
-	); err != nil {
-		return nil, err
+	prefix := "http://"
+	if conn.isWebSocket {
+		prefix = "ws://"
 	}
 
+	ethClient, err := ethclient.Dial(
+		prefix + "0.0.0.0:" + port,
+	)
+	if err != nil {
+		return nil, err
+	}
+	conn.Client = ethClient
 	return conn, nil
 }
 
