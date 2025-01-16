@@ -176,6 +176,10 @@ func (sp *StateProcessor[_]) validateStatefulPayload(
 			expectedMix, payload.GetPrevRandao(),
 		)
 	}
-
+	sp.metrics.gaugeBlockGasUsed(
+		payload.GetNumber(),
+		payload.GetGasUsed(),
+		payload.GetBlobGasUsed(),
+	)
 	return nil
 }

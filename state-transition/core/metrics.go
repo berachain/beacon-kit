@@ -20,6 +20,10 @@
 
 package core
 
+import (
+	"github.com/berachain/beacon-kit/primitives/math"
+)
+
 type stateProcessorMetrics struct {
 	// sink is the sink for the metrics.
 	sink TelemetrySink
@@ -46,4 +50,24 @@ func (s *stateProcessorMetrics) gaugeTimestamps(
 
 func (s *stateProcessorMetrics) incrementDepositsIgnored() {
 	s.sink.IncrementCounter("beacon_kit.state.deposits_ignored")
+}
+
+func (s *stateProcessorMetrics) gaugeBlockGasUsed(
+	blockNumber math.U64,
+	txGasUsed math.U64,
+	blobGasUsed math.U64,
+) {
+	blockNumberStr := blockNumber.Base10()
+	s.sink.SetGauge(
+		"beacon_kit.state.block_tx_gas_used",
+		int64(txGasUsed.Unwrap()), // #nosec G115
+		"block_number",
+		blockNumberStr,
+	)
+	s.sink.SetGauge(
+		"beacon_kit.state.block_blob_gas_used",
+		int64(blobGasUsed.Unwrap()), // #nosec G115
+		"block_number",
+		blockNumberStr,
+	)
 }
