@@ -32,8 +32,6 @@ type E2ETestConfig struct {
 	NetworkConfiguration NetworkConfiguration `json:"network_configuration"`
 	// NodeSettings specifies the configuration for the nodes in the test.
 	NodeSettings NodeSettings `json:"node_settings"`
-	// EthJSONRPCEndpoints specifies the RPC endpoints to include in the test.
-	EthJSONRPCEndpoints []EthJSONRPCEndpoint `json:"eth_json_rpc_endpoints"`
 	// AdditionalServices specifies any extra services that should be included
 	// in the test environment.
 	AdditionalServices []AdditionalService `json:"additional_services"`
