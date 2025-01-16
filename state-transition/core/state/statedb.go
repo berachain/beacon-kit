@@ -42,7 +42,7 @@ type StateDB struct {
 	cs chain.ChainSpec
 }
 
-// NewBeaconStateFromDB creates a new beacon state from an underlying state db.
+// NewFromDB creates a new beacon state from an underlying state db.
 func (s *StateDB) NewFromDB(
 	bdb *beacondb.KVStore,
 	cs chain.ChainSpec,
