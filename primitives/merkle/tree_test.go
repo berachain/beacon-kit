@@ -21,6 +21,7 @@
 package merkle_test
 
 import (
+	"fmt"
 	"strconv"
 	"testing"
 
@@ -267,28 +268,39 @@ func TestMerkleTree_VerifyProof_TrieUpdated(t *testing.T) {
 	require.NoError(t, m.Insert(item, 15))
 }
 
-func BenchmarkNewTreeFromLeavesWithDepth(b *testing.B) {
-	treeDepth := uint8(32)
-	items := make([][32]byte, 0)
-	for _, v := range [][]byte{
-		byteslib.ExtendToSize([]byte("A"), byteslib.B32Size),
-		byteslib.ExtendToSize([]byte("BB"), byteslib.B32Size),
-		byteslib.ExtendToSize([]byte("CCC"), byteslib.B32Size),
-		byteslib.ExtendToSize([]byte("DDDD"), byteslib.B32Size),
-		byteslib.ExtendToSize([]byte("EEEEE"), byteslib.B32Size),
-		byteslib.ExtendToSize([]byte("FFFFFF"), byteslib.B32Size),
-		byteslib.ExtendToSize([]byte("GGGGGGG"), byteslib.B32Size),
-	} {
-		item, err := byteslib.ToBytes32(v)
-		require.NoError(b, err)
-		items = append(items, item)
+func generateTestItems(size int) [][32]byte {
+	items := make([][32]byte, size)
+	for i := 0; i < size; i++ {
+		data := []byte(fmt.Sprintf("test-data-%d", i))
+		item, _ := byteslib.ToBytes32(byteslib.ExtendToSize(data, byteslib.B32Size))
+		items[i] = item
 	}
-	for i := 0; i < b.N; i++ {
-		_, err := merkle.NewTreeFromLeavesWithDepth(
-			items,
-			treeDepth,
-		)
-		require.NoError(b, err, "Could not generate Merkle tree from items")
+	return items
+}
+
+func BenchmarkNewTreeFromLeavesWithDepth(b *testing.B) {
+	testCases := []struct {
+		name      string
+		numItems  int
+		treeDepth uint8
+	}{
+		{"Small Tree", 7, 32},
+		{"Medium Tree", 100, 32},
+		{"Large Tree", 1000, 32},
+	}
+
+	for _, tc := range testCases {
+		b.Run(tc.name, func(b *testing.B) {
+			items := generateTestItems(tc.numItems)
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				_, err := merkle.NewTreeFromLeavesWithDepth(
+					items,
+					tc.treeDepth,
+				)
+				require.NoError(b, err, "Could not generate Merkle tree from items")
+			}
+		})
 	}
 }
 
