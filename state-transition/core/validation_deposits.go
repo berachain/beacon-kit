@@ -77,24 +77,36 @@ func (sp *StateProcessor[_]) validateNonGenesisDeposits(
 	if err != nil {
 		return err
 	}
-	for i, deposit := range blkDeposits {
-		// deposit indices should be contiguous
-		// #nosec G115
-		if deposit.GetIndex() != math.U64(depositIndex)+math.U64(i) {
-			return errors.Wrapf(ErrDepositIndexOutOfOrder,
-				"deposit index: %d, expected index: %d", deposit.GetIndex().Unwrap(), i,
-			)
-		}
-	}
 
-	var deposits ctypes.Deposits
-	deposits, err = sp.ds.GetDepositsByIndex(ctx, 0, depositIndex+uint64(len(blkDeposits)))
+	var localDeposits ctypes.Deposits
+	localDeposits, err = sp.ds.GetDepositsByIndex(ctx, 0, depositIndex+uint64(len(blkDeposits)))
 	if err != nil {
 		return err
 	}
 
-	if !blkDepositRoot.Equals(deposits.HashTreeRoot()) {
+	// First check that the block's deposits 1) have contiguous indices and 2) match the local
+	// view of the block's deposits.
+	for i, blkDeposit := range blkDeposits {
+		blkDepositIndex := blkDeposit.GetIndex().Unwrap()
+		//#nosec:G115 // won't overflow in practice.
+		if blkDepositIndex != depositIndex+uint64(i) {
+			return errors.Wrapf(ErrDepositIndexOutOfOrder,
+				"deposit index: %d, expected index: %d", blkDepositIndex, i,
+			)
+		}
+
+		if !localDeposits[blkDepositIndex].Equals(blkDeposit) {
+			return errors.Wrapf(ErrDepositMismatch,
+				"deposit index: %d, expected deposit: %+v, actual deposit: %+v",
+				blkDepositIndex, *localDeposits[blkDepositIndex], *blkDeposit,
+			)
+		}
+	}
+
+	// Then check that the historical deposits root matches locally what's on the beacon block.
+	if !localDeposits.HashTreeRoot().Equals(blkDepositRoot) {
 		return ErrDepositsRootMismatch
 	}
+
 	return nil
 }

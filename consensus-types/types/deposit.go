@@ -59,6 +59,15 @@ func (d *Deposit) Empty() *Deposit {
 	return &Deposit{}
 }
 
+// Equals returns true if the Deposit is equal to the other.
+func (d *Deposit) Equals(o *Deposit) bool {
+	return d.Pubkey == o.Pubkey &&
+		d.Credentials == o.Credentials &&
+		d.Amount == o.Amount &&
+		d.Signature == o.Signature &&
+		d.Index == o.Index
+}
+
 // VerifySignature verifies the deposit data and signature.
 func (d *Deposit) VerifySignature(
 	forkData *ForkData,
