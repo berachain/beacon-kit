@@ -49,12 +49,22 @@ const (
 	// BlobSidecarsTxIndex represents the index of the blob sidecar transaction.
 	// It follows the beacon block transaction in the tx list.
 	BlobSidecarsTxIndex
+
+	// A Consensus block has at most two transactions (block and blob).
+	MaxConsensusTxsCount = 2
 )
 
 func (s *Service) ProcessProposal(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) error {
+	if countTx := len(req.Txs); countTx > MaxConsensusTxsCount {
+		return fmt.Errorf("max expected %d, got %d: %w",
+			MaxConsensusTxsCount, countTx,
+			ErrTooManyConsensusTxs,
+		)
+	}
+
 	// Decode signed block and sidecars.
 	signedBlk, sidecars, err := encoding.
 		ExtractBlobsAndBlockFromRequest(
