@@ -22,7 +22,6 @@ package client
 
 import (
 	"context"
-	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
@@ -34,13 +33,11 @@ import (
 func (s *EngineClient) createContextWithTimeout(
 	ctx context.Context,
 ) (context.Context, context.CancelFunc) {
-	startTime := time.Now()
 	dctx, cancel := context.WithTimeoutCause(
 		ctx,
 		s.cfg.RPCTimeout,
 		engineerrors.ErrEngineAPITimeout,
 	)
-	s.metrics.measureNewPayloadDuration(startTime)
 	return dctx, cancel
 }
 
