@@ -249,19 +249,68 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 		Amount:      maxBalance,
 		Index:       2,
 	}
-	localDeposits := append(blockDeposits, extraLocalDeposit)
 
 	// Add both deposits to local store (which includes more than what's in the block).
-	require.NoError(t, ds.EnqueueDeposits(ctx, localDeposits))
+	require.NoError(t, ds.EnqueueDeposits(ctx, append(blockDeposits, extraLocalDeposit)))
 
 	// Run transition.
 	_, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
+}
+
+func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
+	csData := spec.BaseSpec()
+	csData.DepositEth1ChainID = spec.BoonetEth1ChainID
+	csData.MaxDepositsPerBlock = 1 // Set only 1 deposit allowed per block.
+	cs, err := chain.NewSpec(csData)
+	require.NoError(t, err)
+	sp, st, ds, ctx := setupState(t, cs)
+
+	var (
+		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
+		credentials0 = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
+	)
+
+	// Setup initial state with one validator
+	var (
+		genDeposits = types.Deposits{
+			{
+				Pubkey:      [48]byte{0x00},
+				Credentials: credentials0,
+				Amount:      maxBalance,
+				Index:       0,
+			},
+		}
+		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genVersion       = version.FromUint32[common.Version](version.Deneb)
+	)
+	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
+	_, err = sp.InitializePreminedBeaconStateFromEth1(
+		st, genDeposits, genPayloadHeader, genVersion,
+	)
+	require.NoError(t, err)
+
+	// Create the block deposits.
+	blockDeposits := types.Deposits{
+		{
+			Pubkey:      [48]byte{0x01},
+			Credentials: credentials0,
+			Amount:      maxBalance,
+			Index:       1,
+		},
+	}
+
+	extraLocalDeposit := &types.Deposit{
+		Pubkey:      [48]byte{0x01},
+		Credentials: credentials0,
+		Amount:      maxBalance,
+		Index:       2,
+	}
 
 	// Now, the block proposer ends up adding the correct 1 deposit per block, BUT spoofs the
 	// deposits root to use the entire deposits list.
-	badDepRoot := append(genDeposits, localDeposits...).HashTreeRoot()
-	blk = buildNextBlock(
+	badDepRoot := append(genDeposits, append(blockDeposits, extraLocalDeposit)...).HashTreeRoot()
+	blk := buildNextBlock(
 		t,
 		st,
 		&types.BeaconBlockBody{
@@ -278,6 +327,9 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 			Deposits: blockDeposits,
 		},
 	)
+
+	// Add both deposits to local store (which includes more than what's in the block).
+	require.NoError(t, ds.EnqueueDeposits(ctx, append(blockDeposits, extraLocalDeposit)))
 
 	// Run transition.
 	_, err = sp.Transition(ctx, st, blk)
