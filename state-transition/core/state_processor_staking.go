@@ -128,9 +128,6 @@ func (sp *StateProcessor[_]) createValidator(st *state.StateDB, dep *ctypes.Depo
 		}
 	}
 
-	// Get the current epoch.
-	epoch := sp.cs.SlotToEpoch(slot)
-
 	// Verify that the deposit has the ETH1 withdrawal credentials.
 	if !dep.HasEth1WithdrawalCredentials() {
 		// Ignore deposits with non-ETH1 withdrawal credentials.
@@ -147,9 +144,9 @@ func (sp *StateProcessor[_]) createValidator(st *state.StateDB, dep *ctypes.Depo
 	// Verify that the message was signed correctly.
 	err = dep.VerifySignature(
 		ctypes.NewForkData(
-			version.FromUint32[common.Version](
-				sp.cs.ActiveForkVersionForEpoch(epoch),
-			), genesisValidatorsRoot,
+			// Deposits must be signed with GENESIS_FORK_VERSION
+			version.FromUint32[common.Version](version.Deneb),
+			genesisValidatorsRoot,
 		),
 		sp.cs.DomainTypeDeposit(),
 		sp.signer.VerifySignature,
