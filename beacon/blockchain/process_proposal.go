@@ -194,6 +194,8 @@ func (s *Service) VerifyIncomingBlobSidecars(
 
 // VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
+//
+//nolint:funlen // not an issue
 func (s *Service) VerifyIncomingBlock(
 	ctx context.Context,
 	beaconBlk *ctypes.BeaconBlock,
@@ -221,8 +223,29 @@ func (s *Service) VerifyIncomingBlock(
 	// with the incoming block.
 	postState := preState.Copy(ctx)
 
+	// verify block slot
+	stateSlot, err := postState.GetSlot()
+	if err != nil {
+		s.logger.Error(
+			"failed loading state slot to verify block slot",
+			"reason", err,
+		)
+		return err
+	}
+
+	blkSlot := beaconBlk.GetSlot()
+	if blkSlot != stateSlot+1 {
+		s.logger.Error(
+			"Rejecting incoming beacon block ❌ ",
+			"state slot", stateSlot.Base10(),
+			"block slot", blkSlot.Base10(),
+			"reason", ErrUnexpectedBlockSlot.Error(),
+		)
+		return ErrUnexpectedBlockSlot
+	}
+
 	// Verify the state root of the incoming block.
-	err := s.verifyStateRoot(
+	err = s.verifyStateRoot(
 		ctx,
 		postState,
 		beaconBlk,
