@@ -23,25 +23,24 @@ package blob
 import (
 	"time"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/kzg"
+	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // Processor is the blob processor that handles the processing and verification
 // of blob sidecars.
-type Processor[
-	AvailabilityStoreT AvailabilityStore,
-	ConsensusSidecarsT ConsensusSidecars,
-] struct {
+type Processor struct {
 	// logger is used to log information and errors.
 	logger log.Logger
 	// chainSpec defines the specifications of the blockchain.
-	chainSpec chain.ChainSpec
+	chainSpec chain.Spec
 	// verifier is responsible for verifying the blobs.
 	verifier *verifier
 	// metrics is used to collect and report processor metrics.
@@ -49,24 +48,15 @@ type Processor[
 }
 
 // NewProcessor creates a new blob processor.
-func NewProcessor[
-	AvailabilityStoreT AvailabilityStore,
-	ConsensusSidecarsT ConsensusSidecars,
-](
+func NewProcessor(
 	logger log.Logger,
-	chainSpec chain.ChainSpec,
+	chainSpec chain.Spec,
 	proofVerifier kzg.BlobProofVerifier,
 	telemetrySink TelemetrySink,
-) *Processor[
-	AvailabilityStoreT,
-	ConsensusSidecarsT,
-] {
+) *Processor {
 	verifier := newVerifier(proofVerifier, telemetrySink, chainSpec)
 
-	return &Processor[
-		AvailabilityStoreT,
-		ConsensusSidecarsT,
-	]{
+	return &Processor{
 		logger:    logger,
 		chainSpec: chainSpec,
 		verifier:  verifier,
@@ -75,19 +65,11 @@ func NewProcessor[
 }
 
 // VerifySidecars verifies the blobs and ensures they match the local state.
-func (sp *Processor[
-	AvailabilityStoreT, ConsensusSidecarsT,
-]) VerifySidecars(
-	cs ConsensusSidecarsT,
-	verifierFn func(
-		blkHeader *ctypes.BeaconBlockHeader,
-		signature crypto.BLSSignature,
-	) error,
+func (sp *Processor) VerifySidecars(
+	sidecars datypes.BlobSidecars,
+	blkHeader *ctypes.BeaconBlockHeader,
+	kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],
 ) error {
-	var (
-		sidecars  = cs.GetSidecars()
-		blkHeader = cs.GetHeader()
-	)
 	defer sp.metrics.measureVerifySidecarsDuration(
 		time.Now(), math.U64(len(sidecars)),
 	)
@@ -101,15 +83,13 @@ func (sp *Processor[
 	return sp.verifier.verifySidecars(
 		sidecars,
 		blkHeader,
-		verifierFn,
+		kzgCommitments,
 	)
 }
 
 // ProcessSidecars processes the blobs and ensures they match the local state.
-func (sp *Processor[
-	AvailabilityStoreT, _,
-]) ProcessSidecars(
-	avs AvailabilityStoreT,
+func (sp *Processor) ProcessSidecars(
+	avs *dastore.Store,
 	sidecars datypes.BlobSidecars,
 ) error {
 	defer sp.metrics.measureProcessSidecarsDuration(
@@ -123,8 +103,5 @@ func (sp *Processor[
 
 	// If we have reached this point, we can safely assume that the blobs are
 	// valid and can be persisted, as well as that index 0 is filled.
-	return avs.Persist(
-		sidecars[0].GetSignedBeaconBlockHeader().GetHeader().GetSlot(),
-		sidecars,
-	)
+	return avs.Persist(sidecars)
 }

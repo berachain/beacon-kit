@@ -23,7 +23,7 @@ package store
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/log"
@@ -37,14 +37,14 @@ type Store struct {
 	// logger is used for logging.
 	logger log.Logger
 	// chainSpec contains the chain specification.
-	chainSpec chain.ChainSpec
+	chainSpec chain.Spec
 }
 
 // New creates a new instance of the AvailabilityStore.
 func New(
 	db IndexDB,
 	logger log.Logger,
-	chainSpec chain.ChainSpec,
+	chainSpec chain.Spec,
 ) *Store {
 	return &Store{
 		IndexDB:   db,
@@ -70,46 +70,52 @@ func (s *Store) IsDataAvailable(
 	return true
 }
 
+// GetBlobSidecars fetches the sidecars for a specific slot.
+func (s *Store) GetBlobSidecars(slot math.Slot) (types.BlobSidecars, error) {
+	sidecarBzs, err := s.IndexDB.GetByIndex(slot.Unwrap())
+	if err != nil {
+		return nil, err
+	}
+
+	sidecars := make(types.BlobSidecars, 0, len(sidecarBzs))
+	for _, sidecarBz := range sidecarBzs {
+		sidecar := types.BlobSidecar{}
+		err = sidecar.UnmarshalSSZ(sidecarBz)
+		if err != nil {
+			return sidecars, err
+		}
+		sidecars = append(sidecars, &sidecar)
+	}
+
+	return sidecars, nil
+}
+
 // Persist ensures the sidecar data remains accessible, utilizing parallel
 // processing for efficiency.
 func (s *Store) Persist(
-	slot math.Slot,
 	sidecars types.BlobSidecars,
 ) error {
-	// Exit early if there are no sidecars to store.
-	if sidecars.IsNil() || len(sidecars) == 0 {
-		return nil
-	}
-
-	// Check to see if we are required to store the sidecar anymore, if
-	// this sidecar is from outside the required DA period, we can skip it.
-	if !s.chainSpec.WithinDAPeriod(
-		// slot in which the sidecar was included.
-		// (Safe to assume all sidecars are in same slot at this point).
-		sidecars[0].SignedBeaconBlockHeader.Header.GetSlot(),
-		// current slot
-		slot,
-	) {
-		return nil
-	}
-
+	var slot math.Slot
 	// Store each sidecar sequentially. The store's underlying RangeDB is not
 	// built to handle concurrent writes.
 	for _, sidecar := range sidecars {
-		sc := sidecar
-		if sc == nil {
+		if sidecar == nil {
 			return ErrAttemptedToStoreNilSidecar
 		}
-		bz, err := sc.MarshalSSZ()
+		bz, err := sidecar.MarshalSSZ()
 		if err != nil {
 			return err
 		}
-		err = s.Set(slot.Unwrap(), sc.KzgCommitment[:], bz)
+		slot = sidecar.GetSignedBeaconBlockHeader().GetHeader().GetSlot()
+		err = s.IndexDB.Set(slot.Unwrap(), sidecar.KzgCommitment[:], bz)
+
 		if err != nil {
 			return err
 		}
 	}
 
+	// Slots should all be the same at this point. Just use the slot from the
+	// last sidecar.
 	s.logger.Info("Successfully stored all blob sidecars 🚗",
 		"slot", slot.Base10(), "num_sidecars", len(sidecars),
 	)

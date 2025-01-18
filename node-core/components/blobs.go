@@ -22,7 +22,7 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/cli/flags"
 	"github.com/berachain/beacon-kit/config"
 	dablob "github.com/berachain/beacon-kit/da/blob"
@@ -59,7 +59,7 @@ type BlobProcessorIn[
 	depinject.In
 
 	BlobProofVerifier kzg.BlobProofVerifier
-	ChainSpec         chain.ChainSpec
+	ChainSpec         chain.Spec
 	Logger            LoggerT
 	TelemetrySink     *metrics.TelemetrySink
 }
@@ -67,19 +67,11 @@ type BlobProcessorIn[
 // ProvideBlobProcessor is a function that provides the BlobProcessor to the
 // depinject framework.
 func ProvideBlobProcessor[
-	AvailabilityStoreT AvailabilityStore,
-	ConsensusSidecarsT ConsensusSidecars,
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	in BlobProcessorIn[LoggerT],
-) *dablob.Processor[
-	AvailabilityStoreT,
-	ConsensusSidecarsT,
-] {
-	return dablob.NewProcessor[
-		AvailabilityStoreT,
-		ConsensusSidecarsT,
-	](
+) *dablob.Processor {
+	return dablob.NewProcessor(
 		in.Logger.With("service", "blob-processor"),
 		in.ChainSpec,
 		in.BlobProofVerifier,

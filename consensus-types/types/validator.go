@@ -94,37 +94,14 @@ func NewValidatorFromDeposit(
 }
 
 func ComputeEffectiveBalance(
-	amount math.Gwei,
-	effectiveBalanceIncrement math.Gwei,
-	maxEffectiveBalance math.Gwei,
+	amount, effectiveBalanceIncrement, maxEffectiveBalance math.Gwei,
 ) math.Gwei {
-	return min(
-		amount-amount%effectiveBalanceIncrement,
-		maxEffectiveBalance,
-	)
+	return min(amount-amount%effectiveBalanceIncrement, maxEffectiveBalance)
 }
 
 // Empty creates an empty Validator.
 func (*Validator) Empty() *Validator {
 	return &Validator{}
-}
-
-// New creates a new Validator with the given public key, withdrawal
-// credentials,.
-func (v *Validator) New(
-	pubkey crypto.BLSPubkey,
-	withdrawalCredentials WithdrawalCredentials,
-	amount math.Gwei,
-	effectiveBalanceIncrement math.Gwei,
-	maxEffectiveBalance math.Gwei,
-) *Validator {
-	return NewValidatorFromDeposit(
-		pubkey,
-		withdrawalCredentials,
-		amount,
-		effectiveBalanceIncrement,
-		maxEffectiveBalance,
-	)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -286,9 +263,9 @@ func (v Validator) IsPartiallyWithdrawable(
 }
 
 // HasEth1WithdrawalCredentials as defined in the Ethereum 2.0 specification:
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#has_eth1_withdrawal_credential
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/validator.md#eth1_address_withdrawal_prefix
 func (v Validator) HasEth1WithdrawalCredentials() bool {
-	return v.WithdrawalCredentials[0] == EthSecp256k1CredentialPrefix
+	return v.WithdrawalCredentials.IsValidEth1WithdrawalCredentials()
 }
 
 // HasMaxEffectiveBalance determines if the validator has the maximum effective

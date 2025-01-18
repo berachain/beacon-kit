@@ -24,31 +24,20 @@ import (
 	"context"
 	"sync"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/da/da"
 	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/node-api/backend"
-	blockstore "github.com/berachain/beacon-kit/node-api/block_store"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 )
 
 // Service is the blockchain service.
-type Service[
-	AvailabilityStoreT AvailabilityStore,
-	DepositStoreT backend.DepositStore,
-	ConsensusBlockT ConsensusBlock,
-	BlockStoreT blockstore.BlockStore,
-	GenesisT Genesis,
-	ConsensusSidecarsT da.ConsensusSidecars,
-] struct {
-	// homeDir is the directory for config and data"
-	homeDir string
+type Service struct {
 	// storageBackend represents the backend storage for not state-enforced data.
-	storageBackend StorageBackend[AvailabilityStoreT, BlockStoreT, DepositStoreT]
+	storageBackend StorageBackend
 	// blobProcessor is used for processing sidecars.
-	blobProcessor da.BlobProcessor[AvailabilityStoreT, ConsensusSidecarsT]
+	blobProcessor da.BlobProcessor
 	// depositContract is the contract interface for interacting with the
 	// deposit contract.
 	depositContract deposit.Contract
@@ -62,7 +51,7 @@ type Service[
 	// logger is used for logging messages in the service.
 	logger log.Logger
 	// chainSpec holds the chain specifications.
-	chainSpec chain.ChainSpec
+	chainSpec chain.Spec
 	// executionEngine is the execution engine responsible for processing
 	//
 	// execution payloads.
@@ -81,47 +70,20 @@ type Service[
 }
 
 // NewService creates a new validator service.
-func NewService[
-	AvailabilityStoreT AvailabilityStore,
-	DepositStoreT backend.DepositStore,
-	ConsensusBlockT ConsensusBlock,
-	BlockStoreT blockstore.BlockStore,
-	GenesisT Genesis,
-	ConsensusSidecarsT da.ConsensusSidecars,
-](
-	homeDir string,
-	storageBackend StorageBackend[
-		AvailabilityStoreT,
-		BlockStoreT,
-		DepositStoreT,
-	],
-	blobProcessor da.BlobProcessor[
-		AvailabilityStoreT,
-		ConsensusSidecarsT,
-	],
+func NewService(
+	storageBackend StorageBackend,
+	blobProcessor da.BlobProcessor,
 	depositContract deposit.Contract,
 	eth1FollowDistance math.U64,
 	logger log.Logger,
-	chainSpec chain.ChainSpec,
+	chainSpec chain.Spec,
 	executionEngine ExecutionEngine,
 	localBuilder LocalBuilder,
 	stateProcessor StateProcessor[*transition.Context],
 	telemetrySink TelemetrySink,
 	optimisticPayloadBuilds bool,
-) *Service[
-	AvailabilityStoreT, DepositStoreT,
-	ConsensusBlockT,
-	BlockStoreT,
-	GenesisT,
-	ConsensusSidecarsT,
-] {
-	return &Service[
-		AvailabilityStoreT, DepositStoreT,
-		ConsensusBlockT,
-		BlockStoreT,
-		GenesisT, ConsensusSidecarsT,
-	]{
-		homeDir:                 homeDir,
+) *Service {
+	return &Service{
 		storageBackend:          storageBackend,
 		blobProcessor:           blobProcessor,
 		depositContract:         depositContract,
@@ -139,23 +101,24 @@ func NewService[
 }
 
 // Name returns the name of the service.
-func (s *Service[
-	_, _, _, _, _, _,
-]) Name() string {
+func (s *Service) Name() string {
 	return "blockchain"
 }
 
-func (s *Service[
-	_, _, _, _, _, _,
-]) Start(ctx context.Context) error {
+func (s *Service) Start(ctx context.Context) error {
 	// Catchup deposits for failed blocks.
 	go s.depositCatchupFetcher(ctx)
 
 	return nil
 }
 
-func (s *Service[
-	_, _, _, _, _, _,
-]) Stop() error {
+func (s *Service) Stop() error {
+	s.logger.Info("Stopping blockchain service")
+
+	err := s.storageBackend.DepositStore().Close()
+	if err != nil {
+		s.logger.Error("failed to close deposit store", "err", err)
+	}
+
 	return nil
 }

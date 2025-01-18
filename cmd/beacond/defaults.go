@@ -27,97 +27,50 @@ import (
 func DefaultComponents() []any {
 	c := []any{
 		components.ProvideAttributesFactory[*Logger],
-		components.ProvideAvailibilityStore[*Logger],
+		components.ProvideAvailabilityStore[*Logger],
 		components.ProvideDepositContract,
 		components.ProvideBlockStore[*Logger],
 		components.ProvideBlsSigner,
-		components.ProvideBlobProcessor[
-			*AvailabilityStore, *ConsensusSidecars, *Logger,
-		],
+		components.ProvideBlobProcessor[*Logger],
 		components.ProvideBlobProofVerifier,
-		components.ProvideChainService[
-			*AvailabilityStore,
-			*ConsensusBlock,
-			*ConsensusSidecars,
-			*DepositStore, *DepositContract,
-			*Genesis,
-			*KVStore, *Logger, *StorageBackend, *BlockStore,
-		],
+		components.ProvideChainService[*Logger],
 		components.ProvideNode,
 		components.ProvideChainSpec,
 		components.ProvideConfig,
 		components.ProvideServerConfig,
-		// components.ProvideConsensusEngine[
-		// 	*AvailabilityStore, *BeaconBlockHeader, *BeaconState,
-		// 	*BeaconStateMarshallable, *BlockStore, *KVStore, *StorageBackend,
-		// ],
 		components.ProvideDepositStore[*Logger],
 		components.ProvideEngineClient[*Logger],
 		components.ProvideExecutionEngine[*Logger],
 		components.ProvideJWTSecret,
-		components.ProvideLocalBuilder[
-			*KVStore, *Logger,
-		],
+		components.ProvideLocalBuilder[*Logger],
 		components.ProvideReportingService[*Logger],
 		components.ProvideCometBFTService[*Logger],
-		components.ProvideServiceRegistry[
-			*AvailabilityStore,
-			*ConsensusBlock,
-			*BlockStore,
-			*ConsensusSidecars,
-			*DepositStore,
-			*Genesis, *KVStore, *Logger,
-			NodeAPIContext,
-		],
+		components.ProvideServiceRegistry[*Logger],
 		components.ProvideSidecarFactory,
-		components.ProvideStateProcessor[
-			*Logger,
-			*DepositStore,
-			*KVStore,
-		],
+		components.ProvideStateProcessor[*Logger],
 		components.ProvideKVStore,
-		components.ProvideStorageBackend[
-			*AvailabilityStore, *BlockStore,
-			*KVStore, *DepositStore,
-		],
+		components.ProvideStorageBackend,
 		components.ProvideTelemetrySink,
 		components.ProvideTelemetryService,
 		components.ProvideTrustedSetup,
-		components.ProvideValidatorService[
-			*AvailabilityStore,
-			*BlockStore, *DepositStore,
-			*KVStore, *Logger,
-			*StorageBackend,
-		],
-		// TODO Hacks
-		components.ProvideKVStoreService,
-		components.ProvideKVStoreKey,
+		components.ProvideValidatorService[*Logger],
+		components.ProvideShutDownService[*Logger],
 	}
 	c = append(c,
 		components.ProvideNodeAPIServer[*Logger, NodeAPIContext],
 		components.ProvideNodeAPIEngine,
-		components.ProvideNodeAPIBackend[
-			*AvailabilityStore,
-			*BlockStore, *DepositStore,
-			*KVStore, *CometBFTService, *StorageBackend,
-		],
+		components.ProvideNodeAPIBackend,
 	)
 
 	c = append(c,
-		components.ProvideNodeAPIHandlers[
-			*KVStore, NodeAPIContext,
-		],
-		components.ProvideNodeAPIBeaconHandler[
-			*CometBFTService, NodeAPIContext,
-		],
+		components.ProvideNodeAPIHandlers[NodeAPIContext],
+		components.ProvideNodeAPIBeaconHandler[NodeAPIContext],
 		components.ProvideNodeAPIBuilderHandler[NodeAPIContext],
 		components.ProvideNodeAPIConfigHandler[NodeAPIContext],
 		components.ProvideNodeAPIDebugHandler[NodeAPIContext],
 		components.ProvideNodeAPIEventsHandler[NodeAPIContext],
 		components.ProvideNodeAPINodeHandler[NodeAPIContext],
-		components.ProvideNodeAPIProofHandler[
-			*KVStore, *CometBFTService, NodeAPIContext,
-		],
+		components.ProvideNodeAPIProofHandler[NodeAPIContext],
 	)
 
 	return c

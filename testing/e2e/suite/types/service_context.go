@@ -48,7 +48,7 @@ func getHelpersScript() string {
 	dir := filepath.Dir(filename)
 	path := filepath.Join(dir, "../../../../kurtosis/src/lib/helpers.star")
 
-	b, err := os.ReadFile(path)
+	b, err := os.ReadFile(path) // #nosec G304
 	if err != nil {
 		panic(err)
 	}

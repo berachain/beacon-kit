@@ -114,13 +114,12 @@ func (s *Service[_]) GetBlockRetentionHeight(commitHeight int64) int64 {
 	if s.finalizeBlockState == nil {
 		return 0
 	}
-	cp := s.paramStore.Get()
+	cp := s.cmtConsensusParams.ToProto()
 	if cp.Evidence != nil && cp.Evidence.MaxAgeNumBlocks > 0 {
 		retentionHeight = commitHeight - cp.Evidence.MaxAgeNumBlocks
 	}
 
-	//#nosec:G701 // bet.
-	v := commitHeight - int64(s.minRetainBlocks)
+	v := commitHeight - int64(s.minRetainBlocks) // #nosec G115
 	retentionHeight = minNonZero(retentionHeight, v)
 
 	if retentionHeight <= 0 {

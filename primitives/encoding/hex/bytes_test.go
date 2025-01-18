@@ -254,7 +254,7 @@ func BenchmarkDecodeFixedText(b *testing.B) {
 			) // Adjust the size based on the expected output length
 
 			b.ResetTimer()
-			for i := 0; i < b.N; i++ {
+			for range b.N {
 				err := hex.DecodeFixedText(input, out)
 				if err != nil {
 					b.Fatalf("DecodeFixedText failed: %v", err)

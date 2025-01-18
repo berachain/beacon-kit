@@ -64,7 +64,7 @@ func TestBlockProposerIndexProof(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			bbh := (&types.BeaconBlockHeader{}).New(
+			bbh := types.NewBeaconBlockHeader(
 				tc.slot,
 				tc.proposerIndex,
 				tc.parentBlockRoot,

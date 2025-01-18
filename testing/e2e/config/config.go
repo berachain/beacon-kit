@@ -157,11 +157,11 @@ type AdditionalService struct {
 }
 
 // MustMarshalJSON marshals the E2ETestConfig to JSON, panicking if an error.
-func (c *E2ETestConfig) MustMarshalJSON() []byte {
+func (c *E2ETestConfig) MustMarshalJSON() string {
 	jsonBytes, err := json.Marshal(c)
 	if err != nil {
 		panic(err)
 	}
 
-	return jsonBytes
+	return string(jsonBytes)
 }

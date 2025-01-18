@@ -24,44 +24,14 @@ import (
 	"context"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	datypes "github.com/berachain/beacon-kit/da/types"
+	dastore "github.com/berachain/beacon-kit/da/store"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
+	"github.com/berachain/beacon-kit/storage/block"
+	depositdb "github.com/berachain/beacon-kit/storage/deposit"
 )
-
-// The AvailabilityStore interface is responsible for validating and storing
-// sidecars for specific blocks, as well as verifying sidecars that have already
-// been stored.
-type AvailabilityStore interface {
-	// IsDataAvailable ensures that all blobs referenced in the block are
-	// securely stored before it returns without an error.
-	IsDataAvailable(context.Context, math.Slot, *ctypes.BeaconBlockBody) bool
-	// Persist makes sure that the sidecar remains accessible for data
-	// availability checks throughout the beacon node's operation.
-	Persist(math.Slot, datypes.BlobSidecars) error
-}
-
-// BlockStore is the interface for block storage.
-type BlockStore interface {
-	// GetSlotByBlockRoot retrieves the slot by a given block root.
-	GetSlotByBlockRoot(root common.Root) (math.Slot, error)
-	// GetSlotByStateRoot retrieves the slot by a given state root.
-	GetSlotByStateRoot(root common.Root) (math.Slot, error)
-	// GetParentSlotByTimestamp retrieves the parent slot by a given timestamp.
-	GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
-}
-
-// DepositStore defines the interface for deposit storage.
-type DepositStore interface {
-	// GetDepositsByIndex returns `numView` expected deposits.
-	GetDepositsByIndex(startIndex uint64, numView uint64) (ctypes.Deposits, error)
-	// Prune prunes the deposit store of [start, end)
-	Prune(start, end uint64) error
-	// EnqueueDeposits adds a list of deposits to the deposit store.
-	EnqueueDeposits(deposits []*ctypes.Deposit) error
-}
 
 // Node is the interface for a node.
 type Node[ContextT any] interface {
@@ -75,12 +45,10 @@ type StateProcessor interface {
 }
 
 // StorageBackend is the interface for the storage backend.
-type StorageBackend[
-	AvailabilityStoreT, BlockStoreT, DepositStoreT any,
-] interface {
-	AvailabilityStore() AvailabilityStoreT
-	BlockStore() BlockStoreT
-	DepositStore() DepositStoreT
+type StorageBackend interface {
+	AvailabilityStore() *dastore.Store
+	BlockStore() *block.KVStore[*ctypes.BeaconBlock]
+	DepositStore() *depositdb.KVStore
 	StateFromContext(context.Context) *statedb.StateDB
 }
 

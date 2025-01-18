@@ -22,6 +22,7 @@ package blockchain
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
@@ -33,10 +34,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func (s *Service[
-	_, _, ConsensusBlockT, _,
-	GenesisT, ConsensusSidecarsT,
-]) FinalizeBlock(
+func (s *Service) FinalizeBlock(
 	ctx sdk.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (transition.ValidatorUpdates, error) {
@@ -45,18 +43,16 @@ func (s *Service[
 		finalizeErr error
 	)
 
-	// STEP 1: Decode blok and blobs
-	blk, blobs, err := encoding.
+	// STEP 1: Decode block and blobs
+	signedBlk, blobs, err := encoding.
 		ExtractBlobsAndBlockFromRequest(
 			req,
 			BeaconBlockTxIndex,
 			BlobSidecarsTxIndex,
-			s.chainSpec.ActiveForkVersionForSlot(
-				math.Slot(req.Height),
-			))
+			s.chainSpec.ActiveForkVersionForSlot(math.Slot(req.Height))) // #nosec G115
 	if err != nil {
-		//nolint:nilerr // If we don't have a block, we can't do anything.
-		return nil, nil
+		s.logger.Error("Failed to decode block and blobs", "error", err)
+		return nil, fmt.Errorf("failed to decode block and blobs: %w", err)
 	}
 
 	// STEP 2: Finalize sidecars first (block will check for
@@ -67,27 +63,28 @@ func (s *Service[
 	)
 	if err != nil {
 		s.logger.Error("Failed to process blob sidecars", "error", err)
+		return nil, fmt.Errorf("failed to process blob sidecars: %w", err)
 	}
 
 	// STEP 3: finalize the block
-	var consensusBlk *types.ConsensusBlock
-	consensusBlk = consensusBlk.New(
+	blk := signedBlk.GetMessage()
+	if blk == nil {
+		s.logger.Error("SignedBeaconBlock contains nil BeaconBlock during FinalizeBlock")
+		return nil, ErrNilBlk
+	}
+	consensusBlk := types.NewConsensusBlock(
 		blk,
 		req.GetProposerAddress(),
 		req.GetTime(),
 	)
 
-	cBlk, ok := any(consensusBlk).(ConsensusBlockT)
-	if !ok {
-		panic("failed to convert consensusBlk to ConsensusBlockT")
-	}
-
 	st := s.storageBackend.StateFromContext(ctx)
-	valUpdates, finalizeErr = s.finalizeBeaconBlock(ctx, st, cBlk)
+	valUpdates, finalizeErr = s.finalizeBeaconBlock(ctx, st, consensusBlk)
 	if finalizeErr != nil {
 		s.logger.Error("Failed to process verified beacon block",
 			"error", finalizeErr,
 		)
+		return nil, finalizeErr
 	}
 
 	// STEP 4: Post Finalizations cleanups
@@ -97,32 +94,32 @@ func (s *Service[
 	s.depositFetcher(ctx, blockNum)
 
 	// store the finalized block in the KVStore.
+	// TODO: Store full SignedBeaconBlock with all data in storage
 	slot := blk.GetSlot()
 	if err = s.storageBackend.BlockStore().Set(blk); err != nil {
 		s.logger.Error(
 			"failed to store block", "slot", slot, "error", err,
 		)
+		return nil, err
 	}
 
 	// prune the availability and deposit store
-	err = s.processPruning(blk)
+	err = s.processPruning(ctx, blk)
 	if err != nil {
 		s.logger.Error("failed to processPruning", "error", err)
 	}
 
-	go s.sendPostBlockFCU(ctx, st, cBlk)
+	go s.sendPostBlockFCU(ctx, st, consensusBlk)
 
 	return valUpdates, nil
 }
 
 // finalizeBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
-func (s *Service[
-	_, _, ConsensusBlockT, _, _, _,
-]) finalizeBeaconBlock(
+func (s *Service) finalizeBeaconBlock(
 	ctx context.Context,
 	st *statedb.StateDB,
-	blk ConsensusBlockT,
+	blk *types.ConsensusBlock,
 ) (transition.ValidatorUpdates, error) {
 	beaconBlk := blk.GetBeaconBlock()
 
@@ -148,18 +145,18 @@ func (s *Service[
 }
 
 // executeStateTransition runs the stf.
-func (s *Service[
-	_, _, ConsensusBlockT, _, _, _,
-]) executeStateTransition(
+func (s *Service) executeStateTransition(
 	ctx context.Context,
 	st *statedb.StateDB,
-	blk ConsensusBlockT,
+	blk *types.ConsensusBlock,
 ) (transition.ValidatorUpdates, error) {
 	startTime := time.Now()
 	defer s.metrics.measureStateTransitionDuration(startTime)
 	valUpdates, err := s.stateProcessor.Transition(
 		&transition.Context{
 			Context: ctx,
+
+			MeterGas: true,
 
 			// We set `OptimisticEngine` to true since this is called during
 			// FinalizeBlock. We want to assume the payload is valid. If it
@@ -182,6 +179,12 @@ func (s *Service[
 			// the "verification aspect" of this NewPayload call is
 			// actually irrelevant at this point.
 			SkipPayloadVerification: false,
+
+			// We skip randao validation in FinalizeBlock since either
+			// 1. we validated it during ProcessProposal at the head of the chain OR
+			// 2. we are bootstrapping and implicitly trust that the randao was validated by
+			//    the super majority during ProcessProposal of the given block height.
+			SkipValidateRandao: true,
 
 			ProposerAddress: blk.GetProposerAddress(),
 			ConsensusTime:   blk.GetConsensusTime(),

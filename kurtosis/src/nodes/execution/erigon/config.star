@@ -40,7 +40,6 @@ ENTRYPOINT = ["sh", "-c"]
 # CONFIG_LOCATION = "/root/.erigon/{}".format(CONFIG_FILENAME)
 FILES = {
     # "/root/.erigon": NODE_CONFIG_ARTIFACT_NAME,
-    GENESIS_FILEPATH: "genesis_file",
     "/jwt": "jwt_file",
 }
 CMD = [
@@ -88,7 +87,7 @@ CMD = [
     "--metrics.port",
     "{}".format(METRICS_PORT_NUM),
     "--networkid",
-    "80087",
+    "$CHAIN_ID",  # Use env var instead of hardcoded value
     "--db.size.limit={}MB".format(3000),
 ]
 BOOTNODE_CMD = "--bootnodes"

@@ -24,7 +24,7 @@ import (
 	"os"
 
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	cmdlib "github.com/berachain/beacon-kit/cli/commands"
 	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	"github.com/berachain/beacon-kit/cli/config"
@@ -78,7 +78,7 @@ func (cb *CLIBuilder[
 	// allocate memory to hold the dependencies
 	var (
 		clientCtx client.Context
-		chainSpec chain.ChainSpec
+		chainSpec chain.Spec
 		logger    LoggerT
 	)
 
@@ -126,7 +126,7 @@ func (cb *CLIBuilder[_, LoggerT]) defaultRunHandler(
 			logger,
 			DefaultAppConfigTemplate(),
 			DefaultAppConfig(),
-			DefaultCometConfig(),
+			cometbft.DefaultConfig(),
 		)
 	}
 }

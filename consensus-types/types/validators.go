@@ -35,6 +35,7 @@ func (vs Validators) SizeSSZ(siz *ssz.Sizer, _ bool) uint32 {
 }
 
 // DefineSSZ defines the SSZ encoding for the Validators object.
+// TODO: get from accessible chainspec field params.
 func (vs Validators) DefineSSZ(c *ssz.Codec) {
 	c.DefineDecoder(func(*ssz.Decoder) {
 		ssz.DefineSliceOfStaticObjectsContent(

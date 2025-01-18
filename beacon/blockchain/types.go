@@ -25,6 +25,7 @@ import (
 	"time"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	dastore "github.com/berachain/beacon-kit/da/store"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
@@ -32,22 +33,11 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
+	"github.com/berachain/beacon-kit/storage/block"
+	depositdb "github.com/berachain/beacon-kit/storage/deposit"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
-
-// AvailabilityStore interface is responsible for validating and storing
-// sidecars for specific blocks, as well as verifying sidecars that have already
-// been stored.
-type AvailabilityStore interface {
-	// IsDataAvailable ensures that all blobs referenced in the block are
-	// securely stored before it returns without an error.
-	IsDataAvailable(
-		context.Context, math.Slot, *ctypes.BeaconBlockBody,
-	) bool
-	// Prune prunes the deposit store of [start, end)
-	Prune(start, end uint64) error
-}
 
 type ConsensusBlock interface {
 	GetBeaconBlock() *ctypes.BeaconBlock
@@ -170,9 +160,9 @@ type StateProcessor[
 		*statedb.StateDB,
 		*ctypes.BeaconBlock,
 	) (transition.ValidatorUpdates, error)
-	GetSidecarVerifierFn(*statedb.StateDB) (
+	GetSignatureVerifierFn(*statedb.StateDB) (
 		func(
-			blkHeader *ctypes.BeaconBlockHeader,
+			blk *ctypes.BeaconBlock,
 			signature crypto.BLSSignature) error,
 		error,
 	)
@@ -180,19 +170,15 @@ type StateProcessor[
 
 // StorageBackend defines an interface for accessing various storage components
 // required by the beacon node.
-type StorageBackend[
-	AvailabilityStoreT any,
-	BlockStoreT any,
-	DepositStoreT any,
-] interface {
+type StorageBackend interface {
 	// AvailabilityStore returns the availability store for the given context.
-	AvailabilityStore() AvailabilityStoreT
+	AvailabilityStore() *dastore.Store
 	// StateFromContext retrieves the beacon state from the given context.
 	StateFromContext(context.Context) *statedb.StateDB
 	// DepositStore retrieves the deposit store.
-	DepositStore() DepositStoreT
+	DepositStore() *depositdb.KVStore
 	// BlockStore retrieves the block store.
-	BlockStore() BlockStoreT
+	BlockStore() *block.KVStore[*ctypes.BeaconBlock]
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.
@@ -213,7 +199,7 @@ type BlockchainI interface {
 	ProcessProposal(
 		sdk.Context,
 		*cmtabci.ProcessProposalRequest,
-	) (*cmtabci.ProcessProposalResponse, error)
+	) error
 	FinalizeBlock(
 		sdk.Context,
 		*cmtabci.FinalizeBlockRequest,

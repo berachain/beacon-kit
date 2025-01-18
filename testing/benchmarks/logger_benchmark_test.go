@@ -35,7 +35,7 @@ import (
 func BenchmarkPhusluLoggerPrettyInfo(b *testing.B) {
 	logger := newPhusluLogger().WithConfig(configWithPretty("info"))
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for range b.N {
 		logger.Info("This is an info message", "key1", "value1", "key2", 2)
 	}
 }
@@ -44,7 +44,7 @@ func BenchmarkPhusluLoggerPrettyInfo(b *testing.B) {
 func BenchmarkPhusluLoggerJSONInfo(b *testing.B) {
 	logger := newPhusluLogger().WithConfig(configWithJSON("info"))
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for range b.N {
 		logger.Info("This is an info message", "key1", "value1", "key2", 2)
 	}
 }
@@ -57,7 +57,7 @@ func BenchmarkPhusluLoggerJSONInfo(b *testing.B) {
 func BenchmarkPhusluLoggerPrettyWarn(b *testing.B) {
 	logger := newPhusluLogger().WithConfig(configWithPretty("warn"))
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for range b.N {
 		logger.Warn("This is a warning message", "key1", "value1", "key2", 2)
 	}
 }
@@ -66,7 +66,7 @@ func BenchmarkPhusluLoggerPrettyWarn(b *testing.B) {
 func BenchmarkPhusluLoggerJSONWarn(b *testing.B) {
 	logger := newPhusluLogger().WithConfig(configWithJSON("warn"))
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for range b.N {
 		logger.Warn("This is a warning message", "key1", "value1", "key2", 2)
 	}
 }
@@ -79,7 +79,7 @@ func BenchmarkPhusluLoggerJSONWarn(b *testing.B) {
 func BenchmarkPhusluLoggerPrettyError(b *testing.B) {
 	logger := newPhusluLogger().WithConfig(configWithPretty("error"))
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for range b.N {
 		logger.Error("This is an error message", "key1", "value1", "key2", 2)
 	}
 }
@@ -88,7 +88,7 @@ func BenchmarkPhusluLoggerPrettyError(b *testing.B) {
 func BenchmarkPhusluLoggerJSONError(b *testing.B) {
 	logger := newPhusluLogger().WithConfig(configWithJSON("error"))
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for range b.N {
 		logger.Error("This is an error message", "key1", "value1", "key2", 2)
 	}
 }
@@ -101,7 +101,7 @@ func BenchmarkPhusluLoggerJSONError(b *testing.B) {
 func BenchmarkPhusluLoggerPrettyDebug(b *testing.B) {
 	logger := newPhusluLogger().WithConfig(configWithPretty("debug"))
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for range b.N {
 		logger.Debug("This is a debug message", "key1", "value1", "key2", 2)
 	}
 }
@@ -110,7 +110,7 @@ func BenchmarkPhusluLoggerPrettyDebug(b *testing.B) {
 func BenchmarkPhusluLoggerJSONDebug(b *testing.B) {
 	logger := newPhusluLogger().WithConfig(configWithJSON("debug"))
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for range b.N {
 		logger.Debug("This is a debug message", "key1", "value1", "key2", 2)
 	}
 }
@@ -118,7 +118,7 @@ func BenchmarkPhusluLoggerJSONDebug(b *testing.B) {
 func BenchmarkPhusluLoggerPrettyDebugSilent(b *testing.B) {
 	logger := newPhusluLogger().WithConfig(configWithPretty("info"))
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for range b.N {
 		logger.Debug("This is a debug message", "key1", "value1", "key2", 2)
 	}
 }
@@ -126,7 +126,7 @@ func BenchmarkPhusluLoggerPrettyDebugSilent(b *testing.B) {
 func BenchmarkPhusluLoggerJSONDebugSilent(b *testing.B) {
 	logger := newPhusluLogger().WithConfig(configWithJSON("info"))
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for range b.N {
 		logger.Debug("This is a debug message", "key1", "value1", "key2", 2)
 	}
 }
@@ -139,7 +139,7 @@ func BenchmarkPhusluLoggerJSONDebugSilent(b *testing.B) {
 func BenchmarkPhusluLoggerPrettyWith(b *testing.B) {
 	logger := newPhusluLogger().WithConfig(configWithPretty("info"))
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for range b.N {
 		newLogger := logger.With("contextKey", "contextValue")
 		newLogger.Info("This is a contextual info message", "key1", "value1",
 			"key2", 2)
@@ -150,7 +150,7 @@ func BenchmarkPhusluLoggerPrettyWith(b *testing.B) {
 func BenchmarkPhusluLoggerJSONWith(b *testing.B) {
 	logger := newPhusluLogger().WithConfig(configWithJSON("info"))
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for range b.N {
 		newLogger := logger.With("contextKey", "contextValue")
 		newLogger.Info("This is a contextual info message", "key1", "value1",
 			"key2", 2)

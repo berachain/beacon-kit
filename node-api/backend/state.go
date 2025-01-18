@@ -30,16 +30,12 @@ import (
 // StateFromSlotForProof returns the beacon state of the version that was used
 // to calculate the parent beacon block root, which has the empty state root in
 // the latest block header. Hence we do not process the next slot.
-func (b *Backend[
-	_, _, _, _, _, _, _,
-]) StateFromSlotForProof(slot math.Slot) (*statedb.StateDB, math.Slot, error) {
+func (b *Backend) StateFromSlotForProof(slot math.Slot) (*statedb.StateDB, math.Slot, error) {
 	return b.stateFromSlotRaw(slot)
 }
 
 // GetStateRoot returns the root of the state at the given slot.
-func (b Backend[
-	_, _, _, _, _, _, _,
-]) StateRootAtSlot(slot math.Slot) (common.Root, error) {
+func (b Backend) StateRootAtSlot(slot math.Slot) (common.Root, error) {
 	st, slot, err := b.stateFromSlot(slot)
 	if err != nil {
 		return common.Root{}, err
@@ -51,9 +47,7 @@ func (b Backend[
 }
 
 // GetStateFork returns the fork of the state at the given stateID.
-func (b Backend[
-	_, _, _, _, _, _, _,
-]) StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error) {
+func (b Backend) StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error) {
 	var fork *ctypes.Fork
 	st, _, err := b.stateFromSlot(slot)
 	if err != nil {

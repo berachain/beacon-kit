@@ -93,7 +93,7 @@ func (p *ExecutionPayload) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 
 // DefineSSZ defines how an object is encoded/decoded.
 //
-//nolint:mnd // todo fix.
+//nolint:mnd // TODO: get from accessible chainspec field params
 func (p *ExecutionPayload) DefineSSZ(codec *ssz.Codec) {
 	// Define the static data (fields and dynamic offsets)
 	ssz.DefineStaticBytes(codec, &p.ParentHash)
