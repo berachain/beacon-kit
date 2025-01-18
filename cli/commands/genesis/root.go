@@ -45,6 +45,8 @@ type Genesis struct {
 	} `json:"app_state"`
 }
 
+// TODO: move this logic to the `deposit create-validator/validate` commands as it is only
+// required there.
 func GetGenesisValidatorRootCmd(cs chain.Spec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "validator-root [beacond/genesis.json]",
