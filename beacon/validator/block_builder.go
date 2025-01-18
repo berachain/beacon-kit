@@ -63,30 +63,29 @@ func (s *Service) BuildBlockAndSidecars(
 	// and safe block hashes to the execution client.
 	st := s.sb.StateFromContext(ctx)
 
+	blkSlot := slotData.GetSlot()
+
 	// Prepare the state such that it is ready to build a block for
 	// the requested slot
-	if _, err := s.stateProcessor.ProcessSlots(
-		st,
-		slotData.GetSlot(),
-	); err != nil {
+	if _, err := s.stateProcessor.ProcessSlots(st, blkSlot); err != nil {
 		return nil, nil, err
 	}
 
 	// Build forkdata used for the signing root of the reveal and the sidecars
-	forkData, err := s.buildForkData(st, slotData.GetSlot())
+	forkData, err := s.buildForkData(st, blkSlot)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	// Build the reveal for the current slot.
 	// TODO: We can optimize to pre-compute this in parallel?
-	reveal, err := s.buildRandaoReveal(forkData, slotData.GetSlot())
+	reveal, err := s.buildRandaoReveal(forkData, blkSlot)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	// Create a new empty block from the current state.
-	blk, err = s.getEmptyBeaconBlockForSlot(st, slotData.GetSlot())
+	blk, err = s.getEmptyBeaconBlockForSlot(st, blkSlot)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -131,7 +130,7 @@ func (s *Service) BuildBlockAndSidecars(
 
 	s.logger.Info(
 		"Beacon block successfully built",
-		"slot", slotData.GetSlot().Base10(),
+		"slot", blkSlot.Base10(),
 		"state_root", blk.GetStateRoot(),
 		"duration", time.Since(startTime).String(),
 	)
