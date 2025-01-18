@@ -217,7 +217,7 @@ start-erigon: ## start an ephemeral `erigon` node
 	erigontech/erigon:latest \
 	--http \
 	--http.addr 0.0.0.0 \
-	--http.api eth,net \
+	--http.api eth,erigon,engine,web3,net,debug,trace,txpool,admin,ots \
 	--http.vhosts "*" \
 	--port 30303 \
 	--http.corsdomain "*" \
@@ -258,17 +258,17 @@ test:
 test-unit: ## run golang unit tests
 	@echo "Running unit tests..."
 	@go list -f '{{.Dir}}/...' -m | xargs \
-		go test -race
+		go test -race -tags bls12381
 
 test-unit-cover: ## run golang unit tests with coverage
 	@echo "Running unit tests with coverage..."
 	@go list -f '{{.Dir}}/...' -m | xargs \
-		go test -race -coverprofile=test-unit-cover.txt
+		go test -race -coverprofile=test-unit-cover.txt -tags bls12381
 
 test-unit-bench: ## run golang unit benchmarks
 	@echo "Running unit tests with benchmarks..."
 	@go list -f '{{.Dir}}/...' -m | xargs \
-		go test -bench=. -run=^$ -benchmem
+		go test -bench=. -run=^$ -benchmem -tags bls12381
 
 # On MacOS, if there is a linking issue on the fuzz tests,
 # use the old linker with flags -ldflags=-extldflags=-Wl,-ld_classic
@@ -284,3 +284,9 @@ test-e2e: ## run e2e tests
 
 test-e2e-no-build:
 	go test -timeout 0 -tags e2e,bls12381 ./testing/e2e/. -v
+
+test-e2e-4844: ## run e2e tests
+	@$(MAKE) build-docker VERSION=kurtosis-local test-e2e-4844-no-build
+
+test-e2e-4844-no-build:
+	go test -timeout 0 -tags e2e,bls12381 ./testing/e2e/. -v -testify.m Test4844Live

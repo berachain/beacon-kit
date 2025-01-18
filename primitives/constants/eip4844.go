@@ -27,4 +27,9 @@ const (
 	//
 	// https://github.com/ethereum/EIPs/blob/master/EIPS/eip-4844.md
 	BlobCommitmentVersion uint8 = 0x01
+	// MaxBlobCommitmentsPerBlock is the hardfork-independent fixed
+	// theoretical limit same as TARGET_BLOB_GAS_PER_BLOCK (see EIP 4844).
+	//
+	// https://ethereum.github.io/consensus-specs/specs/deneb/beacon-chain/#execution
+	MaxBlobCommitmentsPerBlock = 4096
 )

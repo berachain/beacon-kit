@@ -21,6 +21,7 @@
 package blockchain
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"time"
@@ -29,8 +30,11 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/consensus/types"
-	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
+	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
@@ -45,53 +49,69 @@ const (
 	// BlobSidecarsTxIndex represents the index of the blob sidecar transaction.
 	// It follows the beacon block transaction in the tx list.
 	BlobSidecarsTxIndex
+
+	// A Consensus block has at most two transactions (block and blob).
+	MaxConsensusTxsCount = 2
 )
 
-func (s *Service[
-	_, _, ConsensusBlockT, _,
-	GenesisT, ConsensusSidecarsT,
-]) ProcessProposal(
+func (s *Service) ProcessProposal(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
-) (*cmtabci.ProcessProposalResponse, error) {
-	// Decode the beacon block.
-	blk, err := encoding.
-		UnmarshalBeaconBlockFromABCIRequest(
+) error {
+	if countTx := len(req.Txs); countTx > MaxConsensusTxsCount {
+		return fmt.Errorf("max expected %d, got %d: %w",
+			MaxConsensusTxsCount, countTx,
+			ErrTooManyConsensusTxs,
+		)
+	}
+
+	// Decode signed block and sidecars.
+	signedBlk, sidecars, err := encoding.
+		ExtractBlobsAndBlockFromRequest(
 			req,
 			BeaconBlockTxIndex,
-			s.chainSpec.ActiveForkVersionForSlot(math.U64(req.Height)),
-		)
+			BlobSidecarsTxIndex,
+			s.chainSpec.ActiveForkVersionForSlot(math.Slot(req.Height))) // #nosec G115
 	if err != nil {
-		return createProcessProposalResponse(errors.WrapNonFatal(err))
-	} else if blk.IsNil() {
+		return err
+	}
+	if signedBlk.IsNil() {
 		s.logger.Warn(
 			"Aborting block verification - beacon block not found in proposal",
 		)
-		return createProcessProposalResponse(errors.WrapNonFatal(ErrNilBlk))
+		return ErrNilBlk
 	}
-
-	// Decode the blob sidecars.
-	sidecars, err := encoding.
-		UnmarshalBlobSidecarsFromABCIRequest(
-			req,
-			BlobSidecarsTxIndex,
-		)
-	if err != nil {
-		return createProcessProposalResponse(errors.WrapNonFatal(err))
-	} else if sidecars.IsNil() {
+	if sidecars.IsNil() {
 		s.logger.Warn(
 			"Aborting block verification - blob sidecars not found in proposal",
 		)
-		return createProcessProposalResponse(errors.WrapNonFatal(ErrNilBlob))
+		return ErrNilBlob
 	}
 
+	blk := signedBlk.GetMessage()
 	// Make sure we have the right number of BlobSidecars
 	numCommitments := len(blk.GetBody().GetBlobKzgCommitments())
 	if numCommitments != len(sidecars) {
-		err = fmt.Errorf("expected %d sidecars, got %d",
+		err = fmt.Errorf("expected %d sidecars, got %d: %w",
 			numCommitments, len(sidecars),
+			ErrSidecarCommittmentMismatch,
 		)
-		return createProcessProposalResponse(errors.WrapNonFatal(err))
+		s.logger.Warn(err.Error())
+		return err
+	}
+
+	// Verify the block and sidecar signatures. We can simply verify the block
+	// signature and then make sure the sidecar signatures match the block.
+	blkSignature := signedBlk.GetSignature()
+	for i, sidecar := range sidecars {
+		sidecarSignature := sidecar.GetSignedBeaconBlockHeader().GetSignature()
+		if !bytes.Equal(blkSignature[:], sidecarSignature[:]) {
+			return fmt.Errorf("%w, idx: %d", ErrSidecarSignatureMismatch, i)
+		}
+	}
+	err = s.VerifyIncomingBlockSignature(ctx, signedBlk.GetMessage(), signedBlk.GetSignature())
+	if err != nil {
+		return err
 	}
 
 	if numCommitments > 0 {
@@ -103,27 +123,15 @@ func (s *Service[
 		// the currently active fork). ProcessProposal should only
 		// keep the state changes as candidates (which is what we do in
 		// VerifyIncomingBlock).
-		var consensusSidecars *types.ConsensusSidecars
-		consensusSidecars = consensusSidecars.New(
-			sidecars,
-			blk.GetHeader(),
-		)
-		err = s.VerifyIncomingBlobSidecars(
-			ctx,
-			consensusSidecars,
-		)
+		err = s.VerifyIncomingBlobSidecars(sidecars, blk.GetHeader(), blk.GetBody().GetBlobKzgCommitments())
 		if err != nil {
-			s.logger.Error(
-				"failed to verify incoming blob sidecars",
-				"error", err,
-			)
-			return createProcessProposalResponse(errors.WrapNonFatal(err))
+			s.logger.Error("failed to verify incoming blob sidecars", "error", err)
+			return err
 		}
 	}
 
 	// Process the block
-	var consensusBlk *types.ConsensusBlock
-	consensusBlk = consensusBlk.New(
+	consensusBlk := types.NewConsensusBlock(
 		blk,
 		req.GetProposerAddress(),
 		req.GetTime(),
@@ -136,42 +144,38 @@ func (s *Service[
 	)
 	if err != nil {
 		s.logger.Error("failed to verify incoming block", "error", err)
-		return createProcessProposalResponse(errors.WrapNonFatal(err))
+		return err
 	}
 
-	return createProcessProposalResponse(nil)
+	return nil
+}
+
+func (s *Service) VerifyIncomingBlockSignature(
+	ctx context.Context,
+	beaconBlk *ctypes.BeaconBlock,
+	signature crypto.BLSSignature,
+) error {
+	// Get the sidecar verification function from the state processor
+	signatureVerifierFn, err := s.stateProcessor.GetSignatureVerifierFn(
+		s.storageBackend.StateFromContext(ctx),
+	)
+	if err != nil {
+		return errors.New("failed to create block signature verifier")
+	}
+	return signatureVerifierFn(beaconBlk, signature)
 }
 
 // VerifyIncomingBlobSidecars verifies the BlobSidecars of an incoming
 // proposal and logs the process.
-func (s *Service[
-	_, _, ConsensusBlockT, _,
-	GenesisT, ConsensusSidecarsT,
-]) VerifyIncomingBlobSidecars(
-	ctx context.Context,
-	cSidecars *types.ConsensusSidecars,
+func (s *Service) VerifyIncomingBlobSidecars(
+	sidecars datypes.BlobSidecars,
+	blkHeader *ctypes.BeaconBlockHeader,
+	kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],
 ) error {
-	sidecars := cSidecars.GetSidecars()
-
 	s.logger.Info("Received incoming blob sidecars")
 
-	// TODO: Clean this up once we remove generics.
-	cs := convertConsensusSidecars[ConsensusSidecarsT](cSidecars)
-
-	// Get the sidecar verification function from the state processor
-	sidecarVerifierFn, err := s.stateProcessor.GetSidecarVerifierFn(
-		s.storageBackend.StateFromContext(ctx),
-	)
-	if err != nil {
-		s.logger.Error(
-			"an error incurred while calculating the sidecar verifier",
-			"reason", err,
-		)
-		return err
-	}
-
 	// Verify the blobs and ensure they match the local state.
-	err = s.blobProcessor.VerifySidecars(cs, sidecarVerifierFn)
+	err := s.blobProcessor.VerifySidecars(sidecars, blkHeader, kzgCommitments)
 	if err != nil {
 		s.logger.Error(
 			"rejecting incoming blob sidecars",
@@ -190,10 +194,7 @@ func (s *Service[
 
 // VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
-func (s *Service[
-	_, _, ConsensusBlockT, _,
-	_, _,
-]) VerifyIncomingBlock(
+func (s *Service) VerifyIncomingBlock(
 	ctx context.Context,
 	beaconBlk *ctypes.BeaconBlock,
 	consensusTime math.U64,
@@ -210,7 +211,8 @@ func (s *Service[
 
 	s.logger.Info(
 		"Received incoming beacon block",
-		"state_root", beaconBlk.GetStateRoot(), "slot", beaconBlk.GetSlot(),
+		"state_root", beaconBlk.GetStateRoot(),
+		"slot", beaconBlk.GetSlot(),
 	)
 
 	// We purposefully make a copy of the BeaconState in order
@@ -229,17 +231,17 @@ func (s *Service[
 	if err != nil {
 		s.logger.Error(
 			"Rejecting incoming beacon block ❌ ",
-			"state_root",
-			beaconBlk.GetStateRoot(),
-			"reason",
-			err,
+			"state_root", beaconBlk.GetStateRoot(),
+			"reason", err,
 		)
 
 		if s.shouldBuildOptimisticPayloads() {
-			var lph *ctypes.ExecutionPayloadHeader
-			lph, err = preState.GetLatestExecutionPayloadHeader()
-			if err != nil {
-				return err
+			lph, lphErr := preState.GetLatestExecutionPayloadHeader()
+			if lphErr != nil {
+				return errors.Join(
+					err,
+					fmt.Errorf("failed getting LatestExecutionPayloadHeader: %w", lphErr),
+				)
 			}
 
 			go s.handleRebuildPayloadForRejectedBlock(
@@ -263,10 +265,9 @@ func (s *Service[
 	)
 
 	if s.shouldBuildOptimisticPayloads() {
-		var lph *ctypes.ExecutionPayloadHeader
-		lph, err = postState.GetLatestExecutionPayloadHeader()
-		if err != nil {
-			return err
+		lph, lphErr := postState.GetLatestExecutionPayloadHeader()
+		if lphErr != nil {
+			return fmt.Errorf("failed loading LatestExecutionPayloadHeader: %w", lphErr)
 		}
 
 		go s.handleOptimisticPayloadBuild(
@@ -285,10 +286,7 @@ func (s *Service[
 }
 
 // verifyStateRoot verifies the state root of an incoming block.
-func (s *Service[
-	_, _, ConsensusBlockT,
-	_, _, _,
-]) verifyStateRoot(
+func (s *Service) verifyStateRoot(
 	ctx context.Context,
 	st *statedb.StateDB,
 	blk *ctypes.BeaconBlock,
@@ -302,6 +300,7 @@ func (s *Service[
 		// that the proposer does not try to push through a bad block.
 		&transition.Context{
 			Context:                 ctx,
+			MeterGas:                false,
 			OptimisticEngine:        false,
 			SkipPayloadVerification: false,
 			SkipValidateResult:      false,
@@ -311,47 +310,12 @@ func (s *Service[
 		},
 		st, blk,
 	)
-	if errors.Is(err, engineerrors.ErrAcceptedPayloadStatus) {
-		// It is safe for the validator to ignore this error since
-		// the state transition will enforce that the block is part
-		// of the canonical chain.
-		//
-		// TODO: this is only true because we are assuming SSF.
-		return nil
-	}
 
 	return err
 }
 
 // shouldBuildOptimisticPayloads returns true if optimistic
 // payload builds are enabled.
-func (s *Service[
-	_, _, _, _, _, _,
-]) shouldBuildOptimisticPayloads() bool {
+func (s *Service) shouldBuildOptimisticPayloads() bool {
 	return s.optimisticPayloadBuilds && s.localBuilder.Enabled()
-}
-
-// createResponse generates the appropriate ProcessProposalResponse based on the
-// error.
-func createProcessProposalResponse(
-	err error,
-) (*cmtabci.ProcessProposalResponse, error) {
-	status := cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
-	if !errors.IsFatal(err) {
-		status = cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
-		err = nil
-	}
-	return &cmtabci.ProcessProposalResponse{Status: status}, err
-}
-
-func convertConsensusSidecars[
-	ConsensusSidecarsT any,
-](
-	cSidecars *types.ConsensusSidecars,
-) ConsensusSidecarsT {
-	val, ok := any(cSidecars).(ConsensusSidecarsT)
-	if !ok {
-		panic("failed to convert conesensusSidecars to ConsensusSidecarsT")
-	}
-	return val
 }

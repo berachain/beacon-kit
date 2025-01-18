@@ -31,7 +31,7 @@ import (
 	"cosmossdk.io/store"
 	"cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/log/noop"
@@ -45,10 +45,10 @@ import (
 	"github.com/berachain/beacon-kit/state-transition/core"
 	"github.com/berachain/beacon-kit/state-transition/core/mocks"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
+	"github.com/berachain/beacon-kit/storage"
 	"github.com/berachain/beacon-kit/storage/beacondb"
 	"github.com/berachain/beacon-kit/storage/db"
 	depositstore "github.com/berachain/beacon-kit/storage/deposit"
-	"github.com/berachain/beacon-kit/storage/encoding"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/mock"
@@ -58,14 +58,9 @@ import (
 type (
 	TestBeaconStateMarshallableT = types.BeaconState
 
-	TestKVStoreT = beacondb.KVStore
-
 	TestBeaconStateT = statedb.StateDB
 
-	TestStateProcessorT = core.StateProcessor[
-		*transition.Context,
-		*TestKVStoreT,
-	]
+	TestStateProcessorT = core.StateProcessor[*transition.Context]
 )
 
 type testKVStoreService struct {
@@ -74,15 +69,11 @@ type testKVStoreService struct {
 
 func (kvs *testKVStoreService) OpenKVStore(context.Context) corestore.KVStore {
 	//nolint:contextcheck // fine with tests
-	return components.NewKVStore(
-		sdk.UnwrapSDKContext(kvs.ctx).KVStore(testStoreKey),
-	)
+	store := sdk.UnwrapSDKContext(kvs.ctx).KVStore(testStoreKey)
+	return storage.NewKVStore(store)
 }
 
-var (
-	testStoreKey = storetypes.NewKVStoreKey("state-transition-tests")
-	testCodec    = &encoding.SSZInterfaceCodec[*types.ExecutionPayloadHeader]{}
-)
+var testStoreKey = storetypes.NewKVStoreKey("state-transition-tests")
 
 func initTestStores() (*beacondb.KVStore, *depositstore.KVStore, error) {
 	db, err := db.OpenDB("", dbm.MemDBBackend)
@@ -90,8 +81,9 @@ func initTestStores() (*beacondb.KVStore, *depositstore.KVStore, error) {
 		return nil, nil, fmt.Errorf("failed opening mem db: %w", err)
 	}
 	var (
-		nopLog     = log.NewNopLogger()
-		nopMetrics = metrics.NewNoOpMetrics()
+		nopLog        = log.NewNopLogger()
+		noopCloseFunc = func() error { return nil }
+		nopMetrics    = metrics.NewNoOpMetrics()
 	)
 
 	cms := store.NewCommitMultiStore(
@@ -107,17 +99,12 @@ func initTestStores() (*beacondb.KVStore, *depositstore.KVStore, error) {
 
 	ctx := sdk.NewContext(cms, true, nopLog)
 	testStoreService := &testKVStoreService{ctx: ctx}
-	return beacondb.New(
-			testStoreService,
-			testCodec,
-		),
-		depositstore.NewStore(testStoreService, nopLog),
+	return beacondb.New(testStoreService),
+		depositstore.NewStore(testStoreService, noopCloseFunc, nopLog),
 		nil
 }
 
-func setupChain(t *testing.T, chainSpecType string) chain.Spec[
-	bytes.B4, math.U64, math.U64, any,
-] {
+func setupChain(t *testing.T, chainSpecType string) chain.Spec {
 	t.Helper()
 
 	t.Setenv(components.ChainSpecTypeEnvVar, chainSpecType)
@@ -127,11 +114,7 @@ func setupChain(t *testing.T, chainSpecType string) chain.Spec[
 	return cs
 }
 
-func setupState(
-	t *testing.T, cs chain.Spec[
-		bytes.B4, math.U64, math.U64, any,
-	],
-) (
+func setupState(t *testing.T, cs chain.Spec) (
 	*TestStateProcessorT,
 	*TestBeaconStateT,
 	*depositstore.KVStore,
@@ -151,12 +134,9 @@ func setupState(
 
 	kvStore, depositStore, err := initTestStores()
 	require.NoError(t, err)
-	beaconState := new(TestBeaconStateT).NewFromDB(kvStore, cs)
+	beaconState := statedb.NewBeaconStateFromDB(kvStore, cs)
 
-	sp := core.NewStateProcessor[
-		*transition.Context,
-		*TestKVStoreT,
-	](
+	sp := core.NewStateProcessor[*transition.Context](
 		noop.NewLogger[any](),
 		cs,
 		execEngine,
@@ -177,6 +157,7 @@ func setupState(
 	return sp, beaconState, depositStore, ctx
 }
 
+//nolint:unused // may be used in the future.
 func progressStateToSlot(
 	t *testing.T,
 	beaconState *TestBeaconStateT,
@@ -252,7 +233,7 @@ func generateTestPK(t *testing.T, rndSeed int) (bytes.B48, int) {
 func moveToEndOfEpoch(
 	t *testing.T,
 	tip *types.BeaconBlock,
-	cs chain.Spec[bytes.B4, math.U64, math.U64, any],
+	cs chain.Spec,
 	sp *TestStateProcessorT,
 	st *TestBeaconStateT,
 	ctx *transition.Context,
@@ -275,7 +256,7 @@ func moveToEndOfEpoch(
 					},
 					BaseFeePerGas: math.NewU256(0),
 				},
-				Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
+				Eth1Data: types.NewEth1Data(depRoot),
 				Deposits: []*types.Deposit{},
 			},
 		)

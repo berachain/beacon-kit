@@ -79,8 +79,7 @@ func CollectGenesisDepositsCmd() *cobra.Command {
 			}
 
 			for i, deposit := range deposits {
-				//#nosec:G701 // won't realistically overflow.
-				deposit.Index = uint64(i)
+				deposit.Index = uint64(i) // #nosec G115 -- won't realistically overflow.
 				genesisInfo.Deposits = append(genesisInfo.Deposits, deposit)
 			}
 

@@ -22,9 +22,10 @@ package components
 
 import (
 	"os"
+	"path/filepath"
 
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	"github.com/berachain/beacon-kit/log"
@@ -38,24 +39,25 @@ import (
 type AvailabilityStoreInput[LoggerT any] struct {
 	depinject.In
 	AppOpts   config.AppOptions
-	ChainSpec chain.ChainSpec
+	ChainSpec chain.Spec
 	Logger    LoggerT
 }
 
-// ProvideAvailibilityStore provides the availability store.
-func ProvideAvailibilityStore[
+// ProvideAvailabilityStore provides the availability store.
+func ProvideAvailabilityStore[
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	in AvailabilityStoreInput[LoggerT],
 ) (*dastore.Store, error) {
+	var (
+		rootDir  = cast.ToString(in.AppOpts.Get(flags.FlagHome))
+		blobsDir = filepath.Join(rootDir, "data", "blobs")
+	)
+
 	return dastore.New(
 		filedb.NewRangeDB(
 			filedb.NewDB(
-				filedb.WithRootDirectory(
-					cast.ToString(
-						in.AppOpts.Get(flags.FlagHome),
-					)+"/data/blobs",
-				),
+				filedb.WithRootDirectory(blobsDir),
 				filedb.WithFileExtension("ssz"),
 				filedb.WithDirectoryPermissions(os.ModePerm),
 				filedb.WithLogger(in.Logger),

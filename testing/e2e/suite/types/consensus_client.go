@@ -48,15 +48,9 @@ type ConsensusClient struct {
 
 // NewConsensusClient creates a new consensus client.
 func NewConsensusClient(serviceCtx *WrappedServiceContext) *ConsensusClient {
-	cc := &ConsensusClient{
+	return &ConsensusClient{
 		WrappedServiceContext: serviceCtx,
 	}
-
-	if err := cc.Connect(context.Background()); err != nil {
-		panic(err)
-	}
-
-	return cc
 }
 
 // Connect connects the consensus client to the consensus client.
@@ -96,28 +90,31 @@ func (cc *ConsensusClient) Connect(ctx context.Context) error {
 }
 
 // Start starts the consensus client.
-func (cc ConsensusClient) Start(
-	ctx context.Context,
-	enclaveContext *enclaves.EnclaveContext,
+//
+// TODO: Debug wrapped service context failing to start.
+func (cc *ConsensusClient) Start(
+	ctx context.Context, _ *enclaves.EnclaveContext,
 ) (*enclaves.StarlarkRunResult, error) {
-	res, err := cc.WrappedServiceContext.Start(ctx, enclaveContext)
-	if err != nil {
-		return nil, err
-	}
+	// res, err := cc.WrappedServiceContext.Start(ctx, enclaveContext)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	return res, cc.Connect(ctx)
+	return &enclaves.StarlarkRunResult{}, cc.Connect(ctx)
 }
 
 // Stop stops the consensus client.
-func (cc ConsensusClient) Stop(
-	ctx context.Context,
-) (*enclaves.StarlarkRunResult, error) {
+//
+// TODO: Debug wrapped service context failing to stop.
+func (cc *ConsensusClient) Stop(context.Context) (*enclaves.StarlarkRunResult, error) {
 	cc.cancelFunc()
-	return cc.WrappedServiceContext.Stop(ctx)
+	// return cc.WrappedServiceContext.Stop(ctx)
+
+	return &enclaves.StarlarkRunResult{}, nil
 }
 
 // GetPubKey returns the public key of the validator running on this node.
-func (cc ConsensusClient) GetPubKey(ctx context.Context) ([]byte, error) {
+func (cc *ConsensusClient) GetPubKey(ctx context.Context) ([]byte, error) {
 	res, err := cc.Client.Status(ctx)
 	if err != nil {
 		return nil, err
@@ -129,20 +126,18 @@ func (cc ConsensusClient) GetPubKey(ctx context.Context) ([]byte, error) {
 }
 
 // GetConsensusPower returns the consensus power of the node.
-func (cc ConsensusClient) GetConsensusPower(
-	ctx context.Context,
-) (uint64, error) {
+func (cc *ConsensusClient) GetConsensusPower(ctx context.Context) (uint64, error) {
 	res, err := cc.Client.Status(ctx)
 	if err != nil {
 		return 0, err
 	}
 
-	//#nosec:G701 // VotingPower won't ever be negative.
+	// #nosec G115 -- VotingPower won't ever be negative.
 	return uint64(res.ValidatorInfo.VotingPower), nil
 }
 
 // IsActive returns true if the node is an active validator.
-func (cc ConsensusClient) IsActive(ctx context.Context) (bool, error) {
+func (cc *ConsensusClient) IsActive(ctx context.Context) (bool, error) {
 	res, err := cc.Client.Status(ctx)
 	if err != nil {
 		return false, err

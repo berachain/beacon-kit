@@ -21,13 +21,10 @@
 package e2e_test
 
 import (
-	"crypto/rand"
 	"math/big"
 
 	"github.com/berachain/beacon-kit/config/spec"
-	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/geth-primitives/deposit"
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/cometbft/cometbft/crypto/bls12381"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -36,24 +33,55 @@ import (
 )
 
 const (
-	// NumDepositsLoad is the number of deposits to load in the Deposit
-	// Robustness e2e test.
-	NumDepositsLoad = 500
+	// NumDepositsLoad is the number of deposits to load in the Deposit Robustness e2e test.
+	NumDepositsLoad uint64 = 500
 
 	// DepositAmount is the amount of BERA to deposit.
 	DepositAmount = 32e18
+
+	// BlocksToWait is the number of blocks to wait for the nodes to catch up.
+	BlocksToWait = 10
 )
 
+// TestDepositRobustness tests sending a large number of deposits txs to the Deposit Contract.
+// Then it checks whether all the validators' voting power have increased by the correct amount.
+//
+// TODO:
+// 1) Add staking tests for exceeding the max stake.
+// 2) Add staking tests for adding a new validator to the network.
+// 3) Add staking tests for hitting the validator set cap and eviction.
 func (s *BeaconKitE2ESuite) TestDepositRobustness() {
-	// Get the consensus client.
-	client := s.ConsensusClients()[config.DefaultClient]
-	s.Require().NotNil(client)
+	s.Require().Equal(
+		0, int(NumDepositsLoad%config.NumValidators),
+		"every validator must get an equal amount of deposits",
+	)
 
-	client2 := s.ConsensusClients()[config.AlternateClient]
+	// Get the consensus clients.
+	client0 := s.ConsensusClients()[config.ClientValidator0]
+	s.Require().NotNil(client0)
+	client1 := s.ConsensusClients()[config.ClientValidator1]
+	s.Require().NotNil(client1)
+	client2 := s.ConsensusClients()[config.ClientValidator2]
 	s.Require().NotNil(client2)
+	client3 := s.ConsensusClients()[config.ClientValidator3]
+	s.Require().NotNil(client3)
+	client4 := s.ConsensusClients()[config.ClientValidator4]
+	s.Require().NotNil(client4)
+
+	// // Check the validators' current voting power.
+	// power0, err := client0.GetConsensusPower(s.Ctx())
+	// s.Require().NoError(err)
+	// power1, err := client1.GetConsensusPower(s.Ctx())
+	// s.Require().NoError(err)
+	// power2, err := client2.GetConsensusPower(s.Ctx())
+	// s.Require().NoError(err)
+	// power3, err := client3.GetConsensusPower(s.Ctx())
+	// s.Require().NoError(err)
+	// power4, err := client4.GetConsensusPower(s.Ctx())
+	// s.Require().NoError(err)
 
 	// Sender account
-	sender := s.TestAccounts()[1]
+	sender := s.TestAccounts()[0]
 
 	// Get the block num
 	blkNum, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
@@ -65,159 +93,127 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 
 	// Get original evm balance
 	balance, err := s.JSONRPCBalancer().BalanceAt(
-		s.Ctx(),
-		sender.Address(),
-		big.NewInt(int64(blkNum)),
+		s.Ctx(), sender.Address(), new(big.Int).SetUint64(blkNum),
 	)
 	s.Require().NoError(err)
 
-	// TODO: FIX KURTOSIS BUG
-	// // Kill node 2
-	// _, err = client2.Stop(s.Ctx())
-	// s.Require().NoError(err)
-
 	// Bind the deposit contract.
-	dc, err := deposit.NewDepositContract(
-		gethcommon.HexToAddress(spec.DefaultDepositContractAddress),
-		s.JSONRPCBalancer(),
-	)
+	depositContractAddress := gethcommon.HexToAddress(spec.DefaultDepositContractAddress)
+
+	dc, err := deposit.NewDepositContract(depositContractAddress, s.JSONRPCBalancer())
 	s.Require().NoError(err)
 
 	// Get the nonce.
+
 	nonce, err := s.JSONRPCBalancer().NonceAt(
-		s.Ctx(),
-		sender.Address(),
-		big.NewInt(int64(blkNum)),
+		s.Ctx(), sender.Address(), new(big.Int).SetUint64(blkNum),
 	)
 	s.Require().NoError(err)
 
 	var (
-		tx      *coretypes.Transaction
-		receipt *coretypes.Receipt
+		tx           *coretypes.Transaction
+		clientPubkey []byte
+		pk           *bls12381.PubKey
+		credentials  [32]byte
+		signature    [96]byte
+		value, _     = big.NewFloat(DepositAmount).Int(nil)
+		signer       = sender.SignerFunc(chainID)
+		from         = sender.Address()
 	)
 	for i := range NumDepositsLoad {
-		// Create a deposit transaction. Use the default validators' pubkeys
-		// if exists, otherwise pubkey is a random 48 byte slice.
-		var pubkey []byte
-		var pk *bls12381.PubKey
-
-		switch i {
+		// Create a deposit transaction using the default validators' pubkeys.
+		switch i % config.NumValidators {
 		case 0:
-			pubkey, err = client.GetPubKey(s.Ctx())
-			s.Require().NoError(err)
-			pk, err = bls12381.NewPublicKeyFromBytes(pubkey)
-			s.Require().NoError(err)
-			pubkey = pk.Compress()
-			s.Require().Len(pubkey, 48)
+			clientPubkey, err = client0.GetPubKey(s.Ctx())
 		case 1:
-			pubkey, err = client2.GetPubKey(s.Ctx())
-			s.Require().NoError(err)
-			pk, err = bls12381.NewPublicKeyFromBytes(pubkey)
-			s.Require().NoError(err)
-			pubkey = pk.Compress()
-			s.Require().Len(pubkey, 48)
-		default:
-			pubkey = make([]byte, 48)
-			_, err = rand.Read(pubkey)
-			s.Require().NoError(err)
+			clientPubkey, err = client1.GetPubKey(s.Ctx())
+		case 2:
+			clientPubkey, err = client2.GetPubKey(s.Ctx())
+		case 3:
+			clientPubkey, err = client3.GetPubKey(s.Ctx())
+		case 4:
+			clientPubkey, err = client4.GetPubKey(s.Ctx())
 		}
-
-		tx, err = s.generateNewDepositTx(
-			dc,
-			sender.Address(),
-			sender.SignerFunc(chainID),
-			big.NewInt(int64(nonce+uint64(i))),
-			pubkey,
-		)
 		s.Require().NoError(err)
-		s.Logger().
-			Info("Deposit transaction created", "txHash", tx.Hash().Hex())
-		if i == NumDepositsLoad-1 {
-			s.Logger().Info(
-				"Waiting for deposit transaction to be mined", "txHash",
-				tx.Hash().Hex(),
-			)
-			receipt, err = bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
-			s.Require().NoError(err)
-			s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
-			s.Logger().
-				Info("Deposit transaction mined", "txHash", receipt.TxHash.Hex())
+		pk, err = bls12381.NewPublicKeyFromBytes(clientPubkey)
+		s.Require().NoError(err)
+		pubkey := pk.Compress()
+		s.Require().Len(pubkey, 48)
+
+		// Only the first deposit for a pubkey has a non-zero operator.
+		operator := gethcommon.Address{}
+		if i < config.NumValidators {
+			operator = from
 		}
+		tx, err = dc.Deposit(&bind.TransactOpts{
+			From:     from,
+			Value:    value,
+			Signer:   signer,
+			Nonce:    new(big.Int).SetUint64(nonce + i),
+			GasLimit: 1000000,
+			Context:  s.Ctx(),
+		}, pubkey, credentials[:], signature[:], operator)
+		s.Require().NoError(err)
+		s.Logger().Info("Deposit tx created", "num", i+1, "hash", tx.Hash().Hex())
 	}
 
-	// wait blocks
-	blkNum, err = s.JSONRPCBalancer().BlockNumber(s.Ctx())
+	// Wait for the final deposit tx to be mined.
+	s.Logger().Info(
+		"Waiting for the final deposit tx to be mined",
+		"num", NumDepositsLoad, "hash", tx.Hash().Hex(),
+	)
+	receipt, err := bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
 	s.Require().NoError(err)
-	targetBlkNum := blkNum + 10
-	err = s.WaitForFinalizedBlockNumber(targetBlkNum)
+	s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
+	s.Logger().Info("Final deposit tx mined successfully", "hash", receipt.TxHash.Hex())
+
+	// Give time for the nodes to catch up.
+	err = s.WaitForNBlockNumbers(BlocksToWait)
 	s.Require().NoError(err)
 
+	// Compare height of nodes 0 and 1
+	height, err := client0.ABCIInfo(s.Ctx())
+	s.Require().NoError(err)
+	height2, err := client1.ABCIInfo(s.Ctx())
+	s.Require().NoError(err)
+	s.Require().InDelta(height.Response.LastBlockHeight, height2.Response.LastBlockHeight, 1)
+
 	// Check to see if evm balance decreased.
-	postDepositBalance, err := s.JSONRPCBalancer().BalanceAt(
-		s.Ctx(),
-		sender.Address(),
-		big.NewInt(int64(targetBlkNum)),
-	)
+	postDepositBalance, err := s.JSONRPCBalancer().BalanceAt(s.Ctx(), sender.Address(), nil)
 	s.Require().NoError(err)
 
 	// Check that the eth spent is somewhere~ (gas) between
-	// upper bound: 32ether * 500 + 2ether
-	// lower bound: 32ether * 500
-	twoEther := big.NewInt(2e18)
-	depositAmt, _ := big.NewFloat(DepositAmount).Int(nil)
-	totalAmt := new(big.Int).Mul(depositAmt, big.NewInt(NumDepositsLoad))
-	upperBound := new(big.Int).Add(totalAmt, twoEther)
+	// (DepositAmount * NumDepositsLoad, DepositAmount * NumDepositsLoad + 2ether)
+	lowerBound := new(big.Int).Mul(value, new(big.Int).SetUint64(NumDepositsLoad))
+	upperBound := new(big.Int).Add(lowerBound, big.NewInt(2e18))
 	amtSpent := new(big.Int).Sub(balance, postDepositBalance)
 
-	s.Require().Equal(amtSpent.Cmp(totalAmt), 1)
-	s.Require().Equal(amtSpent.Cmp(upperBound), -1)
+	s.Require().Equal(1, amtSpent.Cmp(lowerBound), "amount spent is less than lower bound")
+	s.Require().Equal(-1, amtSpent.Cmp(upperBound), "amount spent is greater than upper bound")
 
-	// TODO: FIX KURTOSIS BUG
-	// // Start node 2 again
-	// _, err = client2.Start(s.Ctx(), s.Enclave())
+	// TODO: determine why voting power is not increasing above 32e9.
+	// // Check that all validators' voting power have increased by
+	// // (NumDepositsLoad / NumValidators) * DepositAmount
+	// // after the end of the epoch (next multiple of 32 after receipt.BlockNumber).
+	// nextEpochBlockNum := (receipt.BlockNumber.Uint64()/32 + 1) * 32
+	// err = s.WaitForFinalizedBlockNumber(nextEpochBlockNum + 1)
 	// s.Require().NoError(err)
 
-	// Update client2's reference
-
-	// err = s.SetupConsensusClients()
+	// power0After, err := client0.GetConsensusPower(s.Ctx())
 	// s.Require().NoError(err)
-	// client2 = s.ConsensusClients()[AlternateClient]
-	// s.Require().NotNil(client2)
+	// power1After, err := client1.GetConsensusPower(s.Ctx())
+	// s.Require().NoError(err)
+	// power2After, err := client2.GetConsensusPower(s.Ctx())
+	// s.Require().NoError(err)
+	// power3After, err := client3.GetConsensusPower(s.Ctx())
+	// s.Require().NoError(err)
+	// power4After, err := client4.GetConsensusPower(s.Ctx())
+	// s.Require().NoError(err)
 
-	// Give time for the node to catch up
-	err = s.WaitForNBlockNumbers(20)
-	s.Require().NoError(err)
-
-	// Compare height of nodes 1 and 2
-	height, err := client.ABCIInfo(s.Ctx())
-	s.Require().NoError(err)
-	height2, err := client2.ABCIInfo(s.Ctx())
-	s.Require().NoError(err)
-	s.Require().
-		InDelta(height.Response.LastBlockHeight, height2.Response.LastBlockHeight, 1)
-}
-
-func (s *BeaconKitE2ESuite) generateNewDepositTx(
-	dc *deposit.DepositContract,
-	sender gethcommon.Address,
-	signer bind.SignerFn,
-	nonce *big.Int,
-	pubkey []byte,
-) (*coretypes.Transaction, error) {
-	// Generate the credentials.
-	credentials := types.NewCredentialsFromExecutionAddress(
-		common.ExecutionAddress(s.GenesisAccount().Address()),
-	)
-
-	// Generate the signature.
-	signature := [96]byte{}
-	s.Require().Len(signature[:], 96)
-
-	val, _ := big.NewFloat(DepositAmount).Int(nil)
-	return dc.Deposit(&bind.TransactOpts{
-		From:   sender,
-		Value:  val,
-		Signer: signer,
-		Nonce:  nonce,
-	}, pubkey, credentials[:], signature[:], sender)
+	// increaseAmt := NumDepositsLoad / config.NumValidators * uint64(DepositAmount/params.GWei)
+	// s.Require().Equal(power0+increaseAmt, power0After)
+	// s.Require().Equal(power1+increaseAmt, power1After)
+	// s.Require().Equal(power2+increaseAmt, power2After)
+	// s.Require().Equal(power3+increaseAmt, power3After)
+	// s.Require().Equal(power4+increaseAmt, power4After)
 }

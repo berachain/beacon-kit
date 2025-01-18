@@ -36,6 +36,7 @@ func (s *Service[LoggerT]) finalizeBlock(
 	if res != nil {
 		res.AppHash = s.workingHash()
 	}
+
 	return res, err
 }
 
@@ -88,10 +89,11 @@ func (s *Service[LoggerT]) finalizeBlockInternal(
 		return nil, err
 	}
 
+	cp := s.cmtConsensusParams.ToProto()
 	return &cmtabci.FinalizeBlockResponse{
 		TxResults:             txResults,
 		ValidatorUpdates:      valUpdates,
-		ConsensusParamUpdates: s.paramStore.Get(),
+		ConsensusParamUpdates: &cp,
 	}, nil
 }
 

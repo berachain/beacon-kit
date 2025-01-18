@@ -74,7 +74,7 @@ func TestExecutionFeeRecipientProof(t *testing.T) {
 			)
 			require.NoError(t, err)
 
-			bbh := (&types.BeaconBlockHeader{}).New(
+			bbh := types.NewBeaconBlockHeader(
 				tc.slot,
 				tc.proposerIndex,
 				tc.parentBlockRoot,

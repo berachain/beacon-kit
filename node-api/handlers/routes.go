@@ -41,7 +41,7 @@ func (r *Route[ContextT]) DecorateWithLogs(logger log.Logger) {
 		if err != nil {
 			logger.Error("error handling request", "error", err)
 		}
-		logger.Info("request handled", "response", res)
+		logger.Info("request handled")
 		return res, err
 	}
 }

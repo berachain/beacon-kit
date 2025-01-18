@@ -43,8 +43,7 @@ type Withdrawals []*Withdrawal
 
 // SizeSSZ returns the SSZ encoded size in bytes for the Withdrawals.
 func (w Withdrawals) SizeSSZ(*ssz.Sizer) uint32 {
-	//#nosec:G701 // not an issue in practice.
-	return uint32(len(w)) * WithdrawalSize
+	return uint32(len(w)) * WithdrawalSize // #nosec G115 -- not an issue in practice.
 }
 
 // DefineSSZ defines the SSZ encoding for the Withdrawals object.

@@ -24,11 +24,14 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
+	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -38,6 +41,8 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
+	"github.com/berachain/beacon-kit/storage/block"
+	depositdb "github.com/berachain/beacon-kit/storage/deposit"
 	v1 "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	fastssz "github.com/ferranbt/fastssz"
@@ -52,17 +57,6 @@ type (
 			timestamp uint64,
 			prevHeadRoot [32]byte,
 		) (*engineprimitives.PayloadAttributes, error)
-	}
-
-	// AvailabilityStore is the interface for the availability store.
-	AvailabilityStore interface {
-		IndexDB
-		// IsDataAvailable ensures that all blobs referenced in the block are
-		// securely stored before it returns without an error.
-		IsDataAvailable(context.Context, math.Slot, *ctypes.BeaconBlockBody) bool
-		// Persist makes sure that the sidecar remains accessible for data
-		// availability checks throughout the beacon node's operation.
-		Persist(math.Slot, datypes.BlobSidecars) error
 	}
 
 	ConsensusBlock interface {
@@ -179,42 +173,25 @@ type (
 	}
 
 	// BlobProcessor is the interface for the blobs processor.
-	BlobProcessor[
-		AvailabilityStoreT any,
-		ConsensusSidecarsT any,
-	] interface {
+	BlobProcessor interface {
 		// ProcessSidecars processes the blobs and ensures they match the local
 		// state.
 		ProcessSidecars(
-			avs AvailabilityStoreT,
+			avs *dastore.Store,
 			sidecars datypes.BlobSidecars,
 		) error
 		// VerifySidecars verifies the blobs and ensures they match the local
 		// state.
 		VerifySidecars(
-			sidecars ConsensusSidecarsT,
-			verifierFn func(
-				blkHeader *ctypes.BeaconBlockHeader,
-				signature crypto.BLSSignature,
-			) error,
+			sidecars datypes.BlobSidecars,
+			blkHeader *ctypes.BeaconBlockHeader,
+			kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],
 		) error
 	}
 
 	ConsensusSidecars interface {
 		GetSidecars() datypes.BlobSidecars
 		GetHeader() *ctypes.BeaconBlockHeader
-	}
-
-	// BlockStore is the interface for block storage.
-	BlockStore interface {
-		Set(blk *ctypes.BeaconBlock) error
-		// GetSlotByBlockRoot retrieves the slot by a given root from the store.
-		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
-		// GetSlotByStateRoot retrieves the slot by a given root from the store.
-		GetSlotByStateRoot(root common.Root) (math.Slot, error)
-		// GetParentSlotByTimestamp retrieves the parent slot by a given
-		// timestamp from the store.
-		GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
 	}
 
 	ConsensusEngine interface {
@@ -297,18 +274,6 @@ type (
 		) error
 	}
 
-	DepositStore interface {
-		// GetDepositsByIndex returns `numView` expected deposits.
-		GetDepositsByIndex(
-			startIndex uint64,
-			numView uint64,
-		) (ctypes.Deposits, error)
-		// Prune prunes the deposit store of [start, end)
-		Prune(start, end uint64) error
-		// EnqueueDeposits adds a list of deposits to the deposit store.
-		EnqueueDeposits(deposits []*ctypes.Deposit) error
-	}
-
 	// Genesis is the interface for the genesis.
 	Genesis interface {
 		json.Unmarshaler
@@ -323,8 +288,10 @@ type (
 	// IndexDB is the interface for the range DB.
 	IndexDB interface {
 		Has(index uint64, key []byte) (bool, error)
+		Get(index uint64, key []byte) ([]byte, error)
 		Set(index uint64, key []byte, value []byte) error
 		Prune(start uint64, end uint64) error
+		GetByIndex(index uint64) ([][]byte, error)
 	}
 
 	// LocalBuilder is the interface for the builder service.
@@ -403,8 +370,8 @@ type (
 			st *statedb.StateDB,
 			blk *ctypes.BeaconBlock,
 		) (transition.ValidatorUpdates, error)
-		GetSidecarVerifierFn(st *statedb.StateDB) (
-			func(blkHeader *ctypes.BeaconBlockHeader, signature crypto.BLSSignature) error,
+		GetSignatureVerifierFn(st *statedb.StateDB) (
+			func(blk *ctypes.BeaconBlock, signature crypto.BLSSignature) error,
 			error,
 		)
 	}
@@ -412,23 +379,17 @@ type (
 	SidecarFactory interface {
 		// BuildSidecars builds sidecars for a given block and blobs bundle.
 		BuildSidecars(
-			blk *ctypes.BeaconBlock,
+			signedBlk *ctypes.SignedBeaconBlock,
 			blobs ctypes.BlobsBundle,
-			signer crypto.BLSSigner,
-			forkData *ctypes.ForkData,
 		) (datypes.BlobSidecars, error)
 	}
 
 	// StorageBackend defines an interface for accessing various storage
 	// components required by the beacon node.
-	StorageBackend[
-		AvailabilityStoreT any,
-		BlockStoreT any,
-		DepositStoreT any,
-	] interface {
-		AvailabilityStore() AvailabilityStoreT
-		BlockStore() BlockStoreT
-		DepositStore() DepositStoreT
+	StorageBackend interface {
+		AvailabilityStore() *dastore.Store
+		BlockStore() *block.KVStore[*ctypes.BeaconBlock]
+		DepositStore() *depositdb.KVStore
 		// StateFromContext retrieves the beacon state from the given context.
 		StateFromContext(context.Context) *statedb.StateDB
 	}
@@ -528,26 +489,6 @@ type (
 /* -------------------------------------------------------------------------- */
 
 type (
-	// BeaconState is the interface for the beacon state. It
-	// is a combination of the read-only and write-only beacon state types.
-	BeaconState[
-		T any,
-		BeaconStateMarshallableT any,
-		KVStoreT any,
-	] interface {
-		NewFromDB(
-			bdb KVStoreT,
-			cs chain.ChainSpec,
-		) T
-		Copy(context.Context) T
-		Context() context.Context
-		HashTreeRoot() common.Root
-		GetMarshallable() (BeaconStateMarshallableT, error)
-
-		ReadOnlyBeaconState
-		WriteOnlyBeaconState
-	}
-
 	// BeaconStore is the interface for the beacon store.
 	BeaconStore[
 		T any,
@@ -652,8 +593,6 @@ type (
 		) (math.ValidatorIndex, error)
 		// AddValidator adds a validator.
 		AddValidator(val *ctypes.Validator) error
-		// AddValidatorBartio adds a validator to the Bartio chain.
-		AddValidatorBartio(val *ctypes.Validator) error
 		// ValidatorIndexByCometBFTAddress retrieves the validator index by the
 		// given comet BFT address.
 		ValidatorIndexByCometBFTAddress(
@@ -747,7 +686,6 @@ type (
 		) error
 
 		AddValidator(*ctypes.Validator) error
-		AddValidatorBartio(*ctypes.Validator) error
 	}
 
 	// ReadOnlyValidators has read access to validator methods.
@@ -799,11 +737,9 @@ type (
 		RegisterRoutes(*handlers.RouteSet[ContextT], log.Logger)
 	}
 
-	NodeAPIBackend[
-		NodeT any,
-	] interface {
-		AttachQueryBackend(node NodeT)
-		ChainSpec() chain.ChainSpec
+	NodeAPIBackend interface {
+		AttachQueryBackend(node *cometbft.Service[*phuslu.Logger])
+		ChainSpec() chain.Spec
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		GetSlotByStateRoot(root common.Root) (math.Slot, error)
 		GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error)
@@ -815,6 +751,7 @@ type (
 	// NodeAPIBackend is the interface for backend of the beacon API.
 	NodeAPIBeaconBackend interface {
 		GenesisBackend
+		BlobBackend
 		BlockBackend
 		RandaoBackend
 		StateBackend
@@ -844,6 +781,10 @@ type (
 
 	RandaoBackend interface {
 		RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes32, error)
+	}
+
+	BlobBackend interface {
+		BlobSidecarsByIndices(slot math.Slot, indices []uint64) ([]*types.Sidecar, error)
 	}
 
 	BlockBackend interface {

@@ -21,13 +21,13 @@
 package blockchain
 
 import (
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"context"
+
+	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 )
 
-func (s *Service[
-	_, _, ConsensusBlockT, _, _, _,
-]) processPruning(beaconBlk *ctypes.BeaconBlock) error {
+func (s *Service) processPruning(ctx context.Context, beaconBlk *ctypes.BeaconBlock) error {
 	// prune availability store
 	start, end := availabilityPruneRangeFn(
 		beaconBlk.GetSlot().Unwrap(), s.chainSpec)
@@ -39,7 +39,7 @@ func (s *Service[
 	// prune deposit store
 	start, end = depositPruneRangeFn(
 		beaconBlk.GetBody().GetDeposits(), s.chainSpec)
-	err = s.storageBackend.DepositStore().Prune(start, end)
+	err = s.storageBackend.DepositStore().Prune(ctx, start, end)
 
 	if err != nil {
 		return err
@@ -48,7 +48,7 @@ func (s *Service[
 	return nil
 }
 
-func depositPruneRangeFn([]*ctypes.Deposit, chain.ChainSpec) (uint64, uint64) {
+func depositPruneRangeFn([]*ctypes.Deposit, chain.Spec) (uint64, uint64) {
 	// The whole deposit list is validated in consensus and its Merkle root is part of
 	// Beacon State. Therefore every node must keep the full deposit list and deposits
 	// pruning must be turned off.
@@ -56,9 +56,8 @@ func depositPruneRangeFn([]*ctypes.Deposit, chain.ChainSpec) (uint64, uint64) {
 }
 
 //nolint:unparam // this is ok
-func availabilityPruneRangeFn(
-	slot uint64, cs chain.ChainSpec) (uint64, uint64) {
-	window := cs.MinEpochsForBlobsSidecarsRequest() * cs.SlotsPerEpoch()
+func availabilityPruneRangeFn(slot uint64, cs chain.Spec) (uint64, uint64) {
+	window := cs.MinEpochsForBlobsSidecarsRequest().Unwrap() * cs.SlotsPerEpoch()
 	if slot < window {
 		return 0, 0
 	}

@@ -93,8 +93,7 @@ func TestPayloadAttributes(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			in := tt.input()
-			p := &engineprimitives.PayloadAttributes{}
-			got, err := p.New(
+			got, err := engineprimitives.NewPayloadAttributes(
 				in.forkVersion,
 				in.timestamp,
 				in.prevRandao,

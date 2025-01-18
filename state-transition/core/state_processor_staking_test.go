@@ -23,7 +23,7 @@ package core_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -44,7 +44,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
-		maxBalance       = math.Gwei(cs.MaxEffectiveBalance(false))
+		maxBalance       = math.Gwei(cs.MaxEffectiveBalance())
 		increment        = math.Gwei(cs.EffectiveBalanceIncrement())
 		minBalance       = math.Gwei(cs.EjectionBalance())
 		emptyCredentials = types.NewCredentialsFromExecutionAddress(
@@ -77,7 +77,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		genVersion       = version.FromUint32[common.Version](version.Deneb)
 	)
-	require.NoError(t, ds.EnqueueDeposits(genDeposits))
+	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
 	valDiff, err := sp.InitializePreminedBeaconStateFromEth1(
 		st,
 		genDeposits,
@@ -109,13 +109,13 @@ func TestTransitionUpdateValidators(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
+			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{blkDeposit},
 		},
 	)
 
 	// make sure included deposit is already available in deposit store
-	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits))
+	require.NoError(t, ds.EnqueueDeposits(ctx, blk1.Body.Deposits))
 
 	// run the test
 	valDiff, err = sp.Transition(ctx, st, blk1)
@@ -160,7 +160,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
+			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -195,7 +195,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
-		maxBalance       = math.Gwei(cs.MaxEffectiveBalance(false))
+		maxBalance       = math.Gwei(cs.MaxEffectiveBalance())
 		increment        = math.Gwei(cs.EffectiveBalanceIncrement())
 		minBalance       = math.Gwei(cs.EjectionBalance())
 		emptyAddress     = common.ExecutionAddress{}
@@ -218,7 +218,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 		genVersion       = version.FromUint32[common.Version](version.Deneb)
 	)
 
-	require.NoError(t, ds.EnqueueDeposits(genDeposits))
+	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
 	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
 		st,
 		genDeposits,
@@ -250,13 +250,13 @@ func TestTransitionCreateValidator(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
+			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{blkDeposit},
 		},
 	)
 
 	// make sure included deposit is already available in deposit store
-	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits))
+	require.NoError(t, ds.EnqueueDeposits(ctx, blk1.Body.Deposits))
 
 	// run the test
 	valDiff, err := sp.Transition(ctx, st, blk1)
@@ -302,7 +302,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
+			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -346,7 +346,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
+			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -392,7 +392,7 @@ func TestTransitionWithdrawals(t *testing.T) {
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
-		maxBalance   = math.Gwei(cs.MaxEffectiveBalance(false))
+		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
 		minBalance   = math.Gwei(cs.EffectiveBalanceIncrement())
 		credentials0 = types.NewCredentialsFromExecutionAddress(
 			common.ExecutionAddress{},
@@ -420,14 +420,11 @@ func TestTransitionWithdrawals(t *testing.T) {
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		genVersion       = version.FromUint32[common.Version](version.Deneb)
 	)
-	require.NoError(t, ds.EnqueueDeposits(genDeposits))
+	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
 	_, err := sp.InitializePreminedBeaconStateFromEth1(
 		st, genDeposits, genPayloadHeader, genVersion,
 	)
 	require.NoError(t, err)
-
-	// Progress state to fork 2.
-	progressStateToSlot(t, st, math.U64(spec.BoonetFork2Height))
 
 	// Assert validator 1 balance before withdrawal.
 	val1Bal, err := st.GetBalance(math.U64(1))
@@ -456,7 +453,7 @@ func TestTransitionWithdrawals(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{DepositRoot: genDeposits.HashTreeRoot()},
+			Eth1Data: types.NewEth1Data(genDeposits.HashTreeRoot()),
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -479,14 +476,14 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	csData := spec.BaseSpec()
 	csData.DepositEth1ChainID = spec.BoonetEth1ChainID
 	csData.MaxWithdrawalsPerPayload = 2
-	csData.MaxValidatorsPerWithdrawalsSweepPostUpgrade = 2
-	cs, err := chain.NewChainSpec(csData)
+	csData.MaxValidatorsPerWithdrawalsSweep = 2
+	cs, err := chain.NewSpec(csData)
 	require.NoError(t, err)
 
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
-		maxBalance   = math.Gwei(cs.MaxEffectiveBalance(false))
+		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
 		minBalance   = math.Gwei(cs.EffectiveBalanceIncrement())
 		address0     = common.ExecutionAddress{}
 		credentials0 = types.NewCredentialsFromExecutionAddress(address0)
@@ -513,14 +510,11 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		genVersion       = version.FromUint32[common.Version](version.Deneb)
 	)
-	require.NoError(t, ds.EnqueueDeposits(genDeposits))
+	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
 	_, err = sp.InitializePreminedBeaconStateFromEth1(
 		st, genDeposits, genPayloadHeader, genVersion,
 	)
 	require.NoError(t, err)
-
-	// Progress state to fork 2.
-	progressStateToSlot(t, st, math.U64(spec.BoonetFork2Height))
 
 	// Assert validator balances before withdrawal.
 	val0Bal, err := st.GetBalance(math.U64(0))
@@ -554,7 +548,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
+			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -600,7 +594,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
+			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -626,7 +620,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
-		maxBalance      = math.Gwei(cs.MaxEffectiveBalance(false))
+		maxBalance      = math.Gwei(cs.MaxEffectiveBalance())
 		ejectionBalance = math.Gwei(cs.EjectionBalance())
 		minBalance      = ejectionBalance + math.Gwei(
 			cs.EffectiveBalanceIncrement(),
@@ -661,7 +655,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		)
 	}
 
-	require.NoError(t, ds.EnqueueDeposits(genDeposits))
+	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
 	_, err := sp.InitializePreminedBeaconStateFromEth1(
 		st,
 		genDeposits,
@@ -696,13 +690,13 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
+			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{extraValDeposit},
 		},
 	)
 
 	// make sure included deposit is already available in deposit store
-	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits))
+	require.NoError(t, ds.EnqueueDeposits(ctx, blk1.Body.Deposits))
 
 	// run the test
 	valDiff, err := sp.Transition(ctx, st, blk1)
@@ -748,7 +742,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
+			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -793,7 +787,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
+			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -836,7 +830,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
+			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -856,7 +850,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	sp, st, ds, ctx := setupState(t, cs)
 
 	var (
-		maxBalance      = math.Gwei(cs.MaxEffectiveBalance(false))
+		maxBalance      = math.Gwei(cs.MaxEffectiveBalance())
 		ejectionBalance = math.Gwei(cs.EjectionBalance())
 		minBalance      = ejectionBalance + math.Gwei(
 			cs.EffectiveBalanceIncrement(),
@@ -893,7 +887,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	// make a deposit small to be ready for eviction
 	genDeposits[0].Amount = minBalance
 
-	require.NoError(t, ds.EnqueueDeposits(genDeposits))
+	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
 	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
 		st,
 		genDeposits,
@@ -929,13 +923,13 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
+			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{extraValDeposit},
 		},
 	)
 
 	// make sure included deposit is already available in deposit store
-	require.NoError(t, ds.EnqueueDeposits(blk1.Body.Deposits))
+	require.NoError(t, ds.EnqueueDeposits(ctx, blk1.Body.Deposits))
 
 	// run the test
 	valDiff, err := sp.Transition(ctx, st, blk1)
@@ -998,7 +992,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
+			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -1058,7 +1052,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
+			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
 	)
@@ -1130,7 +1124,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
-			Eth1Data: &types.Eth1Data{DepositRoot: depRoot},
+			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
 	)

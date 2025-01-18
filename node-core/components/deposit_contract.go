@@ -22,7 +22,7 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/execution/deposit"
 )
@@ -31,7 +31,7 @@ import (
 // for the dep inject framework.
 type DepositContractInput struct {
 	depinject.In
-	ChainSpec    chain.ChainSpec
+	ChainSpec    chain.Spec
 	EngineClient *client.EngineClient
 }
 

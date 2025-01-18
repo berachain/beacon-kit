@@ -36,7 +36,6 @@ ENTRYPOINT = ["sh", "-c"]
 
 # CONFIG_LOCATION = "/root/.geth/{}".format(CONFIG_FILENAME)
 FILES = {
-    "/app/genesis": "genesis_file",
     "/jwt": "jwt_file",
 }
 CMD = [

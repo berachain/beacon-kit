@@ -57,28 +57,25 @@ func (s *Service[LoggerT]) prepareProposal(
 		),
 	)
 
-	var slotData = types.NewSlotData(
-		math.Slot(req.GetHeight()),
-		nil,
-		nil,
+	slotData := types.NewSlotData(
+		math.Slot(req.GetHeight()), // #nosec G115
+		nil,                        // no attestations
+		nil,                        // no slashings
 		req.GetProposerAddress(),
 		req.GetTime(),
 	)
 
-	//nolint:contextcheck // TODO: We should look at using the passed context
+	//nolint:contextcheck // ctx already passed via resetState
 	blkBz, sidecarsBz, err := s.BlockBuilder.BuildBlockAndSidecars(
 		s.prepareProposalState.Context(),
-		*slotData,
+		slotData,
 	)
 	if err != nil {
 		s.logger.Error(
 			"failed to prepare proposal",
-			"height",
-			req.Height,
-			"time",
-			req.Time,
-			"err",
-			err,
+			"height", req.Height,
+			"time", req.Time,
+			"err", err,
 		)
 		return &cmtabci.PrepareProposalResponse{Txs: req.Txs}, nil
 	}

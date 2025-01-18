@@ -109,7 +109,7 @@ func BenchmarkHasher(b *testing.B) {
 	}
 
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		_, err := rootHasher.NewRootWithMaxLeaves(leaves, math.U64(len(leaves)))
 		require.NoError(b, err)
 	}

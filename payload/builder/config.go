@@ -29,7 +29,7 @@ import (
 const (
 	// defaultPayloadTimeout is the default value for local build
 	// payload timeout.
-	defaultPayloadTimeout = 1200 * time.Millisecond
+	defaultPayloadTimeout = 850 * time.Millisecond
 )
 
 // Config is the configuration for the payload builder.

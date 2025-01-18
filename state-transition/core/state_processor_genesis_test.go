@@ -23,7 +23,7 @@ package core_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-core/components"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -38,7 +38,7 @@ func TestInitialize(t *testing.T) {
 	sp, st, _, _ := setupState(t, cs)
 
 	var (
-		maxBalance = math.Gwei(cs.MaxEffectiveBalance(false))
+		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
 		increment  = math.Gwei(cs.EffectiveBalanceIncrement())
 		minBalance = math.Gwei(cs.EjectionBalance())
 	)
@@ -157,12 +157,7 @@ func TestInitialize(t *testing.T) {
 
 func checkValidator(
 	t *testing.T,
-	cs chain.Spec[
-		common.DomainType,
-		math.Epoch,
-		math.Slot,
-		any,
-	],
+	cs chain.Spec,
 	bs *TestBeaconStateT,
 	dep *types.Deposit,
 ) {
@@ -189,12 +184,7 @@ func checkValidator(
 
 func commonChecksValidators(
 	t *testing.T,
-	cs chain.Spec[
-		common.DomainType,
-		math.Epoch,
-		math.Slot,
-		any,
-	],
+	cs chain.Spec,
 	val *types.Validator,
 	dep *types.Deposit,
 ) {
@@ -202,7 +192,7 @@ func commonChecksValidators(
 	require.Equal(t, dep.Pubkey, val.Pubkey)
 
 	var (
-		maxBalance = math.Gwei(cs.MaxEffectiveBalance(false))
+		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
 		increment  = math.Gwei(cs.EffectiveBalanceIncrement())
 		minBalance = math.Gwei(cs.EjectionBalance())
 	)

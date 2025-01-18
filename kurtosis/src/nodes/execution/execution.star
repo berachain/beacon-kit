@@ -12,11 +12,44 @@ PUBLIC_RPC_PORT_NUM = 8547
 RPC_PORT_ID = "eth-json-rpc"
 
 # Because structs are immutable, we pass around a map to allow full modification up until we create the final ServiceConfig
-def get_default_service_config(node_struct, node_module):
+def get_default_service_config(plan, node_struct, node_module, chain_id, chain_spec, genesis_files, geth_config_artifact = None):
     settings = node_struct.execution_settings
 
     node_labels = dict(settings.labels)
     node_labels["node_type"] = "execution"
+
+    # Get the appropriate genesis file based on el_image
+    if "nethermind" in node_struct.el_image.lower():
+        nethermind_genesis_file = genesis_files["nethermind"]
+    else:
+        default_genesis_file = genesis_files["default"]
+
+    # Create a copy of the module files
+    files_dict = dict(node_module.FILES)
+
+    if geth_config_artifact != None:
+        files_dict["/root/.geth"] = Directory(
+            artifact_names = [geth_config_artifact],
+        )
+
+    # Handle client-specific paths for genesis file
+    if "erigon" in node_struct.el_image:
+        files_dict["/home/erigon/genesis"] = Directory(
+            artifact_names = [default_genesis_file],
+        )
+    elif "besu" in node_struct.el_image or "ethereumjs" in node_struct.el_image:
+        files_dict["/app/genesis"] = Directory(
+            artifact_names = [default_genesis_file],
+        )
+    elif "nethermind" in node_struct.el_image:
+        files_dict["/root/genesis"] = Directory(
+            artifact_names = [nethermind_genesis_file],
+        )
+    else:
+        # Default path for other clients
+        files_dict["/root/genesis"] = Directory(
+            artifact_names = [default_genesis_file],
+        )
 
     # Define common parameters
     common_params = {
@@ -25,7 +58,11 @@ def get_default_service_config(node_struct, node_module):
         "ports": node_module.USED_PORTS_TEMPLATE,
         "entrypoint": node_module.ENTRYPOINT,
         "cmd": node_module.CMD,
-        "files": node_module.FILES,
+        "env_vars": {
+            "CHAIN_ID": str(chain_id),
+            "CHAIN_SPEC": chain_spec,
+        },
+        "files": files_dict,
         "min_cpu": settings.specs.min_cpu,
         "max_cpu": settings.specs.max_cpu,
         "min_memory": settings.specs.min_memory,
@@ -47,12 +84,7 @@ def get_default_service_config(node_struct, node_module):
 
     return sc
 
-def upload_global_files(plan, node_modules):
-    genesis_file = plan.upload_files(
-        src = "../../networks/kurtosis-devnet/network-configs/genesis.json",
-        name = "genesis_file",
-    )
-
+def upload_global_files(plan, node_modules, chain_id):
     jwt_file = plan.upload_files(
         src = constants.JWT_FILEPATH,
         name = "jwt_file",
@@ -122,11 +154,11 @@ def deploy_nodes(plan, configs, is_full_node = False):
         configs = service_configs,
     )
 
-def generate_node_config(plan, node_modules, node_struct, bootnode_enode_addrs = []):
+def generate_node_config(plan, node_modules, node_struct, chain_id, chain_spec, genesis_files, geth_config_artifact = None, bootnode_enode_addrs = []):
     node_module = node_modules[node_struct.el_type]
 
     # 4a. Launch EL
-    el_service_config_dict = get_default_service_config(node_struct, node_module)
+    el_service_config_dict = get_default_service_config(plan, node_struct, node_module, chain_id, chain_spec, genesis_files, geth_config_artifact)
 
     if node_struct.node_type == "seed":
         el_service_config_dict = set_max_peers(node_module, el_service_config_dict, "200")

@@ -27,72 +27,58 @@ import (
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/node-api/engines/echo"
 	"github.com/berachain/beacon-kit/node-api/server"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	service "github.com/berachain/beacon-kit/node-core/services/registry"
+	"github.com/berachain/beacon-kit/node-core/services/shutdown"
 	"github.com/berachain/beacon-kit/node-core/services/version"
 	"github.com/berachain/beacon-kit/observability/telemetry"
 )
 
 // ServiceRegistryInput is the input for the service registry provider.
 type ServiceRegistryInput[
-	AvailabilityStoreT AvailabilityStore,
-	ConsensusBlockT ConsensusBlock,
-	BeaconBlockStoreT BlockStore,
-	ConsensusSidecarsT ConsensusSidecars,
-	DepositStoreT DepositStore,
-	GenesisT Genesis,
-	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
-	NodeAPIContextT NodeAPIContext,
 ] struct {
 	depinject.In
-	ChainService *blockchain.Service[
-		AvailabilityStoreT, DepositStoreT,
-		ConsensusBlockT,
-		BeaconBlockStoreT,
-		GenesisT,
-		ConsensusSidecarsT,
-	]
+	ChainService     *blockchain.Service
 	EngineClient     *client.EngineClient
 	Logger           LoggerT
-	NodeAPIServer    *server.Server[NodeAPIContextT]
+	NodeAPIServer    *server.Server[echo.Context]
 	ReportingService *version.ReportingService
 	TelemetrySink    *metrics.TelemetrySink
 	TelemetryService *telemetry.Service
-	ValidatorService *validator.Service[DepositStoreT]
+	ValidatorService *validator.Service
 	CometBFTService  *cometbft.Service[LoggerT]
+	ShutdownService  *shutdown.Service
 }
 
 // ProvideServiceRegistry is the depinject provider for the service registry.
 func ProvideServiceRegistry[
-	AvailabilityStoreT AvailabilityStore,
-	ConsensusBlockT ConsensusBlock,
-	BeaconBlockStoreT BlockStore,
-	ConsensusSidecarsT ConsensusSidecars,
-	DepositStoreT DepositStore,
-	GenesisT Genesis,
-	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
-	NodeAPIContextT NodeAPIContext,
 ](
-	in ServiceRegistryInput[
-		AvailabilityStoreT,
-		ConsensusBlockT,
-		BeaconBlockStoreT,
-		ConsensusSidecarsT,
-		DepositStoreT,
-		GenesisT, KVStoreT, LoggerT, NodeAPIContextT,
-	],
+	in ServiceRegistryInput[LoggerT],
 ) *service.Registry {
-	return service.NewRegistry(
-		service.WithLogger(in.Logger),
+	// Note: the order of opts matters since the registry will start these services
+	// in the order they are  declared in this slice, and in reverse order
+	// during shutdown.
+	opts := []service.RegistryOption{
+		// we want shutdownservice to be the first service to start and the last to stop
+		service.WithService(in.ShutdownService),
+
 		service.WithService(in.ValidatorService),
 		service.WithService(in.NodeAPIServer),
 		service.WithService(in.ReportingService),
-		service.WithService(in.EngineClient),
 		service.WithService(in.TelemetryService),
+
+		// engineClient will block until it connects to the execution layer
+		service.WithService(in.EngineClient),
+
+		// only once we connect to an execution client will we start the
+		// chain service and cometbft service
 		service.WithService(in.ChainService),
 		service.WithService(in.CometBFTService),
-	)
+	}
+
+	return service.NewRegistry(in.Logger, opts...)
 }

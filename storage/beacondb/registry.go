@@ -45,23 +45,6 @@ func (kv *KVStore) AddValidator(val *ctypes.Validator) error {
 	return kv.balances.Set(kv.ctx, idx, 0)
 }
 
-// AddValidator registers a new validator in the beacon state.
-func (kv *KVStore) AddValidatorBartio(val *ctypes.Validator) error {
-	// Get the ne
-	idx, err := kv.validatorIndex.Next(kv.ctx)
-	if err != nil {
-		return err
-	}
-
-	// Push onto the validators list.
-	if err = kv.validators.Set(kv.ctx, idx, val); err != nil {
-		return err
-	}
-
-	// Push onto the balances list.
-	return kv.balances.Set(kv.ctx, idx, val.GetEffectiveBalance().Unwrap())
-}
-
 // UpdateValidatorAtIndex updates a validator at a specific index.
 func (kv *KVStore) UpdateValidatorAtIndex(
 	index math.ValidatorIndex,
@@ -228,7 +211,7 @@ func (kv *KVStore) GetBalances() ([]uint64, error) {
 
 // GetTotalActiveBalances returns the total active balances of all validatorkv.
 // TODO: unhood this and probably store this as just a value changed on writekv.
-// TODO: this shouldn't live in KVStore
+// TODO: this shouldn't live in KVStore.
 func (kv *KVStore) GetTotalActiveBalances(
 	slotsPerEpoch uint64,
 ) (math.Gwei, error) {

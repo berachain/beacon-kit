@@ -21,6 +21,8 @@
 package components
 
 import (
+	"path/filepath"
+
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/log"
@@ -47,16 +49,23 @@ func ProvideDepositStore[
 ](
 	in DepositStoreInput[LoggerT],
 ) (*depositstore.KVStore, error) {
-	name := "deposits"
-	dir := cast.ToString(in.AppOpts.Get(flags.FlagHome)) + "/data"
+	var (
+		rootDir = cast.ToString(in.AppOpts.Get(flags.FlagHome))
+		dataDir = filepath.Join(rootDir, "data")
+		name    = "deposits"
+	)
 
-	pdb, err := dbm.NewDB(name, dbm.PebbleDBBackend, dir)
+	pdb, err := dbm.NewDB(name, dbm.PebbleDBBackend, dataDir)
 	if err != nil {
 		return nil, err
 	}
 
+	// pass a closure to close the db as its not supported by the KVStoreService interface
+	closeFunc := func() error { return pdb.Close() }
+
 	return depositstore.NewStore(
 		storage.NewKVStoreProvider(pdb),
+		closeFunc,
 		in.Logger.With("service", "deposit-store"),
 	), nil
 }

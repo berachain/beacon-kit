@@ -29,9 +29,9 @@ import (
 const (
 	defaultDialURL                 = "http://localhost:8551"
 	defaultRPCRetries              = 3
-	defaultRPCTimeout              = 2 * time.Second
+	defaultRPCTimeout              = 900 * time.Millisecond
 	defaultRPCStartupCheckInterval = 3 * time.Second
-	defaultRPCJWTRefreshInterval   = 20 * time.Second
+	defaultRPCJWTRefreshInterval   = 30 * time.Second
 	//#nosec:G101 // false positive.
 	defaultJWTSecretPath = "./jwt.hex"
 )

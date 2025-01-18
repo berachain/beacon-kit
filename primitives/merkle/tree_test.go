@@ -283,7 +283,7 @@ func BenchmarkNewTreeFromLeavesWithDepth(b *testing.B) {
 		require.NoError(b, err)
 		items = append(items, item)
 	}
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		_, err := merkle.NewTreeFromLeavesWithDepth(
 			items,
 			treeDepth,
@@ -349,7 +349,7 @@ func BenchmarkGenerateProof(b *testing.B) {
 	require.NoError(b, err)
 
 	b.StartTimer()
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		_, err = goodTree.MerkleProofWithMixin(3)
 		require.NoError(b, err)
 	}
@@ -385,7 +385,7 @@ func BenchmarkIsValidMerkleBranch(b *testing.B) {
 	require.NoError(b, err)
 
 	b.StartTimer()
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		ok := merkle.IsValidMerkleBranch(
 			items[2], proof, treeDepth+1, 2, m.HashTreeRoot(),
 		)

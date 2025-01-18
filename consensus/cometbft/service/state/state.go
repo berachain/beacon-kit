@@ -88,7 +88,7 @@ func (sm *Manager) Close() error {
 }
 
 // CommitMultiStore returns the CommitMultiStore of the Manager.
-// TODO:REMOVE
+// TODO:REMOVE.
 func (sm *Manager) CommitMultiStore() storetypes.CommitMultiStore {
 	return sm.cms
 }

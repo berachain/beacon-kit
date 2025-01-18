@@ -33,9 +33,7 @@ import (
 
 // processRandaoReveal processes the randao reveal and
 // ensures it matches the local state.
-func (sp *StateProcessor[
-	ContextT, _,
-]) processRandaoReveal(
+func (sp *StateProcessor[ContextT]) processRandaoReveal(
 	ctx ContextT,
 	st *statedb.StateDB,
 	blk *ctypes.BeaconBlock,
@@ -94,9 +92,7 @@ func (sp *StateProcessor[
 
 // processRandaoMixesReset as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#randao-mixes-updates
-func (sp *StateProcessor[
-	_, _,
-]) processRandaoMixesReset(
+func (sp *StateProcessor[_]) processRandaoMixesReset(
 	st *statedb.StateDB,
 ) error {
 	slot, err := st.GetSlot()
@@ -118,9 +114,7 @@ func (sp *StateProcessor[
 }
 
 // buildRandaoMix as defined in the Ethereum 2.0 specification.
-func (sp *StateProcessor[
-	_, _,
-]) buildRandaoMix(
+func (sp *StateProcessor[_]) buildRandaoMix(
 	mix common.Bytes32,
 	reveal crypto.BLSSignature,
 ) common.Bytes32 {

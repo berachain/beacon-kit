@@ -23,11 +23,9 @@ package core
 import (
 	"fmt"
 
-	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
-	"github.com/berachain/beacon-kit/primitives/encoding/hex"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -37,9 +35,7 @@ import (
 // InitializePreminedBeaconStateFromEth1 initializes the beacon state.
 //
 //nolint:gocognit,funlen // todo fix.
-func (sp *StateProcessor[
-	_, _,
-]) InitializePreminedBeaconStateFromEth1(
+func (sp *StateProcessor[_]) InitializePreminedBeaconStateFromEth1(
 	st *statedb.StateDB,
 	deposits ctypes.Deposits,
 	execPayloadHeader *ctypes.ExecutionPayloadHeader,
@@ -58,29 +54,32 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	var eth1Data *ctypes.Eth1Data
-	eth1Data = eth1Data.New(
-		deposits.HashTreeRoot(),
-		0,
-		execPayloadHeader.GetBlockHash(),
-	)
+	eth1Data := &ctypes.Eth1Data{
+		DepositRoot:  deposits.HashTreeRoot(),
+		DepositCount: 0,
+		BlockHash:    execPayloadHeader.GetBlockHash(),
+	}
 	if err := st.SetEth1Data(eth1Data); err != nil {
 		return nil, err
 	}
 
-	// TODO: we need to handle common.Version vs uint32 better.
-	var blkBody *ctypes.BeaconBlockBody
-	blkBody = blkBody.Empty(version.ToUint32(genesisVersion))
+	if version.ToUint32(genesisVersion) != version.Deneb {
+		return nil, fmt.Errorf("fork version not supported: %s", genesisVersion)
+	}
+	blkBody := &ctypes.BeaconBlockBody{
+		Eth1Data: &ctypes.Eth1Data{},
+		ExecutionPayload: &ctypes.ExecutionPayload{
+			ExtraData: make([]byte, ctypes.ExtraDataSize),
+		},
+	}
 
-	var blkHeader *ctypes.BeaconBlockHeader
-	blkHeader = blkHeader.New(
-		0,                      // slot
-		0,                      // proposer index
-		common.Root{},          // parent block root
-		common.Root{},          // state root
-		blkBody.HashTreeRoot(), // body root
-
-	)
+	blkHeader := &ctypes.BeaconBlockHeader{
+		Slot:            0,
+		ProposerIndex:   0,
+		ParentBlockRoot: common.Root{},
+		StateRoot:       common.Root{},
+		BodyRoot:        blkBody.HashTreeRoot(),
+	}
 	if err := st.SetLatestBlockHeader(blkHeader); err != nil {
 		return nil, err
 	}
@@ -112,92 +111,75 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	// Handle special case bartio genesis.
-	validatorsRoot := common.Root(hex.MustToBytes(spec.BartioValRoot))
-	if sp.cs.DepositEth1ChainID() != spec.BartioChainID {
-		validators, err := st.GetValidators()
-		if err != nil {
-			return nil, err
-		}
-		validatorsRoot = validators.HashTreeRoot()
+	validators, err := st.GetValidators()
+	if err != nil {
+		return nil, err
 	}
-	if err := st.SetGenesisValidatorsRoot(validatorsRoot); err != nil {
+	if err = st.SetGenesisValidatorsRoot(validators.HashTreeRoot()); err != nil {
 		return nil, err
 	}
 
-	if err := st.SetLatestExecutionPayloadHeader(execPayloadHeader); err != nil {
+	if err = st.SetLatestExecutionPayloadHeader(execPayloadHeader); err != nil {
 		return nil, err
 	}
 
 	// Setup a bunch of 0s to prime the DB.
 	for i := range sp.cs.HistoricalRootsLimit() {
 		//#nosec:G701 // won't overflow in practice.
-		if err := st.UpdateBlockRootAtIndex(i, common.Root{}); err != nil {
+		if err = st.UpdateBlockRootAtIndex(i, common.Root{}); err != nil {
 			return nil, err
 		}
-		if err := st.UpdateStateRootAtIndex(i, common.Root{}); err != nil {
+		if err = st.UpdateStateRootAtIndex(i, common.Root{}); err != nil {
 			return nil, err
 		}
 	}
 
-	if err := st.SetNextWithdrawalIndex(0); err != nil {
+	if err = st.SetNextWithdrawalIndex(0); err != nil {
 		return nil, err
 	}
 
-	if err := st.SetNextWithdrawalValidatorIndex(0); err != nil {
+	if err = st.SetNextWithdrawalValidatorIndex(0); err != nil {
 		return nil, err
 	}
 
-	if err := st.SetTotalSlashing(0); err != nil {
+	if err = st.SetTotalSlashing(0); err != nil {
 		return nil, err
 	}
 
-	activeVals, err := getActiveVals(sp.cs, st, 0)
+	activeVals, err := getActiveVals(st, 0)
 	if err != nil {
 		return nil, err
 	}
 	return validatorSetsDiffs(nil, activeVals), nil
 }
 
-func (sp *StateProcessor[
-	_, _,
-]) processGenesisActivation(
-	st *statedb.StateDB,
-) error {
-	switch {
-	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
-		// nothing to do
-		return nil
-	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID:
-		// nothing to do
-		return nil
-	default:
-		vals, err := st.GetValidators()
-		if err != nil {
-			return fmt.Errorf(
-				"genesis activation, failed listing validators: %w",
-				err,
-			)
-		}
-		minEffectiveBalance := math.Gwei(
-			sp.cs.EjectionBalance() + sp.cs.EffectiveBalanceIncrement(),
+func (sp *StateProcessor[_]) processGenesisActivation(st *statedb.StateDB) error {
+	vals, err := st.GetValidators()
+	if err != nil {
+		return fmt.Errorf(
+			"genesis activation, failed listing validators: %w",
+			err,
 		)
-
-		var idx math.ValidatorIndex
-		for _, val := range vals {
-			if val.GetEffectiveBalance() < minEffectiveBalance {
-				continue
-			}
-			val.SetActivationEligibilityEpoch(0)
-			val.SetActivationEpoch(0)
-			idx, err = st.ValidatorIndexByPubkey(val.GetPubkey())
-			if err != nil {
-				return err
-			}
-			if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
-				return err
-			}
-		}
-		return nil
 	}
+	minEffectiveBalance := math.Gwei(
+		sp.cs.EjectionBalance() + sp.cs.EffectiveBalanceIncrement(),
+	)
+
+	var idx math.ValidatorIndex
+	for _, val := range vals {
+		if val.GetEffectiveBalance() < minEffectiveBalance {
+			continue
+		}
+		val.SetActivationEligibilityEpoch(0)
+		val.SetActivationEpoch(0)
+		idx, err = st.ValidatorIndexByPubkey(val.GetPubkey())
+		if err != nil {
+			return err
+		}
+		if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

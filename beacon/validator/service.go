@@ -23,28 +23,26 @@ package validator
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/transition"
 )
 
 // Service is responsible for building beacon blocks and sidecars.
-type Service[
-	DepositStoreT DepositStore,
-] struct {
+type Service struct {
 	// cfg is the validator config.
 	cfg *Config
 	// logger is a logger.
 	logger log.Logger
 	// chainSpec is the chain spec.
-	chainSpec chain.ChainSpec
+	chainSpec chain.Spec
 	// signer is used to retrieve the public key of this node.
 	signer crypto.BLSSigner
 	// blobFactory is used to create blob sidecars for blocks.
 	blobFactory BlobFactory
 	// sb is the beacon state backend.
-	sb StorageBackend[DepositStoreT]
+	sb StorageBackend
 	// stateProcessor is responsible for processing the state.
 	stateProcessor StateProcessor[*transition.Context]
 	// localPayloadBuilder represents the local block builder, this builder
@@ -60,21 +58,19 @@ type Service[
 }
 
 // NewService creates a new validator service.
-func NewService[
-	DepositStoreT DepositStore,
-](
+func NewService(
 	cfg *Config,
 	logger log.Logger,
-	chainSpec chain.ChainSpec,
-	sb StorageBackend[DepositStoreT],
+	chainSpec chain.Spec,
+	sb StorageBackend,
 	stateProcessor StateProcessor[*transition.Context],
 	signer crypto.BLSSigner,
 	blobFactory BlobFactory,
 	localPayloadBuilder PayloadBuilder,
 	remotePayloadBuilders []PayloadBuilder,
 	ts TelemetrySink,
-) *Service[DepositStoreT] {
-	return &Service[DepositStoreT]{
+) *Service {
+	return &Service{
 		cfg:                   cfg,
 		logger:                logger,
 		sb:                    sb,
@@ -89,16 +85,16 @@ func NewService[
 }
 
 // Name returns the name of the service.
-func (s *Service[_]) Name() string {
+func (s *Service) Name() string {
 	return "validator"
 }
 
-func (s *Service[_]) Start(
+func (s *Service) Start(
 	_ context.Context,
 ) error {
 	return nil
 }
 
-func (s *Service[_]) Stop() error {
+func (s *Service) Stop() error {
 	return nil
 }

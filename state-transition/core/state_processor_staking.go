@@ -21,7 +21,9 @@
 package core
 
 import (
-	"github.com/berachain/beacon-kit/config/spec"
+	"context"
+	"fmt"
+
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -32,11 +34,8 @@ import (
 
 // processOperations processes the operations and ensures they match the
 // local state.
-func (sp *StateProcessor[
-	_, _,
-]) processOperations(
-	st *state.StateDB,
-	blk *ctypes.BeaconBlock,
+func (sp *StateProcessor[_]) processOperations(
+	ctx context.Context, st *state.StateDB, blk *ctypes.BeaconBlock,
 ) error {
 	// Verify that outstanding deposits are processed
 	// up to the maximum number of deposits
@@ -53,7 +52,7 @@ func (sp *StateProcessor[
 		)
 	}
 	if err := sp.validateNonGenesisDeposits(
-		st, deposits, blk.GetBody().GetEth1Data().DepositRoot,
+		ctx, st, deposits, blk.GetBody().GetEth1Data().DepositRoot,
 	); err != nil {
 		return err
 	}
@@ -66,12 +65,7 @@ func (sp *StateProcessor[
 }
 
 // processDeposit processes the deposit and ensures it matches the local state.
-func (sp *StateProcessor[
-	_, _,
-]) processDeposit(
-	st *state.StateDB,
-	dep *ctypes.Deposit,
-) error {
+func (sp *StateProcessor[_]) processDeposit(st *state.StateDB, dep *ctypes.Deposit) error {
 	eth1DepositIndex, err := st.GetEth1DepositIndex()
 	if err != nil {
 		return err
@@ -85,51 +79,22 @@ func (sp *StateProcessor[
 		"Processed deposit to set Eth 1 deposit index",
 		"previous", eth1DepositIndex, "new", eth1DepositIndex+1,
 	)
-
-	return sp.applyDeposit(st, dep)
+	if err = sp.applyDeposit(st, dep); err != nil {
+		return fmt.Errorf("failed to apply deposit: %w", err)
+	}
+	return nil
 }
 
 // applyDeposit processes the deposit and ensures it matches the local state.
-func (sp *StateProcessor[
-	_, _,
-]) applyDeposit(
-	st *state.StateDB,
-	dep *ctypes.Deposit,
-) error {
+func (sp *StateProcessor[_]) applyDeposit(st *state.StateDB, dep *ctypes.Deposit) error {
 	idx, err := st.ValidatorIndexByPubkey(dep.GetPubkey())
 	if err != nil {
+		sp.logger.Info("Validator does not exist so creating",
+			"pubkey", dep.GetPubkey(), "index", dep.GetIndex(), "deposit_amount", dep.GetAmount())
 		// If the validator does not exist, we add the validator.
 		// TODO: improve error handling by distinguishing
 		// ErrNotFound from other kind of errors
 		return sp.createValidator(st, dep)
-	}
-
-	// The validator already exist and we need to update its balance.
-	// EffectiveBalance must be updated in processEffectiveBalanceUpdates
-	// However before BoonetFork2Height we mistakenly update EffectiveBalance
-	// every slot. We must preserve backward compatibility so we special case
-	// Boonet to allow proper bootstrapping.
-	slot, err := st.GetSlot()
-	if err != nil {
-		return err
-	}
-	if sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-		slot < math.U64(spec.BoonetFork2Height) {
-		var val *ctypes.Validator
-		val, err = st.ValidatorByIndex(idx)
-		if err != nil {
-			return err
-		}
-
-		updatedBalance := ctypes.ComputeEffectiveBalance(
-			val.GetEffectiveBalance()+dep.GetAmount(),
-			math.Gwei(sp.cs.EffectiveBalanceIncrement()),
-			math.Gwei(sp.cs.MaxEffectiveBalance(false)),
-		)
-		val.SetEffectiveBalance(updatedBalance)
-		if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
-			return err
-		}
 	}
 
 	// if validator exist, just update its balance
@@ -146,12 +111,7 @@ func (sp *StateProcessor[
 }
 
 // createValidator creates a validator if the deposit is valid.
-func (sp *StateProcessor[
-	_, _,
-]) createValidator(
-	st *state.StateDB,
-	dep *ctypes.Deposit,
-) error {
+func (sp *StateProcessor[_]) createValidator(st *state.StateDB, dep *ctypes.Deposit) error {
 	// Get the current slot.
 	slot, err := st.GetSlot()
 	if err != nil {
@@ -174,10 +134,13 @@ func (sp *StateProcessor[
 	// Verify that the deposit has the ETH1 withdrawal credentials.
 	if !dep.HasEth1WithdrawalCredentials() {
 		// Ignore deposits with non-ETH1 withdrawal credentials.
-		sp.logger.Info(
+		sp.logger.Warn(
 			"ignoring deposit with non-ETH1 withdrawal credentials",
+			"pubkey", dep.GetPubkey().String(),
 			"deposit_index", dep.GetIndex(),
+			"amount_gwei", dep.GetAmount().Unwrap(),
 		)
+		sp.metrics.incrementDepositsIgnored()
 		return nil
 	}
 
@@ -193,43 +156,30 @@ func (sp *StateProcessor[
 	)
 	if err != nil {
 		// Ignore deposits that fail the signature check.
-		sp.logger.Info(
+		sp.logger.Warn(
 			"failed deposit signature verification",
+			"pubkey", dep.GetPubkey().String(),
 			"deposit_index", dep.GetIndex(),
+			"amount_gwei", dep.GetAmount().Unwrap(),
 			"error", err,
 		)
+		sp.metrics.incrementDepositsIgnored()
 		return nil
 	}
 
 	// Add the validator to the registry.
-	return sp.addValidatorToRegistry(st, dep, slot)
+	return sp.addValidatorToRegistry(st, dep)
 }
 
 // addValidatorToRegistry adds a validator to the registry.
-func (sp *StateProcessor[
-	_, _,
-]) addValidatorToRegistry(
-	st *state.StateDB,
-	dep *ctypes.Deposit,
-	slot math.Slot,
-) error {
-	var val *ctypes.Validator
-	val = val.New(
+func (sp *StateProcessor[_]) addValidatorToRegistry(st *state.StateDB, dep *ctypes.Deposit) error {
+	val := ctypes.NewValidatorFromDeposit(
 		dep.GetPubkey(),
 		dep.GetWithdrawalCredentials(),
 		dep.GetAmount(),
 		math.Gwei(sp.cs.EffectiveBalanceIncrement()),
-		math.Gwei(sp.cs.MaxEffectiveBalance(
-			state.IsPostFork3(sp.cs.DepositEth1ChainID(), slot),
-		)),
+		math.Gwei(sp.cs.MaxEffectiveBalance()),
 	)
-
-	// TODO: This is a bug that lives on bArtio. Delete this eventually.
-	if sp.cs.DepositEth1ChainID() == spec.BartioChainID {
-		// Note in AddValidatorBartio we implicitly increase
-		// the balance from state st. This is unlike AddValidator.
-		return st.AddValidatorBartio(val)
-	}
 
 	if err := st.AddValidator(val); err != nil {
 		return err

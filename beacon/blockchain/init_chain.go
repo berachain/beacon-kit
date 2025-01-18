@@ -24,18 +24,17 @@ import (
 	"context"
 	"encoding/json"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/transition"
 )
 
 // ProcessGenesisData processes the genesis state and initializes the beacon
 // state.
-func (s *Service[
-	_, _, _, _, GenesisT, _,
-]) ProcessGenesisData(
+func (s *Service) ProcessGenesisData(
 	ctx context.Context,
 	bytes []byte,
 ) (transition.ValidatorUpdates, error) {
-	genesisData := *new(GenesisT)
+	genesisData := ctypes.Genesis{}
 	if err := json.Unmarshal(bytes, &genesisData); err != nil {
 		s.logger.Error("Failed to unmarshal genesis data", "error", err)
 		return nil, err
@@ -53,6 +52,7 @@ func (s *Service[
 
 	// After deposits are validated, store the genesis deposits in the deposit store.
 	if err = s.storageBackend.DepositStore().EnqueueDeposits(
+		ctx,
 		genesisData.GetDeposits(),
 	); err != nil {
 		return nil, err

@@ -125,7 +125,7 @@ type GetBlockAttestationsRequest struct {
 
 type GetBlobSidecarsRequest struct {
 	types.BlockIDRequest
-	Indices []string `query:"indices" validate:"dive,uint64"`
+	Indices []string `query:"indices" validate:"dive,numeric"`
 }
 
 type PostRewardsSyncCommitteeRequest struct {
@@ -167,9 +167,4 @@ type SlotRequest struct {
 type HeadersRequest struct {
 	SlotRequest
 	ParentRoot string `query:"parent_root" validate:"hex"`
-}
-
-type BlobSidecarRequest struct {
-	types.BlockIDRequest
-	Indices []string `query:"indices" validate:"dive,uint64"`
 }
