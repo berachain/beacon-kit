@@ -23,6 +23,10 @@ package blockchain
 import "github.com/berachain/beacon-kit/errors"
 
 var (
+	// ErrTooManyConsensusTxs is an error for consensus blocks having more than MaxConsensusTxsCount txs.
+	ErrTooManyConsensusTxs = errors.New("too many consensus txs")
+	// ErrUnexpectedBlockSlot is an error for consensus blocks with non consecutive slots.
+	ErrUnexpectedBlockSlot = errors.New("unexpected block slot")
 	// ErrNilBlk is an error for when the beacon block is nil.
 	ErrNilBlk = errors.New("nil beacon block")
 	// ErrNilBlob is an error for when the BlobSidecars is nil.
