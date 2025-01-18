@@ -129,23 +129,21 @@ func (sp *StateProcessor[_]) createValidator(st *state.StateDB, dep *ctypes.Depo
 		}
 	}
 
-	// Verify that the deposit has the ETH1 withdrawal credentials.
+	// Check that the deposit has the ETH1 withdrawal credentials.
 	if !dep.HasEth1WithdrawalCredentials() {
-		// Ignore deposits with non-ETH1 withdrawal credentials.
 		sp.logger.Warn(
-			"ignoring deposit with non-ETH1 withdrawal credentials",
+			"adding validator with non-ETH1 withdrawal credentials -- NOT withdrawable",
 			"pubkey", dep.GetPubkey().String(),
 			"deposit_index", dep.GetIndex(),
 			"amount_gwei", dep.GetAmount().Unwrap(),
 		)
-		sp.metrics.incrementDepositsIgnored()
-		return nil
+		sp.metrics.incrementValidatorNotWithdrawable()
 	}
 
 	// Verify that the message was signed correctly.
 	err = dep.VerifySignature(
 		ctypes.NewForkData(
-			// Deposits must be signed with GENESIS_FORK_VERSION
+			// Deposits must be signed with GENESIS_FORK_VERSION.
 			version.FromUint32[common.Version](constants.GenesisVersion),
 			genesisValidatorsRoot,
 		),
@@ -161,7 +159,7 @@ func (sp *StateProcessor[_]) createValidator(st *state.StateDB, dep *ctypes.Depo
 			"amount_gwei", dep.GetAmount().Unwrap(),
 			"error", err,
 		)
-		sp.metrics.incrementDepositsIgnored()
+		sp.metrics.incrementDepositStakeLost()
 		return nil
 	}
 

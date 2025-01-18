@@ -48,8 +48,12 @@ func (s *stateProcessorMetrics) gaugeTimestamps(
 	s.sink.SetGauge("beacon_kit.state.payload_consensus_timestamp_diff", diff)
 }
 
-func (s *stateProcessorMetrics) incrementDepositsIgnored() {
-	s.sink.IncrementCounter("beacon_kit.state.deposits_ignored")
+func (s *stateProcessorMetrics) incrementValidatorNotWithdrawable() {
+	s.sink.IncrementCounter("beacon_kit.state.validator_not_withdrawable")
+}
+
+func (s *stateProcessorMetrics) incrementDepositStakeLost() {
+	s.sink.IncrementCounter("beacon_kit.state.deposit_stake_lost")
 }
 
 func (s *stateProcessorMetrics) gaugeBlockGasUsed(
