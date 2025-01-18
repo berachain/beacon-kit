@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -24,7 +24,7 @@ import (
 	"os"
 
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	clicontext "github.com/berachain/beacon-kit/cli/context"
 	"github.com/berachain/beacon-kit/cli/utils/parser"
 	"github.com/berachain/beacon-kit/consensus-types/types"
@@ -35,18 +35,17 @@ import (
 )
 
 // NewCreateValidator creates a new command to create a validator deposit.
+//
+//nolint:lll // reads better if long description is one line
 func NewCreateValidator(
-	chainSpec chain.ChainSpec,
+	chainSpec chain.Spec,
 ) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-validator",
 		Short: "Creates a validator deposit",
-		Long: `Creates a validator deposit with the necessary credentials. The
-		arguments are expected in the order of withdrawal address, deposit
-		amount, current version, and genesis validator root. If the broadcast
-		flag is set to true, a private key must be provided to sign the transaction.`,
-		Args: cobra.ExactArgs(4), //nolint:mnd // The number of arguments.
-		RunE: createValidatorCmd(chainSpec),
+		Long:  `Creates a validator deposit with the necessary credentials. The arguments are expected in the order of withdrawal address, deposit amount, and genesis validator root. If the broadcast flag is set to true, a private key must be provided to sign the transaction.`,
+		Args:  cobra.ExactArgs(4), //nolint:mnd // The number of arguments.
+		RunE:  createValidatorCmd(chainSpec),
 	}
 
 	cmd.Flags().String(privateKey, defaultPrivateKey, privateKeyMsg)
@@ -64,7 +63,7 @@ func NewCreateValidator(
 //
 
 func createValidatorCmd(
-	chainSpec chain.ChainSpec,
+	chainSpec chain.Spec,
 ) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		logger := log.NewLogger(os.Stdout)

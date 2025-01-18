@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,28 +22,25 @@ package da
 
 import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
-	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/eip4844"
 )
 
 // BlobProcessor is the interface for the blobs processor.
-type BlobProcessor[
-	AvailabilityStoreT,
-	ConsensusSidecarsT any,
-] interface {
+type BlobProcessor interface {
 	// ProcessSidecars processes the blobs and ensures they match the local
 	// state.
 	ProcessSidecars(
-		avs AvailabilityStoreT,
+		avs *dastore.Store,
 		sidecars datypes.BlobSidecars,
 	) error
 	// VerifySidecars verifies the blobs and ensures they match the local state.
 	VerifySidecars(
-		sidecars ConsensusSidecarsT,
-		verifierFn func(
-			blkHeader *ctypes.BeaconBlockHeader,
-			signature crypto.BLSSignature,
-		) error,
+		sidecars datypes.BlobSidecars,
+		blkHeader *ctypes.BeaconBlockHeader,
+		kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],
 	) error
 }
 

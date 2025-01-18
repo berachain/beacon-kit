@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -25,8 +25,6 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
-	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -35,26 +33,10 @@ import (
 	"github.com/sourcegraph/conc/iter"
 )
 
-func (sp *StateProcessor[
-	_, _,
-]) processRegistryUpdates(
-	st *statedb.StateDB,
-) error {
+func (sp *StateProcessor[_]) processRegistryUpdates(st *statedb.StateDB) error {
 	slot, err := st.GetSlot()
 	if err != nil {
 		return fmt.Errorf("registry update, failed loading slot: %w", err)
-	}
-
-	switch {
-	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
-		// Bartio does not properly handle validators registry
-		return nil
-	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-		slot < math.U64(spec.BoonetFork3Height):
-		// Boonet inherits Bartio processing till fork 3
-		return nil
-	default:
-		// processing below
 	}
 
 	vals, err := st.GetValidators()
@@ -112,9 +94,7 @@ func (sp *StateProcessor[
 	return nil
 }
 
-func (sp *StateProcessor[
-	_, _,
-]) processValidatorSetCap(
+func (sp *StateProcessor[_]) processValidatorSetCap(
 	st *statedb.StateDB,
 ) error {
 	// Enforce the validator set cap by:
@@ -128,7 +108,7 @@ func (sp *StateProcessor[
 	}
 	nextEpoch := sp.cs.SlotToEpoch(slot) + 1
 
-	nextEpochVals, err := getActiveVals(sp.cs, st, nextEpoch)
+	nextEpochVals, err := getActiveVals(st, nextEpoch)
 	if err != nil {
 		return fmt.Errorf(
 			"registry update, failed retrieving next epoch vals: %w",
@@ -242,44 +222,16 @@ func validatorSetsDiffs(
 
 // nextEpochValidatorSet returns the current estimation of what next epoch
 // validator set would be.
-func getActiveVals(
-	cs chain.ChainSpec,
-	st *statedb.StateDB,
-	epoch math.Epoch,
-) ([]*ctypes.Validator, error) {
+func getActiveVals(st *statedb.StateDB, epoch math.Epoch) ([]*ctypes.Validator, error) {
 	vals, err := st.GetValidators()
 	if err != nil {
 		return nil, err
 	}
 
-	slot, err := st.GetSlot()
-	if err != nil {
-		return nil, err
-	}
-
 	activeVals := make([]*ctypes.Validator, 0, len(vals))
-	switch {
-	case cs.DepositEth1ChainID() == spec.BartioChainID:
-		// Bartio does not properly handle validators epochs, so
-		// we have an ad-hoc definition of active validator there
-		for _, val := range vals {
-			if val.GetEffectiveBalance() > math.U64(cs.EjectionBalance()) {
-				activeVals = append(activeVals, val)
-			}
-		}
-	case cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-		slot < math.U64(spec.BoonetFork3Height):
-		// Boonet inherits Bartio processing till fork 3
-		for _, val := range vals {
-			if val.GetEffectiveBalance() > math.U64(cs.EjectionBalance()) {
-				activeVals = append(activeVals, val)
-			}
-		}
-	default:
-		for _, val := range vals {
-			if val.IsActive(epoch) {
-				activeVals = append(activeVals, val)
-			}
+	for _, val := range vals {
+		if val.IsActive(epoch) {
+			activeVals = append(activeVals, val)
 		}
 	}
 	return activeVals, nil

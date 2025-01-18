@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -33,7 +33,6 @@ import (
 )
 
 type NodeAPIHandlersInput[
-	KVStoreT any,
 	NodeAPIContextT NodeAPIContext,
 ] struct {
 	depinject.In
@@ -47,13 +46,9 @@ type NodeAPIHandlersInput[
 }
 
 func ProvideNodeAPIHandlers[
-	KVStoreT any,
 	NodeAPIContextT NodeAPIContext,
 ](
-	in NodeAPIHandlersInput[
-		KVStoreT,
-		NodeAPIContextT,
-	],
+	in NodeAPIHandlersInput[NodeAPIContextT],
 ) []handlers.Handlers[NodeAPIContextT] {
 	return []handlers.Handlers[NodeAPIContextT]{
 		in.BeaconAPIHandler,
@@ -67,9 +62,8 @@ func ProvideNodeAPIHandlers[
 }
 
 func ProvideNodeAPIBeaconHandler[
-	NodeT any,
 	NodeAPIContextT NodeAPIContext,
-](b NodeAPIBackend[NodeT]) *beaconapi.Handler[NodeAPIContextT] {
+](b NodeAPIBackend) *beaconapi.Handler[NodeAPIContextT] {
 	return beaconapi.NewHandler[NodeAPIContextT](b)
 }
 
@@ -104,9 +98,7 @@ func ProvideNodeAPINodeHandler[
 }
 
 func ProvideNodeAPIProofHandler[
-	KVStoreT any,
-	NodeT any,
 	NodeAPIContextT NodeAPIContext,
-](b NodeAPIBackend[NodeT]) *proofapi.Handler[NodeAPIContextT] {
+](b NodeAPIBackend) *proofapi.Handler[NodeAPIContextT] {
 	return proofapi.NewHandler[NodeAPIContextT](b)
 }

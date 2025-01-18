@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,18 +21,12 @@
 package spec
 
 import (
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // BoonetChainSpec is the ChainSpec for the localnet.
-func BoonetChainSpec() (chain.Spec[
-	common.DomainType,
-	math.Epoch,
-	math.Slot,
-	any,
-], error) {
+func BoonetChainSpec() (chain.Spec, error) {
 	boonetSpec := BaseSpec()
 
 	// Chain ID is 80000.
@@ -52,13 +46,12 @@ func BoonetChainSpec() (chain.Spec[
 	// MaxValidatorsPerWithdrawalsSweep is 43 because we expect at least 46
 	// validators in the total validators set. We choose a prime number smaller
 	// than the minimum amount of total validators possible.
-	boonetSpec.MaxValidatorsPerWithdrawalsSweepPostUpgrade = 43
+	boonetSpec.MaxValidatorsPerWithdrawalsSweep = 43
 
-	// MaxEffectiveBalancePostUpgrade is 5 million BERA after the boonet
-	// upgrade.
+	// MaxEffectiveBalance is 5 million BERA.
 	//
 	//nolint:mnd // ok.
-	boonetSpec.MaxEffectiveBalancePostUpgrade = 5_000_000 * 1e9
+	boonetSpec.MaxEffectiveBalance = 5_000_000 * 1e9
 
-	return chain.NewChainSpec(boonetSpec)
+	return chain.NewSpec(boonetSpec)
 }

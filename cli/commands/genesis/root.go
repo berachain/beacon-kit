@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,7 +21,7 @@
 package genesis
 
 import (
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/bytes"
@@ -45,7 +45,9 @@ type Genesis struct {
 	} `json:"app_state"`
 }
 
-func GetGenesisValidatorRootCmd(cs chain.ChainSpec) *cobra.Command {
+// TODO: move this logic to the `deposit create-validator/validate` commands as it is only
+// required there.
+func GetGenesisValidatorRootCmd(cs chain.Spec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "validator-root [beacond/genesis.json]",
 		Short: "gets and returns the genesis validator root",
@@ -70,14 +72,14 @@ func GetGenesisValidatorRootCmd(cs chain.ChainSpec) *cobra.Command {
 				depositCount,
 			)
 			for i, deposit := range genesis.AppState.Beacon.Deposits {
-				var val *types.Validator
-				validators[i] = val.New(
+				val := types.NewValidatorFromDeposit(
 					deposit.Pubkey,
 					types.WithdrawalCredentials(deposit.Credentials),
 					deposit.Amount,
 					math.Gwei(cs.EffectiveBalanceIncrement()),
-					math.Gwei(cs.MaxEffectiveBalance(false)),
+					math.Gwei(cs.MaxEffectiveBalance()),
 				)
+				validators[i] = val
 			}
 
 			cmd.Printf("%s\n", validators.HashTreeRoot())

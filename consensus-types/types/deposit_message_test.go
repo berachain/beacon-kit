@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -59,16 +59,6 @@ func TestCreateAndSignDepositMessage(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, depositMessage)
 	require.NotNil(t, signature)
-}
-
-func TestNewDepositMessage(t *testing.T) {
-	pubKey := crypto.BLSPubkey{}
-	credentials := types.WithdrawalCredentials{}
-	amount := math.Gwei(32)
-	depositMessage := types.DepositMessage{}
-	newDepositMessage := depositMessage.New(pubKey, credentials, amount)
-
-	require.NotNil(t, newDepositMessage)
 }
 
 func TestDepositMessage_MarshalUnmarshalSSZ(t *testing.T) {

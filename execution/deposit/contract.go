@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -63,13 +63,14 @@ func NewWrappedDepositContract(
 // ReadDeposits reads deposits from the deposit contract.
 func (dc *WrappedDepositContract) ReadDeposits(
 	ctx context.Context,
-	blkNum math.U64,
+	fromBlock math.U64,
+	toBlock math.U64,
 ) ([]*ctypes.Deposit, error) {
 	logs, err := dc.FilterDeposit(
 		&bind.FilterOpts{
 			Context: ctx,
-			Start:   blkNum.Unwrap(),
-			End:     (*uint64)(&blkNum),
+			Start:   fromBlock.Unwrap(),
+			End:     toBlock.UnwrapPtr(),
 		},
 	)
 	if err != nil {
@@ -95,13 +96,14 @@ func (dc *WrappedDepositContract) ReadDeposits(
 		if err != nil {
 			return nil, fmt.Errorf("failed reading signature: %w", err)
 		}
-		deposits = append(deposits, ctypes.NewDeposit(
-			pubKey,
-			ctypes.WithdrawalCredentials(cred),
-			math.U64(logs.Event.Amount),
-			sign,
-			logs.Event.Index,
-		))
+		deposit := &ctypes.Deposit{
+			Pubkey:      pubKey,
+			Credentials: ctypes.WithdrawalCredentials(cred),
+			Amount:      math.U64(logs.Event.Amount),
+			Signature:   sign,
+			Index:       logs.Event.Index,
+		}
+		deposits = append(deposits, deposit)
 	}
 
 	return deposits, nil

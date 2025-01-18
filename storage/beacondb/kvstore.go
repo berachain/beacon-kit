@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -92,13 +92,14 @@ type KVStore struct {
 // New creates a new instance of Store.
 //
 //nolint:funlen // its not overly complex.
-func New(
-	kss store.KVStoreService,
-	payloadCodec *encoding.SSZInterfaceCodec[*ctypes.ExecutionPayloadHeader],
-) *KVStore {
-	schemaBuilder := sdkcollections.NewSchemaBuilder(kss)
+func New(kss store.KVStoreService) *KVStore {
+	var (
+		schemaBuilder = sdkcollections.NewSchemaBuilder(kss)
+		payloadCodec  = &encoding.SSZInterfaceCodec[*ctypes.ExecutionPayloadHeader]{}
+	)
+
 	res := &KVStore{
-		ctx: nil,
+		ctx: nil, // set by WithContext or Copy
 		genesisValidatorsRoot: sdkcollections.NewItem(
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.GenesisValidatorsRootPrefix}),

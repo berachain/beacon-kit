@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,6 +21,7 @@
 package context
 
 import (
+	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	cmtcfg "github.com/cometbft/cometbft/config"
@@ -54,17 +55,17 @@ func GetConfigFromCmd(cmd *cobra.Command) *cmtcfg.Config {
 	v := cmd.Context().Value(ViperContextKey)
 	viper, ok := v.(*viper.Viper)
 	if !ok {
-		return cmtcfg.DefaultConfig()
+		return cometbft.DefaultConfig()
 	}
 	return GetConfigFromViper(viper)
 }
 
 func GetConfigFromViper(v *viper.Viper) *cmtcfg.Config {
-	conf := cmtcfg.DefaultConfig()
+	conf := cometbft.DefaultConfig()
 	err := v.Unmarshal(conf)
 	rootDir := v.GetString(flags.FlagHome)
 	if err != nil {
-		return cmtcfg.DefaultConfig().SetRoot(rootDir)
+		return cometbft.DefaultConfig().SetRoot(rootDir)
 	}
 	return conf.SetRoot(rootDir)
 }

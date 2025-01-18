@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -20,10 +20,20 @@
 
 package config
 
+import (
+	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
+	"github.com/berachain/beacon-kit/payload/builder"
+)
+
 // Consensus clients.
 const (
-	DefaultClient   = "cl-validator-beaconkit-0"
-	AlternateClient = "cl-validator-beaconkit-1"
+	NumValidators = 5
+
+	ClientValidator0 = "cl-validator-beaconkit-0"
+	ClientValidator1 = "cl-validator-beaconkit-1"
+	ClientValidator2 = "cl-validator-beaconkit-2"
+	ClientValidator3 = "cl-validator-beaconkit-3"
+	ClientValidator4 = "cl-validator-beaconkit-4"
 )
 
 // DefaultE2ETestConfig provides a default configuration for end-to-end tests,
@@ -52,8 +62,7 @@ func defaultValidators() NodeSet {
 		Nodes: []Node{
 			{
 				ElType: "nethermind",
-				// TODO: restore once we solve
-				//  https://github.com/berachain/beacon-kit/issues/2177
+				// TODO: restore once we solve https://github.com/berachain/beacon-kit/issues/2177
 				Replicas: 0, // nethermind cannot keep up with deposits checks
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
@@ -154,6 +163,14 @@ func defaultExecutionSettings() ExecutionSettings {
 }
 
 func defaultConsensusSettings() ConsensusSettings {
+	var (
+		defaultCfg = cometbft.DefaultConfig()
+		consensus  = defaultCfg.Consensus
+		p2p        = defaultCfg.P2P
+
+		builderCfg = builder.DefaultConfig()
+	)
+
 	return ConsensusSettings{
 		Specs: NodeSpecs{
 			MinCPU:    0,
@@ -165,16 +182,16 @@ func defaultConsensusSettings() ConsensusSettings {
 			"beaconkit": "beacond:kurtosis-local",
 		},
 		Config: ConsensusConfig{
-			TimeoutPropose:      "3s",
-			TimeoutPrevote:      "1s",
-			TimeoutPrecommit:    "1s",
-			TimeoutCommit:       "3s",
-			MaxNumInboundPeers:  40, //nolint:mnd // 40 inbound peers
-			MaxNumOutboundPeers: 10, //nolint:mnd // 10 outbound peers
+			TimeoutPropose:      consensus.TimeoutPropose.String(),
+			TimeoutPrevote:      consensus.TimeoutPrevote.String(),
+			TimeoutPrecommit:    consensus.TimeoutPrecommit.String(),
+			TimeoutCommit:       consensus.TimeoutCommit.String(),
+			MaxNumInboundPeers:  p2p.MaxNumInboundPeers,
+			MaxNumOutboundPeers: p2p.MaxNumOutboundPeers,
 		},
 		AppConfig: AppConfig{
-			PayloadTimeout:                "1.5s",
-			EnableOptimisticPayloadBuilds: false,
+			PayloadTimeout:                builderCfg.PayloadTimeout.String(),
+			EnableOptimisticPayloadBuilds: builderCfg.Enabled,
 		},
 	}
 }

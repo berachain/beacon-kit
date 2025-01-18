@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -60,46 +60,6 @@ type BeaconState struct {
 	TotalSlashing math.Gwei
 }
 
-// New creates a new BeaconState.
-func (st *BeaconState) New(
-	_ uint32,
-	genesisValidatorsRoot common.Root,
-	slot math.Slot,
-	fork *Fork,
-	latestBlockHeader *BeaconBlockHeader,
-	blockRoots []common.Root,
-	stateRoots []common.Root,
-	eth1Data *Eth1Data,
-	eth1DepositIndex uint64,
-	latestExecutionPayloadHeader *ExecutionPayloadHeader,
-	validators []*Validator,
-	balances []uint64,
-	randaoMixes []common.Bytes32,
-	nextWithdrawalIndex uint64,
-	nextWithdrawalValidatorIndex math.ValidatorIndex,
-	slashings []math.Gwei,
-	totalSlashing math.Gwei,
-) (*BeaconState, error) {
-	return &BeaconState{
-		Slot:                         slot,
-		GenesisValidatorsRoot:        genesisValidatorsRoot,
-		Fork:                         fork,
-		LatestBlockHeader:            latestBlockHeader,
-		BlockRoots:                   blockRoots,
-		StateRoots:                   stateRoots,
-		LatestExecutionPayloadHeader: latestExecutionPayloadHeader,
-		Eth1Data:                     eth1Data,
-		Eth1DepositIndex:             eth1DepositIndex,
-		Validators:                   validators,
-		Balances:                     balances,
-		RandaoMixes:                  randaoMixes,
-		NextWithdrawalIndex:          nextWithdrawalIndex,
-		NextWithdrawalValidatorIndex: nextWithdrawalValidatorIndex,
-		Slashings:                    slashings,
-		TotalSlashing:                totalSlashing,
-	}, nil
-}
-
 /* -------------------------------------------------------------------------- */
 /*                                     SSZ                                    */
 /* -------------------------------------------------------------------------- */
@@ -126,7 +86,7 @@ func (st *BeaconState) SizeSSZ(siz *ssz.Sizer, fixed bool) uint32 {
 
 // DefineSSZ defines the SSZ encoding for the BeaconState object.
 //
-//nolint:mnd // todo fix.
+//nolint:mnd // TODO: get from accessible chainspec field params
 func (st *BeaconState) DefineSSZ(codec *ssz.Codec) {
 	// Versioning
 	ssz.DefineStaticBytes(codec, &st.GenesisValidatorsRoot)
@@ -253,7 +213,7 @@ func (st *BeaconState) HashTreeRootWith(
 
 	// Field (6) 'Eth1Data'
 	if st.Eth1Data == nil {
-		st.Eth1Data = st.Eth1Data.Empty()
+		st.Eth1Data = &Eth1Data{}
 	}
 	if err := st.Eth1Data.HashTreeRootWith(hh); err != nil {
 		return err

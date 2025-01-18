@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -31,12 +31,11 @@ import (
 	"cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/node-core/components"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/storage"
 	"github.com/berachain/beacon-kit/storage/beacondb"
 	"github.com/berachain/beacon-kit/storage/db"
-	"github.com/berachain/beacon-kit/storage/encoding"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
@@ -48,15 +47,11 @@ type testKVStoreService struct {
 
 func (kvs *testKVStoreService) OpenKVStore(context.Context) corestore.KVStore {
 	//nolint:contextcheck // fine with tests
-	return components.NewKVStore(
-		sdk.UnwrapSDKContext(kvs.ctx).KVStore(testStoreKey),
-	)
+	store := sdk.UnwrapSDKContext(kvs.ctx).KVStore(testStoreKey)
+	return storage.NewKVStore(store)
 }
 
-var (
-	testStoreKey = storetypes.NewKVStoreKey("storage-tests")
-	testCodec    = &encoding.SSZInterfaceCodec[*types.ExecutionPayloadHeader]{}
-)
+var testStoreKey = storetypes.NewKVStoreKey("storage-tests")
 
 func TestBalances(t *testing.T) {
 	store, err := initTestStore()
@@ -222,8 +217,5 @@ func initTestStore() (*beacondb.KVStore, error) {
 	testStoreService := &testKVStoreService{
 		ctx: ctx,
 	}
-	return beacondb.New(
-		testStoreService,
-		testCodec,
-	), nil
+	return beacondb.New(testStoreService), nil
 }

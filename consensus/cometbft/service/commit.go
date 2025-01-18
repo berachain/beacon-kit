@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -114,13 +114,12 @@ func (s *Service[_]) GetBlockRetentionHeight(commitHeight int64) int64 {
 	if s.finalizeBlockState == nil {
 		return 0
 	}
-	cp := s.paramStore.Get()
+	cp := s.cmtConsensusParams.ToProto()
 	if cp.Evidence != nil && cp.Evidence.MaxAgeNumBlocks > 0 {
 		retentionHeight = commitHeight - cp.Evidence.MaxAgeNumBlocks
 	}
 
-	//#nosec:G701 // bet.
-	v := commitHeight - int64(s.minRetainBlocks)
+	v := commitHeight - int64(s.minRetainBlocks) // #nosec G115
 	retentionHeight = minNonZero(retentionHeight, v)
 
 	if retentionHeight <= 0 {

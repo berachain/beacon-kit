@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -36,6 +36,7 @@ import (
 // Context defines an interface for managing state transition context.
 type Context interface {
 	context.Context
+	GetMeterGas() bool
 	// GetOptimisticEngine returns whether to optimistically assume the
 	// execution client has the correct state when certain errors are returned
 	// by the execution engine.
@@ -56,15 +57,6 @@ type Context interface {
 	// GetConsensusTime returns the timestamp of current consensus request.
 	// It is used to build next payload and to validate currentpayload.
 	GetConsensusTime() math.U64
-}
-
-// DepositStore defines the interface for deposit storage.
-type DepositStore interface {
-	// GetDepositsByIndex returns `numView` expected deposits.
-	GetDepositsByIndex(
-		startIndex uint64,
-		numView uint64,
-	) (ctypes.Deposits, error)
 }
 
 // Withdrawals defines the interface for managing withdrawal operations.
@@ -147,4 +139,7 @@ type Withdrawal interface {
 // TelemetrySink is an interface for sending metrics to a telemetry backend.
 type TelemetrySink interface {
 	SetGauge(key string, value int64, args ...string)
+	// IncrementCounter increments the counter identified by
+	// the provided key.
+	IncrementCounter(key string, args ...string)
 }

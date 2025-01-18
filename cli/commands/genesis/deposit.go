@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -25,7 +25,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/cli/context"
 	"github.com/berachain/beacon-kit/cli/utils/parser"
 	"github.com/berachain/beacon-kit/consensus-types/types"
@@ -33,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/node-core/components"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -46,15 +47,13 @@ import (
 // AddGenesisDepositCmd - returns the cobra command to
 // add a premined deposit to the genesis file.
 //
-
-func AddGenesisDepositCmd(cs chain.ChainSpec) *cobra.Command {
+//nolint:lll // reads better if long description is one line
+func AddGenesisDepositCmd(cs chain.Spec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add-premined-deposit",
 		Short: "adds a validator to the genesis file",
-		Long: `Adds a validator to the genesis file with the necessary
-		credentials. The arguments are expected in the order of the deposit
-		amount and withdrawal address.`,
-		Args: cobra.ExactArgs(2), //nolint:mnd // The number of arguments.
+		Long:  `Adds a validator to the genesis file with the necessary credentials. The arguments are expected in the order of the deposit amount and withdrawal address.`,
+		Args:  cobra.ExactArgs(2), //nolint:mnd // The number of arguments.
 		RunE: func(cmd *cobra.Command, args []string) error {
 			config := context.GetConfigFromCmd(cmd)
 
@@ -85,16 +84,14 @@ func AddGenesisDepositCmd(cs chain.ChainSpec) *cobra.Command {
 				return err
 			}
 
-			// TODO: configurable.
-			currentVersion := version.FromUint32[common.Version](
-				version.Deneb,
-			)
+			// All deposits are signed with the genesis version.
+			genesisVersion := version.FromUint32[common.Version](constants.GenesisVersion)
 
 			// Get the withdrawal address.
 			withdrawalAddress := common.NewExecutionAddressFromHex(args[1])
 
 			depositMsg, signature, err := types.CreateAndSignDepositMessage(
-				types.NewForkData(currentVersion, common.Root{}),
+				types.NewForkData(genesisVersion, common.Root{}),
 				cs.DomainTypeDeposit(),
 				blsSigner,
 				types.NewCredentialsFromExecutionAddress(withdrawalAddress),
@@ -106,7 +103,7 @@ func AddGenesisDepositCmd(cs chain.ChainSpec) *cobra.Command {
 
 			// Verify the deposit message.
 			if err = depositMsg.VerifyCreateValidator(
-				types.NewForkData(currentVersion, common.Root{}),
+				types.NewForkData(genesisVersion, common.Root{}),
 				signature,
 				cs.DomainTypeDeposit(),
 				signer.BLSSigner{}.VerifySignature,

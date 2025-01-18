@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -59,7 +59,9 @@ func SetupCommand[
 
 	if err := handleConfigs(
 		clicontext.GetViperFromCmd(cmd),
-		appTemplate, appConfig, cmtConfig,
+		appTemplate,
+		appConfig,
+		cmtConfig,
 	); err != nil {
 		return err
 	}
@@ -168,12 +170,17 @@ func handleConfigs(
 	cmtCfgFile := filepath.Join(configDirPath, "config.toml")
 
 	if err := handleCometConfig(
-		viper, cmtCfgFile, cometConfig, rootDir, configDirPath,
+		viper,
+		cmtCfgFile, cometConfig,
+		rootDir, configDirPath,
 	); err != nil {
 		return err
 	}
 
 	return handleAppConfig(
-		viper, configDirPath, customAppTemplate, customConfig,
+		viper,
+		configDirPath,
+		customAppTemplate,
+		customConfig,
 	)
 }

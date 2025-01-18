@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -117,7 +117,7 @@ func TestExecutionPayloadHeader_Serialization(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, data)
 
-	var unmarshalled = new(types.ExecutionPayloadHeader).Empty()
+	var unmarshalled = &types.ExecutionPayloadHeader{}
 	err = unmarshalled.UnmarshalSSZ(data)
 	require.NoError(t, err)
 	require.Equal(t, original, unmarshalled)
@@ -245,14 +245,6 @@ func TestExecutionPayloadHeader_GetTree(t *testing.T) {
 	header := generateExecutionPayloadHeader()
 	_, err := header.GetTree()
 	require.NoError(t, err)
-}
-
-func TestExecutionPayloadHeader_Empty(t *testing.T) {
-	header := new(types.ExecutionPayloadHeader)
-	emptyHeader := header.Empty()
-
-	require.NotNil(t, emptyHeader)
-	require.Equal(t, version.Deneb, emptyHeader.Version())
 }
 
 func TestExecutablePayloadHeaderDeneb_UnmarshalJSON_Error(t *testing.T) {

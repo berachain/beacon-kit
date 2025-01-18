@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -30,7 +30,7 @@ import (
 )
 
 func TestWithdrawal(t *testing.T) {
-	withdrawal := (&engineprimitives.Withdrawal{}).New(
+	withdrawal := engineprimitives.NewWithdrawal(
 		math.U64(1),
 		math.ValidatorIndex(1),
 		common.ExecutionAddress{1, 2, 3, 4, 5},

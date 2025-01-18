@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -54,39 +54,18 @@ type Deposit struct {
 	Index uint64 `json:"index"`
 }
 
-// NewDeposit creates a new Deposit instance.
-func NewDeposit(
-	pubkey crypto.BLSPubkey,
-	credentials WithdrawalCredentials,
-	amount math.Gwei,
-	signature crypto.BLSSignature,
-	index uint64,
-) *Deposit {
-	return &Deposit{
-		Pubkey:      pubkey,
-		Credentials: credentials,
-		Amount:      amount,
-		Signature:   signature,
-		Index:       index,
-	}
-}
-
 // Empty creates an empty Deposit instance.
 func (d *Deposit) Empty() *Deposit {
 	return &Deposit{}
 }
 
-// New creates a new Deposit instance.
-func (d *Deposit) New(
-	pubkey crypto.BLSPubkey,
-	credentials WithdrawalCredentials,
-	amount math.Gwei,
-	signature crypto.BLSSignature,
-	index uint64,
-) *Deposit {
-	return NewDeposit(
-		pubkey, credentials, amount, signature, index,
-	)
+// Equals returns true if the Deposit is equal to the other.
+func (d *Deposit) Equals(o *Deposit) bool {
+	return d.Pubkey == o.Pubkey &&
+		d.Credentials == o.Credentials &&
+		d.Amount == o.Amount &&
+		d.Signature == o.Signature &&
+		d.Index == o.Index
 }
 
 // VerifySignature verifies the deposit data and signature.
@@ -212,8 +191,8 @@ func (d *Deposit) GetWithdrawalCredentials() WithdrawalCredentials {
 	return d.Credentials
 }
 
-// HasEth1WithdrawalCredentials returns true if the deposit has eth1 withdrawal
-// credentials.
+// HasEth1WithdrawalCredentials as defined in the Ethereum 2.0 specification:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/validator.md#eth1_address_withdrawal_prefix
 func (d *Deposit) HasEth1WithdrawalCredentials() bool {
-	return d.Credentials[0] == EthSecp256k1CredentialPrefix
+	return d.Credentials.IsValidEth1WithdrawalCredentials()
 }

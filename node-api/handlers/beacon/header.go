@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,7 +23,6 @@ package beacon
 import (
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
-	"github.com/berachain/beacon-kit/primitives/bytes"
 )
 
 func (h *Handler[ContextT]) GetBlockHeaders(c ContextT) (any, error) {
@@ -47,9 +46,9 @@ func (h *Handler[ContextT]) GetBlockHeaders(c ContextT) (any, error) {
 		Data: &beacontypes.BlockHeaderResponse{
 			Root:      header.GetBodyRoot(),
 			Canonical: true,
-			Header: &beacontypes.BlockHeader{
-				Message:   header,
-				Signature: bytes.B48{}, // TODO: implement
+			Header: &beacontypes.SignedBeaconBlockHeader{
+				Message:   beacontypes.BeaconBlockHeaderFromConsensus(header),
+				Signature: "", // TODO: implement
 			},
 		},
 	}, nil
@@ -76,9 +75,9 @@ func (h *Handler[ContextT]) GetBlockHeaderByID(c ContextT) (any, error) {
 		Data: &beacontypes.BlockHeaderResponse{
 			Root:      header.GetBodyRoot(),
 			Canonical: true,
-			Header: &beacontypes.BlockHeader{
-				Message:   header,
-				Signature: bytes.B48{}, // TODO: implement
+			Header: &beacontypes.SignedBeaconBlockHeader{
+				Message:   beacontypes.BeaconBlockHeaderFromConsensus(header),
+				Signature: "", // TODO: implement
 			},
 		},
 	}, nil

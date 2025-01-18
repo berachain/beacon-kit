@@ -75,17 +75,15 @@ rm-devnet:
 # Installs buildifier, a tool for linting and formatting starlark files.
 buildifier-install:
 	@echo "--> Installing buildifier"
-	@go install github.com/bazelbuild/buildtools/buildifier
+	@go install github.com/bazelbuild/buildtools/buildifier@latest
 
 # Lints Starlark (.star) files in the Kurtosis directory using buildifier
-star-lint:
-	@$(MAKE) buildifier-install
+star-lint: buildifier-install
 	@echo "--> Running buildifier to format starlark files..."
 	find ./kurtosis -name "*.star" -exec buildifier -mode=check {} +
 
 # Automatically fixes formatting issues in Starlark (.star) files using buildifier
-star-fix:
-	@$(MAKE) buildifier-install
+star-fix: buildifier-install
 	@echo "--> Running buildifier to format starlark files..."
 	find ./kurtosis -name "*.star" -exec buildifier --mode=fix {} +
 

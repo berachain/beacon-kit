@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT
 #
-# Copyright (c) 2024 Berachain Foundation
+# Copyright (c) 2025 Berachain Foundation
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -142,6 +142,8 @@ jobs:
         uses: docker/setup-buildx-action@v1
       - name: Install Kurtosis
         run: |
+          sudo apt-get install ca-certificates
+          sudo apt update
           echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
           sudo apt update
           sudo apt install kurtosis-cli=$(go list -m -f '{{.Version}}' github.com/kurtosis-tech/kurtosis/api/golang | sed 's/^v//') -y
@@ -197,26 +199,9 @@ jobs:
         with:
           registry: ${{ env.GHCR_REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.GH_TOKEN }}
-
-      - if: ${{ env.PUSH_DOCKER_IMAGE == 'true' }}
-        name: Authenticate to Google Cloud
-        id: "auth"
-        uses: "google-github-actions/auth@v2"
-        with:
-          workload_identity_provider: ${{ env.GCP_ID_PROVIDER }}
-          service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
-
-      - if: ${{ env.PUSH_DOCKER_IMAGE == 'true' }}
-        name: "Set up Cloud SDK"
-        uses: "google-github-actions/setup-gcloud@v2"
-
-      - if: ${{ env.PUSH_DOCKER_IMAGE == 'true' }}
-        name: Setup Docker to use Google Cloud OIDC
-        run: |
-          gcloud auth configure-docker ${{ env.GCP_REGISTRY }} --quiet
+          password: ${{ secrets.GHCR_TOKEN }}
 
       - if: ${{ env.PUSH_DOCKER_IMAGE == 'true' }}
         name: Push Docker image
         run: |
-          make push-docker-gcp push-docker-github
+          make push-docker-github

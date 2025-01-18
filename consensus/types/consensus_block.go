@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -35,19 +35,18 @@ type ConsensusBlock struct {
 }
 
 // New creates a new ConsensusBlock instance.
-func (b *ConsensusBlock) New(
+func NewConsensusBlock(
 	beaconBlock *types.BeaconBlock,
 	proposerAddress []byte,
 	consensusTime time.Time,
 ) *ConsensusBlock {
-	b = &ConsensusBlock{
+	return &ConsensusBlock{
 		blk: beaconBlock,
 		commonConsensusData: &commonConsensusData{
 			proposerAddress: proposerAddress,
-			consensusTime:   math.U64(consensusTime.Unix()),
+			consensusTime:   math.U64(consensusTime.Unix()), // #nosec G115
 		},
 	}
-	return b
 }
 
 func (b *ConsensusBlock) GetBeaconBlock() *types.BeaconBlock {
