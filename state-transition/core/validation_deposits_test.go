@@ -23,6 +23,8 @@ package core_test
 import (
 	"testing"
 
+	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/node-core/components"
@@ -177,4 +179,108 @@ func TestInvalidDepositsCount(t *testing.T) {
 	_, err = sp.Transition(ctx, st, blk)
 	require.Error(t, err)
 	require.ErrorContains(t, err, "deposits lengths mismatched")
+}
+
+func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
+	csData := spec.BaseSpec()
+	csData.DepositEth1ChainID = spec.BoonetEth1ChainID
+	csData.MaxDepositsPerBlock = 1 // Set only 1 deposit allowed per block.
+	cs, err := chain.NewSpec(csData)
+	require.NoError(t, err)
+	sp, st, ds, ctx := setupState(t, cs)
+
+	var (
+		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
+		credentials0 = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
+	)
+
+	// Setup initial state with one validator
+	var (
+		genDeposits = types.Deposits{
+			{
+				Pubkey:      [48]byte{0x00},
+				Credentials: credentials0,
+				Amount:      maxBalance,
+				Index:       0,
+			},
+		}
+		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genVersion       = version.FromUint32[common.Version](version.Deneb)
+	)
+	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
+	_, err = sp.InitializePreminedBeaconStateFromEth1(
+		st, genDeposits, genPayloadHeader, genVersion,
+	)
+	require.NoError(t, err)
+
+	// Create the block deposits.
+	blockDeposits := types.Deposits{
+		{
+			Pubkey:      [48]byte{0x01},
+			Credentials: credentials0,
+			Amount:      maxBalance,
+			Index:       1,
+		},
+	}
+
+	// Create test block with the correct deposits.
+	depRoot := append(genDeposits, blockDeposits...).HashTreeRoot()
+	blk := buildNextBlock(
+		t,
+		st,
+		&types.BeaconBlockBody{
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:    10,
+				ExtraData:    []byte("testing"),
+				Transactions: [][]byte{},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					st.EVMInflationWithdrawal(),
+				},
+				BaseFeePerGas: math.NewU256(0),
+			},
+			Eth1Data: types.NewEth1Data(depRoot),
+			Deposits: blockDeposits,
+		},
+	)
+
+	extraLocalDeposit := &types.Deposit{
+		Pubkey:      [48]byte{0x01},
+		Credentials: credentials0,
+		Amount:      maxBalance,
+		Index:       2,
+	}
+	localDeposits := append(blockDeposits, extraLocalDeposit)
+
+	// Add both deposits to local store (which includes more than what's in the block).
+	require.NoError(t, ds.EnqueueDeposits(ctx, localDeposits))
+
+	// Run transition.
+	_, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+
+	// Now, the block proposer ends up adding the correct 1 deposit per block, BUT spoofs the
+	// deposits root to use the entire deposits list.
+	badDepRoot := append(genDeposits, localDeposits...).HashTreeRoot()
+	blk = buildNextBlock(
+		t,
+		st,
+		&types.BeaconBlockBody{
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:    10,
+				ExtraData:    []byte("testing"),
+				Transactions: [][]byte{},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					st.EVMInflationWithdrawal(),
+				},
+				BaseFeePerGas: math.NewU256(0),
+			},
+			Eth1Data: types.NewEth1Data(badDepRoot),
+			Deposits: blockDeposits,
+		},
+	)
+
+	// Run transition.
+	_, err = sp.Transition(ctx, st, blk)
+	require.Error(t, err)
+	require.ErrorContains(t, err, "deposits root mismatch")
 }
