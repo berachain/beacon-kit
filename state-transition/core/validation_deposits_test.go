@@ -39,9 +39,7 @@ func TestInvalidDeposits(t *testing.T) {
 	var (
 		minBalance   = math.Gwei(cs.EjectionBalance() + cs.EffectiveBalanceIncrement())
 		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
-		credentials0 = types.NewCredentialsFromExecutionAddress(
-			common.ExecutionAddress{},
-		)
+		credentials0 = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
 	)
 
 	// Setup initial state with one validator
@@ -106,4 +104,77 @@ func TestInvalidDeposits(t *testing.T) {
 	_, err = sp.Transition(ctx, st, blk)
 	require.Error(t, err)
 	require.ErrorContains(t, err, "deposit mismatched")
+}
+
+func TestInvalidDepositsCount(t *testing.T) {
+	cs := setupChain(t, components.BoonetChainSpecType)
+	sp, st, ds, ctx := setupState(t, cs)
+
+	var (
+		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
+		credentials0 = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
+	)
+
+	// Setup initial state with one validator
+	var (
+		genDeposits = types.Deposits{
+			{
+				Pubkey:      [48]byte{0x00},
+				Credentials: credentials0,
+				Amount:      maxBalance,
+				Index:       0,
+			},
+		}
+		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genVersion       = version.FromUint32[common.Version](version.Deneb)
+	)
+	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
+	_, err := sp.InitializePreminedBeaconStateFromEth1(
+		st, genDeposits, genPayloadHeader, genVersion,
+	)
+	require.NoError(t, err)
+
+	// Create the correct deposits.
+	correctDeposits := types.Deposits{
+		{
+			Pubkey:      [48]byte{0x01},
+			Credentials: credentials0,
+			Amount:      maxBalance,
+			Index:       1,
+		},
+		{
+			Pubkey:      [48]byte{0x02},
+			Credentials: credentials0,
+			Amount:      maxBalance,
+			Index:       2,
+		},
+	}
+
+	// Create test block with the correct deposits.
+	depRoot := append(genDeposits, correctDeposits...).HashTreeRoot()
+	blk := buildNextBlock(
+		t,
+		st,
+		&types.BeaconBlockBody{
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:    10,
+				ExtraData:    []byte("testing"),
+				Transactions: [][]byte{},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					st.EVMInflationWithdrawal(),
+				},
+				BaseFeePerGas: math.NewU256(0),
+			},
+			Eth1Data: types.NewEth1Data(depRoot),
+			Deposits: correctDeposits,
+		},
+	)
+
+	// Add JUST 1 correct deposit to local store. This node SHOULD fail to verify.
+	require.NoError(t, ds.EnqueueDeposits(ctx, types.Deposits{correctDeposits[0]}))
+
+	// Run transition.
+	_, err = sp.Transition(ctx, st, blk)
+	require.Error(t, err)
+	require.ErrorContains(t, err, "deposits lengths mismatched")
 }

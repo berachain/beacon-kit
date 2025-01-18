@@ -32,17 +32,14 @@ import (
 	"github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-// processOperations processes the operations and ensures they match the
-// local state.
+// processOperations processes the operations and ensures they match the local state.
 func (sp *StateProcessor[_]) processOperations(
 	ctx context.Context, st *state.StateDB, blk *ctypes.BeaconBlock,
 ) error {
-	// Verify that outstanding deposits are processed
-	// up to the maximum number of deposits
-
-	// Unlike Eth 2.0 specs we don't check that
-	// len(body.deposits) ==  min(MAX_DEPOSITS,
-	// state.eth1_data.deposit_count - state.eth1_deposit_index)
+	// Verify that outstanding deposits are processed up to the maximum number of deposits.
+	//
+	// Unlike Eth 2.0 specs we don't check the following:
+	// `len(body.deposits) ==  min(MAX_DEPOSITS, state.eth1_data.deposit_count - state.eth1_deposit_index)`.
 	// Instead we directly compare block deposits with store ones.
 	deposits := blk.GetBody().GetDeposits()
 	if uint64(len(deposits)) > sp.cs.MaxDepositsPerBlock() {
@@ -51,16 +48,19 @@ func (sp *StateProcessor[_]) processOperations(
 			sp.cs.MaxDepositsPerBlock(), len(deposits),
 		)
 	}
+
 	if err := sp.validateNonGenesisDeposits(
 		ctx, st, deposits, blk.GetBody().GetEth1Data().DepositRoot,
 	); err != nil {
 		return err
 	}
+
 	for _, dep := range deposits {
 		if err := sp.processDeposit(st, dep); err != nil {
 			return err
 		}
 	}
+
 	return st.SetEth1Data(blk.GetBody().Eth1Data)
 }
 
