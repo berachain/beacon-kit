@@ -20,7 +20,9 @@
 
 package constants
 
-// This file contains various constants as defined:
+import "github.com/berachain/beacon-kit/primitives/version"
+
+// These constants are defined here:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#misc
 const (
 	// GenesisSlot represents the initial slot in the system.
@@ -29,4 +31,10 @@ const (
 	GenesisEpoch uint64 = 0
 	// FarFutureEpoch represents a far future epoch value.
 	FarFutureEpoch = ^uint64(0)
+)
+
+// Misc.
+const (
+	// GenesisVersion represents the fork version of the genesis block.
+	GenesisVersion = version.Deneb
 )
