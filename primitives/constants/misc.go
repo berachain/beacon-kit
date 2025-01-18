@@ -31,7 +31,10 @@ const (
 	GenesisEpoch uint64 = 0
 	// FarFutureEpoch represents a far future epoch value.
 	FarFutureEpoch = ^uint64(0)
+)
 
+// Berachain constants.
+const (
 	// GenesisVersion represents the fork version of the genesis block.
 	GenesisVersion = version.Deneb
 )
