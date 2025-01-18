@@ -73,7 +73,7 @@ app-db-backend = "pebbledb"
 [telemetry]
 
 # Prefixed with keys to separate services.
-service-name = "beacond_node"
+service-name = ""
 
 # Enabled enables the application telemetry functionality. When enabled,
 # an in-memory sink is also enabled by default. Operators may also enabled
