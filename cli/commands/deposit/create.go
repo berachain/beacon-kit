@@ -35,6 +35,8 @@ import (
 )
 
 // NewCreateValidator creates a new command to create a validator deposit.
+//
+//nolint:lll // reads better if long description is one line
 func NewCreateValidator(
 	chainSpec chain.Spec,
 ) *cobra.Command {

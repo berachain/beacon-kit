@@ -54,7 +54,7 @@ func Commands(
 
 // NewValidateDeposit creates a new command for validating a deposit message.
 //
-//nolint:mnd // lots of magic numbers
+//nolint:mnd,lll // lots of magic numbers, reads better if long description is one line
 func NewValidateDeposit(chainSpec chain.Spec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "validate",
