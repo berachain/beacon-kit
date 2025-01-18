@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -78,13 +78,21 @@ func (sp *StateProcessor[_]) validateNonGenesisDeposits(
 		return err
 	}
 
-	var localDeposits ctypes.Deposits
-	localDeposits, err = sp.ds.GetDepositsByIndex(ctx, 0, depositIndex+uint64(len(blkDeposits)))
+	expectedLocalDepositsLen := depositIndex + uint64(len(blkDeposits))
+	localDeposits, err := sp.ds.GetDepositsByIndex(ctx, 0, expectedLocalDepositsLen)
 	if err != nil {
 		return err
 	}
 
-	// First check that the block's deposits 1) have contiguous indices and 2) match the local
+	// First verify that the local store returned all the expected deposits
+	if uint64(len(localDeposits)) != expectedLocalDepositsLen {
+		return errors.Wrapf(ErrDepositsLengthMismatch,
+			"local deposit count: %d, expected deposit count: %d",
+			len(localDeposits), expectedLocalDepositsLen,
+		)
+	}
+
+	// Then check that the block's deposits 1) have contiguous indices and 2) match the local
 	// view of the block's deposits.
 	for i, blkDeposit := range blkDeposits {
 		blkDepositIndex := blkDeposit.GetIndex().Unwrap()
@@ -103,7 +111,7 @@ func (sp *StateProcessor[_]) validateNonGenesisDeposits(
 		}
 	}
 
-	// Then check that the historical deposits root matches locally what's on the beacon block.
+	// Finally check that the historical deposits root matches locally what's on the beacon block.
 	if !localDeposits.HashTreeRoot().Equals(blkDepositRoot) {
 		return ErrDepositsRootMismatch
 	}

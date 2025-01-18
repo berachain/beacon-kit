@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -39,13 +39,14 @@ import (
 )
 
 // Set deposit contract storage in genesis alloc file.
+//
+//nolint:lll // reads better if long description is one line
 func SetDepositStorageCmd(chainSpec chain.Spec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "set-deposit-storage [eth/genesis/file.json]",
 		Short: "sets deposit contract storage in eth genesis",
-		Long: `Updates the deposit contract storage in the passed in eth genesis file. 
-		Creates a new EL genesis file with the changes in the BEACOND_HOME directory.`,
-		Args: cobra.ExactArgs(1),
+		Long:  `Updates the deposit contract storage in the passed in eth genesis file. Creates a new EL genesis file with the changes in the BEACOND_HOME directory.`,
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Get the deposits from the beacon chain genesis appstate.
 			config := context.GetConfigFromCmd(cmd)
