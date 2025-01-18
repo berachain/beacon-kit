@@ -78,12 +78,8 @@ func (sp *StateProcessor[_]) validateNonGenesisDeposits(
 		return err
 	}
 
-	var (
-		localDeposits            ctypes.Deposits
-		blkDepositsLen           = uint64(len(blkDeposits))
-		expectedLocalDepositsLen = blkDepositsLen + depositIndex
-	)
-	localDeposits, err = sp.ds.GetDepositsByIndex(ctx, 0, expectedLocalDepositsLen)
+	expectedLocalDepositsLen := depositIndex + uint64(len(blkDeposits))
+	localDeposits, err := sp.ds.GetDepositsByIndex(ctx, 0, expectedLocalDepositsLen)
 	if err != nil {
 		return err
 	}
