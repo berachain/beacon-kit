@@ -38,7 +38,7 @@ func (sp *StateProcessor[ContextT]) processExecutionPayload(
 		body    = blk.GetBody()
 		payload = body.GetExecutionPayload()
 		header  *ctypes.ExecutionPayloadHeader
-		g, gCtx = errgroup.WithContext(context.Background())
+		g, gCtx = errgroup.WithContext(ctx)
 	)
 
 	payloadTimestamp := payload.GetTimestamp().Unwrap()
