@@ -183,6 +183,7 @@ type (
 		// VerifySidecars verifies the blobs and ensures they match the local
 		// state.
 		VerifySidecars(
+			ctx context.Context,
 			sidecars datypes.BlobSidecars,
 			blkHeader *ctypes.BeaconBlockHeader,
 			kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],
