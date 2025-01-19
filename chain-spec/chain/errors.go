@@ -35,4 +35,30 @@ var (
 	ErrInvalidValidatorSetCap = errors.New(
 		"validator set cap must be less than the validator registry limit",
 	)
+
+	// ErrInvalidMinEpochsToInactivityPenalty is returned when the minimum epochs
+	// to inactivity penalty is zero.
+	ErrInvalidMinEpochsToInactivityPenalty = errors.New(
+		"minimum epochs to inactivity penalty must be greater than zero",
+	)
+
+	// ErrInvalidSlotsPerEpoch is returned when slots per epoch is zero.
+	ErrInvalidSlotsPerEpoch = errors.New(
+		"slots per epoch must be greater than zero",
+	)
+
+	// ErrInvalidFieldElementsPerBlob is returned when field elements per blob is zero.
+	ErrInvalidFieldElementsPerBlob = errors.New(
+		"field elements per blob must be greater than zero",
+	)
+
+	// ErrInvalidBytesPerBlob is returned when bytes per blob is zero.
+	ErrInvalidBytesPerBlob = errors.New(
+		"bytes per blob must be greater than zero",
+	)
+
+	// ErrExcessiveMaxWithdrawalsPerPayload is returned when the max withdrawals per payload
+	// is greater than a reasonable limit that could cause resource exhaustion.
+	ErrExcessiveMaxWithdrawalsPerPayload = errors.New(
+		"max withdrawals per payload must not exceed system limits")
 )
