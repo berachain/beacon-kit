@@ -21,9 +21,9 @@
 package components
 
 import (
-	"cosmossdk.io/core/store"
 	"path/filepath"
 
+	"cosmossdk.io/core/store"
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/log"
@@ -36,7 +36,7 @@ import (
 
 // DepositStoreInput is the input for the dep inject framework.
 type DepositStoreInput[
-LoggerT log.AdvancedLogger[LoggerT],
+	LoggerT log.AdvancedLogger[LoggerT],
 ] struct {
 	depinject.In
 	Logger  LoggerT
@@ -88,7 +88,7 @@ var _ store.KVStoreWithBatch = &syncedPDB{}
 // ProvideDepositStore is a function that provides the module to the
 // application.
 func ProvideDepositStore[
-LoggerT log.AdvancedLogger[LoggerT],
+	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	in DepositStoreInput[LoggerT],
 ) (*depositstore.KVStore, error) {
