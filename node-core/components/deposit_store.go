@@ -21,6 +21,7 @@
 package components
 
 import (
+	"cosmossdk.io/core/store"
 	"path/filepath"
 
 	"cosmossdk.io/depinject"
@@ -35,17 +36,59 @@ import (
 
 // DepositStoreInput is the input for the dep inject framework.
 type DepositStoreInput[
-	LoggerT log.AdvancedLogger[LoggerT],
+LoggerT log.AdvancedLogger[LoggerT],
 ] struct {
 	depinject.In
 	Logger  LoggerT
 	AppOpts config.AppOptions
 }
 
+type syncedPDB struct {
+	pdb dbm.DB
+}
+
+func (s *syncedPDB) Get(key []byte) ([]byte, error) {
+	return s.pdb.Get(key)
+}
+
+func (s *syncedPDB) Has(key []byte) (bool, error) {
+	return s.pdb.Has(key)
+}
+
+func (s *syncedPDB) Set(key, value []byte) error {
+	return s.pdb.SetSync(key, value)
+}
+
+func (s *syncedPDB) Delete(key []byte) error {
+	return s.pdb.Delete(key)
+}
+
+func (s *syncedPDB) Iterator(start, end []byte) (store.Iterator, error) {
+	return s.pdb.Iterator(start, end)
+}
+
+func (s *syncedPDB) ReverseIterator(start, end []byte) (store.Iterator, error) {
+	return s.pdb.ReverseIterator(start, end)
+}
+
+func (s *syncedPDB) NewBatch() store.Batch {
+	return s.pdb.NewBatch()
+}
+
+func (s *syncedPDB) NewBatchWithSize(i int) store.Batch {
+	return s.pdb.NewBatchWithSize(i)
+}
+
+func (s *syncedPDB) Close() error {
+	return s.pdb.Close()
+}
+
+var _ store.KVStoreWithBatch = &syncedPDB{}
+
 // ProvideDepositStore is a function that provides the module to the
 // application.
 func ProvideDepositStore[
-	LoggerT log.AdvancedLogger[LoggerT],
+LoggerT log.AdvancedLogger[LoggerT],
 ](
 	in DepositStoreInput[LoggerT],
 ) (*depositstore.KVStore, error) {
@@ -59,12 +102,13 @@ func ProvideDepositStore[
 	if err != nil {
 		return nil, err
 	}
+	spdb := &syncedPDB{pdb}
 
 	// pass a closure to close the db as its not supported by the KVStoreService interface
-	closeFunc := func() error { return pdb.Close() }
+	closeFunc := func() error { return spdb.Close() }
 
 	return depositstore.NewStore(
-		storage.NewKVStoreProvider(pdb),
+		storage.NewKVStoreProvider(spdb),
 		closeFunc,
 		in.Logger.With("service", "deposit-store"),
 	), nil
