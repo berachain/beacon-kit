@@ -24,6 +24,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"sync"
 
 	"cosmossdk.io/store"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
@@ -55,15 +56,20 @@ type Registry struct {
 	logger log.Logger
 	// services is a map of service type -> service instance.
 	services map[string]Basic
+	// servicesStarted is a map of services we have called Start() on.
+	servicesStarted map[string]struct{}
 	// serviceTypes is an ordered slice of registered service types.
 	serviceTypes []string
+	// mutex makes calls to StartAll and StopAll thread-safe.
+	mutex sync.Mutex
 }
 
 // NewRegistry starts a registry instance for convenience.
 func NewRegistry(logger log.Logger, opts ...RegistryOption) *Registry {
 	r := &Registry{
-		logger:   logger,
-		services: make(map[string]Basic),
+		logger:          logger,
+		services:        make(map[string]Basic),
+		servicesStarted: make(map[string]struct{}),
 	}
 
 	for _, opt := range opts {
@@ -76,6 +82,9 @@ func NewRegistry(logger log.Logger, opts ...RegistryOption) *Registry {
 
 // StartAll initialized each service in order of registration.
 func (s *Registry) StartAll(ctx context.Context) error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
 	// start all services
 	s.logger.Info("Starting services", "num", len(s.serviceTypes))
 	for _, typeName := range s.serviceTypes {
@@ -87,18 +96,29 @@ func (s *Registry) StartAll(ctx context.Context) error {
 		}
 
 		if err := svc.Start(ctx); err != nil {
-			return err
+			return fmt.Errorf("error when starting service %s: %w", typeName, err)
 		}
+
+		s.servicesStarted[typeName] = struct{}{}
 	}
+
 	return nil
 }
 
 func (s *Registry) StopAll() {
-	s.logger.Info("Stopping services", "num", len(s.serviceTypes))
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 
 	// stop all services in reverse order they were started
+	s.logger.Info("Stopping services", "num", len(s.serviceTypes))
 	for i := len(s.serviceTypes) - 1; i >= 0; i-- {
 		typeName := s.serviceTypes[i]
+
+		if _, started := s.servicesStarted[typeName]; !started {
+			s.logger.Info("Service not started", "type", typeName)
+			continue
+		}
+
 		s.logger.Info("Stopping service", "type", typeName)
 		svc := s.services[typeName]
 		if svc == nil {
