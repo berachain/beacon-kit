@@ -68,13 +68,8 @@ var (
 
 	// ErrInvalidPayloadStatus indicates an invalid payload status.
 	ErrInvalidPayloadStatus = errors.New(
-		"payload status is INVALID")
-
-	// ErrInvalidBlockHashPayloadStatus indicates a failure in validating the
-	// block hash for the payload.
-	ErrInvalidBlockHashPayloadStatus = errors.New(
-		"payload status is INVALID_BLOCK_HASH")
-
+		"payload status is INVALID",
+	)
 	// ErrNilForkchoiceResponse indicates a nil forkchoice response.
 	ErrNilForkchoiceResponse = errors.New(
 		"nil forkchoice response",

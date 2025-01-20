@@ -112,14 +112,7 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 
 	// If we get invalid payload status, we will need to find a valid
 	// ancestor block and force a recovery.
-	//
-	// These two cases are semantically the same:
-	// https://github.com/ethereum/execution-apis/issues/270
-	case errors.IsAny(
-		err,
-		engineerrors.ErrInvalidPayloadStatus,
-		engineerrors.ErrInvalidBlockHashPayloadStatus,
-	):
+	case errors.Is(err, engineerrors.ErrInvalidPayloadStatus):
 		ee.metrics.markForkchoiceUpdateInvalid(req.State, err)
 		return payloadID, latestValidHash, ErrBadBlockProduced
 
@@ -203,12 +196,7 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 		)
 
 	// These two cases are semantically the same:
-	// https://github.com/ethereum/execution-apis/issues/270
-	case errors.IsAny(
-		err,
-		engineerrors.ErrInvalidPayloadStatus,
-		engineerrors.ErrInvalidBlockHashPayloadStatus,
-	):
+	case errors.Is(err, engineerrors.ErrInvalidPayloadStatus):
 		ee.metrics.markNewPayloadInvalidPayloadStatus(
 			req.ExecutionPayload.GetBlockHash(),
 			req.Optimistic,
