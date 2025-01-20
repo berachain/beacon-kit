@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -1132,4 +1132,76 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	// run the test
 	_, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
+}
+
+func TestValidatorNotWithdrawable(t *testing.T) {
+	cs := setupChain(t, components.BetnetChainSpecType)
+	sp, st, ds, ctx := setupState(t, cs)
+
+	var (
+		belowActiveBalance = math.Gwei(cs.EjectionBalance())
+		maxBalance         = math.Gwei(cs.MaxEffectiveBalance())
+		validCredentials   = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
+	)
+
+	// Setup initial state with one validator
+	var (
+		genDeposits = types.Deposits{
+			{
+				Pubkey:      [48]byte{0x00},
+				Credentials: validCredentials,
+				Amount:      maxBalance,
+				Index:       0,
+			},
+		}
+		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genVersion       = version.FromUint32[common.Version](version.Deneb)
+	)
+	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
+	_, err := sp.InitializePreminedBeaconStateFromEth1(
+		st, genDeposits, genPayloadHeader, genVersion,
+	)
+	require.NoError(t, err)
+
+	// Create the block deposit with a non-ETH1 withdrawal credentials. This stake should not
+	// be lost.
+	invalidCredentials := types.WithdrawalCredentials(validCredentials[:])
+	invalidCredentials[1] = 0x01
+	blockDeposits := types.Deposits{
+		{
+			Pubkey:      [48]byte{0x01},
+			Credentials: invalidCredentials,
+			Amount:      belowActiveBalance,
+			Index:       1,
+		},
+	}
+
+	depRoot := append(genDeposits, blockDeposits...).HashTreeRoot()
+	blk := buildNextBlock(
+		t,
+		st,
+		&types.BeaconBlockBody{
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:    10,
+				ExtraData:    []byte("testing"),
+				Transactions: [][]byte{},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					st.EVMInflationWithdrawal(),
+				},
+				BaseFeePerGas: math.NewU256(0),
+			},
+			Eth1Data: types.NewEth1Data(depRoot),
+			Deposits: blockDeposits,
+		},
+	)
+	require.NoError(t, ds.EnqueueDeposits(ctx, blockDeposits))
+
+	// Run transition.
+	_, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+
+	// Check that validator 0x01 is part of beacon state with below active balance.
+	validator, err := st.ValidatorByIndex(1)
+	require.NoError(t, err)
+	require.Equal(t, belowActiveBalance, validator.EffectiveBalance)
 }

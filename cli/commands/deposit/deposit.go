@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -25,6 +25,9 @@ import (
 	"github.com/berachain/beacon-kit/cli/utils/parser"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 )
@@ -51,18 +54,14 @@ func Commands(
 
 // NewValidateDeposit creates a new command for validating a deposit message.
 //
-//nolint:mnd // lots of magic numbers
+//nolint:mnd,lll // lots of magic numbers, reads better if long description is one line
 func NewValidateDeposit(chainSpec chain.Spec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "validate",
 		Short: "Validates a deposit message for creating a new validator",
-		Long: `Validates a deposit message for creating a new validator. The
-		deposit message includes the public key, withdrawal credentials,
-		and deposit amount. The args taken are in the order of the public key,
-		withdrawal credentials, deposit amount, signature, current version,
-		and genesis validator root.`,
-		Args: cobra.ExactArgs(6),
-		RunE: validateDepositMessage(chainSpec),
+		Long:  `Validates a deposit message for creating a new validator. The deposit message includes the public key, withdrawal credentials, and deposit amount. The args taken are in the order of the public key, withdrawal credentials, deposit amount, signature, and genesis validator root.`,
+		Args:  cobra.ExactArgs(6),
+		RunE:  validateDepositMessage(chainSpec),
 	}
 
 	return cmd
@@ -95,12 +94,7 @@ func validateDepositMessage(chainSpec chain.Spec) func(
 			return err
 		}
 
-		currentVersion, err := parser.ConvertVersion(args[4])
-		if err != nil {
-			return err
-		}
-
-		genesisValidatorRoot, err := parser.ConvertGenesisValidatorRoot(args[5])
+		genesisValidatorRoot, err := parser.ConvertGenesisValidatorRoot(args[4])
 		if err != nil {
 			return err
 		}
@@ -111,8 +105,11 @@ func validateDepositMessage(chainSpec chain.Spec) func(
 			Amount:      amount,
 		}
 
+		// All deposits are signed with the genesis version.
+		genesisVersion := version.FromUint32[common.Version](constants.GenesisVersion)
+
 		return depositMessage.VerifyCreateValidator(
-			types.NewForkData(currentVersion, genesisValidatorRoot),
+			types.NewForkData(genesisVersion, genesisValidatorRoot),
 			signature,
 			chainSpec.DomainTypeDeposit(),
 			signer.BLSSigner{}.VerifySignature,
