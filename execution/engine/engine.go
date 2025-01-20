@@ -58,19 +58,6 @@ func New(
 	}
 }
 
-// Start spawns any goroutines required by the service.
-func (ee *Engine) Start(
-	ctx context.Context,
-) error {
-	go func() {
-		// TODO: handle better
-		if err := ee.ec.Start(ctx); err != nil {
-			panic(err)
-		}
-	}()
-	return nil
-}
-
 // GetPayload returns the payload and blobs bundle for the given slot.
 func (ee *Engine) GetPayload(
 	ctx context.Context,
@@ -195,7 +182,6 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 			req.Optimistic,
 		)
 
-	// These two cases are semantically the same:
 	case errors.Is(err, engineerrors.ErrInvalidPayloadStatus):
 		ee.metrics.markNewPayloadInvalidPayloadStatus(
 			req.ExecutionPayload.GetBlockHash(),
