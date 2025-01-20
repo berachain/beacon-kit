@@ -115,7 +115,7 @@ func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
 		gethprimitives.NewStackTrie(nil),
 	)
 
-	// Verify that the payload is telling the truth about it's block hash.
+	// Verify that the payload is telling the truth about its block hash.
 	//#nosec:G103 // its okay.
 	if block := gethprimitives.NewBlockWithHeader(
 		&gethprimitives.Header{
