@@ -10,10 +10,11 @@
 #    beacond     #
 #################
 
+HOMEDIR = .tmp/beacond
 DEVNET_CHAIN_SPEC = devnet
 JWT_PATH = ${TESTAPP_FILES_DIR}/jwt.hex
-ETH_GENESIS_PATH = ${TESTAPP_FILES_DIR}/eth-genesis.json
-NETHER_ETH_GENESIS_PATH = ${TESTAPP_FILES_DIR}/eth-nether-genesis.json
+ETH_GENESIS_PATH = ${HOMEDIR}/eth-genesis.json
+NETHER_ETH_GENESIS_PATH = ${HOMEDIR}/eth-nether-genesis.json
 ETH_DATA_DIR = .tmp/eth-home
 # URLs used for dialing the eth client
 IPC_PATH = .tmp/eth-home/eth-engine.ipc
@@ -169,6 +170,7 @@ start-nethermind: ## start an ephemeral `nethermind` node
 	-p 8545:8545 \
 	-p 8551:8551 \
 	-v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	-v $(PWD)/${HOMEDIR}:/${HOMEDIR} \
 	nethermind/nethermind \
 	--JsonRpc.Port 8545 \
 	--JsonRpc.EngineEnabledModules "eth,net,engine" \
@@ -177,13 +179,14 @@ start-nethermind: ## start an ephemeral `nethermind` node
 	--JsonRpc.Host 0.0.0.0 \
 	--JsonRpc.JwtSecretFile ../$(JWT_PATH) \
 	--Sync.PivotNumber 0 \
-	--Init.ChainSpecPath ../$(TESTAPP_FILES_DIR)/eth-nether-genesis.json
+	--Init.ChainSpecPath ../$(NETHER_ETH_GENESIS_PATH)
 
 start-besu: ## start an ephemeral `besu` node
 	docker run \
 	-p 30303:30303 \
 	-p 8545:8545 \
 	-p 8551:8551 \
+	-v $(PWD)/${HOMEDIR}:/${HOMEDIR} \
 	-v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	hyperledger/besu:latest \
 	--data-path=.tmp/besu \
