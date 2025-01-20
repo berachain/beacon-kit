@@ -22,6 +22,7 @@ package engine
 
 import (
 	"context"
+	"fmt"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -58,17 +59,23 @@ func New(
 	}
 }
 
-// Start spawns any goroutines required by the service.
-func (ee *Engine) Start(
-	ctx context.Context,
-) error {
+func (ee *Engine) Start(ctx context.Context) error {
+	errChan := make(chan error, 1)
 	go func() {
-		// TODO: handle better
-		if err := ee.ec.Start(ctx); err != nil {
-			panic(err)
-		}
+			if err := ee.ec.Start(ctx); err != nil {
+					ee.logger.Error("engine client failed to start", "error", err)
+					errChan <- err
+					return
+			}
+			close(errChan)
 	}()
-	return nil
+
+	select {
+	case err := <-errChan:
+			return err
+	case <-ctx.Done():
+			return fmt.Errorf("engine client start cancelled: %w", ctx.Err())
+	}
 }
 
 // GetPayload returns the payload and blobs bundle for the given slot.
