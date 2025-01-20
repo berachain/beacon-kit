@@ -25,7 +25,7 @@ import (
 	dbm "github.com/cosmos/cosmos-db"
 )
 
-var _ store.KVStoreWithBatch = &SyncedDB{}
+var _ store.KVStoreWithBatch = &syncedDB{}
 
 // We have verified experimentally that deposits are often *not* flushed
 // as soon as they are enqueue when pebbleDB is chosed as backend. This may
@@ -33,46 +33,62 @@ var _ store.KVStoreWithBatch = &SyncedDB{}
 // resulting in the node being unable to verify any incoming deposit.
 // SyncedDB solves the issues since it maps the Set call to a SetSync call
 // which ensure that every single deposit is flushed when enqueued.
-type SyncedDB struct {
+type syncedDB struct {
 	db dbm.DB
 }
 
-func NewSynced(db dbm.DB) *SyncedDB {
-	return &SyncedDB{db: db}
+func NewSynced(db dbm.DB) dbm.DB {
+	return syncedDB{db: db}
 }
 
-func (s *SyncedDB) Get(key []byte) ([]byte, error) {
+func (s syncedDB) Get(key []byte) ([]byte, error) {
 	return s.db.Get(key)
 }
 
-func (s *SyncedDB) Has(key []byte) (bool, error) {
+func (s syncedDB) Has(key []byte) (bool, error) {
 	return s.db.Has(key)
 }
 
-func (s *SyncedDB) Set(key, value []byte) error {
+func (s syncedDB) Set(key, value []byte) error {
 	return s.db.SetSync(key, value)
 }
 
-func (s *SyncedDB) Delete(key []byte) error {
+func (s syncedDB) SetSync(key, value []byte) error {
+	return s.db.SetSync(key, value)
+}
+
+func (s syncedDB) Delete(key []byte) error {
 	return s.db.Delete(key)
 }
 
-func (s *SyncedDB) Iterator(start, end []byte) (store.Iterator, error) {
+func (s syncedDB) DeleteSync(key []byte) error {
+	return s.db.DeleteSync(key)
+}
+
+func (s syncedDB) Iterator(start, end []byte) (store.Iterator, error) {
 	return s.db.Iterator(start, end)
 }
 
-func (s *SyncedDB) ReverseIterator(start, end []byte) (store.Iterator, error) {
+func (s syncedDB) ReverseIterator(start, end []byte) (store.Iterator, error) {
 	return s.db.ReverseIterator(start, end)
 }
 
-func (s *SyncedDB) NewBatch() store.Batch {
+func (s syncedDB) NewBatch() store.Batch {
 	return s.db.NewBatch()
 }
 
-func (s *SyncedDB) NewBatchWithSize(i int) store.Batch {
+func (s syncedDB) NewBatchWithSize(i int) store.Batch {
 	return s.db.NewBatchWithSize(i)
 }
 
-func (s *SyncedDB) Close() error {
+func (s syncedDB) Close() error {
 	return s.db.Close()
+}
+
+func (s syncedDB) Print() error {
+	return s.db.Print()
+}
+
+func (s syncedDB) Stats() map[string]string {
+	return s.db.Stats()
 }
