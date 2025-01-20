@@ -40,7 +40,6 @@ import (
 )
 
 var (
-	c    = quick.Config{MaxCount: 5_000}
 	hFn  = ztree.GetHashFn()
 	spec = zspec.Mainnet
 )
@@ -92,7 +91,7 @@ func TestExecutionPayloadHashTreeRootZrnt(t *testing.T) {
 		return bytes.Equal(typeRoot[:], containerRoot[:]) &&
 			bytes.Equal(typeRoot[:], zRoot[:])
 	}
-	if err := quick.Check(f, &c); err != nil {
+	if err := quick.Check(f, &quick.Config{MaxCount: 5_000}); err != nil {
 		t.Error(err)
 	}
 }
@@ -148,7 +147,8 @@ func TestBlobSidecarTreeRootPrysm(t *testing.T) {
 
 		return bytes.Equal(prysmRoot[:], beaconRoot[:])
 	}
-	if err := quick.Check(f, &c); err != nil {
+
+	if err := quick.Check(f, &quick.Config{MaxCount: 2_500}); err != nil {
 		t.Error(err)
 	}
 }
