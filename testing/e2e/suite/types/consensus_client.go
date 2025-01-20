@@ -117,7 +117,7 @@ func (cc *ConsensusClient) Stop(context.Context) (*enclaves.StarlarkRunResult, e
 func (cc *ConsensusClient) GetPubKey(ctx context.Context) ([]byte, error) {
 	res, err := cc.Client.Status(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get status: %w", err)
 	} else if res.ValidatorInfo.PubKey == nil {
 		return nil, errors.New("node public key is nil")
 	}
@@ -129,7 +129,7 @@ func (cc *ConsensusClient) GetPubKey(ctx context.Context) ([]byte, error) {
 func (cc *ConsensusClient) GetConsensusPower(ctx context.Context) (uint64, error) {
 	res, err := cc.Client.Status(ctx)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("failed to get status: %w", err)
 	}
 
 	// #nosec G115 -- VotingPower won't ever be negative.
