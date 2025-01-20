@@ -29,7 +29,7 @@ import (
 	gethcommon "github.com/ethereum/go-ethereum/common"
 )
 
-// BeaconE2ESuite is a suite of tests simulating a fully function beacon-kit
+// BeaconKitE2ESuite is a suite of tests simulating a fully function beacon-kit
 // network.
 type BeaconKitE2ESuite struct {
 	suite.KurtosisE2ESuite
