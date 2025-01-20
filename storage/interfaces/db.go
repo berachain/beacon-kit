@@ -27,5 +27,15 @@ type DB interface {
 	Set(key []byte, value []byte) error
 	Delete(key []byte) error
 
-	// TODO: add Batch and full DB stuff.
+	// Batch operations
+	Batch() Batch
+	Close() error
+}
+
+// Batch represents a batch of operations to be performed atomically
+type Batch interface {
+	Set(key []byte, value []byte) error
+	Delete(key []byte) error
+	Write() error
+	Reset()
 }
