@@ -23,7 +23,6 @@ package components
 import (
 	"path/filepath"
 
-	"cosmossdk.io/core/store"
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/log"
@@ -43,48 +42,6 @@ type DepositStoreInput[
 	AppOpts config.AppOptions
 }
 
-type syncedPDB struct {
-	pdb dbm.DB
-}
-
-func (s *syncedPDB) Get(key []byte) ([]byte, error) {
-	return s.pdb.Get(key)
-}
-
-func (s *syncedPDB) Has(key []byte) (bool, error) {
-	return s.pdb.Has(key)
-}
-
-func (s *syncedPDB) Set(key, value []byte) error {
-	return s.pdb.SetSync(key, value)
-}
-
-func (s *syncedPDB) Delete(key []byte) error {
-	return s.pdb.Delete(key)
-}
-
-func (s *syncedPDB) Iterator(start, end []byte) (store.Iterator, error) {
-	return s.pdb.Iterator(start, end)
-}
-
-func (s *syncedPDB) ReverseIterator(start, end []byte) (store.Iterator, error) {
-	return s.pdb.ReverseIterator(start, end)
-}
-
-func (s *syncedPDB) NewBatch() store.Batch {
-	return s.pdb.NewBatch()
-}
-
-func (s *syncedPDB) NewBatchWithSize(i int) store.Batch {
-	return s.pdb.NewBatchWithSize(i)
-}
-
-func (s *syncedPDB) Close() error {
-	return s.pdb.Close()
-}
-
-var _ store.KVStoreWithBatch = &syncedPDB{}
-
 // ProvideDepositStore is a function that provides the module to the
 // application.
 func ProvideDepositStore[
@@ -102,7 +59,7 @@ func ProvideDepositStore[
 	if err != nil {
 		return nil, err
 	}
-	spdb := &syncedPDB{pdb}
+	spdb := depositstore.NewSynced(pdb)
 
 	// pass a closure to close the db as its not supported by the KVStoreService interface
 	closeFunc := func() error { return spdb.Close() }
