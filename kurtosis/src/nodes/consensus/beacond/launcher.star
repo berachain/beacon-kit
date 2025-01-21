@@ -31,7 +31,7 @@ USED_PORTS = {
     NODE_API_PORT_ID: shared_utils.new_port_spec(NODE_API_PORT_NUM, shared_utils.TCP_PROTOCOL),
 }
 
-def get_config(node_struct, engine_dial_url, entrypoint = [], cmd = [], persistent_peers = "", expose_ports = True, jwt_file = None, kzg_trusted_setup_file = None):
+def get_config(node_struct, engine_dial_url, chain_id, chain_spec, entrypoint = [], cmd = [], persistent_peers = "", expose_ports = True, jwt_file = None, kzg_trusted_setup_file = None):
     exposed_ports = {}
     if expose_ports:
         exposed_ports = USED_PORTS
@@ -60,15 +60,16 @@ def get_config(node_struct, engine_dial_url, entrypoint = [], cmd = [], persiste
             "BEACOND_MONIKER": node_struct.cl_service_name,
             "BEACOND_NET": "VALUE_2",
             "BEACOND_HOME": "/root/.beacond",
-            "BEACOND_CHAIN_ID": "beacon-kurtosis-80087",
+            "BEACOND_CHAIN_ID": "beacon-kurtosis-{}".format(chain_id),
             "BEACOND_DEBUG": "false",
             "BEACOND_KEYRING_BACKEND": "test",
             "BEACOND_MINIMUM_GAS_PRICE": "0abgt",
             "BEACOND_ENGINE_DIAL_URL": engine_dial_url,
-            "BEACOND_ETH_CHAIN_ID": "80087",
+            "BEACOND_ETH_CHAIN_ID": str(chain_id),
             "BEACOND_PERSISTENT_PEERS": persistent_peers,
             "BEACOND_ENABLE_PROMETHEUS": "true",
-            "BEACOND_CONSENSUS_KEY_ALGO": "bls12_381",
+            "CHAIN_SPEC": chain_spec,
+            "BEACOND_CHAIN_SPEC": chain_spec,
             "WITHDRAWAL_ADDRESS": "0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4",
             "DEPOSIT_AMOUNT": "32000000000",
         },
@@ -79,7 +80,7 @@ def get_config(node_struct, engine_dial_url, entrypoint = [], cmd = [], persiste
 
     return config
 
-def perform_genesis_ceremony(plan, validators, jwt_file):
+def perform_genesis_ceremony(plan, validators, jwt_file, chain_id, chain_spec, genesis_files):
     num_validators = len(validators)
 
     node_peering_info = []
@@ -98,18 +99,20 @@ def perform_genesis_ceremony(plan, validators, jwt_file):
         description = "Uploading multiple-premined-deposits script",
     )
 
-    multiple_gentx_env_vars = node.get_genesis_env_vars("cl-validator-beaconkit-0")
+    multiple_gentx_env_vars = node.get_genesis_env_vars("cl-validator-beaconkit-0", chain_id, chain_spec)
     multiple_gentx_env_vars["NUM_VALS"] = str(num_validators)
 
     plan.print(multiple_gentx_env_vars)
     plan.print(stored_configs)
+
+    eth_genesis_file = genesis_files["default"]
 
     plan.run_sh(
         run = "chmod +x /app/scripts/multiple-premined-deposits.sh && /app/scripts/multiple-premined-deposits.sh",
         image = validators[0].cl_image,
         files = {
             "/app/scripts": "multiple-premined-deposits",
-            "/root/eth_genesis": "genesis_file",
+            "/root/eth_genesis": eth_genesis_file,
         },
         env_vars = multiple_gentx_env_vars,
         store = stored_configs,
@@ -133,7 +136,7 @@ def init_consensus_nodes():
     collect_gentx = "/usr/bin/beacond genesis collect-premined-deposits --home {}".format("$BEACOND_HOME")
     return "{} && {} && {}".format(init_node, add_validator, collect_gentx)
 
-def create_node_config(plan, node_struct, peers, paired_el_client_name, jwt_file = None, kzg_trusted_setup_file = None):
+def create_node_config(plan, node_struct, peers, paired_el_client_name, chain_id, chain_spec, jwt_file = None, kzg_trusted_setup_file = None):
     engine_dial_url = "http://{}:{}".format(paired_el_client_name, execution.ENGINE_RPC_PORT_NUM)
 
     persistent_peers = get_persistent_peers(plan, peers)
@@ -150,6 +153,8 @@ def create_node_config(plan, node_struct, peers, paired_el_client_name, jwt_file
     beacond_config = get_config(
         node_struct,
         engine_dial_url,
+        chain_id,
+        chain_spec,
         entrypoint = ["bash", "-c"],
         cmd = [cmd],
         persistent_peers = persistent_peers,

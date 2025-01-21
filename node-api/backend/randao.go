@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -25,9 +25,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-func (b Backend[
-	_, _, _, _, _, _, _,
-]) RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes32, error) {
+func (b Backend) RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes32, error) {
 	st, slot, err := b.stateFromSlot(slot)
 	if err != nil {
 		return common.Bytes32{}, err

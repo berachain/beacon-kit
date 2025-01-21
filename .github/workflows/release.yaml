@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT
 #
-# Copyright (c) 2024 Berachain Foundation
+# Copyright (c) 2025 Berachain Foundation
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -33,9 +33,9 @@ on:
       - 'release/*' 
 
 env:
-  REPO_NAME: ${{ github.repository_owner }}/beacon-kit
-  IMAGE_NAME: ${{ github.repository_owner }}/beacon-kit
-  GH_TOKEN: ${{ secrets.DEV_PAT }}
+  REPO_NAME: ${{ github.repository }} 
+  IMAGE_NAME: ${{ github.repository }}
+  GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
 jobs:
   # Job to extract version
@@ -77,16 +77,34 @@ jobs:
           GOOS: ${{ matrix.configs.target-os }}
           GOARCH: ${{ matrix.configs.arch }}
 
+      - name: Import GPG key
+        run: echo "$GPG_KEY" | gpg --batch --import
+        env:
+          GPG_KEY: ${{ secrets.GPG_KEY }}
+
       - name: Build ${{ matrix.build.binary }}
         run: |
           make build-${{ matrix.configs.target-os }}-${{ matrix.configs.arch }}-${{ needs.extract-version.outputs.VERSION }}
           tar -czvf ${{ matrix.build.binary }}-${{ needs.extract-version.outputs.VERSION }}-${{ matrix.configs.target-os }}-${{ matrix.configs.arch }}.tar.gz -C build/bin .
+
+      - name: Sign binary archive
+        run: gpg --batch --yes --pinentry-mode=loopback --passphrase "$GPG_KEY_PASSPHRASE" --detach-sign ${{ matrix.build.binary }}-${{ needs.extract-version.outputs.VERSION }}-${{ matrix.configs.target-os }}-${{ matrix.configs.arch }}.tar.gz
+        env:
+          GPG_KEY_PASSPHRASE: ${{ secrets.GPG_KEY_PASSPHRASE }}
       
-      # Upload binaries
-      - uses: actions/upload-artifact@v4
+      # Upload archives and signatures
+      - name: Upload archive
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.build.binary }}-${{ needs.extract-version.outputs.VERSION }}-${{ matrix.configs.target-os }}-${{ matrix.configs.arch }}.tar.gz
-          path: ${{ matrix.build.binary }}-${{ needs.extract-version.outputs.VERSION }}-${{ matrix.configs.target-os }}-${{ matrix.configs.arch }}.tar.gz
+          path: |
+            ${{ matrix.build.binary }}-${{ needs.extract-version.outputs.VERSION }}-${{ matrix.configs.target-os }}-${{ matrix.configs.arch }}.tar.gz
+      - name: Upload archive signature
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.build.binary }}-${{ needs.extract-version.outputs.VERSION }}-${{ matrix.configs.target-os }}-${{ matrix.configs.arch }}.tar.gz.sig
+          path: |
+            ${{ matrix.build.binary }}-${{ needs.extract-version.outputs.VERSION }}-${{ matrix.configs.target-os }}-${{ matrix.configs.arch }}.tar.gz.sig
 
   # Job to draft release
   draft-release:
@@ -157,10 +175,9 @@ jobs:
 
           | System | Architecture | Binary | PGP Signature |
           |:---:|:---:|:---:|:---|
-          | <img src="https://simpleicons.org/icons/linux.svg" style="width: 32px;"/> | amd64 | [beacond-${{ env.VERSION }}-linux-amd64](https://github.com/${{ env.REPO_NAME }}/releases/download/${{ env.VERSION }}/beacond-${{ env.VERSION }}-linux-amd64.tar.gz) |
-          | <img src="https://simpleicons.org/icons/linux.svg" style="width: 32px;"/> | arm64 | [beacond-${{ env.VERSION }}-linux-arm64](https://github.com/${{ env.REPO_NAME }}/releases/download/${{ env.VERSION }}/beacond-${{ env.VERSION }}-linux-arm64.tar.gz) | 
-          | <img src="https://simpleicons.org/icons/apple.svg" style="width: 32px;"/> | arm64 | [beacond-${{ env.VERSION }}-darwin-arm64](https://github.com/${{ env.REPO_NAME }}/releases/download/${{ env.VERSION }}/beacond-${{ env.VERSION }}-darwin-arm64.tar.gz) |
-          | | | | |
+          | <img src="https://simpleicons.org/icons/linux.svg" style="width: 32px;"/> | amd64 | [beacond-${{ env.VERSION }}-linux-amd64](https://github.com/${{ env.REPO_NAME }}/releases/download/${{ env.VERSION }}/beacond-${{ env.VERSION }}-linux-amd64.tar.gz) | [Signature](https://github.com/${{ env.REPO_NAME }}/releases/download/${{ env.VERSION }}/beacond-${{ env.VERSION }}-linux-amd64.tar.gz.sig) |
+          | <img src="https://simpleicons.org/icons/linux.svg" style="width: 32px;"/> | arm64 | [beacond-${{ env.VERSION }}-linux-arm64](https://github.com/${{ env.REPO_NAME }}/releases/download/${{ env.VERSION }}/beacond-${{ env.VERSION }}-linux-arm64.tar.gz) | [Signature](https://github.com/${{ env.REPO_NAME }}/releases/download/${{ env.VERSION }}/beacond-${{ env.VERSION }}-linux-arm64.tar.gz.sig) |
+          | <img src="https://simpleicons.org/icons/apple.svg" style="width: 32px;"/> | arm64 | [beacond-${{ env.VERSION }}-darwin-arm64](https://github.com/${{ env.REPO_NAME }}/releases/download/${{ env.VERSION }}/beacond-${{ env.VERSION }}-darwin-arm64.tar.gz) | [Signature](https://github.com/${{ env.REPO_NAME }}/releases/download/${{ env.VERSION }}/beacond-${{ env.VERSION }}-darwin-arm64.tar.gz.sig) |          
           | **System** | **Option** | - | **Resource** |
           | <img src="https://simpleicons.org/icons/docker.svg" style="width: 32px;"/> | Docker | | [${{ env.IMAGE_NAME }}](https://ghcr.io/berachain/beacon-kit) |
           ENDBODY

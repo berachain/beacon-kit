@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -26,7 +26,7 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/merkle"
 	"golang.org/x/sync/errgroup"
@@ -53,10 +53,8 @@ func NewSidecarFactory(
 
 // BuildSidecars builds a sidecar.
 func (f *SidecarFactory) BuildSidecars(
-	blk *ctypes.BeaconBlock,
+	signedBlk *ctypes.SignedBeaconBlock,
 	bundle ctypes.BlobsBundle,
-	signer crypto.BLSSigner,
-	forkData *ctypes.ForkData,
 ) (types.BlobSidecars, error) {
 	var (
 		blobs       = bundle.GetBlobs()
@@ -64,10 +62,10 @@ func (f *SidecarFactory) BuildSidecars(
 		proofs      = bundle.GetProofs()
 		numBlobs    = uint64(len(blobs))
 		sidecars    = make([]*types.BlobSidecar, numBlobs)
+		blk         = signedBlk.GetMessage()
 		body        = blk.GetBody()
+		header      = blk.GetHeader()
 		g           = errgroup.Group{}
-		//nolint:errcheck // should be safe
-		header = any(blk.GetHeader()).(*ctypes.BeaconBlockHeader)
 	)
 
 	startTime := time.Now()
@@ -75,39 +73,14 @@ func (f *SidecarFactory) BuildSidecars(
 		startTime, math.U64(numBlobs),
 	)
 
-	// Contrary to the spec, we do not need to sign the full
-	// block, because the header embeds the body's hash tree root
-	// already. We just need a bond between the block signer (already
-	// tied to CometBFT's ProposerAddress) and the sidecars.
-
-	//nolint:errcheck // should be safe
-	domain := any(forkData).(*ctypes.ForkData).ComputeDomain(
-		f.chainSpec.DomainTypeProposer(),
-	)
-	signingRoot := ctypes.ComputeSigningRoot(
-		header,
-		domain,
-	)
-	signature, err := signer.Sign(signingRoot[:])
-	if err != nil {
-		return nil, err
-	}
-	sigHeader := ctypes.NewSignedBeaconBlockHeader(header, signature)
-
-	// Calculate offsets
-	kzgPosition, err := ctypes.BlockBodyKZGPosition(
-		f.chainSpec.ActiveForkVersionForSlot(header.GetSlot()),
-	)
-	if err != nil {
-		return nil, err
-	}
+	// We can reuse the signature from the SignedBeaconBlock. Verifying the
+	// signature will require the corresponding BeaconBlock to reconstruct the
+	// signing root.
+	sigHeader := ctypes.NewSignedBeaconBlockHeader(header, signedBlk.GetSignature())
 
 	for i := range numBlobs {
 		g.Go(func() error {
-			//nolint:govet // shadow
-			inclusionProof, err := f.BuildKZGInclusionProof(
-				body, math.U64(i), kzgPosition,
-			)
+			inclusionProof, err := f.BuildKZGInclusionProof(body, math.U64(i))
 			if err != nil {
 				return err
 			}
@@ -130,7 +103,6 @@ func (f *SidecarFactory) BuildSidecars(
 func (f *SidecarFactory) BuildKZGInclusionProof(
 	body *ctypes.BeaconBlockBody,
 	index math.U64,
-	kzgPosition uint64,
 ) ([]common.Root, error) {
 	startTime := time.Now()
 	defer f.metrics.measureBuildKZGInclusionProofDuration(startTime)
@@ -143,7 +115,7 @@ func (f *SidecarFactory) BuildKZGInclusionProof(
 	}
 
 	// Build the merkle proof for the body root.
-	bodyProof, err := f.BuildBlockBodyProof(body, kzgPosition)
+	bodyProof, err := f.BuildBlockBodyProof(body)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +128,6 @@ func (f *SidecarFactory) BuildKZGInclusionProof(
 // BuildBlockBodyProof builds a block body proof.
 func (f *SidecarFactory) BuildBlockBodyProof(
 	body *ctypes.BeaconBlockBody,
-	kzgPosition uint64,
 ) ([]common.Root, error) {
 	startTime := time.Now()
 	defer f.metrics.measureBuildBlockBodyProofDuration(startTime)
@@ -168,7 +139,7 @@ func (f *SidecarFactory) BuildBlockBodyProof(
 		return nil, err
 	}
 
-	return tree.MerkleProof(kzgPosition)
+	return tree.MerkleProof(ctypes.KZGPositionDeneb)
 }
 
 // BuildCommitmentProof builds a commitment proof.
@@ -180,7 +151,7 @@ func (f *SidecarFactory) BuildCommitmentProof(
 	defer f.metrics.measureBuildCommitmentProofDuration(startTime)
 	bodyTree, err := merkle.NewTreeWithMaxLeaves[common.Root](
 		body.GetBlobKzgCommitments().Leafify(),
-		f.chainSpec.MaxBlobCommitmentsPerBlock(),
+		constants.MaxBlobCommitmentsPerBlock,
 	)
 	if err != nil {
 		return nil, err

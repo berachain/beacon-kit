@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -24,6 +24,7 @@ import (
 	"context"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	contypes "github.com/berachain/beacon-kit/consensus/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
@@ -33,12 +34,10 @@ import (
 // the EL client of the new head and should not request optimistic builds, as:
 // Optimistic clients already request builds in handleOptimisticPayloadBuild()
 // Non-optimistic clients should never request optimistic builds.
-func (s *Service[
-	_, _, ConsensusBlockT, _, _, _,
-]) sendPostBlockFCU(
+func (s *Service) sendPostBlockFCU(
 	ctx context.Context,
 	st *statedb.StateDB,
-	blk ConsensusBlockT,
+	blk *contypes.ConsensusBlock,
 ) {
 	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {

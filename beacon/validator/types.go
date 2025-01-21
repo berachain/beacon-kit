@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -34,6 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
+	depositdb "github.com/berachain/beacon-kit/storage/deposit"
 )
 
 // BeaconBlock represents a beacon block interface.
@@ -107,20 +108,9 @@ type BeaconState interface {
 type BlobFactory interface {
 	// BuildSidecars builds sidecars for a given block and blobs bundle.
 	BuildSidecars(
-		blk *ctypes.BeaconBlock,
+		signedBlk *ctypes.SignedBeaconBlock,
 		blobs ctypes.BlobsBundle,
-		signer crypto.BLSSigner,
-		forkData *ctypes.ForkData,
 	) (datypes.BlobSidecars, error)
-}
-
-// DepositStore defines the interface for deposit storage.
-type DepositStore interface {
-	// GetDepositsByIndex returns `numView` expected deposits.
-	GetDepositsByIndex(
-		startIndex uint64,
-		numView uint64,
-	) (ctypes.Deposits, error)
 }
 
 // ForkData represents the fork data interface.
@@ -194,11 +184,9 @@ type StateProcessor[
 }
 
 // StorageBackend is the interface for the storage backend.
-type StorageBackend[
-	DepositStoreT any,
-] interface {
+type StorageBackend interface {
 	// DepositStore retrieves the deposit store.
-	DepositStore() DepositStoreT
+	DepositStore() *depositdb.KVStore
 	// StateFromContext retrieves the beacon state from the context.
 	StateFromContext(context.Context) *statedb.StateDB
 }
@@ -216,6 +204,6 @@ type TelemetrySink interface {
 type BlockBuilderI interface {
 	BuildBlockAndSidecars(
 		context.Context,
-		types.SlotData,
+		*types.SlotData,
 	) ([]byte, []byte, error)
 }

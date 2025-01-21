@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,6 +21,8 @@
 package components
 
 import (
+	"path/filepath"
+
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/log"
@@ -47,16 +49,24 @@ func ProvideDepositStore[
 ](
 	in DepositStoreInput[LoggerT],
 ) (*depositstore.KVStore, error) {
-	name := "deposits"
-	dir := cast.ToString(in.AppOpts.Get(flags.FlagHome)) + "/data"
+	var (
+		rootDir = cast.ToString(in.AppOpts.Get(flags.FlagHome))
+		dataDir = filepath.Join(rootDir, "data")
+		name    = "deposits"
+	)
 
-	pdb, err := dbm.NewDB(name, dbm.PebbleDBBackend, dir)
+	pdb, err := dbm.NewDB(name, dbm.PebbleDBBackend, dataDir)
 	if err != nil {
 		return nil, err
 	}
+	spdb := depositstore.NewSynced(pdb)
+
+	// pass a closure to close the db as its not supported by the KVStoreService interface
+	closeFunc := func() error { return spdb.Close() }
 
 	return depositstore.NewStore(
-		storage.NewKVStoreProvider(pdb),
+		storage.NewKVStoreProvider(spdb),
+		closeFunc,
 		in.Logger.With("service", "deposit-store"),
 	), nil
 }

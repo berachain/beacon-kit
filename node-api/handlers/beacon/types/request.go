@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -125,7 +125,7 @@ type GetBlockAttestationsRequest struct {
 
 type GetBlobSidecarsRequest struct {
 	types.BlockIDRequest
-	Indices []string `query:"indices" validate:"dive,uint64"`
+	Indices []string `query:"indices" validate:"dive,numeric"`
 }
 
 type PostRewardsSyncCommitteeRequest struct {
@@ -167,9 +167,4 @@ type SlotRequest struct {
 type HeadersRequest struct {
 	SlotRequest
 	ParentRoot string `query:"parent_root" validate:"hex"`
-}
-
-type BlobSidecarRequest struct {
-	types.BlockIDRequest
-	Indices []string `query:"indices" validate:"dive,uint64"`
 }

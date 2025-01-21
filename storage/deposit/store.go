@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -40,6 +40,12 @@ const KeyDepositPrefix = "deposit"
 type KVStore struct {
 	store sdkcollections.Map[uint64, *ctypes.Deposit]
 
+	// closeFunc is a closure that closes the underlying database
+	// used by store to ensure that all writes are flushed to disk.
+	// We guarantee that closeFunc is called at maximum only once.
+	closeFunc CloseFunc
+	once      sync.Once
+
 	// mu protects store for concurrent access
 	mu sync.RWMutex
 
@@ -47,9 +53,13 @@ type KVStore struct {
 	logger log.Logger
 }
 
+// closure type for closing the store.
+type CloseFunc func() error
+
 // NewStore creates a new deposit store.
 func NewStore(
 	kvsp store.KVStoreService,
+	closeFunc CloseFunc,
 	logger log.Logger,
 ) *KVStore {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kvsp)
@@ -61,7 +71,8 @@ func NewStore(
 			sdkcollections.Uint64Key,
 			encoding.SSZValueCodec[*ctypes.Deposit]{},
 		),
-		logger: logger,
+		closeFunc: closeFunc,
+		logger:    logger,
 	}
 	if _, err := schemaBuilder.Build(); err != nil {
 		panic(errors.Wrap(err, "failed building KVStore schema"))
@@ -69,10 +80,19 @@ func NewStore(
 	return res
 }
 
+// Close closes the store by calling the closeFunc. It ensures that the
+// closeFunc is called at most once.
+func (kv *KVStore) Close() error {
+	var err error
+	kv.once.Do(func() { err = kv.closeFunc() })
+	return err
+}
+
 // GetDepositsByIndex returns the first N deposits starting from the given
 // index. If N is greater than the number of deposits, it returns up to the
 // last deposit.
 func (kv *KVStore) GetDepositsByIndex(
+	ctx context.Context,
 	startIndex uint64,
 	depRange uint64,
 ) (ctypes.Deposits, error) {
@@ -84,7 +104,7 @@ func (kv *KVStore) GetDepositsByIndex(
 	)
 
 	for i := startIndex; i < endIdx; i++ {
-		deposit, err := kv.store.Get(context.TODO(), i)
+		deposit, err := kv.store.Get(ctx, i)
 		switch {
 		case err == nil:
 			deposits = append(deposits, deposit)
@@ -102,13 +122,13 @@ func (kv *KVStore) GetDepositsByIndex(
 }
 
 // EnqueueDeposits pushes multiple deposits to the queue.
-func (kv *KVStore) EnqueueDeposits(deposits []*ctypes.Deposit) error {
+func (kv *KVStore) EnqueueDeposits(ctx context.Context, deposits []*ctypes.Deposit) error {
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
 
 	for _, deposit := range deposits {
 		idx := deposit.GetIndex().Unwrap()
-		if err := kv.store.Set(context.TODO(), idx, deposit); err != nil {
+		if err := kv.store.Set(ctx, idx, deposit); err != nil {
 			return errors.Wrapf(err, "failed to enqueue deposit %d", idx)
 		}
 	}
@@ -123,13 +143,12 @@ func (kv *KVStore) EnqueueDeposits(deposits []*ctypes.Deposit) error {
 }
 
 // Prune removes the [start, end) deposits from the store.
-func (kv *KVStore) Prune(start, end uint64) error {
+func (kv *KVStore) Prune(ctx context.Context, start, end uint64) error {
 	if start > end {
 		return errors.Wrapf(
 			pruner.ErrInvalidRange, "DepositKVStore Prune start: %d, end: %d", start, end)
 	}
 
-	var ctx = context.TODO()
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
 	for i := range end {

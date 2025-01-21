@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,79 +23,45 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config"
-	"github.com/berachain/beacon-kit/da/da"
 	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/execution/engine"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
+	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/spf13/cast"
 )
 
 // ChainServiceInput is the input for the chain service provider.
 type ChainServiceInput[
-	StorageBackendT any,
-	LoggerT any,
-	BlockStoreT BlockStore,
-	DepositStoreT any,
-	DepositContractT any,
-	AvailabilityStoreT any,
-	ConsensusSidecarsT any,
+	LoggerT log.AdvancedLogger[LoggerT],
 ] struct {
 	depinject.In
 
-	AppOpts         config.AppOptions
-	ChainSpec       chain.ChainSpec
-	Cfg             *config.Config
-	EngineClient    *client.EngineClient
-	ExecutionEngine *engine.Engine
-	LocalBuilder    LocalBuilder
-	Logger          LoggerT
-	Signer          crypto.BLSSigner
-	StateProcessor  StateProcessor[*Context]
-	StorageBackend  StorageBackendT
-	BlobProcessor   BlobProcessor[
-		AvailabilityStoreT, ConsensusSidecarsT,
-	]
+	ChainSpec             chain.Spec
+	Cfg                   *config.Config
+	EngineClient          *client.EngineClient
+	ExecutionEngine       *engine.Engine
+	LocalBuilder          LocalBuilder
+	Logger                LoggerT
+	Signer                crypto.BLSSigner
+	StateProcessor        StateProcessor[*Context]
+	StorageBackend        *storage.Backend
+	BlobProcessor         BlobProcessor
 	TelemetrySink         *metrics.TelemetrySink
-	BeaconDepositContract DepositContractT
+	BeaconDepositContract deposit.Contract
 }
 
 // ProvideChainService is a depinject provider for the blockchain service.
 func ProvideChainService[
-	AvailabilityStoreT AvailabilityStore,
-	ConsensusBlockT ConsensusBlock,
-	ConsensusSidecarsT da.ConsensusSidecars,
-	DepositStoreT DepositStore,
-	DepositContractT deposit.Contract,
-	GenesisT Genesis,
-	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
-	StorageBackendT StorageBackend[AvailabilityStoreT, BlockStoreT, DepositStoreT],
-	BlockStoreT BlockStore,
 ](
-	in ChainServiceInput[
-		StorageBackendT, LoggerT, BlockStoreT, DepositStoreT,
-		DepositContractT, AvailabilityStoreT, ConsensusSidecarsT,
-	],
-) *blockchain.Service[
-	AvailabilityStoreT, DepositStoreT, ConsensusBlockT,
-	BlockStoreT, GenesisT, ConsensusSidecarsT,
-] {
-	return blockchain.NewService[
-		AvailabilityStoreT,
-		DepositStoreT,
-		ConsensusBlockT,
-		BlockStoreT,
-		GenesisT,
-		ConsensusSidecarsT,
-	](
-		cast.ToString(in.AppOpts.Get(flags.FlagHome)),
+	in ChainServiceInput[LoggerT],
+) *blockchain.Service {
+	return blockchain.NewService(
 		in.StorageBackend,
 		in.BlobProcessor,
 		in.BeaconDepositContract,

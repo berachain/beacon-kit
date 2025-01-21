@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -30,6 +30,7 @@ import (
 // Backend is the interface for backend of the beacon API.
 type Backend interface {
 	GenesisBackend
+	BlobBackend
 	BlockBackend
 	RandaoBackend
 	StateBackend
@@ -52,6 +53,10 @@ type HistoricalBackend interface {
 
 type RandaoBackend interface {
 	RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes32, error)
+}
+
+type BlobBackend interface {
+	BlobSidecarsByIndices(slot math.Slot, indices []uint64) ([]*types.Sidecar, error)
 }
 
 type BlockBackend interface {

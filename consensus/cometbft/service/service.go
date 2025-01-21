@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -28,20 +28,20 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/validator"
-	"github.com/berachain/beacon-kit/chain-spec/chain"
 	servercmtlog "github.com/berachain/beacon-kit/consensus/cometbft/service/log"
-	"github.com/berachain/beacon-kit/consensus/cometbft/service/params"
 	statem "github.com/berachain/beacon-kit/consensus/cometbft/service/state"
 	errorsmod "github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	"github.com/berachain/beacon-kit/storage"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cometbft/cometbft/node"
 	"github.com/cometbft/cometbft/p2p"
 	pvm "github.com/cometbft/cometbft/privval"
 	"github.com/cometbft/cometbft/proxy"
+	cmttypes "github.com/cometbft/cometbft/types"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -55,8 +55,17 @@ const (
 type Service[
 	LoggerT log.AdvancedLogger[LoggerT],
 ] struct {
-	node          *node.Node
-	cmtCfg        *cmtcfg.Config
+	node *node.Node
+
+	// cmtConsensusParams are part of the blockchain state and
+	// are agreed upon by all validators in the network.
+	cmtConsensusParams *cmttypes.ConsensusParams
+
+	// cmtCgf are node-specific settings that influence how
+	// the consensus engine operates on a particular node.
+	// Loaded from config file (config.toml), not part of state.
+	cmtCfg *cmtcfg.Config
+
 	telemetrySink TelemetrySink
 
 	logger       LoggerT
@@ -83,7 +92,6 @@ type Service[
 	finalizeBlockState *state
 
 	interBlockCache storetypes.MultiStorePersistentCache
-	paramStore      *params.ConsensusParamsStore
 
 	// initialHeight is the initial height at which we start the node
 	initialHeight   int64
@@ -95,30 +103,36 @@ type Service[
 func NewService[
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
-	storeKey *storetypes.KVStoreKey,
 	logger LoggerT,
 	db dbm.DB,
 	blockchain blockchain.BlockchainI,
 	blockBuilder validator.BlockBuilderI,
 	cmtCfg *cmtcfg.Config,
-	cs chain.ChainSpec,
 	telemetrySink TelemetrySink,
 	options ...func(*Service[LoggerT]),
 ) *Service[LoggerT] {
+	if err := validateConfig(cmtCfg); err != nil {
+		panic(err)
+	}
+	cmtConsensusParams, err := extractConsensusParams(cmtCfg)
+	if err != nil {
+		panic(err)
+	}
+
 	s := &Service[LoggerT]{
 		logger: logger,
 		sm: statem.NewManager(
 			db,
 			servercmtlog.WrapSDKLogger(logger),
 		),
-		Blockchain:    blockchain,
-		BlockBuilder:  blockBuilder,
-		cmtCfg:        cmtCfg,
-		telemetrySink: telemetrySink,
-		paramStore:    params.NewConsensusParamsStore(cs),
+		Blockchain:         blockchain,
+		BlockBuilder:       blockBuilder,
+		cmtConsensusParams: cmtConsensusParams,
+		cmtCfg:             cmtCfg,
+		telemetrySink:      telemetrySink,
 	}
 
-	s.MountStore(storeKey, storetypes.StoreTypeIAVL)
+	s.MountStore(storage.StoreKey, storetypes.StoreTypeIAVL)
 
 	for _, option := range options {
 		option(s)
@@ -129,8 +143,8 @@ func NewService[
 	}
 
 	// Load latest height, once all stores have been set
-	if err := s.sm.LoadLatestVersion(); err != nil {
-		panic(err)
+	if err = s.sm.LoadLatestVersion(); err != nil {
+		panic(fmt.Errorf("failed loading latest version: %w", err))
 	}
 
 	return s
@@ -170,7 +184,24 @@ func (s *Service[_]) Start(
 		return err
 	}
 
-	return s.node.Start()
+	started := make(chan struct{})
+
+	// we start the node in a goroutine since calling Start() can block if genesis
+	// time is in the future causing us not to handle signals gracefully.
+	go func() {
+		err = s.node.Start()
+		started <- struct{}{}
+	}()
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-started:
+	}
+
+	close(started)
+
+	return err
 }
 
 func (s *Service[_]) Stop() error {
@@ -178,13 +209,17 @@ func (s *Service[_]) Stop() error {
 
 	if s.node != nil && s.node.IsRunning() {
 		s.logger.Info("Stopping CometBFT Node")
-		//#nosec:G703 // its a bet.
-		_ = s.node.Stop()
+		err := s.node.Stop()
+		if err != nil {
+			errs = append(errs, fmt.Errorf("failed to stop CometBFT Node: %w", err))
+		}
+		s.logger.Info("Waiting for CometBFT Node to stop")
+		s.node.Wait()
 	}
 
 	s.logger.Info("Closing application.db")
 	if err := s.sm.Close(); err != nil {
-		errs = append(errs, err)
+		errs = append(errs, fmt.Errorf("failed to close application.id: %w", err))
 	}
 	return errors.Join(errs...)
 }
@@ -205,7 +240,7 @@ func (s *Service[_]) AppVersion(_ context.Context) (uint64, error) {
 }
 
 func (s *Service[_]) appVersion() (uint64, error) {
-	cp := s.paramStore.Get()
+	cp := s.cmtConsensusParams.ToProto()
 	return cp.Version.App, nil
 }
 
@@ -268,8 +303,7 @@ func convertValidatorUpdate[ValidatorUpdateT any](
 	return any(abci.ValidatorUpdate{
 		PubKeyBytes: update.Pubkey[:],
 		PubKeyType:  crypto.CometBLSType,
-		//#nosec:G701 // this is safe.
-		Power: int64(update.EffectiveBalance.Unwrap()),
+		Power:       int64(update.EffectiveBalance.Unwrap()), // #nosec G115 -- this is safe.
 	}).(ValidatorUpdateT), nil
 }
 

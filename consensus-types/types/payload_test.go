@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -190,14 +190,6 @@ func TestExecutionPayload_IsBlinded(t *testing.T) {
 func TestExecutionPayload_Version(t *testing.T) {
 	payload := generateExecutionPayload()
 	require.Equal(t, version.Deneb, payload.Version())
-}
-
-func TestExecutionPayload_Empty(t *testing.T) {
-	payload := new(types.ExecutionPayload)
-	emptyPayload := payload.Empty(version.Deneb)
-
-	require.NotNil(t, emptyPayload)
-	require.Equal(t, version.Deneb, emptyPayload.Version())
 }
 
 func TestExecutionPayload_ToHeader(t *testing.T) {

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (c) 2025 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -50,24 +50,6 @@ type AttestationData struct {
 	Index math.U64 `json:"index"`
 	// BeaconBlockRoot is the root of the beacon block.
 	BeaconBlockRoot common.Root `json:"beaconBlockRoot"`
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                 Constructor                                */
-/* -------------------------------------------------------------------------- */
-
-// New creates a new AttestationData.
-func (a *AttestationData) New(
-	slot math.U64,
-	index math.U64,
-	beaconBlockRoot common.Root,
-) *AttestationData {
-	a = &AttestationData{
-		Slot:            slot,
-		Index:           index,
-		BeaconBlockRoot: beaconBlockRoot,
-	}
-	return a
 }
 
 /* -------------------------------------------------------------------------- */

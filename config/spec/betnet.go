@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -20,20 +20,11 @@
 
 package spec
 
-import (
-	"github.com/berachain/beacon-kit/chain-spec/chain"
-	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/math"
-)
+import "github.com/berachain/beacon-kit/chain"
 
 // BetnetChainSpec is the ChainSpec for the localnet.
-func BetnetChainSpec() (chain.Spec[
-	common.DomainType,
-	math.Epoch,
-	math.Slot,
-	any,
-], error) {
+func BetnetChainSpec() (chain.Spec, error) {
 	testnetSpec := BaseSpec()
 	testnetSpec.DepositEth1ChainID = BetnetEth1ChainID
-	return chain.NewChainSpec(testnetSpec)
+	return chain.NewSpec(testnetSpec)
 }

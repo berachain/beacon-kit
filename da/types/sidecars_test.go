@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -35,12 +35,12 @@ import (
 )
 
 func TestEmptySidecarMarshalling(t *testing.T) {
-	// Create an empty BlobSidecar
 	inclusionProof := make([]common.Root, 0)
-	for i := int(1); i <= 8; i++ {
+	// Create an empty BlobSidecar
+	for i := 1; i <= ctypes.KZGInclusionProofDepth; i++ {
 		it := byteslib.ExtendToSize([]byte(strconv.Itoa(i)), byteslib.B32Size)
-		proof, err := byteslib.ToBytes32(it)
-		require.NoError(t, err)
+		proof, errBytes := byteslib.ToBytes32(it)
+		require.NoError(t, errBytes)
 		inclusionProof = append(inclusionProof, common.Root(proof))
 	}
 
@@ -88,12 +88,12 @@ func TestEmptySidecarMarshalling(t *testing.T) {
 }
 
 func TestValidateBlockRoots(t *testing.T) {
-	// Create a sample BlobSidecar with valid roots
 	inclusionProof := make([]common.Root, 0)
-	for i := int(1); i <= 8; i++ {
+	// Create a sample BlobSidecar with valid roots
+	for i := 1; i <= ctypes.KZGInclusionProofDepth; i++ {
 		it := byteslib.ExtendToSize([]byte(strconv.Itoa(i)), byteslib.B32Size)
-		proof, err := byteslib.ToBytes32(it)
-		require.NoError(t, err)
+		proof, errBytes := byteslib.ToBytes32(it)
+		require.NoError(t, errBytes)
 		inclusionProof = append(inclusionProof, common.Root(proof))
 	}
 

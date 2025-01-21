@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,12 +21,9 @@
 package builder
 
 import (
-	"time"
-
 	"github.com/berachain/beacon-kit/config"
 	serverconfig "github.com/berachain/beacon-kit/config/config"
 	"github.com/berachain/beacon-kit/config/template"
-	cmtcfg "github.com/cometbft/cometbft/config"
 )
 
 // DefaultAppConfigTemplate returns the default configuration template for the
@@ -34,35 +31,6 @@ import (
 func DefaultAppConfigTemplate() string {
 	return serverconfig.DefaultConfigTemplate +
 		"\n" + template.TomlTemplate
-}
-
-// DefaultCometConfig returns the default configuration for the CometBFT
-// consensus engine.
-//
-//nolint:mnd // magic numbers are fine here.
-func DefaultCometConfig() *cmtcfg.Config {
-	cfg := cmtcfg.DefaultConfig()
-	consensus := cfg.Consensus
-	consensus.TimeoutPropose = 1750 * time.Millisecond
-	consensus.TimeoutPrecommit = 1000 * time.Millisecond
-	consensus.TimeoutPrevote = 1000 * time.Millisecond
-	consensus.TimeoutCommit = 1250 * time.Millisecond
-
-	// BeaconKit forces PebbleDB as the database backend.
-	cfg.DBBackend = "pebbledb"
-
-	// These settings are set by default for performance reasons.
-	cfg.TxIndex.Indexer = "null"
-	cfg.Mempool.Type = "nop"
-	cfg.Mempool.Size = 0
-	cfg.Mempool.Recheck = false
-	cfg.Mempool.Broadcast = false
-	cfg.Storage.DiscardABCIResponses = true
-	cfg.Instrumentation.Prometheus = true
-
-	cfg.P2P.MaxNumInboundPeers = 100
-	cfg.P2P.MaxNumOutboundPeers = 40
-	return cfg
 }
 
 // DefaultAppConfig returns the default configuration for the application.

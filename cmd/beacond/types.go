@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,13 +21,11 @@
 package main
 
 import (
-	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/validator"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	consruntimetypes "github.com/berachain/beacon-kit/consensus/types"
 	dablob "github.com/berachain/beacon-kit/da/blob"
-	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	engineclient "github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/execution/deposit"
@@ -43,11 +41,7 @@ import (
 	payloadbuilder "github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/state-transition/core"
-	"github.com/berachain/beacon-kit/storage/beacondb"
-	"github.com/berachain/beacon-kit/storage/block"
-	depositdb "github.com/berachain/beacon-kit/storage/deposit"
 	"github.com/berachain/beacon-kit/storage/filedb"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 /* -------------------------------------------------------------------------- */
@@ -59,20 +53,7 @@ type (
 	AttributesFactory = attributes.Factory
 
 	// BlobProcessor is a type alias for the blob processor.
-	BlobProcessor = dablob.Processor[
-		*AvailabilityStore,
-		*ConsensusSidecars,
-	]
-
-	// ChainService is a type alias for the chain service.
-	ChainService = blockchain.Service[
-		*AvailabilityStore,
-		*DepositStore,
-		*ConsensusBlock,
-		*BlockStore,
-		*Genesis,
-		*ConsensusSidecars,
-	]
+	BlobProcessor = dablob.Processor
 
 	// CometBFTService is a type alias for the CometBFT service.
 	CometBFTService = cometbft.Service[*Logger]
@@ -85,9 +66,6 @@ type (
 
 	// IndexDB is a type alias for the range DB.
 	IndexDB = filedb.RangeDB
-
-	// KVStore is a type alias for the KV store.
-	KVStore = beacondb.KVStore
 
 	// LocalBuilder is a type alias for the local builder.
 	LocalBuilder = payloadbuilder.PayloadBuilder
@@ -105,21 +83,13 @@ type (
 	SidecarFactory = dablob.SidecarFactory
 
 	// StateProcessor is the type alias for the state processor interface.
-	StateProcessor = core.StateProcessor[
-		*Context,
-		*KVStore,
-	]
+	StateProcessor = core.StateProcessor[*Context]
 
 	// StorageBackend is the type alias for the storage backend interface.
-	StorageBackend = storage.Backend[
-		*AvailabilityStore,
-		*BlockStore,
-		*DepositStore,
-		*KVStore,
-	]
+	StorageBackend = storage.Backend
 
 	// ValidatorService is a type alias for the validator service.
-	ValidatorService = validator.Service[*DepositStore]
+	ValidatorService = validator.Service
 )
 
 /* -------------------------------------------------------------------------- */
@@ -127,28 +97,18 @@ type (
 /* -------------------------------------------------------------------------- */
 
 type (
-	// AvailabilityStore is a type alias for the availability store.
-	AvailabilityStore = dastore.Store
-
 	// BeaconBlock type aliases.
 	ConsensusBlock = consruntimetypes.ConsensusBlock
 
 	// BlobSidecars type aliases.
-	ConsensusSidecars = consruntimetypes.ConsensusSidecars
-	BlobSidecar       = datypes.BlobSidecar
-	BlobSidecars      = datypes.BlobSidecars
-
-	// BlockStore is a type alias for the block store.
-	BlockStore = block.KVStore[*types.BeaconBlock]
+	BlobSidecar  = datypes.BlobSidecar
+	BlobSidecars = datypes.BlobSidecars
 
 	// Context is a type alias for the transition context.
 	Context = transition.Context
 
 	// DepositContract is a type alias for the deposit contract.
 	DepositContract = deposit.WrappedDepositContract
-
-	// DepositStore is a type alias for the deposit store.
-	DepositStore = depositdb.KVStore
 
 	// Eth1Data is a type alias for the eth1 data.
 	Eth1Data = types.Eth1Data
@@ -175,15 +135,7 @@ type (
 	LegacyKey = signer.LegacyKey
 
 	// NodeAPIBackend is a type alias for the node API backend.
-	NodeAPIBackend = backend.Backend[
-		*AvailabilityStore,
-		*BlockStore,
-		sdk.Context,
-		*DepositStore,
-		*CometBFTService,
-		*KVStore,
-		*StorageBackend,
-	]
+	NodeAPIBackend = backend.Backend
 
 	// NodeAPIContext is a type alias for the node API context.
 	NodeAPIContext = echo.Context

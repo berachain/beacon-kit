@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,21 +21,12 @@
 package components
 
 import (
-	"cosmossdk.io/core/store"
-	"cosmossdk.io/depinject"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/storage"
 	"github.com/berachain/beacon-kit/storage/beacondb"
-	"github.com/berachain/beacon-kit/storage/encoding"
 )
 
-// KVStoreInput is the input for the ProvideKVStore function.
-type KVStoreInput struct {
-	depinject.In
-	KVStoreService store.KVStoreService
-}
-
 // ProvideKVStore is the depinject provider that returns a beacon KV store.
-func ProvideKVStore(in KVStoreInput) *beacondb.KVStore {
-	payloadCodec := &encoding.SSZInterfaceCodec[*ctypes.ExecutionPayloadHeader]{}
-	return beacondb.New(in.KVStoreService, payloadCodec)
+func ProvideKVStore() *beacondb.KVStore {
+	kvStoreService := &storage.KVStoreService{Key: storage.StoreKey}
+	return beacondb.New(kvStoreService)
 }

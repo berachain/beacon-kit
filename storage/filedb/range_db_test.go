@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -29,7 +29,6 @@ import (
 	file "github.com/berachain/beacon-kit/storage/filedb"
 	"github.com/berachain/beacon-kit/storage/interfaces/mocks"
 	"github.com/spf13/afero"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -88,16 +87,21 @@ func TestRangeDB(t *testing.T) {
 			},
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				t.Helper()
-				err := rdb.Delete(1, []byte("testKey"))
-				require.NoError(t, err)
 
 				exists, err := rdb.Has(1, []byte("testKey"))
+				require.NoError(t, err)
+				require.True(t, exists)
+
+				err = rdb.Delete(1, []byte("testKey"))
+				require.NoError(t, err)
+
+				exists, err = rdb.Has(1, []byte("testKey"))
 				require.NoError(t, err)
 				require.False(t, exists)
 			},
 		},
 		{
-			name: "DeleteRange",
+			name: "Prune",
 			setupFunc: func(rdb *file.RangeDB) error {
 				for index := uint64(1); index <= 5; index++ {
 					if err := rdb.Set(
@@ -110,21 +114,21 @@ func TestRangeDB(t *testing.T) {
 			},
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				t.Helper()
-				err := rdb.DeleteRange(1, 4)
+				err := rdb.Prune(1, 4)
 				require.NoError(t, err)
 
 				for index := uint64(1); index <= 3; index++ {
 					var exists bool
 					exists, err = rdb.Has(index, []byte("testKey"))
-					require.NoError(t, err)
-					require.False(t, exists)
+					require.NoError(t, err, "index %d", index)
+					require.False(t, exists, "index %d", index)
 				}
 
 				for index := uint64(4); index <= 5; index++ {
 					var exists bool
 					exists, err = rdb.Has(index, []byte("testKey"))
-					require.NoError(t, err)
-					require.True(t, exists)
+					require.NoError(t, err, "index %d", index)
+					require.True(t, exists, "index %d", index)
 				}
 			},
 		},
@@ -135,18 +139,10 @@ func TestRangeDB(t *testing.T) {
 			rdb := file.NewRangeDB(newTestFDB("/tmp/testdb-1"))
 
 			if tt.setupFunc != nil {
-				if err := tt.setupFunc(rdb); (err != nil) != tt.expectedError {
-					t.Fatalf(
-						"setupFunc() error = %v, expectedError %v",
-						err,
-						tt.expectedError,
-					)
-				}
+				require.NoError(t, tt.setupFunc(rdb))
 			}
 
-			if tt.testFunc != nil {
-				tt.testFunc(t, rdb)
-			}
+			tt.testFunc(t, rdb)
 		})
 	}
 }
@@ -208,16 +204,7 @@ func TestRangeDB_DeleteRange_NotSupported(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Helper()
-			tt.db.On("DeleteRange", mock.Anything, mock.Anything).
-				Return(errors.New("rangedb: delete range not supported for this db"))
-
-			rdb := file.NewRangeDB(tt.db)
-
-			err := rdb.DeleteRange(1, 4)
-			require.Error(t, err)
-			require.Equal(t,
-				"rangedb: delete range not supported for this db",
-				err.Error())
+			require.Panics(t, func() { _ = file.NewRangeDB(tt.db) })
 		})
 	}
 }
@@ -242,8 +229,8 @@ func TestRangeDB_Prune(t *testing.T) {
 			testFunc: func(t *testing.T, rdb *file.RangeDB) {
 				t.Helper()
 				requireNotExist(t, rdb, 2, 6)
-				requireExist(t, rdb, 7, 10)
 				requireExist(t, rdb, 0, 1)
+				requireExist(t, rdb, 7, 50)
 			},
 		},
 		{
@@ -262,13 +249,7 @@ func TestRangeDB_Prune(t *testing.T) {
 			rdb := file.NewRangeDB(newTestFDB("/tmp/testdb-2"))
 
 			if tt.setupFunc != nil {
-				if err := tt.setupFunc(rdb); err != nil {
-					t.Fatalf(
-						"setupFunc() error = %v, expectedError %v",
-						err,
-						tt.expectedError,
-					)
-				}
+				require.NoError(t, tt.setupFunc(rdb))
 			}
 			err := rdb.Prune(tt.start, tt.end)
 			if (err != nil) != tt.expectedError {
@@ -330,17 +311,6 @@ func TestRangeDB_Invariants(t *testing.T) {
 			},
 		},
 		{
-			name: "DeleteRange from populated",
-			setupFunc: func(rdb *file.RangeDB) error {
-				return populateTestDB(rdb, 1, 10)
-			},
-			testFunc: func(t *testing.T, rdb *file.RangeDB) {
-				t.Helper()
-				_ = rdb.DeleteRange(1, 5) // ignore error
-				requireNotExist(t, rdb, 0, lastConsequetiveNilIndex(rdb))
-			},
-		},
-		{
 			name: "Populate, Prune, Set round trip",
 			setupFunc: func(rdb *file.RangeDB) error {
 				return populateTestDB(rdb, 1, 30)
@@ -393,7 +363,7 @@ func newTestFDB(path string) *file.DB {
 }
 
 func getFirstNonNilIndex(rdb *file.RangeDB) uint64 {
-	return reflect.ValueOf(rdb).Elem().FieldByName("firstNonNilIndex").Uint()
+	return reflect.ValueOf(rdb).Elem().FieldByName("lowerBoundIndex").Uint()
 }
 
 func lastConsequetiveNilIndex(rdb *file.RangeDB) uint64 {

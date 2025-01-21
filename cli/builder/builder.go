@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -24,7 +24,7 @@ import (
 	"os"
 
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	cmdlib "github.com/berachain/beacon-kit/cli/commands"
 	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	"github.com/berachain/beacon-kit/cli/config"
@@ -78,7 +78,7 @@ func (cb *CLIBuilder[
 	// allocate memory to hold the dependencies
 	var (
 		clientCtx client.Context
-		chainSpec chain.ChainSpec
+		chainSpec chain.Spec
 		logger    LoggerT
 	)
 
@@ -126,7 +126,7 @@ func (cb *CLIBuilder[_, LoggerT]) defaultRunHandler(
 			logger,
 			DefaultAppConfigTemplate(),
 			DefaultAppConfig(),
-			DefaultCometConfig(),
+			cometbft.DefaultConfig(),
 		)
 	}
 }
