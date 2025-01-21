@@ -36,6 +36,13 @@ type BlockResponse struct {
 	ValidatorResponse
 }
 
+type StateResponse struct {
+	Version             string `json:"version"`
+	ExecutionOptimistic bool   `json:"execution_optimistic"`
+	Finalized           bool   `json:"finalized"`
+	Data                any    `json:"data"`
+}
+
 type BlockHeaderResponse struct {
 	Root      common.Root              `json:"root"`
 	Canonical bool                     `json:"canonical"`
