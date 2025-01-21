@@ -22,6 +22,7 @@ package deposit
 
 import (
 	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/cli/utils/genesis"
 	"github.com/berachain/beacon-kit/cli/utils/parser"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
@@ -54,21 +55,20 @@ func Commands(
 
 // NewValidateDeposit creates a new command for validating a deposit message.
 //
-//nolint:mnd,lll // lots of magic numbers, reads better if long description is one line
+//nolint:lll // reads better if long description is one line.
 func NewValidateDeposit(chainSpec chain.Spec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "validate",
+		Use:   "validate [pubkey] [withdrawal-credentials] [amount] [signature] [beacond/genesis.json]",
 		Short: "Validates a deposit message for creating a new validator",
-		Long:  `Validates a deposit message for creating a new validator. The deposit message includes the public key, withdrawal credentials, and deposit amount. The args taken are in the order of the public key, withdrawal credentials, deposit amount, signature, and genesis validator root.`,
-		Args:  cobra.ExactArgs(6),
+		Long:  `Validates a deposit message for creating a new validator. The deposit message includes the public key, withdrawal credentials, and deposit amount. The args taken are in the order of the public key, withdrawal credentials, deposit amount, signature, and beacond genesis file.`,
+		Args:  cobra.ExactArgs(5), //nolint:mnd // The number of arguments.
 		RunE:  validateDepositMessage(chainSpec),
 	}
 
 	return cmd
 }
 
-// validateDepositMessage validates a deposit message for creating a new
-// validator.
+// validateDepositMessage validates a deposit message for creating a new validator.
 func validateDepositMessage(chainSpec chain.Spec) func(
 	_ *cobra.Command,
 	args []string,
@@ -94,7 +94,7 @@ func validateDepositMessage(chainSpec chain.Spec) func(
 			return err
 		}
 
-		genesisValidatorRoot, err := parser.ConvertGenesisValidatorRoot(args[4])
+		genesisValidatorRoot, err := genesis.GetValidatorRootFromFile(args[4], chainSpec)
 		if err != nil {
 			return err
 		}

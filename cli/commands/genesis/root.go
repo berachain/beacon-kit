@@ -22,67 +22,24 @@ package genesis
 
 import (
 	"github.com/berachain/beacon-kit/chain"
-	"github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/errors"
-	"github.com/berachain/beacon-kit/primitives/bytes"
-	"github.com/berachain/beacon-kit/primitives/encoding/json"
-	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/spf13/afero"
+	"github.com/berachain/beacon-kit/cli/utils/genesis"
 	"github.com/spf13/cobra"
 )
 
-type Genesis struct {
-	AppState struct {
-		Beacon struct {
-			Deposits []struct {
-				Pubkey      bytes.B48 `json:"pubkey"`
-				Credentials bytes.B32 `json:"credentials"`
-				Amount      math.U64  `json:"amount"`
-				Signature   string    `json:"signature"`
-				Index       int       `json:"index"`
-			} `json:"deposits"`
-		} `json:"beacon"`
-	} `json:"app_state"`
-}
-
-// TODO: move this logic to the `deposit create-validator/validate` commands as it is only
-// required there.
+// GetGenesisValidatorRootCmd returns a command that gets the genesis validator root from a given
+// beacond genesis file.
 func GetGenesisValidatorRootCmd(cs chain.Spec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "validator-root [beacond/genesis.json]",
 		Short: "gets and returns the genesis validator root",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// Read the genesis file.
-			genesisBz, err := afero.ReadFile(afero.NewOsFs(), args[0])
+			genesisValidatorRoot, err := genesis.GetValidatorRootFromFile(args[0], cs)
 			if err != nil {
-				return errors.Wrap(err, "failed to genesis json file")
+				return err
 			}
 
-			var genesis Genesis
-			// Unmarshal JSON data into the Genesis struct
-			err = json.Unmarshal(genesisBz, &genesis)
-			if err != nil {
-				return errors.Wrap(err, "failed to unmarshal JSON")
-			}
-
-			depositCount := uint64(len(genesis.AppState.Beacon.Deposits))
-			validators := make(
-				types.Validators,
-				depositCount,
-			)
-			for i, deposit := range genesis.AppState.Beacon.Deposits {
-				val := types.NewValidatorFromDeposit(
-					deposit.Pubkey,
-					types.WithdrawalCredentials(deposit.Credentials),
-					deposit.Amount,
-					math.Gwei(cs.EffectiveBalanceIncrement()),
-					math.Gwei(cs.MaxEffectiveBalance()),
-				)
-				validators[i] = val
-			}
-
-			cmd.Printf("%s\n", validators.HashTreeRoot())
+			cmd.Printf("%s\n", genesisValidatorRoot)
 			return nil
 		},
 	}
