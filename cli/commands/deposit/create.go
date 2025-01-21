@@ -132,6 +132,7 @@ func createValidatorCmd(
 			return err
 		}
 
+		//nolint:forbidigo // simplifies output parsing
 		fmt.Print(string(val))
 
 		return nil
