@@ -31,24 +31,24 @@ network_configuration:
     type: "validator"
     nodes:
       - el_type: reth
-        replicas: 32
+        replicas: 1
       - el_type: geth
-        replicas: 32
+        replicas: 1
       - el_type: erigon
-        replicas: 32
+        replicas: 0
       - el_type: besu
-        replicas: 32
+        replicas: 0
       - el_type: nethermind
-        replicas: 32
+        replicas: 0
       - el_type: ethereumjs
         replicas: 0
   full_nodes:
     type: "full"
     nodes:
       - el_type: reth
-        replicas: 0
+        replicas: 1
       - el_type: geth
-        replicas: 10
+        replicas: 1
       - el_type: erigon
         replicas: 0
       - el_type: besu
@@ -61,16 +61,16 @@ network_configuration:
     type: "seed"
     nodes:
       - el_type: geth
-        replicas: 6
+        replicas: 2
 node_settings:
   consensus_settings:
     specs:
-      min_cpu: 8000
-      max_cpu: 8000
-      min_memory: 32768
-      max_memory: 32768
+      min_cpu: 0
+      max_cpu: 2000
+      min_memory: 0
+      max_memory: 2048
     images:
-      beaconkit: northamerica-northeast1-docker.pkg.dev/prj-berachain-common-svc-01/berachain/beacon-kit:main
+      beaconkit: beacond:kurtosis-local
     config:
       timeout_propose: 3s
       timeout_prevote: 1s
@@ -82,10 +82,10 @@ node_settings:
       payload_timeout: 2s
   execution_settings:
     specs:
-      min_cpu: 8000
-      max_cpu: 8000
-      min_memory: 32768
-      max_memory: 32768
+      min_cpu: 0
+      max_cpu: 2000
+      min_memory: 0
+      max_memory: 2048
     images:
       besu: hyperledger/besu:latest
       erigon: erigontech/erigon:v2.60.9
@@ -97,19 +97,3 @@ eth_json_rpc_endpoints:
   - type: blutgang
     clients:
       - el-full-geth-0
-      - el-full-geth-1
-      - el-full-geth-2
-      - el-full-geth-3
-      - el-full-geth-4
-      - el-full-geth-5
-      - el-full-geth-6
-      - el-full-geth-7
-      - el-full-geth-8
-      - el-full-geth-9
-additional_services:
-  - name: "tx-fuzz"
-    replicas: 99
-  - name: "prometheus"
-  - name: "grafana"
-  - name: "spamoor"
-  - name: "pyroscope"
