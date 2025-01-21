@@ -21,9 +21,9 @@
 package deposit
 
 import (
-	"os"
+	"encoding/json"
+	"fmt"
 
-	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/chain"
 	clicontext "github.com/berachain/beacon-kit/cli/context"
 	"github.com/berachain/beacon-kit/cli/utils/parser"
@@ -60,14 +60,10 @@ func NewCreateValidator(
 }
 
 // createValidatorCmd returns a command that builds a create validator request.
-//
-
 func createValidatorCmd(
 	chainSpec chain.Spec,
 ) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		logger := log.NewLogger(os.Stdout)
-
 		// Get the BLS signer.
 		blsSigner, err := getBLSSigner(cmd)
 		if err != nil {
@@ -119,15 +115,24 @@ func createValidatorCmd(
 			return err
 		}
 
-		// If the broadcast flag is not set, output the deposit message and
-		// signature and return early.
-		logger.Info(
-			"Deposit Message CallData",
-			"pubkey", depositMsg.Pubkey.String(),
-			"withdrawal credentials", depositMsg.Credentials.String(),
-			"amount", depositMsg.Amount,
-			"signature", signature.String(),
-		)
+		type depositOutput struct {
+			Pubkey      string `json:"pubkey"`
+			Credentials string `json:"withdrawal_credentials"`
+			Amount      string `json:"amount"`
+			Signature   string `json:"signature"`
+		}
+
+		val, err := json.Marshal(depositOutput{
+			Pubkey:      depositMsg.Pubkey.String(),
+			Credentials: depositMsg.Credentials.String(),
+			Amount:      depositMsg.Amount.ToWei().String(),
+			Signature:   signature.String(),
+		})
+		if err != nil {
+			return err
+		}
+
+		fmt.Print(string(val))
 
 		return nil
 	}
