@@ -79,6 +79,16 @@ func GetGenesisValidatorRootCmd(cs chain.Spec) *cobra.Command {
 					math.Gwei(cs.EffectiveBalanceIncrement()),
 					math.Gwei(cs.MaxEffectiveBalance()),
 				)
+
+				// mimic processGenesisActivation
+				minEffectiveBalance := math.Gwei(
+					cs.EjectionBalance() + cs.EffectiveBalanceIncrement(),
+				)
+				if val.GetEffectiveBalance() >= minEffectiveBalance {
+					val.SetActivationEligibilityEpoch(0)
+					val.SetActivationEpoch(0)
+
+				}
 				validators[i] = val
 			}
 
