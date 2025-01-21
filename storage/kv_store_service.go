@@ -62,7 +62,11 @@ func (store coreKVStore) Get(key []byte) ([]byte, error) {
 
 // Has checks if a key exists. Errors on nil key.
 func (store coreKVStore) Has(key []byte) (bool, error) {
-	return store.kvStore.Has(key), nil
+    exists, err := store.kvStore.Has(key)
+    if err != nil {
+        return false, fmt.Errorf("error checking key existence: %w", err)
+    }
+    return exists, nil
 }
 
 // Set sets the key. Errors on nil key or value.
