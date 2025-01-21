@@ -111,6 +111,7 @@ type Spec interface {
 
 	// Fork-related values.
 	// DenebPlusForkEpoch returns the epoch at which the Deneb+ fork takes
+        // effect.
 	DenebPlusForkEpoch() math.Epoch
 	// ElectraForkEpoch returns the epoch at which the Electra fork takes
 	// effect.
@@ -341,7 +342,7 @@ func (s spec) TargetSecondsPerEth1Block() uint64 {
 	return s.Data.TargetSecondsPerEth1Block
 }
 
-// DenebPlusForEpoch returns the epoch of the Deneb+ fork.
+// DenebPlusForkEpoch returns the epoch of the Deneb+ fork.
 func (s spec) DenebPlusForkEpoch() math.Epoch {
 	return math.Epoch(s.Data.DenebPlusForkEpoch)
 }
