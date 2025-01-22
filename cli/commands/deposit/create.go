@@ -26,10 +26,8 @@ import (
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/chain"
 	clicontext "github.com/berachain/beacon-kit/cli/context"
-	"github.com/berachain/beacon-kit/cli/utils/genesis"
 	"github.com/berachain/beacon-kit/cli/utils/parser"
 	"github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-core/components"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -99,29 +97,11 @@ func createValidatorCmd(
 		// All deposits are signed with the genesis version.
 		genesisVersion := version.FromUint32[common.Version](constants.GenesisVersion)
 
-		// Get the genesis validator root. If the genesis file flag is not set,
-		// the genesis validator root is taken from the chain spec.
-		var genesisValidatorRoot common.Root
-		genesisFile, err := cmd.Flags().GetString(useGenesisFile)
+		genesisValidatorRoot, err := getGenesisValidatorRoot(
+			cmd, chainSpec, args, maxArgsCreateDeposit,
+		)
 		if err != nil {
 			return err
-		}
-		if genesisFile != defaultGenesisFile {
-			if genesisValidatorRoot, err = genesis.ComputeValidatorsRootFromFile(
-				genesisFile, chainSpec,
-			); err != nil {
-				return err
-			}
-		} else {
-			if len(args) < maxArgsCreateDeposit {
-				return errors.New(
-					"genesis validator root is required if not using the genesis file flag",
-				)
-			}
-			genesisValidatorRoot, err = parser.ConvertGenesisValidatorRoot(args[2])
-			if err != nil {
-				return err
-			}
 		}
 
 		// Create and sign the deposit message.

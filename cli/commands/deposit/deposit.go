@@ -22,10 +22,8 @@ package deposit
 
 import (
 	"github.com/berachain/beacon-kit/chain"
-	"github.com/berachain/beacon-kit/cli/utils/genesis"
 	"github.com/berachain/beacon-kit/cli/utils/parser"
 	"github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
@@ -104,29 +102,11 @@ func validateDepositMessage(chainSpec chain.Spec) func(
 			return err
 		}
 
-		// Get the genesis validator root. If the genesis file flag is not set,
-		// the genesis validator root is expected to be provided as the third argument.
-		var genesisValidatorRoot common.Root
-		genesisFile, err := cmd.Flags().GetString(useGenesisFile)
+		genesisValidatorRoot, err := getGenesisValidatorRoot(
+			cmd, chainSpec, args, maxArgsValidateDeposit,
+		)
 		if err != nil {
 			return err
-		}
-		if genesisFile != defaultGenesisFile {
-			if genesisValidatorRoot, err = genesis.ComputeValidatorsRootFromFile(
-				genesisFile, chainSpec,
-			); err != nil {
-				return err
-			}
-		} else {
-			if len(args) < maxArgsValidateDeposit {
-				return errors.New(
-					"genesis validator root is required if not using the genesis file flag",
-				)
-			}
-			genesisValidatorRoot, err = parser.ConvertGenesisValidatorRoot(args[4])
-			if err != nil {
-				return err
-			}
 		}
 
 		depositMessage := types.DepositMessage{
