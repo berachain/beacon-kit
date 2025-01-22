@@ -31,12 +31,13 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
+	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	"github.com/stretchr/testify/require"
 )
 
 func TestInvalidDeposits(t *testing.T) {
 	cs := setupChain(t, components.BoonetChainSpecType)
-	sp, st, ds, ctx := setupState(t, cs)
+	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
 
 	var (
 		minBalance   = math.Gwei(cs.EjectionBalance() + cs.EffectiveBalanceIncrement())
@@ -110,7 +111,7 @@ func TestInvalidDeposits(t *testing.T) {
 
 func TestInvalidDepositsCount(t *testing.T) {
 	cs := setupChain(t, components.BoonetChainSpecType)
-	sp, st, ds, ctx := setupState(t, cs)
+	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
 
 	var (
 		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
@@ -187,7 +188,7 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 	csData.MaxDepositsPerBlock = 1 // Set only 1 deposit allowed per block.
 	cs, err := chain.NewSpec(csData)
 	require.NoError(t, err)
-	sp, st, ds, ctx := setupState(t, cs)
+	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
 
 	var (
 		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
@@ -264,7 +265,7 @@ func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
 	csData.MaxDepositsPerBlock = 1 // Set only 1 deposit allowed per block.
 	cs, err := chain.NewSpec(csData)
 	require.NoError(t, err)
-	sp, st, ds, ctx := setupState(t, cs)
+	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
 
 	var (
 		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())

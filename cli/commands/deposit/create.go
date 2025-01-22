@@ -101,7 +101,7 @@ func createValidatorCmd(
 			return err
 		}
 		if genesisFile != defaultGenesisFile {
-			if genesisValidatorRoot, err = genesis.GetValidatorRootFromFile(
+			if genesisValidatorRoot, err = genesis.ComputeValidatorsRootFromFile(
 				genesisFile, chainSpec,
 			); err != nil {
 				return err

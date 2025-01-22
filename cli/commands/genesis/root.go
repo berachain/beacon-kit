@@ -26,20 +26,20 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// GetGenesisValidatorRootCmd returns a command that gets the genesis validator root from a given
-// beacond genesis file.
+// GetGenesisValidatorRootCmd returns a cobra command that computes the genesis validator root
+// from the given genesis file.
 func GetGenesisValidatorRootCmd(cs chain.Spec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "validator-root [beacond/genesis.json]",
 		Short: "gets and returns the genesis validator root",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			genesisValidatorRoot, err := genesis.GetValidatorRootFromFile(args[0], cs)
+			genesisValidatorsRoot, err := genesis.ComputeValidatorsRootFromFile(args[0], cs)
 			if err != nil {
 				return err
 			}
 
-			cmd.Printf("%s\n", genesisValidatorRoot)
+			cmd.Printf("%s\n", genesisValidatorsRoot)
 			return nil
 		},
 	}

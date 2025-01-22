@@ -24,51 +24,53 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
-	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/spf13/afero"
 )
 
-type Genesis struct {
-	AppState struct {
-		Beacon struct {
-			Deposits []struct {
-				Pubkey      bytes.B48 `json:"pubkey"`
-				Credentials bytes.B32 `json:"credentials"`
-				Amount      math.U64  `json:"amount"`
-				Signature   string    `json:"signature"`
-				Index       int       `json:"index"`
-			} `json:"deposits"`
-		} `json:"beacon"`
-	} `json:"app_state"`
+// Beacon, AppState and Genesis are code duplications that
+// collectively reproduce part of genesis file structure
+
+type Beacon struct {
+	Deposits types.Deposits `json:"deposits"`
 }
 
-// GetValidatorRootFromFile returns the genesis validator root from a given beacond genesis file.
-func GetValidatorRootFromFile(filepath string, cs chain.Spec) (common.Root, error) {
-	// Read the genesis file.
-	genesisBz, err := afero.ReadFile(afero.NewOsFs(), filepath)
+type AppState struct {
+	Beacon `json:"beacon"`
+}
+
+type Genesis struct {
+	AppState `json:"app_state"`
+}
+
+// ComputeValidatorsRootFromFile returns the validator root for a given genesis file and chain spec.
+func ComputeValidatorsRootFromFile(genesisFile string, cs chain.Spec) (common.Root, error) {
+	genesisBz, err := afero.ReadFile(afero.NewOsFs(), genesisFile)
 	if err != nil {
 		return common.Root{}, errors.Wrap(err, "failed to genesis json file")
 	}
 
-	var genesis Genesis
-	// Unmarshal JSON data into the Genesis struct
-	err = json.Unmarshal(genesisBz, &genesis)
+	var appGenesis Genesis
+	err = json.Unmarshal(genesisBz, &appGenesis)
 	if err != nil {
 		return common.Root{}, errors.Wrap(err, "failed to unmarshal JSON")
 	}
 
-	depositCount := uint64(len(genesis.AppState.Beacon.Deposits))
-	validators := make(types.Validators, depositCount)
-	minEffectiveBalance := math.Gwei(
-		cs.EjectionBalance() + cs.EffectiveBalanceIncrement(),
-	)
-	for i, deposit := range genesis.AppState.Beacon.Deposits {
+	return ComputeValidatorsRoot(appGenesis.Deposits, cs), nil
+}
+
+// ComputeValidatorsRoot returns the validator root for a given set of genesis deposits
+// and a chain spec.
+func ComputeValidatorsRoot(genesisDeposits types.Deposits, cs chain.Spec) common.Root {
+	validators := make(types.Validators, len(genesisDeposits))
+	minEffectiveBalance := math.Gwei(cs.EjectionBalance() + cs.EffectiveBalanceIncrement())
+
+	for i, deposit := range genesisDeposits {
 		val := types.NewValidatorFromDeposit(
 			deposit.Pubkey,
-			types.WithdrawalCredentials(deposit.Credentials),
+			deposit.Credentials,
 			deposit.Amount,
 			math.Gwei(cs.EffectiveBalanceIncrement()),
 			math.Gwei(cs.MaxEffectiveBalance()),
@@ -79,9 +81,8 @@ func GetValidatorRootFromFile(filepath string, cs chain.Spec) (common.Root, erro
 			val.SetActivationEligibilityEpoch(0)
 			val.SetActivationEpoch(0)
 		}
-
 		validators[i] = val
 	}
 
-	return validators.HashTreeRoot(), nil
+	return validators.HashTreeRoot()
 }
