@@ -4,3 +4,7 @@
 [submodule "contracts/lib/forge-std"]
 	path = contracts/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
+
+[submodule "contracts/lib/berachain"]
+	path = contracts/lib/berachain
+	url = git@github.com:berachain/contracts.git
