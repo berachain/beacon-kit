@@ -21,14 +21,14 @@
 package e2e_test
 
 import (
-	"github.com/attestantio/go-eth2-client/api"
-	"github.com/attestantio/go-eth2-client/spec/phase0"
-	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
 	"math/big"
 
+	"github.com/attestantio/go-eth2-client/api"
+	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/geth-primitives/deposit"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
+	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
 	"github.com/cometbft/cometbft/crypto/bls12381"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	gethcommon "github.com/ethereum/go-ethereum/common"
@@ -54,22 +54,21 @@ type ValidatorTestStruct struct {
 // Then it checks whether all the validators' voting power have increased by the correct amount.
 //
 // TODO:
-// 1) Add staking tests for exceeding the max stake.
-// 2) Add staking tests for adding a new validator to the network.
-// 3) Add staking tests for hitting the validator set cap and eviction.
+// 1) Add staking tests for adding a new validator to the network.
+// 2) Add staking tests for hitting the validator set cap and eviction.
 func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	chainspec, err := spec.DevnetChainSpec()
 	s.Require().NoError(err)
-	WeiPerGwei := big.NewInt(1e9)
 
-	// TODO Figure out how to change this value to the expected MAINNET chainspec value during testing.
+	weiPerGwei := big.NewInt(1e9)
+
 	// This value is determined by the MIN_DEPOSIT_AMOUNT_IN_GWEI variable from the deposit contract.
-	ContractMinDepositAmountWei := big.NewInt(1e9 * 1e9)
-	DepositAmountWei := new(big.Int).Mul(ContractMinDepositAmountWei, big.NewInt(10))
-	DepositAmountGwei := new(big.Int).Div(DepositAmountWei, WeiPerGwei)
+	contractMinDepositAmountWei := big.NewInt(1e9 * 1e9)
+	depositAmountWei := new(big.Int).Mul(contractMinDepositAmountWei, big.NewInt(10))
+	depositAmountGwei := new(big.Int).Div(depositAmountWei, weiPerGwei)
 
 	// Our deposits should be greater than the min deposit amount.
-	s.Require().Equal(1, DepositAmountWei.Cmp(ContractMinDepositAmountWei))
+	s.Require().Equal(1, depositAmountWei.Cmp(contractMinDepositAmountWei))
 
 	s.Require().Equal(
 		0, int(NumDepositsLoad%config.NumValidators),
@@ -119,15 +118,15 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 
 	// Grab pre-state data for each validator.
 	validators := make([]*ValidatorTestStruct, config.NumValidators)
-	var idx uint64 = 0
+	var idx uint64
 	for name, client := range s.ConsensusClients() {
-		power, err := client.GetConsensusPower(s.Ctx())
-		s.Require().NoError(err)
+		power, cErr := client.GetConsensusPower(s.Ctx())
+		s.Require().NoError(cErr)
 
 		creds := [32]byte(vals[phase0.ValidatorIndex(idx)].Validator.WithdrawalCredentials)
 		withdrawalAddress := gethcommon.Address(creds[12:])
-		withdrawalBalance, err := s.JSONRPCBalancer().BalanceAt(s.Ctx(), withdrawalAddress, nil)
-		s.Require().NoError(err)
+		withdrawalBalance, jErr := s.JSONRPCBalancer().BalanceAt(s.Ctx(), withdrawalAddress, nil)
+		s.Require().NoError(jErr)
 
 		// Populate the validators testing struct so we can keep track of the pre-state.
 		validators[idx] = &ValidatorTestStruct{
@@ -165,7 +164,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 		clientPubkey []byte
 		pk           *bls12381.PubKey
 		signature    [96]byte
-		value        = DepositAmountWei
+		value        = depositAmountWei
 		signer       = sender.SignerFunc(chainID)
 		from         = sender.Address()
 	)
@@ -222,7 +221,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	s.Require().NoError(err)
 
 	// Check that the eth spent is somewhere~ (gas) between
-	// (DepositAmountWei * NumDepositsLoad, DepositAmountWei * NumDepositsLoad + 2ether)
+	// (depositAmountWei * NumDepositsLoad, depositAmountWei * NumDepositsLoad + 2ether)
 	lowerBound := new(big.Int).Mul(value, new(big.Int).SetUint64(NumDepositsLoad))
 	upperBound := new(big.Int).Add(lowerBound, big.NewInt(2e18))
 	amtSpent := new(big.Int).Sub(balance, postDepositBalance)
@@ -231,7 +230,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	s.Require().Equal(-1, amtSpent.Cmp(upperBound), "amount spent is greater than upper bound")
 
 	// Check that all validators' voting power have increased by
-	// (NumDepositsLoad / NumValidators) * DepositAmountWei
+	// (NumDepositsLoad / NumValidators) * depositAmountWei
 	// after the end of the epoch (next multiple of SlotsPerEpoch after receipt.BlockNumber).
 	blkNum, err = s.JSONRPCBalancer().BlockNumber(s.Ctx())
 	s.Require().NoError(err)
@@ -239,14 +238,14 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	err = s.WaitForFinalizedBlockNumber(nextEpochBlockNum + 1)
 	s.Require().NoError(err)
 
-	increaseAmt := new(big.Int).Mul(DepositAmountGwei, big.NewInt(int64(NumDepositsLoad/config.NumValidators)))
+	increaseAmt := new(big.Int).Mul(depositAmountGwei, big.NewInt(int64(NumDepositsLoad/config.NumValidators)))
 
 	for _, val := range validators {
 		// TODO: Make this go over the MaxEffectiveBalance
 		// Get the validator powers for each validator and check that they increased by the expected amount.
 		// Consensus Power is in Gwei.
-		powerAfterRaw, err := val.Client.GetConsensusPower(s.Ctx())
-		s.Require().NoError(err)
+		powerAfterRaw, cErr := val.Client.GetConsensusPower(s.Ctx())
+		s.Require().NoError(cErr)
 		powerAfter := new(big.Int).SetUint64(powerAfterRaw)
 		powerDiff := new(big.Int).Sub(powerAfter, val.Power)
 
@@ -255,11 +254,11 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 		withdrawalAddress := gethcommon.Address(val.WithdrawalCredentials[12:])
 
 		// Make sure the total withdrawal and power adds up to the amount deposited.
-		withdrawalBalanceAfter, err := s.JSONRPCBalancer().BalanceAt(s.Ctx(), withdrawalAddress, nil)
-		s.Require().NoError(err)
+		withdrawalBalanceAfter, jErr := s.JSONRPCBalancer().BalanceAt(s.Ctx(), withdrawalAddress, nil)
+		s.Require().NoError(jErr)
 
 		withdrawalDiff := new(big.Int).Sub(withdrawalBalanceAfter, val.WithdrawalBalance)
-		withdrawalDiff.Div(withdrawalDiff, WeiPerGwei)
+		withdrawalDiff.Div(withdrawalDiff, weiPerGwei)
 
 		// TODO: currently the kurtosis devnet sets the withdrawal address the same for all NumValidators validators.
 		// For the validator that contains this address, we validate that the balance is NumValidators times larger than

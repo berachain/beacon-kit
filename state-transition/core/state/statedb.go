@@ -22,7 +22,7 @@ package state
 
 import (
 	"context"
-	"fmt"
+
 	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -140,7 +140,6 @@ func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 	// Iterate through indices to find the next validators to withdraw.
 	for range bound {
 		validator, err = s.ValidatorByIndex(validatorIndex)
-		fmt.Println("withdrawal check:", validatorIndex)
 		if err != nil {
 			return nil, err
 		}

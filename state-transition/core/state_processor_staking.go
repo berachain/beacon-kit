@@ -80,7 +80,6 @@ func (sp *StateProcessor[_]) processDeposit(st *state.StateDB, dep *ctypes.Depos
 		"Processed deposit to set Eth 1 deposit index",
 		"previous", eth1DepositIndex, "new", eth1DepositIndex+1,
 	)
-	sp.logger.Info("Processed deposit with creds", "creds", dep.Credentials)
 	if err = sp.applyDeposit(st, dep); err != nil {
 		return fmt.Errorf("failed to apply deposit: %w", err)
 	}
@@ -90,7 +89,6 @@ func (sp *StateProcessor[_]) processDeposit(st *state.StateDB, dep *ctypes.Depos
 // applyDeposit processes the deposit and ensures it matches the local state.
 func (sp *StateProcessor[_]) applyDeposit(st *state.StateDB, dep *ctypes.Deposit) error {
 	idx, err := st.ValidatorIndexByPubkey(dep.GetPubkey())
-	sp.logger.Info("Processing deposit", "pubkey", dep.GetPubkey(), "index", idx, "depIdx", dep.GetIndex())
 	if err != nil {
 		sp.logger.Info("Validator does not exist so creating",
 			"pubkey", dep.GetPubkey(), "index", dep.GetIndex(), "deposit_amount", dep.GetAmount())

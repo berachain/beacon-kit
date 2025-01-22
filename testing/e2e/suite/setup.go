@@ -389,7 +389,7 @@ func (s *KurtosisE2ESuite) TearDownSuite() {
 		s.Require().Nil(res.ExecutionError, "Error stopping consensus client")
 		s.Require().Empty(res.ValidationErrors, "Error stopping consensus client")
 	}
-	//s.Require().NoError(s.kCtx.DestroyEnclave(s.ctx, "e2e-test-enclave"))
+	s.Require().NoError(s.kCtx.DestroyEnclave(s.ctx, "e2e-test-enclave"))
 }
 
 // CheckForSuccessfulTx returns true if the transaction was successful.
