@@ -56,18 +56,6 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 		"every validator must get an equal amount of deposits",
 	)
 
-	// Get the consensus clients.
-	client0 := s.ConsensusClients()[config.ClientValidator0]
-	s.Require().NotNil(client0)
-	client1 := s.ConsensusClients()[config.ClientValidator1]
-	s.Require().NotNil(client1)
-	client2 := s.ConsensusClients()[config.ClientValidator2]
-	s.Require().NotNil(client2)
-	client3 := s.ConsensusClients()[config.ClientValidator3]
-	s.Require().NotNil(client3)
-	client4 := s.ConsensusClients()[config.ClientValidator4]
-	s.Require().NotNil(client4)
-
 	// // Check the validators' current voting power.
 	// power0, err := client0.GetConsensusPower(s.Ctx())
 	// s.Require().NoError(err)
@@ -80,21 +68,8 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	// power4, err := client4.GetConsensusPower(s.Ctx())
 	// s.Require().NoError(err)
 
-	// Sender account
-	sender := s.TestAccounts()[0]
-
-	// Get the block num
-	blkNum, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
-	s.Require().NoError(err)
-
 	// Get the chain ID.
 	chainID, err := s.JSONRPCBalancer().ChainID(s.Ctx())
-	s.Require().NoError(err)
-
-	// Get original evm balance
-	balance, err := s.JSONRPCBalancer().BalanceAt(
-		s.Ctx(), sender.Address(), new(big.Int).SetUint64(blkNum),
-	)
 	s.Require().NoError(err)
 
 	// Bind the deposit contract.
@@ -103,6 +78,48 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	dc, err := deposit.NewDepositContract(depositContractAddress, s.JSONRPCBalancer())
 	s.Require().NoError(err)
 
+	// Check deposit count at genesis
+	depositCount, err := dc.DepositCount(&bind.CallOpts{
+		BlockNumber: big.NewInt(0),
+	})
+	s.Require().NoError(err)
+
+	s.Require().Equal(uint64(config.NumValidators), depositCount,
+		"initial deposit count should match number of validators")
+
+	// Check genesis deposits root
+	genesisRoot, err := dc.GenesisDepositsRoot(&bind.CallOpts{
+		BlockNumber: big.NewInt(0),
+	})
+	s.Require().NoError(err)
+	s.Require().Len(genesisRoot[:], 32, "deposits root should be 32 bytes")
+
+	// TODO: Compare with HashTreeRoot of genesis deposits
+
+	// Get the consensus clients.
+	client0 := s.ConsensusClients()[config.ClientValidator0]
+	s.Require().NotNil(client0)
+	client1 := s.ConsensusClients()[config.ClientValidator1]
+	s.Require().NotNil(client1)
+	client2 := s.ConsensusClients()[config.ClientValidator2]
+	s.Require().NotNil(client2)
+	client3 := s.ConsensusClients()[config.ClientValidator3]
+	s.Require().NotNil(client3)
+	client4 := s.ConsensusClients()[config.ClientValidator4]
+	s.Require().NotNil(client4)
+
+	// Sender account
+	sender := s.TestAccounts()[0]
+
+	// Get the block num
+	blkNum, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
+	s.Require().NoError(err)
+
+	// Get original evm balance
+	balance, err := s.JSONRPCBalancer().BalanceAt(
+		s.Ctx(), sender.Address(), new(big.Int).SetUint64(blkNum),
+	)
+	s.Require().NoError(err)
 	// Get the nonce.
 
 	nonce, err := s.JSONRPCBalancer().NonceAt(
