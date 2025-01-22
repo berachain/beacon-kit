@@ -34,6 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/primitives/version"
+	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	"github.com/stretchr/testify/require"
 )
 
@@ -41,7 +42,7 @@ import (
 // updated (increasing amount), corresponding balance is updated.
 func TestTransitionUpdateValidators(t *testing.T) {
 	cs := setupChain(t, components.BetnetChainSpecType)
-	sp, st, ds, ctx := setupState(t, cs)
+	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
 
 	var (
 		maxBalance       = math.Gwei(cs.MaxEffectiveBalance())
@@ -192,7 +193,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 func TestTransitionCreateValidator(t *testing.T) {
 	// Create state processor to test
 	cs := setupChain(t, components.BetnetChainSpecType)
-	sp, st, ds, ctx := setupState(t, cs)
+	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
 
 	var (
 		maxBalance       = math.Gwei(cs.MaxEffectiveBalance())
@@ -389,7 +390,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 
 func TestTransitionWithdrawals(t *testing.T) {
 	cs := setupChain(t, components.BoonetChainSpecType)
-	sp, st, ds, ctx := setupState(t, cs)
+	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
 
 	var (
 		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
@@ -480,7 +481,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	cs, err := chain.NewSpec(csData)
 	require.NoError(t, err)
 
-	sp, st, ds, ctx := setupState(t, cs)
+	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
 
 	var (
 		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
@@ -617,7 +618,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 // and its deposit is returned at after next epoch starts.
 func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	cs := setupChain(t, components.BetnetChainSpecType)
-	sp, st, ds, ctx := setupState(t, cs)
+	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
 
 	var (
 		maxBalance      = math.Gwei(cs.MaxEffectiveBalance())
@@ -847,7 +848,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 //nolint:maintidx // Okay for test.
 func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	cs := setupChain(t, components.BetnetChainSpecType)
-	sp, st, ds, ctx := setupState(t, cs)
+	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
 
 	var (
 		maxBalance      = math.Gwei(cs.MaxEffectiveBalance())
@@ -1136,7 +1137,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 
 func TestValidatorNotWithdrawable(t *testing.T) {
 	cs := setupChain(t, components.BetnetChainSpecType)
-	sp, st, ds, ctx := setupState(t, cs)
+	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
 
 	var (
 		belowActiveBalance = math.Gwei(cs.EjectionBalance())

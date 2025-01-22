@@ -30,12 +30,13 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
+	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	"github.com/stretchr/testify/require"
 )
 
 func TestInitialize(t *testing.T) {
 	cs := setupChain(t, components.BetnetChainSpecType)
-	sp, st, _, _ := setupState(t, cs)
+	sp, st, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
 		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
@@ -158,7 +159,7 @@ func TestInitialize(t *testing.T) {
 func checkValidator(
 	t *testing.T,
 	cs chain.Spec,
-	bs *TestBeaconStateT,
+	bs *statetransition.TestBeaconStateT,
 	dep *types.Deposit,
 ) {
 	t.Helper()
