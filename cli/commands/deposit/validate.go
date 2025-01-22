@@ -94,16 +94,16 @@ func validateDepositMessage(chainSpec chain.Spec) func(
 			return err
 		}
 
-		return ValidateDeposit(chainSpec, pubkey, genesisValidatorRoot, credentials, amount, signature)
+		return ValidateDeposit(chainSpec, pubkey, credentials, amount, genesisValidatorRoot, signature)
 	}
 }
 
 func ValidateDeposit(
 	cs chain.Spec,
 	pubkey crypto.BLSPubkey,
-	genValRoot common.Root,
 	creds types.WithdrawalCredentials,
 	amount math.Gwei,
+	genValRoot common.Root,
 	signature crypto.BLSSignature,
 ) error {
 	depositMessage := types.DepositMessage{
