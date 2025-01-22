@@ -25,12 +25,18 @@ import (
 	"github.com/berachain/beacon-kit/cli/utils/genesis"
 	"github.com/berachain/beacon-kit/cli/utils/parser"
 	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
+)
+
+const (
+	minArgsValidateDeposit = 4
+	maxArgsValidateDeposit = 5
 )
 
 // Commands creates a new command for deposit related actions.
@@ -61,7 +67,7 @@ func NewValidateDeposit(chainSpec chain.Spec) *cobra.Command {
 		Use:   "validate [pubkey] [withdrawal-credentials] [amount] [signature] ?[genesis-validator-root]",
 		Short: "Validates a deposit message for creating a new validator",
 		Long:  `Validates a deposit message (public key, withdrawal credentials, deposit amount) for creating a new validator. The args taken are in the order of the public key, withdrawal credentials, deposit amount, signature, and optionally a genesis validator root. If the genesis file flag is NOT set, the genesis validator root MUST be provided as an argument.`,
-		Args:  cobra.RangeArgs(4, 5), //nolint:mnd // The number of arguments.
+		Args:  cobra.RangeArgs(minArgsValidateDeposit, maxArgsValidateDeposit),
 		RunE:  validateDepositMessage(chainSpec),
 	}
 
@@ -112,6 +118,11 @@ func validateDepositMessage(chainSpec chain.Spec) func(
 				return err
 			}
 		} else {
+			if len(args) < maxArgsValidateDeposit {
+				return errors.New(
+					"genesis validator root is required if not using the genesis file flag",
+				)
+			}
 			genesisValidatorRoot, err = parser.ConvertGenesisValidatorRoot(args[4])
 			if err != nil {
 				return err
