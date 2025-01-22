@@ -27,6 +27,8 @@ import (
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
+	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/spf13/cobra"
 )
@@ -92,20 +94,31 @@ func validateDepositMessage(chainSpec chain.Spec) func(
 			return err
 		}
 
-		depositMessage := types.DepositMessage{
-			Pubkey:      pubkey,
-			Credentials: credentials,
-			Amount:      amount,
-		}
-
-		// All deposits are signed with the genesis version.
-		genesisVersion := version.FromUint32[common.Version](constants.GenesisVersion)
-
-		return depositMessage.VerifyCreateValidator(
-			types.NewForkData(genesisVersion, genesisValidatorRoot),
-			signature,
-			chainSpec.DomainTypeDeposit(),
-			signer.BLSSigner{}.VerifySignature,
-		)
+		return ValidateDeposit(chainSpec, pubkey, genesisValidatorRoot, credentials, amount, signature)
 	}
+}
+
+func ValidateDeposit(
+	cs chain.Spec,
+	pubkey crypto.BLSPubkey,
+	genValRoot common.Root,
+	creds types.WithdrawalCredentials,
+	amount math.Gwei,
+	signature crypto.BLSSignature,
+) error {
+	depositMessage := types.DepositMessage{
+		Pubkey:      pubkey,
+		Credentials: creds,
+		Amount:      amount,
+	}
+
+	// All deposits are signed with the genesis version.
+	genesisVersion := version.FromUint32[common.Version](constants.GenesisVersion)
+
+	return depositMessage.VerifyCreateValidator(
+		types.NewForkData(genesisVersion, genValRoot),
+		signature,
+		cs.DomainTypeDeposit(),
+		signer.BLSSigner{}.VerifySignature,
+	)
 }
