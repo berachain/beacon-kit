@@ -66,7 +66,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	dc, err := deposit.NewDepositContract(depositContractAddress, s.JSONRPCBalancer())
 	s.Require().NoError(err)
 
-	// Check deposit count at genesis
+	// Enforce the deposit count at genesis is equal to the number of validators.
 	depositCount, err := dc.DepositCount(&bind.CallOpts{
 		BlockNumber: big.NewInt(0),
 	})
@@ -75,14 +75,14 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	s.Require().Equal(uint64(config.NumValidators), depositCount,
 		"initial deposit count should match number of validators")
 
-	// Check genesis deposits root
+	// Check that the genesis deposits root is not empty. It is important that this value is
+	// consistent across all EL nodes to ensure the EL has a consistent view of the CL deposits
+	// at genesis. If the EL chain progresses past the genesis block, this is guaranteed.
 	genesisRoot, err := dc.GenesisDepositsRoot(&bind.CallOpts{
 		BlockNumber: big.NewInt(0),
 	})
 	s.Require().NoError(err)
-	s.Require().Len(genesisRoot[:], 32, "deposits root should be 32 bytes")
-
-	// TODO: Compare with HashTreeRoot of genesis deposits
+	s.Require().False(genesisRoot == [32]byte{})
 
 	// Get the consensus clients.
 	client0 := s.ConsensusClients()[config.ClientValidator0]
