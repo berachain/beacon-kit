@@ -77,10 +77,7 @@ func GetGenesisValidatorRootCmd(cs chain.Spec) *cobra.Command {
 }
 
 func ValidatorsRoot(deposits types.Deposits, cs chain.Spec) common.Root {
-	depositCount := uint64(len(deposits))
-	validators := make(types.Validators, depositCount)
-
-	// mimic processGenesisActivation
+	validators := make(types.Validators, len(deposits))
 	minEffectiveBalance := math.Gwei(cs.EjectionBalance() + cs.EffectiveBalanceIncrement())
 
 	for i, deposit := range deposits {
@@ -92,6 +89,7 @@ func ValidatorsRoot(deposits types.Deposits, cs chain.Spec) common.Root {
 			math.Gwei(cs.MaxEffectiveBalance()),
 		)
 
+		// mimic processGenesisActivation
 		if val.GetEffectiveBalance() >= minEffectiveBalance {
 			val.SetActivationEligibilityEpoch(0)
 			val.SetActivationEpoch(0)
