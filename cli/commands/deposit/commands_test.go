@@ -24,6 +24,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"testing/quick"
 
 	"github.com/berachain/beacon-kit/cli/commands/deposit"
 	"github.com/berachain/beacon-kit/config/spec"
@@ -39,9 +40,13 @@ import (
 )
 
 func TestCreateAndValidateCommandsDuality(t *testing.T) {
+	qc := &quick.Config{MaxCount: 100}
+
 	cs, err := spec.MainnetChainSpec()
 	require.NoError(t, err)
 
+	// create a tmp folder where test stores bls keys and
+	// overwrite relevant files across test cases
 	tmpFolder := t.TempDir()
 
 	cometCfg := cmtcfg.DefaultConfig()
@@ -50,24 +55,32 @@ func TestCreateAndValidateCommandsDuality(t *testing.T) {
 	require.NoError(t, os.MkdirAll(filepath.Dir(cometCfg.PrivValidatorKeyFile()), 0o777))
 	require.NoError(t, os.MkdirAll(filepath.Dir(cometCfg.PrivValidatorStateFile()), 0o777))
 
-	for i := 1; i < 10; i++ {
+	f := func(
+		blsKeySecret [32]byte,
+		genValRoot common.Root,
+		creds types.WithdrawalCredentials,
+		amount math.Gwei,
+	) bool {
+		// generate random blsKey from the given secret
 		var privKey *cmtbls12381.PrivKey
-		privKey, err = cmtbls12381.GenPrivKey()
+		privKey, err = cmtbls12381.GenPrivKeyFromSecret(blsKeySecret[:])
 		require.NoError(t, err)
 
+		// update relevant files and create corresponding blsSigner
 		pv := privval.NewFilePV(privKey, cometCfg.PrivValidatorKeyFile(), cometCfg.PrivValidatorStateFile())
 		pv.Save()
-
 		blsSigner := signer.NewBLSSigner(cometCfg.PrivValidatorKeyFile(), cometCfg.PrivValidatorStateFile())
-		genValRoot := common.Root{}
-		creds := types.WithdrawalCredentials{}
-		amount := math.Gwei(2025)
 
-		var msg *types.DepositMessage
-		var sign crypto.BLSSignature
+		// create the deposit and check that it verifies
+		var (
+			msg  *types.DepositMessage
+			sign crypto.BLSSignature
+		)
 		msg, sign, err = deposit.CreateDepositMessage(cs, blsSigner, genValRoot, creds, amount)
 		require.NoError(t, err)
 
-		require.NoError(t, deposit.ValidateDeposit(cs, msg.Pubkey, msg.Credentials, msg.Amount, genValRoot, sign))
+		return deposit.ValidateDeposit(cs, msg.Pubkey, msg.Credentials, msg.Amount, genValRoot, sign) == nil
 	}
+
+	require.NoError(t, quick.Check(f, qc))
 }
