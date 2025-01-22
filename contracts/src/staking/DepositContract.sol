@@ -17,8 +17,8 @@ contract DepositContract is IDepositContract, ERC165 {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @dev The minimum amount of `BERA` to deposit.
-    /// @dev This is 1 ether in Gwei since our deposit contract denominates in Gwei. 1e9 * 1e9 = 1e18.
-    uint64 internal constant MIN_DEPOSIT_AMOUNT_IN_GWEI = 1e9;
+    /// @dev This is 10000 Gwei since our deposit contract denominates in Gwei. 10000 * 1e9 = 1e13.
+    uint64 internal constant MIN_DEPOSIT_AMOUNT_IN_GWEI = 10000;
 
     /// @dev The length of the public key, PUBLIC_KEY_LENGTH bytes.
     uint8 internal constant PUBLIC_KEY_LENGTH = 48;

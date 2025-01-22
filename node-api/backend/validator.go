@@ -21,6 +21,7 @@
 package backend
 
 import (
+	"fmt"
 	"github.com/berachain/beacon-kit/node-api/backend/utils"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -54,7 +55,7 @@ func (b Backend) ValidatorByID(
 			Balance: balance.Unwrap(),
 		},
 		Status:    "active_ongoing", // TODO: fix
-		Validator: validator,
+		Validator: beacontypes.ValidatorFromConsensus(validator),
 	}, nil
 }
 
@@ -68,6 +69,8 @@ func (b Backend) ValidatorsByIDs(
 		// query and then filtering but blocked by the fact that IDs
 		// can be indices and the hard type only holds its own pubkey.
 		validatorData, err := b.ValidatorByID(slot, id)
+		fmt.Println("DEBUG: Grabbing validator for id", id, validatorData)
+		fmt.Println("DEBUG: validator:", validatorData.Validator)
 		if err != nil {
 			return nil, err
 		}

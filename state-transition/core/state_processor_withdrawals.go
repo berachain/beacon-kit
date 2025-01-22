@@ -83,6 +83,10 @@ func (sp *StateProcessor[_]) processWithdrawals(
 				spew.Sdump(payloadWithdrawals[i]),
 			)
 		}
+		sp.logger.Info("Processing withdrawal",
+			"address", expectedWithdrawals[i].Address,
+			"amount", expectedWithdrawals[i].Amount,
+		)
 
 		if err = st.DecreaseBalance(
 			expectedWithdrawals[i].GetValidatorIndex(), expectedWithdrawals[i].GetAmount(),

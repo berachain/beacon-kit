@@ -22,6 +22,9 @@ package e2e_test
 
 import (
 	"fmt"
+	"github.com/attestantio/go-eth2-client/api"
+	"github.com/attestantio/go-eth2-client/spec/phase0"
+	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
 	"math/big"
 
 	"github.com/berachain/beacon-kit/config/spec"
@@ -35,16 +38,21 @@ import (
 
 const (
 	// NumDepositsLoad is the number of deposits to load in the Deposit Robustness e2e test.
-	NumDepositsLoad uint64 = 500
-
-	// DepositAmount is the amount of BERA to deposit.
-	DepositAmount = 32e18
-
-	MaxEffectiveBalance = 32e9
+	NumDepositsLoad uint64 = 20
 
 	// BlocksToWait is the number of blocks to wait for the nodes to catch up.
 	BlocksToWait = 10
 )
+
+// Contains pre-test state for validator info to facilitate validation of the post-state.
+type ValidatorTestStruct struct {
+	Index                 uint64
+	Power                 *big.Int
+	WithdrawalBalance     *big.Int
+	WithdrawalCredentials [32]byte
+	Name                  string
+	Client                *types.ConsensusClient
+}
 
 // TestDepositRobustness tests sending a large number of deposits txs to the Deposit Contract.
 // Then it checks whether all the validators' voting power have increased by the correct amount.
@@ -54,6 +62,20 @@ const (
 // 2) Add staking tests for adding a new validator to the network.
 // 3) Add staking tests for hitting the validator set cap and eviction.
 func (s *BeaconKitE2ESuite) TestDepositRobustness() {
+	chainspec, err := spec.DevnetChainSpec()
+	s.Require().NoError(err)
+	WeiPerGwei := big.NewInt(1e9)
+
+	// TODO Figure out how to change this value to the expected MAINNET chainspec value during testing.
+	// This value is determined by the MIN_DEPOSIT_AMOUNT_IN_GWEI variable from the deposit contract.
+	ContractMinDepositAmountWei := big.NewInt(1e9 * 1e9)
+	DepositAmountWei := new(big.Int).Mul(ContractMinDepositAmountWei, big.NewInt(2))
+	DepositAmountGwei := new(big.Int).Div(DepositAmountWei, WeiPerGwei)
+	MaxEffectiveBalanceGwei := new(big.Int).SetUint64(chainspec.MaxEffectiveBalance())
+
+	// Our deposits should be greater than the min deposit amount.
+	s.Require().Equal(1, DepositAmountWei.Cmp(ContractMinDepositAmountWei))
+
 	s.Require().Equal(
 		0, int(NumDepositsLoad%config.NumValidators),
 		"every validator must get an equal amount of deposits",
@@ -87,55 +109,43 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 
 	// TODO: Compare with HashTreeRoot of genesis deposits
 
-	// Get the consensus clients.
-	client0 := s.ConsensusClients()[config.ClientValidator0]
-	s.Require().NotNil(client0)
-	client1 := s.ConsensusClients()[config.ClientValidator1]
-	s.Require().NotNil(client1)
-	client2 := s.ConsensusClients()[config.ClientValidator2]
-	s.Require().NotNil(client2)
-	client3 := s.ConsensusClients()[config.ClientValidator3]
-	s.Require().NotNil(client3)
-	client4 := s.ConsensusClients()[config.ClientValidator4]
-	s.Require().NotNil(client4)
+	apiClient := s.ConsensusClients()[config.ClientValidator0]
 
-	// // Check the validators' current voting power.
-	// power0, err := client0.GetConsensusPower(s.Ctx())
-	// s.Require().NoError(err)
-	// power1, err := client1.GetConsensusPower(s.Ctx())
-	// s.Require().NoError(err)
-	// power2, err := client2.GetConsensusPower(s.Ctx())
-	// s.Require().NoError(err)
-	// power3, err := client3.GetConsensusPower(s.Ctx())
-	// s.Require().NoError(err)
-	// power4, err := client4.GetConsensusPower(s.Ctx())
-	// s.Require().NoError(err)
+	// Grab genesis validators to get withdrawal creds.
+	s.Require().NoError(apiClient.Connect(s.Ctx()))
+	response, err := apiClient.BeaconKitNodeClient.Validators(s.Ctx(), &api.ValidatorsOpts{
+		State:   "genesis",
+		Indices: []phase0.ValidatorIndex{0, 1, 2, 3, 4},
+	})
+	s.Require().NoError(err)
+	vals := response.Data
+	s.Require().Len(vals, config.NumValidators)
+	s.Require().Len(s.ConsensusClients(), config.NumValidators)
 
-	credentials0 := [32]byte{1, 0}
-	withdrawalAddress0 := gethcommon.Address(credentials0[12:])
-	withdrawalBalance0Before, err := s.JSONRPCBalancer().BalanceAt(s.Ctx(), withdrawalAddress0, nil)
-	s.Require().NoError(err)
-	fmt.Println(withdrawalBalance0Before)
-	credentials1 := [32]byte{1, 1}
-	withdrawalAddress1 := gethcommon.Address(credentials1[12:])
-	withdrawalBalance1Before, err := s.JSONRPCBalancer().BalanceAt(s.Ctx(), withdrawalAddress1, nil)
-	s.Require().NoError(err)
-	fmt.Println(withdrawalBalance1Before)
-	credentials2 := [32]byte{1, 2}
-	withdrawalAddress2 := gethcommon.Address(credentials2[12:])
-	withdrawalBalance2Before, err := s.JSONRPCBalancer().BalanceAt(s.Ctx(), withdrawalAddress2, nil)
-	s.Require().NoError(err)
-	fmt.Println(withdrawalBalance2Before)
-	credentials3 := [32]byte{1, 3}
-	withdrawalAddress3 := gethcommon.Address(credentials3[12:])
-	withdrawalBalance3Before, err := s.JSONRPCBalancer().BalanceAt(s.Ctx(), withdrawalAddress3, nil)
-	s.Require().NoError(err)
-	fmt.Println(withdrawalBalance3Before)
-	credentials4 := [32]byte{1, 4}
-	withdrawalAddress4 := gethcommon.Address(credentials4[12:])
-	withdrawalBalance4Before, err := s.JSONRPCBalancer().BalanceAt(s.Ctx(), withdrawalAddress4, nil)
-	s.Require().NoError(err)
-	fmt.Println(withdrawalBalance4Before)
+	// Grab pre-state data for each validator.
+	validators := make([]*ValidatorTestStruct, config.NumValidators)
+	var idx uint64 = 0
+	for name, client := range s.ConsensusClients() {
+		power, err := client.GetConsensusPower(s.Ctx())
+		s.Require().NoError(err)
+
+		creds := [32]byte(vals[phase0.ValidatorIndex(idx)].Validator.WithdrawalCredentials)
+		withdrawalAddress := gethcommon.Address(creds[12:])
+		withdrawalBalance, err := s.JSONRPCBalancer().BalanceAt(s.Ctx(), withdrawalAddress, nil)
+		s.Require().NoError(err)
+		fmt.Println(withdrawalBalance)
+
+		// Populate the validators testing struct so we can keep track of the pre-state.
+		validators[idx] = &ValidatorTestStruct{
+			Index:                 idx,
+			Power:                 new(big.Int).SetUint64(power),
+			WithdrawalBalance:     withdrawalBalance,
+			WithdrawalCredentials: creds,
+			Name:                  name,
+			Client:                client,
+		}
+		idx++
+	}
 
 	// Sender account
 	sender := s.TestAccounts()[0]
@@ -149,8 +159,8 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 		s.Ctx(), sender.Address(), new(big.Int).SetUint64(blkNum),
 	)
 	s.Require().NoError(err)
-	// Get the nonce.
 
+	// Get the nonce.
 	nonce, err := s.JSONRPCBalancer().NonceAt(
 		s.Ctx(), sender.Address(), new(big.Int).SetUint64(blkNum),
 	)
@@ -160,31 +170,15 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 		tx           *coretypes.Transaction
 		clientPubkey []byte
 		pk           *bls12381.PubKey
-		credentials  [32]byte
 		signature    [96]byte
-		value, _     = big.NewFloat(DepositAmount).Int(nil)
+		value        = DepositAmountWei
 		signer       = sender.SignerFunc(chainID)
 		from         = sender.Address()
 	)
 	for i := range NumDepositsLoad {
 		// Create a deposit transaction using the default validators' pubkeys.
-		switch i % config.NumValidators {
-		case 0:
-			clientPubkey, err = client0.GetPubKey(s.Ctx())
-			credentials = credentials0
-		case 1:
-			clientPubkey, err = client1.GetPubKey(s.Ctx())
-			credentials = credentials1
-		case 2:
-			clientPubkey, err = client2.GetPubKey(s.Ctx())
-			credentials = credentials2
-		case 3:
-			clientPubkey, err = client3.GetPubKey(s.Ctx())
-			credentials = credentials3
-		case 4:
-			clientPubkey, err = client4.GetPubKey(s.Ctx())
-			credentials = credentials4
-		}
+		curVal := validators[i%config.NumValidators]
+		clientPubkey, err = curVal.Client.GetPubKey(s.Ctx())
 		s.Require().NoError(err)
 		pk, err = bls12381.NewPublicKeyFromBytes(clientPubkey)
 		s.Require().NoError(err)
@@ -203,9 +197,9 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 			Nonce:    new(big.Int).SetUint64(nonce + i),
 			GasLimit: 1000000,
 			Context:  s.Ctx(),
-		}, pubkey, credentials[:], signature[:], operator)
+		}, pubkey, curVal.WithdrawalCredentials[:], signature[:], operator)
 		s.Require().NoError(err)
-		s.Logger().Info("Deposit tx created", "num", i+1, "hash", tx.Hash().Hex())
+		s.Logger().Info("Deposit tx created", "num", i+1, "hash", tx.Hash().Hex(), "value", value)
 	}
 
 	// Wait for the final deposit tx to be mined.
@@ -223,9 +217,9 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	s.Require().NoError(err)
 
 	// Compare height of nodes 0 and 1
-	height, err := client0.ABCIInfo(s.Ctx())
+	height, err := validators[0].Client.ABCIInfo(s.Ctx())
 	s.Require().NoError(err)
-	height2, err := client1.ABCIInfo(s.Ctx())
+	height2, err := validators[1].Client.ABCIInfo(s.Ctx())
 	s.Require().NoError(err)
 	s.Require().InDelta(height.Response.LastBlockHeight, height2.Response.LastBlockHeight, 1)
 
@@ -234,7 +228,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	s.Require().NoError(err)
 
 	// Check that the eth spent is somewhere~ (gas) between
-	// (DepositAmount * NumDepositsLoad, DepositAmount * NumDepositsLoad + 2ether)
+	// (DepositAmountWei * NumDepositsLoad, DepositAmountWei * NumDepositsLoad + 2ether)
 	lowerBound := new(big.Int).Mul(value, new(big.Int).SetUint64(NumDepositsLoad))
 	upperBound := new(big.Int).Add(lowerBound, big.NewInt(2e18))
 	amtSpent := new(big.Int).Sub(balance, postDepositBalance)
@@ -244,44 +238,34 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 
 	// TODO: determine why voting power is not increasing above 32e9.
 	// Check that all validators' voting power have increased by
-	// (NumDepositsLoad / NumValidators) * DepositAmount
+	// (NumDepositsLoad / NumValidators) * DepositAmountWei
 	// after the end of the epoch (next multiple of 32 after receipt.BlockNumber).
 	nextEpochBlockNum := (receipt.BlockNumber.Uint64()/32 + 1) * 32
 	err = s.WaitForFinalizedBlockNumber(nextEpochBlockNum + 1)
 	s.Require().NoError(err)
 
-	// power0After, err := client0.GetConsensusPower(s.Ctx())
-	// s.Require().NoError(err)
-	// power1After, err := client1.GetConsensusPower(s.Ctx())
-	// s.Require().NoError(err)
-	// power2After, err := client2.GetConsensusPower(s.Ctx())
-	// s.Require().NoError(err)
-	// power3After, err := client3.GetConsensusPower(s.Ctx())
-	// s.Require().NoError(err)
-	// power4After, err := client4.GetConsensusPower(s.Ctx())
-	// s.Require().NoError(err)
+	// TODO: Substracting the first NumValidators deposits because those are getting
+	// overwritten due to deposit contract not being initialized during genesis.
+	depositsPerValidator := (NumDepositsLoad - config.NumValidators) / config.NumValidators
+	increaseAmt := new(big.Int).Mul(DepositAmountGwei, big.NewInt(int64(depositsPerValidator)))
 
-	increaseAmt := float64(NumDepositsLoad/config.NumValidators) * DepositAmount
-	// s.Require().Equal(power0+increaseAmt, power0After)
-	// s.Require().Equal(power1+increaseAmt, power1After)
-	// s.Require().Equal(power2+increaseAmt, power2After)
-	// s.Require().Equal(power3+increaseAmt, power3After)
-	// s.Require().Equal(power4+increaseAmt, power4After)
-	fmt.Println(increaseAmt)
+	fmt.Println("Max:", MaxEffectiveBalanceGwei.String())
+	for _, val := range validators {
+		// TODO: Make this go over the MaxEffectiveBalance
+		// Get the validator powers for each validator and check that they increased by the expected amount.
+		// Consensus Power is in Gwei.
+		powerAfterRaw, err := val.Client.GetConsensusPower(s.Ctx())
+		s.Require().NoError(err)
+		powerAfter := new(big.Int).SetUint64(powerAfterRaw)
+		fmt.Println("PowAft:", powerAfter.String())
+		fmt.Println("PowBef:", val.Power.String())
+		powerDiff := new(big.Int).Sub(powerAfter, val.Power)
+		s.Require().Equal(0, powerDiff.Cmp(increaseAmt))
 
-	withdrawalBalance0After, err := s.JSONRPCBalancer().BalanceAt(s.Ctx(), withdrawalAddress0, nil)
-	s.Require().NoError(err)
-	fmt.Println(withdrawalBalance0After)
-	withdrawalBalance1After, err := s.JSONRPCBalancer().BalanceAt(s.Ctx(), withdrawalAddress1, nil)
-	s.Require().NoError(err)
-	fmt.Println(withdrawalBalance1After)
-	withdrawalBalance2After, err := s.JSONRPCBalancer().BalanceAt(s.Ctx(), withdrawalAddress2, nil)
-	s.Require().NoError(err)
-	fmt.Println(withdrawalBalance2After)
-	withdrawalBalance3After, err := s.JSONRPCBalancer().BalanceAt(s.Ctx(), withdrawalAddress3, nil)
-	s.Require().NoError(err)
-	fmt.Println(withdrawalBalance3After)
-	withdrawalBalance4After, err := s.JSONRPCBalancer().BalanceAt(s.Ctx(), withdrawalAddress4, nil)
-	s.Require().NoError(err)
-	fmt.Println(withdrawalBalance4After)
+		// Grab the validator withdrawal balances and check that they increased by the expected amount.
+		withdrawalAddress := gethcommon.Address(val.WithdrawalCredentials[12:])
+		withdrawalBalanceAfter, err := s.JSONRPCBalancer().BalanceAt(s.Ctx(), withdrawalAddress, nil)
+		s.Require().NoError(err)
+		fmt.Println(withdrawalBalanceAfter)
+	}
 }
