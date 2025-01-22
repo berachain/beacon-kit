@@ -163,17 +163,16 @@ func CreateDepositMessage(
 		return nil, crypto.BLSSignature{}, fmt.Errorf("failed CreateAndSignDepositMessage: %w", err)
 	}
 
-	// Verify the deposit message.
-	if err = depositMsg.VerifyCreateValidator(
-		types.NewForkData(genesisVersion, genValRoot),
+	return depositMsg,
 		signature,
-		cs.DomainTypeDeposit(),
-		signer.BLSSigner{}.VerifySignature,
-	); err != nil {
-		return nil, crypto.BLSSignature{}, fmt.Errorf("failed VerifyCreateValidator: %w", err)
-	}
-
-	return depositMsg, signature, nil
+		ValidateDeposit(
+			cs,
+			depositMsg.Pubkey,
+			depositMsg.Credentials,
+			depositMsg.Amount,
+			genValRoot,
+			signature,
+		)
 }
 
 // getBLSSigner returns a BLS signer based on the override commands key flag.
