@@ -61,9 +61,9 @@ func GetValidatorRootFromFile(filepath string, cs chain.Spec) (common.Root, erro
 	}
 
 	depositCount := uint64(len(genesis.AppState.Beacon.Deposits))
-	validators := make(
-		types.Validators,
-		depositCount,
+	validators := make(types.Validators, depositCount)
+	minEffectiveBalance := math.Gwei(
+		cs.EjectionBalance() + cs.EffectiveBalanceIncrement(),
 	)
 	for i, deposit := range genesis.AppState.Beacon.Deposits {
 		val := types.NewValidatorFromDeposit(
@@ -73,6 +73,13 @@ func GetValidatorRootFromFile(filepath string, cs chain.Spec) (common.Root, erro
 			math.Gwei(cs.EffectiveBalanceIncrement()),
 			math.Gwei(cs.MaxEffectiveBalance()),
 		)
+
+		// mimic stateProcessor.processGenesisActivations
+		if val.GetEffectiveBalance() >= minEffectiveBalance {
+			val.SetActivationEligibilityEpoch(0)
+			val.SetActivationEpoch(0)
+		}
+
 		validators[i] = val
 	}
 
