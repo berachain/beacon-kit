@@ -40,10 +40,10 @@ import (
 )
 
 const (
-	createValWithdrawalAddrIdx = iota
-	createValDepAmtIdx         = iota
-	createValGenValRootIdx     = iota
-	createValArgsCount         = iota
+	createAddr0     = iota
+	createAmt1      = iota
+	createRoot2     = iota
+	createArgsCount = iota
 
 	privateKey      = "private-key" // does not look really used
 	overrideNodeKey = "override-node-key"
@@ -60,7 +60,7 @@ func NewCreateValidator(
 		Use:   "create-validator",
 		Short: "Creates a validator deposit",
 		Long:  `Creates a validator deposit with the necessary credentials. The arguments are expected in the order of withdrawal address, deposit amount, and genesis validator root. If the broadcast flag is set to true, a private key must be provided to sign the transaction.`,
-		Args:  cobra.ExactArgs(createValArgsCount),
+		Args:  cobra.ExactArgs(createArgsCount),
 		RunE:  createValidatorCmd(chainSpec),
 	}
 
@@ -99,20 +99,20 @@ func createValidatorCmd(
 			return err
 		}
 
-		withdrawalAddressStr := args[createValWithdrawalAddrIdx]
+		withdrawalAddressStr := args[createAddr0]
 		withdrawalAddress, err := parser.ConvertWithdrawalAddress(withdrawalAddressStr)
 		if err != nil {
 			return err
 		}
 		credentials := types.NewCredentialsFromExecutionAddress(withdrawalAddress)
 
-		amountStr := args[createValDepAmtIdx]
+		amountStr := args[createAmt1]
 		amount, err := parser.ConvertAmount(amountStr)
 		if err != nil {
 			return err
 		}
 
-		genValRootStr := args[createValGenValRootIdx]
+		genValRootStr := args[createRoot2]
 		genesisValidatorRoot, err := parser.ConvertGenesisValidatorRoot(genValRootStr)
 		if err != nil {
 			return err

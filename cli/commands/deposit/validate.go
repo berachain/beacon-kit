@@ -34,12 +34,12 @@ import (
 )
 
 const (
-	validateDepPubKeyIdx     = iota
-	validateDepCredsIdx      = iota
-	validateDepAmtIdx        = iota
-	validateDepSignIdx       = iota
-	validateDepGenValRootIdx = iota
-	validateDepArgsCount     = iota
+	validatePubKey0   = iota
+	validateCreds1    = iota
+	validateAmt2      = iota
+	validateSign3     = iota
+	validateRoot4     = iota
+	validateArgsCount = iota
 )
 
 // NewValidateDeposit creates a new command for validating a deposit message.
@@ -50,7 +50,7 @@ func NewValidateDeposit(chainSpec chain.Spec) *cobra.Command {
 		Use:   "validate",
 		Short: "Validates a deposit message for creating a new validator",
 		Long:  `Validates a deposit message for creating a new validator. The deposit message includes the public key, withdrawal credentials, and deposit amount. The args taken are in the order of the public key, withdrawal credentials, deposit amount, signature, and genesis validator root.`,
-		Args:  cobra.ExactArgs(validateDepArgsCount),
+		Args:  cobra.ExactArgs(validateArgsCount),
 		RunE:  validateDepositMessage(chainSpec),
 	}
 
@@ -64,31 +64,31 @@ func validateDepositMessage(chainSpec chain.Spec) func(
 	args []string,
 ) error {
 	return func(_ *cobra.Command, args []string) error {
-		pubKeyStr := args[validateDepPubKeyIdx]
+		pubKeyStr := args[validatePubKey0]
 		pubkey, err := parser.ConvertPubkey(pubKeyStr)
 		if err != nil {
 			return err
 		}
 
-		credsStr := args[validateDepCredsIdx]
+		credsStr := args[validateCreds1]
 		credentials, err := parser.ConvertWithdrawalCredentials(credsStr)
 		if err != nil {
 			return err
 		}
 
-		amountStr := args[validateDepAmtIdx]
+		amountStr := args[validateAmt2]
 		amount, err := parser.ConvertAmount(amountStr)
 		if err != nil {
 			return err
 		}
 
-		sigStr := args[validateDepSignIdx]
+		sigStr := args[validateSign3]
 		signature, err := parser.ConvertSignature(sigStr)
 		if err != nil {
 			return err
 		}
 
-		genValRootStr := args[validateDepGenValRootIdx]
+		genValRootStr := args[validateRoot4]
 		genesisValidatorRoot, err := parser.ConvertGenesisValidatorRoot(genValRootStr)
 		if err != nil {
 			return err

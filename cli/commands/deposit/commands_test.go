@@ -52,8 +52,11 @@ func TestCreateAndValidateCommandsDuality(t *testing.T) {
 	cometCfg := cmtcfg.DefaultConfig()
 	cometCfg.RootDir = tmpFolder
 
-	require.NoError(t, os.MkdirAll(filepath.Dir(cometCfg.PrivValidatorKeyFile()), 0o777))
-	require.NoError(t, os.MkdirAll(filepath.Dir(cometCfg.PrivValidatorStateFile()), 0o777))
+	keyFilePath := cometCfg.PrivValidatorKeyFile()
+	stateFilePath := cometCfg.PrivValidatorStateFile()
+
+	require.NoError(t, os.MkdirAll(filepath.Dir(keyFilePath), 0o777))
+	require.NoError(t, os.MkdirAll(filepath.Dir(stateFilePath), 0o777))
 
 	f := func(
 		blsKeySecret [32]byte,
@@ -67,9 +70,9 @@ func TestCreateAndValidateCommandsDuality(t *testing.T) {
 		require.NoError(t, err)
 
 		// update relevant files and create corresponding blsSigner
-		pv := privval.NewFilePV(privKey, cometCfg.PrivValidatorKeyFile(), cometCfg.PrivValidatorStateFile())
+		pv := privval.NewFilePV(privKey, keyFilePath, stateFilePath)
 		pv.Save()
-		blsSigner := signer.NewBLSSigner(cometCfg.PrivValidatorKeyFile(), cometCfg.PrivValidatorStateFile())
+		blsSigner := signer.NewBLSSigner(keyFilePath, stateFilePath)
 
 		// create the deposit and check that it verifies
 		var (
