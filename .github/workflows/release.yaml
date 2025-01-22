@@ -26,7 +26,6 @@
 name: release
 
 on:
-  workflow_dispatch:
   push:
     tags:
       - "v*"
@@ -187,7 +186,7 @@ jobs:
           - `apt install gpg` on Ubuntu/Debian
 
           Once gpg is installed, import our public key into its database and verify:
-          - [Download signing public key from here](https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/.github/workflows/build_pubkey.asc).
+          - [Download signing public key from here](https://raw.githubusercontent.com/${{ github.repository }}/main/.github/workflows/build_pubkey.asc).
           - Run `gpg --import pubkey.asc`
           - Verify with `gpg --verify {signature}.sig {binary}.tar.gz`
 
