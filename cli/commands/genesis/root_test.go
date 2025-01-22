@@ -48,7 +48,6 @@ func (TestDeposits) Generate(rand *rand.Rand, size int) reflect.Value {
 		var (
 			pubKey crypto.BLSPubkey
 			creds  types.WithdrawalCredentials
-			amount math.Gwei
 			sign   crypto.BLSSignature
 
 			err error
@@ -69,7 +68,7 @@ func (TestDeposits) Generate(rand *rand.Rand, size int) reflect.Value {
 		res[i] = &types.Deposit{
 			Pubkey:      pubKey,
 			Credentials: creds,
-			Amount:      amount,
+			Amount:      math.Gwei(rand.Uint64()),
 			Signature:   sign,
 			Index:       0, // indexes will be set in order in the test
 		}
@@ -97,12 +96,11 @@ func TestCompareGenesisCmdWithStateProcessor(t *testing.T) {
 		cliValRoot := genesis.ValidatorsRoot(deposits, cs)
 
 		// genesis validators root from StateProcessor
-		sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
+		sp, st, _, _ := statetransition.SetupTestState(t, cs)
 		var (
 			genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 			genVersion       = version.FromUint32[common.Version](version.Deneb)
 		)
-		require.NoError(t, ds.EnqueueDeposits(ctx, deposits))
 		_, err = sp.InitializePreminedBeaconStateFromEth1(
 			st,
 			deposits,
