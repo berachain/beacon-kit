@@ -28,39 +28,27 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/version"
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 )
 
-// Commands creates a new command for deposit related actions.
-func Commands(
-	chainSpec chain.Spec,
-) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:                        "deposit",
-		Short:                      "deposit subcommands",
-		DisableFlagParsing:         false,
-		SuggestionsMinimumDistance: 2, //nolint:mnd // from sdk.
-		RunE:                       client.ValidateCmd,
-	}
-
-	cmd.AddCommand(
-		NewValidateDeposit(chainSpec),
-		NewCreateValidator(chainSpec),
-	)
-
-	return cmd
-}
+const (
+	validateDepPubKeyIdx     = iota
+	validateDepCredsIdx      = iota
+	validateDepAmtIdx        = iota
+	validateDepSignIdx       = iota
+	validateDepGenValRootIdx = iota
+	validateDepArgsCount     = iota
+)
 
 // NewValidateDeposit creates a new command for validating a deposit message.
 //
-//nolint:mnd,lll // lots of magic numbers, reads better if long description is one line
+//nolint:lll // reads better if long description is one line
 func NewValidateDeposit(chainSpec chain.Spec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "validate",
 		Short: "Validates a deposit message for creating a new validator",
 		Long:  `Validates a deposit message for creating a new validator. The deposit message includes the public key, withdrawal credentials, and deposit amount. The args taken are in the order of the public key, withdrawal credentials, deposit amount, signature, and genesis validator root.`,
-		Args:  cobra.ExactArgs(6),
+		Args:  cobra.ExactArgs(validateDepArgsCount),
 		RunE:  validateDepositMessage(chainSpec),
 	}
 
@@ -74,27 +62,32 @@ func validateDepositMessage(chainSpec chain.Spec) func(
 	args []string,
 ) error {
 	return func(_ *cobra.Command, args []string) error {
-		pubkey, err := parser.ConvertPubkey(args[0])
+		pubKeyStr := args[validateDepPubKeyIdx]
+		pubkey, err := parser.ConvertPubkey(pubKeyStr)
 		if err != nil {
 			return err
 		}
 
-		credentials, err := parser.ConvertWithdrawalCredentials(args[1])
+		credsStr := args[validateDepCredsIdx]
+		credentials, err := parser.ConvertWithdrawalCredentials(credsStr)
 		if err != nil {
 			return err
 		}
 
-		amount, err := parser.ConvertAmount(args[2])
+		amountStr := args[validateDepAmtIdx]
+		amount, err := parser.ConvertAmount(amountStr)
 		if err != nil {
 			return err
 		}
 
-		signature, err := parser.ConvertSignature(args[3])
+		sigStr := args[validateDepSignIdx]
+		signature, err := parser.ConvertSignature(sigStr)
 		if err != nil {
 			return err
 		}
 
-		genesisValidatorRoot, err := parser.ConvertGenesisValidatorRoot(args[4])
+		genValRootStr := args[validateDepGenValRootIdx]
+		genesisValidatorRoot, err := parser.ConvertGenesisValidatorRoot(genValRootStr)
 		if err != nil {
 			return err
 		}

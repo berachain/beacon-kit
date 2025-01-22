@@ -30,8 +30,18 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-core/components"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/spf13/cobra"
+)
+
+const (
+	createValWithdrawalAddrIdx = iota
+	createValDepAmtIdx         = iota
+	createValGenValRootIdx     = iota
+	createValArgsCount         = iota
 )
 
 // NewCreateValidator creates a new command to create a validator deposit.
@@ -44,7 +54,7 @@ func NewCreateValidator(
 		Use:   "create-validator",
 		Short: "Creates a validator deposit",
 		Long:  `Creates a validator deposit with the necessary credentials. The arguments are expected in the order of withdrawal address, deposit amount, and genesis validator root. If the broadcast flag is set to true, a private key must be provided to sign the transaction.`,
-		Args:  cobra.ExactArgs(4), //nolint:mnd // The number of arguments.
+		Args:  cobra.ExactArgs(createValArgsCount),
 		RunE:  createValidatorCmd(chainSpec),
 	}
 
@@ -60,8 +70,6 @@ func NewCreateValidator(
 }
 
 // createValidatorCmd returns a command that builds a create validator request.
-//
-
 func createValidatorCmd(
 	chainSpec chain.Spec,
 ) func(*cobra.Command, []string) error {
@@ -74,32 +82,31 @@ func createValidatorCmd(
 			return err
 		}
 
-		withdrawalAddress, err := parser.ConvertWithdrawalAddress(args[0])
+		withdrawalAddressStr := args[createValWithdrawalAddrIdx]
+		withdrawalAddress, err := parser.ConvertWithdrawalAddress(withdrawalAddressStr)
 		if err != nil {
 			return err
 		}
-		credentials := types.NewCredentialsFromExecutionAddress(
-			withdrawalAddress,
-		)
+		credentials := types.NewCredentialsFromExecutionAddress(withdrawalAddress)
 
-		amount, err := parser.ConvertAmount(args[1])
-		if err != nil {
-			return err
-		}
-
-		currentVersion, err := parser.ConvertVersion(args[2])
+		amountStr := args[createValDepAmtIdx]
+		amount, err := parser.ConvertAmount(amountStr)
 		if err != nil {
 			return err
 		}
 
-		genesisValidatorRoot, err := parser.ConvertGenesisValidatorRoot(args[3])
+		genValRootStr := args[createValGenValRootIdx]
+		genesisValidatorRoot, err := parser.ConvertGenesisValidatorRoot(genValRootStr)
 		if err != nil {
 			return err
 		}
+
+		// All deposits are signed with the genesis version.
+		genesisVersion := version.FromUint32[common.Version](constants.GenesisVersion)
 
 		// Create and sign the deposit message.
 		depositMsg, signature, err := types.CreateAndSignDepositMessage(
-			types.NewForkData(currentVersion, genesisValidatorRoot),
+			types.NewForkData(genesisVersion, genesisValidatorRoot),
 			chainSpec.DomainTypeDeposit(),
 			blsSigner,
 			credentials,
@@ -111,7 +118,7 @@ func createValidatorCmd(
 
 		// Verify the deposit message.
 		if err = depositMsg.VerifyCreateValidator(
-			types.NewForkData(currentVersion, genesisValidatorRoot),
+			types.NewForkData(genesisVersion, genesisValidatorRoot),
 			signature,
 			chainSpec.DomainTypeDeposit(),
 			signer.BLSSigner{}.VerifySignature,
