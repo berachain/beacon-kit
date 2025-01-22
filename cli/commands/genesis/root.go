@@ -75,7 +75,7 @@ func GetGenesisValidatorRootCmd(cs chain.Spec) *cobra.Command {
 				return errors.Wrap(err, "failed to unmarshal JSON")
 			}
 
-			validatorHashTreeRoot := ValidatorsRoot(genesis, cs)
+			validatorHashTreeRoot := ValidatorsRoot(genesis.Deposits, cs)
 			cmd.Printf("%s\n", validatorHashTreeRoot)
 			return nil
 		},
@@ -84,14 +84,14 @@ func GetGenesisValidatorRootCmd(cs chain.Spec) *cobra.Command {
 	return cmd
 }
 
-func ValidatorsRoot(genesis Genesis, cs chain.Spec) common.Root {
-	depositCount := uint64(len(genesis.AppState.Beacon.Deposits))
+func ValidatorsRoot(deposits Deposits, cs chain.Spec) common.Root {
+	depositCount := uint64(len(deposits))
 	validators := make(types.Validators, depositCount)
 
 	// mimic processGenesisActivation
 	minEffectiveBalance := math.Gwei(cs.EjectionBalance() + cs.EffectiveBalanceIncrement())
 
-	for i, deposit := range genesis.AppState.Beacon.Deposits {
+	for i, deposit := range deposits {
 		val := types.NewValidatorFromDeposit(
 			deposit.Pubkey,
 			types.WithdrawalCredentials(deposit.Credentials),
