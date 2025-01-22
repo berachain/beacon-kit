@@ -56,18 +56,6 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 		"every validator must get an equal amount of deposits",
 	)
 
-	// // Check the validators' current voting power.
-	// power0, err := client0.GetConsensusPower(s.Ctx())
-	// s.Require().NoError(err)
-	// power1, err := client1.GetConsensusPower(s.Ctx())
-	// s.Require().NoError(err)
-	// power2, err := client2.GetConsensusPower(s.Ctx())
-	// s.Require().NoError(err)
-	// power3, err := client3.GetConsensusPower(s.Ctx())
-	// s.Require().NoError(err)
-	// power4, err := client4.GetConsensusPower(s.Ctx())
-	// s.Require().NoError(err)
-
 	// Get the chain ID.
 	chainID, err := s.JSONRPCBalancer().ChainID(s.Ctx())
 	s.Require().NoError(err)
