@@ -26,8 +26,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// GetGenesisValidatorRootCmd returns a cobra command that computes the genesis validator root
-// from the given genesis file.
+// GetGenesisValidatorRootCmd returns a command that gets the genesis validator root from a given
+// beacond genesis file.
 func GetGenesisValidatorRootCmd(cs chain.Spec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "validator-root [beacond/genesis.json]",

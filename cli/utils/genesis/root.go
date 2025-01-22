@@ -76,7 +76,7 @@ func ComputeValidatorsRoot(genesisDeposits types.Deposits, cs chain.Spec) common
 			math.Gwei(cs.MaxEffectiveBalance()),
 		)
 
-		// mimic stateProcessor.processGenesisActivations
+		// mimic processGenesisActivation
 		if val.GetEffectiveBalance() >= minEffectiveBalance {
 			val.SetActivationEligibilityEpoch(0)
 			val.SetActivationEpoch(0)
