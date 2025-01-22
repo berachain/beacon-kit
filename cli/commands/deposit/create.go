@@ -42,6 +42,10 @@ const (
 	createValDepAmtIdx         = iota
 	createValGenValRootIdx     = iota
 	createValArgsCount         = iota
+
+	privateKey      = "private-key" // does not look really used
+	overrideNodeKey = "override-node-key"
+	valPrivateKey   = "validator-private-key"
 )
 
 // NewCreateValidator creates a new command to create a validator deposit.
@@ -58,13 +62,24 @@ func NewCreateValidator(
 		RunE:  createValidatorCmd(chainSpec),
 	}
 
-	cmd.Flags().String(privateKey, defaultPrivateKey, privateKeyMsg)
-	cmd.Flags().BoolP(
-		overrideNodeKey, overrideNodeKeyShorthand,
-		defaultOverrideNodeKey, overrideNodeKeyMsg,
+	cmd.Flags().String(
+		privateKey,
+		"", // no default key
+
+		// TODO: this message does not really make sense to me
+		"private key to sign and pay for the deposit message.  This is required if the broadcast flag is set.",
 	)
-	cmd.Flags().
-		String(valPrivateKey, defaultValidatorPrivateKey, valPrivateKeyMsg)
+	cmd.Flags().BoolP(
+		overrideNodeKey,
+		"o",
+		false, // no override by default
+		"override the node private key",
+	)
+	cmd.Flags().String(
+		valPrivateKey,
+		"", // no default private key
+		"validator private key. This is required if the override-node-key flag is set.",
+	)
 
 	return cmd
 }
