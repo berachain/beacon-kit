@@ -21,12 +21,16 @@
 package genesis_test
 
 import (
+	stdbytes "bytes"
+	"fmt"
+	"math/rand"
+	"reflect"
 	"testing"
+	"testing/quick"
 
 	"github.com/berachain/beacon-kit/cli/commands/genesis"
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -35,71 +39,85 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var (
-	pubKey1 = bytes.B48{0xff, 0xff, 0xff, 0xff}
-	creds1  = types.WithdrawalCredentials{0xaa, 0xaa, 0xaa}
-	amount1 = math.U64(2025)
-	idx1    = int(0)
+// generator for random deposits.
+type TestDeposits types.Deposits
 
-	pubKey2 = bytes.B48{0xee, 0xee, 0xee, 0xee}
-	creds2  = types.WithdrawalCredentials{0xbb, 0xbb, 0xbb}
-	amount2 = math.U64(5052)
-	idx2    = int(1)
+func (TestDeposits) Generate(rand *rand.Rand, size int) reflect.Value {
+	res := make(TestDeposits, size)
+	for i := range size {
+		var (
+			pubKey crypto.BLSPubkey
+			creds  types.WithdrawalCredentials
+			amount math.Gwei
+			sign   crypto.BLSSignature
 
-	emptySignature = crypto.BLSSignature{}
+			err error
+		)
+		_, err = rand.Read(pubKey[:])
+		if err != nil {
+			panic(fmt.Errorf("failed generating random pubKey: %w", err))
+		}
+		_, err = rand.Read(creds[:])
+		if err != nil {
+			panic(fmt.Errorf("failed generating random cred: %w", err))
+		}
+		_, err = rand.Read(sign[:])
+		if err != nil {
+			panic(fmt.Errorf("failed generating random sign: %w", err))
+		}
 
-	genDeposits = types.Deposits{
-		{
-			Pubkey:      pubKey1,
-			Credentials: creds1,
-			Amount:      amount1,
-			Signature:   emptySignature,
-			Index:       uint64(idx1),
-		},
-		{
-			Pubkey:      pubKey2,
-			Credentials: creds2,
-			Amount:      amount2,
-			Signature:   emptySignature,
-			Index:       uint64(idx2),
-		},
+		res[i] = &types.Deposit{
+			Pubkey:      pubKey,
+			Credentials: creds,
+			Amount:      amount,
+			Signature:   sign,
+			Index:       0, // indexes will be set in order in the test
+		}
 	}
-
-	expectedValRoot = common.Root{
-		0xa3, 0xfa, 0xd, 0x97, 0x0, 0xeb, 0xdc, 0x2c,
-		0x2, 0x1b, 0x51, 0xa1, 0xb, 0xcb, 0xb4, 0x80,
-		0x5d, 0xe6, 0x13, 0x53, 0x9a, 0x77, 0xdc, 0x65,
-		0xc7, 0x64, 0x85, 0x36, 0x6, 0xde, 0x4f, 0xa2,
-	}
-)
-
-func TestOracle(t *testing.T) {
-	cs, err := spec.MainnetChainSpec()
-	require.NoError(t, err)
-
-	cliValRoot := genesis.ValidatorsRoot(genDeposits, cs)
-	require.Equal(t, expectedValRoot, cliValRoot)
+	return reflect.ValueOf(res)
 }
 
-func TestStateTransitionGenesis(t *testing.T) {
+func TestCompareGenesisCmdWithStateProcessor(t *testing.T) {
+	qc := &quick.Config{MaxCount: 1_000}
 	cs, err := spec.MainnetChainSpec()
 	require.NoError(t, err)
 
-	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
-	var (
-		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		genVersion       = version.FromUint32[common.Version](version.Deneb)
-	)
-	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
-	_, err = sp.InitializePreminedBeaconStateFromEth1(
-		st,
-		genDeposits,
-		genPayloadHeader,
-		genVersion,
-	)
-	require.NoError(t, err)
+	f := func(inputs TestDeposits) bool {
+		deposits := make(types.Deposits, len(inputs))
+		for i, input := range inputs {
+			deposits[i] = &types.Deposit{
+				Pubkey:      input.Pubkey,
+				Credentials: input.Credentials,
+				Amount:      input.Amount,
+				Signature:   input.Signature,
+				Index:       uint64(i),
+			}
+		}
+		// genesis validators root from CLI
+		cliValRoot := genesis.ValidatorsRoot(deposits, cs)
 
-	processorRoot, err := st.GetGenesisValidatorsRoot()
-	require.NoError(t, err)
-	require.Equal(t, expectedValRoot, processorRoot)
+		// genesis validators root from StateProcessor
+		sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
+		var (
+			genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+			genVersion       = version.FromUint32[common.Version](version.Deneb)
+		)
+		require.NoError(t, ds.EnqueueDeposits(ctx, deposits))
+		_, err = sp.InitializePreminedBeaconStateFromEth1(
+			st,
+			deposits,
+			genPayloadHeader,
+			genVersion,
+		)
+		require.NoError(t, err)
+
+		var processorRoot common.Root
+		processorRoot, err = st.GetGenesisValidatorsRoot()
+		require.NoError(t, err)
+
+		// assert that they generate the same root, given the same list of deposits
+		return stdbytes.Equal(cliValRoot[:], processorRoot[:])
+	}
+
+	require.NoError(t, quick.Check(f, qc))
 }
