@@ -57,7 +57,9 @@ func NewCreateValidator(
 		overrideNodeKey, overrideNodeKeyShorthand, defaultOverrideNodeKey, overrideNodeKeyMsg,
 	)
 	cmd.Flags().String(valPrivateKey, defaultValidatorPrivateKey, valPrivateKeyMsg)
-	cmd.Flags().String(useGenesisFile, defaultGenesisFile, useGenesisFileMsg)
+	cmd.Flags().StringP(
+		useGenesisFile, useGenesisFileShorthand, defaultGenesisFile, useGenesisFileMsg,
+	)
 
 	return cmd
 }
@@ -100,7 +102,6 @@ func createValidatorCmd(
 		}
 		if genesisFile != defaultGenesisFile {
 			genesisValidatorRoot, err = genesis.GetValidatorRootFromFile(genesisFile, chainSpec)
-
 		} else {
 			genesisValidatorRoot, err = parser.ConvertGenesisValidatorRoot(args[2])
 		}

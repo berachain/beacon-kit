@@ -65,7 +65,9 @@ func NewValidateDeposit(chainSpec chain.Spec) *cobra.Command {
 		RunE:  validateDepositMessage(chainSpec),
 	}
 
-	cmd.Flags().String(useGenesisFile, defaultGenesisFile, useGenesisFileMsg)
+	cmd.Flags().StringP(
+		useGenesisFile, useGenesisFileShorthand, defaultGenesisFile, useGenesisFileMsg,
+	)
 
 	return cmd
 }
@@ -105,7 +107,6 @@ func validateDepositMessage(chainSpec chain.Spec) func(
 		}
 		if genesisFile != defaultGenesisFile {
 			genesisValidatorRoot, err = genesis.GetValidatorRootFromFile(genesisFile, chainSpec)
-
 		} else {
 			genesisValidatorRoot, err = parser.ConvertGenesisValidatorRoot(args[4])
 		}
