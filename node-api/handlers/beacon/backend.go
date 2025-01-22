@@ -25,6 +25,7 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // Backend is the interface for backend of the beacon API.
@@ -68,6 +69,7 @@ type BlockBackend interface {
 type StateBackend interface {
 	StateRootAtSlot(slot math.Slot) (common.Root, error)
 	StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error)
+	StateAtSlot(slot math.Slot) (*statedb.StateDB, error)
 }
 
 type ValidatorBackend interface {
