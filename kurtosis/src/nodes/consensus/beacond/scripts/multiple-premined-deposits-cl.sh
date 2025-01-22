@@ -33,6 +33,5 @@ for ((i=1; i<$NUM_VALS; i++)); do
     cp -r /tmp/config${i}/.beacond/config/premined-deposits/premined-deposit* /tmp/config_genesis/.beacond/config/premined-deposits/
 done
 
-/usr/bin/beacond genesis execution-payload $ETH_GENESIS --home /tmp/config_genesis/.beacond
 /usr/bin/beacond genesis collect-premined-deposits --home /tmp/config_genesis/.beacond
 

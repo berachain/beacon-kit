@@ -24,25 +24,26 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
-	"github.com/berachain/beacon-kit/primitives/bytes"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
 
+// Beacon, AppState and Genesis are code duplications that
+// collectively reproduce part of genesis file structure
+
+type Beacon struct {
+	Deposits types.Deposits `json:"deposits"`
+}
+
+type AppState struct {
+	Beacon `json:"beacon"`
+}
+
 type Genesis struct {
-	AppState struct {
-		Beacon struct {
-			Deposits []struct {
-				Pubkey      bytes.B48 `json:"pubkey"`
-				Credentials bytes.B32 `json:"credentials"`
-				Amount      math.U64  `json:"amount"`
-				Signature   string    `json:"signature"`
-				Index       int       `json:"index"`
-			} `json:"deposits"`
-		} `json:"beacon"`
-	} `json:"app_state"`
+	AppState `json:"app_state"`
 }
 
 // TODO: move this logic to the `deposit create-validator/validate` commands as it is only
@@ -66,26 +67,35 @@ func GetGenesisValidatorRootCmd(cs chain.Spec) *cobra.Command {
 				return errors.Wrap(err, "failed to unmarshal JSON")
 			}
 
-			depositCount := uint64(len(genesis.AppState.Beacon.Deposits))
-			validators := make(
-				types.Validators,
-				depositCount,
-			)
-			for i, deposit := range genesis.AppState.Beacon.Deposits {
-				val := types.NewValidatorFromDeposit(
-					deposit.Pubkey,
-					types.WithdrawalCredentials(deposit.Credentials),
-					deposit.Amount,
-					math.Gwei(cs.EffectiveBalanceIncrement()),
-					math.Gwei(cs.MaxEffectiveBalance()),
-				)
-				validators[i] = val
-			}
-
-			cmd.Printf("%s\n", validators.HashTreeRoot())
+			validatorHashTreeRoot := ValidatorsRoot(genesis.Deposits, cs)
+			cmd.Printf("%s\n", validatorHashTreeRoot)
 			return nil
 		},
 	}
 
 	return cmd
+}
+
+func ValidatorsRoot(deposits types.Deposits, cs chain.Spec) common.Root {
+	validators := make(types.Validators, len(deposits))
+	minEffectiveBalance := math.Gwei(cs.EjectionBalance() + cs.EffectiveBalanceIncrement())
+
+	for i, deposit := range deposits {
+		val := types.NewValidatorFromDeposit(
+			deposit.Pubkey,
+			deposit.Credentials,
+			deposit.Amount,
+			math.Gwei(cs.EffectiveBalanceIncrement()),
+			math.Gwei(cs.MaxEffectiveBalance()),
+		)
+
+		// mimic processGenesisActivation
+		if val.GetEffectiveBalance() >= minEffectiveBalance {
+			val.SetActivationEligibilityEpoch(0)
+			val.SetActivationEpoch(0)
+		}
+		validators[i] = val
+	}
+
+	return validators.HashTreeRoot()
 }
