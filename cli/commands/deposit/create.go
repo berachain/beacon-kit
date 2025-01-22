@@ -45,10 +45,10 @@ func NewCreateValidator(
 	chainSpec chain.Spec,
 ) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-validator [withdrawal-address] [amount]",
+		Use:   "create-validator [withdrawal-address] [amount] ?[genesis-validator-root]",
 		Short: "Creates a validator deposit",
-		Long:  `Creates a validator deposit with the necessary credentials. The arguments are expected in the order of withdrawal address and deposit amount. If the genesis file flag is set, the genesis validator root is determined from the genesis file. If the broadcast flag is set to true, a private key must be provided to sign the transaction.`,
-		Args:  cobra.ExactArgs(2), //nolint:mnd // The number of arguments.
+		Long:  `Creates a validator deposit with the necessary credentials. The arguments are expected in the order of withdrawal address, deposit amount, and optionally a genesis validator root. If the genesis file flag is NOT set, the genesis validator root MUST be provided as an argument. If the broadcast flag is set to true, a private key must be provided to sign the transaction.`,
+		Args:  cobra.RangeArgs(2, 3), //nolint:mnd // The number of arguments.
 		RunE:  createValidatorCmd(chainSpec),
 	}
 
@@ -107,7 +107,10 @@ func createValidatorCmd(
 				return err
 			}
 		} else {
-			genesisValidatorRoot = chainSpec.GenesisValidatorRoot()
+			genesisValidatorRoot, err = parser.ConvertGenesisValidatorRoot(args[2])
+			if err != nil {
+				return err
+			}
 		}
 
 		// Create and sign the deposit message.

@@ -29,23 +29,13 @@ import (
 //
 //nolint:mnd // okay to specify values here.
 func MainnetChainSpec() (chain.Spec, error) {
-	var (
-		mainnetSpec = BaseSpec()
-		err         error
-	)
+	mainnetSpec := BaseSpec()
 
 	// Chain ID is 80094.
 	mainnetSpec.DepositEth1ChainID = MainnetEth1ChainID
 
 	// Target for block time is 2 seconds on Berachain mainnet.
 	mainnetSpec.TargetSecondsPerEth1Block = 2
-
-	// Genesis validator root is the genesis validator root, derived from the chain's genesis file.
-	if mainnetSpec.GenesisValidatorRoot, err = common.NewRootFromHex(
-		"0xdf609e3b062842c6425ff716aec2d2092c46455d9b2e1a2c9e32c6ba63ff0bda",
-	); err != nil {
-		return nil, err
-	}
 
 	// BGT contract address.
 	//

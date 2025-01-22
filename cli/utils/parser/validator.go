@@ -105,3 +105,15 @@ func ConvertSignature(signature string) (crypto.BLSSignature, error) {
 	}
 	return crypto.BLSSignature(signatureBytes), nil
 }
+
+// ConvertGenesisValidatorRoot converts a string to a genesis validator root.
+func ConvertGenesisValidatorRoot(root string) (common.Root, error) {
+	rootBytes, err := hex.ToBytes(root)
+	if err != nil {
+		return common.Root{}, err
+	}
+	if len(rootBytes) != constants.RootLength {
+		return common.Root{}, ErrInvalidRootLength
+	}
+	return common.Root(rootBytes), nil
+}

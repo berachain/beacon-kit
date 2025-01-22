@@ -58,10 +58,10 @@ func Commands(
 //nolint:lll // reads better if long description is one line.
 func NewValidateDeposit(chainSpec chain.Spec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "validate [pubkey] [withdrawal-credentials] [amount] [signature]",
+		Use:   "validate [pubkey] [withdrawal-credentials] [amount] [signature] ?[genesis-validator-root]",
 		Short: "Validates a deposit message for creating a new validator",
-		Long:  `Validates a deposit message (public key, withdrawal credentials, deposit amount) for creating a new validator. The args taken are in the order of the public key, withdrawal credentials, deposit amount, and signature. If the genesis file flag is set, the genesis validator root is determined from the genesis file.`,
-		Args:  cobra.ExactArgs(4), //nolint:mnd // The number of arguments.
+		Long:  `Validates a deposit message (public key, withdrawal credentials, deposit amount) for creating a new validator. The args taken are in the order of the public key, withdrawal credentials, deposit amount, signature, and optionally a genesis validator root. If the genesis file flag is NOT set, the genesis validator root MUST be provided as an argument.`,
+		Args:  cobra.RangeArgs(4, 5), //nolint:mnd // The number of arguments.
 		RunE:  validateDepositMessage(chainSpec),
 	}
 
@@ -112,7 +112,10 @@ func validateDepositMessage(chainSpec chain.Spec) func(
 				return err
 			}
 		} else {
-			genesisValidatorRoot = chainSpec.GenesisValidatorRoot()
+			genesisValidatorRoot, err = parser.ConvertGenesisValidatorRoot(args[4])
+			if err != nil {
+				return err
+			}
 		}
 
 		depositMessage := types.DepositMessage{
