@@ -140,6 +140,7 @@ func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 	// Iterate through indices to find the next validators to withdraw.
 	for range bound {
 		validator, err = s.ValidatorByIndex(validatorIndex)
+		fmt.Println("withdrawal check:", validatorIndex)
 		if err != nil {
 			return nil, err
 		}
@@ -167,7 +168,6 @@ func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 		} else if validator.IsPartiallyWithdrawable(
 			balance, math.Gwei(s.cs.MaxEffectiveBalance()),
 		) {
-			fmt.Println("DEBUG: validator is withdrawable!", validator.WithdrawalCredentials, balance)
 			withdrawalAddress, err = validator.GetWithdrawalCredentials().ToExecutionAddress()
 			if err != nil {
 				return nil, err

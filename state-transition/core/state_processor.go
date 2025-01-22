@@ -390,7 +390,6 @@ func (sp *StateProcessor[_]) processEffectiveBalanceUpdates(st *state.StateDB) e
 				math.U64(sp.cs.EffectiveBalanceIncrement()),
 				math.U64(sp.cs.MaxEffectiveBalance()),
 			)
-			sp.logger.Info("DEBUG: setting effective balance", "idx", idx, "beforeBalance", val.GetEffectiveBalance(), "afterBalance", updatedBalance)
 			val.SetEffectiveBalance(updatedBalance)
 			if err = st.UpdateValidatorAtIndex(idx, val); err != nil {
 				return err

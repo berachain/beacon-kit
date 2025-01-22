@@ -99,27 +99,16 @@ func (sp *StateProcessor[_]) applyDeposit(st *state.StateDB, dep *ctypes.Deposit
 		// ErrNotFound from other kind of errors
 		return sp.createValidator(st, dep)
 	}
-	preBalance, err := st.GetBalance(idx)
-	if err != nil {
-		fmt.Println("DEBUG: FAILED TO GET PRE BALANCE")
-	}
 
 	// if validator exist, just update its balance
 	if err = st.IncreaseBalance(idx, dep.GetAmount()); err != nil {
 		return err
 	}
 
-	newBalance, err := st.GetBalance(idx)
-	if err != nil {
-		fmt.Println("DEBUG: FAILED TO GET BALANCE")
-	}
-
 	sp.logger.Info(
 		"Processed deposit to increase balance",
 		"deposit_amount", dep.GetAmount().Unwrap(),
 		"validator_index", idx,
-		"pre_balance", preBalance.Base10(),
-		"new_balance", newBalance.Base10(),
 	)
 	return nil
 }
