@@ -42,9 +42,6 @@ const (
 // in the kurtosis network.
 func DevnetChainSpec() (chain.Spec, error) {
 	devnetSpec := BaseSpec()
-	devnetSpec.EffectiveBalanceIncrement = 10_000e9
-	devnetSpec.MaxEffectiveBalance = 10_000_000e9
-	devnetSpec.EjectionBalance = 250_000*1e9 - devnetSpec.EffectiveBalanceIncrement
 	devnetSpec.DepositEth1ChainID = DevnetEth1ChainID
 	devnetSpec.EVMInflationAddress = common.NewExecutionAddressFromHex(
 		DevnetEVMInflationAddress,
