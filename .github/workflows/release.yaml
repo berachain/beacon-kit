@@ -189,6 +189,8 @@ jobs:
           - [Download signing public key from here](https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/.github/workflows/berachain_release.asc).
           - Run `gpg --import pubkey.asc`
           - Verify with `gpg --verify {signature}.sig {binary}.tar.gz`
+          - This message is expected: `WARNING: This key is not certified with a trusted signature!`
+          - To resolve the warning, trust the key by signing with your own keypair. `gpg --lsign-key <keyid>`
 
           ENDBODY
           )
