@@ -141,6 +141,11 @@ type Spec interface {
 	// slashing penalties.
 	ProportionalSlashingMultiplier() uint64
 
+	// Genesis Values
+
+	// GenesisValidatorRoot returns the genesis validator root for the chain.
+	GenesisValidatorRoot() common.Root
+
 	// Capella Values
 
 	// MaxWithdrawalsPerPayload returns the maximum number of withdrawals per
@@ -379,6 +384,11 @@ func (s spec) InactivityPenaltyQuotient() uint64 {
 // ProportionalSlashingMultiplier returns the proportional slashing multiplier.
 func (s spec) ProportionalSlashingMultiplier() uint64 {
 	return s.Data.ProportionalSlashingMultiplier
+}
+
+// GenesisValidatorRoot returns the genesis validator root.
+func (s spec) GenesisValidatorRoot() common.Root {
+	return s.Data.GenesisValidatorRoot
 }
 
 // MaxWithdrawalsPerPayload returns the maximum number of withdrawals per

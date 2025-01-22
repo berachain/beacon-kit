@@ -116,6 +116,11 @@ type SpecData struct {
 	// base penalty.
 	ProportionalSlashingMultiplier uint64 `mapstructure:"proportional-slashing-multiplier"`
 
+	// Genesis Values
+	//
+	// GenesisValidatorRoot is the genesis validator root for the chain.
+	GenesisValidatorRoot common.Root `mapstructure:"genesis-validator-root"`
+
 	// Capella Values
 	//
 	// MaxWithdrawalsPerPayload indicates the maximum number of withdrawal
