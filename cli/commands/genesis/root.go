@@ -87,7 +87,6 @@ func GetGenesisValidatorRootCmd(cs chain.Spec) *cobra.Command {
 				if val.GetEffectiveBalance() >= minEffectiveBalance {
 					val.SetActivationEligibilityEpoch(0)
 					val.SetActivationEpoch(0)
-
 				}
 				validators[i] = val
 			}
