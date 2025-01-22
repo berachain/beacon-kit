@@ -35,7 +35,7 @@ on:
 env:
   REPO_NAME: ${{ github.repository }} 
   IMAGE_NAME: ${{ github.repository }}
-  GH_TOKEN: ${{ secrets.GH_TOKEN }}
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   # Job to extract version
@@ -129,7 +129,6 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
       - name: Create release draft
         env:
-          GITHUB_USER: ${{ github.repository_owner }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         # The formatting here is borrowed from Reth (which is borrowed from Lighthouse (which is borrowed from OpenEthereum)):
         # https://github.com/openethereum/openethereum/blob/6c2d392d867b058ff867c4373e40850ca3f96969/.github/workflows/build.yml
@@ -180,6 +179,19 @@ jobs:
           | <img src="https://simpleicons.org/icons/apple.svg" style="width: 32px;"/> | arm64 | [beacond-${{ env.VERSION }}-darwin-arm64](https://github.com/${{ env.REPO_NAME }}/releases/download/${{ env.VERSION }}/beacond-${{ env.VERSION }}-darwin-arm64.tar.gz) | [Signature](https://github.com/${{ env.REPO_NAME }}/releases/download/${{ env.VERSION }}/beacond-${{ env.VERSION }}-darwin-arm64.tar.gz.sig) |          
           | **System** | **Option** | - | **Resource** |
           | <img src="https://simpleicons.org/icons/docker.svg" style="width: 32px;"/> | Docker | | [${{ env.IMAGE_NAME }}](https://ghcr.io/berachain/beacon-kit) |
+          
+          ### Verifying signatures
+          Use gpg to verify the signature on these binary archives. This is important to make sure that the content you\'ve downloaded is legitimate. gpg can be installed with most package managers. For example:
+          - `brew install gpg` on mac
+          - `apt install gpg` on Ubuntu/Debian
+
+          Once gpg is installed, import our public key into its database and verify:
+          - [Download signing public key from here](https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/.github/workflows/berachain_release.asc).
+          - Run `gpg --import berachain_release.asc`
+          - Verify with `gpg --verify {signature}.sig {binary}.tar.gz`
+          - This message is expected: `WARNING: This key is not certified with a trusted signature!`
+          - To resolve the warning, trust the key by signing with your own keypair. `gpg --lsign-key <keyid>`
+
           ENDBODY
           )
           assets=()
