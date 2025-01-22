@@ -20,6 +20,7 @@
 
 package deposit
 
+// Flags.
 const (
 	// privateKey is the flag for the private key to sign the deposit message.
 	privateKey = "private-key"
@@ -29,14 +30,21 @@ const (
 
 	// validatorPrivateKey is the flag for the validator private key.
 	valPrivateKey = "validator-private-key"
+
+	// useGenesisFile is the flag for using the genesis file to get the genesis validator root.
+	useGenesisFile = "genesis-file"
 )
 
+// Shorthands.
 const (
-	// overrideNodeKeyShorthand is the shorthand flag for the overrideNodeKey
-	// flag.
+	// overrideNodeKeyShorthand is the shorthand flag for the overrideNodeKey flag.
 	overrideNodeKeyShorthand = "o"
+
+	// useGenesisFileShorthand is the shorthand flag for the useGenesisFile flag.
+	useGenesisFileShorthand = "g"
 )
 
+// Defaults.
 const (
 	// defaultPrivateKey is the default value for the privateKey flag.
 	defaultPrivateKey = ""
@@ -47,19 +55,25 @@ const (
 	// defaultValidatorPrivateKey is the default value for the
 	// validatorPrivateKey flag.
 	defaultValidatorPrivateKey = ""
+
+	// defaultGenesisFile is the default value for the useGenesisFile flag.
+	defaultGenesisFile = ""
 )
 
+// Usage descriptions.
+//
+//nolint:lll // reads better if long description is one line.
 const (
-	// privateKeyFlagMsg is the usage description for the privateKey flag.
-	privateKeyMsg = `private key to sign and pay for the deposit message. 
-	This is required if the broadcast flag is set.`
+	// privateKeyMsg is the usage description for the privateKey flag.
+	privateKeyMsg = `private key to sign and pay for the deposit message. This is required if the broadcast flag is set.`
 
-	// overrideNodeKeyFlagMsg is the usage description for the overrideNodeKey
-	// flag.
+	// overrideNodeKeyFlagMsg is the usage description for the overrideNodeKey flag.
 	overrideNodeKeyMsg = "override the node private key"
 
-	// valPrivateKeyMsg is the usage description for the
-	// valPrivateKey flag.
+	// valPrivateKeyMsg is the usage description for the valPrivateKey flag.
 	valPrivateKeyMsg = `validator private key. This is required if the 
 	override-node-key flag is set.`
+
+	// useGenesisFileMsg is the usage description for the useGenesisFile flag.
+	useGenesisFileMsg = `Use the genesis file to get the genesis validator root. If this is not set, the genesis validator root must be provided manually as an argument.`
 )

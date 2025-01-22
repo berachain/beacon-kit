@@ -45,27 +45,24 @@ func NewCreateValidator(
 	chainSpec chain.Spec,
 ) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-validator [withdrawal-address] [amount] [beacond/genesis.json]",
+		Use:   "create-validator [withdrawal-address] [amount] [genesis-validator-root]",
 		Short: "Creates a validator deposit",
-		Long:  `Creates a validator deposit with the necessary credentials. The arguments are expected in the order of withdrawal address, deposit amount and beacond genesis file. If the broadcast flag is set to true, a private key must be provided to sign the transaction.`,
-		Args:  cobra.ExactArgs(3), //nolint:mnd // The number of arguments.
+		Long:  `Creates a validator deposit with the necessary credentials. The arguments are expected in the order of withdrawal address, deposit amount and genesis validator root. If the genesis file flag is set, the genesis validator root is NOT needed and is determined from the genesis file. If the broadcast flag is set to true, a private key must be provided to sign the transaction.`,
+		Args:  cobra.RangeArgs(2, 3), //nolint:mnd // The number of arguments.
 		RunE:  createValidatorCmd(chainSpec),
 	}
 
 	cmd.Flags().String(privateKey, defaultPrivateKey, privateKeyMsg)
 	cmd.Flags().BoolP(
-		overrideNodeKey, overrideNodeKeyShorthand,
-		defaultOverrideNodeKey, overrideNodeKeyMsg,
+		overrideNodeKey, overrideNodeKeyShorthand, defaultOverrideNodeKey, overrideNodeKeyMsg,
 	)
-	cmd.Flags().
-		String(valPrivateKey, defaultValidatorPrivateKey, valPrivateKeyMsg)
+	cmd.Flags().String(valPrivateKey, defaultValidatorPrivateKey, valPrivateKeyMsg)
+	cmd.Flags().String(useGenesisFile, defaultGenesisFile, useGenesisFileMsg)
 
 	return cmd
 }
 
 // createValidatorCmd returns a command that builds a create validator request.
-//
-
 func createValidatorCmd(
 	chainSpec chain.Spec,
 ) func(*cobra.Command, []string) error {
@@ -94,7 +91,19 @@ func createValidatorCmd(
 		// All deposits are signed with the genesis version.
 		genesisVersion := version.FromUint32[common.Version](constants.GenesisVersion)
 
-		genesisValidatorRoot, err := genesis.GetValidatorRootFromFile(args[2], chainSpec)
+		// Get the genesis validator root. If the genesis file flag is not set,
+		// the genesis validator root is expected to be provided as the third argument.
+		var genesisValidatorRoot common.Root
+		genesisFile, err := cmd.Flags().GetString(useGenesisFile)
+		if err != nil {
+			return err
+		}
+		if genesisFile != defaultGenesisFile {
+			genesisValidatorRoot, err = genesis.GetValidatorRootFromFile(genesisFile, chainSpec)
+
+		} else {
+			genesisValidatorRoot, err = parser.ConvertGenesisValidatorRoot(args[2])
+		}
 		if err != nil {
 			return err
 		}

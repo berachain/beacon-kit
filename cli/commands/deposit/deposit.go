@@ -58,12 +58,14 @@ func Commands(
 //nolint:lll // reads better if long description is one line.
 func NewValidateDeposit(chainSpec chain.Spec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "validate [pubkey] [withdrawal-credentials] [amount] [signature] [beacond/genesis.json]",
+		Use:   "validate [pubkey] [withdrawal-credentials] [amount] [signature] [genesis-validator-root]",
 		Short: "Validates a deposit message for creating a new validator",
-		Long:  `Validates a deposit message for creating a new validator. The deposit message includes the public key, withdrawal credentials, and deposit amount. The args taken are in the order of the public key, withdrawal credentials, deposit amount, signature, and beacond genesis file.`,
-		Args:  cobra.ExactArgs(5), //nolint:mnd // The number of arguments.
+		Long:  `Validates a deposit message (public key, withdrawal credentials, deposit amount) for creating a new validator. The args taken are in the order of the public key, withdrawal credentials, deposit amount, signature, and genesis validator root. If the genesis file flag is set, the genesis validator root is NOT needed and is determined from the genesis file.`,
+		Args:  cobra.RangeArgs(4, 5), //nolint:mnd // The number of arguments.
 		RunE:  validateDepositMessage(chainSpec),
 	}
+
+	cmd.Flags().String(useGenesisFile, defaultGenesisFile, useGenesisFileMsg)
 
 	return cmd
 }
@@ -73,7 +75,7 @@ func validateDepositMessage(chainSpec chain.Spec) func(
 	_ *cobra.Command,
 	args []string,
 ) error {
-	return func(_ *cobra.Command, args []string) error {
+	return func(cmd *cobra.Command, args []string) error {
 		pubkey, err := parser.ConvertPubkey(args[0])
 		if err != nil {
 			return err
@@ -94,7 +96,19 @@ func validateDepositMessage(chainSpec chain.Spec) func(
 			return err
 		}
 
-		genesisValidatorRoot, err := genesis.GetValidatorRootFromFile(args[4], chainSpec)
+		// Get the genesis validator root. If the genesis file flag is not set,
+		// the genesis validator root is expected to be provided as the third argument.
+		var genesisValidatorRoot common.Root
+		genesisFile, err := cmd.Flags().GetString(useGenesisFile)
+		if err != nil {
+			return err
+		}
+		if genesisFile != defaultGenesisFile {
+			genesisValidatorRoot, err = genesis.GetValidatorRootFromFile(genesisFile, chainSpec)
+
+		} else {
+			genesisValidatorRoot, err = parser.ConvertGenesisValidatorRoot(args[4])
+		}
 		if err != nil {
 			return err
 		}
