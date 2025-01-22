@@ -21,6 +21,7 @@
 package deposit
 
 import (
+	"fmt"
 	"os"
 
 	"cosmossdk.io/log"
@@ -33,6 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/spf13/cobra"
 )
@@ -116,28 +118,8 @@ func createValidatorCmd(
 			return err
 		}
 
-		// All deposits are signed with the genesis version.
-		genesisVersion := version.FromUint32[common.Version](constants.GenesisVersion)
-
-		// Create and sign the deposit message.
-		depositMsg, signature, err := types.CreateAndSignDepositMessage(
-			types.NewForkData(genesisVersion, genesisValidatorRoot),
-			chainSpec.DomainTypeDeposit(),
-			blsSigner,
-			credentials,
-			amount,
-		)
+		depositMsg, signature, err := CreateDepositMessage(chainSpec, blsSigner, genesisValidatorRoot, credentials, amount)
 		if err != nil {
-			return err
-		}
-
-		// Verify the deposit message.
-		if err = depositMsg.VerifyCreateValidator(
-			types.NewForkData(genesisVersion, genesisValidatorRoot),
-			signature,
-			chainSpec.DomainTypeDeposit(),
-			signer.BLSSigner{}.VerifySignature,
-		); err != nil {
 			return err
 		}
 
@@ -153,6 +135,45 @@ func createValidatorCmd(
 
 		return nil
 	}
+}
+
+func CreateDepositMessage(
+	cs chain.Spec,
+	blsSigner crypto.BLSSigner,
+	genValRoot common.Root,
+	creds types.WithdrawalCredentials,
+	amount math.Gwei,
+) (
+	*types.DepositMessage,
+	crypto.BLSSignature,
+	error,
+) {
+	// All deposits are signed with the genesis version.
+	genesisVersion := version.FromUint32[common.Version](constants.GenesisVersion)
+
+	// Create and sign the deposit message.
+	depositMsg, signature, err := types.CreateAndSignDepositMessage(
+		types.NewForkData(genesisVersion, genValRoot),
+		cs.DomainTypeDeposit(),
+		blsSigner,
+		creds,
+		amount,
+	)
+	if err != nil {
+		return nil, crypto.BLSSignature{}, fmt.Errorf("failed CreateAndSignDepositMessage: %w", err)
+	}
+
+	// Verify the deposit message.
+	if err = depositMsg.VerifyCreateValidator(
+		types.NewForkData(genesisVersion, genValRoot),
+		signature,
+		cs.DomainTypeDeposit(),
+		signer.BLSSigner{}.VerifySignature,
+	); err != nil {
+		return nil, crypto.BLSSignature{}, fmt.Errorf("failed VerifyCreateValidator: %w", err)
+	}
+
+	return depositMsg, signature, nil
 }
 
 // getBLSSigner returns a BLS signer based on the override commands key flag.
