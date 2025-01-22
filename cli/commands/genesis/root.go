@@ -24,7 +24,6 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
-	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -32,18 +31,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Deposits, Beacon, AppState and Genesis are code duplications that
+// Beacon, AppState and Genesis are code duplications that
 // collectively reproduce part of genesis file structure
 
-type Deposits []struct {
-	Pubkey      bytes.B48 `json:"pubkey"`
-	Credentials bytes.B32 `json:"credentials"`
-	Amount      math.U64  `json:"amount"`
-	Signature   string    `json:"signature"`
-	Index       int       `json:"index"`
-}
 type Beacon struct {
-	Deposits `json:"deposits"`
+	Deposits types.Deposits `json:"deposits"`
 }
 
 type AppState struct {
@@ -84,7 +76,7 @@ func GetGenesisValidatorRootCmd(cs chain.Spec) *cobra.Command {
 	return cmd
 }
 
-func ValidatorsRoot(deposits Deposits, cs chain.Spec) common.Root {
+func ValidatorsRoot(deposits types.Deposits, cs chain.Spec) common.Root {
 	depositCount := uint64(len(deposits))
 	validators := make(types.Validators, depositCount)
 
@@ -94,7 +86,7 @@ func ValidatorsRoot(deposits Deposits, cs chain.Spec) common.Root {
 	for i, deposit := range deposits {
 		val := types.NewValidatorFromDeposit(
 			deposit.Pubkey,
-			types.WithdrawalCredentials(deposit.Credentials),
+			deposit.Credentials,
 			deposit.Amount,
 			math.Gwei(cs.EffectiveBalanceIncrement()),
 			math.Gwei(cs.MaxEffectiveBalance()),

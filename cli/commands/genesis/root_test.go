@@ -67,7 +67,25 @@ var (
 	amount2 = math.U64(5052)
 	idx2    = int(1)
 
-	emptySignature  = crypto.BLSSignature{}
+	emptySignature = crypto.BLSSignature{}
+
+	genDeposits = types.Deposits{
+		{
+			Pubkey:      pubKey1,
+			Credentials: creds1,
+			Amount:      amount1,
+			Signature:   emptySignature,
+			Index:       uint64(idx1),
+		},
+		{
+			Pubkey:      pubKey2,
+			Credentials: creds2,
+			Amount:      amount2,
+			Signature:   emptySignature,
+			Index:       uint64(idx2),
+		},
+	}
+
 	expectedValRoot = common.Root{
 		0xa3, 0xfa, 0xd, 0x97, 0x0, 0xeb, 0xdc, 0x2c,
 		0x2, 0x1b, 0x51, 0xa1, 0xb, 0xcb, 0xb4, 0x80,
@@ -80,24 +98,7 @@ func TestOracle(t *testing.T) {
 	cs, err := spec.MainnetChainSpec()
 	require.NoError(t, err)
 
-	deposits := genesis.Deposits{
-		{
-			Pubkey:      pubKey1,
-			Credentials: bytes.B32(creds1),
-			Amount:      amount1,
-			Signature:   emptySignature.String(), // Does not matter for validators root
-			Index:       idx1,
-		},
-		{
-			Pubkey:      pubKey2,
-			Credentials: bytes.B32(creds2),
-			Amount:      amount2,
-			Signature:   emptySignature.String(), // Does not matter for validators root
-			Index:       idx2,
-		},
-	}
-
-	cliValRoot := genesis.ValidatorsRoot(deposits, cs)
+	cliValRoot := genesis.ValidatorsRoot(genDeposits, cs)
 	require.Equal(t, expectedValRoot, cliValRoot)
 }
 
@@ -107,22 +108,6 @@ func TestStateTransitionGenesis(t *testing.T) {
 
 	sp, st, ds, ctx := setupState(t, cs)
 	var (
-		genDeposits = types.Deposits{
-			{
-				Pubkey:      pubKey1,
-				Credentials: creds1,
-				Amount:      amount1,
-				Signature:   emptySignature,
-				Index:       uint64(idx1),
-			},
-			{
-				Pubkey:      pubKey2,
-				Credentials: creds2,
-				Amount:      amount2,
-				Signature:   emptySignature,
-				Index:       uint64(idx2),
-			},
-		}
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		genVersion       = version.FromUint32[common.Version](version.Deneb)
 	)
