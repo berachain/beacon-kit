@@ -45,7 +45,6 @@ const (
 	createRoot2     = iota
 	createArgsCount = iota
 
-	privateKey      = "private-key" // does not look really used
 	overrideNodeKey = "override-node-key"
 	valPrivateKey   = "validator-private-key"
 )
@@ -64,13 +63,6 @@ func NewCreateValidator(
 		RunE:  createValidatorCmd(chainSpec),
 	}
 
-	cmd.Flags().String(
-		privateKey,
-		"", // no default key
-
-		// TODO: this message does not really make sense to me
-		"private key to sign and pay for the deposit message.  This is required if the broadcast flag is set.",
-	)
 	cmd.Flags().BoolP(
 		overrideNodeKey,
 		"o",

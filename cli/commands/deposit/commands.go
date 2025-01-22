@@ -27,9 +27,7 @@ import (
 )
 
 // Commands creates a new command for deposit related actions.
-func Commands(
-	chainSpec chain.Spec,
-) *cobra.Command {
+func Commands(chainSpec chain.Spec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "deposit",
 		Short:                      "deposit subcommands",
