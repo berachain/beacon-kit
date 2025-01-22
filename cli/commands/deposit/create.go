@@ -115,18 +115,11 @@ func createValidatorCmd(
 			return err
 		}
 
-		type depositOutput struct {
-			Pubkey      string `json:"pubkey"`
-			Credentials string `json:"withdrawal_credentials"`
-			Amount      string `json:"amount"`
-			Signature   string `json:"signature"`
-		}
-
-		val, err := json.Marshal(depositOutput{
-			Pubkey:      depositMsg.Pubkey.String(),
-			Credentials: depositMsg.Credentials.String(),
-			Amount:      depositMsg.Amount.ToWei().String(),
-			Signature:   signature.String(),
+		val, err := json.Marshal(types.Deposit{
+			Pubkey:      depositMsg.Pubkey,
+			Credentials: depositMsg.Credentials,
+			Amount:      depositMsg.Amount,
+			Signature:   signature,
 		})
 		if err != nil {
 			return err
