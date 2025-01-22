@@ -241,7 +241,6 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	increaseAmt := new(big.Int).Mul(depositAmountGwei, big.NewInt(int64(NumDepositsLoad/config.NumValidators)))
 
 	for _, val := range validators {
-		// TODO: Make this go over the MaxEffectiveBalance
 		// Get the validator powers for each validator and check that they increased by the expected amount.
 		// Consensus Power is in Gwei.
 		powerAfterRaw, cErr := val.Client.GetConsensusPower(s.Ctx())
@@ -260,9 +259,8 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 		withdrawalDiff := new(big.Int).Sub(withdrawalBalanceAfter, val.WithdrawalBalance)
 		withdrawalDiff.Div(withdrawalDiff, weiPerGwei)
 
-		// TODO: currently the kurtosis devnet sets the withdrawal address the same for all NumValidators validators.
-		// For the validator that contains this address, we validate that the balance is NumValidators times larger than
-		// we expect it to be. For all other validators, they should simply be capped at the max effective balance.
+		// TODO: currently the kurtosis devnet sets the withdrawal address the same for all validators.
+		// We simply validate that the balance is NumValidators times larger than we expect it to be.
 		withdrawalDiff.Div(withdrawalDiff, new(big.Int).SetUint64(config.NumValidators))
 
 		s.Require().Equal(increaseAmt, new(big.Int).Add(powerDiff, withdrawalDiff))
