@@ -21,7 +21,7 @@
 package genesis_test
 
 import (
-	stdbytes "bytes"
+	"bytes"
 	"fmt"
 	"math/rand"
 	"reflect"
@@ -40,7 +40,7 @@ import (
 )
 
 // generator for random deposits.
-type TestDeposits types.Deposits
+type TestDeposits []types.Deposit
 
 func (TestDeposits) Generate(rand *rand.Rand, size int) reflect.Value {
 	res := make(TestDeposits, size)
@@ -65,7 +65,7 @@ func (TestDeposits) Generate(rand *rand.Rand, size int) reflect.Value {
 			panic(fmt.Errorf("failed generating random sign: %w", err))
 		}
 
-		res[i] = &types.Deposit{
+		res[i] = types.Deposit{
 			Pubkey:      pubKey,
 			Credentials: creds,
 			Amount:      math.Gwei(rand.Uint64()),
@@ -114,7 +114,7 @@ func TestCompareGenesisCmdWithStateProcessor(t *testing.T) {
 		require.NoError(t, err)
 
 		// assert that they generate the same root, given the same list of deposits
-		return stdbytes.Equal(cliValRoot[:], processorRoot[:])
+		return bytes.Equal(cliValRoot[:], processorRoot[:])
 	}
 
 	require.NoError(t, quick.Check(f, qc))
