@@ -46,7 +46,7 @@ func getGenesisValidatorRoot(
 			return common.Root{}, err
 		}
 	} else {
-		if len(args) < maxArgs {
+		if len(args) != maxArgs {
 			return common.Root{}, errors.New(
 				"genesis validator root is required if not using the genesis file flag",
 			)
