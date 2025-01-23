@@ -2,50 +2,40 @@
 
 ## What is Kurtosis
 
-[Kurtosis](https://www.kurtosis.com/) is a platform for running distributed
-systems on Docker / Kubernetes. It provides a simple, powerful framework for
-spinning up and tearing down distributed systems programmatically.
+[Kurtosis](https://www.kurtosis.com/) is a platform for running distributed systems on Docker / Kubernetes. It provides a simple, powerful framework for spinning up and tearing down distributed systems programmatically.
 
 ## How to Use
 
-To use BeaconKit with Kurtosis, you'll first need to install the Kurtosis CLI
-and its dependencies. You can find instructions for doing so
-[here](https://docs.kurtosis.com/install).
+To use BeaconKit with Kurtosis, you'll first need to install the Kurtosis CLI and its dependencies. You can find instructions for doing so [here](https://docs.kurtosis.com/install).
 
 ### Docker/local environment
 
-Once you've installed the Kurtosis CLI, you can use it to spin up a Beacon
-network with the following command from within the root directory of the
-beacon-kit repo:
+Once you've installed the Kurtosis CLI, you can use it to spin up a Beacon network with the following command from within the root directory of the `beacon-kit` repository:
 
-```bash
+```sh
 make start-devnet
 ```
 
-This will automatically build your beacond docker image from the local source
-code, and spin up a Kurtosis network based on the config file in
-`kurtosis/beaconkit-all.yaml`. Once complete, this will output all the
-network information for your nodes like so:
+This will automatically build your `beacond` Docker image from the local source code and spin up a Kurtosis network based on the config file in `kurtosis/beaconkit-local.yaml`. Once complete, this will output all the network information for your nodes, like so:
 
 ![Example Network](./img/example-network.png)
 
-When you want to tear down your network, you can do so
-with the following commands:
+When you want to tear down your network, you can do so with the following commands:
 
-```bash
+```sh
 make stop-devnet
 make rm-devnet
 ```
 
 And that's it!
 
-### Deploy Devnet to Kubernetes Networks
+## Deploy Devnet to Kubernetes Networks
 
-## Deploy to a Google Cloud Network
+### Deploy to a Google Cloud Network
 
 This will allow you to deploy a network orchestrated in the same way as `make start-devnet`, but on a cloud environment. A similar approach can be taken for a local Kubernetes environment (alternative commands will be commented with [Docker Desktop K8s]).
 
-1. First, we must ensure we open our Kurtosis config:
+1. First, open your Kurtosis config:
 
    ```sh
    kurtosis config path
@@ -104,7 +94,7 @@ This will allow you to deploy a network orchestrated in the same way as `make st
      beaconkit: ghcr.io/berachain/beacon-kit:main
    ```
 
-7. Deploy. Note that re-executing the same command twice will start the network from zero again unless you change the enclave name in the `Makefile`.
+7. Deploy. Note that re-executing the same command twice will start the network from zero again unless you change the enclave name in the `Makefile`:
 
    ```sh
    make start-devnet-cloud
