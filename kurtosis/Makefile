@@ -36,24 +36,17 @@ start-devnet: install-kurtosis
 
 # Starts a Kurtosis enclave containing a local devnet without building the image
 start-devnet-no-build:
-	kurtosis run ./kurtosis --args-file ./kurtosis/beaconkit-all.yaml \
+	kurtosis run ./kurtosis --args-file ./kurtosis/beaconkit-local.yaml \
 		--enclave my-local-devnet --parallelism 200
 
-# Starts a Kurtosis enclave containing a local devnet on GCP.
-# --production flag is used to indicate that the enclave is
-# running in production mode to allow pod restarts when doing chaos testing.
-start-gcp-devnet-no-build:
-	kurtosis run ./kurtosis --args-file ./kurtosis/beaconkit-base-gcp.yaml \
-		--enclave my-gcp-devnet2 --parallelism 200 --production --image-download always
+# Starts a Kurtosis enclave in the cloud using the latest image tag
+start-devnet-cloud: install-kurtosis
+	kurtosis run ./kurtosis --args-file ./kurtosis/beaconkit-cloud.yaml \
+		--enclave my-cloud-devnet-$(shell whoami) --parallelism 200 --production
 
-# Stops the running Kurtosis enclave on GCP
-stop-gcp-devnet:
-	kurtosis enclave stop my-gcp-devnet2
-
-# Stops and removes the specified Kurtosis enclave
-reset-gcp-devnet:
-	$(MAKE) stop-gcp-devnet
-	kurtosis enclave rm my-gcp-devnet2
+# Remove the running Kurtosis enclave on GCP
+rm-devnet-cloud:
+	kurtosis enclave rm my-cloud-devnet-$(shell whoami) --force
 
 # Removes the specified Kurtosis enclave
 rm-gcp-devnet:
@@ -88,6 +81,5 @@ star-fix: buildifier-install
 	find ./kurtosis -name "*.star" -exec buildifier --mode=fix {} +
 
 # Marks targets as not being associated with files
-.PHONY: start-devnet stop-devnet reset-devnet rm-devnet buildifier-install \
-  star-lint star-fix start-gcp-devnet-no-build stop-gcp-devnet \
-  reset-gcp-devnet rm-gcp-devnet install-kurtosis
+.PHONY: start-devnet stop-devnet start-devnet-cloud rm-devnet-cloud reset-devnet rm-devnet buildifier-install \
+  star-lint star-fix install-kurtosis

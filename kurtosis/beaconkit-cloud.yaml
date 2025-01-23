@@ -23,22 +23,26 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-# This is the base configuration for the BeaconKit service on GCP. It includes the configuration for the BeaconKit service itself, as well as the configuration for the full nodes and validators that the BeaconKit service will interact with.
-# Monitoring and alerting are not included in this configuration, as they are handled by the GCP infrastructure.
-
 network_configuration:
+  chain_id: 80087
+  chain_spec: "devnet"
   validators:
     type: "validator"
     nodes:
-      - el_type: reth
-        replicas: 1
-      - el_type: geth
-        replicas: 1
-      - el_type: erigon
-        replicas: 0
       - el_type: besu
+        kzg_impl: crate-crypto/go-kzg-4844
         replicas: 0
       - el_type: nethermind
+        kzg_impl: crate-crypto/go-kzg-4844
+        replicas: 0
+      - el_type: reth
+        kzg_impl: crate-crypto/go-kzg-4844
+        replicas: 1
+      - el_type: geth
+        kzg_impl: crate-crypto/go-kzg-4844
+        replicas: 1
+      - el_type: erigon
+        kzg_impl: crate-crypto/go-kzg-4844
         replicas: 0
       - el_type: ethereumjs
         replicas: 0
@@ -46,54 +50,75 @@ network_configuration:
     type: "full"
     nodes:
       - el_type: reth
+        kzg_impl: crate-crypto/go-kzg-4844
         replicas: 1
       - el_type: geth
+        kzg_impl: crate-crypto/go-kzg-4844
         replicas: 1
-      - el_type: erigon
+      - el_type: nethermind
         replicas: 0
       - el_type: besu
         replicas: 0
-      - el_type: nethermind
+      - el_type: erigon
         replicas: 0
       - el_type: ethereumjs
         replicas: 0
   seed_nodes:
     type: "seed"
     nodes:
-      - el_type: geth
-        replicas: 2
+      - el_type: reth
+        replicas: 1
 node_settings:
   consensus_settings:
     specs:
-      min_cpu: 0
+      min_cpu: 1000
       max_cpu: 2000
-      min_memory: 0
+      min_memory: 1024
       max_memory: 2048
     images:
-      beaconkit: beacond:kurtosis-local
+      beaconkit: ghcr.io/berachain/beacon-kit:main
     config:
-      timeout_propose: 3s
-      timeout_prevote: 1s
-      timeout_precommit: 1s
-      timeout_commit: 2s
+      timeout_propose: 2s
+      timeout_prevote: 2s
+      timeout_precommit: 2s
+      timeout_commit: 500ms
       max_num_inbound_peers: 40
       max_num_outbound_peers: 10
     app:
-      payload_timeout: 2s
+      payload_timeout: 850ms
+      enable_optimistic_payload_builds: true
   execution_settings:
     specs:
-      min_cpu: 0
+      min_cpu: 1000
       max_cpu: 2000
-      min_memory: 0
+      min_memory: 1024
       max_memory: 2048
     images:
-      besu: hyperledger/besu:latest
+      besu: hyperledger/besu:24.5.4
       erigon: erigontech/erigon:v2.60.9
       ethereumjs: ethpandaops/ethereumjs:stable
       geth: ethereum/client-go:latest
       nethermind: nethermind/nethermind:latest
       reth: ghcr.io/paradigmxyz/reth:latest
 eth_json_rpc_endpoints:
+  # type has to be either blutgang or nginx
   - type: blutgang
     clients:
-      - el-full-geth-0
+      - el-full-reth-0
+      # - el-full-reth-1
+      # - el-full-geth-2
+      # - el-full-nethermind-3
+      # - el-full-besu-4
+      # - el-full-erigon-5
+      # - el-full-ethereumjs-6
+additional_services:
+  # - name: "spamoor"
+  # - name: "tx-fuzz"
+  #   replicas: 16
+  - name: "prometheus"
+  - name: "grafana"
+  # - name: "pyroscope"
+  # - name: "blockscout"
+  #   client: "el-full-reth-0"
+  # - name: "otterscan" # otterscan supports only erigon nodes
+  #   client: "el-full-erigon-3"

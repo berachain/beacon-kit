@@ -15,7 +15,7 @@ PROJECT_NAME = $(shell git remote get-url origin | xargs basename -s .git)
 # process build tags
 build_tags = netgo
 
-ifeq (legacy,$(findstring legacy,$(COSMOS_BUILD_OPTIONS)))
+ifeq (leg`acy,$(findstring legacy,$(COSMOS_BUILD_OPTIONS)))
   build_tags += app_v1
 endif
 
