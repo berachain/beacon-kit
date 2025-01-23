@@ -43,79 +43,87 @@ And that's it!
 
 ## Deploy to a Google Cloud Network
 
-This will allow you to deploy the a network orchestrated in the same was as `make start-devnet` but on a cloud environment. A similar approach can be taken for a local kubernetes environment (alternative commands will be commented with [Docker Desktop K8s].
+This will allow you to deploy a network orchestrated in the same way as `make start-devnet`, but on a cloud environment. A similar approach can be taken for a local Kubernetes environment (alternative commands will be commented with [Docker Desktop K8s]).
 
-1. First we must ensure open our Kurtosis config
-```sh
-kurtosis config path
+1. First, we must ensure we open our Kurtosis config:
 
-# The command will output a path which you need to open in an editor
-/Users/.../kurtosis-config.yml
-```
+   ```sh
+   kurtosis config path
 
-2. Update the Kurtosis config with the following, copy pasting into the whole file
-```yaml
-config-version: 2
-should-send-metrics: true
-kurtosis-clusters:
-  docker:
-    type: "docker"
-  docker-desktop:
-    type: "kubernetes"
-    config:
-      kubernetes-cluster-name: "docker-desktop"
-      storage-class: "hostpath"
-  cloud:
-    type: "kubernetes"
-    config:
-      kubernetes-cluster-name: "cloud"
-      storage-class: "premium-rwo"
-```
+   # The command will output a path which you need to open in an editor
+   /Users/.../kurtosis-config.yml
+   ```
 
-3. Next we must ensure kurtosis is using the correct config so it deploys to the cloud instead of  local Docker Desktop
-```sh
-kurtosis cluster set cloud
+2. Update the Kurtosis config with the following, replacing the entire file:
 
-# [Docker Desktop K8s]: kurtosis config use-context docker-desktop
-```
+   ```yaml
+   config-version: 2
+   should-send-metrics: true
+   kurtosis-clusters:
+     docker:
+       type: "docker"
+     docker-desktop:
+       type: "kubernetes"
+       config:
+         kubernetes-cluster-name: "docker-desktop"
+         storage-class: "hostpath"
+     cloud:
+       type: "kubernetes"
+       config:
+         kubernetes-cluster-name: "cloud"
+         storage-class: "premium-rwo"
+   ```
 
-4. Now must ensure our Kubernetes config is using the correct context, i.e. the one context we wish to deploy to, e.g. 
-```sh
- kubectl config use-context gke_prj-.....
- 
- # [Docker Desktop K8s]: kubectl config use-context docker-desktop
-```
+3. Next, ensure Kurtosis is using the correct config so it deploys to the cloud instead of local Docker Desktop:
 
-5. Now we run Kurtosis Gateway. This command will start a local "gateway" to connect your local machine to your remote Kubernetes cluster. Run this in a separate shell
-```sh
-kurtosis gateway
-```
+   ```sh
+   kurtosis cluster set cloud
 
-6. Cloud based deployments require a docker image as local docker images cannot be pulled from the remote instance. If you want to update the image, edit
-```yaml
-    # Found in beacon-kit/kurtosis/beaconkit-cloud.yaml
-    images:
-      beaconkit: ghcr.io/berachain/beacon-kit:main
-```
+   # [Docker Desktop K8s]: kurtosis config use-context docker-desktop
+   ```
 
-7. Deploy. Note that re-executing the same command twice will start the network from zero again unless you change the enclave name in the Makefile . 
-```sh
-make start-devnet-cloud
-```
+4. Now ensure your Kubernetes config is using the correct context, i.e., the one context you wish to deploy to:
 
-8. View your deployment in K9s, navigating to the relevant namespace. It should be named kt-my-cloud-devnet-${whoami}
+   ```sh
+   kubectl config use-context gke_prj-.....
+
+   # [Docker Desktop K8s]: kubectl config use-context docker-desktop
+   ```
+
+5. Run Kurtosis Gateway. This command will start a local "gateway" to connect your local machine to your remote Kubernetes cluster. Run this in a separate shell:
+
+   ```sh
+   kurtosis gateway
+   ```
+
+6. Cloud-based deployments require a Docker image, as local Docker images cannot be pulled from the remote instance. If you want to update the image, edit:
+
+   ```yaml
+   # Found in beacon-kit/kurtosis/beaconkit-cloud.yaml
+   images:
+     beaconkit: ghcr.io/berachain/beacon-kit:main
+   ```
+
+7. Deploy. Note that re-executing the same command twice will start the network from zero again unless you change the enclave name in the `Makefile`.
+
+   ```sh
+   make start-devnet-cloud
+   ```
+
+8. View your deployment in K9s, navigating to the relevant namespace. It should be named `kt-my-cloud-devnet-${whoami}`.
 
 ## Helper Commands
 
-If you want to start from a clean state and remove all existing pods
+If you want to start from a clean state and remove all existing pods:
+
 ```sh
 # Everything is wrecked
 kurtosis clean -a
 kurtosis engine restart
 ```
 
-If you manually kill a pod and want to restart it
+If you manually kill a pod and want to restart it:
+
 ```sh
-# node that for namespace, you should remove the "kt-" prefix 
+# Note that for the namespace, you should remove the "kt-" prefix
 kurtosis service start {namespace} {podname}
-```
