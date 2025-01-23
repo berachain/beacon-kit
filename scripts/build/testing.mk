@@ -13,6 +13,7 @@
 HOMEDIR = .tmp/beacond
 DEVNET_CHAIN_SPEC = devnet
 JWT_PATH = ${TESTAPP_FILES_DIR}/jwt.hex
+# Use the genesis file from the beacond folder as it has been modified by beacond genesis set-deposit-storage.
 ETH_GENESIS_PATH = ${HOMEDIR}/eth-genesis.json
 NETHER_ETH_GENESIS_PATH = ${HOMEDIR}/eth-nether-genesis.json
 ETH_DATA_DIR = .tmp/eth-home

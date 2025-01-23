@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -58,19 +58,6 @@ func New(
 	}
 }
 
-// Start spawns any goroutines required by the service.
-func (ee *Engine) Start(
-	ctx context.Context,
-) error {
-	go func() {
-		// TODO: handle better
-		if err := ee.ec.Start(ctx); err != nil {
-			panic(err)
-		}
-	}()
-	return nil
-}
-
 // GetPayload returns the payload and blobs bundle for the given slot.
 func (ee *Engine) GetPayload(
 	ctx context.Context,
@@ -112,14 +99,7 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 
 	// If we get invalid payload status, we will need to find a valid
 	// ancestor block and force a recovery.
-	//
-	// These two cases are semantically the same:
-	// https://github.com/ethereum/execution-apis/issues/270
-	case errors.IsAny(
-		err,
-		engineerrors.ErrInvalidPayloadStatus,
-		engineerrors.ErrInvalidBlockHashPayloadStatus,
-	):
+	case errors.Is(err, engineerrors.ErrInvalidPayloadStatus):
 		ee.metrics.markForkchoiceUpdateInvalid(req.State, err)
 		return payloadID, latestValidHash, ErrBadBlockProduced
 
@@ -202,13 +182,7 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 			req.Optimistic,
 		)
 
-	// These two cases are semantically the same:
-	// https://github.com/ethereum/execution-apis/issues/270
-	case errors.IsAny(
-		err,
-		engineerrors.ErrInvalidPayloadStatus,
-		engineerrors.ErrInvalidBlockHashPayloadStatus,
-	):
+	case errors.Is(err, engineerrors.ErrInvalidPayloadStatus):
 		ee.metrics.markNewPayloadInvalidPayloadStatus(
 			req.ExecutionPayload.GetBlockHash(),
 			req.Optimistic,
