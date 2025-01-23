@@ -48,10 +48,6 @@ start-devnet-cloud: install-kurtosis
 rm-devnet-cloud:
 	kurtosis enclave rm my-cloud-devnet-$(shell whoami) --force
 
-# Removes the specified Kurtosis enclave
-rm-gcp-devnet:
-	kurtosis enclave rm my-gcp-devnet2 --force
-
 # Stops the running Kurtosis enclave
 stop-devnet:
 	kurtosis enclave stop my-local-devnet
