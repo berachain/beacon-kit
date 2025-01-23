@@ -42,21 +42,14 @@ func getGenesisValidatorRoot(
 
 	if genesisValidatorRootStr != defaultGenesisValidatorRoot {
 		genesisValidatorRoot, err = parser.ConvertGenesisValidatorRoot(genesisValidatorRootStr)
-		if err != nil {
-			return common.Root{}, err
-		}
 	} else {
 		if len(args) != maxArgs {
 			return common.Root{}, errors.New(
 				"genesis validator root is required if not using the genesis file flag",
 			)
 		}
-		if genesisValidatorRoot, err = genesis.ComputeValidatorsRootFromFile(
-			args[maxArgs-1], chainSpec,
-		); err != nil {
-			return common.Root{}, err
-		}
+		genesisValidatorRoot, err = genesis.ComputeValidatorsRootFromFile(args[maxArgs-1], chainSpec)
 	}
 
-	return genesisValidatorRoot, nil
+	return genesisValidatorRoot, err
 }

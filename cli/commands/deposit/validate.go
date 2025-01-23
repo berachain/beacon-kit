@@ -38,7 +38,6 @@ const (
 	validateCreds1  = iota
 	validateAmt2    = iota
 	validateSign3   = iota
-	validateRoot4   = iota
 
 	minArgsValidateDeposit = 4
 	maxArgsValidateDeposit = 5
