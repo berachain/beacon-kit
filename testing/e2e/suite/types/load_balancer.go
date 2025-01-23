@@ -63,5 +63,8 @@ func NewLoadBalancer(
 
 // URL returns the URL of the load balancer.
 func (lb *LoadBalancer) URL() string {
+	if lb == nil {
+		panic("LoadBalancer is nil")
+	}
 	return lb.url
 }

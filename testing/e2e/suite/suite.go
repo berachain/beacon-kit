@@ -254,6 +254,9 @@ func (s *KurtosisE2ESuite) RunTestsByChainSpec() {
 
 // InitializeNetwork sets up a network using the provided configuration
 func (s *KurtosisE2ESuite) InitializeNetwork(network *NetworkInstance) error {
+	if network == nil {
+		return fmt.Errorf("network instance cannot be nil")
+	}
 	// Create unique enclave name for this chain spec
 	s.Logger().Info("Creating enclave", "chainSpec", network.Config.NetworkConfiguration.ChainSpec)
 	enclaveName := fmt.Sprintf("e2e-test-enclave-%s", network.Config.NetworkConfiguration.ChainSpec)
