@@ -34,12 +34,13 @@ import (
 )
 
 const (
-	validatePubKey0   = iota
-	validateCreds1    = iota
-	validateAmt2      = iota
-	validateSign3     = iota
-	validateRoot4     = iota
-	validateArgsCount = iota
+	validatePubKey0 = iota
+	validateCreds1  = iota
+	validateAmt2    = iota
+	validateSign3   = iota
+
+	minArgsValidateDeposit = 4
+	maxArgsValidateDeposit = 5
 )
 
 // NewValidateDeposit creates a new command for validating a deposit message.
@@ -47,23 +48,29 @@ const (
 //nolint:lll // reads better if long description is one line
 func NewValidateDeposit(chainSpec chain.Spec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "validate",
+		Use:   "validate [pubkey] [withdrawal-credentials] [amount] [signature] ?[beacond/genesis.json]",
 		Short: "Validates a deposit message for creating a new validator",
-		Long:  `Validates a deposit message for creating a new validator. The deposit message includes the public key, withdrawal credentials, and deposit amount. The args taken are in the order of the public key, withdrawal credentials, deposit amount, signature, and genesis validator root.`,
-		Args:  cobra.ExactArgs(validateArgsCount),
+		Long:  `Validates a deposit message (public key, withdrawal credentials, deposit amount) for creating a new validator. The args taken are in the order of the public key, withdrawal credentials, deposit amount, signature, and optionally the beacond genesis file. If the genesis validator root flag is NOT set, the beacond genesis file MUST be provided as the last argument.`,
+		Args:  cobra.RangeArgs(minArgsValidateDeposit, maxArgsValidateDeposit),
 		RunE:  validateDepositMessage(chainSpec),
 	}
+
+	cmd.Flags().StringP(
+		useGenesisValidatorRoot,
+		useGenesisValidatorRootShorthand,
+		defaultGenesisValidatorRoot,
+		"Use the provided genesis validator root. If this is not set, the beacond genesis file must be provided manually as the last argument.",
+	)
 
 	return cmd
 }
 
-// validateDepositMessage validates a deposit message for creating a new
-// validator.
+// validateDepositMessage validates a deposit message for creating a new validator.
 func validateDepositMessage(chainSpec chain.Spec) func(
 	_ *cobra.Command,
 	args []string,
 ) error {
-	return func(_ *cobra.Command, args []string) error {
+	return func(cmd *cobra.Command, args []string) error {
 		pubKeyStr := args[validatePubKey0]
 		pubkey, err := parser.ConvertPubkey(pubKeyStr)
 		if err != nil {
@@ -88,8 +95,9 @@ func validateDepositMessage(chainSpec chain.Spec) func(
 			return err
 		}
 
-		genValRootStr := args[validateRoot4]
-		genesisValidatorRoot, err := parser.ConvertGenesisValidatorRoot(genValRootStr)
+		genesisValidatorRoot, err := getGenesisValidatorRoot(
+			cmd, chainSpec, args, maxArgsValidateDeposit,
+		)
 		if err != nil {
 			return err
 		}
