@@ -48,7 +48,7 @@ This will allow you to deploy a network orchestrated in the same way as
 taken for a local Kubernetes environment (alternative commands will be
 commented with [Docker Desktop K8s]).
 
-1. First, open your Kurtosis config:
+- First, open your Kurtosis config:
 
    ```sh
    kurtosis config path
@@ -57,7 +57,7 @@ commented with [Docker Desktop K8s]).
    /Users/.../kurtosis-config.yml
    ```
 
-2. Update the Kurtosis config with the following, replacing the entire file:
+- Update the Kurtosis config with the following, replacing the entire file:
 
    ```yaml
    config-version: 2
@@ -77,7 +77,7 @@ commented with [Docker Desktop K8s]).
          storage-class: "premium-rwo"
    ```
 
-3. Next, ensure Kurtosis is using the correct config so it deploys to the
+- Next, ensure Kurtosis is using the correct config so it deploys to the
    cloud instead of local Docker Desktop:
 
    ```sh
@@ -86,7 +86,7 @@ commented with [Docker Desktop K8s]).
    # [Docker Desktop K8s]: kurtosis config use-context docker-desktop
    ```
 
-4. Now ensure your Kubernetes config is using the correct context, i.e., the
+- Now ensure your Kubernetes config is using the correct context, i.e., the
    one context you wish to deploy to:
 
    ```sh
@@ -95,7 +95,7 @@ commented with [Docker Desktop K8s]).
    # [Docker Desktop K8s]: kubectl config use-context docker-desktop
    ```
 
-5. Run Kurtosis Gateway. This command will start a local "gateway" to connect
+- Run Kurtosis Gateway. This command will start a local "gateway" to connect
    your local machine to your remote Kubernetes cluster. Run this in a
    separate shell:
 
@@ -103,7 +103,7 @@ commented with [Docker Desktop K8s]).
    kurtosis gateway
    ```
 
-6. Cloud-based deployments require a Docker image, as local Docker images
+- Cloud-based deployments require a Docker image, as local Docker images
    cannot be pulled from the remote instance. If you want to update the image,
    edit:
 
@@ -113,14 +113,14 @@ commented with [Docker Desktop K8s]).
      beaconkit: ghcr.io/berachain/beacon-kit:main
    ```
 
-7. Deploy. Note that re-executing the same command twice will start the
+- Deploy. Note that re-executing the same command twice will start the
    network from zero again unless you change the enclave name in the `Makefile`:
 
    ```sh
    make start-devnet-cloud
    ```
 
-8. View your deployment in K9s, navigating to the relevant namespace. It
+- View your deployment in K9s, navigating to the relevant namespace. It
    should be named `kt-my-cloud-devnet-${whoami}`.
 
 ## Helper Commands
