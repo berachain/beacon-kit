@@ -27,40 +27,30 @@ import (
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
+	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 )
 
-// Commands creates a new command for deposit related actions.
-func Commands(
-	chainSpec chain.Spec,
-) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:                        "deposit",
-		Short:                      "deposit subcommands",
-		DisableFlagParsing:         false,
-		SuggestionsMinimumDistance: 2, //nolint:mnd // from sdk.
-		RunE:                       client.ValidateCmd,
-	}
-
-	cmd.AddCommand(
-		NewValidateDeposit(chainSpec),
-		NewCreateValidator(chainSpec),
-	)
-
-	return cmd
-}
+const (
+	validatePubKey0   = iota
+	validateCreds1    = iota
+	validateAmt2      = iota
+	validateSign3     = iota
+	validateRoot4     = iota
+	validateArgsCount = iota
+)
 
 // NewValidateDeposit creates a new command for validating a deposit message.
 //
-//nolint:mnd,lll // lots of magic numbers, reads better if long description is one line
+//nolint:lll // reads better if long description is one line
 func NewValidateDeposit(chainSpec chain.Spec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "validate",
 		Short: "Validates a deposit message for creating a new validator",
 		Long:  `Validates a deposit message for creating a new validator. The deposit message includes the public key, withdrawal credentials, and deposit amount. The args taken are in the order of the public key, withdrawal credentials, deposit amount, signature, and genesis validator root.`,
-		Args:  cobra.ExactArgs(6),
+		Args:  cobra.ExactArgs(validateArgsCount),
 		RunE:  validateDepositMessage(chainSpec),
 	}
 
@@ -74,45 +64,61 @@ func validateDepositMessage(chainSpec chain.Spec) func(
 	args []string,
 ) error {
 	return func(_ *cobra.Command, args []string) error {
-		pubkey, err := parser.ConvertPubkey(args[0])
+		pubKeyStr := args[validatePubKey0]
+		pubkey, err := parser.ConvertPubkey(pubKeyStr)
 		if err != nil {
 			return err
 		}
 
-		credentials, err := parser.ConvertWithdrawalCredentials(args[1])
+		credsStr := args[validateCreds1]
+		credentials, err := parser.ConvertWithdrawalCredentials(credsStr)
 		if err != nil {
 			return err
 		}
 
-		amount, err := parser.ConvertAmount(args[2])
+		amountStr := args[validateAmt2]
+		amount, err := parser.ConvertAmount(amountStr)
 		if err != nil {
 			return err
 		}
 
-		signature, err := parser.ConvertSignature(args[3])
+		sigStr := args[validateSign3]
+		signature, err := parser.ConvertSignature(sigStr)
 		if err != nil {
 			return err
 		}
 
-		genesisValidatorRoot, err := parser.ConvertGenesisValidatorRoot(args[4])
+		genValRootStr := args[validateRoot4]
+		genesisValidatorRoot, err := parser.ConvertGenesisValidatorRoot(genValRootStr)
 		if err != nil {
 			return err
 		}
 
-		depositMessage := types.DepositMessage{
-			Pubkey:      pubkey,
-			Credentials: credentials,
-			Amount:      amount,
-		}
-
-		// All deposits are signed with the genesis version.
-		genesisVersion := version.FromUint32[common.Version](constants.GenesisVersion)
-
-		return depositMessage.VerifyCreateValidator(
-			types.NewForkData(genesisVersion, genesisValidatorRoot),
-			signature,
-			chainSpec.DomainTypeDeposit(),
-			signer.BLSSigner{}.VerifySignature,
-		)
+		return ValidateDeposit(chainSpec, pubkey, credentials, amount, genesisValidatorRoot, signature)
 	}
+}
+
+func ValidateDeposit(
+	cs chain.Spec,
+	pubkey crypto.BLSPubkey,
+	creds types.WithdrawalCredentials,
+	amount math.Gwei,
+	genValRoot common.Root,
+	signature crypto.BLSSignature,
+) error {
+	depositMessage := types.DepositMessage{
+		Pubkey:      pubkey,
+		Credentials: creds,
+		Amount:      amount,
+	}
+
+	// All deposits are signed with the genesis version.
+	genesisVersion := version.FromUint32[common.Version](constants.GenesisVersion)
+
+	return depositMessage.VerifyCreateValidator(
+		types.NewForkData(genesisVersion, genValRoot),
+		signature,
+		cs.DomainTypeDeposit(),
+		signer.BLSSigner{}.VerifySignature,
+	)
 }
