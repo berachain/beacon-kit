@@ -148,6 +148,7 @@ func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		// Set the amount of the withdrawal depending on the balance of the validator.
 		if validator.IsFullyWithdrawable(balance, epoch) {
 			withdrawalAddress, err = validator.GetWithdrawalCredentials().ToExecutionAddress()

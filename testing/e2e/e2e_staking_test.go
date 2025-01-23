@@ -81,17 +81,14 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 
 	// Bind the deposit contract.
 	depositContractAddress := gethcommon.HexToAddress(spec.DefaultDepositContractAddress)
-
 	dc, err := deposit.NewDepositContract(depositContractAddress, s.JSONRPCBalancer())
 	s.Require().NoError(err)
 
-	// Check deposit count at genesis
+	// Enforce the deposit count at genesis is equal to the number of validators.
 	depositCount, err := dc.DepositCount(&bind.CallOpts{
 		BlockNumber: big.NewInt(0),
 	})
 	s.Require().NoError(err)
-
-	// Enforce the deposit count at genesis is equal to the number of validators.
 	s.Require().Equal(uint64(config.NumValidators), depositCount,
 		"initial deposit count should match number of validators")
 
@@ -249,21 +246,16 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	increaseAmt := new(big.Int).Mul(depositAmountGwei, big.NewInt(int64(NumDepositsLoad/config.NumValidators)))
 
 	for _, val := range validators {
-		// Get the validator powers for each validator and check that they increased by the expected amount.
 		// Consensus Power is in Gwei.
 		powerAfterRaw, cErr := val.Client.GetConsensusPower(s.Ctx())
 		s.Require().NoError(cErr)
 		powerAfter := new(big.Int).SetUint64(powerAfterRaw)
 		powerDiff := new(big.Int).Sub(powerAfter, val.Power)
 
-		// Grab the validator withdrawal balances and check that they increased by the expected amount.
 		// withdrawal balance is in Wei, so we'll convert it to Gwei.
 		withdrawalAddress := gethcommon.Address(val.WithdrawalCredentials[12:])
-
-		// Make sure the total withdrawal and power adds up to the amount deposited.
 		withdrawalBalanceAfter, jErr := s.JSONRPCBalancer().BalanceAt(s.Ctx(), withdrawalAddress, nil)
 		s.Require().NoError(jErr)
-
 		withdrawalDiff := new(big.Int).Sub(withdrawalBalanceAfter, val.WithdrawalBalance)
 		withdrawalDiff.Div(withdrawalDiff, weiPerGwei)
 
@@ -271,6 +263,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 		// We simply validate that the balance is NumValidators times larger than we expect it to be.
 		withdrawalDiff.Div(withdrawalDiff, new(big.Int).SetUint64(config.NumValidators))
 
+		// Verify input balance is equal to the power + withdrawal balances.
 		s.Require().Equal(increaseAmt, new(big.Int).Add(powerDiff, withdrawalDiff))
 	}
 }

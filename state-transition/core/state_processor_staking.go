@@ -105,7 +105,7 @@ func (sp *StateProcessor[_]) applyDeposit(st *state.StateDB, dep *ctypes.Deposit
 
 	sp.logger.Info(
 		"Processed deposit to increase balance",
-		"deposit_amount", dep.GetAmount().Unwrap(),
+		"deposit_amount", float64(dep.GetAmount().Unwrap())/math.GweiPerWei,
 		"validator_index", idx,
 	)
 	return nil
