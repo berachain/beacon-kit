@@ -39,26 +39,33 @@ import (
 )
 
 const (
-	createAddr0     = iota
-	createAmt1      = iota
-	createRoot2     = iota
-	createArgsCount = iota
+	createAddr0 = iota
+	createAmt1  = iota
+	createRoot2 = iota
 
-	overrideNodeKey = "override-node-key"
-	valPrivateKey   = "validator-private-key"
+	minArgsCreateDeposit = 2
+	maxArgsCreateDeposit = 3
+
+	overrideNodeKey         = "override-node-key"
+	valPrivateKey           = "validator-private-key"
+	useGenesisValidatorRoot = "genesis-validator-root"
+
+	useGenesisValidatorRootShorthand = "g"
+
+	defaultGenesisValidatorRoot = ""
 )
 
 // NewCreateValidator creates a new command to create a validator deposit.
 //
-//nolint:lll // reads better if long description is one line
+//nolint:lll // reads better if long description is one line.
 func NewCreateValidator(
 	chainSpec chain.Spec,
 ) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-validator",
+		Use:   "create-validator [withdrawal-address] [amount] ?[beacond/genesis.json]",
 		Short: "Creates a validator deposit",
-		Long:  `Creates a validator deposit with the necessary credentials. The arguments are expected in the order of withdrawal address, deposit amount, and genesis validator root. If the broadcast flag is set to true, a private key must be provided to sign the transaction.`,
-		Args:  cobra.ExactArgs(createArgsCount),
+		Long:  `Creates a validator deposit with the necessary credentials. The arguments are expected in the order of withdrawal address, deposit amount, and optionally the beacond genesis file. If the genesis validator root flag is NOT set, the beacond genesis file MUST be provided as the last argument. If the broadcast flag is set to true, a private key must be provided to sign the transaction.`,
+		Args:  cobra.RangeArgs(minArgsCreateDeposit, maxArgsCreateDeposit),
 		RunE:  createValidatorCmd(chainSpec),
 	}
 
@@ -72,6 +79,12 @@ func NewCreateValidator(
 		valPrivateKey,
 		"", // no default private key
 		"validator private key. This is required if the override-node-key flag is set.",
+	)
+	cmd.Flags().StringP(
+		useGenesisValidatorRoot,
+		useGenesisValidatorRootShorthand,
+		defaultGenesisValidatorRoot,
+		"Use the provided genesis validator root. If this is not set, the beacond genesis file must be provided manually as the last argument.",
 	)
 
 	return cmd
@@ -101,8 +114,9 @@ func createValidatorCmd(
 			return err
 		}
 
-		genValRootStr := args[createRoot2]
-		genesisValidatorRoot, err := parser.ConvertGenesisValidatorRoot(genValRootStr)
+		genesisValidatorRoot, err := getGenesisValidatorRoot(
+			cmd, chainSpec, args, maxArgsCreateDeposit,
+		)
 		if err != nil {
 			return err
 		}
