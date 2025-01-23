@@ -35,7 +35,7 @@ const (
 
 	// MaxStakeAmount is the maximum amount of native EVM balance (in units
 	// of Gwei) that can be staked.
-	MaxStakeAmount = 400e9
+	MaxStakeAmount = 4000e9
 )
 
 // DevnetChainSpec is the ChainSpec for the localnet. Also used for e2e tests

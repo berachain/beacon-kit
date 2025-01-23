@@ -64,7 +64,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 
 	// This value is determined by the MIN_DEPOSIT_AMOUNT_IN_GWEI variable from the deposit contract.
 	contractMinDepositAmountWei := big.NewInt(1e9 * 1e9)
-	depositAmountWei := new(big.Int).Mul(contractMinDepositAmountWei, big.NewInt(10))
+	depositAmountWei := new(big.Int).Mul(contractMinDepositAmountWei, big.NewInt(100))
 	depositAmountGwei := new(big.Int).Div(depositAmountWei, weiPerGwei)
 
 	// Our deposits should be greater than the min deposit amount.
@@ -104,15 +104,18 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	// TODO: Compare with HashTreeRoot of genesis deposits
 
 	apiClient := s.ConsensusClients()[config.ClientValidator0]
+	s.Require().NotNil(apiClient)
 
 	// Grab genesis validators to get withdrawal creds.
 	s.Require().NoError(apiClient.Connect(s.Ctx()))
+	s.Require().NotNil(apiClient.BeaconKitNodeClient)
 	response, err := apiClient.BeaconKitNodeClient.Validators(s.Ctx(), &api.ValidatorsOpts{
 		State:   "genesis",
 		Indices: []phase0.ValidatorIndex{0, 1, 2, 3, 4},
 	})
 	s.Require().NoError(err)
 	vals := response.Data
+	s.Require().NotNil(vals)
 	s.Require().Len(vals, config.NumValidators)
 	s.Require().Len(s.ConsensusClients(), config.NumValidators)
 
@@ -123,7 +126,11 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 		power, cErr := client.GetConsensusPower(s.Ctx())
 		s.Require().NoError(cErr)
 
-		creds := [32]byte(vals[phase0.ValidatorIndex(idx)].Validator.WithdrawalCredentials)
+		s.Require().Contains(vals, phase0.ValidatorIndex(idx))
+		val := vals[phase0.ValidatorIndex(idx)]
+		s.Require().NotNil(val)
+		s.Require().NotNil(val.Validator)
+		creds := [32]byte(val.Validator.WithdrawalCredentials)
 		withdrawalAddress := gethcommon.Address(creds[12:])
 		withdrawalBalance, jErr := s.JSONRPCBalancer().BalanceAt(s.Ctx(), withdrawalAddress, nil)
 		s.Require().NoError(jErr)
