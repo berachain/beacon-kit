@@ -39,10 +39,9 @@ import (
 )
 
 const (
-	createAddr0     = iota
-	createAmt1      = iota
-	createRoot2     = iota
-	createArgsCount = iota
+	createAddr0 = iota
+	createAmt1  = iota
+	createRoot2 = iota
 
 	minArgsCreateDeposit = 2
 	maxArgsCreateDeposit = 3
