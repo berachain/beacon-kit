@@ -24,7 +24,8 @@ import "github.com/berachain/beacon-kit/chain"
 
 // BetnetChainSpec is the ChainSpec for the localnet.
 func BetnetChainSpec() (chain.Spec, error) {
-	testnetSpec := BaseSpec()
-	testnetSpec.DepositEth1ChainID = BetnetEth1ChainID
-	return chain.NewSpec(testnetSpec)
+	betnetSpec := BaseSpec()
+	betnetSpec.DepositEth1ChainID = BetnetEth1ChainID
+	betnetSpec.ValidatorSetCap = 6
+	return chain.NewSpec(betnetSpec)
 }
