@@ -38,3 +38,62 @@ make rm-devnet
 ```
 
 And that's it!
+
+### Deploy Devnet to Kubernetes Networks
+
+## Deploy to a Google Cloud Network
+
+This will allow you to deploy the a network orchestrated in the same was as `make start-devnet` but on a cloud environment. A similar approach can be taken for a local kubernetes environment (alternative commands will be commented with [Docker Desktop K8s].
+
+1. First we must ensure open our Kurtosis config
+```sh
+kurtosis config path
+
+# The command will output a path which you need to open in an editor
+/Users/.../kurtosis-config.yml
+```
+
+2. Update the Kurtosis config with the following, copy pasting into the whole file
+```yaml
+config-version: 2
+should-send-metrics: true
+kurtosis-clusters:
+  docker:
+    type: "docker"
+  docker-desktop:
+    type: "kubernetes"
+    config:
+      kubernetes-cluster-name: "docker-desktop"
+      storage-class: "hostpath"
+  cloud:
+    type: "kubernetes"
+    config:
+      kubernetes-cluster-name: "cloud"
+      storage-class: "premium-rwo"
+```
+
+3. Next we must ensure kurtosis is using the correct config so it deploys to the cloud instead of  local Docker Desktop
+```sh
+kurtosis cluster set cloud
+
+# [Docker Desktop K8s]: kurtosis config use-context docker-desktop
+```
+
+4. Now must ensure our Kubernetes config is using the correct context, i.e. the one context we wish to deploy to, e.g. 
+```sh
+ kubectl config use-context gke_prj-.....
+ 
+ # [Docker Desktop K8s]: kubectl config use-context docker-desktop
+```
+
+5. Now we run Kurtosis Gateway. This command will start a local "gateway" to connect your local machine to your remote Kubernetes cluster. Run this in a separate shell
+```sh
+kurtosis gateway
+```
+
+6. Cloud based deployments require a docker image as local docker images cannot be pulled from the remote instance. If you want to update the image, edit
+```yaml
+    # Found in beacon-kit/kurtosis/beaconkit-cloud.yaml
+    images:
+      beaconkit: ghcr.io/berachain/beacon-kit:main
+```
