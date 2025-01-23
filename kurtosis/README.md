@@ -2,11 +2,13 @@
 
 ## What is Kurtosis
 
-[Kurtosis](https://www.kurtosis.com/) is a platform for running distributed systems on Docker / Kubernetes. It provides a simple, powerful framework for spinning up and tearing down distributed systems programmatically.
+[Kurtosis](https://www.kurtosis.com/) is a platform for running distributed systems on Docker / Kubernetes.
+It provides a simple, powerful framework for spinning up and tearing down distributed systems programmatically.
 
 ## How to Use
 
-To use BeaconKit with Kurtosis, you'll first need to install the Kurtosis CLI and its dependencies. You can find instructions for doing so [here](https://docs.kurtosis.com/install).
+To use BeaconKit with Kurtosis, you'll first need to install the Kurtosis CLI and its dependencies.
+You can find instructions for doing so [here](https://docs.kurtosis.com/install).
 
 ### Docker/local environment
 
