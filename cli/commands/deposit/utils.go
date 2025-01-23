@@ -29,20 +29,20 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Get the genesis validator root. If the genesis file flag is not set, the genesis validator
-// root is taken the last argument (at position maxArgs - 1).
+// Get the genesis validator root. If the genesis validator root flag is not set, the genesis
+// validator root is computed from the genesis file at the last argument (idx: maxArgs - 1).
 func getGenesisValidatorRoot(
 	cmd *cobra.Command, chainSpec chain.Spec, args []string, maxArgs int,
 ) (common.Root, error) {
 	var genesisValidatorRoot common.Root
-	genesisFile, err := cmd.Flags().GetString(useGenesisFile)
+	genesisValidatorRootStr, err := cmd.Flags().GetString(useGenesisValidatorRoot)
 	if err != nil {
 		return common.Root{}, err
 	}
-	if genesisFile != defaultGenesisFile {
-		if genesisValidatorRoot, err = genesis.ComputeValidatorsRootFromFile(
-			genesisFile, chainSpec,
-		); err != nil {
+
+	if genesisValidatorRootStr != defaultGenesisValidatorRoot {
+		genesisValidatorRoot, err = parser.ConvertGenesisValidatorRoot(genesisValidatorRootStr)
+		if err != nil {
 			return common.Root{}, err
 		}
 	} else {
@@ -51,10 +51,12 @@ func getGenesisValidatorRoot(
 				"genesis validator root is required if not using the genesis file flag",
 			)
 		}
-		genesisValidatorRoot, err = parser.ConvertGenesisValidatorRoot(args[maxArgs-1])
-		if err != nil {
+		if genesisValidatorRoot, err = genesis.ComputeValidatorsRootFromFile(
+			args[maxArgs-1], chainSpec,
+		); err != nil {
 			return common.Root{}, err
 		}
 	}
+
 	return genesisValidatorRoot, nil
 }

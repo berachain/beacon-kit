@@ -46,11 +46,13 @@ const (
 	minArgsCreateDeposit = 2
 	maxArgsCreateDeposit = 3
 
-	overrideNodeKey = "override-node-key"
-	valPrivateKey   = "validator-private-key"
-	useGenesisFile  = "genesis-file"
+	overrideNodeKey         = "override-node-key"
+	valPrivateKey           = "validator-private-key"
+	useGenesisValidatorRoot = "genesis-validator-root"
 
-	defaultGenesisFile = ""
+	useGenesisValidatorRootShorthand = "g"
+
+	defaultGenesisValidatorRoot = ""
 )
 
 // NewCreateValidator creates a new command to create a validator deposit.
@@ -60,9 +62,9 @@ func NewCreateValidator(
 	chainSpec chain.Spec,
 ) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-validator [withdrawal-address] [amount] ?[genesis-validator-root]",
+		Use:   "create-validator [withdrawal-address] [amount] ?[beacond/genesis.json]",
 		Short: "Creates a validator deposit",
-		Long:  `Creates a validator deposit with the necessary credentials. The arguments are expected in the order of withdrawal address, deposit amount, and optionally a genesis validator root. If the genesis file flag is NOT set, the genesis validator root MUST be provided as an argument. If the broadcast flag is set to true, a private key must be provided to sign the transaction.`,
+		Long:  `Creates a validator deposit with the necessary credentials. The arguments are expected in the order of withdrawal address, deposit amount, and optionally the beacond genesis file. If the genesis validator root flag is NOT set, the beacond genesis file MUST be provided as the last argument. If the broadcast flag is set to true, a private key must be provided to sign the transaction.`,
 		Args:  cobra.RangeArgs(minArgsCreateDeposit, maxArgsCreateDeposit),
 		RunE:  createValidatorCmd(chainSpec),
 	}
@@ -79,10 +81,10 @@ func NewCreateValidator(
 		"validator private key. This is required if the override-node-key flag is set.",
 	)
 	cmd.Flags().StringP(
-		useGenesisFile,
-		"g",
-		defaultGenesisFile,
-		"Use the genesis file to get the genesis validator root. If this is not set, the genesis validator root must be provided manually as an argument.",
+		useGenesisValidatorRoot,
+		useGenesisValidatorRootShorthand,
+		defaultGenesisValidatorRoot,
+		"Use the provided genesis validator root. If this is not set, the beacond genesis file must be provided manually as the last argument.",
 	)
 
 	return cmd

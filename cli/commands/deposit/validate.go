@@ -49,18 +49,18 @@ const (
 //nolint:lll // reads better if long description is one line
 func NewValidateDeposit(chainSpec chain.Spec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "validate [pubkey] [withdrawal-credentials] [amount] [signature] ?[genesis-validator-root]",
+		Use:   "validate [pubkey] [withdrawal-credentials] [amount] [signature] ?[beacond/genesis.json]",
 		Short: "Validates a deposit message for creating a new validator",
-		Long:  `Validates a deposit message (public key, withdrawal credentials, deposit amount) for creating a new validator. The args taken are in the order of the public key, withdrawal credentials, deposit amount, signature, and optionally a genesis validator root. If the genesis file flag is NOT set, the genesis validator root MUST be provided as an argument.`,
+		Long:  `Validates a deposit message (public key, withdrawal credentials, deposit amount) for creating a new validator. The args taken are in the order of the public key, withdrawal credentials, deposit amount, signature, and optionally the beacond genesis file. If the genesis validator root flag is NOT set, the beacond genesis file MUST be provided as the last argument.`,
 		Args:  cobra.RangeArgs(minArgsValidateDeposit, maxArgsValidateDeposit),
 		RunE:  validateDepositMessage(chainSpec),
 	}
 
 	cmd.Flags().StringP(
-		useGenesisFile,
-		"g",
-		defaultGenesisFile,
-		"Use the genesis file to get the genesis validator root. If this is not set, the genesis validator root must be provided manually as an argument.",
+		useGenesisValidatorRoot,
+		useGenesisValidatorRootShorthand,
+		defaultGenesisValidatorRoot,
+		"Use the provided genesis validator root. If this is not set, the beacond genesis file must be provided manually as the last argument.",
 	)
 
 	return cmd
