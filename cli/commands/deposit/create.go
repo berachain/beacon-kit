@@ -21,9 +21,9 @@
 package deposit
 
 import (
-	"os"
+	"encoding/json"
+	"fmt"
 
-	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/chain"
 	clicontext "github.com/berachain/beacon-kit/cli/context"
 	"github.com/berachain/beacon-kit/cli/utils/parser"
@@ -33,13 +33,25 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/spf13/cobra"
 )
 
 const (
+	createAddr0     = iota
+	createAmt1      = iota
+	createRoot2     = iota
+	createArgsCount = iota
+
 	minArgsCreateDeposit = 2
 	maxArgsCreateDeposit = 3
+
+	overrideNodeKey = "override-node-key"
+	valPrivateKey   = "validator-private-key"
+	useGenesisFile  = "genesis-file"
+
+	defaultGenesisFile = ""
 )
 
 // NewCreateValidator creates a new command to create a validator deposit.
@@ -56,13 +68,22 @@ func NewCreateValidator(
 		RunE:  createValidatorCmd(chainSpec),
 	}
 
-	cmd.Flags().String(privateKey, defaultPrivateKey, privateKeyMsg)
 	cmd.Flags().BoolP(
-		overrideNodeKey, overrideNodeKeyShorthand, defaultOverrideNodeKey, overrideNodeKeyMsg,
+		overrideNodeKey,
+		"o",
+		false, // no override by default
+		"override the node private key",
 	)
-	cmd.Flags().String(valPrivateKey, defaultValidatorPrivateKey, valPrivateKeyMsg)
+	cmd.Flags().String(
+		valPrivateKey,
+		"", // no default private key
+		"validator private key. This is required if the override-node-key flag is set.",
+	)
 	cmd.Flags().StringP(
-		useGenesisFile, useGenesisFileShorthand, defaultGenesisFile, useGenesisFileMsg,
+		useGenesisFile,
+		"g",
+		defaultGenesisFile,
+		"Use the genesis file to get the genesis validator root. If this is not set, the genesis validator root must be provided manually as an argument.",
 	)
 
 	return cmd
@@ -73,29 +94,24 @@ func createValidatorCmd(
 	chainSpec chain.Spec,
 ) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		logger := log.NewLogger(os.Stdout)
-
 		// Get the BLS signer.
 		blsSigner, err := getBLSSigner(cmd)
 		if err != nil {
 			return err
 		}
 
-		withdrawalAddress, err := parser.ConvertWithdrawalAddress(args[0])
+		withdrawalAddressStr := args[createAddr0]
+		withdrawalAddress, err := parser.ConvertWithdrawalAddress(withdrawalAddressStr)
 		if err != nil {
 			return err
 		}
-		credentials := types.NewCredentialsFromExecutionAddress(
-			withdrawalAddress,
-		)
+		credentials := types.NewCredentialsFromExecutionAddress(withdrawalAddress)
 
-		amount, err := parser.ConvertAmount(args[1])
+		amountStr := args[createAmt1]
+		amount, err := parser.ConvertAmount(amountStr)
 		if err != nil {
 			return err
 		}
-
-		// All deposits are signed with the genesis version.
-		genesisVersion := version.FromUint32[common.Version](constants.GenesisVersion)
 
 		genesisValidatorRoot, err := getGenesisValidatorRoot(
 			cmd, chainSpec, args, maxArgsCreateDeposit,
@@ -104,40 +120,63 @@ func createValidatorCmd(
 			return err
 		}
 
-		// Create and sign the deposit message.
-		depositMsg, signature, err := types.CreateAndSignDepositMessage(
-			types.NewForkData(genesisVersion, genesisValidatorRoot),
-			chainSpec.DomainTypeDeposit(),
-			blsSigner,
-			credentials,
-			amount,
-		)
+		depositMsg, signature, err := CreateDepositMessage(chainSpec, blsSigner, genesisValidatorRoot, credentials, amount)
 		if err != nil {
 			return err
 		}
 
-		// Verify the deposit message.
-		if err = depositMsg.VerifyCreateValidator(
-			types.NewForkData(genesisVersion, genesisValidatorRoot),
-			signature,
-			chainSpec.DomainTypeDeposit(),
-			signer.BLSSigner{}.VerifySignature,
-		); err != nil {
+		val, err := json.Marshal(types.Deposit{
+			Pubkey:      depositMsg.Pubkey,
+			Credentials: depositMsg.Credentials,
+			Amount:      depositMsg.Amount,
+			Signature:   signature,
+		})
+		if err != nil {
 			return err
 		}
 
-		// If the broadcast flag is not set, output the deposit message and
-		// signature and return early.
-		logger.Info(
-			"Deposit Message CallData",
-			"pubkey", depositMsg.Pubkey.String(),
-			"withdrawal credentials", depositMsg.Credentials.String(),
-			"amount", depositMsg.Amount,
-			"signature", signature.String(),
-		)
-
+		//nolint:forbidigo // simplifies output parsing
+		fmt.Print(string(val))
 		return nil
 	}
+}
+
+func CreateDepositMessage(
+	cs chain.Spec,
+	blsSigner crypto.BLSSigner,
+	genValRoot common.Root,
+	creds types.WithdrawalCredentials,
+	amount math.Gwei,
+) (
+	*types.DepositMessage,
+	crypto.BLSSignature,
+	error,
+) {
+	// All deposits are signed with the genesis version.
+	genesisVersion := version.FromUint32[common.Version](constants.GenesisVersion)
+
+	// Create and sign the deposit message.
+	depositMsg, signature, err := types.CreateAndSignDepositMessage(
+		types.NewForkData(genesisVersion, genValRoot),
+		cs.DomainTypeDeposit(),
+		blsSigner,
+		creds,
+		amount,
+	)
+	if err != nil {
+		return nil, crypto.BLSSignature{}, fmt.Errorf("failed CreateAndSignDepositMessage: %w", err)
+	}
+
+	return depositMsg,
+		signature,
+		ValidateDeposit(
+			cs,
+			depositMsg.Pubkey,
+			depositMsg.Credentials,
+			depositMsg.Amount,
+			genValRoot,
+			signature,
+		)
 }
 
 // getBLSSigner returns a BLS signer based on the override commands key flag.
