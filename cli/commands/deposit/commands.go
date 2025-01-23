@@ -18,31 +18,28 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package genesis
+package deposit
 
 import (
 	"github.com/berachain/beacon-kit/chain"
-	"github.com/berachain/beacon-kit/cli/utils/genesis"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 )
 
-// GetGenesisValidatorRootCmd returns a command that gets the genesis validator root from a given
-// beacond genesis file.
-func GetGenesisValidatorRootCmd(cs chain.Spec) *cobra.Command {
+// Commands creates a new command for deposit related actions.
+func Commands(chainSpec chain.Spec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "validator-root [beacond/genesis.json]",
-		Short: "gets and returns the genesis validator root",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			genesisValidatorsRoot, err := genesis.ComputeValidatorsRootFromFile(args[0], cs)
-			if err != nil {
-				return err
-			}
-
-			cmd.Printf("%s\n", genesisValidatorsRoot)
-			return nil
-		},
+		Use:                        "deposit",
+		Short:                      "deposit subcommands",
+		DisableFlagParsing:         false,
+		SuggestionsMinimumDistance: 2, //nolint:mnd // from sdk.
+		RunE:                       client.ValidateCmd,
 	}
+
+	cmd.AddCommand(
+		NewValidateDeposit(chainSpec),
+		NewCreateValidator(chainSpec),
+	)
 
 	return cmd
 }

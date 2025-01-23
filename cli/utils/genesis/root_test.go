@@ -31,7 +31,7 @@ import (
 	"testing"
 	"testing/quick"
 
-	"github.com/berachain/beacon-kit/cli/commands/genesis"
+	"github.com/berachain/beacon-kit/cli/utils/genesis"
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -96,7 +96,7 @@ func TestCompareGenesisCmdWithStateProcessor(t *testing.T) {
 			}
 		}
 		// genesis validators root from CLI
-		cliValRoot := genesis.ValidatorsRoot(deposits, cs)
+		cliValRoot := genesis.ComputeValidatorsRoot(deposits, cs)
 
 		// genesis validators root from StateProcessor
 		sp, st, _, _ := statetransition.SetupTestState(t, cs)
