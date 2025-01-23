@@ -18,45 +18,38 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package state
+package debug
 
 import (
-	"github.com/berachain/beacon-kit/config/spec"
-	"github.com/berachain/beacon-kit/primitives/math"
+	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 )
 
-// IsPostFork2 returns true if the chain is post-upgrade (Fork2 on Boonet).
-//
-// TODO: Jank. Refactor into better fork version management.
-func IsPostFork2(chainID uint64, slot math.Slot) bool {
-	switch chainID {
-	case spec.BartioChainID:
-		return false
-	case spec.BoonetEth1ChainID:
-		if slot < math.U64(spec.BoonetFork2Height) {
-			return false
-		}
-
-		return true
-	default:
-		return true
+func (h *Handler[ContextT]) GetState(c ContextT) (any, error) {
+	req, err := utils.BindAndValidate[beacontypes.GetStateRequest](
+		c, h.Logger(),
+	)
+	if err != nil {
+		return nil, err
 	}
-}
-
-// IsPostFork3 returns true if the chain is post-upgrade (Fork3 on Boonet).
-//
-// TODO: Jank. Refactor into better fork version management.
-func IsPostFork3(chainID uint64, slot math.Slot) bool {
-	switch chainID {
-	case spec.BartioChainID:
-		return false
-	case spec.BoonetEth1ChainID:
-		if slot < math.U64(spec.BoonetFork3Height) {
-			return false
-		}
-
-		return true
-	default:
-		return true
+	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
+	if err != nil {
+		return nil, err
 	}
+	state, err := h.backend.StateAtSlot(slot)
+	if err != nil {
+		return nil, err
+	}
+	beaconState, err := state.GetMarshallable()
+	if err != nil {
+		return nil, err
+	}
+	return beacontypes.StateResponse{
+		// TODO: The version should be retrieved based on the slot
+		Version:             "deneb", // stubbed
+		ExecutionOptimistic: false,   // stubbed
+		// TODO: We can set to finalized if this is less than the highest height
+		Finalized: false, // stubbed
+		Data:      beaconState,
+	}, nil
 }

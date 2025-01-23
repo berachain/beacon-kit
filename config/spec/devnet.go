@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,9 +21,8 @@
 package spec
 
 import (
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 const (
@@ -41,17 +40,13 @@ const (
 
 // DevnetChainSpec is the ChainSpec for the localnet. Also used for e2e tests
 // in the kurtosis network.
-func DevnetChainSpec() (chain.Spec[
-	common.DomainType,
-	math.Epoch,
-	math.Slot,
-], error) {
+func DevnetChainSpec() (chain.Spec, error) {
 	devnetSpec := BaseSpec()
 	devnetSpec.DepositEth1ChainID = DevnetEth1ChainID
 	devnetSpec.EVMInflationAddress = common.NewExecutionAddressFromHex(
 		DevnetEVMInflationAddress,
 	)
 	devnetSpec.EVMInflationPerBlock = DevnetEVMInflationPerBlock
-	devnetSpec.MaxEffectiveBalancePreUpgrade = MaxStakeAmount
-	return chain.NewChainSpec(devnetSpec)
+	devnetSpec.MaxEffectiveBalance = MaxStakeAmount
+	return chain.NewSpec(devnetSpec)
 }

@@ -1,7 +1,7 @@
 #!/bin/bash
 # SPDX-License-Identifier: BUSL-1.1
 #
-# Copyright (C) 2024, Berachain Foundation. All rights reserved.
+# Copyright (C) 2025, Berachain Foundation. All rights reserved.
 # Use of this software is governed by the Business Source License included
 # in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 #
@@ -33,6 +33,5 @@ for ((i=1; i<$NUM_VALS; i++)); do
     cp -r /tmp/config${i}/.beacond/config/premined-deposits/premined-deposit* /tmp/config_genesis/.beacond/config/premined-deposits/
 done
 
-/usr/bin/beacond genesis execution-payload $ETH_GENESIS --home /tmp/config_genesis/.beacond
 /usr/bin/beacond genesis collect-premined-deposits --home /tmp/config_genesis/.beacond
 

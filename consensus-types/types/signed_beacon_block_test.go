@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,7 +23,7 @@ package types_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
@@ -55,7 +55,7 @@ func generatePrivKey() (cmtcrypto.PrivKey, error) {
 }
 
 func generateSigningRoot(blk *types.BeaconBlock) (common.Root, error) {
-	cs, err := chain.NewChainSpec(spec.BaseSpec())
+	cs, err := chain.NewSpec(spec.BaseSpec())
 	if err != nil {
 		return common.Root{}, err
 	}
@@ -125,7 +125,7 @@ func TestSignedBeaconBlock_SignBeaconBlock(t *testing.T) {
 	require.NotNil(t, signedBlk)
 
 	// Use SignBeaconBlock to sign the same BeaconBlock
-	cs, err := chain.NewChainSpec(spec.BaseSpec())
+	cs, err := chain.NewSpec(spec.BaseSpec())
 	require.NoError(t, err)
 	newSignedBlk, err := types.NewSignedBeaconBlock(
 		signedBlk.GetMessage(),

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,7 +21,7 @@
 package attributes
 
 import (
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -32,7 +32,7 @@ import (
 // Factory is a factory for creating payload attributes.
 type Factory struct {
 	// chainSpec is the chain spec for the attributes factory.
-	chainSpec chain.ChainSpec
+	chainSpec chain.Spec
 	// logger is the logger for the attributes factory.
 	logger log.Logger
 	// suggestedFeeRecipient is the suggested fee recipient sent to
@@ -42,7 +42,7 @@ type Factory struct {
 
 // NewAttributesFactory creates a new instance of AttributesFactory.
 func NewAttributesFactory(
-	chainSpec chain.ChainSpec,
+	chainSpec chain.Spec,
 	logger log.Logger,
 	suggestedFeeRecipient common.ExecutionAddress,
 ) *Factory {

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,7 +21,7 @@
 package backend
 
 import (
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
@@ -35,7 +35,7 @@ import (
 // over building the query context for a given state.
 type Backend struct {
 	sb   *storage.Backend
-	cs   chain.ChainSpec
+	cs   chain.Spec
 	node *cometbft.Service[*phuslu.Logger]
 	sp   StateProcessor
 }
@@ -43,7 +43,7 @@ type Backend struct {
 // New creates and returns a new Backend instance.
 func New(
 	storageBackend *storage.Backend,
-	cs chain.ChainSpec,
+	cs chain.Spec,
 	sp StateProcessor,
 ) *Backend {
 	return &Backend{
@@ -60,7 +60,7 @@ func (b *Backend) AttachQueryBackend(node *cometbft.Service[*phuslu.Logger]) {
 }
 
 // ChainSpec returns the chain spec from the backend.
-func (b *Backend) ChainSpec() chain.ChainSpec {
+func (b *Backend) ChainSpec() chain.Spec {
 	return b.cs
 }
 

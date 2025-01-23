@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -18,10 +18,37 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package components
 
-import "github.com/berachain/beacon-kit/consensus-types/types"
+import (
+	"path/filepath"
 
-type ValidatorsMarshaling struct {
-	Validators []*types.Validator `json:"validators" ssz-max:"1099511627776"`
+	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/node-core/services/shutdown"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/spf13/cast"
+)
+
+// ShutDownServiceInput is the input for the shuchdown service provider.
+type ShutDownServiceInput[
+	LoggerT log.AdvancedLogger[LoggerT],
+] struct {
+	depinject.In
+
+	Logger  LoggerT
+	AppOpts config.AppOptions
+}
+
+func ProvideShutDownService[
+	LoggerT log.AdvancedLogger[LoggerT],
+](
+	in ShutDownServiceInput[LoggerT],
+) *shutdown.Service {
+	pidFile := filepath.Join(cast.ToString(in.AppOpts.Get(flags.FlagHome)), "data/beacond.pid")
+
+	return shutdown.NewService(
+		in.Logger.With("service", "shutdown"),
+		pidFile)
 }

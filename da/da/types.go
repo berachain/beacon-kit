@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -24,6 +24,8 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/eip4844"
 )
 
 // BlobProcessor is the interface for the blobs processor.
@@ -38,6 +40,7 @@ type BlobProcessor interface {
 	VerifySidecars(
 		sidecars datypes.BlobSidecars,
 		blkHeader *ctypes.BeaconBlockHeader,
+		kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],
 	) error
 }
 

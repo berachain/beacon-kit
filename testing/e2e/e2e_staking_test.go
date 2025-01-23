@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -57,6 +57,35 @@ func (s *BeaconKitE2ESuite) runDepositRobustness() {
 		"every validator must get an equal amount of deposits",
 	)
 
+	// Get the chain ID.
+	chainID, err := s.JSONRPCBalancer().ChainID(s.Ctx())
+	s.Require().NoError(err)
+  s.Logger().Info("Chain ID", "chainID", chainID)
+
+	// Bind the deposit contract.
+	depositContractAddress := gethcommon.HexToAddress(spec.DefaultDepositContractAddress)
+
+	dc, err := deposit.NewDepositContract(depositContractAddress, s.JSONRPCBalancer())
+	s.Require().NoError(err)
+
+	// Enforce the deposit count at genesis is equal to the number of validators.
+	depositCount, err := dc.DepositCount(&bind.CallOpts{
+		BlockNumber: big.NewInt(0),
+	})
+	s.Require().NoError(err)
+
+	s.Require().Equal(uint64(config.NumValidators), depositCount,
+		"initial deposit count should match number of validators")
+
+	// Check that the genesis deposits root is not empty. It is important that this value is
+	// consistent across all EL nodes to ensure the EL has a consistent view of the CL deposits
+	// at genesis. If the EL chain progresses past the genesis block, this is guaranteed.
+	genesisRoot, err := dc.GenesisDepositsRoot(&bind.CallOpts{
+		BlockNumber: big.NewInt(0),
+	})
+	s.Require().NoError(err)
+	s.Require().False(genesisRoot == [32]byte{})
+
 	// Get the consensus clients.
 	client0 := s.ConsensusClients()[config.ClientValidator0]
 	s.Logger().Info("Client 0", "client0", client0)
@@ -70,18 +99,6 @@ func (s *BeaconKitE2ESuite) runDepositRobustness() {
 	client4 := s.ConsensusClients()[config.ClientValidator4]
 	s.Require().NotNil(client4)
 
-	// // Check the validators' current voting power.
-	// power0, err := client0.GetConsensusPower(s.Ctx())
-	// s.Require().NoError(err)
-	// power1, err := client1.GetConsensusPower(s.Ctx())
-	// s.Require().NoError(err)
-	// power2, err := client2.GetConsensusPower(s.Ctx())
-	// s.Require().NoError(err)
-	// power3, err := client3.GetConsensusPower(s.Ctx())
-	// s.Require().NoError(err)
-	// power4, err := client4.GetConsensusPower(s.Ctx())
-	// s.Require().NoError(err)
-
 	// Sender account
 	sender := s.GetAccounts()[0]
 	s.Logger().Info("Sender account", "address", sender.Address().Hex())
@@ -89,11 +106,7 @@ func (s *BeaconKitE2ESuite) runDepositRobustness() {
 	// Get the block num
 	blkNum, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
 	s.Require().NoError(err)
-	s.Logger().Info("Block number", "blockNum", blkNum)
-	// Get the chain ID.
-	chainID, err := s.JSONRPCBalancer().ChainID(s.Ctx())
-	s.Require().NoError(err)
-	s.Logger().Info("Chain ID", "chainID", chainID)
+
 	// Get original evm balance
 	balance, err := s.JSONRPCBalancer().BalanceAt(
 		s.Ctx(), sender.Address(), new(big.Int).SetUint64(blkNum),
@@ -101,14 +114,8 @@ func (s *BeaconKitE2ESuite) runDepositRobustness() {
 	s.Logger().Info("Balance", "balance", balance)
 	s.Require().NoError(err)
 
-	// Bind the deposit contract.
-	depositContractAddress := gethcommon.HexToAddress(spec.DefaultDepositContractAddress)
-	//nolint:staticcheck // used below.
-	dc, err := deposit.NewDepositContract(depositContractAddress, s.JSONRPCBalancer())
-	s.Require().NoError(err)
-	s.Logger().Info("Deposit contract", "depositContractAddress", depositContractAddress)
 	// Get the nonce.
-	//nolint:staticcheck // used below.
+
 	nonce, err := s.JSONRPCBalancer().NonceAt(
 		s.Ctx(), sender.Address(), new(big.Int).SetUint64(blkNum),
 	)

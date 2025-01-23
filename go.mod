@@ -3,11 +3,9 @@ module github.com/berachain/beacon-kit
 go 1.23.4
 
 replace (
-	github.com/cometbft/cometbft => github.com/berachain/cometbft v1.0.1-0.20250107083124-cff689e69429
-	github.com/cometbft/cometbft/api => github.com/berachain/cometbft/api v1.0.1-0.20250107083124-cff689e69429
+	github.com/cometbft/cometbft => github.com/berachain/cometbft v1.0.1-0.20250114162124-1022594f4c1e
+	github.com/cometbft/cometbft/api => github.com/berachain/cometbft/api v1.0.1-0.20250114162124-1022594f4c1e
 	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.52.0-rc.1
-
-	// The following are required to build with the latest version of the cosmos-sdk main branch:
 	github.com/karalabe/ssz => github.com/berachain/karalabe-ssz v0.3.0-alpha.0
 )
 
@@ -252,7 +250,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.32.0 // indirect
 	golang.org/x/arch v0.12.0 // indirect
 	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f // indirect
-	golang.org/x/net v0.32.0 // indirect
+	golang.org/x/net v0.33.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/term v0.27.0 // indirect
 	golang.org/x/text v0.21.0 // indirect

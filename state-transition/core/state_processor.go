@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,8 +23,9 @@ package core
 import (
 	"bytes"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -41,7 +42,7 @@ type StateProcessor[ContextT Context] struct {
 	// logger is used for logging information and errors.
 	logger log.Logger
 	// cs is the chain specification for the beacon chain.
-	cs chain.ChainSpec
+	cs chain.Spec
 	// signer is the BLS signer used for cryptographic operations.
 	signer crypto.BLSSigner
 	// fGetAddressFromPubKey verifies that a validator public key
@@ -61,7 +62,7 @@ func NewStateProcessor[
 	ContextT Context,
 ](
 	logger log.Logger,
-	cs chain.ChainSpec,
+	cs chain.Spec,
 	executionEngine ExecutionEngine,
 	ds *depositdb.KVStore,
 	signer crypto.BLSSigner,
@@ -188,7 +189,15 @@ func (sp *StateProcessor[ContextT]) ProcessBlock(
 		return err
 	}
 
-	if err := sp.processExecutionPayload(ctx, st, blk); err != nil {
+	switch err := sp.processExecutionPayload(ctx, st, blk); {
+	case err == nil:
+		// keep going with the processing
+	case errors.Is(err, engineerrors.ErrAcceptedPayloadStatus):
+		// It is safe for the validator to ignore this error since
+		// the consensus will enforce that the block is part
+		// of the canonical chain.
+		// Keep going with the rest of the validation
+	default:
 		return err
 	}
 
@@ -247,7 +256,7 @@ func (sp *StateProcessor[_]) processEpoch(
 	if err = sp.processRegistryUpdates(st); err != nil {
 		return nil, err
 	}
-	if err = sp.processEffectiveBalanceUpdates(st, slot); err != nil {
+	if err = sp.processEffectiveBalanceUpdates(st); err != nil {
 		return nil, err
 	}
 	// if err = sp.processSlashingsReset(st); err != nil {
@@ -347,9 +356,7 @@ func (sp *StateProcessor[ContextT]) processBlockHeader(
 
 // processEffectiveBalanceUpdates as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#effective-balances-updates
-func (sp *StateProcessor[_]) processEffectiveBalanceUpdates(
-	st *state.StateDB, slot math.Slot,
-) error {
+func (sp *StateProcessor[_]) processEffectiveBalanceUpdates(st *state.StateDB) error {
 	// Update effective balances with hysteresis
 	validators, err := st.GetValidators()
 	if err != nil {
@@ -358,12 +365,8 @@ func (sp *StateProcessor[_]) processEffectiveBalanceUpdates(
 
 	var (
 		hysteresisIncrement = sp.cs.EffectiveBalanceIncrement() / sp.cs.HysteresisQuotient()
-		downwardThreshold   = math.Gwei(
-			hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier(),
-		)
-		upwardThreshold = math.Gwei(
-			hysteresisIncrement * sp.cs.HysteresisUpwardMultiplier(),
-		)
+		downwardThreshold   = math.Gwei(hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier())
+		upwardThreshold     = math.Gwei(hysteresisIncrement * sp.cs.HysteresisUpwardMultiplier())
 
 		idx     math.U64
 		balance math.Gwei
@@ -385,9 +388,7 @@ func (sp *StateProcessor[_]) processEffectiveBalanceUpdates(
 			updatedBalance := ctypes.ComputeEffectiveBalance(
 				balance,
 				math.U64(sp.cs.EffectiveBalanceIncrement()),
-				math.U64(sp.cs.MaxEffectiveBalance(
-					state.IsPostFork3(sp.cs.DepositEth1ChainID(), slot),
-				)),
+				math.U64(sp.cs.MaxEffectiveBalance()),
 			)
 			val.SetEffectiveBalance(updatedBalance)
 			if err = st.UpdateValidatorAtIndex(idx, val); err != nil {

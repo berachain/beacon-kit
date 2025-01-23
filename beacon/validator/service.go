@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,7 +23,7 @@ package validator
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/transition"
@@ -36,7 +36,7 @@ type Service struct {
 	// logger is a logger.
 	logger log.Logger
 	// chainSpec is the chain spec.
-	chainSpec chain.ChainSpec
+	chainSpec chain.Spec
 	// signer is used to retrieve the public key of this node.
 	signer crypto.BLSSigner
 	// blobFactory is used to create blob sidecars for blocks.
@@ -61,7 +61,7 @@ type Service struct {
 func NewService(
 	cfg *Config,
 	logger log.Logger,
-	chainSpec chain.ChainSpec,
+	chainSpec chain.Spec,
 	sb StorageBackend,
 	stateProcessor StateProcessor[*transition.Context],
 	signer crypto.BLSSigner,

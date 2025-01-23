@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,7 +21,7 @@
 package commands
 
 import (
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/cli/commands/deposit"
 	"github.com/berachain/beacon-kit/cli/commands/genesis"
 	"github.com/berachain/beacon-kit/cli/commands/initialize"
@@ -44,7 +44,7 @@ func DefaultRootCommandSetup[
 	root *Root,
 	mm *cometbft.Service[LoggerT],
 	appCreator servertypes.AppCreator[T, LoggerT],
-	chainSpec chain.ChainSpec,
+	chainSpec chain.Spec,
 ) {
 	// Add all the commands to the root command.
 	root.cmd.AddCommand(

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -18,21 +18,12 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package spec
+package types
 
-// Special cased Bartio for some ad-hoc handling due to the way
-// some bugs were handled on Bartio. To be removed.
 const (
-	BartioChainID = TestnetEth1ChainID
+	// DefaultAllocsKey is the key for the allocs in the default genesis file.
+	DefaultAllocsKey = "alloc"
 
-	BartioValRoot = "0x9147586693b6e8faa837715c0f3071c2000045b54233901c2e7871b15872bc43"
-)
-
-// Planned hard-fork upgrades on boonet. To be removed.
-const (
-	BoonetFork1Height uint64 = 69420
-
-	BoonetFork2Height uint64 = 1722000
-
-	BoonetFork3Height uint64 = 2230000
+	// NethermindAllocsKey is the key for the allocs in the nethermind genesis file.
+	NethermindAllocsKey = "accounts"
 )

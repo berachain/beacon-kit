@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,7 +23,7 @@ package blockchain
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 )
 
@@ -48,7 +48,7 @@ func (s *Service) processPruning(ctx context.Context, beaconBlk *ctypes.BeaconBl
 	return nil
 }
 
-func depositPruneRangeFn([]*ctypes.Deposit, chain.ChainSpec) (uint64, uint64) {
+func depositPruneRangeFn([]*ctypes.Deposit, chain.Spec) (uint64, uint64) {
 	// The whole deposit list is validated in consensus and its Merkle root is part of
 	// Beacon State. Therefore every node must keep the full deposit list and deposits
 	// pruning must be turned off.
@@ -56,9 +56,8 @@ func depositPruneRangeFn([]*ctypes.Deposit, chain.ChainSpec) (uint64, uint64) {
 }
 
 //nolint:unparam // this is ok
-func availabilityPruneRangeFn(
-	slot uint64, cs chain.ChainSpec) (uint64, uint64) {
-	window := cs.MinEpochsForBlobsSidecarsRequest() * cs.SlotsPerEpoch()
+func availabilityPruneRangeFn(slot uint64, cs chain.Spec) (uint64, uint64) {
+	window := cs.MinEpochsForBlobsSidecarsRequest().Unwrap() * cs.SlotsPerEpoch()
 	if slot < window {
 		return 0, 0
 	}

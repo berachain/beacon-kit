@@ -10,7 +10,7 @@ port_spec_lib = import_module("./src/lib/port_spec.star")
 nodes = import_module("./src/nodes/nodes.star")
 nginx = import_module("./src/services/nginx/nginx.star")
 constants = import_module("./src/constants.star")
-goomy_blob = import_module("./src/services/goomy/launcher.star")
+spamoor = import_module("./src/services/spamoor/launcher.star")
 prometheus = import_module("./src/observability/prometheus/prometheus.star")
 grafana = import_module("./src/observability/grafana/grafana.star")
 pyroscope = import_module("./src/observability/pyroscope/pyroscope.star")
@@ -60,11 +60,22 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
     # 2. Upload files
     jwt_file, kzg_trusted_setup = execution.upload_global_files(plan, node_modules, chain_id)
 
-    # 2 a. Create genesis files only once and pass it to the node configs
-    genesis_files = nodes.create_genesis_files(plan, chain_id)
+    # 3. Perform genesis ceremony for the CL genesis deposits.
+    stored_configs = beacond.perform_genesis_deposits_ceremony(plan, validators, jwt_file, chain_id, chain_spec)
 
-    # 3. Perform genesis ceremony
-    beacond.perform_genesis_ceremony(plan, validators, jwt_file, chain_id, chain_spec, genesis_files)
+    # 4 a. Create genesis files only once and pass it to the node configs
+    genesis_files = nodes.create_genesis_files_part1(plan, chain_id)
+
+    # 4b. Modify the eth genesis file with the premined deposits && finalize CL genesis file.
+    # Get the deposit storage values stored in env variables
+    env_vars = beacond.modify_genesis_files_deposits(plan, validators, genesis_files, chain_id, chain_spec, stored_configs)
+
+    # Extract values from env_vars
+    genesis_deposits_root = env_vars.get("GENESIS_DEPOSITS_ROOT")
+    genesis_deposit_count_hex = env_vars.get("GENESIS_DEPOSIT_COUNT_HEX")
+
+    # 4c. Modify the eth genesis files(for both nethermind and default) with the ENV VARS
+    genesis_files = nodes.create_genesis_files_part2(plan, chain_id, genesis_deposits_root, genesis_deposit_count_hex)
 
     el_enode_addrs = []
     metrics_enabled_services = metrics_enabled_services[:]
@@ -90,7 +101,7 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
         metrics_enabled_services = execution.add_metrics(metrics_enabled_services, seed, seed.el_service_name, seed_node_el_clients[seed.el_service_name], node_modules)
     seed_node_configs = {}
     for n, seed in enumerate(seed_nodes):
-        seed_node_config = beacond.create_node_config(plan, seed, consensus_node_peering_info, seed.el_service_name, chain_id, chain_spec, jwt_file, kzg_trusted_setup)
+        seed_node_config = beacond.create_node_config(plan, seed, consensus_node_peering_info, seed.el_service_name, chain_id, chain_spec, genesis_deposits_root, genesis_deposit_count_hex, jwt_file, kzg_trusted_setup)
         seed_node_configs[seed.cl_service_name] = seed_node_config
     seed_nodes_clients = plan.add_services(
         configs = seed_node_configs,
@@ -121,7 +132,7 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
 
     for n, full in enumerate(full_nodes):
         # 5b. Launch CL
-        full_node_config = beacond.create_node_config(plan, full, consensus_node_peering_info, full.el_service_name, chain_id, chain_spec, jwt_file, kzg_trusted_setup)
+        full_node_config = beacond.create_node_config(plan, full, consensus_node_peering_info, full.el_service_name, chain_id, chain_spec, genesis_deposits_root, genesis_deposit_count_hex, jwt_file, kzg_trusted_setup)
         full_node_configs[full.cl_service_name] = full_node_config
 
     if full_node_configs != {}:
@@ -152,7 +163,7 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
 
     validator_node_configs = {}
     for n, validator in enumerate(validators):
-        validator_node_config = beacond.create_node_config(plan, validator, consensus_node_peering_info, validator.el_service_name, chain_id, chain_spec, jwt_file, kzg_trusted_setup)
+        validator_node_config = beacond.create_node_config(plan, validator, consensus_node_peering_info, validator.el_service_name, chain_id, chain_spec, genesis_deposits_root, genesis_deposit_count_hex, jwt_file, kzg_trusted_setup)
         validator_node_configs[validator.cl_service_name] = validator_node_config
 
     cl_clients = plan.add_services(
@@ -199,19 +210,17 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
     prometheus_url = ""
     for s_dict in additional_services:
         s = service_module.parse_service_from_dict(s_dict)
-        if s.name == "goomy-blob":
-            plan.print("Launching Goomy the Blob Spammer")
-            ip_goomy_blob = plan.get_service(endpoint_type).ip_address
-            port_goomy_blob = plan.get_service(endpoint_type).ports["http"].number
-            goomy_blob_args = {"goomy_blob_args": []}
-            goomy_blob.launch_goomy_blob(
+        if s.name == "spamoor":
+            plan.print("Launching spamoor")
+            ip_spamoor = plan.get_service(endpoint_type).ip_address
+            port_spamoor = plan.get_service(endpoint_type).ports["http"].number
+            spamoor.launch_spamoor(
                 plan,
                 constants.PRE_FUNDED_ACCOUNTS[next_free_prefunded_account],
-                "http://{}:{}".format(ip_goomy_blob, port_goomy_blob),
-                goomy_blob_args,
+                "http://{}:{}".format(ip_spamoor, port_spamoor),
             )
             next_free_prefunded_account += 1
-            plan.print("Successfully launched goomy the blob spammer")
+            plan.print("Successfully launched spamoor")
         elif s.name == "tx-fuzz":
             plan.print("Launching tx-fuzz")
             if "replicas" not in s_dict:

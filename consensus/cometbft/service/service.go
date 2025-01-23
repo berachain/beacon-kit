@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -111,10 +111,14 @@ func NewService[
 	telemetrySink TelemetrySink,
 	options ...func(*Service[LoggerT]),
 ) *Service[LoggerT] {
+	if err := validateConfig(cmtCfg); err != nil {
+		panic(err)
+	}
 	cmtConsensusParams, err := extractConsensusParams(cmtCfg)
 	if err != nil {
-		panic(fmt.Errorf("failed pulling consensus params: %w", err))
+		panic(err)
 	}
+
 	s := &Service[LoggerT]{
 		logger: logger,
 		sm: statem.NewManager(
@@ -180,7 +184,24 @@ func (s *Service[_]) Start(
 		return err
 	}
 
-	return s.node.Start()
+	started := make(chan struct{})
+
+	// we start the node in a goroutine since calling Start() can block if genesis
+	// time is in the future causing us not to handle signals gracefully.
+	go func() {
+		err = s.node.Start()
+		started <- struct{}{}
+	}()
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-started:
+	}
+
+	close(started)
+
+	return err
 }
 
 func (s *Service[_]) Stop() error {
@@ -188,13 +209,17 @@ func (s *Service[_]) Stop() error {
 
 	if s.node != nil && s.node.IsRunning() {
 		s.logger.Info("Stopping CometBFT Node")
-		//#nosec:G703 // its a bet.
-		_ = s.node.Stop()
+		err := s.node.Stop()
+		if err != nil {
+			errs = append(errs, fmt.Errorf("failed to stop CometBFT Node: %w", err))
+		}
+		s.logger.Info("Waiting for CometBFT Node to stop")
+		s.node.Wait()
 	}
 
 	s.logger.Info("Closing application.db")
 	if err := s.sm.Close(); err != nil {
-		errs = append(errs, err)
+		errs = append(errs, fmt.Errorf("failed to close application.id: %w", err))
 	}
 	return errors.Join(errs...)
 }

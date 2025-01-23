@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -18,21 +18,18 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package chain
+package genesis
 
-import "github.com/berachain/beacon-kit/errors"
+const (
+	// nethermindGenesis is the flag for the nethermind genesis file.
+	nethermindGenesis = "nethermind"
 
-var (
-	// ErrInsufficientMaxWithdrawalsPerPayload is returned when the max
-	// withdrawals per payload less than 2. Must allow at least one for the EVM
-	// inflation withdrawal, and at least one more for a validator withdrawal
-	// per block.
-	ErrInsufficientMaxWithdrawalsPerPayload = errors.New(
-		"max withdrawals per payload must be greater than 1")
+	// nethermindGenesisShorthand is the shorthand flag for the nethermindGenesis flag.
+	nethermindGenesisShorthand = "n"
 
-	// ErrInvalidValidatorSetCap is returned when the validator set cap is
-	// greater than the validator registry limit.
-	ErrInvalidValidatorSetCap = errors.New(
-		"validator set cap must be less than the validator registry limit",
-	)
+	// nethermindGenesisDefault is the default value for the nethermindGenesis flag.
+	nethermindGenesisDefault = false
+
+	// nethermindGenesisMsg is the usage description for the nethermindGenesis flag.
+	nethermindGenesisMsg = "use the nethermind genesis file"
 )

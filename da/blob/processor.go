@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,12 +23,14 @@ package blob
 import (
 	"time"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/kzg"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
@@ -38,7 +40,7 @@ type Processor struct {
 	// logger is used to log information and errors.
 	logger log.Logger
 	// chainSpec defines the specifications of the blockchain.
-	chainSpec chain.ChainSpec
+	chainSpec chain.Spec
 	// verifier is responsible for verifying the blobs.
 	verifier *verifier
 	// metrics is used to collect and report processor metrics.
@@ -48,7 +50,7 @@ type Processor struct {
 // NewProcessor creates a new blob processor.
 func NewProcessor(
 	logger log.Logger,
-	chainSpec chain.ChainSpec,
+	chainSpec chain.Spec,
 	proofVerifier kzg.BlobProofVerifier,
 	telemetrySink TelemetrySink,
 ) *Processor {
@@ -66,6 +68,7 @@ func NewProcessor(
 func (sp *Processor) VerifySidecars(
 	sidecars datypes.BlobSidecars,
 	blkHeader *ctypes.BeaconBlockHeader,
+	kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],
 ) error {
 	defer sp.metrics.measureVerifySidecarsDuration(
 		time.Now(), math.U64(len(sidecars)),
@@ -80,6 +83,7 @@ func (sp *Processor) VerifySidecars(
 	return sp.verifier.verifySidecars(
 		sidecars,
 		blkHeader,
+		kzgCommitments,
 	)
 }
 

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,7 +22,7 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-api/backend"
@@ -40,7 +40,7 @@ func ProvideNodeAPIEngine() *echo.Engine {
 type NodeAPIBackendInput struct {
 	depinject.In
 
-	ChainSpec      chain.ChainSpec
+	ChainSpec      chain.Spec
 	StateProcessor StateProcessor[*Context]
 	StorageBackend *storage.Backend
 }

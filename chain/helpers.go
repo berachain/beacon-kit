@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,27 +21,20 @@
 package chain
 
 import (
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 )
 
 // ActiveForkVersionForSlot returns the active fork version for a given slot.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) ActiveForkVersionForSlot(
-	slot SlotT,
-) uint32 {
-	return c.ActiveForkVersionForEpoch(c.SlotToEpoch(slot))
+func (s spec) ActiveForkVersionForSlot(slot math.Slot) uint32 {
+	return s.ActiveForkVersionForEpoch(s.SlotToEpoch(slot))
 }
 
 // ActiveForkVersionForEpoch returns the active fork version for a given epoch.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) ActiveForkVersionForEpoch(
-	epoch EpochT,
-) uint32 {
-	if epoch >= c.Data.ElectraForkEpoch {
+func (s spec) ActiveForkVersionForEpoch(epoch math.Epoch) uint32 {
+	if epoch >= s.ElectraForkEpoch() {
 		return version.Electra
-	} else if epoch >= c.Data.DenebPlusForkEpoch {
+	} else if epoch >= s.DenebPlusForkEpoch() {
 		return version.DenebPlus
 	}
 
@@ -49,26 +42,13 @@ func (c chainSpec[
 }
 
 // SlotToEpoch converts a slot to an epoch.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) SlotToEpoch(slot SlotT) EpochT {
+func (s spec) SlotToEpoch(slot math.Slot) math.Epoch {
 	//#nosec:G701 // realistically fine in practice.
-	return EpochT(uint64(slot) / c.SlotsPerEpoch())
+	return math.Epoch(uint64(slot) / s.SlotsPerEpoch())
 }
 
-// WithinDAPeriod checks if the block epoch is within
-// MIN_EPOCHS_FOR_BLOB_SIDECARS_REQUESTS
+// WithinDAPeriod checks if the block epoch is within MIN_EPOCHS_FOR_BLOB_SIDECARS_REQUESTS
 // of the given current epoch.
-func (c chainSpec[
-	DomainTypeT, EpochT, SlotT,
-]) WithinDAPeriod(
-	block, current SlotT,
-) bool {
-	return c.SlotToEpoch(
-		block,
-	)+EpochT(
-		c.MinEpochsForBlobsSidecarsRequest(),
-	) >= c.SlotToEpoch(
-		current,
-	)
+func (s spec) WithinDAPeriod(block, current math.Slot) bool {
+	return (s.SlotToEpoch(block) + s.MinEpochsForBlobsSidecarsRequest()) >= s.SlotToEpoch(current)
 }

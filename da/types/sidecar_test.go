@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -25,7 +25,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	spec2 "github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/blob"
@@ -134,7 +134,7 @@ func (is InclusionSink) MeasureSince(_ string, _ time.Time, _ ...string) {}
 
 func TestHasValidInclusionProof(t *testing.T) {
 	specVals := spec2.BaseSpec()
-	spec, err := chain.NewChainSpec(specVals)
+	spec, err := chain.NewSpec(specVals)
 	require.NoError(t, err)
 
 	sink := InclusionSink{}

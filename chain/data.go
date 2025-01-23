@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,22 +23,11 @@ package chain
 import "github.com/berachain/beacon-kit/primitives/common"
 
 // SpecData is the underlying data structure for chain-specific parameters.
-type SpecData[
-	DomainTypeT ~[4]byte,
-	EpochT ~uint64,
-	SlotT ~uint64,
-] struct {
+type SpecData struct {
 	// Gwei value constants.
 	//
-	// MinDepositAmount is the minimum deposit amount per deposit
-	// transaction.
-	MinDepositAmount uint64 `mapstructure:"min-deposit-amount"`
-	// MaxEffectiveBalance is the maximum effective balance allowed for a
-	// validator before the upgrade.
-	MaxEffectiveBalancePreUpgrade uint64 `mapstructure:"max-effective-balance-pre-upgrade"`
-	// MaxEffectiveBalancePostUpgrade is the maximum effective balance allowed
-	// for a validator after the upgrade.
-	MaxEffectiveBalancePostUpgrade uint64 `mapstructure:"max-effective-balance-post-upgrade"`
+	// MaxEffectiveBalance is the maximum effective balance allowed for a validator.
+	MaxEffectiveBalance uint64 `mapstructure:"max-effective-balance"`
 	// EjectionBalance is the balance at which a validator is ejected.
 	EjectionBalance uint64 `mapstructure:"ejection-balance"`
 	// EffectiveBalanceIncrement is the effective balance increment.
@@ -67,22 +56,22 @@ type SpecData[
 	//
 	// DomainDomainTypeProposerProposer is the domain for beacon proposer
 	// signatures.
-	DomainTypeProposer DomainTypeT `mapstructure:"domain-type-beacon-proposer"`
+	DomainTypeProposer common.DomainType `mapstructure:"domain-type-beacon-proposer"`
 	// DomainTypeAttester is the domain for beacon attester signatures.
-	DomainTypeAttester DomainTypeT `mapstructure:"domain-type-beacon-attester"`
+	DomainTypeAttester common.DomainType `mapstructure:"domain-type-beacon-attester"`
 	// DomainTypeRandao is the domain for RANDAO reveal signatures.
-	DomainTypeRandao DomainTypeT `mapstructure:"domain-type-randao"`
+	DomainTypeRandao common.DomainType `mapstructure:"domain-type-randao"`
 	// DomainTypeDeposit is the domain for deposit contract signatures.
-	DomainTypeDeposit DomainTypeT `mapstructure:"domain-type-deposit"`
+	DomainTypeDeposit common.DomainType `mapstructure:"domain-type-deposit"`
 	// DomainTypeVoluntaryExit is the domain for voluntary exit signatures.
-	DomainTypeVoluntaryExit DomainTypeT `mapstructure:"domain-type-voluntary-exit"`
+	DomainTypeVoluntaryExit common.DomainType `mapstructure:"domain-type-voluntary-exit"`
 	// DomainTypeSelectionProof is the domain for selection proof signatures.
-	DomainTypeSelectionProof DomainTypeT `mapstructure:"domain-type-selection-proof"`
+	DomainTypeSelectionProof common.DomainType `mapstructure:"domain-type-selection-proof"`
 	// DomainTypeAggregateAndProof is the domain for aggregate and proof
 	// signatures.
-	DomainTypeAggregateAndProof DomainTypeT `mapstructure:"domain-type-aggregate-and-proof"`
+	DomainTypeAggregateAndProof common.DomainType `mapstructure:"domain-type-aggregate-and-proof"`
 	// DomainTypeApplicationMask is the domain for the application mask.
-	DomainTypeApplicationMask DomainTypeT `mapstructure:"domain-type-application-mask"`
+	DomainTypeApplicationMask common.DomainType `mapstructure:"domain-type-application-mask"`
 
 	// Eth1-related values.
 	//
@@ -102,9 +91,9 @@ type SpecData[
 	// Fork-related values.
 	//
 	// DenebPlus is the epoch at which the Deneb+ fork is activated.
-	DenebPlusForkEpoch EpochT `mapstructure:"deneb-plus-fork-epoch"`
+	DenebPlusForkEpoch uint64 `mapstructure:"deneb-plus-fork-epoch"`
 	// ElectraForkEpoch is the epoch at which the Electra fork is activated.
-	ElectraForkEpoch EpochT `mapstructure:"electra-fork-epoch"`
+	ElectraForkEpoch uint64 `mapstructure:"electra-fork-epoch"`
 
 	// State list lengths
 	//
@@ -132,15 +121,10 @@ type SpecData[
 	// MaxWithdrawalsPerPayload indicates the maximum number of withdrawal
 	// operations allowed in a single payload.
 	MaxWithdrawalsPerPayload uint64 `mapstructure:"max-withdrawals-per-payload"`
-	// MaxValidatorsPerWithdrawalsSweepPreUpgrade specifies the maximum number
-	// of validator withdrawals allowed per sweep. Before the upgrade, this
-	// value is consistent with ETH2.0 spec, set to 2^14.
-	MaxValidatorsPerWithdrawalsSweepPreUpgrade uint64 `mapstructure:"max-validators-per-withdrawals-sweep-pre-upgrade"`
-	// MaxValidatorsPerWithdrawalsSweepPostUpgrade specifies the maximum number
-	// of validator withdrawals allowed per sweep. After the upgrade, this value
-	// is set to the largest prime number smaller than the minimum possible
-	// amount of total validators.
-	MaxValidatorsPerWithdrawalsSweepPostUpgrade uint64 `mapstructure:"max-validators-per-withdrawals-sweep-post-upgrade"`
+	// MaxValidatorsPerWithdrawalsSweep specifies the maximum number of validator withdrawals
+	// allowed per sweep. Note that this value should ideally be smaller than the total number
+	// of validators in the registry.
+	MaxValidatorsPerWithdrawalsSweep uint64 `mapstructure:"max-validators-per-withdrawals-sweep"`
 
 	// Deneb Values
 	//

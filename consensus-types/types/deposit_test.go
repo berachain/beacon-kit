@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -48,6 +48,46 @@ func generateValidDeposit() *types.Deposit {
 		Signature:   signature,
 		Index:       index,
 	}
+}
+
+func TestDeposit_Equals(t *testing.T) {
+	// Create base deposit
+	deposit1 := generateValidDeposit()
+
+	// Test equal deposits
+	deposit2 := &types.Deposit{
+		Pubkey:      deposit1.Pubkey,
+		Credentials: deposit1.Credentials,
+		Amount:      deposit1.Amount,
+		Signature:   deposit1.Signature,
+		Index:       deposit1.Index,
+	}
+	require.True(t, deposit1.Equals(deposit2))
+
+	// Test different pubkey
+	differentPubkey := deposit2
+	differentPubkey.Pubkey[0] = 0x01
+	require.False(t, deposit1.Equals(differentPubkey))
+
+	// Test different credentials
+	differentCreds := deposit2
+	differentCreds.Credentials[0] = 0x01
+	require.False(t, deposit1.Equals(differentCreds))
+
+	// Test different amount
+	differentAmount := deposit2
+	differentAmount.Amount = math.Gwei(16)
+	require.False(t, deposit1.Equals(differentAmount))
+
+	// Test different signature
+	differentSig := deposit2
+	differentSig.Signature[0] = 0x01
+	require.False(t, deposit1.Equals(differentSig))
+
+	// Test different index
+	differentIndex := deposit2
+	differentIndex.Index = 2
+	require.False(t, deposit1.Equals(differentIndex))
 }
 
 func TestDeposit_MarshalUnmarshalSSZ(t *testing.T) {

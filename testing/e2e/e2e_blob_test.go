@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -39,8 +39,8 @@ import (
 
 const (
 	// NumBlobsLoad is the number of blob-carrying transactions to submit in
-	// the Test4844Live test.
-	NumBlobsLoad uint64 = 10
+	// the Test4844Live test. Cannot pool more than 16 txs currently.
+	NumBlobsLoad uint64 = 16
 
 	// BlocksToWait4844 is the number of blocks to wait for the nodes to catch up.
 	BlocksToWait4844 = 5
@@ -88,7 +88,13 @@ func (s *BeaconKitE2ESuite) run4844Live() {
 	blobTxs := make([]*coretypes.Transaction, 0, NumBlobsLoad)
 	for i := range NumBlobsLoad {
 		blobData := make([]byte, 8)
-		binary.LittleEndian.PutUint64(blobData, nonce+i)
+
+		// For the first 5 transactions, submit duplicate blobs in separate
+		// transactions by leaving blobData empty. This is allowed by the
+		// protocol.
+		if i >= 5 {
+			binary.LittleEndian.PutUint64(blobData, nonce+i)
+		}
 
 		// Craft the blob-carrying transaction.
 		blobTx := tx.New4844Tx(

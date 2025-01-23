@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -25,15 +25,25 @@ import (
 	"github.com/berachain/beacon-kit/node-api/server/context"
 )
 
-type Handler[ContextT context.Context] struct {
+// Handler is the handler for the beacon API.
+type Handler[
+	ContextT context.Context,
+] struct {
 	*handlers.BaseHandler[ContextT]
+	backend Backend
 }
 
-func NewHandler[ContextT context.Context]() *Handler[ContextT] {
+// NewHandler creates a new handler for the beacon API.
+func NewHandler[
+	ContextT context.Context,
+](
+	backend Backend,
+) *Handler[ContextT] {
 	h := &Handler[ContextT]{
 		BaseHandler: handlers.NewBaseHandler(
 			handlers.NewRouteSet[ContextT](""),
 		),
+		backend: backend,
 	}
 	return h
 }

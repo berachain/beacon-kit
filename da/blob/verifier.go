@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -25,11 +25,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/kzg"
 	datypes "github.com/berachain/beacon-kit/da/types"
-	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"golang.org/x/sync/errgroup"
@@ -43,14 +43,14 @@ type verifier struct {
 	// metrics collects and reports metrics related to the verification process.
 	metrics *verifierMetrics
 	// chainSpec contains the chain specification
-	chainSpec chain.ChainSpec
+	chainSpec chain.Spec
 }
 
 // newVerifier creates a new Verifier with the given proof verifier.
 func newVerifier(
 	proofVerifier kzg.BlobProofVerifier,
 	telemetrySink TelemetrySink,
-	chainSpec chain.ChainSpec,
+	chainSpec chain.Spec,
 ) *verifier {
 	return &verifier{
 		proofVerifier: proofVerifier,
@@ -64,6 +64,7 @@ func newVerifier(
 func (bv *verifier) verifySidecars(
 	sidecars datypes.BlobSidecars,
 	blkHeader *ctypes.BeaconBlockHeader,
+	kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],
 ) error {
 	defer bv.metrics.measureVerifySidecarsDuration(
 		time.Now(), math.U64(len(sidecars)),
@@ -72,21 +73,13 @@ func (bv *verifier) verifySidecars(
 
 	g, _ := errgroup.WithContext(context.Background())
 
-	// create lookup table to check for duplicate commitments
-	duplicateCommitment := make(map[eip4844.KZGCommitment]struct{})
+	// Create lookup table for each blob sidecar commitment.
+	blobSidecarCommitments := make(map[eip4844.KZGCommitment]struct{})
 
 	// Validate sidecar fields against data from the BeaconBlock.
 	for i, s := range sidecars {
-		// Check if sidecar's kzgCommitment is duplicate. Along with the
-		// length check and the inclusion proof, this fully verifies that
-		// the KzgCommitments in the BlobSidecar are the exact same as the
-		// ones in the BeaconBlockBody without having to explicitly compare.
-		if _, exists := duplicateCommitment[s.GetKzgCommitment()]; exists {
-			return errors.New(
-				"found duplicate KzgCommitments in BlobSidecars",
-			)
-		}
-		duplicateCommitment[s.GetKzgCommitment()] = struct{}{}
+		// Fill lookup table with commitments from the blob sidecars.
+		blobSidecarCommitments[s.GetKzgCommitment()] = struct{}{}
 
 		// This check happens outside the goroutines so that we do not
 		// process the inclusion proofs before validating the index.
@@ -104,6 +97,13 @@ func (bv *verifier) verifySidecars(
 
 			return nil
 		})
+	}
+
+	// Ensure each commitment from the BeaconBlock has a corresponding sidecar commitment.
+	for _, kzgCommitment := range kzgCommitments {
+		if _, exists := blobSidecarCommitments[kzgCommitment]; !exists {
+			return fmt.Errorf("missing kzg commitment: %s", kzgCommitment)
+		}
 	}
 
 	// Verify the inclusion proofs on the blobs concurrently.

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -61,10 +61,7 @@ func (sp *StateProcessor[ContextT]) processExecutionPayload(
 		})
 	}
 
-	// Get the execution payload header. TODO: This is live on bArtio with a bug
-	// and needs to be hardforked off of. We check for version and convert to
-	// header based on that version as a temporary solution to avoid breaking
-	// changes.
+	// Get the execution payload header.
 	g.Go(func() error {
 		var err error
 		header, err = payload.ToHeader()
@@ -73,6 +70,12 @@ func (sp *StateProcessor[ContextT]) processExecutionPayload(
 
 	if err := g.Wait(); err != nil {
 		return err
+	}
+
+	if ctx.GetMeterGas() {
+		sp.metrics.gaugeBlockGasUsed(
+			payload.GetNumber(), payload.GetGasUsed(), payload.GetBlobGasUsed(),
+		)
 	}
 
 	// Set the latest execution payload header.

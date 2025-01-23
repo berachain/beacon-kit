@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -31,9 +31,10 @@ import (
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/consensus/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
-	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
@@ -48,12 +49,22 @@ const (
 	// BlobSidecarsTxIndex represents the index of the blob sidecar transaction.
 	// It follows the beacon block transaction in the tx list.
 	BlobSidecarsTxIndex
+
+	// A Consensus block has at most two transactions (block and blob).
+	MaxConsensusTxsCount = 2
 )
 
 func (s *Service) ProcessProposal(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
-) (*cmtabci.ProcessProposalResponse, error) {
+) error {
+	if countTx := len(req.Txs); countTx > MaxConsensusTxsCount {
+		return fmt.Errorf("max expected %d, got %d: %w",
+			MaxConsensusTxsCount, countTx,
+			ErrTooManyConsensusTxs,
+		)
+	}
+
 	// Decode signed block and sidecars.
 	signedBlk, sidecars, err := encoding.
 		ExtractBlobsAndBlockFromRequest(
@@ -62,44 +73,45 @@ func (s *Service) ProcessProposal(
 			BlobSidecarsTxIndex,
 			s.chainSpec.ActiveForkVersionForSlot(math.Slot(req.Height))) // #nosec G115
 	if err != nil {
-		return createProcessProposalResponse(err)
+		return err
 	}
 	if signedBlk.IsNil() {
 		s.logger.Warn(
 			"Aborting block verification - beacon block not found in proposal",
 		)
-		return createProcessProposalResponse(ErrNilBlk)
-	} else if sidecars.IsNil() {
+		return ErrNilBlk
+	}
+	if sidecars.IsNil() {
 		s.logger.Warn(
 			"Aborting block verification - blob sidecars not found in proposal",
 		)
-		return createProcessProposalResponse(ErrNilBlob)
+		return ErrNilBlob
 	}
 
 	blk := signedBlk.GetMessage()
 	// Make sure we have the right number of BlobSidecars
 	numCommitments := len(blk.GetBody().GetBlobKzgCommitments())
 	if numCommitments != len(sidecars) {
-		err = fmt.Errorf("expected %d sidecars, got %d",
+		err = fmt.Errorf("expected %d sidecars, got %d: %w",
 			numCommitments, len(sidecars),
+			ErrSidecarCommittmentMismatch,
 		)
-		return createProcessProposalResponse(err)
+		s.logger.Warn(err.Error())
+		return err
 	}
 
 	// Verify the block and sidecar signatures. We can simply verify the block
 	// signature and then make sure the sidecar signatures match the block.
 	blkSignature := signedBlk.GetSignature()
-	for _, sidecar := range sidecars {
+	for i, sidecar := range sidecars {
 		sidecarSignature := sidecar.GetSignedBeaconBlockHeader().GetSignature()
 		if !bytes.Equal(blkSignature[:], sidecarSignature[:]) {
-			return createProcessProposalResponse(
-				errors.New("sidecar signature mismatch"),
-			)
+			return fmt.Errorf("%w, idx: %d", ErrSidecarSignatureMismatch, i)
 		}
 	}
 	err = s.VerifyIncomingBlockSignature(ctx, signedBlk.GetMessage(), signedBlk.GetSignature())
 	if err != nil {
-		return createProcessProposalResponse(err)
+		return err
 	}
 
 	if numCommitments > 0 {
@@ -111,10 +123,10 @@ func (s *Service) ProcessProposal(
 		// the currently active fork). ProcessProposal should only
 		// keep the state changes as candidates (which is what we do in
 		// VerifyIncomingBlock).
-		err = s.VerifyIncomingBlobSidecars(sidecars, blk.GetHeader())
+		err = s.VerifyIncomingBlobSidecars(sidecars, blk.GetHeader(), blk.GetBody().GetBlobKzgCommitments())
 		if err != nil {
 			s.logger.Error("failed to verify incoming blob sidecars", "error", err)
-			return createProcessProposalResponse(err)
+			return err
 		}
 	}
 
@@ -132,10 +144,10 @@ func (s *Service) ProcessProposal(
 	)
 	if err != nil {
 		s.logger.Error("failed to verify incoming block", "error", err)
-		return createProcessProposalResponse(err)
+		return err
 	}
 
-	return createProcessProposalResponse(nil)
+	return nil
 }
 
 func (s *Service) VerifyIncomingBlockSignature(
@@ -158,11 +170,12 @@ func (s *Service) VerifyIncomingBlockSignature(
 func (s *Service) VerifyIncomingBlobSidecars(
 	sidecars datypes.BlobSidecars,
 	blkHeader *ctypes.BeaconBlockHeader,
+	kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],
 ) error {
 	s.logger.Info("Received incoming blob sidecars")
 
 	// Verify the blobs and ensure they match the local state.
-	err := s.blobProcessor.VerifySidecars(sidecars, blkHeader)
+	err := s.blobProcessor.VerifySidecars(sidecars, blkHeader, kzgCommitments)
 	if err != nil {
 		s.logger.Error(
 			"rejecting incoming blob sidecars",
@@ -181,6 +194,8 @@ func (s *Service) VerifyIncomingBlobSidecars(
 
 // VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
+//
+//nolint:funlen // not an issue
 func (s *Service) VerifyIncomingBlock(
 	ctx context.Context,
 	beaconBlk *ctypes.BeaconBlock,
@@ -198,7 +213,8 @@ func (s *Service) VerifyIncomingBlock(
 
 	s.logger.Info(
 		"Received incoming beacon block",
-		"state_root", beaconBlk.GetStateRoot(), "slot", beaconBlk.GetSlot(),
+		"state_root", beaconBlk.GetStateRoot(),
+		"slot", beaconBlk.GetSlot(),
 	)
 
 	// We purposefully make a copy of the BeaconState in order
@@ -207,8 +223,29 @@ func (s *Service) VerifyIncomingBlock(
 	// with the incoming block.
 	postState := preState.Copy(ctx)
 
+	// verify block slot
+	stateSlot, err := postState.GetSlot()
+	if err != nil {
+		s.logger.Error(
+			"failed loading state slot to verify block slot",
+			"reason", err,
+		)
+		return err
+	}
+
+	blkSlot := beaconBlk.GetSlot()
+	if blkSlot != stateSlot+1 {
+		s.logger.Error(
+			"Rejecting incoming beacon block ❌ ",
+			"state slot", stateSlot.Base10(),
+			"block slot", blkSlot.Base10(),
+			"reason", ErrUnexpectedBlockSlot.Error(),
+		)
+		return ErrUnexpectedBlockSlot
+	}
+
 	// Verify the state root of the incoming block.
-	err := s.verifyStateRoot(
+	err = s.verifyStateRoot(
 		ctx,
 		postState,
 		beaconBlk,
@@ -217,17 +254,17 @@ func (s *Service) VerifyIncomingBlock(
 	if err != nil {
 		s.logger.Error(
 			"Rejecting incoming beacon block ❌ ",
-			"state_root",
-			beaconBlk.GetStateRoot(),
-			"reason",
-			err,
+			"state_root", beaconBlk.GetStateRoot(),
+			"reason", err,
 		)
 
 		if s.shouldBuildOptimisticPayloads() {
-			var lph *ctypes.ExecutionPayloadHeader
-			lph, err = preState.GetLatestExecutionPayloadHeader()
-			if err != nil {
-				return err
+			lph, lphErr := preState.GetLatestExecutionPayloadHeader()
+			if lphErr != nil {
+				return errors.Join(
+					err,
+					fmt.Errorf("failed getting LatestExecutionPayloadHeader: %w", lphErr),
+				)
 			}
 
 			go s.handleRebuildPayloadForRejectedBlock(
@@ -251,10 +288,9 @@ func (s *Service) VerifyIncomingBlock(
 	)
 
 	if s.shouldBuildOptimisticPayloads() {
-		var lph *ctypes.ExecutionPayloadHeader
-		lph, err = postState.GetLatestExecutionPayloadHeader()
-		if err != nil {
-			return err
+		lph, lphErr := postState.GetLatestExecutionPayloadHeader()
+		if lphErr != nil {
+			return fmt.Errorf("failed loading LatestExecutionPayloadHeader: %w", lphErr)
 		}
 
 		go s.handleOptimisticPayloadBuild(
@@ -287,6 +323,7 @@ func (s *Service) verifyStateRoot(
 		// that the proposer does not try to push through a bad block.
 		&transition.Context{
 			Context:                 ctx,
+			MeterGas:                false,
 			OptimisticEngine:        false,
 			SkipPayloadVerification: false,
 			SkipValidateResult:      false,
@@ -296,14 +333,6 @@ func (s *Service) verifyStateRoot(
 		},
 		st, blk,
 	)
-	if errors.Is(err, engineerrors.ErrAcceptedPayloadStatus) {
-		// It is safe for the validator to ignore this error since
-		// the state transition will enforce that the block is part
-		// of the canonical chain.
-		//
-		// TODO: this is only true because we are assuming SSF.
-		return nil
-	}
 
 	return err
 }
@@ -312,17 +341,4 @@ func (s *Service) verifyStateRoot(
 // payload builds are enabled.
 func (s *Service) shouldBuildOptimisticPayloads() bool {
 	return s.optimisticPayloadBuilds && s.localBuilder.Enabled()
-}
-
-// createResponse generates the appropriate ProcessProposalResponse based on the
-// error.
-func createProcessProposalResponse(
-	err error,
-) (*cmtabci.ProcessProposalResponse, error) {
-	status := cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
-	if !errors.IsFatal(err) {
-		status = cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
-		err = nil
-	}
-	return &cmtabci.ProcessProposalResponse{Status: status}, err
 }

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,6 +22,7 @@
 package cometbft
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -30,15 +31,23 @@ import (
 )
 
 const ( // appeases mnd
-	timeoutPropose   = 1000 * time.Millisecond
-	timeoutPrevote   = 1000 * time.Millisecond
-	timeoutPrecommit = 1000 * time.Millisecond
-	timeoutCommit    = 500 * time.Millisecond
+	// These timeouts are the ones we tested are necessary
+	// at minimum to have a smooth network. We enforce that
+	// these minima are respected.
+	minTimeoutPropose   = 2000 * time.Millisecond
+	minTimeoutPrevote   = 2000 * time.Millisecond
+	minTimeoutPrecommit = 2000 * time.Millisecond
+	minTimeoutCommit    = 500 * time.Millisecond
 
 	maxBlockSize = 100 * 1024 * 1024
 
 	precision    = 505 * time.Millisecond
 	messageDelay = 15 * time.Second
+)
+
+var (
+	ErrInvalidaConfig          = errors.New("invalid comet config for BeaconKit")
+	ErrInvalidaConsensusParams = errors.New("invalid comet consensus params for BeaconKit")
 )
 
 // DefaultConfig returns the default configuration for the CometBFT
@@ -66,11 +75,12 @@ func DefaultConfig() *cmtcfg.Config {
 	cfg.Mempool.MaxTxsBytes = 0
 	cfg.Mempool.CacheSize = 0
 
+	// By default, we set timeouts to the minima we tested
 	consensus := cfg.Consensus
-	consensus.TimeoutPropose = timeoutPropose
-	consensus.TimeoutPrevote = timeoutPrevote
-	consensus.TimeoutPrecommit = timeoutPrecommit
-	consensus.TimeoutCommit = timeoutCommit
+	consensus.TimeoutPropose = minTimeoutPropose
+	consensus.TimeoutPrevote = minTimeoutPrevote
+	consensus.TimeoutPrecommit = minTimeoutPrecommit
+	consensus.TimeoutCommit = minTimeoutCommit
 
 	cfg.Storage.DiscardABCIResponses = true
 
@@ -114,6 +124,41 @@ func DefaultConsensusParams(consensusKeyAlgo string) *cmttypes.ConsensusParams {
 	return res
 }
 
+func validateConfig(cfg *cmtcfg.Config) error {
+	if cfg.Consensus.TimeoutPropose < minTimeoutPropose {
+		return fmt.Errorf("%w, config timeout propose %v, min requested %v",
+			ErrInvalidaConfig,
+			cfg.Consensus.TimeoutPropose,
+			minTimeoutPropose,
+		)
+	}
+
+	if cfg.Consensus.TimeoutPrevote < minTimeoutPrevote {
+		return fmt.Errorf("%w, config timeout prevote %v, min requested %v",
+			ErrInvalidaConfig,
+			cfg.Consensus.TimeoutPrevote,
+			minTimeoutPrevote,
+		)
+	}
+
+	if cfg.Consensus.TimeoutPrecommit < minTimeoutPrecommit {
+		return fmt.Errorf("%w, config timeout propose %v, min requested %v",
+			ErrInvalidaConfig,
+			cfg.Consensus.TimeoutPrecommit,
+			minTimeoutPrecommit,
+		)
+	}
+
+	if cfg.Consensus.TimeoutCommit < minTimeoutCommit {
+		return fmt.Errorf("%w, config timeout propose %v, min requested %v",
+			ErrInvalidaConfig,
+			cfg.Consensus.TimeoutCommit,
+			minTimeoutCommit,
+		)
+	}
+	return nil
+}
+
 // extractConsensusParams pull consensus parameters (not config) set in
 // genesis. They are mostly used to (not) update consensus parameters once
 // a block is finalized.
@@ -121,10 +166,21 @@ func extractConsensusParams(cmtCfg *cmtcfg.Config) (*cmttypes.ConsensusParams, e
 	genFunc := GetGenDocProvider(cmtCfg)
 	genDoc, err := genFunc()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed pulling consensus params: %w", err)
 	}
 
 	// Todo: add validation for genesis params by chainID
 	cmtConsensusParams := genDoc.GenesisDoc.ConsensusParams
-	return cmtConsensusParams, nil
+	return cmtConsensusParams, validateConsensusParams(cmtConsensusParams)
+}
+
+func validateConsensusParams(params *cmttypes.ConsensusParams) error {
+	if params.Block.MaxBytes < maxBlockSize {
+		return fmt.Errorf("%w, param max size %v, requested size %v",
+			ErrInvalidaConsensusParams,
+			params.Block.MaxBytes,
+			maxBlockSize,
+		)
+	}
+	return nil
 }

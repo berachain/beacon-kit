@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -77,24 +77,44 @@ func (sp *StateProcessor[_]) validateNonGenesisDeposits(
 	if err != nil {
 		return err
 	}
-	for i, deposit := range blkDeposits {
-		// deposit indices should be contiguous
-		// #nosec G115
-		if deposit.GetIndex() != math.U64(depositIndex)+math.U64(i) {
-			return errors.Wrapf(ErrDepositIndexOutOfOrder,
-				"deposit index: %d, expected index: %d", deposit.GetIndex().Unwrap(), i,
-			)
-		}
-	}
 
-	var deposits ctypes.Deposits
-	deposits, err = sp.ds.GetDepositsByIndex(ctx, 0, depositIndex+uint64(len(blkDeposits)))
+	expectedLocalDepositsLen := depositIndex + uint64(len(blkDeposits))
+	localDeposits, err := sp.ds.GetDepositsByIndex(ctx, 0, expectedLocalDepositsLen)
 	if err != nil {
 		return err
 	}
 
-	if !blkDepositRoot.Equals(deposits.HashTreeRoot()) {
+	// First verify that the local store returned all the expected deposits
+	if uint64(len(localDeposits)) != expectedLocalDepositsLen {
+		return errors.Wrapf(ErrDepositsLengthMismatch,
+			"local deposit count: %d, expected deposit count: %d",
+			len(localDeposits), expectedLocalDepositsLen,
+		)
+	}
+
+	// Then check that the block's deposits 1) have contiguous indices and 2) match the local
+	// view of the block's deposits.
+	for i, blkDeposit := range blkDeposits {
+		blkDepositIndex := blkDeposit.GetIndex().Unwrap()
+		//#nosec:G115 // won't overflow in practice.
+		if blkDepositIndex != depositIndex+uint64(i) {
+			return errors.Wrapf(ErrDepositIndexOutOfOrder,
+				"deposit index: %d, expected index: %d", blkDepositIndex, i,
+			)
+		}
+
+		if !localDeposits[blkDepositIndex].Equals(blkDeposit) {
+			return errors.Wrapf(ErrDepositMismatch,
+				"deposit index: %d, expected deposit: %+v, actual deposit: %+v",
+				blkDepositIndex, *localDeposits[blkDepositIndex], *blkDeposit,
+			)
+		}
+	}
+
+	// Finally check that the historical deposits root matches locally what's on the beacon block.
+	if !localDeposits.HashTreeRoot().Equals(blkDepositRoot) {
 		return ErrDepositsRootMismatch
 	}
+
 	return nil
 }

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,9 +21,8 @@
 package spec
 
 import (
-	"github.com/berachain/beacon-kit/chain-spec/chain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 const (
@@ -34,23 +33,13 @@ const (
 
 // BaseSpec returns a chain spec with default values.
 //
-//nolint:mnd // bet.
-func BaseSpec() chain.SpecData[
-	common.DomainType,
-	math.Epoch,
-	math.Slot,
-] {
-	return chain.SpecData[
-		common.DomainType,
-		math.Epoch,
-		math.Slot,
-	]{
+//nolint:mnd // TODO: define defaults as constants.
+func BaseSpec() *chain.SpecData {
+	return &chain.SpecData{
 		// Gwei value constants.
-		MinDepositAmount:               1e9,
-		MaxEffectiveBalancePreUpgrade:  32e9,
-		MaxEffectiveBalancePostUpgrade: 32e9,
-		EjectionBalance:                16e9,
-		EffectiveBalanceIncrement:      1e9,
+		MaxEffectiveBalance:       32e9,
+		EjectionBalance:           16e9,
+		EffectiveBalanceIncrement: 1e9,
 
 		HysteresisQuotient:           4,
 		HysteresisDownwardMultiplier: 1,
@@ -112,9 +101,8 @@ func BaseSpec() chain.SpecData[
 		ProportionalSlashingMultiplier: 1,
 
 		// Capella values.
-		MaxWithdrawalsPerPayload:                    16,
-		MaxValidatorsPerWithdrawalsSweepPreUpgrade:  1 << 14,
-		MaxValidatorsPerWithdrawalsSweepPostUpgrade: 1 << 14,
+		MaxWithdrawalsPerPayload:         16,
+		MaxValidatorsPerWithdrawalsSweep: 1 << 14,
 
 		// Deneb values.
 		MinEpochsForBlobsSidecarsRequest: 4096,

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -37,7 +37,8 @@ type Contract interface {
 	// ReadDeposits reads deposits from the deposit contract.
 	ReadDeposits(
 		ctx context.Context,
-		blockNumber math.U64,
+		fromBlock math.U64,
+		toBlock math.U64,
 	) ([]*ctypes.Deposit, error)
 }
 
