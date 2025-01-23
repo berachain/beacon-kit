@@ -21,6 +21,8 @@
 package cometbft
 
 import (
+	"time"
+
 	pruningtypes "cosmossdk.io/store/pruning/types"
 	storetypes "cosmossdk.io/store/types"
 )
@@ -67,4 +69,12 @@ func SetInterBlockCache(cache storetypes.MultiStorePersistentCache) func(*Servic
 // SetChainID sets the chain ID in cometbft.
 func SetChainID(chainID string) func(*Service) {
 	return func(s *Service) { s.chainID = chainID }
+}
+
+// SetTargetBlockTime returns a Service option function that sets the desired
+// block time (e.g., 2s). Note that it CAN'T be lower than the minimal (floor)
+// block time in the network, which is comprised of the time to a) propose a
+// new block b) gather 2/3+ prevotes c) gather 2/3+ precommits.
+func SetTargetBlockTime(t time.Duration) func(*Service) {
+	return func(bs *Service) { bs.setTargetBlockTime(t) }
 }
