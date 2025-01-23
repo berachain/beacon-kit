@@ -97,3 +97,25 @@ kurtosis gateway
     images:
       beaconkit: ghcr.io/berachain/beacon-kit:main
 ```
+
+7. Deploy. Note that re-executing the same command twice will start the network from zero again unless you change the enclave name in the Makefile . 
+```sh
+make start-devnet-cloud
+```
+
+8. View your deployment in K9s, navigating to the relevant namespace. It should be named kt-my-cloud-devnet-${whoami}
+
+## Helper Commands
+
+If you want to start from a clean state and remove all existing pods
+```sh
+# Everything is wrecked
+kurtosis clean -a
+kurtosis engine restart
+```
+
+If you manually kill a pod and want to restart it
+```sh
+# node that for namespace, you should remove the "kt-" prefix 
+kurtosis service start {namespace} {podname}
+```
