@@ -121,10 +121,9 @@ func (s *Service) rebuildPayloadForRejectedBlock(
 		latestHeader.HashTreeRoot(),
 		// We set the head of our chain to the previous finalized block.
 		lph.GetBlockHash(),
-		// We can say that the payload from the previous block is *finalized*,
-		// TODO: This is making an assumption about the consensus rules
-		// and possibly should be made more explicit later on.
-		lph.GetParentHash(),
+		// We also need to keep the previous finalized block set as finalized.
+		// It can no longer be un-finalized.
+		lph.GetBlockHash(),
 	); err != nil {
 		s.metrics.markRebuildPayloadForRejectedBlockFailure(stateSlot, err)
 		return err

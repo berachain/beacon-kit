@@ -22,6 +22,8 @@ package core
 
 import (
 	"context"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
@@ -156,6 +158,34 @@ func (sp *StateProcessor[_]) validateStatefulPayload(
 			optimisticEngine,
 		),
 	); err != nil {
+		switch {
+		// Skip ErrAcceptedPayloadStatus here. This status will be resolved
+		// by the following forkchoice update, turning the payload into VALID
+		// or INVALID.
+		case errors.Is(err, engineerrors.ErrAcceptedPayloadStatus):
+		default:
+			return err
+		}
+	}
+
+	// Since we have single slot finality, the previous block is already
+	// considered final from cometBFT perspective. The newPayload being
+	// submitted from this proposal should be set as the new head of the
+	// chain, and we can update the finalized block with the EL. We send the
+	// FCU now which fully verifies that the block is VALID or INVALID.
+	_, _, err = sp.executionEngine.NotifyForkchoiceUpdate(
+		ctx, ctypes.BuildForkchoiceUpdateRequestNoAttrs(
+			&engineprimitives.ForkchoiceStateV1{
+				HeadBlockHash:      payload.GetBlockHash(),
+				SafeBlockHash:      safeHash,
+				FinalizedBlockHash: safeHash,
+			},
+			sp.cs.ActiveForkVersionForSlot(blk.GetSlot()),
+		),
+	)
+	// If we are unable to set the block as the head for any reason, it is
+	// considered INVALID.
+	if err != nil {
 		return err
 	}
 

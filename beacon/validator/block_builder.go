@@ -253,6 +253,13 @@ func (s *Service) retrieveExecutionPayload(
 		return nil, err
 	}
 
+	// If we're requesting a sync payload, this means that we are at the
+	// beginning of a round, building a new payload. The latest execution
+	// payload header (lph) is finalized by beacon-kit consensus, and could
+	// possibly already be finalized in the EL if we've already
+	// optimistically sent a FCU with attributes for a new payload build.
+	// We cannot undo this finalized update, so we must use the
+	// lph.GetBlockHash() as both the head block and the finalized block.
 	return s.localPayloadBuilder.RequestPayloadSync(
 		ctx,
 		st,
@@ -264,7 +271,7 @@ func (s *Service) retrieveExecutionPayload(
 		).Unwrap(),
 		blk.GetParentBlockRoot(),
 		lph.GetBlockHash(),
-		lph.GetParentHash(),
+		lph.GetBlockHash(),
 	)
 }
 

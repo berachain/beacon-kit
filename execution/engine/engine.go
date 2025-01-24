@@ -89,13 +89,9 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 	switch {
 	// We do not bubble the error up, since we want to handle it
 	// in the same way as the other cases.
-	case errors.IsAny(
-		err,
-		engineerrors.ErrAcceptedPayloadStatus,
-		engineerrors.ErrSyncingPayloadStatus,
-	):
+	case errors.Is(err, engineerrors.ErrSyncingPayloadStatus):
 		ee.metrics.markForkchoiceUpdateAcceptedSyncing(req.State, err)
-		return payloadID, nil, nil
+		return nil, nil, err
 
 	// If we get invalid payload status, we will need to find a valid
 	// ancestor block and force a recovery.

@@ -73,6 +73,13 @@ type ExecutionEngine interface {
 		ctx context.Context,
 		req *ctypes.NewPayloadRequest,
 	) error
+
+	// NotifyForkchoiceUpdate sends a forkchoice update to the execution
+	// client.
+	NotifyForkchoiceUpdate(
+		ctx context.Context,
+		req *ctypes.ForkchoiceUpdateRequest,
+	) (*engineprimitives.PayloadID, *common.ExecutionHash, error)
 }
 
 // Validator represents an interface for a validator with generic type
