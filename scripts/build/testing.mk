@@ -246,7 +246,7 @@ start-ethereumjs:
 	--rpcEngine \
 	--jwtSecret ../../$(JWT_PATH) \
 	--rpcEngineAddr 0.0.0.0 \
-	--dataDir .tmp/ethereumjs \
+	--dataDir ../../.tmp/ethereumjs \
 	--isSingleNode \
 	--rpc \
 	--rpcAddr 0.0.0.0
