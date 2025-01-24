@@ -22,10 +22,10 @@ package core
 
 import (
 	"context"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
-	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/errors"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"golang.org/x/sync/errgroup"
