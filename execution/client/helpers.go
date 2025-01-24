@@ -49,7 +49,7 @@ func processPayloadStatusResult(
 	switch result.Status {
 	case engineprimitives.PayloadStatusAccepted:
 		// NewPayload -- Keep NewPayload handling as is
-		// FCU -- NEVER returned
+		// FCU -- NEVER returned by EL
 		// TODOs:
 		// - Remove from FCU check because it is never returned (done in shota's PR)
 		// - Distinguish metric between accepted/syncing
