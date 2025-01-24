@@ -24,7 +24,8 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 # This is the configuration is identical to beaconkit-local.yaml with the exception that the image is pulled from a public registry
-# As remote environments cannot access the image created locally
+# As remote environments cannot access the image created locally. It also sets explicit min_cpu and min_memory values for the nodes
+# as in Kubernetes, the 0 value is interpreted as the max value. This is not the case for the local Docker environment.
 network_configuration:
   chain_id: 80087
   chain_spec: "devnet"
@@ -122,5 +123,5 @@ additional_services:
   - name: "pyroscope"
   - name: "blockscout"
     client: "el-full-reth-0"
-  - name: "otterscan" # otterscan supports only erigon nodes
-    client: "el-full-erigon-3"
+  # - name: "otterscan" # otterscan supports only erigon nodes
+  #   client: "el-full-erigon-3"

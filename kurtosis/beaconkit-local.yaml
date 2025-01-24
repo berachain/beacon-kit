@@ -71,9 +71,9 @@ network_configuration:
 node_settings:
   consensus_settings:
     specs:
-      min_cpu: 1000
+      min_cpu: 0
       max_cpu: 2000
-      min_memory: 1024
+      min_memory: 0
       max_memory: 2048
     images:
       beaconkit: beacond:kurtosis-local
@@ -89,9 +89,9 @@ node_settings:
       enable_optimistic_payload_builds: true
   execution_settings:
     specs:
-      min_cpu: 1000
+      min_cpu: 0
       max_cpu: 2000
-      min_memory: 1024
+      min_memory: 0
       max_memory: 2048
     images:
       besu: hyperledger/besu:24.5.4
@@ -120,5 +120,5 @@ additional_services:
   - name: "pyroscope"
   - name: "blockscout"
     client: "el-full-reth-0"
-  - name: "otterscan" # otterscan supports only erigon nodes
-    client: "el-full-erigon-3"
+  # - name: "otterscan" # otterscan supports only erigon nodes
+  #   client: "el-full-erigon-3"
