@@ -188,10 +188,7 @@ func (sp *StateProcessor[ContextT]) ProcessBlock(
 		return err
 	}
 
-	switch err := sp.processExecutionPayload(ctx, st, blk); {
-	case err == nil:
-		// keep going with the processing
-	default:
+	if err := sp.processExecutionPayload(ctx, st, blk); err != nil {
 		return err
 	}
 

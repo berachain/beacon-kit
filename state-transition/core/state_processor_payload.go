@@ -157,15 +157,11 @@ func (sp *StateProcessor[_]) validateStatefulPayload(
 			&parentBeaconBlockRoot,
 			optimisticEngine,
 		),
-	); err != nil {
-		switch {
+	); err != nil && !errors.Is(err, engineerrors.ErrAcceptedPayloadStatus) {
 		// Skip ErrAcceptedPayloadStatus here. This status will be resolved
 		// by the following forkchoice update, turning the payload into VALID
 		// or INVALID.
-		case errors.Is(err, engineerrors.ErrAcceptedPayloadStatus):
-		default:
-			return err
-		}
+		return err
 	}
 
 	// Since we have single slot finality, the previous block is already
