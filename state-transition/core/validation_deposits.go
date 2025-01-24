@@ -83,13 +83,13 @@ func (sp *StateProcessor[_]) validateNonGenesisDeposits(
 	if err != nil {
 		return err
 	}
-	totalProposedDeposits := depositIndex + uint64(len(blkDeposits))
 
-	// First verify that the local store returned all the expected deposits
-	if uint64(len(localDeposits)) != totalProposedDeposits {
+	// First verify that the number of block deposits matches the number of local deposits.
+	totalBlockDeposits := depositIndex + uint64(len(blkDeposits))
+	if uint64(len(localDeposits)) != totalBlockDeposits {
 		return errors.Wrapf(ErrDepositsLengthMismatch,
-			"proposed deposit count: %d, expected deposit count: %d",
-			totalProposedDeposits, len(localDeposits),
+			"block deposit count: %d, expected deposit count: %d",
+			totalBlockDeposits, len(localDeposits),
 		)
 	}
 
