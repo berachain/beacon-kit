@@ -48,14 +48,30 @@ func processPayloadStatusResult(
 ) (*common.ExecutionHash, error) {
 	switch result.Status {
 	case engineprimitives.PayloadStatusAccepted:
+		// NewPayload -- Keep NewPayload handling as is
+		// FCU -- NEVER returned
+		// TODOs:
+		// - Remove from FCU check because it is never returned (done in shota's PR)
+		// - Distinguish metric between accepted/syncing
+		// - Remove error-handling from state_processor.go because
+		//    - in process we DO want to return error (as is)
+		//    - in finalize we do NOT want to return error (as is)
 		return nil, engineerrors.ErrAcceptedPayloadStatus
 	case engineprimitives.PayloadStatusSyncing:
+		// NewPayload --
+		// FCU --
 		return nil, engineerrors.ErrSyncingPayloadStatus
 	case engineprimitives.PayloadStatusInvalid:
+		// NewPayload --
+		// FCU --
 		return result.LatestValidHash, engineerrors.ErrInvalidPayloadStatus
 	case engineprimitives.PayloadStatusValid:
+		// NewPayload --
+		// FCU --
 		return result.LatestValidHash, nil
 	default:
+		// NewPayload --
+		// FCU --
 		return nil, engineerrors.ErrUnknownPayloadStatus
 	}
 }
