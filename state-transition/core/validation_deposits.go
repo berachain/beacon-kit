@@ -78,17 +78,18 @@ func (sp *StateProcessor[_]) validateNonGenesisDeposits(
 		return err
 	}
 
-	expectedLocalDepositsLen := depositIndex + uint64(len(blkDeposits))
-	localDeposits, err := sp.ds.GetDepositsByIndex(ctx, 0, expectedLocalDepositsLen)
+	// Grab all previous deposits from genesis up to the current index + max deposits per block.
+	localDeposits, err := sp.ds.GetDepositsByIndex(ctx, 0, depositIndex+sp.cs.MaxDepositsPerBlock())
 	if err != nil {
 		return err
 	}
+	totalProposedDeposits := depositIndex + uint64(len(blkDeposits))
 
 	// First verify that the local store returned all the expected deposits
-	if uint64(len(localDeposits)) != expectedLocalDepositsLen {
+	if uint64(len(localDeposits)) != totalProposedDeposits {
 		return errors.Wrapf(ErrDepositsLengthMismatch,
-			"local deposit count: %d, expected deposit count: %d",
-			len(localDeposits), expectedLocalDepositsLen,
+			"proposed deposit count: %d, expected deposit count: %d",
+			totalProposedDeposits, len(localDeposits),
 		)
 	}
 
