@@ -31,7 +31,7 @@ import (
 )
 
 // defaultRetryInterval processes a deposit event.
-const defaultRetryInterval = 20 * time.Second
+const defaultRetryInterval = 2 * time.Second
 
 func (s *Service) depositFetcher(
 	ctx context.Context,
