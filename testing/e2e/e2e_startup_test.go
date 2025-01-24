@@ -68,18 +68,6 @@ func (s *BeaconKitE2ESuite) SetupSuite() {
 	s.initializeNetworks()
 }
 
-// TearDownSuite cleans up after all tests have run
-func (s *BeaconKitE2ESuite) TearDownSuite() {
-	// No need for cleanup here as it's handled after each chain spec's tests
-	s.Logger().Info("Test suite completed")
-
-	// for _, network := range s.Networks() {
-	// 	if err := s.CleanupNetwork(network); err != nil {
-	// 		s.Logger().Error("Failed to cleanup network", "error", err)
-	// 	}
-	// }
-}
-
 // initializeNetworks sets up networks for each unique chain spec
 func (s *BeaconKitE2ESuite) initializeNetworks() {
 	for _, spec := range s.GetTestSpecs() {
