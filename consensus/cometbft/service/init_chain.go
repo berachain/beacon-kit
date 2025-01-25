@@ -31,7 +31,6 @@ import (
 	"github.com/sourcegraph/conc/iter"
 )
 
-//nolint:gocognit // its fine.
 func (s *Service[LoggerT]) initChain(
 	ctx context.Context,
 	req *cmtabci.InitChainRequest,
