@@ -92,7 +92,7 @@ func processPayloadStatusResult(
 		// NewPayload -- Not expected ever, ALWAYS return err.
 		// FCU -- Not expected ever, ALWAYS return err.
 		// CL TODOs:
-		//  - In FinalizeBlock, force return error to ensure EL is in sync.
+		//  - In FinalizeBlock, force return error as we don't know the state of EL and shouldn't progress blindly.
 		return nil, engineerrors.ErrUnknownPayloadStatus
 	}
 }
