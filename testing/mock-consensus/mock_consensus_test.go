@@ -21,11 +21,14 @@
 package mock_consensus_test
 
 import (
+	"io"
+	"os"
+	"testing"
+
 	"github.com/berachain/beacon-kit/cli/flags"
 	"github.com/berachain/beacon-kit/config"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/da/kzg"
-
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-api/engines/echo"
 	nodebuilder "github.com/berachain/beacon-kit/node-core/builder"
@@ -33,13 +36,10 @@ import (
 	nodetypes "github.com/berachain/beacon-kit/node-core/types"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/spf13/viper"
-	"io"
-	"os"
-	"testing"
 )
 
 // DefaultComponents requires testing.T to avoid accidental misuse
-func DefaultComponents(t *testing.T) []any {
+func DefaultComponents(_ *testing.T) []any {
 	c := []any{
 		components.ProvideAttributesFactory[*phuslu.Logger],
 		components.ProvideAvailabilityStore[*phuslu.Logger],
