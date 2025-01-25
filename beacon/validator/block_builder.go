@@ -28,7 +28,6 @@ import (
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
-	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/bytes"
@@ -42,18 +41,11 @@ import (
 
 // BuildBlockAndSidecars builds a new beacon block.
 //
-//nolint:funlen
+
 func (s *Service) BuildBlockAndSidecars(
 	ctx context.Context,
 	slotData *types.SlotData,
 ) ([]byte, []byte, error) {
-	var (
-		signedBlk *ctypes.SignedBeaconBlock
-		blk       *ctypes.BeaconBlock
-		sidecars  datypes.BlobSidecars
-		forkData  *ctypes.ForkData
-	)
-
 	startTime := time.Now()
 	defer s.metrics.measureRequestBlockForProposalTime(startTime)
 
@@ -91,7 +83,7 @@ func (s *Service) BuildBlockAndSidecars(
 	}
 
 	// Create a new empty block from the current state.
-	blk, err = s.getEmptyBeaconBlockForSlot(st, blkSlot)
+	blk, err := s.getEmptyBeaconBlockForSlot(st, blkSlot)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -123,13 +115,13 @@ func (s *Service) BuildBlockAndSidecars(
 	}
 
 	// Craft the signature and signed beacon block.
-	signedBlk, err = ctypes.NewSignedBeaconBlock(blk, forkData, s.chainSpec, s.signer)
+	signedBlk, err := ctypes.NewSignedBeaconBlock(blk, forkData, s.chainSpec, s.signer)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	// Produce blob sidecars with new StateRoot
-	sidecars, err = s.blobFactory.BuildSidecars(signedBlk, envelope.GetBlobsBundle())
+	sidecars, err := s.blobFactory.BuildSidecars(signedBlk, envelope.GetBlobsBundle())
 	if err != nil {
 		return nil, nil, err
 	}
