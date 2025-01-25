@@ -34,7 +34,9 @@ import (
 	nodebuilder "github.com/berachain/beacon-kit/node-core/builder"
 	"github.com/berachain/beacon-kit/node-core/components"
 	nodetypes "github.com/berachain/beacon-kit/node-core/types"
+	cmtcfg "github.com/cometbft/cometbft/config"
 	dbm "github.com/cosmos/cosmos-db"
+	cosmosutil "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 )
@@ -92,9 +94,15 @@ func DefaultComponents(_ *testing.T) []any {
 	return c
 }
 
+type TestNode struct {
+	node         nodetypes.Node
+	cometService *cometbft.Service[*phuslu.Logger]
+	cometConfig  *cmtcfg.Config
+}
+
 // newTestNode creates a node that is similar to production except keeps storage in-memory
 // and does not start the CometBFT loop, allowing us to inject our own calls
-func newTestNode(t *testing.T) (nodetypes.Node, *cometbft.Service[*phuslu.Logger]) {
+func newTestNode(t *testing.T) *TestNode {
 	// 1. Build a node builder with your default or custom test components.
 	nb := nodebuilder.New(
 		nodebuilder.WithComponents[
@@ -135,9 +143,22 @@ func newTestNode(t *testing.T) (nodetypes.Node, *cometbft.Service[*phuslu.Logger
 		appOpts,
 	)
 
+	cmtCfg.GenesisFile()
+
 	var cometService *cometbft.Service[*phuslu.Logger]
 	err := node.FetchService(&cometService)
 	require.NoError(t, err)
 	require.NotNil(t, cometService)
-	return node, cometService
+
+	return &TestNode{
+		node:         node,
+		cometService: cometService,
+		cometConfig:  cmtCfg,
+	}
+}
+
+func genesisFromFile(t *testing.T, file string) *cosmosutil.AppGenesis {
+	appGenesis, err := cosmosutil.AppGenesisFromFile(file)
+	require.NoError(t, err)
+	return appGenesis
 }
