@@ -49,8 +49,8 @@ func (s *Service) BuildBlockAndSidecars(
 	startTime := time.Now()
 	defer s.metrics.measureRequestBlockForProposalTime(startTime)
 
-	// payload builder is disabled, so nothing to do
-	if s.localPayloadBuilder.Enabled() {
+	if !s.localPayloadBuilder.Enabled() {
+		// node is not supposed to build blocks
 		return nil, nil, builder.ErrPayloadBuilderDisabled
 	}
 
