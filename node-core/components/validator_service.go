@@ -22,7 +22,6 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"fmt"
 	"github.com/berachain/beacon-kit/beacon/validator"
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config"
@@ -54,7 +53,6 @@ func ProvideValidatorService[
 ](
 	in ValidatorServiceInput[LoggerT],
 ) (*validator.Service, error) {
-	fmt.Println("ProvideValidatorService")
 	// Build the builder service.
 	return validator.NewService(
 		&in.Cfg.Validator,
