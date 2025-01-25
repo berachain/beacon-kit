@@ -24,21 +24,13 @@ import (
 	"context"
 	"testing"
 
-	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	comettypes "github.com/cometbft/cometbft/abci/types"
 	"github.com/stretchr/testify/require"
-
-	"github.com/berachain/beacon-kit/log/phuslu"
 )
 
 func TestInitChainRequestsInvalidChainID(t *testing.T) {
 	// Create a test node that
-	node := newTestNode(t)
-
-	var cometService *cometbft.Service[*phuslu.Logger]
-	err := node.FetchService(&cometService)
-	require.NoError(t, err)
-	require.NotNil(t, cometService)
+	_, cometService := newTestNode(t)
 
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	defer cancelFunc()
@@ -46,7 +38,7 @@ func TestInitChainRequestsInvalidChainID(t *testing.T) {
 	request := &comettypes.InitChainRequest{
 		ChainId: "80090",
 	}
-	_, err = cometService.InitChain(ctx, request)
+	_, err := cometService.InitChain(ctx, request)
 	require.Error(t, err, "invalid chain-id on InitChain; expected: beacond-2061, got: 80090")
 }
 
