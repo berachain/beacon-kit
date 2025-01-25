@@ -21,15 +21,19 @@
 package cometbft
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"sort"
 
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/sourcegraph/conc/iter"
 )
 
+//nolint:gocognit // its fine.
 func (s *Service[LoggerT]) initChain(
 	ctx context.Context,
 	req *cmtabci.InitChainRequest,
