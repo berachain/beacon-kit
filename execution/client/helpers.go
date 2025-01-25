@@ -75,7 +75,7 @@ func processPayloadStatusResult(
 		return result.LatestValidHash, engineerrors.ErrInvalidPayloadStatus
 	case engineprimitives.PayloadStatusValid:
 		// NewPayload -- True if EL already has the payload, i.e. duplicate payload.
-		// 	- CL Action: Keep as is.	
+		// 	- CL Action: Keep as is.
 		// FCU --
 		return result.LatestValidHash, nil
 	default:
