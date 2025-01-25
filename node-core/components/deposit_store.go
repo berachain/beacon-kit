@@ -70,3 +70,23 @@ func ProvideDepositStore[
 		in.Logger.With("service", "deposit-store"),
 	), nil
 }
+
+// ProvideDepositStoreInMemory returns a deposit store that writes to an in-memory DB.
+// Should not be used in production environments.
+func ProvideDepositStoreInMemory[
+	LoggerT log.AdvancedLogger[LoggerT],
+](in DepositStoreInput[LoggerT]) (*depositstore.KVStore, error) {
+	// Instead of disk-based DB, create a memory-backed DB:
+	memDB := dbm.NewMemDB()
+
+	spdb := depositstore.NewSynced(memDB)
+	// In memory DB typically doesn't need an explicit close, but let's define it as no-op:
+	closeFunc := func() error { return spdb.Close() }
+
+	// Create the store with the same signature as before:
+	return depositstore.NewStore(
+		storage.NewKVStoreProvider(spdb),
+		closeFunc,
+		in.Logger.With("service", "deposit-store-in-memory"),
+	), nil
+}

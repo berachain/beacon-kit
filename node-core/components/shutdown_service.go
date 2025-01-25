@@ -21,6 +21,7 @@
 package components
 
 import (
+	"fmt"
 	"path/filepath"
 
 	"cosmossdk.io/depinject"
@@ -46,6 +47,7 @@ func ProvideShutDownService[
 ](
 	in ShutDownServiceInput[LoggerT],
 ) *shutdown.Service {
+	fmt.Println("ProvideShutDownService")
 	pidFile := filepath.Join(cast.ToString(in.AppOpts.Get(flags.FlagHome)), "data/beacond.pid")
 
 	return shutdown.NewService(
