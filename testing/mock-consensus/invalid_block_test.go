@@ -22,6 +22,7 @@ package mock_consensus_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	comettypes "github.com/cometbft/cometbft/abci/types"
@@ -30,7 +31,7 @@ import (
 
 func TestInitChainRequestsInvalidChainID(t *testing.T) {
 	// Create a test node that
-	_, cometService := newTestNode(t)
+	testNode := newTestNode(t)
 
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	defer cancelFunc()
@@ -38,11 +39,25 @@ func TestInitChainRequestsInvalidChainID(t *testing.T) {
 	request := &comettypes.InitChainRequest{
 		ChainId: "80090",
 	}
-	_, err := cometService.InitChain(ctx, request)
+	_, err := testNode.cometService.InitChain(ctx, request)
 	require.Error(t, err, "invalid chain-id on InitChain; expected: beacond-2061, got: 80090")
 }
 
 // TestProcessProposalRequestInvalidBlock tests the scenario where a peer sends us a block with an invalid timestamp
 func TestProcessProposalRequestInvalidBlock(t *testing.T) {
+	// Create a test node that
+	testNode := newTestNode(t)
 
+	ctx, cancelFunc := context.WithCancel(context.Background())
+	defer cancelFunc()
+
+	genesis := genesisFromFile(t, testNode.cometConfig.Genesis)
+
+	request := &comettypes.InitChainRequest{
+		ChainId:       "beacond-2061",
+		AppStateBytes: genesis.AppState,
+	}
+	response, err := testNode.cometService.InitChain(ctx, request)
+	require.NoError(t, err)
+	fmt.Println(string(response.AppHash))
 }
