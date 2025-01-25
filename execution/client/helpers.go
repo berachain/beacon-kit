@@ -48,7 +48,8 @@ func processPayloadStatusResult(
 ) (*common.ExecutionHash, error) {
 	switch result.Status {
 	case engineprimitives.PayloadStatusAccepted:
-		// NewPayload -- Keep NewPayload handling as is
+		// NewPayload -- Returned then the payload does not extend the canonical chain. Already enforced on CL in state_processor_payload.
+		// 	- CL Action: Keep as is
 		// FCU -- NEVER returned
 		// TODOs:
 		// - Remove from FCU check because it is never returned (done in shota's PR)
@@ -59,14 +60,22 @@ func processPayloadStatusResult(
 		return nil, engineerrors.ErrAcceptedPayloadStatus
 	case engineprimitives.PayloadStatusSyncing:
 		// NewPayload --
+		//	- EL does not have the parent block. The EL does NOT know if it is valid or invalid
+		//  - EL has the parent block but is in Snap Sync (Geth).
+		//  - CL Action: Keep as is - return Error in Process and no Error in Finalize. We could consider blocking in Finalize to catch up EL.
 		// FCU --
 		return nil, engineerrors.ErrSyncingPayloadStatus
 	case engineprimitives.PayloadStatusInvalid:
 		// NewPayload --
+		//	- if the block is part of an invalid chain. We don't expect this in finalize, ALWAYS return err.
+		//  - if the block's timestamp is <= the parent block's timestamp. We don't expect this in finalize, ALWAYS return err.
+		//  - if invalid state transition. We don't expect this in finalize, ALWAYS return err.
+		//  - CL Action: Keep as is.
 		// FCU --
 		return result.LatestValidHash, engineerrors.ErrInvalidPayloadStatus
 	case engineprimitives.PayloadStatusValid:
-		// NewPayload --
+		// NewPayload -- True if EL already has the payload, i.e. duplicate payload.
+		// 	- CL Action: Keep as is.	
 		// FCU --
 		return result.LatestValidHash, nil
 	default:
