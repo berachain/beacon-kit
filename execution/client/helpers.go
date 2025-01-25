@@ -66,6 +66,8 @@ func processPayloadStatusResult(
 		//     - Keep as is for now - return Error in Process and no Error in Finalize.
 		//     - Consider blocking in Finalize to catch up EL when syncing.
 		// FCU --
+		// 	- EL has not received the block from NewPayload. The EL does NOT know if it is valid or invalid
+		// 	- If we update the head to an old block that is already part of the canonical chain, it returns VALID and is ignored
 		return nil, engineerrors.ErrSyncingPayloadStatus
 	case engineprimitives.PayloadStatusInvalid:
 		// NewPayload --
@@ -74,6 +76,8 @@ func processPayloadStatusResult(
 		//  - if invalid state transition. We don't expect this in finalize, ALWAYS return err.
 		//  - CL TODOs: Keep as is.
 		// FCU --
+		// 	- Finalizing a block that has not been passed in via NewPayload will result in INVALID, not SYNCING. (TODO: Test this)
+		// 	- Same as above for Safe hash.
 		return result.LatestValidHash, engineerrors.ErrInvalidPayloadStatus
 	case engineprimitives.PayloadStatusValid:
 		// NewPayload --
@@ -81,6 +85,8 @@ func processPayloadStatusResult(
 		//  - EL already has the payload, i.e. duplicate payload (should not happen technically).
 		// 	- CL TODOs: Keep as is.
 		// FCU --
+		// 	- Valid if the EL already has the latest hash as part of the canonical chain (e.g. CL is resyncing such as after comet unsafe-reset-all)
+		//	- The same attributes + head block hash results in the same PayloadID and will be ignored, continuing the original workload.
 		return result.LatestValidHash, nil
 	default:
 		// NewPayload -- Not expected ever, ALWAYS return err.
