@@ -21,6 +21,9 @@
 package components
 
 import (
+	"fmt"
+	beaconflags "github.com/berachain/beacon-kit/cli/flags"
+	"os"
 	"path/filepath"
 
 	"cosmossdk.io/depinject"
@@ -45,11 +48,12 @@ func ProvideBlsSigner(in BlsSignerInput) (crypto.BLSSigner, error) {
 		// if no private key is provided, use privval signer
 		homeDir := cast.ToString(in.AppOpts.Get(flags.FlagHome))
 		privValKeyFile := cast.ToString(
-			in.AppOpts.Get("priv_validator_key_file"),
+			in.AppOpts.Get(beaconflags.PrivValidatorKeyFile),
 		)
 		privValStateFile := cast.ToString(
-			in.AppOpts.Get("priv_validator_state_file"),
+			in.AppOpts.Get(beaconflags.PrivValidatorStateFile),
 		)
+
 		// If privValKeyFile is not an absolute path, join with homeDir
 		if !filepath.IsAbs(privValKeyFile) {
 			privValKeyFile = filepath.Join(homeDir, privValKeyFile)
@@ -57,6 +61,15 @@ func ProvideBlsSigner(in BlsSignerInput) (crypto.BLSSigner, error) {
 		// If privValStateFile is not an absolute path, join with homeDir
 		if !filepath.IsAbs(privValStateFile) {
 			privValStateFile = filepath.Join(homeDir, privValStateFile)
+		}
+		// Check key file existence here as the error in NewBLSSigner is vague.
+		if _, err := os.Stat(privValKeyFile); os.IsNotExist(err) {
+			return nil, fmt.Errorf("key file does not exist at path: %s\n", privValKeyFile)
+		}
+
+		// Check state file existence as the error in NewBLSSigner is vague.
+		if _, err := os.Stat(privValStateFile); os.IsNotExist(err) {
+			return nil, fmt.Errorf("state file does not exist at path: %s\n", privValStateFile)
 		}
 		return signer.NewBLSSigner(privValKeyFile, privValStateFile), nil
 	}

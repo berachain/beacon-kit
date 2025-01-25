@@ -31,6 +31,7 @@ import (
 type Node interface {
 	Start(context.Context) error
 
+	FetchService(interface{}) error
 	// TODO: FIX, HACK TO MAKE CLI HAPPY FOR NOW.
 	CommitMultiStore() store.CommitMultiStore
 }
