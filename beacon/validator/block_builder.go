@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -55,6 +56,11 @@ func (s *Service) BuildBlockAndSidecars(
 
 	startTime := time.Now()
 	defer s.metrics.measureRequestBlockForProposalTime(startTime)
+
+	// payload builder is disabled, so nothing to do
+	if s.localPayloadBuilder.Enabled() {
+		return nil, nil, builder.ErrPayloadBuilderDisabled
+	}
 
 	// The goal here is to acquire a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be
