@@ -219,12 +219,11 @@ func (s *Service) retrieveExecutionPayload(
 	// TODO: Add external block builders to this flow.
 	//
 	// Get the payload for the block.
-	envelope, err := s.localPayloadBuilder.
-		RetrievePayload(
-			ctx,
-			blk.GetSlot(),
-			blk.GetParentBlockRoot(),
-		)
+	envelope, err := s.localPayloadBuilder.RetrievePayload(
+		ctx,
+		blk.GetSlot(),
+		blk.GetParentBlockRoot(),
+	)
 	if err == nil {
 		return envelope, nil
 	}
@@ -245,8 +244,7 @@ func (s *Service) retrieveExecutionPayload(
 
 	// The latest execution payload header will be from the previous block
 	// during the block building phase.
-	var lph *ctypes.ExecutionPayloadHeader
-	lph, err = st.GetLatestExecutionPayloadHeader()
+	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return nil, err
 	}
