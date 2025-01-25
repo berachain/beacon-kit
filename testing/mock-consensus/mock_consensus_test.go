@@ -36,6 +36,7 @@ import (
 	nodetypes "github.com/berachain/beacon-kit/node-core/types"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/spf13/viper"
+	"github.com/stretchr/testify/require"
 )
 
 // DefaultComponents requires testing.T to avoid accidental misuse
@@ -93,7 +94,7 @@ func DefaultComponents(_ *testing.T) []any {
 
 // newTestNode creates a node that is similar to production except keeps storage in-memory
 // and does not start the CometBFT loop, allowing us to inject our own calls
-func newTestNode(t *testing.T) nodetypes.Node {
+func newTestNode(t *testing.T) (nodetypes.Node, *cometbft.Service[*phuslu.Logger]) {
 	// 1. Build a node builder with your default or custom test components.
 	nb := nodebuilder.New(
 		nodebuilder.WithComponents[
@@ -133,5 +134,10 @@ func newTestNode(t *testing.T) nodetypes.Node {
 		cmtCfg,
 		appOpts,
 	)
-	return node
+
+	var cometService *cometbft.Service[*phuslu.Logger]
+	err := node.FetchService(&cometService)
+	require.NoError(t, err)
+	require.NotNil(t, cometService)
+	return node, cometService
 }
