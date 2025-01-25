@@ -50,7 +50,7 @@ func processPayloadStatusResult(
 	case engineprimitives.PayloadStatusAccepted:
 		// NewPayload -- Returned then the payload does not extend the canonical chain. Already enforced on CL in state_processor_payload.
 		// FCU -- NEVER returned
-		// CL actions:
+		// CL TODOs:
 		// - Remove from FCU check because it is never returned (done in shota's PR)
 		// - Distinguish metric between accepted/syncing
 		// - Remove error-handling from state_processor.go because
@@ -61,10 +61,10 @@ func processPayloadStatusResult(
 		// NewPayload --
 		//	- EL does not have the parent block. The EL does NOT know if it is valid or invalid
 		//  - EL has the parent block but is in Snap Sync (Geth).
-		//  - CL Actions:
+		//  - CL TODOs:
 		//     - Distinguish metric between accepted/syncing.
 		//     - Keep as is for now - return Error in Process and no Error in Finalize.
-		//     - We could consider blocking in Finalize to catch up EL when syncing.
+		//     - Consider blocking in Finalize to catch up EL when syncing.
 		// FCU --
 		return nil, engineerrors.ErrSyncingPayloadStatus
 	case engineprimitives.PayloadStatusInvalid:
@@ -72,19 +72,21 @@ func processPayloadStatusResult(
 		//	- if the block is part of an invalid chain. We don't expect this in finalize, ALWAYS return err.
 		//  - if the block's timestamp is <= the parent block's timestamp. We don't expect this in finalize, ALWAYS return err.
 		//  - if invalid state transition. We don't expect this in finalize, ALWAYS return err.
-		//  - CL Action: Keep as is.
+		//  - CL TODOs: Keep as is.
 		// FCU --
 		return result.LatestValidHash, engineerrors.ErrInvalidPayloadStatus
 	case engineprimitives.PayloadStatusValid:
 		// NewPayload --
 		//  - EL returns in happy case.
 		//  - EL already has the payload, i.e. duplicate payload (should not happen technically).
-		// 	- CL Action: Keep as is.
+		// 	- CL TODOs: Keep as is.
 		// FCU --
 		return result.LatestValidHash, nil
 	default:
-		// NewPayload --
-		// FCU --
+		// NewPayload -- Not expected ever, ALWAYS return err.
+		// FCU -- Not expected ever, ALWAYS return err.
+		// CL TODOs:
+		//  - In FinalizeBlock, force return error to ensure EL is in sync.
 		return nil, engineerrors.ErrUnknownPayloadStatus
 	}
 }
