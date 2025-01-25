@@ -89,8 +89,7 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 	)
 
 	// build all node components using depinject
-	if err := depinject.InjectDebug(
-		depinject.StdoutLogger(),
+	if err := depinject.Inject(
 		depinject.Configs(
 			depinject.Provide(
 				nb.components...,
