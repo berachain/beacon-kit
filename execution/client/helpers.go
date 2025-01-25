@@ -76,7 +76,7 @@ func processPayloadStatusResult(
 		//  - if invalid state transition. We don't expect this in finalize, ALWAYS return err.
 		//  - CL TODOs: Keep as is.
 		// FCU --
-		// 	- Finalizing a block that has not been passed in via NewPayload will result in INVALID, not SYNCING. (TODO: Test this)
+		// 	- Finalizing a block that has not been passed in via NewPayload will always return SYNCING on Berachain, as the head will not be found.
 		// 	- Same as above for Safe hash.
 		return result.LatestValidHash, engineerrors.ErrInvalidPayloadStatus
 	case engineprimitives.PayloadStatusValid:
