@@ -47,26 +47,27 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 	}
 
 	if payloadID, found := pb.pc.Get(slot, parentBlockRoot); found {
-		pb.logger.Warn(
+		pb.logger.Info(
 			"aborting payload build; payload already exists in cache",
-			"for_slot",
-			slot.Base10(),
-			"parent_block_root",
-			parentBlockRoot,
+			"for_slot", slot.Base10(),
+			"parent_block_root", parentBlockRoot,
 		)
 		return &payloadID, nil
 	}
 
 	// Assemble the payload attributes.
-	attrs, err := pb.attributesFactory.
-		BuildPayloadAttributes(st, slot, timestamp, parentBlockRoot)
+	attrs, err := pb.attributesFactory.BuildPayloadAttributes(
+		st,
+		slot,
+		timestamp,
+		parentBlockRoot,
+	)
 	if err != nil {
 		return nil, err
 	}
 
 	// Submit the forkchoice update to the execution client.
-	var payloadID *engineprimitives.PayloadID
-	payloadID, _, err = pb.ee.NotifyForkchoiceUpdate(
+	payloadID, _, err := pb.ee.NotifyForkchoiceUpdate(
 		ctx, &ctypes.ForkchoiceUpdateRequest{
 			State: &engineprimitives.ForkchoiceStateV1{
 				HeadBlockHash:      headEth1BlockHash,
