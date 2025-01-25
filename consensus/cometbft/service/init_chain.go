@@ -45,7 +45,7 @@ func (s *Service[LoggerT]) initChain(
 	}
 
 	// Enforce that request validators is zero. This is because Berachain derives the validators directly from
-	// deposits in the genesis file and disregards the validators in genesis file.
+	// deposits in the genesis file and disregards the validators in genesis file, which is what Comet uses.
 	if len(req.Validators) != 0 {
 		return nil, errors.New("expected no validators in initChain request")
 	}
