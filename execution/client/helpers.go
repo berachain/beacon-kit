@@ -49,9 +49,8 @@ func processPayloadStatusResult(
 	switch result.Status {
 	case engineprimitives.PayloadStatusAccepted:
 		// NewPayload -- Returned then the payload does not extend the canonical chain. Already enforced on CL in state_processor_payload.
-		// 	- CL Action: Keep as is
 		// FCU -- NEVER returned
-		// TODOs:
+		// CL actions:
 		// - Remove from FCU check because it is never returned (done in shota's PR)
 		// - Distinguish metric between accepted/syncing
 		// - Remove error-handling from state_processor.go because
