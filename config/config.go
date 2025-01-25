@@ -86,16 +86,6 @@ func (c Config) Template() string {
 	return template.TomlTemplate
 }
 
-// MustReadConfigFromAppOpts reads the configuration options from the given
-// application options.
-func MustReadConfigFromAppOpts(opts AppOptions) *Config {
-	cfg, err := ReadConfigFromAppOpts(opts)
-	if err != nil {
-		panic(err)
-	}
-	return cfg
-}
-
 // ReadConfigFromAppOpts reads the configuration options from the given
 // application options.
 func ReadConfigFromAppOpts(opts AppOptions) (*Config, error) {
