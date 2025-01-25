@@ -61,7 +61,10 @@ func processPayloadStatusResult(
 		// NewPayload --
 		//	- EL does not have the parent block. The EL does NOT know if it is valid or invalid
 		//  - EL has the parent block but is in Snap Sync (Geth).
-		//  - CL Action: Keep as is - return Error in Process and no Error in Finalize. We could consider blocking in Finalize to catch up EL.
+		//  - CL Actions:
+		//     - Distinguish metric between accepted/syncing.
+		//     - Keep as is for now - return Error in Process and no Error in Finalize.
+		//     - We could consider blocking in Finalize to catch up EL when syncing.
 		// FCU --
 		return nil, engineerrors.ErrSyncingPayloadStatus
 	case engineprimitives.PayloadStatusInvalid:
@@ -73,7 +76,9 @@ func processPayloadStatusResult(
 		// FCU --
 		return result.LatestValidHash, engineerrors.ErrInvalidPayloadStatus
 	case engineprimitives.PayloadStatusValid:
-		// NewPayload -- True if EL already has the payload, i.e. duplicate payload.
+		// NewPayload --
+		//  - EL returns in happy case.
+		//  - EL already has the payload, i.e. duplicate payload (should not happen technically).
 		// 	- CL Action: Keep as is.
 		// FCU --
 		return result.LatestValidHash, nil
