@@ -21,7 +21,6 @@
 package builder
 
 import (
-	"fmt"
 	"io"
 
 	"cosmossdk.io/depinject"
@@ -90,7 +89,6 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 	)
 
 	// build all node components using depinject
-	fmt.Println("Started depinject")
 	if err := depinject.InjectDebug(
 		depinject.StdoutLogger(),
 		depinject.Configs(
@@ -111,7 +109,6 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 	); err != nil {
 		panic(err)
 	}
-	fmt.Println("Finished depinject")
 
 	if config == nil {
 		panic("config is nil")
