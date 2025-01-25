@@ -142,17 +142,14 @@ func (s *Client) GetPayloadV3(
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
 	var t *ctypes.ExecutionPayload
 	result := &ctypes.ExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1[
-		eip4844.KZGCommitment, eip4844.KZGProof, eip4844.Blob,
+		eip4844.KZGCommitment,
+		eip4844.KZGProof,
+		eip4844.Blob,
 	]]{
 		ExecutionPayload: t.Empty(version.Deneb),
 	}
 
-	if err := s.Call(
-		ctx, result, GetPayloadMethodV3, payloadID,
-	); err != nil {
-		return nil, err
-	}
-	return result, nil
+	return result, s.Call(ctx, result, GetPayloadMethodV3, payloadID)
 }
 
 /* -------------------------------------------------------------------------- */

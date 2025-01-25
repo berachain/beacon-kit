@@ -93,9 +93,6 @@ func (s *Service) BuildBlockAndSidecars(
 	if err != nil {
 		return nil, nil, err
 	}
-	if envelope == nil {
-		return nil, nil, ErrNilPayload
-	}
 
 	// We have to assemble the block body prior to producing the sidecars
 	// since we need to generate the inclusion proofs.

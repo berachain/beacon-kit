@@ -173,18 +173,13 @@ func (pb *PayloadBuilder) RetrievePayload(
 	}
 
 	payload := envelope.GetExecutionPayload()
-	if !payload.IsNil() {
-		args = append(args,
-			"payload_block_hash", payload.GetBlockHash(),
-			"parent_hash", payload.GetParentHash(),
-		)
-	}
-
-	blobsBundle := envelope.GetBlobsBundle()
-	if blobsBundle != nil {
+	args = append(args,
+		"payload_block_hash", payload.GetBlockHash(),
+		"parent_hash", payload.GetParentHash(),
+	)
+	if blobsBundle := envelope.GetBlobsBundle(); blobsBundle != nil {
 		args = append(args, "num_blobs", len(blobsBundle.GetBlobs()))
 	}
-
 	pb.logger.Info("Payload retrieved from local builder", args...)
 
 	// If the payload was built by a different builder, something is
