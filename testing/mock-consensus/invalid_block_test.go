@@ -22,10 +22,11 @@ package mock_consensus_test
 
 import (
 	"context"
+	"testing"
+
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	comettypes "github.com/cometbft/cometbft/abci/types"
 	"github.com/stretchr/testify/require"
-	"testing"
 
 	"github.com/berachain/beacon-kit/log/phuslu"
 )
@@ -51,5 +52,5 @@ func TestInitChainRequestsInvalidChainID(t *testing.T) {
 
 // TestProcessProposalRequestInvalidBlock tests the scenario where a peer sends us a block with an invalid timestamp
 func TestProcessProposalRequestInvalidBlock(t *testing.T) {
-	
+
 }
