@@ -1,0 +1,70 @@
+{
+  "app_name": "beacond",
+  "app_version": "v1.0.1-1-g203807f0b",
+  "genesis_time": "2025-01-25T14:58:06.83572Z",
+  "chain_id": "beacond-2061",
+  "initial_height": 1,
+  "app_hash": null,
+  "app_state": {
+    "beacon": {
+      "fork_version": "0x04000000",
+      "deposits": [
+        {
+          "pubkey": "0x904240ac69e13c6d892a0ae08ae01a676f93afce05e0fb66ccf33c27908065d66106e6fa3ddf99a5f2ba861f6c617ac7",
+          "credentials": "0x01000000000000000000000020f33ce90a13a4b5e7697e3544c3083b8f8a51d4",
+          "amount": "0x773594000",
+          "signature": "0x801806803ca2110358e70126492f97f36785642e5171ad5a6818b6ec4f51fe93810f7701146e07c6da93c4acf6fa8cdc150ed177102f3883ef61dbcbc78b75e678be8d8b6c5e045aa8eddb45820546b31cdac3920e813b9c111e3d7cdee4002b",
+          "index": 0
+        }
+      ],
+      "execution_payload_header": {
+        "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "feeRecipient": "0x0000000000000000000000000000000000000000",
+        "stateRoot": "0x47e084ab2e7f1547efba607363d7854765412c49834a8ce9b9ff11fb5b8b627a",
+        "receiptsRoot": "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
+        "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "prevRandao": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "blockNumber": "0x0",
+        "gasLimit": "0x1c9c380",
+        "gasUsed": "0x0",
+        "timestamp": "0x0",
+        "extraData": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "baseFeePerGas": "1000000000",
+        "blockHash": "0xf93cac1904c49b1d3f2bf8a61e04486664c9b373d34dcff548906a0b7a6894ca",
+        "transactionsRoot": "0x7ffe241ea60187fdb0187bfa22de35d1f9bed7ab061d9401fd47e34a54fbede1",
+        "withdrawalsRoot": "0x792930bbd5baac43bcc798ee49aa8185ef76bb3b44ba62b91d86ae569e4bb535",
+        "blobGasUsed": "0x0",
+        "excessBlobGas": "0x0"
+      }
+    }
+  },
+  "consensus": {
+    "params": {
+      "block": {
+        "max_bytes": "104857600",
+        "max_gas": "10000000"
+      },
+      "evidence": {
+        "max_age_num_blocks": "100000",
+        "max_age_duration": "172800000000000",
+        "max_bytes": "1048576"
+      },
+      "validator": {
+        "pub_key_types": [
+          "bls12_381"
+        ]
+      },
+      "version": {
+        "app": "0"
+      },
+      "synchrony": {
+        "precision": "505000000",
+        "message_delay": "15000000000"
+      },
+      "feature": {
+        "vote_extensions_enable_height": "0",
+        "pbts_enable_height": "1"
+      }
+    }
+  }
+}
