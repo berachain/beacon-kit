@@ -26,11 +26,14 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/execution/client/ethclient"
+	"github.com/berachain/beacon-kit/execution/client/ethclient/rpc"
 	"github.com/stretchr/testify/require"
 )
 
+// TestGetPayloadV3NeverReturnsEmptyPayload shows that execution payload
+// returned by ethClient is not nil.
 func TestGetPayloadV3NeverReturnsEmptyPayload(t *testing.T) {
-	c := ethclient.New(nil)
+	c := ethclient.New(&stubRPCClient{t: t})
 
 	var (
 		ctx       = context.Background()
@@ -39,5 +42,21 @@ func TestGetPayloadV3NeverReturnsEmptyPayload(t *testing.T) {
 
 	pe, err := c.GetPayloadV3(ctx, payloadID)
 	require.NoError(t, err)
+
+	// check that execution payload is not nil
 	require.False(t, pe.GetExecutionPayload().IsNil())
 }
+
+var _ rpc.Client = (*stubRPCClient)(nil)
+
+type stubRPCClient struct {
+	t *testing.T
+}
+
+func (tc *stubRPCClient) Start(context.Context) {}
+func (tc *stubRPCClient) Call(_ context.Context, target any, _ string, _ ...any) error {
+	tc.t.Helper()
+	require.NotNil(tc.t, target)
+	return nil
+}
+func (tc *stubRPCClient) Close() error { return nil }
