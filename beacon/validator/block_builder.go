@@ -91,13 +91,13 @@ func (s *Service) BuildBlockAndSidecars(
 	// Get the payload for the block.
 	envelope, err := s.retrieveExecutionPayload(ctx, st, blk, slotData)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("failed retrieving execution payload: %w", err)
 	}
 
 	// We have to assemble the block body prior to producing the sidecars
 	// since we need to generate the inclusion proofs.
 	if err = s.buildBlockBody(ctx, st, blk, reveal, envelope, slotData); err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("failed build block body: %w", err)
 	}
 
 	// Compute the state root for the block.
@@ -291,7 +291,7 @@ func (s *Service) buildBlockBody(
 	// Dequeue deposits from the state.
 	depositIndex, err := st.GetEth1DepositIndex()
 	if err != nil {
-		return ErrNilDepositIndexStart
+		return fmt.Errorf("failed loading eth1 deposit index: %w", err)
 	}
 
 	// Grab all previous deposits from genesis up to the current index + max deposits per block.
