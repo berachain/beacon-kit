@@ -138,7 +138,8 @@ func (s *Client) GetPayload(
 
 // GetPayloadV3 calls the engine_getPayloadV3 method via JSON-RPC.
 func (s *Client) GetPayloadV3(
-	ctx context.Context, payloadID engineprimitives.PayloadID,
+	ctx context.Context,
+	payloadID engineprimitives.PayloadID,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
 	var t *ctypes.ExecutionPayload
 	result := &ctypes.ExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1[

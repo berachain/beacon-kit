@@ -18,24 +18,26 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package rpc
+package ethclient_test
 
 import (
-	"time"
+	"context"
+	"testing"
 
-	"github.com/berachain/beacon-kit/primitives/net/jwt"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	"github.com/berachain/beacon-kit/execution/client/ethclient"
+	"github.com/stretchr/testify/require"
 )
 
-// WithJWTSecret sets the JWT secret for the RPC client.
-func WithJWTSecret(secret *jwt.Secret) func(rpc *Client) {
-	return func(rpc *Client) {
-		rpc.jwtSecret = secret
-	}
-}
+func TestGetPayloadV3NeverReturnsEmptyPayload(t *testing.T) {
+	c := ethclient.New(nil)
 
-// WithJWTRefreshInterval sets the JWT refresh interval for the RPC client.
-func WithJWTRefreshInterval(interval time.Duration) func(rpc *Client) {
-	return func(rpc *Client) {
-		rpc.jwtRefreshInterval = interval
-	}
+	var (
+		ctx       = context.Background()
+		payloadID engineprimitives.PayloadID
+	)
+
+	pe, err := c.GetPayloadV3(ctx, payloadID)
+	require.NoError(t, err)
+	require.False(t, pe.GetExecutionPayload().IsNil())
 }
