@@ -50,7 +50,7 @@ func TestActiveForkVersionForEpoch(t *testing.T) {
 		epoch    math.Epoch
 		expected uint32
 	}{
-		{name: "Before Electra Fork", epoch: 9, expected: version.DenebPlus},
+		{name: "Before Electra Fork", epoch: 9, expected: version.Deneb1},
 		{name: "At Electra Fork", epoch: 10, expected: version.Electra},
 		{name: "After Electra Fork", epoch: 11, expected: version.Electra},
 	}
@@ -101,7 +101,7 @@ func TestActiveForkVersionForSlot(t *testing.T) {
 		{
 			name:     "Just Before Electra Fork",
 			slot:     319,
-			expected: version.DenebPlus,
+			expected: version.Deneb1,
 		},
 		{name: "At Electra Fork", slot: 320, expected: version.Electra},
 		{name: "After Electra Fork", slot: 640, expected: version.Electra},

@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/node-core/components"
+	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
@@ -59,7 +60,7 @@ func TestInvalidDeposits(t *testing.T) {
 			},
 		}
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		genVersion       = version.FromUint32[common.Version](version.Deneb)
+		genVersion       = bytes.FromUint32(version.Deneb)
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
 	_, err := sp.InitializePreminedBeaconStateFromEth1(
@@ -132,7 +133,7 @@ func TestInvalidDepositsCount(t *testing.T) {
 			},
 		}
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		genVersion       = version.FromUint32[common.Version](version.Deneb)
+		genVersion       = bytes.FromUint32(version.Deneb)
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
 	_, err := sp.InitializePreminedBeaconStateFromEth1(
@@ -209,7 +210,7 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 			},
 		}
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		genVersion       = version.FromUint32[common.Version](version.Deneb)
+		genVersion       = bytes.FromUint32(version.Deneb)
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
 	_, err = sp.InitializePreminedBeaconStateFromEth1(
@@ -286,7 +287,7 @@ func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
 			},
 		}
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		genVersion       = version.FromUint32[common.Version](version.Deneb)
+		genVersion       = bytes.FromUint32(version.Deneb)
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
 	_, err = sp.InitializePreminedBeaconStateFromEth1(

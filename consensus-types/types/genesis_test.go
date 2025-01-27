@@ -34,12 +34,10 @@ import (
 
 func TestDefaultGenesisDeneb(t *testing.T) {
 	g := types.DefaultGenesisDeneb()
-	if g.ForkVersion != version.FromUint32[common.Version](version.Deneb) {
+	if g.ForkVersion != bytes.FromUint32(version.Deneb) {
 		t.Errorf(
 			"Expected fork version %v, but got %v",
-			version.FromUint32[common.Version](
-				version.Deneb,
-			),
+			bytes.FromUint32(version.Deneb),
 			g.ForkVersion,
 		)
 	}
@@ -78,7 +76,7 @@ func TestGenesisGetForkVersion(t *testing.T) {
 	forkVersion := g.GetForkVersion()
 	require.Equal(
 		t,
-		version.FromUint32[common.Version](version.Deneb),
+		bytes.FromUint32(version.Deneb),
 		forkVersion,
 	)
 }
