@@ -25,10 +25,10 @@ type ChainSpec struct {
 	Network string
 }
 
-// Option is a function type that modifies suite configuration
+// Option is a function type that modifies suite configuration.
 type Option func(*KurtosisE2ESuite) error
 
-// WithChain adds a chain configuration for a specific test
+// WithChain adds a chain configuration for a specific test.
 func WithChain(testName string, chainID uint64, network string) Option {
 	return func(s *KurtosisE2ESuite) error {
 		s.RegisterTest(testName, ChainSpec{

@@ -59,7 +59,7 @@ func (s *BeaconKitE2ESuite) SetupSuite() {
 
 	// Apply all chain options
 	for _, opt := range s.opts {
-		if err := opt(&s.KurtosisE2ESuite); err != nil {
+		if err = opt(&s.KurtosisE2ESuite); err != nil {
 			s.Require().NoError(err)
 		}
 	}
@@ -68,7 +68,7 @@ func (s *BeaconKitE2ESuite) SetupSuite() {
 	s.initializeNetworks()
 }
 
-// initializeNetworks sets up networks for each unique chain spec
+// initializeNetworks sets up networks for each unique chain spec.
 func (s *BeaconKitE2ESuite) initializeNetworks() {
 	for _, spec := range s.GetTestSpecs() {
 		chainKey := fmt.Sprintf("%d-%s", spec.ChainID, spec.Network)
@@ -82,7 +82,7 @@ func (s *BeaconKitE2ESuite) initializeNetworks() {
 	}
 }
 
-// TearDownSuite cleans up after all tests have run
+// TearDownSuite cleans up after all tests have run.
 func (s *BeaconKitE2ESuite) TearDownSuite() {
 	// No need for cleanup here as it's handled after each chain spec's tests
 	s.Logger().Info("Test suite completed")

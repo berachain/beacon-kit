@@ -36,6 +36,7 @@ import (
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
+	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/services"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/starlark_run_config"
 	"github.com/kurtosis-tech/kurtosis/api/golang/engine/lib/kurtosis_context"
 	"github.com/stretchr/testify/suite"
@@ -175,7 +176,7 @@ func (s *KurtosisE2ESuite) GetAccounts() []*types.EthAccount {
 	return s.testAccounts
 }
 
-// RegisterTest associates a test with its chain specification
+// RegisterTest associates a test with its chain specification.
 func (s *KurtosisE2ESuite) RegisterTest(testName string, spec ChainSpec) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -269,7 +270,7 @@ func (s *KurtosisE2ESuite) InitializeNetwork(network *NetworkInstance) error {
 		for _, e := range enclaves.GetEnclavesByUuid() {
 			if e.GetName() == enclaveName {
 				s.Logger().Info("Destroying existing enclave", "name", enclaveName)
-				if err := s.kCtx.DestroyEnclave(s.ctx, string(e.GetEnclaveUuid())); err != nil {
+				if err := s.kCtx.DestroyEnclave(s.ctx, e.GetEnclaveUuid()); err != nil {
 					s.Logger().Error("Failed to destroy existing enclave", "error", err)
 				}
 			}
@@ -301,8 +302,9 @@ func (s *KurtosisE2ESuite) InitializeNetwork(network *NetworkInstance) error {
 	// Setup consensus clients
 	s.Logger().Info("Setting up validator clients", "clients", network.Config.NetworkConfiguration.Validators.Nodes)
 	for i := range network.Config.NetworkConfiguration.Validators.Nodes {
+		var sCtx *services.ServiceContext
 		clientName := fmt.Sprintf("cl-validator-beaconkit-%d", i)
-		sCtx, err := network.enclave.GetServiceContext(clientName)
+		sCtx, err = network.enclave.GetServiceContext(clientName)
 		if err != nil {
 			return fmt.Errorf("failed to get service context: %w", err)
 		}
@@ -311,7 +313,7 @@ func (s *KurtosisE2ESuite) InitializeNetwork(network *NetworkInstance) error {
 			types.NewWrappedServiceContext(sCtx, network.enclave.RunStarlarkScriptBlocking),
 		)
 		// Connect the client
-		if err := client.Connect(s.ctx); err != nil {
+		if err = client.Connect(s.ctx); err != nil {
 			return fmt.Errorf("failed to connect consensus client %s: %w", clientName, err)
 		}
 		network.consensusClients[clientName] = client
@@ -337,7 +339,7 @@ func (s *KurtosisE2ESuite) InitializeNetwork(network *NetworkInstance) error {
 	// Set the suite's load balancer to match the network's
 	s.loadBalancer = network.loadBalancer
 	// Wait for RPC to be ready before funding accounts
-	if err := s.WaitForRPCReady(network); err != nil {
+	if err = s.WaitForRPCReady(network); err != nil {
 		return fmt.Errorf("failed waiting for RPC: %w", err)
 	}
 
@@ -348,7 +350,7 @@ func (s *KurtosisE2ESuite) InitializeNetwork(network *NetworkInstance) error {
 	s.genesisAccount = network.genesisAccount
 
 	// Wait for a few blocks to ensure the genesis account has funds
-	if err := s.WaitForNBlockNumbers(5); err != nil {
+	if err = s.WaitForNBlockNumbers(5); err != nil {
 		return fmt.Errorf("failed waiting for blocks: %w", err)
 	}
 
@@ -363,7 +365,7 @@ func (s *KurtosisE2ESuite) InitializeNetwork(network *NetworkInstance) error {
 	}
 
 	// Wait for RPC to be ready before funding accounts
-	if err := s.WaitForRPCReady(network); err != nil {
+	if err = s.WaitForRPCReady(network); err != nil {
 		return fmt.Errorf("failed waiting for RPC: %w", err)
 	}
 
@@ -391,7 +393,7 @@ func (s *KurtosisE2ESuite) InitializeNetwork(network *NetworkInstance) error {
 		if !ok {
 			return fmt.Errorf("failed to parse amount")
 		}
-		if err := s.FundAccount(account.Address(), amount); err != nil {
+		if err = s.FundAccount(account.Address(), amount); err != nil {
 			return fmt.Errorf("failed to fund test accounts: %w", err)
 		}
 	}
@@ -430,7 +432,7 @@ func (s *KurtosisE2ESuite) CleanupNetwork(network *NetworkInstance) error {
 
 		enclaveExists := false
 		for _, e := range enclaves.GetEnclavesByUuid() {
-			if string(e.GetEnclaveUuid()) == string(network.enclave.GetEnclaveUuid()) {
+			if e.GetEnclaveUuid() == string(network.enclave.GetEnclaveUuid()) {
 				enclaveExists = true
 				break
 			}
@@ -442,7 +444,7 @@ func (s *KurtosisE2ESuite) CleanupNetwork(network *NetworkInstance) error {
 		}
 
 		s.Logger().Info("Destroying enclave in cleanupNetwork", "enclave", network.enclave)
-		if err := s.kCtx.DestroyEnclave(s.ctx, string(network.enclave.GetEnclaveUuid())); err != nil {
+		if err = s.kCtx.DestroyEnclave(s.ctx, string(network.enclave.GetEnclaveUuid())); err != nil {
 			return fmt.Errorf("failed to destroy enclave: %w", err)
 		}
 	}
@@ -531,7 +533,7 @@ func (s *KurtosisE2ESuite) FundAccount(to common.Address, amount *big.Int) error
 		return err
 	}
 
-	if err := s.JSONRPCBalancer().SendTransaction(s.ctx, signedTx); err != nil {
+	if err = s.JSONRPCBalancer().SendTransaction(s.ctx, signedTx); err != nil {
 		return fmt.Errorf("failed to send transaction: %w", err)
 	}
 
@@ -565,9 +567,9 @@ func (s *KurtosisE2ESuite) FundAccount(to common.Address, amount *big.Int) error
 	return nil
 }
 
-// WaitForTransactionReceipt waits for a transaction to be mined and returns the receipt
+// WaitForTransactionReceipt waits for a transaction to be mined and returns the receipt.
 func (s *KurtosisE2ESuite) WaitForTransactionReceipt(hash common.Hash) (*coretypes.Receipt, error) {
-	for i := 0; i < 30; i++ {
+	for range 30 {
 		receipt, err := s.JSONRPCBalancer().TransactionReceipt(s.ctx, hash)
 		if err == nil {
 			return receipt, nil
