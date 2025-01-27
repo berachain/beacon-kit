@@ -28,7 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
-	types "github.com/berachain/beacon-kit/testing/e2e/suite/types"
+	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
 	"github.com/kurtosis-tech/kurtosis/api/golang/engine/lib/kurtosis_context"
 	"github.com/stretchr/testify/suite"
@@ -86,7 +86,6 @@ func NewNetworkInstance(cfg *config.E2ETestConfig) *NetworkInstance {
 func (s *KurtosisE2ESuite) Logger() log.Logger {
 	return s.logger
 }
-
 
 // RunTestsByChainSpec runs all tests for each chain spec.
 func (s *KurtosisE2ESuite) RunTestsByChainSpec() {
