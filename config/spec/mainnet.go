@@ -126,7 +126,7 @@ func MainnetChainSpec() (chain.Spec, error) {
 		TargetSecondsPerEth1Block: DefaultTargetSecondsPerEth1Block,
 
 		// Fork-related values.
-		Deneb1ForkEpoch:  DefaultDeneb1ForkEpoch,
+		Deneb1ForkEpoch:  MainnetDeneb1ForkEpoch,
 		ElectraForkEpoch: DefaultElectraForkEpoch,
 
 		// State list length constants.
