@@ -34,7 +34,7 @@ import (
 
 const (
 	// NumDepositsLoad is the number of deposits to load in the Deposit Robustness e2e test.
-	NumDepositsLoad uint64 = 300
+	NumDepositsLoad uint64 = 500
 
 	// DepositAmount is the amount of BERA to deposit.
 	DepositAmount = 32e18
