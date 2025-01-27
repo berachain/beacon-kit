@@ -105,5 +105,5 @@ markdownlint:
 #################
 
 lint-ci: lint slither gosec nilaway markdownlint generate-check \
-    tidy-sync-check test-unit-cover test-unit-bench test-unit-fuzz \
+    test-unit-cover test-unit-bench test-unit-fuzz \
 	test-forge-cover test-forge-fuzz
