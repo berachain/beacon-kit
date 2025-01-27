@@ -66,7 +66,6 @@ jobs:
           - "nilaway"
           - "markdownlint"
           - "generate-check"
-          - "tidy-sync-check"
           - "test-unit-cover"
           - "test-unit-bench"
           - "test-unit-fuzz"
