@@ -32,15 +32,22 @@ const (
 	// DevnetEVMInflationPerBlock is the amount of native EVM balance (in units
 	// of Gwei) to be minted per EL block.
 	DevnetEVMInflationPerBlock = 10e9
+
+	// MaxStakeAmount is the maximum amount of native EVM balance (in units
+	// of Gwei) that can be staked.
+	DevnetMaxStakeAmount = 4000e9
 )
 
 // DevnetChainSpecData is the chain.SpecData for a devnet. It is similar to mainnet but
-// has different values for testing EVM inflation.
+// has different values for testing EVM inflation and staking. 
+//
+// TODO: remove modifications from mainnet spec 
 func DevnetChainSpecData() *chain.SpecData {
 	specData := MainnetChainSpecData()
 	specData.DepositEth1ChainID = DevnetEth1ChainID
 	specData.EVMInflationAddress = common.NewExecutionAddressFromHex(DevnetEVMInflationAddress)
 	specData.EVMInflationPerBlock = DevnetEVMInflationPerBlock
+	specData.MaxEffectiveBalance = DevnetMaxStakeAmount
 	return specData
 }
 
