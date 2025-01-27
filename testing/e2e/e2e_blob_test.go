@@ -59,29 +59,22 @@ func (s *BeaconKitE2ESuite) run4844Live() {
 
 	// Connect the consensus client node-api
 	client0 := network.ConsensusClients()[config.ClientValidator0]
-	s.Logger().Info("client0", "client0", client0)
 	s.Require().NotNil(client0)
 	s.Require().NoError(client0.Connect(ctx))
 
 	// Grab values to plug into txs
 	sender := s.GetAccounts()[0]
-	// s.Logger().Info("sender", "sender", sender)
 	chainID, err := s.JSONRPCBalancer().ChainID(ctx)
-	// s.Logger().Info("chainID", "chainID", chainID)
 	s.Require().NoError(err)
 	tip, err := s.JSONRPCBalancer().SuggestGasTipCap(ctx)
-	// s.Logger().Info("tip", "tip", tip)
 	s.Require().NoError(err)
 	gasFee, err := s.JSONRPCBalancer().SuggestGasPrice(ctx)
-	// s.Logger().Info("gasFee", "gasFee", gasFee)
 	s.Require().NoError(err)
 	blkNum, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
-	// s.Logger().Info("blkNum", "blkNum", blkNum)
 	s.Require().NoError(err)
 	nonce, err := s.JSONRPCBalancer().NonceAt(
 		s.Ctx(), sender.Address(), new(big.Int).SetUint64(blkNum),
 	)
-	// s.Logger().Info("nonce", "nonce", nonce)
 	s.Require().NoError(err)
 
 	// Craft and send each blob-carrying transaction.

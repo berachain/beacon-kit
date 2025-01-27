@@ -38,11 +38,6 @@ func (s *BeaconKitE2ESuite) runBeaconAPIStartup() {
 	network := s.GetCurrentNetwork()
 	s.Require().NotNil(network, "Network instance is nil")
 
-	s.Logger().Info("getting consensus client",
-		"network_clients", network.ConsensusClients(),
-		"client_name", config.ClientValidator0,
-	)
-
 	// Get the consensus client.
 	client := network.ConsensusClients()[config.ClientValidator0]
 	s.Require().NotNil(client)

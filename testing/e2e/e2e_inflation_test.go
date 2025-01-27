@@ -45,14 +45,11 @@ func (s *BeaconKitE2ESuite) runEVMInflation() {
 		s.Require().NoError(err)
 		s.Logger().Info("Waiting for finalized block number", "blockNumber", i)
 
-		// s.Logger().Info("Balance at", "blockNumber", i, "address", spec.DevnetEVMInflationAddress)
-		// s.Logger().Info("jsonrpc balancer", "jsonrpcBalancer", s.JSONRPCBalancer())
 		balance, err := s.JSONRPCBalancer().BalanceAt(
 			s.Ctx(),
 			gethcommon.HexToAddress(spec.DevnetEVMInflationAddress),
 			big.NewInt(i),
 		)
-		// s.Logger().Info("Balance at", "balance", balance)
 		s.Require().NoError(err)
 		s.Require().Zero(balance.Cmp(new(big.Int).Mul(
 			evmInflationPerBlockWei, big.NewInt(i)),

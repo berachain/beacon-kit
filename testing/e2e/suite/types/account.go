@@ -103,11 +103,3 @@ func (a EthAccount) PrivateKey() *ecdsa.PrivateKey {
 func (a EthAccount) Address() common.Address {
 	return crypto.PubkeyToAddress(a.PK.PublicKey)
 }
-
-// String implements fmt.Stringer
-// func (a *EthAccount) String() string {
-// 	return fmt.Sprintf("{name: %s, address: %s}",
-// 		a.AccountName,
-// 		crypto.PubkeyToAddress(a.PK.PublicKey).Hex(),
-// 	)
-// }

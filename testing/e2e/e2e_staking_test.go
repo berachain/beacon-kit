@@ -60,7 +60,7 @@ func (s *BeaconKitE2ESuite) runDepositRobustness() {
 	// Get the chain ID.
 	chainID, err := s.JSONRPCBalancer().ChainID(s.Ctx())
 	s.Require().NoError(err)
-  s.Logger().Info("Chain ID", "chainID", chainID)
+	s.Logger().Info("Chain ID", "chainID", chainID)
 
 	// Bind the deposit contract.
 	depositContractAddress := gethcommon.HexToAddress(spec.DefaultDepositContractAddress)
@@ -88,7 +88,6 @@ func (s *BeaconKitE2ESuite) runDepositRobustness() {
 
 	// Get the consensus clients.
 	client0 := s.ConsensusClients()[config.ClientValidator0]
-	s.Logger().Info("Client 0", "client0", client0)
 	s.Require().NotNil(client0)
 	client1 := s.ConsensusClients()[config.ClientValidator1]
 	s.Require().NotNil(client1)
