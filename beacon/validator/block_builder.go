@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -51,7 +51,6 @@ func (s *Service) BuildBlockAndSidecars(
 		blk       *ctypes.BeaconBlock
 		sidecars  datypes.BlobSidecars
 		forkData  *ctypes.ForkData
-		slot      = slotData.GetSlot()
 	)
 
 	startTime := time.Now()
@@ -64,27 +63,29 @@ func (s *Service) BuildBlockAndSidecars(
 	// and safe block hashes to the execution client.
 	st := s.sb.StateFromContext(ctx)
 
+	blkSlot := slotData.GetSlot()
+
 	// Prepare the state such that it is ready to build a block for
 	// the requested slot
-	if _, err := s.stateProcessor.ProcessSlots(st, slot); err != nil {
+	if _, err := s.stateProcessor.ProcessSlots(st, blkSlot); err != nil {
 		return nil, nil, err
 	}
 
 	// Build forkdata used for the signing root of the reveal and the sidecars
-	forkData, err := s.buildForkData(st, slot)
+	forkData, err := s.buildForkData(st, blkSlot)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	// Build the reveal for the current slot.
 	// TODO: We can optimize to pre-compute this in parallel?
-	reveal, err := s.buildRandaoReveal(forkData, slot)
+	reveal, err := s.buildRandaoReveal(forkData, blkSlot)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	// Create a new empty block from the current state.
-	blk, err = s.getEmptyBeaconBlockForSlot(st, slot)
+	blk, err = s.getEmptyBeaconBlockForSlot(st, blkSlot)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -129,7 +130,7 @@ func (s *Service) BuildBlockAndSidecars(
 
 	s.logger.Info(
 		"Beacon block successfully built",
-		"slot", slot.Base10(),
+		"slot", blkSlot.Base10(),
 		"state_root", blk.GetStateRoot(),
 		"duration", time.Since(startTime).String(),
 	)
@@ -371,6 +372,7 @@ func (s *Service) computeStateRoot(
 		// the payload in their block has come from a remote builder.
 		&transition.Context{
 			Context:                 ctx,
+			MeterGas:                false,
 			OptimisticEngine:        true,
 			SkipPayloadVerification: true,
 			SkipValidateResult:      true,

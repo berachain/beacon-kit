@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -44,6 +44,16 @@ func (b Backend) StateRootAtSlot(slot math.Slot) (common.Root, error) {
 	// As calculated by the beacon chain. Ideally, this logic
 	// should be abstracted by the beacon chain.
 	return st.StateRootAtIndex(slot.Unwrap() % b.cs.SlotsPerHistoricalRoot(slot))
+}
+
+// StateAtSlot returns the beacon state at a particular slot.
+func (b Backend) StateAtSlot(slot math.Slot) (*statedb.StateDB, error) {
+	st, _, err := b.stateFromSlot(slot)
+	if err != nil {
+		return nil, err
+	}
+
+	return st, nil
 }
 
 // GetStateFork returns the fork of the state at the given stateID.

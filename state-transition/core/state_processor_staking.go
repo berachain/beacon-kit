@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -28,12 +28,12 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-// processOperations processes the operations and ensures they match the
-// local state.
+// processOperations processes the operations and ensures they match the local state.
 func (sp *StateProcessor[_]) processOperations(
 	ctx context.Context, st *state.StateDB, blk *ctypes.BeaconBlock,
 ) error {
@@ -42,13 +42,10 @@ func (sp *StateProcessor[_]) processOperations(
 		return err
 	}
 
-	// Verify that outstanding deposits are processed
-	// up to the maximum number of deposits
-
+	// Verify that outstanding deposits are processed up to the maximum number of deposits.
+	//
 	// Unlike Eth 2.0 specs we don't check that
-	// len(body.deposits) ==  min(MAX_DEPOSITS,
-	// state.eth1_data.deposit_count - state.eth1_deposit_index)
-	// Instead we directly compare block deposits with store ones.
+	// `len(body.deposits) ==  min(MAX_DEPOSITS, state.eth1_data.deposit_count - state.eth1_deposit_index)`
 	deposits := blk.GetBody().GetDeposits()
 	if uint64(len(deposits)) > sp.cs.MaxDepositsPerBlock(slot) {
 		return errors.Wrapf(
@@ -56,16 +53,20 @@ func (sp *StateProcessor[_]) processOperations(
 			sp.cs.MaxDepositsPerBlock(slot), len(deposits),
 		)
 	}
+
+	// Instead we directly compare block deposits with our local store ones.
 	if err = sp.validateNonGenesisDeposits(
 		ctx, st, deposits, blk.GetBody().GetEth1Data().DepositRoot,
 	); err != nil {
 		return err
 	}
+
 	for _, dep := range deposits {
 		if err = sp.processDeposit(st, dep, slot); err != nil {
 			return err
 		}
 	}
+
 	return st.SetEth1Data(blk.GetBody().Eth1Data)
 }
 
@@ -134,26 +135,24 @@ func (sp *StateProcessor[_]) createValidator(
 		}
 	}
 
-	// Get the current epoch.
-	epoch := sp.cs.SlotToEpoch(slot)
-
-	// Verify that the deposit has the ETH1 withdrawal credentials.
+	// Check that the deposit has the ETH1 withdrawal credentials.
 	if !dep.HasEth1WithdrawalCredentials() {
-		// Ignore deposits with non-ETH1 withdrawal credentials.
 		sp.logger.Warn(
-			"ignoring deposit with non-ETH1 withdrawal credentials",
+			"adding validator with non-ETH1 withdrawal credentials -- NOT withdrawable",
 			"pubkey", dep.GetPubkey().String(),
 			"deposit_index", dep.GetIndex(),
 			"amount_gwei", dep.GetAmount().Unwrap(),
 		)
-		sp.metrics.incrementDepositsIgnored()
-		return nil
+		sp.metrics.incrementValidatorNotWithdrawable()
 	}
 
 	// Verify that the message was signed correctly.
-	version := bytes.FromUint32(sp.cs.ActiveForkVersionForEpoch(epoch))
 	if err := dep.VerifySignature(
-		ctypes.NewForkData(version, genesisValidatorsRoot),
+		ctypes.NewForkData(
+			// Deposits must be signed with GENESIS_FORK_VERSION.
+			bytes.FromUint32(constants.GenesisVersion),
+			genesisValidatorsRoot,
+		),
 		sp.cs.DomainTypeDeposit(slot),
 		sp.signer.VerifySignature,
 	); err != nil {
@@ -165,7 +164,7 @@ func (sp *StateProcessor[_]) createValidator(
 			"amount_gwei", dep.GetAmount().Unwrap(),
 			"error", err,
 		)
-		sp.metrics.incrementDepositsIgnored()
+		sp.metrics.incrementDepositStakeLost()
 		return nil
 	}
 

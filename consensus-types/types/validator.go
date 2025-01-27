@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -263,9 +263,9 @@ func (v Validator) IsPartiallyWithdrawable(
 }
 
 // HasEth1WithdrawalCredentials as defined in the Ethereum 2.0 specification:
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#has_eth1_withdrawal_credential
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/validator.md#eth1_address_withdrawal_prefix
 func (v Validator) HasEth1WithdrawalCredentials() bool {
-	return v.WithdrawalCredentials[0] == EthSecp256k1CredentialPrefix
+	return v.WithdrawalCredentials.IsValidEth1WithdrawalCredentials()
 }
 
 // HasMaxEffectiveBalance determines if the validator has the maximum effective

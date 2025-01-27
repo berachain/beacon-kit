@@ -20,12 +20,6 @@
 
 package spec
 
-import (
-	"github.com/berachain/beacon-kit/chain"
-	"github.com/berachain/beacon-kit/primitives/bytes"
-	"github.com/berachain/beacon-kit/primitives/common"
-)
-
 // NOTE: Most of these default values are taken from ETH2.0 spec.
 // Some values (mentioned below) are modified to better suit Berachain's system.
 
@@ -92,70 +86,3 @@ const (
 	DefaultEVMInflationAddress  = "0x0000000000000000000000000000000000000000"
 	DefaultEVMInflationPerBlock = 0
 )
-
-// DefaultSpecData returns a modifiable chain.SpecData before use as chain.Spec.
-func DefaultSpecData() *chain.SpecData {
-	return &chain.SpecData{
-		// Gwei values constants.
-		MaxEffectiveBalance:       DefaultMaxEffectiveBalance,
-		EjectionBalance:           DefaultEjectionBalance,
-		EffectiveBalanceIncrement: DefaultEffectiveBalanceIncrement,
-
-		HysteresisQuotient:           DefaultHysteresisQuotient,
-		HysteresisDownwardMultiplier: DefaultHysteresisDownwardMultiplier,
-		HysteresisUpwardMultiplier:   DefaultHysteresisUpwardMultiplier,
-
-		// Time parameters constants.
-		SlotsPerEpoch:                DefaultSlotsPerEpoch,
-		SlotsPerHistoricalRoot:       DefaultSlotsPerHistoricalRoot,
-		MinEpochsToInactivityPenalty: DefaultMinEpochsToInactivityPenalty,
-
-		// Signature domains.
-		DomainTypeProposer:          bytes.FromUint32(DefaultDomainTypeProposer),
-		DomainTypeAttester:          bytes.FromUint32(DefaultDomainTypeAttester),
-		DomainTypeRandao:            bytes.FromUint32(DefaultDomainTypeRandao),
-		DomainTypeDeposit:           bytes.FromUint32(DefaultDomainTypeDeposit),
-		DomainTypeVoluntaryExit:     bytes.FromUint32(DefaultDomainTypeVoluntaryExit),
-		DomainTypeSelectionProof:    bytes.FromUint32(DefaultDomainTypeSelectionProof),
-		DomainTypeAggregateAndProof: bytes.FromUint32(DefaultDomainTypeAggregateAndProof),
-		DomainTypeApplicationMask:   bytes.FromUint32(DefaultDomainTypeApplicationMask),
-
-		// Eth1-related values.
-		DepositContractAddress:    common.NewExecutionAddressFromHex(DefaultDepositContractAddress),
-		MaxDepositsPerBlock:       DefaultMaxDepositsPerBlock,
-		DepositEth1ChainID:        DefaultDepositEth1ChainID,
-		Eth1FollowDistance:        DefaultEth1FollowDistance,
-		TargetSecondsPerEth1Block: DefaultTargetSecondsPerEth1Block,
-
-		// Fork-related values.
-		Deneb1ForkEpoch:  DefaultDeneb1ForkEpoch,
-		ElectraForkEpoch: DefaultElectraForkEpoch,
-
-		// State list length constants.
-		EpochsPerHistoricalVector: DefaultEpochsPerHistoricalVector,
-		EpochsPerSlashingsVector:  DefaultEpochsPerSlashingsVector,
-		HistoricalRootsLimit:      DefaultHistoricalRootsLimit,
-		ValidatorRegistryLimit:    DefaultValidatorRegistryLimit,
-
-		// Slashing.
-		InactivityPenaltyQuotient:      DefaultInactivityPenaltyQuotient,
-		ProportionalSlashingMultiplier: DefaultProportionalSlashingMultiplier,
-
-		// Capella values.
-		MaxWithdrawalsPerPayload:         DefaultMaxWithdrawalsPerPayload,
-		MaxValidatorsPerWithdrawalsSweep: DefaultMaxValidatorsPerWithdrawalsSweep,
-
-		// Deneb values.
-		MinEpochsForBlobsSidecarsRequest: DefaultMinEpochsForBlobsSidecarsRequest,
-		MaxBlobCommitmentsPerBlock:       DefaultMaxBlobCommitmentsPerBlock,
-		MaxBlobsPerBlock:                 DefaultMaxBlobsPerBlock,
-		FieldElementsPerBlob:             DefaultFieldElementsPerBlob,
-		BytesPerBlob:                     DefaultBytesPerBlob,
-		KZGCommitmentInclusionProofDepth: DefaultKZGCommitmentInclusionProofDepth,
-
-		// Berachain values.
-		ValidatorSetCap:      DefaultValidatorSetCap,
-		EVMInflationAddress:  common.NewExecutionAddressFromHex(DefaultEVMInflationAddress),
-		EVMInflationPerBlock: DefaultEVMInflationPerBlock,
-	}
-}

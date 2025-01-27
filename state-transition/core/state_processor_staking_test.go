@@ -1,6 +1,9 @@
+//go:build test
+// +build test
+
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -24,7 +27,6 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/chain"
-	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/bytes"
@@ -33,6 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/primitives/version"
+	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	"github.com/stretchr/testify/require"
 )
 
@@ -40,7 +43,7 @@ import (
 // updated (increasing amount), corresponding balance is updated.
 func TestTransitionUpdateValidators(t *testing.T) {
 	cs := setupChain(t)
-	sp, st, ds, ctx := setupState(t, cs)
+	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
 
 	var (
 		maxBalance       = math.Gwei(cs.MaxEffectiveBalance(constants.GenesisSlot))
@@ -189,7 +192,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 func TestTransitionCreateValidator(t *testing.T) {
 	// Create state processor to test
 	cs := setupChain(t)
-	sp, st, ds, ctx := setupState(t, cs)
+	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
 
 	var (
 		maxBalance       = math.Gwei(cs.MaxEffectiveBalance(constants.GenesisSlot))
@@ -384,7 +387,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 
 func TestTransitionWithdrawals(t *testing.T) {
 	cs := setupChain(t)
-	sp, st, ds, ctx := setupState(t, cs)
+	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
 
 	var (
 		maxBalance   = math.Gwei(cs.MaxEffectiveBalance(constants.GenesisSlot))
@@ -466,13 +469,13 @@ func TestTransitionWithdrawals(t *testing.T) {
 
 func TestTransitionMaxWithdrawals(t *testing.T) {
 	// Use custom chain spec with max withdrawals set to 2.
-	csData := spec.DefaultSpecData()
+	csData := defaultSpecData()
 	csData.MaxWithdrawalsPerPayload = 2
 	csData.MaxValidatorsPerWithdrawalsSweep = 2
 	cs, err := chain.NewSpec(csData)
 	require.NoError(t, err)
 
-	sp, st, ds, ctx := setupState(t, cs)
+	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
 
 	var (
 		maxBalance   = math.Gwei(cs.MaxEffectiveBalance(constants.GenesisSlot))
@@ -609,7 +612,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 // and its deposit is returned at after next epoch starts.
 func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	cs := setupChain(t)
-	sp, st, ds, ctx := setupState(t, cs)
+	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
 
 	var (
 		maxBalance      = math.Gwei(cs.MaxEffectiveBalance(constants.GenesisSlot))
@@ -837,7 +840,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 //nolint:maintidx // Okay for test.
 func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	cs := setupChain(t)
-	sp, st, ds, ctx := setupState(t, cs)
+	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
 
 	var (
 		maxBalance      = math.Gwei(cs.MaxEffectiveBalance(constants.GenesisSlot))
@@ -1120,4 +1123,76 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	// run the test
 	_, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
+}
+
+func TestValidatorNotWithdrawable(t *testing.T) {
+	cs := setupChain(t)
+	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
+
+	var (
+		belowActiveBalance = math.Gwei(cs.EjectionBalance(constants.GenesisSlot))
+		maxBalance         = math.Gwei(cs.MaxEffectiveBalance(constants.GenesisSlot))
+		validCredentials   = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
+	)
+
+	// Setup initial state with one validator
+	var (
+		genDeposits = types.Deposits{
+			{
+				Pubkey:      [48]byte{0x00},
+				Credentials: validCredentials,
+				Amount:      maxBalance,
+				Index:       0,
+			},
+		}
+		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genVersion       = bytes.FromUint32(version.Deneb)
+	)
+	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
+	_, err := sp.InitializePreminedBeaconStateFromEth1(
+		st, genDeposits, genPayloadHeader, genVersion,
+	)
+	require.NoError(t, err)
+
+	// Create the block deposit with a non-ETH1 withdrawal credentials. This stake should not
+	// be lost.
+	invalidCredentials := types.WithdrawalCredentials(validCredentials[:])
+	invalidCredentials[1] = 0x01
+	blockDeposits := types.Deposits{
+		{
+			Pubkey:      [48]byte{0x01},
+			Credentials: invalidCredentials,
+			Amount:      belowActiveBalance,
+			Index:       1,
+		},
+	}
+
+	depRoot := append(genDeposits, blockDeposits...).HashTreeRoot()
+	blk := buildNextBlock(
+		t,
+		st,
+		&types.BeaconBlockBody{
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:    10,
+				ExtraData:    []byte("testing"),
+				Transactions: [][]byte{},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					st.EVMInflationWithdrawal(constants.GenesisSlot),
+				},
+				BaseFeePerGas: math.NewU256(0),
+			},
+			Eth1Data: types.NewEth1Data(depRoot),
+			Deposits: blockDeposits,
+		},
+	)
+	require.NoError(t, ds.EnqueueDeposits(ctx, blockDeposits))
+
+	// Run transition.
+	_, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+
+	// Check that validator 0x01 is part of beacon state with below active balance.
+	validator, err := st.ValidatorByIndex(1)
+	require.NoError(t, err)
+	require.Equal(t, belowActiveBalance, validator.EffectiveBalance)
 }
