@@ -41,7 +41,7 @@ func GetValidatorKeysCmd() *cobra.Command {
 		Short: "Outputs the validator public key in different formats.",
 		Long:  `Outputs the validator public key in formats of Comet address, Comet pubkey, and Eth/Beacon pubkey. Uses the private key file specified as the value of "priv_validator_key_file" in the config.toml file in the beacond HOMEDIR.`,
 		Args:  cobra.ExactArgs(0),
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			// Get the BLS signer.
 			blsSignerI, err := components.ProvideBlsSigner(
 				components.BlsSignerInput{
