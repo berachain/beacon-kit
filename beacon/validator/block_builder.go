@@ -100,7 +100,7 @@ func (s *Service) BuildBlockAndSidecars(
 
 	// We have to assemble the block body prior to producing the sidecars
 	// since we need to generate the inclusion proofs.
-	if err = s.buildBlockBody(ctx, st, blk, reveal, envelope, slotData); err != nil {
+	if err = s.buildBlockBody(ctx, st, blk, reveal, envelope); err != nil {
 		return nil, nil, err
 	}
 
@@ -271,7 +271,6 @@ func (s *Service) buildBlockBody(
 	blk *ctypes.BeaconBlock,
 	reveal crypto.BLSSignature,
 	envelope ctypes.BuiltExecutionPayloadEnv,
-	slotData *types.SlotData,
 ) error {
 	// Assemble a new block with the payload.
 	body := blk.GetBody()

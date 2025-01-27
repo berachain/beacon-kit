@@ -40,6 +40,8 @@ const (
 )
 
 // DevnetChainSpec is the chain.Spec for a devnet. Used by `make start` and unit tests.
+//
+//nolint:dupl // relevant values are different.
 func DevnetChainSpec() (chain.Spec, error) {
 	devnetSpecData := &chain.SpecData{
 		// Gwei values constants.

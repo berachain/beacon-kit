@@ -18,6 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
+//nolint:dupl // separate file for ease of future implementation
 package types
 
 import (

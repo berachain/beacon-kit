@@ -29,6 +29,8 @@ import (
 // TestnetChainSpec is the chain.Spec for Berachain's public testnet.
 //
 // TODO: adjust values before testnet genesis.
+//
+//nolint:dupl // relevant values are different.
 func TestnetChainSpec() (chain.Spec, error) {
 	testnetSpecData := &chain.SpecData{
 		// Gwei values constants.
