@@ -39,9 +39,9 @@ const (
 )
 
 // DevnetChainSpecData is the chain.SpecData for a devnet. It is similar to mainnet but
-// has different values for testing EVM inflation and staking. 
+// has different values for testing EVM inflation and staking.
 //
-// TODO: remove modifications from mainnet spec 
+// TODO: remove modifications from mainnet spec to align with mainnet behavior.
 func DevnetChainSpecData() *chain.SpecData {
 	specData := MainnetChainSpecData()
 	specData.DepositEth1ChainID = DevnetEth1ChainID
