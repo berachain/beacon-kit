@@ -447,54 +447,90 @@ func (s *KurtosisE2ESuite) InitializeNetwork(network *NetworkInstance) error {
 	return nil
 }
 
-// CleanupNetwork cleans up the network resources.
-//
-//nolint:gocognit // TODO: Refactor
-func (s *KurtosisE2ESuite) CleanupNetwork(network *NetworkInstance) error {
-	// Stop consensus clients
-	if network == nil || len(network.consensusClients) == 0 {
-		// Network already cleaned up
+// stopSingleConsensusClient stops a single consensus client.
+func (s *KurtosisE2ESuite) stopSingleConsensusClient(name string, client *types.ConsensusClient) error {
+	if client == nil || client.Client == nil {
+		s.Logger().Info("Client is nil, skipping", "name", name)
 		return nil
 	}
 
-	s.Logger().Info("Stopping consensus clients in cleanupNetwork", "clients", len(network.consensusClients))
+	s.Logger().Info("Stopping consensus client", "name", name)
+	res, err := client.Stop(s.ctx)
+	if err != nil {
+		return fmt.Errorf("failed to stop client %s: %w", name, err)
+	}
+
+	if res != nil && res.ExecutionError != nil {
+		return fmt.Errorf("client %s stop returned error: %s", name, res.ExecutionError)
+	}
+
+	return nil
+}
+
+// stopConsensusClients stops all consensus clients in the network.
+func (s *KurtosisE2ESuite) stopConsensusClients(network *NetworkInstance) error {
+	s.Logger().Info("Stopping consensus clients in cleanupNetwork", "count", len(network.consensusClients))
 	for name, client := range network.consensusClients {
-		s.Logger().Info("Stopping consensus client", "name", name)
-		if client != nil && client.Client != nil {
-			if res, err := client.Stop(s.ctx); err != nil {
-				s.Logger().Error("Failed to stop consensus client", "error", err)
-			} else if res != nil && res.ExecutionError != nil {
-				s.Logger().Error("Client stop returned error", "error", res.ExecutionError)
-			}
+		if err := s.stopSingleConsensusClient(name, client); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// checkEnclaveExists verifies if the enclave still exists.
+func (s *KurtosisE2ESuite) checkEnclaveExists(enclave *enclaves.EnclaveContext) (bool, error) {
+	enclaves, err := s.kCtx.GetEnclaves(s.ctx)
+	if err != nil {
+		return false, fmt.Errorf("failed to get enclaves: %w", err)
+	}
+
+	for _, e := range enclaves.GetEnclavesByUuid() {
+		if e.GetEnclaveUuid() == string(enclave.GetEnclaveUuid()) {
+			return true, nil
 		}
 	}
 
-	// Destroy enclave
-	if network.enclave != nil {
-		// Check if enclave still exists before trying to destroy it
-		enclaves, err := s.kCtx.GetEnclaves(s.ctx)
-		if err != nil {
-			s.Logger().Error("Failed to get enclaves", "error", err)
-			return nil // Continue with cleanup even if we can't check enclaves
-		}
+	return false, nil
+}
 
-		enclaveExists := false
-		for _, e := range enclaves.GetEnclavesByUuid() {
-			if e.GetEnclaveUuid() == string(network.enclave.GetEnclaveUuid()) {
-				enclaveExists = true
-				break
-			}
-		}
+// destroyEnclave destroys the network's enclave if it exists.
+func (s *KurtosisE2ESuite) destroyEnclave(network *NetworkInstance) error {
+	if network.enclave == nil {
+		s.Logger().Info("Enclave is nil, skipping destruction")
+		return nil
+	}
 
-		if !enclaveExists {
-			s.Logger().Info("Enclave already destroyed", "uuid", network.enclave.GetEnclaveUuid())
-			return nil
-		}
+	exists, err := s.checkEnclaveExists(network.enclave)
+	if err != nil {
+		s.Logger().Error("Failed to check enclave existence", "error", err)
+		return nil // Continue with cleanup even if we can't check existence
+	}
 
-		s.Logger().Info("Destroying enclave in cleanupNetwork", "enclave", network.enclave)
-		if err = s.kCtx.DestroyEnclave(s.ctx, string(network.enclave.GetEnclaveUuid())); err != nil {
-			return fmt.Errorf("failed to destroy enclave: %w", err)
-		}
+	if !exists {
+		s.Logger().Info("Enclave already destroyed", "uuid", network.enclave.GetEnclaveUuid())
+		return nil
+	}
+
+	s.Logger().Info("Destroying enclave", "uuid", network.enclave.GetEnclaveUuid())
+	return s.kCtx.DestroyEnclave(s.ctx, string(network.enclave.GetEnclaveUuid()))
+}
+
+// CleanupNetwork cleans up the network resources.
+func (s *KurtosisE2ESuite) CleanupNetwork(network *NetworkInstance) error {
+	if network == nil || len(network.consensusClients) == 0 {
+		// Network already cleaned up
+		s.Logger().Info("Network is nil, skipping cleanup")
+		return nil
+	}
+
+	if err := s.stopConsensusClients(network); err != nil {
+		s.Logger().Error("Failed to stop consensus clients", "error", err)
+		// Continue with cleanup even if consensus clients fail to stop
+	}
+
+	if err := s.destroyEnclave(network); err != nil {
+		return fmt.Errorf("failed to destroy enclave: %w", err)
 	}
 
 	return nil
