@@ -41,9 +41,9 @@ const (
 //nolint:gochecknoglobals // it's a default value
 var (
 	// defaultChainID is the default chain ID for the network.
-	defaultChainID = 80084
+	defaultChainID = 80087
 	// defaultChainSpec is the default chain spec for the network.
-	defaultChainSpec = "testnet"
+	defaultChainSpec = "devnet"
 )
 
 // DefaultE2ETestConfig provides a default configuration for end-to-end tests,
