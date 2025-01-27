@@ -31,13 +31,13 @@ const (
 	//
 	// A hard fork will occur to set this value as the BGT contract address
 	// when BGT beings to be minted.
-	MainnetEVMInflationAddress = DefaultEVMInflationAddress
+	MainnetEVMInflationAddress = defaultEVMInflationAddress
 
 	// 0 BERA is minted to the BGT contract per block at genesis.
 	//
 	// A hard fork will occur to set this value as the upper bound of redeemable BGT per
 	// block when BGT begins to be minted.
-	MainnetEVMInflationPerBlock = DefaultEVMInflationPerBlock
+	MainnetEVMInflationPerBlock = defaultEVMInflationPerBlock
 
 	// MainnetValidatorSetCap is 69 on Mainnet at genesis.
 	MainnetValidatorSetCap = 69
@@ -70,7 +70,7 @@ const (
 
 	// The deposit contract address on mainnet at genesis is the same as the
 	// default deposit contract address.
-	MainnetDepositContractAddress = DefaultDepositContractAddress
+	MainnetDepositContractAddress = defaultDepositContractAddress
 )
 
 // MainnetChainSpecData is the chain.SpecData for the Berachain mainnet.
@@ -81,52 +81,52 @@ func MainnetChainSpecData() *chain.SpecData {
 		EjectionBalance:           MainnetEjectionBalance,
 		EffectiveBalanceIncrement: MainnetEffectiveBalanceIncrement,
 
-		HysteresisQuotient:           DefaultHysteresisQuotient,
-		HysteresisDownwardMultiplier: DefaultHysteresisDownwardMultiplier,
-		HysteresisUpwardMultiplier:   DefaultHysteresisUpwardMultiplier,
+		HysteresisQuotient:           defaultHysteresisQuotient,
+		HysteresisDownwardMultiplier: defaultHysteresisDownwardMultiplier,
+		HysteresisUpwardMultiplier:   defaultHysteresisUpwardMultiplier,
 
 		// Time parameters constants.
 		SlotsPerEpoch:                MainnetSlotsPerEpoch,
-		SlotsPerHistoricalRoot:       DefaultSlotsPerHistoricalRoot,
-		MinEpochsToInactivityPenalty: DefaultMinEpochsToInactivityPenalty,
+		SlotsPerHistoricalRoot:       defaultSlotsPerHistoricalRoot,
+		MinEpochsToInactivityPenalty: defaultMinEpochsToInactivityPenalty,
 
 		// Signature domains.
-		DomainTypeProposer:          bytes.FromUint32(DefaultDomainTypeProposer),
-		DomainTypeAttester:          bytes.FromUint32(DefaultDomainTypeAttester),
-		DomainTypeRandao:            bytes.FromUint32(DefaultDomainTypeRandao),
-		DomainTypeVoluntaryExit:     bytes.FromUint32(DefaultDomainTypeVoluntaryExit),
-		DomainTypeSelectionProof:    bytes.FromUint32(DefaultDomainTypeSelectionProof),
-		DomainTypeAggregateAndProof: bytes.FromUint32(DefaultDomainTypeAggregateAndProof),
-		DomainTypeApplicationMask:   bytes.FromUint32(DefaultDomainTypeApplicationMask),
+		DomainTypeProposer:          bytes.FromUint32(defaultDomainTypeProposer),
+		DomainTypeAttester:          bytes.FromUint32(defaultDomainTypeAttester),
+		DomainTypeRandao:            bytes.FromUint32(defaultDomainTypeRandao),
+		DomainTypeVoluntaryExit:     bytes.FromUint32(defaultDomainTypeVoluntaryExit),
+		DomainTypeSelectionProof:    bytes.FromUint32(defaultDomainTypeSelectionProof),
+		DomainTypeAggregateAndProof: bytes.FromUint32(defaultDomainTypeAggregateAndProof),
+		DomainTypeApplicationMask:   bytes.FromUint32(defaultDomainTypeApplicationMask),
 
 		// Eth1-related values.
 		DepositContractAddress:    common.NewExecutionAddressFromHex(MainnetDepositContractAddress),
-		MaxDepositsPerBlock:       DefaultMaxDepositsPerBlock,
+		MaxDepositsPerBlock:       defaultMaxDepositsPerBlock,
 		DepositEth1ChainID:        MainnetEth1ChainID,
-		Eth1FollowDistance:        DefaultEth1FollowDistance,
-		TargetSecondsPerEth1Block: DefaultTargetSecondsPerEth1Block,
+		Eth1FollowDistance:        defaultEth1FollowDistance,
+		TargetSecondsPerEth1Block: defaultTargetSecondsPerEth1Block,
 
 		// Fork-related values.
-		Deneb1ForkEpoch:  DefaultDeneb1ForkEpoch,
-		ElectraForkEpoch: DefaultElectraForkEpoch,
+		Deneb1ForkEpoch:  defaultDeneb1ForkEpoch,
+		ElectraForkEpoch: defaultElectraForkEpoch,
 
 		// State list length constants.
-		EpochsPerHistoricalVector: DefaultEpochsPerHistoricalVector,
-		EpochsPerSlashingsVector:  DefaultEpochsPerSlashingsVector,
-		HistoricalRootsLimit:      DefaultHistoricalRootsLimit,
-		ValidatorRegistryLimit:    DefaultValidatorRegistryLimit,
+		EpochsPerHistoricalVector: defaultEpochsPerHistoricalVector,
+		EpochsPerSlashingsVector:  defaultEpochsPerSlashingsVector,
+		HistoricalRootsLimit:      defaultHistoricalRootsLimit,
+		ValidatorRegistryLimit:    defaultValidatorRegistryLimit,
 
 		// Capella values.
-		MaxWithdrawalsPerPayload:         DefaultMaxWithdrawalsPerPayload,
+		MaxWithdrawalsPerPayload:         defaultMaxWithdrawalsPerPayload,
 		MaxValidatorsPerWithdrawalsSweep: MainnetMaxValidatorsPerWithdrawalsSweep,
 
 		// Deneb values.
 		MinEpochsForBlobsSidecarsRequest: MainnetMinEpochsForBlobsSidecarsRequest,
 		MaxBlobCommitmentsPerBlock:       MainnetMaxBlobCommitmentsPerBlock,
-		MaxBlobsPerBlock:                 DefaultMaxBlobsPerBlock,
-		FieldElementsPerBlob:             DefaultFieldElementsPerBlob,
-		BytesPerBlob:                     DefaultBytesPerBlob,
-		KZGCommitmentInclusionProofDepth: DefaultKZGCommitmentInclusionProofDepth,
+		MaxBlobsPerBlock:                 defaultMaxBlobsPerBlock,
+		FieldElementsPerBlob:             defaultFieldElementsPerBlob,
+		BytesPerBlob:                     defaultBytesPerBlob,
+		KZGCommitmentInclusionProofDepth: defaultKZGCommitmentInclusionProofDepth,
 
 		// Berachain values.
 		ValidatorSetCap:      MainnetValidatorSetCap,

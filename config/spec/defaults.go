@@ -25,64 +25,64 @@ package spec
 
 const (
 	// Gwei value constants.
-	DefaultMaxEffectiveBalance       = 32e9
-	DefaultEjectionBalance           = 16e9
-	DefaultEffectiveBalanceIncrement = 1e9
+	defaultMaxEffectiveBalance       = 32e9
+	defaultEjectionBalance           = 16e9
+	defaultEffectiveBalanceIncrement = 1e9
 
-	DefaultHysteresisQuotient           = 4
-	DefaultHysteresisDownwardMultiplier = 1
-	DefaultHysteresisUpwardMultiplier   = 5
+	defaultHysteresisQuotient           = 4
+	defaultHysteresisDownwardMultiplier = 1
+	defaultHysteresisUpwardMultiplier   = 5
 
 	// Time parameters constants.
-	DefaultSlotsPerEpoch                = 32
-	DefaultSlotsPerHistoricalRoot       = 8
-	DefaultMinEpochsToInactivityPenalty = 4
+	defaultSlotsPerEpoch                = 32
+	defaultSlotsPerHistoricalRoot       = 8
+	defaultMinEpochsToInactivityPenalty = 4
 
 	// Signature domains.
-	DefaultDomainTypeProposer          = 0
-	DefaultDomainTypeAttester          = 1
-	DefaultDomainTypeRandao            = 2
-	DefaultDomainTypeDeposit           = 3
-	DefaultDomainTypeVoluntaryExit     = 4
-	DefaultDomainTypeSelectionProof    = 5
-	DefaultDomainTypeAggregateAndProof = 6
-	DefaultDomainTypeApplicationMask   = 16777216 // "0x00000001" in little endian
+	defaultDomainTypeProposer          = 0
+	defaultDomainTypeAttester          = 1
+	defaultDomainTypeRandao            = 2
+	defaultDomainTypeDeposit           = 3
+	defaultDomainTypeVoluntaryExit     = 4
+	defaultDomainTypeSelectionProof    = 5
+	defaultDomainTypeAggregateAndProof = 6
+	defaultDomainTypeApplicationMask   = 16777216 // "0x00000001" in little endian
 
 	// Eth1-related values.
-	DefaultDepositContractAddress    = "0x4242424242424242424242424242424242424242" // Berachain specific.
-	DefaultMaxDepositsPerBlock       = 16
-	DefaultDepositEth1ChainID        = 1
-	DefaultEth1FollowDistance        = 1 // Berachain specific.
-	DefaultTargetSecondsPerEth1Block = 2 // Berachain specific.
+	defaultDepositContractAddress    = "0x4242424242424242424242424242424242424242" // Berachain specific.
+	defaultMaxDepositsPerBlock       = 16
+	defaultDepositEth1ChainID        = 1
+	defaultEth1FollowDistance        = 1 // Berachain specific.
+	defaultTargetSecondsPerEth1Block = 2 // Berachain specific.
 
 	// Fork-related values.
-	DefaultDeneb1ForkEpoch  = 9999999999999998 // Set as a future epoch as not yet determined.
-	DefaultElectraForkEpoch = 9999999999999999 // Set as a future epoch as not yet determined.
+	defaultDeneb1ForkEpoch  = 9999999999999998 // Set as a future epoch as not yet determined.
+	defaultElectraForkEpoch = 9999999999999999 // Set as a future epoch as not yet determined.
 
 	// State list length constants.
-	DefaultEpochsPerHistoricalVector = 8
-	DefaultEpochsPerSlashingsVector  = 8
-	DefaultHistoricalRootsLimit      = 8
-	DefaultValidatorRegistryLimit    = 1099511627776
+	defaultEpochsPerHistoricalVector = 8
+	defaultEpochsPerSlashingsVector  = 8
+	defaultHistoricalRootsLimit      = 8
+	defaultValidatorRegistryLimit    = 1099511627776
 
 	// Slashing.
-	DefaultInactivityPenaltyQuotient      = 16777216
-	DefaultProportionalSlashingMultiplier = 1
+	defaultInactivityPenaltyQuotient      = 16777216
+	defaultProportionalSlashingMultiplier = 1
 
 	// Capella values.
-	DefaultMaxWithdrawalsPerPayload         = 16
-	DefaultMaxValidatorsPerWithdrawalsSweep = 1 << 14
+	defaultMaxWithdrawalsPerPayload         = 16
+	defaultMaxValidatorsPerWithdrawalsSweep = 1 << 14
 
 	// Deneb values.
-	DefaultMinEpochsForBlobsSidecarsRequest = 4096
-	DefaultMaxBlobCommitmentsPerBlock       = 4096
-	DefaultMaxBlobsPerBlock                 = 6
-	DefaultFieldElementsPerBlob             = 4096
-	DefaultBytesPerBlob                     = 131072
-	DefaultKZGCommitmentInclusionProofDepth = 17
+	defaultMinEpochsForBlobsSidecarsRequest = 4096
+	defaultMaxBlobCommitmentsPerBlock       = 4096
+	defaultMaxBlobsPerBlock                 = 6
+	defaultFieldElementsPerBlob             = 4096
+	defaultBytesPerBlob                     = 131072
+	defaultKZGCommitmentInclusionProofDepth = 17
 
 	// Berachain values.
-	DefaultValidatorSetCap      = 256
-	DefaultEVMInflationAddress  = "0x0000000000000000000000000000000000000000"
-	DefaultEVMInflationPerBlock = 0
+	defaultValidatorSetCap      = 256
+	defaultEVMInflationAddress  = "0x0000000000000000000000000000000000000000"
+	defaultEVMInflationPerBlock = 0
 )

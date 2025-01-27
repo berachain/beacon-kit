@@ -24,7 +24,6 @@ import (
 	"encoding/binary"
 	"testing"
 
-	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/stretchr/testify/require"
@@ -75,11 +74,6 @@ func TestFromUint32(t *testing.T) {
 			name:     "Electra1",
 			input:    version.Electra1,
 			expected: bytes.B4{5, 1, 0, 0},
-		},
-		{
-			name:     "DomainTypeApplicationMask",
-			input:    spec.DefaultDomainTypeApplicationMask,
-			expected: bytes.B4{0, 0, 0, 1},
 		},
 	}
 
@@ -144,11 +138,6 @@ func TestToUint32(t *testing.T) {
 			name:     "Electra1",
 			input:    bytes.B4{5, 1, 0, 0},
 			expected: version.Electra1,
-		},
-		{
-			name:     "DomainTypeApplicationMask",
-			input:    bytes.B4{0, 0, 0, 1},
-			expected: spec.DefaultDomainTypeApplicationMask,
 		},
 	}
 

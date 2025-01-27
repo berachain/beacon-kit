@@ -60,8 +60,12 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	chainID, err := s.JSONRPCBalancer().ChainID(s.Ctx())
 	s.Require().NoError(err)
 
+	// Get the chain spec used by the e2e nodes. TODO: make configurable.
+	chainSpec, err := spec.DevnetChainSpec()
+	s.Require().NoError(err)
+
 	// Bind the deposit contract.
-	depositContractAddress := gethcommon.HexToAddress(spec.DefaultDepositContractAddress)
+	depositContractAddress := gethcommon.Address(chainSpec.DepositContractAddress())
 
 	dc, err := deposit.NewDepositContract(depositContractAddress, s.JSONRPCBalancer())
 	s.Require().NoError(err)
