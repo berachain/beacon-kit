@@ -51,18 +51,6 @@ func ToBytes4(input []byte) (B4, error) {
 	return B4(input), nil
 }
 
-// FromUint32 returns a new B4 from a uint32.
-func FromUint32(v uint32) B4 {
-	h := B4{}
-	binary.LittleEndian.PutUint32(h[:], v)
-	return h
-}
-
-// ToUint32 returns a new uint32 from a B4.
-func (h B4) ToUint32() uint32 {
-	return binary.LittleEndian.Uint32(h[:])
-}
-
 /* -------------------------------------------------------------------------- */
 /*                                TextMarshaler                               */
 /* -------------------------------------------------------------------------- */
@@ -108,3 +96,15 @@ func (h B4) HashTreeRoot() (B32, error) {
 /* -------------------------------------------------------------------------- */
 /*                            uint32 conversion                               */
 /* -------------------------------------------------------------------------- */
+
+// FromUint32 returns a new B4 from a uint32.
+func FromUint32(v uint32) B4 {
+	h := B4{}
+	binary.LittleEndian.PutUint32(h[:], v)
+	return h
+}
+
+// ToUint32 returns a new uint32 from a B4.
+func (h B4) ToUint32() uint32 {
+	return binary.LittleEndian.Uint32(h[:])
+}
