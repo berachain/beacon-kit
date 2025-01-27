@@ -159,7 +159,3 @@ type SpecData struct {
 	// Deneb1 Value Changes
 	//
 }
-
-func (d *SpecData) GetFieldsForUpgrade() []any {
-	return nil
-}
