@@ -45,9 +45,17 @@ const (
 func DevnetChainSpecData() *chain.SpecData {
 	specData := MainnetChainSpecData()
 	specData.DepositEth1ChainID = DevnetEth1ChainID
+
+	// EVM inflation is different from mainnet to test.
 	specData.EVMInflationAddress = common.NewExecutionAddressFromHex(DevnetEVMInflationAddress)
 	specData.EVMInflationPerBlock = DevnetEVMInflationPerBlock
+
+	// Staking is different from mainnet for now.
 	specData.MaxEffectiveBalance = DevnetMaxStakeAmount
+	specData.EjectionBalance = defaultEjectionBalance
+	specData.EffectiveBalanceIncrement = defaultEffectiveBalanceIncrement
+	specData.SlotsPerEpoch = defaultSlotsPerEpoch
+
 	return specData
 }
 

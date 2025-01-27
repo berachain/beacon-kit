@@ -63,10 +63,10 @@ const (
 	MainnetSlotsPerEpoch = 192
 
 	// MainnetMinEpochsForBlobsSidecarsRequest is 4096 at genesis to match Ethereum mainnet.
-	MainnetMinEpochsForBlobsSidecarsRequest = 4096
+	MainnetMinEpochsForBlobsSidecarsRequest = defaultMinEpochsForBlobsSidecarsRequest
 
 	// MainnetMaxBlobCommitmentsPerBlock is 4096 at genesis to match Ethereum mainnet.
-	MainnetMaxBlobCommitmentsPerBlock = 4096
+	MainnetMaxBlobCommitmentsPerBlock = defaultMaxBlobCommitmentsPerBlock
 
 	// The deposit contract address on mainnet at genesis is the same as the
 	// default deposit contract address.
