@@ -79,7 +79,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 			},
 		}
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		genVersion       = version.FromUint32[common.Version](version.Deneb)
+		genVersion       = version.Deneb.ToCommon()
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
 	valDiff, err := sp.InitializePreminedBeaconStateFromEth1(
@@ -219,7 +219,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 			},
 		}
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		genVersion       = version.FromUint32[common.Version](version.Deneb)
+		genVersion       = version.Deneb.ToCommon()
 	)
 
 	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
@@ -422,7 +422,7 @@ func TestTransitionWithdrawals(t *testing.T) {
 			},
 		}
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		genVersion       = version.FromUint32[common.Version](version.Deneb)
+		genVersion       = version.Deneb.ToCommon()
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
 	_, err := sp.InitializePreminedBeaconStateFromEth1(
@@ -512,7 +512,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 			},
 		}
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		genVersion       = version.FromUint32[common.Version](version.Deneb)
+		genVersion       = version.Deneb.ToCommon()
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
 	_, err = sp.InitializePreminedBeaconStateFromEth1(
@@ -637,7 +637,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	var (
 		genDeposits      = make(types.Deposits, 0, cs.ValidatorSetCap())
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		genVersion       = version.FromUint32[common.Version](version.Deneb)
+		genVersion       = version.Deneb.ToCommon()
 	)
 
 	// let genesis define all available validators
@@ -867,7 +867,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	var (
 		genDeposits      = make(types.Deposits, 0, cs.ValidatorSetCap())
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		genVersion       = version.FromUint32[common.Version](version.Deneb)
+		genVersion       = version.Deneb.ToCommon()
 	)
 
 	// let genesis define all available validators
@@ -1159,7 +1159,7 @@ func TestValidatorNotWithdrawable(t *testing.T) {
 			},
 		}
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		genVersion       = version.FromUint32[common.Version](version.Deneb)
+		genVersion       = version.Deneb.ToCommon()
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
 	_, err := sp.InitializePreminedBeaconStateFromEth1(

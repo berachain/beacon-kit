@@ -18,10 +18,11 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 //
-//nolint:dupl // it's okay.
+
 package bytes
 
 import (
+	"encoding/binary"
 	"fmt"
 
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
@@ -48,6 +49,11 @@ func ToBytes4(input []byte) (B4, error) {
 		)
 	}
 	return B4(input), nil
+}
+
+// ToUint32 returns a new uint32 from a B4.
+func (h B4) ToUint32() uint32 {
+	return binary.LittleEndian.Uint32(h[:])
 }
 
 /* -------------------------------------------------------------------------- */
@@ -91,3 +97,7 @@ func (h B4) MarshalSSZ() ([]byte, error) {
 func (h B4) HashTreeRoot() (B32, error) {
 	return ToBytes32(ExtendToSize(h[:], B32Size))
 }
+
+/* -------------------------------------------------------------------------- */
+/*                            uint32 conversion                               */
+/* -------------------------------------------------------------------------- */

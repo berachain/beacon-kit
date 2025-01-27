@@ -90,7 +90,7 @@ func TestNewSignedBeaconBlockFromSSZ(t *testing.T) {
 	require.NotNil(t, blockBytes)
 
 	newBlock, err := types.NewSignedBeaconBlockFromSSZ(
-		blockBytes, version.Deneb,
+		blockBytes, version.Deneb.ToCommon(),
 	)
 	require.NoError(t, err)
 	require.NotNil(t, newBlock)
@@ -98,7 +98,7 @@ func TestNewSignedBeaconBlockFromSSZ(t *testing.T) {
 }
 
 func TestNewSignedBeaconBlockFromSSZForkVersionNotSupported(t *testing.T) {
-	_, err := types.NewSignedBeaconBlockFromSSZ([]byte{}, 1)
+	_, err := types.NewSignedBeaconBlockFromSSZ([]byte{}, version.Altair.ToCommon())
 	require.ErrorIs(t, err, types.ErrForkVersionNotSupported)
 }
 

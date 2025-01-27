@@ -89,7 +89,7 @@ func (g *Genesis) UnmarshalJSON(
 	)
 	payloadHeader, err = payloadHeader.NewFromJSON(
 		g2.ExecutionPayloadHeader,
-		version.ToUint32(g2.ForkVersion),
+		g2.ForkVersion,
 	)
 	if err != nil {
 		return err
@@ -111,9 +111,7 @@ func DefaultGenesisDeneb() *Genesis {
 
 	// TODO: Uncouple from deneb.
 	return &Genesis{
-		ForkVersion: version.FromUint32[common.Version](
-			version.Deneb,
-		),
+		ForkVersion:            version.Deneb.ToCommon(),
 		Deposits:               make([]*Deposit, 0),
 		ExecutionPayloadHeader: defaultHeader,
 	}

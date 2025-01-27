@@ -27,6 +27,29 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestBytes4ToUint32(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   bytes.B4
+		want    uint32
+		wantErr bool
+	}{
+		{
+			name:    "valid input",
+			input:   bytes.B4{0x01, 0x02, 0x03, 0x04},
+			want:    0x4030201,
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.input.ToUint32()
+			require.Equal(t, tt.want, got)
+		})
+	}
+}
+
 func TestBytes4UnmarshalJSON(t *testing.T) {
 	tests := []struct {
 		name    string

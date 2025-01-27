@@ -121,8 +121,8 @@ func TestInitialize(t *testing.T) {
 		}
 		executionPayloadHeader = &types.ExecutionPayloadHeader{}
 		fork                   = &types.Fork{
-			PreviousVersion: version.FromUint32[common.Version](version.Deneb),
-			CurrentVersion:  version.FromUint32[common.Version](version.Deneb),
+			PreviousVersion: version.Deneb.ToCommon(),
+			CurrentVersion:  version.Deneb.ToCommon(),
 			Epoch:           math.Epoch(constants.GenesisEpoch),
 		}
 	)

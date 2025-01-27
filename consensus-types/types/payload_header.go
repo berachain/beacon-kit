@@ -89,7 +89,7 @@ func (h *ExecutionPayloadHeader) Empty() *ExecutionPayloadHeader {
 
 // NewFromSSZ returns a new ExecutionPayloadHeader from the given SSZ bytes.
 func (h *ExecutionPayloadHeader) NewFromSSZ(
-	bz []byte, _ uint32,
+	bz []byte, _ common.Version,
 ) (*ExecutionPayloadHeader, error) {
 	h = h.Empty()
 	return h, h.UnmarshalSSZ(bz)
@@ -97,7 +97,7 @@ func (h *ExecutionPayloadHeader) NewFromSSZ(
 
 // NewFromJSON returns a new ExecutionPayloadHeader from the given JSON bytes.
 func (h *ExecutionPayloadHeader) NewFromJSON(
-	bz []byte, _ uint32,
+	bz []byte, _ common.Version,
 ) (*ExecutionPayloadHeader, error) {
 	h = h.Empty()
 	return h, json.Unmarshal(bz, h)
@@ -447,8 +447,8 @@ func (h *ExecutionPayloadHeader) UnmarshalJSON(input []byte) error {
 /* -------------------------------------------------------------------------- */
 
 // Version returns the version of the ExecutionPayloadHeader.
-func (h *ExecutionPayloadHeader) Version() uint32 {
-	return version.Deneb
+func (h *ExecutionPayloadHeader) Version() common.Version {
+	return version.Deneb.ToCommon()
 }
 
 // IsNil checks if the ExecutionPayloadHeader is nil.

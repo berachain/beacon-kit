@@ -26,7 +26,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/crypto/sha256"
-	"github.com/berachain/beacon-kit/primitives/version"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/go-faster/xor"
 )
@@ -57,11 +56,7 @@ func (sp *StateProcessor[ContextT]) processRandaoReveal(
 	epoch := sp.cs.SlotToEpoch(slot)
 	body := blk.GetBody()
 
-	fd := ctypes.NewForkData(
-		version.FromUint32[common.Version](
-			sp.cs.ActiveForkVersionForEpoch(epoch),
-		), genesisValidatorsRoot,
-	)
+	fd := ctypes.NewForkData(sp.cs.ActiveForkVersionForEpoch(epoch), genesisValidatorsRoot)
 
 	if !ctx.GetSkipValidateRandao() {
 		signingRoot := fd.ComputeRandaoSigningRoot(

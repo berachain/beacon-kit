@@ -63,7 +63,7 @@ func (sp *StateProcessor[_]) InitializePreminedBeaconStateFromEth1(
 		return nil, err
 	}
 
-	if version.ToUint32(genesisVersion) != version.Deneb {
+	if !version.Deneb.Equals(genesisVersion) {
 		return nil, fmt.Errorf("fork version not supported: %s", genesisVersion)
 	}
 	blkBody := &ctypes.BeaconBlockBody{

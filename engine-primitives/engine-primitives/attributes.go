@@ -37,11 +37,9 @@ type PayloadAttributer interface {
 }
 
 // PayloadAttributes is the attributes of a block payload.
-//
-
 type PayloadAttributes struct {
 	// version is the version of the payload attributes.
-	version uint32 `json:"-"`
+	version common.Version `json:"-"`
 	// Timestamp is the timestamp at which the block will be built at.
 	Timestamp math.U64 `json:"timestamp"`
 	// PrevRandao is the previous Randao value from the beacon chain as
@@ -63,7 +61,7 @@ type PayloadAttributes struct {
 
 // New empty PayloadAttributes.
 func NewPayloadAttributes(
-	forkVersion uint32,
+	forkVersion common.Version,
 	timestamp uint64,
 	prevRandao common.Bytes32,
 	suggestedFeeRecipient common.ExecutionAddress,
@@ -99,7 +97,7 @@ func (
 }
 
 // Version returns the version of the PayloadAttributes.
-func (p *PayloadAttributes) Version() uint32 {
+func (p *PayloadAttributes) Version() common.Version {
 	return p.version
 }
 

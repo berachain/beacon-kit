@@ -35,7 +35,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
-	"github.com/berachain/beacon-kit/primitives/version"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
@@ -190,10 +189,7 @@ func (s *Service) buildForkData(
 	}
 
 	return ctypes.NewForkData(
-		version.FromUint32[common.Version](
-			s.chainSpec.ActiveForkVersionForEpoch(epoch),
-		),
-		genesisValidatorsRoot,
+		s.chainSpec.ActiveForkVersionForEpoch(epoch), genesisValidatorsRoot,
 	), nil
 }
 
@@ -336,17 +332,7 @@ func (s *Service) buildBlockBody(
 	// Fill in unused field with non-nil value
 	body.SetSyncAggregate(&ctypes.SyncAggregate{})
 
-	// Get the epoch to find the active fork version.
-	epoch := s.chainSpec.SlotToEpoch(blk.GetSlot())
-	activeForkVersion := s.chainSpec.ActiveForkVersionForEpoch(
-		epoch,
-	)
-	if activeForkVersion >= version.DenebPlus {
-		body.SetAttestationData(slotData.GetAttestationData())
-
-		// Set the slashing info on the block body.
-		body.SetSlashingInfo(slotData.GetSlashingInfo())
-	}
+	// Set the execution payload on the block body.
 	body.SetExecutionPayload(envelope.GetExecutionPayload())
 	return nil
 }

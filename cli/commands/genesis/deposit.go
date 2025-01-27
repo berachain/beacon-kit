@@ -37,7 +37,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/spf13/afero"
@@ -85,7 +84,7 @@ func AddGenesisDepositCmd(cs chain.Spec) *cobra.Command {
 			}
 
 			// All deposits are signed with the genesis version.
-			genesisVersion := version.FromUint32[common.Version](constants.GenesisVersion)
+			genesisVersion := constants.GenesisVersion.ToCommon()
 
 			// Get the withdrawal address.
 			withdrawalAddress := common.NewExecutionAddressFromHex(args[1])

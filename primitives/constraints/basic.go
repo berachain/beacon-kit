@@ -20,6 +20,8 @@
 
 package constraints
 
+import "github.com/berachain/beacon-kit/primitives/common"
+
 // ForkTyped is a constraint that requires a type to have an Empty method.
 type ForkTyped[SelfT any] interface {
 	EmptyWithVersion[SelfT]
@@ -54,5 +56,5 @@ type Nillable interface {
 
 // Versionable is a constraint that requires a type to have a Version method.
 type Versionable interface {
-	Version() uint32
+	Version() common.Version
 }

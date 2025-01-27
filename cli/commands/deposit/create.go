@@ -34,7 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/spf13/cobra"
 )
 
@@ -154,7 +153,7 @@ func CreateDepositMessage(
 	error,
 ) {
 	// All deposits are signed with the genesis version.
-	genesisVersion := version.FromUint32[common.Version](constants.GenesisVersion)
+	genesisVersion := constants.GenesisVersion.ToCommon()
 
 	// Create and sign the deposit message.
 	depositMsg, signature, err := types.CreateAndSignDepositMessage(

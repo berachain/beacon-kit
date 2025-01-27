@@ -30,7 +30,7 @@ import (
 )
 
 type payloadAttributesInput struct {
-	forkVersion           uint32
+	forkVersion           common.Version
 	timestamp             uint64
 	prevRandao            common.Bytes32
 	suggestedFeeRecipient common.ExecutionAddress
@@ -41,7 +41,7 @@ type payloadAttributesInput struct {
 func TestPayloadAttributes(t *testing.T) {
 	// default valid data
 	validInput := payloadAttributesInput{
-		forkVersion:           uint32(1),
+		forkVersion:           version.Altair.ToCommon(),
 		timestamp:             uint64(123456789),
 		prevRandao:            common.Bytes32{1, 2, 3},
 		suggestedFeeRecipient: common.ExecutionAddress{},
@@ -82,7 +82,7 @@ func TestPayloadAttributes(t *testing.T) {
 			name: "Invalid nil withdrawals on Capella",
 			input: func() payloadAttributesInput {
 				res := validInput
-				res.forkVersion = version.Capella
+				res.forkVersion = version.Capella.ToCommon()
 				res.withdrawals = nil
 				return res
 			},

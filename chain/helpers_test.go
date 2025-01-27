@@ -24,6 +24,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/stretchr/testify/require"
@@ -48,11 +49,11 @@ func TestActiveForkVersionForEpoch(t *testing.T) {
 	tests := []struct {
 		name     string
 		epoch    math.Epoch
-		expected uint32
+		expected common.Version
 	}{
-		{name: "Before Electra Fork", epoch: 9, expected: version.DenebPlus},
-		{name: "At Electra Fork", epoch: 10, expected: version.Electra},
-		{name: "After Electra Fork", epoch: 11, expected: version.Electra},
+		{name: "Before Electra Fork", epoch: 9, expected: version.Deneb1.ToCommon()},
+		{name: "At Electra Fork", epoch: 10, expected: version.Electra.ToCommon()},
+		{name: "After Electra Fork", epoch: 11, expected: version.Electra.ToCommon()},
 	}
 
 	// Run test cases
@@ -95,16 +96,16 @@ func TestActiveForkVersionForSlot(t *testing.T) {
 	tests := []struct {
 		name     string
 		slot     math.Slot
-		expected uint32
+		expected common.Version
 	}{
-		{name: "Before Electra Fork", slot: 0, expected: version.Deneb},
+		{name: "Before Electra Fork", slot: 0, expected: version.Deneb.ToCommon()},
 		{
 			name:     "Just Before Electra Fork",
 			slot:     319,
-			expected: version.DenebPlus,
+			expected: version.Deneb1.ToCommon(),
 		},
-		{name: "At Electra Fork", slot: 320, expected: version.Electra},
-		{name: "After Electra Fork", slot: 640, expected: version.Electra},
+		{name: "At Electra Fork", slot: 320, expected: version.Electra.ToCommon()},
+		{name: "After Electra Fork", slot: 640, expected: version.Electra.ToCommon()},
 	}
 
 	// Run test cases

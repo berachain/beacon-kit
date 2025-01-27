@@ -77,9 +77,9 @@ func (s *Client) ForkchoiceUpdated(
 	ctx context.Context,
 	state *engineprimitives.ForkchoiceStateV1,
 	attrs any,
-	forkVersion uint32,
+	forkVersion common.Version,
 ) (*engineprimitives.ForkchoiceResponseV1, error) {
-	if forkVersion < version.Deneb {
+	if forkVersion < version.Deneb.ToCommon() {
 		return nil, ErrInvalidVersion
 	}
 
@@ -127,9 +127,9 @@ func (s *Client) forkchoiceUpdated(
 func (s *Client) GetPayload(
 	ctx context.Context,
 	payloadID engineprimitives.PayloadID,
-	forkVersion uint32,
+	forkVersion common.Version,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
-	if forkVersion < version.Deneb {
+	if forkVersion < version.Deneb.ToCommon() {
 		return nil, ErrInvalidVersion
 	}
 
@@ -144,7 +144,7 @@ func (s *Client) GetPayloadV3(
 	result := &ctypes.ExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1[
 		eip4844.KZGCommitment, eip4844.KZGProof, eip4844.Blob,
 	]]{
-		ExecutionPayload: t.Empty(version.Deneb),
+		ExecutionPayload: t.Empty(version.Deneb.ToCommon()),
 	}
 
 	if err := s.Call(

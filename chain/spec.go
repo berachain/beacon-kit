@@ -174,11 +174,11 @@ type Spec interface {
 
 	// ActiveForkVersionForSlot returns the active fork version for a given
 	// slot.
-	ActiveForkVersionForSlot(slot math.Slot) uint32
+	ActiveForkVersionForSlot(slot math.Slot) common.Version
 
 	// ActiveForkVersionForEpoch returns the active fork version for a given
 	// epoch.
-	ActiveForkVersionForEpoch(epoch math.Epoch) uint32
+	ActiveForkVersionForEpoch(epoch math.Epoch) common.Version
 
 	// SlotToEpoch converts a slot number to an epoch number.
 	SlotToEpoch(slot math.Slot) math.Epoch

@@ -56,9 +56,9 @@ func NewBeaconBlockWithVersion(
 	slot math.Slot,
 	proposerIndex math.ValidatorIndex,
 	parentBlockRoot common.Root,
-	forkVersion uint32,
+	forkVersion common.Version,
 ) (*BeaconBlock, error) {
-	if forkVersion == version.Deneb {
+	if version.Deneb.Equals(forkVersion) {
 		return &BeaconBlock{
 			Slot:          slot,
 			ProposerIndex: proposerIndex,
@@ -145,8 +145,8 @@ func (b *BeaconBlock) GetStateRoot() common.Root {
 }
 
 // Version identifies the version of the BeaconBlock.
-func (b *BeaconBlock) Version() uint32 {
-	return version.Deneb
+func (b *BeaconBlock) Version() common.Version {
+	return version.Deneb.ToCommon()
 }
 
 // SetStateRoot sets the state root of the BeaconBlock.

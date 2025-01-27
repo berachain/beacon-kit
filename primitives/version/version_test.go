@@ -21,18 +21,18 @@
 package version_test
 
 import (
-	"encoding/binary"
 	"testing"
 
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/stretchr/testify/require"
 )
 
-func TestFromUint32(t *testing.T) {
+func TestVersion_Equals(t *testing.T) {
 	tests := []struct {
 		name     string
-		input    uint32
-		expected [4]byte
+		input    version.Version
+		expected common.Version
 	}{
 		{
 			name:     "Phase0",
@@ -61,91 +61,30 @@ func TestFromUint32(t *testing.T) {
 		},
 		{
 			name:     "DenebPlus",
-			input:    version.DenebPlus,
-			expected: [4]byte{5, 0, 0, 0},
+			input:    version.Deneb1,
+			expected: [4]byte{4, 1, 0, 0},
 		},
 		{
 			name:     "Electra",
 			input:    version.Electra,
-			expected: [4]byte{6, 0, 0, 0},
+			expected: [4]byte{5, 0, 0, 0},
+		},
+		{
+			name:     "Electra1",
+			input:    version.Electra1,
+			expected: [4]byte{5, 1, 0, 0},
+		},
+		{
+			name:     "Custom",
+			input:    version.Version(123456789),
+			expected: [4]byte{21, 205, 91, 7},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := version.FromUint32[[4]byte](tt.input)
-			require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
+			result := tt.input.Equals(tt.expected)
+			require.True(t, result, "Test case: %s", tt.name)
 		})
 	}
-}
-func TestFromUint32_CustomType(t *testing.T) {
-	type CustomVersion [4]byte
-
-	input := uint32(123456789)
-	expected := CustomVersion{}
-	binary.LittleEndian.PutUint32(expected[:], input)
-
-	result := version.FromUint32[CustomVersion](input)
-	require.Equal(t, expected, result)
-}
-
-func TestToUint32(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    [4]byte
-		expected uint32
-	}{
-		{
-			name:     "Phase0",
-			input:    [4]byte{0, 0, 0, 0},
-			expected: version.Phase0,
-		},
-		{
-			name:     "Altair",
-			input:    [4]byte{1, 0, 0, 0},
-			expected: version.Altair,
-		},
-		{
-			name:     "Bellatrix",
-			input:    [4]byte{2, 0, 0, 0},
-			expected: version.Bellatrix,
-		},
-		{
-			name:     "Capella",
-			input:    [4]byte{3, 0, 0, 0},
-			expected: version.Capella,
-		},
-		{
-			name:     "Deneb",
-			input:    [4]byte{4, 0, 0, 0},
-			expected: version.Deneb,
-		},
-		{
-			name:     "DenebPlus",
-			input:    [4]byte{5, 0, 0, 0},
-			expected: version.DenebPlus,
-		},
-		{
-			name:     "Electra",
-			input:    [4]byte{6, 0, 0, 0},
-			expected: version.Electra,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := version.ToUint32(tt.input)
-			require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
-		})
-	}
-}
-
-func TestToUint32_CustomType(t *testing.T) {
-	type CustomVersion [4]byte
-
-	input := CustomVersion{0x15, 0xCD, 0x5B, 0x07}
-	expected := uint32(123456789)
-
-	result := version.ToUint32(input)
-	require.Equal(t, expected, result)
 }

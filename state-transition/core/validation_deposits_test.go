@@ -59,7 +59,7 @@ func TestInvalidDeposits(t *testing.T) {
 			},
 		}
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		genVersion       = version.FromUint32[common.Version](version.Deneb)
+		genVersion       = version.Deneb.ToCommon()
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
 	_, err := sp.InitializePreminedBeaconStateFromEth1(
@@ -132,7 +132,7 @@ func TestInvalidDepositsCount(t *testing.T) {
 			},
 		}
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		genVersion       = version.FromUint32[common.Version](version.Deneb)
+		genVersion       = version.Deneb.ToCommon()
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
 	_, err := sp.InitializePreminedBeaconStateFromEth1(
@@ -209,7 +209,7 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 			},
 		}
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		genVersion       = version.FromUint32[common.Version](version.Deneb)
+		genVersion       = version.Deneb.ToCommon()
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
 	_, err = sp.InitializePreminedBeaconStateFromEth1(
@@ -286,7 +286,7 @@ func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
 			},
 		}
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		genVersion       = version.FromUint32[common.Version](version.Deneb)
+		genVersion       = version.Deneb.ToCommon()
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
 	_, err = sp.InitializePreminedBeaconStateFromEth1(

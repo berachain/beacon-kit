@@ -22,9 +22,7 @@ package core
 
 import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/version"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
@@ -43,11 +41,7 @@ func (sp *StateProcessor[_]) GetSignatureVerifierFn(st *statedb.StateDB) (
 		return nil, err
 	}
 
-	fd := *ctypes.NewForkData(
-		version.FromUint32[common.Version](
-			sp.cs.ActiveForkVersionForEpoch(epoch),
-		), genesisValidatorsRoot,
-	)
+	fd := *ctypes.NewForkData(sp.cs.ActiveForkVersionForEpoch(epoch), genesisValidatorsRoot)
 	domain := fd.ComputeDomain(sp.cs.DomainTypeProposer())
 
 	return func(

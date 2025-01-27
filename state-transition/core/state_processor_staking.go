@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
@@ -144,7 +143,7 @@ func (sp *StateProcessor[_]) createValidator(st *state.StateDB, dep *ctypes.Depo
 	err = dep.VerifySignature(
 		ctypes.NewForkData(
 			// Deposits must be signed with GENESIS_FORK_VERSION.
-			version.FromUint32[common.Version](constants.GenesisVersion),
+			constants.GenesisVersion.ToCommon(),
 			genesisValidatorsRoot,
 		),
 		sp.cs.DomainTypeDeposit(),

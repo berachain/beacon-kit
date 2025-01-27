@@ -387,7 +387,7 @@ func TestExecutionPayloadHeader_NewFromSSZ(t *testing.T) {
 	testCases := []struct {
 		name           string
 		data           []byte
-		forkVersion    uint32
+		forkVersion    common.Version
 		expErr         error
 		expectedHeader *types.ExecutionPayloadHeader
 	}{
@@ -397,21 +397,21 @@ func TestExecutionPayloadHeader_NewFromSSZ(t *testing.T) {
 				data, _ := generateExecutionPayloadHeader().MarshalSSZ()
 				return data
 			}(),
-			forkVersion:    version.Deneb,
+			forkVersion:    version.Deneb.ToCommon(),
 			expErr:         nil,
 			expectedHeader: generateExecutionPayloadHeader(),
 		},
 		{
 			name:           "Invalid SSZ data",
 			data:           []byte{0x01, 0x02},
-			forkVersion:    version.Deneb,
+			forkVersion:    version.Deneb.ToCommon(),
 			expErr:         io.ErrUnexpectedEOF,
 			expectedHeader: nil,
 		},
 		{
 			name:           "Empty SSZ data",
 			data:           []byte{},
-			forkVersion:    version.Deneb,
+			forkVersion:    version.Deneb.ToCommon(),
 			expErr:         io.ErrUnexpectedEOF,
 			expectedHeader: nil,
 		},
@@ -470,7 +470,7 @@ func TestExecutionPayloadHeader_NewFromJSON(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			header, err := new(types.ExecutionPayloadHeader).NewFromJSON(
 				tc.data,
-				version.Deneb,
+				version.Deneb.ToCommon(),
 			)
 			if tc.expectedError != nil {
 				require.Error(t, err)

@@ -139,7 +139,7 @@ func TestNewWithVersion(t *testing.T) {
 	parentBlockRoot := common.Root{1, 2, 3, 4, 5}
 
 	block, err := types.NewBeaconBlockWithVersion(
-		slot, proposerIndex, parentBlockRoot, version.Deneb,
+		slot, proposerIndex, parentBlockRoot, version.Deneb.ToCommon(),
 	)
 	require.NoError(t, err)
 	require.NotNil(t, block)
@@ -161,7 +161,7 @@ func TestNewWithVersionInvalidForkVersion(t *testing.T) {
 		slot,
 		proposerIndex,
 		parentBlockRoot,
-		100,
+		version.Version(100).ToCommon(),
 	) // 100 is an invalid fork version
 	require.ErrorIs(t, err, types.ErrForkVersionNotSupported)
 }

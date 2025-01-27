@@ -454,13 +454,13 @@ func (p *ExecutionPayload) UnmarshalJSON(input []byte) error {
 }
 
 // Empty returns an empty ExecutionPayload for the given fork version.
-func (p *ExecutionPayload) Empty(_ uint32) *ExecutionPayload {
+func (p *ExecutionPayload) Empty(_ common.Version) *ExecutionPayload {
 	return &ExecutionPayload{}
 }
 
 // Version returns the version of the ExecutionPayload.
-func (p *ExecutionPayload) Version() uint32 {
-	return version.Deneb
+func (p *ExecutionPayload) Version() common.Version {
+	return version.Deneb.ToCommon()
 }
 
 // IsNil checks if the ExecutionPayload is nil.
@@ -568,7 +568,7 @@ func (p *ExecutionPayload) ToHeader() (
 	txsRoot := p.GetTransactions().HashTreeRoot()
 
 	switch p.Version() {
-	case version.Deneb, version.DenebPlus:
+	case version.Deneb.ToCommon():
 		return &ExecutionPayloadHeader{
 			ParentHash:       p.ParentHash,
 			FeeRecipient:     p.GetFeeRecipient(),

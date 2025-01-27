@@ -20,7 +20,10 @@
 
 package beacondb
 
-import ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+import (
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/primitives/version"
+)
 
 // GetLatestExecutionPayloadHeader retrieves the latest execution payload
 // header from the BeaconStore.
@@ -31,7 +34,9 @@ func (kv *KVStore) GetLatestExecutionPayloadHeader() (
 	if err != nil {
 		return nil, err
 	}
-	kv.latestExecutionPayloadCodec.SetActiveForkVersion(forkVersion)
+	kv.latestExecutionPayloadCodec.SetActiveForkVersion(
+		version.Version(forkVersion).ToCommon(),
+	)
 	return kv.latestExecutionPayloadHeader.Get(kv.ctx)
 }
 
@@ -42,7 +47,7 @@ func (kv *KVStore) SetLatestExecutionPayloadHeader(
 ) error {
 	version := payloadHeader.Version()
 	if err := kv.latestExecutionPayloadVersion.Set(
-		kv.ctx, version,
+		kv.ctx, version.ToUint32(),
 	); err != nil {
 		return err
 	}

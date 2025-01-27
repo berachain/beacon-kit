@@ -20,29 +20,24 @@
 
 package version
 
-import (
-	"encoding/binary"
-
-	"github.com/berachain/beacon-kit/primitives/common"
+// Forks versions.
+const (
+	// Phase0 is the first version of the Beacon Chain.
+	Phase0 Version = 0
+	// Altair is the first hardfork of the Beacon Chain.
+	Altair Version = 1
+	// Bellatrix is the second hardfork of the Beacon Chain.
+	Bellatrix Version = 2
+	// Capella is the third hardfork of the Beacon Chain.
+	Capella Version = 3
+	// Deneb is the first version of Deneb, used for genesis of Berachain mainnet.
+	Deneb Version = 4
+	// Deneb1 is the first hardfork of Deneb on Berachain mainnet.
+	// There may also be Deneb2, Deneb3, etc. hardforks. LittleEndian of {Deneb, 1, 0, 0}.
+	Deneb1 Version = 260
+	// Electra is the first version of Electra on Berachain mainnet.
+	Electra Version = 5
+	// Electra1 is the first hardfork of Electra on Berachain mainnet (TBD if used).
+	// There may also be Electra2, Electra3, etc. hardforks. LittleEndian of {Electra, 1, 0, 0}.
+	Electra1 Version = 261
 )
-
-// Version is a type alias for uint32 that can be used
-// to pre-define constants for the fork versions.
-type Version uint32
-
-// Unwrap returns the underlying uint32 value of the Version.
-func (v Version) Unwrap() uint32 {
-	return uint32(v)
-}
-
-// ToCommon converts a Version to a common.Version.
-func (v Version) ToCommon() common.Version {
-	var cv common.Version
-	binary.LittleEndian.PutUint32(cv[:], v.Unwrap())
-	return cv
-}
-
-// Equals returns true if the Version is equal to the given common.Version.
-func (v Version) Equals(cv common.Version) bool {
-	return v.ToCommon() == cv
-}
