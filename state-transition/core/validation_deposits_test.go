@@ -27,7 +27,6 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/chain"
-	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/bytes"
@@ -186,7 +185,7 @@ func TestInvalidDepositsCount(t *testing.T) {
 }
 
 func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
-	csData := spec.DefaultSpecData()
+	csData := defaultSpecData()
 	csData.MaxDepositsPerBlock = 1 // Set only 1 deposit allowed per block.
 	cs, err := chain.NewSpec(csData)
 	require.NoError(t, err)
@@ -262,7 +261,7 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 }
 
 func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
-	csData := spec.DefaultSpecData()
+	csData := defaultSpecData()
 	csData.MaxDepositsPerBlock = 1 // Set only 1 deposit allowed per block.
 	cs, err := chain.NewSpec(csData)
 	require.NoError(t, err)
