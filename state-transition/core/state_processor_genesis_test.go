@@ -39,7 +39,7 @@ import (
 
 func TestInitialize(t *testing.T) {
 	cs := setupChain(t)
-	sp, st, _, _ := setupState(t, cs)
+	sp, st, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
 		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
