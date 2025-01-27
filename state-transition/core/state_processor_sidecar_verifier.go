@@ -43,9 +43,7 @@ func (sp *StateProcessor[_]) GetSignatureVerifierFn(st *statedb.StateDB) (
 	}
 
 	fd := *ctypes.NewForkData(
-		bytes.FromUint32(
-			sp.cs.ActiveForkVersionForEpoch(epoch),
-		), genesisValidatorsRoot,
+		bytes.FromUint32(sp.cs.ActiveForkVersionForEpoch(epoch)), genesisValidatorsRoot,
 	)
 	domain := fd.ComputeDomain(sp.cs.DomainTypeProposer())
 
