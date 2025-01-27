@@ -29,6 +29,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	types "github.com/berachain/beacon-kit/testing/e2e/suite/types"
@@ -254,13 +255,15 @@ func (s *KurtosisE2ESuite) RunTestsByChainSpec() {
 }
 
 // InitializeNetwork sets up a network using the provided configuration.
+//
+//nolint:gocognit // TODO: Refactor
 func (s *KurtosisE2ESuite) InitializeNetwork(network *NetworkInstance) error {
 	if network == nil {
-		return fmt.Errorf("network instance cannot be nil")
+		return errors.New("network instance cannot be nil")
 	}
 	// Create unique enclave name for this chain spec
 	s.Logger().Info("Creating enclave", "chainSpec", network.Config.NetworkConfiguration.ChainSpec)
-	enclaveName := fmt.Sprintf("e2e-test-enclave-%s", network.Config.NetworkConfiguration.ChainSpec)
+	enclaveName := "e2e-test-enclave-" + network.Config.NetworkConfiguration.ChainSpec
 
 	// Try to destroy any existing enclave with the same name
 	enclaves, err := s.kCtx.GetEnclaves(s.ctx)
@@ -270,7 +273,7 @@ func (s *KurtosisE2ESuite) InitializeNetwork(network *NetworkInstance) error {
 		for _, e := range enclaves.GetEnclavesByUuid() {
 			if e.GetName() == enclaveName {
 				s.Logger().Info("Destroying existing enclave", "name", enclaveName)
-				if err := s.kCtx.DestroyEnclave(s.ctx, e.GetEnclaveUuid()); err != nil {
+				if err = s.kCtx.DestroyEnclave(s.ctx, e.GetEnclaveUuid()); err != nil {
 					s.Logger().Error("Failed to destroy existing enclave", "error", err)
 				}
 			}
@@ -350,6 +353,7 @@ func (s *KurtosisE2ESuite) InitializeNetwork(network *NetworkInstance) error {
 	s.genesisAccount = network.genesisAccount
 
 	// Wait for a few blocks to ensure the genesis account has funds
+	//nolint:mnd // 5 blocks
 	if err = s.WaitForNBlockNumbers(5); err != nil {
 		return fmt.Errorf("failed waiting for blocks: %w", err)
 	}
@@ -361,7 +365,7 @@ func (s *KurtosisE2ESuite) InitializeNetwork(network *NetworkInstance) error {
 	}
 	s.Logger().Info("Genesis account balance", "balance", balance)
 	if balance.Cmp(big.NewInt(0)) == 0 {
-		return fmt.Errorf("genesis account has no funds")
+		return errors.New("genesis account has no funds")
 	}
 
 	// Wait for RPC to be ready before funding accounts
@@ -389,9 +393,10 @@ func (s *KurtosisE2ESuite) InitializeNetwork(network *NetworkInstance) error {
 
 	// Fund test accounts using the genesis account
 	for _, account := range network.testAccounts {
-		amount, ok := new(big.Int).SetString("20000000000000000000000", 10) // 20000 ETH
+		//nolint:mnd // 20000 ETH
+		amount, ok := new(big.Int).SetString("20000000000000000000000", 10)
 		if !ok {
-			return fmt.Errorf("failed to parse amount")
+			return errors.New("failed to parse amount")
 		}
 		if err = s.FundAccount(account.Address(), amount); err != nil {
 			return fmt.Errorf("failed to fund test accounts: %w", err)
@@ -402,6 +407,8 @@ func (s *KurtosisE2ESuite) InitializeNetwork(network *NetworkInstance) error {
 }
 
 // CleanupNetwork cleans up the network resources.
+//
+//nolint:gocognit // TODO: Refactor
 func (s *KurtosisE2ESuite) CleanupNetwork(network *NetworkInstance) error {
 	// Stop consensus clients
 	if network == nil || len(network.consensusClients) == 0 {
@@ -460,17 +467,18 @@ func (s *KurtosisE2ESuite) SetKurtosisCtx(ctx *kurtosis_context.KurtosisContext)
 func (s *KurtosisE2ESuite) WaitForRPCReady(network *NetworkInstance) error {
 	s.Logger().Info("Waiting for RPC to be ready", "url", network.loadBalancer.URL())
 	maxRetries := 30
-	for i := 0; i < maxRetries; i++ {
+	for attempt := range maxRetries {
 		blockNum, err := network.loadBalancer.BlockNumber(s.ctx)
 		if err == nil {
 			s.Logger().Info("RPC is ready", "blockNum", blockNum)
 			return nil
 		}
 		s.Logger().Info("RPC not ready yet",
-			"attempt", i+1,
+			"attempt", attempt+1,
 			"url", network.loadBalancer.URL(),
 			"error", err,
 		)
+		//nolint:mnd // 2 seconds
 		time.Sleep(2 * time.Second)
 	}
 	return fmt.Errorf("RPC not ready after %d retries", maxRetries)
@@ -516,8 +524,10 @@ func (s *KurtosisE2ESuite) FundAccount(to common.Address, amount *big.Int) error
 	if err != nil {
 		return err
 	}
+	//nolint:mnd // 1 Gwei
 	gasFeeCap := new(big.Int).Add(header.BaseFee, big.NewInt(1e9))
 
+	//nolint:mnd // 21000 gas
 	tx := coretypes.NewTx(&coretypes.DynamicFeeTx{
 		ChainID:   chainID,
 		Nonce:     nonce,
