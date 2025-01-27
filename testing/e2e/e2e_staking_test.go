@@ -21,6 +21,7 @@
 package e2e_test
 
 import (
+	"github.com/berachain/beacon-kit/primitives/math"
 	"math/big"
 
 	"github.com/attestantio/go-eth2-client/api"
@@ -239,7 +240,8 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	// after the end of the epoch (next multiple of SlotsPerEpoch after receipt.BlockNumber).
 	blkNum, err = s.JSONRPCBalancer().BlockNumber(s.Ctx())
 	s.Require().NoError(err)
-	nextEpochBlockNum := (blkNum/chainspec.SlotsPerEpoch() + 1) * chainspec.SlotsPerEpoch()
+	nextEpoch := chainspec.SlotToEpoch(math.Slot(blkNum)) + 1
+	nextEpochBlockNum := nextEpoch.Unwrap() * chainspec.SlotsPerEpoch()
 	err = s.WaitForFinalizedBlockNumber(nextEpochBlockNum + 1)
 	s.Require().NoError(err)
 
