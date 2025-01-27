@@ -24,7 +24,7 @@
 package genesis_test
 
 import (
-	"bytes"
+	libbytes "bytes"
 	"fmt"
 	"math/rand"
 	"reflect"
@@ -34,6 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/cli/utils/genesis"
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -117,7 +118,7 @@ func TestCompareGenesisCmdWithStateProcessor(t *testing.T) {
 		require.NoError(t, err)
 
 		// assert that they generate the same root, given the same list of deposits
-		return bytes.Equal(cliValRoot[:], processorRoot[:])
+		return libbytes.Equal(cliValRoot[:], processorRoot[:])
 	}
 
 	require.NoError(t, quick.Check(f, qc))

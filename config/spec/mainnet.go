@@ -31,64 +31,62 @@ const (
 	//
 	// A hard fork will occur to set this value as the BGT contract address
 	// when BGT beings to be minted.
-	MainnetEVMInflationAddressDeneb = DefaultEVMInflationAddress
+	MainnetEVMInflationAddress = DefaultEVMInflationAddress
 
 	// 0 BERA is minted to the BGT contract per block at genesis.
 	//
 	// A hard fork will occur to set this value as the upper bound of redeemable BGT per
 	// block when BGT begins to be minted.
-	MainnetEVMInflationPerBlockDeneb = DefaultEVMInflationPerBlock
+	MainnetEVMInflationPerBlock = DefaultEVMInflationPerBlock
 
-	// MainnetValidatorSetCap is 69 on Mainnet for genesis version Deneb.
-	MainnetValidatorSetCapDeneb = 69
+	// MainnetValidatorSetCap is 69 on Mainnet at genesis.
+	MainnetValidatorSetCap = 69
 
 	// MaxValidatorsPerWithdrawalsSweep is 31 because we expect at least 36
 	// validators in the total validators set. We choose a prime number smaller
 	// than the minimum amount of total validators possible.
 	MainnetMaxValidatorsPerWithdrawalsSweep = 31
 
-	// MainnetMaxEffectiveBalance is the max stake of 10 million BERA for genesis version Deneb.
-	MainnetMaxEffectiveBalanceDeneb = 10_000_000 * 1e9
+	// MainnetMaxEffectiveBalance is the max stake of 10 million BERA at genesis.
+	MainnetMaxEffectiveBalance = 10_000_000 * 1e9
 
-	// MainnetEffectiveBalanceIncrementDeneb is 10k BERA for genesis version Deneb
+	// MainnetEffectiveBalanceIncrement is 10k BERA at genesis
 	// (equivalent to the Deposit Contract's MIN_DEPOSIT_AMOUNT).
-	MainnetEffectiveBalanceIncrementDeneb = 10_000 * 1e9
+	MainnetEffectiveBalanceIncrement = 10_000 * 1e9
 
 	// MainnetEjectionBalance is 240k BERA, calculated as:
 	// activation_balance - effective_balance_increment = 250k - 10k = 240k BERA.
-	// Activation balance is the min stake of 250k BERA for genesis version Deneb.
-	MainnetEjectionBalanceDeneb = 250_000*1e9 - MainnetEffectiveBalanceIncrementDeneb
+	// Activation balance is the min stake of 250k BERA at genesis.
+	MainnetEjectionBalance = 250_000*1e9 - MainnetEffectiveBalanceIncrement
 
 	// Slots per epoch is 192 to mirror the time of epochs on Ethereum mainnet.
-	MainnetSlotsPerEpochDeneb = 192
+	MainnetSlotsPerEpoch = 192
 
-	// MainnetMinEpochsForBlobsSidecarsRequestDeneb is 4096 for genesis version Deneb
-	// to match Ethereum mainnet.
-	MainnetMinEpochsForBlobsSidecarsRequestDeneb = 4096
+	// MainnetMinEpochsForBlobsSidecarsRequest is 4096 at genesis to match Ethereum mainnet.
+	MainnetMinEpochsForBlobsSidecarsRequest = 4096
 
-	// MainnetMaxBlobCommitmentsPerBlock is 4096 for genesis version Deneb
-	// to match Ethereum mainnet.
+	// MainnetMaxBlobCommitmentsPerBlock is 4096 at genesis to match Ethereum mainnet.
 	MainnetMaxBlobCommitmentsPerBlock = 4096
 
-	// The deposit contract address on mainnet at Deneb is the same as the
+	// The deposit contract address on mainnet at genesis is the same as the
 	// default deposit contract address.
-	MainnetDepositContractAddressDeneb = DefaultDepositContractAddress
+	MainnetDepositContractAddress = DefaultDepositContractAddress
 )
 
 // MainnetChainSpec is the ChainSpec for the Berachain mainnet.
 func MainnetChainSpec() (chain.Spec, error) {
 	mainnetSpec := &chain.SpecData{
 		// Gwei values constants.
-		MaxEffectiveBalance:       MainnetMaxEffectiveBalanceDeneb,
-		EjectionBalance:           MainnetEjectionBalanceDeneb,
-		EffectiveBalanceIncrement: MainnetEffectiveBalanceIncrementDeneb,
+		MaxEffectiveBalance:       MainnetMaxEffectiveBalance,
+		EjectionBalance:           MainnetEjectionBalance,
+		EffectiveBalanceIncrement: MainnetEffectiveBalanceIncrement,
 
 		HysteresisQuotient:           DefaultHysteresisQuotient,
 		HysteresisDownwardMultiplier: DefaultHysteresisDownwardMultiplier,
 		HysteresisUpwardMultiplier:   DefaultHysteresisUpwardMultiplier,
 
 		// Time parameters constants.
-		SlotsPerEpoch:                MainnetSlotsPerEpochDeneb,
+		SlotsPerEpoch:                MainnetSlotsPerEpoch,
 		SlotsPerHistoricalRoot:       DefaultSlotsPerHistoricalRoot,
 		MinEpochsToInactivityPenalty: DefaultMinEpochsToInactivityPenalty,
 
@@ -102,7 +100,7 @@ func MainnetChainSpec() (chain.Spec, error) {
 		DomainTypeApplicationMask:   bytes.FromUint32(DefaultDomainTypeApplicationMask),
 
 		// Eth1-related values.
-		DepositContractAddress:    common.NewExecutionAddressFromHex(MainnetDepositContractAddressDeneb),
+		DepositContractAddress:    common.NewExecutionAddressFromHex(MainnetDepositContractAddress),
 		MaxDepositsPerBlock:       DefaultMaxDepositsPerBlock,
 		DepositEth1ChainID:        MainnetEth1ChainID,
 		Eth1FollowDistance:        DefaultEth1FollowDistance,
@@ -123,7 +121,7 @@ func MainnetChainSpec() (chain.Spec, error) {
 		MaxValidatorsPerWithdrawalsSweep: MainnetMaxValidatorsPerWithdrawalsSweep,
 
 		// Deneb values.
-		MinEpochsForBlobsSidecarsRequest: MainnetMinEpochsForBlobsSidecarsRequestDeneb,
+		MinEpochsForBlobsSidecarsRequest: MainnetMinEpochsForBlobsSidecarsRequest,
 		MaxBlobCommitmentsPerBlock:       MainnetMaxBlobCommitmentsPerBlock,
 		MaxBlobsPerBlock:                 DefaultMaxBlobsPerBlock,
 		FieldElementsPerBlob:             DefaultFieldElementsPerBlob,
@@ -131,9 +129,9 @@ func MainnetChainSpec() (chain.Spec, error) {
 		KZGCommitmentInclusionProofDepth: DefaultKZGCommitmentInclusionProofDepth,
 
 		// Berachain values.
-		ValidatorSetCap:      MainnetValidatorSetCapDeneb,
-		EVMInflationAddress:  common.NewExecutionAddressFromHex(MainnetEVMInflationAddressDeneb),
-		EVMInflationPerBlock: MainnetEVMInflationPerBlockDeneb,
+		ValidatorSetCap:      MainnetValidatorSetCap,
+		EVMInflationAddress:  common.NewExecutionAddressFromHex(MainnetEVMInflationAddress),
+		EVMInflationPerBlock: MainnetEVMInflationPerBlock,
 	}
 
 	return chain.NewSpec(mainnetSpec)
