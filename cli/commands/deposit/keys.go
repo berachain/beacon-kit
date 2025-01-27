@@ -70,15 +70,15 @@ func GetValidatorKeysCmd() *cobra.Command {
 
 			// Output the validator public key in different formats.
 			cmd.Printf(
-				"Comet Address: \"%s\"\n",
+				"Comet Address:\n%s\n\n",
 				cometKey.Address(),
 			)
 			cmd.Printf(
-				"Comet Pubkey (Base64): \"%s\"\n",
+				"Comet Pubkey (Base64):\n%s\n\n",
 				base64.StdEncoding.EncodeToString(blsKey.Bytes()),
 			)
 			cmd.Printf(
-				"Eth/Beacon Pubkey (Compressed 48-byte Hex): \"%s\"\n",
+				"Eth/Beacon Pubkey (Compressed 48-byte Hex):\n%s\n",
 				blsSigner.PublicKey().String(),
 			)
 			return nil
