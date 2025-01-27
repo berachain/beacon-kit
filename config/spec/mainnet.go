@@ -81,15 +81,11 @@ const (
 
 	// MainnetEVMInflationAddressDeneb1 is the address on the EVM which will receive the
 	// inflation amount of native EVM balance through a withdrawal every block in the Deneb1 fork.
-	//
-	// TODO: set to the correct address of BGT.
-	MainnetEVMInflationAddressDeneb1 = "0x0000000000000000000000000000000000000000"
+	MainnetEVMInflationAddressDeneb1 = "0x656b95E550C07a9ffe548bd4085c72418Ceb1dba"
 
 	// MainnetEVMInflationPerBlockDeneb1 is the amount of native EVM balance (in Gwei) to be
 	// minted to the EVMInflationAddressDeneb1 via a withdrawal every block in the Deneb1 fork.
-	//
-	// TODO: set to the correct upper bound of redeemable BGT per block.
-	MainnetEVMInflationPerBlockDeneb1 = 0
+	MainnetEVMInflationPerBlockDeneb1 = 5.75 * 1e9
 )
 
 // MainnetChainSpec is the ChainSpec for the Berachain mainnet.
