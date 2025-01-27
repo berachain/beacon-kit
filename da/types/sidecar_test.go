@@ -132,7 +132,7 @@ type InclusionSink struct{}
 func (is InclusionSink) MeasureSince(_ string, _ time.Time, _ ...string) {}
 
 func TestHasValidInclusionProof(t *testing.T) {
-	spec, err := spec.DevnetChainSpec()
+	spec, err := spec.MainnetChainSpec()
 	require.NoError(t, err)
 
 	sink := InclusionSink{}

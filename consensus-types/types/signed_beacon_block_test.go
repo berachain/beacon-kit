@@ -54,7 +54,7 @@ func generatePrivKey() (cmtcrypto.PrivKey, error) {
 }
 
 func generateSigningRoot(blk *types.BeaconBlock) (common.Root, error) {
-	cs, err := spec.DevnetChainSpec()
+	cs, err := spec.MainnetChainSpec()
 	if err != nil {
 		return common.Root{}, err
 	}
@@ -124,7 +124,7 @@ func TestSignedBeaconBlock_SignBeaconBlock(t *testing.T) {
 	require.NotNil(t, signedBlk)
 
 	// Use SignBeaconBlock to sign the same BeaconBlock
-	cs, err := spec.DevnetChainSpec()
+	cs, err := spec.MainnetChainSpec()
 	require.NoError(t, err)
 	newSignedBlk, err := types.NewSignedBeaconBlock(
 		signedBlk.GetMessage(),

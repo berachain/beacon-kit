@@ -37,7 +37,7 @@ import (
 
 func TestSetDepositStorageCmd(t *testing.T) {
 	t.Run("command should be available and have correct use", func(t *testing.T) {
-		chainSpec, err := spec.DevnetChainSpec()
+		chainSpec, err := spec.MainnetChainSpec()
 		require.NoError(t, err)
 		cmd := genesis.SetDepositStorageCmd(chainSpec)
 		require.Equal(t, "set-deposit-storage [eth/genesis/file.json]", cmd.Use)
@@ -60,7 +60,7 @@ func TestSetDepositStorageCmd(t *testing.T) {
 		ctx := context.WithValue(context.Background(), client.ClientContextKey, &clientCtx)
 
 		// Create and execute the command
-		chainSpec, err := spec.DevnetChainSpec()
+		chainSpec, err := spec.MainnetChainSpec()
 		require.NoError(t, err)
 		cmd := genesis.SetDepositStorageCmd(chainSpec)
 		cmd.SetContext(ctx)
@@ -83,7 +83,7 @@ func TestSetDepositStorageCmd(t *testing.T) {
 
 func setupMockGenesis(t *testing.T, tmpDir string) string {
 	t.Helper()
-	chainSpec, err := spec.DevnetChainSpec()
+	chainSpec, err := spec.MainnetChainSpec()
 	require.NoError(t, err)
 	depositAddr := common.Address(chainSpec.DepositContractAddress())
 
@@ -136,7 +136,7 @@ func setupMockCLGenesis(t *testing.T, tmpDir string) string {
 
 func verifyStorageOutput(t *testing.T, genesisPath string) {
 	t.Helper()
-	chainSpec, err := spec.DevnetChainSpec()
+	chainSpec, err := spec.MainnetChainSpec()
 	require.NoError(t, err)
 	depositAddr := common.Address(chainSpec.DepositContractAddress())
 
