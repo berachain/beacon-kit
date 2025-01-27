@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -30,6 +30,7 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
+	libcommon "github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -38,13 +39,14 @@ import (
 )
 
 // Set deposit contract storage in genesis alloc file.
+//
+//nolint:lll // reads better if long description is one line
 func SetDepositStorageCmd(chainSpec chain.Spec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "set-deposit-storage [eth/genesis/file.json]",
 		Short: "sets deposit contract storage in eth genesis",
-		Long: `Updates the deposit contract storage in the passed in eth genesis file. 
-		Creates a new EL genesis file with the changes in the BEACOND_HOME directory.`,
-		Args: cobra.ExactArgs(1),
+		Long:  `Updates the deposit contract storage in the passed in eth genesis file. Creates a new EL genesis file with the changes in the BEACOND_HOME directory.`,
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Get the deposits from the beacon chain genesis appstate.
 			config := context.GetConfigFromCmd(cmd)
@@ -101,20 +103,8 @@ func SetDepositStorageCmd(chainSpec chain.Spec) *cobra.Command {
 				return errors.Wrap(err, "failed to unmarshal eth1 genesis")
 			}
 
-			// Create a map to store the storage of the deposit contract.
-			storage := make(map[common.Hash]common.Hash)
-			slot0 := common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000")
-			slot1 := common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000001")
-			storage[slot0] = common.BigToHash(count)
-			storage[slot1] = common.BytesToHash(root[:])
-
-			// Assign storage to the deposit contract address.
 			depositAddr := common.Address(chainSpec.DepositContractAddress())
-			allocs := elGenesis.Alloc()
-			if entry, ok := allocs[depositAddr]; ok {
-				entry.Storage = storage
-				allocs[depositAddr] = entry
-			}
+			allocs := writeDepositStorage(elGenesis, depositAddr, count, root)
 
 			// Get just the filename from the path
 			filename := filepath.Base(args[0])
@@ -136,6 +126,28 @@ func SetDepositStorageCmd(chainSpec chain.Spec) *cobra.Command {
 	)
 	return cmd
 }
+
+func writeDepositStorage(
+	elGenesis types.EthGenesis,
+	depositAddr common.Address,
+	depositsCount *big.Int,
+	depositsRoot libcommon.Root,
+) gethprimitives.GenesisAlloc {
+	slot0 := common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000")
+	slot1 := common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000001")
+
+	allocs := elGenesis.Alloc()
+	if entry, ok := allocs[depositAddr]; ok {
+		if entry.Storage == nil {
+			entry.Storage = make(map[common.Hash]common.Hash)
+		}
+		entry.Storage[slot0] = common.BigToHash(depositsCount)
+		entry.Storage[slot1] = common.BytesToHash(depositsRoot[:])
+		allocs[depositAddr] = entry
+	}
+	return allocs
+}
+
 func writeGenesisAllocToFile(
 	depositAddr common.Address,
 	outputDocument string,

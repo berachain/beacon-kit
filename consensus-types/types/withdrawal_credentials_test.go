@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -62,6 +62,58 @@ func TestNewCredentialsFromExecutionAddress(t *testing.T) {
 		credentials,
 		"Generated credentials do not match expected",
 	)
+}
+
+func TestIsValidEth1WithdrawalCredentials(t *testing.T) {
+	tests := []struct {
+		name     string
+		wc       types.WithdrawalCredentials
+		expected bool
+	}{
+		{
+			name: "valid eth1 withdrawal credentials",
+			wc: func() types.WithdrawalCredentials {
+				wc := types.WithdrawalCredentials{}
+				wc[0] = types.EthSecp256k1CredentialPrefix
+				// bytes 1-11 should be zero
+				for i := 1; i < 12; i++ {
+					wc[i] = 0x00
+				}
+				// rest can be any value
+				addr := common.ExecutionAddress{0xde, 0xad, 0xbe, 0xef}
+				copy(wc[12:], addr[:])
+				return wc
+			}(),
+			expected: true,
+		},
+		{
+			name: "invalid prefix",
+			wc: func() types.WithdrawalCredentials {
+				wc := types.WithdrawalCredentials{}
+				wc[0] = 0x02 // wrong prefix
+				return wc
+			}(),
+			expected: false,
+		},
+		{
+			name: "non-zero padding bytes",
+			wc: func() types.WithdrawalCredentials {
+				wc := types.WithdrawalCredentials{}
+				wc[0] = types.EthSecp256k1CredentialPrefix
+				wc[5] = 0x01 // non-zero byte in padding area
+				return wc
+			}(),
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := tt.wc.IsValidEth1WithdrawalCredentials()
+			require.Equal(t, tt.expected, result,
+				"Test case %s", tt.name)
+		})
+	}
 }
 
 func TestToExecutionAddress(t *testing.T) {
