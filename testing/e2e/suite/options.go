@@ -25,13 +25,6 @@ type ChainSpec struct {
 	Network string
 }
 
-// ChainOption defines a chain configuration option
-type ChainOption struct {
-	TestName string
-	ChainID  uint64
-	Network  string
-}
-
 // Option is a function type that modifies suite configuration
 type Option func(*KurtosisE2ESuite) error
 

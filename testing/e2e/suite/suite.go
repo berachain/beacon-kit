@@ -71,7 +71,7 @@ type KurtosisE2ESuite struct {
 	mu        sync.RWMutex
 }
 
-// NetworkInstance represents a single network configuration
+// NetworkInstance represents a single network configuration.
 type NetworkInstance struct {
 	Config           *config.E2ETestConfig
 	consensusClients map[string]*types.ConsensusClient
@@ -81,7 +81,7 @@ type NetworkInstance struct {
 	enclave          *enclaves.EnclaveContext
 }
 
-// NewNetworkInstance creates a new network instance
+// NewNetworkInstance creates a new network instance.
 func NewNetworkInstance(cfg *config.E2ETestConfig) *NetworkInstance {
 	return &NetworkInstance{
 		Config:           cfg,
@@ -89,7 +89,7 @@ func NewNetworkInstance(cfg *config.E2ETestConfig) *NetworkInstance {
 	}
 }
 
-// GetCurrentNetwork returns the network for the current test
+// GetCurrentNetwork returns the network for the current test.
 func (s *KurtosisE2ESuite) GetCurrentNetwork() *NetworkInstance {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -212,7 +212,7 @@ func (s *KurtosisE2ESuite) GetTestSpecs() map[string]ChainSpec {
 	return s.testSpecs
 }
 
-// RunTestsByChainSpec runs all tests for each chain spec
+// RunTestsByChainSpec runs all tests for each chain spec.
 func (s *KurtosisE2ESuite) RunTestsByChainSpec() {
 	s.Logger().Info("RunTestsByChainSpec", "testSpecs", s.testSpecs)
 	// Group tests by chain spec
@@ -252,7 +252,7 @@ func (s *KurtosisE2ESuite) RunTestsByChainSpec() {
 	}
 }
 
-// InitializeNetwork sets up a network using the provided configuration
+// InitializeNetwork sets up a network using the provided configuration.
 func (s *KurtosisE2ESuite) InitializeNetwork(network *NetworkInstance) error {
 	if network == nil {
 		return fmt.Errorf("network instance cannot be nil")
@@ -318,11 +318,6 @@ func (s *KurtosisE2ESuite) InitializeNetwork(network *NetworkInstance) error {
 		s.Logger().Info("Created consensus client", "name", clientName)
 	}
 
-	// s.Logger().Info("Setting up consensus clients")
-	// if err := s.SetupConsensusClients(); err != nil {
-	// 	return fmt.Errorf("failed to setup consensus clients: %w", err)
-	// }
-
 	// Add this line to update the suite's consensus clients
 	s.consensusClients = network.consensusClients
 	s.Logger().Info("Set up consensus clients", "clients", s.consensusClients)
@@ -338,20 +333,13 @@ func (s *KurtosisE2ESuite) InitializeNetwork(network *NetworkInstance) error {
 	if err != nil {
 		return fmt.Errorf("failed to create load balancer: %w", err)
 	}
-	// s.Logger().Info("Created load balancer", "balancer", network.loadBalancer)
 
-	// s.Logger().Info("Verifying load balancer",
-	// 	"type", balancerType,
-	// 	"ports", sCtx.GetPublicPorts(),
-	// 	"balancer", network.loadBalancer,
-	// )
 	// Set the suite's load balancer to match the network's
 	s.loadBalancer = network.loadBalancer
 	// Wait for RPC to be ready before funding accounts
 	if err := s.WaitForRPCReady(network); err != nil {
 		return fmt.Errorf("failed waiting for RPC: %w", err)
 	}
-	// s.Logger().Info("Set suite's load balancer", "balancer", s.loadBalancer)
 
 	// Initialize genesis account
 	network.genesisAccount = types.NewEthAccountFromHex(
@@ -373,8 +361,6 @@ func (s *KurtosisE2ESuite) InitializeNetwork(network *NetworkInstance) error {
 	if balance.Cmp(big.NewInt(0)) == 0 {
 		return fmt.Errorf("genesis account has no funds")
 	}
-
-	// s.Logger().Info("Created genesis account", "account", network.genesisAccount.AccountName)
 
 	// Wait for RPC to be ready before funding accounts
 	if err := s.WaitForRPCReady(network); err != nil {
@@ -413,7 +399,7 @@ func (s *KurtosisE2ESuite) InitializeNetwork(network *NetworkInstance) error {
 	return nil
 }
 
-// cleanupNetwork cleans up the network resources
+// CleanupNetwork cleans up the network resources.
 func (s *KurtosisE2ESuite) CleanupNetwork(network *NetworkInstance) error {
 	// Stop consensus clients
 	if network == nil || len(network.consensusClients) == 0 {
@@ -468,7 +454,7 @@ func (s *KurtosisE2ESuite) SetKurtosisCtx(ctx *kurtosis_context.KurtosisContext)
 	s.kCtx = ctx
 }
 
-// WaitForRPCReady waits for the RPC endpoint to be ready
+// WaitForRPCReady waits for the RPC endpoint to be ready.
 func (s *KurtosisE2ESuite) WaitForRPCReady(network *NetworkInstance) error {
 	s.Logger().Info("Waiting for RPC to be ready", "url", network.loadBalancer.URL())
 	maxRetries := 30
@@ -488,7 +474,7 @@ func (s *KurtosisE2ESuite) WaitForRPCReady(network *NetworkInstance) error {
 	return fmt.Errorf("RPC not ready after %d retries", maxRetries)
 }
 
-// RegisterTestFunc registers a test function with a name
+// RegisterTestFunc registers a test function with a name.
 func (s *KurtosisE2ESuite) RegisterTestFunc(name string, fn func()) {
 	if s.testFuncs == nil {
 		s.testFuncs = make(map[string]func())
@@ -496,7 +482,7 @@ func (s *KurtosisE2ESuite) RegisterTestFunc(name string, fn func()) {
 	s.testFuncs[name] = fn
 }
 
-// ConsensusClients returns the consensus clients for this network
+// ConsensusClients returns the consensus clients for this network.
 func (n *NetworkInstance) ConsensusClients() map[string]*types.ConsensusClient {
 	return n.consensusClients
 }
@@ -505,7 +491,7 @@ func (n *NetworkInstance) TestAccounts() []*types.EthAccount {
 	return n.testAccounts
 }
 
-// FundAccount sends ETH to the given address
+// FundAccount sends ETH to the given address.
 func (s *KurtosisE2ESuite) FundAccount(to common.Address, amount *big.Int) error {
 	// Get initial balance
 	initialBalance, err := s.JSONRPCBalancer().BalanceAt(s.ctx, to, nil)
