@@ -22,11 +22,11 @@ package core
 
 import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/crypto/sha256"
-	"github.com/berachain/beacon-kit/primitives/version"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/go-faster/xor"
 )
@@ -58,9 +58,8 @@ func (sp *StateProcessor[ContextT]) processRandaoReveal(
 	body := blk.GetBody()
 
 	fd := ctypes.NewForkData(
-		version.FromUint32[common.Version](
-			sp.cs.ActiveForkVersionForEpoch(epoch),
-		), genesisValidatorsRoot,
+		bytes.FromUint32(sp.cs.ActiveForkVersionForEpoch(epoch)),
+		genesisValidatorsRoot,
 	)
 
 	if !ctx.GetSkipValidateRandao() {

@@ -20,28 +20,23 @@
 
 package version
 
-import (
-	"encoding/binary"
-)
-
 const (
-	Phase0 uint32 = iota
-	Altair
-	Bellatrix
-	Capella
-	Deneb
-	DenebPlus
-	Electra
+	// Phase0 is the first version of the Beacon Chain.
+	Phase0 uint32 = 0
+	// Altair is the first hardfork of the Beacon Chain.
+	Altair uint32 = 1
+	// Bellatrix is the second hardfork of the Beacon Chain.
+	Bellatrix uint32 = 2
+	// Capella is the third hardfork of the Beacon Chain.
+	Capella uint32 = 3
+	// Deneb is the first version of Deneb, used for genesis of Berachain mainnet.
+	Deneb uint32 = 4
+	// Deneb1 is the first hardfork of Deneb on Berachain mainnet (TBD if used).
+	// There may also be Deneb2, Deneb3, etc. hardforks.
+	Deneb1 uint32 = 260
+	// Electra is the first version of Electra on Berachain mainnet.
+	Electra uint32 = 5
+	// Electra1 is the first hardfork of Electra on Berachain mainnet (TBD if used).
+	// There may also be Electra2, Electra3, etc. hardforks.
+	Electra1 uint32 = 261
 )
-
-// FromUint32 returns a Version from a uint32.
-func FromUint32[VersionT ~[4]byte](version uint32) VersionT {
-	versionBz := VersionT{}
-	binary.LittleEndian.PutUint32(versionBz[:], version)
-	return versionBz
-}
-
-// ToUint32 returns a uint32 from a Version.
-func ToUint32[VersionT ~[4]byte](version VersionT) uint32 {
-	return binary.LittleEndian.Uint32(version[:])
-}

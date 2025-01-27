@@ -25,6 +25,7 @@ import (
 	"math/big"
 
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	"github.com/berachain/beacon-kit/primitives/bytes"
 	byteslib "github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
@@ -89,7 +90,7 @@ func (g *Genesis) UnmarshalJSON(
 	)
 	payloadHeader, err = payloadHeader.NewFromJSON(
 		g2.ExecutionPayloadHeader,
-		version.ToUint32(g2.ForkVersion),
+		g2.ForkVersion.ToUint32(),
 	)
 	if err != nil {
 		return err
@@ -111,9 +112,7 @@ func DefaultGenesisDeneb() *Genesis {
 
 	// TODO: Uncouple from deneb.
 	return &Genesis{
-		ForkVersion: version.FromUint32[common.Version](
-			version.Deneb,
-		),
+		ForkVersion:            bytes.FromUint32(version.Deneb),
 		Deposits:               make([]*Deposit, 0),
 		ExecutionPayloadHeader: defaultHeader,
 	}
