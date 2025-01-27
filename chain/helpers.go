@@ -35,7 +35,7 @@ func (s spec) ActiveForkVersionForEpoch(epoch math.Epoch) uint32 {
 	if epoch >= s.ElectraForkEpoch() {
 		return version.Electra
 	} else if epoch >= s.DenebPlusForkEpoch() {
-		return version.DenebPlus
+		return version.Deneb1
 	}
 
 	return version.Deneb

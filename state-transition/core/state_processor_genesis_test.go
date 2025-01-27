@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-core/components"
+	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -121,8 +122,8 @@ func TestInitialize(t *testing.T) {
 		}
 		executionPayloadHeader = &types.ExecutionPayloadHeader{}
 		fork                   = &types.Fork{
-			PreviousVersion: version.FromUint32[common.Version](version.Deneb),
-			CurrentVersion:  version.FromUint32[common.Version](version.Deneb),
+			PreviousVersion: bytes.FromUint32(version.Deneb),
+			CurrentVersion:  bytes.FromUint32(version.Deneb),
 			Epoch:           math.Epoch(constants.GenesisEpoch),
 		}
 	)
