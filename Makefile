@@ -3,7 +3,6 @@
 include scripts/build/build.mk
 include scripts/build/codegen.mk
 include scripts/build/constants.mk
-include scripts/build/devtools.mk
 include scripts/build/linting.mk
 include scripts/build/protobuf.mk
 include scripts/build/release.mk
