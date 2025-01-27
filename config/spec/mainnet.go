@@ -73,6 +73,23 @@ const (
 	// The deposit contract address on mainnet at Deneb is the same as the
 	// default deposit contract address.
 	MainnetDepositContractAddressDeneb = DefaultDepositContractAddress
+
+	// MainnetDeneb1ForkEpoch is the epoch at which the Deneb1 fork occurs.
+	//
+	// TODO: set to the correct epoch.
+	MainnetDeneb1ForkEpoch = 5000
+
+	// MainnetEVMInflationAddressDeneb1 is the address on the EVM which will receive the
+	// inflation amount of native EVM balance through a withdrawal every block in the Deneb1 fork.
+	//
+	// TODO: set to the correct address of BGT.
+	MainnetEVMInflationAddressDeneb1 = "0x0000000000000000000000000000000000000000"
+
+	// MainnetEVMInflationPerBlockDeneb1 is the amount of native EVM balance (in Gwei) to be
+	// minted to the EVMInflationAddressDeneb1 via a withdrawal every block in the Deneb1 fork.
+	//
+	// TODO: set to the correct upper bound of redeemable BGT per block.
+	MainnetEVMInflationPerBlockDeneb1 = 0
 )
 
 // MainnetChainSpec is the ChainSpec for the Berachain mainnet.
@@ -130,10 +147,14 @@ func MainnetChainSpec() (chain.Spec, error) {
 		BytesPerBlob:                     DefaultBytesPerBlob,
 		KZGCommitmentInclusionProofDepth: DefaultKZGCommitmentInclusionProofDepth,
 
-		// Berachain values.
+		// Berachain values at genesis.
 		ValidatorSetCap:      MainnetValidatorSetCapDeneb,
 		EVMInflationAddress:  common.NewExecutionAddressFromHex(MainnetEVMInflationAddressDeneb),
 		EVMInflationPerBlock: MainnetEVMInflationPerBlockDeneb,
+
+		// Deneb1 values.
+		EVMInflationAddressDeneb1:  common.NewExecutionAddressFromHex(MainnetEVMInflationAddressDeneb1),
+		EVMInflationPerBlockDeneb1: MainnetEVMInflationPerBlockDeneb1,
 	}
 
 	return chain.NewSpec(mainnetSpec)

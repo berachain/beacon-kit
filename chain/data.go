@@ -143,7 +143,7 @@ type SpecData struct {
 	// KZGCommitmentInclusionProofDepth is the depth of the KZG inclusion proof.
 	KZGCommitmentInclusionProofDepth uint64 `mapstructure:"kzg-commitment-inclusion-proof-depth"`
 
-	// Berachain Values
+	// Berachain Values at genesis
 	//
 	// ValidatorSetCap is the maximum number of validators that can be active
 	// for a given epoch
@@ -158,4 +158,10 @@ type SpecData struct {
 
 	// Deneb1 Value Changes
 	//
+	// EVMInflationAddressDeneb1 is the address on the EVM which will receive the
+	// inflation amount of native EVM balance through a withdrawal every block in the Deneb1 fork.
+	EVMInflationAddressDeneb1 common.ExecutionAddress `mapstructure:"evm-inflation-address-deneb-one"`
+	// EVMInflationPerBlockDeneb1 is the amount of native EVM balance (in Gwei) to be
+	// minted to the EVMInflationAddressDeneb1 via a withdrawal every block in the Deneb1 fork.
+	EVMInflationPerBlockDeneb1 uint64 `mapstructure:"evm-inflation-per-block-deneb-one"`
 }
