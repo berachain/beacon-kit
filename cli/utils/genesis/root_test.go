@@ -82,7 +82,7 @@ func (TestDeposits) Generate(rand *rand.Rand, size int) reflect.Value {
 
 func TestCompareGenesisCmdWithStateProcessor(t *testing.T) {
 	qc := &quick.Config{MaxCount: 1_000}
-	cs, err := spec.MainnetChainSpec()
+	cs, err := spec.DevnetChainSpec()
 	require.NoError(t, err)
 
 	f := func(inputs TestDeposits) bool {

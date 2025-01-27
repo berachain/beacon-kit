@@ -73,9 +73,9 @@ const (
 	MainnetDepositContractAddress = DefaultDepositContractAddress
 )
 
-// MainnetChainSpec is the ChainSpec for the Berachain mainnet.
-func MainnetChainSpec() (chain.Spec, error) {
-	mainnetSpec := &chain.SpecData{
+// MainnetChainSpecData is the chain.SpecData for the Berachain mainnet.
+func MainnetChainSpecData() *chain.SpecData {
+	return &chain.SpecData{
 		// Gwei values constants.
 		MaxEffectiveBalance:       MainnetMaxEffectiveBalance,
 		EjectionBalance:           MainnetEjectionBalance,
@@ -133,6 +133,9 @@ func MainnetChainSpec() (chain.Spec, error) {
 		EVMInflationAddress:  common.NewExecutionAddressFromHex(MainnetEVMInflationAddress),
 		EVMInflationPerBlock: MainnetEVMInflationPerBlock,
 	}
+}
 
-	return chain.NewSpec(mainnetSpec)
+// MainnetChainSpec is the ChainSpec for the Berachain mainnet.
+func MainnetChainSpec() (chain.Spec, error) {
+	return chain.NewSpec(MainnetChainSpecData())
 }

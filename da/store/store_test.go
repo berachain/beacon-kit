@@ -47,7 +47,7 @@ func TestStore_PersistRace(t *testing.T) {
 	tmpFilePath := "/tmp/store_test"
 
 	logger := log.NewNopLogger()
-	chainSpec, err := spec.MainnetChainSpec()
+	chainSpec, err := spec.DevnetChainSpec()
 	require.NoError(t, err)
 
 	// Remove DB when we're done

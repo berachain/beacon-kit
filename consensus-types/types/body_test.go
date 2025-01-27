@@ -252,7 +252,7 @@ func TestBeaconBlockBody_RoundTrip_HashTreeRoot(t *testing.T) {
 // This test explains the calculation of the KZG commitment' inclusion proof depth.
 func Test_KZGCommitmentInclusionProofDepth(t *testing.T) {
 	maxUint8 := uint64(^uint8(0))
-	cs, err := spec.MainnetChainSpec()
+	cs, err := spec.DevnetChainSpec()
 	require.NoError(t, err)
 
 	// Depth of the partial BeaconBlockBody merkle tree. This is partial
