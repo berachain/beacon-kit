@@ -22,10 +22,12 @@ package types_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/stretchr/testify/require"
 )
 
@@ -51,8 +53,16 @@ func TestBuildNewPayloadRequest(t *testing.T) {
 
 func TestBuildForkchoiceUpdateRequest(t *testing.T) {
 	state := &engineprimitives.ForkchoiceStateV1{}
-	payloadAttributes := &engineprimitives.PayloadAttributes{}
-	forkVersion := uint32(1)
+	forkVersion := version.Deneb1
+	payloadAttributes, err := engineprimitives.NewPayloadAttributes(
+		forkVersion,
+		uint64(time.Now().Truncate(time.Second).Unix()),
+		common.Bytes32{0x01},
+		common.ExecutionAddress{},
+		engineprimitives.Withdrawals{},
+		common.Root{},
+	)
+	require.NoError(t, err)
 
 	request := types.BuildForkchoiceUpdateRequest(
 		state,
