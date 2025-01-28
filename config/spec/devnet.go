@@ -22,7 +22,6 @@ package spec
 
 import (
 	"github.com/berachain/beacon-kit/chain"
-	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 )
 
@@ -34,78 +33,33 @@ const (
 	// of Gwei) to be minted per EL block.
 	DevnetEVMInflationPerBlock = 10e9
 
-	// DevnetMaxStakeAmount is the maximum amount of native EVM balance (in units
+	// MaxStakeAmount is the maximum amount of native EVM balance (in units
 	// of Gwei) that can be staked.
 	DevnetMaxStakeAmount = 4000e9
 )
 
-// DevnetChainSpec is the chain.Spec for a devnet. Used by `make start` and unit tests.
+// DevnetChainSpecData is the chain.SpecData for a devnet. It is similar to mainnet but
+// has different values for testing EVM inflation and staking.
 //
-//nolint:dupl // relevant values are different.
+// TODO: remove modifications from mainnet spec to align with mainnet behavior.
+func DevnetChainSpecData() *chain.SpecData {
+	specData := MainnetChainSpecData()
+	specData.DepositEth1ChainID = DevnetEth1ChainID
+
+	// EVM inflation is different from mainnet to test.
+	specData.EVMInflationAddress = common.NewExecutionAddressFromHex(DevnetEVMInflationAddress)
+	specData.EVMInflationPerBlock = DevnetEVMInflationPerBlock
+
+	// Staking is different from mainnet for now.
+	specData.MaxEffectiveBalance = DevnetMaxStakeAmount
+	specData.EjectionBalance = defaultEjectionBalance
+	specData.EffectiveBalanceIncrement = defaultEffectiveBalanceIncrement
+	specData.SlotsPerEpoch = defaultSlotsPerEpoch
+
+	return specData
+}
+
+// DevnetChainSpec is the chain.Spec for a devnet. Used by `make start` and unit tests.
 func DevnetChainSpec() (chain.Spec, error) {
-	devnetSpecData := &chain.SpecData{
-		// Gwei values constants.
-		MaxEffectiveBalance:       DevnetMaxStakeAmount,
-		EjectionBalance:           DefaultEjectionBalance,
-		EffectiveBalanceIncrement: DefaultEffectiveBalanceIncrement,
-
-		HysteresisQuotient:           DefaultHysteresisQuotient,
-		HysteresisDownwardMultiplier: DefaultHysteresisDownwardMultiplier,
-		HysteresisUpwardMultiplier:   DefaultHysteresisUpwardMultiplier,
-
-		// Time parameters constants.
-		SlotsPerEpoch:                DefaultSlotsPerEpoch,
-		SlotsPerHistoricalRoot:       DefaultSlotsPerHistoricalRoot,
-		MinEpochsToInactivityPenalty: DefaultMinEpochsToInactivityPenalty,
-
-		// Signature domains.
-		DomainTypeProposer:          bytes.FromUint32(DefaultDomainTypeProposer),
-		DomainTypeAttester:          bytes.FromUint32(DefaultDomainTypeAttester),
-		DomainTypeRandao:            bytes.FromUint32(DefaultDomainTypeRandao),
-		DomainTypeDeposit:           bytes.FromUint32(DefaultDomainTypeDeposit),
-		DomainTypeVoluntaryExit:     bytes.FromUint32(DefaultDomainTypeVoluntaryExit),
-		DomainTypeSelectionProof:    bytes.FromUint32(DefaultDomainTypeSelectionProof),
-		DomainTypeAggregateAndProof: bytes.FromUint32(DefaultDomainTypeAggregateAndProof),
-		DomainTypeApplicationMask:   bytes.FromUint32(DefaultDomainTypeApplicationMask),
-
-		// Eth1-related values.
-		DepositContractAddress:    common.NewExecutionAddressFromHex(DefaultDepositContractAddress),
-		MaxDepositsPerBlock:       DefaultMaxDepositsPerBlock,
-		DepositEth1ChainID:        DevnetEth1ChainID,
-		Eth1FollowDistance:        DefaultEth1FollowDistance,
-		TargetSecondsPerEth1Block: DefaultTargetSecondsPerEth1Block,
-
-		// Fork-related values.
-		Deneb1ForkEpoch:  DefaultDeneb1ForkEpoch,
-		ElectraForkEpoch: DefaultElectraForkEpoch,
-
-		// State list length constants.
-		EpochsPerHistoricalVector: DefaultEpochsPerHistoricalVector,
-		EpochsPerSlashingsVector:  DefaultEpochsPerSlashingsVector,
-		HistoricalRootsLimit:      DefaultHistoricalRootsLimit,
-		ValidatorRegistryLimit:    DefaultValidatorRegistryLimit,
-
-		// Slashing.
-		InactivityPenaltyQuotient:      DefaultInactivityPenaltyQuotient,
-		ProportionalSlashingMultiplier: DefaultProportionalSlashingMultiplier,
-
-		// Capella values.
-		MaxWithdrawalsPerPayload:         DefaultMaxWithdrawalsPerPayload,
-		MaxValidatorsPerWithdrawalsSweep: DefaultMaxValidatorsPerWithdrawalsSweep,
-
-		// Deneb values.
-		MinEpochsForBlobsSidecarsRequest: DefaultMinEpochsForBlobsSidecarsRequest,
-		MaxBlobCommitmentsPerBlock:       DefaultMaxBlobCommitmentsPerBlock,
-		MaxBlobsPerBlock:                 DefaultMaxBlobsPerBlock,
-		FieldElementsPerBlob:             DefaultFieldElementsPerBlob,
-		BytesPerBlob:                     DefaultBytesPerBlob,
-		KZGCommitmentInclusionProofDepth: DefaultKZGCommitmentInclusionProofDepth,
-
-		// Berachain values.
-		ValidatorSetCap:      DefaultValidatorSetCap,
-		EVMInflationAddress:  common.NewExecutionAddressFromHex(DevnetEVMInflationAddress),
-		EVMInflationPerBlock: DevnetEVMInflationPerBlock,
-	}
-
-	return chain.NewSpec(devnetSpecData)
+	return chain.NewSpec(DevnetChainSpecData())
 }

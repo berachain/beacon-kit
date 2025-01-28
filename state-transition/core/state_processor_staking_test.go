@@ -27,6 +27,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/bytes"
@@ -469,7 +470,7 @@ func TestTransitionWithdrawals(t *testing.T) {
 
 func TestTransitionMaxWithdrawals(t *testing.T) {
 	// Use custom chain spec with max withdrawals set to 2.
-	csData := defaultSpecData()
+	csData := spec.DevnetChainSpecData()
 	csData.MaxWithdrawalsPerPayload = 2
 	csData.MaxValidatorsPerWithdrawalsSweep = 2
 	cs, err := chain.NewSpec(csData)
