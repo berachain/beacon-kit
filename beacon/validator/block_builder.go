@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
@@ -62,6 +63,10 @@ func (s *Service) BuildBlockAndSidecars(
 	// and safe block hashes to the execution client.
 	st := s.sb.StateFromContext(ctx)
 
+	// we introduce hard forks with the expectation that the height set for the
+	// hard fork is the first height at which new rules apply. So we need to make
+	// sure that when building blocks, we pick the right height. blkSlots is the
+	// height for the next block, which consensus is requesting BeaconKit to build.
 	blkSlot := slotData.GetSlot()
 
 	// Prepare the state such that it is ready to build a block for
@@ -154,7 +159,6 @@ func (s *Service) getEmptyBeaconBlockForSlot(
 	parentBlockRoot, err := st.GetBlockRootAtIndex(
 		(requestedSlot.Unwrap() - 1) % s.chainSpec.SlotsPerHistoricalRoot(),
 	)
-
 	if err != nil {
 		return nil, err
 	}
@@ -175,33 +179,23 @@ func (s *Service) getEmptyBeaconBlockForSlot(
 	)
 }
 
-func (s *Service) buildForkData(
-	st *statedb.StateDB,
-	slot math.Slot,
-) (*ctypes.ForkData, error) {
-	var (
-		epoch = s.chainSpec.SlotToEpoch(slot)
-	)
-
+func (s *Service) buildForkData(st *statedb.StateDB, slot math.Slot) (*ctypes.ForkData, error) {
 	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
 	if err != nil {
 		return nil, err
 	}
 
 	return ctypes.NewForkData(
-		bytes.FromUint32(s.chainSpec.ActiveForkVersionForEpoch(epoch)), genesisValidatorsRoot,
+		bytes.FromUint32(s.chainSpec.ActiveForkVersionForSlot(slot)), genesisValidatorsRoot,
 	), nil
 }
 
 // buildRandaoReveal builds a randao reveal for the given slot.
 func (s *Service) buildRandaoReveal(
-	forkData *ctypes.ForkData,
-	slot math.Slot,
+	forkData *ctypes.ForkData, slot math.Slot,
 ) (crypto.BLSSignature, error) {
-	var epoch = s.chainSpec.SlotToEpoch(slot)
 	signingRoot := forkData.ComputeRandaoSigningRoot(
-		s.chainSpec.DomainTypeRandao(),
-		epoch,
+		s.chainSpec.DomainTypeRandao(), s.chainSpec.SlotToEpoch(slot),
 	)
 	return s.signer.Sign(signingRoot[:])
 }
@@ -299,7 +293,8 @@ func (s *Service) buildBlockBody(
 	// Grab all previous deposits from genesis up to the current index + max deposits per block.
 	deposits, err := s.sb.DepositStore().GetDepositsByIndex(
 		ctx,
-		0, depositIndex+s.chainSpec.MaxDepositsPerBlock(),
+		constants.FirstDepositIndex,
+		depositIndex+s.chainSpec.MaxDepositsPerBlock(),
 	)
 	if err != nil {
 		return err

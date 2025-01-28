@@ -40,8 +40,6 @@ type PayloadAttributer interface {
 //
 
 type PayloadAttributes struct {
-	// version is the version of the payload attributes.
-	version uint32 `json:"-"`
 	// Timestamp is the timestamp at which the block will be built at.
 	Timestamp math.U64 `json:"timestamp"`
 	// PrevRandao is the previous Randao value from the beacon chain as
@@ -59,6 +57,9 @@ type PayloadAttributes struct {
 	// to the block currently being processed. This field was added for
 	// EIP-4788.
 	ParentBeaconBlockRoot common.Root `json:"parentBeaconBlockRoot"`
+
+	// version is the version of the payload attributes.
+	version uint32 `json:"-"`
 }
 
 // New empty PayloadAttributes.
@@ -71,12 +72,12 @@ func NewPayloadAttributes(
 	parentBeaconBlockRoot common.Root,
 ) (*PayloadAttributes, error) {
 	pa := &PayloadAttributes{
-		version:               forkVersion,
 		Timestamp:             math.U64(timestamp),
 		PrevRandao:            prevRandao,
 		SuggestedFeeRecipient: suggestedFeeRecipient,
 		Withdrawals:           withdrawals,
 		ParentBeaconBlockRoot: parentBeaconBlockRoot,
+		version:               forkVersion,
 	}
 
 	if err := pa.Validate(); err != nil {
@@ -92,9 +93,7 @@ func (p *PayloadAttributes) IsNil() bool {
 }
 
 // GetSuggestedFeeRecipient returns the suggested fee recipient.
-func (
-	p *PayloadAttributes,
-) GetSuggestedFeeRecipient() common.ExecutionAddress {
+func (p *PayloadAttributes) GetSuggestedFeeRecipient() common.ExecutionAddress {
 	return p.SuggestedFeeRecipient
 }
 

@@ -148,7 +148,7 @@ type SpecData struct {
 	// ValidatorSetCap is the maximum number of validators that can be active
 	// for a given epoch
 	// Note: ValidatorSetCap must be smaller than ValidatorRegistryLimit.
-	ValidatorSetCap uint64 `mapstructure:"validator-set-cap-size"`
+	ValidatorSetCap uint64 `mapstructure:"validator-set-cap"`
 	// EVMInflationAddress is the address on the EVM which will receive the
 	// inflation amount of native EVM balance through a withdrawal every block.
 	EVMInflationAddress common.ExecutionAddress `mapstructure:"evm-inflation-address"`

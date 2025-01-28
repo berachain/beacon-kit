@@ -110,10 +110,11 @@ type Spec interface {
 	TargetSecondsPerEth1Block() uint64
 
 	// Fork-related values.
-	// Deneb1ForkEpoch returns the epoch at which the Deneb1 fork takes
+
+	// Deneb1ForkEpoch returns the epoch at which the Deneb1 fork takes effect.
 	Deneb1ForkEpoch() math.Epoch
-	// ElectraForkEpoch returns the epoch at which the Electra fork takes
-	// effect.
+
+	// ElectraForkEpoch returns the epoch at which the Electra fork takes effect.
 	ElectraForkEpoch() math.Epoch
 
 	// State list lengths
@@ -172,12 +173,10 @@ type Spec interface {
 
 	// Helpers for ChainSpecData
 
-	// ActiveForkVersionForSlot returns the active fork version for a given
-	// slot.
+	// ActiveForkVersionForSlot returns the active fork version for a given slot.
 	ActiveForkVersionForSlot(slot math.Slot) uint32
 
-	// ActiveForkVersionForEpoch returns the active fork version for a given
-	// epoch.
+	// ActiveForkVersionForEpoch returns the active fork version for a given epoch.
 	ActiveForkVersionForEpoch(epoch math.Epoch) uint32
 
 	// SlotToEpoch converts a slot number to an epoch number.
@@ -189,18 +188,17 @@ type Spec interface {
 
 	// Berachain Values
 
-	// ValidatorSetCap retrieves the maximum number of
-	// validators allowed in the active set.
+	// ValidatorSetCap retrieves the maximum number of validators allowed in the active set.
 	ValidatorSetCap() uint64
 
 	// EVMInflationAddress returns the address on the EVM which will receive
 	// the inflation amount of native EVM balance through a withdrawal every
 	// block.
-	EVMInflationAddress() common.ExecutionAddress
+	EVMInflationAddress(slot math.Slot) common.ExecutionAddress
 
 	// EVMInflationPerBlock returns the amount of native EVM balance (in Gwei)
 	// to be minted to the EVMInflationAddress via a withdrawal every block.
-	EVMInflationPerBlock() uint64
+	EVMInflationPerBlock(slot math.Slot) uint64
 }
 
 // spec is a concrete implementation of the Spec interface, holding the actual data.
@@ -419,20 +417,19 @@ func (s spec) BytesPerBlob() uint64 {
 	return s.Data.BytesPerBlob
 }
 
-// ValidatorSetCap retrieves the maximum number of
-// validators allowed in the active set.
+// ValidatorSetCap retrieves the maximum number of validators allowed in the active set.
 func (s spec) ValidatorSetCap() uint64 {
 	return s.Data.ValidatorSetCap
 }
 
 // EVMInflationAddress returns the address on the EVM which will receive the
 // inflation amount of native EVM balance through a withdrawal every block.
-func (s spec) EVMInflationAddress() common.ExecutionAddress {
+func (s spec) EVMInflationAddress(math.Slot) common.ExecutionAddress {
 	return s.Data.EVMInflationAddress
 }
 
 // EVMInflationPerBlock returns the amount of native EVM balance (in Gwei) to
 // be minted to the EVMInflationAddress via a withdrawal every block.
-func (s spec) EVMInflationPerBlock() uint64 {
+func (s spec) EVMInflationPerBlock(math.Slot) uint64 {
 	return s.Data.EVMInflationPerBlock
 }
