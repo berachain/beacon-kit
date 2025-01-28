@@ -25,12 +25,11 @@ import (
 
 	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 func (s *Service) processPruning(ctx context.Context, beaconBlk *ctypes.BeaconBlock) error {
 	// prune availability store
-	start, end := availabilityPruneRangeFn(beaconBlk.GetSlot(), s.chainSpec)
+	start, end := availabilityPruneRangeFn(beaconBlk.GetSlot().Unwrap(), s.chainSpec)
 	err := s.storageBackend.AvailabilityStore().Prune(start, end)
 	if err != nil {
 		return err
@@ -54,12 +53,11 @@ func depositPruneRangeFn([]*ctypes.Deposit, chain.Spec) (uint64, uint64) {
 }
 
 //nolint:unparam // this is ok
-func availabilityPruneRangeFn(slot math.Slot, cs chain.Spec) (uint64, uint64) {
+func availabilityPruneRangeFn(slot uint64, cs chain.Spec) (uint64, uint64) {
 	window := cs.MinEpochsForBlobsSidecarsRequest().Unwrap() * cs.SlotsPerEpoch()
-	slotU64 := slot.Unwrap()
-	if slotU64 < window {
+	if slot < window {
 		return 0, 0
 	}
 
-	return 0, slotU64 - window
+	return 0, slot - window
 }
