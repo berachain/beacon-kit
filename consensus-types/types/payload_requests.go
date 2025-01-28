@@ -157,8 +157,6 @@ type ForkchoiceUpdateRequest struct {
 	PayloadAttributes *engineprimitives.PayloadAttributes
 	// ForkVersion is the fork version that we
 	// are going to be submitting for.
-	// Note: we must make sure we only pass Ethereum fork versions
-	// not BeaconKit ones, like Deneb1
 	ForkVersion uint32
 }
 
