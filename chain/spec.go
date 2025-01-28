@@ -433,7 +433,7 @@ func (s spec) EVMInflationAddress(slot math.Slot) common.ExecutionAddress {
 	case version.Deneb1:
 		return s.Data.EVMInflationAddressDeneb1
 	case version.Deneb:
-		return s.Data.EVMInflationAddress
+		return s.Data.EVMInflationAddressGenesis
 	default:
 		panic(fmt.Sprintf("EVMInflationAddress not supported for this fork version: %d", fv))
 	}
@@ -447,7 +447,7 @@ func (s spec) EVMInflationPerBlock(slot math.Slot) uint64 {
 	case version.Deneb1:
 		return s.Data.EVMInflationPerBlockDeneb1
 	case version.Deneb:
-		return s.Data.EVMInflationPerBlock
+		return s.Data.EVMInflationPerBlockGenesis
 	default:
 		panic(fmt.Sprintf("EVMInflationPerBlock not supported for this fork version: %d", fv))
 	}

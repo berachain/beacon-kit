@@ -149,12 +149,12 @@ type SpecData struct {
 	// for a given epoch
 	// Note: ValidatorSetCap must be smaller than ValidatorRegistryLimit.
 	ValidatorSetCap uint64 `mapstructure:"validator-set-cap"`
-	// EVMInflationAddress is the address on the EVM which will receive the
+	// EVMInflationAddressGenesis is the address on the EVM which will receive the
 	// inflation amount of native EVM balance through a withdrawal every block.
-	EVMInflationAddress common.ExecutionAddress `mapstructure:"evm-inflation-address"`
-	// EVMInflationPerBlock is the amount of native EVM balance (in Gwei) to be
+	EVMInflationAddressGenesis common.ExecutionAddress `mapstructure:"evm-inflation-address"`
+	// EVMInflationPerBlockGenesis is the amount of native EVM balance (in Gwei) to be
 	// minted to the EVMInflationAddress via a withdrawal every block.
-	EVMInflationPerBlock uint64 `mapstructure:"evm-inflation-per-block"`
+	EVMInflationPerBlockGenesis uint64 `mapstructure:"evm-inflation-per-block"`
 
 	// Deneb1 Value Changes
 	//

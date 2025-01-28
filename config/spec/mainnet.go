@@ -142,9 +142,9 @@ func MainnetChainSpecData() *chain.SpecData {
 		KZGCommitmentInclusionProofDepth: defaultKZGCommitmentInclusionProofDepth,
 
 		// Berachain values at genesis.
-		ValidatorSetCap:      mainnetValidatorSetCap,
-		EVMInflationAddress:  common.NewExecutionAddressFromHex(mainnetEVMInflationAddress),
-		EVMInflationPerBlock: mainnetEVMInflationPerBlock,
+		ValidatorSetCap:             mainnetValidatorSetCap,
+		EVMInflationAddressGenesis:  common.NewExecutionAddressFromHex(mainnetEVMInflationAddress),
+		EVMInflationPerBlockGenesis: mainnetEVMInflationPerBlock,
 
 		// Deneb1 values.
 		EVMInflationAddressDeneb1:  common.NewExecutionAddressFromHex(mainnetEVMInflationAddressDeneb1),

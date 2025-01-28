@@ -61,12 +61,12 @@ func DevnetChainSpecData() *chain.SpecData {
 	specData.Deneb1ForkEpoch = devnetDeneb1ForkEpoch
 
 	// EVM inflation is different from mainnet to test.
-	specData.EVMInflationAddress = common.NewExecutionAddressFromHex(devnetEVMInflationAddress)
-	specData.EVMInflationPerBlock = devnetEVMInflationPerBlock
+	specData.EVMInflationAddressGenesis = common.NewExecutionAddressFromHex(devnetEVMInflationAddress)
+	specData.EVMInflationPerBlockGenesis = devnetEVMInflationPerBlock
 
 	// EVM inflation is different from mainnet for now, after the Deneb1 fork.
-	specData.EVMInflationAddress = common.NewExecutionAddressFromHex(devnetEVMInflationAddressDeneb1)
-	specData.EVMInflationPerBlock = devnetEVMInflationPerBlockDeneb1
+	specData.EVMInflationAddressGenesis = common.NewExecutionAddressFromHex(devnetEVMInflationAddressDeneb1)
+	specData.EVMInflationPerBlockGenesis = devnetEVMInflationPerBlockDeneb1
 
 	// Staking is different from mainnet for now.
 	specData.MaxEffectiveBalance = devnetMaxStakeAmount
