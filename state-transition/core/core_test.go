@@ -95,6 +95,7 @@ func buildNextBlock(
 		version.Deneb1,
 	)
 	require.NoError(t, err)
+	blk.Body = nextBlkBody
 	return blk
 }
 
@@ -124,6 +125,18 @@ func generateTestPK(t *testing.T, rndSeed int) (bytes.B48, int) {
 	return key, rndSeed
 }
 
+func testPayload(timestamp math.U64, withdrawals ...*engineprimitives.Withdrawal) *types.ExecutionPayload {
+	payload := &types.ExecutionPayload{
+		Timestamp:     timestamp,
+		ExtraData:     []byte("testing"),
+		Transactions:  [][]byte{},
+		Withdrawals:   withdrawals,
+		BaseFeePerGas: math.NewU256(0),
+		EpVersion:     version.Deneb1,
+	}
+	return payload
+}
+
 func moveToEndOfEpoch(
 	t *testing.T,
 	tip *types.BeaconBlock,
@@ -141,15 +154,10 @@ func moveToEndOfEpoch(
 			t,
 			st,
 			&types.BeaconBlockBody{
-				ExecutionPayload: &types.ExecutionPayload{
-					Timestamp:    blk.Body.ExecutionPayload.Timestamp + 1,
-					ExtraData:    []byte("testing"),
-					Transactions: [][]byte{},
-					Withdrawals: []*engineprimitives.Withdrawal{
-						st.EVMInflationWithdrawal(blk.GetSlot() + 1),
-					},
-					BaseFeePerGas: math.NewU256(0),
-				},
+				ExecutionPayload: testPayload(
+					blk.Body.ExecutionPayload.Timestamp+1,
+					st.EVMInflationWithdrawal(blk.GetSlot()+1),
+				),
 				Eth1Data: types.NewEth1Data(depRoot),
 				Deposits: []*types.Deposit{},
 			},

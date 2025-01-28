@@ -56,7 +56,11 @@ func NewSignedBeaconBlockFromSSZ(
 	block := &SignedBeaconBlock{}
 	switch forkVersion {
 	case version.Deneb, version.Deneb1:
-		return block, block.UnmarshalSSZ(bz)
+		if err := block.UnmarshalSSZ(bz); err != nil {
+			return block, err
+		}
+		block.Message.BbVersion = forkVersion
+		return block, nil
 	default:
 		// we return block here to appease nilaway
 		return block, errors.Wrap(

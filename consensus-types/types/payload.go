@@ -38,9 +38,6 @@ const ExecutionPayloadStaticSize uint32 = 528
 
 // ExecutionPayload represents the payload of an execution block.
 type ExecutionPayload struct {
-	// version is the version of the execution payload.
-	version uint32
-
 	// ParentHash is the hash of the parent block.
 	ParentHash common.ExecutionHash `json:"parentHash"`
 	// FeeRecipient is the address of the fee recipient.
@@ -75,6 +72,11 @@ type ExecutionPayload struct {
 	BlobGasUsed math.U64 `json:"blobGasUsed"`
 	// ExcessBlobGas is the amount of excess blob gas in the block.
 	ExcessBlobGas math.U64 `json:"excessBlobGas"`
+
+	// EpVersion is the version of the execution payload.
+	// EpVersion must be not serialized, but it's exported
+	// to allow unit tests using reflect on execution payload.
+	EpVersion uint32
 }
 
 /* -------------------------------------------------------------------------- */
@@ -459,13 +461,13 @@ func (p *ExecutionPayload) UnmarshalJSON(input []byte) error {
 // Empty returns an empty ExecutionPayload for the given fork version.
 func (p *ExecutionPayload) Empty(forkVersion uint32) *ExecutionPayload {
 	return &ExecutionPayload{
-		version: forkVersion,
+		EpVersion: forkVersion,
 	}
 }
 
 // Version returns the version of the ExecutionPayload.
 func (p *ExecutionPayload) Version() uint32 {
-	return p.version
+	return p.EpVersion
 }
 
 // IsNil checks if the ExecutionPayload is nil.
@@ -484,9 +486,7 @@ func (p *ExecutionPayload) GetParentHash() common.ExecutionHash {
 }
 
 // GetFeeRecipient returns the fee recipient address of the ExecutionPayload.
-func (
-	p *ExecutionPayload,
-) GetFeeRecipient() common.ExecutionAddress {
+func (p *ExecutionPayload) GetFeeRecipient() common.ExecutionAddress {
 	return p.FeeRecipient
 }
 
@@ -569,10 +569,9 @@ func (p *ExecutionPayload) GetExcessBlobGas() math.U64 {
 func (p *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 	txsRoot := p.GetTransactions().HashTreeRoot()
 
-	switch p.version {
+	switch p.EpVersion {
 	case version.Deneb, version.Deneb1:
 		return &ExecutionPayloadHeader{
-			version:          p.version,
 			ParentHash:       p.ParentHash,
 			FeeRecipient:     p.GetFeeRecipient(),
 			StateRoot:        p.GetStateRoot(),
@@ -590,6 +589,7 @@ func (p *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 			WithdrawalsRoot:  p.GetWithdrawals().HashTreeRoot(),
 			BlobGasUsed:      p.GetBlobGasUsed(),
 			ExcessBlobGas:    p.GetExcessBlobGas(),
+			EphVersion:       p.EpVersion,
 		}, nil
 	default:
 		return nil, errors.New("unknown fork version")

@@ -100,7 +100,7 @@ func TestBeaconBlock(t *testing.T) {
 
 	require.NotNil(t, block.Body)
 	require.Equal(t, math.U64(10), block.GetTimestamp())
-	require.Equal(t, version.Deneb, block.Version())
+	require.Equal(t, version.Deneb1, block.Version())
 	require.False(t, block.IsNil())
 
 	// Set a new state root and test the SetStateRoot and GetBody methods
@@ -129,6 +129,7 @@ func TestBeaconBlock_MarshalUnmarshalSSZ(t *testing.T) {
 	err = unmarshalledBlock.UnmarshalSSZ(sszBlock)
 	require.NoError(t, err)
 
+	unmarshalledBlock.BbVersion = block.Version()
 	require.Equal(t, block, unmarshalledBlock)
 }
 

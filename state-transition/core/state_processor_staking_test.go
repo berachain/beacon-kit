@@ -101,15 +101,10 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		t,
 		st,
 		&types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    10,
-				ExtraData:    []byte("testing"),
-				Transactions: [][]byte{},
-				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(constants.GenesisSlot + 1),
-				},
-				BaseFeePerGas: math.NewU256(0),
-			},
+			ExecutionPayload: testPayload(
+				10,
+				st.EVMInflationWithdrawal(constants.GenesisSlot+1),
+			),
 			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{blkDeposit},
 		},
@@ -152,15 +147,10 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		t,
 		st,
 		&types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    blk.Body.ExecutionPayload.Timestamp + 1,
-				ExtraData:    []byte("testing"),
-				Transactions: [][]byte{},
-				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(blk.GetSlot() + 1),
-				},
-				BaseFeePerGas: math.NewU256(0),
-			},
+			ExecutionPayload: testPayload(
+				blk.Body.ExecutionPayload.Timestamp+1,
+				st.EVMInflationWithdrawal(blk.GetSlot()+1),
+			),
 			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
@@ -240,15 +230,10 @@ func TestTransitionCreateValidator(t *testing.T) {
 		t,
 		st,
 		&types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    10,
-				ExtraData:    []byte("testing"),
-				Transactions: [][]byte{},
-				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(constants.GenesisSlot + 1),
-				},
-				BaseFeePerGas: math.NewU256(0),
-			},
+			ExecutionPayload: testPayload(
+				10,
+				st.EVMInflationWithdrawal(constants.GenesisSlot+1),
+			),
 			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{blkDeposit},
 		},
@@ -292,15 +277,10 @@ func TestTransitionCreateValidator(t *testing.T) {
 		t,
 		st,
 		&types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    blk.Body.ExecutionPayload.Timestamp + 1,
-				ExtraData:    []byte("testing"),
-				Transactions: [][]byte{},
-				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(blk.GetSlot() + 1),
-				},
-				BaseFeePerGas: math.NewU256(0),
-			},
+			ExecutionPayload: testPayload(
+				blk.Body.ExecutionPayload.Timestamp+1,
+				st.EVMInflationWithdrawal(blk.GetSlot()+1),
+			),
 			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
@@ -336,15 +316,10 @@ func TestTransitionCreateValidator(t *testing.T) {
 		t,
 		st,
 		&types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    blk1.Body.ExecutionPayload.Timestamp + 1,
-				ExtraData:    []byte("testing"),
-				Transactions: [][]byte{},
-				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(blk.GetSlot() + 1),
-				},
-				BaseFeePerGas: math.NewU256(0),
-			},
+			ExecutionPayload: testPayload(
+				blk.Body.ExecutionPayload.Timestamp+1,
+				st.EVMInflationWithdrawal(blk.GetSlot()+1),
+			),
 			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
@@ -429,27 +404,25 @@ func TestTransitionWithdrawals(t *testing.T) {
 	require.Equal(t, maxBalance+minBalance, val1Bal)
 
 	// Create test inputs.
+	withdrawals := []*engineprimitives.Withdrawal{
+		// The first withdrawal is always for EVM inflation.
+		st.EVMInflationWithdrawal(constants.GenesisSlot + 1),
+		// Partially withdraw validator 1 by minBalance.
+		{
+			Index:     0,
+			Validator: 1,
+			Amount:    minBalance,
+			Address:   address1,
+		},
+	}
 	blk := buildNextBlock(
 		t,
 		st,
 		&types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    10,
-				ExtraData:    []byte("testing"),
-				Transactions: [][]byte{},
-				Withdrawals: []*engineprimitives.Withdrawal{
-					// The first withdrawal is always for EVM inflation.
-					st.EVMInflationWithdrawal(constants.GenesisSlot + 1),
-					// Partially withdraw validator 1 by minBalance.
-					{
-						Index:     0,
-						Validator: 1,
-						Amount:    minBalance,
-						Address:   address1,
-					},
-				},
-				BaseFeePerGas: math.NewU256(0),
-			},
+			ExecutionPayload: testPayload(
+				10,
+				withdrawals...,
+			),
 			Eth1Data: types.NewEth1Data(genDeposits.HashTreeRoot()),
 			Deposits: []*types.Deposit{},
 		},
@@ -523,29 +496,24 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 
 	// Create test inputs.
 	depRoot := genDeposits.HashTreeRoot()
+	withdrawals := []*engineprimitives.Withdrawal{
+		// The first withdrawal is always for EVM inflation.
+		st.EVMInflationWithdrawal(constants.GenesisSlot + 1),
+		// Partially withdraw validator 0 by minBalance.
+		{
+			Index:     0,
+			Validator: 0,
+			Amount:    minBalance,
+			Address:   address0,
+		},
+	}
 	blk := buildNextBlock(
 		t,
 		st,
 		&types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    10,
-				ExtraData:    []byte("testing"),
-				Transactions: [][]byte{},
-				Withdrawals: []*engineprimitives.Withdrawal{
-					// The first withdrawal is always for EVM inflation.
-					st.EVMInflationWithdrawal(constants.GenesisSlot + 1),
-					// Partially withdraw validator 0 by minBalance.
-					{
-						Index:     0,
-						Validator: 0,
-						Amount:    minBalance,
-						Address:   address0,
-					},
-				},
-				BaseFeePerGas: math.NewU256(0),
-			},
-			Eth1Data: types.NewEth1Data(depRoot),
-			Deposits: []*types.Deposit{},
+			ExecutionPayload: testPayload(10, withdrawals...),
+			Eth1Data:         types.NewEth1Data(depRoot),
+			Deposits:         []*types.Deposit{},
 		},
 	)
 
@@ -569,27 +537,26 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	// Process the next block, ensuring that validator 1 is also withdrawn from,
 	// also ensuring that the state's next withdrawal (validator) index is
 	// appropriately incremented.
+
+	withdrawals = []*engineprimitives.Withdrawal{
+		// The first withdrawal is always for EVM inflation.
+		st.EVMInflationWithdrawal(blk.GetSlot() + 1),
+		// Partially withdraw validator 1 by minBalance.
+		{
+			Index:     1,
+			Validator: 1,
+			Amount:    minBalance,
+			Address:   address1,
+		},
+	}
 	blk = buildNextBlock(
 		t,
 		st,
 		&types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    11,
-				ExtraData:    []byte("testing"),
-				Transactions: [][]byte{},
-				Withdrawals: []*engineprimitives.Withdrawal{
-					// The first withdrawal is always for EVM inflation.
-					st.EVMInflationWithdrawal(blk.GetSlot() + 1),
-					// Partially withdraw validator 1 by minBalance.
-					{
-						Index:     1,
-						Validator: 1,
-						Amount:    minBalance,
-						Address:   address1,
-					},
-				},
-				BaseFeePerGas: math.NewU256(0),
-			},
+			ExecutionPayload: testPayload(
+				blk.Body.ExecutionPayload.Timestamp+1,
+				withdrawals...,
+			),
 			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
@@ -675,15 +642,10 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		t,
 		st,
 		&types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    10,
-				ExtraData:    []byte("testing"),
-				Transactions: [][]byte{},
-				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(constants.GenesisSlot + 1),
-				},
-				BaseFeePerGas: math.NewU256(0),
-			},
+			ExecutionPayload: testPayload(
+				10,
+				st.EVMInflationWithdrawal(constants.GenesisSlot+1),
+			),
 			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{extraValDeposit},
 		},
@@ -720,22 +682,17 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 
 	// STEP 2: move the chain to the next epoch and show that
 	// the extra validator is eligible for activation
-	_ = moveToEndOfEpoch(t, blk1, cs, sp, st, ctx, depRoot)
+	blk := moveToEndOfEpoch(t, blk1, cs, sp, st, ctx, depRoot)
 
 	// finally the block turning epoch
-	blk := buildNextBlock(
+	blk = buildNextBlock(
 		t,
 		st,
 		&types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    blk1.Body.ExecutionPayload.Timestamp + 1,
-				ExtraData:    []byte("testing"),
-				Transactions: [][]byte{},
-				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(blk1.GetSlot()),
-				},
-				BaseFeePerGas: math.NewU256(0),
-			},
+			ExecutionPayload: testPayload(
+				blk.Body.ExecutionPayload.Timestamp+1,
+				st.EVMInflationWithdrawal(blk.GetSlot()),
+			),
 			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
@@ -764,22 +721,17 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 
 	// STEP 3: move the chain to the next epoch and show that the extra
 	// validator is activate and immediately marked for exit
-	_ = moveToEndOfEpoch(t, blk, cs, sp, st, ctx, depRoot)
+	blk = moveToEndOfEpoch(t, blk, cs, sp, st, ctx, depRoot)
 
 	// finally the block turning epoch
 	blk = buildNextBlock(
 		t,
 		st,
 		&types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    blk1.Body.ExecutionPayload.Timestamp + 1,
-				ExtraData:    []byte("testing"),
-				Transactions: [][]byte{},
-				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(blk.GetSlot() + 1),
-				},
-				BaseFeePerGas: math.NewU256(0),
-			},
+			ExecutionPayload: testPayload(
+				blk.Body.ExecutionPayload.Timestamp+1,
+				st.EVMInflationWithdrawal(blk.GetSlot()+1),
+			),
 			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
@@ -799,7 +751,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 
 	// STEP 4: move the chain to the next epoch and show withdrawals
 	// for rejected validator are enqueued then
-	_ = moveToEndOfEpoch(t, blk, cs, sp, st, ctx, depRoot)
+	blk = moveToEndOfEpoch(t, blk, cs, sp, st, ctx, depRoot)
 
 	// finally the block turning epoch. extra validator deposits
 	// will be withdrawn within 3 blocks (#Validator / MaxValidatorsPerWithdrawalsSweep)
@@ -809,15 +761,10 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		t,
 		st,
 		&types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    blk1.Body.ExecutionPayload.Timestamp + 1,
-				ExtraData:    []byte("testing"),
-				Transactions: [][]byte{},
-				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(blk.GetSlot() + 1),
-				},
-				BaseFeePerGas: math.NewU256(0),
-			},
+			ExecutionPayload: testPayload(
+				blk.Body.ExecutionPayload.Timestamp+1,
+				st.EVMInflationWithdrawal(blk.GetSlot()+1),
+			),
 			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
@@ -829,15 +776,10 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		t,
 		st,
 		&types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    blk.Body.ExecutionPayload.Timestamp + 1,
-				ExtraData:    []byte("testing"),
-				Transactions: [][]byte{},
-				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(blk.GetSlot() + 1),
-				},
-				BaseFeePerGas: math.NewU256(0),
-			},
+			ExecutionPayload: testPayload(
+				blk.Body.ExecutionPayload.Timestamp+1,
+				st.EVMInflationWithdrawal(blk.GetSlot()+1),
+			),
 			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
@@ -845,25 +787,23 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	_, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
 
+	withdrawals := []*engineprimitives.Withdrawal{
+		st.EVMInflationWithdrawal(blk.GetSlot() + 1),
+		{
+			Index:     0,
+			Validator: extraValIdx,
+			Address:   extraValAddr,
+			Amount:    extraValDeposit.Amount,
+		},
+	}
 	blk = buildNextBlock(
 		t,
 		st,
 		&types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    blk.Body.ExecutionPayload.Timestamp + 1,
-				ExtraData:    []byte("testing"),
-				Transactions: [][]byte{},
-				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(blk.GetSlot() + 1),
-					{
-						Index:     0,
-						Validator: extraValIdx,
-						Address:   extraValAddr,
-						Amount:    extraValDeposit.Amount,
-					},
-				},
-				BaseFeePerGas: math.NewU256(0),
-			},
+			ExecutionPayload: testPayload(
+				blk.Body.ExecutionPayload.Timestamp+1,
+				withdrawals...,
+			),
 			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
@@ -944,15 +884,10 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		t,
 		st,
 		&types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    10,
-				ExtraData:    []byte("testing"),
-				Transactions: [][]byte{},
-				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(constants.GenesisSlot + 1),
-				},
-				BaseFeePerGas: math.NewU256(0),
-			},
+			ExecutionPayload: testPayload(
+				10,
+				st.EVMInflationWithdrawal(constants.GenesisSlot+1),
+			),
 			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{extraValDeposit},
 		},
@@ -1006,22 +941,17 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 
 	// STEP 2: move the chain to the next epoch and show that
 	// the extra validator is eligible for activation
-	_ = moveToEndOfEpoch(t, blk1, cs, sp, st, ctx, depRoot)
+	blk := moveToEndOfEpoch(t, blk1, cs, sp, st, ctx, depRoot)
 
 	// finally the block turning epoch
-	blk := buildNextBlock(
+	blk = buildNextBlock(
 		t,
 		st,
 		&types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    blk1.Body.ExecutionPayload.Timestamp + 1,
-				ExtraData:    []byte("testing"),
-				Transactions: [][]byte{},
-				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(blk1.GetSlot()),
-				},
-				BaseFeePerGas: math.NewU256(0),
-			},
+			ExecutionPayload: testPayload(
+				blk.Body.ExecutionPayload.Timestamp+1,
+				st.EVMInflationWithdrawal(blk.GetSlot()),
+			),
 			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
@@ -1065,22 +995,17 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 
 	// STEP 3: move the chain to the next epoch and show that the extra
 	// validator is activate and genesis validator immediately marked for exit
-	_ = moveToEndOfEpoch(t, blk, cs, sp, st, ctx, depRoot)
+	blk = moveToEndOfEpoch(t, blk, cs, sp, st, ctx, depRoot)
 
 	// finally the block turning epoch
 	blk = buildNextBlock(
 		t,
 		st,
 		&types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    blk1.Body.ExecutionPayload.Timestamp + 1,
-				ExtraData:    []byte("testing"),
-				Transactions: [][]byte{},
-				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(blk.GetSlot() + 1),
-				},
-				BaseFeePerGas: math.NewU256(0),
-			},
+			ExecutionPayload: testPayload(
+				blk.Body.ExecutionPayload.Timestamp+1,
+				st.EVMInflationWithdrawal(blk.GetSlot()),
+			),
 			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
@@ -1139,15 +1064,10 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		t,
 		st,
 		&types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    blk1.Body.ExecutionPayload.Timestamp + 1,
-				ExtraData:    []byte("testing"),
-				Transactions: [][]byte{},
-				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(blk.GetSlot() + 1),
-				},
-				BaseFeePerGas: math.NewU256(0),
-			},
+			ExecutionPayload: testPayload(
+				blk.Body.ExecutionPayload.Timestamp+1,
+				st.EVMInflationWithdrawal(blk.GetSlot()),
+			),
 			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
@@ -1159,15 +1079,10 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		t,
 		st,
 		&types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    blk1.Body.ExecutionPayload.Timestamp + 1,
-				ExtraData:    []byte("testing"),
-				Transactions: [][]byte{},
-				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(blk.GetSlot() + 1),
-				},
-				BaseFeePerGas: math.NewU256(0),
-			},
+			ExecutionPayload: testPayload(
+				blk.Body.ExecutionPayload.Timestamp+1,
+				st.EVMInflationWithdrawal(blk.GetSlot()),
+			),
 			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
@@ -1175,25 +1090,23 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	_, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
 
+	withdrawals := []*engineprimitives.Withdrawal{
+		st.EVMInflationWithdrawal(blk.GetSlot() + 1),
+		{
+			Index:     0,
+			Validator: smallestValIdx,
+			Address:   valToEvictAddr,
+			Amount:    valToEvict.Amount,
+		},
+	}
 	blk = buildNextBlock(
 		t,
 		st,
 		&types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    blk1.Body.ExecutionPayload.Timestamp + 1,
-				ExtraData:    []byte("testing"),
-				Transactions: [][]byte{},
-				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(blk.GetSlot() + 1),
-					{
-						Index:     0,
-						Validator: smallestValIdx,
-						Address:   valToEvictAddr,
-						Amount:    valToEvict.Amount,
-					},
-				},
-				BaseFeePerGas: math.NewU256(0),
-			},
+			ExecutionPayload: testPayload(
+				blk.Body.ExecutionPayload.Timestamp+1,
+				withdrawals...,
+			),
 			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
 		},
@@ -1249,15 +1162,10 @@ func TestValidatorNotWithdrawable(t *testing.T) {
 		t,
 		st,
 		&types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    10,
-				ExtraData:    []byte("testing"),
-				Transactions: [][]byte{},
-				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(constants.GenesisSlot + 1),
-				},
-				BaseFeePerGas: math.NewU256(0),
-			},
+			ExecutionPayload: testPayload(
+				10,
+				st.EVMInflationWithdrawal(constants.GenesisSlot+1),
+			),
 			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: blockDeposits,
 		},

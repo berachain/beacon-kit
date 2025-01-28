@@ -28,7 +28,6 @@ import (
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/version"
 	cmtcrypto "github.com/cometbft/cometbft/crypto"
 	"github.com/cometbft/cometbft/crypto/bls12381"
 	"github.com/cometbft/cometbft/privval"
@@ -92,7 +91,7 @@ func TestNewSignedBeaconBlockFromSSZ(t *testing.T) {
 	require.NotNil(t, blockBytes)
 
 	newBlock, err := types.NewSignedBeaconBlockFromSSZ(
-		blockBytes, version.Deneb,
+		blockBytes, originalBlock.Message.Version(),
 	)
 	require.NoError(t, err)
 	require.NotNil(t, newBlock)

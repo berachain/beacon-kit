@@ -36,16 +36,19 @@ import (
 )
 
 func generateExecutionPayload() *types.ExecutionPayload {
-	transactions := make([][]byte, 1)
-	transactions[0] = []byte{0x07}
-	withdrawals := make(engineprimitives.Withdrawals, 1)
-	withdrawals[0] = &engineprimitives.Withdrawal{
-		Index:     0,
-		Validator: 0,
-		Address:   common.ExecutionAddress{},
-		Amount:    0,
-	}
-	return &types.ExecutionPayload{
+	var (
+		transactions = [][]byte{{0x07}}
+		withdrawals  = []*engineprimitives.Withdrawal{
+			{
+				Index:     0,
+				Validator: 0,
+				Address:   common.ExecutionAddress{},
+				Amount:    0,
+			},
+		}
+	)
+
+	ep := &types.ExecutionPayload{
 		ParentHash:    common.ExecutionHash{},
 		FeeRecipient:  common.ExecutionAddress{},
 		StateRoot:     bytes.B32{},
@@ -63,8 +66,11 @@ func generateExecutionPayload() *types.ExecutionPayload {
 		Withdrawals:   withdrawals,
 		BlobGasUsed:   math.U64(0),
 		ExcessBlobGas: math.U64(0),
+		EpVersion:     version.Deneb1,
 	}
+	return ep
 }
+
 func TestExecutionPayload_Serialization(t *testing.T) {
 	original := generateExecutionPayload()
 
@@ -76,6 +82,7 @@ func TestExecutionPayload_Serialization(t *testing.T) {
 	err = unmarshalled.UnmarshalSSZ(data)
 	require.NoError(t, err)
 
+	unmarshalled.EpVersion = original.Version()
 	require.Equal(t, original, &unmarshalled)
 
 	var buf []byte
@@ -157,6 +164,8 @@ func TestExecutionPayload_MarshalJSON(t *testing.T) {
 	var unmarshalled types.ExecutionPayload
 	err = unmarshalled.UnmarshalJSON(data)
 	require.NoError(t, err)
+
+	unmarshalled.EpVersion = payload.Version()
 	require.Equal(t, payload, &unmarshalled)
 }
 
@@ -189,7 +198,7 @@ func TestExecutionPayload_IsBlinded(t *testing.T) {
 
 func TestExecutionPayload_Version(t *testing.T) {
 	payload := generateExecutionPayload()
-	require.Equal(t, version.Deneb, payload.Version())
+	require.Equal(t, version.Deneb1, payload.Version())
 }
 
 func TestExecutionPayload_ToHeader(t *testing.T) {
@@ -211,6 +220,7 @@ func TestExecutionPayload_ToHeader(t *testing.T) {
 		Withdrawals:   engineprimitives.Withdrawals{},
 		BlobGasUsed:   math.U64(0),
 		ExcessBlobGas: math.U64(0),
+		EpVersion:     version.Deneb1,
 	}
 
 	header, err := payload.ToHeader()

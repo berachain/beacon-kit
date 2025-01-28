@@ -34,9 +34,6 @@ import (
 
 // ExecutionPayloadHeader is the execution header payload of Deneb.
 type ExecutionPayloadHeader struct {
-	// version is the fork version of the execution payload header.
-	version uint32
-
 	// Contents
 	//
 	// ParentHash is the hash of the parent block.
@@ -73,13 +70,18 @@ type ExecutionPayloadHeader struct {
 	BlobGasUsed math.U64 `json:"blobGasUsed"`
 	// ExcessBlobGas is the amount of excess blob gas in the block.
 	ExcessBlobGas math.U64 `json:"excessBlobGas"`
+
+	// EphVersion is the fork EphVersion of the execution payload header.
+	// EphVersion must be not serialized but it's exported
+	// to allow unit tests using reflect on execution payload header.
+	EphVersion uint32
 }
 
 // Empty returns an empty ExecutionPayloadHeader.
 func (h *ExecutionPayloadHeader) Empty() *ExecutionPayloadHeader {
 	return &ExecutionPayloadHeader{
 		// By default, we set the version to Deneb to maintain compatibility.
-		version:       version.Deneb,
+		EphVersion:    version.Deneb,
 		BaseFeePerGas: &uint256.Int{},
 	}
 }
@@ -89,7 +91,7 @@ func (h *ExecutionPayloadHeader) NewFromSSZ(
 	bz []byte, forkVersion uint32,
 ) (*ExecutionPayloadHeader, error) {
 	h = h.Empty()
-	h.version = forkVersion
+	h.EphVersion = forkVersion
 	return h, h.UnmarshalSSZ(bz)
 }
 
@@ -98,7 +100,7 @@ func (h *ExecutionPayloadHeader) NewFromJSON(
 	bz []byte, forkVersion uint32,
 ) (*ExecutionPayloadHeader, error) {
 	h = h.Empty()
-	h.version = forkVersion
+	h.EphVersion = forkVersion
 	return h, json.Unmarshal(bz, h)
 }
 
@@ -447,7 +449,7 @@ func (h *ExecutionPayloadHeader) UnmarshalJSON(input []byte) error {
 
 // Version returns the version of the ExecutionPayloadHeader.
 func (h *ExecutionPayloadHeader) Version() uint32 {
-	return h.version
+	return h.EphVersion
 }
 
 // IsNil checks if the ExecutionPayloadHeader is nil.
