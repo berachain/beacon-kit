@@ -36,6 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/math/log"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -84,39 +85,47 @@ func TestSidecarMarshalling(t *testing.T) {
 	)
 }
 
-func generateValidBeaconBlock() *ctypes.BeaconBlock {
+func generateValidBeaconBlock(t *testing.T) *ctypes.BeaconBlock {
+	t.Helper()
+
 	// Initialize your block here
-	beaconBlock := &ctypes.BeaconBlock{
-		Slot:          10,
-		ProposerIndex: 5,
-		ParentRoot:    common.Root{1, 2, 3, 4, 5},
-		StateRoot:     common.Root{5, 4, 3, 2, 1},
-		Body: &ctypes.BeaconBlockBody{
-			ExecutionPayload: &ctypes.ExecutionPayload{
-				Timestamp: 10,
-				ExtraData: []byte("dummy extra data for testing"),
-				Transactions: [][]byte{
-					[]byte("tx1"),
-					[]byte("tx2"),
-					[]byte("tx3"),
-				},
-				Withdrawals: engineprimitives.Withdrawals{
-					{Index: 0, Amount: 100},
-					{Index: 1, Amount: 200},
-				},
-				BaseFeePerGas: math.NewU256(0),
+	version := version.Deneb1
+	beaconBlock, err := ctypes.NewBeaconBlockWithVersion(
+		math.Slot(10),
+		math.ValidatorIndex(5),
+		common.Root{1, 2, 3, 4, 5}, // parent root
+		version,
+	)
+	require.NoError(t, err)
+
+	beaconBlock.StateRoot = common.Root{5, 4, 3, 2, 1}
+	beaconBlock.Body = &ctypes.BeaconBlockBody{
+		ExecutionPayload: &ctypes.ExecutionPayload{
+			Timestamp: 10,
+			ExtraData: []byte("dummy extra data for testing"),
+			Transactions: [][]byte{
+				[]byte("tx1"),
+				[]byte("tx2"),
+				[]byte("tx3"),
 			},
-			Eth1Data: &ctypes.Eth1Data{},
-			Deposits: []*ctypes.Deposit{
-				{
-					Index: 1,
-				},
+			Withdrawals: engineprimitives.Withdrawals{
+				{Index: 0, Amount: 100},
+				{Index: 1, Amount: 200},
 			},
-			BlobKzgCommitments: []eip4844.KZGCommitment{
-				{0xab, 0xab, 0xab, 0xab, 0xab, 0xab, 0xab, 0xab}, {2}, {0x69},
+			BaseFeePerGas: math.NewU256(0),
+			EpVersion:     version,
+		},
+		Eth1Data: &ctypes.Eth1Data{},
+		Deposits: []*ctypes.Deposit{
+			{
+				Index: 1,
 			},
 		},
+		BlobKzgCommitments: []eip4844.KZGCommitment{
+			{0xab, 0xab, 0xab, 0xab, 0xab, 0xab, 0xab, 0xab}, {2}, {0x69},
+		},
 	}
+
 	body := beaconBlock.GetBody()
 	body.SetProposerSlashings(ctypes.ProposerSlashings{})
 	body.SetAttesterSlashings(ctypes.AttesterSlashings{})
@@ -189,7 +198,7 @@ func TestHasValidInclusionProof(t *testing.T) {
 			name: "Valid inclusion proof",
 			sidecars: func(t *testing.T) types.BlobSidecars {
 				t.Helper()
-				block := generateValidBeaconBlock()
+				block := generateValidBeaconBlock(t)
 
 				sidecarFactory := blob.NewSidecarFactory(spec, sink)
 				numBlobs := len(block.GetBody().GetBlobKzgCommitments())

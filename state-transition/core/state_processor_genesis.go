@@ -65,6 +65,7 @@ func (sp *StateProcessor[_]) InitializePreminedBeaconStateFromEth1(
 		Eth1Data: &ctypes.Eth1Data{},
 		ExecutionPayload: &ctypes.ExecutionPayload{
 			ExtraData: make([]byte, ctypes.ExtraDataSize),
+			EpVersion: constants.GenesisVersion,
 		},
 	}
 

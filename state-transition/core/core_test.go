@@ -35,6 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	"github.com/berachain/beacon-kit/primitives/version"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	"github.com/stretchr/testify/require"
 )
@@ -87,13 +88,15 @@ func buildNextBlock(
 	parentBlkHeader.SetStateRoot(root)
 
 	// finally build the block
-	return &types.BeaconBlock{
-		Slot:          parentBlkHeader.GetSlot() + 1,
-		ProposerIndex: parentBlkHeader.GetProposerIndex(),
-		ParentRoot:    parentBlkHeader.HashTreeRoot(),
-		StateRoot:     common.Root{},
-		Body:          nextBlkBody,
-	}
+	blk, err := types.NewBeaconBlockWithVersion(
+		parentBlkHeader.GetSlot()+1,
+		parentBlkHeader.GetProposerIndex(),
+		parentBlkHeader.HashTreeRoot(),
+		version.Deneb1,
+	)
+	require.NoError(t, err)
+	blk.Body = nextBlkBody
+	return blk
 }
 
 func generateTestExecutionAddress(
@@ -122,6 +125,18 @@ func generateTestPK(t *testing.T, rndSeed int) (bytes.B48, int) {
 	return key, rndSeed
 }
 
+func testPayload(timestamp math.U64, withdrawals ...*engineprimitives.Withdrawal) *types.ExecutionPayload {
+	payload := &types.ExecutionPayload{
+		Timestamp:     timestamp,
+		ExtraData:     []byte("testing"),
+		Transactions:  [][]byte{},
+		Withdrawals:   withdrawals,
+		BaseFeePerGas: math.NewU256(0),
+		EpVersion:     version.Deneb1,
+	}
+	return payload
+}
+
 func moveToEndOfEpoch(
 	t *testing.T,
 	tip *types.BeaconBlock,
@@ -139,6 +154,7 @@ func moveToEndOfEpoch(
 			t,
 			st,
 			&types.BeaconBlockBody{
+<<<<<<< HEAD
 				ExecutionPayload: &types.ExecutionPayload{
 					Timestamp:    blk.Body.ExecutionPayload.Timestamp + 1,
 					ExtraData:    []byte("testing"),
@@ -148,6 +164,12 @@ func moveToEndOfEpoch(
 					},
 					BaseFeePerGas: math.NewU256(0),
 				},
+=======
+				ExecutionPayload: testPayload(
+					blk.Body.ExecutionPayload.Timestamp+1,
+					st.EVMInflationWithdrawal(blk.GetSlot()+1),
+				),
+>>>>>>> d2f518bf51c017aebff3ac3287c4ad5ff748c71a
 				Eth1Data: types.NewEth1Data(depRoot),
 				Deposits: []*types.Deposit{},
 			},

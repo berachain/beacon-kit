@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
@@ -93,15 +92,10 @@ func TestInvalidDeposits(t *testing.T) {
 		t,
 		st,
 		&types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    10,
-				ExtraData:    []byte("testing"),
-				Transactions: [][]byte{},
-				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(constants.GenesisSlot + 1),
-				},
-				BaseFeePerGas: math.NewU256(0),
-			},
+			ExecutionPayload: testPayload(
+				10,
+				st.EVMInflationWithdrawal(constants.GenesisSlot+1),
+			),
 			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{invalidDeposit},
 		},
@@ -166,15 +160,10 @@ func TestInvalidDepositsCount(t *testing.T) {
 		t,
 		st,
 		&types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    10,
-				ExtraData:    []byte("testing"),
-				Transactions: [][]byte{},
-				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(constants.GenesisSlot + 1),
-				},
-				BaseFeePerGas: math.NewU256(0),
-			},
+			ExecutionPayload: testPayload(
+				10,
+				st.EVMInflationWithdrawal(constants.GenesisSlot+1),
+			),
 			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: correctDeposits,
 		},
@@ -236,15 +225,10 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 		t,
 		st,
 		&types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    10,
-				ExtraData:    []byte("testing"),
-				Transactions: [][]byte{},
-				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(constants.GenesisSlot + 1),
-				},
-				BaseFeePerGas: math.NewU256(0),
-			},
+			ExecutionPayload: testPayload(
+				10,
+				st.EVMInflationWithdrawal(constants.GenesisSlot+1),
+			),
 			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: blockDeposits,
 		},
@@ -320,15 +304,10 @@ func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
 		t,
 		st,
 		&types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    10,
-				ExtraData:    []byte("testing"),
-				Transactions: [][]byte{},
-				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(constants.GenesisSlot + 1),
-				},
-				BaseFeePerGas: math.NewU256(0),
-			},
+			ExecutionPayload: testPayload(
+				10,
+				st.EVMInflationWithdrawal(constants.GenesisSlot+1),
+			),
 			Eth1Data: types.NewEth1Data(badDepRoot),
 			Deposits: blockDeposits,
 		},
