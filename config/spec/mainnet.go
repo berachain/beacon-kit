@@ -74,7 +74,7 @@ const (
 	mainnetDepositContractAddress = defaultDepositContractAddress
 
 	// mainnetDeneb1ForkEpoch is the epoch at which the Deneb1 fork occurs.
-	mainnetDeneb1ForkEpoch = 2855
+	mainnetDeneb1ForkEpoch = 4
 
 	// mainnetEVMInflationAddressDeneb1 is the address on the EVM which will receive the
 	// inflation amount of native EVM balance through a withdrawal every block in the Deneb1 fork.
