@@ -40,47 +40,47 @@ const (
 	// block when BGT begins to be minted.
 	mainnetEVMInflationPerBlock = defaultEVMInflationPerBlock
 
-	// MainnetValidatorSetCap is 69 on Mainnet at genesis.
+	// mainnetValidatorSetCap is 69 on Mainnet at genesis.
 	mainnetValidatorSetCap = 69
 
-	// MaxValidatorsPerWithdrawalsSweep is 31 because we expect at least 36
+	// mainnetMaxValidatorsPerWithdrawalsSweep is 31 because we expect at least 36
 	// validators in the total validators set. We choose a prime number smaller
 	// than the minimum amount of total validators possible.
 	mainnetMaxValidatorsPerWithdrawalsSweep = 31
 
-	// MainnetMaxEffectiveBalance is the max stake of 10 million BERA at genesis.
+	// mainnetMaxEffectiveBalance is the max stake of 10 million BERA at genesis.
 	mainnetMaxEffectiveBalance = 10_000_000 * math.GweiPerWei
 
-	// MainnetEffectiveBalanceIncrement is 10k BERA at genesis
+	// mainnetEffectiveBalanceIncrement is 10k BERA at genesis
 	// (equivalent to the Deposit Contract's MIN_DEPOSIT_AMOUNT).
 	mainnetEffectiveBalanceIncrement = 10_000 * math.GweiPerWei
 
-	// MainnetEjectionBalance is 240k BERA, calculated as:
+	// mainnetEjectionBalance is 240k BERA, calculated as:
 	// activation_balance - effective_balance_increment = 250k - 10k = 240k BERA.
 	// Activation balance is the min stake of 250k BERA at genesis.
 	mainnetEjectionBalance = 250_000*math.GweiPerWei - mainnetEffectiveBalanceIncrement
 
-	// Slots per epoch is 192 to mirror the time of epochs on Ethereum mainnet.
+	// mainnetSlotsPerEpoch is 192 to mirror the time of epochs on Ethereum mainnet.
 	mainnetSlotsPerEpoch = 192
 
-	// MainnetMinEpochsForBlobsSidecarsRequest is 4096 at genesis to match Ethereum mainnet.
+	// mainnetMinEpochsForBlobsSidecarsRequest is 4096 at genesis to match Ethereum mainnet.
 	mainnetMinEpochsForBlobsSidecarsRequest = defaultMinEpochsForBlobsSidecarsRequest
 
-	// MainnetMaxBlobCommitmentsPerBlock is 4096 at genesis to match Ethereum mainnet.
+	// mainnetMaxBlobCommitmentsPerBlock is 4096 at genesis to match Ethereum mainnet.
 	mainnetMaxBlobCommitmentsPerBlock = defaultMaxBlobCommitmentsPerBlock
 
 	// The deposit contract address on mainnet at genesis is the same as the
 	// default deposit contract address.
 	mainnetDepositContractAddress = defaultDepositContractAddress
 
-	// MainnetDeneb1ForkEpoch is the epoch at which the Deneb1 fork occurs.
+	// mainnetDeneb1ForkEpoch is the epoch at which the Deneb1 fork occurs.
 	mainnetDeneb1ForkEpoch = 2855
 
-	// MainnetEVMInflationAddressDeneb1 is the address on the EVM which will receive the
+	// mainnetEVMInflationAddressDeneb1 is the address on the EVM which will receive the
 	// inflation amount of native EVM balance through a withdrawal every block in the Deneb1 fork.
 	mainnetEVMInflationAddressDeneb1 = "0x656b95E550C07a9ffe548bd4085c72418Ceb1dba"
 
-	// MainnetEVMInflationPerBlockDeneb1 is the amount of native EVM balance (in Gwei) to be
+	// mainnetEVMInflationPerBlockDeneb1 is the amount of native EVM balance (in Gwei) to be
 	// minted to the EVMInflationAddressDeneb1 via a withdrawal every block in the Deneb1 fork.
 	mainnetEVMInflationPerBlockDeneb1 = 5.75 * math.GweiPerWei
 )
