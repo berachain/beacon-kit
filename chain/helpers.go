@@ -21,6 +21,8 @@
 package chain
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -50,9 +52,9 @@ func (s spec) SlotInForkVersion(ver common.Version) math.Slot {
 	case version.Deneb1:
 		return s.epochToSlot(s.Deneb1ForkEpoch())
 	case version.Deneb:
-		fallthrough
-	default:
 		return constants.GenesisSlot
+	default:
+		panic(fmt.Sprintf("unknown fork version: %s", ver))
 	}
 }
 
