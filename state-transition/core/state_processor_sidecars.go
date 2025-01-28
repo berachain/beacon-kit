@@ -37,10 +37,8 @@ func (sp *StateProcessor[_]) GetSignatureVerifierFn(st *statedb.StateDB) (
 	}
 
 	return func(blk *ctypes.BeaconBlock, signature crypto.BLSSignature) error {
-		blockSlot := blk.GetSlot()
-		epoch := sp.cs.SlotToEpoch(blockSlot)
 		fd := ctypes.NewForkData(
-			bytes.FromUint32(sp.cs.ActiveForkVersionForEpoch(epoch)), genesisValidatorsRoot,
+			bytes.FromUint32(sp.cs.ActiveForkVersionForSlot(blk.GetSlot())), genesisValidatorsRoot,
 		)
 		domain := fd.ComputeDomain(sp.cs.DomainTypeProposer())
 
