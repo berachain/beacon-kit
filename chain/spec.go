@@ -114,7 +114,7 @@ type Spec interface {
 	// Deneb1ForkEpoch returns the epoch at which the Deneb1 fork takes effect.
 	Deneb1ForkEpoch() math.Epoch
 
-	// ElectraForkEpoch returns the epoch at which the Electra fork takes ffect.
+	// ElectraForkEpoch returns the epoch at which the Electra fork takes effect.
 	ElectraForkEpoch() math.Epoch
 
 	// State list lengths
