@@ -218,8 +218,8 @@ func (s *KurtosisE2ESuite) setupAccounts(network *NetworkInstance) error {
 
 	// Fund test accounts using the genesis account
 	for _, account := range network.testAccounts {
-		//nolint:mnd // 20000 ETH
-		amount, ok := new(big.Int).SetString("20000000000000000000000", 10)
+		//nolint:mnd // 60000 ETH
+		amount, ok := new(big.Int).SetString("60000000000000000000000", 10)
 		if !ok {
 			return errors.New("failed to parse amount")
 		}
