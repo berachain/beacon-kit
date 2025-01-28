@@ -94,6 +94,7 @@ func MainnetChainSpecData() *chain.SpecData {
 		DomainTypeProposer:          bytes.FromUint32(defaultDomainTypeProposer),
 		DomainTypeAttester:          bytes.FromUint32(defaultDomainTypeAttester),
 		DomainTypeRandao:            bytes.FromUint32(defaultDomainTypeRandao),
+		DomainTypeDeposit:           bytes.FromUint32(defaultDomainTypeDeposit),
 		DomainTypeVoluntaryExit:     bytes.FromUint32(defaultDomainTypeVoluntaryExit),
 		DomainTypeSelectionProof:    bytes.FromUint32(defaultDomainTypeSelectionProof),
 		DomainTypeAggregateAndProof: bytes.FromUint32(defaultDomainTypeAggregateAndProof),
