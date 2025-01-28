@@ -49,9 +49,10 @@ type BeaconBlock struct {
 }
 
 // Empty creates an empty beacon block.
-func (*BeaconBlock) Empty(forkVersion uint32) *BeaconBlock {
+func (*BeaconBlock) Empty() *BeaconBlock {
 	return &BeaconBlock{
-		version: forkVersion,
+		// By default, we return a Deneb block to maintain compatibility.
+		version: version.Deneb,
 	}
 }
 
