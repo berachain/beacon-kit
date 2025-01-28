@@ -35,18 +35,31 @@ const (
 
 	// MaxStakeAmount is the maximum amount of native EVM balance (in units
 	// of Gwei) that can be staked.
-	MaxStakeAmount = 4000e9
+	DevnetMaxStakeAmount = 4000e9
 )
 
-// DevnetChainSpec is the ChainSpec for the localnet. Also used for e2e tests
-// in the kurtosis network.
+// DevnetChainSpecData is the chain.SpecData for a devnet. It is similar to mainnet but
+// has different values for testing EVM inflation and staking.
+//
+// TODO: remove modifications from mainnet spec to align with mainnet behavior.
+func DevnetChainSpecData() *chain.SpecData {
+	specData := MainnetChainSpecData()
+	specData.DepositEth1ChainID = DevnetEth1ChainID
+
+	// EVM inflation is different from mainnet to test.
+	specData.EVMInflationAddress = common.NewExecutionAddressFromHex(DevnetEVMInflationAddress)
+	specData.EVMInflationPerBlock = DevnetEVMInflationPerBlock
+
+	// Staking is different from mainnet for now.
+	specData.MaxEffectiveBalance = DevnetMaxStakeAmount
+	specData.EjectionBalance = defaultEjectionBalance
+	specData.EffectiveBalanceIncrement = defaultEffectiveBalanceIncrement
+	specData.SlotsPerEpoch = defaultSlotsPerEpoch
+
+	return specData
+}
+
+// DevnetChainSpec is the chain.Spec for a devnet. Used by `make start` and unit tests.
 func DevnetChainSpec() (chain.Spec, error) {
-	devnetSpec := BaseSpec()
-	devnetSpec.DepositEth1ChainID = DevnetEth1ChainID
-	devnetSpec.EVMInflationAddress = common.NewExecutionAddressFromHex(
-		DevnetEVMInflationAddress,
-	)
-	devnetSpec.EVMInflationPerBlock = DevnetEVMInflationPerBlock
-	devnetSpec.MaxEffectiveBalance = MaxStakeAmount
-	return chain.NewSpec(devnetSpec)
+	return chain.NewSpec(DevnetChainSpecData())
 }

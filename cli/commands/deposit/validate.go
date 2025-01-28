@@ -25,11 +25,11 @@ import (
 	"github.com/berachain/beacon-kit/cli/utils/parser"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
+	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/spf13/cobra"
 )
 
@@ -121,7 +121,7 @@ func ValidateDeposit(
 	}
 
 	// All deposits are signed with the genesis version.
-	genesisVersion := version.FromUint32[common.Version](constants.GenesisVersion)
+	genesisVersion := bytes.FromUint32(constants.GenesisVersion)
 
 	return depositMessage.VerifyCreateValidator(
 		types.NewForkData(genesisVersion, genValRoot),

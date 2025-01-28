@@ -60,3 +60,16 @@ func SidecarFromConsensus(sc *datypes.BlobSidecar) *Sidecar {
 		KZGCommitmentInclusionProof: proofs,
 	}
 }
+
+func ValidatorFromConsensus(v *ctypes.Validator) *Validator {
+	return &Validator{
+		PublicKey:                  v.GetPubkey().String(),
+		WithdrawalCredentials:      v.GetWithdrawalCredentials().String(),
+		EffectiveBalance:           v.GetEffectiveBalance().Base10(),
+		Slashed:                    v.IsSlashed(),
+		ActivationEligibilityEpoch: v.GetActivationEligibilityEpoch().Base10(),
+		ActivationEpoch:            v.GetActivationEpoch().Base10(),
+		ExitEpoch:                  v.GetExitEpoch().Base10(),
+		WithdrawableEpoch:          v.GetWithdrawableEpoch().Base10(),
+	}
+}

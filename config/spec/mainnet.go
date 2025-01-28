@@ -22,60 +22,121 @@ package spec
 
 import (
 	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 )
 
-// MainnetChainSpec is the ChainSpec for the Berachain mainnet.
-//
-//nolint:mnd // okay to specify values here.
-func MainnetChainSpec() (chain.Spec, error) {
-	mainnetSpec := BaseSpec()
-
-	// Chain ID is 80094.
-	mainnetSpec.DepositEth1ChainID = MainnetEth1ChainID
-
-	// Target for block time is 2 seconds on Berachain mainnet.
-	mainnetSpec.TargetSecondsPerEth1Block = 2
-
+const (
 	// BGT contract address.
 	//
 	// A hard fork will occur to set this value as the BGT contract address
 	// when BGT beings to be minted.
-	mainnetSpec.EVMInflationAddress = common.ExecutionAddress{}
+	MainnetEVMInflationAddress = defaultEVMInflationAddress
 
 	// 0 BERA is minted to the BGT contract per block at genesis.
 	//
 	// A hard fork will occur to set this value as the upper bound of redeemable BGT per
 	// block when BGT begins to be minted.
-	mainnetSpec.EVMInflationPerBlock = 0
+	MainnetEVMInflationPerBlock = defaultEVMInflationPerBlock
 
-	// ValidatorSetCap is 69 on Mainnet for version Deneb at genesis.
-	mainnetSpec.ValidatorSetCap = 69
+	// MainnetValidatorSetCap is 69 on Mainnet at genesis.
+	MainnetValidatorSetCap = 69
 
 	// MaxValidatorsPerWithdrawalsSweep is 31 because we expect at least 36
 	// validators in the total validators set. We choose a prime number smaller
 	// than the minimum amount of total validators possible.
-	mainnetSpec.MaxValidatorsPerWithdrawalsSweep = 31
+	MainnetMaxValidatorsPerWithdrawalsSweep = 31
 
-	// MaxEffectiveBalance (or max stake) is 10 million BERA.
-	mainnetSpec.MaxEffectiveBalance = 10_000_000 * 1e9
+	// MainnetMaxEffectiveBalance is the max stake of 10 million BERA at genesis.
+	MainnetMaxEffectiveBalance = 10_000_000 * 1e9
 
-	// Effective balance increment is 10k BERA
+	// MainnetEffectiveBalanceIncrement is 10k BERA at genesis
 	// (equivalent to the Deposit Contract's MIN_DEPOSIT_AMOUNT).
-	mainnetSpec.EffectiveBalanceIncrement = 10_000 * 1e9
+	MainnetEffectiveBalanceIncrement = 10_000 * 1e9
 
-	// Since the activation balance (min stake) is 250k BERA, we set the ejection balance be
+	// MainnetEjectionBalance is 240k BERA, calculated as:
 	// activation_balance - effective_balance_increment = 250k - 10k = 240k BERA.
-	mainnetSpec.EjectionBalance = 250_000*1e9 - mainnetSpec.EffectiveBalanceIncrement
+	// Activation balance is the min stake of 250k BERA at genesis.
+	MainnetEjectionBalance = 250_000*1e9 - MainnetEffectiveBalanceIncrement
 
 	// Slots per epoch is 192 to mirror the time of epochs on Ethereum mainnet.
-	mainnetSpec.SlotsPerEpoch = 192
+	MainnetSlotsPerEpoch = 192
 
-	// MinEpochsForBlobsSidecarsRequest is 4096 to match Ethereum mainnet.
-	mainnetSpec.MinEpochsForBlobsSidecarsRequest = 4096
+	// MainnetMinEpochsForBlobsSidecarsRequest is 4096 at genesis to match Ethereum mainnet.
+	MainnetMinEpochsForBlobsSidecarsRequest = defaultMinEpochsForBlobsSidecarsRequest
 
-	// MaxBlobCommitmentsPerBlock is 4096 to match Ethereum mainnet.
-	mainnetSpec.MaxBlobCommitmentsPerBlock = 4096
+	// MainnetMaxBlobCommitmentsPerBlock is 4096 at genesis to match Ethereum mainnet.
+	MainnetMaxBlobCommitmentsPerBlock = defaultMaxBlobCommitmentsPerBlock
 
-	return chain.NewSpec(mainnetSpec)
+	// The deposit contract address on mainnet at genesis is the same as the
+	// default deposit contract address.
+	MainnetDepositContractAddress = defaultDepositContractAddress
+)
+
+// MainnetChainSpecData is the chain.SpecData for the Berachain mainnet.
+func MainnetChainSpecData() *chain.SpecData {
+	return &chain.SpecData{
+		// Gwei values constants.
+		MaxEffectiveBalance:       MainnetMaxEffectiveBalance,
+		EjectionBalance:           MainnetEjectionBalance,
+		EffectiveBalanceIncrement: MainnetEffectiveBalanceIncrement,
+
+		HysteresisQuotient:           defaultHysteresisQuotient,
+		HysteresisDownwardMultiplier: defaultHysteresisDownwardMultiplier,
+		HysteresisUpwardMultiplier:   defaultHysteresisUpwardMultiplier,
+
+		// Time parameters constants.
+		SlotsPerEpoch:                MainnetSlotsPerEpoch,
+		SlotsPerHistoricalRoot:       defaultSlotsPerHistoricalRoot,
+		MinEpochsToInactivityPenalty: defaultMinEpochsToInactivityPenalty,
+
+		// Signature domains.
+		DomainTypeProposer:          bytes.FromUint32(defaultDomainTypeProposer),
+		DomainTypeAttester:          bytes.FromUint32(defaultDomainTypeAttester),
+		DomainTypeRandao:            bytes.FromUint32(defaultDomainTypeRandao),
+		DomainTypeDeposit:           bytes.FromUint32(defaultDomainTypeDeposit),
+		DomainTypeVoluntaryExit:     bytes.FromUint32(defaultDomainTypeVoluntaryExit),
+		DomainTypeSelectionProof:    bytes.FromUint32(defaultDomainTypeSelectionProof),
+		DomainTypeAggregateAndProof: bytes.FromUint32(defaultDomainTypeAggregateAndProof),
+		DomainTypeApplicationMask:   bytes.FromUint32(defaultDomainTypeApplicationMask),
+
+		// Eth1-related values.
+		DepositContractAddress:    common.NewExecutionAddressFromHex(MainnetDepositContractAddress),
+		MaxDepositsPerBlock:       defaultMaxDepositsPerBlock,
+		DepositEth1ChainID:        MainnetEth1ChainID,
+		Eth1FollowDistance:        defaultEth1FollowDistance,
+		TargetSecondsPerEth1Block: defaultTargetSecondsPerEth1Block,
+
+		// Fork-related values.
+		Deneb1ForkEpoch:  defaultDeneb1ForkEpoch,
+		ElectraForkEpoch: defaultElectraForkEpoch,
+
+		// State list length constants.
+		EpochsPerHistoricalVector: defaultEpochsPerHistoricalVector,
+		EpochsPerSlashingsVector:  defaultEpochsPerSlashingsVector,
+		HistoricalRootsLimit:      defaultHistoricalRootsLimit,
+		ValidatorRegistryLimit:    defaultValidatorRegistryLimit,
+
+		// Capella values.
+		MaxWithdrawalsPerPayload:         defaultMaxWithdrawalsPerPayload,
+		MaxValidatorsPerWithdrawalsSweep: MainnetMaxValidatorsPerWithdrawalsSweep,
+
+		// Deneb values.
+		MinEpochsForBlobsSidecarsRequest: MainnetMinEpochsForBlobsSidecarsRequest,
+		MaxBlobCommitmentsPerBlock:       MainnetMaxBlobCommitmentsPerBlock,
+		MaxBlobsPerBlock:                 defaultMaxBlobsPerBlock,
+		FieldElementsPerBlob:             defaultFieldElementsPerBlob,
+		BytesPerBlob:                     defaultBytesPerBlob,
+		KZGCommitmentInclusionProofDepth: defaultKZGCommitmentInclusionProofDepth,
+
+		// Berachain values.
+		ValidatorSetCap:      MainnetValidatorSetCap,
+		EVMInflationAddress:  common.NewExecutionAddressFromHex(MainnetEVMInflationAddress),
+		EVMInflationPerBlock: MainnetEVMInflationPerBlock,
+	}
+}
+
+// MainnetChainSpec is the ChainSpec for the Berachain mainnet.
+func MainnetChainSpec() (chain.Spec, error) {
+	return chain.NewSpec(MainnetChainSpecData())
 }

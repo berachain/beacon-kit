@@ -18,13 +18,25 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package spec
+package version
 
-import "github.com/berachain/beacon-kit/chain"
-
-// BetnetChainSpec is the ChainSpec for the localnet.
-func BetnetChainSpec() (chain.Spec, error) {
-	testnetSpec := BaseSpec()
-	testnetSpec.DepositEth1ChainID = BetnetEth1ChainID
-	return chain.NewSpec(testnetSpec)
-}
+const (
+	// Phase0 is the first version of the Beacon Chain.
+	Phase0 uint32 = 0
+	// Altair is the first hardfork of the Beacon Chain.
+	Altair uint32 = 1
+	// Bellatrix is the second hardfork of the Beacon Chain.
+	Bellatrix uint32 = 2
+	// Capella is the third hardfork of the Beacon Chain.
+	Capella uint32 = 3
+	// Deneb is the first version of Deneb, used for genesis of Berachain mainnet.
+	Deneb uint32 = 4
+	// Deneb1 is the first hardfork of Deneb on Berachain mainnet (TBD if used).
+	// There may also be Deneb2, Deneb3, etc. hardforks.
+	Deneb1 uint32 = 260
+	// Electra is the first version of Electra on Berachain mainnet.
+	Electra uint32 = 5
+	// Electra1 is the first hardfork of Electra on Berachain mainnet (TBD if used).
+	// There may also be Electra2, Electra3, etc. hardforks.
+	Electra1 uint32 = 261
+)
