@@ -1064,8 +1064,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	)
 
 	// STEP 3: move the chain to the next epoch and show that the extra
-	// validator
-	// is activate and genesis validator immediately marked for exit
+	// validator is activate and genesis validator immediately marked for exit
 	_ = moveToEndOfEpoch(t, blk, cs, sp, st, ctx, depRoot)
 
 	// finally the block turning epoch
@@ -1127,7 +1126,8 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	require.Equal(t, constants.GenesisEpoch+3, smallestVal.WithdrawableEpoch)
 
 	// STEP 4: move the chain to the next epoch and show withdrawal
-	// for rejected validator is enqueued
+	// for rejected validator is enqueued within 3 blocks
+	// (#Validator / MaxValidatorsPerWithdrawalsSweep)
 	_ = moveToEndOfEpoch(t, blk, cs, sp, st, ctx, depRoot)
 
 	valToEvict := genDeposits[0]
@@ -1144,7 +1144,47 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				ExtraData:    []byte("testing"),
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(constants.GenesisSlot),
+					st.EVMInflationWithdrawal(blk.GetSlot()),
+				},
+				BaseFeePerGas: math.NewU256(0),
+			},
+			Eth1Data: types.NewEth1Data(depRoot),
+			Deposits: []*types.Deposit{},
+		},
+	)
+	_, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+
+	blk = buildNextBlock(
+		t,
+		st,
+		&types.BeaconBlockBody{
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:    blk1.Body.ExecutionPayload.Timestamp + 1,
+				ExtraData:    []byte("testing"),
+				Transactions: [][]byte{},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					st.EVMInflationWithdrawal(blk.GetSlot()),
+				},
+				BaseFeePerGas: math.NewU256(0),
+			},
+			Eth1Data: types.NewEth1Data(depRoot),
+			Deposits: []*types.Deposit{},
+		},
+	)
+	_, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+
+	blk = buildNextBlock(
+		t,
+		st,
+		&types.BeaconBlockBody{
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:    blk1.Body.ExecutionPayload.Timestamp + 1,
+				ExtraData:    []byte("testing"),
+				Transactions: [][]byte{},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					st.EVMInflationWithdrawal(blk.GetSlot()),
 					{
 						Index:     0,
 						Validator: smallestValIdx,
@@ -1158,8 +1198,6 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 			Deposits: []*types.Deposit{},
 		},
 	)
-
-	// run the test
 	_, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
 }
