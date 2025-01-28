@@ -47,12 +47,6 @@ func (sp *StateProcessor[_]) processWithdrawals(
 		payloadWithdrawals = payload.GetWithdrawals()
 	)
 
-	// Get the current slot.
-	slot, err := st.GetSlot()
-	if err != nil {
-		return err
-	}
-
 	// Get the expected withdrawals.
 	expectedWithdrawals, err := st.ExpectedWithdrawals()
 	if err != nil {
@@ -72,7 +66,7 @@ func (sp *StateProcessor[_]) processWithdrawals(
 	if len(payloadWithdrawals) == 0 {
 		return ErrZeroWithdrawals
 	}
-	if !payloadWithdrawals[0].Equals(st.EVMInflationWithdrawal(slot)) {
+	if !payloadWithdrawals[0].Equals(st.EVMInflationWithdrawal(blk.GetSlot())) {
 		return ErrFirstWithdrawalNotEVMInflation
 	}
 	numWithdrawals := len(expectedWithdrawals)
