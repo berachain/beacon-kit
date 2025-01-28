@@ -42,13 +42,18 @@ func (s *Client) NewPayload(
 	versionedHashes []common.ExecutionHash,
 	parentBlockRoot *common.Root,
 ) (*engineprimitives.PayloadStatusV1, error) {
-	if payload.Version() < version.Deneb {
-		return nil, ErrInvalidVersion
+	// This is wrong. We should do bytes comparison of versions
+	// Setting this to version.Deneb1 but we should fix version
+	// comparison and drop this check here. The EL does not know
+	// anything about CL versions, so payload should not have a
+	// CL version (or at least not a check here).
+	if payload.Version() == version.Deneb ||
+		payload.Version() == version.Deneb1 {
+		return s.NewPayloadV3(
+			ctx, payload, versionedHashes, parentBlockRoot,
+		)
 	}
-
-	return s.NewPayloadV3(
-		ctx, payload, versionedHashes, parentBlockRoot,
-	)
+	return nil, ErrInvalidVersion
 }
 
 // NewPayloadV3 is used to call the underlying JSON-RPC method for newPayload.

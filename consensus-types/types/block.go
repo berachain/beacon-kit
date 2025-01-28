@@ -41,14 +41,21 @@ type BeaconBlock struct {
 	ParentRoot common.Root `json:"parent_root"`
 	// StateRoot is the hash of the state at the block.
 	StateRoot common.Root `json:"state_root"`
-	// Body is the body of the BeaconBlock, containing the block's
-	// operations.
+	// Body is the body of the BeaconBlock, containing the block's operations.
 	Body *BeaconBlockBody `json:"body"`
+
+	// BbVersion is the BbVersion of the beacon block.
+	// BbVersion must be not serialized but it's exported
+	// to allow unit tests using reflect on beacon block.
+	BbVersion uint32 `json:"-"`
 }
 
 // Empty creates an empty beacon block.
 func (*BeaconBlock) Empty() *BeaconBlock {
-	return &BeaconBlock{}
+	return &BeaconBlock{
+		// By default, we set the version to Deneb to maintain backward-compatibility.
+		BbVersion: version.Deneb,
+	}
 }
 
 // NewBeaconBlockWithVersion assembles a new beacon block from the given.
@@ -66,6 +73,7 @@ func NewBeaconBlockWithVersion(
 			ParentRoot:    parentBlockRoot,
 			StateRoot:     common.Root{},
 			Body:          &BeaconBlockBody{},
+			BbVersion:     forkVersion,
 		}, nil
 	default:
 		// we return block here to appease nilaway
@@ -147,7 +155,7 @@ func (b *BeaconBlock) GetStateRoot() common.Root {
 
 // Version identifies the version of the BeaconBlock.
 func (b *BeaconBlock) Version() uint32 {
-	return version.Deneb
+	return b.BbVersion
 }
 
 // SetStateRoot sets the state root of the BeaconBlock.

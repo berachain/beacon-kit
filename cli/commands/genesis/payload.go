@@ -183,6 +183,7 @@ func executableDataToExecutionPayloadHeader(
 			WithdrawalsRoot: withdrawals.HashTreeRoot(),
 			BlobGasUsed:     math.U64(blobGasUsed),
 			ExcessBlobGas:   math.U64(excessBlobGas),
+			EphVersion:      forkVersion,
 		}
 	default:
 		return nil, types.ErrForkVersionNotSupported

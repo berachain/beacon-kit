@@ -22,6 +22,7 @@ package types_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -31,20 +32,22 @@ import (
 )
 
 func TestBuildNewPayloadRequest(t *testing.T) {
-	executionPayload := types.ExecutionPayload{}
-	var versionedHashes []common.ExecutionHash
-	parentBeaconBlockRoot := common.Root{}
-	optimistic := false
+	var (
+		executionPayload      = (&types.ExecutionPayload{}).Empty(version.Deneb1)
+		versionedHashes       []common.ExecutionHash
+		parentBeaconBlockRoot = common.Root{}
+		optimistic            = false
+	)
 
 	request := types.BuildNewPayloadRequest(
-		&executionPayload,
+		executionPayload,
 		versionedHashes,
 		&parentBeaconBlockRoot,
 		optimistic,
 	)
 
 	require.NotNil(t, request)
-	require.Equal(t, executionPayload, *request.ExecutionPayload)
+	require.Equal(t, executionPayload, request.ExecutionPayload)
 	require.Equal(t, versionedHashes, request.VersionedHashes)
 	require.Equal(t, &parentBeaconBlockRoot, request.ParentBeaconBlockRoot)
 	require.Equal(t, optimistic, request.Optimistic)
@@ -52,10 +55,18 @@ func TestBuildNewPayloadRequest(t *testing.T) {
 
 func TestBuildForkchoiceUpdateRequest(t *testing.T) {
 	var (
-		state             = &engineprimitives.ForkchoiceStateV1{}
-		payloadAttributes = &engineprimitives.PayloadAttributes{}
-		forkVersion       = version.Deneb
+		state       = &engineprimitives.ForkchoiceStateV1{}
+		forkVersion = version.Deneb1
 	)
+	payloadAttributes, err := engineprimitives.NewPayloadAttributes(
+		forkVersion,
+		uint64(time.Now().Truncate(time.Second).Unix()),
+		common.Bytes32{0x01},
+		common.ExecutionAddress{},
+		engineprimitives.Withdrawals{},
+		common.Root{},
+	)
+	require.NoError(t, err)
 
 	request := types.BuildForkchoiceUpdateRequest(
 		state,
@@ -81,13 +92,15 @@ func TestBuildGetPayloadRequest(t *testing.T) {
 }
 
 func TestHasValidVersionedAndBlockHashesPayloadError(t *testing.T) {
-	executionPayload := types.ExecutionPayload{}
-	versionedHashes := []common.ExecutionHash{}
-	parentBeaconBlockRoot := common.Root{}
-	optimistic := false
+	var (
+		executionPayload      = (&types.ExecutionPayload{}).Empty(version.Deneb1)
+		versionedHashes       = []common.ExecutionHash{}
+		parentBeaconBlockRoot = common.Root{}
+		optimistic            = false
+	)
 
 	request := types.BuildNewPayloadRequest(
-		&executionPayload,
+		executionPayload,
 		versionedHashes,
 		&parentBeaconBlockRoot,
 		optimistic,
@@ -98,15 +111,15 @@ func TestHasValidVersionedAndBlockHashesPayloadError(t *testing.T) {
 }
 
 func TestHasValidVersionedAndBlockHashesMismatchedHashes(t *testing.T) {
-	executionPayload := types.ExecutionPayload{}
-	versionedHashes := []common.ExecutionHash{
-		{},
-	}
-	parentBeaconBlockRoot := common.Root{}
-	optimistic := false
+	var (
+		executionPayload      = (&types.ExecutionPayload{}).Empty(version.Deneb1)
+		versionedHashes       = []common.ExecutionHash{{}}
+		parentBeaconBlockRoot = common.Root{}
+		optimistic            = false
+	)
 
 	request := types.BuildNewPayloadRequest(
-		&executionPayload,
+		executionPayload,
 		versionedHashes,
 		&parentBeaconBlockRoot,
 		optimistic,
