@@ -55,10 +55,11 @@ func depositPruneRangeFn([]*ctypes.Deposit, chain.Spec) (uint64, uint64) {
 
 //nolint:unparam // this is ok
 func availabilityPruneRangeFn(slot math.Slot, cs chain.Spec) (uint64, uint64) {
-	window := cs.MinEpochsForBlobsSidecarsRequest() * cs.SlotsPerEpoch()
-	if slot < window {
+	window := cs.MinEpochsForBlobsSidecarsRequest().Unwrap() * cs.SlotsPerEpoch()
+	slotU64 := slot.Unwrap()
+	if slotU64 < window {
 		return 0, 0
 	}
 
-	return 0, uint64(slot - window)
+	return 0, slotU64 - window
 }

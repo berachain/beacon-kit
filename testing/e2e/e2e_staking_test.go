@@ -246,7 +246,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	blkNum, err = s.JSONRPCBalancer().BlockNumber(s.Ctx())
 	s.Require().NoError(err)
 	nextEpoch := chainspec.SlotToEpoch(math.Slot(blkNum)) + 1
-	nextEpochBlockNum := nextEpoch.Unwrap() * chainspec.SlotsPerEpoch().Unwrap()
+	nextEpochBlockNum := nextEpoch.Unwrap() * chainspec.SlotsPerEpoch()
 	err = s.WaitForFinalizedBlockNumber(nextEpochBlockNum + 1)
 	s.Require().NoError(err)
 

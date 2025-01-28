@@ -42,7 +42,7 @@ func (s spec) ActiveForkVersionForEpoch(epoch math.Epoch) uint32 {
 
 // SlotToEpoch converts a slot to an epoch.
 func (s spec) SlotToEpoch(slot math.Slot) math.Epoch {
-	return slot / s.SlotsPerEpoch()
+	return math.Epoch(slot.Unwrap() / s.SlotsPerEpoch())
 }
 
 // WithinDAPeriod checks if the block epoch is within MIN_EPOCHS_FOR_BLOB_SIDECARS_REQUESTS

@@ -55,7 +55,7 @@ type Spec interface {
 	// Time parameters constants.
 
 	// SlotsPerEpoch returns the number of slots in an epoch.
-	SlotsPerEpoch() math.Slot
+	SlotsPerEpoch() uint64
 
 	// SlotsPerHistoricalRoot returns the number of slots per historical root.
 	SlotsPerHistoricalRoot() uint64
@@ -257,8 +257,8 @@ func (s spec) HysteresisUpwardMultiplier() uint64 {
 }
 
 // SlotsPerEpoch returns the number of slots per epoch.
-func (s spec) SlotsPerEpoch() math.Slot {
-	return math.Slot(s.Data.SlotsPerEpoch)
+func (s spec) SlotsPerEpoch() uint64 {
+	return s.Data.SlotsPerEpoch
 }
 
 // SlotsPerHistoricalRoot returns the number of slots per historical root.
