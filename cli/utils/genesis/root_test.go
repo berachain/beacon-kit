@@ -24,7 +24,7 @@
 package genesis_test
 
 import (
-	"bytes"
+	libbytes "bytes"
 	"fmt"
 	"math/rand"
 	"reflect"
@@ -34,6 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/cli/utils/genesis"
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -81,7 +82,7 @@ func (TestDeposits) Generate(rand *rand.Rand, size int) reflect.Value {
 
 func TestCompareGenesisCmdWithStateProcessor(t *testing.T) {
 	qc := &quick.Config{MaxCount: 1_000}
-	cs, err := spec.MainnetChainSpec()
+	cs, err := spec.DevnetChainSpec()
 	require.NoError(t, err)
 
 	f := func(inputs TestDeposits) bool {
@@ -102,7 +103,7 @@ func TestCompareGenesisCmdWithStateProcessor(t *testing.T) {
 		sp, st, _, _ := statetransition.SetupTestState(t, cs)
 		var (
 			genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-			genVersion       = version.FromUint32[common.Version](version.Deneb)
+			genVersion       = bytes.FromUint32(version.Deneb)
 		)
 		_, err = sp.InitializePreminedBeaconStateFromEth1(
 			st,
@@ -117,7 +118,7 @@ func TestCompareGenesisCmdWithStateProcessor(t *testing.T) {
 		require.NoError(t, err)
 
 		// assert that they generate the same root, given the same list of deposits
-		return bytes.Equal(cliValRoot[:], processorRoot[:])
+		return libbytes.Equal(cliValRoot[:], processorRoot[:])
 	}
 
 	require.NoError(t, quick.Check(f, qc))

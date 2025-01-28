@@ -39,10 +39,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setupChain(t *testing.T, chainSpecType string) chain.Spec {
+func setupChain(t *testing.T) chain.Spec {
 	t.Helper()
 
-	t.Setenv(components.ChainSpecTypeEnvVar, chainSpecType)
+	t.Setenv(components.ChainSpecTypeEnvVar, components.DevnetChainSpecType)
 	cs, err := components.ProvideChainSpec()
 	require.NoError(t, err)
 
