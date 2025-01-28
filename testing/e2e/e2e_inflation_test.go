@@ -41,7 +41,7 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 	// Check over the first epoch before Deneb1, the balance of the Devnet EVM inflation address
 	// increases by DevnetEVMInflationPerBlock.
 	for i := range int64(deneb1ForkSlot) {
-		err := s.WaitForFinalizedBlockNumber(uint64(i))
+		err = s.WaitForFinalizedBlockNumber(uint64(i))
 		s.Require().NoError(err)
 
 		expectedBalance := new(big.Int).Mul(
@@ -49,7 +49,8 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 			big.NewInt(i),
 		)
 
-		balance, err := s.JSONRPCBalancer().BalanceAt(
+		var balance *big.Int
+		balance, err = s.JSONRPCBalancer().BalanceAt(
 			s.Ctx(),
 			gethcommon.Address(chainspec.EVMInflationAddress(math.Slot(i))),
 			big.NewInt(i),
@@ -61,7 +62,7 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 	// Check over the first epoch after Deneb1, the balance of the Devnet EVM inflation address
 	// post Deneb1 increases by DevnetEVMInflationPerBlockDeneb1.
 	for i := deneb1ForkSlot; i < deneb1ForkSlot+chainspec.SlotsPerEpoch(); i++ {
-		err := s.WaitForFinalizedBlockNumber(uint64(i))
+		err = s.WaitForFinalizedBlockNumber(i)
 		s.Require().NoError(err)
 
 		expectedBalance := new(big.Int).Mul(
@@ -69,7 +70,8 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 			big.NewInt(int64(i)),
 		)
 
-		balance, err := s.JSONRPCBalancer().BalanceAt(
+		var balance *big.Int
+		balance, err = s.JSONRPCBalancer().BalanceAt(
 			s.Ctx(),
 			gethcommon.Address(chainspec.EVMInflationAddress(math.Slot(i))),
 			big.NewInt(int64(i)),
@@ -83,14 +85,20 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 	priorEVMInflationAddress := chainspec.EVMInflationAddress(constants.GenesisSlot)
 	postEVMInflationAddress := chainspec.EVMInflationAddress(math.Slot(deneb1ForkSlot))
 	if priorEVMInflationAddress != postEVMInflationAddress {
-		balanceRightBeforeHardfork, err := s.JSONRPCBalancer().BalanceAt(
+		var (
+			balanceRightBeforeHardfork *big.Int
+			balanceAfterHardfork       *big.Int
+		)
+
+		balanceRightBeforeHardfork, err = s.JSONRPCBalancer().BalanceAt(
 			s.Ctx(), gethcommon.Address(priorEVMInflationAddress), big.NewInt(int64(deneb1ForkSlot)),
 		)
 		s.Require().NoError(err)
-		balanceAfterHardfork, err := s.JSONRPCBalancer().BalanceAt(
+		balanceAfterHardfork, err = s.JSONRPCBalancer().BalanceAt(
 			s.Ctx(), gethcommon.Address(postEVMInflationAddress), nil, // at the current block
 		)
 		s.Require().NoError(err)
+
 		s.Require().Zero(balanceRightBeforeHardfork.Cmp(balanceAfterHardfork))
 	}
 }
