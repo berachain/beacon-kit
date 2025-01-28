@@ -123,16 +123,13 @@ func TestInitialize(t *testing.T) {
 		fork                   = &types.Fork{
 			PreviousVersion: bytes.FromUint32(version.Deneb),
 			CurrentVersion:  bytes.FromUint32(version.Deneb),
-			Epoch:           math.Epoch(constants.GenesisEpoch),
+			Epoch:           constants.GenesisEpoch,
 		}
 	)
 
 	// run test
 	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
-		st,
-		genDeposits,
-		executionPayloadHeader,
-		fork.CurrentVersion,
+		st, genDeposits, executionPayloadHeader, fork.CurrentVersion,
 	)
 
 	// check outputs
@@ -142,7 +139,7 @@ func TestInitialize(t *testing.T) {
 	// check beacon state changes
 	resSlot, err := st.GetSlot()
 	require.NoError(t, err)
-	require.Equal(t, math.Slot(0), resSlot)
+	require.Equal(t, constants.GenesisSlot, resSlot)
 
 	resFork, err := st.GetFork()
 	require.NoError(t, err)
@@ -178,8 +175,8 @@ func checkValidator(
 	commonChecksValidators(t, cs, val, dep)
 
 	// checks on validators for any network but Bartio
-	require.Equal(t, math.Epoch(0), val.GetActivationEligibilityEpoch())
-	require.Equal(t, math.Epoch(0), val.GetActivationEpoch())
+	require.Equal(t, constants.GenesisEpoch, val.GetActivationEligibilityEpoch())
+	require.Equal(t, constants.GenesisEpoch, val.GetActivationEpoch())
 
 	valBal, err := bs.GetBalance(idx)
 	require.NoError(t, err)

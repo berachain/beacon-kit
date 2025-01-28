@@ -66,12 +66,11 @@ func (s *Service) ProcessProposal(
 	}
 
 	// Decode signed block and sidecars.
-	signedBlk, sidecars, err := encoding.
-		ExtractBlobsAndBlockFromRequest(
-			req,
-			BeaconBlockTxIndex,
-			BlobSidecarsTxIndex,
-			s.chainSpec.ActiveForkVersionForSlot(math.Slot(req.Height))) // #nosec G115
+	signedBlk, sidecars, err := encoding.ExtractBlobsAndBlockFromRequest(
+		req,
+		BeaconBlockTxIndex,
+		BlobSidecarsTxIndex,
+		s.chainSpec.ActiveForkVersionForSlot(math.Slot(req.Height))) // #nosec G115
 	if err != nil {
 		return err
 	}
