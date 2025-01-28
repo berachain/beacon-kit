@@ -44,12 +44,11 @@ func (s *Service) FinalizeBlock(
 	)
 
 	// STEP 1: Decode block and blobs
-	signedBlk, blobs, err := encoding.
-		ExtractBlobsAndBlockFromRequest(
-			req,
-			BeaconBlockTxIndex,
-			BlobSidecarsTxIndex,
-			s.chainSpec.ActiveForkVersionForSlot(math.Slot(req.Height))) // #nosec G115
+	signedBlk, blobs, err := encoding.ExtractBlobsAndBlockFromRequest(
+		req,
+		BeaconBlockTxIndex,
+		BlobSidecarsTxIndex,
+		s.chainSpec.ActiveForkVersionForSlot(math.Slot(req.Height))) // #nosec G115
 	if err != nil {
 		s.logger.Error("Failed to decode block and blobs", "error", err)
 		return nil, fmt.Errorf("failed to decode block and blobs: %w", err)

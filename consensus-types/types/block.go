@@ -68,7 +68,8 @@ func NewBeaconBlockWithVersion(
 			Body:          &BeaconBlockBody{},
 		}, nil
 	default:
-		return nil, errors.Wrap(
+		// we return block here to appease nilaway
+		return &BeaconBlock{}, errors.Wrap(
 			ErrForkVersionNotSupported,
 			fmt.Sprintf("fork %d", forkVersion),
 		)
