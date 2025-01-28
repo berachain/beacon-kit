@@ -35,6 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	"github.com/berachain/beacon-kit/primitives/version"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	"github.com/stretchr/testify/require"
 )
@@ -87,13 +88,14 @@ func buildNextBlock(
 	parentBlkHeader.SetStateRoot(root)
 
 	// finally build the block
-	return &types.BeaconBlock{
-		Slot:          parentBlkHeader.GetSlot() + 1,
-		ProposerIndex: parentBlkHeader.GetProposerIndex(),
-		ParentRoot:    parentBlkHeader.HashTreeRoot(),
-		StateRoot:     common.Root{},
-		Body:          nextBlkBody,
-	}
+	blk, err := types.NewBeaconBlockWithVersion(
+		parentBlkHeader.GetSlot()+1,
+		parentBlkHeader.GetProposerIndex(),
+		parentBlkHeader.HashTreeRoot(),
+		version.Deneb1,
+	)
+	require.NoError(t, err)
+	return blk
 }
 
 func generateTestExecutionAddress(

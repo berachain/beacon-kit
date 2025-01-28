@@ -33,39 +33,45 @@ import (
 )
 
 // generateValidBeaconBlock generates a valid beacon block for the Deneb.
-func generateValidBeaconBlock() *types.BeaconBlock {
+func generateValidBeaconBlock(t *testing.T) *types.BeaconBlock {
+	t.Helper()
+
 	// Initialize your block here
-	beaconBlock := types.BeaconBlock{
-		Slot:          10,
-		ProposerIndex: 5,
-		ParentRoot:    common.Root{1, 2, 3, 4, 5},
-		StateRoot:     common.Root{5, 4, 3, 2, 1},
-		Body: &types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp: 10,
-				ExtraData: []byte("dummy extra data for testing"),
-				Transactions: [][]byte{
-					[]byte("tx1"),
-					[]byte("tx2"),
-					[]byte("tx3"),
-				},
-				Withdrawals: engineprimitives.Withdrawals{
-					{Index: 0, Amount: 100},
-					{Index: 1, Amount: 200},
-				},
-				BaseFeePerGas: math.NewU256(0),
+	beaconBlock, err := types.NewBeaconBlockWithVersion(
+		math.Slot(10),
+		math.ValidatorIndex(5),
+		common.Root{1, 2, 3, 4, 5}, // parent block root
+		version.Deneb1,
+	)
+	require.NoError(t, err)
+
+	beaconBlock.StateRoot = common.Root{5, 4, 3, 2, 1}
+	beaconBlock.Body = &types.BeaconBlockBody{
+		ExecutionPayload: &types.ExecutionPayload{
+			Timestamp: 10,
+			ExtraData: []byte("dummy extra data for testing"),
+			Transactions: [][]byte{
+				[]byte("tx1"),
+				[]byte("tx2"),
+				[]byte("tx3"),
 			},
-			Eth1Data: &types.Eth1Data{},
-			Deposits: []*types.Deposit{
-				{
-					Index: 1,
-				},
+			Withdrawals: engineprimitives.Withdrawals{
+				{Index: 0, Amount: 100},
+				{Index: 1, Amount: 200},
 			},
-			BlobKzgCommitments: []eip4844.KZGCommitment{
-				{1, 2, 3},
+			BaseFeePerGas: math.NewU256(0),
+		},
+		Eth1Data: &types.Eth1Data{},
+		Deposits: []*types.Deposit{
+			{
+				Index: 1,
 			},
 		},
+		BlobKzgCommitments: []eip4844.KZGCommitment{
+			{1, 2, 3},
+		},
 	}
+
 	body := beaconBlock.GetBody()
 	body.SetProposerSlashings(types.ProposerSlashings{})
 	body.SetAttesterSlashings(types.AttesterSlashings{})
@@ -73,20 +79,24 @@ func generateValidBeaconBlock() *types.BeaconBlock {
 	body.SetSyncAggregate(&types.SyncAggregate{})
 	body.SetVoluntaryExits(types.VoluntaryExits{})
 	body.SetBlsToExecutionChanges(types.BlsToExecutionChanges{})
-	return &beaconBlock
+	return beaconBlock
 }
 
 func TestBeaconBlockForDeneb(t *testing.T) {
-	block := &types.BeaconBlock{
-		Slot:          10,
-		ProposerIndex: 5,
-		ParentRoot:    common.Root{1, 2, 3, 4, 5},
-	}
+	blkVersion := version.Deneb1
+	block, err := types.NewBeaconBlockWithVersion(
+		math.Slot(10),
+		math.ValidatorIndex(5),
+		common.Root{1, 2, 3, 4, 5}, // parent root
+		blkVersion,
+	)
+	require.NoError(t, err)
 	require.NotNil(t, block)
+	require.Equal(t, blkVersion, block.Version())
 }
 
 func TestBeaconBlock(t *testing.T) {
-	block := generateValidBeaconBlock()
+	block := generateValidBeaconBlock(t)
 
 	require.NotNil(t, block.Body)
 	require.Equal(t, math.U64(10), block.GetTimestamp())
@@ -109,7 +119,7 @@ func TestBeaconBlock(t *testing.T) {
 }
 
 func TestBeaconBlock_MarshalUnmarshalSSZ(t *testing.T) {
-	block := *generateValidBeaconBlock()
+	block := *generateValidBeaconBlock(t)
 
 	sszBlock, err := block.MarshalSSZ()
 	require.NoError(t, err)
@@ -123,7 +133,7 @@ func TestBeaconBlock_MarshalUnmarshalSSZ(t *testing.T) {
 }
 
 func TestBeaconBlock_HashTreeRoot(t *testing.T) {
-	block := generateValidBeaconBlock()
+	block := generateValidBeaconBlock(t)
 	hashRoot := block.HashTreeRoot()
 	require.NotNil(t, hashRoot)
 }
