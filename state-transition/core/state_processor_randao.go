@@ -21,6 +21,8 @@
 package core
 
 import (
+	"fmt"
+
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -69,7 +71,7 @@ func (sp *StateProcessor[ContextT]) processRandaoReveal(
 			signingRoot[:],
 			reveal,
 		); err != nil {
-			return err
+			return fmt.Errorf("state processor failed randao checks: %w", err)
 		}
 	}
 

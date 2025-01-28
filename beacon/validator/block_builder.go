@@ -186,7 +186,8 @@ func (s *Service) buildForkData(st *statedb.StateDB, slot math.Slot) (*ctypes.Fo
 	}
 
 	return ctypes.NewForkData(
-		bytes.FromUint32(s.chainSpec.ActiveForkVersionForSlot(slot)), genesisValidatorsRoot,
+		bytes.FromUint32(s.chainSpec.ActiveForkVersionForSlot(slot)),
+		genesisValidatorsRoot,
 	), nil
 }
 
@@ -195,9 +196,14 @@ func (s *Service) buildRandaoReveal(
 	forkData *ctypes.ForkData, slot math.Slot,
 ) (crypto.BLSSignature, error) {
 	signingRoot := forkData.ComputeRandaoSigningRoot(
-		s.chainSpec.DomainTypeRandao(), s.chainSpec.SlotToEpoch(slot),
+		s.chainSpec.DomainTypeRandao(),
+		s.chainSpec.SlotToEpoch(slot),
 	)
-	return s.signer.Sign(signingRoot[:])
+	signature, err := s.signer.Sign(signingRoot[:])
+	if err != nil {
+		return signature, fmt.Errorf("block building failed randao checks: %w", err)
+	}
+	return signature, nil
 }
 
 // retrieveExecutionPayload retrieves the execution payload for the block.
