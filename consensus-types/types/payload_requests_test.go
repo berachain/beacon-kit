@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/stretchr/testify/require"
 )
 
@@ -50,9 +51,11 @@ func TestBuildNewPayloadRequest(t *testing.T) {
 }
 
 func TestBuildForkchoiceUpdateRequest(t *testing.T) {
-	state := &engineprimitives.ForkchoiceStateV1{}
-	payloadAttributes := &engineprimitives.PayloadAttributes{}
-	forkVersion := uint32(1)
+	var (
+		state             = &engineprimitives.ForkchoiceStateV1{}
+		payloadAttributes = &engineprimitives.PayloadAttributes{}
+		forkVersion       = version.Deneb
+	)
 
 	request := types.BuildForkchoiceUpdateRequest(
 		state,
