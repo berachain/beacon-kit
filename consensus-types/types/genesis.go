@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 )
 
 const (
@@ -100,27 +99,22 @@ func (g *Genesis) UnmarshalJSON(
 	return nil
 }
 
-// DefaultGenesisDeneb returns a the default genesis.
-func DefaultGenesisDeneb() *Genesis {
-	defaultHeader, err :=
-		DefaultGenesisExecutionPayloadHeaderDeneb()
+// DefaultGenesis returns the default genesis.
+func DefaultGenesis() *Genesis {
+	defaultHeader, err := DefaultGenesisExecutionPayloadHeader()
 	if err != nil {
 		panic(err)
 	}
 
-	// TODO: Uncouple from deneb.
 	return &Genesis{
-		ForkVersion:            bytes.FromUint32(version.Deneb),
+		ForkVersion:            bytes.FromUint32(constants.GenesisVersion),
 		Deposits:               make([]*Deposit, 0),
 		ExecutionPayloadHeader: defaultHeader,
 	}
 }
 
-// DefaultGenesisExecutionPayloadHeaderDeneb returns a default
-// ExecutionPayloadHeaderDeneb.
-func DefaultGenesisExecutionPayloadHeaderDeneb() (
-	*ExecutionPayloadHeader, error,
-) {
+// DefaultGenesisExecutionPayloadHeader returns a default ExecutionPayloadHeader.
+func DefaultGenesisExecutionPayloadHeader() (*ExecutionPayloadHeader, error) {
 	stateRoot, err := bytes.ToBytes32(
 		hex.MustToBytes(
 			"0x12965ab9cbe2d2203f61d23636eb7e998f167cb79d02e452f532535641e35bcc",

@@ -25,7 +25,6 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/spf13/afero"
@@ -67,8 +66,8 @@ func ComputeValidatorsRootFromFile(genesisFile string, cs chain.Spec) (common.Ro
 func ComputeValidatorsRoot(genesisDeposits types.Deposits, cs chain.Spec) common.Root {
 	validators := make(types.Validators, len(genesisDeposits))
 	minEffectiveBalance := math.Gwei(
-		cs.EjectionBalance(constants.GenesisSlot) +
-			cs.EffectiveBalanceIncrement(constants.GenesisSlot),
+		cs.EjectionBalance() +
+			cs.EffectiveBalanceIncrement(),
 	)
 
 	for i, deposit := range genesisDeposits {
@@ -76,8 +75,8 @@ func ComputeValidatorsRoot(genesisDeposits types.Deposits, cs chain.Spec) common
 			deposit.Pubkey,
 			deposit.Credentials,
 			deposit.Amount,
-			math.Gwei(cs.EffectiveBalanceIncrement(constants.GenesisSlot)),
-			math.Gwei(cs.MaxEffectiveBalance(constants.GenesisSlot)),
+			math.Gwei(cs.EffectiveBalanceIncrement()),
+			math.Gwei(cs.MaxEffectiveBalance()),
 		)
 
 		// mimic processGenesisActivation

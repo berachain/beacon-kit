@@ -42,9 +42,9 @@ func TestInitialize(t *testing.T) {
 	sp, st, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
-		maxBalance = math.Gwei(cs.MaxEffectiveBalance(constants.GenesisSlot))
-		increment  = math.Gwei(cs.EffectiveBalanceIncrement(constants.GenesisSlot))
-		minBalance = math.Gwei(cs.EjectionBalance(constants.GenesisSlot))
+		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
+		increment  = math.Gwei(cs.EffectiveBalanceIncrement())
+		minBalance = math.Gwei(cs.EjectionBalance())
 	)
 
 	// create test inputs
@@ -193,9 +193,9 @@ func commonChecksValidators(
 	require.Equal(t, dep.Pubkey, val.Pubkey)
 
 	var (
-		maxBalance = math.Gwei(cs.MaxEffectiveBalance(0))
-		increment  = math.Gwei(cs.EffectiveBalanceIncrement(0))
-		minBalance = math.Gwei(cs.EjectionBalance(0))
+		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
+		increment  = math.Gwei(cs.EffectiveBalanceIncrement())
+		minBalance = math.Gwei(cs.EjectionBalance())
 	)
 	switch {
 	case dep.Amount >= maxBalance:

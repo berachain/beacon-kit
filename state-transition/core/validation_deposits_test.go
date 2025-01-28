@@ -45,10 +45,10 @@ func TestInvalidDeposits(t *testing.T) {
 
 	var (
 		minBalance = math.Gwei(
-			cs.EjectionBalance(constants.GenesisSlot) +
-				cs.EffectiveBalanceIncrement(constants.GenesisSlot),
+			cs.EjectionBalance() +
+				cs.EffectiveBalanceIncrement(),
 		)
-		maxBalance   = math.Gwei(cs.MaxEffectiveBalance(constants.GenesisSlot))
+		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
 		credentials0 = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
 	)
 
@@ -98,7 +98,7 @@ func TestInvalidDeposits(t *testing.T) {
 				ExtraData:    []byte("testing"),
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(constants.GenesisSlot),
+					st.EVMInflationWithdrawal(constants.GenesisSlot + 1),
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
@@ -121,7 +121,7 @@ func TestInvalidDepositsCount(t *testing.T) {
 	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
 
 	var (
-		maxBalance   = math.Gwei(cs.MaxEffectiveBalance(constants.GenesisSlot))
+		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
 		credentials0 = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
 	)
 
@@ -171,7 +171,7 @@ func TestInvalidDepositsCount(t *testing.T) {
 				ExtraData:    []byte("testing"),
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(constants.GenesisSlot),
+					st.EVMInflationWithdrawal(constants.GenesisSlot + 1),
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
@@ -197,7 +197,7 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
 
 	var (
-		maxBalance   = math.Gwei(cs.MaxEffectiveBalance(constants.GenesisSlot))
+		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
 		credentials0 = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
 	)
 
@@ -241,7 +241,7 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 				ExtraData:    []byte("testing"),
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(constants.GenesisSlot),
+					st.EVMInflationWithdrawal(constants.GenesisSlot + 1),
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
@@ -273,7 +273,7 @@ func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
 	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
 
 	var (
-		maxBalance   = math.Gwei(cs.MaxEffectiveBalance(constants.GenesisSlot))
+		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
 		credentials0 = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
 	)
 
@@ -325,7 +325,7 @@ func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
 				ExtraData:    []byte("testing"),
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(constants.GenesisSlot),
+					st.EVMInflationWithdrawal(constants.GenesisSlot + 1),
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},

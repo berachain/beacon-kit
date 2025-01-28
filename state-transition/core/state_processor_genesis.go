@@ -28,7 +28,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
-	"github.com/berachain/beacon-kit/primitives/version"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
@@ -59,7 +58,7 @@ func (sp *StateProcessor[_]) InitializePreminedBeaconStateFromEth1(
 		return nil, err
 	}
 
-	if genesisVersion.ToUint32() != version.Deneb {
+	if genesisVersion.ToUint32() != constants.GenesisVersion {
 		return nil, fmt.Errorf("fork version not supported: %s", genesisVersion)
 	}
 	blkBody := &ctypes.BeaconBlockBody{
@@ -80,7 +79,7 @@ func (sp *StateProcessor[_]) InitializePreminedBeaconStateFromEth1(
 		return nil, err
 	}
 
-	for i := range sp.cs.EpochsPerHistoricalVector(constants.GenesisSlot) {
+	for i := range sp.cs.EpochsPerHistoricalVector() {
 		if err := st.UpdateRandaoMixAtIndex(
 			i,
 			common.Bytes32(execPayloadHeader.GetBlockHash()),
@@ -97,7 +96,7 @@ func (sp *StateProcessor[_]) InitializePreminedBeaconStateFromEth1(
 		return nil, err
 	}
 	for _, deposit := range deposits {
-		if err := sp.processDeposit(st, deposit, constants.GenesisSlot); err != nil {
+		if err := sp.processDeposit(st, deposit); err != nil {
 			return nil, err
 		}
 	}
@@ -120,7 +119,7 @@ func (sp *StateProcessor[_]) InitializePreminedBeaconStateFromEth1(
 	}
 
 	// Setup a bunch of 0s to prime the DB.
-	for i := range sp.cs.HistoricalRootsLimit(constants.GenesisSlot) {
+	for i := range sp.cs.HistoricalRootsLimit() {
 		if err = st.UpdateBlockRootAtIndex(i, common.Root{}); err != nil {
 			return nil, err
 		}
@@ -154,8 +153,8 @@ func (sp *StateProcessor[_]) processGenesisActivation(st *statedb.StateDB) error
 		return fmt.Errorf("genesis activation, failed listing validators: %w", err)
 	}
 	minEffectiveBalance := math.Gwei(
-		sp.cs.EjectionBalance(constants.GenesisSlot) +
-			sp.cs.EffectiveBalanceIncrement(constants.GenesisSlot),
+		sp.cs.EjectionBalance() +
+			sp.cs.EffectiveBalanceIncrement(),
 	)
 
 	var idx math.ValidatorIndex

@@ -92,7 +92,7 @@ func AddGenesisDepositCmd(cs chain.Spec) *cobra.Command {
 
 			depositMsg, signature, err := types.CreateAndSignDepositMessage(
 				types.NewForkData(genesisVersion, common.Root{}),
-				cs.DomainTypeDeposit(constants.GenesisSlot),
+				cs.DomainTypeDeposit(),
 				blsSigner,
 				types.NewCredentialsFromExecutionAddress(withdrawalAddress),
 				depositAmount,
@@ -105,7 +105,7 @@ func AddGenesisDepositCmd(cs chain.Spec) *cobra.Command {
 			if err = depositMsg.VerifyCreateValidator(
 				types.NewForkData(genesisVersion, common.Root{}),
 				signature,
-				cs.DomainTypeDeposit(constants.GenesisSlot),
+				cs.DomainTypeDeposit(),
 				signer.BLSSigner{}.VerifySignature,
 			); err != nil {
 				return err

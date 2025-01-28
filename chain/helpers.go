@@ -21,8 +21,6 @@
 package chain
 
 import (
-	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 )
@@ -42,32 +40,13 @@ func (s spec) ActiveForkVersionForEpoch(epoch math.Epoch) uint32 {
 	return version.Deneb
 }
 
-// SlotInForkVersion returns the first slot of the given fork version.
-func (s spec) SlotInForkVersion(ver common.Version) math.Slot {
-	switch ver.ToUint32() {
-	case version.Electra:
-		return s.epochToSlot(s.ElectraForkEpoch())
-	case version.Deneb1:
-		return s.epochToSlot(s.Deneb1ForkEpoch())
-	case version.Deneb:
-		fallthrough
-	default:
-		return constants.GenesisSlot
-	}
-}
-
 // SlotToEpoch converts a slot to an epoch.
 func (s spec) SlotToEpoch(slot math.Slot) math.Epoch {
-	return slot / s.SlotsPerEpoch(slot)
+	return math.Epoch(slot.Unwrap() / s.SlotsPerEpoch())
 }
 
 // WithinDAPeriod checks if the block epoch is within MIN_EPOCHS_FOR_BLOB_SIDECARS_REQUESTS
 // of the given current epoch.
 func (s spec) WithinDAPeriod(block, current math.Slot) bool {
-	return s.SlotToEpoch(block)+s.MinEpochsForBlobsSidecarsRequest(current) >= s.SlotToEpoch(current)
-}
-
-// epochToSlot returns the first slot of the given epoch.
-func (s spec) epochToSlot(epoch math.Epoch) math.Slot {
-	return epoch * s.SlotsPerEpoch(epoch)
+	return s.SlotToEpoch(block)+s.MinEpochsForBlobsSidecarsRequest() >= s.SlotToEpoch(current)
 }

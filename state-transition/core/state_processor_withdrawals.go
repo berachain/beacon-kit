@@ -47,12 +47,6 @@ func (sp *StateProcessor[_]) processWithdrawals(
 		payloadWithdrawals = payload.GetWithdrawals()
 	)
 
-	// Get the current slot.
-	slot, err := st.GetSlot()
-	if err != nil {
-		return err
-	}
-
 	// Get the expected withdrawals.
 	expectedWithdrawals, err := st.ExpectedWithdrawals()
 	if err != nil {
@@ -72,7 +66,7 @@ func (sp *StateProcessor[_]) processWithdrawals(
 	if len(payloadWithdrawals) == 0 {
 		return ErrZeroWithdrawals
 	}
-	if !payloadWithdrawals[0].Equals(st.EVMInflationWithdrawal(slot)) {
+	if !payloadWithdrawals[0].Equals(st.EVMInflationWithdrawal(blk.GetSlot())) {
 		return ErrFirstWithdrawalNotEVMInflation
 	}
 	numWithdrawals := len(expectedWithdrawals)
@@ -114,7 +108,7 @@ func (sp *StateProcessor[_]) processWithdrawals(
 	var nextValidatorIndex math.ValidatorIndex
 
 	// #nosec G115 -- won't overflow in practice.
-	if numWithdrawals == int(sp.cs.MaxWithdrawalsPerPayload(slot)) {
+	if numWithdrawals == int(sp.cs.MaxWithdrawalsPerPayload()) {
 		// Next sweep starts after the latest withdrawal's validator index.
 		nextValidatorIndex = (expectedWithdrawals[numWithdrawals-1].
 			GetValidatorIndex() + 1) % math.ValidatorIndex(totalValidators)
@@ -125,7 +119,7 @@ func (sp *StateProcessor[_]) processWithdrawals(
 		if err != nil {
 			return err
 		}
-		nextValidatorIndex += math.ValidatorIndex(sp.cs.MaxValidatorsPerWithdrawalsSweep(slot))
+		nextValidatorIndex += math.ValidatorIndex(sp.cs.MaxValidatorsPerWithdrawalsSweep())
 		nextValidatorIndex %= math.ValidatorIndex(totalValidators)
 	}
 

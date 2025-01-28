@@ -34,7 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/afero"
@@ -97,7 +96,7 @@ func AddExecutionPayloadCmd(chainSpec chain.Spec) *cobra.Command {
 				executableDataToExecutionPayloadHeader(
 					genesisInfo.ForkVersion.ToUint32(),
 					payload,
-					chainSpec.MaxWithdrawalsPerPayload(constants.GenesisSlot),
+					chainSpec.MaxWithdrawalsPerPayload(),
 				)
 			if err != nil {
 				return errors.Wrap(err, "failed to unmarshal beacon state")
@@ -131,7 +130,7 @@ func executableDataToExecutionPayloadHeader(
 ) (*types.ExecutionPayloadHeader, error) {
 	var executionPayloadHeader *types.ExecutionPayloadHeader
 	switch forkVersion {
-	case version.Deneb:
+	case constants.GenesisVersion:
 		withdrawals := make(
 			engineprimitives.Withdrawals,
 			len(data.Withdrawals),

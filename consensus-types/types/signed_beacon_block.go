@@ -53,16 +53,17 @@ func NewSignedBeaconBlockFromSSZ(
 	bz []byte,
 	forkVersion uint32,
 ) (*SignedBeaconBlock, error) {
-	if forkVersion == version.Deneb {
-		block := &SignedBeaconBlock{}
+	block := &SignedBeaconBlock{}
+	switch forkVersion {
+	case version.Deneb, version.Deneb1:
 		return block, block.UnmarshalSSZ(bz)
+	default:
+		// we return block here to appease nilaway
+		return block, errors.Wrap(
+			ErrForkVersionNotSupported,
+			fmt.Sprintf("fork %d", forkVersion),
+		)
 	}
-
-	err := errors.Wrap(
-		ErrForkVersionNotSupported,
-		fmt.Sprintf("fork %d", forkVersion),
-	)
-	return nil, err
 }
 
 // NewSignedBeaconBlock signs the provided BeaconBlock and populates the receiver.
@@ -71,7 +72,7 @@ func NewSignedBeaconBlockFromSSZ(
 func NewSignedBeaconBlock(
 	blk *BeaconBlock, forkData *ForkData, cs chain.Spec, signer crypto.BLSSigner,
 ) (*SignedBeaconBlock, error) {
-	domain := forkData.ComputeDomain(cs.DomainTypeProposer(blk.GetSlot()))
+	domain := forkData.ComputeDomain(cs.DomainTypeProposer())
 	signingRoot := ComputeSigningRoot(blk, domain)
 	signature, err := signer.Sign(signingRoot[:])
 	if err != nil {

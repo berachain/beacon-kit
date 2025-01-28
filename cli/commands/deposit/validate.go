@@ -126,7 +126,7 @@ func ValidateDeposit(
 	return depositMessage.VerifyCreateValidator(
 		types.NewForkData(genesisVersion, genValRoot),
 		signature,
-		cs.DomainTypeDeposit(constants.GenesisSlot),
+		cs.DomainTypeDeposit(),
 		signer.BLSSigner{}.VerifySignature,
 	)
 }

@@ -565,7 +565,7 @@ func (p *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 	txsRoot := p.GetTransactions().HashTreeRoot()
 
 	switch p.Version() {
-	case version.Deneb:
+	case version.Deneb, version.Deneb1:
 		return &ExecutionPayloadHeader{
 			ParentHash:       p.ParentHash,
 			FeeRecipient:     p.GetFeeRecipient(),

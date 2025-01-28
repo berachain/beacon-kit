@@ -263,7 +263,7 @@ func Test_KZGCommitmentInclusionProofDepth(t *testing.T) {
 
 	// The depth of the merkle tree of the KZG Commitments, including the +1
 	// for the length mixin.
-	commitmentProofMerkleDepth := uint64(log.ILog2Ceil(cs.MaxBlobCommitmentsPerBlock(0))) + 1
+	commitmentProofMerkleDepth := uint64(log.ILog2Ceil(cs.MaxBlobCommitmentsPerBlock())) + 1
 	require.Less(t, commitmentProofMerkleDepth, maxUint8)
 
 	// InclusionProofDepth is the combined depth of all of these things.

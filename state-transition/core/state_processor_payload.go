@@ -100,25 +100,24 @@ func (sp *StateProcessor[_]) validateExecutionPayload(
 func (sp *StateProcessor[_]) validateStatelessPayload(blk *ctypes.BeaconBlock) error {
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
-	slot := blk.GetSlot()
 
 	// Verify the number of withdrawals.
 	withdrawals := payload.GetWithdrawals()
-	if uint64(len(withdrawals)) > sp.cs.MaxWithdrawalsPerPayload(slot) {
+	if uint64(len(withdrawals)) > sp.cs.MaxWithdrawalsPerPayload() {
 		return errors.Wrapf(
 			ErrExceedMaximumWithdrawals,
 			"too many withdrawals, expected: %d, got: %d",
-			sp.cs.MaxWithdrawalsPerPayload(slot), len(withdrawals),
+			sp.cs.MaxWithdrawalsPerPayload(), len(withdrawals),
 		)
 	}
 
 	// Verify the number of blobs.
 	blobKzgCommitments := body.GetBlobKzgCommitments()
-	if uint64(len(blobKzgCommitments)) > sp.cs.MaxBlobsPerBlock(slot) {
+	if uint64(len(blobKzgCommitments)) > sp.cs.MaxBlobsPerBlock() {
 		return errors.Wrapf(
 			ErrExceedsBlockBlobLimit,
 			"expected: %d, got: %d",
-			sp.cs.MaxBlobsPerBlock(slot), len(blobKzgCommitments),
+			sp.cs.MaxBlobsPerBlock(), len(blobKzgCommitments),
 		)
 	}
 
@@ -167,7 +166,7 @@ func (sp *StateProcessor[_]) validateStatefulPayload(
 	}
 
 	expectedMix, err := st.GetRandaoMixAtIndex(
-		sp.cs.SlotToEpoch(slot).Unwrap() % sp.cs.EpochsPerHistoricalVector(slot),
+		sp.cs.SlotToEpoch(slot).Unwrap() % sp.cs.EpochsPerHistoricalVector(),
 	)
 	if err != nil {
 		return err
