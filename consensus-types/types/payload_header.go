@@ -74,7 +74,9 @@ type ExecutionPayloadHeader struct {
 	// EphVersion is the fork EphVersion of the execution payload header.
 	// EphVersion must be not serialized but it's exported
 	// to allow unit tests using reflect on execution payload header.
-	EphVersion uint32
+	// TODO: Enable once
+	// https://github.com/karalabe/ssz/pull/9/files# is merged.
+	EphVersion uint32 `json:"-"`
 }
 
 // Empty returns an empty ExecutionPayloadHeader.

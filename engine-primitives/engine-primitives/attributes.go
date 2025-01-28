@@ -58,9 +58,8 @@ type PayloadAttributes struct {
 	// EIP-4788.
 	ParentBeaconBlockRoot common.Root `json:"parentBeaconBlockRoot"`
 
-	// version is the version of the beacon block.
-	// version must be not serialized
-	version uint32
+	// version is the version of the payload attributes.
+	version uint32 `json:"-"`
 }
 
 // New empty PayloadAttributes.
