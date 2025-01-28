@@ -771,8 +771,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	)
 
 	// STEP 3: move the chain to the next epoch and show that the extra
-	// validator
-	// is activate and immediately marked for exit
+	// validator is activate and immediately marked for exit
 	_ = moveToEndOfEpoch(t, blk, cs, sp, st, ctx, depRoot)
 
 	// finally the block turning epoch
@@ -810,7 +809,8 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	// for rejected validator are enqueued then
 	_ = moveToEndOfEpoch(t, blk, cs, sp, st, ctx, depRoot)
 
-	// finally the block turning epoch
+	// finally the block turning epoch. extra validator deposits
+	// will be withdrawn within 3 blocks (#Validator / MaxValidatorsPerWithdrawalsSweep)
 	extraValAddr, err := extraValCreds.ToExecutionAddress()
 	require.NoError(t, err)
 	blk = buildNextBlock(
@@ -819,6 +819,46 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		&types.BeaconBlockBody{
 			ExecutionPayload: &types.ExecutionPayload{
 				Timestamp:    blk1.Body.ExecutionPayload.Timestamp + 1,
+				ExtraData:    []byte("testing"),
+				Transactions: [][]byte{},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					st.EVMInflationWithdrawal(),
+				},
+				BaseFeePerGas: math.NewU256(0),
+			},
+			Eth1Data: types.NewEth1Data(depRoot),
+			Deposits: []*types.Deposit{},
+		},
+	)
+	_, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+
+	blk = buildNextBlock(
+		t,
+		st,
+		&types.BeaconBlockBody{
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:    blk.Body.ExecutionPayload.Timestamp + 1,
+				ExtraData:    []byte("testing"),
+				Transactions: [][]byte{},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					st.EVMInflationWithdrawal(),
+				},
+				BaseFeePerGas: math.NewU256(0),
+			},
+			Eth1Data: types.NewEth1Data(depRoot),
+			Deposits: []*types.Deposit{},
+		},
+	)
+	_, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+
+	blk = buildNextBlock(
+		t,
+		st,
+		&types.BeaconBlockBody{
+			ExecutionPayload: &types.ExecutionPayload{
+				Timestamp:    blk.Body.ExecutionPayload.Timestamp + 1,
 				ExtraData:    []byte("testing"),
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
@@ -836,8 +876,6 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 			Deposits: []*types.Deposit{},
 		},
 	)
-
-	// run the test
 	_, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
 }
