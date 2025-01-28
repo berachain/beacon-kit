@@ -28,7 +28,6 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/chain"
-	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/node-core/components"
@@ -43,7 +42,7 @@ import (
 func setupChain(t *testing.T) chain.Spec {
 	t.Helper()
 
-	t.Setenv(components.ChainSpecTypeEnvVar, components.MainnetChainSpecType)
+	t.Setenv(components.ChainSpecTypeEnvVar, components.DevnetChainSpecType)
 	cs, err := components.ProvideChainSpec()
 	require.NoError(t, err)
 
@@ -159,71 +158,4 @@ func moveToEndOfEpoch(
 		require.Empty(t, vals) // no vals changes expected before next epoch
 	}
 	return blk
-}
-
-// defaultSpecData returns a modifiable chain.SpecData before use as chain.Spec.
-func defaultSpecData() *chain.SpecData {
-	return &chain.SpecData{
-		// Gwei values constants.
-		MaxEffectiveBalance:       spec.DefaultMaxEffectiveBalance,
-		EjectionBalance:           spec.DefaultEjectionBalance,
-		EffectiveBalanceIncrement: spec.DefaultEffectiveBalanceIncrement,
-
-		HysteresisQuotient:           spec.DefaultHysteresisQuotient,
-		HysteresisDownwardMultiplier: spec.DefaultHysteresisDownwardMultiplier,
-		HysteresisUpwardMultiplier:   spec.DefaultHysteresisUpwardMultiplier,
-
-		// Time parameters constants.
-		SlotsPerEpoch:                spec.DefaultSlotsPerEpoch,
-		SlotsPerHistoricalRoot:       spec.DefaultSlotsPerHistoricalRoot,
-		MinEpochsToInactivityPenalty: spec.DefaultMinEpochsToInactivityPenalty,
-
-		// Signature domains.
-		DomainTypeProposer:          bytes.FromUint32(spec.DefaultDomainTypeProposer),
-		DomainTypeAttester:          bytes.FromUint32(spec.DefaultDomainTypeAttester),
-		DomainTypeRandao:            bytes.FromUint32(spec.DefaultDomainTypeRandao),
-		DomainTypeDeposit:           bytes.FromUint32(spec.DefaultDomainTypeDeposit),
-		DomainTypeVoluntaryExit:     bytes.FromUint32(spec.DefaultDomainTypeVoluntaryExit),
-		DomainTypeSelectionProof:    bytes.FromUint32(spec.DefaultDomainTypeSelectionProof),
-		DomainTypeAggregateAndProof: bytes.FromUint32(spec.DefaultDomainTypeAggregateAndProof),
-		DomainTypeApplicationMask:   bytes.FromUint32(spec.DefaultDomainTypeApplicationMask),
-
-		// Eth1-related values.
-		DepositContractAddress:    common.NewExecutionAddressFromHex(spec.DefaultDepositContractAddress),
-		MaxDepositsPerBlock:       spec.DefaultMaxDepositsPerBlock,
-		DepositEth1ChainID:        spec.DefaultDepositEth1ChainID,
-		Eth1FollowDistance:        spec.DefaultEth1FollowDistance,
-		TargetSecondsPerEth1Block: spec.DefaultTargetSecondsPerEth1Block,
-
-		// Fork-related values.
-		Deneb1ForkEpoch:  spec.DefaultDeneb1ForkEpoch,
-		ElectraForkEpoch: spec.DefaultElectraForkEpoch,
-
-		// State list length constants.
-		EpochsPerHistoricalVector: spec.DefaultEpochsPerHistoricalVector,
-		EpochsPerSlashingsVector:  spec.DefaultEpochsPerSlashingsVector,
-		HistoricalRootsLimit:      spec.DefaultHistoricalRootsLimit,
-		ValidatorRegistryLimit:    spec.DefaultValidatorRegistryLimit,
-
-		// Slashing.
-		InactivityPenaltyQuotient:      spec.DefaultInactivityPenaltyQuotient,
-		ProportionalSlashingMultiplier: spec.DefaultProportionalSlashingMultiplier,
-
-		// Capella values.
-		MaxWithdrawalsPerPayload:         spec.DefaultMaxWithdrawalsPerPayload,
-		MaxValidatorsPerWithdrawalsSweep: spec.DefaultMaxValidatorsPerWithdrawalsSweep,
-
-		// Deneb values.
-		MinEpochsForBlobsSidecarsRequest: spec.DefaultMinEpochsForBlobsSidecarsRequest,
-		MaxBlobCommitmentsPerBlock:       spec.DefaultMaxBlobCommitmentsPerBlock,
-		MaxBlobsPerBlock:                 spec.DefaultMaxBlobsPerBlock,
-		FieldElementsPerBlob:             spec.DefaultFieldElementsPerBlob,
-		BytesPerBlob:                     spec.DefaultBytesPerBlob,
-		KZGCommitmentInclusionProofDepth: spec.DefaultKZGCommitmentInclusionProofDepth,
-
-		// Berachain values.
-		ValidatorSetCap:      spec.DefaultValidatorSetCap,
-		EVMInflationAddress:  common.NewExecutionAddressFromHex(spec.DefaultEVMInflationAddress),
-		EVMInflationPerBlock: spec.DefaultEVMInflationPerBlock,
-	}
 }
