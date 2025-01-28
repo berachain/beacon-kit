@@ -46,7 +46,7 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 		s.Require().NoError(err)
 
 		expectedBalance := new(big.Int).Mul(
-			big.NewInt(int64(preForkInflation)),
+			new(big.Int).SetUint64(preForkInflation*math.GweiPerWei),
 			big.NewInt(blkNum),
 		)
 
@@ -84,7 +84,7 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 		s.Require().NoError(err)
 
 		expectedBalance := new(big.Int).Mul(
-			big.NewInt(int64(postForkInflation)),
+			new(big.Int).SetUint64(postForkInflation*math.GweiPerWei),
 			big.NewInt(int64(blkNum-(deneb1ForkSlot-1))),
 		)
 
