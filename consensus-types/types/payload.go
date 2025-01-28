@@ -569,9 +569,10 @@ func (p *ExecutionPayload) GetExcessBlobGas() math.U64 {
 func (p *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 	txsRoot := p.GetTransactions().HashTreeRoot()
 
-	switch p.Version() {
+	switch p.version {
 	case version.Deneb, version.Deneb1:
 		return &ExecutionPayloadHeader{
+			version:          p.version,
 			ParentHash:       p.ParentHash,
 			FeeRecipient:     p.GetFeeRecipient(),
 			StateRoot:        p.GetStateRoot(),

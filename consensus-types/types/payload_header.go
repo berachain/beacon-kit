@@ -453,16 +453,11 @@ func (h *ExecutionPayloadHeader) IsNil() bool {
 }
 
 // GetParentHash returns the parent hash of the ExecutionPayloadHeader.
-func (
-	h *ExecutionPayloadHeader,
-) GetParentHash() common.ExecutionHash {
+func (h *ExecutionPayloadHeader) GetParentHash() common.ExecutionHash {
 	return h.ParentHash
 }
 
-// GetFeeRecipient returns the fee recipient address of the
-// ExecutionPayloadHeader.
-//
-
+// GetFeeRecipient returns the fee recipient address of the ExecutionPayloadHeader.
 func (h *ExecutionPayloadHeader) GetFeeRecipient() common.ExecutionAddress {
 	return h.FeeRecipient
 }
