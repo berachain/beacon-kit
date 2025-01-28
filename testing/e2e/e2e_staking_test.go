@@ -217,7 +217,9 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	s.Logger().Info("Final deposit tx mined successfully", "hash", receipt.TxHash.Hex())
 
 	// Give time for the nodes to catch up.
-	err = s.WaitForNBlockNumbers(NumDepositsLoad / chainspec.MaxDepositsPerBlock())
+	blkNum, err = s.JSONRPCBalancer().BlockNumber(s.Ctx())
+	s.Require().NoError(err)
+	err = s.WaitForNBlockNumbers(NumDepositsLoad / chainspec.MaxDepositsPerBlock(math.Slot(blkNum)))
 	s.Require().NoError(err)
 
 	// Compare height of nodes 0 and 1
@@ -246,7 +248,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	blkNum, err = s.JSONRPCBalancer().BlockNumber(s.Ctx())
 	s.Require().NoError(err)
 	nextEpoch := chainspec.SlotToEpoch(math.Slot(blkNum)) + 1
-	nextEpochBlockNum := nextEpoch.Unwrap() * chainspec.SlotsPerEpoch()
+	nextEpochBlockNum := nextEpoch.Unwrap() * chainspec.SlotsPerEpoch(math.Slot(blkNum)).Unwrap()
 	err = s.WaitForFinalizedBlockNumber(nextEpochBlockNum + 1)
 	s.Require().NoError(err)
 
