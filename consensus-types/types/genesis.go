@@ -25,7 +25,7 @@ import (
 	"math/big"
 
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
-	byteslib "github.com/berachain/beacon-kit/primitives/bytes"
+	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
@@ -88,8 +88,7 @@ func (g *Genesis) UnmarshalJSON(
 		err           error
 	)
 	payloadHeader, err = payloadHeader.NewFromJSON(
-		g2.ExecutionPayloadHeader,
-		version.ToUint32(g2.ForkVersion),
+		g2.ExecutionPayloadHeader, g2.ForkVersion.ToUint32(),
 	)
 	if err != nil {
 		return err
@@ -111,9 +110,7 @@ func DefaultGenesisDeneb() *Genesis {
 
 	// TODO: Uncouple from deneb.
 	return &Genesis{
-		ForkVersion: version.FromUint32[common.Version](
-			version.Deneb,
-		),
+		ForkVersion:            bytes.FromUint32(version.Deneb),
 		Deposits:               make([]*Deposit, 0),
 		ExecutionPayloadHeader: defaultHeader,
 	}
@@ -124,7 +121,7 @@ func DefaultGenesisDeneb() *Genesis {
 func DefaultGenesisExecutionPayloadHeaderDeneb() (
 	*ExecutionPayloadHeader, error,
 ) {
-	stateRoot, err := byteslib.ToBytes32(
+	stateRoot, err := bytes.ToBytes32(
 		hex.MustToBytes(
 			"0x12965ab9cbe2d2203f61d23636eb7e998f167cb79d02e452f532535641e35bcc",
 		),
@@ -133,7 +130,7 @@ func DefaultGenesisExecutionPayloadHeaderDeneb() (
 		return nil, fmt.Errorf("failed generating state root: %w", err)
 	}
 
-	receiptsRoot, err := byteslib.ToBytes32(
+	receiptsRoot, err := bytes.ToBytes32(
 		hex.MustToBytes(
 			"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
 		),
