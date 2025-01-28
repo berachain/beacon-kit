@@ -37,11 +37,6 @@ import (
 func (sp *StateProcessor[_]) processOperations(
 	ctx context.Context, st *state.StateDB, blk *ctypes.BeaconBlock,
 ) error {
-	slot, err := st.GetSlot()
-	if err != nil {
-		return err
-	}
-
 	// Verify that outstanding deposits are processed up to the maximum number of deposits.
 	//
 	// Unlike Eth 2.0 specs we don't check that
@@ -55,14 +50,14 @@ func (sp *StateProcessor[_]) processOperations(
 	}
 
 	// Instead we directly compare block deposits with our local store ones.
-	if err = sp.validateNonGenesisDeposits(
+	if err := sp.validateNonGenesisDeposits(
 		ctx, st, deposits, blk.GetBody().GetEth1Data().DepositRoot,
 	); err != nil {
 		return err
 	}
 
 	for _, dep := range deposits {
-		if err = sp.processDeposit(st, dep, slot); err != nil {
+		if err := sp.processDeposit(st, dep); err != nil {
 			return err
 		}
 	}
@@ -71,9 +66,7 @@ func (sp *StateProcessor[_]) processOperations(
 }
 
 // processDeposit processes the deposit and ensures it matches the local state.
-func (sp *StateProcessor[_]) processDeposit(
-	st *state.StateDB, dep *ctypes.Deposit, slot math.Slot,
-) error {
+func (sp *StateProcessor[_]) processDeposit(st *state.StateDB, dep *ctypes.Deposit) error {
 	eth1DepositIndex, err := st.GetEth1DepositIndex()
 	if err != nil {
 		return err
@@ -87,16 +80,14 @@ func (sp *StateProcessor[_]) processDeposit(
 		"Processed deposit to set Eth 1 deposit index",
 		"previous", eth1DepositIndex, "new", eth1DepositIndex+1,
 	)
-	if err = sp.applyDeposit(st, dep, slot); err != nil {
+	if err = sp.applyDeposit(st, dep); err != nil {
 		return fmt.Errorf("failed to apply deposit: %w", err)
 	}
 	return nil
 }
 
 // applyDeposit processes the deposit and ensures it matches the local state.
-func (sp *StateProcessor[_]) applyDeposit(
-	st *state.StateDB, dep *ctypes.Deposit, slot math.Slot,
-) error {
+func (sp *StateProcessor[_]) applyDeposit(st *state.StateDB, dep *ctypes.Deposit) error {
 	idx, err := st.ValidatorIndexByPubkey(dep.GetPubkey())
 	if err != nil {
 		sp.logger.Info("Validator does not exist so creating",
@@ -104,7 +95,7 @@ func (sp *StateProcessor[_]) applyDeposit(
 		// If the validator does not exist, we add the validator.
 		// TODO: improve error handling by distinguishing
 		// ErrNotFound from other kind of errors
-		return sp.createValidator(st, dep, slot)
+		return sp.createValidator(st, dep)
 	}
 
 	// if validator exist, just update its balance
@@ -121,14 +112,17 @@ func (sp *StateProcessor[_]) applyDeposit(
 }
 
 // createValidator creates a validator if the deposit is valid.
-func (sp *StateProcessor[_]) createValidator(
-	st *state.StateDB, dep *ctypes.Deposit, slot math.Slot,
-) error {
+func (sp *StateProcessor[_]) createValidator(st *state.StateDB, dep *ctypes.Deposit) error {
+	// Get the current slot.
+	slot, err := st.GetSlot()
+	if err != nil {
+		return err
+	}
+
 	// At genesis, the validators sign over an empty root.
 	genesisValidatorsRoot := common.Root{}
 	if slot != 0 {
 		// Get the genesis validators root to be used to find fork data later.
-		var err error
 		genesisValidatorsRoot, err = st.GetGenesisValidatorsRoot()
 		if err != nil {
 			return err
@@ -147,7 +141,7 @@ func (sp *StateProcessor[_]) createValidator(
 	}
 
 	// Verify that the message was signed correctly.
-	if err := dep.VerifySignature(
+	err = dep.VerifySignature(
 		ctypes.NewForkData(
 			// Deposits must be signed with GENESIS_FORK_VERSION.
 			bytes.FromUint32(constants.GenesisVersion),
@@ -155,7 +149,8 @@ func (sp *StateProcessor[_]) createValidator(
 		),
 		sp.cs.DomainTypeDeposit(),
 		sp.signer.VerifySignature,
-	); err != nil {
+	)
+	if err != nil {
 		// Ignore deposits that fail the signature check.
 		sp.logger.Warn(
 			"failed deposit signature verification",

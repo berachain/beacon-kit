@@ -97,7 +97,7 @@ func (sp *StateProcessor[_]) InitializePreminedBeaconStateFromEth1(
 		return nil, err
 	}
 	for _, deposit := range deposits {
-		if err := sp.processDeposit(st, deposit, constants.GenesisSlot); err != nil {
+		if err := sp.processDeposit(st, deposit); err != nil {
 			return nil, err
 		}
 	}
