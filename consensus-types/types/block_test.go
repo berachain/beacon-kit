@@ -37,11 +37,12 @@ func generateValidBeaconBlock(t *testing.T) *types.BeaconBlock {
 	t.Helper()
 
 	// Initialize your block here
+	version := version.Deneb1
 	beaconBlock, err := types.NewBeaconBlockWithVersion(
 		math.Slot(10),
 		math.ValidatorIndex(5),
 		common.Root{1, 2, 3, 4, 5}, // parent block root
-		version.Deneb1,
+		version,
 	)
 	require.NoError(t, err)
 
@@ -60,6 +61,7 @@ func generateValidBeaconBlock(t *testing.T) *types.BeaconBlock {
 				{Index: 1, Amount: 200},
 			},
 			BaseFeePerGas: math.NewU256(0),
+			EpVersion:     version,
 		},
 		Eth1Data: &types.Eth1Data{},
 		Deposits: []*types.Deposit{
@@ -129,6 +131,7 @@ func TestBeaconBlock_MarshalUnmarshalSSZ(t *testing.T) {
 	err = unmarshalledBlock.UnmarshalSSZ(sszBlock)
 	require.NoError(t, err)
 
+	unmarshalledBlock.Body.ExecutionPayload.EpVersion = block.Version()
 	unmarshalledBlock.BbVersion = block.Version()
 	require.Equal(t, block, unmarshalledBlock)
 }

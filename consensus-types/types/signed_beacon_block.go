@@ -59,6 +59,9 @@ func NewSignedBeaconBlockFromSSZ(
 		if err := block.UnmarshalSSZ(bz); err != nil {
 			return block, err
 		}
+
+		// duly setup fork version in every relevant block member
+		block.Message.Body.ExecutionPayload.EpVersion = forkVersion
 		block.Message.BbVersion = forkVersion
 		return block, nil
 	default:
