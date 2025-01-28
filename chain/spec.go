@@ -21,8 +21,11 @@
 package chain
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 )
 
 // Spec defines an interface for accessing chain-specific parameters.
@@ -424,12 +427,28 @@ func (s spec) ValidatorSetCap() uint64 {
 
 // EVMInflationAddress returns the address on the EVM which will receive the
 // inflation amount of native EVM balance through a withdrawal every block.
-func (s spec) EVMInflationAddress(math.Slot) common.ExecutionAddress {
-	return s.Data.EVMInflationAddress
+func (s spec) EVMInflationAddress(slot math.Slot) common.ExecutionAddress {
+	fv := s.ActiveForkVersionForSlot(slot)
+	switch fv {
+	case version.Deneb1:
+		return s.Data.EVMInflationAddressDeneb1
+	case version.Deneb:
+		return s.Data.EVMInflationAddressGenesis
+	default:
+		panic(fmt.Sprintf("EVMInflationAddress not supported for this fork version: %d", fv))
+	}
 }
 
 // EVMInflationPerBlock returns the amount of native EVM balance (in Gwei) to
 // be minted to the EVMInflationAddress via a withdrawal every block.
-func (s spec) EVMInflationPerBlock(math.Slot) uint64 {
-	return s.Data.EVMInflationPerBlock
+func (s spec) EVMInflationPerBlock(slot math.Slot) uint64 {
+	fv := s.ActiveForkVersionForSlot(slot)
+	switch fv {
+	case version.Deneb1:
+		return s.Data.EVMInflationPerBlockDeneb1
+	case version.Deneb:
+		return s.Data.EVMInflationPerBlockGenesis
+	default:
+		panic(fmt.Sprintf("EVMInflationPerBlock not supported for this fork version: %d", fv))
+	}
 }

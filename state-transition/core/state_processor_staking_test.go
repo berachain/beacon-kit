@@ -691,7 +691,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		&types.BeaconBlockBody{
 			ExecutionPayload: testPayload(
 				blk.Body.ExecutionPayload.Timestamp+1,
-				st.EVMInflationWithdrawal(blk.GetSlot()),
+				st.EVMInflationWithdrawal(blk.GetSlot()+1),
 			),
 			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
@@ -788,7 +788,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	require.NoError(t, err)
 
 	withdrawals := []*engineprimitives.Withdrawal{
-		st.EVMInflationWithdrawal(blk.GetSlot() + 1),
+		st.EVMInflationWithdrawal(blk.GetSlot()),
 		{
 			Index:     0,
 			Validator: extraValIdx,
@@ -950,7 +950,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		&types.BeaconBlockBody{
 			ExecutionPayload: testPayload(
 				blk.Body.ExecutionPayload.Timestamp+1,
-				st.EVMInflationWithdrawal(blk.GetSlot()),
+				st.EVMInflationWithdrawal(blk.GetSlot()+1),
 			),
 			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
@@ -1004,7 +1004,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		&types.BeaconBlockBody{
 			ExecutionPayload: testPayload(
 				blk.Body.ExecutionPayload.Timestamp+1,
-				st.EVMInflationWithdrawal(blk.GetSlot()),
+				st.EVMInflationWithdrawal(blk.GetSlot()+1),
 			),
 			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
@@ -1081,7 +1081,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		&types.BeaconBlockBody{
 			ExecutionPayload: testPayload(
 				blk.Body.ExecutionPayload.Timestamp+1,
-				st.EVMInflationWithdrawal(blk.GetSlot()),
+				st.EVMInflationWithdrawal(blk.GetSlot()+1),
 			),
 			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{},
