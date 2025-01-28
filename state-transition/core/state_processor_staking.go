@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/state-transition/core/state"
+	"github.com/ethereum/go-ethereum/params"
 )
 
 // processOperations processes the operations and ensures they match the local state.
@@ -105,7 +106,7 @@ func (sp *StateProcessor[_]) applyDeposit(st *state.StateDB, dep *ctypes.Deposit
 
 	sp.logger.Info(
 		"Processed deposit to increase balance",
-		"deposit_amount", float64(dep.GetAmount().Unwrap())/math.GweiPerWei,
+		"deposit_amount", float64(dep.GetAmount().Unwrap())/params.GWei,
 		"validator_index", idx,
 	)
 	return nil
@@ -189,7 +190,7 @@ func (sp *StateProcessor[_]) addValidatorToRegistry(st *state.StateDB, dep *ctyp
 	}
 	sp.logger.Info(
 		"Processed deposit to create new validator",
-		"deposit_amount", float64(dep.GetAmount().Unwrap())/math.GweiPerWei,
+		"deposit_amount", float64(dep.GetAmount().Unwrap())/params.GWei,
 		"validator_index", idx, "withdrawal_epoch", val.GetWithdrawableEpoch(),
 	)
 	return nil

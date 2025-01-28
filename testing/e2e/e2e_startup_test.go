@@ -20,7 +20,14 @@
 
 package e2e_test
 
-import "github.com/berachain/beacon-kit/testing/e2e/suite"
+import (
+	"math/big"
+
+	"github.com/berachain/beacon-kit/config/spec"
+	"github.com/berachain/beacon-kit/testing/e2e/suite"
+	gethcommon "github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/params"
+)
 
 // BeaconE2ESuite is a suite of tests simulating a fully function beacon-kit
 // network.
@@ -33,4 +40,29 @@ type BeaconKitE2ESuite struct {
 func (s *BeaconKitE2ESuite) TestBasicStartup() {
 	err := s.WaitForFinalizedBlockNumber(10)
 	s.Require().NoError(err)
+}
+
+// TestEVMInflation checks that the EVM inflation address receives the correct
+// amount of EVM inflation per block.
+func (s *BeaconKitE2ESuite) TestEVMInflation() {
+	evmInflationPerBlockWei, _ := big.NewFloat(
+		spec.DevnetEVMInflationPerBlock * params.GWei,
+	).Int(nil)
+
+	// Check over the next 10 EVM blocks, that after every block, the balance
+	// of the EVM inflation address increases by DevnetEVMInflationPerBlock.
+	for i := range int64(10) {
+		err := s.WaitForFinalizedBlockNumber(uint64(i))
+		s.Require().NoError(err)
+
+		balance, err := s.JSONRPCBalancer().BalanceAt(
+			s.Ctx(),
+			gethcommon.HexToAddress(spec.DevnetEVMInflationAddress),
+			big.NewInt(i),
+		)
+		s.Require().NoError(err)
+		s.Require().Zero(balance.Cmp(new(big.Int).Mul(
+			evmInflationPerBlockWei, big.NewInt(i)),
+		))
+	}
 }
