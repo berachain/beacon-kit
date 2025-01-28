@@ -133,18 +133,18 @@ func (s *Client) GetPayload(
 		return nil, ErrInvalidVersion
 	}
 
-	return s.GetPayloadV3(ctx, payloadID)
+	return s.GetPayloadV3(ctx, payloadID, forkVersion)
 }
 
 // GetPayloadV3 calls the engine_getPayloadV3 method via JSON-RPC.
 func (s *Client) GetPayloadV3(
-	ctx context.Context, payloadID engineprimitives.PayloadID,
+	ctx context.Context, payloadID engineprimitives.PayloadID, forkVersion uint32,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
 	var t *ctypes.ExecutionPayload
 	result := &ctypes.ExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1[
 		eip4844.KZGCommitment, eip4844.KZGProof, eip4844.Blob,
 	]]{
-		ExecutionPayload: t.Empty(version.Deneb),
+		ExecutionPayload: t.Empty(forkVersion),
 	}
 
 	if err := s.Call(

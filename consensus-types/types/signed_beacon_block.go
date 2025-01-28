@@ -53,16 +53,16 @@ func NewSignedBeaconBlockFromSSZ(
 	bz []byte,
 	forkVersion uint32,
 ) (*SignedBeaconBlock, error) {
-	if forkVersion == version.Deneb {
+	switch forkVersion {
+	case version.Deneb, version.Deneb1:
 		block := &SignedBeaconBlock{}
 		return block, block.UnmarshalSSZ(bz)
+	default:
+		return nil, errors.Wrap(
+			ErrForkVersionNotSupported,
+			fmt.Sprintf("fork %d", forkVersion),
+		)
 	}
-
-	err := errors.Wrap(
-		ErrForkVersionNotSupported,
-		fmt.Sprintf("fork %d", forkVersion),
-	)
-	return nil, err
 }
 
 // NewSignedBeaconBlock signs the provided BeaconBlock and populates the receiver.

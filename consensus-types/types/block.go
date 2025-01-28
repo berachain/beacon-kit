@@ -58,7 +58,8 @@ func NewBeaconBlockWithVersion(
 	parentBlockRoot common.Root,
 	forkVersion uint32,
 ) (*BeaconBlock, error) {
-	if forkVersion == version.Deneb {
+	switch forkVersion {
+	case version.Deneb, version.Deneb1:
 		return &BeaconBlock{
 			Slot:          slot,
 			ProposerIndex: proposerIndex,
@@ -66,13 +67,12 @@ func NewBeaconBlockWithVersion(
 			StateRoot:     common.Root{},
 			Body:          &BeaconBlockBody{},
 		}, nil
+	default:
+		return nil, errors.Wrap(
+			ErrForkVersionNotSupported,
+			fmt.Sprintf("fork %d", forkVersion),
+		)
 	}
-
-	err := errors.Wrap(
-		ErrForkVersionNotSupported,
-		fmt.Sprintf("fork %d", forkVersion),
-	)
-	return nil, err
 }
 
 /* -------------------------------------------------------------------------- */

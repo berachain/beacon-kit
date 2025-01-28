@@ -28,7 +28,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
-	"github.com/berachain/beacon-kit/primitives/version"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
@@ -59,7 +58,7 @@ func (sp *StateProcessor[_]) InitializePreminedBeaconStateFromEth1(
 		return nil, err
 	}
 
-	if genesisVersion.ToUint32() != version.Deneb {
+	if genesisVersion.ToUint32() != constants.GenesisVersion {
 		return nil, fmt.Errorf("fork version not supported: %s", genesisVersion)
 	}
 	blkBody := &ctypes.BeaconBlockBody{
