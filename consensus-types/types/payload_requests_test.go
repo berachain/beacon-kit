@@ -32,20 +32,22 @@ import (
 )
 
 func TestBuildNewPayloadRequest(t *testing.T) {
-	executionPayload := types.ExecutionPayload{}
-	var versionedHashes []common.ExecutionHash
-	parentBeaconBlockRoot := common.Root{}
-	optimistic := false
+	var (
+		executionPayload      = (&types.ExecutionPayload{}).Empty(version.Deneb1)
+		versionedHashes       []common.ExecutionHash
+		parentBeaconBlockRoot = common.Root{}
+		optimistic            = false
+	)
 
 	request := types.BuildNewPayloadRequest(
-		&executionPayload,
+		executionPayload,
 		versionedHashes,
 		&parentBeaconBlockRoot,
 		optimistic,
 	)
 
 	require.NotNil(t, request)
-	require.Equal(t, executionPayload, *request.ExecutionPayload)
+	require.Equal(t, executionPayload, request.ExecutionPayload)
 	require.Equal(t, versionedHashes, request.VersionedHashes)
 	require.Equal(t, &parentBeaconBlockRoot, request.ParentBeaconBlockRoot)
 	require.Equal(t, optimistic, request.Optimistic)
@@ -88,13 +90,15 @@ func TestBuildGetPayloadRequest(t *testing.T) {
 }
 
 func TestHasValidVersionedAndBlockHashesPayloadError(t *testing.T) {
-	executionPayload := types.ExecutionPayload{}
-	versionedHashes := []common.ExecutionHash{}
-	parentBeaconBlockRoot := common.Root{}
-	optimistic := false
+	var (
+		executionPayload      = (&types.ExecutionPayload{}).Empty(version.Deneb1)
+		versionedHashes       = []common.ExecutionHash{}
+		parentBeaconBlockRoot = common.Root{}
+		optimistic            = false
+	)
 
 	request := types.BuildNewPayloadRequest(
-		&executionPayload,
+		executionPayload,
 		versionedHashes,
 		&parentBeaconBlockRoot,
 		optimistic,
@@ -105,15 +109,15 @@ func TestHasValidVersionedAndBlockHashesPayloadError(t *testing.T) {
 }
 
 func TestHasValidVersionedAndBlockHashesMismatchedHashes(t *testing.T) {
-	executionPayload := types.ExecutionPayload{}
-	versionedHashes := []common.ExecutionHash{
-		{},
-	}
-	parentBeaconBlockRoot := common.Root{}
-	optimistic := false
+	var (
+		executionPayload      = (&types.ExecutionPayload{}).Empty(version.Deneb1)
+		versionedHashes       = []common.ExecutionHash{{}}
+		parentBeaconBlockRoot = common.Root{}
+		optimistic            = false
+	)
 
 	request := types.BuildNewPayloadRequest(
-		&executionPayload,
+		executionPayload,
 		versionedHashes,
 		&parentBeaconBlockRoot,
 		optimistic,
