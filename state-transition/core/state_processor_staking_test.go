@@ -157,7 +157,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 				ExtraData:    []byte("testing"),
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(constants.GenesisSlot),
+					st.EVMInflationWithdrawal(blk.GetSlot()),
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
@@ -297,7 +297,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 				ExtraData:    []byte("testing"),
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(constants.GenesisSlot),
+					st.EVMInflationWithdrawal(blk.GetSlot()),
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
@@ -341,7 +341,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 				ExtraData:    []byte("testing"),
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(constants.GenesisSlot),
+					st.EVMInflationWithdrawal(blk.GetSlot()),
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
@@ -579,7 +579,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
 					// The first withdrawal is always for EVM inflation.
-					st.EVMInflationWithdrawal(constants.GenesisSlot),
+					st.EVMInflationWithdrawal(blk.GetSlot()),
 					// Partially withdraw validator 1 by minBalance.
 					{
 						Index:     1,
@@ -732,7 +732,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				ExtraData:    []byte("testing"),
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(constants.GenesisSlot),
+					st.EVMInflationWithdrawal(blk1.GetSlot()),
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
@@ -776,7 +776,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 				ExtraData:    []byte("testing"),
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(constants.GenesisSlot),
+					st.EVMInflationWithdrawal(blk.GetSlot()),
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
@@ -1018,7 +1018,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				ExtraData:    []byte("testing"),
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(constants.GenesisSlot),
+					st.EVMInflationWithdrawal(blk1.GetSlot()),
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
@@ -1077,7 +1077,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 				ExtraData:    []byte("testing"),
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(constants.GenesisSlot),
+					st.EVMInflationWithdrawal(blk.GetSlot()),
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
