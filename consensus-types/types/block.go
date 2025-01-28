@@ -51,7 +51,7 @@ type BeaconBlock struct {
 // Empty creates an empty beacon block.
 func (*BeaconBlock) Empty() *BeaconBlock {
 	return &BeaconBlock{
-		// By default, we return a Deneb block to maintain compatibility.
+		// By default, we set the version to Deneb to maintain compatibility.
 		version: version.Deneb,
 	}
 }

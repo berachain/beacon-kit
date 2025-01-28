@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 	fastssz "github.com/ferranbt/fastssz"
 	"github.com/holiman/uint256"
 	"github.com/karalabe/ssz"
@@ -77,6 +78,8 @@ type ExecutionPayloadHeader struct {
 // Empty returns an empty ExecutionPayloadHeader.
 func (h *ExecutionPayloadHeader) Empty() *ExecutionPayloadHeader {
 	return &ExecutionPayloadHeader{
+		// By default, we set the version to Deneb to maintain compatibility.
+		version:       version.Deneb,
 		BaseFeePerGas: &uint256.Int{},
 	}
 }
