@@ -54,8 +54,10 @@ func TestBuildNewPayloadRequest(t *testing.T) {
 }
 
 func TestBuildForkchoiceUpdateRequest(t *testing.T) {
-	state := &engineprimitives.ForkchoiceStateV1{}
-	forkVersion := version.Deneb1
+	var (
+		state       = &engineprimitives.ForkchoiceStateV1{}
+		forkVersion = version.Deneb1
+	)
 	payloadAttributes, err := engineprimitives.NewPayloadAttributes(
 		forkVersion,
 		uint64(time.Now().Truncate(time.Second).Unix()),

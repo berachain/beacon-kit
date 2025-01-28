@@ -63,6 +63,10 @@ func (s *Service) BuildBlockAndSidecars(
 	// and safe block hashes to the execution client.
 	st := s.sb.StateFromContext(ctx)
 
+	// we introduce hard forks with the expectation that the height set for the
+	// hard fork is the first height at which new rules apply. So we need to make
+	// sure that when building blocks, we pick the right height. blkSlots is the
+	// height for the next block, which consensus is requesting BeaconKit to build.
 	blkSlot := slotData.GetSlot()
 
 	// Prepare the state such that it is ready to build a block for
