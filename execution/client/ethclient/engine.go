@@ -47,13 +47,13 @@ func (s *Client) NewPayload(
 	// comparison and drop this check here. The EL does not know
 	// anything about CL versions, so payload should not have a
 	// CL version (or at least not a check here).
-	if payload.Version() < version.Deneb1 {
-		return nil, ErrInvalidVersion
+	if payload.Version() == version.Deneb ||
+		payload.Version() == version.Deneb1 {
+		return s.NewPayloadV3(
+			ctx, payload, versionedHashes, parentBlockRoot,
+		)
 	}
-
-	return s.NewPayloadV3(
-		ctx, payload, versionedHashes, parentBlockRoot,
-	)
+	return nil, ErrInvalidVersion
 }
 
 // NewPayloadV3 is used to call the underlying JSON-RPC method for newPayload.
