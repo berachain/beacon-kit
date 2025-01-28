@@ -81,7 +81,9 @@ func (sp *StateProcessor[_]) validateNonGenesisDeposits(
 	}
 
 	expectedLocalDepositsLen := depositIndex + uint64(len(blkDeposits))
-	localDeposits, err := sp.ds.GetDepositsByIndex(ctx, 0, expectedLocalDepositsLen)
+	localDeposits, err := sp.ds.GetDepositsByIndex(
+		ctx, constants.FirstDepositIndex, expectedLocalDepositsLen,
+	)
 	if err != nil {
 		return err
 	}
