@@ -76,7 +76,7 @@ type ExecutionPayload struct {
 	// EpVersion is the version of the execution payload.
 	// EpVersion must be not serialized, but it's exported
 	// to allow unit tests using reflect on execution payload.
-	EpVersion uint32
+	EpVersion uint32 `json:"-"`
 }
 
 /* -------------------------------------------------------------------------- */

@@ -47,7 +47,7 @@ type BeaconBlock struct {
 	// BbVersion is the BbVersion of the beacon block.
 	// BbVersion must be not serialized but it's exported
 	// to allow unit tests using reflect on beacon block.
-	BbVersion uint32
+	BbVersion uint32 `json:"-"`
 }
 
 // Empty creates an empty beacon block.
