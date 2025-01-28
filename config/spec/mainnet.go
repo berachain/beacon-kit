@@ -24,6 +24,7 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 const (
@@ -48,16 +49,16 @@ const (
 	MainnetMaxValidatorsPerWithdrawalsSweep = 31
 
 	// MainnetMaxEffectiveBalance is the max stake of 10 million BERA at genesis.
-	MainnetMaxEffectiveBalance = 10_000_000 * 1e9
+	MainnetMaxEffectiveBalance = 10_000_000 * math.GweiPerWei
 
 	// MainnetEffectiveBalanceIncrement is 10k BERA at genesis
 	// (equivalent to the Deposit Contract's MIN_DEPOSIT_AMOUNT).
-	MainnetEffectiveBalanceIncrement = 10_000 * 1e9
+	MainnetEffectiveBalanceIncrement = 10_000 * math.GweiPerWei
 
 	// MainnetEjectionBalance is 240k BERA, calculated as:
 	// activation_balance - effective_balance_increment = 250k - 10k = 240k BERA.
 	// Activation balance is the min stake of 250k BERA at genesis.
-	MainnetEjectionBalance = 250_000*1e9 - MainnetEffectiveBalanceIncrement
+	MainnetEjectionBalance = 250_000*math.GweiPerWei - MainnetEffectiveBalanceIncrement
 
 	// Slots per epoch is 192 to mirror the time of epochs on Ethereum mainnet.
 	MainnetSlotsPerEpoch = 192
@@ -83,7 +84,7 @@ const (
 
 	// MainnetEVMInflationPerBlockDeneb1 is the amount of native EVM balance (in Gwei) to be
 	// minted to the EVMInflationAddressDeneb1 via a withdrawal every block in the Deneb1 fork.
-	MainnetEVMInflationPerBlockDeneb1 = 5.75 * 1e9
+	MainnetEVMInflationPerBlockDeneb1 = 5.75 * math.GweiPerWei
 )
 
 // MainnetChainSpecData is the chain.SpecData for the Berachain mainnet.
