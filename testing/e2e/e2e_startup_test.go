@@ -28,7 +28,6 @@ import (
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/berachain/beacon-kit/testing/e2e/suite"
-	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
 	"github.com/kurtosis-tech/kurtosis/api/golang/engine/lib/kurtosis_context"
 )
 
@@ -72,7 +71,7 @@ func (s *BeaconKitE2ESuite) SetupSuite() {
 func (s *BeaconKitE2ESuite) initializeNetworks() {
 	for _, spec := range s.GetTestSpecs() {
 		chainKey := fmt.Sprintf("%d-%s", spec.ChainID, spec.Network)
-		if networks := s.Networks(); networks[chainKey] == nil {
+		if networks := s.GetNetworks(); networks[chainKey] == nil {
 			network := suite.NewNetworkInstance(config.DefaultE2ETestConfig())
 			network.Config.NetworkConfiguration.ChainID = int(spec.ChainID)
 			network.Config.NetworkConfiguration.ChainSpec = spec.Network
@@ -101,10 +100,4 @@ func (s *BeaconKitE2ESuite) runBasicStartup() {
 	s.Logger().Info("Running Basic Startup")
 	err := s.WaitForFinalizedBlockNumber(10)
 	s.Require().NoError(err)
-}
-
-func (s *BeaconKitE2ESuite) GetAccounts() []*types.EthAccount {
-	network := s.GetCurrentNetwork()
-	s.Require().NotNil(network, "Network instance is nil")
-	return network.TestAccounts()
 }

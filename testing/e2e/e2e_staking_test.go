@@ -80,7 +80,6 @@ func (s *BeaconKitE2ESuite) runDepositRobustness() {
 	// Get the chain ID.
 	chainID, err := s.JSONRPCBalancer().ChainID(s.Ctx())
 	s.Require().NoError(err)
-	s.Logger().Info("Chain ID", "chainID", chainID)
 
 	// Get the chain spec used by the e2e nodes. TODO: make configurable.
 	chainSpec, err := spec.DevnetChainSpec()
@@ -155,7 +154,6 @@ func (s *BeaconKitE2ESuite) runDepositRobustness() {
 
 	// Sender account
 	sender := s.GetAccounts()[0]
-	s.Logger().Info("Sender account", "address", sender.Address().Hex())
 
 	// Get the block num
 	blkNum, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
@@ -165,7 +163,6 @@ func (s *BeaconKitE2ESuite) runDepositRobustness() {
 	balance, err := s.JSONRPCBalancer().BalanceAt(
 		s.Ctx(), sender.Address(), new(big.Int).SetUint64(blkNum),
 	)
-	s.Logger().Info("Balance", "balance", balance)
 	s.Require().NoError(err)
 
 	// Get the nonce.
@@ -173,7 +170,6 @@ func (s *BeaconKitE2ESuite) runDepositRobustness() {
 		s.Ctx(), sender.Address(), new(big.Int).SetUint64(blkNum),
 	)
 	s.Require().NoError(err)
-	s.Logger().Info("Nonce", "nonce", nonce)
 	var (
 		tx           *coretypes.Transaction
 		clientPubkey []byte
