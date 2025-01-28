@@ -30,65 +30,65 @@ type Spec interface {
 	// Gwei value constants.
 
 	// MaxEffectiveBalance returns the maximum balance counted in rewards calculations in Gwei.
-	MaxEffectiveBalance(slot math.Slot) uint64
+	MaxEffectiveBalance() uint64
 
 	// EjectionBalance returns the balance below which a validator is ejected.
-	EjectionBalance(slot math.Slot) uint64
+	EjectionBalance() uint64
 
 	// EffectiveBalanceIncrement returns the increment of balance used in reward
 	// calculations.
-	EffectiveBalanceIncrement(slot math.Slot) uint64
+	EffectiveBalanceIncrement() uint64
 
 	// HysteresisQuotient returns the quotient used in effective balance
 	// calculations to create hysteresis. This provides resistance to small
 	// balance changes triggering effective balance updates.
-	HysteresisQuotient(slot math.Slot) uint64
+	HysteresisQuotient() uint64
 
 	// HysteresisDownwardMultiplier returns the multiplier used when checking
 	// if the effective balance should be decreased.
-	HysteresisDownwardMultiplier(slot math.Slot) uint64
+	HysteresisDownwardMultiplier() uint64
 
 	// HysteresisUpwardMultiplier returns the multiplier used when checking
 	// if the effective balance should be increased.
-	HysteresisUpwardMultiplier(slot math.Slot) uint64
+	HysteresisUpwardMultiplier() uint64
 
 	// Time parameters constants.
 
 	// SlotsPerEpoch returns the number of slots in an epoch.
-	SlotsPerEpoch(slot math.Slot) math.Slot
+	SlotsPerEpoch() math.Slot
 
 	// SlotsPerHistoricalRoot returns the number of slots per historical root.
-	SlotsPerHistoricalRoot(slot math.Slot) uint64
+	SlotsPerHistoricalRoot() uint64
 
 	// MinEpochsToInactivityPenalty returns the minimum number of epochs before
 	// an inactivity penalty is applied.
-	MinEpochsToInactivityPenalty(slot math.Slot) uint64
+	MinEpochsToInactivityPenalty() uint64
 
 	// Signature Domains
 
 	// DomainTypeProposer returns the domain for proposer signatures.
-	DomainTypeProposer(slot math.Slot) common.DomainType
+	DomainTypeProposer() common.DomainType
 
 	// DomainTypeAttester returns the domain for attester signatures.
-	DomainTypeAttester(slot math.Slot) common.DomainType
+	DomainTypeAttester() common.DomainType
 
 	// DomainTypeRandao returns the domain for RANDAO reveal signatures.
-	DomainTypeRandao(slot math.Slot) common.DomainType
+	DomainTypeRandao() common.DomainType
 
 	// DomainTypeDeposit returns the domain for deposit signatures.
-	DomainTypeDeposit(slot math.Slot) common.DomainType
+	DomainTypeDeposit() common.DomainType
 
 	// DomainTypeVoluntaryExit returns the domain for voluntary exit signatures.
-	DomainTypeVoluntaryExit(slot math.Slot) common.DomainType
+	DomainTypeVoluntaryExit() common.DomainType
 
 	// DomainTypeSelectionProof returns the domain for selection proof
-	DomainTypeSelectionProof(slot math.Slot) common.DomainType
+	DomainTypeSelectionProof() common.DomainType
 
 	// DomainTypeAggregateAndProof returns the domain for aggregate and proof
-	DomainTypeAggregateAndProof(slot math.Slot) common.DomainType
+	DomainTypeAggregateAndProof() common.DomainType
 
 	// DomainTypeApplicationMask returns the domain for application signatures.
-	DomainTypeApplicationMask(slot math.Slot) common.DomainType
+	DomainTypeApplicationMask() common.DomainType
 
 	// Eth1-related values.
 
@@ -97,7 +97,7 @@ type Spec interface {
 
 	// MaxDepositsPerBlock returns the maximum number of deposit operations per
 	// block.
-	MaxDepositsPerBlock(slot math.Slot) uint64
+	MaxDepositsPerBlock() uint64
 
 	// DepositEth1ChainID returns the chain ID of the deposit contract.
 	DepositEth1ChainID() uint64
@@ -107,7 +107,7 @@ type Spec interface {
 	Eth1FollowDistance() uint64
 
 	// TargetSecondsPerEth1Block returns the target time between eth1 blocks.
-	TargetSecondsPerEth1Block(slot math.Slot) uint64
+	TargetSecondsPerEth1Block() uint64
 
 	// Fork-related values.
 
@@ -120,56 +120,56 @@ type Spec interface {
 	// State list lengths
 
 	// EpochsPerHistoricalVector returns the length of the historical vector.
-	EpochsPerHistoricalVector(slot math.Slot) uint64
+	EpochsPerHistoricalVector() uint64
 
 	// EpochsPerSlashingsVector returns the length of the slashing vector.
-	EpochsPerSlashingsVector(slot math.Slot) uint64
+	EpochsPerSlashingsVector() uint64
 
 	// HistoricalRootsLimit returns the maximum number of historical root
 	// entries.
-	HistoricalRootsLimit(slot math.Slot) uint64
+	HistoricalRootsLimit() uint64
 
 	// ValidatorRegistryLimit returns the maximum number of validators in the
 	// registry.
-	ValidatorRegistryLimit(slot math.Slot) uint64
+	ValidatorRegistryLimit() uint64
 
 	// Rewards and Penalties
 
 	// InactivityPenaltyQuotient returns the inactivity penalty quotient.
-	InactivityPenaltyQuotient(slot math.Slot) uint64
+	InactivityPenaltyQuotient() uint64
 
 	// ProportionalSlashingMultiplier returns the multiplier for calculating
 	// slashing penalties.
-	ProportionalSlashingMultiplier(slot math.Slot) uint64
+	ProportionalSlashingMultiplier() uint64
 
 	// Capella Values
 
 	// MaxWithdrawalsPerPayload returns the maximum number of withdrawals per
 	// payload.
-	MaxWithdrawalsPerPayload(slot math.Slot) uint64
+	MaxWithdrawalsPerPayload() uint64
 
 	// MaxValidatorsPerWithdrawalsSweep returns the maximum number of validators
 	// per withdrawal sweep.
-	MaxValidatorsPerWithdrawalsSweep(slot math.Slot) uint64
+	MaxValidatorsPerWithdrawalsSweep() uint64
 
 	// Deneb Values
 
 	// MinEpochsForBlobsSidecarsRequest returns the minimum number of epochs for
 	// blob sidecar requests.
-	MinEpochsForBlobsSidecarsRequest(slot math.Slot) math.Epoch
+	MinEpochsForBlobsSidecarsRequest() math.Epoch
 
 	// MaxBlobCommitmentsPerBlock returns the maximum number of blob commitments
 	// per block.
-	MaxBlobCommitmentsPerBlock(slot math.Slot) uint64
+	MaxBlobCommitmentsPerBlock() uint64
 
 	// MaxBlobsPerBlock returns the maximum number of blobs per block.
-	MaxBlobsPerBlock(slot math.Slot) uint64
+	MaxBlobsPerBlock() uint64
 
 	// FieldElementsPerBlob returns the number of field elements per blob.
-	FieldElementsPerBlob(slot math.Slot) uint64
+	FieldElementsPerBlob() uint64
 
 	// BytesPerBlob returns the number of bytes per blob.
-	BytesPerBlob(slot math.Slot) uint64
+	BytesPerBlob() uint64
 
 	// Helpers for ChainSpecData
 
@@ -192,7 +192,7 @@ type Spec interface {
 	// Berachain Values
 
 	// ValidatorSetCap retrieves the maximum number of validators allowed in the active set.
-	ValidatorSetCap(slot math.Slot) uint64
+	ValidatorSetCap() uint64
 
 	// EVMInflationAddress returns the address on the EVM which will receive
 	// the inflation amount of native EVM balance through a withdrawal every
@@ -233,86 +233,86 @@ func (s spec) validate() error {
 }
 
 // MaxEffectiveBalance returns the maximum effective balance.
-func (s spec) MaxEffectiveBalance(math.Slot) uint64 {
+func (s spec) MaxEffectiveBalance() uint64 {
 	return s.Data.MaxEffectiveBalance
 }
 
 // EjectionBalance returns the balance below which a validator is ejected.
-func (s spec) EjectionBalance(math.Slot) uint64 {
+func (s spec) EjectionBalance() uint64 {
 	return s.Data.EjectionBalance
 }
 
 // EffectiveBalanceIncrement returns the increment of effective balance.
-func (s spec) EffectiveBalanceIncrement(math.Slot) uint64 {
+func (s spec) EffectiveBalanceIncrement() uint64 {
 	return s.Data.EffectiveBalanceIncrement
 }
 
-func (s spec) HysteresisQuotient(math.Slot) uint64 {
+func (s spec) HysteresisQuotient() uint64 {
 	return s.Data.HysteresisQuotient
 }
 
-func (s spec) HysteresisDownwardMultiplier(math.Slot) uint64 {
+func (s spec) HysteresisDownwardMultiplier() uint64 {
 	return s.Data.HysteresisDownwardMultiplier
 }
 
-func (s spec) HysteresisUpwardMultiplier(math.Slot) uint64 {
+func (s spec) HysteresisUpwardMultiplier() uint64 {
 	return s.Data.HysteresisUpwardMultiplier
 }
 
 // SlotsPerEpoch returns the number of slots per epoch.
-func (s spec) SlotsPerEpoch(math.Slot) math.Slot {
+func (s spec) SlotsPerEpoch() math.Slot {
 	return math.Slot(s.Data.SlotsPerEpoch)
 }
 
 // SlotsPerHistoricalRoot returns the number of slots per historical root.
-func (s spec) SlotsPerHistoricalRoot(math.Slot) uint64 {
+func (s spec) SlotsPerHistoricalRoot() uint64 {
 	return s.Data.SlotsPerHistoricalRoot
 }
 
 // MinEpochsToInactivityPenalty returns the minimum number of epochs before an
 // inactivity penalty is applied.
-func (s spec) MinEpochsToInactivityPenalty(math.Slot) uint64 {
+func (s spec) MinEpochsToInactivityPenalty() uint64 {
 	return s.Data.MinEpochsToInactivityPenalty
 }
 
 // DomainTypeProposer returns the domain for beacon proposer signatures.
-func (s spec) DomainTypeProposer(math.Slot) common.DomainType {
+func (s spec) DomainTypeProposer() common.DomainType {
 	return s.Data.DomainTypeProposer
 }
 
 // DomainTypeAttester returns the domain for beacon attester signatures.
-func (s spec) DomainTypeAttester(math.Slot) common.DomainType {
+func (s spec) DomainTypeAttester() common.DomainType {
 	return s.Data.DomainTypeAttester
 }
 
 // DomainTypeRandao returns the domain for RANDAO reveal signatures.
-func (s spec) DomainTypeRandao(math.Slot) common.DomainType {
+func (s spec) DomainTypeRandao() common.DomainType {
 	return s.Data.DomainTypeRandao
 }
 
 // DomainTypeDeposit returns the domain for deposit contract signatures.
-func (s spec) DomainTypeDeposit(math.Slot) common.DomainType {
+func (s spec) DomainTypeDeposit() common.DomainType {
 	return s.Data.DomainTypeDeposit
 }
 
 // DomainTypeVoluntaryExit returns the domain for voluntary exit signatures.
-func (s spec) DomainTypeVoluntaryExit(math.Slot) common.DomainType {
+func (s spec) DomainTypeVoluntaryExit() common.DomainType {
 	return s.Data.DomainTypeVoluntaryExit
 }
 
 // DomainTypeSelectionProof returns the domain for selection proof signatures.
-func (s spec) DomainTypeSelectionProof(math.Slot) common.DomainType {
+func (s spec) DomainTypeSelectionProof() common.DomainType {
 	return s.Data.DomainTypeSelectionProof
 }
 
 // DomainTypeAggregateAndProof returns the domain for aggregate and proof
 // signatures.
-func (s spec) DomainTypeAggregateAndProof(math.Slot) common.DomainType {
+func (s spec) DomainTypeAggregateAndProof() common.DomainType {
 	return s.Data.DomainTypeAggregateAndProof
 }
 
 // DomainTypeApplicationMask returns the domain for the application mask.
-func (s spec) DomainTypeApplicationMask(math.Slot) common.DomainType {
+func (s spec) DomainTypeApplicationMask() common.DomainType {
 	return s.Data.DomainTypeApplicationMask
 }
 
@@ -322,7 +322,7 @@ func (s spec) DepositContractAddress() common.ExecutionAddress {
 }
 
 // MaxDepositsPerBlock returns the maximum number of deposits per block.
-func (s spec) MaxDepositsPerBlock(math.Slot) uint64 {
+func (s spec) MaxDepositsPerBlock() uint64 {
 	return s.Data.MaxDepositsPerBlock
 }
 
@@ -338,7 +338,7 @@ func (s spec) Eth1FollowDistance() uint64 {
 }
 
 // TargetSecondsPerEth1Block returns the target time between eth1 blocks.
-func (s spec) TargetSecondsPerEth1Block(math.Slot) uint64 {
+func (s spec) TargetSecondsPerEth1Block() uint64 {
 	return s.Data.TargetSecondsPerEth1Block
 }
 
@@ -353,75 +353,75 @@ func (s spec) ElectraForkEpoch() math.Epoch {
 }
 
 // EpochsPerHistoricalVector returns the number of epochs per historical vector.
-func (s spec) EpochsPerHistoricalVector(math.Slot) uint64 {
+func (s spec) EpochsPerHistoricalVector() uint64 {
 	return s.Data.EpochsPerHistoricalVector
 }
 
 // EpochsPerSlashingsVector returns the number of epochs per slashings vector.
-func (s spec) EpochsPerSlashingsVector(math.Slot) uint64 {
+func (s spec) EpochsPerSlashingsVector() uint64 {
 	return s.Data.EpochsPerSlashingsVector
 }
 
 // HistoricalRootsLimit returns the limit of historical roots.
-func (s spec) HistoricalRootsLimit(math.Slot) uint64 {
+func (s spec) HistoricalRootsLimit() uint64 {
 	return s.Data.HistoricalRootsLimit
 }
 
 // ValidatorRegistryLimit returns the limit of the validator registry.
-func (s spec) ValidatorRegistryLimit(math.Slot) uint64 {
+func (s spec) ValidatorRegistryLimit() uint64 {
 	return s.Data.ValidatorRegistryLimit
 }
 
 // InactivityPenaltyQuotient returns the inactivity penalty quotient.
-func (s spec) InactivityPenaltyQuotient(math.Slot) uint64 {
+func (s spec) InactivityPenaltyQuotient() uint64 {
 	return s.Data.InactivityPenaltyQuotient
 }
 
 // ProportionalSlashingMultiplier returns the proportional slashing multiplier.
-func (s spec) ProportionalSlashingMultiplier(math.Slot) uint64 {
+func (s spec) ProportionalSlashingMultiplier() uint64 {
 	return s.Data.ProportionalSlashingMultiplier
 }
 
 // MaxWithdrawalsPerPayload returns the maximum number of withdrawals per
 // payload.
-func (s spec) MaxWithdrawalsPerPayload(math.Slot) uint64 {
+func (s spec) MaxWithdrawalsPerPayload() uint64 {
 	return s.Data.MaxWithdrawalsPerPayload
 }
 
 // MaxValidatorsPerWithdrawalsSweep returns the maximum number of validators per withdrawals sweep.
-func (s spec) MaxValidatorsPerWithdrawalsSweep(math.Slot) uint64 {
+func (s spec) MaxValidatorsPerWithdrawalsSweep() uint64 {
 	return s.Data.MaxValidatorsPerWithdrawalsSweep
 }
 
 // MinEpochsForBlobsSidecarsRequest returns the minimum number of epochs for
 // blobs sidecars request.
-func (s spec) MinEpochsForBlobsSidecarsRequest(math.Slot) math.Epoch {
+func (s spec) MinEpochsForBlobsSidecarsRequest() math.Epoch {
 	return math.Epoch(s.Data.MinEpochsForBlobsSidecarsRequest)
 }
 
 // MaxBlobCommitmentsPerBlock returns the maximum number of blob commitments per
 // block.
-func (s spec) MaxBlobCommitmentsPerBlock(math.Slot) uint64 {
+func (s spec) MaxBlobCommitmentsPerBlock() uint64 {
 	return s.Data.MaxBlobCommitmentsPerBlock
 }
 
 // MaxBlobsPerBlock returns the maximum number of blobs per block.
-func (s spec) MaxBlobsPerBlock(math.Slot) uint64 {
+func (s spec) MaxBlobsPerBlock() uint64 {
 	return s.Data.MaxBlobsPerBlock
 }
 
 // FieldElementsPerBlob returns the number of field elements per blob.
-func (s spec) FieldElementsPerBlob(math.Slot) uint64 {
+func (s spec) FieldElementsPerBlob() uint64 {
 	return s.Data.FieldElementsPerBlob
 }
 
 // BytesPerBlob returns the number of bytes per blob.
-func (s spec) BytesPerBlob(math.Slot) uint64 {
+func (s spec) BytesPerBlob() uint64 {
 	return s.Data.BytesPerBlob
 }
 
 // ValidatorSetCap retrieves the maximum number of validators allowed in the active set.
-func (s spec) ValidatorSetCap(math.Slot) uint64 {
+func (s spec) ValidatorSetCap() uint64 {
 	return s.Data.ValidatorSetCap
 }
 

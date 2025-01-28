@@ -47,10 +47,10 @@ func (sp *StateProcessor[_]) processOperations(
 	// Unlike Eth 2.0 specs we don't check that
 	// `len(body.deposits) ==  min(MAX_DEPOSITS, state.eth1_data.deposit_count - state.eth1_deposit_index)`
 	deposits := blk.GetBody().GetDeposits()
-	if uint64(len(deposits)) > sp.cs.MaxDepositsPerBlock(slot) {
+	if uint64(len(deposits)) > sp.cs.MaxDepositsPerBlock() {
 		return errors.Wrapf(
 			ErrExceedsBlockDepositLimit, "expected: %d, got: %d",
-			sp.cs.MaxDepositsPerBlock(slot), len(deposits),
+			sp.cs.MaxDepositsPerBlock(), len(deposits),
 		)
 	}
 
@@ -153,7 +153,7 @@ func (sp *StateProcessor[_]) createValidator(
 			bytes.FromUint32(constants.GenesisVersion),
 			genesisValidatorsRoot,
 		),
-		sp.cs.DomainTypeDeposit(slot),
+		sp.cs.DomainTypeDeposit(),
 		sp.signer.VerifySignature,
 	); err != nil {
 		// Ignore deposits that fail the signature check.
@@ -169,19 +169,17 @@ func (sp *StateProcessor[_]) createValidator(
 	}
 
 	// Add the validator to the registry.
-	return sp.addValidatorToRegistry(st, dep, slot)
+	return sp.addValidatorToRegistry(st, dep)
 }
 
 // addValidatorToRegistry adds a validator to the registry.
-func (sp *StateProcessor[_]) addValidatorToRegistry(
-	st *state.StateDB, dep *ctypes.Deposit, slot math.Slot,
-) error {
+func (sp *StateProcessor[_]) addValidatorToRegistry(st *state.StateDB, dep *ctypes.Deposit) error {
 	val := ctypes.NewValidatorFromDeposit(
 		dep.GetPubkey(),
 		dep.GetWithdrawalCredentials(),
 		dep.GetAmount(),
-		math.Gwei(sp.cs.EffectiveBalanceIncrement(slot)),
-		math.Gwei(sp.cs.MaxEffectiveBalance(slot)),
+		math.Gwei(sp.cs.EffectiveBalanceIncrement()),
+		math.Gwei(sp.cs.MaxEffectiveBalance()),
 	)
 
 	if err := st.AddValidator(val); err != nil {

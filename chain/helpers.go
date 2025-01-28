@@ -60,16 +60,16 @@ func (s spec) SlotInForkVersion(ver common.Version) math.Slot {
 
 // SlotToEpoch converts a slot to an epoch.
 func (s spec) SlotToEpoch(slot math.Slot) math.Epoch {
-	return slot / s.SlotsPerEpoch(slot)
+	return slot / s.SlotsPerEpoch()
 }
 
 // WithinDAPeriod checks if the block epoch is within MIN_EPOCHS_FOR_BLOB_SIDECARS_REQUESTS
 // of the given current epoch.
 func (s spec) WithinDAPeriod(block, current math.Slot) bool {
-	return s.SlotToEpoch(block)+s.MinEpochsForBlobsSidecarsRequest(current) >= s.SlotToEpoch(current)
+	return s.SlotToEpoch(block)+s.MinEpochsForBlobsSidecarsRequest() >= s.SlotToEpoch(current)
 }
 
 // epochToSlot returns the first slot of the given epoch.
 func (s spec) epochToSlot(epoch math.Epoch) math.Slot {
-	return epoch * s.SlotsPerEpoch(epoch)
+	return epoch * s.SlotsPerEpoch()
 }

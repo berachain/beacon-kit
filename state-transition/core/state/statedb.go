@@ -114,7 +114,7 @@ func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 		return nil, err
 	}
 	epoch := s.cs.SlotToEpoch(slot)
-	maxWithdrawals := s.cs.MaxWithdrawalsPerPayload(slot)
+	maxWithdrawals := s.cs.MaxWithdrawalsPerPayload()
 	withdrawals := make([]*engineprimitives.Withdrawal, 0, maxWithdrawals)
 
 	// The first withdrawal is fixed to be the EVM inflation withdrawal.
@@ -135,7 +135,7 @@ func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 		return nil, err
 	}
 
-	bound := min(totalValidators, s.cs.MaxValidatorsPerWithdrawalsSweep(slot))
+	bound := min(totalValidators, s.cs.MaxValidatorsPerWithdrawalsSweep())
 
 	// Iterate through indices to find the next validators to withdraw.
 	for range bound {
@@ -166,7 +166,7 @@ func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 			// Increment the withdrawal index to process the next withdrawal.
 			withdrawalIndex++
 		} else if validator.IsPartiallyWithdrawable(
-			balance, math.Gwei(s.cs.MaxEffectiveBalance(slot)),
+			balance, math.Gwei(s.cs.MaxEffectiveBalance()),
 		) {
 			withdrawalAddress, err = validator.GetWithdrawalCredentials().ToExecutionAddress()
 			if err != nil {
@@ -177,7 +177,7 @@ func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 				math.U64(withdrawalIndex),
 				validatorIndex,
 				withdrawalAddress,
-				balance-math.Gwei(s.cs.MaxEffectiveBalance(slot)),
+				balance-math.Gwei(s.cs.MaxEffectiveBalance()),
 			))
 
 			// Increment the withdrawal index to process the next withdrawal.
@@ -235,16 +235,16 @@ func (s *StateDB) GetMarshallable() (*ctypes.BeaconState, error) {
 		return empty, err
 	}
 
-	blockRoots := make([]common.Root, s.cs.SlotsPerHistoricalRoot(slot))
-	for i := range s.cs.SlotsPerHistoricalRoot(slot) {
+	blockRoots := make([]common.Root, s.cs.SlotsPerHistoricalRoot())
+	for i := range s.cs.SlotsPerHistoricalRoot() {
 		blockRoots[i], err = s.GetBlockRootAtIndex(i)
 		if err != nil {
 			return empty, err
 		}
 	}
 
-	stateRoots := make([]common.Root, s.cs.SlotsPerHistoricalRoot(slot))
-	for i := range s.cs.SlotsPerHistoricalRoot(slot) {
+	stateRoots := make([]common.Root, s.cs.SlotsPerHistoricalRoot())
+	for i := range s.cs.SlotsPerHistoricalRoot() {
 		stateRoots[i], err = s.StateRootAtIndex(i)
 		if err != nil {
 			return empty, err
@@ -276,8 +276,8 @@ func (s *StateDB) GetMarshallable() (*ctypes.BeaconState, error) {
 		return empty, err
 	}
 
-	randaoMixes := make([]common.Bytes32, s.cs.EpochsPerHistoricalVector(slot))
-	for i := range s.cs.EpochsPerHistoricalVector(slot) {
+	randaoMixes := make([]common.Bytes32, s.cs.EpochsPerHistoricalVector())
+	for i := range s.cs.EpochsPerHistoricalVector() {
 		randaoMixes[i], err = s.GetRandaoMixAtIndex(i)
 		if err != nil {
 			return empty, err

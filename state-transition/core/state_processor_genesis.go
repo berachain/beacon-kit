@@ -80,7 +80,7 @@ func (sp *StateProcessor[_]) InitializePreminedBeaconStateFromEth1(
 		return nil, err
 	}
 
-	for i := range sp.cs.EpochsPerHistoricalVector(constants.GenesisSlot) {
+	for i := range sp.cs.EpochsPerHistoricalVector() {
 		if err := st.UpdateRandaoMixAtIndex(
 			i,
 			common.Bytes32(execPayloadHeader.GetBlockHash()),
@@ -120,7 +120,7 @@ func (sp *StateProcessor[_]) InitializePreminedBeaconStateFromEth1(
 	}
 
 	// Setup a bunch of 0s to prime the DB.
-	for i := range sp.cs.HistoricalRootsLimit(constants.GenesisSlot) {
+	for i := range sp.cs.HistoricalRootsLimit() {
 		if err = st.UpdateBlockRootAtIndex(i, common.Root{}); err != nil {
 			return nil, err
 		}
@@ -154,8 +154,8 @@ func (sp *StateProcessor[_]) processGenesisActivation(st *statedb.StateDB) error
 		return fmt.Errorf("genesis activation, failed listing validators: %w", err)
 	}
 	minEffectiveBalance := math.Gwei(
-		sp.cs.EjectionBalance(constants.GenesisSlot) +
-			sp.cs.EffectiveBalanceIncrement(constants.GenesisSlot),
+		sp.cs.EjectionBalance() +
+			sp.cs.EffectiveBalanceIncrement(),
 	)
 
 	var idx math.ValidatorIndex

@@ -153,7 +153,7 @@ func (s *Service) getEmptyBeaconBlockForSlot(
 ) (*ctypes.BeaconBlock, error) {
 	// Create a new block.
 	parentBlockRoot, err := st.GetBlockRootAtIndex(
-		(requestedSlot.Unwrap() - 1) % s.chainSpec.SlotsPerHistoricalRoot(requestedSlot),
+		(requestedSlot.Unwrap() - 1) % s.chainSpec.SlotsPerHistoricalRoot(),
 	)
 	if err != nil {
 		return nil, err
@@ -191,7 +191,7 @@ func (s *Service) buildRandaoReveal(
 	forkData *ctypes.ForkData, slot math.Slot,
 ) (crypto.BLSSignature, error) {
 	signingRoot := forkData.ComputeRandaoSigningRoot(
-		s.chainSpec.DomainTypeRandao(slot), s.chainSpec.SlotToEpoch(slot),
+		s.chainSpec.DomainTypeRandao(), s.chainSpec.SlotToEpoch(slot),
 	)
 	return s.signer.Sign(signingRoot[:])
 }
@@ -290,7 +290,7 @@ func (s *Service) buildBlockBody(
 	deposits, err := s.sb.DepositStore().GetDepositsByIndex(
 		ctx,
 		constants.FirstDepositIndex,
-		depositIndex+s.chainSpec.MaxDepositsPerBlock(blk.GetSlot()),
+		depositIndex+s.chainSpec.MaxDepositsPerBlock(),
 	)
 	if err != nil {
 		return err

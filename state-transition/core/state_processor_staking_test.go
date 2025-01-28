@@ -47,9 +47,9 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
 
 	var (
-		maxBalance       = math.Gwei(cs.MaxEffectiveBalance(constants.GenesisSlot))
-		increment        = math.Gwei(cs.EffectiveBalanceIncrement(constants.GenesisSlot))
-		minBalance       = math.Gwei(cs.EjectionBalance(constants.GenesisSlot))
+		maxBalance       = math.Gwei(cs.MaxEffectiveBalance())
+		increment        = math.Gwei(cs.EffectiveBalanceIncrement())
+		minBalance       = math.Gwei(cs.EjectionBalance())
 		emptyCredentials = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
 	)
 
@@ -196,9 +196,9 @@ func TestTransitionCreateValidator(t *testing.T) {
 	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
 
 	var (
-		maxBalance       = math.Gwei(cs.MaxEffectiveBalance(constants.GenesisSlot))
-		increment        = math.Gwei(cs.EffectiveBalanceIncrement(constants.GenesisSlot))
-		minBalance       = math.Gwei(cs.EjectionBalance(constants.GenesisSlot))
+		maxBalance       = math.Gwei(cs.MaxEffectiveBalance())
+		increment        = math.Gwei(cs.EffectiveBalanceIncrement())
+		minBalance       = math.Gwei(cs.EjectionBalance())
 		emptyAddress     = common.ExecutionAddress{}
 		emptyCredentials = types.NewCredentialsFromExecutionAddress(emptyAddress)
 	)
@@ -391,8 +391,8 @@ func TestTransitionWithdrawals(t *testing.T) {
 	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
 
 	var (
-		maxBalance   = math.Gwei(cs.MaxEffectiveBalance(constants.GenesisSlot))
-		minBalance   = math.Gwei(cs.EffectiveBalanceIncrement(constants.GenesisSlot))
+		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
+		minBalance   = math.Gwei(cs.EffectiveBalanceIncrement())
 		credentials0 = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
 		address1     = common.ExecutionAddress{0x01}
 		credentials1 = types.NewCredentialsFromExecutionAddress(address1)
@@ -479,8 +479,8 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
 
 	var (
-		maxBalance   = math.Gwei(cs.MaxEffectiveBalance(constants.GenesisSlot))
-		minBalance   = math.Gwei(cs.EffectiveBalanceIncrement(constants.GenesisSlot))
+		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
+		minBalance   = math.Gwei(cs.EffectiveBalanceIncrement())
 		address0     = common.ExecutionAddress{}
 		credentials0 = types.NewCredentialsFromExecutionAddress(address0)
 		address1     = common.ExecutionAddress{0x01}
@@ -616,22 +616,22 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
 
 	var (
-		maxBalance      = math.Gwei(cs.MaxEffectiveBalance(constants.GenesisSlot))
-		ejectionBalance = math.Gwei(cs.EjectionBalance(constants.GenesisSlot))
-		minBalance      = ejectionBalance + math.Gwei(cs.EffectiveBalanceIncrement(constants.GenesisSlot))
+		maxBalance      = math.Gwei(cs.MaxEffectiveBalance())
+		ejectionBalance = math.Gwei(cs.EjectionBalance())
+		minBalance      = ejectionBalance + math.Gwei(cs.EffectiveBalanceIncrement())
 		rndSeed         = 2024 // seed used to generate unique random value
 	)
 
 	// STEP 0: Setup genesis with GetValidatorSetCap validators
 	// TODO: consider instead setting state artificially
 	var (
-		genDeposits      = make(types.Deposits, 0, cs.ValidatorSetCap(0))
+		genDeposits      = make(types.Deposits, 0, cs.ValidatorSetCap())
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		genVersion       = bytes.FromUint32(version.Deneb)
 	)
 
 	// let genesis define all available validators
-	for idx := range cs.ValidatorSetCap(0) {
+	for idx := range cs.ValidatorSetCap() {
 		var (
 			key   bytes.B48
 			creds types.WithdrawalCredentials
@@ -882,22 +882,22 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
 
 	var (
-		maxBalance      = math.Gwei(cs.MaxEffectiveBalance(constants.GenesisSlot))
-		ejectionBalance = math.Gwei(cs.EjectionBalance(constants.GenesisSlot))
-		minBalance      = ejectionBalance + math.Gwei(cs.EffectiveBalanceIncrement(constants.GenesisSlot))
+		maxBalance      = math.Gwei(cs.MaxEffectiveBalance())
+		ejectionBalance = math.Gwei(cs.EjectionBalance())
+		minBalance      = ejectionBalance + math.Gwei(cs.EffectiveBalanceIncrement())
 		rndSeed         = 2024 // seed used to generate unique random value
 	)
 
 	// STEP 0: Setup genesis with GetValidatorSetCap validators
 	// TODO: consider instead setting state artificially
 	var (
-		genDeposits      = make(types.Deposits, 0, cs.ValidatorSetCap(0))
+		genDeposits      = make(types.Deposits, 0, cs.ValidatorSetCap())
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		genVersion       = bytes.FromUint32(version.Deneb)
 	)
 
 	// let genesis define all available validators
-	for idx := range cs.ValidatorSetCap(0) {
+	for idx := range cs.ValidatorSetCap() {
 		var (
 			key   bytes.B48
 			creds types.WithdrawalCredentials
@@ -1207,8 +1207,8 @@ func TestValidatorNotWithdrawable(t *testing.T) {
 	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
 
 	var (
-		belowActiveBalance = math.Gwei(cs.EjectionBalance(constants.GenesisSlot))
-		maxBalance         = math.Gwei(cs.MaxEffectiveBalance(constants.GenesisSlot))
+		belowActiveBalance = math.Gwei(cs.EjectionBalance())
+		maxBalance         = math.Gwei(cs.MaxEffectiveBalance())
 		validCredentials   = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
 	)
 

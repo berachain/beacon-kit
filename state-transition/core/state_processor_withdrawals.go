@@ -114,7 +114,7 @@ func (sp *StateProcessor[_]) processWithdrawals(
 	var nextValidatorIndex math.ValidatorIndex
 
 	// #nosec G115 -- won't overflow in practice.
-	if numWithdrawals == int(sp.cs.MaxWithdrawalsPerPayload(slot)) {
+	if numWithdrawals == int(sp.cs.MaxWithdrawalsPerPayload()) {
 		// Next sweep starts after the latest withdrawal's validator index.
 		nextValidatorIndex = (expectedWithdrawals[numWithdrawals-1].
 			GetValidatorIndex() + 1) % math.ValidatorIndex(totalValidators)
@@ -125,7 +125,7 @@ func (sp *StateProcessor[_]) processWithdrawals(
 		if err != nil {
 			return err
 		}
-		nextValidatorIndex += math.ValidatorIndex(sp.cs.MaxValidatorsPerWithdrawalsSweep(slot))
+		nextValidatorIndex += math.ValidatorIndex(sp.cs.MaxValidatorsPerWithdrawalsSweep())
 		nextValidatorIndex %= math.ValidatorIndex(totalValidators)
 	}
 

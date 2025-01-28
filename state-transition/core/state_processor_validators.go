@@ -48,7 +48,7 @@ func (sp *StateProcessor[_]) processRegistryUpdates(st *statedb.StateDB) error {
 	nextEpoch := currEpoch + 1
 
 	minEffectiveBalance := math.Gwei(
-		sp.cs.EjectionBalance(slot) + sp.cs.EffectiveBalanceIncrement(slot),
+		sp.cs.EjectionBalance() + sp.cs.EffectiveBalanceIncrement(),
 	)
 
 	// We do not currently have a cap on validator churn,
@@ -114,7 +114,7 @@ func (sp *StateProcessor[_]) processValidatorSetCap(st *statedb.StateDB) error {
 		)
 	}
 
-	validatorSetCap := sp.cs.ValidatorSetCap(slot)
+	validatorSetCap := sp.cs.ValidatorSetCap()
 	if uint64(len(nextEpochVals)) <= validatorSetCap {
 		// nothing to eject
 		return nil

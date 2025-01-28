@@ -59,11 +59,11 @@ func (sp *StateProcessor[_]) validateGenesisDeposits(
 	// BeaconKit enforces a cap on the validator set size.
 	// If genesis deposits breaches the cap we return an error.
 	//#nosec:G701 // can't overflow.
-	if uint64(len(deposits)) > sp.cs.ValidatorSetCap(constants.GenesisSlot) {
+	if uint64(len(deposits)) > sp.cs.ValidatorSetCap() {
 		return errors.Wrapf(
 			ErrValSetCapExceeded,
 			"validator set cap %d, deposits count %d",
-			sp.cs.ValidatorSetCap(constants.GenesisSlot), len(deposits),
+			sp.cs.ValidatorSetCap(), len(deposits),
 		)
 	}
 	return nil

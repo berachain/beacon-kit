@@ -39,11 +39,11 @@ func (b *Backend) BlobSidecarsByIndices(slot math.Slot, indices []uint64) ([]*ap
 	}
 
 	// Validate request indices.
-	if uint64(len(indices)) >= b.cs.MaxBlobsPerBlock(slot) {
+	if uint64(len(indices)) >= b.cs.MaxBlobsPerBlock() {
 		return nil, errors.New("too many indices requested")
 	}
 	for _, index := range indices {
-		if index >= b.cs.MaxBlobsPerBlock(slot) {
+		if index >= b.cs.MaxBlobsPerBlock() {
 			return nil, errors.New("blob index out of range")
 		}
 	}
