@@ -154,22 +154,10 @@ func moveToEndOfEpoch(
 			t,
 			st,
 			&types.BeaconBlockBody{
-<<<<<<< HEAD
-				ExecutionPayload: &types.ExecutionPayload{
-					Timestamp:    blk.Body.ExecutionPayload.Timestamp + 1,
-					ExtraData:    []byte("testing"),
-					Transactions: [][]byte{},
-					Withdrawals: []*engineprimitives.Withdrawal{
-						st.EVMInflationWithdrawal(blk.GetSlot() + 1),
-					},
-					BaseFeePerGas: math.NewU256(0),
-				},
-=======
 				ExecutionPayload: testPayload(
 					blk.Body.ExecutionPayload.Timestamp+1,
 					st.EVMInflationWithdrawal(blk.GetSlot()+1),
 				),
->>>>>>> d2f518bf51c017aebff3ac3287c4ad5ff748c71a
 				Eth1Data: types.NewEth1Data(depRoot),
 				Deposits: []*types.Deposit{},
 			},
