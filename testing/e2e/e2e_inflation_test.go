@@ -21,6 +21,7 @@
 package e2e_test
 
 import (
+	"fmt"
 	"math/big"
 
 	"github.com/berachain/beacon-kit/config/spec"
@@ -57,7 +58,11 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 			big.NewInt(blkNum),
 		)
 		s.Require().NoError(err)
-		s.Require().Zero(balance.Cmp(expectedBalance))
+		s.Require().Zero(balance.Cmp(expectedBalance),
+			fmt.Sprintf("height: %d", blkNum),
+			"balance: "+balance.String(),
+			"expectedBalance: "+expectedBalance.String(),
+		)
 	}
 
 	// Check over the first epoch after Deneb1, the balance of the Devnet EVM inflation address
@@ -91,7 +96,11 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 			big.NewInt(int64(blkNum)),
 		)
 		s.Require().NoError(err)
-		s.Require().Zero(balance.Cmp(expectedBalance))
+		s.Require().Zero(balance.Cmp(expectedBalance),
+			fmt.Sprintf("height: %d", blkNum),
+			"balance: "+balance.String(),
+			"expectedBalance: "+expectedBalance.String(),
+		)
 
 		// Enforce that the balance of the EVM inflation address
 		// prior to the hardfork is the same as it is now.
