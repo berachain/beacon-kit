@@ -21,7 +21,6 @@
 package e2e_test
 
 import (
-	"fmt"
 	"math/big"
 
 	"github.com/berachain/beacon-kit/config/spec"
@@ -59,9 +58,9 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 		)
 		s.Require().NoError(err)
 		s.Require().Zero(balance.Cmp(expectedBalance),
-			fmt.Sprintf("height: %d", blkNum),
-			"balance: "+balance.String(),
-			"expectedBalance: "+expectedBalance.String(),
+			"height", blkNum,
+			"balance", balance,
+			"expectedBalance", expectedBalance,
 		)
 	}
 
@@ -86,7 +85,7 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 
 		expectedBalance := new(big.Int).Mul(
 			big.NewInt(int64(postForkInflation)),
-			big.NewInt(int64(blkNum-deneb1ForkSlot)),
+			big.NewInt(int64(blkNum-(deneb1ForkSlot-1))),
 		)
 
 		var balance *big.Int
@@ -97,9 +96,9 @@ func (s *BeaconKitE2ESuite) TestEVMInflation() {
 		)
 		s.Require().NoError(err)
 		s.Require().Zero(balance.Cmp(expectedBalance),
-			fmt.Sprintf("height: %d", blkNum),
-			"balance: "+balance.String(),
-			"expectedBalance: "+expectedBalance.String(),
+			"height", blkNum,
+			"balance", balance,
+			"expectedBalance", expectedBalance,
 		)
 
 		// Enforce that the balance of the EVM inflation address
