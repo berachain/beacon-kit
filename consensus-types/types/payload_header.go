@@ -102,8 +102,11 @@ func (h *ExecutionPayloadHeader) NewFromJSON(
 	bz []byte, forkVersion uint32,
 ) (*ExecutionPayloadHeader, error) {
 	h = h.Empty()
+	if err := json.Unmarshal(bz, h); err != nil {
+		return nil, err
+	}
 	h.EphVersion = forkVersion
-	return h, json.Unmarshal(bz, h)
+	return h, nil
 }
 
 /* -------------------------------------------------------------------------- */
