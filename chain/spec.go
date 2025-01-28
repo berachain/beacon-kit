@@ -110,9 +110,11 @@ type Spec interface {
 	TargetSecondsPerEth1Block(slot math.Slot) uint64
 
 	// Fork-related values.
+
 	// Deneb1ForkEpoch returns the epoch at which the Deneb1 fork takes effect.
 	Deneb1ForkEpoch() math.Epoch
-	// ElectraForkEpoch returns the epoch at which the Electra fork takes effect.
+
+	// ElectraForkEpoch returns the epoch at which the Electra fork takes ffect.
 	ElectraForkEpoch() math.Epoch
 
 	// State list lengths
