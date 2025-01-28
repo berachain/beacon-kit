@@ -561,10 +561,7 @@ func (p *ExecutionPayload) GetExcessBlobGas() math.U64 {
 }
 
 // ToHeader converts the ExecutionPayload to an ExecutionPayloadHeader.
-func (p *ExecutionPayload) ToHeader() (
-	*ExecutionPayloadHeader,
-	error,
-) {
+func (p *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 	txsRoot := p.GetTransactions().HashTreeRoot()
 
 	switch p.Version() {

@@ -30,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
-	"github.com/berachain/beacon-kit/node-core/components"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -40,7 +39,7 @@ import (
 )
 
 func TestInvalidDeposits(t *testing.T) {
-	cs := setupChain(t, components.BoonetChainSpecType)
+	cs := setupChain(t)
 	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
 
 	var (
@@ -114,7 +113,7 @@ func TestInvalidDeposits(t *testing.T) {
 }
 
 func TestInvalidDepositsCount(t *testing.T) {
-	cs := setupChain(t, components.BoonetChainSpecType)
+	cs := setupChain(t)
 	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
 
 	var (
@@ -187,8 +186,7 @@ func TestInvalidDepositsCount(t *testing.T) {
 }
 
 func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
-	csData := spec.BaseSpec()
-	csData.DepositEth1ChainID = spec.BoonetEth1ChainID
+	csData := spec.DevnetChainSpecData()
 	csData.MaxDepositsPerBlock = 1 // Set only 1 deposit allowed per block.
 	cs, err := chain.NewSpec(csData)
 	require.NoError(t, err)
@@ -264,8 +262,7 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 }
 
 func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
-	csData := spec.BaseSpec()
-	csData.DepositEth1ChainID = spec.BoonetEth1ChainID
+	csData := spec.DevnetChainSpecData()
 	csData.MaxDepositsPerBlock = 1 // Set only 1 deposit allowed per block.
 	cs, err := chain.NewSpec(csData)
 	require.NoError(t, err)

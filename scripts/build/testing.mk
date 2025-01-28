@@ -262,17 +262,17 @@ test:
 test-unit: ## run golang unit tests
 	@echo "Running unit tests..."
 	@go list -f '{{.Dir}}/...' -m | xargs \
-		go test -race -tags bls12381
+		go test -race -tags bls12381,test
 
 test-unit-cover: ## run golang unit tests with coverage
 	@echo "Running unit tests with coverage..."
 	@go list -f '{{.Dir}}/...' -m | xargs \
-		go test -race -coverprofile=test-unit-cover.txt -tags bls12381
+		go test -race -coverprofile=test-unit-cover.txt -tags bls12381,test
 
 test-unit-bench: ## run golang unit benchmarks
 	@echo "Running unit tests with benchmarks..."
 	@go list -f '{{.Dir}}/...' -m | xargs \
-		go test -bench=. -run=^$ -benchmem -tags bls12381
+		go test -bench=. -run=^$ -benchmem -tags bls12381,test
 
 # On MacOS, if there is a linking issue on the fuzz tests,
 # use the old linker with flags -ldflags=-extldflags=-Wl,-ld_classic
@@ -287,16 +287,16 @@ test-e2e: ## run e2e tests
 	@$(MAKE) build-docker VERSION=kurtosis-local test-e2e-no-build
 
 test-e2e-no-build:
-	go test -timeout 0 -tags e2e,bls12381 ./testing/e2e/. -v
+	go test -timeout 0 -tags e2e,bls12381,test ./testing/e2e/. -v
 
 test-e2e-4844: ## run e2e tests
 	@$(MAKE) build-docker VERSION=kurtosis-local test-e2e-4844-no-build
 
 test-e2e-4844-no-build:
-	go test -timeout 0 -tags e2e,bls12381 ./testing/e2e/. -v -testify.m Test4844Live
+	go test -timeout 0 -tags e2e,bls12381,test ./testing/e2e/. -v -testify.m Test4844Live
 
 test-e2e-deposits: ## run e2e tests
 	@$(MAKE) build-docker VERSION=kurtosis-local test-e2e-deposits-no-build
 
 test-e2e-deposits-no-build:
-	go test -timeout 0 -tags e2e,bls12381 ./testing/e2e/. -v -testify.m TestDepositRobustness
+	go test -timeout 0 -tags e2e,bls12381,test ./testing/e2e/. -v -testify.m TestDepositRobustness

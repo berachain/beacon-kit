@@ -88,8 +88,7 @@ func (g *Genesis) UnmarshalJSON(
 		err           error
 	)
 	payloadHeader, err = payloadHeader.NewFromJSON(
-		g2.ExecutionPayloadHeader,
-		g2.ForkVersion.ToUint32(),
+		g2.ExecutionPayloadHeader, g2.ForkVersion.ToUint32(),
 	)
 	if err != nil {
 		return err

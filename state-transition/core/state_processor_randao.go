@@ -58,8 +58,7 @@ func (sp *StateProcessor[ContextT]) processRandaoReveal(
 	body := blk.GetBody()
 
 	fd := ctypes.NewForkData(
-		bytes.FromUint32(sp.cs.ActiveForkVersionForEpoch(epoch)),
-		genesisValidatorsRoot,
+		bytes.FromUint32(sp.cs.ActiveForkVersionForEpoch(epoch)), genesisValidatorsRoot,
 	)
 
 	if !ctx.GetSkipValidateRandao() {

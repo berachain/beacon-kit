@@ -34,7 +34,7 @@ func (s spec) ActiveForkVersionForSlot(slot math.Slot) uint32 {
 func (s spec) ActiveForkVersionForEpoch(epoch math.Epoch) uint32 {
 	if epoch >= s.ElectraForkEpoch() {
 		return version.Electra
-	} else if epoch >= s.DenebPlusForkEpoch() {
+	} else if epoch >= s.Deneb1ForkEpoch() {
 		return version.Deneb1
 	}
 

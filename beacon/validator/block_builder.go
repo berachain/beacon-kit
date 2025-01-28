@@ -189,8 +189,7 @@ func (s *Service) buildForkData(
 	}
 
 	return ctypes.NewForkData(
-		bytes.FromUint32(s.chainSpec.ActiveForkVersionForEpoch(epoch)),
-		genesisValidatorsRoot,
+		bytes.FromUint32(s.chainSpec.ActiveForkVersionForEpoch(epoch)), genesisValidatorsRoot,
 	), nil
 }
 
@@ -334,6 +333,7 @@ func (s *Service) buildBlockBody(
 
 	// Set the execution payload on the block body.
 	body.SetExecutionPayload(envelope.GetExecutionPayload())
+
 	return nil
 }
 
