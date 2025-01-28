@@ -84,11 +84,11 @@ func (s *Client) ForkchoiceUpdated(
 	attrs any,
 	forkVersion uint32,
 ) (*engineprimitives.ForkchoiceResponseV1, error) {
-	if forkVersion < version.Deneb {
-		return nil, ErrInvalidVersion
+	if forkVersion == version.Deneb ||
+		forkVersion == version.Deneb1 {
+		return s.ForkchoiceUpdatedV3(ctx, state, attrs)
 	}
-
-	return s.ForkchoiceUpdatedV3(ctx, state, attrs)
+	return nil, ErrInvalidVersion
 }
 
 // ForkchoiceUpdatedV3 calls the engine_forkchoiceUpdatedV3 method via JSON-RPC.
@@ -134,11 +134,11 @@ func (s *Client) GetPayload(
 	payloadID engineprimitives.PayloadID,
 	forkVersion uint32,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
-	if forkVersion < version.Deneb {
-		return nil, ErrInvalidVersion
+	if forkVersion == version.Deneb ||
+		forkVersion == version.Deneb1 {
+		return s.GetPayloadV3(ctx, payloadID, forkVersion)
 	}
-
-	return s.GetPayloadV3(ctx, payloadID, forkVersion)
+	return nil, ErrInvalidVersion
 }
 
 // GetPayloadV3 calls the engine_getPayloadV3 method via JSON-RPC.
