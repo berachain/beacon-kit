@@ -23,6 +23,7 @@ package spec
 import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 const (
@@ -31,11 +32,11 @@ const (
 
 	// devnetEVMInflationPerBlock is the amount of native EVM balance (in units
 	// of Gwei) to be minted per EL block.
-	devnetEVMInflationPerBlock = 10e9
+	devnetEVMInflationPerBlock = 10 * math.GweiPerWei
 
 	// devnetMaxStakeAmount is the maximum amount of native EVM balance (in units
 	// of Gwei) that can be staked.
-	devnetMaxStakeAmount = 4000e9
+	devnetMaxStakeAmount = 4000 * math.GweiPerWei
 
 	// devnetDeneb1ForkEpoch is the epoch at which the Deneb1 fork occurs.
 	devnetDeneb1ForkEpoch = 1
@@ -46,7 +47,7 @@ const (
 
 	// devnetEVMInflationPerBlockDeneb1 is the amount of native EVM balance (in units
 	// of Gwei) to be minted per EL block after the Deneb1 fork.
-	devnetEVMInflationPerBlockDeneb1 = 11e9
+	devnetEVMInflationPerBlockDeneb1 = 11 * math.GweiPerWei
 )
 
 // DevnetChainSpecData is the chain.SpecData for a devnet. It is similar to mainnet but
