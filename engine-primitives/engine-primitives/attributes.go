@@ -41,7 +41,8 @@ type PayloadAttributer interface {
 
 type PayloadAttributes struct {
 	// version is the version of the payload attributes.
-	version uint32 `json:"-"`
+	version uint32
+
 	// Timestamp is the timestamp at which the block will be built at.
 	Timestamp math.U64 `json:"timestamp"`
 	// PrevRandao is the previous Randao value from the beacon chain as

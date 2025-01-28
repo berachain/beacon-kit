@@ -38,6 +38,9 @@ const ExecutionPayloadStaticSize uint32 = 528
 
 // ExecutionPayload represents the payload of an execution block.
 type ExecutionPayload struct {
+	// version is the version of the execution payload.
+	version uint32
+
 	// ParentHash is the hash of the parent block.
 	ParentHash common.ExecutionHash `json:"parentHash"`
 	// FeeRecipient is the address of the fee recipient.
@@ -454,13 +457,15 @@ func (p *ExecutionPayload) UnmarshalJSON(input []byte) error {
 }
 
 // Empty returns an empty ExecutionPayload for the given fork version.
-func (p *ExecutionPayload) Empty(_ uint32) *ExecutionPayload {
-	return &ExecutionPayload{}
+func (p *ExecutionPayload) Empty(forkVersion uint32) *ExecutionPayload {
+	return &ExecutionPayload{
+		version: forkVersion,
+	}
 }
 
 // Version returns the version of the ExecutionPayload.
 func (p *ExecutionPayload) Version() uint32 {
-	return version.Deneb
+	return p.version
 }
 
 // IsNil checks if the ExecutionPayload is nil.

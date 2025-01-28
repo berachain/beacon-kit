@@ -26,7 +26,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 	fastssz "github.com/ferranbt/fastssz"
 	"github.com/holiman/uint256"
 	"github.com/karalabe/ssz"
@@ -34,13 +33,8 @@ import (
 
 // ExecutionPayloadHeader is the execution header payload of Deneb.
 type ExecutionPayloadHeader struct {
-	// TODO: Enable once
-	// https://github.com/karalabe/ssz/pull/9/files# is merged.
-	//
-	// // Metadata
-	// //
-	// // version is the fork version of the execution payload header.
-	// version uint32
+	// version is the fork version of the execution payload header.
+	version uint32
 
 	// Contents
 	//
@@ -80,7 +74,7 @@ type ExecutionPayloadHeader struct {
 	ExcessBlobGas math.U64 `json:"excessBlobGas"`
 }
 
-// Empty returns an empty ExecutionPayload for the given fork version.
+// Empty returns an empty ExecutionPayloadHeader.
 func (h *ExecutionPayloadHeader) Empty() *ExecutionPayloadHeader {
 	return &ExecutionPayloadHeader{
 		BaseFeePerGas: &uint256.Int{},
@@ -89,17 +83,19 @@ func (h *ExecutionPayloadHeader) Empty() *ExecutionPayloadHeader {
 
 // NewFromSSZ returns a new ExecutionPayloadHeader from the given SSZ bytes.
 func (h *ExecutionPayloadHeader) NewFromSSZ(
-	bz []byte, _ uint32,
+	bz []byte, forkVersion uint32,
 ) (*ExecutionPayloadHeader, error) {
 	h = h.Empty()
+	h.version = forkVersion
 	return h, h.UnmarshalSSZ(bz)
 }
 
 // NewFromJSON returns a new ExecutionPayloadHeader from the given JSON bytes.
 func (h *ExecutionPayloadHeader) NewFromJSON(
-	bz []byte, _ uint32,
+	bz []byte, forkVersion uint32,
 ) (*ExecutionPayloadHeader, error) {
 	h = h.Empty()
+	h.version = forkVersion
 	return h, json.Unmarshal(bz, h)
 }
 
@@ -448,7 +444,7 @@ func (h *ExecutionPayloadHeader) UnmarshalJSON(input []byte) error {
 
 // Version returns the version of the ExecutionPayloadHeader.
 func (h *ExecutionPayloadHeader) Version() uint32 {
-	return version.Deneb
+	return h.version
 }
 
 // IsNil checks if the ExecutionPayloadHeader is nil.

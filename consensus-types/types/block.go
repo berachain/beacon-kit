@@ -33,6 +33,9 @@ import (
 // BeaconBlock represents a block in the beacon chain during
 // the Deneb fork.
 type BeaconBlock struct {
+	// version is the version of the beacon block.
+	version uint32
+
 	// Slot represents the position of the block in the chain.
 	Slot math.Slot `json:"slot"`
 	// ProposerIndex is the index of the validator who proposed the block.
@@ -41,14 +44,15 @@ type BeaconBlock struct {
 	ParentRoot common.Root `json:"parent_root"`
 	// StateRoot is the hash of the state at the block.
 	StateRoot common.Root `json:"state_root"`
-	// Body is the body of the BeaconBlock, containing the block's
-	// operations.
+	// Body is the body of the BeaconBlock, containing the block's operations.
 	Body *BeaconBlockBody `json:"body"`
 }
 
 // Empty creates an empty beacon block.
-func (*BeaconBlock) Empty() *BeaconBlock {
-	return &BeaconBlock{}
+func (*BeaconBlock) Empty(forkVersion uint32) *BeaconBlock {
+	return &BeaconBlock{
+		version: forkVersion,
+	}
 }
 
 // NewBeaconBlockWithVersion assembles a new beacon block from the given.
@@ -61,6 +65,7 @@ func NewBeaconBlockWithVersion(
 	switch forkVersion {
 	case version.Deneb, version.Deneb1:
 		return &BeaconBlock{
+			version:       forkVersion,
 			Slot:          slot,
 			ProposerIndex: proposerIndex,
 			ParentRoot:    parentBlockRoot,
@@ -147,7 +152,7 @@ func (b *BeaconBlock) GetStateRoot() common.Root {
 
 // Version identifies the version of the BeaconBlock.
 func (b *BeaconBlock) Version() uint32 {
-	return version.Deneb
+	return b.version
 }
 
 // SetStateRoot sets the state root of the BeaconBlock.
