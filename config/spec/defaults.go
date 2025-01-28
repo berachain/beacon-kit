@@ -67,7 +67,6 @@ const (
 	defaultValidatorRegistryLimit    = 1099511627776
 
 	// Slashing.
-	defaultInactivityPenaltyQuotient      = 16777216
 	defaultProportionalSlashingMultiplier = 1
 
 	// Capella values.
