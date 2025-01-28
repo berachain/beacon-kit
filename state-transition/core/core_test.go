@@ -144,7 +144,7 @@ func moveToEndOfEpoch(
 					ExtraData:    []byte("testing"),
 					Transactions: [][]byte{},
 					Withdrawals: []*engineprimitives.Withdrawal{
-						st.EVMInflationWithdrawal(blk.GetSlot()),
+						st.EVMInflationWithdrawal(blk.GetSlot() + 1),
 					},
 					BaseFeePerGas: math.NewU256(0),
 				},

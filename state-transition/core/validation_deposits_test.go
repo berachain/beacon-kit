@@ -98,7 +98,7 @@ func TestInvalidDeposits(t *testing.T) {
 				ExtraData:    []byte("testing"),
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(constants.GenesisSlot),
+					st.EVMInflationWithdrawal(constants.GenesisSlot + 1),
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
@@ -171,7 +171,7 @@ func TestInvalidDepositsCount(t *testing.T) {
 				ExtraData:    []byte("testing"),
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(constants.GenesisSlot),
+					st.EVMInflationWithdrawal(constants.GenesisSlot + 1),
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
@@ -241,7 +241,7 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 				ExtraData:    []byte("testing"),
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(constants.GenesisSlot),
+					st.EVMInflationWithdrawal(constants.GenesisSlot + 1),
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
@@ -325,7 +325,7 @@ func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
 				ExtraData:    []byte("testing"),
 				Transactions: [][]byte{},
 				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(constants.GenesisSlot),
+					st.EVMInflationWithdrawal(constants.GenesisSlot + 1),
 				},
 				BaseFeePerGas: math.NewU256(0),
 			},
