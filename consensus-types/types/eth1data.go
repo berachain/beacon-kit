@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -50,23 +50,15 @@ type Eth1Data struct {
 /*                                 Constructor                                */
 /* -------------------------------------------------------------------------- */
 
+func NewEth1Data(depositRoot common.Root) *Eth1Data {
+	return &Eth1Data{
+		DepositRoot: depositRoot,
+	}
+}
+
 // Empty creates an empty Eth1Data.
 func (*Eth1Data) Empty() *Eth1Data {
 	return &Eth1Data{}
-}
-
-// New creates a new Eth1Data.
-func (e *Eth1Data) New(
-	depositRoot common.Root,
-	depositCount math.U64,
-	blockHash common.ExecutionHash,
-) *Eth1Data {
-	e = &Eth1Data{
-		DepositRoot:  depositRoot,
-		DepositCount: depositCount,
-		BlockHash:    blockHash,
-	}
-	return e
 }
 
 /* -------------------------------------------------------------------------- */

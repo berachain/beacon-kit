@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -54,14 +54,12 @@ var (
 )
 
 // Handles errors received from the RPC server according to the specification.
-func (s *EngineClient[
-	_, _,
-]) handleRPCError(
+func (s *EngineClient) handleRPCError(
 	err error,
 ) error {
-	// Exit early if there is no error.
 	if err == nil {
-		return nil
+		//nolint:nilerr // appease nilaway
+		return err
 	}
 
 	// Check for timeout errors.

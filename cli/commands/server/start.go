@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -87,8 +87,9 @@ func StartCmdWithOptions[
 	opts StartCmdOptions[T],
 ) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "start",
-		Short: "Run the node",
+		Use:          "start",
+		SilenceUsage: true,
+		Short:        "Run the node",
 		Long: `Run the node application with CometBFT in process. By
 default, the application will run with CometBFT in process.
 
@@ -106,6 +107,7 @@ custom: allow pruning options to be manually specified through 'pruning-keep-rec
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			logger := clicontext.GetLoggerFromCmd[LoggerT](cmd)
 			cfg := clicontext.GetConfigFromCmd(cmd)
+
 			v := clicontext.GetViperFromCmd(cmd)
 			_, err := GetPruningOptionsFromFlags(v)
 			if err != nil {

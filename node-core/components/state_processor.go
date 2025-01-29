@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,78 +22,37 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/execution/engine"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
-	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/state-transition/core"
+	depositdb "github.com/berachain/beacon-kit/storage/deposit"
 )
 
 // StateProcessorInput is the input for the state processor for the depinject
 // framework.
 type StateProcessorInput[
 	LoggerT log.AdvancedLogger[LoggerT],
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 ] struct {
 	depinject.In
 	Logger          LoggerT
-	ChainSpec       common.ChainSpec
-	ExecutionEngine *engine.Engine[
-		ExecutionPayloadT,
-		*engineprimitives.PayloadAttributes,
-		PayloadID,
-	]
-	DepositStore  DepositStore
-	Signer        crypto.BLSSigner
-	TelemetrySink *metrics.TelemetrySink
+	ChainSpec       chain.Spec
+	ExecutionEngine *engine.Engine
+	DepositStore    *depositdb.KVStore
+	Signer          crypto.BLSSigner
+	TelemetrySink   *metrics.TelemetrySink
 }
 
 // ProvideStateProcessor provides the state processor to the depinject
 // framework.
 func ProvideStateProcessor[
 	LoggerT log.AdvancedLogger[LoggerT],
-	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT,
-		ExecutionPayloadT, *SlashingInfo,
-	],
-	BeaconStateT BeaconState[
-		BeaconStateT, BeaconStateMarshallableT,
-		ExecutionPayloadHeaderT, KVStoreT,
-	],
-	BeaconStateMarshallableT any,
-	DepositStoreT DepositStore,
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-	KVStoreT BeaconStore[
-		KVStoreT, ExecutionPayloadHeaderT,
-	],
 ](
-	in StateProcessorInput[
-		LoggerT,
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
-) *core.StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, *Context, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, KVStoreT,
-] {
-	return core.NewStateProcessor[
-		BeaconBlockT,
-		BeaconBlockBodyT,
-		BeaconStateT,
-		*Context,
-		ExecutionPayloadT,
-		ExecutionPayloadHeaderT,
-		KVStoreT,
-	](
+	in StateProcessorInput[LoggerT],
+) *core.StateProcessor[*Context] {
+	return core.NewStateProcessor[*Context](
 		in.Logger.With("service", "state-processor"),
 		in.ChainSpec,
 		in.ExecutionEngine,

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -25,7 +25,6 @@ import (
 	"fmt"
 	"time"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
 	"github.com/berachain/beacon-kit/primitives/math"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
@@ -58,28 +57,25 @@ func (s *Service[LoggerT]) prepareProposal(
 		),
 	)
 
-	var slotData = types.NewSlotData[ctypes.SlashingInfo](
-		math.Slot(req.GetHeight()),
-		nil,
-		nil,
+	slotData := types.NewSlotData(
+		math.Slot(req.GetHeight()), // #nosec G115
+		nil,                        // no attestations
+		nil,                        // no slashings
 		req.GetProposerAddress(),
 		req.GetTime(),
 	)
 
-	//nolint:contextcheck // TODO: We should look at using the passed context
+	//nolint:contextcheck // ctx already passed via resetState
 	blkBz, sidecarsBz, err := s.BlockBuilder.BuildBlockAndSidecars(
 		s.prepareProposalState.Context(),
-		*slotData,
+		slotData,
 	)
 	if err != nil {
 		s.logger.Error(
 			"failed to prepare proposal",
-			"height",
-			req.Height,
-			"time",
-			req.Time,
-			"err",
-			err,
+			"height", req.Height,
+			"time", req.Time,
+			"err", err,
 		)
 		return &cmtabci.PrepareProposalResponse{Txs: req.Txs}, nil
 	}

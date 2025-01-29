@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,16 +21,12 @@
 package main
 
 import (
-	"cosmossdk.io/core/appmodule/v2"
-	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/validator"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	consruntimetypes "github.com/berachain/beacon-kit/consensus/types"
 	dablob "github.com/berachain/beacon-kit/da/blob"
-	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	engineclient "github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/execution/deposit"
 	execution "github.com/berachain/beacon-kit/execution/engine"
@@ -45,13 +41,7 @@ import (
 	payloadbuilder "github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/state-transition/core"
-	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
-	"github.com/berachain/beacon-kit/storage/beacondb"
-	"github.com/berachain/beacon-kit/storage/block"
-	depositdb "github.com/berachain/beacon-kit/storage/deposit"
 	"github.com/berachain/beacon-kit/storage/filedb"
-	"github.com/berachain/beacon-kit/storage/pruner"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 /* -------------------------------------------------------------------------- */
@@ -60,67 +50,25 @@ import (
 
 type (
 	// AttributesFactory is a type alias for the attributes factory.
-	AttributesFactory = attributes.Factory[
-		*BeaconState,
-		*PayloadAttributes,
-	]
+	AttributesFactory = attributes.Factory
 
 	// BlobProcessor is a type alias for the blob processor.
-	BlobProcessor = dablob.Processor[
-		*AvailabilityStore,
-		*BeaconBlockBody,
-		*ConsensusSidecars,
-		*BlobSidecar,
-		*BlobSidecars,
-	]
-
-	// ChainService is a type alias for the chain service.
-	ChainService = blockchain.Service[
-		*AvailabilityStore,
-		*DepositStore,
-		*ConsensusBlock,
-		*BeaconBlock,
-		*BeaconBlockBody,
-		*BeaconState,
-		*BlockStore,
-		*ExecutionPayload,
-		*ExecutionPayloadHeader,
-		*Genesis,
-		*ConsensusSidecars,
-		*BlobSidecars,
-		*PayloadAttributes,
-	]
+	BlobProcessor = dablob.Processor
 
 	// CometBFTService is a type alias for the CometBFT service.
 	CometBFTService = cometbft.Service[*Logger]
 
 	// EngineClient is a type alias for the engine client.
-	EngineClient = engineclient.EngineClient[
-		*ExecutionPayload,
-		*PayloadAttributes,
-	]
+	EngineClient = engineclient.EngineClient
 
 	// EngineClient is a type alias for the engine client.
-	ExecutionEngine = execution.Engine[
-		*ExecutionPayload,
-		*PayloadAttributes,
-		PayloadID,
-	]
+	ExecutionEngine = execution.Engine
 
 	// IndexDB is a type alias for the range DB.
 	IndexDB = filedb.RangeDB
 
-	// KVStore is a type alias for the KV store.
-	KVStore = beacondb.KVStore[*ExecutionPayloadHeader]
-
 	// LocalBuilder is a type alias for the local builder.
-	LocalBuilder = payloadbuilder.PayloadBuilder[
-		*BeaconState,
-		*ExecutionPayload,
-		*ExecutionPayloadHeader,
-		*PayloadAttributes,
-		PayloadID,
-	]
+	LocalBuilder = payloadbuilder.PayloadBuilder
 
 	// NodeAPIEngine is a type alias for the node API engine.
 	NodeAPIEngine = echo.Engine
@@ -129,50 +77,19 @@ type (
 	NodeAPIServer = server.Server[NodeAPIContext]
 
 	// ReportingService is a type alias for the reporting service.
-	ReportingService = version.ReportingService[
-		*ExecutionPayload,
-		*PayloadAttributes,
-	]
+	ReportingService = version.ReportingService
 
 	// SidecarFactory is a type alias for the sidecar factory.
-	SidecarFactory = dablob.SidecarFactory[
-		*BeaconBlock,
-		*BeaconBlockBody,
-	]
+	SidecarFactory = dablob.SidecarFactory
 
 	// StateProcessor is the type alias for the state processor interface.
-	StateProcessor = core.StateProcessor[
-		*BeaconBlock,
-		*BeaconBlockBody,
-		*BeaconState,
-		*Context,
-		*ExecutionPayload,
-		*ExecutionPayloadHeader,
-		*KVStore,
-	]
+	StateProcessor = core.StateProcessor[*Context]
 
 	// StorageBackend is the type alias for the storage backend interface.
-	StorageBackend = storage.Backend[
-		*AvailabilityStore,
-		*BeaconState,
-		*BlockStore,
-		*DepositStore,
-		*KVStore,
-	]
+	StorageBackend = storage.Backend
 
 	// ValidatorService is a type alias for the validator service.
-	ValidatorService = validator.Service[
-		*BeaconBlock,
-		*BeaconBlockBody,
-		*BeaconState,
-		*BlobSidecar,
-		*BlobSidecars,
-		*DepositStore,
-		*ExecutionPayload,
-		*ExecutionPayloadHeader,
-		*SlashingInfo,
-		*SlotData,
-	]
+	ValidatorService = validator.Service
 )
 
 /* -------------------------------------------------------------------------- */
@@ -180,34 +97,12 @@ type (
 /* -------------------------------------------------------------------------- */
 
 type (
-	// AvailabilityStore is a type alias for the availability store.
-	AvailabilityStore = dastore.Store[*BeaconBlockBody]
-
 	// BeaconBlock type aliases.
-	ConsensusBlock  = consruntimetypes.ConsensusBlock[*BeaconBlock]
-	BeaconBlock     = types.BeaconBlock
-	BeaconBlockBody = types.BeaconBlockBody
-
-	// BeaconState is a type alias for the BeaconState.
-	BeaconState = statedb.StateDB[
-		*BeaconStateMarshallable,
-		*ExecutionPayloadHeader,
-		*KVStore,
-	]
-
-	// BeaconStateMarshallable is a type alias for the BeaconState.
-	BeaconStateMarshallable = types.BeaconState[
-		*ExecutionPayloadHeader,
-		ExecutionPayloadHeader,
-	]
+	ConsensusBlock = consruntimetypes.ConsensusBlock
 
 	// BlobSidecars type aliases.
-	ConsensusSidecars = consruntimetypes.ConsensusSidecars[*BlobSidecars]
-	BlobSidecar       = datypes.BlobSidecar
-	BlobSidecars      = datypes.BlobSidecars
-
-	// BlockStore is a type alias for the block store.
-	BlockStore = block.KVStore[*BeaconBlock]
+	BlobSidecar  = datypes.BlobSidecar
+	BlobSidecars = datypes.BlobSidecars
 
 	// Context is a type alias for the transition context.
 	Context = transition.Context
@@ -215,15 +110,8 @@ type (
 	// DepositContract is a type alias for the deposit contract.
 	DepositContract = deposit.WrappedDepositContract
 
-	// DepositStore is a type alias for the deposit store.
-	DepositStore = depositdb.KVStore
-
 	// Eth1Data is a type alias for the eth1 data.
 	Eth1Data = types.Eth1Data
-
-	// ExecutionPayload type aliases.
-	ExecutionPayload       = types.ExecutionPayload
-	ExecutionPayloadHeader = types.ExecutionPayloadHeader
 
 	// Fork is a type alias for the fork.
 	Fork = types.Fork
@@ -232,7 +120,7 @@ type (
 	ForkData = types.ForkData
 
 	// Genesis is a type alias for the Genesis type.
-	Genesis = types.Genesis[*ExecutionPayloadHeader]
+	Genesis = types.Genesis
 
 	// Logger is a type alias for the logger.
 	Logger = phuslu.Logger
@@ -241,58 +129,14 @@ type (
 	LoggerConfig = phuslu.Config
 
 	// SlotData is a type alias for the incoming slot.
-	SlotData = consruntimetypes.SlotData[*SlashingInfo]
+	SlotData = consruntimetypes.SlotData
 
 	// LegacyKey type alias to LegacyKey used for LegacySinger construction.
 	LegacyKey = signer.LegacyKey
 
 	// NodeAPIBackend is a type alias for the node API backend.
-	NodeAPIBackend = backend.Backend[
-		*AvailabilityStore,
-		*BeaconBlock,
-		*BeaconBlockBody,
-		*BeaconState,
-		*BeaconStateMarshallable,
-		*BlobSidecars,
-		*BlockStore,
-		sdk.Context,
-		*DepositStore,
-		*ExecutionPayloadHeader,
-		*CometBFTService,
-		*KVStore,
-		*StorageBackend,
-	]
+	NodeAPIBackend = backend.Backend
 
 	// NodeAPIContext is a type alias for the node API context.
 	NodeAPIContext = echo.Context
-
-	// PayloadAttributes is a type alias for the payload attributes.
-	PayloadAttributes = engineprimitives.PayloadAttributes
-
-	// PayloadID is a type alias for the payload ID.
-	PayloadID = engineprimitives.PayloadID
-
-	// SlashingInfo is a type alias for the slashing info.
-	SlashingInfo = types.SlashingInfo
-
-	// ValidatorUpdate is a type alias for the validator update.
-	ABCIValidatorUpdate = appmodule.ValidatorUpdate
-
-	// ValidatorUpdate is a type alias for the validator update.
-	ValidatorUpdate = transition.ValidatorUpdate
-
-	// ValidatorUpdates is a type alias for the validator updates.
-	ValidatorUpdates = transition.ValidatorUpdates
-)
-
-/* -------------------------------------------------------------------------- */
-/*                                  Pruners                                   */
-/* -------------------------------------------------------------------------- */
-
-type (
-	// DAPruner is a type alias for the DA pruner.
-	DAPruner = pruner.Pruner[*IndexDB]
-
-	// DepositPruner is a type alias for the deposit pruner.
-	DepositPruner = pruner.Pruner[*DepositStore]
 )

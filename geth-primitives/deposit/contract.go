@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,4 +22,4 @@ package deposit
 
 // TODO: Remove ldflags=-checklinkname=0 override once fix is applied.
 //
-//go:generate go run -ldflags=-checklinkname=0 github.com/ethereum/go-ethereum/cmd/abigen  --abi=../../contracts/out/DepositContract.sol/DepositContract.abi.json --bin=../../contracts/out/DepositContract.sol/DepositContract.bin --pkg=deposit --type=DepositContract --out=contract.abigen.go
+//go:generate abigen --abi=../../contracts/out/DepositContract.sol/DepositContract.abi.json --bin=../../contracts/out/DepositContract.sol/DepositContract.bin --pkg=deposit --type=DepositContract --out=contract.abigen.go

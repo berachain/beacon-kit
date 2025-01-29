@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT
 #
-# Copyright (c) 2024 Berachain Foundation
+# Copyright (c) 2025 Berachain Foundation
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -24,21 +24,23 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 network_configuration:
+  chain_id: 80087
+  chain_spec: "devnet"
   validators:
     type: "validator"
     nodes:
       - el_type: besu
         kzg_impl: crate-crypto/go-kzg-4844
-        replicas: 1
+        replicas: 0
       - el_type: nethermind
         kzg_impl: crate-crypto/go-kzg-4844
-        replicas: 1
+        replicas: 0
       - el_type: reth
         kzg_impl: crate-crypto/go-kzg-4844
-        replicas: 1
+        replicas: 2
       - el_type: geth
         kzg_impl: crate-crypto/go-kzg-4844
-        replicas: 1
+        replicas: 2
       - el_type: erigon
         kzg_impl: crate-crypto/go-kzg-4844
         replicas: 1
@@ -76,14 +78,14 @@ node_settings:
     images:
       beaconkit: beacond:kurtosis-local
     config:
-      timeout_propose: 3s
-      timeout_prevote: 1s
-      timeout_precommit: 1s
-      timeout_commit: 2s
+      timeout_propose: 2s
+      timeout_prevote: 2s
+      timeout_precommit: 2s
+      timeout_commit: 500ms
       max_num_inbound_peers: 40
       max_num_outbound_peers: 10
     app:
-      payload_timeout: 2.5s
+      payload_timeout: 850ms
       enable_optimistic_payload_builds: true
   execution_settings:
     specs:
@@ -110,7 +112,7 @@ eth_json_rpc_endpoints:
       # - el-full-erigon-5
       # - el-full-ethereumjs-6
 additional_services:
-  - name: "goomy-blob"
+  - name: "spamoor"
   - name: "tx-fuzz"
     replicas: 16
   - name: "prometheus"

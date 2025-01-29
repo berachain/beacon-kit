@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-//nolint:dupl // each proof is opinionated for unique gIndexes.
+//nolint:dupl // separate file for ease of future implementation
 package merkle
 
 import (
@@ -36,12 +36,9 @@ import (
 // proof.
 func ProveExecutionNumberInBlock[
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
-	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
 ](
 	bbh *ctypes.BeaconBlockHeader,
-	bs types.BeaconState[
-		BeaconStateMarshallableT, ExecutionPayloadHeaderT,
-	],
+	bs types.BeaconState[BeaconStateMarshallableT],
 ) ([]common.Root, common.Root, error) {
 	// Get the proof of the execution number in the beacon state.
 	numberInStateProof, leaf, err := ProveExecutionNumberInState(bs)
@@ -71,11 +68,8 @@ func ProveExecutionNumberInBlock[
 // execution payload in the beacon state. It uses the fastssz library.
 func ProveExecutionNumberInState[
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
-	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
 ](
-	bs types.BeaconState[
-		BeaconStateMarshallableT, ExecutionPayloadHeaderT,
-	],
+	bs types.BeaconState[BeaconStateMarshallableT],
 ) ([]common.Root, common.Root, error) {
 	bsm, err := bs.GetMarshallable()
 	if err != nil {

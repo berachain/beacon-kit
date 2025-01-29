@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -33,16 +33,6 @@ import (
 )
 
 type NodeAPIHandlersInput[
-	BeaconStateT BeaconState[
-		BeaconStateT, BeaconStateMarshallableT,
-		ExecutionPayloadHeaderT, KVStoreT,
-	],
-	BeaconStateMarshallableT BeaconStateMarshallable[
-		BeaconStateMarshallableT,
-		ExecutionPayloadHeaderT,
-	],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-	KVStoreT any,
 	NodeAPIContextT NodeAPIContext,
 ] struct {
 	depinject.In
@@ -52,30 +42,13 @@ type NodeAPIHandlersInput[
 	DebugAPIHandler   *debugapi.Handler[NodeAPIContextT]
 	EventsAPIHandler  *eventsapi.Handler[NodeAPIContextT]
 	NodeAPIHandler    *nodeapi.Handler[NodeAPIContextT]
-	ProofAPIHandler   *proofapi.Handler[
-		BeaconStateT, BeaconStateMarshallableT,
-		NodeAPIContextT, ExecutionPayloadHeaderT,
-	]
+	ProofAPIHandler   *proofapi.Handler[NodeAPIContextT]
 }
 
 func ProvideNodeAPIHandlers[
-	BeaconStateT BeaconState[
-		BeaconStateT, BeaconStateMarshallableT,
-		ExecutionPayloadHeaderT, KVStoreT,
-	],
-	BeaconStateMarshallableT BeaconStateMarshallable[
-		BeaconStateMarshallableT,
-		ExecutionPayloadHeaderT,
-	],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-	KVStoreT any,
 	NodeAPIContextT NodeAPIContext,
 ](
-	in NodeAPIHandlersInput[
-		BeaconStateT,
-		BeaconStateMarshallableT, ExecutionPayloadHeaderT, KVStoreT,
-		NodeAPIContextT,
-	],
+	in NodeAPIHandlersInput[NodeAPIContextT],
 ) []handlers.Handlers[NodeAPIContextT] {
 	return []handlers.Handlers[NodeAPIContextT]{
 		in.BeaconAPIHandler,
@@ -89,13 +62,8 @@ func ProvideNodeAPIHandlers[
 }
 
 func ProvideNodeAPIBeaconHandler[
-	BeaconStateT any,
-	NodeT any,
 	NodeAPIContextT NodeAPIContext,
-](b NodeAPIBackend[
-	BeaconStateT,
-	NodeT,
-]) *beaconapi.Handler[NodeAPIContextT] {
+](b NodeAPIBackend) *beaconapi.Handler[NodeAPIContextT] {
 	return beaconapi.NewHandler[NodeAPIContextT](b)
 }
 
@@ -113,8 +81,8 @@ func ProvideNodeAPIConfigHandler[
 
 func ProvideNodeAPIDebugHandler[
 	NodeAPIContextT NodeAPIContext,
-]() *debugapi.Handler[NodeAPIContextT] {
-	return debugapi.NewHandler[NodeAPIContextT]()
+](b NodeAPIBackend) *debugapi.Handler[NodeAPIContextT] {
+	return debugapi.NewHandler[NodeAPIContextT](b)
 }
 
 func ProvideNodeAPIEventsHandler[
@@ -130,29 +98,7 @@ func ProvideNodeAPINodeHandler[
 }
 
 func ProvideNodeAPIProofHandler[
-	BeaconStateT BeaconState[
-		BeaconStateT, BeaconStateMarshallableT,
-		ExecutionPayloadHeaderT, KVStoreT,
-	],
-	BeaconStateMarshallableT BeaconStateMarshallable[
-		BeaconStateMarshallableT,
-		ExecutionPayloadHeaderT,
-	],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-	KVStoreT any,
-	NodeT any,
 	NodeAPIContextT NodeAPIContext,
-](b NodeAPIBackend[
-	BeaconStateT,
-	NodeT,
-]) *proofapi.Handler[
-	BeaconStateT, BeaconStateMarshallableT,
-	NodeAPIContextT, ExecutionPayloadHeaderT,
-] {
-	return proofapi.NewHandler[
-		BeaconStateT,
-		BeaconStateMarshallableT,
-		NodeAPIContextT,
-		ExecutionPayloadHeaderT,
-	](b)
+](b NodeAPIBackend) *proofapi.Handler[NodeAPIContextT] {
+	return proofapi.NewHandler[NodeAPIContextT](b)
 }

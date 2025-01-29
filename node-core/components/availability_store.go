@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,13 +22,13 @@ package components
 
 import (
 	"os"
+	"path/filepath"
 
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/storage/filedb"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cast"
@@ -39,27 +39,25 @@ import (
 type AvailabilityStoreInput[LoggerT any] struct {
 	depinject.In
 	AppOpts   config.AppOptions
-	ChainSpec common.ChainSpec
+	ChainSpec chain.Spec
 	Logger    LoggerT
 }
 
-// ProvideAvailibilityStore provides the availability store.
-func ProvideAvailibilityStore[
-	BeaconBlockBodyT interface {
-		GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
-	},
+// ProvideAvailabilityStore provides the availability store.
+func ProvideAvailabilityStore[
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	in AvailabilityStoreInput[LoggerT],
-) (*dastore.Store[BeaconBlockBodyT], error) {
-	return dastore.New[BeaconBlockBodyT](
+) (*dastore.Store, error) {
+	var (
+		rootDir  = cast.ToString(in.AppOpts.Get(flags.FlagHome))
+		blobsDir = filepath.Join(rootDir, "data", "blobs")
+	)
+
+	return dastore.New(
 		filedb.NewRangeDB(
 			filedb.NewDB(
-				filedb.WithRootDirectory(
-					cast.ToString(
-						in.AppOpts.Get(flags.FlagHome),
-					)+"/data/blobs",
-				),
+				filedb.WithRootDirectory(blobsDir),
 				filedb.WithFileExtension("ssz"),
 				filedb.WithDirectoryPermissions(os.ModePerm),
 				filedb.WithLogger(in.Logger),

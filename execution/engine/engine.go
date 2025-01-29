@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,6 +23,7 @@ package engine
 import (
 	"context"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/errors"
@@ -34,14 +35,10 @@ import (
 
 // Engine is Beacon-Kit's implementation of the `ExecutionEngine`
 // from the Ethereum 2.0 Specification.
-type Engine[
-	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT],
-	PayloadAttributesT engineprimitives.PayloadAttributer,
-	PayloadIDT ~[8]byte,
-] struct {
+type Engine struct {
 	// ec is the engine client that the engine will use to
 	// interact with the execution layer.
-	ec *client.EngineClient[ExecutionPayloadT, PayloadAttributesT]
+	ec *client.EngineClient
 	// logger is the logger for the engine.
 	logger log.Logger
 	// metrics is the metrics for the engine.
@@ -49,47 +46,23 @@ type Engine[
 }
 
 // New creates a new Engine.
-func New[
-	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT],
-	PayloadAttributesT engineprimitives.PayloadAttributer,
-	PayloadIDT ~[8]byte,
-](
-	engineClient *client.EngineClient[ExecutionPayloadT, PayloadAttributesT],
+func New(
+	engineClient *client.EngineClient,
 	logger log.Logger,
 	telemtrySink TelemetrySink,
-) *Engine[
-	ExecutionPayloadT, PayloadAttributesT,
-	PayloadIDT,
-] {
-	return &Engine[
-		ExecutionPayloadT, PayloadAttributesT, PayloadIDT,
-	]{
+) *Engine {
+	return &Engine{
 		ec:      engineClient,
 		logger:  logger,
 		metrics: newEngineMetrics(telemtrySink, logger),
 	}
 }
 
-// Start spawns any goroutines required by the service.
-func (ee *Engine[_, _, _]) Start(
-	ctx context.Context,
-) error {
-	go func() {
-		// TODO: handle better
-		if err := ee.ec.Start(ctx); err != nil {
-			panic(err)
-		}
-	}()
-	return nil
-}
-
 // GetPayload returns the payload and blobs bundle for the given slot.
-func (ee *Engine[
-	ExecutionPayloadT, _, _,
-]) GetPayload(
+func (ee *Engine) GetPayload(
 	ctx context.Context,
-	req *engineprimitives.GetPayloadRequest[engineprimitives.PayloadID],
-) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
+	req *ctypes.GetPayloadRequest,
+) (ctypes.BuiltExecutionPayloadEnv, error) {
 	return ee.ec.GetPayload(
 		ctx, req.PayloadID,
 		req.ForkVersion,
@@ -97,11 +70,9 @@ func (ee *Engine[
 }
 
 // NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
-func (ee *Engine[
-	_, PayloadAttributesT, _,
-]) NotifyForkchoiceUpdate(
+func (ee *Engine) NotifyForkchoiceUpdate(
 	ctx context.Context,
-	req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
+	req *ctypes.ForkchoiceUpdateRequest,
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
 	// Log the forkchoice update attempt.
 	hasPayloadAttributes := !req.PayloadAttributes.IsNil()
@@ -128,14 +99,7 @@ func (ee *Engine[
 
 	// If we get invalid payload status, we will need to find a valid
 	// ancestor block and force a recovery.
-	//
-	// These two cases are semantically the same:
-	// https://github.com/ethereum/execution-apis/issues/270
-	case errors.IsAny(
-		err,
-		engineerrors.ErrInvalidPayloadStatus,
-		engineerrors.ErrInvalidBlockHashPayloadStatus,
-	):
+	case errors.Is(err, engineerrors.ErrInvalidPayloadStatus):
 		ee.metrics.markForkchoiceUpdateInvalid(req.State, err)
 		return payloadID, latestValidHash, ErrBadBlockProduced
 
@@ -171,11 +135,11 @@ func (ee *Engine[
 
 // VerifyAndNotifyNewPayload verifies the new payload and notifies the
 // execution client.
-func (ee *Engine[
-	ExecutionPayloadT, _, _,
-]) VerifyAndNotifyNewPayload(
+//
+//nolint:funlen
+func (ee *Engine) VerifyAndNotifyNewPayload(
 	ctx context.Context,
-	req *engineprimitives.NewPayloadRequest[ExecutionPayloadT],
+	req *ctypes.NewPayloadRequest,
 ) error {
 	// Log the new payload attempt.
 	ee.metrics.markNewPayloadCalled(
@@ -218,13 +182,7 @@ func (ee *Engine[
 			req.Optimistic,
 		)
 
-	// These two cases are semantically the same:
-	// https://github.com/ethereum/execution-apis/issues/270
-	case errors.IsAny(
-		err,
-		engineerrors.ErrInvalidPayloadStatus,
-		engineerrors.ErrInvalidBlockHashPayloadStatus,
-	):
+	case errors.Is(err, engineerrors.ErrInvalidPayloadStatus):
 		ee.metrics.markNewPayloadInvalidPayloadStatus(
 			req.ExecutionPayload.GetBlockHash(),
 			req.Optimistic,

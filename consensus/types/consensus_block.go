@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,11 +23,12 @@ package types
 import (
 	"time"
 
+	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-type ConsensusBlock[BeaconBlockT any] struct {
-	blk BeaconBlockT
+type ConsensusBlock struct {
+	blk *types.BeaconBlock
 
 	// some consensus data useful to build and verify the block
 	*commonConsensusData
@@ -36,27 +37,26 @@ type ConsensusBlock[BeaconBlockT any] struct {
 }
 
 // New creates a new ConsensusBlock instance.
-func (b *ConsensusBlock[BeaconBlockT]) New(
-	beaconBlock BeaconBlockT,
+func NewConsensusBlock(
+	beaconBlock *types.BeaconBlock,
 	proposerAddress []byte,
 	consensusTime time.Time,
 	isConsensusSyncing bool,
-) *ConsensusBlock[BeaconBlockT] {
-	b = &ConsensusBlock[BeaconBlockT]{
+) *ConsensusBlock {
+	return &ConsensusBlock{
 		blk: beaconBlock,
 		commonConsensusData: &commonConsensusData{
 			proposerAddress: proposerAddress,
-			consensusTime:   math.U64(consensusTime.Unix()),
+			consensusTime:   math.U64(consensusTime.Unix()), // #nosec G115
 		},
 		isConsensusSyncing: isConsensusSyncing,
 	}
-	return b
 }
 
-func (b *ConsensusBlock[BeaconBlockT]) GetBeaconBlock() BeaconBlockT {
+func (b *ConsensusBlock) GetBeaconBlock() *types.BeaconBlock {
 	return b.blk
 }
 
-func (b *ConsensusBlock[BeaconBlockT]) GetConsensusSyncing() bool {
+func (b *ConsensusBlock) GetConsensusSyncing() bool {
 	return b.isConsensusSyncing
 }

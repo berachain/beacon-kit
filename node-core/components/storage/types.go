@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,13 +22,7 @@ package storage
 
 import (
 	"context"
-
-	"github.com/berachain/beacon-kit/primitives/common"
 )
-
-type BeaconState[T, KVStoreT any] interface {
-	NewFromDB(KVStoreT, common.ChainSpec) T
-}
 
 // KVStore is the interface for the key-value store holding the beacon state.
 type KVStore[T any] interface {

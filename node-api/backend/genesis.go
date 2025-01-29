@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -26,9 +26,7 @@ import (
 )
 
 // GetGenesis returns the genesis state of the beacon chain.
-func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
-]) GenesisValidatorsRoot(slot math.Slot) (common.Root, error) {
+func (b Backend) GenesisValidatorsRoot(slot math.Slot) (common.Root, error) {
 	// needs genesis_time and gensis_fork_version
 	st, _, err := b.stateFromSlot(slot)
 	if err != nil {

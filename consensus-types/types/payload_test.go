@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -36,16 +36,19 @@ import (
 )
 
 func generateExecutionPayload() *types.ExecutionPayload {
-	transactions := make([][]byte, 1)
-	transactions[0] = []byte{0x07}
-	withdrawals := make(engineprimitives.Withdrawals, 1)
-	withdrawals[0] = &engineprimitives.Withdrawal{
-		Index:     0,
-		Validator: 0,
-		Address:   common.ExecutionAddress{},
-		Amount:    0,
-	}
-	return &types.ExecutionPayload{
+	var (
+		transactions = [][]byte{{0x07}}
+		withdrawals  = []*engineprimitives.Withdrawal{
+			{
+				Index:     0,
+				Validator: 0,
+				Address:   common.ExecutionAddress{},
+				Amount:    0,
+			},
+		}
+	)
+
+	ep := &types.ExecutionPayload{
 		ParentHash:    common.ExecutionHash{},
 		FeeRecipient:  common.ExecutionAddress{},
 		StateRoot:     bytes.B32{},
@@ -63,8 +66,11 @@ func generateExecutionPayload() *types.ExecutionPayload {
 		Withdrawals:   withdrawals,
 		BlobGasUsed:   math.U64(0),
 		ExcessBlobGas: math.U64(0),
+		EpVersion:     version.Deneb1,
 	}
+	return ep
 }
+
 func TestExecutionPayload_Serialization(t *testing.T) {
 	original := generateExecutionPayload()
 
@@ -76,6 +82,7 @@ func TestExecutionPayload_Serialization(t *testing.T) {
 	err = unmarshalled.UnmarshalSSZ(data)
 	require.NoError(t, err)
 
+	unmarshalled.EpVersion = original.Version()
 	require.Equal(t, original, &unmarshalled)
 
 	var buf []byte
@@ -157,6 +164,8 @@ func TestExecutionPayload_MarshalJSON(t *testing.T) {
 	var unmarshalled types.ExecutionPayload
 	err = unmarshalled.UnmarshalJSON(data)
 	require.NoError(t, err)
+
+	unmarshalled.EpVersion = payload.Version()
 	require.Equal(t, payload, &unmarshalled)
 }
 
@@ -189,15 +198,7 @@ func TestExecutionPayload_IsBlinded(t *testing.T) {
 
 func TestExecutionPayload_Version(t *testing.T) {
 	payload := generateExecutionPayload()
-	require.Equal(t, version.Deneb, payload.Version())
-}
-
-func TestExecutionPayload_Empty(t *testing.T) {
-	payload := new(types.ExecutionPayload)
-	emptyPayload := payload.Empty(version.Deneb)
-
-	require.NotNil(t, emptyPayload)
-	require.Equal(t, version.Deneb, emptyPayload.Version())
+	require.Equal(t, version.Deneb1, payload.Version())
 }
 
 func TestExecutionPayload_ToHeader(t *testing.T) {
@@ -219,6 +220,7 @@ func TestExecutionPayload_ToHeader(t *testing.T) {
 		Withdrawals:   engineprimitives.Withdrawals{},
 		BlobGasUsed:   math.U64(0),
 		ExcessBlobGas: math.U64(0),
+		EpVersion:     version.Deneb1,
 	}
 
 	header, err := payload.ToHeader()
@@ -240,13 +242,9 @@ func TestExecutionPayload_ToHeader(t *testing.T) {
 	require.Equal(t, payload.GetBlockHash(), header.GetBlockHash())
 	require.Equal(t, payload.GetBlobGasUsed(), header.GetBlobGasUsed())
 	require.Equal(t, payload.GetExcessBlobGas(), header.GetExcessBlobGas())
+	require.Equal(t, payload.Version(), header.Version())
 
-	// TODO: FIX LATER
-	// htrHeader, err := header.HashTreeRoot()
-	// require.NoError(t, err)
-	// htrPayload, err := payload.HashTreeRoot()
-	// require.NoError(t, err)
-	// require.Equal(t, htrPayload, htrHeader)
+	require.Equal(t, payload.HashTreeRoot(), header.HashTreeRoot())
 }
 
 func TestExecutionPayload_UnmarshalJSON_Error(t *testing.T) {

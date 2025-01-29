@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (c) 2025 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -52,19 +52,6 @@ type SlashingInfo struct {
 	Slot math.Slot
 	// ValidatorIndex is the validator index of the slashing info.
 	Index math.U64
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                 Constructor                                */
-/* -------------------------------------------------------------------------- */
-
-// New creates a new slashing info instance.
-func (s *SlashingInfo) New(slot, index math.U64) *SlashingInfo {
-	s = &SlashingInfo{
-		Slot:  slot,
-		Index: index,
-	}
-	return s
 }
 
 /* -------------------------------------------------------------------------- */

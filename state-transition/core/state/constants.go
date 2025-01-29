@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -34,14 +34,4 @@ const (
 	// used for the EVM inflation withdrawal in every block. It should remain
 	// unused during processing.
 	EVMInflationWithdrawalValidatorIndex = math.MaxUint64
-)
-
-// Boonet special case for emergency minting of EVM tokens. TODO: remove with
-// other special cases.
-const (
-	// EVMMintingAddress is the address at which we mint EVM tokens to.
-	EVMMintingAddress = "0x8a73D1380345942F1cb32541F1b19C40D8e6C94B"
-
-	// EVMMintingAmount is the amount of EVM tokens to mint.
-	EVMMintingAmount uint64 = 530000000000000000
 )

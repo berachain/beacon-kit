@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -24,124 +24,53 @@ import (
 	"github.com/berachain/beacon-kit/node-core/components"
 )
 
-//nolint:funlen // happens
 func DefaultComponents() []any {
 	c := []any{
-		components.ProvideAttributesFactory[
-			*BeaconState, *BeaconStateMarshallable,
-			*ExecutionPayloadHeader, *KVStore, *Logger,
-		],
-		components.ProvideAvailibilityStore[*BeaconBlockBody, *Logger],
-		components.ProvideDepositContract[
-			*ExecutionPayload, *ExecutionPayloadHeader,
-		],
-		components.ProvideBlockStore[
-			*BeaconBlock, *BeaconBlockBody, *Logger,
-		],
+		components.ProvideAttributesFactory[*Logger],
+		components.ProvideAvailabilityStore[*Logger],
+		components.ProvideDepositContract,
+		components.ProvideBlockStore[*Logger],
 		components.ProvideBlsSigner,
-		components.ProvideBlobProcessor[
-			*AvailabilityStore, *BeaconBlockBody,
-			*ConsensusSidecars, *BlobSidecar, *BlobSidecars, *Logger,
-		],
+		components.ProvideBlobProcessor[*Logger],
 		components.ProvideBlobProofVerifier,
-		components.ProvideChainService[
-			*AvailabilityStore,
-			*ConsensusBlock, *BeaconBlock, *BeaconBlockBody,
-			*BeaconState, *BeaconStateMarshallable,
-			*BlobSidecar, *BlobSidecars, *ConsensusSidecars, *BlockStore,
-			*DepositStore, *DepositContract,
-			*ExecutionPayload, *ExecutionPayloadHeader, *Genesis,
-			*KVStore, *Logger, *StorageBackend, *BlockStore,
-		],
+		components.ProvideChainService[*Logger],
 		components.ProvideNode,
 		components.ProvideChainSpec,
 		components.ProvideConfig,
 		components.ProvideServerConfig,
-		// components.ProvideConsensusEngine[
-		// 	*AvailabilityStore, *BeaconBlockHeader, *BeaconState,
-		// 	*BeaconStateMarshallable, *BlockStore, *KVStore, *StorageBackend,
-		// ],
 		components.ProvideDepositStore[*Logger],
-		components.ProvideEngineClient[
-			*ExecutionPayload, *ExecutionPayloadHeader, *Logger,
-		],
-		components.ProvideExecutionEngine[
-			*ExecutionPayload, *ExecutionPayloadHeader, *Logger,
-		],
+		components.ProvideEngineClient[*Logger],
+		components.ProvideExecutionEngine[*Logger],
 		components.ProvideJWTSecret,
-		components.ProvideLocalBuilder[
-			*BeaconState, *BeaconStateMarshallable,
-			*ExecutionPayload, *ExecutionPayloadHeader, *KVStore, *Logger,
-		],
-		components.ProvideReportingService[
-			*ExecutionPayload, *PayloadAttributes, *Logger,
-		],
+		components.ProvideLocalBuilder[*Logger],
+		components.ProvideReportingService[*Logger],
 		components.ProvideCometBFTService[*Logger],
-		components.ProvideServiceRegistry[
-			*AvailabilityStore,
-			*ConsensusBlock, *BeaconBlock, *BeaconBlockBody,
-			*BlockStore, *BeaconState,
-			*BeaconStateMarshallable,
-			*ConsensusSidecars, *BlobSidecar, *BlobSidecars,
-			*DepositStore, *ExecutionPayload, *ExecutionPayloadHeader,
-			*Genesis, *KVStore, *Logger,
-			NodeAPIContext,
-		],
-		components.ProvideSidecarFactory[
-			*BeaconBlock, *BeaconBlockBody,
-		],
-		components.ProvideStateProcessor[
-			*Logger, *BeaconBlock, *BeaconBlockBody,
-			*BeaconState, *BeaconStateMarshallable, *DepositStore,
-			*ExecutionPayload, *ExecutionPayloadHeader, *KVStore,
-		],
-		components.ProvideKVStore[*ExecutionPayloadHeader],
-		components.ProvideStorageBackend[
-			*AvailabilityStore, *BlockStore, *BeaconState,
-			*KVStore, *DepositStore,
-		],
+		components.ProvideServiceRegistry[*Logger],
+		components.ProvideSidecarFactory,
+		components.ProvideStateProcessor[*Logger],
+		components.ProvideKVStore,
+		components.ProvideStorageBackend,
 		components.ProvideTelemetrySink,
 		components.ProvideTelemetryService,
 		components.ProvideTrustedSetup,
-		components.ProvideValidatorService[
-			*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,
-			*BeaconState, *BeaconStateMarshallable,
-			*BlockStore, *BlobSidecar, *BlobSidecars, *DepositStore,
-			*ExecutionPayload, *ExecutionPayloadHeader, *KVStore, *Logger,
-			*StorageBackend,
-		],
-		// TODO Hacks
-		components.ProvideKVStoreService,
-		components.ProvideKVStoreKey,
+		components.ProvideValidatorService[*Logger],
+		components.ProvideShutDownService[*Logger],
 	}
 	c = append(c,
 		components.ProvideNodeAPIServer[*Logger, NodeAPIContext],
 		components.ProvideNodeAPIEngine,
-		components.ProvideNodeAPIBackend[
-			*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,
-			*BlockStore, *BeaconState,
-			*BeaconStateMarshallable, *BlobSidecars, *DepositStore,
-			*ExecutionPayloadHeader, *KVStore, *CometBFTService, *StorageBackend,
-		],
+		components.ProvideNodeAPIBackend,
 	)
 
 	c = append(c,
-		components.ProvideNodeAPIHandlers[
-			*BeaconState, *BeaconStateMarshallable,
-			*ExecutionPayloadHeader, *KVStore, NodeAPIContext,
-		],
-		components.ProvideNodeAPIBeaconHandler[
-			*BeaconState, *CometBFTService, NodeAPIContext,
-		],
+		components.ProvideNodeAPIHandlers[NodeAPIContext],
+		components.ProvideNodeAPIBeaconHandler[NodeAPIContext],
 		components.ProvideNodeAPIBuilderHandler[NodeAPIContext],
 		components.ProvideNodeAPIConfigHandler[NodeAPIContext],
 		components.ProvideNodeAPIDebugHandler[NodeAPIContext],
 		components.ProvideNodeAPIEventsHandler[NodeAPIContext],
 		components.ProvideNodeAPINodeHandler[NodeAPIContext],
-		components.ProvideNodeAPIProofHandler[
-			*BeaconState, *BeaconStateMarshallable,
-			*ExecutionPayloadHeader, *KVStore, *CometBFTService, NodeAPIContext,
-		],
+		components.ProvideNodeAPIProofHandler[NodeAPIContext],
 	)
 
 	return c

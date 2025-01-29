@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,29 +23,22 @@ package core
 import (
 	"context"
 
-	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
-	"github.com/berachain/beacon-kit/config/spec"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
-	"github.com/berachain/beacon-kit/primitives/math"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"golang.org/x/sync/errgroup"
 )
 
 // processExecutionPayload processes the execution payload and ensures it
 // matches the local state.
-func (sp *StateProcessor[
-	BeaconBlockT, _, BeaconStateT, ContextT,
-	_, ExecutionPayloadHeaderT, _,
-]) processExecutionPayload(
-	ctx ContextT,
-	st BeaconStateT,
-	blk BeaconBlockT,
+func (sp *StateProcessor[ContextT]) processExecutionPayload(
+	ctx ContextT, st *statedb.StateDB, blk *ctypes.BeaconBlock,
 ) error {
 	var (
 		body    = blk.GetBody()
 		payload = body.GetExecutionPayload()
-		header  ExecutionPayloadHeaderT
-		g, gCtx = errgroup.WithContext(context.Background())
+		header  = &ctypes.ExecutionPayloadHeader{} // appeases nilaway
+		g, gCtx = errgroup.WithContext(ctx)
 	)
 
 	payloadTimestamp := payload.GetTimestamp().Unwrap()
@@ -64,18 +57,11 @@ func (sp *StateProcessor[
 	// Skip payload verification if the context is configured as such.
 	if !ctx.GetSkipPayloadVerification() {
 		g.Go(func() error {
-			return sp.validateExecutionPayload(
-				gCtx, st, blk,
-				ctx.GetConsensusTime(),
-				ctx.GetOptimisticEngine(),
-			)
+			return sp.validateExecutionPayload(gCtx, st, blk, ctx.GetOptimisticEngine())
 		})
 	}
 
-	// Get the execution payload header. TODO: This is live on bArtio with a bug
-	// and needs to be hardforked off of. We check for version and convert to
-	// header based on that version as a temporary solution to avoid breaking
-	// changes.
+	// Get the execution payload header.
 	g.Go(func() error {
 		var err error
 		header, err = payload.ToHeader()
@@ -86,41 +72,32 @@ func (sp *StateProcessor[
 		return err
 	}
 
+	if ctx.GetMeterGas() {
+		sp.metrics.gaugeBlockGasUsed(
+			payload.GetNumber(), payload.GetGasUsed(), payload.GetBlobGasUsed(),
+		)
+	}
+
 	// Set the latest execution payload header.
 	return st.SetLatestExecutionPayloadHeader(header)
 }
 
 // validateExecutionPayload validates the execution payload against both local
 // state and the execution engine.
-func (sp *StateProcessor[
-	BeaconBlockT, _, BeaconStateT,
-	_, _, _, _,
-]) validateExecutionPayload(
+func (sp *StateProcessor[_]) validateExecutionPayload(
 	ctx context.Context,
-	st BeaconStateT,
-	blk BeaconBlockT,
-	consensusTime math.U64,
+	st *statedb.StateDB,
+	blk *ctypes.BeaconBlock,
 	optimisticEngine bool,
 ) error {
 	if err := sp.validateStatelessPayload(blk); err != nil {
 		return err
 	}
-	return sp.validateStatefulPayload(
-		ctx,
-		st,
-		blk,
-		consensusTime,
-		optimisticEngine,
-	)
+	return sp.validateStatefulPayload(ctx, st, blk, optimisticEngine)
 }
 
 // validateStatelessPayload performs stateless checks on the execution payload.
-func (sp *StateProcessor[
-	BeaconBlockT, _, _,
-	_, _, _, _,
-]) validateStatelessPayload(
-	blk BeaconBlockT,
-) error {
+func (sp *StateProcessor[_]) validateStatelessPayload(blk *ctypes.BeaconBlock) error {
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
 
@@ -148,15 +125,8 @@ func (sp *StateProcessor[
 }
 
 // validateStatefulPayload performs stateful checks on the execution payload.
-func (sp *StateProcessor[
-	BeaconBlockT, _, BeaconStateT,
-	_, _, _, _,
-]) validateStatefulPayload(
-	ctx context.Context,
-	st BeaconStateT,
-	blk BeaconBlockT,
-	consensusTime math.U64,
-	optimisticEngine bool,
+func (sp *StateProcessor[_]) validateStatefulPayload(
+	ctx context.Context, st *statedb.StateDB, blk *ctypes.BeaconBlock, optimisticEngine bool,
 ) error {
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
@@ -164,18 +134,6 @@ func (sp *StateProcessor[
 	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return err
-	}
-
-	// We skip timestamp check on Bartio for backward compatibility reasons
-	// TODO: enforce the check when we drop other Bartio special cases.
-	if sp.cs.DepositEth1ChainID() != spec.BartioChainID {
-		if err = payloadtime.Verify(
-			consensusTime,
-			lph.GetTimestamp(),
-			payload.GetTimestamp(),
-		); err != nil {
-			return err
-		}
 	}
 
 	// Check chain canonicity
@@ -191,7 +149,7 @@ func (sp *StateProcessor[
 
 	parentBeaconBlockRoot := blk.GetParentBlockRoot()
 	if err = sp.executionEngine.VerifyAndNotifyNewPayload(
-		ctx, engineprimitives.BuildNewPayloadRequest(
+		ctx, ctypes.BuildNewPayloadRequest(
 			payload,
 			body.GetBlobKzgCommitments().ToVersionedHashes(),
 			&parentBeaconBlockRoot,
@@ -208,7 +166,8 @@ func (sp *StateProcessor[
 	}
 
 	expectedMix, err := st.GetRandaoMixAtIndex(
-		sp.cs.SlotToEpoch(slot).Unwrap() % sp.cs.EpochsPerHistoricalVector())
+		sp.cs.SlotToEpoch(slot).Unwrap() % sp.cs.EpochsPerHistoricalVector(),
+	)
 	if err != nil {
 		return err
 	}

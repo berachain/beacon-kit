@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -24,14 +24,6 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 )
-
-// BeaconState is an interface for accessing the beacon state.
-type BeaconState interface {
-	// ExpectedWithdrawals returns the expected withdrawals.
-	ExpectedWithdrawals() (engineprimitives.Withdrawals, error)
-	// GetRandaoMixAtIndex returns the randao mix at the given index.
-	GetRandaoMixAtIndex(index uint64) (common.Bytes32, error)
-}
 
 // PayloadAttributes is the interface for the payload attributes.
 type PayloadAttributes[SelfT any] interface {

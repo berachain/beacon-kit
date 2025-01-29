@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -20,13 +20,27 @@
 
 package constants
 
+import (
+	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
+)
+
 // This file contains various constants as defined:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#misc
 const (
 	// GenesisSlot represents the initial slot in the system.
-	GenesisSlot uint64 = 0
+	GenesisSlot math.Slot = 0
 	// GenesisEpoch represents the initial epoch in the system.
-	GenesisEpoch uint64 = 0
+	GenesisEpoch math.Epoch = 0
 	// FarFutureEpoch represents a far future epoch value.
 	FarFutureEpoch = ^uint64(0)
+)
+
+// Berachain constants.
+const (
+	// FirstDepositIndex represents the index of the first deposit in the system, set at genesis.
+	FirstDepositIndex uint64 = 0
+
+	// GenesisVersion represents the fork version of the genesis block.
+	GenesisVersion = version.Deneb
 )

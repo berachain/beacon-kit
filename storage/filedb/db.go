@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -102,7 +102,7 @@ func (db *DB) Delete(key []byte) error {
 }
 
 // pathForKey returns the path for a key.
-// TODO: for efficient storage we should expand this path
+// TODO: for efficient storage we should expand this path.
 func (db *DB) pathForKey(key []byte) string {
 	return string(key) + "." + db.extension
 }

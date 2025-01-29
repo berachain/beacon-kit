@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -27,22 +27,17 @@ import (
 	ptypes "github.com/berachain/beacon-kit/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/holiman/uint256"
 )
 
 // Compile time check to ensure BeaconState implements the methods
 // required by the BeaconState for proofs.
-var _ ptypes.BeaconState[
-	*BeaconStateMarshallable,
-	*types.ExecutionPayloadHeader,
-] = (*BeaconState)(nil)
+var _ ptypes.BeaconState[*BeaconStateMarshallable] = (*BeaconState)(nil)
 
 // BeaconState is a mock implementation of the proof BeaconState interface
 // using the default BeaconState type that is marshallable.
 type (
-	BeaconStateMarshallable = types.BeaconState[
-		*types.ExecutionPayloadHeader,
-		types.ExecutionPayloadHeader,
-	]
+	BeaconStateMarshallable = types.BeaconState
 
 	BeaconState struct {
 		*BeaconStateMarshallable
@@ -62,36 +57,33 @@ func NewBeaconState(
 		vals = make(types.Validators, 0)
 	}
 
-	// Create an empty execution payload header with the given execution number
-	// and fee recipient.
-	execPayloadHeader := (&types.ExecutionPayloadHeader{}).Empty()
-	execPayloadHeader.Number = executionNumber
-	execPayloadHeader.FeeRecipient = executionFeeRecipient
+	// Create an empty execution payload header with the given execution number and fee recipient.
+	execPayloadHeader := &types.ExecutionPayloadHeader{
+		Number:        executionNumber,
+		FeeRecipient:  executionFeeRecipient,
+		BaseFeePerGas: &uint256.Int{},
+	}
 
-	var (
-		bsm = &BeaconStateMarshallable{}
-		err error
-	)
-	bsm, err = bsm.New(
-		0,
-		common.Root{},
-		slot,
-		(&types.Fork{}).Empty(),
-		(&types.BeaconBlockHeader{}).Empty(),
-		[]common.Root{},
-		[]common.Root{},
-		(&types.Eth1Data{}).Empty(),
-		0,
-		execPayloadHeader,
-		vals,
-		[]uint64{},
-		[]common.Bytes32{},
-		0,
-		0,
-		[]math.Gwei{},
-		0,
-	)
-	return &BeaconState{BeaconStateMarshallable: bsm}, err
+	bsm := &BeaconStateMarshallable{
+		Slot:                         slot,
+		GenesisValidatorsRoot:        common.Root{},
+		Fork:                         &types.Fork{},
+		LatestBlockHeader:            &types.BeaconBlockHeader{},
+		BlockRoots:                   []common.Root{},
+		StateRoots:                   []common.Root{},
+		LatestExecutionPayloadHeader: execPayloadHeader,
+		Eth1Data:                     &types.Eth1Data{},
+		Eth1DepositIndex:             0,
+		Validators:                   vals,
+		Balances:                     []uint64{},
+		RandaoMixes:                  []common.Bytes32{},
+		NextWithdrawalIndex:          0,
+		NextWithdrawalValidatorIndex: 0,
+		Slashings:                    []math.Gwei{},
+		TotalSlashing:                0,
+	}
+
+	return &BeaconState{BeaconStateMarshallable: bsm}, nil
 }
 
 // GetLatestExecutionPayloadHeader implements proof BeaconState.

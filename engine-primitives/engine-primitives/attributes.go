@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -40,8 +40,6 @@ type PayloadAttributer interface {
 //
 
 type PayloadAttributes struct {
-	// version is the version of the payload attributes.
-	version uint32 `json:"-"`
 	// Timestamp is the timestamp at which the block will be built at.
 	Timestamp math.U64 `json:"timestamp"`
 	// PrevRandao is the previous Randao value from the beacon chain as
@@ -59,10 +57,13 @@ type PayloadAttributes struct {
 	// to the block currently being processed. This field was added for
 	// EIP-4788.
 	ParentBeaconBlockRoot common.Root `json:"parentBeaconBlockRoot"`
+
+	// version is the version of the payload attributes.
+	version uint32 `json:"-"`
 }
 
 // New empty PayloadAttributes.
-func (p *PayloadAttributes) New(
+func NewPayloadAttributes(
 	forkVersion uint32,
 	timestamp uint64,
 	prevRandao common.Bytes32,
@@ -70,20 +71,20 @@ func (p *PayloadAttributes) New(
 	withdrawals Withdrawals,
 	parentBeaconBlockRoot common.Root,
 ) (*PayloadAttributes, error) {
-	p = &PayloadAttributes{
-		version:               forkVersion,
+	pa := &PayloadAttributes{
 		Timestamp:             math.U64(timestamp),
 		PrevRandao:            prevRandao,
 		SuggestedFeeRecipient: suggestedFeeRecipient,
 		Withdrawals:           withdrawals,
 		ParentBeaconBlockRoot: parentBeaconBlockRoot,
+		version:               forkVersion,
 	}
 
-	if err := p.Validate(); err != nil {
+	if err := pa.Validate(); err != nil {
 		return nil, err
 	}
 
-	return p, nil
+	return pa, nil
 }
 
 // IsNil returns true if the PayloadAttributes is nil.
@@ -92,9 +93,7 @@ func (p *PayloadAttributes) IsNil() bool {
 }
 
 // GetSuggestedFeeRecipient returns the suggested fee recipient.
-func (
-	p *PayloadAttributes,
-) GetSuggestedFeeRecipient() common.ExecutionAddress {
+func (p *PayloadAttributes) GetSuggestedFeeRecipient() common.ExecutionAddress {
 	return p.SuggestedFeeRecipient
 }
 

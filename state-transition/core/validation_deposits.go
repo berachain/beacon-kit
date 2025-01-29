@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,162 +21,107 @@
 package core
 
 import (
-	"fmt"
+	"context"
 
-	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-func (sp *StateProcessor[
-	_, _, BeaconStateT, _,
-	_, _, _,
-]) validateGenesisDeposits(
-	st BeaconStateT,
-	deposits []*ctypes.Deposit,
+func (sp *StateProcessor[_]) validateGenesisDeposits(
+	st *statedb.StateDB, deposits []*ctypes.Deposit,
 ) error {
-	switch {
-	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
-		// Bartio does not properly validate deposits index
-		// We skip checks for backward compatibility
-		return nil
-
-	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID:
-		// Boonet inherited the bug from Bartio and it may have added some
-		// validators before we activate the fork. So we skip all validations
-		// but the validator set cap.
-		//#nosec:G701 // can't overflow.
-		if uint64(len(deposits)) > sp.cs.ValidatorSetCap() {
-			return fmt.Errorf("validator set cap %d, deposits count %d: %w",
-				sp.cs.ValidatorSetCap(),
-				len(deposits),
-				ErrValSetCapExceeded,
-			)
-		}
-		return nil
-
-	default:
-		// TODO: improve error handling by distinguishing
-		// ErrNotFound from other kind of errors
-		if _, err := st.GetEth1DepositIndex(); err == nil {
-			// there should not be Eth1DepositIndex stored before
-			// genesis first deposit
-			return errors.Wrap(
-				ErrDepositMismatch,
-				"Eth1DepositIndex should be unset at genesis",
-			)
-		}
-		if len(deposits) == 0 {
-			// there should be at least a validator in genesis
-			return errors.Wrap(
-				ErrDepositsLengthMismatch,
-				"at least one validator should be in genesis",
-			)
-		}
-		for i, deposit := range deposits {
-			// deposit indices should be contiguous
-			if deposit.GetIndex() != math.U64(i) {
-				return errors.Wrapf(
-					ErrDepositIndexOutOfOrder,
-					"genesis deposit index: %d, expected index: %d",
-					deposit.GetIndex().Unwrap(), i,
-				)
-			}
-		}
-
-		// BeaconKit enforces a cap on the validator set size.
-		// If genesis deposits breaches the cap we return an error.
-		//#nosec:G701 // can't overflow.
-		if uint64(len(deposits)) > sp.cs.ValidatorSetCap() {
-			return fmt.Errorf("validator set cap %d, deposits count %d: %w",
-				sp.cs.ValidatorSetCap(),
-				len(deposits),
-				ErrValSetCapExceeded,
-			)
-		}
-		return nil
+	eth1DepositIndex, err := st.GetEth1DepositIndex()
+	if err != nil {
+		return err
 	}
+	if eth1DepositIndex != constants.FirstDepositIndex {
+		return errors.New("Eth1DepositIndex should be 0 at genesis")
+	}
+
+	if len(deposits) == 0 {
+		// there should be at least a validator in genesis
+		return errors.Wrap(ErrDepositsLengthMismatch, "at least one validator should be in genesis")
+	}
+	for i, deposit := range deposits {
+		// deposit indices should be contiguous
+		// #nosec G115
+		if deposit.GetIndex() != math.U64(i) {
+			return errors.Wrapf(ErrDepositIndexOutOfOrder,
+				"genesis deposit index: %d, expected index: %d", deposit.GetIndex().Unwrap(), i,
+			)
+		}
+	}
+
+	// BeaconKit enforces a cap on the validator set size.
+	// If genesis deposits breaches the cap we return an error.
+	//#nosec:G701 // can't overflow.
+	if uint64(len(deposits)) > sp.cs.ValidatorSetCap() {
+		return errors.Wrapf(
+			ErrValSetCapExceeded,
+			"validator set cap %d, deposits count %d",
+			sp.cs.ValidatorSetCap(), len(deposits),
+		)
+	}
+	return nil
 }
 
-func (sp *StateProcessor[
-	_, _, BeaconStateT, _,
-	_, _, _,
-]) validateNonGenesisDeposits(
-	st BeaconStateT,
-	deposits []*ctypes.Deposit,
+func (sp *StateProcessor[_]) validateNonGenesisDeposits(
+	ctx context.Context,
+	st *statedb.StateDB,
+	blkDeposits []*ctypes.Deposit,
+	blkDepositRoot common.Root,
 ) error {
-	slot, err := st.GetSlot()
+	depositIndex, err := st.GetEth1DepositIndex()
 	if err != nil {
-		return fmt.Errorf(
-			"failed loading slot while processing deposits: %w", err,
+		return err
+	}
+
+	// Grab all previous deposits from genesis up to the current index + max deposits per block.
+	localDeposits, err := sp.ds.GetDepositsByIndex(
+		ctx,
+		constants.FirstDepositIndex,
+		depositIndex+sp.cs.MaxDepositsPerBlock(),
+	)
+	if err != nil {
+		return err
+	}
+
+	// First verify that the number of block deposits matches the number of local deposits.
+	totalBlockDeposits := depositIndex + uint64(len(blkDeposits))
+	if uint64(len(localDeposits)) != totalBlockDeposits {
+		return errors.Wrapf(ErrDepositsLengthMismatch,
+			"block deposit count: %d, expected deposit count: %d",
+			totalBlockDeposits, len(localDeposits),
 		)
 	}
-	switch {
-	case sp.cs.DepositEth1ChainID() == spec.BartioChainID:
-		// Bartio does not properly validate deposits index
-		// We skip checks for backward compatibility
-		return nil
 
-	case sp.cs.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-		slot < math.U64(spec.BoonetFork2Height):
-		// Boonet inherited the bug from Bartio and it may have added some
-		// validators before we activate the fork. So we skip validation
-		// before fork activation
-		return nil
-
-	default:
-		// Verify that outstanding deposits match those listed by contract
-		var depositIndex uint64
-		depositIndex, err = st.GetEth1DepositIndex()
-		if err != nil {
-			return err
-		}
-		expectedStartIdx := depositIndex + 1
-
-		var localDeposits []*ctypes.Deposit
-		localDeposits, err = sp.ds.GetDepositsByIndex(
-			expectedStartIdx,
-			sp.cs.MaxDepositsPerBlock(),
-		)
-		if err != nil {
-			return err
-		}
-
-		sp.logger.Info(
-			"Processing deposits in range",
-			"expected_start_index", expectedStartIdx,
-			"expected_range_length", len(localDeposits),
-		)
-
-		if len(localDeposits) != len(deposits) {
-			return errors.Wrapf(
-				ErrDepositsLengthMismatch,
-				"local: %d, payload: %d", len(localDeposits), len(deposits),
+	// Then check that the block's deposits 1) have contiguous indices and 2) match the local
+	// view of the block's deposits.
+	for i, blkDeposit := range blkDeposits {
+		blkDepositIndex := blkDeposit.GetIndex().Unwrap()
+		//#nosec:G115 // won't overflow in practice.
+		if blkDepositIndex != depositIndex+uint64(i) {
+			return errors.Wrapf(ErrDepositIndexOutOfOrder,
+				"deposit index: %d, expected index: %d", blkDepositIndex, i,
 			)
 		}
 
-		for i, sd := range localDeposits {
-			// Deposit indices should be contiguous
-			//#nosec:G701 // i never negative
-			expectedIdx := expectedStartIdx + uint64(i)
-			if sd.GetIndex().Unwrap() != expectedIdx {
-				return errors.Wrapf(
-					ErrDepositIndexOutOfOrder,
-					"local deposit index: %d, expected index: %d",
-					sd.GetIndex().Unwrap(), expectedIdx,
-				)
-			}
-
-			if !sd.Equals(deposits[i]) {
-				return errors.Wrapf(
-					ErrDepositMismatch,
-					"local deposit: %+v, payload deposit: %+v",
-					sd, deposits[i],
-				)
-			}
+		if !localDeposits[blkDepositIndex].Equals(blkDeposit) {
+			return errors.Wrapf(ErrDepositMismatch,
+				"deposit index: %d, expected deposit: %+v, actual deposit: %+v",
+				blkDepositIndex, *localDeposits[blkDepositIndex], *blkDeposit,
+			)
 		}
-
-		return nil
 	}
+
+	// Finally check that the historical deposits root matches locally what's on the beacon block.
+	if !localDeposits.HashTreeRoot().Equals(blkDepositRoot) {
+		return ErrDepositsRootMismatch
+	}
+
+	return nil
 }

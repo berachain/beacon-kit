@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,8 +22,6 @@ package encoding
 
 import (
 	"time"
-
-	"github.com/berachain/beacon-kit/primitives/constraints"
 )
 
 // ABCIRequest represents the interface for an ABCI request.
@@ -34,9 +32,4 @@ type ABCIRequest interface {
 	GetTime() time.Time
 	// GetTxs returns the transactions included in the request.
 	GetTxs() [][]byte
-}
-
-type BeaconBlock[T any] interface {
-	constraints.SSZMarshallable
-	NewFromSSZ([]byte, uint32) (T, error)
 }

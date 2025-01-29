@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -20,11 +20,18 @@
 
 package types
 
-import "github.com/berachain/beacon-kit/node-api/handlers/types"
+import (
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/node-api/handlers/types"
+)
 
 type GetGenesisRequest struct{}
 
 type GetStateRootRequest struct {
+	types.StateIDRequest
+}
+
+type GetStateRequest struct {
 	types.StateIDRequest
 }
 
@@ -98,13 +105,13 @@ type PostBlindedBlocksV2Request struct {
 	BroadcastValidation string `json:"broadcast_validation" validate:"required,broadcast_validation"`
 }
 
-type PostBlocksV1Request[BeaconBlockT any] struct {
-	EthConsensusVersion string       `json:"eth_consensus_version" validate:"required,eth_consensus_version"`
-	BeaconBlock         BeaconBlockT `json:"beacon_block"`
+type PostBlocksV1Request struct {
+	EthConsensusVersion string             `json:"eth_consensus_version" validate:"required,eth_consensus_version"`
+	BeaconBlock         ctypes.BeaconBlock `json:"beacon_block"`
 }
 
-type PostBlocksV2Request[BeaconBlockT any] struct {
-	PostBlocksV1Request[BeaconBlockT]
+type PostBlocksV2Request struct {
+	PostBlocksV1Request
 	BroadcastValidation string `json:"broadcast_validation" validate:"required,broadcast_validation"`
 }
 
@@ -122,7 +129,7 @@ type GetBlockAttestationsRequest struct {
 
 type GetBlobSidecarsRequest struct {
 	types.BlockIDRequest
-	Indices []string `query:"indices" validate:"dive,uint64"`
+	Indices []string `query:"indices" validate:"dive,numeric"`
 }
 
 type PostRewardsSyncCommitteeRequest struct {
@@ -164,9 +171,4 @@ type SlotRequest struct {
 type HeadersRequest struct {
 	SlotRequest
 	ParentRoot string `query:"parent_root" validate:"hex"`
-}
-
-type BlobSidecarRequest struct {
-	types.BlockIDRequest
-	Indices []string `query:"indices" validate:"dive,uint64"`
 }

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,134 +23,47 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config"
-	"github.com/berachain/beacon-kit/da/da"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/execution/engine"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
-	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/spf13/cast"
 )
 
 // ChainServiceInput is the input for the chain service provider.
 type ChainServiceInput[
-	BeaconBlockT any,
-	BeaconStateT any,
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-	StorageBackendT any,
-	LoggerT any,
-	BeaconBlockStoreT BlockStore[BeaconBlockT],
-	DepositStoreT any,
-	DepositContractT any,
-	AvailabilityStoreT any,
-	ConsensusSidecarsT any,
-	BlobSidecarsT any,
+	LoggerT log.AdvancedLogger[LoggerT],
 ] struct {
 	depinject.In
 
-	AppOpts      config.AppOptions
-	ChainSpec    common.ChainSpec
-	Cfg          *config.Config
-	EngineClient *client.EngineClient[
-		ExecutionPayloadT,
-		*engineprimitives.PayloadAttributes,
-	]
-	ExecutionEngine *engine.Engine[
-		ExecutionPayloadT,
-		*engineprimitives.PayloadAttributes,
-		PayloadID,
-	]
-	LocalBuilder   LocalBuilder[BeaconStateT, ExecutionPayloadT]
-	Logger         LoggerT
-	Signer         crypto.BLSSigner
-	StateProcessor StateProcessor[
-		BeaconBlockT, BeaconStateT, *Context,
-		ExecutionPayloadHeaderT,
-	]
-	StorageBackend StorageBackendT
-	BlobProcessor  BlobProcessor[
-		AvailabilityStoreT, ConsensusSidecarsT, BlobSidecarsT,
-	]
+	ChainSpec             chain.Spec
+	Cfg                   *config.Config
+	EngineClient          *client.EngineClient
+	ExecutionEngine       *engine.Engine
+	LocalBuilder          LocalBuilder
+	Logger                LoggerT
+	Signer                crypto.BLSSigner
+	StateProcessor        StateProcessor[*Context]
+	StorageBackend        *storage.Backend
+	BlobProcessor         BlobProcessor
 	TelemetrySink         *metrics.TelemetrySink
-	BlockStore            BeaconBlockStoreT
-	DepositStore          DepositStoreT
-	BeaconDepositContract DepositContractT
+	BeaconDepositContract deposit.Contract
 }
 
 // ProvideChainService is a depinject provider for the blockchain service.
 func ProvideChainService[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
-	ConsensusBlockT ConsensusBlock[BeaconBlockT],
-	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT,
-		ExecutionPayloadT, *SlashingInfo,
-	],
-	BeaconStateT BeaconState[
-		BeaconStateT, BeaconStateMarshallableT,
-		ExecutionPayloadHeaderT, KVStoreT,
-	],
-	BeaconStateMarshallableT any,
-	BlobSidecarT BlobSidecar,
-	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
-	ConsensusSidecarsT da.ConsensusSidecars[BlobSidecarsT],
-	BlockStoreT any,
-	DepositStoreT DepositStore,
-	DepositContractT deposit.Contract,
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-	GenesisT Genesis[ExecutionPayloadHeaderT],
-	KVStoreT any,
 	LoggerT log.AdvancedLogger[LoggerT],
-	StorageBackendT StorageBackend[
-		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,
-	],
-	BeaconBlockStoreT BlockStore[BeaconBlockT],
 ](
-	in ChainServiceInput[
-		BeaconBlockT, BeaconStateT, ExecutionPayloadT,
-		ExecutionPayloadHeaderT, StorageBackendT, LoggerT,
-		BeaconBlockStoreT, DepositStoreT, DepositContractT,
-		AvailabilityStoreT, ConsensusSidecarsT, BlobSidecarsT,
-	],
-) *blockchain.Service[
-	AvailabilityStoreT, DepositStoreT,
-	ConsensusBlockT, BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, BeaconBlockStoreT,
-	ExecutionPayloadT,
-	ExecutionPayloadHeaderT, GenesisT,
-	ConsensusSidecarsT, BlobSidecarsT,
-	*engineprimitives.PayloadAttributes,
-] {
-	return blockchain.NewService[
-		AvailabilityStoreT,
-		DepositStoreT,
-		ConsensusBlockT,
-		BeaconBlockT,
-		BeaconBlockBodyT,
-		BeaconStateT,
-		BeaconBlockStoreT,
-		ExecutionPayloadT,
-		ExecutionPayloadHeaderT,
-		GenesisT,
-		*engineprimitives.PayloadAttributes,
-	](
-		cast.ToString(in.AppOpts.Get(flags.FlagHome)),
+	in ChainServiceInput[LoggerT],
+) *blockchain.Service {
+	return blockchain.NewService(
 		in.StorageBackend,
 		in.BlobProcessor,
-		in.BlockStore,
-		in.DepositStore,
 		in.BeaconDepositContract,
 		math.U64(in.ChainSpec.Eth1FollowDistance()),
 		in.Logger.With("service", "blockchain"),

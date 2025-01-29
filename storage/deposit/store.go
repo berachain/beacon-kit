@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,7 +22,6 @@ package deposit
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	sdkcollections "cosmossdk.io/collections"
@@ -41,6 +40,12 @@ const KeyDepositPrefix = "deposit"
 type KVStore struct {
 	store sdkcollections.Map[uint64, *ctypes.Deposit]
 
+	// closeFunc is a closure that closes the underlying database
+	// used by store to ensure that all writes are flushed to disk.
+	// We guarantee that closeFunc is called at maximum only once.
+	closeFunc CloseFunc
+	once      sync.Once
+
 	// mu protects store for concurrent access
 	mu sync.RWMutex
 
@@ -48,13 +53,17 @@ type KVStore struct {
 	logger log.Logger
 }
 
+// closure type for closing the store.
+type CloseFunc func() error
+
 // NewStore creates a new deposit store.
 func NewStore(
 	kvsp store.KVStoreService,
+	closeFunc CloseFunc,
 	logger log.Logger,
 ) *KVStore {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kvsp)
-	return &KVStore{
+	res := &KVStore{
 		store: sdkcollections.NewMap(
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte(KeyDepositPrefix)),
@@ -62,103 +71,84 @@ func NewStore(
 			sdkcollections.Uint64Key,
 			encoding.SSZValueCodec[*ctypes.Deposit]{},
 		),
-		logger: logger,
+		closeFunc: closeFunc,
+		logger:    logger,
 	}
+	if _, err := schemaBuilder.Build(); err != nil {
+		panic(errors.Wrap(err, "failed building KVStore schema"))
+	}
+	return res
+}
+
+// Close closes the store by calling the closeFunc. It ensures that the
+// closeFunc is called at most once.
+func (kv *KVStore) Close() error {
+	var err error
+	kv.once.Do(func() { err = kv.closeFunc() })
+	return err
 }
 
 // GetDepositsByIndex returns the first N deposits starting from the given
 // index. If N is greater than the number of deposits, it returns up to the
 // last deposit.
 func (kv *KVStore) GetDepositsByIndex(
+	ctx context.Context,
 	startIndex uint64,
 	depRange uint64,
-) ([]*ctypes.Deposit, error) {
+) (ctypes.Deposits, error) {
 	kv.mu.RLock()
 	defer kv.mu.RUnlock()
 	var (
-		deposits = []*ctypes.Deposit{}
+		deposits = make(ctypes.Deposits, 0, depRange)
 		endIdx   = startIndex + depRange
 	)
 
-	kv.logger.Debug(
-		"GetDepositsByIndex request",
-		"start", startIndex,
-		"end", endIdx,
-	)
 	for i := startIndex; i < endIdx; i++ {
-		deposit, err := kv.store.Get(context.TODO(), i)
+		deposit, err := kv.store.Get(ctx, i)
 		switch {
 		case err == nil:
 			deposits = append(deposits, deposit)
 		case errors.Is(err, sdkcollections.ErrNotFound):
-			kv.logger.Debug(
-				"GetDepositsByIndex response",
-				"start", startIndex,
-				"end", i,
-			)
 			return deposits, nil
 		default:
 			return deposits, errors.Wrapf(
-				err,
-				"failed to get deposit %d, start: %d, end: %d",
-				i, startIndex, endIdx,
+				err, "failed to get deposit %d, start: %d, end: %d", i, startIndex, endIdx,
 			)
 		}
 	}
 
-	kv.logger.Debug(
-		"GetDepositsByIndex response",
-		"start", startIndex,
-		"end", endIdx,
-	)
+	kv.logger.Debug("GetDepositsByIndex", "start", startIndex, "end", endIdx)
 	return deposits, nil
 }
 
 // EnqueueDeposits pushes multiple deposits to the queue.
-func (kv *KVStore) EnqueueDeposits(deposits []*ctypes.Deposit) error {
+func (kv *KVStore) EnqueueDeposits(ctx context.Context, deposits []*ctypes.Deposit) error {
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
-	kv.logger.Debug(
-		"EnqueueDeposits request",
-		"to enqueue", len(deposits),
-	)
+
 	for _, deposit := range deposits {
 		idx := deposit.GetIndex().Unwrap()
-		kv.logger.Debug(
-			"EnqueueDeposit response",
-			"index", idx,
-		)
-		if err := kv.store.Set(
-			context.TODO(),
-			idx,
-			deposit,
-		); err != nil {
+		if err := kv.store.Set(ctx, idx, deposit); err != nil {
 			return errors.Wrapf(err, "failed to enqueue deposit %d", idx)
 		}
 	}
 
-	kv.logger.Debug(
-		"EnqueueDeposit response",
-		"enqueued", len(deposits),
-	)
+	if len(deposits) > 0 {
+		kv.logger.Debug(
+			"EnqueueDeposit", "enqueued", len(deposits),
+			"start", deposits[0].GetIndex(), "end", deposits[len(deposits)-1].GetIndex(),
+		)
+	}
 	return nil
 }
 
 // Prune removes the [start, end) deposits from the store.
-func (kv *KVStore) Prune(start, end uint64) error {
-	kv.logger.Debug(
-		"Prune request",
-		"start", start,
-		"end", end,
-	)
+func (kv *KVStore) Prune(ctx context.Context, start, end uint64) error {
 	if start > end {
-		return fmt.Errorf(
-			"DepositKVStore Prune start: %d, end: %d: %w",
-			start, end, pruner.ErrInvalidRange,
-		)
+		return errors.Wrapf(
+			pruner.ErrInvalidRange, "DepositKVStore Prune start: %d, end: %d", start, end)
 	}
 
-	var ctx = context.TODO()
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
 	for i := range end {
@@ -168,10 +158,6 @@ func (kv *KVStore) Prune(start, end uint64) error {
 		}
 	}
 
-	kv.logger.Debug(
-		"Prune response",
-		"start", start,
-		"end", end,
-	)
+	kv.logger.Debug("Pruned deposits", "start", start, "end", end)
 	return nil
 }

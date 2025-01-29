@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -26,6 +26,7 @@ import (
 
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/ethereum/go-ethereum/params"
 	"github.com/stretchr/testify/require"
 )
 
@@ -369,7 +370,7 @@ func TestGweiFromWei(t *testing.T) {
 			name: "one gwei",
 			input: func(t *testing.T) *big.Int {
 				t.Helper()
-				return big.NewInt(math.GweiPerWei)
+				return big.NewInt(params.GWei)
 			},
 			expectedErr: nil,
 			expectedRes: math.Gwei(1),
@@ -378,7 +379,7 @@ func TestGweiFromWei(t *testing.T) {
 			name: "arbitrary wei",
 			input: func(t *testing.T) *big.Int {
 				t.Helper()
-				return big.NewInt(math.GweiPerWei * 123456789)
+				return big.NewInt(params.GWei * 123456789)
 			},
 			expectedErr: nil,
 			expectedRes: math.Gwei(123456789),
@@ -388,7 +389,7 @@ func TestGweiFromWei(t *testing.T) {
 			input: func(t *testing.T) *big.Int {
 				t.Helper()
 				return new(big.Int).Mul(
-					big.NewInt(math.GweiPerWei),
+					big.NewInt(params.GWei),
 					new(big.Int).SetUint64(^uint64(0)),
 				)
 			},
@@ -431,7 +432,7 @@ func TestGwei_ToWei(t *testing.T) {
 			input: math.Gwei(1),
 			expected: func(t *testing.T) *math.U256 {
 				t.Helper()
-				res, err := math.NewU256FromBigInt(big.NewInt(math.GweiPerWei))
+				res, err := math.NewU256FromBigInt(big.NewInt(params.GWei))
 				require.NoError(t, err)
 				return res
 			},
@@ -442,7 +443,7 @@ func TestGwei_ToWei(t *testing.T) {
 			expected: func(t *testing.T) *math.U256 {
 				t.Helper()
 				n := new(big.Int).Mul(
-					big.NewInt(math.GweiPerWei),
+					big.NewInt(params.GWei),
 					big.NewInt(123456789),
 				)
 				res, err := math.NewU256FromBigInt(n)
@@ -456,7 +457,7 @@ func TestGwei_ToWei(t *testing.T) {
 			expected: func(t *testing.T) *math.U256 {
 				t.Helper()
 				n := new(big.Int).Mul(
-					big.NewInt(math.GweiPerWei),
+					big.NewInt(params.GWei),
 					new(big.Int).SetUint64(1<<64-1),
 				)
 				res, err := math.NewU256FromBigInt(n)

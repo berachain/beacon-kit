@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -26,26 +26,33 @@ import (
 	"time"
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
-	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	datypes "github.com/berachain/beacon-kit/da/types"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
-	"github.com/berachain/beacon-kit/primitives/version"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // BuildBlockAndSidecars builds a new beacon block.
-func (s *Service[
-	BeaconBlockT, _, _, _, BlobSidecarsT,
-	_, _, _, SlashingInfoT, SlotDataT,
-]) BuildBlockAndSidecars(
+//
+//nolint:funlen
+func (s *Service) BuildBlockAndSidecars(
 	ctx context.Context,
-	slotData types.SlotData[ctypes.SlashingInfo],
+	slotData *types.SlotData,
 ) ([]byte, []byte, error) {
+	var (
+		signedBlk *ctypes.SignedBeaconBlock
+		blk       *ctypes.BeaconBlock
+		sidecars  datypes.BlobSidecars
+		forkData  *ctypes.ForkData
+	)
+
 	startTime := time.Now()
 	defer s.metrics.measureRequestBlockForProposalTime(startTime)
 
@@ -56,24 +63,33 @@ func (s *Service[
 	// and safe block hashes to the execution client.
 	st := s.sb.StateFromContext(ctx)
 
+	// we introduce hard forks with the expectation that the height set for the
+	// hard fork is the first height at which new rules apply. So we need to make
+	// sure that when building blocks, we pick the right height. blkSlots is the
+	// height for the next block, which consensus is requesting BeaconKit to build.
+	blkSlot := slotData.GetSlot()
+
 	// Prepare the state such that it is ready to build a block for
 	// the requested slot
-	if _, err := s.stateProcessor.ProcessSlots(
-		st,
-		slotData.GetSlot(),
-	); err != nil {
+	if _, err := s.stateProcessor.ProcessSlots(st, blkSlot); err != nil {
+		return nil, nil, err
+	}
+
+	// Build forkdata used for the signing root of the reveal and the sidecars
+	forkData, err := s.buildForkData(st, blkSlot)
+	if err != nil {
 		return nil, nil, err
 	}
 
 	// Build the reveal for the current slot.
 	// TODO: We can optimize to pre-compute this in parallel?
-	reveal, err := s.buildRandaoReveal(st, slotData.GetSlot())
+	reveal, err := s.buildRandaoReveal(forkData, blkSlot)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	// Create a new empty block from the current state.
-	blk, err := s.getEmptyBeaconBlockForSlot(st, slotData.GetSlot())
+	blk, err = s.getEmptyBeaconBlockForSlot(st, blkSlot)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -89,9 +105,7 @@ func (s *Service[
 
 	// We have to assemble the block body prior to producing the sidecars
 	// since we need to generate the inclusion proofs.
-	if err = s.buildBlockBody(
-		ctx, st, blk, reveal, envelope, slotData,
-	); err != nil {
+	if err = s.buildBlockBody(ctx, st, blk, reveal, envelope); err != nil {
 		return nil, nil, err
 	}
 
@@ -106,21 +120,26 @@ func (s *Service[
 		return nil, nil, err
 	}
 
+	// Craft the signature and signed beacon block.
+	signedBlk, err = ctypes.NewSignedBeaconBlock(blk, forkData, s.chainSpec, s.signer)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	// Produce blob sidecars with new StateRoot
-	sidecars, err := s.blobFactory.BuildSidecars(
-		blk, envelope.GetBlobsBundle())
+	sidecars, err = s.blobFactory.BuildSidecars(signedBlk, envelope.GetBlobsBundle())
 	if err != nil {
 		return nil, nil, err
 	}
 
 	s.logger.Info(
 		"Beacon block successfully built",
-		"slot", slotData.GetSlot().Base10(),
+		"slot", blkSlot.Base10(),
 		"state_root", blk.GetStateRoot(),
 		"duration", time.Since(startTime).String(),
 	)
 
-	blkBytes, bbErr := blk.MarshalSSZ()
+	signedBlkBytes, bbErr := signedBlk.MarshalSSZ()
 	if bbErr != nil {
 		return nil, nil, bbErr
 	}
@@ -129,23 +148,19 @@ func (s *Service[
 		return nil, nil, scErr
 	}
 
-	return blkBytes, sidecarsBytes, nil
+	return signedBlkBytes, sidecarsBytes, nil
 }
 
 // getEmptyBeaconBlockForSlot creates a new empty block.
-func (s *Service[
-	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _,
-]) getEmptyBeaconBlockForSlot(
-	st BeaconStateT, requestedSlot math.Slot,
-) (BeaconBlockT, error) {
-	var blk BeaconBlockT
+func (s *Service) getEmptyBeaconBlockForSlot(
+	st *statedb.StateDB, requestedSlot math.Slot,
+) (*ctypes.BeaconBlock, error) {
 	// Create a new block.
 	parentBlockRoot, err := st.GetBlockRootAtIndex(
 		(requestedSlot.Unwrap() - 1) % s.chainSpec.SlotsPerHistoricalRoot(),
 	)
-
 	if err != nil {
-		return blk, err
+		return nil, err
 	}
 
 	// Get the proposer index for the slot.
@@ -153,10 +168,10 @@ func (s *Service[
 		s.signer.PublicKey(),
 	)
 	if err != nil {
-		return blk, err
+		return nil, err
 	}
 
-	return blk.NewWithVersion(
+	return ctypes.NewBeaconBlockWithVersion(
 		requestedSlot,
 		proposerIndex,
 		parentBlockRoot,
@@ -164,43 +179,40 @@ func (s *Service[
 	)
 }
 
-// buildRandaoReveal builds a randao reveal for the given slot.
-func (s *Service[
-	_, _, BeaconStateT, _, _, _, _, _, _, _,
-]) buildRandaoReveal(
-	st BeaconStateT,
-	slot math.Slot,
-) (crypto.BLSSignature, error) {
-	var (
-		epoch = s.chainSpec.SlotToEpoch(slot)
-	)
-
+func (s *Service) buildForkData(st *statedb.StateDB, slot math.Slot) (*ctypes.ForkData, error) {
 	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
 	if err != nil {
-		return crypto.BLSSignature{}, err
+		return nil, err
 	}
 
-	signingRoot := ctypes.NewForkData(
-		version.FromUint32[common.Version](
-			s.chainSpec.ActiveForkVersionForEpoch(epoch),
-		), genesisValidatorsRoot,
-	).ComputeRandaoSigningRoot(
+	return ctypes.NewForkData(
+		bytes.FromUint32(s.chainSpec.ActiveForkVersionForSlot(slot)),
+		genesisValidatorsRoot,
+	), nil
+}
+
+// buildRandaoReveal builds a randao reveal for the given slot.
+func (s *Service) buildRandaoReveal(
+	forkData *ctypes.ForkData, slot math.Slot,
+) (crypto.BLSSignature, error) {
+	signingRoot := forkData.ComputeRandaoSigningRoot(
 		s.chainSpec.DomainTypeRandao(),
-		epoch,
+		s.chainSpec.SlotToEpoch(slot),
 	)
-	return s.signer.Sign(signingRoot[:])
+	signature, err := s.signer.Sign(signingRoot[:])
+	if err != nil {
+		return signature, fmt.Errorf("block building failed randao checks: %w", err)
+	}
+	return signature, nil
 }
 
 // retrieveExecutionPayload retrieves the execution payload for the block.
-func (s *Service[
-	BeaconBlockT, _, BeaconStateT, _, _, _,
-	ExecutionPayloadT, ExecutionPayloadHeaderT, SlashingInfoT, SlotDataT,
-]) retrieveExecutionPayload(
+func (s *Service) retrieveExecutionPayload(
 	ctx context.Context,
-	st BeaconStateT,
-	blk BeaconBlockT,
-	slotData types.SlotData[ctypes.SlashingInfo],
-) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
+	st *statedb.StateDB,
+	blk *ctypes.BeaconBlock,
+	slotData *types.SlotData,
+) (ctypes.BuiltExecutionPayloadEnv, error) {
 	//
 	// TODO: Add external block builders to this flow.
 	//
@@ -231,7 +243,7 @@ func (s *Service[
 
 	// The latest execution payload header will be from the previous block
 	// during the block building phase.
-	var lph ExecutionPayloadHeaderT
+	var lph *ctypes.ExecutionPayloadHeader
 	lph, err = st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return nil, err
@@ -253,16 +265,12 @@ func (s *Service[
 }
 
 // BuildBlockBody assembles the block body with necessary components.
-func (s *Service[
-	BeaconBlockT, _, BeaconStateT, _, _, _,
-	ExecutionPayloadT, _, SlashingInfoT, SlotDataT,
-]) buildBlockBody(
-	_ context.Context,
-	st BeaconStateT,
-	blk BeaconBlockT,
+func (s *Service) buildBlockBody(
+	ctx context.Context,
+	st *statedb.StateDB,
+	blk *ctypes.BeaconBlock,
 	reveal crypto.BLSSignature,
-	envelope engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT],
-	slotData types.SlotData[ctypes.SlashingInfo],
+	envelope ctypes.BuiltExecutionPayloadEnv,
 ) error {
 	// Assemble a new block with the payload.
 	body := blk.GetBody()
@@ -288,35 +296,30 @@ func (s *Service[
 		return ErrNilDepositIndexStart
 	}
 
-	// Bartio and Boonet pre Fork2 have deposit broken and undervalidated
-	// Any other network should build deposits the right way
-	if !(s.chainSpec.DepositEth1ChainID() == spec.BartioChainID ||
-		(s.chainSpec.DepositEth1ChainID() == spec.BoonetEth1ChainID &&
-			blk.GetSlot() < math.U64(spec.BoonetFork2Height))) {
-		depositIndex++
-	}
+	// Grab all previous deposits from genesis up to the current index + max deposits per block.
 	deposits, err := s.sb.DepositStore().GetDepositsByIndex(
-		depositIndex,
-		s.chainSpec.MaxDepositsPerBlock(),
+		ctx,
+		constants.FirstDepositIndex,
+		depositIndex+s.chainSpec.MaxDepositsPerBlock(),
 	)
 	if err != nil {
 		return err
 	}
+	if uint64(len(deposits)) < depositIndex {
+		return errors.Wrapf(ErrDepositStoreIncomplete,
+			"all historical deposits not available, expected: %d, got: %d",
+			depositIndex, len(deposits),
+		)
+	}
 
-	// Set the deposits on the block body.
+	eth1Data := ctypes.NewEth1Data(deposits.HashTreeRoot())
+	body.SetEth1Data(eth1Data)
+
 	s.logger.Info(
 		"Building block body with local deposits",
-		"start_index", depositIndex, "num_deposits", len(deposits),
+		"start_index", depositIndex, "num_deposits", uint64(len(deposits))-depositIndex,
 	)
-	body.SetDeposits(deposits)
-
-	var eth1Data *ctypes.Eth1Data
-	// TODO: assemble real eth1data.
-	body.SetEth1Data(eth1Data.New(
-		common.Root{},
-		0,
-		common.ExecutionHash{},
-	))
+	body.SetDeposits(deposits[depositIndex:])
 
 	// Set the graffiti on the block body.
 	sizedGraffiti := bytes.ExtendToSize([]byte(s.cfg.Graffiti), bytes.B32Size)
@@ -326,37 +329,23 @@ func (s *Service[
 	}
 	body.SetGraffiti(graffiti)
 
-	// Get the epoch to find the active fork version.
-	epoch := s.chainSpec.SlotToEpoch(blk.GetSlot())
-	activeForkVersion := s.chainSpec.ActiveForkVersionForEpoch(
-		epoch,
-	)
-	if activeForkVersion >= version.DenebPlus {
-		body.SetAttestations(slotData.GetAttestationData())
+	// Fill in unused field with non-nil value
+	body.SetSyncAggregate(&ctypes.SyncAggregate{})
 
-		// Set the slashing info on the block body.
-		// TODO: Remove conversion once generics have been replaced with
-		// concrete types.
-		slashingInfo := slotData.GetSlashingInfo()
-		body.SetSlashingInfo(convertSlashingInfo[SlashingInfoT](
-			slashingInfo,
-		))
-	}
-
+	// Set the execution payload on the block body.
 	body.SetExecutionPayload(envelope.GetExecutionPayload())
+
 	return nil
 }
 
 // computeAndSetStateRoot computes the state root of an outgoing block
 // and sets it in the block.
-func (s *Service[
-	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _,
-]) computeAndSetStateRoot(
+func (s *Service) computeAndSetStateRoot(
 	ctx context.Context,
 	proposerAddress []byte,
 	consensusTime math.U64,
-	st BeaconStateT,
-	blk BeaconBlockT,
+	st *statedb.StateDB,
+	blk *ctypes.BeaconBlock,
 ) error {
 	stateRoot, err := s.computeStateRoot(
 		ctx,
@@ -378,14 +367,12 @@ func (s *Service[
 }
 
 // computeStateRoot computes the state root of an outgoing block.
-func (s *Service[
-	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _,
-]) computeStateRoot(
+func (s *Service) computeStateRoot(
 	ctx context.Context,
 	proposerAddress []byte,
 	consensusTime math.U64,
-	st BeaconStateT,
-	blk BeaconBlockT,
+	st *statedb.StateDB,
+	blk *ctypes.BeaconBlock,
 ) (common.Root, error) {
 	startTime := time.Now()
 	defer s.metrics.measureStateRootComputationTime(startTime)
@@ -395,6 +382,7 @@ func (s *Service[
 		// the payload in their block has come from a remote builder.
 		&transition.Context{
 			Context:                 ctx,
+			MeterGas:                false,
 			OptimisticEngine:        true,
 			SkipPayloadVerification: true,
 			SkipValidateResult:      true,
@@ -408,20 +396,4 @@ func (s *Service[
 	}
 
 	return st.HashTreeRoot(), nil
-}
-
-func convertSlashingInfo[
-	SlashingInfoT any,
-](
-	data []ctypes.SlashingInfo,
-) []SlashingInfoT {
-	converted := make([]SlashingInfoT, len(data))
-	for i, d := range data {
-		val, ok := any(d).(SlashingInfoT)
-		if !ok {
-			panic(fmt.Sprintf("failed to convert slashing info at index %d", i))
-		}
-		converted[i] = val
-	}
-	return converted
 }

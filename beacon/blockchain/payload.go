@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,15 +23,15 @@ package blockchain
 import (
 	"context"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/math"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // forceStartupHead sends a force head FCU to the execution client.
-func (s *Service[
-	_, _, _, _, _, BeaconStateT, _, _, _, _, _, _, _,
-]) forceStartupHead(
+func (s *Service) forceStartupHead(
 	ctx context.Context,
-	st BeaconStateT,
+	st *statedb.StateDB,
 ) {
 	slot, err := st.GetSlot()
 	if err != nil {
@@ -43,8 +43,7 @@ func (s *Service[
 	}
 
 	// TODO: Verify if the slot number is correct here, I believe in current
-	// form
-	// it should be +1'd. Not a big deal until hardforks are in play though.
+	// form it should be +1'd. Not a big deal until hardforks are in play though.
 	if err = s.localBuilder.SendForceHeadFCU(ctx, st, slot+1); err != nil {
 		s.logger.Error(
 			"failed to send force head FCU",
@@ -55,11 +54,9 @@ func (s *Service[
 
 // handleRebuildPayloadForRejectedBlock handles the case where the incoming
 // block was rejected and we need to rebuild the payload for the current slot.
-func (s *Service[
-	_, _, _, _, _, BeaconStateT, _, _, _, _, _, _, _,
-]) handleRebuildPayloadForRejectedBlock(
+func (s *Service) handleRebuildPayloadForRejectedBlock(
 	ctx context.Context,
-	st BeaconStateT,
+	st *statedb.StateDB,
 	nextPayloadTimestamp math.U64,
 ) {
 	if err := s.rebuildPayloadForRejectedBlock(
@@ -81,12 +78,9 @@ func (s *Service[
 // any required information from our local state. We do this since we have
 // rejected the incoming block and it would be unsafe to use any
 // information from it.
-func (s *Service[
-	_, _, _, _, _, BeaconStateT, _, _, ExecutionPayloadHeaderT,
-	_, _, _, _,
-]) rebuildPayloadForRejectedBlock(
+func (s *Service) rebuildPayloadForRejectedBlock(
 	ctx context.Context,
-	st BeaconStateT,
+	st *statedb.StateDB,
 	nextPayloadTimestamp math.U64,
 ) error {
 	s.logger.Info("Rebuilding payload for rejected block ⏳ ")
@@ -140,12 +134,10 @@ func (s *Service[
 
 // handleOptimisticPayloadBuild handles optimistically
 // building for the next slot.
-func (s *Service[
-	_, _, _, BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _,
-]) handleOptimisticPayloadBuild(
+func (s *Service) handleOptimisticPayloadBuild(
 	ctx context.Context,
-	st BeaconStateT,
-	blk BeaconBlockT,
+	st *statedb.StateDB,
+	blk *ctypes.BeaconBlock,
 	nextPayloadTimestamp math.U64,
 ) {
 	if err := s.optimisticPayloadBuild(
@@ -163,12 +155,10 @@ func (s *Service[
 }
 
 // optimisticPayloadBuild builds a payload for the next slot.
-func (s *Service[
-	_, _, _, BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _,
-]) optimisticPayloadBuild(
+func (s *Service) optimisticPayloadBuild(
 	ctx context.Context,
-	st BeaconStateT,
-	blk BeaconBlockT,
+	st *statedb.StateDB,
+	blk *ctypes.BeaconBlock,
 	nextPayloadTimestamp math.U64,
 ) error {
 	// We are building for the next slot, so we increment the slot relative

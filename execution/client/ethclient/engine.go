@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,6 +23,7 @@ package ethclient
 import (
 	"context"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
@@ -35,25 +36,30 @@ import (
 /* -------------------------------------------------------------------------- */
 
 // NewPayload calls the engine_newPayloadV3 method via JSON-RPC.
-func (s *Client[ExecutionPayloadT]) NewPayload(
+func (s *Client) NewPayload(
 	ctx context.Context,
-	payload ExecutionPayloadT,
+	payload *ctypes.ExecutionPayload,
 	versionedHashes []common.ExecutionHash,
 	parentBlockRoot *common.Root,
 ) (*engineprimitives.PayloadStatusV1, error) {
-	if payload.Version() < version.Deneb {
-		return nil, ErrInvalidVersion
+	// This is wrong. We should do bytes comparison of versions
+	// Setting this to version.Deneb1 but we should fix version
+	// comparison and drop this check here. The EL does not know
+	// anything about CL versions, so payload should not have a
+	// CL version (or at least not a check here).
+	if payload.Version() == version.Deneb ||
+		payload.Version() == version.Deneb1 {
+		return s.NewPayloadV3(
+			ctx, payload, versionedHashes, parentBlockRoot,
+		)
 	}
-
-	return s.NewPayloadV3(
-		ctx, payload, versionedHashes, parentBlockRoot,
-	)
+	return nil, ErrInvalidVersion
 }
 
 // NewPayloadV3 is used to call the underlying JSON-RPC method for newPayload.
-func (s *Client[ExecutionPayloadT]) NewPayloadV3(
+func (s *Client) NewPayloadV3(
 	ctx context.Context,
-	payload ExecutionPayloadT,
+	payload *ctypes.ExecutionPayload,
 	versionedHashes []common.ExecutionHash,
 	parentBlockRoot *common.Root,
 ) (*engineprimitives.PayloadStatusV1, error) {
@@ -72,21 +78,21 @@ func (s *Client[ExecutionPayloadT]) NewPayloadV3(
 
 // ForkchoiceUpdated is a helper function to call the appropriate version of
 // the.
-func (s *Client[ExecutionPayloadT]) ForkchoiceUpdated(
+func (s *Client) ForkchoiceUpdated(
 	ctx context.Context,
 	state *engineprimitives.ForkchoiceStateV1,
 	attrs any,
 	forkVersion uint32,
 ) (*engineprimitives.ForkchoiceResponseV1, error) {
-	if forkVersion < version.Deneb {
-		return nil, ErrInvalidVersion
+	if forkVersion == version.Deneb ||
+		forkVersion == version.Deneb1 {
+		return s.ForkchoiceUpdatedV3(ctx, state, attrs)
 	}
-
-	return s.ForkchoiceUpdatedV3(ctx, state, attrs)
+	return nil, ErrInvalidVersion
 }
 
 // ForkchoiceUpdatedV3 calls the engine_forkchoiceUpdatedV3 method via JSON-RPC.
-func (s *Client[ExecutionPayloadT]) ForkchoiceUpdatedV3(
+func (s *Client) ForkchoiceUpdatedV3(
 	ctx context.Context,
 	state *engineprimitives.ForkchoiceStateV1,
 	attrs any,
@@ -96,7 +102,7 @@ func (s *Client[ExecutionPayloadT]) ForkchoiceUpdatedV3(
 
 // forkchoiceUpdateCall is a helper function to call to any version
 // of the forkchoiceUpdates method.
-func (s *Client[ExecutionPayloadT]) forkchoiceUpdated(
+func (s *Client) forkchoiceUpdated(
 	ctx context.Context,
 	method string,
 	state *engineprimitives.ForkchoiceStateV1,
@@ -123,30 +129,27 @@ func (s *Client[ExecutionPayloadT]) forkchoiceUpdated(
 
 // GetPayload is a helper function to call the appropriate version of the
 // engine_getPayload method.
-func (s *Client[ExecutionPayloadT]) GetPayload(
+func (s *Client) GetPayload(
 	ctx context.Context,
 	payloadID engineprimitives.PayloadID,
 	forkVersion uint32,
-) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
-	if forkVersion < version.Deneb {
-		return nil, ErrInvalidVersion
+) (ctypes.BuiltExecutionPayloadEnv, error) {
+	if forkVersion == version.Deneb ||
+		forkVersion == version.Deneb1 {
+		return s.GetPayloadV3(ctx, payloadID, forkVersion)
 	}
-
-	return s.GetPayloadV3(ctx, payloadID)
+	return nil, ErrInvalidVersion
 }
 
 // GetPayloadV3 calls the engine_getPayloadV3 method via JSON-RPC.
-func (s *Client[ExecutionPayloadT]) GetPayloadV3(
-	ctx context.Context, payloadID engineprimitives.PayloadID,
-) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
-	var t ExecutionPayloadT
-	result := &engineprimitives.ExecutionPayloadEnvelope[
-		ExecutionPayloadT,
-		*engineprimitives.BlobsBundleV1[
-			eip4844.KZGCommitment, eip4844.KZGProof, eip4844.Blob,
-		],
-	]{
-		ExecutionPayload: t.Empty(version.Deneb),
+func (s *Client) GetPayloadV3(
+	ctx context.Context, payloadID engineprimitives.PayloadID, forkVersion uint32,
+) (ctypes.BuiltExecutionPayloadEnv, error) {
+	var t *ctypes.ExecutionPayload
+	result := &ctypes.ExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1[
+		eip4844.KZGCommitment, eip4844.KZGProof, eip4844.Blob,
+	]]{
+		ExecutionPayload: t.Empty(forkVersion),
 	}
 
 	if err := s.Call(
@@ -163,7 +166,7 @@ func (s *Client[ExecutionPayloadT]) GetPayloadV3(
 
 // ExchangeCapabilities calls the engine_exchangeCapabilities method via
 // JSON-RPC.
-func (s *Client[ExecutionPayloadT]) ExchangeCapabilities(
+func (s *Client) ExchangeCapabilities(
 	ctx context.Context,
 	capabilities []string,
 ) ([]string, error) {
@@ -177,7 +180,7 @@ func (s *Client[ExecutionPayloadT]) ExchangeCapabilities(
 }
 
 // GetClientVersionV1 calls the engine_getClientVersionV1 method via JSON-RPC.
-func (s *Client[ExecutionPayloadT]) GetClientVersionV1(
+func (s *Client) GetClientVersionV1(
 	ctx context.Context,
 ) ([]engineprimitives.ClientVersionV1, error) {
 	result := make([]engineprimitives.ClientVersionV1, 0)

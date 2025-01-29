@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -37,7 +37,7 @@ import (
 )
 
 func generateExecutionPayloadHeader() *types.ExecutionPayloadHeader {
-	return &types.ExecutionPayloadHeader{
+	eph := &types.ExecutionPayloadHeader{
 		ParentHash:       common.ExecutionHash{},
 		FeeRecipient:     common.ExecutionAddress{},
 		StateRoot:        bytes.B32{},
@@ -56,6 +56,8 @@ func generateExecutionPayloadHeader() *types.ExecutionPayloadHeader {
 		BlobGasUsed:      math.U64(0),
 		ExcessBlobGas:    math.U64(0),
 	}
+	eph.EphVersion = version.Deneb1
+	return eph
 }
 
 func TestExecutionPayloadHeader_Getters(t *testing.T) {
@@ -93,7 +95,7 @@ func TestExecutionPayloadHeader_IsNil(t *testing.T) {
 
 func TestExecutionPayloadHeader_Version(t *testing.T) {
 	header := generateExecutionPayloadHeader()
-	require.Equal(t, version.Deneb, header.Version())
+	require.Equal(t, version.Deneb1, header.Version())
 }
 
 func TestExecutionPayloadHeader_MarshalUnmarshalJSON(t *testing.T) {
@@ -107,6 +109,7 @@ func TestExecutionPayloadHeader_MarshalUnmarshalJSON(t *testing.T) {
 	err = header.UnmarshalJSON(data)
 	require.NoError(t, err)
 
+	header.EphVersion = originalHeader.Version()
 	require.Equal(t, originalHeader, &header)
 }
 
@@ -117,9 +120,11 @@ func TestExecutionPayloadHeader_Serialization(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, data)
 
-	var unmarshalled = new(types.ExecutionPayloadHeader).Empty()
+	var unmarshalled = &types.ExecutionPayloadHeader{}
 	err = unmarshalled.UnmarshalSSZ(data)
 	require.NoError(t, err)
+
+	unmarshalled.EphVersion = original.Version()
 	require.Equal(t, original, unmarshalled)
 }
 
@@ -245,14 +250,6 @@ func TestExecutionPayloadHeader_GetTree(t *testing.T) {
 	header := generateExecutionPayloadHeader()
 	_, err := header.GetTree()
 	require.NoError(t, err)
-}
-
-func TestExecutionPayloadHeader_Empty(t *testing.T) {
-	header := new(types.ExecutionPayloadHeader)
-	emptyHeader := header.Empty()
-
-	require.NotNil(t, emptyHeader)
-	require.Equal(t, version.Deneb, emptyHeader.Version())
 }
 
 func TestExecutablePayloadHeaderDeneb_UnmarshalJSON_Error(t *testing.T) {
@@ -405,21 +402,21 @@ func TestExecutionPayloadHeader_NewFromSSZ(t *testing.T) {
 				data, _ := generateExecutionPayloadHeader().MarshalSSZ()
 				return data
 			}(),
-			forkVersion:    version.Deneb,
+			forkVersion:    version.Deneb1,
 			expErr:         nil,
 			expectedHeader: generateExecutionPayloadHeader(),
 		},
 		{
 			name:           "Invalid SSZ data",
 			data:           []byte{0x01, 0x02},
-			forkVersion:    version.Deneb,
+			forkVersion:    version.Deneb1,
 			expErr:         io.ErrUnexpectedEOF,
 			expectedHeader: nil,
 		},
 		{
 			name:           "Empty SSZ data",
 			data:           []byte{},
-			forkVersion:    version.Deneb,
+			forkVersion:    version.Deneb1,
 			expErr:         io.ErrUnexpectedEOF,
 			expectedHeader: nil,
 		},
@@ -439,6 +436,8 @@ func TestExecutionPayloadHeader_NewFromSSZ(t *testing.T) {
 					require.ErrorIs(t, err, tc.expErr)
 				} else {
 					require.NoError(t, err)
+
+					header.EphVersion = tc.expectedHeader.Version()
 					require.Equal(t, tc.expectedHeader, header)
 				}
 			}
@@ -478,7 +477,7 @@ func TestExecutionPayloadHeader_NewFromJSON(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			header, err := new(types.ExecutionPayloadHeader).NewFromJSON(
 				tc.data,
-				version.Deneb,
+				version.Deneb1,
 			)
 			if tc.expectedError != nil {
 				require.Error(t, err)
@@ -487,6 +486,7 @@ func TestExecutionPayloadHeader_NewFromJSON(t *testing.T) {
 				require.NoError(t, err)
 			}
 			if tc.header != nil {
+				header.EphVersion = tc.header.Version()
 				require.Equal(t, tc.header, header)
 			}
 		})

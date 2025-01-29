@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,16 +23,13 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/config"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/storage/block"
 )
 
 // BlockStoreInput is the input for the dep inject framework.
 type BlockStoreInput[
-	BeaconBlockT BeaconBlock[
-		BeaconBlockT, BeaconBlockBodyT,
-	],
-	BeaconBlockBodyT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 ] struct {
 	depinject.In
@@ -44,17 +41,11 @@ type BlockStoreInput[
 // ProvideBlockStore is a function that provides the module to the
 // application.
 func ProvideBlockStore[
-	BeaconBlockT BeaconBlock[
-		BeaconBlockT, BeaconBlockBodyT,
-	],
-	BeaconBlockBodyT any,
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
-	in BlockStoreInput[
-		BeaconBlockT, BeaconBlockBodyT, LoggerT,
-	],
-) (*block.KVStore[BeaconBlockT], error) {
-	return block.NewStore[BeaconBlockT](
+	in BlockStoreInput[LoggerT],
+) (*block.KVStore[*ctypes.BeaconBlock], error) {
+	return block.NewStore[*ctypes.BeaconBlock](
 		in.Logger.With("service", "block-store"),
 		in.Config.BlockStoreService.AvailabilityWindow,
 	), nil

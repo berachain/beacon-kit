@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,27 +23,38 @@ package types_test
 import (
 	"testing"
 
+	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/math/log"
 	"github.com/berachain/beacon-kit/primitives/version"
+	"github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
 func generateBeaconBlockBody() types.BeaconBlockBody {
-	return types.BeaconBlockBody{
+	body := types.BeaconBlockBody{
 		RandaoReveal: [96]byte{1, 2, 3},
 		Eth1Data:     &types.Eth1Data{},
 		Graffiti:     [32]byte{4, 5, 6},
 		Deposits:     []*types.Deposit{},
 		ExecutionPayload: &types.ExecutionPayload{
 			BaseFeePerGas: math.NewU256(0),
+			EpVersion:     version.Deneb1,
 		},
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
+	body.SetProposerSlashings(types.ProposerSlashings{})
+	body.SetAttesterSlashings(types.AttesterSlashings{})
+	body.SetAttestations(types.Attestations{})
+	body.SetSyncAggregate(&types.SyncAggregate{})
+	body.SetVoluntaryExits(types.VoluntaryExits{})
+	body.SetBlsToExecutionChanges(types.BlsToExecutionChanges{})
+	return body
 }
 
 func TestBeaconBlockBodyBase(t *testing.T) {
@@ -70,7 +81,7 @@ func TestBeaconBlockBody(t *testing.T) {
 		Eth1Data:           &types.Eth1Data{},
 		Graffiti:           [32]byte{4, 5, 6},
 		Deposits:           []*types.Deposit{},
-		ExecutionPayload:   &types.ExecutionPayload{},
+		ExecutionPayload:   (&types.ExecutionPayload{}).Empty(version.Deneb1),
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
 
@@ -78,13 +89,6 @@ func TestBeaconBlockBody(t *testing.T) {
 	require.NotNil(t, body.GetExecutionPayload())
 	require.NotNil(t, body.GetBlobKzgCommitments())
 	require.Equal(t, types.BodyLengthDeneb, body.Length())
-}
-
-func TestBeaconBlockBody_GetTree(t *testing.T) {
-	body := generateBeaconBlockBody()
-	tree, err := body.GetTree()
-	require.NoError(t, err)
-	require.NotNil(t, tree)
 }
 
 func TestBeaconBlockBody_SetBlobKzgCommitments(t *testing.T) {
@@ -113,7 +117,7 @@ func TestBeaconBlockBody_SetEth1Data(t *testing.T) {
 
 func TestBeaconBlockBody_SetDeposits(t *testing.T) {
 	body := types.BeaconBlockBody{}
-	deposits := []*types.Deposit{}
+	deposits := types.Deposits{}
 	body.SetDeposits(deposits)
 
 	require.Equal(t, deposits, body.GetDeposits())
@@ -125,28 +129,13 @@ func TestBeaconBlockBody_MarshalSSZ(t *testing.T) {
 		Eth1Data:           &types.Eth1Data{},
 		Graffiti:           [32]byte{4, 5, 6},
 		Deposits:           []*types.Deposit{},
-		ExecutionPayload:   &types.ExecutionPayload{},
+		ExecutionPayload:   (&types.ExecutionPayload{}).Empty(version.Deneb1),
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
 	data, err := body.MarshalSSZ()
 
 	require.NoError(t, err)
 	require.NotNil(t, data)
-}
-
-func TestBeaconBlockBody_MarshalSSZTo(t *testing.T) {
-	body := generateBeaconBlockBody()
-
-	data, err := body.MarshalSSZ()
-	require.NoError(t, err)
-	require.NotNil(t, data)
-
-	var buf []byte
-	buf, err = body.MarshalSSZTo(buf)
-	require.NoError(t, err)
-
-	// The two byte slices should be equal
-	require.Equal(t, data, buf)
 }
 
 func TestBeaconBlockBody_GetTopLevelRoots(t *testing.T) {
@@ -156,7 +145,136 @@ func TestBeaconBlockBody_GetTopLevelRoots(t *testing.T) {
 }
 
 func TestBeaconBlockBody_Empty(t *testing.T) {
-	blockBody := types.BeaconBlockBody{}
-	body := blockBody.Empty(version.Deneb)
+	body := types.BeaconBlockBody{}
 	require.NotNil(t, body)
+}
+
+// Ensure that the ProposerSlashings field cannot be unmarshaled with data in it,
+// enforcing that it's unused.
+func TestBeaconBlockBody_UnusedProposerSlashingsEnforcement(t *testing.T) {
+	blockBody := types.BeaconBlockBody{}
+	unused := types.UnusedType(1)
+	blockBody.SetProposerSlashings(types.ProposerSlashings{&unused})
+	_, err := blockBody.MarshalSSZ()
+	require.Error(t, err)
+
+	buf := make([]byte, ssz.Size(&blockBody))
+	err = ssz.EncodeToBytes(buf, &blockBody)
+	require.NoError(t, err)
+
+	unmarshalledBody := &types.BeaconBlockBody{}
+	err = unmarshalledBody.UnmarshalSSZ(buf)
+	require.ErrorContains(t, err, "must be unused")
+}
+
+// Ensure that the AttesterSlashings field cannot be unmarshaled with data in it,
+// enforcing that it's unused.
+func TestBeaconBlockBody_UnusedAttesterSlashingsEnforcement(t *testing.T) {
+	blockBody := types.BeaconBlockBody{}
+	unused := types.UnusedType(1)
+	blockBody.SetAttesterSlashings(types.AttesterSlashings{&unused})
+	_, err := blockBody.MarshalSSZ()
+	require.Error(t, err)
+
+	buf := make([]byte, ssz.Size(&blockBody))
+	err = ssz.EncodeToBytes(buf, &blockBody)
+	require.NoError(t, err)
+
+	unmarshalledBody := &types.BeaconBlockBody{}
+	err = unmarshalledBody.UnmarshalSSZ(buf)
+	require.ErrorContains(t, err, "must be unused")
+}
+
+// Ensure that the Attestations field cannot be unmarshaled with data in it,
+// enforcing that it's unused.
+func TestBeaconBlockBody_UnusedAttestationsEnforcement(t *testing.T) {
+	blockBody := types.BeaconBlockBody{}
+	unused := types.UnusedType(1)
+	blockBody.SetAttestations(types.Attestations{&unused})
+	_, err := blockBody.MarshalSSZ()
+	require.Error(t, err)
+
+	buf := make([]byte, ssz.Size(&blockBody))
+	err = ssz.EncodeToBytes(buf, &blockBody)
+	require.NoError(t, err)
+
+	unmarshalledBody := &types.BeaconBlockBody{}
+	err = unmarshalledBody.UnmarshalSSZ(buf)
+	require.ErrorContains(t, err, "must be unused")
+}
+
+// Ensure that the VoluntaryExits field cannot be unmarshaled with data in it,
+// enforcing that it's unused.
+func TestBeaconBlockBody_UnusedVoluntaryExitsEnforcement(t *testing.T) {
+	blockBody := types.BeaconBlockBody{}
+	unused := types.UnusedType(1)
+	blockBody.SetVoluntaryExits(types.VoluntaryExits{&unused})
+	_, err := blockBody.MarshalSSZ()
+	require.Error(t, err)
+
+	buf := make([]byte, ssz.Size(&blockBody))
+	err = ssz.EncodeToBytes(buf, &blockBody)
+	require.NoError(t, err)
+
+	unmarshalledBody := &types.BeaconBlockBody{}
+	err = unmarshalledBody.UnmarshalSSZ(buf)
+	require.ErrorContains(t, err, "must be unused")
+}
+
+// Ensure that the BlsToExecutionChanges field cannot be unmarshaled with data in it,
+// enforcing that it's unused.
+func TestBeaconBlockBody_UnusedBlsToExecutionChangesEnforcement(t *testing.T) {
+	blockBody := types.BeaconBlockBody{}
+	unused := types.UnusedType(1)
+	blockBody.SetBlsToExecutionChanges(types.BlsToExecutionChanges{&unused})
+	_, err := blockBody.MarshalSSZ()
+	require.Error(t, err)
+
+	buf := make([]byte, ssz.Size(&blockBody))
+	err = ssz.EncodeToBytes(buf, &blockBody)
+	require.NoError(t, err)
+
+	unmarshalledBody := &types.BeaconBlockBody{}
+	err = unmarshalledBody.UnmarshalSSZ(buf)
+	require.ErrorContains(t, err, "must be unused")
+}
+
+func TestBeaconBlockBody_RoundTrip_HashTreeRoot(t *testing.T) {
+	body := generateBeaconBlockBody()
+	data, err := body.MarshalSSZ()
+	require.NoError(t, err)
+	require.NotNil(t, data)
+
+	unmarshalledBody := &types.BeaconBlockBody{}
+	err = unmarshalledBody.UnmarshalSSZ(data)
+	require.NoError(t, err)
+	require.Equal(t, body.HashTreeRoot(), unmarshalledBody.HashTreeRoot())
+}
+
+// This test explains the calculation of the KZG commitment' inclusion proof depth.
+func Test_KZGCommitmentInclusionProofDepth(t *testing.T) {
+	maxUint8 := uint64(^uint8(0))
+	cs, err := spec.DevnetChainSpec()
+	require.NoError(t, err)
+
+	// Depth of the partial BeaconBlockBody merkle tree. This is partial
+	// because we only include as much as we need to prove the inclusion of
+	// the KZG commitments.
+	blockBodyMerkleDepth := uint64(log.ILog2Floor(uint64(types.KZGGeneralizedIndex)))
+	require.Less(t, blockBodyMerkleDepth, maxUint8)
+
+	// The depth of the merkle tree of the KZG Commitments, including the +1
+	// for the length mixin.
+	commitmentProofMerkleDepth := uint64(log.ILog2Ceil(cs.MaxBlobCommitmentsPerBlock())) + 1
+	require.Less(t, commitmentProofMerkleDepth, maxUint8)
+
+	// InclusionProofDepth is the combined depth of all of these things.
+	expectedInclusionProofDepth := blockBodyMerkleDepth + commitmentProofMerkleDepth
+	require.Less(t, expectedInclusionProofDepth, maxUint8)
+
+	// Grab the inclusionProofDepth from beacon-kit.
+	actualInclusionProofDepth := types.KZGInclusionProofDepth
+	require.Less(t, uint64(actualInclusionProofDepth), maxUint8)
+
+	require.Equal(t, uint8(expectedInclusionProofDepth), uint8(actualInclusionProofDepth))
 }

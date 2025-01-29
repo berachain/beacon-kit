@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -70,7 +70,7 @@ func CollectGenesisDepositsCmd() *cobra.Command {
 				)
 			}
 
-			genesisInfo := &types.Genesis[*types.ExecutionPayloadHeader]{}
+			genesisInfo := &types.Genesis{}
 
 			if err = json.Unmarshal(
 				appGenesisState["beacon"], genesisInfo,
@@ -79,8 +79,7 @@ func CollectGenesisDepositsCmd() *cobra.Command {
 			}
 
 			for i, deposit := range deposits {
-				//#nosec:G701 // won't realistically overflow.
-				deposit.Index = uint64(i)
+				deposit.Index = uint64(i) // #nosec G115 -- won't realistically overflow.
 				genesisInfo.Deposits = append(genesisInfo.Deposits, deposit)
 			}
 

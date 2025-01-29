@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,37 +23,42 @@ package components
 import (
 	"os"
 
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
-	"github.com/berachain/beacon-kit/primitives/common"
 )
 
 const (
 	ChainSpecTypeEnvVar  = "CHAIN_SPEC"
 	DevnetChainSpecType  = "devnet"
-	BetnetChainSpecType  = "betnet"
-	BoonetChainSpecType  = "boonet"
+	MainnetChainSpecType = "mainnet"
 	TestnetChainSpecType = "testnet"
 )
 
 // ProvideChainSpec provides the chain spec based on the environment variable.
-func ProvideChainSpec() (common.ChainSpec, error) {
-	// TODO: This is hood as fuck needs to be improved
-	// but for now we ball to get CI unblocked.
+// Defaults to use Mainnet if no valid chain spec environment variable is set.
+func ProvideChainSpec() (chain.Spec, error) {
 	var (
-		chainSpec common.ChainSpec
+		chainSpec chain.Spec
 		err       error
 	)
+
+	// TODO: replace reading env var with config value.
 	switch os.Getenv(ChainSpecTypeEnvVar) {
 	case DevnetChainSpecType:
 		chainSpec, err = spec.DevnetChainSpec()
-	case BetnetChainSpecType:
-		chainSpec, err = spec.BetnetChainSpec()
-	case BoonetChainSpecType:
-		chainSpec, err = spec.BoonetChainSpec()
 	case TestnetChainSpecType:
+		chainSpec, err = spec.TestnetChainSpec()
+	case MainnetChainSpecType:
 		fallthrough
 	default:
-		chainSpec, err = spec.TestnetChainSpec()
+		chainSpec, err = spec.MainnetChainSpec()
 	}
-	return chainSpec, err
+
+	if err != nil {
+		return nil, err
+	}
+	if chainSpec == nil {
+		panic("chain spec is nil")
+	}
+	return chainSpec, nil
 }

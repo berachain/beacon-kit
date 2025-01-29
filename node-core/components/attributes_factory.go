@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,40 +22,27 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/payload/attributes"
-	"github.com/berachain/beacon-kit/primitives/common"
 )
 
 type AttributesFactoryInput[LoggerT any] struct {
 	depinject.In
 
-	ChainSpec common.ChainSpec
+	ChainSpec chain.Spec
 	Config    *config.Config
 	Logger    LoggerT
 }
 
 // ProvideAttributesFactory provides an AttributesFactory for the client.
 func ProvideAttributesFactory[
-	BeaconStateT BeaconState[
-		BeaconStateT, BeaconStateMarshallableT,
-		ExecutionPayloadHeaderT, KVStoreT,
-	],
-	BeaconStateMarshallableT any,
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-	KVStoreT any,
 	LoggerT log.Logger,
 ](
 	in AttributesFactoryInput[LoggerT],
-) (*attributes.Factory[
-	BeaconStateT, *engineprimitives.PayloadAttributes,
-], error) {
-	return attributes.NewAttributesFactory[
-		BeaconStateT,
-		*engineprimitives.PayloadAttributes,
-	](
+) (*attributes.Factory, error) {
+	return attributes.NewAttributesFactory(
 		in.ChainSpec,
 		in.Logger,
 		in.Config.PayloadBuilder.SuggestedFeeRecipient,

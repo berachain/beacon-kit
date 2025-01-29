@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -254,7 +254,7 @@ func BenchmarkDecodeFixedText(b *testing.B) {
 			) // Adjust the size based on the expected output length
 
 			b.ResetTimer()
-			for i := 0; i < b.N; i++ {
+			for range b.N {
 				err := hex.DecodeFixedText(input, out)
 				if err != nil {
 					b.Fatalf("DecodeFixedText failed: %v", err)

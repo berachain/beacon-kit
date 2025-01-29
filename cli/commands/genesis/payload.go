@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"unsafe"
 
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/cli/context"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -33,14 +34,13 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
 
-func AddExecutionPayloadCmd(chainSpec common.ChainSpec) *cobra.Command {
+func AddExecutionPayloadCmd(chainSpec chain.Spec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "execution-payload [eth/genesis/file.json]",
 		Short: "adds the eth1 genesis execution payload to the genesis file",
@@ -83,7 +83,7 @@ func AddExecutionPayloadCmd(chainSpec common.ChainSpec) *cobra.Command {
 				return err
 			}
 
-			genesisInfo := &types.Genesis[*types.ExecutionPayloadHeader]{}
+			genesisInfo := &types.Genesis{}
 
 			if err = json.Unmarshal(
 				appGenesisState["beacon"], genesisInfo,
@@ -94,7 +94,7 @@ func AddExecutionPayloadCmd(chainSpec common.ChainSpec) *cobra.Command {
 			// Inject the execution payload.
 			genesisInfo.ExecutionPayloadHeader, err =
 				executableDataToExecutionPayloadHeader(
-					version.ToUint32(genesisInfo.ForkVersion),
+					genesisInfo.ForkVersion.ToUint32(),
 					payload,
 					chainSpec.MaxWithdrawalsPerPayload(),
 				)
@@ -130,7 +130,7 @@ func executableDataToExecutionPayloadHeader(
 ) (*types.ExecutionPayloadHeader, error) {
 	var executionPayloadHeader *types.ExecutionPayloadHeader
 	switch forkVersion {
-	case version.Deneb, version.DenebPlus:
+	case constants.GenesisVersion:
 		withdrawals := make(
 			engineprimitives.Withdrawals,
 			len(data.Withdrawals),
@@ -183,6 +183,7 @@ func executableDataToExecutionPayloadHeader(
 			WithdrawalsRoot: withdrawals.HashTreeRoot(),
 			BlobGasUsed:     math.U64(blobGasUsed),
 			ExcessBlobGas:   math.U64(excessBlobGas),
+			EphVersion:      forkVersion,
 		}
 	default:
 		return nil, types.ErrForkVersionNotSupported

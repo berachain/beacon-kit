@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,14 +22,14 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-api/backend"
 	"github.com/berachain/beacon-kit/node-api/engines/echo"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/server"
-	"github.com/berachain/beacon-kit/primitives/common"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/berachain/beacon-kit/node-core/components/storage"
 )
 
 // TODO: we could make engine type configurable
@@ -37,68 +37,18 @@ func ProvideNodeAPIEngine() *echo.Engine {
 	return echo.NewDefaultEngine()
 }
 
-type NodeAPIBackendInput[
-	BeaconBlockT any,
-	BeaconStateT any,
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-	StorageBackendT any,
-] struct {
+type NodeAPIBackendInput struct {
 	depinject.In
 
-	ChainSpec      common.ChainSpec
-	StateProcessor StateProcessor[
-		BeaconBlockT, BeaconStateT, *Context,
-		ExecutionPayloadHeaderT,
-	]
-	StorageBackend StorageBackendT
+	ChainSpec      chain.Spec
+	StateProcessor StateProcessor[*Context]
+	StorageBackend *storage.Backend
 }
 
-func ProvideNodeAPIBackend[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
-	BeaconBlockT any,
-	BeaconBlockBodyT any,
-	BeaconBlockStoreT BlockStore[BeaconBlockT],
-	BeaconStateT BeaconState[
-		BeaconStateT, BeaconStateMarshallableT,
-		ExecutionPayloadHeaderT, KVStoreT,
-	],
-	BeaconStateMarshallableT any,
-	BlobSidecarsT any,
-	DepositStoreT DepositStore,
-	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-	KVStoreT any,
-	NodeT interface {
-		CreateQueryContext(height int64, prove bool) (sdk.Context, error)
-	},
-	StorageBackendT StorageBackend[
-		AvailabilityStoreT, BeaconStateT, BeaconBlockStoreT, DepositStoreT,
-	],
-](
-	in NodeAPIBackendInput[
-		BeaconBlockT, BeaconStateT, ExecutionPayloadHeaderT,
-		StorageBackendT,
-	],
-) *backend.Backend[
-	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BeaconBlockStoreT,
-	sdk.Context, DepositStoreT, ExecutionPayloadHeaderT,
-	NodeT, KVStoreT, StorageBackendT,
-] {
-	return backend.New[
-		AvailabilityStoreT,
-		BeaconBlockT,
-		BeaconBlockBodyT,
-		BeaconStateT,
-		BeaconStateMarshallableT,
-		BlobSidecarsT,
-		BeaconBlockStoreT,
-		sdk.Context,
-		DepositStoreT,
-		ExecutionPayloadHeaderT,
-		NodeT,
-		KVStoreT,
-		StorageBackendT,
-	](
+func ProvideNodeAPIBackend(
+	in NodeAPIBackendInput,
+) *backend.Backend {
+	return backend.New(
 		in.StorageBackend,
 		in.ChainSpec,
 		in.StateProcessor,

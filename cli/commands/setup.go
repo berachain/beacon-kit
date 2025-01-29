@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,8 +21,10 @@
 package commands
 
 import (
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/cli/commands/deposit"
 	"github.com/berachain/beacon-kit/cli/commands/genesis"
+	"github.com/berachain/beacon-kit/cli/commands/initialize"
 	"github.com/berachain/beacon-kit/cli/commands/jwt"
 	"github.com/berachain/beacon-kit/cli/commands/server"
 	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
@@ -31,33 +33,29 @@ import (
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-core/types"
-	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/cosmos/cosmos-sdk/version"
-	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 )
 
 // DefaultRootCommandSetup sets up the default commands for the root command.
 func DefaultRootCommandSetup[
 	T types.Node,
-	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	root *Root,
 	mm *cometbft.Service[LoggerT],
 	appCreator servertypes.AppCreator[T, LoggerT],
-	chainSpec common.ChainSpec,
+	chainSpec chain.Spec,
 ) {
 	// Add all the commands to the root command.
 	root.cmd.AddCommand(
 		// `comet`
 		cmtcli.Commands(appCreator),
 		// `init`
-		genutilcli.InitCmd(mm),
+		initialize.InitCmd(mm),
 		// `genesis`
 		genesis.Commands(chainSpec),
 		// `deposit`
-		deposit.Commands[ExecutionPayloadT](chainSpec),
+		deposit.Commands(chainSpec),
 		// `jwt`
 		jwt.Commands(),
 		// `rollback`

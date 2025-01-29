@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,43 +23,27 @@ package proof
 import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-api/handlers"
-	"github.com/berachain/beacon-kit/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/node-api/server/context"
 	"github.com/berachain/beacon-kit/primitives/math"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // Handler is the handler for the proof API.
 type Handler[
-	BeaconStateT types.BeaconState[
-		BeaconStateMarshallableT, ExecutionPayloadHeaderT,
-	],
-	BeaconStateMarshallableT types.BeaconStateMarshallable,
 	ContextT context.Context,
-	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
 ] struct {
 	*handlers.BaseHandler[ContextT]
-	backend Backend[BeaconStateT]
+	backend Backend
 }
 
 // NewHandler creates a new handler for the proof API.
 func NewHandler[
-	BeaconStateT types.BeaconState[
-		BeaconStateMarshallableT, ExecutionPayloadHeaderT,
-	],
-	BeaconStateMarshallableT types.BeaconStateMarshallable,
 	ContextT context.Context,
-	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
 ](
-	backend Backend[BeaconStateT],
-) *Handler[
-	BeaconStateT, BeaconStateMarshallableT,
-	ContextT, ExecutionPayloadHeaderT,
-] {
-	h := &Handler[
-		BeaconStateT, BeaconStateMarshallableT,
-		ContextT, ExecutionPayloadHeaderT,
-	]{
+	backend Backend,
+) *Handler[ContextT] {
+	h := &Handler[ContextT]{
 		BaseHandler: handlers.NewBaseHandler(
 			handlers.NewRouteSet[ContextT](""),
 		),
@@ -70,13 +54,11 @@ func NewHandler[
 
 // Get the slot from the given input of timestamp id, beacon state, and beacon
 // block header for the resolved slot.
-func (h *Handler[
-	BeaconStateT, _, _, _,
-]) resolveTimestampID(timestampID string) (
-	math.Slot, BeaconStateT, *ctypes.BeaconBlockHeader, error,
+func (h *Handler[_]) resolveTimestampID(timestampID string) (
+	math.Slot, *statedb.StateDB, *ctypes.BeaconBlockHeader, error,
 ) {
 	var (
-		beaconState BeaconStateT
+		beaconState *statedb.StateDB
 		blockHeader *ctypes.BeaconBlockHeader
 	)
 

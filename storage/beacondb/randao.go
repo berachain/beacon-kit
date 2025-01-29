@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,7 +23,7 @@ package beacondb
 import "github.com/berachain/beacon-kit/primitives/common"
 
 // UpdateRandaoMixAtIndex sets the current RANDAO mix in the store.
-func (kv *KVStore[ExecutionPayloadHeaderT]) UpdateRandaoMixAtIndex(
+func (kv *KVStore) UpdateRandaoMixAtIndex(
 	index uint64,
 	mix common.Bytes32,
 ) error {
@@ -31,7 +31,7 @@ func (kv *KVStore[ExecutionPayloadHeaderT]) UpdateRandaoMixAtIndex(
 }
 
 // GetRandaoMixAtIndex retrieves the current RANDAO mix from the store.
-func (kv *KVStore[ExecutionPayloadHeaderT]) GetRandaoMixAtIndex(
+func (kv *KVStore) GetRandaoMixAtIndex(
 	index uint64,
 ) (common.Bytes32, error) {
 	bz, err := kv.randaoMix.Get(kv.ctx, index)

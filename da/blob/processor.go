@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,125 +21,90 @@
 package blob
 
 import (
+	"context"
 	"time"
 
+	"github.com/berachain/beacon-kit/chain"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/kzg"
+	dastore "github.com/berachain/beacon-kit/da/store"
+	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // Processor is the blob processor that handles the processing and verification
 // of blob sidecars.
-type Processor[
-	AvailabilityStoreT AvailabilityStore[
-		BeaconBlockBodyT, BlobSidecarsT,
-	],
-	BeaconBlockBodyT any,
-	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
-	BlobSidecarT Sidecar,
-	BlobSidecarsT Sidecars[BlobSidecarT],
-] struct {
+type Processor struct {
 	// logger is used to log information and errors.
 	logger log.Logger
 	// chainSpec defines the specifications of the blockchain.
-	chainSpec common.ChainSpec
+	chainSpec chain.Spec
 	// verifier is responsible for verifying the blobs.
-	verifier *verifier[BlobSidecarT, BlobSidecarsT]
-	// blockBodyOffsetFn is a function that calculates the block body offset
-	// based on the slot and chain specifications.
-	blockBodyOffsetFn func(math.Slot, common.ChainSpec) (uint64, error)
+	verifier *verifier
 	// metrics is used to collect and report processor metrics.
 	metrics *processorMetrics
 }
 
 // NewProcessor creates a new blob processor.
-func NewProcessor[
-	AvailabilityStoreT AvailabilityStore[
-		BeaconBlockBodyT, BlobSidecarsT,
-	],
-	BeaconBlockBodyT any,
-	ConsensusSidecarsT ConsensusSidecars[BlobSidecarsT],
-	BlobSidecarT Sidecar,
-	BlobSidecarsT Sidecars[BlobSidecarT],
-](
+func NewProcessor(
 	logger log.Logger,
-	chainSpec common.ChainSpec,
+	chainSpec chain.Spec,
 	proofVerifier kzg.BlobProofVerifier,
-	blockBodyOffsetFn func(math.Slot, common.ChainSpec) (uint64, error),
 	telemetrySink TelemetrySink,
-) *Processor[
-	AvailabilityStoreT, BeaconBlockBodyT,
-	ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
-] {
-	verifier := newVerifier[
-		BlobSidecarT,
-		BlobSidecarsT,
-	](proofVerifier, telemetrySink)
-	return &Processor[
-		AvailabilityStoreT, BeaconBlockBodyT,
-		ConsensusSidecarsT, BlobSidecarT, BlobSidecarsT,
-	]{
-		logger:            logger,
-		chainSpec:         chainSpec,
-		verifier:          verifier,
-		blockBodyOffsetFn: blockBodyOffsetFn,
-		metrics:           newProcessorMetrics(telemetrySink),
+) *Processor {
+	verifier := newVerifier(proofVerifier, telemetrySink, chainSpec)
+
+	return &Processor{
+		logger:    logger,
+		chainSpec: chainSpec,
+		verifier:  verifier,
+		metrics:   newProcessorMetrics(telemetrySink),
 	}
 }
 
 // VerifySidecars verifies the blobs and ensures they match the local state.
-func (sp *Processor[
-	AvailabilityStoreT, _, ConsensusSidecarsT, _, _,
-]) VerifySidecars(
-	cs ConsensusSidecarsT,
+func (sp *Processor) VerifySidecars(
+	ctx context.Context,
+	sidecars datypes.BlobSidecars,
+	blkHeader *ctypes.BeaconBlockHeader,
+	kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],
 ) error {
-	var (
-		sidecars  = cs.GetSidecars()
-		blkHeader = cs.GetHeader()
-	)
 	defer sp.metrics.measureVerifySidecarsDuration(
-		time.Now(), math.U64(sidecars.Len()),
+		time.Now(), math.U64(len(sidecars)),
 	)
 
 	// Abort if there are no blobs to store.
-	if sidecars.Len() == 0 {
+	if len(sidecars) == 0 {
 		return nil
-	}
-
-	kzgOffset, err := sp.blockBodyOffsetFn(
-		blkHeader.GetSlot(), sp.chainSpec,
-	)
-	if err != nil {
-		return err
 	}
 
 	// Verify the blobs and ensure they match the local state.
 	return sp.verifier.verifySidecars(
-		sidecars, kzgOffset, blkHeader,
+		ctx,
+		sidecars,
+		blkHeader,
+		kzgCommitments,
 	)
 }
 
-// slot :=  processes the blobs and ensures they match the local state.
-func (sp *Processor[
-	AvailabilityStoreT, _, _, _, BlobSidecarsT,
-]) ProcessSidecars(
-	avs AvailabilityStoreT,
-	sidecars BlobSidecarsT,
+// ProcessSidecars processes the blobs and ensures they match the local state.
+func (sp *Processor) ProcessSidecars(
+	avs *dastore.Store,
+	sidecars datypes.BlobSidecars,
 ) error {
 	defer sp.metrics.measureProcessSidecarsDuration(
-		time.Now(), math.U64(sidecars.Len()),
+		time.Now(), math.U64(len(sidecars)),
 	)
 
 	// Abort if there are no blobs to store.
-	if sidecars.Len() == 0 {
+	if len(sidecars) == 0 {
 		return nil
 	}
 
 	// If we have reached this point, we can safely assume that the blobs are
 	// valid and can be persisted, as well as that index 0 is filled.
-	return avs.Persist(
-		sidecars.Get(0).GetBeaconBlockHeader().GetSlot(),
-		sidecars,
-	)
+	return avs.Persist(sidecars)
 }

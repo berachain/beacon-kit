@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -26,64 +26,17 @@ import (
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
-	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/karalabe/ssz"
 )
 
-// BeaconBlock represents a generic interface for a beacon block.
-type BeaconBlock[
-	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT,
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-] interface {
-	IsNil() bool
-	// GetProposerIndex returns the index of the proposer.
-	GetProposerIndex() math.ValidatorIndex
-	// GetSlot returns the slot number of the block.
-	GetSlot() math.Slot
-	// GetBody returns the body of the block.
-	GetBody() BeaconBlockBodyT
-	// GetParentBlockRoot returns the root of the parent block.
-	GetParentBlockRoot() common.Root
-	// GetStateRoot returns the state root of the block.
-	GetStateRoot() common.Root
-}
-
-// BeaconBlockBody represents a generic interface for the body of a beacon
-// block.
-type BeaconBlockBody[
-	BeaconBlockBodyT any,
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT,
-	],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-] interface {
-	constraints.EmptyWithVersion[BeaconBlockBodyT]
-	// GetRandaoReveal returns the RANDAO reveal signature.
-	GetRandaoReveal() crypto.BLSSignature
-	// GetExecutionPayload returns the execution payload.
-	GetExecutionPayload() ExecutionPayloadT
-	// GetDeposits returns the list of deposits.
-	GetDeposits() []*ctypes.Deposit
-	// HashTreeRoot returns the hash tree root of the block body.
-	HashTreeRoot() common.Root
-	// GetBlobKzgCommitments returns the KZG commitments for the blobs.
-	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
-}
-
 // Context defines an interface for managing state transition context.
 type Context interface {
 	context.Context
+	GetMeterGas() bool
 	// GetOptimisticEngine returns whether to optimistically assume the
 	// execution client has the correct state when certain errors are returned
 	// by the execution engine.
@@ -106,44 +59,6 @@ type Context interface {
 	GetConsensusTime() math.U64
 }
 
-// DepositStore defines the interface for deposit storage.
-type DepositStore interface {
-	// GetDepositsByIndex returns `numView` expected deposits.
-	GetDepositsByIndex(
-		startIndex uint64,
-		numView uint64,
-	) ([]*ctypes.Deposit, error)
-}
-
-type ExecutionPayload[
-	ExecutionPayloadT, ExecutionPayloadHeaderT any,
-] interface {
-	constraints.EngineType[ExecutionPayloadT]
-	GetTransactions() engineprimitives.Transactions
-	GetParentHash() common.ExecutionHash
-	GetBlockHash() common.ExecutionHash
-	GetPrevRandao() common.Bytes32
-	GetWithdrawals() engineprimitives.Withdrawals
-	GetFeeRecipient() common.ExecutionAddress
-	GetStateRoot() common.Bytes32
-	GetReceiptsRoot() common.Bytes32
-	GetLogsBloom() bytes.B256
-	GetNumber() math.U64
-	GetGasLimit() math.U64
-	GetTimestamp() math.U64
-	GetGasUsed() math.U64
-	GetExtraData() []byte
-	GetBaseFeePerGas() *math.U256
-	GetBlobGasUsed() math.U64
-	GetExcessBlobGas() math.U64
-	ToHeader() (ExecutionPayloadHeaderT, error)
-}
-
-type ExecutionPayloadHeader interface {
-	GetBlockHash() common.ExecutionHash
-	GetTimestamp() math.U64
-}
-
 // Withdrawals defines the interface for managing withdrawal operations.
 type Withdrawals interface {
 	Len() int
@@ -151,16 +66,12 @@ type Withdrawals interface {
 }
 
 // ExecutionEngine is the interface for the execution engine.
-type ExecutionEngine[
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT],
-	ExecutionPayloadHeaderT any,
-] interface {
+type ExecutionEngine interface {
 	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
 	// execution client.
 	VerifyAndNotifyNewPayload(
 		ctx context.Context,
-		req *engineprimitives.NewPayloadRequest[ExecutionPayloadT],
+		req *ctypes.NewPayloadRequest,
 	) error
 }
 
@@ -228,4 +139,7 @@ type Withdrawal interface {
 // TelemetrySink is an interface for sending metrics to a telemetry backend.
 type TelemetrySink interface {
 	SetGauge(key string, value int64, args ...string)
+	// IncrementCounter increments the counter identified by
+	// the provided key.
+	IncrementCounter(key string, args ...string)
 }

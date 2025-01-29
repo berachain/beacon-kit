@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -25,6 +25,7 @@ import (
 	"testing"
 	"time"
 
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/payload/cache"
 	"github.com/stretchr/testify/require"
 )
@@ -37,8 +38,8 @@ func FuzzPayloadIDCacheBasic(f *testing.F) {
 		var r [32]byte
 		copy(r[:], _r)
 		slot := s
-		pid := [8]byte(_p[:8])
-		cacheUnderTest := cache.NewPayloadIDCache[[8]byte, [32]byte, uint64]()
+		pid := engineprimitives.PayloadID(_p[:8])
+		cacheUnderTest := cache.NewPayloadIDCache[[32]byte, uint64]()
 		cacheUnderTest.Set(slot, r, pid)
 
 		p, ok := cacheUnderTest.Get(slot, r)
@@ -46,7 +47,7 @@ func FuzzPayloadIDCacheBasic(f *testing.F) {
 		require.Equal(t, pid, p)
 
 		// Test overwriting the same slot and root with a different PayloadID
-		newPid := [8]byte{}
+		newPid := engineprimitives.PayloadID{}
 		for i := range pid {
 			newPid[i] = pid[i] + 1 // Simple mutation for a new PayloadID
 		}
@@ -81,7 +82,7 @@ func FuzzPayloadIDInvalidInput(f *testing.F) {
 		var paddedPayload [8]byte
 		copy(paddedPayload[:], _p[:min(len(_p), 8)])
 		pid := [8]byte(paddedPayload[:])
-		cacheUnderTest := cache.NewPayloadIDCache[[8]byte, [32]byte, uint64]()
+		cacheUnderTest := cache.NewPayloadIDCache[[32]byte, uint64]()
 		cacheUnderTest.Set(slot, r, pid)
 
 		_, ok := cacheUnderTest.Get(slot, r)
@@ -93,7 +94,7 @@ func FuzzPayloadIDCacheConcurrency(f *testing.F) {
 	f.Add(uint64(1), []byte{1, 2, 3}, []byte{1, 2, 3, 4})
 
 	f.Fuzz(func(t *testing.T, s uint64, _r, _p []byte) {
-		cacheUnderTest := cache.NewPayloadIDCache[[8]byte, [32]byte, uint64]()
+		cacheUnderTest := cache.NewPayloadIDCache[[32]byte, uint64]()
 		slot := s
 		var wg sync.WaitGroup
 		wg.Add(2)

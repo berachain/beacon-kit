@@ -1,7 +1,7 @@
 #!/bin/bash
 # SPDX-License-Identifier: MIT
 #
-# Copyright (c) 2024 Berachain Foundation
+# Copyright (c) 2025 Berachain Foundation
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -39,13 +39,13 @@ resolve_path() {
 CHAINID="beacond-2061"
 MONIKER="localtestnet"
 LOGLEVEL="info"
-CONSENSUS_KEY_ALGO="bls12_381"
 HOMEDIR="./.tmp/beacond"
 
 # Path variables
 GENESIS=$HOMEDIR/config/genesis.json
 TMP_GENESIS=$HOMEDIR/config/tmp_genesis.json
 ETH_GENESIS=$(resolve_path "./testing/files/eth-genesis.json")
+ETH_NETHER_GENESIS=$(resolve_path "./testing/files/eth-nether-genesis.json")
 
 # used to exit on first error (any non-zero exit code)
 set -e
@@ -67,8 +67,7 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	rm -rf $HOMEDIR
 	./build/bin/beacond init $MONIKER \
 		--chain-id $CHAINID \
-		--home $HOMEDIR \
-		--consensus-key-algo $CONSENSUS_KEY_ALGO
+		--home $HOMEDIR
 
 	if [ "$CHAIN_SPEC" == "testnet" ]; then
 		cp -f testing/networks/80084/*.toml testing/networks/80084/genesis.json ${HOMEDIR}/config
@@ -76,7 +75,9 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 		./build/bin/beacond genesis add-premined-deposit --home $HOMEDIR \
 			32000000000 0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4
 		./build/bin/beacond genesis collect-premined-deposits --home $HOMEDIR
-		./build/bin/beacond genesis execution-payload "$ETH_GENESIS" --home $HOMEDIR
+		./build/bin/beacond genesis set-deposit-storage "$ETH_GENESIS" --home $HOMEDIR
+		./build/bin/beacond genesis set-deposit-storage "$ETH_NETHER_GENESIS" --nethermind --home $HOMEDIR
+		./build/bin/beacond genesis execution-payload "$HOMEDIR/eth-genesis.json" --home $HOMEDIR
 	fi
 fi
 

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (c) 2025 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -28,16 +28,9 @@ package pruner
 import (
 	"context"
 	"errors"
-
-	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 var ErrInvalidRange = errors.New("range start greater than end")
-
-// BeaconBlock is an interface for beacon blocks.
-type BeaconBlock interface {
-	GetSlot() math.U64
-}
 
 // Prunable is an interface representing a store that can be pruned.
 type Prunable interface {

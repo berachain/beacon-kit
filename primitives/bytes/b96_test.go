@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -264,7 +264,7 @@ func TestB96_HashTreeRoot(t *testing.T) {
 func BenchmarkB96_MarshalJSON(b *testing.B) {
 	data := bytes.B96{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		_, err := json.Marshal(data)
 		require.NoError(b, err)
 	}
@@ -277,7 +277,7 @@ func BenchmarkB96_UnmarshalJSON(b *testing.B) {
 	)
 	var data bytes.B96
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		err := data.UnmarshalJSON(jsonData)
 		require.NoError(b, err)
 	}

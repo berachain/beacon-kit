@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -72,8 +72,7 @@ func (n *node) Start(
 		// Make sure the services that were successfully started are stopped
 		// before exiting. We assume that it is safe to call Stop on a
 		// service that was never started so we can call StopAll here
-		//#nosec:G703 // ok to ignore this
-		_ = n.registry.StopAll()
+		n.registry.StopAll()
 		return err
 	}
 
@@ -84,9 +83,7 @@ func (n *node) Start(
 	}
 
 	// Stopp each service allowing them the exit gracefully.
-	if err = n.registry.StopAll(); err != nil {
-		return err
-	}
+	n.registry.StopAll()
 
 	return nil
 }

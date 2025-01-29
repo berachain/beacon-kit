@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,7 +23,6 @@ package config
 import (
 	"fmt"
 	"os"
-	"time"
 
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/spf13/viper"
@@ -42,13 +41,10 @@ func handleCometConfig(
 ) error {
 	_, err := os.Stat(cometConfigFile)
 	if os.IsNotExist(err) {
-		if err = writeCometConfig(
-			cometConfigFile,
-			cometConfig,
-			rootDir,
-		); err != nil {
-			return fmt.Errorf("failed to write comet config: %w", err)
-		}
+		// file does not exist, we create a new comet config file one
+		// with default values.
+		cmtcfg.EnsureRoot(rootDir)
+		cmtcfg.WriteConfigFile(cometConfigFile, cometConfig)
 	} else if err != nil {
 		return err
 	}
@@ -68,37 +64,5 @@ func handleCometConfig(
 	}
 
 	cometConfig.SetRoot(rootDir)
-	return nil
-}
-
-// writeCometConfig creates a new comet config file one with default values.
-// If the file exists, it reads and merges it into the provided Viper
-// instance.
-func writeCometConfig(
-	cometConfigFile string,
-	cometConfig *cmtcfg.Config,
-	rootDir string,
-) error {
-	cmtcfg.EnsureRoot(rootDir)
-
-	if err := cometConfig.ValidateBasic(); err != nil {
-		return fmt.Errorf("error in config file: %w", err)
-	}
-
-	// the SDK is very opinionated about these values, so we override them
-	// if they aren't already set
-	defaultCometCfg := cmtcfg.DefaultConfig()
-	if cometConfig.Consensus.TimeoutCommit ==
-		defaultCometCfg.Consensus.TimeoutCommit {
-		//nolint:mnd // 5 seconds
-		cometConfig.Consensus.TimeoutCommit = 5 * time.Second
-	}
-	if cometConfig.RPC.PprofListenAddress ==
-		defaultCometCfg.RPC.PprofListenAddress {
-		cometConfig.RPC.PprofListenAddress = "localhost:6060"
-	}
-
-	// write the comet config to the specified file path
-	cmtcfg.WriteConfigFile(cometConfigFile, cometConfig)
 	return nil
 }

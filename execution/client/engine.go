@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -24,6 +24,7 @@ import (
 	"context"
 	"time"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/errors"
@@ -36,11 +37,9 @@ import (
 /* -------------------------------------------------------------------------- */
 
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
-func (s *EngineClient[
-	ExecutionPayloadT, _,
-]) NewPayload(
+func (s *EngineClient) NewPayload(
 	ctx context.Context,
-	payload ExecutionPayloadT,
+	payload *ctypes.ExecutionPayload,
 	versionedHashes []common.ExecutionHash,
 	parentBeaconBlockRoot *common.Root,
 ) (*common.ExecutionHash, error) {
@@ -83,12 +82,10 @@ func (s *EngineClient[
 /* -------------------------------------------------------------------------- */
 
 // ForkchoiceUpdated calls the engine_forkchoiceUpdatedV1 method via JSON-RPC.
-func (s *EngineClient[
-	_, PayloadAttributesT,
-]) ForkchoiceUpdated(
+func (s *EngineClient) ForkchoiceUpdated(
 	ctx context.Context,
 	state *engineprimitives.ForkchoiceStateV1,
-	attrs PayloadAttributesT,
+	attrs *engineprimitives.PayloadAttributes,
 	forkVersion uint32,
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
 	var (
@@ -107,10 +104,7 @@ func (s *EngineClient[
 		)
 	}
 
-	result, err := s.Client.ForkchoiceUpdated(
-		cctx, state, attrs, forkVersion,
-	)
-
+	result, err := s.Client.ForkchoiceUpdated(cctx, state, attrs, forkVersion)
 	if err != nil {
 		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {
 			s.metrics.incrementForkchoiceUpdateTimeout()
@@ -134,13 +128,11 @@ func (s *EngineClient[
 
 // GetPayload calls the engine_getPayloadVX method via JSON-RPC. It returns
 // the execution data as well as the blobs bundle.
-func (s *EngineClient[
-	ExecutionPayloadT, _,
-]) GetPayload(
+func (s *EngineClient) GetPayload(
 	ctx context.Context,
 	payloadID engineprimitives.PayloadID,
 	forkVersion uint32,
-) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
+) (ctypes.BuiltExecutionPayloadEnv, error) {
 	var (
 		startTime    = time.Now()
 		cctx, cancel = s.createContextWithTimeout(ctx)
@@ -168,9 +160,7 @@ func (s *EngineClient[
 
 // ExchangeCapabilities calls the engine_exchangeCapabilities method via
 // JSON-RPC.
-func (s *EngineClient[
-	_, _,
-]) ExchangeCapabilities(
+func (s *EngineClient) ExchangeCapabilities(
 	ctx context.Context,
 ) ([]string, error) {
 	result, err := s.Client.ExchangeCapabilities(

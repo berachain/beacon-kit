@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -31,12 +31,7 @@ import (
 )
 
 func TestEth1Data_Serialization(t *testing.T) {
-	original := &types.Eth1Data{
-		DepositRoot:  common.Root{},
-		DepositCount: 10,
-		BlockHash:    common.ExecutionHash{},
-	}
-
+	original := types.NewEth1Data(common.Root{})
 	data, err := original.MarshalSSZ()
 	require.NoError(t, err)
 	require.NotNil(t, data)
@@ -61,22 +56,13 @@ func TestEth1Data_UnmarshalError(t *testing.T) {
 }
 
 func TestEth1Data_SizeSSZ(t *testing.T) {
-	eth1Data := (&types.Eth1Data{}).New(
-		common.Root{},
-		10,
-		common.ExecutionHash{},
-	)
-
+	eth1Data := types.NewEth1Data(common.Root{})
 	size := karalabessz.Size(eth1Data)
 	require.Equal(t, uint32(72), size)
 }
 
 func TestEth1Data_HashTreeRoot(t *testing.T) {
-	eth1Data := &types.Eth1Data{
-		DepositRoot:  common.Root{},
-		DepositCount: 10,
-		BlockHash:    common.ExecutionHash{},
-	}
+	eth1Data := types.NewEth1Data(common.Root{})
 
 	require.NotPanics(t, func() {
 		_ = eth1Data.HashTreeRoot()
@@ -84,12 +70,7 @@ func TestEth1Data_HashTreeRoot(t *testing.T) {
 }
 
 func TestEth1Data_GetTree(t *testing.T) {
-	eth1Data := &types.Eth1Data{
-		DepositRoot:  common.Root{},
-		DepositCount: 10,
-		BlockHash:    common.ExecutionHash{},
-	}
-
+	eth1Data := types.NewEth1Data(common.Root{})
 	tree, err := eth1Data.GetTree()
 
 	require.NoError(t, err)
