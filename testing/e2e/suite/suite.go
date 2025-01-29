@@ -49,9 +49,6 @@ type KurtosisE2ESuite struct {
 
 	loadBalancer *types.LoadBalancer
 
-	genesisAccount *types.EthAccount
-	testAccounts   []*types.EthAccount
-
 	// Network management
 	networks  map[string]*NetworkInstance // maps chainSpec to network
 	testSpecs map[string]ChainSpec        // maps testName to chainSpec
@@ -64,8 +61,9 @@ type NetworkInstance struct {
 	Config           *config.E2ETestConfig
 	consensusClients map[string]*types.ConsensusClient
 	loadBalancer     *types.LoadBalancer
-	testAccounts []*types.EthAccount
-	enclave      *enclaves.EnclaveContext
+	genesisAccount   *types.EthAccount
+	testAccounts     []*types.EthAccount
+	enclave          *enclaves.EnclaveContext
 }
 
 // NewNetworkInstance creates a new network instance.

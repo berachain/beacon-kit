@@ -117,7 +117,7 @@ func (s *KurtosisE2ESuite) setupLoadBalancer(network *NetworkInstance) error {
 // It ensures the genesis account has sufficient funds before creating test accounts.
 func (s *KurtosisE2ESuite) setupAccounts(network *NetworkInstance) error {
 	// Initialize genesis account
-	s.genesisAccount = types.NewEthAccountFromHex(
+	network.genesisAccount = types.NewEthAccountFromHex(
 		"genesisAccount", "fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306",
 	)
 
@@ -128,7 +128,7 @@ func (s *KurtosisE2ESuite) setupAccounts(network *NetworkInstance) error {
 	}
 
 	// Verify genesis account balance
-	balance, err := s.JSONRPCBalancer().BalanceAt(s.ctx, s.genesisAccount.Address(), nil)
+	balance, err := s.JSONRPCBalancer().BalanceAt(s.ctx, network.genesisAccount.Address(), nil)
 	if err != nil {
 		return fmt.Errorf("failed to get genesis balance: %w", err)
 	}
@@ -148,7 +148,7 @@ func (s *KurtosisE2ESuite) setupAccounts(network *NetworkInstance) error {
 		if !ok {
 			return errors.New("failed to parse amount")
 		}
-		if err = s.fundAccount(account.Address(), amount); err != nil {
+		if err = s.fundAccount(network.genesisAccount, account.Address(), amount); err != nil {
 			return fmt.Errorf("failed to fund test accounts: %w", err)
 		}
 	}
@@ -239,20 +239,19 @@ func (s *KurtosisE2ESuite) generateTestAccounts(network *NetworkInstance) error 
 		types.NewEthAccount("testAccount1", keys[1]),
 		types.NewEthAccount("testAccount2", keys[2]),
 	}
-	s.testAccounts = network.testAccounts
 
 	return nil
 }
 
 // fundAccount sends ETH to the given address.
-func (s *KurtosisE2ESuite) fundAccount(to common.Address, amount *big.Int) error {
+func (s *KurtosisE2ESuite) fundAccount(genesisAccount *types.EthAccount, to common.Address, amount *big.Int) error {
 	// Get initial balance
 	initialBalance, err := s.JSONRPCBalancer().BalanceAt(s.ctx, to, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get initial balance: %w", err)
 	}
 
-	nonce, err := s.JSONRPCBalancer().PendingNonceAt(s.ctx, s.getGenesisAccount().Address())
+	nonce, err := s.JSONRPCBalancer().PendingNonceAt(s.ctx, genesisAccount.Address())
 	if err != nil {
 		return err
 	}
@@ -281,7 +280,7 @@ func (s *KurtosisE2ESuite) fundAccount(to common.Address, amount *big.Int) error
 		GasTipCap: big.NewInt(1e9),
 	})
 
-	signedTx, err := s.getGenesisAccount().SignTx(chainID, tx)
+	signedTx, err := genesisAccount.SignTx(chainID, tx)
 	if err != nil {
 		return err
 	}
@@ -393,11 +392,6 @@ func (s *KurtosisE2ESuite) destroyEnclave(network *NetworkInstance) error {
 	return s.kCtx.DestroyEnclave(s.ctx, string(network.enclave.GetEnclaveUuid()))
 }
 
-// getGenesisAccount returns the genesis account for the test suite.
-func (s *KurtosisE2ESuite) getGenesisAccount() *types.EthAccount {
-	return s.genesisAccount
-}
-
 // WaitForFinalizedBlockNumber waits until the chain reaches the target block number.
 // It polls the chain state and returns an error if the context deadline is exceeded.
 func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(target uint64) error {
@@ -464,7 +458,12 @@ func (s *KurtosisE2ESuite) JSONRPCBalancer() *types.LoadBalancer {
 
 // GetAccounts returns all test accounts created for the test suite.
 func (s *KurtosisE2ESuite) GetAccounts() []*types.EthAccount {
-	return s.testAccounts
+	network := s.GetCurrentNetwork()
+	if network == nil {
+		s.Logger().Error("No network found for current test")
+		return nil
+	}
+	return network.testAccounts
 }
 
 // RegisterTest associates a test with its chain specification.
