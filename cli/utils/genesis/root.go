@@ -65,7 +65,10 @@ func ComputeValidatorsRootFromFile(genesisFile string, cs chain.Spec) (common.Ro
 // and a chain spec.
 func ComputeValidatorsRoot(genesisDeposits types.Deposits, cs chain.Spec) common.Root {
 	validators := make(types.Validators, len(genesisDeposits))
-	minEffectiveBalance := math.Gwei(cs.EjectionBalance() + cs.EffectiveBalanceIncrement())
+	minEffectiveBalance := math.Gwei(
+		cs.EjectionBalance() +
+			cs.EffectiveBalanceIncrement(),
+	)
 
 	for i, deposit := range genesisDeposits {
 		val := types.NewValidatorFromDeposit(

@@ -28,7 +28,7 @@ import (
 
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/node-core/components"
+	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -38,7 +38,7 @@ import (
 )
 
 func TestInitialize(t *testing.T) {
-	cs := setupChain(t, components.BetnetChainSpecType)
+	cs := setupChain(t)
 	sp, st, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
@@ -121,18 +121,15 @@ func TestInitialize(t *testing.T) {
 		}
 		executionPayloadHeader = &types.ExecutionPayloadHeader{}
 		fork                   = &types.Fork{
-			PreviousVersion: version.FromUint32[common.Version](version.Deneb),
-			CurrentVersion:  version.FromUint32[common.Version](version.Deneb),
-			Epoch:           math.Epoch(constants.GenesisEpoch),
+			PreviousVersion: bytes.FromUint32(version.Deneb),
+			CurrentVersion:  bytes.FromUint32(version.Deneb),
+			Epoch:           constants.GenesisEpoch,
 		}
 	)
 
 	// run test
 	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
-		st,
-		genDeposits,
-		executionPayloadHeader,
-		fork.CurrentVersion,
+		st, genDeposits, executionPayloadHeader, fork.CurrentVersion,
 	)
 
 	// check outputs
@@ -142,7 +139,7 @@ func TestInitialize(t *testing.T) {
 	// check beacon state changes
 	resSlot, err := st.GetSlot()
 	require.NoError(t, err)
-	require.Equal(t, math.Slot(0), resSlot)
+	require.Equal(t, constants.GenesisSlot, resSlot)
 
 	resFork, err := st.GetFork()
 	require.NoError(t, err)
@@ -178,8 +175,8 @@ func checkValidator(
 	commonChecksValidators(t, cs, val, dep)
 
 	// checks on validators for any network but Bartio
-	require.Equal(t, math.Epoch(0), val.GetActivationEligibilityEpoch())
-	require.Equal(t, math.Epoch(0), val.GetActivationEpoch())
+	require.Equal(t, constants.GenesisEpoch, val.GetActivationEligibilityEpoch())
+	require.Equal(t, constants.GenesisEpoch, val.GetActivationEpoch())
 
 	valBal, err := bs.GetBalance(idx)
 	require.NoError(t, err)

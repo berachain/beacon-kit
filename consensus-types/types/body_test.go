@@ -23,7 +23,6 @@ package types_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/bytes"
@@ -32,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/math/log"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
@@ -44,6 +44,7 @@ func generateBeaconBlockBody() types.BeaconBlockBody {
 		Deposits:     []*types.Deposit{},
 		ExecutionPayload: &types.ExecutionPayload{
 			BaseFeePerGas: math.NewU256(0),
+			EpVersion:     version.Deneb1,
 		},
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
@@ -80,7 +81,7 @@ func TestBeaconBlockBody(t *testing.T) {
 		Eth1Data:           &types.Eth1Data{},
 		Graffiti:           [32]byte{4, 5, 6},
 		Deposits:           []*types.Deposit{},
-		ExecutionPayload:   &types.ExecutionPayload{},
+		ExecutionPayload:   (&types.ExecutionPayload{}).Empty(version.Deneb1),
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
 
@@ -128,7 +129,7 @@ func TestBeaconBlockBody_MarshalSSZ(t *testing.T) {
 		Eth1Data:           &types.Eth1Data{},
 		Graffiti:           [32]byte{4, 5, 6},
 		Deposits:           []*types.Deposit{},
-		ExecutionPayload:   &types.ExecutionPayload{},
+		ExecutionPayload:   (&types.ExecutionPayload{}).Empty(version.Deneb1),
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
 	data, err := body.MarshalSSZ()
@@ -253,8 +254,7 @@ func TestBeaconBlockBody_RoundTrip_HashTreeRoot(t *testing.T) {
 // This test explains the calculation of the KZG commitment' inclusion proof depth.
 func Test_KZGCommitmentInclusionProofDepth(t *testing.T) {
 	maxUint8 := uint64(^uint8(0))
-	specVals := spec.BaseSpec()
-	cs, err := chain.NewSpec(specVals)
+	cs, err := spec.DevnetChainSpec()
 	require.NoError(t, err)
 
 	// Depth of the partial BeaconBlockBody merkle tree. This is partial
