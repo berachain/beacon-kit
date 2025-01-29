@@ -59,12 +59,12 @@ type PayloadAttributes struct {
 	ParentBeaconBlockRoot common.Root `json:"parentBeaconBlockRoot"`
 
 	// version is the version of the payload attributes.
-	version uint32 `json:"-"`
+	version common.Version `json:"-"`
 }
 
 // New empty PayloadAttributes.
 func NewPayloadAttributes(
-	forkVersion uint32,
+	forkVersion common.Version,
 	timestamp uint64,
 	prevRandao common.Bytes32,
 	suggestedFeeRecipient common.ExecutionAddress,
@@ -98,7 +98,7 @@ func (p *PayloadAttributes) GetSuggestedFeeRecipient() common.ExecutionAddress {
 }
 
 // Version returns the version of the PayloadAttributes.
-func (p *PayloadAttributes) Version() uint32 {
+func (p *PayloadAttributes) Version() common.Version {
 	return p.version
 }
 
@@ -112,7 +112,8 @@ func (p *PayloadAttributes) Validate() error {
 		return ErrEmptyPrevRandao
 	}
 
-	if p.Withdrawals == nil && p.version >= version.Capella {
+	// For any version following Bellatrix (Capella onwards), withdrawals are required.
+	if version.Follows(p.version, version.Bellatrix()) && p.Withdrawals == nil {
 		return ErrNilWithdrawals
 	}
 

@@ -66,7 +66,7 @@ func generateExecutionPayload() *types.ExecutionPayload {
 		Withdrawals:   withdrawals,
 		BlobGasUsed:   math.U64(0),
 		ExcessBlobGas: math.U64(0),
-		EpVersion:     version.Deneb1,
+		EpVersion:     version.Deneb1(),
 	}
 	return ep
 }
@@ -220,7 +220,7 @@ func TestExecutionPayload_ToHeader(t *testing.T) {
 		Withdrawals:   engineprimitives.Withdrawals{},
 		BlobGasUsed:   math.U64(0),
 		ExcessBlobGas: math.U64(0),
-		EpVersion:     version.Deneb1,
+		EpVersion:     version.Deneb1(),
 	}
 
 	header, err := payload.ToHeader()

@@ -39,7 +39,7 @@ func TestGetPayloadV3NeverReturnsEmptyPayload(t *testing.T) {
 	var (
 		ctx         = context.Background()
 		payloadID   engineprimitives.PayloadID
-		forkVersion = version.Deneb1
+		forkVersion = version.Deneb1()
 	)
 
 	pe, err := c.GetPayloadV3(ctx, payloadID, forkVersion)

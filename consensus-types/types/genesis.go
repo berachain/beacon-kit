@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 )
 
 const (
@@ -87,7 +88,7 @@ func (g *Genesis) UnmarshalJSON(
 		err           error
 	)
 	payloadHeader, err = payloadHeader.NewFromJSON(
-		g2.ExecutionPayloadHeader, g2.ForkVersion.ToUint32(),
+		g2.ExecutionPayloadHeader, g2.ForkVersion,
 	)
 	if err != nil {
 		return err
@@ -107,7 +108,7 @@ func DefaultGenesis() *Genesis {
 	}
 
 	return &Genesis{
-		ForkVersion:            bytes.FromUint32(constants.GenesisVersion),
+		ForkVersion:            version.Genesis(),
 		Deposits:               make([]*Deposit, 0),
 		ExecutionPayloadHeader: defaultHeader,
 	}
@@ -161,6 +162,6 @@ func DefaultGenesisExecutionPayloadHeader() (*ExecutionPayloadHeader, error) {
 		WithdrawalsRoot: engineprimitives.Withdrawals(nil).HashTreeRoot(),
 		BlobGasUsed:     0,
 		ExcessBlobGas:   0,
-		EphVersion:      constants.GenesisVersion,
+		EphVersion:      version.Genesis(),
 	}, nil
 }

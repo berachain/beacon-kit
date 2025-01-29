@@ -18,25 +18,34 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package constants
+package version
 
 import (
-	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/bytes"
+	"github.com/berachain/beacon-kit/primitives/common"
 )
 
-// This file contains various constants as defined:
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#misc
-const (
-	// GenesisSlot represents the initial slot in the system.
-	GenesisSlot math.Slot = 0
-	// GenesisEpoch represents the initial epoch in the system.
-	GenesisEpoch math.Epoch = 0
-	// FarFutureEpoch represents a far future epoch value.
-	FarFutureEpoch = ^uint64(0)
-)
+// Equals returns true if a and b are the same version.
+func Equals(a, b common.Version) bool {
+	return a == b
+}
 
-// Berachain constants.
-const (
-	// FirstDepositIndex represents the index of the first deposit in the system, set at genesis.
-	FirstDepositIndex uint64 = 0
-)
+// Precedes returns true if a precedes b.
+func Precedes(a, b common.Version) bool {
+	for i := 0; i < bytes.B4Size; i++ {
+		if a[i] > b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// Follows returns true if a follows b.
+func Follows(a, b common.Version) bool {
+	for i := 0; i < bytes.B4Size; i++ {
+		if a[i] < b[i] {
+			return false
+		}
+	}
+	return true
+}

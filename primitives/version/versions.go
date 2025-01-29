@@ -20,23 +20,64 @@
 
 package version
 
-const (
-	// Phase0 is the first version of the Beacon Chain.
-	Phase0 uint32 = 0
-	// Altair is the first hardfork of the Beacon Chain.
-	Altair uint32 = 1
-	// Bellatrix is the second hardfork of the Beacon Chain.
-	Bellatrix uint32 = 2
-	// Capella is the third hardfork of the Beacon Chain.
-	Capella uint32 = 3
-	// Deneb is the first version of Deneb, used for genesis of Berachain mainnet.
-	Deneb uint32 = 4
-	// Deneb1 is the first hardfork of Deneb on Berachain mainnet (TBD if used).
-	// There may also be Deneb2, Deneb3, etc. hardforks.
-	Deneb1 uint32 = 260
-	// Electra is the first version of Electra on Berachain mainnet.
-	Electra uint32 = 5
-	// Electra1 is the first hardfork of Electra on Berachain mainnet (TBD if used).
-	// There may also be Electra2, Electra3, etc. hardforks.
-	Electra1 uint32 = 261
+import (
+	"github.com/berachain/beacon-kit/primitives/bytes"
+	"github.com/berachain/beacon-kit/primitives/common"
 )
+
+const (
+	// phase0 is the first version of the Beacon Chain.
+	phase0 uint32 = 0
+	// altair is the first hardfork of the Beacon Chain.
+	altair uint32 = 1
+	// bellatrix is the second hardfork of the Beacon Chain.
+	bellatrix uint32 = 2
+	// capella is the third hardfork of the Beacon Chain.
+	capella uint32 = 3
+	// deneb is the first version of Deneb, used for genesis of Berachain mainnet.
+	deneb uint32 = 4
+	// deneb1 is the first hardfork of Deneb on Berachain mainnet. LittleEndian of {Deneb, 1, 0, 0}.
+	deneb1 uint32 = 260
+	// electra is the first version of Electra on Berachain mainnet.
+	electra uint32 = 5
+)
+
+// Genesis returns the fork version for the genesis of Berachain mainnet, which is Deneb.
+func Genesis() common.Version {
+	return Deneb()
+}
+
+// Phase0 returns phase0 as a common.Version.
+func Phase0() common.Version {
+	return bytes.FromUint32(phase0)
+}
+
+// Altair returns altair as a common.Version.
+func Altair() common.Version {
+	return bytes.FromUint32(altair)
+}
+
+// Bellatrix returns bellatrix as a common.Version.
+func Bellatrix() common.Version {
+	return bytes.FromUint32(bellatrix)
+}
+
+// Capella returns capella as a common.Version.
+func Capella() common.Version {
+	return bytes.FromUint32(capella)
+}
+
+// Deneb returns deneb as a common.Version.
+func Deneb() common.Version {
+	return bytes.FromUint32(deneb)
+}
+
+// Deneb1 returns deneb1 as a common.Version.
+func Deneb1() common.Version {
+	return bytes.FromUint32(deneb1)
+}
+
+// Electra returns electra as a common.Version.
+func Electra() common.Version {
+	return bytes.FromUint32(electra)
+}

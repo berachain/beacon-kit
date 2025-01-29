@@ -20,17 +20,7 @@
 
 package common
 
-import (
-	stdbytes "bytes"
-
-	"github.com/berachain/beacon-kit/primitives/bytes"
-	"github.com/berachain/beacon-kit/primitives/encoding/hex"
-	"github.com/berachain/beacon-kit/primitives/encoding/json"
-)
-
-/* -------------------------------------------------------------------------- */
-/*                                    Root                                    */
-/* -------------------------------------------------------------------------- */
+import "github.com/berachain/beacon-kit/primitives/bytes"
 
 type (
 	// Bytes32 defines the commonly used 32-byte array.
@@ -56,64 +46,3 @@ type (
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
 	ForkDigest = bytes.B4
 )
-
-// Root represents a 32-byte Merkle root.
-// We use this type to represent roots that come from the consensus layer.
-type Root [RootSize]byte
-
-const RootSize = 32
-
-// NewRootFromHex creates a new root from a hex string.
-func NewRootFromHex(input string) (Root, error) {
-	val, err := hex.ToBytes(input)
-	if err != nil {
-		return Root{}, err
-	}
-	if len(val) != RootSize {
-		return Root{}, bytes.ErrIncorrectLength
-	}
-	return Root(val), nil
-}
-
-// NewRootFromBytes creates a new root from a byte slice.
-func NewRootFromBytes(input []byte) Root {
-	var root Root
-	copy(root[:], input)
-	return root
-}
-
-// Equals returns true if the two roots are equal.
-func (r Root) Equals(other Root) bool {
-	return stdbytes.Equal(r[:], other[:])
-}
-
-// Hex converts a root to a hex string.
-func (r Root) Hex() string { return hex.EncodeBytes(r[:]) }
-
-// String implements the stringer interface and is used also by the logger when
-// doing full logging into a file.
-func (r Root) String() string {
-	return r.Hex()
-}
-
-// MarshalText returns the hex representation of r.
-func (r Root) MarshalText() ([]byte, error) {
-	return []byte(r.Hex()), nil
-}
-
-// UnmarshalText parses a root in hex syntax.
-func (r *Root) UnmarshalText(input []byte) error {
-	var err error
-	*r, err = NewRootFromHex(string(input))
-	return err
-}
-
-// MarshalJSON returns the JSON representation of r.
-func (r Root) MarshalJSON() ([]byte, error) {
-	return json.Marshal(r.Hex())
-}
-
-// UnmarshalJSON parses a root in hex syntax.
-func (r *Root) UnmarshalJSON(input []byte) error {
-	return r.UnmarshalText(input[1 : len(input)-1])
-}
