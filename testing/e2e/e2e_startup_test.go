@@ -81,12 +81,6 @@ func (s *BeaconKitE2ESuite) initializeNetworks() {
 	}
 }
 
-// TearDownSuite cleans up after all tests have run.
-func (s *BeaconKitE2ESuite) TearDownSuite() {
-	// No need for cleanup here as it's handled after each chain spec's tests
-	s.Logger().Info("Test suite completed")
-}
-
 func (s *BeaconKitE2ESuite) TestRunE2E() {
 	s.RegisterTestFunc("runBasicStartup", s.runBasicStartup)
 	s.RegisterTestFunc("runEVMInflation", s.runEVMInflation)

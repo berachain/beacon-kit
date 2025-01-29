@@ -459,19 +459,6 @@ func (s *KurtosisE2ESuite) WaitForNBlockNumbers(n uint64) error {
 	return s.WaitForFinalizedBlockNumber(current + n)
 }
 
-// TearDownSuite cleans up resources after all tests have been executed.
-// It stops all consensus clients and destroys the test enclave.
-func (s *KurtosisE2ESuite) TearDownSuite() {
-	s.Logger().Info("Destroying enclave...")
-	for _, client := range s.consensusClients {
-		res, err := client.Stop(s.ctx)
-		s.Require().NoError(err, "Error stopping consensus client")
-		s.Require().Nil(res.ExecutionError, "Error stopping consensus client")
-		s.Require().Empty(res.ValidationErrors, "Error stopping consensus client")
-	}
-	s.Require().NoError(s.kCtx.DestroyEnclave(s.ctx, "e2e-test-enclave"))
-}
-
 // JSONRPCBalancer returns the JSON-RPC load balancer for the test suite.
 func (s *KurtosisE2ESuite) JSONRPCBalancer() *types.LoadBalancer {
 	return s.loadBalancer
