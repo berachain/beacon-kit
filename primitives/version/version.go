@@ -32,7 +32,7 @@ func Equals(a, b common.Version) bool {
 
 // Precedes returns true if a precedes b.
 func Precedes(a, b common.Version) bool {
-	for i := 0; i < bytes.B4Size; i++ {
+	for i := range bytes.B4Size {
 		if a[i] > b[i] {
 			return false
 		}
@@ -42,7 +42,7 @@ func Precedes(a, b common.Version) bool {
 
 // Follows returns true if a follows b.
 func Follows(a, b common.Version) bool {
-	for i := 0; i < bytes.B4Size; i++ {
+	for i := range bytes.B4Size {
 		if a[i] < b[i] {
 			return false
 		}
