@@ -43,7 +43,7 @@ func TestInitChainRequestsInvalidChainID(t *testing.T) {
 	require.Error(t, err, "invalid chain-id on InitChain; expected: beacond-2061, got: 80090")
 }
 
-// TestProcessProposalRequestInvalidBlock tests the scenario where a peer sends us a block with an invalid timestamp
+// TestProcessProposalRequestInvalidBlock tests the scenario where a peer sends us a block with an invalid timestamp.
 func TestProcessProposalRequestInvalidBlock(t *testing.T) {
 	// Create a test node that
 	testNode := newTestNode(t)
@@ -51,13 +51,22 @@ func TestProcessProposalRequestInvalidBlock(t *testing.T) {
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	defer cancelFunc()
 
+	err := testNode.node.Start(ctx)
+	require.NoError(t, err)
+
 	genesis := genesisFromFile(t, testNode.cometConfig.Genesis)
+
+	genesisFile := testNode.cometConfig.GenesisFile()
 
 	request := &comettypes.InitChainRequest{
 		ChainId:       "beacond-2061",
 		AppStateBytes: genesis.AppState,
 	}
+	fmt.Println(genesis)
+	fmt.Println(genesisFile)
 	response, err := testNode.cometService.InitChain(ctx, request)
 	require.NoError(t, err)
-	fmt.Println(string(response.AppHash))
+
+	// We expect one deposit given the genesis file in 'config/genesis.json'
+	require.Len(t, response.GetValidators(), 1)
 }
