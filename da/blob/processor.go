@@ -21,6 +21,7 @@
 package blob
 
 import (
+	"context"
 	"time"
 
 	"github.com/berachain/beacon-kit/chain"
@@ -66,6 +67,7 @@ func NewProcessor(
 
 // VerifySidecars verifies the blobs and ensures they match the local state.
 func (sp *Processor) VerifySidecars(
+	ctx context.Context,
 	sidecars datypes.BlobSidecars,
 	blkHeader *ctypes.BeaconBlockHeader,
 	kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],
@@ -81,6 +83,7 @@ func (sp *Processor) VerifySidecars(
 
 	// Verify the blobs and ensure they match the local state.
 	return sp.verifier.verifySidecars(
+		ctx,
 		sidecars,
 		blkHeader,
 		kzgCommitments,

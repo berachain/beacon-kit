@@ -43,7 +43,7 @@ func (s *Service[_]) DefaultGenesis() map[string]json.RawMessage {
 	// genesis states.
 	gen := make(map[string]json.RawMessage)
 	var err error
-	gen["beacon"], err = json.Marshal(types.DefaultGenesisDeneb())
+	gen["beacon"], err = json.Marshal(types.DefaultGenesis())
 	if err != nil {
 		panic(err)
 	}

@@ -104,10 +104,7 @@ func (s *EngineClient) ForkchoiceUpdated(
 		)
 	}
 
-	result, err := s.Client.ForkchoiceUpdated(
-		cctx, state, attrs, forkVersion,
-	)
-
+	result, err := s.Client.ForkchoiceUpdated(cctx, state, attrs, forkVersion)
 	if err != nil {
 		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {
 			s.metrics.incrementForkchoiceUpdateTimeout()

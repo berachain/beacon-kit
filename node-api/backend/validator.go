@@ -54,7 +54,7 @@ func (b Backend) ValidatorByID(
 			Balance: balance.Unwrap(),
 		},
 		Status:    "active_ongoing", // TODO: fix
-		Validator: validator,
+		Validator: beacontypes.ValidatorFromConsensus(validator),
 	}, nil
 }
 

@@ -32,10 +32,10 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
-	"github.com/berachain/beacon-kit/primitives/version"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
@@ -63,6 +63,10 @@ func (s *Service) BuildBlockAndSidecars(
 	// and safe block hashes to the execution client.
 	st := s.sb.StateFromContext(ctx)
 
+	// we introduce hard forks with the expectation that the height set for the
+	// hard fork is the first height at which new rules apply. So we need to make
+	// sure that when building blocks, we pick the right height. blkSlots is the
+	// height for the next block, which consensus is requesting BeaconKit to build.
 	blkSlot := slotData.GetSlot()
 
 	// Prepare the state such that it is ready to build a block for
@@ -101,7 +105,7 @@ func (s *Service) BuildBlockAndSidecars(
 
 	// We have to assemble the block body prior to producing the sidecars
 	// since we need to generate the inclusion proofs.
-	if err = s.buildBlockBody(ctx, st, blk, reveal, envelope, slotData); err != nil {
+	if err = s.buildBlockBody(ctx, st, blk, reveal, envelope); err != nil {
 		return nil, nil, err
 	}
 
@@ -155,7 +159,6 @@ func (s *Service) getEmptyBeaconBlockForSlot(
 	parentBlockRoot, err := st.GetBlockRootAtIndex(
 		(requestedSlot.Unwrap() - 1) % s.chainSpec.SlotsPerHistoricalRoot(),
 	)
-
 	if err != nil {
 		return nil, err
 	}
@@ -176,38 +179,31 @@ func (s *Service) getEmptyBeaconBlockForSlot(
 	)
 }
 
-func (s *Service) buildForkData(
-	st *statedb.StateDB,
-	slot math.Slot,
-) (*ctypes.ForkData, error) {
-	var (
-		epoch = s.chainSpec.SlotToEpoch(slot)
-	)
-
+func (s *Service) buildForkData(st *statedb.StateDB, slot math.Slot) (*ctypes.ForkData, error) {
 	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
 	if err != nil {
 		return nil, err
 	}
 
 	return ctypes.NewForkData(
-		version.FromUint32[common.Version](
-			s.chainSpec.ActiveForkVersionForEpoch(epoch),
-		),
+		bytes.FromUint32(s.chainSpec.ActiveForkVersionForSlot(slot)),
 		genesisValidatorsRoot,
 	), nil
 }
 
 // buildRandaoReveal builds a randao reveal for the given slot.
 func (s *Service) buildRandaoReveal(
-	forkData *ctypes.ForkData,
-	slot math.Slot,
+	forkData *ctypes.ForkData, slot math.Slot,
 ) (crypto.BLSSignature, error) {
-	var epoch = s.chainSpec.SlotToEpoch(slot)
 	signingRoot := forkData.ComputeRandaoSigningRoot(
 		s.chainSpec.DomainTypeRandao(),
-		epoch,
+		s.chainSpec.SlotToEpoch(slot),
 	)
-	return s.signer.Sign(signingRoot[:])
+	signature, err := s.signer.Sign(signingRoot[:])
+	if err != nil {
+		return signature, fmt.Errorf("block building failed randao checks: %w", err)
+	}
+	return signature, nil
 }
 
 // retrieveExecutionPayload retrieves the execution payload for the block.
@@ -275,7 +271,6 @@ func (s *Service) buildBlockBody(
 	blk *ctypes.BeaconBlock,
 	reveal crypto.BLSSignature,
 	envelope ctypes.BuiltExecutionPayloadEnv,
-	slotData *types.SlotData,
 ) error {
 	// Assemble a new block with the payload.
 	body := blk.GetBody()
@@ -304,7 +299,8 @@ func (s *Service) buildBlockBody(
 	// Grab all previous deposits from genesis up to the current index + max deposits per block.
 	deposits, err := s.sb.DepositStore().GetDepositsByIndex(
 		ctx,
-		0, depositIndex+s.chainSpec.MaxDepositsPerBlock(),
+		constants.FirstDepositIndex,
+		depositIndex+s.chainSpec.MaxDepositsPerBlock(),
 	)
 	if err != nil {
 		return err
@@ -336,18 +332,9 @@ func (s *Service) buildBlockBody(
 	// Fill in unused field with non-nil value
 	body.SetSyncAggregate(&ctypes.SyncAggregate{})
 
-	// Get the epoch to find the active fork version.
-	epoch := s.chainSpec.SlotToEpoch(blk.GetSlot())
-	activeForkVersion := s.chainSpec.ActiveForkVersionForEpoch(
-		epoch,
-	)
-	if activeForkVersion >= version.DenebPlus {
-		body.SetAttestationData(slotData.GetAttestationData())
-
-		// Set the slashing info on the block body.
-		body.SetSlashingInfo(slotData.GetSlashingInfo())
-	}
+	// Set the execution payload on the block body.
 	body.SetExecutionPayload(envelope.GetExecutionPayload())
+
 	return nil
 }
 

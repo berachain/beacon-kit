@@ -22,60 +22,137 @@ package spec
 
 import (
 	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-// MainnetChainSpec is the ChainSpec for the Berachain mainnet.
-//
-//nolint:mnd // okay to specify values here.
-func MainnetChainSpec() (chain.Spec, error) {
-	mainnetSpec := BaseSpec()
-
-	// Chain ID is 80094.
-	mainnetSpec.DepositEth1ChainID = MainnetEth1ChainID
-
-	// Target for block time is 2 seconds on Berachain mainnet.
-	mainnetSpec.TargetSecondsPerEth1Block = 2
-
+const (
 	// BGT contract address.
 	//
 	// A hard fork will occur to set this value as the BGT contract address
 	// when BGT beings to be minted.
-	mainnetSpec.EVMInflationAddress = common.ExecutionAddress{}
+	mainnetEVMInflationAddress = defaultEVMInflationAddress
 
 	// 0 BERA is minted to the BGT contract per block at genesis.
 	//
 	// A hard fork will occur to set this value as the upper bound of redeemable BGT per
 	// block when BGT begins to be minted.
-	mainnetSpec.EVMInflationPerBlock = 0
+	mainnetEVMInflationPerBlock = defaultEVMInflationPerBlock
 
-	// ValidatorSetCap is 69 on Mainnet for version Deneb at genesis.
-	mainnetSpec.ValidatorSetCap = 69
+	// mainnetValidatorSetCap is 69 on Mainnet at genesis.
+	mainnetValidatorSetCap = 69
 
-	// MaxValidatorsPerWithdrawalsSweep is 31 because we expect at least 36
+	// mainnetMaxValidatorsPerWithdrawalsSweep is 31 because we expect at least 36
 	// validators in the total validators set. We choose a prime number smaller
 	// than the minimum amount of total validators possible.
-	mainnetSpec.MaxValidatorsPerWithdrawalsSweep = 31
+	mainnetMaxValidatorsPerWithdrawalsSweep = 31
 
-	// MaxEffectiveBalance (or max stake) is 10 million BERA.
-	mainnetSpec.MaxEffectiveBalance = 10_000_000 * 1e9
+	// mainnetMaxEffectiveBalance is the max stake of 10 million BERA at genesis.
+	mainnetMaxEffectiveBalance = 10_000_000 * math.GweiPerWei
 
-	// Effective balance increment is 10k BERA
+	// mainnetEffectiveBalanceIncrement is 10k BERA at genesis
 	// (equivalent to the Deposit Contract's MIN_DEPOSIT_AMOUNT).
-	mainnetSpec.EffectiveBalanceIncrement = 10_000 * 1e9
+	mainnetEffectiveBalanceIncrement = 10_000 * math.GweiPerWei
 
-	// Since the activation balance (min stake) is 250k BERA, we set the ejection balance be
+	// mainnetEjectionBalance is 240k BERA, calculated as:
 	// activation_balance - effective_balance_increment = 250k - 10k = 240k BERA.
-	mainnetSpec.EjectionBalance = 250_000*1e9 - mainnetSpec.EffectiveBalanceIncrement
+	// Activation balance is the min stake of 250k BERA at genesis.
+	mainnetEjectionBalance = 250_000*math.GweiPerWei - mainnetEffectiveBalanceIncrement
 
-	// Slots per epoch is 192 to mirror the time of epochs on Ethereum mainnet.
-	mainnetSpec.SlotsPerEpoch = 192
+	// mainnetSlotsPerEpoch is 192 to mirror the time of epochs on Ethereum mainnet.
+	mainnetSlotsPerEpoch = 192
 
-	// MinEpochsForBlobsSidecarsRequest is 4096 to match Ethereum mainnet.
-	mainnetSpec.MinEpochsForBlobsSidecarsRequest = 4096
+	// mainnetMinEpochsForBlobsSidecarsRequest is 4096 at genesis to match Ethereum mainnet.
+	mainnetMinEpochsForBlobsSidecarsRequest = defaultMinEpochsForBlobsSidecarsRequest
 
-	// MaxBlobCommitmentsPerBlock is 4096 to match Ethereum mainnet.
-	mainnetSpec.MaxBlobCommitmentsPerBlock = 4096
+	// mainnetMaxBlobCommitmentsPerBlock is 4096 at genesis to match Ethereum mainnet.
+	mainnetMaxBlobCommitmentsPerBlock = defaultMaxBlobCommitmentsPerBlock
 
-	return chain.NewSpec(mainnetSpec)
+	// The deposit contract address on mainnet at genesis is the same as the
+	// default deposit contract address.
+	mainnetDepositContractAddress = defaultDepositContractAddress
+
+	// mainnetDeneb1ForkEpoch is the epoch at which the Deneb1 fork occurs.
+	mainnetDeneb1ForkEpoch = 2855
+
+	// mainnetEVMInflationAddressDeneb1 is the address on the EVM which will receive the
+	// inflation amount of native EVM balance through a withdrawal every block in the Deneb1 fork.
+	mainnetEVMInflationAddressDeneb1 = "0x656b95E550C07a9ffe548bd4085c72418Ceb1dba"
+
+	// mainnetEVMInflationPerBlockDeneb1 is the amount of native EVM balance (in Gwei) to be
+	// minted to the EVMInflationAddressDeneb1 via a withdrawal every block in the Deneb1 fork.
+	mainnetEVMInflationPerBlockDeneb1 = 5.75 * math.GweiPerWei
+)
+
+// MainnetChainSpecData is the chain.SpecData for the Berachain mainnet.
+func MainnetChainSpecData() *chain.SpecData {
+	return &chain.SpecData{
+		// Gwei values constants.
+		MaxEffectiveBalance:       mainnetMaxEffectiveBalance,
+		EjectionBalance:           mainnetEjectionBalance,
+		EffectiveBalanceIncrement: mainnetEffectiveBalanceIncrement,
+
+		HysteresisQuotient:           defaultHysteresisQuotient,
+		HysteresisDownwardMultiplier: defaultHysteresisDownwardMultiplier,
+		HysteresisUpwardMultiplier:   defaultHysteresisUpwardMultiplier,
+
+		// Time parameters constants.
+		SlotsPerEpoch:                mainnetSlotsPerEpoch,
+		SlotsPerHistoricalRoot:       defaultSlotsPerHistoricalRoot,
+		MinEpochsToInactivityPenalty: defaultMinEpochsToInactivityPenalty,
+
+		// Signature domains.
+		DomainTypeProposer:          bytes.FromUint32(defaultDomainTypeProposer),
+		DomainTypeAttester:          bytes.FromUint32(defaultDomainTypeAttester),
+		DomainTypeRandao:            bytes.FromUint32(defaultDomainTypeRandao),
+		DomainTypeDeposit:           bytes.FromUint32(defaultDomainTypeDeposit),
+		DomainTypeVoluntaryExit:     bytes.FromUint32(defaultDomainTypeVoluntaryExit),
+		DomainTypeSelectionProof:    bytes.FromUint32(defaultDomainTypeSelectionProof),
+		DomainTypeAggregateAndProof: bytes.FromUint32(defaultDomainTypeAggregateAndProof),
+		DomainTypeApplicationMask:   bytes.FromUint32(defaultDomainTypeApplicationMask),
+
+		// Eth1-related values.
+		DepositContractAddress:    common.NewExecutionAddressFromHex(mainnetDepositContractAddress),
+		MaxDepositsPerBlock:       defaultMaxDepositsPerBlock,
+		DepositEth1ChainID:        MainnetEth1ChainID,
+		Eth1FollowDistance:        defaultEth1FollowDistance,
+		TargetSecondsPerEth1Block: defaultTargetSecondsPerEth1Block,
+
+		// Fork-related values.
+		Deneb1ForkEpoch:  mainnetDeneb1ForkEpoch,
+		ElectraForkEpoch: defaultElectraForkEpoch,
+
+		// State list length constants.
+		EpochsPerHistoricalVector: defaultEpochsPerHistoricalVector,
+		EpochsPerSlashingsVector:  defaultEpochsPerSlashingsVector,
+		HistoricalRootsLimit:      defaultHistoricalRootsLimit,
+		ValidatorRegistryLimit:    defaultValidatorRegistryLimit,
+
+		// Capella values.
+		MaxWithdrawalsPerPayload:         defaultMaxWithdrawalsPerPayload,
+		MaxValidatorsPerWithdrawalsSweep: mainnetMaxValidatorsPerWithdrawalsSweep,
+
+		// Deneb values.
+		MinEpochsForBlobsSidecarsRequest: mainnetMinEpochsForBlobsSidecarsRequest,
+		MaxBlobCommitmentsPerBlock:       mainnetMaxBlobCommitmentsPerBlock,
+		MaxBlobsPerBlock:                 defaultMaxBlobsPerBlock,
+		FieldElementsPerBlob:             defaultFieldElementsPerBlob,
+		BytesPerBlob:                     defaultBytesPerBlob,
+		KZGCommitmentInclusionProofDepth: defaultKZGCommitmentInclusionProofDepth,
+
+		// Berachain values at genesis.
+		ValidatorSetCap:             mainnetValidatorSetCap,
+		EVMInflationAddressGenesis:  common.NewExecutionAddressFromHex(mainnetEVMInflationAddress),
+		EVMInflationPerBlockGenesis: mainnetEVMInflationPerBlock,
+
+		// Deneb1 values.
+		EVMInflationAddressDeneb1:  common.NewExecutionAddressFromHex(mainnetEVMInflationAddressDeneb1),
+		EVMInflationPerBlockDeneb1: mainnetEVMInflationPerBlockDeneb1,
+	}
+}
+
+// MainnetChainSpec is the ChainSpec for the Berachain mainnet.
+func MainnetChainSpec() (chain.Spec, error) {
+	return chain.NewSpec(MainnetChainSpecData())
 }

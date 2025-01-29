@@ -39,6 +39,7 @@ func Commands(chainSpec chain.Spec) *cobra.Command {
 	cmd.AddCommand(
 		NewValidateDeposit(chainSpec),
 		NewCreateValidator(chainSpec),
+		GetValidatorKeysCmd(),
 	)
 
 	return cmd

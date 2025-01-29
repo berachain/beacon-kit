@@ -29,18 +29,15 @@ import (
 
 func (s *Service) processPruning(ctx context.Context, beaconBlk *ctypes.BeaconBlock) error {
 	// prune availability store
-	start, end := availabilityPruneRangeFn(
-		beaconBlk.GetSlot().Unwrap(), s.chainSpec)
+	start, end := availabilityPruneRangeFn(beaconBlk.GetSlot().Unwrap(), s.chainSpec)
 	err := s.storageBackend.AvailabilityStore().Prune(start, end)
 	if err != nil {
 		return err
 	}
 
 	// prune deposit store
-	start, end = depositPruneRangeFn(
-		beaconBlk.GetBody().GetDeposits(), s.chainSpec)
+	start, end = depositPruneRangeFn(beaconBlk.GetBody().GetDeposits(), s.chainSpec)
 	err = s.storageBackend.DepositStore().Prune(ctx, start, end)
-
 	if err != nil {
 		return err
 	}
