@@ -26,11 +26,11 @@ import (
 
 // Client - Ethereum rpc client.
 type Client struct {
-	*rpc.Client
+	rpc.Client
 }
 
 // New create new rpc client with given url.
-func New(client *rpc.Client) *Client {
+func New(client rpc.Client) *Client {
 	rpc := &Client{
 		Client: client,
 	}

@@ -26,11 +26,12 @@ import (
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/state-transition/core/state"
+	"github.com/ethereum/go-ethereum/params"
 )
 
 // processOperations processes the operations and ensures they match the local state.
@@ -39,9 +40,8 @@ func (sp *StateProcessor[_]) processOperations(
 ) error {
 	// Verify that outstanding deposits are processed up to the maximum number of deposits.
 	//
-	// Unlike Eth 2.0 specs we don't check the following:
-	// `len(body.deposits) ==  min(MAX_DEPOSITS, state.eth1_data.deposit_count - state.eth1_deposit_index)`.
-	// Instead we directly compare block deposits with store ones.
+	// Unlike Eth 2.0 specs we don't check that
+	// `len(body.deposits) ==  min(MAX_DEPOSITS, state.eth1_data.deposit_count - state.eth1_deposit_index)`
 	deposits := blk.GetBody().GetDeposits()
 	if uint64(len(deposits)) > sp.cs.MaxDepositsPerBlock() {
 		return errors.Wrapf(
@@ -50,6 +50,7 @@ func (sp *StateProcessor[_]) processOperations(
 		)
 	}
 
+	// Instead we directly compare block deposits with our local store ones.
 	if err := sp.validateNonGenesisDeposits(
 		ctx, st, deposits, blk.GetBody().GetEth1Data().DepositRoot,
 	); err != nil {
@@ -105,7 +106,7 @@ func (sp *StateProcessor[_]) applyDeposit(st *state.StateDB, dep *ctypes.Deposit
 
 	sp.logger.Info(
 		"Processed deposit to increase balance",
-		"deposit_amount", float64(dep.GetAmount().Unwrap())/math.GweiPerWei,
+		"deposit_amount", float64(dep.GetAmount().Unwrap())/params.GWei,
 		"validator_index", idx,
 	)
 	return nil
@@ -144,7 +145,7 @@ func (sp *StateProcessor[_]) createValidator(st *state.StateDB, dep *ctypes.Depo
 	err = dep.VerifySignature(
 		ctypes.NewForkData(
 			// Deposits must be signed with GENESIS_FORK_VERSION.
-			version.FromUint32[common.Version](constants.GenesisVersion),
+			bytes.FromUint32(constants.GenesisVersion),
 			genesisValidatorsRoot,
 		),
 		sp.cs.DomainTypeDeposit(),
@@ -189,7 +190,7 @@ func (sp *StateProcessor[_]) addValidatorToRegistry(st *state.StateDB, dep *ctyp
 	}
 	sp.logger.Info(
 		"Processed deposit to create new validator",
-		"deposit_amount", float64(dep.GetAmount().Unwrap())/math.GweiPerWei,
+		"deposit_amount", float64(dep.GetAmount().Unwrap())/params.GWei,
 		"validator_index", idx, "withdrawal_epoch", val.GetWithdrawableEpoch(),
 	)
 	return nil
