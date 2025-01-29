@@ -58,7 +58,7 @@ type ValidatorTestStruct struct {
 // 1) Add staking tests for adding a new validator to the network.
 // 2) Add staking tests for hitting the validator set cap and eviction.
 func (s *BeaconKitE2ESuite) runDepositRobustness() {
-  s.Logger().Info("Running Deposit Robustness")
+	s.Logger().Info("Running Deposit Robustness")
 	// TODO: make test use configurable chain spec.
 	chainspec, err := spec.DevnetChainSpec()
 	s.Require().NoError(err)

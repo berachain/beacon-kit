@@ -31,7 +31,7 @@ import (
 // runEVMInflation checks that the EVM inflation address receives the correct
 // amount of EVM inflation per block.
 func (s *BeaconKitE2ESuite) runEVMInflation() {
-  s.Logger().Info("Running TestEVMInflation")
+	s.Logger().Info("Running TestEVMInflation")
 	// TODO: make test use configurable chain spec.
 	chainspec, err := spec.DevnetChainSpec()
 	s.Require().NoError(err)
