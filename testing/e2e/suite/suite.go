@@ -64,9 +64,8 @@ type NetworkInstance struct {
 	Config           *config.E2ETestConfig
 	consensusClients map[string]*types.ConsensusClient
 	loadBalancer     *types.LoadBalancer
-	genesisAccount   *types.EthAccount
-	testAccounts     []*types.EthAccount
-	enclave          *enclaves.EnclaveContext
+	testAccounts []*types.EthAccount
+	enclave      *enclaves.EnclaveContext
 }
 
 // NewNetworkInstance creates a new network instance.

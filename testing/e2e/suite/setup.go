@@ -117,10 +117,9 @@ func (s *KurtosisE2ESuite) setupLoadBalancer(network *NetworkInstance) error {
 // It ensures the genesis account has sufficient funds before creating test accounts.
 func (s *KurtosisE2ESuite) setupAccounts(network *NetworkInstance) error {
 	// Initialize genesis account
-	network.genesisAccount = types.NewEthAccountFromHex(
+	s.genesisAccount = types.NewEthAccountFromHex(
 		"genesisAccount", "fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306",
 	)
-	s.genesisAccount = network.genesisAccount
 
 	// Wait for a few blocks to ensure the genesis account has funds
 	//nolint:mnd // 5 blocks
