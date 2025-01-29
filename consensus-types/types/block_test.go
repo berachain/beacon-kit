@@ -102,7 +102,7 @@ func TestBeaconBlock(t *testing.T) {
 
 	require.NotNil(t, block.Body)
 	require.Equal(t, math.U64(10), block.GetTimestamp())
-	require.Equal(t, version.Deneb1, block.Version())
+	require.Equal(t, version.Deneb1(), block.Version())
 	require.False(t, block.IsNil())
 
 	// Set a new state root and test the SetStateRoot and GetBody methods

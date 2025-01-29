@@ -95,7 +95,7 @@ func TestExecutionPayloadHeader_IsNil(t *testing.T) {
 
 func TestExecutionPayloadHeader_Version(t *testing.T) {
 	header := generateExecutionPayloadHeader()
-	require.Equal(t, version.Deneb1, header.Version())
+	require.Equal(t, version.Deneb1(), header.Version())
 }
 
 func TestExecutionPayloadHeader_MarshalUnmarshalJSON(t *testing.T) {

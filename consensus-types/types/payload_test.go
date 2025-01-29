@@ -198,7 +198,7 @@ func TestExecutionPayload_IsBlinded(t *testing.T) {
 
 func TestExecutionPayload_Version(t *testing.T) {
 	payload := generateExecutionPayload()
-	require.Equal(t, version.Deneb1, payload.Version())
+	require.Equal(t, version.Deneb1(), payload.Version())
 }
 
 func TestExecutionPayload_ToHeader(t *testing.T) {
