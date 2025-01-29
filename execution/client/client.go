@@ -118,6 +118,8 @@ func (s *EngineClient) Start(
 			if err := s.verifyChainIDAndConnection(ctx); err != nil {
 				if errors.Is(err, ErrMismatchedEth1ChainID) {
 					s.logger.Error(err.Error())
+					//
+					return err
 				}
 				continue
 			}

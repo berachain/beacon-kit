@@ -163,7 +163,6 @@ func (rpc *client) callRaw(
 	if err != nil {
 		return nil, err
 	}
-
 	rpc.mu.RLock()
 	req.Header = rpc.header.Clone()
 	rpc.mu.RUnlock()
