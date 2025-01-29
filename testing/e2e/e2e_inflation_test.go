@@ -32,6 +32,10 @@ import (
 // amount of EVM inflation per block.
 func (s *BeaconKitE2ESuite) runEVMInflation() {
 	s.Logger().Info("Running TestEVMInflation")
+
+	// Get the current network
+	network := s.GetCurrentNetwork()
+	s.Require().NotNil(network, "Network instance is nil")
 	// TODO: make test use configurable chain spec.
 	chainspec, err := spec.DevnetChainSpec()
 	s.Require().NoError(err)
@@ -43,7 +47,7 @@ func (s *BeaconKitE2ESuite) runEVMInflation() {
 	preForkInflation := chainspec.EVMInflationPerBlock(math.Slot(0))
 	preForkAddress := chainspec.EVMInflationAddress(math.Slot(0))
 	for blkNum := range int64(deneb1ForkSlot) {
-		err = s.WaitForFinalizedBlockNumber(uint64(blkNum))
+		err = s.WaitForFinalizedBlockNumber(network, uint64(blkNum))
 		s.Require().NoError(err)
 
 		expectedBalance := new(big.Int).Mul(
@@ -52,7 +56,7 @@ func (s *BeaconKitE2ESuite) runEVMInflation() {
 		)
 
 		var balance *big.Int
-		balance, err = s.JSONRPCBalancer().BalanceAt(
+		balance, err = network.JSONRPCBalancer().BalanceAt(
 			s.Ctx(),
 			gethcommon.Address(preForkAddress),
 			big.NewInt(blkNum),
@@ -75,13 +79,13 @@ func (s *BeaconKitE2ESuite) runEVMInflation() {
 
 	// take the snapshot of balance right before the fork and check it won't change anymore
 	var preForkAddressFinalBalance *big.Int
-	preForkAddressFinalBalance, err = s.JSONRPCBalancer().BalanceAt(
+	preForkAddressFinalBalance, err = network.JSONRPCBalancer().BalanceAt(
 		s.Ctx(), gethcommon.Address(preForkAddress), big.NewInt(int64(deneb1ForkSlot-1)),
 	)
 	s.Require().NoError(err)
 
 	for blkNum := deneb1ForkSlot; blkNum < deneb1ForkSlot+chainspec.SlotsPerEpoch(); blkNum++ {
-		err = s.WaitForFinalizedBlockNumber(blkNum)
+		err = s.WaitForFinalizedBlockNumber(network, blkNum)
 		s.Require().NoError(err)
 
 		expectedBalance := new(big.Int).Mul(
@@ -90,7 +94,7 @@ func (s *BeaconKitE2ESuite) runEVMInflation() {
 		)
 
 		var balance *big.Int
-		balance, err = s.JSONRPCBalancer().BalanceAt(
+		balance, err = network.JSONRPCBalancer().BalanceAt(
 			s.Ctx(),
 			gethcommon.Address(postForkAddress),
 			big.NewInt(int64(blkNum)),
@@ -105,7 +109,7 @@ func (s *BeaconKitE2ESuite) runEVMInflation() {
 		// Enforce that the balance of the EVM inflation address
 		// prior to the hardfork is the same as it is now.
 		var preForkLatestBalance *big.Int
-		preForkLatestBalance, err = s.JSONRPCBalancer().BalanceAt(
+		preForkLatestBalance, err = network.JSONRPCBalancer().BalanceAt(
 			s.Ctx(), gethcommon.Address(preForkAddress), nil, // at the current block
 		)
 		s.Require().NoError(err)

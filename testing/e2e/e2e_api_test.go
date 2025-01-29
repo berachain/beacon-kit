@@ -30,13 +30,13 @@ import (
 // working beacon node-api client.
 func (s *BeaconKitE2ESuite) runBeaconAPIStartup() {
 	s.Logger().Info("Running BeaconAPIStartup")
-	// Wait for execution block 5.
-	err := s.WaitForFinalizedBlockNumber(5)
-	s.Require().NoError(err)
-
 	// Get the current network instance
 	network := s.GetCurrentNetwork()
 	s.Require().NotNil(network, "Network instance is nil")
+
+	// Wait for execution block 5.
+	err := s.WaitForFinalizedBlockNumber(network, 5)
+	s.Require().NoError(err)
 
 	// Get the consensus client.
 	client := network.ConsensusClients()[config.ClientValidator0]

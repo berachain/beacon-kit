@@ -108,7 +108,6 @@ func (s *KurtosisE2ESuite) setupLoadBalancer(network *NetworkInstance) error {
 		return errors.New("load balancer is nil after creation")
 	}
 	network.loadBalancer = loadBalancer
-	s.loadBalancer = network.loadBalancer
 
 	return s.waitForRPCReady(network)
 }
@@ -123,12 +122,12 @@ func (s *KurtosisE2ESuite) setupAccounts(network *NetworkInstance) error {
 
 	// Wait for a few blocks to ensure the genesis account has funds
 	//nolint:mnd // 5 blocks
-	if err := s.WaitForNBlockNumbers(5); err != nil {
+	if err := s.WaitForNBlockNumbers(network, 5); err != nil {
 		return fmt.Errorf("failed waiting for blocks: %w", err)
 	}
 
 	// Verify genesis account balance
-	balance, err := s.JSONRPCBalancer().BalanceAt(s.ctx, network.genesisAccount.Address(), nil)
+	balance, err := network.JSONRPCBalancer().BalanceAt(s.ctx, network.genesisAccount.Address(), nil)
 	if err != nil {
 		return fmt.Errorf("failed to get genesis balance: %w", err)
 	}
@@ -148,7 +147,7 @@ func (s *KurtosisE2ESuite) setupAccounts(network *NetworkInstance) error {
 		if !ok {
 			return errors.New("failed to parse amount")
 		}
-		if err = s.fundAccount(network.genesisAccount, account.Address(), amount); err != nil {
+		if err = s.fundAccount(network, account.Address(), amount); err != nil {
 			return fmt.Errorf("failed to fund test accounts: %w", err)
 		}
 	}
@@ -244,25 +243,25 @@ func (s *KurtosisE2ESuite) generateTestAccounts(network *NetworkInstance) error 
 }
 
 // fundAccount sends ETH to the given address.
-func (s *KurtosisE2ESuite) fundAccount(genesisAccount *types.EthAccount, to common.Address, amount *big.Int) error {
+func (s *KurtosisE2ESuite) fundAccount(network *NetworkInstance, to common.Address, amount *big.Int) error {
 	// Get initial balance
-	initialBalance, err := s.JSONRPCBalancer().BalanceAt(s.ctx, to, nil)
+	initialBalance, err := network.JSONRPCBalancer().BalanceAt(s.ctx, to, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get initial balance: %w", err)
 	}
 
-	nonce, err := s.JSONRPCBalancer().PendingNonceAt(s.ctx, genesisAccount.Address())
+	nonce, err := network.JSONRPCBalancer().PendingNonceAt(s.ctx, network.genesisAccount.Address())
 	if err != nil {
 		return err
 	}
 
-	chainID, err := s.JSONRPCBalancer().ChainID(s.ctx)
+	chainID, err := network.JSONRPCBalancer().ChainID(s.ctx)
 	if err != nil {
 		return err
 	}
 
 	// Get the latest block for fee estimation
-	header, err := s.JSONRPCBalancer().HeaderByNumber(s.ctx, nil)
+	header, err := network.JSONRPCBalancer().HeaderByNumber(s.ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -280,17 +279,17 @@ func (s *KurtosisE2ESuite) fundAccount(genesisAccount *types.EthAccount, to comm
 		GasTipCap: big.NewInt(1e9),
 	})
 
-	signedTx, err := genesisAccount.SignTx(chainID, tx)
+	signedTx, err := network.genesisAccount.SignTx(chainID, tx)
 	if err != nil {
 		return err
 	}
 
-	if err = s.JSONRPCBalancer().SendTransaction(s.ctx, signedTx); err != nil {
+	if err = network.JSONRPCBalancer().SendTransaction(s.ctx, signedTx); err != nil {
 		return fmt.Errorf("failed to send transaction: %w", err)
 	}
 
 	// Wait for transaction to be mined
-	receipt, err := s.WaitForTransactionReceipt(signedTx.Hash())
+	receipt, err := s.WaitForTransactionReceipt(network, signedTx.Hash())
 	if err != nil {
 		return fmt.Errorf("failed waiting for transaction: %w", err)
 	}
@@ -301,7 +300,7 @@ func (s *KurtosisE2ESuite) fundAccount(genesisAccount *types.EthAccount, to comm
 	}
 
 	// Verify balance increase
-	newBalance, err := s.JSONRPCBalancer().BalanceAt(s.ctx, to, nil)
+	newBalance, err := network.JSONRPCBalancer().BalanceAt(s.ctx, to, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get new balance: %w", err)
 	}
@@ -394,7 +393,7 @@ func (s *KurtosisE2ESuite) destroyEnclave(network *NetworkInstance) error {
 
 // WaitForFinalizedBlockNumber waits until the chain reaches the target block number.
 // It polls the chain state and returns an error if the context deadline is exceeded.
-func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(target uint64) error {
+func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(network *NetworkInstance, target uint64) error {
 	cctx, cancel := context.WithTimeout(s.ctx, DefaultE2ETestTimeout)
 	defer cancel()
 	ticker := time.NewTicker(time.Second)
@@ -409,7 +408,7 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(target uint64) error {
 		}
 
 		var err error
-		finalBlockNum, err = s.JSONRPCBalancer().BlockNumber(cctx)
+		finalBlockNum, err = network.JSONRPCBalancer().BlockNumber(cctx)
 		if err != nil {
 			s.logger.Error("error getting finalized block number", "error", err)
 			continue
@@ -443,17 +442,17 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(target uint64) error {
 
 // WaitForNBlockNumbers waits for a specified amount of blocks into the future from now.
 // It gets the current block number and waits until target = current + n blocks.
-func (s *KurtosisE2ESuite) WaitForNBlockNumbers(n uint64) error {
-	current, err := s.JSONRPCBalancer().BlockNumber(s.ctx)
+func (s *KurtosisE2ESuite) WaitForNBlockNumbers(network *NetworkInstance, n uint64) error {
+	current, err := network.JSONRPCBalancer().BlockNumber(s.ctx)
 	if err != nil {
 		return err
 	}
-	return s.WaitForFinalizedBlockNumber(current + n)
+	return s.WaitForFinalizedBlockNumber(network, current+n)
 }
 
 // JSONRPCBalancer returns the JSON-RPC load balancer for the test suite.
-func (s *KurtosisE2ESuite) JSONRPCBalancer() *types.LoadBalancer {
-	return s.loadBalancer
+func (network *NetworkInstance) JSONRPCBalancer() *types.LoadBalancer {
+	return network.loadBalancer
 }
 
 // GetAccounts returns all test accounts created for the test suite.
@@ -522,9 +521,9 @@ func (s *KurtosisE2ESuite) ConsensusClients() map[string]*types.ConsensusClient 
 
 // WaitForTransactionReceipt waits for a transaction to be mined and returns the receipt.
 // It attempts to get the receipt for up to 30 seconds before timing out.
-func (s *KurtosisE2ESuite) WaitForTransactionReceipt(tx common.Hash) (*ethtypes.Receipt, error) {
+func (s *KurtosisE2ESuite) WaitForTransactionReceipt(network *NetworkInstance, tx common.Hash) (*ethtypes.Receipt, error) {
 	for range 30 {
-		receipt, err := s.JSONRPCBalancer().TransactionReceipt(s.ctx, tx)
+		receipt, err := network.JSONRPCBalancer().TransactionReceipt(s.ctx, tx)
 		if err == nil {
 			return receipt, nil
 		}

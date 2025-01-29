@@ -47,8 +47,6 @@ type KurtosisE2ESuite struct {
 	ctx    context.Context
 	kCtx   *kurtosis_context.KurtosisContext
 
-	loadBalancer *types.LoadBalancer
-
 	// Network management
 	networks  map[string]*NetworkInstance // maps chainSpec to network
 	testSpecs map[string]ChainSpec        // maps testName to chainSpec

@@ -64,15 +64,15 @@ func (s *BeaconKitE2ESuite) run4844Live() {
 
 	// Grab values to plug into txs
 	sender := s.GetAccounts()[0]
-	chainID, err := s.JSONRPCBalancer().ChainID(ctx)
+	chainID, err := network.JSONRPCBalancer().ChainID(ctx)
 	s.Require().NoError(err)
-	tip, err := s.JSONRPCBalancer().SuggestGasTipCap(ctx)
+	tip, err := network.JSONRPCBalancer().SuggestGasTipCap(ctx)
 	s.Require().NoError(err)
-	gasFee, err := s.JSONRPCBalancer().SuggestGasPrice(ctx)
+	gasFee, err := network.JSONRPCBalancer().SuggestGasPrice(ctx)
 	s.Require().NoError(err)
-	blkNum, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
+	blkNum, err := network.JSONRPCBalancer().BlockNumber(s.Ctx())
 	s.Require().NoError(err)
-	nonce, err := s.JSONRPCBalancer().NonceAt(
+	nonce, err := network.JSONRPCBalancer().NonceAt(
 		s.Ctx(), sender.Address(), new(big.Int).SetUint64(blkNum),
 	)
 	s.Require().NoError(err)
@@ -104,7 +104,7 @@ func (s *BeaconKitE2ESuite) run4844Live() {
 		s.Logger().Info("submitting blob transaction", "blobTx", blobTx.Hash().Hex())
 		blobTxs = append(blobTxs, blobTx)
 
-		err = s.JSONRPCBalancer().SendTransaction(ctx, blobTx)
+		err = network.JSONRPCBalancer().SendTransaction(ctx, blobTx)
 		// TODO: Figure out what is causing this to happen.
 		// Also, `errors.Is(err, txpool.ErrAlreadyKnown)` doesn't catch it.
 		if err != nil && err.Error() == txpool.ErrAlreadyKnown.Error() {
@@ -124,7 +124,7 @@ func (s *BeaconKitE2ESuite) run4844Live() {
 			// Wait for the blob transaction to be mined before making request.
 			s.Logger().
 				Info("waiting for blob transaction to be mined", "blobTx", blobTx.Hash().Hex())
-			receipt, errWait := bind.WaitMined(ctx, s.JSONRPCBalancer(), blobTx)
+			receipt, errWait := bind.WaitMined(ctx, network.JSONRPCBalancer(), blobTx)
 			s.Require().NoError(errWait)
 			s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
 
@@ -135,7 +135,7 @@ func (s *BeaconKitE2ESuite) run4844Live() {
 			// just wait 1 block.
 			//
 			//nolint:contextcheck // uses the service context.
-			s.Require().NoError(s.WaitForNBlockNumbers(1))
+			s.Require().NoError(s.WaitForNBlockNumbers(network, 1))
 
 			// Fetch blobs from node-api.
 			response, errAPI := client0.BlobSidecars(ctx, &api.BlobSidecarsOpts{Block: receipt.BlockNumber.String()})
@@ -161,6 +161,6 @@ func (s *BeaconKitE2ESuite) run4844Live() {
 	wg.Wait()
 
 	// Ensure Blob Tx doesn't cause liveliness issues.
-	err = s.WaitForNBlockNumbers(BlocksToWait4844)
+	err = s.WaitForNBlockNumbers(network, BlocksToWait4844)
 	s.Require().NoError(err)
 }

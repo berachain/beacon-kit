@@ -92,6 +92,9 @@ func (s *BeaconKitE2ESuite) TestRunE2E() {
 
 func (s *BeaconKitE2ESuite) runBasicStartup() {
 	s.Logger().Info("Running Basic Startup")
-	err := s.WaitForFinalizedBlockNumber(10)
+	network := s.GetCurrentNetwork()
+	s.Require().NotNil(network, "Network instance is nil")
+
+	err := s.WaitForFinalizedBlockNumber(network, 10)
 	s.Require().NoError(err)
 }
