@@ -56,8 +56,7 @@ func DefaultComponents(_ *testing.T) []any {
 		components.ProvideChainSpec,
 		components.ProvideConfig,
 		components.ProvideServerConfig,
-		// Using in-memory Deposit Store
-		components.ProvideDepositStoreInMemory[*phuslu.Logger],
+		components.ProvideDepositStore[*phuslu.Logger],
 		components.ProvideEngineClient[*phuslu.Logger],
 		components.ProvideExecutionEngine[*phuslu.Logger],
 		components.ProvideJWTSecret,
