@@ -20,9 +20,7 @@
 
 package e2e_test
 
-import (
-	"github.com/berachain/beacon-kit/testing/e2e/suite"
-)
+import "github.com/berachain/beacon-kit/testing/e2e/suite"
 
 // BeaconE2ESuite is a suite of tests simulating a fully function beacon-kit
 // network.
