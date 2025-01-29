@@ -131,6 +131,8 @@ func newTestNode(t *testing.T) *TestNode {
 	appOpts.Set(flags.KZGTrustedSetupPath, "../files/kzg-trusted-setup.json")
 	appOpts.Set(flags.KZGImplementation, kzg.DefaultConfig().Implementation)
 
+	t.Setenv(components.ChainSpecTypeEnvVar, components.DevnetChainSpecType)
+
 	// TODO: Cleanup this Set
 	appOpts.Set("pruning", "default")
 
