@@ -99,10 +99,16 @@ func (s *KurtosisE2ESuite) setupLoadBalancer(network *NetworkInstance) error {
 		return fmt.Errorf("failed to get balancer service context: %w", err)
 	}
 
-	network.loadBalancer, err = types.NewLoadBalancer(sCtx)
+	loadBalancer, err := types.NewLoadBalancer(sCtx)
 	if err != nil {
 		return fmt.Errorf("failed to create load balancer: %w", err)
 	}
+
+	// Verify the load balancer was created successfully
+	if loadBalancer == nil {
+		return errors.New("load balancer is nil after creation")
+	}
+	network.loadBalancer = loadBalancer
 	s.loadBalancer = network.loadBalancer
 
 	return s.waitForRPCReady(network)
