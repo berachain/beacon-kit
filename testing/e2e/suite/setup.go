@@ -450,11 +450,6 @@ func (s *KurtosisE2ESuite) WaitForNBlockNumbers(network *NetworkInstance, n uint
 	return s.WaitForFinalizedBlockNumber(network, current+n)
 }
 
-// JSONRPCBalancer returns the JSON-RPC load balancer for the test suite.
-func (network *NetworkInstance) JSONRPCBalancer() *types.LoadBalancer {
-	return network.loadBalancer
-}
-
 // GetAccounts returns all test accounts created for the test suite.
 func (s *KurtosisE2ESuite) GetAccounts() []*types.EthAccount {
 	network := s.GetCurrentNetwork()
@@ -564,4 +559,9 @@ func (s *KurtosisE2ESuite) SetLogger(l log.Logger) {
 // ConsensusClients returns the consensus clients for a specific network instance.
 func (n *NetworkInstance) ConsensusClients() map[string]*types.ConsensusClient {
 	return n.consensusClients
+}
+
+// JSONRPCBalancer returns the JSON-RPC load balancer for the network instance.
+func (n *NetworkInstance) JSONRPCBalancer() *types.LoadBalancer {
+	return n.loadBalancer
 }
