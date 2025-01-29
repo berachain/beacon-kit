@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/ethereum/go-ethereum/params"
 )
 
 // processWithdrawals as per the Ethereum 2.0 specification.
@@ -130,7 +131,7 @@ func (sp *StateProcessor[_]) processWithdrawals(
 	sp.logger.Info(
 		"Processed withdrawals",
 		"num_withdrawals", numWithdrawals,
-		"evm_inflation", float64(payloadWithdrawals[0].GetAmount().Unwrap())/math.GweiPerWei,
+		"evm_inflation", float64(payloadWithdrawals[0].GetAmount().Unwrap())/params.GWei,
 	)
 
 	return nil
