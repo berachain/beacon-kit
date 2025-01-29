@@ -47,7 +47,11 @@ To change the chainSpec, modify the `ChainSpec` field in the `NetworkConfigurati
 function in `testing/e2e/config/defaults.go`.
 
 ## Add your tests
-Add your tests in here like how it is done in `TestBasicStartup()`
+To add your tests, you need to do the following:
+1. Create a new file in the `testing/e2e/` directory.
+2. Add your tests in here like how it is done in `runBasicStartup()`
+3. Register your tests in `TestRunE2E()`.
+4. Then specify the chainID and chainSpec in `SetupSuiteWithOptions()` in `e2e_test.go`.
 
 
 
