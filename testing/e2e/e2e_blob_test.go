@@ -63,7 +63,11 @@ func (s *BeaconKitE2ESuite) run4844Live() {
 	s.Require().NoError(client0.Connect(ctx))
 
 	// Grab values to plug into txs
-	sender := s.GetAccounts()[0]
+	accounts := s.GetAccounts()
+	s.Require().NotNil(accounts, "Test accounts are nil")
+	s.Require().NotEmpty(accounts, "No test accounts available")
+
+	sender := accounts[0]
 	chainID, err := network.JSONRPCBalancer().ChainID(ctx)
 	s.Require().NoError(err)
 	tip, err := network.JSONRPCBalancer().SuggestGasTipCap(ctx)

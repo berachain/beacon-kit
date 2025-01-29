@@ -159,7 +159,11 @@ func (s *BeaconKitE2ESuite) runDepositRobustness() {
 	}
 
 	// Sender account
-	sender := s.GetAccounts()[0]
+	accounts := s.GetAccounts()
+	s.Require().NotNil(accounts, "Test accounts are nil")
+	s.Require().NotEmpty(accounts, "No test accounts available")
+
+	sender := accounts[0]
 
 	// Get the block num
 	blkNum, err := network.JSONRPCBalancer().BlockNumber(s.Ctx())
