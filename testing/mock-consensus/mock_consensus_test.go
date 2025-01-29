@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/config"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/da/kzg"
+	executionconfig "github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-api/engines/echo"
 	nodebuilder "github.com/berachain/beacon-kit/node-core/builder"
@@ -41,7 +42,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// DefaultComponents requires testing.T to avoid accidental misuse
+// DefaultComponents requires testing.T to avoid accidental misuse.
 func DefaultComponents(_ *testing.T) []any {
 	c := []any{
 		components.ProvideAttributesFactory[*phuslu.Logger],
@@ -100,9 +101,9 @@ type TestNode struct {
 	cometConfig  *cmtcfg.Config
 }
 
-// newTestNode creates a node that is similar to production except keeps storage in-memory
-// and does not start the CometBFT loop, allowing us to inject our own calls
+// and does not start the CometBFT loop, allowing us to inject our own calls.
 func newTestNode(t *testing.T) *TestNode {
+	t.Helper()
 	// 1. Build a node builder with your default or custom test components.
 	nb := nodebuilder.New(
 		nodebuilder.WithComponents[
@@ -119,11 +120,14 @@ func newTestNode(t *testing.T) *TestNode {
 	db := dbm.NewMemDB()
 	cmtCfg := cometbft.DefaultConfig()
 	beaconCfg := config.DefaultConfig()
+	executionClientConfig := executionconfig.DefaultConfig()
 
 	appOpts := viper.New()
 
 	appOpts.Set(flags.JWTSecretPath, "../files/jwt.hex")
-	appOpts.Set(flags.RPCDialURL, "http://localhost:8551")
+	appOpts.Set(flags.RPCJWTRefreshInterval, executionClientConfig.RPCJWTRefreshInterval)
+	appOpts.Set(flags.RPCStartupCheckInterval, executionClientConfig.RPCStartupCheckInterval)
+	appOpts.Set(flags.RPCDialURL, executionClientConfig.RPCDialURL)
 	appOpts.Set(flags.PrivValidatorKeyFile, "./test_priv_validator_key.json")
 	appOpts.Set(flags.PrivValidatorStateFile, "./test_priv_validator_state.json")
 
@@ -143,8 +147,6 @@ func newTestNode(t *testing.T) *TestNode {
 		appOpts,
 	)
 
-	cmtCfg.GenesisFile()
-
 	var cometService *cometbft.Service[*phuslu.Logger]
 	err := node.FetchService(&cometService)
 	require.NoError(t, err)
@@ -158,6 +160,7 @@ func newTestNode(t *testing.T) *TestNode {
 }
 
 func genesisFromFile(t *testing.T, file string) *cosmosutil.AppGenesis {
+	t.Helper()
 	appGenesis, err := cosmosutil.AppGenesisFromFile(file)
 	require.NoError(t, err)
 	return appGenesis
