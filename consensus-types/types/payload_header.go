@@ -34,14 +34,6 @@ import (
 
 // ExecutionPayloadHeader is the execution header payload of Deneb.
 type ExecutionPayloadHeader struct {
-	// TODO: Enable once
-	// https://github.com/karalabe/ssz/pull/9/files# is merged.
-	//
-	// // Metadata
-	// //
-	// // version is the fork version of the execution payload header.
-	// version uint32
-
 	// Contents
 	//
 	// ParentHash is the hash of the parent block.
@@ -78,29 +70,43 @@ type ExecutionPayloadHeader struct {
 	BlobGasUsed math.U64 `json:"blobGasUsed"`
 	// ExcessBlobGas is the amount of excess blob gas in the block.
 	ExcessBlobGas math.U64 `json:"excessBlobGas"`
+
+	// EphVersion is the fork EphVersion of the execution payload header.
+	// EphVersion must be not serialized but it's exported
+	// to allow unit tests using reflect on execution payload header.
+	// TODO: Enable once
+	// https://github.com/karalabe/ssz/pull/9/files# is merged.
+	EphVersion uint32 `json:"-"`
 }
 
-// Empty returns an empty ExecutionPayload for the given fork version.
+// Empty returns an empty ExecutionPayloadHeader.
 func (h *ExecutionPayloadHeader) Empty() *ExecutionPayloadHeader {
 	return &ExecutionPayloadHeader{
+		// By default, we set the version to Deneb to maintain compatibility.
+		EphVersion:    version.Deneb,
 		BaseFeePerGas: &uint256.Int{},
 	}
 }
 
 // NewFromSSZ returns a new ExecutionPayloadHeader from the given SSZ bytes.
 func (h *ExecutionPayloadHeader) NewFromSSZ(
-	bz []byte, _ uint32,
+	bz []byte, forkVersion uint32,
 ) (*ExecutionPayloadHeader, error) {
 	h = h.Empty()
+	h.EphVersion = forkVersion
 	return h, h.UnmarshalSSZ(bz)
 }
 
 // NewFromJSON returns a new ExecutionPayloadHeader from the given JSON bytes.
 func (h *ExecutionPayloadHeader) NewFromJSON(
-	bz []byte, _ uint32,
+	bz []byte, forkVersion uint32,
 ) (*ExecutionPayloadHeader, error) {
 	h = h.Empty()
-	return h, json.Unmarshal(bz, h)
+	if err := json.Unmarshal(bz, h); err != nil {
+		return nil, err
+	}
+	h.EphVersion = forkVersion
+	return h, nil
 }
 
 /* -------------------------------------------------------------------------- */
@@ -448,7 +454,7 @@ func (h *ExecutionPayloadHeader) UnmarshalJSON(input []byte) error {
 
 // Version returns the version of the ExecutionPayloadHeader.
 func (h *ExecutionPayloadHeader) Version() uint32 {
-	return version.Deneb
+	return h.EphVersion
 }
 
 // IsNil checks if the ExecutionPayloadHeader is nil.
@@ -457,16 +463,11 @@ func (h *ExecutionPayloadHeader) IsNil() bool {
 }
 
 // GetParentHash returns the parent hash of the ExecutionPayloadHeader.
-func (
-	h *ExecutionPayloadHeader,
-) GetParentHash() common.ExecutionHash {
+func (h *ExecutionPayloadHeader) GetParentHash() common.ExecutionHash {
 	return h.ParentHash
 }
 
-// GetFeeRecipient returns the fee recipient address of the
-// ExecutionPayloadHeader.
-//
-
+// GetFeeRecipient returns the fee recipient address of the ExecutionPayloadHeader.
 func (h *ExecutionPayloadHeader) GetFeeRecipient() common.ExecutionAddress {
 	return h.FeeRecipient
 }
