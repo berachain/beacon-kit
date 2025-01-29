@@ -47,9 +47,6 @@ type KurtosisE2ESuite struct {
 	ctx    context.Context
 	kCtx   *kurtosis_context.KurtosisContext
 
-	// TODO: Figure out what these may be useful for.
-	consensusClients map[string]*types.ConsensusClient
-	// executionClients map[string]*types.ExecutionClient
 	loadBalancer *types.LoadBalancer
 
 	genesisAccount *types.EthAccount

@@ -86,8 +86,7 @@ func (s *KurtosisE2ESuite) setupConsensusClients(network *NetworkInstance) error
 			return err
 		}
 	}
-	s.consensusClients = network.consensusClients
-	s.Logger().Info("Set up consensus clients", "clients", s.consensusClients)
+	s.Logger().Info("Set up consensus clients", "clients", network.consensusClients)
 	return nil
 }
 
@@ -515,7 +514,12 @@ func (s *KurtosisE2ESuite) RegisterTestFunc(name string, fn func()) {
 
 // ConsensusClients returns all consensus clients associated with the test suite.
 func (s *KurtosisE2ESuite) ConsensusClients() map[string]*types.ConsensusClient {
-	return s.consensusClients
+	network := s.GetCurrentNetwork()
+	if network == nil {
+		s.Logger().Error("No network found for current test")
+		return nil
+	}
+	return network.consensusClients
 }
 
 // WaitForTransactionReceipt waits for a transaction to be mined and returns the receipt.
