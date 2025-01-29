@@ -22,6 +22,7 @@ package ethclient
 
 import (
 	"context"
+	"fmt"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -143,19 +144,22 @@ func (s *Client) GetPayload(
 
 // GetPayloadV3 calls the engine_getPayloadV3 method via JSON-RPC.
 func (s *Client) GetPayloadV3(
-	ctx context.Context, payloadID engineprimitives.PayloadID, forkVersion uint32,
+	ctx context.Context,
+	payloadID engineprimitives.PayloadID,
+	forkVersion uint32,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
 	var t *ctypes.ExecutionPayload
 	result := &ctypes.ExecutionPayloadEnvelope[*engineprimitives.BlobsBundleV1[
-		eip4844.KZGCommitment, eip4844.KZGProof, eip4844.Blob,
+		eip4844.KZGCommitment,
+		eip4844.KZGProof,
+		eip4844.Blob,
 	]]{
 		ExecutionPayload: t.Empty(forkVersion),
 	}
 
-	if err := s.Call(
-		ctx, result, GetPayloadMethodV3, payloadID,
-	); err != nil {
-		return nil, err
+	err := s.Call(ctx, result, GetPayloadMethodV3, payloadID)
+	if err != nil {
+		return result, fmt.Errorf("failed GetPayloadV3 call: %w", err)
 	}
 	return result, nil
 }
