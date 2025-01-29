@@ -27,6 +27,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/execution/client/ethclient"
 	"github.com/berachain/beacon-kit/execution/client/ethclient/rpc"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/stretchr/testify/require"
 )
 
@@ -36,11 +37,12 @@ func TestGetPayloadV3NeverReturnsEmptyPayload(t *testing.T) {
 	c := ethclient.New(&stubRPCClient{t: t})
 
 	var (
-		ctx       = context.Background()
-		payloadID engineprimitives.PayloadID
+		ctx         = context.Background()
+		payloadID   engineprimitives.PayloadID
+		forkVersion = version.Deneb1
 	)
 
-	pe, err := c.GetPayloadV3(ctx, payloadID)
+	pe, err := c.GetPayloadV3(ctx, payloadID, forkVersion)
 	require.NoError(t, err)
 
 	// check that execution payload is not nil

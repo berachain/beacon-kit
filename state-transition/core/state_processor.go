@@ -234,9 +234,7 @@ func (sp *StateProcessor[ContextT]) ProcessBlock(
 
 // processEpoch processes the epoch and ensures it matches the local state. Currently
 // beacon-kit does not enforce rewards, penalties, and slashing for validators.
-func (sp *StateProcessor[_]) processEpoch(
-	st *state.StateDB,
-) (transition.ValidatorUpdates, error) {
+func (sp *StateProcessor[_]) processEpoch(st *state.StateDB) (transition.ValidatorUpdates, error) {
 	slot, err := st.GetSlot()
 	if err != nil {
 		return nil, err
@@ -281,8 +279,7 @@ func (sp *StateProcessor[_]) processEpoch(
 	return validatorSetsDiffs(currentActiveVals, nextActiveVals), nil
 }
 
-// processBlockHeader processes the header and ensures it matches the local
-// state.
+// processBlockHeader processes the header and ensures it matches the local state.
 func (sp *StateProcessor[ContextT]) processBlockHeader(
 	ctx ContextT, st *state.StateDB, blk *ctypes.BeaconBlock,
 ) error {
@@ -364,9 +361,10 @@ func (sp *StateProcessor[_]) processEffectiveBalanceUpdates(st *state.StateDB) e
 	}
 
 	var (
-		hysteresisIncrement = sp.cs.EffectiveBalanceIncrement() / sp.cs.HysteresisQuotient()
-		downwardThreshold   = math.Gwei(hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier())
-		upwardThreshold     = math.Gwei(hysteresisIncrement * sp.cs.HysteresisUpwardMultiplier())
+		effectiveBalanceIncrement = sp.cs.EffectiveBalanceIncrement()
+		hysteresisIncrement       = effectiveBalanceIncrement / sp.cs.HysteresisQuotient()
+		downwardThreshold         = math.Gwei(hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier())
+		upwardThreshold           = math.Gwei(hysteresisIncrement * sp.cs.HysteresisUpwardMultiplier())
 
 		idx     math.U64
 		balance math.Gwei
@@ -387,7 +385,7 @@ func (sp *StateProcessor[_]) processEffectiveBalanceUpdates(st *state.StateDB) e
 			val.GetEffectiveBalance()+upwardThreshold < balance {
 			updatedBalance := ctypes.ComputeEffectiveBalance(
 				balance,
-				math.U64(sp.cs.EffectiveBalanceIncrement()),
+				math.U64(effectiveBalanceIncrement),
 				math.U64(sp.cs.MaxEffectiveBalance()),
 			)
 			val.SetEffectiveBalance(updatedBalance)

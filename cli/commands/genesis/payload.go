@@ -34,7 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/afero"
@@ -131,7 +130,7 @@ func executableDataToExecutionPayloadHeader(
 ) (*types.ExecutionPayloadHeader, error) {
 	var executionPayloadHeader *types.ExecutionPayloadHeader
 	switch forkVersion {
-	case version.Deneb:
+	case constants.GenesisVersion:
 		withdrawals := make(
 			engineprimitives.Withdrawals,
 			len(data.Withdrawals),
@@ -184,6 +183,7 @@ func executableDataToExecutionPayloadHeader(
 			WithdrawalsRoot: withdrawals.HashTreeRoot(),
 			BlobGasUsed:     math.U64(blobGasUsed),
 			ExcessBlobGas:   math.U64(excessBlobGas),
+			EphVersion:      forkVersion,
 		}
 	default:
 		return nil, types.ErrForkVersionNotSupported

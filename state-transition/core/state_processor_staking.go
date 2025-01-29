@@ -39,9 +39,8 @@ func (sp *StateProcessor[_]) processOperations(
 ) error {
 	// Verify that outstanding deposits are processed up to the maximum number of deposits.
 	//
-	// Unlike Eth 2.0 specs we don't check the following:
-	// `len(body.deposits) ==  min(MAX_DEPOSITS, state.eth1_data.deposit_count - state.eth1_deposit_index)`.
-	// Instead we directly compare block deposits with store ones.
+	// Unlike Eth 2.0 specs we don't check that
+	// `len(body.deposits) ==  min(MAX_DEPOSITS, state.eth1_data.deposit_count - state.eth1_deposit_index)`
 	deposits := blk.GetBody().GetDeposits()
 	if uint64(len(deposits)) > sp.cs.MaxDepositsPerBlock() {
 		return errors.Wrapf(
@@ -50,6 +49,7 @@ func (sp *StateProcessor[_]) processOperations(
 		)
 	}
 
+	// Instead we directly compare block deposits with our local store ones.
 	if err := sp.validateNonGenesisDeposits(
 		ctx, st, deposits, blk.GetBody().GetEth1Data().DepositRoot,
 	); err != nil {

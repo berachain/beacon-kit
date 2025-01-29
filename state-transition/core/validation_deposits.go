@@ -26,19 +26,19 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 func (sp *StateProcessor[_]) validateGenesisDeposits(
-	st *statedb.StateDB,
-	deposits []*ctypes.Deposit,
+	st *statedb.StateDB, deposits []*ctypes.Deposit,
 ) error {
 	eth1DepositIndex, err := st.GetEth1DepositIndex()
 	if err != nil {
 		return err
 	}
-	if eth1DepositIndex != 0 {
+	if eth1DepositIndex != constants.FirstDepositIndex {
 		return errors.New("Eth1DepositIndex should be 0 at genesis")
 	}
 
@@ -60,8 +60,10 @@ func (sp *StateProcessor[_]) validateGenesisDeposits(
 	// If genesis deposits breaches the cap we return an error.
 	//#nosec:G701 // can't overflow.
 	if uint64(len(deposits)) > sp.cs.ValidatorSetCap() {
-		return errors.Wrapf(ErrValSetCapExceeded,
-			"validator set cap %d, deposits count %d", sp.cs.ValidatorSetCap(), len(deposits),
+		return errors.Wrapf(
+			ErrValSetCapExceeded,
+			"validator set cap %d, deposits count %d",
+			sp.cs.ValidatorSetCap(), len(deposits),
 		)
 	}
 	return nil
@@ -79,7 +81,9 @@ func (sp *StateProcessor[_]) validateNonGenesisDeposits(
 	}
 
 	expectedLocalDepositsLen := depositIndex + uint64(len(blkDeposits))
-	localDeposits, err := sp.ds.GetDepositsByIndex(ctx, 0, expectedLocalDepositsLen)
+	localDeposits, err := sp.ds.GetDepositsByIndex(
+		ctx, constants.FirstDepositIndex, expectedLocalDepositsLen,
+	)
 	if err != nil {
 		return err
 	}

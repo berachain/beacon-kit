@@ -37,7 +37,7 @@ func (sp *StateProcessor[ContextT]) processExecutionPayload(
 	var (
 		body    = blk.GetBody()
 		payload = body.GetExecutionPayload()
-		header  *ctypes.ExecutionPayloadHeader
+		header  = &ctypes.ExecutionPayloadHeader{} // appeases nilaway
 		g, gCtx = errgroup.WithContext(ctx)
 	)
 
