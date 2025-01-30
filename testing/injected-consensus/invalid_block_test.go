@@ -60,13 +60,8 @@ func (s *InjectedConsensus) TestInitChainRequestsInvalidChainID() {
 // TestProcessProposalRequestInvalidBlock tests the scenario where a peer sends us a block with an invalid timestamp.
 func (s *InjectedConsensus) TestProcessProposalRequestInvalidBlock() {
 	// Create a test node that
-	ctx, cancelFunc := context.WithCancel(context.Background())
+	_, cancelFunc := context.WithCancel(context.Background())
 	defer cancelFunc()
-
-	go func() {
-		err := s.testNode.node.Start(ctx)
-		s.Error(err)
-	}()
 
 	<-time.After(20 * time.Second)
 

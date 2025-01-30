@@ -183,8 +183,8 @@ func newTestNode(t *testing.T) *TestNode {
 	appOpts.Set(flags.RPCJWTRefreshInterval, executionClientConfig.RPCJWTRefreshInterval)
 	appOpts.Set(flags.RPCStartupCheckInterval, executionClientConfig.RPCStartupCheckInterval)
 	appOpts.Set(flags.RPCDialURL, executionClientConfig.RPCDialURL)
-	appOpts.Set(flags.PrivValidatorKeyFile, "./config/priv_validator_key.json")
-	appOpts.Set(flags.PrivValidatorStateFile, "./data/priv_validator_state.json")
+	// appOpts.Set(flags.PrivValidatorKeyFile, "./config/priv_validator_key.json")
+	// appOpts.Set(flags.PrivValidatorStateFile, "./data/priv_validator_state.json")
 
 	appOpts.Set(flags.BlockStoreServiceAvailabilityWindow, beaconCfg.BlockStoreService.AvailabilityWindow)
 	appOpts.Set(flags.BlockStoreServiceEnabled, beaconCfg.BlockStoreService.Enabled)
