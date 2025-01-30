@@ -43,12 +43,12 @@ func (s *Client) NewPayload(
 	versionedHashes []common.ExecutionHash,
 	parentBlockRoot *common.Root,
 ) (*engineprimitives.PayloadStatusV1, error) {
-	if payload.Version().IsLessThan(version.Deneb()) {
-		return nil, ErrInvalidVersion
+	// newPayloadV3 is used for beacon versions Deneb and onwards.
+	if payload.Version().IsGreaterThanOrEqualTo(version.Deneb()) {
+		return s.NewPayloadV3(ctx, payload, versionedHashes, parentBlockRoot)
 	}
 
-	// newPayloadV3 is used for beacon versions Deneb and onwards.
-	return s.NewPayloadV3(ctx, payload, versionedHashes, parentBlockRoot)
+	return nil, ErrInvalidVersion
 }
 
 // NewPayloadV3 calls the engine_newPayloadV3 via JSON-RPC.
@@ -78,12 +78,12 @@ func (s *Client) ForkchoiceUpdated(
 	attrs any,
 	forkVersion common.Version,
 ) (*engineprimitives.ForkchoiceResponseV1, error) {
-	if forkVersion.IsLessThan(version.Deneb()) {
-		return nil, ErrInvalidVersion
+	// forkchoiceUpdatedV3 is used for beacon versions Deneb and onwards.
+	if forkVersion.IsGreaterThanOrEqualTo(version.Deneb()) {
+		return s.ForkchoiceUpdatedV3(ctx, state, attrs)
 	}
 
-	// forkchoiceUpdatedV3 is used for beacon versions Deneb and onwards.
-	return s.ForkchoiceUpdatedV3(ctx, state, attrs)
+	return nil, ErrInvalidVersion
 }
 
 // ForkchoiceUpdatedV3 calls the engine_forkchoiceUpdatedV3 method via JSON-RPC.
@@ -116,12 +116,12 @@ func (s *Client) GetPayload(
 	payloadID engineprimitives.PayloadID,
 	forkVersion common.Version,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
-	if forkVersion.IsLessThan(version.Deneb()) {
-		return nil, ErrInvalidVersion
+	// getPayloadV3 is used for beacon versions Deneb and onwards.
+	if forkVersion.IsGreaterThanOrEqualTo(version.Deneb()) {
+		return s.GetPayloadV3(ctx, payloadID, forkVersion)
 	}
 
-	// getPayloadV3 is used for beacon versions Deneb and onwards.
-	return s.GetPayloadV3(ctx, payloadID, forkVersion)
+	return nil, ErrInvalidVersion
 }
 
 // GetPayloadV3 calls the engine_getPayloadV3 method via JSON-RPC.

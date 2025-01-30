@@ -110,28 +110,30 @@ func (h B4) ToUint32() uint32 {
 }
 
 /* -------------------------------------------------------------------------- */
-/*                                comparable                                  */
+/*                                Comparable                                  */
 /* -------------------------------------------------------------------------- */
 
-// Equals returns true if a and b are equal.
+// Equals returns true if h and b are equal.
 func (h B4) Equals(b B4) bool {
 	return h == b
 }
 
-// IsLessThan returns true if a is strictly less than b.
-func (h B4) IsLessThan(b B4) bool {
+// IsLessThanOrEqualTo returns true if each byte of h is less than
+// or equal to the corresponding byte of b.
+func (h B4) IsLessThanOrEqualTo(b B4) bool {
 	for i := range B4Size {
-		if h[i] >= b[i] {
+		if h[i] > b[i] {
 			return false
 		}
 	}
 	return true
 }
 
-// IsGreaterThan returns true if a is strictly greater than b.
-func (h B4) IsGreaterThan(b B4) bool {
+// IsGreaterThanOrEqualTo returns true if each byte of h is greater than
+// or equal to the corresponding byte of b.
+func (h B4) IsGreaterThanOrEqualTo(b B4) bool {
 	for i := range B4Size {
-		if h[i] <= b[i] {
+		if h[i] < b[i] {
 			return false
 		}
 	}

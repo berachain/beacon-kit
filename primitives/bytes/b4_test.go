@@ -25,6 +25,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/primitives/bytes"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/stretchr/testify/require"
 )
 
@@ -309,7 +310,7 @@ func TestBytes4Equals(t *testing.T) {
 	}
 }
 
-func TestBytes4IsLessThan(t *testing.T) {
+func TestBytes4IsLessThanOrEqualTo(t *testing.T) {
 	tests := []struct {
 		name     string
 		a, b     bytes.B4
@@ -319,7 +320,7 @@ func TestBytes4IsLessThan(t *testing.T) {
 			name:     "same bytes",
 			a:        bytes.B4{0x01, 0x02, 0x03, 0x04},
 			b:        bytes.B4{0x01, 0x02, 0x03, 0x04},
-			expected: false,
+			expected: true,
 		},
 		{
 			name:     "strictly less than",
@@ -337,19 +338,31 @@ func TestBytes4IsLessThan(t *testing.T) {
 			name:     "equal bytes",
 			a:        bytes.B4{},
 			b:        bytes.B4{},
-			expected: false,
+			expected: true,
+		},
+		{
+			name:     "almost same bytes",
+			a:        bytes.B4{0x01, 0x02, 0x03, 0x03},
+			b:        bytes.B4{0x01, 0x02, 0x03, 0x04},
+			expected: true,
+		},
+		{
+			name:     "fork versions",
+			a:        version.Deneb(),
+			b:        version.Deneb1(),
+			expected: true,
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			result := tc.a.IsLessThan(tc.b)
+			result := tc.a.IsLessThanOrEqualTo(tc.b)
 			require.Equal(t, tc.expected, result)
 		})
 	}
 }
 
-func TestBytes4IsGreaterThan(t *testing.T) {
+func TestBytes4IsGreaterThanOrEqualTo(t *testing.T) {
 	tests := []struct {
 		name     string
 		a, b     bytes.B4
@@ -359,7 +372,13 @@ func TestBytes4IsGreaterThan(t *testing.T) {
 			name:     "same bytes",
 			a:        bytes.B4{0x01, 0x02, 0x03, 0x04},
 			b:        bytes.B4{0x01, 0x02, 0x03, 0x04},
-			expected: false,
+			expected: true,
+		},
+		{
+			name:     "almost same bytes",
+			a:        bytes.B4{0x01, 0x02, 0x03, 0x05},
+			b:        bytes.B4{0x01, 0x02, 0x03, 0x04},
+			expected: true,
 		},
 		{
 			name:     "strictly greater than",
@@ -377,13 +396,25 @@ func TestBytes4IsGreaterThan(t *testing.T) {
 			name:     "equal bytes",
 			a:        bytes.B4{},
 			b:        bytes.B4{},
-			expected: false,
+			expected: true,
+		},
+		{
+			name:     "a is greater than b",
+			a:        bytes.B4{0x03, 0x00, 0x00, 0x00},
+			b:        bytes.B4{0x02, 0x00, 0x00, 0x00},
+			expected: true,
+		},
+		{
+			name:     "fork versions",
+			a:        version.Deneb1(),
+			b:        version.Deneb(),
+			expected: true,
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			result := tc.a.IsGreaterThan(tc.b)
+			result := tc.a.IsGreaterThanOrEqualTo(tc.b)
 			require.Equal(t, tc.expected, result)
 		})
 	}

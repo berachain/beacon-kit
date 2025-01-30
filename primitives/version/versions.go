@@ -36,7 +36,7 @@ const (
 	capella uint32 = 3
 	// deneb is the first version of Deneb, used for genesis of Berachain mainnet.
 	deneb uint32 = 4
-	// deneb1 is the first hardfork of Deneb on Berachain mainnet. LittleEndian of {Deneb, 1, 0, 0}.
+	// deneb1 is the first hardfork of Deneb on Berachain mainnet. LittleEndian of {4, 1, 0, 0}.
 	deneb1 uint32 = 260
 	// electra is the first version of Electra on Berachain mainnet.
 	electra uint32 = 5
