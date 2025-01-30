@@ -21,8 +21,6 @@
 package injectedconsensus_test
 
 import (
-	"context"
-	"os"
 	"testing"
 	"time"
 
@@ -42,29 +40,28 @@ func (s *InjectedConsensus) SetupTest() {
 
 func (s *InjectedConsensus) TearDownTest() {
 	// Ensure teardown runs no matter what
-	err := os.RemoveAll(s.testNode.Homedir)
-	s.Require().NoError(err)
+	s.testNode.CancelFunc()
+	// err := os.RemoveAll(s.testNode.Homedir)
+	// s.Require().NoError(err)
 }
 
 func (s *InjectedConsensus) TestInitChainRequestsInvalidChainID() {
-	// Create a test node that
-	ctx, cancelFunc := context.WithCancel(context.Background())
-	defer cancelFunc()
-
 	request := &comettypes.InitChainRequest{
 		ChainId: "80090",
 	}
-	_, err := s.testNode.CometService.InitChain(ctx, request)
+	_, err := s.testNode.CometService.InitChain(s.testNode.Context, request)
 	s.Require().Error(err, "invalid chain-id on InitChain; expected: beacond-2061, got: 80090")
 }
 
 // TestProcessProposalRequestInvalidBlock tests the scenario where a peer sends us a block with an invalid timestamp.
 func (s *InjectedConsensus) TestProcessProposalRequestInvalidBlock() {
-	// Create a test node that
-	_, cancelFunc := context.WithCancel(context.Background())
-	defer cancelFunc()
+	go func() {
+		if err := s.testNode.Node.Start(s.testNode.Context); err != nil {
+			s.T().Fatal(err)
+		}
+	}()
 
-	<-time.After(20 * time.Second)
+	<-time.After(120 * time.Second)
 
 	// genesis := genesisFromFile(t, testNode.cometConfig.Genesis)
 

@@ -21,6 +21,7 @@
 package injectedconsensus
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
@@ -40,6 +41,8 @@ import (
 	nodebuilder "github.com/berachain/beacon-kit/node-core/builder"
 	"github.com/berachain/beacon-kit/node-core/components"
 	nodetypes "github.com/berachain/beacon-kit/node-core/types"
+	payloadbuilder "github.com/berachain/beacon-kit/payload/builder"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/storage/db"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	dbm "github.com/cosmos/cosmos-db"
@@ -106,6 +109,8 @@ type TestNode struct {
 	BlockchainService *blockchain.Service
 	CometConfig       *cmtcfg.Config
 	Homedir           string
+	Context           context.Context
+	CancelFunc        context.CancelFunc
 }
 
 func makeTempHomeDir(t *testing.T) string {
@@ -152,6 +157,9 @@ func copyFile(t *testing.T, src, dst string) error {
 // NewTestNode starts a node with a custom consensus driver so we can manually drive the ABCI calls.
 func NewTestNode(t *testing.T) *TestNode {
 	t.Helper()
+
+	// Create a test node that
+	ctx, cancelFunc := context.WithCancel(context.Background())
 	// 1. Build a node builder with your default or custom test components.
 	nb := nodebuilder.New(
 		nodebuilder.WithComponents[
@@ -169,8 +177,12 @@ func NewTestNode(t *testing.T) *TestNode {
 	// Use an in-memory DB
 	// db := dbm.NewMemDB()
 	cmtCfg := cometbft.DefaultConfig()
+	cmtCfg.RootDir = tempHomeDir
+
 	beaconCfg := config.DefaultConfig()
 	executionClientConfig := executionconfig.DefaultConfig()
+
+	payloadBuilderCfg := payloadbuilder.DefaultConfig()
 
 	appOpts := viper.New()
 
@@ -179,18 +191,29 @@ func NewTestNode(t *testing.T) *TestNode {
 	// err = copyFile(t, "./test_priv_validator_state.json", tempHomeDir+"/priv_validator_state.json")
 	// require.NoError(t, err)
 
+	// Execution Client Config
 	appOpts.Set(flags.JWTSecretPath, "../files/jwt.hex")
 	appOpts.Set(flags.RPCJWTRefreshInterval, executionClientConfig.RPCJWTRefreshInterval)
 	appOpts.Set(flags.RPCStartupCheckInterval, executionClientConfig.RPCStartupCheckInterval)
 	appOpts.Set(flags.RPCDialURL, executionClientConfig.RPCDialURL)
+
+	// BLS Config
 	appOpts.Set(flags.PrivValidatorKeyFile, "./config/priv_validator_key.json")
 	appOpts.Set(flags.PrivValidatorStateFile, "./data/priv_validator_state.json")
 
+	// Beacon Config
 	appOpts.Set(flags.BlockStoreServiceAvailabilityWindow, beaconCfg.BlockStoreService.AvailabilityWindow)
 	appOpts.Set(flags.BlockStoreServiceEnabled, beaconCfg.BlockStoreService.Enabled)
 	appOpts.Set(flags.KZGTrustedSetupPath, "../files/kzg-trusted-setup.json")
 	appOpts.Set(flags.KZGImplementation, kzg.DefaultConfig().Implementation)
 
+	// Payload Builder Config
+	payloadBuilderCfg.SuggestedFeeRecipient = common.NewExecutionAddressFromHex("0x981114102592310C347E61368342DDA67017bf84")
+	appOpts.Set(flags.BuilderEnabled, payloadBuilderCfg.Enabled)
+	appOpts.Set(flags.BuildPayloadTimeout, payloadBuilderCfg.PayloadTimeout)
+	appOpts.Set(flags.SuggestedFeeRecipient, payloadBuilderCfg.SuggestedFeeRecipient)
+
+	// Chain Spec
 	t.Setenv(components.ChainSpecTypeEnvVar, components.DevnetChainSpecType)
 
 	// TODO: Cleanup this Set
@@ -224,6 +247,8 @@ func NewTestNode(t *testing.T) *TestNode {
 		BlockchainService: blockchainService,
 		CometConfig:       cmtCfg,
 		Homedir:           tempHomeDir,
+		Context:           ctx,
+		CancelFunc:        cancelFunc,
 	}
 }
 
