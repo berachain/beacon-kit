@@ -347,9 +347,15 @@ func TestBytes4IsLessThanOrEqualTo(t *testing.T) {
 			expected: true,
 		},
 		{
-			name:     "fork versions",
+			name:     "fork versions deneb <> deneb1",
 			a:        version.Deneb(),
 			b:        version.Deneb1(),
+			expected: true,
+		},
+		{
+			name:     "fork versions deneb1 <> electra",
+			a:        version.Deneb1(),
+			b:        version.Electra(),
 			expected: true,
 		},
 	}
@@ -408,6 +414,12 @@ func TestBytes4IsGreaterThanOrEqualTo(t *testing.T) {
 			name:     "fork versions",
 			a:        version.Deneb1(),
 			b:        version.Deneb(),
+			expected: true,
+		},
+		{
+			name:     "fork versions",
+			a:        version.Electra(),
+			b:        version.Deneb1(),
 			expected: true,
 		},
 	}
