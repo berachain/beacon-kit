@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/primitives/math"
 	gethcommon "github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/params"
 )
 
 // runEVMInflation checks that the EVM inflation address receives the correct
@@ -51,7 +52,7 @@ func (s *BeaconKitE2ESuite) runEVMInflation() {
 		s.Require().NoError(err)
 
 		expectedBalance := new(big.Int).Mul(
-			new(big.Int).SetUint64(preForkInflation*math.GweiPerWei),
+			new(big.Int).SetUint64(preForkInflation*params.GWei),
 			big.NewInt(blkNum),
 		)
 
@@ -89,7 +90,7 @@ func (s *BeaconKitE2ESuite) runEVMInflation() {
 		s.Require().NoError(err)
 
 		expectedBalance := new(big.Int).Mul(
-			new(big.Int).SetUint64(postForkInflation*math.GweiPerWei),
+			new(big.Int).SetUint64(postForkInflation*params.GWei),
 			big.NewInt(int64(blkNum-(deneb1ForkSlot-1))),
 		)
 
