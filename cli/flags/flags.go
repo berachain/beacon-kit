@@ -31,10 +31,10 @@ const (
 	BeaconKitAcceptTos = beaconKitRoot + "accept-tos"
 
 	// Builder Config.
-	builderRoot              = beaconKitRoot + "payload-builder."
-	SuggestedFeeRecipient    = builderRoot + "suggested-fee-recipient"
-	LocalBuilderEnabled      = builderRoot + "local-builder-enabled"
-	LocalBuildPayloadTimeout = builderRoot + "local-build-payload-timeout"
+	builderRoot           = beaconKitRoot + "payload-builder."
+	SuggestedFeeRecipient = builderRoot + "suggested-fee-recipient"
+	BuilderEnabled        = builderRoot + "enabled"
+	BuildPayloadTimeout   = builderRoot + "payload-timeout"
 
 	// Validator Config.
 	validatorRoot = beaconKitRoot + "validator."
@@ -100,6 +100,16 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 		RPCJWTRefreshInterval,
 		defaultCfg.Engine.RPCJWTRefreshInterval,
 		"rpc jwt refresh interval",
+	)
+	startCmd.Flags().Bool(
+		BuilderEnabled,
+		defaultCfg.PayloadBuilder.Enabled,
+		"payload builder enabled",
+	)
+	startCmd.Flags().Duration(
+		BuildPayloadTimeout,
+		defaultCfg.PayloadBuilder.PayloadTimeout,
+		"payload builder timeout",
 	)
 	startCmd.Flags().String(
 		SuggestedFeeRecipient,
