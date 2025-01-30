@@ -69,7 +69,7 @@ func ProvideBlsSigner(in BlsSignerInput) (crypto.BLSSigner, error) {
 
 		// Check state file existence as the error in NewBLSSigner is vague.
 		if _, err := os.Stat(privValStateFile); os.IsNotExist(err) {
-			return nil, fmt.Errorf("state file does not exist at path: %s\n", privValStateFile)
+			return nil, fmt.Errorf("state file does not exist at path: %s", privValStateFile)
 		}
 
 		return signer.NewBLSSigner(privValKeyFile, privValStateFile), nil
