@@ -108,7 +108,6 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 	); err != nil {
 		panic(err)
 	}
-
 	if config == nil {
 		panic("config is nil")
 	}
