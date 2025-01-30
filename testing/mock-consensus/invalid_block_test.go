@@ -22,51 +22,72 @@ package mock_consensus_test
 
 import (
 	"context"
-	"fmt"
+	"os"
 	"testing"
+	"time"
 
 	comettypes "github.com/cometbft/cometbft/abci/types"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 )
 
-func TestInitChainRequestsInvalidChainID(t *testing.T) {
-	// Create a test node that
-	testNode := newTestNode(t)
+type InjectedConsensus struct {
+	suite.Suite
+	testNode *TestNode
+}
 
+func (s *InjectedConsensus) SetupTest() {
+	s.testNode = newTestNode(s.T())
+}
+
+func (s *InjectedConsensus) TearDownTest() {
+	// Ensure teardown runs no matter what
+	err := os.RemoveAll(s.testNode.homedir)
+	s.Require().NoError(err)
+}
+
+func (s *InjectedConsensus) TestInitChainRequestsInvalidChainID() {
+	// Create a test node that
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	defer cancelFunc()
 
 	request := &comettypes.InitChainRequest{
 		ChainId: "80090",
 	}
-	_, err := testNode.cometService.InitChain(ctx, request)
-	require.Error(t, err, "invalid chain-id on InitChain; expected: beacond-2061, got: 80090")
+	_, err := s.testNode.cometService.InitChain(ctx, request)
+	s.Require().Error(err, "invalid chain-id on InitChain; expected: beacond-2061, got: 80090")
 }
 
 // TestProcessProposalRequestInvalidBlock tests the scenario where a peer sends us a block with an invalid timestamp.
-func TestProcessProposalRequestInvalidBlock(t *testing.T) {
+func (s *InjectedConsensus) TestProcessProposalRequestInvalidBlock() {
 	// Create a test node that
-	testNode := newTestNode(t)
-
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	defer cancelFunc()
 
-	err := testNode.node.Start(ctx)
-	require.NoError(t, err)
+	go func() {
+		err := s.testNode.node.Start(ctx)
+		s.Error(err)
+	}()
 
-	genesis := genesisFromFile(t, testNode.cometConfig.Genesis)
+	<-time.After(20 * time.Second)
 
-	genesisFile := testNode.cometConfig.GenesisFile()
+	// genesis := genesisFromFile(t, testNode.cometConfig.Genesis)
+
+	// genesisFile := testNode.cometConfig.GenesisFile()
 
 	// request := &comettypes.InitChainRequest{
 	//	ChainId:       "beacond-2061",
 	//	AppStateBytes: genesis.AppState,
 	//}
-	fmt.Println(genesis)
-	fmt.Println(genesisFile)
+	// fmt.Println(genesis)
+	// fmt.Println(genesisFile)
 	// response, err := testNode.cometService.InitChain(ctx, request)
-	require.NoError(t, err)
-
+	// require.NoError(t, err)
+	minimumBlockHeight := int64(2)
+	s.Greater(s.testNode.cometService.LastBlockHeight(), minimumBlockHeight)
 	// We expect one deposit given the genesis file in 'config/genesis.json'
 	// require.Len(t, response.GetValidators(), 1)
+}
+
+func TestInjectedConsensus(t *testing.T) {
+	suite.Run(t, new(InjectedConsensus))
 }
