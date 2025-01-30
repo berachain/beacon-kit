@@ -42,7 +42,7 @@ start-devnet-no-build:
 # Starts a Kurtosis enclave in the cloud using the latest image tag
 start-devnet-cloud: install-kurtosis
 	kurtosis run ./kurtosis --args-file ./kurtosis/beaconkit-cloud.yaml \
-		--enclave my-cloud-devnet-$(shell whoami) --parallelism 200 --production
+		--enclave my-cloud-devnet-$(shell whoami) --parallelism 200 --production --image-download always
 
 # Remove the running Kurtosis enclave on GCP
 rm-devnet-cloud:
