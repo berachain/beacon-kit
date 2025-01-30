@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package injected_consensus_test
+package injectedconsensus
 
 import (
 	"crypto/rand"
@@ -101,11 +101,11 @@ func DefaultComponents(_ *testing.T) []any {
 }
 
 type TestNode struct {
-	node              nodetypes.Node
-	cometService      *cometbft.Service[*phuslu.Logger]
-	blockchainService *blockchain.Service
-	cometConfig       *cmtcfg.Config
-	homedir           string
+	Node              nodetypes.Node
+	CometService      *cometbft.Service[*phuslu.Logger]
+	BlockchainService *blockchain.Service
+	CometConfig       *cmtcfg.Config
+	Homedir           string
 }
 
 func makeTempHomeDir(t *testing.T) string {
@@ -149,8 +149,8 @@ func copyFile(t *testing.T, src, dst string) error {
 	return nil
 }
 
-// and does not start the CometBFT loop, allowing us to inject our own calls.
-func newTestNode(t *testing.T) *TestNode {
+// NewTestNode starts a node with a custom consensus driver so we can manually drive the ABCI calls.
+func NewTestNode(t *testing.T) *TestNode {
 	t.Helper()
 	// 1. Build a node builder with your default or custom test components.
 	nb := nodebuilder.New(
@@ -183,8 +183,8 @@ func newTestNode(t *testing.T) *TestNode {
 	appOpts.Set(flags.RPCJWTRefreshInterval, executionClientConfig.RPCJWTRefreshInterval)
 	appOpts.Set(flags.RPCStartupCheckInterval, executionClientConfig.RPCStartupCheckInterval)
 	appOpts.Set(flags.RPCDialURL, executionClientConfig.RPCDialURL)
-	// appOpts.Set(flags.PrivValidatorKeyFile, "./config/priv_validator_key.json")
-	// appOpts.Set(flags.PrivValidatorStateFile, "./data/priv_validator_state.json")
+	appOpts.Set(flags.PrivValidatorKeyFile, "./config/priv_validator_key.json")
+	appOpts.Set(flags.PrivValidatorStateFile, "./data/priv_validator_state.json")
 
 	appOpts.Set(flags.BlockStoreServiceAvailabilityWindow, beaconCfg.BlockStoreService.AvailabilityWindow)
 	appOpts.Set(flags.BlockStoreServiceEnabled, beaconCfg.BlockStoreService.Enabled)
@@ -219,11 +219,11 @@ func newTestNode(t *testing.T) *TestNode {
 	require.NotNil(t, blockchainService)
 
 	return &TestNode{
-		node:              node,
-		cometService:      cometService,
-		blockchainService: blockchainService,
-		cometConfig:       cmtCfg,
-		homedir:           tempHomeDir,
+		Node:              node,
+		CometService:      cometService,
+		BlockchainService: blockchainService,
+		CometConfig:       cmtCfg,
+		Homedir:           tempHomeDir,
 	}
 }
 

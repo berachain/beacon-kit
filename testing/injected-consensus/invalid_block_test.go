@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package injected_consensus_test
+package injectedconsensus_test
 
 import (
 	"context"
@@ -26,22 +26,23 @@ import (
 	"testing"
 	"time"
 
+	injectedconsensus "github.com/berachain/beacon-kit/testing/injected-consensus"
 	comettypes "github.com/cometbft/cometbft/abci/types"
 	"github.com/stretchr/testify/suite"
 )
 
 type InjectedConsensus struct {
 	suite.Suite
-	testNode *TestNode
+	testNode *injectedconsensus.TestNode
 }
 
 func (s *InjectedConsensus) SetupTest() {
-	s.testNode = newTestNode(s.T())
+	s.testNode = injectedconsensus.NewTestNode(s.T())
 }
 
 func (s *InjectedConsensus) TearDownTest() {
 	// Ensure teardown runs no matter what
-	err := os.RemoveAll(s.testNode.homedir)
+	err := os.RemoveAll(s.testNode.Homedir)
 	s.Require().NoError(err)
 }
 
@@ -53,7 +54,7 @@ func (s *InjectedConsensus) TestInitChainRequestsInvalidChainID() {
 	request := &comettypes.InitChainRequest{
 		ChainId: "80090",
 	}
-	_, err := s.testNode.cometService.InitChain(ctx, request)
+	_, err := s.testNode.CometService.InitChain(ctx, request)
 	s.Require().Error(err, "invalid chain-id on InitChain; expected: beacond-2061, got: 80090")
 }
 
@@ -78,7 +79,7 @@ func (s *InjectedConsensus) TestProcessProposalRequestInvalidBlock() {
 	// response, err := testNode.cometService.InitChain(ctx, request)
 	// require.NoError(t, err)
 	minimumBlockHeight := int64(2)
-	s.Greater(s.testNode.cometService.LastBlockHeight(), minimumBlockHeight)
+	s.Greater(s.testNode.CometService.LastBlockHeight(), minimumBlockHeight)
 	// We expect one deposit given the genesis file in 'config/genesis.json'
 	// require.Len(t, response.GetValidators(), 1)
 }
