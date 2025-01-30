@@ -108,3 +108,32 @@ func FromUint32(v uint32) B4 {
 func (h B4) ToUint32() uint32 {
 	return binary.LittleEndian.Uint32(h[:])
 }
+
+/* -------------------------------------------------------------------------- */
+/*                                comparable                                  */
+/* -------------------------------------------------------------------------- */
+
+// Equals returns true if a and b are equal.
+func (h B4) Equals(b B4) bool {
+	return h == b
+}
+
+// IsLessThan returns true if a is strictly less than b.
+func (h B4) IsLessThan(b B4) bool {
+	for i := range B4Size {
+		if h[i] >= b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// IsGreaterThan returns true if a is strictly greater than b.
+func (h B4) IsGreaterThan(b B4) bool {
+	for i := range B4Size {
+		if h[i] <= b[i] {
+			return false
+		}
+	}
+	return true
+}

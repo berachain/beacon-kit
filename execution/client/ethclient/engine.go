@@ -43,7 +43,7 @@ func (s *Client) NewPayload(
 	versionedHashes []common.ExecutionHash,
 	parentBlockRoot *common.Root,
 ) (*engineprimitives.PayloadStatusV1, error) {
-	if version.Precedes(payload.Version(), version.Deneb()) {
+	if payload.Version().IsLessThan(version.Deneb()) {
 		return nil, ErrInvalidVersion
 	}
 
@@ -78,7 +78,7 @@ func (s *Client) ForkchoiceUpdated(
 	attrs any,
 	forkVersion common.Version,
 ) (*engineprimitives.ForkchoiceResponseV1, error) {
-	if version.Precedes(forkVersion, version.Deneb()) {
+	if forkVersion.IsLessThan(version.Deneb()) {
 		return nil, ErrInvalidVersion
 	}
 
@@ -116,7 +116,7 @@ func (s *Client) GetPayload(
 	payloadID engineprimitives.PayloadID,
 	forkVersion common.Version,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
-	if version.Precedes(forkVersion, version.Deneb()) {
+	if forkVersion.IsLessThan(version.Deneb()) {
 		return nil, ErrInvalidVersion
 	}
 

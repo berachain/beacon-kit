@@ -112,8 +112,8 @@ func (p *PayloadAttributes) Validate() error {
 		return ErrEmptyPrevRandao
 	}
 
-	// For any version following Bellatrix (Capella onwards), withdrawals are required.
-	if version.Follows(p.version, version.Bellatrix()) && p.Withdrawals == nil {
+	// For any version post Bellatrix (Capella onwards), withdrawals are required.
+	if p.version.IsGreaterThan(version.Bellatrix()) && p.Withdrawals == nil {
 		return ErrNilWithdrawals
 	}
 

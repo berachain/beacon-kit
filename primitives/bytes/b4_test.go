@@ -274,3 +274,117 @@ func TestBytes4HashTreeRoot(t *testing.T) {
 		})
 	}
 }
+
+func TestBytes4Equals(t *testing.T) {
+	tests := []struct {
+		name     string
+		a, b     bytes.B4
+		expected bool
+	}{
+		{
+			name:     "same bytes",
+			a:        bytes.B4{0x01, 0x02, 0x03, 0x04},
+			b:        bytes.B4{0x01, 0x02, 0x03, 0x04},
+			expected: true,
+		},
+		{
+			name:     "different bytes",
+			a:        bytes.B4{0x01, 0x02, 0x03, 0x04},
+			b:        bytes.B4{0x04, 0x03, 0x02, 0x01},
+			expected: false,
+		},
+		{
+			name:     "zero bytes",
+			a:        bytes.B4{},
+			b:        bytes.B4{},
+			expected: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			result := tc.a.Equals(tc.b)
+			require.Equal(t, tc.expected, result)
+		})
+	}
+}
+
+func TestBytes4IsLessThan(t *testing.T) {
+	tests := []struct {
+		name     string
+		a, b     bytes.B4
+		expected bool
+	}{
+		{
+			name:     "same bytes",
+			a:        bytes.B4{0x01, 0x02, 0x03, 0x04},
+			b:        bytes.B4{0x01, 0x02, 0x03, 0x04},
+			expected: false,
+		},
+		{
+			name:     "strictly less than",
+			a:        bytes.B4{0x01, 0x02, 0x03, 0x04},
+			b:        bytes.B4{0x02, 0x03, 0x04, 0x05},
+			expected: true,
+		},
+		{
+			name:     "not less than",
+			a:        bytes.B4{0x02, 0x03, 0x04, 0x05},
+			b:        bytes.B4{0x01, 0x02, 0x03, 0x04},
+			expected: false,
+		},
+		{
+			name:     "equal bytes",
+			a:        bytes.B4{},
+			b:        bytes.B4{},
+			expected: false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			result := tc.a.IsLessThan(tc.b)
+			require.Equal(t, tc.expected, result)
+		})
+	}
+}
+
+func TestBytes4IsGreaterThan(t *testing.T) {
+	tests := []struct {
+		name     string
+		a, b     bytes.B4
+		expected bool
+	}{
+		{
+			name:     "same bytes",
+			a:        bytes.B4{0x01, 0x02, 0x03, 0x04},
+			b:        bytes.B4{0x01, 0x02, 0x03, 0x04},
+			expected: false,
+		},
+		{
+			name:     "strictly greater than",
+			a:        bytes.B4{0x02, 0x03, 0x04, 0x05},
+			b:        bytes.B4{0x01, 0x02, 0x03, 0x04},
+			expected: true,
+		},
+		{
+			name:     "not greater than",
+			a:        bytes.B4{0x01, 0x02, 0x03, 0x04},
+			b:        bytes.B4{0x02, 0x03, 0x04, 0x05},
+			expected: false,
+		},
+		{
+			name:     "equal bytes",
+			a:        bytes.B4{},
+			b:        bytes.B4{},
+			expected: false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			result := tc.a.IsGreaterThan(tc.b)
+			require.Equal(t, tc.expected, result)
+		})
+	}
+}
