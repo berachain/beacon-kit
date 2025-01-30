@@ -22,11 +22,11 @@ package components
 
 import (
 	"fmt"
-	beaconflags "github.com/berachain/beacon-kit/cli/flags"
 	"os"
 	"path/filepath"
 
 	"cosmossdk.io/depinject"
+	beaconflags "github.com/berachain/beacon-kit/cli/flags"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/constants"
