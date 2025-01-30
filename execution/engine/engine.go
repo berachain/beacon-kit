@@ -167,12 +167,15 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 	// say that the block is valid, this is utilized during syncing
 	// to allow the beacon-chain to continue processing blocks, while
 	// its execution client is fetching things over it's p2p layer.
-	case errors.IsAny(
-		err,
-		engineerrors.ErrAcceptedPayloadStatus,
-		engineerrors.ErrSyncingPayloadStatus,
-	):
-		ee.metrics.markNewPayloadAcceptedSyncingPayloadStatus(
+	case errors.Is(err, engineerrors.ErrSyncingPayloadStatus):
+		ee.metrics.markNewPayloadSyncingPayloadStatus(
+			req.ExecutionPayload.GetBlockHash(),
+			req.ExecutionPayload.GetParentHash(),
+			req.Optimistic,
+		)
+
+	case errors.IsAny(err, engineerrors.ErrAcceptedPayloadStatus):
+		ee.metrics.markNewPayloadAcceptedPayloadStatus(
 			req.ExecutionPayload.GetBlockHash(),
 			req.ExecutionPayload.GetParentHash(),
 			req.Optimistic,
