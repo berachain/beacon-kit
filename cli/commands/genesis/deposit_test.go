@@ -32,6 +32,7 @@ import (
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cometbft/cometbft/crypto/bls12381"
 	"github.com/cometbft/cometbft/types"
+	"github.com/ethereum/go-ethereum/params"
 	"github.com/stretchr/testify/require"
 )
 
@@ -39,7 +40,7 @@ func TestGenesisDeposit(t *testing.T) {
 	homeDir := t.TempDir()
 	t.Log("Home folder:", homeDir)
 
-	chainSpec, err := spec.DevnetChainSpec()
+	chainSpec, err := spec.MainnetChainSpec()
 	require.NoError(t, err)
 
 	cometConfig := cmtcfg.DefaultConfig()
@@ -49,7 +50,7 @@ func TestGenesisDeposit(t *testing.T) {
 	// Forces Comet to Create it
 	cometConfig.NodeKey = "nodekey.json"
 
-	depositAmount := math.Gwei(32000000000)
+	depositAmount := math.Gwei(250_000 * params.GWei)
 	withdrawalAdress := common.NewExecutionAddressFromHex("0x981114102592310C347E61368342DDA67017bf84")
 	outputDocument := ""
 

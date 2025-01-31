@@ -137,7 +137,6 @@ func AddGenesisDeposit(
 		Credentials: depositMsg.Credentials,
 	}
 
-	//#nosec:G703 // Ignore errors on this line.
 	if outputDocument == "" {
 		outputDocument, err = makeOutputFilepath(cometConfig.RootDir,
 			crypto.BLSPubkey(valPubKey.Bytes()).String())
