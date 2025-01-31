@@ -64,6 +64,7 @@ func AddExecutionPayloadCmd(chainSpec chain.Spec) *cobra.Command {
 				genesisBlock,
 				nil,
 				nil,
+				nil,
 			).ExecutionPayload
 
 			config := context.GetConfigFromCmd(cmd)

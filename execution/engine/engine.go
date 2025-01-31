@@ -87,35 +87,32 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 	)
 
 	switch {
-	// We do not bubble the error up, since we want to handle it
-	// in the same way as the other cases.
-	case errors.IsAny(
-		err,
-		engineerrors.ErrAcceptedPayloadStatus,
-		engineerrors.ErrSyncingPayloadStatus,
-	):
-		ee.metrics.markForkchoiceUpdateAcceptedSyncing(req.State, err)
-		return payloadID, nil, nil
-
-	// If we get invalid payload status, we will need to find a valid
-	// ancestor block and force a recovery.
-	case errors.Is(err, engineerrors.ErrInvalidPayloadStatus):
-		ee.metrics.markForkchoiceUpdateInvalid(req.State, err)
-		return payloadID, latestValidHash, ErrBadBlockProduced
-
-	// JSON-RPC errors are predefined and should be handled as such.
-	case jsonrpc.IsPreDefinedError(err):
-		ee.metrics.markForkchoiceUpdateJSONRPCError(err)
-		return nil, nil, errors.Join(err, engineerrors.ErrPreDefinedJSONRPC)
-
-	// All other errors are handled as undefined errors.
-	case err != nil:
-		ee.metrics.markForkchoiceUpdateUndefinedError(err)
-		return nil, nil, err
-	default:
+	case err == nil:
 		ee.metrics.markForkchoiceUpdateValid(
 			req.State, hasPayloadAttributes, payloadID,
 		)
+
+	case errors.IsAny(err, engineerrors.ErrSyncingPayloadStatus):
+		// We do not bubble the error up, since we want to handle it
+		// in the same way as the other cases.
+		ee.metrics.markForkchoiceUpdateSyncing(req.State, err)
+		return payloadID, nil, nil
+
+	case errors.Is(err, engineerrors.ErrInvalidPayloadStatus):
+		// If we get invalid payload status, we will need to find a valid
+		// ancestor block and force a recovery.
+		ee.metrics.markForkchoiceUpdateInvalid(req.State, err)
+		return payloadID, latestValidHash, ErrBadBlockProduced
+
+	case jsonrpc.IsPreDefinedError(err):
+		// JSON-RPC errors are predefined and should be handled as such.
+		ee.metrics.markForkchoiceUpdateJSONRPCError(err)
+		return nil, nil, errors.Join(err, engineerrors.ErrPreDefinedJSONRPC)
+
+	default:
+		// All other errors are handled as undefined errors.
+		ee.metrics.markForkchoiceUpdateUndefinedError(err)
+		return nil, nil, err
 	}
 
 	// If we reached here, and we have a nil payload ID, we should log a
@@ -171,12 +168,15 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 	// say that the block is valid, this is utilized during syncing
 	// to allow the beacon-chain to continue processing blocks, while
 	// its execution client is fetching things over it's p2p layer.
-	case errors.IsAny(
-		err,
-		engineerrors.ErrAcceptedPayloadStatus,
-		engineerrors.ErrSyncingPayloadStatus,
-	):
-		ee.metrics.markNewPayloadAcceptedSyncingPayloadStatus(
+	case errors.Is(err, engineerrors.ErrSyncingPayloadStatus):
+		ee.metrics.markNewPayloadSyncingPayloadStatus(
+			req.ExecutionPayload.GetBlockHash(),
+			req.ExecutionPayload.GetParentHash(),
+			req.Optimistic,
+		)
+
+	case errors.IsAny(err, engineerrors.ErrAcceptedPayloadStatus):
+		ee.metrics.markNewPayloadAcceptedPayloadStatus(
 			req.ExecutionPayload.GetBlockHash(),
 			req.ExecutionPayload.GetParentHash(),
 			req.Optimistic,
