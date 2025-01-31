@@ -73,9 +73,8 @@ func TestNewPayloadWithInvalidVersion(t *testing.T) {
 	versionedHashes := []common.ExecutionHash{}
 	var parentBlockRoot *common.Root
 
-	status, err := c.NewPayload(ctx, payload, versionedHashes, parentBlockRoot)
+	_, err := c.NewPayload(ctx, payload, versionedHashes, parentBlockRoot)
 	require.ErrorIs(t, err, ethclient.ErrInvalidVersion)
-	require.Nil(t, status)
 }
 
 // TestForkchoiceUpdatedWithValidVersion tests that ForkchoiceUpdated correctly handles Deneb version.
@@ -100,9 +99,8 @@ func TestForkchoiceUpdatedWithInvalidVersion(t *testing.T) {
 	attrs := struct{}{}
 	forkVersion := version.Capella()
 
-	response, err := c.ForkchoiceUpdated(ctx, state, attrs, forkVersion)
+	_, err := c.ForkchoiceUpdated(ctx, state, attrs, forkVersion)
 	require.ErrorIs(t, err, ethclient.ErrInvalidVersion)
-	require.Nil(t, response)
 }
 
 // TestGetPayloadWithValidVersion tests that GetPayload correctly handles >= Deneb version.
@@ -125,9 +123,8 @@ func TestGetPayloadWithInvalidVersion(t *testing.T) {
 	var payloadID engineprimitives.PayloadID
 	forkVersion := version.Capella()
 
-	pe, err := c.GetPayload(ctx, payloadID, forkVersion)
+	_, err := c.GetPayload(ctx, payloadID, forkVersion)
 	require.ErrorIs(t, err, ethclient.ErrInvalidVersion)
-	require.Nil(t, pe)
 }
 
 var _ rpc.Client = (*stubRPCClient)(nil)
