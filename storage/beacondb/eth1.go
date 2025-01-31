@@ -34,13 +34,12 @@ func (kv *KVStore) GetLatestExecutionPayloadHeader() (
 	if err != nil {
 		return nil, err
 	}
-	
 	kv.latestExecutionPayloadCodec.SetActiveForkVersion(bytes.FromUint32(forkVersion))
 	return kv.latestExecutionPayloadHeader.Get(kv.ctx)
 }
 
 // SetLatestExecutionPayloadHeader sets the latest execution payload header in
-// the BeaconStore.
+// the BeaconStore. TEST.
 func (kv *KVStore) SetLatestExecutionPayloadHeader(
 	payloadHeader *ctypes.ExecutionPayloadHeader,
 ) error {
