@@ -102,7 +102,7 @@ func AddGenesisDeposit(
 	}
 
 	if valPubKey == nil {
-		// silence nilaway
+		// addresses nilaway
 		return errors.New("failed to initialize commands validator files")
 	}
 
