@@ -1,6 +1,7 @@
 package genesis_test
 
 import (
+	"path"
 	"testing"
 
 	"github.com/berachain/beacon-kit/cli/commands/genesis"
@@ -37,6 +38,10 @@ func TestGenesisDeposit(t *testing.T) {
 	blsSigner := signer.BLSSigner{PrivValidator: types.NewMockPVWithKeyType(bls12381.KeyType)}
 
 	err = genesis.AddGenesisDeposit(chainSpec, cometConfig, blsSigner, depositAmount, withdrawalAdress, outputDocument)
-
 	require.NoError(t, err)
+
+	require.FileExists(t, path.Join(homeDir, "nodekey.json"))
+	require.FileExists(t, path.Join(homeDir, "data", "priv_validator_state.json"))
+	require.FileExists(t, path.Join(homeDir, "config", "priv_validator_key.json"))
+	require.DirExists(t, path.Join(homeDir, "config", "premined-deposits"))
 }
