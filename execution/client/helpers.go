@@ -48,14 +48,51 @@ func processPayloadStatusResult(
 ) (*common.ExecutionHash, error) {
 	switch result.Status {
 	case engineprimitives.PayloadStatusAccepted:
+		// NewPayload -- Returned then the payload does not extend the canonical chain. Already enforced on CL in state_processor_payload.
+		// FCU -- NEVER returned
+		// CL TODOs:
+		// - Remove from FCU check because it is never returned (done in shota's PR)
+		// - Distinguish metric between accepted/syncing
+		// - Remove error-handling from state_processor.go because
+		//    - in process we DO want to return error (as is)
+		//    - in finalize we do NOT want to return error (as is)
 		return nil, engineerrors.ErrAcceptedPayloadStatus
 	case engineprimitives.PayloadStatusSyncing:
+		// NewPayload --
+		//	- EL does not have the parent block. The EL does NOT know if it is valid or invalid
+		//  - EL has the parent block but is in Snap Sync (Geth).
+		//  - CL TODOs:
+		//     - Distinguish metric between accepted/syncing.
+		//     - Keep as is for now - return Error in Process and no Error in Finalize.
+		//     - Consider blocking in Finalize to catch up EL when syncing.
+		// FCU --
+		// 	- EL has not received the block from NewPayload. The EL does NOT know if it is valid or invalid
+		// 	- If we update the head to an old block that is already part of the canonical chain, it returns VALID and is ignored
 		return nil, engineerrors.ErrSyncingPayloadStatus
 	case engineprimitives.PayloadStatusInvalid:
+		// NewPayload --
+		//	- if the block is part of an invalid chain. We don't expect this in finalize, ALWAYS return err.
+		//  - if the block's timestamp is <= the parent block's timestamp. We don't expect this in finalize, ALWAYS return err.
+		//  - if invalid state transition. We don't expect this in finalize, ALWAYS return err.
+		//  - CL TODOs: Keep as is.
+		// FCU --
+		// 	- Finalizing a block that has not been passed in via NewPayload will always return SYNCING on Berachain, as the head will not be found.
+		// 	- Same as above for Safe hash.
 		return result.LatestValidHash, engineerrors.ErrInvalidPayloadStatus
 	case engineprimitives.PayloadStatusValid:
+		// NewPayload --
+		//  - EL returns in happy case.
+		//  - EL already has the payload, i.e. duplicate payload (should not happen technically).
+		// 	- CL TODOs: Keep as is.
+		// FCU --
+		// 	- Valid if the EL already has the latest hash as part of the canonical chain (e.g. CL is resyncing such as after comet unsafe-reset-all)
+		//	- The same attributes + head block hash results in the same PayloadID and will be ignored, continuing the original workload.
 		return result.LatestValidHash, nil
 	default:
+		// NewPayload -- Not expected ever, ALWAYS return err.
+		// FCU -- Not expected ever, ALWAYS return err.
+		// CL TODOs:
+		//  - In FinalizeBlock, force return error as we don't know the state of EL and shouldn't progress blindly.
 		return nil, engineerrors.ErrUnknownPayloadStatus
 	}
 }
