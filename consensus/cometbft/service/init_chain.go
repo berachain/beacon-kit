@@ -93,35 +93,6 @@ func (s *Service[LoggerT]) initChain(
 		return nil, err
 	}
 
-	// check validators
-	if len(req.Validators) > 0 {
-		if len(req.Validators) != len(resValidators) {
-			return nil, fmt.Errorf(
-				"len(RequestInitChain.Validators) != len(GenesisValidators) (%d != %d)",
-				len(req.Validators),
-				len(resValidators),
-			)
-		}
-
-		sort.Sort(cmtabci.ValidatorUpdates(req.Validators))
-
-		for i := range resValidators {
-			if req.Validators[i].Power != resValidators[i].Power {
-				return nil, errors.New("mismatched power")
-			}
-			if !bytes.Equal(
-				req.Validators[i].PubKeyBytes, resValidators[i].
-					PubKeyBytes) {
-				return nil, errors.New("mismatched pubkey bytes")
-			}
-
-			if req.Validators[i].PubKeyType !=
-				resValidators[i].PubKeyType {
-				return nil, errors.New("mismatched pubkey types")
-			}
-		}
-	}
-
 	s.blockDelay = blockDelayUponGenesis(
 		req.Time,
 		req.InitialHeight,
