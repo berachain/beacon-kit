@@ -38,7 +38,6 @@ import (
 func TestGenesisDeposit(t *testing.T) {
 	homeDir := t.TempDir()
 	t.Log("Home folder:", homeDir)
-	// defer utils.DeleteTempHomeDir(t, homeDir)
 
 	chainSpec, err := spec.DevnetChainSpec()
 	require.NoError(t, err)
