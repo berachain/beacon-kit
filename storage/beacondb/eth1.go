@@ -34,6 +34,7 @@ func (kv *KVStore) GetLatestExecutionPayloadHeader() (
 	if err != nil {
 		return nil, err
 	}
+	
 	kv.latestExecutionPayloadCodec.SetActiveForkVersion(bytes.FromUint32(forkVersion))
 	return kv.latestExecutionPayloadHeader.Get(kv.ctx)
 }
