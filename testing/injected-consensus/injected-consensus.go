@@ -22,12 +22,9 @@ package injectedconsensus
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"testing"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
@@ -113,22 +110,6 @@ type TestNode struct {
 	CancelFunc        context.CancelFunc
 }
 
-func makeTempHomeDir(t *testing.T) string {
-	t.Helper()
-	// create random suffix to avoid conflicts
-	const rndSuffixLen = 5
-	bytes := make([]byte, rndSuffixLen)
-	_, err := rand.Read(bytes)
-	require.NoError(t, err)
-
-	rndSuffix := hex.EncodeToString(bytes)
-
-	tmpFolder := filepath.Join(os.TempDir(), "/injected-consensus", rndSuffix)
-	require.NoError(t, os.MkdirAll(tmpFolder, os.ModePerm))
-	t.Log("tmp folder:", tmpFolder)
-	return tmpFolder
-}
-
 // func copyFile(t *testing.T, src, dst string) error {
 //	t.Helper()
 //	// Open the source file
@@ -197,7 +178,7 @@ func NewTestNode(t *testing.T) *TestNode {
 		](DefaultComponents(t)),
 	)
 
-	tempHomeDir := makeTempHomeDir(t)
+	tempHomeDir := t.TempDir()
 	initializeBeaconState(t, tempHomeDir)
 
 	logger := phuslu.NewLogger(os.Stdout, nil)
