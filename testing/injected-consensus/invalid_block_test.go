@@ -57,11 +57,11 @@ func (s *InjectedConsensus) TestInitChainRequestsInvalidChainID() {
 func (s *InjectedConsensus) TestProcessProposalRequestInvalidBlock() {
 	go func() {
 		if err := s.testNode.Node.Start(s.testNode.Context); err != nil {
-			s.T().Fatal(err)
+			s.T().Error(err)
 		}
 	}()
 
-	<-time.After(120 * time.Second)
+	<-time.After(30 * time.Second)
 
 	// genesis := genesisFromFile(t, testNode.cometConfig.Genesis)
 

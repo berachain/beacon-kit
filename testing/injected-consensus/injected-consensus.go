@@ -196,6 +196,7 @@ func NewTestNode(t *testing.T) *TestNode {
 	appOpts.Set(flags.RPCJWTRefreshInterval, executionClientConfig.RPCJWTRefreshInterval)
 	appOpts.Set(flags.RPCStartupCheckInterval, executionClientConfig.RPCStartupCheckInterval)
 	appOpts.Set(flags.RPCDialURL, executionClientConfig.RPCDialURL)
+	appOpts.Set(flags.RPCTimeout, executionClientConfig.RPCTimeout)
 
 	// BLS Config
 	appOpts.Set(flags.PrivValidatorKeyFile, "./config/priv_validator_key.json")
