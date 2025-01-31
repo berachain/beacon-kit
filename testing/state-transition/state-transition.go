@@ -135,7 +135,7 @@ func SetupTestState(t *testing.T, cs chain.Spec) (
 	)
 
 	ctx := &transition.Context{
-		Context:         context.Background(),
+		ConsensusCtx:    context.Background(),
 		VerifyPayload:   false,
 		ValidateResult:  false,
 		ProposerAddress: dummyProposerAddr,

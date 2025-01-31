@@ -374,7 +374,7 @@ func (s *Service) computeStateRoot(
 		// engine enabled here would affect the proposer when
 		// the payload in their block has come from a remote builder.
 		&transition.Context{
-			Context:          ctx,
+			ConsensusCtx:     ctx,
 			MeterGas:         false,
 			OptimisticEngine: true,
 			VerifyPayload:    false,

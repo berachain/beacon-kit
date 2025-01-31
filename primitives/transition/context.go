@@ -28,7 +28,7 @@ import (
 
 // Context is the context for the state transition.
 type Context struct {
-	context.Context
+	ConsensusCtx context.Context
 
 	MeterGas bool
 	// OptimisticEngine indicates whether to optimistically assume
@@ -49,50 +49,4 @@ type Context struct {
 	// ConsensusTime returns the timestamp of current consensus request.
 	// It is used to build next payload and to validate currentpayload.
 	ConsensusTime math.U64
-}
-
-func (c *Context) GetMeterGas() bool {
-	return c.MeterGas
-}
-
-// GetOptimisticEngine returns whether to optimistically assume the execution
-// client has the correct state when certain errors are returned by the
-// execution engine.
-func (c *Context) GetOptimisticEngine() bool {
-	return c.OptimisticEngine
-}
-
-// GetVerifyPayload returns whether to call NewPayload on the
-// execution client. This can be done when the node is not syncing, and the
-// payload is already known to the execution client.
-func (c *Context) GetVerifyPayload() bool {
-	return c.VerifyPayload
-}
-
-// GetValidateRandao returns whether to validate the Randao mix.
-func (c *Context) GetValidateRandao() bool {
-	return c.ValidateRandao
-}
-
-// GetValidateResult returns whether to validate the result of the state
-// transition.
-func (c *Context) GetValidateResult() bool {
-	return c.ValidateResult
-}
-
-// GetProposerAddress returns the address of the validator
-// selected by consensus to propose the block.
-func (c *Context) GetProposerAddress() []byte {
-	return c.ProposerAddress
-}
-
-// GetConsensusTime returns the timestamp of current consensus request.
-// It is used to build next payload and to validate currentpayload.
-func (c *Context) GetConsensusTime() math.U64 {
-	return c.ConsensusTime
-}
-
-// Unwrap returns the underlying standard context.
-func (c *Context) Unwrap() context.Context {
-	return c.Context
 }

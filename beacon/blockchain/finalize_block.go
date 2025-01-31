@@ -153,7 +153,7 @@ func (s *Service) executeStateTransition(
 	defer s.metrics.measureStateTransitionDuration(startTime)
 	valUpdates, err := s.stateProcessor.Transition(
 		&transition.Context{
-			Context: ctx,
+			ConsensusCtx: ctx,
 
 			MeterGas: true,
 

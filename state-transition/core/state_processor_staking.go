@@ -21,13 +21,13 @@
 package core
 
 import (
-	"context"
 	"fmt"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/ethereum/go-ethereum/params"
@@ -35,7 +35,7 @@ import (
 
 // processOperations processes the operations and ensures they match the local state.
 func (sp *StateProcessor) processOperations(
-	ctx context.Context, st *state.StateDB, blk *ctypes.BeaconBlock,
+	ctx *transition.Context, st *state.StateDB, blk *ctypes.BeaconBlock,
 ) error {
 	// Verify that outstanding deposits are processed up to the maximum number of deposits.
 	//
@@ -51,7 +51,10 @@ func (sp *StateProcessor) processOperations(
 
 	// Instead we directly compare block deposits with our local store ones.
 	if err := sp.validateNonGenesisDeposits(
-		ctx, st, deposits, blk.GetBody().GetEth1Data().DepositRoot,
+		ctx.ConsensusCtx,
+		st,
+		deposits,
+		blk.GetBody().GetEth1Data().DepositRoot,
 	); err != nil {
 		return err
 	}
