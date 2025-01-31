@@ -139,6 +139,46 @@ func TestEquals(t *testing.T) {
 	}
 }
 
+func TestIsAfter(t *testing.T) {
+	tests := []struct {
+		name     string
+		a, b     common.Version
+		expected bool
+	}{
+		{
+			name:     "equal versions",
+			a:        common.Version{1, 0, 0, 0},
+			b:        common.Version{1, 0, 0, 0},
+			expected: false,
+		},
+		{
+			name:     "clearly after",
+			a:        common.Version{2, 0, 0, 0},
+			b:        common.Version{1, 0, 0, 0},
+			expected: true,
+		},
+		{
+			name:     "clearly before",
+			a:        common.Version{1, 0, 0, 0},
+			b:        common.Version{2, 0, 0, 0},
+			expected: false,
+		},
+		{
+			name:     "minor version after",
+			a:        common.Version{1, 2, 0, 0},
+			b:        common.Version{1, 1, 0, 0},
+			expected: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			result := version.IsAfter(tc.a, tc.b)
+			require.Equal(t, tc.expected, result)
+		})
+	}
+}
+
 func TestSort(t *testing.T) {
 	// Recommended function implementing cmp from the comments.
 	cmp := func(a, b common.Version) int {

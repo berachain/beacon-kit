@@ -43,12 +43,13 @@ func (s *Client) NewPayload(
 	versionedHashes []common.ExecutionHash,
 	parentBlockRoot *common.Root,
 ) (*engineprimitives.PayloadStatusV1, error) {
-	// newPayloadV3 is used for beacon versions Deneb and onwards.
-	if payload.Version().IsGreaterThanOrEqualTo(version.Deneb()) {
-		return s.NewPayloadV3(ctx, payload, versionedHashes, parentBlockRoot)
+	// Versions before Deneb are not supported for calling NewPayload.
+	if version.IsBefore(payload.Version(), version.Deneb()) {
+		return nil, ErrInvalidVersion
 	}
 
-	return nil, ErrInvalidVersion
+	// V3 is used for beacon versions Deneb and onwards.
+	return s.NewPayloadV3(ctx, payload, versionedHashes, parentBlockRoot)
 }
 
 // NewPayloadV3 calls the engine_newPayloadV3 via JSON-RPC.
@@ -78,12 +79,13 @@ func (s *Client) ForkchoiceUpdated(
 	attrs any,
 	forkVersion common.Version,
 ) (*engineprimitives.ForkchoiceResponseV1, error) {
-	// forkchoiceUpdatedV3 is used for beacon versions Deneb and onwards.
-	if forkVersion.IsGreaterThanOrEqualTo(version.Deneb()) {
-		return s.ForkchoiceUpdatedV3(ctx, state, attrs)
+	// Versions before Deneb are not supported for calling ForkchoiceUpdated.
+	if version.IsBefore(forkVersion, version.Deneb()) {
+		return nil, ErrInvalidVersion
 	}
 
-	return nil, ErrInvalidVersion
+	// V3 is used for beacon versions Deneb and onwards.
+	return s.ForkchoiceUpdatedV3(ctx, state, attrs)
 }
 
 // ForkchoiceUpdatedV3 calls the engine_forkchoiceUpdatedV3 method via JSON-RPC.
@@ -116,12 +118,13 @@ func (s *Client) GetPayload(
 	payloadID engineprimitives.PayloadID,
 	forkVersion common.Version,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
-	// getPayloadV3 is used for beacon versions Deneb and onwards.
-	if forkVersion.IsGreaterThanOrEqualTo(version.Deneb()) {
-		return s.GetPayloadV3(ctx, payloadID, forkVersion)
+	// Versions before Deneb are not supported for calling GetPayload.
+	if version.IsBefore(forkVersion, version.Deneb()) {
+		return nil, ErrInvalidVersion
 	}
 
-	return nil, ErrInvalidVersion
+	// V3 is used for beacon versions Deneb and onwards.
+	return s.GetPayloadV3(ctx, payloadID, forkVersion)
 }
 
 // GetPayloadV3 calls the engine_getPayloadV3 method via JSON-RPC.

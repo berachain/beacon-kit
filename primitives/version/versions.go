@@ -24,8 +24,9 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 )
 
-// These are the versions of the Beacon Chain. Kept as private to avoid
-// modification of these variables at runtime.
+// These are the versions of the Beacon Chain.
+//
+//nolint:gochecknoglobals // Kept as private to avoid modification of these variables at runtime.
 var (
 	// phase0 is the first version of the Beacon Chain.
 	phase0 = common.Version{0x00, 0x00, 0x00, 0x00}

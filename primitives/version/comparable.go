@@ -47,7 +47,7 @@ import (
 //	}
 
 // IsBefore returns true if a is before b. This compares bytes from most significant
-// to least significant in little-endian order.
+// to least significant in "little-endian" order.
 func IsBefore(a, b common.Version) bool {
 	// Iterate in order of significance.
 	for i := range bytes.B4Size {
@@ -66,4 +66,10 @@ func IsBefore(a, b common.Version) bool {
 // Equals returns true if a and b are equal (each byte in the 4-byte vector is the same).
 func Equals(a, b common.Version) bool {
 	return a == b
+}
+
+// IsAfter returns true if a is after b. This compares bytes from most significant
+// to least significant in "little-endian" order.
+func IsAfter(a, b common.Version) bool {
+	return !IsBefore(a, b) && !Equals(a, b)
 }

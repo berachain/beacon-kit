@@ -34,7 +34,7 @@ import (
 
 func TestDefaultGenesis(t *testing.T) {
 	g := types.DefaultGenesis()
-	if !g.ForkVersion.Equals(version.Deneb()) {
+	if !version.Equals(g.ForkVersion, version.Deneb()) {
 		t.Errorf(
 			"Expected fork version %v, but got %v",
 			version.Deneb(),
