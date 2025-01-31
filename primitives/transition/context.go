@@ -28,8 +28,13 @@ import (
 
 // Context is the context for the state transition.
 type Context struct {
+	// ConsensusCtx is the context passed by CometBFT callbacks
+	// We pass it down to be able to cancel processing (although
+	// currently CometBFT context is set to TODO)
 	ConsensusCtx context.Context
-
+	// MeterGas controls whether gas data related to the execution
+	// layer payload should be meter or not. We currently meter only
+	// finalized blocks.
 	MeterGas bool
 	// OptimisticEngine indicates whether to optimistically assume
 	// the execution client has the correct state certain errors
