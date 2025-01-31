@@ -40,6 +40,8 @@ import (
 )
 
 // SetDepositStorageCmd sets deposit contract storage in genesis alloc file.
+//
+//nolint:lll // reads better if long description is one line
 func SetDepositStorageCmd(chainSpec chain.Spec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "set-deposit-storage [eth/genesis/file.json]",
