@@ -34,6 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
+	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/afero"
@@ -47,78 +48,82 @@ func AddExecutionPayloadCmd(chainSpec chain.Spec) *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Read the genesis file.
-			genesisBz, err := afero.ReadFile(afero.NewOsFs(), args[0])
-			if err != nil {
-				return errors.Wrap(err, "failed to read eth1 genesis file")
-			}
-
-			// Unmarshal the genesis file.
-			ethGenesis := &gethprimitives.Genesis{}
-			if err = ethGenesis.UnmarshalJSON(genesisBz); err != nil {
-				return errors.Wrap(err, "failed to unmarshal eth1 genesis")
-			}
-			genesisBlock := ethGenesis.ToBlock()
-
-			// Create the execution payload.
-			payload := gethprimitives.BlockToExecutableData(
-				genesisBlock,
-				nil,
-				nil,
-				nil,
-			).ExecutionPayload
-
+			elGenesisPath := args[0]
 			config := context.GetConfigFromCmd(cmd)
-
-			appGenesis, err := genutiltypes.AppGenesisFromFile(
-				config.GenesisFile(),
-			)
-			if err != nil {
-				return errors.Wrap(err, "failed to read genesis doc from file")
-			}
-
-			// create the app state
-			appGenesisState, err := genutiltypes.GenesisStateFromAppGenesis(
-				appGenesis,
-			)
-			if err != nil {
-				return err
-			}
-
-			genesisInfo := &types.Genesis{}
-
-			if err = json.Unmarshal(
-				appGenesisState["beacon"], genesisInfo,
-			); err != nil {
-				return errors.Wrap(err, "failed to unmarshal beacon state")
-			}
-
-			// Inject the execution payload.
-			genesisInfo.ExecutionPayloadHeader, err =
-				executableDataToExecutionPayloadHeader(
-					genesisInfo.ForkVersion.ToUint32(),
-					payload,
-					chainSpec.MaxWithdrawalsPerPayload(),
-				)
-			if err != nil {
-				return errors.Wrap(err, "failed to unmarshal beacon state")
-			}
-
-			appGenesisState["beacon"], err = json.Marshal(genesisInfo)
-			if err != nil {
-				return errors.Wrap(err, "failed to marshal beacon state")
-			}
-
-			if appGenesis.AppState, err = json.MarshalIndent(
-				appGenesisState, "", "  ",
-			); err != nil {
-				return err
-			}
-
-			return genutil.ExportGenesisFile(appGenesis, config.GenesisFile())
+			return AddExecutionPayload(chainSpec, elGenesisPath, config)
 		},
 	}
 
 	return cmd
+}
+
+func AddExecutionPayload(chainSpec chain.Spec, elGenesisPath string, config *cmtcfg.Config) error {
+	genesisBz, err := afero.ReadFile(afero.NewOsFs(), elGenesisPath)
+	if err != nil {
+		return errors.Wrap(err, "failed to read eth1 genesis file")
+	}
+
+	// Unmarshal the genesis file.
+	ethGenesis := &gethprimitives.Genesis{}
+	if err = ethGenesis.UnmarshalJSON(genesisBz); err != nil {
+		return errors.Wrap(err, "failed to unmarshal eth1 genesis")
+	}
+	genesisBlock := ethGenesis.ToBlock()
+
+	// Create the execution payload.
+	payload := gethprimitives.BlockToExecutableData(
+		genesisBlock,
+		nil,
+		nil,
+		nil,
+	).ExecutionPayload
+
+	appGenesis, err := genutiltypes.AppGenesisFromFile(
+		config.GenesisFile(),
+	)
+	if err != nil {
+		return errors.Wrap(err, "failed to read genesis doc from file")
+	}
+
+	// create the app state
+	appGenesisState, err := genutiltypes.GenesisStateFromAppGenesis(
+		appGenesis,
+	)
+	if err != nil {
+		return err
+	}
+
+	genesisInfo := &types.Genesis{}
+
+	if err = json.Unmarshal(
+		appGenesisState["beacon"], genesisInfo,
+	); err != nil {
+		return errors.Wrap(err, "failed to unmarshal beacon state")
+	}
+
+	// Inject the execution payload.
+	genesisInfo.ExecutionPayloadHeader, err =
+		executableDataToExecutionPayloadHeader(
+			genesisInfo.ForkVersion.ToUint32(),
+			payload,
+			chainSpec.MaxWithdrawalsPerPayload(),
+		)
+	if err != nil {
+		return errors.Wrap(err, "failed to unmarshal beacon state")
+	}
+
+	appGenesisState["beacon"], err = json.Marshal(genesisInfo)
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal beacon state")
+	}
+
+	if appGenesis.AppState, err = json.MarshalIndent(
+		appGenesisState, "", "  ",
+	); err != nil {
+		return err
+	}
+
+	return genutil.ExportGenesisFile(appGenesis, config.GenesisFile())
 }
 
 // Converts the eth executable data type to the beacon execution payload header
