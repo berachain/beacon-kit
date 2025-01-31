@@ -22,7 +22,7 @@ package rpc
 
 // updateHeader builds an http.Header that has the JWT token
 // attached for authorization.
-func (rpc *Client) updateHeader() error {
+func (rpc *client) updateHeader() error {
 	// Build the JWT token.
 	token, err := rpc.jwtSecret.BuildSignedToken()
 	if err != nil {

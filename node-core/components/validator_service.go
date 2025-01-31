@@ -63,9 +63,6 @@ func ProvideValidatorService[
 		in.Signer,
 		in.SidecarFactory,
 		in.LocalBuilder,
-		[]validator.PayloadBuilder{
-			in.LocalBuilder,
-		},
 		in.TelemetrySink,
 	), nil
 }

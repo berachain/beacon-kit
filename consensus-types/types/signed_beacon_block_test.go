@@ -23,13 +23,11 @@ package types_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/version"
 	cmtcrypto "github.com/cometbft/cometbft/crypto"
 	"github.com/cometbft/cometbft/crypto/bls12381"
 	"github.com/cometbft/cometbft/privval"
@@ -37,8 +35,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func generateFakeSignedBeaconBlock() *types.SignedBeaconBlock {
-	blk := generateValidBeaconBlock()
+func generateFakeSignedBeaconBlock(t *testing.T) *types.SignedBeaconBlock {
+	t.Helper()
+
+	blk := generateValidBeaconBlock(t)
 	signature := crypto.BLSSignature{}
 	return &types.SignedBeaconBlock{
 		Message:   blk,
@@ -55,18 +55,19 @@ func generatePrivKey() (cmtcrypto.PrivKey, error) {
 }
 
 func generateSigningRoot(blk *types.BeaconBlock) (common.Root, error) {
-	cs, err := chain.NewSpec(spec.BaseSpec())
+	cs, err := spec.DevnetChainSpec()
 	if err != nil {
 		return common.Root{}, err
 	}
-	forkData := types.ForkData{}
-	domain := forkData.ComputeDomain(cs.DomainTypeProposer())
+	domain := (&types.ForkData{}).ComputeDomain(cs.DomainTypeProposer())
 	signingRoot := types.ComputeSigningRoot(blk, domain)
 	return signingRoot, nil
 }
 
-func generateRealSignedBeaconBlock(blsSigner crypto.BLSSigner) (*types.SignedBeaconBlock, error) {
-	blk := generateValidBeaconBlock()
+func generateRealSignedBeaconBlock(t *testing.T, blsSigner crypto.BLSSigner) (*types.SignedBeaconBlock, error) {
+	t.Helper()
+
+	blk := generateValidBeaconBlock(t)
 
 	signingRoot, err := generateSigningRoot(blk)
 	if err != nil {
@@ -84,13 +85,13 @@ func generateRealSignedBeaconBlock(blsSigner crypto.BLSSigner) (*types.SignedBea
 
 // TestNewSignedBeaconBlockFromSSZ tests the roundtrip SSZ encoding for Deneb.
 func TestNewSignedBeaconBlockFromSSZ(t *testing.T) {
-	originalBlock := generateFakeSignedBeaconBlock()
+	originalBlock := generateFakeSignedBeaconBlock(t)
 	blockBytes, err := originalBlock.MarshalSSZ()
 	require.NoError(t, err)
 	require.NotNil(t, blockBytes)
 
 	newBlock, err := types.NewSignedBeaconBlockFromSSZ(
-		blockBytes, version.Deneb,
+		blockBytes, originalBlock.Message.Version(),
 	)
 	require.NoError(t, err)
 	require.NotNil(t, newBlock)
@@ -102,8 +103,8 @@ func TestNewSignedBeaconBlockFromSSZForkVersionNotSupported(t *testing.T) {
 	require.ErrorIs(t, err, types.ErrForkVersionNotSupported)
 }
 
-func TestSignedBeaconBlock_HashTreeRoot(_ *testing.T) {
-	sBlk := generateFakeSignedBeaconBlock()
+func TestSignedBeaconBlock_HashTreeRoot(t *testing.T) {
+	sBlk := generateFakeSignedBeaconBlock(t)
 	sBlk.HashTreeRoot()
 }
 
@@ -120,12 +121,12 @@ func TestSignedBeaconBlock_SignBeaconBlock(t *testing.T) {
 	blsSigner := signer.BLSSigner{PrivValidator: filePV}
 
 	// Generate real signed beacon block
-	signedBlk, err := generateRealSignedBeaconBlock(blsSigner)
+	signedBlk, err := generateRealSignedBeaconBlock(t, blsSigner)
 	require.NoError(t, err)
 	require.NotNil(t, signedBlk)
 
 	// Use SignBeaconBlock to sign the same BeaconBlock
-	cs, err := chain.NewSpec(spec.BaseSpec())
+	cs, err := spec.DevnetChainSpec()
 	require.NoError(t, err)
 	newSignedBlk, err := types.NewSignedBeaconBlock(
 		signedBlk.GetMessage(),
@@ -148,7 +149,7 @@ func TestSignedBeaconBlock_SignBeaconBlock(t *testing.T) {
 }
 
 func TestSignedBeaconBlock_SizeSSZ(t *testing.T) {
-	sBlk := generateFakeSignedBeaconBlock()
+	sBlk := generateFakeSignedBeaconBlock(t)
 	size := ssz.Size(sBlk)
 	require.Positive(t, size)
 }

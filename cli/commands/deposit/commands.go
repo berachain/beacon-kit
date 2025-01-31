@@ -18,8 +18,29 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package math
+package deposit
 
-const (
-	GweiPerWei = 1e9
+import (
+	"github.com/berachain/beacon-kit/chain"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/spf13/cobra"
 )
+
+// Commands creates a new command for deposit related actions.
+func Commands(chainSpec chain.Spec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:                        "deposit",
+		Short:                      "deposit subcommands",
+		DisableFlagParsing:         false,
+		SuggestionsMinimumDistance: 2, //nolint:mnd // from sdk.
+		RunE:                       client.ValidateCmd,
+	}
+
+	cmd.AddCommand(
+		NewValidateDeposit(chainSpec),
+		NewCreateValidator(chainSpec),
+		GetValidatorKeysCmd(),
+	)
+
+	return cmd
+}

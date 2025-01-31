@@ -21,6 +21,8 @@
 package da
 
 import (
+	"context"
+
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
@@ -38,6 +40,7 @@ type BlobProcessor interface {
 	) error
 	// VerifySidecars verifies the blobs and ensures they match the local state.
 	VerifySidecars(
+		ctx context.Context,
 		sidecars datypes.BlobSidecars,
 		blkHeader *ctypes.BeaconBlockHeader,
 		kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],

@@ -23,20 +23,11 @@ package validator
 import "github.com/berachain/beacon-kit/errors"
 
 var (
-
-	// ErrNilPayload is an error for when there is no payload
-	// in a beacon block.
-	ErrNilPayload = errors.New("nil payload in beacon block")
-
 	// ErrNilBlkBody is an error for when the block body is nil.
 	ErrNilBlkBody = errors.New("nil block body")
 
 	// ErrNilBlobsBundle is an error for when the blobs bundle is nil.
 	ErrNilBlobsBundle = errors.New("nil blobs bundle")
-
-	// ErrNilDepositIndexStart is an error for when the deposit index start is
-	// nil.
-	ErrNilDepositIndexStart = errors.New("nil deposit index start")
 
 	// ErrDepositStoreIncomplete is an error for when the deposit store has not returned
 	// the expected amount of deposits. Could be due to pruning when it should not be enabled.

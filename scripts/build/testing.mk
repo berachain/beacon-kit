@@ -10,10 +10,12 @@
 #    beacond     #
 #################
 
+HOMEDIR = .tmp/beacond
 DEVNET_CHAIN_SPEC = devnet
 JWT_PATH = ${TESTAPP_FILES_DIR}/jwt.hex
-ETH_GENESIS_PATH = ${TESTAPP_FILES_DIR}/eth-genesis.json
-NETHER_ETH_GENESIS_PATH = ${TESTAPP_FILES_DIR}/eth-nether-genesis.json
+# Use the genesis file from the beacond folder as it has been modified by beacond genesis set-deposit-storage.
+ETH_GENESIS_PATH = ${HOMEDIR}/eth-genesis.json
+NETHER_ETH_GENESIS_PATH = ${HOMEDIR}/eth-nether-genesis.json
 ETH_DATA_DIR = .tmp/eth-home
 # URLs used for dialing the eth client
 IPC_PATH = .tmp/eth-home/eth-engine.ipc
@@ -169,6 +171,7 @@ start-nethermind: ## start an ephemeral `nethermind` node
 	-p 8545:8545 \
 	-p 8551:8551 \
 	-v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	-v $(PWD)/${HOMEDIR}:/${HOMEDIR} \
 	nethermind/nethermind \
 	--JsonRpc.Port 8545 \
 	--JsonRpc.EngineEnabledModules "eth,net,engine" \
@@ -177,13 +180,14 @@ start-nethermind: ## start an ephemeral `nethermind` node
 	--JsonRpc.Host 0.0.0.0 \
 	--JsonRpc.JwtSecretFile ../$(JWT_PATH) \
 	--Sync.PivotNumber 0 \
-	--Init.ChainSpecPath ../$(TESTAPP_FILES_DIR)/eth-nether-genesis.json
+	--Init.ChainSpecPath ../$(NETHER_ETH_GENESIS_PATH)
 
 start-besu: ## start an ephemeral `besu` node
 	docker run \
 	-p 30303:30303 \
 	-p 8545:8545 \
 	-p 8551:8551 \
+	-v $(PWD)/${HOMEDIR}:/${HOMEDIR} \
 	-v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	hyperledger/besu:latest \
 	--data-path=.tmp/besu \
@@ -242,7 +246,7 @@ start-ethereumjs:
 	--rpcEngine \
 	--jwtSecret ../../$(JWT_PATH) \
 	--rpcEngineAddr 0.0.0.0 \
-	--dataDir .tmp/ethereumjs \
+	--dataDir ../../.tmp/ethereumjs \
 	--isSingleNode \
 	--rpc \
 	--rpcAddr 0.0.0.0
@@ -258,17 +262,17 @@ test:
 test-unit: ## run golang unit tests
 	@echo "Running unit tests..."
 	@go list -f '{{.Dir}}/...' -m | xargs \
-		go test -race -tags bls12381
+		go test -race -tags bls12381,test
 
 test-unit-cover: ## run golang unit tests with coverage
 	@echo "Running unit tests with coverage..."
 	@go list -f '{{.Dir}}/...' -m | xargs \
-		go test -race -coverprofile=test-unit-cover.txt -tags bls12381
+		go test -race -coverprofile=test-unit-cover.txt -tags bls12381,test
 
 test-unit-bench: ## run golang unit benchmarks
 	@echo "Running unit tests with benchmarks..."
 	@go list -f '{{.Dir}}/...' -m | xargs \
-		go test -bench=. -run=^$ -benchmem -tags bls12381
+		go test -bench=. -run=^$ -benchmem -tags bls12381,test
 
 # On MacOS, if there is a linking issue on the fuzz tests,
 # use the old linker with flags -ldflags=-extldflags=-Wl,-ld_classic
@@ -283,10 +287,16 @@ test-e2e: ## run e2e tests
 	@$(MAKE) build-docker VERSION=kurtosis-local test-e2e-no-build
 
 test-e2e-no-build:
-	go test -timeout 0 -tags e2e,bls12381 ./testing/e2e/. -v
+	go test -timeout 0 -tags e2e,bls12381,test ./testing/e2e/. -v
 
 test-e2e-4844: ## run e2e tests
 	@$(MAKE) build-docker VERSION=kurtosis-local test-e2e-4844-no-build
 
 test-e2e-4844-no-build:
-	go test -timeout 0 -tags e2e,bls12381 ./testing/e2e/. -v -testify.m Test4844Live
+	go test -timeout 0 -tags e2e,bls12381,test ./testing/e2e/. -v -testify.m Test4844Live
+
+test-e2e-deposits: ## run e2e tests
+	@$(MAKE) build-docker VERSION=kurtosis-local test-e2e-deposits-no-build
+
+test-e2e-deposits-no-build:
+	go test -timeout 0 -tags e2e,bls12381,test ./testing/e2e/. -v -testify.m TestDepositRobustness

@@ -34,21 +34,20 @@ func (s spec) ActiveForkVersionForSlot(slot math.Slot) uint32 {
 func (s spec) ActiveForkVersionForEpoch(epoch math.Epoch) uint32 {
 	if epoch >= s.ElectraForkEpoch() {
 		return version.Electra
-	} else if epoch >= s.DenebPlusForkEpoch() {
-		return version.DenebPlus
 	}
-
+	if epoch >= s.Deneb1ForkEpoch() {
+		return version.Deneb1
+	}
 	return version.Deneb
 }
 
 // SlotToEpoch converts a slot to an epoch.
 func (s spec) SlotToEpoch(slot math.Slot) math.Epoch {
-	//#nosec:G701 // realistically fine in practice.
-	return math.Epoch(uint64(slot) / s.SlotsPerEpoch())
+	return math.Epoch(slot.Unwrap() / s.SlotsPerEpoch())
 }
 
 // WithinDAPeriod checks if the block epoch is within MIN_EPOCHS_FOR_BLOB_SIDECARS_REQUESTS
 // of the given current epoch.
 func (s spec) WithinDAPeriod(block, current math.Slot) bool {
-	return (s.SlotToEpoch(block) + s.MinEpochsForBlobsSidecarsRequest()) >= s.SlotToEpoch(current)
+	return s.SlotToEpoch(block)+s.MinEpochsForBlobsSidecarsRequest() >= s.SlotToEpoch(current)
 }

@@ -106,18 +106,6 @@ func ConvertSignature(signature string) (crypto.BLSSignature, error) {
 	return crypto.BLSSignature(signatureBytes), nil
 }
 
-// ConvertVersion converts a string to a version.
-func ConvertVersion(version string) (common.Version, error) {
-	versionBytes, err := hex.ToBytes(version)
-	if err != nil {
-		return common.Version{}, err
-	}
-	if len(versionBytes) != constants.DomainTypeLength {
-		return common.Version{}, ErrInvalidVersionLength
-	}
-	return common.Version(versionBytes), nil
-}
-
 // ConvertGenesisValidatorRoot converts a string to a genesis validator root.
 func ConvertGenesisValidatorRoot(root string) (common.Root, error) {
 	rootBytes, err := hex.ToBytes(root)

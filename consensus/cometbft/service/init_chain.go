@@ -21,19 +21,15 @@
 package cometbft
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"sort"
 
-	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/sourcegraph/conc/iter"
 )
 
-//nolint:gocognit // its fine.
 func (s *Service[LoggerT]) initChain(
 	ctx context.Context,
 	req *cmtabci.InitChainRequest,
@@ -44,6 +40,12 @@ func (s *Service[LoggerT]) initChain(
 			s.chainID,
 			req.ChainId,
 		)
+	}
+
+	// Enforce that request validators is zero. This is because Berachain derives the validators directly from
+	// deposits in the genesis file and disregards the validators in genesis file, which is what Comet uses.
+	if len(req.Validators) != 0 {
+		return nil, fmt.Errorf("expected no validators in initChain request but got %d", len(req.Validators))
 	}
 
 	var genesisState map[string]json.RawMessage

@@ -72,6 +72,11 @@ type ExecutionPayload struct {
 	BlobGasUsed math.U64 `json:"blobGasUsed"`
 	// ExcessBlobGas is the amount of excess blob gas in the block.
 	ExcessBlobGas math.U64 `json:"excessBlobGas"`
+
+	// EpVersion is the version of the execution payload.
+	// EpVersion must be not serialized, but it's exported
+	// to allow unit tests using reflect on execution payload.
+	EpVersion uint32 `json:"-"`
 }
 
 /* -------------------------------------------------------------------------- */
@@ -454,13 +459,15 @@ func (p *ExecutionPayload) UnmarshalJSON(input []byte) error {
 }
 
 // Empty returns an empty ExecutionPayload for the given fork version.
-func (p *ExecutionPayload) Empty(_ uint32) *ExecutionPayload {
-	return &ExecutionPayload{}
+func (p *ExecutionPayload) Empty(forkVersion uint32) *ExecutionPayload {
+	return &ExecutionPayload{
+		EpVersion: forkVersion,
+	}
 }
 
 // Version returns the version of the ExecutionPayload.
 func (p *ExecutionPayload) Version() uint32 {
-	return version.Deneb
+	return p.EpVersion
 }
 
 // IsNil checks if the ExecutionPayload is nil.
@@ -479,9 +486,7 @@ func (p *ExecutionPayload) GetParentHash() common.ExecutionHash {
 }
 
 // GetFeeRecipient returns the fee recipient address of the ExecutionPayload.
-func (
-	p *ExecutionPayload,
-) GetFeeRecipient() common.ExecutionAddress {
+func (p *ExecutionPayload) GetFeeRecipient() common.ExecutionAddress {
 	return p.FeeRecipient
 }
 
@@ -561,14 +566,11 @@ func (p *ExecutionPayload) GetExcessBlobGas() math.U64 {
 }
 
 // ToHeader converts the ExecutionPayload to an ExecutionPayloadHeader.
-func (p *ExecutionPayload) ToHeader() (
-	*ExecutionPayloadHeader,
-	error,
-) {
+func (p *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 	txsRoot := p.GetTransactions().HashTreeRoot()
 
-	switch p.Version() {
-	case version.Deneb, version.DenebPlus:
+	switch p.EpVersion {
+	case version.Deneb, version.Deneb1:
 		return &ExecutionPayloadHeader{
 			ParentHash:       p.ParentHash,
 			FeeRecipient:     p.GetFeeRecipient(),
@@ -587,6 +589,7 @@ func (p *ExecutionPayload) ToHeader() (
 			WithdrawalsRoot:  p.GetWithdrawals().HashTreeRoot(),
 			BlobGasUsed:      p.GetBlobGasUsed(),
 			ExcessBlobGas:    p.GetExcessBlobGas(),
+			EphVersion:       p.EpVersion,
 		}, nil
 	default:
 		return nil, errors.New("unknown fork version")

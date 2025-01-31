@@ -32,12 +32,12 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-core/components"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
+	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/spf13/afero"
@@ -47,7 +47,7 @@ import (
 // AddGenesisDepositCmd - returns the cobra command to
 // add a premined deposit to the genesis file.
 //
-//nolint:lll // reads better if long description is one line
+//nolint:lll // reads better if long description is one line.
 func AddGenesisDepositCmd(cs chain.Spec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add-premined-deposit",
@@ -85,7 +85,7 @@ func AddGenesisDepositCmd(cs chain.Spec) *cobra.Command {
 			}
 
 			// All deposits are signed with the genesis version.
-			genesisVersion := version.FromUint32[common.Version](constants.GenesisVersion)
+			genesisVersion := bytes.FromUint32(constants.GenesisVersion)
 
 			// Get the withdrawal address.
 			withdrawalAddress := common.NewExecutionAddressFromHex(args[1])

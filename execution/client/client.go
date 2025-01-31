@@ -64,17 +64,15 @@ func New(
 	telemetrySink TelemetrySink,
 	eth1ChainID *big.Int,
 ) *EngineClient {
+	ethClient := ethclientrpc.NewClient(
+		cfg.RPCDialURL.String(),
+		jwtSecret,
+		cfg.RPCJWTRefreshInterval,
+	)
 	return &EngineClient{
-		cfg:    cfg,
-		logger: logger,
-		Client: ethclient.New(
-			ethclientrpc.NewClient(
-				cfg.RPCDialURL.String(),
-				ethclientrpc.WithJWTSecret(jwtSecret),
-				ethclientrpc.WithJWTRefreshInterval(
-					cfg.RPCJWTRefreshInterval,
-				),
-			)),
+		cfg:          cfg,
+		logger:       logger,
+		Client:       ethclient.New(ethClient),
 		capabilities: make(map[string]struct{}),
 		eth1ChainID:  eth1ChainID,
 		metrics:      newClientMetrics(telemetrySink, logger),

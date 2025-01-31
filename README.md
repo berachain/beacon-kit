@@ -58,6 +58,9 @@ make start
 
 **Terminal 2:**
 
+**Note:** This must be run *after* the `beacond` node is started since `make start` will populate the
+eth-genesis file used by the Execution Client.
+
 ```bash
 # Start an Ethereum Execution Client:
 make start-reth # or start-geth start-besu start-erigon start-nethermind start-ethereumjs

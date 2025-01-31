@@ -22,9 +22,16 @@ package spec
 
 import "github.com/berachain/beacon-kit/chain"
 
-// TestnetChainSpec is the ChainSpec for the bArtio testnet.
+// TestnetChainSpecData is the chain.SpecData for Berachain's public testnet.
+//
+// TODO: adjust values before testnet genesis.
+func TestnetChainSpecData() *chain.SpecData {
+	specData := MainnetChainSpecData()
+	specData.DepositEth1ChainID = TestnetEth1ChainID
+	return specData
+}
+
+// TestnetChainSpec is the chain.Spec for Berachain's public testnet.
 func TestnetChainSpec() (chain.Spec, error) {
-	testnetSpec := BaseSpec()
-	testnetSpec.DepositEth1ChainID = TestnetEth1ChainID
-	return chain.NewSpec(testnetSpec)
+	return chain.NewSpec(TestnetChainSpecData())
 }
