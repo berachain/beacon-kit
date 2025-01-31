@@ -102,6 +102,11 @@ func AddGenesisDeposit(
 		)
 	}
 
+	if valPubKey == nil {
+		// silence nilaway
+		return errors.New("failed to initialize commands validator files")
+	}
+
 	// All deposits are signed with the genesis version.
 	genesisVersion := bytes.FromUint32(constants.GenesisVersion)
 
