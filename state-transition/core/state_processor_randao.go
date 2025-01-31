@@ -21,8 +21,9 @@
 package core
 
 import (
+	"fmt"
+
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -57,27 +58,21 @@ func (sp *StateProcessor[ContextT]) processRandaoReveal(
 	epoch := sp.cs.SlotToEpoch(slot)
 	body := blk.GetBody()
 
-	fd := ctypes.NewForkData(
-		bytes.FromUint32(sp.cs.ActiveForkVersionForEpoch(epoch)), genesisValidatorsRoot,
-	)
+	fd := ctypes.NewForkData(sp.cs.ActiveForkVersionForEpoch(epoch), genesisValidatorsRoot)
 
 	if !ctx.GetSkipValidateRandao() {
-		signingRoot := fd.ComputeRandaoSigningRoot(
-			sp.cs.DomainTypeRandao(), epoch,
-		)
+		signingRoot := fd.ComputeRandaoSigningRoot(sp.cs.DomainTypeRandao(), epoch)
 		reveal := body.GetRandaoReveal()
 		if err = sp.signer.VerifySignature(
 			proposer.GetPubkey(),
 			signingRoot[:],
 			reveal,
 		); err != nil {
-			return err
+			return fmt.Errorf("state processor failed randao checks: %w", err)
 		}
 	}
 
-	prevMix, err := st.GetRandaoMixAtIndex(
-		epoch.Unwrap() % sp.cs.EpochsPerHistoricalVector(),
-	)
+	prevMix, err := st.GetRandaoMixAtIndex(epoch.Unwrap() % sp.cs.EpochsPerHistoricalVector())
 	if err != nil {
 		return err
 	}
@@ -99,16 +94,12 @@ func (sp *StateProcessor[_]) processRandaoMixesReset(
 	}
 
 	epoch := sp.cs.SlotToEpoch(slot)
-	mix, err := st.GetRandaoMixAtIndex(
-		epoch.Unwrap() % sp.cs.EpochsPerHistoricalVector(),
-	)
+	mix, err := st.GetRandaoMixAtIndex(epoch.Unwrap() % sp.cs.EpochsPerHistoricalVector())
 	if err != nil {
 		return err
 	}
-	return st.UpdateRandaoMixAtIndex(
-		(epoch.Unwrap()+1)%sp.cs.EpochsPerHistoricalVector(),
-		mix,
-	)
+
+	return st.UpdateRandaoMixAtIndex((epoch.Unwrap()+1)%sp.cs.EpochsPerHistoricalVector(), mix)
 }
 
 // buildRandaoMix as defined in the Ethereum 2.0 specification.

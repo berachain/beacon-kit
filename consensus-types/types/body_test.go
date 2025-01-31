@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/math/log"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
@@ -43,6 +44,7 @@ func generateBeaconBlockBody() types.BeaconBlockBody {
 		Deposits:     []*types.Deposit{},
 		ExecutionPayload: &types.ExecutionPayload{
 			BaseFeePerGas: math.NewU256(0),
+			EpVersion:     version.Deneb1(),
 		},
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
@@ -79,7 +81,7 @@ func TestBeaconBlockBody(t *testing.T) {
 		Eth1Data:           &types.Eth1Data{},
 		Graffiti:           [32]byte{4, 5, 6},
 		Deposits:           []*types.Deposit{},
-		ExecutionPayload:   &types.ExecutionPayload{},
+		ExecutionPayload:   (&types.ExecutionPayload{}).Empty(version.Deneb1()),
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
 
@@ -127,7 +129,7 @@ func TestBeaconBlockBody_MarshalSSZ(t *testing.T) {
 		Eth1Data:           &types.Eth1Data{},
 		Graffiti:           [32]byte{4, 5, 6},
 		Deposits:           []*types.Deposit{},
-		ExecutionPayload:   &types.ExecutionPayload{},
+		ExecutionPayload:   (&types.ExecutionPayload{}).Empty(version.Deneb1()),
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
 	data, err := body.MarshalSSZ()

@@ -22,7 +22,6 @@ package core
 
 import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
@@ -31,39 +30,23 @@ func (sp *StateProcessor[_]) GetSignatureVerifierFn(st *statedb.StateDB) (
 	func(blk *ctypes.BeaconBlock, signature crypto.BLSSignature) error,
 	error,
 ) {
-	slot, err := st.GetSlot()
-	if err != nil {
-		return nil, err
-	}
-	epoch := sp.cs.SlotToEpoch(slot)
-
 	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
 	if err != nil {
 		return nil, err
 	}
 
-	fd := *ctypes.NewForkData(
-		bytes.FromUint32(sp.cs.ActiveForkVersionForEpoch(epoch)), genesisValidatorsRoot,
-	)
-	domain := fd.ComputeDomain(sp.cs.DomainTypeProposer())
+	return func(blk *ctypes.BeaconBlock, signature crypto.BLSSignature) error {
+		fd := ctypes.NewForkData(
+			sp.cs.ActiveForkVersionForSlot(blk.GetSlot()), genesisValidatorsRoot,
+		)
+		domain := fd.ComputeDomain(sp.cs.DomainTypeProposer())
 
-	return func(
-		blk *ctypes.BeaconBlock,
-		signature crypto.BLSSignature,
-	) error {
 		//nolint:govet // shadow
 		proposer, err := st.ValidatorByIndex(blk.GetProposerIndex())
 		if err != nil {
 			return err
 		}
-		signingRoot := ctypes.ComputeSigningRoot(
-			blk,
-			domain,
-		)
-		return sp.signer.VerifySignature(
-			proposer.GetPubkey(),
-			signingRoot[:],
-			signature,
-		)
+		signingRoot := ctypes.ComputeSigningRoot(blk, domain)
+		return sp.signer.VerifySignature(proposer.GetPubkey(), signingRoot[:], signature)
 	}, nil
 }

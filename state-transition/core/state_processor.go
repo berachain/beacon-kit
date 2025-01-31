@@ -25,7 +25,6 @@ import (
 
 	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -189,15 +188,7 @@ func (sp *StateProcessor[ContextT]) ProcessBlock(
 		return err
 	}
 
-	switch err := sp.processExecutionPayload(ctx, st, blk); {
-	case err == nil:
-		// keep going with the processing
-	case errors.Is(err, engineerrors.ErrAcceptedPayloadStatus):
-		// It is safe for the validator to ignore this error since
-		// the consensus will enforce that the block is part
-		// of the canonical chain.
-		// Keep going with the rest of the validation
-	default:
+	if err := sp.processExecutionPayload(ctx, st, blk); err != nil {
 		return err
 	}
 
@@ -234,9 +225,7 @@ func (sp *StateProcessor[ContextT]) ProcessBlock(
 
 // processEpoch processes the epoch and ensures it matches the local state. Currently
 // beacon-kit does not enforce rewards, penalties, and slashing for validators.
-func (sp *StateProcessor[_]) processEpoch(
-	st *state.StateDB,
-) (transition.ValidatorUpdates, error) {
+func (sp *StateProcessor[_]) processEpoch(st *state.StateDB) (transition.ValidatorUpdates, error) {
 	slot, err := st.GetSlot()
 	if err != nil {
 		return nil, err
@@ -281,8 +270,7 @@ func (sp *StateProcessor[_]) processEpoch(
 	return validatorSetsDiffs(currentActiveVals, nextActiveVals), nil
 }
 
-// processBlockHeader processes the header and ensures it matches the local
-// state.
+// processBlockHeader processes the header and ensures it matches the local state.
 func (sp *StateProcessor[ContextT]) processBlockHeader(
 	ctx ContextT, st *state.StateDB, blk *ctypes.BeaconBlock,
 ) error {
@@ -364,9 +352,10 @@ func (sp *StateProcessor[_]) processEffectiveBalanceUpdates(st *state.StateDB) e
 	}
 
 	var (
-		hysteresisIncrement = sp.cs.EffectiveBalanceIncrement() / sp.cs.HysteresisQuotient()
-		downwardThreshold   = math.Gwei(hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier())
-		upwardThreshold     = math.Gwei(hysteresisIncrement * sp.cs.HysteresisUpwardMultiplier())
+		effectiveBalanceIncrement = sp.cs.EffectiveBalanceIncrement()
+		hysteresisIncrement       = effectiveBalanceIncrement / sp.cs.HysteresisQuotient()
+		downwardThreshold         = math.Gwei(hysteresisIncrement * sp.cs.HysteresisDownwardMultiplier())
+		upwardThreshold           = math.Gwei(hysteresisIncrement * sp.cs.HysteresisUpwardMultiplier())
 
 		idx     math.U64
 		balance math.Gwei
@@ -387,7 +376,7 @@ func (sp *StateProcessor[_]) processEffectiveBalanceUpdates(st *state.StateDB) e
 			val.GetEffectiveBalance()+upwardThreshold < balance {
 			updatedBalance := ctypes.ComputeEffectiveBalance(
 				balance,
-				math.U64(sp.cs.EffectiveBalanceIncrement()),
+				math.U64(effectiveBalanceIncrement),
 				math.U64(sp.cs.MaxEffectiveBalance()),
 			)
 			val.SetEffectiveBalance(updatedBalance)

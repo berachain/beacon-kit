@@ -34,7 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/cli/utils/genesis"
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -101,15 +100,12 @@ func TestCompareGenesisCmdWithStateProcessor(t *testing.T) {
 
 		// genesis validators root from StateProcessor
 		sp, st, _, _ := statetransition.SetupTestState(t, cs)
-		var (
-			genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-			genVersion       = bytes.FromUint32(version.Deneb)
-		)
+		genPayloadHeader := new(types.ExecutionPayloadHeader).Empty()
 		_, err = sp.InitializePreminedBeaconStateFromEth1(
 			st,
 			deposits,
 			genPayloadHeader,
-			genVersion,
+			version.Genesis(),
 		)
 		require.NoError(t, err)
 

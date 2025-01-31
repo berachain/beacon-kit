@@ -66,12 +66,11 @@ func (s *Service) ProcessProposal(
 	}
 
 	// Decode signed block and sidecars.
-	signedBlk, sidecars, err := encoding.
-		ExtractBlobsAndBlockFromRequest(
-			req,
-			BeaconBlockTxIndex,
-			BlobSidecarsTxIndex,
-			s.chainSpec.ActiveForkVersionForSlot(math.Slot(req.Height))) // #nosec G115
+	signedBlk, sidecars, err := encoding.ExtractBlobsAndBlockFromRequest(
+		req,
+		BeaconBlockTxIndex,
+		BlobSidecarsTxIndex,
+		s.chainSpec.ActiveForkVersionForSlot(math.Slot(req.Height))) // #nosec G115
 	if err != nil {
 		return err
 	}
@@ -162,7 +161,11 @@ func (s *Service) VerifyIncomingBlockSignature(
 	if err != nil {
 		return errors.New("failed to create block signature verifier")
 	}
-	return signatureVerifierFn(beaconBlk, signature)
+	err = signatureVerifierFn(beaconBlk, signature)
+	if err != nil {
+		return fmt.Errorf("failed verifying incoming block signature: %w", err)
+	}
+	return err
 }
 
 // VerifyIncomingBlobSidecars verifies the BlobSidecars of an incoming

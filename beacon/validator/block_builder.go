@@ -28,10 +28,11 @@ import (
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/types"
-	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
@@ -40,20 +41,18 @@ import (
 
 // BuildBlockAndSidecars builds a new beacon block.
 //
-//nolint:funlen
+//nolint:funlen // comments are pretty verbose
 func (s *Service) BuildBlockAndSidecars(
 	ctx context.Context,
 	slotData *types.SlotData,
 ) ([]byte, []byte, error) {
-	var (
-		signedBlk *ctypes.SignedBeaconBlock
-		blk       *ctypes.BeaconBlock
-		sidecars  datypes.BlobSidecars
-		forkData  *ctypes.ForkData
-	)
-
 	startTime := time.Now()
 	defer s.metrics.measureRequestBlockForProposalTime(startTime)
+
+	if !s.localPayloadBuilder.Enabled() {
+		// node is not supposed to build blocks
+		return nil, nil, builder.ErrPayloadBuilderDisabled
+	}
 
 	// The goal here is to acquire a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be
@@ -62,6 +61,10 @@ func (s *Service) BuildBlockAndSidecars(
 	// and safe block hashes to the execution client.
 	st := s.sb.StateFromContext(ctx)
 
+	// we introduce hard forks with the expectation that the height set for the
+	// hard fork is the first height at which new rules apply. So we need to make
+	// sure that when building blocks, we pick the right height. blkSlots is the
+	// height for the next block, which consensus is requesting BeaconKit to build.
 	blkSlot := slotData.GetSlot()
 
 	// Prepare the state such that it is ready to build a block for
@@ -84,7 +87,7 @@ func (s *Service) BuildBlockAndSidecars(
 	}
 
 	// Create a new empty block from the current state.
-	blk, err = s.getEmptyBeaconBlockForSlot(st, blkSlot)
+	blk, err := s.getEmptyBeaconBlockForSlot(st, blkSlot)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -92,16 +95,13 @@ func (s *Service) BuildBlockAndSidecars(
 	// Get the payload for the block.
 	envelope, err := s.retrieveExecutionPayload(ctx, st, blk, slotData)
 	if err != nil {
-		return nil, nil, err
-	}
-	if envelope == nil {
-		return nil, nil, ErrNilPayload
+		return nil, nil, fmt.Errorf("failed retrieving execution payload: %w", err)
 	}
 
 	// We have to assemble the block body prior to producing the sidecars
 	// since we need to generate the inclusion proofs.
 	if err = s.buildBlockBody(ctx, st, blk, reveal, envelope); err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("failed build block body: %w", err)
 	}
 
 	// Compute the state root for the block.
@@ -116,13 +116,13 @@ func (s *Service) BuildBlockAndSidecars(
 	}
 
 	// Craft the signature and signed beacon block.
-	signedBlk, err = ctypes.NewSignedBeaconBlock(blk, forkData, s.chainSpec, s.signer)
+	signedBlk, err := ctypes.NewSignedBeaconBlock(blk, forkData, s.chainSpec, s.signer)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	// Produce blob sidecars with new StateRoot
-	sidecars, err = s.blobFactory.BuildSidecars(signedBlk, envelope.GetBlobsBundle())
+	sidecars, err := s.blobFactory.BuildSidecars(signedBlk, envelope.GetBlobsBundle())
 	if err != nil {
 		return nil, nil, err
 	}
@@ -154,7 +154,6 @@ func (s *Service) getEmptyBeaconBlockForSlot(
 	parentBlockRoot, err := st.GetBlockRootAtIndex(
 		(requestedSlot.Unwrap() - 1) % s.chainSpec.SlotsPerHistoricalRoot(),
 	)
-
 	if err != nil {
 		return nil, err
 	}
@@ -175,35 +174,31 @@ func (s *Service) getEmptyBeaconBlockForSlot(
 	)
 }
 
-func (s *Service) buildForkData(
-	st *statedb.StateDB,
-	slot math.Slot,
-) (*ctypes.ForkData, error) {
-	var (
-		epoch = s.chainSpec.SlotToEpoch(slot)
-	)
-
+func (s *Service) buildForkData(st *statedb.StateDB, slot math.Slot) (*ctypes.ForkData, error) {
 	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
 	if err != nil {
 		return nil, err
 	}
 
 	return ctypes.NewForkData(
-		bytes.FromUint32(s.chainSpec.ActiveForkVersionForEpoch(epoch)), genesisValidatorsRoot,
+		s.chainSpec.ActiveForkVersionForSlot(slot),
+		genesisValidatorsRoot,
 	), nil
 }
 
 // buildRandaoReveal builds a randao reveal for the given slot.
 func (s *Service) buildRandaoReveal(
-	forkData *ctypes.ForkData,
-	slot math.Slot,
+	forkData *ctypes.ForkData, slot math.Slot,
 ) (crypto.BLSSignature, error) {
-	var epoch = s.chainSpec.SlotToEpoch(slot)
 	signingRoot := forkData.ComputeRandaoSigningRoot(
 		s.chainSpec.DomainTypeRandao(),
-		epoch,
+		s.chainSpec.SlotToEpoch(slot),
 	)
-	return s.signer.Sign(signingRoot[:])
+	signature, err := s.signer.Sign(signingRoot[:])
+	if err != nil {
+		return signature, fmt.Errorf("block building failed randao checks: %w", err)
+	}
+	return signature, nil
 }
 
 // retrieveExecutionPayload retrieves the execution payload for the block.
@@ -217,12 +212,11 @@ func (s *Service) retrieveExecutionPayload(
 	// TODO: Add external block builders to this flow.
 	//
 	// Get the payload for the block.
-	envelope, err := s.localPayloadBuilder.
-		RetrievePayload(
-			ctx,
-			blk.GetSlot(),
-			blk.GetParentBlockRoot(),
-		)
+	envelope, err := s.localPayloadBuilder.RetrievePayload(
+		ctx,
+		blk.GetSlot(),
+		blk.GetParentBlockRoot(),
+	)
 	if err == nil {
 		return envelope, nil
 	}
@@ -243,8 +237,7 @@ func (s *Service) retrieveExecutionPayload(
 
 	// The latest execution payload header will be from the previous block
 	// during the block building phase.
-	var lph *ctypes.ExecutionPayloadHeader
-	lph, err = st.GetLatestExecutionPayloadHeader()
+	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return nil, err
 	}
@@ -293,13 +286,14 @@ func (s *Service) buildBlockBody(
 	// Dequeue deposits from the state.
 	depositIndex, err := st.GetEth1DepositIndex()
 	if err != nil {
-		return ErrNilDepositIndexStart
+		return fmt.Errorf("failed loading eth1 deposit index: %w", err)
 	}
 
 	// Grab all previous deposits from genesis up to the current index + max deposits per block.
 	deposits, err := s.sb.DepositStore().GetDepositsByIndex(
 		ctx,
-		0, depositIndex+s.chainSpec.MaxDepositsPerBlock(),
+		constants.FirstDepositIndex,
+		depositIndex+s.chainSpec.MaxDepositsPerBlock(),
 	)
 	if err != nil {
 		return err

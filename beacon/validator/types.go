@@ -132,6 +132,9 @@ type ForkData[T any] interface {
 // PayloadBuilder represents a service that is responsible for
 // building eth1 blocks.
 type PayloadBuilder interface {
+	// Enabled may be enabled (e.g. for validators)
+	// or disabled (e.g. full nodes)
+	Enabled() bool
 	// RetrievePayload retrieves the payload for the given slot.
 	RetrievePayload(
 		ctx context.Context,
