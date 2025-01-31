@@ -25,8 +25,8 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
-	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"testing"
 
@@ -129,29 +129,57 @@ func makeTempHomeDir(t *testing.T) string {
 	return tmpFolder
 }
 
-func copyFile(t *testing.T, src, dst string) error {
-	t.Helper()
-	// Open the source file
-	srcFile, err := os.Open(src)
-	if err != nil {
-		return fmt.Errorf("failed to open source file %s: %w", src, err)
-	}
-	defer srcFile.Close()
+// func copyFile(t *testing.T, src, dst string) error {
+//	t.Helper()
+//	// Open the source file
+//	srcFile, err := os.Open(src)
+//	if err != nil {
+//		return fmt.Errorf("failed to open source file %s: %w", src, err)
+//	}
+//	defer srcFile.Close()
+//
+//	// Create the destination file
+//	dstFile, err := os.Create(dst)
+//	if err != nil {
+//		return fmt.Errorf("failed to create destination file %s: %w", dst, err)
+//	}
+//	defer dstFile.Close()
+//
+//	// Copy the file contents
+//	_, err = io.Copy(dstFile, srcFile)
+//	if err != nil {
+//		return fmt.Errorf("failed to copy from %s to %s: %w", src, dst, err)
+//	}
+//
+//	return nil
+//}
 
-	// Create the destination file
-	dstFile, err := os.Create(dst)
-	if err != nil {
-		return fmt.Errorf("failed to create destination file %s: %w", dst, err)
-	}
-	defer dstFile.Close()
+func runCommand(command string, args ...string) error {
+	cmd := exec.Command(command, args...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 
-	// Copy the file contents
-	_, err = io.Copy(dstFile, srcFile)
+	err := cmd.Run()
 	if err != nil {
-		return fmt.Errorf("failed to copy from %s to %s: %w", src, dst, err)
+		return fmt.Errorf("failed to run command %s %v: %w", command, args, err)
 	}
-
 	return nil
+}
+
+func initializeBeaconState(t *testing.T, homedir string) {
+	ethGenesis := "./eth-genesis.json"
+
+	commands := [][]string{
+		{"./build/bin/beacond", "genesis", "add-premined-deposit", "--home", homedir, "32000000000", "0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4"},
+		{"./build/bin/beacond", "genesis", "collect-premined-deposits", "--home", homedir},
+		{"./build/bin/beacond", "genesis", "set-deposit-storage", ethGenesis, "--home", homedir},
+		{"./build/bin/beacond", "genesis", "execution-payload", ethGenesis, "--home", homedir},
+	}
+
+	for _, cmdArgs := range commands {
+		err := runCommand(cmdArgs[0], cmdArgs[1:]...)
+		require.NoError(t, err)
+	}
 }
 
 // NewTestNode starts a node with a custom consensus driver so we can manually drive the ABCI calls.
@@ -169,8 +197,8 @@ func NewTestNode(t *testing.T) *TestNode {
 		](DefaultComponents(t)),
 	)
 
-	// tempHomeDir := makeTempHomeDir(t)
-	tempHomeDir := "/Users/rezbera/Code/beacon-kit/.tmp/beacond"
+	tempHomeDir := makeTempHomeDir(t)
+	initializeBeaconState(t, tempHomeDir)
 
 	logger := phuslu.NewLogger(os.Stdout, nil)
 
