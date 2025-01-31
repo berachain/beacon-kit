@@ -28,8 +28,10 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
+	"github.com/berachain/beacon-kit/cli/commands/genesis"
 	"github.com/berachain/beacon-kit/cli/flags"
 	"github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/config/spec"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/da/kzg"
 	executionconfig "github.com/berachain/beacon-kit/execution/client"
@@ -37,13 +39,18 @@ import (
 	"github.com/berachain/beacon-kit/node-api/engines/echo"
 	nodebuilder "github.com/berachain/beacon-kit/node-core/builder"
 	"github.com/berachain/beacon-kit/node-core/components"
+	"github.com/berachain/beacon-kit/node-core/components/signer"
 	nodetypes "github.com/berachain/beacon-kit/node-core/types"
 	payloadbuilder "github.com/berachain/beacon-kit/payload/builder"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/storage/db"
 	cmtcfg "github.com/cometbft/cometbft/config"
+	"github.com/cometbft/cometbft/crypto/bls12381"
+	"github.com/cometbft/cometbft/types"
 	dbm "github.com/cosmos/cosmos-db"
 	cosmosutil "github.com/cosmos/cosmos-sdk/x/genutil/types"
+	"github.com/ethereum/go-ethereum/params"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 )
@@ -163,7 +170,7 @@ func initializeBeaconState(t *testing.T, homedir string) {
 	}
 }
 
-// NewTestNode starts a node with a custom consensus driver so we can manually drive the ABCI calls.
+// Uses the mainnet chainspec.
 func NewTestNode(t *testing.T) *TestNode {
 	t.Helper()
 
@@ -179,27 +186,23 @@ func NewTestNode(t *testing.T) *TestNode {
 	)
 
 	tempHomeDir := t.TempDir()
-	initializeBeaconState(t, tempHomeDir)
+
+	// initializeBeaconState(t, tempHomeDir)
 
 	logger := phuslu.NewLogger(os.Stdout, nil)
 
-	// Use an in-memory DB
-	// db := dbm.NewMemDB()
 	cmtCfg := cometbft.DefaultConfig()
 	cmtCfg.RootDir = tempHomeDir
 
 	beaconCfg := config.DefaultConfig()
 	executionClientConfig := executionconfig.DefaultConfig()
-
 	payloadBuilderCfg := payloadbuilder.DefaultConfig()
 
+	chainSpec, err := spec.MainnetChainSpec()
+	require.NoError(t, err)
+
+	// Ideally we can avoid having to set the flags like this and just directly modify a config type
 	appOpts := viper.New()
-
-	// err := copyFile(t, "./test_priv_validator_key.json", tempHomeDir+"/priv_validator_key.json")
-	// require.NoError(t, err)
-	// err = copyFile(t, "./test_priv_validator_state.json", tempHomeDir+"/priv_validator_state.json")
-	// require.NoError(t, err)
-
 	// Execution Client Config
 	appOpts.Set(flags.JWTSecretPath, "../files/jwt.hex")
 	appOpts.Set(flags.RPCJWTRefreshInterval, executionClientConfig.RPCJWTRefreshInterval)
@@ -224,7 +227,14 @@ func NewTestNode(t *testing.T) *TestNode {
 	appOpts.Set(flags.SuggestedFeeRecipient, payloadBuilderCfg.SuggestedFeeRecipient)
 
 	// Chain Spec
-	t.Setenv(components.ChainSpecTypeEnvVar, components.DevnetChainSpecType)
+	t.Setenv(components.ChainSpecTypeEnvVar, components.MainnetChainSpecType)
+
+	// Create the genesis deposit
+	blsSigner := signer.BLSSigner{PrivValidator: types.NewMockPVWithKeyType(bls12381.KeyType)}
+	depositAmount := math.Gwei(250_000 * params.GWei)
+	withdrawalAddress := common.NewExecutionAddressFromHex("0x6Eb9C23e4c187452504Ef8c5fD8fA1a4b15BE162")
+	err = genesis.AddGenesisDeposit(chainSpec, cmtCfg, blsSigner, depositAmount, withdrawalAddress, "")
+	require.NoError(t, err)
 
 	// TODO: Cleanup this Set
 	appOpts.Set("pruning", "default")
