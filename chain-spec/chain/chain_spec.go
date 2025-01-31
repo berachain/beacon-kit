@@ -13,12 +13,16 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
 package chain
+
+import (
+	"errors"
+)
 
 // Spec defines an interface for accessing chain-specific parameters.
 type Spec[
@@ -36,7 +40,7 @@ type Spec[
 
 	// MaxEffectiveBalance returns the maximum balance counted in rewards
 	// calculations in Gwei.
-	MaxEffectiveBalance() uint64
+	MaxEffectiveBalance(isPostUpgrade bool) uint64
 
 	// EjectionBalance returns the balance below which a validator is ejected.
 	EjectionBalance() uint64
@@ -155,11 +159,7 @@ type Spec[
 
 	// MaxValidatorsPerWithdrawalsSweep returns the maximum number of validators
 	// per withdrawal sweep.
-	MaxValidatorsPerWithdrawalsSweep(
-		isPostUpgrade func(uint64, SlotT) bool,
-		chainID uint64,
-		slot SlotT,
-	) uint64
+	MaxValidatorsPerWithdrawalsSweep(isPostUpgrade bool) uint64
 
 	// Deneb Values
 
@@ -254,17 +254,89 @@ func NewChainSpec[
 func (c *chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) validate() error {
-	if c.MaxWithdrawalsPerPayload() <= 1 {
-		return ErrInsufficientMaxWithdrawalsPerPayload
+	if c.Data.MinDepositAmount == 0 {
+		return ErrInvalidMinDepositAmount
 	}
 
-	if c.ValidatorSetCap() > c.ValidatorRegistryLimit() {
-		return ErrInvalidValidatorSetCap
+	if c.Data.MaxEffectiveBalancePreUpgrade == 0 {
+		return ErrInvalidMaxEffectiveBalancePreUpgrade
 	}
 
-	// EVM Inflation values can be zero or non-zero, no validation needed.
+	if c.Data.MaxEffectiveBalancePostUpgrade == 0 {
+		return ErrInvalidMaxEffectiveBalancePostUpgrade
+	}
 
-	// TODO: Add more validation rules here.
+	if c.Data.EjectionBalance == 0 {
+		return ErrInvalidEjectionBalance
+	}
+
+	if c.Data.EffectiveBalanceIncrement == 0 {
+		return ErrInvalidEffectiveBalanceIncrement
+	}
+
+	if c.Data.HysteresisQuotient == 0 {
+		return ErrInvalidHysteresisQuotient
+	}
+
+	if c.Data.HysteresisDownwardMultiplier == 0 {
+		return ErrInvalidHysteresisDownwardMultiplier
+	}
+
+	if c.Data.HysteresisUpwardMultiplier == 0 {
+		return ErrInvalidHysteresisUpwardMultiplier
+	}
+
+	if c.Data.SlotsPerEpoch == 0 {
+		return ErrInvalidSlotsPerEpoch
+	}
+
+	if c.Data.SlotsPerHistoricalRoot == 0 {
+		return ErrInvalidSlotsPerHistoricalRoot
+	}
+
+	if c.Data.MinEpochsToInactivityPenalty == 0 {
+		return ErrInvalidMinEpochsToInactivityPenalty
+	}
+
+	// Add validation for MaxValidatorsPerWithdrawalsSweep values
+	if c.Data.MaxValidatorsPerWithdrawalsSweepPreUpgrade == 0 {
+		return errors.New("invalid max validators per withdrawals sweep pre upgrade")
+	}
+
+	if c.Data.MaxValidatorsPerWithdrawalsSweepPostUpgrade == 0 {
+		return errors.New("invalid max validators per withdrawals sweep post upgrade")
+	}
+
+	if c.Data.MaxValidatorsPerWithdrawalsSweepPostUpgrade > c.Data.MaxValidatorsPerWithdrawalsSweepPreUpgrade {
+		return errors.New("post upgrade withdrawal sweep limit cannot be larger than pre upgrade limit")
+	}
+
+	if c.Data.MaxValidatorsPerWithdrawalsSweepPreUpgrade > c.Data.ValidatorRegistryLimit {
+		return errors.New("withdrawal sweep limit cannot exceed validator registry limit")
+	}
+
+	// Validate distribution parameters
+	if len(c.Data.EVMDistributionWeights) > 0 {
+		if len(c.Data.EVMDistributionAddresses) == 0 {
+			return ErrEmptyDistributionAddresses
+		}
+		if len(c.Data.EVMDistributionAddresses) != len(c.Data.EVMDistributionWeights) {
+			return ErrInvalidDistributionAddressCount
+		}
+		if c.Data.EVMDistributionInterval == 0 {
+			return ErrInvalidDistributionInterval
+		}
+	}
+
+	// Validate blob parameters
+	if c.FieldElementsPerBlob() == 0 {
+		return ErrInvalidFieldElementsPerBlob
+	}
+
+	if c.BytesPerBlob() == 0 {
+		return ErrInvalidBytesPerBlob
+	}
+
 	return nil
 }
 
@@ -278,8 +350,12 @@ func (c chainSpec[
 // MaxEffectiveBalance returns the maximum effective balance.
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) MaxEffectiveBalance() uint64 {
-	return c.Data.MaxEffectiveBalance
+]) MaxEffectiveBalance(isPostUpgrade bool) uint64 {
+	if isPostUpgrade {
+		return c.Data.MaxEffectiveBalancePostUpgrade
+	}
+
+	return c.Data.MaxEffectiveBalancePreUpgrade
 }
 
 // EjectionBalance returns the balance below which a validator is ejected.
@@ -497,11 +573,8 @@ func (c chainSpec[
 // withdrawals sweep.
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
-]) MaxValidatorsPerWithdrawalsSweep(
-	isPostUpgrade func(uint64, SlotT) bool,
-	chainID uint64, slot SlotT,
-) uint64 {
-	if isPostUpgrade(chainID, slot) {
+]) MaxValidatorsPerWithdrawalsSweep(isPostUpgrade bool) uint64 {
+	if isPostUpgrade {
 		return c.Data.MaxValidatorsPerWithdrawalsSweepPostUpgrade
 	}
 
