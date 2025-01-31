@@ -177,10 +177,10 @@ type Spec interface {
 	// Helpers for ChainSpecData
 
 	// ActiveForkVersionForSlot returns the active fork version for a given slot.
-	ActiveForkVersionForSlot(slot math.Slot) uint32
+	ActiveForkVersionForSlot(slot math.Slot) common.Version
 
 	// ActiveForkVersionForEpoch returns the active fork version for a given epoch.
-	ActiveForkVersionForEpoch(epoch math.Epoch) uint32
+	ActiveForkVersionForEpoch(epoch math.Epoch) common.Version
 
 	// SlotToEpoch converts a slot number to an epoch number.
 	SlotToEpoch(slot math.Slot) math.Epoch
@@ -430,9 +430,9 @@ func (s spec) ValidatorSetCap() uint64 {
 func (s spec) EVMInflationAddress(slot math.Slot) common.ExecutionAddress {
 	fv := s.ActiveForkVersionForSlot(slot)
 	switch fv {
-	case version.Deneb1:
+	case version.Deneb1():
 		return s.Data.EVMInflationAddressDeneb1
-	case version.Deneb:
+	case version.Deneb():
 		return s.Data.EVMInflationAddressGenesis
 	default:
 		panic(fmt.Sprintf("EVMInflationAddress not supported for this fork version: %d", fv))
@@ -444,9 +444,9 @@ func (s spec) EVMInflationAddress(slot math.Slot) common.ExecutionAddress {
 func (s spec) EVMInflationPerBlock(slot math.Slot) uint64 {
 	fv := s.ActiveForkVersionForSlot(slot)
 	switch fv {
-	case version.Deneb1:
+	case version.Deneb1():
 		return s.Data.EVMInflationPerBlockDeneb1
-	case version.Deneb:
+	case version.Deneb():
 		return s.Data.EVMInflationPerBlockGenesis
 	default:
 		panic(fmt.Sprintf("EVMInflationPerBlock not supported for this fork version: %d", fv))

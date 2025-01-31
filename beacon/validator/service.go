@@ -50,9 +50,6 @@ type Service struct {
 	// Building blocks are done by submitting forkchoice updates through.
 	// The local Builder.
 	localPayloadBuilder PayloadBuilder
-	// remotePayloadBuilders represents a list of remote block builders, these
-	// builders are connected to other execution clients via the EngineAPI.
-	remotePayloadBuilders []PayloadBuilder
 	// metrics is a metrics collector.
 	metrics *validatorMetrics
 }
@@ -67,20 +64,18 @@ func NewService(
 	signer crypto.BLSSigner,
 	blobFactory BlobFactory,
 	localPayloadBuilder PayloadBuilder,
-	remotePayloadBuilders []PayloadBuilder,
 	ts TelemetrySink,
 ) *Service {
 	return &Service{
-		cfg:                   cfg,
-		logger:                logger,
-		sb:                    sb,
-		chainSpec:             chainSpec,
-		signer:                signer,
-		stateProcessor:        stateProcessor,
-		blobFactory:           blobFactory,
-		localPayloadBuilder:   localPayloadBuilder,
-		remotePayloadBuilders: remotePayloadBuilders,
-		metrics:               newValidatorMetrics(ts),
+		cfg:                 cfg,
+		logger:              logger,
+		sb:                  sb,
+		chainSpec:           chainSpec,
+		signer:              signer,
+		stateProcessor:      stateProcessor,
+		blobFactory:         blobFactory,
+		localPayloadBuilder: localPayloadBuilder,
+		metrics:             newValidatorMetrics(ts),
 	}
 }
 

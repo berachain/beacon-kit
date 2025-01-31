@@ -21,24 +21,25 @@
 package chain
 
 import (
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 )
 
 // ActiveForkVersionForSlot returns the active fork version for a given slot.
-func (s spec) ActiveForkVersionForSlot(slot math.Slot) uint32 {
+func (s spec) ActiveForkVersionForSlot(slot math.Slot) common.Version {
 	return s.ActiveForkVersionForEpoch(s.SlotToEpoch(slot))
 }
 
 // ActiveForkVersionForEpoch returns the active fork version for a given epoch.
-func (s spec) ActiveForkVersionForEpoch(epoch math.Epoch) uint32 {
+func (s spec) ActiveForkVersionForEpoch(epoch math.Epoch) common.Version {
 	if epoch >= s.ElectraForkEpoch() {
-		return version.Electra
+		return version.Electra()
 	}
 	if epoch >= s.Deneb1ForkEpoch() {
-		return version.Deneb1
+		return version.Deneb1()
 	}
-	return version.Deneb
+	return version.Deneb()
 }
 
 // SlotToEpoch converts a slot to an epoch.
