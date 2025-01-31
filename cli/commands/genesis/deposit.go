@@ -28,7 +28,6 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/cli/context"
 	"github.com/berachain/beacon-kit/cli/utils/parser"
-	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-core/components"
@@ -68,16 +67,28 @@ func AddGenesisDepositCmd(cs chain.Spec) *cobra.Command {
 			cometConfig := context.GetConfigFromCmd(cmd)
 			appOpts := context.GetViperFromCmd(cmd)
 			outputDocument, _ := cmd.Flags().GetString(flags.FlagOutputDocument)
-			return AddGenesisDeposit(cs, cometConfig, appOpts, depositAmount, withdrawalAddress, outputDocument)
+
+			// Get the BLS signer.
+			blsSigner, err := components.ProvideBlsSigner(
+				components.BlsSignerInput{
+					AppOpts: appOpts,
+				},
+			)
+			if err != nil {
+				return err
+			}
+
+			return AddGenesisDeposit(cs, cometConfig, blsSigner, depositAmount, withdrawalAddress, outputDocument)
 		},
 	}
 	return cmd
 }
 
+// AddGenesisDeposit is the modularized version of AddGenesisDepositCmd that can be properly tested from within the runtime
 func AddGenesisDeposit(
 	cs chain.Spec,
 	cometConfig *cmtcfg.Config,
-	appOpts config.AppOptions,
+	blsSigner crypto.BLSSigner,
 	depositAmount math.Gwei,
 	withdrawalAddress common.ExecutionAddress,
 	outputDocument string,
@@ -90,16 +101,6 @@ func AddGenesisDeposit(
 			err,
 			"failed to initialize commands validator files",
 		)
-	}
-
-	// Get the BLS signer.
-	blsSigner, err := components.ProvideBlsSigner(
-		components.BlsSignerInput{
-			AppOpts: appOpts,
-		},
-	)
-	if err != nil {
-		return err
 	}
 
 	// All deposits are signed with the genesis version.
