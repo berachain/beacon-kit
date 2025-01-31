@@ -110,6 +110,8 @@ jobs:
   # -------------------------------------------------------------------------- #
 
   ci-e2e:
+    needs: ci
+    environment: 'e2e-test'
     strategy:
       matrix:
         args:
