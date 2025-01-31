@@ -79,6 +79,7 @@ func (f *SidecarFactory) BuildSidecars(
 	sigHeader := ctypes.NewSignedBeaconBlockHeader(header, signedBlk.GetSignature())
 
 	for i := range numBlobs {
+		i := i
 		g.Go(func() error {
 			inclusionProof, err := f.BuildKZGInclusionProof(body, math.U64(i))
 			if err != nil {
