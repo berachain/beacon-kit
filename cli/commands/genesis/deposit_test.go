@@ -63,4 +63,6 @@ func TestGenesisDeposit(t *testing.T) {
 	require.FileExists(t, path.Join(homeDir, "data", "priv_validator_state.json"))
 	require.FileExists(t, path.Join(homeDir, "config", "priv_validator_key.json"))
 	require.DirExists(t, path.Join(homeDir, "config", "premined-deposits"))
+
+	// TODO: Extend tests to assert on the contents of the files
 }
