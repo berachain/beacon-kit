@@ -47,14 +47,14 @@ type BeaconBlock struct {
 	// BbVersion is the BbVersion of the beacon block.
 	// BbVersion must be not serialized but it's exported
 	// to allow unit tests using reflect on beacon block.
-	BbVersion uint32 `json:"-"`
+	BbVersion common.Version `json:"-"`
 }
 
 // Empty creates an empty beacon block.
 func (*BeaconBlock) Empty() *BeaconBlock {
 	return &BeaconBlock{
 		// By default, we set the version to Deneb to maintain backward-compatibility.
-		BbVersion: version.Deneb,
+		BbVersion: version.Deneb(),
 	}
 }
 
@@ -63,10 +63,10 @@ func NewBeaconBlockWithVersion(
 	slot math.Slot,
 	proposerIndex math.ValidatorIndex,
 	parentBlockRoot common.Root,
-	forkVersion uint32,
+	forkVersion common.Version,
 ) (*BeaconBlock, error) {
 	switch forkVersion {
-	case version.Deneb, version.Deneb1:
+	case version.Deneb(), version.Deneb1():
 		return &BeaconBlock{
 			Slot:          slot,
 			ProposerIndex: proposerIndex,
@@ -154,7 +154,7 @@ func (b *BeaconBlock) GetStateRoot() common.Root {
 }
 
 // Version identifies the version of the BeaconBlock.
-func (b *BeaconBlock) Version() uint32 {
+func (b *BeaconBlock) Version() common.Version {
 	return b.BbVersion
 }
 
