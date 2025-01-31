@@ -189,7 +189,7 @@ contract DepositContract is IDepositContract, ERC165 {
             revert NotNewOperator();
         }
         // Check if the queue delay has passed.
-        if (queuedTimestamp + ONE_DAY > uint96(block.timestamp)) {
+        if (queuedTimestamp + ONE_DAY >= uint96(block.timestamp)) {
             revert NotEnoughTime();
         }
         // Cache the old operator.
