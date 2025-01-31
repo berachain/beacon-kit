@@ -44,11 +44,6 @@ var (
 		"invalid signature length",
 	)
 
-	// ErrInvalidVersionLength is returned when the deposit version is invalid.
-	ErrInvalidVersionLength = errors.New(
-		"invalid version",
-	)
-
 	// ErrInvalidRootLength is returned when the deposit root is invalid.
 	ErrInvalidRootLength = errors.New(
 		"invalid root length",

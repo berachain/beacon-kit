@@ -76,21 +76,21 @@ type ExecutionPayloadHeader struct {
 	// to allow unit tests using reflect on execution payload header.
 	// TODO: Enable once
 	// https://github.com/karalabe/ssz/pull/9/files# is merged.
-	EphVersion uint32 `json:"-"`
+	EphVersion common.Version `json:"-"`
 }
 
 // Empty returns an empty ExecutionPayloadHeader.
 func (h *ExecutionPayloadHeader) Empty() *ExecutionPayloadHeader {
 	return &ExecutionPayloadHeader{
 		// By default, we set the version to Deneb to maintain compatibility.
-		EphVersion:    version.Deneb,
+		EphVersion:    version.Deneb(),
 		BaseFeePerGas: &uint256.Int{},
 	}
 }
 
 // NewFromSSZ returns a new ExecutionPayloadHeader from the given SSZ bytes.
 func (h *ExecutionPayloadHeader) NewFromSSZ(
-	bz []byte, forkVersion uint32,
+	bz []byte, forkVersion common.Version,
 ) (*ExecutionPayloadHeader, error) {
 	h = h.Empty()
 	h.EphVersion = forkVersion
@@ -99,7 +99,7 @@ func (h *ExecutionPayloadHeader) NewFromSSZ(
 
 // NewFromJSON returns a new ExecutionPayloadHeader from the given JSON bytes.
 func (h *ExecutionPayloadHeader) NewFromJSON(
-	bz []byte, forkVersion uint32,
+	bz []byte, forkVersion common.Version,
 ) (*ExecutionPayloadHeader, error) {
 	h = h.Empty()
 	if err := json.Unmarshal(bz, h); err != nil {
@@ -453,7 +453,7 @@ func (h *ExecutionPayloadHeader) UnmarshalJSON(input []byte) error {
 /* -------------------------------------------------------------------------- */
 
 // Version returns the version of the ExecutionPayloadHeader.
-func (h *ExecutionPayloadHeader) Version() uint32 {
+func (h *ExecutionPayloadHeader) Version() common.Version {
 	return h.EphVersion
 }
 

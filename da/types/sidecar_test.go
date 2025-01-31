@@ -89,12 +89,12 @@ func generateValidBeaconBlock(t *testing.T) *ctypes.BeaconBlock {
 	t.Helper()
 
 	// Initialize your block here
-	version := version.Deneb1
+	deneb1 := version.Deneb1()
 	beaconBlock, err := ctypes.NewBeaconBlockWithVersion(
 		math.Slot(10),
 		math.ValidatorIndex(5),
 		common.Root{1, 2, 3, 4, 5}, // parent root
-		version,
+		deneb1,
 	)
 	require.NoError(t, err)
 
@@ -113,7 +113,7 @@ func generateValidBeaconBlock(t *testing.T) *ctypes.BeaconBlock {
 				{Index: 1, Amount: 200},
 			},
 			BaseFeePerGas: math.NewU256(0),
-			EpVersion:     version,
+			EpVersion:     deneb1,
 		},
 		Eth1Data: &ctypes.Eth1Data{},
 		Deposits: []*ctypes.Deposit{

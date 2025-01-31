@@ -76,7 +76,7 @@ type ExecutionPayload struct {
 	// EpVersion is the version of the execution payload.
 	// EpVersion must be not serialized, but it's exported
 	// to allow unit tests using reflect on execution payload.
-	EpVersion uint32 `json:"-"`
+	EpVersion common.Version `json:"-"`
 }
 
 /* -------------------------------------------------------------------------- */
@@ -459,14 +459,14 @@ func (p *ExecutionPayload) UnmarshalJSON(input []byte) error {
 }
 
 // Empty returns an empty ExecutionPayload for the given fork version.
-func (p *ExecutionPayload) Empty(forkVersion uint32) *ExecutionPayload {
+func (p *ExecutionPayload) Empty(forkVersion common.Version) *ExecutionPayload {
 	return &ExecutionPayload{
 		EpVersion: forkVersion,
 	}
 }
 
 // Version returns the version of the ExecutionPayload.
-func (p *ExecutionPayload) Version() uint32 {
+func (p *ExecutionPayload) Version() common.Version {
 	return p.EpVersion
 }
 
@@ -570,7 +570,7 @@ func (p *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 	txsRoot := p.GetTransactions().HashTreeRoot()
 
 	switch p.EpVersion {
-	case version.Deneb, version.Deneb1:
+	case version.Deneb(), version.Deneb1():
 		return &ExecutionPayloadHeader{
 			ParentHash:       p.ParentHash,
 			FeeRecipient:     p.GetFeeRecipient(),

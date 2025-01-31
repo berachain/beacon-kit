@@ -44,7 +44,7 @@ func generateBeaconBlockBody() types.BeaconBlockBody {
 		Deposits:     []*types.Deposit{},
 		ExecutionPayload: &types.ExecutionPayload{
 			BaseFeePerGas: math.NewU256(0),
-			EpVersion:     version.Deneb1,
+			EpVersion:     version.Deneb1(),
 		},
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
@@ -81,7 +81,7 @@ func TestBeaconBlockBody(t *testing.T) {
 		Eth1Data:           &types.Eth1Data{},
 		Graffiti:           [32]byte{4, 5, 6},
 		Deposits:           []*types.Deposit{},
-		ExecutionPayload:   (&types.ExecutionPayload{}).Empty(version.Deneb1),
+		ExecutionPayload:   (&types.ExecutionPayload{}).Empty(version.Deneb1()),
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
 
@@ -129,7 +129,7 @@ func TestBeaconBlockBody_MarshalSSZ(t *testing.T) {
 		Eth1Data:           &types.Eth1Data{},
 		Graffiti:           [32]byte{4, 5, 6},
 		Deposits:           []*types.Deposit{},
-		ExecutionPayload:   (&types.ExecutionPayload{}).Empty(version.Deneb1),
+		ExecutionPayload:   (&types.ExecutionPayload{}).Empty(version.Deneb1()),
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
 	data, err := body.MarshalSSZ()

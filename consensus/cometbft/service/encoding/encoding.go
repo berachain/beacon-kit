@@ -23,6 +23,7 @@ package encoding
 import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
+	"github.com/berachain/beacon-kit/primitives/common"
 )
 
 // ExtractBlobsAndBlockFromRequest extracts the blobs and block from an ABCI
@@ -31,7 +32,7 @@ func ExtractBlobsAndBlockFromRequest(
 	req ABCIRequest,
 	beaconBlkIndex uint,
 	blobSidecarsIndex uint,
-	forkVersion uint32,
+	forkVersion common.Version,
 ) (*ctypes.SignedBeaconBlock, datypes.BlobSidecars, error) {
 	if req == nil {
 		return nil, nil, ErrNilABCIRequest
@@ -59,7 +60,7 @@ func ExtractBlobsAndBlockFromRequest(
 func UnmarshalBeaconBlockFromABCIRequest(
 	req ABCIRequest,
 	bzIndex uint,
-	forkVersion uint32,
+	forkVersion common.Version,
 ) (*ctypes.SignedBeaconBlock, error) {
 	var signedBlk *ctypes.SignedBeaconBlock
 	if req == nil {

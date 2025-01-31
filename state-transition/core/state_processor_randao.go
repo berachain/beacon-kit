@@ -24,7 +24,6 @@ import (
 	"fmt"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -59,9 +58,7 @@ func (sp *StateProcessor[ContextT]) processRandaoReveal(
 	epoch := sp.cs.SlotToEpoch(slot)
 	body := blk.GetBody()
 
-	fd := ctypes.NewForkData(
-		bytes.FromUint32(sp.cs.ActiveForkVersionForEpoch(epoch)), genesisValidatorsRoot,
-	)
+	fd := ctypes.NewForkData(sp.cs.ActiveForkVersionForEpoch(epoch), genesisValidatorsRoot)
 
 	if !ctx.GetSkipValidateRandao() {
 		signingRoot := fd.ComputeRandaoSigningRoot(sp.cs.DomainTypeRandao(), epoch)

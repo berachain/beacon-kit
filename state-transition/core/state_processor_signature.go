@@ -22,7 +22,6 @@ package core
 
 import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
@@ -38,7 +37,7 @@ func (sp *StateProcessor[_]) GetSignatureVerifierFn(st *statedb.StateDB) (
 
 	return func(blk *ctypes.BeaconBlock, signature crypto.BLSSignature) error {
 		fd := ctypes.NewForkData(
-			bytes.FromUint32(sp.cs.ActiveForkVersionForSlot(blk.GetSlot())), genesisValidatorsRoot,
+			sp.cs.ActiveForkVersionForSlot(blk.GetSlot()), genesisValidatorsRoot,
 		)
 		domain := fd.ComputeDomain(sp.cs.DomainTypeProposer())
 

@@ -86,7 +86,7 @@ func (s *EngineClient) ForkchoiceUpdated(
 	ctx context.Context,
 	state *engineprimitives.ForkchoiceStateV1,
 	attrs *engineprimitives.PayloadAttributes,
-	forkVersion uint32,
+	forkVersion common.Version,
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
 	var (
 		startTime    = time.Now()
@@ -131,7 +131,7 @@ func (s *EngineClient) ForkchoiceUpdated(
 func (s *EngineClient) GetPayload(
 	ctx context.Context,
 	payloadID engineprimitives.PayloadID,
-	forkVersion uint32,
+	forkVersion common.Version,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
 	var (
 		startTime    = time.Now()
