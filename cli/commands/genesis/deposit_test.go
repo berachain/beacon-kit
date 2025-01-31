@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/testing/utils"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cometbft/cometbft/crypto/bls12381"
 	"github.com/cometbft/cometbft/types"
@@ -37,9 +36,9 @@ import (
 )
 
 func TestGenesisDeposit(t *testing.T) {
-	homeDir := utils.MakeTempHomeDir(t)
+	homeDir := t.TempDir()
 	t.Log("Home folder:", homeDir)
-	defer utils.DeleteTempHomeDir(t, homeDir)
+	// defer utils.DeleteTempHomeDir(t, homeDir)
 
 	chainSpec, err := spec.DevnetChainSpec()
 	require.NoError(t, err)
