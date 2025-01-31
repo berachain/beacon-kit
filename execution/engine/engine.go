@@ -49,12 +49,12 @@ type Engine struct {
 func New(
 	engineClient *client.EngineClient,
 	logger log.Logger,
-	telemtrySink TelemetrySink,
+	telemetrySink TelemetrySink,
 ) *Engine {
 	return &Engine{
 		ec:      engineClient,
 		logger:  logger,
-		metrics: newEngineMetrics(telemtrySink, logger),
+		metrics: newEngineMetrics(telemetrySink, logger),
 	}
 }
 
