@@ -34,10 +34,10 @@ import (
 
 func TestDefaultGenesis(t *testing.T) {
 	g := types.DefaultGenesis()
-	if g.ForkVersion != bytes.FromUint32(version.Deneb) {
+	if !version.Equals(g.ForkVersion, version.Deneb()) {
 		t.Errorf(
 			"Expected fork version %v, but got %v",
-			bytes.FromUint32(version.Deneb),
+			version.Deneb(),
 			g.ForkVersion,
 		)
 	}
@@ -74,7 +74,7 @@ func TestDefaultGenesisExecutionPayloadHeader(t *testing.T) {
 func TestGenesisGetForkVersion(t *testing.T) {
 	g := types.DefaultGenesis()
 	forkVersion := g.GetForkVersion()
-	require.Equal(t, bytes.FromUint32(version.Deneb), forkVersion)
+	require.Equal(t, version.Deneb(), forkVersion)
 }
 
 func TestGenesisGetDeposits(t *testing.T) {

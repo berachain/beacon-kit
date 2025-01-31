@@ -34,6 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
@@ -104,7 +105,7 @@ func AddExecutionPayload(chainSpec chain.Spec, elGenesisPath string, config *cmt
 	// Inject the execution payload.
 	genesisInfo.ExecutionPayloadHeader, err =
 		executableDataToExecutionPayloadHeader(
-			genesisInfo.ForkVersion.ToUint32(),
+			version.Genesis(),
 			payload,
 			chainSpec.MaxWithdrawalsPerPayload(),
 		)
@@ -129,14 +130,14 @@ func AddExecutionPayload(chainSpec chain.Spec, elGenesisPath string, config *cmt
 // Converts the eth executable data type to the beacon execution payload header
 // interface.
 func executableDataToExecutionPayloadHeader(
-	forkVersion uint32,
+	forkVersion common.Version,
 	data *gethprimitives.ExecutableData,
 	// todo: re-enable when codec supports.
 	_ uint64,
 ) (*types.ExecutionPayloadHeader, error) {
 	var executionPayloadHeader *types.ExecutionPayloadHeader
 	switch forkVersion {
-	case constants.GenesisVersion:
+	case version.Genesis():
 		withdrawals := make(
 			engineprimitives.Withdrawals,
 			len(data.Withdrawals),

@@ -32,12 +32,11 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-core/components"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
-	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
@@ -107,7 +106,7 @@ func AddGenesisDeposit(
 	}
 
 	// All deposits are signed with the genesis version.
-	genesisVersion := bytes.FromUint32(constants.GenesisVersion)
+	genesisVersion := version.Genesis()
 
 	depositMsg, signature, err := types.CreateAndSignDepositMessage(
 		types.NewForkData(genesisVersion, common.Root{}),

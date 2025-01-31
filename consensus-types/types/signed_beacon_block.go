@@ -51,11 +51,11 @@ type SignedBeaconBlock struct {
 // NewSignedBeaconBlockFromSSZ creates a new beacon block from the given SSZ bytes.
 func NewSignedBeaconBlockFromSSZ(
 	bz []byte,
-	forkVersion uint32,
+	forkVersion common.Version,
 ) (*SignedBeaconBlock, error) {
 	block := &SignedBeaconBlock{}
 	switch forkVersion {
-	case version.Deneb, version.Deneb1:
+	case version.Deneb(), version.Deneb1():
 		if err := block.UnmarshalSSZ(bz); err != nil {
 			return block, err
 		}
