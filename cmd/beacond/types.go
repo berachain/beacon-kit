@@ -83,7 +83,7 @@ type (
 	SidecarFactory = dablob.SidecarFactory
 
 	// StateProcessor is the type alias for the state processor interface.
-	StateProcessor = core.StateProcessor[*Context]
+	StateProcessor = core.StateProcessor
 
 	// StorageBackend is the type alias for the storage backend interface.
 	StorageBackend = storage.Backend

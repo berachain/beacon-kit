@@ -31,7 +31,7 @@ import (
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-func (sp *StateProcessor[_]) validateGenesisDeposits(
+func (sp *StateProcessor) validateGenesisDeposits(
 	st *statedb.StateDB, deposits []*ctypes.Deposit,
 ) error {
 	eth1DepositIndex, err := st.GetEth1DepositIndex()
@@ -69,7 +69,7 @@ func (sp *StateProcessor[_]) validateGenesisDeposits(
 	return nil
 }
 
-func (sp *StateProcessor[_]) validateNonGenesisDeposits(
+func (sp *StateProcessor) validateNonGenesisDeposits(
 	ctx context.Context,
 	st *statedb.StateDB,
 	blkDeposits []*ctypes.Deposit,

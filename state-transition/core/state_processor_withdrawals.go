@@ -38,7 +38,7 @@ import (
 // 3. This modification reduces the maximum validator withdrawals per block by one.
 //
 
-func (sp *StateProcessor[_]) processWithdrawals(
+func (sp *StateProcessor) processWithdrawals(
 	st *state.StateDB, blk *ctypes.BeaconBlock,
 ) error {
 	// Dequeue and verify the logs.
