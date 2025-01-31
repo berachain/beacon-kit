@@ -54,7 +54,7 @@ func (sp *StateProcessor[ContextT]) processExecutionPayload(
 		"verify payload", ctx.GetVerifyPayload(),
 	)
 
-	// Skip payload verification if the context is configured as such.
+	// Perform payload verification only if the context is configured as such.
 	if ctx.GetVerifyPayload() {
 		g.Go(func() error {
 			return sp.validateExecutionPayload(gCtx, st, blk, ctx.GetOptimisticEngine())
