@@ -193,6 +193,8 @@ func NewTestNode(t *testing.T) *TestNode {
 
 	cmtCfg := cometbft.DefaultConfig()
 	cmtCfg.RootDir = tempHomeDir
+	// Forces Comet to Create it
+	cmtCfg.NodeKey = "node_key.json"
 
 	beaconCfg := config.DefaultConfig()
 	executionClientConfig := executionconfig.DefaultConfig()
