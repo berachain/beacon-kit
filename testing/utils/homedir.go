@@ -41,7 +41,7 @@ func MakeTempHomeDir(t *testing.T) string {
 	rndSuffix := hex.EncodeToString(bytes)
 
 	tmpFolder := filepath.Join(os.TempDir(), "/injected-consensus", rndSuffix)
-	require.NoError(t, os.MkdirAll(tmpFolder, os.ModePerm))
+	require.NoError(t, os.MkdirAll(tmpFolder, 0750))
 	return tmpFolder
 }
 
