@@ -25,14 +25,15 @@ import (
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/primitives/transition"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"golang.org/x/sync/errgroup"
 )
 
 // processExecutionPayload processes the execution payload and ensures it
 // matches the local state.
-func (sp *StateProcessor[ContextT]) processExecutionPayload(
-	ctx ContextT, st *statedb.StateDB, blk *ctypes.BeaconBlock,
+func (sp *StateProcessor) processExecutionPayload(
+	ctx *transition.Context, st *statedb.StateDB, blk *ctypes.BeaconBlock,
 ) error {
 	var (
 		body    = blk.GetBody()
@@ -84,7 +85,7 @@ func (sp *StateProcessor[ContextT]) processExecutionPayload(
 
 // validateExecutionPayload validates the execution payload against both local
 // state and the execution engine.
-func (sp *StateProcessor[_]) validateExecutionPayload(
+func (sp *StateProcessor) validateExecutionPayload(
 	ctx context.Context,
 	st *statedb.StateDB,
 	blk *ctypes.BeaconBlock,
@@ -97,7 +98,7 @@ func (sp *StateProcessor[_]) validateExecutionPayload(
 }
 
 // validateStatelessPayload performs stateless checks on the execution payload.
-func (sp *StateProcessor[_]) validateStatelessPayload(blk *ctypes.BeaconBlock) error {
+func (sp *StateProcessor) validateStatelessPayload(blk *ctypes.BeaconBlock) error {
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
 
@@ -125,7 +126,7 @@ func (sp *StateProcessor[_]) validateStatelessPayload(blk *ctypes.BeaconBlock) e
 }
 
 // validateStatefulPayload performs stateful checks on the execution payload.
-func (sp *StateProcessor[_]) validateStatefulPayload(
+func (sp *StateProcessor) validateStatefulPayload(
 	ctx context.Context, st *statedb.StateDB, blk *ctypes.BeaconBlock, optimisticEngine bool,
 ) error {
 	body := blk.GetBody()

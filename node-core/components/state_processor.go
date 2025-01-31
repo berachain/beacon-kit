@@ -51,7 +51,7 @@ func ProvideStateProcessor[
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	in StateProcessorInput[LoggerT],
-) *core.StateProcessor[*Context] {
+) *core.StateProcessor {
 	return core.NewStateProcessor[*Context](
 		in.Logger.With("service", "state-processor"),
 		in.ChainSpec,

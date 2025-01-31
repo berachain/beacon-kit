@@ -55,7 +55,7 @@ import (
 type (
 	TestBeaconStateMarshallableT = types.BeaconState
 	TestBeaconStateT             = statedb.StateDB
-	TestStateProcessorT          = core.StateProcessor[*transition.Context]
+	TestStateProcessorT          = core.StateProcessor
 )
 
 type testKVStoreService struct {
@@ -122,7 +122,7 @@ func SetupTestState(t *testing.T, cs chain.Spec) (
 	require.NoError(t, err)
 	beaconState := statedb.NewBeaconStateFromDB(kvStore, cs)
 
-	sp := core.NewStateProcessor[*transition.Context](
+	sp := core.NewStateProcessor(
 		noop.NewLogger[any](),
 		cs,
 		execEngine,

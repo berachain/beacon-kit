@@ -26,7 +26,7 @@ import (
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-func (sp *StateProcessor[_]) GetSignatureVerifierFn(st *statedb.StateDB) (
+func (sp *StateProcessor) GetSignatureVerifierFn(st *statedb.StateDB) (
 	func(blk *ctypes.BeaconBlock, signature crypto.BLSSignature) error,
 	error,
 ) {

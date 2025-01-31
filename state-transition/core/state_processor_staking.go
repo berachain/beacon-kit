@@ -34,7 +34,7 @@ import (
 )
 
 // processOperations processes the operations and ensures they match the local state.
-func (sp *StateProcessor[_]) processOperations(
+func (sp *StateProcessor) processOperations(
 	ctx context.Context, st *state.StateDB, blk *ctypes.BeaconBlock,
 ) error {
 	// Verify that outstanding deposits are processed up to the maximum number of deposits.
@@ -66,7 +66,7 @@ func (sp *StateProcessor[_]) processOperations(
 }
 
 // processDeposit processes the deposit and ensures it matches the local state.
-func (sp *StateProcessor[_]) processDeposit(st *state.StateDB, dep *ctypes.Deposit) error {
+func (sp *StateProcessor) processDeposit(st *state.StateDB, dep *ctypes.Deposit) error {
 	eth1DepositIndex, err := st.GetEth1DepositIndex()
 	if err != nil {
 		return err
@@ -87,7 +87,7 @@ func (sp *StateProcessor[_]) processDeposit(st *state.StateDB, dep *ctypes.Depos
 }
 
 // applyDeposit processes the deposit and ensures it matches the local state.
-func (sp *StateProcessor[_]) applyDeposit(st *state.StateDB, dep *ctypes.Deposit) error {
+func (sp *StateProcessor) applyDeposit(st *state.StateDB, dep *ctypes.Deposit) error {
 	idx, err := st.ValidatorIndexByPubkey(dep.GetPubkey())
 	if err != nil {
 		sp.logger.Info("Validator does not exist so creating",
@@ -112,7 +112,7 @@ func (sp *StateProcessor[_]) applyDeposit(st *state.StateDB, dep *ctypes.Deposit
 }
 
 // createValidator creates a validator if the deposit is valid.
-func (sp *StateProcessor[_]) createValidator(st *state.StateDB, dep *ctypes.Deposit) error {
+func (sp *StateProcessor) createValidator(st *state.StateDB, dep *ctypes.Deposit) error {
 	// Get the current slot.
 	slot, err := st.GetSlot()
 	if err != nil {
@@ -168,7 +168,7 @@ func (sp *StateProcessor[_]) createValidator(st *state.StateDB, dep *ctypes.Depo
 }
 
 // addValidatorToRegistry adds a validator to the registry.
-func (sp *StateProcessor[_]) addValidatorToRegistry(st *state.StateDB, dep *ctypes.Deposit) error {
+func (sp *StateProcessor) addValidatorToRegistry(st *state.StateDB, dep *ctypes.Deposit) error {
 	val := ctypes.NewValidatorFromDeposit(
 		dep.GetPubkey(),
 		dep.GetWithdrawalCredentials(),

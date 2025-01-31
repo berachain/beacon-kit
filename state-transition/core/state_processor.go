@@ -37,7 +37,7 @@ import (
 
 // StateProcessor is a basic Processor, which takes care of the
 // main state transition for the beacon chain.
-type StateProcessor[ContextT Context] struct {
+type StateProcessor struct {
 	// logger is used for logging information and errors.
 	logger log.Logger
 	// cs is the chain specification for the beacon chain.
@@ -58,7 +58,7 @@ type StateProcessor[ContextT Context] struct {
 
 // NewStateProcessor creates a new state processor.
 func NewStateProcessor[
-	ContextT Context,
+	ContextT *transition.Context,
 ](
 	logger log.Logger,
 	cs chain.Spec,
@@ -67,8 +67,8 @@ func NewStateProcessor[
 	signer crypto.BLSSigner,
 	fGetAddressFromPubKey func(crypto.BLSPubkey) ([]byte, error),
 	telemetrySink TelemetrySink,
-) *StateProcessor[ContextT] {
-	return &StateProcessor[ContextT]{
+) *StateProcessor {
+	return &StateProcessor{
 		logger:                logger,
 		cs:                    cs,
 		executionEngine:       executionEngine,
@@ -80,8 +80,8 @@ func NewStateProcessor[
 }
 
 // Transition is the main function for processing a state transition.
-func (sp *StateProcessor[ContextT]) Transition(
-	ctx ContextT,
+func (sp *StateProcessor) Transition(
+	ctx *transition.Context,
 	st *state.StateDB,
 	blk *ctypes.BeaconBlock,
 ) (transition.ValidatorUpdates, error) {
@@ -106,7 +106,7 @@ func (sp *StateProcessor[ContextT]) Transition(
 // NOTE: if process slots is called across multiple epochs (the given slot is more than 1 multiple
 // ahead of the current state slot), then validator updates will be returned in the order they are
 // processed, which may effectually override each other.
-func (sp *StateProcessor[_]) ProcessSlots(
+func (sp *StateProcessor) ProcessSlots(
 	st *state.StateDB, slot math.Slot,
 ) (transition.ValidatorUpdates, error) {
 	var res transition.ValidatorUpdates
@@ -143,7 +143,7 @@ func (sp *StateProcessor[_]) ProcessSlots(
 }
 
 // processSlot is run when a slot is missed.
-func (sp *StateProcessor[_]) processSlot(st *state.StateDB) error {
+func (sp *StateProcessor) processSlot(st *state.StateDB) error {
 	stateSlot, err := st.GetSlot()
 	if err != nil {
 		return err
@@ -181,8 +181,8 @@ func (sp *StateProcessor[_]) processSlot(st *state.StateDB) error {
 
 // ProcessBlock processes the block, it optionally verifies the
 // state root.
-func (sp *StateProcessor[ContextT]) ProcessBlock(
-	ctx ContextT, st *state.StateDB, blk *ctypes.BeaconBlock,
+func (sp *StateProcessor) ProcessBlock(
+	ctx *transition.Context, st *state.StateDB, blk *ctypes.BeaconBlock,
 ) error {
 	if err := sp.processBlockHeader(ctx, st, blk); err != nil {
 		return err
@@ -225,7 +225,7 @@ func (sp *StateProcessor[ContextT]) ProcessBlock(
 
 // processEpoch processes the epoch and ensures it matches the local state. Currently
 // beacon-kit does not enforce rewards, penalties, and slashing for validators.
-func (sp *StateProcessor[_]) processEpoch(st *state.StateDB) (transition.ValidatorUpdates, error) {
+func (sp *StateProcessor) processEpoch(st *state.StateDB) (transition.ValidatorUpdates, error) {
 	slot, err := st.GetSlot()
 	if err != nil {
 		return nil, err
@@ -271,8 +271,8 @@ func (sp *StateProcessor[_]) processEpoch(st *state.StateDB) (transition.Validat
 }
 
 // processBlockHeader processes the header and ensures it matches the local state.
-func (sp *StateProcessor[ContextT]) processBlockHeader(
-	ctx ContextT, st *state.StateDB, blk *ctypes.BeaconBlock,
+func (sp *StateProcessor) processBlockHeader(
+	ctx *transition.Context, st *state.StateDB, blk *ctypes.BeaconBlock,
 ) error {
 	// Ensure the block slot matches the state slot.
 	slot, err := st.GetSlot()
@@ -344,7 +344,7 @@ func (sp *StateProcessor[ContextT]) processBlockHeader(
 
 // processEffectiveBalanceUpdates as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#effective-balances-updates
-func (sp *StateProcessor[_]) processEffectiveBalanceUpdates(st *state.StateDB) error {
+func (sp *StateProcessor) processEffectiveBalanceUpdates(st *state.StateDB) error {
 	// Update effective balances with hysteresis
 	validators, err := st.GetValidators()
 	if err != nil {
