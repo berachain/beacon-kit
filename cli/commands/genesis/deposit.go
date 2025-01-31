@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/cli/context"
 	"github.com/berachain/beacon-kit/cli/utils/parser"
+	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-core/components"
@@ -56,6 +57,7 @@ func AddGenesisDepositCmd(cs chain.Spec) *cobra.Command {
 		Args:  cobra.ExactArgs(2), //nolint:mnd // The number of arguments.
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Get the deposit amount.
+			var depositAmount math.Gwei
 			depositAmount, err := parser.ConvertAmount(args[0])
 			if err != nil {
 				return err
@@ -65,27 +67,16 @@ func AddGenesisDepositCmd(cs chain.Spec) *cobra.Command {
 			cometConfig := context.GetConfigFromCmd(cmd)
 			appOpts := context.GetViperFromCmd(cmd)
 			outputDocument, _ := cmd.Flags().GetString(flags.FlagOutputDocument)
-
-			// Get the BLS signer.
-			blsSigner, err := components.ProvideBlsSigner(
-				components.BlsSignerInput{
-					AppOpts: appOpts,
-				},
-			)
-			if err != nil {
-				return err
-			}
-			return AddGenesisDeposit(cs, cometConfig, blsSigner, depositAmount, withdrawalAddress, outputDocument)
+			return AddGenesisDeposit(cs, cometConfig, appOpts, depositAmount, withdrawalAddress, outputDocument)
 		},
 	}
 	return cmd
 }
 
-// AddGenesisDeposit is the modularized version of AddGenesisDepositCmd that can be properly tested from within the runtime.
 func AddGenesisDeposit(
 	cs chain.Spec,
 	cometConfig *cmtcfg.Config,
-	blsSigner crypto.BLSSigner,
+	appOpts config.AppOptions,
 	depositAmount math.Gwei,
 	withdrawalAddress common.ExecutionAddress,
 	outputDocument string,
@@ -100,9 +91,14 @@ func AddGenesisDeposit(
 		)
 	}
 
-	if valPubKey == nil {
-		// addresses nilaway
-		return errors.New("failed to initialize commands validator files")
+	// Get the BLS signer.
+	blsSigner, err := components.ProvideBlsSigner(
+		components.BlsSignerInput{
+			AppOpts: appOpts,
+		},
+	)
+	if err != nil {
+		return err
 	}
 
 	// All deposits are signed with the genesis version.
@@ -136,6 +132,7 @@ func AddGenesisDeposit(
 		Credentials: depositMsg.Credentials,
 	}
 
+	//#nosec:G703 // Ignore errors on this line.
 	if outputDocument == "" {
 		outputDocument, err = makeOutputFilepath(cometConfig.RootDir,
 			crypto.BLSPubkey(valPubKey.Bytes()).String())
