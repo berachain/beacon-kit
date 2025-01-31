@@ -21,25 +21,29 @@
 package version
 
 import (
-	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 )
 
-const (
+// These are the versions of the Beacon Chain. Kept as private to avoid
+// modification of these variables at runtime.
+var (
 	// phase0 is the first version of the Beacon Chain.
-	phase0 uint32 = 0
+	phase0 = common.Version{0x00, 0x00, 0x00, 0x00}
 	// altair is the first hardfork of the Beacon Chain.
-	altair uint32 = 1
+	altair = common.Version{0x01, 0x00, 0x00, 0x00}
 	// bellatrix is the second hardfork of the Beacon Chain.
-	bellatrix uint32 = 2
+	bellatrix = common.Version{0x02, 0x00, 0x00, 0x00}
 	// capella is the third hardfork of the Beacon Chain.
-	capella uint32 = 3
+	capella = common.Version{0x03, 0x00, 0x00, 0x00}
 	// deneb is the first version of Deneb, used for genesis of Berachain mainnet.
-	deneb uint32 = 4
-	// deneb1 is the first hardfork of Deneb on Berachain mainnet. LittleEndian of {4, 1, 0, 0}.
-	deneb1 uint32 = 260
+	deneb = common.Version{0x04, 0x00, 0x00, 0x00}
+	// deneb1 is the first hardfork of Deneb on Berachain mainnet.
+	deneb1 = common.Version{0x04, 0x01, 0x00, 0x00}
 	// electra is the first version of Electra on Berachain mainnet.
-	electra uint32 = 5
+	electra = common.Version{0x05, 0x00, 0x00, 0x00}
+	// electra1 is the first hardfork of Electra on Berachain mainnet.
+	// TBD if used but kept as an example.
+	electra1 = common.Version{0x05, 0x01, 0x00, 0x00}
 )
 
 // Genesis returns the fork version for the genesis of Berachain mainnet, which is Deneb.
@@ -49,35 +53,40 @@ func Genesis() common.Version {
 
 // Phase0 returns phase0 as a common.Version.
 func Phase0() common.Version {
-	return bytes.FromUint32(phase0)
+	return phase0
 }
 
 // Altair returns altair as a common.Version.
 func Altair() common.Version {
-	return bytes.FromUint32(altair)
+	return altair
 }
 
 // Bellatrix returns bellatrix as a common.Version.
 func Bellatrix() common.Version {
-	return bytes.FromUint32(bellatrix)
+	return bellatrix
 }
 
 // Capella returns capella as a common.Version.
 func Capella() common.Version {
-	return bytes.FromUint32(capella)
+	return capella
 }
 
 // Deneb returns deneb as a common.Version.
 func Deneb() common.Version {
-	return bytes.FromUint32(deneb)
+	return deneb
 }
 
 // Deneb1 returns deneb1 as a common.Version.
 func Deneb1() common.Version {
-	return bytes.FromUint32(deneb1)
+	return deneb1
 }
 
 // Electra returns electra as a common.Version.
 func Electra() common.Version {
-	return bytes.FromUint32(electra)
+	return electra
+}
+
+// Electra1 returns electra1 as a common.Version.
+func Electra1() common.Version {
+	return electra1
 }
