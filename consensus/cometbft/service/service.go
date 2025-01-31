@@ -100,8 +100,9 @@ type Service[
 
 	chainID string
 
-	// genesis time
-	initialTime time.Time
+	// calculates block delay for the next block
+	blockDelay *blockDelay
+
 	// targetBlockTime is the desired block time. Doesn't change after start.
 	targetBlockTime time.Duration
 }
@@ -151,6 +152,15 @@ func NewService[
 	// Load latest height, once all stores have been set
 	if err = s.sm.LoadLatestVersion(); err != nil {
 		panic(fmt.Errorf("failed loading latest version: %w", err))
+	}
+
+	// Load block delay
+	bz, err := s.sm.LoadBlockDelay()
+	if err != nil {
+		panic(fmt.Errorf("failed loading block delay: %w", err))
+	}
+	if bz != nil {
+		s.blockDelay = blockDelayFromBytes(bz)
 	}
 
 	return s

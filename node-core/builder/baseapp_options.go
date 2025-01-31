@@ -84,8 +84,8 @@ func DefaultServiceOptions[
 		),
 		cometbft.SetChainID[LoggerT](chainID),
 		cometbft.SetTargetBlockTime[LoggerT](
-			// default to 2 seconds
-			2 * time.Second,
+			// default to 12 seconds (single Ethereum slot)
+			12 * time.Second,
 		),
 	}
 }
