@@ -35,15 +35,15 @@ type Context struct {
 	// the execution client has the correct state certain errors
 	// are returned by the execution engine.
 	OptimisticEngine bool
-	// SkipPayloadVerification indicates whether to skip calling NewPayload
-	// on the execution client. This can be done when the node is not
+	// VerifyPayload indicates whether to call NewPayload on the
+	// execution client. This can be done when the node is not
 	// syncing, and the payload is already known to the execution client.
-	SkipPayloadVerification bool
-	// SkipValidateRandao indicates whether to skip validating the Randao mix.
-	SkipValidateRandao bool
-	// SkipValidateResult indicates whether to validate the result of
+	VerifyPayload bool
+	// ValidateRandao indicates whether to validate the Randao mix.
+	ValidateRandao bool
+	// ValidateResult indicates whether to validate the result of
 	// the state transition.
-	SkipValidateResult bool
+	ValidateResult bool
 	// Address of current block proposer
 	ProposerAddress []byte
 	// ConsensusTime returns the timestamp of current consensus request.
@@ -62,22 +62,22 @@ func (c *Context) GetOptimisticEngine() bool {
 	return c.OptimisticEngine
 }
 
-// GetSkipPayloadVerification returns whether to skip calling NewPayload on the
+// GetVerifyPayload returns whether to call NewPayload on the
 // execution client. This can be done when the node is not syncing, and the
 // payload is already known to the execution client.
-func (c *Context) GetSkipPayloadVerification() bool {
-	return c.SkipPayloadVerification
+func (c *Context) GetVerifyPayload() bool {
+	return c.VerifyPayload
 }
 
-// GetSkipValidateRandao returns whether to skip validating the Randao mix.
-func (c *Context) GetSkipValidateRandao() bool {
-	return c.SkipValidateRandao
+// GetValidateRandao returns whether to validate the Randao mix.
+func (c *Context) GetValidateRandao() bool {
+	return c.ValidateRandao
 }
 
-// GetSkipValidateResult returns whether to validate the result of the state
+// GetValidateResult returns whether to validate the result of the state
 // transition.
-func (c *Context) GetSkipValidateResult() bool {
-	return c.SkipValidateResult
+func (c *Context) GetValidateResult() bool {
+	return c.ValidateResult
 }
 
 // GetProposerAddress returns the address of the validator

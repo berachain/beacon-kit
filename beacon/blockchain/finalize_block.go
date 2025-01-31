@@ -177,13 +177,13 @@ func (s *Service) executeStateTransition(
 			// of validators in their process proposal call and thus
 			// the "verification aspect" of this NewPayload call is
 			// actually irrelevant at this point.
-			SkipPayloadVerification: false,
+			VerifyPayload: true,
 
 			// We skip randao validation in FinalizeBlock since either
 			// 1. we validated it during ProcessProposal at the head of the chain OR
 			// 2. we are bootstrapping and implicitly trust that the randao was validated by
 			//    the super majority during ProcessProposal of the given block height.
-			SkipValidateRandao: true,
+			ValidateRandao: false,
 
 			ProposerAddress: blk.GetProposerAddress(),
 			ConsensusTime:   blk.GetConsensusTime(),

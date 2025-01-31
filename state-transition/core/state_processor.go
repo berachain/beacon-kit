@@ -206,7 +206,7 @@ func (sp *StateProcessor[ContextT]) ProcessBlock(
 
 	// If we are skipping validate, we can skip calculating the state
 	// root to save compute.
-	if ctx.GetSkipValidateResult() {
+	if !ctx.GetValidateResult() {
 		return nil
 	}
 

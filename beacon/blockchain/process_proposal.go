@@ -326,14 +326,14 @@ func (s *Service) verifyStateRoot(
 		// We run with a non-optimistic engine here to ensure
 		// that the proposer does not try to push through a bad block.
 		&transition.Context{
-			Context:                 ctx,
-			MeterGas:                false,
-			OptimisticEngine:        false,
-			SkipPayloadVerification: false,
-			SkipValidateResult:      false,
-			SkipValidateRandao:      false,
-			ProposerAddress:         proposerAddress,
-			ConsensusTime:           consensusTime,
+			Context:          ctx,
+			MeterGas:         false,
+			OptimisticEngine: false,
+			VerifyPayload:    true,
+			ValidateResult:   true,
+			ValidateRandao:   true,
+			ProposerAddress:  proposerAddress,
+			ConsensusTime:    consensusTime,
 		},
 		st, blk,
 	)

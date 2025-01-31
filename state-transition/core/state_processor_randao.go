@@ -60,7 +60,7 @@ func (sp *StateProcessor[ContextT]) processRandaoReveal(
 
 	fd := ctypes.NewForkData(sp.cs.ActiveForkVersionForEpoch(epoch), genesisValidatorsRoot)
 
-	if !ctx.GetSkipValidateRandao() {
+	if ctx.GetValidateRandao() {
 		signingRoot := fd.ComputeRandaoSigningRoot(sp.cs.DomainTypeRandao(), epoch)
 		reveal := body.GetRandaoReveal()
 		if err = sp.signer.VerifySignature(

@@ -135,10 +135,10 @@ func SetupTestState(t *testing.T, cs chain.Spec) (
 	)
 
 	ctx := &transition.Context{
-		Context:                 context.Background(),
-		SkipPayloadVerification: true,
-		SkipValidateResult:      true,
-		ProposerAddress:         dummyProposerAddr,
+		Context:         context.Background(),
+		VerifyPayload:   false,
+		ValidateResult:  false,
+		ProposerAddress: dummyProposerAddr,
 	}
 
 	return sp, beaconState, depositStore, ctx

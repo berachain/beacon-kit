@@ -51,11 +51,11 @@ func (sp *StateProcessor[ContextT]) processExecutionPayload(
 		"payload height", payload.GetNumber().Unwrap(),
 		"payload timestamp", payloadTimestamp,
 		"consensus timestamp", consensusTimestamp,
-		"skip payload verification", ctx.GetSkipPayloadVerification(),
+		"verify payload", ctx.GetVerifyPayload(),
 	)
 
 	// Skip payload verification if the context is configured as such.
-	if !ctx.GetSkipPayloadVerification() {
+	if ctx.GetVerifyPayload() {
 		g.Go(func() error {
 			return sp.validateExecutionPayload(gCtx, st, blk, ctx.GetOptimisticEngine())
 		})
