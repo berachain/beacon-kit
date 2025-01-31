@@ -77,14 +77,13 @@ func AddGenesisDepositCmd(cs chain.Spec) *cobra.Command {
 			if err != nil {
 				return err
 			}
-
 			return AddGenesisDeposit(cs, cometConfig, blsSigner, depositAmount, withdrawalAddress, outputDocument)
 		},
 	}
 	return cmd
 }
 
-// AddGenesisDeposit is the modularized version of AddGenesisDepositCmd that can be properly tested from within the runtime
+// AddGenesisDeposit is the modularized version of AddGenesisDepositCmd that can be properly tested from within the runtime.
 func AddGenesisDeposit(
 	cs chain.Spec,
 	cometConfig *cmtcfg.Config,
