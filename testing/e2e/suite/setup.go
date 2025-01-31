@@ -25,302 +25,375 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"math/big"
-	"sync/atomic"
+	"strings"
 	"time"
 
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/errors"
-	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
-	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/services"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/starlark_run_config"
 	"github.com/kurtosis-tech/kurtosis/api/golang/engine/lib/kurtosis_context"
-	"github.com/sourcegraph/conc/iter"
 )
 
-// SetupSuite executes before the test suite begins execution.
-func (s *KurtosisE2ESuite) SetupSuite() {
-	s.SetupSuiteWithOptions()
-}
+// Setup related functions
 
-// SetupSuiteWithOptions sets up the test suite with the provided options.
-func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
-	var (
-		key0, key1, key2 *ecdsa.PrivateKey
-		err              error
-	)
+// setupEnclave creates and initializes the enclave for the network.
+// It ensures any existing enclave with the same name is cleaned up first.
+func (s *KurtosisE2ESuite) setupEnclave(network *NetworkInstance) error {
+	// Create unique enclave name for this chain spec
+	s.Logger().Info("Creating enclave", "chainSpec", network.Config.NetworkConfiguration.ChainSpec)
+	enclaveName := "e2e-test-enclave-" + network.Config.NetworkConfiguration.ChainSpec
 
-	// Setup some sane defaults.
-	s.cfg = config.DefaultE2ETestConfig()
-	s.ctx = context.Background()
-	s.logger = log.NewTestLogger(s.T())
-	s.Require().NoError(err, "Error loading starlark helper file")
-	s.testAccounts = make([]*types.EthAccount, 3) //nolint:mnd // number of accounts.
-
-	s.genesisAccount = types.NewEthAccountFromHex(
-		"genesisAccount", "fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306",
-	)
-	key0, err = crypto.GenerateKey()
-	s.Require().NoError(err, "Error generating key")
-	key1, err = crypto.GenerateKey()
-	s.Require().NoError(err, "Error generating key")
-	key2, err = crypto.GenerateKey()
-	s.Require().NoError(err, "Error generating key")
-
-	s.testAccounts[0] = types.NewEthAccount("testAccount0", key0)
-	s.testAccounts[1] = types.NewEthAccount("testAccount1", key1)
-	s.testAccounts[2] = types.NewEthAccount("testAccount2", key2)
-
-	// Apply all the provided options, this allows
-	// the test suite to be configured in a flexible manner by
-	// the caller (i.e. overriding defaults).
-	for _, opt := range opts {
-		if err = opt(s); err != nil {
-			s.Require().NoError(err, "Error applying option")
-		}
+	// Try to destroy any existing enclave with the same name
+	if err := s.cleanupExistingEnclave(enclaveName); err != nil {
+		return err
 	}
 
-	s.kCtx, err = kurtosis_context.NewKurtosisContextFromLocalEngine()
-	s.Require().NoError(err)
-	s.logger.Info("Destroying any existing enclave...")
-	//#nosec:G703 // It's okay if this errors out. It will error out
-	// if there is no enclave to destroy.
-	_ = s.kCtx.DestroyEnclave(s.ctx, "e2e-test-enclave")
+	var err error
+	network.enclave, err = s.kCtx.CreateEnclave(s.ctx, enclaveName)
+	if err != nil {
+		return fmt.Errorf("failed to create enclave: %w", err)
+	}
 
-	s.logger.Info("Creating enclave...")
-	s.enclave, err = s.kCtx.CreateEnclave(s.ctx, "e2e-test-enclave")
-	s.Require().NoError(err)
-
-	s.logger.Info(
-		"Spinning up enclave...",
-		"num_validators",
-		len(s.cfg.NetworkConfiguration.Validators.Nodes),
-		"num_full_nodes",
-		len(s.cfg.NetworkConfiguration.FullNodes.Nodes),
-	)
-
-	result, err := s.enclave.RunStarlarkPackageBlocking(
-		s.ctx, "../../kurtosis",
+	// Run Starlark package
+	result, err := network.enclave.RunStarlarkPackageBlocking(
+		s.ctx,
+		"../../kurtosis",
 		starlark_run_config.NewRunStarlarkConfig(
-			starlark_run_config.WithSerializedParams(s.cfg.MustMarshalJSON()),
+			starlark_run_config.WithSerializedParams(network.Config.MustMarshalJSON()),
 		),
 	)
-	s.Require().NoError(err, "Error running Starlark package")
-	s.Require().Nil(result.ExecutionError, "Error running Starlark package")
-	s.Require().Empty(result.ValidationErrors)
-	s.logger.Info("Enclave spun up successfully")
-
-	s.logger.Info("Setting up consensus clients")
-	err = s.SetupConsensusClients()
-	s.Require().NoError(err, "Error setting up consensus clients")
-
-	// Setup the JSON-RPC balancer.
-	s.logger.Info("Setting up JSON-RPC balancer")
-	err = s.SetupJSONRPCBalancer()
-	s.Require().NoError(err, "Error setting up JSON-RPC balancer")
-
-	s.logger.Info("Waiting for nodes to get ready...")
-	//nolint:mnd // its okay.
-	time.Sleep(5 * time.Second)
-	// Wait for the finalized block number to increase a bit to
-	// ensure all clients are in sync.
-	//nolint:mnd // 3 blocks
-	err = s.WaitForFinalizedBlockNumber(3)
-	s.Require().NoError(err, "Error waiting for finalized block number")
-
-	// Fund any requested accounts.
-	s.FundAccounts()
-}
-
-// SetupConsensusClients sets up the consensus clients for the validator nodes.
-func (s *KurtosisE2ESuite) SetupConsensusClients() error {
-	s.consensusClients = make(map[string]*types.ConsensusClient, config.NumValidators)
-
-	var (
-		sCtx *services.ServiceContext
-		res  *enclaves.StarlarkRunResult
-		err  error
-	)
-	for i := range config.NumValidators {
-		var clientName string
-		//nolint:mnd // its okay.
-		switch i % config.NumValidators {
-		case 0:
-			clientName = config.ClientValidator0
-		case 1:
-			clientName = config.ClientValidator1
-		case 2:
-			clientName = config.ClientValidator2
-		case 3:
-			clientName = config.ClientValidator3
-		case 4:
-			clientName = config.ClientValidator4
-		}
-		sCtx, err = s.Enclave().GetServiceContext(clientName)
-		if err != nil {
-			return err
-		}
-
-		s.consensusClients[clientName] = types.NewConsensusClient(
-			types.NewWrappedServiceContext(sCtx, s.Enclave().RunStarlarkScriptBlocking),
-		)
-		if res, err = s.consensusClients[clientName].Start(
-			context.Background(), s.Enclave(),
-		); err != nil {
-			return err
-		}
-		if res.ExecutionError != nil {
-			return errors.New(res.ExecutionError.String())
-		}
-		if len(res.ValidationErrors) > 0 {
-			return errors.New(res.ValidationErrors[0].String())
-		}
+	if err != nil {
+		return fmt.Errorf("failed to run starlark package: %w", err)
+	}
+	if result.ExecutionError != nil {
+		return fmt.Errorf("starlark execution error: %s", result.ExecutionError)
 	}
 
 	return nil
 }
 
-// SetupJSONRPCBalancer sets up the load balancer for the test suite.
-func (s *KurtosisE2ESuite) SetupJSONRPCBalancer() error {
-	// get the type for EthJSONRPCEndpoint
-	typeRPCEndpoint := s.JSONRPCBalancerType()
+// setupConsensusClients initializes and connects all consensus clients for the network.
+// It creates clients based on the network's validator configuration.
+func (s *KurtosisE2ESuite) setupConsensusClients(network *NetworkInstance) error {
+	s.Logger().Info("Setting up validator clients", "clients", network.Config.NetworkConfiguration.Validators.Nodes)
+	for i := range network.Config.NetworkConfiguration.Validators.Nodes {
+		if err := s.setupSingleConsensusClient(network, i); err != nil {
+			return err
+		}
+	}
+	s.Logger().Info("Set up consensus clients", "clients", network.consensusClients)
+	return nil
+}
 
-	s.logger.Info("Setting up JSON-RPC balancer:", "type", typeRPCEndpoint)
+// setupLoadBalancer initializes the network's load balancer and waits for RPC readiness.
+func (s *KurtosisE2ESuite) setupLoadBalancer(network *NetworkInstance) error {
+	balancerType := network.Config.EthJSONRPCEndpoints[0].Type
+	sCtx, err := network.enclave.GetServiceContext(balancerType)
+	if err != nil {
+		return fmt.Errorf("failed to get balancer service context: %w", err)
+	}
 
-	sCtx, err := s.Enclave().GetServiceContext(typeRPCEndpoint)
+	loadBalancer, err := types.NewLoadBalancer(sCtx)
+	if err != nil {
+		return fmt.Errorf("failed to create load balancer: %w", err)
+	}
+
+	// Verify the load balancer was created successfully
+	if loadBalancer == nil {
+		return errors.New("load balancer is nil after creation")
+	}
+	network.loadBalancer = loadBalancer
+
+	return s.waitForRPCReady(network)
+}
+
+// setupAccounts initializes and funds the genesis and test accounts.
+// It ensures the genesis account has sufficient funds before creating test accounts.
+func (s *KurtosisE2ESuite) setupAccounts(network *NetworkInstance) error {
+	// Initialize genesis account
+	network.genesisAccount = types.NewEthAccountFromHex(
+		"genesisAccount", "fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306",
+	)
+
+	// Wait for a few blocks to ensure the genesis account has funds
+	//nolint:mnd // 5 blocks
+	if err := s.WaitForNBlockNumbers(network, 5); err != nil {
+		return fmt.Errorf("failed waiting for blocks: %w", err)
+	}
+
+	// Verify genesis account balance
+	balance, err := network.JSONRPCBalancer().BalanceAt(s.ctx, network.genesisAccount.Address(), nil)
+	if err != nil {
+		return fmt.Errorf("failed to get genesis balance: %w", err)
+	}
+	s.Logger().Info("Genesis account balance", "balance", balance)
+	if balance.Cmp(big.NewInt(0)) == 0 {
+		return errors.New("genesis account has no funds")
+	}
+
+	if err = s.generateTestAccounts(network); err != nil {
+		return fmt.Errorf("failed to generate test accounts: %w", err)
+	}
+
+	// Fund test accounts using the genesis account
+	for _, account := range network.testAccounts {
+		//nolint:mnd // 60000 ETH
+		amount, ok := new(big.Int).SetString("60000000000000000000000", 10)
+		if !ok {
+			return errors.New("failed to parse amount")
+		}
+		if err = s.fundAccount(network, account.Address(), amount); err != nil {
+			return fmt.Errorf("failed to fund test accounts: %w", err)
+		}
+	}
+	return nil
+}
+
+// Helper functions
+
+// cleanupExistingEnclave attempts to destroy any existing enclave with the given name.
+// It logs any errors but continues execution to allow setup to proceed.
+func (s *KurtosisE2ESuite) cleanupExistingEnclave(enclaveName string) error {
+	enclaves, err := s.kCtx.GetEnclaves(s.ctx)
+	if err != nil {
+		s.Logger().Error("Failed to get enclaves", "error", err)
+		return nil // Continue with setup even if we can't check enclaves
+	}
+
+	for _, e := range enclaves.GetEnclavesByUuid() {
+		if e.GetName() == enclaveName {
+			s.Logger().Info("Destroying existing enclave", "name", enclaveName)
+			if err = s.kCtx.DestroyEnclave(s.ctx, e.GetEnclaveUuid()); err != nil {
+				s.Logger().Error("Failed to destroy existing enclave", "error", err)
+			}
+		}
+	}
+	return nil
+}
+
+// setupSingleConsensusClient initializes a single consensus client with the given index.
+// It creates the client, establishes connection, and adds it to the network's client map.
+func (s *KurtosisE2ESuite) setupSingleConsensusClient(network *NetworkInstance, i int) error {
+	clientName := fmt.Sprintf("cl-validator-beaconkit-%d", i)
+	sCtx, err := network.enclave.GetServiceContext(clientName)
+	if err != nil {
+		return fmt.Errorf("failed to get service context: %w", err)
+	}
+
+	client := types.NewConsensusClient(
+		types.NewWrappedServiceContext(sCtx, network.enclave.RunStarlarkScriptBlocking),
+	)
+	if err = client.Connect(s.ctx); err != nil {
+		return fmt.Errorf("failed to connect consensus client %s: %w", clientName, err)
+	}
+	network.consensusClients[clientName] = client
+	s.Logger().Info("Created consensus client", "name", clientName)
+	return nil
+}
+
+// waitForRPCReady polls the RPC endpoint until it responds successfully or times out.
+// It attempts up to maxRetries times with a 2-second delay between attempts.
+func (s *KurtosisE2ESuite) waitForRPCReady(network *NetworkInstance) error {
+	s.Logger().Info("Waiting for RPC to be ready", "url", network.loadBalancer.URL())
+	maxRetries := 30
+	for attempt := range maxRetries {
+		blockNum, err := network.loadBalancer.BlockNumber(s.ctx)
+		if err == nil {
+			s.Logger().Info("RPC is ready", "blockNum", blockNum)
+			return nil
+		}
+		s.Logger().Info("RPC not ready yet",
+			"attempt", attempt+1,
+			"url", network.loadBalancer.URL(),
+			"error", err,
+		)
+		//nolint:mnd // 2 seconds
+		time.Sleep(2 * time.Second)
+	}
+	return fmt.Errorf("RPC not ready after %d retries", maxRetries)
+}
+
+// generateTestAccounts creates three test accounts with freshly generated keys.
+// It returns an error if key generation fails for any account.
+func (s *KurtosisE2ESuite) generateTestAccounts(network *NetworkInstance) error {
+	// Generate keys for test accounts
+	//nolint:mnd // 3 accounts
+	keys := make([]*ecdsa.PrivateKey, 3)
+	for i := range keys {
+		var err error
+		keys[i], err = crypto.GenerateKey()
+		if err != nil {
+			return fmt.Errorf("error generating key%d: %w", i, err)
+		}
+	}
+
+	// Initialize test accounts with generated keys
+	network.testAccounts = []*types.EthAccount{
+		types.NewEthAccount("testAccount0", keys[0]),
+		types.NewEthAccount("testAccount1", keys[1]),
+		types.NewEthAccount("testAccount2", keys[2]),
+	}
+
+	return nil
+}
+
+// fundAccount sends ETH to the given address.
+func (s *KurtosisE2ESuite) fundAccount(network *NetworkInstance, to common.Address, amount *big.Int) error {
+	// Get initial balance
+	initialBalance, err := network.JSONRPCBalancer().BalanceAt(s.ctx, to, nil)
+	if err != nil {
+		return fmt.Errorf("failed to get initial balance: %w", err)
+	}
+
+	nonce, err := network.JSONRPCBalancer().PendingNonceAt(s.ctx, network.genesisAccount.Address())
 	if err != nil {
 		return err
 	}
 
-	if s.loadBalancer, err = types.NewLoadBalancer(
-		sCtx,
-	); err != nil {
+	chainID, err := network.JSONRPCBalancer().ChainID(s.ctx)
+	if err != nil {
 		return err
+	}
+
+	// Get the latest block for fee estimation
+	header, err := network.JSONRPCBalancer().HeaderByNumber(s.ctx, nil)
+	if err != nil {
+		return err
+	}
+	//nolint:mnd // 1 Gwei
+	gasFeeCap := new(big.Int).Add(header.BaseFee, big.NewInt(1e9))
+
+	//nolint:mnd // 21000 gas
+	tx := ethtypes.NewTx(&ethtypes.DynamicFeeTx{
+		ChainID:   chainID,
+		Nonce:     nonce,
+		To:        &to,
+		Value:     amount,
+		Gas:       21000,
+		GasFeeCap: gasFeeCap,
+		GasTipCap: big.NewInt(1e9),
+	})
+
+	signedTx, err := network.genesisAccount.SignTx(chainID, tx)
+	if err != nil {
+		return err
+	}
+
+	if err = network.JSONRPCBalancer().SendTransaction(s.ctx, signedTx); err != nil {
+		return fmt.Errorf("failed to send transaction: %w", err)
+	}
+
+	// Wait for transaction to be mined
+	receipt, err := s.WaitForTransactionReceipt(network, signedTx.Hash())
+	if err != nil {
+		return fmt.Errorf("failed waiting for transaction: %w", err)
+	}
+
+	// Verify transaction success
+	if receipt.Status != ethtypes.ReceiptStatusSuccessful {
+		return fmt.Errorf("transaction failed with status: %d", receipt.Status)
+	}
+
+	// Verify balance increase
+	newBalance, err := network.JSONRPCBalancer().BalanceAt(s.ctx, to, nil)
+	if err != nil {
+		return fmt.Errorf("failed to get new balance: %w", err)
+	}
+
+	if newBalance.Cmp(initialBalance) <= 0 {
+		return fmt.Errorf("balance did not increase: old=%s new=%s", initialBalance, newBalance)
+	}
+
+	s.Logger().Info("Successfully funded account",
+		"address", to.Hex(),
+		"amount", amount,
+		"oldBalance", initialBalance,
+		"newBalance", newBalance,
+	)
+	return nil
+}
+
+// stopSingleConsensusClient stops a single consensus client safely.
+// It handles nil clients and logs any errors that occur during shutdown.
+func (s *KurtosisE2ESuite) stopSingleConsensusClient(name string, client *types.ConsensusClient) error {
+	if client == nil || client.Client == nil {
+		s.Logger().Info("Client is nil, skipping", "name", name)
+		return nil
+	}
+
+	s.Logger().Info("Stopping consensus client", "name", name)
+	res, err := client.Stop(s.ctx)
+	if err != nil {
+		return fmt.Errorf("failed to stop client %s: %w", name, err)
+	}
+
+	if res != nil && res.ExecutionError != nil {
+		return fmt.Errorf("client %s stop returned error: %s", name, res.ExecutionError)
 	}
 
 	return nil
 }
 
-// FundAccounts funds the accounts for the test suite.
-//
-//nolint:funlen
-func (s *KurtosisE2ESuite) FundAccounts() {
-	ctx := context.Background()
-	nonce := atomic.Uint64{}
-	pendingNonce, err := s.JSONRPCBalancer().PendingNonceAt(
-		ctx, s.genesisAccount.Address())
-	s.Require().NoError(err, "Failed to get nonce for genesis account")
-	nonce.Store(pendingNonce)
-
-	var chainID *big.Int
-	chainID, err = s.JSONRPCBalancer().ChainID(ctx)
-	s.Require().NoError(err, "failed to get chain ID")
-	s.logger.Info("Chain-id is", "chain_id", chainID)
-	_, err = iter.MapErr(
-		s.testAccounts,
-		func(acc **types.EthAccount) (*ethtypes.Receipt, error) {
-			account := *acc
-			var gasTipCap *big.Int
-
-			if gasTipCap, err = s.JSONRPCBalancer().SuggestGasTipCap(ctx); err != nil {
-				var rpcErr rpc.Error
-				if errors.As(err, &rpcErr) && rpcErr.ErrorCode() == -32601 {
-					// Besu does not support eth_maxPriorityFeePerGas
-					// so we use a default value of 10 Gwei.
-					gasTipCap = big.NewInt(0).SetUint64(TenGwei)
-				} else {
-					return nil, err
-				}
-			}
-
-			gasFeeCap := new(big.Int).Add(
-				gasTipCap, big.NewInt(0).SetUint64(TenGwei))
-			nonceToSubmit := nonce.Add(1) - 1
-			//nolint:mnd // 20000 Ether
-			value := new(big.Int).Mul(big.NewInt(200000), big.NewInt(Ether))
-			dest := account.Address()
-			var signedTx *ethtypes.Transaction
-			if signedTx, err = s.genesisAccount.SignTx(
-				chainID, ethtypes.NewTx(&ethtypes.DynamicFeeTx{
-					ChainID: chainID, Nonce: nonceToSubmit,
-					GasTipCap: gasTipCap, GasFeeCap: gasFeeCap,
-					Gas: EtherTransferGasLimit, To: &dest,
-					Value: value, Data: nil,
-				}),
-			); err != nil {
-				return nil, err
-			}
-
-			cctx, cancel := context.WithTimeout(ctx, DefaultE2ETestTimeout)
-			defer cancel()
-			if err = s.JSONRPCBalancer().SendTransaction(cctx, signedTx); err != nil {
-				s.logger.Error(
-					"error submitting funding transaction",
-					"error",
-					err,
-				)
-				return nil, err
-			}
-
-			s.logger.Info(
-				"Funding transaction submitted, waiting for confirmation...",
-				"tx_hash", signedTx.Hash().Hex(), "nonce", nonceToSubmit,
-				"account", account.Name(), "value", value,
-			)
-
-			var receipt *ethtypes.Receipt
-
-			if receipt, err = bind.WaitMined(
-				cctx, s.JSONRPCBalancer(), signedTx,
-			); err != nil {
-				return nil, err
-			}
-
-			s.logger.Info(
-				"Funding transaction confirmed",
-				"tx_hash", signedTx.Hash().Hex(),
-				"account", account.Name(),
-			)
-
-			// Verify the receipt status.
-			if receipt.Status != ethtypes.ReceiptStatusSuccessful {
-				return nil, err
-			}
-
-			// Wait an extra block to ensure all clients are in sync.
-			//nolint:mnd,contextcheck // its okay.
-			if err = s.WaitForFinalizedBlockNumber(
-				receipt.BlockNumber.Uint64() + 2,
-			); err != nil {
-				return nil, err
-			}
-
-			// Verify the balance of the account
-			var balance *big.Int
-			if balance, err = s.JSONRPCBalancer().BalanceAt(ctx, dest, nil); err != nil {
-				return nil, err
-			} else if balance.Cmp(value) != 0 {
-				return nil, errors.Wrap(
-					ErrUnexpectedBalance, fmt.Sprintf("expected: %v, got: %v", value, balance),
-				)
-			}
-			return receipt, nil
-		},
-	)
-	s.Require().NoError(err, "Error funding accounts")
+// stopConsensusClients stops all consensus clients in the network.
+// It attempts to stop each client individually and returns on first error.
+func (s *KurtosisE2ESuite) stopConsensusClients(network *NetworkInstance) error {
+	s.Logger().Info("Stopping consensus clients in cleanupNetwork", "count", len(network.consensusClients))
+	for name, client := range network.consensusClients {
+		if err := s.stopSingleConsensusClient(name, client); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
-// WaitForFinalizedBlockNumber waits for the finalized block number
-// to reach the target block number across all execution clients.
-func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
-	target uint64,
-) error {
+// checkEnclaveExists verifies if the enclave still exists in Kurtosis.
+// It returns true if the enclave UUID is found in the list of active enclaves.
+func (s *KurtosisE2ESuite) checkEnclaveExists(enclave *enclaves.EnclaveContext) (bool, error) {
+	enclaves, err := s.kCtx.GetEnclaves(s.ctx)
+	if err != nil {
+		return false, fmt.Errorf("failed to get enclaves: %w", err)
+	}
+
+	for _, e := range enclaves.GetEnclavesByUuid() {
+		if e.GetEnclaveUuid() == string(enclave.GetEnclaveUuid()) {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+// destroyEnclave destroys the network's enclave if it exists.
+// It checks for existence first to avoid errors on already destroyed enclaves.
+func (s *KurtosisE2ESuite) destroyEnclave(network *NetworkInstance) error {
+	if network.enclave == nil {
+		s.Logger().Info("Enclave is nil, skipping destruction")
+		return nil
+	}
+
+	exists, err := s.checkEnclaveExists(network.enclave)
+	if err != nil {
+		s.Logger().Error("Failed to check enclave existence", "error", err)
+		return nil // Continue with cleanup even if we can't check existence
+	}
+
+	if !exists {
+		s.Logger().Info("Enclave already destroyed", "uuid", network.enclave.GetEnclaveUuid())
+		return nil
+	}
+
+	s.Logger().Info("Destroying enclave", "uuid", network.enclave.GetEnclaveUuid())
+	return s.kCtx.DestroyEnclave(s.ctx, string(network.enclave.GetEnclaveUuid()))
+}
+
+// WaitForFinalizedBlockNumber waits until the chain reaches the target block number.
+// It polls the chain state and returns an error if the context deadline is exceeded.
+func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(network *NetworkInstance, target uint64) error {
 	cctx, cancel := context.WithTimeout(s.ctx, DefaultE2ETestTimeout)
 	defer cancel()
 	ticker := time.NewTicker(time.Second)
@@ -335,7 +408,7 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 		}
 
 		var err error
-		finalBlockNum, err = s.JSONRPCBalancer().BlockNumber(cctx)
+		finalBlockNum, err = network.JSONRPCBalancer().BlockNumber(cctx)
 		if err != nil {
 			s.logger.Error("error getting finalized block number", "error", err)
 			continue
@@ -367,41 +440,128 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 	return nil
 }
 
-// WaitForNBlockNumbers waits for a specified amount of blocks into the future
-// from now.
-func (s *KurtosisE2ESuite) WaitForNBlockNumbers(
-	n uint64,
-) error {
-	current, err := s.JSONRPCBalancer().BlockNumber(s.ctx)
+// WaitForNBlockNumbers waits for a specified amount of blocks into the future from now.
+// It gets the current block number and waits until target = current + n blocks.
+func (s *KurtosisE2ESuite) WaitForNBlockNumbers(network *NetworkInstance, n uint64) error {
+	current, err := network.JSONRPCBalancer().BlockNumber(s.ctx)
 	if err != nil {
 		return err
 	}
-	return s.WaitForFinalizedBlockNumber(current + n)
+	return s.WaitForFinalizedBlockNumber(network, current+n)
 }
 
-// TearDownSuite cleans up resources after all tests have been executed.
-// this function executes after all tests executed.
-func (s *KurtosisE2ESuite) TearDownSuite() {
-	s.Logger().Info("Destroying enclave...")
-	for _, client := range s.consensusClients {
-		res, err := client.Stop(s.ctx)
-		s.Require().NoError(err, "Error stopping consensus client")
-		s.Require().Nil(res.ExecutionError, "Error stopping consensus client")
-		s.Require().Empty(res.ValidationErrors, "Error stopping consensus client")
+// GetAccounts returns all test accounts created for the test suite.
+func (s *KurtosisE2ESuite) GetAccounts() []*types.EthAccount {
+	network := s.GetCurrentNetwork()
+	if network == nil {
+		s.Logger().Error("No network found for current test")
+		return nil
 	}
-	s.Require().NoError(s.kCtx.DestroyEnclave(s.ctx, "e2e-test-enclave"))
+	return network.testAccounts
 }
 
-// CheckForSuccessfulTx returns true if the transaction was successful.
-func (s *KurtosisE2ESuite) CheckForSuccessfulTx(
-	tx common.Hash,
-) bool {
-	ctx, cancel := context.WithTimeout(s.Ctx(), DefaultE2ETestTimeout)
-	defer cancel()
-	receipt, err := s.JSONRPCBalancer().TransactionReceipt(ctx, tx)
-	if err != nil {
-		s.Logger().Error("Error getting transaction receipt", "error", err)
-		return false
+// RegisterTest associates a test with its chain specification.
+func (s *KurtosisE2ESuite) RegisterTest(testName string, spec ChainSpec) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.testSpecs[testName] = spec
+}
+
+// SetNetworks sets the networks for the test suite.
+func (s *KurtosisE2ESuite) SetNetworks(networks map[string]*NetworkInstance) {
+	s.networks = networks
+}
+
+// Networks returns the networks for the test suite.
+func (s *KurtosisE2ESuite) GetNetworks() map[string]*NetworkInstance {
+	return s.networks
+}
+
+// SetTestSpecs sets the test specs for the test suite.
+func (s *KurtosisE2ESuite) SetTestSpecs(specs map[string]ChainSpec) {
+	s.testSpecs = specs
+}
+
+// TestSpecs returns the test specs for the test suite.
+func (s *KurtosisE2ESuite) GetTestSpecs() map[string]ChainSpec {
+	return s.testSpecs
+}
+
+func (s *KurtosisE2ESuite) SetKurtosisCtx(ctx *kurtosis_context.KurtosisContext) {
+	s.kCtx = ctx
+}
+
+// SetContext sets the main context for the test suite.
+func (s *KurtosisE2ESuite) SetContext(ctx context.Context) {
+	s.ctx = ctx
+}
+
+// RegisterTestFunc registers a test function with a name.
+func (s *KurtosisE2ESuite) RegisterTestFunc(name string, fn func()) {
+	if s.testFuncs == nil {
+		s.testFuncs = make(map[string]func())
 	}
-	return receipt.Status == ethtypes.ReceiptStatusSuccessful
+	s.testFuncs[name] = fn
+}
+
+// ConsensusClients returns all consensus clients associated with the test suite.
+func (s *KurtosisE2ESuite) ConsensusClients() map[string]*types.ConsensusClient {
+	network := s.GetCurrentNetwork()
+	if network == nil {
+		s.Logger().Error("No network found for current test")
+		return nil
+	}
+	return network.consensusClients
+}
+
+// WaitForTransactionReceipt waits for a transaction to be mined and returns the receipt.
+// It attempts to get the receipt for up to 30 seconds before timing out.
+func (s *KurtosisE2ESuite) WaitForTransactionReceipt(network *NetworkInstance, tx common.Hash) (*ethtypes.Receipt, error) {
+	for range 30 {
+		receipt, err := network.JSONRPCBalancer().TransactionReceipt(s.ctx, tx)
+		if err == nil {
+			return receipt, nil
+		}
+		time.Sleep(time.Second)
+	}
+	return nil, fmt.Errorf("transaction not mined within timeout: %s", tx.Hex())
+}
+
+// GetCurrentNetwork returns the network instance for the current running test.
+// It extracts the test name from the full path and looks up the corresponding network.
+func (s *KurtosisE2ESuite) GetCurrentNetwork() *NetworkInstance {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	testName := s.T().Name()
+	// Extract the actual test name from the full path
+	if idx := strings.LastIndex(testName, "/"); idx != -1 {
+		testName = testName[idx+1:]
+	}
+
+	spec := s.testSpecs[testName]
+	chainKey := fmt.Sprintf("%d-%s", spec.ChainID, spec.Network)
+	return s.networks[chainKey]
+}
+
+// Ctx returns the context used throughout the test suite.
+func (s *KurtosisE2ESuite) Ctx() context.Context {
+	return s.ctx
+}
+
+// SetLogger sets the logger instance for the test suite.
+func (s *KurtosisE2ESuite) SetLogger(l log.Logger) {
+	s.logger = l
+}
+
+// Network Instance Methods
+
+// ConsensusClients returns the consensus clients for a specific network instance.
+func (n *NetworkInstance) ConsensusClients() map[string]*types.ConsensusClient {
+	return n.consensusClients
+}
+
+// JSONRPCBalancer returns the JSON-RPC load balancer for the network instance.
+func (n *NetworkInstance) JSONRPCBalancer() *types.LoadBalancer {
+	return n.loadBalancer
 }
