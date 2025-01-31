@@ -57,7 +57,6 @@ func AddGenesisDepositCmd(cs chain.Spec) *cobra.Command {
 		Args:  cobra.ExactArgs(2), //nolint:mnd // The number of arguments.
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Get the deposit amount.
-			var depositAmount math.Gwei
 			depositAmount, err := parser.ConvertAmount(args[0])
 			if err != nil {
 				return err
