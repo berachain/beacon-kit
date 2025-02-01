@@ -62,7 +62,6 @@ func TestCombi(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
 			result := hasher.Combi(tc.a, tc.b)
 			require.Equal(t, tc.expected, result,
 				"TestCase %s", tc.name)
@@ -105,7 +104,6 @@ func TestMixIn(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
 			result := hasher.MixIn(tc.a, tc.i)
 			require.Equal(t, tc.expected, result,
 				"TestCase %s", tc.name)
