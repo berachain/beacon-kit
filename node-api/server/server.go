@@ -25,15 +25,13 @@ import (
 
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/log/noop"
+	"github.com/berachain/beacon-kit/node-api/engines/echo"
 	"github.com/berachain/beacon-kit/node-api/handlers"
-	apicontext "github.com/berachain/beacon-kit/node-api/server/context"
 )
 
 // Server is the API Server service.
-type Server[
-	ContextT apicontext.Context,
-] struct {
-	engine Engine[ContextT]
+type Server struct {
+	engine Engine[echo.Context]
 	config Config
 	logger log.Logger
 }
@@ -41,14 +39,12 @@ type Server[
 // New initializes a new API Server with the given config, engine, and logger.
 // It will inject a noop logger into the API handlers and engine if logging is
 // disabled.
-func New[
-	ContextT apicontext.Context,
-](
+func New(
 	config Config,
-	engine Engine[ContextT],
+	engine Engine[echo.Context],
 	logger log.Logger,
-	handlers ...handlers.Handlers[ContextT],
-) *Server[ContextT] {
+	handlers ...handlers.Handlers[echo.Context],
+) *Server {
 	apiLogger := logger
 	if !config.Logging {
 		apiLogger = noop.NewLogger[log.Logger]()
@@ -57,7 +53,7 @@ func New[
 		handler.RegisterRoutes(apiLogger)
 		engine.RegisterRoutes(handler.RouteSet(), apiLogger)
 	}
-	return &Server[ContextT]{
+	return &Server{
 		engine: engine,
 		config: config,
 		logger: logger,
@@ -65,7 +61,7 @@ func New[
 }
 
 // Start starts the API Server at the configured address.
-func (s *Server[_]) Start(ctx context.Context) error {
+func (s *Server) Start(ctx context.Context) error {
 	if !s.config.Enabled {
 		return nil
 	}
@@ -73,7 +69,7 @@ func (s *Server[_]) Start(ctx context.Context) error {
 	return nil
 }
 
-func (s *Server[_]) start(ctx context.Context) {
+func (s *Server) start(ctx context.Context) {
 	errCh := make(chan error)
 	go func() {
 		errCh <- s.engine.Run(s.config.Address)
@@ -88,11 +84,11 @@ func (s *Server[_]) start(ctx context.Context) {
 	}
 }
 
-func (s *Server[_]) Stop() error {
+func (s *Server) Stop() error {
 	return nil
 }
 
 // Name returns the name of the API server service.
-func (s *Server[_]) Name() string {
+func (s *Server) Name() string {
 	return "node-api-server"
 }

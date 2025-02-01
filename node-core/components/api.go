@@ -70,10 +70,13 @@ func ProvideNodeAPIServer[
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	in NodeAPIServerInput[LoggerT],
-) *server.Server[echo.Context] {
-	in.Logger.AddKeyValColor("service", "node-api-server",
-		log.Blue)
-	return server.New[echo.Context](
+) *server.Server {
+	in.Logger.AddKeyValColor(
+		"service",
+		"node-api-server",
+		log.Blue,
+	)
+	return server.New(
 		in.Config.NodeAPI,
 		in.Engine,
 		in.Logger.With("service", "node-api-server"),
