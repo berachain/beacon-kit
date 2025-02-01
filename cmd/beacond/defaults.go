@@ -63,7 +63,7 @@ func DefaultComponents() []any {
 	)
 
 	c = append(c,
-		components.ProvideNodeAPIHandlers[NodeAPIContext],
+		components.ProvideNodeAPIHandlers,
 		components.ProvideNodeAPIBeaconHandler[NodeAPIContext],
 		components.ProvideNodeAPIBuilderHandler[NodeAPIContext],
 		components.ProvideNodeAPIConfigHandler[NodeAPIContext],

@@ -22,6 +22,7 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/node-api/engines/echo"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beaconapi "github.com/berachain/beacon-kit/node-api/handlers/beacon"
 	builderapi "github.com/berachain/beacon-kit/node-api/handlers/builder"
@@ -32,25 +33,19 @@ import (
 	proofapi "github.com/berachain/beacon-kit/node-api/handlers/proof"
 )
 
-type NodeAPIHandlersInput[
-	NodeAPIContextT NodeAPIContext,
-] struct {
+type NodeAPIHandlersInput struct {
 	depinject.In
-	BeaconAPIHandler  *beaconapi.Handler[NodeAPIContextT]
-	BuilderAPIHandler *builderapi.Handler[NodeAPIContextT]
-	ConfigAPIHandler  *configapi.Handler[NodeAPIContextT]
-	DebugAPIHandler   *debugapi.Handler[NodeAPIContextT]
-	EventsAPIHandler  *eventsapi.Handler[NodeAPIContextT]
-	NodeAPIHandler    *nodeapi.Handler[NodeAPIContextT]
-	ProofAPIHandler   *proofapi.Handler[NodeAPIContextT]
+	BeaconAPIHandler  *beaconapi.Handler[echo.Context]
+	BuilderAPIHandler *builderapi.Handler[echo.Context]
+	ConfigAPIHandler  *configapi.Handler[echo.Context]
+	DebugAPIHandler   *debugapi.Handler[echo.Context]
+	EventsAPIHandler  *eventsapi.Handler[echo.Context]
+	NodeAPIHandler    *nodeapi.Handler[echo.Context]
+	ProofAPIHandler   *proofapi.Handler[echo.Context]
 }
 
-func ProvideNodeAPIHandlers[
-	NodeAPIContextT NodeAPIContext,
-](
-	in NodeAPIHandlersInput[NodeAPIContextT],
-) []handlers.Handlers[NodeAPIContextT] {
-	return []handlers.Handlers[NodeAPIContextT]{
+func ProvideNodeAPIHandlers(in NodeAPIHandlersInput) []handlers.Handlers[echo.Context] {
+	return []handlers.Handlers[echo.Context]{
 		in.BeaconAPIHandler,
 		in.BuilderAPIHandler,
 		in.ConfigAPIHandler,
