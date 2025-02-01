@@ -264,6 +264,7 @@ test-unit: ## run golang unit tests
 	@go list -f '{{.Dir}}/...' -m | xargs \
 		go test -race -tags bls12381,test
 
+# This currently ends up running some tests twice but is still faster than running all tests with -race
 test-unit-cover: test-unit-norace ## run golang unit tests with coverage
 	@echo "Running unit tests with coverage and race checks..."
 	@go list -f '{{.Dir}}/...' -m | xargs \
