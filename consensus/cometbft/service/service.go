@@ -24,6 +24,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
@@ -98,6 +99,12 @@ type Service[
 	minRetainBlocks uint64
 
 	chainID string
+
+	// calculates block delay for the next block
+	blockDelay *blockDelay
+
+	// targetBlockTime is the desired block time. Doesn't change after start.
+	targetBlockTime time.Duration
 }
 
 func NewService[
@@ -145,6 +152,15 @@ func NewService[
 	// Load latest height, once all stores have been set
 	if err = s.sm.LoadLatestVersion(); err != nil {
 		panic(fmt.Errorf("failed loading latest version: %w", err))
+	}
+
+	// Load block delay
+	bz, err := s.sm.LoadBlockDelay()
+	if err != nil {
+		panic(fmt.Errorf("failed loading block delay: %w", err))
+	}
+	if bz != nil {
+		s.blockDelay = blockDelayFromBytes(bz)
 	}
 
 	return s
@@ -260,6 +276,11 @@ func (s *Service[_]) LastBlockHeight() int64 {
 
 func (s *Service[_]) setMinRetainBlocks(minRetainBlocks uint64) {
 	s.minRetainBlocks = minRetainBlocks
+}
+
+// setTargetBlockTime sets the desired block time.
+func (s *Service[_]) setTargetBlockTime(t time.Duration) {
+	s.targetBlockTime = t
 }
 
 func (s *Service[_]) setInterBlockCache(
