@@ -30,7 +30,7 @@ import (
 
 // Server is the API Server service.
 type Server struct {
-	engine Engine[handlers.Context]
+	engine Engine
 	config Config
 	logger log.Logger
 }
@@ -40,7 +40,7 @@ type Server struct {
 // disabled.
 func New(
 	config Config,
-	engine Engine[handlers.Context],
+	engine Engine,
 	logger log.Logger,
 	handlers ...handlers.Handlers,
 ) *Server {

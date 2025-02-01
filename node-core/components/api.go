@@ -60,7 +60,7 @@ type NodeAPIServerInput[
 ] struct {
 	depinject.In
 
-	Engine   NodeAPIEngine[handlers.Context]
+	Engine   NodeAPIEngine
 	Config   *config.Config
 	Handlers []handlers.Handlers
 	Logger   LoggerT

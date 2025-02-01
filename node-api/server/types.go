@@ -23,11 +23,10 @@ package server
 import (
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-api/handlers"
-	"github.com/berachain/beacon-kit/node-api/server/context"
 )
 
 // Engine is a generic interface for an API engine.
-type Engine[ContextT context.Context] interface {
+type Engine interface {
 	Run(addr string) error
 	RegisterRoutes(*handlers.RouteSet, log.Logger)
 }
