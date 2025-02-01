@@ -74,7 +74,7 @@ type (
 	NodeAPIEngine = echo.Engine
 
 	// NodeAPIServer is a type alias for the node API server.
-	NodeAPIServer = server.Server[NodeAPIContext]
+	NodeAPIServer = server.Server
 
 	// ReportingService is a type alias for the reporting service.
 	ReportingService = version.ReportingService
@@ -136,7 +136,4 @@ type (
 
 	// NodeAPIBackend is a type alias for the node API backend.
 	NodeAPIBackend = backend.Backend
-
-	// NodeAPIContext is a type alias for the node API context.
-	NodeAPIContext = echo.Context
 )

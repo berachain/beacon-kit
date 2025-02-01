@@ -32,25 +32,19 @@ import (
 	proofapi "github.com/berachain/beacon-kit/node-api/handlers/proof"
 )
 
-type NodeAPIHandlersInput[
-	NodeAPIContextT NodeAPIContext,
-] struct {
+type NodeAPIHandlersInput struct {
 	depinject.In
-	BeaconAPIHandler  *beaconapi.Handler[NodeAPIContextT]
-	BuilderAPIHandler *builderapi.Handler[NodeAPIContextT]
-	ConfigAPIHandler  *configapi.Handler[NodeAPIContextT]
-	DebugAPIHandler   *debugapi.Handler[NodeAPIContextT]
-	EventsAPIHandler  *eventsapi.Handler[NodeAPIContextT]
-	NodeAPIHandler    *nodeapi.Handler[NodeAPIContextT]
-	ProofAPIHandler   *proofapi.Handler[NodeAPIContextT]
+	BeaconAPIHandler  *beaconapi.Handler
+	BuilderAPIHandler *builderapi.Handler
+	ConfigAPIHandler  *configapi.Handler
+	DebugAPIHandler   *debugapi.Handler
+	EventsAPIHandler  *eventsapi.Handler
+	NodeAPIHandler    *nodeapi.Handler
+	ProofAPIHandler   *proofapi.Handler
 }
 
-func ProvideNodeAPIHandlers[
-	NodeAPIContextT NodeAPIContext,
-](
-	in NodeAPIHandlersInput[NodeAPIContextT],
-) []handlers.Handlers[NodeAPIContextT] {
-	return []handlers.Handlers[NodeAPIContextT]{
+func ProvideNodeAPIHandlers(in NodeAPIHandlersInput) []handlers.Handlers {
+	return []handlers.Handlers{
 		in.BeaconAPIHandler,
 		in.BuilderAPIHandler,
 		in.ConfigAPIHandler,
@@ -61,44 +55,30 @@ func ProvideNodeAPIHandlers[
 	}
 }
 
-func ProvideNodeAPIBeaconHandler[
-	NodeAPIContextT NodeAPIContext,
-](b NodeAPIBackend) *beaconapi.Handler[NodeAPIContextT] {
-	return beaconapi.NewHandler[NodeAPIContextT](b)
+func ProvideNodeAPIBeaconHandler(b NodeAPIBackend) *beaconapi.Handler {
+	return beaconapi.NewHandler(b)
 }
 
-func ProvideNodeAPIBuilderHandler[
-	NodeAPIContextT NodeAPIContext,
-]() *builderapi.Handler[NodeAPIContextT] {
-	return builderapi.NewHandler[NodeAPIContextT]()
+func ProvideNodeAPIBuilderHandler() *builderapi.Handler {
+	return builderapi.NewHandler()
 }
 
-func ProvideNodeAPIConfigHandler[
-	NodeAPIContextT NodeAPIContext,
-]() *configapi.Handler[NodeAPIContextT] {
-	return configapi.NewHandler[NodeAPIContextT]()
+func ProvideNodeAPIConfigHandler() *configapi.Handler {
+	return configapi.NewHandler()
 }
 
-func ProvideNodeAPIDebugHandler[
-	NodeAPIContextT NodeAPIContext,
-](b NodeAPIBackend) *debugapi.Handler[NodeAPIContextT] {
-	return debugapi.NewHandler[NodeAPIContextT](b)
+func ProvideNodeAPIDebugHandler(b NodeAPIBackend) *debugapi.Handler {
+	return debugapi.NewHandler(b)
 }
 
-func ProvideNodeAPIEventsHandler[
-	NodeAPIContextT NodeAPIContext,
-]() *eventsapi.Handler[NodeAPIContextT] {
-	return eventsapi.NewHandler[NodeAPIContextT]()
+func ProvideNodeAPIEventsHandler() *eventsapi.Handler {
+	return eventsapi.NewHandler()
 }
 
-func ProvideNodeAPINodeHandler[
-	NodeAPIContextT NodeAPIContext,
-]() *nodeapi.Handler[NodeAPIContextT] {
-	return nodeapi.NewHandler[NodeAPIContextT]()
+func ProvideNodeAPINodeHandler() *nodeapi.Handler {
+	return nodeapi.NewHandler()
 }
 
-func ProvideNodeAPIProofHandler[
-	NodeAPIContextT NodeAPIContext,
-](b NodeAPIBackend) *proofapi.Handler[NodeAPIContextT] {
-	return proofapi.NewHandler[NodeAPIContextT](b)
+func ProvideNodeAPIProofHandler(b NodeAPIBackend) *proofapi.Handler {
+	return proofapi.NewHandler(b)
 }

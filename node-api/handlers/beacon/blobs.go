@@ -23,13 +23,14 @@ package beacon
 import (
 	"strconv"
 
+	"github.com/berachain/beacon-kit/node-api/handlers"
 	apitypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 )
 
 // GetBlobSidecars provides an implementation for the
 // "/eth/v1/beacon/blob_sidecars/:block_id" API endpoint.
-func (h *Handler[ContextT]) GetBlobSidecars(c ContextT) (any, error) {
+func (h *Handler) GetBlobSidecars(c handlers.Context) (any, error) {
 	req, err := utils.BindAndValidate[apitypes.GetBlobSidecarsRequest](
 		c, h.Logger(),
 	)

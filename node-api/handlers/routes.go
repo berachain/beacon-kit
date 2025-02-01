@@ -25,17 +25,17 @@ import (
 )
 
 // Route is a route for the node API.
-type Route[ContextT any] struct {
+type Route struct {
 	Method  string
 	Path    string
-	Handler handlerFn[ContextT]
+	Handler handlerFn
 }
 
 // DecorateWithLogs adds logging to the route's handler function as soon as
 // a request is received and when a response is ready.
-func (r *Route[ContextT]) DecorateWithLogs(logger log.Logger) {
+func (r *Route) DecorateWithLogs(logger log.Logger) {
 	handler := r.Handler
-	r.Handler = func(ctx ContextT) (any, error) {
+	r.Handler = func(ctx Context) (any, error) {
 		logger.Info("received request", "method", r.Method, "path", r.Path)
 		res, err := handler(ctx)
 		if err != nil {
@@ -47,16 +47,14 @@ func (r *Route[ContextT]) DecorateWithLogs(logger log.Logger) {
 }
 
 // RouteSet is a set of routes for the node API.
-type RouteSet[ContextT any] struct {
+type RouteSet struct {
 	BasePath string
-	Routes   []*Route[ContextT]
+	Routes   []*Route
 }
 
 // NewRouteSet creates a new route set.
-func NewRouteSet[ContextT any](
-	basePath string, routes ...*Route[ContextT],
-) *RouteSet[ContextT] {
-	return &RouteSet[ContextT]{
+func NewRouteSet(basePath string, routes ...*Route) *RouteSet {
+	return &RouteSet{
 		BasePath: basePath,
 		Routes:   routes,
 	}

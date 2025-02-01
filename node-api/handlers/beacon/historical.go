@@ -21,12 +21,13 @@
 package beacon
 
 import (
+	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 )
 
-func (h *Handler[ContextT]) GetStateRoot(c ContextT) (any, error) {
+func (h *Handler) GetStateRoot(c handlers.Context) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetStateRootRequest](
 		c, h.Logger(),
 	)
@@ -51,7 +52,7 @@ func (h *Handler[ContextT]) GetStateRoot(c ContextT) (any, error) {
 	}, nil
 }
 
-func (h *Handler[ContextT]) GetStateFork(c ContextT) (any, error) {
+func (h *Handler) GetStateFork(c handlers.Context) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetStateForkRequest](
 		c, h.Logger(),
 	)
