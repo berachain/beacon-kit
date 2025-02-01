@@ -21,6 +21,7 @@
 package proof
 
 import (
+	"github.com/berachain/beacon-kit/node-api/engines/echo"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/merkle"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
@@ -29,7 +30,7 @@ import (
 // GetExecutionFeeRecipient returns the fee recipient from the latest execution
 // payload header for the given timestamp id, along with the proof that can be
 // verified against the beacon block root.
-func (h *Handler[ContextT]) GetExecutionFeeRecipient(c ContextT) (any, error) {
+func (h *Handler) GetExecutionFeeRecipient(c echo.Context) (any, error) {
 	params, err := utils.BindAndValidate[types.ExecutionFeeRecipientRequest](
 		c, h.Logger(),
 	)

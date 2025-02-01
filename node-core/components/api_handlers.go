@@ -41,7 +41,7 @@ type NodeAPIHandlersInput struct {
 	DebugAPIHandler   *debugapi.Handler
 	EventsAPIHandler  *eventsapi.Handler
 	NodeAPIHandler    *nodeapi.Handler
-	ProofAPIHandler   *proofapi.Handler[echo.Context]
+	ProofAPIHandler   *proofapi.Handler
 }
 
 func ProvideNodeAPIHandlers(in NodeAPIHandlersInput) []handlers.Handlers[echo.Context] {
@@ -80,8 +80,6 @@ func ProvideNodeAPINodeHandler() *nodeapi.Handler {
 	return nodeapi.NewHandler()
 }
 
-func ProvideNodeAPIProofHandler[
-	NodeAPIContextT NodeAPIContext,
-](b NodeAPIBackend) *proofapi.Handler[NodeAPIContextT] {
-	return proofapi.NewHandler[NodeAPIContextT](b)
+func ProvideNodeAPIProofHandler(b NodeAPIBackend) *proofapi.Handler {
+	return proofapi.NewHandler(b)
 }
