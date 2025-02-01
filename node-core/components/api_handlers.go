@@ -37,7 +37,7 @@ type NodeAPIHandlersInput struct {
 	depinject.In
 	BeaconAPIHandler  *beaconapi.Handler
 	BuilderAPIHandler *builderapi.Handler
-	ConfigAPIHandler  *configapi.Handler[echo.Context]
+	ConfigAPIHandler  *configapi.Handler
 	DebugAPIHandler   *debugapi.Handler[echo.Context]
 	EventsAPIHandler  *eventsapi.Handler[echo.Context]
 	NodeAPIHandler    *nodeapi.Handler[echo.Context]
@@ -64,10 +64,8 @@ func ProvideNodeAPIBuilderHandler() *builderapi.Handler {
 	return builderapi.NewHandler()
 }
 
-func ProvideNodeAPIConfigHandler[
-	NodeAPIContextT NodeAPIContext,
-]() *configapi.Handler[NodeAPIContextT] {
-	return configapi.NewHandler[NodeAPIContextT]()
+func ProvideNodeAPIConfigHandler() *configapi.Handler {
+	return configapi.NewHandler()
 }
 
 func ProvideNodeAPIDebugHandler[

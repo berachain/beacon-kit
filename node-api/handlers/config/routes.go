@@ -24,14 +24,13 @@ import (
 	"net/http"
 
 	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/node-api/engines/echo"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 )
 
-func (h *Handler[ContextT]) RegisterRoutes(
-	logger log.Logger,
-) {
+func (h *Handler) RegisterRoutes(logger log.Logger) {
 	h.SetLogger(logger)
-	h.BaseHandler.AddRoutes([]*handlers.Route[ContextT]{
+	h.BaseHandler.AddRoutes([]*handlers.Route[echo.Context]{
 		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/config/fork_schedule",
