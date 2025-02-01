@@ -72,6 +72,7 @@ func generateExecutionPayload() *types.ExecutionPayload {
 }
 
 func TestExecutionPayload_Serialization(t *testing.T) {
+	t.Parallel()
 	original := generateExecutionPayload()
 
 	data, err := original.MarshalSSZ()
@@ -94,6 +95,7 @@ func TestExecutionPayload_Serialization(t *testing.T) {
 }
 
 func TestExecutionPayload_SizeSSZ(t *testing.T) {
+	t.Parallel()
 	payload := generateExecutionPayload()
 	size := karalabessz.Size(payload)
 	require.Equal(t, uint32(578), size)
@@ -104,6 +106,7 @@ func TestExecutionPayload_SizeSSZ(t *testing.T) {
 }
 
 func TestExecutionPayload_HashTreeRoot(t *testing.T) {
+	t.Parallel()
 	payload := generateExecutionPayload()
 	require.NotPanics(t, func() {
 		_ = payload.HashTreeRoot()
@@ -111,6 +114,7 @@ func TestExecutionPayload_HashTreeRoot(t *testing.T) {
 }
 
 func TestExecutionPayload_GetTree(t *testing.T) {
+	t.Parallel()
 	payload := generateExecutionPayload()
 	tree, err := payload.GetTree()
 	require.NoError(t, err)
@@ -118,6 +122,7 @@ func TestExecutionPayload_GetTree(t *testing.T) {
 }
 
 func TestExecutionPayload_Getters(t *testing.T) {
+	t.Parallel()
 	payload := generateExecutionPayload()
 	require.Equal(t, common.ExecutionHash{}, payload.GetParentHash())
 	require.Equal(
@@ -155,6 +160,7 @@ func TestExecutionPayload_Getters(t *testing.T) {
 }
 
 func TestExecutionPayload_MarshalJSON(t *testing.T) {
+	t.Parallel()
 	payload := generateExecutionPayload()
 
 	data, err := payload.MarshalJSON()
@@ -170,6 +176,7 @@ func TestExecutionPayload_MarshalJSON(t *testing.T) {
 }
 
 func TestExecutionPayload_MarshalJSON_ValueAndPointer(t *testing.T) {
+	t.Parallel()
 	val := types.ExecutionPayload{}
 
 	// Marshal on raw val uses default json marshal
@@ -184,6 +191,7 @@ func TestExecutionPayload_MarshalJSON_ValueAndPointer(t *testing.T) {
 }
 
 func TestExecutionPayload_IsNil(t *testing.T) {
+	t.Parallel()
 	var payload *types.ExecutionPayload
 	require.True(t, payload.IsNil())
 
@@ -192,16 +200,19 @@ func TestExecutionPayload_IsNil(t *testing.T) {
 }
 
 func TestExecutionPayload_IsBlinded(t *testing.T) {
+	t.Parallel()
 	payload := generateExecutionPayload()
 	require.False(t, payload.IsBlinded())
 }
 
 func TestExecutionPayload_Version(t *testing.T) {
+	t.Parallel()
 	payload := generateExecutionPayload()
 	require.Equal(t, version.Deneb1(), payload.Version())
 }
 
 func TestExecutionPayload_ToHeader(t *testing.T) {
+	t.Parallel()
 	payload := &types.ExecutionPayload{
 		ParentHash:    common.ExecutionHash{},
 		FeeRecipient:  common.ExecutionAddress{},
@@ -248,6 +259,7 @@ func TestExecutionPayload_ToHeader(t *testing.T) {
 }
 
 func TestExecutionPayload_UnmarshalJSON_Error(t *testing.T) {
+	t.Parallel()
 	original := generateExecutionPayload()
 	validJSON, err := original.MarshalJSON()
 	require.NoError(t, err)
@@ -331,6 +343,7 @@ func TestExecutionPayload_UnmarshalJSON_Error(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			var payload types.ExecutionPayload
 			var jsonMap map[string]interface{}
 

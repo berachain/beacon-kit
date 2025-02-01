@@ -31,6 +31,15 @@ linters-settings:
     # Default: false
     check-type-assertions: true
 
+  paralleltest:
+    # Ignore missing calls to `t.Parallel()` and only report incorrect uses of it.
+    # Default: false
+    ignore-missing: false
+    # Ignore missing calls to `t.Parallel()` in subtests. Top-level tests are
+    # still required to have `t.Parallel`, but subtests are allowed to skip it.
+    # Default: false
+    ignore-missing-subtests: false
+
   exhaustive:
     # Program elements to check for exhaustiveness.
     # Default: [ switch ]
@@ -333,7 +342,7 @@ linters:
     - maintidx # measures the maintainability index of each function
     - misspell # [useless] finds commonly misspelled English words in comments
     #- nlreturn # [too strict and mostly code is not more readable] checks for a new line before return and branch statements to increase code clarity
-    #- paralleltest # [too many false positives] detects missing usage of t.Parallel() method in your Go test
+    - paralleltest # [too many false positives] detects missing usage of t.Parallel() method in your Go test
     # - tagliatelle # checks the struct tags
     - thelper # detects golang test helpers without t.Helper() call and checks the consistency of test helpers
     #- wsl # [too strict and mostly code is not more readable] whitespace linter forces you to use empty lines

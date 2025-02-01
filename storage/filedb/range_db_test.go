@@ -35,6 +35,7 @@ import (
 // =========================== BASIC OPERATIONS ============================
 
 func TestRangeDB(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name          string
 		setupFunc     func(rdb *file.RangeDB) error
@@ -136,6 +137,7 @@ func TestRangeDB(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			rdb := file.NewRangeDB(newTestFDB("/tmp/testdb-1"))
 
 			if tt.setupFunc != nil {
@@ -148,6 +150,7 @@ func TestRangeDB(t *testing.T) {
 }
 
 func TestExtractIndex(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name        string
 		prefixedKey []byte
@@ -178,7 +181,7 @@ func TestExtractIndex(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Helper()
+			t.Parallel()
 			idx, err := file.ExtractIndex(tt.prefixedKey)
 			require.Equal(t, tt.expectedIdx, idx)
 			if tt.expectedErr != nil {
@@ -191,6 +194,7 @@ func TestExtractIndex(t *testing.T) {
 // =========================== PRUNING =====================================
 
 func TestRangeDB_DeleteRange_NotSupported(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		db   *mocks.DB
@@ -203,6 +207,7 @@ func TestRangeDB_DeleteRange_NotSupported(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			t.Helper()
 			require.Panics(t, func() { _ = file.NewRangeDB(tt.db) })
 		})
@@ -210,6 +215,7 @@ func TestRangeDB_DeleteRange_NotSupported(t *testing.T) {
 }
 
 func TestRangeDB_Prune(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name          string
 		setupFunc     func(rdb *file.RangeDB) error
@@ -246,6 +252,7 @@ func TestRangeDB_Prune(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			rdb := file.NewRangeDB(newTestFDB("/tmp/testdb-2"))
 
 			if tt.setupFunc != nil {
@@ -271,6 +278,7 @@ func TestRangeDB_Prune(t *testing.T) {
 
 // invariant: all indexes up to the firstNonNilIndex should be nil.
 func TestRangeDB_Invariants(t *testing.T) {
+	t.Parallel()
 	// we ignore errors for most of the tests below because we want to ensure
 	// that the invariants hold in exceptional circumstances.
 	tests := []struct {
@@ -327,6 +335,7 @@ func TestRangeDB_Invariants(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			rdb := file.NewRangeDB(newTestFDB("/tmp/testdb-3"))
 
 			if tt.setupFunc != nil {

@@ -28,6 +28,7 @@ import (
 )
 
 func TestNewGeneralizedIndex(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		depth  uint8
 		index  uint64
@@ -40,6 +41,7 @@ func TestNewGeneralizedIndex(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		t.Parallel()
 		result := merkle.NewGeneralizedIndex(
 			tt.depth,
 			tt.index,
@@ -56,6 +58,7 @@ func TestNewGeneralizedIndex(t *testing.T) {
 }
 
 func TestConcatGeneralizedIndices(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		indices merkle.GeneralizedIndices
 		expect  merkle.GeneralizedIndex
@@ -77,6 +80,7 @@ func TestConcatGeneralizedIndices(t *testing.T) {
 }
 
 func TestGeneralizedIndexMethods(t *testing.T) {
+	t.Parallel()
 	gi := merkle.GeneralizedIndex(12) // Example index
 
 	require.Equal(
@@ -122,6 +126,7 @@ func TestGeneralizedIndexMethods(t *testing.T) {
 }
 
 func TestGetBranchIndices(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		index  merkle.GeneralizedIndex
@@ -135,6 +140,7 @@ func TestGetBranchIndices(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := tt.index.GetBranchIndices()
 			require.Equal(
 				t,
@@ -148,6 +154,7 @@ func TestGetBranchIndices(t *testing.T) {
 }
 
 func TestGetPathIndices(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		index  merkle.GeneralizedIndex
@@ -168,6 +175,7 @@ func TestGetPathIndices(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := tt.index.GetPathIndices()
 			require.Equal(
 				t,
@@ -181,6 +189,7 @@ func TestGetPathIndices(t *testing.T) {
 }
 
 func TestGetHelperIndices(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		indices merkle.GeneralizedIndices
@@ -210,6 +219,7 @@ func TestGetHelperIndices(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := tt.indices.GetHelperIndices()
 			require.Equal(t, tt.expect, result,
 				"Failed for indices %v", tt.indices)

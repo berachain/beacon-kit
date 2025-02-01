@@ -34,6 +34,7 @@ import (
 // TestExecutionFeeRecipientProof tests the ProveExecutionFeeRecipientInBlock
 // function and that the generated proof correctly verifies.
 func TestExecutionFeeRecipientProof(t *testing.T) {
+	t.Parallel()
 	var proof []common.Root
 
 	testCases := []struct {
@@ -69,6 +70,7 @@ func TestExecutionFeeRecipientProof(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			bs, err := mock.NewBeaconState(
 				tc.slot, nil, 0, tc.executionFeeRecipient,
 			)

@@ -34,6 +34,7 @@ import (
 // TestExecutionNumberProof tests the ProveExecutionNumberInBlock
 // function and that the generated proof correctly verifies.
 func TestExecutionNumberProof(t *testing.T) {
+	t.Parallel()
 	var proof []common.Root
 
 	testCases := []struct {
@@ -68,6 +69,7 @@ func TestExecutionNumberProof(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			bs, err := mock.NewBeaconState(
 				tc.slot, nil, tc.executionNumber, common.ExecutionAddress{},
 			)

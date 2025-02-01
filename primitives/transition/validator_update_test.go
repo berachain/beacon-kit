@@ -30,6 +30,7 @@ import (
 )
 
 func TestValidatorUpdate_CanonicalSort(t *testing.T) {
+	t.Parallel()
 	pubkey1 := crypto.BLSPubkey{1}
 	pubkey2 := crypto.BLSPubkey{2}
 	pubkey3 := crypto.BLSPubkey{3}
@@ -103,6 +104,7 @@ func TestValidatorUpdate_CanonicalSort(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			got := tc.input.CanonicalSort()
 			require.Equal(t, tc.want, got)
 		})

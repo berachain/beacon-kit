@@ -36,6 +36,7 @@ import (
 // TestGetPayloadV3NeverReturnsEmptyPayload shows that execution payload
 // returned by ethClient is not nil.
 func TestGetPayloadV3NeverReturnsEmptyPayload(t *testing.T) {
+	t.Parallel()
 	c := ethclient.New(&stubRPCClient{t: t})
 
 	var (
@@ -53,6 +54,7 @@ func TestGetPayloadV3NeverReturnsEmptyPayload(t *testing.T) {
 
 // TestNewPayloadWithValidVersion tests that NewPayload correctly handles Deneb version.
 func TestNewPayloadWithValidVersion(t *testing.T) {
+	t.Parallel()
 	c := ethclient.New(&stubRPCClient{t: t})
 	ctx := context.Background()
 
@@ -66,6 +68,7 @@ func TestNewPayloadWithValidVersion(t *testing.T) {
 
 // TestNewPayloadWithInvalidVersion tests that NewPayload returns ErrInvalidVersion for Capella.
 func TestNewPayloadWithInvalidVersion(t *testing.T) {
+	t.Parallel()
 	c := ethclient.New(&stubRPCClient{t: t})
 	ctx := context.Background()
 
@@ -79,6 +82,20 @@ func TestNewPayloadWithInvalidVersion(t *testing.T) {
 
 // TestForkchoiceUpdatedWithValidVersion tests that ForkchoiceUpdated correctly handles Deneb version.
 func TestForkchoiceUpdatedWithValidVersion(t *testing.T) {
+	t.Parallel()
+	c := ethclient.New(&stubRPCClient{t: t})
+	ctx := context.Background()
+
+	state := &engineprimitives.ForkchoiceStateV1{}
+	attrs := struct{}{}
+	forkVersion := version.Deneb1()
+
+	_, err := c.ForkchoiceUpdated(ctx, state, attrs, forkVersion)
+	require.NoError(t, err)
+}
+
+func TestForkchoiceUpdatedWithValidVersion2(t *testing.T) {
+	t.Parallel()
 	c := ethclient.New(&stubRPCClient{t: t})
 	ctx := context.Background()
 
@@ -92,6 +109,7 @@ func TestForkchoiceUpdatedWithValidVersion(t *testing.T) {
 
 // TestForkchoiceUpdatedWithInvalidVersion tests that ForkchoiceUpdated returns ErrInvalidVersion for Capella.
 func TestForkchoiceUpdatedWithInvalidVersion(t *testing.T) {
+	t.Parallel()
 	c := ethclient.New(&stubRPCClient{t: t})
 	ctx := context.Background()
 
@@ -105,6 +123,7 @@ func TestForkchoiceUpdatedWithInvalidVersion(t *testing.T) {
 
 // TestGetPayloadWithValidVersion tests that GetPayload correctly handles >= Deneb version.
 func TestGetPayloadWithValidVersion(t *testing.T) {
+	t.Parallel()
 	c := ethclient.New(&stubRPCClient{t: t})
 	ctx := context.Background()
 
@@ -117,6 +136,7 @@ func TestGetPayloadWithValidVersion(t *testing.T) {
 
 // TestGetPayloadWithInvalidVersion tests that GetPayload returns ErrInvalidVersion for Capella.
 func TestGetPayloadWithInvalidVersion(t *testing.T) {
+	t.Parallel()
 	c := ethclient.New(&stubRPCClient{t: t})
 	ctx := context.Background()
 

@@ -28,6 +28,7 @@ import (
 )
 
 func TestIsValidHex(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		input   string
@@ -62,6 +63,7 @@ func TestIsValidHex(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
 			_, err := hex.IsValidHex(test.input)
 			if test.wantErr != nil {
 				require.ErrorIs(t, test.wantErr, err)

@@ -29,6 +29,7 @@ import (
 )
 
 func TestCombi(t *testing.T) {
+	t.Parallel()
 	// Initialize the hasher function
 	hashFunc := func(data []byte) [32]byte {
 		var result [32]byte
@@ -61,6 +62,7 @@ func TestCombi(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			result := hasher.Combi(tc.a, tc.b)
 			require.Equal(t, tc.expected, result,
 				"TestCase %s", tc.name)
@@ -69,6 +71,7 @@ func TestCombi(t *testing.T) {
 }
 
 func TestMixIn(t *testing.T) {
+	t.Parallel()
 	// Initialize the hasher function
 	hashFunc := func(data []byte) [32]byte {
 		var result [32]byte
@@ -102,6 +105,7 @@ func TestMixIn(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			result := hasher.MixIn(tc.a, tc.i)
 			require.Equal(t, tc.expected, result,
 				"TestCase %s", tc.name)

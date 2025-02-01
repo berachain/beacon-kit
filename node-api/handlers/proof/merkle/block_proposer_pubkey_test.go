@@ -35,6 +35,7 @@ import (
 // TestBlockProposerPubkeyProof tests the ProveProposerPubkeyInBlock function
 // and that the generated proof correctly verifies.
 func TestBlockProposerPubkeyProof(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name              string
 		numValidators     int
@@ -69,6 +70,7 @@ func TestBlockProposerPubkeyProof(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			vals := make(types.Validators, tc.numValidators)
 			for i := range vals {
 				vals[i] = &types.Validator{}

@@ -32,15 +32,18 @@ import (
 )
 
 func Test_NewGenerateJWTCommand(t *testing.T) {
+	t.Parallel()
 	t.Run(
 		"command should be available and have correct use",
 		func(t *testing.T) {
+			t.Parallel()
 			cmd := jwt.NewGenerateJWTCommand()
 			require.Equal(t, "generate", cmd.Use)
 		},
 	)
 
 	t.Run("should create proper file in current directory", func(t *testing.T) {
+		t.Parallel()
 		cmd := jwt.NewGenerateJWTCommand()
 		cmd.SetArgs([]string{"--output-path", jwt.DefaultSecretFileName})
 		require.NoError(t, cmd.Execute())
@@ -52,6 +55,7 @@ func Test_NewGenerateJWTCommand(t *testing.T) {
 	})
 
 	t.Run("should create proper file in specified folder", func(t *testing.T) {
+		t.Parallel()
 		customOutput := filepath.Join("data", "jwt.hex")
 		cmd := jwt.NewGenerateJWTCommand()
 		cmd.SetArgs([]string{"--output-path", customOutput})
@@ -64,6 +68,7 @@ func Test_NewGenerateJWTCommand(t *testing.T) {
 	})
 
 	t.Run("creates proper file in nested specified folder", func(t *testing.T) {
+		t.Parallel()
 		rootDirectory := "data"
 		customOutputPath := filepath.Join(
 			rootDirectory,
@@ -82,6 +87,7 @@ func Test_NewGenerateJWTCommand(t *testing.T) {
 	})
 
 	t.Run("should override existing file when flag is set", func(t *testing.T) {
+		t.Parallel()
 		// Create a temporary file to simulate an existing file
 		tempFile, err := os.CreateTemp("", "existing_jwt.hex")
 		require.NoError(t, err)
