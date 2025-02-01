@@ -90,6 +90,9 @@ func (s *Service[LoggerT]) finalizeBlockInternal(
 	}
 
 	// Special case: height > 0, but blockDelay record doesn't exist in DB.
+	//
+	// NOTE: all nodes must enable this feature from the same height (requires
+	// coordinated upgrade).
 	if s.blockDelay == nil {
 		s.blockDelay = blockDelayUponGenesis(
 			req.Time,
