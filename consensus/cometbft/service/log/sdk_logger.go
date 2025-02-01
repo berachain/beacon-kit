@@ -23,26 +23,25 @@ package log
 import (
 	sdklog "cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/log/phuslu"
 )
 
-type SDKLogger[LoggerT log.AdvancedLogger[LoggerT]] struct {
-	log.AdvancedLogger[LoggerT]
+type SDKLogger struct {
+	log.AdvancedLogger[*phuslu.Logger]
 }
 
-func WrapSDKLogger[LoggerT log.AdvancedLogger[LoggerT]](
-	logger LoggerT,
-) *SDKLogger[LoggerT] {
-	return &SDKLogger[LoggerT]{
+func WrapSDKLogger(logger *phuslu.Logger) *SDKLogger {
+	return &SDKLogger{
 		AdvancedLogger: logger,
 	}
 }
 
-func (l *SDKLogger[LoggerT]) With(keyVals ...any) sdklog.Logger {
-	return &SDKLogger[LoggerT]{
+func (l *SDKLogger) With(keyVals ...any) sdklog.Logger {
+	return &SDKLogger{
 		AdvancedLogger: l.AdvancedLogger.With(keyVals...),
 	}
 }
 
-func (l *SDKLogger[LoggerT]) Impl() any {
+func (l *SDKLogger) Impl() any {
 	return l.AdvancedLogger
 }

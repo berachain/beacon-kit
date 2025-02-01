@@ -30,7 +30,7 @@ import (
 	"github.com/sourcegraph/conc/iter"
 )
 
-func (s *Service[LoggerT]) initChain(
+func (s *Service) initChain(
 	ctx context.Context,
 	req *cmtabci.InitChainRequest,
 ) (*cmtabci.InitChainResponse, error) {
@@ -85,6 +85,7 @@ func (s *Service[LoggerT]) initChain(
 
 	s.finalizeBlockState = s.resetState(ctx)
 
+	//nolint:contextcheck // ctx already passed via resetState
 	resValidators, err := s.initChainer(
 		s.finalizeBlockState.Context(),
 		req.AppStateBytes,
@@ -104,7 +105,7 @@ func (s *Service[LoggerT]) initChain(
 }
 
 // InitChainer initializes the chain.
-func (s *Service[LoggerT]) initChainer(
+func (s *Service) initChainer(
 	ctx sdk.Context,
 	appStateBytes []byte,
 ) ([]cmtabci.ValidatorUpdate, error) {

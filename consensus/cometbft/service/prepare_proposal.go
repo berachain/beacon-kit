@@ -30,7 +30,7 @@ import (
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
-func (s *Service[LoggerT]) prepareProposal(
+func (s *Service) prepareProposal(
 	ctx context.Context,
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {

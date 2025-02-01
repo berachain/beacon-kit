@@ -36,7 +36,7 @@ var (
 	errNilFinalizeBlockState = errors.New("finalizeBlockState is nil")
 )
 
-func (s *Service[LoggerT]) InitChain(
+func (s *Service) InitChain(
 	ctx context.Context,
 	req *cmtabci.InitChainRequest,
 ) (*cmtabci.InitChainResponse, error) {
@@ -45,14 +45,14 @@ func (s *Service[LoggerT]) InitChain(
 
 // PrepareProposal implements the PrepareProposal ABCI method and returns a
 // ResponsePrepareProposal object to the client.
-func (s *Service[LoggerT]) PrepareProposal(
+func (s *Service) PrepareProposal(
 	ctx context.Context,
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
 	return s.prepareProposal(ctx, req)
 }
 
-func (s *Service[LoggerT]) Info(context.Context,
+func (s *Service) Info(context.Context,
 	*cmtabci.InfoRequest,
 ) (*cmtabci.InfoResponse, error) {
 	lastCommitID := s.sm.CommitMultiStore().LastCommitID()
@@ -76,14 +76,14 @@ func (s *Service[LoggerT]) Info(context.Context,
 
 // ProcessProposal implements the ProcessProposal ABCI method and returns a
 // ResponseProcessProposal object to the client.
-func (s *Service[LoggerT]) ProcessProposal(
+func (s *Service) ProcessProposal(
 	ctx context.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
 	return s.processProposal(ctx, req)
 }
 
-func (s *Service[_]) FinalizeBlock(
+func (s *Service) FinalizeBlock(
 	ctx context.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (*cmtabci.FinalizeBlockResponse, error) {
@@ -97,7 +97,7 @@ func (s *Service[_]) FinalizeBlock(
 // defined in config, Commit will execute a deferred function call to check
 // against that height and gracefully halt if it matches the latest committed
 // height.
-func (s *Service[LoggerT]) Commit(
+func (s *Service) Commit(
 	ctx context.Context, req *cmtabci.CommitRequest,
 ) (*cmtabci.CommitResponse, error) {
 	return s.commit(ctx, req)
@@ -107,56 +107,56 @@ func (s *Service[LoggerT]) Commit(
 // NOOP methods
 //
 
-func (Service[_]) Query(
+func (Service) Query(
 	context.Context,
 	*abci.QueryRequest,
 ) (*abci.QueryResponse, error) {
 	return &abci.QueryResponse{}, nil
 }
 
-func (Service[_]) ListSnapshots(
+func (Service) ListSnapshots(
 	context.Context,
 	*abci.ListSnapshotsRequest,
 ) (*abci.ListSnapshotsResponse, error) {
 	return &abci.ListSnapshotsResponse{}, nil
 }
 
-func (Service[_]) LoadSnapshotChunk(
+func (Service) LoadSnapshotChunk(
 	context.Context,
 	*abci.LoadSnapshotChunkRequest,
 ) (*abci.LoadSnapshotChunkResponse, error) {
 	return &abci.LoadSnapshotChunkResponse{}, nil
 }
 
-func (Service[_]) OfferSnapshot(
+func (Service) OfferSnapshot(
 	context.Context,
 	*abci.OfferSnapshotRequest,
 ) (*abci.OfferSnapshotResponse, error) {
 	return &abci.OfferSnapshotResponse{}, nil
 }
 
-func (Service[_]) ApplySnapshotChunk(
+func (Service) ApplySnapshotChunk(
 	context.Context,
 	*abci.ApplySnapshotChunkRequest,
 ) (*abci.ApplySnapshotChunkResponse, error) {
 	return &abci.ApplySnapshotChunkResponse{}, nil
 }
 
-func (Service[_]) ExtendVote(
+func (Service) ExtendVote(
 	context.Context,
 	*abci.ExtendVoteRequest,
 ) (*abci.ExtendVoteResponse, error) {
 	return &abci.ExtendVoteResponse{}, nil
 }
 
-func (Service[_]) VerifyVoteExtension(
+func (Service) VerifyVoteExtension(
 	context.Context,
 	*abci.VerifyVoteExtensionRequest,
 ) (*abci.VerifyVoteExtensionResponse, error) {
 	return &abci.VerifyVoteExtensionResponse{}, nil
 }
 
-func (*Service[_]) CheckTx(
+func (*Service) CheckTx(
 	context.Context,
 	*abci.CheckTxRequest,
 ) (*abci.CheckTxResponse, error) {

@@ -22,27 +22,26 @@ package log
 
 import (
 	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/log/phuslu"
 	cmtlog "github.com/cometbft/cometbft/libs/log"
 )
 
-type CometLogger[LoggerT log.AdvancedLogger[LoggerT]] struct {
-	log.AdvancedLogger[LoggerT]
+type CometLogger struct {
+	log.AdvancedLogger[*phuslu.Logger]
 }
 
-func WrapCometLogger[LoggerT log.AdvancedLogger[LoggerT]](
-	logger LoggerT,
-) *CometLogger[LoggerT] {
-	return &CometLogger[LoggerT]{
+func WrapCometLogger(logger *phuslu.Logger) *CometLogger {
+	return &CometLogger{
 		AdvancedLogger: logger,
 	}
 }
 
-func (l *CometLogger[LoggerT]) With(keyVals ...any) cmtlog.Logger {
-	return &CometLogger[LoggerT]{
+func (l *CometLogger) With(keyVals ...any) cmtlog.Logger {
+	return &CometLogger{
 		AdvancedLogger: l.AdvancedLogger.With(keyVals...),
 	}
 }
 
-func (l *CometLogger[LoggerT]) Impl() any {
+func (l *CometLogger) Impl() any {
 	return l.AdvancedLogger
 }

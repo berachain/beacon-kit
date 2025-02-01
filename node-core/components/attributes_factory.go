@@ -24,24 +24,20 @@ import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config"
-	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/payload/attributes"
 )
 
-type AttributesFactoryInput[LoggerT any] struct {
+type AttributesFactoryInput struct {
 	depinject.In
 
 	ChainSpec chain.Spec
 	Config    *config.Config
-	Logger    LoggerT
+	Logger    *phuslu.Logger
 }
 
 // ProvideAttributesFactory provides an AttributesFactory for the client.
-func ProvideAttributesFactory[
-	LoggerT log.Logger,
-](
-	in AttributesFactoryInput[LoggerT],
-) (*attributes.Factory, error) {
+func ProvideAttributesFactory(in AttributesFactoryInput) (*attributes.Factory, error) {
 	return attributes.NewAttributesFactory(
 		in.ChainSpec,
 		in.Logger,

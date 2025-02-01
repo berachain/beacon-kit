@@ -31,19 +31,15 @@ import (
 	"github.com/berachain/beacon-kit/cli/flags"
 	cmtcli "github.com/berachain/beacon-kit/consensus/cometbft/cli"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
-	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-core/types"
 	"github.com/cosmos/cosmos-sdk/version"
 )
 
 // DefaultRootCommandSetup sets up the default commands for the root command.
-func DefaultRootCommandSetup[
-	T types.Node,
-	LoggerT log.AdvancedLogger[LoggerT],
-](
+func DefaultRootCommandSetup[T types.Node](
 	root *Root,
-	mm *cometbft.Service[LoggerT],
-	appCreator servertypes.AppCreator[T, LoggerT],
+	mm *cometbft.Service,
+	appCreator servertypes.AppCreator[T],
 	chainSpec chain.Spec,
 ) {
 	// Add all the commands to the root command.

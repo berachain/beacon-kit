@@ -28,7 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config"
 	dastore "github.com/berachain/beacon-kit/da/store"
-	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/storage/filedb"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cast"
@@ -36,19 +36,15 @@ import (
 
 // AvailabilityStoreInput is the input for the ProviderAvailabilityStore
 // function for the depinject framework.
-type AvailabilityStoreInput[LoggerT any] struct {
+type AvailabilityStoreInput struct {
 	depinject.In
 	AppOpts   config.AppOptions
 	ChainSpec chain.Spec
-	Logger    LoggerT
+	Logger    *phuslu.Logger
 }
 
 // ProvideAvailabilityStore provides the availability store.
-func ProvideAvailabilityStore[
-	LoggerT log.AdvancedLogger[LoggerT],
-](
-	in AvailabilityStoreInput[LoggerT],
-) (*dastore.Store, error) {
+func ProvideAvailabilityStore(in AvailabilityStoreInput) (*dastore.Store, error) {
 	var (
 		rootDir  = cast.ToString(in.AppOpts.Get(flags.FlagHome))
 		blobsDir = filepath.Join(rootDir, "data", "blobs")

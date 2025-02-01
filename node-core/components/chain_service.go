@@ -28,7 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/execution/engine"
-	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -36,9 +36,7 @@ import (
 )
 
 // ChainServiceInput is the input for the chain service provider.
-type ChainServiceInput[
-	LoggerT log.AdvancedLogger[LoggerT],
-] struct {
+type ChainServiceInput struct {
 	depinject.In
 
 	ChainSpec             chain.Spec
@@ -46,7 +44,7 @@ type ChainServiceInput[
 	EngineClient          *client.EngineClient
 	ExecutionEngine       *engine.Engine
 	LocalBuilder          LocalBuilder
-	Logger                LoggerT
+	Logger                *phuslu.Logger
 	Signer                crypto.BLSSigner
 	StateProcessor        StateProcessor[*Context]
 	StorageBackend        *storage.Backend
@@ -56,11 +54,7 @@ type ChainServiceInput[
 }
 
 // ProvideChainService is a depinject provider for the blockchain service.
-func ProvideChainService[
-	LoggerT log.AdvancedLogger[LoggerT],
-](
-	in ChainServiceInput[LoggerT],
-) *blockchain.Service {
+func ProvideChainService(in ChainServiceInput) *blockchain.Service {
 	return blockchain.NewService(
 		in.StorageBackend,
 		in.BlobProcessor,

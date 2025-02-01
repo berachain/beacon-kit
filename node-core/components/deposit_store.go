@@ -25,7 +25,7 @@ import (
 
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/config"
-	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
 	depositstore "github.com/berachain/beacon-kit/storage/deposit"
 	dbm "github.com/cosmos/cosmos-db"
@@ -34,21 +34,15 @@ import (
 )
 
 // DepositStoreInput is the input for the dep inject framework.
-type DepositStoreInput[
-	LoggerT log.AdvancedLogger[LoggerT],
-] struct {
+type DepositStoreInput struct {
 	depinject.In
-	Logger  LoggerT
+	Logger  *phuslu.Logger
 	AppOpts config.AppOptions
 }
 
 // ProvideDepositStore is a function that provides the module to the
 // application.
-func ProvideDepositStore[
-	LoggerT log.AdvancedLogger[LoggerT],
-](
-	in DepositStoreInput[LoggerT],
-) (*depositstore.KVStore, error) {
+func ProvideDepositStore(in DepositStoreInput) (*depositstore.KVStore, error) {
 	var (
 		rootDir = cast.ToString(in.AppOpts.Get(flags.FlagHome))
 		dataDir = filepath.Join(rootDir, "data")

@@ -25,7 +25,7 @@ import (
 	"github.com/berachain/beacon-kit/beacon/validator"
 	"github.com/berachain/beacon-kit/config"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
-	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/builder"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	cmtcfg "github.com/cometbft/cometbft/config"
@@ -33,17 +33,15 @@ import (
 )
 
 // ProvideCometBFTService provides the CometBFT service component.
-func ProvideCometBFTService[
-	LoggerT log.AdvancedLogger[LoggerT],
-](
-	logger LoggerT,
+func ProvideCometBFTService(
+	logger *phuslu.Logger,
 	blockchain blockchain.BlockchainI,
 	blockBuilder validator.BlockBuilderI,
 	db dbm.DB,
 	cmtCfg *cmtcfg.Config,
 	appOpts config.AppOptions,
 	telemetrySink *metrics.TelemetrySink,
-) *cometbft.Service[LoggerT] {
+) *cometbft.Service {
 	return cometbft.NewService(
 		logger,
 		db,
@@ -51,6 +49,6 @@ func ProvideCometBFTService[
 		blockBuilder,
 		cmtCfg,
 		telemetrySink,
-		builder.DefaultServiceOptions[LoggerT](appOpts)...,
+		builder.DefaultServiceOptions(appOpts)...,
 	)
 }
