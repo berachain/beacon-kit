@@ -89,6 +89,14 @@ func (s *Service[LoggerT]) finalizeBlockInternal(
 		return nil, err
 	}
 
+	// Special case: height > 0, but blockDelay record doesn't exist in DB.
+	if s.blockDelay == nil {
+		s.blockDelay = blockDelayUponGenesis(
+			req.Time,
+			req.Height-1,
+		)
+	}
+
 	// Calculate the delay for the next block.
 	delay := s.blockDelay.Next(
 		req.Time,
