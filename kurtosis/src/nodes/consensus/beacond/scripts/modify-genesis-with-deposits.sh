@@ -20,7 +20,7 @@
 # TITLE.
 
 
-# Sets the deposit storage in the the new eth-genesis file in the home directory.
+# Sets the deposit storage in the new eth-genesis file in the home directory.
 /usr/bin/beacond genesis set-deposit-storage $ETH_GENESIS --home /tmp/config_genesis/.beacond
 
 # Get values directly from the storage fields
