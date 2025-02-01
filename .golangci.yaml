@@ -38,7 +38,7 @@ linters-settings:
     # Ignore missing calls to `t.Parallel()` in subtests. Top-level tests are
     # still required to have `t.Parallel`, but subtests are allowed to skip it.
     # Default: false
-    ignore-missing-subtests: false
+    ignore-missing-subtests: true
 
   exhaustive:
     # Program elements to check for exhaustiveness.
@@ -301,7 +301,7 @@ linters:
     - testableexamples # checks if examples are testable (have an expected output)
     - testifylint # checks usage of github.com/stretchr/testify
     - testpackage # makes you use a separate _test package
-    - tparallel # detects inappropriate usage of t.Parallel() method in your Go test codes
+#    - tparallel # detects inappropriate usage of t.Parallel() method in your Go test codes. Replaced with paralleltest
     - unconvert # removes unnecessary type conversions
     - unparam # reports unused function parameters
     - usestdlibvars # detects the possibility to use variables/constants from the Go standard library

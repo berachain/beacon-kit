@@ -198,8 +198,9 @@ func TestBeaconBlockBody_UnusedAttesterSlashingsEnforcement(t *testing.T) {
 
 // Ensure that the Attestations field cannot be unmarshaled with data in it,
 // enforcing that it's unused.
+//
+//nolint:paralleltest // data race in ssz lib
 func TestBeaconBlockBody_UnusedAttestationsEnforcement(t *testing.T) {
-	t.Parallel()
 	blockBody := types.BeaconBlockBody{}
 	unused := types.UnusedType(1)
 	blockBody.SetAttestations(types.Attestations{&unused})

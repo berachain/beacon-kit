@@ -343,7 +343,6 @@ func TestExecutionPayload_UnmarshalJSON_Error(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
 			var payload types.ExecutionPayload
 			var jsonMap map[string]interface{}
 

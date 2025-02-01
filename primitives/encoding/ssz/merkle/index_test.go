@@ -41,7 +41,6 @@ func TestNewGeneralizedIndex(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Parallel()
 		result := merkle.NewGeneralizedIndex(
 			tt.depth,
 			tt.index,
