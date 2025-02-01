@@ -33,7 +33,6 @@ func TestPayloadIDCache(t *testing.T) {
 	cacheUnderTest := cache.NewPayloadIDCache[[32]byte, uint64]()
 
 	t.Run("Get from empty cache", func(t *testing.T) {
-		t.Parallel()
 		var r [32]byte
 		p, ok := cacheUnderTest.Get(0, r)
 		require.False(t, ok)
@@ -41,7 +40,6 @@ func TestPayloadIDCache(t *testing.T) {
 	})
 
 	t.Run("Set and Get", func(t *testing.T) {
-		t.Parallel()
 		slot := uint64(1234)
 		r := [32]byte{1, 2, 3}
 		pid := engineprimitives.PayloadID{1, 2, 3, 3, 7, 8, 7, 8}
@@ -53,7 +51,6 @@ func TestPayloadIDCache(t *testing.T) {
 	})
 
 	t.Run("Overwrite existing", func(t *testing.T) {
-		t.Parallel()
 		slot := uint64(1234)
 		r := [32]byte{1, 2, 3}
 		newPid := engineprimitives.PayloadID{9, 9, 9, 9, 9, 9, 9, 9}
@@ -65,7 +62,6 @@ func TestPayloadIDCache(t *testing.T) {
 	})
 
 	t.Run("Prune and verify deletion", func(t *testing.T) {
-		t.Parallel()
 		slot := uint64(9456456)
 		r := [32]byte{4, 5, 6}
 		pid := engineprimitives.PayloadID{4, 5, 6, 6, 9, 0, 9, 0}
@@ -79,7 +75,6 @@ func TestPayloadIDCache(t *testing.T) {
 	})
 
 	t.Run("Multiple entries and prune", func(t *testing.T) {
-		t.Parallel()
 		// Set multiple entries
 		for i := range uint8(5) {
 			slot := uint64(i)
