@@ -31,6 +31,9 @@ import (
 type Node interface {
 	Start(context.Context) error
 
+	// FetchService allows us to retrieve the various node services, which is useful in testing
+	FetchService(interface{}) error
+
 	// TODO: FIX, HACK TO MAKE CLI HAPPY FOR NOW.
 	CommitMultiStore() store.CommitMultiStore
 }
