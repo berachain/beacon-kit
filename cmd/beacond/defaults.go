@@ -57,7 +57,7 @@ func DefaultComponents() []any {
 		components.ProvideShutDownService[*Logger],
 	}
 	c = append(c,
-		components.ProvideNodeAPIServer[*Logger, NodeAPIContext],
+		components.ProvideNodeAPIServer[*Logger],
 		components.ProvideNodeAPIEngine,
 		components.ProvideNodeAPIBackend,
 	)
