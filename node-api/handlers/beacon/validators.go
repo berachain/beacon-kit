@@ -21,14 +21,13 @@
 package beacon
 
 import (
+	"github.com/berachain/beacon-kit/node-api/engines/echo"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 )
 
-func (h *Handler[ContextT]) GetStateValidators(
-	c ContextT,
-) (any, error) {
+func (h *Handler) GetStateValidators(c echo.Context) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetStateValidatorsRequest](
 		c, h.Logger(),
 	)
@@ -61,9 +60,7 @@ func (h *Handler[ContextT]) GetStateValidators(
 	}, nil
 }
 
-func (h *Handler[ContextT]) PostStateValidators(
-	c ContextT,
-) (any, error) {
+func (h *Handler) PostStateValidators(c echo.Context) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.PostStateValidatorsRequest](
 		c, h.Logger(),
 	)
@@ -93,9 +90,7 @@ func (h *Handler[ContextT]) PostStateValidators(
 	}, nil
 }
 
-func (h *Handler[ContextT]) GetStateValidator(
-	c ContextT,
-) (any, error) {
+func (h *Handler) GetStateValidator(c echo.Context) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetStateValidatorRequest](
 		c, h.Logger(),
 	)
@@ -116,9 +111,7 @@ func (h *Handler[ContextT]) GetStateValidator(
 	return validator, nil
 }
 
-func (h *Handler[ContextT]) GetStateValidatorBalances(
-	c ContextT,
-) (any, error) {
+func (h *Handler) GetStateValidatorBalances(c echo.Context) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetValidatorBalancesRequest](
 		c, h.Logger(),
 	)
@@ -143,9 +136,7 @@ func (h *Handler[ContextT]) GetStateValidatorBalances(
 	}, nil
 }
 
-func (h *Handler[ContextT]) PostStateValidatorBalances(
-	c ContextT,
-) (any, error) {
+func (h *Handler) PostStateValidatorBalances(c echo.Context) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.PostValidatorBalancesRequest](
 		c, h.Logger(),
 	)

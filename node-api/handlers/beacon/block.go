@@ -21,11 +21,12 @@
 package beacon
 
 import (
+	"github.com/berachain/beacon-kit/node-api/engines/echo"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 )
 
-func (h *Handler[ContextT]) GetBlockRewards(c ContextT) (any, error) {
+func (h *Handler) GetBlockRewards(c echo.Context) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetBlockRewardsRequest](
 		c, h.Logger(),
 	)

@@ -24,15 +24,16 @@ import (
 	"net/http"
 
 	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/node-api/engines/echo"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 )
 
 //nolint:funlen // routes are long
-func (h *Handler[ContextT]) RegisterRoutes(
+func (h *Handler) RegisterRoutes(
 	logger log.Logger,
 ) {
 	h.SetLogger(logger)
-	h.BaseHandler.AddRoutes([]*handlers.Route[ContextT]{
+	h.BaseHandler.AddRoutes([]*handlers.Route[echo.Context]{
 		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/beacon/genesis",
