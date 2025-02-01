@@ -87,7 +87,8 @@ func TestIsBefore(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			result := version.IsBefore(tc.a, tc.b)
+			// Expecto fail
+			result := version.IsAfter(tc.a, tc.b)
 			require.Equal(t, tc.expected, result)
 		})
 	}
