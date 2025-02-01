@@ -21,7 +21,7 @@
 package proof
 
 import (
-	"github.com/berachain/beacon-kit/node-api/engines/echo"
+	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/merkle"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
@@ -30,7 +30,7 @@ import (
 // GetBlockProposer returns the block proposer pubkey for the given timestamp
 // id along with a merkle proof that can be verified against the beacon block
 // root. It also returns the merkle proof of the proposer index.
-func (h *Handler) GetBlockProposer(c echo.Context) (any, error) {
+func (h *Handler) GetBlockProposer(c handlers.Context) (any, error) {
 	params, err := utils.BindAndValidate[types.BlockProposerRequest](
 		c, h.Logger(),
 	)

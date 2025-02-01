@@ -23,7 +23,10 @@ package handlers
 import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
+	"github.com/labstack/echo/v4"
 )
+
+type Context = echo.Context
 
 // handlerFn enforces a signature for all handler functions.
 type handlerFn[ContextT any] func(c ContextT) (any, error)

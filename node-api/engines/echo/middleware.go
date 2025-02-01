@@ -38,9 +38,9 @@ type ErrorResponse struct {
 // responseMiddleware is a middleware that converts errors to an HTTP status
 // code and response.
 func responseMiddleware(
-	handler *handlers.Route[Context],
+	handler *handlers.Route[handlers.Context],
 ) echo.HandlerFunc {
-	return func(c Context) error {
+	return func(c handlers.Context) error {
 		data, err := handler.Handler(c)
 		code, response := responseFromError(data, err)
 		return c.JSON(code, response)

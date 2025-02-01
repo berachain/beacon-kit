@@ -25,13 +25,12 @@ import (
 
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/log/noop"
-	"github.com/berachain/beacon-kit/node-api/engines/echo"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 )
 
 // Server is the API Server service.
 type Server struct {
-	engine Engine[echo.Context]
+	engine Engine[handlers.Context]
 	config Config
 	logger log.Logger
 }
@@ -41,9 +40,9 @@ type Server struct {
 // disabled.
 func New(
 	config Config,
-	engine Engine[echo.Context],
+	engine Engine[handlers.Context],
 	logger log.Logger,
-	handlers ...handlers.Handlers[echo.Context],
+	handlers ...handlers.Handlers[handlers.Context],
 ) *Server {
 	apiLogger := logger
 	if !config.Logging {

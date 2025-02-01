@@ -21,18 +21,17 @@
 package builder
 
 import (
-	"github.com/berachain/beacon-kit/node-api/engines/echo"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 )
 
 type Handler struct {
-	*handlers.BaseHandler[echo.Context]
+	*handlers.BaseHandler[handlers.Context]
 }
 
 func NewHandler() *Handler {
 	h := &Handler{
 		BaseHandler: handlers.NewBaseHandler(
-			handlers.NewRouteSet[echo.Context](""),
+			handlers.NewRouteSet[handlers.Context](""),
 		),
 	}
 	return h

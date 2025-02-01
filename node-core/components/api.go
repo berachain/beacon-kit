@@ -60,9 +60,9 @@ type NodeAPIServerInput[
 ] struct {
 	depinject.In
 
-	Engine   NodeAPIEngine[echo.Context]
+	Engine   NodeAPIEngine[handlers.Context]
 	Config   *config.Config
-	Handlers []handlers.Handlers[echo.Context]
+	Handlers []handlers.Handlers[handlers.Context]
 	Logger   LoggerT
 }
 

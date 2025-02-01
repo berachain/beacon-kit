@@ -22,7 +22,6 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/node-api/engines/echo"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beaconapi "github.com/berachain/beacon-kit/node-api/handlers/beacon"
 	builderapi "github.com/berachain/beacon-kit/node-api/handlers/builder"
@@ -44,8 +43,8 @@ type NodeAPIHandlersInput struct {
 	ProofAPIHandler   *proofapi.Handler
 }
 
-func ProvideNodeAPIHandlers(in NodeAPIHandlersInput) []handlers.Handlers[echo.Context] {
-	return []handlers.Handlers[echo.Context]{
+func ProvideNodeAPIHandlers(in NodeAPIHandlersInput) []handlers.Handlers[handlers.Context] {
+	return []handlers.Handlers[handlers.Context]{
 		in.BeaconAPIHandler,
 		in.BuilderAPIHandler,
 		in.ConfigAPIHandler,

@@ -21,12 +21,12 @@
 package debug
 
 import (
-	"github.com/berachain/beacon-kit/node-api/engines/echo"
+	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 )
 
-func (h *Handler) GetState(c echo.Context) (any, error) {
+func (h *Handler) GetState(c handlers.Context) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetStateRequest](
 		c, h.Logger(),
 	)

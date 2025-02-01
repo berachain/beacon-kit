@@ -22,7 +22,6 @@ package proof
 
 import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/node-api/engines/echo"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -31,7 +30,7 @@ import (
 
 // Handler is the handler for the proof API.
 type Handler struct {
-	*handlers.BaseHandler[echo.Context]
+	*handlers.BaseHandler[handlers.Context]
 	backend Backend
 }
 
@@ -39,7 +38,7 @@ type Handler struct {
 func NewHandler(backend Backend) *Handler {
 	h := &Handler{
 		BaseHandler: handlers.NewBaseHandler(
-			handlers.NewRouteSet[echo.Context](""),
+			handlers.NewRouteSet[handlers.Context](""),
 		),
 		backend: backend,
 	}
