@@ -27,7 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/config"
 	dablob "github.com/berachain/beacon-kit/da/blob"
 	"github.com/berachain/beacon-kit/da/kzg"
-	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/spf13/cast"
@@ -53,24 +53,18 @@ func ProvideBlobProofVerifier(
 }
 
 // BlobProcessorIn is the input for the BlobProcessor.
-type BlobProcessorIn[
-	LoggerT any,
-] struct {
+type BlobProcessorIn struct {
 	depinject.In
 
 	BlobProofVerifier kzg.BlobProofVerifier
 	ChainSpec         chain.Spec
-	Logger            LoggerT
+	Logger            *phuslu.Logger
 	TelemetrySink     *metrics.TelemetrySink
 }
 
 // ProvideBlobProcessor is a function that provides the BlobProcessor to the
 // depinject framework.
-func ProvideBlobProcessor[
-	LoggerT log.AdvancedLogger[LoggerT],
-](
-	in BlobProcessorIn[LoggerT],
-) *dablob.Processor {
+func ProvideBlobProcessor(in BlobProcessorIn) *dablob.Processor {
 	return dablob.NewProcessor(
 		in.Logger.With("service", "blob-processor"),
 		in.ChainSpec,

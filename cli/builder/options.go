@@ -22,54 +22,36 @@ package builder
 
 import (
 	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
-	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-core/types"
 )
 
 // Opt is a type that defines a function that modifies CLIBuilder.
-type Opt[
-	T types.Node,
-	LoggerT log.AdvancedLogger[LoggerT],
-] func(*CLIBuilder[T, LoggerT])
+type Opt[T types.Node] func(*CLIBuilder[T])
 
 // WithName sets the name for the CLIBuilder.
-func WithName[
-	T types.Node,
-	LoggerT log.AdvancedLogger[LoggerT],
-](name string) Opt[T, LoggerT] {
-	return func(cb *CLIBuilder[T, LoggerT]) {
+func WithName[T types.Node](name string) Opt[T] {
+	return func(cb *CLIBuilder[T]) {
 		cb.name = name
 	}
 }
 
 // WithDescription sets the description for the CLIBuilder.
-func WithDescription[
-	T types.Node,
-	LoggerT log.AdvancedLogger[LoggerT],
-](description string) Opt[T, LoggerT] {
-	return func(cb *CLIBuilder[T, LoggerT]) {
+func WithDescription[T types.Node](description string) Opt[T] {
+	return func(cb *CLIBuilder[T]) {
 		cb.description = description
 	}
 }
 
 // WithComponents sets the components for the CLIBuilder.
-func WithComponents[
-	T types.Node,
-	LoggerT log.AdvancedLogger[LoggerT],
-](components []any) Opt[T, LoggerT] {
-	return func(cb *CLIBuilder[T, LoggerT]) {
+func WithComponents[T types.Node](components []any) Opt[T] {
+	return func(cb *CLIBuilder[T]) {
 		cb.components = components
 	}
 }
 
 // WithNodeBuilderFunc sets the cosmos app creator for the CLIBuilder.
-func WithNodeBuilderFunc[
-	T types.Node,
-	LoggerT log.AdvancedLogger[LoggerT],
-](
-	nodeBuilderFunc servertypes.AppCreator[T, LoggerT],
-) Opt[T, LoggerT] {
-	return func(cb *CLIBuilder[T, LoggerT]) {
+func WithNodeBuilderFunc[T types.Node](nodeBuilderFunc servertypes.AppCreator[T]) Opt[T] {
+	return func(cb *CLIBuilder[T]) {
 		cb.nodeBuilderFunc = nodeBuilderFunc
 	}
 }

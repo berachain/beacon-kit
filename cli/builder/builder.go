@@ -29,7 +29,7 @@ import (
 	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	"github.com/berachain/beacon-kit/cli/config"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
-	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/types"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -37,10 +37,7 @@ import (
 )
 
 // CLIBuilder is the builder for the commands.Root (root command).
-type CLIBuilder[
-	T types.Node,
-	LoggerT log.AdvancedLogger[LoggerT],
-] struct {
+type CLIBuilder[T types.Node] struct {
 	name        string
 	description string
 	// components is a list of component providers for depinject.
@@ -50,17 +47,12 @@ type CLIBuilder[
 	// nodeBuilderFunc is a function that builds the Node,
 	// eventually called by the cosmos-sdk.
 	// TODO: CLI should not know about the AppCreator
-	nodeBuilderFunc servertypes.AppCreator[T, LoggerT]
+	nodeBuilderFunc servertypes.AppCreator[T]
 }
 
 // New returns a new CLIBuilder with the given options.
-func New[
-	T types.Node,
-	LoggerT log.AdvancedLogger[LoggerT],
-](
-	opts ...Opt[T, LoggerT],
-) *CLIBuilder[T, LoggerT] {
-	cb := &CLIBuilder[T, LoggerT]{
+func New[T types.Node](opts ...Opt[T]) *CLIBuilder[T] {
+	cb := &CLIBuilder[T]{
 		suppliers: []any{
 			os.Stdout, // supply io.Writer for logger
 		},
@@ -72,14 +64,12 @@ func New[
 }
 
 // Build builds the CLI commands.
-func (cb *CLIBuilder[
-	T, LoggerT,
-]) Build() (*cmdlib.Root, error) {
+func (cb *CLIBuilder[T]) Build() (*cmdlib.Root, error) {
 	// allocate memory to hold the dependencies
 	var (
 		clientCtx client.Context
 		chainSpec chain.Spec
-		logger    LoggerT
+		logger    *phuslu.Logger
 	)
 
 	// build dependencies for the root command
@@ -108,7 +98,7 @@ func (cb *CLIBuilder[
 	// apply default root command setup
 	cmdlib.DefaultRootCommandSetup[T](
 		rootCmd,
-		&cometbft.Service[LoggerT]{},
+		&cometbft.Service{},
 		cb.nodeBuilderFunc,
 		chainSpec,
 	)
@@ -117,9 +107,7 @@ func (cb *CLIBuilder[
 }
 
 // defaultRunHandler returns the default run handler for the CLIBuilder.
-func (cb *CLIBuilder[_, LoggerT]) defaultRunHandler(
-	logger LoggerT,
-) func(cmd *cobra.Command) error {
+func (cb *CLIBuilder[_]) defaultRunHandler(logger *phuslu.Logger) func(cmd *cobra.Command) error {
 	return func(cmd *cobra.Command) error {
 		return cb.InterceptConfigsPreRunHandler(
 			cmd,
@@ -131,14 +119,14 @@ func (cb *CLIBuilder[_, LoggerT]) defaultRunHandler(
 	}
 }
 
-func (cb *CLIBuilder[_, LoggerT]) InterceptConfigsPreRunHandler(
+func (cb *CLIBuilder[_]) InterceptConfigsPreRunHandler(
 	cmd *cobra.Command,
-	logger LoggerT,
+	logger *phuslu.Logger,
 	customAppConfigTemplate string,
 	customAppConfig interface{},
 	cmtConfig *cmtcfg.Config,
 ) error {
-	return config.SetupCommand[LoggerT](
+	return config.SetupCommand(
 		cmd,
 		customAppConfigTemplate,
 		customAppConfig,

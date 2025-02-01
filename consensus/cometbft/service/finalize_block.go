@@ -28,7 +28,7 @@ import (
 	"github.com/sourcegraph/conc/iter"
 )
 
-func (s *Service[LoggerT]) finalizeBlock(
+func (s *Service) finalizeBlock(
 	ctx context.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (*cmtabci.FinalizeBlockResponse, error) {
@@ -40,7 +40,7 @@ func (s *Service[LoggerT]) finalizeBlock(
 	return res, err
 }
 
-func (s *Service[LoggerT]) finalizeBlockInternal(
+func (s *Service) finalizeBlockInternal(
 	ctx context.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (*cmtabci.FinalizeBlockResponse, error) {
@@ -104,7 +104,7 @@ func (s *Service[LoggerT]) finalizeBlockInternal(
 // Commit(), the application state transitions will be flushed to disk and as a
 // result, but we already have
 // an application Merkle root.
-func (s *Service[LoggerT]) workingHash() []byte {
+func (s *Service) workingHash() []byte {
 	// Write the FinalizeBlock state into branched storage and commit the
 	// MultiStore. The write to the FinalizeBlock state writes all state
 	// transitions to the root MultiStore (s.sm.CommitMultiStore())
@@ -128,7 +128,7 @@ func (s *Service[LoggerT]) workingHash() []byte {
 	return commitHash
 }
 
-func (s *Service[_]) validateFinalizeBlockHeight(
+func (s *Service) validateFinalizeBlockHeight(
 	req *cmtabci.FinalizeBlockRequest,
 ) error {
 	if req.Height < 1 {

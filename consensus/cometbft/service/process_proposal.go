@@ -28,7 +28,7 @@ import (
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
-func (s *Service[LoggerT]) processProposal(
+func (s *Service) processProposal(
 	ctx context.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
