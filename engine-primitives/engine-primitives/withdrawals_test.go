@@ -31,7 +31,9 @@ import (
 )
 
 func TestWithdrawals(t *testing.T) {
+	t.Parallel()
 	t.Run("SizeSSZ", func(t *testing.T) {
+		t.Parallel()
 		withdrawals := engineprimitives.Withdrawals{
 			{Index: 1, Validator: 2, Address: [20]byte{1, 2, 3}, Amount: 100},
 			{Index: 3, Validator: 4, Address: [20]byte{4, 5, 6}, Amount: 200},
@@ -43,6 +45,7 @@ func TestWithdrawals(t *testing.T) {
 	})
 
 	t.Run("HashTreeRoot", func(t *testing.T) {
+		t.Parallel()
 		withdrawals := engineprimitives.Withdrawals{
 			{Index: 1, Validator: 2, Address: [20]byte{1, 2, 3}, Amount: 100},
 			{Index: 3, Validator: 4, Address: [20]byte{4, 5, 6}, Amount: 200},
@@ -52,6 +55,7 @@ func TestWithdrawals(t *testing.T) {
 	})
 
 	t.Run("HashTreeRoot", func(t *testing.T) {
+		t.Parallel()
 		withdrawals := engineprimitives.Withdrawals{
 			{
 				Index:     math.U64(1),
@@ -85,6 +89,7 @@ func TestWithdrawals(t *testing.T) {
 	})
 
 	t.Run("HashTreeRoot of Empty List", func(t *testing.T) {
+		t.Parallel()
 		emptyWithdrawals := engineprimitives.Withdrawals{}
 		emptyRoot := emptyWithdrawals.HashTreeRoot()
 		require.NotEmpty(t, emptyRoot)

@@ -31,6 +31,7 @@ import (
 )
 
 func TestDB(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name          string
 		setupFunc     func(db *file.DB) error
@@ -161,6 +162,7 @@ func TestDB(t *testing.T) {
 // Test with `etc` as root directory to cause creation failure
 // due to permission denied.
 func TestDB_SetExistingKey_CreateError(t *testing.T) {
+	t.Parallel()
 	test := struct {
 		name          string
 		setupFunc     func(db *file.DB) error
@@ -178,6 +180,7 @@ func TestDB_SetExistingKey_CreateError(t *testing.T) {
 	}
 
 	t.Run(test.name, func(t *testing.T) {
+		t.Parallel()
 		fs := afero.NewMemMapFs()
 		db := file.NewDB(
 			file.WithRootDirectory("/etc"),
@@ -201,6 +204,7 @@ func TestDB_SetExistingKey_CreateError(t *testing.T) {
 
 // Test with root directory as a file.
 func TestDB_SetHas_NotDirError(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name          string
 		setupFunc     func(db *file.DB) error
@@ -232,6 +236,7 @@ func TestDB_SetHas_NotDirError(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			fs := afero.NewMemMapFs()
 			db := file.NewDB(
 				file.WithRootDirectory("/etc/passwd"),
@@ -257,6 +262,7 @@ func TestDB_SetHas_NotDirError(t *testing.T) {
 // Test with root directory to be created in `etc`
 // which will result in permission denied.
 func TestDB_Set_MkDirError(t *testing.T) {
+	t.Parallel()
 	test := struct {
 		name          string
 		setupFunc     func(db *file.DB) error
@@ -273,6 +279,7 @@ func TestDB_Set_MkDirError(t *testing.T) {
 	}
 
 	t.Run(test.name, func(t *testing.T) {
+		t.Parallel()
 		fs := afero.NewMemMapFs()
 		db := file.NewDB(
 			file.WithRootDirectory("/etc/test"),

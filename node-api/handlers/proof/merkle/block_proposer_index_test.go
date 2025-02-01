@@ -33,6 +33,7 @@ import (
 // TestBlockProposerIndexProof tests the ProveProposerIndexInBlock function
 // and that the generated proof correctly verifies.
 func TestBlockProposerIndexProof(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name              string
 		slot              math.Slot
@@ -64,6 +65,7 @@ func TestBlockProposerIndexProof(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			bbh := types.NewBeaconBlockHeader(
 				tc.slot,
 				tc.proposerIndex,

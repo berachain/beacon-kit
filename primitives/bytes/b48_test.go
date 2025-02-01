@@ -29,6 +29,7 @@ import (
 )
 
 func TestBytes48String(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name  string
 		input bytes.B48
@@ -97,6 +98,7 @@ func TestBytes48String(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := tt.input.String()
 			require.Equal(t, tt.want, got)
 		})
@@ -104,6 +106,7 @@ func TestBytes48String(t *testing.T) {
 }
 
 func TestBytes48MarshalText(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name  string
 		input bytes.B48
@@ -172,6 +175,7 @@ func TestBytes48MarshalText(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, err := tt.input.MarshalText()
 			require.NoError(t, err)
 			require.Equal(t, tt.want, string(got))
@@ -180,6 +184,7 @@ func TestBytes48MarshalText(t *testing.T) {
 }
 
 func TestBytes48UnmarshalText(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		input   string
@@ -254,6 +259,7 @@ func TestBytes48UnmarshalText(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var got bytes.B48
 			err := got.UnmarshalText([]byte(tt.input))
 			if tt.wantErr {
@@ -267,6 +273,7 @@ func TestBytes48UnmarshalText(t *testing.T) {
 }
 
 func TestToBytes48(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		input   []byte
@@ -294,6 +301,7 @@ func TestToBytes48(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result, err := bytes.ToBytes48(tt.input)
 			if tt.wantErr != nil {
 				require.ErrorIs(t, err, tt.wantErr)
@@ -306,6 +314,7 @@ func TestToBytes48(t *testing.T) {
 }
 
 func TestB48UnmarshalJSON(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		input    string
@@ -340,6 +349,7 @@ func TestB48UnmarshalJSON(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var got bytes.B48
 			err := got.UnmarshalJSON([]byte(tt.input))
 			if tt.wantErr {
@@ -353,6 +363,7 @@ func TestB48UnmarshalJSON(t *testing.T) {
 }
 
 func TestB48_HashTreeRoot(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name  string
 		input bytes.B48
@@ -367,6 +378,7 @@ func TestB48_HashTreeRoot(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := tt.input.HashTreeRoot()
 			require.Equal(t, tt.want, result)
 		})
@@ -374,6 +386,7 @@ func TestB48_HashTreeRoot(t *testing.T) {
 }
 
 func TestB48MarshalSSZ(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name  string
 		input bytes.B48
@@ -398,6 +411,7 @@ func TestB48MarshalSSZ(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, err := tt.input.MarshalSSZ()
 			require.NoError(t, err)
 			require.Equal(t, tt.want, got)

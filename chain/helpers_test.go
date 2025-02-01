@@ -45,6 +45,7 @@ var spec, _ = chain.NewSpec(
 
 // TestActiveForkVersionForEpoch tests the ActiveForkVersionForEpoch method.
 func TestActiveForkVersionForEpoch(t *testing.T) {
+	t.Parallel()
 	// Define test cases
 	tests := []struct {
 		name     string
@@ -59,6 +60,7 @@ func TestActiveForkVersionForEpoch(t *testing.T) {
 	// Run test cases
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := spec.ActiveForkVersionForEpoch(tt.epoch)
 			require.Equal(t, tt.expected, result, "Test case : %s", tt.name)
 		})
@@ -67,6 +69,7 @@ func TestActiveForkVersionForEpoch(t *testing.T) {
 
 // TestSlotToEpoch tests the SlotToEpoch method.
 func TestSlotToEpoch(t *testing.T) {
+	t.Parallel()
 	// Define test cases
 	tests := []struct {
 		name     string
@@ -84,6 +87,7 @@ func TestSlotToEpoch(t *testing.T) {
 	// Run test cases
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := spec.SlotToEpoch(tt.slot)
 			require.Equal(t, tt.expected, result, "Test case : %s", tt.name)
 		})
@@ -92,6 +96,7 @@ func TestSlotToEpoch(t *testing.T) {
 
 // TestActiveForkVersionForSlot tests the ActiveForkVersionForSlot method.
 func TestActiveForkVersionForSlot(t *testing.T) {
+	t.Parallel()
 	// Define test cases
 	tests := []struct {
 		name     string
@@ -111,6 +116,7 @@ func TestActiveForkVersionForSlot(t *testing.T) {
 	// Run test cases
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := spec.ActiveForkVersionForSlot(tt.slot)
 			require.Equal(t, tt.expected, result, "Test case : %s", tt.name)
 		})
@@ -119,6 +125,7 @@ func TestActiveForkVersionForSlot(t *testing.T) {
 
 // TestWithinDAPeriod tests the WithinDAPeriod method.
 func TestWithinDAPeriod(t *testing.T) {
+	t.Parallel()
 	// Define test cases
 	tests := []struct {
 		name     string
@@ -144,6 +151,7 @@ func TestWithinDAPeriod(t *testing.T) {
 	// Run test cases
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := spec.WithinDAPeriod(tt.block, tt.current)
 			require.Equal(t, tt.expected, result, "Test case : %s", tt.name)
 		})

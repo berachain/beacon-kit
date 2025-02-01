@@ -27,6 +27,7 @@ import (
 )
 
 func TestPrevPowerOfTwo(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		input    uint64
 		expected uint64
@@ -60,6 +61,7 @@ func TestPrevPowerOfTwo(t *testing.T) {
 }
 
 func TestNextPowerOfTwo(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		input    uint64
 		expected uint64

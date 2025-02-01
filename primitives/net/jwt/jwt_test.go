@@ -30,6 +30,7 @@ import (
 )
 
 func TestNewFromHex(t *testing.T) {
+	t.Parallel()
 	wantValid := jwt.Secret(
 		hex.MustToBytes(
 			"0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
@@ -71,6 +72,7 @@ func TestNewFromHex(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, err := jwt.NewFromHex(tt.hexStr)
 			if tt.wantErr {
 				require.Error(t, err)
@@ -82,6 +84,7 @@ func TestNewFromHex(t *testing.T) {
 }
 
 func TestSecretString(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		secret jwt.Secret
@@ -100,6 +103,7 @@ func TestSecretString(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			require.Equal(
 				t,
 				tt.want,
@@ -111,12 +115,14 @@ func TestSecretString(t *testing.T) {
 }
 
 func TestNewRandom(t *testing.T) {
+	t.Parallel()
 	secret, err := jwt.NewRandom()
 	require.NoError(t, err, "NewRandom() error")
 	require.Len(t, secret.Bytes(), 32, "NewRandom() length mismatch")
 }
 
 func TestSecretBytes(t *testing.T) {
+	t.Parallel()
 	expectedLength := 32 // Assuming the secret is expected to be 32 bytes long
 	secret, _ := jwt.NewRandom()
 	bytes := secret.Bytes()
@@ -124,6 +130,7 @@ func TestSecretBytes(t *testing.T) {
 }
 
 func TestSecretHexWithFixedInput(t *testing.T) {
+	t.Parallel()
 	expectedHex := "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
 	expectedHexLength := 64
 
@@ -152,6 +159,7 @@ func TestSecretHexWithFixedInput(t *testing.T) {
 }
 
 func TestSecretRoundTripEncoding(t *testing.T) {
+	t.Parallel()
 	originalSecret, err := jwt.NewRandom()
 	require.NoError(t, err, "NewRandom() error")
 
@@ -172,6 +180,7 @@ func TestSecretRoundTripEncoding(t *testing.T) {
 }
 
 func TestBuildSignedToken(t *testing.T) {
+	t.Parallel()
 	secret, err := jwt.NewRandom()
 	require.NoError(t, err, "NewRandom() error")
 
@@ -185,6 +194,7 @@ func TestBuildSignedToken(t *testing.T) {
 }
 
 func TestNewFromHexEdgeCases(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		hexStr  string
@@ -224,6 +234,7 @@ func TestNewFromHexEdgeCases(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			_, err := jwt.NewFromHex(tt.hexStr)
 			if tt.wantErr {
 				require.Error(t, err)
@@ -235,6 +246,7 @@ func TestNewFromHexEdgeCases(t *testing.T) {
 }
 
 func TestHexRegexp(t *testing.T) {
+	t.Parallel()
 	validHexStrings := []string{
 		"0x1234567890abcdef",
 		"1234567890ABCDEF",
@@ -269,6 +281,7 @@ func TestHexRegexp(t *testing.T) {
 }
 
 func TestSecretComparison(t *testing.T) {
+	t.Parallel()
 	secret1, err := jwt.NewRandom()
 	require.NoError(t, err, "NewRandom() error for secret1")
 

@@ -31,6 +31,7 @@ import (
 
 // FromBigInt, then ToBigInt.
 func TestBigIntRoundTrip(t *testing.T) {
+	t.Parallel()
 	// assume FromBigInt only called on non-negative big.Int
 	tests := []struct {
 		name     string
@@ -56,6 +57,7 @@ func TestBigIntRoundTrip(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := hex.FromBigInt(tt.input)
 			require.Equal(t, tt.expected, result)
 
@@ -78,6 +80,7 @@ func TestBigIntRoundTrip(t *testing.T) {
 }
 
 func TestString_MustToBigInt(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		input    string
@@ -92,6 +95,7 @@ func TestString_MustToBigInt(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var (
 				res *big.Int
 				f   = func() {

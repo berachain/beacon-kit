@@ -51,6 +51,7 @@ func generateValidDeposit() *types.Deposit {
 }
 
 func TestDeposit_Equals(t *testing.T) {
+	t.Parallel()
 	// Create base deposit
 	deposit1 := generateValidDeposit()
 
@@ -91,6 +92,7 @@ func TestDeposit_Equals(t *testing.T) {
 }
 
 func TestDeposit_MarshalUnmarshalSSZ(t *testing.T) {
+	t.Parallel()
 	originalDeposit := generateValidDeposit()
 
 	// Marshal the original deposit to SSZ
@@ -106,6 +108,7 @@ func TestDeposit_MarshalUnmarshalSSZ(t *testing.T) {
 }
 
 func TestDeposit_MarshalSSZTo(t *testing.T) {
+	t.Parallel()
 	deposit := generateValidDeposit()
 	buf := make([]byte, karalabessz.Size(deposit))
 	target, err := deposit.MarshalSSZTo(buf)
@@ -114,6 +117,7 @@ func TestDeposit_MarshalSSZTo(t *testing.T) {
 }
 
 func TestDeposit_HashTreeRoot(t *testing.T) {
+	t.Parallel()
 	deposit := generateValidDeposit()
 	require.NotPanics(t, func() {
 		_ = deposit.HashTreeRoot()
@@ -121,12 +125,14 @@ func TestDeposit_HashTreeRoot(t *testing.T) {
 }
 
 func TestDeposit_SizeSSZ(t *testing.T) {
+	t.Parallel()
 	deposit := generateValidDeposit()
 
 	require.Equal(t, uint32(192), karalabessz.Size(deposit))
 }
 
 func TestDeposit_HashTreeRootWith(t *testing.T) {
+	t.Parallel()
 	deposit := generateValidDeposit()
 	require.NotNil(t, deposit)
 	hasher := ssz.NewHasher()
@@ -136,12 +142,14 @@ func TestDeposit_HashTreeRootWith(t *testing.T) {
 }
 
 func TestDeposit_GetTree(t *testing.T) {
+	t.Parallel()
 	deposit := generateValidDeposit()
 	_, err := deposit.GetTree()
 	require.NoError(t, err)
 }
 
 func TestDeposit_UnmarshalSSZ_ErrSize(t *testing.T) {
+	t.Parallel()
 	// Create a byte slice of incorrect size
 	buf := make([]byte, 10) // size less than 192
 
@@ -152,6 +160,7 @@ func TestDeposit_UnmarshalSSZ_ErrSize(t *testing.T) {
 }
 
 func TestDeposit_VerifySignature(t *testing.T) {
+	t.Parallel()
 	deposit := generateValidDeposit()
 
 	forkData := &types.ForkData{
@@ -172,6 +181,7 @@ func TestDeposit_VerifySignature(t *testing.T) {
 }
 
 func TestDeposit_Getters(t *testing.T) {
+	t.Parallel()
 	deposit := generateValidDeposit()
 
 	require.Equal(t, deposit.Pubkey, deposit.GetPubkey())

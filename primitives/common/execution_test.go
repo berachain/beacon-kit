@@ -30,6 +30,7 @@ import (
 )
 
 func TestExecutionAddressMarshalling(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name        string
 		input       []byte
@@ -56,6 +57,7 @@ func TestExecutionAddressMarshalling(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var (
 				v   common.ExecutionAddress
 				err error

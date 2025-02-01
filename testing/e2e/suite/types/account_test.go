@@ -30,6 +30,7 @@ import (
 )
 
 func TestNewEthAccount(t *testing.T) {
+	t.Parallel()
 	name := "testAccount"
 	hexPk := "f561d45d1df30a6556d30e39f97011faa3632e43cd378224ad6cc83bb8aea3e6"
 
@@ -39,6 +40,7 @@ func TestNewEthAccount(t *testing.T) {
 }
 
 func TestEthAccount_PublicKey(t *testing.T) {
+	t.Parallel()
 	hexPk := "f561d45d1df30a6556d30e39f97011faa3632e43cd378224ad6cc83bb8aea3e6"
 	expectedPrivateKey, _ := crypto.HexToECDSA(hexPk)
 	require.NotNil(t, expectedPrivateKey)
@@ -50,6 +52,7 @@ func TestEthAccount_PublicKey(t *testing.T) {
 }
 
 func TestEthAccount_Address(t *testing.T) {
+	t.Parallel()
 	hexPk := "f561d45d1df30a6556d30e39f97011faa3632e43cd378224ad6cc83bb8aea3e6"
 	account := types.NewEthAccountFromHex("testAccount", hexPk)
 	address := account.Address()

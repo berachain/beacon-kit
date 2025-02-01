@@ -40,6 +40,8 @@ import (
 )
 
 func TestCreateAndValidateCommandsDuality(t *testing.T) {
+	t.Parallel()
+
 	qc := &quick.Config{MaxCount: 100}
 
 	cs, err := spec.DevnetChainSpec()

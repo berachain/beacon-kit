@@ -30,6 +30,7 @@ import (
 )
 
 func Test_ObjectPath(t *testing.T) {
+	t.Parallel()
 	nested := schema.DefineContainer(
 		schema.NewField("bytes32", schema.B32()),
 		schema.NewField("uint64", schema.U64()),
@@ -72,6 +73,7 @@ func Test_ObjectPath(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(strings.ReplaceAll(tc.path, "/", "."), func(t *testing.T) {
+			t.Parallel()
 			objectPath := merkle.ObjectPath[uint64, [32]byte](tc.path)
 			typ, gindex, offset, err := objectPath.GetGeneralizedIndex(root)
 

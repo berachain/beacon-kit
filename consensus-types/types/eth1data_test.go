@@ -31,6 +31,7 @@ import (
 )
 
 func TestEth1Data_Serialization(t *testing.T) {
+	t.Parallel()
 	original := types.NewEth1Data(common.Root{})
 	data, err := original.MarshalSSZ()
 	require.NoError(t, err)
@@ -50,18 +51,21 @@ func TestEth1Data_Serialization(t *testing.T) {
 }
 
 func TestEth1Data_UnmarshalError(t *testing.T) {
+	t.Parallel()
 	var unmarshalled types.Eth1Data
 	err := unmarshalled.UnmarshalSSZ([]byte{})
 	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
 
 func TestEth1Data_SizeSSZ(t *testing.T) {
+	t.Parallel()
 	eth1Data := types.NewEth1Data(common.Root{})
 	size := karalabessz.Size(eth1Data)
 	require.Equal(t, uint32(72), size)
 }
 
 func TestEth1Data_HashTreeRoot(t *testing.T) {
+	t.Parallel()
 	eth1Data := types.NewEth1Data(common.Root{})
 
 	require.NotPanics(t, func() {
@@ -70,6 +74,7 @@ func TestEth1Data_HashTreeRoot(t *testing.T) {
 }
 
 func TestEth1Data_GetTree(t *testing.T) {
+	t.Parallel()
 	eth1Data := types.NewEth1Data(common.Root{})
 	tree, err := eth1Data.GetTree()
 
@@ -78,6 +83,7 @@ func TestEth1Data_GetTree(t *testing.T) {
 }
 
 func TestEth1Data_GetDepositCount(t *testing.T) {
+	t.Parallel()
 	eth1Data := &types.Eth1Data{
 		DepositRoot:  common.Root{},
 		DepositCount: 10,

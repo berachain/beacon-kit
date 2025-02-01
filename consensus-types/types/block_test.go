@@ -85,6 +85,7 @@ func generateValidBeaconBlock(t *testing.T) *types.BeaconBlock {
 }
 
 func TestBeaconBlockForDeneb(t *testing.T) {
+	t.Parallel()
 	deneb1 := version.Deneb1()
 	block, err := types.NewBeaconBlockWithVersion(
 		math.Slot(10),
@@ -98,6 +99,7 @@ func TestBeaconBlockForDeneb(t *testing.T) {
 }
 
 func TestBeaconBlock(t *testing.T) {
+	t.Parallel()
 	block := generateValidBeaconBlock(t)
 
 	require.NotNil(t, block.Body)
@@ -121,6 +123,7 @@ func TestBeaconBlock(t *testing.T) {
 }
 
 func TestBeaconBlock_MarshalUnmarshalSSZ(t *testing.T) {
+	t.Parallel()
 	block := *generateValidBeaconBlock(t)
 
 	sszBlock, err := block.MarshalSSZ()
@@ -137,17 +140,20 @@ func TestBeaconBlock_MarshalUnmarshalSSZ(t *testing.T) {
 }
 
 func TestBeaconBlock_HashTreeRoot(t *testing.T) {
+	t.Parallel()
 	block := generateValidBeaconBlock(t)
 	hashRoot := block.HashTreeRoot()
 	require.NotNil(t, hashRoot)
 }
 
 func TestBeaconBlock_IsNil(t *testing.T) {
+	t.Parallel()
 	var block *types.BeaconBlock
 	require.True(t, block.IsNil())
 }
 
 func TestNewWithVersion(t *testing.T) {
+	t.Parallel()
 	slot := math.Slot(10)
 	proposerIndex := math.ValidatorIndex(5)
 	parentBlockRoot := common.Root{1, 2, 3, 4, 5}
@@ -168,6 +174,7 @@ func TestNewWithVersion(t *testing.T) {
 }
 
 func TestNewWithVersionInvalidForkVersion(t *testing.T) {
+	t.Parallel()
 	slot := math.Slot(10)
 	proposerIndex := math.ValidatorIndex(5)
 	parentBlockRoot := common.Root{1, 2, 3, 4, 5}

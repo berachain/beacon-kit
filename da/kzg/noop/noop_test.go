@@ -29,6 +29,7 @@ import (
 )
 
 func TestVerifyBlobProof(t *testing.T) {
+	t.Parallel()
 	verifier := noop.NewVerifier()
 	err := verifier.VerifyBlobProof(
 		&eip4844.Blob{},
@@ -41,6 +42,7 @@ func TestVerifyBlobProof(t *testing.T) {
 }
 
 func TestVerifyBlobProofBatch(t *testing.T) {
+	t.Parallel()
 	verifier := noop.NewVerifier()
 	args := &types.BlobProofArgs{
 		Blobs:       []*eip4844.Blob{{}},

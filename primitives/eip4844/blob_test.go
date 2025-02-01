@@ -29,6 +29,7 @@ import (
 )
 
 func TestBlob_UnmarshalJSON(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		input    []byte
@@ -69,6 +70,7 @@ func TestBlob_UnmarshalJSON(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var b eip4844.Blob
 			err := b.UnmarshalJSON(tt.input)
 			if tt.wantErr {
@@ -83,6 +85,7 @@ func TestBlob_UnmarshalJSON(t *testing.T) {
 }
 
 func TestBlob_MarshalText(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		input    eip4844.Blob
@@ -164,6 +167,7 @@ func TestBlob_MarshalText(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			output, err := tt.input.MarshalText()
 			require.NoError(t, err, "Test case: %s", tt.name)
 			require.Equal(

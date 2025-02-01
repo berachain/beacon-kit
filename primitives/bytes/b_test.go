@@ -31,6 +31,7 @@ import (
 )
 
 func TestFromHex(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name       string
 		input      string
@@ -71,6 +72,7 @@ func TestFromHex(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, err := hex.ToBytes(tt.input)
 			if tt.wantErr != nil {
 				require.ErrorIs(t, err, tt.wantErr)
@@ -83,6 +85,7 @@ func TestFromHex(t *testing.T) {
 }
 
 func TestMustFromHex(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name        string
 		input       string
@@ -117,6 +120,7 @@ func TestMustFromHex(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var (
 				res []byte
 				f   = func() {
@@ -134,6 +138,7 @@ func TestMustFromHex(t *testing.T) {
 }
 
 func TestBytesUnmarshalJSONText(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name      string
 		input     []byte
@@ -163,6 +168,7 @@ func TestBytesUnmarshalJSONText(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			b := &bytes.Bytes{}
 			err := b.UnmarshalJSON(tt.input)
 			if tt.expectErr {
@@ -175,6 +181,7 @@ func TestBytesUnmarshalJSONText(t *testing.T) {
 }
 
 func TestReverseEndianness(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		input    []byte
@@ -196,6 +203,7 @@ func TestReverseEndianness(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := bytes.CopyAndReverseEndianess(tt.input)
 			require.Equal(t, tt.expected, result)
 		})
@@ -203,6 +211,7 @@ func TestReverseEndianness(t *testing.T) {
 }
 
 func TestHashTreeRoot(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name  string
 		input bytes.B32
@@ -222,6 +231,7 @@ func TestHashTreeRoot(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := tt.input.HashTreeRoot()
 			require.Equal(t, tt.want, result)
 		})
@@ -229,6 +239,7 @@ func TestHashTreeRoot(t *testing.T) {
 }
 
 func TestUnmarshalFixedJSON(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		typ      reflect.Type
@@ -265,6 +276,7 @@ func TestUnmarshalFixedJSON(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			err := bytes.UnmarshalFixedJSON(tt.input, tt.out)
 			if tt.wantErr {
 				require.Error(t, err)
@@ -277,6 +289,7 @@ func TestUnmarshalFixedJSON(t *testing.T) {
 }
 
 func TestUnmarshalFixedText(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		typename string
@@ -313,6 +326,7 @@ func TestUnmarshalFixedText(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			err := bytes.UnmarshalFixedText(tt.input, tt.out)
 			if tt.wantErr {
 				require.Error(t, err)
@@ -325,6 +339,7 @@ func TestUnmarshalFixedText(t *testing.T) {
 }
 
 func TestBytes_String(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		input    bytes.Bytes
@@ -354,6 +369,7 @@ func TestBytes_String(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := tt.input.String()
 			require.Equal(t, tt.expected, result)
 		})
@@ -361,6 +377,7 @@ func TestBytes_String(t *testing.T) {
 }
 
 func TestBytes_MarshalText(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		input   bytes.Bytes
@@ -395,6 +412,7 @@ func TestBytes_MarshalText(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, err := tt.input.MarshalText()
 			if tt.wantErr {
 				require.Error(t, err)

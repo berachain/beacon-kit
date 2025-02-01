@@ -86,6 +86,7 @@ func generateRealSignedBeaconBlock(t *testing.T, blsSigner crypto.BLSSigner) (*t
 
 // TestNewSignedBeaconBlockFromSSZ tests the roundtrip SSZ encoding for Deneb.
 func TestNewSignedBeaconBlockFromSSZ(t *testing.T) {
+	t.Parallel()
 	originalBlock := generateFakeSignedBeaconBlock(t)
 	blockBytes, err := originalBlock.MarshalSSZ()
 	require.NoError(t, err)
@@ -100,11 +101,13 @@ func TestNewSignedBeaconBlockFromSSZ(t *testing.T) {
 }
 
 func TestNewSignedBeaconBlockFromSSZForkVersionNotSupported(t *testing.T) {
+	t.Parallel()
 	_, err := types.NewSignedBeaconBlockFromSSZ([]byte{}, version.Altair())
 	require.ErrorIs(t, err, types.ErrForkVersionNotSupported)
 }
 
 func TestSignedBeaconBlock_HashTreeRoot(t *testing.T) {
+	t.Parallel()
 	sBlk := generateFakeSignedBeaconBlock(t)
 	sBlk.HashTreeRoot()
 }
@@ -112,6 +115,7 @@ func TestSignedBeaconBlock_HashTreeRoot(t *testing.T) {
 // TestSignedBeaconBlock_SignBeaconBlock ensures the validity of the block
 // signatures.
 func TestSignedBeaconBlock_SignBeaconBlock(t *testing.T) {
+	t.Parallel()
 	// Generate a new bls key signer
 	filePV, err := privval.GenFilePV(
 		"signed_beacon_block_test_filepv_key",
@@ -150,12 +154,14 @@ func TestSignedBeaconBlock_SignBeaconBlock(t *testing.T) {
 }
 
 func TestSignedBeaconBlock_SizeSSZ(t *testing.T) {
+	t.Parallel()
 	sBlk := generateFakeSignedBeaconBlock(t)
 	size := ssz.Size(sBlk)
 	require.Positive(t, size)
 }
 
 func TestSignedBeaconBlock_EmptySerialization(t *testing.T) {
+	t.Parallel()
 	orig := &types.SignedBeaconBlock{}
 	data, err := orig.MarshalSSZ()
 	require.NoError(t, err)

@@ -37,6 +37,7 @@ func generateSlashingInfo() *types.SlashingInfo {
 }
 
 func TestSlashingInfo_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name     string
 		data     *types.SlashingInfo
@@ -71,6 +72,7 @@ func TestSlashingInfo_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			data, err := tc.data.MarshalSSZ()
 			require.NoError(t, err)
 			require.NotNil(t, data)
@@ -97,6 +99,7 @@ func TestSlashingInfo_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 }
 
 func TestSlashingInfo_GetTree(t *testing.T) {
+	t.Parallel()
 	data := generateSlashingInfo()
 
 	tree, err := data.GetTree()
@@ -109,6 +112,7 @@ func TestSlashingInfo_GetTree(t *testing.T) {
 }
 
 func TestSlashingInfo_SetSlot(t *testing.T) {
+	t.Parallel()
 	data := generateSlashingInfo()
 
 	newSlot := math.Slot(67890)
@@ -118,6 +122,7 @@ func TestSlashingInfo_SetSlot(t *testing.T) {
 }
 
 func TestSlashingInfo_SetIndex(t *testing.T) {
+	t.Parallel()
 	data := generateSlashingInfo()
 
 	newIndex := math.U64(12345)

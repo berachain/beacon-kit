@@ -28,6 +28,7 @@ import (
 )
 
 func TestBytes32UnmarshalText(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		input   string
@@ -87,6 +88,7 @@ func TestBytes32UnmarshalText(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var got bytes.B32
 			err := got.UnmarshalText([]byte(tt.input))
 			if tt.wantErr {
@@ -100,6 +102,7 @@ func TestBytes32UnmarshalText(t *testing.T) {
 }
 
 func TestBytes32UnmarshalJSON(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		input   string
@@ -164,6 +167,7 @@ func TestBytes32UnmarshalJSON(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var got bytes.B32
 			err := got.UnmarshalJSON([]byte(tt.input))
 			if tt.wantErr {
@@ -177,6 +181,7 @@ func TestBytes32UnmarshalJSON(t *testing.T) {
 }
 
 func TestBytes32MarshalText(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name  string
 		input bytes.B32
@@ -199,6 +204,7 @@ func TestBytes32MarshalText(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, err := tt.input.MarshalText()
 			require.NoError(t, err)
 			require.Equal(t, tt.want, string(got))
@@ -207,6 +213,7 @@ func TestBytes32MarshalText(t *testing.T) {
 }
 
 func TestBytes32String(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name  string
 		input bytes.B32
@@ -229,6 +236,7 @@ func TestBytes32String(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := tt.input.String()
 			require.Equal(t, tt.want, got)
 		})
@@ -236,6 +244,7 @@ func TestBytes32String(t *testing.T) {
 }
 
 func TestToBytes32(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		input   []byte
@@ -264,6 +273,7 @@ func TestToBytes32(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result, err := bytes.ToBytes32(tt.input)
 			if tt.wantErr != nil {
 				require.ErrorIs(t, err, tt.wantErr)
@@ -276,6 +286,7 @@ func TestToBytes32(t *testing.T) {
 }
 
 func TestB32MarshalSSZ(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name  string
 		input bytes.B32
@@ -296,6 +307,7 @@ func TestB32MarshalSSZ(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, err := tt.input.MarshalSSZ()
 			require.NoError(t, err)
 			require.Equal(t, tt.want, got)

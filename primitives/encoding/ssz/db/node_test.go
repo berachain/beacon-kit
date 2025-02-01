@@ -31,6 +31,7 @@ import (
 )
 
 func Test_Schema_Paths(t *testing.T) {
+	t.Parallel()
 	nestedType := schema.DefineContainer(
 		schema.NewField("bytes32", schema.DefineByteVector(32)),
 		schema.NewField("uint64", schema.U64()),
@@ -71,6 +72,7 @@ func Test_Schema_Paths(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(strings.ReplaceAll(tc.path, "/", "."), func(t *testing.T) {
+			t.Parallel()
 			objectPath := merkle.ObjectPath[uint64, [32]byte](tc.path)
 			node, err := db.NewTreeNode(root, objectPath)
 			require.NoError(t, err)
@@ -94,6 +96,7 @@ func Test_Schema_Paths(t *testing.T) {
 }
 
 func TestNewTreeNodeEdgeCases(t *testing.T) {
+	t.Parallel()
 	nestedType := schema.DefineContainer(
 		schema.NewField("uint64", schema.U64()),
 		schema.NewField("bytes32", schema.B32()),
@@ -137,6 +140,7 @@ func TestNewTreeNodeEdgeCases(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			objectPath := merkle.ObjectPath[uint64, [32]byte](tc.path)
 			_, err := db.NewTreeNode(root, objectPath)
 			if tc.expectError {

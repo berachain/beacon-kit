@@ -34,6 +34,7 @@ import (
 )
 
 func TestNewValidatorFromDeposit(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name                      string
 		pubkey                    crypto.BLSPubkey
@@ -142,6 +143,7 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := types.NewValidatorFromDeposit(
 				tt.pubkey,
 				tt.withdrawalCredentials,
@@ -155,6 +157,7 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 }
 
 func TestValidator_IsActive(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name      string
 		epoch     math.Epoch
@@ -191,12 +194,14 @@ func TestValidator_IsActive(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			require.Equal(t, tt.want, tt.validator.IsActive(tt.epoch))
 		})
 	}
 }
 
 func TestValidator_IsEligibleForActivation(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name           string
 		finalizedEpoch math.Epoch
@@ -237,6 +242,7 @@ func TestValidator_IsEligibleForActivation(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			require.Equal(
 				t,
 				tt.want,
@@ -247,6 +253,7 @@ func TestValidator_IsEligibleForActivation(t *testing.T) {
 }
 
 func TestValidator_IsEligibleForActivationQueue(t *testing.T) {
+	t.Parallel()
 	maxEffectiveBalance := math.Gwei(32e9)
 	tests := []struct {
 		name      string
@@ -284,6 +291,7 @@ func TestValidator_IsEligibleForActivationQueue(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			require.Equal(
 				t,
 				tt.want,
@@ -294,6 +302,7 @@ func TestValidator_IsEligibleForActivationQueue(t *testing.T) {
 }
 
 func TestValidator_IsSlashable(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name      string
 		epoch     math.Epoch
@@ -343,12 +352,14 @@ func TestValidator_IsSlashable(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			require.Equal(t, tt.want, tt.validator.IsSlashable(tt.epoch))
 		})
 	}
 }
 
 func TestValidator_IsFullyWithdrawable(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name      string
 		balance   math.Gwei
@@ -409,6 +420,7 @@ func TestValidator_IsFullyWithdrawable(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			require.Equal(
 				t,
 				tt.want,
@@ -419,6 +431,7 @@ func TestValidator_IsFullyWithdrawable(t *testing.T) {
 }
 
 func TestValidator_IsPartiallyWithdrawable(t *testing.T) {
+	t.Parallel()
 	maxEffectiveBalance := math.Gwei(32e9)
 	tests := []struct {
 		name      string
@@ -476,6 +489,7 @@ func TestValidator_IsPartiallyWithdrawable(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			require.Equal(
 				t,
 				tt.want,
@@ -489,6 +503,7 @@ func TestValidator_IsPartiallyWithdrawable(t *testing.T) {
 }
 
 func TestValidator_HasEth1WithdrawalCredentials(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name      string
 		validator *types.Validator
@@ -516,6 +531,7 @@ func TestValidator_HasEth1WithdrawalCredentials(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			require.Equal(
 				t,
 				tt.want,
@@ -526,6 +542,7 @@ func TestValidator_HasEth1WithdrawalCredentials(t *testing.T) {
 }
 
 func TestValidator_HasMaxEffectiveBalance(t *testing.T) {
+	t.Parallel()
 	maxEffectiveBalance := math.Gwei(32e9)
 	tests := []struct {
 		name      string
@@ -549,6 +566,7 @@ func TestValidator_HasMaxEffectiveBalance(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			require.Equal(
 				t,
 				tt.want,
@@ -559,6 +577,7 @@ func TestValidator_HasMaxEffectiveBalance(t *testing.T) {
 }
 
 func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name       string
 		validator  *types.Validator
@@ -657,6 +676,7 @@ func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if tt.invalidSSZ {
 				// Create a byte slice with an invalid size (not 121)
 				invalidSizeData := make([]byte, 120)
@@ -696,6 +716,7 @@ func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 }
 
 func TestValidator_HashTreeRoot(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name      string
 		validator *types.Validator
@@ -744,6 +765,7 @@ func TestValidator_HashTreeRoot(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			// Test HashTreeRoot
 			root := tt.validator.HashTreeRoot()
 			require.NotEqual(t, [32]byte{}, root)
@@ -762,6 +784,7 @@ func TestValidator_HashTreeRoot(t *testing.T) {
 }
 
 func TestValidator_SetEffectiveBalance(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name      string
 		balance   math.Gwei
@@ -787,6 +810,7 @@ func TestValidator_SetEffectiveBalance(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			tt.validator.SetEffectiveBalance(tt.balance)
 			require.Equal(t, tt.want, tt.validator.EffectiveBalance,
 				"Test case: %s", tt.name)
@@ -795,6 +819,7 @@ func TestValidator_SetEffectiveBalance(t *testing.T) {
 }
 
 func TestValidator_GetWithdrawableEpoch(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name      string
 		validator *types.Validator
@@ -817,6 +842,7 @@ func TestValidator_GetWithdrawableEpoch(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := tt.validator.GetWithdrawableEpoch()
 			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
 		})
@@ -824,6 +850,7 @@ func TestValidator_GetWithdrawableEpoch(t *testing.T) {
 }
 
 func TestValidator_GetWithdrawalCredentials(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name      string
 		validator *types.Validator
@@ -851,6 +878,7 @@ func TestValidator_GetWithdrawalCredentials(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := tt.validator.GetWithdrawalCredentials()
 			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
 		})
@@ -858,6 +886,7 @@ func TestValidator_GetWithdrawalCredentials(t *testing.T) {
 }
 
 func TestValidator_IsSlashed(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name      string
 		validator *types.Validator
@@ -880,6 +909,7 @@ func TestValidator_IsSlashed(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := tt.validator.IsSlashed()
 			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
 		})
@@ -887,6 +917,7 @@ func TestValidator_IsSlashed(t *testing.T) {
 }
 
 func TestValidator_GetPubkey(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name      string
 		validator *types.Validator
@@ -909,6 +940,7 @@ func TestValidator_GetPubkey(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := tt.validator.GetPubkey()
 			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
 		})
@@ -916,6 +948,7 @@ func TestValidator_GetPubkey(t *testing.T) {
 }
 
 func TestValidator_GetEffectiveBalance(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name      string
 		validator *types.Validator
@@ -945,6 +978,7 @@ func TestValidator_GetEffectiveBalance(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := tt.validator.GetEffectiveBalance()
 			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
 		})

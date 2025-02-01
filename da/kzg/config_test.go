@@ -28,6 +28,7 @@ import (
 )
 
 func TestDefaultConfig(t *testing.T) {
+	t.Parallel()
 	cfg := kzg.DefaultConfig()
 	require.Equal(
 		t,

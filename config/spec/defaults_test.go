@@ -29,6 +29,7 @@ import (
 )
 
 func TestDomainTypeConversion(t *testing.T) {
+	t.Parallel()
 	cs := spec.MainnetChainSpecData()
 	require.Equal(t, bytes.B4([]byte{0x00, 0x00, 0x00, 0x00}), cs.DomainTypeProposer)
 	require.Equal(t, bytes.B4([]byte{0x01, 0x00, 0x00, 0x00}), cs.DomainTypeAttester)

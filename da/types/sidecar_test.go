@@ -42,6 +42,7 @@ import (
 )
 
 func TestSidecarMarshalling(t *testing.T) {
+	t.Parallel()
 	// Create a sample BlobSidecar
 	blob := eip4844.Blob{}
 	for i := range blob {
@@ -141,6 +142,7 @@ type InclusionSink struct{}
 func (is InclusionSink) MeasureSince(_ string, _ time.Time, _ ...string) {}
 
 func TestHasValidInclusionProof(t *testing.T) {
+	t.Parallel()
 	spec, err := spec.DevnetChainSpec()
 	require.NoError(t, err)
 
@@ -226,6 +228,7 @@ func TestHasValidInclusionProof(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			sidecars := tt.sidecars(t)
 			for _, sidecar := range sidecars {
 				result := sidecar.HasValidInclusionProof()
@@ -241,6 +244,7 @@ func TestHasValidInclusionProof(t *testing.T) {
 // This test explains the calculation of the KZG commitment root's Merkle index
 // in the Body's Merkle tree based on the index of the KZG commitment list in the Body.
 func Test_KZGRootIndex(t *testing.T) {
+	t.Parallel()
 	// Level of the KZG commitment root's parent.
 	kzgParentRootLevel := log.ILog2Ceil(ctypes.KZGPositionDeneb)
 	require.NotEqual(t, 0, kzgParentRootLevel)
@@ -255,6 +259,7 @@ func Test_KZGRootIndex(t *testing.T) {
 }
 
 func TestHashTreeRoot(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name           string
 		sidecar        func(t *testing.T) *types.BlobSidecar
@@ -301,6 +306,7 @@ func TestHashTreeRoot(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			require.NotPanics(t, func() {
 				sidecar := tt.sidecar(t)
 				result := sidecar.HashTreeRoot()

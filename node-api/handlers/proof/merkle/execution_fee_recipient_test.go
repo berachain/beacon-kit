@@ -34,6 +34,7 @@ import (
 // TestExecutionFeeRecipientProof tests the ProveExecutionFeeRecipientInBlock
 // function and that the generated proof correctly verifies.
 func TestExecutionFeeRecipientProof(t *testing.T) {
+	t.Parallel()
 	var proof []common.Root
 
 	testCases := []struct {
