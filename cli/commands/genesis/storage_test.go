@@ -48,9 +48,7 @@ func TestSetDepositStorageCmd(t *testing.T) {
 	t.Run("should set deposit storage correctly", func(t *testing.T) {
 		t.Parallel()
 		// Create a temporary directory for test files
-		tmpDir, err := os.MkdirTemp("", "genesis-test-*")
-		require.NoError(t, err)
-		defer os.RemoveAll(tmpDir)
+		tmpDir := t.TempDir()
 
 		// Setup test files
 		mockGenesisPath := setupMockGenesis(t, tmpDir)
