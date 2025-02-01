@@ -79,6 +79,18 @@ type ExecutionPayload struct {
 	EpVersion common.Version `json:"-"`
 }
 
+func EnsureNotNilWithdrawals(p *ExecutionPayload) {
+	// Post Shanghai an EL explicitly check that Withdrawals are not nil
+	// (instead empty slices are fine). Currently BeaconKit duly builds
+	// a block with Withdrawals set to empty slice if there are no
+	// withdrawals) but as soon as the block is returned by CometBFT
+	// for verification, the SSZ decoding sets the empty slice to nil.
+	// This code change solves the issue.
+	if p.Withdrawals == nil {
+		p.Withdrawals = make([]*engineprimitives.Withdrawal, 0)
+	}
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                     SSZ                                    */
 /* -------------------------------------------------------------------------- */
@@ -134,15 +146,11 @@ func (p *ExecutionPayload) DefineSSZ(codec *ssz.Codec) {
 	)
 	ssz.DefineSliceOfStaticObjectsContent(codec, &p.Withdrawals, 16)
 
-	// Post Shangai an EL explicitly check that Withdrawals are not nil
-	// (instead empty slices are fine). Currently BeaconKit duly builds
-	// a block with Withdrawals set to empty slice if there are no
-	// withdrawals) but as soon as the block is returned by CometBFT
-	// for verification, the SSZ decoding sets the empty slice to nil.
-	// This code change solves the issue.
-	if p.Withdrawals == nil {
-		p.Withdrawals = make([]*engineprimitives.Withdrawal, 0)
-	}
+	// Note that at this state we don't have any guarantee that
+	// p.Withdrawal is not nil, which we require following Capella
+	// (empty list of withdrawals are fine). We ensure non-nillness
+	// in EnsureNotNilWithdrawals which is must be called wherever
+	// we deserialize an execution payload (or anything containing one).
 }
 
 // MarshalSSZ serializes the ExecutionPayload object into a slice of bytes.

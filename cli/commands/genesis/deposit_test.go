@@ -37,6 +37,7 @@ import (
 )
 
 func TestGenesisDeposit(t *testing.T) {
+	t.Parallel()
 	homeDir := t.TempDir()
 	t.Log("Home folder:", homeDir)
 

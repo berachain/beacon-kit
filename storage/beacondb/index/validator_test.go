@@ -24,7 +24,8 @@ import (
 	"testing"
 )
 
-func TestValidatorIndexes(_ *testing.T) {
+func TestValidatorIndexes(t *testing.T) {
+	t.Parallel()
 	// testName := "test"
 	// logger := log.NewTestLogger(t)
 	// keys := storetypes.NewKVStoreKeys(testName)

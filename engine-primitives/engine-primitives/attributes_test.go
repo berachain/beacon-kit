@@ -39,6 +39,7 @@ type payloadAttributesInput struct {
 }
 
 func TestPayloadAttributes(t *testing.T) {
+	t.Parallel()
 	// default valid data
 	validInput := payloadAttributesInput{
 		forkVersion:           version.Altair(),
@@ -92,6 +93,7 @@ func TestPayloadAttributes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			in := tt.input()
 			got, err := engineprimitives.NewPayloadAttributes(
 				in.forkVersion,
