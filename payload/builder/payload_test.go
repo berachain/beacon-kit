@@ -38,6 +38,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TODO cluster these tests into a single test table
 func TestRetrievePayloadSunnyPath(t *testing.T) {
 	t.Parallel()
 
