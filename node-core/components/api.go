@@ -62,7 +62,7 @@ type NodeAPIServerInput[
 
 	Engine   NodeAPIEngine[handlers.Context]
 	Config   *config.Config
-	Handlers []handlers.Handlers[handlers.Context]
+	Handlers []handlers.Handlers
 	Logger   LoggerT
 }
 

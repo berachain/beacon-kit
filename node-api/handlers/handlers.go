@@ -29,54 +29,50 @@ import (
 type Context = echo.Context
 
 // handlerFn enforces a signature for all handler functions.
-type handlerFn[ContextT any] func(c ContextT) (any, error)
+type handlerFn func(c Context) (any, error)
 
 // Handlers is an interface that all handlers must implement.
-type Handlers[ContextT any] interface {
+type Handlers interface {
 	// RegisterRoutes is a method that registers the routes for the handler.
 	RegisterRoutes(logger log.Logger)
-	RouteSet() *RouteSet[ContextT]
+	RouteSet() *RouteSet
 }
 
 // BaseHandler is a base handler for all handlers. It abstracts the route set
 // and logger from the handler.
-type BaseHandler[ContextT any] struct {
-	routes *RouteSet[ContextT]
+type BaseHandler struct {
+	routes *RouteSet
 	logger log.Logger
 }
 
 // NewBaseHandler initializes a new base handler with the given routes and
 // logger.
-func NewBaseHandler[ContextT any](
-	routes *RouteSet[ContextT],
-) *BaseHandler[ContextT] {
-	return &BaseHandler[ContextT]{
+func NewBaseHandler(routes *RouteSet) *BaseHandler {
+	return &BaseHandler{
 		routes: routes,
 	}
 }
 
 // NotImplemented is a placeholder for the beacon API.
-func (b *BaseHandler[ContextT]) NotImplemented(ContextT) (any, error) {
+func (b *BaseHandler) NotImplemented(Context) (any, error) {
 	return nil, errors.New("not implemented")
 }
 
 // RouteSet returns the route set for the base handler.
-func (b *BaseHandler[ContextT]) RouteSet() *RouteSet[ContextT] {
+func (b *BaseHandler) RouteSet() *RouteSet {
 	return b.routes
 }
 
 // Logger is used to access the logger for the base handler.
-func (b *BaseHandler[ContextT]) Logger() log.Logger {
+func (b *BaseHandler) Logger() log.Logger {
 	return b.logger
 }
 
-func (b *BaseHandler[ContextT]) SetLogger(logger log.Logger) {
+func (b *BaseHandler) SetLogger(logger log.Logger) {
 	b.logger = logger
 }
 
 // AddRoutes adds the given slice of routes to the base handler.
-func (b *BaseHandler[ContextT]) AddRoutes(
-	routes []*Route[ContextT],
-) {
+func (b *BaseHandler) AddRoutes(routes []*Route) {
 	b.routes.Routes = append(b.routes.Routes, routes...)
 }

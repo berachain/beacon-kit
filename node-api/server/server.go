@@ -42,7 +42,7 @@ func New(
 	config Config,
 	engine Engine[handlers.Context],
 	logger log.Logger,
-	handlers ...handlers.Handlers[handlers.Context],
+	handlers ...handlers.Handlers,
 ) *Server {
 	apiLogger := logger
 	if !config.Logging {

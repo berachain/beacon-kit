@@ -29,7 +29,7 @@ import (
 
 func (h *Handler) RegisterRoutes(logger log.Logger) {
 	h.SetLogger(logger)
-	h.BaseHandler.AddRoutes([]*handlers.Route[handlers.Context]{
+	h.BaseHandler.AddRoutes([]*handlers.Route{
 		{
 			Method:  http.MethodGet,
 			Path:    "bkit/v1/proof/block_proposer/:timestamp_id",

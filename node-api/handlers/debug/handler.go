@@ -24,7 +24,7 @@ import "github.com/berachain/beacon-kit/node-api/handlers"
 
 // Handler is the handler for the beacon API.
 type Handler struct {
-	*handlers.BaseHandler[handlers.Context]
+	*handlers.BaseHandler
 	backend Backend
 }
 
@@ -32,7 +32,7 @@ type Handler struct {
 func NewHandler(backend Backend) *Handler {
 	h := &Handler{
 		BaseHandler: handlers.NewBaseHandler(
-			handlers.NewRouteSet[handlers.Context](""),
+			handlers.NewRouteSet(""),
 		),
 		backend: backend,
 	}

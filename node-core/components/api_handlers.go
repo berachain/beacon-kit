@@ -43,8 +43,8 @@ type NodeAPIHandlersInput struct {
 	ProofAPIHandler   *proofapi.Handler
 }
 
-func ProvideNodeAPIHandlers(in NodeAPIHandlersInput) []handlers.Handlers[handlers.Context] {
-	return []handlers.Handlers[handlers.Context]{
+func ProvideNodeAPIHandlers(in NodeAPIHandlersInput) []handlers.Handlers {
+	return []handlers.Handlers{
 		in.BeaconAPIHandler,
 		in.BuilderAPIHandler,
 		in.ConfigAPIHandler,

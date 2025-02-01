@@ -735,7 +735,7 @@ type (
 	// Engine is a generic interface for an API engine.
 	NodeAPIEngine[ContextT NodeAPIContext] interface {
 		Run(addr string) error
-		RegisterRoutes(*handlers.RouteSet[ContextT], log.Logger)
+		RegisterRoutes(*handlers.RouteSet, log.Logger)
 	}
 
 	NodeAPIBackend interface {
