@@ -27,7 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 )
 
-// maxDelayBetweenBlocks is the maximum delay between two consequtive blocks.
+// maxDelayBetweenBlocks is the maximum delay between two consecutive blocks.
 // If the last block time minus the previous block time is greater than
 // maxDelayBetweenBlocks, then we reset `FinalizeBlockResponse.NextBlockDelay`
 // to default.
