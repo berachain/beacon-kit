@@ -24,7 +24,6 @@ package compare_test
 
 import (
 	"bytes"
-	"fmt"
 	"runtime"
 	"slices"
 	"testing"
@@ -51,7 +50,7 @@ var (
 
 func TestExecutionPayloadHashTreeRootZrnt(t *testing.T) {
 	t.Parallel()
-	fmt.Printf("Number of CPUs: %d\n", runtime.NumCPU())
+	t.Logf("Number of CPUs: %d\n", runtime.NumCPU())
 	f := func(payload *ctypes.ExecutionPayload, logsBloom [256]byte) bool {
 		// skip these cases lest we trigger a
 		// nil-pointer dereference in fastssz
