@@ -46,6 +46,7 @@ func getBuffer(usageType string) bufferI {
 
 // Test getting a slice of the internal re-usable buffer and modifying.
 func TestReusableGet(t *testing.T) {
+	t.Parallel()
 	buffer := getBuffer("reusable")
 
 	testCases := []struct {
@@ -88,6 +89,7 @@ func TestReusableGet(t *testing.T) {
 
 // Test getting a slice of the internal single-use buffer and modifying.
 func TestSingleuseGet(t *testing.T) {
+	t.Parallel()
 	buffer := getBuffer("singleuse")
 
 	testCases := []struct {

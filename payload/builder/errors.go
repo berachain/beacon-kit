@@ -37,4 +37,7 @@ var (
 	// ErrNilPayloadEnvelope is returned when a nil payload envelope is
 	// received.
 	ErrNilPayloadEnvelope = errors.New("received nil payload envelope")
+
+	// ErrNilWithdrawals is returned when nil withdrawals list is received.
+	ErrNilWithdrawals = errors.New("nil withdrawals received from execution client")
 )

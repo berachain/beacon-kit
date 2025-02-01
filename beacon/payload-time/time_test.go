@@ -32,6 +32,7 @@ import (
 // TestNextTimestampVerifies checks that next payload timestamp
 // built via payloadtime.Next always pass payloadtime.Verify.
 func TestNextTimestampVerifies(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name        string
 		times       func() (time.Time, time.Time)
@@ -68,6 +69,7 @@ func TestNextTimestampVerifies(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			consensusTime, parentPayloadTimestamp := tt.times()
 
 			// Optimistic build case
