@@ -30,6 +30,7 @@ import (
 )
 
 func TestIsBefore(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		a, b     common.Version
@@ -87,6 +88,7 @@ func TestIsBefore(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			result := version.IsBefore(tc.a, tc.b)
 			require.Equal(t, tc.expected, result)
 		})
@@ -94,6 +96,7 @@ func TestIsBefore(t *testing.T) {
 }
 
 func TestEquals(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		a, b     common.Version
@@ -133,6 +136,7 @@ func TestEquals(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			result := version.Equals(tc.a, tc.b)
 			require.Equal(t, tc.expected, result)
 		})
@@ -140,6 +144,7 @@ func TestEquals(t *testing.T) {
 }
 
 func TestIsAfter(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		a, b     common.Version
@@ -173,6 +178,7 @@ func TestIsAfter(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			result := version.IsAfter(tc.a, tc.b)
 			require.Equal(t, tc.expected, result)
 		})
@@ -180,6 +186,7 @@ func TestIsAfter(t *testing.T) {
 }
 
 func TestSort(t *testing.T) {
+	t.Parallel()
 	// Recommended function implementing cmp from the comments.
 	cmp := func(a, b common.Version) int {
 		if version.IsBefore(a, b) {
@@ -247,6 +254,7 @@ func TestSort(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			// Sort the input slice using the cmp function
 			slices.SortFunc(tc.input, cmp)
 			require.Equal(t, tc.expected, tc.input)
