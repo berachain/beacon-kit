@@ -88,6 +88,10 @@ func (n *node) Start(
 	return nil
 }
 
+func (n *node) FetchService(service interface{}) error {
+	return n.registry.FetchService(service)
+}
+
 // listenForQuitSignals listens for SIGINT and SIGTERM. When a signal is
 // received,
 // the cleanup function is called, indicating the caller can gracefully exit or
