@@ -67,7 +67,7 @@ func DefaultComponents() []any {
 		components.ProvideNodeAPIBeaconHandler,
 		components.ProvideNodeAPIBuilderHandler,
 		components.ProvideNodeAPIConfigHandler,
-		components.ProvideNodeAPIDebugHandler[NodeAPIContext],
+		components.ProvideNodeAPIDebugHandler,
 		components.ProvideNodeAPIEventsHandler[NodeAPIContext],
 		components.ProvideNodeAPINodeHandler[NodeAPIContext],
 		components.ProvideNodeAPIProofHandler[NodeAPIContext],

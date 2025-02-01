@@ -21,11 +21,12 @@
 package debug
 
 import (
+	"github.com/berachain/beacon-kit/node-api/engines/echo"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 )
 
-func (h *Handler[ContextT]) GetState(c ContextT) (any, error) {
+func (h *Handler) GetState(c echo.Context) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetStateRequest](
 		c, h.Logger(),
 	)
@@ -46,8 +47,8 @@ func (h *Handler[ContextT]) GetState(c ContextT) (any, error) {
 	}
 	return beacontypes.StateResponse{
 		// TODO: The version should be retrieved based on the slot
-		Version:             "deneb", // stubbed
-		ExecutionOptimistic: false,   // stubbed
+		Version:             "deneb1", // stubbed
+		ExecutionOptimistic: false,    // stubbed
 		// TODO: We can set to finalized if this is less than the highest height
 		Finalized: false, // stubbed
 		Data:      beaconState,
