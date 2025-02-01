@@ -80,22 +80,43 @@ func (em *engineMetrics) markNewPayloadValid(
 	)
 }
 
-// markNewPayloadAcceptedSyncingPayloadStatus increments
+// markNewPayloadSyncingPayloadStatus increments
 // the counter for accepted syncing payload status.
-func (em *engineMetrics) markNewPayloadAcceptedSyncingPayloadStatus(
+func (em *engineMetrics) markNewPayloadSyncingPayloadStatus(
 	payloadHash common.ExecutionHash,
 	parentHash common.ExecutionHash,
 	isOptimistic bool,
 ) {
 	em.errorLoggerFn(isOptimistic)(
-		"Received accepted syncing payload status",
+		"Received syncing payload status",
 		"payload_block_hash", payloadHash,
 		"parent_hash", parentHash,
 		"is_optimistic", isOptimistic,
 	)
 
 	em.sink.IncrementCounter(
-		"beacon_kit.execution.engine.new_payload_accepted_syncing_payload_status",
+		"beacon_kit.execution.engine.new_payload_syncing_payload_status",
+		"is_optimistic",
+		strconv.FormatBool(isOptimistic),
+	)
+}
+
+// markNewPayloadAcceptedPayloadStatus increments
+// the counter for accepted syncing payload status.
+func (em *engineMetrics) markNewPayloadAcceptedPayloadStatus(
+	payloadHash common.ExecutionHash,
+	parentHash common.ExecutionHash,
+	isOptimistic bool,
+) {
+	em.errorLoggerFn(isOptimistic)(
+		"Received accepted payload status",
+		"payload_block_hash", payloadHash,
+		"parent_hash", parentHash,
+		"is_optimistic", isOptimistic,
+	)
+
+	em.sink.IncrementCounter(
+		"beacon_kit.execution.engine.new_payload_accepted_payload_status",
 		"is_optimistic",
 		strconv.FormatBool(isOptimistic),
 	)
@@ -198,14 +219,14 @@ func (em *engineMetrics) markForkchoiceUpdateValid(
 	)
 }
 
-// markForkchoiceUpdateAcceptedSyncing increments
+// markForkchoiceUpdateSyncing increments
 // the counter for accepted syncing forkchoice updates.
-func (em *engineMetrics) markForkchoiceUpdateAcceptedSyncing(
+func (em *engineMetrics) markForkchoiceUpdateSyncing(
 	state *engineprimitives.ForkchoiceStateV1,
 	err error,
 ) {
 	em.errorLoggerFn(true)(
-		"Received accepted syncing payload status during forkchoice update call",
+		"Received syncing payload status during forkchoice update call",
 		"head_block_hash",
 		state.HeadBlockHash,
 		"safe_block_hash",
@@ -217,7 +238,7 @@ func (em *engineMetrics) markForkchoiceUpdateAcceptedSyncing(
 	)
 
 	em.sink.IncrementCounter(
-		"beacon_kit.execution.engine.forkchoice_update_accepted_syncing",
+		"beacon_kit.execution.engine.forkchoice_update_syncing",
 		"error",
 		err.Error(),
 	)

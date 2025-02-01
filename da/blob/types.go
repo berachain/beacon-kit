@@ -58,7 +58,7 @@ type Sidecars[SidecarT any] interface {
 type ChainSpec interface {
 	MaxBlobCommitmentsPerBlock() uint64
 	DomainTypeProposer() common.DomainType
-	ActiveForkVersionForSlot(slot math.Slot) uint32
+	ActiveForkVersionForSlot(slot math.Slot) common.Version
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.

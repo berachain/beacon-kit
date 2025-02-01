@@ -41,6 +41,7 @@ func generateSigningData() *types.SigningData {
 	}
 }
 func TestSigningData_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name     string
 		data     *types.SigningData
@@ -75,6 +76,7 @@ func TestSigningData_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			data, err := tc.data.MarshalSSZ()
 			require.NoError(t, err)
 			require.NotNil(t, data)

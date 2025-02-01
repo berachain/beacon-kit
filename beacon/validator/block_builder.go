@@ -181,7 +181,7 @@ func (s *Service) buildForkData(st *statedb.StateDB, slot math.Slot) (*ctypes.Fo
 	}
 
 	return ctypes.NewForkData(
-		bytes.FromUint32(s.chainSpec.ActiveForkVersionForSlot(slot)),
+		s.chainSpec.ActiveForkVersionForSlot(slot),
 		genesisValidatorsRoot,
 	), nil
 }
