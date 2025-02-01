@@ -21,18 +21,18 @@
 package node
 
 import (
+	"github.com/berachain/beacon-kit/node-api/engines/echo"
 	"github.com/berachain/beacon-kit/node-api/handlers"
-	"github.com/berachain/beacon-kit/node-api/server/context"
 )
 
-type Handler[ContextT context.Context] struct {
-	*handlers.BaseHandler[ContextT]
+type Handler struct {
+	*handlers.BaseHandler[echo.Context]
 }
 
-func NewHandler[ContextT context.Context]() *Handler[ContextT] {
-	h := &Handler[ContextT]{
+func NewHandler() *Handler {
+	h := &Handler{
 		BaseHandler: handlers.NewBaseHandler(
-			handlers.NewRouteSet[ContextT](""),
+			handlers.NewRouteSet[echo.Context](""),
 		),
 	}
 	return h
