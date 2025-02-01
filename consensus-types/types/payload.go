@@ -80,7 +80,7 @@ type ExecutionPayload struct {
 }
 
 func EnsureNotNilWithdrawals(p *ExecutionPayload) {
-	// Post Shangai an EL explicitly check that Withdrawals are not nil
+	// Post Shanghai an EL explicitly check that Withdrawals are not nil
 	// (instead empty slices are fine). Currently BeaconKit duly builds
 	// a block with Withdrawals set to empty slice if there are no
 	// withdrawals) but as soon as the block is returned by CometBFT
