@@ -21,11 +21,12 @@
 package beacon
 
 import (
+	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 )
 
-func (h *Handler[ContextT]) GetBlockHeaders(c ContextT) (any, error) {
+func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetBlockHeadersRequest](
 		c, h.Logger(),
 	)
@@ -54,7 +55,7 @@ func (h *Handler[ContextT]) GetBlockHeaders(c ContextT) (any, error) {
 	}, nil
 }
 
-func (h *Handler[ContextT]) GetBlockHeaderByID(c ContextT) (any, error) {
+func (h *Handler) GetBlockHeaderByID(c handlers.Context) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetBlockHeaderRequest](
 		c, h.Logger(),
 	)
