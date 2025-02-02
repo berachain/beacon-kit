@@ -29,6 +29,7 @@ import (
 )
 
 func TestPayloadIDCache(t *testing.T) {
+	t.Parallel()
 	cacheUnderTest := cache.NewPayloadIDCache[[32]byte, uint64]()
 
 	t.Run("Get from empty cache", func(t *testing.T) {

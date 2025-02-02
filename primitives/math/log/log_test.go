@@ -27,6 +27,7 @@ import (
 )
 
 func TestILog2Ceil(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		input    uint64
 		expected uint8
@@ -55,6 +56,7 @@ func TestILog2Ceil(t *testing.T) {
 }
 
 func TestILog2Floor(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		input    uint64
 		expected uint8

@@ -54,6 +54,7 @@ func (kvs *testKVStoreService) OpenKVStore(context.Context) corestore.KVStore {
 var testStoreKey = storetypes.NewKVStoreKey("storage-tests")
 
 func TestBalances(t *testing.T) {
+	t.Parallel()
 	store, err := initTestStore()
 	require.NoError(t, err)
 
@@ -107,6 +108,7 @@ func TestBalances(t *testing.T) {
 }
 
 func TestValidators(t *testing.T) {
+	t.Parallel()
 	store, err := initTestStore()
 	require.NoError(t, err)
 
