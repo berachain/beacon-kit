@@ -27,9 +27,9 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers"
 )
 
-func (h *Handler[ContextT]) RegisterRoutes(logger log.Logger) {
+func (h *Handler) RegisterRoutes(logger log.Logger) {
 	h.SetLogger(logger)
-	h.BaseHandler.AddRoutes([]*handlers.Route[ContextT]{
+	h.BaseHandler.AddRoutes([]*handlers.Route{
 		{
 			Method:  http.MethodGet,
 			Path:    "bkit/v1/proof/block_proposer/:timestamp_id",
