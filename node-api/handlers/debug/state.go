@@ -18,24 +18,38 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package rpc
+package debug
 
 import (
-	"time"
-
-	"github.com/berachain/beacon-kit/primitives/net/jwt"
+	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 )
 
-// WithJWTSecret sets the JWT secret for the RPC client.
-func WithJWTSecret(secret *jwt.Secret) func(rpc *Client) {
-	return func(rpc *Client) {
-		rpc.jwtSecret = secret
+func (h *Handler[ContextT]) GetState(c ContextT) (any, error) {
+	req, err := utils.BindAndValidate[beacontypes.GetStateRequest](
+		c, h.Logger(),
+	)
+	if err != nil {
+		return nil, err
 	}
-}
-
-// WithJWTRefreshInterval sets the JWT refresh interval for the RPC client.
-func WithJWTRefreshInterval(interval time.Duration) func(rpc *Client) {
-	return func(rpc *Client) {
-		rpc.jwtRefreshInterval = interval
+	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
+	if err != nil {
+		return nil, err
 	}
+	state, err := h.backend.StateAtSlot(slot)
+	if err != nil {
+		return nil, err
+	}
+	beaconState, err := state.GetMarshallable()
+	if err != nil {
+		return nil, err
+	}
+	return beacontypes.StateResponse{
+		// TODO: The version should be retrieved based on the slot
+		Version:             "deneb", // stubbed
+		ExecutionOptimistic: false,   // stubbed
+		// TODO: We can set to finalized if this is less than the highest height
+		Finalized: false, // stubbed
+		Data:      beaconState,
+	}, nil
 }

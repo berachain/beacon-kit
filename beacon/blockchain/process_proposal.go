@@ -66,12 +66,11 @@ func (s *Service) ProcessProposal(
 	}
 
 	// Decode signed block and sidecars.
-	signedBlk, sidecars, err := encoding.
-		ExtractBlobsAndBlockFromRequest(
-			req,
-			BeaconBlockTxIndex,
-			BlobSidecarsTxIndex,
-			s.chainSpec.ActiveForkVersionForSlot(math.Slot(req.Height))) // #nosec G115
+	signedBlk, sidecars, err := encoding.ExtractBlobsAndBlockFromRequest(
+		req,
+		BeaconBlockTxIndex,
+		BlobSidecarsTxIndex,
+		s.chainSpec.ActiveForkVersionForSlot(math.Slot(req.Height))) // #nosec G115
 	if err != nil {
 		return err
 	}
@@ -123,7 +122,7 @@ func (s *Service) ProcessProposal(
 		// the currently active fork). ProcessProposal should only
 		// keep the state changes as candidates (which is what we do in
 		// VerifyIncomingBlock).
-		err = s.VerifyIncomingBlobSidecars(sidecars, blk.GetHeader(), blk.GetBody().GetBlobKzgCommitments())
+		err = s.VerifyIncomingBlobSidecars(ctx, sidecars, blk.GetHeader(), blk.GetBody().GetBlobKzgCommitments())
 		if err != nil {
 			s.logger.Error("failed to verify incoming blob sidecars", "error", err)
 			return err
@@ -162,12 +161,17 @@ func (s *Service) VerifyIncomingBlockSignature(
 	if err != nil {
 		return errors.New("failed to create block signature verifier")
 	}
-	return signatureVerifierFn(beaconBlk, signature)
+	err = signatureVerifierFn(beaconBlk, signature)
+	if err != nil {
+		return fmt.Errorf("failed verifying incoming block signature: %w", err)
+	}
+	return err
 }
 
 // VerifyIncomingBlobSidecars verifies the BlobSidecars of an incoming
 // proposal and logs the process.
 func (s *Service) VerifyIncomingBlobSidecars(
+	ctx context.Context,
 	sidecars datypes.BlobSidecars,
 	blkHeader *ctypes.BeaconBlockHeader,
 	kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],
@@ -175,7 +179,7 @@ func (s *Service) VerifyIncomingBlobSidecars(
 	s.logger.Info("Received incoming blob sidecars")
 
 	// Verify the blobs and ensure they match the local state.
-	err := s.blobProcessor.VerifySidecars(sidecars, blkHeader, kzgCommitments)
+	err := s.blobProcessor.VerifySidecars(ctx, sidecars, blkHeader, kzgCommitments)
 	if err != nil {
 		s.logger.Error(
 			"rejecting incoming blob sidecars",

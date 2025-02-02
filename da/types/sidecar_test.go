@@ -25,8 +25,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/berachain/beacon-kit/chain"
-	spec2 "github.com/berachain/beacon-kit/config/spec"
+	"github.com/berachain/beacon-kit/config/spec"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/da/blob"
 	"github.com/berachain/beacon-kit/da/types"
@@ -37,11 +36,13 @@ import (
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/math/log"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestSidecarMarshalling(t *testing.T) {
+	t.Parallel()
 	// Create a sample BlobSidecar
 	blob := eip4844.Blob{}
 	for i := range blob {
@@ -85,39 +86,47 @@ func TestSidecarMarshalling(t *testing.T) {
 	)
 }
 
-func generateValidBeaconBlock() *ctypes.BeaconBlock {
+func generateValidBeaconBlock(t *testing.T) *ctypes.BeaconBlock {
+	t.Helper()
+
 	// Initialize your block here
-	beaconBlock := &ctypes.BeaconBlock{
-		Slot:          10,
-		ProposerIndex: 5,
-		ParentRoot:    common.Root{1, 2, 3, 4, 5},
-		StateRoot:     common.Root{5, 4, 3, 2, 1},
-		Body: &ctypes.BeaconBlockBody{
-			ExecutionPayload: &ctypes.ExecutionPayload{
-				Timestamp: 10,
-				ExtraData: []byte("dummy extra data for testing"),
-				Transactions: [][]byte{
-					[]byte("tx1"),
-					[]byte("tx2"),
-					[]byte("tx3"),
-				},
-				Withdrawals: engineprimitives.Withdrawals{
-					{Index: 0, Amount: 100},
-					{Index: 1, Amount: 200},
-				},
-				BaseFeePerGas: math.NewU256(0),
+	deneb1 := version.Deneb1()
+	beaconBlock, err := ctypes.NewBeaconBlockWithVersion(
+		math.Slot(10),
+		math.ValidatorIndex(5),
+		common.Root{1, 2, 3, 4, 5}, // parent root
+		deneb1,
+	)
+	require.NoError(t, err)
+
+	beaconBlock.StateRoot = common.Root{5, 4, 3, 2, 1}
+	beaconBlock.Body = &ctypes.BeaconBlockBody{
+		ExecutionPayload: &ctypes.ExecutionPayload{
+			Timestamp: 10,
+			ExtraData: []byte("dummy extra data for testing"),
+			Transactions: [][]byte{
+				[]byte("tx1"),
+				[]byte("tx2"),
+				[]byte("tx3"),
 			},
-			Eth1Data: &ctypes.Eth1Data{},
-			Deposits: []*ctypes.Deposit{
-				{
-					Index: 1,
-				},
+			Withdrawals: engineprimitives.Withdrawals{
+				{Index: 0, Amount: 100},
+				{Index: 1, Amount: 200},
 			},
-			BlobKzgCommitments: []eip4844.KZGCommitment{
-				{0xab, 0xab, 0xab, 0xab, 0xab, 0xab, 0xab, 0xab}, {2}, {0x69},
+			BaseFeePerGas: math.NewU256(0),
+			EpVersion:     deneb1,
+		},
+		Eth1Data: &ctypes.Eth1Data{},
+		Deposits: []*ctypes.Deposit{
+			{
+				Index: 1,
 			},
 		},
+		BlobKzgCommitments: []eip4844.KZGCommitment{
+			{0xab, 0xab, 0xab, 0xab, 0xab, 0xab, 0xab, 0xab}, {2}, {0x69},
+		},
 	}
+
 	body := beaconBlock.GetBody()
 	body.SetProposerSlashings(ctypes.ProposerSlashings{})
 	body.SetAttesterSlashings(ctypes.AttesterSlashings{})
@@ -133,8 +142,8 @@ type InclusionSink struct{}
 func (is InclusionSink) MeasureSince(_ string, _ time.Time, _ ...string) {}
 
 func TestHasValidInclusionProof(t *testing.T) {
-	specVals := spec2.BaseSpec()
-	spec, err := chain.NewSpec(specVals)
+	t.Parallel()
+	spec, err := spec.DevnetChainSpec()
 	require.NoError(t, err)
 
 	sink := InclusionSink{}
@@ -191,12 +200,9 @@ func TestHasValidInclusionProof(t *testing.T) {
 			name: "Valid inclusion proof",
 			sidecars: func(t *testing.T) types.BlobSidecars {
 				t.Helper()
-				block := generateValidBeaconBlock()
+				block := generateValidBeaconBlock(t)
 
-				sidecarFactory := blob.NewSidecarFactory(
-					spec,
-					sink,
-				)
+				sidecarFactory := blob.NewSidecarFactory(spec, sink)
 				numBlobs := len(block.GetBody().GetBlobKzgCommitments())
 				sidecars := make(types.BlobSidecars, numBlobs)
 				for i := range numBlobs {
@@ -222,6 +228,7 @@ func TestHasValidInclusionProof(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			sidecars := tt.sidecars(t)
 			for _, sidecar := range sidecars {
 				result := sidecar.HasValidInclusionProof()
@@ -237,6 +244,7 @@ func TestHasValidInclusionProof(t *testing.T) {
 // This test explains the calculation of the KZG commitment root's Merkle index
 // in the Body's Merkle tree based on the index of the KZG commitment list in the Body.
 func Test_KZGRootIndex(t *testing.T) {
+	t.Parallel()
 	// Level of the KZG commitment root's parent.
 	kzgParentRootLevel := log.ILog2Ceil(ctypes.KZGPositionDeneb)
 	require.NotEqual(t, 0, kzgParentRootLevel)
@@ -251,6 +259,7 @@ func Test_KZGRootIndex(t *testing.T) {
 }
 
 func TestHashTreeRoot(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name           string
 		sidecar        func(t *testing.T) *types.BlobSidecar
@@ -297,6 +306,7 @@ func TestHashTreeRoot(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			require.NotPanics(t, func() {
 				sidecar := tt.sidecar(t)
 				result := sidecar.HashTreeRoot()

@@ -33,6 +33,7 @@ import (
 // TestProveBeaconStateInBlock tests the ProveBeaconStateInBlock function and
 // that the generated proof correctly verifies.
 func TestProveBeaconStateInBlock(t *testing.T) {
+	t.Parallel()
 	bbh := (&types.BeaconBlockHeader{}).Empty()
 
 	testCases := []struct {

@@ -18,30 +18,29 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package version
+package deposit
 
 import (
-	"encoding/binary"
+	"github.com/berachain/beacon-kit/chain"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/spf13/cobra"
 )
 
-const (
-	Phase0 uint32 = iota
-	Altair
-	Bellatrix
-	Capella
-	Deneb
-	DenebPlus
-	Electra
-)
+// Commands creates a new command for deposit related actions.
+func Commands(chainSpec chain.Spec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:                        "deposit",
+		Short:                      "deposit subcommands",
+		DisableFlagParsing:         false,
+		SuggestionsMinimumDistance: 2, //nolint:mnd // from sdk.
+		RunE:                       client.ValidateCmd,
+	}
 
-// FromUint32 returns a Version from a uint32.
-func FromUint32[VersionT ~[4]byte](version uint32) VersionT {
-	versionBz := VersionT{}
-	binary.LittleEndian.PutUint32(versionBz[:], version)
-	return versionBz
-}
+	cmd.AddCommand(
+		NewValidateDeposit(chainSpec),
+		NewCreateValidator(chainSpec),
+		GetValidatorKeysCmd(),
+	)
 
-// ToUint32 returns a uint32 from a Version.
-func ToUint32[VersionT ~[4]byte](version VersionT) uint32 {
-	return binary.LittleEndian.Uint32(version[:])
+	return cmd
 }

@@ -34,6 +34,7 @@ import (
 )
 
 func TestVerifyBlobKZGProof(t *testing.T) {
+	t.Parallel()
 	validBlob, validProof, validCommitment := setupTestData(
 		t, "test_data.json")
 
@@ -55,6 +56,7 @@ func TestVerifyBlobKZGProof(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			err := globalVerifier.VerifyBlobProof(
 				tc.blob,
 				tc.proof,
@@ -75,6 +77,7 @@ func TestVerifyBlobKZGProof(t *testing.T) {
 
 // TestVerifyBlobProofBatch tests the valid proofs in batch.
 func TestVerifyBlobProofBatch(t *testing.T) {
+	t.Parallel()
 	if globalVerifier == nil {
 		t.Fatal("globalVerifier is not initialized")
 	}
@@ -128,6 +131,7 @@ func TestVerifyBlobProofBatch(t *testing.T) {
 // TestVerifyBlobKZGInvalidProof tests the VerifyBlobProof function for invalid
 // proofs.
 func TestVerifyBlobKZGInvalidProof(t *testing.T) {
+	t.Parallel()
 	validBlob, invalidProof, validCommitment := setupTestData(
 		t, "test_data_incorrect_proof.json")
 	testCases := []struct {
@@ -148,6 +152,7 @@ func TestVerifyBlobKZGInvalidProof(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			err := globalVerifier.VerifyBlobProof(
 				tc.blob,
 				tc.proof,
@@ -163,6 +168,7 @@ func TestVerifyBlobKZGInvalidProof(t *testing.T) {
 }
 
 func TestGetImplementation(t *testing.T) {
+	t.Parallel()
 	require.NotNil(t, globalVerifier)
 	require.Equal(t, "ethereum/c-kzg-4844", globalVerifier.GetImplementation())
 }

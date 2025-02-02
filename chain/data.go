@@ -90,8 +90,8 @@ type SpecData struct {
 
 	// Fork-related values.
 	//
-	// DenebPlus is the epoch at which the Deneb+ fork is activated.
-	DenebPlusForkEpoch uint64 `mapstructure:"deneb-plus-fork-epoch"`
+	// Deneb1ForkEpoch is the epoch at which the Deneb1 fork is activated.
+	Deneb1ForkEpoch uint64 `mapstructure:"deneb-one-fork-epoch"`
 	// ElectraForkEpoch is the epoch at which the Electra fork is activated.
 	ElectraForkEpoch uint64 `mapstructure:"electra-fork-epoch"`
 
@@ -143,16 +143,25 @@ type SpecData struct {
 	// KZGCommitmentInclusionProofDepth is the depth of the KZG inclusion proof.
 	KZGCommitmentInclusionProofDepth uint64 `mapstructure:"kzg-commitment-inclusion-proof-depth"`
 
-	// Berachain Values
+	// Berachain Values at genesis
 	//
 	// ValidatorSetCap is the maximum number of validators that can be active
 	// for a given epoch
 	// Note: ValidatorSetCap must be smaller than ValidatorRegistryLimit.
-	ValidatorSetCap uint64 `mapstructure:"validator-set-cap-size"`
-	// EVMInflationAddress is the address on the EVM which will receive the
+	ValidatorSetCap uint64 `mapstructure:"validator-set-cap"`
+	// EVMInflationAddressGenesis is the address on the EVM which will receive the
 	// inflation amount of native EVM balance through a withdrawal every block.
-	EVMInflationAddress common.ExecutionAddress `mapstructure:"evm-inflation-address"`
-	// EVMInflationPerBlock is the amount of native EVM balance (in Gwei) to be
+	EVMInflationAddressGenesis common.ExecutionAddress `mapstructure:"evm-inflation-address"`
+	// EVMInflationPerBlockGenesis is the amount of native EVM balance (in Gwei) to be
 	// minted to the EVMInflationAddress via a withdrawal every block.
-	EVMInflationPerBlock uint64 `mapstructure:"evm-inflation-per-block"`
+	EVMInflationPerBlockGenesis uint64 `mapstructure:"evm-inflation-per-block"`
+
+	// Deneb1 Value Changes
+	//
+	// EVMInflationAddressDeneb1 is the address on the EVM which will receive the
+	// inflation amount of native EVM balance through a withdrawal every block in the Deneb1 fork.
+	EVMInflationAddressDeneb1 common.ExecutionAddress `mapstructure:"evm-inflation-address-deneb-one"`
+	// EVMInflationPerBlockDeneb1 is the amount of native EVM balance (in Gwei) to be
+	// minted to the EVMInflationAddressDeneb1 via a withdrawal every block in the Deneb1 fork.
+	EVMInflationPerBlockDeneb1 uint64 `mapstructure:"evm-inflation-per-block-deneb-one"`
 }

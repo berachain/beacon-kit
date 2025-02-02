@@ -20,19 +20,16 @@
 # TITLE.
 
 
-/usr/bin/beacond init --chain-id $BEACOND_CHAIN_ID $BEACOND_MONIKER --home /tmp/config0/.beacond
-/usr/bin/beacond genesis add-premined-deposit $DEPOSIT_AMOUNT $WITHDRAWAL_ADDRESS --home /tmp/config0/.beacond
-cp -r /tmp/config0 /tmp/config_genesis
+# Sets the deposit storage in the the new eth-genesis file in the home directory.
+/usr/bin/beacond genesis set-deposit-storage $ETH_GENESIS --home /tmp/config_genesis/.beacond
 
-for ((i=1; i<$NUM_VALS; i++)); do
-    BEACOND_HOME=/tmp/config${i}/.beacond
-    echo $BEACOND_HOME
-    BEACOND_MONIKER=cl-validator-beaconkit-${i}
-    /usr/bin/beacond init --chain-id $BEACOND_CHAIN_ID $BEACOND_MONIKER --home $BEACOND_HOME
-    /usr/bin/beacond genesis add-premined-deposit $DEPOSIT_AMOUNT $WITHDRAWAL_ADDRESS --home $BEACOND_HOME
-    cp -r /tmp/config${i}/.beacond/config/premined-deposits/premined-deposit* /tmp/config_genesis/.beacond/config/premined-deposits/
-done
+# Get values directly from the storage fields
+DEPOSIT_COUNT=$(jq -r '.alloc["0x4242424242424242424242424242424242424242"].storage["0x0000000000000000000000000000000000000000000000000000000000000000"]' /tmp/config_genesis/.beacond/genesis.json)
+DEPOSIT_ROOT=$(jq -r '.alloc["0x4242424242424242424242424242424242424242"].storage["0x0000000000000000000000000000000000000000000000000000000000000001"]' /tmp/config_genesis/.beacond/genesis.json)
 
-/usr/bin/beacond genesis execution-payload $ETH_GENESIS --home /tmp/config_genesis/.beacond
-/usr/bin/beacond genesis collect-premined-deposits --home /tmp/config_genesis/.beacond
+/usr/bin/beacond genesis execution-payload /tmp/config_genesis/.beacond/genesis.json --home /tmp/config_genesis/.beacond
 
+# Write each value to separate files for easier parsing
+mkdir -p /tmp/values
+printf "%s" "$DEPOSIT_COUNT" > /tmp/values/deposit_count.txt
+printf "%s" "$DEPOSIT_ROOT" > /tmp/values/deposit_root.txt

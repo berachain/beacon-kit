@@ -18,13 +18,16 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package spec
+package debug
 
-import "github.com/berachain/beacon-kit/chain"
+import (
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/math"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
+)
 
-// BetnetChainSpec is the ChainSpec for the localnet.
-func BetnetChainSpec() (chain.Spec, error) {
-	testnetSpec := BaseSpec()
-	testnetSpec.DepositEth1ChainID = BetnetEth1ChainID
-	return chain.NewSpec(testnetSpec)
+// Backend is the interface for backend of the debug API.
+type Backend interface {
+	GetSlotByStateRoot(root common.Root) (math.Slot, error)
+	StateAtSlot(slot math.Slot) (*statedb.StateDB, error)
 }

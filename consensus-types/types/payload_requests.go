@@ -115,7 +115,7 @@ func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
 		gethprimitives.NewStackTrie(nil),
 	)
 
-	// Verify that the payload is telling the truth about it's block hash.
+	// Verify that the payload is telling the truth about its block hash.
 	//#nosec:G103 // its okay.
 	if block := gethprimitives.NewBlockWithHeader(
 		&gethprimitives.Header{
@@ -157,14 +157,14 @@ type ForkchoiceUpdateRequest struct {
 	PayloadAttributes *engineprimitives.PayloadAttributes
 	// ForkVersion is the fork version that we
 	// are going to be submitting for.
-	ForkVersion uint32
+	ForkVersion common.Version
 }
 
 // BuildForkchoiceUpdateRequest builds a forkchoice update request.
 func BuildForkchoiceUpdateRequest(
 	state *engineprimitives.ForkchoiceStateV1,
 	payloadAttributes *engineprimitives.PayloadAttributes,
-	forkVersion uint32,
+	forkVersion common.Version,
 ) *ForkchoiceUpdateRequest {
 	return &ForkchoiceUpdateRequest{
 		State:             state,
@@ -178,7 +178,7 @@ func BuildForkchoiceUpdateRequest(
 // any attributes.
 func BuildForkchoiceUpdateRequestNoAttrs(
 	state *engineprimitives.ForkchoiceStateV1,
-	forkVersion uint32,
+	forkVersion common.Version,
 ) *ForkchoiceUpdateRequest {
 	return &ForkchoiceUpdateRequest{
 		State:       state,
@@ -192,13 +192,13 @@ type GetPayloadRequest struct {
 	PayloadID engineprimitives.PayloadID
 	// ForkVersion is the fork version that we are
 	// currently on.
-	ForkVersion uint32
+	ForkVersion common.Version
 }
 
 // BuildGetPayloadRequest builds a get payload request.
 func BuildGetPayloadRequest(
 	payloadID engineprimitives.PayloadID,
-	forkVersion uint32,
+	forkVersion common.Version,
 ) *GetPayloadRequest {
 	return &GetPayloadRequest{
 		PayloadID:   payloadID,

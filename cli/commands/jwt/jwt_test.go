@@ -32,6 +32,7 @@ import (
 )
 
 func Test_NewGenerateJWTCommand(t *testing.T) {
+	t.Parallel()
 	t.Run(
 		"command should be available and have correct use",
 		func(t *testing.T) {

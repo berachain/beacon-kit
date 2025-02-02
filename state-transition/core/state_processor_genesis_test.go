@@ -1,3 +1,6 @@
+//go:build test
+// +build test
+
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2025, Berachain Foundation. All rights reserved.
@@ -25,17 +28,17 @@ import (
 
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/node-core/components"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
+	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	"github.com/stretchr/testify/require"
 )
 
 func TestInitialize(t *testing.T) {
-	cs := setupChain(t, components.BetnetChainSpecType)
-	sp, st, _, _ := setupState(t, cs)
+	cs := setupChain(t)
+	sp, st, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
 		maxBalance = math.Gwei(cs.MaxEffectiveBalance())
@@ -117,18 +120,15 @@ func TestInitialize(t *testing.T) {
 		}
 		executionPayloadHeader = &types.ExecutionPayloadHeader{}
 		fork                   = &types.Fork{
-			PreviousVersion: version.FromUint32[common.Version](version.Deneb),
-			CurrentVersion:  version.FromUint32[common.Version](version.Deneb),
-			Epoch:           math.Epoch(constants.GenesisEpoch),
+			PreviousVersion: version.Deneb(),
+			CurrentVersion:  version.Deneb(),
+			Epoch:           constants.GenesisEpoch,
 		}
 	)
 
 	// run test
 	genVals, err := sp.InitializePreminedBeaconStateFromEth1(
-		st,
-		genDeposits,
-		executionPayloadHeader,
-		fork.CurrentVersion,
+		st, genDeposits, executionPayloadHeader, fork.CurrentVersion,
 	)
 
 	// check outputs
@@ -138,7 +138,7 @@ func TestInitialize(t *testing.T) {
 	// check beacon state changes
 	resSlot, err := st.GetSlot()
 	require.NoError(t, err)
-	require.Equal(t, math.Slot(0), resSlot)
+	require.Equal(t, constants.GenesisSlot, resSlot)
 
 	resFork, err := st.GetFork()
 	require.NoError(t, err)
@@ -158,7 +158,7 @@ func TestInitialize(t *testing.T) {
 func checkValidator(
 	t *testing.T,
 	cs chain.Spec,
-	bs *TestBeaconStateT,
+	bs *statetransition.TestBeaconStateT,
 	dep *types.Deposit,
 ) {
 	t.Helper()
@@ -174,8 +174,8 @@ func checkValidator(
 	commonChecksValidators(t, cs, val, dep)
 
 	// checks on validators for any network but Bartio
-	require.Equal(t, math.Epoch(0), val.GetActivationEligibilityEpoch())
-	require.Equal(t, math.Epoch(0), val.GetActivationEpoch())
+	require.Equal(t, constants.GenesisEpoch, val.GetActivationEligibilityEpoch())
+	require.Equal(t, constants.GenesisEpoch, val.GetActivationEpoch())
 
 	valBal, err := bs.GetBalance(idx)
 	require.NoError(t, err)

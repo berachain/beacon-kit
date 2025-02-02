@@ -32,14 +32,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestDefaultGenesisDeneb(t *testing.T) {
-	g := types.DefaultGenesisDeneb()
-	if g.ForkVersion != version.FromUint32[common.Version](version.Deneb) {
+func TestDefaultGenesis(t *testing.T) {
+	t.Parallel()
+	g := types.DefaultGenesis()
+	if !version.Equals(g.ForkVersion, version.Deneb()) {
 		t.Errorf(
 			"Expected fork version %v, but got %v",
-			version.FromUint32[common.Version](
-				version.Deneb,
-			),
+			version.Deneb(),
 			g.ForkVersion,
 		)
 	}
@@ -67,41 +66,43 @@ func TestDefaultGenesisDeneb(t *testing.T) {
 		"Unexpected Timestamp")
 }
 
-func TestDefaultGenesisExecutionPayloadHeaderDeneb(t *testing.T) {
-	header, err := types.DefaultGenesisExecutionPayloadHeaderDeneb()
+func TestDefaultGenesisExecutionPayloadHeader(t *testing.T) {
+	t.Parallel()
+	header, err := types.DefaultGenesisExecutionPayloadHeader()
 	require.NoError(t, err)
 	require.NotNil(t, header)
 }
 
 func TestGenesisGetForkVersion(t *testing.T) {
-	g := types.DefaultGenesisDeneb()
+	t.Parallel()
+	g := types.DefaultGenesis()
 	forkVersion := g.GetForkVersion()
-	require.Equal(
-		t,
-		version.FromUint32[common.Version](version.Deneb),
-		forkVersion,
-	)
+	require.Equal(t, version.Deneb(), forkVersion)
 }
 
 func TestGenesisGetDeposits(t *testing.T) {
-	g := types.DefaultGenesisDeneb()
+	t.Parallel()
+	g := types.DefaultGenesis()
 	deposits := g.GetDeposits()
 	require.Empty(t, deposits)
 }
 
 func TestGenesisGetExecutionPayloadHeader(t *testing.T) {
-	g := types.DefaultGenesisDeneb()
+	t.Parallel()
+	g := types.DefaultGenesis()
 	header := g.GetExecutionPayloadHeader()
 	require.NotNil(t, header)
 }
 
-func TestDefaultGenesisDenebPanics(t *testing.T) {
+func TestDefaultGenesisPanics(t *testing.T) {
+	t.Parallel()
 	require.NotPanics(t, func() {
-		types.DefaultGenesisDeneb()
+		types.DefaultGenesis()
 	})
 }
 
 func TestGenesisUnmarshalJSON(t *testing.T) {
+	t.Parallel()
 	t.Helper()
 	testCases := []struct {
 		name                string
@@ -208,7 +209,8 @@ func TestGenesisUnmarshalJSON(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			g := types.DefaultGenesisDeneb()
+			t.Parallel()
+			g := types.DefaultGenesis()
 			err := g.UnmarshalJSON([]byte(tc.jsonInput))
 			if tc.expectedError {
 				require.Error(t, err, "Expected error but got none")

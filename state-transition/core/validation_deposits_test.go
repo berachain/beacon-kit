@@ -1,3 +1,6 @@
+//go:build test
+// +build test
+
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2025, Berachain Foundation. All rights reserved.
@@ -26,20 +29,23 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
-	"github.com/berachain/beacon-kit/node-core/components"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
+	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	"github.com/stretchr/testify/require"
 )
 
 func TestInvalidDeposits(t *testing.T) {
-	cs := setupChain(t, components.BoonetChainSpecType)
-	sp, st, ds, ctx := setupState(t, cs)
+	cs := setupChain(t)
+	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
 
 	var (
-		minBalance   = math.Gwei(cs.EjectionBalance() + cs.EffectiveBalanceIncrement())
+		minBalance = math.Gwei(
+			cs.EjectionBalance() +
+				cs.EffectiveBalanceIncrement(),
+		)
 		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
 		credentials0 = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
 	)
@@ -55,7 +61,7 @@ func TestInvalidDeposits(t *testing.T) {
 			},
 		}
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		genVersion       = version.FromUint32[common.Version](version.Deneb)
+		genVersion       = version.Deneb()
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
 	_, err := sp.InitializePreminedBeaconStateFromEth1(
@@ -85,15 +91,10 @@ func TestInvalidDeposits(t *testing.T) {
 		t,
 		st,
 		&types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    10,
-				ExtraData:    []byte("testing"),
-				Transactions: [][]byte{},
-				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(),
-				},
-				BaseFeePerGas: math.NewU256(0),
-			},
+			ExecutionPayload: testPayload(
+				10,
+				st.EVMInflationWithdrawal(constants.GenesisSlot+1),
+			),
 			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: []*types.Deposit{invalidDeposit},
 		},
@@ -109,8 +110,8 @@ func TestInvalidDeposits(t *testing.T) {
 }
 
 func TestInvalidDepositsCount(t *testing.T) {
-	cs := setupChain(t, components.BoonetChainSpecType)
-	sp, st, ds, ctx := setupState(t, cs)
+	cs := setupChain(t)
+	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
 
 	var (
 		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
@@ -128,7 +129,7 @@ func TestInvalidDepositsCount(t *testing.T) {
 			},
 		}
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		genVersion       = version.FromUint32[common.Version](version.Deneb)
+		genVersion       = version.Deneb()
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
 	_, err := sp.InitializePreminedBeaconStateFromEth1(
@@ -158,15 +159,10 @@ func TestInvalidDepositsCount(t *testing.T) {
 		t,
 		st,
 		&types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    10,
-				ExtraData:    []byte("testing"),
-				Transactions: [][]byte{},
-				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(),
-				},
-				BaseFeePerGas: math.NewU256(0),
-			},
+			ExecutionPayload: testPayload(
+				10,
+				st.EVMInflationWithdrawal(constants.GenesisSlot+1),
+			),
 			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: correctDeposits,
 		},
@@ -182,12 +178,11 @@ func TestInvalidDepositsCount(t *testing.T) {
 }
 
 func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
-	csData := spec.BaseSpec()
-	csData.DepositEth1ChainID = spec.BoonetEth1ChainID
+	csData := spec.DevnetChainSpecData()
 	csData.MaxDepositsPerBlock = 1 // Set only 1 deposit allowed per block.
 	cs, err := chain.NewSpec(csData)
 	require.NoError(t, err)
-	sp, st, ds, ctx := setupState(t, cs)
+	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
 
 	var (
 		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
@@ -205,7 +200,7 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 			},
 		}
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		genVersion       = version.FromUint32[common.Version](version.Deneb)
+		genVersion       = version.Deneb()
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
 	_, err = sp.InitializePreminedBeaconStateFromEth1(
@@ -229,15 +224,10 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 		t,
 		st,
 		&types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    10,
-				ExtraData:    []byte("testing"),
-				Transactions: [][]byte{},
-				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(),
-				},
-				BaseFeePerGas: math.NewU256(0),
-			},
+			ExecutionPayload: testPayload(
+				10,
+				st.EVMInflationWithdrawal(constants.GenesisSlot+1),
+			),
 			Eth1Data: types.NewEth1Data(depRoot),
 			Deposits: blockDeposits,
 		},
@@ -259,12 +249,11 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 }
 
 func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
-	csData := spec.BaseSpec()
-	csData.DepositEth1ChainID = spec.BoonetEth1ChainID
+	csData := spec.DevnetChainSpecData()
 	csData.MaxDepositsPerBlock = 1 // Set only 1 deposit allowed per block.
 	cs, err := chain.NewSpec(csData)
 	require.NoError(t, err)
-	sp, st, ds, ctx := setupState(t, cs)
+	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
 
 	var (
 		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
@@ -282,7 +271,7 @@ func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
 			},
 		}
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		genVersion       = version.FromUint32[common.Version](version.Deneb)
+		genVersion       = version.Deneb()
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
 	_, err = sp.InitializePreminedBeaconStateFromEth1(
@@ -314,15 +303,10 @@ func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
 		t,
 		st,
 		&types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    10,
-				ExtraData:    []byte("testing"),
-				Transactions: [][]byte{},
-				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(),
-				},
-				BaseFeePerGas: math.NewU256(0),
-			},
+			ExecutionPayload: testPayload(
+				10,
+				st.EVMInflationWithdrawal(constants.GenesisSlot+1),
+			),
 			Eth1Data: types.NewEth1Data(badDepRoot),
 			Deposits: blockDeposits,
 		},

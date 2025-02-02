@@ -183,6 +183,7 @@ type (
 		// VerifySidecars verifies the blobs and ensures they match the local
 		// state.
 		VerifySidecars(
+			ctx context.Context,
 			sidecars datypes.BlobSidecars,
 			blkHeader *ctypes.BeaconBlockHeader,
 			kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],
@@ -797,6 +798,7 @@ type (
 		StateRootAtSlot(slot math.Slot) (common.Root, error)
 		StateForkAtSlot(slot math.Slot) (*ctypes.Fork, error)
 		StateFromSlotForProof(slot math.Slot) (*statedb.StateDB, math.Slot, error)
+		StateAtSlot(slot math.Slot) (*statedb.StateDB, error)
 	}
 
 	ValidatorBackend interface {
