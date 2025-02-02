@@ -99,7 +99,4 @@ type (
 
 	// LoggerConfig is a type alias for the logger config.
 	LoggerConfig = phuslu.Config
-
-	// NodeAPIContext is a type alias for the node API context.
-	NodeAPIContext = echo.Context
 )
