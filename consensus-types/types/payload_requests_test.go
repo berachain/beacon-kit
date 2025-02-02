@@ -32,6 +32,7 @@ import (
 )
 
 func TestBuildNewPayloadRequest(t *testing.T) {
+	t.Parallel()
 	var (
 		executionPayload      = (&types.ExecutionPayload{}).Empty(version.Deneb1())
 		versionedHashes       []common.ExecutionHash
@@ -54,6 +55,7 @@ func TestBuildNewPayloadRequest(t *testing.T) {
 }
 
 func TestBuildForkchoiceUpdateRequest(t *testing.T) {
+	t.Parallel()
 	var (
 		state       = &engineprimitives.ForkchoiceStateV1{}
 		forkVersion = version.Deneb1()
@@ -81,6 +83,7 @@ func TestBuildForkchoiceUpdateRequest(t *testing.T) {
 }
 
 func TestBuildGetPayloadRequest(t *testing.T) {
+	t.Parallel()
 	payloadID := engineprimitives.PayloadID{}
 	forkVersion := version.Altair()
 
@@ -92,6 +95,7 @@ func TestBuildGetPayloadRequest(t *testing.T) {
 }
 
 func TestHasValidVersionedAndBlockHashesPayloadError(t *testing.T) {
+	t.Parallel()
 	var (
 		executionPayload      = (&types.ExecutionPayload{}).Empty(version.Deneb1())
 		versionedHashes       = []common.ExecutionHash{}
@@ -111,6 +115,7 @@ func TestHasValidVersionedAndBlockHashesPayloadError(t *testing.T) {
 }
 
 func TestHasValidVersionedAndBlockHashesMismatchedHashes(t *testing.T) {
+	t.Parallel()
 	var (
 		executionPayload      = (&types.ExecutionPayload{}).Empty(version.Deneb1())
 		versionedHashes       = []common.ExecutionHash{{}}

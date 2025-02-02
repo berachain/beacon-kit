@@ -36,6 +36,7 @@ import (
 var baseDir = "../../../testing/files/"
 
 func TestVerifyBlobProof(t *testing.T) {
+	t.Parallel()
 	verifier, err := setupVerifier()
 	require.NoError(t, err)
 	validBlob, validProof, validCommitment := setupTestData(
@@ -65,6 +66,7 @@ func TestVerifyBlobProof(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			errVerify := verifier.VerifyBlobProof(
 				tc.blob,
 				tc.proof,
@@ -82,6 +84,7 @@ func TestVerifyBlobProof(t *testing.T) {
 // TestVerifyBlobProofBatch tests the VerifyBlobProofBatch function
 // for valid proofs.
 func TestVerifyBlobProofBatch(t *testing.T) {
+	t.Parallel()
 	// Load the test data
 	verifier, err := setupVerifier()
 	require.NoError(t, err)
@@ -127,6 +130,7 @@ func TestVerifyBlobProofBatch(t *testing.T) {
 }
 
 func TestGetImplementation(t *testing.T) {
+	t.Parallel()
 	verifier, err := setupVerifier()
 	require.NoError(t, err)
 
