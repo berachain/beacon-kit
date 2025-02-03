@@ -85,7 +85,6 @@ func (s *Service) initChain(
 
 	s.finalizeBlockState = s.resetState(ctx)
 
-	//nolint:contextcheck // ctx already passed via resetState
 	resValidators, err := s.initChainer(
 		s.finalizeBlockState.Context(),
 		req.AppStateBytes,
