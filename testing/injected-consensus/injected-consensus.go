@@ -23,10 +23,12 @@ package injectedconsensus
 import (
 	"context"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/cli/commands/genesis"
+	"github.com/berachain/beacon-kit/cli/commands/initialize"
 	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	"github.com/berachain/beacon-kit/cli/flags"
 	beaconkitconfig "github.com/berachain/beacon-kit/config"
@@ -42,9 +44,8 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/storage/db"
 	cmtcfg "github.com/cometbft/cometbft/config"
-	"github.com/cometbft/cometbft/crypto/bls12381"
-	"github.com/cometbft/cometbft/types"
 	dbm "github.com/cosmos/cosmos-db"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 )
@@ -159,6 +160,26 @@ func getAppOptions(t *testing.T, beaconKitConfig *beaconkitconfig.Config, tempHo
 	return appOpts
 }
 
+func getBlsSigner(tempHomeDir string) *signer.BLSSigner {
+	privValKeyFile := filepath.Join(tempHomeDir, "config/priv_validator_key.json")
+	privValStateFile := filepath.Join(tempHomeDir, "config/priv_validator_state.json")
+	return signer.NewBLSSigner(privValKeyFile, privValStateFile)
+}
+
+func initCommand(t *testing.T, tempHomeDir string) {
+	t.Helper()
+	clientCtx := client.Context{}.
+		WithHomeDir(tempHomeDir)
+
+	initCMD := initialize.InitCmd(&cometbft.Service{})
+
+	err := client.SetCmdClientContextHandler(clientCtx, initCMD)
+	require.NoError(t, err)
+
+	err = initCMD.Execute()
+	require.NoError(t, err)
+}
+
 // NewTestNode Uses the mainnet chainspec.
 func NewTestNode(t *testing.T) *TestNode {
 	t.Helper()
@@ -178,8 +199,11 @@ func NewTestNode(t *testing.T) *TestNode {
 	// Chain Spec
 	t.Setenv(components.ChainSpecTypeEnvVar, components.MainnetChainSpecType)
 
-	// Create the genesis deposit
-	blsSigner := signer.BLSSigner{PrivValidator: types.NewMockPVWithKeyType(bls12381.KeyType)}
+	// Same as `beacond init`
+	initCommand(t, tempHomeDir)
+
+	// get the bls signer from the homedir
+	blsSigner := getBlsSigner(tempHomeDir)
 
 	// Make the deposit amount the Max effective balance - set arbitrarily higher than 250K BERA required for mainnet
 	depositAmount := math.Gwei(chainSpec.MaxEffectiveBalance())
@@ -195,14 +219,14 @@ func NewTestNode(t *testing.T) *TestNode {
 	err = genesis.SetDepositStorage(chainSpec, cometConfig, "./eth-genesis.json", false)
 	require.NoError(t, err)
 
-	// 1. Build a node builder with your default or custom test components.
-	nb := nodebuilder.New(
-		nodebuilder.WithComponents[nodetypes.Node](DefaultComponents(t)),
-	)
-
+	// Create a database
 	database, err := db.OpenDB(tempHomeDir, dbm.PebbleDBBackend)
 	require.NoError(t, err)
 
+	// Build a node
+	nb := nodebuilder.New(
+		nodebuilder.WithComponents[nodetypes.Node](DefaultComponents(t)),
+	)
 	node := nb.Build(
 		logger,
 		database,

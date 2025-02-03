@@ -41,8 +41,6 @@ func (s *InjectedConsensus) SetupTest() {
 func (s *InjectedConsensus) TearDownTest() {
 	// Ensure teardown runs no matter what
 	s.testNode.CancelFunc()
-	// err := os.RemoveAll(s.testNode.Homedir)
-	// s.Require().NoError(err)
 }
 
 func (s *InjectedConsensus) TestInitChainRequestsInvalidChainID() {
@@ -82,6 +80,5 @@ func (s *InjectedConsensus) TestProcessProposalRequestInvalidBlock() {
 }
 
 func TestInjectedConsensus(t *testing.T) {
-	t.Parallel()
 	suite.Run(t, new(InjectedConsensus))
 }
