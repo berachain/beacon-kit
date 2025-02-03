@@ -85,4 +85,9 @@ type ValidatorBackend interface {
 		slot math.Slot,
 		ids []string,
 	) ([]*types.ValidatorBalanceData, error)
+	// ValidatorStats returns aggregated statistics for validators in the given epoch
+	ValidatorStats(
+		slot math.Slot,
+		epoch math.Epoch,
+	) (*types.ValidatorStatsData, error)
 }
