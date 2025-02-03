@@ -76,7 +76,7 @@ func (sp *StateProcessor[_]) processWithdrawals(
 			"payload withdrawal", spew.Sdump(payloadWithdrawals[0]),
 			"expected withdrawal", spew.Sdump(st.EVMInflationWithdrawal(blk.GetSlot())),
 		)
-		time.Sleep(2 * time.Minute)
+		time.Sleep(30 * time.Minute)
 		return ErrFirstWithdrawalNotEVMInflation
 	}
 	numWithdrawals := len(expectedWithdrawals)

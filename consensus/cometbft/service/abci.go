@@ -65,6 +65,14 @@ func (s *Service) Info(context.Context,
 		}
 	}
 
+	s.logger.Info(
+		"ABCI - Info called",
+		"lastCommitID", lastCommitID,
+		"appVersion", appVersion,
+		"lastBlockHeight", lastCommitID.Version,
+		"lastBlockAppHash", lastCommitID.Hash,
+	)
+
 	return &cmtabci.InfoResponse{
 		Data:             appName,
 		Version:          sdkversion.Version,
