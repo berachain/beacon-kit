@@ -171,16 +171,14 @@ type SlotData interface {
 }
 
 // StateProcessor defines the interface for processing the state.
-type StateProcessor[
-	ContextT any,
-] interface {
+type StateProcessor interface {
 	// ProcessSlot processes the slot.
 	ProcessSlots(
 		st *statedb.StateDB, slot math.Slot,
 	) (transition.ValidatorUpdates, error)
 	// Transition performs the core state transition.
 	Transition(
-		ctx ContextT,
+		ctx *transition.Context,
 		st *statedb.StateDB,
 		blk *ctypes.BeaconBlock,
 	) (transition.ValidatorUpdates, error)

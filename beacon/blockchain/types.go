@@ -138,9 +138,7 @@ type ReadOnlyBeaconState[
 
 // StateProcessor defines the interface for processing various state transitions
 // in the beacon chain.
-type StateProcessor[
-	ContextT any,
-] interface {
+type StateProcessor interface {
 	// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
 	// state
 	// from the eth1 deposits.
@@ -156,7 +154,7 @@ type StateProcessor[
 	) (transition.ValidatorUpdates, error)
 	// Transition processes the state transition for a given block.
 	Transition(
-		ContextT,
+		*transition.Context,
 		*statedb.StateDB,
 		*ctypes.BeaconBlock,
 	) (transition.ValidatorUpdates, error)
