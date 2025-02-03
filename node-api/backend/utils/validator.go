@@ -23,6 +23,7 @@ package utils
 import (
 	"strconv"
 
+	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
@@ -40,4 +41,11 @@ func ValidatorIndexByID(st *statedb.StateDB, keyOrIndex string) (math.U64, error
 		return math.U64(0), err
 	}
 	return st.ValidatorIndexByPubkey(key)
+}
+
+// GetValidatorStatus returns the current validator status based on its set
+// Epoch values.
+func GetValidatorStatus(_ *types.Validator) string {
+	// TODO: implement validator status. See https://hackmd.io/ofFJ5gOmQpu1jjHilHbdQQ.
+	return "active_ongoing"
 }

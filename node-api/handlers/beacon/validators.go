@@ -23,9 +23,31 @@ package beacon
 import (
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	"github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 )
+
+// getStateValidators is a helper function to provide implementation
+// consistency between GetStateValidators and PostStateValidators, since they
+// are intended to behave the same way.
+func (h *Handler) getStateValidators(stateID string, ids []string, statuses []string) (any, error) {
+	slot, err := utils.SlotFromStateID(stateID, h.backend)
+	if err != nil {
+		return nil, err
+	}
+	validators, err := h.backend.FilteredValidators(
+		slot,
+		ids,
+		statuses,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return beacontypes.ValidatorResponse{
+		ExecutionOptimistic: false, // stubbed
+		Finalized:           false, // stubbed
+		Data:                validators,
+	}, nil
+}
 
 func (h *Handler) GetStateValidators(c handlers.Context) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetStateValidatorsRequest](
@@ -34,30 +56,7 @@ func (h *Handler) GetStateValidators(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	// TODO: remove this once status filter is implemented.
-	if len(req.Statuses) > 0 {
-		return nil, types.ErrNotImplemented
-	}
-	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
-	if err != nil {
-		return nil, err
-	}
-	validators, err := h.backend.ValidatorsByIDs(
-		slot,
-		req.IDs,
-		req.Statuses,
-	)
-	if err != nil {
-		return nil, err
-	}
-	if len(validators) == 0 {
-		return nil, types.ErrNotFound
-	}
-	return beacontypes.ValidatorResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data:                validators,
-	}, nil
+	return h.getStateValidators(req.StateID, req.IDs, req.Statuses)
 }
 
 func (h *Handler) PostStateValidators(c handlers.Context) (any, error) {
@@ -67,27 +66,7 @@ func (h *Handler) PostStateValidators(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	// TODO: remove this once status filter is implemented.
-	if len(req.Statuses) > 0 {
-		return nil, types.ErrNotImplemented
-	}
-	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
-	if err != nil {
-		return nil, err
-	}
-	validators, err := h.backend.ValidatorsByIDs(
-		slot,
-		req.IDs,
-		req.Statuses,
-	)
-	if err != nil {
-		return nil, err
-	}
-	return beacontypes.ValidatorResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data:                validators,
-	}, nil
+	return h.getStateValidators(req.StateID, req.IDs, req.Statuses)
 }
 
 func (h *Handler) GetStateValidator(c handlers.Context) (any, error) {
