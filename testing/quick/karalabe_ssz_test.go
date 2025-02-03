@@ -73,7 +73,7 @@ func (b *BbbDeneb) Generate(r *rand.Rand, _ int) reflect.Value {
 	b.Graffiti = [32]byte(rbytes(32, r))
 
 	k := roll(16, r)
-	var depositsLen uint32 = uint32(k)
+	var depositsLen = uint32(k)
 	if k != 0 {
 		depositsLen = uint32(concurrencyThreshold)/(&types.Deposit{}).SizeSSZ(sizer) + 1
 	}
@@ -139,6 +139,24 @@ func pprint(i interface{}) string {
 	return string(s)
 }
 
+func compare(a, b *BbbDeneb) bool {
+	var r bool
+	r = a.RandaoReveal == b.RandaoReveal
+	r = r && *a.Eth1Data == *b.Eth1Data
+	r = r && a.Graffiti == b.Graffiti
+	for i, depA := range a.Deposits {
+		r = r && *depA == *b.Deposits[i]
+	}
+	for i, wA := range a.ExecutionPayload.Withdrawals {
+		r = r && *wA == *b.ExecutionPayload.Withdrawals[i]
+	}
+	for i, cA := range a.BlobKzgCommitments {
+		r = r && cA == b.BlobKzgCommitments[i]
+	}
+
+	return r
+}
+
 func TestSSZRoundTripBeaconBodyDeneb(t *testing.T) {
 	t.Parallel()
 	f := func(body *BbbDeneb) bool {
@@ -153,14 +171,12 @@ func TestSSZRoundTripBeaconBodyDeneb(t *testing.T) {
 			return false
 		}
 
-		/* TODO investigate why this fails
-		if !reflect.DeepEqual(body, destBody) {
+		if !compare(body, destBody) {
 			t.Log("Deserialized body different than former body after serialization")
 			t.Log(pprint(body))
 			t.Log(pprint(destBody))
 			return false
 		}
-		*/
 
 		if destBody.ExecutionPayload.GetWithdrawals() == nil {
 			t.Log("Withdrawals is nil after deserialization")
