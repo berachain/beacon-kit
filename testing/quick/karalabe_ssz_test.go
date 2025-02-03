@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package karalabe_ssz_test
+package randomize_test
 
 import (
 	"encoding/json"
@@ -37,10 +37,7 @@ import (
 	"github.com/karalabe/ssz"
 )
 
-var (
-	Conf                        = quick.Config{MaxCount: 10_000}
-	concurrencyThreshold uint64 = 65536
-)
+var concurrencyThreshold uint64 = 65536
 
 func roll(n int, r *rand.Rand) int {
 	k := r.Intn(n)
