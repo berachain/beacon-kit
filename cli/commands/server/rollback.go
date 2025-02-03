@@ -27,7 +27,6 @@ import (
 	"cosmossdk.io/store"
 	types "github.com/berachain/beacon-kit/cli/commands/server/types"
 	clicontext "github.com/berachain/beacon-kit/cli/context"
-	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/storage/db"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	dbm "github.com/cosmos/cosmos-db"
@@ -41,9 +40,8 @@ func NewRollbackCmd[
 		Start(context.Context) error
 		CommitMultiStore() store.CommitMultiStore
 	},
-	LoggerT log.AdvancedLogger[LoggerT],
 ](
-	appCreator types.AppCreator[T, LoggerT],
+	appCreator types.AppCreator[T],
 ) *cobra.Command {
 	var removeBlock bool
 
@@ -60,7 +58,7 @@ application.
 `,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			v := clicontext.GetViperFromCmd(cmd)
-			logger := clicontext.GetLoggerFromCmd[LoggerT](cmd)
+			logger := clicontext.GetLoggerFromCmd(cmd)
 			cfg := clicontext.GetConfigFromCmd(cmd)
 
 			db, err := db.OpenDB(cfg.RootDir, dbm.PebbleDBBackend)

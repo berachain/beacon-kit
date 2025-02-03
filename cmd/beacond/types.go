@@ -50,7 +50,7 @@ type (
 	BlobProcessor = dablob.Processor
 
 	// CometBFTService is a type alias for the CometBFT service.
-	CometBFTService = cometbft.Service[*Logger]
+	CometBFTService = cometbft.Service
 
 	// EngineClient is a type alias for the engine client.
 	EngineClient = engineclient.EngineClient

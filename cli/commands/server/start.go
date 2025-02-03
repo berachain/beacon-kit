@@ -27,7 +27,6 @@ import (
 	pruningtypes "cosmossdk.io/store/pruning/types"
 	types "github.com/berachain/beacon-kit/cli/commands/server/types"
 	clicontext "github.com/berachain/beacon-kit/cli/context"
-	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/storage/db"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	dbm "github.com/cosmos/cosmos-db"
@@ -68,9 +67,8 @@ func StartCmdWithOptions[
 	T interface {
 		Start(context.Context) error
 	},
-	LoggerT log.AdvancedLogger[LoggerT],
 ](
-	appCreator types.AppCreator[T, LoggerT],
+	appCreator types.AppCreator[T],
 	opts StartCmdOptions[T],
 ) *cobra.Command {
 	cmd := &cobra.Command{
@@ -92,7 +90,7 @@ custom: allow pruning options to be manually specified through 'pruning-keep-rec
 
 `,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			logger := clicontext.GetLoggerFromCmd[LoggerT](cmd)
+			logger := clicontext.GetLoggerFromCmd(cmd)
 			cfg := clicontext.GetConfigFromCmd(cmd)
 
 			v := clicontext.GetViperFromCmd(cmd)
