@@ -36,7 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
-	cfg "github.com/cometbft/cometbft/config"
+	cmtconfig "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/input"
@@ -114,7 +114,6 @@ func InitCmd(mm interface {
 			if err != nil {
 				return errors.New("failed to parse FlagChainID")
 			}
-
 			switch {
 			case chainID != "":
 			case clientCtx.ChainID != "":
@@ -125,7 +124,7 @@ func InitCmd(mm interface {
 			if config.RootDir == "" {
 				config.RootDir = clientCtx.HomeDir
 			}
-
+			config.Moniker = args[0]
 			// Get bip39 mnemonic
 			var mnemonic string
 			shouldRecover, err := cmd.Flags().GetBool(FlagRecover)
@@ -145,7 +144,6 @@ func InitCmd(mm interface {
 					return errors.New("invalid mnemonic")
 				}
 			}
-
 			// Get initial height
 			initHeight, err := cmd.Flags().GetInt64(flags.FlagInitHeight)
 			if err != nil {
@@ -155,14 +153,6 @@ func InitCmd(mm interface {
 				initHeight = 1
 			}
 
-			nodeID, _, err := genutil.InitializeNodeValidatorFilesFromMnemonic(config, mnemonic, consensusKeyAlgo)
-			if err != nil {
-				return err
-			}
-
-			config.Moniker = args[0]
-
-			genFile := config.GenesisFile()
 			overwrite, err := cmd.Flags().GetBool(FlagOverwrite)
 			if err != nil {
 				return errors.New("failed to parse FlagOverwrite")
@@ -171,58 +161,7 @@ func InitCmd(mm interface {
 			if err != nil {
 				return errors.New("failed to parse FlagDefaultBondDenom")
 			}
-
-			// use os.Stat to check if the file exists
-			_, err = os.Stat(genFile)
-			if !overwrite && !os.IsNotExist(err) {
-				return fmt.Errorf("genesis.json file already exists: %v", genFile)
-			}
-
-			// Overwrites the SDK default denom for side-effects
-			if defaultDenom != "" {
-				sdk.DefaultBondDenom = defaultDenom
-			}
-			appGenState := mm.DefaultGenesis()
-
-			appState, err := json.MarshalIndent(appGenState, "", " ")
-			if err != nil {
-				return errorsmod.Wrap(err, "Failed to marshal default genesis state")
-			}
-
-			appGenesis := &types.AppGenesis{}
-			if _, err = os.Stat(genFile); err != nil {
-				if !os.IsNotExist(err) {
-					return err
-				}
-			} else {
-				appGenesis, err = types.AppGenesisFromFile(genFile)
-				if err != nil {
-					return errorsmod.Wrap(err, "Failed to read genesis doc from file")
-				}
-			}
-
-			appGenesis.AppName = version.AppName
-			appGenesis.AppVersion = version.Version
-			appGenesis.ChainID = chainID
-			appGenesis.AppState = appState
-			appGenesis.InitialHeight = initHeight
-			appGenesis.Consensus = &types.ConsensusGenesis{
-				Validators: nil,
-				Params:     cometbft.DefaultConsensusParams(consensusKeyAlgo),
-			}
-
-			if err = genutil.ExportGenesisFile(appGenesis, genFile); err != nil {
-				return errorsmod.Wrap(err, "Failed to export genesis file")
-			}
-
-			toPrint := newPrintInfo(config.Moniker, chainID, nodeID, "", appState)
-
-			// Note: the config file was already creating before execution this command
-			// by [SetupCommand], and it is being overwritten here. The only difference,
-			// post default values cleanups, should be in the moniker, which is only setup
-			// correctly here
-			cfg.WriteConfigFile(filepath.Join(config.RootDir, "config", "config.toml"), config)
-			return displayInfo(cmd.ErrOrStderr(), toPrint)
+			return Init(chainID, config, mnemonic, initHeight, overwrite, defaultDenom, mm.DefaultGenesis(), cmd.ErrOrStderr())
 		},
 	}
 
@@ -232,4 +171,72 @@ func InitCmd(mm interface {
 	cmd.Flags().String(FlagDefaultBondDenom, "", "genesis file default denomination, if left blank default value is 'stake'")
 	cmd.Flags().Int64(flags.FlagInitHeight, 1, "specify the initial block height at genesis")
 	return cmd
+}
+
+func Init(
+	chainID string,
+	config *cmtconfig.Config,
+	mnemonic string,
+	initHeight int64,
+	overwrite bool,
+	defaultDenom string,
+	appGenesisState map[string]json.RawMessage,
+	printDestination io.Writer,
+) error {
+	nodeID, _, err := genutil.InitializeNodeValidatorFilesFromMnemonic(config, mnemonic, consensusKeyAlgo)
+	if err != nil {
+		return err
+	}
+
+	genFile := config.GenesisFile()
+	// use os.Stat to check if the file exists
+	_, err = os.Stat(genFile)
+	if !overwrite && !os.IsNotExist(err) {
+		return fmt.Errorf("genesis.json file already exists: %v", genFile)
+	}
+
+	// Overwrites the SDK default denom for side-effects
+	if defaultDenom != "" {
+		sdk.DefaultBondDenom = defaultDenom
+	}
+
+	appState, err := json.MarshalIndent(appGenesisState, "", " ")
+	if err != nil {
+		return errorsmod.Wrap(err, "Failed to marshal default genesis state")
+	}
+
+	appGenesis := &types.AppGenesis{}
+	if _, err = os.Stat(genFile); err != nil {
+		if !os.IsNotExist(err) {
+			return err
+		}
+	} else {
+		appGenesis, err = types.AppGenesisFromFile(genFile)
+		if err != nil {
+			return errorsmod.Wrap(err, "Failed to read genesis doc from file")
+		}
+	}
+
+	appGenesis.AppName = version.AppName
+	appGenesis.AppVersion = version.Version
+	appGenesis.ChainID = chainID
+	appGenesis.AppState = appState
+	appGenesis.InitialHeight = initHeight
+	appGenesis.Consensus = &types.ConsensusGenesis{
+		Validators: nil,
+		Params:     cometbft.DefaultConsensusParams(consensusKeyAlgo),
+	}
+
+	if err = genutil.ExportGenesisFile(appGenesis, genFile); err != nil {
+		return errorsmod.Wrap(err, "Failed to export genesis file")
+	}
+
+	toPrint := newPrintInfo(config.Moniker, chainID, nodeID, "", appState)
+
+	// Note: the config file was already creating before execution this command
+	// by [SetupCommand], and it is being overwritten here. The only difference,
+	// post default values cleanups, should be in the moniker, which is only setup
+	// correctly here
+	cmtconfig.WriteConfigFile(filepath.Join(config.RootDir, "config", "config.toml"), config)
+	return displayInfo(printDestination, toPrint)
 }
