@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package karalabe_ssz_test 
+package karalabe_ssz_test
 
 import (
 	"encoding/json"
@@ -38,7 +38,7 @@ import (
 )
 
 var (
-	Conf = quick.Config{MaxCount: 10_000}
+	Conf                        = quick.Config{MaxCount: 10_000}
 	concurrencyThreshold uint64 = 65536
 )
 
@@ -76,7 +76,7 @@ func (b *BbbDeneb) Generate(r *rand.Rand, _ int) reflect.Value {
 	sizer := &ssz.Sizer{}
 	b.Deposits = make([]*types.Deposit,
 		uint32(concurrencyThreshold)/(&types.Deposit{}).SizeSSZ(sizer)+1)
-	for i := 0; i < len(b.Deposits); i++  {
+	for i := 0; i < len(b.Deposits); i++ {
 		b.Deposits[i] = &types.Deposit{
 			Pubkey:      crypto.BLSPubkey(rbytes(48, r)),
 			Credentials: types.WithdrawalCredentials(rbytes(32, r)),
