@@ -32,8 +32,9 @@ import (
 )
 
 func TestBuildNewPayloadRequest(t *testing.T) {
+	t.Parallel()
 	var (
-		executionPayload      = (&types.ExecutionPayload{}).Empty(version.Deneb1)
+		executionPayload      = (&types.ExecutionPayload{}).Empty(version.Deneb1())
 		versionedHashes       []common.ExecutionHash
 		parentBeaconBlockRoot = common.Root{}
 		optimistic            = false
@@ -54,9 +55,10 @@ func TestBuildNewPayloadRequest(t *testing.T) {
 }
 
 func TestBuildForkchoiceUpdateRequest(t *testing.T) {
+	t.Parallel()
 	var (
 		state       = &engineprimitives.ForkchoiceStateV1{}
-		forkVersion = version.Deneb1
+		forkVersion = version.Deneb1()
 	)
 	payloadAttributes, err := engineprimitives.NewPayloadAttributes(
 		forkVersion,
@@ -81,8 +83,9 @@ func TestBuildForkchoiceUpdateRequest(t *testing.T) {
 }
 
 func TestBuildGetPayloadRequest(t *testing.T) {
+	t.Parallel()
 	payloadID := engineprimitives.PayloadID{}
-	forkVersion := uint32(1)
+	forkVersion := version.Altair()
 
 	request := types.BuildGetPayloadRequest(payloadID, forkVersion)
 
@@ -92,8 +95,9 @@ func TestBuildGetPayloadRequest(t *testing.T) {
 }
 
 func TestHasValidVersionedAndBlockHashesPayloadError(t *testing.T) {
+	t.Parallel()
 	var (
-		executionPayload      = (&types.ExecutionPayload{}).Empty(version.Deneb1)
+		executionPayload      = (&types.ExecutionPayload{}).Empty(version.Deneb1())
 		versionedHashes       = []common.ExecutionHash{}
 		parentBeaconBlockRoot = common.Root{}
 		optimistic            = false
@@ -111,8 +115,9 @@ func TestHasValidVersionedAndBlockHashesPayloadError(t *testing.T) {
 }
 
 func TestHasValidVersionedAndBlockHashesMismatchedHashes(t *testing.T) {
+	t.Parallel()
 	var (
-		executionPayload      = (&types.ExecutionPayload{}).Empty(version.Deneb1)
+		executionPayload      = (&types.ExecutionPayload{}).Empty(version.Deneb1())
 		versionedHashes       = []common.ExecutionHash{{}}
 		parentBeaconBlockRoot = common.Root{}
 		optimistic            = false

@@ -76,7 +76,19 @@ type ExecutionPayload struct {
 	// EpVersion is the version of the execution payload.
 	// EpVersion must be not serialized, but it's exported
 	// to allow unit tests using reflect on execution payload.
-	EpVersion uint32 `json:"-"`
+	EpVersion common.Version `json:"-"`
+}
+
+func EnsureNotNilWithdrawals(p *ExecutionPayload) {
+	// Post Shanghai an EL explicitly check that Withdrawals are not nil
+	// (instead empty slices are fine). Currently BeaconKit duly builds
+	// a block with Withdrawals set to empty slice if there are no
+	// withdrawals) but as soon as the block is returned by CometBFT
+	// for verification, the SSZ decoding sets the empty slice to nil.
+	// This code change solves the issue.
+	if p.Withdrawals == nil {
+		p.Withdrawals = make([]*engineprimitives.Withdrawal, 0)
+	}
 }
 
 /* -------------------------------------------------------------------------- */
@@ -134,15 +146,11 @@ func (p *ExecutionPayload) DefineSSZ(codec *ssz.Codec) {
 	)
 	ssz.DefineSliceOfStaticObjectsContent(codec, &p.Withdrawals, 16)
 
-	// Post Shangai an EL explicitly check that Withdrawals are not nil
-	// (instead empty slices are fine). Currently BeaconKit duly builds
-	// a block with Withdrawals set to empty slice if there are no
-	// withdrawals) but as soon as the block is returned by CometBFT
-	// for verification, the SSZ decoding sets the empty slice to nil.
-	// This code change solves the issue.
-	if p.Withdrawals == nil {
-		p.Withdrawals = make([]*engineprimitives.Withdrawal, 0)
-	}
+	// Note that at this state we don't have any guarantee that
+	// p.Withdrawal is not nil, which we require following Capella
+	// (empty list of withdrawals are fine). We ensure non-nillness
+	// in EnsureNotNilWithdrawals which is must be called wherever
+	// we deserialize an execution payload (or anything containing one).
 }
 
 // MarshalSSZ serializes the ExecutionPayload object into a slice of bytes.
@@ -459,14 +467,14 @@ func (p *ExecutionPayload) UnmarshalJSON(input []byte) error {
 }
 
 // Empty returns an empty ExecutionPayload for the given fork version.
-func (p *ExecutionPayload) Empty(forkVersion uint32) *ExecutionPayload {
+func (p *ExecutionPayload) Empty(forkVersion common.Version) *ExecutionPayload {
 	return &ExecutionPayload{
 		EpVersion: forkVersion,
 	}
 }
 
 // Version returns the version of the ExecutionPayload.
-func (p *ExecutionPayload) Version() uint32 {
+func (p *ExecutionPayload) Version() common.Version {
 	return p.EpVersion
 }
 
@@ -570,7 +578,7 @@ func (p *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 	txsRoot := p.GetTransactions().HashTreeRoot()
 
 	switch p.EpVersion {
-	case version.Deneb, version.Deneb1:
+	case version.Deneb(), version.Deneb1():
 		return &ExecutionPayloadHeader{
 			ParentHash:       p.ParentHash,
 			FeeRecipient:     p.GetFeeRecipient(),

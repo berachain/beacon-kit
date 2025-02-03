@@ -27,11 +27,9 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers"
 )
 
-func (h *Handler[ContextT]) RegisterRoutes(
-	logger log.Logger,
-) {
+func (h *Handler) RegisterRoutes(logger log.Logger) {
 	h.SetLogger(logger)
-	h.BaseHandler.AddRoutes([]*handlers.Route[ContextT]{
+	h.BaseHandler.AddRoutes([]*handlers.Route{
 		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/builder/states/:state_id/expected_withdrawals",

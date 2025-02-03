@@ -24,28 +24,21 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
-	"github.com/berachain/beacon-kit/node-api/server/context"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // Handler is the handler for the proof API.
-type Handler[
-	ContextT context.Context,
-] struct {
-	*handlers.BaseHandler[ContextT]
+type Handler struct {
+	*handlers.BaseHandler
 	backend Backend
 }
 
 // NewHandler creates a new handler for the proof API.
-func NewHandler[
-	ContextT context.Context,
-](
-	backend Backend,
-) *Handler[ContextT] {
-	h := &Handler[ContextT]{
+func NewHandler(backend Backend) *Handler {
+	h := &Handler{
 		BaseHandler: handlers.NewBaseHandler(
-			handlers.NewRouteSet[ContextT](""),
+			handlers.NewRouteSet(""),
 		),
 		backend: backend,
 	}
@@ -54,7 +47,7 @@ func NewHandler[
 
 // Get the slot from the given input of timestamp id, beacon state, and beacon
 // block header for the resolved slot.
-func (h *Handler[_]) resolveTimestampID(timestampID string) (
+func (h *Handler) resolveTimestampID(timestampID string) (
 	math.Slot, *statedb.StateDB, *ctypes.BeaconBlockHeader, error,
 ) {
 	var (

@@ -36,6 +36,7 @@ import (
 )
 
 func TestCreateAndSignDepositMessage(t *testing.T) {
+	t.Parallel()
 	forkData := &types.ForkData{
 		CurrentVersion:        common.Version{0x00, 0x00, 0x00, 0x04},
 		GenesisValidatorsRoot: common.Root{0x00, 0x00, 0x00, 0x00},
@@ -62,6 +63,7 @@ func TestCreateAndSignDepositMessage(t *testing.T) {
 }
 
 func TestDepositMessage_MarshalUnmarshalSSZ(t *testing.T) {
+	t.Parallel()
 	original := &types.DepositMessage{
 		Pubkey:      crypto.BLSPubkey{},
 		Credentials: types.WithdrawalCredentials{},
@@ -79,6 +81,7 @@ func TestDepositMessage_MarshalUnmarshalSSZ(t *testing.T) {
 }
 
 func TestDepositMessage_MarshalSSZTo(t *testing.T) {
+	t.Parallel()
 	original := &types.DepositMessage{
 		Pubkey:      crypto.BLSPubkey{},
 		Credentials: types.WithdrawalCredentials{},
@@ -96,6 +99,7 @@ func TestDepositMessage_MarshalSSZTo(t *testing.T) {
 }
 
 func TestDepositMessage_UnmarshalSSZ_ErrSize(t *testing.T) {
+	t.Parallel()
 	buf := make([]byte, 10) // size less than 88
 
 	var unmarshalledDepositMessage types.DepositMessage
@@ -105,6 +109,7 @@ func TestDepositMessage_UnmarshalSSZ_ErrSize(t *testing.T) {
 }
 
 func TestDepositMessage_VerifyCreateValidator_Error(t *testing.T) {
+	t.Parallel()
 	original := &types.DepositMessage{
 		Pubkey:      crypto.BLSPubkey{},
 		Credentials: types.WithdrawalCredentials{},

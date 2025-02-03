@@ -28,28 +28,24 @@ import (
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/execution/engine"
-	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/net/jwt"
 )
 
 // EngineClientInputs is the input for the EngineClient.
-type EngineClientInputs[LoggerT any] struct {
+type EngineClientInputs struct {
 	depinject.In
 	ChainSpec chain.Spec
 	Config    *config.Config
 	// TODO: this feels like a hood way to handle it.
 	JWTSecret     *jwt.Secret `optional:"true"`
-	Logger        LoggerT
+	Logger        *phuslu.Logger
 	TelemetrySink *metrics.TelemetrySink
 }
 
 // ProvideEngineClient creates a new EngineClient.
-func ProvideEngineClient[
-	LoggerT log.AdvancedLogger[LoggerT],
-](
-	in EngineClientInputs[LoggerT],
-) *client.EngineClient {
+func ProvideEngineClient(in EngineClientInputs) *client.EngineClient {
 	return client.New(
 		in.Config.GetEngine(),
 		in.Logger.With("service", "engine.client"),
@@ -60,22 +56,16 @@ func ProvideEngineClient[
 }
 
 // EngineClientInputs is the input for the EngineClient.
-type ExecutionEngineInputs[
-	LoggerT any,
-] struct {
+type ExecutionEngineInputs struct {
 	depinject.In
 	EngineClient  *client.EngineClient
-	Logger        LoggerT
+	Logger        *phuslu.Logger
 	TelemetrySink *metrics.TelemetrySink
 }
 
 // ProvideExecutionEngine provides the execution engine to the depinject
 // framework.
-func ProvideExecutionEngine[
-	LoggerT log.AdvancedLogger[LoggerT],
-](
-	in ExecutionEngineInputs[LoggerT],
-) *engine.Engine {
+func ProvideExecutionEngine(in ExecutionEngineInputs) *engine.Engine {
 	return engine.New(
 		in.EngineClient,
 		in.Logger.With("service", "execution-engine"),

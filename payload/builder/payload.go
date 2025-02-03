@@ -255,5 +255,8 @@ func (pb *PayloadBuilder) getPayload(
 	if envelope == nil {
 		return nil, ErrNilPayloadEnvelope
 	}
+	if envelope.GetExecutionPayload().Withdrawals == nil {
+		return nil, ErrNilWithdrawals
+	}
 	return envelope, nil
 }

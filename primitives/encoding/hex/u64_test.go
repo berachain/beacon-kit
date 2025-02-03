@@ -28,6 +28,7 @@ import (
 )
 
 func TestMarshalText(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		input    uint64
@@ -43,6 +44,7 @@ func TestMarshalText(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result, err := hex.MarshalText(tt.input)
 			require.NoError(t, err)
 			require.Equal(t, tt.expected, result)
@@ -55,6 +57,7 @@ func TestMarshalText(t *testing.T) {
 }
 
 func TestValidateQuotedString(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		input    []byte
@@ -68,6 +71,7 @@ func TestValidateQuotedString(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
 			_, err := hex.ValidateQuotedString(test.input)
 			if test.expected != nil {
 				require.ErrorIs(t, test.expected, err)
@@ -79,6 +83,7 @@ func TestValidateQuotedString(t *testing.T) {
 }
 
 func TestUnmarshalUint64Text(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		input    []byte
@@ -96,6 +101,7 @@ func TestUnmarshalUint64Text(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
 			result, err := hex.UnmarshalUint64Text(test.input)
 			if test.err != nil {
 				require.ErrorIs(t, test.err, err)
