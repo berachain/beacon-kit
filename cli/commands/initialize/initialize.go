@@ -161,7 +161,16 @@ func InitCmd(mm interface {
 			if err != nil {
 				return errors.New("failed to parse FlagDefaultBondDenom")
 			}
-			return Init(chainID, config, mnemonic, initHeight, overwrite, defaultDenom, mm.DefaultGenesis(), cmd.ErrOrStderr())
+			return Init(
+				chainID,
+				config,
+				mnemonic,
+				initHeight,
+				overwrite,
+				defaultDenom,
+				mm.DefaultGenesis(),
+				cmd.ErrOrStderr(),
+			)
 		},
 	}
 
