@@ -73,14 +73,14 @@ type StateBackend interface {
 }
 
 type ValidatorBackend interface {
+	ValidatorByID(
+		slot math.Slot, id string,
+	) (*types.ValidatorData, error)
 	FilteredValidators(
 		slot math.Slot,
 		ids []string,
 		statusees []string,
 	) ([]*types.ValidatorData, error)
-	ValidatorByID(
-		slot math.Slot, id string,
-	) (*types.ValidatorData, error)
 	ValidatorBalancesByIDs(
 		slot math.Slot,
 		ids []string,
