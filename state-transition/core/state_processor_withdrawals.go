@@ -68,6 +68,11 @@ func (sp *StateProcessor[_]) processWithdrawals(
 		return ErrZeroWithdrawals
 	}
 	if !payloadWithdrawals[0].Equals(st.EVMInflationWithdrawal(blk.GetSlot())) {
+		sp.logger.Error(
+			"First withdrawal is not EVM inflation",
+			"payload withdrawal", spew.Sdump(payloadWithdrawals[0]),
+			"expected withdrawal", spew.Sdump(st.EVMInflationWithdrawal(blk.GetSlot())),
+		)
 		return ErrFirstWithdrawalNotEVMInflation
 	}
 	numWithdrawals := len(expectedWithdrawals)
