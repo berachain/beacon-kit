@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -29,7 +29,7 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -37,6 +37,8 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
+	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/services"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/starlark_run_config"
 	"github.com/kurtosis-tech/kurtosis/api/golang/engine/lib/kurtosis_context"
 	"github.com/sourcegraph/conc/iter"
@@ -50,7 +52,7 @@ func (s *KurtosisE2ESuite) SetupSuite() {
 // SetupSuiteWithOptions sets up the test suite with the provided options.
 func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	var (
-		key1, key2, key3 *ecdsa.PrivateKey
+		key0, key1, key2 *ecdsa.PrivateKey
 		err              error
 	)
 
@@ -59,31 +61,21 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	s.ctx = context.Background()
 	s.logger = log.NewTestLogger(s.T())
 	s.Require().NoError(err, "Error loading starlark helper file")
-	s.testAccounts = make([]*types.EthAccount, 0)
+	s.testAccounts = make([]*types.EthAccount, 3) //nolint:mnd // number of accounts.
 
 	s.genesisAccount = types.NewEthAccountFromHex(
-		"genesisAccount",
-		"fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306",
+		"genesisAccount", "fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306",
 	)
+	key0, err = crypto.GenerateKey()
+	s.Require().NoError(err, "Error generating key")
 	key1, err = crypto.GenerateKey()
 	s.Require().NoError(err, "Error generating key")
 	key2, err = crypto.GenerateKey()
 	s.Require().NoError(err, "Error generating key")
-	key3, err = crypto.GenerateKey()
-	s.Require().NoError(err, "Error generating key")
 
-	s.testAccounts = append(s.testAccounts, types.NewEthAccount(
-		"testAccount1",
-		key1,
-	))
-	s.testAccounts = append(s.testAccounts, types.NewEthAccount(
-		"testAccount2",
-		key2,
-	))
-	s.testAccounts = append(s.testAccounts, types.NewEthAccount(
-		"testAccount1",
-		key3,
-	))
+	s.testAccounts[0] = types.NewEthAccount("testAccount0", key0)
+	s.testAccounts[1] = types.NewEthAccount("testAccount1", key1)
+	s.testAccounts[2] = types.NewEthAccount("testAccount2", key2)
 
 	// Apply all the provided options, this allows
 	// the test suite to be configured in a flexible manner by
@@ -114,12 +106,9 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	)
 
 	result, err := s.enclave.RunStarlarkPackageBlocking(
-		s.ctx,
-		"../../kurtosis",
+		s.ctx, "../../kurtosis",
 		starlark_run_config.NewRunStarlarkConfig(
-			starlark_run_config.WithSerializedParams(
-				string(s.cfg.MustMarshalJSON()),
-			),
+			starlark_run_config.WithSerializedParams(s.cfg.MustMarshalJSON()),
 		),
 	)
 	s.Require().NoError(err, "Error running Starlark package")
@@ -149,52 +138,51 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	s.FundAccounts()
 }
 
+// SetupConsensusClients sets up the consensus clients for the validator nodes.
 func (s *KurtosisE2ESuite) SetupConsensusClients() error {
-	s.consensusClients = make(map[string]*types.ConsensusClient)
-	sCtx, err := s.Enclave().GetServiceContext("cl-validator-beaconkit-0")
-	if err != nil {
-		return err
+	s.consensusClients = make(map[string]*types.ConsensusClient, config.NumValidators)
+
+	var (
+		sCtx *services.ServiceContext
+		res  *enclaves.StarlarkRunResult
+		err  error
+	)
+	for i := range config.NumValidators {
+		var clientName string
+		//nolint:mnd // its okay.
+		switch i % config.NumValidators {
+		case 0:
+			clientName = config.ClientValidator0
+		case 1:
+			clientName = config.ClientValidator1
+		case 2:
+			clientName = config.ClientValidator2
+		case 3:
+			clientName = config.ClientValidator3
+		case 4:
+			clientName = config.ClientValidator4
+		}
+		sCtx, err = s.Enclave().GetServiceContext(clientName)
+		if err != nil {
+			return err
+		}
+
+		s.consensusClients[clientName] = types.NewConsensusClient(
+			types.NewWrappedServiceContext(sCtx, s.Enclave().RunStarlarkScriptBlocking),
+		)
+		if res, err = s.consensusClients[clientName].Start(
+			context.Background(), s.Enclave(),
+		); err != nil {
+			return err
+		}
+		if res.ExecutionError != nil {
+			return errors.New(res.ExecutionError.String())
+		}
+		if len(res.ValidationErrors) > 0 {
+			return errors.New(res.ValidationErrors[0].String())
+		}
 	}
 
-	s.consensusClients["cl-validator-beaconkit-0"] = types.NewConsensusClient(
-		types.NewWrappedServiceContext(
-			sCtx,
-			s.Enclave().RunStarlarkScriptBlocking,
-		),
-	)
-
-	sCtx, err = s.Enclave().GetServiceContext("cl-validator-beaconkit-1")
-	if err != nil {
-		return err
-	}
-	s.consensusClients["cl-validator-beaconkit-1"] = types.NewConsensusClient(
-		types.NewWrappedServiceContext(
-			sCtx,
-			s.Enclave().RunStarlarkScriptBlocking,
-		),
-	)
-
-	sCtx, err = s.Enclave().GetServiceContext("cl-validator-beaconkit-2")
-	if err != nil {
-		return err
-	}
-	s.consensusClients["cl-validator-beaconkit-2"] = types.NewConsensusClient(
-		types.NewWrappedServiceContext(
-			sCtx,
-			s.Enclave().RunStarlarkScriptBlocking,
-		),
-	)
-
-	sCtx, err = s.Enclave().GetServiceContext("cl-validator-beaconkit-3")
-	if err != nil {
-		return err
-	}
-	s.consensusClients["cl-validator-beaconkit-3"] = types.NewConsensusClient(
-		types.NewWrappedServiceContext(
-			sCtx,
-			s.Enclave().RunStarlarkScriptBlocking,
-		),
-	)
 	return nil
 }
 
@@ -220,6 +208,8 @@ func (s *KurtosisE2ESuite) SetupJSONRPCBalancer() error {
 }
 
 // FundAccounts funds the accounts for the test suite.
+//
+//nolint:funlen
 func (s *KurtosisE2ESuite) FundAccounts() {
 	ctx := context.Background()
 	nonce := atomic.Uint64{}
@@ -253,7 +243,7 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 				gasTipCap, big.NewInt(0).SetUint64(TenGwei))
 			nonceToSubmit := nonce.Add(1) - 1
 			//nolint:mnd // 20000 Ether
-			value := new(big.Int).Mul(big.NewInt(20000), big.NewInt(Ether))
+			value := new(big.Int).Mul(big.NewInt(200000), big.NewInt(Ether))
 			dest := account.Address()
 			var signedTx *ethtypes.Transaction
 			if signedTx, err = s.genesisAccount.SignTx(
@@ -313,13 +303,11 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 
 			// Verify the balance of the account
 			var balance *big.Int
-			if balance, err = s.JSONRPCBalancer().BalanceAt(
-				ctx, account.Address(), nil); err != nil {
+			if balance, err = s.JSONRPCBalancer().BalanceAt(ctx, dest, nil); err != nil {
 				return nil, err
 			} else if balance.Cmp(value) != 0 {
 				return nil, errors.Wrap(
-					ErrUnexpectedBalance,
-					fmt.Sprintf("expected: %v, got: %v", value, balance),
+					ErrUnexpectedBalance, fmt.Sprintf("expected: %v, got: %v", value, balance),
 				)
 			}
 			return receipt, nil
@@ -339,6 +327,13 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 	defer ticker.Stop()
 	var finalBlockNum uint64
 	for finalBlockNum < target {
+		// check if cctx deadline is exceeded to prevent endless loop
+		select {
+		case <-cctx.Done():
+			return cctx.Err()
+		default:
+		}
+
 		var err error
 		finalBlockNum, err = s.JSONRPCBalancer().BlockNumber(cctx)
 		if err != nil {
@@ -388,6 +383,12 @@ func (s *KurtosisE2ESuite) WaitForNBlockNumbers(
 // this function executes after all tests executed.
 func (s *KurtosisE2ESuite) TearDownSuite() {
 	s.Logger().Info("Destroying enclave...")
+	for _, client := range s.consensusClients {
+		res, err := client.Stop(s.ctx)
+		s.Require().NoError(err, "Error stopping consensus client")
+		s.Require().Nil(res.ExecutionError, "Error stopping consensus client")
+		s.Require().Empty(res.ValidationErrors, "Error stopping consensus client")
+	}
 	s.Require().NoError(s.kCtx.DestroyEnclave(s.ctx, "e2e-test-enclave"))
 }
 

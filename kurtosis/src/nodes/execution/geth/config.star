@@ -31,14 +31,11 @@ METRICS_PATH = defaults.METRICS_PATH
 # The files that only need to be uploaded once to be read by every node
 # NOTE: THIS MUST REFERENCE THE FILEPATH RELATIVE TO execution.star
 GLOBAL_FILES = [
-    ("./geth/geth-config.toml", NODE_CONFIG_ARTIFACT_NAME),
 ]
 
 ENTRYPOINT = ["sh", "-c"]
 CONFIG_LOCATION = "/root/.geth/{}".format(CONFIG_FILENAME)
 FILES = {
-    "/root/.geth": NODE_CONFIG_ARTIFACT_NAME,
-    "/root/genesis": "genesis_file",
     "/jwt": "jwt_file",
 }
 CMD = [
@@ -59,7 +56,7 @@ CMD = [
     "--datadir",
     EXECUTION_DATA_DIRPATH_ON_CLIENT_CONTAINER,
     "--networkid",
-    "80087",
+    "$CHAIN_ID",
 ]
 BOOTNODE_CMD = "--bootnodes"
 MAX_PEERS_CMD = "--maxpeers"
@@ -82,3 +79,20 @@ def set_max_peers(config, max_peers):
     cmdList.append(max_peers)
     config["cmd"] = cmdList
     return config
+
+def process_geth_config(plan, chain_id):
+    # Read the template file
+    template_content = read_file(src = "geth-config.toml.template")
+
+    return plan.render_templates(
+        config = {
+            CONFIG_FILENAME: struct(
+                template = template_content,
+                data = {
+                    "CHAIN_ID": chain_id,
+                },
+            ),
+        },
+        name = NODE_CONFIG_ARTIFACT_NAME,
+        description = "Rendering Geth config template",
+    )

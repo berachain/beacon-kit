@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -20,9 +20,7 @@
 
 package e2e_test
 
-import (
-	"github.com/berachain/beacon-kit/testing/e2e/suite"
-)
+import "github.com/berachain/beacon-kit/testing/e2e/suite"
 
 // BeaconE2ESuite is a suite of tests simulating a fully function beacon-kit
 // network.
@@ -31,7 +29,7 @@ type BeaconKitE2ESuite struct {
 }
 
 // TestBasicStartup tests the basic startup of the beacon-kit network.
-// TODO: Should check all clients, opposed to the load balancer.
+// TODO: Should check all clients, opposed to just the load balancer.
 func (s *BeaconKitE2ESuite) TestBasicStartup() {
 	err := s.WaitForFinalizedBlockNumber(10)
 	s.Require().NoError(err)

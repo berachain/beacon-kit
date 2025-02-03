@@ -1,16 +1,16 @@
 #!/usr/bin/make -f
 
-include build/scripts/build.mk
-include build/scripts/codegen.mk
-include build/scripts/constants.mk
-include build/scripts/devtools.mk
-include build/scripts/linting.mk
-include build/scripts/protobuf.mk
-include build/scripts/release.mk
-include build/scripts/testing.mk
+include scripts/build/build.mk
+include scripts/build/codegen.mk
+include scripts/build/constants.mk
+include scripts/build/devtools.mk
+include scripts/build/linting.mk
+include scripts/build/protobuf.mk
+include scripts/build/release.mk
+include scripts/build/testing.mk
 include contracts/Makefile
 include kurtosis/Makefile
-include build/scripts/help.mk
+include scripts/build/help.mk
 include testing/forge-script/Makefile
 
 # Specify the default target if none is provided

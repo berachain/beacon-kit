@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -20,7 +20,7 @@
 
 package suite
 
-import "github.com/berachain/beacon-kit/mod/errors"
+import "github.com/berachain/beacon-kit/errors"
 
 // ErrUnexpectedBalance is returned when the balance is unexpected.
 var ErrUnexpectedBalance = errors.New("unexpected balance")
