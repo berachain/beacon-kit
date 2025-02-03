@@ -37,7 +37,7 @@ import (
 )
 
 func generateExecutionPayloadHeader() *types.ExecutionPayloadHeader {
-	return &types.ExecutionPayloadHeader{
+	eph := &types.ExecutionPayloadHeader{
 		ParentHash:       common.ExecutionHash{},
 		FeeRecipient:     common.ExecutionAddress{},
 		StateRoot:        bytes.B32{},
@@ -55,10 +55,13 @@ func generateExecutionPayloadHeader() *types.ExecutionPayloadHeader {
 		WithdrawalsRoot:  common.Root{},
 		BlobGasUsed:      math.U64(0),
 		ExcessBlobGas:    math.U64(0),
+		EphVersion:       version.Deneb1(),
 	}
+	return eph
 }
 
 func TestExecutionPayloadHeader_Getters(t *testing.T) {
+	t.Parallel()
 	header := generateExecutionPayloadHeader()
 
 	require.NotNil(t, header)
@@ -87,16 +90,19 @@ func TestExecutionPayloadHeader_Getters(t *testing.T) {
 }
 
 func TestExecutionPayloadHeader_IsNil(t *testing.T) {
+	t.Parallel()
 	header := generateExecutionPayloadHeader()
 	require.False(t, header.IsNil())
 }
 
 func TestExecutionPayloadHeader_Version(t *testing.T) {
+	t.Parallel()
 	header := generateExecutionPayloadHeader()
-	require.Equal(t, version.Deneb, header.Version())
+	require.Equal(t, version.Deneb1(), header.Version())
 }
 
 func TestExecutionPayloadHeader_MarshalUnmarshalJSON(t *testing.T) {
+	t.Parallel()
 	originalHeader := generateExecutionPayloadHeader()
 
 	data, err := originalHeader.MarshalJSON()
@@ -107,10 +113,12 @@ func TestExecutionPayloadHeader_MarshalUnmarshalJSON(t *testing.T) {
 	err = header.UnmarshalJSON(data)
 	require.NoError(t, err)
 
+	header.EphVersion = originalHeader.Version()
 	require.Equal(t, originalHeader, &header)
 }
 
 func TestExecutionPayloadHeader_Serialization(t *testing.T) {
+	t.Parallel()
 	original := generateExecutionPayloadHeader()
 
 	data, err := original.MarshalSSZ()
@@ -120,10 +128,13 @@ func TestExecutionPayloadHeader_Serialization(t *testing.T) {
 	var unmarshalled = &types.ExecutionPayloadHeader{}
 	err = unmarshalled.UnmarshalSSZ(data)
 	require.NoError(t, err)
+
+	unmarshalled.EphVersion = original.Version()
 	require.Equal(t, original, unmarshalled)
 }
 
 func TestExecutionPayloadHeader_MarshalSSZTo(t *testing.T) {
+	t.Parallel()
 	testcases := []struct {
 		name     string
 		malleate func() *types.ExecutionPayloadHeader
@@ -148,6 +159,7 @@ func TestExecutionPayloadHeader_MarshalSSZTo(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			header := tc.malleate()
 			buf := make([]byte, 64)
 			_, err := header.MarshalSSZTo(buf)
@@ -161,6 +173,7 @@ func TestExecutionPayloadHeader_MarshalSSZTo(t *testing.T) {
 }
 
 func TestExecutionPayloadHeader_UnmarshalSSZ_EmptyBuf(t *testing.T) {
+	t.Parallel()
 	header := generateExecutionPayloadHeader()
 	buf := make([]byte, 0)
 	err := header.UnmarshalSSZ(buf)
@@ -229,12 +242,14 @@ func TestExecutionPayloadHeader_UnmarshalSSZ_EmptyBuf(t *testing.T) {
 // }
 
 func TestExecutionPayloadHeader_SizeSSZ(t *testing.T) {
+	t.Parallel()
 	header := generateExecutionPayloadHeader()
 	size := karalabessz.Size(header)
 	require.Equal(t, uint32(584), size)
 }
 
 func TestExecutionPayloadHeader_HashTreeRoot(t *testing.T) {
+	t.Parallel()
 	header := generateExecutionPayloadHeader()
 	require.NotPanics(t, func() {
 		header.HashTreeRoot()
@@ -242,12 +257,14 @@ func TestExecutionPayloadHeader_HashTreeRoot(t *testing.T) {
 }
 
 func TestExecutionPayloadHeader_GetTree(t *testing.T) {
+	t.Parallel()
 	header := generateExecutionPayloadHeader()
 	_, err := header.GetTree()
 	require.NoError(t, err)
 }
 
 func TestExecutablePayloadHeaderDeneb_UnmarshalJSON_Error(t *testing.T) {
+	t.Parallel()
 	original := generateExecutionPayloadHeader()
 	validJSON, err := original.MarshalJSON()
 	require.NoError(t, err)
@@ -350,12 +367,14 @@ func TestExecutablePayloadHeaderDeneb_UnmarshalJSON_Error(t *testing.T) {
 }
 
 func TestExecutablePayloadHeaderDeneb_UnmarshalJSON_Empty(t *testing.T) {
+	t.Parallel()
 	var payload types.ExecutionPayloadHeader
 	err := payload.UnmarshalJSON([]byte{})
 	require.Error(t, err)
 }
 
 func TestExecutablePayloadHeaderDeneb_HashTreeRootWith(t *testing.T) {
+	t.Parallel()
 	testcases := []struct {
 		name     string
 		malleate func() *types.ExecutionPayloadHeader
@@ -374,6 +393,7 @@ func TestExecutablePayloadHeaderDeneb_HashTreeRootWith(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			hh := ssz.DefaultHasherPool.Get()
 			header := tc.malleate()
 			err := header.HashTreeRootWith(hh)
@@ -383,11 +403,12 @@ func TestExecutablePayloadHeaderDeneb_HashTreeRootWith(t *testing.T) {
 }
 
 func TestExecutionPayloadHeader_NewFromSSZ(t *testing.T) {
+	t.Parallel()
 	t.Helper()
 	testCases := []struct {
 		name           string
 		data           []byte
-		forkVersion    uint32
+		forkVersion    common.Version
 		expErr         error
 		expectedHeader *types.ExecutionPayloadHeader
 	}{
@@ -397,21 +418,21 @@ func TestExecutionPayloadHeader_NewFromSSZ(t *testing.T) {
 				data, _ := generateExecutionPayloadHeader().MarshalSSZ()
 				return data
 			}(),
-			forkVersion:    version.Deneb,
+			forkVersion:    version.Deneb1(),
 			expErr:         nil,
 			expectedHeader: generateExecutionPayloadHeader(),
 		},
 		{
 			name:           "Invalid SSZ data",
 			data:           []byte{0x01, 0x02},
-			forkVersion:    version.Deneb,
+			forkVersion:    version.Deneb1(),
 			expErr:         io.ErrUnexpectedEOF,
 			expectedHeader: nil,
 		},
 		{
 			name:           "Empty SSZ data",
 			data:           []byte{},
-			forkVersion:    version.Deneb,
+			forkVersion:    version.Deneb1(),
 			expErr:         io.ErrUnexpectedEOF,
 			expectedHeader: nil,
 		},
@@ -419,6 +440,7 @@ func TestExecutionPayloadHeader_NewFromSSZ(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			if tc.name == "Different fork version" {
 				require.Panics(t, func() {
 					_, _ = new(types.ExecutionPayloadHeader).
@@ -431,6 +453,8 @@ func TestExecutionPayloadHeader_NewFromSSZ(t *testing.T) {
 					require.ErrorIs(t, err, tc.expErr)
 				} else {
 					require.NoError(t, err)
+
+					header.EphVersion = tc.expectedHeader.Version()
 					require.Equal(t, tc.expectedHeader, header)
 				}
 			}
@@ -439,6 +463,7 @@ func TestExecutionPayloadHeader_NewFromSSZ(t *testing.T) {
 }
 
 func TestExecutionPayloadHeader_NewFromJSON(t *testing.T) {
+	t.Parallel()
 	t.Helper()
 	type testCase struct {
 		name          string
@@ -468,9 +493,10 @@ func TestExecutionPayloadHeader_NewFromJSON(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			header, err := new(types.ExecutionPayloadHeader).NewFromJSON(
 				tc.data,
-				version.Deneb,
+				version.Deneb1(),
 			)
 			if tc.expectedError != nil {
 				require.Error(t, err)
@@ -479,6 +505,7 @@ func TestExecutionPayloadHeader_NewFromJSON(t *testing.T) {
 				require.NoError(t, err)
 			}
 			if tc.header != nil {
+				header.EphVersion = tc.header.Version()
 				require.Equal(t, tc.header, header)
 			}
 		})

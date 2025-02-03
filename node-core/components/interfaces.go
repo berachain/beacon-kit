@@ -183,6 +183,7 @@ type (
 		// VerifySidecars verifies the blobs and ensures they match the local
 		// state.
 		VerifySidecars(
+			ctx context.Context,
 			sidecars datypes.BlobSidecars,
 			blkHeader *ctypes.BeaconBlockHeader,
 			kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],
@@ -732,9 +733,9 @@ type (
 	}
 
 	// Engine is a generic interface for an API engine.
-	NodeAPIEngine[ContextT NodeAPIContext] interface {
+	NodeAPIEngine interface {
 		Run(addr string) error
-		RegisterRoutes(*handlers.RouteSet[ContextT], log.Logger)
+		RegisterRoutes(*handlers.RouteSet, log.Logger)
 	}
 
 	NodeAPIBackend interface {

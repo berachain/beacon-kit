@@ -57,25 +57,26 @@ func ProvideNodeAPIBackend(
 
 type NodeAPIServerInput[
 	LoggerT log.AdvancedLogger[LoggerT],
-	NodeAPIContextT NodeAPIContext,
 ] struct {
 	depinject.In
 
-	Engine   NodeAPIEngine[NodeAPIContextT]
+	Engine   NodeAPIEngine
 	Config   *config.Config
-	Handlers []handlers.Handlers[NodeAPIContextT]
+	Handlers []handlers.Handlers
 	Logger   LoggerT
 }
 
 func ProvideNodeAPIServer[
 	LoggerT log.AdvancedLogger[LoggerT],
-	NodeAPIContextT NodeAPIContext,
 ](
-	in NodeAPIServerInput[LoggerT, NodeAPIContextT],
-) *server.Server[NodeAPIContextT] {
-	in.Logger.AddKeyValColor("service", "node-api-server",
-		log.Blue)
-	return server.New[NodeAPIContextT](
+	in NodeAPIServerInput[LoggerT],
+) *server.Server {
+	in.Logger.AddKeyValColor(
+		"service",
+		"node-api-server",
+		log.Blue,
+	)
+	return server.New(
 		in.Config.NodeAPI,
 		in.Engine,
 		in.Logger.With("service", "node-api-server"),

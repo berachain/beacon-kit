@@ -47,26 +47,27 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 	}
 
 	if payloadID, found := pb.pc.Get(slot, parentBlockRoot); found {
-		pb.logger.Warn(
+		pb.logger.Info(
 			"aborting payload build; payload already exists in cache",
-			"for_slot",
-			slot.Base10(),
-			"parent_block_root",
-			parentBlockRoot,
+			"for_slot", slot.Base10(),
+			"parent_block_root", parentBlockRoot,
 		)
 		return &payloadID, nil
 	}
 
 	// Assemble the payload attributes.
-	attrs, err := pb.attributesFactory.
-		BuildPayloadAttributes(st, slot, timestamp, parentBlockRoot)
+	attrs, err := pb.attributesFactory.BuildPayloadAttributes(
+		st,
+		slot,
+		timestamp,
+		parentBlockRoot,
+	)
 	if err != nil {
 		return nil, err
 	}
 
 	// Submit the forkchoice update to the execution client.
-	var payloadID *engineprimitives.PayloadID
-	payloadID, _, err = pb.ee.NotifyForkchoiceUpdate(
+	payloadID, _, err := pb.ee.NotifyForkchoiceUpdate(
 		ctx, &ctypes.ForkchoiceUpdateRequest{
 			State: &engineprimitives.ForkchoiceStateV1{
 				HeadBlockHash:      headEth1BlockHash,
@@ -166,29 +167,9 @@ func (pb *PayloadBuilder) RetrievePayload(
 		return nil, err
 	}
 
-	overrideBuilder := envelope.ShouldOverrideBuilder()
-	args := []any{
-		"for_slot", slot.Base10(),
-		"override_builder", overrideBuilder,
-	}
-
-	payload := envelope.GetExecutionPayload()
-	if !payload.IsNil() {
-		args = append(args,
-			"payload_block_hash", payload.GetBlockHash(),
-			"parent_hash", payload.GetParentHash(),
-		)
-	}
-
-	blobsBundle := envelope.GetBlobsBundle()
-	if blobsBundle != nil {
-		args = append(args, "num_blobs", len(blobsBundle.GetBlobs()))
-	}
-
-	pb.logger.Info("Payload retrieved from local builder", args...)
-
 	// If the payload was built by a different builder, something is
 	// wrong the EL<>CL setup.
+	payload := envelope.GetExecutionPayload()
 	if payload.GetFeeRecipient() != pb.cfg.SuggestedFeeRecipient {
 		pb.logger.Warn(
 			"Payload fee recipient does not match suggested fee recipient - "+
@@ -197,6 +178,19 @@ func (pb *PayloadBuilder) RetrievePayload(
 			"suggested_fee_recipient", pb.cfg.SuggestedFeeRecipient,
 		)
 	}
+
+	// log some data
+	args := []any{
+		"for_slot", slot.Base10(),
+		"override_builder", envelope.ShouldOverrideBuilder(),
+		"payload_block_hash", payload.GetBlockHash(),
+		"parent_hash", payload.GetParentHash(),
+	}
+	if blobsBundle := envelope.GetBlobsBundle(); blobsBundle != nil {
+		args = append(args, "num_blobs", len(blobsBundle.GetBlobs()))
+	}
+	pb.logger.Info("Payload retrieved from local builder", args...)
+
 	return envelope, err
 }
 
@@ -260,6 +254,9 @@ func (pb *PayloadBuilder) getPayload(
 	}
 	if envelope == nil {
 		return nil, ErrNilPayloadEnvelope
+	}
+	if envelope.GetExecutionPayload().Withdrawals == nil {
+		return nil, ErrNilWithdrawals
 	}
 	return envelope, nil
 }

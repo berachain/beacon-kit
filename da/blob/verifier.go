@@ -62,6 +62,7 @@ func newVerifier(
 // verifySidecars verifies the blobs for both inclusion as well
 // as the KZG proofs.
 func (bv *verifier) verifySidecars(
+	ctx context.Context,
 	sidecars datypes.BlobSidecars,
 	blkHeader *ctypes.BeaconBlockHeader,
 	kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],
@@ -71,7 +72,7 @@ func (bv *verifier) verifySidecars(
 		bv.proofVerifier.GetImplementation(),
 	)
 
-	g, _ := errgroup.WithContext(context.Background())
+	g, _ := errgroup.WithContext(ctx)
 
 	// Create lookup table for each blob sidecar commitment.
 	blobSidecarCommitments := make(map[eip4844.KZGCommitment]struct{})

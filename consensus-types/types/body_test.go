@@ -23,7 +23,6 @@ package types_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/bytes"
@@ -32,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/math/log"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
@@ -44,6 +44,7 @@ func generateBeaconBlockBody() types.BeaconBlockBody {
 		Deposits:     []*types.Deposit{},
 		ExecutionPayload: &types.ExecutionPayload{
 			BaseFeePerGas: math.NewU256(0),
+			EpVersion:     version.Deneb1(),
 		},
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
@@ -57,6 +58,7 @@ func generateBeaconBlockBody() types.BeaconBlockBody {
 }
 
 func TestBeaconBlockBodyBase(t *testing.T) {
+	t.Parallel()
 	body := types.BeaconBlockBody{
 		RandaoReveal: [96]byte{1, 2, 3},
 		Eth1Data:     &types.Eth1Data{},
@@ -75,12 +77,13 @@ func TestBeaconBlockBodyBase(t *testing.T) {
 }
 
 func TestBeaconBlockBody(t *testing.T) {
+	t.Parallel()
 	body := types.BeaconBlockBody{
 		RandaoReveal:       [96]byte{1, 2, 3},
 		Eth1Data:           &types.Eth1Data{},
 		Graffiti:           [32]byte{4, 5, 6},
 		Deposits:           []*types.Deposit{},
-		ExecutionPayload:   &types.ExecutionPayload{},
+		ExecutionPayload:   (&types.ExecutionPayload{}).Empty(version.Deneb1()),
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
 
@@ -91,6 +94,7 @@ func TestBeaconBlockBody(t *testing.T) {
 }
 
 func TestBeaconBlockBody_SetBlobKzgCommitments(t *testing.T) {
+	t.Parallel()
 	body := types.BeaconBlockBody{}
 	commitments := eip4844.KZGCommitments[common.ExecutionHash]{}
 	body.SetBlobKzgCommitments(commitments)
@@ -99,6 +103,7 @@ func TestBeaconBlockBody_SetBlobKzgCommitments(t *testing.T) {
 }
 
 func TestBeaconBlockBody_SetRandaoReveal(t *testing.T) {
+	t.Parallel()
 	body := types.BeaconBlockBody{}
 	randaoReveal := crypto.BLSSignature{1, 2, 3}
 	body.SetRandaoReveal(randaoReveal)
@@ -107,6 +112,7 @@ func TestBeaconBlockBody_SetRandaoReveal(t *testing.T) {
 }
 
 func TestBeaconBlockBody_SetEth1Data(t *testing.T) {
+	t.Parallel()
 	body := types.BeaconBlockBody{}
 	eth1Data := &types.Eth1Data{}
 	body.SetEth1Data(eth1Data)
@@ -115,6 +121,7 @@ func TestBeaconBlockBody_SetEth1Data(t *testing.T) {
 }
 
 func TestBeaconBlockBody_SetDeposits(t *testing.T) {
+	t.Parallel()
 	body := types.BeaconBlockBody{}
 	deposits := types.Deposits{}
 	body.SetDeposits(deposits)
@@ -123,12 +130,13 @@ func TestBeaconBlockBody_SetDeposits(t *testing.T) {
 }
 
 func TestBeaconBlockBody_MarshalSSZ(t *testing.T) {
+	t.Parallel()
 	body := types.BeaconBlockBody{
 		RandaoReveal:       [96]byte{1, 2, 3},
 		Eth1Data:           &types.Eth1Data{},
 		Graffiti:           [32]byte{4, 5, 6},
 		Deposits:           []*types.Deposit{},
-		ExecutionPayload:   &types.ExecutionPayload{},
+		ExecutionPayload:   (&types.ExecutionPayload{}).Empty(version.Deneb1()),
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
 	data, err := body.MarshalSSZ()
@@ -138,12 +146,14 @@ func TestBeaconBlockBody_MarshalSSZ(t *testing.T) {
 }
 
 func TestBeaconBlockBody_GetTopLevelRoots(t *testing.T) {
+	t.Parallel()
 	body := generateBeaconBlockBody()
 	roots := body.GetTopLevelRoots()
 	require.NotNil(t, roots)
 }
 
 func TestBeaconBlockBody_Empty(t *testing.T) {
+	t.Parallel()
 	body := types.BeaconBlockBody{}
 	require.NotNil(t, body)
 }
@@ -151,6 +161,7 @@ func TestBeaconBlockBody_Empty(t *testing.T) {
 // Ensure that the ProposerSlashings field cannot be unmarshaled with data in it,
 // enforcing that it's unused.
 func TestBeaconBlockBody_UnusedProposerSlashingsEnforcement(t *testing.T) {
+	t.Parallel()
 	blockBody := types.BeaconBlockBody{}
 	unused := types.UnusedType(1)
 	blockBody.SetProposerSlashings(types.ProposerSlashings{&unused})
@@ -169,6 +180,7 @@ func TestBeaconBlockBody_UnusedProposerSlashingsEnforcement(t *testing.T) {
 // Ensure that the AttesterSlashings field cannot be unmarshaled with data in it,
 // enforcing that it's unused.
 func TestBeaconBlockBody_UnusedAttesterSlashingsEnforcement(t *testing.T) {
+	t.Parallel()
 	blockBody := types.BeaconBlockBody{}
 	unused := types.UnusedType(1)
 	blockBody.SetAttesterSlashings(types.AttesterSlashings{&unused})
@@ -187,6 +199,7 @@ func TestBeaconBlockBody_UnusedAttesterSlashingsEnforcement(t *testing.T) {
 // Ensure that the Attestations field cannot be unmarshaled with data in it,
 // enforcing that it's unused.
 func TestBeaconBlockBody_UnusedAttestationsEnforcement(t *testing.T) {
+	t.Parallel()
 	blockBody := types.BeaconBlockBody{}
 	unused := types.UnusedType(1)
 	blockBody.SetAttestations(types.Attestations{&unused})
@@ -205,6 +218,7 @@ func TestBeaconBlockBody_UnusedAttestationsEnforcement(t *testing.T) {
 // Ensure that the VoluntaryExits field cannot be unmarshaled with data in it,
 // enforcing that it's unused.
 func TestBeaconBlockBody_UnusedVoluntaryExitsEnforcement(t *testing.T) {
+	t.Parallel()
 	blockBody := types.BeaconBlockBody{}
 	unused := types.UnusedType(1)
 	blockBody.SetVoluntaryExits(types.VoluntaryExits{&unused})
@@ -223,6 +237,7 @@ func TestBeaconBlockBody_UnusedVoluntaryExitsEnforcement(t *testing.T) {
 // Ensure that the BlsToExecutionChanges field cannot be unmarshaled with data in it,
 // enforcing that it's unused.
 func TestBeaconBlockBody_UnusedBlsToExecutionChangesEnforcement(t *testing.T) {
+	t.Parallel()
 	blockBody := types.BeaconBlockBody{}
 	unused := types.UnusedType(1)
 	blockBody.SetBlsToExecutionChanges(types.BlsToExecutionChanges{&unused})
@@ -239,6 +254,7 @@ func TestBeaconBlockBody_UnusedBlsToExecutionChangesEnforcement(t *testing.T) {
 }
 
 func TestBeaconBlockBody_RoundTrip_HashTreeRoot(t *testing.T) {
+	t.Parallel()
 	body := generateBeaconBlockBody()
 	data, err := body.MarshalSSZ()
 	require.NoError(t, err)
@@ -252,9 +268,9 @@ func TestBeaconBlockBody_RoundTrip_HashTreeRoot(t *testing.T) {
 
 // This test explains the calculation of the KZG commitment' inclusion proof depth.
 func Test_KZGCommitmentInclusionProofDepth(t *testing.T) {
+	t.Parallel()
 	maxUint8 := uint64(^uint8(0))
-	specVals := spec.BaseSpec()
-	cs, err := chain.NewSpec(specVals)
+	cs, err := spec.DevnetChainSpec()
 	require.NoError(t, err)
 
 	// Depth of the partial BeaconBlockBody merkle tree. This is partial

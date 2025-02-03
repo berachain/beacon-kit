@@ -39,6 +39,7 @@ import (
 var baseDir = "../../testing/files/"
 
 func TestNewBlobProofVerifier_KzgImpl(t *testing.T) {
+	t.Parallel()
 	ts, err := loadTrustedSetupFromFile()
 	require.NoError(t, err)
 
@@ -49,6 +50,7 @@ func TestNewBlobProofVerifier_KzgImpl(t *testing.T) {
 }
 
 func TestNewBlobProofVerifier_CkzgImpl(t *testing.T) {
+	t.Parallel()
 	ts, err := loadTrustedSetupFromFile()
 	require.NoError(t, err)
 
@@ -59,6 +61,7 @@ func TestNewBlobProofVerifier_CkzgImpl(t *testing.T) {
 }
 
 func TestNewBlobProofVerifier_InvalidImpl(t *testing.T) {
+	t.Parallel()
 	ts, err := loadTrustedSetupFromFile()
 	require.NoError(t, err)
 
@@ -86,6 +89,7 @@ func loadTrustedSetupFromFile() (*gokzg4844.JSONTrustedSetup, error) {
 }
 
 func TestArgsFromSidecars(t *testing.T) {
+	t.Parallel()
 	fs := afero.NewOsFs()
 	fullPath := filepath.Join(baseDir, "test_data.json")
 	file, err := afero.ReadFile(fs, fullPath)

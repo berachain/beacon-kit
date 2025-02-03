@@ -24,7 +24,7 @@
 package genesis_test
 
 import (
-	"bytes"
+	libbytes "bytes"
 	"fmt"
 	"math/rand"
 	"reflect"
@@ -81,7 +81,7 @@ func (TestDeposits) Generate(rand *rand.Rand, size int) reflect.Value {
 
 func TestCompareGenesisCmdWithStateProcessor(t *testing.T) {
 	qc := &quick.Config{MaxCount: 1_000}
-	cs, err := spec.MainnetChainSpec()
+	cs, err := spec.DevnetChainSpec()
 	require.NoError(t, err)
 
 	f := func(inputs TestDeposits) bool {
@@ -100,15 +100,12 @@ func TestCompareGenesisCmdWithStateProcessor(t *testing.T) {
 
 		// genesis validators root from StateProcessor
 		sp, st, _, _ := statetransition.SetupTestState(t, cs)
-		var (
-			genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-			genVersion       = version.FromUint32[common.Version](version.Deneb)
-		)
+		genPayloadHeader := new(types.ExecutionPayloadHeader).Empty()
 		_, err = sp.InitializePreminedBeaconStateFromEth1(
 			st,
 			deposits,
 			genPayloadHeader,
-			genVersion,
+			version.Genesis(),
 		)
 		require.NoError(t, err)
 
@@ -117,7 +114,7 @@ func TestCompareGenesisCmdWithStateProcessor(t *testing.T) {
 		require.NoError(t, err)
 
 		// assert that they generate the same root, given the same list of deposits
-		return bytes.Equal(cliValRoot[:], processorRoot[:])
+		return libbytes.Equal(cliValRoot[:], processorRoot[:])
 	}
 
 	require.NoError(t, quick.Check(f, qc))

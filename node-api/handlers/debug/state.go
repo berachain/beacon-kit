@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,11 +21,12 @@
 package debug
 
 import (
+	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 )
 
-func (h *Handler[ContextT]) GetState(c ContextT) (any, error) {
+func (h *Handler) GetState(c handlers.Context) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetStateRequest](
 		c, h.Logger(),
 	)
@@ -46,8 +47,8 @@ func (h *Handler[ContextT]) GetState(c ContextT) (any, error) {
 	}
 	return beacontypes.StateResponse{
 		// TODO: The version should be retrieved based on the slot
-		Version:             "deneb", // stubbed
-		ExecutionOptimistic: false,   // stubbed
+		Version:             "deneb1", // stubbed
+		ExecutionOptimistic: false,    // stubbed
 		// TODO: We can set to finalized if this is less than the highest height
 		Finalized: false, // stubbed
 		Data:      beaconState,

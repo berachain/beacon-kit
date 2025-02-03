@@ -34,6 +34,7 @@ import (
 // TestExecutionNumberProof tests the ProveExecutionNumberInBlock
 // function and that the generated proof correctly verifies.
 func TestExecutionNumberProof(t *testing.T) {
+	t.Parallel()
 	var proof []common.Root
 
 	testCases := []struct {

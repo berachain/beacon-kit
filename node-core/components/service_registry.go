@@ -27,7 +27,6 @@ import (
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/node-api/engines/echo"
 	"github.com/berachain/beacon-kit/node-api/server"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	service "github.com/berachain/beacon-kit/node-core/services/registry"
@@ -44,7 +43,7 @@ type ServiceRegistryInput[
 	ChainService     *blockchain.Service
 	EngineClient     *client.EngineClient
 	Logger           LoggerT
-	NodeAPIServer    *server.Server[echo.Context]
+	NodeAPIServer    *server.Server
 	ReportingService *version.ReportingService
 	TelemetrySink    *metrics.TelemetrySink
 	TelemetryService *telemetry.Service

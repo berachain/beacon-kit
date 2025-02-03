@@ -40,9 +40,11 @@ import (
 )
 
 func TestCreateAndValidateCommandsDuality(t *testing.T) {
+	t.Parallel()
+
 	qc := &quick.Config{MaxCount: 100}
 
-	cs, err := spec.MainnetChainSpec()
+	cs, err := spec.DevnetChainSpec()
 	require.NoError(t, err)
 
 	// create a tmp folder where test stores bls keys and

@@ -18,30 +18,25 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package version
+package spec_test
 
 import (
-	"encoding/binary"
+	"testing"
+
+	"github.com/berachain/beacon-kit/config/spec"
+	"github.com/berachain/beacon-kit/primitives/bytes"
+	"github.com/stretchr/testify/require"
 )
 
-const (
-	Phase0 uint32 = iota
-	Altair
-	Bellatrix
-	Capella
-	Deneb
-	DenebPlus
-	Electra
-)
-
-// FromUint32 returns a Version from a uint32.
-func FromUint32[VersionT ~[4]byte](version uint32) VersionT {
-	versionBz := VersionT{}
-	binary.LittleEndian.PutUint32(versionBz[:], version)
-	return versionBz
-}
-
-// ToUint32 returns a uint32 from a Version.
-func ToUint32[VersionT ~[4]byte](version VersionT) uint32 {
-	return binary.LittleEndian.Uint32(version[:])
+func TestDomainTypeConversion(t *testing.T) {
+	t.Parallel()
+	cs := spec.MainnetChainSpecData()
+	require.Equal(t, bytes.B4([]byte{0x00, 0x00, 0x00, 0x00}), cs.DomainTypeProposer)
+	require.Equal(t, bytes.B4([]byte{0x01, 0x00, 0x00, 0x00}), cs.DomainTypeAttester)
+	require.Equal(t, bytes.B4([]byte{0x02, 0x00, 0x00, 0x00}), cs.DomainTypeRandao)
+	require.Equal(t, bytes.B4([]byte{0x03, 0x00, 0x00, 0x00}), cs.DomainTypeDeposit)
+	require.Equal(t, bytes.B4([]byte{0x04, 0x00, 0x00, 0x00}), cs.DomainTypeVoluntaryExit)
+	require.Equal(t, bytes.B4([]byte{0x05, 0x00, 0x00, 0x00}), cs.DomainTypeSelectionProof)
+	require.Equal(t, bytes.B4([]byte{0x06, 0x00, 0x00, 0x00}), cs.DomainTypeAggregateAndProof)
+	require.Equal(t, bytes.B4([]byte{0x00, 0x00, 0x00, 0x01}), cs.DomainTypeApplicationMask)
 }
