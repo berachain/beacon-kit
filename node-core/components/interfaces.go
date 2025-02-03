@@ -31,7 +31,6 @@ import (
 	datypes "github.com/berachain/beacon-kit/da/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -706,7 +705,7 @@ type (
 	}
 
 	NodeAPIBackend interface {
-		AttachQueryBackend(node *cometbft.Service[*phuslu.Logger])
+		AttachQueryBackend(node *cometbft.Service)
 		ChainSpec() chain.Spec
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		GetSlotByStateRoot(root common.Root) (math.Slot, error)
