@@ -85,7 +85,8 @@ func DefaultServiceOptions(
 func loadChainIDFromGenesis(appOpts config.AppOptions) (string, error) {
 	var (
 		homeDir = cast.ToString(appOpts.Get(flags.FlagHome))
-		fp      = filepath.Join(homeDir, "config", "genesis.json")
+		// TODO: This is quite inflexible and demands a genesis.json file name and directory
+		fp = filepath.Join(homeDir, "config", "genesis.json")
 	)
 
 	f, err := os.Open(filepath.Clean(fp))

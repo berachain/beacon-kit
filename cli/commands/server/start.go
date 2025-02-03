@@ -60,18 +60,6 @@ type StartCmdOptions[
 	AddFlags func(cmd *cobra.Command)
 }
 
-// StartCmd runs the service passed in, either stand-alone or in-process with
-// CometBFT.
-func StartCmd[
-	T interface {
-		Start(context.Context) error
-	},
-](
-	appCreator types.AppCreator[T],
-) *cobra.Command {
-	return StartCmdWithOptions[T](appCreator, StartCmdOptions[T]{})
-}
-
 // StartCmdWithOptions runs the service passed in, either stand-alone or
 // in-process with
 // CometBFT.
