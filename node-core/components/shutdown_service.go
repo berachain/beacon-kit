@@ -25,27 +25,21 @@ import (
 
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/config"
-	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/services/shutdown"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cast"
 )
 
 // ShutDownServiceInput is the input for the shuchdown service provider.
-type ShutDownServiceInput[
-	LoggerT log.AdvancedLogger[LoggerT],
-] struct {
+type ShutDownServiceInput struct {
 	depinject.In
 
-	Logger  LoggerT
+	Logger  *phuslu.Logger
 	AppOpts config.AppOptions
 }
 
-func ProvideShutDownService[
-	LoggerT log.AdvancedLogger[LoggerT],
-](
-	in ShutDownServiceInput[LoggerT],
-) *shutdown.Service {
+func ProvideShutDownService(in ShutDownServiceInput) *shutdown.Service {
 	pidFile := filepath.Join(cast.ToString(in.AppOpts.Get(flags.FlagHome)), "data/beacond.pid")
 
 	return shutdown.NewService(

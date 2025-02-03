@@ -31,7 +31,7 @@ import (
 	servercmtlog "github.com/berachain/beacon-kit/consensus/cometbft/service/log"
 	statem "github.com/berachain/beacon-kit/consensus/cometbft/service/state"
 	errorsmod "github.com/berachain/beacon-kit/errors"
-	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/storage"
@@ -52,9 +52,7 @@ const (
 	appName           string = "beacond"
 )
 
-type Service[
-	LoggerT log.AdvancedLogger[LoggerT],
-] struct {
+type Service struct {
 	node *node.Node
 
 	// cmtConsensusParams are part of the blockchain state and
@@ -68,7 +66,7 @@ type Service[
 
 	telemetrySink TelemetrySink
 
-	logger       LoggerT
+	logger       *phuslu.Logger
 	sm           *statem.Manager
 	Blockchain   blockchain.BlockchainI
 	BlockBuilder validator.BlockBuilderI
@@ -100,17 +98,15 @@ type Service[
 	chainID string
 }
 
-func NewService[
-	LoggerT log.AdvancedLogger[LoggerT],
-](
-	logger LoggerT,
+func NewService(
+	logger *phuslu.Logger,
 	db dbm.DB,
 	blockchain blockchain.BlockchainI,
 	blockBuilder validator.BlockBuilderI,
 	cmtCfg *cmtcfg.Config,
 	telemetrySink TelemetrySink,
-	options ...func(*Service[LoggerT]),
-) *Service[LoggerT] {
+	options ...func(*Service),
+) *Service {
 	if err := validateConfig(cmtCfg); err != nil {
 		panic(err)
 	}
@@ -119,7 +115,7 @@ func NewService[
 		panic(err)
 	}
 
-	s := &Service[LoggerT]{
+	s := &Service{
 		logger: logger,
 		sm: statem.NewManager(
 			db,
@@ -151,7 +147,7 @@ func NewService[
 }
 
 // TODO: Move nodeKey into being created within the function.
-func (s *Service[_]) Start(
+func (s *Service) Start(
 	ctx context.Context,
 ) error {
 	cfg := s.cmtCfg
@@ -204,7 +200,7 @@ func (s *Service[_]) Start(
 	return err
 }
 
-func (s *Service[_]) Stop() error {
+func (s *Service) Stop() error {
 	var errs []error
 
 	if s.node != nil && s.node.IsRunning() {
@@ -225,28 +221,28 @@ func (s *Service[_]) Stop() error {
 }
 
 // Name returns the name of the cometbft.
-func (s *Service[_]) Name() string {
+func (s *Service) Name() string {
 	return appName
 }
 
 // CommitMultiStore returns the CommitMultiStore of the cometbft.
-func (s *Service[_]) CommitMultiStore() storetypes.CommitMultiStore {
+func (s *Service) CommitMultiStore() storetypes.CommitMultiStore {
 	return s.sm.CommitMultiStore()
 }
 
 // AppVersion returns the application's protocol version.
-func (s *Service[_]) AppVersion(_ context.Context) (uint64, error) {
+func (s *Service) AppVersion(_ context.Context) (uint64, error) {
 	return s.appVersion()
 }
 
-func (s *Service[_]) appVersion() (uint64, error) {
+func (s *Service) appVersion() (uint64, error) {
 	cp := s.cmtConsensusParams.ToProto()
 	return cp.Version.App, nil
 }
 
 // MountStore mounts a store to the provided key in the Service multistore,
 // using the default DB.
-func (s *Service[_]) MountStore(
+func (s *Service) MountStore(
 	key storetypes.StoreKey,
 	typ storetypes.StoreType,
 ) {
@@ -254,15 +250,15 @@ func (s *Service[_]) MountStore(
 }
 
 // LastBlockHeight returns the last committed block height.
-func (s *Service[_]) LastBlockHeight() int64 {
+func (s *Service) LastBlockHeight() int64 {
 	return s.sm.CommitMultiStore().LastCommitID().Version
 }
 
-func (s *Service[_]) setMinRetainBlocks(minRetainBlocks uint64) {
+func (s *Service) setMinRetainBlocks(minRetainBlocks uint64) {
 	s.minRetainBlocks = minRetainBlocks
 }
 
-func (s *Service[_]) setInterBlockCache(
+func (s *Service) setInterBlockCache(
 	cache storetypes.MultiStorePersistentCache,
 ) {
 	s.interBlockCache = cache
@@ -272,7 +268,7 @@ func (s *Service[_]) setInterBlockCache(
 // prepareProposal/processProposal/finalizeBlock State.
 // A state is explicitly returned to avoid false positives from
 // nilaway tool.
-func (s *Service[LoggerT]) resetState(ctx context.Context) *state {
+func (s *Service) resetState(ctx context.Context) *state {
 	ms := s.sm.CommitMultiStore().CacheMultiStore()
 
 	newCtx := sdk.NewContext(
@@ -310,7 +306,7 @@ func convertValidatorUpdate[ValidatorUpdateT any](
 // getContextForProposal returns the correct Context for PrepareProposal and
 // ProcessProposal. We use finalizeBlockState on the first block to be able to
 // access any state changes made in InitChain.
-func (s *Service[LoggerT]) getContextForProposal(
+func (s *Service) getContextForProposal(
 	ctx sdk.Context,
 	height int64,
 ) sdk.Context {
@@ -329,7 +325,7 @@ func (s *Service[LoggerT]) getContextForProposal(
 
 // CreateQueryContext creates a new sdk.Context for a query, taking as args
 // the block height and whether the query needs a proof or not.
-func (s *Service[LoggerT]) CreateQueryContext(
+func (s *Service) CreateQueryContext(
 	height int64,
 	prove bool,
 ) (sdk.Context, error) {

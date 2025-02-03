@@ -37,7 +37,7 @@ import (
 )
 
 // DefaultGenesis returns the default genesis state for the application.
-func (s *Service[_]) DefaultGenesis() map[string]json.RawMessage {
+func (s *Service) DefaultGenesis() map[string]json.RawMessage {
 	// Implement the default genesis state for the application.
 	// This should return a map of module names to their respective default
 	// genesis states.
@@ -51,7 +51,7 @@ func (s *Service[_]) DefaultGenesis() map[string]json.RawMessage {
 }
 
 // ValidateGenesis validates the provided genesis state.
-func (s *Service[_]) ValidateGenesis(
+func (s *Service) ValidateGenesis(
 	genesisState map[string]json.RawMessage,
 ) error {
 	// Implemented the validation logic for the provided genesis state.
