@@ -92,7 +92,7 @@ func displayInfo(dst io.Writer, info printInfo) error {
 	return err
 }
 
-//nolint:funlen,gocognit,mnd // based on cosmossdk implementation
+// InitCmd is based on cosmossdk implementation.
 func InitCmd(mm interface {
 	DefaultGenesis() map[string]json.RawMessage
 	ValidateGenesis(genesisData map[string]json.RawMessage) error
