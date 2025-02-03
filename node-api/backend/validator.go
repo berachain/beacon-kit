@@ -28,12 +28,11 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
+// FilteredValidators will grab all of the validators from the state at the
+// given slot. It will then filter them by the provided ids and statuses.
 func (b Backend) FilteredValidators(
 	slot math.Slot, ids []string, statuses []string,
 ) ([]*beacontypes.ValidatorData, error) {
-	// TODO: to adhere to the spec, this shouldn't error if the error
-	// is not found, but i can't think of a way to do that without coupling
-	// db impl to the api impl.
 	st, _, err := b.stateFromSlot(slot)
 	if err != nil {
 		return nil, err
