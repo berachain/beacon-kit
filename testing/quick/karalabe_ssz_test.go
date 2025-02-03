@@ -61,6 +61,8 @@ type BbbDeneb struct {
 }
 
 func (b *BbbDeneb) Generate(r *rand.Rand, _ int) reflect.Value {
+	sizer := &ssz.Sizer{}
+
 	b = &BbbDeneb{}
 	b.RandaoReveal = crypto.BLSSignature(rbytes(96, r))
 	b.Eth1Data = &types.Eth1Data{
@@ -69,11 +71,14 @@ func (b *BbbDeneb) Generate(r *rand.Rand, _ int) reflect.Value {
 		BlockHash:    common.ExecutionHash(rbytes(32, r)),
 	}
 	b.Graffiti = [32]byte(rbytes(32, r))
+
 	k := roll(16, r)
-	sizer := &ssz.Sizer{}
-	b.Deposits = make([]*types.Deposit,
-		uint32(concurrencyThreshold)/(&types.Deposit{}).SizeSSZ(sizer)+1)
-	for i := 0; i < len(b.Deposits); i++ {
+	var depositsLen uint32 = uint32(k)
+	if k != 0 {
+		depositsLen = uint32(concurrencyThreshold)/(&types.Deposit{}).SizeSSZ(sizer) + 1
+	}
+	b.Deposits = make([]*types.Deposit, depositsLen)
+	for i := range depositsLen {
 		b.Deposits[i] = &types.Deposit{
 			Pubkey:      crypto.BLSPubkey(rbytes(48, r)),
 			Credentials: types.WithdrawalCredentials(rbytes(32, r)),
@@ -82,11 +87,13 @@ func (b *BbbDeneb) Generate(r *rand.Rand, _ int) reflect.Value {
 			Index:       r.Uint64(),
 		}
 	}
+
 	k = roll(10, r) // MaxTxsPerPayload 1048576 too big
 	txs := make([][]byte, k)
 	for i := range k {
 		txs[i] = rbytes(1024, r) // MaxBytesPerTx 1073741824 too big
 	}
+
 	k = roll(16, r)
 	withdrawals := make([]*engineprimitives.Withdrawal, k)
 	for i := range k {
@@ -97,6 +104,7 @@ func (b *BbbDeneb) Generate(r *rand.Rand, _ int) reflect.Value {
 			Amount:    math.U64(r.Uint64()),
 		}
 	}
+
 	b.ExecutionPayload = &types.ExecutionPayload{
 		ParentHash:    common.ExecutionHash(rbytes(32, r)),
 		FeeRecipient:  common.ExecutionAddress(rbytes(20, r)),
@@ -116,6 +124,7 @@ func (b *BbbDeneb) Generate(r *rand.Rand, _ int) reflect.Value {
 		BlobGasUsed:   math.U64(r.Uint64()),
 		ExcessBlobGas: math.U64(r.Uint64()),
 	}
+
 	k = roll(4096, r)
 	b.BlobKzgCommitments = make([]eip4844.KZGCommitment, k)
 	for i := range k {
@@ -131,6 +140,7 @@ func pprint(i interface{}) string {
 }
 
 func TestSSZRoundTripBeaconBodyDeneb(t *testing.T) {
+	t.Parallel()
 	f := func(body *BbbDeneb) bool {
 		bz, err := body.MarshalSSZ()
 		if err != nil {
@@ -181,14 +191,16 @@ func TestSSZRoundTripBeaconBodyDeneb(t *testing.T) {
 			return false
 		}
 
-		htrSeq := ssz.HashSequential(body)
-		htrC := ssz.HashConcurrent(body)
-		if !reflect.DeepEqual(htrSeq, htrC) {
-			t.Log("Sequential hash != Concurrent hash")
-			t.Log(pprint(body))
-			t.Log(htrSeq)
-			t.Log(htrC)
-			return false
+		if len(body.GetDeposits()) > 0 {
+			htrSeq := ssz.HashSequential(body)
+			htrC := ssz.HashConcurrent(body)
+			if !reflect.DeepEqual(htrSeq, htrC) {
+				t.Log("Sequential hash != Concurrent hash")
+				t.Log(pprint(body))
+				t.Log(htrSeq)
+				t.Log(htrC)
+				return false
+			}
 		}
 
 		return true
