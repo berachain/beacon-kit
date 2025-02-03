@@ -21,6 +21,8 @@
 package core
 
 import (
+	"time"
+
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -70,9 +72,11 @@ func (sp *StateProcessor[_]) processWithdrawals(
 	if !payloadWithdrawals[0].Equals(st.EVMInflationWithdrawal(blk.GetSlot())) {
 		sp.logger.Error(
 			"First withdrawal is not EVM inflation",
+			"block slot", blk.GetSlot(),
 			"payload withdrawal", spew.Sdump(payloadWithdrawals[0]),
 			"expected withdrawal", spew.Sdump(st.EVMInflationWithdrawal(blk.GetSlot())),
 		)
+		time.Sleep(2 * time.Minute)
 		return ErrFirstWithdrawalNotEVMInflation
 	}
 	numWithdrawals := len(expectedWithdrawals)
