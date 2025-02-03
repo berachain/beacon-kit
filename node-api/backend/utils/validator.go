@@ -21,31 +21,13 @@
 package utils
 
 import (
-	"github.com/berachain/beacon-kit/primitives/constants"
 	"strconv"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
-)
-
-type Status int8
-
-const (
-	PendingInitialized Status = iota
-	PendingQueued
-	ActiveOngoing
-	ActiveExiting
-	ActiveSlashed
-	ExitedUnslashed
-	ExitedSlashed
-	WithdrawalPossible
-	WithdrawalDone
-	Active
-	Pending
-	Exited
-	Withdrawal
 )
 
 // ValidatorIndexByID parses a validator index from a string.
@@ -84,18 +66,28 @@ func GetValidatorStatus(epoch math.Epoch, validator *types.Validator) string {
 	if activationEpoch <= epoch && epoch < exitEpoch {
 		if exitEpoch == farFutureEpoch {
 			return "active_ongoing"
+		} else if exitEpoch < farFutureEpoch {
+			if validator.IsSlashed() {
+				return "active_slashed"
+			}
+			return "active_exiting"
 		}
-		if
 	}
 
 	// Status: exited
 	if exitEpoch <= epoch && epoch < withdrawableEpoch {
-
+		if validator.IsSlashed() {
+			return "exited_slashed"
+		}
+		return "exited_unslashed"
 	}
 
 	// Status: withdrawal
 	if withdrawableEpoch <= epoch {
-
+		if validator.GetEffectiveBalance() != math.Gwei(0) {
+			return "withdrawal_possible"
+		}
+		return "withdrawal_done"
 	}
-	return "active_ongoing"
+	return "invalid validator state"
 }
