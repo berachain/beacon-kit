@@ -60,6 +60,9 @@ func NewSignedBeaconBlockFromSSZ(
 			return block, err
 		}
 
+		// make sure Withdrawals in execution payload are not nil
+		EnsureNotNilWithdrawals(block.Message.Body.ExecutionPayload)
+
 		// duly setup fork version in every relevant block member
 		block.Message.Body.ExecutionPayload.EpVersion = forkVersion
 		block.Message.BbVersion = forkVersion

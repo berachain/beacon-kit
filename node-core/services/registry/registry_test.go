@@ -34,6 +34,7 @@ import (
 )
 
 func TestRegistry_StartAll(t *testing.T) {
+	t.Parallel()
 	logger := noop.NewLogger[any]()
 	registry := service.NewRegistry(logger)
 
@@ -63,6 +64,7 @@ func TestRegistry_StartAll(t *testing.T) {
 }
 
 func TestRegistry_FetchService(t *testing.T) {
+	t.Parallel()
 	logger := noop.NewLogger[any]()
 	registry := service.NewRegistry(logger)
 

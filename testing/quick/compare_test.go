@@ -1,3 +1,5 @@
+//go:build norace
+
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2025, Berachain Foundation. All rights reserved.
@@ -46,6 +48,7 @@ var (
 )
 
 func TestExecutionPayloadHashTreeRootZrnt(t *testing.T) {
+	t.Parallel()
 	f := func(payload *ctypes.ExecutionPayload, logsBloom [256]byte) bool {
 		// skip these cases lest we trigger a
 		// nil-pointer dereference in fastssz
@@ -98,6 +101,7 @@ func TestExecutionPayloadHashTreeRootZrnt(t *testing.T) {
 }
 
 func TestBlobSidecarTreeRootPrysm(t *testing.T) {
+	t.Parallel()
 	f := func(sidecar *datypes.BlobSidecar) bool {
 		// skip these cases lest we trigger a
 		// nil-pointer dereference in fastssz

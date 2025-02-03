@@ -24,7 +24,7 @@ import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/execution/engine"
-	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/state-transition/core"
@@ -33,11 +33,9 @@ import (
 
 // StateProcessorInput is the input for the state processor for the depinject
 // framework.
-type StateProcessorInput[
-	LoggerT log.AdvancedLogger[LoggerT],
-] struct {
+type StateProcessorInput struct {
 	depinject.In
-	Logger          LoggerT
+	Logger          *phuslu.Logger
 	ChainSpec       chain.Spec
 	ExecutionEngine *engine.Engine
 	DepositStore    *depositdb.KVStore
@@ -47,11 +45,7 @@ type StateProcessorInput[
 
 // ProvideStateProcessor provides the state processor to the depinject
 // framework.
-func ProvideStateProcessor[
-	LoggerT log.AdvancedLogger[LoggerT],
-](
-	in StateProcessorInput[LoggerT],
-) *core.StateProcessor[*Context] {
+func ProvideStateProcessor(in StateProcessorInput) *core.StateProcessor[*Context] {
 	return core.NewStateProcessor[*Context](
 		in.Logger.With("service", "state-processor"),
 		in.ChainSpec,

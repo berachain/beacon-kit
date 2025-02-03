@@ -51,6 +51,7 @@ func (m MockBeaconBlock) GetStateRoot() common.Root {
 }
 
 func TestBlockStore(t *testing.T) {
+	t.Parallel()
 	blockStore := block.NewStore[*MockBeaconBlock](noop.NewLogger[any](), 5)
 
 	var (

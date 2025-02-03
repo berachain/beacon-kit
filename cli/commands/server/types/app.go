@@ -24,7 +24,7 @@ import (
 	"context"
 	"io"
 
-	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/log/phuslu"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	dbm "github.com/cosmos/cosmos-db"
 )
@@ -49,10 +49,7 @@ type (
 		AppT interface {
 			Start(ctx context.Context) error
 		},
-		LoggerT interface {
-			log.AdvancedLogger[LoggerT]
-		},
 	] func(
-		LoggerT, dbm.DB, io.Writer, *cmtcfg.Config, AppOptions,
+		*phuslu.Logger, dbm.DB, io.Writer, *cmtcfg.Config, AppOptions,
 	) AppT
 )
