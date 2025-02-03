@@ -187,7 +187,7 @@ func Init(
 	config *cmtconfig.Config,
 	mnemonic string,
 	initHeight int64,
-	overwrite bool,
+	overwriteGenesis bool,
 	defaultDenom string,
 	appGenesisState map[string]json.RawMessage,
 	printDestination io.Writer,
@@ -200,7 +200,7 @@ func Init(
 	genFile := config.GenesisFile()
 	// use os.Stat to check if the file exists
 	_, err = os.Stat(genFile)
-	if !overwrite && !os.IsNotExist(err) {
+	if !overwriteGenesis && !os.IsNotExist(err) {
 		return fmt.Errorf("genesis.json file already exists: %v", genFile)
 	}
 
