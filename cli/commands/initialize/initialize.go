@@ -95,7 +95,6 @@ func displayInfo(dst io.Writer, info printInfo) error {
 // InitCmd is based on cosmossdk implementation.
 func InitCmd(mm interface {
 	DefaultGenesis() map[string]json.RawMessage
-	ValidateGenesis(genesisData map[string]json.RawMessage) error
 }) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "init <moniker>",
