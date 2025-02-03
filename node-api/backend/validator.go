@@ -67,7 +67,7 @@ func (b Backend) FilteredValidators(
 		}
 
 		// Skip the validator if we are filtering by statuses and this validator is not included.
-		status := utils.GetValidatorStatus(validator)
+		status := utils.GetValidatorStatus(b.cs.SlotToEpoch(slot), validator)
 		if len(statuses) != 0 && !slices.Contains(statuses, status) {
 			continue
 		}
@@ -115,7 +115,7 @@ func (b Backend) ValidatorByID(
 			Index:   index.Unwrap(),
 			Balance: balance.Unwrap(),
 		},
-		Status:    "active_ongoing", // TODO: fix
+		Status:    utils.GetValidatorStatus(b.cs.SlotToEpoch(slot), validator),
 		Validator: beacontypes.ValidatorFromConsensus(validator),
 	}, nil
 }

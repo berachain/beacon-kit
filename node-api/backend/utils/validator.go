@@ -21,12 +21,31 @@
 package utils
 
 import (
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"strconv"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
+)
+
+type Status int8
+
+const (
+	PendingInitialized Status = iota
+	PendingQueued
+	ActiveOngoing
+	ActiveExiting
+	ActiveSlashed
+	ExitedUnslashed
+	ExitedSlashed
+	WithdrawalPossible
+	WithdrawalDone
+	Active
+	Pending
+	Exited
+	Withdrawal
 )
 
 // ValidatorIndexByID parses a validator index from a string.
@@ -45,7 +64,38 @@ func ValidatorIndexByID(st *statedb.StateDB, keyOrIndex string) (math.U64, error
 
 // GetValidatorStatus returns the current validator status based on its set
 // Epoch values.
-func GetValidatorStatus(_ *types.Validator) string {
-	// TODO: implement validator status. See https://hackmd.io/ofFJ5gOmQpu1jjHilHbdQQ.
+func GetValidatorStatus(epoch math.Epoch, validator *types.Validator) string {
+	activationEpoch := validator.GetActivationEpoch()
+	activationEligibilityEpoch := validator.GetActivationEligibilityEpoch()
+	farFutureEpoch := math.Epoch(constants.FarFutureEpoch)
+	exitEpoch := validator.GetExitEpoch()
+	withdrawableEpoch := validator.GetWithdrawableEpoch()
+
+	// Status: pending
+	if activationEpoch > epoch {
+		if activationEligibilityEpoch == farFutureEpoch {
+			return "pending_initialized"
+		} else if activationEligibilityEpoch < farFutureEpoch {
+			return "pending_queued"
+		}
+	}
+
+	// Status: active
+	if activationEpoch <= epoch && epoch < exitEpoch {
+		if exitEpoch == farFutureEpoch {
+			return "active_ongoing"
+		}
+		if
+	}
+
+	// Status: exited
+	if exitEpoch <= epoch && epoch < withdrawableEpoch {
+
+	}
+
+	// Status: withdrawal
+	if withdrawableEpoch <= epoch {
+
+	}
 	return "active_ongoing"
 }
