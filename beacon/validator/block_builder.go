@@ -369,22 +369,22 @@ func (s *Service) computeStateRoot(
 ) (common.Root, error) {
 	startTime := time.Now()
 	defer s.metrics.measureStateRootComputationTime(startTime)
-	if _, err := s.stateProcessor.Transition(
-		// TODO: We should think about how having optimistic
-		// engine enabled here would affect the proposer when
-		// the payload in their block has come from a remote builder.
-		&transition.Context{
-			ConsensusCtx:     ctx,
-			MeterGas:         false,
-			OptimisticEngine: true,
-			VerifyPayload:    false,
-			ValidateResult:   false,
-			ValidateRandao:   false,
-			ProposerAddress:  proposerAddress,
-			ConsensusTime:    consensusTime,
-		},
-		st, blk,
-	); err != nil {
+
+	// TODO: We should think about how having optimistic
+	// engine enabled here would affect the proposer when
+	// the payload in their block has come from a remote builder.
+	txCtx := transition.NewTransitionCtx(
+		ctx,
+		consensusTime,
+		proposerAddress,
+	).
+		WithVerifyPayload(false).
+		WithVerifyRandao(false).
+		WithVerifyResult(false).
+		WithMeterGas(false).
+		WithOptimisticEngine(true)
+
+	if _, err := s.stateProcessor.Transition(txCtx, st, blk); err != nil {
 		return common.Root{}, err
 	}
 

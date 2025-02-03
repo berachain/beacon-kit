@@ -39,11 +39,11 @@ func (sp *StateProcessor) processExecutionPayload(
 		body    = blk.GetBody()
 		payload = body.GetExecutionPayload()
 		header  = &ctypes.ExecutionPayloadHeader{} // appeases nilaway
-		g, gCtx = errgroup.WithContext(ctx.ConsensusCtx)
+		g, gCtx = errgroup.WithContext(ctx.ConsensusCtx())
 	)
 
 	payloadTimestamp := payload.GetTimestamp().Unwrap()
-	consensusTimestamp := ctx.ConsensusTime.Unwrap()
+	consensusTimestamp := ctx.ConsensusTime().Unwrap()
 
 	sp.metrics.gaugeTimestamps(payloadTimestamp, consensusTimestamp)
 
@@ -52,13 +52,13 @@ func (sp *StateProcessor) processExecutionPayload(
 		"payload height", payload.GetNumber().Unwrap(),
 		"payload timestamp", payloadTimestamp,
 		"consensus timestamp", consensusTimestamp,
-		"verify payload", ctx.VerifyPayload,
+		"verify payload", ctx.VerifyPayload(),
 	)
 
 	// Perform payload verification only if the context is configured as such.
-	if ctx.VerifyPayload {
+	if ctx.VerifyPayload() {
 		g.Go(func() error {
-			return sp.validateExecutionPayload(gCtx, st, blk, ctx.OptimisticEngine)
+			return sp.validateExecutionPayload(gCtx, st, blk, ctx.OptimisticEngine())
 		})
 	}
 
@@ -73,7 +73,7 @@ func (sp *StateProcessor) processExecutionPayload(
 		return err
 	}
 
-	if ctx.MeterGas {
+	if ctx.MeterGas() {
 		sp.metrics.gaugeBlockGasUsed(
 			payload.GetNumber(), payload.GetGasUsed(), payload.GetBlobGasUsed(),
 		)

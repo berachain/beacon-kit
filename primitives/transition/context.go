@@ -28,30 +28,116 @@ import (
 
 // Context is the context for the state transition.
 type Context struct {
-	// ConsensusCtx is the context passed by CometBFT callbacks
+	// consensusCtx is the context passed by CometBFT callbacks
 	// We pass it down to be able to cancel processing (although
 	// currently CometBFT context is set to TODO)
-	ConsensusCtx context.Context
-	// MeterGas controls whether gas data related to the execution
-	// layer payload should be meter or not. We currently meter only
-	// finalized blocks.
-	MeterGas bool
-	// OptimisticEngine indicates whether to optimistically assume
-	// the execution client has the correct state certain errors
-	// are returned by the execution engine.
-	OptimisticEngine bool
-	// VerifyPayload indicates whether to call NewPayload on the
+	consensusCtx context.Context
+	// consensusTime returns the timestamp of current consensus request.
+	// It is used to build next payload and to validate currentpayload.
+	consensusTime math.U64
+	// Address of current block proposer
+	proposerAddress []byte
+
+	// verifyPayload indicates whether to call NewPayload on the
 	// execution client. This can be done when the node is not
 	// syncing, and the payload is already known to the execution client.
-	VerifyPayload bool
-	// ValidateRandao indicates whether to validate the Randao mix.
-	ValidateRandao bool
-	// ValidateResult indicates whether to validate the result of
+	verifyPayload bool
+	// verifyRandao indicates whether to validate the Randao mix.
+	verifyRandao bool
+	// verifyResult indicates whether to validate the result of
 	// the state transition.
-	ValidateResult bool
-	// Address of current block proposer
-	ProposerAddress []byte
-	// ConsensusTime returns the timestamp of current consensus request.
-	// It is used to build next payload and to validate currentpayload.
-	ConsensusTime math.U64
+	verifyResult bool
+
+	// meterGas controls whether gas data related to the execution
+	// layer payload should be meter or not. We currently meter only
+	// finalized blocks.
+	meterGas bool
+	// optimisticEngine indicates whether to optimistically assume
+	// the execution client has the correct state certain errors
+	// are returned by the execution engine.
+	optimisticEngine bool
+}
+
+func NewTransitionCtx(
+	consensusCtx context.Context,
+	time math.U64,
+	address []byte,
+) *Context {
+	return &Context{
+		consensusCtx:    consensusCtx,
+		consensusTime:   time,
+		proposerAddress: address,
+
+		// by default we don't meter gas
+		// (we care only about finalized blocks gas)
+		meterGas: false,
+
+		// by default we don't have optimistic engine
+		// as it basically mute some checks
+		optimisticEngine: false,
+
+		// by default we keep all verification
+		verifyPayload: true,
+		verifyRandao:  true,
+		verifyResult:  true,
+	}
+}
+
+// Setters to control context attributes.
+func (c *Context) WithMeterGas(meter bool) *Context {
+	c.meterGas = meter
+	return c
+}
+
+func (c *Context) WithOptimisticEngine(optimistic bool) *Context {
+	c.optimisticEngine = optimistic
+	return c
+}
+
+func (c *Context) WithVerifyPayload(verifyPayload bool) *Context {
+	c.verifyPayload = verifyPayload
+	return c
+}
+
+func (c *Context) WithVerifyRandao(verifyRandao bool) *Context {
+	c.verifyRandao = verifyRandao
+	return c
+}
+
+func (c *Context) WithVerifyResult(verifyResult bool) *Context {
+	c.verifyResult = verifyResult
+	return c
+}
+
+// Getters of context attributes.
+func (c *Context) ConsensusCtx() context.Context {
+	return c.consensusCtx
+}
+
+func (c *Context) ConsensusTime() math.U64 {
+	return c.consensusTime
+}
+
+func (c *Context) ProposerAddress() []byte {
+	return c.proposerAddress
+}
+
+func (c *Context) VerifyPayload() bool {
+	return c.verifyPayload
+}
+
+func (c *Context) VerifyRandao() bool {
+	return c.verifyRandao
+}
+
+func (c *Context) VerifyResult() bool {
+	return c.verifyResult
+}
+
+func (c *Context) MeterGas() bool {
+	return c.meterGas
+}
+
+func (c *Context) OptimisticEngine() bool {
+	return c.optimisticEngine
 }

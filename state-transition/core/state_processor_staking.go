@@ -51,7 +51,7 @@ func (sp *StateProcessor) processOperations(
 
 	// Instead we directly compare block deposits with our local store ones.
 	if err := sp.validateNonGenesisDeposits(
-		ctx.ConsensusCtx,
+		ctx.ConsensusCtx(),
 		st,
 		deposits,
 		blk.GetBody().GetEth1Data().DepositRoot,

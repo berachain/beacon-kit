@@ -134,12 +134,16 @@ func SetupTestState(t *testing.T, cs chain.Spec) (
 		nodemetrics.NewNoOpTelemetrySink(),
 	)
 
-	ctx := &transition.Context{
-		ConsensusCtx:    context.Background(),
-		VerifyPayload:   false,
-		ValidateResult:  false,
-		ProposerAddress: dummyProposerAddr,
-	}
+	ctx := transition.NewTransitionCtx(
+		context.Background(),
+		0, // time
+		dummyProposerAddr,
+	).
+		WithVerifyPayload(false).
+		WithVerifyRandao(false).
+		WithVerifyResult(false).
+		WithMeterGas(false).
+		WithOptimisticEngine(true)
 
 	return sp, beaconState, depositStore, ctx
 }

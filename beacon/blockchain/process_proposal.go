@@ -322,22 +322,21 @@ func (s *Service) verifyStateRoot(
 ) error {
 	startTime := time.Now()
 	defer s.metrics.measureStateRootVerificationTime(startTime)
-	_, err := s.stateProcessor.Transition(
-		// We run with a non-optimistic engine here to ensure
-		// that the proposer does not try to push through a bad block.
-		&transition.Context{
-			ConsensusCtx:     ctx,
-			MeterGas:         false,
-			OptimisticEngine: false,
-			VerifyPayload:    true,
-			ValidateResult:   true,
-			ValidateRandao:   true,
-			ProposerAddress:  proposerAddress,
-			ConsensusTime:    consensusTime,
-		},
-		st, blk,
-	)
 
+	// We run with a non-optimistic engine here to ensure
+	// that the proposer does not try to push through a bad block.
+	txCtx := transition.NewTransitionCtx(
+		ctx,
+		consensusTime,
+		proposerAddress,
+	).
+		WithVerifyPayload(true).
+		WithVerifyRandao(true).
+		WithVerifyResult(true).
+		WithMeterGas(false).
+		WithOptimisticEngine(false)
+
+	_, err := s.stateProcessor.Transition(txCtx, st, blk)
 	return err
 }
 

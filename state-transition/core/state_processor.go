@@ -206,7 +206,7 @@ func (sp *StateProcessor) ProcessBlock(
 
 	// If we are skipping validate, we can skip calculating the state
 	// root to save compute.
-	if !ctx.ValidateResult {
+	if !ctx.VerifyResult() {
 		return nil
 	}
 
@@ -304,10 +304,10 @@ func (sp *StateProcessor) processBlockHeader(
 	if err != nil {
 		return err
 	}
-	if !bytes.Equal(stateProposerAddress, ctx.ProposerAddress) {
+	if !bytes.Equal(stateProposerAddress, ctx.ProposerAddress()) {
 		return errors.Wrapf(
 			ErrProposerMismatch, "store key: %s, consensus key: %s",
-			stateProposerAddress, ctx.ProposerAddress,
+			stateProposerAddress, ctx.ProposerAddress(),
 		)
 	}
 

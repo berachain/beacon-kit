@@ -63,7 +63,7 @@ func TestInvalidDeposits(t *testing.T) {
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		genVersion       = version.Deneb()
 	)
-	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx, genDeposits))
+	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 	_, err := sp.InitializePreminedBeaconStateFromEth1(
 		st, genDeposits, genPayloadHeader, genVersion,
 	)
@@ -101,7 +101,7 @@ func TestInvalidDeposits(t *testing.T) {
 	)
 
 	// Add correct deposit to local store (honest validator will see this locally).
-	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx, types.Deposits{correctDeposit}))
+	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), types.Deposits{correctDeposit}))
 
 	// Run transition - should fail due to invalid deposit amount.
 	_, err = sp.Transition(ctx, st, blk)
@@ -131,7 +131,7 @@ func TestInvalidDepositsCount(t *testing.T) {
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		genVersion       = version.Deneb()
 	)
-	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx, genDeposits))
+	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 	_, err := sp.InitializePreminedBeaconStateFromEth1(
 		st, genDeposits, genPayloadHeader, genVersion,
 	)
@@ -169,7 +169,7 @@ func TestInvalidDepositsCount(t *testing.T) {
 	)
 
 	// Add JUST 1 correct deposit to local store. This node SHOULD fail to verify.
-	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx, types.Deposits{correctDeposits[0]}))
+	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), types.Deposits{correctDeposits[0]}))
 
 	// Run transition.
 	_, err = sp.Transition(ctx, st, blk)
@@ -202,7 +202,7 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		genVersion       = version.Deneb()
 	)
-	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx, genDeposits))
+	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 	_, err = sp.InitializePreminedBeaconStateFromEth1(
 		st, genDeposits, genPayloadHeader, genVersion,
 	)
@@ -241,7 +241,7 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 	}
 
 	// Add both deposits to local store (which includes more than what's in the block).
-	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx, append(blockDeposits, extraLocalDeposit)))
+	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), append(blockDeposits, extraLocalDeposit)))
 
 	// Run transition.
 	_, err = sp.Transition(ctx, st, blk)
@@ -273,7 +273,7 @@ func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
 		genVersion       = version.Deneb()
 	)
-	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx, genDeposits))
+	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 	_, err = sp.InitializePreminedBeaconStateFromEth1(
 		st, genDeposits, genPayloadHeader, genVersion,
 	)
@@ -313,7 +313,7 @@ func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
 	)
 
 	// Add both deposits to local store (which includes more than what's in the block).
-	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx, append(blockDeposits, extraLocalDeposit)))
+	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), append(blockDeposits, extraLocalDeposit)))
 
 	// Run transition.
 	_, err = sp.Transition(ctx, st, blk)
