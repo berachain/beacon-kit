@@ -27,9 +27,11 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
+	clibuilder "github.com/berachain/beacon-kit/cli/builder"
 	"github.com/berachain/beacon-kit/cli/commands/genesis"
 	"github.com/berachain/beacon-kit/cli/commands/initialize"
 	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
+	clicomponents "github.com/berachain/beacon-kit/cli/components"
 	"github.com/berachain/beacon-kit/cli/flags"
 	beaconkitconfig "github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/config/spec"
@@ -168,10 +170,39 @@ func getBlsSigner(tempHomeDir string) *signer.BLSSigner {
 
 func initCommand(t *testing.T, tempHomeDir string) {
 	t.Helper()
+
+	// Build the root command using the builder
+	cb := clibuilder.New(
+		// Set the Name to the Default.
+		clibuilder.WithName[nodetypes.Node](
+			"beacond",
+		),
+		// Set the Description to the Default.
+		clibuilder.WithDescription[nodetypes.Node](
+			"A basic beacon node, usable most standard networks.",
+		),
+		// Set the Runtime Components to the Default.
+		clibuilder.WithComponents[nodetypes.Node](
+			append(
+				clicomponents.DefaultClientComponents(),
+				// TODO: remove these, and eventually pull cfg and chainspec
+				// from built node
+				nodecomponents.ProvideChainSpec,
+			),
+		),
+		// Set the NodeBuilderFunc to the NodeBuilder Build.
+		clibuilder.WithNodeBuilderFunc[Node](nb.Build),
+	)
+
+
+
 	clientCtx := client.Context{}.
-		WithHomeDir(tempHomeDir)
+		WithHomeDir(tempHomeDir).
+		WithChainID("test-mainnet-chain")
 
 	initCMD := initialize.InitCmd(&cometbft.Service{})
+	// This is required due to a bug in cosmos sdk
+	initCMD.SetContext(context.Background())
 
 	err := client.SetCmdClientContextHandler(clientCtx, initCMD)
 	require.NoError(t, err)
@@ -188,6 +219,7 @@ func NewTestNode(t *testing.T) *TestNode {
 	logger := phuslu.NewLogger(os.Stdout, nil)
 
 	tempHomeDir := t.TempDir()
+	// tempHomeDir := "./.tmp/beaconp"
 	t.Logf("tempHomeDir=%s", tempHomeDir)
 	beaconKitConfig, cometConfig := createConfiguration(t, tempHomeDir)
 
