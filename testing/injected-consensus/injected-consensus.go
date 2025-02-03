@@ -167,6 +167,7 @@ func NewTestNode(t *testing.T) *TestNode {
 	logger := phuslu.NewLogger(os.Stdout, nil)
 
 	tempHomeDir := t.TempDir()
+	t.Logf("tempHomeDir=%s", tempHomeDir)
 	beaconKitConfig, cometConfig := createConfiguration(t, tempHomeDir)
 
 	chainSpec, err := spec.MainnetChainSpec()
@@ -191,7 +192,7 @@ func NewTestNode(t *testing.T) *TestNode {
 	require.NoError(t, err)
 
 	// Update the EL Deposit Storage
-	err = genesis.SetDepositStorage(chainSpec, cometConfig, "TBD", false)
+	err = genesis.SetDepositStorage(chainSpec, cometConfig, "./eth-genesis.json", false)
 	require.NoError(t, err)
 
 	// 1. Build a node builder with your default or custom test components.
