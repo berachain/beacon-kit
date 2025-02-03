@@ -153,15 +153,15 @@ func ValidateRoot(value string) bool {
 func ValidateValidatorStatus(fl validator.FieldLevel) bool {
 	// Eth Beacon Node API specs: https://hackmd.io/ofFJ5gOmQpu1jjHilHbdQQ
 	allowedStatuses := map[string]bool{
-		"pending_initialized": true,
-		"pending_queued":      true,
-		"active_ongoing":      true,
-		"active_exiting":      true,
-		"active_slashed":      true,
-		"exited_unslashed":    true,
-		"exited_slashed":      true,
-		"withdrawal_possible": true,
-		"withdrawal_done":     true,
+		utils.ActiveExiting:      true,
+		utils.ActiveOngoing:      true,
+		utils.ActiveSlashed:      true,
+		utils.ExitedSlashed:      true,
+		utils.ExitedUnslashed:    true,
+		utils.PendingInitialized: true,
+		utils.PendingQueued:      true,
+		utils.WithdrawalDone:     true,
+		utils.WithdrawalPossible: true,
 	}
 	return validateAllowedStrings(fl.Field().String(), allowedStatuses)
 }

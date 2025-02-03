@@ -34,3 +34,15 @@ const (
 	Head math.Slot = iota
 	Genesis
 )
+
+const (
+	ActiveExiting      = "active_exiting"
+	ActiveOngoing      = "active_ongoing"
+	ActiveSlashed      = "active_slashed"
+	ExitedSlashed      = "exited_slashed"
+	ExitedUnslashed    = "exited_unslashed"
+	PendingInitialized = "pending_initialized"
+	PendingQueued      = "pending_queued"
+	WithdrawalDone     = "withdrawal_done"
+	WithdrawalPossible = "withdrawal_possible"
+)

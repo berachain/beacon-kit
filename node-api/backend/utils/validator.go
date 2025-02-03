@@ -24,6 +24,8 @@ import (
 	"strconv"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -46,7 +48,7 @@ func ValidatorIndexByID(st *statedb.StateDB, keyOrIndex string) (math.U64, error
 
 // GetValidatorStatus returns the current validator status based on its set
 // Epoch values.
-func GetValidatorStatus(epoch math.Epoch, validator *types.Validator) string {
+func GetValidatorStatus(epoch math.Epoch, validator *types.Validator) (string, error) {
 	activationEpoch := validator.GetActivationEpoch()
 	activationEligibilityEpoch := validator.GetActivationEligibilityEpoch()
 	farFutureEpoch := math.Epoch(constants.FarFutureEpoch)
@@ -56,38 +58,38 @@ func GetValidatorStatus(epoch math.Epoch, validator *types.Validator) string {
 	// Status: pending
 	if activationEpoch > epoch {
 		if activationEligibilityEpoch == farFutureEpoch {
-			return "pending_initialized"
+			return utils.PendingInitialized, nil
 		} else if activationEligibilityEpoch < farFutureEpoch {
-			return "pending_queued"
+			return utils.PendingQueued, nil
 		}
 	}
 
 	// Status: active
 	if activationEpoch <= epoch && epoch < exitEpoch {
 		if exitEpoch == farFutureEpoch {
-			return "active_ongoing"
+			return utils.ActiveOngoing, nil
 		} else if exitEpoch < farFutureEpoch {
 			if validator.IsSlashed() {
-				return "active_slashed"
+				return utils.ActiveSlashed, nil
 			}
-			return "active_exiting"
+			return utils.ActiveExiting, nil
 		}
 	}
 
 	// Status: exited
 	if exitEpoch <= epoch && epoch < withdrawableEpoch {
 		if validator.IsSlashed() {
-			return "exited_slashed"
+			return utils.ExitedSlashed, nil
 		}
-		return "exited_unslashed"
+		return utils.ExitedUnslashed, nil
 	}
 
 	// Status: withdrawal
 	if withdrawableEpoch <= epoch {
 		if validator.GetEffectiveBalance() != math.Gwei(0) {
-			return "withdrawal_possible"
+			return utils.WithdrawalPossible, nil
 		}
-		return "withdrawal_done"
+		return utils.WithdrawalDone, nil
 	}
-	return "invalid validator state"
+	return "", errors.New("invalid validator status")
 }

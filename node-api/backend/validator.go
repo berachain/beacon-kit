@@ -67,7 +67,10 @@ func (b Backend) FilteredValidators(
 		}
 
 		// Skip the validator if we are filtering by statuses and this validator is not included.
-		status := utils.GetValidatorStatus(b.cs.SlotToEpoch(slot), validator)
+		status, valErr := utils.GetValidatorStatus(b.cs.SlotToEpoch(slot), validator)
+		if valErr != nil {
+			return nil, valErr
+		}
 		if len(statuses) != 0 && !slices.Contains(statuses, status) {
 			continue
 		}
@@ -110,12 +113,16 @@ func (b Backend) ValidatorByID(
 	if err != nil {
 		return nil, err
 	}
+	status, err := utils.GetValidatorStatus(b.cs.SlotToEpoch(slot), validator)
+	if err != nil {
+		return nil, err
+	}
 	return &beacontypes.ValidatorData{
 		ValidatorBalanceData: beacontypes.ValidatorBalanceData{
 			Index:   index.Unwrap(),
 			Balance: balance.Unwrap(),
 		},
-		Status:    utils.GetValidatorStatus(b.cs.SlotToEpoch(slot), validator),
+		Status:    status,
 		Validator: beacontypes.ValidatorFromConsensus(validator),
 	}, nil
 }
