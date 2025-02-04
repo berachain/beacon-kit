@@ -42,7 +42,7 @@ type NodeAPIBackendInput struct {
 	depinject.In
 
 	ChainSpec      chain.Spec
-	StateProcessor StateProcessor[*Context]
+	StateProcessor StateProcessor
 	StorageBackend *storage.Backend
 }
 
