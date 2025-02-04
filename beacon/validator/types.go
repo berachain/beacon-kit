@@ -178,7 +178,7 @@ type StateProcessor interface {
 	) (transition.ValidatorUpdates, error)
 	// Transition performs the core state transition.
 	Transition(
-		ctx *transition.Context,
+		ctx transition.ReadOnlyContext,
 		st *statedb.StateDB,
 		blk *ctypes.BeaconBlock,
 	) (transition.ValidatorUpdates, error)

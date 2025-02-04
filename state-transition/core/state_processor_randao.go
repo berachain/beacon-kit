@@ -36,7 +36,7 @@ import (
 // processRandaoReveal processes the randao reveal and
 // ensures it matches the local state.
 func (sp *StateProcessor) processRandaoReveal(
-	ctx *transition.Context,
+	ctx transition.ReadOnlyContext,
 	st *statedb.StateDB,
 	blk *ctypes.BeaconBlock,
 ) error {

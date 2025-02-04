@@ -143,7 +143,7 @@ func moveToEndOfEpoch(
 	cs chain.Spec,
 	sp *statetransition.TestStateProcessorT,
 	st *statetransition.TestBeaconStateT,
-	ctx *transition.Context,
+	ctx transition.ReadOnlyContext,
 	depRoot common.Root,
 ) *types.BeaconBlock {
 	t.Helper()

@@ -57,9 +57,7 @@ type StateProcessor struct {
 }
 
 // NewStateProcessor creates a new state processor.
-func NewStateProcessor[
-	ContextT *transition.Context,
-](
+func NewStateProcessor(
 	logger log.Logger,
 	cs chain.Spec,
 	executionEngine ExecutionEngine,
@@ -81,7 +79,7 @@ func NewStateProcessor[
 
 // Transition is the main function for processing a state transition.
 func (sp *StateProcessor) Transition(
-	ctx *transition.Context,
+	ctx transition.ReadOnlyContext,
 	st *state.StateDB,
 	blk *ctypes.BeaconBlock,
 ) (transition.ValidatorUpdates, error) {
@@ -182,7 +180,9 @@ func (sp *StateProcessor) processSlot(st *state.StateDB) error {
 // ProcessBlock processes the block, it optionally verifies the
 // state root.
 func (sp *StateProcessor) ProcessBlock(
-	ctx *transition.Context, st *state.StateDB, blk *ctypes.BeaconBlock,
+	ctx transition.ReadOnlyContext,
+	st *state.StateDB,
+	blk *ctypes.BeaconBlock,
 ) error {
 	if err := sp.processBlockHeader(ctx, st, blk); err != nil {
 		return err
@@ -272,7 +272,9 @@ func (sp *StateProcessor) processEpoch(st *state.StateDB) (transition.ValidatorU
 
 // processBlockHeader processes the header and ensures it matches the local state.
 func (sp *StateProcessor) processBlockHeader(
-	ctx *transition.Context, st *state.StateDB, blk *ctypes.BeaconBlock,
+	ctx transition.ReadOnlyContext,
+	st *state.StateDB,
+	blk *ctypes.BeaconBlock,
 ) error {
 	// Ensure the block slot matches the state slot.
 	slot, err := st.GetSlot()

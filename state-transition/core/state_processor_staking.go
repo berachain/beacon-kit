@@ -35,7 +35,9 @@ import (
 
 // processOperations processes the operations and ensures they match the local state.
 func (sp *StateProcessor) processOperations(
-	ctx *transition.Context, st *state.StateDB, blk *ctypes.BeaconBlock,
+	ctx transition.ReadOnlyContext,
+	st *state.StateDB,
+	blk *ctypes.BeaconBlock,
 ) error {
 	// Verify that outstanding deposits are processed up to the maximum number of deposits.
 	//

@@ -315,9 +315,7 @@ type (
 	// }.
 
 	// StateProcessor defines the interface for processing the state.
-	StateProcessor[
-		ContextT any,
-	] interface {
+	StateProcessor interface {
 		// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
 		// state
 		// from the eth1 deposits.
@@ -333,7 +331,7 @@ type (
 		) (transition.ValidatorUpdates, error)
 		// Transition performs the core state transition.
 		Transition(
-			ctx ContextT,
+			ctx transition.ReadOnlyContext,
 			st *statedb.StateDB,
 			blk *ctypes.BeaconBlock,
 		) (transition.ValidatorUpdates, error)

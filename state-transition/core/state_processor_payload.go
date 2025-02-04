@@ -33,7 +33,9 @@ import (
 // processExecutionPayload processes the execution payload and ensures it
 // matches the local state.
 func (sp *StateProcessor) processExecutionPayload(
-	ctx *transition.Context, st *statedb.StateDB, blk *ctypes.BeaconBlock,
+	ctx transition.ReadOnlyContext,
+	st *statedb.StateDB,
+	blk *ctypes.BeaconBlock,
 ) error {
 	var (
 		body    = blk.GetBody()

@@ -104,7 +104,7 @@ func SetupTestState(t *testing.T, cs chain.Spec) (
 	*TestStateProcessorT,
 	*TestBeaconStateT,
 	*depositstore.KVStore,
-	*transition.Context,
+	transition.ReadOnlyContext,
 ) {
 	t.Helper()
 

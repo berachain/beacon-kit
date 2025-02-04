@@ -154,7 +154,7 @@ type StateProcessor interface {
 	) (transition.ValidatorUpdates, error)
 	// Transition processes the state transition for a given block.
 	Transition(
-		*transition.Context,
+		transition.ReadOnlyContext,
 		*statedb.StateDB,
 		*ctypes.BeaconBlock,
 	) (transition.ValidatorUpdates, error)

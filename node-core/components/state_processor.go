@@ -46,7 +46,7 @@ type StateProcessorInput struct {
 // ProvideStateProcessor provides the state processor to the depinject
 // framework.
 func ProvideStateProcessor(in StateProcessorInput) *core.StateProcessor {
-	return core.NewStateProcessor[*Context](
+	return core.NewStateProcessor(
 		in.Logger.With("service", "state-processor"),
 		in.ChainSpec,
 		in.ExecutionEngine,

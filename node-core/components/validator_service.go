@@ -38,7 +38,7 @@ type ValidatorServiceInput struct {
 	ChainSpec      chain.Spec
 	LocalBuilder   LocalBuilder
 	Logger         *phuslu.Logger
-	StateProcessor StateProcessor[*Context]
+	StateProcessor StateProcessor
 	StorageBackend *storage.Backend
 	Signer         crypto.BLSSigner
 	SidecarFactory SidecarFactory
