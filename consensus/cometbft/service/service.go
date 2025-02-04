@@ -226,6 +226,7 @@ func (s *Service) Name() string {
 }
 
 // CommitMultiStore returns the CommitMultiStore of the cometbft.
+// This needs to be exposed because it is used by commands like Rollback.
 func (s *Service) CommitMultiStore() storetypes.CommitMultiStore {
 	return s.sm.CommitMultiStore()
 }
