@@ -35,6 +35,7 @@ type InjectedConsensus struct {
 
 func (s *InjectedConsensus) SetupTest() {
 	s.testNode = injectedconsensus.NewTestNode(s.T())
+	injectedconsensus.StartGeth(s.T(), s.testNode.Homedir)
 }
 
 func (s *InjectedConsensus) TearDownTest() {

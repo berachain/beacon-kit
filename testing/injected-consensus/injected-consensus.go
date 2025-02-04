@@ -22,6 +22,8 @@ package injectedconsensus
 
 import (
 	"context"
+	"fmt"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -47,6 +49,8 @@ import (
 	cmtcfg "github.com/cometbft/cometbft/config"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/ory/dockertest"
+	"github.com/ory/dockertest/docker"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 )
@@ -192,6 +196,74 @@ func initCommand(t *testing.T, tempHomeDir string) {
 	require.NoError(t, err)
 }
 
+func StartGeth(t *testing.T, tempHomeDir string) {
+	// 1. Create pool
+	pool, err := dockertest.NewPool("")
+	require.NoError(t, err)
+
+	// 2. Pull the Geth image (if not present). This can speed up future runs.
+	err = pool.Client.PullImage(
+		docker.PullImageOptions{
+			Repository: "ethereum/client-go",
+			Tag:        "latest",
+		},
+		docker.AuthConfiguration{},
+	)
+	require.NoError(t, err)
+
+	absPath, err := filepath.Abs("../files")
+	require.NoError(t, err)
+
+	// 3. Run container with a custom Cmd that does BOTH `init` and `run`
+	resource, err := pool.RunWithOptions(&dockertest.RunOptions{
+		Repository: "ethereum/client-go",
+		Tag:        "latest",
+		// We'll chain these commands with bash -c
+		// Override the default entrypoint to be /bin/sh instead of geth:
+		Entrypoint: []string{"/bin/sh"},
+		Cmd: []string{
+			"-c",
+			`
+			geth init --datadir /tmp/gethdata /testdata/eth-genesis.json && 
+			geth --http --http.addr 0.0.0.0 --http.api eth,net,web3 \
+				 --authrpc.addr 0.0.0.0 \
+				 --authrpc.jwtsecret /testdata/jwt.hex \
+				 --authrpc.vhosts '*' \
+				 --datadir /tmp/gethdata \
+				 --ipcpath /tmp/gethdata/geth.ipc \
+				 --syncmode full \
+				 --verbosity 3
+			`,
+		},
+		ExposedPorts: []string{"8545/tcp", "8551/tcp", "30303/tcp"},
+		Mounts: []string{
+			// bind-mount local testdata => container /testdata
+			fmt.Sprintf("%s:/%s", tempHomeDir, "testdata"),
+			fmt.Sprintf("%s:/%s", absPath, "testing/files"),
+		},
+	})
+	require.NoError(t, err)
+
+	// Optionally get the host/port that Docker mapped for 8545:
+	elRPC := resource.GetHostPort("8545/tcp")
+	authRPC := resource.GetHostPort("8551/tcp")
+
+	fmt.Println(authRPC)
+
+	// 4. Wait until the container is ready (i.e., Geth is listening on the RPC port)
+	err = pool.Retry(func() error {
+		// For example, just do an HTTP GET to / without expecting real data
+		resp, err := http.Get("http://" + elRPC)
+		if err != nil {
+			return err
+		}
+		resp.Body.Close()
+		// You could check status code, etc.
+		return nil
+	})
+	require.NoError(t, err)
+}
+
 // NewTestNode Uses the mainnet chainspec.
 func NewTestNode(t *testing.T) *TestNode {
 	t.Helper()
@@ -200,7 +272,6 @@ func NewTestNode(t *testing.T) *TestNode {
 	logger := phuslu.NewLogger(os.Stdout, nil)
 
 	tempHomeDir := t.TempDir()
-	// tempHomeDir := "./.tmp/beaconp"
 	t.Logf("tempHomeDir=%s", tempHomeDir)
 	beaconKitConfig, cometConfig := createConfiguration(t, tempHomeDir)
 
