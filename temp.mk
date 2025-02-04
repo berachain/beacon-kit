@@ -10,13 +10,13 @@
 #    beacond     #
 #################
 
-HOMEDIR = .tmp/beacond
+HOMEDIR = /var/folders/z8/dnjjtbt10z50dtk_5sfckr7r0000gn/T/TestInjectedConsensusTestProcessProposalRequestInvalidBlock3779682237/001
 DEVNET_CHAIN_SPEC = devnet
 JWT_PATH = ${TESTAPP_FILES_DIR}/jwt.hex
 # Use the genesis file from the beacond folder as it has been modified by beacond genesis set-deposit-storage.
 ETH_GENESIS_PATH = ${HOMEDIR}/eth-genesis.json
 NETHER_ETH_GENESIS_PATH = ${HOMEDIR}/eth-nether-genesis.json
-ETH_DATA_DIR = .tmp/eth-home
+ETH_DATA_DIR = ${HOMEDIR}/eth-home
 # URLs used for dialing the eth client
 IPC_PATH = .tmp/eth-home/eth-engine.ipc
 HTTP_URL = localhost:8551
@@ -103,8 +103,8 @@ start-reth-host: ## start a local ephemeral `reth` node on host machine
 start-geth: ## start an ephemeral `geth` node with docker
 	rm -rf ${ETH_DATA_DIR}
 	docker run \
+	-v ${HOMEDIR}:/${HOMEDIR} \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
-	-v $(PWD)/.tmp:/.tmp \
 	ethereum/client-go init \
 	--datadir ${ETH_DATA_DIR} \
 	${ETH_GENESIS_PATH}
@@ -114,7 +114,7 @@ start-geth: ## start an ephemeral `geth` node with docker
 	-p 8545:8545 \
 	-p 8551:8551 \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
-	-v $(PWD)/.tmp:/.tmp \
+	-v ${HOMEDIR}:/${HOMEDIR} \
 	ethereum/client-go \
 	--http \
 	--http.addr 0.0.0.0 \

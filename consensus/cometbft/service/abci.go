@@ -49,6 +49,7 @@ func (s *Service) PrepareProposal(
 	ctx context.Context,
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
+	fmt.Println("PREPARE PROPOSAL")
 	return s.prepareProposal(ctx, req)
 }
 
@@ -80,6 +81,7 @@ func (s *Service) ProcessProposal(
 	ctx context.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
+	fmt.Println("PROCESS PROPOSAL")
 	return s.processProposal(ctx, req)
 }
 
