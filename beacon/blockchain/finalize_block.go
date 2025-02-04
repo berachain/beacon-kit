@@ -75,6 +75,11 @@ func (s *Service) FinalizeBlock(
 		blk,
 		req.GetProposerAddress(),
 		req.GetTime(),
+
+		// Finalize may be called while syncing. In such a case
+		// we must perform payload verification since we do not
+		// verify block with ProcessBlock.
+		req.SyncingToHeight != req.Height,
 	)
 
 	st := s.storageBackend.StateFromContext(ctx)
@@ -177,7 +182,7 @@ func (s *Service) executeStateTransition(
 			// of validators in their process proposal call and thus
 			// the "verification aspect" of this NewPayload call is
 			// actually irrelevant at this point.
-			SkipPayloadVerification: false,
+			SkipPayloadVerification: !blk.GetConsensusSyncing(),
 
 			// We skip randao validation in FinalizeBlock since either
 			// 1. we validated it during ProcessProposal at the head of the chain OR

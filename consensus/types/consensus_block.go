@@ -32,6 +32,8 @@ type ConsensusBlock struct {
 
 	// some consensus data useful to build and verify the block
 	*commonConsensusData
+
+	isConsensusSyncing bool
 }
 
 // New creates a new ConsensusBlock instance.
@@ -39,6 +41,7 @@ func NewConsensusBlock(
 	beaconBlock *types.BeaconBlock,
 	proposerAddress []byte,
 	consensusTime time.Time,
+	isConsensusSyncing bool,
 ) *ConsensusBlock {
 	return &ConsensusBlock{
 		blk: beaconBlock,
@@ -46,9 +49,14 @@ func NewConsensusBlock(
 			proposerAddress: proposerAddress,
 			consensusTime:   math.U64(consensusTime.Unix()), // #nosec G115
 		},
+		isConsensusSyncing: isConsensusSyncing,
 	}
 }
 
 func (b *ConsensusBlock) GetBeaconBlock() *types.BeaconBlock {
 	return b.blk
+}
+
+func (b *ConsensusBlock) GetConsensusSyncing() bool {
+	return b.isConsensusSyncing
 }
