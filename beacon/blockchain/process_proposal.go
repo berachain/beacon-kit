@@ -37,6 +37,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	"github.com/berachain/beacon-kit/state-transition/core"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -93,7 +94,15 @@ func (s *Service) ProcessProposal(
 	if numCommitments != len(sidecars) {
 		err = fmt.Errorf("expected %d sidecars, got %d: %w",
 			numCommitments, len(sidecars),
-			ErrSidecarCommittmentMismatch,
+			ErrSidecarCommitmentMismatch,
+		)
+		s.logger.Warn(err.Error())
+		return err
+	}
+	if uint64(numCommitments) > s.chainSpec.MaxBlobsPerBlock() {
+		err = fmt.Errorf("expected less than %d sidecars, got %d: %w",
+			s.chainSpec.MaxBlobsPerBlock(), numCommitments,
+			core.ErrExceedsBlockBlobLimit,
 		)
 		s.logger.Warn(err.Error())
 		return err
