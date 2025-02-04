@@ -27,11 +27,9 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
-	clibuilder "github.com/berachain/beacon-kit/cli/builder"
 	"github.com/berachain/beacon-kit/cli/commands/genesis"
 	"github.com/berachain/beacon-kit/cli/commands/initialize"
 	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
-	clicomponents "github.com/berachain/beacon-kit/cli/components"
 	"github.com/berachain/beacon-kit/cli/flags"
 	beaconkitconfig "github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/config/spec"
@@ -123,7 +121,7 @@ func createConfiguration(t *testing.T, tempHomeDir string) (
 	cmtCfg := cometbft.DefaultConfig()
 	cmtCfg.RootDir = tempHomeDir
 	// Forces Comet to Create it
-	cmtCfg.NodeKey = "node_key.json"
+	// cmtCfg.NodeKey = "node_key.json"
 	beaconCfg := beaconkitconfig.DefaultConfig()
 	return beaconCfg, cmtCfg
 }
@@ -164,47 +162,29 @@ func getAppOptions(t *testing.T, beaconKitConfig *beaconkitconfig.Config, tempHo
 
 func getBlsSigner(tempHomeDir string) *signer.BLSSigner {
 	privValKeyFile := filepath.Join(tempHomeDir, "config/priv_validator_key.json")
-	privValStateFile := filepath.Join(tempHomeDir, "config/priv_validator_state.json")
+	privValStateFile := filepath.Join(tempHomeDir, "data/priv_validator_state.json")
 	return signer.NewBLSSigner(privValKeyFile, privValStateFile)
 }
 
 func initCommand(t *testing.T, tempHomeDir string) {
 	t.Helper()
 
-	// Build the root command using the builder
-	cb := clibuilder.New(
-		// Set the Name to the Default.
-		clibuilder.WithName[nodetypes.Node](
-			"beacond",
-		),
-		// Set the Description to the Default.
-		clibuilder.WithDescription[nodetypes.Node](
-			"A basic beacon node, usable most standard networks.",
-		),
-		// Set the Runtime Components to the Default.
-		clibuilder.WithComponents[nodetypes.Node](
-			append(
-				clicomponents.DefaultClientComponents(),
-				// TODO: remove these, and eventually pull cfg and chainspec
-				// from built node
-				nodecomponents.ProvideChainSpec,
-			),
-		),
-		// Set the NodeBuilderFunc to the NodeBuilder Build.
-		clibuilder.WithNodeBuilderFunc[Node](nb.Build),
-	)
-
-
-
 	clientCtx := client.Context{}.
 		WithHomeDir(tempHomeDir).
 		WithChainID("test-mainnet-chain")
+
+	// This is necessary otherwise cosmos-sdk will see errors
+	err := os.MkdirAll(tempHomeDir+"/config", 0700)
+	require.NoError(t, err)
+
+	err = os.MkdirAll(tempHomeDir+"/data", 0700)
+	require.NoError(t, err)
 
 	initCMD := initialize.InitCmd(&cometbft.Service{})
 	// This is required due to a bug in cosmos sdk
 	initCMD.SetContext(context.Background())
 
-	err := client.SetCmdClientContextHandler(clientCtx, initCMD)
+	err = client.SetCmdClientContextHandler(clientCtx, initCMD)
 	require.NoError(t, err)
 
 	err = initCMD.Execute()
@@ -223,13 +203,12 @@ func NewTestNode(t *testing.T) *TestNode {
 	t.Logf("tempHomeDir=%s", tempHomeDir)
 	beaconKitConfig, cometConfig := createConfiguration(t, tempHomeDir)
 
-	chainSpec, err := spec.MainnetChainSpec()
+	chainSpec, err := spec.TestnetChainSpec()
 	require.NoError(t, err)
 
-	appOpts := getAppOptions(t, beaconKitConfig, tempHomeDir)
+	t.Setenv(components.ChainSpecTypeEnvVar, components.TestnetChainSpecType)
 
-	// Chain Spec
-	t.Setenv(components.ChainSpecTypeEnvVar, components.MainnetChainSpecType)
+	appOpts := getAppOptions(t, beaconKitConfig, tempHomeDir)
 
 	// Same as `beacond init`
 	initCommand(t, tempHomeDir)
@@ -288,10 +267,3 @@ func NewTestNode(t *testing.T) *TestNode {
 		CancelFunc:        cancelFunc,
 	}
 }
-
-// func genesisFromFile(t *testing.T, file string) *cosmosutil.AppGenesis {
-//	t.Helper()
-//	appGenesis, err := cosmosutil.AppGenesisFromFile(file)
-//	require.NoError(t, err)
-//	return appGenesis
-//}

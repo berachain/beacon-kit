@@ -22,9 +22,9 @@ package injectedconsensus_test
 
 import (
 	"testing"
+	"time"
 
 	injectedconsensus "github.com/berachain/beacon-kit/testing/injected-consensus"
-	comettypes "github.com/cometbft/cometbft/abci/types"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -42,43 +42,43 @@ func (s *InjectedConsensus) TearDownTest() {
 	s.testNode.CancelFunc()
 }
 
-func (s *InjectedConsensus) TestInitChainRequestsInvalidChainID() {
-	request := &comettypes.InitChainRequest{
-		ChainId: "80090",
-	}
-	_, err := s.testNode.CometService.InitChain(s.testNode.Context, request)
-	s.Require().Error(err, "invalid chain-id on InitChain; expected: beacond-2061, got: 80090")
-}
-
-//// TestProcessProposalRequestInvalidBlock tests the scenario where a peer sends us a block with an invalid timestamp.
-// func (s *InjectedConsensus) TestProcessProposalRequestInvalidBlock() {
-//	s.T().Skip()
-//	go func() {
-//		if err := s.testNode.Node.Start(s.testNode.Context); err != nil {
-//			s.T().Error(err)
-//		}
-//	}()
-//
-//	<-time.After(30 * time.Second)
-//
-//	// genesis := genesisFromFile(t, testNode.cometConfig.Genesis)
-//
-//	// genesisFile := testNode.cometConfig.GenesisFile()
-//
-//	// request := &comettypes.InitChainRequest{
-//	//	ChainId:       "beacond-2061",
-//	//	AppStateBytes: genesis.AppState,
-//	//}
-//	// fmt.Println(genesis)
-//	// fmt.Println(genesisFile)
-//	// response, err := testNode.cometService.InitChain(ctx, request)
-//	// require.NoError(t, err)
-//	minimumBlockHeight := int64(2)
-//	s.Greater(s.testNode.CometService.LastBlockHeight(), minimumBlockHeight)
-//	// We expect one deposit given the genesis file in 'config/genesis.json'
-//	// require.Len(t, response.GetValidators(), 1)
+// func (s *InjectedConsensus) TestInitChainRequestsInvalidChainID() {
+//	request := &comettypes.InitChainRequest{
+//		ChainId: "80090",
+//	}
+//	_, err := s.testNode.CometService.InitChain(s.testNode.Context, request)
+//	s.Require().ErrorContains(err, "invalid chain-id on InitChain; expected: test-mainnet-chain, got: 80090")
 //}
 
+// TestProcessProposalRequestInvalidBlock tests the scenario where a peer sends us a block with an invalid timestamp.
+func (s *InjectedConsensus) TestProcessProposalRequestInvalidBlock() {
+	go func() {
+		if err := s.testNode.Node.Start(s.testNode.Context); err != nil {
+			s.T().Error(err)
+		}
+	}()
+
+	<-time.After(1000 * time.Second)
+
+	// genesis := genesisFromFile(t, testNode.cometConfig.Genesis)
+
+	// genesisFile := testNode.cometConfig.GenesisFile()
+
+	// request := &comettypes.InitChainRequest{
+	//	ChainId:       "beacond-2061",
+	//	AppStateBytes: genesis.AppState,
+	//}
+	// fmt.Println(genesis)
+	// fmt.Println(genesisFile)
+	// response, err := testNode.cometService.InitChain(ctx, request)
+	// require.NoError(t, err)
+	minimumBlockHeight := int64(2)
+	s.Greater(s.testNode.CometService.LastBlockHeight(), minimumBlockHeight)
+	// We expect one deposit given the genesis file in 'config/genesis.json'
+	// require.Len(t, response.GetValidators(), 1)
+}
+
+// We cannot run test in parallel as we are not allowed to Setenv in parallel tests. Refactor after chain spec is not envar.
 func TestInjectedConsensus(t *testing.T) {
 	suite.Run(t, new(InjectedConsensus))
 }
