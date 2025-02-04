@@ -114,16 +114,8 @@ func (sp *StateProcessor) validateStatelessPayload(blk *ctypes.BeaconBlock) erro
 		)
 	}
 
-	// Verify the number of blobs.
-	blobKzgCommitments := body.GetBlobKzgCommitments()
-	if uint64(len(blobKzgCommitments)) > sp.cs.MaxBlobsPerBlock() {
-		return errors.Wrapf(
-			ErrExceedsBlockBlobLimit,
-			"expected: %d, got: %d",
-			sp.cs.MaxBlobsPerBlock(), len(blobKzgCommitments),
-		)
-	}
-
+	// No need to verify bounded number of commitments here, since it is
+	// verified early on in ProcessProposal.
 	return nil
 }
 

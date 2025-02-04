@@ -33,8 +33,8 @@ var (
 	ErrNilBlob = errors.New("nil blob")
 	// ErrDataNotAvailable indicates that the required data is not available.
 	ErrDataNotAvailable = errors.New("data not available")
-
-	ErrSidecarCommittmentMismatch = errors.New("sidecars commitments mismatch")
-
+	// ErrSidecarCommitmentMismatch indicates that the BeaconBlockBody commitments do not match the sidecars.
+	ErrSidecarCommitmentMismatch = errors.New("sidecars commitments mismatch")
+	// ErrSidecarSignatureMismatch indicates that the sidecar signature is invalid.
 	ErrSidecarSignatureMismatch = errors.New("sidecar signature mismatch")
 )
