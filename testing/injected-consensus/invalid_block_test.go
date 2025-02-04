@@ -58,7 +58,7 @@ func (s *InjectedConsensus) TestProcessProposalRequestInvalidBlock() {
 		}
 	}()
 
-	<-time.After(1000 * time.Second)
+	<-time.After(30 * time.Second)
 
 	// genesis := genesisFromFile(t, testNode.cometConfig.Genesis)
 

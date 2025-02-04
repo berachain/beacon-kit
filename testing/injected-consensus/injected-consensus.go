@@ -23,6 +23,7 @@ package injectedconsensus
 import (
 	"context"
 	"os"
+	"path"
 	"path/filepath"
 	"testing"
 
@@ -228,6 +229,9 @@ func NewTestNode(t *testing.T) *TestNode {
 
 	// Update the EL Deposit Storage
 	err = genesis.SetDepositStorage(chainSpec, cometConfig, "./eth-genesis.json", false)
+	require.NoError(t, err)
+
+	err = genesis.AddExecutionPayload(chainSpec, path.Join(tempHomeDir, "eth-genesis.json"), cometConfig)
 	require.NoError(t, err)
 
 	// Create a database
