@@ -58,7 +58,7 @@ jobs:
         configs:
           - arch: arm64
             target-os: linux
-            runs-on: macos-14
+            runs-on: ubuntu-24.04-arm
           - arch: amd64
             target-os: linux
             runs-on: ubuntu-latest
