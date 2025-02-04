@@ -120,6 +120,9 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 		Indices: []phase0.ValidatorIndex{0, 1, 2, 3, 4},
 	})
 	s.Require().NoError(err)
+	s.Require().NotNil(response, "Validators response should not be nil")
+	s.Require().NotNil(response.Data, "Validators data should not be nil")
+
 	vals := response.Data
 	s.Require().NotNil(vals)
 	s.Require().Len(vals, config.NumValidators)
