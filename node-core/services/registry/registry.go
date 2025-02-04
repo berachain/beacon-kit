@@ -30,8 +30,8 @@ import (
 
 // Basic is the minimal interface for a service.
 type Basic interface {
+	// Start spawns any goroutines required by the service.
 	Start(ctx context.Context) error
-
 	// Stop stops the service. It should be safe to call
 	// Stop on a service that has not been started
 	Stop() error
