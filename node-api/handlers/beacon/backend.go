@@ -79,7 +79,7 @@ type ValidatorBackend interface {
 	FilteredValidators(
 		slot math.Slot,
 		ids []string,
-		statusees []string,
+		statuses []string,
 	) ([]*types.ValidatorData, error)
 	ValidatorBalancesByIDs(
 		slot math.Slot,

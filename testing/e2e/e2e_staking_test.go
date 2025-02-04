@@ -115,8 +115,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 
 	// Grab genesis validators to get withdrawal creds.
 	s.Require().NoError(apiClient.Connect(s.Ctx()))
-	s.Require().NotNil(apiClient.BeaconKitNodeClient)
-	response, err := apiClient.BeaconKitNodeClient.Validators(s.Ctx(), &api.ValidatorsOpts{
+	response, err := apiClient.Validators(s.Ctx(), &api.ValidatorsOpts{
 		State:   "genesis",
 		Indices: []phase0.ValidatorIndex{0, 1, 2, 3, 4},
 	})
