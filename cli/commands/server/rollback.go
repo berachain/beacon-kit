@@ -71,16 +71,16 @@ application.
 			if err != nil {
 				return fmt.Errorf("failed to rollback CometBFT state: %w", err)
 			}
-			// rollback the multistore
 
+			// rollback the multistore
 			if err = app.CommitMultiStore().RollbackToVersion(height); err != nil {
 				return fmt.Errorf("failed to rollback to version: %w", err)
 			}
 
 			logger.Info(
-				"Rolled back state to height %d and hash %X\n",
-				height,
-				hash,
+				"Rolled back state",
+				"height", height,
+				"hash", hash,
 			)
 			return nil
 		},

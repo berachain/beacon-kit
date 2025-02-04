@@ -24,13 +24,14 @@ import (
 	"context"
 	"reflect"
 
+	"cosmossdk.io/store"
 	"github.com/berachain/beacon-kit/log"
 )
 
 // Basic is the minimal interface for a service.
 type Basic interface {
-	// Start spawns any goroutines required by the service.
 	Start(ctx context.Context) error
+
 	// Stop stops the service. It should be safe to call
 	// Stop on a service that has not been started
 	Stop() error
@@ -38,8 +39,9 @@ type Basic interface {
 	Name() string
 }
 
-type Dispatcher interface {
-	Start(ctx context.Context) error
+// CommitMultiStore is required by commands like Rollback.
+type AppStoreStateHolder interface {
+	CommitMultiStore() store.CommitMultiStore
 }
 
 // Registry provides a useful pattern for managing services.
@@ -52,6 +54,8 @@ type Registry struct {
 	services map[string]Basic
 	// serviceTypes is an ordered slice of registered service types.
 	serviceTypes []string
+
+	commitStoreServicef func() store.CommitMultiStore
 }
 
 // NewRegistry starts a registry instance for convenience.
@@ -66,6 +70,16 @@ func NewRegistry(logger log.Logger, opts ...RegistryOption) *Registry {
 			panic(err)
 		}
 	}
+
+	// find a service (there should be only one) exposing the CommitMultistore
+	for _, typeName := range r.serviceTypes {
+		svc := r.services[typeName]
+		if sh, ok := svc.(AppStoreStateHolder); ok {
+			r.commitStoreServicef = sh.CommitMultiStore
+			break
+		}
+	}
+
 	return r
 }
 
@@ -150,4 +164,8 @@ func (s *Registry) FetchService(service interface{}) error {
 		return nil
 	}
 	return errUnknownService
+}
+
+func (s *Registry) CommitMultiStore() store.CommitMultiStore {
+	return s.commitStoreServicef()
 }
