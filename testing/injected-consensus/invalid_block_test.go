@@ -21,26 +21,58 @@
 package injectedconsensus_test
 
 import (
+	"context"
+	"os"
 	"testing"
 	"time"
 
+	"github.com/berachain/beacon-kit/log/phuslu"
 	injectedconsensus "github.com/berachain/beacon-kit/testing/injected-consensus"
+	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/suite"
 )
 
 type InjectedConsensus struct {
 	suite.Suite
-	testNode *injectedconsensus.TestNode
+	ctx        context.Context
+	cancelFunc context.CancelFunc
+	testNode   *injectedconsensus.TestNode
+
+	// Geth dockertest handles for closing
+	poolHandle *dockertest.Pool
+	gethHandle *dockertest.Resource
 }
 
 func (s *InjectedConsensus) SetupTest() {
-	s.testNode = injectedconsensus.NewTestNode(s.T())
-	injectedconsensus.StartGeth(s.T(), s.testNode.Homedir)
+	ctx, cancelFunc := context.WithCancel(context.Background())
+	s.ctx = ctx
+	s.cancelFunc = cancelFunc
+
+	tempHomeDir := s.T().TempDir()
+	// Initialize home directory
+	cometConfig := injectedconsensus.InitializeHomeDir(s.T(), tempHomeDir)
+
+	// Start the Geth node, needs to be done first as we need the auth rpc
+	poolHandle, gethHandle, authRPC := injectedconsensus.StartGeth(s.T(), tempHomeDir)
+	s.poolHandle = poolHandle
+	s.gethHandle = gethHandle
+
+	// Build the Beacon node once we have the auth rpc url
+	logger := phuslu.NewLogger(os.Stdout, nil)
+	testNode := injectedconsensus.NewTestNode(s.T(),
+		injectedconsensus.TestNodeInput{
+			TempHomeDir:   tempHomeDir,
+			CometConfig:   cometConfig,
+			AuthRPCURLStr: authRPC,
+			Logger:        logger,
+		})
+	s.testNode = testNode
 }
 
 func (s *InjectedConsensus) TearDownTest() {
 	// Ensure teardown runs no matter what
-	s.testNode.CancelFunc()
+	s.cancelFunc()
+	s.gethHandle.Close()
 }
 
 // func (s *InjectedConsensus) TestInitChainRequestsInvalidChainID() {
@@ -54,7 +86,7 @@ func (s *InjectedConsensus) TearDownTest() {
 // TestProcessProposalRequestInvalidBlock tests the scenario where a peer sends us a block with an invalid timestamp.
 func (s *InjectedConsensus) TestProcessProposalRequestInvalidBlock() {
 	go func() {
-		if err := s.testNode.Node.Start(s.testNode.Context); err != nil {
+		if err := s.testNode.Node.Start(s.ctx); err != nil {
 			s.T().Error(err)
 		}
 	}()

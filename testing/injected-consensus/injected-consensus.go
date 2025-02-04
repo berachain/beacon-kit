@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/cli/commands/genesis"
 	"github.com/berachain/beacon-kit/cli/commands/initialize"
-	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	"github.com/berachain/beacon-kit/cli/flags"
 	beaconkitconfig "github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/config/spec"
@@ -45,6 +44,7 @@ import (
 	nodetypes "github.com/berachain/beacon-kit/node-core/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/net/url"
 	"github.com/berachain/beacon-kit/storage/db"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	dbm "github.com/cosmos/cosmos-db"
@@ -111,29 +111,23 @@ type TestNode struct {
 	Node              nodetypes.Node
 	CometService      *cometbft.Service
 	BlockchainService *blockchain.Service
-	CometConfig       *cmtcfg.Config
-	Homedir           string
-	Context           context.Context
-	CancelFunc        context.CancelFunc
 }
 
 // createConfiguration creates the BeaconKit configuration and the CometBFT configuration.
-func createConfiguration(t *testing.T, tempHomeDir string) (
-	*beaconkitconfig.Config,
-	*cmtcfg.Config,
-) {
+func createCometConfig(t *testing.T, tempHomeDir string) *cmtcfg.Config {
 	t.Helper()
 	cmtCfg := cometbft.DefaultConfig()
 	cmtCfg.RootDir = tempHomeDir
-	// Forces Comet to Create it
-	// cmtCfg.NodeKey = "node_key.json"
-	beaconCfg := beaconkitconfig.DefaultConfig()
-	return beaconCfg, cmtCfg
+	return cmtCfg
+}
+
+func createBeaconKitConfig(t *testing.T) *beaconkitconfig.Config {
+	return beaconkitconfig.DefaultConfig()
 }
 
 // getAppOptions returns the Application Options we need to set for the Node Builder.
 // Ideally we can avoid having to set the flags like this and just directly modify a config type.
-func getAppOptions(t *testing.T, beaconKitConfig *beaconkitconfig.Config, tempHomeDir string) servertypes.AppOptions {
+func getAppOptions(t *testing.T, beaconKitConfig *beaconkitconfig.Config, tempHomeDir string) *viper.Viper {
 	t.Helper()
 	appOpts := viper.New()
 	// Execution Client Config
@@ -196,12 +190,16 @@ func initCommand(t *testing.T, tempHomeDir string) {
 	require.NoError(t, err)
 }
 
-func StartGeth(t *testing.T, tempHomeDir string) {
-	// 1. Create pool
+func StartGeth(t *testing.T, tempHomeDir string) (*dockertest.Pool, *dockertest.Resource, string) {
+	// Create pool
 	pool, err := dockertest.NewPool("")
 	require.NoError(t, err)
 
-	// 2. Pull the Geth image (if not present). This can speed up future runs.
+	// uses pool to try to connect to Docker
+	err = pool.Client.Ping()
+	require.NoErrorf(t, err, "Could not connect to Docker: %s", err)
+
+	// Pull the Geth image (if not present). This can speed up future runs.
 	err = pool.Client.PullImage(
 		docker.PullImageOptions{
 			Repository: "ethereum/client-go",
@@ -262,25 +260,17 @@ func StartGeth(t *testing.T, tempHomeDir string) {
 		return nil
 	})
 	require.NoError(t, err)
+	return pool, resource, authRPC
 }
 
-// NewTestNode Uses the mainnet chainspec.
-func NewTestNode(t *testing.T) *TestNode {
-	t.Helper()
-
-	ctx, cancelFunc := context.WithCancel(context.Background())
-	logger := phuslu.NewLogger(os.Stdout, nil)
-
-	tempHomeDir := t.TempDir()
+func InitializeHomeDir(t *testing.T, tempHomeDir string) *cmtcfg.Config {
 	t.Logf("tempHomeDir=%s", tempHomeDir)
-	beaconKitConfig, cometConfig := createConfiguration(t, tempHomeDir)
+	cometConfig := createCometConfig(t, tempHomeDir)
 
 	chainSpec, err := spec.TestnetChainSpec()
 	require.NoError(t, err)
 
 	t.Setenv(components.ChainSpecTypeEnvVar, components.TestnetChainSpecType)
-
-	appOpts := getAppOptions(t, beaconKitConfig, tempHomeDir)
 
 	// Same as `beacond init`
 	initCommand(t, tempHomeDir)
@@ -304,9 +294,32 @@ func NewTestNode(t *testing.T) *TestNode {
 
 	err = genesis.AddExecutionPayload(chainSpec, path.Join(tempHomeDir, "eth-genesis.json"), cometConfig)
 	require.NoError(t, err)
+	return cometConfig
+}
+
+type TestNodeInput struct {
+	TempHomeDir   string
+	CometConfig   *cmtcfg.Config
+	AuthRPCURLStr string
+	Logger        *phuslu.Logger
+}
+
+// NewTestNode Uses the mainnet chainspec.
+func NewTestNode(
+	t *testing.T,
+	input TestNodeInput,
+) *TestNode {
+	t.Helper()
+
+	beaconKitConfig := createBeaconKitConfig(t)
+	authRPCURL, err := url.NewFromRaw(input.AuthRPCURLStr)
+	require.NoError(t, err)
+	beaconKitConfig.GetEngine().RPCDialURL = authRPCURL
+
+	appOpts := getAppOptions(t, beaconKitConfig, input.TempHomeDir)
 
 	// Create a database
-	database, err := db.OpenDB(tempHomeDir, dbm.PebbleDBBackend)
+	database, err := db.OpenDB(input.TempHomeDir, dbm.PebbleDBBackend)
 	require.NoError(t, err)
 
 	// Build a node
@@ -314,10 +327,10 @@ func NewTestNode(t *testing.T) *TestNode {
 		nodebuilder.WithComponents[nodetypes.Node](DefaultComponents(t)),
 	)
 	node := nb.Build(
-		logger,
+		input.Logger,
 		database,
 		os.Stdout, // or some other writer
-		cometConfig,
+		input.CometConfig,
 		appOpts,
 	)
 
@@ -336,9 +349,5 @@ func NewTestNode(t *testing.T) *TestNode {
 		Node:              node,
 		CometService:      cometService,
 		BlockchainService: blockchainService,
-		CometConfig:       cometConfig,
-		Homedir:           tempHomeDir,
-		Context:           ctx,
-		CancelFunc:        cancelFunc,
 	}
 }
