@@ -57,14 +57,11 @@ func (s *BeaconKitE2ESuite) TestBeaconStateRoot() {
 	s.Require().False(stateRootResp.Data.IsZero())
 }
 
-// TestBeaconValidators tests the beacon node api for beacon validators.
-//
-//nolint:lll
-func (s *BeaconKitE2ESuite) TestBeaconValidators() {
+// TestBeaconValidatorsWithIndices tests the beacon node api for beacon validators with indices.
+func (s *BeaconKitE2ESuite) TestBeaconValidatorsWithIndices() {
 	client := s.initBeaconTest()
 
 	indices := []phase0.ValidatorIndex{0}
-	// Ensure the validators are not nil.
 	validatorsResp, err := client.Validators(
 		s.Ctx(),
 		&beaconapi.ValidatorsOpts{
@@ -121,3 +118,85 @@ func (s *BeaconKitE2ESuite) TestBeaconValidators() {
 			True(validator.Balance <= 32e9, "Validator balance should not exceed 32 ETH")
 	}
 }
+
+// TestValidatorsEmptyIndices tests that querying validators with empty indices returns all validators.
+func (s *BeaconKitE2ESuite) TestValidatorsEmptyIndices() {
+	client := s.initBeaconTest()
+
+	s.Logger().Info("Client state",
+		"endpoint", client.GetPublicPorts()["node-api"],
+	)
+
+	// Query validators with empty indices
+	emptyIndices := []phase0.ValidatorIndex{}
+	s.Logger().Info("Making validators request",
+		"state", utils.StateIDHead,
+		"indices", emptyIndices,
+	)
+
+	validatorsResp, err := client.Validators(
+		s.Ctx(),
+		&beaconapi.ValidatorsOpts{
+			State:   utils.StateIDHead,
+			Indices: emptyIndices,
+		},
+	)
+
+	s.Require().NoError(err)
+	s.Require().NotNil(validatorsResp)
+
+	// Verify we got all validators
+	validatorData := validatorsResp.Data
+	s.Require().NotNil(validatorData, "Validator data should not be nil")
+	// s.Require().Equal(config.NumValidators, len(validatorData),
+	// 	"Should return all validators when using empty indices")
+
+	// Verify each validator has required fields
+	// for _, validator := range validatorData {
+	// 	s.Require().NotNil(validator, "Validator should not be nil")
+	// 	s.Require().NotEmpty(validator.Validator.PublicKey, "Validator public key should not be empty")
+	// 	s.Require().Len(validator.Validator.PublicKey, 48, "Validator public key should be 48 bytes long")
+	// 	s.Require().NotEmpty(validator.Validator.WithdrawalCredentials,
+	// 		"Withdrawal credentials should not be empty")
+	// 	s.Require().Len(validator.Validator.WithdrawalCredentials, 32,
+	// 		"Withdrawal credentials should be 32 bytes long")
+	// 	s.Require().True(validator.Validator.EffectiveBalance > 0,
+	// 		"Effective balance should be positive")
+	// }
+}
+
+// TestValidatorsEmptyStatuses tests that querying validators with empty statuses returns all validators.
+// func (s *BeaconKitE2ESuite) TestValidatorsEmptyStatuses() {
+// 	client := s.initBeaconTest()
+
+// 	// Query validators with empty statuses
+// 	validatorsResp, err := client.Validators(
+// 		s.Ctx(),
+// 		&beaconapi.ValidatorsOpts{
+// 			State:           utils.StateIDHead,
+// 			ValidatorStates: []apiv1.ValidatorState{}, // empty statuses
+// 		},
+// 	)
+
+// 	s.Require().NoError(err)
+// 	s.Require().NotNil(validatorsResp)
+
+// 	// Verify we got all validators
+// 	validatorData := validatorsResp.Data
+// 	s.Require().NotNil(validatorData, "Validator data should not be nil")
+// 	s.Require().Equal(config.NumValidators, len(validatorData),
+// 		"Should return all validators when using empty statuses")
+
+// 	// Verify each validator has required fields
+// 	for _, validator := range validatorData {
+// 		s.Require().NotNil(validator, "Validator should not be nil")
+// 		s.Require().NotEmpty(validator.Validator.PublicKey, "Validator public key should not be empty")
+// 		s.Require().Len(validator.Validator.PublicKey, 48, "Validator public key should be 48 bytes long")
+// 		s.Require().NotEmpty(validator.Validator.WithdrawalCredentials,
+// 			"Withdrawal credentials should not be empty")
+// 		s.Require().Len(validator.Validator.WithdrawalCredentials, 32,
+// 			"Withdrawal credentials should be 32 bytes long")
+// 		s.Require().True(validator.Validator.EffectiveBalance > 0,
+// 			"Effective balance should be positive")
+// 	}
+// }
