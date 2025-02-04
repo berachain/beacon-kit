@@ -26,18 +26,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
-// ReadOnlyContext defines an interface for managing state transition context.
-type ReadOnlyContext interface {
-	ConsensusCtx() context.Context
-	ConsensusTime() math.U64
-	ProposerAddress() []byte
-	VerifyPayload() bool
-	VerifyRandao() bool
-	VerifyResult() bool
-	MeterGas() bool
-	OptimisticEngine() bool
-}
-
 // Context is the context for the state transition.
 type Context struct {
 	// consensusCtx is the context passed by CometBFT callbacks

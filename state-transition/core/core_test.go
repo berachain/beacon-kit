@@ -34,8 +34,8 @@ import (
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/primitives/version"
+	"github.com/berachain/beacon-kit/state-transition/core"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	"github.com/stretchr/testify/require"
 )
@@ -143,7 +143,7 @@ func moveToEndOfEpoch(
 	cs chain.Spec,
 	sp *statetransition.TestStateProcessorT,
 	st *statetransition.TestBeaconStateT,
-	ctx transition.ReadOnlyContext,
+	ctx core.ReadOnlyContext,
 	depRoot common.Root,
 ) *types.BeaconBlock {
 	t.Helper()

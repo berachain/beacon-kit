@@ -27,7 +27,6 @@ import (
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/ethereum/go-ethereum/params"
@@ -35,7 +34,7 @@ import (
 
 // processOperations processes the operations and ensures they match the local state.
 func (sp *StateProcessor) processOperations(
-	ctx transition.ReadOnlyContext,
+	ctx ReadOnlyContext,
 	st *state.StateDB,
 	blk *ctypes.BeaconBlock,
 ) error {

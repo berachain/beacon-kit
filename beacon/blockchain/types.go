@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	"github.com/berachain/beacon-kit/state-transition/core"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/berachain/beacon-kit/storage/block"
 	depositdb "github.com/berachain/beacon-kit/storage/deposit"
@@ -154,7 +155,7 @@ type StateProcessor interface {
 	) (transition.ValidatorUpdates, error)
 	// Transition processes the state transition for a given block.
 	Transition(
-		transition.ReadOnlyContext,
+		core.ReadOnlyContext,
 		*statedb.StateDB,
 		*ctypes.BeaconBlock,
 	) (transition.ValidatorUpdates, error)

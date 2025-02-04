@@ -33,6 +33,18 @@ import (
 	"github.com/karalabe/ssz"
 )
 
+// ReadOnlyContext defines an interface for managing state transition context.
+type ReadOnlyContext interface {
+	ConsensusCtx() context.Context
+	ConsensusTime() math.U64
+	ProposerAddress() []byte
+	VerifyPayload() bool
+	VerifyRandao() bool
+	VerifyResult() bool
+	MeterGas() bool
+	OptimisticEngine() bool
+}
+
 // Withdrawals defines the interface for managing withdrawal operations.
 type Withdrawals interface {
 	Len() int

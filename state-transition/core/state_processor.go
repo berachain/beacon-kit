@@ -79,7 +79,7 @@ func NewStateProcessor(
 
 // Transition is the main function for processing a state transition.
 func (sp *StateProcessor) Transition(
-	ctx transition.ReadOnlyContext,
+	ctx ReadOnlyContext,
 	st *state.StateDB,
 	blk *ctypes.BeaconBlock,
 ) (transition.ValidatorUpdates, error) {
@@ -180,7 +180,7 @@ func (sp *StateProcessor) processSlot(st *state.StateDB) error {
 // ProcessBlock processes the block, it optionally verifies the
 // state root.
 func (sp *StateProcessor) ProcessBlock(
-	ctx transition.ReadOnlyContext,
+	ctx ReadOnlyContext,
 	st *state.StateDB,
 	blk *ctypes.BeaconBlock,
 ) error {
@@ -272,7 +272,7 @@ func (sp *StateProcessor) processEpoch(st *state.StateDB) (transition.ValidatorU
 
 // processBlockHeader processes the header and ensures it matches the local state.
 func (sp *StateProcessor) processBlockHeader(
-	ctx transition.ReadOnlyContext,
+	ctx ReadOnlyContext,
 	st *state.StateDB,
 	blk *ctypes.BeaconBlock,
 ) error {
