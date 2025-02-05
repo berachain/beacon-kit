@@ -160,7 +160,7 @@ func (s *Registry) FetchService(service interface{}) error {
 func (s *Registry) CommitMultiStore() store.CommitMultiStore {
 	var cometService *cometbft.Service
 	err := s.FetchService(&cometService)
-	if err != nil {
+	if err != nil || cometService == nil { // appease nilaway
 		err = fmt.Errorf("failed to fetch cometbft service: %w", err)
 		panic(err)
 	}
