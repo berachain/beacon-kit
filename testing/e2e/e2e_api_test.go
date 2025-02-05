@@ -22,6 +22,7 @@ package e2e_test
 
 import (
 	beaconapi "github.com/attestantio/go-eth2-client/api"
+	apiv1 "github.com/attestantio/go-eth2-client/api/v1"
 	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
@@ -37,6 +38,22 @@ func (s *BeaconKitE2ESuite) initBeaconTest() *types.ConsensusClient {
 	// Get the consensus client.
 	client := s.ConsensusClients()[config.ClientValidator0]
 	s.Require().NotNil(client)
+
+	return client
+}
+
+func (s *BeaconKitE2ESuite) initCustomBeaconTest() *types.ConsensusClient {
+	// Wait for execution block 5.
+	err := s.WaitForFinalizedBlockNumber(5)
+	s.Require().NoError(err)
+
+	// Get the consensus client.
+	client := s.ConsensusClients()[config.ClientValidator0]
+	s.Require().NotNil(client)
+
+	// Connect using custom client implementation
+	err = client.ConnectWithCustomClient(s.Ctx())
+	s.Require().NoError(err)
 
 	return client
 }
@@ -121,11 +138,15 @@ func (s *BeaconKitE2ESuite) TestBeaconValidatorsWithIndices() {
 
 // TestValidatorsEmptyIndices tests that querying validators with empty indices returns all validators.
 func (s *BeaconKitE2ESuite) TestValidatorsEmptyIndices() {
+	// client := s.initCustomBeaconTest()
 	client := s.initBeaconTest()
+	// Cast to custom client to use our implementation
+	// customClient, ok := client.GetBeaconClient().(*types.CustomBeaconClient)
+	// s.Require().True(ok, "client should be customBeaconClient")
 
-	s.Logger().Info("Client state",
-		"endpoint", client.GetPublicPorts()["node-api"],
-	)
+	// s.Logger().Info("Client state",
+	// 	"endpoint", client.GetPublicPorts()["node-api"],
+	// )
 
 	// Query validators with empty indices
 	emptyIndices := []phase0.ValidatorIndex{}
@@ -148,55 +169,55 @@ func (s *BeaconKitE2ESuite) TestValidatorsEmptyIndices() {
 	// Verify we got all validators
 	validatorData := validatorsResp.Data
 	s.Require().NotNil(validatorData, "Validator data should not be nil")
-	// s.Require().Equal(config.NumValidators, len(validatorData),
-	// 	"Should return all validators when using empty indices")
+	s.Require().Equal(config.NumValidators, len(validatorData),
+		"Should return all validators when using empty indices")
 
 	// Verify each validator has required fields
-	// for _, validator := range validatorData {
-	// 	s.Require().NotNil(validator, "Validator should not be nil")
-	// 	s.Require().NotEmpty(validator.Validator.PublicKey, "Validator public key should not be empty")
-	// 	s.Require().Len(validator.Validator.PublicKey, 48, "Validator public key should be 48 bytes long")
-	// 	s.Require().NotEmpty(validator.Validator.WithdrawalCredentials,
-	// 		"Withdrawal credentials should not be empty")
-	// 	s.Require().Len(validator.Validator.WithdrawalCredentials, 32,
-	// 		"Withdrawal credentials should be 32 bytes long")
-	// 	s.Require().True(validator.Validator.EffectiveBalance > 0,
-	// 		"Effective balance should be positive")
-	// }
+	for _, validator := range validatorData {
+		s.Require().NotNil(validator, "Validator should not be nil")
+		s.Require().NotEmpty(validator.Validator.PublicKey, "Validator public key should not be empty")
+		s.Require().Len(validator.Validator.PublicKey, 48, "Validator public key should be 48 bytes long")
+		s.Require().NotEmpty(validator.Validator.WithdrawalCredentials,
+			"Withdrawal credentials should not be empty")
+		s.Require().Len(validator.Validator.WithdrawalCredentials, 32,
+			"Withdrawal credentials should be 32 bytes long")
+		s.Require().True(validator.Validator.EffectiveBalance > 0,
+			"Effective balance should be positive")
+	}
 }
 
 // TestValidatorsEmptyStatuses tests that querying validators with empty statuses returns all validators.
-// func (s *BeaconKitE2ESuite) TestValidatorsEmptyStatuses() {
-// 	client := s.initBeaconTest()
+func (s *BeaconKitE2ESuite) TestValidatorsEmptyStatuses() {
+	client := s.initBeaconTest()
 
-// 	// Query validators with empty statuses
-// 	validatorsResp, err := client.Validators(
-// 		s.Ctx(),
-// 		&beaconapi.ValidatorsOpts{
-// 			State:           utils.StateIDHead,
-// 			ValidatorStates: []apiv1.ValidatorState{}, // empty statuses
-// 		},
-// 	)
+	// Query validators with empty statuses
+	validatorsResp, err := client.Validators(
+		s.Ctx(),
+		&beaconapi.ValidatorsOpts{
+			State:           utils.StateIDHead,
+			ValidatorStates: []apiv1.ValidatorState{}, // empty statuses
+		},
+	)
 
-// 	s.Require().NoError(err)
-// 	s.Require().NotNil(validatorsResp)
+	s.Require().NoError(err)
+	s.Require().NotNil(validatorsResp)
 
-// 	// Verify we got all validators
-// 	validatorData := validatorsResp.Data
-// 	s.Require().NotNil(validatorData, "Validator data should not be nil")
-// 	s.Require().Equal(config.NumValidators, len(validatorData),
-// 		"Should return all validators when using empty statuses")
+	// Verify we got all validators
+	validatorData := validatorsResp.Data
+	s.Require().NotNil(validatorData, "Validator data should not be nil")
+	s.Require().Equal(config.NumValidators, len(validatorData),
+		"Should return all validators when using empty statuses")
 
-// 	// Verify each validator has required fields
-// 	for _, validator := range validatorData {
-// 		s.Require().NotNil(validator, "Validator should not be nil")
-// 		s.Require().NotEmpty(validator.Validator.PublicKey, "Validator public key should not be empty")
-// 		s.Require().Len(validator.Validator.PublicKey, 48, "Validator public key should be 48 bytes long")
-// 		s.Require().NotEmpty(validator.Validator.WithdrawalCredentials,
-// 			"Withdrawal credentials should not be empty")
-// 		s.Require().Len(validator.Validator.WithdrawalCredentials, 32,
-// 			"Withdrawal credentials should be 32 bytes long")
-// 		s.Require().True(validator.Validator.EffectiveBalance > 0,
-// 			"Effective balance should be positive")
-// 	}
-// }
+	// Verify each validator has required fields
+	for _, validator := range validatorData {
+		s.Require().NotNil(validator, "Validator should not be nil")
+		s.Require().NotEmpty(validator.Validator.PublicKey, "Validator public key should not be empty")
+		s.Require().Len(validator.Validator.PublicKey, 48, "Validator public key should be 48 bytes long")
+		s.Require().NotEmpty(validator.Validator.WithdrawalCredentials,
+			"Withdrawal credentials should not be empty")
+		s.Require().Len(validator.Validator.WithdrawalCredentials, 32,
+			"Withdrawal credentials should be 32 bytes long")
+		s.Require().True(validator.Validator.EffectiveBalance > 0,
+			"Effective balance should be positive")
+	}
+}
