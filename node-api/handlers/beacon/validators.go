@@ -46,11 +46,7 @@ func (h *Handler) getStateValidators(stateID string, ids []string, statuses []st
 	if len(validators) == 0 {
 		return nil, types.ErrNotFound
 	}
-	return beacontypes.ValidatorResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data:                validators,
-	}, nil
+	return beacontypes.NewResponse(validators), nil
 }
 
 func (h *Handler) GetStateValidators(c handlers.Context) (any, error) {
@@ -112,11 +108,7 @@ func (h *Handler) GetStateValidatorBalances(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return beacontypes.ValidatorResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data:                balances,
-	}, nil
+	return beacontypes.NewResponse(balances), nil
 }
 
 func (h *Handler) PostStateValidatorBalances(c handlers.Context) (any, error) {
@@ -137,9 +129,5 @@ func (h *Handler) PostStateValidatorBalances(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return beacontypes.ValidatorResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data:                balances,
-	}, nil
+	return beacontypes.NewResponse(balances), nil
 }

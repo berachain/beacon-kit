@@ -30,15 +30,26 @@ type GenericResponse struct {
 	Data                any  `json:"data"`
 }
 
-type ValidatorResponse struct {
+type Response struct {
 	ExecutionOptimistic bool `json:"execution_optimistic"`
 	Finalized           bool `json:"finalized"`
 	Data                any  `json:"data"`
 }
 
+// NewResponse creates a new response with CometBFT's finality guarantees.
+func NewResponse(data any) Response {
+	return Response{
+		// All data is finalized in CometBFT since we only return data for slots up to head
+		Finalized: true,
+		// Never optimistic since we only return finalized data
+		ExecutionOptimistic: false,
+		Data:                data,
+	}
+}
+
 type BlockResponse struct {
 	Version string `json:"version"`
-	ValidatorResponse
+	Response
 }
 
 type StateResponse struct {

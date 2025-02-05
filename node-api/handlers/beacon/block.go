@@ -41,9 +41,5 @@ func (h *Handler) GetBlockRewards(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &beacontypes.ValidatorResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data:                rewards,
-	}, nil
+	return beacontypes.NewResponse(rewards), nil
 }
