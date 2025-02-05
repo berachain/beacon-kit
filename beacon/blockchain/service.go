@@ -104,10 +104,7 @@ func (s *Service) Name() string {
 	return "blockchain"
 }
 
-func (s *Service) Start(ctx context.Context) error {
-	// Catchup deposits for failed blocks.
-	go s.depositCatchupFetcher(ctx)
-
+func (s *Service) Start(_ context.Context) error {
 	return nil
 }
 

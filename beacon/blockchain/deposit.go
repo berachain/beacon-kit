@@ -22,39 +22,26 @@ package blockchain
 
 import (
 	"context"
-	"maps"
-	"slices"
 	"strconv"
-	"time"
 
 	"github.com/berachain/beacon-kit/primitives/math"
 )
-
-// defaultRetryInterval processes a deposit event.
-const defaultRetryInterval = 20 * time.Second
-
-func (s *Service) depositFetcher(
-	ctx context.Context,
-	blockNum math.U64,
-) {
-	if blockNum <= s.eth1FollowDistance {
-		s.logger.Info(
-			"depositFetcher, nothing to fetch",
-			"block num", blockNum,
-			"eth1FollowDistance", s.eth1FollowDistance,
-		)
-		return
-	}
-
-	s.fetchAndStoreDeposits(ctx, blockNum-s.eth1FollowDistance)
-}
 
 // fetchAndStoreDeposits processes all deposits at a particular EL block height.
 // TODO: This could be optimized to process a contiguous range of blocks simultaneously to minimize EL RPC calls.
 func (s *Service) fetchAndStoreDeposits(
 	ctx context.Context,
 	blockNum math.U64,
-) {
+) error {
+	if blockNum <= s.eth1FollowDistance {
+		s.logger.Info(
+			"depositFetcher, nothing to fetch",
+			"block num", blockNum,
+			"eth1FollowDistance", s.eth1FollowDistance,
+		)
+		return nil
+	}
+
 	blockNumStr := strconv.FormatUint(blockNum.Unwrap(), 10)
 	deposits, err := s.depositContract.ReadDeposits(ctx, blockNum, blockNum)
 	if err != nil {
@@ -64,10 +51,7 @@ func (s *Service) fetchAndStoreDeposits(
 			"block_num",
 			blockNumStr,
 		)
-		s.failedBlocksMu.Lock()
-		s.failedBlocks[blockNum] = struct{}{}
-		s.failedBlocksMu.Unlock()
-		return
+		return err
 	}
 
 	if len(deposits) > 0 {
@@ -84,42 +68,7 @@ func (s *Service) fetchAndStoreDeposits(
 			"block_num",
 			blockNumStr,
 		)
-		s.failedBlocksMu.Lock()
-		s.failedBlocks[blockNum] = struct{}{}
-		s.failedBlocksMu.Unlock()
-		return
+		return err
 	}
-	s.failedBlocksMu.Lock()
-	delete(s.failedBlocks, blockNum)
-	s.failedBlocksMu.Unlock()
-}
-
-func (s *Service) depositCatchupFetcher(ctx context.Context) {
-	ticker := time.NewTicker(defaultRetryInterval)
-	defer ticker.Stop()
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-ticker.C:
-			s.failedBlocksMu.RLock()
-			failedBlks := slices.Collect(maps.Keys(s.failedBlocks))
-			s.failedBlocksMu.RUnlock()
-			if len(failedBlks) == 0 {
-				continue
-			}
-			s.logger.Warn(
-				"Failed to get deposits from block(s), retrying...",
-				"num_blocks",
-				failedBlks,
-			)
-
-			// Fetch deposits for blocks that failed to be processed.
-			// TODO: This can be optimized to process all the blocks queried at once by utilizing log query ranges
-			// for contiguous ranges of blocks
-			for _, blockNum := range failedBlks {
-				s.fetchAndStoreDeposits(ctx, blockNum)
-			}
-		}
-	}
+	return nil
 }

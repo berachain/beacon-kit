@@ -88,9 +88,17 @@ func (s *Service) FinalizeBlock(
 
 	// STEP 4: Post Finalizations cleanups
 
-	// fetch and store the deposit for the block
+	// Fetch and store the deposit for the block. If we error here, this means
+	// that either 1. the RPC failed due to transient error or 2. the block
+	// does not exist in the execution layer. In either case, if we cannot
+	// fetch the deposit, we cannot participate in the protocol. We must error
+	// here and attempt to recover.
+	// TODO: set retry on SYNCING status. We should simply halt the node until
+	// the EL is synced and then resume.
 	blockNum := blk.GetBody().GetExecutionPayload().GetNumber()
-	s.depositFetcher(ctx, blockNum)
+	if err = s.fetchAndStoreDeposits(ctx, blockNum); err != nil {
+		return nil, err
+	}
 
 	// store the finalized block in the KVStore.
 	// TODO: Store full SignedBeaconBlock with all data in storage
