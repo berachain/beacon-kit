@@ -158,20 +158,11 @@ func (s *Registry) FetchService(service interface{}) error {
 }
 
 func (s *Registry) CommitMultiStore() store.CommitMultiStore {
-	// Consensus service must expose the CommitMultistore. We
-	// retrieve it by its name and check it implements the accessor
-	svc, found := s.services[cservice.AppName]
-	if !found {
-		err := fmt.Errorf("service %s not found", cservice.AppName)
+	var cometService *cometbft.Service
+	err := s.FetchService(&cometService)
+	if err != nil {
+		err = fmt.Errorf("failed to fetch cometbft service: %w", err)
 		panic(err)
 	}
-
-	sh, ok := svc.(CommitMultistoreAccessor)
-	if !ok {
-		err := fmt.Errorf("service %s does not implement CommitMultistoreAccessor",
-			cservice.AppName,
-		)
-		panic(err)
-	}
-	return sh.CommitMultiStore()
+	return cometService.CommitMultiStore()
 }
