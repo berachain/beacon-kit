@@ -26,7 +26,7 @@ import (
 	"reflect"
 
 	"cosmossdk.io/store"
-	cservice "github.com/berachain/beacon-kit/consensus/cometbft/service"
+	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/log"
 )
 
