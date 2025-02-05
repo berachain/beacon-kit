@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
+	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/afero"
@@ -43,62 +44,64 @@ func CollectGenesisDepositsCmd() *cobra.Command {
 		Short: "adds a validator to the genesis file",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			config := context.GetConfigFromCmd(cmd)
-
-			appGenesis, err := genutiltypes.AppGenesisFromFile(
-				config.GenesisFile(),
-			)
-			if err != nil {
-				return errors.Wrap(err, "failed to read genesis doc from file")
-			}
-
-			// create the app state
-			appGenesisState, err := genutiltypes.GenesisStateFromAppGenesis(
-				appGenesis,
-			)
-			if err != nil {
-				return err
-			}
-
-			var deposits []*types.Deposit
-			if deposits, err = CollectValidatorJSONFiles(
-				filepath.Join(config.RootDir, "config", "premined-deposits"),
-				appGenesis,
-			); err != nil {
-				return errors.Wrap(
-					err,
-					"failed to collect validator json files",
-				)
-			}
-
-			genesisInfo := &types.Genesis{}
-
-			if err = json.Unmarshal(
-				appGenesisState["beacon"], genesisInfo,
-			); err != nil {
-				return errors.Wrap(err, "failed to unmarshal beacon genesis")
-			}
-
-			for i, deposit := range deposits {
-				deposit.Index = uint64(i) // #nosec G115 -- won't realistically overflow.
-				genesisInfo.Deposits = append(genesisInfo.Deposits, deposit)
-			}
-
-			appGenesisState["beacon"], err = json.Marshal(genesisInfo)
-			if err != nil {
-				return errors.Wrap(err, "failed to marshal beacon genesis")
-			}
-
-			if appGenesis.AppState, err = json.MarshalIndent(
-				appGenesisState, "", "  ",
-			); err != nil {
-				return err
-			}
-
-			return genutil.ExportGenesisFile(appGenesis, config.GenesisFile())
+			return CollectGenesisDeposits(config)
 		},
 	}
-
 	return cmd
+}
+
+func CollectGenesisDeposits(config *cmtcfg.Config) error {
+	appGenesis, err := genutiltypes.AppGenesisFromFile(
+		config.GenesisFile(),
+	)
+	if err != nil {
+		return errors.Wrap(err, "failed to read genesis doc from file")
+	}
+
+	// create the app state
+	appGenesisState, err := genutiltypes.GenesisStateFromAppGenesis(
+		appGenesis,
+	)
+	if err != nil {
+		return err
+	}
+
+	var deposits []*types.Deposit
+	if deposits, err = CollectValidatorJSONFiles(
+		filepath.Join(config.RootDir, "config", "premined-deposits"),
+		appGenesis,
+	); err != nil {
+		return errors.Wrap(
+			err,
+			"failed to collect validator json files",
+		)
+	}
+
+	genesisInfo := &types.Genesis{}
+
+	if err = json.Unmarshal(
+		appGenesisState["beacon"], genesisInfo,
+	); err != nil {
+		return errors.Wrap(err, "failed to unmarshal beacon genesis")
+	}
+
+	for i, deposit := range deposits {
+		deposit.Index = uint64(i) // #nosec G115 -- won't realistically overflow.
+		genesisInfo.Deposits = append(genesisInfo.Deposits, deposit)
+	}
+
+	appGenesisState["beacon"], err = json.Marshal(genesisInfo)
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal beacon genesis")
+	}
+
+	if appGenesis.AppState, err = json.MarshalIndent(
+		appGenesisState, "", "  ",
+	); err != nil {
+		return err
+	}
+
+	return genutil.ExportGenesisFile(appGenesis, config.GenesisFile())
 }
 
 // CollectValidatorJSONFiles collects JSON files from the specified directory
