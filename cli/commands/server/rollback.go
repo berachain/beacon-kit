@@ -81,7 +81,7 @@ application.
 			logger.Info(
 				"Rolled back state",
 				"height", height,
-				"hash", hash,
+				"hash", fmt.Sprintf("%X", hash),
 			)
 			return nil
 		},
