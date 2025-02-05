@@ -197,3 +197,49 @@ func (s *BeaconKitE2ESuite) TestValidatorsEmptyStatuses() {
 			"Effective balance should be positive")
 	}
 }
+
+// TestValidatorsWithMultipleIndices tests querying multiple specific validator indices
+func (s *BeaconKitE2ESuite) TestValidatorsWithMultipleIndices() {
+	client := s.initBeaconTest()
+	indices := []phase0.ValidatorIndex{0, 1, 2}
+
+	validatorsResp, err := client.Validators(s.Ctx(), &beaconapi.ValidatorsOpts{
+		State:   utils.StateIDHead,
+		Indices: indices,
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(validatorsResp)
+	s.Require().Len(validatorsResp.Data, len(indices))
+}
+
+// TestValidatorsWithInvalidIndex tests querying a non-existent validator index
+// This should return an empty list of validators.
+func (s *BeaconKitE2ESuite) TestValidatorsWithInvalidIndex() {
+	client := s.initBeaconTest()
+	indices := []phase0.ValidatorIndex{999999} // Invalid index
+
+	validatorsResp, err := client.Validators(s.Ctx(), &beaconapi.ValidatorsOpts{
+		State:   utils.StateIDHead,
+		Indices: indices,
+	})
+	s.Require().NoError(err)
+	// No validators returned
+	s.Require().Len(validatorsResp.Data, 0)
+}
+
+// TestValidatorsWithSpecificStatus tests filtering validators by status
+func (s *BeaconKitE2ESuite) TestValidatorsWithSpecificStatus() {
+	client := s.initBeaconTest()
+
+	validatorsResp, err := client.Validators(s.Ctx(), &beaconapi.ValidatorsOpts{
+		State:           utils.StateIDHead,
+		ValidatorStates: []apiv1.ValidatorState{apiv1.ValidatorStateActiveOngoing},
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(validatorsResp)
+
+	// Verify all returned validators have the requested status
+	for _, validator := range validatorsResp.Data {
+		s.Require().Equal(apiv1.ValidatorStateActiveOngoing, validator.Status)
+	}
+}
