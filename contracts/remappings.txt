@@ -3,3 +3,5 @@
 @solady/test/=lib/solady/test/
 @interfaces/=interfaces/
 @src/=src/
+@perimetersec/fuzzlib/src/=lib/fuzzlib/src/
+@openzeppelin-contracts/contracts/=lib/openzeppelin-contracts/contracts/

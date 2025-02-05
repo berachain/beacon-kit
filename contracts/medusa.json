@@ -1,0 +1,97 @@
+{
+	"fuzzing": {
+		"workers": 12,
+		"workerResetLimit": 50,
+		"timeout": 0,
+		"testLimit": 1000000,
+		"callSequenceLength": 30,
+		"corpusDirectory": "medusa-corpus",
+		"coverageEnabled": true,
+		"deploymentOrder": [
+			"Fuzz"
+		],
+		"targetContracts": [
+			"Fuzz"
+		],
+		"targetContractsBalances": [
+			"0xffffffffffffffffffffffffffffffffffffffffffffffff"
+		],
+		"constructorArgs": {},
+		"deployerAddress": "0xfffff",
+		"senderAddresses": [
+			"0x10000",
+			"0x20000",
+			"0x30000"
+		],
+		"blockNumberDelayMax": 60480,
+		"blockTimestampDelayMax": 604800,
+		"blockGasLimit": 125000000,
+		"transactionGasLimit": 12500000,
+		"predeployedContracts": {"BeaconRootMock": "0x000F3df6D732807Ef1319fB7B8bB8522d0Beac02"},
+		"testing": {
+			"stopOnFailedTest": false,
+			"stopOnFailedContractMatching": true,
+			"stopOnNoTests": true,
+			"testAllContracts": false,
+			"traceAll": false,
+			"excludeFunctionSignatures": [
+				"Fuzz.handler_setProposerIndexGIndex(uint64)",
+				"Fuzz.handler_setZeroValidatorPubkeyGIndex(uint64)",
+				"Fuzz.handler_verifyProposerIndex(int64,uint256,bool,uint16)",
+                "Fuzz.handler_verifyValidatorPubkey(int64,uint256,bool,uint16)",
+				"BeaconRootMock.setBeaconRoot(bytes32)"
+			],
+			"assertionTesting": {
+				"enabled": true,
+				"testViewMethods": true,
+				"panicCodeConfig": {
+					"failOnCompilerInsertedPanic": false,
+					"failOnAssertion": true,
+					"failOnArithmeticUnderflow": false,
+					"failOnDivideByZero": false,
+					"failOnEnumTypeConversionOutOfBounds": false,
+					"failOnIncorrectStorageAccess": false,
+					"failOnPopEmptyArray": false,
+					"failOnOutOfBoundsArrayAccess": false,
+					"failOnAllocateTooMuchMemory": false,
+					"failOnCallUninitializedVariable": false
+				}
+			},
+			"propertyTesting": {
+				"enabled": false,
+				"testPrefixes": [
+					"property_"
+				]
+			},
+			"optimizationTesting": {
+				"enabled": false,
+				"testPrefixes": [
+					"optimize_"
+				]
+			}
+		},
+		"chainConfig": {
+			"codeSizeCheckDisabled": true,
+			"cheatCodes": {
+				"cheatCodesEnabled": true,
+				"enableFFI": true
+			}
+		}
+	},
+	"compilation": {
+		"platform": "crytic-compile",
+		"platformConfig": {
+			"target": ".",
+			"solcVersion": "",
+			"exportDirectory": "",
+			"args": [
+				"--foundry-compile-all"
+			]
+		}
+	},
+	"logging": {
+		"level": "info",
+		"logDirectory": "med-logs",
+		"noColor": true
+	}
+}
