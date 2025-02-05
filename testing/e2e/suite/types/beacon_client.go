@@ -91,7 +91,8 @@ type BeaconKitNodeClient interface {
 	// Other beacon-kit node-api methods here...
 }
 
-// CustomBeaconClient implements BeaconKitNodeClient with deneb1 support
+// CustomBeaconClient is a custom implementation of the BeaconKitNodeClient interface
+// that overrides the Validators method to handle deneb1.
 type CustomBeaconClient struct {
 	*beaconhttp.Service
 	address string
@@ -120,14 +121,20 @@ func NewBeaconKitNodeClient(
 		return nil, errors.New("no address specified")
 	}
 
+	// Type assert service to beaconhttp.Service
+	httpService, ok := service.(*beaconhttp.Service)
+	if !ok {
+		return nil, errors.New("failed to cast service to beaconhttp.Service")
+	}
+
 	return &CustomBeaconClient{
-		Service: service.(*beaconhttp.Service),
+		Service: httpService,
 		address: address,
 		client:  &http.Client{},
 	}, nil
 }
 
-// Validators implements a custom validator query that handles deneb1
+// Validators implements a custom validator query that handles deneb1.
 func (c *CustomBeaconClient) Validators(
 	ctx context.Context,
 	opts *beaconapi.ValidatorsOpts,
@@ -176,7 +183,7 @@ func (c *CustomBeaconClient) Validators(
 		} `json:"meta"`
 	}
 
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err = json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
