@@ -43,6 +43,11 @@ func (s *Service) FinalizeBlock(
 		finalizeErr error
 	)
 
+	// For nodes that don't run ProcessProposal (non-validators), force startup FCU sync.
+	s.forceStartupSyncOnce.Do(func() {
+		s.forceStartupHead(ctx, s.storageBackend.StateFromContext(ctx))
+	})
+
 	// STEP 1: Decode block and blobs
 	signedBlk, blobs, err := encoding.ExtractBlobsAndBlockFromRequest(
 		req,
@@ -108,7 +113,9 @@ func (s *Service) FinalizeBlock(
 		s.logger.Error("failed to processPruning", "error", err)
 	}
 
-	go s.sendPostBlockFCU(ctx, st, consensusBlk)
+	if err = s.sendPostBlockFCU(ctx, st, consensusBlk); err != nil {
+		return nil, err
+	}
 
 	return valUpdates, nil
 }

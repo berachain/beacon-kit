@@ -22,6 +22,8 @@ package engine
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -76,58 +78,65 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
 	// Log the forkchoice update attempt.
 	hasPayloadAttributes := !req.PayloadAttributes.IsNil()
-	ee.metrics.markNotifyForkchoiceUpdateCalled(hasPayloadAttributes)
+	retryInterval := time.Second * 5
 
-	// Notify the execution engine of the forkchoice update.
-	payloadID, latestValidHash, err := ee.ec.ForkchoiceUpdated(
-		ctx,
-		req.State,
-		req.PayloadAttributes,
-		req.ForkVersion,
-	)
+	// Infinite loop while syncing.
+	for {
+		ee.metrics.markNotifyForkchoiceUpdateCalled(hasPayloadAttributes)
 
-	switch {
-	case err == nil:
-		ee.metrics.markForkchoiceUpdateValid(
-			req.State, hasPayloadAttributes, payloadID,
+		// Notify the execution engine of the forkchoice update.
+		payloadID, latestValidHash, err := ee.ec.ForkchoiceUpdated(
+			ctx,
+			req.State,
+			req.PayloadAttributes,
+			req.ForkVersion,
 		)
 
-	case errors.IsAny(err, engineerrors.ErrSyncingPayloadStatus):
-		// We do not bubble the error up, since we want to handle it
-		// in the same way as the other cases.
-		ee.metrics.markForkchoiceUpdateSyncing(req.State, err)
-		return payloadID, nil, nil
+		switch {
+		case err == nil:
+			ee.metrics.markForkchoiceUpdateValid(
+				req.State, hasPayloadAttributes, payloadID,
+			)
 
-	case errors.Is(err, engineerrors.ErrInvalidPayloadStatus):
-		// If we get invalid payload status, we will need to find a valid
-		// ancestor block and force a recovery.
-		ee.metrics.markForkchoiceUpdateInvalid(req.State, err)
-		return payloadID, latestValidHash, ErrBadBlockProduced
+			// If we reached here, and we have a nil payload ID, we should log a
+			// warning.
+			if payloadID == nil && hasPayloadAttributes {
+				ee.logger.Warn(
+					"Received nil payload ID on VALID engine response",
+					"head_eth1_hash", req.State.HeadBlockHash,
+					"safe_eth1_hash", req.State.SafeBlockHash,
+					"finalized_eth1_hash", req.State.FinalizedBlockHash,
+				)
+				return payloadID, latestValidHash, ErrNilPayloadOnValidResponse
+			}
+			return payloadID, latestValidHash, nil
 
-	case jsonrpc.IsPreDefinedError(err):
-		// JSON-RPC errors are predefined and should be handled as such.
-		ee.metrics.markForkchoiceUpdateJSONRPCError(err)
-		return nil, nil, errors.Join(err, engineerrors.ErrPreDefinedJSONRPC)
+		case errors.IsAny(err, engineerrors.ErrSyncingPayloadStatus):
+			// We do not bubble the error up, since we want to handle it
+			// in the same way as the other cases.
+			ee.metrics.markForkchoiceUpdateSyncing(req.State, err)
 
-	default:
-		// All other errors are handled as undefined errors.
-		ee.metrics.markForkchoiceUpdateUndefinedError(err)
-		return nil, nil, err
+			// Sleep for retryInterval and try the FCU again.
+			<-time.After(retryInterval)
+			continue
+
+		case errors.Is(err, engineerrors.ErrInvalidPayloadStatus):
+			// If we get invalid payload status, we will need to find a valid
+			// ancestor block and force a recovery.
+			ee.metrics.markForkchoiceUpdateInvalid(req.State, err)
+			return payloadID, latestValidHash, ErrBadBlockProduced
+
+		case jsonrpc.IsPreDefinedError(err):
+			// JSON-RPC errors are predefined and should be handled as such.
+			ee.metrics.markForkchoiceUpdateJSONRPCError(err)
+			return nil, nil, errors.Join(err, engineerrors.ErrPreDefinedJSONRPC)
+
+		default:
+			// All other errors are handled as undefined errors.
+			ee.metrics.markForkchoiceUpdateUndefinedError(err)
+			return nil, nil, err
+		}
 	}
-
-	// If we reached here, and we have a nil payload ID, we should log a
-	// warning.
-	if payloadID == nil && hasPayloadAttributes {
-		ee.logger.Warn(
-			"Received nil payload ID on VALID engine response",
-			"head_eth1_hash", req.State.HeadBlockHash,
-			"safe_eth1_hash", req.State.SafeBlockHash,
-			"finalized_eth1_hash", req.State.FinalizedBlockHash,
-		)
-		return payloadID, latestValidHash, ErrNilPayloadOnValidResponse
-	}
-
-	return payloadID, latestValidHash, nil
 }
 
 // VerifyAndNotifyNewPayload verifies the new payload and notifies the
@@ -154,6 +163,10 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 	}
 
 	// Otherwise we will send the payload to the execution client.
+	if req.ExecutionPayload.Number.Unwrap() == 100 {
+		fmt.Println("DEBUG: SKIPPING BLOCK 100")
+		return nil
+	}
 	lastValidHash, err := ee.ec.NewPayload(
 		ctx,
 		req.ExecutionPayload,
