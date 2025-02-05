@@ -22,6 +22,7 @@ package engine
 
 import (
 	"context"
+	"time"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -154,6 +155,7 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 	}
 
 	isSyncing := true
+	retryInterval := time.Millisecond * 500
 	for isSyncing {
 
 		// Otherwise we will send the payload to the execution client.
@@ -180,6 +182,7 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 				req.Optimistic,
 			)
 			isSyncing = true
+			time.Sleep(retryInterval)
 
 		case errors.IsAny(err, engineerrors.ErrAcceptedPayloadStatus):
 			ee.metrics.markNewPayloadAcceptedPayloadStatus(
