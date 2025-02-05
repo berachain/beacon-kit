@@ -111,6 +111,9 @@ func NewBeaconKitNodeClient(
 	if err != nil {
 		return nil, err
 	}
+	if service == nil {
+		return nil, errors.New("service is nil")
+	}
 
 	address := service.Address()
 	if address == "" {
@@ -157,6 +160,9 @@ func (c *CustomBeaconClient) Validators(
 	resp, err := c.client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to send request: %w", err)
+	}
+	if resp == nil {
+		return nil, errors.New("received nil response")
 	}
 	defer resp.Body.Close()
 
