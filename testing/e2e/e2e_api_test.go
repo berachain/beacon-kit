@@ -42,22 +42,6 @@ func (s *BeaconKitE2ESuite) initBeaconTest() *types.ConsensusClient {
 	return client
 }
 
-func (s *BeaconKitE2ESuite) initCustomBeaconTest() *types.ConsensusClient {
-	// Wait for execution block 5.
-	err := s.WaitForFinalizedBlockNumber(5)
-	s.Require().NoError(err)
-
-	// Get the consensus client.
-	client := s.ConsensusClients()[config.ClientValidator0]
-	s.Require().NotNil(client)
-
-	// Connect using custom client implementation
-	err = client.ConnectWithCustomClient(s.Ctx())
-	s.Require().NoError(err)
-
-	return client
-}
-
 // TestBeaconStateRoot tests the beacon node api for beacon state root.
 func (s *BeaconKitE2ESuite) TestBeaconStateRoot() {
 	client := s.initBeaconTest()
@@ -138,15 +122,7 @@ func (s *BeaconKitE2ESuite) TestBeaconValidatorsWithIndices() {
 
 // TestValidatorsEmptyIndices tests that querying validators with empty indices returns all validators.
 func (s *BeaconKitE2ESuite) TestValidatorsEmptyIndices() {
-	// client := s.initCustomBeaconTest()
 	client := s.initBeaconTest()
-	// Cast to custom client to use our implementation
-	// customClient, ok := client.GetBeaconClient().(*types.CustomBeaconClient)
-	// s.Require().True(ok, "client should be customBeaconClient")
-
-	// s.Logger().Info("Client state",
-	// 	"endpoint", client.GetPublicPorts()["node-api"],
-	// )
 
 	// Query validators with empty indices
 	emptyIndices := []phase0.ValidatorIndex{}

@@ -104,12 +104,14 @@ func NewBeaconKitNodeClient(
 	cancelCtx context.Context,
 	params ...beaconhttp.Parameter,
 ) (BeaconKitNodeClient, error) {
-	// Create standard service
-	service, err := beaconhttp.New(cancelCtx, params...)
+	service, err := beaconhttp.New(
+		cancelCtx,
+		params...,
+	)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	address := service.Address()
 	if address == "" {
 		return nil, errors.New("no address specified")

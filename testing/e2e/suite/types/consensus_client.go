@@ -95,28 +95,6 @@ func (cc *ConsensusClient) Connect(ctx context.Context) error {
 	return nil
 }
 
-// ConnectWithCustomClient connects using the custom beacon client implementation
-func (cc *ConsensusClient) ConnectWithCustomClient(ctx context.Context) error {
-	nodePort, ok := cc.GetPublicPorts()["node-api"]
-	if !ok {
-		return errors.New("couldn't find node-api port")
-	}
-
-	cancelCtx, cancel := context.WithCancel(ctx)
-	var err error
-	cc.beaconClient, err = NewBeaconKitNodeClient(
-		cancelCtx,
-		beaconhttp.WithAddress(fmt.Sprintf("http://0.0.0.0:%d", nodePort.GetNumber())),
-		beaconhttp.WithLogLevel(zerolog.DebugLevel),
-	)
-	if err != nil {
-		cancel()
-		return err
-	}
-	cc.cancelFunc = cancel
-	return nil
-}
-
 // Start starts the consensus client.
 //
 // TODO: Debug wrapped service context failing to start.
@@ -212,11 +190,6 @@ func (cc ConsensusClient) BlobSidecars(
 		return nil, errors.New("beacon client is not initialized")
 	}
 	return cc.beaconClient.BlobSidecars(ctx, opts)
-}
-
-// GetBeaconClient returns the beacon client implementation
-func (cc *ConsensusClient) GetBeaconClient() BeaconKitNodeClient {
-	return cc.beaconClient
 }
 
 // TODO: Add helpers for the beacon node-api client (converting from
