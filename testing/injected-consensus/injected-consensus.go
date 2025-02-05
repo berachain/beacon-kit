@@ -55,6 +55,67 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type TestNodeInput struct {
+	TempHomeDir   string
+	CometConfig   *cmtcfg.Config
+	AuthRPCURLStr string
+	Logger        *phuslu.Logger
+}
+
+type TestNode struct {
+	Node              nodetypes.Node
+	CometService      *cometbft.Service
+	BlockchainService *blockchain.Service
+}
+
+// NewTestNode Uses the mainnet chainspec.
+func NewTestNode(
+	t *testing.T,
+	input TestNodeInput,
+) *TestNode {
+	t.Helper()
+
+	beaconKitConfig := createBeaconKitConfig(t)
+	authRPCURL, err := url.NewFromRaw(input.AuthRPCURLStr)
+	require.NoError(t, err)
+	beaconKitConfig.GetEngine().RPCDialURL = authRPCURL
+
+	appOpts := getAppOptions(t, beaconKitConfig, input.TempHomeDir)
+
+	// Create a database
+	database, err := db.OpenDB(input.TempHomeDir, dbm.PebbleDBBackend)
+	require.NoError(t, err)
+
+	// Build a node
+	nb := nodebuilder.New(
+		nodebuilder.WithComponents[nodetypes.Node](DefaultComponents(t)),
+	)
+	node := nb.Build(
+		input.Logger,
+		database,
+		os.Stdout, // or some other writer
+		input.CometConfig,
+		appOpts,
+	)
+
+	// Fetch services we will want to query and interact with so they are easily accessible in testing
+	var cometService *cometbft.Service
+	err = node.FetchService(&cometService)
+	require.NoError(t, err)
+	require.NotNil(t, cometService)
+
+	var blockchainService *blockchain.Service
+	err = node.FetchService(&blockchainService)
+	require.NoError(t, err)
+	require.NotNil(t, blockchainService)
+
+	return &TestNode{
+		Node:              node,
+		CometService:      cometService,
+		BlockchainService: blockchainService,
+	}
+}
+
 // DefaultComponents requires testing.T to avoid accidental misuse.
 func DefaultComponents(_ *testing.T) []any {
 	c := []any{
@@ -107,10 +168,113 @@ func DefaultComponents(_ *testing.T) []any {
 	return c
 }
 
-type TestNode struct {
-	Node              nodetypes.Node
-	CometService      *cometbft.Service
-	BlockchainService *blockchain.Service
+func InitializeHomeDir(t *testing.T, tempHomeDir string) *cmtcfg.Config {
+	t.Helper()
+	t.Logf("tempHomeDir=%s", tempHomeDir)
+	cometConfig := createCometConfig(t, tempHomeDir)
+
+	chainSpec, err := spec.TestnetChainSpec()
+	require.NoError(t, err)
+
+	t.Setenv(components.ChainSpecTypeEnvVar, components.TestnetChainSpecType)
+
+	// Same as `beacond init`
+	initCommand(t, tempHomeDir)
+
+	// get the bls signer from the homedir
+	blsSigner := getBlsSigner(tempHomeDir)
+
+	// Make the deposit amount the Max effective balance - set arbitrarily higher than 250K BERA required for mainnet
+	depositAmount := math.Gwei(chainSpec.MaxEffectiveBalance())
+	withdrawalAddress := common.NewExecutionAddressFromHex("0x6Eb9C23e4c187452504Ef8c5fD8fA1a4b15BE162")
+	err = genesis.AddGenesisDeposit(chainSpec, cometConfig, blsSigner, depositAmount, withdrawalAddress, "")
+	require.NoError(t, err)
+
+	// Collect the genesis deposit
+	err = genesis.CollectGenesisDeposits(cometConfig)
+	require.NoError(t, err)
+
+	// Update the EL Deposit Storage
+	err = genesis.SetDepositStorage(chainSpec, cometConfig, "./eth-genesis.json", false)
+	require.NoError(t, err)
+
+	err = genesis.AddExecutionPayload(chainSpec, path.Join(tempHomeDir, "eth-genesis.json"), cometConfig)
+	require.NoError(t, err)
+	return cometConfig
+}
+
+func StartGeth(t *testing.T, tempHomeDir string) (*dockertest.Pool, *dockertest.Resource, string) {
+	t.Helper()
+	// Create pool
+	pool, err := dockertest.NewPool("")
+	require.NoError(t, err)
+
+	// uses pool to try to connect to Docker
+	err = pool.Client.Ping()
+	require.NoErrorf(t, err, "Could not connect to Docker: %s", err)
+
+	// Pull the Geth image (if not present). This can speed up future runs.
+	err = pool.Client.PullImage(
+		docker.PullImageOptions{
+			Repository: "ethereum/client-go",
+			Tag:        "latest",
+		},
+		docker.AuthConfiguration{},
+	)
+	require.NoError(t, err)
+
+	absPath, err := filepath.Abs("../files")
+	require.NoError(t, err)
+
+	// 3. Run container with a custom Cmd that does BOTH `init` and `run`
+	resource, err := pool.RunWithOptions(&dockertest.RunOptions{
+		Repository: "ethereum/client-go",
+		Tag:        "latest",
+		// We'll chain these commands with bash -c
+		// Override the default entrypoint to be /bin/sh instead of geth:
+		Entrypoint: []string{"/bin/sh"},
+		Cmd: []string{
+			"-c",
+			`
+			geth init --datadir /tmp/gethdata /testdata/eth-genesis.json && 
+			geth --http --http.addr 0.0.0.0 --http.api eth,net,web3 \
+				 --authrpc.addr 0.0.0.0 \
+				 --authrpc.jwtsecret /testdata/jwt.hex \
+				 --authrpc.vhosts '*' \
+				 --datadir /tmp/gethdata \
+				 --ipcpath /tmp/gethdata/geth.ipc \
+				 --syncmode full \
+				 --verbosity 3
+			`,
+		},
+		ExposedPorts: []string{"8545/tcp", "8551/tcp", "30303/tcp"},
+		Mounts: []string{
+			// bind-mount local testdata => container /testdata
+			fmt.Sprintf("%s:/%s", tempHomeDir, "testdata"),
+			fmt.Sprintf("%s:/%s", absPath, "testing/files"),
+		},
+	})
+	require.NoError(t, err)
+
+	// Optionally get the host/port that Docker mapped for 8545:
+	elRPC := resource.GetHostPort("8545/tcp")
+	authRPC := resource.GetHostPort("8551/tcp")
+
+	fmt.Println(authRPC)
+
+	// 4. Wait until the container is ready (i.e., Geth is listening on the RPC port)
+	err = pool.Retry(func() error {
+		// For example, just do an HTTP GET to / without expecting real data
+		resp, httpErr := http.Get("http://" + elRPC)
+		if httpErr != nil {
+			return httpErr
+		}
+		resp.Body.Close()
+		// You could check status code, etc.
+		return nil
+	})
+	require.NoError(t, err)
+	return pool, resource, authRPC
 }
 
 // createConfiguration creates the BeaconKit configuration and the CometBFT configuration.
@@ -188,166 +352,4 @@ func initCommand(t *testing.T, tempHomeDir string) {
 
 	err = initCMD.Execute()
 	require.NoError(t, err)
-}
-
-func StartGeth(t *testing.T, tempHomeDir string) (*dockertest.Pool, *dockertest.Resource, string) {
-	// Create pool
-	pool, err := dockertest.NewPool("")
-	require.NoError(t, err)
-
-	// uses pool to try to connect to Docker
-	err = pool.Client.Ping()
-	require.NoErrorf(t, err, "Could not connect to Docker: %s", err)
-
-	// Pull the Geth image (if not present). This can speed up future runs.
-	err = pool.Client.PullImage(
-		docker.PullImageOptions{
-			Repository: "ethereum/client-go",
-			Tag:        "latest",
-		},
-		docker.AuthConfiguration{},
-	)
-	require.NoError(t, err)
-
-	absPath, err := filepath.Abs("../files")
-	require.NoError(t, err)
-
-	// 3. Run container with a custom Cmd that does BOTH `init` and `run`
-	resource, err := pool.RunWithOptions(&dockertest.RunOptions{
-		Repository: "ethereum/client-go",
-		Tag:        "latest",
-		// We'll chain these commands with bash -c
-		// Override the default entrypoint to be /bin/sh instead of geth:
-		Entrypoint: []string{"/bin/sh"},
-		Cmd: []string{
-			"-c",
-			`
-			geth init --datadir /tmp/gethdata /testdata/eth-genesis.json && 
-			geth --http --http.addr 0.0.0.0 --http.api eth,net,web3 \
-				 --authrpc.addr 0.0.0.0 \
-				 --authrpc.jwtsecret /testdata/jwt.hex \
-				 --authrpc.vhosts '*' \
-				 --datadir /tmp/gethdata \
-				 --ipcpath /tmp/gethdata/geth.ipc \
-				 --syncmode full \
-				 --verbosity 3
-			`,
-		},
-		ExposedPorts: []string{"8545/tcp", "8551/tcp", "30303/tcp"},
-		Mounts: []string{
-			// bind-mount local testdata => container /testdata
-			fmt.Sprintf("%s:/%s", tempHomeDir, "testdata"),
-			fmt.Sprintf("%s:/%s", absPath, "testing/files"),
-		},
-	})
-	require.NoError(t, err)
-
-	// Optionally get the host/port that Docker mapped for 8545:
-	elRPC := resource.GetHostPort("8545/tcp")
-	authRPC := resource.GetHostPort("8551/tcp")
-
-	fmt.Println(authRPC)
-
-	// 4. Wait until the container is ready (i.e., Geth is listening on the RPC port)
-	err = pool.Retry(func() error {
-		// For example, just do an HTTP GET to / without expecting real data
-		resp, err := http.Get("http://" + elRPC)
-		if err != nil {
-			return err
-		}
-		resp.Body.Close()
-		// You could check status code, etc.
-		return nil
-	})
-	require.NoError(t, err)
-	return pool, resource, authRPC
-}
-
-func InitializeHomeDir(t *testing.T, tempHomeDir string) *cmtcfg.Config {
-	t.Logf("tempHomeDir=%s", tempHomeDir)
-	cometConfig := createCometConfig(t, tempHomeDir)
-
-	chainSpec, err := spec.TestnetChainSpec()
-	require.NoError(t, err)
-
-	t.Setenv(components.ChainSpecTypeEnvVar, components.TestnetChainSpecType)
-
-	// Same as `beacond init`
-	initCommand(t, tempHomeDir)
-
-	// get the bls signer from the homedir
-	blsSigner := getBlsSigner(tempHomeDir)
-
-	// Make the deposit amount the Max effective balance - set arbitrarily higher than 250K BERA required for mainnet
-	depositAmount := math.Gwei(chainSpec.MaxEffectiveBalance())
-	withdrawalAddress := common.NewExecutionAddressFromHex("0x6Eb9C23e4c187452504Ef8c5fD8fA1a4b15BE162")
-	err = genesis.AddGenesisDeposit(chainSpec, cometConfig, blsSigner, depositAmount, withdrawalAddress, "")
-	require.NoError(t, err)
-
-	// Collect the genesis deposit
-	err = genesis.CollectGenesisValidators(cometConfig)
-	require.NoError(t, err)
-
-	// Update the EL Deposit Storage
-	err = genesis.SetDepositStorage(chainSpec, cometConfig, "./eth-genesis.json", false)
-	require.NoError(t, err)
-
-	err = genesis.AddExecutionPayload(chainSpec, path.Join(tempHomeDir, "eth-genesis.json"), cometConfig)
-	require.NoError(t, err)
-	return cometConfig
-}
-
-type TestNodeInput struct {
-	TempHomeDir   string
-	CometConfig   *cmtcfg.Config
-	AuthRPCURLStr string
-	Logger        *phuslu.Logger
-}
-
-// NewTestNode Uses the mainnet chainspec.
-func NewTestNode(
-	t *testing.T,
-	input TestNodeInput,
-) *TestNode {
-	t.Helper()
-
-	beaconKitConfig := createBeaconKitConfig(t)
-	authRPCURL, err := url.NewFromRaw(input.AuthRPCURLStr)
-	require.NoError(t, err)
-	beaconKitConfig.GetEngine().RPCDialURL = authRPCURL
-
-	appOpts := getAppOptions(t, beaconKitConfig, input.TempHomeDir)
-
-	// Create a database
-	database, err := db.OpenDB(input.TempHomeDir, dbm.PebbleDBBackend)
-	require.NoError(t, err)
-
-	// Build a node
-	nb := nodebuilder.New(
-		nodebuilder.WithComponents[nodetypes.Node](DefaultComponents(t)),
-	)
-	node := nb.Build(
-		input.Logger,
-		database,
-		os.Stdout, // or some other writer
-		input.CometConfig,
-		appOpts,
-	)
-
-	// Fetch services we will want to query and interact with so they are easily accessible in testing
-	var cometService *cometbft.Service
-	err = node.FetchService(&cometService)
-	require.NoError(t, err)
-	require.NotNil(t, cometService)
-
-	var blockchainService *blockchain.Service
-	err = node.FetchService(&blockchainService)
-	require.NoError(t, err)
-	require.NotNil(t, blockchainService)
-
-	return &TestNode{
-		Node:              node,
-		CometService:      cometService,
-		BlockchainService: blockchainService,
-	}
 }
