@@ -22,9 +22,11 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 
 	"cosmossdk.io/store"
+	cservice "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/log"
 )
 
@@ -55,7 +57,8 @@ type Registry struct {
 	services map[string]Basic
 	// serviceTypes is an ordered slice of registered service types.
 	serviceTypes []string
-
+	// commitStoreServicef allows commands like Rollback to access
+	// the commit multistore in consensus service
 	commitStoreServicef func() store.CommitMultiStore
 }
 
@@ -72,15 +75,23 @@ func NewRegistry(logger log.Logger, opts ...RegistryOption) *Registry {
 		}
 	}
 
-	// find a service (there should be only one) exposing the CommitMultistore
-	for _, typeName := range r.serviceTypes {
-		svc := r.services[typeName]
-		if sh, ok := svc.(CommitMultistoreAccessor); ok {
-			r.commitStoreServicef = sh.CommitMultiStore
-			break
-		}
+	// Consensus service must expose the CommitMultistore. We
+	// retrieve it by its name and check it implements the accessor
+	svc, found := r.services[cservice.AppName]
+	if !found {
+		err := fmt.Errorf("could not find consensus service by name %s",
+			cservice.AppName,
+		)
+		panic(err)
 	}
-
+	sh, ok := svc.(CommitMultistoreAccessor)
+	if !ok {
+		err := fmt.Errorf("service %s does not implement CommitMultistoreAccessor",
+			cservice.AppName,
+		)
+		panic(err)
+	}
+	r.commitStoreServicef = sh.CommitMultiStore
 	return r
 }
 

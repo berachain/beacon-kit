@@ -49,7 +49,7 @@ import (
 
 const (
 	initialAppVersion uint64 = 0
-	appName           string = "beacond"
+	AppName           string = "beacond"
 )
 
 type Service struct {
@@ -222,7 +222,7 @@ func (s *Service) Stop() error {
 
 // Name returns the name of the cometbft.
 func (s *Service) Name() string {
-	return appName
+	return AppName
 }
 
 // CommitMultiStore returns the CommitMultiStore of the cometbft.
@@ -336,7 +336,7 @@ func (s *Service) CreateQueryContext(
 		return sdk.Context{}, errorsmod.Wrapf(
 			sdkerrors.ErrInvalidHeight,
 			"%s is not ready; please wait for first block",
-			appName,
+			AppName,
 		)
 	}
 

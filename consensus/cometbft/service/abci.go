@@ -66,7 +66,7 @@ func (s *Service) Info(context.Context,
 	}
 
 	return &cmtabci.InfoResponse{
-		Data:             appName,
+		Data:             AppName,
 		Version:          sdkversion.Version,
 		AppVersion:       appVersion,
 		LastBlockHeight:  lastCommitID.Version,
