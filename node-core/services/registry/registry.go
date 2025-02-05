@@ -79,19 +79,26 @@ func NewRegistry(logger log.Logger, opts ...RegistryOption) *Registry {
 	// retrieve it by its name and check it implements the accessor
 	svc, found := r.services[cservice.AppName]
 	if !found {
-		err := fmt.Errorf("could not find consensus service by name %s",
-			cservice.AppName,
+		logger.Warn("Rollback won't work",
+			"err",
+			fmt.Sprintf("service %s not found",
+				cservice.AppName,
+			),
 		)
-		panic(err)
+		return r
 	}
+
 	sh, ok := svc.(CommitMultistoreAccessor)
 	if !ok {
-		err := fmt.Errorf("service %s does not implement CommitMultistoreAccessor",
-			cservice.AppName,
+		logger.Warn("Rollback won't work",
+			"err",
+			fmt.Sprintf("service %s does not implement CommitMultistoreAccessor",
+				cservice.AppName,
+			),
 		)
-		panic(err)
+	} else {
+		r.commitStoreServicef = sh.CommitMultiStore
 	}
-	r.commitStoreServicef = sh.CommitMultiStore
 	return r
 }
 
