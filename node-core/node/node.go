@@ -47,13 +47,13 @@ type node struct {
 // New returns a new node.
 func New[NodeT types.Node](
 	registry *service.Registry, logger log.Logger) NodeT {
-	node := &node{
+	n := &node{
 		registry: registry,
 		logger:   logger,
 	}
 
 	//nolint:errcheck // should be safe
-	return types.Node(node).(NodeT)
+	return types.Node(n).(NodeT)
 }
 
 // Start starts the node.
