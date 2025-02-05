@@ -39,8 +39,9 @@ type Basic interface {
 	Name() string
 }
 
-// CommitMultiStore is required by commands like Rollback.
-type AppStoreStateHolder interface {
+// CommitMultistoreAccessor allows access to the commit multistore
+// This is required by commands like Rollback.
+type CommitMultistoreAccessor interface {
 	CommitMultiStore() store.CommitMultiStore
 }
 
@@ -74,7 +75,7 @@ func NewRegistry(logger log.Logger, opts ...RegistryOption) *Registry {
 	// find a service (there should be only one) exposing the CommitMultistore
 	for _, typeName := range r.serviceTypes {
 		svc := r.services[typeName]
-		if sh, ok := svc.(AppStoreStateHolder); ok {
+		if sh, ok := svc.(CommitMultistoreAccessor); ok {
 			r.commitStoreServicef = sh.CommitMultiStore
 			break
 		}

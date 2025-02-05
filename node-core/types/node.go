@@ -29,7 +29,7 @@ import (
 // Node defines the API for the node application.
 // It extends the Application interface from the Cosmos SDK.
 type Node interface {
-	service.AppStoreStateHolder
+	service.CommitMultistoreAccessor
 
 	Start(context.Context) error
 

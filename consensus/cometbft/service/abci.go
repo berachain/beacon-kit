@@ -55,7 +55,7 @@ func (s *Service) PrepareProposal(
 func (s *Service) Info(context.Context,
 	*cmtabci.InfoRequest,
 ) (*cmtabci.InfoResponse, error) {
-	lastCommitID := s.sm.CommitMultiStore().LastCommitID()
+	lastCommitID := s.sm.GetCommitMultiStore().LastCommitID()
 	appVersion := initialAppVersion
 	if lastCommitID.Version > 0 {
 		var err error
