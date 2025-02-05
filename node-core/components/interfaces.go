@@ -39,6 +39,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	"github.com/berachain/beacon-kit/state-transition/core"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/berachain/beacon-kit/storage/block"
 	depositdb "github.com/berachain/beacon-kit/storage/deposit"
@@ -203,39 +204,6 @@ type (
 		) (*v1.ProcessProposalResponse, error)
 	}
 
-	// 	// Context defines an interface for managing state transition context.
-	// 	Context[T any] interface {
-	// 		context.Context
-	// 		// Wrap returns a new context with the given context.
-	// 		Wrap(context.Context) T
-	// 		// OptimisticEngine sets the optimistic engine flag to true.
-	// 		OptimisticEngine() T
-	// 		// SkipPayloadVerification sets the skip payload verification flag to
-	// 		// true.
-	// 		SkipPayloadVerification() T
-	// 		// SkipValidateRandao sets the skip validate randao flag to true.
-	// 		SkipValidateRandao() T
-	// 		// SkipValidateResult sets the skip validate result flag to true.
-	// 		SkipValidateResult() T
-	// 		// GetOptimisticEngine returns whether to optimistically assume the
-	// 		// execution client has the correct state when certain errors are
-	// 		// returned
-	// 		// by the execution engine.
-	// 		GetOptimisticEngine() bool
-	// 		// GetSkipPayloadVerification returns whether to skip verifying the
-	// 		// payload
-	// 		// if
-	// 		// it already exists on the execution client.
-	// 		GetSkipPayloadVerification() bool
-	// 		// GetSkipValidateRandao returns whether to skip validating the RANDAO
-	// 		// reveal.
-	// 		GetSkipValidateRandao() bool
-	// 		// GetSkipValidateResult returns whether to validate the result of the
-	// 		// state
-	// 		// transition.
-	// 		GetSkipValidateResult() bool
-	// 	}
-
 	// Deposit is the interface for a deposit.
 	Deposit[
 		T any,
@@ -348,9 +316,7 @@ type (
 	// }.
 
 	// StateProcessor defines the interface for processing the state.
-	StateProcessor[
-		ContextT any,
-	] interface {
+	StateProcessor interface {
 		// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
 		// state
 		// from the eth1 deposits.
@@ -366,7 +332,7 @@ type (
 		) (transition.ValidatorUpdates, error)
 		// Transition performs the core state transition.
 		Transition(
-			ctx ContextT,
+			ctx core.ReadOnlyContext,
 			st *statedb.StateDB,
 			blk *ctypes.BeaconBlock,
 		) (transition.ValidatorUpdates, error)

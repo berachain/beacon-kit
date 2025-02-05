@@ -46,7 +46,7 @@ type ChainServiceInput struct {
 	LocalBuilder          LocalBuilder
 	Logger                *phuslu.Logger
 	Signer                crypto.BLSSigner
-	StateProcessor        StateProcessor[*Context]
+	StateProcessor        StateProcessor
 	StorageBackend        *storage.Backend
 	BlobProcessor         BlobProcessor
 	TelemetrySink         *metrics.TelemetrySink

@@ -34,8 +34,8 @@ import (
 
 // processRandaoReveal processes the randao reveal and
 // ensures it matches the local state.
-func (sp *StateProcessor[ContextT]) processRandaoReveal(
-	ctx ContextT,
+func (sp *StateProcessor) processRandaoReveal(
+	ctx ReadOnlyContext,
 	st *statedb.StateDB,
 	blk *ctypes.BeaconBlock,
 ) error {
@@ -60,7 +60,7 @@ func (sp *StateProcessor[ContextT]) processRandaoReveal(
 
 	fd := ctypes.NewForkData(sp.cs.ActiveForkVersionForEpoch(epoch), genesisValidatorsRoot)
 
-	if !ctx.GetSkipValidateRandao() {
+	if ctx.VerifyRandao() {
 		signingRoot := fd.ComputeRandaoSigningRoot(sp.cs.DomainTypeRandao(), epoch)
 		reveal := body.GetRandaoReveal()
 		if err = sp.signer.VerifySignature(
@@ -85,7 +85,7 @@ func (sp *StateProcessor[ContextT]) processRandaoReveal(
 
 // processRandaoMixesReset as defined in the Ethereum 2.0 specification.
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#randao-mixes-updates
-func (sp *StateProcessor[_]) processRandaoMixesReset(
+func (sp *StateProcessor) processRandaoMixesReset(
 	st *statedb.StateDB,
 ) error {
 	slot, err := st.GetSlot()
@@ -103,7 +103,7 @@ func (sp *StateProcessor[_]) processRandaoMixesReset(
 }
 
 // buildRandaoMix as defined in the Ethereum 2.0 specification.
-func (sp *StateProcessor[_]) buildRandaoMix(
+func (sp *StateProcessor) buildRandaoMix(
 	mix common.Bytes32,
 	reveal crypto.BLSSignature,
 ) common.Bytes32 {
