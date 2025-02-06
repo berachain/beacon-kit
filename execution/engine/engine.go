@@ -96,13 +96,13 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 		// We do not bubble the error up, since we want to handle it
 		// in the same way as the other cases.
 		ee.metrics.markForkchoiceUpdateSyncing(req.State, err)
-		return payloadID, nil, err
+		return nil, nil, err
 
 	case errors.Is(err, engineerrors.ErrInvalidPayloadStatus):
 		// If we get invalid payload status, we will need to find a valid
 		// ancestor block and force a recovery.
 		ee.metrics.markForkchoiceUpdateInvalid(req.State, err)
-		return payloadID, latestValidHash, ErrBadBlockProduced
+		return nil, nil, ErrBadBlockProduced
 
 	case jsonrpc.IsPreDefinedError(err):
 		// JSON-RPC errors are predefined and should be handled as such.
@@ -124,7 +124,7 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 			"safe_eth1_hash", req.State.SafeBlockHash,
 			"finalized_eth1_hash", req.State.FinalizedBlockHash,
 		)
-		return payloadID, latestValidHash, ErrNilPayloadOnValidResponse
+		return nil, nil, ErrNilPayloadOnValidResponse
 	}
 
 	return payloadID, latestValidHash, nil
