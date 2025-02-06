@@ -42,7 +42,11 @@ func (s *Service) sendPostBlockFCU(
 ) error {
 	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
-		return fmt.Errorf("failed getting latest payload: %w", err)
+		s.logger.Error(
+			"failed to get latest execution payload in postBlockProcess",
+			"error", err,
+		)
+		return err
 	}
 
 	// Send a forkchoice update without payload attributes to notify

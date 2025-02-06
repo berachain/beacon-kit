@@ -113,7 +113,7 @@ func (s *Service) FinalizeBlock(
 	}
 
 	if err = s.sendPostBlockFCU(ctx, st, consensusBlk); err != nil {
-		return nil, fmt.Errorf("sendPostBlockFCU failed: %w", err)
+		return nil, err
 	}
 
 	return valUpdates, nil
