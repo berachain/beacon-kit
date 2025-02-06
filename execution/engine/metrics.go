@@ -203,7 +203,7 @@ func (em *engineMetrics) markForkchoiceUpdateSyncing(
 	state *engineprimitives.ForkchoiceStateV1,
 	err error,
 ) {
-	em.errorLoggerFn(true)(
+	em.logger.Error(
 		"Received syncing payload status during forkchoice update call",
 		"head_block_hash",
 		state.HeadBlockHash,
@@ -270,14 +270,4 @@ func (em *engineMetrics) markForkchoiceUpdateUndefinedError(err error) {
 		"beacon_kit.execution.engine.forkchoice_update_undefined_error",
 		"error", err.Error(),
 	)
-}
-
-// errorLoggerFn returns a logger fn based on the optimistic flag.
-func (em *engineMetrics) errorLoggerFn(
-	isOptimistic bool,
-) func(msg string, keyVals ...any) {
-	if isOptimistic {
-		return em.logger.Warn
-	}
-	return em.logger.Error
 }
