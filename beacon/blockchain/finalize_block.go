@@ -183,8 +183,7 @@ func (s *Service) executeStateTransition(
 		WithVerifyPayload(true).
 		WithVerifyRandao(false).
 		WithVerifyResult(false).
-		WithMeterGas(true).
-		WithOptimisticEngine(true)
+		WithMeterGas(true)
 
 	return s.stateProcessor.Transition(
 		txCtx,

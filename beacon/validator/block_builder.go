@@ -381,8 +381,7 @@ func (s *Service) computeStateRoot(
 		WithVerifyPayload(false).
 		WithVerifyRandao(false).
 		WithVerifyResult(false).
-		WithMeterGas(false).
-		WithOptimisticEngine(true)
+		WithMeterGas(false)
 
 	if _, err := s.stateProcessor.Transition(txCtx, st, blk); err != nil {
 		return common.Root{}, err
