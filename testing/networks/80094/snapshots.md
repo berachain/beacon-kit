@@ -8,7 +8,8 @@ The following are snapshots provided by the community.
 | -------- | --- | -------- |
 | GhostGraph - TryGhosst.XYZ | https://public-snapshots.ghostgraph.xyz/bera/snapshot-beacond-mainnet.tgz | pebbledb  |
 
-The snapshots contain a `data` directory and its contents.   Installation advice:
+### Installation advice
+
 1. Stop `beacond`
 2. Move your existing `data` directory out of the way.
 3. Uncompress the snapshot in the directory that held `data`
