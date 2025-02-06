@@ -28,12 +28,11 @@ import (
 
 	"github.com/berachain/beacon-kit/log/phuslu"
 	injectedconsensus "github.com/berachain/beacon-kit/testing/injected-consensus"
-	comettypes "github.com/cometbft/cometbft/abci/types"
 	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/suite"
 )
 
-type InjectedConsensus struct {
+type DefaultComponents struct {
 	suite.Suite
 	ctx        context.Context
 	cancelFunc context.CancelFunc
@@ -43,7 +42,7 @@ type InjectedConsensus struct {
 	gethHandle *dockertest.Resource
 }
 
-func (s *InjectedConsensus) SetupTest() {
+func (s *DefaultComponents) SetupTest() {
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	s.ctx = ctx
 	s.cancelFunc = cancelFunc
@@ -69,7 +68,7 @@ func (s *InjectedConsensus) SetupTest() {
 	s.testNode = testNode
 }
 
-func (s *InjectedConsensus) TearDownTest() {
+func (s *DefaultComponents) TearDownTest() {
 	err := s.gethHandle.Close()
 	if err != nil {
 		s.T().Error("Error closing geth handle")
@@ -77,15 +76,7 @@ func (s *InjectedConsensus) TearDownTest() {
 	s.cancelFunc()
 }
 
-func (s *InjectedConsensus) TestInitChainRequestsInvalidChainID() {
-	request := &comettypes.InitChainRequest{
-		ChainId: "80090",
-	}
-	_, err := s.testNode.CometService.InitChain(s.ctx, request)
-	s.Require().ErrorContains(err, "invalid chain-id on InitChain; expected: test-mainnet-chain, got: 80090")
-}
-
-func (s *InjectedConsensus) TestInjectedConsensusWorks() {
+func (s *DefaultComponents) TestInjectedConsensusWorks() {
 	go func() {
 		if err := s.testNode.Node.Start(s.ctx); err != nil {
 			s.T().Error(err)
@@ -97,6 +88,6 @@ func (s *InjectedConsensus) TestInjectedConsensusWorks() {
 }
 
 //nolint:paralleltest // cannot be run in parallel due to use of environment variables.
-func TestInjectedConsensus(t *testing.T) {
-	suite.Run(t, new(InjectedConsensus))
+func TestDefaultComponents(t *testing.T) {
+	suite.Run(t, new(DefaultComponents))
 }
