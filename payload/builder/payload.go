@@ -226,7 +226,7 @@ func (pb *PayloadBuilder) SendForceHeadFCU(
 	_, _, err = pb.ee.NotifyForkchoiceUpdate(
 		ctx, &ctypes.ForkchoiceUpdateRequest{
 			State: &engineprimitives.ForkchoiceStateV1{
-				HeadBlockHash:      lph.GetBlockHash(),
+				HeadBlockHash:      lph.GetParentHash(),
 				SafeBlockHash:      lph.GetParentHash(),
 				FinalizedBlockHash: lph.GetParentHash(),
 			},
