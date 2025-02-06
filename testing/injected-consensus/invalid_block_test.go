@@ -70,9 +70,12 @@ func (s *InjectedConsensus) SetupTest() {
 }
 
 func (s *InjectedConsensus) TearDownTest() {
+	err := s.gethHandle.Close()
+	if err != nil {
+		s.T().Error("Error closing geth handle")
+	}
 	// Ensure teardown runs no matter what
 	s.cancelFunc()
-	s.gethHandle.Close()
 }
 
 // func (s *InjectedConsensus) TestInitChainRequestsInvalidChainID() {

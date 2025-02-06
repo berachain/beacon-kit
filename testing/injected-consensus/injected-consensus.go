@@ -186,20 +186,20 @@ func InitializeHomeDir(t *testing.T, tempHomeDir string) *cmtcfg.Config {
 
 	// Make the deposit amount the Max effective balance - set arbitrarily higher than 250K BERA required for mainnet
 	depositAmount := math.Gwei(chainSpec.MaxEffectiveBalance())
+	// Arbitrary withdrawal address
 	withdrawalAddress := common.NewExecutionAddressFromHex("0x6Eb9C23e4c187452504Ef8c5fD8fA1a4b15BE162")
+
 	err = genesis.AddGenesisDeposit(chainSpec, cometConfig, blsSigner, depositAmount, withdrawalAddress, "")
 	require.NoError(t, err)
-
 	// Collect the genesis deposit
 	err = genesis.CollectGenesisDeposits(cometConfig)
 	require.NoError(t, err)
-
 	// Update the EL Deposit Storage
 	err = genesis.SetDepositStorage(chainSpec, cometConfig, "./eth-genesis.json", false)
 	require.NoError(t, err)
-
 	err = genesis.AddExecutionPayload(chainSpec, path.Join(tempHomeDir, "eth-genesis.json"), cometConfig)
 	require.NoError(t, err)
+
 	return cometConfig
 }
 
@@ -239,7 +239,7 @@ func StartGeth(t *testing.T, tempHomeDir string) (*dockertest.Pool, *dockertest.
 			geth init --datadir /tmp/gethdata /testdata/eth-genesis.json && 
 			geth --http --http.addr 0.0.0.0 --http.api eth,net,web3 \
 				 --authrpc.addr 0.0.0.0 \
-				 --authrpc.jwtsecret /testdata/jwt.hex \
+				 --authrpc.jwtsecret /testing/files/jwt.hex \
 				 --authrpc.vhosts '*' \
 				 --datadir /tmp/gethdata \
 				 --ipcpath /tmp/gethdata/geth.ipc \
@@ -295,7 +295,10 @@ func getAppOptions(t *testing.T, beaconKitConfig *beaconkitconfig.Config, tempHo
 	t.Helper()
 	appOpts := viper.New()
 	// Execution Client Config
-	appOpts.Set(flags.JWTSecretPath, "../files/jwt.hex")
+	relativePathJwt := "../files/jwt.hex"
+	jwtPath, err := filepath.Abs(relativePathJwt)
+	require.NoError(t, err)
+	appOpts.Set(flags.JWTSecretPath, jwtPath)
 	appOpts.Set(flags.RPCJWTRefreshInterval, beaconKitConfig.GetEngine().RPCJWTRefreshInterval)
 	appOpts.Set(flags.RPCStartupCheckInterval, beaconKitConfig.GetEngine().RPCStartupCheckInterval)
 	appOpts.Set(flags.RPCDialURL, beaconKitConfig.GetEngine().RPCDialURL)
