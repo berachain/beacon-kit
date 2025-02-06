@@ -38,14 +38,14 @@ func (s *Service) sendPostBlockFCU(
 	ctx context.Context,
 	st *statedb.StateDB,
 	blk *contypes.ConsensusBlock,
-) {
+) error {
 	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		s.logger.Error(
 			"failed to get latest execution payload in postBlockProcess",
 			"error", err,
 		)
-		return
+		return err
 	}
 
 	// Send a forkchoice update without payload attributes to notify
@@ -68,5 +68,7 @@ func (s *Service) sendPostBlockFCU(
 			"failed to send forkchoice update without attributes",
 			"error", err,
 		)
+		return err
 	}
+	return nil
 }

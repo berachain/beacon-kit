@@ -108,7 +108,9 @@ func (s *Service) FinalizeBlock(
 		s.logger.Error("failed to processPruning", "error", err)
 	}
 
-	go s.sendPostBlockFCU(ctx, st, consensusBlk)
+	if err = s.sendPostBlockFCU(ctx, st, consensusBlk); err != nil {
+		return nil, err
+	}
 
 	return valUpdates, nil
 }
