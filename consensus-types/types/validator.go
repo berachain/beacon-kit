@@ -21,6 +21,7 @@
 package types
 
 import (
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
@@ -316,4 +317,51 @@ func (v Validator) GetWithdrawableEpoch() math.Epoch {
 // GetWithdrawalCredentials returns the withdrawal credentials of the validator.
 func (v Validator) GetWithdrawalCredentials() WithdrawalCredentials {
 	return v.WithdrawalCredentials
+}
+
+// Status returns the current validator status based on its set epoch values.
+func (v *Validator) Status(currentEpoch math.Epoch) (string, error) {
+	activationEpoch := v.GetActivationEpoch()
+	activationEligibilityEpoch := v.GetActivationEligibilityEpoch()
+	farFutureEpoch := math.Epoch(constants.FarFutureEpoch)
+	exitEpoch := v.GetExitEpoch()
+	withdrawableEpoch := v.GetWithdrawableEpoch()
+
+	// Status: pending
+	if activationEpoch > currentEpoch {
+		if activationEligibilityEpoch == farFutureEpoch {
+			return constants.ValidatorStatusPendingInitialized, nil
+		} else if activationEligibilityEpoch < farFutureEpoch {
+			return constants.ValidatorStatusPendingQueued, nil
+		}
+	}
+
+	// Status: active
+	if activationEpoch <= currentEpoch && currentEpoch < exitEpoch {
+		if exitEpoch == farFutureEpoch {
+			return constants.ValidatorStatusActiveOngoing, nil
+		} else if exitEpoch < farFutureEpoch {
+			if v.IsSlashed() {
+				return constants.ValidatorStatusActiveSlashed, nil
+			}
+			return constants.ValidatorStatusActiveExiting, nil
+		}
+	}
+
+	// Status: exited
+	if exitEpoch <= currentEpoch && currentEpoch < withdrawableEpoch {
+		if v.IsSlashed() {
+			return constants.ValidatorStatusExitedSlashed, nil
+		}
+		return constants.ValidatorStatusExitedUnslashed, nil
+	}
+
+	// Status: withdrawal
+	if withdrawableEpoch <= currentEpoch {
+		if v.GetEffectiveBalance() != math.Gwei(0) {
+			return constants.ValidatorStatusWithdrawalPossible, nil
+		}
+		return constants.ValidatorStatusWithdrawalDone, nil
+	}
+	return "", errors.New("invalid validator status")
 }

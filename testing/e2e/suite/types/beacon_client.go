@@ -149,13 +149,24 @@ func (c *CustomBeaconClient) Validators(
 	// Construct the URL
 	url := fmt.Sprintf("%s/eth/v1/beacon/states/%s/validators", c.address, opts.State)
 
-	// Add indices as query parameters if specified
-	if len(opts.Indices) > 0 {
-		indices := make([]string, len(opts.Indices))
-		for i, idx := range opts.Indices {
-			indices[i] = fmt.Sprintf("id=%d", idx)
-		}
-		url = fmt.Sprintf("%s?%s", url, strings.Join(indices, "&"))
+	params := make([]string, 0)
+	// Add indices
+	for _, idx := range opts.Indices {
+		params = append(params, fmt.Sprintf("id=%d", idx))
+	}
+
+	// Add pubkeys
+	for _, key := range opts.PubKeys {
+		params = append(params, fmt.Sprintf("id=%s", key))
+	}
+
+	// Add validator states
+	for _, state := range opts.ValidatorStates {
+		params = append(params, fmt.Sprintf("status=%s", state))
+	}
+
+	if len(params) > 0 {
+		url = fmt.Sprintf("%s?%s", url, strings.Join(params, "&"))
 	}
 
 	// Make GET request for empty indices
@@ -175,12 +186,9 @@ func (c *CustomBeaconClient) Validators(
 
 	// Parse response
 	var result struct {
-		Data []*apiv1.Validator `json:"data"`
-		Meta struct {
-			Count     int    `json:"count"`
-			NextToken string `json:"next_token,omitempty"`
-			TotalSize int    `json:"total_size"`
-		} `json:"meta"`
+		Data                []*apiv1.Validator `json:"data"`
+		ExecutionOptimistic bool               `json:"execution_optimistic"`
+		Finalized           bool               `json:"finalized"`
 	}
 
 	if err = json.NewDecoder(resp.Body).Decode(&result); err != nil {
@@ -196,9 +204,8 @@ func (c *CustomBeaconClient) Validators(
 	return &beaconapi.Response[map[phase0.ValidatorIndex]*apiv1.Validator]{
 		Data: validators,
 		Metadata: map[string]any{
-			"count":      result.Meta.Count,
-			"next_token": result.Meta.NextToken,
-			"total_size": result.Meta.TotalSize,
+			"execution_optimistic": result.ExecutionOptimistic,
+			"finalized":            result.Finalized,
 		},
 	}, nil
 }

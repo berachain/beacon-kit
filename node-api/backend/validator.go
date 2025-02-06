@@ -66,7 +66,7 @@ func (b Backend) FilteredValidators(
 		}
 
 		// Skip the validator if we are filtering by statuses and this validator is not included.
-		status, valErr := utils.GetValidatorStatus(b.cs.SlotToEpoch(slot), validator)
+		status, valErr := validator.Status(b.cs.SlotToEpoch(slot))
 		if valErr != nil {
 			return nil, valErr
 		}
@@ -112,7 +112,7 @@ func (b Backend) ValidatorByID(
 	if err != nil {
 		return nil, err
 	}
-	status, err := utils.GetValidatorStatus(b.cs.SlotToEpoch(slot), validator)
+	status, err := validator.Status(b.cs.SlotToEpoch(slot))
 	if err != nil {
 		return nil, err
 	}
