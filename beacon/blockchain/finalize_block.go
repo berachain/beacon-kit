@@ -44,7 +44,10 @@ func (s *Service) FinalizeBlock(
 	)
 
 	// Send an FCU to force the HEAD of the chain on the EL on startup.
-	s.forceStartupSyncOnce.Do(func() { s.forceStartupHead(ctx, s.storageBackend.StateFromContext(ctx)) })
+	s.forceStartupSyncOnce.Do(func() { finalizeErr = s.forceStartupHead(ctx, s.storageBackend.StateFromContext(ctx)) })
+	if finalizeErr != nil {
+		return nil, finalizeErr
+	}
 
 	// STEP 1: Decode block and blobs
 	signedBlk, blobs, err := encoding.ExtractBlobsAndBlockFromRequest(

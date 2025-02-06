@@ -32,14 +32,14 @@ import (
 func (s *Service) forceStartupHead(
 	ctx context.Context,
 	st *statedb.StateDB,
-) {
+) error {
 	slot, err := st.GetSlot()
 	if err != nil {
 		s.logger.Error(
 			"failed to get slot for force startup head",
 			"error", err,
 		)
-		return
+		return err
 	}
 
 	// TODO: Verify if the slot number is correct here, I believe in current
@@ -49,7 +49,9 @@ func (s *Service) forceStartupHead(
 			"failed to send force head FCU",
 			"error", err,
 		)
+		return err
 	}
+	return nil
 }
 
 // handleRebuildPayloadForRejectedBlock handles the case where the incoming

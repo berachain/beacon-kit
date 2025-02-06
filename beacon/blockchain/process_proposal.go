@@ -219,10 +219,11 @@ func (s *Service) VerifyIncomingBlock(
 	preState := s.storageBackend.StateFromContext(ctx)
 
 	// Force a sync of the startup head if we haven't done so already.
-	//
-	// TODO: This is a super hacky. It should be handled better elsewhere,
-	// ideally via some broader sync service.
-	s.forceStartupSyncOnce.Do(func() { s.forceStartupHead(ctx, preState) })
+	var fcuErr error
+	s.forceStartupSyncOnce.Do(func() { fcuErr = s.forceStartupHead(ctx, preState) })
+	if fcuErr != nil {
+		return fcuErr
+	}
 
 	s.logger.Info(
 		"Received incoming beacon block",
