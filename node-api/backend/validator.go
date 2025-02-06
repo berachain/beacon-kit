@@ -136,15 +136,15 @@ func (b Backend) ValidatorBalancesByIDs(
 
 	// If no IDs provided, return all validator balances
 	if len(ids) == 0 {
-		rawBalances, err := st.GetBalances()
-		if err != nil {
-			return nil, err
+		rawBalances, errInBalances := st.GetBalances()
+		if errInBalances != nil {
+			return nil, errInBalances
 		}
-		// Convert []uint64 to []*ValidatorBalanceData
+		// Convert []uint64 to []*ValidatorBalanceData as per the API spec
 		balances := make([]*beacontypes.ValidatorBalanceData, len(rawBalances))
 		for i, balance := range rawBalances {
 			balances[i] = &beacontypes.ValidatorBalanceData{
-				Index:   uint64(i),
+				Index:   uint64(i), //nolint:gosec // index is not negative
 				Balance: balance,
 			}
 		}
