@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package injectedconsensus
+package injected
 
 import (
 	"context"
@@ -61,12 +61,22 @@ type TestNodeInput struct {
 	CometConfig *cmtcfg.Config
 	AuthRPC     *url.ConnectionURL
 	Logger      *phuslu.Logger
+	AppOpts     *viper.Viper
 }
 
 type TestNode struct {
 	Node              nodetypes.Node
 	CometService      *cometbft.Service
 	BlockchainService *blockchain.Service
+}
+
+type TestSuiteHandle struct {
+	Ctx        context.Context
+	CancelFunc context.CancelFunc
+	TestNode   *TestNode
+
+	// Geth dockertest handles for closing
+	ElHandle *dockertest.Resource
 }
 
 // NewTestNode Uses the mainnet chainspec.
@@ -78,7 +88,7 @@ func NewTestNode(
 
 	beaconKitConfig := createBeaconKitConfig(t)
 	beaconKitConfig.Engine.RPCDialURL = input.AuthRPC
-	appOpts := getAppOptions(t, beaconKitConfig, input.TempHomeDir)
+	appOpts := getAppOptions(t, input.AppOpts, beaconKitConfig, input.TempHomeDir)
 
 	// Create a database
 	database, err := db.OpenDB(input.TempHomeDir, dbm.PebbleDBBackend)
@@ -162,10 +172,8 @@ func createBeaconKitConfig(_ *testing.T) *beaconkitconfig.Config {
 
 // getAppOptions returns the Application Options we need to set for the Node Builder.
 // Ideally we can avoid having to set the flags like this and just directly modify a config type.
-func getAppOptions(t *testing.T, beaconKitConfig *beaconkitconfig.Config, tempHomeDir string) *viper.Viper {
+func getAppOptions(t *testing.T, appOpts *viper.Viper, beaconKitConfig *beaconkitconfig.Config, tempHomeDir string) *viper.Viper {
 	t.Helper()
-	appOpts := viper.New()
-
 	// Execution Client Config
 	relativePathJwt := "../files/jwt.hex"
 	jwtPath, err := filepath.Abs(relativePathJwt)
@@ -223,6 +231,7 @@ func initCommand(t *testing.T, tempHomeDir string) {
 	initCMD.SetContext(context.Background())
 
 	err = client.SetCmdClientContextHandler(clientCtx, initCMD)
+	require.NoError(t, err)
 
 	// This is so that Goland can run the test from the IDE through test filtering
 	initCMD.FParseErrWhitelist.UnknownFlags = true

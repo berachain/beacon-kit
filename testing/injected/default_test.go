@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package injectedconsensus_test
+package injected_test
 
 import (
 	"context"
@@ -27,69 +27,67 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/log/phuslu"
-	injectedconsensus "github.com/berachain/beacon-kit/testing/injected-consensus"
-	"github.com/ory/dockertest"
+	"github.com/berachain/beacon-kit/testing/injected"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/suite"
 )
 
-type DefaultComponents struct {
+type DefaultConfiguration struct {
 	suite.Suite
-	ctx        context.Context
-	cancelFunc context.CancelFunc
-	testNode   *injectedconsensus.TestNode
-
-	// Geth dockertest handles for closing
-	elHandle *dockertest.Resource
+	injected.TestSuiteHandle
 }
 
-// TestDefaultComponents is a test suite with the default components as we would normally build beacond.
+// TestDefaultConfiguration is a test suite with the default configurations as we would normally build beacond
+// It serves as a mechanism
 //
 //nolint:paralleltest // cannot be run in parallel due to use of environment variables.
-func TestDefaultComponents(t *testing.T) {
-	suite.Run(t, new(DefaultComponents))
+func TestDefaultConfiguration(t *testing.T) {
+	suite.Run(t, new(DefaultConfiguration))
 }
 
-func (s *DefaultComponents) SetupTest() {
+func (s *DefaultConfiguration) SetupTest() {
 	ctx, cancelFunc := context.WithCancel(context.Background())
-	s.ctx = ctx
-	s.cancelFunc = cancelFunc
+	s.Ctx = ctx
+	s.CancelFunc = cancelFunc
 
 	tempHomeDir := s.T().TempDir()
 	// Initialize home directory
-	cometConfig := injectedconsensus.InitializeHomeDir(s.T(), tempHomeDir)
+	cometConfig := injected.InitializeHomeDir(s.T(), tempHomeDir)
 
 	// Start the Geth node - needs to be done first as we need the auth rpc as input for the beacon node.
-	elNode := injectedconsensus.NewGethNode(tempHomeDir, injectedconsensus.ValidGethImage())
+	elNode := injected.NewGethNode(tempHomeDir, injected.ValidGethImage())
 	gethHandle, authRPC := elNode.Start(s.T())
-	s.elHandle = gethHandle
+	s.ElHandle = gethHandle
 
 	// Build the Beacon node once we have the auth rpc url
 	logger := phuslu.NewLogger(os.Stdout, nil)
-	testNode := injectedconsensus.NewTestNode(s.T(),
-		injectedconsensus.TestNodeInput{
+	testNode := injected.NewTestNode(s.T(),
+		injected.TestNodeInput{
 			TempHomeDir: tempHomeDir,
 			CometConfig: cometConfig,
 			AuthRPC:     authRPC,
 			Logger:      logger,
+			AppOpts:     viper.New(),
 		})
-	s.testNode = testNode
+	s.TestNode = testNode
 }
 
-func (s *DefaultComponents) TearDownTest() {
-	err := s.elHandle.Close()
+func (s *DefaultConfiguration) TearDownTest() {
+	err := s.ElHandle.Close()
 	if err != nil {
 		s.T().Error("Error closing geth handle")
 	}
-	s.cancelFunc()
+	s.CancelFunc()
 }
 
-func (s *DefaultComponents) TestDriverWorks() {
+func (s *DefaultConfiguration) TestDriverWorks() {
 	go func() {
-		if err := s.testNode.Node.Start(s.ctx); err != nil {
+		// Node blocks on Start and hence we have to run in separate routine
+		if err := s.TestNode.Node.Start(s.Ctx); err != nil {
 			s.T().Error(err)
 		}
 	}()
 	<-time.After(30 * time.Second)
 	minimumBlockHeight := int64(2)
-	s.Greater(s.testNode.CometService.LastBlockHeight(), minimumBlockHeight)
+	s.Greater(s.TestNode.CometService.LastBlockHeight(), minimumBlockHeight)
 }

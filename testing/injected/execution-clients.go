@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package injectedconsensus
+package injected
 
 import (
 	"fmt"
@@ -47,6 +47,7 @@ func (g *gethNode) Start(t *testing.T) (*dockertest.Resource, *url.ConnectionURL
 	// Create pool
 	pool, err := dockertest.NewPool("")
 	require.NoError(t, err)
+	require.NotNil(t, pool)
 
 	// uses pool to try to connect to Docker
 	err = pool.Client.Ping()

@@ -108,6 +108,9 @@ type Service struct {
 	minRetainBlocks uint64
 
 	chainID string
+
+	// This flag will result in `Start` being a noop. This allows us to
+	startNoop bool
 }
 
 func NewService(
@@ -162,6 +165,10 @@ func NewService(
 func (s *Service) Start(
 	ctx context.Context,
 ) error {
+	if s.startNoop {
+		s.logger.Info("returning noop start")
+		return nil
+	}
 	cfg := s.cmtCfg
 	nodeKey, err := p2p.LoadOrGenNodeKey(cfg.NodeKeyFile())
 	if err != nil {
@@ -193,7 +200,6 @@ func (s *Service) Start(
 	}
 
 	started := make(chan struct{})
-
 	// we start the node in a goroutine since calling Start() can block if genesis
 	// time is in the future causing us not to handle signals gracefully.
 	go func() {

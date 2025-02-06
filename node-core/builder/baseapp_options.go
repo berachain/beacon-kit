@@ -65,6 +65,9 @@ func DefaultServiceOptions(
 		}
 	}
 
+	// will set cometNoop to false if opt is not found
+	cometNoop := cast.ToBool(appOpts.Get("comet-noop"))
+
 	return []func(*cometbft.Service){
 		cometbft.SetPruning(pruningOpts),
 		cometbft.SetMinRetainBlocks(
@@ -79,6 +82,7 @@ func DefaultServiceOptions(
 			true,
 		),
 		cometbft.SetChainID(chainID),
+		cometbft.SetStartNoop(cometNoop),
 	}
 }
 

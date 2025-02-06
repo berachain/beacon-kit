@@ -68,3 +68,8 @@ func SetInterBlockCache(cache storetypes.MultiStorePersistentCache) func(*Servic
 func SetChainID(chainID string) func(*Service) {
 	return func(s *Service) { s.chainID = chainID }
 }
+
+// SetStartNoop prevents cometbft from starting the core loop - used in testing.
+func SetStartNoop(isNoop bool) func(*Service) {
+	return func(s *Service) { s.startNoop = isNoop }
+}
