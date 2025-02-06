@@ -42,30 +42,26 @@ func (s *Service) sendPostBlockFCU(
 ) error {
 	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
-		s.logger.Error(
-			"failed to get latest execution payload in postBlockProcess",
-			"error", err,
-		)
-		return err
+		return fmt.Errorf("failed getting latest payload: %w", err)
 	}
 
 	// Send a forkchoice update without payload attributes to notify
 	// EL of the new head.
 	beaconBlk := blk.GetBeaconBlock()
-	// TODO: Switch to New().
-	req := ctypes.BuildForkchoiceUpdateRequestNoAttrs(
-		&engineprimitives.ForkchoiceStateV1{
-			HeadBlockHash:      lph.GetBlockHash(),
-			SafeBlockHash:      lph.GetParentHash(),
-			FinalizedBlockHash: lph.GetParentHash(),
-		},
-		s.chainSpec.ActiveForkVersionForSlot(beaconBlk.GetSlot()),
+	_, _, err = s.executionEngine.NotifyForkchoiceUpdate(
+		ctx,
+		// TODO: Switch to New().
+		ctypes.BuildForkchoiceUpdateRequestNoAttrs(
+			&engineprimitives.ForkchoiceStateV1{
+				HeadBlockHash:      lph.GetBlockHash(),
+				SafeBlockHash:      lph.GetParentHash(),
+				FinalizedBlockHash: lph.GetParentHash(),
+			},
+			s.chainSpec.ActiveForkVersionForSlot(beaconBlk.GetSlot()),
+		),
 	)
-	if _, _, err = s.executionEngine.NotifyForkchoiceUpdate(ctx, req); err != nil {
-		return fmt.Errorf("failed forkchoice update, head %s: %w",
-			lph.GetBlockHash().String(),
-			err,
-		)
+	if err != nil {
+		return fmt.Errorf("failed sending forkchoice update without attributes: %w", err)
 	}
 	return nil
 }
