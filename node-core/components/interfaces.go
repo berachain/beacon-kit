@@ -704,7 +704,7 @@ type (
 	}
 
 	NodeAPIBackend interface {
-		AttachQueryBackend(node *cometbft.Service)
+		AttachQueryBackend(node cometbft.ConsensusService)
 		ChainSpec() chain.Spec
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		GetSlotByStateRoot(root common.Root) (math.Slot, error)

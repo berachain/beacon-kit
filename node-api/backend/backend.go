@@ -35,7 +35,7 @@ import (
 type Backend struct {
 	sb   *storage.Backend
 	cs   chain.Spec
-	node *cometbft.Service
+	node cometbft.ConsensusService
 	sp   StateProcessor
 }
 
@@ -54,7 +54,7 @@ func New(
 
 // AttachQueryBackend sets the node on the backend for
 // querying historical heights.
-func (b *Backend) AttachQueryBackend(node *cometbft.Service) {
+func (b *Backend) AttachQueryBackend(node cometbft.ConsensusService) {
 	b.node = node
 }
 

@@ -46,7 +46,7 @@ type ServiceRegistryInput struct {
 	TelemetrySink    *metrics.TelemetrySink
 	TelemetryService *telemetry.Service
 	ValidatorService *validator.Service
-	CometBFTService  *cometbft.Service
+	CometBFTService  cometbft.ConsensusService
 	ShutdownService  *shutdown.Service
 }
 
