@@ -21,6 +21,9 @@
 package beacon
 
 import (
+	"net/http"
+	"strings"
+
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
@@ -95,7 +98,15 @@ func (h *Handler) GetStateValidatorBalances(c handlers.Context) (any, error) {
 		return nil, err
 	}
 	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
+
+	// Check for error message "slot not found at state root"
 	if err != nil {
+		if strings.Contains(err.Error(), "slot not found at state root") {
+			return nil, &handlers.HTTPError{
+				Code:    http.StatusNotFound,
+				Message: "State not found",
+			}
+		}
 		return nil, err
 	}
 	balances, err := h.backend.ValidatorBalancesByIDs(
