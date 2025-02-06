@@ -23,7 +23,6 @@ package beacon
 import (
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	"github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 )
 
@@ -43,9 +42,7 @@ func (h *Handler) getStateValidators(stateID string, ids []string, statuses []st
 	if err != nil {
 		return nil, err
 	}
-	if len(validators) == 0 {
-		return nil, types.ErrNotFound
-	}
+
 	return beacontypes.NewResponse(validators), nil
 }
 
