@@ -140,7 +140,6 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 	ee.metrics.markNewPayloadCalled(
 		req.ExecutionPayload.GetBlockHash(),
 		req.ExecutionPayload.GetParentHash(),
-		req.Optimistic,
 	)
 
 	// First we verify the block hash and versioned hashes are valid.
@@ -170,20 +169,17 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 		ee.metrics.markNewPayloadSyncingPayloadStatus(
 			req.ExecutionPayload.GetBlockHash(),
 			req.ExecutionPayload.GetParentHash(),
-			req.Optimistic,
 		)
 
 	case errors.IsAny(err, engineerrors.ErrAcceptedPayloadStatus):
 		ee.metrics.markNewPayloadAcceptedPayloadStatus(
 			req.ExecutionPayload.GetBlockHash(),
 			req.ExecutionPayload.GetParentHash(),
-			req.Optimistic,
 		)
 
 	case errors.Is(err, engineerrors.ErrInvalidPayloadStatus):
 		ee.metrics.markNewPayloadInvalidPayloadStatus(
 			req.ExecutionPayload.GetBlockHash(),
-			req.Optimistic,
 		)
 
 	case jsonrpc.IsPreDefinedError(err):
@@ -195,7 +191,6 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 		ee.metrics.markNewPayloadJSONRPCError(
 			req.ExecutionPayload.GetBlockHash(),
 			*lastValidHash,
-			req.Optimistic,
 			err,
 		)
 
@@ -203,14 +198,12 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 	case err != nil:
 		ee.metrics.markNewPayloadUndefinedError(
 			req.ExecutionPayload.GetBlockHash(),
-			req.Optimistic,
 			err,
 		)
 	default:
 		ee.metrics.markNewPayloadValid(
 			req.ExecutionPayload.GetBlockHash(),
 			req.ExecutionPayload.GetParentHash(),
-			req.Optimistic,
 		)
 	}
 	return err
