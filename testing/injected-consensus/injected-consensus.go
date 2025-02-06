@@ -114,58 +114,6 @@ func NewTestNode(
 	}
 }
 
-// DefaultComponents requires testing.T to avoid accidental misuse.
-func DefaultComponents(_ *testing.T) []any {
-	c := []any{
-		components.ProvideAttributesFactory,
-		components.ProvideAvailabilityStore,
-		components.ProvideDepositContract,
-		components.ProvideBlockStore,
-		components.ProvideBlsSigner,
-		components.ProvideBlobProcessor,
-		components.ProvideBlobProofVerifier,
-		components.ProvideChainService,
-		components.ProvideNode,
-		components.ProvideChainSpec,
-		components.ProvideConfig,
-		components.ProvideServerConfig,
-		components.ProvideDepositStore,
-		components.ProvideEngineClient,
-		components.ProvideExecutionEngine,
-		components.ProvideJWTSecret,
-		components.ProvideLocalBuilder,
-		components.ProvideReportingService,
-		components.ProvideCometBFTService,
-		components.ProvideServiceRegistry,
-		components.ProvideSidecarFactory,
-		components.ProvideStateProcessor,
-		components.ProvideKVStore,
-		components.ProvideStorageBackend,
-		components.ProvideTelemetrySink,
-		components.ProvideTelemetryService,
-		components.ProvideTrustedSetup,
-		components.ProvideValidatorService,
-		components.ProvideShutDownService,
-	}
-	c = append(c,
-		components.ProvideNodeAPIServer,
-		components.ProvideNodeAPIEngine,
-		components.ProvideNodeAPIBackend,
-	)
-	//
-	c = append(c, components.ProvideNodeAPIHandlers,
-		components.ProvideNodeAPIBeaconHandler,
-		components.ProvideNodeAPIBuilderHandler,
-		components.ProvideNodeAPIConfigHandler,
-		components.ProvideNodeAPIDebugHandler,
-		components.ProvideNodeAPIEventsHandler,
-		components.ProvideNodeAPINodeHandler,
-		components.ProvideNodeAPIProofHandler,
-	)
-
-	return c
-}
-
 func InitializeHomeDir(t *testing.T, tempHomeDir string) *cmtcfg.Config {
 	t.Helper()
 	t.Logf("tempHomeDir=%s", tempHomeDir)
@@ -275,7 +223,9 @@ func initCommand(t *testing.T, tempHomeDir string) {
 	initCMD.SetContext(context.Background())
 
 	err = client.SetCmdClientContextHandler(clientCtx, initCMD)
-	require.NoError(t, err)
+
+	// This is so that Goland can run the test from the IDE through test filtering
+	initCMD.FParseErrWhitelist.UnknownFlags = true
 
 	err = initCMD.Execute()
 	require.NoError(t, err)

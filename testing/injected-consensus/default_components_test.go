@@ -39,7 +39,7 @@ type DefaultComponents struct {
 	testNode   *injectedconsensus.TestNode
 
 	// Geth dockertest handles for closing
-	gethHandle *dockertest.Resource
+	elHandle *dockertest.Resource
 }
 
 func (s *DefaultComponents) SetupTest() {
@@ -54,7 +54,7 @@ func (s *DefaultComponents) SetupTest() {
 	// Start the Geth node - needs to be done first as we need the auth rpc as input for the beacon node.
 	elNode := injectedconsensus.NewGethNode(tempHomeDir, injectedconsensus.ValidGethImage())
 	gethHandle, authRPC := elNode.Start(s.T())
-	s.gethHandle = gethHandle
+	s.elHandle = gethHandle
 
 	// Build the Beacon node once we have the auth rpc url
 	logger := phuslu.NewLogger(os.Stdout, nil)
@@ -69,14 +69,14 @@ func (s *DefaultComponents) SetupTest() {
 }
 
 func (s *DefaultComponents) TearDownTest() {
-	err := s.gethHandle.Close()
+	err := s.elHandle.Close()
 	if err != nil {
 		s.T().Error("Error closing geth handle")
 	}
 	s.cancelFunc()
 }
 
-func (s *DefaultComponents) TestInjectedConsensusWorks() {
+func (s *DefaultComponents) TestDriverWorks() {
 	go func() {
 		if err := s.testNode.Node.Start(s.ctx); err != nil {
 			s.T().Error(err)
