@@ -144,7 +144,7 @@ func (b Backend) ValidatorBalancesByIDs(
 		balances := make([]*beacontypes.ValidatorBalanceData, len(rawBalances))
 		for i, balance := range rawBalances {
 			balances[i] = &beacontypes.ValidatorBalanceData{
-				Index:   uint64(i), //nolint:gosec // index is not negative
+				Index:   uint64(i), // #nosec:G115 // Safe as i comes from range loop
 				Balance: balance,
 			}
 		}
