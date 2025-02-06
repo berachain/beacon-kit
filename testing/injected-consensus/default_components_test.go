@@ -42,6 +42,13 @@ type DefaultComponents struct {
 	elHandle *dockertest.Resource
 }
 
+// TestDefaultComponents is a test suite with the default components as we would normally build beacond.
+//
+//nolint:paralleltest // cannot be run in parallel due to use of environment variables.
+func TestDefaultComponents(t *testing.T) {
+	suite.Run(t, new(DefaultComponents))
+}
+
 func (s *DefaultComponents) SetupTest() {
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	s.ctx = ctx
@@ -85,9 +92,4 @@ func (s *DefaultComponents) TestDriverWorks() {
 	<-time.After(30 * time.Second)
 	minimumBlockHeight := int64(2)
 	s.Greater(s.testNode.CometService.LastBlockHeight(), minimumBlockHeight)
-}
-
-//nolint:paralleltest // cannot be run in parallel due to use of environment variables.
-func TestDefaultComponents(t *testing.T) {
-	suite.Run(t, new(DefaultComponents))
 }
