@@ -129,12 +129,31 @@ func (b Backend) ValidatorByID(
 func (b Backend) ValidatorBalancesByIDs(
 	slot math.Slot, ids []string,
 ) ([]*beacontypes.ValidatorBalanceData, error) {
-	var index math.U64
 	st, _, err := b.stateFromSlot(slot)
 	if err != nil {
 		return nil, err
 	}
+
+	// If no IDs provided, return all validator balances
+	if len(ids) == 0 {
+		rawBalances, err := st.GetBalances()
+		if err != nil {
+			return nil, err
+		}
+		// Convert []uint64 to []*ValidatorBalanceData
+		balances := make([]*beacontypes.ValidatorBalanceData, len(rawBalances))
+		for i, balance := range rawBalances {
+			balances[i] = &beacontypes.ValidatorBalanceData{
+				Index:   uint64(i),
+				Balance: balance,
+			}
+		}
+		return balances, nil
+	}
+
 	balances := make([]*beacontypes.ValidatorBalanceData, 0)
+	var index math.U64
+
 	for _, id := range ids {
 		index, err = utils.ValidatorIndexByID(st, id)
 		if err != nil {
