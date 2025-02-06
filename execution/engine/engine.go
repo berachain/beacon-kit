@@ -132,8 +132,6 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 
 // VerifyAndNotifyNewPayload verifies the new payload and notifies the
 // execution client.
-//
-//nolint:funlen
 func (ee *Engine) VerifyAndNotifyNewPayload(
 	ctx context.Context,
 	req *ctypes.NewPayloadRequest,
