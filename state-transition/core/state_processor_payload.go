@@ -48,16 +48,16 @@ func (sp *StateProcessor) processExecutionPayload(
 
 	sp.metrics.gaugeTimestamps(payloadTimestamp, consensusTimestamp)
 
-	sp.logger.Info("processExecutionPayload",
-		"consensus height", blk.GetSlot().Unwrap(),
-		"payload height", payload.GetNumber().Unwrap(),
-		"payload timestamp", payloadTimestamp,
-		"consensus timestamp", consensusTimestamp,
-		"verify payload", ctx.VerifyPayload(),
-	)
-
 	// Perform payload verification only if the context is configured as such.
 	if ctx.VerifyPayload() {
+		sp.logger.Info(
+			"verifying execution payload",
+			"consensus height", blk.GetSlot().Unwrap(),
+			"payload height", payload.GetNumber().Unwrap(),
+			"payload timestamp", payloadTimestamp,
+			"consensus timestamp", consensusTimestamp,
+		)
+
 		g.Go(func() error {
 			return sp.validateExecutionPayload(gCtx, st, blk, ctx.OptimisticEngine())
 		})
