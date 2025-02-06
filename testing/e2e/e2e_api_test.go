@@ -198,7 +198,7 @@ func (s *BeaconKitE2ESuite) TestValidatorsEmptyStatuses() {
 	}
 }
 
-// TestValidatorsWithMultipleIndices tests querying multiple specific validator indices
+// TestValidatorsWithMultipleIndices tests querying multiple specific validator indices.
 func (s *BeaconKitE2ESuite) TestValidatorsWithMultipleIndices() {
 	client := s.initBeaconTest()
 	indices := []phase0.ValidatorIndex{0, 1, 2}
@@ -223,11 +223,13 @@ func (s *BeaconKitE2ESuite) TestValidatorsWithInvalidIndex() {
 		Indices: indices,
 	})
 	s.Require().NoError(err)
+	s.Require().NotNil(validatorsResp)
+
 	// No validators returned
 	s.Require().Len(validatorsResp.Data, 0)
 }
 
-// TestValidatorsWithSpecificStatus tests filtering validators by status
+// TestValidatorsWithSpecificStatus tests filtering validators by status.
 func (s *BeaconKitE2ESuite) TestValidatorsWithSpecificStatus() {
 	client := s.initBeaconTest()
 

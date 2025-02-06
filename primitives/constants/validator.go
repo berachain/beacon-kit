@@ -18,26 +18,17 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package utils
+package constants
 
-import (
-	"strconv"
-
-	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/math"
-	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
+const (
+	// Validator status strings.
+	ValidatorStatusPendingInitialized = "pending_initialized"
+	ValidatorStatusPendingQueued      = "pending_queued"
+	ValidatorStatusActiveOngoing      = "active_ongoing"
+	ValidatorStatusActiveExiting      = "active_exiting"
+	ValidatorStatusActiveSlashed      = "active_slashed"
+	ValidatorStatusExitedUnslashed    = "exited_unslashed"
+	ValidatorStatusExitedSlashed      = "exited_slashed"
+	ValidatorStatusWithdrawalPossible = "withdrawal_possible"
+	ValidatorStatusWithdrawalDone     = "withdrawal_done"
 )
-
-// ValidatorIndexByID parses a validator index from a string.
-// The string can be either a validator index or a validator pubkey.
-func ValidatorIndexByID(st *statedb.StateDB, keyOrIndex string) (math.U64, error) {
-	index, err := strconv.ParseUint(keyOrIndex, 10, 64)
-	if err == nil {
-		return math.U64(index), nil
-	}
-	var key crypto.BLSPubkey
-	if err = key.UnmarshalText([]byte(keyOrIndex)); err != nil {
-		return math.U64(0), err
-	}
-	return st.ValidatorIndexByPubkey(key)
-}

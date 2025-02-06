@@ -984,3 +984,123 @@ func TestValidator_GetEffectiveBalance(t *testing.T) {
 		})
 	}
 }
+
+func TestValidator_Status(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name         string
+		validator    *types.Validator
+		currentEpoch math.Epoch
+		wantStatus   string
+		wantErr      bool
+	}{
+		{
+			name: "pending_initialized",
+			validator: &types.Validator{
+				ActivationEpoch:            100,
+				ActivationEligibilityEpoch: math.Epoch(constants.FarFutureEpoch),
+				ExitEpoch:                  math.Epoch(constants.FarFutureEpoch),
+			},
+			currentEpoch: 50,
+			wantStatus:   constants.ValidatorStatusPendingInitialized,
+		},
+		{
+			name: "pending_queued",
+			validator: &types.Validator{
+				ActivationEpoch:            100,
+				ActivationEligibilityEpoch: 5,
+				ExitEpoch:                  math.Epoch(constants.FarFutureEpoch),
+			},
+			currentEpoch: 50,
+			wantStatus:   constants.ValidatorStatusPendingQueued,
+		},
+		{
+			name: "active_ongoing",
+			validator: &types.Validator{
+				ActivationEpoch: 5,
+				ExitEpoch:       math.Epoch(constants.FarFutureEpoch),
+			},
+			currentEpoch: 10,
+			wantStatus:   constants.ValidatorStatusActiveOngoing,
+		},
+		{
+			name: "active_slashed",
+			validator: &types.Validator{
+				ActivationEpoch: 5,
+				ExitEpoch:       15,
+				Slashed:         true,
+			},
+			currentEpoch: 10,
+			wantStatus:   constants.ValidatorStatusActiveSlashed,
+		},
+		{
+			name: "active_exiting",
+			validator: &types.Validator{
+				ActivationEpoch: 5,
+				ExitEpoch:       15,
+				Slashed:         false,
+			},
+			currentEpoch: 10,
+			wantStatus:   constants.ValidatorStatusActiveExiting,
+		},
+		{
+			name: "exited_slashed",
+			validator: &types.Validator{
+				ActivationEpoch:   1,
+				ExitEpoch:         5,
+				WithdrawableEpoch: 15,
+				Slashed:           true,
+			},
+			currentEpoch: 10,
+			wantStatus:   constants.ValidatorStatusExitedSlashed,
+		},
+		{
+			name: "exited_unslashed",
+			validator: &types.Validator{
+				ActivationEpoch:   1,
+				ExitEpoch:         5,
+				WithdrawableEpoch: 15,
+				Slashed:           false,
+			},
+			currentEpoch: 10,
+			wantStatus:   constants.ValidatorStatusExitedUnslashed,
+		},
+		{
+			name: "withdrawal_possible",
+			validator: &types.Validator{
+				ActivationEpoch:   1,
+				ExitEpoch:         5,
+				WithdrawableEpoch: 10,
+				EffectiveBalance:  1000,
+			},
+			currentEpoch: 15,
+			wantStatus:   constants.ValidatorStatusWithdrawalPossible,
+		},
+		{
+			name: "withdrawal_done",
+			validator: &types.Validator{
+				ActivationEpoch:   1,
+				ExitEpoch:         5,
+				WithdrawableEpoch: 10,
+				EffectiveBalance:  0,
+			},
+			currentEpoch: 15,
+			wantStatus:   constants.ValidatorStatusWithdrawalDone,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got, err := tt.validator.Status(tt.currentEpoch)
+			if tt.wantErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, tt.wantStatus, got)
+		})
+	}
+}
