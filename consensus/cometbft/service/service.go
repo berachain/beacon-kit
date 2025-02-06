@@ -52,7 +52,7 @@ const (
 	appName           string = "beacond"
 )
 
-// ConsensusService defines everything we utilise externally from CometBFT
+// ConsensusService defines everything we utilise externally from CometBFT.
 type ConsensusService interface {
 	Start(ctx context.Context) error
 	Stop() error
