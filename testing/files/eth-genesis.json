@@ -21,7 +21,13 @@
     "cancunTime": 0,
     "terminalTotalDifficulty": 0,
     "terminalTotalDifficultyPassed": true,
-    "ethash": {}
+    "ethash": {},
+    "blobSchedule": {
+      "cancun": {
+        "target": 3,
+        "max": 6,
+        "baseFeeUpdateFraction": 3338477
+      }
   },
   "coinbase": "0x0000000000000000000000000000000000000000",
   "difficulty": "0x0",
