@@ -6,4 +6,4 @@ The following are snapshots provided by the community. Here are [instructions fo
 
 | Provider | URL | Database |
 | -------- | --- | -------- |
-| GhostGraph - TryGhosst.XYZ | https://public-snapshots.ghostgraph.xyz/bera/snapshot-beacond-mainnet.tgz | pebbledb  |
+| GhostGraph - TryGhost.XYZ | https://public-snapshots.ghostgraph.xyz/bera/snapshot-beacond-mainnet.tgz | pebbledb  |
