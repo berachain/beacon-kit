@@ -22,8 +22,6 @@ package injectedconsensus
 
 import (
 	"context"
-	"fmt"
-	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -50,10 +48,13 @@ import (
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/ory/dockertest"
-	"github.com/ory/dockertest/docker"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 )
+
+type ExecutionClient interface {
+	Start(t *testing.T) (*dockertest.Resource, *url.ConnectionURL)
+}
 
 type TestNodeInput struct {
 	TempHomeDir string
@@ -196,83 +197,7 @@ func InitializeHomeDir(t *testing.T, tempHomeDir string) *cmtcfg.Config {
 	require.NoError(t, err)
 	err = genesis.AddExecutionPayload(chainSpec, path.Join(tempHomeDir, "eth-genesis.json"), cometConfig)
 	require.NoError(t, err)
-
 	return cometConfig
-}
-
-func StartGeth(t *testing.T, tempHomeDir string) (*dockertest.Pool, *dockertest.Resource, *url.ConnectionURL) {
-	t.Helper()
-	// Create pool
-	pool, err := dockertest.NewPool("")
-	require.NoError(t, err)
-
-	// uses pool to try to connect to Docker
-	err = pool.Client.Ping()
-	require.NoErrorf(t, err, "Could not connect to Docker: %s", err)
-
-	// Pull the Geth image (if not present). This can speed up future runs.
-	err = pool.Client.PullImage(
-		docker.PullImageOptions{
-			Repository: "ethereum/client-go",
-			Tag:        "latest",
-		},
-		docker.AuthConfiguration{},
-	)
-	require.NoError(t, err)
-
-	absPath, err := filepath.Abs("../files")
-	require.NoError(t, err)
-
-	// 3. Run container with a custom Cmd that does BOTH `init` and `run`
-	resource, err := pool.RunWithOptions(&dockertest.RunOptions{
-		Repository: "ethereum/client-go",
-		Tag:        "latest",
-		// We'll chain these commands with bash -c
-		// Override the default entrypoint to be /bin/sh instead of geth:
-		Entrypoint: []string{"/bin/sh"},
-		Cmd: []string{
-			"-c",
-			`
-			geth init --datadir /tmp/gethdata /testdata/eth-genesis.json && 
-			geth --http --http.addr 0.0.0.0 --http.api eth,net,web3 \
-				 --authrpc.addr 0.0.0.0 \
-				 --authrpc.jwtsecret /testing/files/jwt.hex \
-				 --authrpc.vhosts '*' \
-				 --datadir /tmp/gethdata \
-				 --ipcpath /tmp/gethdata/geth.ipc \
-				 --syncmode full \
-				 --verbosity 3
-			`,
-		},
-		ExposedPorts: []string{"8545/tcp", "8551/tcp", "30303/tcp"},
-		Mounts: []string{
-			// bind-mount local testdata => container /testdata
-			fmt.Sprintf("%s:/%s", tempHomeDir, "testdata"),
-			fmt.Sprintf("%s:/%s", absPath, "testing/files"),
-		},
-	})
-	require.NoError(t, err)
-
-	elRPC, err := url.NewFromRaw("http://" + resource.GetHostPort("8545/tcp"))
-	require.NoError(t, err)
-	authRPC, err := url.NewFromRaw("http://" + resource.GetHostPort("8551/tcp"))
-	require.NoError(t, err)
-
-	t.Log(authRPC.String())
-
-	// 4. Wait until the container is ready (i.e., Geth is listening on the RPC port)
-	err = pool.Retry(func() error {
-		// For example, just do an HTTP GET to / without expecting real data
-		resp, httpErr := http.Get(elRPC.String())
-		if httpErr != nil {
-			return httpErr
-		}
-		resp.Body.Close()
-		// You could check status code, etc.
-		return nil
-	})
-	require.NoError(t, err)
-	return pool, resource, authRPC
 }
 
 // createConfiguration creates the BeaconKit configuration and the CometBFT configuration.
@@ -283,7 +208,7 @@ func createCometConfig(t *testing.T, tempHomeDir string) *cmtcfg.Config {
 	return cmtCfg
 }
 
-func createBeaconKitConfig(t *testing.T) *beaconkitconfig.Config {
+func createBeaconKitConfig(_ *testing.T) *beaconkitconfig.Config {
 	return beaconkitconfig.DefaultConfig()
 }
 
@@ -292,6 +217,7 @@ func createBeaconKitConfig(t *testing.T) *beaconkitconfig.Config {
 func getAppOptions(t *testing.T, beaconKitConfig *beaconkitconfig.Config, tempHomeDir string) *viper.Viper {
 	t.Helper()
 	appOpts := viper.New()
+
 	// Execution Client Config
 	relativePathJwt := "../files/jwt.hex"
 	jwtPath, err := filepath.Abs(relativePathJwt)

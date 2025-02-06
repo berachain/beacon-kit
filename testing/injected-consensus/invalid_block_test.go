@@ -28,6 +28,7 @@ import (
 
 	"github.com/berachain/beacon-kit/log/phuslu"
 	injectedconsensus "github.com/berachain/beacon-kit/testing/injected-consensus"
+	comettypes "github.com/cometbft/cometbft/abci/types"
 	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/suite"
 )
@@ -39,7 +40,6 @@ type InjectedConsensus struct {
 	testNode   *injectedconsensus.TestNode
 
 	// Geth dockertest handles for closing
-	poolHandle *dockertest.Pool
 	gethHandle *dockertest.Resource
 }
 
@@ -52,19 +52,19 @@ func (s *InjectedConsensus) SetupTest() {
 	// Initialize home directory
 	cometConfig := injectedconsensus.InitializeHomeDir(s.T(), tempHomeDir)
 
-	// Start the Geth node, needs to be done first as we need the auth rpc
-	poolHandle, gethHandle, authRPC := injectedconsensus.StartGeth(s.T(), tempHomeDir)
-	s.poolHandle = poolHandle
+	// Start the Geth node - needs to be done first as we need the auth rpc as input for the beacon node.
+	elNode := injectedconsensus.NewGethNode(tempHomeDir, injectedconsensus.ValidGethImage())
+	gethHandle, authRPC := elNode.Start(s.T())
 	s.gethHandle = gethHandle
 
 	// Build the Beacon node once we have the auth rpc url
 	logger := phuslu.NewLogger(os.Stdout, nil)
 	testNode := injectedconsensus.NewTestNode(s.T(),
 		injectedconsensus.TestNodeInput{
-			TempHomeDir:   tempHomeDir,
-			CometConfig:   cometConfig,
-			AuthRPCURLStr: authRPC,
-			Logger:        logger,
+			TempHomeDir: tempHomeDir,
+			CometConfig: cometConfig,
+			AuthRPC:     authRPC,
+			Logger:      logger,
 		})
 	s.testNode = testNode
 }
@@ -74,47 +74,29 @@ func (s *InjectedConsensus) TearDownTest() {
 	if err != nil {
 		s.T().Error("Error closing geth handle")
 	}
-	// Ensure teardown runs no matter what
 	s.cancelFunc()
 }
 
-// func (s *InjectedConsensus) TestInitChainRequestsInvalidChainID() {
-//	request := &comettypes.InitChainRequest{
-//		ChainId: "80090",
-//	}
-//	_, err := s.testNode.CometService.InitChain(s.testNode.Context, request)
-//	s.Require().ErrorContains(err, "invalid chain-id on InitChain; expected: test-mainnet-chain, got: 80090")
-//}
+func (s *InjectedConsensus) TestInitChainRequestsInvalidChainID() {
+	request := &comettypes.InitChainRequest{
+		ChainId: "80090",
+	}
+	_, err := s.testNode.CometService.InitChain(s.ctx, request)
+	s.Require().ErrorContains(err, "invalid chain-id on InitChain; expected: test-mainnet-chain, got: 80090")
+}
 
-// TestProcessProposalRequestInvalidBlock tests the scenario where a peer sends us a block with an invalid timestamp.
-func (s *InjectedConsensus) TestProcessProposalRequestInvalidBlock() {
+func (s *InjectedConsensus) TestInjectedConsensusWorks() {
 	go func() {
 		if err := s.testNode.Node.Start(s.ctx); err != nil {
 			s.T().Error(err)
 		}
 	}()
-
 	<-time.After(30 * time.Second)
-
-	// genesis := genesisFromFile(t, testNode.cometConfig.Genesis)
-
-	// genesisFile := testNode.cometConfig.GenesisFile()
-
-	// request := &comettypes.InitChainRequest{
-	//	ChainId:       "beacond-2061",
-	//	AppStateBytes: genesis.AppState,
-	//}
-	// fmt.Println(genesis)
-	// fmt.Println(genesisFile)
-	// response, err := testNode.cometService.InitChain(ctx, request)
-	// require.NoError(t, err)
 	minimumBlockHeight := int64(2)
 	s.Greater(s.testNode.CometService.LastBlockHeight(), minimumBlockHeight)
-	// We expect one deposit given the genesis file in 'config/genesis.json'
-	// require.Len(t, response.GetValidators(), 1)
 }
 
-// We cannot run test in parallel as we are not allowed to Setenv in parallel tests. Refactor after chain spec is not envar.
+//nolint:paralleltest // cannot be run in parallel due to use of environment variables.
 func TestInjectedConsensus(t *testing.T) {
 	suite.Run(t, new(InjectedConsensus))
 }
