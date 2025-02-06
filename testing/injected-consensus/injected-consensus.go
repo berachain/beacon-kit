@@ -56,10 +56,10 @@ import (
 )
 
 type TestNodeInput struct {
-	TempHomeDir   string
-	CometConfig   *cmtcfg.Config
-	AuthRPCURLStr string
-	Logger        *phuslu.Logger
+	TempHomeDir string
+	CometConfig *cmtcfg.Config
+	AuthRPC     *url.ConnectionURL
+	Logger      *phuslu.Logger
 }
 
 type TestNode struct {
@@ -76,10 +76,7 @@ func NewTestNode(
 	t.Helper()
 
 	beaconKitConfig := createBeaconKitConfig(t)
-	authRPCURL, err := url.NewFromRaw(input.AuthRPCURLStr)
-	require.NoError(t, err)
-	beaconKitConfig.GetEngine().RPCDialURL = authRPCURL
-
+	beaconKitConfig.Engine.RPCDialURL = input.AuthRPC
 	appOpts := getAppOptions(t, beaconKitConfig, input.TempHomeDir)
 
 	// Create a database
@@ -203,7 +200,7 @@ func InitializeHomeDir(t *testing.T, tempHomeDir string) *cmtcfg.Config {
 	return cometConfig
 }
 
-func StartGeth(t *testing.T, tempHomeDir string) (*dockertest.Pool, *dockertest.Resource, string) {
+func StartGeth(t *testing.T, tempHomeDir string) (*dockertest.Pool, *dockertest.Resource, *url.ConnectionURL) {
 	t.Helper()
 	// Create pool
 	pool, err := dockertest.NewPool("")
@@ -256,16 +253,17 @@ func StartGeth(t *testing.T, tempHomeDir string) (*dockertest.Pool, *dockertest.
 	})
 	require.NoError(t, err)
 
-	// Optionally get the host/port that Docker mapped for 8545:
-	elRPC := resource.GetHostPort("8545/tcp")
-	authRPC := resource.GetHostPort("8551/tcp")
+	elRPC, err := url.NewFromRaw("http://" + resource.GetHostPort("8545/tcp"))
+	require.NoError(t, err)
+	authRPC, err := url.NewFromRaw("http://" + resource.GetHostPort("8551/tcp"))
+	require.NoError(t, err)
 
-	fmt.Println(authRPC)
+	t.Log(authRPC.String())
 
 	// 4. Wait until the container is ready (i.e., Geth is listening on the RPC port)
 	err = pool.Retry(func() error {
 		// For example, just do an HTTP GET to / without expecting real data
-		resp, httpErr := http.Get("http://" + elRPC)
+		resp, httpErr := http.Get(elRPC.String())
 		if httpErr != nil {
 			return httpErr
 		}
@@ -299,10 +297,10 @@ func getAppOptions(t *testing.T, beaconKitConfig *beaconkitconfig.Config, tempHo
 	jwtPath, err := filepath.Abs(relativePathJwt)
 	require.NoError(t, err)
 	appOpts.Set(flags.JWTSecretPath, jwtPath)
-	appOpts.Set(flags.RPCJWTRefreshInterval, beaconKitConfig.GetEngine().RPCJWTRefreshInterval)
-	appOpts.Set(flags.RPCStartupCheckInterval, beaconKitConfig.GetEngine().RPCStartupCheckInterval)
-	appOpts.Set(flags.RPCDialURL, beaconKitConfig.GetEngine().RPCDialURL)
-	appOpts.Set(flags.RPCTimeout, beaconKitConfig.GetEngine().RPCTimeout)
+	appOpts.Set(flags.RPCJWTRefreshInterval, beaconKitConfig.GetEngine().RPCJWTRefreshInterval.String())
+	appOpts.Set(flags.RPCStartupCheckInterval, beaconKitConfig.GetEngine().RPCStartupCheckInterval.String())
+	appOpts.Set(flags.RPCDialURL, beaconKitConfig.GetEngine().RPCDialURL.String())
+	appOpts.Set(flags.RPCTimeout, beaconKitConfig.GetEngine().RPCTimeout.String())
 
 	// BLS Config
 	appOpts.Set(flags.PrivValidatorKeyFile, "./config/priv_validator_key.json")
