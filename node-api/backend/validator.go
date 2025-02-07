@@ -23,6 +23,8 @@ package backend
 import (
 	"slices"
 
+	"cosmossdk.io/collections"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-api/backend/utils"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -157,12 +159,22 @@ func (b Backend) ValidatorBalancesByIDs(
 	for _, id := range ids {
 		index, err = utils.ValidatorIndexByID(st, id)
 		if err != nil {
+			// If public key as id is not found in the state, do not return an error.
+			if errors.Is(err, collections.ErrNotFound) {
+				continue
+			}
 			return nil, err
 		}
 		var balance math.U64
 		// TODO: same issue as above, shouldn't error on not found.
 		balance, err = st.GetBalance(index)
+
 		if err != nil {
+			// if index does not exist and GetBalance returns an error containing "collections: not found"
+			// do not return an error.
+			if errors.Is(err, collections.ErrNotFound) {
+				continue
+			}
 			return nil, err
 		}
 		balances = append(balances, &beacontypes.ValidatorBalanceData{
