@@ -26,6 +26,7 @@ import (
 
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 )
 
@@ -120,12 +121,22 @@ func (h *Handler) GetStateValidatorBalances(c handlers.Context) (any, error) {
 }
 
 func (h *Handler) PostStateValidatorBalances(c handlers.Context) (any, error) {
-	req, err := utils.BindAndValidate[beacontypes.PostValidatorBalancesRequest](
-		c, h.Logger(),
-	)
-	if err != nil {
-		return nil, err
+
+	var ids []string
+	if err := c.Bind(&ids); err != nil {
+		return nil, types.ErrInvalidRequest
 	}
+	// TODO: Find a way to pass the state_id from request.
+	// Currently only head is supported.
+	req := beacontypes.PostValidatorBalancesRequest{
+		StateIDRequest: types.StateIDRequest{StateID: "head"},
+		IDs:            ids,
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return nil, types.ErrInvalidRequest
+	}
+
 	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
 	if err != nil {
 		return nil, err
