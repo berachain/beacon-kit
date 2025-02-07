@@ -24,7 +24,6 @@ import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/validator"
-	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-api/server"
@@ -32,6 +31,7 @@ import (
 	service "github.com/berachain/beacon-kit/node-core/services/registry"
 	"github.com/berachain/beacon-kit/node-core/services/shutdown"
 	"github.com/berachain/beacon-kit/node-core/services/version"
+	"github.com/berachain/beacon-kit/node-core/types"
 	"github.com/berachain/beacon-kit/observability/telemetry"
 )
 
@@ -46,7 +46,7 @@ type ServiceRegistryInput struct {
 	TelemetrySink    *metrics.TelemetrySink
 	TelemetryService *telemetry.Service
 	ValidatorService *validator.Service
-	CometBFTService  cometbft.ConsensusService
+	CometBFTService  types.ConsensusService
 	ShutdownService  *shutdown.Service
 }
 

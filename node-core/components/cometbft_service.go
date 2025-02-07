@@ -41,7 +41,7 @@ func ProvideCometBFTService(
 	cmtCfg *cmtcfg.Config,
 	appOpts config.AppOptions,
 	telemetrySink *metrics.TelemetrySink,
-) cometbft.ConsensusService {
+) *cometbft.Service {
 	return cometbft.NewService(
 		logger,
 		db,
