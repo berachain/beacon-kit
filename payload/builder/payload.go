@@ -68,7 +68,7 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 	}
 
 	// Submit the forkchoice update to the execution client.
-	payloadID, _, err := pb.ee.NotifyForkchoiceUpdate(
+	payloadID, err := pb.ee.NotifyForkchoiceUpdate(
 		ctx, &ctypes.ForkchoiceUpdateRequest{
 			State: &engineprimitives.ForkchoiceStateV1{
 				HeadBlockHash:      headEth1BlockHash,
@@ -224,7 +224,7 @@ func (pb *PayloadBuilder) SendForceHeadFCU(
 
 	// Submit the forkchoice update to the execution client.
 	var attrs *engineprimitives.PayloadAttributes
-	_, _, err = pb.ee.NotifyForkchoiceUpdate(
+	_, err = pb.ee.NotifyForkchoiceUpdate(
 		ctx, &ctypes.ForkchoiceUpdateRequest{
 			State: &engineprimitives.ForkchoiceStateV1{
 				HeadBlockHash:      lph.GetBlockHash(),

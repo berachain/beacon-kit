@@ -48,7 +48,7 @@ func (s *Service) sendPostBlockFCU(
 	// Send a forkchoice update without payload attributes to notify
 	// EL of the new head.
 	beaconBlk := blk.GetBeaconBlock()
-	_, _, err = s.executionEngine.NotifyForkchoiceUpdate(
+	_, err = s.executionEngine.NotifyForkchoiceUpdate(
 		ctx,
 		// TODO: Switch to New().
 		ctypes.BuildForkchoiceUpdateRequestNoAttrs(
