@@ -21,14 +21,7 @@
     "cancunTime": 0,
     "terminalTotalDifficulty": 0,
     "terminalTotalDifficultyPassed": true,
-    "ethash": {},
-    "blobSchedule": {
-      "cancun": {
-        "target": 3,
-        "max": 6,
-        "baseFeeUpdateFraction": 3338477
-      }
-    }
+    "ethash": {}
   },
   "alloc": {
     "0x8a73D1380345942F1cb32541F1b19C40D8e6C94B": {
