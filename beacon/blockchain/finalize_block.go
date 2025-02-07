@@ -155,11 +155,6 @@ func (s *Service) executeStateTransition(
 	defer s.metrics.measureStateTransitionDuration(startTime)
 
 	// Notes about context attributes:
-	// - `OptimisticEngine`: set to true since this is called during
-	// FinalizeBlock. We want to assume the payload is valid. If it
-	// ends up not being valid later, the node will simply AppHash,
-	// which is completely fine. This means we were syncing from a
-	// bad peer, and we would likely AppHash anyways.
 	// - VerifyPayload: set to true. When we are NOT synced to the tip,
 	// process proposal does NOT get called and thus we must ensure that
 	// NewPayload is called to get the execution client the payload.
@@ -170,10 +165,10 @@ func (s *Service) executeStateTransition(
 	// of validators in their process proposal call and thus
 	// the "verification aspect" of this NewPayload call is
 	// actually irrelevant at this point.
-	// VerifyRandao: set to false. We skip randao validation in FinalizeBlock
+	// - VerifyRandao: set to false. We skip randao validation in FinalizeBlock
 	// since either
-	// 1. we validated it during ProcessProposal at the head of the chain OR
-	// 2. we are bootstrapping and implicitly trust that the randao was validated by
+	//   1. we validated it during ProcessProposal at the head of the chain OR
+	//   2. we are bootstrapping and implicitly trust that the randao was validated by
 	//    the super majority during ProcessProposal of the given block height.
 	txCtx := transition.NewTransitionCtx(
 		ctx,
