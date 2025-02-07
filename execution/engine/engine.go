@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
 	jsonrpc "github.com/berachain/beacon-kit/primitives/net/json-rpc"
+	"github.com/cenkalti/backoff/v5"
 )
 
 const engineAPITimeout = time.Minute * 5
@@ -77,86 +78,82 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 	ctx context.Context,
 	req *ctypes.ForkchoiceUpdateRequest,
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
-	var (
-		payloadID       *engineprimitives.PayloadID
-		latestValidHash *common.ExecutionHash
-	)
 	hasPayloadAttributes := !req.PayloadAttributes.IsNil()
-	err := retryWithTimeout(ctx, engineAPITimeout,
-		func(ctx context.Context) (bool, error) {
-			// Log the forkchoice update attempt.
-			ee.metrics.markNotifyForkchoiceUpdateCalled(hasPayloadAttributes)
+	pID, err := backoff.Retry(ctx, func() (*engineprimitives.PayloadID, error) {
+		// Log the forkchoice update attempt.
+		ee.metrics.markNotifyForkchoiceUpdateCalled(hasPayloadAttributes)
 
-			// Notify the execution engine of the forkchoice update.
-			var innerErr error
-			payloadID, latestValidHash, innerErr = ee.ec.ForkchoiceUpdated(
-				ctx,
-				req.State,
-				req.PayloadAttributes,
-				req.ForkVersion,
+		// Notify the execution engine of the forkchoice update.
+		payloadID, _, innerErr := ee.ec.ForkchoiceUpdated(
+			ctx,
+			req.State,
+			req.PayloadAttributes,
+			req.ForkVersion,
+		)
+
+		// NotifyForkchoiceUpdate gets called under two circumstances:
+		// 1. Payload Building (During PrepareProposal or
+		//    optimistically in ProcessProposal)
+		// 2. FinalizeBlock
+		// We'll discriminate error handling based on these.
+		switch {
+		case innerErr == nil:
+			ee.metrics.markForkchoiceUpdateValid(
+				req.State, hasPayloadAttributes, payloadID,
 			)
 
-			// NotifyForkchoiceUpdate gets called under two circumstances:
-			// 1. Payload Building (During PrepareProposal or
-			//    optimistically in ProcessProposal)
-			// 2. FinalizeBlock
-			// We'll discriminate error handling based on these.
-			switch {
-			case innerErr == nil:
-				ee.metrics.markForkchoiceUpdateValid(
-					req.State, hasPayloadAttributes, payloadID,
+			// If we reached here, we have a VALID status and a nil payload ID,
+			// we should log a warning and error.
+			if payloadID == nil && hasPayloadAttributes {
+				ee.logger.Warn(
+					"Received nil payload ID on VALID engine response",
+					"head_eth1_hash", req.State.HeadBlockHash,
+					"safe_eth1_hash", req.State.SafeBlockHash,
+					"finalized_eth1_hash", req.State.FinalizedBlockHash,
 				)
-
-				// If we reached here, we have a VALID status and a nil payload ID,
-				// we should log a warning and error.
-				if payloadID == nil && hasPayloadAttributes {
-					ee.logger.Warn(
-						"Received nil payload ID on VALID engine response",
-						"head_eth1_hash", req.State.HeadBlockHash,
-						"safe_eth1_hash", req.State.SafeBlockHash,
-						"finalized_eth1_hash", req.State.FinalizedBlockHash,
-					)
-					// Do not retry, return the error.
-					return false, ErrNilPayloadOnValidResponse
-				}
-
-				// We've received a valid response, no more retries.
-				return true, nil
-
-			case errors.IsAny(innerErr, engineerrors.ErrSyncingPayloadStatus):
-				ee.metrics.markForkchoiceUpdateSyncing(req.State, innerErr)
-				// In all circumstances, keep retrying until the EVM is synced.
-				return false, nil
-
-			case errors.Is(innerErr, engineerrors.ErrInvalidPayloadStatus):
-				ee.metrics.markForkchoiceUpdateInvalid(req.State, innerErr)
-				// During payload building, then there is an invalid
-				// payload and should error.
-				// During FinalizeBlock, something is broken because
-				// this should never happen.
-				return false, innerErr
-
-			case jsonrpc.IsPreDefinedError(innerErr):
-				ee.metrics.markForkchoiceUpdateJSONRPCError(innerErr)
-				// In all circumstances, always retry on RPC Error.
-				return false, nil
-
-			default:
-				ee.metrics.markForkchoiceUpdateUndefinedError(innerErr)
-				// Retry on unknown errors, we'll log the error and retry.
-				// TODO: discriminate more of these errors:
-				//     RPC Timeout Errors
-				//     Connection Refused Errors
-				//     Erroneous Parsing Errors
-				return false, nil
+				// Do not retry, return the error.
+				return nil, ErrNilPayloadOnValidResponse
 			}
-		},
+
+			// We've received a valid response, no more retries.
+			return payloadID, nil
+
+		case errors.IsAny(innerErr, engineerrors.ErrSyncingPayloadStatus):
+			ee.metrics.markForkchoiceUpdateSyncing(req.State, innerErr)
+			// In all circumstances, keep retrying until the EVM is synced.
+			return nil, innerErr
+
+		case errors.Is(innerErr, engineerrors.ErrInvalidPayloadStatus):
+			ee.metrics.markForkchoiceUpdateInvalid(req.State, innerErr)
+			// During payload building, then there is an invalid
+			// payload and should error.
+			// During FinalizeBlock, something is broken because
+			// this should never happen.
+			return nil, backoff.Permanent(innerErr)
+
+		case jsonrpc.IsPreDefinedError(innerErr):
+			ee.metrics.markForkchoiceUpdateJSONRPCError(innerErr)
+			// In all circumstances, always retry on RPC Error.
+			return nil, innerErr
+
+		default:
+			ee.metrics.markForkchoiceUpdateUndefinedError(innerErr)
+			// Retry on unknown errors, we'll log the error and retry.
+			// TODO: discriminate more of these errors:
+			//     RPC Timeout Errors
+			//     Connection Refused Errors
+			//     Erroneous Parsing Errors
+			return nil, innerErr
+		}
+	},
+		backoff.WithBackOff(backoff.NewExponentialBackOff()),
+		backoff.WithMaxElapsedTime(engineAPITimeout),
 	)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return payloadID, latestValidHash, nil
+	return pID, nil, nil
 }
 
 // NotifyNewPayload notifies the execution client of the new payload.
@@ -165,94 +162,93 @@ func (ee *Engine) NotifyNewPayload(
 	req *ctypes.NewPayloadRequest,
 ) error {
 	// Otherwise we will send the payload to the execution client.
-	err := retryWithTimeout(ctx, engineAPITimeout,
-		func(ctx context.Context) (bool, error) {
-			// Log the new payload attempt.
-			ee.metrics.markNewPayloadCalled(
+	_, err := backoff.Retry(ctx, func() (*common.ExecutionHash, error) {
+		// Log the new payload attempt.
+		ee.metrics.markNewPayloadCalled(
+			req.ExecutionPayload.GetBlockHash(),
+			req.ExecutionPayload.GetParentHash(),
+		)
+
+		lastValidHash, innerErr := ee.ec.NewPayload(
+			ctx,
+			req.ExecutionPayload,
+			req.VersionedHashes,
+			req.ParentBeaconBlockRoot,
+		)
+
+		// NotifyNewPayload gets called under three circumstances:
+		// 1. ProcessProposal state transition
+		// 2. FinalizeBlock state transition
+		// We'll discriminate error handling based on these.
+		switch {
+		case innerErr == nil:
+			ee.metrics.markNewPayloadValid(
 				req.ExecutionPayload.GetBlockHash(),
 				req.ExecutionPayload.GetParentHash(),
 			)
+			// We've received a valid response, no more retries.
+			return lastValidHash, nil
+		case errors.Is(innerErr, engineerrors.ErrSyncingPayloadStatus):
+			ee.metrics.markNewPayloadSyncingPayloadStatus(
+				req.ExecutionPayload.GetBlockHash(),
+				req.ExecutionPayload.GetParentHash(),
+			)
+			// During ProcessProposal, we must be able to verify the
+			// block. Since we do not send a NotifyForkchoiceUpdate
+			// during ProcessProposal, we must retry here until EL is
+			// synced.
+			// TODO: Add way to determine if this is during FinalizeBlock.
+			// During FinalizeBlock, we do not need to verify the block.
+			// We do not need to retry here, as the following call to
+			// NotifyForkchoiceUpdate will inform the EL of the new head
+			// and then wait for it to sync.
+			return nil, innerErr
 
-			lastValidHash, innerErr := ee.ec.NewPayload(
-				ctx,
-				req.ExecutionPayload,
-				req.VersionedHashes,
-				req.ParentBeaconBlockRoot,
+		case errors.IsAny(innerErr, engineerrors.ErrAcceptedPayloadStatus):
+			ee.metrics.markNewPayloadAcceptedPayloadStatus(
+				req.ExecutionPayload.GetBlockHash(),
+				req.ExecutionPayload.GetParentHash(),
+			)
+			// We may treat this status the same as SYNCING.
+			return nil, innerErr
+
+		case errors.Is(innerErr, engineerrors.ErrInvalidPayloadStatus):
+			ee.metrics.markNewPayloadInvalidPayloadStatus(
+				req.ExecutionPayload.GetBlockHash(),
+			)
+			// During payload building, then there is an invalid
+			// payload and should error.
+			// During FinalizeBlock, something is broken because
+			// this should never happen.
+			return nil, backoff.Permanent(innerErr)
+
+		case jsonrpc.IsPreDefinedError(innerErr):
+			// Protect against possible nil value.
+			if lastValidHash == nil {
+				lastValidHash = &common.ExecutionHash{}
+			}
+
+			ee.metrics.markNewPayloadJSONRPCError(
+				req.ExecutionPayload.GetBlockHash(),
+				*lastValidHash,
+				innerErr,
 			)
 
-			// NotifyNewPayload gets called under three circumstances:
-			// 1. ProcessProposal state transition
-			// 2. FinalizeBlock state transition
-			// We'll discriminate error handling based on these.
-			switch {
-			case innerErr == nil:
-				ee.metrics.markNewPayloadValid(
-					req.ExecutionPayload.GetBlockHash(),
-					req.ExecutionPayload.GetParentHash(),
-				)
-				// We've received a valid response, no more retries.
-				return true, nil
-			case errors.Is(innerErr, engineerrors.ErrSyncingPayloadStatus):
-				ee.metrics.markNewPayloadSyncingPayloadStatus(
-					req.ExecutionPayload.GetBlockHash(),
-					req.ExecutionPayload.GetParentHash(),
-				)
-				// During ProcessProposal, we must be able to verify the
-				// block. Since we do not send a NotifyForkchoiceUpdate
-				// during ProcessProposal, we must retry here until EL is
-				// synced.
-				// TODO: Add way to determine if this is during FinalizeBlock.
-				// During FinalizeBlock, we do not need to verify the block.
-				// We do not need to retry here, as the following call to
-				// NotifyForkchoiceUpdate will inform the EL of the new head
-				// and then wait for it to sync.
-				return false, nil
-
-			case errors.IsAny(innerErr, engineerrors.ErrAcceptedPayloadStatus):
-				ee.metrics.markNewPayloadAcceptedPayloadStatus(
-					req.ExecutionPayload.GetBlockHash(),
-					req.ExecutionPayload.GetParentHash(),
-				)
-				// We may treat this status the same as SYNCING.
-				return false, nil
-
-			case errors.Is(innerErr, engineerrors.ErrInvalidPayloadStatus):
-				ee.metrics.markNewPayloadInvalidPayloadStatus(
-					req.ExecutionPayload.GetBlockHash(),
-				)
-				// During payload building, then there is an invalid
-				// payload and should error.
-				// During FinalizeBlock, something is broken because
-				// this should never happen.
-				return false, innerErr
-
-			case jsonrpc.IsPreDefinedError(innerErr):
-				// Protect against possible nil value.
-				if lastValidHash == nil {
-					lastValidHash = &common.ExecutionHash{}
-				}
-
-				ee.metrics.markNewPayloadJSONRPCError(
-					req.ExecutionPayload.GetBlockHash(),
-					*lastValidHash,
-					innerErr,
-				)
-
-				// In all circumstances, always retry on RPC Error.
-				return false, nil
-			default:
-				ee.metrics.markNewPayloadUndefinedError(
-					req.ExecutionPayload.GetBlockHash(),
-					innerErr,
-				)
-				// Retry on unknown errors, we'll log the error and retry.
-				// TODO: discriminate more of these errors:
-				//     RPC Timeout Errors
-				//     Connection Refused Errors
-				//     Erroneous Parsing Errors
-				return false, nil
-			}
-		},
+			// In all circumstances, always retry on RPC Error.
+			return nil, innerErr
+		default:
+			ee.metrics.markNewPayloadUndefinedError(
+				req.ExecutionPayload.GetBlockHash(),
+				innerErr,
+			)
+			// Retry on unknown errors, we'll log the error and retry.
+			// TODO: discriminate more of these errors:
+			//     RPC Timeout Errors
+			//     Connection Refused Errors
+			//     Erroneous Parsing Errors
+			return nil, innerErr
+		}
+	},
 	)
 	return err
 }
