@@ -68,6 +68,7 @@ func (s *DefaultConfiguration) SetupTest() {
 			AuthRPC:     authRPC,
 			Logger:      logger,
 			AppOpts:     viper.New(),
+			Components:  injected.DefaultComponents(s.T()),
 		})
 	s.TestNode = testNode
 }

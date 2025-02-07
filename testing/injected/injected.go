@@ -62,6 +62,7 @@ type TestNodeInput struct {
 	AuthRPC     *url.ConnectionURL
 	Logger      *phuslu.Logger
 	AppOpts     *viper.Viper
+	Components  []any
 }
 
 type TestNode struct {
@@ -96,7 +97,7 @@ func NewTestNode(
 
 	// Build a node
 	nb := nodebuilder.New(
-		nodebuilder.WithComponents[nodetypes.Node](DefaultComponents(t)),
+		nodebuilder.WithComponents[nodetypes.Node](input.Components),
 	)
 	node := nb.Build(
 		input.Logger,

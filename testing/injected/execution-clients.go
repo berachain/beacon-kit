@@ -104,7 +104,10 @@ func (g *gethNode) Start(t *testing.T) (*dockertest.Resource, *url.ConnectionURL
 		if httpErr != nil {
 			return httpErr
 		}
-		resp.Body.Close()
+		readerErr := resp.Body.Close()
+		if readerErr != nil {
+			return readerErr
+		}
 		return nil
 	})
 	require.NoError(t, err)

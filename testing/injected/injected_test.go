@@ -59,14 +59,14 @@ func (s *CustomCometComponent) SetupTest() {
 
 	// Build the Beacon node once we have the auth rpc url
 	logger := phuslu.NewLogger(os.Stdout, nil)
-	appOpts := viper.New()
 	testNode := injected.NewTestNode(s.T(),
 		injected.TestNodeInput{
 			TempHomeDir: tempHomeDir,
 			CometConfig: cometConfig,
 			AuthRPC:     authRPC,
 			Logger:      logger,
-			AppOpts:     appOpts,
+			AppOpts:     viper.New(),
+			Components:  injected.DefaultComponents(s.T()),
 		})
 	s.TestNode = testNode
 }
