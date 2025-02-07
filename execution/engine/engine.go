@@ -123,8 +123,8 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 			default:
 				// All other errors are handled as undefined errors.
 				ee.metrics.markForkchoiceUpdateUndefinedError(innerErr)
-				// We do not know the error, best to report it and return the error.
-				return false, innerErr
+				// Retry on unknown errors, we'll log the error and retry.
+				return false, nil
 			}
 
 			// If we reached here, we have a VALID status and a nil payload ID,
@@ -226,8 +226,8 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 					req.ExecutionPayload.GetBlockHash(),
 					innerErr,
 				)
-				// We do not know the error, best to report it and return the error.
-				return false, innerErr
+				// Retry on unknown errors, we'll log the error and retry.
+				return false, nil
 			default:
 				ee.metrics.markNewPayloadValid(
 					req.ExecutionPayload.GetBlockHash(),
