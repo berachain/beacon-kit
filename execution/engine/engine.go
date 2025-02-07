@@ -35,7 +35,13 @@ import (
 	"github.com/cenkalti/backoff/v5"
 )
 
-const engineAPITimeout = time.Minute * 5
+const (
+	engineAPITimeout             = time.Minute * 5
+	engineAPIInitialInterval     = 50 * time.Millisecond
+	engineAPIRandomizationFactor = 0.5
+	engineAPIMultiplier          = 1.5
+	engineAPIMaxInterval         = 60 * time.Second
+)
 
 // Engine is Beacon-Kit's implementation of the `ExecutionEngine`
 // from the Ethereum 2.0 Specification.
@@ -79,6 +85,14 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 	req *ctypes.ForkchoiceUpdateRequest,
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
 	hasPayloadAttributes := !req.PayloadAttributes.IsNil()
+
+	// Configure backoff.
+	engineAPIBackoff := backoff.ExponentialBackOff{
+		InitialInterval:     engineAPIInitialInterval,
+		RandomizationFactor: engineAPIRandomizationFactor,
+		Multiplier:          engineAPIMultiplier,
+		MaxInterval:         engineAPIMaxInterval,
+	}
 	pID, err := backoff.Retry(ctx, func() (*engineprimitives.PayloadID, error) {
 		// Log the forkchoice update attempt.
 		ee.metrics.markNotifyForkchoiceUpdateCalled(hasPayloadAttributes)
@@ -145,7 +159,7 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 			return nil, innerErr
 		}
 	},
-		backoff.WithBackOff(backoff.NewExponentialBackOff()),
+		backoff.WithBackOff(&engineAPIBackoff),
 		backoff.WithMaxElapsedTime(engineAPITimeout),
 	)
 	if err != nil {
@@ -167,6 +181,14 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 	// new payload?
 	if err := req.HasValidVersionedAndBlockHashes(); err != nil {
 		return err
+	}
+
+	// Configure backoff.
+	engineAPIBackoff := backoff.ExponentialBackOff{
+		InitialInterval:     engineAPIInitialInterval,
+		RandomizationFactor: engineAPIRandomizationFactor,
+		Multiplier:          engineAPIMultiplier,
+		MaxInterval:         engineAPIMaxInterval,
 	}
 
 	// Otherwise we will send the payload to the execution client.
@@ -257,6 +279,8 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 			return nil, innerErr
 		}
 	},
+		backoff.WithBackOff(&engineAPIBackoff),
+		backoff.WithMaxElapsedTime(engineAPITimeout),
 	)
 	return err
 }
