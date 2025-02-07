@@ -64,7 +64,7 @@ func (nb *NodeBuilder[NodeT]) Build(
 	// variables to hold the components needed to set up BeaconApp
 	var (
 		apiBackend interface {
-			AttachQueryBackend(service types.ConsensusService)
+			AttachQueryBackend(types.ConsensusService)
 		}
 		beaconNode NodeT
 		cmtService types.ConsensusService
