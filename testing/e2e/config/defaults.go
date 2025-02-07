@@ -36,6 +36,16 @@ const (
 	ClientValidator4 = "cl-validator-beaconkit-4"
 )
 
+// default network configuration.
+//
+//nolint:gochecknoglobals // it's a default value
+var (
+	// defaultChainID is the default chain ID for the network.
+	defaultChainID = 80087
+	// defaultChainSpec is the default chain spec for the network.
+	defaultChainSpec = "devnet"
+)
+
 // DefaultE2ETestConfig provides a default configuration for end-to-end tests,
 // pre-populating with a standard set of validators and no additional
 // services.
@@ -50,6 +60,8 @@ func DefaultE2ETestConfig() *E2ETestConfig {
 
 func defaultNetworkConfiguration() NetworkConfiguration {
 	return NetworkConfiguration{
+		ChainID:    defaultChainID,
+		ChainSpec:  defaultChainSpec,
 		Validators: defaultValidators(),
 		FullNodes:  defaultFullNodes(),
 		SeedNodes:  defaultSeedNodes(),

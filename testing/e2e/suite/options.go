@@ -20,5 +20,21 @@
 
 package suite
 
-// Option is a functional option for the KurtosisE2ESuite.
+type ChainSpec struct {
+	ChainID uint64
+	Network string
+}
+
+// Option is a function type that modifies suite configuration.
 type Option func(*KurtosisE2ESuite) error
+
+// WithChain adds a chain configuration for a specific test.
+func WithChain(testName string, chainID uint64, network string) Option {
+	return func(s *KurtosisE2ESuite) error {
+		s.RegisterTest(testName, ChainSpec{
+			ChainID: chainID,
+			Network: network,
+		})
+		return nil
+	}
+}

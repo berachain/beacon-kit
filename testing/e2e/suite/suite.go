@@ -22,7 +22,10 @@ package suite
 
 import (
 	"context"
+	"fmt"
+	"sync"
 
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
@@ -40,70 +43,33 @@ var Run = suite.Run
 // KurtosisE2ESuite.
 type KurtosisE2ESuite struct {
 	suite.Suite
-	cfg     *config.E2ETestConfig
-	logger  log.Logger
-	ctx     context.Context
-	kCtx    *kurtosis_context.KurtosisContext
-	enclave *enclaves.EnclaveContext
+	logger log.Logger
+	ctx    context.Context
+	kCtx   *kurtosis_context.KurtosisContext
 
-	// TODO: Figure out what these may be useful for.
+	// Network management
+	networks  map[string]*NetworkInstance // maps chainSpec to network
+	testSpecs map[string]ChainSpec        // maps testName to chainSpec
+	testFuncs map[string]func()           // maps test names to test functions
+	mu        sync.RWMutex
+}
+
+// NetworkInstance represents a single network configuration.
+type NetworkInstance struct {
+	Config           *config.E2ETestConfig
 	consensusClients map[string]*types.ConsensusClient
-	// executionClients map[string]*types.ExecutionClient
-	loadBalancer *types.LoadBalancer
-
-	genesisAccount *types.EthAccount
-	testAccounts   []*types.EthAccount
+	loadBalancer     *types.LoadBalancer
+	genesisAccount   *types.EthAccount
+	testAccounts     []*types.EthAccount
+	enclave          *enclaves.EnclaveContext
 }
 
-// ConsensusClients returns the consensus clients associated with the
-// KurtosisE2ESuite.
-func (
-	s *KurtosisE2ESuite,
-) ConsensusClients() map[string]*types.ConsensusClient {
-	return s.consensusClients
-}
-
-// Ctx returns the context associated with the KurtosisE2ESuite.
-// This context is used throughout the suite to control the flow of operations,
-// including timeouts and cancellations.
-func (s *KurtosisE2ESuite) Ctx() context.Context {
-	return s.ctx
-}
-
-// Enclave returns the enclave running the beacon-kit network.
-func (s *KurtosisE2ESuite) Enclave() *enclaves.EnclaveContext {
-	return s.enclave
-}
-
-// Config returns the E2ETestConfig associated with the KurtosisE2ESuite.
-func (s *KurtosisE2ESuite) Config() *config.E2ETestConfig {
-	return s.cfg
-}
-
-// KurtosisCtx returns the KurtosisContext associated with the KurtosisE2ESuite.
-// The KurtosisContext is a critical component that facilitates interaction with
-// the Kurtosis testnet, including creating and managing enclaves.
-func (s *KurtosisE2ESuite) KurtosisCtx() *kurtosis_context.KurtosisContext {
-	return s.kCtx
-}
-
-// ExecutionClients returns the execution clients associated with the
-// KurtosisE2ESuite.
-func (
-	s *KurtosisE2ESuite,
-) ExecutionClients() map[string]*types.ExecutionClient {
-	return nil
-}
-
-// JSONRPCBalancer returns the JSON-RPC balancer for the test suite.
-func (s *KurtosisE2ESuite) JSONRPCBalancer() *types.LoadBalancer {
-	return s.loadBalancer
-}
-
-// JSONRPCBalancerType returns the type of the JSON-RPC balancer
-// for the test suite.
-func (s *KurtosisE2ESuite) JSONRPCBalancerType() string {
-	return s.cfg.EthJSONRPCEndpoints[0].Type
+// NewNetworkInstance creates a new network instance.
+func NewNetworkInstance(cfg *config.E2ETestConfig) *NetworkInstance {
+	return &NetworkInstance{
+		Config:           cfg,
+		consensusClients: make(map[string]*types.ConsensusClient),
+	}
 }
 
 // Logger returns the logger for the test suite.
@@ -111,12 +77,87 @@ func (s *KurtosisE2ESuite) Logger() log.Logger {
 	return s.logger
 }
 
-// GenesisAccount returns the genesis account for the test suite.
-func (s *KurtosisE2ESuite) GenesisAccount() *types.EthAccount {
-	return s.genesisAccount
+// RunTestsByChainSpec runs all tests for each chain spec.
+func (s *KurtosisE2ESuite) RunTestsByChainSpec() {
+	s.Logger().Info("RunTestsByChainSpec", "testSpecs", s.testSpecs)
+	// Group tests by chain spec
+	testsBySpec := make(map[string][]string)
+	for testName, spec := range s.testSpecs {
+		chainKey := fmt.Sprintf("%d-%s", spec.ChainID, spec.Network)
+		testsBySpec[chainKey] = append(testsBySpec[chainKey], testName)
+	}
+
+	// For each chain spec
+	for chainKey, tests := range testsBySpec {
+		s.Logger().Info("Setting up network for chain spec", "chainKey", chainKey)
+
+		// Initialize network for this chain spec
+		network := s.networks[chainKey]
+		if err := s.InitializeNetwork(network); err != nil {
+			s.T().Fatalf("Failed to initialize network for %s: %v", chainKey, err)
+		}
+
+		// Run all tests for this chain spec
+		for _, testName := range tests {
+			s.Logger().Info("Running test", "test", testName)
+			s.Run(testName, func() {
+				fn, ok := s.testFuncs[testName]
+				if !ok {
+					s.T().Errorf("Test method %s not found", testName)
+					return
+				}
+				fn()
+			})
+		}
+
+		// Clean up network after all tests for this chain spec are done
+		if err := s.CleanupNetwork(network); err != nil {
+			s.Logger().Error("Failed to cleanup network", "error", err)
+		}
+	}
 }
 
-// TestAccounts returns the test accounts for the test suite.
-func (s *KurtosisE2ESuite) TestAccounts() []*types.EthAccount {
-	return s.testAccounts
+// InitializeNetwork sets up a network using the provided configuration.
+func (s *KurtosisE2ESuite) InitializeNetwork(network *NetworkInstance) error {
+	if network == nil {
+		return errors.New("network instance cannot be nil")
+	}
+
+	if err := s.setupEnclave(network); err != nil {
+		return fmt.Errorf("failed to setup enclave: %w", err)
+	}
+
+	if err := s.setupConsensusClients(network); err != nil {
+		return fmt.Errorf("failed to setup consensus clients: %w", err)
+	}
+
+	if err := s.setupLoadBalancer(network); err != nil {
+		return fmt.Errorf("failed to setup load balancer: %w", err)
+	}
+
+	if err := s.setupAccounts(network); err != nil {
+		return fmt.Errorf("failed to setup accounts: %w", err)
+	}
+
+	return nil
+}
+
+// CleanupNetwork cleans up the network resources.
+func (s *KurtosisE2ESuite) CleanupNetwork(network *NetworkInstance) error {
+	if network == nil || len(network.consensusClients) == 0 {
+		// Network already cleaned up
+		s.Logger().Info("Network is nil, skipping cleanup")
+		return nil
+	}
+
+	if err := s.stopConsensusClients(network); err != nil {
+		s.Logger().Error("Failed to stop consensus clients", "error", err)
+		// Continue with cleanup even if consensus clients fail to stop
+	}
+
+	if err := s.destroyEnclave(network); err != nil {
+		return fmt.Errorf("failed to destroy enclave: %w", err)
+	}
+
+	return nil
 }

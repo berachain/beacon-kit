@@ -57,7 +57,11 @@ type ValidatorTestStruct struct {
 // TODO:
 // 1) Add staking tests for adding a new validator to the network.
 // 2) Add staking tests for hitting the validator set cap and eviction.
-func (s *BeaconKitE2ESuite) TestDepositRobustness() {
+func (s *BeaconKitE2ESuite) runDepositRobustness() {
+	s.Logger().Info("Running Deposit Robustness")
+	// Get the current network
+	network := s.GetCurrentNetwork()
+	s.Require().NotNil(network, "Network instance is nil")
 	// TODO: make test use configurable chain spec.
 	chainspec, err := spec.DevnetChainSpec()
 	s.Require().NoError(err)
@@ -80,7 +84,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	)
 
 	// Get the chain ID.
-	chainID, err := s.JSONRPCBalancer().ChainID(s.Ctx())
+	chainID, err := network.JSONRPCBalancer().ChainID(s.Ctx())
 	s.Require().NoError(err)
 
 	// Get the chain spec used by the e2e nodes. TODO: make configurable.
@@ -90,7 +94,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	// Bind the deposit contract.
 	depositContractAddress := gethcommon.Address(chainSpec.DepositContractAddress())
 
-	dc, err := deposit.NewDepositContract(depositContractAddress, s.JSONRPCBalancer())
+	dc, err := deposit.NewDepositContract(depositContractAddress, network.JSONRPCBalancer())
 	s.Require().NoError(err)
 
 	// Enforce the deposit count at genesis is equal to the number of validators.
@@ -139,7 +143,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 		s.Require().NotNil(val.Validator)
 		creds := [32]byte(val.Validator.WithdrawalCredentials)
 		withdrawalAddress := gethcommon.Address(creds[12:])
-		withdrawalBalance, jErr := s.JSONRPCBalancer().BalanceAt(s.Ctx(), withdrawalAddress, nil)
+		withdrawalBalance, jErr := network.JSONRPCBalancer().BalanceAt(s.Ctx(), withdrawalAddress, nil)
 		s.Require().NoError(jErr)
 
 		// Populate the validators testing struct so we can keep track of the pre-state.
@@ -155,24 +159,27 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	}
 
 	// Sender account
-	sender := s.TestAccounts()[0]
+	accounts := s.GetAccounts()
+	s.Require().NotNil(accounts, "Test accounts are nil")
+	s.Require().NotEmpty(accounts, "No test accounts available")
+
+	sender := accounts[0]
 
 	// Get the block num
-	blkNum, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
+	blkNum, err := network.JSONRPCBalancer().BlockNumber(s.Ctx())
 	s.Require().NoError(err)
 
 	// Get original evm balance
-	balance, err := s.JSONRPCBalancer().BalanceAt(
+	balance, err := network.JSONRPCBalancer().BalanceAt(
 		s.Ctx(), sender.Address(), new(big.Int).SetUint64(blkNum),
 	)
 	s.Require().NoError(err)
 
 	// Get the nonce.
-	nonce, err := s.JSONRPCBalancer().NonceAt(
+	nonce, err := network.JSONRPCBalancer().NonceAt(
 		s.Ctx(), sender.Address(), new(big.Int).SetUint64(blkNum),
 	)
 	s.Require().NoError(err)
-
 	var (
 		tx           *coretypes.Transaction
 		clientPubkey []byte
@@ -214,13 +221,13 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 		"Waiting for the final deposit tx to be mined",
 		"num", NumDepositsLoad, "hash", tx.Hash().Hex(),
 	)
-	receipt, err := bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
+	receipt, err := bind.WaitMined(s.Ctx(), network.JSONRPCBalancer(), tx)
 	s.Require().NoError(err)
 	s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
 	s.Logger().Info("Final deposit tx mined successfully", "hash", receipt.TxHash.Hex())
 
 	// Give time for the nodes to catch up.
-	err = s.WaitForNBlockNumbers(NumDepositsLoad / chainspec.MaxDepositsPerBlock())
+	err = s.WaitForNBlockNumbers(network, NumDepositsLoad/chainspec.MaxDepositsPerBlock())
 	s.Require().NoError(err)
 
 	// Compare height of nodes 0 and 1
@@ -231,7 +238,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	s.Require().InDelta(height.Response.LastBlockHeight, height2.Response.LastBlockHeight, 1)
 
 	// Check to see if evm balance decreased.
-	postDepositBalance, err := s.JSONRPCBalancer().BalanceAt(s.Ctx(), sender.Address(), nil)
+	postDepositBalance, err := network.JSONRPCBalancer().BalanceAt(s.Ctx(), sender.Address(), nil)
 	s.Require().NoError(err)
 
 	// Check that the eth spent is somewhere~ (gas) between
@@ -246,11 +253,11 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	// Check that all validators' voting power have increased by
 	// (NumDepositsLoad / NumValidators) * depositAmountWei
 	// after the end of the epoch (next multiple of SlotsPerEpoch after receipt.BlockNumber).
-	blkNum, err = s.JSONRPCBalancer().BlockNumber(s.Ctx())
+	blkNum, err = network.JSONRPCBalancer().BlockNumber(s.Ctx())
 	s.Require().NoError(err)
 	nextEpoch := chainspec.SlotToEpoch(math.Slot(blkNum)) + 1
 	nextEpochBlockNum := nextEpoch.Unwrap() * chainspec.SlotsPerEpoch()
-	err = s.WaitForFinalizedBlockNumber(nextEpochBlockNum + 1)
+	err = s.WaitForFinalizedBlockNumber(network, nextEpochBlockNum+1)
 	s.Require().NoError(err)
 
 	increaseAmt := new(big.Int).Mul(depositAmountGwei, big.NewInt(int64(NumDepositsLoad/config.NumValidators)))
@@ -264,7 +271,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 
 		// withdrawal balance is in Wei, so we'll convert it to Gwei.
 		withdrawalAddress := gethcommon.Address(val.WithdrawalCredentials[12:])
-		withdrawalBalanceAfter, jErr := s.JSONRPCBalancer().BalanceAt(s.Ctx(), withdrawalAddress, nil)
+		withdrawalBalanceAfter, jErr := network.JSONRPCBalancer().BalanceAt(s.Ctx(), withdrawalAddress, nil)
 		s.Require().NoError(jErr)
 		withdrawalDiff := new(big.Int).Sub(withdrawalBalanceAfter, val.WithdrawalBalance)
 		withdrawalDiff.Div(withdrawalDiff, weiPerGwei)

@@ -28,13 +28,18 @@ import (
 
 // TestBeaconAPISuite tests that the api test suite is setup correctly with a
 // working beacon node-api client.
-func (s *BeaconKitE2ESuite) TestBeaconAPIStartup() {
+func (s *BeaconKitE2ESuite) runBeaconAPIStartup() {
+	s.Logger().Info("Running BeaconAPIStartup")
+	// Get the current network instance
+	network := s.GetCurrentNetwork()
+	s.Require().NotNil(network, "Network instance is nil")
+
 	// Wait for execution block 5.
-	err := s.WaitForFinalizedBlockNumber(5)
+	err := s.WaitForFinalizedBlockNumber(network, 5)
 	s.Require().NoError(err)
 
 	// Get the consensus client.
-	client := s.ConsensusClients()[config.ClientValidator0]
+	client := network.ConsensusClients()[config.ClientValidator0]
 	s.Require().NotNil(client)
 
 	// Ensure the state root is not nil.

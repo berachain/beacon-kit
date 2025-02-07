@@ -40,6 +40,10 @@ type E2ETestConfig struct {
 }
 
 type NetworkConfiguration struct {
+	// ChainID specifies the chain ID for the network.
+	ChainID int `json:"chain_id"`
+	// ChainSpec specifies the chain spec for the network.
+	ChainSpec string `json:"chain_spec"`
 	// Validators lists the configurations for each validator in the test.
 	Validators NodeSet `json:"validators"`
 	// FullNodes specifies the number of full nodes to include in the test.
