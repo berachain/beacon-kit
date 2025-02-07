@@ -26,7 +26,6 @@ import (
 	"cosmossdk.io/depinject"
 	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	"github.com/berachain/beacon-kit/config"
-	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/types"
 	cmtcfg "github.com/cometbft/cometbft/config"
@@ -65,10 +64,10 @@ func (nb *NodeBuilder[NodeT]) Build(
 	// variables to hold the components needed to set up BeaconApp
 	var (
 		apiBackend interface {
-			AttachQueryBackend(*cometbft.Service)
+			AttachQueryBackend(types.ConsensusService)
 		}
 		beaconNode NodeT
-		cmtService *cometbft.Service
+		cmtService types.ConsensusService
 		config     *config.Config
 	)
 
