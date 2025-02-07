@@ -93,8 +93,8 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 		)
 
 	case errors.IsAny(err, engineerrors.ErrSyncingPayloadStatus):
-		// We do not bubble the error up, since we want to handle it
-		// in the same way as the other cases.
+		// We bubble up syncing as an error, to be able to stop
+		// bootstrapping from progressing in CL while EL is syncing.
 		ee.metrics.markForkchoiceUpdateSyncing(req.State, err)
 		return nil, nil, err
 
