@@ -24,6 +24,7 @@ import (
 	"context"
 
 	service "github.com/berachain/beacon-kit/node-core/services/registry"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Node defines the API for the node application.
@@ -35,4 +36,16 @@ type Node interface {
 
 	// FetchService allows us to retrieve the various node services, which is useful in testing
 	FetchService(interface{}) error
+}
+
+// ConsensusService defines everything we utilise externally from CometBFT.
+type ConsensusService interface {
+	Start(ctx context.Context) error
+	Stop() error
+	Name() string
+	CreateQueryContext(
+		height int64,
+		prove bool,
+	) (sdk.Context, error)
+	LastBlockHeight() int64
 }
