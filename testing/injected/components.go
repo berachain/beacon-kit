@@ -27,7 +27,13 @@ import (
 )
 
 // DefaultComponents requires testing.T to avoid accidental misuse.
-func DefaultComponents(_ *testing.T) []any {
+func DefaultComponents(t *testing.T) []any {
+	c := FixedComponents(t)
+	c = append(c, components.ProvideCometBFTService)
+	return c
+}
+
+func FixedComponents(_ *testing.T) []any {
 	c := []any{
 		components.ProvideAttributesFactory,
 		components.ProvideAvailabilityStore,
@@ -47,7 +53,6 @@ func DefaultComponents(_ *testing.T) []any {
 		components.ProvideJWTSecret,
 		components.ProvideLocalBuilder,
 		components.ProvideReportingService,
-		components.ProvideCometBFTService,
 		components.ProvideServiceRegistry,
 		components.ProvideSidecarFactory,
 		components.ProvideStateProcessor,
@@ -74,6 +79,5 @@ func DefaultComponents(_ *testing.T) []any {
 		components.ProvideNodeAPINodeHandler,
 		components.ProvideNodeAPIProofHandler,
 	)
-
 	return c
 }

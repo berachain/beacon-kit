@@ -37,7 +37,7 @@ type gethNode struct {
 	image   docker.PullImageOptions
 }
 
-// NewGethNode returns interface to avoid direct access to the concrete type in tests.
+// TODO: Fix the return.
 func NewGethNode(homeDir string, image docker.PullImageOptions) ExecutionClient {
 	return &gethNode{homeDir, image}
 }
