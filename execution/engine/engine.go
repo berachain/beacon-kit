@@ -83,7 +83,7 @@ func (ee *Engine) GetPayload(
 func (ee *Engine) NotifyForkchoiceUpdate(
 	ctx context.Context,
 	req *ctypes.ForkchoiceUpdateRequest,
-) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
+) (*engineprimitives.PayloadID, error) {
 	hasPayloadAttributes := !req.PayloadAttributes.IsNil()
 
 	// Configure backoff.
@@ -164,13 +164,15 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 		backoff.WithMaxElapsedTime(engineAPITimeout),
 	)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	return pID, nil, nil
+	return pID, nil
 }
 
 // NotifyNewPayload notifies the execution client of the new payload.
+//
+//nolint:funlen // Lots of comments.
 func (ee *Engine) NotifyNewPayload(
 	ctx context.Context,
 	req *ctypes.NewPayloadRequest,
