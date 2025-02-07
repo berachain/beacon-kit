@@ -61,7 +61,10 @@ func (s *Service) sendPostBlockFCU(
 		),
 	)
 	if err != nil {
-		return fmt.Errorf("failed sending forkchoice update without attributes: %w", err)
+		return fmt.Errorf("failed forkchoice update, head %s: %w",
+			lph.GetBlockHash().String(),
+			err,
+		)
 	}
 	return nil
 }
