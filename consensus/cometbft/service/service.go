@@ -52,18 +52,6 @@ const (
 	appName           string = "beacond"
 )
 
-// ConsensusService defines everything we utilise externally from CometBFT.
-type ConsensusService interface {
-	Start(ctx context.Context) error
-	Stop() error
-	Name() string
-	CreateQueryContext(
-		height int64,
-		prove bool,
-	) (sdk.Context, error)
-	LastBlockHeight() int64
-}
-
 type Service struct {
 	node *node.Node
 

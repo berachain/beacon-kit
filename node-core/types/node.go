@@ -24,6 +24,7 @@ import (
 	"context"
 
 	"cosmossdk.io/store"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Node defines the API for the node application.
@@ -36,4 +37,16 @@ type Node interface {
 
 	// TODO: FIX, HACK TO MAKE CLI HAPPY FOR NOW.
 	CommitMultiStore() store.CommitMultiStore
+}
+
+// ConsensusService defines everything we utilise externally from CometBFT.
+type ConsensusService interface {
+	Start(ctx context.Context) error
+	Stop() error
+	Name() string
+	CreateQueryContext(
+		height int64,
+		prove bool,
+	) (sdk.Context, error)
+	LastBlockHeight() int64
 }

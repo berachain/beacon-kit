@@ -22,8 +22,8 @@ package backend
 
 import (
 	"github.com/berachain/beacon-kit/chain"
-	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
+	"github.com/berachain/beacon-kit/node-core/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
@@ -35,7 +35,7 @@ import (
 type Backend struct {
 	sb   *storage.Backend
 	cs   chain.Spec
-	node cometbft.ConsensusService
+	node types.ConsensusService
 	sp   StateProcessor
 }
 
@@ -54,7 +54,7 @@ func New(
 
 // AttachQueryBackend sets the node on the backend for
 // querying historical heights.
-func (b *Backend) AttachQueryBackend(node cometbft.ConsensusService) {
+func (b *Backend) AttachQueryBackend(node types.ConsensusService) {
 	b.node = node
 }
 
