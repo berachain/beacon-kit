@@ -24,6 +24,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/berachain/beacon-kit/primitives/transition"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/sourcegraph/conc/iter"
 )
@@ -73,28 +74,44 @@ func (s *Service) finalizeBlockInternal(
 		}
 	}
 
-	finalizeBlock, err := s.Blockchain.FinalizeBlock(
-		s.finalizeBlockState.Context(),
-		req,
-	)
-	if err != nil {
+	finalizeCh := make(chan transition.ValidatorUpdates, 1)
+	defer close(finalizeCh)
+	errCh := make(chan error, 1)
+	defer close(errCh)
+
+	go func() {
+		finalizeBlock, err := s.Blockchain.FinalizeBlock(
+			s.finalizeBlockState.Context(),
+			req,
+		)
+		if err != nil {
+			errCh <- err
+		}
+		finalizeCh <- finalizeBlock
+	}()
+
+	select {
+	case <-ctx.Done():
+		s.logger.Warn("finalize_block: ctx done")
+		return nil, ctx.Err()
+	case <-s.ctx.Done():
+		s.logger.Warn("finalize_block: s.ctx.Done")
+		return nil, s.ctx.Err()
+	case finalizeBlock := <-finalizeCh:
+		valUpdates, err := iter.MapErr(finalizeBlock, convertValidatorUpdate[cmtabci.ValidatorUpdate])
+		if err != nil {
+			return nil, err
+		}
+
+		cp := s.cmtConsensusParams.ToProto()
+		return &cmtabci.FinalizeBlockResponse{
+			TxResults:             txResults,
+			ValidatorUpdates:      valUpdates,
+			ConsensusParamUpdates: &cp,
+		}, nil
+	case err := <-errCh:
 		return nil, err
 	}
-
-	valUpdates, err := iter.MapErr(
-		finalizeBlock,
-		convertValidatorUpdate[cmtabci.ValidatorUpdate],
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	cp := s.cmtConsensusParams.ToProto()
-	return &cmtabci.FinalizeBlockResponse{
-		TxResults:             txResults,
-		ValidatorUpdates:      valUpdates,
-		ConsensusParamUpdates: &cp,
-	}, nil
 }
 
 // workingHash gets the apphash that will be finalized in commit.
