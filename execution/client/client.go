@@ -209,5 +209,19 @@ func (s *EngineClient) verifyChainIDAndConnection(
 		s.logger.Error("failed to exchange capabilities", "err", err)
 		return err
 	}
+
+	// Check if Geth client is v1.15 and panic if it is since we don't support it yet.
+	//
+	// TODO: Remove this check once we support Geth v1.15.
+	if s.HasCapability(ethclient.GetClientVersionV1) {
+		info, err2 := s.Client.GetClientVersionV1(ctx)
+		if err2 != nil {
+			return err2
+		}
+		if info[0].Name == "go-ethereum" && strings.HasPrefix(info[0].Version, "1.15") {
+			panic("Version 1.15 of go-ethereum is not supported, please use 1.14.13 or newer")
+		}
+	}
+
 	return nil
 }
