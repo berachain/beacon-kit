@@ -65,22 +65,36 @@ func (s *Service) prepareProposal(
 		req.GetTime(),
 	)
 
-	//nolint:contextcheck // ctx already passed via resetState
-	blkBz, sidecarsBz, err := s.BlockBuilder.BuildBlockAndSidecars(
-		s.prepareProposalState.Context(),
-		slotData,
-	)
-	if err != nil {
-		s.logger.Error(
-			"failed to prepare proposal",
-			"height", req.Height,
-			"time", req.Time,
-			"err", err,
-		)
-		return &cmtabci.PrepareProposalResponse{Txs: [][]byte{}}, nil
+	// temporary struct to hold the result of the block building goroutine
+	type result struct {
+		blkBz      []byte
+		sidecarsBz []byte
+		err        error
 	}
 
-	return &cmtabci.PrepareProposalResponse{
-		Txs: [][]byte{blkBz, sidecarsBz},
-	}, nil
+	resultCh := make(chan result, 1)
+	defer close(resultCh)
+
+	// run block building in a goroutine
+	//
+	//nolint:contextcheck // ctx already passed via resetState
+	go func() {
+		blkBz, sidecarsBz, err := s.BlockBuilder.BuildBlockAndSidecars(s.prepareProposalState.Context(), slotData)
+		resultCh <- result{blkBz, sidecarsBz, err}
+	}()
+
+	select {
+	case <-ctx.Done():
+		s.logger.Warn("prepare_proposal: context done")
+		return nil, ctx.Err()
+	case <-s.ctx.Done():
+		s.logger.Warn("prepare_proposal: s.ctx.Done")
+		return nil, s.ctx.Err()
+	case r := <-resultCh:
+		if r.err != nil {
+			s.logger.Error("failed to prepare proposal", "height", req.Height, "time", req.Time, "err", r.err)
+			return &cmtabci.PrepareProposalResponse{Txs: req.Txs}, nil
+		}
+		return &cmtabci.PrepareProposalResponse{Txs: [][]byte{r.blkBz, r.sidecarsBz}}, nil
+	}
 }
