@@ -30,7 +30,7 @@ import (
 
 // SetPruning sets a pruning option on the multistore associated with the s.
 func SetPruning(opts pruningtypes.PruningOptions) func(*Service) {
-	return func(bs *Service) { bs.sm.CommitMultiStore().SetPruning(opts) }
+	return func(bs *Service) { bs.sm.GetCommitMultiStore().SetPruning(opts) }
 }
 
 // SetMinRetainBlocks returns a Service option function that sets the minimum
@@ -44,7 +44,7 @@ func SetMinRetainBlocks(minRetainBlocks uint64) func(*Service) {
 // IAVL cache.
 func SetIAVLCacheSize(size int) func(*Service) {
 	return func(bs *Service) {
-		bs.sm.CommitMultiStore().SetIAVLCacheSize(size)
+		bs.sm.GetCommitMultiStore().SetIAVLCacheSize(size)
 	}
 }
 
@@ -52,7 +52,7 @@ func SetIAVLCacheSize(size int) func(*Service) {
 // IAVL store.
 func SetIAVLDisableFastNode(disable bool) func(*Service) {
 	return func(bs *Service) {
-		bs.sm.CommitMultiStore().SetIAVLDisableFastNode(disable)
+		bs.sm.GetCommitMultiStore().SetIAVLDisableFastNode(disable)
 	}
 }
 

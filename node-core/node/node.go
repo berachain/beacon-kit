@@ -26,6 +26,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"cosmossdk.io/store"
 	"github.com/berachain/beacon-kit/log"
 	service "github.com/berachain/beacon-kit/node-core/services/registry"
 	"github.com/berachain/beacon-kit/node-core/types"
@@ -41,17 +42,18 @@ type node struct {
 	logger log.Logger
 	// registry is the node's service registry.
 	registry *service.Registry
-
-	// TODO: FIX, HACK TO MAKE CLI HAPPY FOR NOW.
-	// THIS SHOULD BE REMOVED EVENTUALLY.
-	types.Node
 }
 
 // New returns a new node.
 func New[NodeT types.Node](
 	registry *service.Registry, logger log.Logger) NodeT {
+	n := &node{
+		registry: registry,
+		logger:   logger,
+	}
+
 	//nolint:errcheck // should be safe
-	return types.Node(&node{registry: registry, logger: logger}).(NodeT)
+	return types.Node(n).(NodeT)
 }
 
 // Start starts the node.
@@ -123,4 +125,8 @@ func (n *node) listenForQuitSignals(
 	} else {
 		go f()
 	}
+}
+
+func (n *node) CommitMultiStore() store.CommitMultiStore {
+	return n.registry.CommitMultiStore()
 }

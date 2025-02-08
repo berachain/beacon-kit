@@ -49,7 +49,7 @@ import (
 
 const (
 	initialAppVersion uint64 = 0
-	appName           string = "beacond"
+	AppName           string = "beacond"
 )
 
 type Service struct {
@@ -135,7 +135,7 @@ func NewService(
 	}
 
 	if s.interBlockCache != nil {
-		s.sm.CommitMultiStore().SetInterBlockCache(s.interBlockCache)
+		s.sm.GetCommitMultiStore().SetInterBlockCache(s.interBlockCache)
 	}
 
 	// Load latest height, once all stores have been set
@@ -222,12 +222,13 @@ func (s *Service) Stop() error {
 
 // Name returns the name of the cometbft.
 func (s *Service) Name() string {
-	return appName
+	return AppName
 }
 
 // CommitMultiStore returns the CommitMultiStore of the cometbft.
+// This needs to be exposed because it is used by commands like Rollback.
 func (s *Service) CommitMultiStore() storetypes.CommitMultiStore {
-	return s.sm.CommitMultiStore()
+	return s.sm.GetCommitMultiStore()
 }
 
 // AppVersion returns the application's protocol version.
@@ -246,12 +247,12 @@ func (s *Service) MountStore(
 	key storetypes.StoreKey,
 	typ storetypes.StoreType,
 ) {
-	s.sm.CommitMultiStore().MountStoreWithDB(key, typ, nil)
+	s.sm.GetCommitMultiStore().MountStoreWithDB(key, typ, nil)
 }
 
 // LastBlockHeight returns the last committed block height.
 func (s *Service) LastBlockHeight() int64 {
-	return s.sm.CommitMultiStore().LastCommitID().Version
+	return s.sm.GetCommitMultiStore().LastCommitID().Version
 }
 
 func (s *Service) setMinRetainBlocks(minRetainBlocks uint64) {
@@ -269,7 +270,7 @@ func (s *Service) setInterBlockCache(
 // A state is explicitly returned to avoid false positives from
 // nilaway tool.
 func (s *Service) resetState(ctx context.Context) *state {
-	ms := s.sm.CommitMultiStore().CacheMultiStore()
+	ms := s.sm.GetCommitMultiStore().CacheMultiStore()
 
 	newCtx := sdk.NewContext(
 		ms,
@@ -330,12 +331,12 @@ func (s *Service) CreateQueryContext(
 	prove bool,
 ) (sdk.Context, error) {
 	// use custom query multi-store if provided
-	lastBlockHeight := s.sm.CommitMultiStore().LatestVersion()
+	lastBlockHeight := s.sm.GetCommitMultiStore().LatestVersion()
 	if lastBlockHeight == 0 {
 		return sdk.Context{}, errorsmod.Wrapf(
 			sdkerrors.ErrInvalidHeight,
 			"%s is not ready; please wait for first block",
-			appName,
+			AppName,
 		)
 	}
 
@@ -360,7 +361,7 @@ func (s *Service) CreateQueryContext(
 			)
 	}
 
-	cacheMS, err := s.sm.CommitMultiStore().CacheMultiStoreWithVersion(height)
+	cacheMS, err := s.sm.GetCommitMultiStore().CacheMultiStoreWithVersion(height)
 	if err != nil {
 		return sdk.Context{},
 			errorsmod.Wrapf(
