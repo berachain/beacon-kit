@@ -28,12 +28,14 @@ import (
 
 // DefaultComponents requires testing.T to avoid accidental misuse.
 func DefaultComponents(t *testing.T) []any {
+	t.Helper()
 	c := FixedComponents(t)
 	c = append(c, components.ProvideCometBFTService)
 	return c
 }
 
-func FixedComponents(_ *testing.T) []any {
+func FixedComponents(t *testing.T) []any {
+	t.Helper()
 	c := []any{
 		components.ProvideAttributesFactory,
 		components.ProvideAvailabilityStore,

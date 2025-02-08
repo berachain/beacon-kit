@@ -27,7 +27,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/cli/commands/genesis"
 	"github.com/berachain/beacon-kit/cli/commands/initialize"
 	"github.com/berachain/beacon-kit/cli/flags"
@@ -65,16 +64,10 @@ type TestNodeInput struct {
 	Components  []any
 }
 
-type TestNode struct {
-	Node              nodetypes.Node
-	CometService      *cometbft.Service
-	BlockchainService *blockchain.Service
-}
-
 type TestSuiteHandle struct {
 	Ctx        context.Context
 	CancelFunc context.CancelFunc
-	TestNode   *TestNode
+	TestNode   nodetypes.Node
 
 	// Geth dockertest handles for closing
 	ElHandle *dockertest.Resource
@@ -84,7 +77,7 @@ type TestSuiteHandle struct {
 func NewTestNode(
 	t *testing.T,
 	input TestNodeInput,
-) *TestNode {
+) nodetypes.Node {
 	t.Helper()
 
 	beaconKitConfig := createBeaconKitConfig(t)
@@ -106,23 +99,7 @@ func NewTestNode(
 		input.CometConfig,
 		appOpts,
 	)
-
-	// Fetch services we will want to query and interact with so they are easily accessible in testing
-	var cometService *cometbft.Service
-	err = node.FetchService(&cometService)
-	require.NoError(t, err)
-	require.NotNil(t, cometService)
-
-	var blockchainService *blockchain.Service
-	err = node.FetchService(&blockchainService)
-	require.NoError(t, err)
-	require.NotNil(t, blockchainService)
-
-	return &TestNode{
-		Node:              node,
-		CometService:      cometService,
-		BlockchainService: blockchainService,
-	}
+	return node
 }
 
 func InitializeHomeDir(t *testing.T, tempHomeDir string) *cmtcfg.Config {

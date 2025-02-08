@@ -26,6 +26,7 @@ import (
 	"testing"
 	"time"
 
+	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/testing/injected"
 	"github.com/spf13/viper"
@@ -35,6 +36,7 @@ import (
 type DefaultConfiguration struct {
 	suite.Suite
 	injected.TestSuiteHandle
+	CometService *cometbft.Service
 }
 
 // TestDefaultConfiguration is a test suite with the default configurations as we would normally build beacond
@@ -71,6 +73,13 @@ func (s *DefaultConfiguration) SetupTest() {
 			Components:  injected.DefaultComponents(s.T()),
 		})
 	s.TestNode = testNode
+
+	// Fetch services we will want to query and interact with so they are easily accessible in testing
+	var cometService *cometbft.Service
+	err := testNode.FetchService(&cometService)
+	s.Require().NoError(err)
+	s.NotNil(cometService)
+	s.CometService = cometService
 }
 
 func (s *DefaultConfiguration) TearDownTest() {
@@ -84,11 +93,11 @@ func (s *DefaultConfiguration) TearDownTest() {
 func (s *DefaultConfiguration) TestDriverWorks() {
 	go func() {
 		// Node blocks on Start and hence we have to run in separate routine
-		if err := s.TestNode.Node.Start(s.Ctx); err != nil {
+		if err := s.TestNode.Start(s.Ctx); err != nil {
 			s.T().Error(err)
 		}
 	}()
 	<-time.After(30 * time.Second)
 	minimumBlockHeight := int64(2)
-	s.Greater(s.TestNode.CometService.LastBlockHeight(), minimumBlockHeight)
+	s.Greater(s.CometService.LastBlockHeight(), minimumBlockHeight)
 }

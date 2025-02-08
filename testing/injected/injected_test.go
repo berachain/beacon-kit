@@ -25,6 +25,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/testing/injected"
 	"github.com/spf13/viper"
@@ -34,6 +35,8 @@ import (
 type CustomCometComponent struct {
 	suite.Suite
 	injected.TestSuiteHandle
+	CometService      *injected.NoopCometService
+	BlockchainService *blockchain.Service
 }
 
 // TestCustomCometComponent is a test suite with a custom comet driver can can control ourselves
@@ -60,7 +63,8 @@ func (s *CustomCometComponent) SetupTest() {
 	// Build the Beacon node once we have the auth rpc url
 	logger := phuslu.NewLogger(os.Stdout, nil)
 
-	components := injected.DefaultComponents(s.T())
+	components := injected.FixedComponents(s.T())
+	components = append(components, injected.ProvideNoopCometService)
 
 	testNode := injected.NewTestNode(s.T(),
 		injected.TestNodeInput{
@@ -72,6 +76,19 @@ func (s *CustomCometComponent) SetupTest() {
 			Components:  components,
 		})
 	s.TestNode = testNode
+
+	// Fetch services we will want to query and interact with so they are easily accessible in testing
+	var cometService *injected.NoopCometService
+	err := testNode.FetchService(&cometService)
+	s.Require().NoError(err)
+	s.NotNil(cometService)
+	s.CometService = cometService
+
+	var blockchainService *blockchain.Service
+	err = testNode.FetchService(&blockchainService)
+	s.Require().NoError(err)
+	s.NotNil(blockchainService)
+	s.BlockchainService = blockchainService
 }
 
 func (s *CustomCometComponent) TearDownTest() {
@@ -83,6 +100,14 @@ func (s *CustomCometComponent) TearDownTest() {
 }
 
 func (s *CustomCometComponent) TestDriverWorks() {
+	// go func() {
+	//	// Node blocks on Start and hence we have to run in separate routine
+	//	if err := s.TestNode.Node.Start(s.Ctx); err != nil {
+	//		s.T().Error(err)
+	//	}
+	// }()
+	// <-time.After(30 * time.Second)
+	// s.TestNode.CometService.
 	minimumBlockHeight := int64(2)
-	s.Greater(s.TestNode.CometService.LastBlockHeight(), minimumBlockHeight)
+	s.Greater(s.CometService.LastBlockHeight(), minimumBlockHeight)
 }
