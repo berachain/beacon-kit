@@ -142,14 +142,21 @@ func (sp *StateProcessor) validateStatefulPayload(
 	}
 
 	parentBeaconBlockRoot := blk.GetParentBlockRoot()
-	if err = sp.executionEngine.VerifyAndNotifyNewPayload(
-		ctx, ctypes.BuildNewPayloadRequest(
-			payload,
-			body.GetBlobKzgCommitments().ToVersionedHashes(),
-			&parentBeaconBlockRoot,
-			optimisticEngine,
-		),
-	); err != nil {
+	payloadReq := ctypes.BuildNewPayloadRequest(
+		payload,
+		body.GetBlobKzgCommitments().ToVersionedHashes(),
+		&parentBeaconBlockRoot,
+		optimisticEngine,
+	)
+
+	// First we verify the block hash and versioned hashes are valid.
+	// TODO: is this required? Or will the EL handle this for us during
+	// new payload?
+	if err = payloadReq.HasValidVersionedAndBlockHashes(); err != nil {
+		return err
+	}
+
+	if err = sp.executionEngine.NotifyNewPayload(ctx, payloadReq); err != nil {
 		return err
 	}
 
