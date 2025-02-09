@@ -53,7 +53,7 @@ echo "-> EL height: $EL ($EL_HEX)"
 
 echo "[Fetching CL height...]"
 ROLLBACK_OUTPUT=$("$BEACOND_BINARY" rollback --home="$BEACOND_HOME")
-CL=$(echo "$ROLLBACK_OUTPUT" | grep -oP 'height=\K[0-9]+')
+CL=$(echo "$ROLLBACK_OUTPUT" | sed -n 's/.*height=\([0-9]\+\).*/\1/p')
 echo "-> CL height: $CL"
 
 # Check if CL is already at or below EL
@@ -68,8 +68,8 @@ while true; do
     echo "Rolling back CL height $CL..."
 
     ROLLBACK_OUTPUT=$("$BEACOND_BINARY" rollback --hard --home="$BEACOND_HOME")
-    CL=$(echo "$ROLLBACK_OUTPUT" | grep -oP 'height=\K[0-9]+')
-    echo "New CL height after rollback: $CL"
+    CL=$(echo "$ROLLBACK_OUTPUT" | sed -n 's/.*height=\([0-9]\+\).*/\1/p')
+    echo "New CL height after rollback: $CL (required height: $EL)"
 
     if (( CL <= EL )); then
         echo "Reached target Execution Layer height. Exiting."
