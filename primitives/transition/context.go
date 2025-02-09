@@ -47,7 +47,7 @@ type Context struct {
 	// verifyResult indicates whether to validate the result of
 	// the state transition.
 	verifyResult bool
-	// verifyDeposits indicated whether to validate the deposits included within a block
+	// verifyDeposits indicates whether to validate the deposits included within a block
 	verifyDeposits bool
 	// meterGas controls whether gas data related to the execution
 	// layer payload should be meter or not. We currently meter only
