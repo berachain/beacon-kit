@@ -71,7 +71,6 @@ func (sp *StateProcessor) processOperations(
 	}
 
 	for _, dep := range deposits {
-		// We want to update our local state regardless as `processDeposit` is idempotent
 		if err := sp.processDeposit(st, dep); err != nil {
 			return err
 		}
