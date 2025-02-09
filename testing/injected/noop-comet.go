@@ -18,7 +18,7 @@ import (
 // NoopCometService is normal Comet under the hood, but we override the Start method to avoid starting the actual
 // CometBFT core loop so that we can orchestrate it ourselves.
 type NoopCometService struct {
-	comet *cometbft.Service
+	Comet *cometbft.Service
 }
 
 func ProvideNoopCometService(
@@ -50,7 +50,7 @@ func (n *NoopCometService) Stop() error {
 }
 
 func (n *NoopCometService) Name() string {
-	return n.comet.Name()
+	return n.Comet.Name()
 }
 
 func (n *NoopCometService) CreateQueryContext(_ int64, _ bool) (sdk.Context, error) {

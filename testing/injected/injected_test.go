@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/testing/injected"
+	"github.com/cometbft/cometbft/abci/types"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/suite"
 )
@@ -35,7 +36,7 @@ import (
 type CustomCometComponent struct {
 	suite.Suite
 	injected.TestSuiteHandle
-	CometService      *injected.NoopCometService
+	NoopComet         *injected.NoopCometService
 	BlockchainService *blockchain.Service
 }
 
@@ -61,7 +62,9 @@ func (s *CustomCometComponent) SetupTest() {
 	s.ElHandle = gethHandle
 
 	// Build the Beacon node once we have the auth rpc url
-	logger := phuslu.NewLogger(os.Stdout, nil)
+	logger := phuslu.NewLogger(os.Stdout, &phuslu.Config{
+		LogLevel: "DEBUG",
+	})
 
 	components := injected.FixedComponents(s.T())
 	components = append(components, injected.ProvideNoopCometService)
@@ -78,11 +81,11 @@ func (s *CustomCometComponent) SetupTest() {
 	s.TestNode = testNode
 
 	// Fetch services we will want to query and interact with so they are easily accessible in testing
-	var cometService *injected.NoopCometService
-	err := testNode.FetchService(&cometService)
+	var noopCometService *injected.NoopCometService
+	err := testNode.FetchService(&noopCometService)
 	s.Require().NoError(err)
-	s.NotNil(cometService)
-	s.CometService = cometService
+	s.NotNil(noopCometService)
+	s.NoopComet = noopCometService
 
 	var blockchainService *blockchain.Service
 	err = testNode.FetchService(&blockchainService)
@@ -99,15 +102,25 @@ func (s *CustomCometComponent) TearDownTest() {
 	s.CancelFunc()
 }
 
-func (s *CustomCometComponent) TestDriverWorks() {
-	// go func() {
-	//	// Node blocks on Start and hence we have to run in separate routine
-	//	if err := s.TestNode.Node.Start(s.Ctx); err != nil {
-	//		s.T().Error(err)
-	//	}
-	// }()
-	// <-time.After(30 * time.Second)
-	// s.TestNode.CometService.
-	minimumBlockHeight := int64(2)
-	s.Greater(s.CometService.LastBlockHeight(), minimumBlockHeight)
+func (s *CustomCometComponent) TestInitChain_InvalidChainID_MustError() {
+	_, err := s.NoopComet.Comet.InitChain(s.Ctx, &types.InitChainRequest{
+		ChainId: "henlo-im-invalid",
+	})
+	s.Require().ErrorContains(err, "invalid chain-id on InitChain; expected: test-mainnet-chain, got: henlo-im-invalid")
+}
+
+func (s *CustomCometComponent) TestProcessProposal_HeightZero_MustError() {
+	_, err := s.NoopComet.Comet.ProcessProposal(s.Ctx, &types.ProcessProposalRequest{
+		Height: 0,
+	})
+	s.Require().ErrorContains(err, "processProposal at height 0: invalid height")
+}
+
+func (s *CustomCometComponent) TestProcessProposal_InvalidBlock_MustError() {
+	res, err := s.NoopComet.Comet.ProcessProposal(s.Ctx, &types.ProcessProposalRequest{
+		Txs:    make([][]byte, 0),
+		Height: 1,
+	})
+	s.Require().NoError(err)
+	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, res.Status)
 }
