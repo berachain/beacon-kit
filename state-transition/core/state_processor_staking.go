@@ -85,6 +85,7 @@ func (sp *StateProcessor) processDeposit(st *state.StateDB, dep *ctypes.Deposit)
 	if err != nil {
 		return err
 	}
+	
 	if err = st.SetEth1DepositIndex(eth1DepositIndex + 1); err != nil {
 		return err
 	}
