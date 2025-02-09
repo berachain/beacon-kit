@@ -352,7 +352,14 @@
     "petersburgBlock": 0,
     "shanghaiTime": 0,
     "terminalTotalDifficulty": 0,
-    "terminalTotalDifficultyPassed": true
+    "terminalTotalDifficultyPassed": true,
+    "blobSchedule": {
+      "cancun": {
+        "target": 3,
+        "max": 6,
+        "baseFeeUpdateFraction": 3338477
+      }
+    }
   },
   "difficulty": "0x0",
   "extraData": "0x0000000000000000000000000000000000000000000000000000000000000000658bdf435d810c91414ec09147daa6db624063790000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
