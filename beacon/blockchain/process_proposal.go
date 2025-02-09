@@ -341,6 +341,7 @@ func (s *Service) verifyStateRoot(
 		WithVerifyPayload(true).
 		WithVerifyRandao(true).
 		WithVerifyResult(true).
+		WithVerifyDeposits(true).
 		WithMeterGas(false)
 
 	_, err := s.stateProcessor.Transition(txCtx, st, blk)
