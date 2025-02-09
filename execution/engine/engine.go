@@ -130,8 +130,7 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 	return payloadID, latestValidHash, nil
 }
 
-// NotifyNewPayload notifies the execution client of the new payload
-// execution client.
+// NotifyNewPayload notifies the execution client of the new payload.
 //
 
 func (ee *Engine) NotifyNewPayload(
