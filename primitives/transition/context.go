@@ -47,7 +47,8 @@ type Context struct {
 	// verifyResult indicates whether to validate the result of
 	// the state transition.
 	verifyResult bool
-
+	// verifyDeposits indicated whether to validate the deposits included within a block
+	verifyDeposits bool
 	// meterGas controls whether gas data related to the execution
 	// layer payload should be meter or not. We currently meter only
 	// finalized blocks.
@@ -69,9 +70,10 @@ func NewTransitionCtx(
 		meterGas: false,
 
 		// by default we keep all verification
-		verifyPayload: true,
-		verifyRandao:  true,
-		verifyResult:  true,
+		verifyPayload:  true,
+		verifyRandao:   true,
+		verifyResult:   true,
+		verifyDeposits: true,
 	}
 }
 
@@ -93,6 +95,11 @@ func (c *Context) WithVerifyRandao(verifyRandao bool) *Context {
 
 func (c *Context) WithVerifyResult(verifyResult bool) *Context {
 	c.verifyResult = verifyResult
+	return c
+}
+
+func (c *Context) WithVerifyDeposits(verifyDeposits bool) *Context {
+	c.verifyDeposits = verifyDeposits
 	return c
 }
 
@@ -119,6 +126,9 @@ func (c *Context) VerifyRandao() bool {
 
 func (c *Context) VerifyResult() bool {
 	return c.verifyResult
+}
+func (c *Context) VerifyDeposits() bool {
+	return c.verifyDeposits
 }
 
 func (c *Context) MeterGas() bool {

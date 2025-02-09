@@ -50,17 +50,22 @@ func (sp *StateProcessor) processOperations(
 		)
 	}
 
-	// Instead we directly compare block deposits with our local store ones.
-	if err := sp.validateNonGenesisDeposits(
-		ctx.ConsensusCtx(),
-		st,
-		deposits,
-		blk.GetBody().GetEth1Data().DepositRoot,
-	); err != nil {
-		return err
+	// When we're finalizing a block, given that consensus majority has already agreed to the block deposits, we
+	// assume it is correct. However, in ProcessProposal, we do not make this assumption and verify the deposits.
+	if ctx.VerifyDeposits() {
+		// 	Instead we directly compare block deposits with our local store ones.
+		if err := sp.validateNonGenesisDeposits(
+			ctx.ConsensusCtx(),
+			st,
+			deposits,
+			blk.GetBody().GetEth1Data().DepositRoot,
+		); err != nil {
+			return err
+		}
 	}
 
 	for _, dep := range deposits {
+		// We want to update our local state regardless as `processDeposit` is idempotent
 		if err := sp.processDeposit(st, dep); err != nil {
 			return err
 		}
