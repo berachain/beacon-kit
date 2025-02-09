@@ -121,7 +121,7 @@ func (kv *KVStore) GetDepositsByIndex(
 	return deposits, nil
 }
 
-// EnqueueDeposits pushes multiple deposits to the queue.
+// EnqueueDeposits pushes multiple deposits to the queue. EnqueueDeposits is idempotent.
 func (kv *KVStore) EnqueueDeposits(ctx context.Context, deposits []*ctypes.Deposit) error {
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
