@@ -40,11 +40,11 @@ func (s *Service) commit(
 	header := s.finalizeBlockState.Context().BlockHeader()
 	retainHeight := s.GetBlockRetentionHeight(header.Height)
 
-	rms, ok := s.sm.CommitMultiStore().(*rootmulti.Store)
+	rms, ok := s.sm.GetCommitMultiStore().(*rootmulti.Store)
 	if ok {
 		rms.SetCommitHeader(header)
 	}
-	s.sm.CommitMultiStore().Commit()
+	s.sm.GetCommitMultiStore().Commit()
 
 	s.finalizeBlockState = nil
 
