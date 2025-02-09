@@ -62,6 +62,12 @@ func (sp *StateProcessor) processOperations(
 		); err != nil {
 			return err
 		}
+	} else {
+		// If we're not validating the deposits, we want to add the deposits to our Deposit Store to keep it up to date.
+		err := sp.ds.EnqueueDeposits(ctx.ConsensusCtx(), deposits)
+		if err != nil {
+			return err
+		}
 	}
 
 	for _, dep := range deposits {
@@ -80,7 +86,6 @@ func (sp *StateProcessor) processDeposit(st *state.StateDB, dep *ctypes.Deposit)
 	if err != nil {
 		return err
 	}
-
 	if err = st.SetEth1DepositIndex(eth1DepositIndex + 1); err != nil {
 		return err
 	}
