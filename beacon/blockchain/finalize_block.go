@@ -178,6 +178,7 @@ func (s *Service) executeStateTransition(
 		WithVerifyPayload(true).
 		WithVerifyRandao(false).
 		WithVerifyResult(false).
+		WithVerifyDeposits(false).
 		WithMeterGas(true)
 
 	return s.stateProcessor.Transition(
