@@ -64,6 +64,7 @@ func (sp *StateProcessor) processOperations(
 		}
 	} else {
 		// If we're not validating the deposits, we want to add the deposits to our Deposit Store to keep it up to date.
+		// This is a performance gain over fetching from the execution client.
 		// The DepositStore also does not get included in AppHash calculation and hence introducing this will not result in AppHash.
 		err := sp.ds.EnqueueDeposits(ctx.ConsensusCtx(), deposits)
 		if err != nil {
