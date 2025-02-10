@@ -88,7 +88,7 @@ func (h *Handler) GetStateValidator(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return validator, nil
+	return beacontypes.NewResponse(validator), nil
 }
 
 func (h *Handler) GetStateValidatorBalances(c handlers.Context) (any, error) {
@@ -121,15 +121,13 @@ func (h *Handler) GetStateValidatorBalances(c handlers.Context) (any, error) {
 }
 
 func (h *Handler) PostStateValidatorBalances(c handlers.Context) (any, error) {
-
 	var ids []string
 	if err := c.Bind(&ids); err != nil {
 		return nil, types.ErrInvalidRequest
 	}
-	// TODO: Find a way to pass the state_id from request.
-	// Currently only head is supported.
+	// Get state_id from URL path parameter
 	req := beacontypes.PostValidatorBalancesRequest{
-		StateIDRequest: types.StateIDRequest{StateID: "head"},
+		StateIDRequest: types.StateIDRequest{StateID: c.Param("state_id")},
 		IDs:            ids,
 	}
 

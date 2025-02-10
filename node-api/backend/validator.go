@@ -104,10 +104,16 @@ func (b Backend) ValidatorByID(
 	}
 	index, err := utils.ValidatorIndexByID(st, id)
 	if err != nil {
+		if errors.Is(err, collections.ErrNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 	validator, err := st.ValidatorByIndex(index)
 	if err != nil {
+		if errors.Is(err, collections.ErrNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 	balance, err := st.GetBalance(index)
