@@ -53,7 +53,7 @@ func (sp *StateProcessor) processOperations(
 	// When we're finalizing a block, given that consensus majority has already agreed to the block deposits, we
 	// assume it is correct. However, in ProcessProposal, we do not make this assumption and verify the deposits.
 	if ctx.VerifyDeposits() {
-		// 	Instead we directly compare block deposits with our local store ones.
+		// Instead we directly compare block deposits with our local store ones.
 		if err := sp.validateNonGenesisDeposits(
 			ctx.ConsensusCtx(),
 			st,
