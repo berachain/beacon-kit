@@ -22,36 +22,35 @@ package builder
 
 import (
 	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
-	"github.com/berachain/beacon-kit/node-core/types"
 )
 
 // Opt is a type that defines a function that modifies CLIBuilder.
-type Opt[T types.Node] func(*CLIBuilder[T])
+type Opt func(*CLIBuilder)
 
 // WithName sets the name for the CLIBuilder.
-func WithName[T types.Node](name string) Opt[T] {
-	return func(cb *CLIBuilder[T]) {
+func WithName(name string) Opt {
+	return func(cb *CLIBuilder) {
 		cb.name = name
 	}
 }
 
 // WithDescription sets the description for the CLIBuilder.
-func WithDescription[T types.Node](description string) Opt[T] {
-	return func(cb *CLIBuilder[T]) {
+func WithDescription(description string) Opt {
+	return func(cb *CLIBuilder) {
 		cb.description = description
 	}
 }
 
 // WithComponents sets the components for the CLIBuilder.
-func WithComponents[T types.Node](components []any) Opt[T] {
-	return func(cb *CLIBuilder[T]) {
+func WithComponents(components []any) Opt {
+	return func(cb *CLIBuilder) {
 		cb.components = components
 	}
 }
 
 // WithNodeBuilderFunc sets the cosmos app creator for the CLIBuilder.
-func WithNodeBuilderFunc[T types.Node](nodeBuilderFunc servertypes.AppCreator[T]) Opt[T] {
-	return func(cb *CLIBuilder[T]) {
+func WithNodeBuilderFunc(nodeBuilderFunc servertypes.AppCreator) Opt {
+	return func(cb *CLIBuilder) {
 		cb.nodeBuilderFunc = nodeBuilderFunc
 	}
 }

@@ -99,15 +99,15 @@ func (s *Service) finalizeBlockInternal(
 
 // workingHash gets the apphash that will be finalized in commit.
 // These writes will be persisted to the root multi-store
-// (s.sm.CommitMultiStore()) and flushed
-// to disk in the Commit phase. This means when the ABCI client requests
-// Commit(), the application state transitions will be flushed to disk and as a
-// result, but we already have
-// an application Merkle root.
+// (s.smGet.CommitMultiStore()) and flushed to disk  in the
+// Commit phase. This means when the ABCI client requests
+// Commit(), the application state transitions will be flushed
+// to disk and as a result, but we already have an application
+// Merkle root.
 func (s *Service) workingHash() []byte {
 	// Write the FinalizeBlock state into branched storage and commit the
 	// MultiStore. The write to the FinalizeBlock state writes all state
-	// transitions to the root MultiStore (s.sm.CommitMultiStore())
+	// transitions to the root MultiStore (s.sm.GetCommitMultiStore())
 	// so when Commit() is called it persists those values.
 	if s.finalizeBlockState == nil {
 		// this is unexpected since workingHash is called only after
@@ -118,7 +118,7 @@ func (s *Service) workingHash() []byte {
 
 	// Get the hash of all writes in order to return the apphash to the comet in
 	// finalizeBlock.
-	commitHash := s.sm.CommitMultiStore().WorkingHash()
+	commitHash := s.sm.GetCommitMultiStore().WorkingHash()
 	s.logger.Debug(
 		"hash of all writes",
 		"workingHash",
