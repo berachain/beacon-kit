@@ -27,7 +27,7 @@ import (
 	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/log/phuslu"
-	nodetypes "github.com/berachain/beacon-kit/node-core/types"
+	"github.com/berachain/beacon-kit/node-core/types"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	dbm "github.com/cosmos/cosmos-db"
 )
@@ -60,14 +60,14 @@ func (nb *NodeBuilder) Build(
 	_ io.Writer,
 	cmtCfg *cmtcfg.Config,
 	appOpts servertypes.AppOptions,
-) nodetypes.Node {
+) types.Node {
 	// variables to hold the components needed to set up BeaconApp
 	var (
 		apiBackend interface {
-			AttachQueryBackend(nodetypes.ConsensusService)
+			AttachQueryBackend(types.ConsensusService)
 		}
-		beaconNode nodetypes.Node
-		cmtService nodetypes.ConsensusService
+		beaconNode types.Node
+		cmtService types.ConsensusService
 		config     *config.Config
 	)
 
