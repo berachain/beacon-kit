@@ -27,7 +27,7 @@ import (
 	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/log/phuslu"
-	"github.com/berachain/beacon-kit/node-core/types"
+	nodetypes "github.com/berachain/beacon-kit/node-core/types"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	dbm "github.com/cosmos/cosmos-db"
 )
@@ -37,14 +37,14 @@ import (
 // TODO: #Make nodebuilder build a node. Currently this is just a builder for
 // the AppCreator function, which is eventually called by cosmos to build a
 // node.
-type NodeBuilder[NodeT types.Node] struct {
+type NodeBuilder struct {
 	// components is a list of components to provide.
 	components []any
 }
 
 // New returns a new NodeBuilder.
-func New[NodeT types.Node](opts ...Opt[NodeT]) *NodeBuilder[NodeT] {
-	nb := &NodeBuilder[NodeT]{}
+func New(opts ...Opt) *NodeBuilder {
+	nb := &NodeBuilder{}
 	for _, opt := range opts {
 		opt(nb)
 	}
@@ -54,20 +54,20 @@ func New[NodeT types.Node](opts ...Opt[NodeT]) *NodeBuilder[NodeT] {
 // Build uses the node builder options and runtime parameters to
 // build a new instance of the node.
 // It is necessary to adhere to the types.AppCreator[T] interface.
-func (nb *NodeBuilder[NodeT]) Build(
+func (nb *NodeBuilder) Build(
 	logger *phuslu.Logger,
 	db dbm.DB,
 	_ io.Writer,
 	cmtCfg *cmtcfg.Config,
 	appOpts servertypes.AppOptions,
-) NodeT {
+) nodetypes.Node {
 	// variables to hold the components needed to set up BeaconApp
 	var (
 		apiBackend interface {
-			AttachQueryBackend(types.ConsensusService)
+			AttachQueryBackend(nodetypes.ConsensusService)
 		}
-		beaconNode NodeT
-		cmtService types.ConsensusService
+		beaconNode nodetypes.Node
+		cmtService nodetypes.ConsensusService
 		config     *config.Config
 	)
 

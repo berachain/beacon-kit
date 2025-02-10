@@ -32,8 +32,6 @@ import (
 	"go.uber.org/automaxprocs/maxprocs"
 )
 
-type Node = nodetypes.Node
-
 // run runs the beacon node.
 func run() error {
 	// Set the uber max procs
@@ -44,7 +42,7 @@ func run() error {
 	// Build the node using the node-core.
 	nb := nodebuilder.New(
 		// Set the Runtime Components to the Default.
-		nodebuilder.WithComponents[Node](
+		nodebuilder.WithComponents(
 			DefaultComponents(),
 		),
 	)
@@ -52,15 +50,15 @@ func run() error {
 	// Build the root command using the builder
 	cb := clibuilder.New(
 		// Set the Name to the Default.
-		clibuilder.WithName[Node](
+		clibuilder.WithName[nodetypes.Node](
 			"beacond",
 		),
 		// Set the Description to the Default.
-		clibuilder.WithDescription[Node](
+		clibuilder.WithDescription[nodetypes.Node](
 			"A basic beacon node, usable most standard networks.",
 		),
 		// Set the Runtime Components to the Default.
-		clibuilder.WithComponents[Node](
+		clibuilder.WithComponents[nodetypes.Node](
 			append(
 				clicomponents.DefaultClientComponents(),
 				// TODO: remove these, and eventually pull cfg and chainspec
@@ -69,7 +67,7 @@ func run() error {
 			),
 		),
 		// Set the NodeBuilderFunc to the NodeBuilder Build.
-		clibuilder.WithNodeBuilderFunc[Node](nb.Build),
+		clibuilder.WithNodeBuilderFunc[nodetypes.Node](nb.Build),
 	)
 
 	cmd, err := cb.Build()
