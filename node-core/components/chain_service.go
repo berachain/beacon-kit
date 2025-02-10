@@ -25,7 +25,6 @@ import (
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config"
-	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/execution/engine"
 	"github.com/berachain/beacon-kit/log/phuslu"
@@ -41,7 +40,6 @@ type ChainServiceInput struct {
 
 	ChainSpec             chain.Spec
 	Cfg                   *config.Config
-	EngineClient          *client.EngineClient
 	ExecutionEngine       *engine.Engine
 	LocalBuilder          LocalBuilder
 	Logger                *phuslu.Logger
