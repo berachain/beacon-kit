@@ -30,6 +30,8 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
+var ErrValidatorNotFound = errors.New("validator not found")
+
 // FilteredValidators will grab all of the validators from the state at the
 // given slot. It will then filter them by the provided ids and statuses.
 func (b Backend) FilteredValidators(
@@ -105,6 +107,7 @@ func (b Backend) ValidatorByID(
 	index, err := utils.ValidatorIndexByID(st, id)
 	if err != nil {
 		if errors.Is(err, collections.ErrNotFound) {
+			//nolint:nilnil // The response should be nil without an error.
 			return nil, nil
 		}
 		return nil, err
@@ -112,6 +115,7 @@ func (b Backend) ValidatorByID(
 	validator, err := st.ValidatorByIndex(index)
 	if err != nil {
 		if errors.Is(err, collections.ErrNotFound) {
+			//nolint:nilnil // The response should be nil without an error.
 			return nil, nil
 		}
 		return nil, err
