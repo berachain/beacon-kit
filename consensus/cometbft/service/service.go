@@ -181,6 +181,7 @@ func (s *Service) Start(
 	}
 
 	started := make(chan struct{})
+
 	// we start the node in a goroutine since calling Start() can block if genesis
 	// time is in the future causing us not to handle signals gracefully.
 	go func() {
