@@ -62,8 +62,8 @@ func (g *gethNode) Start(t *testing.T) (*dockertest.Resource, *url.ConnectionURL
 
 	// Run container with a custom Cmd that does BOTH `init` and `run`
 	resource, err := pool.RunWithOptions(&dockertest.RunOptions{
-		Repository: "ethereum/client-go",
-		Tag:        "latest",
+		Repository: g.image.Repository,
+		Tag:        g.image.Tag,
 		// We'll chain these commands with bash -c
 		// Override the default entrypoint to be /bin/sh instead of geth:
 		Entrypoint: []string{"/bin/sh"},
