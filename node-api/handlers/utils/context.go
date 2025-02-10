@@ -33,11 +33,9 @@ func BindAndValidate[RequestT any, ContextT context.Context](
 ) (RequestT, error) {
 	var req RequestT
 	if err := c.Bind(&req); err != nil {
-		logger.Error("Failed to bind request", "error", err)
 		return req, types.ErrInvalidRequest
 	}
 	if err := c.Validate(&req); err != nil {
-		logger.Error("Failed to validate request", "error", err)
 		return req, types.ErrInvalidRequest
 	}
 	logger.Info("Request validation successful", "params", req)
