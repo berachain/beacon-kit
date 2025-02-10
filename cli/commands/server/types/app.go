@@ -24,7 +24,7 @@ import (
 	"io"
 
 	"github.com/berachain/beacon-kit/log/phuslu"
-	nodetypes "github.com/berachain/beacon-kit/node-core/types"
+	"github.com/berachain/beacon-kit/node-core/types"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	dbm "github.com/cosmos/cosmos-db"
 )
@@ -46,5 +46,5 @@ type (
 	// application using various configurations.
 	AppCreator func(
 		*phuslu.Logger, dbm.DB, io.Writer, *cmtcfg.Config, AppOptions,
-	) nodetypes.Node
+	) types.Node
 )
