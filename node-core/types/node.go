@@ -23,20 +23,19 @@ package types
 import (
 	"context"
 
-	"cosmossdk.io/store"
+	service "github.com/berachain/beacon-kit/node-core/services/registry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Node defines the API for the node application.
 // It extends the Application interface from the Cosmos SDK.
 type Node interface {
+	service.CommitMultistoreAccessor
+
 	Start(context.Context) error
 
 	// FetchService allows us to retrieve the various node services, which is useful in testing
 	FetchService(interface{}) error
-
-	// TODO: FIX, HACK TO MAKE CLI HAPPY FOR NOW.
-	CommitMultiStore() store.CommitMultiStore
 }
 
 // ConsensusService defines everything we utilise externally from CometBFT.

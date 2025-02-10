@@ -77,7 +77,7 @@ func (s *Service) initChain(
 	// if req.InitialHeight is > 1, then we set the initial version on all
 	// stores
 	if req.InitialHeight > 1 {
-		if err = s.sm.CommitMultiStore().
+		if err = s.sm.GetCommitMultiStore().
 			SetInitialVersion(req.InitialHeight); err != nil {
 			return nil, err
 		}
@@ -100,7 +100,7 @@ func (s *Service) initChain(
 	return &cmtabci.InitChainResponse{
 		ConsensusParams: req.ConsensusParams,
 		Validators:      resValidators,
-		AppHash:         s.sm.CommitMultiStore().LastCommitID().Hash,
+		AppHash:         s.sm.GetCommitMultiStore().LastCommitID().Hash,
 	}, nil
 }
 
