@@ -143,6 +143,9 @@ func (s *BeaconKitE2ESuite) TestValidatorsEmptyIndices() {
 	s.Require().NoError(err)
 	s.Require().NotNil(validatorsResp)
 
+	s.Logger().Info("validatorsResp in TestValidatorsEmptyIndices", "validatorsResp", validatorsResp)
+	s.Logger().Info("validatorsResp Data in TestValidatorsEmptyIndices", "validatorsResp.Data", validatorsResp.Data)
+
 	// Verify we got all validators
 	validatorData := validatorsResp.Data
 	s.Require().NotNil(validatorData, "Validator data should not be nil")
@@ -308,6 +311,9 @@ func (s *BeaconKitE2ESuite) TestValidatorBalancesMultipleIndices() {
 			Indices: indices,
 		},
 	)
+
+	s.Logger().Info("balancesResp in TestValidatorBalancesMultipleIndices", "balancesResp", balancesResp)
+	s.Logger().Info("balancesResp Data in TestValidatorBalancesMultipleIndices", "balancesResp.Data", balancesResp.Data)
 	s.Require().NoError(err)
 	s.Require().NotNil(balancesResp)
 	s.Require().Len(balancesResp.Data, len(indices))
@@ -386,13 +392,21 @@ func (s *BeaconKitE2ESuite) TestValidatorBalanceStateGenesis() {
 func (s *BeaconKitE2ESuite) TestValidatorBalancesWithPubkey() {
 	client := s.initBeaconTest()
 
-	// Example validator pubkey (48 bytes with 0x prefix)
-	pubkey := "0x93247f2209abcacf57b75a51dafae777f9dd38bc7053d1af526f220a7489a6d3a2753e5f3e8b1cfe39b56f43611df74a"
+	// First call validators to get the validator public key
+	validatorsResp, err := client.Validators(s.Ctx(), &beaconapi.ValidatorsOpts{
+		State: utils.StateIDHead,
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(validatorsResp)
+
+	validator := validatorsResp.Data[0]
+	s.Require().NotNil(validator)
+	pubkey := validator.Validator.PublicKey
 
 	balancesResp, err := client.ValidatorBalances(s.Ctx(), &beaconapi.ValidatorBalancesOpts{
 		State:   utils.StateIDHead,
 		Indices: []phase0.ValidatorIndex{}, // Empty indices to use pubkeys
-		PubKeys: []phase0.BLSPubKey{phase0.BLSPubKey(common.FromHex(pubkey))},
+		PubKeys: []phase0.BLSPubKey{pubkey},
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(balancesResp)
@@ -404,4 +418,22 @@ func (s *BeaconKitE2ESuite) TestValidatorBalancesWithPubkey() {
 		s.Require().True(balance > 0, "Validator balance should be positive")
 		s.Require().True(balance <= 32e9, "Validator balance should not exceed 32 ETH")
 	}
+}
+
+// TestValidatorBalancesWithInvalidPubkey tests querying validator balances using a public key.
+func (s *BeaconKitE2ESuite) TestValidatorBalancesWithInvalidPubkey() {
+	client := s.initBeaconTest()
+
+	// Example validator pubkey (48 bytes with 0x prefix)
+	pubkey := "0x93247f2209abcacf57b75a51dafae777f9dd38bc7053d1af526f220a7489a6d3a2753e5f3e8b1cfe39b56f43611df74a"
+
+	balancesResp, err := client.ValidatorBalances(s.Ctx(), &beaconapi.ValidatorBalancesOpts{
+		State:   utils.StateIDHead,
+		Indices: []phase0.ValidatorIndex{}, // Empty indices to use pubkeys
+		PubKeys: []phase0.BLSPubKey{phase0.BLSPubKey(common.FromHex(pubkey))},
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(balancesResp)
+	// Should return an empty list of balances
+	s.Require().Len(balancesResp.Data, 0)
 }
