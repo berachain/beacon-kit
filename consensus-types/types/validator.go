@@ -327,41 +327,39 @@ func (v *Validator) Status(currentEpoch math.Epoch) (string, error) {
 	exitEpoch := v.GetExitEpoch()
 	withdrawableEpoch := v.GetWithdrawableEpoch()
 
+	switch {
 	// Status: pending
-	if activationEpoch > currentEpoch {
+	case activationEpoch > currentEpoch:
 		if activationEligibilityEpoch == farFutureEpoch {
 			return constants.ValidatorStatusPendingInitialized, nil
-		} else if activationEligibilityEpoch < farFutureEpoch {
-			return constants.ValidatorStatusPendingQueued, nil
 		}
-	}
+		return constants.ValidatorStatusPendingQueued, nil
 
 	// Status: active
-	if activationEpoch <= currentEpoch && currentEpoch < exitEpoch {
-		if exitEpoch == farFutureEpoch {
+	case activationEpoch <= currentEpoch && currentEpoch < exitEpoch:
+		switch {
+		case exitEpoch == farFutureEpoch:
 			return constants.ValidatorStatusActiveOngoing, nil
-		} else if exitEpoch < farFutureEpoch {
-			if v.IsSlashed() {
-				return constants.ValidatorStatusActiveSlashed, nil
-			}
+		case v.IsSlashed():
+			return constants.ValidatorStatusActiveSlashed, nil
+		default:
 			return constants.ValidatorStatusActiveExiting, nil
 		}
-	}
-
-	// Status: exited
-	if exitEpoch <= currentEpoch && currentEpoch < withdrawableEpoch {
+		// Status: exited
+	case exitEpoch <= currentEpoch && currentEpoch < withdrawableEpoch:
 		if v.IsSlashed() {
 			return constants.ValidatorStatusExitedSlashed, nil
 		}
 		return constants.ValidatorStatusExitedUnslashed, nil
-	}
 
 	// Status: withdrawal
-	if withdrawableEpoch <= currentEpoch {
+	case withdrawableEpoch <= currentEpoch:
 		if v.GetEffectiveBalance() != math.Gwei(0) {
 			return constants.ValidatorStatusWithdrawalPossible, nil
 		}
 		return constants.ValidatorStatusWithdrawalDone, nil
+
+	default:
+		return "", errors.New("invalid validator status")
 	}
-	return "", errors.New("invalid validator status")
 }
