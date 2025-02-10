@@ -21,8 +21,12 @@
 package beacon
 
 import (
+	"net/http"
+	"strings"
+
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 )
 
@@ -84,7 +88,7 @@ func (h *Handler) GetStateValidator(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return validator, nil
+	return beacontypes.NewResponse(validator), nil
 }
 
 func (h *Handler) GetStateValidatorBalances(c handlers.Context) (any, error) {
@@ -95,7 +99,15 @@ func (h *Handler) GetStateValidatorBalances(c handlers.Context) (any, error) {
 		return nil, err
 	}
 	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
+
+	// Check for error message "slot not found at state root"
 	if err != nil {
+		if strings.Contains(err.Error(), "slot not found at state root") {
+			return nil, &handlers.HTTPError{
+				Code:    http.StatusNotFound,
+				Message: "State not found",
+			}
+		}
 		return nil, err
 	}
 	balances, err := h.backend.ValidatorBalancesByIDs(
@@ -109,12 +121,20 @@ func (h *Handler) GetStateValidatorBalances(c handlers.Context) (any, error) {
 }
 
 func (h *Handler) PostStateValidatorBalances(c handlers.Context) (any, error) {
-	req, err := utils.BindAndValidate[beacontypes.PostValidatorBalancesRequest](
-		c, h.Logger(),
-	)
-	if err != nil {
-		return nil, err
+	var ids []string
+	if err := c.Bind(&ids); err != nil {
+		return nil, types.ErrInvalidRequest
 	}
+	// Get state_id from URL path parameter
+	req := beacontypes.PostValidatorBalancesRequest{
+		StateIDRequest: types.StateIDRequest{StateID: c.Param("state_id")},
+		IDs:            ids,
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return nil, types.ErrInvalidRequest
+	}
+
 	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
 	if err != nil {
 		return nil, err

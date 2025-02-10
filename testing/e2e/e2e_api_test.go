@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 // initBeaconTest initializes the any tests for the beacon node api.
@@ -126,10 +127,6 @@ func (s *BeaconKitE2ESuite) TestValidatorsEmptyIndices() {
 
 	// Query validators with empty indices
 	emptyIndices := []phase0.ValidatorIndex{}
-	s.Logger().Info("Making validators request",
-		"state", utils.StateIDHead,
-		"indices", emptyIndices,
-	)
 
 	validatorsResp, err := client.Validators(
 		s.Ctx(),
@@ -244,4 +241,189 @@ func (s *BeaconKitE2ESuite) TestValidatorsWithSpecificStatus() {
 	for _, validator := range validatorsResp.Data {
 		s.Require().Equal(apiv1.ValidatorStateActiveOngoing, validator.Status)
 	}
+}
+
+// TestValidatorBalances tests querying validator balances.
+func (s *BeaconKitE2ESuite) TestValidatorBalances() {
+	client := s.initBeaconTest()
+
+	balancesResp, err := client.ValidatorBalances(s.Ctx(), &beaconapi.ValidatorBalancesOpts{
+		State: utils.StateIDHead,
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(balancesResp)
+
+	// Verify the response is not empty
+	s.Require().NotNil(balancesResp.Data)
+	s.Require().NotEmpty(balancesResp.Data)
+
+	balanceMap := balancesResp.Data
+	for _, balance := range balanceMap {
+		s.Require().True(balance > 0, "Validator balance should be positive")
+		s.Require().True(balance <= 32e9, "Validator balance should not exceed 32 ETH")
+	}
+}
+
+// TestValidatorBalancesWithSpecificIndices tests querying validator balances with specific indices.
+func (s *BeaconKitE2ESuite) TestValidatorBalancesWithSpecificIndices() {
+	client := s.initBeaconTest()
+
+	indices := []phase0.ValidatorIndex{0}
+
+	balancesResp, err := client.ValidatorBalances(s.Ctx(), &beaconapi.ValidatorBalancesOpts{
+		State:   utils.StateIDHead,
+		Indices: indices,
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(balancesResp)
+
+	// Verify the response is not empty
+	s.Require().NotNil(balancesResp.Data)
+	s.Require().Len(balancesResp.Data, len(indices))
+	s.Require().NotEmpty(balancesResp.Data)
+
+	// Verify balance data
+	for index, balance := range balancesResp.Data {
+		s.Require().NotNil(balance)
+		s.Require().Contains(indices, index)
+		s.Require().True(balance > 0, "Validator balance should be positive")
+		s.Require().True(balance <= 32e9, "Validator balance should not exceed 32 ETH")
+	}
+}
+
+// TestValidatorBalancesMultipleIndices tests querying balances for multiple validator indices.
+func (s *BeaconKitE2ESuite) TestValidatorBalancesMultipleIndices() {
+	client := s.initBeaconTest()
+	indices := []phase0.ValidatorIndex{0, 1, 2}
+
+	balancesResp, err := client.ValidatorBalances(
+		s.Ctx(),
+		&beaconapi.ValidatorBalancesOpts{
+			State:   utils.StateIDHead,
+			Indices: indices,
+		},
+	)
+
+	s.Require().NoError(err)
+	s.Require().NotNil(balancesResp)
+	s.Require().Len(balancesResp.Data, len(indices))
+
+	// Verify all requested indices are present
+	returnedIndices := make(map[phase0.ValidatorIndex]bool)
+	for index, balance := range balancesResp.Data {
+		returnedIndices[index] = true
+		s.Require().True(balance > 0)
+	}
+	for _, idx := range indices {
+		s.Require().True(returnedIndices[idx], "Expected validator index not found in response")
+	}
+}
+
+// TestValidatorBalancesEmptyIndices tests querying validator balances with empty indices.
+func (s *BeaconKitE2ESuite) TestValidatorBalancesEmptyIndices() {
+	client := s.initBeaconTest()
+
+	balancesResp, err := client.ValidatorBalances(s.Ctx(), &beaconapi.ValidatorBalancesOpts{
+		State:   utils.StateIDHead,
+		Indices: []phase0.ValidatorIndex{},
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(balancesResp)
+	// Should return all validators
+	s.Require().Equal(config.NumValidators, len(balancesResp.Data),
+		"Should return all validator balances when using empty indices")
+
+	// Verify each balance entry
+	for _, balance := range balancesResp.Data {
+		s.Require().NotNil(balance)
+		s.Require().True(balance > 0, "Validator balance should be positive")
+		s.Require().True(balance <= 32e9, "Validator balance should not exceed 32 ETH")
+	}
+}
+
+// TestValidatorBalancesWithInvalidIndex tests querying validator balances with an invalid index.
+func (s *BeaconKitE2ESuite) TestValidatorBalancesWithInvalidIndex() {
+	client := s.initBeaconTest()
+
+	indices := []phase0.ValidatorIndex{999999} // Invalid index
+
+	balancesResp, err := client.ValidatorBalances(s.Ctx(), &beaconapi.ValidatorBalancesOpts{
+		State:   utils.StateIDHead,
+		Indices: indices,
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(balancesResp)
+	// Should return an empty list of balances
+	s.Require().Len(balancesResp.Data, 0)
+}
+
+// TestValidatorBalanceStateGenesis tests querying validator balances at genesis state.
+func (s *BeaconKitE2ESuite) TestValidatorBalanceStateGenesis() {
+	client := s.initBeaconTest()
+
+	balancesResp, err := client.ValidatorBalances(
+		s.Ctx(),
+		&beaconapi.ValidatorBalancesOpts{
+			State: "genesis",
+		},
+	)
+	s.Require().NoError(err)
+	s.Require().NotNil(balancesResp)
+	s.Require().NotEmpty(balancesResp.Data)
+
+	// Verify genesis balance
+	for _, balance := range balancesResp.Data {
+		s.Require().Equal(uint64(32e9), uint64(balance),
+			"Validator should have full 32 ETH balance at genesis")
+	}
+}
+
+// TestValidatorBalancesWithPubkey tests querying validator balances using a public key.
+func (s *BeaconKitE2ESuite) TestValidatorBalancesWithPubkey() {
+	client := s.initBeaconTest()
+
+	// First call validators to get the validator public key
+	validatorsResp, err := client.Validators(s.Ctx(), &beaconapi.ValidatorsOpts{
+		State: utils.StateIDHead,
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(validatorsResp)
+
+	validator := validatorsResp.Data[0]
+	s.Require().NotNil(validator)
+	pubkey := validator.Validator.PublicKey
+
+	balancesResp, err := client.ValidatorBalances(s.Ctx(), &beaconapi.ValidatorBalancesOpts{
+		State:   utils.StateIDHead,
+		Indices: []phase0.ValidatorIndex{}, // Empty indices to use pubkeys
+		PubKeys: []phase0.BLSPubKey{pubkey},
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(balancesResp)
+	s.Require().NotEmpty(balancesResp.Data)
+
+	// Verify balance data
+	for _, balance := range balancesResp.Data {
+		s.Require().NotNil(balance)
+		s.Require().True(balance > 0, "Validator balance should be positive")
+		s.Require().True(balance <= 32e9, "Validator balance should not exceed 32 ETH")
+	}
+}
+
+// TestValidatorBalancesWithInvalidPubkey tests querying validator balances using a public key.
+func (s *BeaconKitE2ESuite) TestValidatorBalancesWithInvalidPubkey() {
+	client := s.initBeaconTest()
+
+	// Example validator pubkey (48 bytes with 0x prefix)
+	pubkey := "0x93247f2209abcacf57b75a51dafae777f9dd38bc7053d1af526f220a7489a6d3a2753e5f3e8b1cfe39b56f43611df74a"
+
+	balancesResp, err := client.ValidatorBalances(s.Ctx(), &beaconapi.ValidatorBalancesOpts{
+		State:   utils.StateIDHead,
+		Indices: []phase0.ValidatorIndex{}, // Empty indices to use pubkeys
+		PubKeys: []phase0.BLSPubKey{phase0.BLSPubKey(common.FromHex(pubkey))},
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(balancesResp)
+	// Should return an empty list of balances
+	s.Require().Len(balancesResp.Data, 0)
 }

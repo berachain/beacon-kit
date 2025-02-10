@@ -23,10 +23,14 @@ package backend
 import (
 	"slices"
 
+	"cosmossdk.io/collections"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-api/backend/utils"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
+
+var ErrValidatorNotFound = errors.New("validator not found")
 
 // FilteredValidators will grab all of the validators from the state at the
 // given slot. It will then filter them by the provided ids and statuses.
@@ -102,10 +106,18 @@ func (b Backend) ValidatorByID(
 	}
 	index, err := utils.ValidatorIndexByID(st, id)
 	if err != nil {
+		if errors.Is(err, collections.ErrNotFound) {
+			//nolint:nilnil // The response should be nil without an error.
+			return nil, nil
+		}
 		return nil, err
 	}
 	validator, err := st.ValidatorByIndex(index)
 	if err != nil {
+		if errors.Is(err, collections.ErrNotFound) {
+			//nolint:nilnil // The response should be nil without an error.
+			return nil, nil
+		}
 		return nil, err
 	}
 	balance, err := st.GetBalance(index)
@@ -129,21 +141,50 @@ func (b Backend) ValidatorByID(
 func (b Backend) ValidatorBalancesByIDs(
 	slot math.Slot, ids []string,
 ) ([]*beacontypes.ValidatorBalanceData, error) {
-	var index math.U64
 	st, _, err := b.stateFromSlot(slot)
 	if err != nil {
 		return nil, err
 	}
+
+	// If no IDs provided, return all validator balances
+	if len(ids) == 0 {
+		rawBalances, errInBalances := st.GetBalances()
+		if errInBalances != nil {
+			return nil, errInBalances
+		}
+		// Convert []uint64 to []*ValidatorBalanceData as per the API spec
+		balances := make([]*beacontypes.ValidatorBalanceData, len(rawBalances))
+		for i, balance := range rawBalances {
+			balances[i] = &beacontypes.ValidatorBalanceData{
+				Index:   uint64(i), // #nosec:G115 // Safe as i comes from range loop
+				Balance: balance,
+			}
+		}
+		return balances, nil
+	}
+
 	balances := make([]*beacontypes.ValidatorBalanceData, 0)
+	var index math.U64
+
 	for _, id := range ids {
 		index, err = utils.ValidatorIndexByID(st, id)
 		if err != nil {
+			// If public key as id is not found in the state, do not return an error.
+			if errors.Is(err, collections.ErrNotFound) {
+				continue
+			}
 			return nil, err
 		}
 		var balance math.U64
 		// TODO: same issue as above, shouldn't error on not found.
 		balance, err = st.GetBalance(index)
+
 		if err != nil {
+			// if index does not exist and GetBalance returns an error containing "collections: not found"
+			// do not return an error.
+			if errors.Is(err, collections.ErrNotFound) {
+				continue
+			}
 			return nil, err
 		}
 		balances = append(balances, &beacontypes.ValidatorBalanceData{
