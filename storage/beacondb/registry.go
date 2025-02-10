@@ -22,7 +22,6 @@ package beacondb
 
 import (
 	"errors"
-	"fmt"
 
 	"cosmossdk.io/collections/indexes"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
@@ -62,8 +61,6 @@ func (kv *KVStore) ValidatorIndexByPubkey(
 		kv.ctx,
 		pubkey[:],
 	)
-	fmt.Println("idx in validator index by pubkey", "idx", idx)
-	fmt.Println("err in validator index by pubkey", "err", err)
 	if err != nil {
 		return 0, err
 	}
@@ -179,8 +176,6 @@ func (kv *KVStore) GetBalance(
 	idx math.ValidatorIndex,
 ) (math.Gwei, error) {
 	balance, err := kv.balances.Get(kv.ctx, idx.Unwrap())
-	fmt.Println("balance", "balance", balance)
-	fmt.Println("err", "err", err)
 	return math.Gwei(balance), err
 }
 

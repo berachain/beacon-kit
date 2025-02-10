@@ -127,10 +127,6 @@ func (s *BeaconKitE2ESuite) TestValidatorsEmptyIndices() {
 
 	// Query validators with empty indices
 	emptyIndices := []phase0.ValidatorIndex{}
-	s.Logger().Info("Making validators request",
-		"state", utils.StateIDHead,
-		"indices", emptyIndices,
-	)
 
 	validatorsResp, err := client.Validators(
 		s.Ctx(),
@@ -142,9 +138,6 @@ func (s *BeaconKitE2ESuite) TestValidatorsEmptyIndices() {
 
 	s.Require().NoError(err)
 	s.Require().NotNil(validatorsResp)
-
-	s.Logger().Info("validatorsResp in TestValidatorsEmptyIndices", "validatorsResp", validatorsResp)
-	s.Logger().Info("validatorsResp Data in TestValidatorsEmptyIndices", "validatorsResp.Data", validatorsResp.Data)
 
 	// Verify we got all validators
 	validatorData := validatorsResp.Data
@@ -259,7 +252,6 @@ func (s *BeaconKitE2ESuite) TestValidatorBalances() {
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(balancesResp)
-	s.Logger().Info("balancesResp", "balancesResp", balancesResp)
 
 	// Verify the response is not empty
 	s.Require().NotNil(balancesResp.Data)
@@ -312,8 +304,6 @@ func (s *BeaconKitE2ESuite) TestValidatorBalancesMultipleIndices() {
 		},
 	)
 
-	s.Logger().Info("balancesResp in TestValidatorBalancesMultipleIndices", "balancesResp", balancesResp)
-	s.Logger().Info("balancesResp Data in TestValidatorBalancesMultipleIndices", "balancesResp.Data", balancesResp.Data)
 	s.Require().NoError(err)
 	s.Require().NotNil(balancesResp)
 	s.Require().Len(balancesResp.Data, len(indices))
