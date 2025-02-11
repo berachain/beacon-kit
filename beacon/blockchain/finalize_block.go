@@ -90,7 +90,21 @@ func (s *Service) FinalizeBlock(
 
 	// fetch and store the deposit for the block
 	blockNum := blk.GetBody().GetExecutionPayload().GetNumber()
-	s.depositFetcher(ctx, blockNum)
+
+	if isSyncing(req.Height, req.SyncingToHeight) {
+		s.logger.Info(
+			"Syncing in finalize_block, skipping deposit fetcher",
+			"height", req.Height, "syncing_to_height", req.SyncingToHeight,
+		)
+		// If we're syncing, we just use the consensus finalized block deposits as an optimization
+		// The DepositStore does not get included in AppHash calculation and hence introducing this will not result in AppHash.
+		if err = s.storageBackend.DepositStore().EnqueueDeposits(ctx, blk.GetBody().GetDeposits()); err != nil {
+			return nil, fmt.Errorf("failed to enqueue deposits: %w", err)
+		}
+	} else {
+		// If we're NOT syncing we want to run the deposit fetcher as we want to have our own view of the deposits which we can validate in ProcessProposal.
+		s.depositFetcher(ctx, blockNum)
+	}
 
 	// store the finalized block in the KVStore.
 	// TODO: Store full SignedBeaconBlock with all data in storage
@@ -186,4 +200,9 @@ func (s *Service) executeStateTransition(
 		st,
 		blk.GetBeaconBlock(),
 	)
+}
+
+// isSyncing returns true if we are catching up and replaying blocks, i.e. only running FinalizeBlock.
+func isSyncing(height, syncingToHeight int64) bool {
+	return height < syncingToHeight
 }
