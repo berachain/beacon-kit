@@ -36,13 +36,13 @@ usage() {
     echo "and performs rollbacks on CL until it is at or below the EL height."
     echo ""
     echo "Environment Variables:"
-    echo "  BEACOND_BINARY   (default: 'beacond') - Path to the beacon-kit binary."
+    echo "  BEACOND_BIN      (default: 'beacond') - Path to the beacon-kit binary."
     echo "  BEACOND_HOME     (default: '~/.beacond') - Path to the beacon-kit home directory."
     echo "  EL_RPC_URL       (default: '127.0.0.1:8545') - Execution Layer RPC endpoint."
     echo ""
     echo "Example usage:"
     echo "  BEACOND_HOME=/data/.beacond ./$(basename "$0")"
-    echo "  BEACOND_BINARY=/custom/path/beacond ./$(basename "$0")"
+    echo "  BEACOND_BIN=/custom/path/beacond ./$(basename "$0")"
     exit 0
 }
 
@@ -50,12 +50,13 @@ if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
     usage
 fi
 
-BEACOND_BINARY="${BEACOND_BINARY:-beacond}"
+
+BEACOND_BIN="${BEACOND_BIN:-beacond}"
 BEACOND_HOME="${BEACOND_HOME:-$HOME/.beacond}"
 EL_RPC_URL="${EL_RPC_URL:-127.0.0.1:8545}"
 
 echo "Starting rollback process:"
-echo "- BEACOND_BINARY: $BEACOND_BINARY"
+echo "- BEACOND_BIN: $BEACOND_BIN"
 echo "- BEACOND_HOME: $BEACOND_HOME"
 echo "- EL_RPC_URL: $EL_RPC_URL"
 
@@ -65,9 +66,9 @@ if [[ ! -d "$BEACOND_HOME" ]]; then
     exit 1
 fi
 
-# Validate BEACOND_BINARY (must be in PATH or specified)
-if ! "$BEACOND_BINARY" version &>/dev/null; then
-    echo "Error: BEACOND_BINARY is not a valid executable or not found."
+# Validate BEACOND_BIN (must be in PATH or specified)
+if ! "$BEACOND_BIN" version &>/dev/null; then
+    echo "Error: BEACOND_BIN is not a valid executable or not found."
     exit 1
 fi
 
@@ -83,7 +84,7 @@ EL=$((${EL_HEX}))
 echo "-> EL height: $EL ($EL_HEX)"
 
 echo "[Fetching CL height...]"
-ROLLBACK_OUTPUT=$("$BEACOND_BINARY" rollback --home="$BEACOND_HOME")
+ROLLBACK_OUTPUT=$("$BEACOND_BIN" rollback --home="$BEACOND_HOME")
 CL=$(echo "$ROLLBACK_OUTPUT" | sed -n 's/.*height=\([0-9]\+\).*/\1/p')
 echo "-> CL height: $CL"
 
@@ -98,7 +99,7 @@ echo "[Starting rolling back of CL]"
 while true; do
     echo "Rolling back CL height $CL..."
 
-    ROLLBACK_OUTPUT=$("$BEACOND_BINARY" rollback --hard --home="$BEACOND_HOME")
+    ROLLBACK_OUTPUT=$("$BEACOND_BIN" rollback --hard --home="$BEACOND_HOME")
     CL=$(echo "$ROLLBACK_OUTPUT" | sed -n 's/.*height=\([0-9]\+\).*/\1/p')
     echo "New CL height after rollback: $CL (required height: $EL)"
 
