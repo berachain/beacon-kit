@@ -90,15 +90,11 @@ func (s *KurtosisE2ESuite) KurtosisCtx() *kurtosis_context.KurtosisContext {
 
 // ExecutionClients returns the execution clients associated with the
 // KurtosisE2ESuite.
-func (
-	s *KurtosisE2ESuite,
-) ExecutionClients() map[string]*types.ExecutionClient {
+func (s *KurtosisE2ESuite) ExecutionClients() map[string]*types.ExecutionClient {
 	return s.executionClients
 }
 
-func (
-	s *KurtosisE2ESuite,
-) RandomExecutionClient() *types.ExecutionClient {
+func (s *KurtosisE2ESuite) RandomExecutionClient() *types.ExecutionClient {
 	ecKeys := make([]string, 0, len(s.executionClients))
 	for key := range s.executionClients {
 		ecKeys = append(ecKeys, key)

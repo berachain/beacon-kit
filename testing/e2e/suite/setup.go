@@ -189,9 +189,9 @@ func (s *KurtosisE2ESuite) SetupConsensusClients() error {
 func (s *KurtosisE2ESuite) SetupExecutionClients() {
 	s.executionClients = make(map[string]*types.ExecutionClient)
 	svrcs, err := s.Enclave().GetServices()
-	s.logger.Info("len(svrcs)", "svrcs", len(svrcs))
-
 	s.Require().NoError(err, "Error getting services")
+
+	s.logger.Info("len(svrcs)", "svrcs", len(svrcs))
 	for name, v := range svrcs {
 		var serviceCtx *services.ServiceContext
 		serviceCtx, err = s.Enclave().GetServiceContext(string(v))
@@ -199,13 +199,10 @@ func (s *KurtosisE2ESuite) SetupExecutionClients() {
 		s.logger.Info("name", "name", name)
 
 		if strings.HasPrefix(string(name), "el-") {
-			if s.executionClients[string(name)] = types.NewExecutionClientFromServiceCtx(
+			s.executionClients[string(name)] = types.NewExecutionClientFromServiceCtx(
 				types.NewWrappedServiceContext(serviceCtx, s.Enclave().RunStarlarkScriptBlocking),
-				s.logger); err != nil {
-				// TODO: Figoure out how to handle clients that purposefully
-				// don't expose JSON-RPC.
-				s.Require().NoError(err, "Error creating execution client")
-			}
+				s.logger,
+			)
 		}
 	}
 	s.Require().True(len(s.executionClients) > 0)
@@ -217,24 +214,23 @@ func (s *KurtosisE2ESuite) SetupExecutionClients() {
 func (s *KurtosisE2ESuite) FundAccounts() {
 	ctx := context.Background()
 	nonce := atomic.Uint64{}
-	el := s.RandomExecutionClient()
-	pendingNonce, err := el.PendingNonceAt(ctx, s.genesisAccount.Address())
+	pendingNonce, err := s.RandomExecutionClient().PendingNonceAt(ctx, s.genesisAccount.Address())
 	s.Require().NoError(err, "Failed to get nonce for genesis account")
 	nonce.Store(pendingNonce)
 
 	var chainID *big.Int
-	chainID, err = el.NetworkID(ctx)
-	s.Require().NoError(err, "Failed to get network ID")
+	chainID, err = s.RandomExecutionClient().ChainID(ctx)
+	s.Require().NoError(err, "failed to get chain ID")
 
 	s.logger.Info("Chain-id is", "chain_id", chainID)
 	_, err = iter.MapErr(
 		s.testAccounts,
 		func(acc **types.EthAccount) (*ethtypes.Receipt, error) {
 			account := *acc
-			executionClient := s.RandomExecutionClient()
+			ec := s.RandomExecutionClient()
 			var gasTipCap *big.Int
 
-			if gasTipCap, err = executionClient.SuggestGasTipCap(ctx); err != nil {
+			if gasTipCap, err = ec.SuggestGasTipCap(ctx); err != nil {
 				var rpcErr rpc.Error
 				if errors.As(err, &rpcErr) && rpcErr.ErrorCode() == -32601 {
 					// Besu does not support eth_maxPriorityFeePerGas
@@ -265,7 +261,7 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 
 			cctx, cancel := context.WithTimeout(ctx, DefaultE2ETestTimeout)
 			defer cancel()
-			if err = executionClient.SendTransaction(cctx, signedTx); err != nil {
+			if err = ec.SendTransaction(cctx, signedTx); err != nil {
 				s.logger.Error(
 					"error submitting funding transaction",
 					"error",
@@ -281,7 +277,7 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 			)
 
 			var receipt *ethtypes.Receipt
-			receipt, err = bind.WaitMined(cctx, executionClient, signedTx)
+			receipt, err = bind.WaitMined(cctx, ec, signedTx)
 			if err != nil {
 				return nil, err
 			}
@@ -307,7 +303,7 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 
 			// Verify the balance of the account
 			var balance *big.Int
-			if balance, err = executionClient.BalanceAt(ctx, dest, nil); err != nil {
+			if balance, err = ec.BalanceAt(ctx, dest, nil); err != nil {
 				return nil, err
 			} else if balance.Cmp(value) != 0 {
 				return nil, errors.Wrap(

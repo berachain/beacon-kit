@@ -35,9 +35,7 @@ type JSONRPCConnection struct {
 }
 
 // NewJSONRPCConnection creates a new JSON-RPC connection.
-func NewJSONRPCConnection(
-	serviceCtx *services.ServiceContext,
-) (*JSONRPCConnection, error) {
+func NewJSONRPCConnection(serviceCtx *services.ServiceContext) (*JSONRPCConnection, error) {
 	conn := &JSONRPCConnection{
 		isWebSocket: true,
 	}
@@ -64,12 +62,11 @@ func NewJSONRPCConnection(
 		prefix = "ws://"
 	}
 
-	ethClient, err := ethclient.Dial(
-		prefix + "0.0.0.0:" + port,
-	)
+	ethClient, err := ethclient.Dial(prefix + "0.0.0.0:" + port)
 	if err != nil {
 		return nil, err
 	}
+
 	conn.Client = ethClient
 	return conn, nil
 }
