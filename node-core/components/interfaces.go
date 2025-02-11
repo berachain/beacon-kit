@@ -280,6 +280,7 @@ type (
 		SendForceHeadFCU(
 			ctx context.Context,
 			st *statedb.StateDB,
+			currentHeadHash common.ExecutionHash,
 			slot math.Slot,
 		) error
 		// RetrievePayload retrieves the payload for the given slot.

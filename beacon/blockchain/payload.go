@@ -60,7 +60,9 @@ func (s *Service) forceStartupHead(
 
 	// TODO: Verify if the slot number is correct here, I believe in current
 	// form it should be +1'd. Not a big deal until hardforks are in play though.
-	if err = s.localBuilder.SendForceHeadFCU(ctx, st, slot+1); err != nil {
+	if err = s.localBuilder.SendForceHeadFCU(
+		ctx, st, executionPayload.GetBlockHash(), slot+1,
+	); err != nil {
 		s.logger.Error(
 			"failed to send force head FCU",
 			"error", err,

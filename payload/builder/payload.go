@@ -203,6 +203,7 @@ func (pb *PayloadBuilder) RetrievePayload(
 func (pb *PayloadBuilder) SendForceHeadFCU(
 	ctx context.Context,
 	st *statedb.StateDB,
+	currentHeadHash common.ExecutionHash,
 	slot math.Slot,
 ) error {
 	if !pb.Enabled() {
@@ -227,9 +228,9 @@ func (pb *PayloadBuilder) SendForceHeadFCU(
 	_, _, err = pb.ee.NotifyForkchoiceUpdate(
 		ctx, &ctypes.ForkchoiceUpdateRequest{
 			State: &engineprimitives.ForkchoiceStateV1{
-				HeadBlockHash:      lph.GetBlockHash(),
-				SafeBlockHash:      lph.GetParentHash(),
-				FinalizedBlockHash: lph.GetParentHash(),
+				HeadBlockHash:      currentHeadHash,
+				SafeBlockHash:      lph.GetBlockHash(),
+				FinalizedBlockHash: lph.GetBlockHash(),
 			},
 			PayloadAttributes: attrs,
 			ForkVersion:       pb.chainSpec.ActiveForkVersionForSlot(slot),

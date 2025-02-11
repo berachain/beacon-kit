@@ -117,6 +117,7 @@ type LocalBuilder interface {
 	SendForceHeadFCU(
 		ctx context.Context,
 		st *statedb.StateDB,
+		currentHeadHash common.ExecutionHash,
 		slot math.Slot,
 	) error
 }
