@@ -134,7 +134,7 @@ func (kv *KVStore) EnqueueDeposits(ctx context.Context, deposits []*ctypes.Depos
 	}
 
 	if len(deposits) > 0 {
-		kv.logger.Debug(
+		kv.logger.Info(
 			"EnqueueDeposit", "enqueued", len(deposits),
 			"start", deposits[0].GetIndex(), "end", deposits[len(deposits)-1].GetIndex(),
 		)
