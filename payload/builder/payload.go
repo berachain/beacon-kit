@@ -22,6 +22,7 @@ package builder
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
@@ -79,7 +80,7 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 		},
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("RequestPayloadAsync failed sending forkchoice update: %w", err)
 	}
 
 	// Only add to cache if we received back a payload ID.
@@ -234,7 +235,10 @@ func (pb *PayloadBuilder) SendForceHeadFCU(
 			ForkVersion:       pb.chainSpec.ActiveForkVersionForSlot(slot),
 		},
 	)
-	return err
+	if err != nil {
+		return fmt.Errorf("SendForceHeadFCU failed sending forkchoice update: %w", err)
+	}
+	return nil
 }
 
 func (pb *PayloadBuilder) getPayload(

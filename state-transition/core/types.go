@@ -33,30 +33,15 @@ import (
 	"github.com/karalabe/ssz"
 )
 
-// Context defines an interface for managing state transition context.
-type Context interface {
-	context.Context
-	GetMeterGas() bool
-	// GetOptimisticEngine returns whether to optimistically assume the
-	// execution client has the correct state when certain errors are returned
-	// by the execution engine.
-	GetOptimisticEngine() bool
-	// GetSkipPayloadVerification returns whether to skip verifying the payload
-	// if
-	// it already exists on the execution client.
-	GetSkipPayloadVerification() bool
-	// GetSkipValidateRandao returns whether to skip validating the RANDAO
-	// reveal.
-	GetSkipValidateRandao() bool
-	// GetSkipValidateResult returns whether to validate the result of the state
-	// transition.
-	GetSkipValidateResult() bool
-	// GetProposerAddress returns the address of the validator
-	// selected by consensus to propose the block
-	GetProposerAddress() []byte
-	// GetConsensusTime returns the timestamp of current consensus request.
-	// It is used to build next payload and to validate currentpayload.
-	GetConsensusTime() math.U64
+// ReadOnlyContext defines an interface for managing state transition context.
+type ReadOnlyContext interface {
+	ConsensusCtx() context.Context
+	ConsensusTime() math.U64
+	ProposerAddress() []byte
+	VerifyPayload() bool
+	VerifyRandao() bool
+	VerifyResult() bool
+	MeterGas() bool
 }
 
 // Withdrawals defines the interface for managing withdrawal operations.

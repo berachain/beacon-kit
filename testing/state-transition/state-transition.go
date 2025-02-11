@@ -55,7 +55,7 @@ import (
 type (
 	TestBeaconStateMarshallableT = types.BeaconState
 	TestBeaconStateT             = statedb.StateDB
-	TestStateProcessorT          = core.StateProcessor[*transition.Context]
+	TestStateProcessorT          = core.StateProcessor
 )
 
 type testKVStoreService struct {
@@ -104,7 +104,7 @@ func SetupTestState(t *testing.T, cs chain.Spec) (
 	*TestStateProcessorT,
 	*TestBeaconStateT,
 	*depositstore.KVStore,
-	*transition.Context,
+	core.ReadOnlyContext,
 ) {
 	t.Helper()
 
@@ -122,7 +122,7 @@ func SetupTestState(t *testing.T, cs chain.Spec) (
 	require.NoError(t, err)
 	beaconState := statedb.NewBeaconStateFromDB(kvStore, cs)
 
-	sp := core.NewStateProcessor[*transition.Context](
+	sp := core.NewStateProcessor(
 		noop.NewLogger[any](),
 		cs,
 		execEngine,
@@ -134,12 +134,15 @@ func SetupTestState(t *testing.T, cs chain.Spec) (
 		nodemetrics.NewNoOpTelemetrySink(),
 	)
 
-	ctx := &transition.Context{
-		Context:                 context.Background(),
-		SkipPayloadVerification: true,
-		SkipValidateResult:      true,
-		ProposerAddress:         dummyProposerAddr,
-	}
+	ctx := transition.NewTransitionCtx(
+		context.Background(),
+		0, // time
+		dummyProposerAddr,
+	).
+		WithVerifyPayload(false).
+		WithVerifyRandao(false).
+		WithVerifyResult(false).
+		WithMeterGas(false)
 
 	return sp, beaconState, depositStore, ctx
 }

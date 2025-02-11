@@ -31,18 +31,20 @@ import (
 
 // processExecutionPayload processes the execution payload and ensures it
 // matches the local state.
-func (sp *StateProcessor[ContextT]) processExecutionPayload(
-	ctx ContextT, st *statedb.StateDB, blk *ctypes.BeaconBlock,
+func (sp *StateProcessor) processExecutionPayload(
+	ctx ReadOnlyContext,
+	st *statedb.StateDB,
+	blk *ctypes.BeaconBlock,
 ) error {
 	var (
 		body    = blk.GetBody()
 		payload = body.GetExecutionPayload()
 		header  = &ctypes.ExecutionPayloadHeader{} // appeases nilaway
-		g, gCtx = errgroup.WithContext(ctx)
+		g, gCtx = errgroup.WithContext(ctx.ConsensusCtx())
 	)
 
 	payloadTimestamp := payload.GetTimestamp().Unwrap()
-	consensusTimestamp := ctx.GetConsensusTime().Unwrap()
+	consensusTimestamp := ctx.ConsensusTime().Unwrap()
 
 	sp.metrics.gaugeTimestamps(payloadTimestamp, consensusTimestamp)
 
@@ -51,13 +53,13 @@ func (sp *StateProcessor[ContextT]) processExecutionPayload(
 		"payload height", payload.GetNumber().Unwrap(),
 		"payload timestamp", payloadTimestamp,
 		"consensus timestamp", consensusTimestamp,
-		"skip payload verification", ctx.GetSkipPayloadVerification(),
+		"verify payload", ctx.VerifyPayload(),
 	)
 
-	// Skip payload verification if the context is configured as such.
-	if !ctx.GetSkipPayloadVerification() {
+	// Perform payload verification only if the context is configured as such.
+	if ctx.VerifyPayload() {
 		g.Go(func() error {
-			return sp.validateExecutionPayload(gCtx, st, blk, ctx.GetOptimisticEngine())
+			return sp.validateExecutionPayload(gCtx, st, blk)
 		})
 	}
 
@@ -72,7 +74,7 @@ func (sp *StateProcessor[ContextT]) processExecutionPayload(
 		return err
 	}
 
-	if ctx.GetMeterGas() {
+	if ctx.MeterGas() {
 		sp.metrics.gaugeBlockGasUsed(
 			payload.GetNumber(), payload.GetGasUsed(), payload.GetBlobGasUsed(),
 		)
@@ -84,20 +86,19 @@ func (sp *StateProcessor[ContextT]) processExecutionPayload(
 
 // validateExecutionPayload validates the execution payload against both local
 // state and the execution engine.
-func (sp *StateProcessor[_]) validateExecutionPayload(
+func (sp *StateProcessor) validateExecutionPayload(
 	ctx context.Context,
 	st *statedb.StateDB,
 	blk *ctypes.BeaconBlock,
-	optimisticEngine bool,
 ) error {
 	if err := sp.validateStatelessPayload(blk); err != nil {
 		return err
 	}
-	return sp.validateStatefulPayload(ctx, st, blk, optimisticEngine)
+	return sp.validateStatefulPayload(ctx, st, blk)
 }
 
 // validateStatelessPayload performs stateless checks on the execution payload.
-func (sp *StateProcessor[_]) validateStatelessPayload(blk *ctypes.BeaconBlock) error {
+func (sp *StateProcessor) validateStatelessPayload(blk *ctypes.BeaconBlock) error {
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
 
@@ -111,22 +112,16 @@ func (sp *StateProcessor[_]) validateStatelessPayload(blk *ctypes.BeaconBlock) e
 		)
 	}
 
-	// Verify the number of blobs.
-	blobKzgCommitments := body.GetBlobKzgCommitments()
-	if uint64(len(blobKzgCommitments)) > sp.cs.MaxBlobsPerBlock() {
-		return errors.Wrapf(
-			ErrExceedsBlockBlobLimit,
-			"expected: %d, got: %d",
-			sp.cs.MaxBlobsPerBlock(), len(blobKzgCommitments),
-		)
-	}
-
+	// No need to verify bounded number of commitments here, since it is
+	// verified early on in ProcessProposal.
 	return nil
 }
 
 // validateStatefulPayload performs stateful checks on the execution payload.
-func (sp *StateProcessor[_]) validateStatefulPayload(
-	ctx context.Context, st *statedb.StateDB, blk *ctypes.BeaconBlock, optimisticEngine bool,
+func (sp *StateProcessor) validateStatefulPayload(
+	ctx context.Context,
+	st *statedb.StateDB,
+	blk *ctypes.BeaconBlock,
 ) error {
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
@@ -153,7 +148,6 @@ func (sp *StateProcessor[_]) validateStatefulPayload(
 			payload,
 			body.GetBlobKzgCommitments().ToVersionedHashes(),
 			&parentBeaconBlockRoot,
-			optimisticEngine,
 		),
 	); err != nil {
 		return err

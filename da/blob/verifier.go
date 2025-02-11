@@ -67,37 +67,42 @@ func (bv *verifier) verifySidecars(
 	blkHeader *ctypes.BeaconBlockHeader,
 	kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],
 ) error {
+	numSidecars := uint64(len(sidecars))
 	defer bv.metrics.measureVerifySidecarsDuration(
-		time.Now(), math.U64(len(sidecars)),
+		time.Now(), math.U64(numSidecars),
 		bv.proofVerifier.GetImplementation(),
 	)
 
 	g, _ := errgroup.WithContext(ctx)
 
-	// Create lookup table for each blob sidecar commitment.
+	// Create lookup table for each blob sidecar commitment and indicies.
 	blobSidecarCommitments := make(map[eip4844.KZGCommitment]struct{})
+	blobSidecarIndicies := make(map[uint64]struct{})
 
 	// Validate sidecar fields against data from the BeaconBlock.
 	for i, s := range sidecars {
 		// Fill lookup table with commitments from the blob sidecars.
 		blobSidecarCommitments[s.GetKzgCommitment()] = struct{}{}
 
+		// We should only have unique indexes.
+		if _, exists := blobSidecarIndicies[s.GetIndex()]; exists {
+			return fmt.Errorf("duplicate sidecar Index: %d", i)
+		}
+		blobSidecarIndicies[s.GetIndex()] = struct{}{}
+
 		// This check happens outside the goroutines so that we do not
 		// process the inclusion proofs before validating the index.
-		if s.GetIndex() >= bv.chainSpec.MaxBlobsPerBlock() {
+		if s.GetIndex() >= numSidecars {
 			return fmt.Errorf("invalid sidecar Index: %d", i)
 		}
-		g.Go(func() error {
-			// Verify the signature.
-			var sigHeader = s.GetSignedBeaconBlockHeader()
 
-			// Check BlobSidecar.Header equality with BeaconBlockHeader
-			if !sigHeader.GetHeader().Equals(blkHeader) {
-				return fmt.Errorf("unequal block header: idx: %d", i)
-			}
+		// Verify the signature.
+		var sigHeader = s.GetSignedBeaconBlockHeader()
 
-			return nil
-		})
+		// Check BlobSidecar.Header equality with BeaconBlockHeader
+		if !sigHeader.GetHeader().Equals(blkHeader) {
+			return fmt.Errorf("unequal block header: idx: %d", i)
+		}
 	}
 
 	// Ensure each commitment from the BeaconBlock has a corresponding sidecar commitment.
