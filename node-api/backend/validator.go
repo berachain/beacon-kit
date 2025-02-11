@@ -39,7 +39,7 @@ func (b Backend) FilteredValidators(
 ) ([]*beacontypes.ValidatorData, error) {
 	st, _, err := b.stateFromSlot(slot)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "failed to get state from slot %d", slot)
 	}
 
 	// Convert requested ids (can be validator index or pubkey) to validator index only.
@@ -47,14 +47,14 @@ func (b Backend) FilteredValidators(
 	for _, id := range ids {
 		validatorIndex, vErr := utils.ValidatorIndexByID(st, id)
 		if vErr != nil {
-			return nil, vErr
+			return nil, errors.Wrapf(vErr, "failed to get validator index by id %s", id)
 		}
 		validatorIndicies = append(validatorIndicies, validatorIndex.Unwrap())
 	}
 
 	validators, err := st.GetValidators()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "failed to get validators")
 	}
 
 	// Filter on validator indexes and statuses.
@@ -63,7 +63,7 @@ func (b Backend) FilteredValidators(
 		// Skip the validator if we are filtering by indicies and this validator is not included.
 		index, valErr := st.ValidatorIndexByPubkey(validator.GetPubkey())
 		if valErr != nil {
-			return nil, err
+			return nil, errors.Wrapf(valErr, "failed to get validator index by pubkey")
 		}
 		if len(validatorIndicies) != 0 && !slices.Contains(validatorIndicies, index.Unwrap()) {
 			continue
@@ -72,7 +72,7 @@ func (b Backend) FilteredValidators(
 		// Skip the validator if we are filtering by statuses and this validator is not included.
 		status, valErr := validator.Status(b.cs.SlotToEpoch(slot))
 		if valErr != nil {
-			return nil, valErr
+			return nil, errors.Wrapf(valErr, "failed to get validator status")
 		}
 		if len(statuses) != 0 && !slices.Contains(statuses, status) {
 			continue
@@ -80,7 +80,7 @@ func (b Backend) FilteredValidators(
 
 		balance, valErr := st.GetBalance(index)
 		if valErr != nil {
-			return nil, valErr
+			return nil, errors.Wrapf(valErr, "failed to get validator balance")
 		}
 		validatorData = append(validatorData, &beacontypes.ValidatorData{
 			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
@@ -102,7 +102,7 @@ func (b Backend) ValidatorByID(
 	// db impl to the api impl.
 	st, _, err := b.stateFromSlot(slot)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "failed to get state from slot %d", slot)
 	}
 	index, err := utils.ValidatorIndexByID(st, id)
 	if err != nil {
@@ -122,11 +122,11 @@ func (b Backend) ValidatorByID(
 	}
 	balance, err := st.GetBalance(index)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "failed to get validator balance")
 	}
 	status, err := validator.Status(b.cs.SlotToEpoch(slot))
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "failed to get validator status")
 	}
 	return &beacontypes.ValidatorData{
 		ValidatorBalanceData: beacontypes.ValidatorBalanceData{
@@ -143,7 +143,7 @@ func (b Backend) ValidatorBalancesByIDs(
 ) ([]*beacontypes.ValidatorBalanceData, error) {
 	st, _, err := b.stateFromSlot(slot)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "failed to get state from slot %d", slot)
 	}
 
 	// If no IDs provided, return all validator balances
