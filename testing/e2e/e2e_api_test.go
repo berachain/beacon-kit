@@ -78,46 +78,43 @@ func (s *BeaconKitE2ESuite) TestBeaconValidatorsWithIndices() {
 	s.Require().
 		Len(validatorData, len(indices), "Number of validator responses should match number of requested indices")
 
-	for _, validator := range validatorData {
-		s.Require().NotNil(validator, "Validator should not be nil")
+	validator := validatorData[0]
+	s.Require().NotNil(validator, "Validator should not be nil")
+	s.Require().Equal(phase0.ValidatorIndex(0), validator.Index, "Should be validator index 0")
 
-		s.Require().
-			Contains(indices, validator.Index, "Validator index should be one of the requested indices")
+	s.Require().
+		NotEmpty(validator.Validator.PublicKey, "Validator public key should not be empty")
+	s.Require().
+		Len(validator.Validator.PublicKey, 48, "Validator public key should be 48 bytes long")
 
-		s.Require().
-			NotEmpty(validator.Validator.PublicKey, "Validator public key should not be empty")
-		s.Require().
-			Len(validator.Validator.PublicKey, 48, "Validator public key should be 48 bytes long")
+	s.Require().
+		NotEmpty(validator.Validator.WithdrawalCredentials, "Withdrawal credentials should not be empty")
+	s.Require().
+		Len(validator.Validator.WithdrawalCredentials, 32, "Withdrawal credentials should be 32 bytes long")
 
-		s.Require().
-			NotEmpty(validator.Validator.WithdrawalCredentials, "Withdrawal credentials should not be empty")
-		s.Require().
-			Len(validator.Validator.WithdrawalCredentials, 32, "Withdrawal credentials should be 32 bytes long")
+	s.Require().
+		True(validator.Validator.EffectiveBalance > 0, "Effective balance should be positive")
+	s.Require().
+		True(validator.Validator.EffectiveBalance <= 32e9, "Effective balance should not exceed 32 ETH")
 
-		s.Require().
-			True(validator.Validator.EffectiveBalance > 0, "Effective balance should be positive")
-		s.Require().
-			True(validator.Validator.EffectiveBalance <= 32e9, "Effective balance should not exceed 32 ETH")
+	s.Require().
+		False(validator.Validator.Slashed, "Slashed status should not be true")
 
-		s.Require().
-			False(validator.Validator.Slashed, "Slashed status should not be true")
+	s.Require().
+		True(validator.Validator.ActivationEpoch >= validator.Validator.ActivationEligibilityEpoch,
+			"Activation epoch should be greater than or equal to activation eligibility epoch")
 
-		s.Require().
-			True(validator.Validator.ActivationEpoch >= validator.Validator.ActivationEligibilityEpoch,
-				"Activation epoch should be greater than or equal to activation eligibility epoch")
+	s.Require().
+		True(validator.Validator.WithdrawableEpoch >= validator.Validator.ExitEpoch,
+			"Withdrawable epoch should be greater than or equal to exit epoch")
 
-		s.Require().
-			True(validator.Validator.WithdrawableEpoch >= validator.Validator.ExitEpoch,
-				"Withdrawable epoch should be greater than or equal to exit epoch")
+	s.Require().
+		NotEmpty(validator.Status, "Validator status should not be empty")
 
-		s.Require().
-			NotEmpty(validator.Status, "Validator status should not be empty")
-
-		s.Require().
-			True(validator.Balance > 0, "Validator balance should be positive")
-		s.Require().
-			True(validator.Balance <= 32e9, "Validator balance should not exceed 32 ETH")
-	}
+	s.Require().
+		True(validator.Balance > 0, "Validator balance should be positive")
+	s.Require().
+		True(validator.Balance <= 32e9, "Validator balance should not exceed 32 ETH")
 }
 
 // TestValidatorsEmptyIndices tests that querying validators with empty indices returns all validators.
