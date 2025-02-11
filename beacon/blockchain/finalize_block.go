@@ -110,7 +110,8 @@ func (s *Service) FinalizeBlock(
 			return nil, fmt.Errorf("failed to enqueue deposits: %w", err)
 		}
 	} else {
-		// If we're NOT syncing we want to run the deposit fetcher as we want to have our own view of the deposits which we can validate in ProcessProposal.
+		// If we're NOT syncing we want to run the deposit fetcher as we want to have our own view
+		// of the deposits which we can validate in ProcessProposal.
 		s.depositFetcher(ctx, blockNum)
 	}
 
