@@ -28,6 +28,7 @@ import (
 
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
@@ -153,15 +154,15 @@ func ValidateRoot(value string) bool {
 func ValidateValidatorStatus(fl validator.FieldLevel) bool {
 	// Eth Beacon Node API specs: https://hackmd.io/ofFJ5gOmQpu1jjHilHbdQQ
 	allowedStatuses := map[string]bool{
-		utils.ActiveExiting:      true,
-		utils.ActiveOngoing:      true,
-		utils.ActiveSlashed:      true,
-		utils.ExitedSlashed:      true,
-		utils.ExitedUnslashed:    true,
-		utils.PendingInitialized: true,
-		utils.PendingQueued:      true,
-		utils.WithdrawalDone:     true,
-		utils.WithdrawalPossible: true,
+		constants.ValidatorStatusActiveExiting:      true,
+		constants.ValidatorStatusActiveOngoing:      true,
+		constants.ValidatorStatusActiveSlashed:      true,
+		constants.ValidatorStatusExitedSlashed:      true,
+		constants.ValidatorStatusExitedUnslashed:    true,
+		constants.ValidatorStatusPendingInitialized: true,
+		constants.ValidatorStatusPendingQueued:      true,
+		constants.ValidatorStatusWithdrawalDone:     true,
+		constants.ValidatorStatusWithdrawalPossible: true,
 	}
 	return validateAllowedStrings(fl.Field().String(), allowedStatuses)
 }
