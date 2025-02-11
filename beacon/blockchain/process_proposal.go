@@ -220,7 +220,7 @@ func (s *Service) VerifyIncomingBlock(
 
 	// Force a sync of the startup head if we haven't done so already.
 	var fcuErr error
-	s.forceStartupSyncOnce.Do(func() { fcuErr = s.forceStartupHead(ctx, preState) })
+	s.forceStartupSyncOnce.Do(func() { fcuErr = s.forceStartupHead(ctx, beaconBlk, preState) })
 	if fcuErr != nil {
 		return fcuErr
 	}
