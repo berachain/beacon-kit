@@ -31,6 +31,7 @@ import (
 // forceStartupHead sends a force head FCU to the execution client.
 func (s *Service) forceStartupHead(
 	ctx context.Context,
+	beaconBlock *ctypes.BeaconBlock,
 	st *statedb.StateDB,
 ) error {
 	slot, err := st.GetSlot()
@@ -40,6 +41,21 @@ func (s *Service) forceStartupHead(
 			"error", err,
 		)
 		return err
+	}
+
+	// NewPayload first as we forkchoice updated will do nothing if NewPayload has not been called in the EL first
+	executionPayload := beaconBlock.GetBody().GetExecutionPayload()
+	versionedHashes := beaconBlock.GetBody().GetBlobKzgCommitments().ToVersionedHashes()
+	parentBeaconBlockRoot := beaconBlock.GetParentBlockRoot()
+	if err = s.executionEngine.VerifyAndNotifyNewPayload(
+		ctx, ctypes.BuildNewPayloadRequest(
+			executionPayload,
+			versionedHashes,
+			&parentBeaconBlockRoot,
+		),
+	); err != nil {
+		// We don't return error here as we may see errors here, but the main check is if fork choice updated errors
+		s.logger.Warn("failed to verify new payload for force startup head", "error", err)
 	}
 
 	// TODO: Verify if the slot number is correct here, I believe in current

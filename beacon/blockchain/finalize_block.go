@@ -43,12 +43,6 @@ func (s *Service) FinalizeBlock(
 		finalizeErr error
 	)
 
-	// Send an FCU to force the HEAD of the chain on the EL on startup.
-	s.forceStartupSyncOnce.Do(func() { finalizeErr = s.forceStartupHead(ctx, s.storageBackend.StateFromContext(ctx)) })
-	if finalizeErr != nil {
-		return nil, finalizeErr
-	}
-
 	// STEP 1: Decode block and blobs
 	signedBlk, blobs, err := encoding.ExtractBlobsAndBlockFromRequest(
 		req,
@@ -58,6 +52,14 @@ func (s *Service) FinalizeBlock(
 	if err != nil {
 		s.logger.Error("Failed to decode block and blobs", "error", err)
 		return nil, fmt.Errorf("failed to decode block and blobs: %w", err)
+	}
+
+	// Send an FCU to force the HEAD of the chain on the EL on startup.
+	s.forceStartupSyncOnce.Do(func() {
+		finalizeErr = s.forceStartupHead(ctx, signedBlk.GetMessage(), s.storageBackend.StateFromContext(ctx))
+	})
+	if finalizeErr != nil {
+		return nil, finalizeErr
 	}
 
 	// STEP 2: Finalize sidecars first (block will check for
