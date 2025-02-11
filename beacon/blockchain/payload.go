@@ -24,6 +24,8 @@ import (
 	"context"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
@@ -63,10 +65,13 @@ func (s *Service) forceStartupHead(
 	if err = s.localBuilder.SendForceHeadFCU(
 		ctx, st, executionPayload.GetBlockHash(), slot+1,
 	); err != nil {
-		s.logger.Error(
-			"failed to send force head FCU",
-			"error", err,
-		)
+		if errors.Is(err, engineerrors.ErrSyncingPayloadStatus) {
+			s.logger.Warn(
+				//nolint:lll // long message on one line for readability.
+				`Your execution client is syncing. It should be downloading eth blocks from its peers. Restart the beacon node once the execution client is caught up.`,
+			)
+		}
+		s.logger.Error("failed to send force head FCU", "error", err)
 		return err
 	}
 	return nil
