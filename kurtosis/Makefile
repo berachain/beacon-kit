@@ -4,6 +4,12 @@
 ###                                Kurtosis                                 ###
 ###############################################################################
 
+# This Makefile uses bash specific syntax. Makefile usually runs commands in
+# /bin/sh. This is fine on Macos since /bin/sh is bash. However, on Ubuntu,
+# /bin/sh is dash, so many of the commands here will fail without this (env
+# variables like PATH not set, STDERR redirect does not work, etc).
+SHELL := /bin/bash
+
 # Installs Kurtosis if not already installed
 install-kurtosis:
 	@echo "Checking for Kurtosis installation..."
