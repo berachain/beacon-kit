@@ -112,8 +112,7 @@ func (b *Backend) stateFromSlotRaw(slot math.Slot) (*statedb.StateDB, math.Slot,
 	}
 	st = b.sb.StateFromContext(queryCtx)
 
-	// If using height 0 for the query context, make sure to return the latest
-	// slot.
+	// If using height 0 for the query context, make sure to return the latest slot.
 	if slot == 0 {
 		slot, err = st.GetSlot()
 		if err != nil {
