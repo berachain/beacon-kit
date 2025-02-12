@@ -21,9 +21,10 @@
 package engine
 
 import (
+	"time"
+
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"time"
 )
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.

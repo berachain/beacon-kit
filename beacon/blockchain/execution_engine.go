@@ -23,11 +23,12 @@ package blockchain
 import (
 	"context"
 	"fmt"
+	"time"
+
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	contypes "github.com/berachain/beacon-kit/consensus/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
-	"time"
 )
 
 // sendPostBlockFCU sends a forkchoice update to the execution client after a
