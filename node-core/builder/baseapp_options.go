@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"cosmossdk.io/store"
 	storetypes "cosmossdk.io/store/types"
@@ -79,6 +80,10 @@ func DefaultServiceOptions(
 			true,
 		),
 		cometbft.SetChainID(chainID),
+		cometbft.SetTargetBlockTime(
+			// default to 12 seconds (single Ethereum slot)
+			12 * time.Second,
+		),
 	}
 }
 

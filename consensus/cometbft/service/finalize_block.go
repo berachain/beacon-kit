@@ -89,11 +89,29 @@ func (s *Service) finalizeBlockInternal(
 		return nil, err
 	}
 
+	// Special case: height > 0, but blockDelay record doesn't exist in DB.
+	//
+	// NOTE: all nodes must enable this feature from the same height (requires
+	// coordinated upgrade).
+	if s.blockDelay == nil {
+		s.blockDelay = blockDelayUponGenesis(
+			req.Time,
+			req.Height-1,
+		)
+	}
+
+	// Calculate the delay for the next block.
+	delay := s.blockDelay.Next(
+		req.Time,
+		req.Height,
+		s.targetBlockTime)
+
 	cp := s.cmtConsensusParams.ToProto()
 	return &cmtabci.FinalizeBlockResponse{
 		TxResults:             txResults,
 		ValidatorUpdates:      valUpdates,
 		ConsensusParamUpdates: &cp,
+		NextBlockDelay:        delay,
 	}, nil
 }
 
