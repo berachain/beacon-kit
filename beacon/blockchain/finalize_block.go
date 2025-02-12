@@ -42,6 +42,8 @@ func (s *Service) FinalizeBlock(
 		valUpdates  transition.ValidatorUpdates
 		finalizeErr error
 	)
+	startTime := time.Now()
+	defer s.executionEngine.MeasureFinalizeBlockTime(startTime)
 
 	// STEP 1: Decode block and blobs
 	signedBlk, blobs, err := encoding.ExtractBlobsAndBlockFromRequest(

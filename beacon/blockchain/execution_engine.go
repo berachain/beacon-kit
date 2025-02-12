@@ -23,11 +23,11 @@ package blockchain
 import (
 	"context"
 	"fmt"
-
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	contypes "github.com/berachain/beacon-kit/consensus/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
+	"time"
 )
 
 // sendPostBlockFCU sends a forkchoice update to the execution client after a
@@ -40,6 +40,8 @@ func (s *Service) sendPostBlockFCU(
 	st *statedb.StateDB,
 	blk *contypes.ConsensusBlock,
 ) error {
+	startTime := time.Now()
+	defer s.executionEngine.MeasureSendPostBlockFCUTime(startTime)
 	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return fmt.Errorf("failed getting latest payload: %w", err)
