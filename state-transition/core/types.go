@@ -42,6 +42,7 @@ type ReadOnlyContext interface {
 	VerifyRandao() bool
 	VerifyResult() bool
 	MeterGas() bool
+	OptimisticEngine() bool
 }
 
 // Withdrawals defines the interface for managing withdrawal operations.
