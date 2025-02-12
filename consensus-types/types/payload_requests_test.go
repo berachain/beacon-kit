@@ -37,21 +37,18 @@ func TestBuildNewPayloadRequest(t *testing.T) {
 		executionPayload      = (&types.ExecutionPayload{}).Empty(version.Deneb1())
 		versionedHashes       []common.ExecutionHash
 		parentBeaconBlockRoot = common.Root{}
-		optimistic            = false
 	)
 
 	request := types.BuildNewPayloadRequest(
 		executionPayload,
 		versionedHashes,
 		&parentBeaconBlockRoot,
-		optimistic,
 	)
 
 	require.NotNil(t, request)
 	require.Equal(t, executionPayload, request.ExecutionPayload)
 	require.Equal(t, versionedHashes, request.VersionedHashes)
 	require.Equal(t, &parentBeaconBlockRoot, request.ParentBeaconBlockRoot)
-	require.Equal(t, optimistic, request.Optimistic)
 }
 
 func TestBuildForkchoiceUpdateRequest(t *testing.T) {
@@ -100,14 +97,12 @@ func TestHasValidVersionedAndBlockHashesPayloadError(t *testing.T) {
 		executionPayload      = (&types.ExecutionPayload{}).Empty(version.Deneb1())
 		versionedHashes       = []common.ExecutionHash{}
 		parentBeaconBlockRoot = common.Root{}
-		optimistic            = false
 	)
 
 	request := types.BuildNewPayloadRequest(
 		executionPayload,
 		versionedHashes,
 		&parentBeaconBlockRoot,
-		optimistic,
 	)
 
 	err := request.HasValidVersionedAndBlockHashes()
@@ -120,14 +115,12 @@ func TestHasValidVersionedAndBlockHashesMismatchedHashes(t *testing.T) {
 		executionPayload      = (&types.ExecutionPayload{}).Empty(version.Deneb1())
 		versionedHashes       = []common.ExecutionHash{{}}
 		parentBeaconBlockRoot = common.Root{}
-		optimistic            = false
 	)
 
 	request := types.BuildNewPayloadRequest(
 		executionPayload,
 		versionedHashes,
 		&parentBeaconBlockRoot,
-		optimistic,
 	)
 
 	err := request.HasValidVersionedAndBlockHashes()

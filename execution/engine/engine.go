@@ -93,16 +93,16 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 		)
 
 	case errors.IsAny(err, engineerrors.ErrSyncingPayloadStatus):
-		// We do not bubble the error up, since we want to handle it
-		// in the same way as the other cases.
+		// We bubble up syncing as an error, to be able to stop
+		// bootstrapping from progressing in CL while EL is syncing.
 		ee.metrics.markForkchoiceUpdateSyncing(req.State, err)
-		return payloadID, nil, nil
+		return nil, nil, err
 
 	case errors.Is(err, engineerrors.ErrInvalidPayloadStatus):
 		// If we get invalid payload status, we will need to find a valid
 		// ancestor block and force a recovery.
 		ee.metrics.markForkchoiceUpdateInvalid(req.State, err)
-		return payloadID, latestValidHash, ErrBadBlockProduced
+		return nil, nil, ErrBadBlockProduced
 
 	case jsonrpc.IsPreDefinedError(err):
 		// JSON-RPC errors are predefined and should be handled as such.
@@ -124,7 +124,7 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 			"safe_eth1_hash", req.State.SafeBlockHash,
 			"finalized_eth1_hash", req.State.FinalizedBlockHash,
 		)
-		return payloadID, latestValidHash, ErrNilPayloadOnValidResponse
+		return nil, nil, ErrNilPayloadOnValidResponse
 	}
 
 	return payloadID, latestValidHash, nil
@@ -132,8 +132,6 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 
 // VerifyAndNotifyNewPayload verifies the new payload and notifies the
 // execution client.
-//
-//nolint:funlen
 func (ee *Engine) VerifyAndNotifyNewPayload(
 	ctx context.Context,
 	req *ctypes.NewPayloadRequest,
@@ -142,7 +140,6 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 	ee.metrics.markNewPayloadCalled(
 		req.ExecutionPayload.GetBlockHash(),
 		req.ExecutionPayload.GetParentHash(),
-		req.Optimistic,
 	)
 
 	// First we verify the block hash and versioned hashes are valid.
@@ -172,27 +169,18 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 		ee.metrics.markNewPayloadSyncingPayloadStatus(
 			req.ExecutionPayload.GetBlockHash(),
 			req.ExecutionPayload.GetParentHash(),
-			req.Optimistic,
 		)
 
 	case errors.IsAny(err, engineerrors.ErrAcceptedPayloadStatus):
 		ee.metrics.markNewPayloadAcceptedPayloadStatus(
 			req.ExecutionPayload.GetBlockHash(),
 			req.ExecutionPayload.GetParentHash(),
-			req.Optimistic,
 		)
 
 	case errors.Is(err, engineerrors.ErrInvalidPayloadStatus):
 		ee.metrics.markNewPayloadInvalidPayloadStatus(
 			req.ExecutionPayload.GetBlockHash(),
-			req.Optimistic,
 		)
-
-		// We want to return bad block irrespective of
-		// if we are running in optimistic mode or not.
-		//
-		// TODO: should we still nillify the error in optimistic mode?
-		return ErrBadBlockProduced
 
 	case jsonrpc.IsPreDefinedError(err):
 		// Protect against possible nil value.
@@ -203,7 +191,6 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 		ee.metrics.markNewPayloadJSONRPCError(
 			req.ExecutionPayload.GetBlockHash(),
 			*lastValidHash,
-			req.Optimistic,
 			err,
 		)
 
@@ -211,34 +198,13 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 	case err != nil:
 		ee.metrics.markNewPayloadUndefinedError(
 			req.ExecutionPayload.GetBlockHash(),
-			req.Optimistic,
 			err,
 		)
 	default:
 		ee.metrics.markNewPayloadValid(
 			req.ExecutionPayload.GetBlockHash(),
 			req.ExecutionPayload.GetParentHash(),
-			req.Optimistic,
 		)
-	}
-
-	// Under the optimistic condition, we are fine ignoring the error. This
-	// is mainly to allow us to safely call the execution client
-	// during abci.FinalizeBlock. If we are in abci.FinalizeBlock and
-	// we get an error here, we make the assumption that
-	// abci.ProcessProposal
-	// has deemed that the BeaconBlock containing the given ExecutionPayload
-	// was marked as valid by an honest majority of validators, and we
-	// don't want to halt the chain because of an error here.
-	//
-	// The practical reason we want to handle this edge case
-	// is to protect against an awkward shutdown condition in which an
-	// execution client dies between the end of abci.ProcessProposal
-	// and the beginning of abci.FinalizeBlock. Without handling this case
-	// it would cause a failure of abci.FinalizeBlock and a
-	// "CONSENSUS FAILURE!!!!" at the CometBFT layer.
-	if req.Optimistic {
-		return nil
 	}
 	return err
 }

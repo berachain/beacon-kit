@@ -52,10 +52,6 @@ type Context struct {
 	// layer payload should be meter or not. We currently meter only
 	// finalized blocks.
 	meterGas bool
-	// optimisticEngine indicates whether to optimistically assume
-	// the execution client has the correct state certain errors
-	// are returned by the execution engine.
-	optimisticEngine bool
 }
 
 func NewTransitionCtx(
@@ -72,10 +68,6 @@ func NewTransitionCtx(
 		// (we care only about finalized blocks gas)
 		meterGas: false,
 
-		// by default we don't have optimistic engine
-		// as it basically mute some checks
-		optimisticEngine: false,
-
 		// by default we keep all verification
 		verifyPayload: true,
 		verifyRandao:  true,
@@ -86,11 +78,6 @@ func NewTransitionCtx(
 // Setters to control context attributes.
 func (c *Context) WithMeterGas(meter bool) *Context {
 	c.meterGas = meter
-	return c
-}
-
-func (c *Context) WithOptimisticEngine(optimistic bool) *Context {
-	c.optimisticEngine = optimistic
 	return c
 }
 
@@ -136,8 +123,4 @@ func (c *Context) VerifyResult() bool {
 
 func (c *Context) MeterGas() bool {
 	return c.meterGas
-}
-
-func (c *Context) OptimisticEngine() bool {
-	return c.optimisticEngine
 }
