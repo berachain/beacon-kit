@@ -73,7 +73,7 @@ type (
 
 	// BeaconBlock represents a generic interface for a beacon block.
 	BeaconBlock[
-		T any,
+	T any,
 	] interface {
 		constraints.Nillable
 		constraints.Empty[T]
@@ -110,7 +110,7 @@ type (
 	// BeaconBlockBody represents a generic interface for the body of a beacon
 	// block.
 	BeaconBlockBody[
-		T any,
+	T any,
 	] interface {
 		constraints.Nillable
 		constraints.EmptyWithVersion[T]
@@ -147,7 +147,7 @@ type (
 	// BeaconStateMarshallable represents an interface for a beacon state
 	// with generic types.
 	BeaconStateMarshallable[
-		T any,
+	T any,
 	] interface {
 		constraints.SSZMarshallableRootable
 		GetTree() (*fastssz.Node, error)
@@ -206,7 +206,7 @@ type (
 
 	// Deposit is the interface for a deposit.
 	Deposit[
-		T any,
+	T any,
 	] interface {
 		constraints.Empty[T]
 		constraints.SSZMarshallableRootable
@@ -236,9 +236,9 @@ type (
 			forkData *ctypes.ForkData,
 			domainType common.DomainType,
 			signatureVerificationFn func(
-				pubkey crypto.BLSPubkey,
-				message []byte, signature crypto.BLSSignature,
-			) error,
+			pubkey crypto.BLSPubkey,
+			message []byte, signature crypto.BLSSignature,
+		) error,
 		) error
 	}
 
@@ -276,13 +276,6 @@ type (
 			headEth1BlockHash common.ExecutionHash,
 			finalEth1BlockHash common.ExecutionHash,
 		) (*engineprimitives.PayloadID, error)
-		// SendForceHeadFCU sends a force head FCU request.
-		SendForceHeadFCU(
-			ctx context.Context,
-			st *statedb.StateDB,
-			currentHeadHash common.ExecutionHash,
-			slot math.Slot,
-		) error
 		// RetrievePayload retrieves the payload for the given slot.
 		RetrievePayload(
 			ctx context.Context,
@@ -458,7 +451,7 @@ type (
 type (
 	// BeaconStore is the interface for the beacon store.
 	BeaconStore[
-		T any,
+	T any,
 	] interface {
 		// Context returns the context of the key-value store.
 		Context() context.Context

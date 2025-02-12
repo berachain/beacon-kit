@@ -113,13 +113,6 @@ type LocalBuilder interface {
 		headEth1BlockHash common.ExecutionHash,
 		finalEth1BlockHash common.ExecutionHash,
 	) (*engineprimitives.PayloadID, error)
-	// SendForceHeadFCU sends a force head FCU request.
-	SendForceHeadFCU(
-		ctx context.Context,
-		st *statedb.StateDB,
-		currentHeadHash common.ExecutionHash,
-		slot math.Slot,
-	) error
 }
 
 // ReadOnlyBeaconState defines the interface for accessing various components of
