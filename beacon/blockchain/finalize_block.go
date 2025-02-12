@@ -34,7 +34,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-//nolint:funlen // fine for now, refactor later
 func (s *Service) FinalizeBlock(
 	ctx sdk.Context,
 	req *cmtabci.FinalizeBlockRequest,
@@ -98,8 +97,6 @@ func (s *Service) FinalizeBlock(
 	// STEP 4: Post Finalizations cleanups
 
 	// fetch and store the deposit for the block
-	blockNum := blk.GetBody().GetExecutionPayload().GetNumber()
-
 	if isSyncing(req.Height, req.SyncingToHeight) {
 		s.logger.Info(
 			"Syncing in finalize_block, skipping deposit fetcher",
@@ -114,7 +111,7 @@ func (s *Service) FinalizeBlock(
 	} else {
 		// If we're NOT syncing we want to run the deposit fetcher as we want to have our own view
 		// of the deposits which we can validate in ProcessProposal.
-		s.depositFetcher(ctx, blockNum)
+		s.depositFetcher(ctx, blk.GetBody().GetExecutionPayload().GetNumber())
 	}
 
 	// store the finalized block in the KVStore.
