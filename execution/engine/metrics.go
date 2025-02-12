@@ -51,11 +51,13 @@ func newEngineMetrics(
 func (em *engineMetrics) markNewPayloadCalled(
 	payloadHash common.ExecutionHash,
 	parentHash common.ExecutionHash,
+	isOptimistic bool,
 ) {
 	em.sink.IncrementCounter(
 		"beacon_kit.execution.engine.new_payload",
 		"payload_block_hash", payloadHash.Hex(),
 		"payload_parent_block_hash", parentHash.Hex(),
+		"is_optimistic", strconv.FormatBool(isOptimistic),
 	)
 }
 
@@ -63,15 +65,18 @@ func (em *engineMetrics) markNewPayloadCalled(
 func (em *engineMetrics) markNewPayloadValid(
 	payloadHash common.ExecutionHash,
 	parentHash common.ExecutionHash,
+	isOptimistic bool,
 ) {
 	em.logger.Info(
 		"Inserted new payload into execution chain",
 		"payload_block_hash", payloadHash,
 		"payload_parent_block_hash", parentHash,
+		"is_optimistic", isOptimistic,
 	)
 
 	em.sink.IncrementCounter(
 		"beacon_kit.execution.engine.new_payload_valid",
+		"is_optimistic", strconv.FormatBool(isOptimistic),
 	)
 }
 
@@ -80,15 +85,19 @@ func (em *engineMetrics) markNewPayloadValid(
 func (em *engineMetrics) markNewPayloadSyncingPayloadStatus(
 	payloadHash common.ExecutionHash,
 	parentHash common.ExecutionHash,
+	isOptimistic bool,
 ) {
-	em.logger.Error(
+	em.errorLoggerFn(isOptimistic)(
 		"Received syncing payload status",
 		"payload_block_hash", payloadHash,
 		"parent_hash", parentHash,
+		"is_optimistic", isOptimistic,
 	)
 
 	em.sink.IncrementCounter(
 		"beacon_kit.execution.engine.new_payload_syncing_payload_status",
+		"is_optimistic",
+		strconv.FormatBool(isOptimistic),
 	)
 }
 
@@ -97,15 +106,19 @@ func (em *engineMetrics) markNewPayloadSyncingPayloadStatus(
 func (em *engineMetrics) markNewPayloadAcceptedPayloadStatus(
 	payloadHash common.ExecutionHash,
 	parentHash common.ExecutionHash,
+	isOptimistic bool,
 ) {
-	em.logger.Error(
+	em.errorLoggerFn(isOptimistic)(
 		"Received accepted payload status",
 		"payload_block_hash", payloadHash,
 		"parent_hash", parentHash,
+		"is_optimistic", isOptimistic,
 	)
 
 	em.sink.IncrementCounter(
 		"beacon_kit.execution.engine.new_payload_accepted_payload_status",
+		"is_optimistic",
+		strconv.FormatBool(isOptimistic),
 	)
 }
 
@@ -113,15 +126,18 @@ func (em *engineMetrics) markNewPayloadAcceptedPayloadStatus(
 // for invalid payload status.
 func (em *engineMetrics) markNewPayloadInvalidPayloadStatus(
 	payloadHash common.ExecutionHash,
+	isOptimistic bool,
 ) {
-	em.logger.Error(
+	em.errorLoggerFn(isOptimistic)(
 		"Received invalid payload status during new payload call",
 		"payload_block_hash", payloadHash,
 		"parent_hash", payloadHash,
+		"is_optimistic", isOptimistic,
 	)
 
 	em.sink.IncrementCounter(
 		"beacon_kit.execution.engine.new_payload_invalid_payload_status",
+		"is_optimistic", strconv.FormatBool(isOptimistic),
 	)
 }
 
@@ -129,18 +145,21 @@ func (em *engineMetrics) markNewPayloadInvalidPayloadStatus(
 func (em *engineMetrics) markNewPayloadJSONRPCError(
 	payloadHash common.ExecutionHash,
 	lastValidHash common.ExecutionHash,
+	isOptimistic bool,
 	err error,
 ) {
-	em.logger.Error(
+	em.errorLoggerFn(isOptimistic)(
 		"Received JSON-RPC error during new payload call",
 		"payload_block_hash", payloadHash,
 		"parent_hash", payloadHash,
 		"last_valid_hash", lastValidHash,
+		"is_optimistic", isOptimistic,
 		"error", err,
 	)
 
 	em.sink.IncrementCounter(
 		"beacon_kit.execution.engine.new_payload_json_rpc_error",
+		"is_optimistic", strconv.FormatBool(isOptimistic),
 		"error", err.Error(),
 	)
 }
@@ -148,17 +167,20 @@ func (em *engineMetrics) markNewPayloadJSONRPCError(
 // markNewPayloadUndefinedError increments the counter for undefined errors.
 func (em *engineMetrics) markNewPayloadUndefinedError(
 	payloadHash common.ExecutionHash,
+	isOptimistic bool,
 	err error,
 ) {
-	em.logger.Error(
+	em.errorLoggerFn(isOptimistic)(
 		"Received undefined error during new payload call",
 		"payload_block_hash", payloadHash,
 		"parent_hash", payloadHash,
+		"is_optimistic", isOptimistic,
 		"error", err,
 	)
 
 	em.sink.IncrementCounter(
 		"beacon_kit.execution.engine.new_payload_undefined_error",
+		"is_optimistic", strconv.FormatBool(isOptimistic),
 		"error", err.Error(),
 	)
 }
@@ -203,7 +225,7 @@ func (em *engineMetrics) markForkchoiceUpdateSyncing(
 	state *engineprimitives.ForkchoiceStateV1,
 	err error,
 ) {
-	em.logger.Error(
+	em.errorLoggerFn(true)(
 		"Received syncing payload status during forkchoice update call",
 		"head_block_hash",
 		state.HeadBlockHash,
@@ -270,4 +292,14 @@ func (em *engineMetrics) markForkchoiceUpdateUndefinedError(err error) {
 		"beacon_kit.execution.engine.forkchoice_update_undefined_error",
 		"error", err.Error(),
 	)
+}
+
+// errorLoggerFn returns a logger fn based on the optimistic flag.
+func (em *engineMetrics) errorLoggerFn(
+	isOptimistic bool,
+) func(msg string, keyVals ...any) {
+	if isOptimistic {
+		return em.logger.Warn
+	}
+	return em.logger.Error
 }
