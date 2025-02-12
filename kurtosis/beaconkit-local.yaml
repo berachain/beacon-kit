@@ -102,7 +102,7 @@ node_settings:
       reth: ghcr.io/paradigmxyz/reth:latest
 additional_services:
   - name: "spamoor"
-    replicas: 8
+    replicas: 4
   - name: "tx-fuzz"
     replicas: 16
   - name: "prometheus"
