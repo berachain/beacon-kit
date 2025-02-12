@@ -123,10 +123,6 @@ func (s *BeaconKitE2ESuite) TestValidatorsEmptyIndices() {
 
 	// Query validators with empty indices
 	emptyIndices := []phase0.ValidatorIndex{}
-	s.Logger().Info("Making validators request",
-		"state", utils.StateIDHead,
-		"indices", emptyIndices,
-	)
 
 	validatorsResp, err := client.Validators(
 		s.Ctx(),
