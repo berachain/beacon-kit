@@ -1,5 +1,11 @@
 #!/usr/bin/make -f
 
+repo-rinse: | ## dangerous!!! make sure you know what you are doing
+	git clean -xfd
+	git submodule foreach --recursive git clean -xfd
+	git submodule foreach --recursive git reset --hard
+	git submodule update --init --recursive
+
 # tidy-sync-check runs `go mod tidy` and checks if go.mod/go.sum files are in sync with
 # the dependencies in the codebase. If they are not in sync, it will exit with a
 # non-zero status code.
