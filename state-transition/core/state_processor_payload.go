@@ -59,7 +59,7 @@ func (sp *StateProcessor) processExecutionPayload(
 	// Perform payload verification only if the context is configured as such.
 	if ctx.VerifyPayload() {
 		g.Go(func() error {
-			return sp.validateExecutionPayload(gCtx, st, blk, ctx.OptimisticEngine())
+			return sp.validateExecutionPayload(gCtx, st, blk)
 		})
 	}
 
@@ -90,12 +90,11 @@ func (sp *StateProcessor) validateExecutionPayload(
 	ctx context.Context,
 	st *statedb.StateDB,
 	blk *ctypes.BeaconBlock,
-	optimisticEngine bool,
 ) error {
 	if err := sp.validateStatelessPayload(blk); err != nil {
 		return err
 	}
-	return sp.validateStatefulPayload(ctx, st, blk, optimisticEngine)
+	return sp.validateStatefulPayload(ctx, st, blk)
 }
 
 // validateStatelessPayload performs stateless checks on the execution payload.
@@ -120,7 +119,9 @@ func (sp *StateProcessor) validateStatelessPayload(blk *ctypes.BeaconBlock) erro
 
 // validateStatefulPayload performs stateful checks on the execution payload.
 func (sp *StateProcessor) validateStatefulPayload(
-	ctx context.Context, st *statedb.StateDB, blk *ctypes.BeaconBlock, optimisticEngine bool,
+	ctx context.Context,
+	st *statedb.StateDB,
+	blk *ctypes.BeaconBlock,
 ) error {
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
@@ -147,7 +148,6 @@ func (sp *StateProcessor) validateStatefulPayload(
 			payload,
 			body.GetBlobKzgCommitments().ToVersionedHashes(),
 			&parentBeaconBlockRoot,
-			optimisticEngine,
 		),
 	); err != nil {
 		return err
