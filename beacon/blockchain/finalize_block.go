@@ -105,7 +105,8 @@ func (s *Service) FinalizeBlock(
 			"Syncing in finalize_block, skipping deposit fetcher",
 			"height", req.Height, "syncing_to_height", req.SyncingToHeight,
 		)
-		// If we're syncing, we just use the consensus finalized block deposits as an optimization
+		// If we're syncing we do not expect the EL state to be up to date, and so we don't pull deposits from it.
+		// Instead, we store the deposits contained in the finalized block.
 		// The DepositStore does not get included in AppHash calculation and hence introducing this will not result in AppHash.
 		if err = s.storageBackend.DepositStore().EnqueueDeposits(ctx, blk.GetBody().GetDeposits()); err != nil {
 			return nil, fmt.Errorf("failed to enqueue deposits: %w", err)
