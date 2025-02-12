@@ -24,6 +24,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
 	"github.com/stretchr/testify/require"
@@ -66,6 +67,62 @@ func TestExecutionAddressMarshalling(t *testing.T) {
 				err = json.Unmarshal(tt.input, &v)
 			})
 			require.ErrorIs(t, err, tt.expectedErr)
+		})
+	}
+}
+
+func TestExecutionAddressUnmarshalJSON_Short(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name        string
+		input       []byte
+		expectedErr error
+	}{
+		{
+			name:        "empty input",
+			input:       []byte(``),
+			expectedErr: bytes.ErrIncorrectLength,
+		},
+		{
+			name:        "nil input",
+			input:       nil,
+			expectedErr: bytes.ErrIncorrectLength,
+		},
+		{
+			name:        "short input of 1 byte",
+			input:       []byte{0x01},
+			expectedErr: bytes.ErrIncorrectLength,
+		},
+		{
+			name:        "short input of just quotes",
+			input:       []byte(`""`),
+			expectedErr: hex.ErrInvalidHexStringLength,
+		},
+		{
+			name:        "valid input",
+			input:       []byte(`"0x6969696969696969696969696969696969696969"`),
+			expectedErr: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var (
+				addr  common.ExecutionAddress
+				err   error
+				input = tt.input
+			)
+
+			f := func() {
+				err = addr.UnmarshalJSON(input)
+			}
+			require.NotPanics(t, f)
+
+			if tt.expectedErr != nil {
+				require.ErrorContains(t, err, tt.expectedErr.Error())
+			} else {
+				require.NoError(t, err)
+			}
 		})
 	}
 }
