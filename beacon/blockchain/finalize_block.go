@@ -54,6 +54,14 @@ func (s *Service) FinalizeBlock(
 		return nil, fmt.Errorf("failed to decode block and blobs: %w", err)
 	}
 
+	// Send an FCU to force the HEAD of the chain on the EL on startup.
+	s.forceStartupSyncOnce.Do(func() {
+		finalizeErr = s.forceStartupSync(ctx, signedBlk.GetMessage())
+	})
+	if finalizeErr != nil {
+		return nil, finalizeErr
+	}
+
 	// STEP 2: Finalize sidecars first (block will check for
 	// sidecar availability)
 	err = s.blobProcessor.ProcessSidecars(

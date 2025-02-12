@@ -276,12 +276,6 @@ type (
 			headEth1BlockHash common.ExecutionHash,
 			finalEth1BlockHash common.ExecutionHash,
 		) (*engineprimitives.PayloadID, error)
-		// SendForceHeadFCU sends a force head FCU request.
-		SendForceHeadFCU(
-			ctx context.Context,
-			st *statedb.StateDB,
-			slot math.Slot,
-		) error
 		// RetrievePayload retrieves the payload for the given slot.
 		RetrievePayload(
 			ctx context.Context,

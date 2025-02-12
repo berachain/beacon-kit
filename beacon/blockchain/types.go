@@ -60,6 +60,11 @@ type BlobSidecars[T any] interface {
 
 // ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine interface {
+	// VerifyAndNotifyNewPayload notifies the execution client of new payload
+	VerifyAndNotifyNewPayload(
+		ctx context.Context,
+		req *ctypes.NewPayloadRequest,
+	) error
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
 	NotifyForkchoiceUpdate(
@@ -108,12 +113,6 @@ type LocalBuilder interface {
 		headEth1BlockHash common.ExecutionHash,
 		finalEth1BlockHash common.ExecutionHash,
 	) (*engineprimitives.PayloadID, error)
-	// SendForceHeadFCU sends a force head FCU request.
-	SendForceHeadFCU(
-		ctx context.Context,
-		st *statedb.StateDB,
-		slot math.Slot,
-	) error
 }
 
 // ReadOnlyBeaconState defines the interface for accessing various components of

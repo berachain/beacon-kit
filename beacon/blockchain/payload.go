@@ -22,34 +22,61 @@ package blockchain
 
 import (
 	"context"
+	"fmt"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-// forceStartupHead sends a force head FCU to the execution client.
-func (s *Service) forceStartupHead(
+// forceStartupSync sends a new payload and force startup FCU to the Execution
+// Layer client. This informs the EL client of the new head and forces a SYNC
+// if blocks are missing. This function should only be run once at startup.
+func (s *Service) forceStartupSync(
 	ctx context.Context,
-	st *statedb.StateDB,
-) {
-	slot, err := st.GetSlot()
-	if err != nil {
-		s.logger.Error(
-			"failed to get slot for force startup head",
-			"error", err,
-		)
-		return
+	beaconBlock *ctypes.BeaconBlock,
+) error {
+	// NewPayload call first to load payload into EL client.
+	executionPayload := beaconBlock.GetBody().GetExecutionPayload()
+	parentBeaconBlockRoot := beaconBlock.GetParentBlockRoot()
+	if err := s.executionEngine.VerifyAndNotifyNewPayload(
+		ctx, ctypes.BuildNewPayloadRequest(
+			executionPayload,
+			beaconBlock.GetBody().GetBlobKzgCommitments().ToVersionedHashes(),
+			&parentBeaconBlockRoot,
+		),
+	); err != nil {
+		// Don't return error here, because we want to send the forkchoice update regardless.
+		s.logger.Warn("failed to push new payload during force startup head", "error", err)
 	}
 
-	// TODO: Verify if the slot number is correct here, I believe in current
-	// form it should be +1'd. Not a big deal until hardforks are in play though.
-	if err = s.localBuilder.SendForceHeadFCU(ctx, st, slot+1); err != nil {
-		s.logger.Error(
-			"failed to send force head FCU",
-			"error", err,
-		)
+	// Submit the forkchoice update to the EL client. This will ensure that it is either synced or
+	// starts up a sync.
+	var attrs *engineprimitives.PayloadAttributes
+	_, _, err := s.executionEngine.NotifyForkchoiceUpdate(
+		ctx, &ctypes.ForkchoiceUpdateRequest{
+			State: &engineprimitives.ForkchoiceStateV1{
+				HeadBlockHash:      executionPayload.GetBlockHash(),
+				SafeBlockHash:      executionPayload.GetParentHash(),
+				FinalizedBlockHash: executionPayload.GetParentHash(),
+			},
+			PayloadAttributes: attrs,
+			ForkVersion:       s.chainSpec.ActiveForkVersionForSlot(beaconBlock.GetSlot()),
+		},
+	)
+	if err != nil {
+		if errors.Is(err, engineerrors.ErrSyncingPayloadStatus) {
+			s.logger.Warn(
+				//nolint:lll // long message on one line for readability.
+				`Your execution client is syncing. It should be downloading eth blocks from its peers. Restart the beacon node once the execution client is caught up.`,
+			)
+		}
+		return fmt.Errorf("SendForceHeadFCU failed sending forkchoice update: %w", err)
 	}
+	return nil
 }
 
 // handleRebuildPayloadForRejectedBlock handles the case where the incoming
