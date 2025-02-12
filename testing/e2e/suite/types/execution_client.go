@@ -23,7 +23,7 @@ package types
 import (
 	"context"
 
-	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/log"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
 )
 
@@ -42,10 +42,7 @@ func NewExecutionClientFromServiceCtx(
 ) *ExecutionClient {
 	ec := &ExecutionClient{
 		WrappedServiceContext: serviceCtx,
-		logger: logger.With(
-			"client-name",
-			serviceCtx.GetServiceName(),
-		),
+		logger:                logger,
 	}
 
 	if err := ec.Connect(); err != nil {
