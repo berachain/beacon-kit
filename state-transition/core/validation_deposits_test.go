@@ -39,7 +39,7 @@ import (
 
 func TestInvalidDeposits(t *testing.T) {
 	cs := setupChain(t)
-	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
+	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
 		minBalance = math.Gwei(
@@ -111,7 +111,7 @@ func TestInvalidDeposits(t *testing.T) {
 
 func TestInvalidDepositsCount(t *testing.T) {
 	cs := setupChain(t)
-	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
+	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
 		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
@@ -182,7 +182,7 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 	csData.MaxDepositsPerBlock = 1 // Set only 1 deposit allowed per block.
 	cs, err := chain.NewSpec(csData)
 	require.NoError(t, err)
-	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
+	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
 		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
@@ -253,7 +253,7 @@ func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
 	csData.MaxDepositsPerBlock = 1 // Set only 1 deposit allowed per block.
 	cs, err := chain.NewSpec(csData)
 	require.NoError(t, err)
-	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
+	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
 		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
