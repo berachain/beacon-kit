@@ -22,6 +22,7 @@ package engine
 
 import (
 	"context"
+	"time"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -66,6 +67,20 @@ func (ee *Engine) GetPayload(
 	return ee.ec.GetPayload(
 		ctx, req.PayloadID,
 		req.ForkVersion,
+	)
+}
+
+func (ee *Engine) MeasureSendPostBlockFCUTime(startTime time.Time) {
+	ee.metrics.sink.MeasureSince(
+		"beacon_kit.execution.client.final_forkchoice_update_duration",
+		startTime,
+	)
+}
+
+func (ee *Engine) MeasureFinalizeBlockTime(startTime time.Time) {
+	ee.metrics.sink.MeasureSince(
+		"beacon_kit.execution.client.finalize_block_duration",
+		startTime,
 	)
 }
 

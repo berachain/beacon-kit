@@ -23,6 +23,7 @@ package blockchain
 import (
 	"context"
 	"fmt"
+	"time"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	contypes "github.com/berachain/beacon-kit/consensus/types"
@@ -40,6 +41,8 @@ func (s *Service) sendPostBlockFCU(
 	st *statedb.StateDB,
 	blk *contypes.ConsensusBlock,
 ) error {
+	startTime := time.Now()
+	defer s.executionEngine.MeasureSendPostBlockFCUTime(startTime)
 	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return fmt.Errorf("failed getting latest payload: %w", err)

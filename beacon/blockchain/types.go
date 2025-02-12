@@ -66,6 +66,8 @@ type ExecutionEngine interface {
 		ctx context.Context,
 		req *ctypes.ForkchoiceUpdateRequest,
 	) (*engineprimitives.PayloadID, *common.ExecutionHash, error)
+	MeasureFinalizeBlockTime(startTime time.Time)
+	MeasureSendPostBlockFCUTime(startTime time.Time)
 }
 
 // ExecutionPayload is the interface for the execution payload.
