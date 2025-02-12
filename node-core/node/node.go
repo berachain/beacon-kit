@@ -38,6 +38,9 @@ import (
 // Compile-time assertion that node implements the NodeI interface.
 var _ types.Node = (*node)(nil)
 
+// if the node does not shutdown within a very reasonable time (5min) then we force exit.
+const shutdownTimeout = 5 * time.Minute
+
 // node is the hard-type representation of the beacon-kit node.
 type node struct {
 	// logger is the node's logger.
@@ -88,8 +91,6 @@ func (n *node) Start(
 	go func() {
 		sig := <-sigc
 
-		// if the node does not shutdown within a very reasonable time (5min) then we force exit
-		const shutdownTimeout = 5 * time.Minute
 		timeout := time.AfterFunc(shutdownTimeout, func() {
 			n.logger.Error("Shutdown timeout exceeded, forcing exit", "timeout", shutdownTimeout.String())
 			os.Exit(1)

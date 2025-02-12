@@ -24,7 +24,6 @@ import (
 	"context"
 	"fmt"
 	"reflect"
-	"sync"
 
 	"cosmossdk.io/store"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
@@ -60,8 +59,6 @@ type Registry struct {
 	servicesStarted map[string]struct{}
 	// serviceTypes is an ordered slice of registered service types.
 	serviceTypes []string
-	// mutex makes calls to StartAll and StopAll thread-safe.
-	mutex sync.Mutex
 }
 
 // NewRegistry starts a registry instance for convenience.
@@ -82,9 +79,6 @@ func NewRegistry(logger log.Logger, opts ...RegistryOption) *Registry {
 
 // StartAll initialized each service in order of registration.
 func (s *Registry) StartAll(ctx context.Context) error {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-
 	// start all services
 	s.logger.Info("Starting services", "num", len(s.serviceTypes))
 	for _, typeName := range s.serviceTypes {
@@ -106,9 +100,6 @@ func (s *Registry) StartAll(ctx context.Context) error {
 }
 
 func (s *Registry) StopAll() {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-
 	// stop all services in reverse order they were started
 	s.logger.Info("Stopping services", "num", len(s.serviceTypes))
 	for i := len(s.serviceTypes) - 1; i >= 0; i-- {
