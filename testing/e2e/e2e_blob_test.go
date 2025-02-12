@@ -57,17 +57,18 @@ func (s *BeaconKitE2ESuite) Test4844Live() {
 	s.Require().NotNil(client0)
 	s.Require().NoError(client0.Connect(ctx))
 
+	ec := s.RandomExecutionClient()
 	// Grab values to plug into txs
 	sender := s.TestAccounts()[0]
-	chainID, err := s.JSONRPCBalancer().ChainID(ctx)
+	chainID, err := ec.ChainID(ctx)
 	s.Require().NoError(err)
-	tip, err := s.JSONRPCBalancer().SuggestGasTipCap(ctx)
+	tip, err := ec.SuggestGasTipCap(ctx)
 	s.Require().NoError(err)
-	gasFee, err := s.JSONRPCBalancer().SuggestGasPrice(ctx)
+	gasFee, err := ec.SuggestGasPrice(ctx)
 	s.Require().NoError(err)
-	blkNum, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
+	blkNum, err := ec.BlockNumber(s.Ctx())
 	s.Require().NoError(err)
-	nonce, err := s.JSONRPCBalancer().NonceAt(
+	nonce, err := ec.NonceAt(
 		s.Ctx(), sender.Address(), new(big.Int).SetUint64(blkNum),
 	)
 	s.Require().NoError(err)
@@ -99,8 +100,8 @@ func (s *BeaconKitE2ESuite) Test4844Live() {
 		s.Logger().Info("submitting blob transaction", "blobTx", blobTx.Hash().Hex())
 		blobTxs = append(blobTxs, blobTx)
 
-		err = s.JSONRPCBalancer().SendTransaction(ctx, blobTx)
-		// TODO: Figure out what is causing this to happen.
+		err = ec.SendTransaction(ctx, blobTx)
+		// TODO: Figure out what is causing this to happen .
 		// Also, `errors.Is(err, txpool.ErrAlreadyKnown)` doesn't catch it.
 		if err != nil && err.Error() == txpool.ErrAlreadyKnown.Error() {
 			continue
@@ -119,7 +120,7 @@ func (s *BeaconKitE2ESuite) Test4844Live() {
 			// Wait for the blob transaction to be mined before making request.
 			s.Logger().
 				Info("waiting for blob transaction to be mined", "blobTx", blobTx.Hash().Hex())
-			receipt, errWait := bind.WaitMined(ctx, s.JSONRPCBalancer(), blobTx)
+			receipt, errWait := bind.WaitMined(ctx, s.RandomExecutionClient(), blobTx)
 			s.Require().NoError(errWait)
 			s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
 
