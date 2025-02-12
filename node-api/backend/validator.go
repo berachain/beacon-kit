@@ -21,12 +21,15 @@
 package backend
 
 import (
+	"bytes"
 	"slices"
+	"strconv"
 
 	"cosmossdk.io/collections"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-api/backend/utils"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
@@ -42,31 +45,42 @@ func (b Backend) FilteredValidators(
 		return nil, errors.Wrapf(err, "failed to get state from slot %d", slot)
 	}
 
-	// Convert requested ids (can be validator index or pubkey) to validator index only.
-	validatorIndices := make([]uint64, 0, len(ids))
-	for _, id := range ids {
-		validatorIndex, vErr := utils.ValidatorIndexByID(st, id)
-		if vErr != nil {
-			return nil, errors.Wrapf(vErr, "failed to get validator index by id %s", id)
-		}
-		validatorIndices = append(validatorIndices, validatorIndex.Unwrap())
-	}
-
 	validators, err := st.GetValidators()
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get validators")
 	}
 
-	// Filter on validator indexes and statuses.
 	validatorData := make([]*beacontypes.ValidatorData, 0, len(validators))
 	for _, validator := range validators {
-		// Skip the validator if we are filtering by indices and this validator's index is not included.
 		index, valErr := st.ValidatorIndexByPubkey(validator.GetPubkey())
 		if valErr != nil {
 			return nil, errors.Wrapf(valErr, "failed to get validator index by pubkey")
 		}
-		if len(validatorIndices) != 0 && !slices.Contains(validatorIndices, index.Unwrap()) {
-			continue
+
+		// If filtering by IDs, check if this validator matches any ID (pubkey or index)
+		if len(ids) > 0 {
+			found := false
+			for _, id := range ids {
+				// Try as pubkey first
+				var pubkey crypto.BLSPubkey
+				if err := pubkey.UnmarshalText([]byte(id)); err == nil {
+					validatorPubkey := validator.GetPubkey()
+					if bytes.Equal(validatorPubkey[:], pubkey[:]) {
+						found = true
+						break
+					}
+					continue
+				}
+
+				// Try as index
+				if idxStr := strconv.FormatUint(index.Unwrap(), 10); idxStr == id {
+					found = true
+					break
+				}
+			}
+			if !found {
+				continue
+			}
 		}
 
 		// Skip the validator if we are filtering by statuses and this validator is not included.
@@ -97,9 +111,6 @@ func (b Backend) FilteredValidators(
 func (b Backend) ValidatorByID(
 	slot math.Slot, id string,
 ) (*beacontypes.ValidatorData, error) {
-	// TODO: to adhere to the spec, this shouldn't error if the error
-	// is not found, but i can't think of a way to do that without coupling
-	// db impl to the api impl.
 	st, _, err := b.stateFromSlot(slot)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get state from slot %d", slot)

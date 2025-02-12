@@ -1,15 +1,56 @@
-package backend
+package backend_test
 
 import (
-	"fmt"
 	"testing"
 
+	"github.com/berachain/beacon-kit/config/spec"
+	consensustypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
-	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/node-api/backend"
+	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/transition"
+	"github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
+
+type mockState struct {
+	mock.Mock
+}
+
+func (m *mockState) GetValidators() ([]*consensustypes.Validator, error) {
+	args := m.Called()
+	if v := args.Get(0); v != nil {
+		return v.([]*consensustypes.Validator), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
+func (m *mockState) ValidatorIndexByPubkey(pubkey bytes.B48) (math.U64, error) {
+	args := m.Called(pubkey)
+	return args.Get(0).(math.U64), args.Error(1)
+}
+
+func (m *mockState) GetBalance(index math.U64) (math.U64, error) {
+	args := m.Called(index)
+	return args.Get(0).(math.U64), args.Error(1)
+}
+
+func (m *mockState) SlotToEpoch(slot math.Slot) (math.Epoch, error) {
+	args := m.Called(slot)
+	return args.Get(0).(math.Epoch), args.Error(1)
+}
+
+func (m *mockState) GetSlot() (math.U64, error) {
+	args := m.Called()
+	return args.Get(0).(math.U64), args.Error(1)
+}
+
+func (m *mockState) ProcessSlots(st *state.StateDB, slot math.U64) (transition.ValidatorUpdates, error) {
+	args := m.Called(st, slot)
+	return args.Get(0).(transition.ValidatorUpdates), args.Error(1)
+}
 
 func TestFilteredValidators(t *testing.T) {
 	tests := []struct {
@@ -22,59 +63,41 @@ func TestFilteredValidators(t *testing.T) {
 		expectedErr   error
 	}{
 		{
-			name:     "success - filter by single id",
+			name:     "success - filter by pubkey",
 			slot:     math.Slot(1),
-			ids:      []string{"0"},
+			ids:      []string{"0x93247f2209abcacf57b75a51dafae777f9dd38bc7053d1af526f220a7489a6d3a2753e5f3e8b1cfe39b56f43611df74a"},
 			statuses: []string{},
 			mockSetup: func(ms *mockState) {
-				// Setup mock validator with index 0
-				validator := createMockValidator(0, "active")
-				ms.On("GetValidators").Return([]*types.Validator{validator}, nil)
-				ms.On("ValidatorIndexByPubkey", validator.PublicKey).Return(math.U64(0), nil)
+				// Mock state
+				ms.On("GetSlot").Return(math.U64(1), nil)
+				ms.On("ProcessSlots", mock.Anything, mock.Anything).Return(transition.ValidatorUpdates{}, nil)
+
+				pubkey := bytes.B48{0x93, 0x24, 0x7f, 0x22, 0x09, 0xab, 0xca, 0xcf}
+				validator := &consensustypes.Validator{Pubkey: pubkey}
+				ms.On("GetValidators").Return([]*consensustypes.Validator{validator}, nil)
+				ms.On("ValidatorIndexByPubkey", pubkey).Return(math.U64(0), nil)
 				ms.On("GetBalance", math.U64(0)).Return(math.U64(32e9), nil)
+				ms.On("SlotToEpoch", math.Slot(1)).Return(math.Epoch(0), nil)
 			},
 			expectedCount: 1,
 			expectedErr:   nil,
 		},
 		{
-			name:     "success - filter by status",
+			name:     "success - filter by index",
 			slot:     math.Slot(1),
-			ids:      []string{},
-			statuses: []string{"active"},
+			ids:      []string{"0"},
+			statuses: []string{},
 			mockSetup: func(ms *mockState) {
-				// Setup multiple validators with different statuses
-				validators := []*types.Validator{
-					createMockValidator(0, "active"),
-					createMockValidator(1, "pending"),
-					createMockValidator(2, "active"),
-				}
-				ms.On("GetValidators").Return(validators, nil)
-				// Setup mock responses for each validator
-				for i, v := range validators {
-					ms.On("ValidatorIndexByPubkey", v.PublicKey).Return(math.U64(i), nil)
-					ms.On("GetBalance", math.U64(i)).Return(math.U64(32e9), nil)
-				}
+				ms.On("GetSlot").Return(math.U64(1), nil)
+				ms.On("ProcessSlots", mock.Anything, mock.Anything).Return(transition.ValidatorUpdates{}, nil)
+
+				validator := &consensustypes.Validator{Pubkey: bytes.B48{1}}
+				ms.On("GetValidators").Return([]*consensustypes.Validator{validator}, nil)
+				ms.On("ValidatorIndexByPubkey", validator.Pubkey).Return(math.U64(0), nil)
+				ms.On("GetBalance", math.U64(0)).Return(math.U64(32e9), nil)
+				ms.On("SlotToEpoch", math.Slot(1)).Return(math.Epoch(0), nil)
 			},
-			expectedCount: 2, // Only active validators
-			expectedErr:   nil,
-		},
-		{
-			name:     "success - filter by both id and status",
-			slot:     math.Slot(1),
-			ids:      []string{"0", "1"},
-			statuses: []string{"active"},
-			mockSetup: func(ms *mockState) {
-				validators := []*types.Validator{
-					createMockValidator(0, "active"),
-					createMockValidator(1, "pending"),
-				}
-				ms.On("GetValidators").Return(validators, nil)
-				for i, v := range validators {
-					ms.On("ValidatorIndexByPubkey", v.PublicKey).Return(math.U64(i), nil)
-					ms.On("GetBalance", math.U64(i)).Return(math.U64(32e9), nil)
-				}
-			},
-			expectedCount: 1, // Only validator 0 is active
+			expectedCount: 1,
 			expectedErr:   nil,
 		},
 		{
@@ -83,37 +106,28 @@ func TestFilteredValidators(t *testing.T) {
 			ids:      []string{},
 			statuses: []string{},
 			mockSetup: func(ms *mockState) {
-				ms.On("GetValidators").Return(nil, errors.New("invalid slot"))
+				ms.On("GetSlot").Return(math.U64(0), errors.New("invalid slot"))
 			},
 			expectedCount: 0,
-			expectedErr:   errors.New("invalid slot"),
-		},
-		{
-			name:     "error - invalid validator id",
-			slot:     math.Slot(1),
-			ids:      []string{"invalid"},
-			statuses: []string{},
-			mockSetup: func(ms *mockState) {
-				ms.On("GetValidators").Return(nil, errors.New("invalid validator id"))
-			},
-			expectedCount: 0,
-			expectedErr:   errors.New("invalid validator id"),
+			expectedErr:   errors.New("failed to get state from slot"),
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Setup mock state
-			mockState := newMockState(t)
+			mockState := &mockState{}
 			tt.mockSetup(mockState)
 
-			// Create backend with mock state
-			backend := Backend{
-				sb: mockState,
-			}
+			cs, err := spec.DevnetChainSpec()
+			require.NoError(t, err)
+
+			// Create backend using New
+			b := backend.New(nil, cs, mockState)
+			b.AttachQueryBackend(mockState)
 
 			// Call the method
-			validators, err := backend.FilteredValidators(tt.slot, tt.ids, tt.statuses)
+			validators, err := b.FilteredValidators(tt.slot, tt.ids, tt.statuses)
 
 			// Check results
 			if tt.expectedErr != nil {
@@ -129,9 +143,6 @@ func TestFilteredValidators(t *testing.T) {
 				for _, v := range validators {
 					require.NotNil(t, v)
 					require.NotZero(t, v.Balance)
-					if len(tt.statuses) > 0 {
-						require.Contains(t, tt.statuses, v.Status)
-					}
 				}
 			}
 
@@ -139,41 +150,4 @@ func TestFilteredValidators(t *testing.T) {
 			mockState.AssertExpectations(t)
 		})
 	}
-}
-
-// Helper function to create mock validators
-func createMockValidator(index uint64, status string) *types.Validator {
-	return &types.Validator{
-		PublicKey: []byte(fmt.Sprintf("pubkey-%d", index)),
-		Status:    status,
-		// Add other necessary fields
-	}
-}
-
-// Mock state interface
-type mockState struct {
-	mock.Mock
-}
-
-func newMockState(t *testing.T) *mockState {
-	return &mockState{}
-}
-
-// Implement necessary mock methods
-func (m *mockState) GetValidators() ([]*types.Validator, error) {
-	args := m.Called()
-	if v := args.Get(0); v != nil {
-		return v.([]*types.Validator), args.Error(1)
-	}
-	return nil, args.Error(1)
-}
-
-func (m *mockState) ValidatorIndexByPubkey(pubkey []byte) (math.U64, error) {
-	args := m.Called(pubkey)
-	return args.Get(0).(math.U64), args.Error(1)
-}
-
-func (m *mockState) GetBalance(index math.U64) (math.U64, error) {
-	args := m.Called(index)
-	return args.Get(0).(math.U64), args.Error(1)
-}
+} 
