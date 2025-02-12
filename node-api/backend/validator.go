@@ -40,13 +40,13 @@ func (b Backend) FilteredValidators(
 	}
 
 	// Convert requested ids (can be validator index or pubkey) to validator index only.
-	validatorIndicies := make([]uint64, 0, len(ids))
+	validatorIndices := make([]uint64, 0, len(ids))
 	for _, id := range ids {
 		validatorIndex, vErr := utils.ValidatorIndexByID(st, id)
 		if vErr != nil {
 			return nil, errors.Wrapf(vErr, "failed to get validator index by id %s", id)
 		}
-		validatorIndicies = append(validatorIndicies, validatorIndex.Unwrap())
+		validatorIndices = append(validatorIndices, validatorIndex.Unwrap())
 	}
 
 	validators, err := st.GetValidators()
@@ -57,12 +57,12 @@ func (b Backend) FilteredValidators(
 	// Filter on validator indexes and statuses.
 	validatorData := make([]*beacontypes.ValidatorData, 0, len(validators))
 	for _, validator := range validators {
-		// Skip the validator if we are filtering by indicies and this validator is not included.
+		// Skip the validator if we are filtering by indices and this validator's index is not included.
 		index, valErr := st.ValidatorIndexByPubkey(validator.GetPubkey())
 		if valErr != nil {
 			return nil, errors.Wrapf(valErr, "failed to get validator index by pubkey")
 		}
-		if len(validatorIndicies) != 0 && !slices.Contains(validatorIndicies, index.Unwrap()) {
+		if len(validatorIndices) != 0 && !slices.Contains(validatorIndices, index.Unwrap()) {
 			continue
 		}
 
