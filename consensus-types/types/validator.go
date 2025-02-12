@@ -320,6 +320,8 @@ func (v Validator) GetWithdrawalCredentials() WithdrawalCredentials {
 }
 
 // Status returns the current validator status based on its set epoch values.
+// This function taken from Prysm:
+// https://github.com/prysmaticlabs/prysm/blob/0229a2055e6349655a471b2427f349e40c275cee/beacon-chain/rpc/eth/helpers/validator_status.go#L31
 func (v *Validator) Status(currentEpoch math.Epoch) (string, error) {
 	activationEpoch := v.GetActivationEpoch()
 	activationEligibilityEpoch := v.GetActivationEligibilityEpoch()
