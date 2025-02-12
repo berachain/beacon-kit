@@ -23,8 +23,10 @@ package core
 import (
 	"context"
 
+	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"golang.org/x/sync/errgroup"
 )
@@ -32,7 +34,9 @@ import (
 // processExecutionPayload processes the execution payload and ensures it
 // matches the local state.
 func (sp *StateProcessor[ContextT]) processExecutionPayload(
-	ctx ContextT, st *statedb.StateDB, blk *ctypes.BeaconBlock,
+	ctx ContextT,
+	st *statedb.StateDB,
+	blk *ctypes.BeaconBlock,
 ) error {
 	var (
 		body    = blk.GetBody()
@@ -42,22 +46,22 @@ func (sp *StateProcessor[ContextT]) processExecutionPayload(
 	)
 
 	payloadTimestamp := payload.GetTimestamp().Unwrap()
-	consensusTimestamp := ctx.GetConsensusTime().Unwrap()
+	consensusTimestamp := ctx.GetConsensusTime()
 
-	sp.metrics.gaugeTimestamps(payloadTimestamp, consensusTimestamp)
+	sp.metrics.gaugeTimestamps(payloadTimestamp, consensusTimestamp.Unwrap())
 
 	sp.logger.Info("processExecutionPayload",
 		"consensus height", blk.GetSlot().Unwrap(),
 		"payload height", payload.GetNumber().Unwrap(),
 		"payload timestamp", payloadTimestamp,
-		"consensus timestamp", consensusTimestamp,
+		"consensus timestamp", consensusTimestamp.Unwrap(),
 		"skip payload verification", ctx.GetSkipPayloadVerification(),
 	)
 
 	// Skip payload verification if the context is configured as such.
 	if !ctx.GetSkipPayloadVerification() {
 		g.Go(func() error {
-			return sp.validateExecutionPayload(gCtx, st, blk, ctx.GetOptimisticEngine())
+			return sp.validateExecutionPayload(gCtx, consensusTimestamp, st, blk, ctx.GetOptimisticEngine())
 		})
 	}
 
@@ -86,6 +90,7 @@ func (sp *StateProcessor[ContextT]) processExecutionPayload(
 // state and the execution engine.
 func (sp *StateProcessor[_]) validateExecutionPayload(
 	ctx context.Context,
+	consensusTime math.U64,
 	st *statedb.StateDB,
 	blk *ctypes.BeaconBlock,
 	optimisticEngine bool,
@@ -93,7 +98,7 @@ func (sp *StateProcessor[_]) validateExecutionPayload(
 	if err := sp.validateStatelessPayload(blk); err != nil {
 		return err
 	}
-	return sp.validateStatefulPayload(ctx, st, blk, optimisticEngine)
+	return sp.validateStatefulPayload(ctx, consensusTime, st, blk, optimisticEngine)
 }
 
 // validateStatelessPayload performs stateless checks on the execution payload.
@@ -118,7 +123,11 @@ func (sp *StateProcessor[_]) validateStatelessPayload(blk *ctypes.BeaconBlock) e
 
 // validateStatefulPayload performs stateful checks on the execution payload.
 func (sp *StateProcessor[_]) validateStatefulPayload(
-	ctx context.Context, st *statedb.StateDB, blk *ctypes.BeaconBlock, optimisticEngine bool,
+	ctx context.Context,
+	consensusTime math.U64,
+	st *statedb.StateDB,
+	blk *ctypes.BeaconBlock,
+	optimisticEngine bool,
 ) error {
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
@@ -137,6 +146,15 @@ func (sp *StateProcessor[_]) validateStatefulPayload(
 			payload.GetParentHash(),
 			safeHash,
 		)
+	}
+
+	// Verify that the payload stamp is within a reasonable bound
+	if err = payloadtime.Verify(
+		consensusTime,
+		lph.GetTimestamp(),
+		payload.GetTimestamp(),
+	); err != nil {
+		return err
 	}
 
 	parentBeaconBlockRoot := blk.GetParentBlockRoot()
