@@ -80,7 +80,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	)
 
 	// Get the chain ID.
-	chainID, err := s.JSONRPCBalancer().ChainID(s.Ctx())
+	chainID, err := s.RandomExecutionClient().ChainID(s.Ctx())
 	s.Require().NoError(err)
 
 	// Get the chain spec used by the e2e nodes. TODO: make configurable.
@@ -90,7 +90,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	// Bind the deposit contract.
 	depositContractAddress := gethcommon.Address(chainSpec.DepositContractAddress())
 
-	dc, err := deposit.NewDepositContract(depositContractAddress, s.JSONRPCBalancer())
+	dc, err := deposit.NewDepositContract(depositContractAddress, s.RandomExecutionClient())
 	s.Require().NoError(err)
 
 	// Enforce the deposit count at genesis is equal to the number of validators.
@@ -139,7 +139,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 		s.Require().NotNil(val.Validator)
 		creds := [32]byte(val.Validator.WithdrawalCredentials)
 		withdrawalAddress := gethcommon.Address(creds[12:])
-		withdrawalBalance, jErr := s.JSONRPCBalancer().BalanceAt(s.Ctx(), withdrawalAddress, nil)
+		withdrawalBalance, jErr := s.RandomExecutionClient().BalanceAt(s.Ctx(), withdrawalAddress, nil)
 		s.Require().NoError(jErr)
 
 		// Populate the validators testing struct so we can keep track of the pre-state.
@@ -158,17 +158,17 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	sender := s.TestAccounts()[0]
 
 	// Get the block num
-	blkNum, err := s.JSONRPCBalancer().BlockNumber(s.Ctx())
+	blkNum, err := s.RandomExecutionClient().BlockNumber(s.Ctx())
 	s.Require().NoError(err)
 
 	// Get original evm balance
-	balance, err := s.JSONRPCBalancer().BalanceAt(
+	balance, err := s.RandomExecutionClient().BalanceAt(
 		s.Ctx(), sender.Address(), new(big.Int).SetUint64(blkNum),
 	)
 	s.Require().NoError(err)
 
 	// Get the nonce.
-	nonce, err := s.JSONRPCBalancer().NonceAt(
+	nonce, err := s.RandomExecutionClient().NonceAt(
 		s.Ctx(), sender.Address(), new(big.Int).SetUint64(blkNum),
 	)
 	s.Require().NoError(err)
@@ -214,7 +214,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 		"Waiting for the final deposit tx to be mined",
 		"num", NumDepositsLoad, "hash", tx.Hash().Hex(),
 	)
-	receipt, err := bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
+	receipt, err := bind.WaitMined(s.Ctx(), s.RandomExecutionClient(), tx)
 	s.Require().NoError(err)
 	s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
 	s.Logger().Info("Final deposit tx mined successfully", "hash", receipt.TxHash.Hex())
@@ -231,7 +231,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	s.Require().InDelta(height.Response.LastBlockHeight, height2.Response.LastBlockHeight, 1)
 
 	// Check to see if evm balance decreased.
-	postDepositBalance, err := s.JSONRPCBalancer().BalanceAt(s.Ctx(), sender.Address(), nil)
+	postDepositBalance, err := s.RandomExecutionClient().BalanceAt(s.Ctx(), sender.Address(), nil)
 	s.Require().NoError(err)
 
 	// Check that the eth spent is somewhere~ (gas) between
@@ -246,7 +246,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	// Check that all validators' voting power have increased by
 	// (NumDepositsLoad / NumValidators) * depositAmountWei
 	// after the end of the epoch (next multiple of SlotsPerEpoch after receipt.BlockNumber).
-	blkNum, err = s.JSONRPCBalancer().BlockNumber(s.Ctx())
+	blkNum, err = s.RandomExecutionClient().BlockNumber(s.Ctx())
 	s.Require().NoError(err)
 	nextEpoch := chainspec.SlotToEpoch(math.Slot(blkNum)) + 1
 	nextEpochBlockNum := nextEpoch.Unwrap() * chainspec.SlotsPerEpoch()
@@ -264,7 +264,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 
 		// withdrawal balance is in Wei, so we'll convert it to Gwei.
 		withdrawalAddress := gethcommon.Address(val.WithdrawalCredentials[12:])
-		withdrawalBalanceAfter, jErr := s.JSONRPCBalancer().BalanceAt(s.Ctx(), withdrawalAddress, nil)
+		withdrawalBalanceAfter, jErr := s.RandomExecutionClient().BalanceAt(s.Ctx(), withdrawalAddress, nil)
 		s.Require().NoError(jErr)
 		withdrawalDiff := new(big.Int).Sub(withdrawalBalanceAfter, val.WithdrawalBalance)
 		withdrawalDiff.Div(withdrawalDiff, weiPerGwei)
