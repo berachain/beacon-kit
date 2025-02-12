@@ -64,23 +64,39 @@ func (s *Service) processProposal(
 		),
 	)
 
-	// errors to consensus indicate that the node was not able to understand
-	// whether the block was valid or not. Viceversa, we signal that a block
-	// is invalid by its status, but we do return nil error in such a case.
-	status := cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
-	err := s.Blockchain.ProcessProposal(
-		s.processProposalState.Context(),
-		req,
-	)
-	if err != nil {
-		status = cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
-		s.logger.Error(
-			"failed to process proposal",
-			"height", req.Height,
-			"time", req.Time,
-			"hash", fmt.Sprintf("%X", req.Hash),
-			"err", err,
+	statusCh := make(chan cmtabci.ProcessProposalStatus, 1)
+	defer close(statusCh)
+
+	go func() {
+		// errors to consensus indicate that the node was not able to understand
+		// whether the block was valid or not. Viceversa, we signal that a block
+		// is invalid by its status, but we do return nil error in such a case.
+		status := cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
+		err := s.Blockchain.ProcessProposal(
+			s.processProposalState.Context(),
+			req,
 		)
+		if err != nil {
+			status = cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
+			s.logger.Error(
+				"failed to process proposal",
+				"height", req.Height,
+				"time", req.Time,
+				"hash", fmt.Sprintf("%X", req.Hash),
+				"err", err,
+			)
+		}
+		statusCh <- status
+	}()
+
+	select {
+	case <-ctx.Done():
+		s.logger.Warn("processProposal: ctx done")
+		return nil, ctx.Err()
+	case <-s.ctx.Done():
+		s.logger.Warn("processProposal: s.ctx.Done")
+		return nil, s.ctx.Err()
+	case status := <-statusCh:
+		return &cmtabci.ProcessProposalResponse{Status: status}, nil
 	}
-	return &cmtabci.ProcessProposalResponse{Status: status}, nil
 }

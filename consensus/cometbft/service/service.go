@@ -96,6 +96,10 @@ type Service struct {
 	minRetainBlocks uint64
 
 	chainID string
+
+	// ctx is a cancellable context based on the parent ctx passed in Start().
+	ctx        context.Context
+	cancelFunc context.CancelFunc
 }
 
 func NewService(
@@ -150,6 +154,9 @@ func NewService(
 func (s *Service) Start(
 	ctx context.Context,
 ) error {
+	// create a new context that will be used to stop the node
+	s.ctx, s.cancelFunc = context.WithCancel(ctx)
+
 	cfg := s.cmtCfg
 	nodeKey, err := p2p.LoadOrGenNodeKey(cfg.NodeKeyFile())
 	if err != nil {
@@ -165,8 +172,9 @@ func (s *Service) Start(
 		return err
 	}
 
+	//nolint:contextcheck // why is this complaining?
 	s.node, err = node.NewNode(
-		ctx,
+		s.ctx,
 		cfg,
 		privVal,
 		nodeKey,
@@ -192,6 +200,8 @@ func (s *Service) Start(
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
+	case <-s.ctx.Done():
+		return s.ctx.Err()
 	case <-started:
 	}
 
@@ -202,6 +212,11 @@ func (s *Service) Start(
 
 func (s *Service) Stop() error {
 	var errs []error
+
+	// cancel the service context
+	if s.cancelFunc != nil {
+		s.cancelFunc()
+	}
 
 	if s.node != nil && s.node.IsRunning() {
 		s.logger.Info("Stopping CometBFT Node")
