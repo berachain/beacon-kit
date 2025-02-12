@@ -37,7 +37,6 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
 
     plan.print("CHAIN_ID: {}".format(chain_id), "CHAIN_SPEC: {}".format(chain_spec))
 
-    next_free_prefunded_account = 0
     validators = nodes.parse_nodes_from_dict(network_configuration["validators"], node_settings)
     full_nodes = nodes.parse_nodes_from_dict(network_configuration["full_nodes"], node_settings)
     seed_nodes = nodes.parse_nodes_from_dict(network_configuration["seed_nodes"], node_settings)
@@ -182,6 +181,9 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
 
     for n, seed_node in enumerate(seed_nodes):
         beacond.dial_unsafe_peers(plan, seed_node.cl_service_name, all_consensus_peering_info)
+
+    # an index into the PRE_FUNDED_ACCOUNTS array in constants.star
+    next_free_prefunded_account = 0
 
     # 7. Start additional services
     prometheus_url = ""
