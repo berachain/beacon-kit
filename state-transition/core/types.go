@@ -41,6 +41,7 @@ type ReadOnlyContext interface {
 	VerifyPayload() bool
 	VerifyRandao() bool
 	VerifyResult() bool
+	VerifyDeposits() bool
 	MeterGas() bool
 }
 

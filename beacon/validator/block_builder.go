@@ -380,6 +380,7 @@ func (s *Service) computeStateRoot(
 		WithVerifyPayload(false).
 		WithVerifyRandao(false).
 		WithVerifyResult(false).
+		WithVerifyDeposits(false).
 		WithMeterGas(false)
 
 	if _, err := s.stateProcessor.Transition(txCtx, st, blk); err != nil {

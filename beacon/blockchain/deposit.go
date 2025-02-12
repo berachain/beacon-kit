@@ -33,6 +33,7 @@ import (
 // defaultRetryInterval processes a deposit event.
 const defaultRetryInterval = 20 * time.Second
 
+// depositFetcher fetches the blocks at blockNum-s.eth1FollowDistance so that they can be included in blockNum+1.
 func (s *Service) depositFetcher(
 	ctx context.Context,
 	blockNum math.U64,
