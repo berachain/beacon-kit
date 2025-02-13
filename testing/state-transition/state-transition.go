@@ -58,13 +58,10 @@ type (
 	TestStateProcessorT          = core.StateProcessor
 )
 
-type testKVStoreService struct {
-	ctx sdk.Context
-}
+type testKVStoreService struct{}
 
-func (kvs *testKVStoreService) OpenKVStore(context.Context) corestore.KVStore {
-	//nolint:contextcheck // fine with tests
-	store := sdk.UnwrapSDKContext(kvs.ctx).KVStore(testStoreKey)
+func (kvs *testKVStoreService) OpenKVStore(ctx context.Context) corestore.KVStore {
+	store := sdk.UnwrapSDKContext(ctx).KVStore(testStoreKey)
 	return storage.NewKVStore(store)
 }
 
@@ -103,7 +100,7 @@ func initTestStores() (
 		return nil, nil, nil, fmt.Errorf("failed to load latest version: %w", err)
 	}
 
-	testStoreService := &testKVStoreService{ctx: NewSDKContext(cms)}
+	testStoreService := &testKVStoreService{}
 	return cms,
 		beacondb.New(testStoreService),
 		depositstore.NewStore(testStoreService, noopCloseFunc, nopLog),
@@ -111,7 +108,7 @@ func initTestStores() (
 }
 
 func NewSDKContext(cms storetypes.CommitMultiStore) sdk.Context {
-	return sdk.NewContext(cms, true, log.NewNopLogger())
+	return sdk.NewContext(cms.CacheMultiStore(), true, log.NewNopLogger())
 }
 
 func SetupTestState(t *testing.T, cs chain.Spec) (
@@ -134,7 +131,7 @@ func SetupTestState(t *testing.T, cs chain.Spec) (
 
 	cms, kvStore, depositStore, err := initTestStores()
 	require.NoError(t, err)
-	beaconState := statedb.NewBeaconStateFromDB(kvStore, cs)
+	beaconState := statedb.NewBeaconStateFromDB(kvStore.WithContext(NewSDKContext(cms)), cs)
 
 	sp := core.NewStateProcessor(
 		noop.NewLogger[any](),
@@ -151,7 +148,7 @@ func SetupTestState(t *testing.T, cs chain.Spec) (
 	// by default we keep checks at minimum. It is up
 	// to single tests to redefine the ctx along their needs.
 	ctx := transition.NewTransitionCtx(
-		context.Background(),
+		NewSDKContext(cms),
 		0, // time
 		DummyProposerAddr,
 	).
