@@ -66,41 +66,55 @@ func (s *Service) forceStartupSync(
 	// NewPayload call first to load payload into EL client.
 	executionPayload := beaconBlock.GetBody().GetExecutionPayload()
 	parentBeaconBlockRoot := beaconBlock.GetParentBlockRoot()
-	if err := s.executionEngine.VerifyAndNotifyNewPayload(
+	err := s.executionEngine.VerifyAndNotifyNewPayload(
 		ctx, ctypes.BuildNewPayloadRequest(
 			executionPayload,
 			beaconBlock.GetBody().GetBlobKzgCommitments().ToVersionedHashes(),
 			&parentBeaconBlockRoot,
 		),
-	); err != nil {
+	)
+	switch {
+	default:
+		// Do nothing and move on to NotifyForkchoiceUpdate.
+	case errors.IsAny(err,
+		engineerrors.ErrSyncingPayloadStatus,
+		engineerrors.ErrAcceptedPayloadStatus):
 		// Don't return error here, because we want to send the forkchoice update regardless.
-		s.logger.Warn("failed to push new payload during force startup head", "error", err)
+		s.logger.Warn("pushed new payload to SYNCING node during force startup", "error", err)
+
+	case err != nil:
+		return fmt.Errorf("force startup NotifyNewPayload failed: %w", err)
 	}
 
 	// Submit the forkchoice update to the EL client. This will ensure that it is either synced or
 	// starts up a sync.
-	var attrs *engineprimitives.PayloadAttributes
-	_, _, err := s.executionEngine.NotifyForkchoiceUpdate(
+	_, _, err = s.executionEngine.NotifyForkchoiceUpdate(
 		ctx, &ctypes.ForkchoiceUpdateRequest{
 			State: &engineprimitives.ForkchoiceStateV1{
 				HeadBlockHash:      executionPayload.GetBlockHash(),
 				SafeBlockHash:      executionPayload.GetParentHash(),
 				FinalizedBlockHash: executionPayload.GetParentHash(),
 			},
-			PayloadAttributes: attrs,
+			PayloadAttributes: nil,
 			ForkVersion:       s.chainSpec.ActiveForkVersionForSlot(beaconBlock.GetSlot()),
 		},
 	)
-	if err != nil {
-		if errors.Is(err, engineerrors.ErrSyncingPayloadStatus) {
-			s.logger.Warn(
-				//nolint:lll // long message on one line for readability.
-				`Your execution client is syncing. It should be downloading eth blocks from its peers. Restart the beacon node once the execution client is caught up.`,
-			)
-		}
-		return fmt.Errorf("SendForceHeadFCU failed sending forkchoice update: %w", err)
+	switch {
+	case err == nil:
+		return nil
+
+	case errors.IsAny(err,
+		engineerrors.ErrSyncingPayloadStatus,
+		engineerrors.ErrAcceptedPayloadStatus):
+		s.logger.Warn(
+			//nolint:lll // long message on one line for readability.
+			`Your execution client is syncing. It should be downloading eth blocks from its peers. Restart the beacon node once the execution client is caught up.`,
+		)
+		return err
+
+	default:
+		return fmt.Errorf("force startup NotifyForkchoiceUpdate failed: %w", err)
 	}
-	return nil
 }
 
 // handleRebuildPayloadForRejectedBlock handles the case where the incoming
