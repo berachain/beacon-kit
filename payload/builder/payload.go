@@ -235,7 +235,10 @@ func (pb *PayloadBuilder) SendForceHeadFCU(
 			ForkVersion:       pb.chainSpec.ActiveForkVersionForSlot(slot),
 		},
 	)
-	return err
+	if err != nil {
+		return fmt.Errorf("SendForceHeadFCU failed sending forkchoice update: %w", err)
+	}
+	return nil
 }
 
 func (pb *PayloadBuilder) getPayload(

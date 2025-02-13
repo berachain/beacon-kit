@@ -75,12 +75,20 @@ func (s *Service) forceStartupSync(
 	)
 	switch {
 	default:
-		// Do nothing and move on to NotifyForkchoiceUpdate.
+		// Log and move on to NotifyForkchoiceUpdate.
+		s.logger.Info("pushed new payload to node during force startup",
+			"blockNum", executionPayload.GetNumber(),
+			"blockHash", executionPayload.GetBlockHash(),
+		)
 	case errors.IsAny(err,
 		engineerrors.ErrSyncingPayloadStatus,
 		engineerrors.ErrAcceptedPayloadStatus):
 		// Don't return error here, because we want to send the forkchoice update regardless.
-		s.logger.Warn("pushed new payload to SYNCING node during force startup", "error", err)
+		s.logger.Warn("pushed new payload to SYNCING node during force startup",
+			"error", err,
+			"blockNum", executionPayload.GetNumber(),
+			"blockHash", executionPayload.GetBlockHash(),
+		)
 
 	case err != nil:
 		return fmt.Errorf("force startup NotifyNewPayload failed: %w", err)
@@ -101,6 +109,11 @@ func (s *Service) forceStartupSync(
 	)
 	switch {
 	case err == nil:
+		s.logger.Info("notified forkchoice update during force startup",
+			"blockNum", executionPayload.GetNumber(),
+			"headBlockHash", executionPayload.GetBlockHash(),
+			"finalBlockHash", executionPayload.GetParentHash(),
+		)
 		return nil
 
 	case errors.IsAny(err,
