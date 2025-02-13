@@ -195,6 +195,49 @@ func (pb *PayloadBuilder) RetrievePayload(
 	return envelope, err
 }
 
+// SendForceHeadFCU builds a payload for the given slot and
+// returns the payload ID.
+//
+// TODO: This should be moved onto a "sync service"
+// of some kind.
+func (pb *PayloadBuilder) SendForceHeadFCU(
+	ctx context.Context,
+	st *statedb.StateDB,
+	slot math.Slot,
+) error {
+	if !pb.Enabled() {
+		return ErrPayloadBuilderDisabled
+	}
+
+	lph, err := st.GetLatestExecutionPayloadHeader()
+	if err != nil {
+		return err
+	}
+
+	pb.logger.Info(
+		"Sending startup forkchoice update to execution client",
+		"head_eth1_hash", lph.GetBlockHash(),
+		"safe_eth1_hash", lph.GetParentHash(),
+		"finalized_eth1_hash", lph.GetParentHash(),
+		"for_slot", slot.Base10(),
+	)
+
+	// Submit the forkchoice update to the execution client.
+	var attrs *engineprimitives.PayloadAttributes
+	_, _, err = pb.ee.NotifyForkchoiceUpdate(
+		ctx, &ctypes.ForkchoiceUpdateRequest{
+			State: &engineprimitives.ForkchoiceStateV1{
+				HeadBlockHash:      lph.GetBlockHash(),
+				SafeBlockHash:      lph.GetParentHash(),
+				FinalizedBlockHash: lph.GetParentHash(),
+			},
+			PayloadAttributes: attrs,
+			ForkVersion:       pb.chainSpec.ActiveForkVersionForSlot(slot),
+		},
+	)
+	return err
+}
+
 func (pb *PayloadBuilder) getPayload(
 	ctx context.Context,
 	payloadID engineprimitives.PayloadID,

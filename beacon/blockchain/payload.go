@@ -32,6 +32,30 @@ import (
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
+// forceStartupHead sends a force head FCU to the execution client.
+func (s *Service) forceStartupHead(
+	ctx context.Context,
+	st *statedb.StateDB,
+) {
+	slot, err := st.GetSlot()
+	if err != nil {
+		s.logger.Error(
+			"failed to get slot for force startup head",
+			"error", err,
+		)
+		return
+	}
+
+	// TODO: Verify if the slot number is correct here, I believe in current
+	// form it should be +1'd. Not a big deal until hardforks are in play though.
+	if err = s.localBuilder.SendForceHeadFCU(ctx, st, slot+1); err != nil {
+		s.logger.Error(
+			"failed to send force head FCU",
+			"error", err,
+		)
+	}
+}
+
 // forceStartupSync sends a new payload and force startup FCU to the Execution
 // Layer client. This informs the EL client of the new head and forces a SYNC
 // if blocks are missing. This function should only be run once at startup.
