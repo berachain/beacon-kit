@@ -370,7 +370,8 @@ func (s *Service) computeStateRoot(
 	startTime := time.Now()
 	defer s.metrics.measureStateRootComputationTime(startTime)
 
-	// TODO: Think about how this would affect the proposer when
+	// TODO: We should think about how having optimistic
+	// engine enabled here would affect the proposer when
 	// the payload in their block has come from a remote builder.
 	txCtx := transition.NewTransitionCtx(
 		ctx,
@@ -380,7 +381,8 @@ func (s *Service) computeStateRoot(
 		WithVerifyPayload(false).
 		WithVerifyRandao(false).
 		WithVerifyResult(false).
-		WithMeterGas(false)
+		WithMeterGas(false).
+		WithOptimisticEngine(true)
 
 	if _, err := s.stateProcessor.Transition(txCtx, st, blk); err != nil {
 		return common.Root{}, err
