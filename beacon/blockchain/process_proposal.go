@@ -219,9 +219,12 @@ func (s *Service) VerifyIncomingBlock(
 	preState := s.storageBackend.StateFromContext(ctx)
 
 	// Force a sync of the startup head if we haven't done so already.
-	//
-	// TODO: This is a super hacky. It should be handled better elsewhere,
-	// ideally via some broader sync service.
+	// TODO: Address the need for calling forceStartupSyncOnce in ProcessProposal. On a running
+	// network (such as mainnet), it should be theoretically impossible to hit the case where
+	// ProcessProposal is called before FinalizeBlock. It may be the case that new networks run
+	// into this case during the first block after genesis.
+	// TODO: Consider panicing here if this fails. If our node cannot successfully run
+	// forceStartupSync, then we should shut down the node and fix the problem.
 	s.forceStartupSyncOnce.Do(func() { s.forceStartupHead(ctx, preState) })
 
 	s.logger.Info(
