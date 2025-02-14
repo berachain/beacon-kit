@@ -84,3 +84,59 @@ func TestNewRootFromHex(t *testing.T) {
 		})
 	}
 }
+
+func TestRoot_UnmarshalJSON(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name        string
+		input       []byte
+		expectedErr error
+	}{
+		{
+			name:        "nil input",
+			input:       nil,
+			expectedErr: bytes.ErrIncorrectLength,
+		},
+		{
+			name:        "empty input",
+			input:       []byte(``),
+			expectedErr: bytes.ErrIncorrectLength,
+		},
+		{
+			name:        "short input of 1 byte",
+			input:       []byte{0x01},
+			expectedErr: bytes.ErrIncorrectLength,
+		},
+		{
+			name:        "short input of just quotes",
+			input:       []byte(`""`),
+			expectedErr: hex.ErrEmptyString,
+		},
+		{
+			name:        "valid input",
+			input:       []byte(`"0x6969696969696969696969696969696969696969696969696969696969696969"`),
+			expectedErr: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var (
+				r     common.Root
+				err   error
+				input = tt.input
+			)
+
+			f := func() {
+				err = r.UnmarshalJSON(input)
+			}
+			require.NotPanics(t, f)
+
+			if tt.expectedErr != nil {
+				require.ErrorContains(t, err, tt.expectedErr.Error())
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
