@@ -29,6 +29,6 @@ ROOT_DIR := $(shell pwd)
 	test-e2e test-e2e-no-build \
 	forge-lint-fix forge-lint golangci-install golangci golangci-fix \
 	license license-fix \
-	gosec golines tidy repo-rinse proto build
+	gosec golines repo-rinse proto build
 
 

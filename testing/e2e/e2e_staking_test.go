@@ -124,7 +124,6 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	s.Require().NotNil(response.Data, "Validators data should not be nil")
 
 	vals := response.Data
-	s.Require().NotNil(vals)
 	s.Require().Len(vals, config.NumValidators)
 	s.Require().Len(s.ConsensusClients(), config.NumValidators)
 
