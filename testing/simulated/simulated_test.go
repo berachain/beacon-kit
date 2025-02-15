@@ -26,6 +26,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
+	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/testing/simulated"
@@ -159,12 +160,29 @@ func (s *Simulated) TestProcessProposal_NilBeaconBlock_MustError() {
 }
 
 func (s *Simulated) TestProcessProposal_ValidProposal_MustAccept() {
+	// Initialize the chain correctly
+	appGenesis, err := genutiltypes.AppGenesisFromFile(
+		s.HomeDir + "/config/genesis.json",
+	)
+	s.Require().NoError(err)
+	_, err = s.SimComet.Comet.InitChain(s.Ctx, &types.InitChainRequest{
+		ChainId:       "test-mainnet-chain",
+		AppStateBytes: appGenesis.AppState,
+	})
+	s.Require().NoError(err)
+
+	// Generate the valid proposal
 	chain := simulated.GenerateBeaconChain(s.T(), 2)
 	blockBytes, err := chain[0].MarshalSSZ()
 	s.Require().NoError(err)
 
+	blob := datypes.BlobSidecars{}
+	blobBytes, err := blob.MarshalSSZ()
+	s.Require().NoError(err)
+
 	txs := make([][]byte, 2)
 	txs[0] = blockBytes
+	txs[1] = blobBytes
 
 	res, err := s.SimComet.Comet.ProcessProposal(s.Ctx, &types.ProcessProposalRequest{
 		Txs:    txs,

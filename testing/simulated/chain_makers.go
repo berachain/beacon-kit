@@ -60,8 +60,10 @@ func GenerateBeaconChain(t *testing.T, numBlocks int) []*types.SignedBeaconBlock
 			common.Root{1, 2, 3, 4, 5},
 			version2.Deneb1(),
 		)
-		beaconBlock.StateRoot = common.Root{5, 4, 3, 2, 1}
+		require.NotNil(t, beaconBlock)
 		require.NoError(t, err)
+
+		beaconBlock.StateRoot = common.Root{5, 4, 3, 2, 1}
 
 		beaconBlock.Body = &types.BeaconBlockBody{
 			ExecutionPayload: blockToExecutionPayload(block),
