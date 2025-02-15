@@ -144,7 +144,10 @@ func (s *Service) ProcessProposal(
 		blk,
 		req.GetProposerAddress(),
 		req.GetTime(),
-		false, // ProcessProposal is not called during bootstrapping
+
+		// ProcessProposal is not called during bootstrapping so
+		// here we can assert req.SyncingToHeight == req.Height
+		false,
 	)
 	err = s.VerifyIncomingBlock(
 		ctx,
