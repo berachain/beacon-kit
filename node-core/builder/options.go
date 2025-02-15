@@ -20,16 +20,12 @@
 
 package builder
 
-import (
-	"github.com/berachain/beacon-kit/node-core/types"
-)
-
 // Opt is a type that defines a function that modifies NodeBuilder.
-type Opt[NodeT types.Node] func(*NodeBuilder[NodeT])
+type Opt func(*NodeBuilder)
 
 // WithComponents is a function that sets the components for the NodeBuilder.
-func WithComponents[NodeT types.Node](components []any) Opt[NodeT] {
-	return func(nb *NodeBuilder[NodeT]) {
+func WithComponents(components []any) Opt {
+	return func(nb *NodeBuilder) {
 		nb.components = components
 	}
 }
