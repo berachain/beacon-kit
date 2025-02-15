@@ -23,7 +23,7 @@ func (_m *ExecutionEngine) EXPECT() *ExecutionEngine_Expecter {
 	return &ExecutionEngine_Expecter{mock: &_m.Mock}
 }
 
-// dNotifyNewPayload provides a mock function with given fields: ctx, req
+// NotifyNewPayload provides a mock function with given fields: ctx, req
 func (_m *ExecutionEngine) NotifyNewPayload(ctx context.Context, req *ctypes.NewPayloadRequest) error {
 	ret := _m.Called(ctx, req)
 
