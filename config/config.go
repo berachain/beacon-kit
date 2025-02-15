@@ -76,6 +76,16 @@ func (c Config) GetEngine() *engineclient.Config {
 	return &c.Engine
 }
 
+// GetPayloadBuilder returns the block store configuration.
+func (c Config) GetPayloadBuilder() *builder.Config {
+	return &c.PayloadBuilder
+}
+
+// GetBlockStoreService returns the block store configuration.
+func (c Config) GetBlockStoreService() *blockstore.Config {
+	return &c.BlockStoreService
+}
+
 // GetLogger returns the logger configuration.
 func (c Config) GetLogger() *log.Config {
 	return &c.Logger
