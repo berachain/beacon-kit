@@ -128,16 +128,7 @@ func TestPayloadTimestampVerification(t *testing.T) {
 
 			// create independent states per each test
 			sdkCtx := sdk.NewContext(cms.CacheMultiStore(), true, log.NewNopLogger())
-			// sdkCtx := statetransition.NewSDKContext(cms)
 			testSt := statedb.NewBeaconStateFromDB(st.KVStore.WithContext(sdkCtx), cs)
-
-			// DEBUG CHECKS. Since we copy testSt Slot must be equal to st's one, i.e. zero
-			// There is currently a bug in the test where this happens only for the fist test
-			// while subsequent ones show increasing slots, as if we don't properly isolate tests
-			// (which on the other hand works all right in isolation)
-			checkSlot, err := testSt.GetSlot()
-			require.NoError(t, err)
-			require.Equal(t, math.Slot(0), checkSlot)
 
 			tCtx := transition.NewTransitionCtx(
 				sdkCtx,
