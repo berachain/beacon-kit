@@ -159,7 +159,7 @@ func (s *Simulated) TestProcessProposal_NilBeaconBlock_MustError() {
 }
 
 func (s *Simulated) TestProcessProposal_ValidProposal_MustAccept() {
-	chain := simulated.GenerateBeaconChain(s.T())
+	chain := simulated.GenerateBeaconChain(s.T(), 2)
 	blockBytes, err := chain[0].MarshalSSZ()
 	s.Require().NoError(err)
 
