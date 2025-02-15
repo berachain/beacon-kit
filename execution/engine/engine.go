@@ -130,11 +130,8 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 	return payloadID, latestValidHash, nil
 }
 
-// VerifyAndNotifyNewPayload verifies the new payload and notifies the
-// execution client.
-//
-//nolint:funlen
-func (ee *Engine) VerifyAndNotifyNewPayload(
+// NotifyNewPayload notifies the execution client of the new payload.
+func (ee *Engine) NotifyNewPayload(
 	ctx context.Context,
 	req *ctypes.NewPayloadRequest,
 ) error {
@@ -144,14 +141,6 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 		req.ExecutionPayload.GetParentHash(),
 		req.Optimistic,
 	)
-
-	// First we verify the block hash and versioned hashes are valid.
-	//
-	// TODO: is this required? Or will the EL handle this for us during
-	// new payload?
-	if err := req.HasValidVersionedAndBlockHashes(); err != nil {
-		return err
-	}
 
 	// Otherwise we will send the payload to the execution client.
 	lastValidHash, err := ee.ec.NewPayload(
@@ -164,11 +153,18 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 	// We abstract away some of the complexity and categorize status codes
 	// to make it easier to reason about.
 	switch {
-	// If we get accepted or syncing, we are going to optimistically
-	// say that the block is valid, this is utilized during syncing
-	// to allow the beacon-chain to continue processing blocks, while
-	// its execution client is fetching things over it's p2p layer.
+	case err == nil:
+		ee.metrics.markNewPayloadValid(
+			req.ExecutionPayload.GetBlockHash(),
+			req.ExecutionPayload.GetParentHash(),
+			req.Optimistic,
+		)
+
 	case errors.Is(err, engineerrors.ErrSyncingPayloadStatus):
+		// If we get accepted or syncing, we are going to optimistically
+		// say that the block is valid, this is utilized during syncing
+		// to allow the beacon-chain to continue processing blocks, while
+		// its execution client is fetching things over it's p2p layer.
 		ee.metrics.markNewPayloadSyncingPayloadStatus(
 			req.ExecutionPayload.GetBlockHash(),
 			req.ExecutionPayload.GetParentHash(),
@@ -206,19 +202,13 @@ func (ee *Engine) VerifyAndNotifyNewPayload(
 			req.Optimistic,
 			err,
 		)
-
 		err = errors.Join(err, engineerrors.ErrPreDefinedJSONRPC)
-	case err != nil:
+
+	default:
 		ee.metrics.markNewPayloadUndefinedError(
 			req.ExecutionPayload.GetBlockHash(),
 			req.Optimistic,
 			err,
-		)
-	default:
-		ee.metrics.markNewPayloadValid(
-			req.ExecutionPayload.GetBlockHash(),
-			req.ExecutionPayload.GetParentHash(),
-			req.Optimistic,
 		)
 	}
 
