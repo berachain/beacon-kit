@@ -23,126 +23,150 @@
 
 package core_test
 
-// // TestPayloadTimestampVerification ensures that payload timestamp
-// // is properly validated
-// func TestPayloadTimestampVerification(t *testing.T) {
-// 	// Create state processor to test
-// 	cs := setupChain(t)
-// 	sp, st, ds, ctx, cms, mockEngine := statetransition.SetupTestState(t, cs)
+import (
+	"testing"
+	"time"
 
-// 	// process genesis before any other block
-// 	genesisTime := time.Now().Truncate(time.Second)
-// 	var (
-// 		genDeposits = types.Deposits{
-// 			{
-// 				Pubkey:      [48]byte{0x00},
-// 				Credentials: types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{}),
-// 				Amount:      math.Gwei(cs.MaxEffectiveBalance()),
-// 				Index:       0,
-// 			},
-// 		}
-// 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-// 		genVersion       = version.Deneb()
-// 	)
-// 	genPayloadHeader.Timestamp = math.U64(genesisTime.Unix())
+	"cosmossdk.io/log"
+	storetypes "cosmossdk.io/store/types"
+	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
+	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
+	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/transition"
+	"github.com/berachain/beacon-kit/primitives/version"
+	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
+	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+)
 
-// 	_, err := sp.InitializePreminedBeaconStateFromEth1(
-// 		st, genDeposits, genPayloadHeader, genVersion,
-// 	)
-// 	require.NoError(t, err)
-// 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
+// TestPayloadTimestampVerification ensures that payload timestamp
+// is properly validated
+func TestPayloadTimestampVerification(t *testing.T) {
+	// Create state processor to test
+	cs := setupChain(t)
+	sp, st, ds, ctx, cms, mockEngine := statetransition.SetupTestState(t, cs)
 
-// 	// Test cases
-// 	consensusBlkTime := genesisTime.Add(time.Second)
-// 	tests := []struct {
-// 		name        string
-// 		setupMocksF func()
-// 		payloadTime time.Time
-// 		expectedErr error
-// 	}{
-// 		{
-// 			name: "Payload timestamp < consensus timestamp",
-// 			setupMocksF: func() {
-// 				// we don't really verify payloads here, so just mock a positive result
-// 				mockEngine.EXPECT().VerifyAndNotifyNewPayload(mock.Anything, mock.Anything).Return(nil)
-// 			},
-// 			payloadTime: consensusBlkTime.Add(-10 * time.Second),
-// 			expectedErr: nil,
-// 		},
-// 		{
-// 			name: "Payload timestamp == consensus timestamp",
-// 			setupMocksF: func() {
-// 				// we don't really verify payloads here, so just mock a positive result
-// 				mockEngine.EXPECT().VerifyAndNotifyNewPayload(mock.Anything, mock.Anything).Return(nil)
-// 			},
-// 			payloadTime: consensusBlkTime,
-// 			expectedErr: nil,
-// 		},
-// 		{
-// 			name: "Payload timestamp > consensus timestamp",
-// 			setupMocksF: func() {
-// 				// we don't really verify payloads here, so just mock a positive result
-// 				mockEngine.EXPECT().VerifyAndNotifyNewPayload(mock.Anything, mock.Anything).Return(nil)
-// 			},
-// 			payloadTime: consensusBlkTime.Add(time.Second),
-// 			expectedErr: nil,
-// 		},
-// 		{
-// 			name: "Payload timestamp >> consensus timestamp",
-// 			setupMocksF: func() {
-// 				// no mock here, since timestamp validation fails
-// 			},
-// 			payloadTime: consensusBlkTime.Add(2 * time.Second),
-// 			expectedErr: payloadtime.ErrTooFarInTheFuture,
-// 		},
-// 	}
+	// process genesis before any other block
+	genesisTime := time.Now().Truncate(time.Second)
+	var (
+		genDeposits = types.Deposits{
+			{
+				Pubkey:      [48]byte{0x00},
+				Credentials: types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{}),
+				Amount:      math.Gwei(cs.MaxEffectiveBalance()),
+				Index:       0,
+			},
+		}
+		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genVersion       = version.Deneb()
+	)
+	genPayloadHeader.Timestamp = math.U64(genesisTime.Unix())
 
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			// these test cases should not be run in parallel
-// 			// since state processors is shared by them
-// 			tt.setupMocksF()
+	_, err := sp.InitializePreminedBeaconStateFromEth1(
+		st, genDeposits, genPayloadHeader, genVersion,
+	)
+	require.NoError(t, err)
+	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 
-// 			// create independent states per each test
-// 			sdkCtx := statetransition.NewSDKContext(cms)
-// 			testSt := st.Copy(sdkCtx)
+	// write genesis changes to make them available for next blocks
+	ctx.ConsensusCtx().(sdk.Context).MultiStore().(storetypes.CacheMultiStore).Write()
 
-// 			// DEBUG CHECKS. Since we copy testSt Slot must be equal to st's one, i.e. zero
-// 			// There is currently a bug in the test where this happens only for the fist test
-// 			// while subsequent ones show increasing slots, as if we don't properly isolate tests
-// 			// (which on the other hand works all right in isolation)
-// 			checkSlot, err := testSt.GetSlot()
-// 			require.NoError(t, err)
-// 			require.Equal(t, math.Slot(0), checkSlot)
+	// Test cases
+	consensusBlkTime := genesisTime.Add(time.Second)
+	tests := []struct {
+		name        string
+		setupMocksF func()
+		payloadTime time.Time
+		expectedErr error
+	}{
+		{
+			name: "Payload timestamp < consensus timestamp",
+			setupMocksF: func() {
+				// we don't really verify payloads here, so just mock a positive result
+				mockEngine.EXPECT().VerifyAndNotifyNewPayload(mock.Anything, mock.Anything).Return(nil)
+			},
+			payloadTime: consensusBlkTime.Add(-10 * time.Second),
+			expectedErr: nil,
+		},
+		{
+			name: "Payload timestamp == consensus timestamp",
+			setupMocksF: func() {
+				// we don't really verify payloads here, so just mock a positive result
+				mockEngine.EXPECT().VerifyAndNotifyNewPayload(mock.Anything, mock.Anything).Return(nil)
+			},
+			payloadTime: consensusBlkTime,
+			expectedErr: nil,
+		},
+		{
+			name: "Payload timestamp > consensus timestamp",
+			setupMocksF: func() {
+				// we don't really verify payloads here, so just mock a positive result
+				mockEngine.EXPECT().VerifyAndNotifyNewPayload(mock.Anything, mock.Anything).Return(nil)
+			},
+			payloadTime: consensusBlkTime.Add(time.Second),
+			expectedErr: nil,
+		},
+		{
+			name: "Payload timestamp >> consensus timestamp",
+			setupMocksF: func() {
+				// no mock here, since timestamp validation fails
+			},
+			payloadTime: consensusBlkTime.Add(2 * time.Second),
+			expectedErr: payloadtime.ErrTooFarInTheFuture,
+		},
+	}
 
-// 			ctx = transition.NewTransitionCtx(
-// 				sdkCtx.Context(),
-// 				math.U64(consensusBlkTime.Unix()),
-// 				statetransition.DummyProposerAddr,
-// 			).
-// 				WithVerifyPayload(true).
-// 				WithVerifyRandao(false).
-// 				WithVerifyResult(false).
-// 				WithMeterGas(false)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// these test cases should not be run in parallel
+			// since state processors is shared by them
+			tt.setupMocksF()
 
-// 			blk := buildNextBlock(
-// 				t,
-// 				testSt,
-// 				&types.BeaconBlockBody{
-// 					ExecutionPayload: testPayload(
-// 						math.U64(tt.payloadTime.Unix()),
-// 						testSt.EVMInflationWithdrawal(constants.GenesisSlot+1),
-// 					),
-// 					Eth1Data: types.NewEth1Data(genDeposits.HashTreeRoot()),
-// 				},
-// 			)
+			// create independent states per each test
+			sdkCtx := sdk.NewContext(cms.CacheMultiStore(), true, log.NewNopLogger())
+			// sdkCtx := statetransition.NewSDKContext(cms)
+			testSt := statedb.NewBeaconStateFromDB(st.KVStore.WithContext(sdkCtx), cs)
 
-// 			_, err = sp.Transition(ctx, testSt, blk)
-// 			if tt.expectedErr == nil {
-// 				require.NoError(t, err)
-// 			} else {
-// 				require.ErrorIs(t, err, tt.expectedErr)
-// 			}
-// 		})
-// 	}
-// }
+			// DEBUG CHECKS. Since we copy testSt Slot must be equal to st's one, i.e. zero
+			// There is currently a bug in the test where this happens only for the fist test
+			// while subsequent ones show increasing slots, as if we don't properly isolate tests
+			// (which on the other hand works all right in isolation)
+			checkSlot, err := testSt.GetSlot()
+			require.NoError(t, err)
+			require.Equal(t, math.Slot(0), checkSlot)
+
+			tCtx := transition.NewTransitionCtx(
+				sdkCtx,
+				math.U64(consensusBlkTime.Unix()),
+				statetransition.DummyProposerAddr,
+			).
+				WithVerifyPayload(true).
+				WithVerifyRandao(false).
+				WithVerifyResult(false).
+				WithMeterGas(false)
+
+			blk := buildNextBlock(
+				t,
+				testSt,
+				&types.BeaconBlockBody{
+					ExecutionPayload: testPayload(
+						math.U64(tt.payloadTime.Unix()),
+						testSt.EVMInflationWithdrawal(constants.GenesisSlot+1),
+					),
+					Eth1Data: types.NewEth1Data(genDeposits.HashTreeRoot()),
+				},
+			)
+
+			_, err = sp.Transition(tCtx, testSt, blk)
+			if tt.expectedErr == nil {
+				require.NoError(t, err)
+			} else {
+				require.ErrorIs(t, err, tt.expectedErr)
+			}
+		})
+	}
+}
