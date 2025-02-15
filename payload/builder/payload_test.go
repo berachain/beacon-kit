@@ -167,8 +167,8 @@ func (ee *stubExecutionEngine) GetPayload(
 
 func (ee *stubExecutionEngine) NotifyForkchoiceUpdate(
 	context.Context, *ctypes.ForkchoiceUpdateRequest,
-) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
-	return nil, nil, errStubNotImplemented
+) (*engineprimitives.PayloadID, error) {
+	return nil, errStubNotImplemented
 }
 
 type stubAttributesFactory struct{}
