@@ -22,6 +22,7 @@ package simulated
 
 import (
 	"testing"
+	"time"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/primitives/bytes"
@@ -39,17 +40,18 @@ import (
 
 // GenerateBeaconChain generates a beacon chain similar to geths chain generation utility.
 // TODO: refactor this to be more flexible.
-func GenerateBeaconChain(t *testing.T) []*types.SignedBeaconBlock {
+func GenerateBeaconChain(t *testing.T, numBlocks int) []*types.SignedBeaconBlock {
+	t.Helper()
 	genesis := &core.Genesis{
 		Config:    params.AllEthashProtocolChanges,
 		Alloc:     gethtypes.GenesisAlloc{},
 		ExtraData: []byte("test genesis"),
-		Timestamp: 9000,
+		Timestamp: uint64(time.Now().Unix()), //nolint: gosec // TODO fixme
 	}
-	_, blocks, _ := core.GenerateChainWithGenesis(genesis, beacon.NewFaker(), 2, func(i int, b *core.BlockGen) {
+	_, blocks, _ := core.GenerateChainWithGenesis(genesis, beacon.NewFaker(), numBlocks, func(_ int, b *core.BlockGen) {
 		b.SetCoinbase(gethcommon.Address{0})
 	})
-	var signedBeaconBlocks []*types.SignedBeaconBlock
+	signedBeaconBlocks := []*types.SignedBeaconBlock{}
 	for i := range blocks {
 		block := blocks[i]
 		beaconBlock, err := types.NewBeaconBlockWithVersion(
