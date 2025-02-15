@@ -131,8 +131,6 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 }
 
 // NotifyNewPayload notifies the execution client of the new payload.
-//
-
 func (ee *Engine) NotifyNewPayload(
 	ctx context.Context,
 	req *ctypes.NewPayloadRequest,
