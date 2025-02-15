@@ -26,7 +26,6 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/transition"
 )
 
 // Service is responsible for building beacon blocks and sidecars.
@@ -44,7 +43,7 @@ type Service struct {
 	// sb is the beacon state backend.
 	sb StorageBackend
 	// stateProcessor is responsible for processing the state.
-	stateProcessor StateProcessor[*transition.Context]
+	stateProcessor StateProcessor
 	// localPayloadBuilder represents the local block builder, this builder
 	// is connected to this nodes execution client via the EngineAPI.
 	// Building blocks are done by submitting forkchoice updates through.
@@ -60,7 +59,7 @@ func NewService(
 	logger log.Logger,
 	chainSpec chain.Spec,
 	sb StorageBackend,
-	stateProcessor StateProcessor[*transition.Context],
+	stateProcessor StateProcessor,
 	signer crypto.BLSSigner,
 	blobFactory BlobFactory,
 	localPayloadBuilder PayloadBuilder,

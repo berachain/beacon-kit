@@ -37,6 +37,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	"github.com/berachain/beacon-kit/state-transition/core"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -54,6 +55,7 @@ const (
 	MaxConsensusTxsCount = 2
 )
 
+//nolint:funlen // TODO: fix
 func (s *Service) ProcessProposal(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
@@ -93,7 +95,15 @@ func (s *Service) ProcessProposal(
 	if numCommitments != len(sidecars) {
 		err = fmt.Errorf("expected %d sidecars, got %d: %w",
 			numCommitments, len(sidecars),
-			ErrSidecarCommittmentMismatch,
+			ErrSidecarCommitmentMismatch,
+		)
+		s.logger.Warn(err.Error())
+		return err
+	}
+	if uint64(numCommitments) > s.chainSpec.MaxBlobsPerBlock() {
+		err = fmt.Errorf("expected less than %d sidecars, got %d: %w",
+			s.chainSpec.MaxBlobsPerBlock(), numCommitments,
+			core.ErrExceedsBlockBlobLimit,
 		)
 		s.logger.Warn(err.Error())
 		return err
@@ -323,22 +333,21 @@ func (s *Service) verifyStateRoot(
 ) error {
 	startTime := time.Now()
 	defer s.metrics.measureStateRootVerificationTime(startTime)
-	_, err := s.stateProcessor.Transition(
-		// We run with a non-optimistic engine here to ensure
-		// that the proposer does not try to push through a bad block.
-		&transition.Context{
-			Context:                 ctx,
-			MeterGas:                false,
-			OptimisticEngine:        false,
-			SkipPayloadVerification: false,
-			SkipValidateResult:      false,
-			SkipValidateRandao:      false,
-			ProposerAddress:         proposerAddress,
-			ConsensusTime:           consensusTime,
-		},
-		st, blk,
-	)
 
+	// We run with a non-optimistic engine here to ensure
+	// that the proposer does not try to push through a bad block.
+	txCtx := transition.NewTransitionCtx(
+		ctx,
+		consensusTime,
+		proposerAddress,
+	).
+		WithVerifyPayload(true).
+		WithVerifyRandao(true).
+		WithVerifyResult(true).
+		WithMeterGas(false).
+		WithOptimisticEngine(false)
+
+	_, err := s.stateProcessor.Transition(txCtx, st, blk)
 	return err
 }
 

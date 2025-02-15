@@ -156,45 +156,39 @@ func (s *Service) executeStateTransition(
 ) (transition.ValidatorUpdates, error) {
 	startTime := time.Now()
 	defer s.metrics.measureStateTransitionDuration(startTime)
-	valUpdates, err := s.stateProcessor.Transition(
-		&transition.Context{
-			Context: ctx,
 
-			MeterGas: true,
+	// Notes about context attributes:
+	// - `OptimisticEngine`: set to true since this is called during
+	// FinalizeBlock. We want to assume the payload is valid. If it
+	// ends up not being valid later, the node will simply AppHash,
+	// which is completely fine. This means we were syncing from a
+	// bad peer, and we would likely AppHash anyways.
+	// - VerifyPayload: set to blk.GetConsensusSyncing().
+	//   - When we are NOT synced to the tip, process proposal
+	// does NOT get called and thus we must ensure that
+	// NewPayload is called to get the execution client the payload.
+	//   - When we are synced to the tip, we can skip the
+	// NewPayload call since we already gave our execution client
+	// the payload in process proposal.
+	// VerifyRandao: set to false. We skip randao validation in FinalizeBlock
+	// since either
+	// 1. we validated it during ProcessProposal at the head of the chain OR
+	// 2. we are bootstrapping and implicitly trust that the randao was validated by
+	//    the super majority during ProcessProposal of the given block height.
+	txCtx := transition.NewTransitionCtx(
+		ctx,
+		blk.GetConsensusTime(),
+		blk.GetProposerAddress(),
+	).
+		WithVerifyPayload(blk.GetConsensusSyncing()).
+		WithVerifyRandao(false).
+		WithVerifyResult(false).
+		WithMeterGas(true).
+		WithOptimisticEngine(true)
 
-			// We set `OptimisticEngine` to true since this is called during
-			// FinalizeBlock. We want to assume the payload is valid. If it
-			// ends up not being valid later, the node will simply AppHash,
-			// which is completely fine. This means we were syncing from a
-			// bad peer, and we would likely AppHash anyways.
-			OptimisticEngine: true,
-
-			// When we are NOT synced to the tip, process proposal
-			// does NOT get called and thus we must ensure that
-			// NewPayload is called to get the execution
-			// client the payload.
-			//
-			// When we are synced to the tip, we can skip the
-			// NewPayload call since we already gave our execution client
-			// the payload in process proposal.
-			//
-			// In both cases the payload was already accepted by a majority
-			// of validators in their process proposal call and thus
-			// the "verification aspect" of this NewPayload call is
-			// actually irrelevant at this point.
-			SkipPayloadVerification: !blk.GetConsensusSyncing(),
-
-			// We skip randao validation in FinalizeBlock since either
-			// 1. we validated it during ProcessProposal at the head of the chain OR
-			// 2. we are bootstrapping and implicitly trust that the randao was validated by
-			//    the super majority during ProcessProposal of the given block height.
-			SkipValidateRandao: true,
-
-			ProposerAddress: blk.GetProposerAddress(),
-			ConsensusTime:   blk.GetConsensusTime(),
-		},
+	return s.stateProcessor.Transition(
+		txCtx,
 		st,
 		blk.GetBeaconBlock(),
 	)
-	return valUpdates, err
 }
