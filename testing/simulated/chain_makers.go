@@ -17,6 +17,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// GenerateBeaconChain generates a beacon chain similar to geths chain generation utility.
+// TODO: refactor this to be more flexible.
 func GenerateBeaconChain(t *testing.T) []*types.SignedBeaconBlock {
 	genesis := &core.Genesis{
 		Config:    params.AllEthashProtocolChanges,
