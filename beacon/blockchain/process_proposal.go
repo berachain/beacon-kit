@@ -144,7 +144,7 @@ func (s *Service) ProcessProposal(
 		blk,
 		req.GetProposerAddress(),
 		req.GetTime(),
-		false, // ProcessProposal is not called during state sync
+		false, // ProcessProposal is not called during bootstrapping
 	)
 	err = s.VerifyIncomingBlock(
 		ctx,

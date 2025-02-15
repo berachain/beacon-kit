@@ -51,9 +51,9 @@ type ConsensusBlock interface {
 	// It is used to build next payload and to validate currentpayload.
 	GetConsensusTime() math.U64
 
-	// GetConsensusSyncing signals whether consensus is working normally
-	// or is still syncing. In the former case we can skip execution payload
-	// verification on finalized blocks.
+	// GetConsensusSyncing returns true if consensus is still syncing, false if the node
+	// is at the head of the chain. If still syncing we can skip execution payload
+	// verification on already finalized blocks.
 	GetConsensusSyncing() bool
 }
 
