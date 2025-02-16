@@ -122,7 +122,7 @@ rpc-dial-url = "http://devnet-blob-eth-val-1:8551"
 rpc-retries = "3"
 
 # RPC timeout for execution client requests.
-rpc-timeout = "900ms"
+rpc-timeout = "2s"
 
 # Interval for the startup check.
 rpc-startup-check-interval = "3s"
