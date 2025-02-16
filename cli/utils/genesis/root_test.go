@@ -99,7 +99,7 @@ func TestCompareGenesisCmdWithStateProcessor(t *testing.T) {
 		cliValRoot := genesis.ComputeValidatorsRoot(deposits, cs)
 
 		// genesis validators root from StateProcessor
-		sp, st, _, _ := statetransition.SetupTestState(t, cs)
+		sp, st, _, _, _, _ := statetransition.SetupTestState(t, cs)
 		genPayloadHeader := new(types.ExecutionPayloadHeader).Empty()
 		_, err = sp.InitializePreminedBeaconStateFromEth1(
 			st,
