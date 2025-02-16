@@ -91,3 +91,19 @@ func (sm *Manager) Close() error {
 func (sm *Manager) GetCommitMultiStore() storetypes.CommitMultiStore {
 	return sm.cms
 }
+
+var blockDelayKey = []byte("blockDelay")
+
+// LoadBlockDelay loads the block delay bytes from the database.
+//
+// see next_block_delay.go
+func (sm *Manager) LoadBlockDelay() ([]byte, error) {
+	return sm.db.Get(blockDelayKey)
+}
+
+// SaveBlockDelay saves the block delay bytes to the database.
+//
+// see next_block_delay.go
+func (sm *Manager) SaveBlockDelay(bz []byte) error {
+	return sm.db.Set(blockDelayKey, bz)
+}
