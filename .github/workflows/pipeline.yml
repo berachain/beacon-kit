@@ -72,6 +72,7 @@ jobs:
           - "test-unit-fuzz"
           - "test-forge-cover"
           - "test-forge-fuzz"
+          - "consensuswarn"
         os:
           - ubuntu-24.04-beacon-kit
     name: ${{ matrix.args }}
