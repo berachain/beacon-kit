@@ -18,28 +18,17 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package beacon
+package constants
 
-import (
-	"github.com/berachain/beacon-kit/node-api/handlers"
-	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	"github.com/berachain/beacon-kit/node-api/handlers/utils"
+const (
+	// Validator status strings.
+	ValidatorStatusPendingInitialized = "pending_initialized"
+	ValidatorStatusPendingQueued      = "pending_queued"
+	ValidatorStatusActiveOngoing      = "active_ongoing"
+	ValidatorStatusActiveExiting      = "active_exiting"
+	ValidatorStatusActiveSlashed      = "active_slashed"
+	ValidatorStatusExitedUnslashed    = "exited_unslashed"
+	ValidatorStatusExitedSlashed      = "exited_slashed"
+	ValidatorStatusWithdrawalPossible = "withdrawal_possible"
+	ValidatorStatusWithdrawalDone     = "withdrawal_done"
 )
-
-func (h *Handler) GetBlockRewards(c handlers.Context) (any, error) {
-	req, err := utils.BindAndValidate[beacontypes.GetBlockRewardsRequest](
-		c, h.Logger(),
-	)
-	if err != nil {
-		return nil, err
-	}
-	slot, err := utils.SlotFromBlockID(req.BlockID, h.backend)
-	if err != nil {
-		return nil, err
-	}
-	rewards, err := h.backend.BlockRewardsAtSlot(slot)
-	if err != nil {
-		return nil, err
-	}
-	return beacontypes.NewResponse(rewards), nil
-}

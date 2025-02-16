@@ -45,11 +45,7 @@ func (h *Handler) GetStateRoot(c handlers.Context) (any, error) {
 	if len(stateRoot) == 0 {
 		return nil, types.ErrNotFound
 	}
-	return beacontypes.ValidatorResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data:                beacontypes.RootData{Root: stateRoot},
-	}, nil
+	return beacontypes.NewResponse(beacontypes.RootData{Root: stateRoot}), nil
 }
 
 func (h *Handler) GetStateFork(c handlers.Context) (any, error) {
@@ -67,9 +63,5 @@ func (h *Handler) GetStateFork(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return beacontypes.ValidatorResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data:                types.Wrap(fork),
-	}, nil
+	return beacontypes.NewResponse(types.Wrap(fork)), nil
 }

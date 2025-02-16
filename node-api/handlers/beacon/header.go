@@ -41,18 +41,14 @@ func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return beacontypes.ValidatorResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data: &beacontypes.BlockHeaderResponse{
-			Root:      header.GetBodyRoot(),
-			Canonical: true,
-			Header: &beacontypes.SignedBeaconBlockHeader{
-				Message:   beacontypes.BeaconBlockHeaderFromConsensus(header),
-				Signature: "", // TODO: implement
-			},
+	return beacontypes.NewResponse(&beacontypes.BlockHeaderResponse{
+		Root:      header.GetBodyRoot(),
+		Canonical: true,
+		Header: &beacontypes.SignedBeaconBlockHeader{
+			Message:   beacontypes.BeaconBlockHeaderFromConsensus(header),
+			Signature: "", // TODO: implement
 		},
-	}, nil
+	}), nil
 }
 
 func (h *Handler) GetBlockHeaderByID(c handlers.Context) (any, error) {
@@ -70,16 +66,12 @@ func (h *Handler) GetBlockHeaderByID(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return beacontypes.ValidatorResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data: &beacontypes.BlockHeaderResponse{
-			Root:      header.GetBodyRoot(),
-			Canonical: true,
-			Header: &beacontypes.SignedBeaconBlockHeader{
-				Message:   beacontypes.BeaconBlockHeaderFromConsensus(header),
-				Signature: "", // TODO: implement
-			},
+	return beacontypes.NewResponse(&beacontypes.BlockHeaderResponse{
+		Root:      header.GetBodyRoot(),
+		Canonical: true,
+		Header: &beacontypes.SignedBeaconBlockHeader{
+			Message:   beacontypes.BeaconBlockHeaderFromConsensus(header),
+			Signature: "", // TODO: implement
 		},
-	}, nil
+	}), nil
 }
