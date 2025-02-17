@@ -27,6 +27,7 @@ import (
 
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
+	"github.com/berachain/beacon-kit/chain"
 	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/log/phuslu"
@@ -52,6 +53,7 @@ type TestNodeInput struct {
 type TestNode struct {
 	nodetypes.Node
 	StorageBackend blockchain.StorageBackend
+	ChainSpec      chain.Spec
 }
 
 // NewTestNode Uses the testnet chainspec.
@@ -99,6 +101,7 @@ func buildNode(
 		cmtService     nodetypes.ConsensusService
 		config         *config.Config
 		storageBackend blockchain.StorageBackend
+		chainSpec      chain.Spec
 	)
 
 	// build all node components using depinject
@@ -119,6 +122,7 @@ func buildNode(
 		&cmtService,
 		&config,
 		&storageBackend,
+		&chainSpec,
 	); err != nil {
 		panic(err)
 	}
@@ -131,5 +135,9 @@ func buildNode(
 
 	logger.WithConfig(config.GetLogger())
 	apiBackend.AttachQueryBackend(cmtService)
-	return TestNode{beaconNode, storageBackend}
+	return TestNode{
+		Node:           beaconNode,
+		StorageBackend: storageBackend,
+		ChainSpec:      chainSpec,
+	}
 }

@@ -54,7 +54,7 @@ func (s *DefaultConfiguration) SetupTest() {
 
 	tempHomeDir := s.T().TempDir()
 	// Initialize home directory
-	cometConfig := simulated.InitializeHomeDir(s.T(), tempHomeDir)
+	cometConfig, _ := simulated.InitializeHomeDir(s.T(), tempHomeDir)
 
 	// Start the Geth node - needs to be done first as we need the auth rpc as input for the beacon node.
 	elNode := simulated.NewGethNode(tempHomeDir, simulated.ValidGethImage())

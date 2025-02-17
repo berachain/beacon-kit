@@ -26,9 +26,14 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
+	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/log/phuslu"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
+	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/cometbft/cometbft/abci/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
@@ -42,7 +47,8 @@ type Simulated struct {
 	SimComet          *simulated.SimComet
 	BlockchainService *blockchain.Service
 	// LogBuffer gives us a mechanism to access the reason for a comet rejection
-	LogBuffer *bytes.Buffer
+	LogBuffer             *bytes.Buffer
+	GenesisValidatorsRoot common.Root
 }
 
 // TestCustomCometComponent is a test suite with a custom comet driver can can control ourselves
@@ -60,7 +66,8 @@ func (s *Simulated) SetupTest() {
 	tempHomeDir := s.T().TempDir()
 	s.HomeDir = tempHomeDir
 	// Initialize home directory
-	cometConfig := simulated.InitializeHomeDir(s.T(), tempHomeDir)
+	cometConfig, genesisValidatorsRoot := simulated.InitializeHomeDir(s.T(), tempHomeDir)
+	s.GenesisValidatorsRoot = genesisValidatorsRoot
 
 	// Start the Geth node - needs to be done first as we need the auth rpc as input for the beacon node.
 	elNode := simulated.NewGethNode(tempHomeDir, simulated.ValidGethImage())
@@ -171,9 +178,45 @@ func (s *Simulated) TestProcessProposal_ValidProposal_MustAccept() {
 	})
 	s.Require().NoError(err)
 
-	// Generate the valid proposal
-	chain := simulated.GenerateBeaconChain(s.T(), 2)
-	blockBytes, err := chain[0].MarshalSSZ()
+	beaconChain := simulated.GenerateBeaconChain(s.T(), 2, func(block *gethprimitives.Block) (*ctypes.SignedBeaconBlock, error) {
+		// Generate the valid proposal
+		blsSigner := simulated.GetBlsSigner(s.HomeDir)
+		var beaconBlock *ctypes.BeaconBlock
+		if beaconBlock, err = ctypes.NewBeaconBlockWithVersion(
+			math.Slot(block.NumberU64()),
+			math.ValidatorIndex(0),
+			common.Root{1, 2, 3, 4, 5},
+			version.Deneb1(),
+		); err != nil {
+			return nil, err
+		}
+		beaconBlock.StateRoot = common.Root{5, 4, 3, 2, 1}
+
+		beaconBlock.Body = &ctypes.BeaconBlockBody{
+			ExecutionPayload: simulated.BlockToExecutionPayload(block),
+		}
+
+		body := beaconBlock.GetBody()
+		body.SetProposerSlashings(ctypes.ProposerSlashings{})
+		body.SetAttesterSlashings(ctypes.AttesterSlashings{})
+		body.SetAttestations(ctypes.Attestations{})
+		body.SetSyncAggregate(&ctypes.SyncAggregate{})
+		body.SetVoluntaryExits(ctypes.VoluntaryExits{})
+		body.SetBlsToExecutionChanges(ctypes.BlsToExecutionChanges{})
+
+		var signedBeaconBlock *ctypes.SignedBeaconBlock
+		if signedBeaconBlock, err = ctypes.NewSignedBeaconBlock(
+			beaconBlock,
+			ctypes.NewForkData(version.Deneb(), s.GenesisValidatorsRoot),
+			s.TestNode.ChainSpec,
+			blsSigner,
+		); err != nil {
+			return nil, err
+		}
+		return signedBeaconBlock, nil
+	})
+
+	blockBytes, err := beaconChain[0].MarshalSSZ()
 	s.Require().NoError(err)
 
 	blob := datypes.BlobSidecars{}

@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/cli/commands/genesis"
 	"github.com/berachain/beacon-kit/cli/commands/initialize"
 	"github.com/berachain/beacon-kit/cli/flags"
+	genesisutils "github.com/berachain/beacon-kit/cli/utils/genesis"
 	beaconkitconfig "github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/config/spec"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
@@ -61,7 +62,7 @@ type TestSuiteHandle struct {
 	ElHandle *dockertest.Resource
 }
 
-func InitializeHomeDir(t *testing.T, tempHomeDir string) *cmtcfg.Config {
+func InitializeHomeDir(t *testing.T, tempHomeDir string) (*cmtcfg.Config, common.Root) {
 	t.Helper()
 	t.Logf("tempHomeDir=%s", tempHomeDir)
 	cometConfig := createCometConfig(t, tempHomeDir)
@@ -72,10 +73,10 @@ func InitializeHomeDir(t *testing.T, tempHomeDir string) *cmtcfg.Config {
 	t.Setenv(components.ChainSpecTypeEnvVar, components.TestnetChainSpecType)
 
 	// Same as `beacond init`
-	initCommand(t, tempHomeDir)
+	initCommand(t, cometConfig.RootDir)
 
 	// get the bls signer from the homedir
-	blsSigner := getBlsSigner(tempHomeDir)
+	blsSigner := GetBlsSigner(cometConfig.RootDir)
 
 	// Make the deposit amount the Max effective balance - set arbitrarily higher than 250K BERA required for mainnet
 	depositAmount := math.Gwei(chainSpec.MaxEffectiveBalance())
@@ -90,9 +91,12 @@ func InitializeHomeDir(t *testing.T, tempHomeDir string) *cmtcfg.Config {
 	// Update the EL Deposit Storage
 	err = genesis.SetDepositStorage(chainSpec, cometConfig, "./eth-genesis.json", false)
 	require.NoError(t, err)
-	err = genesis.AddExecutionPayload(chainSpec, path.Join(tempHomeDir, "eth-genesis.json"), cometConfig)
+	err = genesis.AddExecutionPayload(chainSpec, path.Join(cometConfig.RootDir, "eth-genesis.json"), cometConfig)
 	require.NoError(t, err)
-	return cometConfig
+
+	genesisValidatorsRoot, err := genesisutils.ComputeValidatorsRootFromFile(path.Join(cometConfig.RootDir, "config/genesis.json"), chainSpec)
+	require.NoError(t, err)
+	return cometConfig, genesisValidatorsRoot
 }
 
 // createConfiguration creates the BeaconKit configuration and the CometBFT configuration.
@@ -145,7 +149,7 @@ func getAppOptions(t *testing.T, appOpts *viper.Viper, beaconKitConfig *beaconki
 	return appOpts
 }
 
-func getBlsSigner(tempHomeDir string) *signer.BLSSigner {
+func GetBlsSigner(tempHomeDir string) *signer.BLSSigner {
 	privValKeyFile := filepath.Join(tempHomeDir, "config/priv_validator_key.json")
 	privValStateFile := filepath.Join(tempHomeDir, "data/priv_validator_state.json")
 	return signer.NewBLSSigner(privValKeyFile, privValStateFile)

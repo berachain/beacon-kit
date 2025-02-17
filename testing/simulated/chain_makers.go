@@ -22,14 +22,11 @@ package simulated
 
 import (
 	"testing"
-	"time"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
+	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/math"
-	version2 "github.com/berachain/beacon-kit/primitives/version"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/consensus/beacon"
 	"github.com/ethereum/go-ethereum/core"
@@ -40,54 +37,35 @@ import (
 
 // GenerateBeaconChain generates a beacon chain similar to geths chain generation utility.
 // TODO: refactor this to be more flexible.
-func GenerateBeaconChain(t *testing.T, numBlocks int) []*types.SignedBeaconBlock {
+func GenerateBeaconChain(
+	t *testing.T,
+	numBlocks int,
+	wrapELBlock func(block *gethprimitives.Block) (*types.SignedBeaconBlock, error),
+) []*types.SignedBeaconBlock {
 	t.Helper()
 	genesis := &core.Genesis{
 		Config:    params.AllEthashProtocolChanges,
 		Alloc:     gethtypes.GenesisAlloc{},
 		ExtraData: []byte("test genesis"),
-		Timestamp: uint64(time.Now().Unix()), //nolint: gosec // TODO fixme
+		Timestamp: 1,
 	}
 	_, blocks, _ := core.GenerateChainWithGenesis(genesis, beacon.NewFaker(), numBlocks, func(_ int, b *core.BlockGen) {
 		b.SetCoinbase(gethcommon.Address{0})
 	})
+
 	signedBeaconBlocks := []*types.SignedBeaconBlock{}
 	for i := range blocks {
 		block := blocks[i]
-		beaconBlock, err := types.NewBeaconBlockWithVersion(
-			math.Slot(block.NumberU64()),
-			math.ValidatorIndex(0),
-			common.Root{1, 2, 3, 4, 5},
-			version2.Deneb1(),
-		)
-		require.NotNil(t, beaconBlock)
+		signedBeaconBlock, err := wrapELBlock(block)
 		require.NoError(t, err)
-
-		beaconBlock.StateRoot = common.Root{5, 4, 3, 2, 1}
-
-		beaconBlock.Body = &types.BeaconBlockBody{
-			ExecutionPayload: blockToExecutionPayload(block),
-		}
-
-		body := beaconBlock.GetBody()
-		body.SetProposerSlashings(types.ProposerSlashings{})
-		body.SetAttesterSlashings(types.AttesterSlashings{})
-		body.SetAttestations(types.Attestations{})
-		body.SetSyncAggregate(&types.SyncAggregate{})
-		body.SetVoluntaryExits(types.VoluntaryExits{})
-		body.SetBlsToExecutionChanges(types.BlsToExecutionChanges{})
-
-		signature := crypto.BLSSignature{}
-		signedBeaconBlocks = append(signedBeaconBlocks, &types.SignedBeaconBlock{
-			Message:   beaconBlock,
-			Signature: signature,
-		})
+		signedBeaconBlocks = append(signedBeaconBlocks, signedBeaconBlock)
 	}
+
 	return signedBeaconBlocks
 }
 
-// blockToExecutionPayload TODO
-func blockToExecutionPayload(block *gethtypes.Block) *types.ExecutionPayload {
+// BlockToExecutionPayload TODO
+func BlockToExecutionPayload(block *gethtypes.Block) *types.ExecutionPayload {
 	payload := types.ExecutionPayload{
 		ParentHash:    common.NewExecutionHashFromHex(block.ParentHash().Hex()),
 		FeeRecipient:  common.ExecutionAddress{},
