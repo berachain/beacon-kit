@@ -92,7 +92,21 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 			req.State, hasPayloadAttributes, payloadID,
 		)
 
-	case errors.IsAny(err, engineerrors.ErrSyncingPayloadStatus):
+		// If we reached here, and we have a nil payload ID, we should log a
+		// warning.
+		if payloadID == nil && hasPayloadAttributes {
+			ee.logger.Warn(
+				"Received nil payload ID on VALID engine response",
+				"head_eth1_hash", req.State.HeadBlockHash,
+				"safe_eth1_hash", req.State.SafeBlockHash,
+				"finalized_eth1_hash", req.State.FinalizedBlockHash,
+			)
+			return nil, nil, ErrNilPayloadOnValidResponse
+		}
+
+		return payloadID, latestValidHash, nil
+
+	case errors.Is(err, engineerrors.ErrSyncingPayloadStatus):
 		// We bubble up syncing as an error, to be able to stop
 		// bootstrapping from progressing in CL while EL is syncing.
 		ee.metrics.markForkchoiceUpdateSyncing(req.State, err)
@@ -114,20 +128,6 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 		ee.metrics.markForkchoiceUpdateUndefinedError(err)
 		return nil, nil, err
 	}
-
-	// If we reached here, and we have a nil payload ID, we should log a
-	// warning.
-	if payloadID == nil && hasPayloadAttributes {
-		ee.logger.Warn(
-			"Received nil payload ID on VALID engine response",
-			"head_eth1_hash", req.State.HeadBlockHash,
-			"safe_eth1_hash", req.State.SafeBlockHash,
-			"finalized_eth1_hash", req.State.FinalizedBlockHash,
-		)
-		return nil, nil, ErrNilPayloadOnValidResponse
-	}
-
-	return payloadID, latestValidHash, nil
 }
 
 // NotifyNewPayload notifies the execution client of the new payload.
