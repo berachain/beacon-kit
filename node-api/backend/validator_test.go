@@ -24,15 +24,31 @@ package backend_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
+	"cosmossdk.io/log"
+	storetypes "cosmossdk.io/store/types"
+	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/log/noop"
 	"github.com/berachain/beacon-kit/node-api/backend"
+	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	types "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	nodemetrics "github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
+	"github.com/berachain/beacon-kit/primitives/bytes"
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
+	cryptomocks "github.com/berachain/beacon-kit/primitives/crypto/mocks"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
+	"github.com/berachain/beacon-kit/state-transition/core"
+	"github.com/berachain/beacon-kit/state-transition/core/mocks"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
+	"github.com/berachain/beacon-kit/storage/beacondb"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -45,38 +61,189 @@ func TestFilteredValidators(t *testing.T) {
 	// Build backend to test
 	cs, err := spec.MainnetChainSpec()
 	require.NoError(t, err)
-	sp, st, kvStore, _, _ := statetransition.SetupTestState(t, cs)
-	sb := storage.NewBackend(cs, nil, kvStore, nil, nil)
+	cms, kvStore, depositStore, err := statetransition.BuildTestStores()
+	require.NoError(t, err)
+	sb := storage.NewBackend(cs, nil, kvStore, depositStore, nil)
+
+	sp := core.NewStateProcessor(
+		noop.NewLogger[any](),
+		cs,
+		mocks.NewExecutionEngine(t),
+		depositStore,
+		&cryptomocks.BLSSigner{},
+		func(bytes.B48) ([]byte, error) { return nil, nil },
+		nodemetrics.NewNoOpTelemetrySink(),
+	)
 
 	b := backend.New(sb, cs, sp)
-	tcs := &testConsensusService{state: st}
+	tcs := &testConsensusService{
+		cms:     cms,
+		kvStore: kvStore,
+		cs:      cs,
+	}
 	b.AttachQueryBackend(tcs)
 
-	// Setup context
+	// Set relevant quantities in initial status and
+	// write them to make them available to caches built
+	// on top of cms
 	stateSlot := math.Slot(10)
-	require.NoError(t, st.SetSlot(stateSlot))
+	stateValidators := []*types.ValidatorData{
+		{
+			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
+				Index: 0,
+			},
+			Status: constants.ValidatorStatusPendingInitialized,
+			Validator: beacontypes.ValidatorFromConsensus(
+				&ctypes.Validator{
+					Pubkey:                     [48]byte{0x01},
+					WithdrawalCredentials:      [32]byte{0x02},
+					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance()),
+					Slashed:                    false,
+					ActivationEligibilityEpoch: math.Epoch(constants.FarFutureEpoch),
+					ActivationEpoch:            math.Epoch(constants.FarFutureEpoch),
+					ExitEpoch:                  math.Epoch(constants.FarFutureEpoch),
+					WithdrawableEpoch:          math.Epoch(constants.FarFutureEpoch),
+				},
+			),
+		},
+		{
+			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
+				Index: 1,
+			},
+			Status: constants.ValidatorStatusPendingQueued,
+			Validator: beacontypes.ValidatorFromConsensus(
+				&ctypes.Validator{
+					Pubkey:                     [48]byte{0x03},
+					WithdrawalCredentials:      [32]byte{0x04},
+					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 2),
+					Slashed:                    false,
+					ActivationEligibilityEpoch: math.Epoch(0),
+					ActivationEpoch:            math.Epoch(constants.FarFutureEpoch),
+					ExitEpoch:                  math.Epoch(constants.FarFutureEpoch),
+					WithdrawableEpoch:          math.Epoch(constants.FarFutureEpoch),
+				},
+			),
+		},
+		{
+			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
+				Index: 2,
+			},
+			Status: constants.ValidatorStatusActiveOngoing,
+			Validator: beacontypes.ValidatorFromConsensus(
+				&ctypes.Validator{
+					Pubkey:                     [48]byte{0x05},
+					WithdrawalCredentials:      [32]byte{0x06},
+					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 3),
+					Slashed:                    false,
+					ActivationEligibilityEpoch: math.Epoch(0),
+					ActivationEpoch:            math.Epoch(0),
+					ExitEpoch:                  math.Epoch(constants.FarFutureEpoch),
+					WithdrawableEpoch:          math.Epoch(constants.FarFutureEpoch),
+				},
+			),
+		},
+		{
+			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
+				Index: 3,
+			},
+			Status: constants.ValidatorStatusExitedUnslashed,
+			Validator: beacontypes.ValidatorFromConsensus(
+				&ctypes.Validator{
+					Pubkey:                     [48]byte{0x07},
+					WithdrawalCredentials:      [32]byte{0x08},
+					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 4),
+					Slashed:                    false,
+					ActivationEligibilityEpoch: math.Epoch(0),
+					ActivationEpoch:            math.Epoch(0),
+					ExitEpoch:                  math.Epoch(0),
+					WithdrawableEpoch:          math.Epoch(constants.FarFutureEpoch),
+				},
+			),
+		},
+		{
+			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
+				Index: 4,
+			},
+			Status: constants.ValidatorStatusWithdrawalPossible,
+			Validator: beacontypes.ValidatorFromConsensus(
+				&ctypes.Validator{
+					Pubkey:                     [48]byte{0x09},
+					WithdrawalCredentials:      [32]byte{0x10},
+					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 5),
+					Slashed:                    false,
+					ActivationEligibilityEpoch: math.Epoch(0),
+					ActivationEpoch:            math.Epoch(0),
+					ExitEpoch:                  math.Epoch(0),
+					WithdrawableEpoch:          math.Epoch(0),
+				},
+			),
+		},
+	}
+	setupTestFilteredValidatorsState(
+		t,
+		cms, kvStore, cs,
+		stateSlot, stateValidators,
+	)
 
+	// test cases
 	tests := []struct {
 		name        string
 		inputsF     func() (math.Slot, []string /*ids*/, []string /*statuses*/)
 		expectedErr error
-		checkF      func(res []*types.ValidatorData) error
+		checkF      func(t *testing.T, res []*types.ValidatorData)
 	}{
 		{
-			name: "height too high",
+			name: "all validators at tip",
 			inputsF: func() (math.Slot, []string, []string) {
-				return stateSlot + 1, nil, nil
+				return stateSlot, nil, nil
 			},
-
-			// this error really comes from testConsensusService.CreateQueryContext
-			// so not really testing the implementation,but I gotta start somewhere
-			expectedErr: sdkerrors.ErrInvalidHeight,
-			checkF:      func(res []*types.ValidatorData) error { return nil },
+			expectedErr: nil,
+			checkF: func(t *testing.T, res []*types.ValidatorData) {
+				require.Len(t, res, len(stateValidators))
+				for i := range len(res) {
+					require.Equal(t, stateValidators[i], res[i], fmt.Sprintf("index %d", i))
+				}
+			},
+		},
+		{
+			name: "some validators by indexes",
+			inputsF: func() (math.Slot, []string, []string) {
+				return stateSlot, []string{"1", "3"}, nil
+			},
+			expectedErr: nil,
+			checkF: func(t *testing.T, res []*types.ValidatorData) {
+				expectedRes := []*types.ValidatorData{
+					stateValidators[1],
+					stateValidators[3],
+				}
+				require.Len(t, res, len(expectedRes))
+				for i := range len(res) {
+					require.Equal(t, expectedRes[i], res[i], fmt.Sprintf("index %d", i))
+				}
+			},
+		},
+		{
+			name: "some validators by status",
+			inputsF: func() (math.Slot, []string, []string) {
+				return stateSlot, nil, []string{constants.ValidatorStatusActiveOngoing}
+			},
+			expectedErr: nil,
+			checkF: func(t *testing.T, res []*types.ValidatorData) {
+				expectedRes := []*types.ValidatorData{
+					stateValidators[2],
+				}
+				require.Len(t, res, len(expectedRes))
+				for i := range len(res) {
+					require.Equal(t, expectedRes[i], res[i], fmt.Sprintf("index %d", i))
+				}
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// TODO: reset state from changes in FilterValidator (plays with slot)
+
 			slot, ids, statuses := tt.inputsF()
 
 			res, err := b.FilteredValidators(slot, ids, statuses)
@@ -85,15 +252,103 @@ func TestFilteredValidators(t *testing.T) {
 			} else {
 				require.ErrorIs(t, err, tt.expectedErr)
 			}
-			require.NoError(t, tt.checkF(res))
+			tt.checkF(t, res)
 		})
 	}
 }
 
+func setupTestFilteredValidatorsState(
+	t *testing.T,
+	cms storetypes.CommitMultiStore,
+	kvStore *beacondb.KVStore,
+	cs chain.Spec,
+	stateSlot math.Slot,
+	stateValidators []*types.ValidatorData,
+) {
+	t.Helper()
+
+	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), true, log.NewNopLogger())
+	st := statedb.NewBeaconStateFromDB(kvStore.WithContext(sdkCtx), cs)
+
+	require.NoError(t, st.SetSlot(stateSlot))
+
+	for _, in := range stateValidators {
+		val, err := beacontypes.ValidatorToConsensus(in.Validator)
+		require.NoError(t, err)
+		require.NoError(t, st.AddValidator(val))
+		// balance not really needed
+	}
+
+	fork := ctypes.NewFork(version.Genesis(), version.Genesis(), constants.GenesisEpoch)
+	require.NoError(t, st.SetFork(fork))
+
+	require.NoError(t, st.SetGenesisValidatorsRoot(common.Root{} /*validators.HashTreeRoot()*/))
+
+	blkHeader := &ctypes.BeaconBlockHeader{
+		Slot:            constants.GenesisSlot,
+		ProposerIndex:   0,
+		ParentBlockRoot: common.Root{},
+		StateRoot:       common.Root{},
+		BodyRoot:        common.Root{}, //blkBody.HashTreeRoot(),
+	}
+	require.NoError(t, st.SetLatestBlockHeader(blkHeader))
+
+	for i := range cs.HistoricalRootsLimit() {
+		require.NoError(t, st.UpdateBlockRootAtIndex(i, common.Root{}))
+		require.NoError(t, st.UpdateStateRootAtIndex(i, common.Root{}))
+	}
+
+	payload, err := ctypes.DefaultGenesisExecutionPayloadHeader()
+	require.NoError(t, err)
+	require.NoError(t, st.SetLatestExecutionPayloadHeader(payload))
+
+	eth1Data := &ctypes.Eth1Data{
+		DepositRoot:  common.Root{}, //deposits.HashTreeRoot(),
+		DepositCount: 0,
+		BlockHash:    payload.GetBlockHash(),
+	}
+	require.NoError(t, st.SetEth1Data(eth1Data))
+	require.NoError(t, st.SetEth1DepositIndex(constants.FirstDepositIndex))
+
+	for i := range cs.EpochsPerHistoricalVector() {
+		require.NoError(t, st.UpdateRandaoMixAtIndex(
+			i,
+			common.Bytes32(payload.GetBlockHash()),
+		))
+	}
+
+	require.NoError(t, st.SetNextWithdrawalIndex(0))
+	require.NoError(t, st.SetNextWithdrawalValidatorIndex(0))
+	require.NoError(t, st.SetTotalSlashing(0))
+
+	// finally write it all to underlying cms
+	sdkCtx.MultiStore().(storetypes.CacheMultiStore).Write()
+}
+
 var errTestMemberNotImplemented = errors.New("not implemented")
 
+// testConsensusService stubs consensus service
 type testConsensusService struct {
-	state *statedb.StateDB
+	cms     storetypes.CommitMultiStore
+	kvStore *beacondb.KVStore
+	cs      chain.Spec
+}
+
+func (t *testConsensusService) CreateQueryContext(height int64, prove bool) (sdk.Context, error) {
+	sdkCtx := sdk.NewContext(t.cms.CacheMultiStore(), true, log.NewNopLogger())
+
+	// there validations mimics consensus service, not sure if they are necessary
+	tmpState := statedb.NewBeaconStateFromDB(t.kvStore.WithContext(sdkCtx), t.cs)
+	slot, err := tmpState.GetSlot()
+	if err != nil {
+		return sdk.Context{}, sdkerrors.ErrInvalidHeight
+	}
+	if height > int64(slot.Unwrap()) {
+		return sdk.Context{}, sdkerrors.ErrInvalidHeight
+	}
+	// end of possibly unnecessary validations
+
+	return sdkCtx, nil
 }
 
 func (t *testConsensusService) Start(ctx context.Context) error {
@@ -106,17 +361,6 @@ func (t *testConsensusService) Stop() error {
 
 func (t *testConsensusService) Name() string {
 	panic(errTestMemberNotImplemented)
-}
-
-func (t *testConsensusService) CreateQueryContext(height int64, prove bool) (sdk.Context, error) {
-	slot, err := t.state.GetSlot()
-	if err != nil {
-		return sdk.Context{}, sdkerrors.ErrInvalidHeight
-	}
-	if height > int64(slot.Unwrap()) {
-		return sdk.Context{}, sdkerrors.ErrInvalidHeight
-	}
-	return sdk.Context{}, nil
 }
 
 func (t *testConsensusService) LastBlockHeight() int64 {
