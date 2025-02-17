@@ -25,6 +25,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/berachain/beacon-kit/primitives/net/url"
 	"github.com/ory/dockertest"
@@ -111,6 +112,7 @@ func (g *gethNode) Start(t *testing.T) (*dockertest.Resource, *url.ConnectionURL
 		return nil
 	})
 	require.NoError(t, err)
+	<-time.After(10 * time.Second)
 	return resource, authRPC
 }
 

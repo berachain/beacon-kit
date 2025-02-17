@@ -210,11 +210,11 @@ func (s *Simulated) TestPrepareProposal_ValidRequest_MustAccept() {
 	// blockBytes, err := beaconChain[0].MarshalSSZ()
 	// s.Require().NoError(err)
 	//
-	//blob := datypes.BlobSidecars{}
-	//blobBytes, err := blob.MarshalSSZ()
-	//s.Require().NoError(err)
+	// blob := datypes.BlobSidecars{}
+	// blobBytes, err := blob.MarshalSSZ()
+	// s.Require().NoError(err)
 	//
-	//txs := make([][]byte, 2)
+	// txs := make([][]byte, 2)
 	//txs[0] = blockBytes
 	//txs[1] = blobBytes
 	//
