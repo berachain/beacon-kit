@@ -23,8 +23,10 @@ package core
 import (
 	"context"
 
+	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"golang.org/x/sync/errgroup"
 )
@@ -32,7 +34,7 @@ import (
 // processExecutionPayload processes the execution payload and ensures it
 // matches the local state.
 func (sp *StateProcessor) processExecutionPayload(
-	ctx ReadOnlyContext,
+	txCtx ReadOnlyContext,
 	st *statedb.StateDB,
 	blk *ctypes.BeaconBlock,
 ) error {
@@ -40,11 +42,11 @@ func (sp *StateProcessor) processExecutionPayload(
 		body    = blk.GetBody()
 		payload = body.GetExecutionPayload()
 		header  = &ctypes.ExecutionPayloadHeader{} // appeases nilaway
-		g, gCtx = errgroup.WithContext(ctx.ConsensusCtx())
+		g, ctx  = errgroup.WithContext(txCtx.ConsensusCtx())
 	)
 
 	payloadTimestamp := payload.GetTimestamp().Unwrap()
-	consensusTimestamp := ctx.ConsensusTime().Unwrap()
+	consensusTimestamp := txCtx.ConsensusTime().Unwrap()
 
 	sp.metrics.gaugeTimestamps(payloadTimestamp, consensusTimestamp)
 
@@ -53,13 +55,13 @@ func (sp *StateProcessor) processExecutionPayload(
 		"payload height", payload.GetNumber().Unwrap(),
 		"payload timestamp", payloadTimestamp,
 		"consensus timestamp", consensusTimestamp,
-		"verify payload", ctx.VerifyPayload(),
+		"verify payload", txCtx.VerifyPayload(),
 	)
 
 	// Perform payload verification only if the context is configured as such.
-	if ctx.VerifyPayload() {
+	if txCtx.VerifyPayload() {
 		g.Go(func() error {
-			return sp.validateExecutionPayload(gCtx, st, blk)
+			return sp.validateExecutionPayload(ctx, txCtx.ConsensusTime(), st, blk, txCtx.OptimisticEngine())
 		})
 	}
 
@@ -74,7 +76,7 @@ func (sp *StateProcessor) processExecutionPayload(
 		return err
 	}
 
-	if ctx.MeterGas() {
+	if txCtx.MeterGas() {
 		sp.metrics.gaugeBlockGasUsed(
 			payload.GetNumber(), payload.GetGasUsed(), payload.GetBlobGasUsed(),
 		)
@@ -88,13 +90,15 @@ func (sp *StateProcessor) processExecutionPayload(
 // state and the execution engine.
 func (sp *StateProcessor) validateExecutionPayload(
 	ctx context.Context,
+	consensusTime math.U64,
 	st *statedb.StateDB,
 	blk *ctypes.BeaconBlock,
+	optimisticEngine bool,
 ) error {
 	if err := sp.validateStatelessPayload(blk); err != nil {
 		return err
 	}
-	return sp.validateStatefulPayload(ctx, st, blk)
+	return sp.validateStatefulPayload(ctx, consensusTime, st, blk, optimisticEngine)
 }
 
 // validateStatelessPayload performs stateless checks on the execution payload.
@@ -120,8 +124,10 @@ func (sp *StateProcessor) validateStatelessPayload(blk *ctypes.BeaconBlock) erro
 // validateStatefulPayload performs stateful checks on the execution payload.
 func (sp *StateProcessor) validateStatefulPayload(
 	ctx context.Context,
+	consensusTime math.U64,
 	st *statedb.StateDB,
 	blk *ctypes.BeaconBlock,
+	optimisticEngine bool,
 ) error {
 	body := blk.GetBody()
 	payload := body.GetExecutionPayload()
@@ -142,14 +148,31 @@ func (sp *StateProcessor) validateStatefulPayload(
 		)
 	}
 
-	parentBeaconBlockRoot := blk.GetParentBlockRoot()
-	if err = sp.executionEngine.VerifyAndNotifyNewPayload(
-		ctx, ctypes.BuildNewPayloadRequest(
-			payload,
-			body.GetBlobKzgCommitments().ToVersionedHashes(),
-			&parentBeaconBlockRoot,
-		),
+	// Verify that the payload stamp is within a reasonable bound
+	if err = payloadtime.Verify(
+		consensusTime,
+		lph.GetTimestamp(),
+		payload.GetTimestamp(),
 	); err != nil {
+		return err
+	}
+
+	parentBeaconBlockRoot := blk.GetParentBlockRoot()
+	payloadReq := ctypes.BuildNewPayloadRequest(
+		payload,
+		body.GetBlobKzgCommitments().ToVersionedHashes(),
+		&parentBeaconBlockRoot,
+		optimisticEngine,
+	)
+
+	// First we verify the block hash and versioned hashes are valid.
+	// TODO: is this required? Or will the EL handle this for us during
+	// new payload?
+	if err = payloadReq.HasValidVersionedAndBlockHashes(); err != nil {
+		return err
+	}
+
+	if err = sp.executionEngine.NotifyNewPayload(ctx, payloadReq); err != nil {
 		return err
 	}
 
