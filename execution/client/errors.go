@@ -72,7 +72,7 @@ func (s *EngineClient) handleRPCError(
 	// Check for connection errors.
 	var e jsonrpc.Error
 	ok := errors.As(err, &e)
-	if !ok {
+	if !ok || e == nil {
 		return errors.Wrapf(
 			err,
 			"got an unexpected server error in JSON-RPC response "+
