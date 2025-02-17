@@ -49,10 +49,12 @@ func (s *EngineClient) handleRPCError(
 		return err
 	}
 
+	// Check for timeout errors.
 	if http.IsTimeoutError(err) {
 		s.metrics.incrementHTTPTimeoutCounter()
 		return http.ErrTimeout
 	}
+	// Check for authorization errors
 	if errors.Is(err, http.ErrUnauthorized) {
 		return err
 	}
