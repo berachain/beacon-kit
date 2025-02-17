@@ -49,7 +49,7 @@ func (s *EngineClient) handleRPCError(
 		return err
 	}
 
-	if errors.Is(err, http.ErrTimeout) {
+	if http.IsTimeoutError(err) {
 		s.metrics.incrementHTTPTimeoutCounter()
 		return http.ErrTimeout
 	}

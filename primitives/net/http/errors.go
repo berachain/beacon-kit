@@ -29,3 +29,25 @@ var (
 	// ErrUnauthorized indicates an unauthorized error from http.Client.
 	ErrUnauthorized = errors.New("401 unauthorized request")
 )
+
+// TimeoutError defines an interface for timeout errors.
+// It includes methods for error message retrieval and timeout status checking.
+type TimeoutError interface {
+	// Error returns the error message.
+	Error() string
+	// Timeout indicates whether the error is a timeout error.
+	Timeout() bool
+}
+
+// IsTimeoutError checks if the given error is a timeout error.
+// It asserts the error to the httpTimeoutError interface and checks its Timeout
+// status.
+// Returns true if the error is a timeout error, false otherwise.
+func IsTimeoutError(e error) bool {
+	if e == nil {
+		return false
+	}
+	//nolint:errorlint // by design.
+	t, ok := e.(TimeoutError)
+	return ok && t.Timeout()
+}
