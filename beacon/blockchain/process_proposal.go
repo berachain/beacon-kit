@@ -225,7 +225,7 @@ func (s *Service) VerifyIncomingBlock(
 	// into this case during the first block after genesis.
 	// TODO: Consider panicing here if this fails. If our node cannot successfully run
 	// forceStartupSync, then we should shut down the node and fix the problem.
-	s.forceStartupSyncOnce.Do(func() { s.forceStartupHead(ctx, preState) })
+	s.forceStartupSyncOnce.Do(func() { s.forceSyncUponProcess(ctx, preState) })
 
 	s.logger.Info(
 		"Received incoming beacon block",

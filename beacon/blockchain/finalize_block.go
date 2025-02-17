@@ -52,7 +52,7 @@ func (s *Service) FinalizeBlock(
 	// Send an FCU to force the HEAD of the chain on the EL on startup.
 	var finalizeErr error
 	s.forceStartupSyncOnce.Do(func() {
-		finalizeErr = s.forceStartupSync(ctx, signedBlk.GetMessage())
+		finalizeErr = s.forceSyncUponFinalize(ctx, signedBlk.GetMessage())
 	})
 	if finalizeErr != nil {
 		return nil, finalizeErr

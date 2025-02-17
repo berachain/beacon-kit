@@ -32,8 +32,8 @@ import (
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-// forceStartupHead sends a force head FCU to the execution client.
-func (s *Service) forceStartupHead(
+// forceSyncUponProcess sends a force head FCU to the execution client.
+func (s *Service) forceSyncUponProcess(
 	ctx context.Context,
 	st *statedb.StateDB,
 ) {
@@ -56,10 +56,10 @@ func (s *Service) forceStartupHead(
 	}
 }
 
-// forceStartupSync sends a new payload and force startup FCU to the Execution
+// forceSyncUponFinalize sends a new payload and force startup FCU to the Execution
 // Layer client. This informs the EL client of the new head and forces a SYNC
 // if blocks are missing. This function should only be run once at startup.
-func (s *Service) forceStartupSync(
+func (s *Service) forceSyncUponFinalize(
 	ctx context.Context,
 	beaconBlock *ctypes.BeaconBlock,
 ) error {
@@ -90,7 +90,7 @@ func (s *Service) forceStartupSync(
 		)
 
 	default:
-		return fmt.Errorf("force startup NotifyNewPayload failed: %w", err)
+		return fmt.Errorf("startSyncUponFinalize NotifyNewPayload failed: %w", err)
 	}
 
 	// Submit the forkchoice update to the EL client. This will ensure that it is either synced or
