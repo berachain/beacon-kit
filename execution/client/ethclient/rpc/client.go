@@ -23,12 +23,12 @@ package rpc
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"sync"
 	"time"
 
-	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/berachain/beacon-kit/primitives/net/jwt"
 )
@@ -183,10 +183,13 @@ func (rpc *client) callRaw(
 		return nil, err
 	}
 
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("")
+	}
+
 	resp := new(Response)
 	if err = json.Unmarshal(data, resp); err != nil {
-		// We want the response as part of the error as responses such as 'Unauthorized' do not unmarshal correctly.
-		return nil, errors.Wrapf(err, "failed to unmarshal execution client response: %s", string(data))
+		return nil, err
 	}
 
 	if resp.Error != nil {
