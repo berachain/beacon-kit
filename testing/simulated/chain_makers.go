@@ -40,7 +40,7 @@ import (
 func GenerateBeaconChain(
 	t *testing.T,
 	numBlocks int,
-	wrapELBlock func(block *gethprimitives.Block) (*types.SignedBeaconBlock, error),
+	wrapELBlock func(latestSignedBeaconBlock *types.SignedBeaconBlock, block *gethprimitives.Block) (*types.SignedBeaconBlock, error),
 ) []*types.SignedBeaconBlock {
 	t.Helper()
 	genesis := &core.Genesis{
@@ -49,16 +49,17 @@ func GenerateBeaconChain(
 		ExtraData: []byte("test genesis"),
 		Timestamp: 1,
 	}
-	_, blocks, _ := core.GenerateChainWithGenesis(genesis, beacon.NewFaker(), numBlocks, func(_ int, b *core.BlockGen) {
+	_, elBlocks, _ := core.GenerateChainWithGenesis(genesis, beacon.NewFaker(), numBlocks, func(_ int, b *core.BlockGen) {
 		b.SetCoinbase(gethcommon.Address{0})
 	})
 
 	signedBeaconBlocks := []*types.SignedBeaconBlock{}
-	for i := range blocks {
-		block := blocks[i]
-		signedBeaconBlock, err := wrapELBlock(block)
+	var lastSignedBeaconBlock *types.SignedBeaconBlock
+	for i := range elBlocks {
+		signedBeaconBlock, err := wrapELBlock(lastSignedBeaconBlock, elBlocks[i])
 		require.NoError(t, err)
 		signedBeaconBlocks = append(signedBeaconBlocks, signedBeaconBlock)
+		lastSignedBeaconBlock = signedBeaconBlock
 	}
 
 	return signedBeaconBlocks

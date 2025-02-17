@@ -31,6 +31,7 @@ import (
 	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/log/phuslu"
+	nodecomponents "github.com/berachain/beacon-kit/node-core/components"
 	nodetypes "github.com/berachain/beacon-kit/node-core/types"
 	"github.com/berachain/beacon-kit/primitives/net/url"
 	"github.com/berachain/beacon-kit/storage/db"
@@ -54,6 +55,7 @@ type TestNode struct {
 	nodetypes.Node
 	StorageBackend blockchain.StorageBackend
 	ChainSpec      chain.Spec
+	APIBackend     nodecomponents.NodeAPIBackend
 }
 
 // NewTestNode Uses the testnet chainspec.
@@ -94,9 +96,7 @@ func buildNode(
 ) TestNode {
 	// variables to hold the components needed to set up BeaconApp
 	var (
-		apiBackend interface {
-			AttachQueryBackend(nodetypes.ConsensusService)
-		}
+		apiBackend     nodecomponents.NodeAPIBackend
 		beaconNode     nodetypes.Node
 		cmtService     nodetypes.ConsensusService
 		config         *config.Config
@@ -139,5 +139,6 @@ func buildNode(
 		Node:           beaconNode,
 		StorageBackend: storageBackend,
 		ChainSpec:      chainSpec,
+		APIBackend:     apiBackend,
 	}
 }

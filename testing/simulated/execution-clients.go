@@ -78,7 +78,7 @@ func (g *gethNode) Start(t *testing.T) (*dockertest.Resource, *url.ConnectionURL
 				 --datadir /tmp/gethdata \
 				 --ipcpath /tmp/gethdata/geth.ipc \
 				 --syncmode full \
-				 --verbosity 3
+				 --verbosity 4
 			`,
 		},
 		ExposedPorts: []string{"8545/tcp", "8551/tcp", "30303/tcp"},

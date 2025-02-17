@@ -24,6 +24,7 @@ import (
 	"bytes"
 	"context"
 	"testing"
+	"time"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
@@ -142,11 +143,89 @@ func (s *Simulated) TestInitChain_Valid_IsSuccessful() {
 	s.Require().Len(deposits, 1)
 }
 
-func (s *Simulated) TestPrepareProposal_ValidRequest_IsSuccessful() {
-	_, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{
-		Height: 1,
+func (s *Simulated) TestPrepareProposal_ValidRequest_MustAccept() {
+	// Initialize the chain correctly
+	appGenesis, err := genutiltypes.AppGenesisFromFile(
+		s.HomeDir + "/config/genesis.json",
+	)
+	s.Require().NoError(err)
+	_, err = s.SimComet.Comet.InitChain(s.Ctx, &types.InitChainRequest{
+		ChainId:       "test-mainnet-chain",
+		AppStateBytes: appGenesis.AppState,
 	})
 	s.Require().NoError(err)
+
+	blsSigner := simulated.GetBlsSigner(s.HomeDir)
+	pubkey, err := blsSigner.GetPubKey()
+	s.Require().NoError(err)
+	proposal, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{
+		Height: 1,
+		Time:   time.Now(),
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(proposal)
+	//// TODO: Expand on parentBlock being nil when first block etc.
+	// beaconChain := simulated.GenerateBeaconChain(s.T(), 1, func(parentBlock *ctypes.SignedBeaconBlock, elBlock *gethprimitives.Block) (*ctypes.SignedBeaconBlock, error) {
+	//	s.Require().NoError(err)
+	//	// s.Require().Equal(root, s.GenesisValidatorsRoot)
+	//	parentRoot := common.Root{0, 1, 2, 3}
+	//	// Generate the valid proposal
+	//	var beaconBlock *ctypes.BeaconBlock
+	//	if beaconBlock, err = ctypes.NewBeaconBlockWithVersion(
+	//		math.Slot(elBlock.NumberU64()),
+	//		math.ValidatorIndex(0),
+	//		// TODO: Fix hashtree root
+	//		parentRoot,
+	//		version.Deneb1(),
+	//	); err != nil {
+	//		return nil, err
+	//	}
+	//	beaconBlock.StateRoot = common.Root{5, 4, 3, 2, 1}
+	//	beaconBlock.Body = &ctypes.BeaconBlockBody{
+	//		ExecutionPayload: simulated.BlockToExecutionPayload(elBlock),
+	//	}
+	//	// Use propose index 0
+	//	beaconBlock.ProposerIndex = 0
+	//
+	//	body := beaconBlock.GetBody()
+	//	body.SetProposerSlashings(ctypes.ProposerSlashings{})
+	//	body.SetAttesterSlashings(ctypes.AttesterSlashings{})
+	//	body.SetAttestations(ctypes.Attestations{})
+	//	body.SetSyncAggregate(&ctypes.SyncAggregate{})
+	//	body.SetVoluntaryExits(ctypes.VoluntaryExits{})
+	//	body.SetBlsToExecutionChanges(ctypes.BlsToExecutionChanges{})
+	//
+	//	var signedBeaconBlock *ctypes.SignedBeaconBlock
+	//	if signedBeaconBlock, err = ctypes.NewSignedBeaconBlock(
+	//		beaconBlock,
+	//		ctypes.NewForkData(version.Deneb(), s.GenesisValidatorsRoot),
+	//		s.TestNode.ChainSpec,
+	//		blsSigner,
+	//	); err != nil {
+	//		return nil, err
+	//	}
+	//	return signedBeaconBlock, nil
+	// })
+	//
+	// blockBytes, err := beaconChain[0].MarshalSSZ()
+	// s.Require().NoError(err)
+	//
+	//blob := datypes.BlobSidecars{}
+	//blobBytes, err := blob.MarshalSSZ()
+	//s.Require().NoError(err)
+	//
+	//txs := make([][]byte, 2)
+	//txs[0] = blockBytes
+	//txs[1] = blobBytes
+	//
+	res, err := s.SimComet.Comet.ProcessProposal(s.Ctx, &types.ProcessProposalRequest{
+		Txs:    proposal.Txs,
+		Height: 1,
+		// If incorrect proposer address is used, we get a proposer mismatch error
+		ProposerAddress: pubkey.Address(),
+	})
+	s.Require().NoError(err)
+	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, res.Status)
 }
 
 func (s *Simulated) TestProcessProposal_HeightZero_MustError() {
@@ -179,20 +258,26 @@ func (s *Simulated) TestProcessProposal_ValidProposal_MustAccept() {
 	s.Require().NoError(err)
 
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
-	beaconChain := simulated.GenerateBeaconChain(s.T(), 2, func(block *gethprimitives.Block) (*ctypes.SignedBeaconBlock, error) {
+
+	// TODO: Expand on parentBlock being nil when first block etc.
+	beaconChain := simulated.GenerateBeaconChain(s.T(), 1, func(parentBlock *ctypes.SignedBeaconBlock, elBlock *gethprimitives.Block) (*ctypes.SignedBeaconBlock, error) {
+		s.Require().NoError(err)
+		// s.Require().Equal(root, s.GenesisValidatorsRoot)
+		parentRoot := common.Root{0, 1, 2, 3}
 		// Generate the valid proposal
 		var beaconBlock *ctypes.BeaconBlock
 		if beaconBlock, err = ctypes.NewBeaconBlockWithVersion(
-			math.Slot(block.NumberU64()),
+			math.Slot(elBlock.NumberU64()),
 			math.ValidatorIndex(0),
-			common.Root{1, 2, 3, 4, 5},
+			// TODO: Fix hashtree root
+			parentRoot,
 			version.Deneb1(),
 		); err != nil {
 			return nil, err
 		}
 		beaconBlock.StateRoot = common.Root{5, 4, 3, 2, 1}
 		beaconBlock.Body = &ctypes.BeaconBlockBody{
-			ExecutionPayload: simulated.BlockToExecutionPayload(block),
+			ExecutionPayload: simulated.BlockToExecutionPayload(elBlock),
 		}
 		// Use propose index 0
 		beaconBlock.ProposerIndex = 0
