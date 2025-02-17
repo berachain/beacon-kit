@@ -40,9 +40,7 @@ type Node interface {
 
 // ConsensusService defines everything we utilise externally from CometBFT.
 type ConsensusService interface {
-	Start(ctx context.Context) error
-	Stop() error
-	Name() string
+	service.Basic
 	CreateQueryContext(
 		height int64,
 		prove bool,
