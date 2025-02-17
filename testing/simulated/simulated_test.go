@@ -215,8 +215,8 @@ func (s *Simulated) TestPrepareProposal_ValidRequest_MustAccept() {
 	// s.Require().NoError(err)
 	//
 	// txs := make([][]byte, 2)
-	//txs[0] = blockBytes
-	//txs[1] = blobBytes
+	// txs[0] = blockBytes
+	// txs[1] = blobBytes
 	//
 	res, err := s.SimComet.Comet.ProcessProposal(s.Ctx, &types.ProcessProposalRequest{
 		Txs:    proposal.Txs,
