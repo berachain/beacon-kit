@@ -62,8 +62,7 @@ func (s *EngineClient) handleRPCError(
 		return err
 	}
 
-	// Check for timeout errors.
-	if http.IsTimeoutError(err) {
+	if errors.Is(err, http.ErrTimeout) {
 		s.metrics.incrementHTTPTimeoutCounter()
 		return http.ErrTimeout
 	}
@@ -71,7 +70,8 @@ func (s *EngineClient) handleRPCError(
 		return err
 	}
 	// Check for connection errors.
-	e, ok := err.(jsonrpc.Error)
+	var e jsonrpc.Error
+	ok := errors.As(err, &e)
 	if !ok {
 		return errors.Wrapf(
 			err,
