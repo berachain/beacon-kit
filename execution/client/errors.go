@@ -50,6 +50,10 @@ func (s *EngineClient) handleRPCError(
 	}
 
 	// Check for timeout errors.
+	if errors.Is(err, engineerrors.ErrEngineAPITimeout) {
+		s.metrics.incrementEngineAPITimeout()
+		return err
+	}
 	if http.IsTimeoutError(err) {
 		s.metrics.incrementHTTPTimeoutCounter()
 		return http.ErrTimeout
