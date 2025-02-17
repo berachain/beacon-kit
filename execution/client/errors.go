@@ -67,15 +67,12 @@ func (s *EngineClient) handleRPCError(
 		s.metrics.incrementHTTPTimeoutCounter()
 		return http.ErrTimeout
 	}
-
+	if errors.Is(err, http.ErrUnauthorized) {
+		return err
+	}
 	// Check for connection errors.
-	//
-	//nolint:errorlint // from prysm.
 	e, ok := err.(jsonrpc.Error)
 	if !ok {
-		if jsonrpc.IsUnauthorizedError(e) {
-			return http.ErrUnauthorized
-		}
 		return errors.Wrapf(
 			err,
 			"got an unexpected server error in JSON-RPC response "+

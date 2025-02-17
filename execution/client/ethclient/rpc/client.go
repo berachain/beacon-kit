@@ -30,6 +30,7 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
+	beaconhttp "github.com/berachain/beacon-kit/primitives/net/http"
 	"github.com/berachain/beacon-kit/primitives/net/jwt"
 )
 
@@ -183,8 +184,14 @@ func (rpc *client) callRaw(
 		return nil, err
 	}
 
-	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("")
+	switch response.StatusCode {
+	case http.StatusOK:
+		// OK: just proceed (no return)
+	case http.StatusUnauthorized:
+		return nil, beaconhttp.ErrUnauthorized
+	default:
+		// Return a default error
+		return nil, fmt.Errorf("unexpected status code %d: %s", response.StatusCode, string(data))
 	}
 
 	resp := new(Response)
