@@ -66,16 +66,19 @@ func (s *Service) forceStartupSync(
 	// NewPayload call first to load payload into EL client.
 	executionPayload := beaconBlock.GetBody().GetExecutionPayload()
 	parentBeaconBlockRoot := beaconBlock.GetParentBlockRoot()
-	err := s.executionEngine.VerifyAndNotifyNewPayload(
-		ctx, ctypes.BuildNewPayloadRequest(
-			executionPayload,
-			beaconBlock.GetBody().GetBlobKzgCommitments().ToVersionedHashes(),
-			&parentBeaconBlockRoot,
-		),
+	payloadReq := ctypes.BuildNewPayloadRequest(
+		executionPayload,
+		beaconBlock.GetBody().GetBlobKzgCommitments().ToVersionedHashes(),
+		&parentBeaconBlockRoot,
 	)
-	switch {
-	default:
+	if err := payloadReq.HasValidVersionedAndBlockHashes(); err != nil {
+		return err
+	}
+
+	switch err := s.executionEngine.NotifyNewPayload(ctx, payloadReq); {
+	case err == nil:
 		// Do nothing and move on to NotifyForkchoiceUpdate.
+
 	case errors.IsAny(err,
 		engineerrors.ErrSyncingPayloadStatus,
 		engineerrors.ErrAcceptedPayloadStatus):
@@ -86,13 +89,13 @@ func (s *Service) forceStartupSync(
 			"blockHash", executionPayload.GetBlockHash(),
 		)
 
-	case err != nil:
+	default:
 		return fmt.Errorf("force startup NotifyNewPayload failed: %w", err)
 	}
 
 	// Submit the forkchoice update to the EL client. This will ensure that it is either synced or
 	// starts up a sync.
-	_, _, err = s.executionEngine.NotifyForkchoiceUpdate(
+	_, _, err := s.executionEngine.NotifyForkchoiceUpdate(
 		ctx, &ctypes.ForkchoiceUpdateRequest{
 			State: &engineprimitives.ForkchoiceStateV1{
 				HeadBlockHash:      executionPayload.GetBlockHash(),
