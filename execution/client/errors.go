@@ -27,26 +27,13 @@ import (
 	jsonrpc "github.com/berachain/beacon-kit/primitives/net/json-rpc"
 )
 
-// ErrUnauthenticatedConnection indicates that the connection is not
-// authenticated.
 const (
 	UnauthenticatedConnectionErrorStr = `could not verify execution chain ID as your
 	connection is not authenticated. If connecting to your execution client via HTTP, you
 	will need to set up JWT authentication...`
-
-	AuthErrMsg = "HTTP authentication to your execution client " +
-		"is not working. Please ensure you are setting a correct " +
-		"value for the JWT secret path" +
-		"is set correctly, or use an IPC " +
-		"connection if on the same machine."
 )
 
 var (
-	// ErrNotStarted indicates that the execution client is not started.
-	ErrNotStarted = errors.New("engine client is not started")
-
-	// ErrFailedToRefreshJWT indicates that the JWT could not be refreshed.
-	ErrFailedToRefreshJWT = errors.New("failed to refresh auth token")
 
 	// ErrMismatchedEth1ChainID is returned when the chainID does not
 	// match the expected chain ID.
