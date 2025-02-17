@@ -29,7 +29,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	beaconhttp "github.com/berachain/beacon-kit/primitives/net/http"
 	"github.com/berachain/beacon-kit/primitives/net/jwt"
@@ -197,7 +196,7 @@ func (rpc *client) callRaw(
 
 	resp := new(Response)
 	if err = json.Unmarshal(data, resp); err != nil {
-		return nil, errors.Wrapf(err, "failed to unmarshal execution client response: %s", string(data))
+		return nil, err
 	}
 
 	if resp.Error != nil {
