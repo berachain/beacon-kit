@@ -103,6 +103,7 @@ func initTestStores() (*beacondb.KVStore, *depositstore.KVStore, error) {
 func SetupTestState(t *testing.T, cs chain.Spec) (
 	*TestStateProcessorT,
 	*TestBeaconStateT,
+	*beacondb.KVStore,
 	*depositstore.KVStore,
 	core.ReadOnlyContext,
 ) {
@@ -145,5 +146,5 @@ func SetupTestState(t *testing.T, cs chain.Spec) (
 		WithMeterGas(false).
 		WithOptimisticEngine(true)
 
-	return sp, beaconState, depositStore, ctx
+	return sp, beaconState, kvStore, depositStore, ctx
 }
