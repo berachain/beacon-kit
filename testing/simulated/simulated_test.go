@@ -36,7 +36,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/crypto"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/suite"
@@ -179,9 +178,9 @@ func (s *Simulated) TestProcessProposal_ValidProposal_MustAccept() {
 	})
 	s.Require().NoError(err)
 
+	blsSigner := simulated.GetBlsSigner(s.HomeDir)
 	beaconChain := simulated.GenerateBeaconChain(s.T(), 2, func(block *gethprimitives.Block) (*ctypes.SignedBeaconBlock, error) {
 		// Generate the valid proposal
-		blsSigner := simulated.GetBlsSigner(s.HomeDir)
 		var beaconBlock *ctypes.BeaconBlock
 		if beaconBlock, err = ctypes.NewBeaconBlockWithVersion(
 			math.Slot(block.NumberU64()),
@@ -192,10 +191,11 @@ func (s *Simulated) TestProcessProposal_ValidProposal_MustAccept() {
 			return nil, err
 		}
 		beaconBlock.StateRoot = common.Root{5, 4, 3, 2, 1}
-
 		beaconBlock.Body = &ctypes.BeaconBlockBody{
 			ExecutionPayload: simulated.BlockToExecutionPayload(block),
 		}
+		// Use propose index 0
+		beaconBlock.ProposerIndex = 0
 
 		body := beaconBlock.GetBody()
 		body.SetProposerSlashings(ctypes.ProposerSlashings{})
@@ -228,10 +228,13 @@ func (s *Simulated) TestProcessProposal_ValidProposal_MustAccept() {
 	txs[0] = blockBytes
 	txs[1] = blobBytes
 
+	pubkey, err := blsSigner.GetPubKey()
+	s.Require().NoError(err)
 	res, err := s.SimComet.Comet.ProcessProposal(s.Ctx, &types.ProcessProposalRequest{
-		Txs:             txs,
-		Height:          1,
-		ProposerAddress: crypto.CRandBytes(20),
+		Txs:    txs,
+		Height: 1,
+		// If incorrect proposer address is used, we get a proposer mismatch error
+		ProposerAddress: pubkey.Address(),
 	})
 	s.Require().NoError(err)
 	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, res.Status)
