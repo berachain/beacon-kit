@@ -65,14 +65,15 @@ func (kvs *testKVStoreService) OpenKVStore(ctx context.Context) corestore.KVStor
 	return storage.NewKVStore(store)
 }
 
-//nolint:gochecknoglobals // unexported and use only in tests
+//nolint:gochecknoglobals // unexported and used only in tests
 var testStoreKey = storetypes.NewKVStoreKey("state-transition-tests")
 
 func BuildTestStores() (
 	storetypes.CommitMultiStore,
 	*beacondb.KVStore,
 	*depositstore.KVStore,
-	error) {
+	error,
+) {
 	db, err := db.OpenDB("", dbm.MemDBBackend)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed opening mem db: %w", err)
@@ -122,8 +123,8 @@ func SetupTestState(t *testing.T, cs chain.Spec) (
 	cms, kvStore, depositStore, err := BuildTestStores()
 	require.NoError(t, err)
 
-	ms := sdk.NewContext(cms.CacheMultiStore(), true, log.NewNopLogger())
-	beaconState := statedb.NewBeaconStateFromDB(kvStore.WithContext(ms), cs)
+	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), true, log.NewNopLogger())
+	beaconState := statedb.NewBeaconStateFromDB(kvStore.WithContext(sdkCtx), cs)
 
 	sp := core.NewStateProcessor(
 		noop.NewLogger[any](),
@@ -138,7 +139,7 @@ func SetupTestState(t *testing.T, cs chain.Spec) (
 	)
 
 	ctx := transition.NewTransitionCtx(
-		ms,
+		sdkCtx,
 		0, // time
 		dummyProposerAddr,
 	).
