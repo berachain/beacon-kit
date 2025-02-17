@@ -46,5 +46,5 @@ type TimeoutError interface {
 func IsTimeoutError(e error) bool {
 	var t TimeoutError
 	ok := errors.As(e, &t)
-	return ok && t.Timeout()
+	return ok && t != nil && t.Timeout()
 }
