@@ -53,9 +53,8 @@ type Withdrawals interface {
 
 // ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine interface {
-	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
-	// execution client.
-	VerifyAndNotifyNewPayload(
+	// NotifyNewPayload notifies the execution client of the new payload.
+	NotifyNewPayload(
 		ctx context.Context,
 		req *ctypes.NewPayloadRequest,
 	) error
