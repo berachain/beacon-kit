@@ -36,6 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/crypto"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/suite"
@@ -228,8 +229,9 @@ func (s *Simulated) TestProcessProposal_ValidProposal_MustAccept() {
 	txs[1] = blobBytes
 
 	res, err := s.SimComet.Comet.ProcessProposal(s.Ctx, &types.ProcessProposalRequest{
-		Txs:    txs,
-		Height: 1,
+		Txs:             txs,
+		Height:          1,
+		ProposerAddress: crypto.CRandBytes(20),
 	})
 	s.Require().NoError(err)
 	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, res.Status)
