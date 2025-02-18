@@ -32,7 +32,6 @@ import (
 	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	"github.com/berachain/beacon-kit/cli/flags"
 	"github.com/berachain/beacon-kit/config"
-	beaconkitconfig "github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/da/kzg"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	nodecomponents "github.com/berachain/beacon-kit/node-core/components"
@@ -150,7 +149,7 @@ func buildNode(
 
 // getAppOptions returns the Application Options we need to set for the Node Builder.
 // Ideally we can avoid having to set the flags like this and just directly modify a config type.
-func getAppOptions(t *testing.T, appOpts *viper.Viper, beaconKitConfig *beaconkitconfig.Config, tempHomeDir string) *viper.Viper {
+func getAppOptions(t *testing.T, appOpts *viper.Viper, beaconKitConfig *config.Config, tempHomeDir string) *viper.Viper {
 	t.Helper()
 	// Execution Client Config
 	relativePathJwt := "../files/jwt.hex"
@@ -186,6 +185,6 @@ func getAppOptions(t *testing.T, appOpts *viper.Viper, beaconKitConfig *beaconki
 	return appOpts
 }
 
-func createBeaconKitConfig(_ *testing.T) *beaconkitconfig.Config {
-	return beaconkitconfig.DefaultConfig()
+func createBeaconKitConfig(_ *testing.T) *config.Config {
+	return config.DefaultConfig()
 }
