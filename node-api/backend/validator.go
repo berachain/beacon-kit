@@ -21,7 +21,6 @@
 package backend
 
 import (
-	"bytes"
 	"slices"
 	"strconv"
 
@@ -49,11 +48,50 @@ func (b Backend) FilteredValidators(
 		return nil, errors.Wrapf(err, "failed to get validators")
 	}
 
-	validatorData := make([]*beacontypes.ValidatorData, 0, len(validators))
+	// Parse all IDs and pubkeys once at the start
+	var numericIDs []uint64
+	var parsedPubkeys []crypto.BLSPubkey
+
+	for _, id := range ids {
+		// Try parsing as numeric ID first
+		if index, err := strconv.ParseUint(id, 10, 64); err == nil {
+			numericIDs = append(numericIDs, index)
+			continue
+		}
+
+		// Try parsing as pubkey
+		var pubkey crypto.BLSPubkey
+		if err := pubkey.UnmarshalText([]byte(id)); err == nil {
+			parsedPubkeys = append(parsedPubkeys, pubkey)
+		}
+	}
 
 	epoch := b.cs.SlotToEpoch(slot)
+	validatorData := make([]*beacontypes.ValidatorData, 0, len(validators))
+
 	for _, validator := range validators {
-		data, errInProcess := processValidator(st, validator, epoch, ids, statuses)
+		index, err := st.ValidatorIndexByPubkey(validator.GetPubkey())
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to get validator index by pubkey")
+		}
+
+		// If filters are provided, check if validator matches any filter
+		if len(ids) > 0 {
+			matches := false
+			// Check numeric IDs
+			if len(numericIDs) > 0 && matchesIndex(index, numericIDs) {
+				matches = true
+			}
+			// Check pubkeys
+			if len(parsedPubkeys) > 0 && matchesPubkey(validator, parsedPubkeys) {
+				matches = true
+			}
+			if !matches {
+				continue
+			}
+		}
+
+		data, errInProcess := processValidator(st, validator, epoch, index, statuses)
 		if errInProcess != nil {
 			return nil, errors.Wrapf(errInProcess, "failed to process validator")
 		}
@@ -68,19 +106,9 @@ func processValidator(
 	st *statedb.StateDB,
 	validator *types.Validator,
 	epoch math.Epoch,
-	ids []string,
+	index math.U64,
 	statuses []string,
 ) (*beacontypes.ValidatorData, error) {
-	index, err := st.ValidatorIndexByPubkey(validator.GetPubkey())
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get validator index by pubkey")
-	}
-
-	if !matchesIDFilter(validator, index, ids) {
-		//nolint:nilnil // no data to return
-		return nil, nil
-	}
-
 	status, err := validator.Status(epoch)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get validator status")
@@ -94,30 +122,13 @@ func processValidator(
 	return buildValidatorData(st, validator, index, status)
 }
 
-func matchesIDFilter(validator *types.Validator, index math.U64, ids []string) bool {
-	if len(ids) == 0 {
-		return true
-	}
-
-	for _, id := range ids {
-		if matchesPubkey(validator, id) || matchesIndex(index, id) {
-			return true
-		}
-	}
-	return false
-}
-
-func matchesPubkey(validator *types.Validator, id string) bool {
-	var pubkey crypto.BLSPubkey
-	if err := pubkey.UnmarshalText([]byte(id)); err != nil {
-		return false
-	}
+func matchesPubkey(validator *types.Validator, parsedPubkeys []crypto.BLSPubkey) bool {
 	validatorPubkey := validator.GetPubkey()
-	return bytes.Equal(validatorPubkey[:], pubkey[:])
+	return slices.Contains(parsedPubkeys, validatorPubkey)
 }
 
-func matchesIndex(index math.U64, id string) bool {
-	return strconv.FormatUint(index.Unwrap(), 10) == id
+func matchesIndex(index math.U64, ids []uint64) bool {
+	return slices.Contains(ids, index.Unwrap())
 }
 
 func matchesStatusFilter(status string, statuses []string) bool {
