@@ -41,44 +41,58 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// InitializeHomeDir sets up a temporary home directory with the necessary genesis state
+// and configuration files for testing. It returns the configured CometBFT config along with
+// the computed genesis validators root.
 func InitializeHomeDir(t *testing.T, tempHomeDir string) (*cmtcfg.Config, common.Root) {
 	t.Helper()
-	t.Logf("tempHomeDir=%s", tempHomeDir)
+
+	t.Logf("Initializing home directory: %s", tempHomeDir)
+	// Create the default CometBFT configuration using the temporary home directory.
 	cometConfig := createCometConfig(t, tempHomeDir)
 
+	// Retrieve the testnet chain specification.
 	chainSpec, err := spec.TestnetChainSpec()
-	require.NoError(t, err)
+	require.NoError(t, err, "failed to retrieve testnet chain spec")
 
+	// Set the chain spec type environment variable.
 	t.Setenv(components.ChainSpecTypeEnvVar, components.TestnetChainSpecType)
 
-	// Same as `beacond init`
+	// Run initialization command to mimic 'beacond init'
 	initCommand(t, cometConfig.RootDir)
 
-	// get the bls signer from the homedir
+	// Retrieve the BLS signer from the configured home directory.
 	blsSigner := GetBlsSigner(cometConfig.RootDir)
 
-	// Make the deposit amount the Max effective balance - set arbitrarily higher than 250K BERA required for mainnet
+	// Set the deposit amount to the maximum effective balance.
 	depositAmount := math.Gwei(chainSpec.MaxEffectiveBalance())
-	// Arbitrary withdrawal address
+	// Define an arbitrary withdrawal address.
 	withdrawalAddress := common.NewExecutionAddressFromHex("0x6Eb9C23e4c187452504Ef8c5fD8fA1a4b15BE162")
 
+	// Add a genesis deposit.
 	err = genesis.AddGenesisDeposit(chainSpec, cometConfig, blsSigner, depositAmount, withdrawalAddress, "")
-	require.NoError(t, err)
-	// Collect the genesis deposit
-	err = genesis.CollectGenesisDeposits(cometConfig)
-	require.NoError(t, err)
-	// Update the EL Deposit Storage
-	err = genesis.SetDepositStorage(chainSpec, cometConfig, "./eth-genesis.json", false)
-	require.NoError(t, err)
-	err = genesis.AddExecutionPayload(chainSpec, path.Join(cometConfig.RootDir, "eth-genesis.json"), cometConfig)
-	require.NoError(t, err)
+	require.NoError(t, err, "failed to add genesis deposit")
 
+	// Collect the genesis deposit.
+	err = genesis.CollectGenesisDeposits(cometConfig)
+	require.NoError(t, err, "failed to collect genesis deposits")
+
+	// Update the execution layer deposit storage with the eth-genesis file.
+	err = genesis.SetDepositStorage(chainSpec, cometConfig, "./eth-genesis.json", false)
+	require.NoError(t, err, "failed to set deposit storage")
+
+	// Add the execution payload to the genesis configuration.
+	err = genesis.AddExecutionPayload(chainSpec, path.Join(cometConfig.RootDir, "eth-genesis.json"), cometConfig)
+	require.NoError(t, err, "failed to add execution payload")
+
+	// Compute the validators root from the genesis file.
 	genesisValidatorsRoot, err := genesisutils.ComputeValidatorsRootFromFile(path.Join(cometConfig.RootDir, "config/genesis.json"), chainSpec)
-	require.NoError(t, err)
+	require.NoError(t, err, "failed to compute validators root")
+
 	return cometConfig, genesisValidatorsRoot
 }
 
-// createConfiguration creates the BeaconKit configuration and the CometBFT configuration.
+// createCometConfig creates a default CometBFT configuration with the home directory set.
 func createCometConfig(t *testing.T, tempHomeDir string) *cmtcfg.Config {
 	t.Helper()
 	cmtCfg := cometbft.DefaultConfig()
@@ -86,32 +100,36 @@ func createCometConfig(t *testing.T, tempHomeDir string) *cmtcfg.Config {
 	return cmtCfg
 }
 
-func initCommand(t *testing.T, tempHomeDir string) {
+// initCommand runs the initialization command to prepare the home directory.
+// This function emulates the 'beacond init' command.
+func initCommand(t *testing.T, homeDir string) {
 	t.Helper()
 
+	// Create a Cosmos SDK client context with the provided home directory and chain ID.
 	clientCtx := client.Context{}.
-		WithHomeDir(tempHomeDir).
+		WithHomeDir(homeDir).
 		WithChainID("test-mainnet-chain")
 
-	// This is necessary otherwise cosmos-sdk will see errors
-	err := os.MkdirAll(tempHomeDir+"/config", 0700)
-	require.NoError(t, err)
+	// Ensure necessary directories exist.
+	err := os.MkdirAll(path.Join(homeDir, "config"), 0700)
+	require.NoError(t, err, "failed to create config directory")
 
-	err = os.MkdirAll(tempHomeDir+"/data", 0700)
-	require.NoError(t, err)
+	err = os.MkdirAll(path.Join(homeDir, "data"), 0700)
+	require.NoError(t, err, "failed to create data directory")
 
+	// Initialize the command to set up the home directory.
 	initCMD := initialize.InitCmd(&cometbft.Service{})
-	initCMD.SetArgs([]string{
-		"test-moniker",
-	})
+	initCMD.SetArgs([]string{"test-moniker"})
 
-	// This is required due to a bug in cosmos sdk
+	// Set the command context; required to work around a Cosmos SDK issue.
 	initCMD.SetContext(context.Background())
 	err = client.SetCmdClientContextHandler(clientCtx, initCMD)
-	require.NoError(t, err)
+	require.NoError(t, err, "failed to set client context handler")
 
-	// This is so that Goland can run the test from the IDE through test filtering
+	// Allow unknown flags to enable running tests from IDEs without extra configuration.
 	initCMD.FParseErrWhitelist.UnknownFlags = true
+
+	// Execute the initialization command.
 	err = initCMD.Execute()
-	require.NoError(t, err)
+	require.NoError(t, err, "failed to execute init command")
 }

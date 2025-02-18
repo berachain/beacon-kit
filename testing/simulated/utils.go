@@ -27,7 +27,6 @@ import (
 	"fmt"
 	"math/big"
 	"path/filepath"
-	"testing"
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/chain"
@@ -37,7 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
-	"github.com/berachain/beacon-kit/primitives/math"
+	mathpkg "github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	gethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -46,33 +45,42 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// SharedAccessors holds references to common utilities required in tests
+// SharedAccessors holds references to common utilities required in tests.
 type SharedAccessors struct {
 	Ctx        context.Context
 	CancelFunc context.CancelFunc
 	HomeDir    string
 	TestNode   TestNode
 
-	// EL dockertest handles for closing
+	// ElHandle is a dockertest resource handle that should be closed in teardown.
 	ElHandle *dockertest.Resource
 }
 
+// GetBlsSigner returns a new BLSSigner using the configuration files in the provided home directory.
 func GetBlsSigner(tempHomeDir string) *signer.BLSSigner {
-	privValKeyFile := filepath.Join(tempHomeDir, "config/priv_validator_key.json")
-	privValStateFile := filepath.Join(tempHomeDir, "data/priv_validator_state.json")
+	privValKeyFile := filepath.Join(tempHomeDir, "config", "priv_validator_key.json")
+	privValStateFile := filepath.Join(tempHomeDir, "data", "priv_validator_state.json")
 	return signer.NewBLSSigner(privValKeyFile, privValStateFile)
 }
 
+// CreateInvalidBlock creates a malicious beacon block by injecting an invalid transaction
+// into the execution payload. The invalidity stems from the transaction coming from an account
+// with fee below base fee.
 func CreateInvalidBlock(
-	t *testing.T,
+	t *require.Assertions,
 	signedBeaconBlock *ctypes.SignedBeaconBlock,
 	blsSigner *signer.BLSSigner,
 	chainSpec chain.Spec,
 	genesisValidatorsRoot common.Root,
 ) *ctypes.SignedBeaconBlock {
+	// Get the current fork version from the slot.
 	forkVersion := chainSpec.ActiveForkVersionForSlot(signedBeaconBlock.GetMessage().Slot)
-	// Create a transaction from an account that that doesn't have enough balance
-	testKey, _ := crypto.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
+
+	// Create a test key - copied from go-ethereum.
+	testKey, err := crypto.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
+	t.NoError(err, "failed to create test key for malicious transaction")
+
+	// Sign a malicious transaction that is expected to fail.
 	maliciousTx, err := gethtypes.SignNewTx(
 		testKey,
 		gethtypes.NewCancunSigner(big.NewInt(int64(chainSpec.DepositEth1ChainID()))),
@@ -84,20 +92,20 @@ func CreateInvalidBlock(
 			GasTipCap: big.NewInt(10000000),
 			GasFeeCap: big.NewInt(10000000),
 			Data:      []byte{},
-		})
-	require.NoError(t, err)
+		},
+	)
+	t.NoError(err, "failed to sign malicious transaction")
 
-	// Instead of preallocating with length 1 and then appending (which would leave a nil element),
-	// initialize the slice with the malicious transaction:
+	// Initialize the slice with the malicious transaction.
 	maliciousTxs := []*gethprimitives.Transaction{maliciousTx}
 
+	// Extract the current execution payload and compute the withdrawals hash.
 	payload := signedBeaconBlock.GetMessage().GetBody().ExecutionPayload
-	wds := payload.GetWithdrawals()
-	withdrawalsHash := gethprimitives.DeriveSha(
-		payload.GetWithdrawals(),
-		gethprimitives.NewStackTrie(nil),
-	)
+	withdrawals := payload.GetWithdrawals()
+	withdrawalsHash := gethprimitives.DeriveSha(withdrawals, gethprimitives.NewStackTrie(nil))
 	parentRoot := signedBeaconBlock.GetMessage().GetParentBlockRoot()
+
+	// Construct a new execution block header and body using the malicious transactions.
 	executionBlock := gethprimitives.NewBlockWithHeader(
 		&gethprimitives.Header{
 			ParentHash:       gethprimitives.ExecutionHash(payload.GetParentHash()),
@@ -121,9 +129,12 @@ func CreateInvalidBlock(
 			ParentBeaconRoot: (*gethprimitives.ExecutionHash)(&parentRoot),
 		},
 	).WithBody(gethprimitives.Body{
-		Transactions: maliciousTxs, Uncles: nil, Withdrawals: *(*gethprimitives.Withdrawals)(unsafe.Pointer(&wds)),
+		Transactions: maliciousTxs,
+		Uncles:       nil,
+		Withdrawals:  *(*gethprimitives.Withdrawals)(unsafe.Pointer(&withdrawals)),
 	})
 
+	// Convert the execution block into executable data.
 	newExecutionData := gethprimitives.BlockToExecutableData(
 		executionBlock,
 		nil,
@@ -131,80 +142,83 @@ func CreateInvalidBlock(
 		nil,
 	)
 
+	// Convert the executable data into an ExecutionPayload.
 	executionPayload, err := executableDataToExecutionPayload(forkVersion, newExecutionData.ExecutionPayload)
-	require.NoError(t, err)
+	t.NoError(err, "failed to convert executable data to execution payload")
 
+	// Replace the original payload with the malicious payload.
 	signedBeaconBlock.GetMessage().GetBody().ExecutionPayload = executionPayload
 
-	// Update the signature over the new payload
-	maliciousBlock, err := ctypes.NewSignedBeaconBlock(signedBeaconBlock.GetMessage(), &ctypes.ForkData{
-		CurrentVersion:        chainSpec.ActiveForkVersionForSlot(signedBeaconBlock.GetMessage().Slot),
-		GenesisValidatorsRoot: genesisValidatorsRoot,
-	}, chainSpec, blsSigner)
-	require.NoError(t, err)
+	// Update the signature over the new payload.
+	maliciousBlock, err := ctypes.NewSignedBeaconBlock(
+		signedBeaconBlock.GetMessage(),
+		&ctypes.ForkData{
+			CurrentVersion:        chainSpec.ActiveForkVersionForSlot(signedBeaconBlock.GetMessage().Slot),
+			GenesisValidatorsRoot: genesisValidatorsRoot,
+		},
+		chainSpec,
+		blsSigner,
+	)
+	t.NoError(err, "failed to update signature over the new payload")
 	return maliciousBlock
 }
 
-// executableDataToExecutionPayload converts the eth executable data type to the beacon execution payload.
-// Adapted from executableDataToExecutionPayloadHeader.
+// executableDataToExecutionPayload converts Ethereum executable data to a beacon execution payload.
+// It supports fork versions before Deneb1 and returns an error if the fork version is not supported.
 func executableDataToExecutionPayload(
 	forkVersion common.Version,
 	data *gethprimitives.ExecutableData,
 ) (*ctypes.ExecutionPayload, error) {
-	var executionPayload *ctypes.ExecutionPayload
+	// Only support fork versions before Deneb1.
 	if version.IsBefore(forkVersion, version.Deneb1()) {
-		withdrawals := make(
-			engineprimitives.Withdrawals,
-			len(data.Withdrawals),
-		)
+		// Convert withdrawals from gethprimitives to engineprimitives.
+		withdrawals := make(engineprimitives.Withdrawals, len(data.Withdrawals))
 		for i, withdrawal := range data.Withdrawals {
-			// #nosec:G103 // primitives.Withdrawals are data.Withdrawals with hard types
-			withdrawals[i] = (*engineprimitives.Withdrawal)(
-				unsafe.Pointer(withdrawal),
-			)
+			// #nosec:G103 -- safe conversion assuming the underlying types are compatible.
+			withdrawals[i] = (*engineprimitives.Withdrawal)(unsafe.Pointer(withdrawal))
 		}
 
+		// Truncate ExtraData if it exceeds the allowed length.
 		if len(data.ExtraData) > constants.ExtraDataLength {
 			data.ExtraData = data.ExtraData[:constants.ExtraDataLength]
 		}
 
-		var blobGasUsed uint64
+		// Dereference optional fields safely.
+		var blobGasUsed, excessBlobGas uint64
 		if data.BlobGasUsed != nil {
 			blobGasUsed = *data.BlobGasUsed
 		}
-
-		var excessBlobGas uint64
 		if data.ExcessBlobGas != nil {
 			excessBlobGas = *data.ExcessBlobGas
 		}
 
-		baseFeePerGas, err := math.NewU256FromBigInt(data.BaseFeePerGas)
+		// Convert BaseFeePerGas into a U256 value.
+		baseFeePerGas, err := mathpkg.NewU256FromBigInt(data.BaseFeePerGas)
 		if err != nil {
 			return nil, fmt.Errorf("failed baseFeePerGas conversion: %w", err)
 		}
 
-		executionPayload = &ctypes.ExecutionPayload{
+		executionPayload := &ctypes.ExecutionPayload{
 			ParentHash:    common.ExecutionHash(data.ParentHash),
 			FeeRecipient:  common.ExecutionAddress(data.FeeRecipient),
 			StateRoot:     common.Bytes32(data.StateRoot),
 			ReceiptsRoot:  common.Bytes32(data.ReceiptsRoot),
 			LogsBloom:     [256]byte(data.LogsBloom),
 			Random:        common.Bytes32(data.Random),
-			Number:        math.U64(data.Number),
-			GasLimit:      math.U64(data.GasLimit),
-			GasUsed:       math.U64(data.GasUsed),
-			Timestamp:     math.U64(data.Timestamp),
+			Number:        mathpkg.U64(data.Number),
+			GasLimit:      mathpkg.U64(data.GasLimit),
+			GasUsed:       mathpkg.U64(data.GasUsed),
+			Timestamp:     mathpkg.U64(data.Timestamp),
 			Withdrawals:   withdrawals,
 			ExtraData:     data.ExtraData,
 			BaseFeePerGas: baseFeePerGas,
 			BlockHash:     common.ExecutionHash(data.BlockHash),
 			Transactions:  data.Transactions,
-			BlobGasUsed:   math.U64(blobGasUsed),
-			ExcessBlobGas: math.U64(excessBlobGas),
+			BlobGasUsed:   mathpkg.U64(blobGasUsed),
+			ExcessBlobGas: mathpkg.U64(excessBlobGas),
 			EpVersion:     forkVersion,
 		}
-	} else {
-		return nil, ctypes.ErrForkVersionNotSupported
+		return executionPayload, nil
 	}
-	return executionPayload, nil
+	return nil, ctypes.ErrForkVersionNotSupported
 }
