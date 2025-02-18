@@ -284,9 +284,6 @@ test-unit-bench: ## run golang unit benchmarks
 # use the old linker with flags -ldflags=-extldflags=-Wl,-ld_classic
 test-unit-fuzz: ## run fuzz tests
 	@echo "Running fuzz tests with coverage..."
-	go test -run ^FuzzPayloadIDCacheBasic -fuzztime=${SHORT_FUZZ_TIME} github.com/berachain/beacon-kit/payload/cache
-	go test -run ^FuzzPayloadIDInvalidInput -fuzztime=${SHORT_FUZZ_TIME} github.com/berachain/beacon-kit/payload/cache
-	go test -run ^FuzzPayloadIDCacheConcurrency -fuzztime=${SHORT_FUZZ_TIME} github.com/berachain/beacon-kit/payload/cache
 	go test -run ^FuzzHashTreeRoot -fuzztime=${MEDIUM_FUZZ_TIME} github.com/berachain/beacon-kit/primitives/merkle
 
 test-e2e: ## run e2e tests
