@@ -273,7 +273,7 @@ test-unit-cover: test-simulated test-unit-quick ## run golang unit tests with co
 test-unit-quick: ## run quick tests. We run these without coverage as covermode=atomic is too slow and coverage here provides little value
 	@echo "Running 'quick' tests..."
 	@go list -f '{{.Dir}}/testing/quick' -m | xargs \
-		go test -v
+		go test -v -tags quick
 
 test-simulated: ## run simulation tests
 	@echo "Running simulation tests"
