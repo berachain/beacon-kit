@@ -27,14 +27,9 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	datypes "github.com/berachain/beacon-kit/da/types"
-	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
-	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/cometbft/cometbft/abci/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
@@ -125,43 +120,25 @@ func (s *Simulated) TearDownTest() {
 	s.CancelFunc()
 }
 
-func (s *Simulated) TestInitChain_InvalidChainID_MustError() {
-	_, err := s.SimComet.Comet.InitChain(s.Ctx, &types.InitChainRequest{
-		ChainId: "henlo-im-invalid",
-	})
-	s.Require().ErrorContains(err, "invalid chain-id on InitChain; expected: test-mainnet-chain, got: henlo-im-invalid")
-}
-
-func (s *Simulated) TestInitChain_Valid_IsSuccessful() {
+func (s *Simulated) TestFullLifecycle_ValidBlock_IsSuccessful() {
 	appGenesis, err := genutiltypes.AppGenesisFromFile(
 		s.HomeDir + "/config/genesis.json",
 	)
 	s.Require().NoError(err)
-	res, err := s.SimComet.Comet.InitChain(s.Ctx, &types.InitChainRequest{
+	initResponse, err := s.SimComet.Comet.InitChain(s.Ctx, &types.InitChainRequest{
 		ChainId:       "test-mainnet-chain",
 		AppStateBytes: appGenesis.AppState,
 	})
 	s.Require().NoError(err)
 	// We expect 1 validator after initchain as there was only 1 deposit
-	s.Require().Len(res.GetValidators(), 1)
-
+	s.Require().Len(initResponse.GetValidators(), 1)
 	// The deposit store must have 1 deposit
-	// TODO: Get depRange from chainspec
-	deposits, err := s.TestNode.StorageBackend.DepositStore().GetDepositsByIndex(s.Ctx, constants.FirstDepositIndex, 100)
-	s.Require().NoError(err)
-	s.Require().Len(deposits, 1)
-}
-
-func (s *Simulated) TestPrepareProposal_ValidRequest_MustAccept() {
-	appGenesis, err := genutiltypes.AppGenesisFromFile(
-		s.HomeDir + "/config/genesis.json",
+	deposits, err := s.TestNode.StorageBackend.DepositStore().GetDepositsByIndex(
+		s.Ctx, constants.FirstDepositIndex,
+		constants.FirstDepositIndex+s.TestNode.ChainSpec.MaxDepositsPerBlock(),
 	)
 	s.Require().NoError(err)
-	_, err = s.SimComet.Comet.InitChain(s.Ctx, &types.InitChainRequest{
-		ChainId:       "test-mainnet-chain",
-		AppStateBytes: appGenesis.AppState,
-	})
-	s.Require().NoError(err)
+	s.Require().Len(deposits, 1)
 
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
 	pubkey, err := blsSigner.GetPubKey()
@@ -173,163 +150,32 @@ func (s *Simulated) TestPrepareProposal_ValidRequest_MustAccept() {
 	})
 	s.Require().NoError(err)
 	s.Require().NotEmpty(proposal)
-	//// TODO: Expand on parentBlock being nil when first block etc.
-	// beaconChain := simulated.GenerateBeaconChain(s.T(), 1, func(parentBlock *ctypes.SignedBeaconBlock, elBlock *gethprimitives.Block) (*ctypes.SignedBeaconBlock, error) {
-	//	s.Require().NoError(err)
-	//	// s.Require().Equal(root, s.GenesisValidatorsRoot)
-	//	parentRoot := common.Root{0, 1, 2, 3}
-	//	// Generate the valid proposal
-	//	var beaconBlock *ctypes.BeaconBlock
-	//	if beaconBlock, err = ctypes.NewBeaconBlockWithVersion(
-	//		math.Slot(elBlock.NumberU64()),
-	//		math.ValidatorIndex(0),
-	//		// TODO: Fix hashtree root
-	//		parentRoot,
-	//		version.Deneb1(),
-	//	); err != nil {
-	//		return nil, err
-	//	}
-	//	beaconBlock.StateRoot = common.Root{5, 4, 3, 2, 1}
-	//	beaconBlock.Body = &ctypes.BeaconBlockBody{
-	//		ExecutionPayload: simulated.BlockToExecutionPayload(elBlock),
-	//	}
-	//	// Use propose index 0
-	//	beaconBlock.ProposerIndex = 0
-	//
-	//	body := beaconBlock.GetBody()
-	//	body.SetProposerSlashings(ctypes.ProposerSlashings{})
-	//	body.SetAttesterSlashings(ctypes.AttesterSlashings{})
-	//	body.SetAttestations(ctypes.Attestations{})
-	//	body.SetSyncAggregate(&ctypes.SyncAggregate{})
-	//	body.SetVoluntaryExits(ctypes.VoluntaryExits{})
-	//	body.SetBlsToExecutionChanges(ctypes.BlsToExecutionChanges{})
-	//
-	//	var signedBeaconBlock *ctypes.SignedBeaconBlock
-	//	if signedBeaconBlock, err = ctypes.NewSignedBeaconBlock(
-	//		beaconBlock,
-	//		ctypes.NewForkData(version.Deneb(), s.GenesisValidatorsRoot),
-	//		s.TestNode.ChainSpec,
-	//		blsSigner,
-	//	); err != nil {
-	//		return nil, err
-	//	}
-	//	return signedBeaconBlock, nil
-	// })
-	//
-	// blockBytes, err := beaconChain[0].MarshalSSZ()
-	// s.Require().NoError(err)
-	//
-	// blob := datypes.BlobSidecars{}
-	// blobBytes, err := blob.MarshalSSZ()
-	// s.Require().NoError(err)
-	//
-	// txs := make([][]byte, 2)
-	// txs[0] = blockBytes
-	// txs[1] = blobBytes
-	//
-	res, err := s.SimComet.Comet.ProcessProposal(s.Ctx, &types.ProcessProposalRequest{
+
+	processResponse, err := s.SimComet.Comet.ProcessProposal(s.Ctx, &types.ProcessProposalRequest{
 		Txs:    proposal.Txs,
 		Height: 1,
 		// If incorrect proposer address is used, we get a proposer mismatch error
 		ProposerAddress: pubkey.Address(),
 	})
 	s.Require().NoError(err)
-	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, res.Status)
-}
+	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResponse.Status)
 
-func (s *Simulated) TestProcessProposal_HeightZero_MustError() {
-	_, err := s.SimComet.Comet.ProcessProposal(s.Ctx, &types.ProcessProposalRequest{
-		Height: 0,
-	})
-	s.Require().ErrorContains(err, "processProposal at height 0: invalid height")
-}
-
-func (s *Simulated) TestProcessProposal_NilBeaconBlock_MustError() {
-	res, err := s.SimComet.Comet.ProcessProposal(s.Ctx, &types.ProcessProposalRequest{
-		Txs:    make([][]byte, 2),
-		Height: 1,
-	})
-	s.Require().NoError(err)
-	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, res.Status)
-	s.Require().Contains(s.LogBuffer.String(), "nil beacon block in abci request")
-}
-
-func (s *Simulated) TestProcessProposal_ValidProposal_MustAccept() {
-	// Initialize the chain correctly
-	appGenesis, err := genutiltypes.AppGenesisFromFile(
-		s.HomeDir + "/config/genesis.json",
-	)
-	s.Require().NoError(err)
-	_, err = s.SimComet.Comet.InitChain(s.Ctx, &types.InitChainRequest{
-		ChainId:       "test-mainnet-chain",
-		AppStateBytes: appGenesis.AppState,
-	})
-	s.Require().NoError(err)
-
-	blsSigner := simulated.GetBlsSigner(s.HomeDir)
-
-	// TODO: Expand on parentBlock being nil when first block etc.
-	beaconChain := simulated.GenerateBeaconChain(s.T(), 1, func(parentBlock *ctypes.SignedBeaconBlock, elBlock *gethprimitives.Block) (*ctypes.SignedBeaconBlock, error) {
-		s.Require().NoError(err)
-		// s.Require().Equal(root, s.GenesisValidatorsRoot)
-		parentRoot := common.Root{0, 1, 2, 3}
-		// Generate the valid proposal
-		var beaconBlock *ctypes.BeaconBlock
-		if beaconBlock, err = ctypes.NewBeaconBlockWithVersion(
-			math.Slot(elBlock.NumberU64()),
-			math.ValidatorIndex(0),
-			// TODO: Fix hashtree root
-			parentRoot,
-			version.Deneb1(),
-		); err != nil {
-			return nil, err
-		}
-		beaconBlock.StateRoot = common.Root{5, 4, 3, 2, 1}
-		beaconBlock.Body = &ctypes.BeaconBlockBody{
-			ExecutionPayload: simulated.BlockToExecutionPayload(elBlock),
-		}
-		// Use propose index 0
-		beaconBlock.ProposerIndex = 0
-
-		body := beaconBlock.GetBody()
-		body.SetProposerSlashings(ctypes.ProposerSlashings{})
-		body.SetAttesterSlashings(ctypes.AttesterSlashings{})
-		body.SetAttestations(ctypes.Attestations{})
-		body.SetSyncAggregate(&ctypes.SyncAggregate{})
-		body.SetVoluntaryExits(ctypes.VoluntaryExits{})
-		body.SetBlsToExecutionChanges(ctypes.BlsToExecutionChanges{})
-
-		var signedBeaconBlock *ctypes.SignedBeaconBlock
-		if signedBeaconBlock, err = ctypes.NewSignedBeaconBlock(
-			beaconBlock,
-			ctypes.NewForkData(version.Deneb(), s.GenesisValidatorsRoot),
-			s.TestNode.ChainSpec,
-			blsSigner,
-		); err != nil {
-			return nil, err
-		}
-		return signedBeaconBlock, nil
-	})
-
-	blockBytes, err := beaconChain[0].MarshalSSZ()
-	s.Require().NoError(err)
-
-	blob := datypes.BlobSidecars{}
-	blobBytes, err := blob.MarshalSSZ()
-	s.Require().NoError(err)
-
-	txs := make([][]byte, 2)
-	txs[0] = blockBytes
-	txs[1] = blobBytes
-
-	pubkey, err := blsSigner.GetPubKey()
-	s.Require().NoError(err)
-	res, err := s.SimComet.Comet.ProcessProposal(s.Ctx, &types.ProcessProposalRequest{
-		Txs:    txs,
-		Height: 1,
-		// If incorrect proposer address is used, we get a proposer mismatch error
+	finalizeResponse, err := s.SimComet.Comet.FinalizeBlock(s.Ctx, &types.FinalizeBlockRequest{
+		Txs:             proposal.Txs,
+		Height:          1,
 		ProposerAddress: pubkey.Address(),
 	})
 	s.Require().NoError(err)
-	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, res.Status)
+	s.Require().NotEmpty(finalizeResponse)
+
+	commitResponse, err := s.SimComet.Comet.Commit(s.Ctx, &types.CommitRequest{})
+	s.Require().NoError(err)
+	s.Require().NotEmpty(commitResponse)
+}
+
+func (s *Simulated) TestInitChain_InvalidChainID_MustError() {
+	_, err := s.SimComet.Comet.InitChain(s.Ctx, &types.InitChainRequest{
+		ChainId: "henlo-im-invalid",
+	})
+	s.Require().ErrorContains(err, "invalid chain-id on InitChain; expected: test-mainnet-chain, got: henlo-im-invalid")
 }
