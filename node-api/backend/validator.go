@@ -74,7 +74,7 @@ func (b Backend) processValidator(
 		return nil, errors.Wrapf(err, "failed to get validator index by pubkey")
 	}
 
-	if !b.matchesIDFilter(validator, index, ids) {
+	if !matchesIDFilter(validator, index, ids) {
 		//nolint:nilnil // no data to return
 		return nil, nil
 	}
@@ -84,7 +84,7 @@ func (b Backend) processValidator(
 		return nil, errors.Wrapf(err, "failed to get validator status")
 	}
 
-	if !b.matchesStatusFilter(status, statuses) {
+	if !matchesStatusFilter(status, statuses) {
 		//nolint:nilnil // no data to return
 		return nil, nil
 	}
@@ -92,20 +92,20 @@ func (b Backend) processValidator(
 	return b.buildValidatorData(st, validator, index, status)
 }
 
-func (b Backend) matchesIDFilter(validator *types.Validator, index math.U64, ids []string) bool {
+func matchesIDFilter(validator *types.Validator, index math.U64, ids []string) bool {
 	if len(ids) == 0 {
 		return true
 	}
 
 	for _, id := range ids {
-		if b.matchesPubkey(validator, id) || b.matchesIndex(index, id) {
+		if matchesPubkey(validator, id) || matchesIndex(index, id) {
 			return true
 		}
 	}
 	return false
 }
 
-func (b Backend) matchesPubkey(validator *types.Validator, id string) bool {
+func matchesPubkey(validator *types.Validator, id string) bool {
 	var pubkey crypto.BLSPubkey
 	if err := pubkey.UnmarshalText([]byte(id)); err != nil {
 		return false
@@ -114,11 +114,11 @@ func (b Backend) matchesPubkey(validator *types.Validator, id string) bool {
 	return bytes.Equal(validatorPubkey[:], pubkey[:])
 }
 
-func (b Backend) matchesIndex(index math.U64, id string) bool {
+func matchesIndex(index math.U64, id string) bool {
 	return strconv.FormatUint(index.Unwrap(), 10) == id
 }
 
-func (b Backend) matchesStatusFilter(status string, statuses []string) bool {
+func matchesStatusFilter(status string, statuses []string) bool {
 	return len(statuses) == 0 || slices.Contains(statuses, status)
 }
 
