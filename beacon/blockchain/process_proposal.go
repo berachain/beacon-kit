@@ -190,7 +190,7 @@ func (s *Service) VerifyIncomingBlobSidecars(
 	if err != nil {
 		s.logger.Error(
 			"Blob sidecars verification failed - rejecting incoming blob sidecars",
-			"reason", err, "slot", blkHeader.Slot,
+			"reason", err, "slot", blkHeader.GetSlot(),
 		)
 		return err
 	}
