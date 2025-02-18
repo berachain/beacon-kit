@@ -86,7 +86,6 @@ func TestFilteredValidators(t *testing.T) {
 	// Set relevant quantities in initial status and
 	// write them to make them available to caches built
 	// on top of cms
-	stateSlot := math.Slot(10)
 	stateValidators := []*types.ValidatorData{
 		{
 			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
@@ -182,20 +181,20 @@ func TestFilteredValidators(t *testing.T) {
 	setupTestFilteredValidatorsState(
 		t,
 		cms, kvStore, cs,
-		stateSlot, stateValidators,
+		stateValidators,
 	)
 
 	// test cases
 	tests := []struct {
 		name        string
-		inputsF     func() (math.Slot, []string /*ids*/, []string /*statuses*/)
+		inputsF     func() ([]string /*ids*/, []string /*statuses*/)
 		expectedErr error
 		checkF      func(t *testing.T, res []*types.ValidatorData)
 	}{
 		{
-			name: "all validators at tip",
-			inputsF: func() (math.Slot, []string, []string) {
-				return stateSlot, nil, nil
+			name: "all validators",
+			inputsF: func() ([]string, []string) {
+				return nil, nil
 			},
 			expectedErr: nil,
 			checkF: func(t *testing.T, res []*types.ValidatorData) {
@@ -207,8 +206,8 @@ func TestFilteredValidators(t *testing.T) {
 		},
 		{
 			name: "some validators by indexes",
-			inputsF: func() (math.Slot, []string, []string) {
-				return stateSlot, []string{"1", "3"}, nil
+			inputsF: func() ([]string, []string) {
+				return []string{"1", "3"}, nil
 			},
 			expectedErr: nil,
 			checkF: func(t *testing.T, res []*types.ValidatorData) {
@@ -224,8 +223,8 @@ func TestFilteredValidators(t *testing.T) {
 		},
 		{
 			name: "some validators by status",
-			inputsF: func() (math.Slot, []string, []string) {
-				return stateSlot, nil, []string{constants.ValidatorStatusActiveOngoing}
+			inputsF: func() ([]string, []string) {
+				return nil, []string{constants.ValidatorStatusActiveOngoing}
 			},
 			expectedErr: nil,
 			checkF: func(t *testing.T, res []*types.ValidatorData) {
@@ -242,11 +241,12 @@ func TestFilteredValidators(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// TODO: reset state from changes in FilterValidator (plays with slot)
-
-			slot, ids, statuses := tt.inputsF()
-
-			res, err := b.FilteredValidators(slot, ids, statuses)
+			// in current implementation, slots is only used to select
+			// the right cache in consensus service. We mock consensus
+			// service here, so we can use a dummy height
+			dummySlot := math.Slot(0)
+			ids, statuses := tt.inputsF()
+			res, err := b.FilteredValidators(dummySlot, ids, statuses)
 			if tt.expectedErr == nil {
 				require.NoError(t, err)
 			} else {
@@ -262,7 +262,6 @@ func setupTestFilteredValidatorsState(
 	cms storetypes.CommitMultiStore,
 	kvStore *beacondb.KVStore,
 	cs chain.Spec,
-	stateSlot math.Slot,
 	stateValidators []*types.ValidatorData,
 ) {
 	t.Helper()
@@ -270,26 +269,34 @@ func setupTestFilteredValidatorsState(
 	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), true, log.NewNopLogger())
 	st := statedb.NewBeaconStateFromDB(kvStore.WithContext(sdkCtx), cs)
 
-	require.NoError(t, st.SetSlot(stateSlot))
-
 	for _, in := range stateValidators {
 		val, err := beacontypes.ValidatorToConsensus(in.Validator)
 		require.NoError(t, err)
 		require.NoError(t, st.AddValidator(val))
-		// balance not really needed
+		// TODO: add balance
 	}
+
+	setupStateDummyParts(t, cs, st)
+
+	// finally write it all to underlying cms
+	sdkCtx.MultiStore().(storetypes.CacheMultiStore).Write()
+}
+
+func setupStateDummyParts(t *testing.T, cs chain.Spec, st *statedb.StateDB) {
+	dummySlot := math.Slot(2025)
+	require.NoError(t, st.SetSlot(dummySlot))
 
 	fork := ctypes.NewFork(version.Genesis(), version.Genesis(), constants.GenesisEpoch)
 	require.NoError(t, st.SetFork(fork))
 
-	require.NoError(t, st.SetGenesisValidatorsRoot(common.Root{} /*validators.HashTreeRoot()*/))
+	require.NoError(t, st.SetGenesisValidatorsRoot(common.Root{}))
 
 	blkHeader := &ctypes.BeaconBlockHeader{
 		Slot:            constants.GenesisSlot,
 		ProposerIndex:   0,
 		ParentBlockRoot: common.Root{},
 		StateRoot:       common.Root{},
-		BodyRoot:        common.Root{}, //blkBody.HashTreeRoot(),
+		BodyRoot:        common.Root{},
 	}
 	require.NoError(t, st.SetLatestBlockHeader(blkHeader))
 
@@ -303,7 +310,7 @@ func setupTestFilteredValidatorsState(
 	require.NoError(t, st.SetLatestExecutionPayloadHeader(payload))
 
 	eth1Data := &ctypes.Eth1Data{
-		DepositRoot:  common.Root{}, //deposits.HashTreeRoot(),
+		DepositRoot:  common.Root{},
 		DepositCount: 0,
 		BlockHash:    payload.GetBlockHash(),
 	}
@@ -320,9 +327,6 @@ func setupTestFilteredValidatorsState(
 	require.NoError(t, st.SetNextWithdrawalIndex(0))
 	require.NoError(t, st.SetNextWithdrawalValidatorIndex(0))
 	require.NoError(t, st.SetTotalSlashing(0))
-
-	// finally write it all to underlying cms
-	sdkCtx.MultiStore().(storetypes.CacheMultiStore).Write()
 }
 
 var errTestMemberNotImplemented = errors.New("not implemented")
