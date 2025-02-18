@@ -107,7 +107,7 @@ jobs:
         run: |
           # Install gocovmerge
           go install github.com/wadey/gocovmerge@latest
-          # Merge the two coverage files (note: test-simulated.txt is the new name)
+          # Merge the two coverage files
           gocovmerge test-unit-cover.txt test-simulated.txt > coverage-merged.txt
 
       # Upload merged coverage for unit tests
