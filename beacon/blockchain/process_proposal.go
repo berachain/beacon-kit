@@ -197,7 +197,7 @@ func (s *Service) VerifyIncomingBlobSidecars(
 
 	s.logger.Info(
 		"Blob sidecars verification succeeded - accepting incoming blob sidecars",
-		"num_blobs", len(sidecars), "slot", blkHeader.Slot,
+		"num_blobs", len(sidecars), "slot", blkHeader.GetSlot(),
 	)
 	return nil
 }
