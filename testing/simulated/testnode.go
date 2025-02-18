@@ -23,16 +23,21 @@ package simulated
 import (
 	"io"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/chain"
 	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
+	"github.com/berachain/beacon-kit/cli/flags"
 	"github.com/berachain/beacon-kit/config"
+	beaconkitconfig "github.com/berachain/beacon-kit/config"
+	"github.com/berachain/beacon-kit/da/kzg"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	nodecomponents "github.com/berachain/beacon-kit/node-core/components"
 	nodetypes "github.com/berachain/beacon-kit/node-core/types"
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/net/url"
 	"github.com/berachain/beacon-kit/storage/db"
 	cmtcfg "github.com/cometbft/cometbft/config"
@@ -141,4 +146,46 @@ func buildNode(
 		ChainSpec:      chainSpec,
 		APIBackend:     apiBackend,
 	}
+}
+
+// getAppOptions returns the Application Options we need to set for the Node Builder.
+// Ideally we can avoid having to set the flags like this and just directly modify a config type.
+func getAppOptions(t *testing.T, appOpts *viper.Viper, beaconKitConfig *beaconkitconfig.Config, tempHomeDir string) *viper.Viper {
+	t.Helper()
+	// Execution Client Config
+	relativePathJwt := "../files/jwt.hex"
+	jwtPath, err := filepath.Abs(relativePathJwt)
+	require.NoError(t, err)
+	appOpts.Set(flags.JWTSecretPath, jwtPath)
+	appOpts.Set(flags.RPCJWTRefreshInterval, beaconKitConfig.GetEngine().RPCJWTRefreshInterval.String())
+	appOpts.Set(flags.RPCStartupCheckInterval, beaconKitConfig.GetEngine().RPCStartupCheckInterval.String())
+	appOpts.Set(flags.RPCDialURL, beaconKitConfig.GetEngine().RPCDialURL.String())
+	appOpts.Set(flags.RPCTimeout, beaconKitConfig.GetEngine().RPCTimeout.String())
+
+	appOpts.Set(flags.LogLevel, "debug")
+
+	// BLS Config
+	appOpts.Set(flags.PrivValidatorKeyFile, "./config/priv_validator_key.json")
+	appOpts.Set(flags.PrivValidatorStateFile, "./data/priv_validator_state.json")
+
+	// Beacon Config
+	appOpts.Set(flags.BlockStoreServiceAvailabilityWindow, beaconKitConfig.GetBlockStoreService().AvailabilityWindow)
+	appOpts.Set(flags.BlockStoreServiceEnabled, beaconKitConfig.GetBlockStoreService().Enabled)
+	appOpts.Set(flags.KZGTrustedSetupPath, "../files/kzg-trusted-setup.json")
+	appOpts.Set(flags.KZGImplementation, kzg.DefaultConfig().Implementation)
+
+	// Payload Builder Config
+	beaconKitConfig.GetPayloadBuilder().SuggestedFeeRecipient = common.NewExecutionAddressFromHex("0x981114102592310C347E61368342DDA67017bf84")
+	appOpts.Set(flags.BuilderEnabled, beaconKitConfig.GetPayloadBuilder().Enabled)
+	appOpts.Set(flags.BuildPayloadTimeout, beaconKitConfig.GetPayloadBuilder().PayloadTimeout)
+	appOpts.Set(flags.SuggestedFeeRecipient, beaconKitConfig.GetPayloadBuilder().SuggestedFeeRecipient)
+
+	// TODO: Cleanup this Set
+	appOpts.Set("pruning", "default")
+	appOpts.Set("home", tempHomeDir)
+	return appOpts
+}
+
+func createBeaconKitConfig(_ *testing.T) *beaconkitconfig.Config {
+	return beaconkitconfig.DefaultConfig()
 }
