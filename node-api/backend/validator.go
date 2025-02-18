@@ -162,9 +162,9 @@ func buildValidatorData(
 	epoch math.Epoch,
 	statuses []string,
 ) (*beacontypes.ValidatorData, error) {
-	status, err := validator.Status(epoch, index)
+	status, err := validator.Status(epoch)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get validator status")
+		return nil, errors.Wrapf(err, "failed to get validator status for validator pubkey %s and index %d", validator.GetPubkey(), index)
 	}
 
 	if !matchesStatusFilter(status, statuses) {
@@ -206,9 +206,9 @@ func (b Backend) ValidatorByID(
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get validator balance")
 	}
-	status, err := validator.Status(b.cs.SlotToEpoch(slot), index)
+	status, err := validator.Status(b.cs.SlotToEpoch(slot))
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get validator status")
+		return nil, errors.Wrapf(err, "failed to get validator status for validator pubkey %s and index %d", validator.GetPubkey(), index)
 	}
 	return &beacontypes.ValidatorData{
 		ValidatorBalanceData: beacontypes.ValidatorBalanceData{
