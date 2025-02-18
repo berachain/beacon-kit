@@ -58,6 +58,10 @@ func TestSimulatedCometComponent(t *testing.T) {
 	suite.Run(t, new(Simulated))
 }
 
+// SetupTest will do the following:
+// 1. Create a homedirectory, initialized with the correct genesis files
+// 2. Start a Geth node in docker using dockertest
+// 3. Start an instance of the beacon node, but with our simulated comet component.
 func (s *Simulated) SetupTest() {
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	s.Ctx = ctx
@@ -178,7 +182,7 @@ func (s *Simulated) TestFullLifecycle_ValidBlock_IsSuccessful() {
 	s.Require().NoError(err)
 	s.Require().Equal(math.U64(height), slot)
 
-	fetchedHeader, err := stateDB.GetLatestBlockHeader()
+	stateDBHeader, err := stateDB.GetLatestBlockHeader()
 	s.Require().NoError(err)
 
 	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
@@ -187,7 +191,7 @@ func (s *Simulated) TestFullLifecycle_ValidBlock_IsSuccessful() {
 		s.TestNode.ChainSpec.ActiveForkVersionForSlot(height),
 	)
 	s.Require().NoError(err)
-	s.Require().Equal(proposedBlock.Message.GetHeader().GetBodyRoot(), fetchedHeader.GetBodyRoot())
+	s.Require().Equal(proposedBlock.Message.GetHeader().GetBodyRoot(), stateDBHeader.GetBodyRoot())
 }
 
 func (s *Simulated) TestInitChain_InvalidChainID_MustError() {
