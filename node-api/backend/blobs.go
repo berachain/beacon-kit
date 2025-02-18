@@ -44,13 +44,10 @@ func (b *Backend) BlobSidecarsByIndices(slot math.Slot, indices []uint64) ([]*ap
 
 	// Validate the requested slot is within the Data Availability Period.
 	if !b.cs.WithinDAPeriod(slot, math.Slot(currentSlot)) {
-		// TODO: fix range.
 		return nil, fmt.Errorf(
-			"requested slot (%d) is no longer within the Data Availability Period: (%d, %d)",
-			slot,
-			uint64(currentSlot)-
-				(b.cs.MinEpochsForBlobsSidecarsRequest().Unwrap()*b.cs.SlotsPerEpoch()),
-			currentSlot)
+			"requested slot (%d) is not within Data Availability Period (previous %d epochs)",
+			slot, b.cs.MinEpochsForBlobsSidecarsRequest(),
+		)
 	}
 
 	// Validate request indices.
