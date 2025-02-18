@@ -103,7 +103,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./${{ matrix.args }}.txt
-        if: ${{ matrix.args == 'test-unit-cover' || matrix.args == 'test-forge-cover'}}
+        if: ${{ matrix.args == 'test-unit-cover' || matrix.args == 'test-forge-cover' || matrix.args == 'test-simulated' }}
 
   # -------------------------------------------------------------------------- #
   #                                 E2E Testing                                #
