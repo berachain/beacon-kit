@@ -278,7 +278,7 @@ test-unit-norace: ## run golang unit tests with coverage but without race as som
 test-simulated: ## run simulation tests
 	@echo "Running simulation tests"
 	@go list -f '{{.Dir}}/testing/simulated' -m | xargs \
-		go test -tags simulated
+		go test -tags simulated -v
 
 test-unit-bench: ## run golang unit benchmarks
 	@echo "Running unit tests with benchmarks..."
