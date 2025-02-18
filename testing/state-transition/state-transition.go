@@ -73,7 +73,7 @@ var (
 	DummyProposerAddr = []byte{0xff}
 )
 
-func initTestStores() (
+func BuildTestStores() (
 	storetypes.CommitMultiStore,
 	*beacondb.KVStore,
 	*depositstore.KVStore,
@@ -125,11 +125,11 @@ func SetupTestState(t *testing.T, cs chain.Spec) (
 		mock.Anything, mock.Anything, mock.Anything,
 	).Return(nil)
 
-	cms, kvStore, depositStore, err := initTestStores()
+	cms, kvStore, depositStore, err := BuildTestStores()
 	require.NoError(t, err)
 
-	ms := sdk.NewContext(cms.CacheMultiStore(), true, log.NewNopLogger())
-	beaconState := statedb.NewBeaconStateFromDB(kvStore.WithContext(ms), cs)
+	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), true, log.NewNopLogger())
+	beaconState := statedb.NewBeaconStateFromDB(kvStore.WithContext(sdkCtx), cs)
 
 	sp := core.NewStateProcessor(
 		noop.NewLogger[any](),
@@ -146,7 +146,7 @@ func SetupTestState(t *testing.T, cs chain.Spec) (
 	// by default we keep checks at minimum. It is up
 	// to single tests to redefine the ctx along their needs.
 	ctx := transition.NewTransitionCtx(
-		ms,
+		sdkCtx,
 		0, // time
 		DummyProposerAddr,
 	).
