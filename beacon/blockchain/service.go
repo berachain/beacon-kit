@@ -61,9 +61,6 @@ type Service struct {
 	stateProcessor StateProcessor
 	// metrics is the metrics for the service.
 	metrics *chainMetrics
-	// optimisticPayloadBuilds is a flag used when the optimistic payload
-	// builder is enabled.
-	optimisticPayloadBuilds bool
 	// forceStartupSyncOnce is used to force a sync of the startup head.
 	forceStartupSyncOnce *sync.Once
 }
@@ -80,22 +77,20 @@ func NewService(
 	localBuilder LocalBuilder,
 	stateProcessor StateProcessor,
 	telemetrySink TelemetrySink,
-	optimisticPayloadBuilds bool,
 ) *Service {
 	return &Service{
-		storageBackend:          storageBackend,
-		blobProcessor:           blobProcessor,
-		depositContract:         depositContract,
-		eth1FollowDistance:      eth1FollowDistance,
-		failedBlocks:            make(map[math.Slot]struct{}),
-		logger:                  logger,
-		chainSpec:               chainSpec,
-		executionEngine:         executionEngine,
-		localBuilder:            localBuilder,
-		stateProcessor:          stateProcessor,
-		metrics:                 newChainMetrics(telemetrySink),
-		optimisticPayloadBuilds: optimisticPayloadBuilds,
-		forceStartupSyncOnce:    new(sync.Once),
+		storageBackend:       storageBackend,
+		blobProcessor:        blobProcessor,
+		depositContract:      depositContract,
+		eth1FollowDistance:   eth1FollowDistance,
+		failedBlocks:         make(map[math.Slot]struct{}),
+		logger:               logger,
+		chainSpec:            chainSpec,
+		executionEngine:      executionEngine,
+		localBuilder:         localBuilder,
+		stateProcessor:       stateProcessor,
+		metrics:              newChainMetrics(telemetrySink),
+		forceStartupSyncOnce: new(sync.Once),
 	}
 }
 

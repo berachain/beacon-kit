@@ -31,13 +31,6 @@ import (
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-type PayloadCache[RootT, SlotT any] interface {
-	Get(slot SlotT, stateRoot RootT) (engineprimitives.PayloadID, bool)
-	Has(slot SlotT, stateRoot RootT) bool
-	Set(slot SlotT, stateRoot RootT, pid engineprimitives.PayloadID)
-	UnsafePrunePrior(slot SlotT)
-}
-
 // ExecutionPayload is the interface for the execution payload.
 type ExecutionPayload[T any] interface {
 	constraints.ForkTyped[T]
@@ -77,15 +70,15 @@ type PayloadAttributes[
 
 // ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine interface {
-	// GetPayload returns the payload and blobs bundle for the given slot.
-	GetPayload(
-		ctx context.Context,
-		req *ctypes.GetPayloadRequest,
-	) (ctypes.BuiltExecutionPayloadEnv, error)
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
 		req *ctypes.ForkchoiceUpdateRequest,
 	) (*engineprimitives.PayloadID, *common.ExecutionHash, error)
+	// GetPayload returns the payload and blobs bundle for the given slot.
+	GetPayload(
+		ctx context.Context,
+		req *ctypes.GetPayloadRequest,
+	) (ctypes.BuiltExecutionPayloadEnv, error)
 }

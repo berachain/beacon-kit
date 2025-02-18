@@ -64,7 +64,5 @@ func ProvideChainService(in ChainServiceInput) *blockchain.Service {
 		in.LocalBuilder,
 		in.StateProcessor,
 		in.TelemetrySink,
-		// If optimistic is enabled, we want to skip post finalization FCUs.
-		in.Cfg.Validator.EnableOptimisticPayloadBuilds,
 	)
 }

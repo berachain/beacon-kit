@@ -22,8 +22,6 @@ package blockchain
 
 import (
 	"time"
-
-	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // chainMetrics is a struct that contains metrics for the chain.
@@ -49,62 +47,6 @@ func (cm *chainMetrics) measureStateTransitionDuration(
 	cm.sink.MeasureSince(
 		"beacon_kit.beacon.blockchain.state_transition_duration",
 		start,
-	)
-}
-
-// markRebuildPayloadForRejectedBlockSuccess increments the counter for the
-// number of times
-// the validator successfully rebuilt the payload for a rejected block.
-func (cm *chainMetrics) markRebuildPayloadForRejectedBlockSuccess(
-	slot math.Slot,
-) {
-	cm.sink.IncrementCounter(
-		"beacon_kit.blockchain.rebuild_payload_for_rejected_block_success",
-		"slot",
-		slot.Base10(),
-	)
-}
-
-// markRebuildPayloadForRejectedBlockFailure increments the counter for the
-// number of times
-// the validator failed to build an optimistic payload due to a failure.
-func (cm *chainMetrics) markRebuildPayloadForRejectedBlockFailure(
-	slot math.Slot,
-	err error,
-) {
-	cm.sink.IncrementCounter(
-		"beacon_kit.blockchain.rebuild_payload_for_rejected_block_failure",
-		"slot",
-		slot.Base10(),
-		"error",
-		err.Error(),
-	)
-}
-
-// markOptimisticPayloadBuildSuccess increments the counter for the number of
-// times
-// the validator successfully built an optimistic payload.
-func (cm *chainMetrics) markOptimisticPayloadBuildSuccess(slot math.Slot) {
-	cm.sink.IncrementCounter(
-		"beacon_kit.blockchain.optimistic_payload_build_success",
-		"slot",
-		slot.Base10(),
-	)
-}
-
-// markOptimisticPayloadBuildFailure increments the counter for the number of
-// times
-// the validator failed to build an optimistic payload.
-func (cm *chainMetrics) markOptimisticPayloadBuildFailure(
-	slot math.Slot,
-	err error,
-) {
-	cm.sink.IncrementCounter(
-		"beacon_kit.blockchain.optimistic_payload_build_failure",
-		"slot",
-		slot.Base10(),
-		"error",
-		err.Error(),
 	)
 }
 

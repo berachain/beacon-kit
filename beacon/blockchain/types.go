@@ -98,16 +98,6 @@ type Genesis interface {
 type LocalBuilder interface {
 	// Enabled returns true if the local builder is enabled.
 	Enabled() bool
-	// RequestPayloadAsync requests a new payload for the given slot.
-	RequestPayloadAsync(
-		ctx context.Context,
-		st *statedb.StateDB,
-		slot math.Slot,
-		timestamp uint64,
-		parentBlockRoot common.Root,
-		headEth1BlockHash common.ExecutionHash,
-		finalEth1BlockHash common.ExecutionHash,
-	) (*engineprimitives.PayloadID, error)
 	// SendForceHeadFCU sends a force head FCU request.
 	SendForceHeadFCU(
 		ctx context.Context,

@@ -20,29 +20,19 @@
 
 package validator
 
-const (
-	// defaultGraffiti is the default graffiti string.
-	defaultGraffiti = ""
-
-	// defaultEnableOptimisticPayloadBuilds is the default
-	// for enabling the optimistic payload builder.
-	defaultEnableOptimisticPayloadBuilds = true
-)
+// defaultGraffiti is the default graffiti string.
+const defaultGraffiti = ""
 
 // Config is the validator configuration.
 type Config struct {
 	// Graffiti is the string that will be included in the
 	// graffiti field of the beacon block.
 	Graffiti string `mapstructure:"graffiti"`
-
-	// EnableOptimisticPayloadBuilds is the optimistic block builder.
-	EnableOptimisticPayloadBuilds bool `mapstructure:"enable-optimistic-payload-builds"`
 }
 
 // DefaultConfig returns the default fork configuration.
 func DefaultConfig() Config {
 	return Config{
-		Graffiti:                      defaultGraffiti,
-		EnableOptimisticPayloadBuilds: defaultEnableOptimisticPayloadBuilds,
+		Graffiti: defaultGraffiti,
 	}
 }

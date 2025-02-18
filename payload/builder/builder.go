@@ -23,7 +23,6 @@ package builder
 import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // PayloadBuilder is used to build payloads on the
@@ -37,10 +36,6 @@ type PayloadBuilder struct {
 	logger log.Logger
 	// ee is the execution engine.
 	ee ExecutionEngine
-	// pc is the payload ID cache, it is used to store
-	// "in-flight" payloads that are being built on
-	// the execution client.
-	pc PayloadCache[[32]byte, math.Slot]
 	// attributesFactory is used to create attributes for the
 	attributesFactory AttributesFactory
 }
@@ -51,7 +46,6 @@ func New(
 	chainSpec chain.Spec,
 	logger log.Logger,
 	ee ExecutionEngine,
-	pc PayloadCache[[32]byte, math.Slot],
 	af AttributesFactory,
 ) *PayloadBuilder {
 	return &PayloadBuilder{
@@ -59,7 +53,6 @@ func New(
 		chainSpec:         chainSpec,
 		logger:            logger,
 		ee:                ee,
-		pc:                pc,
 		attributesFactory: af,
 	}
 }

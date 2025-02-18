@@ -136,15 +136,9 @@ type PayloadBuilder interface {
 	// Enabled may be enabled (e.g. for validators)
 	// or disabled (e.g. full nodes)
 	Enabled() bool
-	// RetrievePayload retrieves the payload for the given slot.
-	RetrievePayload(
-		ctx context.Context,
-		slot math.Slot,
-		parentBlockRoot common.Root,
-	) (ctypes.BuiltExecutionPayloadEnv, error)
-	// RequestPayloadSync requests a payload for the given slot and
+	// RequestPayload requests a payload for the given slot and
 	// blocks until the payload is delivered.
-	RequestPayloadSync(
+	RequestPayload(
 		ctx context.Context,
 		st *statedb.StateDB,
 		slot math.Slot,

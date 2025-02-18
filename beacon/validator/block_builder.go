@@ -208,33 +208,6 @@ func (s *Service) retrieveExecutionPayload(
 	blk *ctypes.BeaconBlock,
 	slotData *types.SlotData,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
-	//
-	// TODO: Add external block builders to this flow.
-	//
-	// Get the payload for the block.
-	envelope, err := s.localPayloadBuilder.RetrievePayload(
-		ctx,
-		blk.GetSlot(),
-		blk.GetParentBlockRoot(),
-	)
-	if err == nil {
-		return envelope, nil
-	}
-
-	// If we failed to retrieve the payload, request a synchronous payload.
-	//
-	// NOTE: The state here is properly configured by the
-	// prepareStateForBuilding
-	//
-	// call that needs to be called before requesting the Payload.
-	// TODO: We should decouple the PayloadBuilder from BeaconState to make
-	// this less confusing.
-
-	s.metrics.failedToRetrievePayload(
-		blk.GetSlot(),
-		err,
-	)
-
 	// The latest execution payload header will be from the previous block
 	// during the block building phase.
 	lph, err := st.GetLatestExecutionPayloadHeader()
@@ -242,7 +215,7 @@ func (s *Service) retrieveExecutionPayload(
 		return nil, err
 	}
 
-	return s.localPayloadBuilder.RequestPayloadSync(
+	return s.localPayloadBuilder.RequestPayload(
 		ctx,
 		st,
 		blk.GetSlot(),
