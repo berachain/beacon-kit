@@ -26,14 +26,6 @@ import (
 	"github.com/berachain/beacon-kit/node-core/components"
 )
 
-// DefaultComponents requires testing.T to avoid accidental misuse.
-func DefaultComponents(t *testing.T) []any {
-	t.Helper()
-	c := FixedComponents(t)
-	c = append(c, components.ProvideCometBFTService)
-	return c
-}
-
 func FixedComponents(t *testing.T) []any {
 	t.Helper()
 	c := []any{

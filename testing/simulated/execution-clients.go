@@ -25,7 +25,6 @@ import (
 	"net/http"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/berachain/beacon-kit/primitives/net/url"
 	"github.com/ory/dockertest"
@@ -33,17 +32,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type gethNode struct {
+type GethNode struct {
 	homeDir string
 	image   docker.PullImageOptions
 }
 
-// TODO: Fix the return.
-func NewGethNode(homeDir string, image docker.PullImageOptions) ExecutionClient {
-	return &gethNode{homeDir, image}
+func NewGethNode(homeDir string, image docker.PullImageOptions) *GethNode {
+	return &GethNode{homeDir, image}
 }
 
-func (g *gethNode) Start(t *testing.T) (*dockertest.Resource, *url.ConnectionURL) {
+func (g *GethNode) Start(t *testing.T) (*dockertest.Resource, *url.ConnectionURL) {
 	t.Helper()
 	// Create pool
 	pool, err := dockertest.NewPool("")
@@ -112,7 +110,6 @@ func (g *gethNode) Start(t *testing.T) (*dockertest.Resource, *url.ConnectionURL
 		return nil
 	})
 	require.NoError(t, err)
-	<-time.After(10 * time.Second)
 	return resource, authRPC
 }
 

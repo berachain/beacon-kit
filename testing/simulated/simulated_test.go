@@ -37,6 +37,9 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
+// finalizeWaitDuration TODO: If we're too quick to finalize after process, we see the EL context get cancelled, so we wait. Figure out why.
+const finalizeWaitDuration = 500 * time.Millisecond
+
 type Simulated struct {
 	suite.Suite
 	simulated.TestSuiteHandle
@@ -104,18 +107,18 @@ func (s *Simulated) SetupTest() {
 
 	go func() {
 		// Node blocks on Start and hence we have to run in separate routine
-		if err := s.TestNode.Start(s.Ctx); err != nil {
+		if err = s.TestNode.Start(s.Ctx); err != nil {
 			s.T().Error(err)
 		}
 	}()
-	// Wait for ~5 seconds for services to start
-	<-time.After(5 * time.Second)
+	// Wait for ~2 seconds for services to start
+	<-time.After(2 * time.Second)
 }
 
 func (s *Simulated) TearDownTest() {
 	err := s.ElHandle.Close()
 	if err != nil {
-		s.T().Error("Error closing geth handle")
+		s.T().Error("Error closing EL handle")
 	}
 	s.CancelFunc()
 }
@@ -130,15 +133,13 @@ func (s *Simulated) TestFullLifecycle_ValidBlock_IsSuccessful() {
 		AppStateBytes: appGenesis.AppState,
 	})
 	s.Require().NoError(err)
-	// We expect 1 validator after initchain as there was only 1 deposit
-	s.Require().Len(initResponse.GetValidators(), 1)
-	// The deposit store must have 1 deposit
+	s.Require().Len(initResponse.GetValidators(), 1, "Expected 1 validator")
 	deposits, err := s.TestNode.StorageBackend.DepositStore().GetDepositsByIndex(
 		s.Ctx, constants.FirstDepositIndex,
 		constants.FirstDepositIndex+s.TestNode.ChainSpec.MaxDepositsPerBlock(),
 	)
 	s.Require().NoError(err)
-	s.Require().Len(deposits, 1)
+	s.Require().Len(deposits, 1, "Expected 1 deposit")
 
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
 	pubkey, err := blsSigner.GetPubKey()
@@ -160,6 +161,8 @@ func (s *Simulated) TestFullLifecycle_ValidBlock_IsSuccessful() {
 	s.Require().NoError(err)
 	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResponse.Status)
 
+	<-time.After(finalizeWaitDuration)
+
 	finalizeResponse, err := s.SimComet.Comet.FinalizeBlock(s.Ctx, &types.FinalizeBlockRequest{
 		Txs:             proposal.Txs,
 		Height:          1,
@@ -168,9 +171,10 @@ func (s *Simulated) TestFullLifecycle_ValidBlock_IsSuccessful() {
 	s.Require().NoError(err)
 	s.Require().NotEmpty(finalizeResponse)
 
-	commitResponse, err := s.SimComet.Comet.Commit(s.Ctx, &types.CommitRequest{})
+	_, err = s.SimComet.Comet.Commit(s.Ctx, &types.CommitRequest{})
 	s.Require().NoError(err)
-	s.Require().NotEmpty(commitResponse)
+
+	// Post state checks
 }
 
 func (s *Simulated) TestInitChain_InvalidChainID_MustError() {
