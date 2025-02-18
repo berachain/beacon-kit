@@ -365,5 +365,6 @@ func (v *Validator) Status(currentEpoch math.Epoch) (string, error) {
 		}
 		return constants.ValidatorStatusWithdrawalDone, nil
 	}
+
 	return "", errors.New("invalid validator status")
 }
