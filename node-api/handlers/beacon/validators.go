@@ -21,8 +21,6 @@
 package beacon
 
 import (
-	"fmt"
-
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
@@ -42,7 +40,6 @@ func (h *Handler) getStateValidators(stateID string, ids []string, statuses []st
 		statuses,
 	)
 	if err != nil {
-		fmt.Println("error getting validators", err)
 		return nil, err
 	}
 
