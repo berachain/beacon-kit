@@ -106,6 +106,15 @@ func (s *Simulated) SetupTest() {
 	s.Require().NoError(err)
 	s.NotNil(blockchainService)
 	s.BlockchainService = blockchainService
+
+	go func() {
+		// Node blocks on Start and hence we have to run in separate routine
+		if err := s.TestNode.Start(s.Ctx); err != nil {
+			s.T().Error(err)
+		}
+	}()
+	// Wait for ~5 seconds for services to start
+	<-time.After(5 * time.Second)
 }
 
 func (s *Simulated) TearDownTest() {
@@ -144,7 +153,6 @@ func (s *Simulated) TestInitChain_Valid_IsSuccessful() {
 }
 
 func (s *Simulated) TestPrepareProposal_ValidRequest_MustAccept() {
-	// Initialize the chain correctly
 	appGenesis, err := genutiltypes.AppGenesisFromFile(
 		s.HomeDir + "/config/genesis.json",
 	)
@@ -159,11 +167,12 @@ func (s *Simulated) TestPrepareProposal_ValidRequest_MustAccept() {
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{
-		Height: 1,
-		Time:   time.Now(),
+		Height:          1,
+		Time:            time.Now(),
+		ProposerAddress: pubkey.Address(),
 	})
 	s.Require().NoError(err)
-	s.Require().NotNil(proposal)
+	s.Require().NotEmpty(proposal)
 	//// TODO: Expand on parentBlock being nil when first block etc.
 	// beaconChain := simulated.GenerateBeaconChain(s.T(), 1, func(parentBlock *ctypes.SignedBeaconBlock, elBlock *gethprimitives.Block) (*ctypes.SignedBeaconBlock, error) {
 	//	s.Require().NoError(err)
