@@ -270,9 +270,9 @@ test-unit-cover: test-simulated test-unit-quick ## run golang unit tests with co
 	@go list -f '{{.Dir}}/...' -m | xargs \
 		go test -race -covermode=atomic -coverprofile=test-unit-cover.txt -tags bls12381,test
 
-test-unit-quick: ## run golang unit tests with coverage but without race as some tests are too slow with race
-	@echo "Running unit tests with coverage but no race checks..."
-	@go test -cover -covermode=atomic -coverpkg=github.com/berachain/beacon-kit/... -coverprofile=test-unit-cover-quick.txt -v ./testing/quick
+test-unit-quick: ## run quick tests. We run these without coverage as covermode=atomic is too slow and coverage here provides little value
+	@echo "Running 'quick' tests..."
+	@go test -v ./testing/quick
 
 test-simulated: ## run simulation tests
 	@echo "Running simulation tests"
