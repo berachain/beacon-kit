@@ -89,7 +89,8 @@ func TestFilteredValidators(t *testing.T) {
 	stateValidators := []*types.ValidatorData{
 		{
 			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
-				Index: 0,
+				Index:   0,
+				Balance: cs.MaxEffectiveBalance(),
 			},
 			Status: constants.ValidatorStatusPendingInitialized,
 			Validator: beacontypes.ValidatorFromConsensus(
@@ -107,7 +108,8 @@ func TestFilteredValidators(t *testing.T) {
 		},
 		{
 			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
-				Index: 1,
+				Index:   1,
+				Balance: cs.MaxEffectiveBalance() * 3 / 4,
 			},
 			Status: constants.ValidatorStatusPendingQueued,
 			Validator: beacontypes.ValidatorFromConsensus(
@@ -125,7 +127,8 @@ func TestFilteredValidators(t *testing.T) {
 		},
 		{
 			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
-				Index: 2,
+				Index:   2,
+				Balance: cs.MaxEffectiveBalance() / 4,
 			},
 			Status: constants.ValidatorStatusActiveOngoing,
 			Validator: beacontypes.ValidatorFromConsensus(
@@ -143,7 +146,8 @@ func TestFilteredValidators(t *testing.T) {
 		},
 		{
 			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
-				Index: 3,
+				Index:   3,
+				Balance: cs.MaxEffectiveBalance() / 2,
 			},
 			Status: constants.ValidatorStatusExitedUnslashed,
 			Validator: beacontypes.ValidatorFromConsensus(
@@ -161,7 +165,8 @@ func TestFilteredValidators(t *testing.T) {
 		},
 		{
 			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
-				Index: 4,
+				Index:   4,
+				Balance: cs.EjectionBalance(),
 			},
 			Status: constants.ValidatorStatusWithdrawalPossible,
 			Validator: beacontypes.ValidatorFromConsensus(
@@ -273,7 +278,8 @@ func setupTestFilteredValidatorsState(
 		val, err := beacontypes.ValidatorToConsensus(in.Validator)
 		require.NoError(t, err)
 		require.NoError(t, st.AddValidator(val))
-		// TODO: add balance
+
+		require.NoError(t, st.SetBalance(math.ValidatorIndex(in.Index), math.Gwei(in.Balance)))
 	}
 
 	setupStateDummyParts(t, cs, st)
