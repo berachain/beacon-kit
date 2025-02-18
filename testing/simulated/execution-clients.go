@@ -34,39 +34,49 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// GethNode represents a test instance of a Geth node configured
+// to run inside a Docker container.
 type GethNode struct {
 	homeDir string
 	image   docker.PullImageOptions
 }
 
+// NewGethNode returns a new GethNode instance configured with the given
+// home directory and Docker image options.
 func NewGethNode(homeDir string, image docker.PullImageOptions) *GethNode {
-	return &GethNode{homeDir, image}
+	return &GethNode{
+		homeDir: homeDir,
+		image:   image,
+	}
 }
 
+// Start launches the Geth node container using dockertest, waits until the node is ready,
+// and returns the container resource and the connection URL for the Auth RPC endpoint.
 func (g *GethNode) Start(t *testing.T) (*dockertest.Resource, *url.ConnectionURL) {
 	t.Helper()
-	// Create pool
+
+	// Create a new Docker pool.
 	pool, err := dockertest.NewPool("")
-	require.NoError(t, err)
-	require.NotNil(t, pool)
+	require.NoError(t, err, "failed to create Docker pool")
+	require.NotNil(t, pool, "Docker pool is nil")
 
-	// uses pool to try to connect to Docker
+	// Verify that we can connect to the Docker daemon.
 	err = pool.Client.Ping()
-	require.NoErrorf(t, err, "Could not connect to Docker: %s", err)
+	require.NoErrorf(t, err, "could not connect to Docker: %s", err)
 
-	// Pull the Geth image (if not present). This can speed up future runs.
+	// Pull the Geth image if it is not already present.
 	err = pool.Client.PullImage(g.image, docker.AuthConfiguration{})
-	require.NoError(t, err)
+	require.NoError(t, err, "failed to pull Geth image")
 
+	// Resolve the absolute path to the local test files.
 	absPath, err := filepath.Abs("../files")
-	require.NoError(t, err)
+	require.NoError(t, err, "failed to determine absolute path for test files")
 
-	// Run container with a custom Cmd that does BOTH `init` and `run`
+	// Run the container with custom commands that initialize and run Geth.
 	resource, err := pool.RunWithOptions(&dockertest.RunOptions{
 		Repository: g.image.Repository,
 		Tag:        g.image.Tag,
-		// We'll chain these commands with bash -c
-		// Override the default entrypoint to be /bin/sh instead of geth:
+		// Override the default entrypoint to use /bin/sh so we can chain commands.
 		Entrypoint: []string{"/bin/sh"},
 		Cmd: []string{
 			"-c",
@@ -82,39 +92,39 @@ func (g *GethNode) Start(t *testing.T) (*dockertest.Resource, *url.ConnectionURL
 				 --verbosity 4
 			`,
 		},
+		// Expose required ports for EL RPC, Auth RPC, and P2P communication.
 		ExposedPorts: []string{"8545/tcp", "8551/tcp", "30303/tcp"},
+		// Bind mount the local test data and JWT files to the container.
 		Mounts: []string{
-			// bind-mount local testdata => container /testdata
 			fmt.Sprintf("%s:/%s", g.homeDir, "testdata"),
 			fmt.Sprintf("%s:/%s", absPath, "testing/files"),
 		},
 	})
-	require.NoError(t, err)
+	require.NoError(t, err, "failed to run Geth container")
 
+	// Build the connection URLs for EL RPC and Auth RPC.
 	elRPC, err := url.NewFromRaw("http://" + resource.GetHostPort("8545/tcp"))
-	require.NoError(t, err)
+	require.NoError(t, err, "failed to create EL RPC URL")
 	authRPC, err := url.NewFromRaw("http://" + resource.GetHostPort("8551/tcp"))
-	require.NoError(t, err)
+	require.NoError(t, err, "failed to create Auth RPC URL")
 
-	t.Log(authRPC.String())
+	t.Logf("Auth RPC URL: %s", authRPC.String())
 
-	// Wait until the container is ready (i.e., Geth is listening on the RPC port)
+	// Wait until the EL RPC endpoint is available by retrying HTTP GET requests.
 	err = pool.Retry(func() error {
-		//nolint:noctx // it's just a test
 		resp, httpErr := http.Get(elRPC.String())
 		if httpErr != nil {
 			return httpErr
 		}
-		readerErr := resp.Body.Close()
-		if readerErr != nil {
-			return readerErr
-		}
+		defer resp.Body.Close()
 		return nil
 	})
-	require.NoError(t, err)
+	require.NoError(t, err, "Geth container did not become ready in time")
+
 	return resource, authRPC
 }
 
+// ValidGethImage returns the default Docker image options for the Geth node.
 func ValidGethImage() docker.PullImageOptions {
 	return docker.PullImageOptions{
 		Repository: "ethereum/client-go",
