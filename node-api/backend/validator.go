@@ -50,8 +50,10 @@ func (b Backend) FilteredValidators(
 	}
 
 	validatorData := make([]*beacontypes.ValidatorData, 0, len(validators))
+
+	epoch := b.cs.SlotToEpoch(slot)
 	for _, validator := range validators {
-		data, errInProcess := b.processValidator(st, validator, slot, ids, statuses)
+		data, errInProcess := processValidator(st, validator, epoch, ids, statuses)
 		if errInProcess != nil {
 			return nil, errors.Wrapf(errInProcess, "failed to process validator")
 		}
@@ -62,10 +64,10 @@ func (b Backend) FilteredValidators(
 	return validatorData, nil
 }
 
-func (b Backend) processValidator(
+func processValidator(
 	st *statedb.StateDB,
 	validator *types.Validator,
-	slot math.Slot,
+	epoch math.Epoch,
 	ids []string,
 	statuses []string,
 ) (*beacontypes.ValidatorData, error) {
@@ -79,7 +81,7 @@ func (b Backend) processValidator(
 		return nil, nil
 	}
 
-	status, err := validator.Status(b.cs.SlotToEpoch(slot))
+	status, err := validator.Status(epoch)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get validator status")
 	}
@@ -89,7 +91,7 @@ func (b Backend) processValidator(
 		return nil, nil
 	}
 
-	return b.buildValidatorData(st, validator, index, status)
+	return buildValidatorData(st, validator, index, status)
 }
 
 func matchesIDFilter(validator *types.Validator, index math.U64, ids []string) bool {
@@ -122,7 +124,7 @@ func matchesStatusFilter(status string, statuses []string) bool {
 	return len(statuses) == 0 || slices.Contains(statuses, status)
 }
 
-func (b Backend) buildValidatorData(
+func buildValidatorData(
 	st *statedb.StateDB,
 	validator *types.Validator,
 	index math.U64,
