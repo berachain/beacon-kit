@@ -273,7 +273,7 @@ test-unit-cover: test-unit-norace ## run golang unit tests with coverage
 test-unit-norace: ## run golang unit tests with coverage but without race as some tests are too slow with race
 	@echo "Running unit tests with coverage but no race checks..."
 	@go list -f '{{.Dir}}/...' -m | xargs \
-		go test -coverprofile=test-unit-cover-norace -tags norace
+		go test -coverprofile=test-unit-cover-norace -tags norace,simulated
 
 test-unit-bench: ## run golang unit benchmarks
 	@echo "Running unit tests with benchmarks..."
