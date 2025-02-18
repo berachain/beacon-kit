@@ -190,8 +190,7 @@ func defaultConsensusSettings() ConsensusSettings {
 			MaxNumOutboundPeers: p2p.MaxNumOutboundPeers,
 		},
 		AppConfig: AppConfig{
-			PayloadTimeout:                builderCfg.PayloadTimeout.String(),
-			EnableOptimisticPayloadBuilds: builderCfg.Enabled,
+			PayloadTimeout: builderCfg.PayloadTimeout.String(),
 		},
 	}
 }
