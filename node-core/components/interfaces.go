@@ -272,12 +272,6 @@ type (
 			st *statedb.StateDB,
 			slot math.Slot,
 		) error
-		// RetrievePayload retrieves the payload for the given slot.
-		RetrievePayload(
-			ctx context.Context,
-			slot math.Slot,
-			parentBlockRoot common.Root,
-		) (ctypes.BuiltExecutionPayloadEnv, error)
 		// RequestPayload requests a payload for the given slot and
 		// blocks until the payload is delivered.
 		RequestPayload(
