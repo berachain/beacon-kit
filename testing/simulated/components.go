@@ -65,7 +65,6 @@ func FixedComponents(t *testing.T) []any {
 		components.ProvideNodeAPIEngine,
 		components.ProvideNodeAPIBackend,
 	)
-	//
 	c = append(c, components.ProvideNodeAPIHandlers,
 		components.ProvideNodeAPIBeaconHandler,
 		components.ProvideNodeAPIBuilderHandler,
