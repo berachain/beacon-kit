@@ -30,6 +30,7 @@ import (
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
+	"github.com/berachain/beacon-kit/execution/engine"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
@@ -124,22 +125,7 @@ func (s *Simulated) TearDownTest() {
 
 func (s *Simulated) TestFullLifecycle_ValidBlock_IsSuccessful() {
 	const height = 1
-	appGenesis, err := genutiltypes.AppGenesisFromFile(
-		s.HomeDir + "/config/genesis.json",
-	)
-	s.Require().NoError(err)
-	initResponse, err := s.SimComet.Comet.InitChain(s.Ctx, &types.InitChainRequest{
-		ChainId:       "test-mainnet-chain",
-		AppStateBytes: appGenesis.AppState,
-	})
-	s.Require().NoError(err)
-	s.Require().Len(initResponse.GetValidators(), 1, "Expected 1 validator")
-	deposits, err := s.TestNode.StorageBackend.DepositStore().GetDepositsByIndex(
-		s.Ctx, constants.FirstDepositIndex,
-		constants.FirstDepositIndex+s.TestNode.ChainSpec.MaxDepositsPerBlock(),
-	)
-	s.Require().NoError(err)
-	s.Require().Len(deposits, 1, "Expected 1 deposit")
+	s.initChain()
 
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
 	pubkey, err := blsSigner.GetPubKey()
@@ -194,9 +180,64 @@ func (s *Simulated) TestFullLifecycle_ValidBlock_IsSuccessful() {
 	s.Require().Equal(proposedBlock.Message.GetHeader().GetBodyRoot(), stateDBHeader.GetBodyRoot())
 }
 
-func (s *Simulated) TestInitChain_InvalidChainID_MustError() {
-	_, err := s.SimComet.Comet.InitChain(s.Ctx, &types.InitChainRequest{
-		ChainId: "henlo-im-invalid",
+func (s *Simulated) TestProcessProposal_BadBlock_IsRejected() {
+	const height = 1
+	s.initChain()
+	blsSigner := simulated.GetBlsSigner(s.HomeDir)
+	pubkey, err := blsSigner.GetPubKey()
+	s.Require().NoError(err)
+	proposal, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{
+		Height:          height,
+		Time:            time.Now(),
+		ProposerAddress: pubkey.Address(),
 	})
-	s.Require().ErrorContains(err, "invalid chain-id on InitChain; expected: test-mainnet-chain, got: henlo-im-invalid")
+	s.Require().NoError(err)
+	s.Require().NotEmpty(proposal)
+
+	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
+		proposal.Txs,
+		blockchain.BeaconBlockTxIndex,
+		s.TestNode.ChainSpec.ActiveForkVersionForSlot(height),
+	)
+
+	s.Require().NoError(err)
+	maliciousBlock := simulated.CreateInvalidBlock(s.T(), proposedBlock, blsSigner, s.TestNode.ChainSpec, s.GenesisValidatorsRoot)
+	maliciousBlockBytes, err := maliciousBlock.MarshalSSZ()
+	s.Require().NoError(err)
+
+	// Update the proposal
+	proposal.Txs[0] = maliciousBlockBytes
+	processResponse, err := s.SimComet.Comet.ProcessProposal(s.Ctx, &types.ProcessProposalRequest{
+		Txs:    proposal.Txs,
+		Height: height,
+		// If incorrect proposer address is used, we get a proposer mismatch error
+		ProposerAddress: pubkey.Address(),
+	})
+	s.Require().NoError(err)
+	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResponse.Status)
+	// Ensure that we rejected for the reason we expected
+
+	// EL will log the following
+	//2025-02-18 20:46:31 WARN [02-18|09:46:31.275] NewPayload: inserting block failed
+	//error="could not apply tx 0 [0x2d861099b35b6106bd43056adc4248ed66ec3470ea6501141dd45000480e0dab]: max fee per gas less than block base fee: address 0x71562b71999873DB5b286dF957af199Ec94617F7, maxFeePerGas: 10000000, baseFee: 875000000"
+	s.Require().Contains(s.LogBuffer.String(), engine.ErrBadBlockProduced.Error())
+}
+
+func (s *Simulated) initChain() {
+	appGenesis, err := genutiltypes.AppGenesisFromFile(
+		s.HomeDir + "/config/genesis.json",
+	)
+	s.Require().NoError(err)
+	initResponse, err := s.SimComet.Comet.InitChain(s.Ctx, &types.InitChainRequest{
+		ChainId:       "test-mainnet-chain",
+		AppStateBytes: appGenesis.AppState,
+	})
+	s.Require().NoError(err)
+	s.Require().Len(initResponse.GetValidators(), 1, "Expected 1 validator")
+	deposits, err := s.TestNode.StorageBackend.DepositStore().GetDepositsByIndex(
+		s.Ctx, constants.FirstDepositIndex,
+		constants.FirstDepositIndex+s.TestNode.ChainSpec.MaxDepositsPerBlock(),
+	)
+	s.Require().NoError(err)
+	s.Require().Len(deposits, 1, "Expected 1 deposit")
 }
