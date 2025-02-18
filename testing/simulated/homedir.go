@@ -101,15 +101,17 @@ func initCommand(t *testing.T, tempHomeDir string) {
 	require.NoError(t, err)
 
 	initCMD := initialize.InitCmd(&cometbft.Service{})
+	initCMD.SetArgs([]string{
+		"test-moniker",
+	})
+
 	// This is required due to a bug in cosmos sdk
 	initCMD.SetContext(context.Background())
-
 	err = client.SetCmdClientContextHandler(clientCtx, initCMD)
 	require.NoError(t, err)
 
 	// This is so that Goland can run the test from the IDE through test filtering
 	initCMD.FParseErrWhitelist.UnknownFlags = true
-
 	err = initCMD.Execute()
 	require.NoError(t, err)
 }

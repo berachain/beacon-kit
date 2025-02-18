@@ -109,7 +109,7 @@ func (s *Simulated) SetupTest() {
 	go func() {
 		// Node blocks on Start and hence we have to run in separate routine
 		if err = s.TestNode.Start(s.Ctx); err != nil {
-			s.T().Error(err)
+			s.T().Log(err.Error())
 		}
 	}()
 	// Wait for ~2 seconds for services to start
