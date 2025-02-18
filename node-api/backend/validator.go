@@ -33,6 +33,41 @@ import (
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
+type validatorFilters struct {
+	numericIDs []uint64
+	pubkeys    []crypto.BLSPubkey
+}
+
+// parseValidatorIDs parses a slice of string IDs into numeric IDs and pubkeys
+func parseValidatorIDs(ids []string) *validatorFilters {
+	filters := &validatorFilters{
+		numericIDs: make([]uint64, 0, len(ids)),
+		pubkeys:    make([]crypto.BLSPubkey, 0, len(ids)),
+	}
+
+	for _, id := range ids {
+		filters.parseID(id)
+	}
+
+	return filters
+}
+
+// parseID attempts to parse a single ID as either a numeric ID or pubkey
+func (f *validatorFilters) parseID(id string) {
+	// Try parsing as numeric ID first
+	if index, err := strconv.ParseUint(id, 10, 64); err == nil {
+		f.numericIDs = append(f.numericIDs, index)
+		return
+	}
+
+	// Try parsing as pubkey
+	var pubkey crypto.BLSPubkey
+	if err := pubkey.UnmarshalText([]byte(id)); err == nil {
+		f.pubkeys = append(f.pubkeys, pubkey)
+	}
+	// Silently skip invalid IDs
+}
+
 // FilteredValidators will grab all of the validators from the state at the
 // given slot. It will then filter them by the provided ids and statuses.
 func (b Backend) FilteredValidators(
@@ -49,24 +84,20 @@ func (b Backend) FilteredValidators(
 	}
 
 	// Parse all IDs and pubkeys once at the start
-	var numericIDs []uint64
-	var parsedPubkeys []crypto.BLSPubkey
-
-	for _, id := range ids {
-		// Try parsing as numeric ID first
-		if index, err := strconv.ParseUint(id, 10, 64); err == nil {
-			numericIDs = append(numericIDs, index)
-			continue
-		}
-
-		// Try parsing as pubkey
-		var pubkey crypto.BLSPubkey
-		if err := pubkey.UnmarshalText([]byte(id)); err == nil {
-			parsedPubkeys = append(parsedPubkeys, pubkey)
-		}
-	}
-
+	filters := parseValidatorIDs(ids)
 	epoch := b.cs.SlotToEpoch(slot)
+
+	return filterAndBuildValidatorData(st, validators, filters, epoch, statuses)
+}
+
+// filterAndBuildValidatorData processes all validators and builds their data based on filters
+func filterAndBuildValidatorData(
+	st *statedb.StateDB,
+	validators []*types.Validator,
+	filters *validatorFilters,
+	epoch math.Epoch,
+	statuses []string,
+) ([]*beacontypes.ValidatorData, error) {
 	validatorData := make([]*beacontypes.ValidatorData, 0, len(validators))
 
 	for _, validator := range validators {
@@ -75,51 +106,40 @@ func (b Backend) FilteredValidators(
 			return nil, errors.Wrapf(err, "failed to get validator index by pubkey")
 		}
 
-		// If filters are provided, check if validator matches any filter
-		if len(ids) > 0 {
-			matches := false
-			// Check numeric IDs
-			if len(numericIDs) > 0 && matchesIndex(index, numericIDs) {
-				matches = true
-			}
-			// Check pubkeys
-			if len(parsedPubkeys) > 0 && matchesPubkey(validator, parsedPubkeys) {
-				matches = true
-			}
-			if !matches {
-				continue
-			}
+		if !matchesFilters(validator, index, filters) {
+			continue
 		}
 
-		data, errInProcess := processValidator(st, validator, epoch, index, statuses)
-		if errInProcess != nil {
-			return nil, errors.Wrapf(errInProcess, "failed to process validator")
+		data, err := buildValidatorData(st, validator, index, epoch, statuses)
+		if err != nil {
+			return nil, err
 		}
 		if data != nil {
 			validatorData = append(validatorData, data)
 		}
 	}
+
 	return validatorData, nil
 }
 
-func processValidator(
-	st *statedb.StateDB,
-	validator *types.Validator,
-	epoch math.Epoch,
-	index math.U64,
-	statuses []string,
-) (*beacontypes.ValidatorData, error) {
-	status, err := validator.Status(epoch)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get validator status")
+// matchesFilters checks if a validator matches the filters.
+func matchesFilters(validator *types.Validator, index math.U64, filters *validatorFilters) bool {
+	// If no filters, accept all validators
+	if len(filters.numericIDs) == 0 && len(filters.pubkeys) == 0 {
+		return true
 	}
 
-	if !matchesStatusFilter(status, statuses) {
-		//nolint:nilnil // no data to return
-		return nil, nil
+	// Check numeric IDs
+	if len(filters.numericIDs) > 0 && matchesIndex(index, filters.numericIDs) {
+		return true
 	}
 
-	return buildValidatorData(st, validator, index, status)
+	// Check pubkeys
+	if len(filters.pubkeys) > 0 && matchesPubkey(validator, filters.pubkeys) {
+		return true
+	}
+
+	return false
 }
 
 func matchesPubkey(validator *types.Validator, parsedPubkeys []crypto.BLSPubkey) bool {
@@ -139,8 +159,19 @@ func buildValidatorData(
 	st *statedb.StateDB,
 	validator *types.Validator,
 	index math.U64,
-	status string,
+	epoch math.Epoch,
+	statuses []string,
 ) (*beacontypes.ValidatorData, error) {
+	status, err := validator.Status(epoch)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get validator status")
+	}
+
+	if !matchesStatusFilter(status, statuses) {
+		//nolint:nilnil // no data to return
+		return nil, nil
+	}
+
 	balance, err := st.GetBalance(index)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get validator balance")
