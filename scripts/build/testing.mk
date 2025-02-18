@@ -272,11 +272,13 @@ test-unit-cover: test-simulated test-unit-quick ## run golang unit tests with co
 
 test-unit-quick: ## run quick tests. We run these without coverage as covermode=atomic is too slow and coverage here provides little value
 	@echo "Running 'quick' tests..."
-	@go test -v ./testing/quick
+	@go list -f '{{.Dir}}/testing/quick' -m | xargs \
+		go test -v
 
 test-simulated: ## run simulation tests
 	@echo "Running simulation tests"
-	@go test -cover -covermode=atomic -coverpkg=github.com/berachain/beacon-kit/... -coverprofile=test-simulated.txt -tags simulated -v ./testing/simulated
+	@go list -f '{{.Dir}}/testing/simulated' -m | xargs \
+		go test -cover -covermode=atomic -coverpkg=github.com/berachain/beacon-kit/... -coverprofile=test-simulated.txt -tags simulated -v
 
 test-unit-bench: ## run golang unit benchmarks
 	@echo "Running unit tests with benchmarks..."
