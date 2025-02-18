@@ -83,6 +83,10 @@ func TestFilteredValidators(t *testing.T) {
 	}
 	b.AttachQueryBackend(tcs)
 
+	// refSlot to allow validators in multiple states
+	// from initializing to withdrawned
+	refSlot := math.Slot(cs.SlotsPerEpoch() * 3)
+
 	// Set relevant quantities in initial status and
 	// write them to make them available to caches built
 	// on top of cms
@@ -147,6 +151,44 @@ func TestFilteredValidators(t *testing.T) {
 		{
 			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
 				Index:   3,
+				Balance: cs.MaxEffectiveBalance() / 4,
+			},
+			Status: constants.ValidatorStatusActiveSlashed,
+			Validator: beacontypes.ValidatorFromConsensus(
+				&ctypes.Validator{
+					Pubkey:                     [48]byte{0x15},
+					WithdrawalCredentials:      [32]byte{0x16},
+					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 3),
+					Slashed:                    true,
+					ActivationEligibilityEpoch: math.Epoch(0),
+					ActivationEpoch:            math.Epoch(0),
+					ExitEpoch:                  math.Epoch(5),
+					WithdrawableEpoch:          math.Epoch(constants.FarFutureEpoch),
+				},
+			),
+		},
+		{
+			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
+				Index:   4,
+				Balance: cs.MaxEffectiveBalance() / 4,
+			},
+			Status: constants.ValidatorStatusActiveExiting,
+			Validator: beacontypes.ValidatorFromConsensus(
+				&ctypes.Validator{
+					Pubkey:                     [48]byte{0x17},
+					WithdrawalCredentials:      [32]byte{0x18},
+					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 3),
+					Slashed:                    false,
+					ActivationEligibilityEpoch: math.Epoch(0),
+					ActivationEpoch:            math.Epoch(0),
+					ExitEpoch:                  math.Epoch(5),
+					WithdrawableEpoch:          math.Epoch(constants.FarFutureEpoch),
+				},
+			),
+		},
+		{
+			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
+				Index:   5,
 				Balance: cs.MaxEffectiveBalance() / 2,
 			},
 			Status: constants.ValidatorStatusExitedUnslashed,
@@ -165,7 +207,26 @@ func TestFilteredValidators(t *testing.T) {
 		},
 		{
 			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
-				Index:   4,
+				Index:   6,
+				Balance: cs.MaxEffectiveBalance() / 2,
+			},
+			Status: constants.ValidatorStatusExitedSlashed,
+			Validator: beacontypes.ValidatorFromConsensus(
+				&ctypes.Validator{
+					Pubkey:                     [48]byte{0x27},
+					WithdrawalCredentials:      [32]byte{0x28},
+					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 4),
+					Slashed:                    true,
+					ActivationEligibilityEpoch: math.Epoch(0),
+					ActivationEpoch:            math.Epoch(0),
+					ExitEpoch:                  math.Epoch(0),
+					WithdrawableEpoch:          math.Epoch(constants.FarFutureEpoch),
+				},
+			),
+		},
+		{
+			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
+				Index:   7,
 				Balance: cs.EjectionBalance(),
 			},
 			Status: constants.ValidatorStatusWithdrawalPossible,
@@ -173,6 +234,25 @@ func TestFilteredValidators(t *testing.T) {
 				&ctypes.Validator{
 					Pubkey:                     [48]byte{0x09},
 					WithdrawalCredentials:      [32]byte{0x10},
+					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 5),
+					Slashed:                    false,
+					ActivationEligibilityEpoch: math.Epoch(0),
+					ActivationEpoch:            math.Epoch(0),
+					ExitEpoch:                  math.Epoch(0),
+					WithdrawableEpoch:          math.Epoch(0),
+				},
+			),
+		},
+		{
+			ValidatorBalanceData: beacontypes.ValidatorBalanceData{
+				Index:   8,
+				Balance: 0,
+			},
+			Status: constants.ValidatorStatusWithdrawalPossible,
+			Validator: beacontypes.ValidatorFromConsensus(
+				&ctypes.Validator{
+					Pubkey:                     [48]byte{0x39},
+					WithdrawalCredentials:      [32]byte{0x40},
 					EffectiveBalance:           math.Gwei(cs.MaxEffectiveBalance() / 5),
 					Slashed:                    false,
 					ActivationEligibilityEpoch: math.Epoch(0),
@@ -229,12 +309,18 @@ func TestFilteredValidators(t *testing.T) {
 		{
 			name: "some validators by status",
 			inputsF: func() ([]string, []string) {
-				return nil, []string{constants.ValidatorStatusActiveOngoing}
+				return nil, []string{
+					constants.ValidatorStatusActiveOngoing,
+					constants.ValidatorStatusActiveSlashed,
+					constants.ValidatorStatusActiveExiting,
+				}
 			},
 			expectedErr: nil,
 			checkF: func(t *testing.T, res []*types.ValidatorData) {
 				expectedRes := []*types.ValidatorData{
 					stateValidators[2],
+					stateValidators[3],
+					stateValidators[4],
 				}
 				require.Len(t, res, len(expectedRes))
 				for i := range len(res) {
@@ -246,12 +332,8 @@ func TestFilteredValidators(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// in current implementation, slots is only used to select
-			// the right cache in consensus service. We mock consensus
-			// service here, so we can use a dummy height
-			dummySlot := math.Slot(0)
 			ids, statuses := tt.inputsF()
-			res, err := b.FilteredValidators(dummySlot, ids, statuses)
+			res, err := b.FilteredValidators(refSlot, ids, statuses)
 			if tt.expectedErr == nil {
 				require.NoError(t, err)
 			} else {
