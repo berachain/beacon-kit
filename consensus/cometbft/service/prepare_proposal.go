@@ -77,7 +77,7 @@ func (s *Service) prepareProposal(
 			"time", req.Time,
 			"err", err,
 		)
-		return &cmtabci.PrepareProposalResponse{Txs: req.Txs}, nil
+		return &cmtabci.PrepareProposalResponse{Txs: [][]byte{}}, nil
 	}
 
 	return &cmtabci.PrepareProposalResponse{
