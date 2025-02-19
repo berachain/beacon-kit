@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/log/phuslu"
+	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	mathpkg "github.com/berachain/beacon-kit/primitives/math"
@@ -144,74 +145,42 @@ func (s *SimulatedSuite) initializeChain() {
 // TestFullLifecycle_ValidBlock_IsSuccessful tests that a valid block proposal is processed, finalized, and committed.
 func (s *SimulatedSuite) TestFullLifecycle_ValidBlock_IsSuccessful() {
 	const blockHeight = 1
+	const coreLoopIterations = 10
+	const expectedHeight = blockHeight + coreLoopIterations - 1
 
 	// Initialize the chain state.
 	s.initializeChain()
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
-	pubkey, err := blsSigner.GetPubKey()
-	s.Require().NoError(err)
 
-	// Prepare a block proposal.
-	proposalTime := time.Now()
-	proposal, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{
-		Height:          blockHeight,
-		Time:            proposalTime,
-		ProposerAddress: pubkey.Address(),
-	})
-	s.Require().NoError(err)
-	s.Require().NotEmpty(proposal)
-
-	// Process the proposal.
-	processResp, err := s.SimComet.Comet.ProcessProposal(s.Ctx, &types.ProcessProposalRequest{
-		Txs:             proposal.Txs,
-		Height:          blockHeight,
-		ProposerAddress: pubkey.Address(),
-		Time:            proposalTime,
-	})
-	s.Require().NoError(err)
-	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
-
-	// Wait for the block to be finalized.
-	time.Sleep(finalizeWaitDuration)
-
-	// Finalize the block.
-	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.Ctx, &types.FinalizeBlockRequest{
-		Txs:             proposal.Txs,
-		Height:          blockHeight,
-		ProposerAddress: pubkey.Address(),
-	})
-	s.Require().NoError(err)
-	s.Require().NotEmpty(finalizeResp)
-
-	// Commit the block.
-	_, err = s.SimComet.Comet.Commit(s.Ctx, &types.CommitRequest{})
-	s.Require().NoError(err)
+	proposals := s.CoreLoop(blockHeight, coreLoopIterations, blsSigner)
+	s.Require().Len(proposals, coreLoopIterations)
 
 	// Validate post-commit state.
-	queryCtx, err := s.SimComet.CreateQueryContext(blockHeight, false)
+	queryCtx, err := s.SimComet.CreateQueryContext(expectedHeight, false)
 	s.Require().NoError(err)
 
 	stateDB := s.TestNode.StorageBackend.StateFromContext(queryCtx)
 	slot, err := stateDB.GetSlot()
 	s.Require().NoError(err)
-	s.Require().Equal(mathpkg.U64(blockHeight), slot)
+	s.Require().Equal(mathpkg.U64(expectedHeight), slot)
 
 	stateHeader, err := stateDB.GetLatestBlockHeader()
 	s.Require().NoError(err)
 
 	// Unmarshal the beacon block from the ABCI request.
 	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
-		proposal.Txs,
+		proposals[len(proposals)-1].Txs,
 		blockchain.BeaconBlockTxIndex,
-		s.TestNode.ChainSpec.ActiveForkVersionForSlot(blockHeight),
+		s.TestNode.ChainSpec.ActiveForkVersionForSlot(expectedHeight),
 	)
 	s.Require().NoError(err)
 	s.Require().Equal(proposedBlock.Message.GetHeader().GetBodyRoot(), stateHeader.GetBodyRoot())
 }
 
-// TestProcessProposal_BadBlock_IsRejected tests that a block with an invalid tx is rejected
+// TestProcessProposal_BadBlock_IsRejected effectively serves as a test for how a valid node would react to
+// a malicious proposer proposing a block with an invalid EVM transaction.
 func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	const blockHeight = 1
 
@@ -263,4 +232,111 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	s.Require().Contains(s.LogBuffer.String(), errors.ErrInvalidPayloadStatus.Error())
 	// Note this error message may change across execution clients.
 	s.Require().Contains(s.LogBuffer.String(), "max fee per gas less than block base fee: address 0x71562b71999873DB5b286dF957af199Ec94617F7, maxFeePerGas: 10000000, baseFee: 875000000")
+}
+
+// TestProcessProposal_BadBlock_IsRejected effectively serves as a test for how a valid syncing node would react to
+// a malicious consensus majority agreeing to a block with an invalid EVM transaction.
+func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_IsRejected() {
+	const blockHeight = 1
+
+	// Initialize the chain state.
+	s.initializeChain()
+
+	// Retrieve the BLS signer and proposer address.
+	blsSigner := simulated.GetBlsSigner(s.HomeDir)
+	pubkey, err := blsSigner.GetPubKey()
+	s.Require().NoError(err)
+
+	// Prepare a valid block proposal.
+	proposalTime := time.Now()
+	proposal, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{
+		Height:          blockHeight,
+		Time:            proposalTime,
+		ProposerAddress: pubkey.Address(),
+	})
+	s.Require().NoError(err)
+	s.Require().NotEmpty(proposal)
+
+	// Unmarshal the proposal block.
+	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
+		proposal.Txs,
+		blockchain.BeaconBlockTxIndex,
+		s.TestNode.ChainSpec.ActiveForkVersionForSlot(blockHeight),
+	)
+	s.Require().NoError(err)
+
+	// Create a malicious block by injecting an invalid transaction.
+	maliciousBlock := simulated.CreateInvalidBlock(require.New(s.T()), proposedBlock, blsSigner, s.TestNode.ChainSpec, s.GenesisValidatorsRoot)
+	maliciousBlockBytes, err := maliciousBlock.MarshalSSZ()
+	s.Require().NoError(err)
+
+	// Replace the valid block with the malicious block in the proposal.
+	proposal.Txs[0] = maliciousBlockBytes
+
+	// Finalize the invalid block
+	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.Ctx, &types.FinalizeBlockRequest{
+		Txs:    proposal.Txs,
+		Height: blockHeight,
+		// We simulate syncing by indicating that the SyncingToHeight is greater than the finalize block height
+		SyncingToHeight: blockHeight + 1,
+		ProposerAddress: pubkey.Address(),
+		Time:            proposalTime,
+	})
+	s.Require().NoError(err)
+	s.Require().NotEmpty(finalizeResp)
+	// Verify that the log contains the expected error message.
+	//s.Require().Contains(s.LogBuffer.String(), errors.ErrInvalidPayloadStatus.Error())
+	// Note this error message may change across execution clients.
+	s.Require().Contains(s.LogBuffer.String(), "max fee per gas less than block base fee: address 0x71562b71999873DB5b286dF957af199Ec94617F7, maxFeePerGas: 10000000, baseFee: 875000000")
+}
+
+// CoreLoop will iterate through the core loop `iterations` times, i.e. Propose, Process, Finalize and Commit.
+// Returns the list of proposed comet blocks.
+func (s *SimulatedSuite) CoreLoop(startHeight, iterations int64, proposer *signer.BLSSigner) []*types.PrepareProposalResponse {
+	// Prepare a block proposal.
+	pubkey, err := proposer.GetPubKey()
+	s.Require().NoError(err)
+
+	var proposedCometBlocks []*types.PrepareProposalResponse
+
+	for currentHeight := startHeight; currentHeight < startHeight+iterations; currentHeight++ {
+		proposalTime := time.Now()
+		proposal, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{
+			Height:          currentHeight,
+			Time:            proposalTime,
+			ProposerAddress: pubkey.Address(),
+		})
+		s.Require().NoError(err)
+		s.Require().NotEmpty(proposal)
+
+		// Process the proposal.
+		processResp, err := s.SimComet.Comet.ProcessProposal(s.Ctx, &types.ProcessProposalRequest{
+			Txs:             proposal.Txs,
+			Height:          currentHeight,
+			ProposerAddress: pubkey.Address(),
+			Time:            proposalTime,
+		})
+		s.Require().NoError(err)
+		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
+
+		// Wait for the block to be finalized.
+		time.Sleep(finalizeWaitDuration)
+
+		// Finalize the block.
+		finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.Ctx, &types.FinalizeBlockRequest{
+			Txs:             proposal.Txs,
+			Height:          currentHeight,
+			ProposerAddress: pubkey.Address(),
+		})
+		s.Require().NoError(err)
+		s.Require().NotEmpty(finalizeResp)
+
+		// Commit the block.
+		_, err = s.SimComet.Comet.Commit(s.Ctx, &types.CommitRequest{})
+		s.Require().NoError(err)
+
+		// Record the Commit Block
+		proposedCometBlocks = append(proposedCometBlocks, proposal)
+	}
+	return proposedCometBlocks
 }
