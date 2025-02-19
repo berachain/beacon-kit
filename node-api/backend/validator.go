@@ -122,7 +122,6 @@ func filterAndBuildValidatorData(
 			return nil, err
 		}
 		validatorData = append(validatorData, data)
-
 	}
 
 	return validatorData, nil
