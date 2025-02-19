@@ -117,18 +117,21 @@ func (s *BeaconKitE2ESuite) TestBeaconValidatorsWithIndices() {
 		True(validator.Balance <= 32e9, "Validator balance should not exceed 32 ETH")
 }
 
-// TestValidatorsEmptyIndices tests that querying validators with empty indices returns all validators.
-func (s *BeaconKitE2ESuite) TestValidatorsEmptyIndices() {
+// TestValidatorsEmptyIndicesAndStatuses tests that querying validators with empty indices and empty statuses returns all validators.
+// Empty indices and statuses is same as not populating the indices and statuses. Basically, querying by State.
+func (s *BeaconKitE2ESuite) TestValidatorsEmptyIndicesAndStatuses() {
 	client := s.initBeaconTest()
 
-	// Query validators with empty indices
+	// Query validators with empty indices and empty statuses
 	emptyIndices := []phase0.ValidatorIndex{}
+	emptyStatuses := []apiv1.ValidatorState{}
 
 	validatorsResp, err := client.Validators(
 		s.Ctx(),
 		&beaconapi.ValidatorsOpts{
-			State:   utils.StateIDHead,
-			Indices: emptyIndices,
+			State:           utils.StateIDHead,
+			Indices:         emptyIndices,
+			ValidatorStates: emptyStatuses,
 		},
 	)
 
@@ -140,42 +143,6 @@ func (s *BeaconKitE2ESuite) TestValidatorsEmptyIndices() {
 	s.Require().NotNil(validatorData, "Validator data should not be nil")
 	s.Require().Equal(config.NumValidators, len(validatorData),
 		"Should return all validators when using empty indices")
-
-	// Verify each validator has required fields
-	for _, validator := range validatorData {
-		s.Require().NotNil(validator, "Validator should not be nil")
-		s.Require().NotEmpty(validator.Validator.PublicKey, "Validator public key should not be empty")
-		s.Require().Len(validator.Validator.PublicKey, 48, "Validator public key should be 48 bytes long")
-		s.Require().NotEmpty(validator.Validator.WithdrawalCredentials,
-			"Withdrawal credentials should not be empty")
-		s.Require().Len(validator.Validator.WithdrawalCredentials, 32,
-			"Withdrawal credentials should be 32 bytes long")
-		s.Require().True(validator.Validator.EffectiveBalance > 0,
-			"Effective balance should be positive")
-	}
-}
-
-// TestValidatorsEmptyStatuses tests that querying validators with empty statuses returns all validators.
-func (s *BeaconKitE2ESuite) TestValidatorsEmptyStatuses() {
-	client := s.initBeaconTest()
-
-	// Query validators with empty statuses
-	validatorsResp, err := client.Validators(
-		s.Ctx(),
-		&beaconapi.ValidatorsOpts{
-			State:           utils.StateIDHead,
-			ValidatorStates: []apiv1.ValidatorState{}, // empty statuses
-		},
-	)
-
-	s.Require().NoError(err)
-	s.Require().NotNil(validatorsResp)
-
-	// Verify we got all validators
-	validatorData := validatorsResp.Data
-	s.Require().NotNil(validatorData, "Validator data should not be nil")
-	s.Require().Equal(config.NumValidators, len(validatorData),
-		"Should return all validators when using empty statuses")
 
 	// Verify each validator has required fields
 	for _, validator := range validatorData {
