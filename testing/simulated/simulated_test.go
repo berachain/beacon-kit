@@ -30,12 +30,13 @@ import (
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
-	"github.com/berachain/beacon-kit/execution/engine"
+	"github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	mathpkg "github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/testing/simulated"
+	"github.com/berachain/beacon-kit/testing/simulated/execution"
 	"github.com/cometbft/cometbft/abci/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/viper"
@@ -72,7 +73,7 @@ func (s *SimulatedSuite) SetupTest() {
 	s.GenesisValidatorsRoot = genesisValidatorsRoot
 
 	// Start the EL (execution layer) Geth node.
-	elNode := simulated.NewGethNode(s.HomeDir, simulated.ValidGethImage())
+	elNode := execution.NewGethNode(s.HomeDir, execution.ValidGethImage())
 	elHandle, authRPC := elNode.Start(s.T())
 	s.ElHandle = elHandle
 
@@ -259,9 +260,7 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
 
 	// Verify that the log contains the expected error message.
-	s.Require().Contains(s.LogBuffer.String(), engine.ErrBadBlockProduced.Error())
-
-	// EL will log the following
-	// 2025-02-18 20:46:31 WARN [02-18|09:46:31.275] NewPayload: inserting block failed
-	// error="could not apply tx 0 [0x2d861099b35b6106bd43056adc4248ed66ec3470ea6501141dd45000480e0dab]: max fee per gas less than block base fee: address 0x71562b71999873DB5b286dF957af199Ec94617F7, maxFeePerGas: 10000000, baseFee: 875000000"
+	s.Require().Contains(s.LogBuffer.String(), errors.ErrInvalidPayloadStatus.Error())
+	// Note this error message may change across execution clients.
+	s.Require().Contains(s.LogBuffer.String(), "max fee per gas less than block base fee: address 0x71562b71999873DB5b286dF957af199Ec94617F7, maxFeePerGas: 10000000, baseFee: 875000000")
 }

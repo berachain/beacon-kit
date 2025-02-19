@@ -42,4 +42,7 @@ var (
 
 	// ErrNilPayloadHeader is an error for when the payload header is nil.
 	ErrNilPayloadHeader = errors.New("nil payload header")
+
+	// ErrInvalidValidatorStatus is an error for when the validator status is invalid.
+	ErrInvalidValidatorStatus = errors.New("invalid validator status")
 )
