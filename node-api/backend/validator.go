@@ -115,13 +115,14 @@ func filterAndBuildValidatorData(
 		}
 
 		data, err := buildValidatorData(st, validator, index, epoch, statuses)
-		if err != nil {
-			if errors.Is(err, ErrStatusFilterMismatch) {
-				continue
-			}
+		switch {
+		case err == nil:
+			validatorData = append(validatorData, data)
+		case errors.Is(err, ErrStatusFilterMismatch):
+			continue
+		default:
 			return nil, err
 		}
-		validatorData = append(validatorData, data)
 	}
 
 	return validatorData, nil
