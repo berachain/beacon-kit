@@ -53,9 +53,7 @@ func (s *Service) forceSyncUponProcess(
 			"failed to send force head FCU",
 			"error", err,
 		)
-		return
 	}
-	return
 }
 
 // forceSyncUponFinalize sends a new payload and force startup FCU to the Execution
