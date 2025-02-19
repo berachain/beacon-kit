@@ -107,7 +107,7 @@ func filterAndBuildValidatorData(
 	for _, validator := range validators {
 		index, err := st.ValidatorIndexByPubkey(validator.GetPubkey())
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to get validator index by pubkey")
+			return nil, errors.Wrapf(err, "failed to get validator index by pubkey %s", validator.GetPubkey())
 		}
 
 		if !matchesFilters(validator, index, filters) {
@@ -180,7 +180,7 @@ func buildValidatorData(
 
 	balance, err := st.GetBalance(index)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get validator balance")
+		return nil, errors.Wrapf(err, "failed to get validator balance for validator pubkey %s and index %d", validator.GetPubkey(), index)
 	}
 
 	return &beacontypes.ValidatorData{
@@ -210,7 +210,7 @@ func (b Backend) ValidatorByID(
 	}
 	balance, err := st.GetBalance(index)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get validator balance")
+		return nil, errors.Wrapf(err, "failed to get validator balance for validator pubkey %s and index %d", validator.GetPubkey(), index)
 	}
 	status, err := validator.Status(b.cs.SlotToEpoch(slot))
 	if err != nil {
@@ -244,7 +244,7 @@ func (b Backend) ValidatorBalancesByIDs(
 		// TODO: same issue as above, shouldn't error on not found.
 		balance, err = st.GetBalance(index)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to get validator balance")
+			return nil, errors.Wrapf(err, "failed to get validator balance for validator index %d", index)
 		}
 		balances = append(balances, &beacontypes.ValidatorBalanceData{
 			Index:   index.Unwrap(),
