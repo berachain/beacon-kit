@@ -108,7 +108,7 @@ func initCommand(t *testing.T, homeDir string) {
 	// Create a Cosmos SDK client context with the provided home directory and chain ID.
 	clientCtx := client.Context{}.
 		WithHomeDir(homeDir).
-		WithChainID("test-mainnet-chain")
+		WithChainID("testnet-chain-80069")
 
 	// Ensure necessary directories exist.
 	err := os.MkdirAll(path.Join(homeDir, "config"), 0700)
