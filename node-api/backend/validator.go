@@ -121,9 +121,8 @@ func filterAndBuildValidatorData(
 			}
 			return nil, err
 		}
-		if data != nil {
-			validatorData = append(validatorData, data)
-		}
+		validatorData = append(validatorData, data)
+
 	}
 
 	return validatorData, nil

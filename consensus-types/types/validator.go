@@ -21,7 +21,6 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/constraints"
@@ -366,5 +365,5 @@ func (v *Validator) Status(currentEpoch math.Epoch) (string, error) {
 		return constants.ValidatorStatusWithdrawalDone, nil
 	}
 
-	return "", errors.New("invalid validator status")
+	return "", ErrInvalidValidatorStatus
 }
