@@ -125,7 +125,7 @@ func (s *SimulatedSuite) initializeChain() {
 
 	// Initialize the chain.
 	initResp, err := s.SimComet.Comet.InitChain(s.Ctx, &types.InitChainRequest{
-		ChainId:       "test-mainnet-chain",
+		ChainId:       "testnet-chain-80069",
 		AppStateBytes: appGenesis.AppState,
 	})
 	s.Require().NoError(err)
