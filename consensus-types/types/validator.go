@@ -317,3 +317,53 @@ func (v Validator) GetWithdrawableEpoch() math.Epoch {
 func (v Validator) GetWithdrawalCredentials() WithdrawalCredentials {
 	return v.WithdrawalCredentials
 }
+
+// Status returns the current validator status based on its set epoch values.
+// This function taken from Prysm:
+// https://github.com/prysmaticlabs/prysm/blob/0229a2055e6349655a471b2427f349e40c275cee/beacon-chain/rpc/eth/helpers/validator_status.go#L31
+func (v *Validator) Status(currentEpoch math.Epoch) (string, error) {
+	activationEpoch := v.GetActivationEpoch()
+	activationEligibilityEpoch := v.GetActivationEligibilityEpoch()
+	farFutureEpoch := math.Epoch(constants.FarFutureEpoch)
+	exitEpoch := v.GetExitEpoch()
+	withdrawableEpoch := v.GetWithdrawableEpoch()
+
+	// Status: pending
+	if activationEpoch > currentEpoch {
+		if activationEligibilityEpoch == farFutureEpoch {
+			return constants.ValidatorStatusPendingInitialized, nil
+		} else if activationEligibilityEpoch < farFutureEpoch {
+			return constants.ValidatorStatusPendingQueued, nil
+		}
+	}
+
+	// Status: active
+	if activationEpoch <= currentEpoch && currentEpoch < exitEpoch {
+		if exitEpoch == farFutureEpoch {
+			return constants.ValidatorStatusActiveOngoing, nil
+		} else if exitEpoch < farFutureEpoch {
+			if v.IsSlashed() {
+				return constants.ValidatorStatusActiveSlashed, nil
+			}
+			return constants.ValidatorStatusActiveExiting, nil
+		}
+	}
+
+	// Status: exited
+	if exitEpoch <= currentEpoch && currentEpoch < withdrawableEpoch {
+		if v.IsSlashed() {
+			return constants.ValidatorStatusExitedSlashed, nil
+		}
+		return constants.ValidatorStatusExitedUnslashed, nil
+	}
+
+	// Status: withdrawal
+	if withdrawableEpoch <= currentEpoch {
+		if v.GetEffectiveBalance() != math.Gwei(0) {
+			return constants.ValidatorStatusWithdrawalPossible, nil
+		}
+		return constants.ValidatorStatusWithdrawalDone, nil
+	}
+
+	return "", ErrInvalidValidatorStatus
+}

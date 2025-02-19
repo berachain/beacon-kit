@@ -185,22 +185,19 @@ func (s *Service) VerifyIncomingBlobSidecars(
 	blkHeader *ctypes.BeaconBlockHeader,
 	kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],
 ) error {
-	s.logger.Info("Received incoming blob sidecars")
-
 	// Verify the blobs and ensure they match the local state.
 	err := s.blobProcessor.VerifySidecars(ctx, sidecars, blkHeader, kzgCommitments)
 	if err != nil {
 		s.logger.Error(
-			"rejecting incoming blob sidecars",
-			"reason", err,
+			"Blob sidecars verification failed - rejecting incoming blob sidecars",
+			"reason", err, "slot", blkHeader.GetSlot(),
 		)
 		return err
 	}
 
 	s.logger.Info(
 		"Blob sidecars verification succeeded - accepting incoming blob sidecars",
-		"num_blobs",
-		len(sidecars),
+		"num_blobs", len(sidecars), "slot", blkHeader.GetSlot(),
 	)
 	return nil
 }
