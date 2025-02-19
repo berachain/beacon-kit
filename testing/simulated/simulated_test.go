@@ -261,5 +261,6 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 
 	// Verify that the log contains the expected error message.
 	s.Require().Contains(s.LogBuffer.String(), errors.ErrInvalidPayloadStatus.Error())
+	// Note this error message may change across execution clients.
 	s.Require().Contains(s.LogBuffer.String(), "max fee per gas less than block base fee: address 0x71562b71999873DB5b286dF957af199Ec94617F7, maxFeePerGas: 10000000, baseFee: 875000000")
 }
