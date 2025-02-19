@@ -68,17 +68,16 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 	}
 
 	// Submit the forkchoice update to the execution client.
-	payloadID, _, err := pb.ee.NotifyForkchoiceUpdate(
-		ctx, &ctypes.ForkchoiceUpdateRequest{
-			State: &engineprimitives.ForkchoiceStateV1{
-				HeadBlockHash:      headEth1BlockHash,
-				SafeBlockHash:      finalEth1BlockHash,
-				FinalizedBlockHash: finalEth1BlockHash,
-			},
-			PayloadAttributes: attrs,
-			ForkVersion:       pb.chainSpec.ActiveForkVersionForSlot(slot),
+	req := ctypes.BuildForkchoiceUpdateRequest(
+		&engineprimitives.ForkchoiceStateV1{
+			HeadBlockHash:      headEth1BlockHash,
+			SafeBlockHash:      finalEth1BlockHash,
+			FinalizedBlockHash: finalEth1BlockHash,
 		},
+		attrs,
+		pb.chainSpec.ActiveForkVersionForSlot(slot),
 	)
+	payloadID, _, err := pb.ee.NotifyForkchoiceUpdate(ctx, req)
 	if err != nil {
 		return nil, fmt.Errorf("RequestPayloadAsync failed sending forkchoice update: %w", err)
 	}
@@ -223,19 +222,15 @@ func (pb *PayloadBuilder) SendForceHeadFCU(
 	)
 
 	// Submit the forkchoice update to the execution client.
-	var attrs *engineprimitives.PayloadAttributes
-	_, _, err = pb.ee.NotifyForkchoiceUpdate(
-		ctx, &ctypes.ForkchoiceUpdateRequest{
-			State: &engineprimitives.ForkchoiceStateV1{
-				HeadBlockHash:      lph.GetBlockHash(),
-				SafeBlockHash:      lph.GetParentHash(),
-				FinalizedBlockHash: lph.GetParentHash(),
-			},
-			PayloadAttributes: attrs,
-			ForkVersion:       pb.chainSpec.ActiveForkVersionForSlot(slot),
+	req := ctypes.BuildForkchoiceUpdateRequestNoAttrs(
+		&engineprimitives.ForkchoiceStateV1{
+			HeadBlockHash:      lph.GetBlockHash(),
+			SafeBlockHash:      lph.GetParentHash(),
+			FinalizedBlockHash: lph.GetParentHash(),
 		},
+		pb.chainSpec.ActiveForkVersionForSlot(slot),
 	)
-	if err != nil {
+	if _, _, err = pb.ee.NotifyForkchoiceUpdate(ctx, req); err != nil {
 		return fmt.Errorf("SendForceHeadFCU failed sending forkchoice update: %w", err)
 	}
 	return nil
