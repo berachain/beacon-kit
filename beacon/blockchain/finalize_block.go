@@ -59,8 +59,9 @@ func (s *Service) FinalizeBlock(
 		return nil, ErrNilBlk
 	}
 
-	// STEP 2: Finalize sidecars first (block will check for
-	// sidecar availability)
+	// STEP 2: Finalize sidecars first (block will check for sidecar availability).
+	// SyncingToHeight is always the tip of the chain both during sync and when
+	// caught up. We don't need to process sidecars unless they are within DA period.
 	//#nosec: G115 // SyncingToHeight will never be negative.
 	if s.chainSpec.WithinDAPeriod(blk.GetSlot(), math.Slot(req.SyncingToHeight)) {
 		err = s.blobProcessor.ProcessSidecars(
