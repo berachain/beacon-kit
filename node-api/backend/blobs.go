@@ -21,7 +21,9 @@
 package backend
 
 import (
-	"github.com/berachain/beacon-kit/errors"
+	"errors"
+	"fmt"
+
 	apitypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
@@ -34,8 +36,18 @@ func (b *Backend) BlobSidecarsByIndices(slot math.Slot, indices []uint64) ([]*ap
 	if currentSlot < 0 {
 		return nil, errors.New("invalid negative block height")
 	}
+
+	// If the requested slot is 0 (head, finalized, justified), use the current slot.
+	if slot == 0 {
+		slot = math.Slot(currentSlot)
+	}
+
+	// Validate the requested slot is within the Data Availability Period.
 	if !b.cs.WithinDAPeriod(slot, math.Slot(currentSlot)) {
-		return nil, errors.New("requested block is no longer within the Data Availability Period")
+		return nil, fmt.Errorf(
+			"requested slot (%d) is not within Data Availability Period (previous %d epochs)",
+			slot, b.cs.MinEpochsForBlobsSidecarsRequest(),
+		)
 	}
 
 	// Validate request indices.
