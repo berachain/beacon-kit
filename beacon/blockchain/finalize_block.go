@@ -38,12 +38,7 @@ func (s *Service) FinalizeBlock(
 	ctx sdk.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (transition.ValidatorUpdates, error) {
-	var (
-		valUpdates  transition.ValidatorUpdates
-		finalizeErr error
-	)
-
-	// STEP 1: Decode block and blobs
+	// STEP 1: Decode block and blobs.
 	signedBlk, blobs, err := encoding.ExtractBlobsAndBlockFromRequest(
 		req,
 		BeaconBlockTxIndex,
@@ -54,14 +49,20 @@ func (s *Service) FinalizeBlock(
 		return nil, fmt.Errorf("failed to decode block and blobs: %w", err)
 	}
 	blk := signedBlk.GetMessage()
-	if blk == nil {
-		s.logger.Error("SignedBeaconBlock contains nil BeaconBlock during FinalizeBlock")
-		return nil, ErrNilBlk
+
+	// Send an FCU to force the HEAD of the chain on the EL on startup.
+	var finalizeErr error
+	s.forceStartupSyncOnce.Do(func() {
+		finalizeErr = s.forceSyncUponFinalize(ctx, signedBlk.GetMessage())
+	})
+	if finalizeErr != nil {
+		return nil, finalizeErr
 	}
 
 	// STEP 2: Finalize sidecars first (block will check for sidecar availability).
 	// SyncingToHeight is always the tip of the chain both during sync and when
 	// caught up. We don't need to process sidecars unless they are within DA period.
+	//
 	//#nosec: G115 // SyncingToHeight will never be negative.
 	if s.chainSpec.WithinDAPeriod(blk.GetSlot(), math.Slot(req.SyncingToHeight)) {
 		err = s.blobProcessor.ProcessSidecars(
@@ -81,29 +82,25 @@ func (s *Service) FinalizeBlock(
 		}
 	}
 
-	// STEP 3: finalize the block
-	consensusBlk := types.NewConsensusBlock(
-		blk,
-		req.GetProposerAddress(),
-		req.GetTime(),
-	)
-
+	// STEP 3: Finalize the block.
+	consensusBlk := types.NewConsensusBlock(blk, req.GetProposerAddress(), req.GetTime())
 	st := s.storageBackend.StateFromContext(ctx)
-	valUpdates, finalizeErr = s.finalizeBeaconBlock(ctx, st, consensusBlk)
-	if finalizeErr != nil {
+	valUpdates, err := s.finalizeBeaconBlock(ctx, st, consensusBlk)
+	if err != nil {
 		s.logger.Error("Failed to process verified beacon block",
-			"error", finalizeErr,
+			"error", err,
 		)
-		return nil, finalizeErr
+		return nil, err
 	}
 
-	// STEP 4: Post Finalizations cleanups
+	// STEP 4: Post Finalizations cleanups.
 
-	// fetch and store the deposit for the block
+	// Fetch and store the deposit for the block.
 	blockNum := blk.GetBody().GetExecutionPayload().GetNumber()
 	s.depositFetcher(ctx, blockNum)
 
-	// store the finalized block in the KVStore.
+	// Store the finalized block in the KVStore.
+	//
 	// TODO: Store full SignedBeaconBlock with all data in storage
 	slot := blk.GetSlot()
 	if err = s.storageBackend.BlockStore().Set(blk); err != nil {
@@ -113,13 +110,15 @@ func (s *Service) FinalizeBlock(
 		return nil, err
 	}
 
-	// prune the availability and deposit store
+	// Prune the availability and deposit store.
 	err = s.processPruning(ctx, blk)
 	if err != nil {
 		s.logger.Error("failed to processPruning", "error", err)
 	}
 
-	go s.sendPostBlockFCU(ctx, st, consensusBlk)
+	if err = s.sendPostBlockFCU(ctx, st, consensusBlk); err != nil {
+		return nil, fmt.Errorf("sendPostBlockFCU failed: %w", err)
+	}
 
 	return valUpdates, nil
 }
@@ -155,11 +154,6 @@ func (s *Service) executeStateTransition(
 	defer s.metrics.measureStateTransitionDuration(startTime)
 
 	// Notes about context attributes:
-	// - `OptimisticEngine`: set to true since this is called during
-	// FinalizeBlock. We want to assume the payload is valid. If it
-	// ends up not being valid later, the node will simply AppHash,
-	// which is completely fine. This means we were syncing from a
-	// bad peer, and we would likely AppHash anyways.
 	// - VerifyPayload: set to true. When we are NOT synced to the tip,
 	// process proposal does NOT get called and thus we must ensure that
 	// NewPayload is called to get the execution client the payload.
@@ -170,10 +164,10 @@ func (s *Service) executeStateTransition(
 	// of validators in their process proposal call and thus
 	// the "verification aspect" of this NewPayload call is
 	// actually irrelevant at this point.
-	// VerifyRandao: set to false. We skip randao validation in FinalizeBlock
+	// - VerifyRandao: set to false. We skip randao validation in FinalizeBlock
 	// since either
-	// 1. we validated it during ProcessProposal at the head of the chain OR
-	// 2. we are bootstrapping and implicitly trust that the randao was validated by
+	//   1. we validated it during ProcessProposal at the head of the chain OR
+	//   2. we are bootstrapping and implicitly trust that the randao was validated by
 	//    the super majority during ProcessProposal of the given block height.
 	txCtx := transition.NewTransitionCtx(
 		ctx,
@@ -183,8 +177,7 @@ func (s *Service) executeStateTransition(
 		WithVerifyPayload(true).
 		WithVerifyRandao(false).
 		WithVerifyResult(false).
-		WithMeterGas(true).
-		WithOptimisticEngine(true)
+		WithMeterGas(true)
 
 	return s.stateProcessor.Transition(
 		txCtx,

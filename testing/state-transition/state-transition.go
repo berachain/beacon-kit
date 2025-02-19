@@ -146,8 +146,7 @@ func SetupTestState(t *testing.T, cs chain.Spec) (
 		WithVerifyPayload(false).
 		WithVerifyRandao(false).
 		WithVerifyResult(false).
-		WithMeterGas(false).
-		WithOptimisticEngine(true)
+		WithMeterGas(false)
 
 	return sp, beaconState, depositStore, ctx
 }

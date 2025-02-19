@@ -216,10 +216,13 @@ func (s *Service) VerifyIncomingBlock(
 	preState := s.storageBackend.StateFromContext(ctx)
 
 	// Force a sync of the startup head if we haven't done so already.
-	//
-	// TODO: This is a super hacky. It should be handled better elsewhere,
-	// ideally via some broader sync service.
-	s.forceStartupSyncOnce.Do(func() { s.forceStartupHead(ctx, preState) })
+	// TODO: Address the need for calling forceStartupSyncOnce in ProcessProposal. On a running
+	// network (such as mainnet), it should be theoretically impossible to hit the case where
+	// ProcessProposal is called before FinalizeBlock. It may be the case that new networks run
+	// into this case during the first block after genesis.
+	// TODO: Consider panicing here if this fails. If our node cannot successfully run
+	// forceStartupSync, then we should shut down the node and fix the problem.
+	s.forceStartupSyncOnce.Do(func() { s.forceSyncUponProcess(ctx, preState) })
 
 	s.logger.Info(
 		"Received incoming beacon block",
@@ -329,8 +332,6 @@ func (s *Service) verifyStateRoot(
 	startTime := time.Now()
 	defer s.metrics.measureStateRootVerificationTime(startTime)
 
-	// We run with a non-optimistic engine here to ensure
-	// that the proposer does not try to push through a bad block.
 	txCtx := transition.NewTransitionCtx(
 		ctx,
 		consensusTime,
@@ -339,8 +340,7 @@ func (s *Service) verifyStateRoot(
 		WithVerifyPayload(true).
 		WithVerifyRandao(true).
 		WithVerifyResult(true).
-		WithMeterGas(false).
-		WithOptimisticEngine(false)
+		WithMeterGas(false)
 
 	_, err := s.stateProcessor.Transition(txCtx, st, blk)
 	return err
