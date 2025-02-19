@@ -53,24 +53,34 @@ func (s *Service) FinalizeBlock(
 		s.logger.Error("Failed to decode block and blobs", "error", err)
 		return nil, fmt.Errorf("failed to decode block and blobs: %w", err)
 	}
-
-	// STEP 2: Finalize sidecars first (block will check for
-	// sidecar availability)
-	err = s.blobProcessor.ProcessSidecars(
-		s.storageBackend.AvailabilityStore(),
-		blobs,
-	)
-	if err != nil {
-		s.logger.Error("Failed to process blob sidecars", "error", err)
-		return nil, fmt.Errorf("failed to process blob sidecars: %w", err)
-	}
-
-	// STEP 3: finalize the block
 	blk := signedBlk.GetMessage()
 	if blk == nil {
 		s.logger.Error("SignedBeaconBlock contains nil BeaconBlock during FinalizeBlock")
 		return nil, ErrNilBlk
 	}
+
+	// STEP 2: Finalize sidecars first (block will check for
+	// sidecar availability)
+	//#nosec: G115 // SyncingToHeight will never be negative.
+	if s.chainSpec.WithinDAPeriod(blk.GetSlot(), math.Slot(req.SyncingToHeight)) {
+		err = s.blobProcessor.ProcessSidecars(
+			s.storageBackend.AvailabilityStore(),
+			blobs,
+		)
+		if err != nil {
+			s.logger.Error("Failed to process blob sidecars", "error", err)
+			return nil, fmt.Errorf("failed to process blob sidecars: %w", err)
+		}
+
+		// Ensure we can access the data using the commitments from the block.
+		if !s.storageBackend.AvailabilityStore().IsDataAvailable(
+			ctx, blk.GetSlot(), blk.GetBody(),
+		) {
+			return nil, ErrDataNotAvailable
+		}
+	}
+
+	// STEP 3: finalize the block
 	consensusBlk := types.NewConsensusBlock(
 		blk,
 		req.GetProposerAddress(),
@@ -130,15 +140,6 @@ func (s *Service) finalizeBeaconBlock(
 	valUpdates, err := s.executeStateTransition(ctx, st, blk)
 	if err != nil {
 		return nil, err
-	}
-
-	// If the blobs needed to process the block are not available, we
-	// return an error. It is safe to use the slot off of the beacon block
-	// since it has been verified as correct already.
-	if !s.storageBackend.AvailabilityStore().IsDataAvailable(
-		ctx, beaconBlk.GetSlot(), beaconBlk.GetBody(),
-	) {
-		return nil, ErrDataNotAvailable
 	}
 	return valUpdates.CanonicalSort(), nil
 }
