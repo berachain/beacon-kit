@@ -48,19 +48,16 @@ func (s *Service) sendPostBlockFCU(
 	// Send a forkchoice update without payload attributes to notify
 	// EL of the new head.
 	beaconBlk := blk.GetBeaconBlock()
-	_, err = s.executionEngine.NotifyForkchoiceUpdate(
-		ctx,
-		// TODO: Switch to New().
-		ctypes.BuildForkchoiceUpdateRequestNoAttrs(
-			&engineprimitives.ForkchoiceStateV1{
-				HeadBlockHash:      lph.GetBlockHash(),
-				SafeBlockHash:      lph.GetParentHash(),
-				FinalizedBlockHash: lph.GetParentHash(),
-			},
-			s.chainSpec.ActiveForkVersionForSlot(beaconBlk.GetSlot()),
-		),
+	// TODO: Switch to New().
+	req := ctypes.BuildForkchoiceUpdateRequestNoAttrs(
+		&engineprimitives.ForkchoiceStateV1{
+			HeadBlockHash:      lph.GetBlockHash(),
+			SafeBlockHash:      lph.GetParentHash(),
+			FinalizedBlockHash: lph.GetParentHash(),
+		},
+		s.chainSpec.ActiveForkVersionForSlot(beaconBlk.GetSlot()),
 	)
-	if err != nil {
+	if _, err = s.executionEngine.NotifyForkchoiceUpdate(ctx, req); err != nil {
 		return fmt.Errorf("failed forkchoice update, head %s: %w",
 			lph.GetBlockHash().String(),
 			err,

@@ -36,14 +36,14 @@ import (
 func (s *Service) forceSyncUponProcess(
 	ctx context.Context,
 	st *statedb.StateDB,
-) error {
+) {
 	slot, err := st.GetSlot()
 	if err != nil {
 		s.logger.Error(
 			"failed to get slot for force startup head",
 			"error", err,
 		)
-		return err
+		return
 	}
 
 	// TODO: Verify if the slot number is correct here, I believe in current
@@ -53,9 +53,9 @@ func (s *Service) forceSyncUponProcess(
 			"failed to send force head FCU",
 			"error", err,
 		)
-		return err
+		return
 	}
-	return nil
+	return
 }
 
 // forceSyncUponFinalize sends a new payload and force startup FCU to the Execution
@@ -106,7 +106,7 @@ func (s *Service) forceSyncUponFinalize(
 		s.chainSpec.ActiveForkVersionForSlot(beaconBlock.GetSlot()),
 	)
 
-	switch _, _, err := s.executionEngine.NotifyForkchoiceUpdate(ctx, req); {
+	switch _, err := s.executionEngine.NotifyForkchoiceUpdate(ctx, req); {
 	case err == nil:
 		return nil
 
