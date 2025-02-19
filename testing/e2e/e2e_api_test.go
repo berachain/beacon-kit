@@ -118,7 +118,6 @@ func (s *BeaconKitE2ESuite) TestBeaconValidatorsWithIndices() {
 		True(validator.Balance <= 32e9, "Validator balance should not exceed 32 ETH")
 }
 
-
 // TestValidatorsEmptyIndicesAndStatuses tests that querying validators with empty indices and empty statuses returns all validators.
 // Empty indices and statuses is same as not populating the indices and statuses. Basically, querying by State.
 func (s *BeaconKitE2ESuite) TestValidatorsEmptyIndicesAndStatuses() {
