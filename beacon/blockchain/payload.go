@@ -95,18 +95,16 @@ func (s *Service) forceSyncUponFinalize(
 
 	// Submit the forkchoice update to the EL client. This will ensure that it is either synced or
 	// starts up a sync.
-	_, _, err := s.executionEngine.NotifyForkchoiceUpdate(
-		ctx, &ctypes.ForkchoiceUpdateRequest{
-			State: &engineprimitives.ForkchoiceStateV1{
-				HeadBlockHash:      executionPayload.GetBlockHash(),
-				SafeBlockHash:      executionPayload.GetParentHash(),
-				FinalizedBlockHash: executionPayload.GetParentHash(),
-			},
-			PayloadAttributes: nil,
-			ForkVersion:       s.chainSpec.ActiveForkVersionForSlot(beaconBlock.GetSlot()),
+	req := ctypes.BuildForkchoiceUpdateRequestNoAttrs(
+		&engineprimitives.ForkchoiceStateV1{
+			HeadBlockHash:      executionPayload.GetBlockHash(),
+			SafeBlockHash:      executionPayload.GetParentHash(),
+			FinalizedBlockHash: executionPayload.GetParentHash(),
 		},
+		s.chainSpec.ActiveForkVersionForSlot(beaconBlock.GetSlot()),
 	)
-	switch {
+
+	switch _, _, err := s.executionEngine.NotifyForkchoiceUpdate(ctx, req); {
 	case err == nil:
 		return nil
 
