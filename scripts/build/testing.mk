@@ -264,11 +264,13 @@ test-unit: ## run golang unit tests
 	@go list -f '{{.Dir}}/...' -m | xargs \
 		go test -race -tags bls12381,test
 
-# This currently ends up running some tests twice but is still faster than running all tests with -race
 test-unit-cover: test-simulated test-unit-quick ## run golang unit tests with coverage
 	@echo "Running unit tests with coverage and race checks..."
 	@go list -f '{{.Dir}}/...' -m | xargs \
-		go test -race -covermode=atomic -coverprofile=test-unit-cover.txt -tags bls12381,test
+		go test -race -covermode=atomic -coverpkg=github.com/berachain/beacon-kit/... -coverprofile=temp-test-unit-cover.txt -tags bls12381,test
+	# Filter out any coverage lines from the testing directory
+	@grep -v '/testing/' temp-test-unit-cover.txt > test-unit-cover.txt
+	@rm temp-test-unit-cover.txt
 
 test-unit-quick: ## run quick tests. We run these without coverage as covermode=atomic is too slow and coverage here provides little value
 	@echo "Running 'quick' tests..."
@@ -278,7 +280,10 @@ test-unit-quick: ## run quick tests. We run these without coverage as covermode=
 test-simulated: ## run simulation tests
 	@echo "Running simulation tests"
 	@go list -f '{{.Dir}}/testing/simulated' -m | xargs \
-		go test -cover -covermode=atomic -coverpkg=github.com/berachain/beacon-kit/... -coverprofile=test-simulated.txt -tags simulated -v
+		go test -cover -covermode=atomic -coverpkg=github.com/berachain/beacon-kit/... -coverprofile=temp-test-simulated.txt -tags simulated -v
+	# Filter out any coverage lines from the testing directory
+	@grep -v '/testing/' temp-test-simulated.txt > test-simulated.txt
+	@rm temp-test-simulated.txt
 
 test-unit-bench: ## run golang unit benchmarks
 	@echo "Running unit tests with benchmarks..."
