@@ -143,6 +143,7 @@ func (s *SimulatedSuite) initializeChain() {
 }
 
 // TestFullLifecycle_ValidBlock_IsSuccessful tests that a valid block proposal is processed, finalized, and committed.
+// It loops through this core process `coreLoopIterations` times.
 func (s *SimulatedSuite) TestFullLifecycle_ValidBlock_IsSuccessful() {
 	const blockHeight = 1
 	const coreLoopIterations = 10
@@ -154,7 +155,10 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlock_IsSuccessful() {
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
 
+	// iterate through the core loop `coreLoopIterations` times, i.e. Propose, Process, Finalize and Commit.
 	proposals := s.CoreLoop(blockHeight, coreLoopIterations, blsSigner)
+
+	// We expect that the number of proposals that were finalized should be `coreLoopIterations`.
 	s.Require().Len(proposals, coreLoopIterations)
 
 	// Validate post-commit state.
