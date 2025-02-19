@@ -36,6 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	mathpkg "github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/testing/simulated"
+	"github.com/berachain/beacon-kit/testing/simulated/execution"
 	"github.com/cometbft/cometbft/abci/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/viper"
@@ -72,7 +73,7 @@ func (s *SimulatedSuite) SetupTest() {
 	s.GenesisValidatorsRoot = genesisValidatorsRoot
 
 	// Start the EL (execution layer) Geth node.
-	elNode := simulated.NewGethNode(s.HomeDir, simulated.ValidGethImage())
+	elNode := execution.NewGethNode(s.HomeDir, execution.ValidGethImage())
 	elHandle, authRPC := elNode.Start(s.T())
 	s.ElHandle = elHandle
 
