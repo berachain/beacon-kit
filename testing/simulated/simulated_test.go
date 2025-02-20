@@ -113,7 +113,7 @@ func (s *SimulatedSuite) SetupTest() {
 // TearDownTest cleans up the test environment.
 func (s *SimulatedSuite) TearDownTest() {
 	if err := s.ElHandle.Close(); err != nil {
-		s.T().Error("Error closing EL handle:", err)
+		s.T().Logf("Error closing EL handle: %s", err)
 	}
 	s.CancelFunc()
 }
@@ -286,6 +286,51 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidTimestamps_Errors() {
 	s.Require().NoError(err)
 	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
 	s.Require().Contains(s.LogBuffer.String(), "timestamp too far in the future")
+}
+
+// TestProcessProposal_CrashedExecutionClient_Errors effectively serves as a test for how a valid node would react to
+// a valid block being proposed but the execution client has crashed.
+func (s *SimulatedSuite) TestProcessProposal_CrashedExecutionClient_Errors() {
+	const blockHeight = 1
+	const coreLoopIterations = 1
+
+	// Initialize the chain state.
+	s.initializeChain()
+
+	// Retrieve the BLS signer and proposer address.
+	blsSigner := simulated.GetBlsSigner(s.HomeDir)
+	pubkey, err := blsSigner.GetPubKey()
+	s.Require().NoError(err)
+
+	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
+	proposals := s.CoreLoop(blockHeight, coreLoopIterations, blsSigner)
+	s.Require().Len(proposals, coreLoopIterations)
+
+	// Prepare a valid block proposal.
+	proposalTime := time.Now()
+	proposal, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{
+		Height:          blockHeight + coreLoopIterations,
+		Time:            proposalTime,
+		ProposerAddress: pubkey.Address(),
+	})
+	s.Require().NoError(err)
+	s.Require().NotEmpty(proposal)
+
+	// Reset the log buffer to discard old logs we don't care about.
+	s.LogBuffer.Reset()
+	// Kill the execution client.
+	err = s.ElHandle.Close()
+	s.Require().NoError(err)
+	// Process the proposal containing the malicious block.
+	processResp, err := s.SimComet.Comet.ProcessProposal(s.Ctx, &types.ProcessProposalRequest{
+		Txs:             proposal.Txs,
+		Height:          blockHeight + coreLoopIterations,
+		ProposerAddress: pubkey.Address(),
+		Time:            proposalTime,
+	})
+	s.Require().NoError(err)
+	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
+	s.Require().Contains(s.LogBuffer.String(), "got an unexpected server error in JSON-RPC response failed to convert from jsonrpc.Error")
 }
 
 // TestFinalizeBlock_BadBlock_Errors effectively serves as a test for how a valid node would react to
