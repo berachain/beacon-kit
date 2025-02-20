@@ -34,6 +34,7 @@ import (
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
+// ErrValidatorNotFound is an error for when a validator is not found.
 var ErrValidatorNotFound = errors.New("validator not found")
 
 // ErrStatusFilterMismatch is an error for when a validator status does not
@@ -203,19 +204,21 @@ func (b Backend) ValidatorByID(
 		return nil, errors.Wrapf(err, "failed to get state from slot %d", slot)
 	}
 	index, err := utils.ValidatorIndexByID(st, id)
-	if err != nil {
-		if errors.Is(err, collections.ErrNotFound) {
-			//nolint:nilnil // The response should be nil without an error.
-			return nil, nil
-		}
+	switch {
+	case err == nil:
+		// continue processing
+	case errors.Is(err, collections.ErrNotFound):
+		return nil, ErrValidatorNotFound
+	default:
 		return nil, errors.Wrapf(err, "failed to get validator index by id %s", id)
 	}
 	validator, err := st.ValidatorByIndex(index)
-	if err != nil {
-		if errors.Is(err, collections.ErrNotFound) {
-			//nolint:nilnil // The response should be nil without an error.
-			return nil, nil
-		}
+	switch {
+	case err == nil:
+		// continue processing
+	case errors.Is(err, collections.ErrNotFound):
+		return nil, ErrValidatorNotFound
+	default:
 		return nil, errors.Wrapf(err, "failed to get validator by index %d", index)
 	}
 	balance, err := st.GetBalance(index)
@@ -274,7 +277,6 @@ func (b Backend) ValidatorBalancesByIDs(
 			return nil, errors.Wrapf(err, "failed to get validator index by id %s", id)
 		}
 		var balance math.U64
-		// TODO: same issue as above, shouldn't error on not found.
 		balance, err = st.GetBalance(index)
 
 		if err != nil {

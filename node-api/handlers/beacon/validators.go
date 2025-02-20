@@ -21,9 +21,11 @@
 package beacon
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
+	"github.com/berachain/beacon-kit/node-api/backend"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	types "github.com/berachain/beacon-kit/node-api/handlers/types"
@@ -86,6 +88,10 @@ func (h *Handler) GetStateValidator(c handlers.Context) (any, error) {
 		req.ValidatorID,
 	)
 	if err != nil {
+		if errors.Is(err, backend.ErrValidatorNotFound) {
+			// The response should be nil without an error.
+			return beacontypes.NewResponse(validator), nil
+		}
 		return nil, err
 	}
 	return beacontypes.NewResponse(validator), nil

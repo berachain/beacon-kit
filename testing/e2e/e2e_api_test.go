@@ -224,7 +224,8 @@ func (s *BeaconKitE2ESuite) TestValidatorBalances() {
 	balanceMap := balancesResp.Data
 	for _, balance := range balanceMap {
 		s.Require().True(balance > 0, "Validator balance should be positive")
-		s.Require().True(balance <= 32e9, "Validator balance should not exceed 32 ETH")
+		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4 million BERA
+		s.Require().True(balance <= 4e12, "Validator balance should not exceed 4e12 gwei (4 million BERA)")
 	}
 }
 
@@ -251,7 +252,8 @@ func (s *BeaconKitE2ESuite) TestValidatorBalancesWithSpecificIndices() {
 		s.Require().NotNil(balance)
 		s.Require().Contains(indices, index)
 		s.Require().True(balance > 0, "Validator balance should be positive")
-		s.Require().True(balance <= 32e9, "Validator balance should not exceed 32 ETH")
+		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4 million BERA
+		s.Require().True(balance <= 4e12, "Validator balance should not exceed 4 million BERA")
 	}
 }
 
@@ -277,6 +279,8 @@ func (s *BeaconKitE2ESuite) TestValidatorBalancesMultipleIndices() {
 	for index, balance := range balancesResp.Data {
 		returnedIndices[index] = true
 		s.Require().True(balance > 0)
+		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4 million BERA
+		s.Require().True(balance <= 4e12, "Validator balance should not exceed 4 million BERA")
 	}
 	for _, idx := range indices {
 		s.Require().True(returnedIndices[idx], "Expected validator index not found in response")
@@ -301,7 +305,8 @@ func (s *BeaconKitE2ESuite) TestValidatorBalancesEmptyIndices() {
 	for _, balance := range balancesResp.Data {
 		s.Require().NotNil(balance)
 		s.Require().True(balance > 0, "Validator balance should be positive")
-		s.Require().True(balance <= 32e9, "Validator balance should not exceed 32 ETH")
+		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4 million BERA
+		s.Require().True(balance <= 4e12, "Validator balance should not exceed 4 million BERA")
 	}
 }
 
@@ -321,24 +326,23 @@ func (s *BeaconKitE2ESuite) TestValidatorBalancesWithInvalidIndex() {
 	s.Require().Len(balancesResp.Data, 0)
 }
 
-// TestValidatorBalanceStateGenesis tests querying validator balances at genesis state.
-func (s *BeaconKitE2ESuite) TestValidatorBalanceStateGenesis() {
+// TestValidatorBalanceStateHead tests querying validator balances at head state.
+func (s *BeaconKitE2ESuite) TestValidatorBalanceStateHead() {
 	client := s.initBeaconTest()
 
 	balancesResp, err := client.ValidatorBalances(
 		s.Ctx(),
 		&beaconapi.ValidatorBalancesOpts{
-			State: "genesis",
+			State: utils.StateIDHead,
 		},
 	)
 	s.Require().NoError(err)
 	s.Require().NotNil(balancesResp)
 	s.Require().NotEmpty(balancesResp.Data)
 
-	// Verify genesis balance
 	for _, balance := range balancesResp.Data {
-		s.Require().Equal(uint64(32e9), uint64(balance),
-			"Validator should have full 32 ETH balance at genesis")
+		s.Require().Equal(uint64(4e12), uint64(balance),
+			"Validator should have full 4 million BERA balance at head")
 	}
 }
 
@@ -370,7 +374,8 @@ func (s *BeaconKitE2ESuite) TestValidatorBalancesWithPubkey() {
 	for _, balance := range balancesResp.Data {
 		s.Require().NotNil(balance)
 		s.Require().True(balance > 0, "Validator balance should be positive")
-		s.Require().True(balance <= 32e9, "Validator balance should not exceed 32 ETH")
+		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4 million BERA
+		s.Require().True(balance <= 4e12, "Validator balance should not exceed 4 million BERA")
 	}
 }
 
