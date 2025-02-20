@@ -20,7 +20,10 @@
 
 package spec
 
-import "github.com/berachain/beacon-kit/chain"
+import (
+	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/primitives/common"
+)
 
 // TestnetChainSpecData is the chain.SpecData for Berachain's public testnet.
 //
@@ -28,6 +31,13 @@ import "github.com/berachain/beacon-kit/chain"
 func TestnetChainSpecData() *chain.SpecData {
 	specData := MainnetChainSpecData()
 	specData.DepositEth1ChainID = TestnetEth1ChainID
+
+	// Unlike mainnet, testnet activates Bera minting at block 1
+	specData.EVMInflationAddressDeneb1 = common.NewExecutionAddressFromHex(mainnetEVMInflationAddressDeneb1)
+	specData.EVMInflationAddressGenesis = common.NewExecutionAddressFromHex(mainnetEVMInflationAddressDeneb1)
+
+	specData.EVMInflationPerBlockDeneb1 = mainnetEVMInflationPerBlockDeneb1
+	specData.EVMInflationPerBlockGenesis = mainnetEVMInflationPerBlockDeneb1
 	return specData
 }
 
