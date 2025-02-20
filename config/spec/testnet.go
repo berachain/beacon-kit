@@ -20,24 +20,18 @@
 
 package spec
 
-import (
-	"github.com/berachain/beacon-kit/chain"
-	"github.com/berachain/beacon-kit/primitives/common"
-)
+import "github.com/berachain/beacon-kit/chain"
 
 // TestnetChainSpecData is the chain.SpecData for Berachain's public testnet.
 func TestnetChainSpecData() *chain.SpecData {
 	specData := MainnetChainSpecData()
+
+	// Testnet uses chain ID of 80069.
 	specData.DepositEth1ChainID = TestnetEth1ChainID
 
 	// Genesis values of EVM inflation are consistent with those of mainnet.
-	specData.EVMInflationAddressGenesis = common.NewExecutionAddressFromHex(mainnetEVMInflationAddress)
-	specData.EVMInflationPerBlockGenesis = mainnetEVMInflationPerBlock
-
-	// Unlike mainnet, testnet activates Deneb1 for BERA minting at epoch 1.
+	// Testnet activates Deneb1 for BERA minting at epoch 1.
 	specData.Deneb1ForkEpoch = 1
-	specData.EVMInflationAddressDeneb1 = common.NewExecutionAddressFromHex(mainnetEVMInflationAddressDeneb1)
-	specData.EVMInflationPerBlockDeneb1 = mainnetEVMInflationPerBlockDeneb1
 
 	return specData
 }
