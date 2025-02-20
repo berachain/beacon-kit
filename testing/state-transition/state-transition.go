@@ -55,26 +55,28 @@ import (
 type (
 	TestBeaconStateMarshallableT = types.BeaconState
 	TestBeaconStateT             = statedb.StateDB
-	TestStateProcessorT          = core.StateProcessor[*transition.Context]
+	TestStateProcessorT          = core.StateProcessor
 )
 
-type testKVStoreService struct {
-	ctx sdk.Context
-}
+type testKVStoreService struct{}
 
-func (kvs *testKVStoreService) OpenKVStore(context.Context) corestore.KVStore {
-	//nolint:contextcheck // fine with tests
-	store := sdk.UnwrapSDKContext(kvs.ctx).KVStore(testStoreKey)
+func (kvs *testKVStoreService) OpenKVStore(ctx context.Context) corestore.KVStore {
+	store := sdk.UnwrapSDKContext(ctx).KVStore(testStoreKey)
 	return storage.NewKVStore(store)
 }
 
-//nolint:gochecknoglobals // unexported and use only in tests
+//nolint:gochecknoglobals // unexported and used only in tests
 var testStoreKey = storetypes.NewKVStoreKey("state-transition-tests")
 
-func initTestStores() (*beacondb.KVStore, *depositstore.KVStore, error) {
+func BuildTestStores() (
+	storetypes.CommitMultiStore,
+	*beacondb.KVStore,
+	*depositstore.KVStore,
+	error,
+) {
 	db, err := db.OpenDB("", dbm.MemDBBackend)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed opening mem db: %w", err)
+		return nil, nil, nil, fmt.Errorf("failed opening mem db: %w", err)
 	}
 	var (
 		nopLog        = log.NewNopLogger()
@@ -90,12 +92,12 @@ func initTestStores() (*beacondb.KVStore, *depositstore.KVStore, error) {
 
 	cms.MountStoreWithDB(testStoreKey, storetypes.StoreTypeIAVL, nil)
 	if err = cms.LoadLatestVersion(); err != nil {
-		return nil, nil, fmt.Errorf("failed to load latest version: %w", err)
+		return nil, nil, nil, fmt.Errorf("failed to load latest version: %w", err)
 	}
 
-	ctx := sdk.NewContext(cms, true, nopLog)
-	testStoreService := &testKVStoreService{ctx: ctx}
-	return beacondb.New(testStoreService),
+	testStoreService := &testKVStoreService{}
+	return cms,
+		beacondb.New(testStoreService),
 		depositstore.NewStore(testStoreService, noopCloseFunc, nopLog),
 		nil
 }
@@ -104,7 +106,7 @@ func SetupTestState(t *testing.T, cs chain.Spec) (
 	*TestStateProcessorT,
 	*TestBeaconStateT,
 	*depositstore.KVStore,
-	*transition.Context,
+	core.ReadOnlyContext,
 ) {
 	t.Helper()
 
@@ -118,11 +120,13 @@ func SetupTestState(t *testing.T, cs chain.Spec) (
 
 	dummyProposerAddr := []byte{0xff}
 
-	kvStore, depositStore, err := initTestStores()
+	cms, kvStore, depositStore, err := BuildTestStores()
 	require.NoError(t, err)
-	beaconState := statedb.NewBeaconStateFromDB(kvStore, cs)
 
-	sp := core.NewStateProcessor[*transition.Context](
+	sdkCtx := sdk.NewContext(cms.CacheMultiStore(), true, log.NewNopLogger())
+	beaconState := statedb.NewBeaconStateFromDB(kvStore.WithContext(sdkCtx), cs)
+
+	sp := core.NewStateProcessor(
 		noop.NewLogger[any](),
 		cs,
 		execEngine,
@@ -134,12 +138,15 @@ func SetupTestState(t *testing.T, cs chain.Spec) (
 		nodemetrics.NewNoOpTelemetrySink(),
 	)
 
-	ctx := &transition.Context{
-		Context:                 context.Background(),
-		SkipPayloadVerification: true,
-		SkipValidateResult:      true,
-		ProposerAddress:         dummyProposerAddr,
-	}
+	ctx := transition.NewTransitionCtx(
+		sdkCtx,
+		0, // time
+		dummyProposerAddr,
+	).
+		WithVerifyPayload(false).
+		WithVerifyRandao(false).
+		WithVerifyResult(false).
+		WithMeterGas(false)
 
 	return sp, beaconState, depositStore, ctx
 }

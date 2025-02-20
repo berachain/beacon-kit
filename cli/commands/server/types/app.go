@@ -21,10 +21,10 @@
 package types
 
 import (
-	"context"
 	"io"
 
-	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/log/phuslu"
+	"github.com/berachain/beacon-kit/node-core/types"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	dbm "github.com/cosmos/cosmos-db"
 )
@@ -37,22 +37,14 @@ type (
 	// is defined by the server package and is typically implemented via a Viper
 	// literal defined on the server Context. Note, casting Get calls may not
 	// yield the expected types and could result in type assertion errors. It is
-	// recommend
-	// to either use the cast package or perform manual conversion for safety.
+	// recommended to either use the cast package or perform manual conversion for safety.
 	AppOptions interface {
 		Get(string) interface{}
 	}
 
 	// AppCreator is a function that allows us to lazily initialize an
 	// application using various configurations.
-	AppCreator[
-		AppT interface {
-			Start(ctx context.Context) error
-		},
-		LoggerT interface {
-			log.AdvancedLogger[LoggerT]
-		},
-	] func(
-		LoggerT, dbm.DB, io.Writer, *cmtcfg.Config, AppOptions,
-	) AppT
+	AppCreator func(
+		*phuslu.Logger, dbm.DB, io.Writer, *cmtcfg.Config, AppOptions,
+	) types.Node
 )

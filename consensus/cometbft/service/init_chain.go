@@ -30,7 +30,7 @@ import (
 	"github.com/sourcegraph/conc/iter"
 )
 
-func (s *Service[LoggerT]) initChain(
+func (s *Service) initChain(
 	ctx context.Context,
 	req *cmtabci.InitChainRequest,
 ) (*cmtabci.InitChainResponse, error) {
@@ -77,7 +77,7 @@ func (s *Service[LoggerT]) initChain(
 	// if req.InitialHeight is > 1, then we set the initial version on all
 	// stores
 	if req.InitialHeight > 1 {
-		if err = s.sm.CommitMultiStore().
+		if err = s.sm.GetCommitMultiStore().
 			SetInitialVersion(req.InitialHeight); err != nil {
 			return nil, err
 		}
@@ -85,6 +85,7 @@ func (s *Service[LoggerT]) initChain(
 
 	s.finalizeBlockState = s.resetState(ctx)
 
+	//nolint:contextcheck // ctx already passed via resetState
 	resValidators, err := s.initChainer(
 		s.finalizeBlockState.Context(),
 		req.AppStateBytes,
@@ -99,12 +100,12 @@ func (s *Service[LoggerT]) initChain(
 	return &cmtabci.InitChainResponse{
 		ConsensusParams: req.ConsensusParams,
 		Validators:      resValidators,
-		AppHash:         s.sm.CommitMultiStore().LastCommitID().Hash,
+		AppHash:         s.sm.GetCommitMultiStore().LastCommitID().Hash,
 	}, nil
 }
 
 // InitChainer initializes the chain.
-func (s *Service[LoggerT]) initChainer(
+func (s *Service) initChainer(
 	ctx sdk.Context,
 	appStateBytes []byte,
 ) ([]cmtabci.ValidatorUpdate, error) {

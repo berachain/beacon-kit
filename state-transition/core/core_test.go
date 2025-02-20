@@ -34,8 +34,8 @@ import (
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/primitives/version"
+	"github.com/berachain/beacon-kit/state-transition/core"
 	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	"github.com/stretchr/testify/require"
 )
@@ -92,7 +92,7 @@ func buildNextBlock(
 		parentBlkHeader.GetSlot()+1,
 		parentBlkHeader.GetProposerIndex(),
 		parentBlkHeader.HashTreeRoot(),
-		version.Deneb1,
+		version.Deneb1(),
 	)
 	require.NoError(t, err)
 	blk.Body = nextBlkBody
@@ -132,7 +132,7 @@ func testPayload(timestamp math.U64, withdrawals ...*engineprimitives.Withdrawal
 		Transactions:  [][]byte{},
 		Withdrawals:   withdrawals,
 		BaseFeePerGas: math.NewU256(0),
-		EpVersion:     version.Deneb1,
+		EpVersion:     version.Deneb1(),
 	}
 	return payload
 }
@@ -143,7 +143,7 @@ func moveToEndOfEpoch(
 	cs chain.Spec,
 	sp *statetransition.TestStateProcessorT,
 	st *statetransition.TestBeaconStateT,
-	ctx *transition.Context,
+	ctx core.ReadOnlyContext,
 	depRoot common.Root,
 ) *types.BeaconBlock {
 	t.Helper()

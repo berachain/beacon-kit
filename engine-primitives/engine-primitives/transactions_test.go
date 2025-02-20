@@ -111,8 +111,10 @@ var prysmConsistencyTests = []struct {
 // (engineprimitives.Transactions and engine.primitivesBartioTransactions
 // respectively) since those will be deprecated soon.
 func TestProperTransactions(t *testing.T) {
+	t.Parallel()
 	for _, tt := range prysmConsistencyTests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := engineprimitives.Transactions(
 				tt.txs,
 			).HashTreeRoot()

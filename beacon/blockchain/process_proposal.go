@@ -37,6 +37,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	"github.com/berachain/beacon-kit/state-transition/core"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -93,7 +94,15 @@ func (s *Service) ProcessProposal(
 	if numCommitments != len(sidecars) {
 		err = fmt.Errorf("expected %d sidecars, got %d: %w",
 			numCommitments, len(sidecars),
-			ErrSidecarCommittmentMismatch,
+			ErrSidecarCommitmentMismatch,
+		)
+		s.logger.Warn(err.Error())
+		return err
+	}
+	if uint64(numCommitments) > s.chainSpec.MaxBlobsPerBlock() {
+		err = fmt.Errorf("expected less than %d sidecars, got %d: %w",
+			s.chainSpec.MaxBlobsPerBlock(), numCommitments,
+			core.ErrExceedsBlockBlobLimit,
 		)
 		s.logger.Warn(err.Error())
 		return err
@@ -161,7 +170,11 @@ func (s *Service) VerifyIncomingBlockSignature(
 	if err != nil {
 		return errors.New("failed to create block signature verifier")
 	}
-	return signatureVerifierFn(beaconBlk, signature)
+	err = signatureVerifierFn(beaconBlk, signature)
+	if err != nil {
+		return fmt.Errorf("failed verifying incoming block signature: %w", err)
+	}
+	return err
 }
 
 // VerifyIncomingBlobSidecars verifies the BlobSidecars of an incoming
@@ -172,22 +185,19 @@ func (s *Service) VerifyIncomingBlobSidecars(
 	blkHeader *ctypes.BeaconBlockHeader,
 	kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],
 ) error {
-	s.logger.Info("Received incoming blob sidecars")
-
 	// Verify the blobs and ensure they match the local state.
 	err := s.blobProcessor.VerifySidecars(ctx, sidecars, blkHeader, kzgCommitments)
 	if err != nil {
 		s.logger.Error(
-			"rejecting incoming blob sidecars",
-			"reason", err,
+			"Blob sidecars verification failed - rejecting incoming blob sidecars",
+			"reason", err, "slot", blkHeader.GetSlot(),
 		)
 		return err
 	}
 
 	s.logger.Info(
 		"Blob sidecars verification succeeded - accepting incoming blob sidecars",
-		"num_blobs",
-		len(sidecars),
+		"num_blobs", len(sidecars), "slot", blkHeader.GetSlot(),
 	)
 	return nil
 }
@@ -206,10 +216,13 @@ func (s *Service) VerifyIncomingBlock(
 	preState := s.storageBackend.StateFromContext(ctx)
 
 	// Force a sync of the startup head if we haven't done so already.
-	//
-	// TODO: This is a super hacky. It should be handled better elsewhere,
-	// ideally via some broader sync service.
-	s.forceStartupSyncOnce.Do(func() { s.forceStartupHead(ctx, preState) })
+	// TODO: Address the need for calling forceStartupSyncOnce in ProcessProposal. On a running
+	// network (such as mainnet), it should be theoretically impossible to hit the case where
+	// ProcessProposal is called before FinalizeBlock. It may be the case that new networks run
+	// into this case during the first block after genesis.
+	// TODO: Consider panicing here if this fails. If our node cannot successfully run
+	// forceStartupSync, then we should shut down the node and fix the problem.
+	s.forceStartupSyncOnce.Do(func() { s.forceSyncUponProcess(ctx, preState) })
 
 	s.logger.Info(
 		"Received incoming beacon block",
@@ -318,22 +331,18 @@ func (s *Service) verifyStateRoot(
 ) error {
 	startTime := time.Now()
 	defer s.metrics.measureStateRootVerificationTime(startTime)
-	_, err := s.stateProcessor.Transition(
-		// We run with a non-optimistic engine here to ensure
-		// that the proposer does not try to push through a bad block.
-		&transition.Context{
-			Context:                 ctx,
-			MeterGas:                false,
-			OptimisticEngine:        false,
-			SkipPayloadVerification: false,
-			SkipValidateResult:      false,
-			SkipValidateRandao:      false,
-			ProposerAddress:         proposerAddress,
-			ConsensusTime:           consensusTime,
-		},
-		st, blk,
-	)
 
+	txCtx := transition.NewTransitionCtx(
+		ctx,
+		consensusTime,
+		proposerAddress,
+	).
+		WithVerifyPayload(true).
+		WithVerifyRandao(true).
+		WithVerifyResult(true).
+		WithMeterGas(false)
+
+	_, err := s.stateProcessor.Transition(txCtx, st, blk)
 	return err
 }
 

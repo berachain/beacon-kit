@@ -58,7 +58,7 @@ jobs:
         configs:
           - arch: arm64
             target-os: linux
-            runs-on: ubuntu-latest
+            runs-on: ubuntu-24.04-arm
           - arch: amd64
             target-os: linux
             runs-on: ubuntu-latest
@@ -72,7 +72,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
         with:
-          go-version: "^1.23"
+          go-version: "1.23.5"
         env:
           GOOS: ${{ matrix.configs.target-os }}
           GOARCH: ${{ matrix.configs.arch }}

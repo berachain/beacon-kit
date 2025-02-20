@@ -33,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	"github.com/berachain/beacon-kit/state-transition/core"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	depositdb "github.com/berachain/beacon-kit/storage/deposit"
 )
@@ -132,6 +133,9 @@ type ForkData[T any] interface {
 // PayloadBuilder represents a service that is responsible for
 // building eth1 blocks.
 type PayloadBuilder interface {
+	// Enabled may be enabled (e.g. for validators)
+	// or disabled (e.g. full nodes)
+	Enabled() bool
 	// RetrievePayload retrieves the payload for the given slot.
 	RetrievePayload(
 		ctx context.Context,
@@ -168,16 +172,14 @@ type SlotData interface {
 }
 
 // StateProcessor defines the interface for processing the state.
-type StateProcessor[
-	ContextT any,
-] interface {
+type StateProcessor interface {
 	// ProcessSlot processes the slot.
 	ProcessSlots(
 		st *statedb.StateDB, slot math.Slot,
 	) (transition.ValidatorUpdates, error)
 	// Transition performs the core state transition.
 	Transition(
-		ctx ContextT,
+		ctx core.ReadOnlyContext,
 		st *statedb.StateDB,
 		blk *ctypes.BeaconBlock,
 	) (transition.ValidatorUpdates, error)

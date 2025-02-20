@@ -21,12 +21,13 @@
 package beacon
 
 import (
+	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/primitives/constants"
 )
 
-func (h *Handler[ContextT]) GetRandao(c ContextT) (any, error) {
+func (h *Handler) GetRandao(c handlers.Context) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetRandaoRequest](
 		c,
 		h.Logger(),
@@ -49,9 +50,5 @@ func (h *Handler[ContextT]) GetRandao(c ContextT) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return beacontypes.ValidatorResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data:                randao,
-	}, nil
+	return beacontypes.NewResponse(randao), nil
 }

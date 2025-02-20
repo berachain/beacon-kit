@@ -22,9 +22,8 @@ package backend
 
 import (
 	"github.com/berachain/beacon-kit/chain"
-	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
-	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
+	"github.com/berachain/beacon-kit/node-core/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
@@ -36,7 +35,7 @@ import (
 type Backend struct {
 	sb   *storage.Backend
 	cs   chain.Spec
-	node *cometbft.Service[*phuslu.Logger]
+	node types.ConsensusService
 	sp   StateProcessor
 }
 
@@ -55,7 +54,7 @@ func New(
 
 // AttachQueryBackend sets the node on the backend for
 // querying historical heights.
-func (b *Backend) AttachQueryBackend(node *cometbft.Service[*phuslu.Logger]) {
+func (b *Backend) AttachQueryBackend(node types.ConsensusService) {
 	b.node = node
 }
 
@@ -113,8 +112,7 @@ func (b *Backend) stateFromSlotRaw(slot math.Slot) (*statedb.StateDB, math.Slot,
 	}
 	st = b.sb.StateFromContext(queryCtx)
 
-	// If using height 0 for the query context, make sure to return the latest
-	// slot.
+	// If using height 0 for the query context, make sure to return the latest slot.
 	if slot == 0 {
 		slot, err = st.GetSlot()
 		if err != nil {

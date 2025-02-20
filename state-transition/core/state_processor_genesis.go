@@ -28,13 +28,14 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	"github.com/berachain/beacon-kit/primitives/version"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
 // InitializePreminedBeaconStateFromEth1 initializes the beacon state.
 //
 //nolint:gocognit,funlen // todo fix.
-func (sp *StateProcessor[_]) InitializePreminedBeaconStateFromEth1(
+func (sp *StateProcessor) InitializePreminedBeaconStateFromEth1(
 	st *statedb.StateDB,
 	deposits ctypes.Deposits,
 	execPayloadHeader *ctypes.ExecutionPayloadHeader,
@@ -58,14 +59,14 @@ func (sp *StateProcessor[_]) InitializePreminedBeaconStateFromEth1(
 		return nil, err
 	}
 
-	if genesisVersion.ToUint32() != constants.GenesisVersion {
+	if !version.Equals(genesisVersion, version.Genesis()) {
 		return nil, fmt.Errorf("fork version not supported: %s", genesisVersion)
 	}
 	blkBody := &ctypes.BeaconBlockBody{
 		Eth1Data: &ctypes.Eth1Data{},
 		ExecutionPayload: &ctypes.ExecutionPayload{
 			ExtraData: make([]byte, ctypes.ExtraDataSize),
-			EpVersion: constants.GenesisVersion,
+			EpVersion: version.Genesis(),
 		},
 	}
 
@@ -148,7 +149,7 @@ func (sp *StateProcessor[_]) InitializePreminedBeaconStateFromEth1(
 	return validatorSetsDiffs(nil, activeVals), nil
 }
 
-func (sp *StateProcessor[_]) processGenesisActivation(st *statedb.StateDB) error {
+func (sp *StateProcessor) processGenesisActivation(st *statedb.StateDB) error {
 	vals, err := st.GetValidators()
 	if err != nil {
 		return fmt.Errorf("genesis activation, failed listing validators: %w", err)

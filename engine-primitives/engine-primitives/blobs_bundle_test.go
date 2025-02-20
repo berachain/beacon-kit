@@ -28,6 +28,7 @@ import (
 )
 
 func TestBlobsBundleV1(t *testing.T) {
+	t.Parallel()
 	bundle := &engineprimitives.BlobsBundleV1[[48]byte, [48]byte, [131072]byte]{
 		Commitments: [][48]byte{{1, 2, 3}, {4, 5, 6}},
 		Proofs:      [][48]byte{{7, 8, 9}, {10, 11, 12}},

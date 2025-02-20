@@ -31,7 +31,7 @@ import (
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-func (sp *StateProcessor[_]) validateGenesisDeposits(
+func (sp *StateProcessor) validateGenesisDeposits(
 	st *statedb.StateDB, deposits []*ctypes.Deposit,
 ) error {
 	eth1DepositIndex, err := st.GetEth1DepositIndex()
@@ -69,7 +69,7 @@ func (sp *StateProcessor[_]) validateGenesisDeposits(
 	return nil
 }
 
-func (sp *StateProcessor[_]) validateNonGenesisDeposits(
+func (sp *StateProcessor) validateNonGenesisDeposits(
 	ctx context.Context,
 	st *statedb.StateDB,
 	blkDeposits []*ctypes.Deposit,
@@ -80,19 +80,22 @@ func (sp *StateProcessor[_]) validateNonGenesisDeposits(
 		return err
 	}
 
-	expectedLocalDepositsLen := depositIndex + uint64(len(blkDeposits))
+	// Grab all previous deposits from genesis up to the current index + max deposits per block.
 	localDeposits, err := sp.ds.GetDepositsByIndex(
-		ctx, constants.FirstDepositIndex, expectedLocalDepositsLen,
+		ctx,
+		constants.FirstDepositIndex,
+		depositIndex+sp.cs.MaxDepositsPerBlock(),
 	)
 	if err != nil {
 		return err
 	}
 
-	// First verify that the local store returned all the expected deposits
-	if uint64(len(localDeposits)) != expectedLocalDepositsLen {
+	// First verify that the number of block deposits matches the number of local deposits.
+	totalBlockDeposits := depositIndex + uint64(len(blkDeposits))
+	if uint64(len(localDeposits)) != totalBlockDeposits {
 		return errors.Wrapf(ErrDepositsLengthMismatch,
-			"local deposit count: %d, expected deposit count: %d",
-			len(localDeposits), expectedLocalDepositsLen,
+			"block deposit count: %d, expected deposit count: %d",
+			totalBlockDeposits, len(localDeposits),
 		)
 	}
 

@@ -29,7 +29,7 @@ import (
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
-func (s *Service[LoggerT]) commit(
+func (s *Service) commit(
 	context.Context, *cmtabci.CommitRequest,
 ) (*cmtabci.CommitResponse, error) {
 	if s.finalizeBlockState == nil {
@@ -40,11 +40,11 @@ func (s *Service[LoggerT]) commit(
 	header := s.finalizeBlockState.Context().BlockHeader()
 	retainHeight := s.GetBlockRetentionHeight(header.Height)
 
-	rms, ok := s.sm.CommitMultiStore().(*rootmulti.Store)
+	rms, ok := s.sm.GetCommitMultiStore().(*rootmulti.Store)
 	if ok {
 		rms.SetCommitHeader(header)
 	}
-	s.sm.CommitMultiStore().Commit()
+	s.sm.GetCommitMultiStore().Commit()
 
 	s.finalizeBlockState = nil
 
@@ -77,7 +77,7 @@ func (s *Service[LoggerT]) commit(
 // all blocks, e.g. via a local config option min-retain-blocks. There may also
 // be a need to vary retention for other nodes, e.g. sentry nodes which do not
 // need historical blocks.
-func (s *Service[_]) GetBlockRetentionHeight(commitHeight int64) int64 {
+func (s *Service) GetBlockRetentionHeight(commitHeight int64) int64 {
 	// pruning is disabled if minRetainBlocks is zero
 	if s.minRetainBlocks == 0 {
 		return 0

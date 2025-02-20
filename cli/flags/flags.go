@@ -31,10 +31,10 @@ const (
 	BeaconKitAcceptTos = beaconKitRoot + "accept-tos"
 
 	// Builder Config.
-	builderRoot              = beaconKitRoot + "payload-builder."
-	SuggestedFeeRecipient    = builderRoot + "suggested-fee-recipient"
-	LocalBuilderEnabled      = builderRoot + "local-builder-enabled"
-	LocalBuildPayloadTimeout = builderRoot + "local-build-payload-timeout"
+	builderRoot           = beaconKitRoot + "payload-builder."
+	SuggestedFeeRecipient = builderRoot + "suggested-fee-recipient"
+	BuilderEnabled        = builderRoot + "enabled"
+	BuildPayloadTimeout   = builderRoot + "payload-timeout"
 
 	// Validator Config.
 	validatorRoot = beaconKitRoot + "validator."
@@ -72,6 +72,10 @@ const (
 	NodeAPIEnabled = nodeAPIRoot + "enabled"
 	NodeAPIAddress = nodeAPIRoot + "address"
 	NodeAPILogging = nodeAPIRoot + "logging"
+
+	// BLS Config.
+	PrivValidatorKeyFile   = "priv_validator_key_file"
+	PrivValidatorStateFile = "priv_validator_state_file"
 )
 
 // AddBeaconKitFlags implements servertypes.ModuleInitFlags interface.
@@ -100,6 +104,16 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 		RPCJWTRefreshInterval,
 		defaultCfg.Engine.RPCJWTRefreshInterval,
 		"rpc jwt refresh interval",
+	)
+	startCmd.Flags().Bool(
+		BuilderEnabled,
+		defaultCfg.PayloadBuilder.Enabled,
+		"payload builder enabled",
+	)
+	startCmd.Flags().Duration(
+		BuildPayloadTimeout,
+		defaultCfg.PayloadBuilder.PayloadTimeout,
+		"payload builder timeout",
 	)
 	startCmd.Flags().String(
 		SuggestedFeeRecipient,

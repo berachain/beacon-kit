@@ -25,66 +25,11 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/primitives/bytes"
-	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/stretchr/testify/require"
 )
 
-func TestFromUint32(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    uint32
-		expected bytes.B4
-	}{
-		{
-			name:     "Phase0",
-			input:    version.Phase0,
-			expected: bytes.B4{0, 0, 0, 0},
-		},
-		{
-			name:     "Altair",
-			input:    version.Altair,
-			expected: bytes.B4{1, 0, 0, 0},
-		},
-		{
-			name:     "Bellatrix",
-			input:    version.Bellatrix,
-			expected: bytes.B4{2, 0, 0, 0},
-		},
-		{
-			name:     "Capella",
-			input:    version.Capella,
-			expected: bytes.B4{3, 0, 0, 0},
-		},
-		{
-			name:     "Deneb",
-			input:    version.Deneb,
-			expected: bytes.B4{4, 0, 0, 0},
-		},
-		{
-			name:     "Deneb1",
-			input:    version.Deneb1,
-			expected: bytes.B4{4, 1, 0, 0},
-		},
-		{
-			name:     "Electra",
-			input:    version.Electra,
-			expected: bytes.B4{5, 0, 0, 0},
-		},
-		{
-			name:     "Electra1",
-			input:    version.Electra1,
-			expected: bytes.B4{5, 1, 0, 0},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := bytes.FromUint32(tt.input)
-			require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
-		})
-	}
-}
 func TestFromUint32_CustomType(t *testing.T) {
+	t.Parallel()
 	input := uint32(123456789)
 	expected := bytes.B4{}
 	binary.LittleEndian.PutUint32(expected[:], input)
@@ -93,63 +38,8 @@ func TestFromUint32_CustomType(t *testing.T) {
 	require.Equal(t, expected, result)
 }
 
-func TestToUint32(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    bytes.B4
-		expected uint32
-	}{
-		{
-			name:     "Phase0",
-			input:    bytes.B4{0, 0, 0, 0},
-			expected: version.Phase0,
-		},
-		{
-			name:     "Altair",
-			input:    bytes.B4{1, 0, 0, 0},
-			expected: version.Altair,
-		},
-		{
-			name:     "Bellatrix",
-			input:    bytes.B4{2, 0, 0, 0},
-			expected: version.Bellatrix,
-		},
-		{
-			name:     "Capella",
-			input:    bytes.B4{3, 0, 0, 0},
-			expected: version.Capella,
-		},
-		{
-			name:     "Deneb",
-			input:    bytes.B4{4, 0, 0, 0},
-			expected: version.Deneb,
-		},
-		{
-			name:     "Deneb1",
-			input:    bytes.B4{4, 1, 0, 0},
-			expected: version.Deneb1,
-		},
-		{
-			name:     "Electra",
-			input:    bytes.B4{5, 0, 0, 0},
-			expected: version.Electra,
-		},
-		{
-			name:     "Electra1",
-			input:    bytes.B4{5, 1, 0, 0},
-			expected: version.Electra1,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := tt.input.ToUint32()
-			require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
-		})
-	}
-}
-
 func TestToUint32_CustomType(t *testing.T) {
+	t.Parallel()
 	input := bytes.B4{0x15, 0xCD, 0x5B, 0x07}
 	expected := uint32(123456789)
 
@@ -158,6 +48,7 @@ func TestToUint32_CustomType(t *testing.T) {
 }
 
 func TestBytes4UnmarshalJSON(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		input   string
@@ -184,6 +75,7 @@ func TestBytes4UnmarshalJSON(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var got bytes.B4
 			err := got.UnmarshalJSON([]byte(tt.input))
 			if tt.wantErr {
@@ -197,6 +89,7 @@ func TestBytes4UnmarshalJSON(t *testing.T) {
 }
 
 func TestBytes4String(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		h    bytes.B4
@@ -216,6 +109,7 @@ func TestBytes4String(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := tt.h.String()
 			require.Equal(t, tt.want, got)
 		})
@@ -223,6 +117,7 @@ func TestBytes4String(t *testing.T) {
 }
 
 func TestBytes4MarshalText(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		h    bytes.B4
@@ -252,6 +147,7 @@ func TestBytes4MarshalText(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, err := tt.h.MarshalText()
 			require.NoError(t, err)
 			require.Equal(t, tt.want, string(got))
@@ -260,6 +156,7 @@ func TestBytes4MarshalText(t *testing.T) {
 }
 
 func TestBytes4UnmarshalText(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		input   string
@@ -286,6 +183,7 @@ func TestBytes4UnmarshalText(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var got bytes.B4
 			err := got.UnmarshalText([]byte(tt.input))
 			if tt.wantErr {
@@ -299,6 +197,7 @@ func TestBytes4UnmarshalText(t *testing.T) {
 }
 
 func TestToBytes4(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		input   []byte
@@ -332,6 +231,7 @@ func TestToBytes4(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result, err := bytes.ToBytes4(tt.input)
 			if tt.wantErr != nil {
 				require.ErrorIs(t, err, tt.wantErr)
@@ -344,6 +244,7 @@ func TestToBytes4(t *testing.T) {
 }
 
 func TestBytes4MarshalSSZ(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name  string
 		input bytes.B4
@@ -358,6 +259,7 @@ func TestBytes4MarshalSSZ(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, err := tt.input.MarshalSSZ()
 			require.NoError(t, err)
 			require.Equal(t, tt.want, got)
@@ -366,6 +268,7 @@ func TestBytes4MarshalSSZ(t *testing.T) {
 }
 
 func TestBytes4HashTreeRoot(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name  string
 		input bytes.B4
@@ -380,6 +283,7 @@ func TestBytes4HashTreeRoot(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, err := tt.input.HashTreeRoot()
 			require.NoError(t, err)
 			require.Equal(t, tt.want, got)

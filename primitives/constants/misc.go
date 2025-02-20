@@ -22,7 +22,6 @@ package constants
 
 import (
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/version"
 )
 
 // This file contains various constants as defined:
@@ -40,7 +39,4 @@ const (
 const (
 	// FirstDepositIndex represents the index of the first deposit in the system, set at genesis.
 	FirstDepositIndex uint64 = 0
-
-	// GenesisVersion represents the fork version of the genesis block.
-	GenesisVersion = version.Deneb
 )

@@ -23,11 +23,9 @@ package server
 import (
 	"context"
 
-	"cosmossdk.io/store"
 	types "github.com/berachain/beacon-kit/cli/commands/server/types"
 	clicontext "github.com/berachain/beacon-kit/cli/context"
 	service "github.com/berachain/beacon-kit/consensus/cometbft/service"
-	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/storage/db"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	cmtcfg "github.com/cometbft/cometbft/config"
@@ -49,13 +47,8 @@ import (
 )
 
 // Commands add server commands.
-func Commands[
-	T interface {
-		Start(context.Context) error
-		CommitMultiStore() store.CommitMultiStore
-	}, LoggerT log.AdvancedLogger[LoggerT],
-](
-	appCreator types.AppCreator[T, LoggerT],
+func Commands(
+	appCreator types.AppCreator,
 ) *cobra.Command {
 	cometCmd := &cobra.Command{
 		Use:     "comet",
@@ -70,7 +63,7 @@ func Commands[
 		VersionCmd(),
 		cmtcmd.ResetAllCmd,
 		cmtcmd.ResetStateCmd,
-		BootstrapStateCmd[T](appCreator),
+		BootstrapStateCmd(appCreator),
 	)
 
 	return cometCmd
@@ -231,11 +224,8 @@ which this app has been compiled.`,
 	}
 }
 
-func BootstrapStateCmd[T interface {
-	Start(context.Context) error
-	CommitMultiStore() store.CommitMultiStore
-}, LoggerT log.AdvancedLogger[LoggerT]](
-	appCreator types.AppCreator[T, LoggerT],
+func BootstrapStateCmd(
+	appCreator types.AppCreator,
 ) *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "bootstrap-state",
@@ -243,7 +233,7 @@ func BootstrapStateCmd[T interface {
 using a light client`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			logger := clicontext.GetLoggerFromCmd[LoggerT](cmd)
+			logger := clicontext.GetLoggerFromCmd(cmd)
 			cfg := clicontext.GetConfigFromCmd(cmd)
 			v := clicontext.GetViperFromCmd(cmd)
 

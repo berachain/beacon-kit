@@ -21,8 +21,11 @@
 package chain
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 )
 
 // Spec defines an interface for accessing chain-specific parameters.
@@ -174,10 +177,10 @@ type Spec interface {
 	// Helpers for ChainSpecData
 
 	// ActiveForkVersionForSlot returns the active fork version for a given slot.
-	ActiveForkVersionForSlot(slot math.Slot) uint32
+	ActiveForkVersionForSlot(slot math.Slot) common.Version
 
 	// ActiveForkVersionForEpoch returns the active fork version for a given epoch.
-	ActiveForkVersionForEpoch(epoch math.Epoch) uint32
+	ActiveForkVersionForEpoch(epoch math.Epoch) common.Version
 
 	// SlotToEpoch converts a slot number to an epoch number.
 	SlotToEpoch(slot math.Slot) math.Epoch
@@ -424,12 +427,28 @@ func (s spec) ValidatorSetCap() uint64 {
 
 // EVMInflationAddress returns the address on the EVM which will receive the
 // inflation amount of native EVM balance through a withdrawal every block.
-func (s spec) EVMInflationAddress(math.Slot) common.ExecutionAddress {
-	return s.Data.EVMInflationAddress
+func (s spec) EVMInflationAddress(slot math.Slot) common.ExecutionAddress {
+	fv := s.ActiveForkVersionForSlot(slot)
+	switch fv {
+	case version.Deneb1():
+		return s.Data.EVMInflationAddressDeneb1
+	case version.Deneb():
+		return s.Data.EVMInflationAddressGenesis
+	default:
+		panic(fmt.Sprintf("EVMInflationAddress not supported for this fork version: %d", fv))
+	}
 }
 
 // EVMInflationPerBlock returns the amount of native EVM balance (in Gwei) to
 // be minted to the EVMInflationAddress via a withdrawal every block.
-func (s spec) EVMInflationPerBlock(math.Slot) uint64 {
-	return s.Data.EVMInflationPerBlock
+func (s spec) EVMInflationPerBlock(slot math.Slot) uint64 {
+	fv := s.ActiveForkVersionForSlot(slot)
+	switch fv {
+	case version.Deneb1():
+		return s.Data.EVMInflationPerBlockDeneb1
+	case version.Deneb():
+		return s.Data.EVMInflationPerBlockGenesis
+	default:
+		panic(fmt.Sprintf("EVMInflationPerBlock not supported for this fork version: %d", fv))
+	}
 }

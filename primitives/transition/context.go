@@ -28,71 +28,99 @@ import (
 
 // Context is the context for the state transition.
 type Context struct {
-	context.Context
-
-	MeterGas bool
-	// OptimisticEngine indicates whether to optimistically assume
-	// the execution client has the correct state certain errors
-	// are returned by the execution engine.
-	OptimisticEngine bool
-	// SkipPayloadVerification indicates whether to skip calling NewPayload
-	// on the execution client. This can be done when the node is not
-	// syncing, and the payload is already known to the execution client.
-	SkipPayloadVerification bool
-	// SkipValidateRandao indicates whether to skip validating the Randao mix.
-	SkipValidateRandao bool
-	// SkipValidateResult indicates whether to validate the result of
-	// the state transition.
-	SkipValidateResult bool
-	// Address of current block proposer
-	ProposerAddress []byte
-	// ConsensusTime returns the timestamp of current consensus request.
+	// consensusCtx is the context passed by CometBFT callbacks
+	// We pass it down to be able to cancel processing (although
+	// currently CometBFT context is set to TODO)
+	consensusCtx context.Context
+	// consensusTime returns the timestamp of current consensus request.
 	// It is used to build next payload and to validate currentpayload.
-	ConsensusTime math.U64
+	consensusTime math.U64
+	// Address of current block proposer
+	proposerAddress []byte
+
+	// verifyPayload indicates whether to call NewPayload on the
+	// execution client. This can be done when the node is not
+	// syncing, and the payload is already known to the execution client.
+	verifyPayload bool
+	// verifyRandao indicates whether to validate the Randao mix.
+	verifyRandao bool
+	// verifyResult indicates whether to validate the result of
+	// the state transition.
+	verifyResult bool
+
+	// meterGas controls whether gas data related to the execution
+	// layer payload should be meter or not. We currently meter only
+	// finalized blocks.
+	meterGas bool
 }
 
-func (c *Context) GetMeterGas() bool {
-	return c.MeterGas
+func NewTransitionCtx(
+	consensusCtx context.Context,
+	time math.U64,
+	address []byte,
+) *Context {
+	return &Context{
+		consensusCtx:    consensusCtx,
+		consensusTime:   time,
+		proposerAddress: address,
+
+		// by default we don't meter gas
+		// (we care only about finalized blocks gas)
+		meterGas: false,
+
+		// by default we keep all verification
+		verifyPayload: true,
+		verifyRandao:  true,
+		verifyResult:  true,
+	}
 }
 
-// GetOptimisticEngine returns whether to optimistically assume the execution
-// client has the correct state when certain errors are returned by the
-// execution engine.
-func (c *Context) GetOptimisticEngine() bool {
-	return c.OptimisticEngine
+// Setters to control context attributes.
+func (c *Context) WithMeterGas(meter bool) *Context {
+	c.meterGas = meter
+	return c
 }
 
-// GetSkipPayloadVerification returns whether to skip calling NewPayload on the
-// execution client. This can be done when the node is not syncing, and the
-// payload is already known to the execution client.
-func (c *Context) GetSkipPayloadVerification() bool {
-	return c.SkipPayloadVerification
+func (c *Context) WithVerifyPayload(verifyPayload bool) *Context {
+	c.verifyPayload = verifyPayload
+	return c
 }
 
-// GetSkipValidateRandao returns whether to skip validating the Randao mix.
-func (c *Context) GetSkipValidateRandao() bool {
-	return c.SkipValidateRandao
+func (c *Context) WithVerifyRandao(verifyRandao bool) *Context {
+	c.verifyRandao = verifyRandao
+	return c
 }
 
-// GetSkipValidateResult returns whether to validate the result of the state
-// transition.
-func (c *Context) GetSkipValidateResult() bool {
-	return c.SkipValidateResult
+func (c *Context) WithVerifyResult(verifyResult bool) *Context {
+	c.verifyResult = verifyResult
+	return c
 }
 
-// GetProposerAddress returns the address of the validator
-// selected by consensus to propose the block.
-func (c *Context) GetProposerAddress() []byte {
-	return c.ProposerAddress
+// Getters of context attributes.
+func (c *Context) ConsensusCtx() context.Context {
+	return c.consensusCtx
 }
 
-// GetConsensusTime returns the timestamp of current consensus request.
-// It is used to build next payload and to validate currentpayload.
-func (c *Context) GetConsensusTime() math.U64 {
-	return c.ConsensusTime
+func (c *Context) ConsensusTime() math.U64 {
+	return c.consensusTime
 }
 
-// Unwrap returns the underlying standard context.
-func (c *Context) Unwrap() context.Context {
-	return c.Context
+func (c *Context) ProposerAddress() []byte {
+	return c.proposerAddress
+}
+
+func (c *Context) VerifyPayload() bool {
+	return c.verifyPayload
+}
+
+func (c *Context) VerifyRandao() bool {
+	return c.verifyRandao
+}
+
+func (c *Context) VerifyResult() bool {
+	return c.verifyResult
+}
+
+func (c *Context) MeterGas() bool {
+	return c.meterGas
 }

@@ -28,6 +28,7 @@ import (
 )
 
 func TestCalculateMerkleRoot(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name      string
 		index     merkle.GeneralizedIndex
@@ -59,6 +60,7 @@ func TestCalculateMerkleRoot(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result, err := merkle.CalculateRoot(
 				tt.index,
 				tt.leaf,
@@ -75,6 +77,7 @@ func TestCalculateMerkleRoot(t *testing.T) {
 }
 
 func TestVerifyMerkleProof(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name        string
 		index       merkle.GeneralizedIndex
@@ -109,6 +112,7 @@ func TestVerifyMerkleProof(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result, err := merkle.VerifyProof(
 				tt.index,
 				tt.leaf,
@@ -126,6 +130,7 @@ func TestVerifyMerkleProof(t *testing.T) {
 }
 
 func TestCalculateMultiMerkleRoot(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name      string
 		indices   merkle.GeneralizedIndices
@@ -175,6 +180,7 @@ func TestCalculateMultiMerkleRoot(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result, err := merkle.CalculateMultiRoot(
 				tt.indices,
 				tt.leaves,
@@ -191,6 +197,7 @@ func TestCalculateMultiMerkleRoot(t *testing.T) {
 }
 
 func TestVerifyMerkleMultiproof(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		indices merkle.GeneralizedIndices
@@ -248,6 +255,7 @@ func TestVerifyMerkleMultiproof(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := merkle.VerifyMultiproof(
 				tt.indices,
 				tt.leaves,

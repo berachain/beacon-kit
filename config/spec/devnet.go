@@ -23,19 +23,31 @@ package spec
 import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/ethereum/go-ethereum/params"
 )
 
 const (
-	// DevnetEVMInflationAddress is the address of the EVM inflation contract.
-	DevnetEVMInflationAddress = "0x6942069420694206942069420694206942069420"
+	// devnetEVMInflationAddress is the address of the EVM inflation contract.
+	devnetEVMInflationAddress = "0x6942069420694206942069420694206942069420"
 
-	// DevnetEVMInflationPerBlock is the amount of native EVM balance (in units
+	// devnetEVMInflationPerBlock is the amount of native EVM balance (in units
 	// of Gwei) to be minted per EL block.
-	DevnetEVMInflationPerBlock = 10e9
+	devnetEVMInflationPerBlock = 10 * params.GWei
 
-	// MaxStakeAmount is the maximum amount of native EVM balance (in units
+	// devnetMaxStakeAmount is the maximum amount of native EVM balance (in units
 	// of Gwei) that can be staked.
-	DevnetMaxStakeAmount = 4000e9
+	devnetMaxStakeAmount = 4000 * params.GWei
+
+	// devnetDeneb1ForkEpoch is the epoch at which the Deneb1 fork occurs.
+	devnetDeneb1ForkEpoch = 1
+
+	// devnetEVMInflationAddressDeneb1 is the address of the EVM inflation contract
+	// after the Deneb1 fork.
+	devnetEVMInflationAddressDeneb1 = "0x4206942069420694206942069420694206942069"
+
+	// devnetEVMInflationPerBlockDeneb1 is the amount of native EVM balance (in units
+	// of Gwei) to be minted per EL block after the Deneb1 fork.
+	devnetEVMInflationPerBlockDeneb1 = 11 * params.GWei
 )
 
 // DevnetChainSpecData is the chain.SpecData for a devnet. It is similar to mainnet but
@@ -46,12 +58,19 @@ func DevnetChainSpecData() *chain.SpecData {
 	specData := MainnetChainSpecData()
 	specData.DepositEth1ChainID = DevnetEth1ChainID
 
+	// Deneb1 fork takes place at epoch 1.
+	specData.Deneb1ForkEpoch = devnetDeneb1ForkEpoch
+
 	// EVM inflation is different from mainnet to test.
-	specData.EVMInflationAddress = common.NewExecutionAddressFromHex(DevnetEVMInflationAddress)
-	specData.EVMInflationPerBlock = DevnetEVMInflationPerBlock
+	specData.EVMInflationAddressGenesis = common.NewExecutionAddressFromHex(devnetEVMInflationAddress)
+	specData.EVMInflationPerBlockGenesis = devnetEVMInflationPerBlock
+
+	// EVM inflation is different from mainnet for now, after the Deneb1 fork.
+	specData.EVMInflationAddressGenesis = common.NewExecutionAddressFromHex(devnetEVMInflationAddressDeneb1)
+	specData.EVMInflationPerBlockGenesis = devnetEVMInflationPerBlockDeneb1
 
 	// Staking is different from mainnet for now.
-	specData.MaxEffectiveBalance = DevnetMaxStakeAmount
+	specData.MaxEffectiveBalance = devnetMaxStakeAmount
 	specData.EjectionBalance = defaultEjectionBalance
 	specData.EffectiveBalanceIncrement = defaultEffectiveBalanceIncrement
 	specData.SlotsPerEpoch = defaultSlotsPerEpoch
