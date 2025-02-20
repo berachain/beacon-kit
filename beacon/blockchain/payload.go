@@ -56,6 +56,7 @@ func (s *Service) forceSyncUponProcess(
 			"forceSyncUponProcess, failed to retrieve latest execution payload header",
 			"error", err,
 		)
+		return
 	}
 
 	s.logger.Info(
