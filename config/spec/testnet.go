@@ -23,11 +23,16 @@ package spec
 import "github.com/berachain/beacon-kit/chain"
 
 // TestnetChainSpecData is the chain.SpecData for Berachain's public testnet.
-//
-// TODO: adjust values before testnet genesis.
 func TestnetChainSpecData() *chain.SpecData {
 	specData := MainnetChainSpecData()
+
+	// Testnet uses chain ID of 80069.
 	specData.DepositEth1ChainID = TestnetEth1ChainID
+
+	// Genesis values of EVM inflation are consistent with those of mainnet.
+	// Testnet activates Deneb1 for BERA minting at epoch 1.
+	specData.Deneb1ForkEpoch = 1
+
 	return specData
 }
 

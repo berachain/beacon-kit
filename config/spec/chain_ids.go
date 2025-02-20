@@ -27,8 +27,6 @@ const (
 	// MainnetEth1ChainID is the chain ID for the Berachain mainnet.
 	MainnetEth1ChainID uint64 = 80094
 
-	// TestnetEth1ChainID is the chain ID for the public Dartio testnet.
-	//
-	// TODO: correctly set the chain name and ID.
+	// TestnetEth1ChainID is the chain ID for the Berachain public testnet.
 	TestnetEth1ChainID uint64 = 80069
 )
