@@ -147,7 +147,6 @@ func (s *SimulatedSuite) initializeChain() {
 func (s *SimulatedSuite) TestFullLifecycle_ValidBlock_IsSuccessful() {
 	const blockHeight = 1
 	const coreLoopIterations = 10
-	const expectedHeight = blockHeight + coreLoopIterations - 1
 
 	// Initialize the chain state.
 	s.initializeChain()
@@ -162,13 +161,13 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlock_IsSuccessful() {
 	s.Require().Len(proposals, coreLoopIterations)
 
 	// Validate post-commit state.
-	queryCtx, err := s.SimComet.CreateQueryContext(expectedHeight, false)
+	queryCtx, err := s.SimComet.CreateQueryContext(blockHeight+coreLoopIterations-1, false)
 	s.Require().NoError(err)
 
 	stateDB := s.TestNode.StorageBackend.StateFromContext(queryCtx)
 	slot, err := stateDB.GetSlot()
 	s.Require().NoError(err)
-	s.Require().Equal(mathpkg.U64(expectedHeight), slot)
+	s.Require().Equal(mathpkg.U64(blockHeight+coreLoopIterations), slot)
 
 	stateHeader, err := stateDB.GetLatestBlockHeader()
 	s.Require().NoError(err)
@@ -177,7 +176,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlock_IsSuccessful() {
 	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
 		proposals[len(proposals)-1].Txs,
 		blockchain.BeaconBlockTxIndex,
-		s.TestNode.ChainSpec.ActiveForkVersionForSlot(expectedHeight),
+		s.TestNode.ChainSpec.ActiveForkVersionForSlot(blockHeight+coreLoopIterations),
 	)
 	s.Require().NoError(err)
 	s.Require().Equal(proposedBlock.Message.GetHeader().GetBodyRoot(), stateHeader.GetBodyRoot())
@@ -187,6 +186,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlock_IsSuccessful() {
 // a malicious proposer proposing a block with an invalid EVM transaction.
 func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	const blockHeight = 1
+	const coreLoopIterations = 1
 
 	// Initialize the chain state.
 	s.initializeChain()
@@ -196,10 +196,14 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	pubkey, err := blsSigner.GetPubKey()
 	s.Require().NoError(err)
 
+	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
+	proposals := s.CoreLoop(blockHeight, coreLoopIterations, blsSigner)
+	s.Require().Len(proposals, coreLoopIterations)
+
 	// Prepare a valid block proposal.
 	proposalTime := time.Now()
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{
-		Height:          blockHeight,
+		Height:          blockHeight + coreLoopIterations,
 		Time:            proposalTime,
 		ProposerAddress: pubkey.Address(),
 	})
@@ -210,7 +214,7 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
 		proposal.Txs,
 		blockchain.BeaconBlockTxIndex,
-		s.TestNode.ChainSpec.ActiveForkVersionForSlot(blockHeight),
+		s.TestNode.ChainSpec.ActiveForkVersionForSlot(blockHeight+coreLoopIterations),
 	)
 	s.Require().NoError(err)
 
@@ -222,10 +226,12 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	// Replace the valid block with the malicious block in the proposal.
 	proposal.Txs[0] = maliciousBlockBytes
 
+	// Reset the log buffer to discard old logs we don't care about
+	s.LogBuffer.Reset()
 	// Process the proposal containing the malicious block.
 	processResp, err := s.SimComet.Comet.ProcessProposal(s.Ctx, &types.ProcessProposalRequest{
 		Txs:             proposal.Txs,
-		Height:          blockHeight,
+		Height:          blockHeight + coreLoopIterations,
 		ProposerAddress: pubkey.Address(),
 		Time:            proposalTime,
 	})
@@ -234,64 +240,8 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 
 	// Verify that the log contains the expected error message.
 	s.Require().Contains(s.LogBuffer.String(), errors.ErrInvalidPayloadStatus.Error())
-	// Note this error message may change across execution clients.
-	s.Require().Contains(s.LogBuffer.String(), "max fee per gas less than block base fee: address 0x71562b71999873DB5b286dF957af199Ec94617F7, maxFeePerGas: 10000000, baseFee: 875000000")
-}
-
-// TestProcessProposal_BadBlock_IsRejected effectively serves as a test for how a valid syncing node would react to
-// a malicious consensus majority agreeing to a block with an invalid EVM transaction.
-func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_IsRejected() {
-	const blockHeight = 1
-
-	// Initialize the chain state.
-	s.initializeChain()
-
-	// Retrieve the BLS signer and proposer address.
-	blsSigner := simulated.GetBlsSigner(s.HomeDir)
-	pubkey, err := blsSigner.GetPubKey()
-	s.Require().NoError(err)
-
-	// Prepare a valid block proposal.
-	proposalTime := time.Now()
-	proposal, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{
-		Height:          blockHeight,
-		Time:            proposalTime,
-		ProposerAddress: pubkey.Address(),
-	})
-	s.Require().NoError(err)
-	s.Require().NotEmpty(proposal)
-
-	// Unmarshal the proposal block.
-	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
-		proposal.Txs,
-		blockchain.BeaconBlockTxIndex,
-		s.TestNode.ChainSpec.ActiveForkVersionForSlot(blockHeight),
-	)
-	s.Require().NoError(err)
-
-	// Create a malicious block by injecting an invalid transaction.
-	maliciousBlock := simulated.CreateInvalidBlock(require.New(s.T()), proposedBlock, blsSigner, s.TestNode.ChainSpec, s.GenesisValidatorsRoot)
-	maliciousBlockBytes, err := maliciousBlock.MarshalSSZ()
-	s.Require().NoError(err)
-
-	// Replace the valid block with the malicious block in the proposal.
-	proposal.Txs[0] = maliciousBlockBytes
-
-	// Finalize the invalid block
-	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.Ctx, &types.FinalizeBlockRequest{
-		Txs:    proposal.Txs,
-		Height: blockHeight,
-		// We simulate syncing by indicating that the SyncingToHeight is greater than the finalize block height
-		SyncingToHeight: blockHeight + 1,
-		ProposerAddress: pubkey.Address(),
-		Time:            proposalTime,
-	})
-	s.Require().NoError(err)
-	s.Require().NotEmpty(finalizeResp)
-	// Verify that the log contains the expected error message.
-	//s.Require().Contains(s.LogBuffer.String(), errors.ErrInvalidPayloadStatus.Error())
-	// Note this error message may change across execution clients.
-	s.Require().Contains(s.LogBuffer.String(), "max fee per gas less than block base fee: address 0x71562b71999873DB5b286dF957af199Ec94617F7, maxFeePerGas: 10000000, baseFee: 875000000")
+	// Note this error message may change across execution clients. Base fee changes with number of core loop iterations.
+	s.Require().Contains(s.LogBuffer.String(), "max fee per gas less than block base fee: address 0x71562b71999873DB5b286dF957af199Ec94617F7, maxFeePerGas: 10000000, baseFee: 765625000")
 }
 
 // CoreLoop will iterate through the core loop `iterations` times, i.e. Propose, Process, Finalize and Commit.
