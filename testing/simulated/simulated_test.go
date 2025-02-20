@@ -244,6 +244,64 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	s.Require().Contains(s.LogBuffer.String(), "max fee per gas less than block base fee: address 0x71562b71999873DB5b286dF957af199Ec94617F7, maxFeePerGas: 10000000, baseFee: 765625000")
 }
 
+// TestFinalizeBlock_BadBlock_Errors effectively serves as a test for how a valid node would react to
+// a malicious consensus majority agreeing to a block with an invalid EVM transaction.
+func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_Errors() {
+	const blockHeight = 1
+	const coreLoopIterations = 1
+
+	// Initialize the chain state.
+	s.initializeChain()
+
+	// Retrieve the BLS signer and proposer address.
+	blsSigner := simulated.GetBlsSigner(s.HomeDir)
+	pubkey, err := blsSigner.GetPubKey()
+	s.Require().NoError(err)
+
+	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
+	proposals := s.CoreLoop(blockHeight, coreLoopIterations, blsSigner)
+	s.Require().Len(proposals, coreLoopIterations)
+
+	// Prepare a valid block proposal.
+	proposalTime := time.Now()
+	proposal, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{
+		Height:          blockHeight + coreLoopIterations,
+		Time:            proposalTime,
+		ProposerAddress: pubkey.Address(),
+	})
+	s.Require().NoError(err)
+	s.Require().NotEmpty(proposal)
+
+	// Unmarshal the proposal block.
+	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
+		proposal.Txs,
+		blockchain.BeaconBlockTxIndex,
+		s.TestNode.ChainSpec.ActiveForkVersionForSlot(blockHeight+coreLoopIterations),
+	)
+	s.Require().NoError(err)
+
+	// Create a malicious block by injecting an invalid transaction.
+	maliciousBlock := simulated.CreateInvalidBlock(require.New(s.T()), proposedBlock, blsSigner, s.TestNode.ChainSpec, s.GenesisValidatorsRoot)
+	maliciousBlockBytes, err := maliciousBlock.MarshalSSZ()
+	s.Require().NoError(err)
+
+	// Replace the valid block with the malicious block in the proposal.
+	proposal.Txs[0] = maliciousBlockBytes
+
+	// Reset the log buffer to discard old logs we don't care about
+	s.LogBuffer.Reset()
+	// Finalize the proposal containing the malicious block.
+	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.Ctx, &types.FinalizeBlockRequest{
+		Txs:             proposal.Txs,
+		Height:          blockHeight + coreLoopIterations,
+		ProposerAddress: pubkey.Address(),
+		Time:            proposalTime,
+	})
+	s.Require().ErrorIs(err, errors.ErrInvalidPayloadStatus)
+	s.Require().Nil(finalizeResp)
+	s.Require().Contains(s.LogBuffer.String(), "max fee per gas less than block base fee: address 0x71562b71999873DB5b286dF957af199Ec94617F7, maxFeePerGas: 10000000, baseFee: 765625000")
+}
+
 // CoreLoop will iterate through the core loop `iterations` times, i.e. Propose, Process, Finalize and Commit.
 // Returns the list of proposed comet blocks.
 func (s *SimulatedSuite) CoreLoop(startHeight, iterations int64, proposer *signer.BLSSigner) []*types.PrepareProposalResponse {
