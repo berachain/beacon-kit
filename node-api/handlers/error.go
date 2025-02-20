@@ -22,7 +22,7 @@ package handlers
 
 // HTTPError represents an HTTP error response.
 type HTTPError struct {
-	Code    int    `json:"-"`
+	Code    int    `json:"code"`
 	Message string `json:"message"`
 }
 

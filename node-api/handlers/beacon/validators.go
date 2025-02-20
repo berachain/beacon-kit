@@ -89,8 +89,10 @@ func (h *Handler) GetStateValidator(c handlers.Context) (any, error) {
 	)
 	if err != nil {
 		if errors.Is(err, backend.ErrValidatorNotFound) {
-			// The response should be nil without an error.
-			return beacontypes.NewResponse(validator), nil
+			return &handlers.HTTPError{
+				Code:    http.StatusNotFound,
+				Message: "Validator not found",
+			}, nil
 		}
 		return nil, err
 	}
