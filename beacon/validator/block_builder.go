@@ -242,16 +242,17 @@ func (s *Service) retrieveExecutionPayload(
 		return nil, err
 	}
 
+	nextPayloadTime := payloadtime.Next(
+		slotData.GetConsensusTime(),
+		lph.GetTimestamp(),
+		false, // buildOptimistically
+	)
 	return s.localPayloadBuilder.RequestPayloadSync(
 		ctx,
 		st,
 		blk.GetSlot(),
-		payloadtime.Next(
-			slotData.GetConsensusTime(),
-			lph.GetTimestamp(),
-			false, // buildOptimistically
-		).Unwrap(),
 		blk.GetParentBlockRoot(),
+		nextPayloadTime.Unwrap(),
 		lph.GetBlockHash(),
 		lph.GetParentHash(),
 	)

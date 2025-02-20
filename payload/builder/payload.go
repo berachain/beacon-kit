@@ -38,9 +38,9 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 	ctx context.Context,
 	st *statedb.StateDB,
 	slot math.Slot,
-	timestamp uint64,
 	parentBlockRoot common.Root,
-	headEth1BlockHash common.ExecutionHash,
+	timestamp uint64,
+	parentEth1Hash common.ExecutionHash,
 	finalEth1BlockHash common.ExecutionHash,
 ) (*engineprimitives.PayloadID, error) {
 	if !pb.Enabled() {
@@ -70,7 +70,7 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 	// Submit the forkchoice update to the execution client.
 	req := ctypes.BuildForkchoiceUpdateRequest(
 		&engineprimitives.ForkchoiceStateV1{
-			HeadBlockHash:      headEth1BlockHash,
+			HeadBlockHash:      parentEth1Hash,
 			SafeBlockHash:      finalEth1BlockHash,
 			FinalizedBlockHash: finalEth1BlockHash,
 		},
@@ -96,8 +96,8 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 	ctx context.Context,
 	st *statedb.StateDB,
 	slot math.Slot,
-	timestamp uint64,
 	parentBlockRoot common.Root,
+	timestamp uint64,
 	parentEth1Hash common.ExecutionHash,
 	finalBlockHash common.ExecutionHash,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
@@ -111,8 +111,8 @@ func (pb *PayloadBuilder) RequestPayloadSync(
 		ctx,
 		st,
 		slot,
-		timestamp,
 		parentBlockRoot,
+		timestamp,
 		parentEth1Hash,
 		finalBlockHash,
 	)

@@ -288,8 +288,8 @@ type (
 			ctx context.Context,
 			st *statedb.StateDB,
 			slot math.Slot,
-			timestamp uint64,
 			parentBlockRoot common.Root,
+			timestamp uint64,
 			headEth1BlockHash common.ExecutionHash,
 			finalEth1BlockHash common.ExecutionHash,
 		) (ctypes.BuiltExecutionPayloadEnv, error)
