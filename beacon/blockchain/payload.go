@@ -48,9 +48,42 @@ func (s *Service) forceSyncUponProcess(
 
 	// TODO: Verify if the slot number is correct here, I believe in current
 	// form it should be +1'd. Not a big deal until hardforks are in play though.
-	if err = s.localBuilder.SendForceHeadFCU(ctx, st, slot+1); err != nil {
+	slot++
+
+	lph, err := st.GetLatestExecutionPayloadHeader()
+	if err != nil {
 		s.logger.Error(
-			"failed to send force head FCU",
+			"forceSyncUponProcess, failed to retrieve latest execution payload header",
+			"error", err,
+		)
+	}
+
+	s.logger.Info(
+		"forceSyncUponProcess, sending FCU",
+		"head_eth1_hash", lph.GetBlockHash(),
+		"safe_eth1_hash", lph.GetParentHash(),
+		"finalized_eth1_hash", lph.GetParentHash(),
+		"for_slot", slot.Base10(),
+	)
+
+	// Submit the forkchoice update to the execution client.
+	req := ctypes.BuildForkchoiceUpdateRequestNoAttrs(
+		&engineprimitives.ForkchoiceStateV1{
+			HeadBlockHash:      lph.GetBlockHash(),
+			SafeBlockHash:      lph.GetParentHash(),
+			FinalizedBlockHash: lph.GetParentHash(),
+		},
+		s.chainSpec.ActiveForkVersionForSlot(slot),
+	)
+	_, _, err = s.executionEngine.NotifyForkchoiceUpdate(ctx, req)
+	if err != nil {
+		s.logger.Error(
+			"forceSyncUponProcess, failed to notify FCU",
+			"error", err,
+		)
+	} else {
+		s.logger.Info(
+			"forceSyncUponProcess, successfully notified FCU",
 			"error", err,
 		)
 	}
