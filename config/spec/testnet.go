@@ -26,18 +26,19 @@ import (
 )
 
 // TestnetChainSpecData is the chain.SpecData for Berachain's public testnet.
-//
-// TODO: adjust values before testnet genesis.
 func TestnetChainSpecData() *chain.SpecData {
 	specData := MainnetChainSpecData()
 	specData.DepositEth1ChainID = TestnetEth1ChainID
 
-	// Unlike mainnet, testnet activates Bera minting at block 1
-	specData.EVMInflationAddressDeneb1 = common.NewExecutionAddressFromHex(mainnetEVMInflationAddressDeneb1)
+	// Genesis values of inflation are unused since Deneb1 fork is activated at block 1 (epoch 0).
 	specData.EVMInflationAddressGenesis = common.NewExecutionAddressFromHex(mainnetEVMInflationAddressDeneb1)
-
-	specData.EVMInflationPerBlockDeneb1 = mainnetEVMInflationPerBlockDeneb1
 	specData.EVMInflationPerBlockGenesis = mainnetEVMInflationPerBlockDeneb1
+
+	// Unlike mainnet, testnet activates Deneb1 (Bera minting) at block 1 (epoch 0).
+	specData.Deneb1ForkEpoch = 0
+	specData.EVMInflationAddressDeneb1 = common.NewExecutionAddressFromHex(mainnetEVMInflationAddressDeneb1)
+	specData.EVMInflationPerBlockDeneb1 = mainnetEVMInflationPerBlockDeneb1
+
 	return specData
 }
 
