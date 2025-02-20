@@ -30,12 +30,12 @@ func TestnetChainSpecData() *chain.SpecData {
 	specData := MainnetChainSpecData()
 	specData.DepositEth1ChainID = TestnetEth1ChainID
 
-	// Genesis values of inflation are unused since Deneb1 fork is activated at block 1 (epoch 0).
+	// Genesis values of EVM inflation are consistent with Deneb1 to keep BERA minting on.
 	specData.EVMInflationAddressGenesis = common.NewExecutionAddressFromHex(mainnetEVMInflationAddressDeneb1)
 	specData.EVMInflationPerBlockGenesis = mainnetEVMInflationPerBlockDeneb1
 
-	// Unlike mainnet, testnet activates Deneb1 (Bera minting) at block 1 (epoch 0).
-	specData.Deneb1ForkEpoch = 0
+	// Unlike mainnet, testnet activates Deneb1 at epoch 1.
+	specData.Deneb1ForkEpoch = 1
 	specData.EVMInflationAddressDeneb1 = common.NewExecutionAddressFromHex(mainnetEVMInflationAddressDeneb1)
 	specData.EVMInflationPerBlockDeneb1 = mainnetEVMInflationPerBlockDeneb1
 
