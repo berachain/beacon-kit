@@ -167,7 +167,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlock_IsSuccessful() {
 	stateDB := s.TestNode.StorageBackend.StateFromContext(queryCtx)
 	slot, err := stateDB.GetSlot()
 	s.Require().NoError(err)
-	s.Require().Equal(mathpkg.U64(blockHeight+coreLoopIterations), slot)
+	s.Require().Equal(mathpkg.U64(blockHeight+coreLoopIterations-1), slot)
 
 	stateHeader, err := stateDB.GetLatestBlockHeader()
 	s.Require().NoError(err)
@@ -176,7 +176,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlock_IsSuccessful() {
 	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
 		proposals[len(proposals)-1].Txs,
 		blockchain.BeaconBlockTxIndex,
-		s.TestNode.ChainSpec.ActiveForkVersionForSlot(blockHeight+coreLoopIterations),
+		s.TestNode.ChainSpec.ActiveForkVersionForSlot(slot),
 	)
 	s.Require().NoError(err)
 	s.Require().Equal(proposedBlock.Message.GetHeader().GetBodyRoot(), stateHeader.GetBodyRoot())
