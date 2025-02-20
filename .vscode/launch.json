@@ -90,7 +90,34 @@
             },
         },
         {
-            "name": "Start beacond",
+            "name": "Start beacond (mainnet)",
+            "type": "go",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "mode": "exec",
+            "program": "${workspaceFolder}/build/bin/beacond",
+            "args": [
+                "start",
+                "--pruning=nothing",
+                "--beacon-kit.logger.log-level=info",
+                "--home=${workspaceFolder}/.tmp/beacond",
+                "--beacon-kit.engine.jwt-secret-path=${workspaceFolder}/testing/files/jwt.hex",
+                "--beacon-kit.block-store-service.enabled",
+                "--beacon-kit.node-api.enabled",
+                "--beacon-kit.node-api.logging",
+            ],
+            "internalConsoleOptions": "openOnSessionStart",
+            "env": {
+                "CHAIN_SPEC": "mainnet"
+            },
+            "presentation": {
+                "group": "run",
+                "order": 1
+            },
+            "suppressMultipleSessionWarning": true,
+        },
+        {
+            "name": "Start beacond (devnet)",
             "type": "go",
             "request": "launch",
             "preLaunchTask": "build",
@@ -112,7 +139,7 @@
             },
             "presentation": {
                 "group": "run",
-                "order": 1
+                "order": 2
             },
             "suppressMultipleSessionWarning": true,
         }
