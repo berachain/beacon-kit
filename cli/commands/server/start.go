@@ -22,8 +22,6 @@
 package server
 
 import (
-	"context"
-
 	pruningtypes "cosmossdk.io/store/pruning/types"
 	types "github.com/berachain/beacon-kit/cli/commands/server/types"
 	clicontext "github.com/berachain/beacon-kit/cli/context"
@@ -51,11 +49,7 @@ const (
 
 // StartCmdOptions defines options that can be customized in
 // `StartCmdWithOptions`,.
-type StartCmdOptions[
-	T interface {
-		Start(context.Context) error
-	},
-] struct {
+type StartCmdOptions struct {
 	// AddFlags allows adding custom flags to the start command.
 	AddFlags func(cmd *cobra.Command)
 }
@@ -63,13 +57,9 @@ type StartCmdOptions[
 // StartCmdWithOptions runs the service passed in, either stand-alone or
 // in-process with
 // CometBFT.
-func StartCmdWithOptions[
-	T interface {
-		Start(context.Context) error
-	},
-](
-	appCreator types.AppCreator[T],
-	opts StartCmdOptions[T],
+func StartCmdWithOptions(
+	appCreator types.AppCreator,
+	opts StartCmdOptions,
 ) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "start",
@@ -116,13 +106,9 @@ custom: allow pruning options to be manually specified through 'pruning-keep-rec
 }
 
 // addStartNodeFlags should be added to any CLI commands that start the network.
-func addStartNodeFlags[
-	T interface {
-		Start(context.Context) error
-	},
-](
+func addStartNodeFlags(
 	cmd *cobra.Command,
-	opts StartCmdOptions[T],
+	opts StartCmdOptions,
 ) {
 	cmd.Flags().String(
 		flagAddress, "tcp://127.0.0.1:26658", "Listen address")

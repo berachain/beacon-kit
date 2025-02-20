@@ -26,13 +26,13 @@ import (
 
 	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	nodecoretypes "github.com/berachain/beacon-kit/node-core/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -704,7 +704,7 @@ type (
 	}
 
 	NodeAPIBackend interface {
-		AttachQueryBackend(node *cometbft.Service)
+		AttachQueryBackend(node nodecoretypes.ConsensusService)
 		ChainSpec() chain.Spec
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		GetSlotByStateRoot(root common.Root) (math.Slot, error)
@@ -770,7 +770,7 @@ type (
 		ValidatorByID(
 			slot math.Slot, id string,
 		) (*types.ValidatorData, error)
-		ValidatorsByIDs(
+		FilteredValidators(
 			slot math.Slot,
 			ids []string,
 			statuses []string,
