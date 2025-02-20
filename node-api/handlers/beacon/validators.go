@@ -87,16 +87,17 @@ func (h *Handler) GetStateValidator(c handlers.Context) (any, error) {
 		slot,
 		req.ValidatorID,
 	)
-	if err != nil {
-		if errors.Is(err, backend.ErrValidatorNotFound) {
-			return &handlers.HTTPError{
-				Code:    http.StatusNotFound,
-				Message: "Validator not found",
-			}, nil
-		}
+	switch {
+	case errors.Is(err, backend.ErrValidatorNotFound):
+		return &handlers.HTTPError{
+			Code:    http.StatusNotFound,
+			Message: "Validator not found",
+		}, nil
+	case err != nil:
 		return nil, err
+	default:
+		return beacontypes.NewResponse(validator), nil
 	}
-	return beacontypes.NewResponse(validator), nil
 }
 
 func (h *Handler) GetStateValidatorBalances(c handlers.Context) (any, error) {
