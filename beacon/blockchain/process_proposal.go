@@ -185,22 +185,19 @@ func (s *Service) VerifyIncomingBlobSidecars(
 	blkHeader *ctypes.BeaconBlockHeader,
 	kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],
 ) error {
-	s.logger.Info("Received incoming blob sidecars")
-
 	// Verify the blobs and ensure they match the local state.
 	err := s.blobProcessor.VerifySidecars(ctx, sidecars, blkHeader, kzgCommitments)
 	if err != nil {
 		s.logger.Error(
-			"rejecting incoming blob sidecars",
-			"reason", err,
+			"Blob sidecars verification failed - rejecting incoming blob sidecars",
+			"reason", err, "slot", blkHeader.GetSlot(),
 		)
 		return err
 	}
 
 	s.logger.Info(
 		"Blob sidecars verification succeeded - accepting incoming blob sidecars",
-		"num_blobs",
-		len(sidecars),
+		"num_blobs", len(sidecars), "slot", blkHeader.GetSlot(),
 	)
 	return nil
 }
@@ -219,10 +216,13 @@ func (s *Service) VerifyIncomingBlock(
 	preState := s.storageBackend.StateFromContext(ctx)
 
 	// Force a sync of the startup head if we haven't done so already.
-	//
-	// TODO: This is a super hacky. It should be handled better elsewhere,
-	// ideally via some broader sync service.
-	s.forceStartupSyncOnce.Do(func() { s.forceStartupHead(ctx, preState) })
+	// TODO: Address the need for calling forceStartupSyncOnce in ProcessProposal. On a running
+	// network (such as mainnet), it should be theoretically impossible to hit the case where
+	// ProcessProposal is called before FinalizeBlock. It may be the case that new networks run
+	// into this case during the first block after genesis.
+	// TODO: Consider panicing here if this fails. If our node cannot successfully run
+	// forceStartupSync, then we should shut down the node and fix the problem.
+	s.forceStartupSyncOnce.Do(func() { s.forceSyncUponProcess(ctx, preState) })
 
 	s.logger.Info(
 		"Received incoming beacon block",

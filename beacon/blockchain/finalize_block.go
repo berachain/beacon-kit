@@ -38,11 +38,6 @@ func (s *Service) FinalizeBlock(
 	ctx sdk.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (transition.ValidatorUpdates, error) {
-	var (
-		valUpdates  transition.ValidatorUpdates
-		finalizeErr error
-	)
-
 	// STEP 1: Decode block and blobs
 	signedBlk, blobs, err := encoding.ExtractBlobsAndBlockFromRequest(
 		req,
@@ -52,6 +47,15 @@ func (s *Service) FinalizeBlock(
 	if err != nil {
 		s.logger.Error("Failed to decode block and blobs", "error", err)
 		return nil, fmt.Errorf("failed to decode block and blobs: %w", err)
+	}
+
+	// Send an FCU to force the HEAD of the chain on the EL on startup.
+	var finalizeErr error
+	s.forceStartupSyncOnce.Do(func() {
+		finalizeErr = s.forceSyncUponFinalize(ctx, signedBlk.GetMessage())
+	})
+	if finalizeErr != nil {
+		return nil, finalizeErr
 	}
 
 	// STEP 2: Finalize sidecars first (block will check for
@@ -78,12 +82,12 @@ func (s *Service) FinalizeBlock(
 	)
 
 	st := s.storageBackend.StateFromContext(ctx)
-	valUpdates, finalizeErr = s.finalizeBeaconBlock(ctx, st, consensusBlk)
-	if finalizeErr != nil {
+	valUpdates, err := s.finalizeBeaconBlock(ctx, st, consensusBlk)
+	if err != nil {
 		s.logger.Error("Failed to process verified beacon block",
-			"error", finalizeErr,
+			"error", err,
 		)
-		return nil, finalizeErr
+		return nil, err
 	}
 
 	// STEP 4: Post Finalizations cleanups
