@@ -244,6 +244,49 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	s.Require().Contains(s.LogBuffer.String(), "max fee per gas less than block base fee: address 0x71562b71999873DB5b286dF957af199Ec94617F7, maxFeePerGas: 10000000, baseFee: 765625000")
 }
 
+// TestProcessProposal_InvalidTimestamps_Errors effectively serves as a test for how a valid node would react to
+// a malicious proposer attempting to use a future timestamp in the block that does not match the consensus timestamp.
+func (s *SimulatedSuite) TestProcessProposal_InvalidTimestamps_Errors() {
+	const blockHeight = 1
+	const coreLoopIterations = 1
+
+	// Initialize the chain state.
+	s.initializeChain()
+
+	// Retrieve the BLS signer and proposer address.
+	blsSigner := simulated.GetBlsSigner(s.HomeDir)
+	pubkey, err := blsSigner.GetPubKey()
+	s.Require().NoError(err)
+
+	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
+	proposals := s.CoreLoop(blockHeight, coreLoopIterations, blsSigner)
+	s.Require().Len(proposals, coreLoopIterations)
+
+	// Prepare a valid block proposal, but 2 seconds in the future (i.e. attempt to roll timestamp forward)
+	proposalTime := time.Now().Add(2 * time.Second)
+	maliciousProposal, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{
+		Height:          blockHeight + coreLoopIterations,
+		Time:            proposalTime,
+		ProposerAddress: pubkey.Address(),
+	})
+	s.Require().NoError(err)
+	s.Require().NotEmpty(maliciousProposal)
+
+	// Reset the log buffer to discard old logs we don't care about
+	s.LogBuffer.Reset()
+	// Process the proposal containing the malicious block.
+	processResp, err := s.SimComet.Comet.ProcessProposal(s.Ctx, &types.ProcessProposalRequest{
+		Txs:             maliciousProposal.Txs,
+		Height:          blockHeight + coreLoopIterations,
+		ProposerAddress: pubkey.Address(),
+		// Use the current time as the actual consensus time, which mismatches the proposal time.
+		Time: time.Now(),
+	})
+	s.Require().NoError(err)
+	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
+	s.Require().Contains(s.LogBuffer.String(), "timestamp too far in the future")
+}
+
 // TestFinalizeBlock_BadBlock_Errors effectively serves as a test for how a valid node would react to
 // a malicious consensus majority agreeing to a block with an invalid EVM transaction.
 func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_Errors() {
