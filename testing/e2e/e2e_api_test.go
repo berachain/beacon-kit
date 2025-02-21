@@ -23,6 +23,7 @@ package e2e_test
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"strings"
 	"time"
@@ -61,13 +62,13 @@ func (c *BeaconHTTPClient) Get(path string) (*http.Response, error) {
 
 var pubkey string
 
-const host = "localhost"
+const localHost = "http://localhost"
 
-// initHttpBeaconTest initializes the http client for the beacon node api.
+// initHTTPBeaconTest initializes the http client for the beacon node api.
 // It gets the public ports from the consensus client and creates a http client with the baseURL.
 // This is needed where we want to test the node-api directly as
 // some of the methods are not present in go-eth2-client library.
-func (s *BeaconKitE2ESuite) initHttpBeaconTest() *BeaconHTTPClient {
+func (s *BeaconKitE2ESuite) initHTTPBeaconTest() *BeaconHTTPClient {
 	// Initialize consensus client to get public ports.
 	ports := s.initBeaconTest().GetPublicPorts()
 
@@ -76,12 +77,13 @@ func (s *BeaconKitE2ESuite) initHttpBeaconTest() *BeaconHTTPClient {
 	portStr := ports["node-api"].String()
 	portNum := strings.Replace(portStr, "/0", "", 1)
 
+	hostPort := net.JoinHostPort(localHost, portNum)
 	// Create client with baseURL
 	return &BeaconHTTPClient{
 		Client: &http.Client{
 			Timeout: time.Second * 10,
 		},
-		baseURL: fmt.Sprintf("http://%s:%s", host, portNum),
+		baseURL: hostPort,
 	}
 }
 
@@ -439,12 +441,12 @@ func (s *BeaconKitE2ESuite) TestValidatorBalancesWithInvalidPubkey() {
 	client := s.initBeaconTest()
 
 	// Example validator pubkey (48 bytes with 0x prefix)
-	pubkey := "0x93247f2209abcacf57b75a51dafae777f9dd38bc7053d1af526f220a7489a6d3a2753e5f3e8b1cfe39b56f43611df74a"
+	notFoundPubkey := "0x93247f2209abcacf57b75a51dafae777f9dd38bc7053d1af526f220a7489a6d3a2753e5f3e8b1cfe39b56f43611df74a"
 
 	balancesResp, err := client.ValidatorBalances(s.Ctx(), &beaconapi.ValidatorBalancesOpts{
 		State:   utils.StateIDHead,
 		Indices: []phase0.ValidatorIndex{}, // Empty indices to use pubkeys
-		PubKeys: []phase0.BLSPubKey{phase0.BLSPubKey(common.FromHex(pubkey))},
+		PubKeys: []phase0.BLSPubKey{phase0.BLSPubKey(common.FromHex(notFoundPubkey))},
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(balancesResp)
@@ -455,7 +457,7 @@ func (s *BeaconKitE2ESuite) TestValidatorBalancesWithInvalidPubkey() {
 // Helper functions
 // getStateValidator gets the state validator by index or pubkey.
 func (s *BeaconKitE2ESuite) getStateValidator(stateID, validatorID string) (*http.Response, error) {
-	client := s.initHttpBeaconTest()
+	client := s.initHTTPBeaconTest()
 	return client.Get(fmt.Sprintf("/eth/v1/beacon/states/%s/validators/%s",
 		stateID, validatorID))
 }
@@ -477,7 +479,7 @@ func (s *BeaconKitE2ESuite) TestGetStateValidatorByIndex() {
 	validatorResp, err := s.decodeValidatorResponse(resp)
 	s.Require().NoError(err)
 
-	//Retrieve the public key
+	// Retrieve the public key.
 	pubkey = validatorResp.Data.Validator.Pubkey
 
 	s.Require().Equal("0", validatorResp.Data.Index)
@@ -495,7 +497,7 @@ func (s *BeaconKitE2ESuite) TestGetStateValidatorByPubkey() {
 	validatorResp, err := s.decodeValidatorResponse(resp)
 	s.Require().NoError(err)
 
-	s.Require().Equal(pubkey[:], validatorResp.Data.Validator.Pubkey)
+	s.Require().Equal(pubkey, validatorResp.Data.Validator.Pubkey)
 	s.Require().Equal("active_ongoing", validatorResp.Data.Status)
 }
 
