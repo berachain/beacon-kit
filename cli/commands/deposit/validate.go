@@ -21,7 +21,6 @@
 package deposit
 
 import (
-	"fmt"
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/cli/utils/parser"
 	"github.com/berachain/beacon-kit/consensus-types/types"
@@ -107,7 +106,7 @@ func validateDepositMessage(chainSpec chain.Spec) func(
 			return err
 		}
 
-		fmt.Println("Deposit message validated successfully")
+		cmd.Println("Deposit message validated successfully")
 		return nil
 	}
 }
