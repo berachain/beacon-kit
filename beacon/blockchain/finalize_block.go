@@ -80,6 +80,11 @@ func (s *Service) FinalizeBlock(
 		) {
 			return nil, ErrDataNotAvailable
 		}
+	} else if len(blobs) > 0 {
+		s.logger.Info(
+			"Skipping blob processing outside of Data Availability Period",
+			"slot", blk.GetSlot(), "head", req.SyncingToHeight,
+		)
 	}
 
 	// STEP 3: Finalize the block.
