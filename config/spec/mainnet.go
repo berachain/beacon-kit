@@ -129,7 +129,6 @@ func MainnetChainSpecData() *chain.SpecData {
 		HistoricalRootsLimit:      defaultHistoricalRootsLimit,
 		ValidatorRegistryLimit:    defaultValidatorRegistryLimit,
 
-		
 		// Capella values.
 		MaxWithdrawalsPerPayload:         defaultMaxWithdrawalsPerPayload,
 		MaxValidatorsPerWithdrawalsSweep: mainnetMaxValidatorsPerWithdrawalsSweep,
