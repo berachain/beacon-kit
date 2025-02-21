@@ -21,6 +21,12 @@
 package e2e_test
 
 import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"strings"
+	"time"
+
 	beaconapi "github.com/attestantio/go-eth2-client/api"
 	apiv1 "github.com/attestantio/go-eth2-client/api/v1"
 	"github.com/attestantio/go-eth2-client/spec/phase0"
@@ -29,6 +35,55 @@ import (
 	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
 	"github.com/ethereum/go-ethereum/common"
 )
+
+// StateValidatorResponse represents the API response for a validator
+type StateValidatorResponse struct {
+	Data struct {
+		Index     string `json:"index"`
+		Balance   string `json:"balance"`
+		Status    string `json:"status"`
+		Validator struct {
+			Pubkey string `json:"pubkey"`
+		} `json:"validator"`
+	} `json:"data"`
+}
+
+// BeaconHTTPClient wraps http.Client with baseURL
+type BeaconHTTPClient struct {
+	*http.Client
+	baseURL string
+}
+
+// Get overrides http.Client.Get to use baseURL
+func (c *BeaconHTTPClient) Get(path string) (*http.Response, error) {
+	return c.Client.Get(c.baseURL + path)
+}
+
+var pubkey string
+
+const host = "localhost"
+
+// initHttpBeaconTest initializes the http client for the beacon node api.
+// It gets the public ports from the consensus client and creates a http client with the baseURL.
+// This is needed where we want to test the node-api directly as
+// some of the methods are not present in go-eth2-client library.
+func (s *BeaconKitE2ESuite) initHttpBeaconTest() *BeaconHTTPClient {
+	// Initialize consensus client to get public ports.
+	ports := s.initBeaconTest().GetPublicPorts()
+
+	// As kurtosis assigns public port randomly, we need to get the port from the consensus client.
+	// Get node-api port and format it.
+	portStr := ports["node-api"].String()
+	portNum := strings.Replace(portStr, "/0", "", 1)
+
+	// Create client with baseURL
+	return &BeaconHTTPClient{
+		Client: &http.Client{
+			Timeout: time.Second * 10,
+		},
+		baseURL: fmt.Sprintf("http://%s:%s", host, portNum),
+	}
+}
 
 // initBeaconTest initializes the any tests for the beacon node api.
 func (s *BeaconKitE2ESuite) initBeaconTest() *types.ConsensusClient {
@@ -395,4 +450,59 @@ func (s *BeaconKitE2ESuite) TestValidatorBalancesWithInvalidPubkey() {
 	s.Require().NotNil(balancesResp)
 	// Should return an empty list of balances
 	s.Require().Len(balancesResp.Data, 0)
+}
+
+// Helper functions
+// getStateValidator gets the state validator by index or pubkey.
+func (s *BeaconKitE2ESuite) getStateValidator(stateID, validatorID string) (*http.Response, error) {
+	client := s.initHttpBeaconTest()
+	return client.Get(fmt.Sprintf("/eth/v1/beacon/states/%s/validators/%s",
+		stateID, validatorID))
+}
+
+// decodeValidatorResponse decodes the validator response.
+func (s *BeaconKitE2ESuite) decodeValidatorResponse(resp *http.Response) (*StateValidatorResponse, error) {
+	var validatorResp StateValidatorResponse
+	err := json.NewDecoder(resp.Body).Decode(&validatorResp)
+	return &validatorResp, err
+}
+
+// TestGetStateValidatorByIndex tests getting the state validator by index.
+func (s *BeaconKitE2ESuite) TestGetStateValidatorByIndex() {
+	resp, err := s.getStateValidator("head", "0")
+	s.Require().NoError(err)
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+	defer resp.Body.Close()
+
+	validatorResp, err := s.decodeValidatorResponse(resp)
+	s.Require().NoError(err)
+
+	//Retrieve the public key
+	pubkey = validatorResp.Data.Validator.Pubkey
+
+	s.Require().Equal("0", validatorResp.Data.Index)
+	s.Require().Equal("active_ongoing", validatorResp.Data.Status)
+}
+
+// TestGetStateValidatorByPubkey tests getting the state validator by pubkey.
+func (s *BeaconKitE2ESuite) TestGetStateValidatorByPubkey() {
+	// Use the pubkey from the previous test
+	resp, err := s.getStateValidator("head", pubkey)
+	s.Require().NoError(err)
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+	defer resp.Body.Close()
+
+	validatorResp, err := s.decodeValidatorResponse(resp)
+	s.Require().NoError(err)
+
+	s.Require().Equal(pubkey[:], validatorResp.Data.Validator.Pubkey)
+	s.Require().Equal("active_ongoing", validatorResp.Data.Status)
+}
+
+// TestGetStateValidatorInvalidID tests getting the state validator with an invalid id.
+func (s *BeaconKitE2ESuite) TestGetStateValidatorInvalidID() {
+	resp, err := s.getStateValidator("head", "invalid_id")
+	s.Require().NoError(err)
+	s.Require().Equal(http.StatusBadRequest, resp.StatusCode)
+	defer resp.Body.Close()
 }
