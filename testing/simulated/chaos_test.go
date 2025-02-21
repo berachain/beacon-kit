@@ -62,7 +62,7 @@ func (s *SimulatedSuite) TestProcessProposal_CrashedExecutionClient_Errors() {
 	// Kill the execution client.
 	err = s.ElHandle.Close()
 	s.Require().NoError(err)
-	// Process the proposal containing the malicious block.
+	// Process the proposal containing the valid block.
 	processResp, err := s.SimComet.Comet.ProcessProposal(s.Ctx, &types.ProcessProposalRequest{
 		Txs:             proposal.Txs,
 		Height:          blockHeight + coreLoopIterations,
