@@ -22,6 +22,7 @@ package e2e_test
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -62,7 +63,7 @@ func (c *BeaconHTTPClient) Get(path string) (*http.Response, error) {
 
 var pubkey string
 
-const localHost = "http://localhost"
+const localHost = "localhost"
 
 // initHTTPBeaconTest initializes the http client for the beacon node api.
 // It gets the public ports from the consensus client and creates a http client with the baseURL.
@@ -83,7 +84,7 @@ func (s *BeaconKitE2ESuite) initHTTPBeaconTest() *BeaconHTTPClient {
 		Client: &http.Client{
 			Timeout: time.Second * 10,
 		},
-		baseURL: hostPort,
+		baseURL: "http://" + hostPort,
 	}
 }
 
@@ -458,21 +459,37 @@ func (s *BeaconKitE2ESuite) TestValidatorBalancesWithInvalidPubkey() {
 // getStateValidator gets the state validator by index or pubkey.
 func (s *BeaconKitE2ESuite) getStateValidator(stateID, validatorID string) (*http.Response, error) {
 	client := s.initHTTPBeaconTest()
-	return client.Get(fmt.Sprintf("/eth/v1/beacon/states/%s/validators/%s",
-		stateID, validatorID))
+
+	resp, err := client.Get(fmt.Sprintf("/eth/v1/beacon/states/%s/validators/%s", stateID, validatorID))
+	if err != nil {
+		return nil, fmt.Errorf("failed to get validator: %w", err)
+	}
+	if resp == nil {
+		return nil, errors.New("received nil response")
+	}
+
+	return resp, nil
 }
 
 // decodeValidatorResponse decodes the validator response.
 func (s *BeaconKitE2ESuite) decodeValidatorResponse(resp *http.Response) (*StateValidatorResponse, error) {
+	if resp == nil {
+		return nil, errors.New("nil response")
+	}
+	defer resp.Body.Close()
 	var validatorResp StateValidatorResponse
 	err := json.NewDecoder(resp.Body).Decode(&validatorResp)
-	return &validatorResp, err
+	if err != nil {
+		return nil, err
+	}
+	return &validatorResp, nil
 }
 
 // TestGetStateValidatorByIndex tests getting the state validator by index.
 func (s *BeaconKitE2ESuite) TestGetStateValidatorByIndex() {
 	resp, err := s.getStateValidator("head", "0")
 	s.Require().NoError(err)
+	s.Require().NotNil(resp, "response should not be nil")
 	s.Require().Equal(http.StatusOK, resp.StatusCode)
 	defer resp.Body.Close()
 
@@ -491,6 +508,7 @@ func (s *BeaconKitE2ESuite) TestGetStateValidatorByPubkey() {
 	// Use the pubkey from the previous test
 	resp, err := s.getStateValidator("head", pubkey)
 	s.Require().NoError(err)
+	s.Require().NotNil(resp, "response should not be nil")
 	s.Require().Equal(http.StatusOK, resp.StatusCode)
 	defer resp.Body.Close()
 
@@ -505,6 +523,7 @@ func (s *BeaconKitE2ESuite) TestGetStateValidatorByPubkey() {
 func (s *BeaconKitE2ESuite) TestGetStateValidatorInvalidID() {
 	resp, err := s.getStateValidator("head", "invalid_id")
 	s.Require().NoError(err)
+	s.Require().NotNil(resp, "response should not be nil")
 	s.Require().Equal(http.StatusBadRequest, resp.StatusCode)
 	defer resp.Body.Close()
 }
