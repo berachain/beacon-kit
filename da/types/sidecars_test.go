@@ -88,6 +88,53 @@ func TestEmptySidecarMarshalling(t *testing.T) {
 	)
 }
 
+func TestEmptySidecarsMarshalling(t *testing.T) {
+	t.Parallel()
+	sidecar1 := types.BuildBlobSidecar(
+		math.U64(0),
+		&ctypes.SignedBeaconBlockHeader{
+			Header:    &ctypes.BeaconBlockHeader{},
+			Signature: crypto.BLSSignature{},
+		},
+		&eip4844.Blob{},
+		eip4844.KZGCommitment{},
+		[48]byte{},
+		[]common.Root{},
+	)
+
+	sidecars := types.BlobSidecars{sidecar1, sidecar1}
+
+	// This will marshal correctly because it doesn't have the check on KZGInclusionProofDepth.
+	marshalled, err := sidecars.MarshalSSZ()
+	require.NoError(
+		t,
+		err,
+		"Marshalling empty sidecar should not produce an error",
+	)
+	require.NotNil(
+		t,
+		marshalled,
+		"Marshalling empty sidecar should produce a result",
+	)
+
+	// Unmarshal the empty sidecar
+	unmarshalled := types.BlobSidecars{}
+	err = unmarshalled.UnmarshalSSZ(marshalled)
+	require.NoError(
+		t,
+		err,
+		"Unmarshalling empty sidecars should not produce an error",
+	)
+
+	// Compare the original and unmarshalled empty sidecars
+	require.Equal(
+		t,
+		sidecars,
+		unmarshalled,
+		"The original and unmarshalled empty sidecars should be equal",
+	)
+}
+
 func TestValidateBlockRoots(t *testing.T) {
 	t.Parallel()
 	inclusionProof := make([]common.Root, 0)
