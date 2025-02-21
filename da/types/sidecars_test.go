@@ -54,7 +54,7 @@ func TestEmptySidecarMarshalling(t *testing.T) {
 		&eip4844.Blob{},
 		eip4844.KZGCommitment{},
 		[48]byte{},
-		inclusionProof,
+		[]common.Root{},
 	)
 
 	// Marshal the empty sidecar

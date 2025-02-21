@@ -36,6 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
+	"github.com/berachain/beacon-kit/primitives/eip4844"
 	mathpkg "github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	gethcommon "github.com/ethereum/go-ethereum/common"
@@ -148,6 +149,34 @@ func CreateInvalidBlock(
 
 	// Replace the original payload with the malicious payload.
 	signedBeaconBlock.GetMessage().GetBody().ExecutionPayload = executionPayload
+
+	// Update the signature over the new payload.
+	maliciousBlock, err := ctypes.NewSignedBeaconBlock(
+		signedBeaconBlock.GetMessage(),
+		&ctypes.ForkData{
+			CurrentVersion:        chainSpec.ActiveForkVersionForSlot(signedBeaconBlock.GetMessage().Slot),
+			GenesisValidatorsRoot: genesisValidatorsRoot,
+		},
+		chainSpec,
+		blsSigner,
+	)
+	t.NoError(err, "failed to update signature over the new payload")
+	return maliciousBlock
+}
+
+// CreateBeaconBlockWithCommitments TODO
+func CreateBeaconBlockWithCommitments(
+	t *require.Assertions,
+	signedBeaconBlock *ctypes.SignedBeaconBlock,
+	blsSigner *signer.BLSSigner,
+	chainSpec chain.Spec,
+	genesisValidatorsRoot common.Root,
+) *ctypes.SignedBeaconBlock {
+	// Get the current fork version from the slot.
+	//forkVersion := chainSpec.ActiveForkVersionForSlot(signedBeaconBlock.GetMessage().Slot)
+
+	// Replace the original payload with commitment
+	signedBeaconBlock.GetMessage().GetBody().BlobKzgCommitments = []eip4844.KZGCommitment{[48]byte{1}, [48]byte{2}}
 
 	// Update the signature over the new payload.
 	maliciousBlock, err := ctypes.NewSignedBeaconBlock(

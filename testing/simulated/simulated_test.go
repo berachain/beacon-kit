@@ -29,17 +29,21 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
+	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
+	"github.com/berachain/beacon-kit/primitives/eip4844"
 	mathpkg "github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
 	"github.com/cometbft/cometbft/abci/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/viper"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -178,6 +182,87 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlock_IsSuccessful() {
 	)
 	s.Require().NoError(err)
 	s.Require().Equal(proposedBlock.Message.GetHeader().GetBodyRoot(), stateHeader.GetBodyRoot())
+}
+
+// TestFullLifecycle_ValidBlock_IsSuccessful tests that a valid block and proposal is processed, finalized, and committed.
+func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndBlob_IsSuccessful() {
+	const blockHeight = 1
+
+	// Initialize the chain state.
+	s.initializeChain()
+
+	// Retrieve the BLS signer and proposer address.
+	blsSigner := simulated.GetBlsSigner(s.HomeDir)
+	pubkey, err := blsSigner.GetPubKey()
+	s.Require().NoError(err)
+
+	// Prepare a valid block proposal.
+	proposalTime := time.Now()
+	proposal, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{
+		Height:          blockHeight,
+		Time:            proposalTime,
+		ProposerAddress: pubkey.Address(),
+	})
+	s.Require().NoError(err)
+	s.Require().NotEmpty(proposal)
+
+	// Unmarshal the proposal block.
+	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
+		proposal.Txs,
+		blockchain.BeaconBlockTxIndex,
+		s.TestNode.ChainSpec.ActiveForkVersionForSlot(blockHeight),
+	)
+	s.Require().NoError(err)
+
+	// Create a valid block by injecting blobs
+	blockWithCommitments := simulated.CreateBeaconBlockWithCommitments(require.New(s.T()), proposedBlock, blsSigner, s.TestNode.ChainSpec, s.GenesisValidatorsRoot)
+	blockWithCommitmentBytes, err := blockWithCommitments.MarshalSSZ()
+	s.Require().NoError(err)
+
+	// Inject the new block
+	proposal.Txs[0] = blockWithCommitmentBytes
+
+	blockWithCommitmentsSignedHeader := ctypes.NewSignedBeaconBlockHeader(ctypes.NewBeaconBlockHeader(
+		blockWithCommitments.Message.GetSlot(),
+		blockWithCommitments.Message.GetProposerIndex(),
+		blockWithCommitments.Message.GetParentBlockRoot(),
+		blockWithCommitments.Message.GetStateRoot(),
+		blockWithCommitments.Message.GetBody().HashTreeRoot(),
+	), blockWithCommitments.Signature)
+
+	sidecar1 := datypes.BuildBlobSidecar(
+		mathpkg.U64(0),
+		blockWithCommitmentsSignedHeader,
+		&eip4844.Blob{},
+		eip4844.KZGCommitment{},
+		eip4844.KZGProof{},
+		[]common.Root{},
+	)
+	//sidecar2 := datypes.BuildBlobSidecar(
+	//	mathpkg.U64(1),
+	//	blockWithCommitmentsSignedHeader,
+	//	&eip4844.Blob{},
+	//	eip4844.KZGCommitment{},
+	//	eip4844.KZGProof{},
+	//	[]common.Root{},
+	//)
+	sidecars := datypes.BlobSidecars{sidecar1, sidecar1}
+	// Inject the malicious sidecar
+	sidecarBytes, err := sidecars.MarshalSSZ()
+	s.Require().NoError(err)
+	proposal.Txs[1] = sidecarBytes
+
+	// Reset the log buffer to discard old logs we don't care about
+	s.LogBuffer.Reset()
+	// Process the proposal containing the malicious block.
+	processResp, err := s.SimComet.Comet.ProcessProposal(s.Ctx, &types.ProcessProposalRequest{
+		Txs:             proposal.Txs,
+		Height:          blockHeight,
+		ProposerAddress: pubkey.Address(),
+		Time:            proposalTime,
+	})
+	s.Require().NoError(err)
+	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
 }
 
 // CoreLoop will iterate through the core loop `iterations` times, i.e. Propose, Process, Finalize and Commit.

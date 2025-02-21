@@ -102,5 +102,9 @@ func UnmarshalBlobSidecarsFromABCIRequest(
 	// TODO: Do some research to figure out how to make this more
 	// elegant.
 	sidecars = datypes.BlobSidecars{}
-	return sidecars, sidecars.UnmarshalSSZ(sidecarBz)
+	err := sidecars.UnmarshalSSZ(sidecarBz)
+	if err != nil {
+		return nil, err
+	}
+	return sidecars, nil
 }
