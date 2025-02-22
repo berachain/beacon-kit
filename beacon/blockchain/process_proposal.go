@@ -220,7 +220,7 @@ func (s *Service) VerifyIncomingBlock(
 	// network (such as mainnet), it should be theoretically impossible to hit the case where
 	// ProcessProposal is called before FinalizeBlock. It may be the case that new networks run
 	// into this case during the first block after genesis.
-	// TODO: Consider panicing here if this fails. If our node cannot successfully run
+	// TODO: Consider panicking here if this fails. If our node cannot successfully run
 	// forceStartupSync, then we should shut down the node and fix the problem.
 	s.forceStartupSyncOnce.Do(func() { s.forceSyncUponProcess(ctx, preState) })
 
