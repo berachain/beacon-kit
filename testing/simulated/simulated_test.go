@@ -25,6 +25,7 @@ package simulated_test
 import (
 	"bytes"
 	"context"
+	"strconv"
 	"testing"
 	"time"
 
@@ -34,6 +35,7 @@ import (
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
+	byteslib "github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
@@ -230,31 +232,40 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndBlob_IsSuccessful() {
 		blockWithCommitments.Message.GetBody().HashTreeRoot(),
 	), blockWithCommitments.Signature)
 
+	inclusionProof := make([]common.Root, 0)
+	// Create an empty BlobSidecar
+	for i := 1; i <= ctypes.KZGInclusionProofDepth; i++ {
+		it := byteslib.ExtendToSize([]byte(strconv.Itoa(i)), byteslib.B32Size)
+		proof, errBytes := byteslib.ToBytes32(it)
+		s.Require().NoError(errBytes)
+		inclusionProof = append(inclusionProof, common.Root(proof))
+	}
+
 	sidecar1 := datypes.BuildBlobSidecar(
 		mathpkg.U64(0),
 		blockWithCommitmentsSignedHeader,
 		&eip4844.Blob{},
 		eip4844.KZGCommitment{},
 		eip4844.KZGProof{},
-		[]common.Root{},
+		inclusionProof,
 	)
-	//sidecar2 := datypes.BuildBlobSidecar(
-	//	mathpkg.U64(1),
-	//	blockWithCommitmentsSignedHeader,
-	//	&eip4844.Blob{},
-	//	eip4844.KZGCommitment{},
-	//	eip4844.KZGProof{},
-	//	[]common.Root{},
-	//)
-	sidecars := datypes.BlobSidecars{sidecar1, sidecar1}
-	// Inject the malicious sidecar
+	sidecar2 := datypes.BuildBlobSidecar(
+		mathpkg.U64(1),
+		blockWithCommitmentsSignedHeader,
+		&eip4844.Blob{},
+		eip4844.KZGCommitment{},
+		eip4844.KZGProof{},
+		inclusionProof,
+	)
+	sidecars := datypes.BlobSidecars{sidecar1, sidecar2}
+	// Inject the valid sidecar
 	sidecarBytes, err := sidecars.MarshalSSZ()
 	s.Require().NoError(err)
 	proposal.Txs[1] = sidecarBytes
 
 	// Reset the log buffer to discard old logs we don't care about
 	s.LogBuffer.Reset()
-	// Process the proposal containing the malicious block.
+	// Process the proposal containing the valid block.
 	processResp, err := s.SimComet.Comet.ProcessProposal(s.Ctx, &types.ProcessProposalRequest{
 		Txs:             proposal.Txs,
 		Height:          blockHeight,
