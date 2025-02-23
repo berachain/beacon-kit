@@ -30,8 +30,8 @@ import (
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
+	"github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/log/phuslu"
-	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	mathpkg "github.com/berachain/beacon-kit/primitives/math"
@@ -40,10 +40,9 @@ import (
 	"github.com/cometbft/cometbft/abci/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/viper"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
-
-const finalizeWaitDuration = 500 * time.Millisecond
 
 // SimulatedSuite defines our test suite for the simulated Comet component.
 type SimulatedSuite struct {
@@ -208,9 +207,6 @@ func (s *SimulatedSuite) CoreLoop(startHeight, iterations int64, proposer *signe
 		})
 		s.Require().NoError(err)
 		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
-
-		// Wait for the block to be finalized.
-		time.Sleep(finalizeWaitDuration)
 
 		// Finalize the block.
 		finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.Ctx, &types.FinalizeBlockRequest{
