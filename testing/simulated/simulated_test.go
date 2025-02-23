@@ -44,8 +44,6 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-const finalizeWaitDuration = 500 * time.Millisecond
-
 // SimulatedSuite defines our test suite for the simulated Comet component.
 type SimulatedSuite struct {
 	suite.Suite
@@ -172,9 +170,6 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlock_IsSuccessful() {
 	})
 	s.Require().NoError(err)
 	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
-
-	// Wait for the block to be finalized.
-	time.Sleep(finalizeWaitDuration)
 
 	// Finalize the block.
 	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.Ctx, &types.FinalizeBlockRequest{
