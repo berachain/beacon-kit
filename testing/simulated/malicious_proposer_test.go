@@ -92,7 +92,17 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	maliciousTxs := []*gethprimitives.Transaction{maliciousTx}
 
 	// Create a malicious block by injecting an invalid transaction.
-	maliciousBlock := simulated.CreateBlockWithTransactions(require.New(s.T()), proposedBlock, blsSigner, s.TestNode.ChainSpec, s.GenesisValidatorsRoot, maliciousTxs, nil)
+	maliciousBlock := simulated.CreateBlockWithTransactions(
+		require.New(s.T()),
+		proposedBlock,
+		blsSigner,
+		s.TestNode.ChainSpec,
+		s.GenesisValidatorsRoot,
+		maliciousTxs,
+		nil,
+		nil,
+		nil,
+	)
 	maliciousBlockBytes, err := maliciousBlock.MarshalSSZ()
 	s.Require().NoError(err)
 

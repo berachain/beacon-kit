@@ -203,7 +203,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndBlob_IsSuccessful() {
 	s.Require().NoError(err)
 
 	// Prepare a valid block proposal.
-	proposalTime := time.Now()
+	proposalTime := time.Unix(0, 0).Add(1 * time.Second)
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{
 		Height:          blockHeight,
 		Time:            proposalTime,
@@ -265,6 +265,9 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndBlob_IsSuccessful() {
 		blobTxSidecars[i] = txSidecar
 	}
 
+	// These are magic value obtained from the geth logs and must be replaced with value from eth_simulateV1 API.
+	receiptsRoot := gethcommon.HexToHash("10457e39b8c68ced2071538b4c7034fe68f9c666187fd6b2d6ddcc21149f0d10")
+	stateRoot := gethcommon.HexToHash("0275f214e8a0b0ebd8ef427599a0ff339c5171716553b1c522fbd97ac9b108e8")
 	proposedBlock = simulated.CreateBlockWithTransactions(
 		require.New(s.T()),
 		proposedBlock,
@@ -273,6 +276,8 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndBlob_IsSuccessful() {
 		s.GenesisValidatorsRoot,
 		blobTxs,
 		blobTxSidecars,
+		&receiptsRoot,
+		&stateRoot,
 	)
 
 	blockWithCommitments := simulated.CreateBeaconBlockWithBlobs(

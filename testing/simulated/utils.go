@@ -90,6 +90,10 @@ func CreateBlockWithTransactions(
 	genesisValidatorsRoot common.Root,
 	txs []*gethprimitives.Transaction,
 	sidecars []*types.BlobTxSidecar,
+	// TODO: To form a valid block we need a valid receiptsRootHash and stateRootHash. This can only be obtained by simulating the block
+	// Which can be achieved through the eth_simulateV1 API in a future PR. For now, we hardcode this value.
+	receiptsRootHash *gethprimitives.ExecutionHash,
+	stateRootHash *gethprimitives.ExecutionHash,
 ) *ctypes.SignedBeaconBlock {
 	// Get the current fork version from the slot.
 	forkVersion := chainSpec.ActiveForkVersionForSlot(origBlock.GetMessage().Slot)
@@ -99,6 +103,15 @@ func CreateBlockWithTransactions(
 	withdrawals := payload.GetWithdrawals()
 	withdrawalsHash := gethprimitives.DeriveSha(withdrawals, gethprimitives.NewStackTrie(nil))
 	parentRoot := origBlock.GetMessage().GetParentBlockRoot()
+
+	if receiptsRootHash == nil {
+		oldReceiptsRootHash := gethprimitives.ExecutionHash(payload.GetReceiptsRoot())
+		receiptsRootHash = &oldReceiptsRootHash
+	}
+	if stateRootHash == nil {
+		oldStateRootHash := gethprimitives.ExecutionHash(payload.GetStateRoot())
+		stateRootHash = &oldStateRootHash
+	}
 
 	totalTxGasUsed := uint64(0)
 	for _, tx := range txs {
@@ -116,9 +129,9 @@ func CreateBlockWithTransactions(
 			ParentHash:       gethprimitives.ExecutionHash(payload.GetParentHash()),
 			UncleHash:        gethprimitives.EmptyUncleHash,
 			Coinbase:         gethprimitives.ExecutionAddress(payload.GetFeeRecipient()),
-			Root:             gethprimitives.ExecutionHash(payload.GetStateRoot()),
+			Root:             *stateRootHash,
 			TxHash:           gethprimitives.DeriveSha(gethprimitives.Transactions(txs), gethprimitives.NewStackTrie(nil)),
-			ReceiptHash:      gethprimitives.ExecutionHash(payload.GetReceiptsRoot()),
+			ReceiptHash:      *receiptsRootHash,
 			Bloom:            gethprimitives.LogsBloom(payload.GetLogsBloom()),
 			Difficulty:       big.NewInt(0),
 			Number:           new(big.Int).SetUint64(payload.GetNumber().Unwrap()),
