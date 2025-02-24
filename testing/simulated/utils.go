@@ -51,7 +51,6 @@ import (
 
 // testPkey corresponds to address 0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4 which is prefunded in genesis
 const testPkey = "fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306"
-
 const blobGasPerTx = 131072
 
 // SharedAccessors holds references to common utilities required in tests.
