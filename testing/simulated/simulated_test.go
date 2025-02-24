@@ -243,9 +243,10 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndBlob_IsSuccessful() {
 			&gethtypes.BlobTx{
 				Nonce: uint64(i),
 				// Set to 875000000 as that is the tx base fee
-				GasTipCap:  uint256.NewInt(875000000),
-				GasFeeCap:  uint256.NewInt(875000000),
-				Gas:        10000,
+				GasTipCap: uint256.NewInt(875000000),
+				GasFeeCap: uint256.NewInt(875000000),
+				// Set to 21000 for minimum intrinsic gas
+				Gas:        21000,
 				Value:      nil,
 				Data:       nil,
 				AccessList: nil,

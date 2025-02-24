@@ -51,7 +51,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const testPkey = "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291"
+// testPkey corresponds to address 0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4 which is prefunded in genesis
+const testPkey = "fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306"
 const blobGasPerTx = 131072
 
 // SharedAccessors holds references to common utilities required in tests.
@@ -99,9 +100,14 @@ func CreateBlockWithTransactions(
 	withdrawalsHash := gethprimitives.DeriveSha(withdrawals, gethprimitives.NewStackTrie(nil))
 	parentRoot := origBlock.GetMessage().GetParentBlockRoot()
 
-	totalBlobGas := uint64(0)
+	totalTxGasUsed := uint64(0)
+	for _, tx := range txs {
+		totalTxGasUsed += tx.Gas()
+	}
+
+	totalBlobGasUsed := uint64(0)
 	for _, sidecar := range sidecars {
-		totalBlobGas += uint64(len(sidecar.Blobs) * blobGasPerTx)
+		totalBlobGasUsed += uint64(len(sidecar.Blobs) * blobGasPerTx)
 	}
 
 	// Construct a new execution block header with the provided transactions.
@@ -117,14 +123,14 @@ func CreateBlockWithTransactions(
 			Difficulty:       big.NewInt(0),
 			Number:           new(big.Int).SetUint64(payload.GetNumber().Unwrap()),
 			GasLimit:         payload.GetGasLimit().Unwrap(),
-			GasUsed:          payload.GetGasUsed().Unwrap(),
+			GasUsed:          totalTxGasUsed,
 			Time:             payload.GetTimestamp().Unwrap(),
 			BaseFee:          payload.GetBaseFeePerGas().ToBig(),
 			Extra:            payload.GetExtraData(),
 			MixDigest:        gethprimitives.ExecutionHash(payload.GetPrevRandao()),
 			WithdrawalsHash:  &withdrawalsHash,
 			ExcessBlobGas:    payload.GetExcessBlobGas().UnwrapPtr(),
-			BlobGasUsed:      &totalBlobGas,
+			BlobGasUsed:      &totalBlobGasUsed,
 			ParentBeaconRoot: (*gethprimitives.ExecutionHash)(&parentRoot),
 		},
 	).WithBody(gethprimitives.Body{
