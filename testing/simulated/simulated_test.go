@@ -205,7 +205,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndBlob_IsSuccessful() {
 	s.Require().NoError(err)
 
 	// Prepare a valid block proposal.
-	proposalTime := time.Unix(0, 0).Add(1 * time.Second)
+	proposalTime := time.Now()
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{
 		Height:          blockHeight,
 		Time:            proposalTime,
@@ -230,7 +230,6 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndBlob_IsSuccessful() {
 
 	// Sign blob transactions
 	blobTxs := make([]*gethtypes.Transaction, len(blobs))
-	blobTxSidecars := make([]*gethtypes.BlobTxSidecar, len(blobs))
 	for i := range blobs {
 		blobCommitment := commitments[i]
 		blobHash := kzg4844.CalcBlobHashV1(sha256.New(), (*kzg4844.Commitment)(&blobCommitment))
@@ -254,6 +253,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndBlob_IsSuccessful() {
 				AccessList: nil,
 				// Set to 875000000 as that is the blob base fee
 				BlobFeeCap: uint256.NewInt(1),
+				// If we have 1 tx with multiple blobs, we must add the blob hashes here.
 				BlobHashes: []gethcommon.Hash{blobHash},
 				// Sidecar must be set to nil here or Geth will error with "unexpected blob sidecar in transaction"
 				Sidecar: nil,
@@ -263,8 +263,10 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndBlob_IsSuccessful() {
 			},
 		)
 		s.Require().NoError(err)
+		// Once we've signed the Tx, we tag the blob with the tx purely for association between tx and sidecars.
+		// In this case, each 1 tx has a sidecar with 1 blob, even though 1 tx could have more than 1 blob.
+		blobTx = blobTx.WithBlobTxSidecar(txSidecar)
 		blobTxs[i] = blobTx
-		blobTxSidecars[i] = txSidecar
 	}
 
 	// These are magic value obtained from the geth logs and must be replaced with value from eth_simulateV1 API.
@@ -278,7 +280,6 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndBlob_IsSuccessful() {
 		s.TestNode.ChainSpec,
 		s.GenesisValidatorsRoot,
 		blobTxs,
-		blobTxSidecars,
 		&receiptsRoot,
 		&stateRoot,
 	)

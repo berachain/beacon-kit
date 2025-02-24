@@ -72,6 +72,7 @@ type TransactionArgs struct {
 type SimBlock struct {
 	Calls       []TransactionArgs
 	BlockNumber int64
+	// TODO: in the future we could add state overrides here to do more complex EVM simulations
 }
 
 func NewSimulationClient(client *client.EngineClient) *SimulationClient {
@@ -90,7 +91,7 @@ func (c *SimulationClient) Simulate(ctx context.Context, simBlock SimBlock) ([]m
 //func TxAndSidecarsToTransactionArgs(txs []*gethprimitives.Transaction, sidecars []*types.BlobTxSidecar) TransactionArgs {
 //	calls := make([]TransactionArgs, len(txs))
 //	for i, tx := range txs {
-//		TransactionArgs{
+//		call := TransactionArgs{
 //			From:                 nil,
 //			To:                   tx.To(),
 //			Gas:                  tx.Gas(),

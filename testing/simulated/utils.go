@@ -43,7 +43,8 @@ import (
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	mathpkg "github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
-	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/berachain/beacon-kit/testing/simulated/execution"
+	gethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/require"
@@ -89,14 +90,11 @@ func CreateBlockWithTransactions(
 	chainSpec chain.Spec,
 	genesisValidatorsRoot common.Root,
 	txs []*gethprimitives.Transaction,
-	sidecars []*types.BlobTxSidecar,
 	// TODO: To form a valid block we need a valid receiptsRootHash and stateRootHash. This can only be obtained by simulating the block
 	// Which can be achieved through the eth_simulateV1 API in a future PR. For now, we hardcode this value.
 	receiptsRootHash *gethprimitives.ExecutionHash,
 	stateRootHash *gethprimitives.ExecutionHash,
 ) *ctypes.SignedBeaconBlock {
-
-	simulationClient.Simulate(context.TODO(), )
 
 	// Get the current fork version from the slot.
 	forkVersion := chainSpec.ActiveForkVersionForSlot(origBlock.GetMessage().Slot)
@@ -122,8 +120,15 @@ func CreateBlockWithTransactions(
 	}
 
 	totalBlobGasUsed := uint64(0)
-	for _, sidecar := range sidecars {
-		totalBlobGasUsed += uint64(len(sidecar.Blobs) * blobGasPerTx)
+	txSidecars := make([]*gethtypes.BlobTxSidecar, 0)
+	txsWithoutSidecars := make([]*gethtypes.Transaction, len(txs))
+	for i, tx := range txs {
+		if sidecar := tx.BlobTxSidecar(); sidecar != nil {
+			totalBlobGasUsed += uint64(len(sidecar.Blobs) * blobGasPerTx)
+			txSidecars = append(txSidecars, sidecar)
+		}
+		// The sidecar is removed from the TX before creating the block
+		txsWithoutSidecars[i] = tx.WithoutBlobTxSidecar()
 	}
 
 	// Construct a new execution block header with the provided transactions.
@@ -133,7 +138,7 @@ func CreateBlockWithTransactions(
 			UncleHash:        gethprimitives.EmptyUncleHash,
 			Coinbase:         gethprimitives.ExecutionAddress(payload.GetFeeRecipient()),
 			Root:             *stateRootHash,
-			TxHash:           gethprimitives.DeriveSha(gethprimitives.Transactions(txs), gethprimitives.NewStackTrie(nil)),
+			TxHash:           gethprimitives.DeriveSha(gethprimitives.Transactions(txsWithoutSidecars), gethprimitives.NewStackTrie(nil)),
 			ReceiptHash:      *receiptsRootHash,
 			Bloom:            gethprimitives.LogsBloom(payload.GetLogsBloom()),
 			Difficulty:       big.NewInt(0),
@@ -150,7 +155,7 @@ func CreateBlockWithTransactions(
 			ParentBeaconRoot: (*gethprimitives.ExecutionHash)(&parentRoot),
 		},
 	).WithBody(gethprimitives.Body{
-		Transactions: txs,
+		Transactions: txsWithoutSidecars,
 		Uncles:       nil,
 		Withdrawals:  *(*gethprimitives.Withdrawals)(unsafe.Pointer(&withdrawals)),
 	})
@@ -159,7 +164,7 @@ func CreateBlockWithTransactions(
 	newExecutionData := gethprimitives.BlockToExecutableData(
 		executionBlock,
 		nil,
-		sidecars,
+		txSidecars,
 		nil,
 	)
 
@@ -184,6 +189,7 @@ func CreateBlockWithTransactions(
 	return newBlock
 }
 
+// GetProofAndCommitmentsForBlobs will create a commitment and proof for each blob. Technically
 func GetProofAndCommitmentsForBlobs(t *require.Assertions, blobs []*eip4844.Blob, verifier kzg.BlobProofVerifier) ([]eip4844.KZGProof, []eip4844.KZGCommitment) {
 	if verifier.GetImplementation() != gokzg.Implementation {
 		t.Fail("test expects gokzg implementation")

@@ -94,12 +94,12 @@ func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_Errors() {
 	// Create a malicious block by injecting an invalid transaction.
 	maliciousBlock := simulated.CreateBlockWithTransactions(
 		require.New(s.T()),
+		s.SimulationClient,
 		proposedBlock,
 		blsSigner,
 		s.TestNode.ChainSpec,
 		s.GenesisValidatorsRoot,
 		maliciousTxs,
-		nil,
 		nil,
 		nil,
 	)
