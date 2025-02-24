@@ -51,6 +51,7 @@ import (
 
 // testPkey corresponds to address 0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4 which is prefunded in genesis
 const testPkey = "fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306"
+
 const blobGasPerTx = 131072
 
 // SharedAccessors holds references to common utilities required in tests.
@@ -191,7 +192,7 @@ func GetProofAndCommitmentsForBlobs(t *require.Assertions, blobs []*eip4844.Blob
 	proofs := make([]eip4844.KZGProof, len(blobs))
 	for i, blob := range blobs {
 		ckzgBlob := TransformBlobToGoKZGBlob(blob)
-		commitment, err := gokzgVerifier.BlobToKZGCommitment(TransformBlobToGoKZGBlob(blob), 1)
+		commitment, err := gokzgVerifier.BlobToKZGCommitment(ckzgBlob, 1)
 		t.NoError(err)
 		proof, err := gokzgVerifier.ComputeBlobKZGProof(ckzgBlob, commitment, 1)
 		t.NoError(err)
