@@ -80,8 +80,10 @@ func GetBlsSigner(tempHomeDir string) *signer.BLSSigner {
 }
 
 // CreateBlockWithTransactions creates a new beacon block with the provided transactions.
+// This process requires the engine client as we must simulate to obtain the receipts root
 func CreateBlockWithTransactions(
 	t *require.Assertions,
+	simulationClient *execution.SimulationClient,
 	origBlock *ctypes.SignedBeaconBlock,
 	blsSigner *signer.BLSSigner,
 	chainSpec chain.Spec,
@@ -93,6 +95,9 @@ func CreateBlockWithTransactions(
 	receiptsRootHash *gethprimitives.ExecutionHash,
 	stateRootHash *gethprimitives.ExecutionHash,
 ) *ctypes.SignedBeaconBlock {
+
+	simulationClient.Simulate(context.TODO(), )
+
 	// Get the current fork version from the slot.
 	forkVersion := chainSpec.ActiveForkVersionForSlot(origBlock.GetMessage().Slot)
 

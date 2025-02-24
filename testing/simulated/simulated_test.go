@@ -64,6 +64,7 @@ type SimulatedSuite struct {
 	SimComet              *simulated.SimComet
 	LogBuffer             *bytes.Buffer
 	GenesisValidatorsRoot common.Root
+	SimulationClient      *execution.SimulationClient
 }
 
 // TestSimulatedCometComponent runs the test suite.
@@ -114,6 +115,7 @@ func (s *SimulatedSuite) SetupTest() {
 		_ = s.TestNode.Start(s.Ctx)
 	}()
 
+	s.SimulationClient = execution.NewSimulationClient(s.TestNode.EngineClient)
 	// Allow a short period for services to fully initialize.
 	time.Sleep(2 * time.Second)
 }
@@ -270,6 +272,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndBlob_IsSuccessful() {
 	stateRoot := gethcommon.HexToHash("0275f214e8a0b0ebd8ef427599a0ff339c5171716553b1c522fbd97ac9b108e8")
 	proposedBlock = simulated.CreateBlockWithTransactions(
 		require.New(s.T()),
+		s.SimulationClient,
 		proposedBlock,
 		blsSigner,
 		s.TestNode.ChainSpec,

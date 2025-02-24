@@ -35,6 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/cli/flags"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/da/kzg"
+	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	nodecomponents "github.com/berachain/beacon-kit/node-core/components"
 	nodetypes "github.com/berachain/beacon-kit/node-core/types"
@@ -63,6 +64,7 @@ type TestNode struct {
 	ChainSpec      chain.Spec
 	APIBackend     nodecomponents.NodeAPIBackend
 	KZGVerifier    kzg.BlobProofVerifier
+	EngineClient   *client.EngineClient
 }
 
 // NewTestNode Uses the testnet chainspec.
@@ -110,6 +112,7 @@ func buildNode(
 		storageBackend blockchain.StorageBackend
 		chainSpec      chain.Spec
 		kzgVerifier    kzg.BlobProofVerifier
+		engineClient   *client.EngineClient
 	)
 
 	// build all node components using depinject
@@ -132,6 +135,7 @@ func buildNode(
 		&storageBackend,
 		&chainSpec,
 		&kzgVerifier,
+		&engineClient,
 	); err != nil {
 		panic(err)
 	}
@@ -150,6 +154,7 @@ func buildNode(
 		ChainSpec:      chainSpec,
 		APIBackend:     apiBackend,
 		KZGVerifier:    kzgVerifier,
+		EngineClient:   engineClient,
 	}
 }
 
