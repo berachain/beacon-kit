@@ -120,5 +120,5 @@ func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_Errors() {
 	})
 	s.Require().ErrorIs(err, errors.ErrInvalidPayloadStatus)
 	s.Require().Nil(finalizeResp)
-	s.Require().Contains(s.LogBuffer.String(), "max fee per gas less than block base fee: address 0x71562b71999873DB5b286dF957af199Ec94617F7, maxFeePerGas: 10000000, baseFee: 765625000")
+	s.Require().Contains(s.LogBuffer.String(), "max fee per gas less than block base fee: address 0x20f33CE90A13a4b5E7697E3544c3083B8F8A51D4, maxFeePerGas: 10000000, baseFee: 765625000")
 }
