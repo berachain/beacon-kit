@@ -46,6 +46,7 @@ import (
 	mathpkg "github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/require"
@@ -87,6 +88,7 @@ func CreateBlockWithTransactions(
 	chainSpec chain.Spec,
 	genesisValidatorsRoot common.Root,
 	txs []*gethprimitives.Transaction,
+	sidecars []*types.BlobTxSidecar,
 ) *ctypes.SignedBeaconBlock {
 	// Get the current fork version from the slot.
 	forkVersion := chainSpec.ActiveForkVersionForSlot(origBlock.GetMessage().Slot)
@@ -130,7 +132,7 @@ func CreateBlockWithTransactions(
 	newExecutionData := gethprimitives.BlockToExecutableData(
 		executionBlock,
 		nil,
-		nil,
+		sidecars,
 		nil,
 	)
 
@@ -198,7 +200,6 @@ func CreateBeaconBlockWithBlobs(t *require.Assertions,
 
 	// Replace the original payload with commitment
 	signedBeaconBlock.GetMessage().GetBody().BlobKzgCommitments = commitments
-	signedBeaconBlock.GetMessage().GetBody().GetExecutionPayload()
 
 	// Update the signature over the new payload.
 	newBlock, err := ctypes.NewSignedBeaconBlock(

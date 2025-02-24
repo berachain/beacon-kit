@@ -25,6 +25,8 @@ package simulated_test
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
+	"math/big"
 	"testing"
 	"time"
 
@@ -42,6 +44,10 @@ import (
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
 	"github.com/cometbft/cometbft/abci/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+	gethcommon "github.com/ethereum/go-ethereum/common"
+	gethtypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto/kzg4844"
+	"github.com/holiman/uint256"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -213,7 +219,59 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndBlob_IsSuccessful() {
 	s.Require().NoError(err)
 
 	// Create the BeaconBlock with blobs
-	blobs := []*eip4844.Blob{{4, 2, 0}, {8, 0, 0}}
+	blobs := []*eip4844.Blob{{}, {}}
+	// Sign a blob transaction
+	emptyBlob := kzg4844.Blob{}
+	emptyBlobCommit, _ := kzg4844.BlobToCommitment(&emptyBlob)
+	emptyBlobVHash := kzg4844.CalcBlobHashV1(sha256.New(), &emptyBlobCommit)
+	blobTx1, err := gethtypes.SignNewTx(
+		simulated.GetTestKey(s.T()),
+		gethtypes.NewCancunSigner(big.NewInt(int64(s.TestNode.ChainSpec.DepositEth1ChainID()))),
+		&gethtypes.BlobTx{
+			Nonce:      0,
+			GasTipCap:  uint256.NewInt(10000),
+			GasFeeCap:  uint256.NewInt(10000),
+			Gas:        10000,
+			Value:      nil,
+			Data:       nil,
+			AccessList: nil,
+			BlobFeeCap: nil,
+			BlobHashes: []gethcommon.Hash{emptyBlobVHash},
+			Sidecar:    nil,
+			V:          nil,
+			R:          nil,
+			S:          nil,
+		},
+	)
+	blobTx2, err := gethtypes.SignNewTx(
+		simulated.GetTestKey(s.T()),
+		gethtypes.NewCancunSigner(big.NewInt(int64(s.TestNode.ChainSpec.DepositEth1ChainID()))),
+		&gethtypes.BlobTx{
+			Nonce:      0,
+			GasTipCap:  uint256.NewInt(10000),
+			GasFeeCap:  uint256.NewInt(10000),
+			Gas:        10000,
+			Value:      nil,
+			Data:       nil,
+			AccessList: nil,
+			BlobFeeCap: nil,
+			BlobHashes: []gethcommon.Hash{emptyBlobVHash},
+			Sidecar:    nil,
+			V:          nil,
+			R:          nil,
+			S:          nil,
+		},
+	)
+
+	proposedBlock = simulated.CreateBlockWithTransactions(
+		require.New(s.T()),
+		proposedBlock,
+		blsSigner,
+		s.TestNode.ChainSpec,
+		s.GenesisValidatorsRoot,
+		[]*gethtypes.Transaction{blobTx1, blobTx2},
+		nil,
+	)
 
 	blockWithCommitments, proofs, commitments, inclusionProofs := simulated.CreateBeaconBlockWithBlobs(
 		require.New(s.T()),
