@@ -43,10 +43,8 @@ import (
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	mathpkg "github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
-	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/crypto/kzg4844"
 	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/require"
 )
@@ -181,20 +179,6 @@ func CreateBlockWithTransactions(
 	return newBlock
 }
 
-// ConvertBlobToGoKZGBlob converts an eip4844.Blob to a ckzg4844.Blob
-func ConvertBlobToGoKZGBlob(eipBlob *eip4844.Blob) *gokzg4844.Blob {
-	var blob gokzg4844.Blob
-	copy(blob[:], eipBlob[:])
-	return &blob
-}
-
-// ConvertBlobToGethKZGBlob converts an eip4844.Blob to a kzg4844.Blob
-func ConvertBlobToGethKZGBlob(eipBlob *eip4844.Blob) *kzg4844.Blob {
-	var blob kzg4844.Blob
-	copy(blob[:], eipBlob[:])
-	return &blob
-}
-
 func GetProofAndCommitmentsForBlobs(t *require.Assertions, blobs []*eip4844.Blob, verifier kzg.BlobProofVerifier) ([]eip4844.KZGProof, []eip4844.KZGCommitment) {
 	if verifier.GetImplementation() != gokzg.Implementation {
 		t.Fail("test expects gokzg implementation")
@@ -206,8 +190,8 @@ func GetProofAndCommitmentsForBlobs(t *require.Assertions, blobs []*eip4844.Blob
 	commitments := make([]eip4844.KZGCommitment, len(blobs))
 	proofs := make([]eip4844.KZGProof, len(blobs))
 	for i, blob := range blobs {
-		ckzgBlob := ConvertBlobToGoKZGBlob(blob)
-		commitment, err := gokzgVerifier.BlobToKZGCommitment(ConvertBlobToGoKZGBlob(blob), 1)
+		ckzgBlob := TransformBlobToGoKZGBlob(blob)
+		commitment, err := gokzgVerifier.BlobToKZGCommitment(TransformBlobToGoKZGBlob(blob), 1)
 		t.NoError(err)
 		proof, err := gokzgVerifier.ComputeBlobKZGProof(ckzgBlob, commitment, 1)
 		t.NoError(err)

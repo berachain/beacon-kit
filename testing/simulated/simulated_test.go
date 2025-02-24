@@ -304,13 +304,11 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndBlob_IsSuccessful() {
 	proposal.Txs[0] = blockWithCommitmentBytes
 
 	// Create the beaconBlock Header for the sidecar
-	blockWithCommitmentsSignedHeader := ctypes.NewSignedBeaconBlockHeader(ctypes.NewBeaconBlockHeader(
-		blockWithCommitments.Message.GetSlot(),
-		blockWithCommitments.Message.GetProposerIndex(),
-		blockWithCommitments.Message.GetParentBlockRoot(),
-		blockWithCommitments.Message.GetStateRoot(),
-		blockWithCommitments.Message.GetBody().HashTreeRoot(),
-	), blockWithCommitments.Signature)
+
+	blockWithCommitmentsSignedHeader := ctypes.NewSignedBeaconBlockHeader(
+		blockWithCommitments.GetMessage().GetHeader(),
+		blockWithCommitments.GetSignature(),
+	)
 
 	sidecarsSlice := make([]*datypes.BlobSidecar, len(blobs))
 	for i := range blobs {
