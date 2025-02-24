@@ -41,6 +41,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const TestnetBeaconChainID = "testnet-beacon-80069"
+
 // InitializeHomeDir sets up a temporary home directory with the necessary genesis state
 // and configuration files for testing. It returns the configured CometBFT config along with
 // the computed genesis validators root.
@@ -108,7 +110,7 @@ func initCommand(t *testing.T, homeDir string) {
 	// Create a Cosmos SDK client context with the provided home directory and chain ID.
 	clientCtx := client.Context{}.
 		WithHomeDir(homeDir).
-		WithChainID("testnet-chain-80069")
+		WithChainID(TestnetBeaconChainID)
 
 	// Ensure necessary directories exist.
 	err := os.MkdirAll(path.Join(homeDir, "config"), 0700)
