@@ -23,6 +23,26 @@ HTTP_URL = localhost:8551
 IPC_PREFIX = ipc://
 HTTP_PREFIX = http://
 
+# ask_reset_dir_func checks if the directory passed in exists, and if so asks the user whether it
+# should delete it. Note that on linux, docker may have created the directory with root
+# permissions, so we may need to ask the user to delete it with sudo
+define ask_reset_dir_func
+	@abs_path=$(abspath $(1)); \
+	if test -d "$$abs_path"; then \
+		read -p "Directory '$$abs_path' exists. Do you want to delete it? (y/n): " confirm && \
+		if [ "$$confirm" = "y" ]; then \
+			echo "Deleting directory '$$abs_path'..."; \
+			rm -rf "$$abs_path" 2>/dev/null || sudo rm -rf "$$abs_path"; \
+			if test -d "$$abs_path"; then \
+				echo "Failed to delete directory '$$abs_path'."; \
+				exit 1; \
+			fi; \
+		fi \
+	else \
+		echo "Directory '$$abs_path' does not exist."; \
+	fi
+endef
+
 #################
 #    bartio     #
 #################
@@ -51,7 +71,7 @@ start-ipc: ## start a local ephemeral `beacond` node with IPC
 	${TESTAPP_FILES_DIR}/entrypoint.sh
 
 start-reth: ## start an ephemeral `reth` node
-	@rm -rf ${ETH_DATA_DIR}
+	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
 	@docker run \
 	-p 30303:30303 \
 	-p 8545:8545 \
@@ -69,7 +89,7 @@ start-reth: ## start an ephemeral `reth` node
 	--ipcpath ${IPC_PATH}
 
 start-reth-bartio:
-	@rm -rf ${ETH_DATA_DIR}
+	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
 	@docker run \
 	-p 30303:30303 \
 	-p 8545:8545 \
@@ -88,7 +108,7 @@ start-reth-bartio:
 	--ipcpath ${IPC_PATH}
 
 start-reth-host: ## start a local ephemeral `reth` node on host machine
-	rm -rf ${ETH_DATA_DIR}
+	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
 	reth init --datadir ${ETH_DATA_DIR} --chain ${ETH_GENESIS_PATH}
 	reth node \
 	--chain ${ETH_GENESIS_PATH} \
@@ -101,7 +121,7 @@ start-reth-host: ## start a local ephemeral `reth` node on host machine
 	--ipcpath ${IPC_PATH}
 
 start-geth: ## start an ephemeral `geth` node with docker
-	rm -rf ${ETH_DATA_DIR}
+	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
 	docker run \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
@@ -116,6 +136,7 @@ start-geth: ## start an ephemeral `geth` node with docker
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
 	ethereum/client-go \
+	--syncmode=full \
 	--http \
 	--http.addr 0.0.0.0 \
 	--http.api eth,net \
@@ -126,7 +147,7 @@ start-geth: ## start an ephemeral `geth` node with docker
 	--ipcpath ${IPC_PATH}
 
 start-geth-bartio:
-	rm -rf ${ETH_DATA_DIR}
+	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
 	docker run \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	--rm -v $(PWD)/${BARTIO_NETWORK_FILES_DIR}:/${BARTIO_NETWORK_FILES_DIR} \
@@ -153,7 +174,7 @@ start-geth-bartio:
 	--ipcpath ${IPC_PATH}
 
 start-geth-host: ## start a local ephemeral `geth` node on host machine
-	rm -rf ${ETH_DATA_DIR}
+	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
 	geth init --datadir ${ETH_DATA_DIR} ${ETH_GENESIS_PATH}
 	geth \
 	--datadir ${ETH_DATA_DIR} \
@@ -183,14 +204,15 @@ start-nethermind: ## start an ephemeral `nethermind` node
 	--Init.ChainSpecPath ../$(NETHER_ETH_GENESIS_PATH)
 
 start-besu: ## start an ephemeral `besu` node
+	$(call ask_reset_dir_func, .tmp/besu)
 	docker run \
 	-p 30303:30303 \
 	-p 8545:8545 \
 	-p 8551:8551 \
-	-v $(PWD)/${HOMEDIR}:/${HOMEDIR} \
+	-v $(PWD)/.tmp:/.tmp \
 	-v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	hyperledger/besu:latest \
-	--data-path=.tmp/besu \
+	--data-path=/.tmp/besu \
 	--genesis-file=../../${ETH_GENESIS_PATH} \
 	--rpc-http-enabled \
 	--rpc-http-api=ETH,NET,ENGINE,DEBUG,NET,WEB3 \
@@ -202,7 +224,7 @@ start-besu: ## start an ephemeral `besu` node
 	--engine-jwt-secret=../../${JWT_PATH}
 
 start-erigon: ## start an ephemeral `erigon` node
-	rm -rf .tmp/erigon
+	$(call ask_reset_dir_func, .tmp/erigon)
 	docker run \
 	--user 1000:1000 \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
@@ -234,7 +256,7 @@ start-erigon: ## start an ephemeral `erigon` node
 	--datadir /.tmp/erigon
 
 start-ethereumjs:
-	rm -rf .tmp/ethereumjs
+	$(call ask_reset_dir_func, .tmp/ethereumjs)
 	docker run \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
