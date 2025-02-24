@@ -38,7 +38,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-// StateValidatorResponse represents the API response for a validator
+// StateValidatorResponse represents the API response for a validator.
 type StateValidatorResponse struct {
 	Data struct {
 		Index     string `json:"index"`
@@ -50,7 +50,8 @@ type StateValidatorResponse struct {
 	} `json:"data"`
 }
 
-// BeaconHTTPClient wraps http.Client with baseURL
+// BeaconHTTPClient wraps http.Client with baseURL.
+// This is needed to change the default baseURL of the http.Client.
 type BeaconHTTPClient struct {
 	*http.Client
 	baseURL string
@@ -454,8 +455,9 @@ func (s *BeaconKitE2ESuite) TestGetStateValidatorByIndex() {
 
 	validatorResp, err := s.decodeValidatorResponse(resp)
 	s.Require().NoError(err)
+	s.Require().NotNil(validatorResp, "validator response should not be nil")
 
-	// Retrieve the public key.
+	// Retrieve the public key to use in the next test.
 	pubkey = validatorResp.Data.Validator.Pubkey
 
 	s.Require().Equal("0", validatorResp.Data.Index)
@@ -473,6 +475,7 @@ func (s *BeaconKitE2ESuite) TestGetStateValidatorByPubkey() {
 
 	validatorResp, err := s.decodeValidatorResponse(resp)
 	s.Require().NoError(err)
+	s.Require().NotNil(validatorResp, "validator response should not be nil")
 
 	s.Require().Equal(pubkey, validatorResp.Data.Validator.Pubkey)
 	s.Require().Equal("active_ongoing", validatorResp.Data.Status)
