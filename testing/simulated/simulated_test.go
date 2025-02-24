@@ -33,8 +33,10 @@ import (
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
+	dablob "github.com/berachain/beacon-kit/da/blob"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/log/phuslu"
+	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
@@ -218,50 +220,46 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndBlob_IsSuccessful() {
 	)
 	s.Require().NoError(err)
 
-	// Create the BeaconBlock with blobs
-	blobs := []*eip4844.Blob{{}, {}}
-	// Sign a blob transaction
-	emptyBlob := kzg4844.Blob{}
-	emptyBlobCommit, _ := kzg4844.BlobToCommitment(&emptyBlob)
-	emptyBlobVHash := kzg4844.CalcBlobHashV1(sha256.New(), &emptyBlobCommit)
-	blobTx1, err := gethtypes.SignNewTx(
-		simulated.GetTestKey(s.T()),
-		gethtypes.NewCancunSigner(big.NewInt(int64(s.TestNode.ChainSpec.DepositEth1ChainID()))),
-		&gethtypes.BlobTx{
-			Nonce:      0,
-			GasTipCap:  uint256.NewInt(10000),
-			GasFeeCap:  uint256.NewInt(10000),
-			Gas:        10000,
-			Value:      nil,
-			Data:       nil,
-			AccessList: nil,
-			BlobFeeCap: nil,
-			BlobHashes: []gethcommon.Hash{emptyBlobVHash},
-			Sidecar:    nil,
-			V:          nil,
-			R:          nil,
-			S:          nil,
-		},
-	)
-	blobTx2, err := gethtypes.SignNewTx(
-		simulated.GetTestKey(s.T()),
-		gethtypes.NewCancunSigner(big.NewInt(int64(s.TestNode.ChainSpec.DepositEth1ChainID()))),
-		&gethtypes.BlobTx{
-			Nonce:      0,
-			GasTipCap:  uint256.NewInt(10000),
-			GasFeeCap:  uint256.NewInt(10000),
-			Gas:        10000,
-			Value:      nil,
-			Data:       nil,
-			AccessList: nil,
-			BlobFeeCap: nil,
-			BlobHashes: []gethcommon.Hash{emptyBlobVHash},
-			Sidecar:    nil,
-			V:          nil,
-			R:          nil,
-			S:          nil,
-		},
-	)
+	// Create the Blobs, with proofs and commitments
+	blobs := []*eip4844.Blob{{1, 2, 3}, {4, 5, 6}}
+	proofs, commitments := simulated.GetProofAndCommitmentsForBlobs(require.New(s.T()), blobs, s.TestNode.KZGVerifier)
+	s.Require().Len(proofs, 2)
+	s.Require().Len(commitments, 2)
+
+	// Sign blob transactions
+	blobTxs := make([]*gethtypes.Transaction, len(blobs))
+	blobTxSidecars := make([]*gethtypes.BlobTxSidecar, len(blobs))
+	for i := range blobs {
+		blobCommitment := commitments[i]
+		blobHash := kzg4844.CalcBlobHashV1(sha256.New(), (*kzg4844.Commitment)(&blobCommitment))
+		txSidecar := &gethtypes.BlobTxSidecar{
+			Blobs:       []kzg4844.Blob{kzg4844.Blob(blobs[i][:])},
+			Commitments: []kzg4844.Commitment{kzg4844.Commitment(blobCommitment)},
+			Proofs:      []kzg4844.Proof{kzg4844.Proof(proofs[i])},
+		}
+		blobTx, err := gethtypes.SignNewTx(
+			simulated.GetTestKey(s.T()),
+			gethtypes.NewCancunSigner(big.NewInt(int64(s.TestNode.ChainSpec.DepositEth1ChainID()))),
+			&gethtypes.BlobTx{
+				Nonce:      uint64(i),
+				GasTipCap:  uint256.NewInt(10000),
+				GasFeeCap:  uint256.NewInt(10000),
+				Gas:        10000,
+				Value:      nil,
+				Data:       nil,
+				AccessList: nil,
+				BlobFeeCap: nil,
+				BlobHashes: []gethcommon.Hash{blobHash},
+				Sidecar:    txSidecar,
+				V:          nil,
+				R:          nil,
+				S:          nil,
+			},
+		)
+		s.Require().NoError(err)
+		blobTxs[i] = blobTx
+		blobTxSidecars[i] = txSidecar
+	}
 
 	proposedBlock = simulated.CreateBlockWithTransactions(
 		require.New(s.T()),
@@ -269,21 +267,26 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndBlob_IsSuccessful() {
 		blsSigner,
 		s.TestNode.ChainSpec,
 		s.GenesisValidatorsRoot,
-		[]*gethtypes.Transaction{blobTx1, blobTx2},
-		nil,
+		blobTxs,
+		blobTxSidecars,
 	)
 
-	blockWithCommitments, proofs, commitments, inclusionProofs := simulated.CreateBeaconBlockWithBlobs(
+	blockWithCommitments := simulated.CreateBeaconBlockWithBlobs(
 		require.New(s.T()),
 		s.TestNode.ChainSpec,
-		blobs,
-		s.TestNode.KZGVerifier,
-		proposedBlock,
+		commitments,
+		proposedBlock.GetMessage(),
 		blsSigner,
 		s.GenesisValidatorsRoot,
 	)
-	s.Require().Len(proofs, 2)
-	s.Require().Len(commitments, 2)
+
+	sidecarFactory := dablob.NewSidecarFactory(s.TestNode.ChainSpec, metrics.NewNoOpTelemetrySink())
+	inclusionProofs := make([][]common.Root, len(blobs))
+	for i := range blobs {
+		inclusionProof, err := sidecarFactory.BuildKZGInclusionProof(blockWithCommitments.GetMessage().GetBody(), mathpkg.U64(i))
+		s.Require().NoError(err)
+		inclusionProofs[i] = inclusionProof
+	}
 
 	blockWithCommitmentBytes, err := blockWithCommitments.MarshalSSZ()
 	s.Require().NoError(err)
@@ -291,6 +294,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndBlob_IsSuccessful() {
 	// Inject the new block
 	proposal.Txs[0] = blockWithCommitmentBytes
 
+	// Create the beaconBlock Header for the sidecar
 	blockWithCommitmentsSignedHeader := ctypes.NewSignedBeaconBlockHeader(ctypes.NewBeaconBlockHeader(
 		blockWithCommitments.Message.GetSlot(),
 		blockWithCommitments.Message.GetProposerIndex(),

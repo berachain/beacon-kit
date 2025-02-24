@@ -33,12 +33,10 @@ import (
 
 	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	dablob "github.com/berachain/beacon-kit/da/blob"
 	"github.com/berachain/beacon-kit/da/kzg"
 	"github.com/berachain/beacon-kit/da/kzg/gokzg"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
-	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
@@ -48,11 +46,13 @@ import (
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/crypto/kzg4844"
 	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/require"
 )
 
 const testPkey = "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291"
+const blobGasPerTx = 131072
 
 // SharedAccessors holds references to common utilities required in tests.
 type SharedAccessors struct {
@@ -99,6 +99,11 @@ func CreateBlockWithTransactions(
 	withdrawalsHash := gethprimitives.DeriveSha(withdrawals, gethprimitives.NewStackTrie(nil))
 	parentRoot := origBlock.GetMessage().GetParentBlockRoot()
 
+	totalBlobGas := uint64(0)
+	for _, sidecar := range sidecars {
+		totalBlobGas += uint64(len(sidecar.Blobs) * blobGasPerTx)
+	}
+
 	// Construct a new execution block header with the provided transactions.
 	executionBlock := gethprimitives.NewBlockWithHeader(
 		&gethprimitives.Header{
@@ -119,7 +124,7 @@ func CreateBlockWithTransactions(
 			MixDigest:        gethprimitives.ExecutionHash(payload.GetPrevRandao()),
 			WithdrawalsHash:  &withdrawalsHash,
 			ExcessBlobGas:    payload.GetExcessBlobGas().UnwrapPtr(),
-			BlobGasUsed:      payload.GetBlobGasUsed().UnwrapPtr(),
+			BlobGasUsed:      &totalBlobGas,
 			ParentBeaconRoot: (*gethprimitives.ExecutionHash)(&parentRoot),
 		},
 	).WithBody(gethprimitives.Body{
@@ -157,27 +162,21 @@ func CreateBlockWithTransactions(
 	return newBlock
 }
 
-// ConvertBlob converts an eip4844.Blob to a ckzg4844.Blob
-func ConvertBlob(eipBlob *eip4844.Blob) *gokzg4844.Blob {
+// ConvertBlobToGoKZGBlob converts an eip4844.Blob to a ckzg4844.Blob
+func ConvertBlobToGoKZGBlob(eipBlob *eip4844.Blob) *gokzg4844.Blob {
 	var blob gokzg4844.Blob
 	copy(blob[:], eipBlob[:])
 	return &blob
 }
 
-// CreateBeaconBlockWithBlobs TODO
-func CreateBeaconBlockWithBlobs(t *require.Assertions,
-	spec chain.Spec,
-	blobs []*eip4844.Blob,
-	verifier kzg.BlobProofVerifier,
-	signedBeaconBlock *ctypes.SignedBeaconBlock,
-	blsSigner *signer.BLSSigner,
-	genesisValidatorsRoot common.Root,
-) (
-	*ctypes.SignedBeaconBlock,
-	[]eip4844.KZGProof,
-	[]eip4844.KZGCommitment,
-	[][]common.Root,
-) {
+// ConvertBlobToGethKZGBlob converts an eip4844.Blob to a kzg4844.Blob
+func ConvertBlobToGethKZGBlob(eipBlob *eip4844.Blob) *kzg4844.Blob {
+	var blob kzg4844.Blob
+	copy(blob[:], eipBlob[:])
+	return &blob
+}
+
+func GetProofAndCommitmentsForBlobs(t *require.Assertions, blobs []*eip4844.Blob, verifier kzg.BlobProofVerifier) ([]eip4844.KZGProof, []eip4844.KZGCommitment) {
 	if verifier.GetImplementation() != gokzg.Implementation {
 		t.Fail("test expects gokzg implementation")
 	}
@@ -185,42 +184,44 @@ func CreateBeaconBlockWithBlobs(t *require.Assertions,
 	if !ok {
 		t.Fail("verifier is not of type *gokzg.Verifier")
 	}
-
 	commitments := make([]eip4844.KZGCommitment, len(blobs))
 	proofs := make([]eip4844.KZGProof, len(blobs))
 	for i, blob := range blobs {
-		ckzgBlob := ConvertBlob(blob)
-		commitment, err := gokzgVerifier.BlobToKZGCommitment(ConvertBlob(blob), 1)
+		ckzgBlob := ConvertBlobToGoKZGBlob(blob)
+		commitment, err := gokzgVerifier.BlobToKZGCommitment(ConvertBlobToGoKZGBlob(blob), 1)
 		t.NoError(err)
 		proof, err := gokzgVerifier.ComputeBlobKZGProof(ckzgBlob, commitment, 1)
 		t.NoError(err)
 		commitments[i] = eip4844.KZGCommitment(commitment)
 		proofs[i] = eip4844.KZGProof(proof)
 	}
+	return proofs, commitments
+}
 
+// CreateBeaconBlockWithBlobs TODO
+func CreateBeaconBlockWithBlobs(
+	t *require.Assertions,
+	spec chain.Spec,
+	commitments []eip4844.KZGCommitment,
+	beaconBlock *ctypes.BeaconBlock,
+	blsSigner *signer.BLSSigner,
+	genesisValidatorsRoot common.Root,
+) *ctypes.SignedBeaconBlock {
 	// Replace the original payload with commitment
-	signedBeaconBlock.GetMessage().GetBody().BlobKzgCommitments = commitments
+	beaconBlock.GetBody().BlobKzgCommitments = commitments
 
 	// Update the signature over the new payload.
 	newBlock, err := ctypes.NewSignedBeaconBlock(
-		signedBeaconBlock.GetMessage(),
+		beaconBlock,
 		&ctypes.ForkData{
-			CurrentVersion:        spec.ActiveForkVersionForSlot(signedBeaconBlock.GetMessage().Slot),
+			CurrentVersion:        spec.ActiveForkVersionForSlot(beaconBlock.GetSlot()),
 			GenesisValidatorsRoot: genesisValidatorsRoot,
 		},
 		spec,
 		blsSigner,
 	)
 	t.NoError(err, "failed to update signature over the new payload")
-
-	sidecarFactory := dablob.NewSidecarFactory(spec, metrics.NewNoOpTelemetrySink())
-	inclusionProofs := make([][]common.Root, len(blobs))
-	for i := range blobs {
-		inclusionProof, err := sidecarFactory.BuildKZGInclusionProof(newBlock.GetMessage().GetBody(), mathpkg.U64(i))
-		t.NoError(err, "failed to build kzg inclusion proof")
-		inclusionProofs[i] = inclusionProof
-	}
-	return newBlock, proofs, commitments, inclusionProofs
+	return newBlock
 }
 
 // executableDataToExecutionPayload converts Ethereum executable data to a beacon execution payload.
