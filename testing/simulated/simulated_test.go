@@ -241,19 +241,22 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndBlob_IsSuccessful() {
 			simulated.GetTestKey(s.T()),
 			gethtypes.NewCancunSigner(big.NewInt(int64(s.TestNode.ChainSpec.DepositEth1ChainID()))),
 			&gethtypes.BlobTx{
-				Nonce:      uint64(i),
-				GasTipCap:  uint256.NewInt(10000),
-				GasFeeCap:  uint256.NewInt(10000),
+				Nonce: uint64(i),
+				// Set to 875000000 as that is the tx base fee
+				GasTipCap:  uint256.NewInt(875000000),
+				GasFeeCap:  uint256.NewInt(875000000),
 				Gas:        10000,
 				Value:      nil,
 				Data:       nil,
 				AccessList: nil,
-				BlobFeeCap: nil,
+				// Set to 875000000 as that is the blob base fee
+				BlobFeeCap: uint256.NewInt(1),
 				BlobHashes: []gethcommon.Hash{blobHash},
-				Sidecar:    txSidecar,
-				V:          nil,
-				R:          nil,
-				S:          nil,
+				// Sidecar must be set to nil here or Geth will error with "unexpected blob sidecar in transaction"
+				Sidecar: nil,
+				V:       nil,
+				R:       nil,
+				S:       nil,
 			},
 		)
 		s.Require().NoError(err)
