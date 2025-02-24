@@ -136,6 +136,7 @@ start-geth: ## start an ephemeral `geth` node with docker
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
 	ethereum/client-go \
+	--syncmode=full \
 	--http \
 	--http.addr 0.0.0.0 \
 	--http.api eth,net \
