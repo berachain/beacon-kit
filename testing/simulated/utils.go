@@ -24,6 +24,7 @@ package simulated
 
 import (
 	"context"
+	"crypto/ecdsa"
 	"fmt"
 	"math/big"
 	"path/filepath"
@@ -51,6 +52,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const testPkey = "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291"
+
 // SharedAccessors holds references to common utilities required in tests.
 type SharedAccessors struct {
 	Ctx        context.Context
@@ -60,6 +63,13 @@ type SharedAccessors struct {
 
 	// ElHandle is a dockertest resource handle that should be closed in teardown.
 	ElHandle *dockertest.Resource
+}
+
+func GetTestKey(t *require.Assertions) *ecdsa.PrivateKey {
+	// Create a test key - copied from go-ethereum.
+	testKey, err := crypto.HexToECDSA(testPkey)
+	t.NoError(err, "failed to create test key for malicious transaction")
+	return testKey
 }
 
 // GetBlsSigner returns a new BLSSigner using the configuration files in the provided home directory.
@@ -82,13 +92,9 @@ func CreateInvalidBlock(
 	// Get the current fork version from the slot.
 	forkVersion := chainSpec.ActiveForkVersionForSlot(signedBeaconBlock.GetMessage().Slot)
 
-	// Create a test key - copied from go-ethereum.
-	testKey, err := crypto.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
-	t.NoError(err, "failed to create test key for malicious transaction")
-
 	// Sign a malicious transaction that is expected to fail.
 	maliciousTx, err := gethtypes.SignNewTx(
-		testKey,
+		GetTestKey(t),
 		gethtypes.NewCancunSigner(big.NewInt(int64(chainSpec.DepositEth1ChainID()))),
 		&gethtypes.DynamicFeeTx{
 			Nonce:     0,
