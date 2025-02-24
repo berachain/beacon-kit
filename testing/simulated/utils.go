@@ -31,14 +31,19 @@ import (
 
 	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	dablob "github.com/berachain/beacon-kit/da/blob"
+	"github.com/berachain/beacon-kit/da/kzg"
+	"github.com/berachain/beacon-kit/da/kzg/gokzg"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
+	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
 	mathpkg "github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
+	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	gethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -164,32 +169,71 @@ func CreateInvalidBlock(
 	return maliciousBlock
 }
 
-// CreateBeaconBlockWithCommitments TODO
-func CreateBeaconBlockWithCommitments(
-	t *require.Assertions,
+// ConvertBlob converts an eip4844.Blob to a ckzg4844.Blob
+func ConvertBlob(eipBlob *eip4844.Blob) *gokzg4844.Blob {
+	var blob gokzg4844.Blob
+	copy(blob[:], eipBlob[:])
+	return &blob
+}
+
+// CreateBeaconBlockWithBlobs TODO
+func CreateBeaconBlockWithBlobs(t *require.Assertions,
+	spec chain.Spec,
+	blobs []*eip4844.Blob,
+	verifier kzg.BlobProofVerifier,
 	signedBeaconBlock *ctypes.SignedBeaconBlock,
 	blsSigner *signer.BLSSigner,
-	chainSpec chain.Spec,
 	genesisValidatorsRoot common.Root,
-) *ctypes.SignedBeaconBlock {
-	// Get the current fork version from the slot.
-	//forkVersion := chainSpec.ActiveForkVersionForSlot(signedBeaconBlock.GetMessage().Slot)
+) (
+	*ctypes.SignedBeaconBlock,
+	[]eip4844.KZGProof,
+	[]eip4844.KZGCommitment,
+	[][]common.Root,
+) {
+	if verifier.GetImplementation() != gokzg.Implementation {
+		t.Fail("test expects gokzg implementation")
+	}
+	gokzgVerifier, ok := verifier.(*gokzg.Verifier)
+	if !ok {
+		t.Fail("verifier is not of type *gokzg.Verifier")
+	}
+
+	commitments := make([]eip4844.KZGCommitment, len(blobs))
+	proofs := make([]eip4844.KZGProof, len(blobs))
+	for i, blob := range blobs {
+		ckzgBlob := ConvertBlob(blob)
+		commitment, err := gokzgVerifier.BlobToKZGCommitment(ConvertBlob(blob), 1)
+		t.NoError(err)
+		proof, err := gokzgVerifier.ComputeBlobKZGProof(ckzgBlob, commitment, 1)
+		t.NoError(err)
+		commitments[i] = eip4844.KZGCommitment(commitment)
+		proofs[i] = eip4844.KZGProof(proof)
+	}
 
 	// Replace the original payload with commitment
-	signedBeaconBlock.GetMessage().GetBody().BlobKzgCommitments = []eip4844.KZGCommitment{[48]byte{1}, [48]byte{2}}
+	signedBeaconBlock.GetMessage().GetBody().BlobKzgCommitments = commitments
+	signedBeaconBlock.GetMessage().GetBody().GetExecutionPayload()
 
 	// Update the signature over the new payload.
-	maliciousBlock, err := ctypes.NewSignedBeaconBlock(
+	newBlock, err := ctypes.NewSignedBeaconBlock(
 		signedBeaconBlock.GetMessage(),
 		&ctypes.ForkData{
-			CurrentVersion:        chainSpec.ActiveForkVersionForSlot(signedBeaconBlock.GetMessage().Slot),
+			CurrentVersion:        spec.ActiveForkVersionForSlot(signedBeaconBlock.GetMessage().Slot),
 			GenesisValidatorsRoot: genesisValidatorsRoot,
 		},
-		chainSpec,
+		spec,
 		blsSigner,
 	)
 	t.NoError(err, "failed to update signature over the new payload")
-	return maliciousBlock
+
+	sidecarFactory := dablob.NewSidecarFactory(spec, metrics.NewNoOpTelemetrySink())
+	inclusionProofs := make([][]common.Root, len(blobs))
+	for i := range blobs {
+		inclusionProof, err := sidecarFactory.BuildKZGInclusionProof(newBlock.GetMessage().GetBody(), mathpkg.U64(i))
+		t.NoError(err, "failed to build kzg inclusion proof")
+		inclusionProofs[i] = inclusionProof
+	}
+	return newBlock, proofs, commitments, inclusionProofs
 }
 
 // executableDataToExecutionPayload converts Ethereum executable data to a beacon execution payload.

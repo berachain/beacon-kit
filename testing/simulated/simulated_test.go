@@ -25,7 +25,6 @@ package simulated_test
 import (
 	"bytes"
 	"context"
-	"strconv"
 	"testing"
 	"time"
 
@@ -35,7 +34,6 @@ import (
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
-	byteslib "github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
@@ -214,8 +212,21 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndBlob_IsSuccessful() {
 	)
 	s.Require().NoError(err)
 
-	// Create a valid block by injecting blobs
-	blockWithCommitments := simulated.CreateBeaconBlockWithCommitments(require.New(s.T()), proposedBlock, blsSigner, s.TestNode.ChainSpec, s.GenesisValidatorsRoot)
+	// Create the BeaconBlock with blobs
+	blobs := []*eip4844.Blob{{4, 2, 0}, {8, 0, 0}}
+
+	blockWithCommitments, proofs, commitments, inclusionProofs := simulated.CreateBeaconBlockWithBlobs(
+		require.New(s.T()),
+		s.TestNode.ChainSpec,
+		blobs,
+		s.TestNode.KZGVerifier,
+		proposedBlock,
+		blsSigner,
+		s.GenesisValidatorsRoot,
+	)
+	s.Require().Len(proofs, 2)
+	s.Require().Len(commitments, 2)
+
 	blockWithCommitmentBytes, err := blockWithCommitments.MarshalSSZ()
 	s.Require().NoError(err)
 
@@ -230,32 +241,20 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndBlob_IsSuccessful() {
 		blockWithCommitments.Message.GetBody().HashTreeRoot(),
 	), blockWithCommitments.Signature)
 
-	inclusionProof := make([]common.Root, 0)
-	// Create an empty BlobSidecar
-	for i := 1; i <= ctypes.KZGInclusionProofDepth; i++ {
-		it := byteslib.ExtendToSize([]byte(strconv.Itoa(i)), byteslib.B32Size)
-		proof, errBytes := byteslib.ToBytes32(it)
-		s.Require().NoError(errBytes)
-		inclusionProof = append(inclusionProof, common.Root(proof))
+	sidecarsSlice := make([]*datypes.BlobSidecar, len(blobs))
+	for i := range blobs {
+		sidecar := datypes.BuildBlobSidecar(
+			mathpkg.U64(i),
+			blockWithCommitmentsSignedHeader,
+			blobs[i],
+			commitments[i],
+			proofs[i],
+			inclusionProofs[i],
+		)
+		sidecarsSlice[i] = sidecar
 	}
 
-	sidecar1 := datypes.BuildBlobSidecar(
-		mathpkg.U64(0),
-		blockWithCommitmentsSignedHeader,
-		&eip4844.Blob{},
-		eip4844.KZGCommitment{},
-		eip4844.KZGProof{},
-		inclusionProof,
-	)
-	sidecar2 := datypes.BuildBlobSidecar(
-		mathpkg.U64(1),
-		blockWithCommitmentsSignedHeader,
-		&eip4844.Blob{},
-		eip4844.KZGCommitment{},
-		eip4844.KZGProof{},
-		inclusionProof,
-	)
-	sidecars := datypes.BlobSidecars{sidecar1, sidecar2}
+	sidecars := datypes.BlobSidecars(sidecarsSlice)
 	// Inject the valid sidecar
 	sidecarBytes, err := sidecars.MarshalSSZ()
 	s.Require().NoError(err)

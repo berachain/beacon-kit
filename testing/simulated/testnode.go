@@ -62,6 +62,7 @@ type TestNode struct {
 	StorageBackend blockchain.StorageBackend
 	ChainSpec      chain.Spec
 	APIBackend     nodecomponents.NodeAPIBackend
+	KZGVerifier    kzg.BlobProofVerifier
 }
 
 // NewTestNode Uses the testnet chainspec.
@@ -108,6 +109,7 @@ func buildNode(
 		config         *config.Config
 		storageBackend blockchain.StorageBackend
 		chainSpec      chain.Spec
+		kzgVerifier    kzg.BlobProofVerifier
 	)
 
 	// build all node components using depinject
@@ -129,6 +131,7 @@ func buildNode(
 		&config,
 		&storageBackend,
 		&chainSpec,
+		&kzgVerifier,
 	); err != nil {
 		panic(err)
 	}
@@ -146,6 +149,7 @@ func buildNode(
 		StorageBackend: storageBackend,
 		ChainSpec:      chainSpec,
 		APIBackend:     apiBackend,
+		KZGVerifier:    kzgVerifier,
 	}
 }
 
