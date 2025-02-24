@@ -28,6 +28,7 @@ import (
 	"fmt"
 	"math/big"
 	"path/filepath"
+	"testing"
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/chain"
@@ -45,8 +46,6 @@ import (
 	mathpkg "github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
-	gethcommon "github.com/ethereum/go-ethereum/common"
-	gethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/require"
@@ -65,10 +64,11 @@ type SharedAccessors struct {
 	ElHandle *dockertest.Resource
 }
 
-func GetTestKey(t *require.Assertions) *ecdsa.PrivateKey {
+func GetTestKey(t *testing.T) *ecdsa.PrivateKey {
+	t.Helper()
 	// Create a test key - copied from go-ethereum.
 	testKey, err := crypto.HexToECDSA(testPkey)
-	t.NoError(err, "failed to create test key for malicious transaction")
+	require.NoError(t, err, "failed to create test key for malicious transaction")
 	return testKey
 }
 
@@ -79,52 +79,32 @@ func GetBlsSigner(tempHomeDir string) *signer.BLSSigner {
 	return signer.NewBLSSigner(privValKeyFile, privValStateFile)
 }
 
-// CreateInvalidBlock creates a malicious beacon block by injecting an invalid transaction
-// into the execution payload. The invalidity stems from the transaction coming from an account
-// with fee below base fee.
-func CreateInvalidBlock(
+// CreateBlockWithTransactions creates a new beacon block with the provided transactions.
+func CreateBlockWithTransactions(
 	t *require.Assertions,
-	signedBeaconBlock *ctypes.SignedBeaconBlock,
+	origBlock *ctypes.SignedBeaconBlock,
 	blsSigner *signer.BLSSigner,
 	chainSpec chain.Spec,
 	genesisValidatorsRoot common.Root,
+	txs []*gethprimitives.Transaction,
 ) *ctypes.SignedBeaconBlock {
 	// Get the current fork version from the slot.
-	forkVersion := chainSpec.ActiveForkVersionForSlot(signedBeaconBlock.GetMessage().Slot)
+	forkVersion := chainSpec.ActiveForkVersionForSlot(origBlock.GetMessage().Slot)
 
-	// Sign a malicious transaction that is expected to fail.
-	maliciousTx, err := gethtypes.SignNewTx(
-		GetTestKey(t),
-		gethtypes.NewCancunSigner(big.NewInt(int64(chainSpec.DepositEth1ChainID()))),
-		&gethtypes.DynamicFeeTx{
-			Nonce:     0,
-			To:        &gethcommon.Address{1},
-			Value:     big.NewInt(100000000000),
-			Gas:       100,
-			GasTipCap: big.NewInt(10000000),
-			GasFeeCap: big.NewInt(10000000),
-			Data:      []byte{},
-		},
-	)
-	t.NoError(err, "failed to sign malicious transaction")
-
-	// Initialize the slice with the malicious transaction.
-	maliciousTxs := []*gethprimitives.Transaction{maliciousTx}
-
-	// Extract the current execution payload and compute the withdrawals hash.
-	payload := signedBeaconBlock.GetMessage().GetBody().ExecutionPayload
+	// Extract the existing execution payload and related data.
+	payload := origBlock.GetMessage().GetBody().ExecutionPayload
 	withdrawals := payload.GetWithdrawals()
 	withdrawalsHash := gethprimitives.DeriveSha(withdrawals, gethprimitives.NewStackTrie(nil))
-	parentRoot := signedBeaconBlock.GetMessage().GetParentBlockRoot()
+	parentRoot := origBlock.GetMessage().GetParentBlockRoot()
 
-	// Construct a new execution block header and body using the malicious transactions.
+	// Construct a new execution block header with the provided transactions.
 	executionBlock := gethprimitives.NewBlockWithHeader(
 		&gethprimitives.Header{
 			ParentHash:       gethprimitives.ExecutionHash(payload.GetParentHash()),
 			UncleHash:        gethprimitives.EmptyUncleHash,
 			Coinbase:         gethprimitives.ExecutionAddress(payload.GetFeeRecipient()),
 			Root:             gethprimitives.ExecutionHash(payload.GetStateRoot()),
-			TxHash:           gethprimitives.DeriveSha(gethprimitives.Transactions(maliciousTxs), gethprimitives.NewStackTrie(nil)),
+			TxHash:           gethprimitives.DeriveSha(gethprimitives.Transactions(txs), gethprimitives.NewStackTrie(nil)),
 			ReceiptHash:      gethprimitives.ExecutionHash(payload.GetReceiptsRoot()),
 			Bloom:            gethprimitives.LogsBloom(payload.GetLogsBloom()),
 			Difficulty:       big.NewInt(0),
@@ -141,7 +121,7 @@ func CreateInvalidBlock(
 			ParentBeaconRoot: (*gethprimitives.ExecutionHash)(&parentRoot),
 		},
 	).WithBody(gethprimitives.Body{
-		Transactions: maliciousTxs,
+		Transactions: txs,
 		Uncles:       nil,
 		Withdrawals:  *(*gethprimitives.Withdrawals)(unsafe.Pointer(&withdrawals)),
 	})
@@ -158,21 +138,21 @@ func CreateInvalidBlock(
 	executionPayload, err := executableDataToExecutionPayload(forkVersion, newExecutionData.ExecutionPayload)
 	t.NoError(err, "failed to convert executable data to execution payload")
 
-	// Replace the original payload with the malicious payload.
-	signedBeaconBlock.GetMessage().GetBody().ExecutionPayload = executionPayload
+	// Replace the original payload with the new one.
+	origBlock.GetMessage().GetBody().ExecutionPayload = executionPayload
 
-	// Update the signature over the new payload.
-	maliciousBlock, err := ctypes.NewSignedBeaconBlock(
-		signedBeaconBlock.GetMessage(),
+	// Update the block's signature over the new payload.
+	newBlock, err := ctypes.NewSignedBeaconBlock(
+		origBlock.GetMessage(),
 		&ctypes.ForkData{
-			CurrentVersion:        chainSpec.ActiveForkVersionForSlot(signedBeaconBlock.GetMessage().Slot),
+			CurrentVersion:        chainSpec.ActiveForkVersionForSlot(origBlock.GetMessage().Slot),
 			GenesisValidatorsRoot: genesisValidatorsRoot,
 		},
 		chainSpec,
 		blsSigner,
 	)
 	t.NoError(err, "failed to update signature over the new payload")
-	return maliciousBlock
+	return newBlock
 }
 
 // ConvertBlob converts an eip4844.Blob to a ckzg4844.Blob

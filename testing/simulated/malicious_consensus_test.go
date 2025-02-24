@@ -23,13 +23,17 @@
 package simulated_test
 
 import (
+	"math/big"
 	"time"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/engine-primitives/errors"
+	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/cometbft/cometbft/abci/types"
+	gethcommon "github.com/ethereum/go-ethereum/common"
+	gethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -69,8 +73,26 @@ func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_Errors() {
 	)
 	s.Require().NoError(err)
 
+	// Sign a malicious transaction that is expected to fail.
+	maliciousTx, err := gethtypes.SignNewTx(
+		simulated.GetTestKey(s.T()),
+		gethtypes.NewCancunSigner(big.NewInt(int64(s.TestNode.ChainSpec.DepositEth1ChainID()))),
+		&gethtypes.DynamicFeeTx{
+			Nonce:     0,
+			To:        &gethcommon.Address{1},
+			Value:     big.NewInt(100000000000),
+			Gas:       100,
+			GasTipCap: big.NewInt(10000000),
+			GasFeeCap: big.NewInt(10000000),
+			Data:      []byte{},
+		},
+	)
+	s.Require().NoError(err, "failed to sign malicious transaction")
+	// Initialize the slice with the malicious transaction.
+	maliciousTxs := []*gethprimitives.Transaction{maliciousTx}
+
 	// Create a malicious block by injecting an invalid transaction.
-	maliciousBlock := simulated.CreateInvalidBlock(require.New(s.T()), proposedBlock, blsSigner, s.TestNode.ChainSpec, s.GenesisValidatorsRoot)
+	maliciousBlock := simulated.CreateBlockWithTransactions(require.New(s.T()), proposedBlock, blsSigner, s.TestNode.ChainSpec, s.GenesisValidatorsRoot, maliciousTxs)
 	maliciousBlockBytes, err := maliciousBlock.MarshalSSZ()
 	s.Require().NoError(err)
 
