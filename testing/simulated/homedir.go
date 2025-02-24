@@ -67,7 +67,7 @@ func InitializeHomeDir(t *testing.T, tempHomeDir string) (*cmtcfg.Config, common
 	// Set the deposit amount to the maximum effective balance.
 	depositAmount := math.Gwei(chainSpec.MaxEffectiveBalance())
 	// Define an arbitrary withdrawal address.
-	withdrawalAddress := common.NewExecutionAddressFromHex("0x6Eb9C23e4c187452504Ef8c5fD8fA1a4b15BE162")
+	withdrawalAddress := common.NewExecutionAddressFromHex("0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4")
 
 	// Add a genesis deposit.
 	err = genesis.AddGenesisDeposit(chainSpec, cometConfig, blsSigner, depositAmount, withdrawalAddress, "")
