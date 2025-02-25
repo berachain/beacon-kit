@@ -422,16 +422,26 @@ func (s *BeaconKitE2ESuite) decodeValidatorResponse(resp *http.Response) (*beaco
 		return nil, errors.New("nil response")
 	}
 	defer resp.Body.Close()
-	var response struct {
-		ExecutionOptimistic bool                      `json:"execution_optimistic"`
-		Finalized           bool                      `json:"finalized"`
-		Data                beacontypes.ValidatorData `json:"data"`
+
+	// Use a map for the data field to handle the dynamic structure
+	var rawResponse map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&rawResponse); err != nil {
+		return nil, err
 	}
-	err := json.NewDecoder(resp.Body).Decode(&response)
+
+	// Convert the data field to JSON
+	dataBytes, err := json.Marshal(rawResponse["data"])
 	if err != nil {
 		return nil, err
 	}
-	return &response.Data, nil
+
+	// Unmarshal into ValidatorData
+	var validatorData beacontypes.ValidatorData
+	if err := json.Unmarshal(dataBytes, &validatorData); err != nil {
+		return nil, err
+	}
+
+	return &validatorData, nil
 }
 
 // TestGetStateValidatorByIndex tests getting the state validator by index.
