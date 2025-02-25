@@ -23,7 +23,6 @@
 package simulated
 
 import (
-	"fmt"
 	"math/big"
 	"unsafe"
 
@@ -80,8 +79,6 @@ func TransformSimulatedBlockToGethBlock(simBlock *execution.SimulatedBlock, txs 
 		Uncles:       nil,
 		Withdrawals:  *(*gethprimitives.Withdrawals)(unsafe.Pointer(&withdrawals)),
 	})
-	x := executionBlock.Hash()
-	fmt.Println("REZ: ", x)
 	return executionBlock
 }
 
