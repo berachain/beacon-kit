@@ -32,6 +32,7 @@ import (
 	beaconapi "github.com/attestantio/go-eth2-client/api"
 	apiv1 "github.com/attestantio/go-eth2-client/api/v1"
 	"github.com/attestantio/go-eth2-client/spec/phase0"
+	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
@@ -39,18 +40,6 @@ import (
 )
 
 const localHost = "localhost"
-
-// StateValidatorResponse represents the API response for a validator.
-type StateValidatorResponse struct {
-	Data struct {
-		Index     string `json:"index"`
-		Balance   string `json:"balance"`
-		Status    string `json:"status"`
-		Validator struct {
-			Pubkey string `json:"pubkey"`
-		} `json:"validator"`
-	} `json:"data"`
-}
 
 // BeaconHTTPClient wraps http.Client with baseURL.
 // This is needed to change the default baseURL of the http.Client.
@@ -428,17 +417,21 @@ func (s *BeaconKitE2ESuite) getStateValidator(stateID, validatorID string) (*htt
 }
 
 // decodeValidatorResponse decodes the validator response.
-func (s *BeaconKitE2ESuite) decodeValidatorResponse(resp *http.Response) (*StateValidatorResponse, error) {
+func (s *BeaconKitE2ESuite) decodeValidatorResponse(resp *http.Response) (*beacontypes.ValidatorData, error) {
 	if resp == nil {
 		return nil, errors.New("nil response")
 	}
 	defer resp.Body.Close()
-	var validatorResp StateValidatorResponse
-	err := json.NewDecoder(resp.Body).Decode(&validatorResp)
+	var response struct {
+		ExecutionOptimistic bool                      `json:"execution_optimistic"`
+		Finalized           bool                      `json:"finalized"`
+		Data                beacontypes.ValidatorData `json:"data"`
+	}
+	err := json.NewDecoder(resp.Body).Decode(&response)
 	if err != nil {
 		return nil, err
 	}
-	return &validatorResp, nil
+	return &response.Data, nil
 }
 
 // TestGetStateValidatorByIndex tests getting the state validator by index.
@@ -453,8 +446,8 @@ func (s *BeaconKitE2ESuite) TestGetStateValidatorByIndex() {
 	s.Require().NoError(err)
 	s.Require().NotNil(validatorResp, "validator response should not be nil")
 
-	s.Require().Equal("0", validatorResp.Data.Index)
-	s.Require().Equal("active_ongoing", validatorResp.Data.Status)
+	s.Require().Equal(uint64(0), validatorResp.Index)
+	s.Require().Equal("active_ongoing", validatorResp.Status)
 }
 
 // TestGetStateValidatorBySlotAndIndex tests getting the state validator by slot and index.
@@ -470,8 +463,8 @@ func (s *BeaconKitE2ESuite) TestGetStateValidatorBySlotAndIndex() {
 	s.Require().NoError(err)
 	s.Require().NotNil(validatorResp, "validator response should not be nil")
 
-	s.Require().Equal("0", validatorResp.Data.Index)
-	s.Require().Equal("active_ongoing", validatorResp.Data.Status)
+	s.Require().Equal(uint64(0), validatorResp.Index)
+	s.Require().Equal("active_ongoing", validatorResp.Status)
 }
 
 // TestGetStateValidatorByPubkey tests getting the state validator by pubkey.
@@ -488,7 +481,7 @@ func (s *BeaconKitE2ESuite) TestGetStateValidatorByPubkey() {
 	s.Require().NotNil(validatorResp, "validator response should not be nil")
 
 	// Retrieve the public key.
-	pubkey := validatorResp.Data.Validator.Pubkey
+	pubkey := validatorResp.Validator.PublicKey
 
 	// Actual test starts here.
 	resp, err = s.getStateValidator("head", pubkey)
@@ -501,7 +494,7 @@ func (s *BeaconKitE2ESuite) TestGetStateValidatorByPubkey() {
 	s.Require().NoError(errInDecode)
 	s.Require().NotNil(validatorResp, "validator response should not be nil")
 
-	s.Require().Equal("active_ongoing", validatorResp.Data.Status)
+	s.Require().Equal("active_ongoing", validatorResp.Status)
 }
 
 // TestGetStateValidatorInvalidID tests getting the state validator with an invalid id.
