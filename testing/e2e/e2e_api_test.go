@@ -24,6 +24,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"strings"
@@ -423,21 +424,26 @@ func (s *BeaconKitE2ESuite) decodeValidatorResponse(resp *http.Response) (*beaco
 	}
 	defer resp.Body.Close()
 
-	// Use a map for the data field to handle the dynamic structure
-	var rawResponse map[string]interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&rawResponse); err != nil {
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	// First decode into GenericResponse.
+	var genericResp beacontypes.GenericResponse
+	if err = json.Unmarshal(bodyBytes, &genericResp); err != nil {
 		return nil, err
 	}
 
 	// Convert the data field to JSON
-	dataBytes, err := json.Marshal(rawResponse["data"])
+	dataBytes, err := json.Marshal(genericResp.Data)
 	if err != nil {
 		return nil, err
 	}
 
 	// Unmarshal into ValidatorData
 	var validatorData beacontypes.ValidatorData
-	if err := json.Unmarshal(dataBytes, &validatorData); err != nil {
+	if err = json.Unmarshal(dataBytes, &validatorData); err != nil {
 		return nil, err
 	}
 
