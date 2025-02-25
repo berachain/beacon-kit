@@ -69,8 +69,20 @@ type TransactionArgs struct {
 }
 
 type SimBlock struct {
-	Calls []TransactionArgs `json:"calls"`
+	Calls          []TransactionArgs `json:"calls"`
+	BlockOverrides *BlockOverrides
 	// TODO: in the future we could add state and block overrides here to do more complex EVM simulations
+}
+
+type BlockOverrides struct {
+	Number        *hexutil.Big
+	Difficulty    *hexutil.Big // No-op if we're simulating post-merge calls.
+	Time          *hexutil.Uint64
+	GasLimit      *hexutil.Uint64
+	FeeRecipient  *common.Address
+	PrevRandao    *common.Hash
+	BaseFeePerGas *hexutil.Big
+	BlobBaseFee   *hexutil.Big
 }
 
 type SimulateInputs struct {
@@ -133,7 +145,7 @@ func (c *SimulationClient) Simulate(ctx context.Context, blockNumber int64, inpu
 }
 
 // TxsToSimBlock Transactions must use Dynamic Fee values, i.e. non legacy txs
-func TxsToSimBlock(chainId uint64, txs []*gethprimitives.Transaction) (*SimBlock, error) {
+func TxsToSimBlock(chainId uint64, txs []*gethprimitives.Transaction) ([]TransactionArgs, error) {
 	// TODO: use the LatestSigner based on a Geth ChainConfig parsed from an EL Genesis File.
 	// Transactions must use Dynamic Fee values, i.e. non legacy txs
 	signer := types.NewCancunSigner(big.NewInt(int64(chainId)))
@@ -172,5 +184,5 @@ func TxsToSimBlock(chainId uint64, txs []*gethprimitives.Transaction) (*SimBlock
 		}
 		calls[i] = call
 	}
-	return &SimBlock{calls}, nil
+	return calls, nil
 }
