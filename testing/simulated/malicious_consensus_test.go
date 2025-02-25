@@ -94,6 +94,7 @@ func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_Errors() {
 	maliciousBlock := simulated.CreateSignedBlockWithTransactions(
 		require.New(s.T()),
 		s.SimulationClient,
+		simulated.DefaultSimulationInput(require.New(s.T()), s.TestNode.ChainSpec, proposedBlock, maliciousTxs),
 		proposedBlock,
 		blsSigner,
 		s.TestNode.ChainSpec,

@@ -272,6 +272,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndBlob_IsSuccessful() {
 	proposedBlock = simulated.CreateSignedBlockWithTransactions(
 		require.New(s.T()),
 		s.SimulationClient,
+		simulated.DefaultSimulationInput(require.New(s.T()), s.TestNode.ChainSpec, proposedBlock, blobTxs),
 		proposedBlock,
 		blsSigner,
 		s.TestNode.ChainSpec,

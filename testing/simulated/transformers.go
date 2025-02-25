@@ -58,7 +58,7 @@ func TransformSimulatedBlockToGethBlock(simBlock *execution.SimulatedBlock, txs 
 			UncleHash:        gethprimitives.EmptyUncleHash,
 			Coinbase:         simBlock.Miner,
 			Root:             simBlock.StateRoot,
-			TxHash:           gethprimitives.DeriveSha(gethprimitives.Transactions(txs), gethprimitives.NewStackTrie(nil)),
+			TxHash:           simBlock.TransactionsRoot,
 			ReceiptHash:      simBlock.ReceiptsRoot,
 			Bloom:            gethtypes.Bloom(simBlock.LogsBloom),
 			Difficulty:       big.NewInt(0),

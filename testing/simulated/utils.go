@@ -26,6 +26,7 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"fmt"
+	"math/big"
 	"path/filepath"
 	"testing"
 	"unsafe"
@@ -43,6 +44,8 @@ import (
 	mathpkg "github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
+	gethcommon "github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/require"
@@ -78,25 +81,47 @@ func GetBlsSigner(tempHomeDir string) *signer.BLSSigner {
 	return signer.NewBLSSigner(privValKeyFile, privValStateFile)
 }
 
+func DefaultSimulationInput(t *require.Assertions, chainSpec chain.Spec, origBlock *ctypes.SignedBeaconBlock, txs []*gethprimitives.Transaction) *execution.SimulateInputs {
+	overrideTime := hexutil.Uint64(origBlock.GetMessage().GetTimestamp().Unwrap())
+	overrideGasLimit := hexutil.Uint64(30000000)
+	overrideFeeRecipient := origBlock.GetMessage().GetBody().GetExecutionPayload().GetFeeRecipient()
+	overridePrevRandao := gethcommon.Hash(origBlock.GetMessage().GetBody().GetExecutionPayload().GetPrevRandao())
+	overrideBaseFeePerGas := origBlock.GetMessage().GetBody().GetExecutionPayload().GetBaseFeePerGas().ToBig()
+	overrideBlobBaseFee := hexutil.Big(*big.NewInt(0))
+	calls, err := execution.TxsToSimBlock(chainSpec.DepositEth1ChainID(), txs)
+	t.NoError(err)
+	simulationInput := &execution.SimulateInputs{
+		BlockStateCalls: []*execution.SimBlock{
+			{
+				Calls: calls,
+				BlockOverrides: &execution.BlockOverrides{
+					Time:          &overrideTime,
+					GasLimit:      &overrideGasLimit,
+					FeeRecipient:  (*gethcommon.Address)(&overrideFeeRecipient),
+					PrevRandao:    &overridePrevRandao,
+					BaseFeePerGas: (*hexutil.Big)(overrideBaseFeePerGas),
+					BlobBaseFee:   &overrideBlobBaseFee,
+				},
+			},
+		},
+		Validation:     true,
+		TraceTransfers: false,
+	}
+	return simulationInput
+}
+
 // CreateSignedBlockWithTransactions creates a new beacon block with the provided transactions.
 // This process requires the engine client as we must simulate to obtain the receipts root
 func CreateSignedBlockWithTransactions(
 	t *require.Assertions,
 	simulationClient *execution.SimulationClient,
+	simulationInput *execution.SimulateInputs,
 	origBlock *ctypes.SignedBeaconBlock,
 	blsSigner *signer.BLSSigner,
 	chainSpec chain.Spec,
 	genesisValidatorsRoot common.Root,
 	txs []*gethprimitives.Transaction,
 ) *ctypes.SignedBeaconBlock {
-
-	calls, err := execution.TxsToSimBlock(chainSpec.DepositEth1ChainID(), txs)
-	t.NoError(err)
-	simulationInput := &execution.SimulateInputs{
-		BlockStateCalls: []*execution.SimBlock{{Calls: calls}},
-		Validation:      false,
-		TraceTransfers:  false,
-	}
 	// Refers to the block number on top of which we simulate
 	simulateOnBlock := int64(origBlock.GetMessage().Slot.Unwrap()) - 1
 	simulatedBlocks, err := simulationClient.Simulate(context.TODO(), simulateOnBlock, simulationInput)
@@ -118,6 +143,7 @@ func CreateSignedBlockWithTransactions(
 		origParentBeaconRoot,
 		origBaseFeePerGas,
 	)
+	
 	// Convert the execution block into executable data.
 	newExecutionData := gethprimitives.BlockToExecutableData(
 		executionBlock,

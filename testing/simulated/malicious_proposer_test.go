@@ -81,8 +81,8 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 			To:        &gethcommon.Address{1},
 			Value:     big.NewInt(100000000000),
 			Gas:       21000,
-			GasTipCap: big.NewInt(10000000),
-			GasFeeCap: big.NewInt(10000000),
+			GasTipCap: big.NewInt(765625000),
+			GasFeeCap: big.NewInt(765625000),
 			Data:      []byte{},
 		},
 	)
@@ -94,6 +94,7 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	maliciousBlock := simulated.CreateSignedBlockWithTransactions(
 		require.New(s.T()),
 		s.SimulationClient,
+		simulated.DefaultSimulationInput(require.New(s.T()), s.TestNode.ChainSpec, proposedBlock, maliciousTxs),
 		proposedBlock,
 		blsSigner,
 		s.TestNode.ChainSpec,
