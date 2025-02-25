@@ -26,7 +26,6 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"fmt"
-	"math/big"
 	"path/filepath"
 	"testing"
 	"unsafe"
@@ -87,7 +86,7 @@ func DefaultSimulationInput(t *require.Assertions, chainSpec chain.Spec, origBlo
 	overrideFeeRecipient := origBlock.GetMessage().GetBody().GetExecutionPayload().GetFeeRecipient()
 	overridePrevRandao := gethcommon.Hash(origBlock.GetMessage().GetBody().GetExecutionPayload().GetPrevRandao())
 	overrideBaseFeePerGas := origBlock.GetMessage().GetBody().GetExecutionPayload().GetBaseFeePerGas().ToBig()
-	overrideBlobBaseFee := hexutil.Big(*big.NewInt(0))
+	//overrideBlobBaseFee := hexutil.Big(*big.NewInt(0))
 	calls, err := execution.TxsToSimBlock(chainSpec.DepositEth1ChainID(), txs)
 	t.NoError(err)
 	simulationInput := &execution.SimulateInputs{
@@ -100,12 +99,12 @@ func DefaultSimulationInput(t *require.Assertions, chainSpec chain.Spec, origBlo
 					FeeRecipient:  (*gethcommon.Address)(&overrideFeeRecipient),
 					PrevRandao:    &overridePrevRandao,
 					BaseFeePerGas: (*hexutil.Big)(overrideBaseFeePerGas),
-					BlobBaseFee:   &overrideBlobBaseFee,
+					//BlobBaseFee:   &overrideBlobBaseFee,
 				},
 			},
 		},
 		Validation:     true,
-		TraceTransfers: false,
+		TraceTransfers: true,
 	}
 	return simulationInput
 }
@@ -127,6 +126,16 @@ func CreateSignedBlockWithTransactions(
 	simulatedBlocks, err := simulationClient.Simulate(context.TODO(), simulateOnBlock, simulationInput)
 	t.NoError(err)
 	t.Len(simulatedBlocks, 1)
+	simBlock := simulatedBlocks[0]
+	t.Len(simBlock.Transactions, 1)
+
+	origExec := origBlock.GetMessage().GetBody().GetExecutionPayload()
+	fmt.Println(origExec)
+	hash := txs[0].Hash()
+	hash2 := simBlock.Transactions[0].String()
+	fmt.Println(hash, hash2)
+
+	//t.Equal(gethprimitives.DeriveSha(gethprimitives.Transactions(txs), gethprimitives.NewStackTrie(nil)), simBlock.TransactionsRoot)
 
 	// Get the current fork version from the slot.
 	forkVersion := chainSpec.ActiveForkVersionForSlot(origBlock.GetMessage().Slot)
@@ -143,7 +152,7 @@ func CreateSignedBlockWithTransactions(
 		origParentBeaconRoot,
 		origBaseFeePerGas,
 	)
-	
+
 	// Convert the execution block into executable data.
 	newExecutionData := gethprimitives.BlockToExecutableData(
 		executionBlock,
@@ -157,7 +166,8 @@ func CreateSignedBlockWithTransactions(
 	t.NoError(err, "failed to convert executable data to execution payload")
 
 	// Replace the original payload with the new one.
-	origBlock.GetMessage().GetBody().ExecutionPayload = executionPayload
+	origBlock.GetMessage().GetBody().SetExecutionPayload(executionPayload)
+	//origBlock.GetMessage().
 
 	// Update the block's signature over the new payload.
 	newBlock, err := ctypes.NewSignedBeaconBlock(

@@ -82,7 +82,7 @@ func (g *GethNode) Start(t *testing.T) (*dockertest.Resource, *url.ConnectionURL
 			"-c",
 			`
 			geth init --datadir /tmp/gethdata /testdata/eth-genesis.json && 
-			geth --http --http.addr 0.0.0.0 --http.api eth,net,web3 \
+			geth --http --http.addr 0.0.0.0 --http.api eth,net,web3,debug \
 				 --authrpc.addr 0.0.0.0 \
 				 --authrpc.jwtsecret /testing/files/jwt.hex \
 				 --authrpc.vhosts '*' \
@@ -122,6 +122,10 @@ func (g *GethNode) Start(t *testing.T) (*dockertest.Resource, *url.ConnectionURL
 	})
 	require.NoError(t, err, "Geth container did not become ready in time")
 
+	// TEMP:
+	//raw, err := url.NewFromRaw("http://localhost:8551")
+	//require.NoError(t, err, "failed to create raw Geth URL")
+	//return nil, raw
 	return resource, authRPC
 }
 

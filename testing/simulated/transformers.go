@@ -48,17 +48,21 @@ func TransformSimulatedBlockToGethBlock(simBlock *execution.SimulatedBlock, txs 
 	// Construct a new execution block header with the provided transactions.
 	excessBlobGas := simBlock.ExcessBlobGas.ToInt().Uint64()
 	blobGasUsed := simBlock.BlobGasUsed.ToInt().Uint64()
+	// Remove the withdrawals as it modifies the StateRoot which we cannot simulate.
+	withdrawals = engineprimitives.Withdrawals{}
 	withdrawalsHash := gethprimitives.DeriveSha(
 		withdrawals,
 		gethprimitives.NewStackTrie(nil),
 	)
 	executionBlock := gethprimitives.NewBlockWithHeader(
 		&gethprimitives.Header{
-			ParentHash:       simBlock.ParentHash,
-			UncleHash:        gethprimitives.EmptyUncleHash,
-			Coinbase:         simBlock.Miner,
-			Root:             simBlock.StateRoot,
-			TxHash:           simBlock.TransactionsRoot,
+			ParentHash: simBlock.ParentHash,
+			UncleHash:  gethprimitives.EmptyUncleHash,
+			Coinbase:   simBlock.Miner,
+			Root:       simBlock.StateRoot,
+			// We cannot use the receipts from the simulation as the simulation does not have access to signature, resulting
+			// in incorrect transaction hash calculation.
+			TxHash:           gethprimitives.DeriveSha(gethprimitives.Transactions(txs), gethprimitives.NewStackTrie(nil)),
 			ReceiptHash:      simBlock.ReceiptsRoot,
 			Bloom:            gethtypes.Bloom(simBlock.LogsBloom),
 			Difficulty:       big.NewInt(0),

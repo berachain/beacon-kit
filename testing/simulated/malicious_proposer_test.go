@@ -73,14 +73,15 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	s.Require().NoError(err)
 
 	// Sign a malicious transaction that is expected to fail.
+	recipientAddress := gethcommon.HexToAddress("0x56898d1aFb10cad584961eb96AcD476C6826e41E")
 	maliciousTx, err := gethtypes.SignNewTx(
 		simulated.GetTestKey(s.T()),
 		gethtypes.NewCancunSigner(big.NewInt(int64(s.TestNode.ChainSpec.DepositEth1ChainID()))),
 		&gethtypes.DynamicFeeTx{
 			Nonce:     0,
-			To:        &gethcommon.Address{1},
-			Value:     big.NewInt(100000000000),
-			Gas:       21000,
+			To:        &recipientAddress,
+			Value:     big.NewInt(0),
+			Gas:       21016,
 			GasTipCap: big.NewInt(765625000),
 			GasFeeCap: big.NewInt(765625000),
 			Data:      []byte{},

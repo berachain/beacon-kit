@@ -25,6 +25,7 @@ package execution
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 
 	"github.com/berachain/beacon-kit/execution/client"
@@ -75,14 +76,14 @@ type SimBlock struct {
 }
 
 type BlockOverrides struct {
-	Number        *hexutil.Big
-	Difficulty    *hexutil.Big // No-op if we're simulating post-merge calls.
-	Time          *hexutil.Uint64
-	GasLimit      *hexutil.Uint64
-	FeeRecipient  *common.Address
-	PrevRandao    *common.Hash
-	BaseFeePerGas *hexutil.Big
-	BlobBaseFee   *hexutil.Big
+	Number        *hexutil.Big    `json:"number,omitempty"`
+	Difficulty    *hexutil.Big    `json:"difficulty,omitempty"`
+	Time          *hexutil.Uint64 `json:"time,omitempty"`
+	GasLimit      *hexutil.Uint64 `json:"gasLimit,omitempty"`
+	FeeRecipient  *common.Address `json:"feeRecipient,omitempty"`
+	PrevRandao    *common.Hash    `json:"prevRandao,omitempty"`
+	BaseFeePerGas *hexutil.Big    `json:"baseFeePerGas,omitempty"`
+	BlobBaseFee   *hexutil.Big    `json:"blobBaseFee,omitempty"`
 }
 
 type SimulateInputs struct {
@@ -162,7 +163,6 @@ func TxsToSimBlock(chainId uint64, txs []*gethprimitives.Transaction) ([]Transac
 		nonce := hexutil.Uint64(tx.Nonce())
 		data := hexutil.Bytes(tx.Data())
 		chainIdHex := hexutil.Big(*big.NewInt(int64(chainId)))
-		blobGasFeeCap := hexutil.Big(*tx.GasFeeCap())
 		call := TransactionArgs{
 			From:                 sender,
 			To:                   *tx.To(),
@@ -174,15 +174,33 @@ func TxsToSimBlock(chainId uint64, txs []*gethprimitives.Transaction) ([]Transac
 			Input:                &data,
 			AccessList:           tx.AccessList(),
 			ChainID:              &chainIdHex,
-			BlobFeeCap:           &blobGasFeeCap,
 			BlobHashes:           tx.BlobHashes(),
 		}
 		if tx.BlobTxSidecar() != nil {
+			blobGasFeeCap := hexutil.Big(*tx.BlobGasFeeCap())
+			call.BlobFeeCap = &blobGasFeeCap
 			call.Blobs = tx.BlobTxSidecar().Blobs
 			call.Commitments = tx.BlobTxSidecar().Commitments
 			call.Proofs = tx.BlobTxSidecar().Proofs
 		}
 		calls[i] = call
+		v, r, s := tx.RawSignatureValues()
+		revisedTx := types.NewTx(&types.DynamicFeeTx{
+			ChainID:   call.ChainID.ToInt(),
+			Nonce:     uint64(*call.Nonce),
+			GasTipCap: call.MaxPriorityFeePerGas.ToInt(),
+			GasFeeCap: call.MaxFeePerGas.ToInt(),
+			Gas:       uint64(*call.Gas),
+			To:        &call.To,
+			Value:     call.Value.ToInt(),
+			Data:      *call.Input,
+			V:         v,
+			R:         r,
+			S:         s,
+		})
+		if revisedTx.Hash() != tx.Hash() {
+			return nil, fmt.Errorf("tx hash does not match, original %s, revised %s", tx.Hash().String(), revisedTx.Hash().String())
+		}
 	}
 	return calls, nil
 }
