@@ -90,10 +90,10 @@ func CreateSignedBlockWithTransactions(
 	txs []*gethprimitives.Transaction,
 ) *ctypes.SignedBeaconBlock {
 
-	simBlock, err := execution.TxsToSimBlock(chainSpec.DepositEth1ChainID(), txs)
+	calls, err := execution.TxsToSimBlock(chainSpec.DepositEth1ChainID(), txs)
 	t.NoError(err)
 	simulationInput := &execution.SimulateInputs{
-		BlockStateCalls: []*execution.SimBlock{simBlock},
+		BlockStateCalls: []*execution.SimBlock{{Calls: calls}},
 		Validation:      false,
 		TraceTransfers:  false,
 	}

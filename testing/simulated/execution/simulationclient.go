@@ -70,7 +70,7 @@ type TransactionArgs struct {
 
 type SimBlock struct {
 	Calls          []TransactionArgs `json:"calls"`
-	BlockOverrides *BlockOverrides
+	BlockOverrides *BlockOverrides   `json:"blockOverrides"`
 	// TODO: in the future we could add state and block overrides here to do more complex EVM simulations
 }
 
