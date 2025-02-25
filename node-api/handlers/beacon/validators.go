@@ -23,7 +23,6 @@ package beacon
 import (
 	"errors"
 	"net/http"
-	"strings"
 
 	"github.com/berachain/beacon-kit/node-api/backend"
 	"github.com/berachain/beacon-kit/node-api/handlers"
@@ -31,6 +30,8 @@ import (
 	types "github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 )
+
+var ErrNoSlotForStateRoot = errors.New("slot not found at state root")
 
 // getStateValidators is a helper function to provide implementation
 // consistency between GetStateValidators and PostStateValidators, since they
@@ -80,7 +81,15 @@ func (h *Handler) GetStateValidator(c handlers.Context) (any, error) {
 		return nil, err
 	}
 	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
-	if err != nil {
+	switch {
+	case err == nil:
+		// No error, continue
+	case errors.Is(err, utils.ErrNoSlotForStateRoot):
+		return &handlers.HTTPError{
+			Code:    http.StatusNotFound,
+			Message: "State not found",
+		}, nil
+	default:
 		return nil, err
 	}
 	validator, err := h.backend.ValidatorByID(
@@ -109,14 +118,15 @@ func (h *Handler) GetStateValidatorBalances(c handlers.Context) (any, error) {
 	}
 	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
 
-	// Check for error message "slot not found at state root"
-	if err != nil {
-		if strings.Contains(err.Error(), "slot not found at state root") {
-			return nil, &handlers.HTTPError{
-				Code:    http.StatusNotFound,
-				Message: "State not found",
-			}
-		}
+	switch {
+	case err == nil:
+		// No error, continue
+	case errors.Is(err, utils.ErrNoSlotForStateRoot):
+		return &handlers.HTTPError{
+			Code:    http.StatusNotFound,
+			Message: "State not found",
+		}, nil
+	default:
 		return nil, err
 	}
 	balances, err := h.backend.ValidatorBalancesByIDs(
@@ -145,7 +155,15 @@ func (h *Handler) PostStateValidatorBalances(c handlers.Context) (any, error) {
 	}
 
 	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
-	if err != nil {
+	switch {
+	case err == nil:
+		// No error, continue
+	case errors.Is(err, utils.ErrNoSlotForStateRoot):
+		return &handlers.HTTPError{
+			Code:    http.StatusNotFound,
+			Message: "State not found",
+		}, nil
+	default:
 		return nil, err
 	}
 	balances, err := h.backend.ValidatorBalancesByIDs(

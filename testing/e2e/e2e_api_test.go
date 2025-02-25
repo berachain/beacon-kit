@@ -38,6 +38,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
+const localHost = "localhost"
+
 // StateValidatorResponse represents the API response for a validator.
 type StateValidatorResponse struct {
 	Data struct {
@@ -61,12 +63,6 @@ type BeaconHTTPClient struct {
 func (c *BeaconHTTPClient) Get(path string) (*http.Response, error) {
 	return c.Client.Get(c.baseURL + path)
 }
-
-// pubkey is the public key of the validator.
-// Made it global so that I can use it in another test.
-var pubkey string
-
-const localHost = "localhost"
 
 // initHTTPBeaconTest initializes the http client for the beacon node api.
 // It gets the public ports from the consensus client and creates a http client with the baseURL.
@@ -457,17 +453,14 @@ func (s *BeaconKitE2ESuite) TestGetStateValidatorByIndex() {
 	s.Require().NoError(err)
 	s.Require().NotNil(validatorResp, "validator response should not be nil")
 
-	// Retrieve the public key to use in the next test.
-	pubkey = validatorResp.Data.Validator.Pubkey
-
 	s.Require().Equal("0", validatorResp.Data.Index)
 	s.Require().Equal("active_ongoing", validatorResp.Data.Status)
 }
 
-// TestGetStateValidatorByPubkey tests getting the state validator by pubkey.
-func (s *BeaconKitE2ESuite) TestGetStateValidatorByPubkey() {
-	// Use the pubkey from the previous test
-	resp, err := s.getStateValidator("head", pubkey)
+// TestGetStateValidatorBySlotAndIndex tests getting the state validator by slot and index.
+func (s *BeaconKitE2ESuite) TestGetStateValidatorBySlotAndIndex() {
+	// Here the stateID is a slot number which is 10.
+	resp, err := s.getStateValidator("10", "0")
 	s.Require().NoError(err)
 	s.Require().NotNil(resp, "response should not be nil")
 	s.Require().Equal(http.StatusOK, resp.StatusCode)
@@ -477,7 +470,37 @@ func (s *BeaconKitE2ESuite) TestGetStateValidatorByPubkey() {
 	s.Require().NoError(err)
 	s.Require().NotNil(validatorResp, "validator response should not be nil")
 
-	s.Require().Equal(pubkey, validatorResp.Data.Validator.Pubkey)
+	s.Require().Equal("0", validatorResp.Data.Index)
+	s.Require().Equal("active_ongoing", validatorResp.Data.Status)
+}
+
+// TestGetStateValidatorByPubkey tests getting the state validator by pubkey.
+func (s *BeaconKitE2ESuite) TestGetStateValidatorByPubkey() {
+	// First call validators to get the validator public key
+	resp, err := s.getStateValidator("head", "0")
+	s.Require().NoError(err)
+	s.Require().NotNil(resp, "response should not be nil")
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+	defer resp.Body.Close()
+
+	validatorResp, err := s.decodeValidatorResponse(resp)
+	s.Require().NoError(err)
+	s.Require().NotNil(validatorResp, "validator response should not be nil")
+
+	// Retrieve the public key.
+	pubkey := validatorResp.Data.Validator.Pubkey
+
+	// Actual test starts here.
+	resp, err = s.getStateValidator("head", pubkey)
+	s.Require().NoError(err)
+	s.Require().NotNil(resp, "response should not be nil")
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+	defer resp.Body.Close()
+
+	validatorResp, errInDecode := s.decodeValidatorResponse(resp)
+	s.Require().NoError(errInDecode)
+	s.Require().NotNil(validatorResp, "validator response should not be nil")
+
 	s.Require().Equal("active_ongoing", validatorResp.Data.Status)
 }
 
