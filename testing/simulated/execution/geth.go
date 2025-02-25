@@ -89,7 +89,8 @@ func (g *GethNode) Start(t *testing.T) (*dockertest.Resource, *url.ConnectionURL
 				 --datadir /tmp/gethdata \
 				 --ipcpath /tmp/gethdata/geth.ipc \
 				 --syncmode full \
-				 --verbosity 4
+				 --verbosity 4 \
+				 --nodiscover
 			`,
 		},
 		// Expose required ports for EL RPC, Auth RPC, and P2P communication.
