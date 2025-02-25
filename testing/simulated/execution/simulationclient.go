@@ -25,8 +25,11 @@ package execution
 
 import (
 	"context"
+	"math/big"
 
 	"github.com/berachain/beacon-kit/execution/client"
+	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
+	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -41,8 +44,8 @@ type SimulationClient struct {
 // or a message call.
 // Taken from https://github.com/ethereum/go-ethereum/blob/e6f3ce7b168b8f346de621a8f60d2fa57c2ebfb0/internal/ethapi/transaction_args.go#L42
 type TransactionArgs struct {
-	From                 *common.Address `json:"from"`
-	To                   *common.Address `json:"to"`
+	From                 common.Address  `json:"from"`
+	To                   common.Address  `json:"to"`
 	Gas                  *hexutil.Uint64 `json:"gas"`
 	GasPrice             *hexutil.Big    `json:"gasPrice"`
 	MaxFeePerGas         *hexutil.Big    `json:"maxFeePerGas"`
@@ -50,14 +53,10 @@ type TransactionArgs struct {
 	Value                *hexutil.Big    `json:"value"`
 	Nonce                *hexutil.Uint64 `json:"nonce"`
 
-	// We accept "data" and "input" for backwards-compatibility reasons.
-	// "input" is the newer name and should be preferred by clients.
-	// Issue detail: https://github.com/ethereum/go-ethereum/issues/15628
 	Input *hexutil.Bytes `json:"input"`
-
 	// Introduced by AccessListTxType transaction.
-	AccessList *types.AccessList `json:"accessList,omitempty"`
-	ChainID    *hexutil.Big      `json:"chainId,omitempty"`
+	AccessList types.AccessList `json:"accessList,omitempty"`
+	ChainID    *hexutil.Big     `json:"chainId,omitempty"`
 
 	// For BlobTxType
 	BlobFeeCap *hexutil.Big  `json:"maxFeePerBlobGas"`
@@ -70,44 +69,108 @@ type TransactionArgs struct {
 }
 
 type SimBlock struct {
-	Calls       []TransactionArgs
-	BlockNumber int64
-	// TODO: in the future we could add state overrides here to do more complex EVM simulations
+	Calls []TransactionArgs `json:"calls"`
+	// TODO: in the future we could add state and block overrides here to do more complex EVM simulations
+}
+
+type SimulateInputs struct {
+	BlockStateCalls []*SimBlock `json:"blockStateCalls"`
+	Validation      bool        `json:"validation"`
+	TraceTransfers  bool        `json:"traceTransfers"`
+}
+
+// CallResult represents the result of an individual call in the simulated block.
+type CallResult struct {
+	ReturnData hexutil.Bytes   `json:"returnData"`
+	Logs       json.RawMessage `json:"logs"`    // if logs structure is unknown, use RawMessage
+	GasUsed    *hexutil.Uint64 `json:"gasUsed"` // pointer so we can detect absence if needed
+	Status     hexutil.Uint64  `json:"status"`
+}
+
+// SimulatedBlock represents the simulated block header (with extra fields) returned
+// by the eth_simulateV1 method.
+type SimulatedBlock struct {
+	BaseFeePerGas         *hexutil.Big    `json:"baseFeePerGas"`
+	BlobGasUsed           *hexutil.Big    `json:"blobGasUsed"`
+	Calls                 []CallResult    `json:"calls"`
+	Difficulty            *hexutil.Big    `json:"difficulty"`
+	ExcessBlobGas         *hexutil.Big    `json:"excessBlobGas"`
+	ExtraData             hexutil.Bytes   `json:"extraData"`
+	GasLimit              *hexutil.Uint64 `json:"gasLimit"`
+	GasUsed               *hexutil.Uint64 `json:"gasUsed"`
+	Hash                  common.Hash     `json:"hash"`
+	LogsBloom             hexutil.Bytes   `json:"logsBloom"`
+	Miner                 common.Address  `json:"miner"`
+	MixHash               common.Hash     `json:"mixHash"`
+	Nonce                 hexutil.Bytes   `json:"nonce"`
+	Number                *hexutil.Big    `json:"number"`
+	ParentBeaconBlockRoot common.Hash     `json:"parentBeaconBlockRoot"`
+	ParentHash            common.Hash     `json:"parentHash"`
+	ReceiptsRoot          common.Hash     `json:"receiptsRoot"`
+	Sha3Uncles            common.Hash     `json:"sha3Uncles"`
+	Size                  *hexutil.Uint64 `json:"size"`
+	StateRoot             common.Hash     `json:"stateRoot"`
+	Timestamp             *hexutil.Uint64 `json:"timestamp"`
+	Transactions          []common.Hash   `json:"transactions"`
+	TransactionsRoot      common.Hash     `json:"transactionsRoot"`
+	Uncles                []common.Hash   `json:"uncles"`
+	Withdrawals           json.RawMessage `json:"withdrawals"` // use RawMessage for now
+	WithdrawalsRoot       common.Hash     `json:"withdrawalsRoot"`
 }
 
 func NewSimulationClient(client *client.EngineClient) *SimulationClient {
 	return &SimulationClient{client}
 }
 
-func (c *SimulationClient) Simulate(ctx context.Context, simBlock SimBlock) ([]map[string]interface{}, error) {
-	var result []map[string]interface{}
-	err := c.engineClient.Call(ctx, &result, "eth_simulateV1", simBlock)
+func (c *SimulationClient) Simulate(ctx context.Context, blockNumber int64, inputs *SimulateInputs) ([]*SimulatedBlock, error) {
+	var result []*SimulatedBlock
+	blockNumberInput := hexutil.Uint64(blockNumber)
+	err := c.engineClient.Call(ctx, &result, "eth_simulateV1", inputs, blockNumberInput)
 	if err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-//func TxAndSidecarsToTransactionArgs(txs []*gethprimitives.Transaction, sidecars []*types.BlobTxSidecar) TransactionArgs {
-//	calls := make([]TransactionArgs, len(txs))
-//	for i, tx := range txs {
-//		call := TransactionArgs{
-//			From:                 nil,
-//			To:                   tx.To(),
-//			Gas:                  tx.Gas(),
-//			GasPrice:             nil,
-//			MaxFeePerGas:         nil,
-//			MaxPriorityFeePerGas: nil,
-//			Value:                nil,
-//			Nonce:                nil,
-//			Input:                nil,
-//			AccessList:           nil,
-//			ChainID:              nil,
-//			BlobFeeCap:           nil,
-//			BlobHashes:           nil,
-//			Blobs:                nil,
-//			Commitments:          nil,
-//			Proofs:               nil,
-//		}
-//	}
-//}
+// TxsToSimBlock Transactions must use Dynamic Fee values, i.e. non legacy txs
+func TxsToSimBlock(chainId uint64, txs []*gethprimitives.Transaction) (*SimBlock, error) {
+	// TODO: use the LatestSigner based on a Geth ChainConfig parsed from an EL Genesis File.
+	// Transactions must use Dynamic Fee values, i.e. non legacy txs
+	signer := types.NewCancunSigner(big.NewInt(int64(chainId)))
+	calls := make([]TransactionArgs, len(txs))
+	for i, tx := range txs {
+		sender, err := signer.Sender(tx)
+		if err != nil {
+			return nil, err
+		}
+		gas := hexutil.Uint64(tx.Gas())
+		gasFeeCap := hexutil.Big(*tx.GasFeeCap())
+		gasTipCap := hexutil.Big(*tx.GasTipCap())
+		value := hexutil.Big(*tx.Value())
+		nonce := hexutil.Uint64(tx.Nonce())
+		data := hexutil.Bytes(tx.Data())
+		chainIdHex := hexutil.Big(*big.NewInt(int64(chainId)))
+		blobGasFeeCap := hexutil.Big(*tx.GasFeeCap())
+		call := TransactionArgs{
+			From:                 sender,
+			To:                   *tx.To(),
+			Gas:                  &gas,
+			MaxFeePerGas:         &gasFeeCap,
+			MaxPriorityFeePerGas: &gasTipCap,
+			Value:                &value,
+			Nonce:                &nonce,
+			Input:                &data,
+			AccessList:           tx.AccessList(),
+			ChainID:              &chainIdHex,
+			BlobFeeCap:           &blobGasFeeCap,
+			BlobHashes:           tx.BlobHashes(),
+		}
+		if tx.BlobTxSidecar() != nil {
+			call.Blobs = tx.BlobTxSidecar().Blobs
+			call.Commitments = tx.BlobTxSidecar().Commitments
+			call.Proofs = tx.BlobTxSidecar().Proofs
+		}
+		calls[i] = call
+	}
+	return &SimBlock{calls}, nil
+}

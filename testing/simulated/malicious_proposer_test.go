@@ -56,10 +56,9 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	s.Require().Len(proposals, coreLoopIterations)
 
 	// Prepare a valid block proposal.
-	proposalTime := time.Now()
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{
 		Height:          blockHeight + coreLoopIterations,
-		Time:            proposalTime,
+		Time:            time.Now(),
 		ProposerAddress: pubkey.Address(),
 	})
 	s.Require().NoError(err)
@@ -81,7 +80,7 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 			Nonce:     0,
 			To:        &gethcommon.Address{1},
 			Value:     big.NewInt(100000000000),
-			Gas:       100,
+			Gas:       21000,
 			GasTipCap: big.NewInt(10000000),
 			GasFeeCap: big.NewInt(10000000),
 			Data:      []byte{},
@@ -92,7 +91,7 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	maliciousTxs := []*gethprimitives.Transaction{maliciousTx}
 
 	// Create a malicious block by injecting an invalid transaction.
-	maliciousBlock := simulated.CreateBlockWithTransactions(
+	maliciousBlock := simulated.CreateSignedBlockWithTransactions(
 		require.New(s.T()),
 		s.SimulationClient,
 		proposedBlock,
@@ -100,8 +99,6 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 		s.TestNode.ChainSpec,
 		s.GenesisValidatorsRoot,
 		maliciousTxs,
-		nil,
-		nil,
 	)
 	maliciousBlockBytes, err := maliciousBlock.MarshalSSZ()
 	s.Require().NoError(err)
@@ -116,7 +113,7 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 		Txs:             proposal.Txs,
 		Height:          blockHeight + coreLoopIterations,
 		ProposerAddress: pubkey.Address(),
-		Time:            proposalTime,
+		Time:            time.Unix(int64(maliciousBlock.GetMessage().GetTimestamp()), 0),
 	})
 	s.Require().NoError(err)
 	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)

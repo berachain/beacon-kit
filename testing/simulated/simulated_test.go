@@ -269,10 +269,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndBlob_IsSuccessful() {
 		blobTxs[i] = blobTx
 	}
 
-	// These are magic value obtained from the geth logs and must be replaced with value from eth_simulateV1 API.
-	receiptsRoot := gethcommon.HexToHash("10457e39b8c68ced2071538b4c7034fe68f9c666187fd6b2d6ddcc21149f0d10")
-	stateRoot := gethcommon.HexToHash("0275f214e8a0b0ebd8ef427599a0ff339c5171716553b1c522fbd97ac9b108e8")
-	proposedBlock = simulated.CreateBlockWithTransactions(
+	proposedBlock = simulated.CreateSignedBlockWithTransactions(
 		require.New(s.T()),
 		s.SimulationClient,
 		proposedBlock,
@@ -280,8 +277,6 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndBlob_IsSuccessful() {
 		s.TestNode.ChainSpec,
 		s.GenesisValidatorsRoot,
 		blobTxs,
-		&receiptsRoot,
-		&stateRoot,
 	)
 
 	blockWithCommitments := simulated.CreateBeaconBlockWithBlobs(

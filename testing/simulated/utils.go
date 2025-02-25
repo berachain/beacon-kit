@@ -26,7 +26,6 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"fmt"
-	"math/big"
 	"path/filepath"
 	"testing"
 	"unsafe"
@@ -44,7 +43,6 @@ import (
 	mathpkg "github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
-	gethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/require"
@@ -80,9 +78,9 @@ func GetBlsSigner(tempHomeDir string) *signer.BLSSigner {
 	return signer.NewBLSSigner(privValKeyFile, privValStateFile)
 }
 
-// CreateBlockWithTransactions creates a new beacon block with the provided transactions.
+// CreateSignedBlockWithTransactions creates a new beacon block with the provided transactions.
 // This process requires the engine client as we must simulate to obtain the receipts root
-func CreateBlockWithTransactions(
+func CreateSignedBlockWithTransactions(
 	t *require.Assertions,
 	simulationClient *execution.SimulationClient,
 	origBlock *ctypes.SignedBeaconBlock,
@@ -90,81 +88,41 @@ func CreateBlockWithTransactions(
 	chainSpec chain.Spec,
 	genesisValidatorsRoot common.Root,
 	txs []*gethprimitives.Transaction,
-	// TODO: To form a valid block we need a valid receiptsRootHash and stateRootHash. This can only be obtained by simulating the block
-	// Which can be achieved through the eth_simulateV1 API in a future PR. For now, we hardcode this value.
-	receiptsRootHash *gethprimitives.ExecutionHash,
-	stateRootHash *gethprimitives.ExecutionHash,
 ) *ctypes.SignedBeaconBlock {
+
+	simBlock, err := execution.TxsToSimBlock(chainSpec.DepositEth1ChainID(), txs)
+	t.NoError(err)
+	simulationInput := &execution.SimulateInputs{
+		BlockStateCalls: []*execution.SimBlock{simBlock},
+		Validation:      false,
+		TraceTransfers:  false,
+	}
+	// Refers to the block number on top of which we simulate
+	simulateOnBlock := int64(origBlock.GetMessage().Slot.Unwrap()) - 1
+	simulatedBlocks, err := simulationClient.Simulate(context.TODO(), simulateOnBlock, simulationInput)
+	t.NoError(err)
+	t.Len(simulatedBlocks, 1)
 
 	// Get the current fork version from the slot.
 	forkVersion := chainSpec.ActiveForkVersionForSlot(origBlock.GetMessage().Slot)
 
-	// Extract the existing execution payload and related data.
-	payload := origBlock.GetMessage().GetBody().ExecutionPayload
-	withdrawals := payload.GetWithdrawals()
-	withdrawalsHash := gethprimitives.DeriveSha(withdrawals, gethprimitives.NewStackTrie(nil))
-	parentRoot := origBlock.GetMessage().GetParentBlockRoot()
+	txs, sidecars := SplitTxs(txs)
 
-	if receiptsRootHash == nil {
-		oldReceiptsRootHash := gethprimitives.ExecutionHash(payload.GetReceiptsRoot())
-		receiptsRootHash = &oldReceiptsRootHash
-	}
-	if stateRootHash == nil {
-		oldStateRootHash := gethprimitives.ExecutionHash(payload.GetStateRoot())
-		stateRootHash = &oldStateRootHash
-	}
-
-	totalTxGasUsed := uint64(0)
-	for _, tx := range txs {
-		totalTxGasUsed += tx.Gas()
-	}
-
-	totalBlobGasUsed := uint64(0)
-	txSidecars := make([]*gethtypes.BlobTxSidecar, 0)
-	txsWithoutSidecars := make([]*gethtypes.Transaction, len(txs))
-	for i, tx := range txs {
-		if sidecar := tx.BlobTxSidecar(); sidecar != nil {
-			totalBlobGasUsed += uint64(len(sidecar.Blobs) * blobGasPerTx)
-			txSidecars = append(txSidecars, sidecar)
-		}
-		// The sidecar is removed from the TX before creating the block
-		txsWithoutSidecars[i] = tx.WithoutBlobTxSidecar()
-	}
-
-	// Construct a new execution block header with the provided transactions.
-	executionBlock := gethprimitives.NewBlockWithHeader(
-		&gethprimitives.Header{
-			ParentHash:       gethprimitives.ExecutionHash(payload.GetParentHash()),
-			UncleHash:        gethprimitives.EmptyUncleHash,
-			Coinbase:         gethprimitives.ExecutionAddress(payload.GetFeeRecipient()),
-			Root:             *stateRootHash,
-			TxHash:           gethprimitives.DeriveSha(gethprimitives.Transactions(txsWithoutSidecars), gethprimitives.NewStackTrie(nil)),
-			ReceiptHash:      *receiptsRootHash,
-			Bloom:            gethprimitives.LogsBloom(payload.GetLogsBloom()),
-			Difficulty:       big.NewInt(0),
-			Number:           new(big.Int).SetUint64(payload.GetNumber().Unwrap()),
-			GasLimit:         payload.GetGasLimit().Unwrap(),
-			GasUsed:          totalTxGasUsed,
-			Time:             payload.GetTimestamp().Unwrap(),
-			BaseFee:          payload.GetBaseFeePerGas().ToBig(),
-			Extra:            payload.GetExtraData(),
-			MixDigest:        gethprimitives.ExecutionHash(payload.GetPrevRandao()),
-			WithdrawalsHash:  &withdrawalsHash,
-			ExcessBlobGas:    payload.GetExcessBlobGas().UnwrapPtr(),
-			BlobGasUsed:      &totalBlobGasUsed,
-			ParentBeaconRoot: (*gethprimitives.ExecutionHash)(&parentRoot),
-		},
-	).WithBody(gethprimitives.Body{
-		Transactions: txsWithoutSidecars,
-		Uncles:       nil,
-		Withdrawals:  *(*gethprimitives.Withdrawals)(unsafe.Pointer(&withdrawals)),
-	})
-
+	origWithdrawals := origBlock.GetMessage().GetBody().GetExecutionPayload().GetWithdrawals()
+	origParentBeaconRoot := origBlock.GetMessage().GetParentBlockRoot()
+	origBaseFeePerGas := origBlock.GetMessage().GetBody().GetExecutionPayload().GetBaseFeePerGas()
+	executionBlock := TransformSimulatedBlockToGethBlock(
+		simulatedBlocks[0],
+		txs,
+		origWithdrawals,
+		origParentBeaconRoot,
+		origBaseFeePerGas,
+	)
 	// Convert the execution block into executable data.
 	newExecutionData := gethprimitives.BlockToExecutableData(
 		executionBlock,
 		nil,
-		txSidecars,
+		sidecars,
 		nil,
 	)
 
