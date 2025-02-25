@@ -196,9 +196,7 @@ func buildValidatorData(
 	}, nil
 }
 
-func (b Backend) ValidatorByID(
-	slot math.Slot, id string,
-) (*beacontypes.ValidatorData, error) {
+func (b Backend) ValidatorByID(slot math.Slot, id string) (*beacontypes.ValidatorData, error) {
 	st, _, err := b.stateFromSlot(slot)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get state from slot %d", slot)
@@ -239,9 +237,7 @@ func (b Backend) ValidatorByID(
 	}, nil
 }
 
-func (b Backend) ValidatorBalancesByIDs(
-	slot math.Slot, ids []string,
-) ([]*beacontypes.ValidatorBalanceData, error) {
+func (b Backend) ValidatorBalancesByIDs(slot math.Slot, ids []string) ([]*beacontypes.ValidatorBalanceData, error) {
 	st, _, err := b.stateFromSlot(slot)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get state from slot %d", slot)
@@ -264,33 +260,37 @@ func (b Backend) ValidatorBalancesByIDs(
 		return balances, nil
 	}
 
-	balances := make([]*beacontypes.ValidatorBalanceData, 0)
-	var index math.U64
-
+	var (
+		balances = make([]*beacontypes.ValidatorBalanceData, 0, len(ids))
+		index    math.U64
+	)
 	for _, id := range ids {
 		index, err = utils.ValidatorIndexByID(st, id)
-		if err != nil {
-			// If public key as id is not found in the state, do not return an error.
-			if errors.Is(err, collections.ErrNotFound) {
-				continue
-			}
+		switch {
+		case err == nil:
+			// nothing to do, keep processing
+		case errors.Is(err, collections.ErrNotFound):
+			// If public key as id is not found in the state
+			// we simply skip the index.
+			continue
+		default:
 			return nil, errors.Wrapf(err, "failed to get validator index by id %s", id)
 		}
-		var balance math.U64
-		balance, err = st.GetBalance(index)
 
-		if err != nil {
-			// if index does not exist and GetBalance returns an error containing "collections: not found"
-			// do not return an error.
-			if errors.Is(err, collections.ErrNotFound) {
-				continue
-			}
+		var balance math.U64
+		switch balance, err = st.GetBalance(index); {
+		case err == nil:
+			balances = append(balances, &beacontypes.ValidatorBalanceData{
+				Index:   index.Unwrap(),
+				Balance: balance.Unwrap(),
+			})
+		case errors.Is(err, collections.ErrNotFound):
+			// if index does not exist and GetBalance returns
+			// "collections: not found" we simply skip the index.
+			continue
+		default:
 			return nil, errors.Wrapf(err, "failed to get validator balance for validator index %d", index)
 		}
-		balances = append(balances, &beacontypes.ValidatorBalanceData{
-			Index:   index.Unwrap(),
-			Balance: balance.Unwrap(),
-		})
 	}
 	return balances, nil
 }
