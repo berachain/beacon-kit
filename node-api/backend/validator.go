@@ -77,7 +77,7 @@ func (f *validatorFilters) parseID(id string) {
 func (b Backend) FilteredValidators(
 	slot math.Slot, ids []string, statuses []string,
 ) ([]*beacontypes.ValidatorData, error) {
-	st, _, err := b.stateFromSlot(slot)
+	st, slot, err := b.stateFromSlot(slot)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get state from slot %d", slot)
 	}
