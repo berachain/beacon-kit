@@ -117,7 +117,7 @@ func MakeEthBlock(
 		if err := tx.UnmarshalBinary(encTx); err != nil {
 			return nil, nil, errors.Wrapf(err, "invalid transaction %d", i)
 		}
-		txs[i] = &tx
+		txs = append(txs, &tx)
 		blobHashes = append(blobHashes, tx.BlobHashes()...)
 	}
 
