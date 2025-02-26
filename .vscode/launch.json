@@ -68,7 +68,7 @@
             },
         },
         {
-            "name": "Genesis execution payload",
+            "name": "Set deposit storage",
             "type": "go",
             "request": "launch",
             "preLaunchTask": "build",
@@ -76,7 +76,7 @@
             "program": "${workspaceFolder}/build/bin/beacond",
             "args": [
                 "genesis",
-                "execution-payload",
+                "set-deposit-storage",
                 "${workspaceFolder}/testing/files/eth-genesis.json",
                 "--home=${workspaceFolder}/.tmp/beacond",
             ],
@@ -90,7 +90,56 @@
             },
         },
         {
-            "name": "Start beacond",
+            "name": "Genesis execution payload",
+            "type": "go",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "mode": "exec",
+            "program": "${workspaceFolder}/build/bin/beacond",
+            "args": [
+                "genesis",
+                "execution-payload",
+                "${workspaceFolder}/.tmp/beacond/eth-genesis.json",
+                "--home=${workspaceFolder}/.tmp/beacond",
+            ],
+            "env": {
+                "CHAIN_SPEC": "devnet"
+            },
+            "internalConsoleOptions": "openOnSessionStart",
+            "presentation": {
+                "group": "initialize",
+                "order": 5
+            },
+        },
+        {
+            "name": "Start beacond (mainnet)",
+            "type": "go",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "mode": "exec",
+            "program": "${workspaceFolder}/build/bin/beacond",
+            "args": [
+                "start",
+                "--pruning=nothing",
+                "--beacon-kit.logger.log-level=info",
+                "--home=${workspaceFolder}/.tmp/beacond",
+                "--beacon-kit.engine.jwt-secret-path=${workspaceFolder}/testing/files/jwt.hex",
+                "--beacon-kit.block-store-service.enabled",
+                "--beacon-kit.node-api.enabled",
+                "--beacon-kit.node-api.logging",
+            ],
+            "internalConsoleOptions": "openOnSessionStart",
+            "env": {
+                "CHAIN_SPEC": "mainnet"
+            },
+            "presentation": {
+                "group": "run",
+                "order": 1
+            },
+            "suppressMultipleSessionWarning": true,
+        },
+        {
+            "name": "Start beacond (devnet)",
             "type": "go",
             "request": "launch",
             "preLaunchTask": "build",
@@ -112,7 +161,7 @@
             },
             "presentation": {
                 "group": "run",
-                "order": 1
+                "order": 2
             },
             "suppressMultipleSessionWarning": true,
         }

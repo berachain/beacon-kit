@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -33,30 +33,15 @@ import (
 	"github.com/karalabe/ssz"
 )
 
-// Context defines an interface for managing state transition context.
-type Context interface {
-	context.Context
-	GetMeterGas() bool
-	// GetOptimisticEngine returns whether to optimistically assume the
-	// execution client has the correct state when certain errors are returned
-	// by the execution engine.
-	GetOptimisticEngine() bool
-	// GetSkipPayloadVerification returns whether to skip verifying the payload
-	// if
-	// it already exists on the execution client.
-	GetSkipPayloadVerification() bool
-	// GetSkipValidateRandao returns whether to skip validating the RANDAO
-	// reveal.
-	GetSkipValidateRandao() bool
-	// GetSkipValidateResult returns whether to validate the result of the state
-	// transition.
-	GetSkipValidateResult() bool
-	// GetProposerAddress returns the address of the validator
-	// selected by consensus to propose the block
-	GetProposerAddress() []byte
-	// GetConsensusTime returns the timestamp of current consensus request.
-	// It is used to build next payload and to validate currentpayload.
-	GetConsensusTime() math.U64
+// ReadOnlyContext defines an interface for managing state transition context.
+type ReadOnlyContext interface {
+	ConsensusCtx() context.Context
+	ConsensusTime() math.U64
+	ProposerAddress() []byte
+	VerifyPayload() bool
+	VerifyRandao() bool
+	VerifyResult() bool
+	MeterGas() bool
 }
 
 // Withdrawals defines the interface for managing withdrawal operations.
@@ -67,9 +52,8 @@ type Withdrawals interface {
 
 // ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine interface {
-	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
-	// execution client.
-	VerifyAndNotifyNewPayload(
+	// NotifyNewPayload notifies the execution client of the new payload.
+	NotifyNewPayload(
 		ctx context.Context,
 		req *ctypes.NewPayloadRequest,
 	) error

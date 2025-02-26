@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,20 +21,16 @@
 package cometbft
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"sort"
 
-	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/sourcegraph/conc/iter"
 )
 
-//nolint:gocognit // its fine.
-func (s *Service[LoggerT]) initChain(
+func (s *Service) initChain(
 	ctx context.Context,
 	req *cmtabci.InitChainRequest,
 ) (*cmtabci.InitChainResponse, error) {
@@ -44,6 +40,12 @@ func (s *Service[LoggerT]) initChain(
 			s.chainID,
 			req.ChainId,
 		)
+	}
+
+	// Enforce that request validators is zero. This is because Berachain derives the validators directly from
+	// deposits in the genesis file and disregards the validators in genesis file, which is what Comet uses.
+	if len(req.Validators) != 0 {
+		return nil, fmt.Errorf("expected no validators in initChain request but got %d", len(req.Validators))
 	}
 
 	var genesisState map[string]json.RawMessage
@@ -75,7 +77,7 @@ func (s *Service[LoggerT]) initChain(
 	// if req.InitialHeight is > 1, then we set the initial version on all
 	// stores
 	if req.InitialHeight > 1 {
-		if err = s.sm.CommitMultiStore().
+		if err = s.sm.GetCommitMultiStore().
 			SetInitialVersion(req.InitialHeight); err != nil {
 			return nil, err
 		}
@@ -83,6 +85,7 @@ func (s *Service[LoggerT]) initChain(
 
 	s.finalizeBlockState = s.resetState(ctx)
 
+	//nolint:contextcheck // ctx already passed via resetState
 	resValidators, err := s.initChainer(
 		s.finalizeBlockState.Context(),
 		req.AppStateBytes,
@@ -91,47 +94,18 @@ func (s *Service[LoggerT]) initChain(
 		return nil, err
 	}
 
-	// check validators
-	if len(req.Validators) > 0 {
-		if len(req.Validators) != len(resValidators) {
-			return nil, fmt.Errorf(
-				"len(RequestInitChain.Validators) != len(GenesisValidators) (%d != %d)",
-				len(req.Validators),
-				len(resValidators),
-			)
-		}
-
-		sort.Sort(cmtabci.ValidatorUpdates(req.Validators))
-
-		for i := range resValidators {
-			if req.Validators[i].Power != resValidators[i].Power {
-				return nil, errors.New("mismatched power")
-			}
-			if !bytes.Equal(
-				req.Validators[i].PubKeyBytes, resValidators[i].
-					PubKeyBytes) {
-				return nil, errors.New("mismatched pubkey bytes")
-			}
-
-			if req.Validators[i].PubKeyType !=
-				resValidators[i].PubKeyType {
-				return nil, errors.New("mismatched pubkey types")
-			}
-		}
-	}
-
 	// NOTE: We don't commit, but FinalizeBlock for block InitialHeight starts
 	// from
 	// this FinalizeBlockState.
 	return &cmtabci.InitChainResponse{
 		ConsensusParams: req.ConsensusParams,
 		Validators:      resValidators,
-		AppHash:         s.sm.CommitMultiStore().LastCommitID().Hash,
+		AppHash:         s.sm.GetCommitMultiStore().LastCommitID().Hash,
 	}, nil
 }
 
 // InitChainer initializes the chain.
-func (s *Service[LoggerT]) initChainer(
+func (s *Service) initChainer(
 	ctx sdk.Context,
 	appStateBytes []byte,
 ) ([]cmtabci.ValidatorUpdate, error) {

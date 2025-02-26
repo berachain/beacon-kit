@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,13 +23,14 @@ package beacon
 import (
 	"strconv"
 
+	"github.com/berachain/beacon-kit/node-api/handlers"
 	apitypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 )
 
 // GetBlobSidecars provides an implementation for the
 // "/eth/v1/beacon/blob_sidecars/:block_id" API endpoint.
-func (h *Handler[ContextT]) GetBlobSidecars(c ContextT) (any, error) {
+func (h *Handler) GetBlobSidecars(c handlers.Context) (any, error) {
 	req, err := utils.BindAndValidate[apitypes.GetBlobSidecarsRequest](
 		c, h.Logger(),
 	)

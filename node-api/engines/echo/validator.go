@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -28,6 +28,7 @@ import (
 
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
@@ -153,15 +154,15 @@ func ValidateRoot(value string) bool {
 func ValidateValidatorStatus(fl validator.FieldLevel) bool {
 	// Eth Beacon Node API specs: https://hackmd.io/ofFJ5gOmQpu1jjHilHbdQQ
 	allowedStatuses := map[string]bool{
-		"pending_initialized": true,
-		"pending_queued":      true,
-		"active_ongoing":      true,
-		"active_exiting":      true,
-		"active_slashed":      true,
-		"exited_unslashed":    true,
-		"exited_slashed":      true,
-		"withdrawal_possible": true,
-		"withdrawal_done":     true,
+		constants.ValidatorStatusActiveExiting:      true,
+		constants.ValidatorStatusActiveOngoing:      true,
+		constants.ValidatorStatusActiveSlashed:      true,
+		constants.ValidatorStatusExitedSlashed:      true,
+		constants.ValidatorStatusExitedUnslashed:    true,
+		constants.ValidatorStatusPendingInitialized: true,
+		constants.ValidatorStatusPendingQueued:      true,
+		constants.ValidatorStatusWithdrawalDone:     true,
+		constants.ValidatorStatusWithdrawalPossible: true,
 	}
 	return validateAllowedStrings(fl.Field().String(), allowedStatuses)
 }

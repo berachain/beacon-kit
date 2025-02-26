@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,6 +21,7 @@
 package encoding
 
 import (
+	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/davecgh/go-spew/spew"
 )
@@ -71,13 +72,13 @@ func (SSZValueCodec[T]) ValueType() string {
 type SSZInterfaceCodec[T interface {
 	constraints.SSZMarshallable
 	constraints.Versionable
-	NewFromSSZ([]byte, uint32) (T, error)
+	NewFromSSZ([]byte, common.Version) (T, error)
 }] struct {
-	latestVersion uint32
+	latestVersion common.Version
 }
 
 // SetActiveForkVersion sets the fork version for the codec.
-func (cdc *SSZInterfaceCodec[T]) SetActiveForkVersion(version uint32) {
+func (cdc *SSZInterfaceCodec[T]) SetActiveForkVersion(version common.Version) {
 	cdc.latestVersion = version
 }
 

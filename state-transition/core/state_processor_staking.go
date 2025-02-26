@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,7 +21,6 @@
 package core
 
 import (
-	"context"
 	"fmt"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
@@ -30,20 +29,19 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/state-transition/core/state"
+	"github.com/ethereum/go-ethereum/params"
 )
 
-// processOperations processes the operations and ensures they match the
-// local state.
-func (sp *StateProcessor[_]) processOperations(
-	ctx context.Context, st *state.StateDB, blk *ctypes.BeaconBlock,
+// processOperations processes the operations and ensures they match the local state.
+func (sp *StateProcessor) processOperations(
+	ctx ReadOnlyContext,
+	st *state.StateDB,
+	blk *ctypes.BeaconBlock,
 ) error {
-	// Verify that outstanding deposits are processed
-	// up to the maximum number of deposits
-
+	// Verify that outstanding deposits are processed up to the maximum number of deposits.
+	//
 	// Unlike Eth 2.0 specs we don't check that
-	// len(body.deposits) ==  min(MAX_DEPOSITS,
-	// state.eth1_data.deposit_count - state.eth1_deposit_index)
-	// Instead we directly compare block deposits with store ones.
+	// `len(body.deposits) ==  min(MAX_DEPOSITS, state.eth1_data.deposit_count - state.eth1_deposit_index)`
 	deposits := blk.GetBody().GetDeposits()
 	if uint64(len(deposits)) > sp.cs.MaxDepositsPerBlock() {
 		return errors.Wrapf(
@@ -51,21 +49,28 @@ func (sp *StateProcessor[_]) processOperations(
 			sp.cs.MaxDepositsPerBlock(), len(deposits),
 		)
 	}
+
+	// Instead we directly compare block deposits with our local store ones.
 	if err := sp.validateNonGenesisDeposits(
-		ctx, st, deposits, blk.GetBody().GetEth1Data().DepositRoot,
+		ctx.ConsensusCtx(),
+		st,
+		deposits,
+		blk.GetBody().GetEth1Data().DepositRoot,
 	); err != nil {
 		return err
 	}
+
 	for _, dep := range deposits {
 		if err := sp.processDeposit(st, dep); err != nil {
 			return err
 		}
 	}
+
 	return st.SetEth1Data(blk.GetBody().Eth1Data)
 }
 
 // processDeposit processes the deposit and ensures it matches the local state.
-func (sp *StateProcessor[_]) processDeposit(st *state.StateDB, dep *ctypes.Deposit) error {
+func (sp *StateProcessor) processDeposit(st *state.StateDB, dep *ctypes.Deposit) error {
 	eth1DepositIndex, err := st.GetEth1DepositIndex()
 	if err != nil {
 		return err
@@ -86,7 +91,7 @@ func (sp *StateProcessor[_]) processDeposit(st *state.StateDB, dep *ctypes.Depos
 }
 
 // applyDeposit processes the deposit and ensures it matches the local state.
-func (sp *StateProcessor[_]) applyDeposit(st *state.StateDB, dep *ctypes.Deposit) error {
+func (sp *StateProcessor) applyDeposit(st *state.StateDB, dep *ctypes.Deposit) error {
 	idx, err := st.ValidatorIndexByPubkey(dep.GetPubkey())
 	if err != nil {
 		sp.logger.Info("Validator does not exist so creating",
@@ -104,14 +109,14 @@ func (sp *StateProcessor[_]) applyDeposit(st *state.StateDB, dep *ctypes.Deposit
 
 	sp.logger.Info(
 		"Processed deposit to increase balance",
-		"deposit_amount", float64(dep.GetAmount().Unwrap())/math.GweiPerWei,
+		"deposit_amount", float64(dep.GetAmount().Unwrap())/params.GWei,
 		"validator_index", idx,
 	)
 	return nil
 }
 
 // createValidator creates a validator if the deposit is valid.
-func (sp *StateProcessor[_]) createValidator(st *state.StateDB, dep *ctypes.Deposit) error {
+func (sp *StateProcessor) createValidator(st *state.StateDB, dep *ctypes.Deposit) error {
 	// Get the current slot.
 	slot, err := st.GetSlot()
 	if err != nil {
@@ -128,28 +133,23 @@ func (sp *StateProcessor[_]) createValidator(st *state.StateDB, dep *ctypes.Depo
 		}
 	}
 
-	// Get the current epoch.
-	epoch := sp.cs.SlotToEpoch(slot)
-
-	// Verify that the deposit has the ETH1 withdrawal credentials.
+	// Check that the deposit has the ETH1 withdrawal credentials.
 	if !dep.HasEth1WithdrawalCredentials() {
-		// Ignore deposits with non-ETH1 withdrawal credentials.
 		sp.logger.Warn(
-			"ignoring deposit with non-ETH1 withdrawal credentials",
+			"adding validator with non-ETH1 withdrawal credentials -- NOT withdrawable",
 			"pubkey", dep.GetPubkey().String(),
 			"deposit_index", dep.GetIndex(),
 			"amount_gwei", dep.GetAmount().Unwrap(),
 		)
-		sp.metrics.incrementDepositsIgnored()
-		return nil
+		sp.metrics.incrementValidatorNotWithdrawable()
 	}
 
 	// Verify that the message was signed correctly.
 	err = dep.VerifySignature(
 		ctypes.NewForkData(
-			version.FromUint32[common.Version](
-				sp.cs.ActiveForkVersionForEpoch(epoch),
-			), genesisValidatorsRoot,
+			// Deposits must be signed with GENESIS_FORK_VERSION.
+			version.Genesis(),
+			genesisValidatorsRoot,
 		),
 		sp.cs.DomainTypeDeposit(),
 		sp.signer.VerifySignature,
@@ -163,7 +163,7 @@ func (sp *StateProcessor[_]) createValidator(st *state.StateDB, dep *ctypes.Depo
 			"amount_gwei", dep.GetAmount().Unwrap(),
 			"error", err,
 		)
-		sp.metrics.incrementDepositsIgnored()
+		sp.metrics.incrementDepositStakeLost()
 		return nil
 	}
 
@@ -172,7 +172,7 @@ func (sp *StateProcessor[_]) createValidator(st *state.StateDB, dep *ctypes.Depo
 }
 
 // addValidatorToRegistry adds a validator to the registry.
-func (sp *StateProcessor[_]) addValidatorToRegistry(st *state.StateDB, dep *ctypes.Deposit) error {
+func (sp *StateProcessor) addValidatorToRegistry(st *state.StateDB, dep *ctypes.Deposit) error {
 	val := ctypes.NewValidatorFromDeposit(
 		dep.GetPubkey(),
 		dep.GetWithdrawalCredentials(),
@@ -193,7 +193,7 @@ func (sp *StateProcessor[_]) addValidatorToRegistry(st *state.StateDB, dep *ctyp
 	}
 	sp.logger.Info(
 		"Processed deposit to create new validator",
-		"deposit_amount", float64(dep.GetAmount().Unwrap())/math.GweiPerWei,
+		"deposit_amount", float64(dep.GetAmount().Unwrap())/params.GWei,
 		"validator_index", idx, "withdrawal_epoch", val.GetWithdrawableEpoch(),
 	)
 	return nil

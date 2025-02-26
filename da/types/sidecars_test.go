@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -35,6 +35,7 @@ import (
 )
 
 func TestEmptySidecarMarshalling(t *testing.T) {
+	t.Parallel()
 	inclusionProof := make([]common.Root, 0)
 	// Create an empty BlobSidecar
 	for i := 1; i <= ctypes.KZGInclusionProofDepth; i++ {
@@ -88,6 +89,7 @@ func TestEmptySidecarMarshalling(t *testing.T) {
 }
 
 func TestValidateBlockRoots(t *testing.T) {
+	t.Parallel()
 	inclusionProof := make([]common.Root, 0)
 	// Create a sample BlobSidecar with valid roots
 	for i := 1; i <= ctypes.KZGInclusionProofDepth; i++ {
@@ -152,6 +154,7 @@ func TestValidateBlockRoots(t *testing.T) {
 }
 
 func TestZeroSidecarsInBlobSidecarsIsNotNil(t *testing.T) {
+	t.Parallel()
 	// This test exists to ensure that proposing a BlobSidecars with 0
 	// Sidecars is not considered IsNil().
 	sidecars := &types.BlobSidecars{}

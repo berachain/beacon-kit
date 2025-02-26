@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,26 +23,25 @@ package log
 import (
 	sdklog "cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/log/phuslu"
 )
 
-type SDKLogger[LoggerT log.AdvancedLogger[LoggerT]] struct {
-	log.AdvancedLogger[LoggerT]
+type SDKLogger struct {
+	log.AdvancedLogger[*phuslu.Logger]
 }
 
-func WrapSDKLogger[LoggerT log.AdvancedLogger[LoggerT]](
-	logger LoggerT,
-) *SDKLogger[LoggerT] {
-	return &SDKLogger[LoggerT]{
+func WrapSDKLogger(logger *phuslu.Logger) *SDKLogger {
+	return &SDKLogger{
 		AdvancedLogger: logger,
 	}
 }
 
-func (l *SDKLogger[LoggerT]) With(keyVals ...any) sdklog.Logger {
-	return &SDKLogger[LoggerT]{
+func (l *SDKLogger) With(keyVals ...any) sdklog.Logger {
+	return &SDKLogger{
 		AdvancedLogger: l.AdvancedLogger.With(keyVals...),
 	}
 }
 
-func (l *SDKLogger[LoggerT]) Impl() any {
+func (l *SDKLogger) Impl() any {
 	return l.AdvancedLogger
 }

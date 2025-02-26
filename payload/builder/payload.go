@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,6 +22,7 @@ package builder
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
@@ -47,38 +48,38 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 	}
 
 	if payloadID, found := pb.pc.Get(slot, parentBlockRoot); found {
-		pb.logger.Warn(
+		pb.logger.Info(
 			"aborting payload build; payload already exists in cache",
-			"for_slot",
-			slot.Base10(),
-			"parent_block_root",
-			parentBlockRoot,
+			"for_slot", slot.Base10(),
+			"parent_block_root", parentBlockRoot,
 		)
 		return &payloadID, nil
 	}
 
 	// Assemble the payload attributes.
-	attrs, err := pb.attributesFactory.
-		BuildPayloadAttributes(st, slot, timestamp, parentBlockRoot)
+	attrs, err := pb.attributesFactory.BuildPayloadAttributes(
+		st,
+		slot,
+		timestamp,
+		parentBlockRoot,
+	)
 	if err != nil {
 		return nil, err
 	}
 
 	// Submit the forkchoice update to the execution client.
-	var payloadID *engineprimitives.PayloadID
-	payloadID, _, err = pb.ee.NotifyForkchoiceUpdate(
-		ctx, &ctypes.ForkchoiceUpdateRequest{
-			State: &engineprimitives.ForkchoiceStateV1{
-				HeadBlockHash:      headEth1BlockHash,
-				SafeBlockHash:      finalEth1BlockHash,
-				FinalizedBlockHash: finalEth1BlockHash,
-			},
-			PayloadAttributes: attrs,
-			ForkVersion:       pb.chainSpec.ActiveForkVersionForSlot(slot),
+	req := ctypes.BuildForkchoiceUpdateRequest(
+		&engineprimitives.ForkchoiceStateV1{
+			HeadBlockHash:      headEth1BlockHash,
+			SafeBlockHash:      finalEth1BlockHash,
+			FinalizedBlockHash: finalEth1BlockHash,
 		},
+		attrs,
+		pb.chainSpec.ActiveForkVersionForSlot(slot),
 	)
+	payloadID, _, err := pb.ee.NotifyForkchoiceUpdate(ctx, req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("RequestPayloadAsync failed sending forkchoice update: %w", err)
 	}
 
 	// Only add to cache if we received back a payload ID.
@@ -166,29 +167,9 @@ func (pb *PayloadBuilder) RetrievePayload(
 		return nil, err
 	}
 
-	overrideBuilder := envelope.ShouldOverrideBuilder()
-	args := []any{
-		"for_slot", slot.Base10(),
-		"override_builder", overrideBuilder,
-	}
-
-	payload := envelope.GetExecutionPayload()
-	if !payload.IsNil() {
-		args = append(args,
-			"payload_block_hash", payload.GetBlockHash(),
-			"parent_hash", payload.GetParentHash(),
-		)
-	}
-
-	blobsBundle := envelope.GetBlobsBundle()
-	if blobsBundle != nil {
-		args = append(args, "num_blobs", len(blobsBundle.GetBlobs()))
-	}
-
-	pb.logger.Info("Payload retrieved from local builder", args...)
-
 	// If the payload was built by a different builder, something is
 	// wrong the EL<>CL setup.
+	payload := envelope.GetExecutionPayload()
 	if payload.GetFeeRecipient() != pb.cfg.SuggestedFeeRecipient {
 		pb.logger.Warn(
 			"Payload fee recipient does not match suggested fee recipient - "+
@@ -197,6 +178,19 @@ func (pb *PayloadBuilder) RetrievePayload(
 			"suggested_fee_recipient", pb.cfg.SuggestedFeeRecipient,
 		)
 	}
+
+	// log some data
+	args := []any{
+		"for_slot", slot.Base10(),
+		"override_builder", envelope.ShouldOverrideBuilder(),
+		"payload_block_hash", payload.GetBlockHash(),
+		"parent_hash", payload.GetParentHash(),
+	}
+	if blobsBundle := envelope.GetBlobsBundle(); blobsBundle != nil {
+		args = append(args, "num_blobs", len(blobsBundle.GetBlobs()))
+	}
+	pb.logger.Info("Payload retrieved from local builder", args...)
+
 	return envelope, err
 }
 
@@ -228,19 +222,18 @@ func (pb *PayloadBuilder) SendForceHeadFCU(
 	)
 
 	// Submit the forkchoice update to the execution client.
-	var attrs *engineprimitives.PayloadAttributes
-	_, _, err = pb.ee.NotifyForkchoiceUpdate(
-		ctx, &ctypes.ForkchoiceUpdateRequest{
-			State: &engineprimitives.ForkchoiceStateV1{
-				HeadBlockHash:      lph.GetBlockHash(),
-				SafeBlockHash:      lph.GetParentHash(),
-				FinalizedBlockHash: lph.GetParentHash(),
-			},
-			PayloadAttributes: attrs,
-			ForkVersion:       pb.chainSpec.ActiveForkVersionForSlot(slot),
+	req := ctypes.BuildForkchoiceUpdateRequestNoAttrs(
+		&engineprimitives.ForkchoiceStateV1{
+			HeadBlockHash:      lph.GetBlockHash(),
+			SafeBlockHash:      lph.GetParentHash(),
+			FinalizedBlockHash: lph.GetParentHash(),
 		},
+		pb.chainSpec.ActiveForkVersionForSlot(slot),
 	)
-	return err
+	if _, _, err = pb.ee.NotifyForkchoiceUpdate(ctx, req); err != nil {
+		return fmt.Errorf("SendForceHeadFCU failed sending forkchoice update: %w", err)
+	}
+	return nil
 }
 
 func (pb *PayloadBuilder) getPayload(
@@ -260,6 +253,9 @@ func (pb *PayloadBuilder) getPayload(
 	}
 	if envelope == nil {
 		return nil, ErrNilPayloadEnvelope
+	}
+	if envelope.GetExecutionPayload().Withdrawals == nil {
+		return nil, ErrNilWithdrawals
 	}
 	return envelope, nil
 }

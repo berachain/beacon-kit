@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT
 #
-# Copyright (c) 2024 Berachain Foundation
+# Copyright (c) 2025 Berachain Foundation
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -89,7 +89,7 @@ jobs:
       - name: Setup Golang
         uses: actions/setup-go@v5
         with:
-          go-version: "1.23.4"
+          go-version: "1.23.5"
           check-latest: true
           cache-dependency-path: "**/*.sum"
         if: ${{ !(matrix.args == 'test-forge-cover' || matrix.args == 'test-forge-fuzz') }}
@@ -110,6 +110,7 @@ jobs:
   # -------------------------------------------------------------------------- #
 
   ci-e2e:
+    environment: 'test-e2e'
     strategy:
       matrix:
         args:
@@ -133,7 +134,7 @@ jobs:
       - name: Setup Golang
         uses: actions/setup-go@v5
         with:
-          go-version: "stable"
+          go-version: "1.23.5"
           check-latest: true
           cache-dependency-path: "**/*.sum"
       - name: Set up QEMU

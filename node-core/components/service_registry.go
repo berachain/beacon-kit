@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -24,41 +24,34 @@ import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/beacon/validator"
-	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/execution/client"
-	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/node-api/engines/echo"
+	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-api/server"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	service "github.com/berachain/beacon-kit/node-core/services/registry"
 	"github.com/berachain/beacon-kit/node-core/services/shutdown"
 	"github.com/berachain/beacon-kit/node-core/services/version"
+	"github.com/berachain/beacon-kit/node-core/types"
 	"github.com/berachain/beacon-kit/observability/telemetry"
 )
 
 // ServiceRegistryInput is the input for the service registry provider.
-type ServiceRegistryInput[
-	LoggerT log.AdvancedLogger[LoggerT],
-] struct {
+type ServiceRegistryInput struct {
 	depinject.In
 	ChainService     *blockchain.Service
 	EngineClient     *client.EngineClient
-	Logger           LoggerT
-	NodeAPIServer    *server.Server[echo.Context]
+	Logger           *phuslu.Logger
+	NodeAPIServer    *server.Server
 	ReportingService *version.ReportingService
 	TelemetrySink    *metrics.TelemetrySink
 	TelemetryService *telemetry.Service
 	ValidatorService *validator.Service
-	CometBFTService  *cometbft.Service[LoggerT]
+	CometBFTService  types.ConsensusService
 	ShutdownService  *shutdown.Service
 }
 
 // ProvideServiceRegistry is the depinject provider for the service registry.
-func ProvideServiceRegistry[
-	LoggerT log.AdvancedLogger[LoggerT],
-](
-	in ServiceRegistryInput[LoggerT],
-) *service.Registry {
+func ProvideServiceRegistry(in ServiceRegistryInput) *service.Registry {
 	// Note: the order of opts matters since the registry will start these services
 	// in the order they are  declared in this slice, and in reverse order
 	// during shutdown.

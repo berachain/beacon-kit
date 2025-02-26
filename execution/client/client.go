@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,7 +23,6 @@ package client
 import (
 	"context"
 	"math/big"
-	"strings"
 	"sync"
 	"time"
 
@@ -32,6 +31,7 @@ import (
 	ethclientrpc "github.com/berachain/beacon-kit/execution/client/ethclient/rpc"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/net/http"
 	"github.com/berachain/beacon-kit/primitives/net/jwt"
 )
 
@@ -64,17 +64,15 @@ func New(
 	telemetrySink TelemetrySink,
 	eth1ChainID *big.Int,
 ) *EngineClient {
+	ethClient := ethclientrpc.NewClient(
+		cfg.RPCDialURL.String(),
+		jwtSecret,
+		cfg.RPCJWTRefreshInterval,
+	)
 	return &EngineClient{
-		cfg:    cfg,
-		logger: logger,
-		Client: ethclient.New(
-			ethclientrpc.NewClient(
-				cfg.RPCDialURL.String(),
-				ethclientrpc.WithJWTSecret(jwtSecret),
-				ethclientrpc.WithJWTRefreshInterval(
-					cfg.RPCJWTRefreshInterval,
-				),
-			)),
+		cfg:          cfg,
+		logger:       logger,
+		Client:       ethclient.New(ethClient),
 		capabilities: make(map[string]struct{}),
 		eth1ChainID:  eth1ChainID,
 		metrics:      newClientMetrics(telemetrySink, logger),
@@ -169,7 +167,7 @@ func (s *EngineClient) verifyChainIDAndConnection(
 	// After the initial dial, check to make sure the chain ID is correct.
 	chainID, err = s.Client.ChainID(ctx)
 	if err != nil {
-		if strings.Contains(err.Error(), "401 Unauthorized") {
+		if errors.Is(err, http.ErrUnauthorized) {
 			// We always log this error as it is a critical error.
 			s.logger.Error(UnauthenticatedConnectionErrorStr)
 		}

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,7 +22,6 @@ package context
 
 import (
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
-	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -39,14 +38,11 @@ func GetViperFromCmd(cmd *cobra.Command) *viper.Viper {
 	return v
 }
 
-func GetLoggerFromCmd[
-	LoggerT log.AdvancedLogger[LoggerT],
-](cmd *cobra.Command) LoggerT {
+func GetLoggerFromCmd(cmd *cobra.Command) *phuslu.Logger {
 	v := cmd.Context().Value(LoggerContextKey)
-	logger, ok := v.(LoggerT)
+	logger, ok := v.(*phuslu.Logger)
 	if !ok {
-		//nolint:errcheck // should be safe
-		return any(phuslu.NewLogger(cmd.OutOrStdout(), nil)).(LoggerT)
+		return phuslu.NewLogger(cmd.OutOrStdout(), nil)
 	}
 	return logger
 }

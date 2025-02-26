@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -32,6 +32,7 @@ import (
 )
 
 func TestFork_Serialization(t *testing.T) {
+	t.Parallel()
 	original := types.NewFork(
 		common.Version{1, 2, 3, 4},
 		common.Version{5, 6, 7, 8},
@@ -56,6 +57,7 @@ func TestFork_Serialization(t *testing.T) {
 }
 
 func TestFork_SizeSSZ(t *testing.T) {
+	t.Parallel()
 	fork := &types.Fork{
 		PreviousVersion: common.Version{1, 2, 3, 4},
 		CurrentVersion:  common.Version{5, 6, 7, 8},
@@ -67,6 +69,7 @@ func TestFork_SizeSSZ(t *testing.T) {
 }
 
 func TestFork_HashTreeRoot(t *testing.T) {
+	t.Parallel()
 	fork := &types.Fork{
 		PreviousVersion: common.Version{1, 2, 3, 4},
 		CurrentVersion:  common.Version{5, 6, 7, 8},
@@ -79,6 +82,7 @@ func TestFork_HashTreeRoot(t *testing.T) {
 }
 
 func TestFork_GetTree(t *testing.T) {
+	t.Parallel()
 	fork := &types.Fork{
 		PreviousVersion: common.Version{1, 2, 3, 4},
 		CurrentVersion:  common.Version{5, 6, 7, 8},
@@ -91,6 +95,7 @@ func TestFork_GetTree(t *testing.T) {
 }
 
 func TestFork_UnmarshalSSZ_ErrSize(t *testing.T) {
+	t.Parallel()
 	buf := make([]byte, 10) // size less than 16
 
 	var unmarshalledFork types.Fork

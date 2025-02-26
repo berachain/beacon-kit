@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -111,8 +111,10 @@ var prysmConsistencyTests = []struct {
 // (engineprimitives.Transactions and engine.primitivesBartioTransactions
 // respectively) since those will be deprecated soon.
 func TestProperTransactions(t *testing.T) {
+	t.Parallel()
 	for _, tt := range prysmConsistencyTests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := engineprimitives.Transactions(
 				tt.txs,
 			).HashTreeRoot()

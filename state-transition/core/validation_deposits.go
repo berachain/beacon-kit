@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -26,19 +26,19 @@ import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-func (sp *StateProcessor[_]) validateGenesisDeposits(
-	st *statedb.StateDB,
-	deposits []*ctypes.Deposit,
+func (sp *StateProcessor) validateGenesisDeposits(
+	st *statedb.StateDB, deposits []*ctypes.Deposit,
 ) error {
 	eth1DepositIndex, err := st.GetEth1DepositIndex()
 	if err != nil {
 		return err
 	}
-	if eth1DepositIndex != 0 {
+	if eth1DepositIndex != constants.FirstDepositIndex {
 		return errors.New("Eth1DepositIndex should be 0 at genesis")
 	}
 
@@ -60,14 +60,16 @@ func (sp *StateProcessor[_]) validateGenesisDeposits(
 	// If genesis deposits breaches the cap we return an error.
 	//#nosec:G701 // can't overflow.
 	if uint64(len(deposits)) > sp.cs.ValidatorSetCap() {
-		return errors.Wrapf(ErrValSetCapExceeded,
-			"validator set cap %d, deposits count %d", sp.cs.ValidatorSetCap(), len(deposits),
+		return errors.Wrapf(
+			ErrValSetCapExceeded,
+			"validator set cap %d, deposits count %d",
+			sp.cs.ValidatorSetCap(), len(deposits),
 		)
 	}
 	return nil
 }
 
-func (sp *StateProcessor[_]) validateNonGenesisDeposits(
+func (sp *StateProcessor) validateNonGenesisDeposits(
 	ctx context.Context,
 	st *statedb.StateDB,
 	blkDeposits []*ctypes.Deposit,
@@ -78,13 +80,26 @@ func (sp *StateProcessor[_]) validateNonGenesisDeposits(
 		return err
 	}
 
-	var localDeposits ctypes.Deposits
-	localDeposits, err = sp.ds.GetDepositsByIndex(ctx, 0, depositIndex+uint64(len(blkDeposits)))
+	// Grab all previous deposits from genesis up to the current index + max deposits per block.
+	localDeposits, err := sp.ds.GetDepositsByIndex(
+		ctx,
+		constants.FirstDepositIndex,
+		depositIndex+sp.cs.MaxDepositsPerBlock(),
+	)
 	if err != nil {
 		return err
 	}
 
-	// First check that the block's deposits 1) have contiguous indices and 2) match the local
+	// First verify that the number of block deposits matches the number of local deposits.
+	totalBlockDeposits := depositIndex + uint64(len(blkDeposits))
+	if uint64(len(localDeposits)) != totalBlockDeposits {
+		return errors.Wrapf(ErrDepositsLengthMismatch,
+			"block deposit count: %d, expected deposit count: %d",
+			totalBlockDeposits, len(localDeposits),
+		)
+	}
+
+	// Then check that the block's deposits 1) have contiguous indices and 2) match the local
 	// view of the block's deposits.
 	for i, blkDeposit := range blkDeposits {
 		blkDepositIndex := blkDeposit.GetIndex().Unwrap()
@@ -103,7 +118,7 @@ func (sp *StateProcessor[_]) validateNonGenesisDeposits(
 		}
 	}
 
-	// Then check that the historical deposits root matches locally what's on the beacon block.
+	// Finally check that the historical deposits root matches locally what's on the beacon block.
 	if !localDeposits.HashTreeRoot().Equals(blkDepositRoot) {
 		return ErrDepositsRootMismatch
 	}

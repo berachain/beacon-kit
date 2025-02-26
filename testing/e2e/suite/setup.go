@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -243,7 +243,7 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 				gasTipCap, big.NewInt(0).SetUint64(TenGwei))
 			nonceToSubmit := nonce.Add(1) - 1
 			//nolint:mnd // 20000 Ether
-			value := new(big.Int).Mul(big.NewInt(20000), big.NewInt(Ether))
+			value := new(big.Int).Mul(big.NewInt(200000), big.NewInt(Ether))
 			dest := account.Address()
 			var signedTx *ethtypes.Transaction
 			if signedTx, err = s.genesisAccount.SignTx(
@@ -325,7 +325,10 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 	defer cancel()
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
-	var finalBlockNum uint64
+	finalBlockNum, err := s.JSONRPCBalancer().BlockNumber(cctx)
+	if err != nil {
+		s.logger.Error("error getting finalized block number", "error", err)
+	}
 	for finalBlockNum < target {
 		// check if cctx deadline is exceeded to prevent endless loop
 		select {
@@ -334,7 +337,6 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 		default:
 		}
 
-		var err error
 		finalBlockNum, err = s.JSONRPCBalancer().BlockNumber(cctx)
 		if err != nil {
 			s.logger.Error("error getting finalized block number", "error", err)

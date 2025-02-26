@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -31,6 +31,7 @@ import (
 )
 
 func TestNewTreeFromLeavesWithDepth_NoItemsProvided(t *testing.T) {
+	t.Parallel()
 	treeDepth := uint8(32)
 	_, err := merkle.NewTreeFromLeavesWithDepth[[32]byte](
 		nil,
@@ -40,6 +41,7 @@ func TestNewTreeFromLeavesWithDepth_NoItemsProvided(t *testing.T) {
 }
 
 func TestNewTreeFromLeavesWithDepth_DepthSupport(t *testing.T) {
+	t.Parallel()
 	items := make([][32]byte, 0)
 	for _, v := range [][]byte{
 		byteslib.ExtendToSize([]byte("A"), byteslib.B32Size),
@@ -73,6 +75,7 @@ func TestNewTreeFromLeavesWithDepth_DepthSupport(t *testing.T) {
 }
 
 func TestMerkleTree_IsValidMerkleBranch(t *testing.T) {
+	t.Parallel()
 	treeDepth := uint8(32)
 	items := make([][32]byte, 0)
 	for _, v := range [][]byte{
@@ -137,6 +140,7 @@ func TestMerkleTree_IsValidMerkleBranch(t *testing.T) {
 }
 
 func TestMerkleTree_VerifyProof(t *testing.T) {
+	t.Parallel()
 	treeDepth := uint8(32)
 
 	items := make([][32]byte, 0)
@@ -190,6 +194,7 @@ func TestMerkleTree_VerifyProof(t *testing.T) {
 }
 
 func TestMerkleTree_NegativeIndexes(t *testing.T) {
+	t.Parallel()
 	treeDepth := uint8(32)
 	items := make([][32]byte, 0)
 	for _, v := range [][]byte{
@@ -219,6 +224,7 @@ func TestMerkleTree_NegativeIndexes(t *testing.T) {
 }
 
 func TestMerkleTree_VerifyProof_TrieUpdated(t *testing.T) {
+	t.Parallel()
 	treeDepth := uint8(32)
 	items := [][32]byte{
 		{1},

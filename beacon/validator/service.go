@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -26,7 +26,6 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/berachain/beacon-kit/primitives/transition"
 )
 
 // Service is responsible for building beacon blocks and sidecars.
@@ -44,15 +43,12 @@ type Service struct {
 	// sb is the beacon state backend.
 	sb StorageBackend
 	// stateProcessor is responsible for processing the state.
-	stateProcessor StateProcessor[*transition.Context]
+	stateProcessor StateProcessor
 	// localPayloadBuilder represents the local block builder, this builder
 	// is connected to this nodes execution client via the EngineAPI.
 	// Building blocks are done by submitting forkchoice updates through.
 	// The local Builder.
 	localPayloadBuilder PayloadBuilder
-	// remotePayloadBuilders represents a list of remote block builders, these
-	// builders are connected to other execution clients via the EngineAPI.
-	remotePayloadBuilders []PayloadBuilder
 	// metrics is a metrics collector.
 	metrics *validatorMetrics
 }
@@ -63,24 +59,22 @@ func NewService(
 	logger log.Logger,
 	chainSpec chain.Spec,
 	sb StorageBackend,
-	stateProcessor StateProcessor[*transition.Context],
+	stateProcessor StateProcessor,
 	signer crypto.BLSSigner,
 	blobFactory BlobFactory,
 	localPayloadBuilder PayloadBuilder,
-	remotePayloadBuilders []PayloadBuilder,
 	ts TelemetrySink,
 ) *Service {
 	return &Service{
-		cfg:                   cfg,
-		logger:                logger,
-		sb:                    sb,
-		chainSpec:             chainSpec,
-		signer:                signer,
-		stateProcessor:        stateProcessor,
-		blobFactory:           blobFactory,
-		localPayloadBuilder:   localPayloadBuilder,
-		remotePayloadBuilders: remotePayloadBuilders,
-		metrics:               newValidatorMetrics(ts),
+		cfg:                 cfg,
+		logger:              logger,
+		sb:                  sb,
+		chainSpec:           chainSpec,
+		signer:              signer,
+		stateProcessor:      stateProcessor,
+		blobFactory:         blobFactory,
+		localPayloadBuilder: localPayloadBuilder,
+		metrics:             newValidatorMetrics(ts),
 	}
 }
 

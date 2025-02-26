@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,7 +21,6 @@
 package store_test
 
 import (
-	"os"
 	"testing"
 
 	"cosmossdk.io/log"
@@ -43,15 +42,13 @@ func setSlot(scs datypes.BlobSidecars, slot math.Slot) {
 }
 
 func TestStore_PersistRace(t *testing.T) {
+	t.Parallel()
 	// This test case needs to be run with the '-race' flag
-	tmpFilePath := "/tmp/store_test"
+	tmpFilePath := t.TempDir()
 
 	logger := log.NewNopLogger()
 	chainSpec, err := spec.DevnetChainSpec()
 	require.NoError(t, err)
-
-	// Remove DB when we're done
-	defer os.RemoveAll(tmpFilePath)
 
 	// Create the DB
 	s := store.New(

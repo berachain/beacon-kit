@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -107,18 +107,18 @@ func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 		validator         *ctypes.Validator
 		balance           math.Gwei
 		withdrawalAddress common.ExecutionAddress
-		maxWithdrawals    = s.cs.MaxWithdrawalsPerPayload()
-		withdrawals       = make([]*engineprimitives.Withdrawal, 0, maxWithdrawals)
 	)
-
-	// The first withdrawal is fixed to be the EVM inflation withdrawal.
-	withdrawals = append(withdrawals, s.EVMInflationWithdrawal())
 
 	slot, err := s.GetSlot()
 	if err != nil {
 		return nil, err
 	}
-	epoch := math.Epoch(slot.Unwrap() / s.cs.SlotsPerEpoch())
+	epoch := s.cs.SlotToEpoch(slot)
+	maxWithdrawals := s.cs.MaxWithdrawalsPerPayload()
+	withdrawals := make([]*engineprimitives.Withdrawal, 0, maxWithdrawals)
+
+	// The first withdrawal is fixed to be the EVM inflation withdrawal.
+	withdrawals = append(withdrawals, s.EVMInflationWithdrawal(slot))
 
 	withdrawalIndex, err := s.GetNextWithdrawalIndex()
 	if err != nil {
@@ -200,12 +200,12 @@ func (s *StateDB) ExpectedWithdrawals() (engineprimitives.Withdrawals, error) {
 //
 // NOTE: The withdrawal index and validator index are both set to max(uint64) as
 // they are not used during processing.
-func (s *StateDB) EVMInflationWithdrawal() *engineprimitives.Withdrawal {
+func (s *StateDB) EVMInflationWithdrawal(slot math.Slot) *engineprimitives.Withdrawal {
 	return engineprimitives.NewWithdrawal(
 		EVMInflationWithdrawalIndex,
 		EVMInflationWithdrawalValidatorIndex,
-		s.cs.EVMInflationAddress(),
-		math.Gwei(s.cs.EVMInflationPerBlock()),
+		s.cs.EVMInflationAddress(slot),
+		math.Gwei(s.cs.EVMInflationPerBlock(slot)),
 	)
 }
 

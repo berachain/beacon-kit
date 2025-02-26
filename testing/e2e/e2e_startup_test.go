@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -20,14 +20,7 @@
 
 package e2e_test
 
-import (
-	"math/big"
-
-	"github.com/berachain/beacon-kit/config/spec"
-	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/testing/e2e/suite"
-	gethcommon "github.com/ethereum/go-ethereum/common"
-)
+import "github.com/berachain/beacon-kit/testing/e2e/suite"
 
 // BeaconE2ESuite is a suite of tests simulating a fully function beacon-kit
 // network.
@@ -40,29 +33,4 @@ type BeaconKitE2ESuite struct {
 func (s *BeaconKitE2ESuite) TestBasicStartup() {
 	err := s.WaitForFinalizedBlockNumber(10)
 	s.Require().NoError(err)
-}
-
-// TestEVMInflation checks that the EVM inflation address receives the correct
-// amount of EVM inflation per block.
-func (s *BeaconKitE2ESuite) TestEVMInflation() {
-	evmInflationPerBlockWei, _ := big.NewFloat(
-		spec.DevnetEVMInflationPerBlock * math.GweiPerWei,
-	).Int(nil)
-
-	// Check over the next 10 EVM blocks, that after every block, the balance
-	// of the EVM inflation address increases by DevnetEVMInflationPerBlock.
-	for i := range int64(10) {
-		err := s.WaitForFinalizedBlockNumber(uint64(i))
-		s.Require().NoError(err)
-
-		balance, err := s.JSONRPCBalancer().BalanceAt(
-			s.Ctx(),
-			gethcommon.HexToAddress(spec.DevnetEVMInflationAddress),
-			big.NewInt(i),
-		)
-		s.Require().NoError(err)
-		s.Require().Zero(balance.Cmp(new(big.Int).Mul(
-			evmInflationPerBlockWei, big.NewInt(i)),
-		))
-	}
 }

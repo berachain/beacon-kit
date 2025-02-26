@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,12 +21,13 @@
 package beacon
 
 import (
+	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
-	"github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/constants"
 )
 
-func (h *Handler[ContextT]) GetRandao(c ContextT) (any, error) {
+func (h *Handler) GetRandao(c handlers.Context) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetRandaoRequest](
 		c,
 		h.Logger(),
@@ -38,7 +39,7 @@ func (h *Handler[ContextT]) GetRandao(c ContextT) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	epoch := math.Epoch(0)
+	epoch := constants.GenesisEpoch
 	if req.Epoch != "" {
 		epoch, err = utils.U64FromString(req.Epoch)
 		if err != nil {
@@ -49,9 +50,5 @@ func (h *Handler[ContextT]) GetRandao(c ContextT) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return beacontypes.ValidatorResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data:                randao,
-	}, nil
+	return beacontypes.NewResponse(randao), nil
 }

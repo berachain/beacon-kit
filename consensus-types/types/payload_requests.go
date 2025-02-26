@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -39,9 +39,6 @@ type NewPayloadRequest struct {
 	VersionedHashes []common.ExecutionHash
 	// ParentBeaconBlockRoot is the root of the parent beacon block.
 	ParentBeaconBlockRoot *common.Root
-	// Optimistic is a flag that indicates if the payload should be
-	// optimistically deemed valid. This is useful during syncing.
-	Optimistic bool
 }
 
 // BuildNewPayloadRequest builds a new payload request.
@@ -49,13 +46,11 @@ func BuildNewPayloadRequest(
 	executionPayload *ExecutionPayload,
 	versionedHashes []common.ExecutionHash,
 	parentBeaconBlockRoot *common.Root,
-	optimistic bool,
 ) *NewPayloadRequest {
 	return &NewPayloadRequest{
 		ExecutionPayload:      executionPayload,
 		VersionedHashes:       versionedHashes,
 		ParentBeaconBlockRoot: parentBeaconBlockRoot,
-		Optimistic:            optimistic,
 	}
 }
 
@@ -115,7 +110,7 @@ func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
 		gethprimitives.NewStackTrie(nil),
 	)
 
-	// Verify that the payload is telling the truth about it's block hash.
+	// Verify that the payload is telling the truth about its block hash.
 	//#nosec:G103 // its okay.
 	if block := gethprimitives.NewBlockWithHeader(
 		&gethprimitives.Header{
@@ -157,14 +152,14 @@ type ForkchoiceUpdateRequest struct {
 	PayloadAttributes *engineprimitives.PayloadAttributes
 	// ForkVersion is the fork version that we
 	// are going to be submitting for.
-	ForkVersion uint32
+	ForkVersion common.Version
 }
 
 // BuildForkchoiceUpdateRequest builds a forkchoice update request.
 func BuildForkchoiceUpdateRequest(
 	state *engineprimitives.ForkchoiceStateV1,
 	payloadAttributes *engineprimitives.PayloadAttributes,
-	forkVersion uint32,
+	forkVersion common.Version,
 ) *ForkchoiceUpdateRequest {
 	return &ForkchoiceUpdateRequest{
 		State:             state,
@@ -178,7 +173,7 @@ func BuildForkchoiceUpdateRequest(
 // any attributes.
 func BuildForkchoiceUpdateRequestNoAttrs(
 	state *engineprimitives.ForkchoiceStateV1,
-	forkVersion uint32,
+	forkVersion common.Version,
 ) *ForkchoiceUpdateRequest {
 	return &ForkchoiceUpdateRequest{
 		State:       state,
@@ -192,13 +187,13 @@ type GetPayloadRequest struct {
 	PayloadID engineprimitives.PayloadID
 	// ForkVersion is the fork version that we are
 	// currently on.
-	ForkVersion uint32
+	ForkVersion common.Version
 }
 
 // BuildGetPayloadRequest builds a get payload request.
 func BuildGetPayloadRequest(
 	payloadID engineprimitives.PayloadID,
-	forkVersion uint32,
+	forkVersion common.Version,
 ) *GetPayloadRequest {
 	return &GetPayloadRequest{
 		PayloadID:   payloadID,

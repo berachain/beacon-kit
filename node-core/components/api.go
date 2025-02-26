@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -25,6 +25,7 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-api/backend"
 	"github.com/berachain/beacon-kit/node-api/engines/echo"
 	"github.com/berachain/beacon-kit/node-api/handlers"
@@ -41,7 +42,7 @@ type NodeAPIBackendInput struct {
 	depinject.In
 
 	ChainSpec      chain.Spec
-	StateProcessor StateProcessor[*Context]
+	StateProcessor StateProcessor
 	StorageBackend *storage.Backend
 }
 
@@ -55,27 +56,22 @@ func ProvideNodeAPIBackend(
 	)
 }
 
-type NodeAPIServerInput[
-	LoggerT log.AdvancedLogger[LoggerT],
-	NodeAPIContextT NodeAPIContext,
-] struct {
+type NodeAPIServerInput struct {
 	depinject.In
 
-	Engine   NodeAPIEngine[NodeAPIContextT]
+	Engine   NodeAPIEngine
 	Config   *config.Config
-	Handlers []handlers.Handlers[NodeAPIContextT]
-	Logger   LoggerT
+	Handlers []handlers.Handlers
+	Logger   *phuslu.Logger
 }
 
-func ProvideNodeAPIServer[
-	LoggerT log.AdvancedLogger[LoggerT],
-	NodeAPIContextT NodeAPIContext,
-](
-	in NodeAPIServerInput[LoggerT, NodeAPIContextT],
-) *server.Server[NodeAPIContextT] {
-	in.Logger.AddKeyValColor("service", "node-api-server",
-		log.Blue)
-	return server.New[NodeAPIContextT](
+func ProvideNodeAPIServer(in NodeAPIServerInput) *server.Server {
+	in.Logger.AddKeyValColor(
+		"service",
+		"node-api-server",
+		log.Blue,
+	)
+	return server.New(
 		in.Config.NodeAPI,
 		in.Engine,
 		in.Logger.With("service", "node-api-server"),
