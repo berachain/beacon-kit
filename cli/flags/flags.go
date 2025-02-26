@@ -21,6 +21,9 @@
 package flags
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/berachain/beacon-kit/config"
 	"github.com/spf13/cobra"
 )
@@ -76,7 +79,30 @@ const (
 	// BLS Config.
 	PrivValidatorKeyFile   = "priv_validator_key_file"
 	PrivValidatorStateFile = "priv_validator_state_file"
+
+	// CometBFT Config.
+	cometbftRoot     = beaconKitRoot + "cometbft."
+	SBTUpgradeHeight = cometbftRoot + "sbt-upgrade-height"
+	SBTUpgradeTime   = cometbftRoot + "sbt-upgrade-time"
 )
+
+// Custom type to handle time parsing
+type TimeFlag struct {
+	Time time.Time
+}
+
+// Implement the pflag.Value interface
+func (t *TimeFlag) Set(value string) error {
+	parsedTime, err := time.Parse(time.RFC3339Nano, value)
+	if err != nil {
+		return fmt.Errorf("invalid time format: %v", err)
+	}
+	t.Time = parsedTime
+	return nil
+}
+
+func (t *TimeFlag) String() string { return t.Time.Format(time.RFC3339Nano) }
+func (t *TimeFlag) Type() string   { return "time" }
 
 // AddBeaconKitFlags implements servertypes.ModuleInitFlags interface.
 func AddBeaconKitFlags(startCmd *cobra.Command) {
@@ -169,5 +195,11 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 		NodeAPILogging,
 		defaultCfg.NodeAPI.Logging,
 		"node api logging",
+	)
+	startCmd.Flags().Int64(
+		SBTUpgradeHeight, 0, "height at which SBT is enabled",
+	)
+	startCmd.Flags().Var(
+		&TimeFlag{}, SBTUpgradeTime, "time at which SBT is enabled (block's timestamp)",
 	)
 }

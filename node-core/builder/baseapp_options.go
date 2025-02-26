@@ -29,6 +29,7 @@ import (
 	"cosmossdk.io/store"
 	storetypes "cosmossdk.io/store/types"
 	server "github.com/berachain/beacon-kit/cli/commands/server"
+	beaconflags "github.com/berachain/beacon-kit/cli/flags"
 	"github.com/berachain/beacon-kit/config"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -56,12 +57,6 @@ func DefaultServiceOptions(
 		panic(err)
 	}
 
-	sbtUpgradeHeight := cast.ToInt64(appOpts.Get(flags.FlagSBTUpgradeHeight))
-	if sbtUpgradeHeight == 0 {
-		panic("--sbt-upgrade-height (height where SBT is enabled) must be set")
-	}
-	sbtUpgradeTime := cast.ToTime(appOpts.Get(flags.FlagSBTUpgradeTime))
-
 	// get chainID, possibly falling back to genesis if flag is not set
 	chainID := cast.ToString(appOpts.Get(flags.FlagChainID))
 	if chainID == "" {
@@ -70,6 +65,12 @@ func DefaultServiceOptions(
 			panic(err)
 		}
 	}
+
+	sbtUpgradeHeight := cast.ToInt64(appOpts.Get(beaconflags.SBTUpgradeHeight))
+	if sbtUpgradeHeight == 0 {
+		panic("--beacon-kit.cometbft.sbt-upgrade-height (height where SBT is enabled) must be set")
+	}
+	sbtUpgradeTime := cast.ToTime(appOpts.Get(beaconflags.SBTUpgradeTime))
 
 	return []func(*cometbft.Service){
 		cometbft.SetPruning(pruningOpts),

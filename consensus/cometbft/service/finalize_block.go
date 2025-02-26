@@ -102,7 +102,7 @@ func (s *Service) finalizeBlockInternal(
 			// do nothing
 		case req.Height > s.sbtUpgradeHeight: // upgrade happened in the past
 			if s.sbtUpgradeTime.IsZero() {
-				panic("Looks like the network had already upgraded to SBT (stable block time). --sbt-upgrade-time (block's time where SBT was enabled) must be set")
+				panic("Looks like the network had already upgraded to SBT (stable block time). --beacon-kit.cometbft.sbt-upgrade-time (block's time where SBT was enabled) must be set")
 			}
 
 			s.blockDelay = blockDelayUponGenesis(
