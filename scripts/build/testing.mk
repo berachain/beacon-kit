@@ -86,7 +86,10 @@ start-reth: ## start an ephemeral `reth` node
 	--authrpc.addr "0.0.0.0" \
 	--authrpc.jwtsecret $(JWT_PATH) \
 	--datadir ${ETH_DATA_DIR} \
-	--ipcpath ${IPC_PATH}
+	--ipcpath ${IPC_PATH} \
+	-vvvvv \
+	--engine.persistence-threshold 0 \
+	--engine.memory-block-buffer-target 0
 
 start-reth-bartio:
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
