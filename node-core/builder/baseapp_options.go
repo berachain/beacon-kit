@@ -25,7 +25,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"time"
 
 	"cosmossdk.io/store"
 	storetypes "cosmossdk.io/store/types"
@@ -57,6 +56,12 @@ func DefaultServiceOptions(
 		panic(err)
 	}
 
+	sbtUpgradeHeight := cast.ToInt64(appOpts.Get(flags.FlagSBTUpgradeHeight))
+	if sbtUpgradeHeight == 0 {
+		panic("--sbt-upgrade-height (height where SBT is enabled) must be set")
+	}
+	sbtUpgradeTime := cast.ToTime(appOpts.Get(flags.FlagSBTUpgradeTime))
+
 	// get chainID, possibly falling back to genesis if flag is not set
 	chainID := cast.ToString(appOpts.Get(flags.FlagChainID))
 	if chainID == "" {
@@ -80,9 +85,9 @@ func DefaultServiceOptions(
 			true,
 		),
 		cometbft.SetChainID(chainID),
-		cometbft.SetTargetBlockTime(
-			// default to 12 seconds (single Ethereum slot)
-			12 * time.Second,
+		cometbft.SetSBTUpgradeHeightAndTime(
+			sbtUpgradeHeight,
+			sbtUpgradeTime,
 		),
 	}
 }

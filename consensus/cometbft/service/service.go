@@ -51,6 +51,13 @@ import (
 const (
 	initialAppVersion uint64 = 0
 	AppName           string = "beacond"
+
+	// targetBlockTime is the desired block time.
+	//
+	// Note that it CAN'T be lower than the minimal (floor) block time in the
+	// network, which is comprised of the time to a) propose a new block b)
+	// gather 2/3+ prevotes c) gather 2/3+ precommits.
+	targetBlockTime = 12 * time.Second // single Ethereum slot
 )
 
 type Service struct {
@@ -103,8 +110,9 @@ type Service struct {
 	// NOTE: may be nil until either InitChain or FinalizeBlock is called.
 	blockDelay *blockDelay
 
-	// targetBlockTime is the desired block time. Doesn't change after start.
-	targetBlockTime time.Duration
+	// stable block time upgrade height and time
+	sbtUpgradeHeight int64
+	sbtUpgradeTime   time.Time
 }
 
 func NewService(
@@ -280,9 +288,10 @@ func (s *Service) setMinRetainBlocks(minRetainBlocks uint64) {
 	s.minRetainBlocks = minRetainBlocks
 }
 
-// setTargetBlockTime sets the desired block time.
-func (s *Service) setTargetBlockTime(t time.Duration) {
-	s.targetBlockTime = t
+// setSBTUpgradeHeightAndTime sets the height and time for the SBT upgrade.
+func (s *Service) setSBTUpgradeHeightAndTime(h int64, t time.Time) {
+	s.sbtUpgradeHeight = h
+	s.sbtUpgradeTime = t
 }
 
 func (s *Service) setInterBlockCache(

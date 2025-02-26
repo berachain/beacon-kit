@@ -23,10 +23,14 @@ package cometbft
 import (
 	"context"
 	"fmt"
+	"time"
 
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/sourcegraph/conc/iter"
 )
+
+// Delay to use before the upgrade to SBT.
+const constBlockDelay = 500 * time.Millisecond
 
 func (s *Service) finalizeBlock(
 	ctx context.Context,
@@ -89,22 +93,36 @@ func (s *Service) finalizeBlockInternal(
 		return nil, err
 	}
 
-	// Special case: height > 0, but blockDelay record doesn't exist in DB.
-	//
-	// NOTE: all nodes must enable this feature from the same height (requires
-	// coordinated upgrade).
-	if s.blockDelay == nil {
-		s.blockDelay = blockDelayUponGenesis(
-			req.Time,
-			req.Height-1,
-		)
-	}
+	delay := constBlockDelay
 
-	// Calculate the delay for the next block.
-	delay := s.blockDelay.Next(
-		req.Time,
-		req.Height,
-		s.targetBlockTime)
+	// Special case: height > 0, but blockDelay record doesn't exist in DB.
+	if s.blockDelay == nil {
+		switch {
+		case s.sbtUpgradeHeight == 0: // no upgrade
+			// do nothing
+		case req.Height > s.sbtUpgradeHeight: // upgrade happened in the past
+			if s.sbtUpgradeTime.IsZero() {
+				panic("Looks like the network had already upgraded to SBT (stable block time). --sbt-upgrade-time (block's time where SBT was enabled) must be set")
+			}
+
+			s.blockDelay = blockDelayUponGenesis(
+				s.sbtUpgradeTime,
+				s.sbtUpgradeHeight,
+			)
+		case req.Height == s.sbtUpgradeHeight: // upgrade is happening now
+			s.blockDelay = blockDelayUponGenesis(
+				req.Time,
+				s.sbtUpgradeHeight,
+			)
+			// default: // upgrade is in the future
+			// do nothing
+		}
+	} else {
+		delay = s.blockDelay.Next(
+			req.Time,
+			req.Height,
+			targetBlockTime)
+	}
 
 	cp := s.cmtConsensusParams.ToProto()
 	return &cmtabci.FinalizeBlockResponse{
