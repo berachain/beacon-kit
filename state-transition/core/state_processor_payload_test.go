@@ -140,15 +140,10 @@ func TestPayloadTimestampVerification(t *testing.T) {
 			blk := buildNextBlock(
 				t,
 				testSt,
-				&types.BeaconBlockBody{
-					ExecutionPayload: testPayload(
-						t,
-						testSt,
-						math.U64(tt.payloadTime.Unix()),
-						testSt.EVMInflationWithdrawal(constants.GenesisSlot+1),
-					),
-					Eth1Data: types.NewEth1Data(genDeposits.HashTreeRoot()),
-				},
+				types.NewEth1Data(genDeposits.HashTreeRoot()),
+				math.U64(tt.payloadTime.Unix()),
+				nil,
+				testSt.EVMInflationWithdrawal(constants.GenesisSlot+1),
 			)
 
 			_, err = sp.Transition(tCtx, testSt, blk)

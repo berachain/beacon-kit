@@ -90,16 +90,10 @@ func TestInvalidDeposits(t *testing.T) {
 	blk := buildNextBlock(
 		t,
 		st,
-		&types.BeaconBlockBody{
-			ExecutionPayload: testPayload(
-				t,
-				st,
-				10,
-				st.EVMInflationWithdrawal(constants.GenesisSlot+1),
-			),
-			Eth1Data: types.NewEth1Data(depRoot),
-			Deposits: []*types.Deposit{invalidDeposit},
-		},
+		types.NewEth1Data(depRoot),
+		10,
+		[]*types.Deposit{invalidDeposit},
+		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
 	)
 
 	// Add correct deposit to local store (honest validator will see this locally).
@@ -160,16 +154,10 @@ func TestInvalidDepositsCount(t *testing.T) {
 	blk := buildNextBlock(
 		t,
 		st,
-		&types.BeaconBlockBody{
-			ExecutionPayload: testPayload(
-				t,
-				st,
-				10,
-				st.EVMInflationWithdrawal(constants.GenesisSlot+1),
-			),
-			Eth1Data: types.NewEth1Data(depRoot),
-			Deposits: correctDeposits,
-		},
+		types.NewEth1Data(depRoot),
+		10,
+		correctDeposits,
+		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
 	)
 
 	// Add JUST 1 correct deposit to local store. This node SHOULD fail to verify.
@@ -227,16 +215,10 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 	blk := buildNextBlock(
 		t,
 		st,
-		&types.BeaconBlockBody{
-			ExecutionPayload: testPayload(
-				t,
-				st,
-				10,
-				st.EVMInflationWithdrawal(constants.GenesisSlot+1),
-			),
-			Eth1Data: types.NewEth1Data(depRoot),
-			Deposits: blockDeposits,
-		},
+		types.NewEth1Data(depRoot),
+		10,
+		blockDeposits,
+		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
 	)
 
 	extraLocalDeposit := &types.Deposit{
@@ -308,16 +290,10 @@ func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
 	blk := buildNextBlock(
 		t,
 		st,
-		&types.BeaconBlockBody{
-			ExecutionPayload: testPayload(
-				t,
-				st,
-				10,
-				st.EVMInflationWithdrawal(constants.GenesisSlot+1),
-			),
-			Eth1Data: types.NewEth1Data(badDepRoot),
-			Deposits: blockDeposits,
-		},
+		types.NewEth1Data(badDepRoot),
+		10,
+		blockDeposits,
+		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
 	)
 
 	// Add both deposits to local store (which includes more than what's in the block).
