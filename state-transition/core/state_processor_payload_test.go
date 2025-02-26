@@ -142,6 +142,8 @@ func TestPayloadTimestampVerification(t *testing.T) {
 				testSt,
 				&types.BeaconBlockBody{
 					ExecutionPayload: testPayload(
+						t,
+						testSt,
 						math.U64(tt.payloadTime.Unix()),
 						testSt.EVMInflationWithdrawal(constants.GenesisSlot+1),
 					),

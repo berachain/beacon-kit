@@ -125,7 +125,20 @@ func generateTestPK(t *testing.T, rndSeed int) (bytes.B48, int) {
 	return key, rndSeed
 }
 
-func testPayload(timestamp math.U64, withdrawals ...*engineprimitives.Withdrawal) *types.ExecutionPayload {
+func testPayload(
+	t *testing.T,
+	st *statetransition.TestBeaconStateT,
+	timestamp math.U64,
+	withdrawals ...*engineprimitives.Withdrawal,
+) *types.ExecutionPayload {
+	t.Helper()
+
+	// first update state root, similarly to what we do in processSlot
+	parentBlkHeader, err := st.GetLatestBlockHeader()
+	require.NoError(t, err)
+	root := st.HashTreeRoot()
+	parentBlkHeader.SetStateRoot(root)
+
 	payload := &types.ExecutionPayload{
 		Timestamp:     timestamp,
 		ExtraData:     []byte("testing"),
@@ -134,6 +147,13 @@ func testPayload(timestamp math.U64, withdrawals ...*engineprimitives.Withdrawal
 		BaseFeePerGas: math.NewU256(0),
 		EpVersion:     version.Deneb1(),
 	}
+
+	parentBeaconBlockRoot := parentBlkHeader.HashTreeRoot()
+	blk, _, err := types.MakeEthBlock(payload, &parentBeaconBlockRoot)
+	require.NoError(t, err)
+
+	payload.BlockHash = common.ExecutionHash(blk.Hash())
+
 	return payload
 }
 
@@ -155,6 +175,8 @@ func moveToEndOfEpoch(
 			st,
 			&types.BeaconBlockBody{
 				ExecutionPayload: testPayload(
+					t,
+					st,
 					blk.Body.ExecutionPayload.Timestamp+1,
 					st.EVMInflationWithdrawal(blk.GetSlot()+1),
 				),

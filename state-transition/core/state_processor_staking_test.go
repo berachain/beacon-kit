@@ -102,6 +102,8 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		st,
 		&types.BeaconBlockBody{
 			ExecutionPayload: testPayload(
+				t,
+				st,
 				10,
 				st.EVMInflationWithdrawal(constants.GenesisSlot+1),
 			),
@@ -148,6 +150,8 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		st,
 		&types.BeaconBlockBody{
 			ExecutionPayload: testPayload(
+				t,
+				st,
 				blk.Body.ExecutionPayload.Timestamp+1,
 				st.EVMInflationWithdrawal(blk.GetSlot()+1),
 			),
@@ -231,6 +235,8 @@ func TestTransitionCreateValidator(t *testing.T) {
 		st,
 		&types.BeaconBlockBody{
 			ExecutionPayload: testPayload(
+				t,
+				st,
 				10,
 				st.EVMInflationWithdrawal(constants.GenesisSlot+1),
 			),
@@ -278,6 +284,8 @@ func TestTransitionCreateValidator(t *testing.T) {
 		st,
 		&types.BeaconBlockBody{
 			ExecutionPayload: testPayload(
+				t,
+				st,
 				blk.Body.ExecutionPayload.Timestamp+1,
 				st.EVMInflationWithdrawal(blk.GetSlot()+1),
 			),
@@ -317,6 +325,8 @@ func TestTransitionCreateValidator(t *testing.T) {
 		st,
 		&types.BeaconBlockBody{
 			ExecutionPayload: testPayload(
+				t,
+				st,
 				blk.Body.ExecutionPayload.Timestamp+1,
 				st.EVMInflationWithdrawal(blk.GetSlot()+1),
 			),
@@ -420,6 +430,8 @@ func TestTransitionWithdrawals(t *testing.T) {
 		st,
 		&types.BeaconBlockBody{
 			ExecutionPayload: testPayload(
+				t,
+				st,
 				10,
 				withdrawals...,
 			),
@@ -511,7 +523,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 		t,
 		st,
 		&types.BeaconBlockBody{
-			ExecutionPayload: testPayload(10, withdrawals...),
+			ExecutionPayload: testPayload(t, st, 10, withdrawals...),
 			Eth1Data:         types.NewEth1Data(depRoot),
 			Deposits:         []*types.Deposit{},
 		},
@@ -554,6 +566,8 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 		st,
 		&types.BeaconBlockBody{
 			ExecutionPayload: testPayload(
+				t,
+				st,
 				blk.Body.ExecutionPayload.Timestamp+1,
 				withdrawals...,
 			),
@@ -643,6 +657,8 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		st,
 		&types.BeaconBlockBody{
 			ExecutionPayload: testPayload(
+				t,
+				st,
 				10,
 				st.EVMInflationWithdrawal(constants.GenesisSlot+1),
 			),
@@ -690,6 +706,8 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		st,
 		&types.BeaconBlockBody{
 			ExecutionPayload: testPayload(
+				t,
+				st,
 				blk.Body.ExecutionPayload.Timestamp+1,
 				st.EVMInflationWithdrawal(blk.GetSlot()+1),
 			),
@@ -729,6 +747,8 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		st,
 		&types.BeaconBlockBody{
 			ExecutionPayload: testPayload(
+				t,
+				st,
 				blk.Body.ExecutionPayload.Timestamp+1,
 				st.EVMInflationWithdrawal(blk.GetSlot()+1),
 			),
@@ -762,6 +782,8 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		st,
 		&types.BeaconBlockBody{
 			ExecutionPayload: testPayload(
+				t,
+				st,
 				blk.Body.ExecutionPayload.Timestamp+1,
 				st.EVMInflationWithdrawal(blk.GetSlot()+1),
 			),
@@ -777,6 +799,8 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		st,
 		&types.BeaconBlockBody{
 			ExecutionPayload: testPayload(
+				t,
+				st,
 				blk.Body.ExecutionPayload.Timestamp+1,
 				st.EVMInflationWithdrawal(blk.GetSlot()+1),
 			),
@@ -801,6 +825,8 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 		st,
 		&types.BeaconBlockBody{
 			ExecutionPayload: testPayload(
+				t,
+				st,
 				blk.Body.ExecutionPayload.Timestamp+1,
 				withdrawals...,
 			),
@@ -885,6 +911,8 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		st,
 		&types.BeaconBlockBody{
 			ExecutionPayload: testPayload(
+				t,
+				st,
 				10,
 				st.EVMInflationWithdrawal(constants.GenesisSlot+1),
 			),
@@ -949,6 +977,8 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		st,
 		&types.BeaconBlockBody{
 			ExecutionPayload: testPayload(
+				t,
+				st,
 				blk.Body.ExecutionPayload.Timestamp+1,
 				st.EVMInflationWithdrawal(blk.GetSlot()+1),
 			),
@@ -1003,6 +1033,8 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		st,
 		&types.BeaconBlockBody{
 			ExecutionPayload: testPayload(
+				t,
+				st,
 				blk.Body.ExecutionPayload.Timestamp+1,
 				st.EVMInflationWithdrawal(blk.GetSlot()+1),
 			),
@@ -1065,6 +1097,8 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		st,
 		&types.BeaconBlockBody{
 			ExecutionPayload: testPayload(
+				t,
+				st,
 				blk.Body.ExecutionPayload.Timestamp+1,
 				st.EVMInflationWithdrawal(blk.GetSlot()),
 			),
@@ -1080,6 +1114,8 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		st,
 		&types.BeaconBlockBody{
 			ExecutionPayload: testPayload(
+				t,
+				st,
 				blk.Body.ExecutionPayload.Timestamp+1,
 				st.EVMInflationWithdrawal(blk.GetSlot()+1),
 			),
@@ -1104,6 +1140,8 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 		st,
 		&types.BeaconBlockBody{
 			ExecutionPayload: testPayload(
+				t,
+				st,
 				blk.Body.ExecutionPayload.Timestamp+1,
 				withdrawals...,
 			),
@@ -1163,6 +1201,8 @@ func TestValidatorNotWithdrawable(t *testing.T) {
 		st,
 		&types.BeaconBlockBody{
 			ExecutionPayload: testPayload(
+				t,
+				st,
 				10,
 				st.EVMInflationWithdrawal(constants.GenesisSlot+1),
 			),

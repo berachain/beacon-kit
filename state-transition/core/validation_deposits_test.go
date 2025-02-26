@@ -92,6 +92,8 @@ func TestInvalidDeposits(t *testing.T) {
 		st,
 		&types.BeaconBlockBody{
 			ExecutionPayload: testPayload(
+				t,
+				st,
 				10,
 				st.EVMInflationWithdrawal(constants.GenesisSlot+1),
 			),
@@ -160,6 +162,8 @@ func TestInvalidDepositsCount(t *testing.T) {
 		st,
 		&types.BeaconBlockBody{
 			ExecutionPayload: testPayload(
+				t,
+				st,
 				10,
 				st.EVMInflationWithdrawal(constants.GenesisSlot+1),
 			),
@@ -225,6 +229,8 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 		st,
 		&types.BeaconBlockBody{
 			ExecutionPayload: testPayload(
+				t,
+				st,
 				10,
 				st.EVMInflationWithdrawal(constants.GenesisSlot+1),
 			),
@@ -304,6 +310,8 @@ func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
 		st,
 		&types.BeaconBlockBody{
 			ExecutionPayload: testPayload(
+				t,
+				st,
 				10,
 				st.EVMInflationWithdrawal(constants.GenesisSlot+1),
 			),

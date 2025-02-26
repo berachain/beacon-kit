@@ -60,34 +60,19 @@ func BuildNewPayloadRequest(
 // https://github.com/ethereum/consensus-specs/blob/v1.4.0-beta.2/specs/deneb/beacon-chain.md#is_valid_block_hash
 // https://github.com/ethereum/consensus-specs/blob/v1.4.0-beta.2/specs/deneb/beacon-chain.md#is_valid_versioned_hashes
 func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
-	var (
-		blobHashes = make([]gethprimitives.ExecutionHash, 0)
-		payload    = n.ExecutionPayload
-		txs        = make(
-			[]*gethprimitives.Transaction,
-			len(payload.GetTransactions()),
-		)
-	)
-
-	// Extracts and validates the blob hashes from the transactions in the
-	// execution payload.
-	for i, encTx := range payload.GetTransactions() {
-		var tx gethprimitives.Transaction
-		if err := tx.UnmarshalBinary(encTx); err != nil {
-			return errors.Wrapf(err, "invalid transaction %d", i)
-		}
-		blobHashes = append(blobHashes, tx.BlobHashes()...)
-		txs[i] = &tx
+	block, blobHashes, err := MakeEthBlock(n.ExecutionPayload, n.ParentBeaconBlockRoot)
+	if err != nil {
+		return err
 	}
 
-	// Check if the number of blob hashes matches the number of versioned
-	// hashes.
+	// Validate the blob hashes from the transactions in the execution payload.
+	// Check if the number of blob hashes matches the number of versioned hashes.
 	if len(blobHashes) != len(n.VersionedHashes) {
 		return errors.Wrapf(
 			engineprimitives.ErrMismatchedNumVersionedHashes,
 			"expected %d, got %d",
-			len(n.VersionedHashes),
 			len(blobHashes),
+			len(n.VersionedHashes),
 		)
 	}
 
@@ -98,51 +83,76 @@ func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
 				engineprimitives.ErrInvalidVersionedHash,
 				"index %d: expected %v, got %v",
 				i,
-				n.VersionedHashes[i],
 				blobHash,
+				n.VersionedHashes[i],
 			)
 		}
 	}
 
-	wds := payload.GetWithdrawals()
-	withdrawalsHash := gethprimitives.DeriveSha(
-		wds,
-		gethprimitives.NewStackTrie(nil),
-	)
-
 	// Verify that the payload is telling the truth about its block hash.
-	//#nosec:G103 // its okay.
-	if block := gethprimitives.NewBlockWithHeader(
-		&gethprimitives.Header{
-			ParentHash:       gethprimitives.ExecutionHash(payload.GetParentHash()),
-			UncleHash:        gethprimitives.EmptyUncleHash,
-			Coinbase:         gethprimitives.ExecutionAddress(payload.GetFeeRecipient()),
-			Root:             gethprimitives.ExecutionHash(payload.GetStateRoot()),
-			TxHash:           gethprimitives.DeriveSha(gethprimitives.Transactions(txs), gethprimitives.NewStackTrie(nil)),
-			ReceiptHash:      gethprimitives.ExecutionHash(payload.GetReceiptsRoot()),
-			Bloom:            gethprimitives.LogsBloom(payload.GetLogsBloom()),
-			Difficulty:       big.NewInt(0),
-			Number:           new(big.Int).SetUint64(payload.GetNumber().Unwrap()),
-			GasLimit:         payload.GetGasLimit().Unwrap(),
-			GasUsed:          payload.GetGasUsed().Unwrap(),
-			Time:             payload.GetTimestamp().Unwrap(),
-			BaseFee:          payload.GetBaseFeePerGas().ToBig(),
-			Extra:            payload.GetExtraData(),
-			MixDigest:        gethprimitives.ExecutionHash(payload.GetPrevRandao()),
-			WithdrawalsHash:  &withdrawalsHash,
-			ExcessBlobGas:    payload.GetExcessBlobGas().UnwrapPtr(),
-			BlobGasUsed:      payload.GetBlobGasUsed().UnwrapPtr(),
-			ParentBeaconRoot: (*gethprimitives.ExecutionHash)(n.ParentBeaconBlockRoot),
-		},
-	).WithBody(gethprimitives.Body{
-		Transactions: txs, Uncles: nil, Withdrawals: *(*gethprimitives.Withdrawals)(unsafe.Pointer(&wds)),
-	}); common.ExecutionHash(block.Hash()) != payload.GetBlockHash() {
+	if common.ExecutionHash(block.Hash()) != n.ExecutionPayload.GetBlockHash() {
 		return errors.Wrapf(engineprimitives.ErrPayloadBlockHashMismatch,
 			"%x, got %x",
-			payload.GetBlockHash(), block.Hash(),
+			block.Hash(), n.ExecutionPayload.GetBlockHash(),
 		)
 	}
 	return nil
+}
+
+func MakeEthBlock(
+	payload *ExecutionPayload,
+	parentBeaconBlockRoot *common.Root,
+) (
+	*gethprimitives.Block,
+	[]gethprimitives.ExecutionHash,
+	error,
+) {
+	var (
+		txs        = make([]*gethprimitives.Transaction, 0, len(payload.GetTransactions()))
+		blobHashes = make([]gethprimitives.ExecutionHash, 0) // needed for extra checks
+	)
+
+	for i, encTx := range payload.GetTransactions() {
+		var tx gethprimitives.Transaction
+		if err := tx.UnmarshalBinary(encTx); err != nil {
+			return nil, nil, errors.Wrapf(err, "invalid transaction %d", i)
+		}
+		txs[i] = &tx
+		blobHashes = append(blobHashes, tx.BlobHashes()...)
+	}
+
+	wds := payload.GetWithdrawals()
+	withdrawalsHash := gethprimitives.DeriveSha(wds, gethprimitives.NewStackTrie(nil))
+
+	blkHeader := &gethprimitives.Header{
+		ParentHash:       gethprimitives.ExecutionHash(payload.GetParentHash()),
+		UncleHash:        gethprimitives.EmptyUncleHash,
+		Coinbase:         gethprimitives.ExecutionAddress(payload.GetFeeRecipient()),
+		Root:             gethprimitives.ExecutionHash(payload.GetStateRoot()),
+		TxHash:           gethprimitives.DeriveSha(gethprimitives.Transactions(txs), gethprimitives.NewStackTrie(nil)),
+		ReceiptHash:      gethprimitives.ExecutionHash(payload.GetReceiptsRoot()),
+		Bloom:            gethprimitives.LogsBloom(payload.GetLogsBloom()),
+		Difficulty:       big.NewInt(0),
+		Number:           new(big.Int).SetUint64(payload.GetNumber().Unwrap()),
+		GasLimit:         payload.GetGasLimit().Unwrap(),
+		GasUsed:          payload.GetGasUsed().Unwrap(),
+		Time:             payload.GetTimestamp().Unwrap(),
+		BaseFee:          payload.GetBaseFeePerGas().ToBig(),
+		Extra:            payload.GetExtraData(),
+		MixDigest:        gethprimitives.ExecutionHash(payload.GetPrevRandao()),
+		WithdrawalsHash:  &withdrawalsHash,
+		ExcessBlobGas:    payload.GetExcessBlobGas().UnwrapPtr(),
+		BlobGasUsed:      payload.GetBlobGasUsed().UnwrapPtr(),
+		ParentBeaconRoot: (*gethprimitives.ExecutionHash)(parentBeaconBlockRoot),
+	}
+	block := gethprimitives.NewBlockWithHeader(blkHeader).WithBody(
+		gethprimitives.Body{
+			Transactions: txs,
+			Uncles:       nil,
+			Withdrawals:  *(*gethprimitives.Withdrawals)(unsafe.Pointer(&wds)), //#nosec:G103 // its okay.
+		},
+	)
+	return block, blobHashes, nil
 }
 
 type ForkchoiceUpdateRequest struct {
