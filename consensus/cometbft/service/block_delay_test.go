@@ -21,7 +21,6 @@
 package cometbft
 
 import (
-	"encoding/json"
 	"testing"
 	"time"
 
@@ -104,9 +103,8 @@ func TestBlockDelaySerialization(t *testing.T) {
 	}
 
 	b := d.ToBytes()
-	var d2 blockDelay
-	err := json.Unmarshal(b, &d2)
-	assert.NoError(t, err)
+	d2 := blockDelayFromBytes(b)
+
 	assert.Equal(t, d.InitialTime.Unix(), d2.InitialTime.Unix())
 	assert.Equal(t, d.InitialHeight, d2.InitialHeight)
 	assert.Equal(t, d.PreviousBlockTime.Unix(), d2.PreviousBlockTime.Unix())

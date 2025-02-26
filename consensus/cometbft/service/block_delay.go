@@ -21,10 +21,10 @@
 package cometbft
 
 import (
+	"bytes"
+	"encoding/binary"
 	"fmt"
 	"time"
-
-	"encoding/json"
 )
 
 // maxDelayBetweenBlocks is the maximum delay between two consecutive blocks.
@@ -40,14 +40,14 @@ type blockDelay struct {
 	// - genesis time if height is 0 OR
 	// - block time of the last block if height > 0 and time between blocks is
 	// greater than maxDelayBetweenBlocks.
-	InitialTime time.Time `json:"initial_time"`
+	InitialTime time.Time
 
 	// - InitChainRequest.InitialHeight OR
 	// - last block height if time between blocks is greater than maxDelayBetweenBlocks.
-	InitialHeight int64 `json:"initial_height"`
+	InitialHeight int64
 
 	// PreviousBlockTime is the time of the previous block.
-	PreviousBlockTime time.Time `json:"previous_block_time"`
+	PreviousBlockTime time.Time
 }
 
 // CONTRACT: called only once upon genesis during or after InitChain.
@@ -59,14 +59,32 @@ func blockDelayUponGenesis(genesisTime time.Time, initialHeight int64) *blockDel
 	}
 }
 
+// Panics if it fails to read from the buffer.
 func blockDelayFromBytes(
 	bz []byte,
 ) *blockDelay {
-	var d blockDelay
-	if err := json.Unmarshal(bz, &d); err != nil {
-		panic(fmt.Errorf("failed to unmarshal blockDelay: %w", err))
+	buf := bytes.NewReader(bz)
+	var initialTime, prevBlockTime int64
+	var initialHeight int64
+
+	err := binary.Read(buf, binary.LittleEndian, &initialTime)
+	if err != nil {
+		panic(fmt.Sprintf("failed to read InitialTime: %v", err))
 	}
-	return &d
+	err = binary.Read(buf, binary.LittleEndian, &initialHeight)
+	if err != nil {
+		panic(fmt.Sprintf("failed to read InitialHeight: %v", err))
+	}
+	err = binary.Read(buf, binary.LittleEndian, &prevBlockTime)
+	if err != nil {
+		panic(fmt.Sprintf("failed to read PreviousBlockTime: %v", err))
+	}
+
+	return &blockDelay{
+		InitialTime:       time.Unix(0, initialTime),
+		InitialHeight:     initialHeight,
+		PreviousBlockTime: time.Unix(0, prevBlockTime),
+	}
 }
 
 // Next returns the duration to wait before proposing the next block.
@@ -97,10 +115,23 @@ func (d *blockDelay) Next(curBlockTime time.Time, curBlockHeight int64,
 }
 
 // ToBytes converts the blockDelay to bytes.
+//
+// Panics if it fails to write to the buffer.
 func (d *blockDelay) ToBytes() []byte {
-	bz, err := json.Marshal(d)
+	buf := new(bytes.Buffer)
+
+	err := binary.Write(buf, binary.LittleEndian, d.InitialTime.UnixNano())
 	if err != nil {
-		panic(fmt.Errorf("failed to marshal blockDelay: %w", err))
+		panic(fmt.Sprintf("failed to write InitialTime: %v", err))
 	}
-	return bz
+	err = binary.Write(buf, binary.LittleEndian, d.InitialHeight)
+	if err != nil {
+		panic(fmt.Sprintf("failed to write InitialHeight: %v", err))
+	}
+	err = binary.Write(buf, binary.LittleEndian, d.PreviousBlockTime.UnixNano())
+	if err != nil {
+		panic(fmt.Sprintf("failed to write PreviousBlockTime: %v", err))
+	}
+
+	return buf.Bytes()
 }
