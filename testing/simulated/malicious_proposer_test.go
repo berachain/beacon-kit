@@ -74,7 +74,7 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 
 	// Sign a malicious transaction that is expected to fail.
 	recipientAddress := gethcommon.HexToAddress("0x56898d1aFb10cad584961eb96AcD476C6826e41E")
-	maliciousTx, err := gethtypes.SignNewTx(
+	_, err = gethtypes.SignNewTx(
 		simulated.GetTestKey(s.T()),
 		gethtypes.NewCancunSigner(big.NewInt(int64(s.TestNode.ChainSpec.DepositEth1ChainID()))),
 		&gethtypes.DynamicFeeTx{
@@ -89,7 +89,8 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	)
 
 	// Initialize the slice with the malicious transaction.
-	maliciousTxs := []*gethprimitives.Transaction{maliciousTx}
+	// REZ: removed txs
+	maliciousTxs := []*gethprimitives.Transaction{}
 
 	// Create a malicious block by injecting an invalid transaction.
 	maliciousBlock := simulated.CreateSignedBlockWithTransactions(

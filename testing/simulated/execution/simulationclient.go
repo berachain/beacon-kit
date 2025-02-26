@@ -84,6 +84,8 @@ type BlockOverrides struct {
 	PrevRandao    *common.Hash    `json:"prevRandao,omitempty"`
 	BaseFeePerGas *hexutil.Big    `json:"baseFeePerGas,omitempty"`
 	BlobBaseFee   *hexutil.Big    `json:"blobBaseFee,omitempty"`
+	BeaconRoot    *common.Hash    `json:"beaconRoot,omitempty"`
+	//Withdrawals   gethprimitives.Withdrawals
 }
 
 type SimulateInputs struct {

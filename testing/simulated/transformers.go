@@ -55,7 +55,7 @@ func TransformSimulatedBlockToGethBlock(simBlock *execution.SimulatedBlock, txs 
 		gethprimitives.NewStackTrie(nil),
 	)
 	// Remove the parentBeaconRoot as it modifies the StateRoot which we cannot simulate
-	parentBeaconRoot = libcommon.Root{}
+	//parentBeaconRoot = libcommon.Root{}
 	executionBlock := gethprimitives.NewBlockWithHeader(
 		&gethprimitives.Header{
 			ParentHash: simBlock.ParentHash,
@@ -86,6 +86,15 @@ func TransformSimulatedBlockToGethBlock(simBlock *execution.SimulatedBlock, txs 
 		Withdrawals:  *(*gethprimitives.Withdrawals)(unsafe.Pointer(&withdrawals)),
 	})
 	return executionBlock
+}
+
+func TransformWithdrawalsToGethWithdrawals(withdrawals engineprimitives.Withdrawals) gethtypes.Withdrawals {
+	w := make([]*gethtypes.Withdrawal, len(withdrawals))
+	for i, withdrawal := range withdrawals {
+		gethWithdrawal := (*gethtypes.Withdrawal)(unsafe.Pointer(withdrawal))
+		w[i] = gethWithdrawal
+	}
+	return w
 }
 
 // SplitTxs iterates over txs and returns two slices:

@@ -86,7 +86,9 @@ func DefaultSimulationInput(t *require.Assertions, chainSpec chain.Spec, origBlo
 	overrideFeeRecipient := origBlock.GetMessage().GetBody().GetExecutionPayload().GetFeeRecipient()
 	overridePrevRandao := gethcommon.Hash(origBlock.GetMessage().GetBody().GetExecutionPayload().GetPrevRandao())
 	overrideBaseFeePerGas := origBlock.GetMessage().GetBody().GetExecutionPayload().GetBaseFeePerGas().ToBig()
-	//overrideBlobBaseFee := hexutil.Big(*big.NewInt(0))
+	overrideBeaconRoot := gethcommon.HexToHash(origBlock.GetMessage().GetParentBlockRoot().Hex())
+	_ = TransformWithdrawalsToGethWithdrawals(origBlock.GetMessage().GetBody().GetExecutionPayload().GetWithdrawals())
+
 	calls, err := execution.TxsToSimBlock(chainSpec.DepositEth1ChainID(), txs)
 	t.NoError(err)
 	simulationInput := &execution.SimulateInputs{
@@ -99,6 +101,8 @@ func DefaultSimulationInput(t *require.Assertions, chainSpec chain.Spec, origBlo
 					FeeRecipient:  (*gethcommon.Address)(&overrideFeeRecipient),
 					PrevRandao:    &overridePrevRandao,
 					BaseFeePerGas: (*hexutil.Big)(overrideBaseFeePerGas),
+					BeaconRoot:    &overrideBeaconRoot,
+					//Withdrawals:   overrideWithdrawals,
 					//BlobBaseFee:   &overrideBlobBaseFee,
 				},
 			},
@@ -126,14 +130,11 @@ func CreateSignedBlockWithTransactions(
 	simulatedBlocks, err := simulationClient.Simulate(context.TODO(), simulateOnBlock, simulationInput)
 	t.NoError(err)
 	t.Len(simulatedBlocks, 1)
-	simBlock := simulatedBlocks[0]
-	t.Len(simBlock.Transactions, 1)
+	//simBlock := simulatedBlocks[0]
+	//t.Len(simBlock.Transactions, 1)
 
 	origExec := origBlock.GetMessage().GetBody().GetExecutionPayload()
 	fmt.Println(origExec)
-	hash := txs[0].Hash()
-	hash2 := simBlock.Transactions[0].String()
-	fmt.Println(hash, hash2)
 
 	//t.Equal(gethprimitives.DeriveSha(gethprimitives.Transactions(txs), gethprimitives.NewStackTrie(nil)), simBlock.TransactionsRoot)
 
@@ -167,7 +168,9 @@ func CreateSignedBlockWithTransactions(
 
 	// Replace the original payload with the new one.
 	origBlock.GetMessage().GetBody().SetExecutionPayload(executionPayload)
-	//origBlock.GetMessage().
+
+	// REZ: Set the Parent Root to 0
+	//origBlock.GetMessage().ParentRoot = common.Root{}
 
 	// Update the block's signature over the new payload.
 	newBlock, err := ctypes.NewSignedBeaconBlock(

@@ -123,10 +123,10 @@ func (g *GethNode) Start(t *testing.T) (*dockertest.Resource, *url.ConnectionURL
 	require.NoError(t, err, "Geth container did not become ready in time")
 
 	// TEMP:
-	//raw, err := url.NewFromRaw("http://localhost:8551")
-	//require.NoError(t, err, "failed to create raw Geth URL")
-	//return nil, raw
-	return resource, authRPC
+	raw, err := url.NewFromRaw("http://localhost:8551")
+	require.NoError(t, err, "failed to create raw Geth URL")
+	return nil, raw
+	//return resource, authRPC
 }
 
 // ValidGethImage returns the default Docker image options for the Geth node.
