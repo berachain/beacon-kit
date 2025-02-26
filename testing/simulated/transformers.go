@@ -54,6 +54,8 @@ func TransformSimulatedBlockToGethBlock(simBlock *execution.SimulatedBlock, txs 
 		withdrawals,
 		gethprimitives.NewStackTrie(nil),
 	)
+	// Remove the parentBeaconRoot as it modifies the StateRoot which we cannot simulate
+	parentBeaconRoot = libcommon.Root{}
 	executionBlock := gethprimitives.NewBlockWithHeader(
 		&gethprimitives.Header{
 			ParentHash: simBlock.ParentHash,
