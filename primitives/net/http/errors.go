@@ -44,10 +44,7 @@ type TimeoutError interface {
 // status.
 // Returns true if the error is a timeout error, false otherwise.
 func IsTimeoutError(e error) bool {
-	if e == nil {
-		return false
-	}
-	//nolint:errorlint // by design.
-	t, ok := e.(TimeoutError)
-	return ok && t.Timeout()
+	var t TimeoutError
+	ok := errors.As(e, &t)
+	return ok && t != nil && t.Timeout()
 }

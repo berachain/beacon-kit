@@ -57,7 +57,7 @@ type PostStateValidatorsRequest struct {
 
 type GetStateValidatorRequest struct {
 	types.StateIDRequest
-	ValidatorID string `query:"validator_id" validate:"required,validator_id"`
+	ValidatorID string `param:"validator_id" validate:"required,validator_id"`
 }
 
 type GetValidatorBalancesRequest struct {
