@@ -68,21 +68,22 @@ func (p *PayloadIDCache[RootT, SlotT]) Has(
 	return ok
 }
 
-// Get was successful.
+// Get retrieves the payloadID from the cache. If successfully retrieved,
+// evict it from the cache.
 func (p *PayloadIDCache[RootT, SlotT]) Get(
 	slot SlotT,
 	stateRoot RootT,
 ) (engineprimitives.PayloadID, bool) {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
-	innerMap, ok := p.slotToStateRootToPayloadID[slot]
-	if !ok {
+	if !p.Has(slot, stateRoot) {
 		return engineprimitives.PayloadID{}, false
 	}
-	pid, ok := innerMap[stateRoot]
-	if !ok {
-		return engineprimitives.PayloadID{}, false
-	}
+
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	pid := p.slotToStateRootToPayloadID[slot][stateRoot]
+
+	// Successfully retrieved. Remove from cache.
+	delete(p.slotToStateRootToPayloadID[slot], stateRoot)
 	return pid, true
 }
 
