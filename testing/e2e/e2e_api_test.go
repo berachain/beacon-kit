@@ -271,8 +271,8 @@ func (s *BeaconKitE2ESuite) TestValidatorBalances() {
 	balanceMap := balancesResp.Data
 	for _, balance := range balanceMap {
 		s.Require().True(balance > 0, "Validator balance should be positive")
-		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4 million BERA
-		s.Require().True(balance <= 4e12, "Validator balance should not exceed 4e12 gwei (4 million BERA)")
+		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
+		s.Require().True(balance <= 4e12, "Validator balance should not exceed 4e12 gwei (4000 BERA)")
 	}
 }
 
@@ -299,8 +299,8 @@ func (s *BeaconKitE2ESuite) TestValidatorBalancesWithSpecificIndices() {
 		s.Require().NotNil(balance)
 		s.Require().Contains(indices, index)
 		s.Require().True(balance > 0, "Validator balance should be positive")
-		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4 million BERA
-		s.Require().True(balance <= 4e12, "Validator balance should not exceed 4 million BERA")
+		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
+		s.Require().True(balance <= 4e12, "Validator balance should not exceed 4000 BERA")
 	}
 }
 
@@ -326,8 +326,8 @@ func (s *BeaconKitE2ESuite) TestValidatorBalancesMultipleIndices() {
 	for index, balance := range balancesResp.Data {
 		returnedIndices[index] = true
 		s.Require().True(balance > 0)
-		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4 million BERA
-		s.Require().True(balance <= 4e12, "Validator balance should not exceed 4 million BERA")
+		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
+		s.Require().True(balance <= 4e12, "Validator balance should not exceed 4000 BERA")
 	}
 	for _, idx := range indices {
 		s.Require().True(returnedIndices[idx], "Expected validator index not found in response")
@@ -378,8 +378,8 @@ func (s *BeaconKitE2ESuite) TestValidatorBalancesWithPubkey() {
 	for _, balance := range balancesResp.Data {
 		s.Require().NotNil(balance)
 		s.Require().True(balance > 0, "Validator balance should be positive")
-		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4 million BERA
-		s.Require().True(balance <= 4e12, "Validator balance should not exceed 4 million BERA")
+		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
+		s.Require().True(balance <= 4e12, "Validator balance should not exceed 4000 BERA")
 	}
 }
 
