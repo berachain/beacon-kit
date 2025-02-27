@@ -21,11 +21,10 @@
 package beacon
 
 import (
-	"strconv"
-
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	apitypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // GetBlobSidecars provides an implementation for the
@@ -46,11 +45,13 @@ func (h *Handler) GetBlobSidecars(c handlers.Context) (any, error) {
 
 	// Convert indices to uint64.
 	indices := make([]uint64, len(req.Indices))
-	for i, idx := range req.Indices {
-		indices[i], err = strconv.ParseUint(idx, 10, 64)
+	for i, idxS := range req.Indices {
+		var idx math.U64
+		idx, err = math.U64FromString(idxS)
 		if err != nil {
 			return nil, err
 		}
+		indices[i] = idx.Unwrap()
 	}
 
 	// Grab the blob sidecars from the backend.

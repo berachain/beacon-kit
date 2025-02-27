@@ -21,8 +21,6 @@
 package utils
 
 import (
-	"strconv"
-
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
@@ -31,9 +29,9 @@ import (
 // ValidatorIndexByID parses a validator index from a string.
 // The string can be either a validator index or a validator pubkey.
 func ValidatorIndexByID(st *statedb.StateDB, keyOrIndex string) (math.U64, error) {
-	index, err := strconv.ParseUint(keyOrIndex, 10, 64)
+	index, err := math.U64FromString(keyOrIndex)
 	if err == nil {
-		return math.U64(index), nil
+		return index, nil
 	}
 	var key crypto.BLSPubkey
 	if err = key.UnmarshalText([]byte(keyOrIndex)); err != nil {
