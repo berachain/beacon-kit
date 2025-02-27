@@ -249,12 +249,15 @@ func (pb *PayloadBuilder) getPayload(
 		},
 	)
 	if err != nil {
+		pb.pc.UnsafePrunePrior(slot + 1)
 		return nil, err
 	}
 	if envelope == nil {
+		pb.pc.UnsafePrunePrior(slot + 1)
 		return nil, ErrNilPayloadEnvelope
 	}
 	if envelope.GetExecutionPayload().Withdrawals == nil {
+		pb.pc.UnsafePrunePrior(slot + 1)
 		return nil, ErrNilWithdrawals
 	}
 	return envelope, nil
