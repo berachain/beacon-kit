@@ -80,6 +80,7 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 	// Configure backoff.
 	engineAPIBackoff := backoff.NewExponentialBackOff()
 	engineAPIBackoff.InitialInterval = ee.ec.GetRPCRetryInterval()
+	engineAPIBackoff.MaxInterval = ee.ec.GetRPCMaxRetryInterval()
 
 	pID, err := backoff.Retry(ctx, func() (*engineprimitives.PayloadID, error) {
 		// Log the forkchoice update attempt.
@@ -166,6 +167,7 @@ func (ee *Engine) NotifyNewPayload(
 	// Configure backoff.
 	engineAPIBackoff := backoff.NewExponentialBackOff()
 	engineAPIBackoff.InitialInterval = ee.ec.GetRPCRetryInterval()
+	engineAPIBackoff.MaxInterval = ee.ec.GetRPCMaxRetryInterval()
 
 	// Otherwise we will send the payload to the execution client.
 	_, err := backoff.Retry(ctx, func() (*common.ExecutionHash, error) {

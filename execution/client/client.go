@@ -219,3 +219,7 @@ func (s *EngineClient) GetRPCRetries() uint64 {
 func (s *EngineClient) GetRPCRetryInterval() time.Duration {
 	return s.cfg.RPCRetryInterval
 }
+
+func (s *EngineClient) GetRPCMaxRetryInterval() time.Duration {
+	return s.cfg.RPCMaxRetryInterval
+}
