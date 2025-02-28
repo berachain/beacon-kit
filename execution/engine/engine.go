@@ -22,6 +22,7 @@ package engine
 
 import (
 	"context"
+
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
@@ -158,8 +159,6 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 }
 
 // NotifyNewPayload notifies the execution client of the new payload.
-//
-//nolint:funlen // Lots of comments.
 func (ee *Engine) NotifyNewPayload(
 	ctx context.Context,
 	req *ctypes.NewPayloadRequest,
