@@ -22,7 +22,6 @@ package engine
 
 import (
 	"context"
-	"fmt"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -167,7 +166,6 @@ func (ee *Engine) NotifyNewPayload(
 	// Configure backoff.
 	engineAPIBackoff := backoff.NewExponentialBackOff()
 	engineAPIBackoff.InitialInterval = ee.ec.GetRPCRetryInterval()
-	fmt.Println("DEBUG: retry interval", ee.ec.GetRPCRetryInterval())
 
 	// Otherwise we will send the payload to the execution client.
 	_, err := backoff.Retry(ctx, func() (*common.ExecutionHash, error) {
