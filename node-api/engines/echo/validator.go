@@ -24,12 +24,12 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 )
@@ -119,10 +119,8 @@ func ValidateUint64Dec(value string) bool {
 	if value == "" {
 		return true
 	}
-	if _, err := strconv.ParseUint(value, 10, 64); err == nil {
-		return true
-	}
-	return false
+	_, err := math.U64FromString(value)
+	return err == nil
 }
 
 func ValidateUint64(fl validator.FieldLevel) bool {
