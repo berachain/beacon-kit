@@ -22,6 +22,7 @@ package engine
 
 import (
 	"context"
+	"fmt"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -79,7 +80,7 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 
 	// Configure backoff.
 	engineAPIBackoff := backoff.NewExponentialBackOff()
-	engineAPIBackoff.InitialInterval = ee.ec.GetRPCTimeout()
+	engineAPIBackoff.InitialInterval = ee.ec.GetRPCRetryInterval()
 
 	pID, err := backoff.Retry(ctx, func() (*engineprimitives.PayloadID, error) {
 		// Log the forkchoice update attempt.
@@ -165,7 +166,8 @@ func (ee *Engine) NotifyNewPayload(
 ) error {
 	// Configure backoff.
 	engineAPIBackoff := backoff.NewExponentialBackOff()
-	engineAPIBackoff.InitialInterval = ee.ec.GetRPCTimeout()
+	engineAPIBackoff.InitialInterval = ee.ec.GetRPCRetryInterval()
+	fmt.Println("DEBUG: retry interval", ee.ec.GetRPCRetryInterval())
 
 	// Otherwise we will send the payload to the execution client.
 	_, err := backoff.Retry(ctx, func() (*common.ExecutionHash, error) {

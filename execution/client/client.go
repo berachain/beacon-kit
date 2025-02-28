@@ -212,8 +212,8 @@ func (s *EngineClient) verifyChainIDAndConnection(
 	return nil
 }
 
-func (s *EngineClient) GetRPCTimeout() time.Duration {
-	return s.cfg.RPCTimeout
+func (s *EngineClient) GetRPCRetryInterval() time.Duration {
+	return s.cfg.RPCRetryInterval
 }
 
 func (s *EngineClient) GetRPCRetries() uint64 {

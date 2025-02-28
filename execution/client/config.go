@@ -30,6 +30,7 @@ const (
 	defaultDialURL                 = "http://localhost:8551"
 	defaultRPCRetries              = 3
 	defaultRPCTimeout              = 900 * time.Millisecond
+	defaultRPCRetryInterval        = 100 * time.Millisecond
 	defaultRPCStartupCheckInterval = 3 * time.Second
 	defaultRPCJWTRefreshInterval   = 30 * time.Second
 	//#nosec:G101 // false positive.
@@ -44,6 +45,7 @@ func DefaultConfig() Config {
 		RPCDialURL:              dialURL,
 		RPCRetries:              defaultRPCRetries,
 		RPCTimeout:              defaultRPCTimeout,
+		RPCRetryInterval:        defaultRPCRetryInterval,
 		RPCStartupCheckInterval: defaultRPCStartupCheckInterval,
 		RPCJWTRefreshInterval:   defaultRPCJWTRefreshInterval,
 		JWTSecretPath:           defaultJWTSecretPath,
@@ -59,6 +61,8 @@ type Config struct {
 	RPCRetries uint64 `mapstructure:"rpc-retries"`
 	// RPCTimeout is the RPC timeout for execution client calls.
 	RPCTimeout time.Duration `mapstructure:"rpc-timeout"`
+	// RPCRetryInterval is the RPC backoff for repeated execution client calls.
+	RPCRetryInterval time.Duration `mapstructure:"rpc-retry-interval"`
 	// RPCStartupCheckInterval is the Interval for the startup check.
 	RPCStartupCheckInterval time.Duration `mapstructure:"rpc-startup-check-interval"`
 	// JWTRefreshInterval is the Interval for the JWT refresh.

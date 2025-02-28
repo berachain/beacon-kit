@@ -45,6 +45,7 @@ const (
 	RPCDialURL              = engineRoot + "rpc-dial-url"
 	RPCRetries              = engineRoot + "rpc-retries"
 	RPCTimeout              = engineRoot + "rpc-timeout"
+	RPCRetryInterval        = engineRoot + "rpc-retry-interval"
 	RPCStartupCheckInterval = engineRoot + "rpc-startup-check-interval"
 	RPCHealthCheckInteval   = engineRoot + "rpc-health-check-interval"
 	RPCJWTRefreshInterval   = engineRoot + "rpc-jwt-refresh-interval"
@@ -91,6 +92,9 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 	)
 	startCmd.Flags().Uint64(
 		RPCRetries, defaultCfg.Engine.RPCRetries, "rpc retries",
+	)
+	startCmd.Flags().Duration(
+		RPCRetryInterval, defaultCfg.Engine.RPCRetryInterval, "rpc retry interval",
 	)
 	startCmd.Flags().Duration(
 		RPCTimeout, defaultCfg.Engine.RPCTimeout, "rpc timeout",
