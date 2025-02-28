@@ -24,7 +24,7 @@ func (_m *ExecutionEngine) EXPECT() *ExecutionEngine_Expecter {
 }
 
 // NotifyNewPayload provides a mock function with given fields: ctx, req
-func (_m *ExecutionEngine) NotifyNewPayload(ctx context.Context, req *ctypes.NewPayloadRequest) error {
+func (_m *ExecutionEngine) NotifyNewPayload(ctx context.Context, req *ctypes.NewPayloadRequest, retryOnSyncingStatus bool) error {
 	ret := _m.Called(ctx, req)
 
 	if len(ret) == 0 {
@@ -49,13 +49,13 @@ type ExecutionEngine_NotifyNewPayload_Call struct {
 // NotifyNewPayload is a helper method to define mock.On call
 //   - ctx context.Context
 //   - req *ctypes.NewPayloadRequest[ExecutionPayloadT,WithdrawalsT]
-func (_e *ExecutionEngine_Expecter) NotifyNewPayload(ctx interface{}, req interface{}) *ExecutionEngine_NotifyNewPayload_Call {
-	return &ExecutionEngine_NotifyNewPayload_Call{Call: _e.mock.On("NotifyNewPayload", ctx, req)}
+func (_e *ExecutionEngine_Expecter) NotifyNewPayload(ctx interface{}, req interface{}, retryOnSyncingStatus interface{}) *ExecutionEngine_NotifyNewPayload_Call {
+	return &ExecutionEngine_NotifyNewPayload_Call{Call: _e.mock.On("NotifyNewPayload", ctx, req, retryOnSyncingStatus)}
 }
 
-func (_c *ExecutionEngine_NotifyNewPayload_Call) Run(run func(ctx context.Context, req *ctypes.NewPayloadRequest)) *ExecutionEngine_NotifyNewPayload_Call {
+func (_c *ExecutionEngine_NotifyNewPayload_Call) Run(run func(ctx context.Context, req *ctypes.NewPayloadRequest, retryOnSyncingStatus bool)) *ExecutionEngine_NotifyNewPayload_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*ctypes.NewPayloadRequest))
+		run(args[0].(context.Context), args[1].(*ctypes.NewPayloadRequest), args[2].(bool))
 	})
 	return _c
 }
@@ -65,7 +65,7 @@ func (_c *ExecutionEngine_NotifyNewPayload_Call) Return(_a0 error) *ExecutionEng
 	return _c
 }
 
-func (_c *ExecutionEngine_NotifyNewPayload_Call) RunAndReturn(run func(context.Context, *ctypes.NewPayloadRequest) error) *ExecutionEngine_NotifyNewPayload_Call {
+func (_c *ExecutionEngine_NotifyNewPayload_Call) RunAndReturn(run func(context.Context, *ctypes.NewPayloadRequest, bool) error) *ExecutionEngine_NotifyNewPayload_Call {
 	_c.Call.Return(run)
 	return _c
 }
