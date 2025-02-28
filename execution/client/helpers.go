@@ -47,14 +47,14 @@ func processPayloadStatusResult(
 	result *engineprimitives.PayloadStatusV1,
 ) (*common.ExecutionHash, error) {
 	switch result.Status {
+	case engineprimitives.PayloadStatusValid:
+		return result.LatestValidHash, nil
 	case engineprimitives.PayloadStatusAccepted:
 		return nil, engineerrors.ErrAcceptedPayloadStatus
 	case engineprimitives.PayloadStatusSyncing:
 		return nil, engineerrors.ErrSyncingPayloadStatus
 	case engineprimitives.PayloadStatusInvalid:
-		return result.LatestValidHash, engineerrors.ErrInvalidPayloadStatus
-	case engineprimitives.PayloadStatusValid:
-		return result.LatestValidHash, nil
+		return nil, engineerrors.ErrInvalidPayloadStatus
 	default:
 		return nil, engineerrors.ErrUnknownPayloadStatus
 	}

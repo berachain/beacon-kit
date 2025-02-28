@@ -98,7 +98,7 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 		ee.metrics.markNotifyForkchoiceUpdateCalled(hasPayloadAttributes)
 
 		// Notify the execution engine of the forkchoice update.
-		payloadID, _, innerErr := ee.ec.ForkchoiceUpdated(
+		payloadID, innerErr := ee.ec.ForkchoiceUpdated(
 			ctx,
 			req.State,
 			req.PayloadAttributes,
