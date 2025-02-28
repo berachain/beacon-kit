@@ -22,8 +22,6 @@ package engine
 
 import (
 	"context"
-	"time"
-
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
@@ -33,14 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/common"
 	jsonrpc "github.com/berachain/beacon-kit/primitives/net/json-rpc"
 	"github.com/cenkalti/backoff/v5"
-)
-
-const (
-	engineAPITimeout             = time.Minute * 5
-	engineAPIInitialInterval     = 50 * time.Millisecond
-	engineAPIRandomizationFactor = 0.5
-	engineAPIMultiplier          = 1.5
-	engineAPIMaxInterval         = 60 * time.Second
 )
 
 // Engine is Beacon-Kit's implementation of the `ExecutionEngine`
@@ -87,12 +77,9 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 	hasPayloadAttributes := !req.PayloadAttributes.IsNil()
 
 	// Configure backoff.
-	engineAPIBackoff := backoff.ExponentialBackOff{
-		InitialInterval:     engineAPIInitialInterval,
-		RandomizationFactor: engineAPIRandomizationFactor,
-		Multiplier:          engineAPIMultiplier,
-		MaxInterval:         engineAPIMaxInterval,
-	}
+	engineAPIBackoff := backoff.NewExponentialBackOff()
+	engineAPIBackoff.InitialInterval = ee.ec.GetRPCTimeout()
+
 	pID, err := backoff.Retry(ctx, func() (*engineprimitives.PayloadID, error) {
 		// Log the forkchoice update attempt.
 		ee.metrics.markNotifyForkchoiceUpdateCalled(hasPayloadAttributes)
@@ -160,8 +147,8 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 			return nil, innerErr
 		}
 	},
-		backoff.WithBackOff(&engineAPIBackoff),
-		backoff.WithMaxElapsedTime(engineAPITimeout),
+		backoff.WithBackOff(engineAPIBackoff),
+		backoff.WithMaxTries(uint(ee.ec.GetRPCRetries())),
 	)
 	if err != nil {
 		return nil, err
@@ -178,12 +165,8 @@ func (ee *Engine) NotifyNewPayload(
 	req *ctypes.NewPayloadRequest,
 ) error {
 	// Configure backoff.
-	engineAPIBackoff := backoff.ExponentialBackOff{
-		InitialInterval:     engineAPIInitialInterval,
-		RandomizationFactor: engineAPIRandomizationFactor,
-		Multiplier:          engineAPIMultiplier,
-		MaxInterval:         engineAPIMaxInterval,
-	}
+	engineAPIBackoff := backoff.NewExponentialBackOff()
+	engineAPIBackoff.InitialInterval = ee.ec.GetRPCTimeout()
 
 	// Otherwise we will send the payload to the execution client.
 	_, err := backoff.Retry(ctx, func() (*common.ExecutionHash, error) {
@@ -273,8 +256,8 @@ func (ee *Engine) NotifyNewPayload(
 			return nil, innerErr
 		}
 	},
-		backoff.WithBackOff(&engineAPIBackoff),
-		backoff.WithMaxElapsedTime(engineAPITimeout),
+		backoff.WithBackOff(engineAPIBackoff),
+		backoff.WithMaxTries(uint(ee.ec.GetRPCRetries())),
 	)
 	return err
 }

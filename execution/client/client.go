@@ -211,3 +211,11 @@ func (s *EngineClient) verifyChainIDAndConnection(
 	}
 	return nil
 }
+
+func (s *EngineClient) GetRPCTimeout() time.Duration {
+	return s.cfg.RPCTimeout
+}
+
+func (s *EngineClient) GetRPCRetries() uint64 {
+	return s.cfg.RPCRetries
+}
