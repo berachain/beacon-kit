@@ -60,6 +60,11 @@ type BlobSidecars[T any] interface {
 
 // ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine interface {
+	// NotifyNewPayload notifies the execution client of new payload
+	NotifyNewPayload(
+		ctx context.Context,
+		req *ctypes.NewPayloadRequest,
+	) error
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
 	NotifyForkchoiceUpdate(

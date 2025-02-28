@@ -39,9 +39,6 @@ type NewPayloadRequest struct {
 	VersionedHashes []common.ExecutionHash
 	// ParentBeaconBlockRoot is the root of the parent beacon block.
 	ParentBeaconBlockRoot *common.Root
-	// Optimistic is a flag that indicates if the payload should be
-	// optimistically deemed valid. This is useful during syncing.
-	Optimistic bool
 }
 
 // BuildNewPayloadRequest builds a new payload request.
@@ -49,13 +46,11 @@ func BuildNewPayloadRequest(
 	executionPayload *ExecutionPayload,
 	versionedHashes []common.ExecutionHash,
 	parentBeaconBlockRoot *common.Root,
-	optimistic bool,
 ) *NewPayloadRequest {
 	return &NewPayloadRequest{
 		ExecutionPayload:      executionPayload,
 		VersionedHashes:       versionedHashes,
 		ParentBeaconBlockRoot: parentBeaconBlockRoot,
-		Optimistic:            optimistic,
 	}
 }
 

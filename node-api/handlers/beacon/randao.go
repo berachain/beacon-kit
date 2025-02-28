@@ -50,9 +50,5 @@ func (h *Handler) GetRandao(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return beacontypes.ValidatorResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data:                randao,
-	}, nil
+	return beacontypes.NewResponse(randao), nil
 }
