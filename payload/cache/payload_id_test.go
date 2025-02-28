@@ -21,6 +21,7 @@
 package cache_test
 
 import (
+	"github.com/berachain/beacon-kit/primitives/math"
 	"testing"
 
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -30,7 +31,7 @@ import (
 
 func TestPayloadIDCache(t *testing.T) {
 	t.Parallel()
-	cacheUnderTest := cache.NewPayloadIDCache[[32]byte, uint64]()
+	cacheUnderTest := cache.NewPayloadIDCache()
 
 	t.Run("Get from empty cache", func(t *testing.T) {
 		var r [32]byte
@@ -40,7 +41,7 @@ func TestPayloadIDCache(t *testing.T) {
 	})
 
 	t.Run("Set and Get", func(t *testing.T) {
-		slot := uint64(1234)
+		slot := math.Slot(1234)
 		r := [32]byte{1, 2, 3}
 		pid := engineprimitives.PayloadID{1, 2, 3, 3, 7, 8, 7, 8}
 		cacheUnderTest.Set(slot, r, pid)
@@ -51,7 +52,7 @@ func TestPayloadIDCache(t *testing.T) {
 	})
 
 	t.Run("Overwrite existing", func(t *testing.T) {
-		slot := uint64(1234)
+		slot := math.Slot(1234)
 		r := [32]byte{1, 2, 3}
 		newPid := engineprimitives.PayloadID{9, 9, 9, 9, 9, 9, 9, 9}
 		cacheUnderTest.Set(slot, r, newPid)
@@ -62,7 +63,7 @@ func TestPayloadIDCache(t *testing.T) {
 	})
 
 	t.Run("Prune and verify deletion", func(t *testing.T) {
-		slot := uint64(9456456)
+		slot := math.Slot(9456456)
 		r := [32]byte{4, 5, 6}
 		pid := engineprimitives.PayloadID{4, 5, 6, 6, 9, 0, 9, 0}
 		cacheUnderTest.Set(slot, r, pid)
@@ -77,7 +78,7 @@ func TestPayloadIDCache(t *testing.T) {
 	t.Run("Multiple entries and prune", func(t *testing.T) {
 		// Set multiple entries
 		for i := range uint8(5) {
-			slot := uint64(i)
+			slot := math.Slot(i)
 			r := [32]byte{i, i + 1, i + 2}
 			pid := [8]byte{
 				i, i, i, i, i, i, i, i,
@@ -88,14 +89,14 @@ func TestPayloadIDCache(t *testing.T) {
 		// Prune and check if only the last two entries exist
 		cacheUnderTest.UnsafePrunePrior(3)
 		for i := range uint8(3) {
-			slot := uint64(i)
+			slot := math.Slot(i)
 			r := [32]byte{i, i + 1, i + 2}
 			_, ok := cacheUnderTest.Get(slot, r)
 			require.False(t, ok, "Expected entry to be pruned for slot", slot)
 		}
 
 		for i := uint8(3); i < 5; i++ {
-			slot := uint64(i)
+			slot := math.Slot(i)
 			r := [32]byte{i, i + 1, i + 2}
 			_, ok := cacheUnderTest.Get(slot, r)
 			require.True(t, ok, "Expected entry to exist for slot", slot)
