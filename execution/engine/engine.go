@@ -154,6 +154,7 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 func (ee *Engine) NotifyNewPayload(
 	ctx context.Context,
 	req *ctypes.NewPayloadRequest,
+	retryOnSyncingStatus bool,
 ) error {
 	// Configure backoff. This will retry maxRetries number of times.
 	// Specifying 0 maxRetries will retry infinitely. Between each retry, it
@@ -186,8 +187,9 @@ func (ee *Engine) NotifyNewPayload(
 			)
 			// We've received a valid response, no more retries.
 			return lastValidHash, nil
-		case errors.Is(innerErr, engineerrors.ErrSyncingPayloadStatus):
-			ee.metrics.markNewPayloadSyncingPayloadStatus(
+		case errors.IsAny(innerErr, engineerrors.ErrSyncingPayloadStatus, engineerrors.ErrAcceptedPayloadStatus):
+			ee.metrics.markNewPayloadAcceptedSyncingPayloadStatus(
+				innerErr,
 				req.ExecutionPayload.GetBlockHash(),
 				req.ExecutionPayload.GetParentHash(),
 			)
@@ -195,20 +197,20 @@ func (ee *Engine) NotifyNewPayload(
 			// block. Since we do not send a NotifyForkchoiceUpdate
 			// during ProcessProposal, we must retry here until EL is
 			// synced.
-			// TODO: Add way to determine if this is during FinalizeBlock.
+			if retryOnSyncingStatus {
+				return nil, innerErr
+			}
 			// During FinalizeBlock, we do not need to verify the block.
 			// We do not need to retry here, as the following call to
 			// NotifyForkchoiceUpdate will inform the EL of the new head
 			// and then wait for it to sync.
-			return nil, innerErr
-
-		case errors.IsAny(innerErr, engineerrors.ErrAcceptedPayloadStatus):
-			ee.metrics.markNewPayloadAcceptedPayloadStatus(
-				req.ExecutionPayload.GetBlockHash(),
-				req.ExecutionPayload.GetParentHash(),
+			// Don't return error here, because we want to send the forkchoice update regardless.
+			ee.logger.Warn("pushed new payload to SYNCING node during force startup",
+				"error", innerErr,
+				"blockNum", req.ExecutionPayload.GetNumber(),
+				"blockHash", req.ExecutionPayload.GetBlockHash(),
 			)
-			// We may treat this status the same as SYNCING.
-			return nil, innerErr
+			return &common.ExecutionHash{}, nil
 
 		case errors.Is(innerErr, engineerrors.ErrInvalidPayloadStatus):
 			ee.metrics.markNewPayloadInvalidPayloadStatus(

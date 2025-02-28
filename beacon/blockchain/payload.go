@@ -75,21 +75,8 @@ func (s *Service) forceSyncUponFinalize(
 		return err
 	}
 
-	switch err := s.executionEngine.NotifyNewPayload(ctx, payloadReq); {
-	case err == nil:
-		// Do nothing and move on to NotifyForkchoiceUpdate.
-
-	case errors.IsAny(err,
-		engineerrors.ErrSyncingPayloadStatus,
-		engineerrors.ErrAcceptedPayloadStatus):
-		// Don't return error here, because we want to send the forkchoice update regardless.
-		s.logger.Warn("pushed new payload to SYNCING node during force startup",
-			"error", err,
-			"blockNum", executionPayload.GetNumber(),
-			"blockHash", executionPayload.GetBlockHash(),
-		)
-
-	default:
+	err := s.executionEngine.NotifyNewPayload(ctx, payloadReq, false)
+	if err != nil {
 		return fmt.Errorf("startSyncUponFinalize NotifyNewPayload failed: %w", err)
 	}
 
