@@ -266,6 +266,7 @@ func (s *BeaconKitE2ESuite) TestValidatorBalances() {
 
 	// Verify the response is not empty
 	s.Require().NotNil(balancesResp.Data)
+	s.Require().NotEmpty(balancesResp.Data)
 
 	balanceMap := balancesResp.Data
 	for _, balance := range balanceMap {
