@@ -30,7 +30,7 @@ const (
 	defaultDialURL                 = "http://localhost:8551"
 	defaultRPCRetries              = 0
 	defaultRPCRetryInterval        = 100 * time.Millisecond
-	defaultRPCMaxRetryInterval     = 2 * time.Second
+	defaultRPCMaxRetryInterval     = 10 * time.Second
 	defaultRPCTimeout              = 900 * time.Millisecond
 	defaultRPCStartupCheckInterval = 3 * time.Second
 	defaultRPCJWTRefreshInterval   = 30 * time.Second
@@ -61,9 +61,9 @@ type Config struct {
 	// RPCRetries is the number of retries before shutting down consensus
 	// client. A value of 0 will retry infinitely.
 	RPCRetries uint64 `mapstructure:"rpc-retries"`
-	// RPCRetryInterval is the RPC backoff for repeated execution client calls.
+	// RPCRetryInterval is the initial RPC backoff for repeated execution client calls.
 	RPCRetryInterval time.Duration `mapstructure:"rpc-retry-interval"`
-	// MaxRPCRetryInterval is the RPC backoff for repeated execution client calls.
+	// MaxRPCRetryInterval is the maximum RPC backoff for repeated execution client calls.
 	RPCMaxRetryInterval time.Duration `mapstructure:"rpc-max-retry-interval"`
 	// RPCTimeout is the RPC timeout for execution client calls.
 	RPCTimeout time.Duration `mapstructure:"rpc-timeout"`

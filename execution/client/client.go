@@ -212,6 +212,10 @@ func (s *EngineClient) verifyChainIDAndConnection(
 	return nil
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                   Getters                                  */
+/* -------------------------------------------------------------------------- */
+
 func (s *EngineClient) GetRPCRetries() uint64 {
 	return s.cfg.RPCRetries
 }

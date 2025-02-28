@@ -95,10 +95,10 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 		RPCRetries, defaultCfg.Engine.RPCRetries, "rpc retries",
 	)
 	startCmd.Flags().Duration(
-		RPCRetryInterval, defaultCfg.Engine.RPCRetryInterval, "rpc retry interval",
+		RPCRetryInterval, defaultCfg.Engine.RPCRetryInterval, "initial rpc retry interval",
 	)
 	startCmd.Flags().Duration(
-		RPCMaxRetryInterval, defaultCfg.Engine.RPCMaxRetryInterval, "rpc max retry interval",
+		RPCMaxRetryInterval, defaultCfg.Engine.RPCMaxRetryInterval, "max rpc retry interval",
 	)
 	startCmd.Flags().Duration(
 		RPCTimeout, defaultCfg.Engine.RPCTimeout, "rpc timeout",
