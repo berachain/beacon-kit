@@ -40,7 +40,14 @@ type PayloadIDCache struct {
 	// mu protects access to the slotToStateRootToPayloadID map.
 	mu sync.RWMutex
 	// slotToStateRootToPayloadID is used for storing payload ID mappings
-	slotToStateRootToPayloadID map[math.Slot]map[common.Root]engineprimitives.PayloadID
+	slotToStateRootToPayloadID map[PayloadIDCacheKey]engineprimitives.PayloadID
+}
+
+// PayloadIDCacheKey is the (slot, root) tuple that is used to access a
+// payloadID from the cache.
+type PayloadIDCacheKey struct {
+	slot math.Slot
+	root common.Root
 }
 
 // NewPayloadIDCache initializes and returns a new instance of PayloadIDCache.
@@ -49,7 +56,7 @@ func NewPayloadIDCache() *PayloadIDCache {
 	return &PayloadIDCache{
 		mu: sync.RWMutex{},
 		slotToStateRootToPayloadID: make(
-			map[math.Slot]map[common.Root]engineprimitives.PayloadID,
+			map[PayloadIDCacheKey]engineprimitives.PayloadID,
 		),
 	}
 }
@@ -62,7 +69,7 @@ func (p *PayloadIDCache) Has(
 ) bool {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
-	_, ok := p.slotToStateRootToPayloadID[slot][stateRoot]
+	_, ok := p.slotToStateRootToPayloadID[PayloadIDCacheKey{slot, stateRoot}]
 	return ok
 }
 
@@ -74,17 +81,14 @@ func (p *PayloadIDCache) Get(
 ) (engineprimitives.PayloadID, bool) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	innerMap, ok := p.slotToStateRootToPayloadID[slot]
-	if !ok {
-		return engineprimitives.PayloadID{}, false
-	}
-	pid, ok := innerMap[stateRoot]
+	key := PayloadIDCacheKey{slot, stateRoot}
+	pid, ok := p.slotToStateRootToPayloadID[key]
 	if !ok {
 		return engineprimitives.PayloadID{}, false
 	}
 
 	// Successfully retrieved. Remove from cache.
-	delete(p.slotToStateRootToPayloadID[slot], stateRoot)
+	delete(p.slotToStateRootToPayloadID, key)
 	return pid, true
 }
 
@@ -103,12 +107,7 @@ func (p *PayloadIDCache) Set(
 	}
 
 	// Update the cache with the new payload ID.
-	innerMap, exists := p.slotToStateRootToPayloadID[slot]
-	if !exists {
-		innerMap = make(map[common.Root]engineprimitives.PayloadID)
-		p.slotToStateRootToPayloadID[slot] = innerMap
-	}
-	innerMap[stateRoot] = pid
+	p.slotToStateRootToPayloadID[PayloadIDCacheKey{slot, stateRoot}] = pid
 }
 
 // UnsafePrunePrior removes payload IDs from the cache for slots less than
@@ -126,7 +125,7 @@ func (p *PayloadIDCache) UnsafePrunePrior(
 // of the cache by discarding outdated entries.
 func (p *PayloadIDCache) prunePrior(slot math.Slot) {
 	for s := range p.slotToStateRootToPayloadID {
-		if s < slot {
+		if s.slot < slot {
 			delete(p.slotToStateRootToPayloadID, s)
 		}
 	}
