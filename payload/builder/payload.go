@@ -77,7 +77,7 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 		attrs,
 		pb.chainSpec.ActiveForkVersionForSlot(slot),
 	)
-	payloadID, _, err := pb.ee.NotifyForkchoiceUpdate(ctx, req)
+	payloadID, err := pb.ee.NotifyForkchoiceUpdate(ctx, req)
 	if err != nil {
 		return nil, fmt.Errorf("RequestPayloadAsync failed sending forkchoice update: %w", err)
 	}
@@ -230,7 +230,7 @@ func (pb *PayloadBuilder) SendForceHeadFCU(
 		},
 		pb.chainSpec.ActiveForkVersionForSlot(slot),
 	)
-	if _, _, err = pb.ee.NotifyForkchoiceUpdate(ctx, req); err != nil {
+	if _, err = pb.ee.NotifyForkchoiceUpdate(ctx, req); err != nil {
 		return fmt.Errorf("SendForceHeadFCU failed sending forkchoice update: %w", err)
 	}
 	return nil
