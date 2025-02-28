@@ -35,7 +35,7 @@ const historicalPayloadIDCacheSize = 2
 // on slot and parent block hash. It is designed to improve the efficiency of
 // payload ID retrieval by caching recent entries.
 type PayloadIDCache[
-	RootT ~[32]byte, SlotT ~uint64,
+RootT ~[32]byte, SlotT ~uint64,
 ] struct {
 	// mu protects access to the slotToStateRootToPayloadID map.
 	mu sync.RWMutex
@@ -46,7 +46,7 @@ type PayloadIDCache[
 // NewPayloadIDCache initializes and returns a new instance of PayloadIDCache.
 // It prepares the internal data structures for storing payload ID mappings.
 func NewPayloadIDCache[
-	RootT ~[32]byte, SlotT ~uint64,
+RootT ~[32]byte, SlotT ~uint64,
 ]() *PayloadIDCache[RootT, SlotT] {
 	return &PayloadIDCache[RootT, SlotT]{
 		mu: sync.RWMutex{},
@@ -74,13 +74,16 @@ func (p *PayloadIDCache[RootT, SlotT]) Get(
 	slot SlotT,
 	stateRoot RootT,
 ) (engineprimitives.PayloadID, bool) {
-	if !p.Has(slot, stateRoot) {
-		return engineprimitives.PayloadID{}, false
-	}
-
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	pid := p.slotToStateRootToPayloadID[slot][stateRoot]
+	innerMap, ok := p.slotToStateRootToPayloadID[slot]
+	if !ok {
+		return engineprimitives.PayloadID{}, false
+	}
+	pid, ok := innerMap[stateRoot]
+	if !ok {
+		return engineprimitives.PayloadID{}, false
+	}
 
 	// Successfully retrieved. Remove from cache.
 	delete(p.slotToStateRootToPayloadID[slot], stateRoot)
