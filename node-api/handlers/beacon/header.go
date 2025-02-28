@@ -24,6 +24,7 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
@@ -33,7 +34,7 @@ func (h *Handler) GetBlockHeaders(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	slot, err := utils.U64FromString(req.Slot)
+	slot, err := math.U64FromString(req.Slot)
 	if err != nil {
 		return nil, err
 	}

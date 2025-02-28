@@ -21,7 +21,6 @@
 package utils
 
 import (
-	"strconv"
 	"strings"
 
 	"github.com/berachain/beacon-kit/errors"
@@ -97,7 +96,7 @@ func ParentSlotFromTimestampID[StorageBackendT interface {
 	}
 
 	// Parse the timestamp from the timestampID.
-	timestamp, err := U64FromString(timestampID[1:])
+	timestamp, err := math.U64FromString(timestampID[1:])
 	if err != nil {
 		return 0, errors.Wrapf(
 			err, "failed to parse timestamp from timestampID: %s", timestampID,
@@ -112,17 +111,6 @@ func IsTimestampIDPrefix(timestampID string) bool {
 	return strings.HasPrefix(timestampID, TimestampIDPrefix)
 }
 
-// U64FromString returns a math.U64 from the given string. Errors if the given
-// string is not in proper decimal notation.
-func U64FromString(id string) (math.U64, error) {
-	u64, err := strconv.ParseUint(id, 10, 64)
-	if err != nil {
-		return 0, err
-	}
-
-	return math.U64(u64), nil
-}
-
 // slotFromStateID returns a slot number from the given state ID.
 // TODO: This pattern does not allow us to query block 0. Genesis points to block 1.
 func slotFromStateID(id string) (math.Slot, error) {
@@ -132,6 +120,6 @@ func slotFromStateID(id string) (math.Slot, error) {
 	case StateIDGenesis:
 		return Genesis, nil
 	default:
-		return U64FromString(id)
+		return math.U64FromString(id)
 	}
 }
