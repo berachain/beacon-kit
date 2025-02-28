@@ -28,6 +28,8 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
+var ErrNoSlotForStateRoot = errors.New("slot not found at state root")
+
 // TODO: define unique types for each of the query-able IDs (state & block from
 // spec, execution unique to beacon-kit). For each type define validation
 // functions and resolvers to slot number.
@@ -48,7 +50,11 @@ func SlotFromStateID[StorageBackendT interface {
 	if err != nil {
 		return 0, err
 	}
-	return storage.GetSlotByStateRoot(root)
+	slot, err := storage.GetSlotByStateRoot(root)
+	if err != nil {
+		return 0, ErrNoSlotForStateRoot
+	}
+	return slot, nil
 }
 
 // SlotFromBlockID returns a slot from the block ID.

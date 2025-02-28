@@ -23,6 +23,7 @@ package backend
 import (
 	"slices"
 
+	"cosmossdk.io/collections"
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-api/backend/utils"
@@ -31,6 +32,9 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
+
+// ErrValidatorNotFound is an error for when a validator is not found.
+var ErrValidatorNotFound = errors.New("validator not found")
 
 // ErrStatusFilterMismatch is an error for when a validator status does not
 // match the status filter.
@@ -191,19 +195,27 @@ func buildValidatorData(
 	}, nil
 }
 
-func (b Backend) ValidatorByID(
-	slot math.Slot, id string,
-) (*beacontypes.ValidatorData, error) {
+func (b Backend) ValidatorByID(slot math.Slot, id string) (*beacontypes.ValidatorData, error) {
 	st, slot, err := b.stateFromSlot(slot)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get state from slot %d", slot)
 	}
 	index, err := utils.ValidatorIndexByID(st, id)
-	if err != nil {
+	switch {
+	case err == nil:
+		// continue processing
+	case errors.Is(err, collections.ErrNotFound):
+		return nil, ErrValidatorNotFound
+	default:
 		return nil, errors.Wrapf(err, "failed to get validator index by id %s", id)
 	}
 	validator, err := st.ValidatorByIndex(index)
-	if err != nil {
+	switch {
+	case err == nil:
+		// continue processing
+	case errors.Is(err, collections.ErrNotFound):
+		return nil, ErrValidatorNotFound
+	default:
 		return nil, errors.Wrapf(err, "failed to get validator by index %d", index)
 	}
 	balance, err := st.GetBalance(index)
@@ -224,30 +236,60 @@ func (b Backend) ValidatorByID(
 	}, nil
 }
 
-func (b Backend) ValidatorBalancesByIDs(
-	slot math.Slot, ids []string,
-) ([]*beacontypes.ValidatorBalanceData, error) {
-	var index math.U64
+func (b Backend) ValidatorBalancesByIDs(slot math.Slot, ids []string) ([]*beacontypes.ValidatorBalanceData, error) {
 	st, slot, err := b.stateFromSlot(slot)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get state from slot %d", slot)
 	}
-	balances := make([]*beacontypes.ValidatorBalanceData, 0)
+
+	// If no IDs provided, return all validator balances
+	if len(ids) == 0 {
+		rawBalances, errInBalances := st.GetBalances()
+		if errInBalances != nil {
+			return nil, errInBalances
+		}
+		// Convert []uint64 to []*ValidatorBalanceData as per the API spec
+		balances := make([]*beacontypes.ValidatorBalanceData, len(rawBalances))
+		for i, balance := range rawBalances {
+			balances[i] = &beacontypes.ValidatorBalanceData{
+				Index:   uint64(i), // #nosec:G115 // Safe as i comes from range loop
+				Balance: balance,
+			}
+		}
+		return balances, nil
+	}
+
+	var (
+		balances = make([]*beacontypes.ValidatorBalanceData, 0, len(ids))
+		index    math.U64
+	)
 	for _, id := range ids {
 		index, err = utils.ValidatorIndexByID(st, id)
-		if err != nil {
+		switch {
+		case err == nil:
+			// nothing to do, keep processing
+		case errors.Is(err, collections.ErrNotFound):
+			// If public key as id is not found in the state
+			// we simply skip the index.
+			continue
+		default:
 			return nil, errors.Wrapf(err, "failed to get validator index by id %s", id)
 		}
+
 		var balance math.U64
-		// TODO: same issue as above, shouldn't error on not found.
-		balance, err = st.GetBalance(index)
-		if err != nil {
+		switch balance, err = st.GetBalance(index); {
+		case err == nil:
+			balances = append(balances, &beacontypes.ValidatorBalanceData{
+				Index:   index.Unwrap(),
+				Balance: balance.Unwrap(),
+			})
+		case errors.Is(err, collections.ErrNotFound):
+			// if index does not exist and GetBalance returns
+			// "collections: not found" we simply skip the index.
+			continue
+		default:
 			return nil, errors.Wrapf(err, "failed to get validator balance for validator index %d", index)
 		}
-		balances = append(balances, &beacontypes.ValidatorBalanceData{
-			Index:   index.Unwrap(),
-			Balance: balance.Unwrap(),
-		})
 	}
 	return balances, nil
 }
