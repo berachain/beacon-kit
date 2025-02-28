@@ -322,15 +322,16 @@ func (s *BeaconKitE2ESuite) TestValidatorBalancesMultipleIndices() {
 	s.Require().Len(balancesResp.Data, len(indices))
 
 	// Verify all requested indices are present
-	returnedIndices := make(map[phase0.ValidatorIndex]bool)
+	returnedIndices := make(map[phase0.ValidatorIndex]struct{})
 	for index, balance := range balancesResp.Data {
-		returnedIndices[index] = true
+		returnedIndices[index] = struct{}{}
 		s.Require().True(balance > 0)
 		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
 		s.Require().True(balance <= 4e12, "Validator balance should not exceed 4000 BERA")
 	}
 	for _, idx := range indices {
-		s.Require().True(returnedIndices[idx], "Expected validator index not found in response")
+		_, exists := returnedIndices[idx]
+		s.Require().True(exists, "Expected validator index not found in response")
 	}
 }
 
@@ -373,6 +374,7 @@ func (s *BeaconKitE2ESuite) TestValidatorBalancesWithPubkey() {
 	s.Require().NoError(err)
 	s.Require().NotNil(balancesResp)
 	s.Require().NotEmpty(balancesResp.Data)
+	s.Require().Len(balancesResp.Data, 1)
 
 	// Verify balance data
 	for _, balance := range balancesResp.Data {
