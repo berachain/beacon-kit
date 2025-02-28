@@ -136,6 +136,6 @@ type ReadOnlyEth1Data interface {
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.
 type ReadOnlyWithdrawals interface {
-	EVMInflationWithdrawal() *engineprimitives.Withdrawal
+	EVMInflationWithdrawal(math.Slot) *engineprimitives.Withdrawal
 	ExpectedWithdrawals() (engineprimitives.Withdrawals, error)
 }
