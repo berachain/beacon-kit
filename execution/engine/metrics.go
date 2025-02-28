@@ -22,11 +22,11 @@ package engine
 
 import (
 	"fmt"
-	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
-	"github.com/berachain/beacon-kit/errors"
 	"strconv"
 
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
 )

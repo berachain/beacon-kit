@@ -91,7 +91,7 @@ func (s *Service) forceSyncUponFinalize(
 		s.chainSpec.ActiveForkVersionForSlot(beaconBlock.GetSlot()),
 	)
 
-	switch _, err := s.executionEngine.NotifyForkchoiceUpdate(ctx, req); {
+	switch _, err = s.executionEngine.NotifyForkchoiceUpdate(ctx, req); {
 	case err == nil:
 		return nil
 
