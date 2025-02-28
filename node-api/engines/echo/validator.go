@@ -116,7 +116,7 @@ func ValidateTimestampID(fl validator.FieldLevel) bool {
 }
 
 func ValidateUint64Dec(value string) bool {
-	if value == "" { // TODO ABEAR: CHECK IF THIS CAN BE ABSORBED INTO U64FromString
+	if value == "" {
 		return true
 	}
 	_, err := math.U64FromString(value)
