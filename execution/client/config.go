@@ -65,7 +65,7 @@ type Config struct {
 	RPCRetryInterval time.Duration `mapstructure:"rpc-retry-interval"`
 	// MaxRPCRetryInterval is the maximum RPC backoff for repeated execution client calls.
 	RPCMaxRetryInterval time.Duration `mapstructure:"rpc-max-retry-interval"`
-	// RPCTimeout is the RPC timeout for execution client calls.
+	// RPCTimeout is the RPC timeout for individual execution client calls.
 	RPCTimeout time.Duration `mapstructure:"rpc-timeout"`
 	// RPCStartupCheckInterval is the Interval for the startup check.
 	RPCStartupCheckInterval time.Duration `mapstructure:"rpc-startup-check-interval"`

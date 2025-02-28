@@ -77,10 +77,14 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 ) (*engineprimitives.PayloadID, error) {
 	hasPayloadAttributes := !req.PayloadAttributes.IsNil()
 
-	// Configure backoff.
+	// Configure backoff. This will retry maxRetries number of times.
+	// Specifying 0 maxRetries will retry infinitely. Between each retry, it
+	// will wait RPCRetryInterval amount of time. This backoff will increase
+	// exponentially until it reaches RPCMaxRetryInterval.
 	engineAPIBackoff := backoff.NewExponentialBackOff()
 	engineAPIBackoff.InitialInterval = ee.ec.GetRPCRetryInterval()
 	engineAPIBackoff.MaxInterval = ee.ec.GetRPCMaxRetryInterval()
+	maxRetries := uint(ee.ec.GetRPCRetries())
 
 	pID, err := backoff.Retry(ctx, func() (*engineprimitives.PayloadID, error) {
 		// Log the forkchoice update attempt.
@@ -150,7 +154,7 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 		}
 	},
 		backoff.WithBackOff(engineAPIBackoff),
-		backoff.WithMaxTries(uint(ee.ec.GetRPCRetries())),
+		backoff.WithMaxTries(maxRetries),
 	)
 	if err != nil {
 		return nil, err
@@ -164,10 +168,14 @@ func (ee *Engine) NotifyNewPayload(
 	ctx context.Context,
 	req *ctypes.NewPayloadRequest,
 ) error {
-	// Configure backoff.
+	// Configure backoff. This will retry maxRetries number of times.
+	// Specifying 0 maxRetries will retry infinitely. Between each retry, it
+	// will wait RPCRetryInterval amount of time. This backoff will increase
+	// exponentially until it reaches RPCMaxRetryInterval.
 	engineAPIBackoff := backoff.NewExponentialBackOff()
 	engineAPIBackoff.InitialInterval = ee.ec.GetRPCRetryInterval()
 	engineAPIBackoff.MaxInterval = ee.ec.GetRPCMaxRetryInterval()
+	maxRetries := uint(ee.ec.GetRPCRetries())
 
 	// Otherwise we will send the payload to the execution client.
 	_, err := backoff.Retry(ctx, func() (*common.ExecutionHash, error) {
@@ -258,7 +266,7 @@ func (ee *Engine) NotifyNewPayload(
 		}
 	},
 		backoff.WithBackOff(engineAPIBackoff),
-		backoff.WithMaxTries(uint(ee.ec.GetRPCRetries())),
+		backoff.WithMaxTries(maxRetries),
 	)
 	return err
 }
