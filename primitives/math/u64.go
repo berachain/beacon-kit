@@ -75,6 +75,15 @@ func (u *U64) UnmarshalJSON(input []byte) error {
 	return u.UnmarshalText(strippedInput)
 }
 
+func U64FromString(id string) (U64, error) {
+	u64, err := strconv.ParseUint(id, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return U64(u64), nil
+}
+
 // ---------------------------------- Hex ----------------------------------
 
 // UnmarshalText implements encoding.TextUnmarshaler.
