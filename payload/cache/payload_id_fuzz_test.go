@@ -21,13 +21,13 @@
 package cache_test
 
 import (
-	"github.com/berachain/beacon-kit/primitives/math"
 	"sync"
 	"testing"
 	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/payload/cache"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/stretchr/testify/require"
 )
 
