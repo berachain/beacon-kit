@@ -57,7 +57,7 @@ func (s *Service) sendPostBlockFCU(
 		},
 		s.chainSpec.ActiveForkVersionForSlot(beaconBlk.GetSlot()),
 	)
-	if _, _, err = s.executionEngine.NotifyForkchoiceUpdate(ctx, req); err != nil {
+	if _, err = s.executionEngine.NotifyForkchoiceUpdate(ctx, req); err != nil {
 		return fmt.Errorf("failed forkchoice update, head %s: %w",
 			lph.GetBlockHash().String(),
 			err,
