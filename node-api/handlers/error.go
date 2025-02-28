@@ -18,28 +18,28 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package beacon
+package handlers
 
-import (
-	"github.com/berachain/beacon-kit/node-api/handlers"
-	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	"github.com/berachain/beacon-kit/node-api/handlers/utils"
-)
+// HTTPError represents an HTTP error response.
+type HTTPError struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
 
-func (h *Handler) GetBlockRewards(c handlers.Context) (any, error) {
-	req, err := utils.BindAndValidate[beacontypes.GetBlockRewardsRequest](
-		c, h.Logger(),
-	)
-	if err != nil {
-		return nil, err
+// NewHTTPError creates a new HTTPError.
+func NewHTTPError(code int, message string) *HTTPError {
+	return &HTTPError{
+		Code:    code,
+		Message: message,
 	}
-	slot, err := utils.SlotFromBlockID(req.BlockID, h.backend)
-	if err != nil {
-		return nil, err
-	}
-	rewards, err := h.backend.BlockRewardsAtSlot(slot)
-	if err != nil {
-		return nil, err
-	}
-	return beacontypes.NewResponse(rewards), nil
+}
+
+// Error implements the error interface.
+func (e *HTTPError) Error() string {
+	return e.Message
+}
+
+// StatusCode returns the HTTP status code.
+func (e *HTTPError) StatusCode() int {
+	return e.Code
 }

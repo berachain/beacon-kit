@@ -38,11 +38,6 @@ func (s *Service) FinalizeBlock(
 	ctx sdk.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (transition.ValidatorUpdates, error) {
-	var (
-		valUpdates  transition.ValidatorUpdates
-		finalizeErr error
-	)
-
 	// STEP 1: Decode block and blobs
 	signedBlk, blobs, err := encoding.ExtractBlobsAndBlockFromRequest(
 		req,
@@ -52,6 +47,15 @@ func (s *Service) FinalizeBlock(
 	if err != nil {
 		s.logger.Error("Failed to decode block and blobs", "error", err)
 		return nil, fmt.Errorf("failed to decode block and blobs: %w", err)
+	}
+
+	// Send an FCU to force the HEAD of the chain on the EL on startup.
+	var finalizeErr error
+	s.forceStartupSyncOnce.Do(func() {
+		finalizeErr = s.forceSyncUponFinalize(ctx, signedBlk.GetMessage())
+	})
+	if finalizeErr != nil {
+		return nil, finalizeErr
 	}
 
 	// STEP 2: Finalize sidecars first (block will check for
@@ -83,12 +87,12 @@ func (s *Service) FinalizeBlock(
 	)
 
 	st := s.storageBackend.StateFromContext(ctx)
-	valUpdates, finalizeErr = s.finalizeBeaconBlock(ctx, st, consensusBlk)
-	if finalizeErr != nil {
+	valUpdates, err := s.finalizeBeaconBlock(ctx, st, consensusBlk)
+	if err != nil {
 		s.logger.Error("Failed to process verified beacon block",
-			"error", finalizeErr,
+			"error", err,
 		)
-		return nil, finalizeErr
+		return nil, err
 	}
 
 	// STEP 4: Post Finalizations cleanups
@@ -113,7 +117,9 @@ func (s *Service) FinalizeBlock(
 		s.logger.Error("failed to processPruning", "error", err)
 	}
 
-	go s.sendPostBlockFCU(ctx, st, consensusBlk)
+	if err = s.sendPostBlockFCU(ctx, st, consensusBlk); err != nil {
+		return nil, fmt.Errorf("sendPostBlockFCU failed: %w", err)
+	}
 
 	return valUpdates, nil
 }
@@ -158,11 +164,6 @@ func (s *Service) executeStateTransition(
 	defer s.metrics.measureStateTransitionDuration(startTime)
 
 	// Notes about context attributes:
-	// - `OptimisticEngine`: set to true since this is called during
-	// FinalizeBlock. We want to assume the payload is valid. If it
-	// ends up not being valid later, the node will simply AppHash,
-	// which is completely fine. This means we were syncing from a
-	// bad peer, and we would likely AppHash anyways.
 	// - VerifyPayload: set to blk.GetConsensusSyncing().
 	//   - When we are NOT synced to the tip, process proposal
 	// does NOT get called and thus we must ensure that
@@ -172,8 +173,8 @@ func (s *Service) executeStateTransition(
 	// the payload in process proposal.
 	// VerifyRandao: set to false. We skip randao validation in FinalizeBlock
 	// since either
-	// 1. we validated it during ProcessProposal at the head of the chain OR
-	// 2. we are bootstrapping and implicitly trust that the randao was validated by
+	//   1. we validated it during ProcessProposal at the head of the chain OR
+	//   2. we are bootstrapping and implicitly trust that the randao was validated by
 	//    the super majority during ProcessProposal of the given block height.
 	txCtx := transition.NewTransitionCtx(
 		ctx,
@@ -183,8 +184,7 @@ func (s *Service) executeStateTransition(
 		WithVerifyPayload(blk.GetConsensusSyncing()).
 		WithVerifyRandao(false).
 		WithVerifyResult(false).
-		WithMeterGas(true).
-		WithOptimisticEngine(true)
+		WithMeterGas(true)
 
 	return s.stateProcessor.Transition(
 		txCtx,

@@ -22,6 +22,7 @@ package blockchain
 
 import (
 	"context"
+	"fmt"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	contypes "github.com/berachain/beacon-kit/consensus/types"
@@ -38,35 +39,29 @@ func (s *Service) sendPostBlockFCU(
 	ctx context.Context,
 	st *statedb.StateDB,
 	blk *contypes.ConsensusBlock,
-) {
+) error {
 	lph, err := st.GetLatestExecutionPayloadHeader()
 	if err != nil {
-		s.logger.Error(
-			"failed to get latest execution payload in postBlockProcess",
-			"error", err,
-		)
-		return
+		return fmt.Errorf("failed getting latest payload: %w", err)
 	}
 
 	// Send a forkchoice update without payload attributes to notify
 	// EL of the new head.
 	beaconBlk := blk.GetBeaconBlock()
-	if _, _, err = s.executionEngine.NotifyForkchoiceUpdate(
-		ctx,
-		// TODO: Switch to New().
-		ctypes.
-			BuildForkchoiceUpdateRequestNoAttrs(
-				&engineprimitives.ForkchoiceStateV1{
-					HeadBlockHash:      lph.GetBlockHash(),
-					SafeBlockHash:      lph.GetParentHash(),
-					FinalizedBlockHash: lph.GetParentHash(),
-				},
-				s.chainSpec.ActiveForkVersionForSlot(beaconBlk.GetSlot()),
-			),
-	); err != nil {
-		s.logger.Error(
-			"failed to send forkchoice update without attributes",
-			"error", err,
+	// TODO: Switch to New().
+	req := ctypes.BuildForkchoiceUpdateRequestNoAttrs(
+		&engineprimitives.ForkchoiceStateV1{
+			HeadBlockHash:      lph.GetBlockHash(),
+			SafeBlockHash:      lph.GetParentHash(),
+			FinalizedBlockHash: lph.GetParentHash(),
+		},
+		s.chainSpec.ActiveForkVersionForSlot(beaconBlk.GetSlot()),
+	)
+	if _, err = s.executionEngine.NotifyForkchoiceUpdate(ctx, req); err != nil {
+		return fmt.Errorf("failed forkchoice update, head %s: %w",
+			lph.GetBlockHash().String(),
+			err,
 		)
 	}
+	return nil
 }

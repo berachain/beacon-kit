@@ -24,9 +24,11 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/berachain/beacon-kit/cli/utils/parser"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 func BeaconBlockHeaderFromConsensus(h *ctypes.BeaconBlockHeader) *BeaconBlockHeader {
@@ -72,4 +74,46 @@ func ValidatorFromConsensus(v *ctypes.Validator) *Validator {
 		ExitEpoch:                  v.GetExitEpoch().Base10(),
 		WithdrawableEpoch:          v.GetWithdrawableEpoch().Base10(),
 	}
+}
+
+// useful in UTs
+func ValidatorToConsensus(v *Validator) (*ctypes.Validator, error) {
+	pk, err := parser.ConvertPubkey(v.PublicKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed parsing public key: %w", err)
+	}
+	wc, err := parser.ConvertWithdrawalCredentials(v.WithdrawalCredentials)
+	if err != nil {
+		return nil, fmt.Errorf("failed parsing withdrawals: %w", err)
+	}
+	eb, err := math.U64FromString(v.EffectiveBalance)
+	if err != nil {
+		return nil, fmt.Errorf("failed parsing effective balance: %w", err)
+	}
+	aee, err := math.U64FromString(v.ActivationEligibilityEpoch)
+	if err != nil {
+		return nil, fmt.Errorf("failed parsing activation eligibility epoch: %w", err)
+	}
+	ae, err := math.U64FromString(v.ActivationEpoch)
+	if err != nil {
+		return nil, fmt.Errorf("failed parsing activation epoch: %w", err)
+	}
+	ee, err := math.U64FromString(v.ExitEpoch)
+	if err != nil {
+		return nil, fmt.Errorf("failed parsing exit epoch: %w", err)
+	}
+	we, err := math.U64FromString(v.WithdrawableEpoch)
+	if err != nil {
+		return nil, fmt.Errorf("failed parsing withdrawable epoch: %w", err)
+	}
+	return &ctypes.Validator{
+		Pubkey:                     pk,
+		WithdrawalCredentials:      wc,
+		EffectiveBalance:           eb,
+		Slashed:                    v.Slashed,
+		ActivationEligibilityEpoch: aee,
+		ActivationEpoch:            ae,
+		ExitEpoch:                  ee,
+		WithdrawableEpoch:          we,
+	}, nil
 }
