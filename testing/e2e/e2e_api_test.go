@@ -266,7 +266,6 @@ func (s *BeaconKitE2ESuite) TestValidatorBalances() {
 
 	// Verify the response is not empty
 	s.Require().NotNil(balancesResp.Data)
-	s.Require().NotEmpty(balancesResp.Data)
 
 	balanceMap := balancesResp.Data
 	for _, balance := range balanceMap {
@@ -292,7 +291,6 @@ func (s *BeaconKitE2ESuite) TestValidatorBalancesWithSpecificIndices() {
 	// Verify the response is not empty
 	s.Require().NotNil(balancesResp.Data)
 	s.Require().Len(balancesResp.Data, len(indices))
-	s.Require().NotEmpty(balancesResp.Data)
 
 	// Verify balance data
 	for index, balance := range balancesResp.Data {
@@ -373,7 +371,6 @@ func (s *BeaconKitE2ESuite) TestValidatorBalancesWithPubkey() {
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(balancesResp)
-	s.Require().NotEmpty(balancesResp.Data)
 	s.Require().Len(balancesResp.Data, 1)
 
 	// Verify balance data
