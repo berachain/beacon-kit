@@ -86,16 +86,11 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 	engineAPIBackoff.MaxInterval = ee.ec.GetRPCMaxRetryInterval()
 	maxRetries := uint(ee.ec.GetRPCRetries())
 
-	pID, err := backoff.Retry(ctx, func() (*engineprimitives.PayloadID, error) {
-		// Log the forkchoice update attempt.
+	return backoff.Retry(ctx, func() (*engineprimitives.PayloadID, error) {
+		// Log and call the forkchoice update.
 		ee.metrics.markNotifyForkchoiceUpdateCalled(hasPayloadAttributes)
-
-		// Notify the execution engine of the forkchoice update.
 		payloadID, innerErr := ee.ec.ForkchoiceUpdated(
-			ctx,
-			req.State,
-			req.PayloadAttributes,
-			req.ForkVersion,
+			ctx, req.State, req.PayloadAttributes, req.ForkVersion,
 		)
 
 		// NotifyForkchoiceUpdate gets called under two circumstances:
@@ -152,15 +147,7 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 			//     Erroneous Parsing Errors
 			return nil, innerErr
 		}
-	},
-		backoff.WithBackOff(engineAPIBackoff),
-		backoff.WithMaxTries(maxRetries),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return pID, nil
+	}, backoff.WithBackOff(engineAPIBackoff), backoff.WithMaxTries(maxRetries))
 }
 
 // NotifyNewPayload notifies the execution client of the new payload.
@@ -181,15 +168,10 @@ func (ee *Engine) NotifyNewPayload(
 	_, err := backoff.Retry(ctx, func() (*common.ExecutionHash, error) {
 		// Log the new payload attempt.
 		ee.metrics.markNewPayloadCalled(
-			req.ExecutionPayload.GetBlockHash(),
-			req.ExecutionPayload.GetParentHash(),
+			req.ExecutionPayload.GetBlockHash(), req.ExecutionPayload.GetParentHash(),
 		)
-
 		lastValidHash, innerErr := ee.ec.NewPayload(
-			ctx,
-			req.ExecutionPayload,
-			req.VersionedHashes,
-			req.ParentBeaconBlockRoot,
+			ctx, req.ExecutionPayload, req.VersionedHashes, req.ParentBeaconBlockRoot,
 		)
 
 		// NotifyNewPayload gets called under three circumstances:
@@ -264,9 +246,6 @@ func (ee *Engine) NotifyNewPayload(
 			//     Erroneous Parsing Errors
 			return nil, innerErr
 		}
-	},
-		backoff.WithBackOff(engineAPIBackoff),
-		backoff.WithMaxTries(maxRetries),
-	)
+	}, backoff.WithBackOff(engineAPIBackoff), backoff.WithMaxTries(maxRetries))
 	return err
 }
