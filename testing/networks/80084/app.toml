@@ -114,6 +114,9 @@ rpc-retries = "3"
 # RPC timeout for execution client requests.
 rpc-timeout = "900ms"
 
+# RPC retry interval for execution client requests.
+rpc-retry-interval = "100ms"
+
 # Interval for the startup check.
 rpc-startup-check-interval = "3s"
 
