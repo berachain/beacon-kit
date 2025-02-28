@@ -75,6 +75,8 @@ func (s *Service) forceSyncUponFinalize(
 		return err
 	}
 
+	// We set retryOnSyncingStatus to false here. We can ignore SYNCING status and proceed
+	// to the FCU.
 	err := s.executionEngine.NotifyNewPayload(ctx, payloadReq, false)
 	if err != nil {
 		return fmt.Errorf("startSyncUponFinalize NotifyNewPayload failed: %w", err)
