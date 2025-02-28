@@ -73,9 +73,9 @@ func (p *PayloadIDCache) Has(
 	return ok
 }
 
-// Get retrieves the payloadID from the cache. If successfully retrieved,
+// GetAndEvict retrieves the payloadID from the cache. If successfully retrieved,
 // evict it from the cache.
-func (p *PayloadIDCache) Get(
+func (p *PayloadIDCache) GetAndEvict(
 	slot math.Slot,
 	stateRoot common.Root,
 ) (engineprimitives.PayloadID, bool) {

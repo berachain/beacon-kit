@@ -47,7 +47,7 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 		return nil, ErrPayloadBuilderDisabled
 	}
 
-	if payloadID, found := pb.pc.Get(slot, parentBlockRoot); found {
+	if payloadID, found := pb.pc.GetAndEvict(slot, parentBlockRoot); found {
 		pb.logger.Info(
 			"aborting payload build; payload already exists in cache",
 			"for_slot", slot.Base10(),
@@ -156,7 +156,7 @@ func (pb *PayloadBuilder) RetrievePayload(
 
 	// Attempt to see if we previously fired off a payload built for
 	// this particular slot and parent block root.
-	payloadID, found := pb.pc.Get(slot, parentBlockRoot)
+	payloadID, found := pb.pc.GetAndEvict(slot, parentBlockRoot)
 	if !found {
 		return nil, ErrPayloadIDNotFound
 	}

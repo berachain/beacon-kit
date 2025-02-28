@@ -35,7 +35,7 @@ func TestPayloadIDCache(t *testing.T) {
 
 	t.Run("Get from empty cache", func(t *testing.T) {
 		var r [32]byte
-		p, ok := cacheUnderTest.Get(0, r)
+		p, ok := cacheUnderTest.GetAndEvict(0, r)
 		require.False(t, ok)
 		require.Equal(t, engineprimitives.PayloadID{}, p)
 	})
@@ -46,7 +46,7 @@ func TestPayloadIDCache(t *testing.T) {
 		pid := engineprimitives.PayloadID{1, 2, 3, 3, 7, 8, 7, 8}
 		cacheUnderTest.Set(slot, r, pid)
 
-		p, ok := cacheUnderTest.Get(slot, r)
+		p, ok := cacheUnderTest.GetAndEvict(slot, r)
 		require.True(t, ok)
 		require.Equal(t, pid, p)
 	})
@@ -57,7 +57,7 @@ func TestPayloadIDCache(t *testing.T) {
 		newPid := engineprimitives.PayloadID{9, 9, 9, 9, 9, 9, 9, 9}
 		cacheUnderTest.Set(slot, r, newPid)
 
-		p, ok := cacheUnderTest.Get(slot, r)
+		p, ok := cacheUnderTest.GetAndEvict(slot, r)
 		require.True(t, ok)
 		require.Equal(t, newPid, p)
 	})
@@ -70,7 +70,7 @@ func TestPayloadIDCache(t *testing.T) {
 
 		// Prune and attempt to retrieve pruned entry
 		cacheUnderTest.UnsafePrunePrior(slot + 1)
-		p, ok := cacheUnderTest.Get(slot, r)
+		p, ok := cacheUnderTest.GetAndEvict(slot, r)
 		require.False(t, ok)
 		require.Equal(t, engineprimitives.PayloadID{}, p)
 	})
@@ -91,14 +91,14 @@ func TestPayloadIDCache(t *testing.T) {
 		for i := range uint8(3) {
 			slot := math.Slot(i)
 			r := [32]byte{i, i + 1, i + 2}
-			_, ok := cacheUnderTest.Get(slot, r)
+			_, ok := cacheUnderTest.GetAndEvict(slot, r)
 			require.False(t, ok, "Expected entry to be pruned for slot", slot)
 		}
 
 		for i := uint8(3); i < 5; i++ {
 			slot := math.Slot(i)
 			r := [32]byte{i, i + 1, i + 2}
-			_, ok := cacheUnderTest.Get(slot, r)
+			_, ok := cacheUnderTest.GetAndEvict(slot, r)
 			require.True(t, ok, "Expected entry to exist for slot", slot)
 		}
 	})
