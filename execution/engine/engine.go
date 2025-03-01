@@ -22,6 +22,8 @@ package engine
 
 import (
 	"context"
+	"math"
+	"time"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -147,7 +149,12 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 			//     Erroneous Parsing Errors
 			return nil, innerErr
 		}
-	}, backoff.WithBackOff(engineAPIBackoff), backoff.WithMaxTries(maxRetries))
+	},
+		backoff.WithBackOff(engineAPIBackoff),
+		backoff.WithMaxTries(maxRetries),
+		// Max duration so we don't ever hit it before maxRetries.
+		backoff.WithMaxElapsedTime(time.Duration(math.MaxInt64)),
+	)
 }
 
 // NotifyNewPayload notifies the execution client of the new payload.
@@ -187,6 +194,7 @@ func (ee *Engine) NotifyNewPayload(
 			)
 			// We've received a valid response, no more retries.
 			return lastValidHash, nil
+
 		case errors.IsAny(innerErr, engineerrors.ErrSyncingPayloadStatus, engineerrors.ErrAcceptedPayloadStatus):
 			ee.metrics.markNewPayloadAcceptedSyncingPayloadStatus(
 				innerErr,
@@ -205,10 +213,8 @@ func (ee *Engine) NotifyNewPayload(
 			// NotifyForkchoiceUpdate will inform the EL of the new head
 			// and then wait for it to sync.
 			// Don't return error here, because we want to send the forkchoice update regardless.
-			ee.logger.Warn("pushed new payload to SYNCING node.",
-				"error", innerErr,
-				"blockNum", req.ExecutionPayload.GetNumber(),
-				"blockHash", req.ExecutionPayload.GetBlockHash(),
+			ee.logger.Warn("pushed new payload to SYNCING node.", "error", innerErr,
+				"blockNum", req.ExecutionPayload.GetNumber(), "blockHash", req.ExecutionPayload.GetBlockHash(),
 			)
 			return &common.ExecutionHash{}, nil
 
@@ -227,13 +233,11 @@ func (ee *Engine) NotifyNewPayload(
 			if lastValidHash == nil {
 				lastValidHash = &common.ExecutionHash{}
 			}
-
 			ee.metrics.markNewPayloadJSONRPCError(
 				req.ExecutionPayload.GetBlockHash(),
 				*lastValidHash,
 				innerErr,
 			)
-
 			// In all circumstances, always retry on RPC Error.
 			return nil, innerErr
 		default:
@@ -248,6 +252,9 @@ func (ee *Engine) NotifyNewPayload(
 			//     Erroneous Parsing Errors
 			return nil, innerErr
 		}
-	}, backoff.WithBackOff(engineAPIBackoff), backoff.WithMaxTries(maxRetries))
+	}, backoff.WithBackOff(engineAPIBackoff), backoff.WithMaxTries(maxRetries),
+		// Max duration so we don't ever hit it before maxRetries.
+		backoff.WithMaxElapsedTime(time.Duration(math.MaxInt64)),
+	)
 	return err
 }
