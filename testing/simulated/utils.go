@@ -87,9 +87,9 @@ func DefaultSimulationInput(t *require.Assertions, chainSpec chain.Spec, origBlo
 	overridePrevRandao := gethcommon.Hash(origBlock.GetMessage().GetBody().GetExecutionPayload().GetPrevRandao())
 	overrideBaseFeePerGas := origBlock.GetMessage().GetBody().GetExecutionPayload().GetBaseFeePerGas().ToBig()
 	overrideBeaconRoot := gethcommon.HexToHash(origBlock.GetMessage().GetParentBlockRoot().Hex())
-	_ = TransformWithdrawalsToGethWithdrawals(origBlock.GetMessage().GetBody().GetExecutionPayload().GetWithdrawals())
+	overrideWithdrawals := TransformWithdrawalsToGethWithdrawals(origBlock.GetMessage().GetBody().GetExecutionPayload().GetWithdrawals())
 
-	calls, err := execution.TxsToSimBlock(chainSpec.DepositEth1ChainID(), txs)
+	calls, err := execution.TxsToTransactionArgs(chainSpec.DepositEth1ChainID(), txs)
 	t.NoError(err)
 	simulationInput := &execution.SimulateInputs{
 		BlockStateCalls: []*execution.SimBlock{
@@ -102,7 +102,7 @@ func DefaultSimulationInput(t *require.Assertions, chainSpec chain.Spec, origBlo
 					PrevRandao:    &overridePrevRandao,
 					BaseFeePerGas: (*hexutil.Big)(overrideBaseFeePerGas),
 					BeaconRoot:    &overrideBeaconRoot,
-					//Withdrawals:   overrideWithdrawals,
+					Withdrawals:   overrideWithdrawals,
 					//BlobBaseFee:   &overrideBlobBaseFee,
 				},
 			},

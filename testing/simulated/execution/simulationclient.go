@@ -85,7 +85,7 @@ type BlockOverrides struct {
 	BaseFeePerGas *hexutil.Big    `json:"baseFeePerGas,omitempty"`
 	BlobBaseFee   *hexutil.Big    `json:"blobBaseFee,omitempty"`
 	BeaconRoot    *common.Hash    `json:"beaconRoot,omitempty"`
-	//Withdrawals   gethprimitives.Withdrawals
+	Withdrawals   gethprimitives.Withdrawals
 }
 
 type SimulateInputs struct {
@@ -147,8 +147,8 @@ func (c *SimulationClient) Simulate(ctx context.Context, blockNumber int64, inpu
 	return result, nil
 }
 
-// TxsToSimBlock Transactions must use Dynamic Fee values, i.e. non legacy txs
-func TxsToSimBlock(chainId uint64, txs []*gethprimitives.Transaction) ([]TransactionArgs, error) {
+// TxsToTransactionArgs Transactions must use Dynamic Fee values, i.e. non legacy txs
+func TxsToTransactionArgs(chainId uint64, txs []*gethprimitives.Transaction) ([]TransactionArgs, error) {
 	// TODO: use the LatestSigner based on a Geth ChainConfig parsed from an EL Genesis File.
 	// Transactions must use Dynamic Fee values, i.e. non legacy txs
 	signer := types.NewCancunSigner(big.NewInt(int64(chainId)))

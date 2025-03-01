@@ -49,13 +49,11 @@ func TransformSimulatedBlockToGethBlock(simBlock *execution.SimulatedBlock, txs 
 	excessBlobGas := simBlock.ExcessBlobGas.ToInt().Uint64()
 	blobGasUsed := simBlock.BlobGasUsed.ToInt().Uint64()
 	// Remove the withdrawals as it modifies the StateRoot which we cannot simulate.
-	withdrawals = engineprimitives.Withdrawals{}
+	//withdrawals = engineprimitives.Withdrawals{}
 	withdrawalsHash := gethprimitives.DeriveSha(
 		withdrawals,
 		gethprimitives.NewStackTrie(nil),
 	)
-	// Remove the parentBeaconRoot as it modifies the StateRoot which we cannot simulate
-	//parentBeaconRoot = libcommon.Root{}
 	executionBlock := gethprimitives.NewBlockWithHeader(
 		&gethprimitives.Header{
 			ParentHash: simBlock.ParentHash,
