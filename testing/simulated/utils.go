@@ -32,14 +32,11 @@ import (
 
 	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	"github.com/berachain/beacon-kit/da/kzg"
-	"github.com/berachain/beacon-kit/da/kzg/gokzg"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
-	"github.com/berachain/beacon-kit/primitives/eip4844"
 	mathpkg "github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
@@ -180,55 +177,6 @@ func CreateSignedBlockWithTransactions(
 			GenesisValidatorsRoot: genesisValidatorsRoot,
 		},
 		chainSpec,
-		blsSigner,
-	)
-	t.NoError(err, "failed to update signature over the new payload")
-	return newBlock
-}
-
-// GetProofAndCommitmentsForBlobs will create a commitment and proof for each blob. Technically
-func GetProofAndCommitmentsForBlobs(t *require.Assertions, blobs []*eip4844.Blob, verifier kzg.BlobProofVerifier) ([]eip4844.KZGProof, []eip4844.KZGCommitment) {
-	if verifier.GetImplementation() != gokzg.Implementation {
-		t.Fail("test expects gokzg implementation")
-	}
-	gokzgVerifier, ok := verifier.(*gokzg.Verifier)
-	if !ok {
-		t.Fail("verifier is not of type *gokzg.Verifier")
-	}
-	commitments := make([]eip4844.KZGCommitment, len(blobs))
-	proofs := make([]eip4844.KZGProof, len(blobs))
-	for i, blob := range blobs {
-		ckzgBlob := TransformBlobToGoKZGBlob(blob)
-		commitment, err := gokzgVerifier.BlobToKZGCommitment(ckzgBlob, 1)
-		t.NoError(err)
-		proof, err := gokzgVerifier.ComputeBlobKZGProof(ckzgBlob, commitment, 1)
-		t.NoError(err)
-		commitments[i] = eip4844.KZGCommitment(commitment)
-		proofs[i] = eip4844.KZGProof(proof)
-	}
-	return proofs, commitments
-}
-
-// CreateBeaconBlockWithBlobs TODO
-func CreateBeaconBlockWithBlobs(
-	t *require.Assertions,
-	spec chain.Spec,
-	commitments []eip4844.KZGCommitment,
-	beaconBlock *ctypes.BeaconBlock,
-	blsSigner *signer.BLSSigner,
-	genesisValidatorsRoot common.Root,
-) *ctypes.SignedBeaconBlock {
-	// Replace the original payload with commitment
-	beaconBlock.GetBody().BlobKzgCommitments = commitments
-
-	// Update the signature over the new payload.
-	newBlock, err := ctypes.NewSignedBeaconBlock(
-		beaconBlock,
-		&ctypes.ForkData{
-			CurrentVersion:        spec.ActiveForkVersionForSlot(beaconBlock.GetSlot()),
-			GenesisValidatorsRoot: genesisValidatorsRoot,
-		},
-		spec,
 		blsSigner,
 	)
 	t.NoError(err, "failed to update signature over the new payload")

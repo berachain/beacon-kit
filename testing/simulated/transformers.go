@@ -29,20 +29,11 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	libcommon "github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/eip4844"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
-	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/ethereum/go-ethereum/common"
 	gethtypes "github.com/ethereum/go-ethereum/core/types"
 )
-
-// TransformBlobToGoKZGBlob converts an eip4844.Blob to a ckzg4844.Blob
-func TransformBlobToGoKZGBlob(eipBlob *eip4844.Blob) *gokzg4844.Blob {
-	var blob gokzg4844.Blob
-	copy(blob[:], eipBlob[:])
-	return &blob
-}
 
 func TransformSimulatedBlockToGethBlock(simBlock *execution.SimulatedBlock, txs []*gethtypes.Transaction, withdrawals engineprimitives.Withdrawals, parentBeaconRoot libcommon.Root, baseFeePerGas *math.U256) *gethtypes.Block {
 	// Construct a new execution block header with the provided transactions.
