@@ -89,8 +89,8 @@ func (em *engineMetrics) markNewPayloadAcceptedSyncingPayloadStatus(
 	if errors.Is(errStatus, engineerrors.ErrSyncingPayloadStatus) {
 		status = "syncing"
 	}
-	em.logger.Error(
-		fmt.Sprintf("Received %s payload status", status),
+	em.logger.Warn(
+		fmt.Sprintf("Received %s payload status during new payload. Awaiting execution client to finish sync.", status),
 		"payload_block_hash", payloadHash,
 		"parent_hash", parentHash,
 	)
@@ -194,16 +194,14 @@ func (em *engineMetrics) markForkchoiceUpdateSyncing(
 	state *engineprimitives.ForkchoiceStateV1,
 	err error,
 ) {
-	em.logger.Error(
-		"Received syncing payload status during forkchoice update call",
+	em.logger.Warn(
+		"Received syncing payload status during forkchoice update. Awaiting execution client to finish sync.",
 		"head_block_hash",
 		state.HeadBlockHash,
 		"safe_block_hash",
 		state.SafeBlockHash,
 		"finalized_block_hash",
 		state.FinalizedBlockHash,
-		"error",
-		err,
 	)
 
 	em.sink.IncrementCounter(

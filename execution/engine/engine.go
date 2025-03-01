@@ -213,7 +213,7 @@ func (ee *Engine) NotifyNewPayload(
 			// NotifyForkchoiceUpdate will inform the EL of the new head
 			// and then wait for it to sync.
 			// Don't return error here, because we want to send the forkchoice update regardless.
-			ee.logger.Warn("pushed new payload to SYNCING node.", "error", innerErr,
+			ee.logger.Warn("Pushed new payload to SYNCING node.", "error", innerErr,
 				"blockNum", req.ExecutionPayload.GetNumber(), "blockHash", req.ExecutionPayload.GetBlockHash(),
 			)
 			return &common.ExecutionHash{}, nil
