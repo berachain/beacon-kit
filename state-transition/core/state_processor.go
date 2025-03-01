@@ -314,14 +314,13 @@ func (sp *StateProcessor) processBlockHeader(
 	}
 
 	// Verify that the parent matches
-	// REZ: Temp
-	// parentBlockRoot := latestBlockHeader.HashTreeRoot()
-	// if parentBlockRoot != blk.GetParentBlockRoot() {
-	//	return errors.Wrapf(
-	//		ErrParentRootMismatch, "expected: %s, got: %s",
-	//		parentBlockRoot.String(), blk.GetParentBlockRoot().String(),
-	//	)
-	//}
+	parentBlockRoot := latestBlockHeader.HashTreeRoot()
+	if parentBlockRoot != blk.GetParentBlockRoot() {
+		return errors.Wrapf(
+			ErrParentRootMismatch, "expected: %s, got: %s",
+			parentBlockRoot.String(), blk.GetParentBlockRoot().String(),
+		)
+	}
 
 	// Verify proposer is not slashed
 	if proposer.IsSlashed() {
