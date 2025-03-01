@@ -21,7 +21,6 @@
 package types
 
 import (
-	"fmt"
 	"math/big"
 	"unsafe"
 
@@ -138,8 +137,6 @@ func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
 	).WithBody(gethprimitives.Body{
 		Transactions: txs, Uncles: nil, Withdrawals: *(*gethprimitives.Withdrawals)(unsafe.Pointer(&wds)),
 	}); common.ExecutionHash(block.Hash()) != payload.GetBlockHash() {
-		x := n.ParentBeaconBlockRoot.String()
-		fmt.Println(x)
 		return errors.Wrapf(engineprimitives.ErrPayloadBlockHashMismatch,
 			"%x, got %x",
 			payload.GetBlockHash(), block.Hash(),
