@@ -148,7 +148,7 @@ func TestInitialize(t *testing.T) {
 		checkValidator(t, cs, st, dep)
 	}
 
-	// check that deposit index is duly set. On betnet
+	// check that deposit index is duly set. On devnet
 	// deposit index is set to the last accepted deposit.
 	latestValIdx, err := st.GetEth1DepositIndex()
 	require.NoError(t, err)
@@ -168,27 +168,6 @@ func checkValidator(
 
 	val, err := bs.ValidatorByIndex(idx)
 	require.NoError(t, err)
-	require.Equal(t, dep.Pubkey, val.Pubkey)
-
-	// checks on validators common to all networks
-	commonChecksValidators(t, cs, val, dep)
-
-	// checks on validators for any network but Bartio
-	require.Equal(t, constants.GenesisEpoch, val.GetActivationEligibilityEpoch())
-	require.Equal(t, constants.GenesisEpoch, val.GetActivationEpoch())
-
-	valBal, err := bs.GetBalance(idx)
-	require.NoError(t, err)
-	require.Equal(t, dep.Amount, valBal)
-}
-
-func commonChecksValidators(
-	t *testing.T,
-	cs chain.Spec,
-	val *types.Validator,
-	dep *types.Deposit,
-) {
-	t.Helper()
 	require.Equal(t, dep.Pubkey, val.Pubkey)
 
 	var (
@@ -212,4 +191,12 @@ func commonChecksValidators(
 	case dep.Amount <= minBalance:
 		require.Equal(t, math.Gwei(0), val.EffectiveBalance)
 	}
+
+	// checks on validators for any network but Bartio
+	require.Equal(t, constants.GenesisEpoch, val.GetActivationEligibilityEpoch())
+	require.Equal(t, constants.GenesisEpoch, val.GetActivationEpoch())
+
+	valBal, err := bs.GetBalance(idx)
+	require.NoError(t, err)
+	require.Equal(t, dep.Amount, valBal)
 }
