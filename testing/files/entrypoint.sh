@@ -46,6 +46,7 @@ GENESIS=$HOMEDIR/config/genesis.json
 TMP_GENESIS=$HOMEDIR/config/tmp_genesis.json
 ETH_GENESIS=$(resolve_path "./testing/files/eth-genesis.json")
 ETH_NETHER_GENESIS=$(resolve_path "./testing/files/eth-nether-genesis.json")
+KZG_PATH=$(resolve_path "./testing/files/kzg-trusted-setup.json")
 
 # used to exit on first error (any non-zero exit code)
 set -e
@@ -70,7 +71,9 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 		--home $HOMEDIR
 
 	if [ "$CHAIN_SPEC" == "testnet" ]; then
-		cp -f testing/networks/80084/*.toml testing/networks/80084/genesis.json ${HOMEDIR}/config
+	  network_dir="testing/networks/80069"
+		cp -f $network_dir/*.toml $network_dir/genesis.json ${HOMEDIR}/config
+    KZG_PATH=$network_dir/kzg-trusted-setup.json
 	else
 		./build/bin/beacond genesis add-premined-deposit --home $HOMEDIR \
 			32000000000 0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4
@@ -85,6 +88,7 @@ fi
 BEACON_START_CMD="./build/bin/beacond start --pruning=nothing "$TRACE" \
 --beacon-kit.logger.log-level $LOGLEVEL --home $HOMEDIR \
 --beacon-kit.engine.jwt-secret-path ${JWT_SECRET_PATH} \
+--beacon-kit.kzg.trusted-setup-path ${KZG_PATH}  \
 --beacon-kit.block-store-service.enabled \
 --beacon-kit.node-api.enabled --beacon-kit.node-api.logging"
 
