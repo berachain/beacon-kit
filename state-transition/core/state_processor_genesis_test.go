@@ -173,7 +173,7 @@ func checkValidator(
 	// checks on validators common to all networks
 	commonChecksValidators(t, cs, val, dep)
 
-	// checks on validators for any network but Bartio
+	// checks on validators for any network
 	require.Equal(t, constants.GenesisEpoch, val.GetActivationEligibilityEpoch())
 	require.Equal(t, constants.GenesisEpoch, val.GetActivationEpoch())
 
