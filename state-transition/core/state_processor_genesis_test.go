@@ -192,7 +192,6 @@ func checkValidator(
 		require.Equal(t, math.Gwei(0), val.EffectiveBalance)
 	}
 
-	// checks on validators for any network but Bartio
 	require.Equal(t, constants.GenesisEpoch, val.GetActivationEligibilityEpoch())
 	require.Equal(t, constants.GenesisEpoch, val.GetActivationEpoch())
 
