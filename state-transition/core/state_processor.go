@@ -212,7 +212,6 @@ func (sp *StateProcessor) ProcessBlock(
 
 	// Ensure the calculated state root matches the state root on
 	// the block.
-	// TODO: Rez unskip
 	stateRoot := st.HashTreeRoot()
 	if blk.GetStateRoot() != stateRoot {
 		return errors.Wrapf(

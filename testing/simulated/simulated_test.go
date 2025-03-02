@@ -39,7 +39,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	mathpkg "github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
 	"github.com/cometbft/cometbft/abci/types"
@@ -47,7 +46,6 @@ import (
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	gethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/spf13/viper"
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -225,9 +223,9 @@ func (s *SimulatedSuite) TestCoreLoop_InjectedTransactions_IsSuccessful() {
 
 	consensusTime := time.Unix(int64(proposedBlock.GetMessage().GetTimestamp()), 0)
 
-	// Sign a malicious transaction that is expected to fail.
+	// Sign a valid transaction that is expected to pass
 	recipientAddress := gethcommon.HexToAddress("0x56898d1aFb10cad584961eb96AcD476C6826e41E")
-	maliciousTx, err := gethtypes.SignNewTx(
+	validTx, err := gethtypes.SignNewTx(
 		simulated.GetTestKey(s.T()),
 		gethtypes.NewCancunSigner(big.NewInt(int64(s.TestNode.ChainSpec.DepositEth1ChainID()))),
 		&gethtypes.DynamicFeeTx{
@@ -241,50 +239,22 @@ func (s *SimulatedSuite) TestCoreLoop_InjectedTransactions_IsSuccessful() {
 		},
 	)
 
-	// Initialize the slice with the malicious transaction.
-	// REZ: removed txs
-	maliciousTxs := []*gethprimitives.Transaction{maliciousTx}
-
-	// Create a malicious block by injecting an invalid transaction.
-	unsignedBlock := simulated.CreateBeaconBlockWithTransactions(
-		require.New(s.T()),
-		s.SimulationClient,
-		simulated.DefaultSimulationInput(require.New(s.T()), s.TestNode.ChainSpec, proposedBlock, maliciousTxs),
-		proposedBlock.GetMessage(),
-		blsSigner,
-		s.TestNode.ChainSpec,
-		s.GenesisValidatorsRoot,
-		maliciousTxs,
-	)
-
-	s.Require().NotNil(s.TestNode.StateProcessor)
-	stateProcessor := s.TestNode.StateProcessor
+	validTxs := []*gethprimitives.Transaction{validTx}
+	// Create a new beacon block with the valid transaction.
+	// Note: The block returned here has an execution payload with an unfinalized (incorrect) state root.
+	unsignedBlock := simulated.ComputeAndSetExecutionBlock(s.T(), proposedBlock.GetMessage(), s.SimulationClient, s.TestNode.ChainSpec, validTxs)
 
 	proposerAddress, err := crypto.GetAddressFromPubKey(blsSigner.PublicKey())
 	s.Require().NoError(err)
 
-	// Validate post-commit state.
+	// Finalize the block by applying the state transition to update its state root.
 	queryCtx, err := s.SimComet.CreateQueryContext(blockHeight+coreLoopIterations-1, false)
 	s.Require().NoError(err)
-	stateDBCopy := s.TestNode.StorageBackend.StateFromContext(queryCtx).Copy(queryCtx)
-
-	txCtx := transition.NewTransitionCtx(
-		queryCtx,
-		mathpkg.U64(consensusTime.Unix()),
-		proposerAddress,
-	).
-		WithVerifyPayload(false).
-		WithVerifyRandao(false).
-		WithVerifyResult(false).
-		WithMeterGas(false)
-	_, err = stateProcessor.Transition(txCtx, stateDBCopy, unsignedBlock)
+	finalBlock, err := simulated.ComputeAndSetStateRoot(queryCtx, consensusTime, proposerAddress, s.TestNode.StateProcessor, s.TestNode.StorageBackend, unsignedBlock)
 	s.Require().NoError(err)
 
-	newStateRoot := stateDBCopy.HashTreeRoot()
-	unsignedBlock.SetStateRoot(newStateRoot)
-
 	newSignedBlock, err := ctypes.NewSignedBeaconBlock(
-		unsignedBlock,
+		finalBlock,
 		&ctypes.ForkData{
 			CurrentVersion:        s.TestNode.ChainSpec.ActiveForkVersionForSlot(unsignedBlock.GetSlot()),
 			GenesisValidatorsRoot: s.GenesisValidatorsRoot,
@@ -294,15 +264,15 @@ func (s *SimulatedSuite) TestCoreLoop_InjectedTransactions_IsSuccessful() {
 	)
 	s.Require().NoError(err)
 
-	maliciousBlockBytes, err := newSignedBlock.MarshalSSZ()
+	newBlockBytes, err := newSignedBlock.MarshalSSZ()
 	s.Require().NoError(err)
 
-	// Replace the valid block with the malicious block in the proposal.
-	proposal.Txs[0] = maliciousBlockBytes
+	// Replace the old block with the new block in the proposal.
+	proposal.Txs[0] = newBlockBytes
 
 	// Reset the log buffer to discard old logs we don't care about
 	s.LogBuffer.Reset()
-	// Process the proposal containing the malicious block.
+	// Process the proposal containing the valid block.
 	processResp, err := s.SimComet.Comet.ProcessProposal(s.Ctx, &types.ProcessProposalRequest{
 		Txs:             proposal.Txs,
 		Height:          blockHeight + coreLoopIterations,

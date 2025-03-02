@@ -34,7 +34,6 @@ import (
 	"github.com/cometbft/cometbft/abci/types"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	gethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/stretchr/testify/require"
 )
 
 // TestFinalizeBlock_BadBlock_Errors effectively serves as a test for how a valid node would react to
@@ -91,7 +90,7 @@ func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_Errors() {
 	maliciousTxs := []*gethprimitives.Transaction{maliciousTx}
 
 	// Create a malicious block by injecting an invalid transaction.
-	maliciousBlock := simulated.CreateBeaconBlockWithTransactions(require.New(s.T()), s.SimulationClient, simulated.DefaultSimulationInput(require.New(s.T()), s.TestNode.ChainSpec, proposedBlock, maliciousTxs), proposedBlock.GetMessage(), blsSigner, s.TestNode.ChainSpec, s.GenesisValidatorsRoot, maliciousTxs)
+	maliciousBlock := simulated.ComputeAndSetExecutionBlock(s.T(), proposedBlock.GetMessage(), s.SimulationClient, s.TestNode.ChainSpec, maliciousTxs)
 
 	maliciousBlockBytes, err := maliciousBlock.MarshalSSZ()
 	s.Require().NoError(err)

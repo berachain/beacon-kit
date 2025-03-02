@@ -59,7 +59,7 @@ func TransformSimulatedBlockToGethBlock(simBlock *execution.SimulatedBlock, txs 
 			GasLimit:         (uint64)(*simBlock.GasLimit),
 			GasUsed:          (uint64)(*simBlock.GasUsed),
 			Time:             (uint64)(*simBlock.Timestamp),
-			BaseFee:          baseFeePerGas, // Simulation sets BaseFee to zero which is incorrect
+			BaseFee:          baseFeePerGas,
 			Extra:            simBlock.ExtraData,
 			MixDigest:        simBlock.MixHash,
 			WithdrawalsHash:  &withdrawalsHash,
