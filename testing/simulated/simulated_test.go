@@ -77,7 +77,7 @@ func (s *SimulatedSuite) SetupTest() {
 	s.GenesisValidatorsRoot = genesisValidatorsRoot
 
 	// Start the EL (execution layer) Geth node.
-	elNode := execution.NewGethNode(s.HomeDir, execution.ValidGethImage())
+	elNode := execution.NewGethNode(s.HomeDir, execution.ValidGethImageWithSimulate())
 	elHandle, authRPC := elNode.Start(s.T())
 	s.ElHandle = elHandle
 

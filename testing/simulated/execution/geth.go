@@ -122,17 +122,22 @@ func (g *GethNode) Start(t *testing.T) (*dockertest.Resource, *url.ConnectionURL
 	})
 	require.NoError(t, err, "Geth container did not become ready in time")
 
-	// TEMP:
-	raw, err := url.NewFromRaw("http://localhost:8551")
-	require.NoError(t, err, "failed to create raw Geth URL")
-	return nil, raw
-	//return resource, authRPC
+	return resource, authRPC
 }
 
 // ValidGethImage returns the default Docker image options for the Geth node.
 func ValidGethImage() docker.PullImageOptions {
 	return docker.PullImageOptions{
 		Repository: "ethereum/client-go",
+		Tag:        "latest",
+	}
+}
+
+// ValidGethImageWithSimulate returns the default Docker image options for the Geth node with Simulate API
+// https://github.com/ethereum/go-ethereum/pull/31304/files.
+func ValidGethImageWithSimulate() docker.PullImageOptions {
+	return docker.PullImageOptions{
+		Repository: "rezbera/geth-simulate",
 		Tag:        "latest",
 	}
 }
