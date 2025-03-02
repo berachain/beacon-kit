@@ -93,7 +93,9 @@ start-reth: ## start an ephemeral `reth` node
 
 start-reth-bepolia:
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
-	@docker run \
+	@bootnodes=`cat $(PWD)/$(BEPOLIA_NETWORK_FILES_DIR)/el-peers.txt`; \
+	echo "Using bootnodes: $$bootnodes"; \
+	docker run \
 	-p 30303:30303 \
 	-p 8545:8545 \
 	-p 8551:8551 \
@@ -108,7 +110,8 @@ start-reth-bepolia:
 	--authrpc.addr "0.0.0.0" \
 	--authrpc.jwtsecret $(JWT_PATH) \
 	--datadir ${ETH_DATA_DIR} \
-	--ipcpath ${IPC_PATH}
+	--ipcpath ${IPC_PATH} \
+	--trusted-peers $$bootnodes
 
 start-reth-host: ## start a local ephemeral `reth` node on host machine
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
