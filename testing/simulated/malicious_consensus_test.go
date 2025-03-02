@@ -91,7 +91,7 @@ func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_Errors() {
 	maliciousTxs := []*gethprimitives.Transaction{maliciousTx}
 
 	// Create a malicious block by injecting an invalid transaction.
-	maliciousBlock := simulated.CreateSignedBlockWithTransactions(require.New(s.T()), s.SimulationClient, simulated.DefaultSimulationInput(require.New(s.T()), s.TestNode.ChainSpec, proposedBlock, maliciousTxs), proposedBlock, blsSigner, s.TestNode.ChainSpec, s.GenesisValidatorsRoot, maliciousTxs, nil)
+	maliciousBlock := simulated.CreateBeaconBlockWithTransactions(require.New(s.T()), s.SimulationClient, simulated.DefaultSimulationInput(require.New(s.T()), s.TestNode.ChainSpec, proposedBlock, maliciousTxs), proposedBlock.GetMessage(), blsSigner, s.TestNode.ChainSpec, s.GenesisValidatorsRoot, maliciousTxs)
 
 	maliciousBlockBytes, err := maliciousBlock.MarshalSSZ()
 	s.Require().NoError(err)
@@ -106,7 +106,7 @@ func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_Errors() {
 		Txs:             proposal.Txs,
 		Height:          blockHeight + coreLoopIterations,
 		ProposerAddress: pubkey.Address(),
-		Time:            time.Unix(int64(maliciousBlock.GetMessage().GetTimestamp()), 0),
+		Time:            time.Unix(int64(maliciousBlock.GetTimestamp()), 0),
 	})
 	s.Require().ErrorIs(err, errors.ErrInvalidPayloadStatus)
 	s.Require().Nil(finalizeResp)

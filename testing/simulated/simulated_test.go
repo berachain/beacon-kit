@@ -30,13 +30,16 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
+	"github.com/berachain/beacon-kit/primitives/crypto"
 	mathpkg "github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
 	"github.com/cometbft/cometbft/abci/types"
@@ -220,6 +223,8 @@ func (s *SimulatedSuite) TestCoreLoop_InjectedTransactions_IsSuccessful() {
 	)
 	s.Require().NoError(err)
 
+	consensusTime := time.Unix(int64(proposedBlock.GetMessage().GetTimestamp()), 0)
+
 	// Sign a malicious transaction that is expected to fail.
 	recipientAddress := gethcommon.HexToAddress("0x56898d1aFb10cad584961eb96AcD476C6826e41E")
 	maliciousTx, err := gethtypes.SignNewTx(
@@ -240,24 +245,56 @@ func (s *SimulatedSuite) TestCoreLoop_InjectedTransactions_IsSuccessful() {
 	// REZ: removed txs
 	maliciousTxs := []*gethprimitives.Transaction{maliciousTx}
 
+	// Create a malicious block by injecting an invalid transaction.
+	unsignedBlock := simulated.CreateBeaconBlockWithTransactions(
+		require.New(s.T()),
+		s.SimulationClient,
+		simulated.DefaultSimulationInput(require.New(s.T()), s.TestNode.ChainSpec, proposedBlock, maliciousTxs),
+		proposedBlock.GetMessage(),
+		blsSigner,
+		s.TestNode.ChainSpec,
+		s.GenesisValidatorsRoot,
+		maliciousTxs,
+	)
+
+	s.Require().NotNil(s.TestNode.StateProcessor)
+	stateProcessor := s.TestNode.StateProcessor
+
+	proposerAddress, err := crypto.GetAddressFromPubKey(blsSigner.PublicKey())
+	s.Require().NoError(err)
+
 	// Validate post-commit state.
 	queryCtx, err := s.SimComet.CreateQueryContext(blockHeight+coreLoopIterations-1, false)
 	s.Require().NoError(err)
 	stateDBCopy := s.TestNode.StorageBackend.StateFromContext(queryCtx).Copy(queryCtx)
 
-	// Create a malicious block by injecting an invalid transaction.
-	maliciousBlock := simulated.CreateSignedBlockWithTransactions(
-		require.New(s.T()),
-		s.SimulationClient,
-		simulated.DefaultSimulationInput(require.New(s.T()), s.TestNode.ChainSpec, proposedBlock, maliciousTxs),
-		proposedBlock,
-		blsSigner,
+	txCtx := transition.NewTransitionCtx(
+		queryCtx,
+		mathpkg.U64(consensusTime.Unix()),
+		proposerAddress,
+	).
+		WithVerifyPayload(false).
+		WithVerifyRandao(false).
+		WithVerifyResult(false).
+		WithMeterGas(false)
+	_, err = stateProcessor.Transition(txCtx, stateDBCopy, unsignedBlock)
+	s.Require().NoError(err)
+
+	newStateRoot := stateDBCopy.HashTreeRoot()
+	unsignedBlock.SetStateRoot(newStateRoot)
+
+	newSignedBlock, err := ctypes.NewSignedBeaconBlock(
+		unsignedBlock,
+		&ctypes.ForkData{
+			CurrentVersion:        s.TestNode.ChainSpec.ActiveForkVersionForSlot(unsignedBlock.GetSlot()),
+			GenesisValidatorsRoot: s.GenesisValidatorsRoot,
+		},
 		s.TestNode.ChainSpec,
-		s.GenesisValidatorsRoot,
-		maliciousTxs,
-		stateDBCopy,
+		blsSigner,
 	)
-	maliciousBlockBytes, err := maliciousBlock.MarshalSSZ()
+	s.Require().NoError(err)
+
+	maliciousBlockBytes, err := newSignedBlock.MarshalSSZ()
 	s.Require().NoError(err)
 
 	// Replace the valid block with the malicious block in the proposal.
@@ -270,7 +307,7 @@ func (s *SimulatedSuite) TestCoreLoop_InjectedTransactions_IsSuccessful() {
 		Txs:             proposal.Txs,
 		Height:          blockHeight + coreLoopIterations,
 		ProposerAddress: pubkey.Address(),
-		Time:            time.Unix(int64(maliciousBlock.GetMessage().GetTimestamp()), 0),
+		Time:            consensusTime,
 	})
 	s.Require().NoError(err)
 	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)

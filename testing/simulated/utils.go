@@ -39,7 +39,6 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	mathpkg "github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
-	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -110,17 +109,17 @@ func DefaultSimulationInput(t *require.Assertions, chainSpec chain.Spec, origBlo
 	return simulationInput
 }
 
-// CreateSignedBlockWithTransactions creates a new beacon block with the provided transactions.
+// CreateBeaconBlockWithTransactions creates a new beacon block with the provided transactions.
 // This process requires the engine client as we must simulate to obtain the receipts root
-func CreateSignedBlockWithTransactions(t *require.Assertions, simulationClient *execution.SimulationClient, simulationInput *execution.SimulateInputs, origBlock *ctypes.SignedBeaconBlock, blsSigner *signer.BLSSigner, chainSpec chain.Spec, genesisValidatorsRoot common.Root, txs []*gethprimitives.Transaction, stateDBCopy *statedb.StateDB) *ctypes.SignedBeaconBlock {
+func CreateBeaconBlockWithTransactions(t *require.Assertions, simulationClient *execution.SimulationClient, simulationInput *execution.SimulateInputs, origBlock *ctypes.BeaconBlock, blsSigner *signer.BLSSigner, chainSpec chain.Spec, genesisValidatorsRoot common.Root, txs []*gethprimitives.Transaction) *ctypes.BeaconBlock {
 	// Refers to the block number on top of which we simulate
-	simulateOnBlock := int64(origBlock.GetMessage().Slot.Unwrap()) - 1
+	simulateOnBlock := int64(origBlock.GetSlot().Unwrap()) - 1
 	simulatedBlocks, err := simulationClient.Simulate(context.TODO(), simulateOnBlock, simulationInput)
 	t.NoError(err)
 	t.Len(simulatedBlocks, 1)
 	simBlock := simulatedBlocks[0]
 
-	origExec := origBlock.GetMessage().GetBody().GetExecutionPayload()
+	origExec := origBlock.GetBody().GetExecutionPayload()
 	fmt.Println(origExec)
 
 	//t.Equal(gethprimitives.DeriveSha(gethprimitives.Transactions(txs), gethprimitives.NewStackTrie(nil)), simBlock.TransactionsRoot)
@@ -130,11 +129,11 @@ func CreateSignedBlockWithTransactions(t *require.Assertions, simulationClient *
 	t.Equal(gethprimitives.DeriveSha(simBlock.Withdrawals, gethprimitives.NewStackTrie(nil)), simBlock.WithdrawalsRoot)
 
 	// Get the current fork version from the slot.
-	forkVersion := chainSpec.ActiveForkVersionForSlot(origBlock.GetMessage().Slot)
+	forkVersion := chainSpec.ActiveForkVersionForSlot(origBlock.GetSlot())
 
 	txs, sidecars := SplitTxs(txs)
 
-	origParentBeaconRoot := origBlock.GetMessage().GetParentBlockRoot()
+	origParentBeaconRoot := origBlock.GetParentBlockRoot()
 	executionBlock := TransformSimulatedBlockToGethBlock(
 		simulatedBlocks[0],
 		txs,
@@ -155,23 +154,8 @@ func CreateSignedBlockWithTransactions(t *require.Assertions, simulationClient *
 
 	// Replace the original payload with the new one.
 	// Chaned the execution payload but not state root?
-	origBlock.GetMessage().GetBody().SetExecutionPayload(executionPayload)
-
-	// TODO: Update the StateRoot in the BeaconBlock. Will need to calculate by
-
-	fmt.Println("REZ: StateDB Copy: ", stateDBCopy.HashTreeRoot().Hex())
-	// Update the block's signature over the new payload.
-	newBlock, err := ctypes.NewSignedBeaconBlock(
-		origBlock.GetMessage(),
-		&ctypes.ForkData{
-			CurrentVersion:        chainSpec.ActiveForkVersionForSlot(origBlock.GetMessage().Slot),
-			GenesisValidatorsRoot: genesisValidatorsRoot,
-		},
-		chainSpec,
-		blsSigner,
-	)
-	t.NoError(err, "failed to update signature over the new payload")
-	return newBlock
+	origBlock.GetBody().SetExecutionPayload(executionPayload)
+	return origBlock
 }
 
 // executableDataToExecutionPayload converts Ethereum executable data to a beacon execution payload.

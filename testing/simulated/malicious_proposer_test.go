@@ -93,22 +93,12 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	maliciousTxs := []*gethprimitives.Transaction{maliciousTx}
 
 	// Validate post-commit state.
-	queryCtx, err := s.SimComet.CreateQueryContext(blockHeight+coreLoopIterations-1, false)
-	s.Require().NoError(err)
-	stateDBCopy := s.TestNode.StorageBackend.StateFromContext(queryCtx).Copy(queryCtx)
+	//queryCtx, err := s.SimComet.CreateQueryContext(blockHeight+coreLoopIterations-1, false)
+	//s.Require().NoError(err)
+	//stateDBCopy := s.TestNode.StorageBackend.StateFromContext(queryCtx).Copy(queryCtx)
 
 	// Create a malicious block by injecting an invalid transaction.
-	maliciousBlock := simulated.CreateSignedBlockWithTransactions(
-		require.New(s.T()),
-		s.SimulationClient,
-		simulated.DefaultSimulationInput(require.New(s.T()), s.TestNode.ChainSpec, proposedBlock, maliciousTxs),
-		proposedBlock,
-		blsSigner,
-		s.TestNode.ChainSpec,
-		s.GenesisValidatorsRoot,
-		maliciousTxs,
-		stateDBCopy,
-	)
+	maliciousBlock := simulated.CreateBeaconBlockWithTransactions(require.New(s.T()), s.SimulationClient, simulated.DefaultSimulationInput(require.New(s.T()), s.TestNode.ChainSpec, proposedBlock, maliciousTxs), proposedBlock.GetMessage(), blsSigner, s.TestNode.ChainSpec, s.GenesisValidatorsRoot, maliciousTxs)
 	maliciousBlockBytes, err := maliciousBlock.MarshalSSZ()
 	s.Require().NoError(err)
 
@@ -122,7 +112,7 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 		Txs:             proposal.Txs,
 		Height:          blockHeight + coreLoopIterations,
 		ProposerAddress: pubkey.Address(),
-		Time:            time.Unix(int64(maliciousBlock.GetMessage().GetTimestamp()), 0),
+		Time:            time.Unix(int64(maliciousBlock.GetTimestamp()), 0),
 	})
 	s.Require().NoError(err)
 	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)

@@ -41,6 +41,7 @@ import (
 	nodetypes "github.com/berachain/beacon-kit/node-core/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/net/url"
+	"github.com/berachain/beacon-kit/state-transition/core"
 	"github.com/berachain/beacon-kit/storage/db"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	dbm "github.com/cosmos/cosmos-db"
@@ -65,6 +66,7 @@ type TestNode struct {
 	APIBackend     nodecomponents.NodeAPIBackend
 	KZGVerifier    kzg.BlobProofVerifier
 	EngineClient   *client.EngineClient
+	StateProcessor *core.StateProcessor
 }
 
 // NewTestNode Uses the testnet chainspec.
@@ -113,6 +115,7 @@ func buildNode(
 		chainSpec      chain.Spec
 		kzgVerifier    kzg.BlobProofVerifier
 		engineClient   *client.EngineClient
+		stateProcessor *core.StateProcessor
 	)
 
 	// build all node components using depinject
@@ -136,6 +139,7 @@ func buildNode(
 		&chainSpec,
 		&kzgVerifier,
 		&engineClient,
+		&stateProcessor,
 	); err != nil {
 		panic(err)
 	}
@@ -155,6 +159,7 @@ func buildNode(
 		APIBackend:     apiBackend,
 		KZGVerifier:    kzgVerifier,
 		EngineClient:   engineClient,
+		StateProcessor: stateProcessor,
 	}
 }
 
