@@ -92,13 +92,15 @@ func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
 	// Verify that the payload is telling the truth about its block hash.
 	if common.ExecutionHash(block.Hash()) != n.ExecutionPayload.GetBlockHash() {
 		return errors.Wrapf(engineprimitives.ErrPayloadBlockHashMismatch,
-			"%x, got %x",
+			"expected %x, got %x",
 			block.Hash(), n.ExecutionPayload.GetBlockHash(),
 		)
 	}
 	return nil
 }
 
+// MakeEthBlock builds an Ethereum block out of given payload and parent block root.
+// It also returns blobHashes out of payload to ease up checks.
 func MakeEthBlock(
 	payload *ExecutionPayload,
 	parentBeaconBlockRoot *common.Root,
@@ -109,7 +111,7 @@ func MakeEthBlock(
 ) {
 	var (
 		txs        = make([]*gethprimitives.Transaction, 0, len(payload.GetTransactions()))
-		blobHashes = make([]gethprimitives.ExecutionHash, 0) // needed for extra checks
+		blobHashes = make([]gethprimitives.ExecutionHash, 0)
 	)
 
 	for i, encTx := range payload.GetTransactions() {
