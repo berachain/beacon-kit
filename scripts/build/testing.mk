@@ -160,6 +160,9 @@ start-geth-bepolia:
 	--datadir ${ETH_DATA_DIR} \
 	${BEPOLIA_ETH_GENESIS_PATH}
 
+	@# Read bootnodes from the file; the file is mounted into the container.
+	@bootnodes=`cat $(PWD)/$(BEPOLIA_NETWORK_FILES_DIR)/el-peers.txt`; \
+	echo "Using bootnodes: $$bootnodes"; \
 	docker run \
 	-p 30303:30303 \
 	-p 8545:8545 \
@@ -175,7 +178,9 @@ start-geth-bepolia:
 	--authrpc.jwtsecret $(JWT_PATH) \
 	--authrpc.vhosts "*" \
 	--datadir ${ETH_DATA_DIR} \
-	--ipcpath ${IPC_PATH}
+	--ipcpath ${IPC_PATH} \
+	--syncmode=full \
+	--bootnodes $$bootnodes
 
 start-geth-host: ## start a local ephemeral `geth` node on host machine
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
