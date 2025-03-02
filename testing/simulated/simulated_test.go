@@ -25,11 +25,13 @@ package simulated_test
 import (
 	"bytes"
 	"context"
+	"math/big"
 	"testing"
 	"time"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
+	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -39,7 +41,10 @@ import (
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
 	"github.com/cometbft/cometbft/abci/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+	gethcommon "github.com/ethereum/go-ethereum/common"
+	gethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/spf13/viper"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -178,6 +183,97 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlock_IsSuccessful() {
 	)
 	s.Require().NoError(err)
 	s.Require().Equal(proposedBlock.Message.GetHeader().GetBodyRoot(), stateHeader.GetBodyRoot())
+}
+
+// TestCoreLoop_InjectedTransactions_IsSuccessful effectively serves as a demonstration for how one can
+// inject custom transactions and state transitions into the core loop.
+func (s *SimulatedSuite) TestCoreLoop_InjectedTransactions_IsSuccessful() {
+	const blockHeight = 1
+	const coreLoopIterations = 1
+
+	// Initialize the chain state.
+	s.initializeChain()
+
+	// Retrieve the BLS signer and proposer address.
+	blsSigner := simulated.GetBlsSigner(s.HomeDir)
+	pubkey, err := blsSigner.GetPubKey()
+	s.Require().NoError(err)
+
+	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
+	proposals := s.CoreLoop(blockHeight, coreLoopIterations, blsSigner)
+	s.Require().Len(proposals, coreLoopIterations)
+
+	// Prepare a valid block proposal.
+	proposal, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{
+		Height:          blockHeight + coreLoopIterations,
+		Time:            time.Now(),
+		ProposerAddress: pubkey.Address(),
+	})
+	s.Require().NoError(err)
+	s.Require().NotEmpty(proposal)
+
+	// Unmarshal the proposal block.
+	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
+		proposal.Txs,
+		blockchain.BeaconBlockTxIndex,
+		s.TestNode.ChainSpec.ActiveForkVersionForSlot(blockHeight+coreLoopIterations),
+	)
+	s.Require().NoError(err)
+
+	// Sign a malicious transaction that is expected to fail.
+	recipientAddress := gethcommon.HexToAddress("0x56898d1aFb10cad584961eb96AcD476C6826e41E")
+	maliciousTx, err := gethtypes.SignNewTx(
+		simulated.GetTestKey(s.T()),
+		gethtypes.NewCancunSigner(big.NewInt(int64(s.TestNode.ChainSpec.DepositEth1ChainID()))),
+		&gethtypes.DynamicFeeTx{
+			Nonce:     0,
+			To:        &recipientAddress,
+			Value:     big.NewInt(0),
+			Gas:       21016,
+			GasTipCap: big.NewInt(765625000),
+			GasFeeCap: big.NewInt(765625000),
+			Data:      []byte{},
+		},
+	)
+
+	// Initialize the slice with the malicious transaction.
+	// REZ: removed txs
+	maliciousTxs := []*gethprimitives.Transaction{maliciousTx}
+
+	// Validate post-commit state.
+	queryCtx, err := s.SimComet.CreateQueryContext(blockHeight+coreLoopIterations-1, false)
+	s.Require().NoError(err)
+	stateDBCopy := s.TestNode.StorageBackend.StateFromContext(queryCtx).Copy(queryCtx)
+
+	// Create a malicious block by injecting an invalid transaction.
+	maliciousBlock := simulated.CreateSignedBlockWithTransactions(
+		require.New(s.T()),
+		s.SimulationClient,
+		simulated.DefaultSimulationInput(require.New(s.T()), s.TestNode.ChainSpec, proposedBlock, maliciousTxs),
+		proposedBlock,
+		blsSigner,
+		s.TestNode.ChainSpec,
+		s.GenesisValidatorsRoot,
+		maliciousTxs,
+		stateDBCopy,
+	)
+	maliciousBlockBytes, err := maliciousBlock.MarshalSSZ()
+	s.Require().NoError(err)
+
+	// Replace the valid block with the malicious block in the proposal.
+	proposal.Txs[0] = maliciousBlockBytes
+
+	// Reset the log buffer to discard old logs we don't care about
+	s.LogBuffer.Reset()
+	// Process the proposal containing the malicious block.
+	processResp, err := s.SimComet.Comet.ProcessProposal(s.Ctx, &types.ProcessProposalRequest{
+		Txs:             proposal.Txs,
+		Height:          blockHeight + coreLoopIterations,
+		ProposerAddress: pubkey.Address(),
+		Time:            time.Unix(int64(maliciousBlock.GetMessage().GetTimestamp()), 0),
+	})
+	s.Require().NoError(err)
+	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
 }
 
 // CoreLoop will iterate through the core loop `iterations` times, i.e. Propose, Process, Finalize and Commit.

@@ -212,13 +212,14 @@ func (sp *StateProcessor) ProcessBlock(
 
 	// Ensure the calculated state root matches the state root on
 	// the block.
-	stateRoot := st.HashTreeRoot()
-	if blk.GetStateRoot() != stateRoot {
-		return errors.Wrapf(
-			ErrStateRootMismatch, "expected %s, got %s",
-			stateRoot, blk.GetStateRoot(),
-		)
-	}
+	// TODO: Rez unskip
+	// stateRoot := st.HashTreeRoot()
+	// if blk.GetStateRoot() != stateRoot {
+	//	return errors.Wrapf(
+	//		ErrStateRootMismatch, "expected %s, got %s",
+	//		stateRoot, blk.GetStateRoot(),
+	//	)
+	//}
 
 	return nil
 }

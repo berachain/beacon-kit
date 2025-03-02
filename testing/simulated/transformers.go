@@ -29,20 +29,18 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	libcommon "github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
 	"github.com/ethereum/go-ethereum/common"
 	gethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
-func TransformSimulatedBlockToGethBlock(simBlock *execution.SimulatedBlock, txs []*gethtypes.Transaction, withdrawals engineprimitives.Withdrawals, parentBeaconRoot libcommon.Root, baseFeePerGas *math.U256) *gethtypes.Block {
+func TransformSimulatedBlockToGethBlock(simBlock *execution.SimulatedBlock, txs []*gethtypes.Transaction, parentBeaconRoot libcommon.Root) *gethtypes.Block {
 	// Construct a new execution block header with the provided transactions.
 	excessBlobGas := simBlock.ExcessBlobGas.ToInt().Uint64()
 	blobGasUsed := simBlock.BlobGasUsed.ToInt().Uint64()
-	// Remove the withdrawals as it modifies the StateRoot which we cannot simulate.
-	//withdrawals = engineprimitives.Withdrawals{}
+	baseFeePerGas := simBlock.BaseFeePerGas.ToInt()
 	withdrawalsHash := gethprimitives.DeriveSha(
-		withdrawals,
+		simBlock.Withdrawals,
 		gethprimitives.NewStackTrie(nil),
 	)
 	executionBlock := gethprimitives.NewBlockWithHeader(
@@ -61,7 +59,7 @@ func TransformSimulatedBlockToGethBlock(simBlock *execution.SimulatedBlock, txs 
 			GasLimit:         (uint64)(*simBlock.GasLimit),
 			GasUsed:          (uint64)(*simBlock.GasUsed),
 			Time:             (uint64)(*simBlock.Timestamp),
-			BaseFee:          baseFeePerGas.ToBig(), // Simulation sets BaseFee to zero which is incorrect
+			BaseFee:          baseFeePerGas, // Simulation sets BaseFee to zero which is incorrect
 			Extra:            simBlock.ExtraData,
 			MixDigest:        simBlock.MixHash,
 			WithdrawalsHash:  &withdrawalsHash,
@@ -72,7 +70,7 @@ func TransformSimulatedBlockToGethBlock(simBlock *execution.SimulatedBlock, txs 
 	).WithBody(gethprimitives.Body{
 		Transactions: txs,
 		Uncles:       nil,
-		Withdrawals:  *(*gethprimitives.Withdrawals)(unsafe.Pointer(&withdrawals)),
+		Withdrawals:  simBlock.Withdrawals,
 	})
 	return executionBlock
 }

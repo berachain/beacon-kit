@@ -74,7 +74,7 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 
 	// Sign a malicious transaction that is expected to fail.
 	recipientAddress := gethcommon.HexToAddress("0x56898d1aFb10cad584961eb96AcD476C6826e41E")
-	_, err = gethtypes.SignNewTx(
+	maliciousTx, err := gethtypes.SignNewTx(
 		simulated.GetTestKey(s.T()),
 		gethtypes.NewCancunSigner(big.NewInt(int64(s.TestNode.ChainSpec.DepositEth1ChainID()))),
 		&gethtypes.DynamicFeeTx{
@@ -82,15 +82,20 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 			To:        &recipientAddress,
 			Value:     big.NewInt(0),
 			Gas:       21016,
-			GasTipCap: big.NewInt(765625000),
-			GasFeeCap: big.NewInt(765625000),
+			GasTipCap: big.NewInt(10000000),
+			GasFeeCap: big.NewInt(10000000),
 			Data:      []byte{},
 		},
 	)
 
 	// Initialize the slice with the malicious transaction.
 	// REZ: removed txs
-	maliciousTxs := []*gethprimitives.Transaction{}
+	maliciousTxs := []*gethprimitives.Transaction{maliciousTx}
+
+	// Validate post-commit state.
+	queryCtx, err := s.SimComet.CreateQueryContext(blockHeight+coreLoopIterations-1, false)
+	s.Require().NoError(err)
+	stateDBCopy := s.TestNode.StorageBackend.StateFromContext(queryCtx).Copy(queryCtx)
 
 	// Create a malicious block by injecting an invalid transaction.
 	maliciousBlock := simulated.CreateSignedBlockWithTransactions(
@@ -102,6 +107,7 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 		s.TestNode.ChainSpec,
 		s.GenesisValidatorsRoot,
 		maliciousTxs,
+		stateDBCopy,
 	)
 	maliciousBlockBytes, err := maliciousBlock.MarshalSSZ()
 	s.Require().NoError(err)

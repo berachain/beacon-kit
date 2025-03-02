@@ -129,7 +129,7 @@ type SimulatedBlock struct {
 	Transactions          []common.Hash   `json:"transactions"`
 	TransactionsRoot      common.Hash     `json:"transactionsRoot"`
 	Uncles                []common.Hash   `json:"uncles"`
-	Withdrawals           json.RawMessage `json:"withdrawals"` // use RawMessage for now
+	Withdrawals           types.Withdrawals `json:"withdrawals"` // use RawMessage for now
 	WithdrawalsRoot       common.Hash     `json:"withdrawalsRoot"`
 }
 
