@@ -332,11 +332,6 @@ test-simulated: ## run simulation tests
 	$(call FILTER_COVERAGE, temp-test-simulated.txt, test-simulated.txt)
 	@rm temp-test-simulated.txt
 
-test-simulated: ## run simulation tests
-	@echo "Running simulation tests"
-	@go list -f '{{.Dir}}/testing/simulated' -m | xargs \
-		go test -tags simulated -v
-
 test-unit-bench: ## run golang unit benchmarks
 	@echo "Running unit tests with benchmarks..."
 	@go list -f '{{.Dir}}/...' -m | xargs \
