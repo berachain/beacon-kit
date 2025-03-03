@@ -22,6 +22,7 @@ package types_test
 
 import (
 	"testing"
+	"testing/quick"
 
 	"github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -190,16 +191,22 @@ func TestNewWithVersionInvalidForkVersion(t *testing.T) {
 
 func TestPropertyBlockRootAndBlockHeaderRootEquivalence(t *testing.T) {
 	t.Parallel()
-	slot := math.Slot(10)
-	proposerIndex := math.ValidatorIndex(5)
-	parentBlockRoot := common.Root{1, 2, 3, 4, 5}
 
-	blk, err := types.NewBeaconBlockWithVersion(
-		slot,
-		proposerIndex,
-		parentBlockRoot,
-		version.Deneb(),
-	)
-	require.NoError(t, err)
-	require.Equal(t, blk.GetHeader().HashTreeRoot(), blk.HashTreeRoot())
+	qc := &quick.Config{MaxCount: 100}
+
+	f := func(
+		slot math.Slot,
+		proposerIdx math.ValidatorIndex,
+		parentBlockRoot common.Root,
+	) bool {
+		blk, err := types.NewBeaconBlockWithVersion(
+			slot,
+			proposerIdx,
+			parentBlockRoot,
+			version.Deneb(),
+		)
+		require.NoError(t, err)
+		return blk.GetHeader().HashTreeRoot().Equals(blk.HashTreeRoot())
+	}
+	require.NoError(t, quick.Check(f, qc))
 }
