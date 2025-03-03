@@ -56,9 +56,10 @@ func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_Errors() {
 	s.Require().Len(proposals, coreLoopIterations)
 
 	// Prepare a valid block proposal.
+	proposalTime := time.Now()
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{
 		Height:          blockHeight + coreLoopIterations,
-		Time:            time.Now(),
+		Time:            proposalTime,
 		ProposerAddress: pubkey.Address(),
 	})
 	s.Require().NoError(err)
@@ -118,7 +119,7 @@ func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_Errors() {
 		Txs:             proposal.Txs,
 		Height:          blockHeight + coreLoopIterations,
 		ProposerAddress: pubkey.Address(),
-		Time:            time.Unix(int64(maliciousBlock.GetTimestamp()), 0),
+		Time:            proposalTime,
 	})
 	s.Require().ErrorIs(err, errors.ErrInvalidPayloadStatus)
 	s.Require().Nil(finalizeResp)
