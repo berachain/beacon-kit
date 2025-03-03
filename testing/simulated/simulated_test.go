@@ -241,8 +241,8 @@ func (s *SimulatedSuite) TestCoreLoop_InjectedTransactions_IsSuccessful() {
 
 	validTxs := []*gethprimitives.Transaction{validTx}
 	// Create a new beacon block with the valid transaction.
-	// Note: The block returned here has an execution payload with an unfinalized (incorrect) state root.
-	unsignedBlock := simulated.ComputeAndSetExecutionBlock(s.T(), proposedBlock.GetMessage(), s.SimulationClient, s.TestNode.ChainSpec, validTxs)
+	// Note: The beacon block returned here has an incorrect beacon state root, which is fixed in `ComputeAndSetStateRoot`.
+	unsignedBlock := simulated.ComputeAndSetValidExecutionBlock(s.T(), proposedBlock.GetMessage(), s.SimulationClient, s.TestNode.ChainSpec, validTxs)
 
 	proposerAddress, err := crypto.GetAddressFromPubKey(blsSigner.PublicKey())
 	s.Require().NoError(err)

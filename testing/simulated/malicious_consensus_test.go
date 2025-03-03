@@ -27,6 +27,7 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/engine-primitives/errors"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
@@ -90,9 +91,21 @@ func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_Errors() {
 	maliciousTxs := []*gethprimitives.Transaction{maliciousTx}
 
 	// Create a malicious block by injecting an invalid transaction.
-	maliciousBlock := simulated.ComputeAndSetExecutionBlock(s.T(), proposedBlock.GetMessage(), s.SimulationClient, s.TestNode.ChainSpec, maliciousTxs)
+	maliciousBlock := simulated.ComputeAndSetInvalidExecutionBlock(s.T(), proposedBlock.GetMessage(), s.TestNode.ChainSpec, maliciousTxs)
 
-	maliciousBlockBytes, err := maliciousBlock.MarshalSSZ()
+	// Re-sign the block
+	maliciousBlockSigned, err := ctypes.NewSignedBeaconBlock(
+		maliciousBlock,
+		&ctypes.ForkData{
+			CurrentVersion:        s.TestNode.ChainSpec.ActiveForkVersionForSlot(maliciousBlock.GetSlot()),
+			GenesisValidatorsRoot: s.GenesisValidatorsRoot,
+		},
+		s.TestNode.ChainSpec,
+		blsSigner,
+	)
+	s.Require().NoError(err)
+
+	maliciousBlockBytes, err := maliciousBlockSigned.MarshalSSZ()
 	s.Require().NoError(err)
 
 	// Replace the valid block with the malicious block in the proposal.

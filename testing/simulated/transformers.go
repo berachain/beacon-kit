@@ -26,6 +26,7 @@ import (
 	"math/big"
 	"unsafe"
 
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	libcommon "github.com/berachain/beacon-kit/primitives/common"
@@ -34,7 +35,41 @@ import (
 	gethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
-func TransformSimulatedBlockToGethBlock(simBlock *execution.SimulatedBlock, txs []*gethtypes.Transaction, parentBeaconRoot libcommon.Root) *gethtypes.Block {
+func tranformExecutionPayloadToGethBlock(payload *ctypes.ExecutionPayload, txs []*gethtypes.Transaction, parentBeaconRoot libcommon.Root) *gethtypes.Block {
+	withdrawals := payload.GetWithdrawals()
+	withdrawalsHash := gethprimitives.DeriveSha(withdrawals, gethprimitives.NewStackTrie(nil))
+	// Construct a new execution block header and body using the malicious transactions.
+	executionBlock := gethprimitives.NewBlockWithHeader(
+		&gethprimitives.Header{
+			ParentHash:       gethprimitives.ExecutionHash(payload.GetParentHash()),
+			UncleHash:        gethprimitives.EmptyUncleHash,
+			Coinbase:         gethprimitives.ExecutionAddress(payload.GetFeeRecipient()),
+			Root:             gethprimitives.ExecutionHash(payload.GetStateRoot()),
+			TxHash:           gethprimitives.DeriveSha(gethprimitives.Transactions(txs), gethprimitives.NewStackTrie(nil)),
+			ReceiptHash:      gethprimitives.ExecutionHash(payload.GetReceiptsRoot()),
+			Bloom:            gethprimitives.LogsBloom(payload.GetLogsBloom()),
+			Difficulty:       big.NewInt(0),
+			Number:           new(big.Int).SetUint64(payload.GetNumber().Unwrap()),
+			GasLimit:         payload.GetGasLimit().Unwrap(),
+			GasUsed:          payload.GetGasUsed().Unwrap(),
+			Time:             payload.GetTimestamp().Unwrap(),
+			BaseFee:          payload.GetBaseFeePerGas().ToBig(),
+			Extra:            payload.GetExtraData(),
+			MixDigest:        gethprimitives.ExecutionHash(payload.GetPrevRandao()),
+			WithdrawalsHash:  &withdrawalsHash,
+			ExcessBlobGas:    payload.GetExcessBlobGas().UnwrapPtr(),
+			BlobGasUsed:      payload.GetBlobGasUsed().UnwrapPtr(),
+			ParentBeaconRoot: (*gethprimitives.ExecutionHash)(&parentBeaconRoot),
+		},
+	).WithBody(gethprimitives.Body{
+		Transactions: txs,
+		Uncles:       nil,
+		Withdrawals:  *(*gethprimitives.Withdrawals)(unsafe.Pointer(&withdrawals)),
+	})
+	return executionBlock
+}
+
+func transformSimulatedBlockToGethBlock(simBlock *execution.SimulatedBlock, txs []*gethtypes.Transaction, parentBeaconRoot libcommon.Root) *gethtypes.Block {
 	// Construct a new execution block header with the provided transactions.
 	excessBlobGas := simBlock.ExcessBlobGas.ToInt().Uint64()
 	blobGasUsed := simBlock.BlobGasUsed.ToInt().Uint64()
@@ -75,7 +110,7 @@ func TransformSimulatedBlockToGethBlock(simBlock *execution.SimulatedBlock, txs 
 	return executionBlock
 }
 
-func TransformWithdrawalsToGethWithdrawals(withdrawals engineprimitives.Withdrawals) gethtypes.Withdrawals {
+func transformWithdrawalsToGethWithdrawals(withdrawals engineprimitives.Withdrawals) gethtypes.Withdrawals {
 	w := make([]*gethtypes.Withdrawal, len(withdrawals))
 	for i, withdrawal := range withdrawals {
 		gethWithdrawal := (*gethtypes.Withdrawal)(unsafe.Pointer(withdrawal))
@@ -84,10 +119,10 @@ func TransformWithdrawalsToGethWithdrawals(withdrawals engineprimitives.Withdraw
 	return w
 }
 
-// SplitTxs iterates over txs and returns two slices:
+// splitTxs iterates over txs and returns two slices:
 // 1. The transactions with their blob sidecars removed.
 // 2. Any blob sidecars that were present.
-func SplitTxs(txs []*gethtypes.Transaction) (txsWithoutSidecars []*gethtypes.Transaction, txSidecars []*gethtypes.BlobTxSidecar) {
+func splitTxs(txs []*gethtypes.Transaction) (txsWithoutSidecars []*gethtypes.Transaction, txSidecars []*gethtypes.BlobTxSidecar) {
 	// Preallocate slices (optional but can improve performance)
 	txsWithoutSidecars = make([]*gethtypes.Transaction, 0, len(txs))
 	txSidecars = make([]*gethtypes.BlobTxSidecar, 0, len(txs))

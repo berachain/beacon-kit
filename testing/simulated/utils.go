@@ -46,6 +46,7 @@ import (
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	gethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/require"
@@ -88,7 +89,7 @@ func DefaultSimulationInput(t *testing.T, chainSpec chain.Spec, origBlock *ctype
 	overridePrevRandao := gethcommon.Hash(origBlock.GetBody().GetExecutionPayload().GetPrevRandao())
 	overrideBaseFeePerGas := origBlock.GetBody().GetExecutionPayload().GetBaseFeePerGas().ToBig()
 	overrideBeaconRoot := gethcommon.HexToHash(origBlock.GetParentBlockRoot().Hex())
-	overrideWithdrawals := TransformWithdrawalsToGethWithdrawals(origBlock.GetBody().GetExecutionPayload().GetWithdrawals())
+	overrideWithdrawals := transformWithdrawalsToGethWithdrawals(origBlock.GetBody().GetExecutionPayload().GetWithdrawals())
 
 	calls, err := execution.TxsToTransactionArgs(chainSpec.DepositEth1ChainID(), txs)
 	require.NoError(t, err)
@@ -104,30 +105,66 @@ func DefaultSimulationInput(t *testing.T, chainSpec chain.Spec, origBlock *ctype
 					BaseFeePerGas: (*hexutil.Big)(overrideBaseFeePerGas),
 					BeaconRoot:    &overrideBeaconRoot,
 					Withdrawals:   overrideWithdrawals,
-					//BlobBaseFee:   &overrideBlobBaseFee,
+					// TODO: Do we need to override blob base fee?
 				},
 			},
 		},
 		Validation:     true,
-		TraceTransfers: true,
+		TraceTransfers: false,
 	}
 	return simulationInput
 }
 
-// ComputeAndSetExecutionBlock simulates a new execution payload based on the provided transactions,
+// setExecutionPayload converts the given Geth-style block into executable data,
+// converts that into an ExecutionPayload using the given fork version, and then
+// sets that payload into latestBlock. It returns the updated block.
+func setExecutionPayload(
+	t *testing.T,
+	latestBlock *ctypes.BeaconBlock,
+	forkVersion common.Version,
+	execBlock *gethtypes.Block,
+	sidecars []*gethtypes.BlobTxSidecar, // adjust type as needed
+) *ctypes.BeaconBlock {
+	// Convert the Geth block into ExecutableData.
+	execData := gethprimitives.BlockToExecutableData(execBlock, nil, sidecars, nil)
+	// Convert the ExecutableData into our internal ExecutionPayload type.
+	execPayload, err := executableDataToExecutionPayload(forkVersion, execData.ExecutionPayload)
+	require.NoError(t, err, "failed to convert executable data")
+	// Update the beacon block with the new execution payload.
+	latestBlock.GetBody().SetExecutionPayload(execPayload)
+	return latestBlock
+}
+
+// ComputeAndSetInvalidExecutionBlock transforms the current execution payload of latestBlock
+// into a new payload (using the invalid transformation) and updates latestBlock with it.
+// This function mutates latestBlock.
+func ComputeAndSetInvalidExecutionBlock(
+	t *testing.T,
+	latestBlock *ctypes.BeaconBlock,
+	chainSpec chain.Spec,
+	txs []*gethprimitives.Transaction,
+) *ctypes.BeaconBlock {
+	forkVersion := chainSpec.ActiveForkVersionForSlot(latestBlock.GetSlot())
+	txsNoSidecar, sidecars := splitTxs(txs)
+	// Use the current execution payload (e.g. for an invalid block, no simulation is done).
+	executionPayload := latestBlock.GetBody().GetExecutionPayload()
+	// Transform the payload into a Geth block.
+	execBlock := tranformExecutionPayloadToGethBlock(executionPayload, txsNoSidecar, latestBlock.GetParentBlockRoot())
+	return setExecutionPayload(t, latestBlock, forkVersion, execBlock, sidecars)
+}
+
+// ComputeAndSetValidExecutionBlock simulates a new execution payload based on the provided transactions,
 // transforms the simulated block into a Geth-style execution block, and updates the given beacon block
 // with the new execution payload. Note: The returned block's state root is not finalized and must be updated
 // via a state transition (see ComputeAndSetStateRoot).
-// TODO: Make a deep copy of ctypes.BeaconBlock rather than mutating in-place.
-func ComputeAndSetExecutionBlock(
+func ComputeAndSetValidExecutionBlock(
 	t *testing.T,
 	latestBlock *ctypes.BeaconBlock,
 	simClient *execution.SimulationClient,
 	chainSpec chain.Spec,
 	txs []*gethprimitives.Transaction,
 ) *ctypes.BeaconBlock {
-	// Build simulation options using the defaults extracted from the latest block.
-	// Simulation is required because there is no way to calculate the correct ExecutionPayload State and Receipts root.
+	// Run simulation to get a simulated block.
 	baseHeight := int64(latestBlock.GetSlot().Unwrap()) - 1
 	simInput := DefaultSimulationInput(t, chainSpec, latestBlock, txs)
 	simulatedBlocks, err := simClient.Simulate(context.TODO(), baseHeight, simInput)
@@ -136,15 +173,12 @@ func ComputeAndSetExecutionBlock(
 	simBlock := simulatedBlocks[0]
 
 	forkVersion := chainSpec.ActiveForkVersionForSlot(latestBlock.GetSlot())
-	txsNoSidecar, sidecars := SplitTxs(txs)
+	txsNoSidecar, sidecars := splitTxs(txs)
 	origParent := latestBlock.GetParentBlockRoot()
 
-	execBlock := TransformSimulatedBlockToGethBlock(simBlock, txsNoSidecar, origParent)
-	execData := gethprimitives.BlockToExecutableData(execBlock, nil, sidecars, nil)
-	execPayload, err := executableDataToExecutionPayload(forkVersion, execData.ExecutionPayload)
-	require.NoError(t, err, "failed to convert executable data")
-	latestBlock.GetBody().SetExecutionPayload(execPayload)
-	return latestBlock
+	// Transform the simulated block into a Geth block.
+	execBlock := transformSimulatedBlockToGethBlock(simBlock, txsNoSidecar, origParent)
+	return setExecutionPayload(t, latestBlock, forkVersion, execBlock, sidecars)
 }
 
 // ComputeAndSetStateRoot applies a state transition to the given beacon block.
@@ -152,6 +186,7 @@ func ComputeAndSetExecutionBlock(
 // constructs a transition context using the consensus time and proposer address,
 // runs the state transition, and then updates the block’s state root based on the new state.
 // Returns the updated block or an error.
+// TODO: Can we use a mocked execution client for the StateProcessor to avoid doing an unnecessary NewPayload?
 func ComputeAndSetStateRoot(
 	queryCtx context.Context, // A query context (obtained, for example, via a method like CreateQueryContext)
 	consensusTime time.Time, // The consensus time to be used for the transition
