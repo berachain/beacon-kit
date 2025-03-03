@@ -37,10 +37,10 @@ const historicalPayloadIDCacheSize = 2
 // on slot and parent block hash. It is designed to improve the efficiency of
 // payload ID retrieval by caching recent entries.
 type PayloadIDCache struct {
-	// mu protects access to the slotToStateRootToPayloadID map.
+	// mu protects access to the slotToBlockRootToPayloadID map.
 	mu sync.RWMutex
-	// slotToStateRootToPayloadID is used for storing payload ID mappings
-	slotToStateRootToPayloadID map[payloadIDCacheKey]engineprimitives.PayloadID
+	// slotToBlockRootToPayloadID is used for storing payload ID mappings
+	slotToBlockRootToPayloadID map[payloadIDCacheKey]engineprimitives.PayloadID
 }
 
 // payloadIDCacheKey is the (slot, root) tuple that is used to access a
@@ -55,7 +55,7 @@ type payloadIDCacheKey struct {
 func NewPayloadIDCache() *PayloadIDCache {
 	return &PayloadIDCache{
 		mu: sync.RWMutex{},
-		slotToStateRootToPayloadID: make(
+		slotToBlockRootToPayloadID: make(
 			map[payloadIDCacheKey]engineprimitives.PayloadID,
 		),
 	}
@@ -65,11 +65,11 @@ func NewPayloadIDCache() *PayloadIDCache {
 // Has checks if a payload ID exists for a given slot and eth1 hash.
 func (p *PayloadIDCache) Has(
 	slot math.Slot,
-	stateRoot common.Root,
+	blockRoot common.Root,
 ) bool {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
-	_, ok := p.slotToStateRootToPayloadID[payloadIDCacheKey{slot, stateRoot}]
+	_, ok := p.slotToBlockRootToPayloadID[payloadIDCacheKey{slot, blockRoot}]
 	return ok
 }
 
@@ -77,18 +77,18 @@ func (p *PayloadIDCache) Has(
 // evict it from the cache.
 func (p *PayloadIDCache) GetAndEvict(
 	slot math.Slot,
-	stateRoot common.Root,
+	blockRoot common.Root,
 ) (engineprimitives.PayloadID, bool) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	key := payloadIDCacheKey{slot, stateRoot}
-	pid, ok := p.slotToStateRootToPayloadID[key]
+	key := payloadIDCacheKey{slot, blockRoot}
+	pid, ok := p.slotToBlockRootToPayloadID[key]
 	if !ok {
 		return engineprimitives.PayloadID{}, false
 	}
 
 	// Successfully retrieved. Remove from cache.
-	delete(p.slotToStateRootToPayloadID, key)
+	delete(p.slotToBlockRootToPayloadID, key)
 	return pid, true
 }
 
@@ -96,7 +96,7 @@ func (p *PayloadIDCache) GetAndEvict(
 // It also prunes entries in the cache that are older than the
 // historicalPayloadIDCacheSize limit.
 func (p *PayloadIDCache) Set(
-	slot math.Slot, stateRoot common.Root, pid engineprimitives.PayloadID,
+	slot math.Slot, blockRoot common.Root, pid engineprimitives.PayloadID,
 ) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -107,16 +107,16 @@ func (p *PayloadIDCache) Set(
 	}
 
 	// Update the cache with the new payload ID.
-	p.slotToStateRootToPayloadID[payloadIDCacheKey{slot, stateRoot}] = pid
+	p.slotToBlockRootToPayloadID[payloadIDCacheKey{slot, blockRoot}] = pid
 }
 
 // prunePrior removes payload IDs from the cache for slots less than
 // the specified slot. This method helps in managing the memory usage
 // of the cache by discarding outdated entries.
 func (p *PayloadIDCache) prunePrior(slot math.Slot) {
-	for s := range p.slotToStateRootToPayloadID {
+	for s := range p.slotToBlockRootToPayloadID {
 		if s.slot < slot {
-			delete(p.slotToStateRootToPayloadID, s)
+			delete(p.slotToBlockRootToPayloadID, s)
 		}
 	}
 }
