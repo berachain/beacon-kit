@@ -29,19 +29,15 @@ import (
 	"path/filepath"
 	"testing"
 	"time"
-	"unsafe"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
-	"github.com/berachain/beacon-kit/primitives/constants"
 	mathpkg "github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
-	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/state-transition/core"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
 	gethcommon "github.com/ethereum/go-ethereum/common"
@@ -137,8 +133,8 @@ func ComputeAndSetInvalidExecutionBlock(
 
 // ComputeAndSetValidExecutionBlock simulates a new execution payload based on the provided transactions,
 // transforms the simulated block into a Geth-style execution block, and updates the given beacon block
-// with the new execution payload. Note: The returned block's state root is not finalized and must be updated
-// via a state transition (see ComputeAndSetStateRoot).
+// with the new execution payload. This will correctly set the Execution Block State and Receipts Root using simulation.
+// Note: The returned block's state root is not finalized and must be updated via a state transition (see ComputeAndSetStateRoot).
 func ComputeAndSetValidExecutionBlock(
 	t *testing.T,
 	latestBlock *ctypes.BeaconBlock,
@@ -170,12 +166,12 @@ func ComputeAndSetValidExecutionBlock(
 // Returns the updated block or an error.
 // TODO: Can we use a mocked execution client for the StateProcessor to avoid doing an unnecessary NewPayload?
 func ComputeAndSetStateRoot(
-	queryCtx context.Context, // A query context (obtained, for example, via a method like CreateQueryContext)
-	consensusTime time.Time, // The consensus time to be used for the transition
-	proposerAddress []byte, // The address of the block proposer
-	stateProcessor *core.StateProcessor, // The state processor (interface for running state transitions)
-	storageBackend blockchain.StorageBackend, // The storage backend to obtain state
-	block *ctypes.BeaconBlock, // The beacon block to finalize (its state root is initially incorrect)
+	queryCtx context.Context,
+	consensusTime time.Time,
+	proposerAddress []byte,
+	stateProcessor *core.StateProcessor,
+	storageBackend blockchain.StorageBackend,
+	block *ctypes.BeaconBlock,
 ) (*ctypes.BeaconBlock, error) {
 
 	// Copy the current state from the storage backend.
@@ -203,66 +199,6 @@ func ComputeAndSetStateRoot(
 	return block, nil
 }
 
-// executableDataToExecutionPayload converts Ethereum executable data to a beacon execution payload.
-// It supports fork versions before Deneb1 and returns an error if the fork version is not supported.
-func executableDataToExecutionPayload(
-	forkVersion common.Version,
-	data *gethprimitives.ExecutableData,
-) (*ctypes.ExecutionPayload, error) {
-	// Only support fork versions before Deneb1.
-	if version.IsBefore(forkVersion, version.Deneb1()) {
-		// Convert withdrawals from gethprimitives to engineprimitives.
-		withdrawals := make(engineprimitives.Withdrawals, len(data.Withdrawals))
-		for i, withdrawal := range data.Withdrawals {
-			// #nosec:G103 -- safe conversion assuming the underlying types are compatible.
-			withdrawals[i] = (*engineprimitives.Withdrawal)(unsafe.Pointer(withdrawal))
-		}
-
-		// Truncate ExtraData if it exceeds the allowed length.
-		if len(data.ExtraData) > constants.ExtraDataLength {
-			data.ExtraData = data.ExtraData[:constants.ExtraDataLength]
-		}
-
-		// Dereference optional fields safely.
-		var blobGasUsed, excessBlobGas uint64
-		if data.BlobGasUsed != nil {
-			blobGasUsed = *data.BlobGasUsed
-		}
-		if data.ExcessBlobGas != nil {
-			excessBlobGas = *data.ExcessBlobGas
-		}
-
-		// Convert BaseFeePerGas into a U256 value.
-		baseFeePerGas, err := mathpkg.NewU256FromBigInt(data.BaseFeePerGas)
-		if err != nil {
-			return nil, fmt.Errorf("failed baseFeePerGas conversion: %w", err)
-		}
-
-		executionPayload := &ctypes.ExecutionPayload{
-			ParentHash:    common.ExecutionHash(data.ParentHash),
-			FeeRecipient:  common.ExecutionAddress(data.FeeRecipient),
-			StateRoot:     common.Bytes32(data.StateRoot),
-			ReceiptsRoot:  common.Bytes32(data.ReceiptsRoot),
-			LogsBloom:     [256]byte(data.LogsBloom),
-			Random:        common.Bytes32(data.Random),
-			Number:        mathpkg.U64(data.Number),
-			GasLimit:      mathpkg.U64(data.GasLimit),
-			GasUsed:       mathpkg.U64(data.GasUsed),
-			Timestamp:     mathpkg.U64(data.Timestamp),
-			Withdrawals:   withdrawals,
-			ExtraData:     data.ExtraData,
-			BaseFeePerGas: baseFeePerGas,
-			BlockHash:     common.ExecutionHash(data.BlockHash),
-			Transactions:  data.Transactions,
-			BlobGasUsed:   mathpkg.U64(blobGasUsed),
-			ExcessBlobGas: mathpkg.U64(excessBlobGas),
-			EpVersion:     forkVersion,
-		}
-		return executionPayload, nil
-	}
-	return nil, ctypes.ErrForkVersionNotSupported
-}
-
 // setExecutionPayload converts the given Geth-style block into executable data,
 // converts that into an ExecutionPayload using the given fork version, and then
 // sets that payload into latestBlock. It returns the updated block.
@@ -276,7 +212,7 @@ func setExecutionPayload(
 	// Convert the Geth block into ExecutableData.
 	execData := gethprimitives.BlockToExecutableData(execBlock, nil, sidecars, nil)
 	// Convert the ExecutableData into our internal ExecutionPayload type.
-	execPayload, err := executableDataToExecutionPayload(forkVersion, execData.ExecutionPayload)
+	execPayload, err := transformExecutableDataToExecutionPayload(forkVersion, execData.ExecutionPayload)
 	require.NoError(t, err, "failed to convert executable data")
 	// Update the beacon block with the new execution payload.
 	latestBlock.GetBody().SetExecutionPayload(execPayload)

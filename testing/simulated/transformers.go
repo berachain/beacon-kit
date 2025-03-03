@@ -23,6 +23,7 @@
 package simulated
 
 import (
+	"fmt"
 	"math/big"
 	"unsafe"
 
@@ -30,6 +31,9 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	libcommon "github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
+	mathpkg "github.com/berachain/beacon-kit/primitives/math"
+	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
 	"github.com/ethereum/go-ethereum/common"
 	gethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -69,6 +73,7 @@ func tranformExecutionPayloadToGethBlock(payload *ctypes.ExecutionPayload, txs [
 	return executionBlock
 }
 
+// transformWithdrawalsToGethWithdrawals converts a SimulatedBlock to a geth Block
 func transformSimulatedBlockToGethBlock(simBlock *execution.SimulatedBlock, txs []*gethtypes.Transaction, parentBeaconRoot libcommon.Root) *gethtypes.Block {
 	// Construct a new execution block header with the provided transactions.
 	excessBlobGas := simBlock.ExcessBlobGas.ToInt().Uint64()
@@ -110,6 +115,7 @@ func transformSimulatedBlockToGethBlock(simBlock *execution.SimulatedBlock, txs 
 	return executionBlock
 }
 
+// transformWithdrawalsToGethWithdrawals converts beaconkit withdrawals to geth withdrawals
 func transformWithdrawalsToGethWithdrawals(withdrawals engineprimitives.Withdrawals) gethtypes.Withdrawals {
 	w := make([]*gethtypes.Withdrawal, len(withdrawals))
 	for i, withdrawal := range withdrawals {
@@ -117,6 +123,66 @@ func transformWithdrawalsToGethWithdrawals(withdrawals engineprimitives.Withdraw
 		w[i] = gethWithdrawal
 	}
 	return w
+}
+
+// transformExecutableDataToExecutionPayload converts Ethereum executable data to a beacon execution payload.
+// It supports fork versions before Deneb1 and returns an error if the fork version is not supported.
+func transformExecutableDataToExecutionPayload(
+	forkVersion libcommon.Version,
+	data *gethprimitives.ExecutableData,
+) (*ctypes.ExecutionPayload, error) {
+	// Only support fork versions before Deneb1.
+	if version.IsBefore(forkVersion, version.Deneb1()) {
+		// Convert withdrawals from gethprimitives to engineprimitives.
+		withdrawals := make(engineprimitives.Withdrawals, len(data.Withdrawals))
+		for i, withdrawal := range data.Withdrawals {
+			// #nosec:G103 -- safe conversion assuming the underlying types are compatible.
+			withdrawals[i] = (*engineprimitives.Withdrawal)(unsafe.Pointer(withdrawal))
+		}
+
+		// Truncate ExtraData if it exceeds the allowed length.
+		if len(data.ExtraData) > constants.ExtraDataLength {
+			data.ExtraData = data.ExtraData[:constants.ExtraDataLength]
+		}
+
+		// Dereference optional fields safely.
+		var blobGasUsed, excessBlobGas uint64
+		if data.BlobGasUsed != nil {
+			blobGasUsed = *data.BlobGasUsed
+		}
+		if data.ExcessBlobGas != nil {
+			excessBlobGas = *data.ExcessBlobGas
+		}
+
+		// Convert BaseFeePerGas into a U256 value.
+		baseFeePerGas, err := mathpkg.NewU256FromBigInt(data.BaseFeePerGas)
+		if err != nil {
+			return nil, fmt.Errorf("failed baseFeePerGas conversion: %w", err)
+		}
+
+		executionPayload := &ctypes.ExecutionPayload{
+			ParentHash:    libcommon.ExecutionHash(data.ParentHash),
+			FeeRecipient:  libcommon.ExecutionAddress(data.FeeRecipient),
+			StateRoot:     libcommon.Bytes32(data.StateRoot),
+			ReceiptsRoot:  libcommon.Bytes32(data.ReceiptsRoot),
+			LogsBloom:     [256]byte(data.LogsBloom),
+			Random:        libcommon.Bytes32(data.Random),
+			Number:        mathpkg.U64(data.Number),
+			GasLimit:      mathpkg.U64(data.GasLimit),
+			GasUsed:       mathpkg.U64(data.GasUsed),
+			Timestamp:     mathpkg.U64(data.Timestamp),
+			Withdrawals:   withdrawals,
+			ExtraData:     data.ExtraData,
+			BaseFeePerGas: baseFeePerGas,
+			BlockHash:     libcommon.ExecutionHash(data.BlockHash),
+			Transactions:  data.Transactions,
+			BlobGasUsed:   mathpkg.U64(blobGasUsed),
+			ExcessBlobGas: mathpkg.U64(excessBlobGas),
+			EpVersion:     forkVersion,
+		}
+		return executionPayload, nil
+	}
+	return nil, ctypes.ErrForkVersionNotSupported
 }
 
 // splitTxs iterates over txs and returns two slices:
