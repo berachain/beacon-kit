@@ -44,7 +44,7 @@ import (
 // updated (increasing amount), corresponding balance is updated.
 func TestTransitionUpdateValidators(t *testing.T) {
 	cs := setupChain(t)
-	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
+	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
 		maxBalance       = math.Gwei(cs.MaxEffectiveBalance())
@@ -100,14 +100,10 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	blk1 := buildNextBlock(
 		t,
 		st,
-		&types.BeaconBlockBody{
-			ExecutionPayload: testPayload(
-				10,
-				st.EVMInflationWithdrawal(constants.GenesisSlot+1),
-			),
-			Eth1Data: types.NewEth1Data(depRoot),
-			Deposits: []*types.Deposit{blkDeposit},
-		},
+		types.NewEth1Data(depRoot),
+		10,
+		[]*types.Deposit{blkDeposit},
+		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
 	)
 
 	// make sure included deposit is already available in deposit store
@@ -146,14 +142,10 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		&types.BeaconBlockBody{
-			ExecutionPayload: testPayload(
-				blk.Body.ExecutionPayload.Timestamp+1,
-				st.EVMInflationWithdrawal(blk.GetSlot()+1),
-			),
-			Eth1Data: types.NewEth1Data(depRoot),
-			Deposits: []*types.Deposit{},
-		},
+		types.NewEth1Data(depRoot),
+		blk.Body.ExecutionPayload.Timestamp+1,
+		[]*types.Deposit{},
+		st.EVMInflationWithdrawal(blk.GetSlot()+1),
 	)
 
 	valDiff, err = sp.Transition(ctx, st, blk)
@@ -183,7 +175,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 func TestTransitionCreateValidator(t *testing.T) {
 	// Create state processor to test
 	cs := setupChain(t)
-	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
+	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
 		maxBalance       = math.Gwei(cs.MaxEffectiveBalance())
@@ -229,14 +221,10 @@ func TestTransitionCreateValidator(t *testing.T) {
 	blk1 := buildNextBlock(
 		t,
 		st,
-		&types.BeaconBlockBody{
-			ExecutionPayload: testPayload(
-				10,
-				st.EVMInflationWithdrawal(constants.GenesisSlot+1),
-			),
-			Eth1Data: types.NewEth1Data(depRoot),
-			Deposits: []*types.Deposit{blkDeposit},
-		},
+		types.NewEth1Data(depRoot),
+		10,
+		[]*types.Deposit{blkDeposit},
+		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
 	)
 
 	// make sure included deposit is already available in deposit store
@@ -276,14 +264,10 @@ func TestTransitionCreateValidator(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		&types.BeaconBlockBody{
-			ExecutionPayload: testPayload(
-				blk.Body.ExecutionPayload.Timestamp+1,
-				st.EVMInflationWithdrawal(blk.GetSlot()+1),
-			),
-			Eth1Data: types.NewEth1Data(depRoot),
-			Deposits: []*types.Deposit{},
-		},
+		types.NewEth1Data(depRoot),
+		blk.Body.ExecutionPayload.Timestamp+1,
+		[]*types.Deposit{},
+		st.EVMInflationWithdrawal(blk.GetSlot()+1),
 	)
 
 	valDiff, err = sp.Transition(ctx, st, blk)
@@ -315,14 +299,10 @@ func TestTransitionCreateValidator(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		&types.BeaconBlockBody{
-			ExecutionPayload: testPayload(
-				blk.Body.ExecutionPayload.Timestamp+1,
-				st.EVMInflationWithdrawal(blk.GetSlot()+1),
-			),
-			Eth1Data: types.NewEth1Data(depRoot),
-			Deposits: []*types.Deposit{},
-		},
+		types.NewEth1Data(depRoot),
+		blk.Body.ExecutionPayload.Timestamp+1,
+		[]*types.Deposit{},
+		st.EVMInflationWithdrawal(blk.GetSlot()+1),
 	)
 
 	// run the test
@@ -363,7 +343,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 
 func TestTransitionWithdrawals(t *testing.T) {
 	cs := setupChain(t)
-	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
+	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
 		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
@@ -418,14 +398,10 @@ func TestTransitionWithdrawals(t *testing.T) {
 	blk := buildNextBlock(
 		t,
 		st,
-		&types.BeaconBlockBody{
-			ExecutionPayload: testPayload(
-				10,
-				withdrawals...,
-			),
-			Eth1Data: types.NewEth1Data(genDeposits.HashTreeRoot()),
-			Deposits: []*types.Deposit{},
-		},
+		types.NewEth1Data(genDeposits.HashTreeRoot()),
+		10,
+		[]*types.Deposit{},
+		withdrawals...,
 	)
 
 	// Run the test.
@@ -449,7 +425,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	cs, err := chain.NewSpec(csData)
 	require.NoError(t, err)
 
-	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
+	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
 		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
@@ -510,11 +486,10 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	blk := buildNextBlock(
 		t,
 		st,
-		&types.BeaconBlockBody{
-			ExecutionPayload: testPayload(10, withdrawals...),
-			Eth1Data:         types.NewEth1Data(depRoot),
-			Deposits:         []*types.Deposit{},
-		},
+		types.NewEth1Data(depRoot),
+		10,
+		[]*types.Deposit{},
+		withdrawals...,
 	)
 
 	// Run the test.
@@ -552,14 +527,10 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		&types.BeaconBlockBody{
-			ExecutionPayload: testPayload(
-				blk.Body.ExecutionPayload.Timestamp+1,
-				withdrawals...,
-			),
-			Eth1Data: types.NewEth1Data(depRoot),
-			Deposits: []*types.Deposit{},
-		},
+		types.NewEth1Data(depRoot),
+		blk.Body.ExecutionPayload.Timestamp+1,
+		[]*types.Deposit{},
+		withdrawals...,
 	)
 	// Run the test.
 	vals, err := sp.Transition(ctx, st, blk)
@@ -580,7 +551,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 // and its deposit is returned at after next epoch starts.
 func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	cs := setupChain(t)
-	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
+	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
 		maxBalance      = math.Gwei(cs.MaxEffectiveBalance())
@@ -641,14 +612,10 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	blk1 := buildNextBlock(
 		t,
 		st,
-		&types.BeaconBlockBody{
-			ExecutionPayload: testPayload(
-				10,
-				st.EVMInflationWithdrawal(constants.GenesisSlot+1),
-			),
-			Eth1Data: types.NewEth1Data(depRoot),
-			Deposits: []*types.Deposit{extraValDeposit},
-		},
+		types.NewEth1Data(depRoot),
+		10,
+		[]*types.Deposit{extraValDeposit},
+		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
 	)
 
 	// make sure included deposit is already available in deposit store
@@ -688,14 +655,10 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		&types.BeaconBlockBody{
-			ExecutionPayload: testPayload(
-				blk.Body.ExecutionPayload.Timestamp+1,
-				st.EVMInflationWithdrawal(blk.GetSlot()+1),
-			),
-			Eth1Data: types.NewEth1Data(depRoot),
-			Deposits: []*types.Deposit{},
-		},
+		types.NewEth1Data(depRoot),
+		blk.Body.ExecutionPayload.Timestamp+1,
+		[]*types.Deposit{},
+		st.EVMInflationWithdrawal(blk.GetSlot()+1),
 	)
 
 	// run the test
@@ -727,14 +690,10 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		&types.BeaconBlockBody{
-			ExecutionPayload: testPayload(
-				blk.Body.ExecutionPayload.Timestamp+1,
-				st.EVMInflationWithdrawal(blk.GetSlot()+1),
-			),
-			Eth1Data: types.NewEth1Data(depRoot),
-			Deposits: []*types.Deposit{},
-		},
+		types.NewEth1Data(depRoot),
+		blk.Body.ExecutionPayload.Timestamp+1,
+		[]*types.Deposit{},
+		st.EVMInflationWithdrawal(blk.GetSlot()+1),
 	)
 
 	// run the test
@@ -760,14 +719,10 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		&types.BeaconBlockBody{
-			ExecutionPayload: testPayload(
-				blk.Body.ExecutionPayload.Timestamp+1,
-				st.EVMInflationWithdrawal(blk.GetSlot()+1),
-			),
-			Eth1Data: types.NewEth1Data(depRoot),
-			Deposits: []*types.Deposit{},
-		},
+		types.NewEth1Data(depRoot),
+		blk.Body.ExecutionPayload.Timestamp+1,
+		[]*types.Deposit{},
+		st.EVMInflationWithdrawal(blk.GetSlot()+1),
 	)
 	_, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
@@ -775,14 +730,10 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		&types.BeaconBlockBody{
-			ExecutionPayload: testPayload(
-				blk.Body.ExecutionPayload.Timestamp+1,
-				st.EVMInflationWithdrawal(blk.GetSlot()+1),
-			),
-			Eth1Data: types.NewEth1Data(depRoot),
-			Deposits: []*types.Deposit{},
-		},
+		types.NewEth1Data(depRoot),
+		blk.Body.ExecutionPayload.Timestamp+1,
+		[]*types.Deposit{},
+		st.EVMInflationWithdrawal(blk.GetSlot()+1),
 	)
 	_, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
@@ -799,14 +750,10 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		&types.BeaconBlockBody{
-			ExecutionPayload: testPayload(
-				blk.Body.ExecutionPayload.Timestamp+1,
-				withdrawals...,
-			),
-			Eth1Data: types.NewEth1Data(depRoot),
-			Deposits: []*types.Deposit{},
-		},
+		types.NewEth1Data(depRoot),
+		blk.Body.ExecutionPayload.Timestamp+1,
+		[]*types.Deposit{},
+		withdrawals...,
 	)
 	_, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
@@ -819,7 +766,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 //nolint:maintidx // Okay for test.
 func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	cs := setupChain(t)
-	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
+	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
 		maxBalance      = math.Gwei(cs.MaxEffectiveBalance())
@@ -883,14 +830,10 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	blk1 := buildNextBlock(
 		t,
 		st,
-		&types.BeaconBlockBody{
-			ExecutionPayload: testPayload(
-				10,
-				st.EVMInflationWithdrawal(constants.GenesisSlot+1),
-			),
-			Eth1Data: types.NewEth1Data(depRoot),
-			Deposits: []*types.Deposit{extraValDeposit},
-		},
+		types.NewEth1Data(depRoot),
+		10,
+		[]*types.Deposit{extraValDeposit},
+		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
 	)
 
 	// make sure included deposit is already available in deposit store
@@ -947,14 +890,10 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		&types.BeaconBlockBody{
-			ExecutionPayload: testPayload(
-				blk.Body.ExecutionPayload.Timestamp+1,
-				st.EVMInflationWithdrawal(blk.GetSlot()+1),
-			),
-			Eth1Data: types.NewEth1Data(depRoot),
-			Deposits: []*types.Deposit{},
-		},
+		types.NewEth1Data(depRoot),
+		blk.Body.ExecutionPayload.Timestamp+1,
+		[]*types.Deposit{},
+		st.EVMInflationWithdrawal(blk.GetSlot()+1),
 	)
 
 	// run the test
@@ -1001,14 +940,10 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		&types.BeaconBlockBody{
-			ExecutionPayload: testPayload(
-				blk.Body.ExecutionPayload.Timestamp+1,
-				st.EVMInflationWithdrawal(blk.GetSlot()+1),
-			),
-			Eth1Data: types.NewEth1Data(depRoot),
-			Deposits: []*types.Deposit{},
-		},
+		types.NewEth1Data(depRoot),
+		blk.Body.ExecutionPayload.Timestamp+1,
+		[]*types.Deposit{},
+		st.EVMInflationWithdrawal(blk.GetSlot()+1),
 	)
 
 	// run the test
@@ -1063,14 +998,10 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		&types.BeaconBlockBody{
-			ExecutionPayload: testPayload(
-				blk.Body.ExecutionPayload.Timestamp+1,
-				st.EVMInflationWithdrawal(blk.GetSlot()),
-			),
-			Eth1Data: types.NewEth1Data(depRoot),
-			Deposits: []*types.Deposit{},
-		},
+		types.NewEth1Data(depRoot),
+		blk.Body.ExecutionPayload.Timestamp+1,
+		[]*types.Deposit{},
+		st.EVMInflationWithdrawal(blk.GetSlot()),
 	)
 	_, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
@@ -1078,14 +1009,10 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		&types.BeaconBlockBody{
-			ExecutionPayload: testPayload(
-				blk.Body.ExecutionPayload.Timestamp+1,
-				st.EVMInflationWithdrawal(blk.GetSlot()+1),
-			),
-			Eth1Data: types.NewEth1Data(depRoot),
-			Deposits: []*types.Deposit{},
-		},
+		types.NewEth1Data(depRoot),
+		blk.Body.ExecutionPayload.Timestamp+1,
+		[]*types.Deposit{},
+		st.EVMInflationWithdrawal(blk.GetSlot()+1),
 	)
 	_, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
@@ -1102,14 +1029,10 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		&types.BeaconBlockBody{
-			ExecutionPayload: testPayload(
-				blk.Body.ExecutionPayload.Timestamp+1,
-				withdrawals...,
-			),
-			Eth1Data: types.NewEth1Data(depRoot),
-			Deposits: []*types.Deposit{},
-		},
+		types.NewEth1Data(depRoot),
+		blk.Body.ExecutionPayload.Timestamp+1,
+		[]*types.Deposit{},
+		withdrawals...,
 	)
 	_, err = sp.Transition(ctx, st, blk)
 	require.NoError(t, err)
@@ -1117,7 +1040,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 
 func TestValidatorNotWithdrawable(t *testing.T) {
 	cs := setupChain(t)
-	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
+	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
 		belowActiveBalance = math.Gwei(cs.EjectionBalance())
@@ -1161,14 +1084,10 @@ func TestValidatorNotWithdrawable(t *testing.T) {
 	blk := buildNextBlock(
 		t,
 		st,
-		&types.BeaconBlockBody{
-			ExecutionPayload: testPayload(
-				10,
-				st.EVMInflationWithdrawal(constants.GenesisSlot+1),
-			),
-			Eth1Data: types.NewEth1Data(depRoot),
-			Deposits: blockDeposits,
-		},
+		types.NewEth1Data(depRoot),
+		10,
+		blockDeposits,
+		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), blockDeposits))
 
