@@ -115,26 +115,6 @@ func DefaultSimulationInput(t *testing.T, chainSpec chain.Spec, origBlock *ctype
 	return simulationInput
 }
 
-// setExecutionPayload converts the given Geth-style block into executable data,
-// converts that into an ExecutionPayload using the given fork version, and then
-// sets that payload into latestBlock. It returns the updated block.
-func setExecutionPayload(
-	t *testing.T,
-	latestBlock *ctypes.BeaconBlock,
-	forkVersion common.Version,
-	execBlock *gethtypes.Block,
-	sidecars []*gethtypes.BlobTxSidecar, // adjust type as needed
-) *ctypes.BeaconBlock {
-	// Convert the Geth block into ExecutableData.
-	execData := gethprimitives.BlockToExecutableData(execBlock, nil, sidecars, nil)
-	// Convert the ExecutableData into our internal ExecutionPayload type.
-	execPayload, err := executableDataToExecutionPayload(forkVersion, execData.ExecutionPayload)
-	require.NoError(t, err, "failed to convert executable data")
-	// Update the beacon block with the new execution payload.
-	latestBlock.GetBody().SetExecutionPayload(execPayload)
-	return latestBlock
-}
-
 // ComputeAndSetInvalidExecutionBlock transforms the current execution payload of latestBlock
 // into a new payload (using the invalid transformation) and updates latestBlock with it.
 // This function mutates latestBlock.
@@ -279,4 +259,24 @@ func executableDataToExecutionPayload(
 		return executionPayload, nil
 	}
 	return nil, ctypes.ErrForkVersionNotSupported
+}
+
+// setExecutionPayload converts the given Geth-style block into executable data,
+// converts that into an ExecutionPayload using the given fork version, and then
+// sets that payload into latestBlock. It returns the updated block.
+func setExecutionPayload(
+	t *testing.T,
+	latestBlock *ctypes.BeaconBlock,
+	forkVersion common.Version,
+	execBlock *gethtypes.Block,
+	sidecars []*gethtypes.BlobTxSidecar, // adjust type as needed
+) *ctypes.BeaconBlock {
+	// Convert the Geth block into ExecutableData.
+	execData := gethprimitives.BlockToExecutableData(execBlock, nil, sidecars, nil)
+	// Convert the ExecutableData into our internal ExecutionPayload type.
+	execPayload, err := executableDataToExecutionPayload(forkVersion, execData.ExecutionPayload)
+	require.NoError(t, err, "failed to convert executable data")
+	// Update the beacon block with the new execution payload.
+	latestBlock.GetBody().SetExecutionPayload(execPayload)
+	return latestBlock
 }
