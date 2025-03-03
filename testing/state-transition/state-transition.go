@@ -65,8 +65,13 @@ func (kvs *testKVStoreService) OpenKVStore(ctx context.Context) corestore.KVStor
 	return storage.NewKVStore(store)
 }
 
-//nolint:gochecknoglobals // unexported and used only in tests
-var testStoreKey = storetypes.NewKVStoreKey("state-transition-tests")
+var (
+	//nolint:gochecknoglobals // unexported and used only in tests
+	testStoreKey = storetypes.NewKVStoreKey("state-transition-tests")
+
+	//nolint:gochecknoglobals // exported but used only in tests
+	DummyProposerAddr = []byte{0xff}
+)
 
 func BuildTestStores() (
 	storetypes.CommitMultiStore,
@@ -107,6 +112,8 @@ func SetupTestState(t *testing.T, cs chain.Spec) (
 	*TestBeaconStateT,
 	*depositstore.KVStore,
 	core.ReadOnlyContext,
+	storetypes.CommitMultiStore,
+	*mocks.ExecutionEngine,
 ) {
 	t.Helper()
 
@@ -117,8 +124,6 @@ func SetupTestState(t *testing.T, cs chain.Spec) (
 		"VerifySignature",
 		mock.Anything, mock.Anything, mock.Anything,
 	).Return(nil)
-
-	dummyProposerAddr := []byte{0xff}
 
 	cms, kvStore, depositStore, err := BuildTestStores()
 	require.NoError(t, err)
@@ -133,20 +138,22 @@ func SetupTestState(t *testing.T, cs chain.Spec) (
 		depositStore,
 		mocksSigner,
 		func(bytes.B48) ([]byte, error) {
-			return dummyProposerAddr, nil
+			return DummyProposerAddr, nil
 		},
 		nodemetrics.NewNoOpTelemetrySink(),
 	)
 
+	// by default we keep checks at minimum. It is up
+	// to single tests to redefine the ctx along their needs.
 	ctx := transition.NewTransitionCtx(
 		sdkCtx,
 		0, // time
-		dummyProposerAddr,
+		DummyProposerAddr,
 	).
 		WithVerifyPayload(false).
 		WithVerifyRandao(false).
 		WithVerifyResult(false).
 		WithMeterGas(false)
 
-	return sp, beaconState, depositStore, ctx
+	return sp, beaconState, depositStore, ctx, cms, execEngine
 }
