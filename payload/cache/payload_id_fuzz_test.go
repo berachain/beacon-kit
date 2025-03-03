@@ -59,9 +59,8 @@ func FuzzPayloadIDCacheBasic(f *testing.F) {
 		require.Equal(
 			t, newPid, p, "PayloadID should be overwritten with the new value")
 
-		// Prune and verify deletion
-		cacheUnderTest.UnsafePrunePrior((slot) + 1)
-		_, ok = cacheUnderTest.GetAndEvict(slot, r)
+		// Verify deletion
+		ok = cacheUnderTest.Has(slot, r)
 		require.False(t, ok, "Entry should be pruned and not found")
 	})
 }

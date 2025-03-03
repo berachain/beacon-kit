@@ -40,12 +40,12 @@ type PayloadIDCache struct {
 	// mu protects access to the slotToStateRootToPayloadID map.
 	mu sync.RWMutex
 	// slotToStateRootToPayloadID is used for storing payload ID mappings
-	slotToStateRootToPayloadID map[PayloadIDCacheKey]engineprimitives.PayloadID
+	slotToStateRootToPayloadID map[payloadIDCacheKey]engineprimitives.PayloadID
 }
 
-// PayloadIDCacheKey is the (slot, root) tuple that is used to access a
+// payloadIDCacheKey is the (slot, root) tuple that is used to access a
 // payloadID from the cache.
-type PayloadIDCacheKey struct {
+type payloadIDCacheKey struct {
 	slot math.Slot
 	root common.Root
 }
@@ -56,7 +56,7 @@ func NewPayloadIDCache() *PayloadIDCache {
 	return &PayloadIDCache{
 		mu: sync.RWMutex{},
 		slotToStateRootToPayloadID: make(
-			map[PayloadIDCacheKey]engineprimitives.PayloadID,
+			map[payloadIDCacheKey]engineprimitives.PayloadID,
 		),
 	}
 }
@@ -69,7 +69,7 @@ func (p *PayloadIDCache) Has(
 ) bool {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
-	_, ok := p.slotToStateRootToPayloadID[PayloadIDCacheKey{slot, stateRoot}]
+	_, ok := p.slotToStateRootToPayloadID[payloadIDCacheKey{slot, stateRoot}]
 	return ok
 }
 
@@ -81,7 +81,7 @@ func (p *PayloadIDCache) GetAndEvict(
 ) (engineprimitives.PayloadID, bool) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	key := PayloadIDCacheKey{slot, stateRoot}
+	key := payloadIDCacheKey{slot, stateRoot}
 	pid, ok := p.slotToStateRootToPayloadID[key]
 	if !ok {
 		return engineprimitives.PayloadID{}, false
@@ -107,17 +107,7 @@ func (p *PayloadIDCache) Set(
 	}
 
 	// Update the cache with the new payload ID.
-	p.slotToStateRootToPayloadID[PayloadIDCacheKey{slot, stateRoot}] = pid
-}
-
-// UnsafePrunePrior removes payload IDs from the cache for slots less than
-// the specified slot. Only used for testing.
-func (p *PayloadIDCache) UnsafePrunePrior(
-	slot math.Slot,
-) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	p.prunePrior(slot)
+	p.slotToStateRootToPayloadID[payloadIDCacheKey{slot, stateRoot}] = pid
 }
 
 // prunePrior removes payload IDs from the cache for slots less than

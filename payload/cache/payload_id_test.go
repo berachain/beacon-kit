@@ -66,18 +66,25 @@ func TestPayloadIDCache(t *testing.T) {
 		slot := math.Slot(9456456)
 		r := [32]byte{4, 5, 6}
 		pid := engineprimitives.PayloadID{4, 5, 6, 6, 9, 0, 9, 0}
+		// Set pid for slot.
 		cacheUnderTest.Set(slot, r, pid)
 
-		// Prune and attempt to retrieve pruned entry
-		cacheUnderTest.UnsafePrunePrior(slot + 1)
-		p, ok := cacheUnderTest.GetAndEvict(slot, r)
+		// Set historicalPayloadIDCacheSize+1 number of pids. This should
+		// prune the first slot from the cache.
+		cacheUnderTest.Set(slot+1, r, pid)
+		cacheUnderTest.Set(slot+2, r, pid)
+		cacheUnderTest.Set(slot+3, r, pid)
+
+		// Attempt to retrieve pruned slot.
+		ok := cacheUnderTest.Has(slot, r)
 		require.False(t, ok)
-		require.Equal(t, engineprimitives.PayloadID{}, p)
 	})
 
 	t.Run("Multiple entries and prune", func(t *testing.T) {
+		numEntries := 10
+		historicalPayloadIDCacheSize := 2
 		// Set multiple entries
-		for i := range uint8(5) {
+		for i := range uint8(numEntries) {
 			slot := math.Slot(i)
 			r := [32]byte{i, i + 1, i + 2}
 			pid := [8]byte{
@@ -86,19 +93,19 @@ func TestPayloadIDCache(t *testing.T) {
 			cacheUnderTest.Set(slot, r, pid)
 		}
 
-		// Prune and check if only the last two entries exist
-		cacheUnderTest.UnsafePrunePrior(3)
-		for i := range uint8(3) {
+		// Only the last historicalPayloadIDCacheSize+1 number of entries
+		// should still exist.
+		for i := range uint8(numEntries - (historicalPayloadIDCacheSize + 1)) {
 			slot := math.Slot(i)
 			r := [32]byte{i, i + 1, i + 2}
-			_, ok := cacheUnderTest.GetAndEvict(slot, r)
+			ok := cacheUnderTest.Has(slot, r)
 			require.False(t, ok, "Expected entry to be pruned for slot", slot)
 		}
 
-		for i := uint8(3); i < 5; i++ {
+		for i := uint8(numEntries - (historicalPayloadIDCacheSize + 1)); i < uint8(numEntries); i++ {
 			slot := math.Slot(i)
 			r := [32]byte{i, i + 1, i + 2}
-			_, ok := cacheUnderTest.GetAndEvict(slot, r)
+			ok := cacheUnderTest.Has(slot, r)
 			require.True(t, ok, "Expected entry to exist for slot", slot)
 		}
 	})
