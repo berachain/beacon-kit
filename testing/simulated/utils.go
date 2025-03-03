@@ -117,7 +117,9 @@ func DefaultSimulationInput(t *testing.T, chainSpec chain.Spec, origBlock *ctype
 
 // ComputeAndSetInvalidExecutionBlock transforms the current execution payload of latestBlock
 // into a new payload (using the invalid transformation) and updates latestBlock with it.
-// This function mutates latestBlock.
+// This will make sure all the fields validated by the CL, i.e. Execution Block Hash, are valid, but does not set
+// correct values for fields like the Execution Block StateRoot and ReceiptsRoot as that requires simulation and
+// is not validated in the CL.
 func ComputeAndSetInvalidExecutionBlock(
 	t *testing.T,
 	latestBlock *ctypes.BeaconBlock,
