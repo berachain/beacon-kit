@@ -87,5 +87,5 @@ type ExecutionEngine interface {
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
 		req *ctypes.ForkchoiceUpdateRequest,
-	) (*engineprimitives.PayloadID, *common.ExecutionHash, error)
+	) (*engineprimitives.PayloadID, error)
 }

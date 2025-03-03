@@ -73,13 +73,13 @@ func (ee *Engine) GetPayload(
 func (ee *Engine) NotifyForkchoiceUpdate(
 	ctx context.Context,
 	req *ctypes.ForkchoiceUpdateRequest,
-) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
+) (*engineprimitives.PayloadID, error) {
 	// Log the forkchoice update attempt.
 	hasPayloadAttributes := !req.PayloadAttributes.IsNil()
 	ee.metrics.markNotifyForkchoiceUpdateCalled(hasPayloadAttributes)
 
 	// Notify the execution engine of the forkchoice update.
-	payloadID, latestValidHash, err := ee.ec.ForkchoiceUpdated(
+	payloadID, err := ee.ec.ForkchoiceUpdated(
 		ctx,
 		req.State,
 		req.PayloadAttributes,
@@ -101,32 +101,32 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 				"safe_eth1_hash", req.State.SafeBlockHash,
 				"finalized_eth1_hash", req.State.FinalizedBlockHash,
 			)
-			return nil, nil, ErrNilPayloadOnValidResponse
+			return nil, ErrNilPayloadOnValidResponse
 		}
 
-		return payloadID, latestValidHash, nil
+		return payloadID, nil
 
 	case errors.Is(err, engineerrors.ErrSyncingPayloadStatus):
 		// We bubble up syncing as an error, to be able to stop
 		// bootstrapping from progressing in CL while EL is syncing.
 		ee.metrics.markForkchoiceUpdateSyncing(req.State, err)
-		return nil, nil, err
+		return nil, err
 
 	case errors.Is(err, engineerrors.ErrInvalidPayloadStatus):
 		// If we get invalid payload status, we will need to find a valid
 		// ancestor block and force a recovery.
 		ee.metrics.markForkchoiceUpdateInvalid(req.State, err)
-		return nil, nil, ErrBadBlockProduced
+		return nil, ErrBadBlockProduced
 
 	case jsonrpc.IsPreDefinedError(err):
 		// JSON-RPC errors are predefined and should be handled as such.
 		ee.metrics.markForkchoiceUpdateJSONRPCError(err)
-		return nil, nil, errors.Join(err, engineerrors.ErrPreDefinedJSONRPC)
+		return nil, errors.Join(err, engineerrors.ErrPreDefinedJSONRPC)
 
 	default:
 		// All other errors are handled as undefined errors.
 		ee.metrics.markForkchoiceUpdateUndefinedError(err)
-		return nil, nil, err
+		return nil, err
 	}
 }
 

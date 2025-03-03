@@ -68,7 +68,7 @@
             },
         },
         {
-            "name": "Genesis execution payload",
+            "name": "Set deposit storage",
             "type": "go",
             "request": "launch",
             "preLaunchTask": "build",
@@ -76,7 +76,7 @@
             "program": "${workspaceFolder}/build/bin/beacond",
             "args": [
                 "genesis",
-                "execution-payload",
+                "set-deposit-storage",
                 "${workspaceFolder}/testing/files/eth-genesis.json",
                 "--home=${workspaceFolder}/.tmp/beacond",
             ],
@@ -87,6 +87,28 @@
             "presentation": {
                 "group": "initialize",
                 "order": 4
+            },
+        },
+        {
+            "name": "Genesis execution payload",
+            "type": "go",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "mode": "exec",
+            "program": "${workspaceFolder}/build/bin/beacond",
+            "args": [
+                "genesis",
+                "execution-payload",
+                "${workspaceFolder}/.tmp/beacond/eth-genesis.json",
+                "--home=${workspaceFolder}/.tmp/beacond",
+            ],
+            "env": {
+                "CHAIN_SPEC": "devnet"
+            },
+            "internalConsoleOptions": "openOnSessionStart",
+            "presentation": {
+                "group": "initialize",
+                "order": 5
             },
         },
         {

@@ -86,34 +86,34 @@ func ValidatorToConsensus(v *Validator) (*ctypes.Validator, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed parsing withdrawals: %w", err)
 	}
-	eb, err := strconv.ParseUint(v.EffectiveBalance, 10, 64)
+	eb, err := math.U64FromString(v.EffectiveBalance)
 	if err != nil {
 		return nil, fmt.Errorf("failed parsing effective balance: %w", err)
 	}
-	aee, err := strconv.ParseUint(v.ActivationEligibilityEpoch, 10, 64)
+	aee, err := math.U64FromString(v.ActivationEligibilityEpoch)
 	if err != nil {
 		return nil, fmt.Errorf("failed parsing activation eligibility epoch: %w", err)
 	}
-	ae, err := strconv.ParseUint(v.ActivationEpoch, 10, 64)
+	ae, err := math.U64FromString(v.ActivationEpoch)
 	if err != nil {
 		return nil, fmt.Errorf("failed parsing activation epoch: %w", err)
 	}
-	ee, err := strconv.ParseUint(v.ExitEpoch, 10, 64)
+	ee, err := math.U64FromString(v.ExitEpoch)
 	if err != nil {
 		return nil, fmt.Errorf("failed parsing exit epoch: %w", err)
 	}
-	we, err := strconv.ParseUint(v.WithdrawableEpoch, 10, 64)
+	we, err := math.U64FromString(v.WithdrawableEpoch)
 	if err != nil {
 		return nil, fmt.Errorf("failed parsing withdrawable epoch: %w", err)
 	}
 	return &ctypes.Validator{
 		Pubkey:                     pk,
 		WithdrawalCredentials:      wc,
-		EffectiveBalance:           math.Gwei(eb),
+		EffectiveBalance:           eb,
 		Slashed:                    v.Slashed,
-		ActivationEligibilityEpoch: math.Epoch(aee),
-		ActivationEpoch:            math.Epoch(ae),
-		ExitEpoch:                  math.Epoch(ee),
-		WithdrawableEpoch:          math.Epoch(we),
+		ActivationEligibilityEpoch: aee,
+		ActivationEpoch:            ae,
+		ExitEpoch:                  ee,
+		WithdrawableEpoch:          we,
 	}, nil
 }

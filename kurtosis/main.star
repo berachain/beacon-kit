@@ -85,7 +85,8 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
 
     # Execute only if geth is present
     # This is needed as we have a geth config file which needs to be templated
-    if node_modules["geth"] != None:
+    geth_config_artifact = None
+    if "geth" in node_modules and node_modules["geth"] != None:
         geth_config_artifact = node_modules["geth"].process_geth_config(plan, chain_id)
 
     # Start seed nodes

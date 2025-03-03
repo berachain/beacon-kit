@@ -18,38 +18,28 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package beacon
+package handlers
 
-import (
-	"github.com/berachain/beacon-kit/node-api/handlers"
-	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	"github.com/berachain/beacon-kit/node-api/handlers/utils"
-	"github.com/berachain/beacon-kit/primitives/constants"
-	"github.com/berachain/beacon-kit/primitives/math"
-)
+// HTTPError represents an HTTP error response.
+type HTTPError struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
 
-func (h *Handler) GetRandao(c handlers.Context) (any, error) {
-	req, err := utils.BindAndValidate[beacontypes.GetRandaoRequest](
-		c,
-		h.Logger(),
-	)
-	if err != nil {
-		return nil, err
+// NewHTTPError creates a new HTTPError.
+func NewHTTPError(code int, message string) *HTTPError {
+	return &HTTPError{
+		Code:    code,
+		Message: message,
 	}
-	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
-	if err != nil {
-		return nil, err
-	}
-	epoch := constants.GenesisEpoch
-	if req.Epoch != "" {
-		epoch, err = math.U64FromString(req.Epoch)
-		if err != nil {
-			return nil, err
-		}
-	}
-	randao, err := h.backend.RandaoAtEpoch(slot, epoch)
-	if err != nil {
-		return nil, err
-	}
-	return beacontypes.NewResponse(randao), nil
+}
+
+// Error implements the error interface.
+func (e *HTTPError) Error() string {
+	return e.Message
+}
+
+// StatusCode returns the HTTP status code.
+func (e *HTTPError) StatusCode() int {
+	return e.Code
 }
