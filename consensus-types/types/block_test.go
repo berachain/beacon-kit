@@ -187,3 +187,19 @@ func TestNewWithVersionInvalidForkVersion(t *testing.T) {
 	) // 100 is an invalid fork version
 	require.ErrorIs(t, err, types.ErrForkVersionNotSupported)
 }
+
+func TestPropertyBlockRootAndBlockHeaderRootEquivalence(t *testing.T) {
+	t.Parallel()
+	slot := math.Slot(10)
+	proposerIndex := math.ValidatorIndex(5)
+	parentBlockRoot := common.Root{1, 2, 3, 4, 5}
+
+	blk, err := types.NewBeaconBlockWithVersion(
+		slot,
+		proposerIndex,
+		parentBlockRoot,
+		version.Deneb(),
+	)
+	require.NoError(t, err)
+	require.Equal(t, blk.GetHeader().HashTreeRoot(), blk.HashTreeRoot())
+}
