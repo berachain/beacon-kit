@@ -46,10 +46,7 @@ var (
 		"mismatch in number of versioned hashes",
 	)
 
-	// ErrPayloadBlockHashMismatch represents an error when the
-	// block hash in the payload does not match from the assembled
-	// block.
-	ErrPayloadBlockHashMismatch = errors.New(
-		"block hash in payload does not match assembled block",
-	)
+	// ErrPayloadBlockHashMismatch represents an error when the block hash
+	// in the payload does not match from the assembled block.
+	ErrPayloadBlockHashMismatch = errors.New("block hash in payload does not match assembled block")
 )
