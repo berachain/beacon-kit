@@ -281,6 +281,19 @@ func (s *SimulatedSuite) TestCoreLoop_InjectedTransactions_IsSuccessful() {
 	})
 	s.Require().NoError(err)
 	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
+
+	// Finalize the block.
+	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.Ctx, &types.FinalizeBlockRequest{
+		Txs:             proposal.Txs,
+		Height:          blockHeight + coreLoopIterations,
+		ProposerAddress: pubkey.Address(),
+	})
+	s.Require().NoError(err)
+	s.Require().NotEmpty(finalizeResp)
+
+	// Commit the block.
+	_, err = s.SimComet.Comet.Commit(s.Ctx, &types.CommitRequest{})
+	s.Require().NoError(err)
 }
 
 // CoreLoop will iterate through the core loop `iterations` times, i.e. Propose, Process, Finalize and Commit.
