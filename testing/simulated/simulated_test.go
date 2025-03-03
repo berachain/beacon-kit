@@ -105,8 +105,8 @@ func (s *SimulatedSuite) SetupTest() {
 
 // TearDownTest cleans up the test environment.
 func (s *SimulatedSuite) TearDownTest() {
-	if err := s.ElHandle.Close(); err != nil {
-		s.T().Logf("Error closing EL handle: %s", err)
+	if err := s.ElHandle.CloseIfOpen(); err != nil {
+		s.T().Error("Error closing EL handle:", err)
 	}
 	s.CancelFunc()
 }

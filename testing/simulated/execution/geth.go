@@ -52,7 +52,7 @@ func NewGethNode(homeDir string, image docker.PullImageOptions) *GethNode {
 
 // Start launches the Geth node container using dockertest, waits until the node is ready,
 // and returns the container resource and the connection URL for the Auth RPC endpoint.
-func (g *GethNode) Start(t *testing.T) (*dockertest.Resource, *url.ConnectionURL) {
+func (g *GethNode) Start(t *testing.T) (*ResourceHandle, *url.ConnectionURL) {
 	t.Helper()
 
 	// Create a new Docker pool.
@@ -121,7 +121,7 @@ func (g *GethNode) Start(t *testing.T) (*dockertest.Resource, *url.ConnectionURL
 	})
 	require.NoError(t, err, "Geth container did not become ready in time")
 
-	return resource, authRPC
+	return &ResourceHandle{Resource: resource}, authRPC
 }
 
 // ValidGethImage returns the default Docker image options for the Geth node.

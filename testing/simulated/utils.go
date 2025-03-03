@@ -38,10 +38,10 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	mathpkg "github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
+	"github.com/berachain/beacon-kit/testing/simulated/execution"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	gethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/require"
 )
 
@@ -53,7 +53,7 @@ type SharedAccessors struct {
 	TestNode   TestNode
 
 	// ElHandle is a dockertest resource handle that should be closed in teardown.
-	ElHandle *dockertest.Resource
+	ElHandle *execution.ResourceHandle
 }
 
 // GetBlsSigner returns a new BLSSigner using the configuration files in the provided home directory.
