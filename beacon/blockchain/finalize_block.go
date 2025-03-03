@@ -83,7 +83,7 @@ func (s *Service) FinalizeBlock(
 	} else if len(blobs) > 0 {
 		s.logger.Info(
 			"Skipping blob processing outside of Data Availability Period",
-			"slot", blk.GetSlot(), "head", req.SyncingToHeight,
+			"slot", blk.GetSlot().Base10(), "head", req.SyncingToHeight,
 		)
 	}
 
