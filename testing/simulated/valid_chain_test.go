@@ -47,14 +47,15 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlock_IsSuccessful() {
 	// We expect that the number of proposals that were finalized should be `coreLoopIterations`.
 	s.Require().Len(proposals, coreLoopIterations)
 
+	currentHeight := int64(blockHeight + coreLoopIterations)
 	// Validate post-commit state.
-	queryCtx, err := s.SimComet.CreateQueryContext(blockHeight+coreLoopIterations-1, false)
+	queryCtx, err := s.SimComet.CreateQueryContext(currentHeight-1, false)
 	s.Require().NoError(err)
 
 	stateDB := s.TestNode.StorageBackend.StateFromContext(queryCtx)
 	slot, err := stateDB.GetSlot()
 	s.Require().NoError(err)
-	s.Require().Equal(mathpkg.U64(blockHeight+coreLoopIterations-1), slot)
+	s.Require().Equal(mathpkg.U64(currentHeight-1), slot)
 
 	stateHeader, err := stateDB.GetLatestBlockHeader()
 	s.Require().NoError(err)
