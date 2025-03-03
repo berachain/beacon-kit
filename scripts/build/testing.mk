@@ -289,30 +289,48 @@ SHORT_FUZZ_TIME=10s
 MEDIUM_FUZZ_TIME=30s
 LONG_FUZZ_TIME=3m
 
+# Define a function to filter out lines with "/testing/", "/mock/", "/mocks/", or ".mock.go"
+define FILTER_COVERAGE
+	grep -Ev '(/testing/|/mock/|/mocks/|\.mock\.go)' $(1) > $(2)
+endef
 
 test:
 	@$(MAKE) test-unit test-forge-fuzz
 
-test-unit: ## run golang unit tests
+test-unit-no-coverage: ## run golang unit tests
 	@echo "Running unit tests..."
 	@go list -f '{{.Dir}}/...' -m | xargs \
 		go test -race -tags bls12381,test
 
-# This currently ends up running some tests twice but is still faster than running all tests with -race
-test-unit-cover: test-simulated test-unit-norace ## run golang unit tests with coverage
+coverage-summary: test-unit test-simulated
+	@echo "Merging coverage reports..."
+	@go install github.com/wadey/gocovmerge@latest
+	@gocovmerge test-unit-cover.txt test-simulated.txt > coverage-merged.txt
+	@echo "Coverage Summary:"
+	@go tool cover -html=coverage-merged.txt
+
+test-unit-cover: test-unit test-simulated test-unit-quick ## run golang unit tests with coverage
+
+test-unit:
 	@echo "Running unit tests with coverage and race checks..."
 	@go list -f '{{.Dir}}/...' -m | xargs \
-		go test -race -coverprofile=test-unit-cover.txt -tags bls12381,test
+		go test -race -covermode=atomic -coverpkg=github.com/berachain/beacon-kit/... -coverprofile=temp-test-unit-cover.txt -tags bls12381,test
+	# Filter out any coverage lines from the testing directory
+	$(call FILTER_COVERAGE, temp-test-unit-cover.txt, test-unit-cover.txt)
+	@rm temp-test-unit-cover.txt
 
-test-unit-norace: ## run golang unit tests with coverage but without race as some tests are too slow with race
-	@echo "Running unit tests with coverage but no race checks..."
-	@go list -f '{{.Dir}}/...' -m | xargs \
-		go test -coverprofile=test-unit-cover-norace -tags norace
+test-unit-quick: ## run quick tests. We run these without coverage as covermode=atomic is too slow and coverage here provides little value
+	@echo "Running 'quick' tests..."
+	@go list -f '{{.Dir}}/testing/quick' -m | xargs \
+		go test -v -tags quick
 
 test-simulated: ## run simulation tests
-	@echo "Running simulation tests"
+	@echo "Running simulation tests with coverage"
 	@go list -f '{{.Dir}}/testing/simulated' -m | xargs \
-		go test -tags simulated -v
+		go test -cover -covermode=atomic -coverpkg=github.com/berachain/beacon-kit/... -coverprofile=temp-test-simulated.txt -tags simulated -v
+	# Filter out any coverage lines from the testing directory
+	$(call FILTER_COVERAGE, temp-test-simulated.txt, test-simulated.txt)
+	@rm temp-test-simulated.txt
 
 test-unit-bench: ## run golang unit benchmarks
 	@echo "Running unit tests with benchmarks..."
