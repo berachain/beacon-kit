@@ -91,7 +91,7 @@ func (sp *StateProcessor) processExecutionPayload(
 func (sp *StateProcessor) validateExecutionPayload(
 	ctx context.Context,
 	consensusTime math.U64,
-	st *statedb.StateDB,
+	st ReadOnlyBeaconState,
 	blk *ctypes.BeaconBlock,
 ) error {
 	if err := sp.validateStatelessPayload(blk); err != nil {
@@ -124,7 +124,7 @@ func (sp *StateProcessor) validateStatelessPayload(blk *ctypes.BeaconBlock) erro
 func (sp *StateProcessor) validateStatefulPayload(
 	ctx context.Context,
 	consensusTime math.U64,
-	st *statedb.StateDB,
+	st ReadOnlyBeaconState,
 	blk *ctypes.BeaconBlock,
 ) error {
 	body := blk.GetBody()
