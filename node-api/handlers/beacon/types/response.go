@@ -78,6 +78,17 @@ type GenesisData struct {
 	GenesisForkVersion    string      `json:"genesis_fork_version"`
 }
 
+type GenesisResponse struct {
+	Data GenesisData `json:"data"`
+}
+
+// NewGenesisResponse creates a new genesis response as per the spec.
+func NewGenesisResponse(data GenesisData) GenesisResponse {
+	return GenesisResponse{
+		Data: data,
+	}
+}
+
 type RootData struct {
 	Root common.Root `json:"root"`
 }

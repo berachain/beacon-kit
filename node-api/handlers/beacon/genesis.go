@@ -35,7 +35,7 @@ func (h *Handler) GetGenesis(_ handlers.Context) (any, error) {
 	if len(genesisRoot) == 0 {
 		return nil, types.ErrNotFound
 	}
-	return types.Wrap(beacontypes.GenesisData{
+	return beacontypes.NewGenesisResponse(beacontypes.GenesisData{
 		GenesisTime:           "1590832934", // stub
 		GenesisValidatorsRoot: genesisRoot,
 		GenesisForkVersion:    "0x00000000", // stub
