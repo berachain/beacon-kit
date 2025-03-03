@@ -96,11 +96,10 @@ func CreateInvalidBlock(
 	)
 	t.NoError(err, "failed to sign malicious transaction")
 
-	// Extract the current execution payload and compute the withdrawals hash.
 	payload := signedBeaconBlock.GetMessage().GetBody().ExecutionPayload
 	parentRoot := signedBeaconBlock.GetMessage().GetParentBlockRoot()
 
-	// Initialize the slice with the malicious transaction.
+	// Update the ExecutionPayload with the malicious transaction
 	maliciousTxBytes, err := maliciousTx.MarshalBinary()
 	t.NoError(err, "failed to marshal malicious transaction")
 	payload.Transactions = [][]byte{maliciousTxBytes}
