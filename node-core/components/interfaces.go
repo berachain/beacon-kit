@@ -686,7 +686,7 @@ type (
 
 	// ReadOnlyWithdrawals only has read access to withdrawal methods.
 	ReadOnlyWithdrawals interface {
-		EVMInflationWithdrawal() *engineprimitives.Withdrawal
+		EVMInflationWithdrawal(math.Slot) *engineprimitives.Withdrawal
 		ExpectedWithdrawals() (engineprimitives.Withdrawals, error)
 	}
 )
