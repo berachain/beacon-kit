@@ -24,7 +24,7 @@ ROOT_DIR := $(shell pwd)
 
 .PHONY: clean format lint \
 	buf-install proto-clean \
-	test-unit test-unit-cover test-forge-cover test-forge-fuzz \
+	test-unit test-unit-cover test-simulated test-forge-cover test-forge-fuzz \
 	forge-snapshot forge-snapshot-diff \
 	test-e2e test-e2e-no-build \
 	forge-lint-fix forge-lint golangci-install golangci golangci-fix \

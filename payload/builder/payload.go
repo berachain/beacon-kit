@@ -47,7 +47,7 @@ func (pb *PayloadBuilder) RequestPayloadAsync(
 		return nil, ErrPayloadBuilderDisabled
 	}
 
-	if payloadID, found := pb.pc.Get(slot, parentBlockRoot); found {
+	if payloadID, found := pb.pc.GetAndEvict(slot, parentBlockRoot); found {
 		pb.logger.Info(
 			"aborting payload build; payload already exists in cache",
 			"for_slot", slot.Base10(),
@@ -156,7 +156,7 @@ func (pb *PayloadBuilder) RetrievePayload(
 
 	// Attempt to see if we previously fired off a payload built for
 	// this particular slot and parent block root.
-	payloadID, found := pb.pc.Get(slot, parentBlockRoot)
+	payloadID, found := pb.pc.GetAndEvict(slot, parentBlockRoot)
 	if !found {
 		return nil, ErrPayloadIDNotFound
 	}
@@ -192,48 +192,6 @@ func (pb *PayloadBuilder) RetrievePayload(
 	pb.logger.Info("Payload retrieved from local builder", args...)
 
 	return envelope, err
-}
-
-// SendForceHeadFCU builds a payload for the given slot and
-// returns the payload ID.
-//
-// TODO: This should be moved onto a "sync service"
-// of some kind.
-func (pb *PayloadBuilder) SendForceHeadFCU(
-	ctx context.Context,
-	st *statedb.StateDB,
-	slot math.Slot,
-) error {
-	if !pb.Enabled() {
-		return ErrPayloadBuilderDisabled
-	}
-
-	lph, err := st.GetLatestExecutionPayloadHeader()
-	if err != nil {
-		return err
-	}
-
-	pb.logger.Info(
-		"Sending startup forkchoice update to execution client",
-		"head_eth1_hash", lph.GetBlockHash(),
-		"safe_eth1_hash", lph.GetParentHash(),
-		"finalized_eth1_hash", lph.GetParentHash(),
-		"for_slot", slot.Base10(),
-	)
-
-	// Submit the forkchoice update to the execution client.
-	req := ctypes.BuildForkchoiceUpdateRequestNoAttrs(
-		&engineprimitives.ForkchoiceStateV1{
-			HeadBlockHash:      lph.GetBlockHash(),
-			SafeBlockHash:      lph.GetParentHash(),
-			FinalizedBlockHash: lph.GetParentHash(),
-		},
-		pb.chainSpec.ActiveForkVersionForSlot(slot),
-	)
-	if _, err = pb.ee.NotifyForkchoiceUpdate(ctx, req); err != nil {
-		return fmt.Errorf("SendForceHeadFCU failed sending forkchoice update: %w", err)
-	}
-	return nil
 }
 
 func (pb *PayloadBuilder) getPayload(
