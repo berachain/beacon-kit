@@ -28,6 +28,11 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
+type BeaconState interface {
+	ReadOnlyBeaconState
+	WriteOnlyBeaconState
+}
+
 // ReadOnlyBeaconState is the interface for a read-only beacon state.
 type ReadOnlyBeaconState interface {
 	ReadOnlyEth1Data
