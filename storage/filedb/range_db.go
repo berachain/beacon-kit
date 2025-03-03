@@ -25,12 +25,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"sync"
 
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
+	"github.com/berachain/beacon-kit/primitives/math"
 	db "github.com/berachain/beacon-kit/storage/interfaces"
 	"github.com/berachain/beacon-kit/storage/pruner"
 	"github.com/spf13/afero"
@@ -203,10 +203,10 @@ func ExtractIndex(prefixedKey []byte) (uint64, error) {
 	}
 
 	indexStr := string(parts[0])
-	index, err := strconv.ParseUint(indexStr, 10, 64)
+	index, err := math.U64FromString(indexStr)
 	if err != nil {
 		return 0, err
 	}
 
-	return index, nil
+	return index.Unwrap(), nil
 }

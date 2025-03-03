@@ -192,5 +192,16 @@ func (cc ConsensusClient) BlobSidecars(
 	return cc.beaconClient.BlobSidecars(ctx, opts)
 }
 
+// ValidatorBalances returns the validator balances for a given state.
+func (cc ConsensusClient) ValidatorBalances(
+	ctx context.Context,
+	opts *beaconapi.ValidatorBalancesOpts,
+) (*beaconapi.Response[map[phase0.ValidatorIndex]phase0.Gwei], error) {
+	if cc.beaconClient == nil {
+		return nil, errors.New("beacon client is not initialized")
+	}
+	return cc.beaconClient.ValidatorBalances(ctx, opts)
+}
+
 // TODO: Add helpers for the beacon node-api client (converting from
 // go-eth2-client types to beacon-kit consensus types).
