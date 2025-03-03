@@ -214,7 +214,8 @@ func (s *Service) rebuildPayloadForRejectedBlock(
 		// We are rebuilding for the current slot.
 		stateSlot,
 		nextPayloadTimestamp.Unwrap(),
-		// We set the parent root to the previous block root.
+		// We set the parent root to the previous block root. The HashTreeRoot
+		// of the header is the same as the HashTreeRoot of the block.
 		latestHeader.HashTreeRoot(),
 		// We set the head of our chain to the previous finalized block.
 		lph.GetBlockHash(),
