@@ -24,19 +24,19 @@ package execution
 
 import "github.com/ory/dockertest"
 
-// ResourceHandle manages a *dockertest.Resource with added utility.
-type ResourceHandle struct {
+// Resource manages a *dockertest.Resource with added utility.
+type Resource struct {
 	*dockertest.Resource
 	isClosed bool
 }
 
-func (r *ResourceHandle) Close() error {
+func (r *Resource) Close() error {
 	r.isClosed = true
 	return r.Resource.Close()
 }
 
 // CloseIfOpen will close the resource if it's open. If already closed, will return nil
-func (r *ResourceHandle) CloseIfOpen() error {
+func (r *Resource) CloseIfOpen() error {
 	if r.isClosed {
 		return nil
 	}

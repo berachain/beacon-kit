@@ -53,7 +53,7 @@ type SharedAccessors struct {
 	TestNode   TestNode
 
 	// ElHandle is a dockertest resource handle that should be closed in teardown.
-	ElHandle *execution.ResourceHandle
+	ElHandle *execution.Resource
 }
 
 // GetBlsSigner returns a new BLSSigner using the configuration files in the provided home directory.
