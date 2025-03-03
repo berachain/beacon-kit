@@ -26,6 +26,7 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
+	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/engine-primitives/errors"
 	"github.com/berachain/beacon-kit/testing/simulated"
@@ -48,7 +49,7 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	s.Require().NoError(err)
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals := s.CoreLoop(blockHeight, coreLoopIterations, blsSigner)
+	proposals := s.moveChainToHeight(blockHeight, coreLoopIterations, blsSigner)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	// Prepare a valid block proposal.
@@ -110,15 +111,15 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidTimestamps_Errors() {
 	s.Require().NoError(err)
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals := s.CoreLoop(blockHeight, coreLoopIterations, blsSigner)
+	proposals := s.moveChainToHeight(blockHeight, coreLoopIterations, blsSigner)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	// Prepare a valid block proposal, but 2 seconds in the future (i.e. attempt to roll timestamp forward)
-	correctTime := time.Now()
-	proposalTime := correctTime.Add(2 * time.Second)
+	correctConsensusTime := time.Now()
+	maliciousProposalTime := correctConsensusTime.Add(2 * time.Second)
 	maliciousProposal, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{
 		Height:          blockHeight + coreLoopIterations,
-		Time:            proposalTime,
+		Time:            maliciousProposalTime,
 		ProposerAddress: pubkey.Address(),
 	})
 	s.Require().NoError(err)
@@ -132,9 +133,9 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidTimestamps_Errors() {
 		Height:          blockHeight + coreLoopIterations,
 		ProposerAddress: pubkey.Address(),
 		// Use the correct time as the actual consensus time, which mismatches the proposal time.
-		Time: correctTime,
+		Time: correctConsensusTime,
 	})
 	s.Require().NoError(err)
 	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
-	s.Require().Contains(s.LogBuffer.String(), "timestamp too far in the future")
+	s.Require().Contains(s.LogBuffer.String(), payloadtime.ErrTooFarInTheFuture.Error())
 }

@@ -44,13 +44,14 @@ func (s *SimulatedSuite) TestProcessProposal_CrashedExecutionClient_Errors() {
 	s.Require().NoError(err)
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals := s.CoreLoop(blockHeight, coreLoopIterations, blsSigner)
+	proposals := s.moveChainToHeight(blockHeight, coreLoopIterations, blsSigner)
 	s.Require().Len(proposals, coreLoopIterations)
 
+	currentHeight := int64(blockHeight + coreLoopIterations)
 	// Prepare a valid block proposal.
 	proposalTime := time.Now()
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{
-		Height:          blockHeight + coreLoopIterations,
+		Height:          currentHeight,
 		Time:            proposalTime,
 		ProposerAddress: pubkey.Address(),
 	})
@@ -65,7 +66,7 @@ func (s *SimulatedSuite) TestProcessProposal_CrashedExecutionClient_Errors() {
 	// Process the proposal containing the valid block.
 	processResp, err := s.SimComet.Comet.ProcessProposal(s.Ctx, &types.ProcessProposalRequest{
 		Txs:             proposal.Txs,
-		Height:          blockHeight + coreLoopIterations,
+		Height:          currentHeight,
 		ProposerAddress: pubkey.Address(),
 		Time:            proposalTime,
 	})

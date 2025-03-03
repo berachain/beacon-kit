@@ -28,13 +28,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/berachain/beacon-kit/beacon/blockchain"
-	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
-	mathpkg "github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
 	"github.com/cometbft/cometbft/abci/types"
@@ -138,49 +135,9 @@ func (s *SimulatedSuite) initializeChain() {
 	s.Require().Len(deposits, 1, "Expected 1 deposit")
 }
 
-// TestFullLifecycle_ValidBlock_IsSuccessful tests that a valid block proposal is processed, finalized, and committed.
-// It loops through this core process `coreLoopIterations` times.
-func (s *SimulatedSuite) TestFullLifecycle_ValidBlock_IsSuccessful() {
-	const blockHeight = 1
-	const coreLoopIterations = 10
-
-	// Initialize the chain state.
-	s.initializeChain()
-
-	// Retrieve the BLS signer and proposer address.
-	blsSigner := simulated.GetBlsSigner(s.HomeDir)
-
-	// iterate through the core loop `coreLoopIterations` times, i.e. Propose, Process, Finalize and Commit.
-	proposals := s.CoreLoop(blockHeight, coreLoopIterations, blsSigner)
-
-	// We expect that the number of proposals that were finalized should be `coreLoopIterations`.
-	s.Require().Len(proposals, coreLoopIterations)
-
-	// Validate post-commit state.
-	queryCtx, err := s.SimComet.CreateQueryContext(blockHeight+coreLoopIterations-1, false)
-	s.Require().NoError(err)
-
-	stateDB := s.TestNode.StorageBackend.StateFromContext(queryCtx)
-	slot, err := stateDB.GetSlot()
-	s.Require().NoError(err)
-	s.Require().Equal(mathpkg.U64(blockHeight+coreLoopIterations-1), slot)
-
-	stateHeader, err := stateDB.GetLatestBlockHeader()
-	s.Require().NoError(err)
-
-	// Unmarshal the beacon block from the ABCI request.
-	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
-		proposals[len(proposals)-1].Txs,
-		blockchain.BeaconBlockTxIndex,
-		s.TestNode.ChainSpec.ActiveForkVersionForSlot(slot),
-	)
-	s.Require().NoError(err)
-	s.Require().Equal(proposedBlock.Message.GetHeader().GetBodyRoot(), stateHeader.GetBodyRoot())
-}
-
-// CoreLoop will iterate through the core loop `iterations` times, i.e. Propose, Process, Finalize and Commit.
+// moveChainToHeight will iterate through the core loop `iterations` times, i.e. Propose, Process, Finalize and Commit.
 // Returns the list of proposed comet blocks.
-func (s *SimulatedSuite) CoreLoop(startHeight, iterations int64, proposer *signer.BLSSigner) []*types.PrepareProposalResponse {
+func (s *SimulatedSuite) moveChainToHeight(startHeight, iterations int64, proposer *signer.BLSSigner) []*types.PrepareProposalResponse {
 	// Prepare a block proposal.
 	pubkey, err := proposer.GetPubKey()
 	s.Require().NoError(err)

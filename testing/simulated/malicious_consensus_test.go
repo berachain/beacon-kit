@@ -48,7 +48,7 @@ func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_Errors() {
 	s.Require().NoError(err)
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals := s.CoreLoop(blockHeight, coreLoopIterations, blsSigner)
+	proposals := s.moveChainToHeight(blockHeight, coreLoopIterations, blsSigner)
 	s.Require().Len(proposals, coreLoopIterations)
 
 	// Prepare a valid block proposal.
