@@ -134,7 +134,8 @@ func ValidGethImage() docker.PullImageOptions {
 }
 
 // ValidGethImageWithSimulate returns the default Docker image options for the Geth node with Simulate API
-// https://github.com/ethereum/go-ethereum/pull/31304/files.
+// Build references commit https://github.com/ethereum/go-ethereum/tree/2407255bb3032dc17205ba0d648270357c98b713
+// TODO: Remove once https://github.com/ethereum/go-ethereum/pull/31304/files is merged.
 func ValidGethImageWithSimulate() docker.PullImageOptions {
 	return docker.PullImageOptions{
 		Repository: "rezbera/geth-simulate",
