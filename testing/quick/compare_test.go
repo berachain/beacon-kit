@@ -1,4 +1,4 @@
-//go:build norace
+//go:build quick
 
 // SPDX-License-Identifier: BUSL-1.1
 //
