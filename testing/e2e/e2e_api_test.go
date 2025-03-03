@@ -548,7 +548,7 @@ func (s *BeaconKitE2ESuite) getValidatorBalances(stateID string, ids ...string) 
 	return resp, nil
 }
 
-func (s *BeaconKitE2ESuite) decodeValidatorBalancesResponse(resp *http.Response) (*beacontypes.ValidatorBalanceData, error) {
+func (s *BeaconKitE2ESuite) decodeValidatorBalancesResponse(resp *http.Response) (*[]beacontypes.ValidatorBalanceData, error) {
 	if resp == nil {
 		return nil, errors.New("nil response")
 	}
@@ -570,7 +570,7 @@ func (s *BeaconKitE2ESuite) decodeValidatorBalancesResponse(resp *http.Response)
 		return nil, err
 	}
 
-	var validatorBalances beacontypes.ValidatorBalanceData
+	var validatorBalances []beacontypes.ValidatorBalanceData
 	if err = json.Unmarshal(dataBytes, &validatorBalances); err != nil {
 		return nil, err
 	}
@@ -578,7 +578,7 @@ func (s *BeaconKitE2ESuite) decodeValidatorBalancesResponse(resp *http.Response)
 	return &validatorBalances, nil
 }
 
-// TestGetValidatorBalances tests querying validator balances.
+// TestGetValidatorBalances tests querying validator balances for state head.
 func (s *BeaconKitE2ESuite) TestGetValidatorBalances() {
 	resp, err := s.getValidatorBalances("head")
 	s.Require().NoError(err)
@@ -589,8 +589,11 @@ func (s *BeaconKitE2ESuite) TestGetValidatorBalances() {
 	balancesResp, err := s.decodeValidatorBalancesResponse(resp)
 	s.Require().NoError(err)
 	s.Require().NotNil(balancesResp, "balances response should not be nil")
+	s.Require().NotEmpty(balancesResp, "balances response should not be empty")
 
-	s.Require().True(balancesResp.Balance > 0)
+	for _, balance := range *balancesResp {
+		s.Require().True(balance.Balance > 0)
+	}
 }
 
 // TestGetValidatorBalancesWithID tests querying validator balances with specific ID.
@@ -605,7 +608,6 @@ func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithID() {
 	s.Require().NoError(err)
 	s.Require().NotNil(balancesResp, "balances response should not be nil")
 
-	// Check the balance is positive
-	s.Require().True(balancesResp.Balance > 0)
-
+	s.Require().Len(*balancesResp, 1)
+	s.Require().True((*balancesResp)[0].Balance > 0)
 }
