@@ -28,6 +28,11 @@ import (
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 
+type BeaconState interface {
+	ReadOnlyBeaconState
+	WriteOnlyBeaconState
+}
+
 // ReadOnlyBeaconState is the interface for a read-only beacon state.
 type ReadOnlyBeaconState interface {
 	ReadOnlyEth1Data
@@ -136,6 +141,6 @@ type ReadOnlyEth1Data interface {
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.
 type ReadOnlyWithdrawals interface {
-	EVMInflationWithdrawal() *engineprimitives.Withdrawal
+	EVMInflationWithdrawal(math.Slot) *engineprimitives.Withdrawal
 	ExpectedWithdrawals() (engineprimitives.Withdrawals, error)
 }
