@@ -27,17 +27,17 @@ import "github.com/ory/dockertest"
 // ResourceHandle manages a *dockertest.Resource with added utility.
 type ResourceHandle struct {
 	*dockertest.Resource
-	IsClosed bool
+	isClosed bool
 }
 
 func (r *ResourceHandle) Close() error {
-	r.IsClosed = true
+	r.isClosed = true
 	return r.Resource.Close()
 }
 
 // CloseIfOpen will close the resource if it's open. If already closed, will return nil
 func (r *ResourceHandle) CloseIfOpen() error {
-	if r.IsClosed {
+	if r.isClosed {
 		return nil
 	}
 	return r.Resource.Close()
