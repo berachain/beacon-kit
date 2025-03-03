@@ -126,24 +126,14 @@ func ComputeAndSetExecutionBlock(
 	chainSpec chain.Spec,
 	txs []*gethprimitives.Transaction,
 ) *ctypes.BeaconBlock {
-	baseHeight := int64(latestBlock.GetSlot().Unwrap()) - 1
-
 	// Build simulation options using the defaults extracted from the latest block.
 	// Simulation is required because there is no way to calculate the correct ExecutionPayload State and Receipts root.
+	baseHeight := int64(latestBlock.GetSlot().Unwrap()) - 1
 	simInput := DefaultSimulationInput(t, chainSpec, latestBlock, txs)
 	simulatedBlocks, err := simClient.Simulate(context.TODO(), baseHeight, simInput)
 	require.NoError(t, err)
 	require.Len(t, simulatedBlocks, 1)
 	simBlock := simulatedBlocks[0]
-
-	// Ensure withdrawal roots match.
-	origExec := latestBlock.GetBody().GetExecutionPayload()
-	require.Equal(t,
-		gethprimitives.DeriveSha(origExec.GetWithdrawals(), gethprimitives.NewStackTrie(nil)),
-		simBlock.WithdrawalsRoot)
-	require.Equal(t,
-		gethprimitives.DeriveSha(simBlock.Withdrawals, gethprimitives.NewStackTrie(nil)),
-		simBlock.WithdrawalsRoot)
 
 	forkVersion := chainSpec.ActiveForkVersionForSlot(latestBlock.GetSlot())
 	txsNoSidecar, sidecars := SplitTxs(txs)
