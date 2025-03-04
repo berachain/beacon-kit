@@ -63,5 +63,5 @@ func (h *Handler) GetStateFork(c handlers.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return beacontypes.NewResponse(types.Wrap(fork)), nil
+	return beacontypes.NewResponse(fork), nil
 }

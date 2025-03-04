@@ -6,7 +6,8 @@ import (
 	math "github.com/berachain/beacon-kit/primitives/math"
 	mock "github.com/stretchr/testify/mock"
 
-	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
+	state "github.com/berachain/beacon-kit/state-transition/core/state"
+
 	transition "github.com/berachain/beacon-kit/primitives/transition"
 )
 
@@ -24,7 +25,7 @@ func (_m *StateProcessor) EXPECT() *StateProcessor_Expecter {
 }
 
 // ProcessSlots provides a mock function with given fields: _a0, _a1
-func (_m *StateProcessor) ProcessSlots(_a0 *statedb.StateDB, _a1 math.U64) (transition.ValidatorUpdates, error) {
+func (_m *StateProcessor) ProcessSlots(_a0 *state.StateDB, _a1 math.U64) (transition.ValidatorUpdates, error) {
 	ret := _m.Called(_a0, _a1)
 
 	if len(ret) == 0 {
@@ -33,10 +34,10 @@ func (_m *StateProcessor) ProcessSlots(_a0 *statedb.StateDB, _a1 math.U64) (tran
 
 	var r0 transition.ValidatorUpdates
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*statedb.StateDB, math.U64) (transition.ValidatorUpdates, error)); ok {
+	if rf, ok := ret.Get(0).(func(*state.StateDB, math.U64) (transition.ValidatorUpdates, error)); ok {
 		return rf(_a0, _a1)
 	}
-	if rf, ok := ret.Get(0).(func(*statedb.StateDB, math.U64) transition.ValidatorUpdates); ok {
+	if rf, ok := ret.Get(0).(func(*state.StateDB, math.U64) transition.ValidatorUpdates); ok {
 		r0 = rf(_a0, _a1)
 	} else {
 		if ret.Get(0) != nil {
@@ -44,7 +45,7 @@ func (_m *StateProcessor) ProcessSlots(_a0 *statedb.StateDB, _a1 math.U64) (tran
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*statedb.StateDB, math.U64) error); ok {
+	if rf, ok := ret.Get(1).(func(*state.StateDB, math.U64) error); ok {
 		r1 = rf(_a0, _a1)
 	} else {
 		r1 = ret.Error(1)
@@ -59,15 +60,15 @@ type StateProcessor_ProcessSlots_Call struct {
 }
 
 // ProcessSlots is a helper method to define mock.On call
-//   - _a0 *statedb.StateDB
+//   - _a0 *state.StateDB
 //   - _a1 math.U64
 func (_e *StateProcessor_Expecter) ProcessSlots(_a0 interface{}, _a1 interface{}) *StateProcessor_ProcessSlots_Call {
 	return &StateProcessor_ProcessSlots_Call{Call: _e.mock.On("ProcessSlots", _a0, _a1)}
 }
 
-func (_c *StateProcessor_ProcessSlots_Call) Run(run func(_a0 *statedb.StateDB, _a1 math.U64)) *StateProcessor_ProcessSlots_Call {
+func (_c *StateProcessor_ProcessSlots_Call) Run(run func(_a0 *state.StateDB, _a1 math.U64)) *StateProcessor_ProcessSlots_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(*statedb.StateDB), args[1].(math.U64))
+		run(args[0].(*state.StateDB), args[1].(math.U64))
 	})
 	return _c
 }
@@ -77,7 +78,7 @@ func (_c *StateProcessor_ProcessSlots_Call) Return(_a0 transition.ValidatorUpdat
 	return _c
 }
 
-func (_c *StateProcessor_ProcessSlots_Call) RunAndReturn(run func(*statedb.StateDB, math.U64) (transition.ValidatorUpdates, error)) *StateProcessor_ProcessSlots_Call {
+func (_c *StateProcessor_ProcessSlots_Call) RunAndReturn(run func(*state.StateDB, math.U64) (transition.ValidatorUpdates, error)) *StateProcessor_ProcessSlots_Call {
 	_c.Call.Return(run)
 	return _c
 }
