@@ -25,7 +25,6 @@ package execution
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 
 	"github.com/berachain/beacon-kit/execution/client"
@@ -183,40 +182,16 @@ func TxsToTransactionArgs(chainID uint64, txs []*gethprimitives.Transaction) ([]
 			Input:                &data,
 			AccessList:           tx.AccessList(),
 			ChainID:              &chainIDHex,
-			BlobHashes:           tx.BlobHashes(),
 		}
 
 		if sidecar := tx.BlobTxSidecar(); sidecar != nil {
 			blobCap := hexutil.Big(*tx.BlobGasFeeCap())
+			call.BlobHashes = tx.BlobHashes()
 			call.BlobFeeCap = &blobCap
 			call.Blobs = sidecar.Blobs
 			call.Commitments = sidecar.Commitments
 			call.Proofs = sidecar.Proofs
 		}
-
-		// Reconstruct the transaction to verify the hash matches.
-		v, r, s := tx.RawSignatureValues()
-		reconstructed := types.NewTx(&types.DynamicFeeTx{
-			ChainID:   call.ChainID.ToInt(),
-			Nonce:     uint64(*call.Nonce),
-			GasTipCap: call.MaxPriorityFeePerGas.ToInt(),
-			GasFeeCap: call.MaxFeePerGas.ToInt(),
-			Gas:       uint64(*call.Gas),
-			To:        &call.To,
-			Value:     call.Value.ToInt(),
-			Data:      *call.Input,
-			V:         v,
-			R:         r,
-			S:         s,
-		})
-
-		if reconstructed.Hash() != tx.Hash() {
-			return nil, fmt.Errorf(
-				"transaction hash mismatch: original=%s, revised=%s",
-				tx.Hash(), reconstructed.Hash(),
-			)
-		}
-
 		args[i] = call
 	}
 	return args, nil

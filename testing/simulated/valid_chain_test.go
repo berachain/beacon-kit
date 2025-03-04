@@ -23,7 +23,6 @@
 package simulated_test
 
 import (
-	"crypto/sha256"
 	"math/big"
 	"time"
 
@@ -216,10 +215,10 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessfu
 	currentHeight := int64(blockHeight + coreLoopIterations)
 
 	// Prepare a valid block proposal.
-	proposalTime := time.Now()
+	consensusTime := time.Now()
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{
 		Height:          currentHeight,
-		Time:            proposalTime,
+		Time:            consensusTime,
 		ProposerAddress: pubkey.Address(),
 	})
 	s.Require().NoError(err)
@@ -244,7 +243,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessfu
 	blobTxs := make([]*gethtypes.Transaction, len(blobs))
 	for i := range blobs {
 		blobCommitment := commitments[i]
-		blobHash := kzg4844.CalcBlobHashV1(sha256.New(), (*kzg4844.Commitment)(&blobCommitment))
+		blobHash := blobCommitment.ToVersionedHash()
 		txSidecar := &gethtypes.BlobTxSidecar{
 			Blobs:       []kzg4844.Blob{kzg4844.Blob(blobs[i][:])},
 			Commitments: []kzg4844.Commitment{kzg4844.Commitment(blobCommitment)},
@@ -259,19 +258,15 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessfu
 				GasTipCap: uint256.NewInt(875000000),
 				GasFeeCap: uint256.NewInt(875000000),
 				// Set to 21000 for minimum intrinsic gas
-				Gas:        21000,
-				Value:      nil,
-				Data:       nil,
+				Gas:        210000,
+				Value:      uint256.NewInt(0),
+				Data:       []byte{},
 				AccessList: nil,
-				// Set to 875000000 as that is the blob base fee
-				BlobFeeCap: uint256.NewInt(1),
+				BlobFeeCap: uint256.NewInt(10),
 				// If we have 1 tx with multiple blobs, we must add the blob hashes here.
 				BlobHashes: []gethcommon.Hash{blobHash},
 				// Sidecar must be set to nil here or Geth will error with "unexpected blob sidecar in transaction"
 				Sidecar: nil,
-				V:       nil,
-				R:       nil,
-				S:       nil,
 			},
 		)
 		s.Require().NoError(err)
@@ -298,52 +293,47 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessfu
 	proposerAddress, err := crypto.GetAddressFromPubKey(blsSigner.PublicKey())
 	s.Require().NoError(err)
 
-	finalBlock, err := simulated.ComputeAndSetStateRoot(queryCtx, consensusTime, proposerAddress, s.TestNode.StateProcessor, s.TestNode.StorageBackend, proposedBlockMessage)
+	proposedBlockMessage, err = simulated.ComputeAndSetStateRoot(queryCtx, consensusTime, proposerAddress, s.TestNode.StateProcessor, s.TestNode.StorageBackend, proposedBlockMessage)
 	s.Require().NoError(err)
 
-	blockWithCommitments := simulated.CreateBeaconBlockWithBlobs(
-		require.New(s.T()),
+	newSignedBlock, err := ctypes.NewSignedBeaconBlock(
+		proposedBlockMessage,
+		&ctypes.ForkData{
+			CurrentVersion:        s.TestNode.ChainSpec.ActiveForkVersionForSlot(proposedBlockMessage.GetSlot()),
+			GenesisValidatorsRoot: s.GenesisValidatorsRoot,
+		},
 		s.TestNode.ChainSpec,
-		commitments,
-		proposedBlock.GetMessage(),
 		blsSigner,
-		s.GenesisValidatorsRoot,
 	)
-
-	sidecarFactory := dablob.NewSidecarFactory(s.TestNode.ChainSpec, metrics.NewNoOpTelemetrySink())
-	inclusionProofs := make([][]common.Root, len(blobs))
-	for i := range blobs {
-		inclusionProof, err := sidecarFactory.BuildKZGInclusionProof(blockWithCommitments.GetMessage().GetBody(), mathpkg.U64(i))
-		s.Require().NoError(err)
-		inclusionProofs[i] = inclusionProof
-	}
-
-	blockWithCommitmentBytes, err := blockWithCommitments.MarshalSSZ()
 	s.Require().NoError(err)
 
 	// Inject the new block
-	proposal.Txs[0] = blockWithCommitmentBytes
+	newSignedBlockBytes, err := newSignedBlock.MarshalSSZ()
+	s.Require().NoError(err)
+	proposal.Txs[0] = newSignedBlockBytes
 
 	// Create the beaconBlock Header for the sidecar
 
 	blockWithCommitmentsSignedHeader := ctypes.NewSignedBeaconBlockHeader(
-		blockWithCommitments.GetMessage().GetHeader(),
-		blockWithCommitments.GetSignature(),
+		newSignedBlock.GetMessage().GetHeader(),
+		newSignedBlock.GetSignature(),
 	)
 
 	sidecarsSlice := make([]*datypes.BlobSidecar, len(blobs))
+	sidecarFactory := dablob.NewSidecarFactory(s.TestNode.ChainSpec, metrics.NewNoOpTelemetrySink())
 	for i := range blobs {
+		inclusionProof, err := sidecarFactory.BuildKZGInclusionProof(proposedBlockMessage.GetBody(), mathpkg.U64(i))
+		s.Require().NoError(err)
 		sidecar := datypes.BuildBlobSidecar(
 			mathpkg.U64(i),
 			blockWithCommitmentsSignedHeader,
 			blobs[i],
 			commitments[i],
 			proofs[i],
-			inclusionProofs[i],
+			inclusionProof,
 		)
 		sidecarsSlice[i] = sidecar
 	}
-
 	sidecars := datypes.BlobSidecars(sidecarsSlice)
 	// Inject the valid sidecar
 	sidecarBytes, err := sidecars.MarshalSSZ()
@@ -357,7 +347,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessfu
 		Txs:             proposal.Txs,
 		Height:          currentHeight,
 		ProposerAddress: pubkey.Address(),
-		Time:            proposalTime,
+		Time:            consensusTime,
 	})
 	s.Require().NoError(err)
 	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)

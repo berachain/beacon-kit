@@ -179,6 +179,7 @@ func ComputeAndSetValidExecutionBlock(
 // constructs a transition context using the consensus time and proposer address,
 // runs the state transition, and then updates the block’s state root based on the new state.
 // Returns the updated block or an error.
+// This should only be used if you know the block is valid.
 // TODO: Can we use a mocked execution client for the StateProcessor to avoid doing an unnecessary NewPayload?
 func ComputeAndSetStateRoot(
 	queryCtx context.Context,
