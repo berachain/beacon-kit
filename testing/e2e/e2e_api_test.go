@@ -532,7 +532,7 @@ func (s *BeaconKitE2ESuite) getValidatorBalances(stateID string, ids ...string) 
 	if len(ids) > 0 {
 		queryParams := make([]string, 0, len(ids))
 		for _, id := range ids {
-			queryParams = append(queryParams, fmt.Sprintf("id=%s", id))
+			queryParams = append(queryParams, "id="+id)
 		}
 		url = url + "?" + strings.Join(queryParams, "&")
 	}
@@ -651,7 +651,6 @@ func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithInvalidID() {
 	s.Require().NoError(err)
 	s.Require().NotNil(balancesResp, "balances response should not be nil")
 	s.Require().Len(*balancesResp, 0)
-
 }
 
 // TestGetValidatorBalancesWithNonExistentIndex tests querying validator balances with non-existent index.
@@ -700,7 +699,6 @@ func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithPublicKey() {
 	s.Require().True((*balancesResp)[0].Balance > 0, "Validator balance should be positive")
 	// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
 	s.Require().True((*balancesResp)[0].Balance <= 4e12, "Validator balance should not exceed 4000 BERA")
-
 }
 
 // TestGetValidatorBalancesWithInvalidPublicKey tests querying validator balances with invalid public key.
@@ -720,4 +718,24 @@ func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithInvalidPublicKey() {
 	s.Require().NoError(err)
 	s.Require().NotNil(balancesResp, "balances response should not be nil")
 	s.Require().Len(*balancesResp, 0)
+}
+
+// TestGetValidatorBalancesForGenesis tests querying validator balances for state genesis.
+func (s *BeaconKitE2ESuite) TestGetValidatorBalancesForGenesis() {
+	resp, err := s.getValidatorBalances("genesis")
+	s.Require().NoError(err)
+	s.Require().NotNil(resp, "response should not be nil")
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+	defer resp.Body.Close()
+
+	balancesResp, err := s.decodeValidatorBalancesResponse(resp)
+	s.Require().NoError(err)
+	s.Require().NotNil(balancesResp, "balances response should not be nil")
+	s.Require().NotEmpty(balancesResp, "balances response should not be empty")
+
+	for _, balance := range *balancesResp {
+		s.Require().True(balance.Balance > 0, "Validator balance should be positive")
+		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
+		s.Require().True(balance.Balance <= 4e12, "Validator balance should not exceed 4000 BERA")
+	}
 }
