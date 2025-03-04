@@ -39,40 +39,6 @@ import (
 	gethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
-func tranformExecutionPayloadToGethBlock(payload *ctypes.ExecutionPayload, txs []*gethtypes.Transaction, parentBeaconRoot libcommon.Root) *gethtypes.Block {
-	withdrawals := payload.GetWithdrawals()
-	withdrawalsHash := gethprimitives.DeriveSha(withdrawals, gethprimitives.NewStackTrie(nil))
-	// Construct a new execution block header and body using the malicious transactions.
-	executionBlock := gethprimitives.NewBlockWithHeader(
-		&gethprimitives.Header{
-			ParentHash:       gethprimitives.ExecutionHash(payload.GetParentHash()),
-			UncleHash:        gethprimitives.EmptyUncleHash,
-			Coinbase:         gethprimitives.ExecutionAddress(payload.GetFeeRecipient()),
-			Root:             gethprimitives.ExecutionHash(payload.GetStateRoot()),
-			TxHash:           gethprimitives.DeriveSha(gethprimitives.Transactions(txs), gethprimitives.NewStackTrie(nil)),
-			ReceiptHash:      gethprimitives.ExecutionHash(payload.GetReceiptsRoot()),
-			Bloom:            gethprimitives.LogsBloom(payload.GetLogsBloom()),
-			Difficulty:       big.NewInt(0),
-			Number:           new(big.Int).SetUint64(payload.GetNumber().Unwrap()),
-			GasLimit:         payload.GetGasLimit().Unwrap(),
-			GasUsed:          payload.GetGasUsed().Unwrap(),
-			Time:             payload.GetTimestamp().Unwrap(),
-			BaseFee:          payload.GetBaseFeePerGas().ToBig(),
-			Extra:            payload.GetExtraData(),
-			MixDigest:        gethprimitives.ExecutionHash(payload.GetPrevRandao()),
-			WithdrawalsHash:  &withdrawalsHash,
-			ExcessBlobGas:    payload.GetExcessBlobGas().UnwrapPtr(),
-			BlobGasUsed:      payload.GetBlobGasUsed().UnwrapPtr(),
-			ParentBeaconRoot: (*gethprimitives.ExecutionHash)(&parentBeaconRoot),
-		},
-	).WithBody(gethprimitives.Body{
-		Transactions: txs,
-		Uncles:       nil,
-		Withdrawals:  *(*gethprimitives.Withdrawals)(unsafe.Pointer(&withdrawals)),
-	})
-	return executionBlock
-}
-
 // transformWithdrawalsToGethWithdrawals converts a SimulatedBlock to a geth Block
 func transformSimulatedBlockToGethBlock(simBlock *execution.SimulatedBlock, txs []*gethtypes.Transaction, parentBeaconRoot libcommon.Root) *gethtypes.Block {
 	// Construct a new execution block header with the provided transactions.

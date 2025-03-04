@@ -121,12 +121,22 @@ func ComputeAndSetInvalidExecutionBlock(
 	chainSpec chain.Spec,
 	txs []*gethprimitives.Transaction,
 ) *ctypes.BeaconBlock {
+	t.Helper()
 	forkVersion := chainSpec.ActiveForkVersionForSlot(latestBlock.GetSlot())
-	txsNoSidecar, sidecars := splitTxs(txs)
+	_, sidecars := splitTxs(txs)
 	// Use the current execution payload (e.g. for an invalid block, no simulation is done).
 	executionPayload := latestBlock.GetBody().GetExecutionPayload()
 	// Transform the payload into a Geth block.
-	execBlock := tranformExecutionPayloadToGethBlock(executionPayload, txsNoSidecar, latestBlock.GetParentBlockRoot())
+	txsBytesArray := make([][]byte, len(txs))
+	for i, tx := range txs {
+		txBytes, err := tx.MarshalBinary()
+		require.NoError(t, err)
+		txsBytesArray[i] = txBytes
+	}
+	executionPayload.Transactions = txsBytesArray
+	parentBlockRoot := latestBlock.GetParentBlockRoot()
+	execBlock, _, err := ctypes.MakeEthBlock(executionPayload, &parentBlockRoot)
+	require.NoError(t, err)
 	return setExecutionPayload(t, latestBlock, forkVersion, execBlock, sidecars)
 }
 
