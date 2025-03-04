@@ -40,7 +40,7 @@ import (
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
-	mathpkg "github.com/berachain/beacon-kit/primitives/math"
+	math "github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/state-transition/core"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
@@ -196,7 +196,7 @@ func ComputeAndSetStateRoot(
 	// Create a transition context with the provided consensus time and proposer address.
 	txCtx := transition.NewTransitionCtx(
 		queryCtx,
-		mathpkg.U64(consensusTime.Unix()),
+		math.U64(consensusTime.Unix()),
 		proposerAddress,
 	).WithVerifyPayload(false).
 		WithVerifyRandao(false).

@@ -162,7 +162,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidTimestamps_Errors() {
 	s.Require().Len(proposals, coreLoopIterations)
 	currentHeight := int64(blockHeight + coreLoopIterations)
 
-	// Prepare a valid block proposal, but 2 seconds in the future (i.e. attempt to roll timestamp forward)
+	// Prepare a block proposal, but 2 seconds in the future (i.e. attempt to roll timestamp forward)
 	correctConsensusTime := time.Now()
 	maliciousProposalTime := correctConsensusTime.Add(2 * time.Second)
 	maliciousProposal, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{

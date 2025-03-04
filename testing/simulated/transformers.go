@@ -32,7 +32,7 @@ import (
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	libcommon "github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
-	mathpkg "github.com/berachain/beacon-kit/primitives/math"
+	math "github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
 	"github.com/ethereum/go-ethereum/common"
@@ -111,7 +111,7 @@ func transformExecutableDataToExecutionPayload(forkVersion libcommon.Version, da
 	}
 
 	// Convert BaseFeePerGas into a U256 value.
-	baseFeePerGas, err := mathpkg.NewU256FromBigInt(data.BaseFeePerGas)
+	baseFeePerGas, err := math.NewU256FromBigInt(data.BaseFeePerGas)
 	if err != nil {
 		return nil, fmt.Errorf("failed baseFeePerGas conversion: %w", err)
 	}
@@ -124,17 +124,17 @@ func transformExecutableDataToExecutionPayload(forkVersion libcommon.Version, da
 		ReceiptsRoot:  libcommon.Bytes32(data.ReceiptsRoot),
 		LogsBloom:     [256]byte(data.LogsBloom),
 		Random:        libcommon.Bytes32(data.Random),
-		Number:        mathpkg.U64(data.Number),
-		GasLimit:      mathpkg.U64(data.GasLimit),
-		GasUsed:       mathpkg.U64(data.GasUsed),
-		Timestamp:     mathpkg.U64(data.Timestamp),
+		Number:        math.U64(data.Number),
+		GasLimit:      math.U64(data.GasLimit),
+		GasUsed:       math.U64(data.GasUsed),
+		Timestamp:     math.U64(data.Timestamp),
 		Withdrawals:   withdrawals,
 		ExtraData:     data.ExtraData,
 		BaseFeePerGas: baseFeePerGas,
 		BlockHash:     libcommon.ExecutionHash(data.BlockHash),
 		Transactions:  data.Transactions,
-		BlobGasUsed:   mathpkg.U64(blobGasUsed),
-		ExcessBlobGas: mathpkg.U64(excessBlobGas),
+		BlobGasUsed:   math.U64(blobGasUsed),
+		ExcessBlobGas: math.U64(excessBlobGas),
 		EpVersion:     forkVersion,
 	}
 	return executionPayload, nil
