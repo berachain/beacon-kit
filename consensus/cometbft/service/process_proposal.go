@@ -32,6 +32,14 @@ func (s *Service) processProposal(
 	ctx context.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
+	// Check if ctx is still good. CometBFT does not check this.
+	if ctx.Err() != nil {
+		// Node will panic on context cancel with "CONSENSUS FAILURE!!!" due to
+		// returning an error. This is expected. We do not want to accept or
+		// reject a proposal based on incomplete data.
+		// Returning PROCESS_PROPOSAL_STATUS_UNKNOWN will also result in comet panic.
+		return nil, ctx.Err()
+	}
 	startTime := time.Now()
 	defer s.telemetrySink.MeasureSince(
 		"beacon_kit.runtime.process_proposal_duration", startTime)
@@ -64,41 +72,24 @@ func (s *Service) processProposal(
 		),
 	)
 
-	statusCh := make(chan cmtabci.ProcessProposalStatus, 1)
-	defer close(statusCh)
-
-	go func() {
-		// errors to consensus indicate that the node was not able to understand
-		// whether the block was valid or not. Viceversa, we signal that a block
-		// is invalid by its status, but we do return nil error in such a case.
-		status := cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
-		err := s.Blockchain.ProcessProposal(
-			s.processProposalState.Context(),
-			req,
+	// errors to consensus indicate that the node was not able to understand
+	// whether the block was valid or not. Viceversa, we signal that a block
+	// is invalid by its status, but we do return nil error in such a case.
+	status := cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
+	err := s.Blockchain.ProcessProposal(
+		s.processProposalState.Context(),
+		req,
+	)
+	if err != nil {
+		status = cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
+		s.logger.Error(
+			"failed to process proposal",
+			"height", req.Height,
+			"time", req.Time,
+			"hash", fmt.Sprintf("%X", req.Hash),
+			"err", err,
 		)
-		if err != nil {
-			status = cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
-			s.logger.Error(
-				"failed to process proposal",
-				"height", req.Height,
-				"time", req.Time,
-				"hash", fmt.Sprintf("%X", req.Hash),
-				"err", err,
-			)
-		}
-		statusCh <- status
-	}()
-
-	select {
-	// Node will panic on context cancel with "CONSENSUS FAILURE!!!" due to
-	// returning an error. This is expected. We do not want to accept or
-	// reject a proposal based on incomplete data.
-	// Returning PROCESS_PROPOSAL_STATUS_UNKNOWN will also result in comet panic.
-	// TODO: switch to ctx.Done() when CometBFT implements contexts.
-	case <-s.ctx.Done():
-		s.logger.Info("Stopping ProcessProposal")
-		return nil, s.ctx.Err()
-	case status := <-statusCh:
-		return &cmtabci.ProcessProposalResponse{Status: status}, nil
 	}
+
+	return &cmtabci.ProcessProposalResponse{Status: status}, nil
 }

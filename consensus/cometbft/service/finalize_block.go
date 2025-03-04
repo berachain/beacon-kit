@@ -24,21 +24,20 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/berachain/beacon-kit/primitives/transition"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/sourcegraph/conc/iter"
 )
-
-// The result of the block building goroutine.
-type finalizeResult struct {
-	valUpdates transition.ValidatorUpdates
-	err        error
-}
 
 func (s *Service) finalizeBlock(
 	ctx context.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (*cmtabci.FinalizeBlockResponse, error) {
+	// Check if ctx is still good. CometBFT does not check this.
+	if ctx.Err() != nil {
+		// Node will panic on context cancel with "CONSENSUS FAILURE!!!" due to error.
+		// We expect this to happen and do not want to finalize any incomplete or invalid state.
+		return nil, ctx.Err()
+	}
 	res, err := s.finalizeBlockInternal(ctx, req)
 	if res != nil {
 		res.AppHash = s.workingHash()
@@ -80,40 +79,25 @@ func (s *Service) finalizeBlockInternal(
 		}
 	}
 
-	finalizeResultCh := make(chan finalizeResult, 1)
-	defer close(finalizeResultCh)
+	rawValUpdates, err := s.Blockchain.FinalizeBlock(
+		s.finalizeBlockState.Context(),
+		req,
+	)
 
-	go func() {
-		finalizeBlock, err := s.Blockchain.FinalizeBlock(
-			s.finalizeBlockState.Context(),
-			req,
-		)
-		finalizeResultCh <- finalizeResult{finalizeBlock, err}
-	}()
-
-	select {
-	// Node will panic on context cancel with "CONSENSUS FAILURE!!!" due to error.
-	// We expect this to happen and do not want to finalize any incomplete or invalid state.
-	// TODO: switch to ctx.Done() when CometBFT implements contexts.
-	case <-s.ctx.Done():
-		s.logger.Error("Stopping FinalizeBlock")
-		return nil, s.ctx.Err()
-	case res := <-finalizeResultCh:
-		if res.err != nil {
-			return nil, res.err
-		}
-		valUpdates, err := iter.MapErr(res.valUpdates, convertValidatorUpdate[cmtabci.ValidatorUpdate])
-		if err != nil {
-			return nil, err
-		}
-
-		cp := s.cmtConsensusParams.ToProto()
-		return &cmtabci.FinalizeBlockResponse{
-			TxResults:             txResults,
-			ValidatorUpdates:      valUpdates,
-			ConsensusParamUpdates: &cp,
-		}, nil
+	if err != nil {
+		return nil, err
 	}
+	valUpdates, err := iter.MapErr(rawValUpdates, convertValidatorUpdate[cmtabci.ValidatorUpdate])
+	if err != nil {
+		return nil, err
+	}
+
+	cp := s.cmtConsensusParams.ToProto()
+	return &cmtabci.FinalizeBlockResponse{
+		TxResults:             txResults,
+		ValidatorUpdates:      valUpdates,
+		ConsensusParamUpdates: &cp,
+	}, nil
 }
 
 // workingHash gets the apphash that will be finalized in commit.

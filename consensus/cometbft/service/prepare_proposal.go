@@ -30,17 +30,16 @@ import (
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
-// The result of the block building goroutine.
-type buildResult struct {
-	blkBz      []byte
-	sidecarsBz []byte
-	err        error
-}
-
 func (s *Service) prepareProposal(
 	ctx context.Context,
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
+	// Check if ctx is still good. CometBFT does not check this.
+	if ctx.Err() != nil {
+		// If the context is getting cancelled, we are shutting down.
+		// It is ok returning an empty proposal.
+		return &cmtabci.PrepareProposalResponse{Txs: req.Txs}, nil
+	}
 	startTime := time.Now()
 	defer s.telemetrySink.MeasureSince(
 		"beacon_kit.runtime.prepare_proposal_duration", startTime)
@@ -72,29 +71,14 @@ func (s *Service) prepareProposal(
 		req.GetTime(),
 	)
 
-	resultCh := make(chan buildResult, 1)
-	defer close(resultCh)
-
 	// run block building in a goroutine
 	//
 	//nolint:contextcheck // ctx already passed via resetState
-	go func() {
-		blkBz, sidecarsBz, err := s.BlockBuilder.BuildBlockAndSidecars(s.prepareProposalState.Context(), slotData)
-		resultCh <- buildResult{blkBz, sidecarsBz, err}
-	}()
+	blkBz, sidecarsBz, err := s.BlockBuilder.BuildBlockAndSidecars(s.prepareProposalState.Context(), slotData)
 
-	select {
-	// If the context is getting cancelled, we are shutting down.
-	// It is ok returning an empty proposal.
-	// TODO: switch to ctx.Done() when CometBFT implements contexts.
-	case <-s.ctx.Done():
-		s.logger.Warn("Stopping PrepareProposal")
-		return &cmtabci.PrepareProposalResponse{}, nil
-	case r := <-resultCh:
-		if r.err != nil {
-			s.logger.Error("failed to prepare proposal", "height", req.Height, "time", req.Time, "err", r.err)
-			return &cmtabci.PrepareProposalResponse{Txs: req.Txs}, nil
-		}
-		return &cmtabci.PrepareProposalResponse{Txs: [][]byte{r.blkBz, r.sidecarsBz}}, nil
+	if err != nil {
+		s.logger.Error("failed to prepare proposal", "height", req.Height, "time", req.Time, "err", err)
+		return &cmtabci.PrepareProposalResponse{Txs: req.Txs}, nil
 	}
+	return &cmtabci.PrepareProposalResponse{Txs: [][]byte{blkBz, sidecarsBz}}, nil
 }
