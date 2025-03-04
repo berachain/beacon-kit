@@ -39,6 +39,9 @@ var (
 // combineContexts combines the CometBFT context with the original context from the node.
 // TODO: This can be removed if CometBFT implements contexts.
 func (s *Service) combineContexts(ctx context.Context) context.Context {
+	if s.ctx == nil {
+		return ctx
+	}
 	newCtx, cancel := context.WithCancel(context.Background())
 	go func() {
 		select {
