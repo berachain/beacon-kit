@@ -18,14 +18,28 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package handlers
 
-type DataResponse struct {
-	Data any `json:"data"`
+// HTTPError represents an HTTP error response.
+type HTTPError struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
 }
 
-func Wrap(data any) DataResponse {
-	return DataResponse{
-		Data: data,
+// NewHTTPError creates a new HTTPError.
+func NewHTTPError(code int, message string) *HTTPError {
+	return &HTTPError{
+		Code:    code,
+		Message: message,
 	}
+}
+
+// Error implements the error interface.
+func (e *HTTPError) Error() string {
+	return e.Message
+}
+
+// StatusCode returns the HTTP status code.
+func (e *HTTPError) StatusCode() int {
+	return e.Code
 }

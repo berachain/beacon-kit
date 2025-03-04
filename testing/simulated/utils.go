@@ -44,7 +44,6 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	gethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/require"
 )
 
@@ -59,7 +58,7 @@ type SharedAccessors struct {
 	TestNode   TestNode
 
 	// ElHandle is a dockertest resource handle that should be closed in teardown.
-	ElHandle *dockertest.Resource
+	ElHandle *execution.Resource
 }
 
 func GetTestKey(t *testing.T) *ecdsa.PrivateKey {

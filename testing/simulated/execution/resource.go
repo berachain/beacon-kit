@@ -1,3 +1,5 @@
+//go:build simulated
+
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2025, Berachain Foundation. All rights reserved.
@@ -18,38 +20,25 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package beacon
+package execution
 
-import (
-	"github.com/berachain/beacon-kit/node-api/handlers"
-	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
-	"github.com/berachain/beacon-kit/node-api/handlers/utils"
-	"github.com/berachain/beacon-kit/primitives/constants"
-	"github.com/berachain/beacon-kit/primitives/math"
-)
+import "github.com/ory/dockertest"
 
-func (h *Handler) GetRandao(c handlers.Context) (any, error) {
-	req, err := utils.BindAndValidate[beacontypes.GetRandaoRequest](
-		c,
-		h.Logger(),
-	)
-	if err != nil {
-		return nil, err
+// Resource manages a *dockertest.Resource with added utility.
+type Resource struct {
+	*dockertest.Resource
+	isClosed bool
+}
+
+func (r *Resource) Close() error {
+	r.isClosed = true
+	return r.Resource.Close()
+}
+
+// CloseIfOpen will close the resource if it's open. If already closed, will return nil
+func (r *Resource) CloseIfOpen() error {
+	if r.isClosed {
+		return nil
 	}
-	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
-	if err != nil {
-		return nil, err
-	}
-	epoch := constants.GenesisEpoch
-	if req.Epoch != "" {
-		epoch, err = math.U64FromString(req.Epoch)
-		if err != nil {
-			return nil, err
-		}
-	}
-	randao, err := h.backend.RandaoAtEpoch(slot, epoch)
-	if err != nil {
-		return nil, err
-	}
-	return beacontypes.NewResponse(randao), nil
+	return r.Resource.Close()
 }

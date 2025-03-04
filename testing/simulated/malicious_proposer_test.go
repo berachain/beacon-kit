@@ -27,10 +27,12 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
+	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/engine-primitives/errors"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/cometbft/cometbft/abci/types"
 	gethcommon "github.com/ethereum/go-ethereum/common"
@@ -52,13 +54,14 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	s.Require().NoError(err)
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals := s.CoreLoop(blockHeight, coreLoopIterations, blsSigner)
+	proposals := s.moveChainToHeight(blockHeight, coreLoopIterations, blsSigner)
 	s.Require().Len(proposals, coreLoopIterations)
 
+	currentHeight := int64(blockHeight + coreLoopIterations)
 	// Prepare a valid block proposal.
 	proposalTime := time.Now()
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{
-		Height:          blockHeight + coreLoopIterations,
+		Height:          currentHeight,
 		Time:            proposalTime,
 		ProposerAddress: pubkey.Address(),
 	})
@@ -69,7 +72,7 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
 		proposal.Txs,
 		blockchain.BeaconBlockTxIndex,
-		s.TestNode.ChainSpec.ActiveForkVersionForSlot(blockHeight+coreLoopIterations),
+		s.TestNode.ChainSpec.ActiveForkVersionForSlot(math.Slot(currentHeight)),
 	)
 	s.Require().NoError(err)
 
@@ -118,7 +121,7 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	// Process the proposal containing the malicious block.
 	processResp, err := s.SimComet.Comet.ProcessProposal(s.Ctx, &types.ProcessProposalRequest{
 		Txs:             proposal.Txs,
-		Height:          blockHeight + coreLoopIterations,
+		Height:          currentHeight,
 		ProposerAddress: pubkey.Address(),
 		Time:            proposalTime,
 	})
@@ -146,15 +149,16 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidTimestamps_Errors() {
 	s.Require().NoError(err)
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals := s.CoreLoop(blockHeight, coreLoopIterations, blsSigner)
+	proposals := s.moveChainToHeight(blockHeight, coreLoopIterations, blsSigner)
 	s.Require().Len(proposals, coreLoopIterations)
+	currentHeight := int64(blockHeight + coreLoopIterations)
 
 	// Prepare a valid block proposal, but 2 seconds in the future (i.e. attempt to roll timestamp forward)
-	correctTime := time.Now()
-	proposalTime := correctTime.Add(2 * time.Second)
+	correctConsensusTime := time.Now()
+	maliciousProposalTime := correctConsensusTime.Add(2 * time.Second)
 	maliciousProposal, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{
-		Height:          blockHeight + coreLoopIterations,
-		Time:            proposalTime,
+		Height:          currentHeight,
+		Time:            maliciousProposalTime,
 		ProposerAddress: pubkey.Address(),
 	})
 	s.Require().NoError(err)
@@ -165,12 +169,12 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidTimestamps_Errors() {
 	// Process the proposal containing the malicious block.
 	processResp, err := s.SimComet.Comet.ProcessProposal(s.Ctx, &types.ProcessProposalRequest{
 		Txs:             maliciousProposal.Txs,
-		Height:          blockHeight + coreLoopIterations,
+		Height:          currentHeight,
 		ProposerAddress: pubkey.Address(),
 		// Use the correct time as the actual consensus time, which mismatches the proposal time.
-		Time: correctTime,
+		Time: correctConsensusTime,
 	})
 	s.Require().NoError(err)
 	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
-	s.Require().Contains(s.LogBuffer.String(), "timestamp too far in the future")
+	s.Require().Contains(s.LogBuffer.String(), payloadtime.ErrTooFarInTheFuture.Error())
 }

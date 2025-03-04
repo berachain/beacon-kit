@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/engine-primitives/errors"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/cometbft/cometbft/abci/types"
 	gethcommon "github.com/ethereum/go-ethereum/common"
@@ -52,13 +53,14 @@ func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_Errors() {
 	s.Require().NoError(err)
 
 	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
-	proposals := s.CoreLoop(blockHeight, coreLoopIterations, blsSigner)
+	proposals := s.moveChainToHeight(blockHeight, coreLoopIterations, blsSigner)
 	s.Require().Len(proposals, coreLoopIterations)
 
+	currentHeight := int64(blockHeight + coreLoopIterations)
 	// Prepare a valid block proposal.
 	proposalTime := time.Now()
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{
-		Height:          blockHeight + coreLoopIterations,
+		Height:          currentHeight,
 		Time:            proposalTime,
 		ProposerAddress: pubkey.Address(),
 	})
@@ -69,7 +71,7 @@ func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_Errors() {
 	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
 		proposal.Txs,
 		blockchain.BeaconBlockTxIndex,
-		s.TestNode.ChainSpec.ActiveForkVersionForSlot(blockHeight+coreLoopIterations),
+		s.TestNode.ChainSpec.ActiveForkVersionForSlot(math.Slot(currentHeight)),
 	)
 	s.Require().NoError(err)
 
@@ -117,7 +119,7 @@ func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_Errors() {
 	// Finalize the proposal containing the malicious block.
 	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.Ctx, &types.FinalizeBlockRequest{
 		Txs:             proposal.Txs,
-		Height:          blockHeight + coreLoopIterations,
+		Height:          currentHeight,
 		ProposerAddress: pubkey.Address(),
 		Time:            proposalTime,
 	})

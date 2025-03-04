@@ -23,54 +23,49 @@
 package simulated_test
 
 import (
-	"time"
-
+	"github.com/berachain/beacon-kit/beacon/blockchain"
+	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
+	mathpkg "github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/testing/simulated"
-	"github.com/cometbft/cometbft/abci/types"
 )
 
-// TestProcessProposal_CrashedExecutionClient_Errors effectively serves as a test for how a valid node would react to
-// a valid block being proposed but the execution client has crashed.
-func (s *SimulatedSuite) TestProcessProposal_CrashedExecutionClient_Errors() {
+// TestFullLifecycle_ValidBlock_IsSuccessful tests that a valid block proposal is processed, finalized, and committed.
+// It loops through this core process `coreLoopIterations` times.
+func (s *SimulatedSuite) TestFullLifecycle_ValidBlock_IsSuccessful() {
 	const blockHeight = 1
-	const coreLoopIterations = 1
+	const coreLoopIterations = 10
 
 	// Initialize the chain state.
 	s.initializeChain()
 
 	// Retrieve the BLS signer and proposer address.
 	blsSigner := simulated.GetBlsSigner(s.HomeDir)
-	pubkey, err := blsSigner.GetPubKey()
-	s.Require().NoError(err)
 
-	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
+	// iterate through the core loop `coreLoopIterations` times, i.e. Propose, Process, Finalize and Commit.
 	proposals := s.moveChainToHeight(blockHeight, coreLoopIterations, blsSigner)
+
+	// We expect that the number of proposals that were finalized should be `coreLoopIterations`.
 	s.Require().Len(proposals, coreLoopIterations)
 
 	currentHeight := int64(blockHeight + coreLoopIterations)
-	// Prepare a valid block proposal.
-	proposalTime := time.Now()
-	proposal, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{
-		Height:          currentHeight,
-		Time:            proposalTime,
-		ProposerAddress: pubkey.Address(),
-	})
+	// Validate post-commit state.
+	queryCtx, err := s.SimComet.CreateQueryContext(currentHeight-1, false)
 	s.Require().NoError(err)
-	s.Require().NotEmpty(proposal)
 
-	// Reset the log buffer to discard old logs we don't care about.
-	s.LogBuffer.Reset()
-	// Kill the execution client.
-	err = s.ElHandle.Close()
+	stateDB := s.TestNode.StorageBackend.StateFromContext(queryCtx)
+	slot, err := stateDB.GetSlot()
 	s.Require().NoError(err)
-	// Process the proposal containing the valid block.
-	processResp, err := s.SimComet.Comet.ProcessProposal(s.Ctx, &types.ProcessProposalRequest{
-		Txs:             proposal.Txs,
-		Height:          currentHeight,
-		ProposerAddress: pubkey.Address(),
-		Time:            proposalTime,
-	})
+	s.Require().Equal(mathpkg.U64(currentHeight-1), slot)
+
+	stateHeader, err := stateDB.GetLatestBlockHeader()
 	s.Require().NoError(err)
-	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
-	s.Require().Contains(s.LogBuffer.String(), "got an unexpected server error in JSON-RPC response failed to convert from jsonrpc.Error")
+
+	// Unmarshal the beacon block from the ABCI request.
+	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
+		proposals[len(proposals)-1].Txs,
+		blockchain.BeaconBlockTxIndex,
+		s.TestNode.ChainSpec.ActiveForkVersionForSlot(slot),
+	)
+	s.Require().NoError(err)
+	s.Require().Equal(proposedBlock.Message.GetHeader().GetBodyRoot(), stateHeader.GetBodyRoot())
 }
