@@ -592,12 +592,14 @@ func (s *BeaconKitE2ESuite) TestGetValidatorBalances() {
 	s.Require().NotEmpty(balancesResp, "balances response should not be empty")
 
 	for _, balance := range *balancesResp {
-		s.Require().True(balance.Balance > 0)
+		s.Require().True(balance.Balance > 0, "Validator balance should be positive")
+		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
+		s.Require().True(balance.Balance <= 4e12, "Validator balance should not exceed 4000 BERA")
 	}
 }
 
-// TestGetValidatorBalancesWithID tests querying validator balances with specific ID.
-func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithID() {
+// TestGetValidatorBalancesWithSpecificID tests querying validator balances with specific ID.
+func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithSpecificID() {
 	resp, err := s.getValidatorBalances("head", "0")
 	s.Require().NoError(err)
 	s.Require().NotNil(resp, "response should not be nil")
@@ -609,5 +611,113 @@ func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithID() {
 	s.Require().NotNil(balancesResp, "balances response should not be nil")
 
 	s.Require().Len(*balancesResp, 1)
-	s.Require().True((*balancesResp)[0].Balance > 0)
+	s.Require().True((*balancesResp)[0].Balance > 0, "Validator balance should be positive")
+	// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
+	s.Require().True((*balancesResp)[0].Balance <= 4e12, "Validator balance should not exceed 4000 BERA")
+}
+
+// TestGetValidatorBalancesWithMultipleIDs tests querying validator balances with multiple IDs.
+func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithMultipleIDs() {
+	resp, err := s.getValidatorBalances("head", "0", "1")
+	s.Require().NoError(err)
+	s.Require().NotNil(resp, "response should not be nil")
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+	defer resp.Body.Close()
+
+	balancesResp, err := s.decodeValidatorBalancesResponse(resp)
+	s.Require().NoError(err)
+	s.Require().NotNil(balancesResp, "balances response should not be nil")
+	s.Require().NotEmpty(balancesResp, "balances response should not be empty")
+
+	// The response should contain 2 validator balances.
+	s.Require().Len(*balancesResp, 2)
+
+	for _, balance := range *balancesResp {
+		s.Require().True(balance.Balance > 0, "Validator balance should be positive")
+		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
+		s.Require().True(balance.Balance <= 4e12, "Validator balance should not exceed 4000 BERA")
+	}
+}
+
+// TestGetValidatorBalancesWithInvalidID tests querying validator balances with invalid ID.
+func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithInvalidID() {
+	resp, err := s.getValidatorBalances("head", "invalid_id")
+	s.Require().NoError(err)
+	s.Require().NotNil(resp, "response should not be nil")
+	s.Require().Equal(http.StatusBadRequest, resp.StatusCode)
+	defer resp.Body.Close()
+
+	balancesResp, err := s.decodeValidatorBalancesResponse(resp)
+	s.Require().NoError(err)
+	s.Require().NotNil(balancesResp, "balances response should not be nil")
+	s.Require().Len(*balancesResp, 0)
+
+}
+
+// TestGetValidatorBalancesWithNonExistentIndex tests querying validator balances with non-existent index.
+func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithNonExistentIndex() {
+	resp, err := s.getValidatorBalances("head", "99999")
+	s.Require().NoError(err)
+	s.Require().NotNil(resp, "response should not be nil")
+	// If an index does not match any validator, no balance will be returned but this will not cause an error.
+	// The response should be 200 OK with empty data.
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+	defer resp.Body.Close()
+
+	balancesResp, err := s.decodeValidatorBalancesResponse(resp)
+	s.Require().NoError(err)
+	s.Require().NotNil(balancesResp, "balances response should not be nil")
+	s.Require().Len(*balancesResp, 0)
+}
+
+// TestGetValidatorBalancesWithPublicKey tests querying validator balances with public key.
+func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithPublicKey() {
+	client := s.initBeaconTest()
+
+	// First call validators to get the validator public key
+	validatorsResp, err := client.Validators(s.Ctx(), &beaconapi.ValidatorsOpts{
+		State: utils.StateIDHead,
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(validatorsResp)
+
+	validator := validatorsResp.Data[0]
+	s.Require().NotNil(validator)
+	pubkey := validator.Validator.PublicKey
+
+	resp, err := s.getValidatorBalances("head", pubkey.String())
+	s.Require().NoError(err)
+	s.Require().NotNil(resp, "response should not be nil")
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+	defer resp.Body.Close()
+
+	balancesResp, err := s.decodeValidatorBalancesResponse(resp)
+	s.Require().NoError(err)
+	s.Require().NotNil(balancesResp, "balances response should not be nil")
+	s.Require().NotEmpty(balancesResp, "balances response should not be empty")
+
+	s.Require().Len(*balancesResp, 1)
+	s.Require().True((*balancesResp)[0].Balance > 0, "Validator balance should be positive")
+	// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
+	s.Require().True((*balancesResp)[0].Balance <= 4e12, "Validator balance should not exceed 4000 BERA")
+
+}
+
+// TestGetValidatorBalancesWithInvalidPublicKey tests querying validator balances with invalid public key.
+func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithInvalidPublicKey() {
+	// Example validator pubkey (48 bytes with 0x prefix)
+	notFoundPubkey := "0x93247f2209abcacf57b75a51dafae777f9dd38bc7053d1af526f220a7489a6d3a2753e5f3e8b1cfe39b56f43611df74a"
+
+	resp, err := s.getValidatorBalances("head", notFoundPubkey)
+	s.Require().NoError(err)
+	s.Require().NotNil(resp, "response should not be nil")
+	// If public key does not match any validator, no balance will be returned but this will not cause an error.
+	// The response should be 200 OK with empty data.
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+	defer resp.Body.Close()
+
+	balancesResp, err := s.decodeValidatorBalancesResponse(resp)
+	s.Require().NoError(err)
+	s.Require().NotNil(balancesResp, "balances response should not be nil")
+	s.Require().Len(*balancesResp, 0)
 }
