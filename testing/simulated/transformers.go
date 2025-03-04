@@ -80,7 +80,6 @@ func transformSimulatedBlockToGethBlock(simBlock *execution.SimulatedBlock, txs 
 		Transactions: txs,
 		Uncles:       nil,
 		Withdrawals:  simBlock.Withdrawals,
-	return executionBlock
 	}
 
 	return gethprimitives.NewBlockWithHeader(header).WithBody(body)
