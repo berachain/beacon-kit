@@ -98,7 +98,7 @@ func validateDepositMessage(chainSpec chain.Spec) func(cmd *cobra.Command, args 
 			return err
 		}
 
-		if err := ValidateDeposit(
+		if err = ValidateDeposit(
 			chainSpec, pubkey, credentials, amount, genesisValidatorRoot, signature,
 		); err != nil {
 			return err

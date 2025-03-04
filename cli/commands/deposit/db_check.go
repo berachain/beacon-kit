@@ -39,7 +39,7 @@ import (
 // GetDBCheckCmd returns a command for checking that the deposit store
 // is in sync with the beacon state.
 //
-//nolint:lll // Reads better if long description is one line.
+
 func GetDBCheckCmd(
 	appCreator servertypes.AppCreator,
 	beaconStore *beacondb.KVStore,
@@ -47,7 +47,7 @@ func GetDBCheckCmd(
 	cmd := &cobra.Command{
 		Use:   "db-check",
 		Short: `Checks if the deposit store is in sync with the beacon state. Fails if either of the beacon or deposit DBs are not available.`,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			v := clicontext.GetViperFromCmd(cmd)
 			logger := clicontext.GetLoggerFromCmd(cmd)
 
@@ -96,7 +96,7 @@ func GetDBCheckCmd(
 			}
 			if uint64(len(deposits)) != eth1DepositIndex {
 				return fmt.Errorf(
-					"Deposit store (length: %d) is not in sync with the Beacon state (Eth1DepositIndex: %d)",
+					"deposits in Deposit store (length: %d) are not in sync with the Beacon state (Eth1DepositIndex: %d)",
 					len(deposits),
 					eth1DepositIndex,
 				)
@@ -109,7 +109,7 @@ func GetDBCheckCmd(
 			}
 			if deposits.HashTreeRoot() != eth1Data.DepositRoot {
 				return fmt.Errorf(
-					"Deposits from deposit store (HTR: %s) are not consistent with the Beacon state (HTR: %s)",
+					"deposits from Deposit store (HTR: %s) are not consistent with the Beacon state (HTR: %s)",
 					deposits.HashTreeRoot(),
 					eth1Data.DepositRoot,
 				)
