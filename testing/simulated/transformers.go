@@ -83,12 +83,8 @@ func transformSimulatedBlockToGethBlock(simBlock *execution.SimulatedBlock, txs 
 
 // transformWithdrawalsToGethWithdrawals converts beaconkit withdrawals to geth withdrawals
 func transformWithdrawalsToGethWithdrawals(withdrawals engineprimitives.Withdrawals) gethtypes.Withdrawals {
-	w := make([]*gethtypes.Withdrawal, len(withdrawals))
-	for i, withdrawal := range withdrawals {
-		gethWithdrawal := (*gethtypes.Withdrawal)(unsafe.Pointer(withdrawal))
-		w[i] = gethWithdrawal
-	}
-	return w
+	// This one-line conversion is valid only if the underlying types have the same memory layout.
+	return *(*gethtypes.Withdrawals)(unsafe.Pointer(&withdrawals))
 }
 
 // transformExecutableDataToExecutionPayload converts Ethereum executable data to a beacon execution payload.
