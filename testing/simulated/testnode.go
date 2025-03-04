@@ -66,6 +66,7 @@ type TestNode struct {
 	APIBackend     nodecomponents.NodeAPIBackend
 	EngineClient   *client.EngineClient
 	StateProcessor *core.StateProcessor
+	KZGVerifier    kzg.BlobProofVerifier
 }
 
 // NewTestNode Uses the testnet chainspec.
@@ -114,6 +115,7 @@ func buildNode(
 		chainSpec      chain.Spec
 		engineClient   *client.EngineClient
 		stateProcessor *core.StateProcessor
+		kzgVerifier    kzg.BlobProofVerifier
 	)
 
 	// build all node components using depinject
@@ -137,6 +139,7 @@ func buildNode(
 		&chainSpec,
 		&engineClient,
 		&stateProcessor,
+		&kzgVerifier,
 	); err != nil {
 		panic(err)
 	}
@@ -156,6 +159,7 @@ func buildNode(
 		APIBackend:     apiBackend,
 		EngineClient:   engineClient,
 		StateProcessor: stateProcessor,
+		KZGVerifier:    kzgVerifier,
 	}
 }
 

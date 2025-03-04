@@ -34,13 +34,17 @@ import (
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/chain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/da/kzg"
+	"github.com/berachain/beacon-kit/da/kzg/gokzg"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/eip4844"
 	mathpkg "github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
 	"github.com/berachain/beacon-kit/state-transition/core"
 	"github.com/berachain/beacon-kit/testing/simulated/execution"
+	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	gethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -208,6 +212,29 @@ func ComputeAndSetStateRoot(
 	newStateRoot := stateDBCopy.HashTreeRoot()
 	block.SetStateRoot(newStateRoot)
 	return block, nil
+}
+
+// GetProofAndCommitmentsForBlobs will create a commitment and proof for each blob. Technically
+func GetProofAndCommitmentsForBlobs(t *require.Assertions, blobs []*eip4844.Blob, verifier kzg.BlobProofVerifier) ([]eip4844.KZGProof, []eip4844.KZGCommitment) {
+	if verifier.GetImplementation() != gokzg.Implementation {
+		t.Fail("test expects gokzg implementation")
+	}
+	gokzgVerifier, ok := verifier.(*gokzg.Verifier)
+	if !ok {
+		t.Fail("verifier is not of type *gokzg.Verifier")
+	}
+	commitments := make([]eip4844.KZGCommitment, len(blobs))
+	proofs := make([]eip4844.KZGProof, len(blobs))
+	for i, blob := range blobs {
+		ckzgBlob := (*gokzg4844.Blob)(blob)
+		commitment, err := gokzgVerifier.BlobToKZGCommitment(ckzgBlob, 1)
+		t.NoError(err)
+		proof, err := gokzgVerifier.ComputeBlobKZGProof(ckzgBlob, commitment, 1)
+		t.NoError(err)
+		commitments[i] = eip4844.KZGCommitment(commitment)
+		proofs[i] = eip4844.KZGProof(proof)
+	}
+	return proofs, commitments
 }
 
 // setExecutionPayload converts the given Geth-style block into executable data,

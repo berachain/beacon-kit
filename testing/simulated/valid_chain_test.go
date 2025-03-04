@@ -23,19 +23,27 @@
 package simulated_test
 
 import (
+	"crypto/sha256"
 	"math/big"
 	"time"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
+	dablob "github.com/berachain/beacon-kit/da/blob"
+	datypes "github.com/berachain/beacon-kit/da/types"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
+	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/berachain/beacon-kit/primitives/eip4844"
 	mathpkg "github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/cometbft/cometbft/abci/types"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	gethtypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto/kzg4844"
+	"github.com/holiman/uint256"
+	"github.com/stretchr/testify/require"
 )
 
 // TestFullLifecycle_ValidBlock_IsSuccessful tests that a valid block proposal is processed, finalized, and committed.
@@ -187,4 +195,171 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 	// Commit the block.
 	_, err = s.SimComet.Comet.Commit(s.Ctx, &types.CommitRequest{})
 	s.Require().NoError(err)
+}
+
+// TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessful tests that a valid block and blob and proposal is processed, finalized, and committed.
+func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessful() {
+	const blockHeight = 1
+	const coreLoopIterations = 1
+
+	// Initialize the chain state.
+	s.initializeChain()
+
+	// Retrieve the BLS signer and proposer address.
+	blsSigner := simulated.GetBlsSigner(s.HomeDir)
+	pubkey, err := blsSigner.GetPubKey()
+	s.Require().NoError(err)
+
+	// Go through 1 iteration of the core loop to bypass any startup specific edge cases such as sync head on startup.
+	proposals := s.moveChainToHeight(blockHeight, coreLoopIterations, blsSigner)
+	s.Require().Len(proposals, coreLoopIterations)
+
+	currentHeight := int64(blockHeight + coreLoopIterations)
+
+	// Prepare a valid block proposal.
+	proposalTime := time.Now()
+	proposal, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{
+		Height:          currentHeight,
+		Time:            proposalTime,
+		ProposerAddress: pubkey.Address(),
+	})
+	s.Require().NoError(err)
+	s.Require().NotEmpty(proposal)
+
+	// Unmarshal the proposal block.
+	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
+		proposal.Txs,
+		blockchain.BeaconBlockTxIndex,
+		s.TestNode.ChainSpec.ActiveForkVersionForSlot(blockHeight),
+	)
+	s.Require().NoError(err)
+
+	// Create the Blobs, with proofs and commitments
+	// Each blob will go into 1 transaction.
+	blobs := []*eip4844.Blob{{1, 2, 3}, {4, 5, 6}}
+	proofs, commitments := simulated.GetProofAndCommitmentsForBlobs(require.New(s.T()), blobs, s.TestNode.KZGVerifier)
+	s.Require().Len(proofs, 2)
+	s.Require().Len(commitments, 2)
+
+	// Sign blob transactions
+	blobTxs := make([]*gethtypes.Transaction, len(blobs))
+	for i := range blobs {
+		blobCommitment := commitments[i]
+		blobHash := kzg4844.CalcBlobHashV1(sha256.New(), (*kzg4844.Commitment)(&blobCommitment))
+		txSidecar := &gethtypes.BlobTxSidecar{
+			Blobs:       []kzg4844.Blob{kzg4844.Blob(blobs[i][:])},
+			Commitments: []kzg4844.Commitment{kzg4844.Commitment(blobCommitment)},
+			Proofs:      []kzg4844.Proof{kzg4844.Proof(proofs[i])},
+		}
+		blobTx, err := gethtypes.SignNewTx(
+			simulated.GetTestKey(s.T()),
+			gethtypes.NewCancunSigner(big.NewInt(int64(s.TestNode.ChainSpec.DepositEth1ChainID()))),
+			&gethtypes.BlobTx{
+				Nonce: uint64(i),
+				// Set to 875000000 as that is the tx base fee
+				GasTipCap: uint256.NewInt(875000000),
+				GasFeeCap: uint256.NewInt(875000000),
+				// Set to 21000 for minimum intrinsic gas
+				Gas:        21000,
+				Value:      nil,
+				Data:       nil,
+				AccessList: nil,
+				// Set to 875000000 as that is the blob base fee
+				BlobFeeCap: uint256.NewInt(1),
+				// If we have 1 tx with multiple blobs, we must add the blob hashes here.
+				BlobHashes: []gethcommon.Hash{blobHash},
+				// Sidecar must be set to nil here or Geth will error with "unexpected blob sidecar in transaction"
+				Sidecar: nil,
+				V:       nil,
+				R:       nil,
+				S:       nil,
+			},
+		)
+		s.Require().NoError(err)
+		// Once we've signed the Tx, we tag the blob with the tx purely for association between tx and sidecars.
+		// In this case, each 1 tx has a sidecar with 1 blob, even though 1 tx could have more than 1 blob.
+		blobTx = blobTx.WithBlobTxSidecar(txSidecar)
+		blobTxs[i] = blobTx
+	}
+
+	proposedBlockMessage := simulated.ComputeAndSetValidExecutionBlock(
+		s.T(),
+		proposedBlock.GetMessage(),
+		s.SimulationClient,
+		s.TestNode.ChainSpec,
+		blobTxs,
+	)
+	proposedBlockMessage.GetBody().SetBlobKzgCommitments(commitments)
+
+	// Finalize the block by applying the state transition to update its state root.
+	queryCtx, err := s.SimComet.CreateQueryContext(currentHeight-1, false)
+	s.Require().NoError(err)
+
+	// Retrieve the BLS signer and proposer address.
+	proposerAddress, err := crypto.GetAddressFromPubKey(blsSigner.PublicKey())
+	s.Require().NoError(err)
+
+	finalBlock, err := simulated.ComputeAndSetStateRoot(queryCtx, consensusTime, proposerAddress, s.TestNode.StateProcessor, s.TestNode.StorageBackend, proposedBlockMessage)
+	s.Require().NoError(err)
+
+	blockWithCommitments := simulated.CreateBeaconBlockWithBlobs(
+		require.New(s.T()),
+		s.TestNode.ChainSpec,
+		commitments,
+		proposedBlock.GetMessage(),
+		blsSigner,
+		s.GenesisValidatorsRoot,
+	)
+
+	sidecarFactory := dablob.NewSidecarFactory(s.TestNode.ChainSpec, metrics.NewNoOpTelemetrySink())
+	inclusionProofs := make([][]common.Root, len(blobs))
+	for i := range blobs {
+		inclusionProof, err := sidecarFactory.BuildKZGInclusionProof(blockWithCommitments.GetMessage().GetBody(), mathpkg.U64(i))
+		s.Require().NoError(err)
+		inclusionProofs[i] = inclusionProof
+	}
+
+	blockWithCommitmentBytes, err := blockWithCommitments.MarshalSSZ()
+	s.Require().NoError(err)
+
+	// Inject the new block
+	proposal.Txs[0] = blockWithCommitmentBytes
+
+	// Create the beaconBlock Header for the sidecar
+
+	blockWithCommitmentsSignedHeader := ctypes.NewSignedBeaconBlockHeader(
+		blockWithCommitments.GetMessage().GetHeader(),
+		blockWithCommitments.GetSignature(),
+	)
+
+	sidecarsSlice := make([]*datypes.BlobSidecar, len(blobs))
+	for i := range blobs {
+		sidecar := datypes.BuildBlobSidecar(
+			mathpkg.U64(i),
+			blockWithCommitmentsSignedHeader,
+			blobs[i],
+			commitments[i],
+			proofs[i],
+			inclusionProofs[i],
+		)
+		sidecarsSlice[i] = sidecar
+	}
+
+	sidecars := datypes.BlobSidecars(sidecarsSlice)
+	// Inject the valid sidecar
+	sidecarBytes, err := sidecars.MarshalSSZ()
+	s.Require().NoError(err)
+	proposal.Txs[1] = sidecarBytes
+
+	// Reset the log buffer to discard old logs we don't care about
+	s.LogBuffer.Reset()
+	// Process the proposal containing the valid block.
+	processResp, err := s.SimComet.Comet.ProcessProposal(s.Ctx, &types.ProcessProposalRequest{
+		Txs:             proposal.Txs,
+		Height:          currentHeight,
+		ProposerAddress: pubkey.Address(),
+		Time:            proposalTime,
+	})
+	s.Require().NoError(err)
+	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
 }
