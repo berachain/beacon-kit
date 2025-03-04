@@ -35,11 +35,13 @@ import (
 	"github.com/berachain/beacon-kit/cli/flags"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/da/kzg"
+	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	nodecomponents "github.com/berachain/beacon-kit/node-core/components"
 	nodetypes "github.com/berachain/beacon-kit/node-core/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/net/url"
+	"github.com/berachain/beacon-kit/state-transition/core"
 	"github.com/berachain/beacon-kit/storage/db"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	dbm "github.com/cosmos/cosmos-db"
@@ -62,6 +64,8 @@ type TestNode struct {
 	StorageBackend blockchain.StorageBackend
 	ChainSpec      chain.Spec
 	APIBackend     nodecomponents.NodeAPIBackend
+	EngineClient   *client.EngineClient
+	StateProcessor *core.StateProcessor
 }
 
 // NewTestNode Uses the testnet chainspec.
@@ -108,6 +112,8 @@ func buildNode(
 		config         *config.Config
 		storageBackend blockchain.StorageBackend
 		chainSpec      chain.Spec
+		engineClient   *client.EngineClient
+		stateProcessor *core.StateProcessor
 	)
 
 	// build all node components using depinject
@@ -129,6 +135,8 @@ func buildNode(
 		&config,
 		&storageBackend,
 		&chainSpec,
+		&engineClient,
+		&stateProcessor,
 	); err != nil {
 		panic(err)
 	}
@@ -146,6 +154,8 @@ func buildNode(
 		StorageBackend: storageBackend,
 		ChainSpec:      chainSpec,
 		APIBackend:     apiBackend,
+		EngineClient:   engineClient,
+		StateProcessor: stateProcessor,
 	}
 }
 
