@@ -66,14 +66,16 @@ fi
 # Setup local node if overwrite is set to Yes, otherwise skip setup
 if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	rm -rf $HOMEDIR
-	./build/bin/beacond init $MONIKER \
-		--chain-id $CHAINID \
-		--home $HOMEDIR
+	./build/bin/beacond init $MONIKER --chain-id $CHAINID --home $HOMEDIR
 
 	if [ "$CHAIN_SPEC" == "testnet" ]; then
-	  network_dir="testing/networks/80069"
+	    network_dir="testing/networks/80069"
 		cp -f $network_dir/*.toml $network_dir/genesis.json ${HOMEDIR}/config
-    KZG_PATH=$network_dir/kzg-trusted-setup.json
+    	KZG_PATH=$network_dir/kzg-trusted-setup.json
+	elif [ "$CHAIN_SPEC" == "mainnet" ]; then
+		network_dir="testing/networks/80094"
+		cp -f $network_dir/*.toml $network_dir/genesis.json ${HOMEDIR}/config
+    	KZG_PATH=$network_dir/kzg-trusted-setup.json
 	else
 		./build/bin/beacond genesis add-premined-deposit --home $HOMEDIR \
 			32000000000 0x20f33ce90a13a4b5e7697e3544c3083b8f8a51d4
