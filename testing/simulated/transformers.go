@@ -85,12 +85,6 @@ func transformSimulatedBlockToGethBlock(simBlock *execution.SimulatedBlock, txs 
 	return gethprimitives.NewBlockWithHeader(header).WithBody(body)
 }
 
-// transformWithdrawalsToGethWithdrawals converts withdrawals from engineprimitives to geth's representation.
-// It performs an unsafe conversion assuming that the underlying types have identical memory layouts.
-func transformWithdrawalsToGethWithdrawals(withdrawals engineprimitives.Withdrawals) gethtypes.Withdrawals {
-	return *(*gethtypes.Withdrawals)(unsafe.Pointer(&withdrawals))
-}
-
 // transformExecutableDataToExecutionPayload converts Ethereum executable data into a beacon execution payload.
 // This function supports fork versions prior to Deneb1. For unsupported fork versions, it returns an error.
 func transformExecutableDataToExecutionPayload(forkVersion libcommon.Version, data *gethprimitives.ExecutableData) (*ctypes.ExecutionPayload, error) {

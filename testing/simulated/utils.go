@@ -29,6 +29,7 @@ import (
 	"path/filepath"
 	"testing"
 	"time"
+	"unsafe"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	"github.com/berachain/beacon-kit/chain"
@@ -84,7 +85,8 @@ func DefaultSimulationInput(t *testing.T, chainSpec chain.Spec, origBlock *ctype
 	overridePrevRandao := gethcommon.Hash(origBlock.GetBody().GetExecutionPayload().GetPrevRandao())
 	overrideBaseFeePerGas := origBlock.GetBody().GetExecutionPayload().GetBaseFeePerGas().ToBig()
 	overrideBeaconRoot := gethcommon.HexToHash(origBlock.GetParentBlockRoot().Hex())
-	overrideWithdrawals := transformWithdrawalsToGethWithdrawals(origBlock.GetBody().GetExecutionPayload().GetWithdrawals())
+	origWithdrawls := origBlock.GetBody().GetExecutionPayload().GetWithdrawals()
+	overrideWithdrawals := *(*gethtypes.Withdrawals)(unsafe.Pointer(&origWithdrawls))
 
 	calls, err := execution.TxsToTransactionArgs(chainSpec.DepositEth1ChainID(), txs)
 	require.NoError(t, err)
