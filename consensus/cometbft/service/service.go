@@ -154,9 +154,6 @@ func NewService(
 func (s *Service) Start(
 	ctx context.Context,
 ) error {
-	// create a new context that will be used to stop the node
-	s.ctx, s.cancelFunc = context.WithCancel(ctx)
-
 	cfg := s.cmtCfg
 	nodeKey, err := p2p.LoadOrGenNodeKey(cfg.NodeKeyFile())
 	if err != nil {
@@ -172,9 +169,9 @@ func (s *Service) Start(
 		return err
 	}
 
-	//nolint:contextcheck // why is this complaining?
+	s.ctx = ctx
 	s.node, err = node.NewNode(
-		s.ctx,
+		ctx,
 		cfg,
 		privVal,
 		nodeKey,
@@ -199,8 +196,10 @@ func (s *Service) Start(
 
 	select {
 	case <-ctx.Done():
+		s.logger.Warn("DEBUG: Start() ctx.Done()")
 		return ctx.Err()
 	case <-s.ctx.Done():
+		s.logger.Warn("DEBUG: Start() s.ctx.Done()")
 		return s.ctx.Err()
 	case <-started:
 	}
@@ -213,11 +212,6 @@ func (s *Service) Start(
 func (s *Service) Stop() error {
 	var errs []error
 
-	// cancel the service context
-	if s.cancelFunc != nil {
-		s.cancelFunc()
-	}
-
 	if s.node != nil && s.node.IsRunning() {
 		s.logger.Info("Stopping CometBFT Node")
 		err := s.node.Stop()
@@ -226,6 +220,12 @@ func (s *Service) Stop() error {
 		}
 		s.logger.Info("Waiting for CometBFT Node to stop")
 		s.node.Wait()
+	}
+
+	// cancel the service context
+	if s.cancelFunc != nil {
+		s.logger.Warn("DEBUG: Stop() is cancelling the service context")
+		//s.cancelFunc()
 	}
 
 	s.logger.Info("Closing application.db")

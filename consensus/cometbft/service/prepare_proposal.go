@@ -89,7 +89,7 @@ func (s *Service) prepareProposal(
 		return nil, ctx.Err()
 	case <-s.ctx.Done():
 		s.logger.Warn("prepare_proposal: s.ctx.Done")
-		return nil, s.ctx.Err()
+		return &cmtabci.PrepareProposalResponse{Txs: req.Txs}, nil
 	case r := <-resultCh:
 		if r.err != nil {
 			s.logger.Error("failed to prepare proposal", "height", req.Height, "time", req.Time, "err", r.err)
