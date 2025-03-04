@@ -23,17 +23,17 @@ func (_m *ExecutionEngine) EXPECT() *ExecutionEngine_Expecter {
 	return &ExecutionEngine_Expecter{mock: &_m.Mock}
 }
 
-// NotifyNewPayload provides a mock function with given fields: ctx, req
+// NotifyNewPayload provides a mock function with given fields: ctx, req, retryOnSyncingStatus
 func (_m *ExecutionEngine) NotifyNewPayload(ctx context.Context, req *types.NewPayloadRequest, retryOnSyncingStatus bool) error {
-	ret := _m.Called(ctx, req)
+	ret := _m.Called(ctx, req, retryOnSyncingStatus)
 
 	if len(ret) == 0 {
 		panic("no return value specified for NotifyNewPayload")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *types.NewPayloadRequest) error); ok {
-		r0 = rf(ctx, req)
+	if rf, ok := ret.Get(0).(func(context.Context, *types.NewPayloadRequest, bool) error); ok {
+		r0 = rf(ctx, req, retryOnSyncingStatus)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -48,7 +48,8 @@ type ExecutionEngine_NotifyNewPayload_Call struct {
 
 // NotifyNewPayload is a helper method to define mock.On call
 //   - ctx context.Context
-//   - req *types.NewPayloadRequest[ExecutionPayloadT,WithdrawalsT]
+//   - req *types.NewPayloadRequest
+//   - retryOnSyncingStatus bool
 func (_e *ExecutionEngine_Expecter) NotifyNewPayload(ctx interface{}, req interface{}, retryOnSyncingStatus interface{}) *ExecutionEngine_NotifyNewPayload_Call {
 	return &ExecutionEngine_NotifyNewPayload_Call{Call: _e.mock.On("NotifyNewPayload", ctx, req, retryOnSyncingStatus)}
 }
