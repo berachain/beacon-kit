@@ -118,7 +118,7 @@ func (s *Service) finalizeBlockInternal(
 // (s.smGet.CommitMultiStore()) and flushed to disk  in the
 // Commit phase. This means when the ABCI client requests
 // Commit(), the application state transitions will be flushed
-// to disk and as a buildResult, but we already have an application
+// to disk and as a result, but we already have an application
 // Merkle root.
 func (s *Service) workingHash() []byte {
 	// Write the FinalizeBlock state into branched storage and commit the
