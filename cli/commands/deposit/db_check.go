@@ -38,8 +38,6 @@ import (
 
 // GetDBCheckCmd returns a command for checking that the deposit store
 // is in sync with the beacon state.
-//
-
 func GetDBCheckCmd(
 	appCreator servertypes.AppCreator,
 	beaconStore *beacondb.KVStore,
