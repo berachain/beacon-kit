@@ -97,10 +97,12 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 	proposals := s.moveChainToHeight(blockHeight, coreLoopIterations, blsSigner)
 	s.Require().Len(proposals, coreLoopIterations)
 
+	currentHeight := int64(blockHeight + coreLoopIterations)
+
 	// Prepare a valid block proposal.
 	consensusTime := time.Now()
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{
-		Height:          blockHeight + coreLoopIterations,
+		Height:          currentHeight,
 		Time:            consensusTime,
 		ProposerAddress: pubkey.Address(),
 	})
@@ -111,7 +113,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
 		proposal.Txs,
 		blockchain.BeaconBlockTxIndex,
-		s.TestNode.ChainSpec.ActiveForkVersionForSlot(blockHeight+coreLoopIterations),
+		s.TestNode.ChainSpec.ActiveForkVersionForSlot(mathpkg.Slot(currentHeight)),
 	)
 	s.Require().NoError(err)
 
@@ -140,7 +142,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 	s.Require().NoError(err)
 
 	// Finalize the block by applying the state transition to update its state root.
-	queryCtx, err := s.SimComet.CreateQueryContext(blockHeight+coreLoopIterations-1, false)
+	queryCtx, err := s.SimComet.CreateQueryContext(currentHeight-1, false)
 	s.Require().NoError(err)
 	finalBlock, err := simulated.ComputeAndSetStateRoot(queryCtx, consensusTime, proposerAddress, s.TestNode.StateProcessor, s.TestNode.StorageBackend, unsignedBlock)
 	s.Require().NoError(err)
@@ -167,7 +169,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 	// Process the proposal containing the valid block.
 	processResp, err := s.SimComet.Comet.ProcessProposal(s.Ctx, &types.ProcessProposalRequest{
 		Txs:             proposal.Txs,
-		Height:          blockHeight + coreLoopIterations,
+		Height:          currentHeight,
 		ProposerAddress: pubkey.Address(),
 		Time:            consensusTime,
 	})
@@ -177,7 +179,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 	// Finalize the block.
 	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.Ctx, &types.FinalizeBlockRequest{
 		Txs:             proposal.Txs,
-		Height:          blockHeight + coreLoopIterations,
+		Height:          currentHeight,
 		ProposerAddress: pubkey.Address(),
 	})
 	s.Require().NoError(err)
