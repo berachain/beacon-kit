@@ -87,7 +87,7 @@ func (s *EngineClient) ForkchoiceUpdated(
 	state *engineprimitives.ForkchoiceStateV1,
 	attrs *engineprimitives.PayloadAttributes,
 	forkVersion common.Version,
-) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
+) (*engineprimitives.PayloadID, error) {
 	var (
 		startTime    = time.Now()
 		cctx, cancel = s.createContextWithTimeout(ctx)
@@ -109,17 +109,17 @@ func (s *EngineClient) ForkchoiceUpdated(
 		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {
 			s.metrics.incrementForkchoiceUpdateTimeout()
 		}
-		return nil, nil, s.handleRPCError(err)
+		return nil, s.handleRPCError(err)
 	}
 	if result == nil {
-		return nil, nil, engineerrors.ErrNilForkchoiceResponse
+		return nil, engineerrors.ErrNilForkchoiceResponse
 	}
 
-	latestValidHash, err := processPayloadStatusResult(&result.PayloadStatus)
+	_, err = processPayloadStatusResult(&result.PayloadStatus)
 	if err != nil {
-		return nil, latestValidHash, err
+		return nil, err
 	}
-	return result.PayloadID, latestValidHash, nil
+	return result.PayloadID, nil
 }
 
 /* -------------------------------------------------------------------------- */

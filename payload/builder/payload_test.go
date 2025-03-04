@@ -50,7 +50,7 @@ func TestRetrievePayloadSunnyPath(t *testing.T) {
 		logger = noop.NewLogger[any]()
 		cfg    = &builder.Config{Enabled: true}
 		ee     = &stubExecutionEngine{}
-		cache  = cache.NewPayloadIDCache[[32]byte, math.Slot]()
+		cache  = cache.NewPayloadIDCache()
 		af     = &stubAttributesFactory{}
 	)
 	pb := builder.New(
@@ -106,7 +106,7 @@ func TestRetrievePayloadNilWithdrawalsListRejected(t *testing.T) {
 		logger = noop.NewLogger[any]()
 		cfg    = &builder.Config{Enabled: true}
 		ee     = &stubExecutionEngine{}
-		cache  = cache.NewPayloadIDCache[[32]byte, math.Slot]()
+		cache  = cache.NewPayloadIDCache()
 		af     = &stubAttributesFactory{}
 	)
 	pb := builder.New(
@@ -167,8 +167,8 @@ func (ee *stubExecutionEngine) GetPayload(
 
 func (ee *stubExecutionEngine) NotifyForkchoiceUpdate(
 	context.Context, *ctypes.ForkchoiceUpdateRequest,
-) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
-	return nil, nil, errStubNotImplemented
+) (*engineprimitives.PayloadID, error) {
+	return nil, errStubNotImplemented
 }
 
 type stubAttributesFactory struct{}

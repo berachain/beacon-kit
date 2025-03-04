@@ -22,7 +22,6 @@ package backend
 
 import (
 	"slices"
-	"strconv"
 
 	"cosmossdk.io/collections"
 	"github.com/berachain/beacon-kit/consensus-types/types"
@@ -63,8 +62,8 @@ func parseValidatorIDs(ids []string) *validatorFilters {
 // parseID attempts to parse a single ID as either a numeric ID or pubkey
 func (f *validatorFilters) parseID(id string) {
 	// Try parsing as numeric ID first
-	if index, err := strconv.ParseUint(id, 10, 64); err == nil {
-		f.numericIDs = append(f.numericIDs, index)
+	if index, err := math.U64FromString(id); err == nil {
+		f.numericIDs = append(f.numericIDs, index.Unwrap())
 		return
 	}
 
