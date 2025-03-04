@@ -50,6 +50,11 @@ type ConsensusBlock interface {
 	// GetConsensusTime returns the timestamp of current consensus request.
 	// It is used to build next payload and to validate currentpayload.
 	GetConsensusTime() math.U64
+
+	// GetConsensusSyncing returns true if consensus is still syncing, false if the node
+	// is at the head of the chain. If still syncing we can skip execution payload
+	// verification on already finalized blocks.
+	GetConsensusSyncing() bool
 }
 
 type BlobSidecars[T any] interface {

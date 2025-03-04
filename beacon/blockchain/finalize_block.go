@@ -79,6 +79,11 @@ func (s *Service) FinalizeBlock(
 		blk,
 		req.GetProposerAddress(),
 		req.GetTime(),
+
+		// Finalize may be called while syncing. In such a case
+		// we must perform payload verification since we do not
+		// verify block with ProcessBlock.
+		req.SyncingToHeight != req.Height,
 	)
 
 	st := s.storageBackend.StateFromContext(ctx)
@@ -159,17 +164,14 @@ func (s *Service) executeStateTransition(
 	defer s.metrics.measureStateTransitionDuration(startTime)
 
 	// Notes about context attributes:
-	// - VerifyPayload: set to true. When we are NOT synced to the tip,
-	// process proposal does NOT get called and thus we must ensure that
+	// - VerifyPayload: set to blk.GetConsensusSyncing().
+	//   - When we are NOT synced to the tip, process proposal
+	// does NOT get called and thus we must ensure that
 	// NewPayload is called to get the execution client the payload.
-	// When we are synced to the tip, we can skip the
+	//   - When we are synced to the tip, we can skip the
 	// NewPayload call since we already gave our execution client
 	// the payload in process proposal.
-	// In both cases the payload was already accepted by a majority
-	// of validators in their process proposal call and thus
-	// the "verification aspect" of this NewPayload call is
-	// actually irrelevant at this point.
-	// - VerifyRandao: set to false. We skip randao validation in FinalizeBlock
+	// VerifyRandao: set to false. We skip randao validation in FinalizeBlock
 	// since either
 	//   1. we validated it during ProcessProposal at the head of the chain OR
 	//   2. we are bootstrapping and implicitly trust that the randao was validated by
@@ -179,7 +181,7 @@ func (s *Service) executeStateTransition(
 		blk.GetConsensusTime(),
 		blk.GetProposerAddress(),
 	).
-		WithVerifyPayload(true).
+		WithVerifyPayload(blk.GetConsensusSyncing()).
 		WithVerifyRandao(false).
 		WithVerifyResult(false).
 		WithMeterGas(true)
