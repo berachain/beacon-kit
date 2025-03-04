@@ -192,6 +192,7 @@ func TxsToTransactionArgs(chainID uint64, txs []*gethprimitives.Transaction) ([]
 			call.Commitments = sidecar.Commitments
 			call.Proofs = sidecar.Proofs
 		}
+
 		args[i] = call
 	}
 	return args, nil
