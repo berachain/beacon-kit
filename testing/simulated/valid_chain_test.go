@@ -35,7 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/eip4844"
-	mathpkg "github.com/berachain/beacon-kit/primitives/math"
+	 "github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/cometbft/cometbft/abci/types"
 	gethcommon "github.com/ethereum/go-ethereum/common"
@@ -71,7 +71,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlock_IsSuccessful() {
 	stateDB := s.TestNode.StorageBackend.StateFromContext(queryCtx)
 	slot, err := stateDB.GetSlot()
 	s.Require().NoError(err)
-	s.Require().Equal(mathpkg.U64(currentHeight-1), slot)
+	s.Require().Equal(math.U64(currentHeight-1), slot)
 
 	stateHeader, err := stateDB.GetLatestBlockHeader()
 	s.Require().NoError(err)
@@ -119,7 +119,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
 		proposal.Txs,
 		blockchain.BeaconBlockTxIndex,
-		s.TestNode.ChainSpec.ActiveForkVersionForSlot(mathpkg.Slot(currentHeight)),
+		s.TestNode.ChainSpec.ActiveForkVersionForSlot(math.Slot(currentHeight)),
 	)
 	s.Require().NoError(err)
 
@@ -323,10 +323,10 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessfu
 	// Build Inclusion Proofs for Sidecars
 	sidecarFactory := dablob.NewSidecarFactory(s.TestNode.ChainSpec, metrics.NewNoOpTelemetrySink())
 	for i := range blobs {
-		inclusionProof, err := sidecarFactory.BuildKZGInclusionProof(proposedBlockMessage.GetBody(), mathpkg.U64(i))
+		inclusionProof, err := sidecarFactory.BuildKZGInclusionProof(proposedBlockMessage.GetBody(), math.U64(i))
 		s.Require().NoError(err)
 		sidecar := datypes.BuildBlobSidecar(
-			mathpkg.U64(i),
+			math.U64(i),
 			blockWithCommitmentsSignedHeader,
 			blobs[i],
 			commitments[i],
