@@ -87,12 +87,7 @@ func (s *SimulatedSuite) SetupTest() {
 		Components:  components,
 	})
 
-	// Retrieve the simulated Comet service.
-	var cometService *simulated.SimComet
-	err := s.TestNode.FetchService(&cometService)
-	s.Require().NoError(err)
-	s.Require().NotNil(cometService)
-	s.SimComet = cometService
+	s.SimComet = s.TestNode.SimComet
 
 	// Start the Beacon node in a separate goroutine.
 	go func() {

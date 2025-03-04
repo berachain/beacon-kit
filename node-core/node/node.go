@@ -116,10 +116,6 @@ func (n *node) Start(
 	return nil
 }
 
-func (n *node) FetchService(service interface{}) error {
-	return n.registry.FetchService(service)
-}
-
 func (n *node) CommitMultiStore() store.CommitMultiStore {
 	return n.registry.CommitMultiStore()
 }
