@@ -226,8 +226,11 @@ out
 # docker test
 **/temp/
 
-# integration testing coverage
+# testing coverage
 coverage-test-unit-cover.txt
+coverage-merged.txt
+test-simulated.txt
+test-unit-cover.txt
 .vercel
 
 # server dev env for Air

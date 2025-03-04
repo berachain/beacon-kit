@@ -38,10 +38,10 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	mathpkg "github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
+	"github.com/berachain/beacon-kit/testing/simulated/execution"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	gethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/require"
 )
 
@@ -53,7 +53,7 @@ type SharedAccessors struct {
 	TestNode   TestNode
 
 	// ElHandle is a dockertest resource handle that should be closed in teardown.
-	ElHandle *dockertest.Resource
+	ElHandle *execution.Resource
 }
 
 // GetBlsSigner returns a new BLSSigner using the configuration files in the provided home directory.
@@ -96,43 +96,16 @@ func CreateInvalidBlock(
 	)
 	t.NoError(err, "failed to sign malicious transaction")
 
-	// Initialize the slice with the malicious transaction.
-	maliciousTxs := []*gethprimitives.Transaction{maliciousTx}
-
-	// Extract the current execution payload and compute the withdrawals hash.
 	payload := signedBeaconBlock.GetMessage().GetBody().ExecutionPayload
-	withdrawals := payload.GetWithdrawals()
-	withdrawalsHash := gethprimitives.DeriveSha(withdrawals, gethprimitives.NewStackTrie(nil))
 	parentRoot := signedBeaconBlock.GetMessage().GetParentBlockRoot()
 
-	// Construct a new execution block header and body using the malicious transactions.
-	executionBlock := gethprimitives.NewBlockWithHeader(
-		&gethprimitives.Header{
-			ParentHash:       gethprimitives.ExecutionHash(payload.GetParentHash()),
-			UncleHash:        gethprimitives.EmptyUncleHash,
-			Coinbase:         gethprimitives.ExecutionAddress(payload.GetFeeRecipient()),
-			Root:             gethprimitives.ExecutionHash(payload.GetStateRoot()),
-			TxHash:           gethprimitives.DeriveSha(gethprimitives.Transactions(maliciousTxs), gethprimitives.NewStackTrie(nil)),
-			ReceiptHash:      gethprimitives.ExecutionHash(payload.GetReceiptsRoot()),
-			Bloom:            gethprimitives.LogsBloom(payload.GetLogsBloom()),
-			Difficulty:       big.NewInt(0),
-			Number:           new(big.Int).SetUint64(payload.GetNumber().Unwrap()),
-			GasLimit:         payload.GetGasLimit().Unwrap(),
-			GasUsed:          payload.GetGasUsed().Unwrap(),
-			Time:             payload.GetTimestamp().Unwrap(),
-			BaseFee:          payload.GetBaseFeePerGas().ToBig(),
-			Extra:            payload.GetExtraData(),
-			MixDigest:        gethprimitives.ExecutionHash(payload.GetPrevRandao()),
-			WithdrawalsHash:  &withdrawalsHash,
-			ExcessBlobGas:    payload.GetExcessBlobGas().UnwrapPtr(),
-			BlobGasUsed:      payload.GetBlobGasUsed().UnwrapPtr(),
-			ParentBeaconRoot: (*gethprimitives.ExecutionHash)(&parentRoot),
-		},
-	).WithBody(gethprimitives.Body{
-		Transactions: maliciousTxs,
-		Uncles:       nil,
-		Withdrawals:  *(*gethprimitives.Withdrawals)(unsafe.Pointer(&withdrawals)),
-	})
+	// Update the ExecutionPayload with the malicious transaction
+	maliciousTxBytes, err := maliciousTx.MarshalBinary()
+	t.NoError(err, "failed to marshal malicious transaction")
+	payload.Transactions = [][]byte{maliciousTxBytes}
+
+	executionBlock, _, err := ctypes.MakeEthBlock(payload, &parentRoot)
+	t.NoError(err, "failed to make execution block")
 
 	// Convert the execution block into executable data.
 	newExecutionData := gethprimitives.BlockToExecutableData(
