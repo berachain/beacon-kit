@@ -64,6 +64,7 @@ type TestNode struct {
 	StorageBackend blockchain.StorageBackend
 	ChainSpec      chain.Spec
 	APIBackend     nodecomponents.NodeAPIBackend
+	SimComet       *SimComet
 	EngineClient   *client.EngineClient
 	StateProcessor *core.StateProcessor
 }
@@ -108,7 +109,7 @@ func buildNode(
 	var (
 		apiBackend     nodecomponents.NodeAPIBackend
 		beaconNode     nodetypes.Node
-		cmtService     nodetypes.ConsensusService
+		simComet       *SimComet
 		config         *config.Config
 		storageBackend blockchain.StorageBackend
 		chainSpec      chain.Spec
@@ -131,7 +132,7 @@ func buildNode(
 		),
 		&apiBackend,
 		&beaconNode,
-		&cmtService,
+		&simComet,
 		&config,
 		&storageBackend,
 		&chainSpec,
@@ -148,12 +149,13 @@ func buildNode(
 	}
 
 	logger.WithConfig(config.GetLogger())
-	apiBackend.AttachQueryBackend(cmtService)
+	apiBackend.AttachQueryBackend(simComet)
 	return TestNode{
 		Node:           beaconNode,
 		StorageBackend: storageBackend,
 		ChainSpec:      chainSpec,
 		APIBackend:     apiBackend,
+		SimComet:       simComet,
 		EngineClient:   engineClient,
 		StateProcessor: stateProcessor,
 	}
