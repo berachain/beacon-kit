@@ -31,7 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	mathpkg "github.com/berachain/beacon-kit/primitives/math"
+	math "github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/cometbft/cometbft/abci/types"
 	gethcommon "github.com/ethereum/go-ethereum/common"
@@ -64,7 +64,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlock_IsSuccessful() {
 	stateDB := s.TestNode.StorageBackend.StateFromContext(queryCtx)
 	slot, err := stateDB.GetSlot()
 	s.Require().NoError(err)
-	s.Require().Equal(mathpkg.U64(currentHeight-1), slot)
+	s.Require().Equal(math.U64(currentHeight-1), slot)
 
 	stateHeader, err := stateDB.GetLatestBlockHeader()
 	s.Require().NoError(err)
@@ -113,7 +113,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
 		proposal.Txs,
 		blockchain.BeaconBlockTxIndex,
-		s.TestNode.ChainSpec.ActiveForkVersionForSlot(mathpkg.Slot(currentHeight)),
+		s.TestNode.ChainSpec.ActiveForkVersionForSlot(math.Slot(currentHeight)),
 	)
 	s.Require().NoError(err)
 
