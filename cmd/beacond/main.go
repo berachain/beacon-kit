@@ -66,6 +66,7 @@ func run() error {
 				// TODO: remove these, and eventually pull cfg and chainspec
 				// from built node
 				nodecomponents.ProvideChainSpec,
+				nodecomponents.ProvideKVStore,
 			),
 		),
 		// Set the NodeBuilderFunc to the NodeBuilder Build.

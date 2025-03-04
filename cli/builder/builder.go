@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/cli/config"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/log/phuslu"
+	"github.com/berachain/beacon-kit/storage/beacondb"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
@@ -66,9 +67,10 @@ func New(opts ...Opt) *CLIBuilder {
 func (cb *CLIBuilder) Build() (*cmdlib.Root, error) {
 	// allocate memory to hold the dependencies
 	var (
-		clientCtx client.Context
-		chainSpec chain.Spec
-		logger    *phuslu.Logger
+		clientCtx   client.Context
+		chainSpec   chain.Spec
+		logger      *phuslu.Logger
+		beaconStore *beacondb.KVStore
 	)
 
 	// build dependencies for the root command
@@ -82,6 +84,7 @@ func (cb *CLIBuilder) Build() (*cmdlib.Root, error) {
 		&logger,
 		&clientCtx,
 		&chainSpec,
+		&beaconStore,
 	); err != nil {
 		return nil, err
 	}
@@ -100,6 +103,7 @@ func (cb *CLIBuilder) Build() (*cmdlib.Root, error) {
 		&cometbft.Service{},
 		cb.nodeBuilderFunc,
 		chainSpec,
+		beaconStore,
 	)
 
 	return rootCmd, nil

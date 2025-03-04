@@ -44,8 +44,8 @@ const (
 
 // NewValidateDeposit creates a new command for validating a deposit message.
 //
-//nolint:lll // reads better if long description is one line
-func NewValidateDeposit(chainSpec chain.Spec) *cobra.Command {
+//nolint:lll // Reads better if long description is one line.
+func GetValidateDepositCmd(chainSpec chain.Spec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "validate [pubkey] [withdrawal-credentials] [amount] [signature] ?[beacond/genesis.json]",
 		Short: "Validates a deposit message for creating a new validator",
@@ -65,10 +65,7 @@ func NewValidateDeposit(chainSpec chain.Spec) *cobra.Command {
 }
 
 // validateDepositMessage validates a deposit message for creating a new validator.
-func validateDepositMessage(chainSpec chain.Spec) func(
-	_ *cobra.Command,
-	args []string,
-) error {
+func validateDepositMessage(chainSpec chain.Spec) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		pubKeyStr := args[validatePubKey0]
 		pubkey, err := parser.ConvertPubkey(pubKeyStr)
@@ -101,7 +98,14 @@ func validateDepositMessage(chainSpec chain.Spec) func(
 			return err
 		}
 
-		return ValidateDeposit(chainSpec, pubkey, credentials, amount, genesisValidatorRoot, signature)
+		if err := ValidateDeposit(
+			chainSpec, pubkey, credentials, amount, genesisValidatorRoot, signature,
+		); err != nil {
+			return err
+		}
+
+		cmd.Printf("✅ Deposit message is valid!")
+		return nil
 	}
 }
 
