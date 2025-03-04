@@ -1,27 +1,8 @@
 #!/usr/bin/make -f
 
-
-
 ###############################################################################
 ###                           Tests & Simulation                            ###
 ###############################################################################
-
-#################
-#    beacond     #
-#################
-
-HOMEDIR = .tmp/beacond
-DEVNET_CHAIN_SPEC = devnet
-JWT_PATH = ${TESTAPP_FILES_DIR}/jwt.hex
-# Use the genesis file from the beacond folder as it has been modified by beacond genesis set-deposit-storage.
-ETH_GENESIS_PATH = ${HOMEDIR}/eth-genesis.json
-NETHER_ETH_GENESIS_PATH = ${HOMEDIR}/eth-nether-genesis.json
-ETH_DATA_DIR = .tmp/eth-home
-# URLs used for dialing the eth client
-IPC_PATH = .tmp/eth-home/eth-engine.ipc
-HTTP_URL = localhost:8551
-IPC_PREFIX = ipc://
-HTTP_PREFIX = http://
 
 # ask_reset_dir_func checks if the directory passed in exists, and if so asks the user whether it
 # should delete it. Note that on linux, docker may have created the directory with root
@@ -44,23 +25,29 @@ define ask_reset_dir_func
 endef
 
 #################
-#    Bepolia    #
+#     Local     #
 #################
 
-TESTNET_CHAIN_SPEC = testnet
-BEPOLIA_NETWORK_FILES_DIR = ${TESTAPP_FILES_DIR}/../networks/80069
-BEPOLIA_ETH_GENESIS_PATH = ${BEPOLIA_NETWORK_FILES_DIR}/eth-genesis.json
+# Use the genesis file from the beacond folder as it has been modified by 
+# beacond genesis set-deposit-storage.
+ETH_GENESIS_PATH = ${HOMEDIR}/eth-genesis.json
+NETHER_ETH_GENESIS_PATH = ${HOMEDIR}/eth-nether-genesis.json
 
-## Testing:
-start: ## start an ephemeral `beacond` node
+HOMEDIR = .tmp/beacond
+JWT_PATH = ${TESTAPP_FILES_DIR}/jwt.hex
+ETH_DATA_DIR = .tmp/eth-home
+DEVNET_CHAIN_SPEC = devnet
+
+## Start an ephemeral `beacond` node. Must be run before running the EL to
+## configure the deposit contract storage slots pre-genesis.
+start: 
 	@JWT_SECRET_PATH=$(JWT_PATH) \
 	CHAIN_SPEC=$(DEVNET_CHAIN_SPEC) \
 	${TESTAPP_FILES_DIR}/entrypoint.sh
 
-start-bepolia:
-	@JWT_SECRET_PATH=$(JWT_PATH) \
-	CHAIN_SPEC=$(TESTNET_CHAIN_SPEC) \
-	${TESTAPP_FILES_DIR}/entrypoint.sh
+# URLs used for dialing the eth client
+IPC_PATH = .tmp/eth-home/eth-engine.ipc
+IPC_PREFIX = ipc://
 
 # start-ipc is currently only supported while running eth client the host machine
 # Only works with geth-host rn
@@ -70,7 +57,8 @@ start-ipc: ## start a local ephemeral `beacond` node with IPC
 	RPC_PREFIX=${IPC_PREFIX} \
 	${TESTAPP_FILES_DIR}/entrypoint.sh
 
-start-reth: ## start an ephemeral `reth` node
+## Start an ephemeral `reth` node
+start-reth: 
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
 	@docker run \
 	-p 30303:30303 \
@@ -86,34 +74,10 @@ start-reth: ## start an ephemeral `reth` node
 	--authrpc.addr "0.0.0.0" \
 	--authrpc.jwtsecret $(JWT_PATH) \
 	--datadir ${ETH_DATA_DIR} \
-	--ipcpath ${IPC_PATH} \
-	-vvvvv \
-	--engine.persistence-threshold 0 \
-	--engine.memory-block-buffer-target 0
+	--ipcpath ${IPC_PATH}
 
-start-reth-bepolia:
-	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
-	@bootnodes=`cat $(PWD)/$(BEPOLIA_NETWORK_FILES_DIR)/el-peers.txt`; \
-	echo "Using bootnodes: $$bootnodes"; \
-	docker run \
-	-p 30303:30303 \
-	-p 8545:8545 \
-	-p 8551:8551 \
-	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
-	--rm -v $(PWD)/${BEPOLIA_NETWORK_FILES_DIR}:/${BEPOLIA_NETWORK_FILES_DIR} \
-	-v $(PWD)/.tmp:/.tmp \
-	ghcr.io/paradigmxyz/reth node \
-	--chain ${BEPOLIA_ETH_GENESIS_PATH} \
-	--http \
-	--http.addr "0.0.0.0" \
-	--http.api eth,net \
-	--authrpc.addr "0.0.0.0" \
-	--authrpc.jwtsecret $(JWT_PATH) \
-	--datadir ${ETH_DATA_DIR} \
-	--ipcpath ${IPC_PATH} \
-	--trusted-peers $$bootnodes
-
-start-reth-host: ## start a local ephemeral `reth` node on host machine
+## Start a local ephemeral `reth` node on host machine
+start-reth-host: 
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
 	reth init --datadir ${ETH_DATA_DIR} --chain ${ETH_GENESIS_PATH}
 	reth node \
@@ -126,7 +90,8 @@ start-reth-host: ## start a local ephemeral `reth` node on host machine
 	--datadir ${ETH_DATA_DIR} \
 	--ipcpath ${IPC_PATH}
 
-start-geth: ## start an ephemeral `geth` node with docker
+## Start an ephemeral `geth` node with docker
+start-geth: 
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
 	docker run \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
@@ -152,40 +117,8 @@ start-geth: ## start an ephemeral `geth` node with docker
 	--datadir ${ETH_DATA_DIR} \
 	--ipcpath ${IPC_PATH}
 
-start-geth-bepolia:
-	# TODO: Update to use latest Geth once ready
-	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
-	docker run \
-	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
-	--rm -v $(PWD)/${BEPOLIA_NETWORK_FILES_DIR}:/${BEPOLIA_NETWORK_FILES_DIR} \
-	-v $(PWD)/.tmp:/.tmp \
-	ethereum/client-go:v1.14.13 init \
-	--datadir ${ETH_DATA_DIR} \
-	${BEPOLIA_ETH_GENESIS_PATH}
-
-	@# Read bootnodes from the file; the file is mounted into the container.
-	@bootnodes=`cat $(PWD)/$(BEPOLIA_NETWORK_FILES_DIR)/el-peers.txt`; \
-	echo "Using bootnodes: $$bootnodes"; \
-	docker run \
-	-p 30303:30303 \
-	-p 8545:8545 \
-	-p 8551:8551 \
-	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
-	--rm -v $(PWD)/${BEPOLIA_NETWORK_FILES_DIR}:/${BEPOLIA_NETWORK_FILES_DIR} \
-	-v $(PWD)/.tmp:/.tmp \
-	ethereum/client-go:v1.14.13 \
-	--http \
-	--http.addr 0.0.0.0 \
-	--http.api eth,net \
-	--authrpc.addr 0.0.0.0 \
-	--authrpc.jwtsecret $(JWT_PATH) \
-	--authrpc.vhosts "*" \
-	--datadir ${ETH_DATA_DIR} \
-	--ipcpath ${IPC_PATH} \
-	--syncmode=full \
-	--bootnodes $$bootnodes
-
-start-geth-host: ## start a local ephemeral `geth` node on host machine
+## Start a local ephemeral `geth` node on host machine
+start-geth-host: 
 	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
 	geth init --datadir ${ETH_DATA_DIR} ${ETH_GENESIS_PATH}
 	geth \
@@ -198,7 +131,8 @@ start-geth-host: ## start a local ephemeral `geth` node on host machine
 	--authrpc.jwtsecret $(JWT_PATH) \
 	--authrpc.vhosts "*"
 
-start-nethermind: ## start an ephemeral `nethermind` node
+## Start an ephemeral `nethermind` node
+start-nethermind: 
 	docker run \
 	-p 30303:30303 \
 	-p 8545:8545 \
@@ -215,7 +149,8 @@ start-nethermind: ## start an ephemeral `nethermind` node
 	--Sync.PivotNumber 0 \
 	--Init.ChainSpecPath ../$(NETHER_ETH_GENESIS_PATH)
 
-start-besu: ## start an ephemeral `besu` node
+## Start an ephemeral `besu` node
+start-besu: 
 	$(call ask_reset_dir_func, .tmp/besu)
 	docker run \
 	-p 30303:30303 \
@@ -235,7 +170,8 @@ start-besu: ## start an ephemeral `besu` node
 	--engine-host-allowlist="*" \
 	--engine-jwt-secret=../../${JWT_PATH}
 
-start-erigon: ## start an ephemeral `erigon` node
+## Start an ephemeral `erigon` node
+start-erigon: 
 	$(call ask_reset_dir_func, .tmp/erigon)
 	docker run \
 	--user 1000:1000 \
@@ -284,6 +220,149 @@ start-ethereumjs:
 	--isSingleNode \
 	--rpc \
 	--rpcAddr 0.0.0.0
+
+#################
+#    Bepolia    #
+#################
+
+TESTNET_CHAIN_SPEC = testnet
+BEPOLIA_NETWORK_FILES_DIR = ${TESTAPP_FILES_DIR}/../networks/80069
+BEPOLIA_ETH_GENESIS_PATH = ${BEPOLIA_NETWORK_FILES_DIR}/eth-genesis.json
+
+start-bepolia:
+	@JWT_SECRET_PATH=$(JWT_PATH) \
+	CHAIN_SPEC=$(TESTNET_CHAIN_SPEC) \
+	${TESTAPP_FILES_DIR}/entrypoint.sh
+
+# NOTE: Peers are used as bootnodes for the Geth node.
+start-geth-bepolia:
+	# TODO: Update to use latest Geth once ready
+	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
+	docker run \
+	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	--rm -v $(PWD)/${BEPOLIA_NETWORK_FILES_DIR}:/${BEPOLIA_NETWORK_FILES_DIR} \
+	-v $(PWD)/.tmp:/.tmp \
+	ethereum/client-go:v1.14.13 init \
+	--datadir ${ETH_DATA_DIR} \
+	${BEPOLIA_ETH_GENESIS_PATH}
+
+	@# Read bootnodes from the file; the file is mounted into the container.
+	@bootnodes=`cat $(PWD)/$(BEPOLIA_NETWORK_FILES_DIR)/el-peers.txt`; \
+	echo "Using bootnodes: $$bootnodes"; \
+	docker run \
+	-p 30303:30303 \
+	-p 8545:8545 \
+	-p 8551:8551 \
+	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	--rm -v $(PWD)/${BEPOLIA_NETWORK_FILES_DIR}:/${BEPOLIA_NETWORK_FILES_DIR} \
+	-v $(PWD)/.tmp:/.tmp \
+	ethereum/client-go:v1.14.13 \
+	--http \
+	--http.addr 0.0.0.0 \
+	--http.api eth,net \
+	--authrpc.addr 0.0.0.0 \
+	--authrpc.jwtsecret $(JWT_PATH) \
+	--authrpc.vhosts "*" \
+	--datadir ${ETH_DATA_DIR} \
+	--ipcpath ${IPC_PATH} \
+	--syncmode=full \
+	--bootnodes $$bootnodes
+
+start-reth-bepolia:
+	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
+	@trustedpeers=`cat $(PWD)/$(BEPOLIA_NETWORK_FILES_DIR)/el-peers.txt`; \
+	echo "Using truted peers: $$trustedpeers"; \
+	docker run \
+	-p 30303:30303 \
+	-p 8545:8545 \
+	-p 8551:8551 \
+	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	--rm -v $(PWD)/${BEPOLIA_NETWORK_FILES_DIR}:/${BEPOLIA_NETWORK_FILES_DIR} \
+	-v $(PWD)/.tmp:/.tmp \
+	ghcr.io/paradigmxyz/reth node \
+	--chain ${BEPOLIA_ETH_GENESIS_PATH} \
+	--http \
+	--http.addr "0.0.0.0" \
+	--http.api eth,net \
+	--authrpc.addr "0.0.0.0" \
+	--authrpc.jwtsecret $(JWT_PATH) \
+	--datadir ${ETH_DATA_DIR} \
+	--ipcpath ${IPC_PATH} \
+	--trusted-peers $$trustedpeers
+
+#################
+#    Mainnet    #
+#################
+
+MAINNET_CHAIN_SPEC = mainnet
+MAINNET_NETWORK_FILES_DIR = ${TESTAPP_FILES_DIR}/../networks/80094
+MAINNET_ETH_GENESIS_PATH = ${MAINNET_NETWORK_FILES_DIR}/eth-genesis.json
+
+start-mainnet:
+	@JWT_SECRET_PATH=$(JWT_PATH) \
+	CHAIN_SPEC=$(MAINNET_CHAIN_SPEC) \
+	${TESTAPP_FILES_DIR}/entrypoint.sh
+
+# NOTE: By default this will use the EL peers as your bootnodes. If you want specific 
+# discovery bootnodes by region, refer to testing/networks/80094/el-bootnodes.txt
+start-geth-mainnet:
+	# TODO: Update to use latest Geth once ready
+	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
+	docker run \
+	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	--rm -v $(PWD)/${MAINNET_NETWORK_FILES_DIR}:/${MAINNET_NETWORK_FILES_DIR} \
+	-v $(PWD)/.tmp:/.tmp \
+	ethereum/client-go:v1.14.13 init \
+	--datadir ${ETH_DATA_DIR} \
+	${MAINNET_ETH_GENESIS_PATH}
+
+	@# Read bootnodes from the file; the file is mounted into the container.
+	@bootnodes=`cat $(PWD)/$(MAINNET_NETWORK_FILES_DIR)/el-peers.txt`; \
+	echo "Using bootnodes: $$bootnodes"; \
+	docker run \
+	-p 30303:30303 \
+	-p 8545:8545 \
+	-p 8551:8551 \
+	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	--rm -v $(PWD)/${BEPOLIA_NETWORK_FILES_DIR}:/${BEPOLIA_NETWORK_FILES_DIR} \
+	-v $(PWD)/.tmp:/.tmp \
+	ethereum/client-go:v1.14.13 \
+	--http \
+	--http.addr 0.0.0.0 \
+	--http.api eth,net \
+	--authrpc.addr 0.0.0.0 \
+	--authrpc.jwtsecret $(JWT_PATH) \
+	--authrpc.vhosts "*" \
+	--datadir ${ETH_DATA_DIR} \
+	--ipcpath ${IPC_PATH} \
+	--syncmode=full \
+	--bootnodes $$bootnodes
+
+start-reth-mainnet:
+	$(call ask_reset_dir_func, $(ETH_DATA_DIR))
+	@trustedpeers=`cat $(PWD)/$(MAINNET_NETWORK_FILES_DIR)/el-peers.txt`; \
+	echo "Using truted peers: $$trustedpeers"; \
+	docker run \
+	-p 30303:30303 \
+	-p 8545:8545 \
+	-p 8551:8551 \
+	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	--rm -v $(PWD)/${MAINNET_NETWORK_FILES_DIR}:/${MAINNET_NETWORK_FILES_DIR} \
+	-v $(PWD)/.tmp:/.tmp \
+	ghcr.io/paradigmxyz/reth node \
+	--chain ${MAINNET_ETH_GENESIS_PATH} \
+	--http \
+	--http.addr "0.0.0.0" \
+	--http.api eth,net \
+	--authrpc.addr "0.0.0.0" \
+	--authrpc.jwtsecret $(JWT_PATH) \
+	--datadir ${ETH_DATA_DIR} \
+	--ipcpath ${IPC_PATH} \
+	--trusted-peers $$trustedpeers
+
+#################
+#    Testing    #
+#################
 
 SHORT_FUZZ_TIME=10s
 MEDIUM_FUZZ_TIME=30s
