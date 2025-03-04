@@ -25,6 +25,7 @@ package simulated_test
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -107,6 +108,7 @@ func (s *SimulatedSuite) SetupTest() {
 
 // TearDownTest cleans up the test environment.
 func (s *SimulatedSuite) TearDownTest() {
+	fmt.Println(s.LogBuffer.String())
 	if err := s.ElHandle.CloseIfOpen(); err != nil {
 		s.T().Error("Error closing EL handle:", err)
 	}
