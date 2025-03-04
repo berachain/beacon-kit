@@ -23,6 +23,7 @@ package cometbft
 import (
 	"context"
 	"fmt"
+
 	"github.com/berachain/beacon-kit/primitives/transition"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/sourcegraph/conc/iter"
