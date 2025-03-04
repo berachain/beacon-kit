@@ -101,7 +101,13 @@ func validateDepositMessage(chainSpec chain.Spec) func(
 			return err
 		}
 
-		return ValidateDeposit(chainSpec, pubkey, credentials, amount, genesisValidatorRoot, signature)
+		err = ValidateDeposit(chainSpec, pubkey, credentials, amount, genesisValidatorRoot, signature)
+		if err != nil {
+			return err
+		}
+
+		cmd.Println("Deposit message validated successfully")
+		return nil
 	}
 }
 

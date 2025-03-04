@@ -56,8 +56,8 @@ func run() error {
 			"beacond",
 		),
 		// Set the Description to the Default.
-		clibuilder.WithDescription(
-			"A basic beacon node, usable most standard networks.",
+		clibuilder.WithDescription[Node](
+			"A basic beacon node, modular and PoL chain usable with most Ethereum execution clients.",
 		),
 		// Set the Runtime Components to the Default.
 		clibuilder.WithComponents(
