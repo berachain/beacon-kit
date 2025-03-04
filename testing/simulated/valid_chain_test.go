@@ -79,9 +79,9 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlock_IsSuccessful() {
 	s.Require().Equal(proposedBlock.Message.GetHeader().GetBodyRoot(), stateHeader.GetBodyRoot())
 }
 
-// TestCoreLoop_InjectedTransactions_IsSuccessful effectively serves as a demonstration for how one can
+// TestFullLifecycle_ValidBlockWithInjectedTransaction_IsSuccessful effectively serves as a demonstration for how one can
 // inject custom transactions and state transitions into the core loop.
-func (s *SimulatedSuite) TestCoreLoop_InjectedTransactions_IsSuccessful() {
+func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsSuccessful() {
 	const blockHeight = 1
 	const coreLoopIterations = 1
 
