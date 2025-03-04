@@ -78,6 +78,10 @@ type GenesisData struct {
 	GenesisForkVersion    string      `json:"genesis_fork_version"`
 }
 
+type GenesisResponse struct {
+	Data GenesisData `json:"data"`
+}
+
 type RootData struct {
 	Root common.Root `json:"root"`
 }

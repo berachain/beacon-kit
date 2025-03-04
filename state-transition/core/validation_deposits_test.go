@@ -39,7 +39,7 @@ import (
 
 func TestInvalidDeposits(t *testing.T) {
 	cs := setupChain(t)
-	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
+	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
 		minBalance = math.Gwei(
@@ -90,14 +90,10 @@ func TestInvalidDeposits(t *testing.T) {
 	blk := buildNextBlock(
 		t,
 		st,
-		&types.BeaconBlockBody{
-			ExecutionPayload: testPayload(
-				10,
-				st.EVMInflationWithdrawal(constants.GenesisSlot+1),
-			),
-			Eth1Data: types.NewEth1Data(depRoot),
-			Deposits: []*types.Deposit{invalidDeposit},
-		},
+		types.NewEth1Data(depRoot),
+		10,
+		[]*types.Deposit{invalidDeposit},
+		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
 	)
 
 	// Add correct deposit to local store (honest validator will see this locally).
@@ -111,7 +107,7 @@ func TestInvalidDeposits(t *testing.T) {
 
 func TestInvalidDepositsCount(t *testing.T) {
 	cs := setupChain(t)
-	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
+	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
 		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
@@ -158,14 +154,10 @@ func TestInvalidDepositsCount(t *testing.T) {
 	blk := buildNextBlock(
 		t,
 		st,
-		&types.BeaconBlockBody{
-			ExecutionPayload: testPayload(
-				10,
-				st.EVMInflationWithdrawal(constants.GenesisSlot+1),
-			),
-			Eth1Data: types.NewEth1Data(depRoot),
-			Deposits: correctDeposits,
-		},
+		types.NewEth1Data(depRoot),
+		10,
+		correctDeposits,
+		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
 	)
 
 	// Add JUST 1 correct deposit to local store. This node SHOULD fail to verify.
@@ -182,7 +174,7 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 	csData.MaxDepositsPerBlock = 1 // Set only 1 deposit allowed per block.
 	cs, err := chain.NewSpec(csData)
 	require.NoError(t, err)
-	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
+	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
 		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
@@ -223,14 +215,10 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 	blk := buildNextBlock(
 		t,
 		st,
-		&types.BeaconBlockBody{
-			ExecutionPayload: testPayload(
-				10,
-				st.EVMInflationWithdrawal(constants.GenesisSlot+1),
-			),
-			Eth1Data: types.NewEth1Data(depRoot),
-			Deposits: blockDeposits,
-		},
+		types.NewEth1Data(depRoot),
+		10,
+		blockDeposits,
+		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
 	)
 
 	extraLocalDeposit := &types.Deposit{
@@ -253,7 +241,7 @@ func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
 	csData.MaxDepositsPerBlock = 1 // Set only 1 deposit allowed per block.
 	cs, err := chain.NewSpec(csData)
 	require.NoError(t, err)
-	sp, st, ds, ctx := statetransition.SetupTestState(t, cs)
+	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
 		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
@@ -302,14 +290,10 @@ func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
 	blk := buildNextBlock(
 		t,
 		st,
-		&types.BeaconBlockBody{
-			ExecutionPayload: testPayload(
-				10,
-				st.EVMInflationWithdrawal(constants.GenesisSlot+1),
-			),
-			Eth1Data: types.NewEth1Data(badDepRoot),
-			Deposits: blockDeposits,
-		},
+		types.NewEth1Data(badDepRoot),
+		10,
+		blockDeposits,
+		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
 	)
 
 	// Add both deposits to local store (which includes more than what's in the block).

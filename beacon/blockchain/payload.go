@@ -48,7 +48,35 @@ func (s *Service) forceSyncUponProcess(
 
 	// TODO: Verify if the slot number is correct here, I believe in current
 	// form it should be +1'd. Not a big deal until hardforks are in play though.
-	if err = s.localBuilder.SendForceHeadFCU(ctx, st, slot+1); err != nil {
+	slot++
+
+	lph, err := st.GetLatestExecutionPayloadHeader()
+	if err != nil {
+		s.logger.Error(
+			"failed to get latest execution payload header",
+			"error", err,
+		)
+		return
+	}
+
+	s.logger.Info(
+		"Sending startup forkchoice update to execution client",
+		"head_eth1_hash", lph.GetBlockHash(),
+		"safe_eth1_hash", lph.GetParentHash(),
+		"finalized_eth1_hash", lph.GetParentHash(),
+		"for_slot", slot.Base10(),
+	)
+
+	// Submit the forkchoice update to the execution client.
+	req := ctypes.BuildForkchoiceUpdateRequestNoAttrs(
+		&engineprimitives.ForkchoiceStateV1{
+			HeadBlockHash:      lph.GetBlockHash(),
+			SafeBlockHash:      lph.GetParentHash(),
+			FinalizedBlockHash: lph.GetParentHash(),
+		},
+		s.chainSpec.ActiveForkVersionForSlot(slot),
+	)
+	if _, err = s.executionEngine.NotifyForkchoiceUpdate(ctx, req); err != nil {
 		s.logger.Error(
 			"failed to send force head FCU",
 			"error", err,
@@ -175,7 +203,8 @@ func (s *Service) rebuildPayloadForRejectedBlock(
 		// We are rebuilding for the current slot.
 		stateSlot,
 		nextPayloadTimestamp.Unwrap(),
-		// We set the parent root to the previous block root.
+		// We set the parent root to the previous block root. The HashTreeRoot
+		// of the header is the same as the HashTreeRoot of the block.
 		latestHeader.HashTreeRoot(),
 		// We set the head of our chain to the previous finalized block.
 		lph.GetBlockHash(),
