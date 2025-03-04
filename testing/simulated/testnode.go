@@ -64,7 +64,6 @@ type TestNode struct {
 	StorageBackend blockchain.StorageBackend
 	ChainSpec      chain.Spec
 	APIBackend     nodecomponents.NodeAPIBackend
-	KZGVerifier    kzg.BlobProofVerifier
 	EngineClient   *client.EngineClient
 	StateProcessor *core.StateProcessor
 }
@@ -113,7 +112,6 @@ func buildNode(
 		config         *config.Config
 		storageBackend blockchain.StorageBackend
 		chainSpec      chain.Spec
-		kzgVerifier    kzg.BlobProofVerifier
 		engineClient   *client.EngineClient
 		stateProcessor *core.StateProcessor
 	)
@@ -137,7 +135,6 @@ func buildNode(
 		&config,
 		&storageBackend,
 		&chainSpec,
-		&kzgVerifier,
 		&engineClient,
 		&stateProcessor,
 	); err != nil {
@@ -157,7 +154,6 @@ func buildNode(
 		StorageBackend: storageBackend,
 		ChainSpec:      chainSpec,
 		APIBackend:     apiBackend,
-		KZGVerifier:    kzgVerifier,
 		EngineClient:   engineClient,
 		StateProcessor: stateProcessor,
 	}
