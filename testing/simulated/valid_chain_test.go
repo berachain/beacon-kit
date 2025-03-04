@@ -320,6 +320,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessfu
 	)
 
 	sidecarsSlice := make([]*datypes.BlobSidecar, len(blobs))
+	// Build Inclusion Proofs for Sidecars
 	sidecarFactory := dablob.NewSidecarFactory(s.TestNode.ChainSpec, metrics.NewNoOpTelemetrySink())
 	for i := range blobs {
 		inclusionProof, err := sidecarFactory.BuildKZGInclusionProof(proposedBlockMessage.GetBody(), mathpkg.U64(i))
@@ -338,6 +339,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockAndInjectedBlob_IsSuccessfu
 	// Inject the valid sidecar
 	sidecarBytes, err := sidecars.MarshalSSZ()
 	s.Require().NoError(err)
+
 	proposal.Txs[1] = sidecarBytes
 
 	// Reset the log buffer to discard old logs we don't care about
