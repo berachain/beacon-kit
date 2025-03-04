@@ -169,7 +169,9 @@ func (sp *StateProcessor) validateStatefulPayload(
 		return err
 	}
 
-	if err = sp.executionEngine.NotifyNewPayload(ctx, payloadReq); err != nil {
+	// TODO: set retryOnSyncingStatus to false if we are in FinalizeBlock.
+	// Otherwise leave as true. This is ok to leave this way for now.
+	if err = sp.executionEngine.NotifyNewPayload(ctx, payloadReq, true); err != nil {
 		return err
 	}
 

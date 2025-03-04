@@ -56,6 +56,7 @@ type ExecutionEngine interface {
 	NotifyNewPayload(
 		ctx context.Context,
 		req *ctypes.NewPayloadRequest,
+		retryOnSyncingStatus bool,
 	) error
 }
 

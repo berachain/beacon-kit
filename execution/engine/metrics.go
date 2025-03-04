@@ -21,9 +21,12 @@
 package engine
 
 import (
+	"fmt"
 	"strconv"
 
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
 )
@@ -75,37 +78,25 @@ func (em *engineMetrics) markNewPayloadValid(
 	)
 }
 
-// markNewPayloadSyncingPayloadStatus increments
+// markNewPayloadAcceptedSyncingPayloadStatus increments
 // the counter for accepted syncing payload status.
-func (em *engineMetrics) markNewPayloadSyncingPayloadStatus(
+func (em *engineMetrics) markNewPayloadAcceptedSyncingPayloadStatus(
+	errStatus error,
 	payloadHash common.ExecutionHash,
 	parentHash common.ExecutionHash,
 ) {
-	em.logger.Error(
-		"Received syncing payload status",
+	status := "accepted"
+	if errors.Is(errStatus, engineerrors.ErrSyncingPayloadStatus) {
+		status = "syncing"
+	}
+	em.logger.Warn(
+		fmt.Sprintf("Received %s payload status during new payload. Awaiting execution client to finish sync.", status),
 		"payload_block_hash", payloadHash,
 		"parent_hash", parentHash,
 	)
 
 	em.sink.IncrementCounter(
-		"beacon_kit.execution.engine.new_payload_syncing_payload_status",
-	)
-}
-
-// markNewPayloadAcceptedPayloadStatus increments
-// the counter for accepted syncing payload status.
-func (em *engineMetrics) markNewPayloadAcceptedPayloadStatus(
-	payloadHash common.ExecutionHash,
-	parentHash common.ExecutionHash,
-) {
-	em.logger.Error(
-		"Received accepted payload status",
-		"payload_block_hash", payloadHash,
-		"parent_hash", parentHash,
-	)
-
-	em.sink.IncrementCounter(
-		"beacon_kit.execution.engine.new_payload_accepted_payload_status",
+		fmt.Sprintf("beacon_kit.execution.engine.new_payload_%s_payload_status", status),
 	)
 }
 
@@ -203,16 +194,14 @@ func (em *engineMetrics) markForkchoiceUpdateSyncing(
 	state *engineprimitives.ForkchoiceStateV1,
 	err error,
 ) {
-	em.logger.Error(
-		"Received syncing payload status during forkchoice update call",
+	em.logger.Warn(
+		"Received syncing payload status during forkchoice update. Awaiting execution client to finish sync.",
 		"head_block_hash",
 		state.HeadBlockHash,
 		"safe_block_hash",
 		state.SafeBlockHash,
 		"finalized_block_hash",
 		state.FinalizedBlockHash,
-		"error",
-		err,
 	)
 
 	em.sink.IncrementCounter(
