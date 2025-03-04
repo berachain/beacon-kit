@@ -23,11 +23,16 @@ package cometbft
 import (
 	"context"
 	"fmt"
-
 	"github.com/berachain/beacon-kit/primitives/transition"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/sourcegraph/conc/iter"
 )
+
+// The result of the block building goroutine.
+type finalizeResult struct {
+	valUpdates transition.ValidatorUpdates
+	err        error
+}
 
 func (s *Service) finalizeBlock(
 	ctx context.Context,
@@ -74,31 +79,27 @@ func (s *Service) finalizeBlockInternal(
 		}
 	}
 
-	finalizeCh := make(chan transition.ValidatorUpdates, 1)
-	defer close(finalizeCh)
-	errCh := make(chan error, 1)
-	defer close(errCh)
+	finalizeResultCh := make(chan finalizeResult, 1)
+	defer close(finalizeResultCh)
 
 	go func() {
 		finalizeBlock, err := s.Blockchain.FinalizeBlock(
 			s.finalizeBlockState.Context(),
 			req,
 		)
-		if err != nil {
-			errCh <- err
-		}
-		finalizeCh <- finalizeBlock
+		finalizeResultCh <- finalizeResult{finalizeBlock, err}
 	}()
 
 	select {
 	case <-ctx.Done():
-		s.logger.Warn("finalize_block: ctx done")
-		return nil, ctx.Err()
+		return s.finalizeBlockContextCancelled(ctx)
 	case <-s.ctx.Done():
-		s.logger.Warn("finalize_block: s.ctx.Done")
-		return nil, s.ctx.Err()
-	case finalizeBlock := <-finalizeCh:
-		valUpdates, err := iter.MapErr(finalizeBlock, convertValidatorUpdate[cmtabci.ValidatorUpdate])
+		return s.finalizeBlockContextCancelled(s.ctx)
+	case res := <-finalizeResultCh:
+		if res.err != nil {
+			return nil, res.err
+		}
+		valUpdates, err := iter.MapErr(res.valUpdates, convertValidatorUpdate[cmtabci.ValidatorUpdate])
 		if err != nil {
 			return nil, err
 		}
@@ -109,8 +110,6 @@ func (s *Service) finalizeBlockInternal(
 			ValidatorUpdates:      valUpdates,
 			ConsensusParamUpdates: &cp,
 		}, nil
-	case err := <-errCh:
-		return nil, err
 	}
 }
 
@@ -119,7 +118,7 @@ func (s *Service) finalizeBlockInternal(
 // (s.smGet.CommitMultiStore()) and flushed to disk  in the
 // Commit phase. This means when the ABCI client requests
 // Commit(), the application state transitions will be flushed
-// to disk and as a result, but we already have an application
+// to disk and as a buildResult, but we already have an application
 // Merkle root.
 func (s *Service) workingHash() []byte {
 	// Write the FinalizeBlock state into branched storage and commit the
@@ -183,4 +182,11 @@ func (s *Service) validateFinalizeBlockHeight(
 	}
 
 	return nil
+}
+
+func (s *Service) finalizeBlockContextCancelled(ctx context.Context) (*cmtabci.FinalizeBlockResponse, error) {
+	s.logger.Error("Stopping FinalizeBlock")
+	// Node will panic here with "CONSENSUS FAILURE!!!" due to error. We expect
+	// this to happen and do not want to finalize any incomplete or invalid state.
+	return nil, ctx.Err()
 }

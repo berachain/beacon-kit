@@ -97,9 +97,9 @@ type Service struct {
 
 	chainID string
 
-	// ctx is a cancellable context based on the parent ctx passed in Start().
-	ctx        context.Context
-	cancelFunc context.CancelFunc
+	// ctx is the context passed in Start(). It is made available here for
+	// the service to check if the context is cancelled.
+	ctx context.Context
 }
 
 func NewService(
@@ -196,10 +196,8 @@ func (s *Service) Start(
 
 	select {
 	case <-ctx.Done():
-		s.logger.Warn("DEBUG: Start() ctx.Done()")
 		return ctx.Err()
 	case <-s.ctx.Done():
-		s.logger.Warn("DEBUG: Start() s.ctx.Done()")
 		return s.ctx.Err()
 	case <-started:
 	}
@@ -220,12 +218,6 @@ func (s *Service) Stop() error {
 		}
 		s.logger.Info("Waiting for CometBFT Node to stop")
 		s.node.Wait()
-	}
-
-	// cancel the service context
-	if s.cancelFunc != nil {
-		s.logger.Warn("DEBUG: Stop() is cancelling the service context")
-		//s.cancelFunc()
 	}
 
 	s.logger.Info("Closing application.db")

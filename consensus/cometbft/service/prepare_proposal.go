@@ -30,6 +30,13 @@ import (
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
+// The result of the block building goroutine.
+type buildResult struct {
+	blkBz      []byte
+	sidecarsBz []byte
+	err        error
+}
+
 func (s *Service) prepareProposal(
 	ctx context.Context,
 	req *cmtabci.PrepareProposalRequest,
@@ -65,14 +72,7 @@ func (s *Service) prepareProposal(
 		req.GetTime(),
 	)
 
-	// temporary struct to hold the result of the block building goroutine
-	type result struct {
-		blkBz      []byte
-		sidecarsBz []byte
-		err        error
-	}
-
-	resultCh := make(chan result, 1)
+	resultCh := make(chan buildResult, 1)
 	defer close(resultCh)
 
 	// run block building in a goroutine
@@ -80,16 +80,14 @@ func (s *Service) prepareProposal(
 	//nolint:contextcheck // ctx already passed via resetState
 	go func() {
 		blkBz, sidecarsBz, err := s.BlockBuilder.BuildBlockAndSidecars(s.prepareProposalState.Context(), slotData)
-		resultCh <- result{blkBz, sidecarsBz, err}
+		resultCh <- buildResult{blkBz, sidecarsBz, err}
 	}()
 
 	select {
 	case <-ctx.Done():
-		s.logger.Warn("prepare_proposal: context done")
-		return nil, ctx.Err()
+		return s.prepareProposalContextCancelled()
 	case <-s.ctx.Done():
-		s.logger.Warn("prepare_proposal: s.ctx.Done")
-		return &cmtabci.PrepareProposalResponse{Txs: req.Txs}, nil
+		return s.prepareProposalContextCancelled()
 	case r := <-resultCh:
 		if r.err != nil {
 			s.logger.Error("failed to prepare proposal", "height", req.Height, "time", req.Time, "err", r.err)
@@ -97,4 +95,11 @@ func (s *Service) prepareProposal(
 		}
 		return &cmtabci.PrepareProposalResponse{Txs: [][]byte{r.blkBz, r.sidecarsBz}}, nil
 	}
+}
+
+func (s *Service) prepareProposalContextCancelled() (*cmtabci.PrepareProposalResponse, error) {
+	s.logger.Warn("Stopping PrepareProposal")
+	// If the context is getting cancelled, we are shutting down and it is ok
+	// returning an empty proposal.
+	return &cmtabci.PrepareProposalResponse{}, nil
 }

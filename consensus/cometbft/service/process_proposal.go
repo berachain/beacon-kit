@@ -91,12 +91,19 @@ func (s *Service) processProposal(
 
 	select {
 	case <-ctx.Done():
-		s.logger.Warn("processProposal: ctx done")
-		return nil, ctx.Err()
+		return s.processProposalContextCancelled(ctx)
 	case <-s.ctx.Done():
-		s.logger.Warn("processProposal: s.ctx.Done")
-		return nil, s.ctx.Err()
+		return s.processProposalContextCancelled(s.ctx)
 	case status := <-statusCh:
 		return &cmtabci.ProcessProposalResponse{Status: status}, nil
 	}
+}
+
+func (s *Service) processProposalContextCancelled(ctx context.Context) (*cmtabci.ProcessProposalResponse, error) {
+	s.logger.Info("Stopping ProcessProposal")
+	// Node will panic here with "CONSENSUS FAILURE!!!" due to returning an error.
+	// This is expected. We do not want to accept or reject a proposal
+	// based on incomplete data.
+	// Returning PROCESS_PROPOSAL_STATUS_UNKNOWN will also result in comet panic.
+	return nil, ctx.Err()
 }
