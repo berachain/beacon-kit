@@ -29,6 +29,7 @@ import (
 	"cosmossdk.io/store"
 	storetypes "cosmossdk.io/store/types"
 	server "github.com/berachain/beacon-kit/cli/commands/server"
+	beaconflags "github.com/berachain/beacon-kit/cli/flags"
 	"github.com/berachain/beacon-kit/config"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -65,6 +66,12 @@ func DefaultServiceOptions(
 		}
 	}
 
+	sbtUpgradeHeight := cast.ToInt64(appOpts.Get(beaconflags.SBTUpgradeHeight))
+	if sbtUpgradeHeight == 0 {
+		panic("--beacon-kit.cometbft.sbt-upgrade-height (height where SBT is enabled) must be set")
+	}
+	sbtUpgradeTime := cast.ToTime(appOpts.Get(beaconflags.SBTUpgradeTime))
+
 	return []func(*cometbft.Service){
 		cometbft.SetPruning(pruningOpts),
 		cometbft.SetMinRetainBlocks(
@@ -79,6 +86,10 @@ func DefaultServiceOptions(
 			true,
 		),
 		cometbft.SetChainID(chainID),
+		cometbft.SetSBTUpgradeHeightAndTime(
+			sbtUpgradeHeight,
+			sbtUpgradeTime,
+		),
 	}
 }
 

@@ -24,6 +24,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/beacon/blockchain"
@@ -50,6 +51,13 @@ import (
 const (
 	initialAppVersion uint64 = 0
 	AppName           string = "beacond"
+
+	// targetBlockTime is the desired block time.
+	//
+	// Note that it CAN'T be lower than the minimal (floor) block time in the
+	// network, which is comprised of the time to a) propose a new block b)
+	// gather 2/3+ prevotes c) gather 2/3+ precommits.
+	targetBlockTime = 12 * time.Second // single Ethereum slot
 )
 
 type Service struct {
@@ -96,6 +104,15 @@ type Service struct {
 	minRetainBlocks uint64
 
 	chainID string
+
+	// calculates block delay for the next block
+	//
+	// NOTE: may be nil until either InitChain or FinalizeBlock is called.
+	blockDelay *blockDelay
+
+	// stable block time upgrade height and time
+	sbtUpgradeHeight int64
+	sbtUpgradeTime   time.Time
 }
 
 func NewService(
@@ -141,6 +158,18 @@ func NewService(
 	// Load latest height, once all stores have been set
 	if err = s.sm.LoadLatestVersion(); err != nil {
 		panic(fmt.Errorf("failed loading latest version: %w", err))
+	}
+
+	// Load block delay
+	//
+	// If not found and height == 0, we will initialize it in InitChain.
+	// Otherwise - in FinalizeBlock.
+	bz, err := s.sm.LoadBlockDelay()
+	if err != nil {
+		panic(fmt.Errorf("failed loading block delay: %w", err))
+	}
+	if bz != nil {
+		s.blockDelay = blockDelayFromBytes(bz)
 	}
 
 	return s
@@ -257,6 +286,12 @@ func (s *Service) LastBlockHeight() int64 {
 
 func (s *Service) setMinRetainBlocks(minRetainBlocks uint64) {
 	s.minRetainBlocks = minRetainBlocks
+}
+
+// setSBTUpgradeHeightAndTime sets the height and time for the SBT upgrade.
+func (s *Service) setSBTUpgradeHeightAndTime(h int64, t time.Time) {
+	s.sbtUpgradeHeight = h
+	s.sbtUpgradeTime = t
 }
 
 func (s *Service) setInterBlockCache(

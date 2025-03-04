@@ -21,6 +21,8 @@
 package cometbft
 
 import (
+	"time"
+
 	pruningtypes "cosmossdk.io/store/pruning/types"
 	storetypes "cosmossdk.io/store/types"
 )
@@ -67,4 +69,13 @@ func SetInterBlockCache(cache storetypes.MultiStorePersistentCache) func(*Servic
 // SetChainID sets the chain ID in cometbft.
 func SetChainID(chainID string) func(*Service) {
 	return func(s *Service) { s.chainID = chainID }
+}
+
+// SetInterBlockCache provides a Service option function that sets the stable
+// block time upgrade height and, optionally, time if the upgrade happened in
+// the past.
+//
+// If the network starts from genesis, you don't need to set this option.
+func SetSBTUpgradeHeightAndTime(height int64, time time.Time) func(*Service) {
+	return func(bs *Service) { bs.setSBTUpgradeHeightAndTime(height, time) }
 }
