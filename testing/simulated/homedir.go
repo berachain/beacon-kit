@@ -88,7 +88,10 @@ func InitializeHomeDir(t *testing.T, tempHomeDir string) (*cmtcfg.Config, common
 	require.NoError(t, err, "failed to add execution payload")
 
 	// Compute the validators root from the genesis file.
-	genesisValidatorsRoot, err := genesisutils.ComputeValidatorsRootFromFile(path.Join(cometConfig.RootDir, "config/genesis.json"), chainSpec)
+	genesisValidatorsRoot, err := genesisutils.ComputeValidatorsRootFromFile(
+		path.Join(cometConfig.RootDir, "config/genesis.json"),
+		chainSpec,
+	)
 	require.NoError(t, err, "failed to compute validators root")
 
 	return cometConfig, genesisValidatorsRoot

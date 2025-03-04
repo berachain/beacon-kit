@@ -54,10 +54,10 @@ const (
 	defaultGenesisValidatorRoot = ""
 )
 
-// NewCreateValidator creates a new command to create a validator deposit.
+// GetCreateValidatorCmd returns a command to create a validator deposit.
 //
-//nolint:lll // reads better if long description is one line.
-func NewCreateValidator(
+//nolint:lll // Reads better if long description is one line.
+func GetCreateValidatorCmd(
 	chainSpec chain.Spec,
 ) *cobra.Command {
 	cmd := &cobra.Command{

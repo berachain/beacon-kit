@@ -212,6 +212,7 @@ e2e/**/*.txt
 # cosmos
 .testnets/
 *.dot
+*.log
 
 # xml
 *.xml
