@@ -86,6 +86,7 @@ func (s *Service) finalizeBlockInternal(
 	if err != nil {
 		return nil, err
 	}
+
 	valUpdates, err := iter.MapErr(
 		finalizeBlock,
 		convertValidatorUpdate[cmtabci.ValidatorUpdate],

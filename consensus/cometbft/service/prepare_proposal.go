@@ -76,7 +76,6 @@ func (s *Service) prepareProposal(
 		s.prepareProposalState.Context(),
 		slotData,
 	)
-
 	if err != nil {
 		s.logger.Error(
 			"failed to prepare proposal",
@@ -86,6 +85,7 @@ func (s *Service) prepareProposal(
 		)
 		return &cmtabci.PrepareProposalResponse{Txs: [][]byte{}}, nil
 	}
+
 	return &cmtabci.PrepareProposalResponse{
 		Txs: [][]byte{blkBz, sidecarsBz},
 	}, nil
