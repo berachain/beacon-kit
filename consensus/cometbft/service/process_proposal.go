@@ -90,6 +90,5 @@ func (s *Service) processProposal(
 			"err", err,
 		)
 	}
-
 	return &cmtabci.ProcessProposalResponse{Status: status}, nil
 }

@@ -71,14 +71,22 @@ func (s *Service) prepareProposal(
 		req.GetTime(),
 	)
 
-	// run block building in a goroutine
-	//
 	//nolint:contextcheck // ctx already passed via resetState
-	blkBz, sidecarsBz, err := s.BlockBuilder.BuildBlockAndSidecars(s.prepareProposalState.Context(), slotData)
+	blkBz, sidecarsBz, err := s.BlockBuilder.BuildBlockAndSidecars(
+		s.prepareProposalState.Context(),
+		slotData,
+	)
 
 	if err != nil {
-		s.logger.Error("failed to prepare proposal", "height", req.Height, "time", req.Time, "err", err)
-		return &cmtabci.PrepareProposalResponse{Txs: req.Txs}, nil
+		s.logger.Error(
+			"failed to prepare proposal",
+			"height", req.Height,
+			"time", req.Time,
+			"err", err,
+		)
+		return &cmtabci.PrepareProposalResponse{Txs: [][]byte{}}, nil
 	}
-	return &cmtabci.PrepareProposalResponse{Txs: [][]byte{blkBz, sidecarsBz}}, nil
+	return &cmtabci.PrepareProposalResponse{
+		Txs: [][]byte{blkBz, sidecarsBz},
+	}, nil
 }
