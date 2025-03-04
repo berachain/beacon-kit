@@ -78,6 +78,10 @@ type GenesisData struct {
 	GenesisForkVersion    string      `json:"genesis_fork_version"`
 }
 
+// GenesisResponse is handled with this explicit type since "finalized"
+// and "execution_optimistic" are not part of the return value.
+//
+// https://ethereum.github.io/beacon-APIs/#/Beacon/getGenesis
 type GenesisResponse struct {
 	Data GenesisData `json:"data"`
 }
