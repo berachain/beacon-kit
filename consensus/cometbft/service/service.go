@@ -97,8 +97,11 @@ type Service struct {
 
 	chainID string
 
-	// ctx is the context passed in Start(). It is made available here for
-	// the service to check if the context is cancelled.
+	// ctx is the context passed in for the service. CometBFT currently does
+	// not support context usage. It passes "context.TODO()" to apps that
+	// implement the ABCI++ interface. Thus the app cannot tell when the
+	// context as been cancelled or not. We must use this as a workaround for
+	// now until CometBFT handles contexts.
 	ctx context.Context
 }
 
@@ -197,8 +200,6 @@ func (s *Service) Start(
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
-	case <-s.ctx.Done():
-		return s.ctx.Err()
 	case <-started:
 	}
 

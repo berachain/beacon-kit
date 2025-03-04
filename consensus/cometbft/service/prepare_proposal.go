@@ -84,10 +84,12 @@ func (s *Service) prepareProposal(
 	}()
 
 	select {
-	case <-ctx.Done():
-		return s.prepareProposalContextCancelled()
+	// If the context is getting cancelled, we are shutting down.
+	// It is ok returning an empty proposal.
+	// TODO: switch to ctx.Done() when CometBFT implements contexts.
 	case <-s.ctx.Done():
-		return s.prepareProposalContextCancelled()
+		s.logger.Warn("Stopping PrepareProposal")
+		return &cmtabci.PrepareProposalResponse{}, nil
 	case r := <-resultCh:
 		if r.err != nil {
 			s.logger.Error("failed to prepare proposal", "height", req.Height, "time", req.Time, "err", r.err)
@@ -95,11 +97,4 @@ func (s *Service) prepareProposal(
 		}
 		return &cmtabci.PrepareProposalResponse{Txs: [][]byte{r.blkBz, r.sidecarsBz}}, nil
 	}
-}
-
-func (s *Service) prepareProposalContextCancelled() (*cmtabci.PrepareProposalResponse, error) {
-	s.logger.Warn("Stopping PrepareProposal")
-	// If the context is getting cancelled, we are shutting down and it is ok
-	// returning an empty proposal.
-	return &cmtabci.PrepareProposalResponse{}, nil
 }

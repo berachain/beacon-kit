@@ -91,10 +91,12 @@ func (s *Service) finalizeBlockInternal(
 	}()
 
 	select {
-	case <-ctx.Done():
-		return s.finalizeBlockContextCancelled(ctx)
+	// Node will panic on context cancel with "CONSENSUS FAILURE!!!" due to error.
+	// We expect this to happen and do not want to finalize any incomplete or invalid state.
+	// TODO: switch to ctx.Done() when CometBFT implements contexts.
 	case <-s.ctx.Done():
-		return s.finalizeBlockContextCancelled(s.ctx)
+		s.logger.Error("Stopping FinalizeBlock")
+		return nil, s.ctx.Err()
 	case res := <-finalizeResultCh:
 		if res.err != nil {
 			return nil, res.err
@@ -182,11 +184,4 @@ func (s *Service) validateFinalizeBlockHeight(
 	}
 
 	return nil
-}
-
-func (s *Service) finalizeBlockContextCancelled(ctx context.Context) (*cmtabci.FinalizeBlockResponse, error) {
-	s.logger.Error("Stopping FinalizeBlock")
-	// Node will panic here with "CONSENSUS FAILURE!!!" due to error. We expect
-	// this to happen and do not want to finalize any incomplete or invalid state.
-	return nil, ctx.Err()
 }
