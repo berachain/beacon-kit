@@ -98,9 +98,10 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 	s.Require().Len(proposals, coreLoopIterations)
 
 	// Prepare a valid block proposal.
+	consensusTime := time.Now()
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{
 		Height:          blockHeight + coreLoopIterations,
-		Time:            time.Now(),
+		Time:            consensusTime,
 		ProposerAddress: pubkey.Address(),
 	})
 	s.Require().NoError(err)
@@ -113,8 +114,6 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 		s.TestNode.ChainSpec.ActiveForkVersionForSlot(blockHeight+coreLoopIterations),
 	)
 	s.Require().NoError(err)
-
-	consensusTime := time.Unix(int64(proposedBlock.GetMessage().GetTimestamp()), 0)
 
 	// Sign a valid transaction that is expected to pass
 	recipientAddress := gethcommon.HexToAddress("0x56898d1aFb10cad584961eb96AcD476C6826e41E")
