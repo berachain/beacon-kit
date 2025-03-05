@@ -79,6 +79,11 @@ func (h *Handler) RegisterRoutes(
 			Handler: h.PostStateValidatorBalances,
 		},
 		{
+			Method:  http.MethodPost,
+			Path:    "/eth/v1/beacon/states/:state_id/validator_identities",
+			Handler: h.NotImplemented,
+		},
+		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/beacon/states/:state_id/committees",
 			Handler: h.NotImplemented,
@@ -92,6 +97,16 @@ func (h *Handler) RegisterRoutes(
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/beacon/states/:state_id/randao",
 			Handler: h.GetRandao,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/eth/v1/beacon/states/:state_id/pending_deposits",
+			Handler: h.NotImplemented,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/eth/v1/beacon/states/:state_id/pending_partial_withdrawals",
+			Handler: h.NotImplemented,
 		},
 		{
 			Method:  http.MethodGet,
@@ -139,6 +154,11 @@ func (h *Handler) RegisterRoutes(
 			// Deprecated endpoint.
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/beacon/blocks/:block_id/attestations",
+			Handler: h.NotImplemented,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/eth/v2/beacon/blocks/:block_id/attestations",
 			Handler: h.NotImplemented,
 		},
 		{
