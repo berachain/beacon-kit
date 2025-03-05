@@ -42,10 +42,13 @@ var (
 // it passed context.TODO() to the ABCI++ app.
 // If cometBFT implements context inheritance, we may remove the usage of this function, as
 // the ctxComet context will then be a child of the ctxApp context.
-func combineContexts(ctxApp, ctxComet context.Context) (context.Context, context.CancelFunc) {
+func combineContexts(ctxApp, ctxComet context.Context) (context.Context, chan struct{}) {
+	done := make(chan struct{})
 	newCtx, cancel := context.WithCancel(ctxApp)
 	go func() {
 		select {
+		case <-ctxComet.Done():
+			return
 		// If ctxApp context is cancelled, newCtx is implicitly cancelled by
 		// being an inherited child context.
 		case <-newCtx.Done():
@@ -57,15 +60,15 @@ func combineContexts(ctxApp, ctxComet context.Context) (context.Context, context
 			return
 		}
 	}()
-	return newCtx, cancel
+	return newCtx, done
 }
 
 func (s *Service) InitChain(
 	ctx context.Context,
 	req *cmtabci.InitChainRequest,
 ) (*cmtabci.InitChainResponse, error) {
-	cCtx, cancel := combineContexts(s.ctx, ctx)
-	defer cancel()
+	cCtx, done := combineContexts(s.ctx, ctx)
+	defer func() { close(done) }()
 	return s.initChain(cCtx, req)
 }
 
@@ -75,8 +78,8 @@ func (s *Service) PrepareProposal(
 	ctx context.Context,
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
-	cCtx, cancel := combineContexts(s.ctx, ctx)
-	defer cancel()
+	cCtx, done := combineContexts(s.ctx, ctx)
+	defer func() { close(done) }()
 	return s.prepareProposal(cCtx, req)
 }
 
@@ -108,8 +111,8 @@ func (s *Service) ProcessProposal(
 	ctx context.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
-	cCtx, cancel := combineContexts(s.ctx, ctx)
-	defer cancel()
+	cCtx, done := combineContexts(s.ctx, ctx)
+	defer func() { close(done) }()
 	return s.processProposal(cCtx, req)
 }
 
@@ -117,8 +120,8 @@ func (s *Service) FinalizeBlock(
 	ctx context.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (*cmtabci.FinalizeBlockResponse, error) {
-	cCtx, cancel := combineContexts(s.ctx, ctx)
-	defer cancel()
+	cCtx, done := combineContexts(s.ctx, ctx)
+	defer func() { close(done) }()
 	return s.finalizeBlock(cCtx, req)
 }
 
@@ -132,8 +135,8 @@ func (s *Service) FinalizeBlock(
 func (s *Service) Commit(
 	ctx context.Context, req *cmtabci.CommitRequest,
 ) (*cmtabci.CommitResponse, error) {
-	cCtx, cancel := combineContexts(s.ctx, ctx)
-	defer cancel()
+	cCtx, done := combineContexts(s.ctx, ctx)
+	defer func() { close(done) }()
 	return s.commit(cCtx, req), nil
 }
 
