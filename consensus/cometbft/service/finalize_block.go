@@ -62,6 +62,9 @@ func (s *Service) finalizeBlockInternal(
 		s.finalizeBlockState = s.resetState(ctx)
 	}
 
+	// Preserve the CosmosSDK context while using the correct base ctx.
+	s.finalizeBlockState.SetContext(s.finalizeBlockState.Context().WithContext(ctx))
+
 	// Iterate over all raw transactions in the proposal and attempt to execute
 	// them, gathering the execution results.
 	//

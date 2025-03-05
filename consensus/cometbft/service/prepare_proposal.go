@@ -60,7 +60,8 @@ func (s *Service) prepareProposal(
 		s.getContextForProposal(
 			s.prepareProposalState.Context(),
 			req.Height,
-		),
+			// Preserve the CosmosSDK context while using the correct base ctx.
+		).WithContext(ctx),
 	)
 
 	slotData := types.NewSlotData(

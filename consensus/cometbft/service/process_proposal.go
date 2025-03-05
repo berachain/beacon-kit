@@ -69,7 +69,8 @@ func (s *Service) processProposal(
 		s.getContextForProposal(
 			s.processProposalState.Context(),
 			req.Height,
-		),
+			// Preserve the CosmosSDK context while using the correct base ctx.
+		).WithContext(ctx),
 	)
 
 	// errors to consensus indicate that the node was not able to understand

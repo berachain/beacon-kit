@@ -228,6 +228,12 @@ func (s *Service) Stop() error {
 	return errors.Join(errs...)
 }
 
+// ResetAppCtx sets the app ctx for the service. This is used
+// primarily for the mock service.
+func (s *Service) ResetAppCtx(ctx context.Context) {
+	s.ctx = ctx
+}
+
 // Name returns the name of the cometbft.
 func (s *Service) Name() string {
 	return AppName
