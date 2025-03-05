@@ -22,8 +22,6 @@ package engine
 
 import (
 	"context"
-	"math"
-	"time"
 
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
@@ -91,7 +89,7 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 	return backoff.Retry(ctx, func() (*engineprimitives.PayloadID, error) {
 		// Log and call the forkchoice update.
 		ee.metrics.markNotifyForkchoiceUpdateCalled(hasPayloadAttributes)
-		payloadID, innerErr := ee.ec.ForkchoiceUpdated(
+		payloadID, err := ee.ec.ForkchoiceUpdated(
 			ctx, req.State, req.PayloadAttributes, req.ForkVersion,
 		)
 
@@ -101,7 +99,7 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 		// 2. FinalizeBlock
 		// We'll discriminate error handling based on these.
 		switch {
-		case innerErr == nil:
+		case err == nil:
 			ee.metrics.markForkchoiceUpdateValid(
 				req.State, hasPayloadAttributes, payloadID,
 			)
@@ -122,38 +120,38 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 			// We've received a valid response, no more retries.
 			return payloadID, nil
 
-		case errors.IsAny(innerErr, engineerrors.ErrSyncingPayloadStatus):
-			ee.metrics.markForkchoiceUpdateSyncing(req.State, innerErr)
+		case errors.IsAny(err, engineerrors.ErrSyncingPayloadStatus):
+			ee.metrics.markForkchoiceUpdateSyncing(req.State, err)
 			// In all circumstances, keep retrying until the EVM is synced.
-			return nil, innerErr
+			return nil, err
 
-		case errors.Is(innerErr, engineerrors.ErrInvalidPayloadStatus):
-			ee.metrics.markForkchoiceUpdateInvalid(req.State, innerErr)
+		case errors.Is(err, engineerrors.ErrInvalidPayloadStatus):
+			ee.metrics.markForkchoiceUpdateInvalid(req.State, err)
 			// During payload building, then there is an invalid
 			// payload and should error.
 			// During FinalizeBlock, something is broken because
 			// this should never happen.
-			return nil, backoff.Permanent(innerErr)
+			return nil, backoff.Permanent(err)
 
-		case jsonrpc.IsPreDefinedError(innerErr):
-			ee.metrics.markForkchoiceUpdateJSONRPCError(innerErr)
+		case jsonrpc.IsPreDefinedError(err):
+			ee.metrics.markForkchoiceUpdateJSONRPCError(err)
 			// In all circumstances, always retry on RPC Error.
-			return nil, innerErr
+			return nil, err
 
 		default:
-			ee.metrics.markForkchoiceUpdateUndefinedError(innerErr)
+			ee.metrics.markForkchoiceUpdateUndefinedError(err)
 			// Retry on unknown errors, we'll log the error and retry.
 			// TODO: discriminate more of these errors:
 			//     RPC Timeout Errors
 			//     Connection Refused Errors
 			//     Erroneous Parsing Errors
-			return nil, innerErr
+			return nil, err
 		}
 	},
 		backoff.WithBackOff(engineAPIBackoff),
 		backoff.WithMaxTries(maxRetries),
-		// Max duration so we don't ever hit it before maxRetries.
-		backoff.WithMaxElapsedTime(time.Duration(math.MaxInt64)),
+		// Set 0 max elapsed time so we don't check it.
+		backoff.WithMaxElapsedTime(0),
 	)
 }
 
@@ -178,7 +176,7 @@ func (ee *Engine) NotifyNewPayload(
 		ee.metrics.markNewPayloadCalled(
 			req.ExecutionPayload.GetBlockHash(), req.ExecutionPayload.GetParentHash(),
 		)
-		lastValidHash, innerErr := ee.ec.NewPayload(
+		lastValidHash, err := ee.ec.NewPayload(
 			ctx, req.ExecutionPayload, req.VersionedHashes, req.ParentBeaconBlockRoot,
 		)
 
@@ -187,7 +185,7 @@ func (ee *Engine) NotifyNewPayload(
 		// 2. FinalizeBlock state transition
 		// We'll discriminate error handling based on these.
 		switch {
-		case innerErr == nil:
+		case err == nil:
 			ee.metrics.markNewPayloadValid(
 				req.ExecutionPayload.GetBlockHash(),
 				req.ExecutionPayload.GetParentHash(),
@@ -195,9 +193,9 @@ func (ee *Engine) NotifyNewPayload(
 			// We've received a valid response, no more retries.
 			return lastValidHash, nil
 
-		case errors.IsAny(innerErr, engineerrors.ErrSyncingPayloadStatus, engineerrors.ErrAcceptedPayloadStatus):
+		case errors.IsAny(err, engineerrors.ErrSyncingPayloadStatus, engineerrors.ErrAcceptedPayloadStatus):
 			ee.metrics.markNewPayloadAcceptedSyncingPayloadStatus(
-				innerErr,
+				err,
 				req.ExecutionPayload.GetBlockHash(),
 				req.ExecutionPayload.GetParentHash(),
 			)
@@ -206,19 +204,19 @@ func (ee *Engine) NotifyNewPayload(
 			// during ProcessProposal, we must retry here until EL is
 			// synced.
 			if retryOnSyncingStatus {
-				return nil, innerErr
+				return nil, err
 			}
 			// During FinalizeBlock, we do not need to verify the block.
 			// We do not need to retry here, as the following call to
 			// NotifyForkchoiceUpdate will inform the EL of the new head
 			// and then wait for it to sync.
 			// Don't return error here, because we want to send the forkchoice update regardless.
-			ee.logger.Warn("Pushed new payload to SYNCING node.", "error", innerErr,
+			ee.logger.Warn("Pushed new payload to SYNCING node.", "error", err,
 				"blockNum", req.ExecutionPayload.GetNumber(), "blockHash", req.ExecutionPayload.GetBlockHash(),
 			)
 			return &common.ExecutionHash{}, nil
 
-		case errors.Is(innerErr, engineerrors.ErrInvalidPayloadStatus):
+		case errors.Is(err, engineerrors.ErrInvalidPayloadStatus):
 			ee.metrics.markNewPayloadInvalidPayloadStatus(
 				req.ExecutionPayload.GetBlockHash(),
 			)
@@ -226,9 +224,9 @@ func (ee *Engine) NotifyNewPayload(
 			// payload and should error.
 			// During FinalizeBlock, something is broken because
 			// this should never happen.
-			return nil, backoff.Permanent(innerErr)
+			return nil, backoff.Permanent(err)
 
-		case jsonrpc.IsPreDefinedError(innerErr):
+		case jsonrpc.IsPreDefinedError(err):
 			// Protect against possible nil value.
 			if lastValidHash == nil {
 				lastValidHash = &common.ExecutionHash{}
@@ -236,25 +234,25 @@ func (ee *Engine) NotifyNewPayload(
 			ee.metrics.markNewPayloadJSONRPCError(
 				req.ExecutionPayload.GetBlockHash(),
 				*lastValidHash,
-				innerErr,
+				err,
 			)
 			// In all circumstances, always retry on RPC Error.
-			return nil, innerErr
+			return nil, err
 		default:
 			ee.metrics.markNewPayloadUndefinedError(
 				req.ExecutionPayload.GetBlockHash(),
-				innerErr,
+				err,
 			)
 			// Retry on unknown errors, we'll log the error and retry.
 			// TODO: discriminate more of these errors:
 			//     RPC Timeout Errors
 			//     Connection Refused Errors
 			//     Erroneous Parsing Errors
-			return nil, innerErr
+			return nil, err
 		}
 	}, backoff.WithBackOff(engineAPIBackoff), backoff.WithMaxTries(maxRetries),
-		// Max duration so we don't ever hit it before maxRetries.
-		backoff.WithMaxElapsedTime(time.Duration(math.MaxInt64)),
+		// Set 0 max elapsed time so we don't check it.
+		backoff.WithMaxElapsedTime(0),
 	)
 	return err
 }
