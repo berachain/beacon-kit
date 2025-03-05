@@ -138,7 +138,7 @@ func ValidGethImage() docker.PullImageOptions {
 // TODO: Remove once https://github.com/ethereum/go-ethereum/pull/31304/files is merged.
 func ValidGethImageWithSimulate() docker.PullImageOptions {
 	return docker.PullImageOptions{
-		Repository: "rezbera/geth-simulate",
+		Repository: "ghcr.io/berachain/geth-simulate",
 		Tag:        "latest",
 	}
 }
