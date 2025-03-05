@@ -116,14 +116,14 @@ func (em *engineMetrics) markNewPayloadInvalidPayloadStatus(
 	)
 }
 
-// markNewPayloadJSONRPCError increments the counter for JSON-RPC errors.
-func (em *engineMetrics) markNewPayloadJSONRPCError(
+// markNewPayloadFatalError increments the counter for JSON-RPC errors.
+func (em *engineMetrics) markNewPayloadFatalError(
 	payloadHash common.ExecutionHash,
 	lastValidHash common.ExecutionHash,
 	err error,
 ) {
 	em.logger.Error(
-		"Received JSON-RPC error during new payload call",
+		"Received Fatal error during new payload call",
 		"payload_block_hash", payloadHash,
 		"parent_hash", payloadHash,
 		"last_valid_hash", lastValidHash,
@@ -131,7 +131,7 @@ func (em *engineMetrics) markNewPayloadJSONRPCError(
 	)
 
 	em.sink.IncrementCounter(
-		"beacon_kit.execution.engine.new_payload_json_rpc_error",
+		"beacon_kit.execution.engine.new_payload_fatal_error",
 		"error", err.Error(),
 	)
 }
@@ -232,16 +232,16 @@ func (em *engineMetrics) markForkchoiceUpdateInvalid(
 	)
 }
 
-// markForkchoiceUpdateJSONRPCError increments the counter for JSON-RPC errors
+// markForkchoiceUpdateFatalError increments the counter for JSON-RPC errors
 // during forkchoice updates.
-func (em *engineMetrics) markForkchoiceUpdateJSONRPCError(err error) {
+func (em *engineMetrics) markForkchoiceUpdateFatalError(err error) {
 	em.logger.Error(
-		"Received json-rpc error during forkchoice update call",
+		"Received fatal error during forkchoice update call",
 		"error", err,
 	)
 
 	em.sink.IncrementCounter(
-		"beacon_kit.execution.engine.forkchoice_update_json_rpc_error",
+		"beacon_kit.execution.engine.forkchoice_update_fatal_error",
 		"error", err.Error(),
 	)
 }

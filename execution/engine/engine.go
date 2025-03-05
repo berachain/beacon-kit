@@ -30,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
-	jsonrpc "github.com/berachain/beacon-kit/primitives/net/json-rpc"
 	"github.com/cenkalti/backoff/v5"
 )
 
@@ -133,18 +132,13 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 			// this should never happen.
 			return nil, backoff.Permanent(err)
 
-		case jsonrpc.IsPreDefinedError(err):
-			ee.metrics.markForkchoiceUpdateJSONRPCError(err)
-			// In all circumstances, always retry on RPC Error.
-			return nil, err
+		case client.IsFatalError(err):
+			ee.metrics.markForkchoiceUpdateFatalError(err)
+			return nil, backoff.Permanent(err)
 
 		default:
 			ee.metrics.markForkchoiceUpdateUndefinedError(err)
 			// Retry on unknown errors, we'll log the error and retry.
-			// TODO: discriminate more of these errors:
-			//     RPC Timeout Errors
-			//     Connection Refused Errors
-			//     Erroneous Parsing Errors
 			return nil, err
 		}
 	},
@@ -187,17 +181,14 @@ func (ee *Engine) NotifyNewPayload(
 		switch {
 		case err == nil:
 			ee.metrics.markNewPayloadValid(
-				req.ExecutionPayload.GetBlockHash(),
-				req.ExecutionPayload.GetParentHash(),
+				req.ExecutionPayload.GetBlockHash(), req.ExecutionPayload.GetParentHash(),
 			)
 			// We've received a valid response, no more retries.
 			return lastValidHash, nil
 
 		case errors.IsAny(err, engineerrors.ErrSyncingPayloadStatus, engineerrors.ErrAcceptedPayloadStatus):
 			ee.metrics.markNewPayloadAcceptedSyncingPayloadStatus(
-				err,
-				req.ExecutionPayload.GetBlockHash(),
-				req.ExecutionPayload.GetParentHash(),
+				err, req.ExecutionPayload.GetBlockHash(), req.ExecutionPayload.GetParentHash(),
 			)
 			// During ProcessProposal, we must be able to verify the
 			// block. Since we do not send a NotifyForkchoiceUpdate
@@ -226,28 +217,21 @@ func (ee *Engine) NotifyNewPayload(
 			// this should never happen.
 			return nil, backoff.Permanent(err)
 
-		case jsonrpc.IsPreDefinedError(err):
+		case client.IsFatalError(err):
 			// Protect against possible nil value.
 			if lastValidHash == nil {
 				lastValidHash = &common.ExecutionHash{}
 			}
-			ee.metrics.markNewPayloadJSONRPCError(
+			ee.metrics.markNewPayloadFatalError(
 				req.ExecutionPayload.GetBlockHash(),
-				*lastValidHash,
-				err,
+				*lastValidHash, err,
 			)
-			// In all circumstances, always retry on RPC Error.
-			return nil, err
+			return nil, backoff.Permanent(err)
 		default:
 			ee.metrics.markNewPayloadUndefinedError(
-				req.ExecutionPayload.GetBlockHash(),
-				err,
+				req.ExecutionPayload.GetBlockHash(), err,
 			)
 			// Retry on unknown errors, we'll log the error and retry.
-			// TODO: discriminate more of these errors:
-			//     RPC Timeout Errors
-			//     Connection Refused Errors
-			//     Erroneous Parsing Errors
 			return nil, err
 		}
 	}, backoff.WithBackOff(engineAPIBackoff), backoff.WithMaxTries(maxRetries),

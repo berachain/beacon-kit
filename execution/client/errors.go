@@ -38,6 +38,10 @@ var (
 	// ErrMismatchedEth1ChainID is returned when the chainID does not
 	// match the expected chain ID.
 	ErrMismatchedEth1ChainID = errors.New("mismatched chain ID")
+
+	// ErrBadConnection indicates that the http.Client was unable to
+	// establish a connection.
+	ErrBadConnection = errors.New("connection error")
 )
 
 // Handles errors received from the RPC server according to the specification.
@@ -66,11 +70,7 @@ func (s *EngineClient) handleRPCError(
 	var e jsonrpc.Error
 	ok := errors.As(err, &e)
 	if !ok || e == nil {
-		return errors.Wrapf(
-			err,
-			"got an unexpected server error in JSON-RPC response "+
-				"failed to convert from jsonrpc.Error",
-		)
+		return errors.Join(ErrBadConnection, err)
 	}
 
 	// Otherwise check for our engine errors.
@@ -118,4 +118,13 @@ func (s *EngineClient) handleRPCError(
 	default:
 		return err
 	}
+}
+
+// IsFatalError defines errors that indicate a bad request or an otherwise
+// unusable client.
+func IsFatalError(err error) bool {
+	return jsonrpc.IsPreDefinedError(err) || errors.IsAny(
+		err,
+		ErrBadConnection,
+	)
 }
