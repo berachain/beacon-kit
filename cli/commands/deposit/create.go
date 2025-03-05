@@ -62,8 +62,8 @@ func GetCreateValidatorCmd(
 ) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-validator [withdrawal-address] [amount] ?[beacond/genesis.json]",
-		Short: "Creates a validator deposit",
-		Long:  `Creates a validator deposit with the necessary credentials. The arguments are expected in the order of withdrawal address, deposit amount, and optionally the beacond genesis file. If the genesis validator root flag is NOT set, the beacond genesis file MUST be provided as the last argument. If the broadcast flag is set to true, a private key must be provided to sign the transaction.`,
+		Short: "Creates a validator deposit message",
+		Long:  `Creates a validator deposit messagewith the necessary credentials. The arguments are expected in the order of withdrawal address, deposit amount, and optionally the beacond genesis file. If the genesis validator root flag is NOT set, the beacond genesis file MUST be provided as the last argument. If the override flag is set to true, a private key must be provided to sign the transaction.`,
 		Args:  cobra.RangeArgs(minArgsCreateDeposit, maxArgsCreateDeposit),
 		RunE:  createValidatorCmd(chainSpec),
 	}

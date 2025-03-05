@@ -57,7 +57,7 @@ func run() error {
 		),
 		// Set the Description to the Default.
 		clibuilder.WithDescription(
-			"A basic beacon node, usable most standard networks.",
+			"A beacon-kit node usable on Berachain networks.",
 		),
 		// Set the Runtime Components to the Default.
 		clibuilder.WithComponents(
