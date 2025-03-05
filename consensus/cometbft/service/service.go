@@ -99,9 +99,11 @@ type Service struct {
 
 	// ctx is the context passed in for the service. CometBFT currently does
 	// not support context usage. It passes "context.TODO()" to apps that
-	// implement the ABCI++ interface. Thus the app cannot tell when the
-	// context as been cancelled or not. We must use this as a workaround for
-	// now until CometBFT handles contexts.
+	// implement the ABCI++ interface, and does not provide a context that is
+	// a child context of the one the node originally provides to comet.
+	// Thus the app cannot tell when the context as been cancelled or not.
+	// TODO: We must use this as a workaround for now until CometBFT properly
+	// generates contexts that inherit from the parent context we provide.
 	ctx context.Context
 }
 

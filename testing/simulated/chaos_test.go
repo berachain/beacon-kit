@@ -26,6 +26,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/berachain/beacon-kit/execution/client"
+
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/cometbft/cometbft/abci/types"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
@@ -75,7 +77,7 @@ func (s *SimulatedSuite) TestProcessProposal_CrashedExecutionClient_Errors() {
 	})
 	s.Require().NoError(err)
 	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
-	s.Require().Contains(s.LogBuffer.String(), "got an unexpected server error in JSON-RPC response failed to convert from jsonrpc.Error")
+	s.Require().Contains(s.LogBuffer.String(), client.ErrBadConnection.Error())
 }
 
 // TestContextHandling_SIGINT_SafeShutdown mimicks the expected outcome of a SIGINT by calling context cancel and stop services.

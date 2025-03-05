@@ -37,18 +37,20 @@ var (
 )
 
 func (s *Service) InitChain(
-	ctx context.Context,
+	_ context.Context,
 	req *cmtabci.InitChainRequest,
 ) (*cmtabci.InitChainResponse, error) {
+	//nolint:contextcheck // see s.ctx comment for more details
 	return s.initChain(s.ctx, req)
 }
 
 // PrepareProposal implements the PrepareProposal ABCI method and returns a
 // ResponsePrepareProposal object to the client.
 func (s *Service) PrepareProposal(
-	ctx context.Context,
+	_ context.Context,
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
+	//nolint:contextcheck // see s.ctx comment for more details
 	return s.prepareProposal(s.ctx, req)
 }
 
@@ -77,16 +79,18 @@ func (s *Service) Info(context.Context,
 // ProcessProposal implements the ProcessProposal ABCI method and returns a
 // ResponseProcessProposal object to the client.
 func (s *Service) ProcessProposal(
-	ctx context.Context,
+	_ context.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
+	//nolint:contextcheck // see s.ctx comment for more details
 	return s.processProposal(s.ctx, req)
 }
 
 func (s *Service) FinalizeBlock(
-	ctx context.Context,
+	_ context.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (*cmtabci.FinalizeBlockResponse, error) {
+	//nolint:contextcheck // see s.ctx comment for more details
 	return s.finalizeBlock(s.ctx, req)
 }
 
@@ -98,8 +102,9 @@ func (s *Service) FinalizeBlock(
 // against that height and gracefully halt if it matches the latest committed
 // height.
 func (s *Service) Commit(
-	ctx context.Context, req *cmtabci.CommitRequest,
+	_ context.Context, req *cmtabci.CommitRequest,
 ) (*cmtabci.CommitResponse, error) {
+	//nolint:contextcheck // see s.ctx comment for more details
 	return s.commit(s.ctx, req), nil
 }
 
