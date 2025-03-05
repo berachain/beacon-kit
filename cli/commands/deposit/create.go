@@ -124,19 +124,10 @@ func createValidatorCmd(
 			return err
 		}
 
-		// val, err := json.Marshal(types.Deposit{
-		// 	Pubkey:      depositMsg.Pubkey,
-		// 	Credentials: depositMsg.Credentials,
-		// 	Amount:      depositMsg.Amount,
-		// 	Signature:   signature,
-		// })
-		// if err != nil {
-		// 	return err
-		// }
-
 		cmd.Println("✅ Deposit message created successfully!")
-		cmd.Printf("\npubkey: %s\n", depositMsg.Pubkey.String())
-		cmd.Printf("credentials: %s\n", depositMsg.Credentials.String())
+		cmd.Println("Note: This is NOT a transcation receipt; use these values to create a deposit contract transaction.")
+		cmd.Printf("\npubkey: %s\n", depositMsg.Pubkey)
+		cmd.Printf("credentials: %s\n", depositMsg.Credentials)
 		cmd.Printf("amount: %s\n", depositMsg.Amount.Base10())
 		cmd.Printf("signature: %s\n", signature.String())
 		return nil
