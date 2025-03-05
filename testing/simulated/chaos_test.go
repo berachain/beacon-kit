@@ -140,7 +140,7 @@ func (s *SimulatedSuite) TestContextHandling_SIGINT_SafeShutdown() {
 	}
 }
 
-// TestContextHandling_CancelledContext_Rejected
+// TestContextHandling_CancelledContext_Rejected tests that ABCI requests are rejected if the context is cancelled
 func (s *SimulatedSuite) TestContextHandling_CancelledContext_Rejected() {
 	const blockHeight = 1
 	const coreLoopIterations = 1
