@@ -51,9 +51,11 @@ func (sp *StateProcessor) processOperations(
 	}
 
 	// Instead we directly compare block deposits with our local store ones.
-	if err := sp.validateNonGenesisDeposits(
+	if err := ValidateNonGenesisDeposits(
 		ctx.ConsensusCtx(),
 		st,
+		sp.ds,
+		sp.cs.MaxDepositsPerBlock(),
 		deposits,
 		blk.GetBody().GetEth1Data().DepositRoot,
 	); err != nil {

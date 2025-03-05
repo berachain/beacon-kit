@@ -129,7 +129,7 @@ func (n *node) CommitMultiStore() store.CommitMultiStore {
 	return cometService.CommitMultiStore()
 }
 
-// StorageBackend returns the storage backend from the registry.
+// StorageBackend returns the storage backend from the blockchain service.
 func (n *node) StorageBackend() blockchain.StorageBackend {
 	var blockchainService *blockchain.Service
 	err := n.registry.FetchService(&blockchainService)

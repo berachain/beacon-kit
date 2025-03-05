@@ -21,12 +21,10 @@
 package deposit
 
 import (
-	"fmt"
-
 	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	clicontext "github.com/berachain/beacon-kit/cli/context"
 	servercmtlog "github.com/berachain/beacon-kit/consensus/cometbft/service/log"
-	"github.com/berachain/beacon-kit/primitives/constants"
+	"github.com/berachain/beacon-kit/state-transition/core"
 	"github.com/berachain/beacon-kit/storage/db"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -57,36 +55,26 @@ func GetDBCheckCmd(appCreator servertypes.AppCreator) *cobra.Command {
 			beaconState := app.StorageBackend().StateFromContext(ctx)
 			depositStore := app.StorageBackend().DepositStore()
 
-			// First, check the deposit store contains the correct amount of deposits.
-			eth1DepositIndex, err := beaconState.GetEth1DepositIndex()
-			if err != nil {
-				return err
-			}
-			deposits, err := depositStore.GetDepositsByIndex(
-				ctx, constants.FirstDepositIndex, eth1DepositIndex,
-			)
-			if err != nil {
-				return err
-			}
-			if uint64(len(deposits)) != eth1DepositIndex {
-				return fmt.Errorf(
-					"deposits in Deposit store (length: %d) are not in sync with the Beacon state (Eth1DepositIndex: %d)",
-					len(deposits),
-					eth1DepositIndex,
-				)
-			}
-
-			// Second, verify that the deposit store contains the correct deposits.
+			// Verify that the deposit store is in sync with the Beacon state.
 			eth1Data, err := beaconState.GetEth1Data()
 			if err != nil {
 				return err
 			}
-			if deposits.HashTreeRoot() != eth1Data.DepositRoot {
-				return fmt.Errorf(
-					"deposits from Deposit store (HTR: %s) are not consistent with the Beacon state (HTR: %s)",
-					deposits.HashTreeRoot(),
-					eth1Data.DepositRoot,
-				)
+			if err := core.ValidateNonGenesisDeposits(
+				ctx,
+				beaconState,
+				depositStore,
+				// maxDepositsPerBlock: 0
+				// In this snapshotted state, we will check up to the existing deposits and not any more.
+				0,
+				// blkDeposits: nil
+				// There are no new block deposits as we are checking at this snapshotted state.
+				nil,
+				// blkDepositRoot: eth1Data.DepositRoot
+				// We will compare against the beacon state's deposit root at this snapshotted state.
+				eth1Data.DepositRoot,
+			); err != nil {
+				return err
 			}
 
 			logger.Info("✅ Deposit store is in sync with the Beacon state!")
