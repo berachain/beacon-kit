@@ -185,7 +185,6 @@ func (s *SimulatedSuite) TestContextHandling_CancelledContext_Rejected() {
 	s.Require().Error(err, context.Canceled)
 	s.Require().Equal(cmtabci.PROCESS_PROPOSAL_STATUS_UNKNOWN, processResp.Status)
 
-	// Finalize the block.
 	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.FinalizeBlockRequest{
 		Txs:             proposal.Txs,
 		Height:          currentHeight,
