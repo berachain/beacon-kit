@@ -47,7 +47,7 @@ func combineContexts(ctxApp, ctxComet context.Context) (context.Context, chan st
 	newCtx, cancel := context.WithCancel(ctxApp)
 	go func() {
 		select {
-		case <-ctxComet.Done():
+		case <-done:
 			return
 		// If ctxApp context is cancelled, newCtx is implicitly cancelled by
 		// being an inherited child context.

@@ -65,6 +65,7 @@ func (s *Service) processProposal(
 		s.finalizeBlockState = s.resetState(ctx)
 	}
 
+	//nolint:contextcheck // ctx already passed via resetState
 	s.processProposalState.SetContext(
 		s.getContextForProposal(
 			s.processProposalState.Context(),
