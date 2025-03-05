@@ -38,7 +38,7 @@ func (s *Service) processProposal(
 		// returning an error. This is expected. We do not want to accept or
 		// reject a proposal based on incomplete data.
 		// Returning PROCESS_PROPOSAL_STATUS_UNKNOWN will also result in comet panic.
-		return &cmtabci.ProcessProposalResponse{Status: cmtabci.PROCESS_PROPOSAL_STATUS_UNKNOWN}, ctx.Err()
+		return nil, ctx.Err()
 	}
 	startTime := time.Now()
 	defer s.telemetrySink.MeasureSince(

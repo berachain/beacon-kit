@@ -183,7 +183,7 @@ func (s *SimulatedSuite) TestContextHandling_CancelledContext_Rejected() {
 		Time:            proposalTime,
 	})
 	s.Require().Error(err, context.Canceled)
-	s.Require().Equal(cmtabci.PROCESS_PROPOSAL_STATUS_UNKNOWN, processResp.Status)
+	s.Require().Nil(processResp)
 
 	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.FinalizeBlockRequest{
 		Txs:             proposal.Txs,
