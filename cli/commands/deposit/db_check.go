@@ -60,7 +60,7 @@ func GetDBCheckCmd(appCreator servertypes.AppCreator) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if err := core.ValidateNonGenesisDeposits(
+			if err = core.ValidateNonGenesisDeposits(
 				ctx,
 				beaconState,
 				depositStore,
