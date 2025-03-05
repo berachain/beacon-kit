@@ -59,6 +59,13 @@ func blockDelayUponGenesis(genesisTime time.Time, initialHeight int64) *blockDel
 	}
 }
 
+// blockDelayFromBytes converts the bytes to a blockDelay.
+//
+// Expected format:
+//
+//	InitialTime (int64) | InitialHeight (int64) | PreviousBlockTime (int64)
+//	(little endian)
+//
 // Panics if it fails to read from the buffer.
 func blockDelayFromBytes(
 	bz []byte,
@@ -115,6 +122,11 @@ func (d *blockDelay) Next(curBlockTime time.Time, curBlockHeight int64,
 }
 
 // ToBytes converts the blockDelay to bytes.
+//
+// Format:
+//
+//	InitialTime (int64) | InitialHeight (int64) | PreviousBlockTime (int64)
+//	(little endian)
 //
 // Panics if it fails to write to the buffer.
 func (d *blockDelay) ToBytes() []byte {
