@@ -117,13 +117,33 @@ func (em *engineMetrics) markNewPayloadInvalidPayloadStatus(
 }
 
 // markNewPayloadFatalError increments the counter for JSON-RPC errors.
+func (em *engineMetrics) markNewPayloadNonFatalError(
+	payloadHash common.ExecutionHash,
+	lastValidHash common.ExecutionHash,
+	err error,
+) {
+	em.logger.Error(
+		"Received non-fatal error during new payload call",
+		"payload_block_hash", payloadHash,
+		"parent_hash", payloadHash,
+		"last_valid_hash", lastValidHash,
+		"error", err,
+	)
+
+	em.sink.IncrementCounter(
+		"beacon_kit.execution.engine.new_payload_non_fatal_error",
+		"error", err.Error(),
+	)
+}
+
+// markNewPayloadFatalError increments the counter for JSON-RPC errors.
 func (em *engineMetrics) markNewPayloadFatalError(
 	payloadHash common.ExecutionHash,
 	lastValidHash common.ExecutionHash,
 	err error,
 ) {
 	em.logger.Error(
-		"Received Fatal error during new payload call",
+		"Received fatal error during new payload call",
 		"payload_block_hash", payloadHash,
 		"parent_hash", payloadHash,
 		"last_valid_hash", lastValidHash,
@@ -242,6 +262,20 @@ func (em *engineMetrics) markForkchoiceUpdateFatalError(err error) {
 
 	em.sink.IncrementCounter(
 		"beacon_kit.execution.engine.forkchoice_update_fatal_error",
+		"error", err.Error(),
+	)
+}
+
+// markForkchoiceUpdateNonFatalError increments the counter for JSON-RPC errors
+// during forkchoice updates.
+func (em *engineMetrics) markForkchoiceUpdateNonFatalError(err error) {
+	em.logger.Error(
+		"Received non-fatal error during forkchoice update call",
+		"error", err,
+	)
+
+	em.sink.IncrementCounter(
+		"beacon_kit.execution.engine.forkchoice_update_non_fatal_error",
 		"error", err.Error(),
 	)
 }

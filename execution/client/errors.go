@@ -128,3 +128,13 @@ func IsFatalError(err error) bool {
 		ErrBadConnection,
 	)
 }
+
+// IsNonFatalError defines errors that should be ephemeral and can be
+// recovered from simply by retrying.
+func IsNonFatalError(err error) bool {
+	return errors.IsAny(
+		err,
+		engineerrors.ErrEngineAPITimeout,
+		http.ErrTimeout,
+	)
+}

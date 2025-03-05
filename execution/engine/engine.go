@@ -132,6 +132,10 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 			// this should never happen.
 			return nil, backoff.Permanent(err)
 
+		case client.IsNonFatalError(err):
+			ee.metrics.markForkchoiceUpdateNonFatalError(err)
+			return nil, err
+
 		case client.IsFatalError(err):
 			ee.metrics.markForkchoiceUpdateFatalError(err)
 			return nil, backoff.Permanent(err)
@@ -139,7 +143,7 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 		default:
 			ee.metrics.markForkchoiceUpdateUndefinedError(err)
 			// Retry on unknown errors, we'll log the error and retry.
-			return nil, err
+			return nil, backoff.Permanent(err)
 		}
 	},
 		backoff.WithBackOff(engineAPIBackoff),
@@ -217,6 +221,17 @@ func (ee *Engine) NotifyNewPayload(
 			// this should never happen.
 			return nil, backoff.Permanent(err)
 
+		case client.IsNonFatalError(err):
+			// Protect against possible nil value.
+			if lastValidHash == nil {
+				lastValidHash = &common.ExecutionHash{}
+			}
+			ee.metrics.markNewPayloadNonFatalError(
+				req.ExecutionPayload.GetBlockHash(),
+				*lastValidHash, err,
+			)
+			return nil, err
+
 		case client.IsFatalError(err):
 			// Protect against possible nil value.
 			if lastValidHash == nil {
@@ -231,8 +246,8 @@ func (ee *Engine) NotifyNewPayload(
 			ee.metrics.markNewPayloadUndefinedError(
 				req.ExecutionPayload.GetBlockHash(), err,
 			)
-			// Retry on unknown errors, we'll log the error and retry.
-			return nil, err
+			// Do not retry on unknown errors.
+			return nil, backoff.Permanent(err)
 		}
 	}, backoff.WithBackOff(engineAPIBackoff), backoff.WithMaxTries(maxRetries),
 		// Set 0 max elapsed time so we don't check it.
