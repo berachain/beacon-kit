@@ -57,7 +57,7 @@ const (
 	// Note that it CAN'T be lower than the minimal (floor) block time in the
 	// network, which is comprised of the time to a) propose a new block b)
 	// gather 2/3+ prevotes c) gather 2/3+ precommits.
-	targetBlockTime = 12 * time.Second // single Ethereum slot
+	targetBlockTime = 2 * time.Second
 )
 
 type Service struct {
