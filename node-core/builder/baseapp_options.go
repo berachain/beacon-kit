@@ -67,9 +67,6 @@ func DefaultServiceOptions(
 	}
 
 	sbtUpgradeHeight := cast.ToInt64(appOpts.Get(beaconflags.SBTUpgradeHeight))
-	if sbtUpgradeHeight == 0 {
-		panic("--beacon-kit.cometbft.sbt-upgrade-height (height where SBT is enabled) must be set")
-	}
 	sbtUpgradeTime := cast.ToTime(appOpts.Get(beaconflags.SBTUpgradeTime))
 
 	return []func(*cometbft.Service){

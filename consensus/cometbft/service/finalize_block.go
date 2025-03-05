@@ -93,44 +93,78 @@ func (s *Service) finalizeBlockInternal(
 		return nil, err
 	}
 
-	delay := constBlockDelay
-
-	// Special case: height > 0, but blockDelay record doesn't exist in DB.
-	if s.blockDelay == nil {
-		switch {
-		case s.sbtUpgradeHeight == 0: // no upgrade
-			// do nothing
-		case req.Height > s.sbtUpgradeHeight: // upgrade happened in the past
-			if s.sbtUpgradeTime.IsZero() {
-				panic("Looks like the network had already upgraded to SBT (stable block time). --beacon-kit.cometbft.sbt-upgrade-time (block's time where SBT was enabled) must be set")
-			}
-
-			s.blockDelay = blockDelayUponGenesis(
-				s.sbtUpgradeTime,
-				s.sbtUpgradeHeight,
-			)
-		case req.Height == s.sbtUpgradeHeight: // upgrade is happening now
-			s.blockDelay = blockDelayUponGenesis(
-				req.Time,
-				s.sbtUpgradeHeight,
-			)
-			// default: // upgrade is in the future
-			// do nothing
-		}
-	} else {
-		delay = s.blockDelay.Next(
-			req.Time,
-			req.Height,
-			targetBlockTime)
-	}
-
 	cp := s.cmtConsensusParams.ToProto()
 	return &cmtabci.FinalizeBlockResponse{
 		TxResults:             txResults,
 		ValidatorUpdates:      valUpdates,
 		ConsensusParamUpdates: &cp,
-		NextBlockDelay:        delay,
+		NextBlockDelay:        s.nextBlockDelay(req),
 	}, nil
+}
+
+// Panics if SBT upgrade parameters are not set.
+func (s *Service) nextBlockDelay(req *cmtabci.FinalizeBlockRequest) time.Duration {
+	// Force full nodes to always provide SBT upgrade parameters.
+	if s.sbtUpgradeTime.IsZero() {
+		panic("SBT (stable block time) upgrade detected. --beacon-kit.cometbft.sbt-upgrade-time (block's time where SBT was enabled) must be set")
+	}
+	if s.sbtUpgradeHeight == 0 {
+		panic("SBT (stable block time) upgrade detected. --beacon-kit.cometbft.sbt-upgrade-height (block's height where SBT was enabled) must be set")
+	}
+
+	delay := constBlockDelay
+
+	switch {
+	case s.blockDelay == nil: // height > 0; blockDelay record doesn't exist in DB (first live upgrade)
+		switch {
+		case req.Height > s.sbtUpgradeHeight: // upgrade happened in the past
+			s.blockDelay = blockDelayUponGenesis(
+				s.sbtUpgradeTime,
+				s.sbtUpgradeHeight,
+			)
+			delay = s.blockDelay.Next(
+				req.Time,
+				req.Height,
+				targetBlockTime,
+			)
+		case req.Height == s.sbtUpgradeHeight: // upgrade is happening now
+			s.blockDelay = blockDelayUponGenesis(
+				req.Time,
+				req.Height,
+			)
+			// default: // upgrade is in the future
+			//   // nothing to do
+		}
+	case s.blockDelay.InitialHeight < s.sbtUpgradeHeight: // height > 0; blockDelay record exists in DB; consecutive (2nd, 3rd, so on) live upgrade
+		// Calculate block delay based on existing checkpoint.
+		delay = s.blockDelay.Next(
+			req.Time,
+			req.Height,
+			targetBlockTime,
+		)
+
+		switch {
+		case req.Height > s.sbtUpgradeHeight: // upgrade happened in the past
+			s.blockDelay = blockDelayUponGenesis(
+				s.sbtUpgradeTime,
+				s.sbtUpgradeHeight,
+			)
+			delay = s.blockDelay.Next(
+				req.Time,
+				req.Height,
+				targetBlockTime,
+			)
+		case req.Height == s.sbtUpgradeHeight: // upgrade is happening now
+			s.blockDelay = blockDelayUponGenesis(
+				req.Time,
+				req.Height,
+			)
+			// default: // upgrade is in the future
+			//   // nothing to do
+		}
+	}
+
+	return delay
 }
 
 // workingHash gets the apphash that will be finalized in commit.
