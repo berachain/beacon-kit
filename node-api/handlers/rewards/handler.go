@@ -18,32 +18,19 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package debug
+package rewards
 
-import (
-	"net/http"
+import "github.com/berachain/beacon-kit/node-api/handlers"
 
-	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/node-api/handlers"
-)
+type Handler struct {
+	*handlers.BaseHandler
+}
 
-func (h *Handler) RegisterRoutes(logger log.Logger) {
-	h.SetLogger(logger)
-	h.BaseHandler.AddRoutes([]*handlers.Route{
-		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v2/debug/beacon/states/:state_id",
-			Handler: h.GetState,
-		},
-		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v2/debug/beacon/heads",
-			Handler: h.NotImplemented,
-		},
-		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v1/debug/fork_choice",
-			Handler: h.NotImplemented,
-		},
-	})
+func NewHandler() *Handler {
+	h := &Handler{
+		BaseHandler: handlers.NewBaseHandler(
+			handlers.NewRouteSet(""),
+		),
+	}
+	return h
 }

@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package debug
+package rewards
 
 import (
 	"net/http"
@@ -31,18 +31,18 @@ func (h *Handler) RegisterRoutes(logger log.Logger) {
 	h.SetLogger(logger)
 	h.BaseHandler.AddRoutes([]*handlers.Route{
 		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v2/debug/beacon/states/:state_id",
-			Handler: h.GetState,
-		},
-		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v2/debug/beacon/heads",
+			Method:  http.MethodPost,
+			Path:    "/eth/v1/beacon/rewards/sync_committee/:block_id",
 			Handler: h.NotImplemented,
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/eth/v1/debug/fork_choice",
+			Path:    "/eth/v1/beacon/rewards/blocks/:block_id",
+			Handler: h.NotImplemented,
+		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/eth/v1/beacon/rewards/attestations/:epoch",
 			Handler: h.NotImplemented,
 		},
 	})
