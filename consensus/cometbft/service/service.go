@@ -334,8 +334,9 @@ func (s *Service) getContextForProposal(
 		// on initialHeight. Panic appeases nilaway.
 		panic(fmt.Errorf("getContextForProposal: %w", errNilFinalizeBlockState))
 	}
-	ctx, _ = s.finalizeBlockState.Context().CacheContext()
-	return ctx
+	newCtx, _ := s.finalizeBlockState.Context().CacheContext()
+	// Preserve the CosmosSDK context while using the correct base ctx.
+	return newCtx.WithContext(ctx.Context())
 }
 
 // CreateQueryContext creates a new sdk.Context for a query, taking as args
