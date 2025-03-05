@@ -33,9 +33,6 @@ type Node interface {
 	service.CommitMultistoreAccessor
 
 	Start(context.Context) error
-
-	// FetchService allows us to retrieve the various node services, which is useful in testing
-	FetchService(interface{}) error
 }
 
 // ConsensusService defines everything we utilise externally from CometBFT.

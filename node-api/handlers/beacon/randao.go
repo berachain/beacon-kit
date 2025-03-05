@@ -25,6 +25,7 @@ import (
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/primitives/constants"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 func (h *Handler) GetRandao(c handlers.Context) (any, error) {
@@ -41,7 +42,7 @@ func (h *Handler) GetRandao(c handlers.Context) (any, error) {
 	}
 	epoch := constants.GenesisEpoch
 	if req.Epoch != "" {
-		epoch, err = utils.U64FromString(req.Epoch)
+		epoch, err = math.U64FromString(req.Epoch)
 		if err != nil {
 			return nil, err
 		}

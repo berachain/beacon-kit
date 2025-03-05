@@ -25,59 +25,67 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/payload/cache"
+	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/stretchr/testify/require"
 )
 
 func TestPayloadIDCache(t *testing.T) {
 	t.Parallel()
-	cacheUnderTest := cache.NewPayloadIDCache[[32]byte, uint64]()
+	cacheUnderTest := cache.NewPayloadIDCache()
 
 	t.Run("Get from empty cache", func(t *testing.T) {
 		var r [32]byte
-		p, ok := cacheUnderTest.Get(0, r)
+		p, ok := cacheUnderTest.GetAndEvict(0, r)
 		require.False(t, ok)
 		require.Equal(t, engineprimitives.PayloadID{}, p)
 	})
 
 	t.Run("Set and Get", func(t *testing.T) {
-		slot := uint64(1234)
+		slot := math.Slot(1234)
 		r := [32]byte{1, 2, 3}
 		pid := engineprimitives.PayloadID{1, 2, 3, 3, 7, 8, 7, 8}
 		cacheUnderTest.Set(slot, r, pid)
 
-		p, ok := cacheUnderTest.Get(slot, r)
+		p, ok := cacheUnderTest.GetAndEvict(slot, r)
 		require.True(t, ok)
 		require.Equal(t, pid, p)
 	})
 
 	t.Run("Overwrite existing", func(t *testing.T) {
-		slot := uint64(1234)
+		slot := math.Slot(1234)
 		r := [32]byte{1, 2, 3}
 		newPid := engineprimitives.PayloadID{9, 9, 9, 9, 9, 9, 9, 9}
 		cacheUnderTest.Set(slot, r, newPid)
 
-		p, ok := cacheUnderTest.Get(slot, r)
+		p, ok := cacheUnderTest.GetAndEvict(slot, r)
 		require.True(t, ok)
 		require.Equal(t, newPid, p)
 	})
 
 	t.Run("Prune and verify deletion", func(t *testing.T) {
-		slot := uint64(9456456)
+		slot := math.Slot(9456456)
 		r := [32]byte{4, 5, 6}
 		pid := engineprimitives.PayloadID{4, 5, 6, 6, 9, 0, 9, 0}
+		// Set pid for slot.
 		cacheUnderTest.Set(slot, r, pid)
 
-		// Prune and attempt to retrieve pruned entry
-		cacheUnderTest.UnsafePrunePrior(slot + 1)
-		p, ok := cacheUnderTest.Get(slot, r)
+		// Set historicalPayloadIDCacheSize+1 number of pids. This should
+		// prune the first slot from the cache.
+		cacheUnderTest.Set(slot+1, r, pid)
+		cacheUnderTest.Set(slot+2, r, pid)
+		cacheUnderTest.Set(slot+3, r, pid)
+
+		// Attempt to retrieve pruned slot.
+		ok := cacheUnderTest.Has(slot, r)
 		require.False(t, ok)
-		require.Equal(t, engineprimitives.PayloadID{}, p)
 	})
 
 	t.Run("Multiple entries and prune", func(t *testing.T) {
+		numEntries := 10
+		historicalPayloadIDCacheSize := 2
 		// Set multiple entries
-		for i := range uint8(5) {
-			slot := uint64(i)
+		for i := range uint8(numEntries) {
+			slot := math.Slot(i)
 			r := [32]byte{i, i + 1, i + 2}
 			pid := [8]byte{
 				i, i, i, i, i, i, i, i,
@@ -85,19 +93,19 @@ func TestPayloadIDCache(t *testing.T) {
 			cacheUnderTest.Set(slot, r, pid)
 		}
 
-		// Prune and check if only the last two entries exist
-		cacheUnderTest.UnsafePrunePrior(3)
-		for i := range uint8(3) {
-			slot := uint64(i)
+		// Only the last historicalPayloadIDCacheSize+1 number of entries
+		// should still exist.
+		for i := range uint8(numEntries - (historicalPayloadIDCacheSize + 1)) {
+			slot := math.Slot(i)
 			r := [32]byte{i, i + 1, i + 2}
-			_, ok := cacheUnderTest.Get(slot, r)
+			ok := cacheUnderTest.Has(slot, r)
 			require.False(t, ok, "Expected entry to be pruned for slot", slot)
 		}
 
-		for i := uint8(3); i < 5; i++ {
-			slot := uint64(i)
+		for i := uint8(numEntries - (historicalPayloadIDCacheSize + 1)); i < uint8(numEntries); i++ {
+			slot := math.Slot(i)
 			r := [32]byte{i, i + 1, i + 2}
-			_, ok := cacheUnderTest.Get(slot, r)
+			ok := cacheUnderTest.Has(slot, r)
 			require.True(t, ok, "Expected entry to exist for slot", slot)
 		}
 	})
