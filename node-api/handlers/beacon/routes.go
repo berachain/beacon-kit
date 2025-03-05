@@ -119,10 +119,9 @@ func (h *Handler) RegisterRoutes(
 			Handler: h.GetBlockHeaderByID,
 		},
 		{
-			// Deprecated endpoint.
 			Method:  http.MethodPost,
 			Path:    "/eth/v1/beacon/blocks/blinded_blocks",
-			Handler: h.NotImplemented,
+			Handler: h.Deprecated,
 		},
 		{
 			Method:  http.MethodPost,
@@ -130,10 +129,9 @@ func (h *Handler) RegisterRoutes(
 			Handler: h.NotImplemented,
 		},
 		{
-			// Deprecated endpoint.
 			Method:  http.MethodPost,
 			Path:    "/eth/v1/beacon/blocks",
-			Handler: h.NotImplemented,
+			Handler: h.Deprecated,
 		},
 		{
 			Method:  http.MethodPost,
@@ -151,10 +149,9 @@ func (h *Handler) RegisterRoutes(
 			Handler: h.NotImplemented,
 		},
 		{
-			// Deprecated endpoint.
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/beacon/blocks/:block_id/attestations",
-			Handler: h.NotImplemented,
+			Handler: h.Deprecated,
 		},
 		{
 			Method:  http.MethodGet,
@@ -172,10 +169,9 @@ func (h *Handler) RegisterRoutes(
 			Handler: h.NotImplemented,
 		},
 		{
-			// Deprecated endpoint.
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/beacon/deposit_snapshot",
-			Handler: h.NotImplemented,
+			Handler: h.Deprecated,
 		},
 		{
 			Method:  http.MethodGet,
@@ -213,16 +209,14 @@ func (h *Handler) RegisterRoutes(
 			Handler: h.NotImplemented,
 		},
 		{
-			// Deprecated endpoint.
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/beacon/pool/attestations",
-			Handler: h.NotImplemented,
+			Handler: h.Deprecated,
 		},
 		{
-			// Deprecated endpoint.
 			Method:  http.MethodPost,
 			Path:    "/eth/v1/beacon/pool/attestations",
-			Handler: h.NotImplemented,
+			Handler: h.Deprecated,
 		},
 		{
 			Method:  http.MethodGet,
@@ -235,16 +229,14 @@ func (h *Handler) RegisterRoutes(
 			Handler: h.NotImplemented,
 		},
 		{
-			// Deprecated endpoint.
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/beacon/pool/attester_slashings",
-			Handler: h.NotImplemented,
+			Handler: h.Deprecated,
 		},
 		{
-			// Deprecated endpoint.
 			Method:  http.MethodPost,
 			Path:    "/eth/v1/beacon/pool/attester_slashings",
-			Handler: h.NotImplemented,
+			Handler: h.Deprecated,
 		},
 		{
 			Method:  http.MethodGet,

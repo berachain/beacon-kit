@@ -21,6 +21,9 @@
 package handlers
 
 import (
+	"fmt"
+	"net/http"
+
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/labstack/echo/v4"
@@ -56,6 +59,16 @@ func NewBaseHandler(routes *RouteSet) *BaseHandler {
 // NotImplemented is a placeholder for the beacon API.
 func (b *BaseHandler) NotImplemented(Context) (any, error) {
 	return nil, errors.New("not implemented")
+}
+
+// Deprecated handles deprecated API endpoints.
+func (b *BaseHandler) Deprecated(c Context) (any, error) {
+	endpoint := c.Request().URL.Path
+
+	return nil, NewHTTPError(
+		http.StatusInternalServerError,
+		fmt.Sprintf("The endpoint %s is deprecated.", endpoint),
+	)
 }
 
 // RouteSet returns the route set for the base handler.

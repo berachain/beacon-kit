@@ -56,10 +56,9 @@ func (h *Handler) RegisterRoutes(logger log.Logger) {
 			Handler: h.NotImplemented,
 		},
 		{
-			// Deprecated endpoint.
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/validator/aggregate_attestation",
-			Handler: h.NotImplemented,
+			Handler: h.Deprecated,
 		},
 		{
 			Method:  http.MethodGet,
@@ -67,10 +66,9 @@ func (h *Handler) RegisterRoutes(logger log.Logger) {
 			Handler: h.NotImplemented,
 		},
 		{
-			// Deprecated endpoint.
 			Method:  http.MethodPost,
 			Path:    "/eth/v1/validator/aggregate_and_proofs",
-			Handler: h.NotImplemented,
+			Handler: h.Deprecated,
 		},
 		{
 			Method:  http.MethodPost,
