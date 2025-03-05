@@ -134,7 +134,7 @@ func (s *Service) Commit(
 ) (*cmtabci.CommitResponse, error) {
 	cCtx, cancel := combineContexts(s.ctx, ctx)
 	defer cancel()
-	return s.commit(cCtx, req)
+	return s.commit(cCtx, req), nil
 }
 
 //

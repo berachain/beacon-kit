@@ -31,7 +31,7 @@ import (
 
 func (s *Service) commit(
 	context.Context, *cmtabci.CommitRequest,
-) (*cmtabci.CommitResponse, error) {
+) *cmtabci.CommitResponse {
 	if s.finalizeBlockState == nil {
 		// This is unexpected since CometBFT should call Commit only
 		// after FinalizeBlock has been called. Panic appeases nilaway.
@@ -50,7 +50,7 @@ func (s *Service) commit(
 
 	return &cmtabci.CommitResponse{
 		RetainHeight: retainHeight,
-	}, nil
+	}
 }
 
 // GetBlockRetentionHeight returns the height for which all blocks below this
