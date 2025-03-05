@@ -90,21 +90,10 @@ func (cb *CLIBuilder) Build() (*cmdlib.Root, error) {
 	}
 
 	// pass in deps to build the root command
-	rootCmd := cmdlib.New(
-		cb.name,
-		cb.description,
-		cb.defaultRunHandler(logger),
-		clientCtx,
-	)
+	rootCmd := cmdlib.New(cb.name, cb.description, cb.defaultRunHandler(logger), clientCtx)
 
 	// apply default root command setup
-	cmdlib.DefaultRootCommandSetup(
-		rootCmd,
-		&cometbft.Service{},
-		cb.nodeBuilderFunc,
-		chainSpec,
-		beaconStore,
-	)
+	cmdlib.DefaultRootCommandSetup(rootCmd, &cometbft.Service{}, cb.nodeBuilderFunc, chainSpec)
 
 	return rootCmd, nil
 }

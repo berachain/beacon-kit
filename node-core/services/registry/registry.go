@@ -25,8 +25,6 @@ import (
 	"fmt"
 	"reflect"
 
-	"cosmossdk.io/store"
-	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/log"
 )
 
@@ -39,12 +37,6 @@ type Basic interface {
 	Stop() error
 	// Name returns the name of the service.
 	Name() string
-}
-
-// CommitMultistoreAccessor allows access to the commit multistore
-// This is required by commands like Rollback.
-type CommitMultistoreAccessor interface {
-	CommitMultiStore() store.CommitMultiStore
 }
 
 // Registry provides a useful pattern for managing services.
@@ -166,14 +158,4 @@ func (s *Registry) FetchService(service interface{}) error {
 		return nil
 	}
 	return errUnknownService
-}
-
-func (s *Registry) CommitMultiStore() store.CommitMultiStore {
-	var cometService *cometbft.Service
-	err := s.FetchService(&cometService)
-	if err != nil || cometService == nil { // appease nilaway
-		err = fmt.Errorf("failed to fetch cometbft service: %w", err)
-		panic(err)
-	}
-	return cometService.CommitMultiStore()
 }

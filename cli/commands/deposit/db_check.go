@@ -21,15 +21,12 @@
 package deposit
 
 import (
-	"errors"
 	"fmt"
 
 	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
 	clicontext "github.com/berachain/beacon-kit/cli/context"
 	servercmtlog "github.com/berachain/beacon-kit/consensus/cometbft/service/log"
-	"github.com/berachain/beacon-kit/node-core/components"
 	"github.com/berachain/beacon-kit/primitives/constants"
-	"github.com/berachain/beacon-kit/storage/beacondb"
 	"github.com/berachain/beacon-kit/storage/db"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -38,34 +35,14 @@ import (
 
 // GetDBCheckCmd returns a command for checking that the deposit store
 // is in sync with the beacon state.
-func GetDBCheckCmd(
-	appCreator servertypes.AppCreator,
-	beaconStore *beacondb.KVStore,
-) *cobra.Command {
+func GetDBCheckCmd(appCreator servertypes.AppCreator) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "db-check",
 		Short: `Checks if the deposit store is in sync with the beacon state. Fails if either of the beacon or deposit DBs are not available.`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
+			// Create the application from home directory configs and data.
 			v := clicontext.GetViperFromCmd(cmd)
 			logger := clicontext.GetLoggerFromCmd(cmd)
-
-			// Setup the deposit store.
-			depositStore, err := components.ProvideDepositStore(
-				components.DepositStoreInput{
-					Logger:  logger,
-					AppOpts: v,
-				},
-			)
-			if err != nil {
-				return err
-			}
-
-			// Verify that the deposit and beacon stores are available.
-			if beaconStore == nil {
-				return errors.New("deposit store or beacon store is not available")
-			}
-
-			// Create the application from home directory configs and data.
 			cfg := clicontext.GetConfigFromCmd(cmd)
 			db, err := db.OpenDB(cfg.RootDir, dbm.PebbleDBBackend)
 			if err != nil {
@@ -73,16 +50,15 @@ func GetDBCheckCmd(
 			}
 			app := appCreator(logger, db, nil, cfg, v)
 
-			// Setup a read-only application state with the SDK context.
+			// Setup the state to check.
 			ctx := sdk.NewContext(
-				app.CommitMultiStore().CacheMultiStore(),
-				false,
-				servercmtlog.WrapSDKLogger(logger),
+				app.CommitMultiStore().CacheMultiStore(), false, servercmtlog.WrapSDKLogger(logger),
 			).WithContext(cmd.Context())
-			beaconStore = beaconStore.Copy(ctx)
+			beaconState := app.StorageBackend().StateFromContext(ctx)
+			depositStore := app.StorageBackend().DepositStore()
 
 			// First, check the deposit store contains the correct amount of deposits.
-			eth1DepositIndex, err := beaconStore.GetEth1DepositIndex()
+			eth1DepositIndex, err := beaconState.GetEth1DepositIndex()
 			if err != nil {
 				return err
 			}
@@ -101,7 +77,7 @@ func GetDBCheckCmd(
 			}
 
 			// Second, verify that the deposit store contains the correct deposits.
-			eth1Data, err := beaconStore.GetEth1Data()
+			eth1Data, err := beaconState.GetEth1Data()
 			if err != nil {
 				return err
 			}

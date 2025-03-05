@@ -31,17 +31,12 @@ import (
 	"github.com/berachain/beacon-kit/cli/flags"
 	cmtcli "github.com/berachain/beacon-kit/consensus/cometbft/cli"
 	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
-	"github.com/berachain/beacon-kit/storage/beacondb"
 	"github.com/cosmos/cosmos-sdk/version"
 )
 
 // DefaultRootCommandSetup sets up the default commands for the root command.
 func DefaultRootCommandSetup(
-	root *Root,
-	mm *cometbft.Service,
-	appCreator servertypes.AppCreator,
-	chainSpec chain.Spec,
-	beaconStore *beacondb.KVStore,
+	root *Root, mm *cometbft.Service, appCreator servertypes.AppCreator, chainSpec chain.Spec,
 ) {
 	// Add all the commands to the root command.
 	root.cmd.AddCommand(
@@ -52,7 +47,7 @@ func DefaultRootCommandSetup(
 		// `genesis`
 		genesis.Commands(chainSpec),
 		// `deposit`
-		deposit.Commands(chainSpec, appCreator, beaconStore),
+		deposit.Commands(chainSpec, appCreator),
 		// `jwt`
 		jwt.Commands(),
 		// `rollback`

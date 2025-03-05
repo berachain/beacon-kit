@@ -30,6 +30,8 @@ import (
 	"time"
 
 	"cosmossdk.io/store"
+	"github.com/berachain/beacon-kit/beacon/blockchain"
+	cometbft "github.com/berachain/beacon-kit/consensus/cometbft/service"
 	"github.com/berachain/beacon-kit/log"
 	service "github.com/berachain/beacon-kit/node-core/services/registry"
 	"github.com/berachain/beacon-kit/node-core/types"
@@ -116,6 +118,24 @@ func (n *node) Start(
 	return nil
 }
 
+// CommitMultiStore returns the CommitMultiStore from cometbft service.
 func (n *node) CommitMultiStore() store.CommitMultiStore {
-	return n.registry.CommitMultiStore()
+	var cometService *cometbft.Service
+	err := n.registry.FetchService(&cometService)
+	if err != nil || cometService == nil { // appease nilaway
+		err = fmt.Errorf("failed to fetch cometbft service: %w", err)
+		panic(err)
+	}
+	return cometService.CommitMultiStore()
+}
+
+// StorageBackend returns the storage backend from the registry.
+func (n *node) StorageBackend() blockchain.StorageBackend {
+	var blockchainService *blockchain.Service
+	err := n.registry.FetchService(&blockchainService)
+	if err != nil || blockchainService == nil { // appease nilaway
+		err = fmt.Errorf("failed to fetch blockchain service: %w", err)
+		panic(err)
+	}
+	return blockchainService.StorageBackend()
 }
