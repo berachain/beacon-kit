@@ -21,7 +21,6 @@
 package deposit
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/berachain/beacon-kit/chain"
@@ -63,7 +62,7 @@ func GetCreateValidatorCmd(
 	cmd := &cobra.Command{
 		Use:   "create-validator [withdrawal-address] [amount] ?[beacond/genesis.json]",
 		Short: "Creates a validator deposit message",
-		Long:  `Creates a validator deposit messagewith the necessary credentials. The arguments are expected in the order of withdrawal address, deposit amount, and optionally the beacond genesis file. If the genesis validator root flag is NOT set, the beacond genesis file MUST be provided as the last argument. If the override flag is set to true, a private key must be provided to sign the transaction.`,
+		Long:  `Creates a validator deposit message with the necessary credentials. The arguments are expected in the order of withdrawal address, deposit amount, and optionally the beacond genesis file. If the genesis validator root flag is NOT set, the beacond genesis file MUST be provided as the last argument. If the override flag is set to true, a private key must be provided to sign the transaction.`,
 		Args:  cobra.RangeArgs(minArgsCreateDeposit, maxArgsCreateDeposit),
 		RunE:  createValidatorCmd(chainSpec),
 	}
@@ -125,18 +124,21 @@ func createValidatorCmd(
 			return err
 		}
 
-		val, err := json.Marshal(types.Deposit{
-			Pubkey:      depositMsg.Pubkey,
-			Credentials: depositMsg.Credentials,
-			Amount:      depositMsg.Amount,
-			Signature:   signature,
-		})
-		if err != nil {
-			return err
-		}
+		// val, err := json.Marshal(types.Deposit{
+		// 	Pubkey:      depositMsg.Pubkey,
+		// 	Credentials: depositMsg.Credentials,
+		// 	Amount:      depositMsg.Amount,
+		// 	Signature:   signature,
+		// })
+		// if err != nil {
+		// 	return err
+		// }
 
-		//nolint:forbidigo // simplifies output parsing
-		fmt.Print(string(val))
+		cmd.Println("✅ Deposit message created successfully!")
+		cmd.Printf("\npubkey: %s\n", depositMsg.Pubkey.String())
+		cmd.Printf("credentials: %s\n", depositMsg.Credentials.String())
+		cmd.Printf("amount: %s\n", depositMsg.Amount.Base10())
+		cmd.Printf("signature: %s\n", signature.String())
 		return nil
 	}
 }

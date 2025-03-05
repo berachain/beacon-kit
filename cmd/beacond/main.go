@@ -57,7 +57,7 @@ func run() error {
 		),
 		// Set the Description to the Default.
 		clibuilder.WithDescription(
-			"A beacon-kit node usable on Berachain networks.",
+			"A beacon-kit node usable with most Ethereum execution clients",
 		),
 		// Set the Runtime Components to the Default.
 		clibuilder.WithComponents(
