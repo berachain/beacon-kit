@@ -67,6 +67,11 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlock_IsSuccessful() {
 	s.Require().Equal(math.U64(currentHeight-1), slot)
 
 	stateHeader, err := stateDB.GetLatestBlockHeader()
+	s.Require().NoError(err)
+
+	// Unmarshal the beacon block from the ABCI request.
+	proposedBlock, err := encoding.UnmarshalBeaconBlockFromABCIRequest(
+		proposals[len(proposals)-1].Txs,
 		blockchain.BeaconBlockTxIndex,
 		s.TestNode.ChainSpec.ActiveForkVersionForSlot(slot),
 	)
