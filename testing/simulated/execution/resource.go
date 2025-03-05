@@ -31,14 +31,10 @@ type Resource struct {
 }
 
 func (r *Resource) Close() error {
-	r.isClosed = true
-	return r.Resource.Close()
-}
-
-// CloseIfOpen will close the resource if it's open. If already closed, will return nil
-func (r *Resource) CloseIfOpen() error {
 	if r.isClosed {
 		return nil
 	}
+
+	r.isClosed = true
 	return r.Resource.Close()
 }
