@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -33,6 +33,7 @@ import (
 // TestBlockProposerIndexProof tests the ProveProposerIndexInBlock function
 // and that the generated proof correctly verifies.
 func TestBlockProposerIndexProof(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name              string
 		slot              math.Slot
@@ -64,6 +65,7 @@ func TestBlockProposerIndexProof(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			bbh := types.NewBeaconBlockHeader(
 				tc.slot,
 				tc.proposerIndex,

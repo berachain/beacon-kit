@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -54,6 +54,7 @@ func (kvs *testKVStoreService) OpenKVStore(context.Context) corestore.KVStore {
 var testStoreKey = storetypes.NewKVStoreKey("storage-tests")
 
 func TestBalances(t *testing.T) {
+	t.Parallel()
 	store, err := initTestStore()
 	require.NoError(t, err)
 
@@ -107,6 +108,7 @@ func TestBalances(t *testing.T) {
 }
 
 func TestValidators(t *testing.T) {
+	t.Parallel()
 	store, err := initTestStore()
 	require.NoError(t, err)
 

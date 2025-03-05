@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,7 +22,6 @@ package client
 
 import (
 	"context"
-	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
@@ -34,13 +33,11 @@ import (
 func (s *EngineClient) createContextWithTimeout(
 	ctx context.Context,
 ) (context.Context, context.CancelFunc) {
-	startTime := time.Now()
 	dctx, cancel := context.WithTimeoutCause(
 		ctx,
 		s.cfg.RPCTimeout,
 		engineerrors.ErrEngineAPITimeout,
 	)
-	s.metrics.measureNewPayloadDuration(startTime)
 	return dctx, cancel
 }
 
@@ -50,14 +47,14 @@ func processPayloadStatusResult(
 	result *engineprimitives.PayloadStatusV1,
 ) (*common.ExecutionHash, error) {
 	switch result.Status {
+	case engineprimitives.PayloadStatusValid:
+		return result.LatestValidHash, nil
 	case engineprimitives.PayloadStatusAccepted:
 		return nil, engineerrors.ErrAcceptedPayloadStatus
 	case engineprimitives.PayloadStatusSyncing:
 		return nil, engineerrors.ErrSyncingPayloadStatus
 	case engineprimitives.PayloadStatusInvalid:
-		return result.LatestValidHash, engineerrors.ErrInvalidPayloadStatus
-	case engineprimitives.PayloadStatusValid:
-		return result.LatestValidHash, nil
+		return nil, engineerrors.ErrInvalidPayloadStatus
 	default:
 		return nil, engineerrors.ErrUnknownPayloadStatus
 	}

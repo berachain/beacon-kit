@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -65,6 +65,8 @@ implementation = "{{.BeaconKit.KZG.Implementation}}"
 
 [beacon-kit.payload-builder]
 # Enabled determines if the local payload builder is enabled.
+# It should be enabled for validators, but it can be disabled
+# for full nodes.
 enabled = {{ .BeaconKit.PayloadBuilder.Enabled }}
 
 # Post bellatrix, this address will receive the transaction fees produced by any blocks

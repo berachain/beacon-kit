@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -37,13 +37,13 @@ import (
 )
 
 // DefaultGenesis returns the default genesis state for the application.
-func (s *Service[_]) DefaultGenesis() map[string]json.RawMessage {
+func (s *Service) DefaultGenesis() map[string]json.RawMessage {
 	// Implement the default genesis state for the application.
 	// This should return a map of module names to their respective default
 	// genesis states.
 	gen := make(map[string]json.RawMessage)
 	var err error
-	gen["beacon"], err = json.Marshal(types.DefaultGenesisDeneb())
+	gen["beacon"], err = json.Marshal(types.DefaultGenesis())
 	if err != nil {
 		panic(err)
 	}
@@ -51,7 +51,7 @@ func (s *Service[_]) DefaultGenesis() map[string]json.RawMessage {
 }
 
 // ValidateGenesis validates the provided genesis state.
-func (s *Service[_]) ValidateGenesis(
+func (s *Service) ValidateGenesis(
 	genesisState map[string]json.RawMessage,
 ) error {
 	// Implemented the validation logic for the provided genesis state.

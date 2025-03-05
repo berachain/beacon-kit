@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -27,6 +27,11 @@ import (
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
+
+type BeaconState interface {
+	ReadOnlyBeaconState
+	WriteOnlyBeaconState
+}
 
 // ReadOnlyBeaconState is the interface for a read-only beacon state.
 type ReadOnlyBeaconState interface {
@@ -136,6 +141,6 @@ type ReadOnlyEth1Data interface {
 
 // ReadOnlyWithdrawals only has read access to withdrawal methods.
 type ReadOnlyWithdrawals interface {
-	EVMInflationWithdrawal() *engineprimitives.Withdrawal
+	EVMInflationWithdrawal(math.Slot) *engineprimitives.Withdrawal
 	ExpectedWithdrawals() (engineprimitives.Withdrawals, error)
 }

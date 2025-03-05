@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -30,6 +30,7 @@ import (
 )
 
 func TestWithdrawalSSZ(t *testing.T) {
+	t.Parallel()
 	withdrawal := &engineprimitives.Withdrawal{
 		Index:     math.U64(1),
 		Validator: math.ValidatorIndex(2),
@@ -52,6 +53,7 @@ func TestWithdrawalSSZ(t *testing.T) {
 }
 
 func TestWithdrawalGetTree(t *testing.T) {
+	t.Parallel()
 	withdrawal := &engineprimitives.Withdrawal{
 		Index:     math.U64(1),
 		Validator: math.ValidatorIndex(2),
@@ -65,6 +67,7 @@ func TestWithdrawalGetTree(t *testing.T) {
 }
 
 func TestWithdrawalUnmarshalSSZ(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		input   []byte
@@ -123,6 +126,7 @@ func TestWithdrawalUnmarshalSSZ(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w := &engineprimitives.Withdrawal{}
 			err := w.UnmarshalSSZ(tt.input)
 

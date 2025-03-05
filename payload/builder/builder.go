@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,7 +23,6 @@ package builder
 import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 // PayloadBuilder is used to build payloads on the
@@ -40,7 +39,7 @@ type PayloadBuilder struct {
 	// pc is the payload ID cache, it is used to store
 	// "in-flight" payloads that are being built on
 	// the execution client.
-	pc PayloadCache[[32]byte, math.Slot]
+	pc PayloadCache
 	// attributesFactory is used to create attributes for the
 	attributesFactory AttributesFactory
 }
@@ -51,7 +50,7 @@ func New(
 	chainSpec chain.Spec,
 	logger log.Logger,
 	ee ExecutionEngine,
-	pc PayloadCache[[32]byte, math.Slot],
+	pc PayloadCache,
 	af AttributesFactory,
 ) *PayloadBuilder {
 	return &PayloadBuilder{

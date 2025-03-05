@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,7 +22,7 @@ package rpc
 
 // updateHeader builds an http.Header that has the JWT token
 // attached for authorization.
-func (rpc *Client) updateHeader() error {
+func (rpc *client) updateHeader() error {
 	// Build the JWT token.
 	token, err := rpc.jwtSecret.BuildSignedToken()
 	if err != nil {

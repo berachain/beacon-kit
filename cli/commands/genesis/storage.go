@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -32,90 +32,32 @@ import (
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	libcommon "github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
+	cmtcfg "github.com/cometbft/cometbft/config"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
 
-// Set deposit contract storage in genesis alloc file.
+// SetDepositStorageCmd sets deposit contract storage in genesis alloc file.
+//
+//nolint:lll // reads better if long description is one line
 func SetDepositStorageCmd(chainSpec chain.Spec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "set-deposit-storage [eth/genesis/file.json]",
 		Short: "sets deposit contract storage in eth genesis",
-		Long: `Updates the deposit contract storage in the passed in eth genesis file. 
-		Creates a new EL genesis file with the changes in the BEACOND_HOME directory.`,
-		Args: cobra.ExactArgs(1),
+		Long:  `Updates the deposit contract storage in the passed in eth genesis file. Creates a new EL genesis file with the changes in the BEACOND_HOME directory.`,
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// Get the deposits from the beacon chain genesis appstate.
-			config := context.GetConfigFromCmd(cmd)
-
-			clGenesis, err := genutiltypes.AppGenesisFromFile(
-				config.GenesisFile(),
-			)
-			if err != nil {
-				return errors.Wrap(err, "failed to read genesis doc from file")
-			}
-
-			genesisState, err := genutiltypes.GenesisStateFromAppGenesis(
-				clGenesis,
-			)
-			if err != nil {
-				return errors.Wrap(err, "failed to read appstate from genesis")
-			}
-
-			beaconStateRaw := genesisState["beacon"]
-			var beaconState struct {
-				Deposits ctypes.Deposits `json:"deposits"`
-			}
-			if err = json.Unmarshal(beaconStateRaw, &beaconState); err != nil {
-				return errors.Wrap(err, "failed to unmarshal beacon state")
-			}
-			deposits := beaconState.Deposits
-
-			// Set the storage of the deposit contract with deposits count and root.
-			count := big.NewInt(int64(len(deposits)))
-			root := deposits.HashTreeRoot()
-
 			// Read the EL genesis file.
-			elGenesisBz, err := afero.ReadFile(afero.NewOsFs(), args[0])
-			if err != nil {
-				return errors.Wrap(err, "failed to read eth1 genesis file")
-			}
-
+			elGenesisFilePath := args[0]
 			isNethermind, err := cmd.Flags().GetBool(nethermindGenesis)
 			if err != nil {
 				return err
 			}
-			var allocsKey string
-
-			// Unmarshal the genesis file.
-			var elGenesis types.EthGenesis
-			if isNethermind {
-				elGenesis = &types.NethermindEthGenesisJSON{}
-				allocsKey = types.NethermindAllocsKey
-			} else {
-				elGenesis = &types.DefaultEthGenesisJSON{}
-				allocsKey = types.DefaultAllocsKey
-			}
-			if err = json.Unmarshal(elGenesisBz, elGenesis); err != nil {
-				return errors.Wrap(err, "failed to unmarshal eth1 genesis")
-			}
-
-			depositAddr := common.Address(chainSpec.DepositContractAddress())
-			allocs := writeDepositStorage(elGenesis, depositAddr, count, root)
-
-			// Get just the filename from the path
-			filename := filepath.Base(args[0])
-			outputPath := filepath.Join(config.RootDir, filename)
-
-			// Write to file.
-			err = writeGenesisAllocToFile(depositAddr, outputPath, args[0], allocs, allocsKey)
-			if err != nil {
-				return errors.Wrap(err, "failed to write genesis alloc to file")
-			}
-
-			return nil
+			// Get the deposits from the beacon chain genesis appstate.
+			config := context.GetConfigFromCmd(cmd)
+			return SetDepositStorage(chainSpec, config, elGenesisFilePath, isNethermind)
 		},
 	}
 
@@ -124,6 +66,74 @@ func SetDepositStorageCmd(chainSpec chain.Spec) *cobra.Command {
 		nethermindGenesisDefault, nethermindGenesisMsg,
 	)
 	return cmd
+}
+
+func SetDepositStorage(
+	chainSpec chain.Spec,
+	config *cmtcfg.Config,
+	elGenesisFilePath string,
+	isNethermind bool,
+) error {
+	elGenesisBz, err := afero.ReadFile(afero.NewOsFs(), elGenesisFilePath)
+	if err != nil {
+		return errors.Wrap(err, "failed to read eth1 genesis file")
+	}
+
+	clGenesis, err := genutiltypes.AppGenesisFromFile(
+		config.GenesisFile(),
+	)
+	if err != nil {
+		return errors.Wrap(err, "failed to read genesis doc from file")
+	}
+
+	genesisState, err := genutiltypes.GenesisStateFromAppGenesis(
+		clGenesis,
+	)
+	if err != nil {
+		return errors.Wrap(err, "failed to read appstate from genesis")
+	}
+
+	beaconStateRaw := genesisState["beacon"]
+	var beaconState struct {
+		Deposits ctypes.Deposits `json:"deposits"`
+	}
+	if err = json.Unmarshal(beaconStateRaw, &beaconState); err != nil {
+		return errors.Wrap(err, "failed to unmarshal beacon state")
+	}
+	deposits := beaconState.Deposits
+
+	// Set the storage of the deposit contract with deposits count and root.
+	count := big.NewInt(int64(len(deposits)))
+	root := deposits.HashTreeRoot()
+
+	var allocsKey string
+
+	// Unmarshal the genesis file.
+	var elGenesis types.EthGenesis
+	if isNethermind {
+		elGenesis = &types.NethermindEthGenesisJSON{}
+		allocsKey = types.NethermindAllocsKey
+	} else {
+		elGenesis = &types.DefaultEthGenesisJSON{}
+		allocsKey = types.DefaultAllocsKey
+	}
+	if err = json.Unmarshal(elGenesisBz, elGenesis); err != nil {
+		return errors.Wrap(err, "failed to unmarshal eth1 genesis")
+	}
+
+	depositAddr := common.Address(chainSpec.DepositContractAddress())
+	allocs := writeDepositStorage(elGenesis, depositAddr, count, root)
+
+	// Get just the filename from the path
+	filename := filepath.Base(elGenesisFilePath)
+	outputPath := filepath.Join(config.RootDir, filename)
+
+	// Write to file.
+	err = writeGenesisAllocToFile(depositAddr, outputPath, elGenesisFilePath, allocs, allocsKey)
+	if err != nil {
+		return errors.Wrap(err, "failed to write genesis alloc to file")
+	}
+	return nil
 }
 
 func writeDepositStorage(

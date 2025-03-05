@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -25,22 +25,20 @@ import (
 	"github.com/berachain/beacon-kit/beacon/validator"
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config"
-	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 )
 
 // ValidatorServiceInput is the input for the validator service provider.
-type ValidatorServiceInput[
-	LoggerT any,
-] struct {
+type ValidatorServiceInput struct {
 	depinject.In
 	Cfg            *config.Config
 	ChainSpec      chain.Spec
 	LocalBuilder   LocalBuilder
-	Logger         LoggerT
-	StateProcessor StateProcessor[*Context]
+	Logger         *phuslu.Logger
+	StateProcessor StateProcessor
 	StorageBackend *storage.Backend
 	Signer         crypto.BLSSigner
 	SidecarFactory SidecarFactory
@@ -48,11 +46,7 @@ type ValidatorServiceInput[
 }
 
 // ProvideValidatorService is a depinject provider for the validator service.
-func ProvideValidatorService[
-	LoggerT log.AdvancedLogger[LoggerT],
-](
-	in ValidatorServiceInput[LoggerT],
-) (*validator.Service, error) {
+func ProvideValidatorService(in ValidatorServiceInput) (*validator.Service, error) {
 	// Build the builder service.
 	return validator.NewService(
 		&in.Cfg.Validator,
@@ -63,9 +57,6 @@ func ProvideValidatorService[
 		in.Signer,
 		in.SidecarFactory,
 		in.LocalBuilder,
-		[]validator.PayloadBuilder{
-			in.LocalBuilder,
-		},
 		in.TelemetrySink,
 	), nil
 }

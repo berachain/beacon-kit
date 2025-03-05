@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -24,9 +24,11 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/berachain/beacon-kit/cli/utils/parser"
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 func BeaconBlockHeaderFromConsensus(h *ctypes.BeaconBlockHeader) *BeaconBlockHeader {
@@ -59,4 +61,59 @@ func SidecarFromConsensus(sc *datypes.BlobSidecar) *Sidecar {
 		KZGProof:                    hex.EncodeBytes(sc.KzgProof[:]),
 		KZGCommitmentInclusionProof: proofs,
 	}
+}
+
+func ValidatorFromConsensus(v *ctypes.Validator) *Validator {
+	return &Validator{
+		PublicKey:                  v.GetPubkey().String(),
+		WithdrawalCredentials:      v.GetWithdrawalCredentials().String(),
+		EffectiveBalance:           v.GetEffectiveBalance().Base10(),
+		Slashed:                    v.IsSlashed(),
+		ActivationEligibilityEpoch: v.GetActivationEligibilityEpoch().Base10(),
+		ActivationEpoch:            v.GetActivationEpoch().Base10(),
+		ExitEpoch:                  v.GetExitEpoch().Base10(),
+		WithdrawableEpoch:          v.GetWithdrawableEpoch().Base10(),
+	}
+}
+
+// useful in UTs
+func ValidatorToConsensus(v *Validator) (*ctypes.Validator, error) {
+	pk, err := parser.ConvertPubkey(v.PublicKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed parsing public key: %w", err)
+	}
+	wc, err := parser.ConvertWithdrawalCredentials(v.WithdrawalCredentials)
+	if err != nil {
+		return nil, fmt.Errorf("failed parsing withdrawals: %w", err)
+	}
+	eb, err := math.U64FromString(v.EffectiveBalance)
+	if err != nil {
+		return nil, fmt.Errorf("failed parsing effective balance: %w", err)
+	}
+	aee, err := math.U64FromString(v.ActivationEligibilityEpoch)
+	if err != nil {
+		return nil, fmt.Errorf("failed parsing activation eligibility epoch: %w", err)
+	}
+	ae, err := math.U64FromString(v.ActivationEpoch)
+	if err != nil {
+		return nil, fmt.Errorf("failed parsing activation epoch: %w", err)
+	}
+	ee, err := math.U64FromString(v.ExitEpoch)
+	if err != nil {
+		return nil, fmt.Errorf("failed parsing exit epoch: %w", err)
+	}
+	we, err := math.U64FromString(v.WithdrawableEpoch)
+	if err != nil {
+		return nil, fmt.Errorf("failed parsing withdrawable epoch: %w", err)
+	}
+	return &ctypes.Validator{
+		Pubkey:                     pk,
+		WithdrawalCredentials:      wc,
+		EffectiveBalance:           eb,
+		Slashed:                    v.Slashed,
+		ActivationEligibilityEpoch: aee,
+		ActivationEpoch:            ae,
+		ExitEpoch:                  ee,
+		WithdrawableEpoch:          we,
+	}, nil
 }

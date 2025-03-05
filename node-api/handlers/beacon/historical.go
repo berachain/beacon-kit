@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,12 +21,13 @@
 package beacon
 
 import (
+	"github.com/berachain/beacon-kit/node-api/handlers"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/node-api/handlers/utils"
 )
 
-func (h *Handler[ContextT]) GetStateRoot(c ContextT) (any, error) {
+func (h *Handler) GetStateRoot(c handlers.Context) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetStateRootRequest](
 		c, h.Logger(),
 	)
@@ -44,14 +45,10 @@ func (h *Handler[ContextT]) GetStateRoot(c ContextT) (any, error) {
 	if len(stateRoot) == 0 {
 		return nil, types.ErrNotFound
 	}
-	return beacontypes.ValidatorResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data:                beacontypes.RootData{Root: stateRoot},
-	}, nil
+	return beacontypes.NewResponse(beacontypes.RootData{Root: stateRoot}), nil
 }
 
-func (h *Handler[ContextT]) GetStateFork(c ContextT) (any, error) {
+func (h *Handler) GetStateFork(c handlers.Context) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetStateForkRequest](
 		c, h.Logger(),
 	)
@@ -66,9 +63,5 @@ func (h *Handler[ContextT]) GetStateFork(c ContextT) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return beacontypes.ValidatorResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data:                types.Wrap(fork),
-	}, nil
+	return beacontypes.NewResponse(fork), nil
 }

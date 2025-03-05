@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -46,10 +46,7 @@ var (
 		"mismatch in number of versioned hashes",
 	)
 
-	// ErrPayloadBlockHashMismatch represents an error when the
-	// block hash in the payload does not match from the assembled
-	// block.
-	ErrPayloadBlockHashMismatch = errors.New(
-		"block hash in payload does not match assembled block",
-	)
+	// ErrPayloadBlockHashMismatch represents an error when the block hash
+	// in the payload does not match from the assembled block.
+	ErrPayloadBlockHashMismatch = errors.New("block hash in payload does not match assembled block")
 )

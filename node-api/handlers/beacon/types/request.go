@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -31,6 +31,10 @@ type GetStateRootRequest struct {
 	types.StateIDRequest
 }
 
+type GetStateRequest struct {
+	types.StateIDRequest
+}
+
 type GetStateForkRequest struct {
 	types.StateIDRequest
 }
@@ -53,7 +57,7 @@ type PostStateValidatorsRequest struct {
 
 type GetStateValidatorRequest struct {
 	types.StateIDRequest
-	ValidatorID string `query:"validator_id" validate:"required,validator_id"`
+	ValidatorID string `param:"validator_id" validate:"required,validator_id"`
 }
 
 type GetValidatorBalancesRequest struct {
@@ -63,7 +67,7 @@ type GetValidatorBalancesRequest struct {
 
 type PostValidatorBalancesRequest struct {
 	types.StateIDRequest
-	IDs []string `validate:"dive,validator_id"`
+	IDs []string `json:"-" validate:"dive,validator_id"`
 }
 
 type GetStateCommitteesRequest struct {

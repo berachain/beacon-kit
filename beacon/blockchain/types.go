@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"
+	"github.com/berachain/beacon-kit/state-transition/core"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/berachain/beacon-kit/storage/block"
 	depositdb "github.com/berachain/beacon-kit/storage/deposit"
@@ -59,12 +60,17 @@ type BlobSidecars[T any] interface {
 
 // ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine interface {
+	// NotifyNewPayload notifies the execution client of new payload
+	NotifyNewPayload(
+		ctx context.Context,
+		req *ctypes.NewPayloadRequest,
+	) error
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
 		req *ctypes.ForkchoiceUpdateRequest,
-	) (*engineprimitives.PayloadID, *common.ExecutionHash, error)
+	) (*engineprimitives.PayloadID, error)
 }
 
 // ExecutionPayload is the interface for the execution payload.
@@ -107,12 +113,6 @@ type LocalBuilder interface {
 		headEth1BlockHash common.ExecutionHash,
 		finalEth1BlockHash common.ExecutionHash,
 	) (*engineprimitives.PayloadID, error)
-	// SendForceHeadFCU sends a force head FCU request.
-	SendForceHeadFCU(
-		ctx context.Context,
-		st *statedb.StateDB,
-		slot math.Slot,
-	) error
 }
 
 // ReadOnlyBeaconState defines the interface for accessing various components of
@@ -138,9 +138,7 @@ type ReadOnlyBeaconState[
 
 // StateProcessor defines the interface for processing various state transitions
 // in the beacon chain.
-type StateProcessor[
-	ContextT any,
-] interface {
+type StateProcessor interface {
 	// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
 	// state
 	// from the eth1 deposits.
@@ -156,7 +154,7 @@ type StateProcessor[
 	) (transition.ValidatorUpdates, error)
 	// Transition processes the state transition for a given block.
 	Transition(
-		ContextT,
+		core.ReadOnlyContext,
 		*statedb.StateDB,
 		*ctypes.BeaconBlock,
 	) (transition.ValidatorUpdates, error)

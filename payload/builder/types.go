@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -31,11 +31,10 @@ import (
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
 
-type PayloadCache[RootT, SlotT any] interface {
-	Get(slot SlotT, stateRoot RootT) (engineprimitives.PayloadID, bool)
-	Has(slot SlotT, stateRoot RootT) bool
-	Set(slot SlotT, stateRoot RootT, pid engineprimitives.PayloadID)
-	UnsafePrunePrior(slot SlotT)
+type PayloadCache interface {
+	GetAndEvict(slot math.Slot, stateRoot common.Root) (engineprimitives.PayloadID, bool)
+	Has(slot math.Slot, stateRoot common.Root) bool
+	Set(slot math.Slot, stateRoot common.Root, pid engineprimitives.PayloadID)
 }
 
 // ExecutionPayload is the interface for the execution payload.
@@ -87,5 +86,5 @@ type ExecutionEngine interface {
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
 		req *ctypes.ForkchoiceUpdateRequest,
-	) (*engineprimitives.PayloadID, *common.ExecutionHash, error)
+	) (*engineprimitives.PayloadID, error)
 }

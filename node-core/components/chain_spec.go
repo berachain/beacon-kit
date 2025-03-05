@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -30,10 +30,8 @@ import (
 const (
 	ChainSpecTypeEnvVar  = "CHAIN_SPEC"
 	DevnetChainSpecType  = "devnet"
-	BetnetChainSpecType  = "betnet"
-	BoonetChainSpecType  = "boonet"
-	TestnetChainSpecType = "testnet"
 	MainnetChainSpecType = "mainnet"
+	TestnetChainSpecType = "testnet"
 )
 
 // ProvideChainSpec provides the chain spec based on the environment variable.
@@ -46,14 +44,10 @@ func ProvideChainSpec() (chain.Spec, error) {
 
 	// TODO: replace reading env var with config value.
 	switch os.Getenv(ChainSpecTypeEnvVar) {
-	case TestnetChainSpecType:
-		chainSpec, err = spec.TestnetChainSpec()
-	case BetnetChainSpecType:
-		chainSpec, err = spec.BetnetChainSpec()
-	case BoonetChainSpecType:
-		chainSpec, err = spec.BoonetChainSpec()
 	case DevnetChainSpecType:
 		chainSpec, err = spec.DevnetChainSpec()
+	case TestnetChainSpecType:
+		chainSpec, err = spec.TestnetChainSpec()
 	case MainnetChainSpecType:
 		fallthrough
 	default:

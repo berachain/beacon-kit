@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/execution/deposit"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/primitives/transition"
 )
 
 // Service is the blockchain service.
@@ -59,7 +58,7 @@ type Service struct {
 	// localBuilder is a local builder for constructing new beacon states.
 	localBuilder LocalBuilder
 	// stateProcessor is the state processor for beacon blocks and states.
-	stateProcessor StateProcessor[*transition.Context]
+	stateProcessor StateProcessor
 	// metrics is the metrics for the service.
 	metrics *chainMetrics
 	// optimisticPayloadBuilds is a flag used when the optimistic payload
@@ -79,7 +78,7 @@ func NewService(
 	chainSpec chain.Spec,
 	executionEngine ExecutionEngine,
 	localBuilder LocalBuilder,
-	stateProcessor StateProcessor[*transition.Context],
+	stateProcessor StateProcessor,
 	telemetrySink TelemetrySink,
 	optimisticPayloadBuilds bool,
 ) *Service {

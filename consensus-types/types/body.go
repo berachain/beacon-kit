@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright (c) 2024 Berachain Foundation
+// Copyright (c) 2025 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -312,16 +312,4 @@ func (b *BeaconBlockBody) GetBlobKzgCommitments() eip4844.KZGCommitments[common.
 
 func (b *BeaconBlockBody) SetBlobKzgCommitments(commitments eip4844.KZGCommitments[common.ExecutionHash]) {
 	b.BlobKzgCommitments = commitments
-}
-
-// SetAttestationData is not implemented.
-// TODO: remove support for this with version handling cleanup.
-func (b *BeaconBlockBody) SetAttestationData(_ []*AttestationData) {
-	panic("not implemented")
-}
-
-// SetSlashingInfo is not implemented.
-// TODO: remove support for this with version handling cleanup.
-func (b *BeaconBlockBody) SetSlashingInfo(_ []*SlashingInfo) {
-	panic("not implemented")
 }

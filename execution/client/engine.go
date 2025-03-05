@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -86,8 +86,8 @@ func (s *EngineClient) ForkchoiceUpdated(
 	ctx context.Context,
 	state *engineprimitives.ForkchoiceStateV1,
 	attrs *engineprimitives.PayloadAttributes,
-	forkVersion uint32,
-) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
+	forkVersion common.Version,
+) (*engineprimitives.PayloadID, error) {
 	var (
 		startTime    = time.Now()
 		cctx, cancel = s.createContextWithTimeout(ctx)
@@ -104,25 +104,22 @@ func (s *EngineClient) ForkchoiceUpdated(
 		)
 	}
 
-	result, err := s.Client.ForkchoiceUpdated(
-		cctx, state, attrs, forkVersion,
-	)
-
+	result, err := s.Client.ForkchoiceUpdated(cctx, state, attrs, forkVersion)
 	if err != nil {
 		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {
 			s.metrics.incrementForkchoiceUpdateTimeout()
 		}
-		return nil, nil, s.handleRPCError(err)
+		return nil, s.handleRPCError(err)
 	}
 	if result == nil {
-		return nil, nil, engineerrors.ErrNilForkchoiceResponse
+		return nil, engineerrors.ErrNilForkchoiceResponse
 	}
 
-	latestValidHash, err := processPayloadStatusResult(&result.PayloadStatus)
+	_, err = processPayloadStatusResult(&result.PayloadStatus)
 	if err != nil {
-		return nil, latestValidHash, err
+		return nil, err
 	}
-	return result.PayloadID, latestValidHash, nil
+	return result.PayloadID, nil
 }
 
 /* -------------------------------------------------------------------------- */
@@ -134,7 +131,7 @@ func (s *EngineClient) ForkchoiceUpdated(
 func (s *EngineClient) GetPayload(
 	ctx context.Context,
 	payloadID engineprimitives.PayloadID,
-	forkVersion uint32,
+	forkVersion common.Version,
 ) (ctypes.BuiltExecutionPayloadEnv, error) {
 	var (
 		startTime    = time.Now()

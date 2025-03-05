@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -58,7 +58,7 @@ type Sidecars[SidecarT any] interface {
 type ChainSpec interface {
 	MaxBlobCommitmentsPerBlock() uint64
 	DomainTypeProposer() common.DomainType
-	ActiveForkVersionForSlot(slot math.Slot) uint32
+	ActiveForkVersionForSlot(slot math.Slot) common.Version
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -29,18 +29,15 @@ import (
 
 func (s *Service) processPruning(ctx context.Context, beaconBlk *ctypes.BeaconBlock) error {
 	// prune availability store
-	start, end := availabilityPruneRangeFn(
-		beaconBlk.GetSlot().Unwrap(), s.chainSpec)
+	start, end := availabilityPruneRangeFn(beaconBlk.GetSlot().Unwrap(), s.chainSpec)
 	err := s.storageBackend.AvailabilityStore().Prune(start, end)
 	if err != nil {
 		return err
 	}
 
 	// prune deposit store
-	start, end = depositPruneRangeFn(
-		beaconBlk.GetBody().GetDeposits(), s.chainSpec)
+	start, end = depositPruneRangeFn(beaconBlk.GetBody().GetDeposits(), s.chainSpec)
 	err = s.storageBackend.DepositStore().Prune(ctx, start, end)
-
 	if err != nil {
 		return err
 	}

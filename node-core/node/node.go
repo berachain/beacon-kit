@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,18 +22,24 @@ package node
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
+	"time"
 
+	"cosmossdk.io/store"
 	"github.com/berachain/beacon-kit/log"
 	service "github.com/berachain/beacon-kit/node-core/services/registry"
 	"github.com/berachain/beacon-kit/node-core/types"
-	"golang.org/x/sync/errgroup"
 )
 
 // Compile-time assertion that node implements the NodeI interface.
 var _ types.Node = (*node)(nil)
+
+// if the node does not shutdown within a very reasonable time (5min) then we force exit.
+const shutdownTimeout = 5 * time.Minute
 
 // node is the hard-type representation of the beacon-kit node.
 type node struct {
@@ -41,82 +47,75 @@ type node struct {
 	logger log.Logger
 	// registry is the node's service registry.
 	registry *service.Registry
-
-	// TODO: FIX, HACK TO MAKE CLI HAPPY FOR NOW.
-	// THIS SHOULD BE REMOVED EVENTUALLY.
-	types.Node
 }
 
 // New returns a new node.
 func New[NodeT types.Node](
 	registry *service.Registry, logger log.Logger) NodeT {
+	n := &node{
+		registry: registry,
+		logger:   logger,
+	}
+
 	//nolint:errcheck // should be safe
-	return types.Node(&node{registry: registry, logger: logger}).(NodeT)
+	return types.Node(n).(NodeT)
 }
 
 // Start starts the node.
 func (n *node) Start(
 	ctx context.Context,
 ) error {
-	// Make the context cancellable.
 	cctx, cancelFn := context.WithCancel(ctx)
 
-	// Create an errgroup to manage the lifecycle of all the services.
-	g, gctx := errgroup.WithContext(cctx)
+	stop := make(chan struct{})
+	sigc := make(chan os.Signal, 1)
 
-	// listen for quit signals so the calling parent process can gracefully exit
-	n.listenForQuitSignals(g, true, cancelFn)
+	signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM)
+	defer signal.Stop(sigc)
 
-	// Start all the registered services.
-	if err := n.registry.StartAll(gctx); err != nil {
-		// Make sure the services that were successfully started are stopped
-		// before exiting. We assume that it is safe to call Stop on a
-		// service that was never started so we can call StopAll here
+	// make sure we only call shutdownFunc once
+	var once sync.Once
+
+	shutdownFunc := func(err error) {
+		now := time.Now()
+		n.logger.Error("Shutdown initiated", "error", err)
+
+		cancelFn()
 		n.registry.StopAll()
-		return err
+		close(stop)
+
+		n.logger.Info("Node shutdown completed", "duration", time.Since(now).String())
 	}
 
-	// Wait for those aforementioned exit signals.
-	err := g.Wait()
+	// listen to signals in a separate goroutine
+	go func() {
+		sig := <-sigc
+
+		timeout := time.AfterFunc(shutdownTimeout, func() {
+			n.logger.Error("Shutdown timeout exceeded, forcing exit", "timeout", shutdownTimeout.String())
+			os.Exit(1)
+		})
+		defer timeout.Stop()
+
+		once.Do(func() {
+			shutdownFunc(fmt.Errorf("shutdown initiated by signal: %s", sig.String()))
+		})
+	}()
+
+	err := n.registry.StartAll(cctx)
 	if err != nil {
+		once.Do(func() {
+			shutdownFunc(fmt.Errorf("failed to start services: %w", err))
+		})
 		return err
 	}
 
-	// Stopp each service allowing them the exit gracefully.
-	n.registry.StopAll()
+	// we wait here until the signal handler has shutdown the node
+	<-stop
 
 	return nil
 }
 
-// listenForQuitSignals listens for SIGINT and SIGTERM. When a signal is
-// received,
-// the cleanup function is called, indicating the caller can gracefully exit or
-// return.
-//
-// Note, the blocking behavior of this depends on the block argument.
-// The caller must ensure the corresponding context derived from the cancelFn is
-// used correctly.
-func (n *node) listenForQuitSignals(
-	g *errgroup.Group,
-	block bool,
-	cancelFn context.CancelFunc,
-) {
-	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
-
-	f := func() {
-		sig := <-sigCh
-		cancelFn()
-
-		n.logger.Info("caught exit signal", "signal", sig.String())
-	}
-
-	if block {
-		g.Go(func() error {
-			f()
-			return nil
-		})
-	} else {
-		go f()
-	}
+func (n *node) CommitMultiStore() store.CommitMultiStore {
+	return n.registry.CommitMultiStore()
 }

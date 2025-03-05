@@ -12,7 +12,6 @@
   A modular framework for building EVM consensus clients ⛵️✨
 </h2>
 
-_The project is still heavily under construction, see the [disclaimer below](#status)._
 <div>
 
 [![CI status](https://github.com/berachain/beacon-kit/workflows/pipeline/badge.svg)](https://github.com/berachain/beacon-kit/actions/workflows/pipeline.yml)
@@ -59,6 +58,9 @@ make start
 
 **Terminal 2:**
 
+**Note:** This must be run *after* the `beacond` node is started since `make start` will populate the
+eth-genesis file used by the Execution Client.
+
 ```bash
 # Start an Ethereum Execution Client:
 make start-reth # or start-geth start-besu start-erigon start-nethermind start-ethereumjs
@@ -72,7 +74,3 @@ preloaded with the native EVM token.
 ## Multinode Local Devnet
 
 Please refer to the [Kurtosis README](https://github.com/berachain/beacon-kit/blob/main/kurtosis/README.md) for more information on how to run a multinode local devnet.
-
-## Status
-
-This project is work in progress and subject to frequent changes as we are still working on wiring up the final system. Audits on BeaconKit are still ongoing, and in progress at the moment. We don't recommend using BeaconKit in a production environment yet.

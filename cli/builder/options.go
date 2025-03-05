@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -22,54 +22,35 @@ package builder
 
 import (
 	servertypes "github.com/berachain/beacon-kit/cli/commands/server/types"
-	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/node-core/types"
 )
 
 // Opt is a type that defines a function that modifies CLIBuilder.
-type Opt[
-	T types.Node,
-	LoggerT log.AdvancedLogger[LoggerT],
-] func(*CLIBuilder[T, LoggerT])
+type Opt func(*CLIBuilder)
 
 // WithName sets the name for the CLIBuilder.
-func WithName[
-	T types.Node,
-	LoggerT log.AdvancedLogger[LoggerT],
-](name string) Opt[T, LoggerT] {
-	return func(cb *CLIBuilder[T, LoggerT]) {
+func WithName(name string) Opt {
+	return func(cb *CLIBuilder) {
 		cb.name = name
 	}
 }
 
 // WithDescription sets the description for the CLIBuilder.
-func WithDescription[
-	T types.Node,
-	LoggerT log.AdvancedLogger[LoggerT],
-](description string) Opt[T, LoggerT] {
-	return func(cb *CLIBuilder[T, LoggerT]) {
+func WithDescription(description string) Opt {
+	return func(cb *CLIBuilder) {
 		cb.description = description
 	}
 }
 
 // WithComponents sets the components for the CLIBuilder.
-func WithComponents[
-	T types.Node,
-	LoggerT log.AdvancedLogger[LoggerT],
-](components []any) Opt[T, LoggerT] {
-	return func(cb *CLIBuilder[T, LoggerT]) {
+func WithComponents(components []any) Opt {
+	return func(cb *CLIBuilder) {
 		cb.components = components
 	}
 }
 
 // WithNodeBuilderFunc sets the cosmos app creator for the CLIBuilder.
-func WithNodeBuilderFunc[
-	T types.Node,
-	LoggerT log.AdvancedLogger[LoggerT],
-](
-	nodeBuilderFunc servertypes.AppCreator[T, LoggerT],
-) Opt[T, LoggerT] {
-	return func(cb *CLIBuilder[T, LoggerT]) {
+func WithNodeBuilderFunc(nodeBuilderFunc servertypes.AppCreator) Opt {
+	return func(cb *CLIBuilder) {
 		cb.nodeBuilderFunc = nodeBuilderFunc
 	}
 }

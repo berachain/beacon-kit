@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -36,7 +36,9 @@ import (
 )
 
 func TestSetDepositStorageCmd(t *testing.T) {
+	t.Parallel()
 	t.Run("command should be available and have correct use", func(t *testing.T) {
+		t.Parallel()
 		chainSpec, err := spec.DevnetChainSpec()
 		require.NoError(t, err)
 		cmd := genesis.SetDepositStorageCmd(chainSpec)
@@ -44,10 +46,9 @@ func TestSetDepositStorageCmd(t *testing.T) {
 	})
 
 	t.Run("should set deposit storage correctly", func(t *testing.T) {
+		t.Parallel()
 		// Create a temporary directory for test files
-		tmpDir, err := os.MkdirTemp("", "genesis-test-*")
-		require.NoError(t, err)
-		defer os.RemoveAll(tmpDir)
+		tmpDir := t.TempDir()
 
 		// Setup test files
 		mockGenesisPath := setupMockGenesis(t, tmpDir)

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -39,9 +39,6 @@ type NewPayloadRequest struct {
 	VersionedHashes []common.ExecutionHash
 	// ParentBeaconBlockRoot is the root of the parent beacon block.
 	ParentBeaconBlockRoot *common.Root
-	// Optimistic is a flag that indicates if the payload should be
-	// optimistically deemed valid. This is useful during syncing.
-	Optimistic bool
 }
 
 // BuildNewPayloadRequest builds a new payload request.
@@ -49,13 +46,11 @@ func BuildNewPayloadRequest(
 	executionPayload *ExecutionPayload,
 	versionedHashes []common.ExecutionHash,
 	parentBeaconBlockRoot *common.Root,
-	optimistic bool,
 ) *NewPayloadRequest {
 	return &NewPayloadRequest{
 		ExecutionPayload:      executionPayload,
 		VersionedHashes:       versionedHashes,
 		ParentBeaconBlockRoot: parentBeaconBlockRoot,
-		Optimistic:            optimistic,
 	}
 }
 
@@ -65,34 +60,19 @@ func BuildNewPayloadRequest(
 // https://github.com/ethereum/consensus-specs/blob/v1.4.0-beta.2/specs/deneb/beacon-chain.md#is_valid_block_hash
 // https://github.com/ethereum/consensus-specs/blob/v1.4.0-beta.2/specs/deneb/beacon-chain.md#is_valid_versioned_hashes
 func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
-	var (
-		blobHashes = make([]gethprimitives.ExecutionHash, 0)
-		payload    = n.ExecutionPayload
-		txs        = make(
-			[]*gethprimitives.Transaction,
-			len(payload.GetTransactions()),
-		)
-	)
-
-	// Extracts and validates the blob hashes from the transactions in the
-	// execution payload.
-	for i, encTx := range payload.GetTransactions() {
-		var tx gethprimitives.Transaction
-		if err := tx.UnmarshalBinary(encTx); err != nil {
-			return errors.Wrapf(err, "invalid transaction %d", i)
-		}
-		blobHashes = append(blobHashes, tx.BlobHashes()...)
-		txs[i] = &tx
+	block, blobHashes, err := MakeEthBlock(n.ExecutionPayload, n.ParentBeaconBlockRoot)
+	if err != nil {
+		return err
 	}
 
-	// Check if the number of blob hashes matches the number of versioned
-	// hashes.
+	// Validate the blob hashes from the transactions in the execution payload.
+	// Check if the number of blob hashes matches the number of versioned hashes.
 	if len(blobHashes) != len(n.VersionedHashes) {
 		return errors.Wrapf(
 			engineprimitives.ErrMismatchedNumVersionedHashes,
 			"expected %d, got %d",
-			len(n.VersionedHashes),
 			len(blobHashes),
+			len(n.VersionedHashes),
 		)
 	}
 
@@ -103,51 +83,78 @@ func (n *NewPayloadRequest) HasValidVersionedAndBlockHashes() error {
 				engineprimitives.ErrInvalidVersionedHash,
 				"index %d: expected %v, got %v",
 				i,
-				n.VersionedHashes[i],
 				blobHash,
+				n.VersionedHashes[i],
 			)
 		}
 	}
 
-	wds := payload.GetWithdrawals()
-	withdrawalsHash := gethprimitives.DeriveSha(
-		wds,
-		gethprimitives.NewStackTrie(nil),
-	)
-
-	// Verify that the payload is telling the truth about it's block hash.
-	//#nosec:G103 // its okay.
-	if block := gethprimitives.NewBlockWithHeader(
-		&gethprimitives.Header{
-			ParentHash:       gethprimitives.ExecutionHash(payload.GetParentHash()),
-			UncleHash:        gethprimitives.EmptyUncleHash,
-			Coinbase:         gethprimitives.ExecutionAddress(payload.GetFeeRecipient()),
-			Root:             gethprimitives.ExecutionHash(payload.GetStateRoot()),
-			TxHash:           gethprimitives.DeriveSha(gethprimitives.Transactions(txs), gethprimitives.NewStackTrie(nil)),
-			ReceiptHash:      gethprimitives.ExecutionHash(payload.GetReceiptsRoot()),
-			Bloom:            gethprimitives.LogsBloom(payload.GetLogsBloom()),
-			Difficulty:       big.NewInt(0),
-			Number:           new(big.Int).SetUint64(payload.GetNumber().Unwrap()),
-			GasLimit:         payload.GetGasLimit().Unwrap(),
-			GasUsed:          payload.GetGasUsed().Unwrap(),
-			Time:             payload.GetTimestamp().Unwrap(),
-			BaseFee:          payload.GetBaseFeePerGas().ToBig(),
-			Extra:            payload.GetExtraData(),
-			MixDigest:        gethprimitives.ExecutionHash(payload.GetPrevRandao()),
-			WithdrawalsHash:  &withdrawalsHash,
-			ExcessBlobGas:    payload.GetExcessBlobGas().UnwrapPtr(),
-			BlobGasUsed:      payload.GetBlobGasUsed().UnwrapPtr(),
-			ParentBeaconRoot: (*gethprimitives.ExecutionHash)(n.ParentBeaconBlockRoot),
-		},
-	).WithBody(gethprimitives.Body{
-		Transactions: txs, Uncles: nil, Withdrawals: *(*gethprimitives.Withdrawals)(unsafe.Pointer(&wds)),
-	}); common.ExecutionHash(block.Hash()) != payload.GetBlockHash() {
+	// Verify that the payload is telling the truth about its block hash.
+	if common.ExecutionHash(block.Hash()) != n.ExecutionPayload.GetBlockHash() {
 		return errors.Wrapf(engineprimitives.ErrPayloadBlockHashMismatch,
-			"%x, got %x",
-			payload.GetBlockHash(), block.Hash(),
+			"expected %x, got %x",
+			block.Hash(), n.ExecutionPayload.GetBlockHash(),
 		)
 	}
 	return nil
+}
+
+// MakeEthBlock builds an Ethereum block out of given payload and parent block root.
+// It also returns blobHashes out of payload to ease up checks.
+func MakeEthBlock(
+	payload *ExecutionPayload,
+	parentBeaconBlockRoot *common.Root,
+) (
+	*gethprimitives.Block,
+	[]gethprimitives.ExecutionHash,
+	error,
+) {
+	var (
+		txs        = make([]*gethprimitives.Transaction, 0, len(payload.GetTransactions()))
+		blobHashes = make([]gethprimitives.ExecutionHash, 0)
+	)
+
+	for i, encTx := range payload.GetTransactions() {
+		var tx gethprimitives.Transaction
+		if err := tx.UnmarshalBinary(encTx); err != nil {
+			return nil, nil, errors.Wrapf(err, "invalid transaction %d", i)
+		}
+		txs = append(txs, &tx)
+		blobHashes = append(blobHashes, tx.BlobHashes()...)
+	}
+
+	wds := payload.GetWithdrawals()
+	withdrawalsHash := gethprimitives.DeriveSha(wds, gethprimitives.NewStackTrie(nil))
+
+	blkHeader := &gethprimitives.Header{
+		ParentHash:       gethprimitives.ExecutionHash(payload.GetParentHash()),
+		UncleHash:        gethprimitives.EmptyUncleHash,
+		Coinbase:         gethprimitives.ExecutionAddress(payload.GetFeeRecipient()),
+		Root:             gethprimitives.ExecutionHash(payload.GetStateRoot()),
+		TxHash:           gethprimitives.DeriveSha(gethprimitives.Transactions(txs), gethprimitives.NewStackTrie(nil)),
+		ReceiptHash:      gethprimitives.ExecutionHash(payload.GetReceiptsRoot()),
+		Bloom:            gethprimitives.LogsBloom(payload.GetLogsBloom()),
+		Difficulty:       big.NewInt(0),
+		Number:           new(big.Int).SetUint64(payload.GetNumber().Unwrap()),
+		GasLimit:         payload.GetGasLimit().Unwrap(),
+		GasUsed:          payload.GetGasUsed().Unwrap(),
+		Time:             payload.GetTimestamp().Unwrap(),
+		BaseFee:          payload.GetBaseFeePerGas().ToBig(),
+		Extra:            payload.GetExtraData(),
+		MixDigest:        gethprimitives.ExecutionHash(payload.GetPrevRandao()),
+		WithdrawalsHash:  &withdrawalsHash,
+		ExcessBlobGas:    payload.GetExcessBlobGas().UnwrapPtr(),
+		BlobGasUsed:      payload.GetBlobGasUsed().UnwrapPtr(),
+		ParentBeaconRoot: (*gethprimitives.ExecutionHash)(parentBeaconBlockRoot),
+	}
+	block := gethprimitives.NewBlockWithHeader(blkHeader).WithBody(
+		gethprimitives.Body{
+			Transactions: txs,
+			Uncles:       nil,
+			Withdrawals:  *(*gethprimitives.Withdrawals)(unsafe.Pointer(&wds)), //#nosec:G103 // its okay.
+		},
+	)
+	return block, blobHashes, nil
 }
 
 type ForkchoiceUpdateRequest struct {
@@ -157,14 +164,14 @@ type ForkchoiceUpdateRequest struct {
 	PayloadAttributes *engineprimitives.PayloadAttributes
 	// ForkVersion is the fork version that we
 	// are going to be submitting for.
-	ForkVersion uint32
+	ForkVersion common.Version
 }
 
 // BuildForkchoiceUpdateRequest builds a forkchoice update request.
 func BuildForkchoiceUpdateRequest(
 	state *engineprimitives.ForkchoiceStateV1,
 	payloadAttributes *engineprimitives.PayloadAttributes,
-	forkVersion uint32,
+	forkVersion common.Version,
 ) *ForkchoiceUpdateRequest {
 	return &ForkchoiceUpdateRequest{
 		State:             state,
@@ -178,7 +185,7 @@ func BuildForkchoiceUpdateRequest(
 // any attributes.
 func BuildForkchoiceUpdateRequestNoAttrs(
 	state *engineprimitives.ForkchoiceStateV1,
-	forkVersion uint32,
+	forkVersion common.Version,
 ) *ForkchoiceUpdateRequest {
 	return &ForkchoiceUpdateRequest{
 		State:       state,
@@ -192,13 +199,13 @@ type GetPayloadRequest struct {
 	PayloadID engineprimitives.PayloadID
 	// ForkVersion is the fork version that we are
 	// currently on.
-	ForkVersion uint32
+	ForkVersion common.Version
 }
 
 // BuildGetPayloadRequest builds a get payload request.
 func BuildGetPayloadRequest(
 	payloadID engineprimitives.PayloadID,
-	forkVersion uint32,
+	forkVersion common.Version,
 ) *GetPayloadRequest {
 	return &GetPayloadRequest{
 		PayloadID:   payloadID,

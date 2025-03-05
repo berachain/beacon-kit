@@ -116,5 +116,5 @@ build-docker: ## build a docker image containing `beacond`
 
 push-docker-github: ## push the docker image to the ghcr registry
 	@echo "Push the release docker image to the ghcr registry..."
-	docker tag $(IMAGE_NAME):$(VERSION) ghcr.io/berachain/beacon-kit-internal:$(VERSION)
-	docker push ghcr.io/berachain/beacon-kit-internal:$(VERSION)
+	docker tag $(IMAGE_NAME):$(VERSION) ghcr.io/berachain/beacon-kit:$(VERSION)
+	docker push ghcr.io/berachain/beacon-kit:$(VERSION)

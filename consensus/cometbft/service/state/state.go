@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -65,13 +65,13 @@ func NewManager(
 }
 
 func (sm *Manager) LoadVersion(version int64) error {
-	err := sm.CommitMultiStore().LoadVersion(version)
+	err := sm.GetCommitMultiStore().LoadVersion(version)
 	if err != nil {
 		return fmt.Errorf("failed to load version %d: %w", version, err)
 	}
 
 	// Validate Pruning settings.
-	return sm.CommitMultiStore().GetPruning().Validate()
+	return sm.GetCommitMultiStore().GetPruning().Validate()
 }
 
 func (sm *Manager) LoadLatestVersion() error {
@@ -87,8 +87,7 @@ func (sm *Manager) Close() error {
 	return sm.db.Close()
 }
 
-// CommitMultiStore returns the CommitMultiStore of the Manager.
-// TODO:REMOVE.
-func (sm *Manager) CommitMultiStore() storetypes.CommitMultiStore {
+// GetCommitMultiStore returns the CommitMultiStore of the Manager.
+func (sm *Manager) GetCommitMultiStore() storetypes.CommitMultiStore {
 	return sm.cms
 }

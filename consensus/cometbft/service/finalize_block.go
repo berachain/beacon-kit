@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -28,7 +28,7 @@ import (
 	"github.com/sourcegraph/conc/iter"
 )
 
-func (s *Service[LoggerT]) finalizeBlock(
+func (s *Service) finalizeBlock(
 	ctx context.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (*cmtabci.FinalizeBlockResponse, error) {
@@ -40,7 +40,7 @@ func (s *Service[LoggerT]) finalizeBlock(
 	return res, err
 }
 
-func (s *Service[LoggerT]) finalizeBlockInternal(
+func (s *Service) finalizeBlockInternal(
 	ctx context.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (*cmtabci.FinalizeBlockResponse, error) {
@@ -99,15 +99,15 @@ func (s *Service[LoggerT]) finalizeBlockInternal(
 
 // workingHash gets the apphash that will be finalized in commit.
 // These writes will be persisted to the root multi-store
-// (s.sm.CommitMultiStore()) and flushed
-// to disk in the Commit phase. This means when the ABCI client requests
-// Commit(), the application state transitions will be flushed to disk and as a
-// result, but we already have
-// an application Merkle root.
-func (s *Service[LoggerT]) workingHash() []byte {
+// (s.smGet.CommitMultiStore()) and flushed to disk  in the
+// Commit phase. This means when the ABCI client requests
+// Commit(), the application state transitions will be flushed
+// to disk and as a result, but we already have an application
+// Merkle root.
+func (s *Service) workingHash() []byte {
 	// Write the FinalizeBlock state into branched storage and commit the
 	// MultiStore. The write to the FinalizeBlock state writes all state
-	// transitions to the root MultiStore (s.sm.CommitMultiStore())
+	// transitions to the root MultiStore (s.sm.GetCommitMultiStore())
 	// so when Commit() is called it persists those values.
 	if s.finalizeBlockState == nil {
 		// this is unexpected since workingHash is called only after
@@ -118,7 +118,7 @@ func (s *Service[LoggerT]) workingHash() []byte {
 
 	// Get the hash of all writes in order to return the apphash to the comet in
 	// finalizeBlock.
-	commitHash := s.sm.CommitMultiStore().WorkingHash()
+	commitHash := s.sm.GetCommitMultiStore().WorkingHash()
 	s.logger.Debug(
 		"hash of all writes",
 		"workingHash",
@@ -128,7 +128,7 @@ func (s *Service[LoggerT]) workingHash() []byte {
 	return commitHash
 }
 
-func (s *Service[_]) validateFinalizeBlockHeight(
+func (s *Service) validateFinalizeBlockHeight(
 	req *cmtabci.FinalizeBlockRequest,
 ) error {
 	if req.Height < 1 {

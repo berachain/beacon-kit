@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,6 +23,7 @@ package common
 import (
 	stdbytes "bytes"
 
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
@@ -64,6 +65,10 @@ type Root [RootSize]byte
 const RootSize = 32
 
 // NewRootFromHex creates a new root from a hex string.
+//
+// Errors if:
+// - input is not prefixed with "0x".
+// - input is not valid hex of 32 bytes.
 func NewRootFromHex(input string) (Root, error) {
 	val, err := hex.ToBytes(input)
 	if err != nil {
@@ -114,6 +119,15 @@ func (r Root) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON parses a root in hex syntax.
+//
+// NOTE: Enforces the input to include any extra character in the first and last position.
+// Technically this is used to remove the quote `"`. For example, the input may look like:
+// []byte(`"0x6969696969696969696969696969696969696969696969696969696969696969"`)
 func (r *Root) UnmarshalJSON(input []byte) error {
+	if len(input) <= 1 {
+		return errors.Wrapf(
+			bytes.ErrIncorrectLength, "input length (%d) is too small", len(input),
+		)
+	}
 	return r.UnmarshalText(input[1 : len(input)-1])
 }

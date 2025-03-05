@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -51,26 +51,36 @@ type SignedBeaconBlock struct {
 // NewSignedBeaconBlockFromSSZ creates a new beacon block from the given SSZ bytes.
 func NewSignedBeaconBlockFromSSZ(
 	bz []byte,
-	forkVersion uint32,
+	forkVersion common.Version,
 ) (*SignedBeaconBlock, error) {
-	if forkVersion == version.Deneb {
-		block := &SignedBeaconBlock{}
-		return block, block.UnmarshalSSZ(bz)
-	}
+	block := &SignedBeaconBlock{}
+	switch forkVersion {
+	case version.Deneb(), version.Deneb1():
+		if err := block.UnmarshalSSZ(bz); err != nil {
+			return block, err
+		}
 
-	err := errors.Wrap(
-		ErrForkVersionNotSupported,
-		fmt.Sprintf("fork %d", forkVersion),
-	)
-	return nil, err
+		// make sure Withdrawals in execution payload are not nil
+		EnsureNotNilWithdrawals(block.Message.Body.ExecutionPayload)
+
+		// duly setup fork version in every relevant block member
+		block.Message.Body.ExecutionPayload.EpVersion = forkVersion
+		block.Message.BbVersion = forkVersion
+		return block, nil
+	default:
+		// we return block here to appease nilaway
+		return block, errors.Wrap(
+			ErrForkVersionNotSupported,
+			fmt.Sprintf("fork %d", forkVersion),
+		)
+	}
 }
 
 // NewSignedBeaconBlock signs the provided BeaconBlock and populates the receiver.
 //
 // NOTE: will panic if any provided argument is nil. Only errors if signing fails.
 func NewSignedBeaconBlock(
-	blk *BeaconBlock, forkData *ForkData,
-	cs chain.Spec, signer crypto.BLSSigner,
+	blk *BeaconBlock, forkData *ForkData, cs chain.Spec, signer crypto.BLSSigner,
 ) (*SignedBeaconBlock, error) {
 	domain := forkData.ComputeDomain(cs.DomainTypeProposer())
 	signingRoot := ComputeSigningRoot(blk, domain)

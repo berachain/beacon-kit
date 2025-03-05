@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
 	"github.com/berachain/beacon-kit/primitives/math/log"
 	"github.com/berachain/beacon-kit/primitives/math/pow"
+	"github.com/ethereum/go-ethereum/params"
 )
 
 type (
@@ -72,6 +73,15 @@ func (u *U64) UnmarshalJSON(input []byte) error {
 		return err
 	}
 	return u.UnmarshalText(strippedInput)
+}
+
+func U64FromString(id string) (U64, error) {
+	u64, err := strconv.ParseUint(id, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return U64(u64), nil
 }
 
 // ---------------------------------- Hex ----------------------------------
@@ -140,7 +150,7 @@ var ErrGweiOverflow = errors.New("gwei from big.Int overflows")
 
 // GweiFromWei returns the value of Wei in Gwei.
 func GweiFromWei(i *big.Int) (Gwei, error) {
-	intToGwei := big.NewInt(0).SetUint64(GweiPerWei)
+	intToGwei := big.NewInt(0).SetUint64(params.GWei)
 	i.Div(i, intToGwei)
 	if !i.IsUint64() {
 		// a Gwei amount >= (2**64) * (10**9) or negative would not
@@ -153,5 +163,5 @@ func GweiFromWei(i *big.Int) (Gwei, error) {
 
 // ToWei converts a value from Gwei to Wei.
 func (u Gwei) ToWei() *U256 {
-	return (&U256{}).Mul(NewU256(uint64(u)), NewU256(GweiPerWei))
+	return (&U256{}).Mul(NewU256(uint64(u)), NewU256(params.GWei))
 }

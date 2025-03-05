@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,6 +21,7 @@
 package components
 
 import (
+	"fmt"
 	"strings"
 
 	"cosmossdk.io/depinject"
@@ -43,11 +44,10 @@ func ProvideJWTSecret(in JWTSecretInput) (*jwt.Secret, error) {
 }
 
 // LoadJWTFromFile reads the JWT secret from a file and returns it.
-func LoadJWTFromFile(filepath string) (*jwt.Secret, error) {
-	data, err := afero.ReadFile(afero.NewOsFs(), filepath)
+func LoadJWTFromFile(filePath string) (*jwt.Secret, error) {
+	data, err := afero.ReadFile(afero.NewOsFs(), filePath)
 	if err != nil {
-		// Return an error if the file cannot be read.
-		return nil, err
+		return nil, fmt.Errorf("failed reading path '%s', err: %w", filePath, err)
 	}
 	return jwt.NewFromHex(strings.TrimSpace(string(data)))
 }

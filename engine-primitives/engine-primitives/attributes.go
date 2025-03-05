@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -40,8 +40,6 @@ type PayloadAttributer interface {
 //
 
 type PayloadAttributes struct {
-	// version is the version of the payload attributes.
-	version uint32 `json:"-"`
 	// Timestamp is the timestamp at which the block will be built at.
 	Timestamp math.U64 `json:"timestamp"`
 	// PrevRandao is the previous Randao value from the beacon chain as
@@ -59,11 +57,14 @@ type PayloadAttributes struct {
 	// to the block currently being processed. This field was added for
 	// EIP-4788.
 	ParentBeaconBlockRoot common.Root `json:"parentBeaconBlockRoot"`
+
+	// version is the version of the payload attributes.
+	version common.Version `json:"-"`
 }
 
 // New empty PayloadAttributes.
 func NewPayloadAttributes(
-	forkVersion uint32,
+	forkVersion common.Version,
 	timestamp uint64,
 	prevRandao common.Bytes32,
 	suggestedFeeRecipient common.ExecutionAddress,
@@ -71,12 +72,12 @@ func NewPayloadAttributes(
 	parentBeaconBlockRoot common.Root,
 ) (*PayloadAttributes, error) {
 	pa := &PayloadAttributes{
-		version:               forkVersion,
 		Timestamp:             math.U64(timestamp),
 		PrevRandao:            prevRandao,
 		SuggestedFeeRecipient: suggestedFeeRecipient,
 		Withdrawals:           withdrawals,
 		ParentBeaconBlockRoot: parentBeaconBlockRoot,
+		version:               forkVersion,
 	}
 
 	if err := pa.Validate(); err != nil {
@@ -92,14 +93,12 @@ func (p *PayloadAttributes) IsNil() bool {
 }
 
 // GetSuggestedFeeRecipient returns the suggested fee recipient.
-func (
-	p *PayloadAttributes,
-) GetSuggestedFeeRecipient() common.ExecutionAddress {
+func (p *PayloadAttributes) GetSuggestedFeeRecipient() common.ExecutionAddress {
 	return p.SuggestedFeeRecipient
 }
 
 // Version returns the version of the PayloadAttributes.
-func (p *PayloadAttributes) Version() uint32 {
+func (p *PayloadAttributes) Version() common.Version {
 	return p.version
 }
 
@@ -113,7 +112,8 @@ func (p *PayloadAttributes) Validate() error {
 		return ErrEmptyPrevRandao
 	}
 
-	if p.Withdrawals == nil && p.version >= version.Capella {
+	// For any fork version after Bellatrix (Capella onwards), withdrawals are required.
+	if p.Withdrawals == nil && version.IsAfter(p.version, version.Bellatrix()) {
 		return ErrNilWithdrawals
 	}
 

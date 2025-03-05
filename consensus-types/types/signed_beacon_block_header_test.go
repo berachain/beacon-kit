@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -32,6 +32,7 @@ import (
 )
 
 func TestSignedBeaconBlockHeader_Serialization(t *testing.T) {
+	t.Parallel()
 	header := types.NewBeaconBlockHeader(
 		math.Slot(100),
 		math.ValidatorIndex(200),
@@ -61,6 +62,7 @@ func TestSignedBeaconBlockHeader_Serialization(t *testing.T) {
 }
 
 func TestSignedBeaconBlockHeader_EmptySerialization(t *testing.T) {
+	t.Parallel()
 	orig := &types.SignedBeaconBlockHeader{}
 	data, err := orig.MarshalSSZ()
 	require.NoError(t, err)
@@ -82,6 +84,7 @@ func TestSignedBeaconBlockHeader_EmptySerialization(t *testing.T) {
 }
 
 func TestSignedBeaconBlockHeader_SizeSSZ(t *testing.T) {
+	t.Parallel()
 	sigHeader := types.NewSignedBeaconBlockHeader(
 		types.NewBeaconBlockHeader(
 			math.Slot(100),
@@ -97,7 +100,8 @@ func TestSignedBeaconBlockHeader_SizeSSZ(t *testing.T) {
 	require.Equal(t, uint32(208), size)
 }
 
-func TestSignedBeaconBlockHeader_HashTreeRoot(_ *testing.T) {
+func TestSignedBeaconBlockHeader_HashTreeRoot(t *testing.T) {
+	t.Parallel()
 	sigHeader := types.NewSignedBeaconBlockHeader(
 		types.NewBeaconBlockHeader(
 			math.Slot(100),

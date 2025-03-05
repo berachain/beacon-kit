@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -27,15 +27,13 @@ import (
 	"github.com/berachain/beacon-kit/node-api/handlers"
 )
 
-func (h *Handler[ContextT]) RegisterRoutes(
-	logger log.Logger,
-) {
+func (h *Handler) RegisterRoutes(logger log.Logger) {
 	h.SetLogger(logger)
-	h.BaseHandler.AddRoutes([]*handlers.Route[ContextT]{
+	h.BaseHandler.AddRoutes([]*handlers.Route{
 		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v2/debug/beacon/states/:state_id",
-			Handler: h.NotImplemented,
+			Handler: h.GetState,
 		},
 		{
 			Method:  http.MethodGet,

@@ -1,6 +1,9 @@
+//go:build test
+// +build test
+
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,25 +26,28 @@ package core_test
 import (
 	"testing"
 
+	"github.com/berachain/beacon-kit/chain"
+	"github.com/berachain/beacon-kit/config/spec"
 	"github.com/berachain/beacon-kit/consensus-types/types"
-	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
-	"github.com/berachain/beacon-kit/node-core/components"
 	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/version"
+	statetransition "github.com/berachain/beacon-kit/testing/state-transition"
 	"github.com/stretchr/testify/require"
 )
 
 func TestInvalidDeposits(t *testing.T) {
-	cs := setupChain(t, components.BoonetChainSpecType)
-	sp, st, ds, ctx := setupState(t, cs)
+	cs := setupChain(t)
+	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
 
 	var (
-		minBalance   = math.Gwei(cs.EjectionBalance() + cs.EffectiveBalanceIncrement())
-		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
-		credentials0 = types.NewCredentialsFromExecutionAddress(
-			common.ExecutionAddress{},
+		minBalance = math.Gwei(
+			cs.EjectionBalance() +
+				cs.EffectiveBalanceIncrement(),
 		)
+		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
+		credentials0 = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
 	)
 
 	// Setup initial state with one validator
@@ -55,9 +61,9 @@ func TestInvalidDeposits(t *testing.T) {
 			},
 		}
 		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
-		genVersion       = version.FromUint32[common.Version](version.Deneb)
+		genVersion       = version.Deneb()
 	)
-	require.NoError(t, ds.EnqueueDeposits(ctx, genDeposits))
+	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
 	_, err := sp.InitializePreminedBeaconStateFromEth1(
 		st, genDeposits, genPayloadHeader, genVersion,
 	)
@@ -84,26 +90,217 @@ func TestInvalidDeposits(t *testing.T) {
 	blk := buildNextBlock(
 		t,
 		st,
-		&types.BeaconBlockBody{
-			ExecutionPayload: &types.ExecutionPayload{
-				Timestamp:    10,
-				ExtraData:    []byte("testing"),
-				Transactions: [][]byte{},
-				Withdrawals: []*engineprimitives.Withdrawal{
-					st.EVMInflationWithdrawal(),
-				},
-				BaseFeePerGas: math.NewU256(0),
-			},
-			Eth1Data: types.NewEth1Data(depRoot),
-			Deposits: []*types.Deposit{invalidDeposit},
-		},
+		types.NewEth1Data(depRoot),
+		10,
+		[]*types.Deposit{invalidDeposit},
+		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
 	)
 
 	// Add correct deposit to local store (honest validator will see this locally).
-	require.NoError(t, ds.EnqueueDeposits(ctx, types.Deposits{correctDeposit}))
+	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), types.Deposits{correctDeposit}))
 
 	// Run transition - should fail due to invalid deposit amount.
 	_, err = sp.Transition(ctx, st, blk)
 	require.Error(t, err)
 	require.ErrorContains(t, err, "deposit mismatched")
+}
+
+func TestInvalidDepositsCount(t *testing.T) {
+	cs := setupChain(t)
+	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
+
+	var (
+		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
+		credentials0 = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
+	)
+
+	// Setup initial state with one validator
+	var (
+		genDeposits = types.Deposits{
+			{
+				Pubkey:      [48]byte{0x00},
+				Credentials: credentials0,
+				Amount:      maxBalance,
+				Index:       0,
+			},
+		}
+		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genVersion       = version.Deneb()
+	)
+	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
+	_, err := sp.InitializePreminedBeaconStateFromEth1(
+		st, genDeposits, genPayloadHeader, genVersion,
+	)
+	require.NoError(t, err)
+
+	// Create the correct deposits.
+	correctDeposits := types.Deposits{
+		{
+			Pubkey:      [48]byte{0x01},
+			Credentials: credentials0,
+			Amount:      maxBalance,
+			Index:       1,
+		},
+		{
+			Pubkey:      [48]byte{0x02},
+			Credentials: credentials0,
+			Amount:      maxBalance,
+			Index:       2,
+		},
+	}
+
+	// Create test block with the correct deposits.
+	depRoot := append(genDeposits, correctDeposits...).HashTreeRoot()
+	blk := buildNextBlock(
+		t,
+		st,
+		types.NewEth1Data(depRoot),
+		10,
+		correctDeposits,
+		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
+	)
+
+	// Add JUST 1 correct deposit to local store. This node SHOULD fail to verify.
+	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), types.Deposits{correctDeposits[0]}))
+
+	// Run transition.
+	_, err = sp.Transition(ctx, st, blk)
+	require.Error(t, err)
+	require.ErrorContains(t, err, "deposits lengths mismatched")
+}
+
+func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
+	csData := spec.DevnetChainSpecData()
+	csData.MaxDepositsPerBlock = 1 // Set only 1 deposit allowed per block.
+	cs, err := chain.NewSpec(csData)
+	require.NoError(t, err)
+	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
+
+	var (
+		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
+		credentials0 = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
+	)
+
+	// Setup initial state with one validator
+	var (
+		genDeposits = types.Deposits{
+			{
+				Pubkey:      [48]byte{0x00},
+				Credentials: credentials0,
+				Amount:      maxBalance,
+				Index:       0,
+			},
+		}
+		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genVersion       = version.Deneb()
+	)
+	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
+	_, err = sp.InitializePreminedBeaconStateFromEth1(
+		st, genDeposits, genPayloadHeader, genVersion,
+	)
+	require.NoError(t, err)
+
+	// Create the block deposits.
+	blockDeposits := types.Deposits{
+		{
+			Pubkey:      [48]byte{0x01},
+			Credentials: credentials0,
+			Amount:      maxBalance,
+			Index:       1,
+		},
+	}
+
+	// Create test block with the correct deposits.
+	depRoot := append(genDeposits, blockDeposits...).HashTreeRoot()
+	blk := buildNextBlock(
+		t,
+		st,
+		types.NewEth1Data(depRoot),
+		10,
+		blockDeposits,
+		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
+	)
+
+	extraLocalDeposit := &types.Deposit{
+		Pubkey:      [48]byte{0x01},
+		Credentials: credentials0,
+		Amount:      maxBalance,
+		Index:       2,
+	}
+
+	// Add both deposits to local store (which includes more than what's in the block).
+	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), append(blockDeposits, extraLocalDeposit)))
+
+	// Run transition.
+	_, err = sp.Transition(ctx, st, blk)
+	require.NoError(t, err)
+}
+
+func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
+	csData := spec.DevnetChainSpecData()
+	csData.MaxDepositsPerBlock = 1 // Set only 1 deposit allowed per block.
+	cs, err := chain.NewSpec(csData)
+	require.NoError(t, err)
+	sp, st, ds, ctx, _, _ := statetransition.SetupTestState(t, cs)
+
+	var (
+		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
+		credentials0 = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
+	)
+
+	// Setup initial state with one validator
+	var (
+		genDeposits = types.Deposits{
+			{
+				Pubkey:      [48]byte{0x00},
+				Credentials: credentials0,
+				Amount:      maxBalance,
+				Index:       0,
+			},
+		}
+		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genVersion       = version.Deneb()
+	)
+	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
+	_, err = sp.InitializePreminedBeaconStateFromEth1(
+		st, genDeposits, genPayloadHeader, genVersion,
+	)
+	require.NoError(t, err)
+
+	// Create the block deposits.
+	blockDeposits := types.Deposits{
+		{
+			Pubkey:      [48]byte{0x01},
+			Credentials: credentials0,
+			Amount:      maxBalance,
+			Index:       1,
+		},
+	}
+
+	extraLocalDeposit := &types.Deposit{
+		Pubkey:      [48]byte{0x01},
+		Credentials: credentials0,
+		Amount:      maxBalance,
+		Index:       2,
+	}
+
+	// Now, the block proposer ends up adding the correct 1 deposit per block, BUT spoofs the
+	// deposits root to use the entire deposits list.
+	badDepRoot := append(genDeposits, append(blockDeposits, extraLocalDeposit)...).HashTreeRoot()
+	blk := buildNextBlock(
+		t,
+		st,
+		types.NewEth1Data(badDepRoot),
+		10,
+		blockDeposits,
+		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
+	)
+
+	// Add both deposits to local store (which includes more than what's in the block).
+	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), append(blockDeposits, extraLocalDeposit)))
+
+	// Run transition.
+	_, err = sp.Transition(ctx, st, blk)
+	require.Error(t, err)
+	require.ErrorContains(t, err, "deposits root mismatch")
 }

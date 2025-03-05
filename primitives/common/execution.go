@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -21,9 +21,11 @@
 package common
 
 import (
-	"bytes"
+	stdbytes "bytes"
 	"encoding"
 
+	"github.com/berachain/beacon-kit/errors"
+	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/encoding/hex"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
 	"golang.org/x/crypto/sha3"
@@ -70,6 +72,10 @@ func (h ExecutionHash) MarshalText() ([]byte, error) {
 }
 
 // UnmarshalText parses a hash in hex syntax.
+//
+// Errors if:
+// - input is not "0x" prefixed.
+// - input length is not 66.
 func (h *ExecutionHash) UnmarshalText(input []byte) error {
 	return hex.DecodeFixedText(input, h[:])
 }
@@ -80,6 +86,10 @@ func (h ExecutionHash) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON parses a hash in hex syntax.
+//
+// NOTE: Enforces the input to include the `"` characters in first and last position.
+// For example, the input may look like:
+// []byte(`"0x6969696969696969696969696969696969696969696969696969696969696969"`)
 func (h *ExecutionHash) UnmarshalJSON(input []byte) error {
 	return hex.DecodeFixedJSON(input, h[:])
 }
@@ -100,7 +110,7 @@ func NewExecutionAddressFromHex(input string) ExecutionAddress {
 
 // Equals returns true if the two addresses are the same.
 func (a ExecutionAddress) Equals(other ExecutionAddress) bool {
-	return bytes.Equal(a[:], other[:])
+	return stdbytes.Equal(a[:], other[:])
 }
 
 // Hex converts an address to a hex string.
@@ -118,6 +128,10 @@ func (a ExecutionAddress) MarshalText() ([]byte, error) {
 }
 
 // UnmarshalText parses an address in hex syntax.
+//
+// Errors if:
+// - input is not "0x" prefixed.
+// - input length is not 42.
 func (a *ExecutionAddress) UnmarshalText(input []byte) error {
 	return hex.DecodeFixedText(input, a[:])
 }
@@ -128,7 +142,16 @@ func (a ExecutionAddress) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON parses an address in hex syntax.
+//
+// NOTE: Enforces the input to include any extra character in the first and last position.
+// Technically this is used to remove the quote `"`. For example, the input may look like:
+// []byte(`"0x6969696969696969696969696969696969696969"`)
 func (a *ExecutionAddress) UnmarshalJSON(input []byte) error {
+	if len(input) <= 1 {
+		return errors.Wrapf(
+			bytes.ErrIncorrectLength, "input length (%d) is too small", len(input),
+		)
+	}
 	return a.UnmarshalText(input[1 : len(input)-1])
 }
 

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// # Copyright (c) 2024 Berachain Foundation
+// # Copyright (c) 2025 Berachain Foundation
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -129,6 +129,7 @@ func generateRandomBytes32(count int) []common.Bytes32 {
 }
 
 func TestBeaconStateMarshalUnmarshalSSZ(t *testing.T) {
+	t.Parallel()
 	genState := generateValidBeaconState()
 
 	data, fastSSZMarshalErr := genState.MarshalSSZ()
@@ -146,6 +147,7 @@ func TestBeaconStateMarshalUnmarshalSSZ(t *testing.T) {
 }
 
 func TestHashTreeRoot(t *testing.T) {
+	t.Parallel()
 	state := generateValidBeaconState()
 	require.NotPanics(t, func() {
 		state.HashTreeRoot()
@@ -153,6 +155,7 @@ func TestHashTreeRoot(t *testing.T) {
 }
 
 func TestGetTree(t *testing.T) {
+	t.Parallel()
 	state := generateValidBeaconState()
 	tree, err := state.GetTree()
 	require.NoError(t, err)
@@ -160,12 +163,14 @@ func TestGetTree(t *testing.T) {
 }
 
 func TestBeaconState_UnmarshalSSZ_Error(t *testing.T) {
+	t.Parallel()
 	state := &types.BeaconState{}
 	err := state.UnmarshalSSZ([]byte{0x01, 0x02, 0x03}) // Invalid data
 	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
 
 func TestBeaconState_MarshalSSZTo(t *testing.T) {
+	t.Parallel()
 	state := generateValidBeaconState()
 	data, err := state.MarshalSSZ()
 	require.NoError(t, err)
@@ -180,6 +185,7 @@ func TestBeaconState_MarshalSSZTo(t *testing.T) {
 }
 
 func TestBeaconState_HashTreeRoot(t *testing.T) {
+	t.Parallel()
 	state := generateValidBeaconState()
 
 	// Get the HashTreeRoot

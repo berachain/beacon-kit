@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -25,7 +25,7 @@ import (
 
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/config"
-	"github.com/berachain/beacon-kit/log"
+	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
 	depositstore "github.com/berachain/beacon-kit/storage/deposit"
 	dbm "github.com/cosmos/cosmos-db"
@@ -34,21 +34,15 @@ import (
 )
 
 // DepositStoreInput is the input for the dep inject framework.
-type DepositStoreInput[
-	LoggerT log.AdvancedLogger[LoggerT],
-] struct {
+type DepositStoreInput struct {
 	depinject.In
-	Logger  LoggerT
+	Logger  *phuslu.Logger
 	AppOpts config.AppOptions
 }
 
 // ProvideDepositStore is a function that provides the module to the
 // application.
-func ProvideDepositStore[
-	LoggerT log.AdvancedLogger[LoggerT],
-](
-	in DepositStoreInput[LoggerT],
-) (*depositstore.KVStore, error) {
+func ProvideDepositStore(in DepositStoreInput) (*depositstore.KVStore, error) {
 	var (
 		rootDir = cast.ToString(in.AppOpts.Get(flags.FlagHome))
 		dataDir = filepath.Join(rootDir, "data")
@@ -59,12 +53,13 @@ func ProvideDepositStore[
 	if err != nil {
 		return nil, err
 	}
+	spdb := depositstore.NewSynced(pdb)
 
 	// pass a closure to close the db as its not supported by the KVStoreService interface
-	closeFunc := func() error { return pdb.Close() }
+	closeFunc := func() error { return spdb.Close() }
 
 	return depositstore.NewStore(
-		storage.NewKVStoreProvider(pdb),
+		storage.NewKVStoreProvider(spdb),
 		closeFunc,
 		in.Logger.With("service", "deposit-store"),
 	), nil

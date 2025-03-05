@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -30,34 +30,34 @@ import (
 // BeaconState represents the entire state of the beacon chain.
 type BeaconState struct {
 	// Versioning
-	GenesisValidatorsRoot common.Root
-	Slot                  math.Slot
-	Fork                  *Fork
+	GenesisValidatorsRoot common.Root `json:"genesis_validators_root,omitempty"`
+	Slot                  math.Slot   `json:"slot,omitempty"`
+	Fork                  *Fork       `json:"fork,omitempty"`
 
 	// History
-	LatestBlockHeader *BeaconBlockHeader
-	BlockRoots        []common.Root
-	StateRoots        []common.Root
+	LatestBlockHeader *BeaconBlockHeader `json:"latest_block_header,omitempty"`
+	BlockRoots        []common.Root      `json:"block_roots,omitempty"`
+	StateRoots        []common.Root      `json:"state_roots,omitempty"`
 
 	// Eth1
-	Eth1Data                     *Eth1Data
-	Eth1DepositIndex             uint64
-	LatestExecutionPayloadHeader *ExecutionPayloadHeader
+	Eth1Data                     *Eth1Data               `json:"eth1_data,omitempty"`
+	Eth1DepositIndex             uint64                  `json:"eth1_deposit_index,omitempty"`
+	LatestExecutionPayloadHeader *ExecutionPayloadHeader `json:"latest_execution_payload_header,omitempty"`
 
 	// Registry
-	Validators []*Validator
-	Balances   []uint64
+	Validators []*Validator `json:"validators,omitempty"`
+	Balances   []uint64     `json:"balances,omitempty"`
 
 	// Randomness
-	RandaoMixes []common.Bytes32
+	RandaoMixes []common.Bytes32 `json:"randao_mixes,omitempty"`
 
 	// Withdrawals
-	NextWithdrawalIndex          uint64
-	NextWithdrawalValidatorIndex math.ValidatorIndex
+	NextWithdrawalIndex          uint64              `json:"next_withdrawal_index,omitempty"`
+	NextWithdrawalValidatorIndex math.ValidatorIndex `json:"next_withdrawal_validator_index,omitempty"`
 
 	// Slashing
-	Slashings     []math.Gwei
-	TotalSlashing math.Gwei
+	Slashings     []math.Gwei `json:"slashings,omitempty"`
+	TotalSlashing math.Gwei   `json:"total_slashing,omitempty"`
 }
 
 /* -------------------------------------------------------------------------- */

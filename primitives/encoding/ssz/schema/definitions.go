@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 //
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Copyright (C) 2025, Berachain Foundation. All rights reserved.
 // Use of this software is governed by the Business Source License included
 // in the LICENSE file of this repository and at www.mariadb.com/bsl11.
 //
@@ -23,9 +23,9 @@ package schema
 import (
 	"errors"
 	"fmt"
-	"strconv"
 
 	"github.com/berachain/beacon-kit/primitives/encoding/ssz/constants"
+	"github.com/berachain/beacon-kit/primitives/math"
 )
 
 /* -------------------------------------------------------------------------- */
@@ -76,11 +76,11 @@ func (v vector) ID() ID { return Vector }
 func (v vector) ItemLength() uint64 { return constants.BytesPerChunk }
 
 func (v vector) ItemPosition(p string) (uint64, uint8, uint8, error) {
-	i, err := strconv.ParseUint(p, 10, 64)
+	i, err := math.U64FromString(p)
 	if err != nil {
 		return 0, 0, 0, fmt.Errorf("expected index, got name %s", p)
 	}
-	start := i * v.elementType.ItemLength()
+	start := i.Unwrap() * v.elementType.ItemLength()
 	return start / constants.BytesPerChunk,
 		uint8(start % constants.BytesPerChunk), // #nosec G115 -- can't overflow.
 		uint8(start%constants.BytesPerChunk + v.ItemLength()), // #nosec G115 -- can't overflow.
@@ -141,11 +141,11 @@ func (l list) Length() uint64 {
 
 // ItemPosition returns the chunk index and offset for a given list index.
 func (l list) ItemPosition(p string) (uint64, uint8, uint8, error) {
-	i, err := strconv.ParseUint(p, 10, 64)
+	i, err := math.U64FromString(p)
 	if err != nil {
 		return 0, 0, 0, fmt.Errorf("expected index, got name %s", p)
 	}
-	start := i * l.elementType.ItemLength()
+	start := i.Unwrap() * l.elementType.ItemLength()
 	return start / constants.BytesPerChunk,
 		uint8(start % constants.BytesPerChunk), // #nosec G115 -- can't overflow.
 		uint8(start%constants.BytesPerChunk + l.ItemLength()), // #nosec G115 -- can't overflow.
