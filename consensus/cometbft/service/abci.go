@@ -36,11 +36,26 @@ var (
 	errNilFinalizeBlockState = errors.New("finalizeBlockState is nil")
 )
 
+// combineContexts combines the CometBFT context with the original context from the node.
+// TODO: This can be removed if CometBFT implements contexts.
+func (s *Service) combineContexts(ctx context.Context) context.Context {
+	newCtx, cancel := context.WithCancel(context.Background())
+	go func() {
+		select {
+		case <-ctx.Done():
+			cancel()
+		case <-s.ctx.Done():
+			cancel()
+		}
+	}()
+	return newCtx
+}
+
 func (s *Service) InitChain(
 	ctx context.Context,
 	req *cmtabci.InitChainRequest,
 ) (*cmtabci.InitChainResponse, error) {
-	return s.initChain(ctx, req)
+	return s.initChain(s.combineContexts(ctx), req)
 }
 
 // PrepareProposal implements the PrepareProposal ABCI method and returns a
@@ -49,7 +64,7 @@ func (s *Service) PrepareProposal(
 	ctx context.Context,
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
-	return s.prepareProposal(ctx, req)
+	return s.prepareProposal(s.combineContexts(ctx), req)
 }
 
 func (s *Service) Info(context.Context,
@@ -80,14 +95,14 @@ func (s *Service) ProcessProposal(
 	ctx context.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
-	return s.processProposal(ctx, req)
+	return s.processProposal(s.combineContexts(ctx), req)
 }
 
 func (s *Service) FinalizeBlock(
 	ctx context.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (*cmtabci.FinalizeBlockResponse, error) {
-	return s.finalizeBlock(ctx, req)
+	return s.finalizeBlock(s.combineContexts(ctx), req)
 }
 
 // Commit implements the ABCI interface. It will commit all state that exists in
@@ -100,7 +115,7 @@ func (s *Service) FinalizeBlock(
 func (s *Service) Commit(
 	ctx context.Context, req *cmtabci.CommitRequest,
 ) (*cmtabci.CommitResponse, error) {
-	return s.commit(ctx, req)
+	return s.commit(s.combineContexts(ctx), req)
 }
 
 //

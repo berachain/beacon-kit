@@ -96,6 +96,13 @@ type Service struct {
 	minRetainBlocks uint64
 
 	chainID string
+
+	// ctx is the context passed in for the service. CometBFT currently does
+	// not support context usage. It passes "context.TODO()" to apps that
+	// implement the ABCI++ interface. Thus the app cannot tell when the
+	// context as been cancelled or not. We must use this as a workaround for
+	// now until CometBFT handles contexts.
+	ctx context.Context
 }
 
 func NewService(
@@ -165,6 +172,7 @@ func (s *Service) Start(
 		return err
 	}
 
+	s.ctx = ctx
 	s.node, err = node.NewNode(
 		ctx,
 		cfg,
