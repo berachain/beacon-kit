@@ -735,7 +735,8 @@ func (s *BeaconKitE2ESuite) TestGetValidatorBalancesForGenesis() {
 
 	for _, balance := range *balancesResp {
 		s.Require().True(balance.Balance > 0, "Validator balance should be positive")
-		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
-		s.Require().True(balance.Balance <= 4e12, "Validator balance should not exceed 4000 BERA")
+		// At genesis, the validator balance is 32 BERA.
+		// 32e9 Gwei = 32 * 10^9 Gwei = 32,000,000,000 Gwei = 32 BERA
+		s.Require().True(balance.Balance <= 32e9, "Validator balance should not exceed 32 BERA")
 	}
 }
