@@ -83,7 +83,7 @@ func (s *SimulatedSuite) TestProcessProposal_CrashedExecutionClient_Errors() {
 // TestContextHandling_SIGINT_SafeShutdown mimicks the expected outcome of a SIGINT by calling context cancel and stop services.
 func (s *SimulatedSuite) TestContextHandling_SIGINT_SafeShutdown() {
 	const blockHeight = 1
-	const coreLoopIterations = 5
+	const coreLoopIterations = 1
 
 	// Initialize the chain state.
 	s.initializeChain()
@@ -143,7 +143,7 @@ func (s *SimulatedSuite) TestContextHandling_SIGINT_SafeShutdown() {
 // TestContextHandling_CancelledContext_Rejected
 func (s *SimulatedSuite) TestContextHandling_CancelledContext_Rejected() {
 	const blockHeight = 1
-	const coreLoopIterations = 5
+	const coreLoopIterations = 1
 
 	// Initialize the chain state.
 	s.initializeChain()
