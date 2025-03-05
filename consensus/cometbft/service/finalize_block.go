@@ -104,15 +104,13 @@ func (s *Service) finalizeBlockInternal(
 
 // Panics if SBT upgrade parameters are not set.
 func (s *Service) nextBlockDelay(req *cmtabci.FinalizeBlockRequest) time.Duration {
-	// Force full nodes to always provide SBT upgrade parameters.
-	if s.sbtUpgradeHeight == 0 {
-		panic("SBT (stable block time) upgrade detected. --beacon-kit.cometbft.sbt-upgrade-height (block's height where SBT was enabled) must be set")
-	}
-
 	delay := constBlockDelay
 
 	switch {
 	case s.blockDelay == nil: // height > 0; blockDelay record doesn't exist in DB (first live upgrade)
+		if s.sbtUpgradeHeight == 0 {
+			panic("SBT (stable block time) upgrade detected. --beacon-kit.cometbft.sbt-upgrade-height (block's height where SBT was enabled) must be set")
+		}
 		switch {
 		case req.Height > s.sbtUpgradeHeight: // upgrade happened in the past
 			if s.sbtUpgradeTime.IsZero() {

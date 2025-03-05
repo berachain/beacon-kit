@@ -102,11 +102,4 @@ address = "{{ .BeaconKit.NodeAPI.Address }}"
 
 # Logging determines if the node API logging is enabled.
 logging = "{{ .BeaconKit.NodeAPI.Logging }}"
-
-[beacon-kit.cometbft]
-# height at which SBT is enabled
-sbt-upgrade-height = "{{ .BeaconKit.Cometbft.SBTUpgradeHeight }}"
-
-# time at which SBT is enabled (block's timestamp)
-sbt-upgrade-time = "{{ .BeaconKit.Cometbft.SBTUpgradeTime }}"
 `
