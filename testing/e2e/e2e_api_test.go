@@ -571,7 +571,6 @@ func (s *BeaconKitE2ESuite) decodeValidatorBalancesResponse(resp *http.Response)
 func (s *BeaconKitE2ESuite) TestGetValidatorBalances() {
 	resp, err := s.getValidatorBalances(utils.StateIDHead)
 	s.Require().NoError(err)
-	s.Require().NotNil(resp, "response should not be nil")
 	s.Require().Equal(http.StatusOK, resp.StatusCode)
 	defer resp.Body.Close()
 
@@ -591,7 +590,6 @@ func (s *BeaconKitE2ESuite) TestGetValidatorBalances() {
 func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithSpecificID() {
 	resp, err := s.getValidatorBalances(utils.StateIDHead, "0")
 	s.Require().NoError(err)
-	s.Require().NotNil(resp, "response should not be nil")
 	s.Require().Equal(http.StatusOK, resp.StatusCode)
 	defer resp.Body.Close()
 
@@ -609,7 +607,6 @@ func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithSpecificID() {
 func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithMultipleIDs() {
 	resp, err := s.getValidatorBalances(utils.StateIDHead, "0", "1")
 	s.Require().NoError(err)
-	s.Require().NotNil(resp, "response should not be nil")
 	s.Require().Equal(http.StatusOK, resp.StatusCode)
 	defer resp.Body.Close()
 
@@ -632,7 +629,6 @@ func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithMultipleIDs() {
 func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithInvalidID() {
 	resp, err := s.getValidatorBalances(utils.StateIDHead, "invalid_id")
 	s.Require().NoError(err)
-	s.Require().NotNil(resp, "response should not be nil")
 	s.Require().Equal(http.StatusBadRequest, resp.StatusCode)
 	defer resp.Body.Close()
 
@@ -646,7 +642,6 @@ func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithInvalidID() {
 func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithNonExistentIndex() {
 	resp, err := s.getValidatorBalances(utils.StateIDHead, "99999")
 	s.Require().NoError(err)
-	s.Require().NotNil(resp, "response should not be nil")
 	// If an index does not match any validator, no balance will be returned but this will not cause an error.
 	// The response should be 200 OK with empty data.
 	s.Require().Equal(http.StatusOK, resp.StatusCode)
@@ -675,7 +670,6 @@ func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithPublicKey() {
 
 	resp, err := s.getValidatorBalances(utils.StateIDHead, pubkey.String())
 	s.Require().NoError(err)
-	s.Require().NotNil(resp, "response should not be nil")
 	s.Require().Equal(http.StatusOK, resp.StatusCode)
 	defer resp.Body.Close()
 
@@ -697,7 +691,6 @@ func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithInvalidPublicKey() {
 
 	resp, err := s.getValidatorBalances(utils.StateIDHead, notFoundPubkey)
 	s.Require().NoError(err)
-	s.Require().NotNil(resp, "response should not be nil")
 	// If public key does not match any validator, no balance will be returned but this will not cause an error.
 	// The response should be 200 OK with empty data.
 	s.Require().Equal(http.StatusOK, resp.StatusCode)
@@ -713,7 +706,6 @@ func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithInvalidPublicKey() {
 func (s *BeaconKitE2ESuite) TestGetValidatorBalancesForGenesis() {
 	resp, err := s.getValidatorBalances(utils.StateIDGenesis)
 	s.Require().NoError(err)
-	s.Require().NotNil(resp, "response should not be nil")
 	s.Require().Equal(http.StatusOK, resp.StatusCode)
 	defer resp.Body.Close()
 
