@@ -23,6 +23,7 @@
 package simulated_test
 
 import (
+	"github.com/berachain/beacon-kit/execution/client"
 	"time"
 
 	"github.com/berachain/beacon-kit/testing/simulated"
@@ -72,5 +73,5 @@ func (s *SimulatedSuite) TestProcessProposal_CrashedExecutionClient_Errors() {
 	})
 	s.Require().NoError(err)
 	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_REJECT, processResp.Status)
-	s.Require().Contains(s.LogBuffer.String(), "got an unexpected server error in JSON-RPC response failed to convert from jsonrpc.Error")
+	s.Require().Contains(s.LogBuffer.String(), client.ErrBadConnection.Error())
 }
