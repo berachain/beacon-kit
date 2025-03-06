@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/cometbft/cometbft/abci/types"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
-	"github.com/stretchr/testify/require"
 )
 
 // TestProcessProposal_CrashedExecutionClient_Errors effectively serves as a test for how a valid node would react to
@@ -193,7 +192,6 @@ func (s *SimulatedSuite) TestContextHandling_CancelledContext_Rejected() {
 	s.Require().Error(err, context.Canceled)
 	s.Require().Nil(finalizeResp)
 
-	require.Panics(s.T(), func() {
-		_, _ = s.SimComet.Comet.Commit(s.CtxComet, &types.CommitRequest{})
-	}, "expected Commit to panic")
+	_, err = s.SimComet.Comet.Commit(s.CtxComet, &types.CommitRequest{})
+	s.Require().Error(err, context.Canceled)
 }
