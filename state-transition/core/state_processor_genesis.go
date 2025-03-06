@@ -94,7 +94,7 @@ func (sp *StateProcessor) InitializePreminedBeaconStateFromEth1(
 	if err := st.SetEth1DepositIndex(constants.FirstDepositIndex); err != nil {
 		return nil, err
 	}
-	if err := ValidateGenesisDeposits(st, deposits, sp.cs.ValidatorSetCap()); err != nil {
+	if err := validateGenesisDeposits(st, deposits, sp.cs.ValidatorSetCap()); err != nil {
 		return nil, err
 	}
 	for _, deposit := range deposits {

@@ -32,7 +32,7 @@ import (
 	depositdb "github.com/berachain/beacon-kit/storage/deposit"
 )
 
-func ValidateGenesisDeposits(
+func validateGenesisDeposits(
 	st *statedb.StateDB, deposits []*ctypes.Deposit, validatorSetCap uint64,
 ) error {
 	eth1DepositIndex, err := st.GetEth1DepositIndex()
