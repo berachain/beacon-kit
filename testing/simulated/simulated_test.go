@@ -97,7 +97,7 @@ func (s *SimulatedSuite) SetupTest() {
 
 	s.SimulationClient = execution.NewSimulationClient(s.TestNode.EngineClient)
 	// Allow a short period for services to fully initialize.
-	time.Sleep(2 * time.Second)
+	time.Sleep(5 * time.Second)
 }
 
 // TearDownTest cleans up the test environment.

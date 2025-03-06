@@ -37,19 +37,33 @@ var (
 )
 
 func (s *Service) InitChain(
-	ctx context.Context,
+	_ context.Context,
 	req *cmtabci.InitChainRequest,
 ) (*cmtabci.InitChainResponse, error) {
-	return s.initChain(ctx, req)
+	// Check if ctx is still good. CometBFT does not check this.
+	if s.ctx.Err() != nil {
+		// If the context is getting cancelled, we are shutting down.
+		return &cmtabci.InitChainResponse{}, s.ctx.Err()
+	}
+	//nolint:contextcheck // see s.ctx comment for more details
+	return s.initChain(req) // internally this uses s.ctx
 }
 
 // PrepareProposal implements the PrepareProposal ABCI method and returns a
 // ResponsePrepareProposal object to the client.
 func (s *Service) PrepareProposal(
-	ctx context.Context,
+	_ context.Context,
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
-	return s.prepareProposal(ctx, req)
+	// Check if ctx is still good. CometBFT does not check this.
+	if s.ctx.Err() != nil {
+		// If the context is getting cancelled, we are shutting down.
+		// It is ok returning an empty proposal.
+		//nolint:nilerr // explicitly allowing this case
+		return &cmtabci.PrepareProposalResponse{Txs: req.Txs}, nil
+	}
+	//nolint:contextcheck // see s.ctx comment for more details
+	return s.prepareProposal(s.ctx, req)
 }
 
 func (s *Service) Info(context.Context,
@@ -77,17 +91,31 @@ func (s *Service) Info(context.Context,
 // ProcessProposal implements the ProcessProposal ABCI method and returns a
 // ResponseProcessProposal object to the client.
 func (s *Service) ProcessProposal(
-	ctx context.Context,
+	_ context.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
-	return s.processProposal(ctx, req)
+	// Check if ctx is still good. CometBFT does not check this.
+	if s.ctx.Err() != nil {
+		// Node will panic on context cancel with "CONSENSUS FAILURE!!!" due to
+		// returning an error. This is expected. We do not want to accept or
+		// reject a proposal based on incomplete data.
+		return nil, s.ctx.Err()
+	}
+	//nolint:contextcheck // see s.ctx comment for more details
+	return s.processProposal(req) // internally this uses s.ctx
 }
 
 func (s *Service) FinalizeBlock(
-	ctx context.Context,
+	_ context.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (*cmtabci.FinalizeBlockResponse, error) {
-	return s.finalizeBlock(ctx, req)
+	// Check if ctx is still good. CometBFT does not check this.
+	if s.ctx.Err() != nil {
+		// Node will panic on context cancel with "CONSENSUS FAILURE!!!" due to error.
+		// We expect this to happen and do not want to finalize any incomplete or invalid state.
+		return nil, s.ctx.Err()
+	}
+	return s.finalizeBlock(req) // internally this uses s.ctx
 }
 
 // Commit implements the ABCI interface. It will commit all state that exists in
@@ -98,9 +126,16 @@ func (s *Service) FinalizeBlock(
 // against that height and gracefully halt if it matches the latest committed
 // height.
 func (s *Service) Commit(
-	ctx context.Context, req *cmtabci.CommitRequest,
+	_ context.Context, req *cmtabci.CommitRequest,
 ) (*cmtabci.CommitResponse, error) {
-	return s.commit(ctx, req)
+	// Check if ctx is still good. CometBFT does not check this.
+	if s.ctx.Err() != nil {
+		// Node will panic on context cancel with "CONSENSUS FAILURE!!!" due to error.
+		// We expect this to happen and do not want to commit any incomplete or invalid state.
+		return nil, s.ctx.Err()
+	}
+
+	return s.commit(req)
 }
 
 //

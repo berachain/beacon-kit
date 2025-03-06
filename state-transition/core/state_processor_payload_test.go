@@ -86,7 +86,7 @@ func TestPayloadTimestampVerification(t *testing.T) {
 		{
 			name: "Payload timestamp < consensus timestamp",
 			setupMocksF: func() {
-				mockEngine.EXPECT().NotifyNewPayload(mock.Anything, mock.Anything).Return(nil)
+				mockEngine.EXPECT().NotifyNewPayload(mock.Anything, mock.Anything, mock.Anything).Return(nil)
 			},
 			payloadTime: consensusBlkTime.Add(-10 * time.Second),
 			expectedErr: nil,
@@ -94,7 +94,7 @@ func TestPayloadTimestampVerification(t *testing.T) {
 		{
 			name: "Payload timestamp == consensus timestamp",
 			setupMocksF: func() {
-				mockEngine.EXPECT().NotifyNewPayload(mock.Anything, mock.Anything).Return(nil)
+				mockEngine.EXPECT().NotifyNewPayload(mock.Anything, mock.Anything, mock.Anything).Return(nil)
 			},
 			payloadTime: consensusBlkTime,
 			expectedErr: nil,
@@ -102,7 +102,7 @@ func TestPayloadTimestampVerification(t *testing.T) {
 		{
 			name: "Payload timestamp > consensus timestamp",
 			setupMocksF: func() {
-				mockEngine.EXPECT().NotifyNewPayload(mock.Anything, mock.Anything).Return(nil)
+				mockEngine.EXPECT().NotifyNewPayload(mock.Anything, mock.Anything, mock.Anything).Return(nil)
 			},
 			payloadTime: consensusBlkTime.Add(time.Second),
 			expectedErr: nil,

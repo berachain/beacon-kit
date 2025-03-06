@@ -119,10 +119,17 @@ datadog-hostname = "my_beacond_node"
 rpc-dial-url = "http://localhost:8551"
 
 # Number of retries before shutting down consensus client.
-rpc-retries = "3"
+# A value of 0 will retry infinitely.
+rpc-retries = "0"
 
 # RPC timeout for execution client requests.
 rpc-timeout = "900ms"
+
+# RPC retry interval for execution client requests.
+rpc-retry-interval = "100ms"
+
+# RPC max retry interval for execution client requests.
+rpc-max-retry-interval = "10s"
 
 # Interval for the startup check.
 rpc-startup-check-interval = "3s"

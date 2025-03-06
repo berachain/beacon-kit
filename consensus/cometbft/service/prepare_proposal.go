@@ -50,6 +50,7 @@ func (s *Service) prepareProposal(
 	// Always reset state given that PrepareProposal can timeout
 	// and be called again in a subsequent round.
 	s.prepareProposalState = s.resetState(ctx)
+	//nolint:contextcheck // ctx already passed via resetState
 	s.prepareProposalState.SetContext(
 		s.getContextForProposal(
 			s.prepareProposalState.Context(),

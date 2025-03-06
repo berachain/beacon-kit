@@ -211,3 +211,19 @@ func (s *EngineClient) verifyChainIDAndConnection(
 	}
 	return nil
 }
+
+/* -------------------------------------------------------------------------- */
+/*                                   Getters                                  */
+/* -------------------------------------------------------------------------- */
+
+func (s *EngineClient) GetRPCRetries() uint64 {
+	return s.cfg.RPCRetries
+}
+
+func (s *EngineClient) GetRPCRetryInterval() time.Duration {
+	return s.cfg.RPCRetryInterval
+}
+
+func (s *EngineClient) GetRPCMaxRetryInterval() time.Duration {
+	return s.cfg.RPCMaxRetryInterval
+}
