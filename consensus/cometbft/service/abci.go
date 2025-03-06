@@ -46,7 +46,7 @@ func (s *Service) InitChain(
 		return &cmtabci.InitChainResponse{}, s.ctx.Err()
 	}
 	//nolint:contextcheck // see s.ctx comment for more details
-	return s.initChain(s.ctx, req)
+	return s.initChain(req) // internally this uses s.ctx
 }
 
 // PrepareProposal implements the PrepareProposal ABCI method and returns a
@@ -102,7 +102,7 @@ func (s *Service) ProcessProposal(
 		return nil, s.ctx.Err()
 	}
 	//nolint:contextcheck // see s.ctx comment for more details
-	return s.processProposal(s.ctx, req)
+	return s.processProposal(req) // internally this uses s.ctx
 }
 
 func (s *Service) FinalizeBlock(
@@ -115,8 +115,7 @@ func (s *Service) FinalizeBlock(
 		// We expect this to happen and do not want to finalize any incomplete or invalid state.
 		return nil, s.ctx.Err()
 	}
-	//nolint:contextcheck // see s.ctx comment for more details
-	return s.finalizeBlock(s.ctx, req)
+	return s.finalizeBlock(req) // internally this uses s.ctx
 }
 
 // Commit implements the ABCI interface. It will commit all state that exists in
@@ -135,8 +134,8 @@ func (s *Service) Commit(
 		// We expect this to happen and do not want to commit any incomplete or invalid state.
 		return nil, s.ctx.Err()
 	}
-	//nolint:contextcheck // see s.ctx comment for more details
-	return s.commit(s.ctx, req)
+
+	return s.commit(req)
 }
 
 //

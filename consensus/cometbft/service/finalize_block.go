@@ -21,7 +21,6 @@
 package cometbft
 
 import (
-	"context"
 	"fmt"
 
 	cmtabci "github.com/cometbft/cometbft/abci/types"
@@ -29,10 +28,9 @@ import (
 )
 
 func (s *Service) finalizeBlock(
-	ctx context.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (*cmtabci.FinalizeBlockResponse, error) {
-	res, err := s.finalizeBlockInternal(ctx, req)
+	res, err := s.finalizeBlockInternal(req)
 	if res != nil {
 		res.AppHash = s.workingHash()
 	}
@@ -41,7 +39,6 @@ func (s *Service) finalizeBlock(
 }
 
 func (s *Service) finalizeBlockInternal(
-	ctx context.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (*cmtabci.FinalizeBlockResponse, error) {
 	if err := s.validateFinalizeBlockHeight(req); err != nil {
@@ -53,10 +50,10 @@ func (s *Service) finalizeBlockInternal(
 	// here given that during block replay ProcessProposal is not executed by
 	// CometBFT.
 	if s.finalizeBlockState == nil {
-		s.finalizeBlockState = s.resetState(ctx)
+		s.finalizeBlockState = s.resetState(s.ctx)
 	} else {
 		// Preserve the CosmosSDK context while using the correct base ctx.
-		s.finalizeBlockState.SetContext(s.finalizeBlockState.Context().WithContext(ctx))
+		s.finalizeBlockState.SetContext(s.finalizeBlockState.Context().WithContext(s.ctx))
 	}
 
 	// Iterate over all raw transactions in the proposal and attempt to execute
