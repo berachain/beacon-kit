@@ -56,12 +56,13 @@ func NewBaseHandler(routes *RouteSet) *BaseHandler {
 	}
 }
 
-// NotImplemented is a placeholder for the beacon API.
+// NotImplemented is the handler for API endpoints that are defined in the Ethereum Beacon Node API spec,
+// but not yet implemented.
 func (b *BaseHandler) NotImplemented(Context) (any, error) {
 	return nil, errors.New("not implemented")
 }
 
-// Deprecated handles deprecated API endpoints.
+// Deprecated handles deprecated API endpoints that are no longer supported according to the Ethereum Beacon Node API spec.
 func (b *BaseHandler) Deprecated(c Context) (any, error) {
 	endpoint := c.Request().URL.Path
 

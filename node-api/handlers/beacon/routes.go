@@ -180,7 +180,7 @@ func (h *Handler) RegisterRoutes(
 		},
 		{
 			Method:  http.MethodPost,
-			Path:    "/eth/v1/beacon/rewards/attestation/:epoch",
+			Path:    "/eth/v1/beacon/rewards/attestations/:epoch",
 			Handler: h.NotImplemented,
 		},
 		{
