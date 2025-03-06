@@ -105,7 +105,7 @@ func (s *Service) Commit(
 	_ context.Context, req *cmtabci.CommitRequest,
 ) (*cmtabci.CommitResponse, error) {
 	//nolint:contextcheck // see s.ctx comment for more details
-	return s.commit(s.ctx, req), nil
+	return s.commit(s.ctx, req)
 }
 
 //

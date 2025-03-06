@@ -30,8 +30,14 @@ import (
 )
 
 func (s *Service) commit(
-	context.Context, *cmtabci.CommitRequest,
-) *cmtabci.CommitResponse {
+	ctx context.Context, _ *cmtabci.CommitRequest,
+) (*cmtabci.CommitResponse, error) {
+	// Check if ctx is still good. CometBFT does not check this.
+	if ctx.Err() != nil {
+		// Node will panic on context cancel with "CONSENSUS FAILURE!!!" due to error.
+		// We expect this to happen and do not want to commit any incomplete or invalid state.
+		return nil, ctx.Err()
+	}
 	if s.finalizeBlockState == nil {
 		// This is unexpected since CometBFT should call Commit only
 		// after FinalizeBlock has been called. Panic appeases nilaway.
@@ -50,7 +56,7 @@ func (s *Service) commit(
 
 	return &cmtabci.CommitResponse{
 		RetainHeight: retainHeight,
-	}
+	}, nil
 }
 
 // GetBlockRetentionHeight returns the height for which all blocks below this
