@@ -101,7 +101,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 
 	// Prepare a valid block proposal.
 	consensusTime := time.Now()
-	proposal, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{
+	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
 		Time:            consensusTime,
 		ProposerAddress: pubkey.Address(),
@@ -167,7 +167,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 	// Reset the log buffer to discard old logs we don't care about
 	s.LogBuffer.Reset()
 	// Process the proposal containing the valid block.
-	processResp, err := s.SimComet.Comet.ProcessProposal(s.Ctx, &types.ProcessProposalRequest{
+	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
 		Txs:             proposal.Txs,
 		Height:          currentHeight,
 		ProposerAddress: pubkey.Address(),
@@ -177,7 +177,7 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 	s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
 
 	// Finalize the block.
-	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.Ctx, &types.FinalizeBlockRequest{
+	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.FinalizeBlockRequest{
 		Txs:             proposal.Txs,
 		Height:          currentHeight,
 		ProposerAddress: pubkey.Address(),
@@ -186,6 +186,6 @@ func (s *SimulatedSuite) TestFullLifecycle_ValidBlockWithInjectedTransaction_IsS
 	s.Require().NotEmpty(finalizeResp)
 
 	// Commit the block.
-	_, err = s.SimComet.Comet.Commit(s.Ctx, &types.CommitRequest{})
+	_, err = s.SimComet.Comet.Commit(s.CtxComet, &types.CommitRequest{})
 	s.Require().NoError(err)
 }
