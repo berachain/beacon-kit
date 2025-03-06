@@ -34,12 +34,6 @@ func (s *Service) prepareProposal(
 	ctx context.Context,
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
-	// Check if ctx is still good. CometBFT does not check this.
-	if ctx.Err() != nil {
-		// If the context is getting cancelled, we are shutting down.
-		// It is ok returning an empty proposal.
-		return &cmtabci.PrepareProposalResponse{Txs: req.Txs}, nil
-	}
 	startTime := time.Now()
 	defer s.telemetrySink.MeasureSince(
 		"beacon_kit.runtime.prepare_proposal_duration", startTime)
