@@ -104,9 +104,9 @@ func (s *Service) Name() string {
 	return "blockchain"
 }
 
-// Start only starts the deposit catchup fetcher. TODO: remove.
+// Start starts the blockchain service.
 func (s *Service) Start(ctx context.Context) error {
-	// Catchup deposits for failed blocks.
+	// Catchup deposits for failed blocks. TODO: remove.
 	go s.depositCatchupFetcher(ctx)
 
 	return nil
