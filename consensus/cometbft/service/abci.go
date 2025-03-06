@@ -54,6 +54,7 @@ func (s *Service) PrepareProposal(
 	if s.ctx.Err() != nil {
 		// If the context is getting cancelled, we are shutting down.
 		// It is ok returning an empty proposal.
+		//nolint:nilerr // explicitly allowing this case
 		return &cmtabci.PrepareProposalResponse{Txs: req.Txs}, nil
 	}
 	//nolint:contextcheck // see s.ctx comment for more details

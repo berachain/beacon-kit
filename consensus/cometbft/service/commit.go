@@ -30,7 +30,7 @@ import (
 )
 
 func (s *Service) commit(
-	ctx context.Context, _ *cmtabci.CommitRequest,
+	context.Context, *cmtabci.CommitRequest,
 ) (*cmtabci.CommitResponse, error) {
 	if s.finalizeBlockState == nil {
 		// This is unexpected since CometBFT should call Commit only
