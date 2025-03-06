@@ -28,6 +28,8 @@ import (
 
 	"github.com/berachain/beacon-kit/execution/client"
 
+	"github.com/berachain/beacon-kit/execution/client"
+
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/cometbft/cometbft/abci/types"
 	cmtabci "github.com/cometbft/cometbft/abci/types"

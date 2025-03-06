@@ -40,8 +40,13 @@ func (s *Service) InitChain(
 	_ context.Context,
 	req *cmtabci.InitChainRequest,
 ) (*cmtabci.InitChainResponse, error) {
+	// Check if ctx is still good. CometBFT does not check this.
+	if s.ctx.Err() != nil {
+		// If the context is getting cancelled, we are shutting down.
+		return &cmtabci.InitChainResponse{}, s.ctx.Err()
+	}
 	//nolint:contextcheck // see s.ctx comment for more details
-	return s.initChain(s.ctx, req)
+	return s.initChain(req) // internally this uses s.ctx
 }
 
 // PrepareProposal implements the PrepareProposal ABCI method and returns a
@@ -94,11 +99,10 @@ func (s *Service) ProcessProposal(
 		// Node will panic on context cancel with "CONSENSUS FAILURE!!!" due to
 		// returning an error. This is expected. We do not want to accept or
 		// reject a proposal based on incomplete data.
-		// Returning PROCESS_PROPOSAL_STATUS_UNKNOWN will also result in comet panic.
 		return nil, s.ctx.Err()
 	}
 	//nolint:contextcheck // see s.ctx comment for more details
-	return s.processProposal(s.ctx, req)
+	return s.processProposal(req) // internally this uses s.ctx
 }
 
 func (s *Service) FinalizeBlock(
@@ -111,8 +115,7 @@ func (s *Service) FinalizeBlock(
 		// We expect this to happen and do not want to finalize any incomplete or invalid state.
 		return nil, s.ctx.Err()
 	}
-	//nolint:contextcheck // see s.ctx comment for more details
-	return s.finalizeBlock(s.ctx, req)
+	return s.finalizeBlock(req) // internally this uses s.ctx
 }
 
 // Commit implements the ABCI interface. It will commit all state that exists in
@@ -131,8 +134,8 @@ func (s *Service) Commit(
 		// We expect this to happen and do not want to commit any incomplete or invalid state.
 		return nil, s.ctx.Err()
 	}
-	//nolint:contextcheck // see s.ctx comment for more details
-	return s.commit(s.ctx, req)
+
+	return s.commit(req)
 }
 
 //

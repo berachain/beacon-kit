@@ -74,91 +74,199 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 	ctx context.Context,
 	req *ctypes.ForkchoiceUpdateRequest,
 ) (*engineprimitives.PayloadID, error) {
-	hasPayloadAttributes := !req.PayloadAttributes.IsNil()
+	var (
+		engineAPIBackoff     = ee.newBackoff()
+		maxRetries           = uint(ee.ec.GetRPCRetries())
+		hasPayloadAttributes = !req.PayloadAttributes.IsNil()
+	)
 
-	// Configure backoff. This will retry maxRetries number of times.
-	// Specifying 0 maxRetries will retry infinitely. Between each retry, it
-	// will wait RPCRetryInterval amount of time. This backoff will increase
-	// exponentially until it reaches RPCMaxRetryInterval.
-	engineAPIBackoff := backoff.NewExponentialBackOff()
-	engineAPIBackoff.InitialInterval = ee.ec.GetRPCRetryInterval()
-	engineAPIBackoff.MaxInterval = ee.ec.GetRPCMaxRetryInterval()
-	maxRetries := uint(ee.ec.GetRPCRetries())
-
-	return backoff.Retry(ctx, func() (*engineprimitives.PayloadID, error) {
-		// Log and call the forkchoice update.
-		ee.metrics.markNotifyForkchoiceUpdateCalled(hasPayloadAttributes)
-		payloadID, err := ee.ec.ForkchoiceUpdated(
-			ctx, req.State, req.PayloadAttributes, req.ForkVersion,
-		)
-
-		// NotifyForkchoiceUpdate gets called under two circumstances:
-		// 1. Payload Building (During PrepareProposal or
-		//    optimistically in ProcessProposal)
-		// 2. FinalizeBlock
-		// We'll discriminate error handling based on these.
-		switch {
-		case err == nil:
-			ee.metrics.markForkchoiceUpdateValid(
-				req.State, hasPayloadAttributes, payloadID,
+	return backoff.Retry(
+		ctx,
+		func() (*engineprimitives.PayloadID, error) {
+			// Log and call the forkchoice update.
+			ee.metrics.markNotifyForkchoiceUpdateCalled(hasPayloadAttributes)
+			payloadID, err := ee.ec.ForkchoiceUpdated(
+				ctx, req.State, req.PayloadAttributes, req.ForkVersion,
 			)
 
-			// If we reached here, we have a VALID status and a nil payload ID,
-			// we should log a warning and error.
-			if payloadID == nil && hasPayloadAttributes {
-				ee.logger.Warn(
-					"Received nil payload ID on VALID engine response",
-					"head_eth1_hash", req.State.HeadBlockHash,
-					"safe_eth1_hash", req.State.SafeBlockHash,
-					"finalized_eth1_hash", req.State.FinalizedBlockHash,
+			// NotifyForkchoiceUpdate gets called under two circumstances:
+			// 1. Payload Building (During PrepareProposal or
+			//    optimistically in ProcessProposal)
+			// 2. FinalizeBlock
+			// We'll discriminate error handling based on these.
+			switch {
+			case err == nil:
+				ee.metrics.markForkchoiceUpdateValid(req.State, hasPayloadAttributes, payloadID)
+
+				// If we reached here, we have a VALID status and a nil payload ID,
+				// we should log a warning and error.
+				if payloadID == nil && hasPayloadAttributes {
+					ee.logger.Warn(
+						"Received nil payload ID on VALID engine response",
+						"head_eth1_hash", req.State.HeadBlockHash,
+						"safe_eth1_hash", req.State.SafeBlockHash,
+						"finalized_eth1_hash", req.State.FinalizedBlockHash,
+					)
+					// Do not retry, return the error.
+					return nil, backoff.Permanent(ErrNilPayloadOnValidResponse)
+				}
+
+				// We've received a valid response, no more retries.
+				return payloadID, nil
+
+			case errors.IsAny(err, engineerrors.ErrSyncingPayloadStatus):
+				ee.logger.Info("NotifyForkchoiceUpdate: EL syncing. Retrying...")
+				ee.metrics.markForkchoiceUpdateSyncing(req.State, err)
+				return nil, err
+
+			case client.IsNonFatalError(err):
+				ee.logger.Info(
+					"NotifyForkchoiceUpdate: EL returns non fatal error. Retrying...",
+					"err", err,
 				)
-				// Do not retry, return the error.
-				return nil, ErrNilPayloadOnValidResponse
+				ee.metrics.markForkchoiceUpdateNonFatalError(err)
+				return nil, err
+
+			case errors.Is(err, engineerrors.ErrInvalidPayloadStatus):
+				// During payload building, then there is an invalid payload and should error.
+				// During FinalizeBlock, something is broken because this should never happen.
+				ee.logger.Error("NotifyForkchoiceUpdate: EL returned invalid payload.")
+				ee.metrics.markForkchoiceUpdateInvalid(req.State, err)
+				return nil, backoff.Permanent(err)
+
+			case client.IsFatalError(err):
+				ee.logger.Info(
+					"NotifyForkchoiceUpdate: EL returns fatal error.",
+					"err", err,
+				)
+				ee.metrics.markForkchoiceUpdateFatalError(err)
+				return nil, backoff.Permanent(err)
+
+			default:
+				ee.logger.Info(
+					"NotifyForkchoiceUpdate: EL returns unknown error.",
+					"err", err,
+				)
+				ee.metrics.markForkchoiceUpdateUndefinedError(err)
+				return nil, backoff.Permanent(err)
 			}
-
-			// We've received a valid response, no more retries.
-			return payloadID, nil
-
-		case errors.IsAny(err, engineerrors.ErrSyncingPayloadStatus):
-			ee.metrics.markForkchoiceUpdateSyncing(req.State, err)
-			// In all circumstances, keep retrying until the EVM is synced.
-			return nil, err
-
-		case errors.Is(err, engineerrors.ErrInvalidPayloadStatus):
-			ee.metrics.markForkchoiceUpdateInvalid(req.State, err)
-			// During payload building, then there is an invalid
-			// payload and should error.
-			// During FinalizeBlock, something is broken because
-			// this should never happen.
-			return nil, backoff.Permanent(err)
-
-		case client.IsNonFatalError(err):
-			ee.metrics.markForkchoiceUpdateNonFatalError(err)
-			return nil, err
-
-		case client.IsFatalError(err):
-			ee.metrics.markForkchoiceUpdateFatalError(err)
-			return nil, backoff.Permanent(err)
-
-		default:
-			ee.metrics.markForkchoiceUpdateUndefinedError(err)
-			// Retry on unknown errors, we'll log the error and retry.
-			return nil, backoff.Permanent(err)
-		}
-	},
+		},
 		backoff.WithBackOff(engineAPIBackoff),
 		backoff.WithMaxTries(maxRetries),
-		// Set 0 max elapsed time so we don't check it.
-		backoff.WithMaxElapsedTime(0),
+		backoff.WithMaxElapsedTime(0), // Set 0 max elapsed time so we don't check it.
 	)
 }
 
 // NotifyNewPayload notifies the execution client of the new payload.
+//
+//nolint:funlen // error handling and logs
 func (ee *Engine) NotifyNewPayload(
 	ctx context.Context,
 	req *ctypes.NewPayloadRequest,
 	retryOnSyncingStatus bool,
 ) error {
+	var (
+		engineAPIBackoff = ee.newBackoff()
+		maxRetries       = uint(ee.ec.GetRPCRetries())
+
+		payloadHash       = req.ExecutionPayload.GetBlockHash()
+		payloadParentHash = req.ExecutionPayload.GetParentHash()
+	)
+
+	_, err := backoff.Retry(
+		ctx,
+		func() (*common.ExecutionHash, error) {
+			ee.metrics.markNewPayloadCalled(payloadHash, payloadParentHash)
+			lastValidHash, err := ee.ec.NewPayload(
+				ctx, req.ExecutionPayload, req.VersionedHashes, req.ParentBeaconBlockRoot,
+			)
+
+			// NotifyNewPayload gets called under three circumstances:
+			// 1. ProcessProposal state transition
+			// 2. FinalizeBlock state transition
+			// We'll discriminate error handling based on these.
+			switch {
+			case err == nil:
+				ee.metrics.markNewPayloadValid(payloadHash, payloadParentHash)
+				// We've received a valid response, no more retries.
+				return lastValidHash, nil
+
+			case errors.IsAny(err, engineerrors.ErrSyncingPayloadStatus, engineerrors.ErrAcceptedPayloadStatus):
+				ee.logger.Info(
+					"NotifyNewPayload: EL returns non valid status. Retrying...",
+					"err", err,
+				)
+				ee.metrics.markNewPayloadAcceptedSyncingPayloadStatus(err, payloadHash, payloadParentHash)
+				// During ProcessProposal, we must be able to verify the
+				// block. Since we do not send a NotifyForkchoiceUpdate
+				// during ProcessProposal, we must retry here until EL is
+				// synced.
+				if retryOnSyncingStatus {
+					return nil, err
+				}
+				// During FinalizeBlock, we do not need to verify the block.
+				// We do not need to retry here, as the following call to
+				// NotifyForkchoiceUpdate will inform the EL of the new head
+				// and then wait for it to sync.
+				// Don't return error here, because we want to send the forkchoice update regardless.
+				ee.logger.Warn(
+					"NotifyNewPayload: pushed new payload to SYNCING node.",
+					"error", err,
+					"blockNum", req.ExecutionPayload.GetNumber(),
+					"blockHash", payloadHash,
+				)
+				return &common.ExecutionHash{}, nil
+
+			case client.IsNonFatalError(err):
+				ee.logger.Info(
+					"NotifyNewPayload: EL returns non fatal error. Retrying...",
+					"err", err,
+				)
+				// Protect against possible nil value.
+				if lastValidHash == nil {
+					lastValidHash = &common.ExecutionHash{}
+				}
+				ee.metrics.markNewPayloadNonFatalError(payloadHash, *lastValidHash, err)
+				return nil, err
+
+			case errors.Is(err, engineerrors.ErrInvalidPayloadStatus):
+				ee.logger.Error("NotifyNewPayload: EL returned invalid payload.")
+				ee.metrics.markNewPayloadInvalidPayloadStatus(payloadHash)
+				// During payload building, then there is an invalid
+				// payload and should error.
+				// During FinalizeBlock, something is broken because
+				// this should never happen.
+				return nil, backoff.Permanent(err)
+
+			case client.IsFatalError(err):
+				ee.logger.Error(
+					"NotifyNewPayload: EL returns fatal error.",
+					"err", err,
+				)
+				// Protect against possible nil value.
+				if lastValidHash == nil {
+					lastValidHash = &common.ExecutionHash{}
+				}
+				ee.metrics.markNewPayloadFatalError(payloadHash, *lastValidHash, err)
+				return nil, backoff.Permanent(err)
+			default:
+				ee.logger.Error(
+					"NotifyNewPayload: EL returns unknown error.",
+					"err", err,
+				)
+				ee.metrics.markNewPayloadUndefinedError(payloadHash, err)
+				// Do not retry on unknown errors.
+				return nil, backoff.Permanent(err)
+			}
+		},
+		backoff.WithBackOff(engineAPIBackoff),
+		backoff.WithMaxTries(maxRetries),
+		backoff.WithMaxElapsedTime(0), // Set 0 max elapsed time so we don't check it.
+	)
+	return err
+}
+
+func (ee *Engine) newBackoff() *backoff.ExponentialBackOff {
 	// Configure backoff. This will retry maxRetries number of times.
 	// Specifying 0 maxRetries will retry infinitely. Between each retry, it
 	// will wait RPCRetryInterval amount of time. This backoff will increase
@@ -166,92 +274,5 @@ func (ee *Engine) NotifyNewPayload(
 	engineAPIBackoff := backoff.NewExponentialBackOff()
 	engineAPIBackoff.InitialInterval = ee.ec.GetRPCRetryInterval()
 	engineAPIBackoff.MaxInterval = ee.ec.GetRPCMaxRetryInterval()
-	maxRetries := uint(ee.ec.GetRPCRetries())
-
-	// Otherwise we will send the payload to the execution client.
-	_, err := backoff.Retry(ctx, func() (*common.ExecutionHash, error) {
-		// Log the new payload attempt.
-		ee.metrics.markNewPayloadCalled(
-			req.ExecutionPayload.GetBlockHash(), req.ExecutionPayload.GetParentHash(),
-		)
-		lastValidHash, err := ee.ec.NewPayload(
-			ctx, req.ExecutionPayload, req.VersionedHashes, req.ParentBeaconBlockRoot,
-		)
-
-		// NotifyNewPayload gets called under three circumstances:
-		// 1. ProcessProposal state transition
-		// 2. FinalizeBlock state transition
-		// We'll discriminate error handling based on these.
-		switch {
-		case err == nil:
-			ee.metrics.markNewPayloadValid(
-				req.ExecutionPayload.GetBlockHash(), req.ExecutionPayload.GetParentHash(),
-			)
-			// We've received a valid response, no more retries.
-			return lastValidHash, nil
-
-		case errors.IsAny(err, engineerrors.ErrSyncingPayloadStatus, engineerrors.ErrAcceptedPayloadStatus):
-			ee.metrics.markNewPayloadAcceptedSyncingPayloadStatus(
-				err, req.ExecutionPayload.GetBlockHash(), req.ExecutionPayload.GetParentHash(),
-			)
-			// During ProcessProposal, we must be able to verify the
-			// block. Since we do not send a NotifyForkchoiceUpdate
-			// during ProcessProposal, we must retry here until EL is
-			// synced.
-			if retryOnSyncingStatus {
-				return nil, err
-			}
-			// During FinalizeBlock, we do not need to verify the block.
-			// We do not need to retry here, as the following call to
-			// NotifyForkchoiceUpdate will inform the EL of the new head
-			// and then wait for it to sync.
-			// Don't return error here, because we want to send the forkchoice update regardless.
-			ee.logger.Warn("Pushed new payload to SYNCING node.", "error", err,
-				"blockNum", req.ExecutionPayload.GetNumber(), "blockHash", req.ExecutionPayload.GetBlockHash(),
-			)
-			return &common.ExecutionHash{}, nil
-
-		case errors.Is(err, engineerrors.ErrInvalidPayloadStatus):
-			ee.metrics.markNewPayloadInvalidPayloadStatus(
-				req.ExecutionPayload.GetBlockHash(),
-			)
-			// During payload building, then there is an invalid
-			// payload and should error.
-			// During FinalizeBlock, something is broken because
-			// this should never happen.
-			return nil, backoff.Permanent(err)
-
-		case client.IsNonFatalError(err):
-			// Protect against possible nil value.
-			if lastValidHash == nil {
-				lastValidHash = &common.ExecutionHash{}
-			}
-			ee.metrics.markNewPayloadNonFatalError(
-				req.ExecutionPayload.GetBlockHash(),
-				*lastValidHash, err,
-			)
-			return nil, err
-
-		case client.IsFatalError(err):
-			// Protect against possible nil value.
-			if lastValidHash == nil {
-				lastValidHash = &common.ExecutionHash{}
-			}
-			ee.metrics.markNewPayloadFatalError(
-				req.ExecutionPayload.GetBlockHash(),
-				*lastValidHash, err,
-			)
-			return nil, backoff.Permanent(err)
-		default:
-			ee.metrics.markNewPayloadUndefinedError(
-				req.ExecutionPayload.GetBlockHash(), err,
-			)
-			// Do not retry on unknown errors.
-			return nil, backoff.Permanent(err)
-		}
-	}, backoff.WithBackOff(engineAPIBackoff), backoff.WithMaxTries(maxRetries),
-		// Set 0 max elapsed time so we don't check it.
-		backoff.WithMaxElapsedTime(0),
-	)
-	return err
+	return engineAPIBackoff
 }
