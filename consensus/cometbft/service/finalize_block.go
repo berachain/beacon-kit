@@ -23,10 +23,14 @@ package cometbft
 import (
 	"context"
 	"fmt"
+	"time"
 
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/sourcegraph/conc/iter"
 )
+
+// Delay to use before the upgrade to SBT.
+const constBlockDelay = 500 * time.Millisecond
 
 func (s *Service) finalizeBlock(
 	ctx context.Context,
@@ -94,7 +98,74 @@ func (s *Service) finalizeBlockInternal(
 		TxResults:             txResults,
 		ValidatorUpdates:      valUpdates,
 		ConsensusParamUpdates: &cp,
+		NextBlockDelay:        s.nextBlockDelay(req),
 	}, nil
+}
+
+// Panics if SBT upgrade parameters are not set.
+func (s *Service) nextBlockDelay(req *cmtabci.FinalizeBlockRequest) time.Duration {
+	delay := constBlockDelay
+
+	switch {
+	case s.blockDelay == nil: // height > 0; blockDelay record doesn't exist in DB (first live upgrade)
+		if s.sbtUpgradeHeight == 0 {
+			panic("SBT (stable block time) upgrade detected. --beacon-kit.cometbft.sbt-upgrade-height (block's height where SBT was enabled) must be set")
+		}
+		switch {
+		case req.Height > s.sbtUpgradeHeight: // upgrade happened in the past
+			if s.sbtUpgradeTime.IsZero() {
+				panic("SBT (stable block time) upgrade detected. --beacon-kit.cometbft.sbt-upgrade-time (block's time where SBT was enabled) must be set")
+			}
+			s.blockDelay = blockDelayUponGenesis(
+				s.sbtUpgradeTime,
+				s.sbtUpgradeHeight,
+			)
+			delay = s.blockDelay.Next(
+				req.Time,
+				req.Height,
+				targetBlockTime,
+			)
+		case req.Height == s.sbtUpgradeHeight: // upgrade is happening now
+			s.blockDelay = blockDelayUponGenesis(
+				req.Time,
+				req.Height,
+			)
+			// default: // upgrade is in the future
+			//   // nothing to do
+		}
+	case s.blockDelay.InitialHeight < s.sbtUpgradeHeight: // height > 0; blockDelay record exists in DB; consecutive (2nd, 3rd, so on) live upgrade
+		// Calculate block delay based on existing checkpoint.
+		delay = s.blockDelay.Next(
+			req.Time,
+			req.Height,
+			targetBlockTime,
+		)
+
+		switch {
+		case req.Height > s.sbtUpgradeHeight: // upgrade happened in the past
+			if s.sbtUpgradeTime.IsZero() {
+				panic("SBT (stable block time) upgrade detected. --beacon-kit.cometbft.sbt-upgrade-time (block's time where SBT was enabled) must be set")
+			}
+			s.blockDelay = blockDelayUponGenesis(
+				s.sbtUpgradeTime,
+				s.sbtUpgradeHeight,
+			)
+			delay = s.blockDelay.Next(
+				req.Time,
+				req.Height,
+				targetBlockTime,
+			)
+		case req.Height == s.sbtUpgradeHeight: // upgrade is happening now
+			s.blockDelay = blockDelayUponGenesis(
+				req.Time,
+				req.Height,
+			)
+			// default: // upgrade is in the future
+			//   // nothing to do
+		}
+	}
+
+	return delay
 }
 
 // workingHash gets the apphash that will be finalized in commit.

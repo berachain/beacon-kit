@@ -94,6 +94,11 @@ func (s *Service) initChain(
 		return nil, err
 	}
 
+	s.blockDelay = blockDelayUponGenesis(
+		req.Time,
+		req.InitialHeight,
+	)
+
 	// NOTE: We don't commit, but FinalizeBlock for block InitialHeight starts
 	// from
 	// this FinalizeBlockState.
