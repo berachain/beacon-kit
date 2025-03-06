@@ -40,6 +40,11 @@ func (s *Service) InitChain(
 	_ context.Context,
 	req *cmtabci.InitChainRequest,
 ) (*cmtabci.InitChainResponse, error) {
+	// Check if ctx is still good. CometBFT does not check this.
+	if s.ctx.Err() != nil {
+		// If the context is getting cancelled, we are shutting down.
+		return &cmtabci.InitChainResponse{}, s.ctx.Err()
+	}
 	//nolint:contextcheck // see s.ctx comment for more details
 	return s.initChain(s.ctx, req)
 }
@@ -94,7 +99,6 @@ func (s *Service) ProcessProposal(
 		// Node will panic on context cancel with "CONSENSUS FAILURE!!!" due to
 		// returning an error. This is expected. We do not want to accept or
 		// reject a proposal based on incomplete data.
-		// Returning PROCESS_PROPOSAL_STATUS_UNKNOWN will also result in comet panic.
 		return nil, s.ctx.Err()
 	}
 	//nolint:contextcheck // see s.ctx comment for more details
