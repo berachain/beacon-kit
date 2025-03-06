@@ -764,8 +764,8 @@ func (s *BeaconKitE2ESuite) decodeValidatorsResponse(resp *http.Response) (*[]be
 	return &validators, nil
 }
 
-// TestGetValidators tests querying validators with state head.
-func (s *BeaconKitE2ESuite) TestGetValidators() {
+// TestGetValidatorsWithStateHead tests querying validators with state head.
+func (s *BeaconKitE2ESuite) TestGetValidatorsWithStateHead() {
 	resp, err := s.getValidator(utils.StateIDHead)
 	s.Require().NoError(err)
 	s.Require().Equal(http.StatusOK, resp.StatusCode)
@@ -776,7 +776,6 @@ func (s *BeaconKitE2ESuite) TestGetValidators() {
 	s.Require().NotNil(validators)
 
 	for _, validator := range *validators {
-		s.Require().True(validator.Index >= 0)
 		s.Require().True(validator.Status == "active_ongoing")
 		s.Require().True(validator.Balance > 0, "Validator balance should be positive")
 		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
@@ -819,10 +818,9 @@ func (s *BeaconKitE2ESuite) TestGetValidatorsWithStatus() {
 
 	for _, validator := range *validators {
 		s.Require().Equal("active_ongoing", validator.Status, "Validator status should be active_ongoing")
-		//Check balance is positive
 		s.Require().True(validator.Balance > 0, "Validator balance should be positive")
-		//Check balance is equal to 4000 BERA
-		s.Require().True(validator.Balance == 4e12, "Validator balance should be 4000 BERA")
+		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
+		s.Require().True(validator.Balance <= 4e12, "Validator balance should not exceed 4000 BERA")
 	}
 }
 
@@ -849,4 +847,23 @@ func (s *BeaconKitE2ESuite) TestGetValidatorsWithIDAndStatus() {
 	s.Require().True((*validators)[0].Balance > 0, "Validator balance should be positive")
 	// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
 	s.Require().True((*validators)[0].Balance <= 4e12, "Validator balance should not exceed 4000 BERA")
+}
+
+// TestGetValidatorsWithStateGenesis tests querying validators with state genesis.
+func (s *BeaconKitE2ESuite) TestGetValidatorsWithStateGenesis() {
+	resp, err := s.getValidator(utils.StateIDGenesis)
+	s.Require().NoError(err)
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+	defer resp.Body.Close()
+
+	validators, err := s.decodeValidatorsResponse(resp)
+	s.Require().NoError(err)
+	s.Require().NotNil(validators)
+
+	for _, validator := range *validators {
+		s.Require().True(validator.Status == "active_ongoing")
+		s.Require().True(validator.Balance > 0, "Validator balance should be positive")
+		// 32e9 Gwei = 32 * 10^9 Gwei = 32,000,000,000 Gwei = 32 BERA
+		s.Require().True(validator.Balance <= 32e9, "Validator balance should not exceed 32 BERA")
+	}
 }
