@@ -25,9 +25,11 @@ package simulated_test
 import (
 	"bytes"
 	"context"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -60,7 +62,11 @@ func TestSimulatedCometComponent(t *testing.T) {
 // SetupTest initializes the test environment.
 func (s *SimulatedSuite) SetupTest() {
 	// Create a cancellable context for the duration of the test.
-	s.Ctx, s.CancelFunc = context.WithCancel(context.Background())
+	s.CtxApp, s.CtxAppCancelFn = context.WithCancel(context.Background())
+
+	// CometBFT uses context.TODO() for all ABCI calls, so we replicate that.
+	s.CtxComet = context.TODO()
+
 	s.HomeDir = s.T().TempDir()
 
 	// Initialize the home directory, Comet configuration, and genesis info.
@@ -92,12 +98,14 @@ func (s *SimulatedSuite) SetupTest() {
 
 	// Start the Beacon node in a separate goroutine.
 	go func() {
-		_ = s.TestNode.Start(s.Ctx)
+		_ = s.TestNode.Start(s.CtxApp)
 	}()
 
 	s.SimulationClient = execution.NewSimulationClient(s.TestNode.EngineClient)
-	// Allow a short period for services to fully initialize.
-	time.Sleep(2 * time.Second)
+	timeOut := 10 * time.Second
+	interval := 50 * time.Millisecond
+	err := s.waitTillServicesStarted(timeOut, interval)
+	s.Require().NoError(err)
 }
 
 // TearDownTest cleans up the test environment.
@@ -105,7 +113,9 @@ func (s *SimulatedSuite) TearDownTest() {
 	if err := s.ElHandle.Close(); err != nil {
 		s.T().Error("Error closing EL handle:", err)
 	}
-	s.CancelFunc()
+	// mimics the behaviour of shutdown func
+	s.CtxAppCancelFn()
+	s.TestNode.ServiceRegistry.StopAll()
 }
 
 // initializeChain sets up the chain using the genesis file.
@@ -115,7 +125,7 @@ func (s *SimulatedSuite) initializeChain() {
 	s.Require().NoError(err)
 
 	// Initialize the chain.
-	initResp, err := s.SimComet.Comet.InitChain(s.Ctx, &types.InitChainRequest{
+	initResp, err := s.SimComet.Comet.InitChain(s.CtxComet, &types.InitChainRequest{
 		ChainId:       simulated.TestnetBeaconChainID,
 		AppStateBytes: appGenesis.AppState,
 	})
@@ -124,12 +134,32 @@ func (s *SimulatedSuite) initializeChain() {
 
 	// Verify that the deposit store contains the expected deposits.
 	deposits, err := s.TestNode.StorageBackend.DepositStore().GetDepositsByIndex(
-		s.Ctx,
+		s.CtxApp,
 		constants.FirstDepositIndex,
 		constants.FirstDepositIndex+s.TestNode.ChainSpec.MaxDepositsPerBlock(),
 	)
 	s.Require().NoError(err)
 	s.Require().Len(deposits, 1, "Expected 1 deposit")
+}
+
+// waitTillServicesStarted waits until the log buffer contains "All services started".
+// It checks periodically with a timeout to prevent indefinite waiting.
+// If there is a better way to determine the services have started, e.g. readiness probe, replace this.
+func (s *SimulatedSuite) waitTillServicesStarted(timeout time.Duration, interval time.Duration) error {
+	deadline := time.After(timeout)
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-deadline:
+			return errors.New("timeout waiting for services to start")
+		case <-ticker.C:
+			if strings.Contains(s.LogBuffer.String(), "All services started") {
+				return nil
+			}
+		}
+	}
 }
 
 // moveChainToHeight will iterate through the core loop `iterations` times, i.e. Propose, Process, Finalize and Commit.
@@ -143,7 +173,7 @@ func (s *SimulatedSuite) moveChainToHeight(startHeight, iterations int64, propos
 
 	for currentHeight := startHeight; currentHeight < startHeight+iterations; currentHeight++ {
 		proposalTime := time.Now()
-		proposal, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{
+		proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 			Height:          currentHeight,
 			Time:            proposalTime,
 			ProposerAddress: pubkey.Address(),
@@ -152,7 +182,7 @@ func (s *SimulatedSuite) moveChainToHeight(startHeight, iterations int64, propos
 		s.Require().NotEmpty(proposal)
 
 		// Process the proposal.
-		processResp, err := s.SimComet.Comet.ProcessProposal(s.Ctx, &types.ProcessProposalRequest{
+		processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
 			Txs:             proposal.Txs,
 			Height:          currentHeight,
 			ProposerAddress: pubkey.Address(),
@@ -162,7 +192,7 @@ func (s *SimulatedSuite) moveChainToHeight(startHeight, iterations int64, propos
 		s.Require().Equal(types.PROCESS_PROPOSAL_STATUS_ACCEPT, processResp.Status)
 
 		// Finalize the block.
-		finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.Ctx, &types.FinalizeBlockRequest{
+		finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.FinalizeBlockRequest{
 			Txs:             proposal.Txs,
 			Height:          currentHeight,
 			ProposerAddress: pubkey.Address(),
@@ -171,7 +201,7 @@ func (s *SimulatedSuite) moveChainToHeight(startHeight, iterations int64, propos
 		s.Require().NotEmpty(finalizeResp)
 
 		// Commit the block.
-		_, err = s.SimComet.Comet.Commit(s.Ctx, &types.CommitRequest{})
+		_, err = s.SimComet.Comet.Commit(s.CtxComet, &types.CommitRequest{})
 		s.Require().NoError(err)
 
 		// Record the Commit Block

@@ -38,6 +38,7 @@ import (
 	"github.com/berachain/beacon-kit/execution/client"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	nodecomponents "github.com/berachain/beacon-kit/node-core/components"
+	service "github.com/berachain/beacon-kit/node-core/services/registry"
 	nodetypes "github.com/berachain/beacon-kit/node-core/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/net/url"
@@ -61,13 +62,21 @@ type TestNodeInput struct {
 
 type TestNode struct {
 	nodetypes.Node
-	StorageBackend blockchain.StorageBackend
-	ChainSpec      chain.Spec
-	APIBackend     nodecomponents.NodeAPIBackend
-	SimComet       *SimComet
-	EngineClient   *client.EngineClient
-	StateProcessor *core.StateProcessor
-	KZGVerifier    kzg.BlobProofVerifier
+	StorageBackend  blockchain.StorageBackend
+	ChainSpec       chain.Spec
+	APIBackend      nodecomponents.NodeAPIBackend
+	SimComet        *SimComet
+	EngineClient    *client.EngineClient
+	StateProcessor  *core.StateProcessor
+	KZGVerifier     kzg.BlobProofVerifier
+	StorageBackend  blockchain.StorageBackend
+	ChainSpec       chain.Spec
+	APIBackend      nodecomponents.NodeAPIBackend
+	SimComet        *SimComet
+	EngineClient    *client.EngineClient
+	StateProcessor  *core.StateProcessor
+	ServiceRegistry *service.Registry
+	KZGVerifier     kzg.BlobProofVerifier
 }
 
 // NewTestNode Uses the testnet chainspec.
@@ -108,15 +117,25 @@ func buildNode(
 ) TestNode {
 	// variables to hold the components needed to set up BeaconApp
 	var (
-		apiBackend     nodecomponents.NodeAPIBackend
-		beaconNode     nodetypes.Node
-		simComet       *SimComet
-		config         *config.Config
-		storageBackend blockchain.StorageBackend
-		chainSpec      chain.Spec
-		engineClient   *client.EngineClient
-		stateProcessor *core.StateProcessor
-		kzgVerifier    kzg.BlobProofVerifier
+		apiBackend      nodecomponents.NodeAPIBackend
+		beaconNode      nodetypes.Node
+		simComet        *SimComet
+		config          *config.Config
+		storageBackend  blockchain.StorageBackend
+		chainSpec       chain.Spec
+		engineClient    *client.EngineClient
+		stateProcessor  *core.StateProcessor
+		kzgVerifier     kzg.BlobProofVerifier
+		apiBackend      nodecomponents.NodeAPIBackend
+		beaconNode      nodetypes.Node
+		simComet        *SimComet
+		config          *config.Config
+		storageBackend  blockchain.StorageBackend
+		chainSpec       chain.Spec
+		engineClient    *client.EngineClient
+		stateProcessor  *core.StateProcessor
+		serviceRegistry *service.Registry
+		kzgVerifier     kzg.BlobProofVerifier
 	)
 
 	// build all node components using depinject
@@ -140,6 +159,7 @@ func buildNode(
 		&chainSpec,
 		&engineClient,
 		&stateProcessor,
+		&serviceRegistry,
 		&kzgVerifier,
 	); err != nil {
 		panic(err)
@@ -154,14 +174,23 @@ func buildNode(
 	logger.WithConfig(config.GetLogger())
 	apiBackend.AttachQueryBackend(simComet)
 	return TestNode{
-		Node:           beaconNode,
-		StorageBackend: storageBackend,
-		ChainSpec:      chainSpec,
-		APIBackend:     apiBackend,
-		SimComet:       simComet,
-		EngineClient:   engineClient,
-		StateProcessor: stateProcessor,
-		KZGVerifier:    kzgVerifier,
+		Node:            beaconNode,
+		StorageBackend:  storageBackend,
+		ChainSpec:       chainSpec,
+		APIBackend:      apiBackend,
+		SimComet:        simComet,
+		EngineClient:    engineClient,
+		StateProcessor:  stateProcessor,
+		KZGVerifier:     kzgVerifier,
+		Node:            beaconNode,
+		StorageBackend:  storageBackend,
+		ChainSpec:       chainSpec,
+		APIBackend:      apiBackend,
+		SimComet:        simComet,
+		EngineClient:    engineClient,
+		StateProcessor:  stateProcessor,
+		ServiceRegistry: serviceRegistry,
+		KZGVerifier:     kzgVerifier,
 	}
 }
 

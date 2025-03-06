@@ -57,8 +57,9 @@ const testPkey = "fffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f993
 
 // SharedAccessors holds references to common utilities required in tests.
 type SharedAccessors struct {
-	Ctx        context.Context
-	CancelFunc context.CancelFunc
+	CtxApp         context.Context
+	CtxAppCancelFn context.CancelFunc
+	CtxComet       context.Context
 	HomeDir    string
 	TestNode   TestNode
 
