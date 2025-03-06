@@ -60,7 +60,7 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	currentHeight := int64(blockHeight + coreLoopIterations)
 	// Prepare a block proposal.
 	proposalTime := time.Now()
-	proposal, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{
+	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
 		Time:            proposalTime,
 		ProposerAddress: pubkey.Address(),
@@ -119,7 +119,7 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	// Reset the log buffer to discard old logs we don't care about
 	s.LogBuffer.Reset()
 	// Process the proposal containing the malicious block.
-	processResp, err := s.SimComet.Comet.ProcessProposal(s.Ctx, &types.ProcessProposalRequest{
+	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
 		Txs:             proposal.Txs,
 		Height:          currentHeight,
 		ProposerAddress: pubkey.Address(),
@@ -156,7 +156,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidTimestamps_Errors() {
 	// Prepare a block proposal, but 2 seconds in the future (i.e. attempt to roll timestamp forward)
 	correctConsensusTime := time.Now()
 	maliciousProposalTime := correctConsensusTime.Add(2 * time.Second)
-	maliciousProposal, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{
+	maliciousProposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
 		Time:            maliciousProposalTime,
 		ProposerAddress: pubkey.Address(),
@@ -167,7 +167,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidTimestamps_Errors() {
 	// Reset the log buffer to discard old logs we don't care about
 	s.LogBuffer.Reset()
 	// Process the proposal containing the malicious block.
-	processResp, err := s.SimComet.Comet.ProcessProposal(s.Ctx, &types.ProcessProposalRequest{
+	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
 		Txs:             maliciousProposal.Txs,
 		Height:          currentHeight,
 		ProposerAddress: pubkey.Address(),

@@ -95,7 +95,7 @@ func (s *Registry) StartAll(ctx context.Context) error {
 
 		s.servicesStarted[typeName] = struct{}{}
 	}
-
+	s.logger.Info("All services started", "num", len(s.servicesStarted))
 	return nil
 }
 
@@ -121,6 +121,7 @@ func (s *Registry) StopAll() {
 			s.logger.Error("error when stopping service", "type", typeName, "err", err)
 		}
 	}
+	s.logger.Info("All services stopped", "num", len(s.servicesStarted))
 }
 
 // RegisterService appends a service constructor function to the service
