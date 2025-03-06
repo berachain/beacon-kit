@@ -95,7 +95,7 @@ func (s *Registry) StartAll(ctx context.Context) error {
 
 		s.servicesStarted[typeName] = struct{}{}
 	}
-
+	s.logger.Info("All services started", "num", len(s.servicesStarted))
 	return nil
 }
 

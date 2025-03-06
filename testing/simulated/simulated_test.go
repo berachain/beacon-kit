@@ -25,9 +25,11 @@ package simulated_test
 import (
 	"bytes"
 	"context"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log/phuslu"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -97,9 +99,10 @@ func (s *SimulatedSuite) SetupTest() {
 	go func() {
 		_ = s.TestNode.Start(s.CtxApp)
 	}()
-
-	// Allow a short period for services to fully initialize.
-	time.Sleep(5 * time.Second)
+	timeOut := 10 * time.Second
+	interval := 50 * time.Millisecond
+	err := s.waitTillServicesStarted(timeOut, interval)
+	s.Require().NoError(err)
 }
 
 // TearDownTest cleans up the test environment.
@@ -134,6 +137,26 @@ func (s *SimulatedSuite) initializeChain() {
 	)
 	s.Require().NoError(err)
 	s.Require().Len(deposits, 1, "Expected 1 deposit")
+}
+
+// waitTillServicesStarted waits until the log buffer contains "All services started".
+// It checks periodically with a timeout to prevent indefinite waiting.
+// If there is a better way to determine the services have started, e.g. readiness probe, replace this.
+func (s *SimulatedSuite) waitTillServicesStarted(timeout time.Duration, interval time.Duration) error {
+	deadline := time.After(timeout)
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-deadline:
+			return errors.New("timeout waiting for services to start")
+		case <-ticker.C:
+			if strings.Contains(s.LogBuffer.String(), "All services started") {
+				return nil
+			}
+		}
+	}
 }
 
 // moveChainToHeight will iterate through the core loop `iterations` times, i.e. Propose, Process, Finalize and Commit.
