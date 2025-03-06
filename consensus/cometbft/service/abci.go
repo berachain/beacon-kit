@@ -50,6 +50,13 @@ func (s *Service) PrepareProposal(
 	_ context.Context,
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
+	// Check if ctx is still good. CometBFT does not check this.
+	if s.ctx.Err() != nil {
+		// If the context is getting cancelled, we are shutting down.
+		// It is ok returning an empty proposal.
+		//nolint:nilerr // explicitly allowing this case
+		return &cmtabci.PrepareProposalResponse{Txs: req.Txs}, nil
+	}
 	//nolint:contextcheck // see s.ctx comment for more details
 	return s.prepareProposal(s.ctx, req)
 }
@@ -82,6 +89,14 @@ func (s *Service) ProcessProposal(
 	_ context.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
+	// Check if ctx is still good. CometBFT does not check this.
+	if s.ctx.Err() != nil {
+		// Node will panic on context cancel with "CONSENSUS FAILURE!!!" due to
+		// returning an error. This is expected. We do not want to accept or
+		// reject a proposal based on incomplete data.
+		// Returning PROCESS_PROPOSAL_STATUS_UNKNOWN will also result in comet panic.
+		return nil, s.ctx.Err()
+	}
 	//nolint:contextcheck // see s.ctx comment for more details
 	return s.processProposal(s.ctx, req)
 }
@@ -90,6 +105,12 @@ func (s *Service) FinalizeBlock(
 	_ context.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (*cmtabci.FinalizeBlockResponse, error) {
+	// Check if ctx is still good. CometBFT does not check this.
+	if s.ctx.Err() != nil {
+		// Node will panic on context cancel with "CONSENSUS FAILURE!!!" due to error.
+		// We expect this to happen and do not want to finalize any incomplete or invalid state.
+		return nil, s.ctx.Err()
+	}
 	//nolint:contextcheck // see s.ctx comment for more details
 	return s.finalizeBlock(s.ctx, req)
 }
@@ -104,8 +125,14 @@ func (s *Service) FinalizeBlock(
 func (s *Service) Commit(
 	_ context.Context, req *cmtabci.CommitRequest,
 ) (*cmtabci.CommitResponse, error) {
+	// Check if ctx is still good. CometBFT does not check this.
+	if s.ctx.Err() != nil {
+		// Node will panic on context cancel with "CONSENSUS FAILURE!!!" due to error.
+		// We expect this to happen and do not want to commit any incomplete or invalid state.
+		return nil, s.ctx.Err()
+	}
 	//nolint:contextcheck // see s.ctx comment for more details
-	return s.commit(s.ctx, req), nil
+	return s.commit(s.ctx, req)
 }
 
 //

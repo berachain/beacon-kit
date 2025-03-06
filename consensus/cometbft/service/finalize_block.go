@@ -32,12 +32,6 @@ func (s *Service) finalizeBlock(
 	ctx context.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (*cmtabci.FinalizeBlockResponse, error) {
-	// Check if ctx is still good. CometBFT does not check this.
-	if ctx.Err() != nil {
-		// Node will panic on context cancel with "CONSENSUS FAILURE!!!" due to error.
-		// We expect this to happen and do not want to finalize any incomplete or invalid state.
-		return nil, ctx.Err()
-	}
 	res, err := s.finalizeBlockInternal(ctx, req)
 	if res != nil {
 		res.AppHash = s.workingHash()

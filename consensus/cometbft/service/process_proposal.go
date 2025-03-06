@@ -32,14 +32,6 @@ func (s *Service) processProposal(
 	ctx context.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
-	// Check if ctx is still good. CometBFT does not check this.
-	if ctx.Err() != nil {
-		// Node will panic on context cancel with "CONSENSUS FAILURE!!!" due to
-		// returning an error. This is expected. We do not want to accept or
-		// reject a proposal based on incomplete data.
-		// Returning PROCESS_PROPOSAL_STATUS_UNKNOWN will also result in comet panic.
-		return nil, ctx.Err()
-	}
 	startTime := time.Now()
 	defer s.telemetrySink.MeasureSince(
 		"beacon_kit.runtime.process_proposal_duration", startTime)
