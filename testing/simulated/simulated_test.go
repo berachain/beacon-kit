@@ -95,7 +95,7 @@ func (s *SimulatedSuite) SetupTest() {
 	}()
 
 	// Allow a short period for services to fully initialize.
-	time.Sleep(2 * time.Second)
+	time.Sleep(5 * time.Second)
 }
 
 // TearDownTest cleans up the test environment.
