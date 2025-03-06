@@ -68,13 +68,6 @@ type TestNode struct {
 	SimComet        *SimComet
 	EngineClient    *client.EngineClient
 	StateProcessor  *core.StateProcessor
-	KZGVerifier     kzg.BlobProofVerifier
-	StorageBackend  blockchain.StorageBackend
-	ChainSpec       chain.Spec
-	APIBackend      nodecomponents.NodeAPIBackend
-	SimComet        *SimComet
-	EngineClient    *client.EngineClient
-	StateProcessor  *core.StateProcessor
 	ServiceRegistry *service.Registry
 	KZGVerifier     kzg.BlobProofVerifier
 }
@@ -125,15 +118,6 @@ func buildNode(
 		chainSpec       chain.Spec
 		engineClient    *client.EngineClient
 		stateProcessor  *core.StateProcessor
-		kzgVerifier     kzg.BlobProofVerifier
-		apiBackend      nodecomponents.NodeAPIBackend
-		beaconNode      nodetypes.Node
-		simComet        *SimComet
-		config          *config.Config
-		storageBackend  blockchain.StorageBackend
-		chainSpec       chain.Spec
-		engineClient    *client.EngineClient
-		stateProcessor  *core.StateProcessor
 		serviceRegistry *service.Registry
 		kzgVerifier     kzg.BlobProofVerifier
 	)
@@ -174,14 +158,6 @@ func buildNode(
 	logger.WithConfig(config.GetLogger())
 	apiBackend.AttachQueryBackend(simComet)
 	return TestNode{
-		Node:            beaconNode,
-		StorageBackend:  storageBackend,
-		ChainSpec:       chainSpec,
-		APIBackend:      apiBackend,
-		SimComet:        simComet,
-		EngineClient:    engineClient,
-		StateProcessor:  stateProcessor,
-		KZGVerifier:     kzgVerifier,
 		Node:            beaconNode,
 		StorageBackend:  storageBackend,
 		ChainSpec:       chainSpec,

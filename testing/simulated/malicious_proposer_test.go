@@ -211,7 +211,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobCommitment_Errors() {
 
 	// Prepare a block proposal.
 	consensusTime := time.Now()
-	proposal, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{
+	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
 		Time:            consensusTime,
 		ProposerAddress: pubkey.Address(),
@@ -346,7 +346,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobCommitment_Errors() {
 	// Reset the log buffer to discard old logs we don't care about
 	s.LogBuffer.Reset()
 	// Process the proposal containing the block.
-	processResp, err := s.SimComet.Comet.ProcessProposal(s.Ctx, &types.ProcessProposalRequest{
+	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
 		Txs:             proposal.Txs,
 		Height:          currentHeight,
 		ProposerAddress: pubkey.Address(),
@@ -379,7 +379,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobInclusionProof_Errors() 
 
 	// Prepare a block proposal.
 	consensusTime := time.Now()
-	proposal, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{
+	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
 		Time:            consensusTime,
 		ProposerAddress: pubkey.Address(),
@@ -509,7 +509,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobInclusionProof_Errors() 
 	// Reset the log buffer to discard old logs we don't care about
 	s.LogBuffer.Reset()
 	// Process the proposal containing the block.
-	processResp, err := s.SimComet.Comet.ProcessProposal(s.Ctx, &types.ProcessProposalRequest{
+	processResp, err := s.SimComet.Comet.ProcessProposal(s.CtxComet, &types.ProcessProposalRequest{
 		Txs:             proposal.Txs,
 		Height:          currentHeight,
 		ProposerAddress: pubkey.Address(),
