@@ -402,6 +402,49 @@ func (s *BeaconKitE2ESuite) TestValidatorBalancesWithInvalidPubkey() {
 }
 
 // Helper functions
+// decodeResponse is a generic function that decodes an HTTP response into the specified type T.
+func decodeResponse[T any](resp *http.Response) (T, error) {
+	var result T
+
+	if resp == nil {
+		return result, errors.New("nil response")
+	}
+	defer resp.Body.Close()
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return result, err
+	}
+
+	// First decode into GenericResponse.
+	var genericResp beacontypes.GenericResponse
+	if err = json.Unmarshal(bodyBytes, &genericResp); err != nil {
+		return result, err
+	}
+
+	// Convert the data field to JSON.
+	dataBytes, err := json.Marshal(genericResp.Data)
+	if err != nil {
+		return result, err
+	}
+
+	// Unmarshal into the target type.
+	if err = json.Unmarshal(dataBytes, &result); err != nil {
+		return result, err
+	}
+
+	return result, nil
+}
+
+// decodeValidatorResponse decodes a single validator response.
+func (s *BeaconKitE2ESuite) decodeValidatorResponse(resp *http.Response) (*beacontypes.ValidatorData, error) {
+	validator, err := decodeResponse[beacontypes.ValidatorData](resp)
+	if err != nil {
+		return nil, err
+	}
+	return &validator, nil
+}
+
 // getStateValidator gets the state validator by index or pubkey.
 func (s *BeaconKitE2ESuite) getStateValidator(stateID, validatorID string) (*http.Response, error) {
 	client := s.initHTTPBeaconTest()
@@ -415,39 +458,6 @@ func (s *BeaconKitE2ESuite) getStateValidator(stateID, validatorID string) (*htt
 	}
 
 	return resp, nil
-}
-
-// decodeValidatorResponse decodes the validator response.
-func (s *BeaconKitE2ESuite) decodeValidatorResponse(resp *http.Response) (*beacontypes.ValidatorData, error) {
-	if resp == nil {
-		return nil, errors.New("nil response")
-	}
-	defer resp.Body.Close()
-
-	bodyBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	// First decode into GenericResponse.
-	var genericResp beacontypes.GenericResponse
-	if err = json.Unmarshal(bodyBytes, &genericResp); err != nil {
-		return nil, err
-	}
-
-	// Convert the data field to JSON
-	dataBytes, err := json.Marshal(genericResp.Data)
-	if err != nil {
-		return nil, err
-	}
-
-	// Unmarshal into ValidatorData
-	var validatorData beacontypes.ValidatorData
-	if err = json.Unmarshal(dataBytes, &validatorData); err != nil {
-		return nil, err
-	}
-
-	return &validatorData, nil
 }
 
 // TestGetStateValidatorByIndex tests getting the state validator by index.
@@ -548,34 +558,13 @@ func (s *BeaconKitE2ESuite) getValidatorBalances(stateID string, ids ...string) 
 	return resp, nil
 }
 
+// decodeValidatorBalancesResponse decodes a response containing validator balances.
 func (s *BeaconKitE2ESuite) decodeValidatorBalancesResponse(resp *http.Response) (*[]beacontypes.ValidatorBalanceData, error) {
-	if resp == nil {
-		return nil, errors.New("nil response")
-	}
-	defer resp.Body.Close()
-
-	bodyBytes, err := io.ReadAll(resp.Body)
+	balances, err := decodeResponse[[]beacontypes.ValidatorBalanceData](resp)
 	if err != nil {
 		return nil, err
 	}
-
-	var genericResp beacontypes.GenericResponse
-	if err = json.Unmarshal(bodyBytes, &genericResp); err != nil {
-		return nil, err
-	}
-
-	// Convert the data field to JSON
-	dataBytes, err := json.Marshal(genericResp.Data)
-	if err != nil {
-		return nil, err
-	}
-
-	var validatorBalances []beacontypes.ValidatorBalanceData
-	if err = json.Unmarshal(dataBytes, &validatorBalances); err != nil {
-		return nil, err
-	}
-
-	return &validatorBalances, nil
+	return &balances, nil
 }
 
 // TestGetValidatorBalances tests querying validator balances for state head.
@@ -730,5 +719,151 @@ func (s *BeaconKitE2ESuite) TestGetValidatorBalancesForGenesis() {
 		// At genesis, the validator balance is 32 BERA.
 		// 32e9 Gwei = 32 * 10^9 Gwei = 32,000,000,000 Gwei = 32 BERA
 		s.Require().True(balance.Balance <= 32e9, "Validator balance should not exceed 32 BERA")
+	}
+}
+
+// getValidator gets the validator with the given stateID and optional options.
+func (s *BeaconKitE2ESuite) getValidator(stateID string, options ...map[string]string) (*http.Response, error) {
+	client := s.initHTTPBeaconTest()
+
+	url := fmt.Sprintf("/eth/v1/beacon/states/%s/validators", stateID)
+
+	// Process options if provided
+	if len(options) > 0 {
+		queryParams := []string{}
+
+		// Extract options from the map
+		for _, opts := range options {
+			for key, value := range opts {
+				queryParams = append(queryParams, fmt.Sprintf("%s=%s", key, value))
+			}
+		}
+
+		// Add query parameters to URL if any exist
+		if len(queryParams) > 0 {
+			url = url + "?" + strings.Join(queryParams, "&")
+		}
+	}
+
+	resp, err := client.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get validator: %w", err)
+	}
+	if resp == nil {
+		return nil, errors.New("received nil response")
+	}
+	return resp, nil
+}
+
+// decodeValidatorsResponse decodes a response containing multiple validators.
+func (s *BeaconKitE2ESuite) decodeValidatorsResponse(resp *http.Response) (*[]beacontypes.ValidatorData, error) {
+	validators, err := decodeResponse[[]beacontypes.ValidatorData](resp)
+	if err != nil {
+		return nil, err
+	}
+	return &validators, nil
+}
+
+// TestGetValidatorsWithStateHead tests querying validators with state head.
+func (s *BeaconKitE2ESuite) TestGetValidatorsWithStateHead() {
+	resp, err := s.getValidator(utils.StateIDHead)
+	s.Require().NoError(err)
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+	defer resp.Body.Close()
+
+	validators, err := s.decodeValidatorsResponse(resp)
+	s.Require().NoError(err)
+	s.Require().NotNil(validators)
+
+	for _, validator := range *validators {
+		s.Require().True(validator.Status == "active_ongoing")
+		s.Require().True(validator.Balance > 0, "Validator balance should be positive")
+		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
+		s.Require().True(validator.Balance <= 4e12, "Validator balance should not exceed 4000 BERA")
+	}
+}
+
+// TestGetValidatorsWithID tests querying validators with ID parameter.
+func (s *BeaconKitE2ESuite) TestGetValidatorsWithID() {
+	resp, err := s.getValidator(utils.StateIDHead, map[string]string{
+		"id": "0",
+	})
+	s.Require().NoError(err)
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+	defer resp.Body.Close()
+
+	validators, err := s.decodeValidatorsResponse(resp)
+	s.Require().NoError(err)
+	s.Require().NotNil(validators)
+	s.Require().Len(*validators, 1)
+	s.Require().Equal(uint64(0), (*validators)[0].Index, "Validator index should be 0")
+	s.Require().Equal("active_ongoing", (*validators)[0].Status, "Validator status should be active_ongoing")
+	s.Require().True((*validators)[0].Balance > 0, "Validator balance should be positive")
+	// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
+	s.Require().True((*validators)[0].Balance <= 4e12, "Validator balance should not exceed 4000 BERA")
+}
+
+// TestGetValidatorsWithStatus tests querying validators with status parameter.
+func (s *BeaconKitE2ESuite) TestGetValidatorsWithStatus() {
+	resp, err := s.getValidator(utils.StateIDHead, map[string]string{
+		"status": "active_ongoing",
+	})
+	s.Require().NoError(err)
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+	defer resp.Body.Close()
+
+	validators, err := s.decodeValidatorsResponse(resp)
+	s.Require().NoError(err)
+	s.Require().NotNil(validators)
+
+	for _, validator := range *validators {
+		s.Require().Equal("active_ongoing", validator.Status, "Validator status should be active_ongoing")
+		s.Require().True(validator.Balance > 0, "Validator balance should be positive")
+		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
+		s.Require().True(validator.Balance <= 4e12, "Validator balance should not exceed 4000 BERA")
+	}
+}
+
+// TestGetValidatorsWithIDAndStatus tests querying validators with both ID and status parameters.
+func (s *BeaconKitE2ESuite) TestGetValidatorsWithIDAndStatus() {
+	// Call with both ID and status
+	resp, err := s.getValidator(utils.StateIDHead, map[string]string{
+		"id":     "0",
+		"status": "active_ongoing",
+	})
+	s.Require().NoError(err)
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+	defer resp.Body.Close()
+
+	// Decode and verify response
+	validators, err := s.decodeValidatorsResponse(resp)
+	s.Require().NoError(err)
+	s.Require().NotNil(validators)
+
+	s.Require().Len(*validators, 1)
+	// Verify the validator has the expected ID and status
+	s.Require().Equal(uint64(0), (*validators)[0].Index, "Validator index should be 0")
+	s.Require().Equal("active_ongoing", (*validators)[0].Status, "Validator status should be active_ongoing")
+	s.Require().True((*validators)[0].Balance > 0, "Validator balance should be positive")
+	// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
+	s.Require().True((*validators)[0].Balance <= 4e12, "Validator balance should not exceed 4000 BERA")
+}
+
+// TestGetValidatorsWithStateGenesis tests querying validators with state genesis.
+func (s *BeaconKitE2ESuite) TestGetValidatorsWithStateGenesis() {
+	resp, err := s.getValidator(utils.StateIDGenesis)
+	s.Require().NoError(err)
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+	defer resp.Body.Close()
+
+	validators, err := s.decodeValidatorsResponse(resp)
+	s.Require().NoError(err)
+	s.Require().NotNil(validators)
+
+	for _, validator := range *validators {
+		s.Require().True(validator.Status == "active_ongoing")
+		s.Require().True(validator.Balance > 0, "Validator balance should be positive")
+		// 32e9 Gwei = 32 * 10^9 Gwei = 32,000,000,000 Gwei = 32 BERA
+		s.Require().True(validator.Balance <= 32e9, "Validator balance should not exceed 32 BERA")
 	}
 }
