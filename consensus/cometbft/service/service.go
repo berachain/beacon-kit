@@ -96,6 +96,15 @@ type Service struct {
 	minRetainBlocks uint64
 
 	chainID string
+
+	// ctx is the context passed in for the service. CometBFT currently does
+	// not support context usage. It passes "context.TODO()" to apps that
+	// implement the ABCI++ interface, and does not provide a context that is
+	// a child context of the one the node originally provides to comet.
+	// Thus the app cannot tell when the context as been cancelled or not.
+	// TODO: We must use this as a workaround for now until CometBFT properly
+	// generates contexts that inherit from the parent context we provide.
+	ctx context.Context
 }
 
 func NewService(
@@ -165,6 +174,7 @@ func (s *Service) Start(
 		return err
 	}
 
+	s.ctx = ctx
 	s.node, err = node.NewNode(
 		ctx,
 		cfg,
@@ -218,6 +228,12 @@ func (s *Service) Stop() error {
 		errs = append(errs, fmt.Errorf("failed to close application.id: %w", err))
 	}
 	return errors.Join(errs...)
+}
+
+// ResetAppCtx sets the app ctx for the service. This is used
+// primarily for the mock service.
+func (s *Service) ResetAppCtx(ctx context.Context) {
+	s.ctx = ctx
 }
 
 // Name returns the name of the cometbft.
@@ -320,8 +336,9 @@ func (s *Service) getContextForProposal(
 		// on initialHeight. Panic appeases nilaway.
 		panic(fmt.Errorf("getContextForProposal: %w", errNilFinalizeBlockState))
 	}
-	ctx, _ = s.finalizeBlockState.Context().CacheContext()
-	return ctx
+	newCtx, _ := s.finalizeBlockState.Context().CacheContext()
+	// Preserve the CosmosSDK context while using the correct base ctx.
+	return newCtx.WithContext(ctx.Context())
 }
 
 // CreateQueryContext creates a new sdk.Context for a query, taking as args

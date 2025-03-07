@@ -55,7 +55,7 @@ func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_Errors() {
 	currentHeight := int64(blockHeight + coreLoopIterations)
 	// Prepare a valid block proposal.
 	proposalTime := time.Now()
-	proposal, err := s.SimComet.Comet.PrepareProposal(s.Ctx, &types.PrepareProposalRequest{
+	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
 		Time:            proposalTime,
 		ProposerAddress: pubkey.Address(),
@@ -82,7 +82,7 @@ func (s *SimulatedSuite) TestFinalizeBlock_BadBlock_Errors() {
 	// Reset the log buffer to discard old logs we don't care about
 	s.LogBuffer.Reset()
 	// Finalize the proposal containing the malicious block.
-	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.Ctx, &types.FinalizeBlockRequest{
+	finalizeResp, err := s.SimComet.Comet.FinalizeBlock(s.CtxComet, &types.FinalizeBlockRequest{
 		Txs:             proposal.Txs,
 		Height:          currentHeight,
 		ProposerAddress: pubkey.Address(),
