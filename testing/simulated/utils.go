@@ -47,8 +47,9 @@ import (
 
 // SharedAccessors holds references to common utilities required in tests.
 type SharedAccessors struct {
-	Ctx        context.Context
-	CancelFunc context.CancelFunc
+	CtxApp         context.Context
+	CtxAppCancelFn context.CancelFunc
+	CtxComet       context.Context
 	HomeDir    string
 	TestNode   TestNode
 

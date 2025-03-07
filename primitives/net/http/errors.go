@@ -20,7 +20,9 @@
 
 package http
 
-import "errors"
+import (
+	"errors"
+)
 
 var (
 	// ErrTimeout indicates a timeout error from http.Client.

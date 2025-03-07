@@ -36,10 +36,7 @@ import (
 
 // DefaultRootCommandSetup sets up the default commands for the root command.
 func DefaultRootCommandSetup(
-	root *Root,
-	mm *cometbft.Service,
-	appCreator servertypes.AppCreator,
-	chainSpec chain.Spec,
+	root *Root, mm *cometbft.Service, appCreator servertypes.AppCreator, chainSpec chain.Spec,
 ) {
 	// Add all the commands to the root command.
 	root.cmd.AddCommand(
@@ -50,7 +47,7 @@ func DefaultRootCommandSetup(
 		// `genesis`
 		genesis.Commands(chainSpec),
 		// `deposit`
-		deposit.Commands(chainSpec),
+		deposit.Commands(chainSpec, appCreator),
 		// `jwt`
 		jwt.Commands(),
 		// `rollback`
