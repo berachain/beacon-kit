@@ -21,9 +21,12 @@
 package engine
 
 import (
+	"fmt"
 	"strconv"
 
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
+	engineerrors "github.com/berachain/beacon-kit/engine-primitives/errors"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/primitives/common"
 )
@@ -75,37 +78,25 @@ func (em *engineMetrics) markNewPayloadValid(
 	)
 }
 
-// markNewPayloadSyncingPayloadStatus increments
+// markNewPayloadAcceptedSyncingPayloadStatus increments
 // the counter for accepted syncing payload status.
-func (em *engineMetrics) markNewPayloadSyncingPayloadStatus(
+func (em *engineMetrics) markNewPayloadAcceptedSyncingPayloadStatus(
+	errStatus error,
 	payloadHash common.ExecutionHash,
 	parentHash common.ExecutionHash,
 ) {
-	em.logger.Error(
-		"Received syncing payload status",
+	status := "accepted"
+	if errors.Is(errStatus, engineerrors.ErrSyncingPayloadStatus) {
+		status = "syncing"
+	}
+	em.logger.Warn(
+		fmt.Sprintf("Received %s payload status during new payload. Awaiting execution client to finish sync.", status),
 		"payload_block_hash", payloadHash,
 		"parent_hash", parentHash,
 	)
 
 	em.sink.IncrementCounter(
-		"beacon_kit.execution.engine.new_payload_syncing_payload_status",
-	)
-}
-
-// markNewPayloadAcceptedPayloadStatus increments
-// the counter for accepted syncing payload status.
-func (em *engineMetrics) markNewPayloadAcceptedPayloadStatus(
-	payloadHash common.ExecutionHash,
-	parentHash common.ExecutionHash,
-) {
-	em.logger.Error(
-		"Received accepted payload status",
-		"payload_block_hash", payloadHash,
-		"parent_hash", parentHash,
-	)
-
-	em.sink.IncrementCounter(
-		"beacon_kit.execution.engine.new_payload_accepted_payload_status",
+		fmt.Sprintf("beacon_kit.execution.engine.new_payload_%s_payload_status", status),
 	)
 }
 
@@ -125,14 +116,14 @@ func (em *engineMetrics) markNewPayloadInvalidPayloadStatus(
 	)
 }
 
-// markNewPayloadJSONRPCError increments the counter for JSON-RPC errors.
-func (em *engineMetrics) markNewPayloadJSONRPCError(
+// markNewPayloadFatalError increments the counter for JSON-RPC errors.
+func (em *engineMetrics) markNewPayloadNonFatalError(
 	payloadHash common.ExecutionHash,
 	lastValidHash common.ExecutionHash,
 	err error,
 ) {
 	em.logger.Error(
-		"Received JSON-RPC error during new payload call",
+		"Received non-fatal error during new payload call",
 		"payload_block_hash", payloadHash,
 		"parent_hash", payloadHash,
 		"last_valid_hash", lastValidHash,
@@ -140,7 +131,27 @@ func (em *engineMetrics) markNewPayloadJSONRPCError(
 	)
 
 	em.sink.IncrementCounter(
-		"beacon_kit.execution.engine.new_payload_json_rpc_error",
+		"beacon_kit.execution.engine.new_payload_non_fatal_error",
+		"error", err.Error(),
+	)
+}
+
+// markNewPayloadFatalError increments the counter for JSON-RPC errors.
+func (em *engineMetrics) markNewPayloadFatalError(
+	payloadHash common.ExecutionHash,
+	lastValidHash common.ExecutionHash,
+	err error,
+) {
+	em.logger.Error(
+		"Received fatal error during new payload call",
+		"payload_block_hash", payloadHash,
+		"parent_hash", payloadHash,
+		"last_valid_hash", lastValidHash,
+		"error", err,
+	)
+
+	em.sink.IncrementCounter(
+		"beacon_kit.execution.engine.new_payload_fatal_error",
 		"error", err.Error(),
 	)
 }
@@ -203,16 +214,14 @@ func (em *engineMetrics) markForkchoiceUpdateSyncing(
 	state *engineprimitives.ForkchoiceStateV1,
 	err error,
 ) {
-	em.logger.Error(
-		"Received syncing payload status during forkchoice update call",
+	em.logger.Warn(
+		"Received syncing payload status during forkchoice update. Awaiting execution client to finish sync.",
 		"head_block_hash",
 		state.HeadBlockHash,
 		"safe_block_hash",
 		state.SafeBlockHash,
 		"finalized_block_hash",
 		state.FinalizedBlockHash,
-		"error",
-		err,
 	)
 
 	em.sink.IncrementCounter(
@@ -243,16 +252,30 @@ func (em *engineMetrics) markForkchoiceUpdateInvalid(
 	)
 }
 
-// markForkchoiceUpdateJSONRPCError increments the counter for JSON-RPC errors
+// markForkchoiceUpdateFatalError increments the counter for JSON-RPC errors
 // during forkchoice updates.
-func (em *engineMetrics) markForkchoiceUpdateJSONRPCError(err error) {
+func (em *engineMetrics) markForkchoiceUpdateFatalError(err error) {
 	em.logger.Error(
-		"Received json-rpc error during forkchoice update call",
+		"Received fatal error during forkchoice update call",
 		"error", err,
 	)
 
 	em.sink.IncrementCounter(
-		"beacon_kit.execution.engine.forkchoice_update_json_rpc_error",
+		"beacon_kit.execution.engine.forkchoice_update_fatal_error",
+		"error", err.Error(),
+	)
+}
+
+// markForkchoiceUpdateNonFatalError increments the counter for JSON-RPC errors
+// during forkchoice updates.
+func (em *engineMetrics) markForkchoiceUpdateNonFatalError(err error) {
+	em.logger.Error(
+		"Received non-fatal error during forkchoice update call",
+		"error", err,
+	)
+
+	em.sink.IncrementCounter(
+		"beacon_kit.execution.engine.forkchoice_update_non_fatal_error",
 		"error", err.Error(),
 	)
 }
