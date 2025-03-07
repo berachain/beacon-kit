@@ -21,6 +21,7 @@
 package backend
 
 import (
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
@@ -30,7 +31,7 @@ func (b Backend) GenesisValidatorsRoot(slot math.Slot) (common.Root, error) {
 	// needs genesis_time and gensis_fork_version
 	st, _, err := b.stateFromSlot(slot)
 	if err != nil {
-		return common.Root{}, err
+		return common.Root{}, errors.Wrapf(err, "failed to get state from slot %d", slot)
 	}
 	return st.GetGenesisValidatorsRoot()
 }
