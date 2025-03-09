@@ -452,7 +452,7 @@ func (s *BeaconKitE2ESuite) decodeValidatorResponse(resp *http.Response) (*beaco
 
 // TestGetStateValidatorByIndex tests getting the state validator by index.
 func (s *BeaconKitE2ESuite) TestGetStateValidatorByIndex() {
-	resp, err := s.getStateValidator("head", "0")
+	resp, err := s.getStateValidator(utils.StateIDHead, "0")
 	s.Require().NoError(err)
 	s.Require().NotNil(resp, "response should not be nil")
 	s.Require().Equal(http.StatusOK, resp.StatusCode)
@@ -486,7 +486,7 @@ func (s *BeaconKitE2ESuite) TestGetStateValidatorBySlotAndIndex() {
 // TestGetStateValidatorByPubkey tests getting the state validator by pubkey.
 func (s *BeaconKitE2ESuite) TestGetStateValidatorByPubkey() {
 	// First call validators to get the validator public key
-	resp, err := s.getStateValidator("head", "0")
+	resp, err := s.getStateValidator(utils.StateIDHead, "0")
 	s.Require().NoError(err)
 	s.Require().NotNil(resp, "response should not be nil")
 	s.Require().Equal(http.StatusOK, resp.StatusCode)
@@ -500,7 +500,7 @@ func (s *BeaconKitE2ESuite) TestGetStateValidatorByPubkey() {
 	pubkey := validatorResp.Validator.PublicKey
 
 	// Actual test starts here.
-	resp, err = s.getStateValidator("head", pubkey)
+	resp, err = s.getStateValidator(utils.StateIDHead, pubkey)
 	s.Require().NoError(err)
 	s.Require().NotNil(resp, "response should not be nil")
 	s.Require().Equal(http.StatusOK, resp.StatusCode)
@@ -515,9 +515,220 @@ func (s *BeaconKitE2ESuite) TestGetStateValidatorByPubkey() {
 
 // TestGetStateValidatorInvalidID tests getting the state validator with an invalid id.
 func (s *BeaconKitE2ESuite) TestGetStateValidatorInvalidID() {
-	resp, err := s.getStateValidator("head", "invalid_id")
+	resp, err := s.getStateValidator(utils.StateIDHead, "invalid_id")
 	s.Require().NoError(err)
 	s.Require().NotNil(resp, "response should not be nil")
 	s.Require().Equal(http.StatusBadRequest, resp.StatusCode)
 	defer resp.Body.Close()
+}
+
+// getValidatorBalances gets the validator balances for the given stateID and optional ids.
+func (s *BeaconKitE2ESuite) getValidatorBalances(stateID string, ids ...string) (*http.Response, error) {
+	client := s.initHTTPBeaconTest()
+
+	url := fmt.Sprintf("/eth/v1/beacon/states/%s/validator_balances", stateID)
+
+	// Add ID parameters if provided
+	if len(ids) > 0 {
+		queryParams := make([]string, 0, len(ids))
+		for _, id := range ids {
+			queryParams = append(queryParams, "id="+id)
+		}
+		url = url + "?" + strings.Join(queryParams, "&")
+	}
+
+	resp, err := client.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get validator balances: %w", err)
+	}
+	if resp == nil {
+		return nil, errors.New("received nil response")
+	}
+
+	return resp, nil
+}
+
+func (s *BeaconKitE2ESuite) decodeValidatorBalancesResponse(resp *http.Response) (*[]beacontypes.ValidatorBalanceData, error) {
+	if resp == nil {
+		return nil, errors.New("nil response")
+	}
+	defer resp.Body.Close()
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var genericResp beacontypes.GenericResponse
+	if err = json.Unmarshal(bodyBytes, &genericResp); err != nil {
+		return nil, err
+	}
+
+	// Convert the data field to JSON
+	dataBytes, err := json.Marshal(genericResp.Data)
+	if err != nil {
+		return nil, err
+	}
+
+	var validatorBalances []beacontypes.ValidatorBalanceData
+	if err = json.Unmarshal(dataBytes, &validatorBalances); err != nil {
+		return nil, err
+	}
+
+	return &validatorBalances, nil
+}
+
+// TestGetValidatorBalances tests querying validator balances for state head.
+func (s *BeaconKitE2ESuite) TestGetValidatorBalances() {
+	resp, err := s.getValidatorBalances(utils.StateIDHead)
+	s.Require().NoError(err)
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+	defer resp.Body.Close()
+
+	balancesResp, err := s.decodeValidatorBalancesResponse(resp)
+	s.Require().NoError(err)
+	s.Require().NotNil(balancesResp, "balances response should not be nil")
+	s.Require().NotEmpty(balancesResp, "balances response should not be empty")
+
+	for _, balance := range *balancesResp {
+		s.Require().True(balance.Balance > 0, "Validator balance should be positive")
+		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
+		s.Require().True(balance.Balance <= 4e12, "Validator balance should not exceed 4000 BERA")
+	}
+}
+
+// TestGetValidatorBalancesWithSpecificID tests querying validator balances with specific ID.
+func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithSpecificID() {
+	resp, err := s.getValidatorBalances(utils.StateIDHead, "0")
+	s.Require().NoError(err)
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+	defer resp.Body.Close()
+
+	balancesResp, err := s.decodeValidatorBalancesResponse(resp)
+	s.Require().NoError(err)
+	s.Require().NotNil(balancesResp, "balances response should not be nil")
+
+	s.Require().Len(*balancesResp, 1)
+	s.Require().True((*balancesResp)[0].Balance > 0, "Validator balance should be positive")
+	// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
+	s.Require().True((*balancesResp)[0].Balance <= 4e12, "Validator balance should not exceed 4000 BERA")
+}
+
+// TestGetValidatorBalancesWithMultipleIDs tests querying validator balances with multiple IDs.
+func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithMultipleIDs() {
+	resp, err := s.getValidatorBalances(utils.StateIDHead, "0", "1")
+	s.Require().NoError(err)
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+	defer resp.Body.Close()
+
+	balancesResp, err := s.decodeValidatorBalancesResponse(resp)
+	s.Require().NoError(err)
+	s.Require().NotNil(balancesResp, "balances response should not be nil")
+	s.Require().NotEmpty(balancesResp, "balances response should not be empty")
+
+	// The response should contain 2 validator balances.
+	s.Require().Len(*balancesResp, 2)
+
+	for _, balance := range *balancesResp {
+		s.Require().True(balance.Balance > 0, "Validator balance should be positive")
+		// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
+		s.Require().True(balance.Balance <= 4e12, "Validator balance should not exceed 4000 BERA")
+	}
+}
+
+// TestGetValidatorBalancesWithInvalidID tests querying validator balances with invalid ID.
+func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithInvalidID() {
+	resp, err := s.getValidatorBalances(utils.StateIDHead, "invalid_id")
+	s.Require().NoError(err)
+	s.Require().Equal(http.StatusBadRequest, resp.StatusCode)
+	defer resp.Body.Close()
+
+	balancesResp, err := s.decodeValidatorBalancesResponse(resp)
+	s.Require().NoError(err)
+	s.Require().NotNil(balancesResp, "balances response should not be nil")
+	s.Require().Len(*balancesResp, 0)
+}
+
+// TestGetValidatorBalancesWithNonExistentIndex tests querying validator balances with non-existent index.
+func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithNonExistentIndex() {
+	resp, err := s.getValidatorBalances(utils.StateIDHead, "99999")
+	s.Require().NoError(err)
+	// If an index does not match any validator, no balance will be returned but this will not cause an error.
+	// The response should be 200 OK with empty data.
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+	defer resp.Body.Close()
+
+	balancesResp, err := s.decodeValidatorBalancesResponse(resp)
+	s.Require().NoError(err)
+	s.Require().NotNil(balancesResp, "balances response should not be nil")
+	s.Require().Len(*balancesResp, 0)
+}
+
+// TestGetValidatorBalancesWithPublicKey tests querying validator balances with public key.
+func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithPublicKey() {
+	client := s.initBeaconTest()
+
+	// First call validators to get the validator public key
+	validatorsResp, err := client.Validators(s.Ctx(), &beaconapi.ValidatorsOpts{
+		State: utils.StateIDHead,
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(validatorsResp)
+
+	validator := validatorsResp.Data[0]
+	s.Require().NotNil(validator)
+	pubkey := validator.Validator.PublicKey
+
+	resp, err := s.getValidatorBalances(utils.StateIDHead, pubkey.String())
+	s.Require().NoError(err)
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+	defer resp.Body.Close()
+
+	balancesResp, err := s.decodeValidatorBalancesResponse(resp)
+	s.Require().NoError(err)
+	s.Require().NotNil(balancesResp, "balances response should not be nil")
+	s.Require().NotEmpty(balancesResp, "balances response should not be empty")
+
+	s.Require().Len(*balancesResp, 1)
+	s.Require().True((*balancesResp)[0].Balance > 0, "Validator balance should be positive")
+	// 4e12 Gwei = 4 * 10^12 Gwei = 4,000,000,000,000 Gwei = 4000 BERA
+	s.Require().True((*balancesResp)[0].Balance <= 4e12, "Validator balance should not exceed 4000 BERA")
+}
+
+// TestGetValidatorBalancesWithInvalidPublicKey tests querying validator balances with invalid public key.
+func (s *BeaconKitE2ESuite) TestGetValidatorBalancesWithInvalidPublicKey() {
+	// Example validator pubkey (48 bytes with 0x prefix)
+	notFoundPubkey := "0x93247f2209abcacf57b75a51dafae777f9dd38bc7053d1af526f220a7489a6d3a2753e5f3e8b1cfe39b56f43611df74a"
+
+	resp, err := s.getValidatorBalances(utils.StateIDHead, notFoundPubkey)
+	s.Require().NoError(err)
+	// If public key does not match any validator, no balance will be returned but this will not cause an error.
+	// The response should be 200 OK with empty data.
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+	defer resp.Body.Close()
+
+	balancesResp, err := s.decodeValidatorBalancesResponse(resp)
+	s.Require().NoError(err)
+	s.Require().NotNil(balancesResp, "balances response should not be nil")
+	s.Require().Len(*balancesResp, 0)
+}
+
+// TestGetValidatorBalancesForGenesis tests querying validator balances for state genesis.
+func (s *BeaconKitE2ESuite) TestGetValidatorBalancesForGenesis() {
+	resp, err := s.getValidatorBalances(utils.StateIDGenesis)
+	s.Require().NoError(err)
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+	defer resp.Body.Close()
+
+	balancesResp, err := s.decodeValidatorBalancesResponse(resp)
+	s.Require().NoError(err)
+	s.Require().NotNil(balancesResp, "balances response should not be nil")
+	s.Require().NotEmpty(balancesResp, "balances response should not be empty")
+
+	for _, balance := range *balancesResp {
+		s.Require().True(balance.Balance > 0, "Validator balance should be positive")
+		// At genesis, the validator balance is 32 BERA.
+		// 32e9 Gwei = 32 * 10^9 Gwei = 32,000,000,000 Gwei = 32 BERA
+		s.Require().True(balance.Balance <= 32e9, "Validator balance should not exceed 32 BERA")
+	}
 }
