@@ -1,3 +1,5 @@
+//go:build simulated
+
 // SPDX-License-Identifier: BUSL-1.1
 //
 // Copyright (C) 2025, Berachain Foundation. All rights reserved.
@@ -18,35 +20,21 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package http
+package execution
 
-import (
-	"errors"
-)
+import "github.com/ory/dockertest"
 
-var (
-	// ErrTimeout indicates a timeout error from http.Client.
-	ErrTimeout = errors.New("timeout from HTTP client")
-
-	// ErrUnauthorized indicates an unauthorized error from http.Client.
-	ErrUnauthorized = errors.New("401 unauthorized request")
-)
-
-// TimeoutError defines an interface for timeout errors.
-// It includes methods for error message retrieval and timeout status checking.
-type TimeoutError interface {
-	// Error returns the error message.
-	Error() string
-	// Timeout indicates whether the error is a timeout error.
-	Timeout() bool
+// Resource manages a *dockertest.Resource with added utility.
+type Resource struct {
+	*dockertest.Resource
+	isClosed bool
 }
 
-// IsTimeoutError checks if the given error is a timeout error.
-// It asserts the error to the httpTimeoutError interface and checks its Timeout
-// status.
-// Returns true if the error is a timeout error, false otherwise.
-func IsTimeoutError(e error) bool {
-	var t TimeoutError
-	ok := errors.As(e, &t)
-	return ok && t != nil && t.Timeout()
+func (r *Resource) Close() error {
+	if r.isClosed {
+		return nil
+	}
+
+	r.isClosed = true
+	return r.Resource.Close()
 }

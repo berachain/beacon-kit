@@ -21,7 +21,6 @@
 package deposit
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/berachain/beacon-kit/chain"
@@ -54,16 +53,16 @@ const (
 	defaultGenesisValidatorRoot = ""
 )
 
-// NewCreateValidator creates a new command to create a validator deposit.
+// GetCreateValidatorCmd returns a command to create a validator deposit.
 //
-//nolint:lll // reads better if long description is one line.
-func NewCreateValidator(
+//nolint:lll // Reads better if long description is one line.
+func GetCreateValidatorCmd(
 	chainSpec chain.Spec,
 ) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-validator [withdrawal-address] [amount] ?[beacond/genesis.json]",
-		Short: "Creates a validator deposit",
-		Long:  `Creates a validator deposit with the necessary credentials. The arguments are expected in the order of withdrawal address, deposit amount, and optionally the beacond genesis file. If the genesis validator root flag is NOT set, the beacond genesis file MUST be provided as the last argument. If the broadcast flag is set to true, a private key must be provided to sign the transaction.`,
+		Short: "Creates a validator deposit message",
+		Long:  `Creates a validator deposit message with the necessary credentials. The arguments are expected in the order of withdrawal address, deposit amount, and optionally the beacond genesis file. If the genesis validator root flag is NOT set, the beacond genesis file MUST be provided as the last argument. If the override flag is set to true, a private key must be provided to sign the message.`,
 		Args:  cobra.RangeArgs(minArgsCreateDeposit, maxArgsCreateDeposit),
 		RunE:  createValidatorCmd(chainSpec),
 	}
@@ -125,18 +124,12 @@ func createValidatorCmd(
 			return err
 		}
 
-		val, err := json.Marshal(types.Deposit{
-			Pubkey:      depositMsg.Pubkey,
-			Credentials: depositMsg.Credentials,
-			Amount:      depositMsg.Amount,
-			Signature:   signature,
-		})
-		if err != nil {
-			return err
-		}
-
-		//nolint:forbidigo // simplifies output parsing
-		fmt.Print(string(val))
+		cmd.Println("✅ Deposit message created successfully!")
+		cmd.Println("Note: This is NOT a transaction receipt; use these values to create a deposit contract transaction.")
+		cmd.Printf("\npubkey: %s\n", depositMsg.Pubkey)
+		cmd.Printf("credentials: %s\n", depositMsg.Credentials)
+		cmd.Printf("amount: %s\n", depositMsg.Amount.Base10())
+		cmd.Printf("signature: %s\n", signature.String())
 		return nil
 	}
 }
