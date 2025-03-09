@@ -36,14 +36,14 @@ func (b *Backend) StateFromSlotForProof(slot math.Slot) (*statedb.StateDB, math.
 
 // GetStateRoot returns the root of the state at the given slot.
 func (b Backend) StateRootAtSlot(slot math.Slot) (common.Root, error) {
-	st, slot, err := b.stateFromSlot(slot)
+	st, resolvedSlot, err := b.stateFromSlot(slot)
 	if err != nil {
 		return common.Root{}, err
 	}
 
 	// As calculated by the beacon chain. Ideally, this logic
 	// should be abstracted by the beacon chain.
-	return st.StateRootAtIndex(slot.Unwrap() % b.cs.SlotsPerHistoricalRoot())
+	return st.StateRootAtIndex(resolvedSlot.Unwrap() % b.cs.SlotsPerHistoricalRoot())
 }
 
 // StateAtSlot returns the beacon state at a particular slot.

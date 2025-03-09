@@ -80,7 +80,7 @@ func (f *validatorFilters) parseID(id string) {
 func (b Backend) FilteredValidators(
 	slot math.Slot, ids []string, statuses []string,
 ) ([]*beacontypes.ValidatorData, error) {
-	st, slot, err := b.stateFromSlot(slot)
+	st, resolvedSlot, err := b.stateFromSlot(slot)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get state from slot %d", slot)
 	}
@@ -92,7 +92,7 @@ func (b Backend) FilteredValidators(
 
 	// Parse all IDs and pubkeys once at the start
 	filters := parseValidatorIDs(ids)
-	epoch := b.cs.SlotToEpoch(slot)
+	epoch := b.cs.SlotToEpoch(resolvedSlot)
 
 	return filterAndBuildValidatorData(st, validators, filters, epoch, statuses)
 }
@@ -196,7 +196,7 @@ func buildValidatorData(
 }
 
 func (b Backend) ValidatorByID(slot math.Slot, id string) (*beacontypes.ValidatorData, error) {
-	st, slot, err := b.stateFromSlot(slot)
+	st, resolvedSlot, err := b.stateFromSlot(slot)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get state from slot %d", slot)
 	}
@@ -222,7 +222,7 @@ func (b Backend) ValidatorByID(slot math.Slot, id string) (*beacontypes.Validato
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get validator balance for validator pubkey %s and index %d", validator.GetPubkey(), index)
 	}
-	status, err := validator.Status(b.cs.SlotToEpoch(slot))
+	status, err := validator.Status(b.cs.SlotToEpoch(resolvedSlot))
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get validator status for validator pubkey %s and index %d", validator.GetPubkey(), index)
 	}
@@ -237,7 +237,7 @@ func (b Backend) ValidatorByID(slot math.Slot, id string) (*beacontypes.Validato
 }
 
 func (b Backend) ValidatorBalancesByIDs(slot math.Slot, ids []string) ([]*beacontypes.ValidatorBalanceData, error) {
-	st, slot, err := b.stateFromSlot(slot)
+	st, _, err := b.stateFromSlot(slot)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get state from slot %d", slot)
 	}
