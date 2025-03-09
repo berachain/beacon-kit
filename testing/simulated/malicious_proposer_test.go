@@ -23,16 +23,20 @@
 package simulated_test
 
 import (
+	"math/big"
 	"time"
 
 	"github.com/berachain/beacon-kit/beacon/blockchain"
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
 	"github.com/berachain/beacon-kit/consensus/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/engine-primitives/errors"
+	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/testing/simulated"
 	"github.com/cometbft/cometbft/abci/types"
-	"github.com/stretchr/testify/require"
+	gethcommon "github.com/ethereum/go-ethereum/common"
+	gethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
 // TestProcessProposal_BadBlock_IsRejected effectively serves as a test for how a valid node would react to
@@ -54,7 +58,7 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	s.Require().Len(proposals, coreLoopIterations)
 
 	currentHeight := int64(blockHeight + coreLoopIterations)
-	// Prepare a valid block proposal.
+	// Prepare a block proposal.
 	proposalTime := time.Now()
 	proposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
 		Height:          currentHeight,
@@ -72,9 +76,41 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	)
 	s.Require().NoError(err)
 
+	// Sign a malicious transaction that is expected to fail.
+	recipientAddress := gethcommon.HexToAddress("0x56898d1aFb10cad584961eb96AcD476C6826e41E")
+	maliciousTx, err := gethtypes.SignNewTx(
+		simulated.GetTestKey(s.T()),
+		gethtypes.NewCancunSigner(big.NewInt(int64(s.TestNode.ChainSpec.DepositEth1ChainID()))),
+		&gethtypes.DynamicFeeTx{
+			Nonce:     0,
+			To:        &recipientAddress,
+			Value:     big.NewInt(0),
+			Gas:       21016,
+			GasTipCap: big.NewInt(10000000),
+			GasFeeCap: big.NewInt(10000000),
+			Data:      []byte{},
+		},
+	)
+
+	// Initialize the slice with the malicious transaction.
+	maliciousTxs := []*gethprimitives.Transaction{maliciousTx}
+
 	// Create a malicious block by injecting an invalid transaction.
-	maliciousBlock := simulated.CreateInvalidBlock(require.New(s.T()), proposedBlock, blsSigner, s.TestNode.ChainSpec, s.GenesisValidatorsRoot)
-	maliciousBlockBytes, err := maliciousBlock.MarshalSSZ()
+	maliciousBlock := simulated.ComputeAndSetInvalidExecutionBlock(s.T(), proposedBlock.GetMessage(), s.TestNode.ChainSpec, maliciousTxs)
+
+	// Re-sign the block
+	maliciousBlockSigned, err := ctypes.NewSignedBeaconBlock(
+		maliciousBlock,
+		&ctypes.ForkData{
+			CurrentVersion:        s.TestNode.ChainSpec.ActiveForkVersionForSlot(maliciousBlock.GetSlot()),
+			GenesisValidatorsRoot: s.GenesisValidatorsRoot,
+		},
+		s.TestNode.ChainSpec,
+		blsSigner,
+	)
+	s.Require().NoError(err)
+
+	maliciousBlockBytes, err := maliciousBlockSigned.MarshalSSZ()
 	s.Require().NoError(err)
 
 	// Replace the valid block with the malicious block in the proposal.
@@ -95,7 +131,7 @@ func (s *SimulatedSuite) TestProcessProposal_BadBlock_IsRejected() {
 	// Verify that the log contains the expected error message.
 	s.Require().Contains(s.LogBuffer.String(), errors.ErrInvalidPayloadStatus.Error())
 	// Note this error message may change across execution clients. Base fee changes with number of core loop iterations.
-	s.Require().Contains(s.LogBuffer.String(), "max fee per gas less than block base fee: address 0x71562b71999873DB5b286dF957af199Ec94617F7, maxFeePerGas: 10000000, baseFee: 765625000")
+	s.Require().Contains(s.LogBuffer.String(), "max fee per gas less than block base fee: address 0x20f33CE90A13a4b5E7697E3544c3083B8F8A51D4, maxFeePerGas: 10000000, baseFee: 765625000")
 }
 
 // TestProcessProposal_InvalidTimestamps_Errors effectively serves as a test for how a valid node would react to
@@ -117,7 +153,7 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidTimestamps_Errors() {
 	s.Require().Len(proposals, coreLoopIterations)
 	currentHeight := int64(blockHeight + coreLoopIterations)
 
-	// Prepare a valid block proposal, but 2 seconds in the future (i.e. attempt to roll timestamp forward)
+	// Prepare a block proposal, but 2 seconds in the future (i.e. attempt to roll timestamp forward)
 	correctConsensusTime := time.Now()
 	maliciousProposalTime := correctConsensusTime.Add(2 * time.Second)
 	maliciousProposal, err := s.SimComet.Comet.PrepareProposal(s.CtxComet, &types.PrepareProposalRequest{
