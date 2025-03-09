@@ -60,8 +60,8 @@ type SharedAccessors struct {
 	CtxApp         context.Context
 	CtxAppCancelFn context.CancelFunc
 	CtxComet       context.Context
-	HomeDir    string
-	TestNode   TestNode
+	HomeDir        string
+	TestNode       TestNode
 
 	// ElHandle is a dockertest resource handle that should be closed in teardown.
 	ElHandle *execution.Resource
