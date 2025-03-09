@@ -231,8 +231,8 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobCommitment_Errors() {
 	// Each blob will go into 1 transaction.
 	blobs := []*eip4844.Blob{{1, 2, 3}, {4, 5, 6}}
 	proofs, commitments := simulated.GetProofAndCommitmentsForBlobs(require.New(s.T()), blobs, s.TestNode.KZGVerifier)
-	s.Require().Len(proofs, 2)
-	s.Require().Len(commitments, 2)
+	s.Require().Len(proofs, len(blobs))
+	s.Require().Len(commitments, len(blobs))
 
 	// Here is where we act malicious.
 	blobVersionedHash0 := commitments[0].ToVersionedHash()
@@ -399,8 +399,8 @@ func (s *SimulatedSuite) TestProcessProposal_InvalidBlobInclusionProof_Errors() 
 	// Each blob will go into 1 transaction.
 	blobs := []*eip4844.Blob{{1, 2, 3}, {4, 5, 6}}
 	proofs, commitments := simulated.GetProofAndCommitmentsForBlobs(require.New(s.T()), blobs, s.TestNode.KZGVerifier)
-	s.Require().Len(proofs, 2)
-	s.Require().Len(commitments, 2)
+	s.Require().Len(proofs, len(blobs))
+	s.Require().Len(commitments, len(blobs))
 
 	// Sign blob transactions
 	blobTxs := make([]*gethtypes.Transaction, len(blobs))
