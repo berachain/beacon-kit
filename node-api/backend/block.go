@@ -22,6 +22,7 @@ package backend
 
 import (
 	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/errors"
 	types "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -29,27 +30,23 @@ import (
 
 // BlockHeader returns the block header at the given slot.
 func (b Backend) BlockHeaderAtSlot(slot math.Slot) (*ctypes.BeaconBlockHeader, error) {
-	var blockHeader *ctypes.BeaconBlockHeader
-
 	st, _, err := b.stateFromSlot(slot)
 	if err != nil {
-		return blockHeader, err
+		return nil, errors.Wrapf(err, "failed to get state from slot %d", slot)
 	}
-
-	blockHeader, err = st.GetLatestBlockHeader()
-	return blockHeader, err
+	return st.GetLatestBlockHeader()
 }
 
 // GetBlockRoot returns the root of the block at the given stateID.
 func (b Backend) BlockRootAtSlot(slot math.Slot) (common.Root, error) {
-	st, slot, err := b.stateFromSlot(slot)
+	st, resolvedSlot, err := b.stateFromSlot(slot)
 	if err != nil {
-		return common.Root{}, err
+		return common.Root{}, errors.Wrapf(err, "failed to get state from slot %d", slot)
 	}
 
 	// As calculated by the beacon chain. Ideally, this logic
 	// should be abstracted by the beacon chain.
-	return st.GetBlockRootAtIndex(slot.Unwrap() % b.cs.SlotsPerHistoricalRoot())
+	return st.GetBlockRootAtIndex(resolvedSlot.Unwrap() % b.cs.SlotsPerHistoricalRoot())
 }
 
 // TODO: Implement this.
