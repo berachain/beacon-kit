@@ -21,6 +21,7 @@
 package cometbft
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -28,6 +29,7 @@ import (
 )
 
 func (s *Service) processProposal(
+	ctx context.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
 	startTime := time.Now()
@@ -50,11 +52,12 @@ func (s *Service) processProposal(
 	// processed the first block, as we want to avoid overwriting the
 	// finalizeState
 	// after state changes during InitChain.
-	s.processProposalState = s.resetState(s.ctx)
+	s.processProposalState = s.resetState(ctx)
 	if req.Height > s.initialHeight {
-		s.finalizeBlockState = s.resetState(s.ctx)
+		s.finalizeBlockState = s.resetState(ctx)
 	}
 
+	//nolint:contextcheck // ctx already passed via resetState
 	s.processProposalState.SetContext(
 		s.getContextForProposal(
 			s.processProposalState.Context(),
