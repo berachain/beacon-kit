@@ -104,13 +104,15 @@ func (s *Service) Name() string {
 	return "blockchain"
 }
 
+// Start starts the blockchain service.
 func (s *Service) Start(ctx context.Context) error {
-	// Catchup deposits for failed blocks.
+	// Catchup deposits for failed blocks. TODO: remove.
 	go s.depositCatchupFetcher(ctx)
 
 	return nil
 }
 
+// Stop stops the blockchain service and closes the deposit store.
 func (s *Service) Stop() error {
 	s.logger.Info("Stopping blockchain service")
 
@@ -120,4 +122,9 @@ func (s *Service) Stop() error {
 	}
 
 	return nil
+}
+
+// StorageBackend returns the storage backend.
+func (s *Service) StorageBackend() StorageBackend {
+	return s.storageBackend
 }
