@@ -28,7 +28,7 @@ import (
 
 // GetGenesis returns the genesis state of the beacon chain.
 func (b Backend) GenesisValidatorsRoot(slot math.Slot) (common.Root, error) {
-	// needs genesis_time and gensis_fork_version
+	// needs genesis_time and genesis_fork_version
 	st, _, err := b.stateFromSlot(slot)
 	if err != nil {
 		return common.Root{}, errors.Wrapf(err, "failed to get state from slot %d", slot)
