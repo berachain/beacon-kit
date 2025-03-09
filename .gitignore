@@ -237,3 +237,7 @@ temp-test-simulated.txt
 
 # server dev env for Air
 .air.toml
+
+# TLC
+**/states/
+*TTrace*
