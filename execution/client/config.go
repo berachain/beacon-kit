@@ -27,11 +27,12 @@ import (
 )
 
 const (
+	MinRPCTimeout = 2 * time.Second
+
 	defaultDialURL                 = "http://localhost:8551"
 	defaultRPCRetries              = 0
 	defaultRPCRetryInterval        = 100 * time.Millisecond
 	defaultRPCMaxRetryInterval     = 10 * time.Second
-	defaultRPCTimeout              = 2 * time.Second
 	defaultRPCStartupCheckInterval = 3 * time.Second
 	defaultRPCJWTRefreshInterval   = 30 * time.Second
 	//#nosec:G101 // false positive.
@@ -47,7 +48,7 @@ func DefaultConfig() Config {
 		RPCRetries:              defaultRPCRetries,
 		RPCRetryInterval:        defaultRPCRetryInterval,
 		RPCMaxRetryInterval:     defaultRPCMaxRetryInterval,
-		RPCTimeout:              defaultRPCTimeout,
+		RPCTimeout:              MinRPCTimeout,
 		RPCStartupCheckInterval: defaultRPCStartupCheckInterval,
 		RPCJWTRefreshInterval:   defaultRPCJWTRefreshInterval,
 		JWTSecretPath:           defaultJWTSecretPath,
