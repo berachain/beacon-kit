@@ -21,6 +21,7 @@
 package types
 
 import (
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -35,6 +36,7 @@ const Eth1DataSize = 72
 var (
 	_ ssz.StaticObject                    = (*Eth1Data)(nil)
 	_ constraints.SSZMarshallableRootable = (*Eth1Data)(nil)
+	_ UnusedEnforcer                      = (*Eth1Data)(nil)
 )
 
 type Eth1Data struct {
@@ -84,13 +86,23 @@ func (e *Eth1Data) HashTreeRoot() common.Root {
 
 // MarshalSSZ marshals the Eth1Data object to SSZ format.
 func (e *Eth1Data) MarshalSSZ() ([]byte, error) {
+	if err := e.EnforceUnused(); err != nil {
+		return []byte{}, err
+	}
 	buf := make([]byte, ssz.Size(e))
 	return buf, ssz.EncodeToBytes(buf, e)
 }
 
 // UnmarshalSSZ unmarshals the Eth1Data object from SSZ format.
 func (e *Eth1Data) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, e)
+	err := ssz.DecodeFromBytes(buf, e)
+	if err != nil {
+		return err
+	}
+	if err = e.EnforceUnused(); err != nil {
+		return err
+	}
+	return nil
 }
 
 // MarshalSSZTo marshals the Eth1Data object into a pre-allocated byte slice.
@@ -131,4 +143,17 @@ func (e *Eth1Data) GetTree() (*fastssz.Node, error) {
 // GetDepositCount returns the deposit count.
 func (e *Eth1Data) GetDepositCount() math.U64 {
 	return e.DepositCount
+}
+
+func (e *Eth1Data) EnforceUnused() error {
+	if e == nil {
+		return nil
+	}
+	if e.DepositCount != 0 {
+		return errors.New("Eth1Data DepositCount field must be unused")
+	}
+	if e.BlockHash != (common.ExecutionHash{}) {
+		return errors.New("Eth1Data BlockHash field must be unused")
+	}
+	return nil
 }
