@@ -174,7 +174,7 @@ func (s *Service) Start(
 		return err
 	}
 
-	s.ctx = ctx
+	s.ResetAppCtx(ctx)
 	s.node, err = node.NewNode(
 		ctx,
 		cfg,
