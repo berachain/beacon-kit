@@ -37,7 +37,7 @@ func (h *Handler) RegisterRoutes(logger log.Logger) {
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/eth/v2/debug/beacon/states/heads",
+			Path:    "/eth/v2/debug/beacon/heads",
 			Handler: h.NotImplemented,
 		},
 		{

@@ -47,7 +47,7 @@ func (h *Handler) RegisterRoutes(logger log.Logger) {
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/eth/v1/node/peers/peer_count",
+			Path:    "/eth/v1/node/peer_count",
 			Handler: h.NotImplemented,
 		},
 		{
