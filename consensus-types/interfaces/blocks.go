@@ -18,9 +18,12 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package consensus_types
+package interfaces
 
-import "github.com/berachain/beacon-kit/primitives/constraints"
+import (
+	"github.com/berachain/beacon-kit/primitives/constraints"
+	"github.com/karalabe/ssz"
+)
 
 type BeaconState interface{}
 
@@ -28,18 +31,32 @@ type BeaconBlockHeader interface {
 	Equals(BeaconBlockHeader) bool
 }
 
+type BeaconBlockBody interface {
+	constraints.MarshallableSSZ
+	ssz.DynamicObject
+	GetExecutionPayload() *ExecutionPayload
+}
+
 type BeaconBlock interface {
 	constraints.MarshallableSSZ
+	ssz.DynamicObject
+	constraints.Versionable
+	BeaconBlockBody
 }
 
 type SignedBeaconBlock interface {
 	GetMessage() BeaconBlock
 	constraints.MarshallableSSZ
 	constraints.Signable
+	ssz.DynamicObject
 }
 
 type SignedBeaconBlockHeader interface {
 	GetHeader() BeaconBlockHeader
 	GetMessage() BeaconBlock
 	constraints.Signable
+}
+
+type ExecutionPayload interface {
+	EnsureNotNilWithdrawals()
 }

@@ -23,7 +23,7 @@ package da
 import (
 	"context"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
+	"github.com/berachain/beacon-kit/consensus-types/deneb"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -42,14 +42,14 @@ type BlobProcessor interface {
 	VerifySidecars(
 		ctx context.Context,
 		sidecars datypes.BlobSidecars,
-		blkHeader *ctypes.BeaconBlockHeader,
+		blkHeader *deneb.BeaconBlockHeader,
 		kzgCommitments eip4844.KZGCommitments[common.ExecutionHash],
 	) error
 }
 
 type ConsensusSidecars interface {
 	GetSidecars() datypes.BlobSidecars
-	GetHeader() *ctypes.BeaconBlockHeader
+	GetHeader() *deneb.BeaconBlockHeader
 }
 
 // BlobSidecar is the interface for the blob sidecar.
