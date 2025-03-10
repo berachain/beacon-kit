@@ -86,8 +86,8 @@ func New(
 	}
 	cfg.RPCTimeout = max(MinRPCTimeout, cfg.RPCTimeout)
 
-	if cfg.RPCRetries != 0 {
-		logger.Warn("rpc-retries in app.toml is deprecated and no longer supported")
+	if cfg.DeprecatedRPCRetries != 0 {
+		logger.Warn("rpc-retries is deprecated and the configured value will be ignored")
 	}
 
 	return &EngineClient{

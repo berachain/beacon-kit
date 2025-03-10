@@ -57,8 +57,8 @@ func DefaultConfig() Config {
 type Config struct {
 	// RPCDialURL is the HTTP url of the execution client JSON-RPC endpoint.
 	RPCDialURL *url.ConnectionURL `mapstructure:"rpc-dial-url"`
-	// RPCRetries is deprecated.
-	RPCRetries uint64 `mapstructure:"rpc-retries"`
+	// DeprecatedRPCRetries is deprecated.
+	DeprecatedRPCRetries uint64 `mapstructure:"rpc-retries"`
 	// RPCRetryInterval is the initial RPC backoff for repeated execution client calls.
 	RPCRetryInterval time.Duration `mapstructure:"rpc-retry-interval"`
 	// MaxRPCRetryInterval is the maximum RPC backoff for repeated execution client calls.
