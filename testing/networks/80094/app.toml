@@ -123,7 +123,7 @@ rpc-dial-url = "http://localhost:8551"
 rpc-retries = "0"
 
 # RPC timeout for execution client requests.
-rpc-timeout = "900ms"
+rpc-timeout = "2s"
 
 # RPC retry interval for execution client requests.
 rpc-retry-interval = "100ms"
