@@ -141,6 +141,9 @@ type Spec interface {
 	// InactivityPenaltyQuotient returns the inactivity penalty quotient.
 	InactivityPenaltyQuotient() uint64
 
+	// InactivityPenaltyQuotientAltair returns the inactivity penalty quotient for Altair.
+	InactivityPenaltyQuotientAltair() uint64
+
 	// ProportionalSlashingMultiplier returns the multiplier for calculating
 	// slashing penalties.
 	ProportionalSlashingMultiplier() uint64
@@ -375,6 +378,11 @@ func (s spec) ValidatorRegistryLimit() uint64 {
 // InactivityPenaltyQuotient returns the inactivity penalty quotient.
 func (s spec) InactivityPenaltyQuotient() uint64 {
 	return s.Data.InactivityPenaltyQuotient
+}
+
+// InactivityPenaltyQuotientAltair returns the inactivity penalty quotient for Altair.
+func (s spec) InactivityPenaltyQuotientAltair() uint64 {
+	return s.Data.InactivityPenaltyQuotientAltair
 }
 
 // ProportionalSlashingMultiplier returns the proportional slashing multiplier.

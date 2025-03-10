@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/log"
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
+	configtypes "github.com/berachain/beacon-kit/node-api/handlers/config/types"
 	nodecoretypes "github.com/berachain/beacon-kit/node-core/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constraints"
@@ -721,6 +722,11 @@ type (
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		// GetSlotByStateRoot retrieves the slot by a given root from the store.
 		GetSlotByStateRoot(root common.Root) (math.Slot, error)
+	}
+
+	// NodeAPIConfigBackend is the interface for backend of the config API.
+	NodeAPIConfigBackend interface {
+		Spec() (*configtypes.SpecData, error)
 	}
 
 	// NodeAPIProofBackend is the interface for backend of the proof API.
