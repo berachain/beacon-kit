@@ -22,7 +22,10 @@ package config
 
 import (
 	"fmt"
+<<<<<<< HEAD
 	"net/http"
+=======
+>>>>>>> 7fe25c951 (config spec API added)
 
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/config/types"
