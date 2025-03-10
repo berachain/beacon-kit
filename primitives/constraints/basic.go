@@ -20,7 +20,11 @@
 
 package constraints
 
-import "github.com/berachain/beacon-kit/primitives/common"
+import (
+	"github.com/berachain/beacon-kit/primitives/common"
+	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/karalabe/ssz"
+)
 
 // ForkTyped is a constraint that requires a type to have an Empty method.
 type ForkTyped[SelfT any] interface {
@@ -57,4 +61,19 @@ type Nillable interface {
 // Versionable is a constraint that requires a type to have a Version method.
 type Versionable interface {
 	Version() common.Version
+}
+
+type MarshallableSSZ interface {
+	MarshalSSZ() ([]byte, error)
+	UnmarshalSSZ(buf []byte) error
+	SizeSSZ(siz *ssz.Sizer, fixed bool) uint32
+	DefineSSZ(codec *ssz.Codec)
+}
+
+type Hashable interface {
+	HashTreeRoot() common.Root
+}
+
+type Signable interface {
+	GetSignature() crypto.BLSSignature
 }
