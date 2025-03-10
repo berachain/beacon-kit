@@ -23,7 +23,7 @@ package deposit
 import (
 	"context"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 

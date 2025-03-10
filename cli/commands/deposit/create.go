@@ -26,7 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	clicontext "github.com/berachain/beacon-kit/cli/context"
 	"github.com/berachain/beacon-kit/cli/utils/parser"
-	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/node-core/components"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -104,7 +104,7 @@ func createValidatorCmd(
 		if err != nil {
 			return err
 		}
-		credentials := types.NewCredentialsFromExecutionAddress(withdrawalAddress)
+		credentials := deneb.NewCredentialsFromExecutionAddress(withdrawalAddress)
 
 		amountStr := args[createAmt1]
 		amount, err := parser.ConvertAmount(amountStr)
@@ -138,16 +138,16 @@ func CreateDepositMessage(
 	cs chain.Spec,
 	blsSigner crypto.BLSSigner,
 	genValRoot common.Root,
-	creds types.WithdrawalCredentials,
+	creds deneb.WithdrawalCredentials,
 	amount math.Gwei,
 ) (
-	*types.DepositMessage,
+	*deneb.DepositMessage,
 	crypto.BLSSignature,
 	error,
 ) {
 	// Create and sign the deposit message. All deposits are signed with the genesis version.
-	depositMsg, signature, err := types.CreateAndSignDepositMessage(
-		types.NewForkData(version.Genesis(), genValRoot),
+	depositMsg, signature, err := deneb.CreateAndSignDepositMessage(
+		deneb.NewForkData(version.Genesis(), genValRoot),
 		cs.DomainTypeDeposit(),
 		blsSigner,
 		creds,

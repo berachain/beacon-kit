@@ -30,7 +30,7 @@ import (
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
-	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -53,15 +53,15 @@ func TestPayloadTimestampVerification(t *testing.T) {
 	// process genesis before any other block
 	genesisTime := time.Now().Truncate(time.Second)
 	var (
-		genDeposits = types.Deposits{
+		genDeposits = deneb.Deposits{
 			{
 				Pubkey:      [48]byte{0x00},
-				Credentials: types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{}),
+				Credentials: deneb.NewCredentialsFromExecutionAddress(common.ExecutionAddress{}),
 				Amount:      math.Gwei(cs.MaxEffectiveBalance()),
 				Index:       0,
 			},
 		}
-		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genPayloadHeader = new(deneb.ExecutionPayloadHeader).Empty()
 		genVersion       = version.Deneb()
 	)
 	genPayloadHeader.Timestamp = math.U64(genesisTime.Unix())
@@ -140,7 +140,7 @@ func TestPayloadTimestampVerification(t *testing.T) {
 			blk := buildNextBlock(
 				t,
 				testSt,
-				types.NewEth1Data(genDeposits.HashTreeRoot()),
+				deneb.NewEth1Data(genDeposits.HashTreeRoot()),
 				math.U64(tt.payloadTime.Unix()),
 				nil,
 				testSt.EVMInflationWithdrawal(constants.GenesisSlot+1),

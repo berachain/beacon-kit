@@ -5,7 +5,7 @@ package mocks
 import (
 	common "github.com/berachain/beacon-kit/primitives/common"
 	math "github.com/berachain/beacon-kit/primitives/math"
-	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus-types/deneb"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -359,19 +359,19 @@ func (_c *BeaconBlockHeader_MarshalSSZ_Call) RunAndReturn(run func() ([]byte, er
 }
 
 // New provides a mock function with given fields: slot, proposerIndex, parentBlockRoot, stateRoot, bodyRoot
-func (_m *BeaconBlockHeader) New(slot math.U64, proposerIndex math.U64, parentBlockRoot common.Root, stateRoot common.Root, bodyRoot common.Root) *types.BeaconBlockHeader {
+func (_m *BeaconBlockHeader) New(slot math.U64, proposerIndex math.U64, parentBlockRoot common.Root, stateRoot common.Root, bodyRoot common.Root) *deneb.BeaconBlockHeader {
 	ret := _m.Called(slot, proposerIndex, parentBlockRoot, stateRoot, bodyRoot)
 
 	if len(ret) == 0 {
 		panic("no return value specified for New")
 	}
 
-	var r0 *types.BeaconBlockHeader
-	if rf, ok := ret.Get(0).(func(math.U64, math.U64, common.Root, common.Root, common.Root) *types.BeaconBlockHeader); ok {
+	var r0 *deneb.BeaconBlockHeader
+	if rf, ok := ret.Get(0).(func(math.U64, math.U64, common.Root, common.Root, common.Root) *deneb.BeaconBlockHeader); ok {
 		r0 = rf(slot, proposerIndex, parentBlockRoot, stateRoot, bodyRoot)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*types.BeaconBlockHeader)
+			r0 = ret.Get(0).(*deneb.BeaconBlockHeader)
 		}
 	}
 
@@ -400,12 +400,12 @@ func (_c *BeaconBlockHeader_New_Call) Run(run func(slot math.U64, proposerIndex 
 	return _c
 }
 
-func (_c *BeaconBlockHeader_New_Call) Return(_a0 *types.BeaconBlockHeader) *BeaconBlockHeader_New_Call {
+func (_c *BeaconBlockHeader_New_Call) Return(_a0 *deneb.BeaconBlockHeader) *BeaconBlockHeader_New_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *BeaconBlockHeader_New_Call) RunAndReturn(run func(math.U64, math.U64, common.Root, common.Root, common.Root) *types.BeaconBlockHeader) *BeaconBlockHeader_New_Call {
+func (_c *BeaconBlockHeader_New_Call) RunAndReturn(run func(math.U64, math.U64, common.Root, common.Root, common.Root) *deneb.BeaconBlockHeader) *BeaconBlockHeader_New_Call {
 	_c.Call.Return(run)
 	return _c
 }

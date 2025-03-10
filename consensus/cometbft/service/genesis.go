@@ -27,7 +27,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
@@ -43,7 +43,7 @@ func (s *Service) DefaultGenesis() map[string]json.RawMessage {
 	// genesis states.
 	gen := make(map[string]json.RawMessage)
 	var err error
-	gen["beacon"], err = json.Marshal(types.DefaultGenesis())
+	gen["beacon"], err = json.Marshal(deneb.DefaultGenesis())
 	if err != nil {
 		panic(err)
 	}
@@ -67,7 +67,7 @@ func (s *Service) ValidateGenesis(
 		)
 	}
 
-	beaconGenesis := &types.Genesis{}
+	beaconGenesis := &deneb.Genesis{}
 
 	if err := json.Unmarshal(beaconGenesisBz, &beaconGenesis); err != nil {
 		return fmt.Errorf(
@@ -100,7 +100,7 @@ func (s *Service) ValidateGenesis(
 // - At least one deposit is present
 // - No duplicate public keys
 // Returns an error with details if any validation fails.
-func validateDeposits(deposits []*types.Deposit) error {
+func validateDeposits(deposits []*deneb.Deposit) error {
 	if len(deposits) == 0 {
 		return errors.New("at least one deposit is required")
 	}
@@ -131,7 +131,7 @@ const maxExtraDataSize = 32
 
 // validateExecutionHeader validates the provided execution payload header
 // for the genesis block.
-func validateExecutionHeader(header *types.ExecutionPayloadHeader) error {
+func validateExecutionHeader(header *deneb.ExecutionPayloadHeader) error {
 	if header == nil {
 		return errors.New("execution payload header cannot be nil")
 	}

@@ -28,7 +28,7 @@ import (
 
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
-	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus-types/deneb"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -50,12 +50,12 @@ func TestTransitionUpdateValidators(t *testing.T) {
 		maxBalance       = math.Gwei(cs.MaxEffectiveBalance())
 		increment        = math.Gwei(cs.EffectiveBalanceIncrement())
 		minBalance       = math.Gwei(cs.EjectionBalance())
-		emptyCredentials = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
+		emptyCredentials = deneb.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
 	)
 
 	// STEP 0: Setup initial state via genesis
 	var (
-		genDeposits = types.Deposits{
+		genDeposits = deneb.Deposits{
 			{
 				Pubkey:      [48]byte{0x00},
 				Credentials: emptyCredentials,
@@ -75,7 +75,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 				Index:       uint64(2),
 			},
 		}
-		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genPayloadHeader = new(deneb.ExecutionPayloadHeader).Empty()
 		genVersion       = version.Deneb()
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
@@ -89,7 +89,7 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	require.Len(t, valDiff, len(genDeposits))
 
 	// STEP 1: top up a genesis validator balance
-	blkDeposit := &types.Deposit{
+	blkDeposit := &deneb.Deposit{
 		Pubkey:      genDeposits[2].Pubkey,
 		Credentials: emptyCredentials,
 		Amount:      2 * increment, // twice to account for hysteresis
@@ -100,9 +100,9 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	blk1 := buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		deneb.NewEth1Data(depRoot),
 		10,
-		[]*types.Deposit{blkDeposit},
+		[]*deneb.Deposit{blkDeposit},
 		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
 	)
 
@@ -142,9 +142,9 @@ func TestTransitionUpdateValidators(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		deneb.NewEth1Data(depRoot),
 		blk.Body.ExecutionPayload.Timestamp+1,
-		[]*types.Deposit{},
+		[]*deneb.Deposit{},
 		st.EVMInflationWithdrawal(blk.GetSlot()+1),
 	)
 
@@ -182,12 +182,12 @@ func TestTransitionCreateValidator(t *testing.T) {
 		increment        = math.Gwei(cs.EffectiveBalanceIncrement())
 		minBalance       = math.Gwei(cs.EjectionBalance())
 		emptyAddress     = common.ExecutionAddress{}
-		emptyCredentials = types.NewCredentialsFromExecutionAddress(emptyAddress)
+		emptyCredentials = deneb.NewCredentialsFromExecutionAddress(emptyAddress)
 	)
 
 	// STEP 0: Setup initial state via genesis
 	var (
-		genDeposits = types.Deposits{
+		genDeposits = deneb.Deposits{
 			{
 				Pubkey:      [48]byte{0x01},
 				Credentials: emptyCredentials,
@@ -195,7 +195,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 				Index:       uint64(0),
 			},
 		}
-		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genPayloadHeader = new(deneb.ExecutionPayloadHeader).Empty()
 		genVersion       = version.Deneb()
 	)
 
@@ -210,7 +210,7 @@ func TestTransitionCreateValidator(t *testing.T) {
 	require.Len(t, genVals, len(genDeposits))
 
 	// STEP 1: top up a genesis validator balance
-	blkDeposit := &types.Deposit{
+	blkDeposit := &deneb.Deposit{
 		Pubkey:      [48]byte{0xff}, // a new key for a new validator
 		Credentials: emptyCredentials,
 		Amount:      maxBalance,
@@ -221,9 +221,9 @@ func TestTransitionCreateValidator(t *testing.T) {
 	blk1 := buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		deneb.NewEth1Data(depRoot),
 		10,
-		[]*types.Deposit{blkDeposit},
+		[]*deneb.Deposit{blkDeposit},
 		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
 	)
 
@@ -264,9 +264,9 @@ func TestTransitionCreateValidator(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		deneb.NewEth1Data(depRoot),
 		blk.Body.ExecutionPayload.Timestamp+1,
-		[]*types.Deposit{},
+		[]*deneb.Deposit{},
 		st.EVMInflationWithdrawal(blk.GetSlot()+1),
 	)
 
@@ -299,9 +299,9 @@ func TestTransitionCreateValidator(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		deneb.NewEth1Data(depRoot),
 		blk.Body.ExecutionPayload.Timestamp+1,
-		[]*types.Deposit{},
+		[]*deneb.Deposit{},
 		st.EVMInflationWithdrawal(blk.GetSlot()+1),
 	)
 
@@ -348,14 +348,14 @@ func TestTransitionWithdrawals(t *testing.T) {
 	var (
 		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
 		minBalance   = math.Gwei(cs.EffectiveBalanceIncrement())
-		credentials0 = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
+		credentials0 = deneb.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
 		address1     = common.ExecutionAddress{0x01}
-		credentials1 = types.NewCredentialsFromExecutionAddress(address1)
+		credentials1 = deneb.NewCredentialsFromExecutionAddress(address1)
 	)
 
 	// Setup initial state so that validator 1 is partially withdrawable.
 	var (
-		genDeposits = types.Deposits{
+		genDeposits = deneb.Deposits{
 			{
 				Pubkey:      [48]byte{0x00},
 				Credentials: credentials0,
@@ -369,7 +369,7 @@ func TestTransitionWithdrawals(t *testing.T) {
 				Index:       1,
 			},
 		}
-		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genPayloadHeader = new(deneb.ExecutionPayloadHeader).Empty()
 		genVersion       = version.Deneb()
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
@@ -398,9 +398,9 @@ func TestTransitionWithdrawals(t *testing.T) {
 	blk := buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(genDeposits.HashTreeRoot()),
+		deneb.NewEth1Data(genDeposits.HashTreeRoot()),
 		10,
-		[]*types.Deposit{},
+		[]*deneb.Deposit{},
 		withdrawals...,
 	)
 
@@ -431,14 +431,14 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
 		minBalance   = math.Gwei(cs.EffectiveBalanceIncrement())
 		address0     = common.ExecutionAddress{}
-		credentials0 = types.NewCredentialsFromExecutionAddress(address0)
+		credentials0 = deneb.NewCredentialsFromExecutionAddress(address0)
 		address1     = common.ExecutionAddress{0x01}
-		credentials1 = types.NewCredentialsFromExecutionAddress(address1)
+		credentials1 = deneb.NewCredentialsFromExecutionAddress(address1)
 	)
 
 	// Setup initial state so that both validators are partially withdrawable.
 	var (
-		genDeposits = types.Deposits{
+		genDeposits = deneb.Deposits{
 			{
 				Pubkey:      [48]byte{0x00},
 				Credentials: credentials0,
@@ -452,7 +452,7 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 				Index:       1,
 			},
 		}
-		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genPayloadHeader = new(deneb.ExecutionPayloadHeader).Empty()
 		genVersion       = version.Deneb()
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
@@ -486,9 +486,9 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	blk := buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		deneb.NewEth1Data(depRoot),
 		10,
-		[]*types.Deposit{},
+		[]*deneb.Deposit{},
 		withdrawals...,
 	)
 
@@ -527,9 +527,9 @@ func TestTransitionMaxWithdrawals(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		deneb.NewEth1Data(depRoot),
 		blk.Body.ExecutionPayload.Timestamp+1,
-		[]*types.Deposit{},
+		[]*deneb.Deposit{},
 		withdrawals...,
 	)
 	// Run the test.
@@ -563,8 +563,8 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	// STEP 0: Setup genesis with GetValidatorSetCap validators
 	// TODO: consider instead setting state artificially
 	var (
-		genDeposits      = make(types.Deposits, 0, cs.ValidatorSetCap())
-		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genDeposits      = make(deneb.Deposits, 0, cs.ValidatorSetCap())
+		genPayloadHeader = new(deneb.ExecutionPayloadHeader).Empty()
 		genVersion       = version.Deneb()
 	)
 
@@ -572,13 +572,13 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	for idx := range cs.ValidatorSetCap() {
 		var (
 			key   bytes.B48
-			creds types.WithdrawalCredentials
+			creds deneb.WithdrawalCredentials
 		)
 		key, rndSeed = generateTestPK(t, rndSeed)
 		creds, rndSeed = generateTestExecutionAddress(t, rndSeed)
 
 		genDeposits = append(genDeposits,
-			&types.Deposit{
+			&deneb.Deposit{
 				Pubkey:      key,
 				Credentials: creds,
 				Amount:      maxBalance,
@@ -600,7 +600,7 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	extraValKey, rndSeed := generateTestPK(t, rndSeed)
 	extraValCreds, _ := generateTestExecutionAddress(t, rndSeed)
 	var (
-		extraValDeposit = &types.Deposit{
+		extraValDeposit = &deneb.Deposit{
 			Pubkey:      extraValKey,
 			Credentials: extraValCreds,
 			Amount:      minBalance,
@@ -612,9 +612,9 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	blk1 := buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		deneb.NewEth1Data(depRoot),
 		10,
-		[]*types.Deposit{extraValDeposit},
+		[]*deneb.Deposit{extraValDeposit},
 		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
 	)
 
@@ -655,9 +655,9 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		deneb.NewEth1Data(depRoot),
 		blk.Body.ExecutionPayload.Timestamp+1,
-		[]*types.Deposit{},
+		[]*deneb.Deposit{},
 		st.EVMInflationWithdrawal(blk.GetSlot()+1),
 	)
 
@@ -690,9 +690,9 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		deneb.NewEth1Data(depRoot),
 		blk.Body.ExecutionPayload.Timestamp+1,
-		[]*types.Deposit{},
+		[]*deneb.Deposit{},
 		st.EVMInflationWithdrawal(blk.GetSlot()+1),
 	)
 
@@ -719,9 +719,9 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		deneb.NewEth1Data(depRoot),
 		blk.Body.ExecutionPayload.Timestamp+1,
-		[]*types.Deposit{},
+		[]*deneb.Deposit{},
 		st.EVMInflationWithdrawal(blk.GetSlot()+1),
 	)
 	_, err = sp.Transition(ctx, st, blk)
@@ -730,9 +730,9 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		deneb.NewEth1Data(depRoot),
 		blk.Body.ExecutionPayload.Timestamp+1,
-		[]*types.Deposit{},
+		[]*deneb.Deposit{},
 		st.EVMInflationWithdrawal(blk.GetSlot()+1),
 	)
 	_, err = sp.Transition(ctx, st, blk)
@@ -750,9 +750,9 @@ func TestTransitionHittingValidatorsCap_ExtraSmall(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		deneb.NewEth1Data(depRoot),
 		blk.Body.ExecutionPayload.Timestamp+1,
-		[]*types.Deposit{},
+		[]*deneb.Deposit{},
 		withdrawals...,
 	)
 	_, err = sp.Transition(ctx, st, blk)
@@ -778,8 +778,8 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	// STEP 0: Setup genesis with GetValidatorSetCap validators
 	// TODO: consider instead setting state artificially
 	var (
-		genDeposits      = make(types.Deposits, 0, cs.ValidatorSetCap())
-		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genDeposits      = make(deneb.Deposits, 0, cs.ValidatorSetCap())
+		genPayloadHeader = new(deneb.ExecutionPayloadHeader).Empty()
 		genVersion       = version.Deneb()
 	)
 
@@ -787,13 +787,13 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	for idx := range cs.ValidatorSetCap() {
 		var (
 			key   bytes.B48
-			creds types.WithdrawalCredentials
+			creds deneb.WithdrawalCredentials
 		)
 		key, rndSeed = generateTestPK(t, rndSeed)
 		creds, rndSeed = generateTestExecutionAddress(t, rndSeed)
 
 		genDeposits = append(genDeposits,
-			&types.Deposit{
+			&deneb.Deposit{
 				Pubkey:      key,
 				Credentials: creds,
 				Amount:      maxBalance,
@@ -818,7 +818,7 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	extraValKey, rndSeed := generateTestPK(t, rndSeed)
 	extraValCreds, _ := generateTestExecutionAddress(t, rndSeed)
 	var (
-		extraValDeposit = &types.Deposit{
+		extraValDeposit = &deneb.Deposit{
 			Pubkey:      extraValKey,
 			Credentials: extraValCreds,
 			Amount:      maxBalance,
@@ -830,9 +830,9 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	blk1 := buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		deneb.NewEth1Data(depRoot),
 		10,
-		[]*types.Deposit{extraValDeposit},
+		[]*deneb.Deposit{extraValDeposit},
 		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
 	)
 
@@ -890,9 +890,9 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		deneb.NewEth1Data(depRoot),
 		blk.Body.ExecutionPayload.Timestamp+1,
-		[]*types.Deposit{},
+		[]*deneb.Deposit{},
 		st.EVMInflationWithdrawal(blk.GetSlot()+1),
 	)
 
@@ -940,9 +940,9 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		deneb.NewEth1Data(depRoot),
 		blk.Body.ExecutionPayload.Timestamp+1,
-		[]*types.Deposit{},
+		[]*deneb.Deposit{},
 		st.EVMInflationWithdrawal(blk.GetSlot()+1),
 	)
 
@@ -998,9 +998,9 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		deneb.NewEth1Data(depRoot),
 		blk.Body.ExecutionPayload.Timestamp+1,
-		[]*types.Deposit{},
+		[]*deneb.Deposit{},
 		st.EVMInflationWithdrawal(blk.GetSlot()),
 	)
 	_, err = sp.Transition(ctx, st, blk)
@@ -1009,9 +1009,9 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		deneb.NewEth1Data(depRoot),
 		blk.Body.ExecutionPayload.Timestamp+1,
-		[]*types.Deposit{},
+		[]*deneb.Deposit{},
 		st.EVMInflationWithdrawal(blk.GetSlot()+1),
 	)
 	_, err = sp.Transition(ctx, st, blk)
@@ -1029,9 +1029,9 @@ func TestTransitionHittingValidatorsCap_ExtraBig(t *testing.T) {
 	blk = buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		deneb.NewEth1Data(depRoot),
 		blk.Body.ExecutionPayload.Timestamp+1,
-		[]*types.Deposit{},
+		[]*deneb.Deposit{},
 		withdrawals...,
 	)
 	_, err = sp.Transition(ctx, st, blk)
@@ -1045,12 +1045,12 @@ func TestValidatorNotWithdrawable(t *testing.T) {
 	var (
 		belowActiveBalance = math.Gwei(cs.EjectionBalance())
 		maxBalance         = math.Gwei(cs.MaxEffectiveBalance())
-		validCredentials   = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
+		validCredentials   = deneb.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
 	)
 
 	// Setup initial state with one validator
 	var (
-		genDeposits = types.Deposits{
+		genDeposits = deneb.Deposits{
 			{
 				Pubkey:      [48]byte{0x00},
 				Credentials: validCredentials,
@@ -1058,7 +1058,7 @@ func TestValidatorNotWithdrawable(t *testing.T) {
 				Index:       0,
 			},
 		}
-		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genPayloadHeader = new(deneb.ExecutionPayloadHeader).Empty()
 		genVersion       = version.Deneb()
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
@@ -1069,9 +1069,9 @@ func TestValidatorNotWithdrawable(t *testing.T) {
 
 	// Create the block deposit with a non-ETH1 withdrawal credentials. This stake should not
 	// be lost.
-	invalidCredentials := types.WithdrawalCredentials(validCredentials[:])
+	invalidCredentials := deneb.WithdrawalCredentials(validCredentials[:])
 	invalidCredentials[1] = 0x01
-	blockDeposits := types.Deposits{
+	blockDeposits := deneb.Deposits{
 		{
 			Pubkey:      [48]byte{0x01},
 			Credentials: invalidCredentials,
@@ -1084,7 +1084,7 @@ func TestValidatorNotWithdrawable(t *testing.T) {
 	blk := buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		deneb.NewEth1Data(depRoot),
 		10,
 		blockDeposits,
 		st.EVMInflationWithdrawal(constants.GenesisSlot+1),

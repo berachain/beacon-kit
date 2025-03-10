@@ -22,7 +22,7 @@ package genesis
 
 import (
 	"github.com/berachain/beacon-kit/chain"
-	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
@@ -34,7 +34,7 @@ import (
 // collectively reproduce part of genesis file structure
 
 type Beacon struct {
-	Deposits types.Deposits `json:"deposits"`
+	Deposits deneb.Deposits `json:"deposits"`
 }
 
 type AppState struct {
@@ -63,15 +63,15 @@ func ComputeValidatorsRootFromFile(genesisFile string, cs chain.Spec) (common.Ro
 
 // ComputeValidatorsRoot returns the validator root for a given set of genesis deposits
 // and a chain spec.
-func ComputeValidatorsRoot(genesisDeposits types.Deposits, cs chain.Spec) common.Root {
-	validators := make(types.Validators, len(genesisDeposits))
+func ComputeValidatorsRoot(genesisDeposits deneb.Deposits, cs chain.Spec) common.Root {
+	validators := make(deneb.Validators, len(genesisDeposits))
 	minEffectiveBalance := math.Gwei(
 		cs.EjectionBalance() +
 			cs.EffectiveBalanceIncrement(),
 	)
 
 	for i, deposit := range genesisDeposits {
-		val := types.NewValidatorFromDeposit(
+		val := deneb.NewValidatorFromDeposit(
 			deposit.Pubkey,
 			deposit.Credentials,
 			deposit.Amount,

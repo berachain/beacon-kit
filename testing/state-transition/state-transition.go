@@ -33,7 +33,7 @@ import (
 	"cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/chain"
-	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/log/noop"
 	nodemetrics "github.com/berachain/beacon-kit/node-core/components/metrics"
 	"github.com/berachain/beacon-kit/primitives/bytes"
@@ -53,7 +53,7 @@ import (
 )
 
 type (
-	TestBeaconStateMarshallableT = types.BeaconState
+	TestBeaconStateMarshallableT = deneb.BeaconState
 	TestBeaconStateT             = statedb.StateDB
 	TestStateProcessorT          = core.StateProcessor
 )

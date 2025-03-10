@@ -28,7 +28,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/chain"
-	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus-types/deneb"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/node-core/components"
 	"github.com/berachain/beacon-kit/primitives/bytes"
@@ -64,7 +64,7 @@ func progressStateToSlot(
 
 	err := beaconState.SetSlot(slot)
 	require.NoError(t, err)
-	err = beaconState.SetLatestBlockHeader(types.NewBeaconBlockHeader(
+	err = beaconState.SetLatestBlockHeader(deneb.NewBeaconBlockHeader(
 		slot,
 		math.U64(0),
 		common.Root{},
@@ -77,11 +77,11 @@ func progressStateToSlot(
 func buildNextBlock(
 	t *testing.T,
 	beaconState *statetransition.TestBeaconStateT,
-	eth1Data *types.Eth1Data,
+	eth1Data *deneb.Eth1Data,
 	timestamp math.U64,
-	blockDeposits types.Deposits,
+	blockDeposits deneb.Deposits,
 	withdrawals ...*engineprimitives.Withdrawal,
-) *types.BeaconBlock {
+) *deneb.BeaconBlock {
 	t.Helper()
 
 	// first update state root, similarly to what we do in processSlot
@@ -91,7 +91,7 @@ func buildNextBlock(
 	parentBlkHeader.SetStateRoot(root)
 
 	// build the payload
-	payload := &types.ExecutionPayload{
+	payload := &deneb.ExecutionPayload{
 		Timestamp:     timestamp,
 		ExtraData:     []byte("testing"),
 		Transactions:  [][]byte{},
@@ -100,19 +100,19 @@ func buildNextBlock(
 		EpVersion:     version.Deneb1(),
 	}
 	parentBeaconBlockRoot := parentBlkHeader.HashTreeRoot()
-	ethBlk, _, err := types.MakeEthBlock(payload, &parentBeaconBlockRoot)
+	ethBlk, _, err := deneb.MakeEthBlock(payload, &parentBeaconBlockRoot)
 	require.NoError(t, err)
 	payload.BlockHash = common.ExecutionHash(ethBlk.Hash())
 
 	// finally build the block
-	blk, err := types.NewBeaconBlockWithVersion(
+	blk, err := deneb.NewBeaconBlockWithVersion(
 		parentBlkHeader.GetSlot()+1,
 		parentBlkHeader.GetProposerIndex(),
 		parentBlkHeader.HashTreeRoot(),
 		version.Deneb1(),
 	)
 	require.NoError(t, err)
-	blk.Body = &types.BeaconBlockBody{
+	blk.Body = &deneb.BeaconBlockBody{
 		ExecutionPayload: payload,
 		Eth1Data:         eth1Data,
 		Deposits:         blockDeposits,
@@ -123,7 +123,7 @@ func buildNextBlock(
 func generateTestExecutionAddress(
 	t *testing.T,
 	rndSeed int,
-) (types.WithdrawalCredentials, int) {
+) (deneb.WithdrawalCredentials, int) {
 	t.Helper()
 
 	addrStr := strconv.Itoa(rndSeed)
@@ -131,7 +131,7 @@ func generateTestExecutionAddress(
 	execAddr, err := bytes.ToBytes20(addrBytes)
 	require.NoError(t, err)
 	rndSeed++
-	return types.NewCredentialsFromExecutionAddress(
+	return deneb.NewCredentialsFromExecutionAddress(
 		common.ExecutionAddress(execAddr),
 	), rndSeed
 }
@@ -148,13 +148,13 @@ func generateTestPK(t *testing.T, rndSeed int) (bytes.B48, int) {
 
 func moveToEndOfEpoch(
 	t *testing.T,
-	tip *types.BeaconBlock,
+	tip *deneb.BeaconBlock,
 	cs chain.Spec,
 	sp *statetransition.TestStateProcessorT,
 	st *statetransition.TestBeaconStateT,
 	ctx core.ReadOnlyContext,
 	depRoot common.Root,
-) *types.BeaconBlock {
+) *deneb.BeaconBlock {
 	t.Helper()
 	blk := tip
 	currEpoch := cs.SlotToEpoch(blk.GetSlot())
@@ -162,9 +162,9 @@ func moveToEndOfEpoch(
 		blk = buildNextBlock(
 			t,
 			st,
-			types.NewEth1Data(depRoot),
+			deneb.NewEth1Data(depRoot),
 			blk.Body.ExecutionPayload.Timestamp+1,
-			[]*types.Deposit{},
+			[]*deneb.Deposit{},
 			st.EVMInflationWithdrawal(blk.GetSlot()+1),
 		)
 

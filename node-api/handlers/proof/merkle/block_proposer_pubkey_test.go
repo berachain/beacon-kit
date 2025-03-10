@@ -23,7 +23,7 @@ package merkle_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/merkle"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/merkle/mock"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -70,18 +70,18 @@ func TestBlockProposerPubkeyProof(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			vals := make(types.Validators, tc.numValidators)
+			vals := make(deneb.Validators, tc.numValidators)
 			for i := range vals {
-				vals[i] = &types.Validator{}
+				vals[i] = &deneb.Validator{}
 			}
-			vals[tc.proposerIndex] = &types.Validator{Pubkey: tc.pubKey}
+			vals[tc.proposerIndex] = &deneb.Validator{Pubkey: tc.pubKey}
 
 			bs, err := mock.NewBeaconState(
 				tc.slot, vals, 0, common.ExecutionAddress{},
 			)
 			require.NoError(t, err)
 
-			bbh := types.NewBeaconBlockHeader(
+			bbh := deneb.NewBeaconBlockHeader(
 				tc.slot,
 				tc.proposerIndex,
 				tc.parentBlockRoot,

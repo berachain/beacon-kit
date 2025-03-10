@@ -30,7 +30,7 @@ import (
 	"cosmossdk.io/store"
 	"cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
-	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/storage"
@@ -119,11 +119,11 @@ func TestValidators(t *testing.T) {
 
 	// add validators
 	var (
-		inVal1 = &types.Validator{
+		inVal1 = &deneb.Validator{
 			Pubkey:           bytes.B48{0x01},
 			EffectiveBalance: 31e9,
 		}
-		inVal2 = &types.Validator{
+		inVal2 = &deneb.Validator{
 			Pubkey:           bytes.B48{0x02},
 			EffectiveBalance: 32e9,
 		}
@@ -156,11 +156,11 @@ func TestValidators(t *testing.T) {
 
 	// update existing validators balances
 	var (
-		inUpdatedVal1 = &types.Validator{
+		inUpdatedVal1 = &deneb.Validator{
 			Pubkey:           inVal1.GetPubkey(),
 			EffectiveBalance: inVal1.EffectiveBalance * 2,
 		}
-		inUpdatedVal2 = &types.Validator{
+		inUpdatedVal2 = &deneb.Validator{
 			Pubkey:           inVal2.GetPubkey(),
 			EffectiveBalance: inVal1.EffectiveBalance / 2,
 		}

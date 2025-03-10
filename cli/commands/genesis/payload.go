@@ -26,7 +26,7 @@ import (
 
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/cli/context"
-	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus-types/deneb"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/errors"
 	gethprimitives "github.com/berachain/beacon-kit/geth-primitives"
@@ -94,7 +94,7 @@ func AddExecutionPayload(chainSpec chain.Spec, elGenesisPath string, config *cmt
 		return err
 	}
 
-	genesisInfo := &types.Genesis{}
+	genesisInfo := &deneb.Genesis{}
 
 	if err = json.Unmarshal(
 		appGenesisState["beacon"], genesisInfo,
@@ -134,8 +134,8 @@ func executableDataToExecutionPayloadHeader(
 	data *gethprimitives.ExecutableData,
 	// todo: re-enable when codec supports.
 	_ uint64,
-) (*types.ExecutionPayloadHeader, error) {
-	var executionPayloadHeader *types.ExecutionPayloadHeader
+) (*deneb.ExecutionPayloadHeader, error) {
+	var executionPayloadHeader *deneb.ExecutionPayloadHeader
 	switch forkVersion {
 	case version.Genesis():
 		withdrawals := make(
@@ -170,7 +170,7 @@ func executableDataToExecutionPayloadHeader(
 			return nil, fmt.Errorf("failed baseFeePerGas conversion: %w", err)
 		}
 
-		executionPayloadHeader = &types.ExecutionPayloadHeader{
+		executionPayloadHeader = &deneb.ExecutionPayloadHeader{
 			ParentHash:    common.ExecutionHash(data.ParentHash),
 			FeeRecipient:  common.ExecutionAddress(data.FeeRecipient),
 			StateRoot:     common.Bytes32(data.StateRoot),
@@ -193,7 +193,7 @@ func executableDataToExecutionPayloadHeader(
 			EphVersion:      forkVersion,
 		}
 	default:
-		return nil, types.ErrForkVersionNotSupported
+		return nil, deneb.ErrForkVersionNotSupported
 	}
 
 	return executionPayloadHeader, nil

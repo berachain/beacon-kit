@@ -27,7 +27,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/chain"
-	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -48,11 +48,11 @@ func TestInitialize(t *testing.T) {
 
 	// create test inputs
 	var (
-		genDeposits = []*types.Deposit{
+		genDeposits = []*deneb.Deposit{
 			{
 				Pubkey: [48]byte{0x01},
 				Amount: maxBalance,
-				Credentials: types.NewCredentialsFromExecutionAddress(
+				Credentials: deneb.NewCredentialsFromExecutionAddress(
 					common.ExecutionAddress{0x01},
 				),
 				Index: uint64(0),
@@ -60,7 +60,7 @@ func TestInitialize(t *testing.T) {
 			{
 				Pubkey: [48]byte{0x02},
 				Amount: minBalance + increment,
-				Credentials: types.NewCredentialsFromExecutionAddress(
+				Credentials: deneb.NewCredentialsFromExecutionAddress(
 					common.ExecutionAddress{0x02},
 				),
 				Index: uint64(1),
@@ -68,7 +68,7 @@ func TestInitialize(t *testing.T) {
 			{
 				Pubkey: [48]byte{0x03},
 				Amount: minBalance,
-				Credentials: types.NewCredentialsFromExecutionAddress(
+				Credentials: deneb.NewCredentialsFromExecutionAddress(
 					common.ExecutionAddress{0x03},
 				),
 				Index: uint64(2),
@@ -76,7 +76,7 @@ func TestInitialize(t *testing.T) {
 			{
 				Pubkey: [48]byte{0x04},
 				Amount: 2 * maxBalance,
-				Credentials: types.NewCredentialsFromExecutionAddress(
+				Credentials: deneb.NewCredentialsFromExecutionAddress(
 					common.ExecutionAddress{0x04},
 				),
 				Index: uint64(3),
@@ -84,7 +84,7 @@ func TestInitialize(t *testing.T) {
 			{
 				Pubkey: [48]byte{0x05},
 				Amount: minBalance - increment,
-				Credentials: types.NewCredentialsFromExecutionAddress(
+				Credentials: deneb.NewCredentialsFromExecutionAddress(
 					common.ExecutionAddress{0x05},
 				),
 				Index: uint64(4),
@@ -92,7 +92,7 @@ func TestInitialize(t *testing.T) {
 			{
 				Pubkey: [48]byte{0x06},
 				Amount: minBalance + increment*3/2,
-				Credentials: types.NewCredentialsFromExecutionAddress(
+				Credentials: deneb.NewCredentialsFromExecutionAddress(
 					common.ExecutionAddress{0x06},
 				),
 				Index: uint64(5),
@@ -100,7 +100,7 @@ func TestInitialize(t *testing.T) {
 			{
 				Pubkey: [48]byte{0x07},
 				Amount: maxBalance + increment/10,
-				Credentials: types.NewCredentialsFromExecutionAddress(
+				Credentials: deneb.NewCredentialsFromExecutionAddress(
 					common.ExecutionAddress{0x07},
 				),
 				Index: uint64(6),
@@ -108,18 +108,18 @@ func TestInitialize(t *testing.T) {
 			{
 				Pubkey: [48]byte{0x08},
 				Amount: minBalance + increment*99/100,
-				Credentials: types.NewCredentialsFromExecutionAddress(
+				Credentials: deneb.NewCredentialsFromExecutionAddress(
 					common.ExecutionAddress{0x08},
 				),
 				Index: uint64(7),
 			},
 		}
-		goodDeposits = []*types.Deposit{
+		goodDeposits = []*deneb.Deposit{
 			genDeposits[0], genDeposits[1], genDeposits[3],
 			genDeposits[5], genDeposits[6],
 		}
-		executionPayloadHeader = &types.ExecutionPayloadHeader{}
-		fork                   = &types.Fork{
+		executionPayloadHeader = &deneb.ExecutionPayloadHeader{}
+		fork                   = &deneb.Fork{
 			PreviousVersion: version.Deneb(),
 			CurrentVersion:  version.Deneb(),
 			Epoch:           constants.GenesisEpoch,
@@ -159,7 +159,7 @@ func checkValidator(
 	t *testing.T,
 	cs chain.Spec,
 	bs *statetransition.TestBeaconStateT,
-	dep *types.Deposit,
+	dep *deneb.Deposit,
 ) {
 	t.Helper()
 

@@ -23,7 +23,7 @@ package types
 import (
 	"time"
 
-	ctypes "github.com/berachain/beacon-kit/consensus-types/types"
+	ctypes "github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/primitives/math"
 )
 

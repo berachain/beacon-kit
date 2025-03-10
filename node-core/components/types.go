@@ -22,7 +22,7 @@ package components
 
 import (
 	appmodule "cosmossdk.io/core/appmodule/v2"
-	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus-types/deneb"
 	consruntimetypes "github.com/berachain/beacon-kit/consensus/types"
 	engineprimitives "github.com/berachain/beacon-kit/engine-primitives/engine-primitives"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
@@ -35,13 +35,13 @@ import (
 
 type (
 	// AttestationData is a type alias for the attestation data.
-	AttestationData = types.AttestationData
+	AttestationData = deneb.AttestationData
 
 	// Context is a type alias for the transition context.
 	Context = transition.Context
 
 	// Fork is a type alias for the fork.
-	Fork = types.Fork
+	Fork = deneb.Fork
 
 	// SlotData is a type alias for the incoming slot.
 	SlotData = consruntimetypes.SlotData
@@ -53,7 +53,7 @@ type (
 	PayloadID = engineprimitives.PayloadID
 
 	// SlashingInfo is a type alias for the slashing info.
-	SlashingInfo = types.SlashingInfo
+	SlashingInfo = deneb.SlashingInfo
 
 	// ValidatorUpdate is a type alias for the validator update.
 	ABCIValidatorUpdate = appmodule.ValidatorUpdate
@@ -71,5 +71,5 @@ type (
 	// Withdrawals = engineprimitives.Withdrawals.
 
 	// WithdrawalCredentials is a type alias for the withdrawal credentials.
-	WithdrawalCredentials = types.WithdrawalCredentials
+	WithdrawalCredentials = deneb.WithdrawalCredentials
 )

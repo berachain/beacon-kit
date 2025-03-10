@@ -25,7 +25,7 @@ import (
 
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/config/spec"
-	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/da/store"
 	datypes "github.com/berachain/beacon-kit/da/types"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -68,10 +68,10 @@ func TestStore_PersistRace(t *testing.T) {
 	for i := range sc {
 		sc[i] = &datypes.BlobSidecar{
 			Index: uint64(i),
-			SignedBeaconBlockHeader: &types.SignedBeaconBlockHeader{
-				Header: &types.BeaconBlockHeader{},
+			SignedBeaconBlockHeader: &deneb.SignedBeaconBlockHeader{
+				Header: &deneb.BeaconBlockHeader{},
 			},
-			InclusionProof: make([]common.Root, types.KZGInclusionProofDepth),
+			InclusionProof: make([]common.Root, deneb.KZGInclusionProofDepth),
 		}
 	}
 	var sidecars datypes.BlobSidecars = sc

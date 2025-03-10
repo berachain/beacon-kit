@@ -28,7 +28,7 @@ import (
 
 	"github.com/berachain/beacon-kit/cli/commands/deposit"
 	"github.com/berachain/beacon-kit/config/spec"
-	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -63,7 +63,7 @@ func TestCreateAndValidateCommandsDuality(t *testing.T) {
 	f := func(
 		blsKeySecret [32]byte,
 		genValRoot common.Root,
-		creds types.WithdrawalCredentials,
+		creds deneb.WithdrawalCredentials,
 		amount math.Gwei,
 	) bool {
 		// generate random blsKey from the given secret
@@ -78,7 +78,7 @@ func TestCreateAndValidateCommandsDuality(t *testing.T) {
 
 		// create the deposit and check that it verifies
 		var (
-			msg  *types.DepositMessage
+			msg  *deneb.DepositMessage
 			sign crypto.BLSSignature
 		)
 		msg, sign, err = deposit.CreateDepositMessage(cs, blsSigner, genValRoot, creds, amount)

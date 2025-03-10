@@ -23,7 +23,7 @@ package merkle_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/merkle"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -34,7 +34,7 @@ import (
 // that the generated proof correctly verifies.
 func TestProveBeaconStateInBlock(t *testing.T) {
 	t.Parallel()
-	bbh := (&types.BeaconBlockHeader{}).Empty()
+	bbh := (&deneb.BeaconBlockHeader{}).Empty()
 
 	testCases := []struct {
 		name              string

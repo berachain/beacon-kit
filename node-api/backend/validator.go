@@ -24,7 +24,7 @@ import (
 	"slices"
 
 	"cosmossdk.io/collections"
-	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-api/backend/utils"
 	beacontypes "github.com/berachain/beacon-kit/node-api/handlers/beacon/types"
@@ -100,7 +100,7 @@ func (b Backend) FilteredValidators(
 // filterAndBuildValidatorData processes all validators and builds their data based on filters
 func filterAndBuildValidatorData(
 	st *statedb.StateDB,
-	validators []*types.Validator,
+	validators []*deneb.Validator,
 	filters *validatorFilters,
 	epoch math.Epoch,
 	statuses []string,
@@ -132,7 +132,7 @@ func filterAndBuildValidatorData(
 }
 
 // matchesFilters checks if a validator matches the filters.
-func matchesFilters(validator *types.Validator, index math.U64, filters *validatorFilters) bool {
+func matchesFilters(validator *deneb.Validator, index math.U64, filters *validatorFilters) bool {
 	// If no filters, accept all validators
 	if len(filters.numericIDs) == 0 && len(filters.pubkeys) == 0 {
 		return true
@@ -151,7 +151,7 @@ func matchesFilters(validator *types.Validator, index math.U64, filters *validat
 	return false
 }
 
-func matchesPubkey(validator *types.Validator, parsedPubkeys []crypto.BLSPubkey) bool {
+func matchesPubkey(validator *deneb.Validator, parsedPubkeys []crypto.BLSPubkey) bool {
 	validatorPubkey := validator.GetPubkey()
 	return slices.Contains(parsedPubkeys, validatorPubkey)
 }
@@ -166,7 +166,7 @@ func matchesStatusFilter(status string, statuses []string) bool {
 
 func buildValidatorData(
 	st *statedb.StateDB,
-	validator *types.Validator,
+	validator *deneb.Validator,
 	index math.U64,
 	epoch math.Epoch,
 	statuses []string,

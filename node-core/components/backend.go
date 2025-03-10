@@ -23,7 +23,7 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/chain"
-	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus-types/deneb"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/berachain/beacon-kit/storage/beacondb"
@@ -35,7 +35,7 @@ import (
 type StorageBackendInput struct {
 	depinject.In
 	AvailabilityStore *dastore.Store
-	BlockStore        *block.KVStore[*types.BeaconBlock]
+	BlockStore        *block.KVStore[*deneb.BeaconBlock]
 	ChainSpec         chain.Spec
 	DepositStore      *depositdb.KVStore
 	BeaconStore       *beacondb.KVStore

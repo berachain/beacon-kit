@@ -33,7 +33,7 @@ import (
 
 	"github.com/berachain/beacon-kit/cli/utils/genesis"
 	"github.com/berachain/beacon-kit/config/spec"
-	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -43,14 +43,14 @@ import (
 )
 
 // generator for random deposits.
-type TestDeposits []types.Deposit
+type TestDeposits []deneb.Deposit
 
 func (TestDeposits) Generate(rand *rand.Rand, size int) reflect.Value {
 	res := make(TestDeposits, size)
 	for i := range size {
 		var (
 			pubKey crypto.BLSPubkey
-			creds  types.WithdrawalCredentials
+			creds  deneb.WithdrawalCredentials
 			sign   crypto.BLSSignature
 
 			err error
@@ -68,7 +68,7 @@ func (TestDeposits) Generate(rand *rand.Rand, size int) reflect.Value {
 			panic(fmt.Errorf("failed generating random sign: %w", err))
 		}
 
-		res[i] = types.Deposit{
+		res[i] = deneb.Deposit{
 			Pubkey:      pubKey,
 			Credentials: creds,
 			Amount:      math.Gwei(rand.Uint64()),
@@ -85,9 +85,9 @@ func TestCompareGenesisCmdWithStateProcessor(t *testing.T) {
 	require.NoError(t, err)
 
 	f := func(inputs TestDeposits) bool {
-		deposits := make(types.Deposits, len(inputs))
+		deposits := make(deneb.Deposits, len(inputs))
 		for i, input := range inputs {
-			deposits[i] = &types.Deposit{
+			deposits[i] = &deneb.Deposit{
 				Pubkey:      input.Pubkey,
 				Credentials: input.Credentials,
 				Amount:      input.Amount,
@@ -100,7 +100,7 @@ func TestCompareGenesisCmdWithStateProcessor(t *testing.T) {
 
 		// genesis validators root from StateProcessor
 		sp, st, _, _, _, _ := statetransition.SetupTestState(t, cs)
-		genPayloadHeader := new(types.ExecutionPayloadHeader).Empty()
+		genPayloadHeader := new(deneb.ExecutionPayloadHeader).Empty()
 		_, err = sp.InitializePreminedBeaconStateFromEth1(
 			st,
 			deposits,

@@ -24,7 +24,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/chain"
-	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus-types/deneb"
 	dastore "github.com/berachain/beacon-kit/da/store"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 	"github.com/berachain/beacon-kit/storage/beacondb"
@@ -39,7 +39,7 @@ type Backend struct {
 	availabilityStore *dastore.Store
 	kvStore           *beacondb.KVStore
 	depositStore      *depositdb.KVStore
-	blockStore        *block.KVStore[*types.BeaconBlock]
+	blockStore        *block.KVStore[*deneb.BeaconBlock]
 }
 
 func NewBackend(
@@ -47,7 +47,7 @@ func NewBackend(
 	availabilityStore *dastore.Store,
 	kvStore *beacondb.KVStore,
 	depositStore *depositdb.KVStore,
-	blockStore *block.KVStore[*types.BeaconBlock],
+	blockStore *block.KVStore[*deneb.BeaconBlock],
 ) *Backend {
 	return &Backend{
 		chainSpec:         chainSpec,
@@ -75,7 +75,7 @@ func (k Backend) BeaconStore() *beacondb.KVStore {
 	return k.kvStore
 }
 
-func (k Backend) BlockStore() *block.KVStore[*types.BeaconBlock] {
+func (k Backend) BlockStore() *block.KVStore[*deneb.BeaconBlock] {
 	return k.blockStore
 }
 

@@ -23,7 +23,7 @@ package merkle_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/merkle"
 	"github.com/berachain/beacon-kit/node-api/handlers/proof/merkle/mock"
 	"github.com/berachain/beacon-kit/primitives/common"
@@ -74,7 +74,7 @@ func TestExecutionNumberProof(t *testing.T) {
 			)
 			require.NoError(t, err)
 
-			bbh := types.NewBeaconBlockHeader(
+			bbh := deneb.NewBeaconBlockHeader(
 				tc.slot,
 				tc.proposerIndex,
 				tc.parentBlockRoot,

@@ -23,7 +23,7 @@ package mock
 import (
 	"errors"
 
-	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus-types/deneb"
 	ptypes "github.com/berachain/beacon-kit/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -37,7 +37,7 @@ var _ ptypes.BeaconState[*BeaconStateMarshallable] = (*BeaconState)(nil)
 // BeaconState is a mock implementation of the proof BeaconState interface
 // using the default BeaconState type that is marshallable.
 type (
-	BeaconStateMarshallable = types.BeaconState
+	BeaconStateMarshallable = deneb.BeaconState
 
 	BeaconState struct {
 		*BeaconStateMarshallable
@@ -48,17 +48,17 @@ type (
 // validators, execution number, and execution fee recipient.
 func NewBeaconState(
 	slot math.Slot,
-	vals types.Validators,
+	vals deneb.Validators,
 	executionNumber math.U64,
 	executionFeeRecipient common.ExecutionAddress,
 ) (*BeaconState, error) {
 	// If no validators are provided, create an empty slice.
 	if len(vals) == 0 {
-		vals = make(types.Validators, 0)
+		vals = make(deneb.Validators, 0)
 	}
 
 	// Create an empty execution payload header with the given execution number and fee recipient.
-	execPayloadHeader := &types.ExecutionPayloadHeader{
+	execPayloadHeader := &deneb.ExecutionPayloadHeader{
 		Number:        executionNumber,
 		FeeRecipient:  executionFeeRecipient,
 		BaseFeePerGas: &uint256.Int{},
@@ -67,12 +67,12 @@ func NewBeaconState(
 	bsm := &BeaconStateMarshallable{
 		Slot:                         slot,
 		GenesisValidatorsRoot:        common.Root{},
-		Fork:                         &types.Fork{},
-		LatestBlockHeader:            &types.BeaconBlockHeader{},
+		Fork:                         &deneb.Fork{},
+		LatestBlockHeader:            &deneb.BeaconBlockHeader{},
 		BlockRoots:                   []common.Root{},
 		StateRoots:                   []common.Root{},
 		LatestExecutionPayloadHeader: execPayloadHeader,
-		Eth1Data:                     &types.Eth1Data{},
+		Eth1Data:                     &deneb.Eth1Data{},
 		Eth1DepositIndex:             0,
 		Validators:                   vals,
 		Balances:                     []uint64{},
@@ -88,7 +88,7 @@ func NewBeaconState(
 
 // GetLatestExecutionPayloadHeader implements proof BeaconState.
 func (m *BeaconState) GetLatestExecutionPayloadHeader() (
-	*types.ExecutionPayloadHeader, error,
+	*deneb.ExecutionPayloadHeader, error,
 ) {
 	return m.BeaconStateMarshallable.LatestExecutionPayloadHeader, nil
 }
@@ -103,7 +103,7 @@ func (m *BeaconState) GetMarshallable() (
 // ValidatorByIndex implements proof BeaconState.
 func (m *BeaconState) ValidatorByIndex(
 	index math.ValidatorIndex,
-) (*types.Validator, error) {
+) (*deneb.Validator, error) {
 	vals := m.BeaconStateMarshallable.Validators
 	if index >= math.ValidatorIndex(len(vals)) {
 		return nil, errors.New("validator index out of range")

@@ -23,7 +23,7 @@ package deposit
 import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/cli/utils/parser"
-	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -112,12 +112,12 @@ func validateDepositMessage(chainSpec chain.Spec) func(cmd *cobra.Command, args 
 func ValidateDeposit(
 	cs chain.Spec,
 	pubkey crypto.BLSPubkey,
-	creds types.WithdrawalCredentials,
+	creds deneb.WithdrawalCredentials,
 	amount math.Gwei,
 	genValRoot common.Root,
 	signature crypto.BLSSignature,
 ) error {
-	depositMessage := types.DepositMessage{
+	depositMessage := deneb.DepositMessage{
 		Pubkey:      pubkey,
 		Credentials: creds,
 		Amount:      amount,
@@ -125,7 +125,7 @@ func ValidateDeposit(
 
 	// All deposits are signed with the genesis version.
 	return depositMessage.VerifyCreateValidator(
-		types.NewForkData(version.Genesis(), genValRoot),
+		deneb.NewForkData(version.Genesis(), genValRoot),
 		signature,
 		cs.DomainTypeDeposit(),
 		signer.BLSSigner{}.VerifySignature,

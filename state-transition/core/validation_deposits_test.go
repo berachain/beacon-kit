@@ -28,7 +28,7 @@ import (
 
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/config/spec"
-	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/math"
@@ -47,12 +47,12 @@ func TestInvalidDeposits(t *testing.T) {
 				cs.EffectiveBalanceIncrement(),
 		)
 		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
-		credentials0 = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
+		credentials0 = deneb.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
 	)
 
 	// Setup initial state with one validator
 	var (
-		genDeposits = types.Deposits{
+		genDeposits = deneb.Deposits{
 			{
 				Pubkey:      [48]byte{0x00},
 				Credentials: credentials0,
@@ -60,7 +60,7 @@ func TestInvalidDeposits(t *testing.T) {
 				Index:       0,
 			},
 		}
-		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genPayloadHeader = new(deneb.ExecutionPayloadHeader).Empty()
 		genVersion       = version.Deneb()
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
@@ -70,7 +70,7 @@ func TestInvalidDeposits(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create the correct deposit for pubkey 1.
-	correctDeposit := &types.Deposit{
+	correctDeposit := &deneb.Deposit{
 		Pubkey:      [48]byte{0x01},
 		Credentials: credentials0,
 		Amount:      minBalance,
@@ -78,7 +78,7 @@ func TestInvalidDeposits(t *testing.T) {
 	}
 
 	// Create an invalid deposit with extra balance going to pubkey 1
-	invalidDeposit := &types.Deposit{
+	invalidDeposit := &deneb.Deposit{
 		Pubkey:      [48]byte{0x01},
 		Credentials: credentials0,
 		Amount:      maxBalance, // Invalid - should be minBalance
@@ -90,14 +90,14 @@ func TestInvalidDeposits(t *testing.T) {
 	blk := buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		deneb.NewEth1Data(depRoot),
 		10,
-		[]*types.Deposit{invalidDeposit},
+		[]*deneb.Deposit{invalidDeposit},
 		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
 	)
 
 	// Add correct deposit to local store (honest validator will see this locally).
-	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), types.Deposits{correctDeposit}))
+	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), deneb.Deposits{correctDeposit}))
 
 	// Run transition - should fail due to invalid deposit amount.
 	_, err = sp.Transition(ctx, st, blk)
@@ -111,12 +111,12 @@ func TestInvalidDepositsCount(t *testing.T) {
 
 	var (
 		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
-		credentials0 = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
+		credentials0 = deneb.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
 	)
 
 	// Setup initial state with one validator
 	var (
-		genDeposits = types.Deposits{
+		genDeposits = deneb.Deposits{
 			{
 				Pubkey:      [48]byte{0x00},
 				Credentials: credentials0,
@@ -124,7 +124,7 @@ func TestInvalidDepositsCount(t *testing.T) {
 				Index:       0,
 			},
 		}
-		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genPayloadHeader = new(deneb.ExecutionPayloadHeader).Empty()
 		genVersion       = version.Deneb()
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
@@ -134,7 +134,7 @@ func TestInvalidDepositsCount(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create the correct deposits.
-	correctDeposits := types.Deposits{
+	correctDeposits := deneb.Deposits{
 		{
 			Pubkey:      [48]byte{0x01},
 			Credentials: credentials0,
@@ -154,14 +154,14 @@ func TestInvalidDepositsCount(t *testing.T) {
 	blk := buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		deneb.NewEth1Data(depRoot),
 		10,
 		correctDeposits,
 		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
 	)
 
 	// Add JUST 1 correct deposit to local store. This node SHOULD fail to verify.
-	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), types.Deposits{correctDeposits[0]}))
+	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), deneb.Deposits{correctDeposits[0]}))
 
 	// Run transition.
 	_, err = sp.Transition(ctx, st, blk)
@@ -178,12 +178,12 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 
 	var (
 		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
-		credentials0 = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
+		credentials0 = deneb.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
 	)
 
 	// Setup initial state with one validator
 	var (
-		genDeposits = types.Deposits{
+		genDeposits = deneb.Deposits{
 			{
 				Pubkey:      [48]byte{0x00},
 				Credentials: credentials0,
@@ -191,7 +191,7 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 				Index:       0,
 			},
 		}
-		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genPayloadHeader = new(deneb.ExecutionPayloadHeader).Empty()
 		genVersion       = version.Deneb()
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
@@ -201,7 +201,7 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create the block deposits.
-	blockDeposits := types.Deposits{
+	blockDeposits := deneb.Deposits{
 		{
 			Pubkey:      [48]byte{0x01},
 			Credentials: credentials0,
@@ -215,13 +215,13 @@ func TestLocalDepositsExceedBlockDeposits(t *testing.T) {
 	blk := buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(depRoot),
+		deneb.NewEth1Data(depRoot),
 		10,
 		blockDeposits,
 		st.EVMInflationWithdrawal(constants.GenesisSlot+1),
 	)
 
-	extraLocalDeposit := &types.Deposit{
+	extraLocalDeposit := &deneb.Deposit{
 		Pubkey:      [48]byte{0x01},
 		Credentials: credentials0,
 		Amount:      maxBalance,
@@ -245,12 +245,12 @@ func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
 
 	var (
 		maxBalance   = math.Gwei(cs.MaxEffectiveBalance())
-		credentials0 = types.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
+		credentials0 = deneb.NewCredentialsFromExecutionAddress(common.ExecutionAddress{})
 	)
 
 	// Setup initial state with one validator
 	var (
-		genDeposits = types.Deposits{
+		genDeposits = deneb.Deposits{
 			{
 				Pubkey:      [48]byte{0x00},
 				Credentials: credentials0,
@@ -258,7 +258,7 @@ func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
 				Index:       0,
 			},
 		}
-		genPayloadHeader = new(types.ExecutionPayloadHeader).Empty()
+		genPayloadHeader = new(deneb.ExecutionPayloadHeader).Empty()
 		genVersion       = version.Deneb()
 	)
 	require.NoError(t, ds.EnqueueDeposits(ctx.ConsensusCtx(), genDeposits))
@@ -268,7 +268,7 @@ func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create the block deposits.
-	blockDeposits := types.Deposits{
+	blockDeposits := deneb.Deposits{
 		{
 			Pubkey:      [48]byte{0x01},
 			Credentials: credentials0,
@@ -277,7 +277,7 @@ func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
 		},
 	}
 
-	extraLocalDeposit := &types.Deposit{
+	extraLocalDeposit := &deneb.Deposit{
 		Pubkey:      [48]byte{0x01},
 		Credentials: credentials0,
 		Amount:      maxBalance,
@@ -290,7 +290,7 @@ func TestLocalDepositsExceedBlockDepositsBadRoot(t *testing.T) {
 	blk := buildNextBlock(
 		t,
 		st,
-		types.NewEth1Data(badDepRoot),
+		deneb.NewEth1Data(badDepRoot),
 		10,
 		blockDeposits,
 		st.EVMInflationWithdrawal(constants.GenesisSlot+1),

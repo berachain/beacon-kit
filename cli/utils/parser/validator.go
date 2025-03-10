@@ -24,7 +24,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
@@ -66,19 +66,19 @@ func ConvertWithdrawalAddress(address string) (common.ExecutionAddress, error) {
 
 // ConvertWithdrawalCredentials converts a string to a withdrawal credentials.
 func ConvertWithdrawalCredentials(credentials string) (
-	types.WithdrawalCredentials,
+	deneb.WithdrawalCredentials,
 	error,
 ) {
 	// convert the credentials to a WithdrawalCredentials.
 	credentialsBytes, err := hex.ToBytes(credentials)
 	if err != nil {
-		return types.WithdrawalCredentials{}, err
+		return deneb.WithdrawalCredentials{}, err
 	}
 	if len(credentialsBytes) != constants.RootLength {
-		return types.WithdrawalCredentials{},
+		return deneb.WithdrawalCredentials{},
 			ErrInvalidWithdrawalCredentialsLength
 	}
-	return types.WithdrawalCredentials(credentialsBytes), nil
+	return deneb.WithdrawalCredentials(credentialsBytes), nil
 }
 
 // ConvertAmount converts a string to a deposit amount.

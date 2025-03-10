@@ -28,7 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/cli/context"
 	"github.com/berachain/beacon-kit/cli/utils/parser"
-	"github.com/berachain/beacon-kit/consensus-types/types"
+	"github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/node-core/components"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
@@ -108,11 +108,11 @@ func AddGenesisDeposit(
 	// All deposits are signed with the genesis version.
 	genesisVersion := version.Genesis()
 
-	depositMsg, signature, err := types.CreateAndSignDepositMessage(
-		types.NewForkData(genesisVersion, common.Root{}),
+	depositMsg, signature, err := deneb.CreateAndSignDepositMessage(
+		deneb.NewForkData(genesisVersion, common.Root{}),
 		cs.DomainTypeDeposit(),
 		blsSigner,
-		types.NewCredentialsFromExecutionAddress(withdrawalAddress),
+		deneb.NewCredentialsFromExecutionAddress(withdrawalAddress),
 		depositAmount,
 	)
 	if err != nil {
@@ -121,7 +121,7 @@ func AddGenesisDeposit(
 
 	// Verify the deposit message.
 	if err = depositMsg.VerifyCreateValidator(
-		types.NewForkData(genesisVersion, common.Root{}),
+		deneb.NewForkData(genesisVersion, common.Root{}),
 		signature,
 		cs.DomainTypeDeposit(),
 		signer.BLSSigner{}.VerifySignature,
@@ -129,7 +129,7 @@ func AddGenesisDeposit(
 		return err
 	}
 
-	deposit := types.Deposit{
+	deposit := deneb.Deposit{
 		Pubkey:      depositMsg.Pubkey,
 		Amount:      depositMsg.Amount,
 		Signature:   signature,
@@ -169,7 +169,7 @@ func makeOutputFilepath(rootDir, pubkey string) (string, error) {
 
 func writeDepositToFile(
 	outputDocument string,
-	depositMessage *types.Deposit,
+	depositMessage *deneb.Deposit,
 ) error {
 	//#nosec:G302,G304 // Ignore errors on this line.
 	outputFile, err := afero.NewOsFs().OpenFile(
