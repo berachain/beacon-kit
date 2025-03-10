@@ -23,7 +23,7 @@ package core
 import (
 	"fmt"
 
-	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
+	"github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/primitives/common"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"

@@ -25,7 +25,7 @@ import (
 	"fmt"
 	"slices"
 
-	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
+	"github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 	"github.com/berachain/beacon-kit/primitives/math"
 	"github.com/berachain/beacon-kit/primitives/transition"

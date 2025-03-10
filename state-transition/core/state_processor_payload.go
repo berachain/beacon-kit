@@ -24,7 +24,7 @@ import (
 	"context"
 
 	payloadtime "github.com/berachain/beacon-kit/beacon/payload-time"
-	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
+	"github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/math"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"

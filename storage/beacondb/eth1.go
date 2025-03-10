@@ -21,7 +21,7 @@
 package beacondb
 
 import (
-	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
+	"github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/primitives/bytes"
 )
 

@@ -24,7 +24,7 @@ import (
 	"context"
 	"encoding/json"
 
-	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
+	"github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/primitives/transition"
 )
 

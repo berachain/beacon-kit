@@ -20,7 +20,7 @@
 
 package beacondb
 
-import deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
+import "github.com/berachain/beacon-kit/consensus-types/deneb"
 
 // SetFork sets the fork version for the given epoch.
 func (kv *KVStore) SetFork(fork *deneb.Fork) error {

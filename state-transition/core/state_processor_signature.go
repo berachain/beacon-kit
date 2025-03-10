@@ -21,7 +21,7 @@
 package core
 
 import (
-	deneb "github.com/berachain/beacon-kit/consensus-types/deneb"
+	"github.com/berachain/beacon-kit/consensus-types/deneb"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	statedb "github.com/berachain/beacon-kit/state-transition/core/state"
 )
