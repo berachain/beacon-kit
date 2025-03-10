@@ -69,6 +69,7 @@ type TestNode struct {
 	EngineClient    *client.EngineClient
 	StateProcessor  *core.StateProcessor
 	ServiceRegistry *service.Registry
+	KZGVerifier     kzg.BlobProofVerifier
 }
 
 // NewTestNode Uses the testnet chainspec.
@@ -118,6 +119,7 @@ func buildNode(
 		engineClient    *client.EngineClient
 		stateProcessor  *core.StateProcessor
 		serviceRegistry *service.Registry
+		kzgVerifier     kzg.BlobProofVerifier
 	)
 
 	// build all node components using depinject
@@ -142,6 +144,7 @@ func buildNode(
 		&engineClient,
 		&stateProcessor,
 		&serviceRegistry,
+		&kzgVerifier,
 	); err != nil {
 		panic(err)
 	}
@@ -163,6 +166,7 @@ func buildNode(
 		EngineClient:    engineClient,
 		StateProcessor:  stateProcessor,
 		ServiceRegistry: serviceRegistry,
+		KZGVerifier:     kzgVerifier,
 	}
 }
 
