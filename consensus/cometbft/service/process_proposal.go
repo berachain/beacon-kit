@@ -23,9 +23,9 @@ package cometbft
 import (
 	"context"
 	"fmt"
-	"github.com/berachain/beacon-kit/errors"
 	"time"
 
+	"github.com/berachain/beacon-kit/errors"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
