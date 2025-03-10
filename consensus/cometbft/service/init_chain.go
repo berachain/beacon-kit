@@ -21,6 +21,7 @@
 package cometbft
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/berachain/beacon-kit/primitives/encoding/json"
@@ -30,6 +31,7 @@ import (
 )
 
 func (s *Service) initChain(
+	ctx context.Context,
 	req *cmtabci.InitChainRequest,
 ) (*cmtabci.InitChainResponse, error) {
 	if req.ChainId != s.chainID {
@@ -81,8 +83,9 @@ func (s *Service) initChain(
 		}
 	}
 
-	s.finalizeBlockState = s.resetState(s.ctx)
+	s.finalizeBlockState = s.resetState(ctx)
 
+	//nolint:contextcheck // ctx already passed via resetState
 	resValidators, err := s.initChainer(
 		s.finalizeBlockState.Context(),
 		req.AppStateBytes,

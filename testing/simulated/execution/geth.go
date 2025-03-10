@@ -82,14 +82,15 @@ func (g *GethNode) Start(t *testing.T) (*Resource, *url.ConnectionURL) {
 			"-c",
 			`
 			geth init --datadir /tmp/gethdata /testdata/eth-genesis.json && 
-			geth --http --http.addr 0.0.0.0 --http.api eth,net,web3 \
+			geth --http --http.addr 0.0.0.0 --http.api eth,net,web3,debug \
 				 --authrpc.addr 0.0.0.0 \
 				 --authrpc.jwtsecret /testing/files/jwt.hex \
 				 --authrpc.vhosts '*' \
 				 --datadir /tmp/gethdata \
 				 --ipcpath /tmp/gethdata/geth.ipc \
 				 --syncmode full \
-				 --verbosity 4
+				 --verbosity 4 \
+				 --nodiscover
 			`,
 		},
 		// Expose required ports for EL RPC, Auth RPC, and P2P communication.
@@ -128,6 +129,16 @@ func (g *GethNode) Start(t *testing.T) (*Resource, *url.ConnectionURL) {
 func ValidGethImage() docker.PullImageOptions {
 	return docker.PullImageOptions{
 		Repository: "ethereum/client-go",
+		Tag:        "latest",
+	}
+}
+
+// ValidGethImageWithSimulate returns the default Docker image options for the Geth node with Simulate API
+// Build references commit https://github.com/ethereum/go-ethereum/tree/2407255bb3032dc17205ba0d648270357c98b713
+// TODO: Remove once https://github.com/ethereum/go-ethereum/pull/31304/files is merged.
+func ValidGethImageWithSimulate() docker.PullImageOptions {
+	return docker.PullImageOptions{
+		Repository: "ghcr.io/berachain/geth-simulate",
 		Tag:        "latest",
 	}
 }

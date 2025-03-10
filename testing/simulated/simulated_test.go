@@ -51,6 +51,7 @@ type SimulatedSuite struct {
 	SimComet              *simulated.SimComet
 	LogBuffer             *bytes.Buffer
 	GenesisValidatorsRoot common.Root
+	SimulationClient      *execution.SimulationClient
 }
 
 // TestSimulatedCometComponent runs the test suite.
@@ -73,7 +74,7 @@ func (s *SimulatedSuite) SetupTest() {
 	s.GenesisValidatorsRoot = genesisValidatorsRoot
 
 	// Start the EL (execution layer) Geth node.
-	elNode := execution.NewGethNode(s.HomeDir, execution.ValidGethImage())
+	elNode := execution.NewGethNode(s.HomeDir, execution.ValidGethImageWithSimulate())
 	elHandle, authRPC := elNode.Start(s.T())
 	s.ElHandle = elHandle
 
@@ -99,6 +100,8 @@ func (s *SimulatedSuite) SetupTest() {
 	go func() {
 		_ = s.TestNode.Start(s.CtxApp)
 	}()
+
+	s.SimulationClient = execution.NewSimulationClient(s.TestNode.EngineClient)
 	timeOut := 10 * time.Second
 	interval := 50 * time.Millisecond
 	err := s.waitTillServicesStarted(timeOut, interval)

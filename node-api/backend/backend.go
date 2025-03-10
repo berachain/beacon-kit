@@ -21,6 +21,8 @@
 package backend
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/chain"
 	"github.com/berachain/beacon-kit/node-core/components/storage"
 	"github.com/berachain/beacon-kit/node-core/types"
@@ -82,42 +84,41 @@ func (b *Backend) GetParentSlotByTimestamp(timestamp math.U64) (math.Slot, error
 // stateFromSlot returns the state at the given slot, after also processing the
 // next slot to ensure the returned beacon state is up to date.
 func (b *Backend) stateFromSlot(slot math.Slot) (*statedb.StateDB, math.Slot, error) {
-	var (
-		st  *statedb.StateDB
-		err error
-	)
-	if st, slot, err = b.stateFromSlotRaw(slot); err != nil {
-		return st, slot, err
+	st, slot, err := b.stateFromSlotRaw(slot)
+	if err != nil {
+		return st, slot, fmt.Errorf("stateFromSlotRaw failed: %w", err)
 	}
 
 	// Process the slot to update the latest state and block roots.
-	if _, err = b.sp.ProcessSlots(st, slot+1); err != nil {
-		return st, slot, err
+	targetSlot := slot + 1
+	if _, err = b.sp.ProcessSlots(st, targetSlot); err != nil {
+		return st, slot, fmt.Errorf("ProcessSlots failed, target slot %d: %w", targetSlot, err)
 	}
 
 	// We need to set the slot on the state back since ProcessSlot will update
 	// it to slot + 1.
-	err = st.SetSlot(slot)
-	return st, slot, err
+	if err = st.SetSlot(slot); err != nil {
+		return st, slot, fmt.Errorf("failed resetting slot to %d: %w", slot, err)
+	}
+	return st, slot, nil
 }
 
 // stateFromSlotRaw returns the state at the given slot using query context,
 // resolving an input slot of 0 to the latest slot. It does not process the
 // next slot on the beacon state.
 func (b *Backend) stateFromSlotRaw(slot math.Slot) (*statedb.StateDB, math.Slot, error) {
-	var st *statedb.StateDB
 	queryCtx, err := b.node.CreateQueryContext(int64(slot), false) // #nosec G115 -- not an issue in practice.
 	if err != nil {
-		return st, slot, err
+		return nil, slot, fmt.Errorf("CreateQueryContext failed: %w", err)
 	}
-	st = b.sb.StateFromContext(queryCtx)
+	st := b.sb.StateFromContext(queryCtx)
 
 	// If using height 0 for the query context, make sure to return the latest slot.
 	if slot == 0 {
 		slot, err = st.GetSlot()
 		if err != nil {
-			return st, slot, err
+			return st, slot, fmt.Errorf("GetSlot failed: %w", err)
 		}
 	}
-	return st, slot, err
+	return st, slot, nil
 }
