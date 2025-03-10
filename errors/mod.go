@@ -58,12 +58,14 @@ type DetailedError struct {
 	fatal bool
 }
 
-// WrapNonFatal returns the error message.
-func WrapNonFatal(err error) error {
-	return &DetailedError{
-		error: err,
-		fatal: false,
-	}
+// Error returns a string representation.
+func (e *DetailedError) Error() string {
+	return e.error.Error()
+}
+
+// Unwrap returns the wrapped error.
+func (e *DetailedError) Unwrap() error {
+	return e.error
 }
 
 // WrapFatal creates a new DetailedError with the
@@ -78,7 +80,7 @@ func WrapFatal(err error) error {
 // IsFatal checks if the provided error is a
 // DetailedError and if it is fatal.
 func IsFatal(err error) bool {
-	// If the error is nil, obviouisly it is not fatal.
+	// If the error is nil, obviously it is not fatal.
 	if err == nil {
 		return false
 	}
@@ -100,23 +102,6 @@ func IsFatal(err error) bool {
 		return customErr.fatal
 	}
 
-	// All other errors are fatal.
-	return true
-}
-
-// JoinFatal checks if any of the provided errors is a
-// DetailedError and if it is fatal.
-func JoinFatal(errs ...error) error {
-	fatal := false
-	for _, err := range errs {
-		if IsFatal(err) {
-			fatal = true
-			break
-		}
-	}
-	retErr := stderrors.Join(errs...)
-	if fatal {
-		return WrapFatal(retErr)
-	}
-	return WrapNonFatal(retErr)
+	// Only declared fatal errors are fatal.
+	return false
 }

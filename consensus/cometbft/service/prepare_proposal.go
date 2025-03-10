@@ -26,6 +26,7 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/consensus/types"
+	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/math"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
@@ -71,7 +72,10 @@ func (s *Service) prepareProposal(
 		s.prepareProposalState.Context(),
 		slotData,
 	)
-	if err != nil {
+	switch {
+	case errors.IsFatal(err):
+		return &cmtabci.PrepareProposalResponse{}, err
+	case err != nil:
 		s.logger.Error(
 			"failed to prepare proposal",
 			"height", req.Height,
@@ -79,9 +83,7 @@ func (s *Service) prepareProposal(
 			"err", err,
 		)
 		return &cmtabci.PrepareProposalResponse{Txs: [][]byte{}}, nil
+	default:
+		return &cmtabci.PrepareProposalResponse{Txs: [][]byte{blkBz, sidecarsBz}}, nil
 	}
-
-	return &cmtabci.PrepareProposalResponse{
-		Txs: [][]byte{blkBz, sidecarsBz},
-	}, nil
 }

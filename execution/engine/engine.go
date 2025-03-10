@@ -140,7 +140,7 @@ func (ee *Engine) NotifyForkchoiceUpdate(
 					"err", err,
 				)
 				ee.metrics.markForkchoiceUpdateFatalError(err)
-				return nil, backoff.Permanent(err)
+				return nil, backoff.Permanent(errors.WrapFatal(err))
 
 			default:
 				ee.logger.Info(
@@ -248,7 +248,7 @@ func (ee *Engine) NotifyNewPayload(
 					lastValidHash = &common.ExecutionHash{}
 				}
 				ee.metrics.markNewPayloadFatalError(payloadHash, *lastValidHash, err)
-				return nil, backoff.Permanent(err)
+				return nil, backoff.Permanent(errors.WrapFatal(err))
 			default:
 				ee.logger.Error(
 					"NotifyNewPayload: EL returns unknown error.",
