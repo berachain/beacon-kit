@@ -32,7 +32,7 @@ func (b *Backend) Spec() (*types.SpecData, error) {
 	}
 	return &types.SpecData{
 		DepositContractAddress: chainSpec.DepositContractAddress(),
-		// Currently network ID is same as eth1 chain ID.
+		// Network ID is same as eth1 chain ID.
 		DepositNetworkID:                chainSpec.DepositEth1ChainID(),
 		DomainAggregateAndProof:         chainSpec.DomainTypeAggregateAndProof(),
 		InactivityPenaltyQuotient:       chainSpec.InactivityPenaltyQuotient(),

@@ -22,16 +22,17 @@ package config
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/berachain/beacon-kit/node-api/handlers"
 	"github.com/berachain/beacon-kit/node-api/handlers/config/types"
 )
 
 // GetSpec returns the spec of the beacon chain.
-func (h *Handler) GetSpec(c handlers.Context) (any, error) {
+func (h *Handler) GetSpec(_ handlers.Context) (any, error) {
 	spec, err := h.backend.Spec()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get spec: %w", err)
+		return nil, handlers.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get spec: %v", err))
 	}
 	return types.SpecResponse{Data: *spec}, nil
 }
