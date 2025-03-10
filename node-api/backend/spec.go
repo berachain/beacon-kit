@@ -26,7 +26,7 @@ import (
 )
 
 func (b *Backend) Spec() (*types.SpecData, error) {
-	chainSpec := b.cs
+	chainSpec := b.ChainSpec()
 	if chainSpec == nil {
 		return nil, errors.New("chain spec not found")
 	}
