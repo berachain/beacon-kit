@@ -18,22 +18,19 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package builder
+package validator
 
-import (
-	"net/http"
+import "github.com/berachain/beacon-kit/node-api/handlers"
 
-	"github.com/berachain/beacon-kit/log"
-	"github.com/berachain/beacon-kit/node-api/handlers"
-)
+type Handler struct {
+	*handlers.BaseHandler
+}
 
-func (h *Handler) RegisterRoutes(logger log.Logger) {
-	h.SetLogger(logger)
-	h.BaseHandler.AddRoutes([]*handlers.Route{
-		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v1/builder/states/:state_id/expected_withdrawals",
-			Handler: h.Deprecated,
-		},
-	})
+func NewHandler() *Handler {
+	h := &Handler{
+		BaseHandler: handlers.NewBaseHandler(
+			handlers.NewRouteSet(""),
+		),
+	}
+	return h
 }
