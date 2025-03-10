@@ -36,6 +36,8 @@ func DefaultComponents() []any {
 		components.ProvideChainService,
 		components.ProvideNode,
 		components.ProvideChainSpec,
+		components.ProvideCLIContainer,
+		components.ProvideClientContext,
 		components.ProvideConfig,
 		components.ProvideServerConfig,
 		components.ProvideDepositStore,
@@ -43,6 +45,7 @@ func DefaultComponents() []any {
 		components.ProvideExecutionEngine,
 		components.ProvideJWTSecret,
 		components.ProvideLocalBuilder,
+		components.ProvideLogger,
 		components.ProvideReportingService,
 		components.ProvideCometBFTService,
 		components.ProvideServiceRegistry,
@@ -56,13 +59,11 @@ func DefaultComponents() []any {
 		components.ProvideValidatorService,
 		components.ProvideShutDownService,
 	}
+
 	c = append(c,
 		components.ProvideNodeAPIServer,
 		components.ProvideNodeAPIEngine,
 		components.ProvideNodeAPIBackend,
-	)
-
-	c = append(c,
 		components.ProvideNodeAPIHandlers,
 		components.ProvideNodeAPIBeaconHandler,
 		components.ProvideNodeAPIBuilderHandler,

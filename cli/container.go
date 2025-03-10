@@ -18,13 +18,20 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package cli
 
-// DefaultClientComponents returns the default components for
-// the client.
-func DefaultClientComponents() []any {
-	return []any{
-		ProvideClientContext,
-		ProvideLogger,
+import (
+	"github.com/berachain/beacon-kit/node-core/components/storage"
+)
+
+// Container holds all necessary dependencies for the CLI.
+type Container struct {
+	StorageBackend *storage.Backend
+}
+
+// NewContainer creates a new container with the given dependencies.
+func NewContainer(storageBackend *storage.Backend) *Container {
+	return &Container{
+		StorageBackend: storageBackend,
 	}
 }

@@ -25,9 +25,8 @@ import (
 	"os"
 
 	clibuilder "github.com/berachain/beacon-kit/cli/builder"
-	clicomponents "github.com/berachain/beacon-kit/cli/components"
 	nodebuilder "github.com/berachain/beacon-kit/node-core/builder"
-	nodecomponents "github.com/berachain/beacon-kit/node-core/components"
+	"github.com/berachain/beacon-kit/node-core/components"
 	nodetypes "github.com/berachain/beacon-kit/node-core/types"
 	"go.uber.org/automaxprocs/maxprocs"
 )
@@ -60,14 +59,13 @@ func run() error {
 			"A beacon-kit node usable with most Ethereum execution clients",
 		),
 		// Set the Runtime Components to the Default.
-		clibuilder.WithComponents(
-			append(
-				clicomponents.DefaultClientComponents(),
-				// TODO: remove these, and eventually pull cfg and chainspec
-				// from built node
-				nodecomponents.ProvideChainSpec,
-			),
-		),
+		// clibuilder.WithComponents(
+		// 	// append(
+		// 	// 	// TODO: remove these, and eventually pull cfg and chainspec
+		// 	// 	// from built node
+		// 	// 	components.ProvideChainSpec,
+		// 	// ),
+		// ),
 		// Set the NodeBuilderFunc to the NodeBuilder Build.
 		clibuilder.WithNodeBuilderFunc(nb.Build),
 	)
@@ -81,7 +79,7 @@ func run() error {
 	// Node and Cmd to a runner
 
 	// for now, running the cmd will start the node
-	return cmd.Run(clicomponents.DefaultNodeHome)
+	return cmd.Run(components.DefaultNodeHome)
 }
 
 // main is the entry point.
